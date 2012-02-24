@@ -1,42 +1,80 @@
-From: "Jan Beulich" <JBeulich@suse.com>
-Subject: ACPI: consistently use should_use_kmap()
-Date: Fri, 24 Feb 2012 11:41:53 +0000
-Message-ID: <4F47859102000078000749F4@nat28.tlf.novell.com>
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Subject: Re: [PATCH] processor passthru - upload _Cx and _Pxx data to
+ hypervisor (v5).
+Date: Fri, 24 Feb 2012 10:08:07 -0500
+Message-ID: <20120224150807.GA17879@phenom.dumpdata.com>
+References: <1330036270-20015-1-git-send-email-konrad.wilk@oracle.com>
+ <4F47733E020000780007497D@nat28.tlf.novell.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nat28.tlf.novell.com ([130.57.49.28]:34079 "EHLO
-	nat28.tlf.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751604Ab2BXLl4 convert rfc822-to-8bit (ORCPT
-	<rfc822;groupwise-linux-acpi@vger.kernel.org:3:1>);
-	Fri, 24 Feb 2012 06:41:56 -0500
+Received: from acsinet15.oracle.com ([141.146.126.227]:33603 "EHLO
+	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753695Ab2BXPLn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Feb 2012 10:11:43 -0500
 Content-Disposition: inline
+In-Reply-To: <4F47733E020000780007497D@nat28.tlf.novell.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: myron.stowe@redhat.com, linux-acpi@vger.kernel.org
+To: Jan Beulich <JBeulich@suse.com>
+Cc: ke.yu@intel.com, kevin.tian@intel.com, lenb@kernel.org, xen-devel@lists.xensource.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-... so that acpi_unmap()'s behavior gets in sync with acpi_map()'s.
+On Fri, Feb 24, 2012 at 10:23:42AM +0000, Jan Beulich wrote:
+> >>> On 23.02.12 at 23:31, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com> wrote:
+> > This module (processor-passthru)  collects the information that the cpufreq
+> > drivers and the ACPI processor code save in the 'struct acpi_processor' and
+> > then uploads it to the hypervisor.
+> 
+> Thus looks conceptually wrong to me - there shouldn't be a need for a
+> CPUFreq driver to be loaded in Dom0 (or your module should masquerade
+> as the one and only suitable one).
 
-Signed-off-by: Jan Beulich <jbeulich@suse.com>
-Cc: Myron Stowe <myron.stowe@redhat.com>
+I piggyback on the generic cpufreq drivers to collect the information they
+have evaluated.
 
----
- drivers/acpi/osl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I can make the driver a cpufreq one but there does not seem to be a way
+from the kernel to force a specific driver to say "use me". I could write
+it naturally, but not sure what the usage case is except for the driver
+I wrote. But perhaps there is also for the cpufreq powernow-k8 and acpi-processor
+so that they can function without the need for strict compile order
+(where powernow-k8 MUST be loaded before acpi-processor).
 
---- 3.3-rc4/drivers/acpi/osl.c
-+++ 3.3-rc4-acpi-use-should_use_kmap/drivers/acpi/osl.c
-@@ -347,7 +347,7 @@ static void acpi_unmap(acpi_physical_add
- 	unsigned long pfn;
- 
- 	pfn = pg_off >> PAGE_SHIFT;
--	if (page_is_ram(pfn))
-+	if (should_use_kmap(pfn))
- 		kunmap(pfn_to_page(pfn));
- 	else
- 		iounmap(vaddr);
+> 
+> > On the hypervisor side, it requires this patch on AMD:
+> > # HG changeset patch
+> > # Parent aea8cfac8cf1afe397f2e1d422a852008d8a83fe
+> > traps: AMD PM RDMSRs (MSR_K8_PSTATE_CTRL, etc)
+> > 
+> > The restriction to read and write the AMD power management MSRs is gated if 
+> > the
+> > domain 0 is the PM domain (so FREQCTL_dom0_kernel is set). But we can
+> > relax this restriction and allow the privileged domain to read the MSRs
+> > (but not write). This allows the priviliged domain to harvest the power
+> > management information (ACPI _PSS states) and send it to the hypervisor.
+> 
+> Why would accessing these MSRs be necessary here, when it isn't
+> for non-pvops? Perhaps only because you want a CPUFreq driver
+> loaded?
 
-
-
+Correct. The powernow-k8
+> 
+> Jan
+> 
+> > This patch works fine with older classic dom0 (2.6.32) and with
+> > AMD K7 and K8 boxes.
+> > 
+> > Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+> > diff -r aea8cfac8cf1 xen/arch/x86/traps.c
+> > --- a/xen/arch/x86/traps.c	Thu Feb 23 13:23:02 2012 -0500
+> > +++ b/xen/arch/x86/traps.c	Thu Feb 23 13:29:00 2012 -0500
+> > @@ -2484,7 +2484,7 @@ static int emulate_privileged_op(struct 
+> >          case MSR_K8_PSTATE7:
+> >              if ( boot_cpu_data.x86_vendor != X86_VENDOR_AMD )
+> >                  goto fail;
+> > -            if ( !is_cpufreq_controller(v->domain) )
+> > +            if ( !is_cpufreq_controller(v->domain) && !IS_PRIV(v->domain) )
+> >              {
+> >                  regs->eax = regs->edx = 0;
+> >                  break;
+> 
+> 
