@@ -1,59 +1,69 @@
-From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: Re: [PATCH] processor passthru - upload _Cx and _Pxx data to
- hypervisor (v5).
-Date: Fri, 24 Feb 2012 19:21:36 -0500
-Message-ID: <20120225002136.GB26913@phenom.dumpdata.com>
-References: <1330036270-20015-1-git-send-email-konrad.wilk@oracle.com>
- <4F47733E020000780007497D@nat28.tlf.novell.com>
+From: =?utf-8?B?5LuFMzAw5YWD77yM5paw5bm05LyY5oOg?= <admin@ggwave.com>
+Subject: =?utf-8?B?5pyA5pawQjJC6K+i55uY5Lmw5a6244CB5bGV5Lya5Lmw5a62LOa1t+WFs+aVsOaNriw=?=
+	=?utf-8?B?576k5Y+R6L2v5Lu277yM5bm/5Lqk5Lya5Lmw5a62IOWFsTEwMDDkuIcg5LuFMw==?=
+	=?utf-8?B?MDDlhYMh?=
+Date: Sun, 26 Feb 2012 06:07:04 +0000 (UTC)
+Message-ID: <20180226140951461226@ggwave.com>
+Reply-To: <1330609072@qq.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from acsinet15.oracle.com ([141.146.126.227]:20631 "EHLO
-	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753449Ab2BYAZO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Feb 2012 19:25:14 -0500
-Content-Disposition: inline
-In-Reply-To: <4F47733E020000780007497D@nat28.tlf.novell.com>
+Received: from [121.128.79.101] ([121.128.79.101]:38900 "EHLO
+	woosvr.ggwave.com" rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750764Ab2BZGGq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 26 Feb 2012 01:06:46 -0500
+Date: Mon, 26 Feb 2018 14:09:42 +0800
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jan Beulich <JBeulich@suse.com>, davej@redhat.com, cpufreq@vger.kernel.org
-Cc: ke.yu@intel.com, kevin.tian@intel.com, lenb@kernel.org, xen-devel@lists.xensource.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linzhongqiu@163.com, liogking8588@yahoo.com.cn, liok1437@21cn.com, lion.sales@hotmail.com, linzi9388@sina.com, lion@friendta.com, lion@public.guangzhou.gd.cn, lion@sh.china.com, linux-acpi@vger.kernel.org, lion_lian@hotmail.com, lion_we@hotmail.com
 
-On Fri, Feb 24, 2012 at 10:23:42AM +0000, Jan Beulich wrote:
-> >>> On 23.02.12 at 23:31, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com> wrote:
-> > This module (processor-passthru)  collects the information that the cpufreq
-> > drivers and the ACPI processor code save in the 'struct acpi_processor' and
-> > then uploads it to the hypervisor.
-> 
-> Thus looks conceptually wrong to me - there shouldn't be a need for a
-> CPUFreq driver to be loaded in Dom0 (or your module should masquerade
-> as the one and only suitable one).
+MjAwOC0yMDEx5bm0OOWxiuW5v+S6pOS8muaVsOaNru+8jDIwMTDmtbflhbPmj5DljZVwaWVyc+eJ
+iDEwMDDkuIfmlbDmja7vvIzlhY3otLnmm7TmlrAyMDEy5bm05bm/5Lqk5Lya5Lmw5a625pWw5o2u
+44CCDQoNCuS4gOWFsTEw5Liq5YyFKOaVsOaNruaYr+WFqOihjOS4mueahO+8jOaMieeFp+ihjOS4
+muWIhuWlveexu++8jOW5tuS4lOWPr+S7peaMieeFp+WFs+mUruivjeaPkOWPluWHuuadpeeahCnv
+vJogDQox77yMMjAxMeeni+WtoyvmmKXlraPlub/kuqTkvJrkubDlrrbnjrDlnLror6Lnm5jmlbDm
+ja7lupPmlrDpspzlh7rngonvvIzotoXnuqfmlrDpspzkubDlrrbvvIzmlrDpspzmlbDmja7vvIzl
+rrnmmJPmiJDljZXvvIEgDQoy77yM6LSt5Lmw5ZCO5Y+v5Lul5YWN6LS55pu05pawMjAxMuaYpeWt
+o+W5v+S6pOS8misyMDEy56eL5a2j5bm/5Lqk5Lya5Lmw5a625pWw5o2u44CC5aSq6LaF5YC85LqG
+44CCDQoz77yMMjAxMuacgOaWsOWFqOeQg+WxleS8mueOsOWcuuS5sOWutuW6kyjkuI7otLjlj5Hl
+kIzmraUpLOWFsTQ25LiH5p2h5pWw5o2u44CCICjmjInnhafooYzkuJrliIbnsbspDQo077yMMjAx
+MOW5tCwyMDA55bm0LDIwMDjlubQg5pil5a2jK+eni+Wto+W5v+S6pOS8muS5sOWutuWQjeW9le+8
+jDEwMyAxMDQgMTA1IDEwNiAxMDcgMTA4IOWFseWFreWxiiDlhbExMjAuNuS4h+aVsOaNruOAgg0K
+Ne+8jDQ4LjY45LiH5p2h5pyA5paw5Lmw5a626K+i55uY77yM6YO95bim5pyJRW1haWzvvIzmnIDm
+nInku7flgLznmoTor6Lnm5jjgIINCjbvvIwyMDEx5pyA5pawIEIyQiDoi7Hmloflm73pmYXnq5k2
+MOS4h+W4puiBlOe7nOaWueW8j+ivouebmCDmnIDmnInku7flgLzor6Lnm5jkuYvkuIAuDQo377yM
+MjAxMOa1t+WFs+aPkOWNlXBpZXJz54mIMTAwMOS4h+aVsOaNri4NCjjvvIwyMDEx5bm05Yiw6aaZ
+5riv6YeH6LSt55qE5Zu95aSW5a6i5Lq65ZCN5b2VKOmmmea4r+i0uOWPkeWxgOaPkOS+mynvvIzo
+toXnuqfph43opoHnmoTkubDlrrbjgIINCjnvvIwyMDEx5bm05paw5aKe5Yqg55qELee+juWbvUIy
+QiB0aG9tYXNuZXQg6YeH6LSt5ZWG5ZCN5Y2V44CCDQoxMO+8jOe+pOWPkei9r+S7tuWuieijheS4
+jumDqOe9suacjeWKoeOAgg0KDQrov5nkupvlhajmnInvvIzlhbExMjgw5LiHIOaVsOaNruOAgg0K
+DQogDQropoHnmoTmipPntKfogZTns7tRUTogMTMzMDYwOTA3MiAgIOaIluiAheeri+WNs+WbnuWk
+jemCrueusTogMTMzMDYwOTA3MkBxcS5jb20NCuimgeeahOaKk+e0p+iBlOezu1FROiAxMzMwNjA5
+MDcyICAg5oiW6ICF56uL5Y2z5Zue5aSN6YKu566xOiAxMzMwNjA5MDcyQHFxLmNvbQ0K6KaB55qE
+5oqT57Sn6IGU57O7UVE6IDEzMzA2MDkwNzIgICDmiJbogIXnq4vljbPlm57lpI3pgq7nrrE6IDEz
+MzA2MDkwNzJAcXEuY29tDQropoHnmoTmipPntKfogZTns7tRUTogMTMzMDYwOTA3MiAgIOaIluiA
+heeri+WNs+WbnuWkjemCrueusTogMTMzMDYwOTA3MkBxcS5jb20NCg0KDQoNCuivmuS/oeS4uuac
+rO+8jOWmguaenOS4jeS/oeS7u+acrOS6uizlj6/ku6XotbDmt5jlrp3kuqTmmJMs5pS25Yiw5pWw
+5o2u6aqM6K+BMTDlpKnlkI7lho3ku5jmrL4s6L+Z5piv5a+55oKo5pyA5aW955qE5L+d6Zqc5LqG
+44CCIA0KDQoNCg0K5bCP5oqA5ben77yaIA0K5oqKNTAw5LiH5Lmw5a62576k5Y+R5Lul5LiA6YGN
+77yM5Z2H5Lya5pyJ5pWw5Y2D5Liq5Zue5aSN55qE77yM6L+Z5Lqb5bCx5piv6Z2e5bi46auY6LSo
+6YeP55qE5Lmw5a6244CCIA0K5L2/55So5oiR5Lus6YCB55qE576k5Y+R6L2v5Lu277yMMS0y5ZGo
+5bCx5Y+v5a6M5YWo5Y+R5a6M44CCDQoNCg0KDQoNCg0K5bm/5Lqk5Lya5Lmw5a625oyJ5Lqn5ZOB
+57G75Yir5YiG57G777yM5YiG5Li65Lul5LiL5Yeg57G777yaDQoxIOWKnuWFrOiuvuWkhw0KMiDn
+vJbnu4flj4rol6Tpk4Hlt6Xoibrlk4ENCjMg546755KDDQo0IOmkkOWOqOeUqOWFtw0KNSDovabo
+voYNCjYg5aSn5Z6L5py65qKw5Y+K6K6+5aSHDQo3IOeUteWtkOeUteawlA0KOCDnlLXlrZDmtojo
+tLnlk4ENCjkg57q657uHDQoxMCDmnI3oo4UNCjExIOS4quS6uuaKpOeQhg0KMTIg5bel56iL5py6
+5qKwDQoxMyDlt6XlhbcNCjE0IOWMluW3pQ0KMTUg6K6h566X5py65Y+K6YCa6K6vDQoxNiDlrrbl
+sYXnlKjlk4ENCjE3IOWutuWxheijhemlsA0KMTgg5a625YW3DQoxOSDlrrbnlKjnlLXlmagNCjIw
+IOW7uuetkeWPiuijhemlsOadkOaWmQ0KMjEg6IqC5pel55So5ZOBDQoyMiDnpLzlk4Hlj4rotaDl
+k4ENCjIzIOaRqeaJmOi9pg0KMjQg5rG96L2m6YWN5Lu2DQoyNSDpo5/lk4ENCjI2IOmZtueTtw0K
+Mjcg6ZOB55+zDQoyOCDnjqnlhbcNCjI5IOWNq+a1tA0KMzAg5LqU6YeRDQozMSDlsI/lnovmnLrm
+orANCjMyIOmeiw0KMzMg5LyR6Zey55So5ZOBDQozNCDljLvnlpcNCjM1IOa1tOWupOS6p+WTgQ0K
+MzYg5Zut5p6XDQozNyDnhafmmI7kuqflk4ENCjM4IOmSn+ihqOecvOmVnA0KMzkg6Ieq6KGM6L2m
+DQo0MCDljIUNCg0KDQrmlrDpspzmlbDmja4t5oiQ5Y2V546H5p6B6auYDQrmlrDpspzmlbDmja4t
+5oiQ5Y2V546H5p6B6auYDQrmlrDpspzmlbDmja4t5oiQ5Y2V546H5p6B6auYDQrmlrDpspzmlbDm
+ja4t5oiQ5Y2V546H5p6B6auYDQrmlrDpspzmlbDmja4t5oiQ5Y2V546H5p6B6auYDQo=
 
-So before your email I had been thinking that b/c of the cpuidle rework
-by Len it meant that when the cpufreq drivers are active - they would be started
-from the cpu_idle call - and since  cpu_idle call ends up being default_idle on
-pvops (which calls safe_halt) that would be fine. This is the work that Len did
-"cpuidle: replace xen access to x86 pm_idle and default_idle" and
-"cpuidle: stop depending on pm_idle" 
 
-But cpufreq != cpuidle != cpufreq governor, and they all are run by different rules.
-The ondemand cpufreq governor for example runs a timer and calls the appropiate cpufreq
-driver. So with these patches I posted we end up with a cpufreq driver in the kernel
-and in Xen hypervisor - both of them trying to change Pstates. Not good (to be fair,
-if powernow-k8/acpi-cpufreq would try it via WRMSR -  those would up being trapped and
-ignored by the hypervisor. I am not sure about the outw though).
-
-The pre-RFC version of this posted driver implemented a cpufreq governor that was
-nop and for future work was going to make a hypercall to get the true cpufreq value
-to report properly in /proc/cpuinfo - but I hadn't figured out a way to make it be
-the default one dynamically.
-
-Perhaps having xencommons do 
-echo "xen" > /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
-
-And s/processor-passthru/cpufreq-xen/ would do it? That would eliminate the [performance,
-ondemand,powersave,etc] cpufreq governors from calling into the cpufreq drivers to alter P-states.
-
-Let me CC Dave Jones and the cpufreq mailing list - perhaps they might have
-some ideas?
-[The patch is http://lwn.net/Articles/483668/]
