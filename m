@@ -1,69 +1,44 @@
-From: =?utf-8?B?5LuFMzAw5YWD77yM5paw5bm05LyY5oOg?= <admin@ggwave.com>
-Subject: =?utf-8?B?5pyA5pawQjJC6K+i55uY5Lmw5a6244CB5bGV5Lya5Lmw5a62LOa1t+WFs+aVsOaNriw=?=
-	=?utf-8?B?576k5Y+R6L2v5Lu277yM5bm/5Lqk5Lya5Lmw5a62IOWFsTEwMDDkuIcg5LuFMw==?=
-	=?utf-8?B?MDDlhYMh?=
-Date: Sun, 26 Feb 2012 06:07:04 +0000 (UTC)
-Message-ID: <20180226140951461226@ggwave.com>
-Reply-To: <1330609072@qq.com>
+From: "Liu, Jinsong" <jinsong.liu@intel.com>
+Subject: RE: [PATCH 1/2] RFC: Prepare PAD for native and xen platform
+Date: Sun, 26 Feb 2012 08:25:41 +0000
+Message-ID: <DE8DF0795D48FD4CA783C40EC82923350B2013@SHSMSX101.ccr.corp.intel.com>
+References: <DE8DF0795D48FD4CA783C40EC82923350AD088@SHSMSX101.ccr.corp.intel.com>
+ <4F46530B020000780007F751@nat28.tlf.novell.com>
+ <DE8DF0795D48FD4CA783C40EC82923350AD9BB@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from [121.128.79.101] ([121.128.79.101]:38900 "EHLO
-	woosvr.ggwave.com" rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750764Ab2BZGGq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 26 Feb 2012 01:06:46 -0500
-Date: Mon, 26 Feb 2018 14:09:42 +0800
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <DE8DF0795D48FD4CA783C40EC82923350AD9BB@SHSMSX101.ccr.corp.intel.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jan Beulich <jbeulich@suse.com>, "konrad.wilk@oracle.com" <konrad.wilk@oracle.com>
+Cc: "keir.xen@gmail.com" <keir.xen@gmail.com>, "Brown, Len" <len.brown@intel.com>, "Li, Shaohua" <shaohua.li@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linzhongqiu@163.com, liogking8588@yahoo.com.cn, liok1437@21cn.com, lion.sales@hotmail.com, linzi9388@sina.com, lion@friendta.com, lion@public.guangzhou.gd.cn, lion@sh.china.com, linux-acpi@vger.kernel.org, lion_lian@hotmail.com, lion_we@hotmail.com
 
-MjAwOC0yMDEx5bm0OOWxiuW5v+S6pOS8muaVsOaNru+8jDIwMTDmtbflhbPmj5DljZVwaWVyc+eJ
-iDEwMDDkuIfmlbDmja7vvIzlhY3otLnmm7TmlrAyMDEy5bm05bm/5Lqk5Lya5Lmw5a625pWw5o2u
-44CCDQoNCuS4gOWFsTEw5Liq5YyFKOaVsOaNruaYr+WFqOihjOS4mueahO+8jOaMieeFp+ihjOS4
-muWIhuWlveexu++8jOW5tuS4lOWPr+S7peaMieeFp+WFs+mUruivjeaPkOWPluWHuuadpeeahCnv
-vJogDQox77yMMjAxMeeni+WtoyvmmKXlraPlub/kuqTkvJrkubDlrrbnjrDlnLror6Lnm5jmlbDm
-ja7lupPmlrDpspzlh7rngonvvIzotoXnuqfmlrDpspzkubDlrrbvvIzmlrDpspzmlbDmja7vvIzl
-rrnmmJPmiJDljZXvvIEgDQoy77yM6LSt5Lmw5ZCO5Y+v5Lul5YWN6LS55pu05pawMjAxMuaYpeWt
-o+W5v+S6pOS8misyMDEy56eL5a2j5bm/5Lqk5Lya5Lmw5a625pWw5o2u44CC5aSq6LaF5YC85LqG
-44CCDQoz77yMMjAxMuacgOaWsOWFqOeQg+WxleS8mueOsOWcuuS5sOWutuW6kyjkuI7otLjlj5Hl
-kIzmraUpLOWFsTQ25LiH5p2h5pWw5o2u44CCICjmjInnhafooYzkuJrliIbnsbspDQo077yMMjAx
-MOW5tCwyMDA55bm0LDIwMDjlubQg5pil5a2jK+eni+Wto+W5v+S6pOS8muS5sOWutuWQjeW9le+8
-jDEwMyAxMDQgMTA1IDEwNiAxMDcgMTA4IOWFseWFreWxiiDlhbExMjAuNuS4h+aVsOaNruOAgg0K
-Ne+8jDQ4LjY45LiH5p2h5pyA5paw5Lmw5a626K+i55uY77yM6YO95bim5pyJRW1haWzvvIzmnIDm
-nInku7flgLznmoTor6Lnm5jjgIINCjbvvIwyMDEx5pyA5pawIEIyQiDoi7Hmloflm73pmYXnq5k2
-MOS4h+W4puiBlOe7nOaWueW8j+ivouebmCDmnIDmnInku7flgLzor6Lnm5jkuYvkuIAuDQo377yM
-MjAxMOa1t+WFs+aPkOWNlXBpZXJz54mIMTAwMOS4h+aVsOaNri4NCjjvvIwyMDEx5bm05Yiw6aaZ
-5riv6YeH6LSt55qE5Zu95aSW5a6i5Lq65ZCN5b2VKOmmmea4r+i0uOWPkeWxgOaPkOS+mynvvIzo
-toXnuqfph43opoHnmoTkubDlrrbjgIINCjnvvIwyMDEx5bm05paw5aKe5Yqg55qELee+juWbvUIy
-QiB0aG9tYXNuZXQg6YeH6LSt5ZWG5ZCN5Y2V44CCDQoxMO+8jOe+pOWPkei9r+S7tuWuieijheS4
-jumDqOe9suacjeWKoeOAgg0KDQrov5nkupvlhajmnInvvIzlhbExMjgw5LiHIOaVsOaNruOAgg0K
-DQogDQropoHnmoTmipPntKfogZTns7tRUTogMTMzMDYwOTA3MiAgIOaIluiAheeri+WNs+WbnuWk
-jemCrueusTogMTMzMDYwOTA3MkBxcS5jb20NCuimgeeahOaKk+e0p+iBlOezu1FROiAxMzMwNjA5
-MDcyICAg5oiW6ICF56uL5Y2z5Zue5aSN6YKu566xOiAxMzMwNjA5MDcyQHFxLmNvbQ0K6KaB55qE
-5oqT57Sn6IGU57O7UVE6IDEzMzA2MDkwNzIgICDmiJbogIXnq4vljbPlm57lpI3pgq7nrrE6IDEz
-MzA2MDkwNzJAcXEuY29tDQropoHnmoTmipPntKfogZTns7tRUTogMTMzMDYwOTA3MiAgIOaIluiA
-heeri+WNs+WbnuWkjemCrueusTogMTMzMDYwOTA3MkBxcS5jb20NCg0KDQoNCuivmuS/oeS4uuac
-rO+8jOWmguaenOS4jeS/oeS7u+acrOS6uizlj6/ku6XotbDmt5jlrp3kuqTmmJMs5pS25Yiw5pWw
-5o2u6aqM6K+BMTDlpKnlkI7lho3ku5jmrL4s6L+Z5piv5a+55oKo5pyA5aW955qE5L+d6Zqc5LqG
-44CCIA0KDQoNCg0K5bCP5oqA5ben77yaIA0K5oqKNTAw5LiH5Lmw5a62576k5Y+R5Lul5LiA6YGN
-77yM5Z2H5Lya5pyJ5pWw5Y2D5Liq5Zue5aSN55qE77yM6L+Z5Lqb5bCx5piv6Z2e5bi46auY6LSo
-6YeP55qE5Lmw5a6244CCIA0K5L2/55So5oiR5Lus6YCB55qE576k5Y+R6L2v5Lu277yMMS0y5ZGo
-5bCx5Y+v5a6M5YWo5Y+R5a6M44CCDQoNCg0KDQoNCg0K5bm/5Lqk5Lya5Lmw5a625oyJ5Lqn5ZOB
-57G75Yir5YiG57G777yM5YiG5Li65Lul5LiL5Yeg57G777yaDQoxIOWKnuWFrOiuvuWkhw0KMiDn
-vJbnu4flj4rol6Tpk4Hlt6Xoibrlk4ENCjMg546755KDDQo0IOmkkOWOqOeUqOWFtw0KNSDovabo
-voYNCjYg5aSn5Z6L5py65qKw5Y+K6K6+5aSHDQo3IOeUteWtkOeUteawlA0KOCDnlLXlrZDmtojo
-tLnlk4ENCjkg57q657uHDQoxMCDmnI3oo4UNCjExIOS4quS6uuaKpOeQhg0KMTIg5bel56iL5py6
-5qKwDQoxMyDlt6XlhbcNCjE0IOWMluW3pQ0KMTUg6K6h566X5py65Y+K6YCa6K6vDQoxNiDlrrbl
-sYXnlKjlk4ENCjE3IOWutuWxheijhemlsA0KMTgg5a625YW3DQoxOSDlrrbnlKjnlLXlmagNCjIw
-IOW7uuetkeWPiuijhemlsOadkOaWmQ0KMjEg6IqC5pel55So5ZOBDQoyMiDnpLzlk4Hlj4rotaDl
-k4ENCjIzIOaRqeaJmOi9pg0KMjQg5rG96L2m6YWN5Lu2DQoyNSDpo5/lk4ENCjI2IOmZtueTtw0K
-Mjcg6ZOB55+zDQoyOCDnjqnlhbcNCjI5IOWNq+a1tA0KMzAg5LqU6YeRDQozMSDlsI/lnovmnLrm
-orANCjMyIOmeiw0KMzMg5LyR6Zey55So5ZOBDQozNCDljLvnlpcNCjM1IOa1tOWupOS6p+WTgQ0K
-MzYg5Zut5p6XDQozNyDnhafmmI7kuqflk4ENCjM4IOmSn+ihqOecvOmVnA0KMzkg6Ieq6KGM6L2m
-DQo0MCDljIUNCg0KDQrmlrDpspzmlbDmja4t5oiQ5Y2V546H5p6B6auYDQrmlrDpspzmlbDmja4t
-5oiQ5Y2V546H5p6B6auYDQrmlrDpspzmlbDmja4t5oiQ5Y2V546H5p6B6auYDQrmlrDpspzmlbDm
-ja4t5oiQ5Y2V546H5p6B6auYDQrmlrDpspzmlbDmja4t5oiQ5Y2V546H5p6B6auYDQo=
+Liu, Jinsong wrote:
+> Jan Beulich wrote:
+>>>>> "Liu, Jinsong" <jinsong.liu@intel.com> 02/23/12 2:29 PM >>>
+>>> --- a/drivers/acpi/Kconfig
+>>> +++ b/drivers/acpi/Kconfig
+>>> @@ -213,10 +213,11 @@ config ACPI_HOTPLUG_CPU
+>>>    default y
+>>  >
+>>> config ACPI_PROCESSOR_AGGREGATOR
+>>> -    tristate "Processor Aggregator"
+>>> +    bool "Processor Aggregator"
+>> 
+>> There must be ways to address whatever strange problem you see
+>> without making this piece of code non-modular.
+>> 
+> 
+> Yes, another approach is x86_init approach, defining acpi_pad_ops at
+> x86_init.c and overwritten when xen_start_kernel. This patch is just
+> a RFC patch, to evaluate which approch is more reasonable :-) 
+> 
 
+Have a more think about it, x86_init approach still need to disable acpi_pad module.
+Seems we have to set acpi_pad as bool, as long as it need to hook to native acpi_pad fucs/variables.
 
+Thanks,
+Jinsong
