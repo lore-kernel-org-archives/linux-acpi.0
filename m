@@ -1,64 +1,39 @@
-From: Yong Zhang <yong.zhang0@gmail.com>
-Subject: Re: [PATCH RFC] acpi: Fix unprotected smp_processor_id() in
- acpi_processor_cst_has_changed()
-Date: Tue, 28 Feb 2012 15:19:43 +0800
-Message-ID: <20120228071943.GE1112@zhy>
-References: <20120223205805.GA31838@linux.vnet.ibm.com>
-Reply-To: Yong Zhang <yong.zhang0@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+From: Chen Gong <gong.chen@linux.intel.com>
+Subject: [PATCH] ACPI, APEI, EINJ, limit the range of einj_param
+Date: Tue, 28 Feb 2012 16:44:55 +0800
+Message-ID: <1330418695-8005-1-git-send-email-gong.chen@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:52251 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753041Ab2B1HTy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Feb 2012 02:19:54 -0500
-Content-Disposition: inline
-In-Reply-To: <20120223205805.GA31838@linux.vnet.ibm.com>
+Received: from mga09.intel.com ([134.134.136.24]:42831 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756862Ab2B1IoI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 28 Feb 2012 03:44:08 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: deepthi@linux.vnet.ibm.com, linux-kernel@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org
+To: tony.luck@intel.com, ying.huang@intel.com
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, Chen Gong <gong.chen@linux.intel.com>
 
-On Thu, Feb 23, 2012 at 12:58:05PM -0800, Paul E. McKenney wrote:
-> The acpi_processor_cst_has_changed() function is invoked from a
-> CPU_ONLINE or CPU_DEAD function, which might well execute on CPU 0
-> even though the CPU being hotplugged is some other CPU.  In addition,
-> acpi_processor_cst_has_changed() invokes smp_processor_id() without
-> protection, resulting in splats when onlining CPUs.
-> 
-> This commit therefore changes the smp_processor_id() to pr->id, as is
-> used elsewhere in the code, for example, in acpi_processor_add().
-> 
-> This works for me, but I don't claim to understand ACPI.
-> 
-> Signed-off-by: Paul E. McKenney <paul.mckenney@linaro.org>
+On the platforms with ACPI4.x support, parameter extension
+is not always doable, which means only parameter extension
+is enabled, einj_param can take effect.
 
-Got the same warning.
-And the patch works on my side.
+Signed-off-by: Chen Gong <gong.chen@linux.intel.com>
+---
+ drivers/acpi/apei/einj.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Tested-by: Yong Zhang <yong.zhang0@gmail.com>
-
-> 
-> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-> index 0e8e2de..9e57b06 100644
-> --- a/drivers/acpi/processor_idle.c
-> +++ b/drivers/acpi/processor_idle.c
-> @@ -1159,8 +1159,7 @@ int acpi_processor_cst_has_changed(struct acpi_processor *pr)
->  	 * to make the code that updates C-States be called once.
->  	 */
->  
-> -	if (smp_processor_id() == 0 &&
-> -			cpuidle_get_driver() == &acpi_idle_driver) {
-> +	if (pr->id == 0 && cpuidle_get_driver() == &acpi_idle_driver) {
->  
->  		cpuidle_pause_and_lock();
->  		/* Protect against cpu-hotplug */
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-
+diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
+index 4ca087d..0323684 100644
+--- a/drivers/acpi/apei/einj.c
++++ b/drivers/acpi/apei/einj.c
+@@ -466,7 +466,7 @@ static int __einj_error_inject(u32 type, u64 param1, u64 param2)
+ 		rc = apei_exec_run(&ctx, ACPI_EINJ_SET_ERROR_TYPE);
+ 		if (rc)
+ 			return rc;
+-		if (einj_param) {
++		if (param_extension && einj_param) {
+ 			struct einj_parameter *v4param = einj_param;
+ 			v4param->param1 = param1;
+ 			v4param->param2 = param2;
 -- 
-Only stand for myself
+1.7.8.2.302.g17b4e
+
