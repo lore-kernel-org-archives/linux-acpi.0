@@ -1,28 +1,25 @@
-From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Subject: Re: [PATCH RFC] acpi: Fix unprotected smp_processor_id() in acpi_processor_cst_has_changed()
-Date: Tue, 28 Feb 2012 11:43:20 +0530
-Message-ID: <4F4C7080.2090200@linux.vnet.ibm.com>
+From: Yong Zhang <yong.zhang0@gmail.com>
+Subject: Re: [PATCH RFC] acpi: Fix unprotected smp_processor_id() in
+ acpi_processor_cst_has_changed()
+Date: Tue, 28 Feb 2012 15:19:43 +0800
+Message-ID: <20120228071943.GE1112@zhy>
 References: <20120223205805.GA31838@linux.vnet.ibm.com>
+Reply-To: Yong Zhang <yong.zhang0@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e23smtp08.au.ibm.com ([202.81.31.141]:34515 "EHLO
-	e23smtp08.au.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754233Ab2B1GNo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Feb 2012 01:13:44 -0500
-Received: from /spool/local
-	by e23smtp08.au.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <linux-acpi@vger.kernel.org> from <srivatsa.bhat@linux.vnet.ibm.com>;
-	Tue, 28 Feb 2012 06:11:11 +1000
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:52251 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753041Ab2B1HTy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Feb 2012 02:19:54 -0500
+Content-Disposition: inline
 In-Reply-To: <20120223205805.GA31838@linux.vnet.ibm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: paulmck@linux.vnet.ibm.com
+To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 Cc: deepthi@linux.vnet.ibm.com, linux-kernel@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org
 
-On 02/24/2012 02:28 AM, Paul E. McKenney wrote:
-
+On Thu, Feb 23, 2012 at 12:58:05PM -0800, Paul E. McKenney wrote:
 > The acpi_processor_cst_has_changed() function is invoked from a
 > CPU_ONLINE or CPU_DEAD function, which might well execute on CPU 0
 > even though the CPU being hotplugged is some other CPU.  In addition,
@@ -35,16 +32,13 @@ On 02/24/2012 02:28 AM, Paul E. McKenney wrote:
 > This works for me, but I don't claim to understand ACPI.
 > 
 > Signed-off-by: Paul E. McKenney <paul.mckenney@linaro.org>
->
 
+Got the same warning.
+And the patch works on my side.
 
-This looks like the right fix to me, observing the disparity between what
-the comment says (and hence what was intended) vs what the code originally
-did.
+Tested-by: Yong Zhang <yong.zhang0@gmail.com>
 
-Reviewed-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
-
- 
+> 
 > diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
 > index 0e8e2de..9e57b06 100644
 > --- a/drivers/acpi/processor_idle.c
@@ -52,16 +46,19 @@ Reviewed-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
 > @@ -1159,8 +1159,7 @@ int acpi_processor_cst_has_changed(struct acpi_processor *pr)
 >  	 * to make the code that updates C-States be called once.
 >  	 */
-> 
+>  
 > -	if (smp_processor_id() == 0 &&
 > -			cpuidle_get_driver() == &acpi_idle_driver) {
 > +	if (pr->id == 0 && cpuidle_get_driver() == &acpi_idle_driver) {
-> 
+>  
 >  		cpuidle_pause_and_lock();
 >  		/* Protect against cpu-hotplug */
 > 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
 
- 
-Regards,
-Srivatsa S. Bhat
-
+-- 
+Only stand for myself
