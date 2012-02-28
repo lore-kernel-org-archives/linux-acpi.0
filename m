@@ -1,50 +1,69 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: Re: [PATCH] ACPI, APEI, EINJ, limit the range of einj_param
-Date: Tue, 28 Feb 2012 16:54:15 +0800
-Message-ID: <1330419255.7432.11.camel@yhuang-dev>
-References: <1330418695-8005-1-git-send-email-gong.chen@linux.intel.com>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: Re: [PATCH RFC] acpi: Fix unprotected smp_processor_id() in
+ acpi_processor_cst_has_changed()
+Date: Tue, 28 Feb 2012 05:30:13 -0800
+Message-ID: <20120228133013.GE2465@linux.vnet.ibm.com>
+References: <20120223205805.GA31838@linux.vnet.ibm.com>
+ <20120228071943.GE1112@zhy>
+Reply-To: paulmck@linux.vnet.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:63225 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753252Ab2B1IyQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Feb 2012 03:54:16 -0500
-In-Reply-To: <1330418695-8005-1-git-send-email-gong.chen@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20120228071943.GE1112@zhy>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yong Zhang <yong.zhang0@gmail.com>
+Cc: deepthi@linux.vnet.ibm.com, linux-kernel@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Chen Gong <gong.chen@linux.intel.com>
-Cc: tony.luck@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org
 
-On Tue, 2012-02-28 at 16:44 +0800, Chen Gong wrote:
-> On the platforms with ACPI4.x support, parameter extension
-> is not always doable, which means only parameter extension
-> is enabled, einj_param can take effect.
+On Tue, Feb 28, 2012 at 03:19:43PM +0800, Yong Zhang wrote:
+> On Thu, Feb 23, 2012 at 12:58:05PM -0800, Paul E. McKenney wrote:
+> > The acpi_processor_cst_has_changed() function is invoked from a
+> > CPU_ONLINE or CPU_DEAD function, which might well execute on CPU 0
+> > even though the CPU being hotplugged is some other CPU.  In addition,
+> > acpi_processor_cst_has_changed() invokes smp_processor_id() without
+> > protection, resulting in splats when onlining CPUs.
+> > 
+> > This commit therefore changes the smp_processor_id() to pr->id, as is
+> > used elsewhere in the code, for example, in acpi_processor_add().
+> > 
+> > This works for me, but I don't claim to understand ACPI.
+> > 
+> > Signed-off-by: Paul E. McKenney <paul.mckenney@linaro.org>
 > 
-> Signed-off-by: Chen Gong <gong.chen@linux.intel.com>
-> ---
->  drivers/acpi/apei/einj.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
+> Got the same warning.
+> And the patch works on my side.
 > 
-> diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
-> index 4ca087d..0323684 100644
-> --- a/drivers/acpi/apei/einj.c
-> +++ b/drivers/acpi/apei/einj.c
-> @@ -466,7 +466,7 @@ static int __einj_error_inject(u32 type, u64 param1, u64 param2)
->  		rc = apei_exec_run(&ctx, ACPI_EINJ_SET_ERROR_TYPE);
->  		if (rc)
->  			return rc;
-> -		if (einj_param) {
-> +		if (param_extension && einj_param) {
->  			struct einj_parameter *v4param = einj_param;
->  			v4param->param1 = param1;
->  			v4param->param2 = param2;
+> Tested-by: Yong Zhang <yong.zhang0@gmail.com>
 
-Good catch!  It appears that is introduced when adding ACPI 5.0
-parameter support.  Or we can fix einj_get_parameter_address() to return
-NULL if param_extension is 0 and paddrv5 is 0.
+Thank you, I have added your Tested-by (and Srivatsa's Reviewed-by,
+for that matter).
 
-Best Regards,
-Huang Ying
+Any takers for this, or should I just push it up the -tip tree?
 
+							Thanx, Paul
+
+> > diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+> > index 0e8e2de..9e57b06 100644
+> > --- a/drivers/acpi/processor_idle.c
+> > +++ b/drivers/acpi/processor_idle.c
+> > @@ -1159,8 +1159,7 @@ int acpi_processor_cst_has_changed(struct acpi_processor *pr)
+> >  	 * to make the code that updates C-States be called once.
+> >  	 */
+> >  
+> > -	if (smp_processor_id() == 0 &&
+> > -			cpuidle_get_driver() == &acpi_idle_driver) {
+> > +	if (pr->id == 0 && cpuidle_get_driver() == &acpi_idle_driver) {
+> >  
+> >  		cpuidle_pause_and_lock();
+> >  		/* Protect against cpu-hotplug */
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > Please read the FAQ at  http://www.tux.org/lkml/
+> 
+> -- 
+> Only stand for myself
+> 
