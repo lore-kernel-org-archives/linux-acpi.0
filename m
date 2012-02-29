@@ -1,105 +1,32 @@
-From: "Liu, Jinsong" <jinsong.liu@intel.com>
-Subject: RE: [Xen-devel] [PATCH 1/2] RFC: Prepare PAD for native and xen
-	platform
-Date: Wed, 29 Feb 2012 08:01:54 +0000
-Message-ID: <DE8DF0795D48FD4CA783C40EC82923350BAC09@SHSMSX101.ccr.corp.intel.com>
-References: <DE8DF0795D48FD4CA783C40EC82923350AD088@SHSMSX101.ccr.corp.intel.com>
-	<4F46530B020000780007F751@nat28.tlf.novell.com>
-	<DE8DF0795D48FD4CA783C40EC82923350AD9BB@SHSMSX101.ccr.corp.intel.com>
-	<DE8DF0795D48FD4CA783C40EC82923350B2013@SHSMSX101.ccr.corp.intel.com>
-	<20120226173458.GB18098@phenom.dumpdata.com>
- <DE8DF0795D48FD4CA783C40EC82923350B9496@SHSMSX101.ccr.corp.intel.com>
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: RE: [PATCH] ACPI, APEI, EINJ, limit the range of einj_param
+Date: Wed, 29 Feb 2012 19:34:24 +0000
+Message-ID: <3908561D78D1C84285E8C5FCA982C28F04024D@ORSMSX104.amr.corp.intel.com>
+References: <1330418695-8005-1-git-send-email-gong.chen@linux.intel.com>
+ <1330419255.7432.11.camel@yhuang-dev>
+ <3908561D78D1C84285E8C5FCA982C28F03F983@ORSMSX104.amr.corp.intel.com>
+ <4F4D9111.2010701@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:32669 "EHLO mga03.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:58770 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964932Ab2B2IDA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Feb 2012 03:03:00 -0500
-In-Reply-To: <DE8DF0795D48FD4CA783C40EC82923350B9496@SHSMSX101.ccr.corp.intel.com>
+	id S1757612Ab2B2Te0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 29 Feb 2012 14:34:26 -0500
+In-Reply-To: <4F4D9111.2010701@linux.intel.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: "Brown, Len" <len.brown@intel.com>, "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "keir.xen@gmail.com" <keir.xen@gmail.com>, Jan Beulich <jbeulich@suse.com>, "Li, Shaohua" <shaohua.li@intel.com>, "lenb@kernel.org" <lenb@kernel.org>
+To: Chen Gong <gong.chen@linux.intel.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Liu, Jinsong wrote:
-> Konrad Rzeszutek Wilk wrote:
->> On Sun, Feb 26, 2012 at 08:25:41AM +0000, Liu, Jinsong wrote:
->>> Liu, Jinsong wrote:
->>>> Jan Beulich wrote:
->>>>>>>> "Liu, Jinsong" <jinsong.liu@intel.com> 02/23/12 2:29 PM >>>
->>>>>> --- a/drivers/acpi/Kconfig
->>>>>> +++ b/drivers/acpi/Kconfig
->>>>>> @@ -213,10 +213,11 @@ config ACPI_HOTPLUG_CPU
->>>>>>    default y
->>>>>  >
->>>>>> config ACPI_PROCESSOR_AGGREGATOR
->>>>>> -    tristate "Processor Aggregator"
->>>>>> +    bool "Processor Aggregator"
->>>>> 
->>>>> There must be ways to address whatever strange problem you see
->>>>> without making this piece of code non-modular.
->>>>> 
->>>> 
->>>> Yes, another approach is x86_init approach, defining acpi_pad_ops
->>>> at x86_init.c and overwritten when xen_start_kernel. This patch is
->>>> just a RFC patch, to evaluate which approch is more reasonable :-)
->>>> 
->>> 
->>> Have a more think about it, x86_init approach still need to disable
->>> acpi_pad module. Seems we have to set acpi_pad as bool, as long as
->>> it need to hook to native acpi_pad fucs/variables.
->> 
->> What about the other approach I suggested where there are some
->> function overrides in osl.c? Something similar to
->> https://lkml.org/lkml/2012/1/17/401, specifically
->> https://lkml.org/lkml/2012/1/17/403 - that way you are not turning
->> the modules into being built in, but intead have the function table
->> already in the kernel (as some form of EXPORT_SYMBOL_GPL or a
->> registration function). 
->> 
-> 
-> Thanks for the example (it's good itself :-), but per my
-> understanding they are different cases. 
-> 
-> In the osl example case, tboot_late_init call
-> acpi_os_set_prepare_sleep to register func, so it works no matter
-> tboot.c built as y/n/m (through currently it's bool).  
-> 
-> However, in our case, we just cannot do so. We need
-> 1. predefine a hook to native acpi pad funcs, take effect when static
-> compile stage; 
-> 2. when xen init, redirect the hook to xen acpi pad funcs, take
-> effect at running time; (The point is, we cannot do init twice for
-> native and xen acpi pad, so we have to statically predefine a hook to
-> native acpi_pad)  
-> 
-> For the reason above, I think we have to remove acpi_pad module, as
-> long as we need to hook to native acpi_pad funcs. Thoughts? 
-> 
-
-Compare approaches:
-
-1. xen overwritten approach (patches V2, x86_init, osl approach)
-    Pros:
-        a little simpler code
-    Cons:
-        1). specific to xen, cannot extend to other virt platform;
-        2). need to change natvie acpi_pad as modular;
-
-2. paravirt interface approach (original patches V1)
-    Pros:
-        1). standard hypervisor-agnostic interface (USENIX conference 2006), can easily hook to Xen/lguest/... on demand;
-        2). arch independent;
-        3). no need to change native acpi_pad as non-modular;
-    Cons:
-        a little complicated code, and code patching is some overkilled for this case (but no harm);
-
-(BTW, in the future we need add more and more pv ops, like pv_pm_ops, pv_cpu_hotplug_ops, pv_mem_hotplug_ops, etc. So how about add a pv_misc_ops template to handle them all? seems it's a common issue).
-
-Your opinion?
-
-Thanks,
-Jinsong
+PiBBZnRlciBjb21iaW5hdGlvbiB0aGUgb3BpbmlvbnMgZnJvbSBZaW5nIGFuZCBUb255LCB0aGUg
+Y3VycmVudCBmaXggaXMgdGhlDQo+IHNpbXBsZXN0LiBBbnkgb3RoZXIgY2hhbmdlcyB3aWxsIG1h
+a2UgY29kZXMgbW9yZSBjb21wbGV4LiBTbyBJIHByZWZlciB0bw0KPiBrZWVwIGN1cnJlbnQgc3R5
+bGUuIFdoYXQncyB5b3VyIG9waW5pb24/DQoNCk5vdCBzdXJlIHdoaWNoIG9uZSB5b3UgbWVhbiBh
+cyAidGhlIGN1cnJlbnQgZml4IiAodGhleSBhcmUgYm90aCBvbmUgbGluZSwNCmFkZGluZyBhIGNo
+ZWNrIGZvciBwYXJhbV9leHRlbnNpb24gLSBzbyBuZWl0aGVyIGxvb2tzIHNpbXBsZXIgdGhhbiB0
+aGUNCm90aGVyIDotKS4NCg0KTXkgb3BpbmlvbiBpcyB0aGF0IFlpbmcncyBzdWdnZXN0aW9uIHRv
+IG1ha2UgZWlual9nZXRfcGFyYW1ldGVyX2FkZHJlc3MoKQ0KcmV0dXJuIE5VTEwgaXMgdGhlIHJp
+Z2h0IG9uZS4NCg0KLVRvbnkNCg0K
