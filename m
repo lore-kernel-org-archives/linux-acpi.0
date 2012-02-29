@@ -1,73 +1,57 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [RFC][PATCH 2/2] ACPI video: Don't start video device until its
- associated input device has been reigstered
-Date: Tue, 28 Feb 2012 17:17:21 -0800
-Message-ID: <20120229011721.GB11492@core.coreip.homeip.net>
-References: <20120229035142.31016e6f@garik>
- <20120229035518.306c57a8@garik>
- <20120229003915.GA11111@core.coreip.homeip.net>
+From: Chen Gong <gong.chen@linux.intel.com>
+Subject: Re: [PATCH] ACPI, APEI, EINJ, limit the range of einj_param
+Date: Wed, 29 Feb 2012 10:44:33 +0800
+Message-ID: <4F4D9111.2010701@linux.intel.com>
+References: <1330418695-8005-1-git-send-email-gong.chen@linux.intel.com> <1330419255.7432.11.camel@yhuang-dev> <3908561D78D1C84285E8C5FCA982C28F03F983@ORSMSX104.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:63175 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756587Ab2B2BR2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Feb 2012 20:17:28 -0500
-Content-Disposition: inline
-In-Reply-To: <20120229003915.GA11111@core.coreip.homeip.net>
+Received: from mga14.intel.com ([143.182.124.37]:63509 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965501Ab2B2Cog (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 28 Feb 2012 21:44:36 -0500
+In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F03F983@ORSMSX104.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Igor Murzov <intergalactic.anonymous@gmail.com>
-Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Igor Murzov <e-mail@date.by>, "Sergey V." <sftp.mtuci@gmail.com>
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Tue, Feb 28, 2012 at 04:39:15PM -0800, Dmitry Torokhov wrote:
-> On Wed, Feb 29, 2012 at 03:55:18AM +0400, Igor Murzov wrote:
-> > From 202f25d44b1cf871697c88a6a3a8d854674db4d8 Mon Sep 17 00:00:00 2001
-> > From: Igor Murzov <e-mail@date.by>
-> > Date: Mon, 27 Feb 2012 21:57:59 +0400
-> > Subject: [PATCH 2/2] ACPI video: Don't start video device until its
-> >  associated input device has been reigstered
-> 
-> > 
-> > ---
-> >  drivers/acpi/video.c |   10 ++++++----
-> >  1 files changed, 6 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> > index 1bc6370..b9e114c 100644
-> > --- a/drivers/acpi/video.c
-> > +++ b/drivers/acpi/video.c
-> > @@ -1659,9 +1659,6 @@ static int acpi_video_bus_add(struct acpi_device *device)
-> >  	error = acpi_video_bus_get_devices(video, device);
-> >  	if (error)
-> >  		goto err_free_video;
-> > -	error = acpi_video_bus_start_devices(video);
-> > -	if (error)
-> > -		goto err_put_video;
-> >  
-> >  	video->input = input = input_allocate_device();
-> >  	if (!input) {
-> > @@ -1703,13 +1700,18 @@ static int acpi_video_bus_add(struct acpi_device *device)
-> >  	if (error)
-> >  		goto err_free_input_dev;
-> >  
-> > +	error = acpi_video_bus_start_devices(video);
-> > +	if (error)
-> > +		goto err_unregister_pm_notifier;
-> > +
-> 
-> Registered input device should be unregistered with
-> input_unregister_device(), not input_free_device(). Your change breaks
-> this.
-> 
-> Also, notify() will not be called until acpi_video_bus_add() completes
-> so current code should be perfectly fine.
+=E4=BA=8E 2012/2/29 2:33, Luck, Tony =E5=86=99=E9=81=93:
+>> parameter support.  Or we can fix einj_get_parameter_address() to re=
+turn
+>> NULL if param_extension is 0 and paddrv5 is 0.
+>
+> That was my intent ... but it looks like I managed to lose that in
+> some code re-arrangement.
+>
+> Perhaps (Outlook will white-space mangle, but it is only one line):
+>
+> diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
+> index 4ca087d..3d3816f 100644
+> --- a/drivers/acpi/apei/einj.c
+> +++ b/drivers/acpi/apei/einj.c
+> @@ -238,7 +238,7 @@ static void *einj_get_parameter_address(void)
+>   			return v5param;
+>   		}
+>   	}
+> -	if (paddrv4) {
+> +	if (param_extension&&  paddrv4) {
+>   		struct einj_parameter *v4param;
+>
+>   		v4param =3D acpi_os_map_memory(paddrv4, sizeof(*v4param));
+>
+>
 
-Hm, I take the last paragraph back - in addition to bus notifier we do
-install device notifier explicitly so it might fire up early. The
-easiest fox would be to move acpi_video_bus_start_devices after
-input_allocate_device() but before input_refister_device() -
-unregistered input devoces can handle input_event() calls just fine.
+After combination the opinions from Ying and Tony, the current fix is t=
+he
+simplest. Any other changes will make codes more complex. So I prefer t=
+o
+keep current style. What's your opinion?
 
--- 
-Dmitry
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
