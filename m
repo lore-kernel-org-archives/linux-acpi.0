@@ -1,57 +1,56 @@
-From: Jonathan Nieder <jrnieder@gmail.com>
-Subject: Re: [PATCH 04/50] ACPICA: Fix to allow region arguments to reference
- other scopes
-Date: Thu, 1 Mar 2012 09:27:55 -0600
-Message-ID: <20120301152754.GA3167@burratino>
-References: <1326802902-21583-1-git-send-email-lenb@kernel.org>
- <8931d9ea78848b073bf299594f148b83abde4a5e.1326802229.git.len.brown@intel.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC PATCH v2 8/8] [SCSI] sr: check and enable Zero-power ODD
+ support
+Date: Thu, 1 Mar 2012 11:02:20 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.1203011059230.9392-100000@netrider.rowland.org>
+References: <1330592577-16546-9-git-send-email-ming.m.lin@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-tul01m020-f174.google.com ([209.85.214.174]:51271 "EHLO
-	mail-tul01m020-f174.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755512Ab2CAP2F (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Mar 2012 10:28:05 -0500
-Content-Disposition: inline
-In-Reply-To: <8931d9ea78848b073bf299594f148b83abde4a5e.1326802229.git.len.brown@intel.com>
+Received: from netrider.rowland.org ([192.131.102.5]:49544 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755214Ab2CAQCV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Mar 2012 11:02:21 -0500
+In-Reply-To: <1330592577-16546-9-git-send-email-ming.m.lin@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, Jim Green <student.northwestern@gmail.com>, Lin Ming <ming.m.lin@intel.com>, Bob Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>, Arne Nordmark <nordmark@mech.kth.se>
+To: Lin Ming <ming.m.lin@intel.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, Jeff Garzik <jgarzik@pobox.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tejun Heo <tj@kernel.org>, Aaron Lu <aaron.lu@amd.com>, Kernel development list <linux-kernel@vger.kernel.org>, linux-ide@vger.kernel.org, SCSI development list <linux-scsi@vger.kernel.org>, Linux-pm mailing list <linux-pm@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 
-Hi,
+On Thu, 1 Mar 2012, Lin Ming wrote:
 
-Len Brown wrote[1]:
+> ZPODD(Zero Power Optical Disk Drive) is a new feature in
+> SATA 3.1 specification. It provides a way to power off unused ODD.
+> 
+> ZPODD support is checked in in sr_probe().
+> can_power_off flag is set during suspend if ZPODD is supported.
+> 
+> ATA port's runtime suspend callback will actually power off the ODD
+> and its runtime resume callback will actually power on the ODD.
+> 
+> When ODD is powered off(D3Cold state), inserting disk will trigger a
+> wakeup event(GPE). GPE AML handler notifies the associated device. Then
+> ODD is resumed in the notify handler.
 
-> From: Lin Ming <ming.m.lin@intel.com>
-[...]
-> http://www.acpica.org/bugzilla/show_bug.cgi?id=937
-> http://marc.info/?l=linux-acpi&m=131636632718222&w=2
->
-> ACPI Error: [RAMB] Namespace lookup failure, AE_NOT_FOUND (20110112/psargs-359)
-> ACPI Exception: AE_NOT_FOUND, Could not execute arguments for [RAMW] (Region) (20110112/nsinit-349)
->
->     Scope (_SB)
->     {
->         Name (RAMB, 0xDF5A1018)
->         OperationRegion (\RAMW, SystemMemory, RAMB, 0x00010000)
->     }
->
-> For above ASL code, we need to save scope node(\_SB) to lookup
-> the argument node(\_SB.RAMB).
->
-> Reported-by: Jim Green <student.northwestern@gmail.com>
-> Signed-off-by: Lin Ming <ming.m.lin@intel.com>
-> Signed-off-by: Bob Moore <robert.moore@intel.com>
-> Signed-off-by: Len Brown <len.brown@intel.com>
+I have one stylistic comment on this patch...
 
-Arne Nordmark reports[2] that this patch, when applied to 3.2.5, fixes
-a resume failure.  Thanks!
+> diff --git a/drivers/scsi/sr.h b/drivers/scsi/sr.h
+> index 37c8f6b..39b3d8c 100644
+> --- a/drivers/scsi/sr.h
+> +++ b/drivers/scsi/sr.h
+> @@ -42,6 +42,9 @@ typedef struct scsi_cd {
+>  	unsigned readcd_cdda:1;	/* reading audio data using READ_CD */
+>  	unsigned media_present:1;	/* media is present */
+>  
+> +	unsigned zpodd:1;	/* is ZPODD supported */
+> +	unsigned zpodd_event:1;
+> +
 
-Would it be safe and useful to backport this fix to stable/longterm
-kernels?  If so, which ones?
+You should not expect your readers to understand what "ZPODD" means.  
+drivers/scsi/sr.h is used by lots of different people, many of whom 
+will have no idea what it refers to, especially since it is part of 
+the SATA spec and not the SCSI spec.  You should provide a brief 
+explanation.
 
-Jonathan
+Alan Stern
 
-[1] commit 8931d9ea7884
-[2] http://bugs.debian.org/661581
