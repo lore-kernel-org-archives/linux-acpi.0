@@ -1,35 +1,89 @@
-From: Valentin Priescu <valentin@rosedu.org>
-Subject: ACPI SSDT tables
-Date: Fri, 02 Mar 2012 13:44:09 +0100
-Message-ID: <4F50C099.2060603@rosedu.org>
+From: Aaron Lu <aaron.lu@amd.com>
+Subject: Re: [RFC PATCH v2 8/8] [SCSI] sr: check and enable Zero-power ODD support
+Date: Fri, 2 Mar 2012 23:08:10 +0800
+Message-ID: <CAOzJMDRTbq5o+jCyTtaAW_RPysfY3LhQ9gFC-tsvM8bsnh=rxQ@mail.gmail.com>
+References: <Pine.LNX.4.44L0.1203011059230.9392-100000@netrider.rowland.org>
+	<1330671765.3412.7.camel@minggr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:45119 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757661Ab2CBMoO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Mar 2012 07:44:14 -0500
-Received: by bkcik5 with SMTP id ik5so1418946bkc.19
-        for <linux-acpi@vger.kernel.org>; Fri, 02 Mar 2012 04:44:13 -0800 (PST)
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <1330671765.3412.7.camel@minggr>
+Sender: linux-ide-owner@vger.kernel.org
+To: Lin Ming <ming.m.lin@intel.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Zhang Rui <rui.zhang@intel.com>, Jeff Garzik <jgarzik@pobox.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tejun Heo <tj@kernel.org>, Kernel development list <linux-kernel@vger.kernel.org>, linux-ide@vger.kernel.org, SCSI development list <linux-scsi@vger.kernel.org>, Linux-pm mailing list <linux-pm@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Len Brown <lenb@kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>
 
-Hello,
+Hi,
 
-I'm trying to get the processor P states from the ACPI driver but 
-unfortunately the _PSS objects are not listed in the ACPI namespace. 
-This is because some SSDT tables are not loaded. I checked the linux 
-code and it seams that an SSDT table is loaded when a device is detected 
-in a PCI slot, through PCI hotplug driver (it gets the SSDT header using 
-SAL calls).
-However, I'm working on a different kernel which doesn't have this 
-feature(SAL) and I'm wondering if there is another way to get the 
-address of SSDT tables for each CPU, so that I can load them into the 
-ACPI namespace. Any idea is appreciated.
+On Fri, Mar 2, 2012 at 3:02 PM, Lin Ming <ming.m.lin@intel.com> wrote:
+> On Thu, 2012-03-01 at 11:02 -0500, Alan Stern wrote:
+>> On Thu, 1 Mar 2012, Lin Ming wrote:
+>>
+>> > ZPODD(Zero Power Optical Disk Drive) is a new feature in
+>> > SATA 3.1 specification. It provides a way to power off unused ODD.
+>> >
+>> > ZPODD support is checked in in sr_probe().
+>> > can_power_off flag is set during suspend if ZPODD is supported.
+>> >
+>> > ATA port's runtime suspend callback will actually power off the OD=
+D
+>> > and its runtime resume callback will actually power on the ODD.
+>> >
+>> > When ODD is powered off(D3Cold state), inserting disk will trigger=
+ a
+>> > wakeup event(GPE). GPE AML handler notifies the associated device.=
+ Then
+>> > ODD is resumed in the notify handler.
+>>
+>> I have one stylistic comment on this patch...
+>>
+>> > diff --git a/drivers/scsi/sr.h b/drivers/scsi/sr.h
+>> > index 37c8f6b..39b3d8c 100644
+>> > --- a/drivers/scsi/sr.h
+>> > +++ b/drivers/scsi/sr.h
+>> > @@ -42,6 +42,9 @@ typedef struct scsi_cd {
+>> > =A0 =A0 unsigned readcd_cdda:1; /* reading audio data using READ_C=
+D */
+>> > =A0 =A0 unsigned media_present:1; =A0 =A0 =A0 /* media is present =
+*/
+>> >
+>> > + =A0 unsigned zpodd:1; =A0 =A0 =A0 /* is ZPODD supported */
+>> > + =A0 unsigned zpodd_event:1;
+>> > +
+>>
+>> You should not expect your readers to understand what "ZPODD" means.
+>> drivers/scsi/sr.h is used by lots of different people, many of whom
+>> will have no idea what it refers to, especially since it is part of
+>> the SATA spec and not the SCSI spec. =A0You should provide a brief
+>> explanation.
+>
+> I'll add some explanation.
+>
+> But I'm thinking maybe it's better to move this flag to ata layer, fo=
+r
 
-Best regards,
---
-Valentin Priescu.
+Agree.
+
+> example, adding a flag to libata.h
+>
+> ATA_DFLAG_ZPODD
+>
+
+How about ATA_DFLAG_DA(device attention)?
+It follows the name used in the sata spec and this feature might have
+other uses in the future in addition to zero power odd(just my wild gue=
+ss).
+
+> sr runtime pm is only enabled when ZPODD(or more general, power off) =
+is
+> supported.
+> So the problem is how will sr driver know this flag?
+>
+
+What about adding a new field to scsi_device to reflect this capability=
+ of
+the underlying sata device? We can then set this field in ata_scsi_scan=
+_host.
+
+-Aaron
