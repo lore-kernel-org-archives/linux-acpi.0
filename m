@@ -1,41 +1,91 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [PATCH] ACPI, APEI, EINJ, limit the range of einj_param
-Date: Fri, 2 Mar 2012 19:42:44 +0000
-Message-ID: <3908561D78D1C84285E8C5FCA982C28F04115C@ORSMSX104.amr.corp.intel.com>
-References: <1330418695-8005-1-git-send-email-gong.chen@linux.intel.com>
- <1330419255.7432.11.camel@yhuang-dev>
- <3908561D78D1C84285E8C5FCA982C28F03F983@ORSMSX104.amr.corp.intel.com>
- <4F4D9111.2010701@linux.intel.com>
- <3908561D78D1C84285E8C5FCA982C28F04024D@ORSMSX104.amr.corp.intel.com>
- <4F506E8A.8010901@linux.intel.com>
+From: Lin Ming <ming.m.lin@intel.com>
+Subject: Re: [RFC PATCH v2 8/8] [SCSI] sr: check and enable Zero-power ODD
+ support
+Date: Sat, 03 Mar 2012 11:05:21 +0800
+Message-ID: <1330743921.6369.2.camel@hp6530s>
+References: <Pine.LNX.4.44L0.1203011059230.9392-100000@netrider.rowland.org>
+	 <1330671765.3412.7.camel@minggr>
+	 <CAOzJMDRTbq5o+jCyTtaAW_RPysfY3LhQ9gFC-tsvM8bsnh=rxQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:6128 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752339Ab2CBTmt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 2 Mar 2012 14:42:49 -0500
-In-Reply-To: <4F506E8A.8010901@linux.intel.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <CAOzJMDRTbq5o+jCyTtaAW_RPysfY3LhQ9gFC-tsvM8bsnh=rxQ@mail.gmail.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Aaron Lu <aaron.lu@amd.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Zhang Rui <rui.zhang@intel.com>, Jeff Garzik <jgarzik@pobox.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tejun Heo <tj@kernel.org>, Kernel development list <linux-kernel@vger.kernel.org>, linux-ide@vger.kernel.org, SCSI development list <linux-scsi@vger.kernel.org>, Linux-pm mailing list <linux-pm@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Chen Gong <gong.chen@linux.intel.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-PiBCZWNhdXNlIGlmIHdvcmtpbmcgdW5kZXIgQUNQSTQueCB3aXRob3V0IHBhcmFtX2V4dGVuc2lv
-biBzdXBwb3J0LCB0aGVyZQ0KPiBpcyBwb3NzaWJsZSB0aGF0IGVpbmpfcGFyYW0gaGFzIG1lYW5p
-bmcgKG1heWJlIGNvbnRhaW5pbmcgYWRkcmVzcyBpbmZvPyksDQo+IGJ1dCB3ZSBqdXN0IGlnbm9y
-ZSBpdCB1bmRlciBjdXJyZW50IGltcGxlbWVudGF0aW9uLiBNYXliZSBpbiBmdXR1cmUgd2UNCj4g
-bmVlZCBpdCBzbyBJIGRvbid0IGhvcGUgdG8gcmV0dXJuIE5VTEwgc28gZWFybHkuIE9UT0gsIG15
-IGZpeCBpcyBqdXN0DQo+IGlnbm9yZSBlaW5qX3BhcmFtIGluIGN1cnJlbnQgbG9naWMsIG5vdCB2
-ZXJ5IGRlc3RydWN0aXZlLg0KDQpJJ20gbm90IHN1cmUgdGhhdCB3ZSdkIGV2ZXIgYWRkIHN1Y2gg
-ZXh0cmEgbWVhbmluZyB0byBlaW5qX3BhcmFtLiBUaGVyZQ0KYXJlbid0IGdvaW5nIHRvIGJlIGFu
-eSBtb3JlIHVwZGF0ZXMgdG8gQUNQSSA0LnguDQoNCkp1c3QgZnJvbSBhIG5hbWluZyBwb2ludCBv
-ZiB2aWV3IC0gaWYgd2UgZG9uJ3QgaGF2ZSB0aGUgInBhcmFtIiBleHRlbnNpb24NCmVuYWJsZWQg
-LSB3aHkgd291bGQgImVpbmpfcGFyYW0iIG5lZWQgdG8gYmUgc2V0IGF0IGFsbD8NCg0KU3RvcHBp
-bmcgZWFybHkgaGFzIG90aGVyIGFkdmFudGFnZXM6DQoNCjEpIFdlIGRvbid0IHNldCB1cCBhIG1h
-cHBpbmcgdGhhdCB3ZSdsbCBuZXZlciB1c2Ugd2l0aDoNCiAgICAgdjRwYXJhbSA9IGFjcGlfb3Nf
-bWFwX21lbW9yeShwYWRkcnY0LCBzaXplb2YgKCp2NHBhcmFtKSk7DQoNCjIpIFdlIHdvbid0IHVz
-ZWxlc3NseSBkZXJlZmVyZW5jZSB0aGF0IG1hcHBpbmc6DQoJaWYgKHY0cGFyYW0tPnJlc2VydmVk
-MSB8fCB2NHBhcmFtLT5yZXNlcnZlZDIpDQoNCi1Ub255DQo=
+On Fri, 2012-03-02 at 23:08 +0800, Aaron Lu wrote:
+> Hi,
+> 
+> On Fri, Mar 2, 2012 at 3:02 PM, Lin Ming <ming.m.lin@intel.com> wrote:
+> > On Thu, 2012-03-01 at 11:02 -0500, Alan Stern wrote:
+> >> On Thu, 1 Mar 2012, Lin Ming wrote:
+> >>
+> >> > ZPODD(Zero Power Optical Disk Drive) is a new feature in
+> >> > SATA 3.1 specification. It provides a way to power off unused ODD.
+> >> >
+> >> > ZPODD support is checked in in sr_probe().
+> >> > can_power_off flag is set during suspend if ZPODD is supported.
+> >> >
+> >> > ATA port's runtime suspend callback will actually power off the ODD
+> >> > and its runtime resume callback will actually power on the ODD.
+> >> >
+> >> > When ODD is powered off(D3Cold state), inserting disk will trigger a
+> >> > wakeup event(GPE). GPE AML handler notifies the associated device. Then
+> >> > ODD is resumed in the notify handler.
+> >>
+> >> I have one stylistic comment on this patch...
+> >>
+> >> > diff --git a/drivers/scsi/sr.h b/drivers/scsi/sr.h
+> >> > index 37c8f6b..39b3d8c 100644
+> >> > --- a/drivers/scsi/sr.h
+> >> > +++ b/drivers/scsi/sr.h
+> >> > @@ -42,6 +42,9 @@ typedef struct scsi_cd {
+> >> >     unsigned readcd_cdda:1; /* reading audio data using READ_CD */
+> >> >     unsigned media_present:1;       /* media is present */
+> >> >
+> >> > +   unsigned zpodd:1;       /* is ZPODD supported */
+> >> > +   unsigned zpodd_event:1;
+> >> > +
+> >>
+> >> You should not expect your readers to understand what "ZPODD" means.
+> >> drivers/scsi/sr.h is used by lots of different people, many of whom
+> >> will have no idea what it refers to, especially since it is part of
+> >> the SATA spec and not the SCSI spec.  You should provide a brief
+> >> explanation.
+> >
+> > I'll add some explanation.
+> >
+> > But I'm thinking maybe it's better to move this flag to ata layer, for
+> 
+> Agree.
+> 
+> > example, adding a flag to libata.h
+> >
+> > ATA_DFLAG_ZPODD
+> >
+> 
+> How about ATA_DFLAG_DA(device attention)?
+
+Yes, it's better.
+
+> It follows the name used in the sata spec and this feature might have
+> other uses in the future in addition to zero power odd(just my wild guess).
+> 
+> > sr runtime pm is only enabled when ZPODD(or more general, power off) is
+> > supported.
+> > So the problem is how will sr driver know this flag?
+> >
+> 
+> What about adding a new field to scsi_device to reflect this capability of
+> the underlying sata device? We can then set this field in ata_scsi_scan_host.
+
+Nice idea.
+
+I'll refresh this patch.
+
+Thanks,
+Lin Ming
+
