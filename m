@@ -1,42 +1,55 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Subject: Re: [lm-sensors] [linux-pm] [PATCH 2/4] hwmon: exynos4: Move thermal
- sensor driver to driver/mfd directory
-Date: Sat, 3 Mar 2012 10:04:02 -0800
-Message-ID: <20120303180402.GA30062@ericsson.com>
-References: <1330772767-16120-1-git-send-email-amit.kachhap@linaro.org>
- <1330772767-16120-3-git-send-email-amit.kachhap@linaro.org>
- <20120303164410.GB1495@sirena.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20120303164410.GB1495@sirena.org.uk>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Amit Daniel Kachhap <amit.kachhap@linaro.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: [PATCH] PNPACPI: Fix device ref leaking in acpi_pnp_match
+Date: Sat,  3 Mar 2012 13:29:20 -0800
+Message-ID: <1330810160-20306-1-git-send-email-yinghai@kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from acsinet15.oracle.com ([141.146.126.227]:27867 "EHLO
+	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751888Ab2CCV34 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 3 Mar 2012 16:29:56 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>, Adam Belay <abelay@mit.edu>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, stable@kerne.org
 
-On Sat, Mar 03, 2012 at 11:44:10AM -0500, Mark Brown wrote:
-> On Sat, Mar 03, 2012 at 04:36:05PM +0530, Amit Daniel Kachhap wrote:
-> > This movement is needed because the hwmon entries and corresponding
-> > sysfs interface is a duplicate of utilities already provided by
-> > driver/thermal/thermal_sys.c. The goal is to place it in mfd folder
-> > and add necessary calls to get the temperature information.
-> 
-> > --- a/Documentation/hwmon/exynos4_tmu
-> > +++ /dev/null
-> 
-> Moving this seems to be a failure, the device is exposing a hwmon
-> interface even if you've moved the code to mfd (though it doesn't
-> actually look like a multi-function device at all as far as I can see -
-> usually a MFD would have a bunch of unrelated functionality while this
-> has one function used by two subsystems).
-> 
-> If anything it looks like the ADC driver ought to be moved into IIO with
-> either generic or Exynos specific function drivers layered on top of it
-> in hwmon and thermal making use of the values that are read.
-> 
-I would agree. Or maybe move it all to thermal, since thermal devices register
-the hwmon subsystem.
+During testing pci root bus removal, found some root bus bridge is not freed.
 
-Guenter
+If booting with pnpacpi=off, those hostbridge could be freed without problem.
+
+It turns out that some devices reference are not released during acpi_pnp_match.
+
+that match should not hold one device ref during every calling.
+
+Add pu_device calling before returning.
+
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: stable@kerne.org
+Cc: Len Brown <lenb@kernel.org>
+Cc: Adam Belay <abelay@mit.edu>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-acpi@vger.kernel.org
+
+---
+ drivers/pnp/pnpacpi/core.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+Index: linux-2.6/drivers/pnp/pnpacpi/core.c
+===================================================================
+--- linux-2.6.orig/drivers/pnp/pnpacpi/core.c
++++ linux-2.6/drivers/pnp/pnpacpi/core.c
+@@ -321,9 +321,14 @@ static int __init acpi_pnp_match(struct
+ {
+ 	struct acpi_device *acpi = to_acpi_device(dev);
+ 	struct pnp_dev *pnp = _pnp;
++	struct device *physical_device;
++
++	physical_device = acpi_get_physical_device(acpi->handle);
++	if (physical_device)
++		put_device(physical_device);
+ 
+ 	/* true means it matched */
+-	return !acpi_get_physical_device(acpi->handle)
++	return !physical_device
+ 	    && compare_pnp_id(pnp->id, acpi_device_hid(acpi));
+ }
+ 
