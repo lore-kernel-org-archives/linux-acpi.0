@@ -1,45 +1,59 @@
-From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Subject: Re: [PATCH] PM/Sleep, ACPI: Teach acpi_cpu_soft_notify() to handle
- CPU hotplug in suspend/resume path
-Date: Mon, 05 Mar 2012 12:03:16 +0530
-Message-ID: <4F545E2C.8080408@linux.vnet.ibm.com>
-References: <20120228155137.3061.97133.stgit@srivatsabhat.in.ibm.com> <201203042333.18501.rjw@sisk.pl>
+From: Amit Kachhap <amit.kachhap@linaro.org>
+Subject: Re: [PATCH 2/4] hwmon: exynos4: Move thermal sensor driver to
+ driver/mfd directory
+Date: Mon, 5 Mar 2012 14:14:31 +0530
+Message-ID: <CAK44p217-ah2HPot65nctZ7+r+A_EiOXPKq8y33NbBM1scrXgQ@mail.gmail.com>
+References: <1330772767-16120-1-git-send-email-amit.kachhap@linaro.org>
+	<1330772767-16120-3-git-send-email-amit.kachhap@linaro.org>
+	<4F520CCE.1030409@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201203042333.18501.rjw@sisk.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: lenb@kernel.org, deepthi@linux.vnet.ibm.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <4F520CCE.1030409@gmail.com>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Cc: linux-pm@lists.linux-foundation.org, linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org, mjg59@srcf.ucam.org, linux-acpi@vger.kernel.org, lenb@kernel.org, linaro-dev@lists.linaro.org, lm-sensors@lm-sensors.org, eduardo.valentin@ti.com, durgadoss.r@intel.com, patches@linaro.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 03/05/2012 04:03 AM, Rafael J. Wysocki wrote:
-
-> On Tuesday, February 28, 2012, Srivatsa S. Bhat wrote:
->> acpi_cpu_soft_notify handles only CPU_ONLINE and CPU_DEAD events. However,
->> during a system-wide suspend/hibernation operation, CPU_ONLINE_FROZEN and
->> CPU_DEAD_FROZEN events are sent as part of CPU hotplug.
+On 3 March 2012 17:51, Sylwester Nawrocki <snjw23@gmail.com> wrote:
+> On 03/03/2012 12:06 PM, Amit Daniel Kachhap wrote:
 >>
->> Those events are really no different from regular CPU hotplug in this context,
->> and hence acpi shouldn't ignore them. So, teach acpi_cpu_soft_notify() to
->> handle those events as well.
+>> This movement is needed because the hwmon entries and corresponding
+>> sysfs interface is a duplicate of utilities already provided by
+>> driver/thermal/thermal_sys.c. The goal is to place it in mfd folder
+>> and add necessary calls to get the temperature information.
 >>
->> Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+>> Signed-off-by: Amit Daniel Kachhap<amit.kachhap@linaro.org>
+>> Signed-off-by: Donggeun Kim<dg77.kim@samsung.com>
 >> ---
->>
->> I am no ACPI expert! So requesting a thorough review of this patch..
-> 
-> Well, as far as I can tell, it _looks_ correct.  That said, I don't think
-> anyone will really tell you on the basis of code review alone, this requires
-> testing.
-> 
-> Since Len hasn't been very responsive recently, I can take this patch into
-> linux-pm/linux-next and see what the feedback is.
+>> =A0Documentation/hwmon/exynos4_tmu | =A0 81 ------
+>> =A0Documentation/mfd/exynos4_tmu =A0 | =A0 81 ++++++
+>> =A0drivers/hwmon/Kconfig =A0 =A0 =A0 =A0 =A0 | =A0 10 -
+>> =A0drivers/hwmon/Makefile =A0 =A0 =A0 =A0 =A0| =A0 =A01 -
+>> =A0drivers/hwmon/exynos4_tmu.c =A0 =A0 | =A0514
+>> ---------------------------------------
+>> =A0drivers/mfd/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 | =A0 10 +
+>> =A0drivers/mfd/Makefile =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A01 +
+>> =A0drivers/mfd/exynos4_tmu.c =A0 =A0 =A0 | =A0514
+>> +++++++++++++++++++++++++++++++++++++++
+>> =A08 files changed, 606 insertions(+), 606 deletions(-)
+>> =A0delete mode 100644 Documentation/hwmon/exynos4_tmu
+>> =A0create mode 100644 Documentation/mfd/exynos4_tmu
+>> =A0delete mode 100644 drivers/hwmon/exynos4_tmu.c
+>> =A0create mode 100644 drivers/mfd/exynos4_tmu.c
+>
+>
+> Please consider adding -M option to git format-patch next time, which
+> would make the patch smaller and would let to see clearly what's move=
+d
+> and what has changed.
 
+Sure , will keep it in mind.
 
-That would be great! Thanks a lot!
+Thanks
 
-Regards,
-
-Srivatsa S. Bhat
+>
+> --
+> Thanks,
+> Sylwester
