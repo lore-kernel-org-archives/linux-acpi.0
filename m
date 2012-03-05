@@ -1,64 +1,36 @@
-From: Don Zickus <dzickus@redhat.com>
-Subject: Re: [PATCH v2 x86 1/2]  fix page faults by nmiaction in nmi if
- kmemcheck is enabled
-Date: Mon, 5 Mar 2012 16:45:45 -0500
-Message-ID: <20120305214545.GH3083@redhat.com>
-References: <1329717665.3448.28.camel@ThinkPad-T61>
- <1329735648.2293.307.camel@twins>
- <1329788560.3448.45.camel@ThinkPad-T61>
- <1329819437.2293.382.camel@twins>
- <1329990828.19165.36.camel@ThinkPad-T61>
- <1330340324.11248.60.camel@twins>
- <1330941917.24353.63.camel@ThinkPad-T61>
- <1330969747.11248.250.camel@twins>
+From: Seth Forshee <seth.forshee@canonical.com>
+Subject: Re: [PATCH v3 0/4] toshiba_acpi: Expanded hotkey support
+Date: Mon, 5 Mar 2012 16:04:07 -0600
+Message-ID: <20120305220407.GA16312@ubuntu-macmini>
+References: <1326915852-19896-1-git-send-email-seth.forshee@canonical.com>
+ <20120206150658.GE6414@ubuntu-macmini>
+ <20120206151548.GA30255@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:21366 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754111Ab2CEVq3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 Mar 2012 16:46:29 -0500
+Received: from youngberry.canonical.com ([91.189.89.112]:38780 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754473Ab2CEWEL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Mar 2012 17:04:11 -0500
 Content-Disposition: inline
-In-Reply-To: <1330969747.11248.250.camel@twins>
+In-Reply-To: <20120206151548.GA30255@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Li Zhong <zhong@linux.vnet.ibm.com>, LKML <linux-kernel@vger.kernel.org>, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, paulus@samba.org, mingo@elte.hu, acme@ghostprotocols.net, Vegard Nossum <vegardno@ifi.uio.no>, tony.luck@intel.com, bp@amd64.org, robert.richter@amd.com, lenb@kernel.org, minyard@acm.org, wim@iguana.be, linux-edac@vger.kernel.org, oprofile-list@lists.sf.net, linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net, linux-watchdog@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, Len Brown <lenb@kernel.org>, Azael Avalos <coproscefalo@gmail.com>, Thomas Renninger <trenn@suse.de>, linux-kernel@vger.kernel.org
 
-On Mon, Mar 05, 2012 at 06:49:07PM +0100, Peter Zijlstra wrote:
-> On Mon, 2012-03-05 at 18:05 +0800, Li Zhong wrote:
-> > +static struct nmiaction arch_trigger_all_cpu_bt_nmiaction = {
-> > +       .handler        = arch_trigger_all_cpu_backtrace_handler,
-> > +       .name           = "arch_bt",
-> > +};
-> > +
-> >  static int __init register_trigger_all_cpu_backtrace(void)
-> >  {
-> > -       register_nmi_handler(NMI_LOCAL, arch_trigger_all_cpu_backtrace_handler,
-> > -                               0, "arch_bt");
-> > +       register_nmi_handler(NMI_LOCAL, &arch_trigger_all_cpu_bt_nmiaction);
-> >         return 0;
-> >  } 
+On Mon, Feb 06, 2012 at 03:15:48PM +0000, Matthew Garrett wrote:
+> On Mon, Feb 06, 2012 at 09:06:58AM -0600, Seth Forshee wrote:
 > 
-> If you look at things like cpu_notifier() you can shorten this still:
+> > Matthew: Just wondering if there are more issues that need to be
+> > addressed with this round of patches, or if they're looking okay at this
+> > point.
 > 
-> #define nmi_notifier(t, fn, n)				\
-> do {							\
-> 	static struct nmiaction fn##_na = {		\
-> 		.handler = (fn),			\
-> 		.name = (n),				\
-> 	};						\
-> 	register_nmi_handler((t), &fn##_na);		\
-> } while (0)
-> 
-> The whole thing then becomes:
-> 
->   nmi_notifier(NMI_LOCAL, arch_trigger_all_cpu_backtrace_handler, "arch_bt");
+> I'm fine with them at this point, just waiting on Len to give feedback 
+> on the ACPI patch.
 
-Hi Li,
+Well, I've been trying to get some comment on the ACPI patch, to no
+avail. Unless there's some other option, I guess I'll just resend the
+patches using an alternative method for getting the EC handle.
 
-I would be open to this suggestion.  If you want to modify the patch for
-this approach.
-
-Cheers,
-Don
+Seth
