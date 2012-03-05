@@ -1,59 +1,98 @@
-From: Amit Kachhap <amit.kachhap@linaro.org>
-Subject: Re: [PATCH 2/4] hwmon: exynos4: Move thermal sensor driver to
- driver/mfd directory
-Date: Mon, 5 Mar 2012 14:14:31 +0530
-Message-ID: <CAK44p217-ah2HPot65nctZ7+r+A_EiOXPKq8y33NbBM1scrXgQ@mail.gmail.com>
-References: <1330772767-16120-1-git-send-email-amit.kachhap@linaro.org>
-	<1330772767-16120-3-git-send-email-amit.kachhap@linaro.org>
-	<4F520CCE.1030409@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <4F520CCE.1030409@gmail.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Cc: linux-pm@lists.linux-foundation.org, linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org, mjg59@srcf.ucam.org, linux-acpi@vger.kernel.org, lenb@kernel.org, linaro-dev@lists.linaro.org, lm-sensors@lm-sensors.org, eduardo.valentin@ti.com, durgadoss.r@intel.com, patches@linaro.org
+From: Corentin Chary <corentin.chary@gmail.com>
+Subject: [PATCH] ACPI / Video: blacklist some samsung laptops
+Date: Mon,  5 Mar 2012 10:01:20 +0100
+Message-ID: <1330938083-10873-1-git-send-email-corentin.chary@gmail.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fb1.tech.numericable.fr ([82.216.111.51]:60239 "EHLO
+	fb1.tech.numericable.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755403Ab2CEJK4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Mar 2012 04:10:56 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Corentin Chary <corentincj@iksaif.net>, Paul Gortmaker <paul.gortmaker@windriver.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 3 March 2012 17:51, Sylwester Nawrocki <snjw23@gmail.com> wrote:
-> On 03/03/2012 12:06 PM, Amit Daniel Kachhap wrote:
->>
->> This movement is needed because the hwmon entries and corresponding
->> sysfs interface is a duplicate of utilities already provided by
->> driver/thermal/thermal_sys.c. The goal is to place it in mfd folder
->> and add necessary calls to get the temperature information.
->>
->> Signed-off-by: Amit Daniel Kachhap<amit.kachhap@linaro.org>
->> Signed-off-by: Donggeun Kim<dg77.kim@samsung.com>
->> ---
->> =A0Documentation/hwmon/exynos4_tmu | =A0 81 ------
->> =A0Documentation/mfd/exynos4_tmu =A0 | =A0 81 ++++++
->> =A0drivers/hwmon/Kconfig =A0 =A0 =A0 =A0 =A0 | =A0 10 -
->> =A0drivers/hwmon/Makefile =A0 =A0 =A0 =A0 =A0| =A0 =A01 -
->> =A0drivers/hwmon/exynos4_tmu.c =A0 =A0 | =A0514
->> ---------------------------------------
->> =A0drivers/mfd/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 | =A0 10 +
->> =A0drivers/mfd/Makefile =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A01 +
->> =A0drivers/mfd/exynos4_tmu.c =A0 =A0 =A0 | =A0514
->> +++++++++++++++++++++++++++++++++++++++
->> =A08 files changed, 606 insertions(+), 606 deletions(-)
->> =A0delete mode 100644 Documentation/hwmon/exynos4_tmu
->> =A0create mode 100644 Documentation/mfd/exynos4_tmu
->> =A0delete mode 100644 drivers/hwmon/exynos4_tmu.c
->> =A0create mode 100644 drivers/mfd/exynos4_tmu.c
->
->
-> Please consider adding -M option to git format-patch next time, which
-> would make the patch smaller and would let to see clearly what's move=
-d
-> and what has changed.
+From: Corentin Chary <corentincj@iksaif.net>
 
-Sure , will keep it in mind.
+On these laptops, the ACPI video is not functional, and very unlikely
+to be fixed by the vendor. Note that intel_backlight works for some
+of these laptops, and the backlight from samsung-laptop always work.
 
-Thanks
+The good news is that newer laptops have functional ACPI video device
+and won't end up growing this list.
 
->
-> --
-> Thanks,
-> Sylwester
+Signed-off-by: Corentin Chary <corentincj@iksaif.net>
+---
+ drivers/acpi/video_detect.c |   49 +++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 49 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+index f3f0fe7..b6f6979 100644
+--- a/drivers/acpi/video_detect.c
++++ b/drivers/acpi/video_detect.c
+@@ -132,6 +132,53 @@ find_video(acpi_handle handle, u32 lvl, void *context, void **rv)
+ 	return AE_OK;
+ }
+ 
++/* Force to use vendor driver when the ACPI device is known to be
++ * buggy */
++static int video_detect_force_vendor(const struct dmi_system_id *d)
++{
++	acpi_video_support |= ACPI_VIDEO_BACKLIGHT_DMI_VENDOR;
++	return 0;
++}
++
++static struct dmi_system_id video_detect_dmi_table[] = {
++	{
++	 .callback = video_detect_force_vendor,
++	 .ident = "N150P",
++	 .matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
++		DMI_MATCH(DMI_PRODUCT_NAME, "N150P"),
++		DMI_MATCH(DMI_BOARD_NAME, "N150P"),
++		},
++	},
++	{
++	 .callback = video_detect_force_vendor,
++	 .ident = "N145P/N250P/N260P",
++	 .matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
++		DMI_MATCH(DMI_PRODUCT_NAME, "N145P/N250P/N260P"),
++		DMI_MATCH(DMI_BOARD_NAME, "N145P/N250P/N260P"),
++		},
++	},
++	{
++	 .callback = video_detect_force_vendor,
++	 .ident = "N150/N210/N220",
++	 .matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
++		DMI_MATCH(DMI_PRODUCT_NAME, "N150/N210/N220"),
++		DMI_MATCH(DMI_BOARD_NAME, "N150/N210/N220"),
++		},
++	},
++	{
++	 .callback = video_detect_force_vendor,
++	 .ident = "NF110/NF210/NF310",
++	 .matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
++		DMI_MATCH(DMI_PRODUCT_NAME, "NF110/NF210/NF310"),
++		DMI_MATCH(DMI_BOARD_NAME, "NF110/NF210/NF310"),
++		},
++	},
++};
++
+ /*
+  * Returns the video capabilities of a specific ACPI graphics device
+  *
+@@ -164,6 +211,8 @@ long acpi_video_get_capabilities(acpi_handle graphics_handle)
+ 		 *		ACPI_VIDEO_BACKLIGHT_DMI_VENDOR;
+ 		 *}
+ 		 */
++
++		dmi_check_system(video_detect_dmi_table);
+ 	} else {
+ 		status = acpi_bus_get_device(graphics_handle, &tmp_dev);
+ 		if (ACPI_FAILURE(status)) {
+-- 
+1.7.3.4
+
