@@ -1,32 +1,45 @@
-From: Jonathan Nieder <jrnieder@gmail.com>
-Subject: Re: Inspiron 1090: Panic on power event (Doubled AC adapter)
-Date: Sun, 4 Mar 2012 19:13:53 -0600
-Message-ID: <20120305011353.GD27427@burratino>
-References: <20120110165850.GA3015@zod.bos.redhat.com>
- <CAErSpo49rG6GFgXk+4JOsBr20QpOOrPGYZhyVsCcYVvuGCY6KA@mail.gmail.com>
- <20120305011120.GA29786@burratino>
+From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
+Subject: Re: [PATCH] PM/Sleep, ACPI: Teach acpi_cpu_soft_notify() to handle
+ CPU hotplug in suspend/resume path
+Date: Mon, 05 Mar 2012 12:03:16 +0530
+Message-ID: <4F545E2C.8080408@linux.vnet.ibm.com>
+References: <20120228155137.3061.97133.stgit@srivatsabhat.in.ibm.com> <201203042333.18501.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:63606 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755056Ab2CEBOA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 4 Mar 2012 20:14:00 -0500
-Received: by iagz16 with SMTP id z16so4893441iag.19
-        for <linux-acpi@vger.kernel.org>; Sun, 04 Mar 2012 17:14:00 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20120305011120.GA29786@burratino>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201203042333.18501.rjw@sisk.pl>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: lenb@kernel.org, deepthi@linux.vnet.ibm.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Josh Boyer <jwboyer@redhat.com>, linux-acpi@vger.kernel.org, kernel-team@fedoraproject.org, Zhang Rui <rui.zhang@intel.com>, Mark Langsdorf <mark.langsdorf@amd.com>, Giovanni Biscuolo <g@xelera.eu>, Jan-Matthias Braun <jan_braun@gmx.net>
 
-Jonathan Nieder wrote:
+On 03/05/2012 04:03 AM, Rafael J. Wysocki wrote:
 
-> [Subject: Re: [3.0? -> 3.1.6 regression] Inspiron 1090: Panic on
-> power event (Doubled AC adapter)]
+> On Tuesday, February 28, 2012, Srivatsa S. Bhat wrote:
+>> acpi_cpu_soft_notify handles only CPU_ONLINE and CPU_DEAD events. However,
+>> during a system-wide suspend/hibernation operation, CPU_ONLINE_FROZEN and
+>> CPU_DEAD_FROZEN events are sent as part of CPU hotplug.
+>>
+>> Those events are really no different from regular CPU hotplug in this context,
+>> and hence acpi shouldn't ignore them. So, teach acpi_cpu_soft_notify() to
+>> handle those events as well.
+>>
+>> Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+>> ---
+>>
+>> I am no ACPI expert! So requesting a thorough review of this patch..
+> 
+> Well, as far as I can tell, it _looks_ correct.  That said, I don't think
+> anyone will really tell you on the basis of code review alone, this requires
+> testing.
+> 
+> Since Len hasn't been very responsive recently, I can take this patch into
+> linux-pm/linux-next and see what the feedback is.
 
-Hmm, it's older than that.  Might not be a regression.  Sorry for the
-confusion.
 
-Jonathan
+That would be great! Thanks a lot!
+
+Regards,
+
+Srivatsa S. Bhat
