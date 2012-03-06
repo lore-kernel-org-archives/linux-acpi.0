@@ -1,53 +1,41 @@
-From: Don Zickus <dzickus@redhat.com>
-Subject: Re: [PATCH v3 x86 1/2]  fix page faults by nmiaction in nmi if
- kmemcheck is enabled
-Date: Tue, 6 Mar 2012 10:00:00 -0500
-Message-ID: <20120306150000.GK3083@redhat.com>
-References: <1329717665.3448.28.camel@ThinkPad-T61>
- <1329735648.2293.307.camel@twins>
- <1329788560.3448.45.camel@ThinkPad-T61>
- <1329819437.2293.382.camel@twins>
- <1329990828.19165.36.camel@ThinkPad-T61>
- <1330340324.11248.60.camel@twins>
- <1330941917.24353.63.camel@ThinkPad-T61>
- <1330969747.11248.250.camel@twins>
- <20120305214545.GH3083@redhat.com>
- <1331028583.15778.3.camel@ThinkPad-T61>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Jiang Liu <liuj97@gmail.com>
+Subject: [RESEND PATCH v3] Fix a copy & paste error in erst.c.
+Date: Wed,  7 Mar 2012 00:29:19 +0800
+Message-ID: <1331051359-21539-1-git-send-email-jiang.liu@huawei.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:48604 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030778Ab2CFPBG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 6 Mar 2012 10:01:06 -0500
-Content-Disposition: inline
-In-Reply-To: <1331028583.15778.3.camel@ThinkPad-T61>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:39617 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756626Ab2CFQca (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Mar 2012 11:32:30 -0500
+Received: by iagz16 with SMTP id z16so7261234iag.19
+        for <linux-acpi@vger.kernel.org>; Tue, 06 Mar 2012 08:32:29 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Li Zhong <zhong@linux.vnet.ibm.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>, LKML <linux-kernel@vger.kernel.org>, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, paulus@samba.org, mingo@elte.hu, acme@ghostprotocols.net, Vegard Nossum <vegardno@ifi.uio.no>, tony.luck@intel.com, bp@amd64.org, robert.richter@amd.com, lenb@kernel.org, minyard@acm.org, wim@iguana.be, linux-edac@vger.kernel.org, oprofile-list@lists.sf.net, linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net, linux-watchdog@vger.kernel.org
+To: Len Brown <lenb@kernel.org>, Huang Ying <ying.huang@intel.com>
+Cc: Jiang Liu <jiang.liu@huawei.com>, linux-acpi@vger.kernel.org
 
-On Tue, Mar 06, 2012 at 06:09:43PM +0800, Li Zhong wrote:
-> This patch tries to fix the problem of page fault exception caused by
-> accessing nmiaction structure in nmi if kmemcheck is enabled. 
-> 
-> If kmemcheck is enabled, the memory allocated through slab are in pages
-> that are marked non-present, so that some checks could be done in the
-> page fault handling code ( e.g. whether the memory is read before
-> written to ). 
-> As nmiaction is allocated in this way, so it resides in a non-present
-> page. Then there is a page fault while the nmi code accessing the
-> nmiaction structure, which would then cause a warning by
-> WARN_ON_ONCE(in_nmi()) in kmemcheck_fault(), called by do_page_fault().
-> 
-> v2: as Peter suggested, changed the nmiaction to use static storage.
-> 
-> v3: as Peter suggested, use macro to shorten the codes. Also keep the
-> original usage of register_nmi_handler, so users of this call doesn't
-> need change. 
+This patch fixes a copy & paste error in erst.c and it applies
+to v3.3-rc6.
 
-Thanks Li!  Looks fine to me.  I'll run some tests to make sure things
-still work correctly.
+Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+Acked-by: Huang Ying <ying.huang@intel.com>
+---
+ drivers/acpi/apei/erst.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Cheers,
-Don
+diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
+index eb9fab5..e4d9d24 100644
+--- a/drivers/acpi/apei/erst.c
++++ b/drivers/acpi/apei/erst.c
+@@ -917,7 +917,7 @@ static int erst_check_table(struct acpi_table_erst *erst_tab)
+ {
+ 	if ((erst_tab->header_length !=
+ 	     (sizeof(struct acpi_table_erst) - sizeof(erst_tab->header)))
+-	    && (erst_tab->header_length != sizeof(struct acpi_table_einj)))
++	    && (erst_tab->header_length != sizeof(struct acpi_table_erst)))
+ 		return -EINVAL;
+ 	if (erst_tab->header.length < sizeof(struct acpi_table_erst))
+ 		return -EINVAL;
+-- 
+1.7.5.4
+
