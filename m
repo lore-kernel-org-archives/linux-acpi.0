@@ -1,83 +1,157 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH 18/23] PCI, ACPI: add acpi_pci_root_rescan()
-Date: Mon,  5 Mar 2012 23:13:55 -0800
-Message-ID: <1331018040-30725-19-git-send-email-yinghai@kernel.org>
-References: <1331018040-30725-1-git-send-email-yinghai@kernel.org>
+From: Li Zhong <zhong@linux.vnet.ibm.com>
+Subject: Re: [PATCH v3 x86 1/2]  fix page faults by nmiaction in nmi if
+ kmemcheck is enabled
+Date: Tue, 06 Mar 2012 18:09:43 +0800
+Message-ID: <1331028583.15778.3.camel@ThinkPad-T61>
+References: <1329717665.3448.28.camel@ThinkPad-T61>
+	 <1329735648.2293.307.camel@twins> <1329788560.3448.45.camel@ThinkPad-T61>
+	 <1329819437.2293.382.camel@twins> <1329990828.19165.36.camel@ThinkPad-T61>
+	 <1330340324.11248.60.camel@twins> <1330941917.24353.63.camel@ThinkPad-T61>
+	 <1330969747.11248.250.camel@twins> <20120305214545.GH3083@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1331018040-30725-1-git-send-email-yinghai@kernel.org>
+In-Reply-To: <20120305214545.GH3083@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jesse Barnes <jbarnes@virtuousgeek.org>, x86 <x86@kernel.org>
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Don Zickus <dzickus@redhat.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>, LKML <linux-kernel@vger.kernel.org>, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, paulus@samba.org, mingo@elte.hu, acme@ghostprotocols.net, Vegard Nossum <vegardno@ifi.uio.no>, tony.luck@intel.com, bp@amd64.org, robert.richter@amd.com, lenb@kernel.org, minyard@acm.org, wim@iguana.be, linux-edac@vger.kernel.org, oprofile-list@lists.sf.net, linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net, linux-watchdog@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-it will rescan all acpi pci root if related pci root bus get removed before.
+This patch tries to fix the problem of page fault exception caused by
+accessing nmiaction structure in nmi if kmemcheck is enabled. 
 
-Signed-off-by: Yinghai <yinghai@kernel.org>
-Cc: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+If kmemcheck is enabled, the memory allocated through slab are in pages
+that are marked non-present, so that some checks could be done in the
+page fault handling code ( e.g. whether the memory is read before
+written to ). 
+As nmiaction is allocated in this way, so it resides in a non-present
+page. Then there is a page fault while the nmi code accessing the
+nmiaction structure, which would then cause a warning by
+WARN_ON_ONCE(in_nmi()) in kmemcheck_fault(), called by do_page_fault().
+
+v2: as Peter suggested, changed the nmiaction to use static storage.
+
+v3: as Peter suggested, use macro to shorten the codes. Also keep the
+original usage of register_nmi_handler, so users of this call doesn't
+need change. 
+
+Signed-off-by: Li Zhong <zhong@linux.vnet.ibm.com>
 ---
- drivers/acpi/pci_root.c |   52 +++++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 52 insertions(+), 0 deletions(-)
+ arch/x86/include/asm/nmi.h |   19 ++++++++++++++-
+ arch/x86/kernel/nmi.c      |   52
+++++++--------------------------------------
+ 2 files changed, 24 insertions(+), 47 deletions(-)
 
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index b38e347..e1814e0 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -679,3 +679,55 @@ static int __init acpi_pci_root_init(void)
+diff --git a/arch/x86/include/asm/nmi.h b/arch/x86/include/asm/nmi.h
+index fd3f9f1..5a2b2c6 100644
+--- a/arch/x86/include/asm/nmi.h
++++ b/arch/x86/include/asm/nmi.h
+@@ -35,8 +35,23 @@ enum {
+ 
+ typedef int (*nmi_handler_t)(unsigned int, struct pt_regs *);
+ 
+-int register_nmi_handler(unsigned int, nmi_handler_t, unsigned long,
+-			 const char *);
++struct nmiaction {
++	struct list_head list;
++	nmi_handler_t handler;
++	unsigned int flags;
++	const char *name;
++};
++
++#define register_nmi_handler(t, fn, fg, n)		\
++({							\
++	static struct nmiaction fn##_na = {		\
++		.handler = (fn),			\
++		.name = (n),				\
++	};						\
++	__register_nmi_handler((t), (fg), &fn##_na);	\
++})
++
++int __register_nmi_handler(unsigned int, unsigned int, struct nmiaction
+*);
+ 
+ void unregister_nmi_handler(unsigned int, const char *);
+ 
+diff --git a/arch/x86/kernel/nmi.c b/arch/x86/kernel/nmi.c
+index 47acaf3..a097559 100644
+--- a/arch/x86/kernel/nmi.c
++++ b/arch/x86/kernel/nmi.c
+@@ -31,14 +31,6 @@
+ #include <asm/nmi.h>
+ #include <asm/x86_init.h>
+ 
+-#define NMI_MAX_NAMELEN	16
+-struct nmiaction {
+-	struct list_head list;
+-	nmi_handler_t handler;
+-	unsigned int flags;
+-	char *name;
+-};
+-
+ struct nmi_desc {
+ 	spinlock_t lock;
+ 	struct list_head head;
+@@ -160,51 +152,21 @@ static struct nmiaction *__free_nmi(unsigned int
+type, const char *name)
+ 	return (n);
  }
  
- subsys_initcall(acpi_pci_root_init);
-+
-+static acpi_status
-+rescan_root_bridge(acpi_handle handle, u32 lvl, void *context, void **rv)
-+{
-+	struct acpi_device *device, *pdevice;
-+	struct acpi_pci_root *root;
-+	acpi_handle phandle;
-+	int ret_val;
-+
-+	if (!acpi_is_root_bridge(handle))
-+		return AE_OK;
-+
-+	acpi_get_parent(handle, &phandle);
-+	if (acpi_bus_get_device(phandle, &pdevice)) {
-+		printk(KERN_DEBUG "no parent device, assuming NULL\n");
-+		pdevice = NULL;
-+	}
-+
-+	if (!acpi_bus_get_device(handle, &device)) {
-+		/* check if  pci root_bus is removed */
-+		root = acpi_driver_data(device);
-+		if (pci_find_bus(root->segment, root->secondary.start))
-+			return AE_OK;
-+
-+		printk(KERN_DEBUG "bus exists... trim\n");
-+		/* this shouldn't be in here, so remove
-+		 * the bus then re-add it...
-+		 */
-+		ret_val = acpi_bus_trim(device, 1);
-+		printk(KERN_DEBUG "acpi_bus_trim return %x\n", ret_val);
-+	}
-+
-+	ret_val = acpi_bus_add(&device, pdevice, handle, ACPI_BUS_TYPE_DEVICE);
-+	if (ret_val) {
-+		printk(KERN_ERR "error adding bus, %x\n", -ret_val);
-+		goto out;
-+	}
-+
-+	root = acpi_driver_data(device);
-+	pci_assign_unassigned_bus_resources(root->bus);
-+
-+	ret_val = acpi_bus_start(device);
-+
-+out:
-+	return ret_val;
-+}
-+
-+void acpi_pci_root_rescan(void)
-+{
-+	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
-+		ACPI_UINT32_MAX, rescan_root_bridge, NULL, NULL, NULL);
-+}
+-int register_nmi_handler(unsigned int type, nmi_handler_t handler,
+-			unsigned long nmiflags, const char *devname)
++int __register_nmi_handler(unsigned int type, unsigned int nmiflags,
++						struct nmiaction *na)
+ {
+-	struct nmiaction *action;
+-	int retval = -ENOMEM;
+-
+-	if (!handler)
++	if (!na->handler)
+ 		return -EINVAL;
+ 
+-	action = kzalloc(sizeof(struct nmiaction), GFP_KERNEL);
+-	if (!action)
+-		goto fail_action;
+-
+-	action->handler = handler;
+-	action->flags = nmiflags;
+-	action->name = kstrndup(devname, NMI_MAX_NAMELEN, GFP_KERNEL);
+-	if (!action->name)
+-		goto fail_action_name;
+-
+-	retval = __setup_nmi(type, action);
+-
+-	if (retval)
+-		goto fail_setup_nmi;
++	na->flags = nmiflags;
+ 
+-	return retval;
+-
+-fail_setup_nmi:
+-	kfree(action->name);
+-fail_action_name:
+-	kfree(action);
+-fail_action:	
+-
+-	return retval;
++	return __setup_nmi(type, na);
+ }
+-EXPORT_SYMBOL_GPL(register_nmi_handler);
++EXPORT_SYMBOL_GPL(__register_nmi_handler);
+ 
+ void unregister_nmi_handler(unsigned int type, const char *name)
+ {
+-	struct nmiaction *a;
+-
+-	a = __free_nmi(type, name);
+-	if (a) {
+-		kfree(a->name);
+-		kfree(a);
+-	}
++	__free_nmi(type, name);
+ }
+ 
+ EXPORT_SYMBOL_GPL(unregister_nmi_handler);
 -- 
-1.7.7
+1.7.1
