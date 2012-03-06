@@ -1,7 +1,7 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH 17/23] PCI, ACPI: make acpi_pci_root_remove remove pci root bus too
-Date: Mon,  5 Mar 2012 23:13:54 -0800
-Message-ID: <1331018040-30725-18-git-send-email-yinghai@kernel.org>
+Subject: [PATCH 18/23] PCI, ACPI: add acpi_pci_root_rescan()
+Date: Mon,  5 Mar 2012 23:13:55 -0800
+Message-ID: <1331018040-30725-19-git-send-email-yinghai@kernel.org>
 References: <1331018040-30725-1-git-send-email-yinghai@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1331018040-30725-1-git-send-email-yinghai@kernel.org>
@@ -10,45 +10,74 @@ To: Jesse Barnes <jbarnes@virtuousgeek.org>, x86 <x86@kernel.org>
 Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-it will call new added pci_stop_and_remove_bus() to stop/remove pci root bus.
+it will rescan all acpi pci root if related pci root bus get removed before.
 
-also checking if that pci_root_bus get removed already in bus remove in /sys
-
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Signed-off-by: Yinghai <yinghai@kernel.org>
 Cc: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org
 ---
- drivers/acpi/pci_root.c |   14 ++++++++++++++
- 1 files changed, 14 insertions(+), 0 deletions(-)
+ drivers/acpi/pci_root.c |   52 +++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 52 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index 7aff631..b38e347 100644
+index b38e347..e1814e0 100644
 --- a/drivers/acpi/pci_root.c
 +++ b/drivers/acpi/pci_root.c
-@@ -643,10 +643,24 @@ static int acpi_pci_root_remove(struct acpi_device *device, int type)
- {
- 	struct acpi_pci_root *root = acpi_driver_data(device);
+@@ -679,3 +679,55 @@ static int __init acpi_pci_root_init(void)
+ }
  
-+	/* that root bus could be removed already */
-+	if (!pci_find_bus(root->segment, root->secondary.start)) {
-+		dev_printk(KERN_DEBUG, &device->dev,
-+		  "freeing acpi_pci_root, but pci root bus was removed before");
+ subsys_initcall(acpi_pci_root_init);
++
++static acpi_status
++rescan_root_bridge(acpi_handle handle, u32 lvl, void *context, void **rv)
++{
++	struct acpi_device *device, *pdevice;
++	struct acpi_pci_root *root;
++	acpi_handle phandle;
++	int ret_val;
++
++	if (!acpi_is_root_bridge(handle))
++		return AE_OK;
++
++	acpi_get_parent(handle, &phandle);
++	if (acpi_bus_get_device(phandle, &pdevice)) {
++		printk(KERN_DEBUG "no parent device, assuming NULL\n");
++		pdevice = NULL;
++	}
++
++	if (!acpi_bus_get_device(handle, &device)) {
++		/* check if  pci root_bus is removed */
++		root = acpi_driver_data(device);
++		if (pci_find_bus(root->segment, root->secondary.start))
++			return AE_OK;
++
++		printk(KERN_DEBUG "bus exists... trim\n");
++		/* this shouldn't be in here, so remove
++		 * the bus then re-add it...
++		 */
++		ret_val = acpi_bus_trim(device, 1);
++		printk(KERN_DEBUG "acpi_bus_trim return %x\n", ret_val);
++	}
++
++	ret_val = acpi_bus_add(&device, pdevice, handle, ACPI_BUS_TYPE_DEVICE);
++	if (ret_val) {
++		printk(KERN_ERR "error adding bus, %x\n", -ret_val);
 +		goto out;
 +	}
 +
- 	device_set_run_wake(root->bus->bridge, false);
- 	pci_acpi_remove_bus_pm_notifier(device);
- 
-+	dev_printk(KERN_DEBUG, &device->dev,
-+		"freeing acpi_pci_root, will remove pci root bus at first");
-+	pci_stop_and_remove_bus(root->bus);
++	root = acpi_driver_data(device);
++	pci_assign_unassigned_bus_resources(root->bus);
++
++	ret_val = acpi_bus_start(device);
 +
 +out:
-+	list_del(&root->node);
- 	kfree(root);
++	return ret_val;
++}
 +
- 	return 0;
- }
- 
++void acpi_pci_root_rescan(void)
++{
++	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
++		ACPI_UINT32_MAX, rescan_root_bridge, NULL, NULL, NULL);
++}
 -- 
 1.7.7
