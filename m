@@ -1,61 +1,87 @@
-From: Randy Dunlap <rdunlap@xenotime.net>
-Subject: Re: [PATCH v3 0/4] toshiba_acpi: Expanded hotkey support
-Date: Mon, 05 Mar 2012 16:55:46 -0800
-Message-ID: <4F556092.7060202@xenotime.net>
-References: <1326915852-19896-1-git-send-email-seth.forshee@canonical.com> <20120206150658.GE6414@ubuntu-macmini> <20120206151548.GA30255@srcf.ucam.org> <20120305220407.GA16312@ubuntu-macmini> <4F5545BB.5010608@xenotime.net> <20120305233445.GD16312@ubuntu-macmini>
+From: Li Zhong <zhong@linux.vnet.ibm.com>
+Subject: Re: [PATCH v2 x86 1/2]  fix page faults by nmiaction in nmi if
+ kmemcheck is enabled
+Date: Tue, 06 Mar 2012 09:46:39 +0800
+Message-ID: <1330998399.24353.65.camel@ThinkPad-T61>
+References: <1329717665.3448.28.camel@ThinkPad-T61>
+	 <1329735648.2293.307.camel@twins> <1329788560.3448.45.camel@ThinkPad-T61>
+	 <1329819437.2293.382.camel@twins> <1329990828.19165.36.camel@ThinkPad-T61>
+	 <1330340324.11248.60.camel@twins> <1330941917.24353.63.camel@ThinkPad-T61>
+	 <20120305102914.GA12774@spo001.leaseweb.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <20120305233445.GD16312@ubuntu-macmini>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, Len Brown <lenb@kernel.org>, Azael Avalos <coproscefalo@gmail.com>, Thomas Renninger <trenn@suse.de>, linux-kernel@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120305102914.GA12774@spo001.leaseweb.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Wim Van Sebroeck <wim@iguana.be>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>, LKML <linux-kernel@vger.kernel.org>, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, paulus@samba.org, mingo@elte.hu, acme@ghostprotocols.net, Vegard Nossum <vegardno@ifi.uio.no>, Don Zickus <dzickus@redhat.com>, tony.luck@intel.com, bp@amd64.org, robert.richter@amd.com, lenb@kernel.org, minyard@acm.org, linux-edac@vger.kernel.org, oprofile-list@lists.sf.net, linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net, linux-watchdog@vger.kernel.org, Thomas.Mingarelli@hp.com
 List-Id: linux-acpi@vger.kernel.org
 
-On 03/05/2012 03:34 PM, Seth Forshee wrote:
-
-> On Mon, Mar 05, 2012 at 03:01:15PM -0800, Randy Dunlap wrote:
->> On 03/05/2012 02:04 PM, Seth Forshee wrote:
->>
->>> On Mon, Feb 06, 2012 at 03:15:48PM +0000, Matthew Garrett wrote:
->>>> On Mon, Feb 06, 2012 at 09:06:58AM -0600, Seth Forshee wrote:
->>>>
->>>>> Matthew: Just wondering if there are more issues that need to be
->>>>> addressed with this round of patches, or if they're looking okay at this
->>>>> point.
->>>>
->>>> I'm fine with them at this point, just waiting on Len to give feedback 
->>>> on the ACPI patch.
->>>
->>> Well, I've been trying to get some comment on the ACPI patch, to no
->>> avail. Unless there's some other option, I guess I'll just resend the
->>> patches using an alternative method for getting the EC handle.
->>
->>
->> I did test this patch series on 3.3-rc5 to see if it would
->> help with the touchpad on/off key on my Toshiba Portege.
->>
->> The patch series didn't have any ill effects, nor did it help
->> with the touchpad on/off key.  :(
+On Mon, 2012-03-05 at 11:29 +0100, Wim Van Sebroeck wrote:
+> Hi Li,
 > 
-> Is it only that hotkey that doesn't work, or do the others fail to work
-> as well?
+> > diff --git a/drivers/watchdog/hpwdt.c b/drivers/watchdog/hpwdt.c
+> > index 8464ea1..e575e63 100644
+> > --- a/drivers/watchdog/hpwdt.c
+> > +++ b/drivers/watchdog/hpwdt.c
+> > @@ -689,9 +689,22 @@ static void __devinit dmi_find_icru(const struct dmi_header *dm, void *dummy)
+> >  	}
+> >  }
+> >  
+> > +static struct nmiaction hpwdt_nmiaction[] = {
+> > +	{
+> > +		.handler	= hpwdt_pretimeout,
+> > +		.name		= "hpwdt",
+> > +	},
+> > +	{
+> > +		.handler	= hpwdt_pretimeout,
+> > +		.flags		= NMI_FLAG_FIRST,
+> > +		.name		= "hpwdt",
+> > +	},
+> > +};
+> > +
+> >  static int __devinit hpwdt_init_nmi_decoding(struct pci_dev *dev)
+> >  {
+> >  	int retval;
+> > +	struct nmiaction *na = hpwdt_nmiaction;
+> >  
+> >  	/*
+> >  	 * On typical CRU-based systems we need to map that service in
+> > @@ -733,9 +746,11 @@ static int __devinit hpwdt_init_nmi_decoding(struct pci_dev *dev)
+> >  	 * die notify list to handle a critical NMI. The default is to
+> >  	 * be last so other users of the NMI signal can function.
+> >  	 */
+> > -	retval = register_nmi_handler(NMI_UNKNOWN, hpwdt_pretimeout,
+> > -					(priority) ? NMI_FLAG_FIRST : 0,
+> > -					"hpwdt");
+> > +
+> > +	if (priority)
+> > +		na = &hpwdt_nmiaction[1];
+> > +
+> > +	retval = register_nmi_handler(NMI_UNKNOWN, na);
+> >  	if (retval != 0) {
+> >  		dev_warn(&dev->dev,
+> >  			"Unable to register a die notifier (err=%d).\n",
+> 
+> Why not do something like;
+> 
+> static struct nmiaction hpwdt_nmiaction = {
+> 	.handler	= hpwdt_pretimeout,
+> 	.name		= "hpwdt",
+> };
+> 
+> ...
+> 	if (priority)
+> 		hpwdt_nmiaction.flags = NMI_FLAG_FIRST;
+> ...
+> 
 
-I haven't tried any others.  Which ones do you suggest that I test?
+Thank you, Wim. I'll update it. 
 
-> If it's only that key that doesn't work, I'd suggest using input-events
-> to determine exactly which device the other hotkey events are coming
-> from (it might be more than one) and to verify there really isn't any
-> event coming out for that key. If there's no event at all for the key,
-> check dmesg and see if any messages are printed there when you press the
-> touchpad key.
+Thanks,
+Zhong
 
-
-I don't know about "input-events".  Where do I find it & info on it?
-
-I already tried using 'showkey' and it didn't see any keypress for the
-touchpad key.
-
-thanks,
--- 
-~Randy
+> Kind regards,
+> Wim.
+> 
