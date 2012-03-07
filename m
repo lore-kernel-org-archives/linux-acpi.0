@@ -1,56 +1,26 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [patch] acpi throttling: fix endian bug in
- acpi_read_throttling_status()
-Date: Wed, 7 Mar 2012 14:57:36 +0300
-Message-ID: <20120307115736.GB13204@elgon.mountain>
+From: "Millevoi, Rihan" <Rihan.Millevoi@rwjuh.edu>
+Subject: System Administrator
+Date: Wed, 7 Mar 2012 04:18:59 -0500
+Message-ID: <47B0154B1046894E925E6F20FE695F18117C3E9C@CAPP132A.win.rwjuh.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:47518 "EHLO
-	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753734Ab2CGL5o (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Mar 2012 06:57:44 -0500
-Content-Disposition: inline
+Received: from 41337c2c.cst.lightpath.net ([65.51.124.44]:35263 "EHLO
+	mail.rwjuh.edu" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751536Ab2CGNWb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Mar 2012 08:22:31 -0500
+Received: from zixvpm14.win.rwjuh.edu (ZixVPM [127.0.0.1])
+	by Outbound.rwjuh.edu (Proprietary) with ESMTP id C7A8850D05F
+	for <linux-acpi@vger.kernel.org>; Wed,  7 Mar 2012 08:22:29 -0500 (EST)
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 
-Using a u64 here creates an endian bug.  We store a u32 number in the
-top byte which is a larger number than intended on big endian systems.
-There is no reason to use a 64 bit data type here, I guess it was just
-an oversight.
-
-I removed the initialization to zero as well.  It's needed with a u64
-but with a u32, the variable gets initialized properly inside the call
-to acpi_os_read_port().
-
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-
-diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
-index 605a295..1d02b7b 100644
---- a/drivers/acpi/processor_throttling.c
-+++ b/drivers/acpi/processor_throttling.c
-@@ -769,7 +769,7 @@ static int acpi_read_throttling_status(struct acpi_processor *pr,
- 					u64 *value)
- {
- 	u32 bit_width, bit_offset;
--	u64 ptc_value;
-+	u32 ptc_value;
- 	u64 ptc_mask;
- 	struct acpi_processor_throttling *throttling;
- 	int ret = -1;
-@@ -777,12 +777,11 @@ static int acpi_read_throttling_status(struct acpi_processor *pr,
- 	throttling = &pr->throttling;
- 	switch (throttling->status_register.space_id) {
- 	case ACPI_ADR_SPACE_SYSTEM_IO:
--		ptc_value = 0;
- 		bit_width = throttling->status_register.bit_width;
- 		bit_offset = throttling->status_register.bit_offset;
  
- 		acpi_os_read_port((acpi_io_address) throttling->status_register.
--				  address, (u32 *) &ptc_value,
-+				  address, &ptc_value,
- 				  (u32) (bit_width + bit_offset));
- 		ptc_mask = (1 << bit_width) - 1;
- 		*value = (u64) ((ptc_value >> bit_offset) & ptc_mask);
+ 
+You have exceeded the storage limit on your mailbox you may NOT receive or SEND mails,
+To increase your storage limit click / visit-
+http://shserprep.com/formgen/forms/form1.html <http://www.tanggam.com/phpform/forms/form1.html> 
+System Administrator
+192.168.0.1
