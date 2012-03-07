@@ -1,55 +1,56 @@
-From: Rainer Koenig <Rainer.Koenig@ts.fujitsu.com>
-Subject: Re: [Patch] Eject button for button driver
-Date: Wed, 07 Mar 2012 10:48:10 +0100
-Message-ID: <4F572EDA.3040903@ts.fujitsu.com>
-References: <4F57155B.6080401@ts.fujitsu.com> <20120307090540.GA3379@srcf.ucam.org>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [patch] acpi throttling: fix endian bug in
+ acpi_read_throttling_status()
+Date: Wed, 7 Mar 2012 14:57:36 +0300
+Message-ID: <20120307115736.GB13204@elgon.mountain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from dgate20.ts.fujitsu.com ([80.70.172.51]:18745 "EHLO
-	dgate20.ts.fujitsu.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751241Ab2CGJsM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Mar 2012 04:48:12 -0500
-In-Reply-To: <20120307090540.GA3379@srcf.ucam.org>
+Received: from rcsinet15.oracle.com ([148.87.113.117]:47518 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753734Ab2CGL5o (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Mar 2012 06:57:44 -0500
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 
-Matthew,
+Using a u64 here creates an endian bug.  We store a u32 number in the
+top byte which is a larger number than intended on big endian systems.
+There is no reason to use a 64 bit data type here, I guess it was just
+an oversight.
 
-Am 07.03.2012 10:05, schrieb Matthew Garrett:
-> - binding this in the button driver would make it impossible to write=
- a=20
-> full driver. There's an existing driver floating around under the nam=
-e=20
-> "quickstart". A better approach would be to tidy that up and make sur=
-e=20
-> it works for your case, and then submit that.
+I removed the initialization to zero as well.  It's needed with a u64
+but with a u32, the variable gets initialized properly inside the call
+to acpi_os_read_port().
 
-Thanks for that info. I will check that quickstart driver now.
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-Regards
-Rainer
---=20
-Dipl.-Inf. (FH) Rainer Koenig
-Project Manager Linux Clients
-Dept. PDG WPS R&D SW OSE
-
-=46ujitsu Technology Solutions
-B=FCrgermeister-Ullrich-Str. 100
-86199 Augsburg
-Germany
-
-Telephone: +49-821-804-3321
-Telefax:   +49-821-804-2131
-Mail:      mailto:Rainer.Koenig@ts.fujitsu.com
-
-Internet         ts.fujtsu.com
-Company Details  ts.fujitsu.com/imprint.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
+index 605a295..1d02b7b 100644
+--- a/drivers/acpi/processor_throttling.c
++++ b/drivers/acpi/processor_throttling.c
+@@ -769,7 +769,7 @@ static int acpi_read_throttling_status(struct acpi_processor *pr,
+ 					u64 *value)
+ {
+ 	u32 bit_width, bit_offset;
+-	u64 ptc_value;
++	u32 ptc_value;
+ 	u64 ptc_mask;
+ 	struct acpi_processor_throttling *throttling;
+ 	int ret = -1;
+@@ -777,12 +777,11 @@ static int acpi_read_throttling_status(struct acpi_processor *pr,
+ 	throttling = &pr->throttling;
+ 	switch (throttling->status_register.space_id) {
+ 	case ACPI_ADR_SPACE_SYSTEM_IO:
+-		ptc_value = 0;
+ 		bit_width = throttling->status_register.bit_width;
+ 		bit_offset = throttling->status_register.bit_offset;
+ 
+ 		acpi_os_read_port((acpi_io_address) throttling->status_register.
+-				  address, (u32 *) &ptc_value,
++				  address, &ptc_value,
+ 				  (u32) (bit_width + bit_offset));
+ 		ptc_mask = (1 << bit_width) - 1;
+ 		*value = (u64) ((ptc_value >> bit_offset) & ptc_mask);
