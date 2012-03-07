@@ -1,116 +1,209 @@
-From: Bjorn Helgaas <bjorn.helgaas@gmail.com>
-Subject: Re: [PATCH 18/23] PCI, ACPI: add acpi_pci_root_rescan()
-Date: Tue, 6 Mar 2012 21:40:32 -0700
-Message-ID: <CABhMZUWvsZ2fSp2nGqiFuP8QoZ0A0uEUY9LfcAB-HemiLaqbwA@mail.gmail.com>
-References: <1331018040-30725-1-git-send-email-yinghai@kernel.org>
-	<1331018040-30725-19-git-send-email-yinghai@kernel.org>
+From: Rainer Koenig <Rainer.Koenig@ts.fujitsu.com>
+Subject: [Patch] Eject button for button driver
+Date: Wed, 07 Mar 2012 08:59:23 +0100
+Message-ID: <4F57155B.6080401@ts.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1331018040-30725-19-git-send-email-yinghai@kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, x86 <x86@kernel.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, mjg@redhat.com
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from dgate10.ts.fujitsu.com ([80.70.172.49]:46398 "EHLO
+	dgate10.ts.fujitsu.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753319Ab2CGIJD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Mar 2012 03:09:03 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Tue, Mar 6, 2012 at 12:13 AM, Yinghai Lu <yinghai@kernel.org> wrote:
-> it will rescan all acpi pci root if related pci root bus get removed =
-before.
->
-> Signed-off-by: Yinghai <yinghai@kernel.org>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: linux-acpi@vger.kernel.org
-> ---
-> =A0drivers/acpi/pci_root.c | =A0 52 +++++++++++++++++++++++++++++++++=
-++++++++++++++
-> =A01 files changed, 52 insertions(+), 0 deletions(-)
->
-> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> index b38e347..e1814e0 100644
-> --- a/drivers/acpi/pci_root.c
-> +++ b/drivers/acpi/pci_root.c
-> @@ -679,3 +679,55 @@ static int __init acpi_pci_root_init(void)
-> =A0}
->
-> =A0subsys_initcall(acpi_pci_root_init);
-> +
-> +static acpi_status
-> +rescan_root_bridge(acpi_handle handle, u32 lvl, void *context, void =
-**rv)
-> +{
-> + =A0 =A0 =A0 struct acpi_device *device, *pdevice;
-> + =A0 =A0 =A0 struct acpi_pci_root *root;
-> + =A0 =A0 =A0 acpi_handle phandle;
-> + =A0 =A0 =A0 int ret_val;
-> +
-> + =A0 =A0 =A0 if (!acpi_is_root_bridge(handle))
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return AE_OK;
-> +
-> + =A0 =A0 =A0 acpi_get_parent(handle, &phandle);
-> + =A0 =A0 =A0 if (acpi_bus_get_device(phandle, &pdevice)) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk(KERN_DEBUG "no parent device, as=
-suming NULL\n");
+Background: Fujitsu is releasing currently small desktop systems like t=
+he
+ESPRIMO Q510 that have no direct accessible eject button for the optica=
+l drive.
 
-This printk (and the others below) does not have enough context.  A
-user or developer will have no clue what it relates to.  Ideally they
-would at least be dev_printk().
+http://www.fujitsu.com/fts/products/computing/pc/desktops/all-round/esp=
+rimo-q510/index.html
 
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdevice =3D NULL;
+Instead of an eject button on the drive the system has a button on the
+mainboard that will send a notify event to the assigned device using th=
+e
+following ACPI code:
 
-Is a host bridge without a parent possible?  Seems dubious to me.
+Scope(\_GPE)
+{
+        Method(_L15, 0)                                         // ODD =
+Eject GPIO handler
+        {
+                 Notify(\_SB.ODDE, 0x80)                         // Not=
+ify a ODD Eject Button event
+to the OS
+        }
+} //Scope(\_GPE)
 
-> + =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 if (!acpi_bus_get_device(handle, &device)) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* check if =A0pci root_bus is removed =
-*/
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 root =3D acpi_driver_data(device);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (pci_find_bus(root->segment, root->s=
-econdary.start))
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return AE_OK;
-> +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk(KERN_DEBUG "bus exists... trim\n=
-");
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* this shouldn't be in here, so remove
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* the bus then re-add it...
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret_val =3D acpi_bus_trim(device, 1);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk(KERN_DEBUG "acpi_bus_trim return=
- %x\n", ret_val);
-> + =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 ret_val =3D acpi_bus_add(&device, pdevice, handle, ACPI=
-_BUS_TYPE_DEVICE);
-> + =A0 =A0 =A0 if (ret_val) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk(KERN_ERR "error adding bus, %x\n=
-", -ret_val);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto out;
-> + =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 root =3D acpi_driver_data(device);
-> + =A0 =A0 =A0 pci_assign_unassigned_bus_resources(root->bus);
-> +
-> + =A0 =A0 =A0 ret_val =3D acpi_bus_start(device);
-> +
-> +out:
-> + =A0 =A0 =A0 return ret_val;
-> +}
-> +
-> +void acpi_pci_root_rescan(void)
-> +{
-> + =A0 =A0 =A0 acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ACPI_UINT32_MAX, rescan_root_bridge, NU=
-LL, NULL, NULL);
-> +}
+Scope(\_SB)
+{
+//
+// Direct Application Launch Button definition used for Windows Vista, =
+Windows 7, Linux ...
+//
+        Device(ODDE)                                            // Ejec=
+t Button Device
+        {
+                Name(_HID, EISAID("PNP0C32"))   // HID ACPI button devi=
+ce
+                Name(_UID, 1)                                   // Uniq=
+ue instance # of that device
+                Name(_STA, 0x0F)                                // Devi=
+ce is working properly
 
-Walking the ACPI namespace is rarely the right thing to do.  Why do we
-need it here?
+                Method(GHID, 0)                                 // Butt=
+on "role" method
+                {
+                        Return(Buffer(){1})                 // Applicat=
+ion Launch Button role
+                }
+        }
 
-Is this because we don't handle hotplug of ACPI devices in general?
-The ACPI core *should* be noticing device removal and addition and
-calling the driver .remove() and .add() methods directly.  I don't
-think that's completely implemented, but I wish somebody would put
-some effort into that rather than adding more hacky workarounds.
+To implement this I modified the button.c driver by adding the eject bu=
+tton code.
+During testing it came out, that the button is constantly firing GPE15 =
+events as
+long at is pressed, so I added some code that only handles one event pe=
+r second
+and drops the other events.
 
-+cc Matthew Garrett, because I think he cares about this area too.
+To make the eject function work the user also needs to add a rule to ac=
+pid that
+triggers the eject command on the eject event.
+
+Signed-off-by: Rainer Koenig <Rainer.Koenig@ts.fujitsu.com>
+
+---
+
+--- upstream/drivers/acpi/button.c      2012-03-06 10:12:04.000000000 +=
+0100
++++ new/drivers/acpi/button.c   2012-03-06 10:25:23.000000000 +0100
+@@ -31,6 +31,7 @@
+ #include <linux/seq_file.h>
+ #include <linux/input.h>
+ #include <linux/slab.h>
++#include <linux/jiffies.h>  /* for accepting only on eject event per s=
+econd */
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+
+@@ -57,6 +58,11 @@
+ #define ACPI_BUTTON_DEVICE_NAME_LID    "Lid Switch"
+ #define ACPI_BUTTON_TYPE_LID           0x05
+
++#define ACPI_BUTTON_SUBCLASS_EJECT      "eject"
++#define ACPI_BUTTON_HID_EJECT           "PNP0C32"
++#define ACPI_BUTTON_DEVICE_NAME_EJECT   "Eject Button"
++#define ACPI_BUTTON_TYPE_EJECT          0x07
++
+ #define _COMPONENT             ACPI_BUTTON_COMPONENT
+ ACPI_MODULE_NAME("button");
+
+@@ -70,6 +76,7 @@
+        {ACPI_BUTTON_HID_SLEEPF, 0},
+        {ACPI_BUTTON_HID_POWER,  0},
+        {ACPI_BUTTON_HID_POWERF, 0},
++        {ACPI_BUTTON_HID_EJECT,  0},
+        {"", 0},
+ };
+ MODULE_DEVICE_TABLE(acpi, button_device_ids);
+@@ -102,6 +109,8 @@
+ static BLOCKING_NOTIFIER_HEAD(acpi_lid_notifier);
+ static struct acpi_device *lid_device;
+
++static unsigned long eject_expire; /* when do the eject jiffies expire=
+? */
++
+ /* -------------------------------------------------------------------=
+-------
+                               FS Interface (/proc)
+    -------------------------------------------------------------------=
+------- */
+@@ -287,6 +296,16 @@
+                input =3D button->input;
+                if (button->type =3D=3D ACPI_BUTTON_TYPE_LID) {
+                        acpi_lid_send_state(device);
++                        acpi_bus_generate_proc_event(device, event, ++=
+button->pushed);
++                } else if (button->type =3D=3D ACPI_BUTTON_TYPE_EJECT)=
+ {
++                        if (time_is_before_jiffies(eject_expire)) {
++                          eject_expire =3D jiffies+HZ;  /* expire dela=
+y 1 second */
++                          input_report_key(input, KEY_EJECTCD, 1);
++                          input_sync(input);
++                          input_report_key(input, KEY_EJECTCD, 0);
++                          input_sync(input);
++                          acpi_bus_generate_proc_event(device, event, =
+++button->pushed);
++                  }
+                } else {
+                        int keycode =3D test_bit(KEY_SLEEP, input->keyb=
+it) ?
+                                                KEY_SLEEP : KEY_POWER;
+@@ -295,11 +314,9 @@
+                        input_sync(input);
+                        input_report_key(input, keycode, 0);
+                        input_sync(input);
+-
++                        acpi_bus_generate_proc_event(device, event, ++=
+button->pushed);
+                        pm_wakeup_event(&device->dev, 0);
+                }
+-
+-               acpi_bus_generate_proc_event(device, event, ++button->p=
+ushed);
+                break;
+        default:
+                ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+@@ -357,6 +374,12 @@
+                strcpy(name, ACPI_BUTTON_DEVICE_NAME_LID);
+                sprintf(class, "%s/%s",
+                        ACPI_BUTTON_CLASS, ACPI_BUTTON_SUBCLASS_LID);
++        } else if (!strcmp(hid, ACPI_BUTTON_HID_EJECT)) {
++                button->type =3D ACPI_BUTTON_TYPE_EJECT;
++                strcpy(name, ACPI_BUTTON_DEVICE_NAME_EJECT);
++                sprintf(class, "%s/%s",
++                        ACPI_BUTTON_CLASS, ACPI_BUTTON_SUBCLASS_EJECT)=
+;
++                eject_expire =3D jiffies; /* initial value for the eje=
+ct delay */
+        } else {
+                printk(KERN_ERR PREFIX "Unsupported hid [%s]\n", hid);
+                error =3D -ENODEV;
+@@ -390,6 +413,10 @@
+                input->evbit[0] =3D BIT_MASK(EV_SW);
+                set_bit(SW_LID, input->swbit);
+                break;
++        case ACPI_BUTTON_TYPE_EJECT:
++                input->evbit[0] =3D BIT_MASK(EV_KEY);
++                set_bit(KEY_EJECTCD, input->keybit);
++                break;
+        }
+
+        error =3D input_register_device(input);
+
+--=20
+Dipl.-Inf. (FH) Rainer Koenig
+Project Manager Linux Clients
+Dept. TSP WPS R&D SW OSE
+
+=46ujitsu Technology Solutions
+B=FCrgermeister-Ullrich-Str. 100
+86199 Augsburg
+Germany
+
+Telephone: +49-821-804-3321
+Telefax:   +49-821-804-2131
+Mail:      mailto:Rainer.Koenig@ts.fujitsu.com
+
+Internet         ts.fujtsu.com
+Company Details  ts.fujitsu.com/imprint.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
