@@ -1,81 +1,68 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [RESEND PATCH v3] Fix a copy & paste error in erst.c.
-Date: Tue, 6 Mar 2012 09:55:09 -0700
-Message-ID: <CAErSpo4svRTqJcRAUaEwykQ_d1-ONpXW0m9x6aAMM2_i4XF52g@mail.gmail.com>
-References: <1331051359-21539-1-git-send-email-jiang.liu@huawei.com>
+From: =?utf-8?B?5LuFMzAw5YWD77yM5pyJ5pWI5p6c5YaN5LuY5qy+?=
+	<admin@ggwave.com>
+Subject: =?utf-8?B?5pyA5pawQjJC6K+i55uY5Lmw5a6244CBdGhvbWFzbmV0IA==?=
+	=?utf-8?B?6YeH6LSt5ZWGLOa1t+WFs+aVsOaNriznvqTlj5Hova/ku7bvvIzlsZXkvJrkubDlrrYg5LuF?=
+	=?utf-8?B?MzAw5YWDIQ==?=
+Date: Wed, 7 Mar 2012 00:22:48 +0000 (UTC)
+Message-ID: <20160307082531637737@ggwave.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:41009 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755697Ab2CFQzb convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 6 Mar 2012 11:55:31 -0500
-Received: by lahj13 with SMTP id j13so6229043lah.19
-        for <linux-acpi@vger.kernel.org>; Tue, 06 Mar 2012 08:55:29 -0800 (PST)
-In-Reply-To: <1331051359-21539-1-git-send-email-jiang.liu@huawei.com>
+Received: from [121.128.79.101] ([121.128.79.101]:43909 "EHLO
+	woosvr.ggwave.com" rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757774Ab2CGAWa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Mar 2012 19:22:30 -0500
+Date: Mon, 7 Mar 2016 08:25:24 +0800
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <liuj97@gmail.com>
-Cc: Len Brown <lenb@kernel.org>, Huang Ying <ying.huang@intel.com>, Jiang Liu <jiang.liu@huawei.com>, linux-acpi@vger.kernel.org
+To: linaiyong@263.net, linksimon222@163.com, linkunmuye@163.com, linl1in19810731@yahoo.com.cn, linmj@263.net, linn@hi-fine.com, linux-acpi@vger.kernel.org, linxf308@126.com, linyanzhu-1@163.com, linye_2003@hotmail.com, linyi@nkren.com
 
-On Tue, Mar 6, 2012 at 9:29 AM, Jiang Liu <liuj97@gmail.com> wrote:
-> This patch fixes a copy & paste error in erst.c and it applies
-> to v3.3-rc6.
+MjAwOC0yMDEx5bm0OOWxiuW5v+S6pOS8muaVsOaNru+8jDIwMTDmtbflhbPmj5DljZVwaWVyc+eJ
+iDEwMDDkuIfmlbDmja7vvIzlhY3otLnmm7TmlrAyMDEy5bm05bm/5Lqk5Lya5Lmw5a625pWw5o2u
+44CCDQoNCuS4gOWFsTEw5Liq5YyFKOaVsOaNruaYr+WFqOihjOS4mueahO+8jOaMieeFp+ihjOS4
+muWIhuWlveexu++8jOW5tuS4lOWPr+S7peaMieeFp+WFs+mUruivjeaPkOWPluWHuuadpeeahCnv
+vJogDQox77yMMjAxMeeni+WtoyvmmKXlraPlub/kuqTkvJrkubDlrrbnjrDlnLror6Lnm5jmlbDm
+ja7lupPmlrDpspzlh7rngonvvIzotoXnuqfmlrDpspzkubDlrrbvvIzmlrDpspzmlbDmja7vvIzl
+rrnmmJPmiJDljZXvvIEgDQoy77yM6LSt5Lmw5ZCO5Y+v5Lul5YWN6LS55pu05pawMjAxMuaYpeWt
+o+W5v+S6pOS8misyMDEy56eL5a2j5bm/5Lqk5Lya5Lmw5a625pWw5o2u44CC5aSq6LaF5YC85LqG
+44CCDQoz77yMMjAxMuacgOaWsOWFqOeQg+WxleS8mueOsOWcuuS5sOWutuW6kyjkuI7otLjlj5Hl
+kIzmraUpLOWFsTQ25LiH5p2h5pWw5o2u44CCICjmjInnhafooYzkuJrliIbnsbspDQo077yMMjAx
+MOW5tCwyMDA55bm0LDIwMDjlubQg5pil5a2jK+eni+Wto+W5v+S6pOS8muS5sOWutuWQjeW9le+8
+jDEwMyAxMDQgMTA1IDEwNiAxMDcgMTA4IOWFseWFreWxiiDlhbExMjAuNuS4h+aVsOaNruOAgg0K
+Ne+8jDQ4LjY45LiH5p2h5pyA5paw5Lmw5a626K+i55uY77yM6YO95bim5pyJRW1haWzvvIzmnIDm
+nInku7flgLznmoTor6Lnm5jjgIINCjbvvIwyMDEx5pyA5pawIEIyQiDoi7Hmloflm73pmYXnq5k2
+MOS4h+W4puiBlOe7nOaWueW8j+ivouebmCDmnIDmnInku7flgLzor6Lnm5jkuYvkuIAuDQo377yM
+MjAxMOa1t+WFs+aPkOWNlXBpZXJz54mIMTAwMOS4h+aVsOaNri4NCjjvvIwyMDEx5bm05Yiw6aaZ
+5riv6YeH6LSt55qE5Zu95aSW5a6i5Lq65ZCN5b2VKOmmmea4r+i0uOWPkeWxgOaPkOS+mynvvIzo
+toXnuqfph43opoHnmoTkubDlrrbjgIINCjnvvIwyMDEx5bm05paw5aKe5Yqg55qELee+juWbvUIy
+QiB0aG9tYXNuZXQg6YeH6LSt5ZWG5ZCN5Y2V44CCDQoxMO+8jOe+pOWPkei9r+S7tuWuieijheS4
+jumDqOe9suacjeWKoeOAgg0KDQrov5nkupvlhajmnInvvIzlhbExMjgw5LiHIOaVsOaNruOAgg0K
+DQogDQropoHnmoTmipPntKfogZTns7tRUTogMTEwNDE3OTc1NiAgIOaIluiAheeri+WNs+WbnuWk
+jemCrueusTogMTEwNDE3OTc1NkBxcS5jb20NCuimgeeahOaKk+e0p+iBlOezu1FROiAxMTA0MTc5
+NzU2ICAg5oiW6ICF56uL5Y2z5Zue5aSN6YKu566xOiAxMTA0MTc5NzU2QHFxLmNvbQ0K6KaB55qE
+5oqT57Sn6IGU57O7UVE6IDExMDQxNzk3NTYgICDmiJbogIXnq4vljbPlm57lpI3pgq7nrrE6IDEx
+MDQxNzk3NTZAcXEuY29tDQoNCg0K6K+a5L+h5Li65pys77yM5aaC5p6c5LiN5L+h5Lu75pys5Lq6
+LOWPr+S7pei1sOa3mOWuneS6pOaYkyzmlLbliLDmlbDmja7pqozor4ExMOWkqeWQjuWGjeS7mOas
+vizov5nmmK/lr7nmgqjmnIDlpb3nmoTkv53pmpzkuobjgIIgDQoNCg0KDQrlsI/mioDlt6fvvJog
+DQrmioo1MDDkuIfkubDlrrbnvqTlj5Hku6XkuIDpgY3vvIzlnYfkvJrmnInmlbDljYPkuKrlm57l
+pI3nmoTvvIzov5nkupvlsLHmmK/pnZ7luLjpq5jotKjph4/nmoTkubDlrrbjgIIgDQrkvb/nlKjm
+iJHku6zpgIHnmoTnvqTlj5Hova/ku7bvvIwxLTLlkajlsLHlj6/lrozlhajlj5HlrozjgIINCg0K
+DQoNCg0KDQrlub/kuqTkvJrkubDlrrbmjInkuqflk4HnsbvliKvliIbnsbvvvIzliIbkuLrku6Xk
+uIvlh6DnsbvvvJoNCjEg5Yqe5YWs6K6+5aSHDQoyIOe8lue7h+WPiuiXpOmTgeW3peiJuuWTgQ0K
+MyDnjrvnkoMNCjQg6aSQ5Y6o55So5YW3DQo1IOi9pui+hg0KNiDlpKflnovmnLrmorDlj4rorr7l
+pIcNCjcg55S15a2Q55S15rCUDQo4IOeUteWtkOa2iOi0ueWTgQ0KOSDnurrnu4cNCjEwIOacjeij
+hQ0KMTEg5Liq5Lq65oqk55CGDQoxMiDlt6XnqIvmnLrmorANCjEzIOW3peWFtw0KMTQg5YyW5bel
+DQoxNSDorqHnrpfmnLrlj4rpgJrorq8NCjE2IOWutuWxheeUqOWTgQ0KMTcg5a625bGF6KOF6aWw
+DQoxOCDlrrblhbcNCjE5IOWutueUqOeUteWZqA0KMjAg5bu6562R5Y+K6KOF6aWw5p2Q5paZDQoy
+MSDoioLml6XnlKjlk4ENCjIyIOekvOWTgeWPiui1oOWTgQ0KMjMg5pGp5omY6L2mDQoyNCDmsb3o
+vabphY3ku7YNCjI1IOmjn+WTgQ0KMjYg6Zm255O3DQoyNyDpk4Hnn7MNCjI4IOeOqeWFtw0KMjkg
+5Y2r5rW0DQozMCDkupTph5ENCjMxIOWwj+Wei+acuuaisA0KMzIg6Z6LDQozMyDkvJHpl7LnlKjl
+k4ENCjM0IOWMu+eWlw0KMzUg5rW05a6k5Lqn5ZOBDQozNiDlm63mnpcNCjM3IOeFp+aYjuS6p+WT
+gQ0KMzgg6ZKf6KGo55y86ZWcDQozOSDoh6rooYzovaYNCjQwIOWMhQ0KDQoNCuaWsOmynOaVsOaN
+ri3miJDljZXnjofmnoHpq5gNCuaWsOmynOaVsOaNri3miJDljZXnjofmnoHpq5gNCuaWsOmynOaV
+sOaNri3miJDljZXnjofmnoHpq5gNCuaWsOmynOaVsOaNri3miJDljZXnjofmnoHpq5gNCuaWsOmy
+nOaVsOaNri3miJDljZXnjofmnoHpq5gNCg==
 
-It'd be nice if the subject line gave a hint about what sort of
-problem this patch fixes.  It doesn't matter *how* the original error
-was made; it's a question of what behavior we're changing.
 
-Distro and stable kernel maintainers have to decide whether this is
-important enough to be backported, and "fix copy & paste error"
-doesn't tell them anything useful.
-
-Maybe something like:
-
-    ACPI, APEI, Fix ERST header length check
-
-    This fixes the ERST header length check.  Without this patch, we
-    mistakenly ignore the ERST table, and hardware errors can't be save=
-d
-    in the persistent store.
-
-
-> Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-> Acked-by: Huang Ying <ying.huang@intel.com>
-> ---
-> =A0drivers/acpi/apei/erst.c | =A0 =A02 +-
-> =A01 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
-> index eb9fab5..e4d9d24 100644
-> --- a/drivers/acpi/apei/erst.c
-> +++ b/drivers/acpi/apei/erst.c
-> @@ -917,7 +917,7 @@ static int erst_check_table(struct acpi_table_ers=
-t *erst_tab)
-> =A0{
-> =A0 =A0 =A0 =A0if ((erst_tab->header_length !=3D
-> =A0 =A0 =A0 =A0 =A0 =A0 (sizeof(struct acpi_table_erst) - sizeof(erst=
-_tab->header)))
-> - =A0 =A0 =A0 =A0 =A0 && (erst_tab->header_length !=3D sizeof(struct =
-acpi_table_einj)))
-> + =A0 =A0 =A0 =A0 =A0 && (erst_tab->header_length !=3D sizeof(struct =
-acpi_table_erst)))
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return -EINVAL;
-> =A0 =A0 =A0 =A0if (erst_tab->header.length < sizeof(struct acpi_table=
-_erst))
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return -EINVAL;
-> --
-> 1.7.5.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
