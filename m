@@ -1,177 +1,73 @@
-From: Rainer Koenig <Rainer.Koenig@ts.fujitsu.com>
-Subject: [PATCH] Eject button handling in quickstart driver
-Date: Wed, 07 Mar 2012 15:02:47 +0100
-Message-ID: <4F576A87.1080401@ts.fujitsu.com>
+From: Jiang Liu <liuj97@gmail.com>
+Subject: Re: [RESEND PATCH v3] Fix a copy & paste error in erst.c.
+Date: Wed, 07 Mar 2012 22:06:14 +0800
+Message-ID: <4F576B56.9020607@gmail.com>
+References: <1331051359-21539-1-git-send-email-jiang.liu@huawei.com> <CAErSpo4svRTqJcRAUaEwykQ_d1-ONpXW0m9x6aAMM2_i4XF52g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from dgate20.ts.fujitsu.com ([80.70.172.51]:13772 "EHLO
-	dgate20.ts.fujitsu.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751920Ab2CGOCt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Mar 2012 09:02:49 -0500
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:63743 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758618Ab2CGOGY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Mar 2012 09:06:24 -0500
+Received: by yhmm54 with SMTP id m54so2879302yhm.19
+        for <linux-acpi@vger.kernel.org>; Wed, 07 Mar 2012 06:06:24 -0800 (PST)
+In-Reply-To: <CAErSpo4svRTqJcRAUaEwykQ_d1-ONpXW0m9x6aAMM2_i4XF52g@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Len Brown <lenb@kernel.org>, Huang Ying <ying.huang@intel.com>, Jiang Liu <jiang.liu@huawei.com>, linux-acpi@vger.kernel.org
 
-Background: Fujitsu is releasing currently small desktop systems like t=
-he
-ESPRIMO Q510 that have no direct accessible eject button for the optica=
-l drive.
+Thanks, Bjorn.
+Will send another version with clear patch description.
 
-http://www.fujitsu.com/fts/products/computing/pc/desktops/all-round/esp=
-rimo-q510/index.html
+On 03/07/2012 12:55 AM, Bjorn Helgaas wrote:
+> On Tue, Mar 6, 2012 at 9:29 AM, Jiang Liu <liuj97@gmail.com> wrote:
+>> This patch fixes a copy & paste error in erst.c and it applies
+>> to v3.3-rc6.
+> 
+> It'd be nice if the subject line gave a hint about what sort of
+> problem this patch fixes.  It doesn't matter *how* the original error
+> was made; it's a question of what behavior we're changing.
+> 
+> Distro and stable kernel maintainers have to decide whether this is
+> important enough to be backported, and "fix copy & paste error"
+> doesn't tell them anything useful.
+> 
+> Maybe something like:
+> 
+>     ACPI, APEI, Fix ERST header length check
+> 
+>     This fixes the ERST header length check.  Without this patch, we
+>     mistakenly ignore the ERST table, and hardware errors can't be saved
+>     in the persistent store.
+> 
+> 
+>> Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+>> Acked-by: Huang Ying <ying.huang@intel.com>
+>> ---
+>>  drivers/acpi/apei/erst.c |    2 +-
+>>  1 files changed, 1 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
+>> index eb9fab5..e4d9d24 100644
+>> --- a/drivers/acpi/apei/erst.c
+>> +++ b/drivers/acpi/apei/erst.c
+>> @@ -917,7 +917,7 @@ static int erst_check_table(struct acpi_table_erst *erst_tab)
+>>  {
+>>        if ((erst_tab->header_length !=
+>>             (sizeof(struct acpi_table_erst) - sizeof(erst_tab->header)))
+>> -           && (erst_tab->header_length != sizeof(struct acpi_table_einj)))
+>> +           && (erst_tab->header_length != sizeof(struct acpi_table_erst)))
+>>                return -EINVAL;
+>>        if (erst_tab->header.length < sizeof(struct acpi_table_erst))
+>>                return -EINVAL;
+>> --
+>> 1.7.5.4
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Instead of an eject button on the drive the system has a button on the
-mainboard that will send a notify event to the assigned device using th=
-e
-following ACPI code:
-
-Scope(\_GPE)
-{
-        Method(_L15, 0)                                         // ODD =
-Eject GPIO handler
-        {
-                 Notify(\_SB.ODDE, 0x80)                         // Not=
-ify a ODD Eject Button event
-to the OS
-        }
-} //Scope(\_GPE)
-
-Scope(\_SB)
-{
-//
-// Direct Application Launch Button definition used for Windows Vista, =
-Windows 7, Linux ...
-//
-        Device(ODDE)                                            // Ejec=
-t Button Device
-        {
-                Name(_HID, EISAID("PNP0C32"))   // HID ACPI button devi=
-ce
-                Name(_UID, 1)                                   // Uniq=
-ue instance # of that device
-                Name(_STA, 0x0F)                                // Devi=
-ce is working properly
-
-                Method(GHID, 0)                                 // Butt=
-on "role" method
-                {
-                        Return(Buffer(){1})                 // Applicat=
-ion Launch Button role
-                }
-        }
-
-Matthew Garrett advised me that there is a quickstart driver in staging=
- that
-was designed to handle the PNP0C32 devices. I had a look at it and it n=
-eeded
-patching for my purpose because
-
-- the driver only reports the pressed button on wakeup events, but in
-  my case it should report the pressure of the "Optical Disc Drive Ejec=
-t"
-  button during runtime.
-- The driver was generating character input events when I pressed the b=
-utton
-  during runtime, resulting in the funny question of the bash open if I=
- want
-  to see all possible completions.
-
-So I made a minor change to this driver to handle my "ODDE" button even=
-t as I want
-it and to be minimal intrusive to the remaining functionality.
-
-Of course this needs a small "daemon like skript" that polls the presse=
-d_button file
-frequently and initiates the eject command if the button is pressed. Th=
-is one
-(modified from the Sourceforge quickstart download) works:
-
-#!/bin/bash
-#
-# Sample application launcher.
-# Angelo Arrifano <miknix@gmail.com>
-# http://quickstart.sourceforge.net
-#
-# Put this script on ~/.config/autostart.
-#
-
-# Add your button actions here
-LAUNCH["ODDE"]=3D"eject /dev/sr0"
-
-# The sysfs file telling which button was pressed
-PRESSEDFILE=3D"/sys/devices/platform/quickstart/pressed_button"
-
-if [[ ! -e "$PRESSEDFILE" ]]; then
-        exit 1
-fi
-
-while (true) do
-PRESSEDBUTTON=3D"$(cat "$PRESSEDFILE")"
-if [[ "$PRESSEDBUTTON" !=3D "none" ]]; then
-        ${LAUNCH[$PRESSEDBUTTON]};
-        echo -n "none" > "$PRESSEDFILE"
-fi
-sleep 1;
-done
-
-# End of script
-
-Signed-off-by: Rainer Koenig <Rainer.Koenig@ts.fujitsu.com>
-
----
-
---- upstream/drivers/staging/quickstart/quickstart.c    2012-03-07 14:3=
-2:37.000000000 +0100
-+++ new/drivers/staging/quickstart/quickstart.c 2012-03-07 14:50:36.000=
-000000 +0100
-@@ -223,10 +223,16 @@
-        if (event =3D=3D QUICKSTART_EVENT_WAKE)
-                quickstart_data.pressed =3D quickstart->btn;
-        else if (event =3D=3D QUICKSTART_EVENT_RUNTIME) {
--               input_report_key(quickstart_input, quickstart->btn->id,=
- 1);
--               input_sync(quickstart_input);
--               input_report_key(quickstart_input, quickstart->btn->id,=
- 0);
--               input_sync(quickstart_input);
-+                if (strncasecmp(quickstart->btn->name, "ODDE", 4) =3D=3D=
- 0) {
-+                  /* ODDE is Optical Disc Drive Eject */
-+                  quickstart_data.pressed =3D quickstart->btn;
-+                }
-+                else {
-+                 input_report_key(quickstart_input, quickstart->btn->i=
-d, 1);
-+                 input_sync(quickstart_input);
-+                 input_report_key(quickstart_input, quickstart->btn->i=
-d, 0);
-+                 input_sync(quickstart_input);
-+                }
-        }
-        return;
- }
-
-
---=20
-Dipl.-Inf. (FH) Rainer Koenig
-Project Manager Linux Clients
-Dept. PDG WPS R&D SW OSE
-
-=46ujitsu Technology Solutions
-B=FCrgermeister-Ullrich-Str. 100
-86199 Augsburg
-Germany
-
-Telephone: +49-821-804-3321
-Telefax:   +49-821-804-2131
-Mail:      mailto:Rainer.Koenig@ts.fujitsu.com
-
-Internet         ts.fujtsu.com
-Company Details  ts.fujitsu.com/imprint.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
