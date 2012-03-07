@@ -1,68 +1,80 @@
-From: =?utf-8?B?5LuFMzAw5YWD77yM5pyJ5pWI5p6c5YaN5LuY5qy+?=
-	<admin@ggwave.com>
-Subject: =?utf-8?B?5pyA5pawQjJC6K+i55uY5Lmw5a6244CBdGhvbWFzbmV0IA==?=
-	=?utf-8?B?6YeH6LSt5ZWGLOa1t+WFs+aVsOaNriznvqTlj5Hova/ku7bvvIzlsZXkvJrkubDlrrYg5LuF?=
-	=?utf-8?B?MzAw5YWDIQ==?=
-Date: Wed, 7 Mar 2012 00:22:48 +0000 (UTC)
-Message-ID: <20160307082531637737@ggwave.com>
+From: Bjorn Helgaas <bjorn.helgaas@gmail.com>
+Subject: Re: [PATCH 08/23] PNPACPI: Fix device ref leaking in acpi_pnp_match
+Date: Tue, 6 Mar 2012 20:53:50 -0700
+Message-ID: <CABhMZUXsZD7YgViGxtvFyu8Pi2+QXfJ4rJwqZq9ybQt8UGTM9w@mail.gmail.com>
+References: <1331018040-30725-1-git-send-email-yinghai@kernel.org>
+	<1331018040-30725-9-git-send-email-yinghai@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from [121.128.79.101] ([121.128.79.101]:43909 "EHLO
-	woosvr.ggwave.com" rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757774Ab2CGAWa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Mar 2012 19:22:30 -0500
-Date: Mon, 7 Mar 2016 08:25:24 +0800
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:57203 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756930Ab2CGDxw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Mar 2012 22:53:52 -0500
+In-Reply-To: <1331018040-30725-9-git-send-email-yinghai@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linaiyong@263.net, linksimon222@163.com, linkunmuye@163.com, linl1in19810731@yahoo.com.cn, linmj@263.net, linn@hi-fine.com, linux-acpi@vger.kernel.org, linxf308@126.com, linyanzhu-1@163.com, linye_2003@hotmail.com, linyi@nkren.com
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, x86 <x86@kernel.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, stable@kernel.org, Len Brown <lenb@kernel.org>, Adam Belay <abelay@mit.edu>, Bjorn Helgaas <bhelgaas@google.com>, linux-acpi@vger.kernel.org
 
-MjAwOC0yMDEx5bm0OOWxiuW5v+S6pOS8muaVsOaNru+8jDIwMTDmtbflhbPmj5DljZVwaWVyc+eJ
-iDEwMDDkuIfmlbDmja7vvIzlhY3otLnmm7TmlrAyMDEy5bm05bm/5Lqk5Lya5Lmw5a625pWw5o2u
-44CCDQoNCuS4gOWFsTEw5Liq5YyFKOaVsOaNruaYr+WFqOihjOS4mueahO+8jOaMieeFp+ihjOS4
-muWIhuWlveexu++8jOW5tuS4lOWPr+S7peaMieeFp+WFs+mUruivjeaPkOWPluWHuuadpeeahCnv
-vJogDQox77yMMjAxMeeni+WtoyvmmKXlraPlub/kuqTkvJrkubDlrrbnjrDlnLror6Lnm5jmlbDm
-ja7lupPmlrDpspzlh7rngonvvIzotoXnuqfmlrDpspzkubDlrrbvvIzmlrDpspzmlbDmja7vvIzl
-rrnmmJPmiJDljZXvvIEgDQoy77yM6LSt5Lmw5ZCO5Y+v5Lul5YWN6LS55pu05pawMjAxMuaYpeWt
-o+W5v+S6pOS8misyMDEy56eL5a2j5bm/5Lqk5Lya5Lmw5a625pWw5o2u44CC5aSq6LaF5YC85LqG
-44CCDQoz77yMMjAxMuacgOaWsOWFqOeQg+WxleS8mueOsOWcuuS5sOWutuW6kyjkuI7otLjlj5Hl
-kIzmraUpLOWFsTQ25LiH5p2h5pWw5o2u44CCICjmjInnhafooYzkuJrliIbnsbspDQo077yMMjAx
-MOW5tCwyMDA55bm0LDIwMDjlubQg5pil5a2jK+eni+Wto+W5v+S6pOS8muS5sOWutuWQjeW9le+8
-jDEwMyAxMDQgMTA1IDEwNiAxMDcgMTA4IOWFseWFreWxiiDlhbExMjAuNuS4h+aVsOaNruOAgg0K
-Ne+8jDQ4LjY45LiH5p2h5pyA5paw5Lmw5a626K+i55uY77yM6YO95bim5pyJRW1haWzvvIzmnIDm
-nInku7flgLznmoTor6Lnm5jjgIINCjbvvIwyMDEx5pyA5pawIEIyQiDoi7Hmloflm73pmYXnq5k2
-MOS4h+W4puiBlOe7nOaWueW8j+ivouebmCDmnIDmnInku7flgLzor6Lnm5jkuYvkuIAuDQo377yM
-MjAxMOa1t+WFs+aPkOWNlXBpZXJz54mIMTAwMOS4h+aVsOaNri4NCjjvvIwyMDEx5bm05Yiw6aaZ
-5riv6YeH6LSt55qE5Zu95aSW5a6i5Lq65ZCN5b2VKOmmmea4r+i0uOWPkeWxgOaPkOS+mynvvIzo
-toXnuqfph43opoHnmoTkubDlrrbjgIINCjnvvIwyMDEx5bm05paw5aKe5Yqg55qELee+juWbvUIy
-QiB0aG9tYXNuZXQg6YeH6LSt5ZWG5ZCN5Y2V44CCDQoxMO+8jOe+pOWPkei9r+S7tuWuieijheS4
-jumDqOe9suacjeWKoeOAgg0KDQrov5nkupvlhajmnInvvIzlhbExMjgw5LiHIOaVsOaNruOAgg0K
-DQogDQropoHnmoTmipPntKfogZTns7tRUTogMTEwNDE3OTc1NiAgIOaIluiAheeri+WNs+WbnuWk
-jemCrueusTogMTEwNDE3OTc1NkBxcS5jb20NCuimgeeahOaKk+e0p+iBlOezu1FROiAxMTA0MTc5
-NzU2ICAg5oiW6ICF56uL5Y2z5Zue5aSN6YKu566xOiAxMTA0MTc5NzU2QHFxLmNvbQ0K6KaB55qE
-5oqT57Sn6IGU57O7UVE6IDExMDQxNzk3NTYgICDmiJbogIXnq4vljbPlm57lpI3pgq7nrrE6IDEx
-MDQxNzk3NTZAcXEuY29tDQoNCg0K6K+a5L+h5Li65pys77yM5aaC5p6c5LiN5L+h5Lu75pys5Lq6
-LOWPr+S7pei1sOa3mOWuneS6pOaYkyzmlLbliLDmlbDmja7pqozor4ExMOWkqeWQjuWGjeS7mOas
-vizov5nmmK/lr7nmgqjmnIDlpb3nmoTkv53pmpzkuobjgIIgDQoNCg0KDQrlsI/mioDlt6fvvJog
-DQrmioo1MDDkuIfkubDlrrbnvqTlj5Hku6XkuIDpgY3vvIzlnYfkvJrmnInmlbDljYPkuKrlm57l
-pI3nmoTvvIzov5nkupvlsLHmmK/pnZ7luLjpq5jotKjph4/nmoTkubDlrrbjgIIgDQrkvb/nlKjm
-iJHku6zpgIHnmoTnvqTlj5Hova/ku7bvvIwxLTLlkajlsLHlj6/lrozlhajlj5HlrozjgIINCg0K
-DQoNCg0KDQrlub/kuqTkvJrkubDlrrbmjInkuqflk4HnsbvliKvliIbnsbvvvIzliIbkuLrku6Xk
-uIvlh6DnsbvvvJoNCjEg5Yqe5YWs6K6+5aSHDQoyIOe8lue7h+WPiuiXpOmTgeW3peiJuuWTgQ0K
-MyDnjrvnkoMNCjQg6aSQ5Y6o55So5YW3DQo1IOi9pui+hg0KNiDlpKflnovmnLrmorDlj4rorr7l
-pIcNCjcg55S15a2Q55S15rCUDQo4IOeUteWtkOa2iOi0ueWTgQ0KOSDnurrnu4cNCjEwIOacjeij
-hQ0KMTEg5Liq5Lq65oqk55CGDQoxMiDlt6XnqIvmnLrmorANCjEzIOW3peWFtw0KMTQg5YyW5bel
-DQoxNSDorqHnrpfmnLrlj4rpgJrorq8NCjE2IOWutuWxheeUqOWTgQ0KMTcg5a625bGF6KOF6aWw
-DQoxOCDlrrblhbcNCjE5IOWutueUqOeUteWZqA0KMjAg5bu6562R5Y+K6KOF6aWw5p2Q5paZDQoy
-MSDoioLml6XnlKjlk4ENCjIyIOekvOWTgeWPiui1oOWTgQ0KMjMg5pGp5omY6L2mDQoyNCDmsb3o
-vabphY3ku7YNCjI1IOmjn+WTgQ0KMjYg6Zm255O3DQoyNyDpk4Hnn7MNCjI4IOeOqeWFtw0KMjkg
-5Y2r5rW0DQozMCDkupTph5ENCjMxIOWwj+Wei+acuuaisA0KMzIg6Z6LDQozMyDkvJHpl7LnlKjl
-k4ENCjM0IOWMu+eWlw0KMzUg5rW05a6k5Lqn5ZOBDQozNiDlm63mnpcNCjM3IOeFp+aYjuS6p+WT
-gQ0KMzgg6ZKf6KGo55y86ZWcDQozOSDoh6rooYzovaYNCjQwIOWMhQ0KDQoNCuaWsOmynOaVsOaN
-ri3miJDljZXnjofmnoHpq5gNCuaWsOmynOaVsOaNri3miJDljZXnjofmnoHpq5gNCuaWsOmynOaV
-sOaNri3miJDljZXnjofmnoHpq5gNCuaWsOmynOaVsOaNri3miJDljZXnjofmnoHpq5gNCuaWsOmy
-nOaVsOaNri3miJDljZXnjofmnoHpq5gNCg==
+On Tue, Mar 6, 2012 at 12:13 AM, Yinghai Lu <yinghai@kernel.org> wrote:
+> During testing pci root bus removal, found some root bus bridge is no=
+t freed.
+>
+> If booting with pnpacpi=3Doff, those hostbridge could be freed withou=
+t problem.
+>
+> It turns out that some devices reference are not released during acpi=
+_pnp_match.
+>
+> that match should not hold one device ref during every calling.
+>
+> Add put_device calling before returning.
+>
+> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+> Cc: stable@kernel.org
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: Adam Belay <abelay@mit.edu>
+> Cc: Bjorn Helgaas <bhelgaas@google.com>
+> Cc: linux-acpi@vger.kernel.org
+> ---
+> =A0drivers/pnp/pnpacpi/core.c | =A0 =A07 ++++++-
+> =A01 files changed, 6 insertions(+), 1 deletions(-)
+>
+> diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
+> index b00c176..d21e8f5 100644
+> --- a/drivers/pnp/pnpacpi/core.c
+> +++ b/drivers/pnp/pnpacpi/core.c
+> @@ -321,9 +321,14 @@ static int __init acpi_pnp_match(struct device *=
+dev, void *_pnp)
+> =A0{
+> =A0 =A0 =A0 =A0struct acpi_device *acpi =3D to_acpi_device(dev);
+> =A0 =A0 =A0 =A0struct pnp_dev *pnp =3D _pnp;
+> + =A0 =A0 =A0 struct device *physical_device;
+> +
+> + =A0 =A0 =A0 physical_device =3D acpi_get_physical_device(acpi->hand=
+le);
+> + =A0 =A0 =A0 if (physical_device)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 put_device(physical_device);
+>
+> =A0 =A0 =A0 =A0/* true means it matched */
+> - =A0 =A0 =A0 return !acpi_get_physical_device(acpi->handle)
+> + =A0 =A0 =A0 return !physical_device
+> =A0 =A0 =A0 =A0 =A0 =A0&& compare_pnp_id(pnp->id, acpi_device_hid(acp=
+i));
+> =A0}
+>
 
+I spent about an hour convincing myself that this patch does the right
+thing.  I *think* it does, but it certainly is not obvious.  It's
+always nicer if the get/put are in the same function or in functions
+that obviously correspond to each other.  But you didn't create this
+mess, so I don't hold you responsible for fixing it :)
 
+Bjorn
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
