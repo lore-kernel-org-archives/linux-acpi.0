@@ -1,64 +1,139 @@
-From: Alok Kataria <akataria@vmware.com>
-Subject: Re: [PATCH 3.3.0-rc3] Fix use-after-free in acpi_map_lsapic
-Date: Wed, 07 Mar 2012 11:48:50 -0800
-Message-ID: <1331149730.25361.24.camel@ank32.eng.vmware.com>
-References: <20120216000643.GA7508@petr-dev3.eng.vmware.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH 16/23] PCI: add pci bus removal through /sys/.../pci_bus/.../remove
+Date: Wed, 7 Mar 2012 21:45:18 -0700
+Message-ID: <CAErSpo72DxcCtMedHUu=t1-bGXp3sqa+hCgP2tNT=z6EfiHTJQ@mail.gmail.com>
+References: <1331018040-30725-1-git-send-email-yinghai@kernel.org>
+ <1331018040-30725-17-git-send-email-yinghai@kernel.org> <CAErSpo59kzBL1ApWuWWcymd9UR3m3vB3zkUoJezn66As+-97dQ@mail.gmail.com>
+ <CAE9FiQVTng2Bi4z9YY9CustC7KkTr-6+qFaaqu8F4dd0WAKGig@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-outbound-2.vmware.com ([208.91.2.13]:35249 "EHLO
-	smtp-outbound-2.vmware.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760057Ab2CGTsu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Mar 2012 14:48:50 -0500
-In-Reply-To: <20120216000643.GA7508@petr-dev3.eng.vmware.com>
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:46518 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751968Ab2CHEpk convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 7 Mar 2012 23:45:40 -0500
+Received: by lahj13 with SMTP id j13so99555lah.19
+        for <linux-acpi@vger.kernel.org>; Wed, 07 Mar 2012 20:45:38 -0800 (PST)
+In-Reply-To: <CAE9FiQVTng2Bi4z9YY9CustC7KkTr-6+qFaaqu8F4dd0WAKGig@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Petr Vandrovec <petr@vmware.com>, the arch/x86 maintainers <x86@kernel.org>
-Cc: lenb@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, dcovelli@vmware.com
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, x86 <x86@kernel.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Randy Dunlap <rdunlap@xenotime.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-doc@vger.kernel.org, Matthew Garrett <mjg@redhat.com>, linux-acpi@vger.kernel.org
 
-Len, anyone else, 
+[+cc Matthew Garrett, linux-acpi for ACPI hotplug]
 
-Any comments on this one ? This fixes a important bug during cpu hotadd
-where the kernel fails to recognize all the newly added cpus.
+On Wed, Mar 7, 2012 at 5:53 PM, Yinghai Lu <yinghai@kernel.org> wrote:
+> On Wed, Mar 7, 2012 at 4:03 PM, Bjorn Helgaas <bhelgaas@google.com> w=
+rote:
+>> On Tue, Mar 6, 2012 at 12:13 AM, Yinghai Lu <yinghai@kernel.org> wro=
+te:
+>>> it supports both pci root bus and pci bus under pci bridge.
+>>>
+>>> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+>>> Cc: Randy Dunlap <rdunlap@xenotime.net>
+>>> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+>>> Cc: linux-doc@vger.kernel.org
+>>> ---
+>>> =A0Documentation/ABI/testing/sysfs-bus-pci | =A0 =A08 ++++++++
+>>> =A0drivers/pci/pci-sysfs.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 28=
+ ++++++++++++++++++++++++++++
+>>> =A02 files changed, 36 insertions(+), 0 deletions(-)
+>>>
+>>> diff --git a/Documentation/ABI/testing/sysfs-bus-pci b/Documentatio=
+n/ABI/testing/sysfs-bus-pci
+>>> index 95f0f37..22392de 100644
+>>> --- a/Documentation/ABI/testing/sysfs-bus-pci
+>>> +++ b/Documentation/ABI/testing/sysfs-bus-pci
+>>> @@ -92,6 +92,14 @@ Description:
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0hot-remove the PCI device and any of=
+ its children.
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0Depends on CONFIG_HOTPLUG.
+>>>
+>>> +What: =A0 =A0 =A0 =A0 =A0/sys/bus/pci/devices/.../pci_bus/.../remo=
+ve
+>>> +Date: =A0 =A0 =A0 =A0 =A0March 2012
+>>> +Contact: =A0 =A0 =A0 Linux PCI developers <linux-pci@vger.kernel.o=
+rg>
+>>> +Description:
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 Writing a non-zero value to this attr=
+ibute will
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 hot-remove the PCI bus and any of its=
+ children.
+>>
+>> Is this the interface we want? =A0It seems like the ultimate goal is=
+ to
+>> remove the *host bridge*, i.e., the PNP0A08 device on x86. =A0If tha=
+t's
+>> the case, the logical thing seems like a
+>> /sys/bus/acpi/devices/PNP0A08:00/remove file.
+>>
+>> All the current "remove" attributes are for *devices*, e.g.,
+>> /sys/devices/pci0000:00/0000:00:03.0/remove, not for *buses*.
+>
+> could add that later.
 
-Thanks,
-Alok
+Of course, we can always add things later.  What I'm concerned about
+is that once we add an interface like this to sysfs, it's difficult to
+remove.  Therefore, I don't want to add things that are clearly not
+what we really want.
 
+> I am thinking to add some non-intrusive way to make notification work
+> for root-bus hot removal/add.
 
-On Wed, 2012-02-15 at 16:06 -0800, Petr Vandrovec wrote:
-> From: Petr Vandrovec <petr@vmware.com>
-> 
-> When processor is being hot-added to the system, acpi_map_lsapic invokes
-> ACPI _MAT method to find APIC ID and flags, verifies that returned structure
-> is indeed ACPI's local APIC structure, and that flags contain MADT_ENABLED
-> bit.  Then saves APIC ID, frees structure - and accesses structure when
-> computing arguments for acpi_register_lapic call.  Which sometime leads
-> to acpi_register_lapic call being made with second argument zero, failing
-> to bring processor online with error 'Unable to map lapic to logical cpu
-> number'.
-> 
-> As lapic->lapic_flags & ACPI_MADT_ENABLED was already confirmed to be non-zero
-> few lines above, we can just pass unconditional ACPI_MADT_ENABLED to the
-> acpi_register_lapic.
-> 
-> Thanks, Petr
-> 
-> Signed-off-by: Petr Vandrovec <petr@vmware.com>
-> Signed-off-by: Alok Kataria <akataria@vmware.com>
-> 
-> 
-> diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-> index ce664f3..a4a0901 100644
-> --- a/arch/x86/kernel/acpi/boot.c
-> +++ b/arch/x86/kernel/acpi/boot.c
-> @@ -650,7 +650,7 @@ static int __cpuinit _acpi_map_lsapic(acpi_handle handle, int *pcpu)
->  		goto free_tmp_map;
->  
->  	cpumask_copy(tmp_map, cpu_present_mask);
-> -	acpi_register_lapic(physid, lapic->lapic_flags & ACPI_MADT_ENABLED);
-> +	acpi_register_lapic(physid, ACPI_MADT_ENABLED);
->  
->  	/*
->  	 * If mp_register_lapic successfully generates a new logical cpu
+The Way Things Are Supposed To Work is that ACPI notifies the OS that
+a device (a PNP0A08 host bridge in this case) is being removed.  The
+OS driver does its cleanup and lets go of the device.  There are
+several things in the ACPI part of that path that are not implemented
+yet, so I understand that we might need a sysfs knob to kick things
+off.  But can't we make a knob that just calls the host bridge driver
+=2Eremove() method, i.e., acpi_pci_root_remove()?
 
+> also in some case, cpu buses get scan during booting, could use that
+> to remove those not needed
+> root buses.
+
+I don't see the value in this.  I think you're talking about removing
+the devices we discovered by blindly probing, i.e., the ones the BIOS
+didn't tell us about.  I do think we should stop blindly probing for
+them, but I don't see what we gain by adding a sysfs knob to remove
+them.
+
+>> I'm not sure it makes sense to talk about removing a "bus" and leavi=
+ng
+>> the upstream bridge (either a host bridge or a P2P bridge). =A0I thi=
+nk
+>> it'd make more sense to remove the bridge itself, which would of
+>> course have the consequence of removing the secondary bus.
+>
+> for root bus, that remove pci_host_bridge and pci root bus.
+>
+> for pci bus under pci bridge, will remove that pci bus, but will stil=
+l
+> keep =A0that pci bridge.
+> that should be ok. just like some pci bridge is there, and later can
+> not create child bus for it.
+>
+> there is one case: during test busn_alloc, i need to remove all devic=
+e
+> on one bus, and
+> use setpci to change bridge bus number register. then use rescan
+> bridge to create new bus.
+>
+> with this one, I just need to remove that bus, instead of remove
+> children devices one by one.
+
+I don't think making it convenient for manual testing is an argument
+for this interface.  For sysfs interfaces it is more important to make
+something that fits well into the grand plan of how things Should
+Work.  If you need internal helper functions for convenience, I'm OK
+with that, because it's easier to change those than to change sysfs
+interfaces.
+
+Bjorn
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
