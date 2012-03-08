@@ -1,60 +1,85 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH 16/23] PCI: add pci bus removal through
- /sys/.../pci_bus/.../remove
-Date: Thu, 8 Mar 2012 07:45:25 -0800
-Message-ID: <20120308154525.GB5907@kroah.com>
-References: <1331018040-30725-1-git-send-email-yinghai@kernel.org>
- <1331018040-30725-17-git-send-email-yinghai@kernel.org>
- <CAErSpo59kzBL1ApWuWWcymd9UR3m3vB3zkUoJezn66As+-97dQ@mail.gmail.com>
- <CAE9FiQVTng2Bi4z9YY9CustC7KkTr-6+qFaaqu8F4dd0WAKGig@mail.gmail.com>
- <CAErSpo72DxcCtMedHUu=t1-bGXp3sqa+hCgP2tNT=z6EfiHTJQ@mail.gmail.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH 3.3.0-rc3] Fix use-after-free in acpi_map_lsapic
+Date: Thu, 08 Mar 2012 14:01:15 -0700
+Message-ID: <1331240475.1156.104.camel@misato.fc.hp.com>
+References: <20120216000643.GA7508@petr-dev3.eng.vmware.com>
+	 <1331149730.25361.24.camel@ank32.eng.vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAErSpo72DxcCtMedHUu=t1-bGXp3sqa+hCgP2tNT=z6EfiHTJQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Yinghai Lu <yinghai@kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, x86 <x86@kernel.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Randy Dunlap <rdunlap@xenotime.net>, linux-doc@vger.kernel.org, Matthew Garrett <mjg@redhat.com>, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t0016.houston.hp.com ([15.201.24.19]:15868 "EHLO
+	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751993Ab2CHVBx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Mar 2012 16:01:53 -0500
+In-Reply-To: <1331149730.25361.24.camel@ank32.eng.vmware.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alok Kataria <akataria@vmware.com>
+Cc: Petr Vandrovec <petr@vmware.com>, the arch/x86 maintainers <x86@kernel.org>, lenb@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, dcovelli@vmware.com
 
-On Wed, Mar 07, 2012 at 09:45:18PM -0700, Bjorn Helgaas wrote:
-> >> I'm not sure it makes sense to talk about removing a "bus" and lea=
-ving
-> >> the upstream bridge (either a host bridge or a P2P bridge). =A0I t=
-hink
-> >> it'd make more sense to remove the bridge itself, which would of
-> >> course have the consequence of removing the secondary bus.
-> >
-> > for root bus, that remove pci_host_bridge and pci root bus.
-> >
-> > for pci bus under pci bridge, will remove that pci bus, but will st=
-ill
-> > keep =A0that pci bridge.
-> > that should be ok. just like some pci bridge is there, and later ca=
-n
-> > not create child bus for it.
-> >
-> > there is one case: during test busn_alloc, i need to remove all dev=
-ice
-> > on one bus, and
-> > use setpci to change bridge bus number register. then use rescan
-> > bridge to create new bus.
-> >
-> > with this one, I just need to remove that bus, instead of remove
-> > children devices one by one.
->=20
-> I don't think making it convenient for manual testing is an argument
-> for this interface.  For sysfs interfaces it is more important to mak=
-e
-> something that fits well into the grand plan of how things Should
-> Work.  If you need internal helper functions for convenience, I'm OK
-> with that, because it's easier to change those than to change sysfs
-> interfaces.
+On Wed, 2012-03-07 at 11:48 -0800, Alok Kataria wrote:
+> Len, anyone else, 
+> 
+> Any comments on this one ? This fixes a important bug during cpu hotadd
+> where the kernel fails to recognize all the newly added cpus.
+> 
+> Thanks,
+> Alok
+> 
+> 
+> On Wed, 2012-02-15 at 16:06 -0800, Petr Vandrovec wrote:
+> > From: Petr Vandrovec <petr@vmware.com>
+> > 
+> > When processor is being hot-added to the system, acpi_map_lsapic invokes
+> > ACPI _MAT method to find APIC ID and flags, verifies that returned structure
+> > is indeed ACPI's local APIC structure, and that flags contain MADT_ENABLED
+> > bit.  Then saves APIC ID, frees structure - and accesses structure when
+> > computing arguments for acpi_register_lapic call.  Which sometime leads
+> > to acpi_register_lapic call being made with second argument zero, failing
+> > to bring processor online with error 'Unable to map lapic to logical cpu
+> > number'.
+> > 
+> > As lapic->lapic_flags & ACPI_MADT_ENABLED was already confirmed to be non-zero
+> > few lines above, we can just pass unconditional ACPI_MADT_ENABLED to the
+> > acpi_register_lapic.
+> > 
+> > Thanks, Petr
+> > 
+> > Signed-off-by: Petr Vandrovec <petr@vmware.com>
+> > Signed-off-by: Alok Kataria <akataria@vmware.com>
+> > 
+> > 
+> > diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+> > index ce664f3..a4a0901 100644
+> > --- a/arch/x86/kernel/acpi/boot.c
+> > +++ b/arch/x86/kernel/acpi/boot.c
+> > @@ -650,7 +650,7 @@ static int __cpuinit _acpi_map_lsapic(acpi_handle handle, int *pcpu)
+> >  		goto free_tmp_map;
+> >  
+> >  	cpumask_copy(tmp_map, cpu_present_mask);
+> > -	acpi_register_lapic(physid, lapic->lapic_flags & ACPI_MADT_ENABLED);
+> > +	acpi_register_lapic(physid, ACPI_MADT_ENABLED);
 
-If it's "only" for testing, then put it in debugfs, not sysfs.
+The change looks good. I suggest you also add the following line to
+prevent such bug in future.
 
-thanks,
+        kfree(buffer.pointer);
+        buffer.length = ACPI_ALLOCATE_BUFFER;
+        buffer.pointer = NULL;
++       lapic = NULL;
 
-greg k-h
+Thanks,
+-Toshi
+
+
+> >  
+> >  	/*
+> >  	 * If mp_register_lapic successfully generates a new logical cpu
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
