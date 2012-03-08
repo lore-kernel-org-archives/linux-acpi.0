@@ -1,60 +1,60 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] Eject button handling in quickstart driver
-Date: Thu, 8 Mar 2012 13:56:09 +0000
-Message-ID: <20120308135609.GA841@srcf.ucam.org>
-References: <4F576A87.1080401@ts.fujitsu.com>
- <20120307152110.GA10945@srcf.ucam.org>
- <4F58B128.1080505@ts.fujitsu.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH 16/23] PCI: add pci bus removal through
+ /sys/.../pci_bus/.../remove
+Date: Thu, 8 Mar 2012 07:45:25 -0800
+Message-ID: <20120308154525.GB5907@kroah.com>
+References: <1331018040-30725-1-git-send-email-yinghai@kernel.org>
+ <1331018040-30725-17-git-send-email-yinghai@kernel.org>
+ <CAErSpo59kzBL1ApWuWWcymd9UR3m3vB3zkUoJezn66As+-97dQ@mail.gmail.com>
+ <CAE9FiQVTng2Bi4z9YY9CustC7KkTr-6+qFaaqu8F4dd0WAKGig@mail.gmail.com>
+ <CAErSpo72DxcCtMedHUu=t1-bGXp3sqa+hCgP2tNT=z6EfiHTJQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:60439 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753238Ab2CHN4M (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Mar 2012 08:56:12 -0500
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <4F58B128.1080505@ts.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <CAErSpo72DxcCtMedHUu=t1-bGXp3sqa+hCgP2tNT=z6EfiHTJQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Yinghai Lu <yinghai@kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, x86 <x86@kernel.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Randy Dunlap <rdunlap@xenotime.net>, linux-doc@vger.kernel.org, Matthew Garrett <mjg@redhat.com>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rainer Koenig <Rainer.Koenig@ts.fujitsu.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Thu, Mar 08, 2012 at 02:16:24PM +0100, Rainer Koenig wrote:
-> I had a look at the driver this morning. Just for testing purposes I
-> changed it in a way that it sends KEY_EJECTCD codes over the
-> input_report_key()-function, but this just works when I also have
-> set the KEY_EJECTCD bit with set_bit() before.
+On Wed, Mar 07, 2012 at 09:45:18PM -0700, Bjorn Helgaas wrote:
+> >> I'm not sure it makes sense to talk about removing a "bus" and lea=
+ving
+> >> the upstream bridge (either a host bridge or a P2P bridge). =A0I t=
+hink
+> >> it'd make more sense to remove the bridge itself, which would of
+> >> course have the consequence of removing the secondary bus.
+> >
+> > for root bus, that remove pci_host_bridge and pci root bus.
+> >
+> > for pci bus under pci bridge, will remove that pci bus, but will st=
+ill
+> > keep =A0that pci bridge.
+> > that should be ok. just like some pci bridge is there, and later ca=
+n
+> > not create child bus for it.
+> >
+> > there is one case: during test busn_alloc, i need to remove all dev=
+ice
+> > on one bus, and
+> > use setpci to change bridge bus number register. then use rescan
+> > bridge to create new bus.
+> >
+> > with this one, I just need to remove that bus, instead of remove
+> > children devices one by one.
+>=20
+> I don't think making it convenient for manual testing is an argument
+> for this interface.  For sysfs interfaces it is more important to mak=
+e
+> something that fits well into the grand plan of how things Should
+> Work.  If you need internal helper functions for convenience, I'm OK
+> with that, because it's easier to change those than to change sysfs
+> interfaces.
 
-Yup.
+If it's "only" for testing, then put it in debugfs, not sysfs.
 
-> This brings me to the point, how I need to set the bits in that array
-> when the driver is loaded? Setting it with the "0x01" that the GHID
-> method returns is of no use, on the other hand I can replace the keymap
-> with /lib/udev/keymap, but that probably doesn't affect the bits in this
-> array.
+thanks,
 
-It'll affect the bits in those arrays if you have the appropriate keymap 
-get and set functions in the driver. The mapping of GHID values to 
-keycodes is vendor (and plausibly machine...) specific per spec, and the 
-way we typically handle that is with keymaps.
-
-> The easiest (and maybe possible because BIOS development is just around
-> the corner here) would be to change the ACPI code so that GHID
-> returns the KEY_EJECTCD already, then it works out of the box, but
-> the open
-> question is if this change will lead do regressions in the already
-> existing Windows driver.
-
-Right, you'd need to update the registry entries in Windows.
-
-> Another idea: Making the quickstart driver aware of common HIDs like
-> the ODDE in my case and creating a correct keymap during driver
-> initalization. Then there is no need to remap GHID results to
-> keycodes
-> via /lib/udev/keymap. What do you think of this idea?
-
-ODDE isn't a HID, it's just a device name. There's no vendor 
-namespacing, and on some hardware it'll change between BIOS versions.
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+greg k-h
