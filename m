@@ -1,7 +1,7 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH v2 21/37] PCI, ACPI: Make acpi_pci_root_remove remove pci root bus too
-Date: Fri,  9 Mar 2012 23:00:21 -0800
-Message-ID: <1331362837-10740-22-git-send-email-yinghai@kernel.org>
+Subject: [PATCH v2 24/37] PCI, ACPI: Add pci_root_hp hot removal notification support.
+Date: Fri,  9 Mar 2012 23:00:24 -0800
+Message-ID: <1331362837-10740-25-git-send-email-yinghai@kernel.org>
 References: <1331362837-10740-1-git-send-email-yinghai@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1331362837-10740-1-git-send-email-yinghai@kernel.org>
@@ -10,45 +10,106 @@ To: Jesse Barnes <jbarnes@virtuousgeek.org>, x86 <x86@kernel.org>
 Cc: Bjorn Helgaas <bhelgaas@google.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-It will call new added pci_stop_and_remove_bus() to stop/remove pci root bus.
+Add missing hot_remove support for root device.
 
-Also checking if that pci_root_bus get removed already in bus remove in /sys
+How to use it?
+Find out root bus number to acpi root name mapping from dmesg or /sys
+
+  echo "\_SB.PCIB 3" > /proc/acpi/sci/notify
+to remove root bus
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 Cc: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org
 ---
- drivers/acpi/pci_root.c |   14 ++++++++++++++
- 1 files changed, 14 insertions(+), 0 deletions(-)
+ drivers/acpi/pci_root_hp.c |   61 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 61 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index 7aff631..b38e347 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -643,10 +643,24 @@ static int acpi_pci_root_remove(struct acpi_device *device, int type)
- {
- 	struct acpi_pci_root *root = acpi_driver_data(device);
- 
-+	/* that root bus could be removed already */
-+	if (!pci_find_bus(root->segment, root->secondary.start)) {
-+		dev_printk(KERN_DEBUG, &device->dev,
-+		  "freeing acpi_pci_root, but pci root bus was removed before");
-+		goto out;
-+	}
-+
- 	device_set_run_wake(root->bus->bridge, false);
- 	pci_acpi_remove_bus_pm_notifier(device);
- 
-+	dev_printk(KERN_DEBUG, &device->dev,
-+		"freeing acpi_pci_root, will remove pci root bus at first");
-+	pci_stop_and_remove_bus(root->bus);
-+
-+out:
-+	list_del(&root->node);
- 	kfree(root);
-+
- 	return 0;
+diff --git a/drivers/acpi/pci_root_hp.c b/drivers/acpi/pci_root_hp.c
+index dc11e81..f5585f5 100644
+--- a/drivers/acpi/pci_root_hp.c
++++ b/drivers/acpi/pci_root_hp.c
+@@ -73,6 +73,12 @@ static void add_acpi_root_bridge(acpi_handle handle)
+ 	list_add(&bridge->list, &acpi_root_bridge_list);
  }
  
++static void remove_acpi_root_bridge(struct acpi_root_bridge *bridge)
++{
++	list_del(&bridge->list);
++	kfree(bridge);
++}
++
+ struct acpi_root_hp_work {
+ 	struct work_struct work;
+ 	acpi_handle handle;
+@@ -142,6 +148,55 @@ static void handle_root_bridge_insertion(acpi_handle handle)
+ 		printk(KERN_ERR "cannot start bridge\n");
+ }
+ 
++static int acpi_root_evaluate_object(acpi_handle handle, char *cmd, int val)
++{
++	acpi_status status;
++	struct acpi_object_list arg_list;
++	union acpi_object arg;
++
++	arg_list.count = 1;
++	arg_list.pointer = &arg;
++	arg.type = ACPI_TYPE_INTEGER;
++	arg.integer.value = val;
++
++	status = acpi_evaluate_object(handle, cmd, &arg_list, NULL);
++	if (ACPI_FAILURE(status)) {
++		printk(KERN_WARNING "%s: %s to %d failed\n",
++				 __func__, cmd, val);
++		return -1;
++	}
++
++	return 0;
++}
++
++static void handle_root_bridge_removal(acpi_handle handle,
++		 struct acpi_root_bridge *bridge)
++{
++	u32 flags = 0;
++	struct acpi_device *device;
++
++	if (bridge) {
++		flags = bridge->flags;
++		remove_acpi_root_bridge(bridge);
++	}
++
++	if (!acpi_bus_get_device(handle, &device)) {
++		int ret_val = acpi_bus_trim(device, 1);
++
++		printk(KERN_DEBUG "acpi_bus_trim return %x\n", ret_val);
++	}
++
++	if (flags & ROOT_BRIDGE_HAS_PS3) {
++		acpi_status status;
++
++		status = acpi_evaluate_object(handle, "_PS3", NULL, NULL);
++		if (ACPI_FAILURE(status))
++			printk(KERN_WARNING "%s: _PS3 failed\n", __func__);
++	}
++	if (flags & ROOT_BRIDGE_HAS_EJ0)
++		acpi_root_evaluate_object(handle, "_EJ0", 1);
++}
++
+ static void _handle_hotplug_event_root(struct work_struct *work)
+ {
+ 	struct acpi_root_bridge *bridge;
+@@ -182,6 +237,12 @@ static void _handle_hotplug_event_root(struct work_struct *work)
+ 		}
+ 		break;
+ 
++	case ACPI_NOTIFY_EJECT_REQUEST:
++		/* request device eject */
++		printk(KERN_DEBUG "%s: Device eject notify on %s\n", __func__,
++				 objname);
++		handle_root_bridge_removal(handle, bridge);
++		break;
+ 	default:
+ 		printk(KERN_WARNING "notify_handler: unknown event type 0x%x for %s\n",
+ 				 type, objname);
 -- 
 1.7.7
