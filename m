@@ -1,85 +1,91 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 2/2] tboot: Add return values for tboot_sleep
-Date: Sat, 10 Mar 2012 22:17:13 +0100
-Message-ID: <201203102217.13815.rjw@sisk.pl>
-References: <1331405526-25952-1-git-send-email-konrad.wilk@oracle.com> <1331405526-25952-3-git-send-email-konrad.wilk@oracle.com>
+From: Sundar <sunder.svit@gmail.com>
+Subject: Re: [linux-pm] [PATCH 2/4] thermal: Add generic cpufreq cooling implementation
+Date: Sun, 11 Mar 2012 09:41:03 +0530
+Message-ID: <CAMHCuPUOnftKYaGjEpA9rZFc1yjH3U-EkEEUWqcFapSKROTopQ@mail.gmail.com>
+References: <1329905650-30161-1-git-send-email-amit.kachhap@linaro.org>
+	<1329905650-30161-3-git-send-email-amit.kachhap@linaro.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:37429 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752298Ab2CJVNG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 10 Mar 2012 16:13:06 -0500
-In-Reply-To: <1331405526-25952-3-git-send-email-konrad.wilk@oracle.com>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:64467 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752290Ab2CKELF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 10 Mar 2012 23:11:05 -0500
+In-Reply-To: <1329905650-30161-3-git-send-email-amit.kachhap@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: linux-kernel@vger.kernel.org, x86@kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, linux-acpi@vger.kernel.org, lenb@kernel.org, joseph.cihula@intel.com
+To: Amit Daniel Kachhap <amit.kachhap@linaro.org>
+Cc: len.brown@intel.com, linux-pm@lists.linux-foundation.org, linaro-dev@lists.linaro.org, patches@linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rob.lee@linaro.org
 
-On Saturday, March 10, 2012, Konrad Rzeszutek Wilk wrote:
-> . as appropiately. As tboot_sleep now returns values.
-> remove tboot_sleep_wrapper.
-> 
-> Suggested-by: "Rafael J. Wysocki" <rjw@sisk.pl>
-> Acked-by: Joseph Cihula <joseph.cihula@intel.com>
-> [v1: Return -1/0/+1 instead of ACPI_xx values]
-> Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Hi Amit,
 
-Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
+I am new here; so please bear with my questions/doubts :)
 
-> ---
->  arch/x86/kernel/tboot.c |   13 ++++---------
->  1 files changed, 4 insertions(+), 9 deletions(-)
-> 
-> diff --git a/arch/x86/kernel/tboot.c b/arch/x86/kernel/tboot.c
-> index 1a4ab7d..6410744 100644
-> --- a/arch/x86/kernel/tboot.c
-> +++ b/arch/x86/kernel/tboot.c
-> @@ -272,7 +272,7 @@ static void tboot_copy_fadt(const struct acpi_table_fadt *fadt)
->  		offsetof(struct acpi_table_facs, firmware_waking_vector);
->  }
->  
-> -void tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control)
-> +static int tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control)
->  {
->  	static u32 acpi_shutdown_map[ACPI_S_STATE_COUNT] = {
->  		/* S0,1,2: */ -1, -1, -1,
-> @@ -281,7 +281,7 @@ void tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control)
->  		/* S5: */ TB_SHUTDOWN_S5 };
->  
->  	if (!tboot_enabled())
-> -		return;
-> +		return 0;
->  
->  	tboot_copy_fadt(&acpi_gbl_FADT);
->  	tboot->acpi_sinfo.pm1a_cnt_val = pm1a_control;
-> @@ -292,15 +292,10 @@ void tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control)
->  	if (sleep_state >= ACPI_S_STATE_COUNT ||
->  	    acpi_shutdown_map[sleep_state] == -1) {
->  		pr_warning("unsupported sleep state 0x%x\n", sleep_state);
-> -		return;
-> +		return -1;
->  	}
->  
->  	tboot_shutdown(acpi_shutdown_map[sleep_state]);
-> -}
-> -static int tboot_sleep_wrapper(u8 sleep_state, u32 pm1a_control,
-> -			       u32 pm1b_control)
-> -{
-> -	tboot_sleep(sleep_state, pm1a_control, pm1b_control);
->  	return 0;
->  }
->  
-> @@ -352,7 +347,7 @@ static __init int tboot_late_init(void)
->  	atomic_set(&ap_wfs_count, 0);
->  	register_hotcpu_notifier(&tboot_cpu_notifier);
->  
-> -	acpi_os_set_prepare_sleep(&tboot_sleep_wrapper);
-> +	acpi_os_set_prepare_sleep(&tboot_sleep);
->  	return 0;
->  }
->  
-> 
+On Wed, Feb 22, 2012 at 3:44 PM, Amit Daniel Kachhap
+<amit.kachhap@linaro.org> wrote:
+> This patch adds support for generic cpu thermal cooling low level
+> implementations using frequency scaling up/down based on the request
+> from user. Different cpu related cooling devices can be registered by=
+ the
+> user and the binding of these cooling devices to the corresponding
 
+"Different cpu related cooling devices": Do you mean cooling devices
+for different CPUs (num_cpus) or are you referring to different
+customers aka consumer drivers who could use this framework and impose
+the cooling.
+
+> trip points can be easily done as the registration API's return the
+> cooling device pointer. The user of these api's are responsible for
+> passing clipping frequency in percentages.
+
+Why do you want to pass the clipping frequency in percentages? Wouldnt
+it be simpler for any platform sensor driver to just pass the
+frequency it wants to throttle the CPU?
+
+> +
+> + =A0 =A0This interface function registers the cpufreq cooling device=
+ with the name
+> + =A0 =A0"thermal-cpufreq-%x". This api can support multiple instance=
+ of cpufreq cooling
+> + =A0 =A0devices.
+
+When you refer to cooling devices, is it the number of instances
+per-CPU that is supported? Sorry I am unable to follow.
+
+> + =A0 =A0 =A0 .polling_interval: polling interval for this cooling st=
+ate.
+> + =A0 =A0tab_size: the total number of cooling state.
+
+By cooling_state, I assume you are referring to the thermal state for
+the platform? or only for the CPU?
+
+> + =A0 =A0mask_val: all the allowed cpu's where frequency clipping can=
+ happen.
+
+Why should this be a new variable? The policy->affected_cpus should be
+the same as this IMO?
+
+> + =A0 =A0 =A0 help
+> + =A0 =A0 =A0 =A0 This implements the generic cpu cooling mechanism t=
+hrough frequency
+> + =A0 =A0 =A0 =A0 reduction, cpu hotplug and any other ways of reduci=
+ng temperature. An
+
+Apart from reducing the CPU frequency, (probably) CPU hotplug, what
+other means of reducing CPU temperature? Or are you referring to any
+platform temperature controls?
+
+It isnt very clear from the documentation (at least to me) if this is
+only for CPU cooling or generic platform cooling.
+
+Cheers!
+--=20
+---------
+The views expressed in this email are personal and do not necessarily
+echo my employers'.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
