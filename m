@@ -1,185 +1,235 @@
-From: Aaron Lu <aaron.lu@amd.com>
-Subject: Re: [RFC PATCH v2 8/8] [SCSI] sr: check and enable Zero-power ODD
- support
-Date: Mon, 12 Mar 2012 12:53:53 +0800
-Message-ID: <20120312045353.GA2798@localhost.amd.com>
-References: <Pine.LNX.4.44L0.1203011059230.9392-100000@netrider.rowland.org>
- <1330671765.3412.7.camel@minggr>
- <CAOzJMDRTbq5o+jCyTtaAW_RPysfY3LhQ9gFC-tsvM8bsnh=rxQ@mail.gmail.com>
- <1330743921.6369.2.camel@hp6530s>
- <1331520598.3436.10.camel@minggr>
+From: "Mansoor, Illyas" <illyas.mansoor@intel.com>
+Subject: mmc: sdhci-pci: why no .shutdown() implemented
+Date: Mon, 12 Mar 2012 08:15:37 +0000
+Message-ID: <810586B7581CC8469141DADEBC3719120AECF8@BGSMSX102.gar.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-ide-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1331520598.3436.10.camel@minggr>
-Sender: linux-ide-owner@vger.kernel.org
-To: Lin Ming <ming.m.lin@intel.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Zhang Rui <rui.zhang@intel.com>, Jeff Garzik <jgarzik@pobox.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tejun Heo <tj@kernel.org>, Kernel development list <linux-kernel@vger.kernel.org>, linux-ide@vger.kernel.org, SCSI development list <linux-scsi@vger.kernel.org>, Linux-pm mailing list <linux-pm@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
+Content-Type: multipart/signed; protocol="application/x-pkcs7-signature";
+	micalg=SHA1; boundary="----=_NextPart_000_03B1_01CD0056.67A47130"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:13771 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753080Ab2CLIPm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 12 Mar 2012 04:15:42 -0400
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>
+Cc: "Hunter, Adrian" <adrian.hunter@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Mon, Mar 12, 2012 at 10:49:58AM +0800, Lin Ming wrote:
-> 
-> Would you like the draft incremental patch below?
-> I have not tested it yet.
+------=_NextPart_000_03B1_01CD0056.67A47130
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-Yes, this patch looks good to me, feel free to add my acked-by next time
-you post it, thanks.
+Hi All,
 
--Aaron
+I'm not sure if this is the right mailing list to discuss this question, but
+anyways I'll ask:
 
-> 
-> ---
->  drivers/ata/libata-core.c  |    3 +++
->  drivers/ata/libata-scsi.c  |    2 ++
->  drivers/scsi/sr.c          |   16 +++++++---------
->  drivers/scsi/sr.h          |    1 -
->  include/linux/ata.h        |    1 +
->  include/linux/libata.h     |    2 ++
->  include/scsi/scsi_device.h |    1 +
->  7 files changed, 16 insertions(+), 10 deletions(-)
-> 
-> diff --git a/drivers/ata/libata-core.c b/drivers/ata/libata-core.c
-> index 6742cc4..2a10701 100644
-> --- a/drivers/ata/libata-core.c
-> +++ b/drivers/ata/libata-core.c
-> @@ -2368,6 +2368,9 @@ int ata_dev_configure(struct ata_device *dev)
->  			dma_dir_string = ", DMADIR";
->  		}
->  
-> +		if (atapi_id_has_da(dev->id))
-> +			dev->flags |= ATA_DFLAG_DA;
-> +
->  		/* print device info to dmesg */
->  		if (ata_msg_drv(ap) && print_info)
->  			ata_dev_info(dev,
-> diff --git a/drivers/ata/libata-scsi.c b/drivers/ata/libata-scsi.c
-> index 231c3ec..0bfbe41 100644
-> --- a/drivers/ata/libata-scsi.c
-> +++ b/drivers/ata/libata-scsi.c
-> @@ -3445,6 +3445,8 @@ void ata_scsi_scan_host(struct ata_port *ap, int sync)
->  				dev->sdev = sdev;
->  				scsi_device_put(sdev);
->  				ata_acpi_bind(dev);
-> +				if (dev->flags & ATA_DFLAG_DA)
-> +					sdev->power_off = 1;
->  			} else {
->  				dev->sdev = NULL;
->  			}
-> diff --git a/drivers/scsi/sr.c b/drivers/scsi/sr.c
-> index 7cd0489..0a75613 100644
-> --- a/drivers/scsi/sr.c
-> +++ b/drivers/scsi/sr.c
-> @@ -87,7 +87,7 @@ static int sr_suspend(struct device *dev, pm_message_t mesg)
->  	struct scsi_cd *cd;
->  
->  	cd = dev_get_drvdata(dev);
-> -	if (cd->zpodd)
-> +	if (cd->device->power_off)
->  		dev->power.subsys_data->can_power_off = true;
->  
->  	return 0;
-> @@ -98,7 +98,7 @@ static int sr_resume(struct device *dev)
->  	struct scsi_cd *cd;
->  
->  	cd = dev_get_drvdata(dev);
-> -	if (cd->zpodd) {
-> +	if (cd->device->power_off) {
->  		dev->power.subsys_data->can_power_off = false;
->  		cd->zpodd_event = 0;
->  	}
-> @@ -245,7 +245,8 @@ static unsigned int sr_check_events(struct cdrom_device_info *cdi,
->  	int ret;
->  
->  	/* Not necessary to check events if enter ZPODD state */
-> -	if (cd->zpodd && pm_runtime_suspended(&cd->device->sdev_gendev))
-> +	if (cd->device->power_off &&
-> +			pm_runtime_suspended(&cd->device->sdev_gendev))
->  		return 0;
->  
->  	/* no changer support */
-> @@ -292,7 +293,7 @@ static unsigned int sr_check_events(struct cdrom_device_info *cdi,
->  	cd->media_present = scsi_status_is_good(ret) ||
->  		(scsi_sense_valid(&sshdr) && sshdr.asc != 0x3a);
->  
-> -	if (!cd->media_present && cd->zpodd && !cd->zpodd_event) {
-> +	if (!cd->media_present && cd->device->power_off && !cd->zpodd_event) {
->  		scsi_autopm_put_device(cd->device);
->  		cd->zpodd_event = 1;
->  	}
-> @@ -753,11 +754,8 @@ static int sr_probe(struct device *dev)
->  	disk->flags |= GENHD_FL_REMOVABLE;
->  	add_disk(disk);
->  
-> -	/* TODO: add device attention bit check for ZPODD */
-> -	if (device_run_wake(dev)) {
-> -		cd->zpodd = 1;
-> +	if (sdev->power_off)
->  		dev_pm_get_subsys_data(dev);
-> -	}
->  
->  	sdev_printk(KERN_DEBUG, sdev,
->  		    "Attached scsi CD-ROM %s\n", cd->cdi.name);
-> @@ -1015,7 +1013,7 @@ static int sr_remove(struct device *dev)
->  	kref_put(&cd->kref, sr_kref_release);
->  	mutex_unlock(&sr_ref_mutex);
->  
-> -	if (cd->zpodd)
-> +	if (cd->device->power_off)
->  		dev_pm_put_subsys_data(dev);
->  
->  	return 0;
-> diff --git a/drivers/scsi/sr.h b/drivers/scsi/sr.h
-> index 39b3d8c..e81da64 100644
-> --- a/drivers/scsi/sr.h
-> +++ b/drivers/scsi/sr.h
-> @@ -42,7 +42,6 @@ typedef struct scsi_cd {
->  	unsigned readcd_cdda:1;	/* reading audio data using READ_CD */
->  	unsigned media_present:1;	/* media is present */
->  
-> -	unsigned zpodd:1;	/* is ZPODD supported */
->  	unsigned zpodd_event:1;
->  
->  	/* GET_EVENT spurious event handling, blk layer guarantees exclusion */
-> diff --git a/include/linux/ata.h b/include/linux/ata.h
-> index 32df2b6..6ee41cc 100644
-> --- a/include/linux/ata.h
-> +++ b/include/linux/ata.h
-> @@ -578,6 +578,7 @@ static inline int ata_is_data(u8 prot)
->  	  ((u64) (id)[(n) + 0]) )
->  
->  #define ata_id_cdb_intr(id)	(((id)[ATA_ID_CONFIG] & 0x60) == 0x20)
-> +#define atapi_id_has_da(id)	((id)[77] & (1 << 4))
->  
->  static inline bool ata_id_has_hipm(const u16 *id)
->  {
-> diff --git a/include/linux/libata.h b/include/linux/libata.h
-> index 36970c6..3085bdc 100644
-> --- a/include/linux/libata.h
-> +++ b/include/linux/libata.h
-> @@ -161,6 +161,8 @@ enum {
->  	ATA_DFLAG_DETACH	= (1 << 24),
->  	ATA_DFLAG_DETACHED	= (1 << 25),
->  
-> +	ATA_DFLAG_DA		= (1 << 26), /* device supports Device Attention */
-> +
->  	ATA_DEV_UNKNOWN		= 0,	/* unknown device */
->  	ATA_DEV_ATA		= 1,	/* ATA device */
->  	ATA_DEV_ATA_UNSUP	= 2,	/* ATA device (unsupported) */
-> diff --git a/include/scsi/scsi_device.h b/include/scsi/scsi_device.h
-> index 8b6c247..4805d5a 100644
-> --- a/include/scsi/scsi_device.h
-> +++ b/include/scsi/scsi_device.h
-> @@ -151,6 +151,7 @@ struct scsi_device {
->  	unsigned no_read_disc_info:1;	/* Avoid READ_DISC_INFO cmds */
->  	unsigned no_read_capacity_16:1; /* Avoid READ_CAPACITY_16 cmds */
->  	unsigned is_visible:1;	/* is the device visible in sysfs */
-> +	unsigned power_off:1; /* Device supports runtime power off */
->  
->  	DECLARE_BITMAP(supported_events, SDEV_EVT_MAXBITS); /* supported events */
->  	struct list_head event_list;	/* asserted events */
-> 
-> 
-> 
-> 
+On our platform we implemented a BUG in pci_set_power_state callback when the
+shutdown
+Is in progress, and we caught sdci-pci doing pci_set_power_state(D0) when
+shutdown was
+Already in progress.
 
+My question, why doesn't sdhci-pci.c implement a .shutdown() callback and close
+the device
+After doing sys_sync()?
+
+Is there some reason behind it not doing a graceful shutdown.
+
+I think it could cause corruption, since there is no guarantee when the system
+will power-off/reboot/halt
+
+I just implemented a patch to fix this, if it's a good fix I'll submit.
+
+diff --git a/drivers/mmc/host/sdhci-pci.c b/drivers/mmc/host/sdhci-pci.c
+index f5fe05c..e0818c9 100644
+--- a/drivers/mmc/host/sdhci-pci.c
++++ b/drivers/mmc/host/sdhci-pci.c
+@@ -23,6 +23,7 @@
+ #include <linux/regulator/consumer.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/async.h>
++#include <linux/syscalls.h>
+
+ #include <asm/scatterlist.h>
+ #include <asm/io.h>
+@@ -1342,6 +1343,34 @@ err:
+        return ret;
+ }
+
++static void sdhci_pci_shutdown(struct pci_dev *pdev)
++{
++       int i;
++       struct sdhci_pci_chip *chip;
++
++       printk(KERN_INFO "%s: Syncing filesystems ... ", __func__);
++       sys_sync();
++       printk("done.\n");
++
++       pm_runtime_get_sync(&pdev->dev);
++
++       chip = pci_get_drvdata(pdev);
++
++       if (chip) {
++               for (i = 0;i < chip->num_slots; i++)
++                       sdhci_pci_remove_slot(chip->slots[i]);
++
++               pci_set_drvdata(pdev, NULL);
++               kfree(chip);
++       }
++
++       pci_disable_device(pdev);
++
++       pm_runtime_put_noidle(&pdev->dev);
++       pm_runtime_forbid(&pdev->dev);
++       pm_runtime_disable(&pdev->dev);
++}
++
+ static void __devexit sdhci_pci_remove(struct pci_dev *pdev)
+ {
+        int i;
+@@ -1473,6 +1502,7 @@ static struct pci_driver sdhci_driver = {
+        .id_table =     pci_ids,
+        .probe =        sdhci_pci_probe,
+        .remove =       __devexit_p(sdhci_pci_remove),
++       .shutdown =     sdhci_pci_shutdown,
+
+
+-Illyas
+
+------=_NextPart_000_03B1_01CD0056.67A47130
+Content-Type: application/pkcs7-signature; name="smime.p7s"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="smime.p7s"
+
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIYaDCCAyAw
+ggKJoAMCAQICBDXe9M8wDQYJKoZIhvcNAQEFBQAwTjELMAkGA1UEBhMCVVMxEDAOBgNVBAoTB0Vx
+dWlmYXgxLTArBgNVBAsTJEVxdWlmYXggU2VjdXJlIENlcnRpZmljYXRlIEF1dGhvcml0eTAeFw05
+ODA4MjIxNjQxNTFaFw0xODA4MjIxNjQxNTFaME4xCzAJBgNVBAYTAlVTMRAwDgYDVQQKEwdFcXVp
+ZmF4MS0wKwYDVQQLEyRFcXVpZmF4IFNlY3VyZSBDZXJ0aWZpY2F0ZSBBdXRob3JpdHkwgZ8wDQYJ
+KoZIhvcNAQEBBQADgY0AMIGJAoGBAMFdsVhnCGLuoJotHwhtkRRomAoe/toEbxOEYiHD0XzOnwXg
+uAHwTjTs4oqVBGSs8WtTXwWzy2eAv0ICjv7dAQns4QAUT/z78AzdQ7pbK+EfgHCZFVeTFvEPl2q3
+wmgjHMxNWTCsUR47ryvW7mNFe8XZX1DS41APOojnvxT94Me5AgMBAAGjggEJMIIBBTBwBgNVHR8E
+aTBnMGWgY6BhpF8wXTELMAkGA1UEBhMCVVMxEDAOBgNVBAoTB0VxdWlmYXgxLTArBgNVBAsTJEVx
+dWlmYXggU2VjdXJlIENlcnRpZmljYXRlIEF1dGhvcml0eTENMAsGA1UEAxMEQ1JMMTAaBgNVHRAE
+EzARgQ8yMDE4MDgyMjE2NDE1MVowCwYDVR0PBAQDAgEGMB8GA1UdIwQYMBaAFEjmaPkr0rKV10fY
+IyAQTzOYkJ/UMB0GA1UdDgQWBBRI5mj5K9KylddH2CMgEE8zmJCf1DAMBgNVHRMEBTADAQH/MBoG
+CSqGSIb2fQdBAAQNMAsbBVYzLjBjAwIGwDANBgkqhkiG9w0BAQUFAAOBgQBYzinq/Pfetc4CuRe1
+hdG54+CVzCUxDQCmkm5/tpJjnlCV0Zpv5BHeY4VumO6o/1rI01WyZnFX3sAh6z0qpyNJAQSGQnv8
+7n+iFlK1Z2fTQNs7JliyKHc9rhR3Ydb6KmYnoA36p3Nc6nDxlCFlRF/6/O8paKmih3nvee9PrAd3
+ODCCAz0wggKmoAMCAQICAwWw/zANBgkqhkiG9w0BAQUFADBOMQswCQYDVQQGEwJVUzEQMA4GA1UE
+ChMHRXF1aWZheDEtMCsGA1UECxMkRXF1aWZheCBTZWN1cmUgQ2VydGlmaWNhdGUgQXV0aG9yaXR5
+MB4XDTA2MDIxNjE4MDEzMFoXDTE2MDIxOTE4MDEzMFowUjELMAkGA1UEBhMCVVMxGjAYBgNVBAoT
+EUludGVsIENvcnBvcmF0aW9uMScwJQYDVQQDEx5JbnRlbCBFeHRlcm5hbCBCYXNpYyBQb2xpY3kg
+Q0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDBpd/XOb9QVqEZ8mQ1042TdOIq3ATD
+IsV2xDyt30yLyMR5Wjtus0bn3B+he89BiNO/LP6+rFzEwlD55PlX+HLGIKeNNG97dqyc30FElEUj
+ZzTZFq2N4e3kVJ/XAEEgANzV8v9qp7qWwxugPgfc3z9BkYot+CifozexHLb/hEZj+yISCU61kRZv
+uSQ0E11yYL4dRgcglJeaHo3oX57rvIckaLsYV5/1Aj+R8DM1Ppk965XQAKsHfnyT7C4S50T4lVn4
+lz36wOdNZn/zegG1zp41lnoTFfT4KuKVJH5x7YD1p6KbgJCKLovnujGuohquBNfdXKpZkvz6pGv+
+iC1HawJdAgMBAAGjgaAwgZ0wDgYDVR0PAQH/BAQDAgEGMB0GA1UdDgQWBBQaxgxKxEdvqNutK/D0
+Vgaj7TdUDDA6BgNVHR8EMzAxMC+gLaArhilodHRwOi8vY3JsLmdlb3RydXN0LmNvbS9jcmxzL3Nl
+Y3VyZWNhLmNybDAfBgNVHSMEGDAWgBRI5mj5K9KylddH2CMgEE8zmJCf1DAPBgNVHRMBAf8EBTAD
+AQH/MA0GCSqGSIb3DQEBBQUAA4GBABMQOK2kVKVIlUWwLTdywJ+e2O+PC/uQltK2F3lRyrPfBn69
+tOkIP4SgDJOfsxyobIrPLe75kBLw+Dom13OBDp/EMZJZ1CglQfVV8co9mT3aZMjSGGQiMgkJLR3j
+Mfr900fXZKj5XeqCJ+JP0mEhJGEdVCY+FFlksJjV86fDrq1QMIIFijCCBHKgAwIBAgIKYSCKYgAA
+AAAACDANBgkqhkiG9w0BAQUFADBSMQswCQYDVQQGEwJVUzEaMBgGA1UEChMRSW50ZWwgQ29ycG9y
+YXRpb24xJzAlBgNVBAMTHkludGVsIEV4dGVybmFsIEJhc2ljIFBvbGljeSBDQTAeFw0wOTA1MTUx
+OTI3MjZaFw0xNTA1MTUxOTM3MjZaMFYxCzAJBgNVBAYTAlVTMRowGAYDVQQKExFJbnRlbCBDb3Jw
+b3JhdGlvbjErMCkGA1UEAxMiSW50ZWwgRXh0ZXJuYWwgQmFzaWMgSXNzdWluZyBDQSAzQjCCASIw
+DQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKQEM1Wn9TU9vc9C+/Tc7KB+eiYElmrcEWE32WUd
+HvWG+IcQHVQsikTmMyKKojNLw2B5s6Iekc8ivDo/wCfjZzX9JyftMnc+AArc0la87Olybzm8K9jX
+EfTBvTnUSFSiI9ZYefITdiUgqlAFuljFZEHYKYtLuhrRacpmQfP4mV63NKdc2bT804HRf6YptZFa
+4k6YN94zlrGNrBuQQ74WFzz/jLBusbUpEkro6Mu/ZYFOFWQrV9lBhF9Ruk8yN+3N6n9fUo/qBigi
+F2kEn9xVh1ykl7SCGL2jBUkXx4qgV27a6Si8lRRdgrHGtN/HWnSWlLXTH5l575H4Lq++77OFv38C
+AwEAAaOCAlwwggJYMA8GA1UdEwEB/wQFMAMBAf8wHQYDVR0OBBYEFA7GKvdZsggQkCVvw939imYx
+MCvFMAsGA1UdDwQEAwIBhjASBgkrBgEEAYI3FQEEBQIDAQABMCMGCSsGAQQBgjcVAgQWBBQ5oFY2
+ekKQ/5Ktim+VdMeSWb4QWTAZBgkrBgEEAYI3FAIEDB4KAFMAdQBiAEMAQTAfBgNVHSMEGDAWgBQa
+xgxKxEdvqNutK/D0Vgaj7TdUDDCBvQYDVR0fBIG1MIGyMIGvoIGsoIGphk5odHRwOi8vd3d3Lmlu
+dGVsLmNvbS9yZXBvc2l0b3J5L0NSTC9JbnRlbCUyMEV4dGVybmFsJTIwQmFzaWMlMjBQb2xpY3kl
+MjBDQS5jcmyGV2h0dHA6Ly9jZXJ0aWZpY2F0ZXMuaW50ZWwuY29tL3JlcG9zaXRvcnkvQ1JML0lu
+dGVsJTIwRXh0ZXJuYWwlMjBCYXNpYyUyMFBvbGljeSUyMENBLmNybDCB4wYIKwYBBQUHAQEEgdYw
+gdMwYwYIKwYBBQUHMAKGV2h0dHA6Ly93d3cuaW50ZWwuY29tL3JlcG9zaXRvcnkvY2VydGlmaWNh
+dGVzL0ludGVsJTIwRXh0ZXJuYWwlMjBCYXNpYyUyMFBvbGljeSUyMENBLmNydDBsBggrBgEFBQcw
+AoZgaHR0cDovL2NlcnRpZmljYXRlcy5pbnRlbC5jb20vcmVwb3NpdG9yeS9jZXJ0aWZpY2F0ZXMv
+SW50ZWwlMjBFeHRlcm5hbCUyMEJhc2ljJTIwUG9saWN5JTIwQ0EuY3J0MA0GCSqGSIb3DQEBBQUA
+A4IBAQCxtQEHchVQhXyjEqtMVUMe6gkmPsIczHxSeqNbo9dsD+6xbT65JT+oYgpIAtfEsYXeUJu1
+cChqpb22U5bMAz7eaQcW5bzefufWvA6lg2048B8oczBj/q+5P5NpYrUO8jOmN4jTjfJq3ElZ7yFW
+py7rB3Vm/aN6ATYqWfMbS/xfh+JCxmH3droUmMJI0/aZJHsLtjbjFnNsHDNrJZX1vxlM78Lb1hjs
+kTENPmhbVbfTj5i/ZGnhv4tmI8QZPCNtcegXJrfhRl2D9bWpdTOPrWiLDUqzy1Z6KL7TcOS/PCl8
+RHCJXkPau/thTQCpIoDa2+c+3XA++gRTfAQ4svTO260NMIIGEzCCBPugAwIBAgIKFWACkwABAACH
+wDANBgkqhkiG9w0BAQUFADBWMQswCQYDVQQGEwJVUzEaMBgGA1UEChMRSW50ZWwgQ29ycG9yYXRp
+b24xKzApBgNVBAMTIkludGVsIEV4dGVybmFsIEJhc2ljIElzc3VpbmcgQ0EgM0IwHhcNMTIwMTI2
+MDY0MzEzWhcNMTUwMTEwMDY0MzEzWjBDMRgwFgYDVQQDEw9NYW5zb29yLCBJbGx5YXMxJzAlBgkq
+hkiG9w0BCQEWGGlsbHlhcy5tYW5zb29yQGludGVsLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEP
+ADCCAQoCggEBAOLKk+CT5hEwsQdwos/OqCkUifVuyWoby0kGe6UsisRLKMgdFJQRcbEZc854jPbe
+8YISCDRl1hTBq+vT9ZRwm7sStOI93WJF6Ob66+A12bab8qgSw6HLjYErSnXwLtrj2y+zScrNaSRJ
+Xr+m59nIxba+8NvudUJ1FX0WQVmQFnCuJylzko8GPhFQBDmRQnwRCX0VJM/lJQOZOqQr5MoARNYN
+V1A5mvEqMS2Hfe8qrfkaO2alLgC7tg36U78OhOwfIDW9MWkqtoVY7PT+WVfZ9UbUUwI+eWzPwPmz
+KbouW0RA7PBva7AYQnFnbvFqBsDfiNhbccADYudqsvnyek1SaQECAwEAAaOCAvQwggLwMAsGA1Ud
+DwQEAwIHgDA8BgkrBgEEAYI3FQcELzAtBiUrBgEEAYI3FQiGw4x1hJnlUYP9gSiFjp9TgpHACWeB
+3r05lfBDAgFkAgEIMB0GA1UdDgQWBBSSPPfdaC41Y8K1RPfESldXb64J4jAfBgNVHSMEGDAWgBQO
+xir3WbIIEJAlb8Pd/YpmMTArxTCBzwYDVR0fBIHHMIHEMIHBoIG+oIG7hldodHRwOi8vd3d3Lmlu
+dGVsLmNvbS9yZXBvc2l0b3J5L0NSTC9JbnRlbCUyMEV4dGVybmFsJTIwQmFzaWMlMjBJc3N1aW5n
+JTIwQ0ElMjAzQigxKS5jcmyGYGh0dHA6Ly9jZXJ0aWZpY2F0ZXMuaW50ZWwuY29tL3JlcG9zaXRv
+cnkvQ1JML0ludGVsJTIwRXh0ZXJuYWwlMjBCYXNpYyUyMElzc3VpbmclMjBDQSUyMDNCKDEpLmNy
+bDCB9QYIKwYBBQUHAQEEgegwgeUwbAYIKwYBBQUHMAKGYGh0dHA6Ly93d3cuaW50ZWwuY29tL3Jl
+cG9zaXRvcnkvY2VydGlmaWNhdGVzL0ludGVsJTIwRXh0ZXJuYWwlMjBCYXNpYyUyMElzc3Vpbmcl
+MjBDQSUyMDNCKDEpLmNydDB1BggrBgEFBQcwAoZpaHR0cDovL2NlcnRpZmljYXRlcy5pbnRlbC5j
+b20vcmVwb3NpdG9yeS9jZXJ0aWZpY2F0ZXMvSW50ZWwlMjBFeHRlcm5hbCUyMEJhc2ljJTIwSXNz
+dWluZyUyMENBJTIwM0IoMSkuY3J0MB8GA1UdJQQYMBYGCCsGAQUFBwMEBgorBgEEAYI3CgMMMCkG
+CSsGAQQBgjcVCgQcMBowCgYIKwYBBQUHAwQwDAYKKwYBBAGCNwoDDDBNBgNVHREERjBEoCgGCisG
+AQQBgjcUAgOgGgwYaWxseWFzLm1hbnNvb3JAaW50ZWwuY29tgRhpbGx5YXMubWFuc29vckBpbnRl
+bC5jb20wDQYJKoZIhvcNAQEFBQADggEBAFPpw1PlHMUQjyxONBjYnTRfozVus7KykXMaZQWTVGIc
+oeF9H7V0tzl0wB3z1bD21t91rWsDoAZOB6kxjz7i01a6mR8OHv341m8818/kgC8LQglZnDWDHdxY
+Hp3vDu+o6QwH7CVVSf6ymi/6aihQCWLZRctSEvXvXx4K/SGkFGNMlKm5RDV+htQ5KDfk9T9LVr3W
+lW69t3Wf3Tsm5qy1v5QczGFwZqCca/67ghrwP8dYhp9Ir9bqocJcdZYjWmZEDPz/3fj6PXxxdh2F
+vOCy32HDBE6L796BVOiI9d4bbxuTcoUmL53sF6r7lNpImt4ASlnnkQRcR1rrWPJXC6H7lEwwggZa
+MIIFQqADAgECAgoVZHP3AAEAAIfBMA0GCSqGSIb3DQEBBQUAMFYxCzAJBgNVBAYTAlVTMRowGAYD
+VQQKExFJbnRlbCBDb3Jwb3JhdGlvbjErMCkGA1UEAxMiSW50ZWwgRXh0ZXJuYWwgQmFzaWMgSXNz
+dWluZyBDQSAzQjAeFw0xMjAxMjYwNjQ4MDVaFw0xNTAxMTAwNjQ4MDVaMEMxGDAWBgNVBAMTD01h
+bnNvb3IsIElsbHlhczEnMCUGCSqGSIb3DQEJARYYaWxseWFzLm1hbnNvb3JAaW50ZWwuY29tMIIB
+IjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAgvl4tjFKG7qkJ5HgPVOntL0NZCDa1tfKb8hT
+zbHPlqLaiRAZJd/QjJcvMVMNhnk2BqpUk7564Xi4WK8Xb/qGBScfGmNRgD6rusizYoB6WrN1Fg9A
+LhlZQygA24tsm5MspWOafPCrgDY8OLgC+48GdWzWYxtEB+f8qM8n3s1JQ/fRQqRsvei4vcyNce/S
+wlIlYJH0EyeJuR3sMpShZdexnfnArSkttheYo8tnL6TT/SqXZ4C51AXiV4cU6z7DNPTx0Ae24UnD
+eAtvsoKiqds//Wk9gk4qoaF5IhXevz2PcG3zqGgvt0pTDj79Umb4mza8EmtUc2UtliBnhXo+qVv1
+3QIDAQABo4IDOzCCAzcwCwYDVR0PBAQDAgQwMD0GCSsGAQQBgjcVBwQwMC4GJisGAQQBgjcVCIbD
+jHWEmeVRg/2BKIWOn1OCkcAJZ4S52UGHhP9OAgFkAgEMMEQGCSqGSIb3DQEJDwQ3MDUwDgYIKoZI
+hvcNAwICAgCAMA4GCCqGSIb3DQMEAgIAgDAHBgUrDgMCBzAKBggqhkiG9w0DBzAdBgNVHQ4EFgQU
+UkdcLiBuK8C6TP9mVRypaDJDFlUwHwYDVR0jBBgwFoAUDsYq91myCBCQJW/D3f2KZjEwK8Uwgc8G
+A1UdHwSBxzCBxDCBwaCBvqCBu4ZXaHR0cDovL3d3dy5pbnRlbC5jb20vcmVwb3NpdG9yeS9DUkwv
+SW50ZWwlMjBFeHRlcm5hbCUyMEJhc2ljJTIwSXNzdWluZyUyMENBJTIwM0IoMSkuY3JshmBodHRw
+Oi8vY2VydGlmaWNhdGVzLmludGVsLmNvbS9yZXBvc2l0b3J5L0NSTC9JbnRlbCUyMEV4dGVybmFs
+JTIwQmFzaWMlMjBJc3N1aW5nJTIwQ0ElMjAzQigxKS5jcmwwgfUGCCsGAQUFBwEBBIHoMIHlMGwG
+CCsGAQUFBzAChmBodHRwOi8vd3d3LmludGVsLmNvbS9yZXBvc2l0b3J5L2NlcnRpZmljYXRlcy9J
+bnRlbCUyMEV4dGVybmFsJTIwQmFzaWMlMjBJc3N1aW5nJTIwQ0ElMjAzQigxKS5jcnQwdQYIKwYB
+BQUHMAKGaWh0dHA6Ly9jZXJ0aWZpY2F0ZXMuaW50ZWwuY29tL3JlcG9zaXRvcnkvY2VydGlmaWNh
+dGVzL0ludGVsJTIwRXh0ZXJuYWwlMjBCYXNpYyUyMElzc3VpbmclMjBDQSUyMDNCKDEpLmNydDAf
+BgNVHSUEGDAWBggrBgEFBQcDBAYKKwYBBAGCNwoDBDApBgkrBgEEAYI3FQoEHDAaMAoGCCsGAQUF
+BwMEMAwGCisGAQQBgjcKAwQwTQYDVR0RBEYwRKAoBgorBgEEAYI3FAIDoBoMGGlsbHlhcy5tYW5z
+b29yQGludGVsLmNvbYEYaWxseWFzLm1hbnNvb3JAaW50ZWwuY29tMA0GCSqGSIb3DQEBBQUAA4IB
+AQBEffGupAfAE+Y5L+hlXS1UW0TEDOnQBq3uypJmipQTm+b6rDUeaME1HSPqk0N640yUFZYO9wr4
+3QeVWksRsIz7jxB7u7byd2sou8Z9Gx57o79FC3UCvmTWn0+Au2+klUdqi5ZyawlxPkwJyG0/oaKQ
+CABK3zUgLxhIv0d007LHgoyv4+jSPETqYlofCffG1pxEquL50D08k+W2x1GEkxqgASMqneT6FKJz
+nYijxwnZz4mnHAnFc8KFJnmzsb3GkrcKAtBXYbux0Jbp/ZVdgyKzrensNsUMG2p6lPLSXcs5Pmlt
+95t1h2XcwOThPPvE6lumj8IXDJwEbyrbUeqCli3IMYIDhjCCA4ICAQEwZDBWMQswCQYDVQQGEwJV
+UzEaMBgGA1UEChMRSW50ZWwgQ29ycG9yYXRpb24xKzApBgNVBAMTIkludGVsIEV4dGVybmFsIEJh
+c2ljIElzc3VpbmcgQ0EgM0ICChVgApMAAQAAh8AwCQYFKw4DAhoFAKCCAfcwGAYJKoZIhvcNAQkD
+MQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMTIwMzEyMDgxNTM2WjAjBgkqhkiG9w0BCQQx
+FgQUt3wbPi0Nei9x6NG0Z/8BdiCIEMgwcwYJKwYBBAGCNxAEMWYwZDBWMQswCQYDVQQGEwJVUzEa
+MBgGA1UEChMRSW50ZWwgQ29ycG9yYXRpb24xKzApBgNVBAMTIkludGVsIEV4dGVybmFsIEJhc2lj
+IElzc3VpbmcgQ0EgM0ICChVkc/cAAQAAh8EwdQYLKoZIhvcNAQkQAgsxZqBkMFYxCzAJBgNVBAYT
+AlVTMRowGAYDVQQKExFJbnRlbCBDb3Jwb3JhdGlvbjErMCkGA1UEAxMiSW50ZWwgRXh0ZXJuYWwg
+QmFzaWMgSXNzdWluZyBDQSAzQgIKFWRz9wABAACHwTCBqwYJKoZIhvcNAQkPMYGdMIGaMAsGCWCG
+SAFlAwQBKjALBglghkgBZQMEARYwCgYIKoZIhvcNAwcwCwYJYIZIAWUDBAECMA4GCCqGSIb3DQMC
+AgIAgDAHBgUrDgMCBzANBggqhkiG9w0DAgIBQDANBggqhkiG9w0DAgIBKDAHBgUrDgMCGjALBglg
+hkgBZQMEAgMwCwYJYIZIAWUDBAICMAsGCWCGSAFlAwQCATANBgkqhkiG9w0BAQEFAASCAQANO9hf
+S8l9jIWZzgdNAsBYfvhN+J6W7OmnnQ7KeUFD+SeXYXKVjW6K8DixWZTHXL3HZc0zgjoZZy8iofVw
+mvuJdHsjKmbEF3WUd7ktCgxNhf4H8cCjChX7yvEPyn8v7H2hjzzFX716NFOTch8Crrh7Plcl8iX9
+gSc9jMNvRIOIGPakG9RWzVRkMYshQIkHMzGNnOrqum7qzmGyFUfAqZMPH11TZrsibJdvQM81rYH+
+G4Ls2m0O9tUizVMivePyQptulgMkt0BlNNgHqzfXrySO5jtGViXGTXG0SCQ4WcZj95Gt6yAHqH6m
+25Lnrk55f+Ubi/u7qYNO4OKbYH/aURZZAAAAAAAA
+
+------=_NextPart_000_03B1_01CD0056.67A47130--
