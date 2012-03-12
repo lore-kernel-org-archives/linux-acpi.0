@@ -1,32 +1,53 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: [PATCH 3/4] usb: Bind devices to ACPI devices when possible
-Date: Mon, 12 Mar 2012 21:12:45 +0000
-Message-ID: <20120312211245.GA23202@srcf.ucam.org>
-References: <20120312205616.GB22929@srcf.ucam.org>
- <Pine.LNX.4.44L0.1203121702000.1216-100000@iolanthe.rowland.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.1203121702000.1216-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
+From: Matthew Garrett <mjg@redhat.com>
+Subject: [PATCH V2 1/4] ACPI: Fix up _PLD methods
+Date: Mon, 12 Mar 2012 17:45:44 -0400
+Message-ID: <1331588747-1247-1-git-send-email-mjg@redhat.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:31553 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754249Ab2CLVp7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 12 Mar 2012 17:45:59 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-usb@vger.kernel.org, lenb@kernel.org, gregkh@linuxfoundation.org, Matthew Garrett <mjg@redhat.com>
 
-On Mon, Mar 12, 2012 at 05:03:54PM -0400, Alan Stern wrote:
-> On Mon, 12 Mar 2012, Matthew Garrett wrote:
-> > Ugh. Is there any clean way to distinguish from the device structure? If 
-> > not, the easiest would seem to be to just add another bus type 
-> > structure, even if the members are identical.
-> 
-> Easy; just call is_usb_device() (defined in core/usb.h).
+_PLD is defined as returning a package of buffers, but many implementations
+simply return a buffer. Fix this up.
 
-Ah, thanks - I'll add that and repost.
+(Original patch by Bob Moore <robert.moore@intel.com>)
 
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+---
+ drivers/acpi/acpica/nsrepair.c |   15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/acpi/acpica/nsrepair.c b/drivers/acpi/acpica/nsrepair.c
+index 9c35d20..6217cfd 100644
+--- a/drivers/acpi/acpica/nsrepair.c
++++ b/drivers/acpi/acpica/nsrepair.c
+@@ -151,9 +151,18 @@ acpi_ns_repair_object(struct acpi_predefined_data *data,
+ 		}
+ 	}
+ 	if (expected_btypes & ACPI_RTYPE_PACKAGE) {
+-		status = acpi_ns_convert_to_package(return_object, &new_object);
+-		if (ACPI_SUCCESS(status)) {
+-			goto object_repaired;
++		if (return_object->common.type == ACPI_TYPE_BUFFER) {
++			status = acpi_ns_repair_package_list(data, &return_object);
++			if (ACPI_SUCCESS(status)) {
++				*return_object_ptr = return_object;
++				data->flags |= ACPI_OBJECT_REPAIRED;
++				return (AE_OK);
++			}
++		} else {
++			status = acpi_ns_convert_to_package(return_object, &new_object);
++			if (ACPI_SUCCESS(status)) {
++				goto object_repaired;
++			}
+ 		}
+ 	}
+ 
 -- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.7.9.3
+
