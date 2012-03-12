@@ -1,40 +1,61 @@
-From: Matthew Garrett <mjg@redhat.com>
-Subject: Re: [PATCH 1/4] ACPI: Fix up _PLD methods
-Date: Mon, 12 Mar 2012 20:27:43 +0000
-Message-ID: <20120312202743.GB22751@srcf.ucam.org>
-References: <1331596735-3690-1-git-send-email-mjg@redhat.com>
- <20120312201735.GB24904@kroah.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH 3/4] usb: Bind devices to ACPI devices when possible
+Date: Mon, 12 Mar 2012 16:38:57 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1203121631230.1216-100000@iolanthe.rowland.org>
+References: <1331596735-3690-3-git-send-email-mjg@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:46888 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756379Ab2CLU1r (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Mar 2012 16:27:47 -0400
-Content-Disposition: inline
-In-Reply-To: <20120312201735.GB24904@kroah.com>
+Received: from iolanthe.rowland.org ([192.131.102.54]:58158 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1756383Ab2CLUi6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Mar 2012 16:38:58 -0400
+In-Reply-To: <1331596735-3690-3-git-send-email-mjg@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: linux-acpi@vger.kernel.org, linux-usb@vger.kernel.org, lenb@kernel.org
+To: Matthew Garrett <mjg@redhat.com>
+Cc: linux-acpi@vger.kernel.org, linux-usb@vger.kernel.org, lenb@kernel.org, gregkh@linuxfoundation.org
 
-On Mon, Mar 12, 2012 at 01:17:35PM -0700, Greg KH wrote:
-> On Mon, Mar 12, 2012 at 07:58:52PM -0400, Matthew Garrett wrote:
-> > _PLD is defined as returning a package of buffers, but many implementations
-> > simply return a buffer. Fix this up.
-> > 
-> > (Original patch by Bob Moore <robert.moore@intel.com>)
-> > 
-> > Signed-off-by: Matthew Garrett <mjg@redhat.com>
-> > ---
-> >  drivers/acpi/acpica/nsrepair.c |   15 ++++++++++++---
-> >  1 file changed, 12 insertions(+), 3 deletions(-)
-> 
-> I think this series depends on your previous USB core patch, right?  If
-> so, I'd be glad to take all of these through the USB tree if I get an
-> ack from Len for the acpi portions.
+On Mon, 12 Mar 2012, Matthew Garrett wrote:
 
-They do, so probably best for you to take them as long as Len approves.
+> Built-in USB devices will typically have a representation in the system
+> ACPI tables. Add support for binding the two together so the USB code can
+> make use of the associated methods.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+> +static int usb_acpi_find_device(struct device *dev, acpi_handle *handle)
+> +{
+> +	struct usb_device *udev = to_usb_device(dev);
+> +	struct device *parent = dev->parent;
+> +	acpi_handle *parent_handle = DEVICE_ACPI_HANDLE(parent);
+> +
+> +	if (!parent_handle)
+> +		return -ENODEV;
+> +
+> +	*handle = acpi_get_child(parent_handle, udev->portnum);
+> +
+> +	if (!*handle)
+> +		return -ENODEV;
+> +
+> +	return 0;
+> +}
+> +
+> +static struct acpi_bus_type usb_acpi_bus = {
+> +	.bus = &usb_bus_type,
+> +	.find_bridge = NULL,
+> +	.find_device = usb_acpi_find_device,
+> +};
+
+I don't understand exactly how this is supposed to work.  Does this 
+mean that the ACPI core will call usb_acpi_find_device() for every ACPI 
+device whose underlying real device is registered on the usb_bus_type?  
+If so, when does this call take place?
+
+Or does it work some other way?
+
+Bear in mind that USB devices aren't the only things registered with 
+usb_bus_type.  We also register device structures representing USB 
+interfaces and endpoints.  Hence the to_usb_device() call above might 
+not always do what you want.
+
+Alan Stern
+
