@@ -1,28 +1,38 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: [PATCH V2 1/4] ACPI: Fix up _PLD methods
-Date: Tue, 13 Mar 2012 11:38:13 +0000
-Message-ID: <20120313113813.GA9307@srcf.ucam.org>
-References: <1331588747-1247-1-git-send-email-mjg@redhat.com>
- <4F5F2A64.8030403@mvista.com>
+From: Sundar <sunder.svit@gmail.com>
+Subject: Re: [linux-pm] [PATCH 2/4] thermal: Add generic cpufreq cooling implementation
+Date: Tue, 13 Mar 2012 17:13:45 +0530
+Message-ID: <CAMHCuPXyTXVdJQUew2SU65fhC82hDe+inJ3UQssuAZp_GMiCGA@mail.gmail.com>
+References: <1329905650-30161-1-git-send-email-amit.kachhap@linaro.org>
+	<1329905650-30161-3-git-send-email-amit.kachhap@linaro.org>
+	<CAMHCuPUOnftKYaGjEpA9rZFc1yjH3U-EkEEUWqcFapSKROTopQ@mail.gmail.com>
+	<CAK44p23nZ0kgdieasMkChV8B51Rjt=KrmypN+ksV+nym_e0Cqw@mail.gmail.com>
+	<CAMHCuPXSCZjiyW28aPPjO4zF0vgabZUrqtUK5nMXLwNzSWUjQA@mail.gmail.com>
+	<CAP245DUqz-N3nG+bc-3b=4YgYk3LMJTWk_wB7Db1ZBm0fBQOSQ@mail.gmail.com>
+	<CAMHCuPUQSPgt8mP2FY7hxi8345ZbLYi9NNbo5P24CDpZp50=_A@mail.gmail.com>
+	<CAK44p224FTbnBXOo34TPgB2dKjT1x-rGbDB+kPitvNhoXy35Tg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4F5F2A64.8030403-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:59171 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753364Ab2CMLnq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Mar 2012 07:43:46 -0400
+In-Reply-To: <CAK44p224FTbnBXOo34TPgB2dKjT1x-rGbDB+kPitvNhoXy35Tg@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Amit Kachhap <amit.kachhap@linaro.org>
+Cc: Amit Kucheria <amit.kucheria@linaro.org>, len.brown@intel.com, linaro-dev@lists.linaro.org, patches@linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, mark.gross@intel.com, linux-pm@lists.linux-foundation.org
 
-On Tue, Mar 13, 2012 at 03:07:16PM +0400, Sergei Shtylyov wrote:
+On Tue, Mar 13, 2012 at 4:22 PM, Amit Kachhap <amit.kachhap@linaro.org> wrote:
+> Yes that should be helpful. Even the things your are suggesting are
+> somewhat same with some patches submitted which sets cpufreq min/max
+> constraint.
 
->     {} here are against the CodingStyle.
+Hmm..let me see how soon can I code up a rough implementation!
 
-Yes, but it's consistent with the rest of the file.
+Cheers!
 
 -- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+---------
+The views expressed in this email are personal and do not necessarily
+echo my employers.
