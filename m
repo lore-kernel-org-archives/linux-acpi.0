@@ -1,66 +1,68 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH V2 3/4] usb: Bind devices to ACPI devices when possible
-Date: Wed, 14 Mar 2012 10:44:43 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1203141043370.1644-100000@iolanthe.rowland.org>
-References: <20120314142932.GD27770@kroah.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:56257 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1030697Ab2CNOoo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Mar 2012 10:44:44 -0400
-In-Reply-To: <20120314142932.GD27770@kroah.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+Subject: [PATCH] drivers/acpi/processor_driver.c: add missing kfree
+Date: Thu, 15 Mar 2012 09:32:05 +0100
+Message-ID: <1331800325-14251-1-git-send-email-Julia.Lawall@lip6.fr>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>, srivatsa.bhat@linux.vnet.ibm.com, deepthi@linux.vnet.ibm.com, venki@google.com, trenn@suse.de, bhelgaas@google.com
+Cc: kernel-janitors@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: Matthew Garrett <mjg@redhat.com>, Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org, linux-usb@vger.kernel.org, lenb@kernel.org
 
-On Wed, 14 Mar 2012, Greg KH wrote:
+From: Julia Lawall <Julia.Lawall@lip6.fr>
 
-> On Wed, Mar 14, 2012 at 12:48:11PM +0000, Matthew Garrett wrote:
-> > On Wed, Mar 14, 2012 at 09:20:44AM +0800, Lan Tianyu wrote:
-> > > On 2012=E5=B9=B403=E6=9C=8813=E6=97=A5 05:45, Matthew Garrett wro=
-te:
-> > > >Built-in USB devices will typically have a representation in the=
- system
-> > > >ACPI tables. Add support for binding the two together so the USB=
- code can
-> > > >make use of the associated methods.
-> > > hi Matthew:
-> > > 	acpi glue framework only can cover situation that the port has b=
-een
-> > > connected with some device. so without device, no acpi handle can=
- be used to
-> > > access "UPC" and "PLD".
-> > > 	Whether the usb port is user-visible or not is also useful when =
-there
-> > > is no device. For example, if it is known that the usb port is no=
-t user-visible
-> > > and connectable. The usb hub port can be power-off.
-> > > 	So usb/acpi binding should consider those usb ports without plug=
-ging device.
-> > > Does this make sense? :)
-> >=20
-> > I agree that this woud be useful, but right now we don't have port=20
-> > objects so there's nowhere to expose this. Greg, do you have any=20
-> > feelings about how this coud be handled?
->=20
-> If you wanted to do something like this, you are right, you would nee=
-d
-> to create a "port" device and put it on every hub.  Odds are that's
-> probably not worth it as you will be adding more indirection on every
-> USB device, yet only ACPI based systems would be able to do anything
-> with them.
+The function acpi_processor_add is stored in the ops.add field of a
+acpi_driver structure.  This function is then called in
+acpi_bus_driver_init.  On failure, this function clears the field
+device->driver_data, but does not free its contents.  Thus the free has to
+be done by the add function.  In acpi_processor_add, the corresponding
+value is pr.  This value is currently freed on failure before storing it in
+device->driver_data, but not after.  This free is added in the error
+handling code at the end of the function.  The per_cpu variable
+processors is also cleared so that it does not refer to a dangling pointer.
 
-Even on ACPI systems, most host controllers are not able to power off=20
-individual ports.
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
-Alan Stern
+---
+ drivers/acpi/processor_driver.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index 2801b41..98c3648 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -536,8 +536,8 @@ static int __cpuinit acpi_processor_add(struct acpi_device *device)
+ 		return -ENOMEM;
+ 
+ 	if (!zalloc_cpumask_var(&pr->throttling.shared_cpu_map, GFP_KERNEL)) {
+-		kfree(pr);
+-		return -ENOMEM;
++		result = -ENOMEM;
++		goto err_free_pr;
+ 	}
+ 
+ 	pr->handle = device->handle;
+@@ -577,7 +577,7 @@ static int __cpuinit acpi_processor_add(struct acpi_device *device)
+ 	dev = get_cpu_device(pr->id);
+ 	if (sysfs_create_link(&device->dev.kobj, &dev->kobj, "sysdev")) {
+ 		result = -EFAULT;
+-		goto err_free_cpumask;
++		goto err_clear_processor;
+ 	}
+ 
+ 	/*
+@@ -595,9 +595,14 @@ static int __cpuinit acpi_processor_add(struct acpi_device *device)
+ 
+ err_remove_sysfs:
+ 	sysfs_remove_link(&device->dev.kobj, "sysdev");
++err_clear_processor:
++	/* processor_device_array is not cleared to allow checks for buggy
++	   BIOSes */
++	per_cpu(processors, pr->id) = NULL;
+ err_free_cpumask:
+ 	free_cpumask_var(pr->throttling.shared_cpu_map);
+-
++err_free_pr:
++	kfree(pr);
+ 	return result;
+ }
+ 
