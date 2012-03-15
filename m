@@ -1,48 +1,96 @@
-From: Chen Gong <gong.chen@linux.intel.com>
-Subject: Re: [PATCH v2] ACPI, APEI, EINJ, limit the range of einj_param
-Date: Thu, 15 Mar 2012 16:54:24 +0800
-Message-ID: <4F61AE40.1020908@linux.intel.com>
-References: <4F506E8A.8010901@linux.intel.com> <1330747003-11891-1-git-send-email-gong.chen@linux.intel.com>
+From: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
+Subject: Re: [PATCH] drivers/acpi/processor_driver.c: add missing kfree
+Date: Thu, 15 Mar 2012 15:02:49 +0530
+Message-ID: <4F61B741.1040102@linux.vnet.ibm.com>
+References: <1331800325-14251-1-git-send-email-Julia.Lawall@lip6.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:14315 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760734Ab2COIy3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 Mar 2012 04:54:29 -0400
-In-Reply-To: <1330747003-11891-1-git-send-email-gong.chen@linux.intel.com>
+Received: from e23smtp03.au.ibm.com ([202.81.31.145]:58996 "EHLO
+	e23smtp03.au.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760691Ab2COJc6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Mar 2012 05:32:58 -0400
+Received: from /spool/local
+	by e23smtp03.au.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <linux-acpi@vger.kernel.org> from <deepthi@linux.vnet.ibm.com>;
+	Thu, 15 Mar 2012 09:24:45 +1000
+In-Reply-To: <1331800325-14251-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Chen Gong <gong.chen@linux.intel.com>
-Cc: tony.luck@intel.com, ying.huang@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org
+To: Julia Lawall <Julia.Lawall@lip6.fr>
+Cc: Len Brown <lenb@kernel.org>, srivatsa.bhat@linux.vnet.ibm.com, venki@google.com, trenn@suse.de, bhelgaas@google.com, kernel-janitors@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 3/3/2012 11:56 AM, Chen Gong wrote:
-> On the platforms with ACPI4.x support, parameter extension
-> is not always doable, which means only parameter extension
-> is enabled, einj_param can take effect.
+
+On 03/15/2012 02:02 PM, Julia Lawall wrote:
+
+> From: Julia Lawall <Julia.Lawall@lip6.fr>
+> 
+> The function acpi_processor_add is stored in the ops.add field of a
+> acpi_driver structure.  This function is then called in
+> acpi_bus_driver_init.  On failure, this function clears the field
+> device->driver_data, but does not free its contents.  Thus the free has to
+> be done by the add function.  In acpi_processor_add, the corresponding
+> value is pr.  This value is currently freed on failure before storing it in
+> device->driver_data, but not after.  This free is added in the error
+> handling code at the end of the function.  The per_cpu variable
+> processors is also cleared so that it does not refer to a dangling pointer.
+> 
+> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 >
-> v2->v1: stopping early in einj_get_parameter_address for einj_param
->
-> Signed-off-by: Chen Gong<gong.chen@linux.intel.com>
+
+
+Acked-by: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
+
+ 
 > ---
->   drivers/acpi/apei/einj.c |    2 +-
->   1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
-> index 4ca087d..3d3816f 100644
-> --- a/drivers/acpi/apei/einj.c
-> +++ b/drivers/acpi/apei/einj.c
-> @@ -238,7 +238,7 @@ static void *einj_get_parameter_address(void)
->   			return v5param;
->   		}
->   	}
-> -	if (paddrv4) {
-> +	if (param_extension&&  paddrv4) {
->   		struct einj_parameter *v4param;
->
->   		v4param = acpi_os_map_memory(paddrv4, sizeof(*v4param));
+>  drivers/acpi/processor_driver.c |   13 +++++++++----
+>  1 file changed, 9 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+> index 2801b41..98c3648 100644
+> --- a/drivers/acpi/processor_driver.c
+> +++ b/drivers/acpi/processor_driver.c
+> @@ -536,8 +536,8 @@ static int __cpuinit acpi_processor_add(struct acpi_device *device)
+>  		return -ENOMEM;
+> 
+>  	if (!zalloc_cpumask_var(&pr->throttling.shared_cpu_map, GFP_KERNEL)) {
+> -		kfree(pr);
+> -		return -ENOMEM;
+> +		result = -ENOMEM;
+> +		goto err_free_pr;
+>  	}
+> 
+>  	pr->handle = device->handle;
+> @@ -577,7 +577,7 @@ static int __cpuinit acpi_processor_add(struct acpi_device *device)
+>  	dev = get_cpu_device(pr->id);
+>  	if (sysfs_create_link(&device->dev.kobj, &dev->kobj, "sysdev")) {
+>  		result = -EFAULT;
+> -		goto err_free_cpumask;
+> +		goto err_clear_processor;
+>  	}
+> 
+>  	/*
+> @@ -595,9 +595,14 @@ static int __cpuinit acpi_processor_add(struct acpi_device *device)
+> 
+>  err_remove_sysfs:
+>  	sysfs_remove_link(&device->dev.kobj, "sysdev");
+> +err_clear_processor:
+> +	/* processor_device_array is not cleared to allow checks for buggy
+> +	   BIOSes */
+> +	per_cpu(processors, pr->id) = NULL;
+>  err_free_cpumask:
+>  	free_cpumask_var(pr->throttling.shared_cpu_map);
+> -
+> +err_free_pr:
+> +	kfree(pr);
+>  	return result;
+>  }
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Hi, Len
 
-Any comment for this?
