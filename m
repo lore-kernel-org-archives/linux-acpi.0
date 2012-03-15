@@ -1,68 +1,53 @@
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: [PATCH] drivers/acpi/processor_driver.c: add missing kfree
-Date: Thu, 15 Mar 2012 09:32:05 +0100
-Message-ID: <1331800325-14251-1-git-send-email-Julia.Lawall@lip6.fr>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, srivatsa.bhat@linux.vnet.ibm.com, deepthi@linux.vnet.ibm.com, venki@google.com, trenn@suse.de, bhelgaas@google.com
-Cc: kernel-janitors@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Chen Gong <gong.chen@linux.intel.com>
+Subject: [v2 PATCH 2/2] Update documentation for parameter *notrigger* in einj.txt
+Date: Thu, 15 Mar 2012 16:53:37 +0800
+Message-ID: <1331801617-15882-3-git-send-email-gong.chen@linux.intel.com>
+References: <1331801617-15882-1-git-send-email-gong.chen@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:35794 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760710Ab2COIwj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 Mar 2012 04:52:39 -0400
+In-Reply-To: <1331801617-15882-1-git-send-email-gong.chen@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: tony.luck@intel.com, ying.huang@intel.com, lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, Chen Gong <gong.chen@linux.intel.com>
 
-From: Julia Lawall <Julia.Lawall@lip6.fr>
+Add description of parameter notrigger in the einj.txt.
+One can utilize this new parameter to do some SRAR injection
+test. Pay attention, the operation is highly depended on the
+BIOS implementation. If no proper BIOS supports it, even if
+enabling this parameter, expected result will not happen.
 
-The function acpi_processor_add is stored in the ops.add field of a
-acpi_driver structure.  This function is then called in
-acpi_bus_driver_init.  On failure, this function clears the field
-device->driver_data, but does not free its contents.  Thus the free has to
-be done by the add function.  In acpi_processor_add, the corresponding
-value is pr.  This value is currently freed on failure before storing it in
-device->driver_data, but not after.  This free is added in the error
-handling code at the end of the function.  The per_cpu variable
-processors is also cleared so that it does not refer to a dangling pointer.
+v2:
+  Update the documentation suggested by Tony
 
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-
+Suggested-by: Tony Luck <tony.luck@intel.com>
+Signed-off-by: Chen Gong <gong.chen@linux.intel.com>
 ---
- drivers/acpi/processor_driver.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ Documentation/acpi/apei/einj.txt |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-index 2801b41..98c3648 100644
---- a/drivers/acpi/processor_driver.c
-+++ b/drivers/acpi/processor_driver.c
-@@ -536,8 +536,8 @@ static int __cpuinit acpi_processor_add(struct acpi_device *device)
- 		return -ENOMEM;
+diff --git a/Documentation/acpi/apei/einj.txt b/Documentation/acpi/apei/einj.txt
+index e7cc363..e20b6da 100644
+--- a/Documentation/acpi/apei/einj.txt
++++ b/Documentation/acpi/apei/einj.txt
+@@ -53,6 +53,14 @@ directory apei/einj. The following files are provided.
+   This file is used to set the second error parameter value. Effect of
+   parameter depends on error_type specified.
  
- 	if (!zalloc_cpumask_var(&pr->throttling.shared_cpu_map, GFP_KERNEL)) {
--		kfree(pr);
--		return -ENOMEM;
-+		result = -ENOMEM;
-+		goto err_free_pr;
- 	}
- 
- 	pr->handle = device->handle;
-@@ -577,7 +577,7 @@ static int __cpuinit acpi_processor_add(struct acpi_device *device)
- 	dev = get_cpu_device(pr->id);
- 	if (sysfs_create_link(&device->dev.kobj, &dev->kobj, "sysdev")) {
- 		result = -EFAULT;
--		goto err_free_cpumask;
-+		goto err_clear_processor;
- 	}
- 
- 	/*
-@@ -595,9 +595,14 @@ static int __cpuinit acpi_processor_add(struct acpi_device *device)
- 
- err_remove_sysfs:
- 	sysfs_remove_link(&device->dev.kobj, "sysdev");
-+err_clear_processor:
-+	/* processor_device_array is not cleared to allow checks for buggy
-+	   BIOSes */
-+	per_cpu(processors, pr->id) = NULL;
- err_free_cpumask:
- 	free_cpumask_var(pr->throttling.shared_cpu_map);
--
-+err_free_pr:
-+	kfree(pr);
- 	return result;
- }
- 
++- notrigger
++  The EINJ mechanism is a two step process. First inject the error, then
++  perform some actions to trigger it. Setting "notrigger" to 1 skips the
++  trigger phase, which *may* allow the user to cause the error in some other
++  context by a simple access to the cpu, memory location, or device that is
++  the target of the error injection. Whether this actually works depends
++  on what operations the BIOS actually includes in the trigger phase.
++
+ BIOS versions based in the ACPI 4.0 specification have limited options
+ to control where the errors are injected.  Your BIOS may support an
+ extension (enabled with the param_extension=1 module parameter, or
+-- 
+1.7.8.2.302.g17b4e
+
