@@ -1,26 +1,25 @@
-From: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
+From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
 Subject: Re: [PATCH] drivers/acpi/processor_driver.c: add missing kfree
-Date: Thu, 15 Mar 2012 15:02:49 +0530
-Message-ID: <4F61B741.1040102@linux.vnet.ibm.com>
+Date: Thu, 15 Mar 2012 14:37:13 +0530
+Message-ID: <4F61B141.9000106@linux.vnet.ibm.com>
 References: <1331800325-14251-1-git-send-email-Julia.Lawall@lip6.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e23smtp03.au.ibm.com ([202.81.31.145]:58996 "EHLO
-	e23smtp03.au.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760691Ab2COJc6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Mar 2012 05:32:58 -0400
+Received: from e28smtp05.in.ibm.com ([122.248.162.5]:58571 "EHLO
+	e28smtp05.in.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760542Ab2COJg5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Mar 2012 05:36:57 -0400
 Received: from /spool/local
-	by e23smtp03.au.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <linux-acpi@vger.kernel.org> from <deepthi@linux.vnet.ibm.com>;
-	Thu, 15 Mar 2012 09:24:45 +1000
+	by e28smtp05.in.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <linux-acpi@vger.kernel.org> from <srivatsa.bhat@linux.vnet.ibm.com>;
+	Thu, 15 Mar 2012 14:39:47 +0530
 In-Reply-To: <1331800325-14251-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Julia Lawall <Julia.Lawall@lip6.fr>
-Cc: Len Brown <lenb@kernel.org>, srivatsa.bhat@linux.vnet.ibm.com, venki@google.com, trenn@suse.de, bhelgaas@google.com, kernel-janitors@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-
+Cc: Len Brown <lenb@kernel.org>, deepthi@linux.vnet.ibm.com, venki@google.com, trenn@suse.de, bhelgaas@google.com, kernel-janitors@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
 On 03/15/2012 02:02 PM, Julia Lawall wrote:
 
@@ -40,10 +39,12 @@ On 03/15/2012 02:02 PM, Julia Lawall wrote:
 >
 
 
-Acked-by: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
+See a minor nitpick below.. Other than that, everything looks great!
 
- 
-> ---
+Reviewed-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+
+ > ---
+
 >  drivers/acpi/processor_driver.c |   13 +++++++++----
 >  1 file changed, 9 insertions(+), 4 deletions(-)
 > 
@@ -78,6 +79,15 @@ Acked-by: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
 > +err_clear_processor:
 > +	/* processor_device_array is not cleared to allow checks for buggy
 > +	   BIOSes */
+
+
+Multi-line comments in the kernel are generally written like:
+
+/*
+ * blah blah blah
+ * blah blah ....
+ */
+
 > +	per_cpu(processors, pr->id) = NULL;
 >  err_free_cpumask:
 >  	free_cpumask_var(pr->throttling.shared_cpu_map);
@@ -87,10 +97,9 @@ Acked-by: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
 >  	return result;
 >  }
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+
+
+
+
 
 
