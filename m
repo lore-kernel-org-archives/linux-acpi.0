@@ -1,78 +1,22 @@
 From: Chen Gong <gong.chen@linux.intel.com>
-Subject: [v2 PATCH 1/2] ACPI, APEI, EINJ, new parameter to control trigger action
-Date: Thu, 15 Mar 2012 16:53:36 +0800
-Message-ID: <1331801617-15882-2-git-send-email-gong.chen@linux.intel.com>
-References: <1331801617-15882-1-git-send-email-gong.chen@linux.intel.com>
+Subject: resend these two patches about *notrigger* parameter
+Date: Thu, 15 Mar 2012 16:53:35 +0800
+Message-ID: <1331801617-15882-1-git-send-email-gong.chen@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:59896 "EHLO mga11.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:42209 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760636Ab2COIwj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 Mar 2012 04:52:39 -0400
-In-Reply-To: <1331801617-15882-1-git-send-email-gong.chen@linux.intel.com>
+	id S1760599Ab2COIxj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 Mar 2012 04:53:39 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: tony.luck@intel.com, ying.huang@intel.com, lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, Chen Gong <gong.chen@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-Some APEI firmware implementation will access injected address
-specified in param1 to trigger the error when injecting memory
-error, which means if one SRAR error is injected, the crash
-always happens because it is executed in kernel context. This
-new parameter can disable trigger action and control is taken
-over by the user. In this way, an SRAR error can happen in user
-context instead of crashing the system. This function is highly
-depended on BIOS implementation so please ensure you know the
-BIOS trigger procedure before you enable this switch.
+[v2 PATCH 1/2] ACPI, APEI, EINJ, new parameter to
+[v2 PATCH 2/2] Update documentation for parameter
 
-v2:
-  notrigger should be created together with param1/param2
+Hi, Len
 
-Tested-by: Tony Luck <tony.luck@lintel.com>
-Signed-off-by: Chen Gong <gong.chen@linux.intel.com>
----
- drivers/acpi/apei/einj.c |   15 ++++++++++++---
- 1 files changed, 12 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
-index 3d3816f..8e17936 100644
---- a/drivers/acpi/apei/einj.c
-+++ b/drivers/acpi/apei/einj.c
-@@ -74,6 +74,8 @@ struct vendor_error_type_extension {
- 	u8	reserved[3];
- };
- 
-+static u32 notrigger;
-+
- static u32 vendor_flags;
- static struct debugfs_blob_wrapper vendor_blob;
- static char vendor_dev[64];
-@@ -496,9 +498,11 @@ static int __einj_error_inject(u32 type, u64 param1, u64 param2)
- 	if (rc)
- 		return rc;
- 	trigger_paddr = apei_exec_ctx_get_output(&ctx);
--	rc = __einj_error_trigger(trigger_paddr, type, param1, param2);
--	if (rc)
--		return rc;
-+	if (notrigger == 0) {
-+		rc = __einj_error_trigger(trigger_paddr, type, param1, param2);
-+		if (rc)
-+			return rc;
-+	}
- 	rc = apei_exec_run_optional(&ctx, ACPI_EINJ_END_OPERATION);
- 
- 	return rc;
-@@ -700,6 +704,11 @@ static int __init einj_init(void)
- 					    einj_debug_dir, &error_param2);
- 		if (!fentry)
- 			goto err_unmap;
-+
-+		fentry = debugfs_create_x32("notrigger", S_IRUSR | S_IWUSR,
-+					    einj_debug_dir, &notrigger);
-+		if (!fentry)
-+			goto err_unmap;
- 	}
- 
- 	if (vendor_dev[0]) {
--- 
-1.7.8.2.302.g17b4e
-
+Would you please help to merge these 2 patches for APEI
+enhancement? They have been posted about one month eariler.
+It looks like no one has objection.
