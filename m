@@ -1,50 +1,76 @@
-From: Chen Gong <gong.chen@linux.intel.com>
-Subject: Re: resend these two patches about *notrigger* parameter
-Date: Fri, 16 Mar 2012 13:48:17 +0800
-Message-ID: <4F62D421.9070603@linux.intel.com>
-References: <1331801617-15882-1-git-send-email-gong.chen@linux.intel.com> <3908561D78D1C84285E8C5FCA982C28F15B6523A@ORSMSX103.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+Subject: [PATCH] drivers/acpi/processor_driver.c: add missing kfree
+Date: Fri, 16 Mar 2012 11:02:16 +0100
+Message-ID: <1331892136-4790-1-git-send-email-Julia.Lawall@lip6.fr>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:62886 "EHLO mga02.intel.com"
+Received: from mgw2.diku.dk ([130.225.96.92]:56423 "EHLO mgw2.diku.dk"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753374Ab2CPFsT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 16 Mar 2012 01:48:19 -0400
-In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F15B6523A@ORSMSX103.amr.corp.intel.com>
+	id S932490Ab2CPKCX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 16 Mar 2012 06:02:23 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Huang, Ying" <ying.huang@intel.com>
+To: Len Brown <lenb@kernel.org>, srivatsa.bhat@linux.vnet.ibm.com, deepthi@linux.vnet.ibm.com, venki@google.com, trenn@suse.de, bhelgaas@google.com
+Cc: kernel-janitors@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-=E4=BA=8E 3/16/2012 12:46 AM, Luck, Tony =E5=86=99=E9=81=93:
->> [v2 PATCH 1/2] ACPI, APEI, EINJ, new parameter to
->> [v2 PATCH 2/2] Update documentation for parameter
->>
->> Hi, Len
->>
->> Would you please help to merge these 2 patches for APEI
->> enhancement? They have been posted about one month eariler.
->> It looks like no one has objection.
-> They are already "Tested-by" and "Suggested-by" me ... you can
-> add "Acked-by: Tony Luck<tony.luck@intel.com>" too if you like.
->
-> -Tony
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-Thx Tony. I'd like to do that.
-Len
+From: Julia Lawall <Julia.Lawall@lip6.fr>
 
-If you have no objection, please help to add "Acked-by: Tony Luck=20
-<tony.luck@intel.com>".
-Thx a lot!
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The function acpi_processor_add is stored in the ops.add field of a
+acpi_driver structure.  This function is then called in
+acpi_bus_driver_init.  On failure, this function clears the field
+device->driver_data, but does not free its contents.  Thus the free has to
+be done by the add function.  In acpi_processor_add, the corresponding
+value is pr.  This value is currently freed on failure before storing it in
+device->driver_data, but not after.  This free is added in the error
+handling code at the end of the function.  The per_cpu variable
+processors is also cleared so that it does not refer to a dangling pointer.
+
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+
+---
+v2: Adjusted the comment format
+
+ drivers/acpi/processor_driver.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index 2801b41..c5ce91c 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -536,8 +536,8 @@ static int __cpuinit acpi_processor_add(struct acpi_device *device)
+ 		return -ENOMEM;
+ 
+ 	if (!zalloc_cpumask_var(&pr->throttling.shared_cpu_map, GFP_KERNEL)) {
+-		kfree(pr);
+-		return -ENOMEM;
++		result = -ENOMEM;
++		goto err_free_pr;
+ 	}
+ 
+ 	pr->handle = device->handle;
+@@ -577,7 +577,7 @@ static int __cpuinit acpi_processor_add(struct acpi_device *device)
+ 	dev = get_cpu_device(pr->id);
+ 	if (sysfs_create_link(&device->dev.kobj, &dev->kobj, "sysdev")) {
+ 		result = -EFAULT;
+-		goto err_free_cpumask;
++		goto err_clear_processor;
+ 	}
+ 
+ 	/*
+@@ -595,9 +595,16 @@ static int __cpuinit acpi_processor_add(struct acpi_device *device)
+ 
+ err_remove_sysfs:
+ 	sysfs_remove_link(&device->dev.kobj, "sysdev");
++err_clear_processor:
++	/*
++	 * processor_device_array is not cleared to allow checks for buggy
++	 *  BIOSes
++	 */
++	per_cpu(processors, pr->id) = NULL;
+ err_free_cpumask:
+ 	free_cpumask_var(pr->throttling.shared_cpu_map);
+-
++err_free_pr:
++	kfree(pr);
+ 	return result;
+ }
+ 
