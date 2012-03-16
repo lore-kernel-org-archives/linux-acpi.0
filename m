@@ -1,48 +1,34 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH v2 24/37] PCI, ACPI: Add pci_root_hp hot removal
- notification support.
-Date: Thu, 15 Mar 2012 12:09:53 -0600
-Message-ID: <CAErSpo5ekRrLbs_53rvV4=7qKBucR0K-1hPqEHQG=Abau5A6XQ@mail.gmail.com>
-References: <1331362837-10740-1-git-send-email-yinghai@kernel.org>
- <1331362837-10740-25-git-send-email-yinghai@kernel.org> <CAErSpo6g3pei2+oW0wLEpytBTh6wGTyzo28oVVzFECxZdta+FA@mail.gmail.com>
- <CAE9FiQWfYxD2OAmXF5UdQMkPt33xeoSu489N6KtU3k5VE3jUXw@mail.gmail.com>
- <CAErSpo4KhQJOpKk8OOtcSxWc3wwkhLix8ECZhGtTnQ2WgQH7iw@mail.gmail.com> <CAE9FiQV8XsLZfZLLWsdkQ+EVvPV7Z70Xaz_utOcaDBU8hm4gpg@mail.gmail.com>
+From: Chen Gong <gong.chen@linux.intel.com>
+Subject: Re: [PATCH v2] ACPI, APEI, EINJ, limit the range of einj_param
+Date: Fri, 16 Mar 2012 13:41:51 +0800
+Message-ID: <4F62D29F.2090503@linux.intel.com>
+References: <4F506E8A.8010901@linux.intel.com> <1330747003-11891-1-git-send-email-gong.chen@linux.intel.com> <4F61AE40.1020908@linux.intel.com> <3908561D78D1C84285E8C5FCA982C28F15B65247@ORSMSX103.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAE9FiQV8XsLZfZLLWsdkQ+EVvPV7Z70Xaz_utOcaDBU8hm4gpg@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, x86 <x86@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:16815 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753489Ab2CPFly (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 16 Mar 2012 01:41:54 -0400
+In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F15B65247@ORSMSX103.amr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Thu, Mar 15, 2012 at 12:01 PM, Yinghai Lu <yinghai@kernel.org> wrote=
-:
-> On Thu, Mar 15, 2012 at 10:53 AM, Bjorn Helgaas <bhelgaas@google.com>=
- wrote:
->> Sure, the 'echo "\_SB.PCIB 3" > /proc/acpi/sci/notify' way looks mor=
-e
->> like physical hotadd/remove because it is basically injecting the
->> notify event that the hardware/BIOS should be generating itself. =A0=
-But
->> it is platform-specific and therefore unacceptable as a general user
->> interface.
->>
->> Using /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/remove would be =
-a
->> more generic way. =A0The PNP0A08:00/remove implementation would
->> basically turn into an acpi_pci_root_remove() call, just like the
->> 'echo "\_SB.PCIB 3" > /proc/acpi/sci/notify' does.
+=E4=BA=8E 3/16/2012 12:48 AM, Luck, Tony =E5=86=99=E9=81=93:
+>> -	if (paddrv4) {
+>> +	if (param_extension&&   paddrv4) {
+> looks like needs a space moved from after the "&&"
+> to before it. But otherwise:
 >
-> if the users can not find _SB.PCIB etc, they may not find
-> LNXSYSTM:00/device:00/PNP0A08:00.
->
-> so /sys/class/pci_bus/0000:80/remove is more easy for them?
-
-I don't think so.  LNXSYSTM:00/... is the canonical machine
-description on x86.  I think there should probably be a link from the
-PCI device to the upstream bridge.  The upstream bridge could be
-either a P2P bridge or a host bridge.
-
-Bjorn
+> Acked-by: Tony Luck<tony.luck@intel.com>
+Not sure why because my patch looks good. Maybe my mail client does=20
+something
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
