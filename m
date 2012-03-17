@@ -1,85 +1,78 @@
-From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
-Subject: Re: xHCI not waking up from D3 after S3 Resume on Ivybridge
-Date: Fri, 16 Mar 2012 10:49:34 -0700
-Message-ID: <20120316174934.GC6077@xanatos>
-References: <loom.20120312T142127-400@post.gmane.org>
- <20120313211859.GA16020@xanatos>
- <567DD8FC-9951-4EE3-BA65-51736CD141F8@virtualcomputer.com>
- <20120314165715.GA19308@xanatos>
- <0477B653-4ECF-4D24-A87E-7A2786F4A34B@virtualcomputer.com>
- <C5DCD920-A72C-40B4-B616-DA952FB5B00F@virtualcomputer.com>
- <6A33BBC0-83E3-4D4E-94C5-9594DF32AF97@virtualcomputer.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+Subject: [PATCH] drivers/acpi/processor_driver.c: add missing kfree
+Date: Sat, 17 Mar 2012 16:38:11 +0100
+Message-ID: <1331998691-29679-1-git-send-email-Julia.Lawall@lip6.fr>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:50668 "EHLO mga09.intel.com"
+Received: from mgw2.diku.dk ([130.225.96.92]:42892 "EHLO mgw2.diku.dk"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753402Ab2CPRtl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 16 Mar 2012 13:49:41 -0400
-Content-Disposition: inline
-In-Reply-To: <6A33BBC0-83E3-4D4E-94C5-9594DF32AF97@virtualcomputer.com>
+	id S1754983Ab2CQPiT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 17 Mar 2012 11:38:19 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tom Goetz <tom.goetz@virtualcomputer.com>
-Cc: linux-usb@vger.kernel.org, xen-devel@lists.xen.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
+To: Len Brown <lenb@kernel.org>, srivatsa.bhat@linux.vnet.ibm.com, deepthi@linux.vnet.ibm.com, venki@google.com, trenn@suse.de, bhelgaas@google.com
+Cc: kernel-janitors@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Cross posting to the linux-acpi and linux-pci list for help.
+From: Julia Lawall <Julia.Lawall@lip6.fr>
 
-Summary:  After an Ivy Bridge laptop is resumed from S3 and the USB 3.0
-host controller is in D3, under Xen, the host controller will never come
-out of D3 to report a USB device connection.  The same laptop with a
-standard Ubuntu install with the same 3.2.11 kernel works fine.
+The function acpi_processor_add is stored in the ops.add field of a
+acpi_driver structure.  This function is then called in
+acpi_bus_driver_init.  On failure, this function clears the field
+device->driver_data, but does not free its contents.  Thus the free has to
+be done by the add function.  In acpi_processor_add, the corresponding
+value is pr.  This value is currently freed on failure before storing it in
+device->driver_data, but not after.  This free is added in the error
+handling code at the end of the function.  The per_cpu variable
+processors is also cleared so that it does not refer to a dangling pointer.
 
-I'm not sure what to make of the ACPI details about wakeup events being
-routed to e1000e instead of the xHCI host.  Can someone help out here?
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+Reviewed-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+Acked-by: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
 
-On Thu, Mar 15, 2012 at 04:25:45PM -0400, Tom Goetz wrote:
-> On Mar 15, 2012, at 10:35 AM, Tom Goetz wrote:
-> > On Mar 14, 2012, at 1:46 PM, Tom Goetz wrote:
-> >> On Mar 14, 2012, at 12:57 PM, Sarah Sharp wrote:
-> >>> On Wed, Mar 14, 2012 at 09:52:28AM -0400, Tom Goetz wrote:
-> >>>>> Why were you posting there in particular?  You're much more
-> >>>>> likely to get your USB questions answered on this mailing list.
-> >>>>> :)
-> >>>> 
-> >>>> I'm concerned that this may be a bug in the Xen PVOPs MSI code.
-> >>>> To that end I've posted updates on xen-devel here:
-> >>>> 
-> >>>> http://lists.xen.org/archives/html/xen-devel/2012-03/msg00904.html
-> >>>> http://lists.xen.org/archives/html/xen-devel/2012-03/msg00727.html
-> >>>> http://lists.xen.org/archives/html/xen-devel/2012-03/msg00978.html
-> >>> 
-> >>> Does the xHCI host work fine without Xen?  I.e. running Linux
-> >>> directly as the host OS, suspending, resuming, and then plugging
-> >>> in a device?
-> >> 
-> >> It works in Ubuntu 12.04 Beta 1 with Linux 3.2.0. So it's either
-> >> broken between 3.2.0 and 3.2.5 or it's broken in Xen. I haven't
-> >> made a direct comparison yet. I'm putting Ubuntu on my SDP now to
-> >> test that.
-> > 
-> > xHCI wakes up from D3 on the SDP with Ubuntu 12.04 Beta 1 and
-> > 3.2.11. This fails with the same 3.2.11 kernel and Xen. So the
-> > problem is Xen related.
-> 
-> Another update.
-> 
-> On the Ivybridge laptop, xHCI is not waking up because when I plug a
-> device into a xHCI port the ACPI wakeup events are going to the
-> e1000e. Pre S3, it eventually gets a interrupt from the device that
-> wakes it up. Post S3 it never gets an interrupt from the device.
-> 
-> On the SDP, I get ACPI wake up calls for the xHCI before S3, but not
-> after. Both cases work with out Xen. I'm assuming Xen/PVOPs is leaving
-> the device in a state the causes the ACPI wake up events to be masked.
-> Can you tell me what what state that could be? I can look at
-> decompiling the ASL to find out, but that's not my first choice.
-> Toggling the power policy (auto->on->auto) does not fix delivery of
-> ACPI wake up events for this device. I am still getting ACPI wake ups
-> for the e1000e, so it's not all wake ups that are blocked.
-> 
-> Thanks for any help.
-> 
-> -Tom-- To unsubscribe from this list: send the line "unsubscribe
-> linux-usb" in the body of a message to majordomo@vger.kernel.org More
-> majordomo info at  http://vger.kernel.org/majordomo-info.html
+---
+v3: Added reviews and acks
+
+ drivers/acpi/processor_driver.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index 2801b41..c5ce91c 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -536,8 +536,8 @@ static int __cpuinit acpi_processor_add(struct acpi_device *device)
+ 		return -ENOMEM;
+ 
+ 	if (!zalloc_cpumask_var(&pr->throttling.shared_cpu_map, GFP_KERNEL)) {
+-		kfree(pr);
+-		return -ENOMEM;
++		result = -ENOMEM;
++		goto err_free_pr;
+ 	}
+ 
+ 	pr->handle = device->handle;
+@@ -577,7 +577,7 @@ static int __cpuinit acpi_processor_add(struct acpi_device *device)
+ 	dev = get_cpu_device(pr->id);
+ 	if (sysfs_create_link(&device->dev.kobj, &dev->kobj, "sysdev")) {
+ 		result = -EFAULT;
+-		goto err_free_cpumask;
++		goto err_clear_processor;
+ 	}
+ 
+ 	/*
+@@ -595,9 +595,16 @@ static int __cpuinit acpi_processor_add(struct acpi_device *device)
+ 
+ err_remove_sysfs:
+ 	sysfs_remove_link(&device->dev.kobj, "sysdev");
++err_clear_processor:
++	/*
++	 * processor_device_array is not cleared to allow checks for buggy
++	 *  BIOSes
++	 */
++	per_cpu(processors, pr->id) = NULL;
+ err_free_cpumask:
+ 	free_cpumask_var(pr->throttling.shared_cpu_map);
+-
++err_free_pr:
++	kfree(pr);
+ 	return result;
+ }
+ 
