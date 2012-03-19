@@ -1,17 +1,17 @@
 From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [RFC PATCH 3/4] usb/acpi: add the support of usb hub ports' acpi
- binding without attached devices.
-Date: Mon, 19 Mar 2012 12:10:23 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1203191207120.1641-100000@iolanthe.rowland.org>
-References: <1332167626-5806-3-git-send-email-tianyu.lan@intel.com>
+Subject: Re: [RFC PATCH 4/4] usb/acpi: add usb check for the connect type of
+ usb port
+Date: Mon, 19 Mar 2012 12:13:10 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1203191210270.1641-100000@iolanthe.rowland.org>
+References: <1332167626-5806-4-git-send-email-tianyu.lan@intel.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:38062 "HELO
+Received: from iolanthe.rowland.org ([192.131.102.54]:38070 "HELO
 	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1030655Ab2CSQKY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Mar 2012 12:10:24 -0400
-In-Reply-To: <1332167626-5806-3-git-send-email-tianyu.lan@intel.com>
+	with SMTP id S932261Ab2CSQNL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Mar 2012 12:13:11 -0400
+In-Reply-To: <1332167626-5806-4-git-send-email-tianyu.lan@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Lan Tianyu <tianyu.lan@intel.com>
@@ -19,50 +19,62 @@ Cc: lenb@kernel.org, gregkh@linuxfoundation.org, linux-acpi@vger.kernel.org, mjg
 
 On Mon, 19 Mar 2012, Lan Tianyu wrote:
 
-> The usb port is a device in the acpi table but it's not in the linux
-> usb subsystem. USB hub port doesn't have struct device. So the acpi
-> glue framework only can cover the usb port connected with usb device
-> and store the acpi handle to struct device.archdata.acpi_handle. This
-> patch gets the hub port's acpi_handle and store it in the port's platform_data
-> to resolve no attached device no binding problem. The acpi method "_UPC"
-> and "_PLD" can be accessed without attached device.
+> Check the connect type of usb port when getting the usb port's
+> acpi_handle and store result into connect_type in the struct
+> usb_hub_port.
+> 
+> Accoding to ACPI Spec 9.13. PLD indicates whether usb port is
+> user visible and _UPC indicates whether it is connectable. If
+> the port was visible and connectable, it could be freely connected
+> and disconnected with USB devices. If no visible and connectable,
+> a usb device is directly hard-wired to the port. If no visible and
+> no connectable, the port would be not used.
+> 
+> When a device was found on the port, if the connect_type was hot-plug,
+> then the device would be removable. If the connect_type was hard-wired,
+> the device would be non-removable.
 
-> --- a/drivers/usb/core/hub.c
-> +++ b/drivers/usb/core/hub.c
-> @@ -1238,6 +1238,7 @@ static int hub_configure(struct usb_hub *hub,
->  		hub->indicator [0] = INDICATOR_CYCLE;
->  
->  	hub_activate(hub, HUB_INIT);
-> +	usb_acpi_bind_hub_ports(hdev, hub->descriptor->bNbrPorts);
+> @@ -132,7 +133,7 @@ MODULE_PARM_DESC(initial_descriptor_timeout,
+>   *
+>   * For maximum flexibility there are two boolean parameters to control the
+>   * hub driver's behavior.  On the first initialization attempt, if the
+> - * "old_scheme_first" parameter is set then the old scheme will be used,
+> +.iiies * "old_scheme_first" parameter is set then the old scheme will be used,
 
-Use hdev->maxchild instead of hub->descriptor->bNbrPorts.
+This is a typo.
 
-> @@ -105,6 +114,33 @@ static struct acpi_bus_type usb_acpi_bus = {
->  	.find_device = usb_acpi_find_device,
->  };
->  
-> +int usb_acpi_bind_hub_ports(struct usb_device *hdev, int portnum)
+>   * otherwise the new scheme is used.  If that fails and "use_both_schemes"
+>   * is set, then the driver will make another attempt, using the other scheme.
+>   */
+> @@ -4174,3 +4175,27 @@ int usb_get_hub_port_platform_data(struct usb_device *udev, int port,
+>  	*data = hub->port_data[port - 1].platform_data;
+>  	return 0;
+>  }
+> +
+> +int usb_set_hub_port_connect_type(struct usb_device *hdev, int port,
+> +	enum usb_port_connect_type type)
 
-Don't pass portnum as an argument; use hdev->maxchild instead.
+The parameter should be called "port1", not "port".
 
 > +{
-> +	acpi_handle hub_handle = NULL;
-> +	acpi_handle port_handle = NULL;
-> +	struct device *dev = &hdev->dev;
-> +	int i;
+> +	struct usb_hub *hub = hdev_to_hub(hdev);
 > +
-> +	hub_handle = DEVICE_ACPI_HANDLE(dev);
-> +	if (!hub_handle)
-> +		return -ENODEV;
-> +
-> +	/**
-> +	 * The usb hub port is not a device in the usb subsystem but it is a device
-> +	 * in the acpi table. Store it's acpi handle in the platform data of usb
+> +	if (port > hub->descriptor->bNbrPorts || port < 1)
 
-s/it's/its/
+Use hdev->maxchild instead of hub->descriptor->bNbrPorts.  Same in 
+usb_get_hub_port_connect_type().
 
-"its" is a possessive pronoun, but "it's" is a contraction of "it is" 
-or "it has".
+> --- a/drivers/usb/core/usb-acpi.c
+> +++ b/drivers/usb/core/usb-acpi.c
+> @@ -19,58 +19,57 @@
+>  
+>  #include "usb.h"
+>  
+> -static int usb_acpi_check_upc(struct usb_device *udev, acpi_handle handle)
+> +static int usb_acpi_check_port_connect_type(struct usb_device *hdev,
+> +	acpi_handle handle, int port)
+
+port1, not port.
 
 Alan Stern
 
