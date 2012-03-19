@@ -1,82 +1,137 @@
-From: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
-Subject: [PATCH] video: add quirk table for video backlight vendor mode
-Date: Mon, 19 Mar 2012 14:03:47 +0800
-Message-ID: <1332137027-28327-1-git-send-email-jlee@suse.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:37514 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031025Ab2CSGFb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Mar 2012 02:05:31 -0400
-Received: by obbeh20 with SMTP id eh20so819085obb.19
-        for <linux-acpi@vger.kernel.org>; Sun, 18 Mar 2012 23:05:31 -0700 (PDT)
-Sender: linux-acpi-owner@vger.kernel.org
+From: Amit Daniel Kachhap <amit.kachhap@linaro.org>
+Subject: [PATCH V2 0/6] thermal: exynos: Add kernel thermal
+	support for exynos platform
+Date: Mon, 19 Mar 2012 11:47:38 +0530
+Message-ID: <1332137864-12943-1-git-send-email-amit.kachhap@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: linux-pm@lists.linux-foundation.org, linux-samsung-soc@vger.kernel.org
+Cc: linaro-dev@lists.linaro.org, patches@linaro.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Thomas Renninger <trenn@suse.de>, Matthew Garrett <mjg@redhat.com>
 
-There have some acer laptop have broken _BCM implemenation, the AML code write value
-to EC register but firmware didn't change brighenss.
+Changes since V1:
+*Moved the sensor driver to driver/thermal folder from driver/hwmon folder
+ as suggested by Mark Brown and Guenter Roeck 
+*Added notifier support to notify the registered drivers of any cpu cooling
+ action. The driver can modify the default cooling behaviour(eg set different
+ max clip frequency).
+*The percentage based frequency replaced with absolute clipped frequency.
+*Some more conditional checks when setting max frequency.
+*Renamed the new trip type THERMAL_TRIP_STATE_ACTIVE to
+ THERMAL_TRIP_STATE_INSTANCE
+*Many review comments from R, Durgadoss <durgadoss.r@intel.com> and 
+ eduardo.valentin@ti.com implemented.
+*Removed cooling stats through debugfs patch
+*The V1 based can be found here,
+ https://lkml.org/lkml/2012/2/22/123
+ http://lkml.org/lkml/2012/3/3/32
 
-But, the brightness control works on those machines with vendor mode. So, add quirk
-table for video backlight vendor mode.
+Changes since RFC:
+*Changed the cpu cooling registration/unregistration API's to instance based
+*Changed the STATE_ACTIVE trip type to pass correct instance id
+*Adding support to restore back the policy->max_freq after doing frequency 
+  clipping.
+*Moved the trip cooling stats from sysfs node to debugfs node as suggested
+  by Greg KH greg@kroah.com 
+*Incorporated several review comments from eduardo.valentin@ti.com
+*Moved the Temperature sensor driver from driver/hwmon/ to driver/mfd
+ as discussed with Guenter Roeck <guenter.roeck@ericsson.com> and 
+ Donggeun Kim <dg77.kim@samsung.com> (https://lkml.org/lkml/2012/1/5/7)
+*Some changes according to the changes in common cpu cooling APIs
+*The RFC based patches can be found here,
+ https://lkml.org/lkml/2011/12/13/186
+ https://lkml.org/lkml/2011/12/21/169
 
-Tested on Acer Aspire 4736
-Tested on Acer TravelMate 4750
 
-Cc: Len Brown <lenb@kernel.org>
-Cc: Thomas Renninger <trenn@suse.de>
-Cc: Matthew Garrett <mjg@redhat.com>
-Tested-by: Pradeep Subrahmanion <subrahmanion.pradeep@gmail.com>
-Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
----
- drivers/acpi/video_detect.c |   27 +++++++++++++++++++++++++++
- 1 files changed, 27 insertions(+), 0 deletions(-)
+Brief Description:
 
-diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index f3f0fe7..acb15d6 100644
---- a/drivers/acpi/video_detect.c
-+++ b/drivers/acpi/video_detect.c
-@@ -132,6 +132,32 @@ find_video(acpi_handle handle, u32 lvl, void *context, void **rv)
- 	return AE_OK;
- }
- 
-+static int video_set_backlight_vendor(const struct dmi_system_id *d)
-+{
-+	acpi_video_support |= ACPI_VIDEO_BACKLIGHT_DMI_VENDOR;
-+	return 0;
-+}
-+
-+static const struct dmi_system_id video_vendor_dmi_table[] = {
-+	{
-+	 .callback = video_set_backlight_vendor,
-+	 .ident = "Acer Aspire 4736",
-+	 .matches = {
-+		DMI_MATCH(DMI_BOARD_VENDOR, "Acer"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 4736"),
-+		},
-+	},
-+	{
-+	 .callback = video_set_backlight_vendor,
-+	 .ident = "Acer TravelMate 4750",
-+	 .matches = {
-+		DMI_MATCH(DMI_BOARD_VENDOR, "Acer"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "TravelMate 4750"),
-+		},
-+	},
-+	{}
-+};
-+
- /*
-  * Returns the video capabilities of a specific ACPI graphics device
-  *
-@@ -164,6 +190,7 @@ long acpi_video_get_capabilities(acpi_handle graphics_handle)
- 		 *		ACPI_VIDEO_BACKLIGHT_DMI_VENDOR;
- 		 *}
- 		 */
-+		dmi_check_system(video_vendor_dmi_table);
- 	} else {
- 		status = acpi_bus_get_device(graphics_handle, &tmp_dev);
- 		if (ACPI_FAILURE(status)) {
--- 
-1.7.7
+1) The generic cooling devices code is placed inside driver/thermal/* as 
+placing inside acpi folder will need un-necessary enabling of acpi code. This
+codes is architecture independent.
 
+2) This patchset adds a new trip type THERMAL_TRIP_STATE_INSTANCE which passes
+cooling device instance number and may be helpful for cpufreq cooling devices
+to take the correct cooling action. This trip type avoids the temperature
+comparision check again inside the cooling handler.
+
+3) This patchset adds generic cpu cooling low level implementation through
+frequency clipping and cpu hotplug. In future, other cpu related cooling
+devices may be added here. An ACPI version of this already exists
+(drivers/acpi/processor_thermal.c). But this will be useful for platforms
+like ARM using the generic thermal interface along with the generic cpu
+cooling devices. The cooling device registration API's return cooling device
+pointers which can be easily binded with the thermal zone trip points.
+The important APIs exposed are,
+   a)struct thermal_cooling_device *cpufreq_cooling_register(
+	struct freq_clip_table *tab_ptr, unsigned int tab_size,
+	const struct cpumask *mask_val)
+   b)void cpufreq_cooling_unregister(struct thermal_cooling_device *cdev)
+
+4) Samsung exynos platform thermal implementation is done using the generic
+cpu cooling APIs and the new trip type. The temperature sensor driver present
+in the hwmon folder(registered as hwmon driver) is moved to thermal folder
+and registered as a thermal driver.
+
+All this patchset is based on Kernel version 3.3-rc7 
+
+A simple data/control flow diagrams is shown below,
+
+Core Linux thermal <----->  Exynos thermal interface <----- Temperature Sensor
+	  |                             |
+	 \|/                            |
+  Cpufreq cooling device <---------------
+
+
+Amit Daniel Kachhap (6):
+  thermal: Add a new trip type to use cooling device instance number
+  thermal: Add generic cpufreq cooling implementation
+  thermal: Add generic cpuhotplug cooling implementation
+  hwmon: exynos4: Move thermal sensor driver to driver/thermal
+    directory
+  thermal: exynos4: Register the tmu sensor with the kernel thermal
+    layer
+  ARM: exynos4: Add thermal sensor driver platform device support
+
+ Documentation/hwmon/exynos4_tmu           |   81 ---
+ Documentation/thermal/cpu-cooling-api.txt |   76 +++
+ Documentation/thermal/exynos4_tmu         |   52 ++
+ Documentation/thermal/sysfs-api.txt       |    4 +-
+ arch/arm/mach-exynos/Kconfig              |   11 +
+ arch/arm/mach-exynos/Makefile             |    1 +
+ arch/arm/mach-exynos/clock.c              |    4 +
+ arch/arm/mach-exynos/dev-tmu.c            |   39 ++
+ arch/arm/mach-exynos/include/mach/irqs.h  |    2 +
+ arch/arm/mach-exynos/include/mach/map.h   |    1 +
+ arch/arm/mach-exynos/mach-origen.c        |    1 +
+ arch/arm/plat-samsung/include/plat/devs.h |    1 +
+ drivers/hwmon/Kconfig                     |   10 -
+ drivers/hwmon/Makefile                    |    1 -
+ drivers/hwmon/exynos4_tmu.c               |  514 -------------------
+ drivers/thermal/Kconfig                   |   21 +
+ drivers/thermal/Makefile                  |    2 +
+ drivers/thermal/cpu_cooling.c             |  529 +++++++++++++++++++
+ drivers/thermal/exynos4_thermal.c         |  790 +++++++++++++++++++++++++++++
+ drivers/thermal/thermal_sys.c             |   45 ++-
+ include/linux/cpu_cooling.h               |   78 +++
+ include/linux/platform_data/exynos4_tmu.h |    7 +
+ include/linux/thermal.h                   |    1 +
+ 23 files changed, 1660 insertions(+), 611 deletions(-)
+ delete mode 100644 Documentation/hwmon/exynos4_tmu
+ create mode 100644 Documentation/thermal/cpu-cooling-api.txt
+ create mode 100644 Documentation/thermal/exynos4_tmu
+ create mode 100644 arch/arm/mach-exynos/dev-tmu.c
+ delete mode 100644 drivers/hwmon/exynos4_tmu.c
+ create mode 100644 drivers/thermal/cpu_cooling.c
+ create mode 100644 drivers/thermal/exynos4_thermal.c
+ create mode 100644 include/linux/cpu_cooling.h
