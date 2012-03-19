@@ -1,51 +1,78 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH -v3 32/47] PCI, ACPI: Make kacpi_hotplug_wq static
-Date: Sun, 18 Mar 2012 22:46:21 -0700
-Message-ID: <1332135996-13860-33-git-send-email-yinghai@kernel.org>
+Subject: [PATCH -v3 29/47] PCI, ACPI: Add alloc_acpi_hp_work()
+Date: Sun, 18 Mar 2012 22:46:18 -0700
+Message-ID: <1332135996-13860-30-git-send-email-yinghai@kernel.org>
 References: <1332135996-13860-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from acsinet15.oracle.com ([141.146.126.227]:29470 "EHLO
+	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161506Ab2CSFsG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Mar 2012 01:48:06 -0400
 In-Reply-To: <1332135996-13860-1-git-send-email-yinghai@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Jesse Barnes <jbarnes@virtuousgeek.org>, x86 <x86@kernel.org>
 Cc: Bjorn Helgaas <bhelgaas@google.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
-No external user anymore.
+Will use it with acpiphp and pci_root_hp events handling
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 Cc: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org
 ---
- drivers/acpi/osl.c      |    3 +--
- include/acpi/acpiosxf.h |    2 --
- 2 files changed, 1 insertions(+), 4 deletions(-)
+ drivers/acpi/osl.c      |   21 +++++++++++++++++++++
+ include/acpi/acpiosxf.h |    9 +++++++++
+ 2 files changed, 30 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index fdcf4a5..09be602 100644
+index 412a1e0..fdcf4a5 100644
 --- a/drivers/acpi/osl.c
 +++ b/drivers/acpi/osl.c
-@@ -81,8 +81,7 @@ static acpi_osd_handler acpi_irq_handler;
- static void *acpi_irq_context;
- static struct workqueue_struct *kacpid_wq;
- static struct workqueue_struct *kacpi_notify_wq;
--struct workqueue_struct *kacpi_hotplug_wq;
--EXPORT_SYMBOL(kacpi_hotplug_wq);
-+static struct workqueue_struct *kacpi_hotplug_wq;
+@@ -1641,3 +1641,24 @@ acpi_status acpi_os_terminate(void)
  
- /*
-  * This list of permanent mappings is for memory that may be accessed from
+ 	return AE_OK;
+ }
++
++void alloc_acpi_hp_work(acpi_handle handle, u32 type, void *context,
++			void (*func)(struct work_struct *work))
++{
++	struct acpi_hp_work *hp_work;
++	int ret;
++
++	hp_work = kmalloc(sizeof(*hp_work), GFP_KERNEL);
++	if (!hp_work)
++		return;
++
++	hp_work->handle = handle;
++	hp_work->type = type;
++	hp_work->context = context;
++
++	INIT_WORK(&hp_work->work, func);
++	ret = queue_work(kacpi_hotplug_wq, &hp_work->work);
++	if (!ret)
++		kfree(hp_work);
++}
++EXPORT_SYMBOL(alloc_acpi_hp_work);
 diff --git a/include/acpi/acpiosxf.h b/include/acpi/acpiosxf.h
-index 62326ae..2326622 100644
+index 7c9aebe..62326ae 100644
 --- a/include/acpi/acpiosxf.h
 +++ b/include/acpi/acpiosxf.h
-@@ -189,8 +189,6 @@ void acpi_os_fixed_event_count(u32 fixed_event_number);
- /*
-  * Threads and Scheduling
+@@ -191,6 +191,15 @@ void acpi_os_fixed_event_count(u32 fixed_event_number);
   */
--extern struct workqueue_struct *kacpi_hotplug_wq;
--
- struct acpi_hp_work {
- 	struct work_struct work;
- 	acpi_handle handle;
+ extern struct workqueue_struct *kacpi_hotplug_wq;
+ 
++struct acpi_hp_work {
++	struct work_struct work;
++	acpi_handle handle;
++	u32 type;
++	void *context;
++};
++void alloc_acpi_hp_work(acpi_handle handle, u32 type, void *context,
++			void (*func)(struct work_struct *work));
++
+ acpi_thread_id acpi_os_get_thread_id(void);
+ 
+ acpi_status
 -- 
 1.7.7
+
