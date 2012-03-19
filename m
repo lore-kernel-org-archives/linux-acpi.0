@@ -1,82 +1,118 @@
-From: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [RFC PATCH 2/4] usb: add platform_data in the struct usb_hub_port
-Date: Mon, 19 Mar 2012 22:33:44 +0800
-Message-ID: <1332167626-5806-2-git-send-email-tianyu.lan@intel.com>
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: [RFC PATCH 3/4] usb/acpi: add the support of usb hub ports' acpi binding without attached devices.
+Date: Mon, 19 Mar 2012 22:33:45 +0800
+Message-ID: <1332167626-5806-3-git-send-email-tianyu.lan@intel.com>
 References: <1332167626-5806-1-git-send-email-tianyu.lan@intel.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1332167626-5806-1-git-send-email-tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
-Cc: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mjg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sarah.a.sharp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:27664 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1030834Ab2CSOgV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 19 Mar 2012 10:36:21 -0400
+In-Reply-To: <1332167626-5806-1-git-send-email-tianyu.lan@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org, gregkh@linuxfoundation.org
+Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org, mjg@redhat.com, linux-usb@vger.kernel.org, sarah.a.sharp@intel.com
 
-Add the member platform_data in the usb_hub_port to store port's
-platform related data. Provide usb_set_hub_port_platform_data() and
-usb_get_hub_port_platform_data() to access the member.
+The usb port is a device in the acpi table but it's not in the linux
+usb subsystem. USB hub port doesn't have struct device. So the acpi
+glue framework only can cover the usb port connected with usb device
+and store the acpi handle to struct device.archdata.acpi_handle. This
+patch gets the hub port's acpi_handle and store it in the port's platform_data
+to resolve no attached device no binding problem. The acpi method "_UPC"
+and "_PLD" can be accessed without attached device.
 
-Signed-off-by: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
 ---
- drivers/usb/core/hub.c |   23 +++++++++++++++++++++++
- drivers/usb/core/usb.h |    4 ++++
- 2 files changed, 27 insertions(+), 0 deletions(-)
+ drivers/usb/core/hub.c      |    1 +
+ drivers/usb/core/usb-acpi.c |   38 +++++++++++++++++++++++++++++++++++++-
+ drivers/usb/core/usb.h      |    4 ++++
+ 3 files changed, 42 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
-index 4c20c34..af391cb 100644
+index af391cb..90877f0 100644
 --- a/drivers/usb/core/hub.c
 +++ b/drivers/usb/core/hub.c
-@@ -39,6 +39,7 @@
+@@ -1238,6 +1238,7 @@ static int hub_configure(struct usb_hub *hub,
+ 		hub->indicator [0] = INDICATOR_CYCLE;
  
- struct usb_hub_port {
- 	void			*port_owner;
-+	unsigned long		platform_data;
+ 	hub_activate(hub, HUB_INIT);
++	usb_acpi_bind_hub_ports(hdev, hub->descriptor->bNbrPorts);
+ 	return 0;
+ 
+ fail:
+diff --git a/drivers/usb/core/usb-acpi.c b/drivers/usb/core/usb-acpi.c
+index e49373a..6ecff04 100644
+--- a/drivers/usb/core/usb-acpi.c
++++ b/drivers/usb/core/usb-acpi.c
+@@ -82,7 +82,16 @@ static int usb_acpi_find_device(struct device *dev, acpi_handle *handle)
+ 	if (!parent_handle)
+ 		return -ENODEV;
+ 
+-	*handle = acpi_get_child(parent_handle, udev->portnum);
++	/**
++	 * The root hub's acpi handle is got from acpi method.
++	 * Other device's acpi handle can be got from the usb hub
++	 * port's platform_data.
++	 */
++	if (!udev->parent)
++		*handle = acpi_get_child(parent_handle, udev->portnum);
++	else
++		usb_get_hub_port_platform_data(udev->parent, udev->portnum,
++			(unsigned long *)handle);
+ 
+ 	if (!*handle)
+ 		return -ENODEV;
+@@ -105,6 +114,33 @@ static struct acpi_bus_type usb_acpi_bus = {
+ 	.find_device = usb_acpi_find_device,
  };
  
- struct usb_hub {
-@@ -4150,3 +4151,25 @@ void usb_queue_reset_device(struct usb_interface *iface)
- 	schedule_work(&iface->reset_ws);
- }
- EXPORT_SYMBOL_GPL(usb_queue_reset_device);
-+
-+int usb_set_hub_port_platform_data(struct usb_device *udev, int port,
-+	unsigned long data)
++int usb_acpi_bind_hub_ports(struct usb_device *hdev, int portnum)
 +{
-+	struct usb_hub *hub = hdev_to_hub(udev);
++	acpi_handle hub_handle = NULL;
++	acpi_handle port_handle = NULL;
++	struct device *dev = &hdev->dev;
++	int i;
 +
-+	if (port > hub->descriptor->bNbrPorts || port < 1)
-+		return -EINVAL;
-+	hub->port_data[port - 1].platform_data = data;
++	hub_handle = DEVICE_ACPI_HANDLE(dev);
++	if (!hub_handle)
++		return -ENODEV;
++
++	/**
++	 * The usb hub port is not a device in the usb subsystem but it is a device
++	 * in the acpi table. Store it's acpi handle in the platform data of usb
++	 * hub port.
++	 */
++	for (i = 1; i < portnum; i++) {
++		port_handle = acpi_get_child(hub_handle, i);
++		if (!port_handle)
++			continue;
++		if (usb_set_hub_port_platform_data(hdev, i,
++				(unsigned long)port_handle) < 0)
++			return -ENODEV;
++	}
 +	return 0;
 +}
 +
-+int usb_get_hub_port_platform_data(struct usb_device *udev, int port,
-+	unsigned long *data)
-+{
-+	struct usb_hub *hub = hdev_to_hub(udev);
-+
-+	if (port > hub->descriptor->bNbrPorts || port < 1)
-+		return -EINVAL;
-+	*data = hub->port_data[port - 1].platform_data;
-+	return 0;
-+}
+ int usb_acpi_register(void)
+ {
+ 	return register_acpi_bus_type(&usb_acpi_bus);
 diff --git a/drivers/usb/core/usb.h b/drivers/usb/core/usb.h
-index 636d98e..3e70565 100644
+index 3e70565..b780246 100644
 --- a/drivers/usb/core/usb.h
 +++ b/drivers/usb/core/usb.h
-@@ -154,6 +154,10 @@ extern void usb_notify_add_device(struct usb_device *udev);
- extern void usb_notify_remove_device(struct usb_device *udev);
- extern void usb_notify_add_bus(struct usb_bus *ubus);
- extern void usb_notify_remove_bus(struct usb_bus *ubus);
-+extern int usb_get_hub_port_platform_data(struct usb_device *udev,
-+		int port, unsigned long *data);
-+extern int usb_set_hub_port_platform_data(struct usb_device *udev,
-+		int port, unsigned long data);
- 
+@@ -162,7 +162,11 @@ extern int usb_set_hub_port_platform_data(struct usb_device *udev,
  #ifdef CONFIG_ACPI
  extern int usb_acpi_register(void);
+ extern void usb_acpi_unregister(void);
++extern int usb_acpi_bind_hub_ports(struct usb_device *hdev,
++	int portnum);
+ #else
+ static inline int usb_acpi_register(void) { return 0; };
+ static inline void usb_acpi_unregister(void) { };
++static inline int usb_acpi_bind_hub_ports(struct usb_device *hdev,
++	int portnum) { return 0; };
+ #endif
 -- 
 1.7.6.rc2.8.g28eb
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
