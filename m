@@ -1,133 +1,130 @@
-From: Rainer Koenig <Rainer.Koenig@ts.fujitsu.com>
-Subject: [PATCH] keymap function for quickstart driver
-Date: Mon, 19 Mar 2012 09:35:37 +0100
-Message-ID: <4F66EFD9.7090408@ts.fujitsu.com>
+From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
+Subject: Re: [PATCH V2 3/6] thermal: Add generic cpuhotplug
+	cooling implementation
+Date: Mon, 19 Mar 2012 17:15:40 +0530
+Message-ID: <4F671C64.5020803@linux.vnet.ibm.com>
+References: <1332137864-12943-1-git-send-email-amit.kachhap@linaro.org>
+	<1332137864-12943-4-git-send-email-amit.kachhap@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from dgate10.ts.fujitsu.com ([80.70.172.49]:4050 "EHLO
-	dgate10.ts.fujitsu.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757572Ab2CSIfj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Mar 2012 04:35:39 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <1332137864-12943-4-git-send-email-amit.kachhap@linaro.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Amit Daniel Kachhap <amit.kachhap@linaro.org>
+Cc: linux-samsung-soc@vger.kernel.org, linaro-dev@lists.linaro.org, patches@linaro.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi,
+On 03/19/2012 11:47 AM, Amit Daniel Kachhap wrote:
 
-back again with a patch for the quickstart driver that implements a
-keymap for the runtime events that quickstart generates. A custom
-keymap can be assigned via a simple udev rule.
-
-Background for this: Fujitsu is going to ship very small systems
-with no direct eject button for the optical drive. Instead you have
-a hotkey that is recognized by the quickstart driver. This patch now
-allows to map the key event (0x1) to the keycode "ejectcd" and then
-react to this in your desktop manager software.
-
-Signed-off-by: Rainer Koenig <Rainer.Koenig@ts.fujitsu.com>
-
---- upstream/drivers/staging/quickstart/quickstart.c    2012-03-19 08:2=
-5:33.000000000 +0100
-+++ new/drivers/staging/quickstart/quickstart.c 2012-03-19 09:03:02.000=
-000000 +0100
-@@ -216,6 +216,8 @@
- static void quickstart_acpi_notify(acpi_handle handle, u32 event, void=
- *data)
- {
-        struct quickstart_acpi *quickstart =3D data;
-+        unsigned int key;
-+        struct input_keymap_entry ke;
-
-        if (!quickstart)
-                return;
-@@ -223,9 +225,13 @@
-        if (event =3D=3D QUICKSTART_EVENT_WAKE)
-                quickstart_data.pressed =3D quickstart->btn;
-        else if (event =3D=3D QUICKSTART_EVENT_RUNTIME) {
--               input_report_key(quickstart_input, quickstart->btn->id,=
- 1);
-+                ke.flags =3D INPUT_KEYMAP_BY_INDEX;
-+                ke.index =3D quickstart->btn->id;
-+                quickstart_input->getkeycode(quickstart_input, &ke);
-+                key =3D ke.keycode;
-+               input_report_key(quickstart_input, key, 1);
-                input_sync(quickstart_input);
--               input_report_key(quickstart_input, quickstart->btn->id,=
- 0);
-+               input_report_key(quickstart_input, key, 0);
-                input_sync(quickstart_input);
-        }
-        return;
-@@ -374,8 +380,9 @@
- static int __init quickstart_init_input(void)
- {
-        struct quickstart_btn **ptr =3D &quickstart_data.btn_lst;
--       int count;
-        int ret;
-+        int maxkey =3D 0, id;
-+        unsigned int *keymap;
-
-        quickstart_input =3D input_allocate_device();
-
-@@ -386,11 +393,30 @@
-        quickstart_input->id.bustype =3D BUS_HOST;
-
-        while (*ptr) {
--               count++;
-                set_bit(EV_KEY, quickstart_input->evbit);
-                set_bit((*ptr)->id, quickstart_input->keybit);
-+                if ((*ptr)->id > maxkey)
-+                  maxkey =3D (*ptr)->id;
-                ptr =3D &((*ptr)->next);
-        }
-+
-+        /* build a character map that at the moment maps GHID ids to k=
-eycodes */
-+        /* this map can be replaced from userspace to map the correct =
-keycodes */
-+        maxkey++;
-+        quickstart_input->keycodemax =3D maxkey;
-+        quickstart_input->keycodesize =3D sizeof(unsigned int);
-+        quickstart_input->keycode =3D
-kzalloc(quickstart_input->keycodemax*quickstart_input->keycodesize, GFP=
-_KERNEL);
-+        if (!quickstart_input->keycode)
-+            return -ENOMEM;
-+
-+        keymap =3D quickstart_input->keycode;
-+
-+        ptr =3D &quickstart_data.btn_lst;
-+        while(*ptr) {
-+            id =3D (*ptr)->id;
-+            keymap[id] =3D id;
-+            ptr =3D &((*ptr)->next);
-+        }
-
-        ret =3D input_register_device(quickstart_input);
-        if (ret) {
+> This patch adds support for generic cpu thermal cooling low level
+> implementations using cpuhotplug based on the thermal level requested
+> from user. Different cpu related cooling devices can be registered by the
+> user and the binding of these cooling devices to the corresponding
+> trip points can be easily done as the registration APIs return the
+> cooling device pointer. The user of these APIs are responsible for
+> passing the cpumask.
+> 
 
 
+I am really not aware of the cpu thermal cooling stuff, but since this patch
+deals with CPU Hotplug (which I am interested in), I have some questions
+below..
+ 
 
---=20
-Dipl.-Inf. (FH) Rainer Koenig
-Project Manager Linux Clients
-Dept. PDG WPS R&D SW OSE
+> Signed-off-by: Amit Daniel Kachhap <amit.kachhap@linaro.org>
+> +
+> +static int cpuhotplug_get_cur_state(struct thermal_cooling_device *cdev,
+> +				 unsigned long *state)
+> +{
+> +	int ret = -EINVAL;
+> +	struct hotplug_cooling_device *hotplug_dev;
+> +
+> +	mutex_lock(&cooling_cpuhotplug_lock);
+> +	list_for_each_entry(hotplug_dev, &cooling_cpuhotplug_list, node) {
+> +		if (hotplug_dev && hotplug_dev->cool_dev == cdev) {
+> +			*state = hotplug_dev->hotplug_state;
+> +			ret = 0;
+> +			break;
+> +		}
+> +	}
+> +	mutex_unlock(&cooling_cpuhotplug_lock);
+> +	return ret;
+> +}
+> +
+> +/*This cooling may be as ACTIVE type*/
+> +static int cpuhotplug_set_cur_state(struct thermal_cooling_device *cdev,
+> +				 unsigned long state)
+> +{
+> +	int cpuid, this_cpu = smp_processor_id();
 
-=46ujitsu Technology Solutions
-B=FCrgermeister-Ullrich-Str. 100
-86199 Augsburg
-Germany
 
-Telephone: +49-821-804-3321
-Telefax:   +49-821-804-2131
-Mail:      mailto:Rainer.Koenig@ts.fujitsu.com
+What prevents this task from being migrated to another CPU?
+IOW, what ensures that 'this_cpu' remains valid throughout this function?
 
-Internet         ts.fujtsu.com
-Company Details  ts.fujitsu.com/imprint.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I see that you are acquiring mutex locks below.. So this is definitely not
+a preempt disabled section.. so I guess my question above is valid..
+
+Or is this code bound to a particular cpu?
+
+> +	struct hotplug_cooling_device *hotplug_dev;
+> +
+> +	mutex_lock(&cooling_cpuhotplug_lock);
+> +	list_for_each_entry(hotplug_dev, &cooling_cpuhotplug_list, node)
+> +		if (hotplug_dev && hotplug_dev->cool_dev == cdev)
+> +			break;
+> +
+> +	mutex_unlock(&cooling_cpuhotplug_lock);
+> +	if (!hotplug_dev || hotplug_dev->cool_dev != cdev)
+> +		return -EINVAL;
+> +
+> +	if (hotplug_dev->hotplug_state == state)
+> +		return 0;
+> +
+> +	/*
+> +	* This cooling device may be of type ACTIVE, so state field can
+> +	* be 0 or 1
+> +	*/
+> +	if (state == 1) {
+> +		for_each_cpu(cpuid, hotplug_dev->allowed_cpus) {
+> +			if (cpu_online(cpuid) && (cpuid != this_cpu))
+
+
+What prevents the cpu numbered cpuid from being taken down right at this moment?
+Don't you need explicit synchronization with CPU Hotplug using something like
+get_online_cpus()/put_online_cpus() here?
+
+> +				cpu_down(cpuid);
+> +		}
+> +	} else if (state == 0) {
+> +		for_each_cpu(cpuid, hotplug_dev->allowed_cpus) {
+> +			if (!cpu_online(cpuid) && (cpuid != this_cpu))
+
+
+Same here.
+
+> +				cpu_up(cpuid);
+> +		}
+> +	} else {
+> +		return -EINVAL;
+> +	}
+> +
+> +	hotplug_dev->hotplug_state = state;
+> +
+> +	return 0;
+> +}
+> +/* bind hotplug callbacks to cpu hotplug cooling device */
+> +static struct thermal_cooling_device_ops cpuhotplug_cooling_ops = {
+> +	.get_max_state = cpuhotplug_get_max_state,
+> +	.get_cur_state = cpuhotplug_get_cur_state,
+> +	.set_cur_state = cpuhotplug_set_cur_state,
+> +};
+> +
