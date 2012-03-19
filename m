@@ -1,185 +1,260 @@
 From: "Cihula, Joseph" <joseph.cihula@intel.com>
-Subject: RE: [PATCH 1/2] x86, acpi, tboot: Have a ACPI os prepare sleep
- instead of calling tboot_sleep.
-Date: Mon, 19 Mar 2012 19:12:58 +0000
-Message-ID: <9F57BF860713DF4BA3EFA4F8C6DFEDAC46026AE9@ORSMSX101.amr.corp.intel.com>
-References: <1331405526-25952-1-git-send-email-konrad.wilk@oracle.com>
- <1331405526-25952-2-git-send-email-konrad.wilk@oracle.com>
+Subject: Re: [PATCH 2/7] tboot: Add return values for tboot_sleep
+Date: Mon, 19 Mar 2012 19:19:12 +0000
+Message-ID: <9F57BF860713DF4BA3EFA4F8C6DFEDAC46026B28@ORSMSX101.amr.corp.intel.com>
+References: <1324075099-11397-1-git-send-email-konrad.wilk@oracle.com>
+	<1324075099-11397-3-git-send-email-konrad.wilk@oracle.com>
+	<9F57BF860713DF4BA3EFA4F8C6DFEDAC2420CBB9@ORSMSX101.amr.corp.intel.com>
+	<20120112174958.GA22515@phenom.dumpdata.com>
+	<20120112202308.GA2030@phenom.dumpdata.com>
+	<9F57BF860713DF4BA3EFA4F8C6DFEDAC2D6870EE@ORSMSX101.amr.corp.intel.com>
+	<20120203200508.GA1556@phenom.dumpdata.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:65495 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756752Ab2CSTNA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Mar 2012 15:13:00 -0400
-In-Reply-To: <1331405526-25952-2-git-send-email-konrad.wilk@oracle.com>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <20120203200508.GA1556@phenom.dumpdata.com>
 Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: "Brown, Len" <len.brown@intel.com>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "tboot-devel@lists.sourceforge.net" <tboot-devel@lists.sourceforge.net>, "liang.tang@oracle.com" <liang.tang@oracle.com>, "hpa@zytor.com" <hpa@zytor.com>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "mingo@redhat.com" <mingo@redhat.com>, "hpa@zytor.com" <hpa@zytor.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>
-Cc: "rjw@sisk.pl" <rjw@sisk.pl>, Tang Liang <liang.tang@oracle.com>, "Brown, Len" <len.brown@intel.com>
 
-ACKed-by:  Joseph Cihula <joseph.cihula@intel.com>
+
 
 > -----Original Message-----
 > From: Konrad Rzeszutek Wilk [mailto:konrad.wilk@oracle.com]
-> Sent: Saturday, March 10, 2012 10:52 AM
-> To: linux-kernel@vger.kernel.org; x86@kernel.org; tglx@linutronix.de; mingo@redhat.com;
-> hpa@zytor.com; linux-acpi@vger.kernel.org; lenb@kernel.org
-> Cc: rjw@sisk.pl; Cihula, Joseph; Tang Liang; Brown, Len; Konrad Rzeszutek Wilk
-> Subject: [PATCH 1/2] x86, acpi, tboot: Have a ACPI os prepare sleep instead of calling
-> tboot_sleep.
+> Sent: Friday, February 03, 2012 12:05 PM
+> To: Cihula, Joseph
+> Cc: linux-kernel@vger.kernel.org; rjw@sisk.pl; x86@kernel.org; Brown, Len; linux-pm@lists.linux-
+> foundation.org; tboot-devel@lists.sourceforge.net; linux-acpi@vger.kernel.org;
+> liang.tang@oracle.com; hpa@zytor.com
+> Subject: Re: [PATCH 2/7] tboot: Add return values for tboot_sleep
 > 
-> From: Tang Liang <liang.tang@oracle.com>
+> On Thu, Jan 26, 2012 at 12:16:39AM +0000, Cihula, Joseph wrote:
+> > > From: Konrad Rzeszutek Wilk [mailto:konrad.wilk@oracle.com]
+> > > Sent: Thursday, January 12, 2012 12:23 PM
+> > eturn values for tboot_sleep
+> > >
+> > > On Thu, Jan 12, 2012 at 09:49:58AM -0800, Konrad Rzeszutek Wilk wrote:
+> > > > On Tue, Jan 10, 2012 at 08:10:53PM +0000, Cihula, Joseph wrote:
+> > > > > ACK, but tboot_sleep() calls tboot_shutdown() and there are
+> > > > > error conditions in that which you
+> > > are not reflecting upward--i.e. you should make tboot_shutdown()
+> > > return an 'int' and propagate its errors through tboot_sleep().
+> > > >
+> > > > Hey Joe,
+> > > >
+> > > > Thanks for looking at the patches.
+> > > >
+> > > > Right now [with this patch applied] the code looks as so:
+> > > >
+> > > > 297
+> > > > 298         tboot_shutdown(acpi_shutdown_map[sleep_state]);
+> > > > 299         return 0;
+> > > > 300 }
+> > > >
+> > > >
+> > > > If we do make tboot_shutdown() return an int, there will be a need
+> > > > to modify other callers: native_machine_emergency_restart,
+> > > > native_machine_halt, native_machine_power_off, and native_play_dead as well.
+> > > >
+> > > > Perhaps that could be done in another patch and leave this one as
+> > > > is where the 'tboot_sleep' would just return 0 instead of 'return
+> > > > tboot_shutdown(...)' ?
+> > > >
+> > > > Perhaps another way to do this is to extract the common code of
+> > > > tboot_sleep and tboot_shutdown?
+> >
+> > I'd be happier to see the callers above changed to handle a tboot_shutdown() that returned an
+> error than splitting this up and only checking the error in one path.
 > 
-> The ACPI suspend path makes a call to tboot_sleep right before it writes the PM1A, PM1B values. We
-> replace the direct call to tboot via an registration callback similar to __acpi_register_gsi.
+> OK, so something like this then:
+
+Looks good.
+
+Joe
+
 > 
-> CC: Len Brown <len.brown@intel.com>
+> From da60a441fd62aee83763758455c08c281893ae93 Mon Sep 17 00:00:00 2001
+> From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+> Date: Thu, 8 Dec 2011 17:14:08 +0800
+> Subject: [PATCH] tboot: Add return values for tboot_sleep and consequently  tboot_shutdown
+> 
+> .. as appropiately. As tboot_sleep now returns values.
+> remove tboot_sleep_wrapper.
+> 
+> Suggested-by: "Rafael J. Wysocki" <rjw@sisk.pl>
 > Acked-by: Joseph Cihula <joseph.cihula@intel.com>
-> [v1: Added __attribute__ ((unused))]
-> [v2: Introduced a wrapper instead of changing tboot_sleep return values]
-> [v3: Added return value AE_CTRL_SKIP for acpi_os_sleep_prepare]
-> Signed-off-by: Tang Liang <liang.tang@oracle.com>
-> [v1: Fix compile issues on IA64 and PPC64]
-> [v2: Fix where __acpi_os_prepare_sleep==NULL and did not go in sleep properly]
+> [v1: Return -1/0/+1 instead of ACPI_xx values]
+> [v2: Also make tboot_shutdown return error code]
 > Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 > ---
->  arch/x86/kernel/tboot.c       |    8 ++++++++
->  drivers/acpi/acpica/hwsleep.c |   10 +++++++---
->  drivers/acpi/osl.c            |   24 ++++++++++++++++++++++++
->  include/acpi/acexcep.h        |    1 +
->  include/linux/acpi.h          |   10 ++++++++++
->  include/linux/tboot.h         |    1 -
->  6 files changed, 50 insertions(+), 4 deletions(-)
+>  arch/x86/kernel/reboot.c  |    6 +++---
+>  arch/x86/kernel/smpboot.c |    2 +-
+>  arch/x86/kernel/tboot.c   |   33 +++++++++++++++------------------
+>  include/linux/tboot.h     |    4 ++--
+>  4 files changed, 21 insertions(+), 24 deletions(-)
 > 
-> diff --git a/arch/x86/kernel/tboot.c b/arch/x86/kernel/tboot.c index e2410e2..1a4ab7d 100644
+> diff --git a/arch/x86/kernel/reboot.c b/arch/x86/kernel/reboot.c index 37a458b..b29326a 100644
+> --- a/arch/x86/kernel/reboot.c
+> +++ b/arch/x86/kernel/reboot.c
+> @@ -549,7 +549,7 @@ static void native_machine_emergency_restart(void)
+>  	if (reboot_emergency)
+>  		emergency_vmx_disable_all();
+> 
+> -	tboot_shutdown(TB_SHUTDOWN_REBOOT);
+> +	WARN_ON(tboot_shutdown(TB_SHUTDOWN_REBOOT));
+> 
+>  	/* Tell the BIOS if we want cold or warm reboot */
+>  	*((unsigned short *)__va(0x472)) = reboot_mode; @@ -684,7 +684,7 @@ static void
+> native_machine_halt(void)
+>  	/* stop other cpus and apics */
+>  	machine_shutdown();
+> 
+> -	tboot_shutdown(TB_SHUTDOWN_HALT);
+> +	WARN_ON(tboot_shutdown(TB_SHUTDOWN_HALT));
+> 
+>  	/* stop this cpu */
+>  	stop_this_cpu(NULL);
+> @@ -698,7 +698,7 @@ static void native_machine_power_off(void)
+>  		pm_power_off();
+>  	}
+>  	/* a fallback in case there is no PM info available */
+> -	tboot_shutdown(TB_SHUTDOWN_HALT);
+> +	WARN_ON(tboot_shutdown(TB_SHUTDOWN_HALT));
+>  }
+> 
+>  struct machine_ops machine_ops = {
+> diff --git a/arch/x86/kernel/smpboot.c b/arch/x86/kernel/smpboot.c index 66d250c..9aa903a 100644
+> --- a/arch/x86/kernel/smpboot.c
+> +++ b/arch/x86/kernel/smpboot.c
+> @@ -1419,7 +1419,7 @@ static inline void hlt_play_dead(void)  void native_play_dead(void)  {
+>  	play_dead_common();
+> -	tboot_shutdown(TB_SHUTDOWN_WFS);
+> +	WARN_ON(tboot_shutdown(TB_SHUTDOWN_WFS));
+> 
+>  	mwait_play_dead();	/* Only returns on failure */
+>  	hlt_play_dead();
+> diff --git a/arch/x86/kernel/tboot.c b/arch/x86/kernel/tboot.c index 1a4ab7d..9504a7a 100644
 > --- a/arch/x86/kernel/tboot.c
 > +++ b/arch/x86/kernel/tboot.c
-> @@ -297,6 +297,12 @@ void tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control)
+> @@ -217,12 +217,12 @@ static int tboot_setup_sleep(void)
 > 
->  	tboot_shutdown(acpi_shutdown_map[sleep_state]);
->  }
-> +static int tboot_sleep_wrapper(u8 sleep_state, u32 pm1a_control,
-> +			       u32 pm1b_control)
-> +{
-> +	tboot_sleep(sleep_state, pm1a_control, pm1b_control);
+>  #endif
+> 
+> -void tboot_shutdown(u32 shutdown_type)
+> +int tboot_shutdown(u32 shutdown_type)
+>  {
+>  	void (*shutdown)(void);
+> 
+>  	if (!tboot_enabled())
+> -		return;
+> +		return 0;
+> 
+>  	/*
+>  	 * if we're being called before the 1:1 mapping is set up then just @@ -230,13 +230,14 @@
+> void tboot_shutdown(u32 shutdown_type)
+>  	 * due to very early panic()
+>  	 */
+>  	if (!tboot_pg_dir)
+> -		return;
+> +		return 0;
+> 
+>  	/* if this is S3 then set regions to MAC */
+> -	if (shutdown_type == TB_SHUTDOWN_S3)
+> -		if (tboot_setup_sleep())
+> -			return;
+> -
+> +	if (shutdown_type == TB_SHUTDOWN_S3) {
+> +		int rc = tboot_setup_sleep();
+> +		if (rc)
+> +			return rc;
+> +	}
+>  	tboot->shutdown_type = shutdown_type;
+> 
+>  	switch_to_tboot_pt();
+> @@ -247,6 +248,8 @@ void tboot_shutdown(u32 shutdown_type)
+>  	/* should not reach here */
+>  	while (1)
+>  		halt();
+> +
 > +	return 0;
-> +}
+>  }
+> 
+>  static void tboot_copy_fadt(const struct acpi_table_fadt *fadt) @@ -272,7 +275,7 @@ static void
+> tboot_copy_fadt(const struct acpi_table_fadt *fadt)
+>  		offsetof(struct acpi_table_facs, firmware_waking_vector);  }
+> 
+> -void tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control)
+> +static int tboot_sleep(u8 sleep_state, u32 pm1a_control, u32
+> +pm1b_control)
+>  {
+>  	static u32 acpi_shutdown_map[ACPI_S_STATE_COUNT] = {
+>  		/* S0,1,2: */ -1, -1, -1,
+> @@ -281,7 +284,7 @@ void tboot_sleep(u8 sleep_state, u32 pm1a_control, u32 pm1b_control)
+>  		/* S5: */ TB_SHUTDOWN_S5 };
+> 
+>  	if (!tboot_enabled())
+> -		return;
+> +		return 0;
+> 
+>  	tboot_copy_fadt(&acpi_gbl_FADT);
+>  	tboot->acpi_sinfo.pm1a_cnt_val = pm1a_control; @@ -292,16 +295,10 @@ void tboot_sleep(u8
+> sleep_state, u32 pm1a_control, u32 pm1b_control)
+>  	if (sleep_state >= ACPI_S_STATE_COUNT ||
+>  	    acpi_shutdown_map[sleep_state] == -1) {
+>  		pr_warning("unsupported sleep state 0x%x\n", sleep_state);
+> -		return;
+> +		return -1;
+>  	}
+> 
+> -	tboot_shutdown(acpi_shutdown_map[sleep_state]);
+> -}
+> -static int tboot_sleep_wrapper(u8 sleep_state, u32 pm1a_control,
+> -			       u32 pm1b_control)
+> -{
+> -	tboot_sleep(sleep_state, pm1a_control, pm1b_control);
+> -	return 0;
+> +	return tboot_shutdown(acpi_shutdown_map[sleep_state]);
+>  }
 > 
 >  static atomic_t ap_wfs_count;
-> 
-> @@ -345,6 +351,8 @@ static __init int tboot_late_init(void)
-> 
+> @@ -352,7 +349,7 @@ static __init int tboot_late_init(void)
 >  	atomic_set(&ap_wfs_count, 0);
 >  	register_hotcpu_notifier(&tboot_cpu_notifier);
-> +
-> +	acpi_os_set_prepare_sleep(&tboot_sleep_wrapper);
+> 
+> -	acpi_os_set_prepare_sleep(&tboot_sleep_wrapper);
+> +	acpi_os_set_prepare_sleep(&tboot_sleep);
 >  	return 0;
 >  }
 > 
-> diff --git a/drivers/acpi/acpica/hwsleep.c b/drivers/acpi/acpica/hwsleep.c index d52da30..992359a
-> 100644
-> --- a/drivers/acpi/acpica/hwsleep.c
-> +++ b/drivers/acpi/acpica/hwsleep.c
-> @@ -43,9 +43,9 @@
->   */
-> 
->  #include <acpi/acpi.h>
-> +#include <linux/acpi.h>
->  #include "accommon.h"
->  #include "actables.h"
-> -#include <linux/tboot.h>
->  #include <linux/module.h>
-> 
->  #define _COMPONENT          ACPI_HARDWARE
-> @@ -344,8 +344,12 @@ acpi_status asmlinkage acpi_enter_sleep_state(u8 sleep_state)
-> 
->  	ACPI_FLUSH_CPU_CACHE();
-> 
-> -	tboot_sleep(sleep_state, pm1a_control, pm1b_control);
-> -
-> +	status = acpi_os_prepare_sleep(sleep_state, pm1a_control,
-> +				       pm1b_control);
-> +	if (ACPI_SKIP(status))
-> +		return_ACPI_STATUS(AE_OK);
-> +	if (ACPI_FAILURE(status))
-> +		return_ACPI_STATUS(status);
->  	/* Write #2: Write both SLP_TYP + SLP_EN */
-> 
->  	status = acpi_hw_write_pm1_control(pm1a_control, pm1b_control); diff --git
-> a/drivers/acpi/osl.c b/drivers/acpi/osl.c index f31c5c5..f3aae4b 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -76,6 +76,9 @@ EXPORT_SYMBOL(acpi_in_debugger);  extern char line_buf[80];
->  #endif				/*ENABLE_DEBUGGER */
-> 
-> +static int (*__acpi_os_prepare_sleep)(u8 sleep_state, u32 pm1a_ctrl,
-> +				      u32 pm1b_ctrl);
-> +
->  static acpi_osd_handler acpi_irq_handler;  static void *acpi_irq_context;  static struct
-> workqueue_struct *kacpid_wq; @@ -1659,3 +1662,24 @@ acpi_status acpi_os_terminate(void)
-> 
->  	return AE_OK;
->  }
-> +
-> +acpi_status acpi_os_prepare_sleep(u8 sleep_state, u32 pm1a_control,
-> +				  u32 pm1b_control)
-> +{
-> +	int rc = 0;
-> +	if (__acpi_os_prepare_sleep)
-> +		rc = __acpi_os_prepare_sleep(sleep_state,
-> +					     pm1a_control, pm1b_control);
-> +	if (rc < 0)
-> +		return AE_ERROR;
-> +	else if (rc > 0)
-> +		return AE_CTRL_SKIP;
-> +
-> +	return AE_OK;
-> +}
-> +
-> +void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state,
-> +			       u32 pm1a_ctrl, u32 pm1b_ctrl)) {
-> +	__acpi_os_prepare_sleep = func;
-> +}
-> diff --git a/include/acpi/acexcep.h b/include/acpi/acexcep.h index 5b6c391..fa0d22c 100644
-> --- a/include/acpi/acexcep.h
-> +++ b/include/acpi/acexcep.h
-> @@ -57,6 +57,7 @@
->  #define ACPI_SUCCESS(a)                 (!(a))
->  #define ACPI_FAILURE(a)                 (a)
-> 
-> +#define ACPI_SKIP(a)                    (a == AE_CTRL_SKIP)
->  #define AE_OK                           (acpi_status) 0x0000
-> 
->  /*
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h index 6001b4da..fccd017 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -359,4 +359,14 @@ static inline int suspend_nvs_register(unsigned long a, unsigned long b)  }
-> #endif
-> 
-> +#ifdef CONFIG_ACPI
-> +void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state,
-> +			       u32 pm1a_ctrl,  u32 pm1b_ctrl));
-> +
-> +acpi_status acpi_os_prepare_sleep(u8 sleep_state,
-> +				  u32 pm1a_control, u32 pm1b_control); #else #define
-> +acpi_os_set_prepare_sleep(func, pm1a_ctrl, pm1b_ctrl) do { } while (0)
-> +#endif
-> +
->  #endif	/*_LINUX_ACPI_H*/
-> diff --git a/include/linux/tboot.h b/include/linux/tboot.h index 1dba6ee..c75128b 100644
+> diff --git a/include/linux/tboot.h b/include/linux/tboot.h index c75128b..8f14fe0 100644
 > --- a/include/linux/tboot.h
 > +++ b/include/linux/tboot.h
-> @@ -143,7 +143,6 @@ static inline int tboot_enabled(void)
+> @@ -142,7 +142,7 @@ static inline int tboot_enabled(void)  }
 > 
 >  extern void tboot_probe(void);
->  extern void tboot_shutdown(u32 shutdown_type); -extern void tboot_sleep(u8 sleep_state, u32
-> pm1a_control, u32 pm1b_control);  extern struct acpi_table_header *tboot_get_dmar_table(
+> -extern void tboot_shutdown(u32 shutdown_type);
+> +extern int tboot_shutdown(u32 shutdown_type);
+>  extern struct acpi_table_header *tboot_get_dmar_table(
 >  				      struct acpi_table_header *dmar_tbl);  extern int
-> tboot_force_iommu(void);
+> tboot_force_iommu(void); @@ -151,7 +151,7 @@ extern int tboot_force_iommu(void);
+> 
+>  #define tboot_enabled()			0
+>  #define tboot_probe()			do { } while (0)
+> -#define tboot_shutdown(shutdown_type)	do { } while (0)
+> +#define tboot_shutdown(shutdown_type)	0
+>  #define tboot_sleep(sleep_state, pm1a_control, pm1b_control)	\
+>  					do { } while (0)
+>  #define tboot_get_dmar_table(dmar_tbl)	(dmar_tbl)
 > --
 > 1.7.7.5
-
