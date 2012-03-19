@@ -1,114 +1,133 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: Re: [RFC PATCH v2 5/8] libata-acpi: add ata port runtime D3Cold
- support
-Date: Mon, 19 Mar 2012 15:03:40 +0800
-Message-ID: <1332140620.17875.35.camel@minggr>
-References: <1330592577-16546-1-git-send-email-ming.m.lin@intel.com>
-	 <1330592577-16546-6-git-send-email-ming.m.lin@intel.com>
-	 <20120319033616.GA32695@localhost.amd.com>
-	 <1332134820.17875.17.camel@minggr>
-	 <20120319063544.GA2707@localhost.amd.com>
+From: Rainer Koenig <Rainer.Koenig@ts.fujitsu.com>
+Subject: [PATCH] keymap function for quickstart driver
+Date: Mon, 19 Mar 2012 09:35:37 +0100
+Message-ID: <4F66EFD9.7090408@ts.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <20120319063544.GA2707@localhost.amd.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Aaron Lu <aaron.lu@amd.com>
-Cc: Zhang Rui <rui.zhang@intel.com>, Jeff Garzik <jgarzik@pobox.com>, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tejun Heo <tj@kernel.org>, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, linux-scsi@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from dgate10.ts.fujitsu.com ([80.70.172.49]:4050 "EHLO
+	dgate10.ts.fujitsu.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757572Ab2CSIfj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Mar 2012 04:35:39 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Mon, 2012-03-19 at 14:35 +0800, Aaron Lu wrote:
-> Hi,
-> 
-> On Mon, Mar 19, 2012 at 01:27:00PM +0800, Lin Ming wrote:
-> > On Mon, 2012-03-19 at 11:36 +0800, Aaron Lu wrote:
-> > > Hi,
-> > > 
-> > > On Thu, Mar 01, 2012 at 05:02:54PM +0800, Lin Ming wrote:
-> > > > ATA port may support runtime D3Cold state, for example, Zero-power ODD case.
-> > > > This patch adds wakeup notifier and enable/disable run_wake during
-> > > > supend/resume.
-> > > 
-> > > I've been thinking this for some time and realized that it would be
-> > > impossible for AMD's platform to work with this patch, the reason:
-> > > There is no _PRW in AMD's acpi implementation. And no _PRW would mean
-> > > the device is not wake up capable in current Linux ACPI implementation.
-> > > 
-> > > I've checked the ACPI spec and it said: 'the _PRW is only required for
-> > > devices that have the ability to wake the system from a system sleeping
-> > > state.'
-> > > So I'm not sure if _PRW fits here, since the most common use case for
-> > > zpodd would be: odd put to D3 cold and system is at S0, and odd is back
-> > > to D0 when necessary without affecting the system sleep state.
-> > > 
-> > > I suggest we install the acpi pm notifier on the handle based on the
-> > > following two criteria:
-> > > 1 This ata device is DA capable;
-> > > 2 Its acpi device indicates it is able to wake up itself in S0(_S0W
-> > > evaluates 4).
-> > 
-> > OK, reasonable to me.
-> > 
-> > > 
-> > > Does this make sense and will this work for your platform?
-> > 
-> > Yes.
-> > 
-> 
-> Great ;-)
-> 
-> > > 
-> > > Another problem is how to place this ODD device into D3 cold state,
-> > > since our platform uses _PS3 control method to power off it. Do you have
-> > > any suggestions?
-> > 
-> > acpi_bus_set_power will execute _PS3 too.
-> > 
-> > So I think no problem for AMD's platform.
-> > 
-> 
-> Sorry I didn't make it clear.
-> The problem here is, we are going to set the device power state to D3
-> cold, and current OSPM has no support for it.
-> 
-> Another patch of yours solved this problem by defining:
-> 1 Device supports D3 cold if it has _PR3;
-> 2 For a device to be put to D3 cold, power off all the power resources
-> referenced in its _PR3.
-> 
-> Since this can't work for AMD's platform(there is no _PR3 for the sata
-> acpi device), I would like to change this a little bit:
-> 1 Device supports D3 cold if it has _PR3 or _PS3;
+Hi,
 
-_PS3 may only mean D3Hot support for other device.
+back again with a patch for the quickstart driver that implements a
+keymap for the runtime events that quickstart generates. A custom
+keymap can be assigned via a simple udev rule.
 
-You mentioned that AMD platform defined a special device, named ODDZ.
+Background for this: Fujitsu is going to ship very small systems
+with no direct eject button for the optical drive. Instead you have
+a hotkey that is recognized by the quickstart driver. This patch now
+allows to map the key event (0x1) to the keycode "ejectcd" and then
+react to this in your desktop manager software.
 
-How about device supports D3 cold if
+Signed-off-by: Rainer Koenig <Rainer.Koenig@ts.fujitsu.com>
 
-_PR3 or (is ODDZ and ODDZ._PS3)?
+--- upstream/drivers/staging/quickstart/quickstart.c    2012-03-19 08:2=
+5:33.000000000 +0100
++++ new/drivers/staging/quickstart/quickstart.c 2012-03-19 09:03:02.000=
+000000 +0100
+@@ -216,6 +216,8 @@
+ static void quickstart_acpi_notify(acpi_handle handle, u32 event, void=
+ *data)
+ {
+        struct quickstart_acpi *quickstart =3D data;
++        unsigned int key;
++        struct input_keymap_entry ke;
 
-> 2 For a device to be put to D3 cold, execute _PS3 first if available and
-> then deal with _PR3 as above.
+        if (!quickstart)
+                return;
+@@ -223,9 +225,13 @@
+        if (event =3D=3D QUICKSTART_EVENT_WAKE)
+                quickstart_data.pressed =3D quickstart->btn;
+        else if (event =3D=3D QUICKSTART_EVENT_RUNTIME) {
+-               input_report_key(quickstart_input, quickstart->btn->id,=
+ 1);
++                ke.flags =3D INPUT_KEYMAP_BY_INDEX;
++                ke.index =3D quickstart->btn->id;
++                quickstart_input->getkeycode(quickstart_input, &ke);
++                key =3D ke.keycode;
++               input_report_key(quickstart_input, key, 1);
+                input_sync(quickstart_input);
+-               input_report_key(quickstart_input, quickstart->btn->id,=
+ 0);
++               input_report_key(quickstart_input, key, 0);
+                input_sync(quickstart_input);
+        }
+        return;
+@@ -374,8 +380,9 @@
+ static int __init quickstart_init_input(void)
+ {
+        struct quickstart_btn **ptr =3D &quickstart_data.btn_lst;
+-       int count;
+        int ret;
++        int maxkey =3D 0, id;
++        unsigned int *keymap;
 
-__acpi_bus_set_power(...) has done this.
+        quickstart_input =3D input_allocate_device();
+
+@@ -386,11 +393,30 @@
+        quickstart_input->id.bustype =3D BUS_HOST;
+
+        while (*ptr) {
+-               count++;
+                set_bit(EV_KEY, quickstart_input->evbit);
+                set_bit((*ptr)->id, quickstart_input->keybit);
++                if ((*ptr)->id > maxkey)
++                  maxkey =3D (*ptr)->id;
+                ptr =3D &((*ptr)->next);
+        }
++
++        /* build a character map that at the moment maps GHID ids to k=
+eycodes */
++        /* this map can be replaced from userspace to map the correct =
+keycodes */
++        maxkey++;
++        quickstart_input->keycodemax =3D maxkey;
++        quickstart_input->keycodesize =3D sizeof(unsigned int);
++        quickstart_input->keycode =3D
+kzalloc(quickstart_input->keycodemax*quickstart_input->keycodesize, GFP=
+_KERNEL);
++        if (!quickstart_input->keycode)
++            return -ENOMEM;
++
++        keymap =3D quickstart_input->keycode;
++
++        ptr =3D &quickstart_data.btn_lst;
++        while(*ptr) {
++            id =3D (*ptr)->id;
++            keymap[id] =3D id;
++            ptr =3D &((*ptr)->next);
++        }
+
+        ret =3D input_register_device(quickstart_input);
+        if (ret) {
 
 
-> 
-> What do you think of this?
-> If you are OK to the above idea, I can change the corresponding patch for
-> you to review.
 
-OK.
+--=20
+Dipl.-Inf. (FH) Rainer Koenig
+Project Manager Linux Clients
+Dept. PDG WPS R&D SW OSE
 
-Thanks,
-Lin Ming
+=46ujitsu Technology Solutions
+B=FCrgermeister-Ullrich-Str. 100
+86199 Augsburg
+Germany
 
-> 
-> Thanks,
-> Aaron
-> 
-> 
+Telephone: +49-821-804-3321
+Telefax:   +49-821-804-2131
+Mail:      mailto:Rainer.Koenig@ts.fujitsu.com
 
-
+Internet         ts.fujtsu.com
+Company Details  ts.fujitsu.com/imprint.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
