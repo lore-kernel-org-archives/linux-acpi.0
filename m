@@ -1,85 +1,115 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH -v3 31/47] PCI, pci_root_hp: Use acpi_hp_work
-Date: Sun, 18 Mar 2012 22:46:20 -0700
-Message-ID: <1332135996-13860-32-git-send-email-yinghai@kernel.org>
+Subject: [PATCH -v3 28/47] PCI, ACPI: Add pci_root_hp hot removal notification support.
+Date: Sun, 18 Mar 2012 22:46:17 -0700
+Message-ID: <1332135996-13860-29-git-send-email-yinghai@kernel.org>
 References: <1332135996-13860-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1332135996-13860-1-git-send-email-yinghai@kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Jesse Barnes <jbarnes@virtuousgeek.org>, x86 <x86@kernel.org>
 Cc: Bjorn Helgaas <bhelgaas@google.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Remove local copy: acpi_root_hp_work
+Add missing hot_remove support for root device.
+
+How to use it?
+Find out root bus number to acpi root name mapping from dmesg or /sys
+
+  echo "\_SB.PCIB 3" > /proc/acpi/sci/notify
+to remove root bus
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 Cc: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org
 ---
- drivers/acpi/pci_root_hp.c |   34 +++-------------------------------
- 1 files changed, 3 insertions(+), 31 deletions(-)
+ drivers/acpi/pci_root_hp.c |   61 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 61 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/acpi/pci_root_hp.c b/drivers/acpi/pci_root_hp.c
-index 214adcb..d2ace81 100644
+index e07c31b..214adcb 100644
 --- a/drivers/acpi/pci_root_hp.c
 +++ b/drivers/acpi/pci_root_hp.c
-@@ -79,34 +79,6 @@ static void remove_acpi_root_bridge(struct acpi_root_bridge *bridge)
- 	kfree(bridge);
+@@ -73,6 +73,12 @@ static void add_acpi_root_bridge(acpi_handle handle)
+ 	list_add(&bridge->list, &acpi_root_bridge_list);
  }
  
--struct acpi_root_hp_work {
--	struct work_struct work;
--	acpi_handle handle;
--	u32 type;
--	void *context;
--};
--
--static void alloc_acpi_root_hp_work(acpi_handle handle, u32 type,
--					void *context,
--					void (*func)(struct work_struct *work))
--{
--	struct acpi_root_hp_work *hp_work;
--	int ret;
--
--	hp_work = kmalloc(sizeof(*hp_work), GFP_KERNEL);
--	if (!hp_work)
--		return;
--
--	hp_work->handle = handle;
--	hp_work->type = type;
--	hp_work->context = context;
--
--	INIT_WORK(&hp_work->work, func);
--	ret = queue_work(kacpi_hotplug_wq, &hp_work->work);
--	if (!ret)
--		kfree(hp_work);
--}
--
- /* Program resources in newly inserted bridge */
- static void acpi_root_configure_bridge(acpi_handle handle)
- {
-@@ -204,11 +176,11 @@ static void _handle_hotplug_event_root(struct work_struct *work)
- 	char objname[64];
- 	struct acpi_buffer buffer = { .length = sizeof(objname),
- 				      .pointer = objname };
--	struct acpi_root_hp_work *hp_work;
-+	struct acpi_hp_work *hp_work;
++static void remove_acpi_root_bridge(struct acpi_root_bridge *bridge)
++{
++	list_del(&bridge->list);
++	kfree(bridge);
++}
++
+ struct acpi_root_hp_work {
+ 	struct work_struct work;
  	acpi_handle handle;
- 	u32 type;
- 
--	hp_work = container_of(work, struct acpi_root_hp_work, work);
-+	hp_work = container_of(work, struct acpi_hp_work, work);
- 	handle = hp_work->handle;
- 	type = hp_work->type;
- 
-@@ -256,7 +228,7 @@ static void _handle_hotplug_event_root(struct work_struct *work)
- static void handle_hotplug_event_root(acpi_handle handle, u32 type,
- 					void *context)
- {
--	alloc_acpi_root_hp_work(handle, type, context,
-+	alloc_acpi_hp_work(handle, type, context,
- 				_handle_hotplug_event_root);
+@@ -143,6 +149,55 @@ static void handle_root_bridge_insertion(acpi_handle handle)
+ 		printk(KERN_ERR "cannot start bridge\n");
  }
  
++static int acpi_root_evaluate_object(acpi_handle handle, char *cmd, int val)
++{
++	acpi_status status;
++	struct acpi_object_list arg_list;
++	union acpi_object arg;
++
++	arg_list.count = 1;
++	arg_list.pointer = &arg;
++	arg.type = ACPI_TYPE_INTEGER;
++	arg.integer.value = val;
++
++	status = acpi_evaluate_object(handle, cmd, &arg_list, NULL);
++	if (ACPI_FAILURE(status)) {
++		printk(KERN_WARNING "%s: %s to %d failed\n",
++				 __func__, cmd, val);
++		return -1;
++	}
++
++	return 0;
++}
++
++static void handle_root_bridge_removal(acpi_handle handle,
++		 struct acpi_root_bridge *bridge)
++{
++	u32 flags = 0;
++	struct acpi_device *device;
++
++	if (bridge) {
++		flags = bridge->flags;
++		remove_acpi_root_bridge(bridge);
++	}
++
++	if (!acpi_bus_get_device(handle, &device)) {
++		int ret_val = acpi_bus_trim(device, 1);
++
++		printk(KERN_DEBUG "acpi_bus_trim return %x\n", ret_val);
++	}
++
++	if (flags & ROOT_BRIDGE_HAS_PS3) {
++		acpi_status status;
++
++		status = acpi_evaluate_object(handle, "_PS3", NULL, NULL);
++		if (ACPI_FAILURE(status))
++			printk(KERN_WARNING "%s: _PS3 failed\n", __func__);
++	}
++	if (flags & ROOT_BRIDGE_HAS_EJ0)
++		acpi_root_evaluate_object(handle, "_EJ0", 1);
++}
++
+ static void _handle_hotplug_event_root(struct work_struct *work)
+ {
+ 	struct acpi_root_bridge *bridge;
+@@ -183,6 +238,12 @@ static void _handle_hotplug_event_root(struct work_struct *work)
+ 		}
+ 		break;
+ 
++	case ACPI_NOTIFY_EJECT_REQUEST:
++		/* request device eject */
++		printk(KERN_DEBUG "%s: Device eject notify on %s\n", __func__,
++				 objname);
++		handle_root_bridge_removal(handle, bridge);
++		break;
+ 	default:
+ 		printk(KERN_WARNING "notify_handler: unknown event type 0x%x for %s\n",
+ 				 type, objname);
 -- 
 1.7.7
