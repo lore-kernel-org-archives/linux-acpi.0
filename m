@@ -1,115 +1,82 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH -v3 28/47] PCI, ACPI: Add pci_root_hp hot removal notification support.
-Date: Sun, 18 Mar 2012 22:46:17 -0700
-Message-ID: <1332135996-13860-29-git-send-email-yinghai@kernel.org>
-References: <1332135996-13860-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1332135996-13860-1-git-send-email-yinghai@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jesse Barnes <jbarnes@virtuousgeek.org>, x86 <x86@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+From: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
+Subject: [PATCH] video: add quirk table for video backlight vendor mode
+Date: Mon, 19 Mar 2012 14:03:47 +0800
+Message-ID: <1332137027-28327-1-git-send-email-jlee@suse.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:37514 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1031025Ab2CSGFb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Mar 2012 02:05:31 -0400
+Received: by obbeh20 with SMTP id eh20so819085obb.19
+        for <linux-acpi@vger.kernel.org>; Sun, 18 Mar 2012 23:05:31 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Thomas Renninger <trenn@suse.de>, Matthew Garrett <mjg@redhat.com>
 
-Add missing hot_remove support for root device.
+There have some acer laptop have broken _BCM implemenation, the AML code write value
+to EC register but firmware didn't change brighenss.
 
-How to use it?
-Find out root bus number to acpi root name mapping from dmesg or /sys
+But, the brightness control works on those machines with vendor mode. So, add quirk
+table for video backlight vendor mode.
 
-  echo "\_SB.PCIB 3" > /proc/acpi/sci/notify
-to remove root bus
+Tested on Acer Aspire 4736
+Tested on Acer TravelMate 4750
 
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 Cc: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+Cc: Thomas Renninger <trenn@suse.de>
+Cc: Matthew Garrett <mjg@redhat.com>
+Tested-by: Pradeep Subrahmanion <subrahmanion.pradeep@gmail.com>
+Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
 ---
- drivers/acpi/pci_root_hp.c |   61 ++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 61 insertions(+), 0 deletions(-)
+ drivers/acpi/video_detect.c |   27 +++++++++++++++++++++++++++
+ 1 files changed, 27 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/pci_root_hp.c b/drivers/acpi/pci_root_hp.c
-index e07c31b..214adcb 100644
---- a/drivers/acpi/pci_root_hp.c
-+++ b/drivers/acpi/pci_root_hp.c
-@@ -73,6 +73,12 @@ static void add_acpi_root_bridge(acpi_handle handle)
- 	list_add(&bridge->list, &acpi_root_bridge_list);
+diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+index f3f0fe7..acb15d6 100644
+--- a/drivers/acpi/video_detect.c
++++ b/drivers/acpi/video_detect.c
+@@ -132,6 +132,32 @@ find_video(acpi_handle handle, u32 lvl, void *context, void **rv)
+ 	return AE_OK;
  }
  
-+static void remove_acpi_root_bridge(struct acpi_root_bridge *bridge)
++static int video_set_backlight_vendor(const struct dmi_system_id *d)
 +{
-+	list_del(&bridge->list);
-+	kfree(bridge);
-+}
-+
- struct acpi_root_hp_work {
- 	struct work_struct work;
- 	acpi_handle handle;
-@@ -143,6 +149,55 @@ static void handle_root_bridge_insertion(acpi_handle handle)
- 		printk(KERN_ERR "cannot start bridge\n");
- }
- 
-+static int acpi_root_evaluate_object(acpi_handle handle, char *cmd, int val)
-+{
-+	acpi_status status;
-+	struct acpi_object_list arg_list;
-+	union acpi_object arg;
-+
-+	arg_list.count = 1;
-+	arg_list.pointer = &arg;
-+	arg.type = ACPI_TYPE_INTEGER;
-+	arg.integer.value = val;
-+
-+	status = acpi_evaluate_object(handle, cmd, &arg_list, NULL);
-+	if (ACPI_FAILURE(status)) {
-+		printk(KERN_WARNING "%s: %s to %d failed\n",
-+				 __func__, cmd, val);
-+		return -1;
-+	}
-+
++	acpi_video_support |= ACPI_VIDEO_BACKLIGHT_DMI_VENDOR;
 +	return 0;
 +}
 +
-+static void handle_root_bridge_removal(acpi_handle handle,
-+		 struct acpi_root_bridge *bridge)
-+{
-+	u32 flags = 0;
-+	struct acpi_device *device;
++static const struct dmi_system_id video_vendor_dmi_table[] = {
++	{
++	 .callback = video_set_backlight_vendor,
++	 .ident = "Acer Aspire 4736",
++	 .matches = {
++		DMI_MATCH(DMI_BOARD_VENDOR, "Acer"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 4736"),
++		},
++	},
++	{
++	 .callback = video_set_backlight_vendor,
++	 .ident = "Acer TravelMate 4750",
++	 .matches = {
++		DMI_MATCH(DMI_BOARD_VENDOR, "Acer"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "TravelMate 4750"),
++		},
++	},
++	{}
++};
 +
-+	if (bridge) {
-+		flags = bridge->flags;
-+		remove_acpi_root_bridge(bridge);
-+	}
-+
-+	if (!acpi_bus_get_device(handle, &device)) {
-+		int ret_val = acpi_bus_trim(device, 1);
-+
-+		printk(KERN_DEBUG "acpi_bus_trim return %x\n", ret_val);
-+	}
-+
-+	if (flags & ROOT_BRIDGE_HAS_PS3) {
-+		acpi_status status;
-+
-+		status = acpi_evaluate_object(handle, "_PS3", NULL, NULL);
-+		if (ACPI_FAILURE(status))
-+			printk(KERN_WARNING "%s: _PS3 failed\n", __func__);
-+	}
-+	if (flags & ROOT_BRIDGE_HAS_EJ0)
-+		acpi_root_evaluate_object(handle, "_EJ0", 1);
-+}
-+
- static void _handle_hotplug_event_root(struct work_struct *work)
- {
- 	struct acpi_root_bridge *bridge;
-@@ -183,6 +238,12 @@ static void _handle_hotplug_event_root(struct work_struct *work)
- 		}
- 		break;
- 
-+	case ACPI_NOTIFY_EJECT_REQUEST:
-+		/* request device eject */
-+		printk(KERN_DEBUG "%s: Device eject notify on %s\n", __func__,
-+				 objname);
-+		handle_root_bridge_removal(handle, bridge);
-+		break;
- 	default:
- 		printk(KERN_WARNING "notify_handler: unknown event type 0x%x for %s\n",
- 				 type, objname);
+ /*
+  * Returns the video capabilities of a specific ACPI graphics device
+  *
+@@ -164,6 +190,7 @@ long acpi_video_get_capabilities(acpi_handle graphics_handle)
+ 		 *		ACPI_VIDEO_BACKLIGHT_DMI_VENDOR;
+ 		 *}
+ 		 */
++		dmi_check_system(video_vendor_dmi_table);
+ 	} else {
+ 		status = acpi_bus_get_device(graphics_handle, &tmp_dev);
+ 		if (ACPI_FAILURE(status)) {
 -- 
 1.7.7
+
