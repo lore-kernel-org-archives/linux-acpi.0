@@ -1,54 +1,116 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH -v3 26/47] PCI, ACPI: Make acpi_pci_root_remove remove pci root bus too
-Date: Sun, 18 Mar 2012 22:46:15 -0700
-Message-ID: <1332135996-13860-27-git-send-email-yinghai@kernel.org>
+Subject: [PATCH -v3 30/47] PCI, acpiphp: Use acpi_hp_work
+Date: Sun, 18 Mar 2012 22:46:19 -0700
+Message-ID: <1332135996-13860-31-git-send-email-yinghai@kernel.org>
 References: <1332135996-13860-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from rcsinet15.oracle.com ([148.87.113.117]:30794 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161518Ab2CSFsH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Mar 2012 01:48:07 -0400
 In-Reply-To: <1332135996-13860-1-git-send-email-yinghai@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Jesse Barnes <jbarnes@virtuousgeek.org>, x86 <x86@kernel.org>
 Cc: Bjorn Helgaas <bhelgaas@google.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
-It will call new added pci_stop_and_remove_bus() to stop/remove pci root bus.
-
-Also checking if that pci_root_bus get removed already in bus remove in /sys
+Remove local defined acpiphp_hp_work.
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 Cc: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org
 ---
- drivers/acpi/pci_root.c |   14 ++++++++++++++
- 1 files changed, 14 insertions(+), 0 deletions(-)
+ drivers/pci/hotplug/acpiphp_glue.c |   42 +++++------------------------------
+ 1 files changed, 6 insertions(+), 36 deletions(-)
 
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index 7aff631..b38e347 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -643,10 +643,24 @@ static int acpi_pci_root_remove(struct acpi_device *device, int type)
- {
- 	struct acpi_pci_root *root = acpi_driver_data(device);
- 
-+	/* that root bus could be removed already */
-+	if (!pci_find_bus(root->segment, root->secondary.start)) {
-+		dev_printk(KERN_DEBUG, &device->dev,
-+		  "freeing acpi_pci_root, but pci root bus was removed before");
-+		goto out;
-+	}
-+
- 	device_set_run_wake(root->bus->bridge, false);
- 	pci_acpi_remove_bus_pm_notifier(device);
- 
-+	dev_printk(KERN_DEBUG, &device->dev,
-+		"freeing acpi_pci_root, will remove pci root bus at first");
-+	pci_stop_and_remove_bus(root->bus);
-+
-+out:
-+	list_del(&root->node);
- 	kfree(root);
-+
- 	return 0;
+diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+index ae78c3d..9d781a7 100644
+--- a/drivers/pci/hotplug/acpiphp_glue.c
++++ b/drivers/pci/hotplug/acpiphp_glue.c
+@@ -1119,34 +1119,6 @@ check_sub_bridges(acpi_handle handle, u32 lvl, void *context, void **rv)
+ 	return AE_OK ;
  }
  
+-struct acpiphp_hp_work {
+-	struct work_struct work;
+-	acpi_handle handle;
+-	u32 type;
+-	void *context;
+-};
+-
+-static void alloc_acpiphp_hp_work(acpi_handle handle, u32 type,
+-				  void *context,
+-				  void (*func)(struct work_struct *work))
+-{
+-	struct acpiphp_hp_work *hp_work;
+-	int ret;
+-
+-	hp_work = kmalloc(sizeof(*hp_work), GFP_KERNEL);
+-	if (!hp_work)
+-		return;
+-
+-	hp_work->handle = handle;
+-	hp_work->type = type;
+-	hp_work->context = context;
+-
+-	INIT_WORK(&hp_work->work, func);
+-	ret = queue_work(kacpi_hotplug_wq, &hp_work->work);
+-	if (!ret)
+-		kfree(hp_work);
+-}
+-
+ static void _handle_hotplug_event_bridge(struct work_struct *work)
+ {
+ 	struct acpiphp_bridge *bridge;
+@@ -1155,11 +1127,11 @@ static void _handle_hotplug_event_bridge(struct work_struct *work)
+ 				      .pointer = objname };
+ 	struct acpi_device *device;
+ 	int num_sub_bridges = 0;
+-	struct acpiphp_hp_work *hp_work;
++	struct acpi_hp_work *hp_work;
+ 	acpi_handle handle;
+ 	u32 type;
+ 
+-	hp_work = container_of(work, struct acpiphp_hp_work, work);
++	hp_work = container_of(work, struct acpi_hp_work, work);
+ 	handle = hp_work->handle;
+ 	type = hp_work->type;
+ 
+@@ -1261,8 +1233,7 @@ static void handle_hotplug_event_bridge(acpi_handle handle, u32 type,
+ 	 * For now just re-add this work to the kacpi_hotplug_wq so we
+ 	 * don't deadlock on hotplug actions.
+ 	 */
+-	alloc_acpiphp_hp_work(handle, type, context,
+-			      _handle_hotplug_event_bridge);
++	alloc_acpi_hp_work(handle, type, context, _handle_hotplug_event_bridge);
+ }
+ 
+ static void _handle_hotplug_event_func(struct work_struct *work)
+@@ -1271,12 +1242,12 @@ static void _handle_hotplug_event_func(struct work_struct *work)
+ 	char objname[64];
+ 	struct acpi_buffer buffer = { .length = sizeof(objname),
+ 				      .pointer = objname };
+-	struct acpiphp_hp_work *hp_work;
++	struct acpi_hp_work *hp_work;
+ 	acpi_handle handle;
+ 	u32 type;
+ 	void *context;
+ 
+-	hp_work = container_of(work, struct acpiphp_hp_work, work);
++	hp_work = container_of(work, struct acpi_hp_work, work);
+ 	handle = hp_work->handle;
+ 	type = hp_work->type;
+ 	context = hp_work->context;
+@@ -1337,8 +1308,7 @@ static void handle_hotplug_event_func(acpi_handle handle, u32 type,
+ 	 * For now just re-add this work to the kacpi_hotplug_wq so we
+ 	 * don't deadlock on hotplug actions.
+ 	 */
+-	alloc_acpiphp_hp_work(handle, type, context,
+-			      _handle_hotplug_event_func);
++	alloc_acpi_hp_work(handle, type, context, _handle_hotplug_event_func);
+ }
+ 
+ static struct acpi_pci_driver acpi_pci_hp_driver = {
 -- 
 1.7.7
+
