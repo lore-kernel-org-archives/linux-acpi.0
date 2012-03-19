@@ -1,130 +1,61 @@
-From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Subject: Re: [PATCH V2 3/6] thermal: Add generic cpuhotplug
-	cooling implementation
-Date: Mon, 19 Mar 2012 17:15:40 +0530
-Message-ID: <4F671C64.5020803@linux.vnet.ibm.com>
-References: <1332137864-12943-1-git-send-email-amit.kachhap@linaro.org>
-	<1332137864-12943-4-git-send-email-amit.kachhap@linaro.org>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH] video: add quirk table for video backlight vendor mode
+Date: Mon, 19 Mar 2012 13:31:29 +0000
+Message-ID: <20120319133129.GA413@srcf.ucam.org>
+References: <1332137027-28327-1-git-send-email-jlee@suse.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <1332137864-12943-4-git-send-email-amit.kachhap@linaro.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Amit Daniel Kachhap <amit.kachhap@linaro.org>
-Cc: linux-samsung-soc@vger.kernel.org, linaro-dev@lists.linaro.org, patches@linaro.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:50176 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758852Ab2CSNbg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Mar 2012 09:31:36 -0400
+Content-Disposition: inline
+In-Reply-To: <1332137027-28327-1-git-send-email-jlee@suse.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Thomas Renninger <trenn@suse.de>
 
-On 03/19/2012 11:47 AM, Amit Daniel Kachhap wrote:
+On Mon, Mar 19, 2012 at 02:03:47PM +0800, Lee, Chun-Yi wrote:
 
-> This patch adds support for generic cpu thermal cooling low level
-> implementations using cpuhotplug based on the thermal level requested
-> from user. Different cpu related cooling devices can be registered by the
-> user and the binding of these cooling devices to the corresponding
-> trip points can be easily done as the registration APIs return the
-> cooling device pointer. The user of these APIs are responsible for
-> passing the cpumask.
-> 
-
-
-I am really not aware of the cpu thermal cooling stuff, but since this patch
-deals with CPU Hotplug (which I am interested in), I have some questions
-below..
- 
-
-> Signed-off-by: Amit Daniel Kachhap <amit.kachhap@linaro.org>
-> +
-> +static int cpuhotplug_get_cur_state(struct thermal_cooling_device *cdev,
-> +				 unsigned long *state)
+> diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+> index f3f0fe7..acb15d6 100644
+> --- a/drivers/acpi/video_detect.c
+> +++ b/drivers/acpi/video_detect.c
+> @@ -132,6 +132,32 @@ find_video(acpi_handle handle, u32 lvl, void *context, void **rv)
+>  	return AE_OK;
+>  }
+>  
+> +static int video_set_backlight_vendor(const struct dmi_system_id *d)
 > +{
-> +	int ret = -EINVAL;
-> +	struct hotplug_cooling_device *hotplug_dev;
-> +
-> +	mutex_lock(&cooling_cpuhotplug_lock);
-> +	list_for_each_entry(hotplug_dev, &cooling_cpuhotplug_list, node) {
-> +		if (hotplug_dev && hotplug_dev->cool_dev == cdev) {
-> +			*state = hotplug_dev->hotplug_state;
-> +			ret = 0;
-> +			break;
-> +		}
-> +	}
-> +	mutex_unlock(&cooling_cpuhotplug_lock);
-> +	return ret;
-> +}
-> +
-> +/*This cooling may be as ACTIVE type*/
-> +static int cpuhotplug_set_cur_state(struct thermal_cooling_device *cdev,
-> +				 unsigned long state)
-> +{
-> +	int cpuid, this_cpu = smp_processor_id();
-
-
-What prevents this task from being migrated to another CPU?
-IOW, what ensures that 'this_cpu' remains valid throughout this function?
-
-I see that you are acquiring mutex locks below.. So this is definitely not
-a preempt disabled section.. so I guess my question above is valid..
-
-Or is this code bound to a particular cpu?
-
-> +	struct hotplug_cooling_device *hotplug_dev;
-> +
-> +	mutex_lock(&cooling_cpuhotplug_lock);
-> +	list_for_each_entry(hotplug_dev, &cooling_cpuhotplug_list, node)
-> +		if (hotplug_dev && hotplug_dev->cool_dev == cdev)
-> +			break;
-> +
-> +	mutex_unlock(&cooling_cpuhotplug_lock);
-> +	if (!hotplug_dev || hotplug_dev->cool_dev != cdev)
-> +		return -EINVAL;
-> +
-> +	if (hotplug_dev->hotplug_state == state)
-> +		return 0;
-> +
-> +	/*
-> +	* This cooling device may be of type ACTIVE, so state field can
-> +	* be 0 or 1
-> +	*/
-> +	if (state == 1) {
-> +		for_each_cpu(cpuid, hotplug_dev->allowed_cpus) {
-> +			if (cpu_online(cpuid) && (cpuid != this_cpu))
-
-
-What prevents the cpu numbered cpuid from being taken down right at this moment?
-Don't you need explicit synchronization with CPU Hotplug using something like
-get_online_cpus()/put_online_cpus() here?
-
-> +				cpu_down(cpuid);
-> +		}
-> +	} else if (state == 0) {
-> +		for_each_cpu(cpuid, hotplug_dev->allowed_cpus) {
-> +			if (!cpu_online(cpuid) && (cpuid != this_cpu))
-
-
-Same here.
-
-> +				cpu_up(cpuid);
-> +		}
-> +	} else {
-> +		return -EINVAL;
-> +	}
-> +
-> +	hotplug_dev->hotplug_state = state;
-> +
+> +	acpi_video_support |= ACPI_VIDEO_BACKLIGHT_DMI_VENDOR;
 > +	return 0;
 > +}
-> +/* bind hotplug callbacks to cpu hotplug cooling device */
-> +static struct thermal_cooling_device_ops cpuhotplug_cooling_ops = {
-> +	.get_max_state = cpuhotplug_get_max_state,
-> +	.get_cur_state = cpuhotplug_get_cur_state,
-> +	.set_cur_state = cpuhotplug_set_cur_state,
+> +
+> +static const struct dmi_system_id video_vendor_dmi_table[] = {
+> +	{
+> +	 .callback = video_set_backlight_vendor,
+> +	 .ident = "Acer Aspire 4736",
+> +	 .matches = {
+> +		DMI_MATCH(DMI_BOARD_VENDOR, "Acer"),
+> +		DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 4736"),
+> +		},
+> +	},
+> +	{
+> +	 .callback = video_set_backlight_vendor,
+> +	 .ident = "Acer TravelMate 4750",
+> +	 .matches = {
+> +		DMI_MATCH(DMI_BOARD_VENDOR, "Acer"),
+> +		DMI_MATCH(DMI_PRODUCT_NAME, "TravelMate 4750"),
+> +		},
+> +	},
+> +	{}
 > +};
 > +
+
+I think it would be neater to put this in the Acer driver and have it 
+call unregister_acpi_video().
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
