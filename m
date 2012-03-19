@@ -1,59 +1,54 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH -v3 02/47] PNPACPI: Fix device ref leaking in acpi_pnp_match
-Date: Sun, 18 Mar 2012 22:45:51 -0700
-Message-ID: <1332135996-13860-3-git-send-email-yinghai@kernel.org>
+Subject: [PATCH -v3 26/47] PCI, ACPI: Make acpi_pci_root_remove remove pci root bus too
+Date: Sun, 18 Mar 2012 22:46:15 -0700
+Message-ID: <1332135996-13860-27-git-send-email-yinghai@kernel.org>
 References: <1332135996-13860-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:30483 "EHLO
-	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161083Ab2CSFr0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Mar 2012 01:47:26 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1332135996-13860-1-git-send-email-yinghai@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Jesse Barnes <jbarnes@virtuousgeek.org>, x86 <x86@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, stable@kernel.org, Len Brown <lenb@kernel.org>, Adam Belay <abelay@mit.edu>, linux-acpi@vger.kernel.org
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-During testing pci root bus removal, found some root bus bridge is not freed.
+It will call new added pci_stop_and_remove_bus() to stop/remove pci root bus.
 
-If booting with pnpacpi=off, those hostbridge could be freed without problem.
-
-It turns out that some devices reference are not released during acpi_pnp_match.
-
-That match should not hold one device ref during every calling.
-
-Add put_device calling before returning.
+Also checking if that pci_root_bus get removed already in bus remove in /sys
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: stable@kernel.org
 Cc: Len Brown <lenb@kernel.org>
-Cc: Adam Belay <abelay@mit.edu>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
 Cc: linux-acpi@vger.kernel.org
 ---
- drivers/pnp/pnpacpi/core.c |    7 ++++++-
- 1 files changed, 6 insertions(+), 1 deletions(-)
+ drivers/acpi/pci_root.c |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
-index b00c176..d21e8f5 100644
---- a/drivers/pnp/pnpacpi/core.c
-+++ b/drivers/pnp/pnpacpi/core.c
-@@ -321,9 +321,14 @@ static int __init acpi_pnp_match(struct device *dev, void *_pnp)
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index 7aff631..b38e347 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -643,10 +643,24 @@ static int acpi_pci_root_remove(struct acpi_device *device, int type)
  {
- 	struct acpi_device *acpi = to_acpi_device(dev);
- 	struct pnp_dev *pnp = _pnp;
-+	struct device *physical_device;
-+
-+	physical_device = acpi_get_physical_device(acpi->handle);
-+	if (physical_device)
-+		put_device(physical_device);
+ 	struct acpi_pci_root *root = acpi_driver_data(device);
  
- 	/* true means it matched */
--	return !acpi_get_physical_device(acpi->handle)
-+	return !physical_device
- 	    && compare_pnp_id(pnp->id, acpi_device_hid(acpi));
++	/* that root bus could be removed already */
++	if (!pci_find_bus(root->segment, root->secondary.start)) {
++		dev_printk(KERN_DEBUG, &device->dev,
++		  "freeing acpi_pci_root, but pci root bus was removed before");
++		goto out;
++	}
++
+ 	device_set_run_wake(root->bus->bridge, false);
+ 	pci_acpi_remove_bus_pm_notifier(device);
+ 
++	dev_printk(KERN_DEBUG, &device->dev,
++		"freeing acpi_pci_root, will remove pci root bus at first");
++	pci_stop_and_remove_bus(root->bus);
++
++out:
++	list_del(&root->node);
+ 	kfree(root);
++
+ 	return 0;
  }
  
 -- 
 1.7.7
-
