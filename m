@@ -1,155 +1,110 @@
-From: Amit Kachhap <amit.kachhap@linaro.org>
-Subject: Re: [PATCH V2 3/6] thermal: Add generic cpuhotplug cooling implementation
-Date: Tue, 20 Mar 2012 11:36:18 +0530
-Message-ID: <CAK44p20K-GyG5o6=BzK7iPZTDNepPh3iKYm0Bi1PETBp0sVRsQ@mail.gmail.com>
-References: <1332137864-12943-1-git-send-email-amit.kachhap@linaro.org>
-	<1332137864-12943-4-git-send-email-amit.kachhap@linaro.org>
-	<4F671C64.5020803@linux.vnet.ibm.com>
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: Re: [RFC PATCH 1/4] usb: add struct usb_hub_port to store port related
+ members.
+Date: Tue, 20 Mar 2012 14:16:17 +0800
+Message-ID: <4F6820B1.6070004@intel.com>
+References: <Pine.LNX.4.44L0.1203191156280.1641-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <4F671C64.5020803@linux.vnet.ibm.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Cc: linux-pm@lists.linux-foundation.org, linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org, mjg59@srcf.ucam.org, linux-acpi@vger.kernel.org, lenb@kernel.org, linaro-dev@lists.linaro.org, lm-sensors@lm-sensors.org, patches@linaro.org, eduardo.valentin@ti.com, durgadoss.r@intel.com, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:60746 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753182Ab2CTGSp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 20 Mar 2012 02:18:45 -0400
+In-Reply-To: <Pine.LNX.4.44L0.1203191156280.1641-100000@iolanthe.rowland.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: lenb@kernel.org, gregkh@linuxfoundation.org, linux-acpi@vger.kernel.org, mjg@redhat.com, linux-usb@vger.kernel.org, sarah.a.sharp@intel.com
 
-On 19 March 2012 17:15, Srivatsa S. Bhat
-<srivatsa.bhat@linux.vnet.ibm.com> wrote:
-> On 03/19/2012 11:47 AM, Amit Daniel Kachhap wrote:
+On 2012=E5=B9=B403=E6=9C=8820=E6=97=A5 00:04, Alan Stern wrote:
+> On Mon, 19 Mar 2012, Lan Tianyu wrote:
 >
->> This patch adds support for generic cpu thermal cooling low level
->> implementations using cpuhotplug based on the thermal level requeste=
-d
->> from user. Different cpu related cooling devices can be registered b=
-y the
->> user and the binding of these cooling devices to the corresponding
->> trip points can be easily done as the registration APIs return the
->> cooling device pointer. The user of these APIs are responsible for
->> passing the cpumask.
+>> Add struct usb_hub_port pointer port_data in the struct usb_hub and =
+allocate
+>> struct usb_hub_port perspectively for each ports to store private da=
+ta.
+>
+> You might as well add the child device pointer into your new data
+> structure.  This will require changes to at least three other files i=
+n
+> addition to hub.c:
+hi alan:
+	Great thanks for your review.
+	But I still confuse about "You might as well add the child device poin=
+ter
+into your new data structure." Could you help me to make it clear? :)
+	Do you mean add struct usb_device pointer toward the device attached t=
+o the=20
+port in the
+struct usb_hub_port? If yes,Why?
+>
+> 	devices.c, host/r8a66597-hcd.c,
+> 	drivers/staging/usbip/usbip_common.c
+>
+> Maybe some others; I didn't look through the entire kernel source.  I=
+t
+> also means you will have to export a function to get a pointer to the
+> child device, given the port number.
+	If it was necessary, could I fill the child pointer in the=20
+hub_port_connect_change()? just
+after a new usb device being created.
+
+static void hub_port_connect_change(struct usb_hub *hub, int port1,
+					u16 portstatus, u16 portchange) {
+		...
+		/* Run it through the hoops (find a driver, etc) */
+		if (!status) {
+			status =3D usb_new_device(udev);
+			if (status) {
+				spin_lock_irq(&device_state_lock);
+				hdev->children[port1-1] =3D NULL;
+				spin_unlock_irq(&device_state_lock);
+			}
+			/* like here?*/
+		}
+		...
+}
+
+Thanks again. Look forward for your reply.
+>
+>> @@ -1451,13 +1456,12 @@ void usb_hub_release_all_ports(struct usb_de=
+vice *hdev, void *owner)
+>>   	int n;
+>>   	void **powner;
 >>
+>> -	n =3D find_port_owner(hdev, 1,&powner);
+>> -	if (n =3D=3D 0) {
+>> -		for (; n<  hdev->maxchild; (++n, ++powner)) {
+>> -			if (*powner =3D=3D owner)
+>> -				*powner =3D NULL;
+>> -		}
+>> +	for (n =3D 1; n<=3D hdev->maxchild; n++) {
+>> +		find_port_owner(hdev, n,&powner);
+>> +		if (*powner =3D=3D owner)
+>> +			*powner =3D NULL;
+>>   	}
+>
+> This is wrong; find_port_owner() doesn't set powner to anything if an
+> error occurs.
+>
+> You can just set the pointer field directly to NULL, instead of looki=
+ng
+> it up in find_port_owner().  I don't remember why it was written that
+> way originally.
+>
+> Alan Stern
 >
 >
-> I am really not aware of the cpu thermal cooling stuff, but since thi=
-s patch
-> deals with CPU Hotplug (which I am interested in), I have some questi=
-ons
-> below..
->
->
->> Signed-off-by: Amit Daniel Kachhap <amit.kachhap@linaro.org>
->> +
->> +static int cpuhotplug_get_cur_state(struct thermal_cooling_device *=
-cdev,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0unsigne=
-d long *state)
->> +{
->> + =A0 =A0 int ret =3D -EINVAL;
->> + =A0 =A0 struct hotplug_cooling_device *hotplug_dev;
->> +
->> + =A0 =A0 mutex_lock(&cooling_cpuhotplug_lock);
->> + =A0 =A0 list_for_each_entry(hotplug_dev, &cooling_cpuhotplug_list,=
- node) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 if (hotplug_dev && hotplug_dev->cool_dev =3D=
-=3D cdev) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 *state =3D hotplug_dev->ho=
-tplug_state;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D 0;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
->> + =A0 =A0 =A0 =A0 =A0 =A0 }
->> + =A0 =A0 }
->> + =A0 =A0 mutex_unlock(&cooling_cpuhotplug_lock);
->> + =A0 =A0 return ret;
->> +}
->> +
->> +/*This cooling may be as ACTIVE type*/
->> +static int cpuhotplug_set_cur_state(struct thermal_cooling_device *=
-cdev,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0unsigne=
-d long state)
->> +{
->> + =A0 =A0 int cpuid, this_cpu =3D smp_processor_id();
->
->
-> What prevents this task from being migrated to another CPU?
-> IOW, what ensures that 'this_cpu' remains valid throughout this funct=
-ion?
->
-> I see that you are acquiring mutex locks below.. So this is definitel=
-y not
-> a preempt disabled section.. so I guess my question above is valid..
->
-> Or is this code bound to a particular cpu?
 
-No this thread is not bound to a cpu. Your comment is valid and some
-synchronization is needed for preemption. Thanks for pointing this
-out.
-
->
->> + =A0 =A0 struct hotplug_cooling_device *hotplug_dev;
->> +
->> + =A0 =A0 mutex_lock(&cooling_cpuhotplug_lock);
->> + =A0 =A0 list_for_each_entry(hotplug_dev, &cooling_cpuhotplug_list,=
- node)
->> + =A0 =A0 =A0 =A0 =A0 =A0 if (hotplug_dev && hotplug_dev->cool_dev =3D=
-=3D cdev)
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
->> +
->> + =A0 =A0 mutex_unlock(&cooling_cpuhotplug_lock);
->> + =A0 =A0 if (!hotplug_dev || hotplug_dev->cool_dev !=3D cdev)
->> + =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
->> +
->> + =A0 =A0 if (hotplug_dev->hotplug_state =3D=3D state)
->> + =A0 =A0 =A0 =A0 =A0 =A0 return 0;
->> +
->> + =A0 =A0 /*
->> + =A0 =A0 * This cooling device may be of type ACTIVE, so state fiel=
-d can
->> + =A0 =A0 * be 0 or 1
->> + =A0 =A0 */
->> + =A0 =A0 if (state =3D=3D 1) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 for_each_cpu(cpuid, hotplug_dev->allowed_c=
-pus) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (cpu_online(cpuid) && (=
-cpuid !=3D this_cpu))
->
->
-> What prevents the cpu numbered cpuid from being taken down right at t=
-his moment?
-> Don't you need explicit synchronization with CPU Hotplug using someth=
-ing like
-> get_online_cpus()/put_online_cpus() here?
->
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 cpu_down(c=
-puid);
->> + =A0 =A0 =A0 =A0 =A0 =A0 }
->> + =A0 =A0 } else if (state =3D=3D 0) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 for_each_cpu(cpuid, hotplug_dev->allowed_c=
-pus) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!cpu_online(cpuid) && =
-(cpuid !=3D this_cpu))
->
->
-> Same here.
->
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 cpu_up(cpu=
-id);
->> + =A0 =A0 =A0 =A0 =A0 =A0 }
->> + =A0 =A0 } else {
->> + =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
->> + =A0 =A0 }
->> +
->> + =A0 =A0 hotplug_dev->hotplug_state =3D state;
->> +
->> + =A0 =A0 return 0;
->> +}
->> +/* bind hotplug callbacks to cpu hotplug cooling device */
->> +static struct thermal_cooling_device_ops cpuhotplug_cooling_ops =3D=
- {
->> + =A0 =A0 .get_max_state =3D cpuhotplug_get_max_state,
->> + =A0 =A0 .get_cur_state =3D cpuhotplug_get_cur_state,
->> + =A0 =A0 .set_cur_state =3D cpuhotplug_set_cur_state,
->> +};
->> +
->
+--=20
+Best Regards
+Tianyu Lan
+linux kernel enabling team
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
