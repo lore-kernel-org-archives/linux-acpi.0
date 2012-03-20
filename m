@@ -1,57 +1,47 @@
-From: Jesper Juhl <jj@chaosbits.net>
-Subject: Re: [PATCH] ACPI, psargs: Fix small mem leaks on error paths
-Date: Mon, 19 Mar 2012 23:11:34 +0100 (CET)
-Message-ID: <alpine.LNX.2.00.1203192311280.9012@swampdragon.chaosbits.net>
-References: <alpine.LNX.2.00.1202050210060.30244@swampdragon.chaosbits.net>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.LNX.2.00.1202050210060.30244@swampdragon.chaosbits.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>, Len Brown <lenb@kernel.org>
+From: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
+Subject: [PATCH] gpu: schedule gma500 stub driver for feature removal
+Date: Tue, 20 Mar 2012 10:47:04 +0800
+Message-ID: <1332211624-11566-1-git-send-email-jlee@suse.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:47848 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754419Ab2CTCtE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Mar 2012 22:49:04 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: dri-devel@lists.freedesktop.org
+Cc: randy.dunlap@oracle.com, mjg59@srcf.ucam.org, gregkh@suse.de, trenn@suse.de, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Valdis.Kletnieks@vt.edu, Dennis.Jansen@web.de, airlied@linux.ie, airlied@redhat.com, eric@anholt.net, alexdeucher@gmail.com, bskeggs@redhat.com, chris@chris-wilson.co.uk, "Lee, Chun-Yi" <jlee@suse.com>
 
-Ping?
+In v3.3, the gma500 drm driver moved from staging to drm group by
+Alan Cox's 3abcf41fb patch. the gma500 drm driver should control
+brightness well and don't need gma500 stub driver anymore.
 
-On Sun, 5 Feb 2012, Jesper Juhl wrote:
+So, my plan is remove gma500 stub driver at Dec. 2012.
 
-> As far as I can see, there are two small mem leaks in error paths of
-> 'acpi_ps_get_next_field()' where we neglect to free the memory
-> previously allocated to 'field'.
-> 
-> I believe this patch should fix the leaks.
-> 
-> Signed-off-by: Jesper Juhl <jj@chaosbits.net>
-> ---
->  drivers/acpi/acpica/psargs.c |    2 ++
->  1 files changed, 2 insertions(+), 0 deletions(-)
-> 
->  Note: Compile tested only.
-> 
-> diff --git a/drivers/acpi/acpica/psargs.c b/drivers/acpi/acpica/psargs.c
-> index 5ac36ab..a683d66 100644
-> --- a/drivers/acpi/acpica/psargs.c
-> +++ b/drivers/acpi/acpica/psargs.c
-> @@ -618,6 +618,7 @@ static union acpi_parse_object *acpi_ps_get_next_field(struct acpi_parse_state
->  
->  				arg = acpi_ps_alloc_op(AML_INT_BYTELIST_OP);
->  				if (!arg) {
-> +					acpi_ps_free_op(field);
->  					return_PTR(NULL);
->  				}
->  
-> @@ -662,6 +663,7 @@ static union acpi_parse_object *acpi_ps_get_next_field(struct acpi_parse_state
->  		} else {
->  			arg = acpi_ps_alloc_op(AML_INT_NAMEPATH_OP);
->  			if (!arg) {
-> +				acpi_ps_free_op(field);
->  				return_PTR(NULL);
->  			}
->  
-> 
+Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
+---
+ Documentation/feature-removal-schedule.txt |   11 +++++++++++
+ 1 files changed, 11 insertions(+), 0 deletions(-)
 
+diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
+index a0ffac0..219d6f1 100644
+--- a/Documentation/feature-removal-schedule.txt
++++ b/Documentation/feature-removal-schedule.txt
+@@ -524,3 +524,14 @@ Files:	arch/arm/mach-at91/at91cap9.c
+ Why:	The code is not actively maintained and platforms are now hard to find.
+ Who:	Nicolas Ferre <nicolas.ferre@atmel.com>
+ 	Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
++
++----------------------------
++
++What:	Intel GMA500 Stub Driver
++When:	December 2012
++Why:	In v3.3, the gma500 drm driver moved from staging to drm group by
++	Alan Cox's 3abcf41fb patch. the gma500 drm driver should control
++	brightness well and don't need gma500 stub driver anymore.
++
++	So, my plan is remove gma500 stub driver at Dec. 2012.
++Who:	Lee, Chun-Yi <jlee@novell.com>
 -- 
-Jesper Juhl <jj@chaosbits.net>       http://www.chaosbits.net/
-Don't top-post http://www.catb.org/jargon/html/T/top-post.html
-Plain text mails only, please.
+1.6.0.2
+
