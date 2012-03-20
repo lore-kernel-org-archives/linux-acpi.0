@@ -1,100 +1,90 @@
-From: Corentin Chary <corentin.chary@gmail.com>
-Subject: [PATCH 01/14] ACPI / Video: blacklist some samsung laptops
-Date: Tue, 20 Mar 2012 09:53:01 +0100
-Message-ID: <1332233594-13099-2-git-send-email-corentin.chary@gmail.com>
-References: <1332233594-13099-1-git-send-email-corentin.chary@gmail.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC PATCH 1/4] usb: add struct usb_hub_port to store port
+ related members.
+Date: Tue, 20 Mar 2012 10:04:09 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1203200957260.3013-100000@netrider.rowland.org>
+References: <4F6820B1.6070004@intel.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp5.tech.numericable.fr ([82.216.111.41]:38739 "EHLO
-	smtp5.tech.numericable.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758094Ab2CTIxY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Mar 2012 04:53:24 -0400
-In-Reply-To: <1332233594-13099-1-git-send-email-corentin.chary@gmail.com>
+Received: from netrider.rowland.org ([192.131.102.5]:57090 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1758266Ab2CTOEK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Mar 2012 10:04:10 -0400
+In-Reply-To: <4F6820B1.6070004@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg@redhat.com>
-Cc: platform-driver-x86@vger.kernel.org, Corentin Chary <corentincj@iksaif.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: lenb@kernel.org, gregkh@linuxfoundation.org, linux-acpi@vger.kernel.org, mjg@redhat.com, linux-usb@vger.kernel.org, sarah.a.sharp@intel.com
 
-From: Corentin Chary <corentincj@iksaif.net>
+On Tue, 20 Mar 2012, Lan Tianyu wrote:
 
-On these laptops, the ACPI video is not functional, and very unlikely
-to be fixed by the vendor. Note that intel_backlight works for some
-of these laptops, and the backlight from samsung-laptop always work.
+> On 2012=E5=B9=B403=E6=9C=8820=E6=97=A5 00:04, Alan Stern wrote:
+> > On Mon, 19 Mar 2012, Lan Tianyu wrote:
+> >
+> >> Add struct usb_hub_port pointer port_data in the struct usb_hub an=
+d allocate
+> >> struct usb_hub_port perspectively for each ports to store private =
+data.
+> >
+> > You might as well add the child device pointer into your new data
+> > structure.  This will require changes to at least three other files=
+ in
+> > addition to hub.c:
+> hi alan:
+> 	Great thanks for your review.
+> 	But I still confuse about "You might as well add the child device po=
+inter
+> into your new data structure." Could you help me to make it clear? :)
+> 	Do you mean add struct usb_device pointer toward the device attached=
+ to the=20
+> port in the
+> struct usb_hub_port? If yes,Why?
 
-The good news is that newer laptops have functional ACPI video device
-and won't end up growing this list.
+Yes, that's what I mean.  It's a natural thing to do; the child device=20
+is directly associated with the port.  It's better than allocating a=20
+separate array for hdev->children.
 
-Signed-off-by: Corentin Chary <corentincj@iksaif.net>
----
- drivers/acpi/video_detect.c |   49 +++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 49 insertions(+), 0 deletions(-)
+> > 	devices.c, host/r8a66597-hcd.c,
+> > 	drivers/staging/usbip/usbip_common.c
+> >
+> > Maybe some others; I didn't look through the entire kernel source. =
+ It
+> > also means you will have to export a function to get a pointer to t=
+he
+> > child device, given the port number.
+> 	If it was necessary, could I fill the child pointer in the=20
+> hub_port_connect_change()? just
+> after a new usb device being created.
+>=20
+> static void hub_port_connect_change(struct usb_hub *hub, int port1,
+> 					u16 portstatus, u16 portchange) {
+> 		...
+> 		/* Run it through the hoops (find a driver, etc) */
+> 		if (!status) {
+> 			status =3D usb_new_device(udev);
+> 			if (status) {
+> 				spin_lock_irq(&device_state_lock);
+> 				hdev->children[port1-1] =3D NULL;
+> 				spin_unlock_irq(&device_state_lock);
+> 			}
+> 			/* like here?*/
+> 		}
+> 		...
+> }
 
-diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index 45d8097..66be45e 100644
---- a/drivers/acpi/video_detect.c
-+++ b/drivers/acpi/video_detect.c
-@@ -132,6 +132,53 @@ find_video(acpi_handle handle, u32 lvl, void *context, void **rv)
- 	return AE_OK;
- }
- 
-+/* Force to use vendor driver when the ACPI device is known to be
-+ * buggy */
-+static int video_detect_force_vendor(const struct dmi_system_id *d)
-+{
-+	acpi_video_support |= ACPI_VIDEO_BACKLIGHT_DMI_VENDOR;
-+	return 0;
-+}
-+
-+static struct dmi_system_id video_detect_dmi_table[] = {
-+	{
-+	 .callback = video_detect_force_vendor,
-+	 .ident = "N150P",
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "N150P"),
-+		DMI_MATCH(DMI_BOARD_NAME, "N150P"),
-+		},
-+	},
-+	{
-+	 .callback = video_detect_force_vendor,
-+	 .ident = "N145P/N250P/N260P",
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "N145P/N250P/N260P"),
-+		DMI_MATCH(DMI_BOARD_NAME, "N145P/N250P/N260P"),
-+		},
-+	},
-+	{
-+	 .callback = video_detect_force_vendor,
-+	 .ident = "N150/N210/N220",
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "N150/N210/N220"),
-+		DMI_MATCH(DMI_BOARD_NAME, "N150/N210/N220"),
-+		},
-+	},
-+	{
-+	 .callback = video_detect_force_vendor,
-+	 .ident = "NF110/NF210/NF310",
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "NF110/NF210/NF310"),
-+		DMI_MATCH(DMI_BOARD_NAME, "NF110/NF210/NF310"),
-+		},
-+	},
-+};
-+
- /*
-  * Returns the video capabilities of a specific ACPI graphics device
-  *
-@@ -164,6 +211,8 @@ long acpi_video_get_capabilities(acpi_handle graphics_handle)
- 		 *		ACPI_VIDEO_BACKLIGHT_DMI_VENDOR;
- 		 *}
- 		 */
-+
-+		dmi_check_system(video_detect_dmi_table);
- 	} else {
- 		status = acpi_bus_get_device(graphics_handle, &tmp_dev);
- 		if (ACPI_FAILURE(status)) {
--- 
-1.7.3.4
+That's the right idea, but the wrong place.  The right place to fill=20
+in the pointer is a few lines higher, where the code already does
 
+			hdev->children[port1-1] =3D udev;
+
+while holding the device_state_lock.
+
+Alan Stern
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
