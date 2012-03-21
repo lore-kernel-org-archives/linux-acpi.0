@@ -1,47 +1,33 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [PATCH] thermal: Fix for setting the thermal zone
- mode to enable/disable
-Date: Wed, 21 Mar 2012 16:27:57 +0100
-Message-ID: <20120321162757.527f87e2@endymion.delvare>
-References: <1332328201-21191-1-git-send-email-amit.kachhap@linaro.org>
-	<20120321151357.53fb86e4@endymion.delvare>
-	<CAMuHMdUFh=kRJFGP3sxHCqERSVcrWGD40iYzhrFMRxDNFvounA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <CAMuHMdUFh=kRJFGP3sxHCqERSVcrWGD40iYzhrFMRxDNFvounA@mail.gmail.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: linaro-dev@lists.linaro.org, patches@linaro.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org
+From: Jiang Liu <liuj97@gmail.com>
+Subject: [PATCH 0/3]  Enhance pci_root.c to better support PCI root bus hotplug
+Date: Thu, 22 Mar 2012 00:22:34 +0800
+Message-ID: <1332346957-10070-1-git-send-email-jiang.liu@huawei.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:59959 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759607Ab2CUQZO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Mar 2012 12:25:14 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>, Len Brown <lenb@kernel.org>
+Cc: Jiang Liu <jiang.liu@huawei.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Bjorn Helgaas <bhelgaas@google.com>, Ashok Raj <ashok.raj@intel.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, chenkeping@huawei.com
 
-On Wed, 21 Mar 2012 16:14:46 +0100, Geert Uytterhoeven wrote:
-> On Wed, Mar 21, 2012 at 15:13, Jean Delvare <khali@linux-fr.org> wrote:
-> > On Wed, 21 Mar 2012 16:40:01 +0530, Amit Daniel Kachhap wrote:
-> >> Basically without this patch changing the mode of thermal zone
-> >> is not possible as wrong string size is passed to strncmp.
-> >
-> > Actually it is possible,
-> > $ echo -n disabled > mode
-> > works fine. But it fails without the -n, your patch would fix that.
-> 
-> Now it ignores any extra characters. Are they always newlines?
-> 
-> Now "echo -n disabledx > mode" will also "succeed".
+This series of patches is based on Yinghai's work on PCI root bus hotplug,
+which enhance the pci_root.c to better support PCI root bus hotplug.
+It applies to
+	93c6c6b PCI: Add /sys/bus/pci/rescan_root
+at
+	git://git.kernel.org/pub/scm/linux/kernel/git/yinghai/linux-yinghai.git for-pci-root-bus-hotplug
 
-I guess this is considered good enough in practice, although I also
-don't like this use of strncmp. I'd prefer \n to be properly converted
-to \0 (by the sysfs layer itself) so that strict string comparisons can
-be done. I don't have the time to push this though, sorry.
+Jiang Liu (3):
+  ACPI,PCI: Notify acpi_pci_drivers when hot-plugging PCI root bridges
+  ACPI,PCI: protect global lists in drivers/acpi/pci_root.c
+  ACPI,PCI: Use normal list for struct acpi_pci_driver
+
+ drivers/acpi/pci_root.c |  111 +++++++++++++++++++++++++++--------------------
+ include/linux/acpi.h    |    2 +-
+ 2 files changed, 65 insertions(+), 48 deletions(-)
 
 -- 
-Jean Delvare
+1.7.5.4
+
