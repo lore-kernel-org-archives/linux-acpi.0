@@ -1,152 +1,60 @@
-From: joeyli <jlee@suse.com>
-Subject: Re: Fwd: Brightness on HP EliteBook 8460p
-Date: Wed, 21 Mar 2012 12:16:31 +0800
-Message-ID: <1332303391.10557.391.camel@linux-s257.site>
-References: <4F2E8FE40200002300007D85@novprvlin0050.provo.novell.com>
-	 <1631921.mapqS8Vd5c@pali>
+From: Aaron Lu <aaron.lu@amd.com>
+Subject: Re: [RFC PATCH v2 5/8] libata-acpi: add ata port runtime D3Cold
+ support
+Date: Wed, 21 Mar 2012 12:48:06 +0800
+Message-ID: <20120321044806.GA6910@localhost.amd.com>
+References: <1330592577-16546-1-git-send-email-ming.m.lin@intel.com>
+ <1330592577-16546-6-git-send-email-ming.m.lin@intel.com>
+ <20120319033616.GA32695@localhost.amd.com>
+ <1332134820.17875.17.camel@minggr>
+ <20120319063544.GA2707@localhost.amd.com>
+ <1332140620.17875.35.camel@minggr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <1631921.mapqS8Vd5c@pali>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, Artur Flinta <aflinta@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-ide-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1332140620.17875.35.camel@minggr>
+Sender: linux-ide-owner@vger.kernel.org
+To: Lin Ming <ming.m.lin@intel.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, Jeff Garzik <jgarzik@pobox.com>, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tejun Heo <tj@kernel.org>, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, linux-scsi@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-=E6=96=BC =E4=BA=8C=EF=BC=8C2012-03-20 =E6=96=BC 23:03 +0100=EF=BC=8CPa=
-li Roh=C3=A1r =E6=8F=90=E5=88=B0=EF=BC=9A
-> >=20
-> > Another doubt is the latest statement in _BCM, it emit a BEVT event=
-:
-> >=20
-> > Signal (\_SB.BEVT)
-> >=20
-> > Only HKFR(HotkeyFunctionResponse) method is waiting this event, it
-> > should related to how the HP implement brightness function key on
-> > Windows through wmi.
-> >=20
-> > Of course this issue really close related to video driver, even
-> > more, we might need to know hp wmi for how to implement on Windows.
-> >=20
-> > Unfortunately, sorry for I don't have any solution to you, now, I
-> > will continue to trace and find any support from other experts.
-> >=20
-> >=20
-> > Thanks a lot!
-> > Joey Lee
->=20
-> Hi!
->=20
-> now I found that ALS button which enable/disable ambient light sensor=
-=20
-> working with linux and ALS can also decrease/increase brightness.
->=20
-> ALS can be enabled or disabled via WMI (acpi) on linux too. I found=20
-> function which enable ALS in linux kernel. See source code of functio=
-n=20
-> set_als in hp-wmi.c: http://tomoyo.sourceforge.jp/cgi-
-> bin/lxr/source/drivers/platform/x86/hp-wmi.c#L443
->=20
-> This function can enable ALS which can decrease brightness (but only=20
-> to specific one level) via WMI. And WMI is ACPI extension, so maybe i=
-t=20
-> is really possible to change brightness via acpi without DRI support.
->=20
-> But I do not WMI, ACPI and DSDT code. Can you try to decode what is=20
-> called in acpi when that set_als function in hp-wmi is called? I thin=
-k=20
-> here in acpi can be some magic which can manipulate with display=20
-> brightness. At least ACPI must call somewhat to change brightness...
->=20
-> Note: Enabling ALS on my notebook change brightness to some specific=20
-> level and disabling ALS will revert brightness back. From userspace=20
-> ALS can be enabled/disabled via this sysfs entry:=20
-> /sys/devices/platform/hp-wmi/als
->=20
-> --=20
-> Pali Roh=C3=A1r
-> pali.rohar@gmail.com
+On Mon, Mar 19, 2012 at 03:03:40PM +0800, Lin Ming wrote:
+> > 
+> > Sorry I didn't make it clear.
+> > The problem here is, we are going to set the device power state to D3
+> > cold, and current OSPM has no support for it.
+> > 
+> > Another patch of yours solved this problem by defining:
+> > 1 Device supports D3 cold if it has _PR3;
+> > 2 For a device to be put to D3 cold, power off all the power resources
+> > referenced in its _PR3.
+> > 
+> > Since this can't work for AMD's platform(there is no _PR3 for the sata
+> > acpi device), I would like to change this a little bit:
+> > 1 Device supports D3 cold if it has _PR3 or _PS3;
+> 
+> _PS3 may only mean D3Hot support for other device.
+> 
+> You mentioned that AMD platform defined a special device, named ODDZ.
+> 
+> How about device supports D3 cold if
+> 
+> _PR3 or (is ODDZ and ODDZ._PS3)?
 
-Traced the your dsdt from 8460p.
+Sounds good, I'll do this, thanks.
 
-Let's see "set ALS" first, when set ALS enable, BIOS didn't _eat_ any
-input value for brightness level:
+> 
+> > 2 For a device to be put to D3 cold, execute _PS3 first if available and
+> > then deal with _PR3 as above.
+> 
+> __acpi_bus_set_power(...) has done this.
+> 
+
+Actually not, current implementation of __acpi_bus_set_power will call
+_PS4 ;-)
+I'll need to think of a way to handle the D3 cold case.
+
+-Aaron
 
 
-    Method (WHCM, 2, NotSerialized)
-    {
-        CreateDWordField (Arg1, 0x00, SNIN)     /* signature */
-        CreateDWordField (Arg1, 0x04, COMD)     /* command =3D write ? =
-0x2 : 0x1 */
-        CreateDWordField (Arg1, 0x08, CMTP)     /* commandtype */
-        CreateDWordField (Arg1, 0x0C, DASI)
-        Store ("HandleWMICommand Enter", Debug)
-=2E..
-    If (LEqual (COMD, 0x02))            /* command write */
-    {
-        Store ("write BIOS command", Debug)
-=2E...
-        If (LEqual (CMTP, 0x03))        /* write HPWMI_ALS_QUERY 0x3 */
-        {
-            Store (^WSAL (DDWD), Local2)  /* call ^WSAL and feed DDWD *=
-/
-            Store (0x00, RTCD)
-        }
-
-
-            Method (WSAL, 1, NotSerialized)     /* write HPWMI_ALS_QUER=
-Y 0x3 */
-            {
-                If (LEqual (PRDT, 0x03))=20
-                {
-                    Return (Package (0x02)
-                    {
-                        0x04,
-                        0x00
-                    })
-                }
-
-                \_SB.SSMI (0xEA75, 0x02, 0x03, 0x574D4953, 0x00)   /* e=
-mit SMI, BIOS code take job but didn't feed Arg0 to BIOS */
-                Return (WFDA ())
-            }
-
-Everything handle by BIOS function after emit SMI event, and it didn't
-give BIOS any input value of brightness.
-So, didn't find any way to change brightness through set ALS.
-
-
-Then, I found another interesting command for 'write brightness', hp-wm=
-i
-doesn't have implementation for this command:=20
-
-        If (LEqual (CMTP, 0x06))        /* set brightness? */
-        {
-            Store ("write Brightness", Debug)
-            Store (^SBBC (DDWD), Local2)	/* call DDWD */
-            Store (Local2, Debug)
-            Store (0x00, RTCD)
-        }
-
-            Method (SBBC, 1, NotSerialized)     /* write brighenss? did=
-n't do anything? */
-            {
-                Return (Package (0x02)		/* just only return a package *=
-/
-                {
-                    0x04,
-                    0x00
-                })
-            }
-
-
-Unfortunately, the 0x06 command also doesn't do anything for change
-brightness on your machine.
-
-Sorry! Didn't find any way can change brightness on your machine unless
-we have drm driver support ATI acpi events.
-
-
-Thanks a lot!
-Joey Lee
