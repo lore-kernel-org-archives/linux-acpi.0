@@ -1,59 +1,43 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [PATCH] thermal: Fix for setting the thermal zone mode to
- enable/disable
-Date: Wed, 21 Mar 2012 15:13:57 +0100
-Message-ID: <20120321151357.53fb86e4@endymion.delvare>
-References: <1332328201-21191-1-git-send-email-amit.kachhap@linaro.org>
+From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Subject: Re: [RFC PATCH 1/4] usb: add struct usb_hub_port to store port
+ related members.
+Date: Wed, 21 Mar 2012 10:38:47 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1203211038200.1369-100000@iolanthe.rowland.org>
+References: <4F699725.3080404@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from zoneX.GCU-Squad.org ([194.213.125.0]:12644 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030828Ab2CUOOK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Mar 2012 10:14:10 -0400
-In-Reply-To: <1332328201-21191-1-git-send-email-amit.kachhap@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4F699725.3080404-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mjg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sarah.a.sharp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Amit Daniel Kachhap <amit.kachhap@linaro.org>
-Cc: linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org, linaro-dev@lists.linaro.org, patches@linaro.org
 
-On Wed, 21 Mar 2012 16:40:01 +0530, Amit Daniel Kachhap wrote:
-> Basically without this patch changing the mode of thermal zone
-> is not possible as wrong string size is passed to strncmp.
+On Wed, 21 Mar 2012, Lan Tianyu wrote:
 
-Actually it is possible,
-$ echo -n disabled > mode
-works fine. But it fails without the -n, your patch would fix that.
+> >> hi alan:
+> >> 	Great thanks for your review.
+> >> 	But I still confuse about "You might as well add the child device pointer
+> >> into your new data structure." Could you help me to make it clear? :)
+> >> 	Do you mean add struct usb_device pointer toward the device attached to the
+> >> port in the
+> >> struct usb_hub_port? If yes,Why?
+> >
+> > Yes, that's what I mean.  It's a natural thing to do; the child device
+> > is directly associated with the port.  It's better than allocating a
+> > separate array for hdev->children.
+> OK. That' mean that I should replace the hdev->children with 
+> port_data->child_device.
+> In the hub.c, the struct usb_hub_port can be visited and the child_device can be 
+> accessed
+> directly. Out of hub.c, I should provide function to return child pointer. Is 
+> that right?
 
-Acked-by: Jean Delvare <khali@linux-fr.org>
+Right.
 
-Note that a quick grep suggests that drivers/misc/ad525x_dpot.c,
-security/selinux/hooks.c and arch/m68k/sun3/prom/console.c suffer from
-the same issue, if you want to fix them too.
+Alan Stern
 
-> Signed-off-by: Amit Daniel Kachhap <amit.kachhap@linaro.org>
-> ---
->  drivers/thermal/thermal_sys.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
-> index 220ce7e..96da1af 100644
-> --- a/drivers/thermal/thermal_sys.c
-> +++ b/drivers/thermal/thermal_sys.c
-> @@ -152,9 +152,9 @@ mode_store(struct device *dev, struct device_attribute *attr,
->  	if (!tz->ops->set_mode)
->  		return -EPERM;
->  
-> -	if (!strncmp(buf, "enabled", sizeof("enabled")))
-> +	if (!strncmp(buf, "enabled", sizeof("enabled") - 1))
->  		result = tz->ops->set_mode(tz, THERMAL_DEVICE_ENABLED);
-> -	else if (!strncmp(buf, "disabled", sizeof("disabled")))
-> +	else if (!strncmp(buf, "disabled", sizeof("disabled") - 1))
->  		result = tz->ops->set_mode(tz, THERMAL_DEVICE_DISABLED);
->  	else
->  		result = -EINVAL;
-
-
--- 
-Jean Delvare
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
