@@ -1,33 +1,79 @@
 From: Jiang Liu <liuj97@gmail.com>
-Subject: [PATCH 0/3]  Enhance pci_root.c to better support PCI root bus hotplug
-Date: Thu, 22 Mar 2012 00:22:34 +0800
-Message-ID: <1332346957-10070-1-git-send-email-jiang.liu@huawei.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:59959 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759607Ab2CUQZO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Mar 2012 12:25:14 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH 1/3] ACPI,PCI: Use normal list for struct acpi_pci_driver
+Date: Thu, 22 Mar 2012 00:22:35 +0800
+Message-ID: <1332346957-10070-2-git-send-email-jiang.liu@huawei.com>
+References: <1332346957-10070-1-git-send-email-jiang.liu@huawei.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1332346957-10070-1-git-send-email-jiang.liu@huawei.com>
+Sender: linux-pci-owner@vger.kernel.org
 To: Yinghai Lu <yinghai@kernel.org>, Len Brown <lenb@kernel.org>
-Cc: Jiang Liu <jiang.liu@huawei.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Bjorn Helgaas <bhelgaas@google.com>, Ashok Raj <ashok.raj@intel.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, chenkeping@huawei.com
+Cc: Liu Jiang <jiang.liu@huawei.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Bjorn Helgaas <bhelgaas@google.com>, Ashok Raj <ashok.raj@intel.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, chenkeping@huawei.com
+List-Id: linux-acpi@vger.kernel.org
 
-This series of patches is based on Yinghai's work on PCI root bus hotplug,
-which enhance the pci_root.c to better support PCI root bus hotplug.
-It applies to
-	93c6c6b PCI: Add /sys/bus/pci/rescan_root
-at
-	git://git.kernel.org/pub/scm/linux/kernel/git/yinghai/linux-yinghai.git for-pci-root-bus-hotplug
+From: Liu Jiang <jiang.liu@huawei.com>
 
-Jiang Liu (3):
-  ACPI,PCI: Notify acpi_pci_drivers when hot-plugging PCI root bridges
-  ACPI,PCI: protect global lists in drivers/acpi/pci_root.c
-  ACPI,PCI: Use normal list for struct acpi_pci_driver
+Use normal list for struct acpi_pci_driver to simplify code.
 
- drivers/acpi/pci_root.c |  111 +++++++++++++++++++++++++++--------------------
+Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+---
+ drivers/acpi/pci_root.c |   16 +++-------------
  include/linux/acpi.h    |    2 +-
- 2 files changed, 65 insertions(+), 48 deletions(-)
+ 2 files changed, 4 insertions(+), 14 deletions(-)
 
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index b38e347..c2d2b7b 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -72,8 +72,8 @@ static struct acpi_driver acpi_pci_root_driver = {
+ };
+ 
+ static LIST_HEAD(acpi_pci_roots);
++static LIST_HEAD(acpi_pci_drivers);
+ 
+-static struct acpi_pci_driver *sub_driver;
+ static DEFINE_MUTEX(osc_lock);
+ 
+ int acpi_pci_register_driver(struct acpi_pci_driver *driver)
+@@ -81,10 +81,7 @@ int acpi_pci_register_driver(struct acpi_pci_driver *driver)
+ 	int n = 0;
+ 	struct acpi_pci_root *root;
+ 
+-	struct acpi_pci_driver **pptr = &sub_driver;
+-	while (*pptr)
+-		pptr = &(*pptr)->next;
+-	*pptr = driver;
++	list_add_tail(&driver->node, &acpi_pci_drivers);
+ 
+ 	if (!driver->add)
+ 		return 0;
+@@ -103,14 +100,7 @@ void acpi_pci_unregister_driver(struct acpi_pci_driver *driver)
+ {
+ 	struct acpi_pci_root *root;
+ 
+-	struct acpi_pci_driver **pptr = &sub_driver;
+-	while (*pptr) {
+-		if (*pptr == driver)
+-			break;
+-		pptr = &(*pptr)->next;
+-	}
+-	BUG_ON(!*pptr);
+-	*pptr = (*pptr)->next;
++	list_del(&driver->node);
+ 
+ 	if (!driver->remove)
+ 		return;
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 3f96866..efcc6c4 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -138,7 +138,7 @@ void acpi_penalize_isa_irq(int irq, int active);
+ void acpi_pci_irq_disable (struct pci_dev *dev);
+ 
+ struct acpi_pci_driver {
+-	struct acpi_pci_driver *next;
++	struct list_head node;
+ 	int (*add)(acpi_handle handle);
+ 	void (*remove)(acpi_handle handle);
+ };
 -- 
 1.7.5.4
-
