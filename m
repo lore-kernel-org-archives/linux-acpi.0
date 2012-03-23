@@ -1,170 +1,158 @@
 From: Jiang Liu <liuj97@gmail.com>
-Subject: [RFC PATCH 03/11] PCI: clean up root bridge related logic in acpiphp driver
-Date: Fri, 23 Mar 2012 22:58:19 +0800
-Message-ID: <1332514707-9673-4-git-send-email-jiang.liu@huawei.com>
+Subject: [RFC PATCH 06/11] ACPI,PCI: update ACPI<->PCI binding information when pci hotplug event happens
+Date: Fri, 23 Mar 2012 22:58:22 +0800
+Message-ID: <1332514707-9673-7-git-send-email-jiang.liu@huawei.com>
 References: <1332514707-9673-1-git-send-email-jiang.liu@huawei.com>
 Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1332514707-9673-1-git-send-email-jiang.liu@huawei.com>
 Sender: linux-pci-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>
+To: Yinghai Lu <yinghai@kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>
 Cc: Jiang Liu <jiang.liu@huawei.com>, Bjorn Helgaas <bhelgaas@google.com>, Ashok Raj <ashok.raj@intel.com>, Jiang Liu <liuj97@gmail.com>, Keping Chen <chenkeping@huawei.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Changeset
-4f30793 PCI, acpiphp: Separate out hot-add support of pci host bridge
-tries to remove all PCI host bridge related code from acpiphp driver.
-There's still some code for PCI host bridge hotplug left in
-acpiphp_glue.c, clean it up.
+When PCI hotplug event happens, the ACPI<->PCI binding relationship should be
+updated. Otherwise the binding relationship may become stale and cause invalid
+data access or wrong searching results. For example, thinking about following
+sequences:
+1. Function acpi_pci_bind() installs an ACPI PME event hanlder for the original
+   PCI device (orig_device).
+2. The orignal PCI device is replaced by a new PCI device, so orig_device
+   destroyed and a new_device created.
+3. The new PCI device triggers an ACPI PME event.
+4. The registered PME event handle pci_acpi_wake_dev() still tries to access
+   the orig_device, which may have already been released now.
+5. Invalid memory access or event memory corruption.
+
+The solution here is to update the binding relationship when PCI hotplug
+event happens.
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
 ---
- drivers/pci/hotplug/acpiphp_glue.c |   89 ++----------------------------------
- 1 files changed, 4 insertions(+), 85 deletions(-)
+ drivers/acpi/pci_bind.c |  115 +++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 115 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
-index 11155ef..003a6d5 100644
---- a/drivers/pci/hotplug/acpiphp_glue.c
-+++ b/drivers/pci/hotplug/acpiphp_glue.c
-@@ -1040,67 +1040,9 @@ static void acpiphp_sanitize_bus(struct pci_bus *bus)
- 	}
+diff --git a/drivers/acpi/pci_bind.c b/drivers/acpi/pci_bind.c
+index 2ef0409..1dd6379 100644
+--- a/drivers/acpi/pci_bind.c
++++ b/drivers/acpi/pci_bind.c
+@@ -118,3 +118,118 @@ int acpi_pci_bind_root(struct acpi_device *device)
+ 
+ 	return 0;
  }
- 
--/* Program resources in newly inserted bridge */
--static int acpiphp_configure_bridge (acpi_handle handle)
--{
--	struct pci_bus *bus;
--	struct pci_dev *pdev = acpi_get_pci_dev(handle);
--
--	bus = pdev->subordinate;
--	pci_dev_put(pdev);
--
--	pci_bus_size_bridges(bus);
--	pci_bus_assign_resources(bus);
--	acpiphp_sanitize_bus(bus);
--	acpiphp_set_hpp_values(bus);
--	pci_enable_bridges(bus);
--	return 0;
--}
--
--static void handle_bridge_insertion(acpi_handle handle, u32 type)
--{
--	struct acpi_device *device, *pdevice;
--	acpi_handle phandle;
--
--	if ((type != ACPI_NOTIFY_BUS_CHECK) &&
--			(type != ACPI_NOTIFY_DEVICE_CHECK)) {
--		err("unexpected notification type %d\n", type);
--		return;
--	}
--
--	acpi_get_parent(handle, &phandle);
--	if (acpi_bus_get_device(phandle, &pdevice)) {
--		dbg("no parent device, assuming NULL\n");
--		pdevice = NULL;
--	}
--	if (acpi_bus_add(&device, pdevice, handle, ACPI_BUS_TYPE_DEVICE)) {
--		err("cannot add bridge to acpi list\n");
--		return;
--	}
--	if (!acpiphp_configure_bridge(handle) &&
--		!acpi_bus_start(device))
--		add_bridge(handle);
--	else
--		err("cannot configure and start bridge\n");
--
--}
--
- /*
-  * ACPI event handlers
-  */
--
--static acpi_status
--count_sub_bridges(acpi_handle handle, u32 lvl, void *context, void **rv)
--{
--	int *count = (int *)context;
--	struct acpiphp_bridge *bridge;
--
--	bridge = acpiphp_handle_to_bridge(handle);
--	if (bridge)
--		(*count)++;
--	return AE_OK ;
--}
--
- static acpi_status
- check_sub_bridges(acpi_handle handle, u32 lvl, void *context, void **rv)
- {
-@@ -1125,8 +1067,6 @@ static void _handle_hotplug_event_bridge(struct work_struct *work)
- 	char objname[64];
- 	struct acpi_buffer buffer = { .length = sizeof(objname),
- 				      .pointer = objname };
--	struct acpi_device *device;
--	int num_sub_bridges = 0;
- 	struct acpi_hp_work *hp_work;
- 	acpi_handle handle;
- 	u32 type;
-@@ -1134,23 +1074,7 @@ static void _handle_hotplug_event_bridge(struct work_struct *work)
- 	hp_work = container_of(work, struct acpi_hp_work, work);
- 	handle = hp_work->handle;
- 	type = hp_work->type;
--
--	if (acpi_bus_get_device(handle, &device)) {
--		/* This bridge must have just been physically inserted */
--		handle_bridge_insertion(handle, type);
--		goto out;
--	}
--
--	bridge = acpiphp_handle_to_bridge(handle);
--	if (type == ACPI_NOTIFY_BUS_CHECK) {
--		acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, ACPI_UINT32_MAX,
--			count_sub_bridges, NULL, &num_sub_bridges, NULL);
--	}
--
--	if (!bridge && !num_sub_bridges) {
--		err("cannot get bridge info\n");
--		goto out;
--	}
-+	bridge = (struct acpiphp_bridge *)hp_work->context;
- 
- 	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
- 
-@@ -1163,9 +1087,8 @@ static void _handle_hotplug_event_bridge(struct work_struct *work)
- 				__func__, objname);
- 			acpiphp_check_bridge(bridge);
- 		}
--		if (num_sub_bridges)
--			acpi_walk_namespace(ACPI_TYPE_DEVICE, handle,
--				ACPI_UINT32_MAX, check_sub_bridges, NULL, NULL, NULL);
-+		acpi_walk_namespace(ACPI_TYPE_DEVICE, handle,
-+			ACPI_UINT32_MAX, check_sub_bridges, NULL, NULL, NULL);
- 		break;
- 
- 	case ACPI_NOTIFY_DEVICE_CHECK:
-@@ -1210,7 +1133,6 @@ static void _handle_hotplug_event_bridge(struct work_struct *work)
- 		break;
- 	}
- 
--out:
- 	kfree(hp_work); /* allocated in handle_hotplug_event_bridge */
- }
- 
-@@ -1245,17 +1167,14 @@ static void _handle_hotplug_event_func(struct work_struct *work)
- 	struct acpi_hp_work *hp_work;
- 	acpi_handle handle;
- 	u32 type;
--	void *context;
- 
- 	hp_work = container_of(work, struct acpi_hp_work, work);
- 	handle = hp_work->handle;
- 	type = hp_work->type;
--	context = hp_work->context;
-+	func = (struct acpiphp_func *)hp_work->context;
- 
- 	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
- 
--	func = (struct acpiphp_func *)context;
--
- 	switch (type) {
- 	case ACPI_NOTIFY_BUS_CHECK:
- 		/* bus re-enumerate */
++
++static struct acpi_device *
++acpi_pci_bind_notify_check(struct pci_dev *pci_dev)
++{
++	acpi_handle handle;
++	struct acpi_device *device;
++
++	handle = DEVICE_ACPI_HANDLE(&pci_dev->dev);
++	if (handle == NULL || acpi_bus_get_device(handle, &device))
++		return NULL;
++
++	if (device && device->parent && device->parent->ops.bind) 
++		return device;
++
++	return NULL;
++}
++
++static void acpi_pci_bind_notify_dev_add(struct pci_dev *pci_dev)
++{
++	struct acpi_device *device;
++
++	device = acpi_pci_bind_notify_check(pci_dev);
++	if (device) {
++		pci_acpi_add_pm_notifier(device, pci_dev);
++		if (device->wakeup.flags.run_wake)
++			device_set_run_wake(&pci_dev->dev, true);
++	}
++}
++
++static void acpi_pci_bind_notify_dev_remove(struct pci_dev *pci_dev)
++{
++	struct acpi_device *device;
++
++	device = acpi_pci_bind_notify_check(pci_dev);
++	if (device) {
++		device_set_run_wake(&pci_dev->dev, false);
++		pci_acpi_remove_pm_notifier(device);
++	}
++}
++
++static void acpi_pci_bind_notify_bus_add(struct pci_bus *bus)
++{
++	acpi_handle handle;
++	struct acpi_device *device;
++
++	/* Skip root buses */
++	if (!bus->self)
++		return;
++
++	device = acpi_pci_bind_notify_check(bus->self);
++	if (device) {
++		/*
++		 * Install the 'bind' function to facilitate callbacks for
++		 * children of the P2P bridge.
++		 */
++		device->ops.bind = acpi_pci_bind;
++		device->ops.unbind = acpi_pci_unbind;
++
++		/* Evaluate and parse _PRT, if exists. */
++		if (ACPI_SUCCESS(acpi_get_handle(device->handle,
++						 METHOD_NAME__PRT, &handle)))
++			acpi_pci_irq_add_prt(device->handle, bus);
++	}
++}
++
++static void acpi_pci_bind_notify_bus_remove(struct pci_bus *bus)
++{
++	struct acpi_device *device;
++
++	/* Skip root buses */
++	if (!bus->self)
++		return;
++
++	device = acpi_pci_bind_notify_check(bus->self);
++	if (device) {
++		acpi_pci_irq_del_prt(bus);
++
++		device->ops.bind = NULL;
++		device->ops.unbind = NULL;
++	}
++}
++
++static int acpi_pci_bind_notify_fn(struct notifier_block *nb,
++				   unsigned long event, void *data)
++{
++	switch (event) {
++	case PCI_HP_EVENT_DEV_ADD:
++		acpi_pci_bind_notify_dev_add(data);
++		break;
++	case PCI_HP_EVENT_DEV_REMOVE:
++		acpi_pci_bind_notify_dev_remove(data);
++		break;
++	case PCI_HP_EVENT_BUS_ADD:
++		acpi_pci_bind_notify_bus_add(data);
++		break;
++	case PCI_HP_EVENT_BUS_REMOVE:
++		acpi_pci_bind_notify_bus_remove(data);
++		break;
++	default:
++		return NOTIFY_DONE;
++	}
++
++	return NOTIFY_OK;
++}
++
++static struct notifier_block acpi_pci_bind_notifier = {
++	.notifier_call = &acpi_pci_bind_notify_fn,
++};
++
++static int __init acpi_pci_bind_init(void)
++{
++	return pci_register_hotplug_notifier(&acpi_pci_bind_notifier);
++}
++
++subsys_initcall(acpi_pci_bind_init);
 -- 
 1.7.5.4
