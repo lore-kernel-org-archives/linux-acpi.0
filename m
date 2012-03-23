@@ -1,24 +1,31 @@
-From: Talent Management UK <info@talentmanagement.co.uk>
-Subject: Billboard Advert
-Date: Fri, 23 Mar 2012 16:54:06 +0100
-Message-ID: <86d19721a52e8fff10caf9d181b95c21@www.folienschmiede.wmw.cc>
-Reply-To: talentmanagement.uk@photographer.net
+From: "H. Peter Anvin" <hpa@zytor.com>
+Subject: Re: [PATCH] ACPI: Implement overriding of arbitrary ACPI tables via
+ initrd
+Date: Fri, 23 Mar 2012 13:05:46 -0700
+Message-ID: <4F6CD79A.8020805@zytor.com>
+References: <1332512984-79664-1-git-send-email-trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 77-75-17-22.rz01.sysup.at ([77.75.17.22]:46666 "EHLO
-	dagobert.wmw.cc" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758856Ab2CWPzI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Mar 2012 11:55:08 -0400
+Received: from terminus.zytor.com ([198.137.202.10]:56990 "EHLO mail.zytor.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757872Ab2CWUGT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 23 Mar 2012 16:06:19 -0400
+In-Reply-To: <1332512984-79664-1-git-send-email-trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: eric.piel@tremplin-utc.net, vojcek@tlen.pl, dsdt@gaugusch.at, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org, Lin Ming <ming.m.lin@intel.com>, lenb@kernel.org, robert.moore@intel.com
 
-Hello ,
-Am Chris Emmanuel, I represent Talent Management here in London ,  your profile picture is needed for  Commercial bill-board advertisement at  2012 London Olympics Games for a prize reward.
+On 03/23/2012 07:29 AM, Thomas Renninger wrote:
+> Details can be found in:
+> Documentation/acpi/initrd_table_override.txt
 
-For further information please reply us back
+I did not see in this any discussion about how the data format of the
+initrd/initramfs gets affected.  There are some other things too
+(microcode updates, for example) which also would like to get initramfs
+data early, and maybe we need to think about how to containerize this
+properly.
 
-Chris
-
+	-hpa
