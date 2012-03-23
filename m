@@ -1,24 +1,45 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 5/5] Disable MCP limit exceeded messages from Intel IPS
- driver
-Date: Thu, 22 Mar 2012 02:25:01 -0400
-Message-ID: <4F6AC5BD.6040309@kernel.org>
-References: <1328545032-21373-1-git-send-email-andi@firstfloor.org>	<1328545032-21373-6-git-send-email-andi@firstfloor.org> <20120207114547.2a32fbfb@jbarnes-desktop>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Colin King <colin.king@canonical.com>
+Subject: [PATCH] ACPI, APEI, fix ERST table size checking
+Date: Fri, 23 Mar 2012 08:48:47 +0000
+Message-ID: <1332492527-30702-1-git-send-email-colin.king@canonical.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qa0-f53.google.com ([209.85.216.53]:54888 "EHLO
-	mail-qa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751054Ab2CVGZE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Mar 2012 02:25:04 -0400
-In-Reply-To: <20120207114547.2a32fbfb@jbarnes-desktop>
+Received: from youngberry.canonical.com ([91.189.89.112]:57865 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753369Ab2CWItC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Mar 2012 04:49:02 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, mjg@redhat.com, Andi Kleen <ak@linux.intel.com>
+To: Len Brown <lenb@kernel.org>, Matthew Garrett <mjg@redhat.com>, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 
-Applied.
+From: Colin Ian King <colin.king@canonical.com>
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+Check ERST size against acpi_table_erst rather than
+acpi_table_einj.  The original code just so happened to work
+because the ERST and EINJ headers are the same size.
+
+I'm re-sending this patch as it didn't seem to get picked up when I first
+sent it to the list back in September 2011.
+
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Cc: stable@kernel.org
+---
+ drivers/acpi/apei/erst.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
+index eb9fab5..e4d9d24 100644
+--- a/drivers/acpi/apei/erst.c
++++ b/drivers/acpi/apei/erst.c
+@@ -917,7 +917,7 @@ static int erst_check_table(struct acpi_table_erst *erst_tab)
+ {
+ 	if ((erst_tab->header_length !=
+ 	     (sizeof(struct acpi_table_erst) - sizeof(erst_tab->header)))
+-	    && (erst_tab->header_length != sizeof(struct acpi_table_einj)))
++	    && (erst_tab->header_length != sizeof(struct acpi_table_erst)))
+ 		return -EINVAL;
+ 	if (erst_tab->header.length < sizeof(struct acpi_table_erst))
+ 		return -EINVAL;
+-- 
+1.7.0.4
+
