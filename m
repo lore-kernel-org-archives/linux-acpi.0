@@ -1,284 +1,246 @@
 From: Jiang Liu <liuj97@gmail.com>
-Subject: [RFC PATCH 05/11] PCI: Add notification interfaces for PCI root/bus/device hotplug events
-Date: Fri, 23 Mar 2012 22:58:21 +0800
-Message-ID: <1332514707-9673-6-git-send-email-jiang.liu@huawei.com>
+Subject: [RFC PATCH 04/11] ACPI,PCI: fix race windows caused by alloc_acpi_hotplug_work()
+Date: Fri, 23 Mar 2012 22:58:20 +0800
+Message-ID: <1332514707-9673-5-git-send-email-jiang.liu@huawei.com>
 References: <1332514707-9673-1-git-send-email-jiang.liu@huawei.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:60748 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758452Ab2CWPCH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Mar 2012 11:02:07 -0400
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:42962 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757070Ab2CWPB7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Mar 2012 11:01:59 -0400
 In-Reply-To: <1332514707-9673-1-git-send-email-jiang.liu@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>
+To: Yinghai Lu <yinghai@kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>
 Cc: Jiang Liu <jiang.liu@huawei.com>, Bjorn Helgaas <bhelgaas@google.com>, Ashok Raj <ashok.raj@intel.com>, Jiang Liu <liuj97@gmail.com>, Keping Chen <chenkeping@huawei.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-When PCI root/bus/device hotplug event happens, some other components
-may need to get notified in order to update their states.  For example,
-the ACPI<->PCI bind logic in drivers/acpi/pci_bind.c needs to update the
-binding relationship when PCI hotplug event happens. Another example is,
-the PCIe AER driver needs to setup the AER configuration for newly added
-PCI devices. So introduce a blocking notify chain for PCI hotplug events.
+alloc_acpi_hotplug_work() is used to move event handler from
+kacpi_notify_wq to kacpi_hotplug_wq, so the event handler could
+call acpi_remove_notify_handler() to unreigster itself, otherwise
+it will deaklock. But alloc_acpi_hotplug_work() mechanism introduces
+a small race window as below:
+1. kacpi_notify_wq invokes the wrapper event handler, which enqueues
+   the real event handler onto kacpi_hotplug_wq by calling
+   alloc_acpi_hotplug_work().
+2. Another thread calls acpi_remove_notify_handler() and releases
+   all resources used by the real event handler.
+3. kacpi_hotplug_wq invokes the real event handler, which may access
+   the already released resources now.
+
+This patch tries to close the small race window.
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
 ---
- drivers/pci/bus.c     |    5 +++-
- drivers/pci/hotplug.c |   21 ++++++++++++++++++++
- drivers/pci/pci.h     |    8 +++++++
- drivers/pci/probe.c   |   10 ++++++++-
- drivers/pci/remove.c  |   20 ++++++++++++++----
- include/linux/pci.h   |   51 +++++++++++++++++++++++++++++++++++++++++++++++++
- 6 files changed, 108 insertions(+), 7 deletions(-)
+ drivers/pci/hotplug/acpiphp.h      |    7 ++++-
+ drivers/pci/hotplug/acpiphp_glue.c |   50 +++++++++++++++++++++++++++++++----
+ 2 files changed, 50 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/pci/bus.c b/drivers/pci/bus.c
-index 2803120..61b8603 100644
---- a/drivers/pci/bus.c
-+++ b/drivers/pci/bus.c
-@@ -188,6 +188,8 @@ int pci_bus_add_device(struct pci_dev *dev)
- 	dev->is_added = 1;
- 	pci_proc_attach_device(dev);
- 	pci_create_sysfs_dev_files(dev);
-+	pci_call_hotplug_notifier(PCI_HP_EVENT_DEV_START, dev);
+diff --git a/drivers/pci/hotplug/acpiphp.h b/drivers/pci/hotplug/acpiphp.h
+index 1a62e7b..ca2da17 100644
+--- a/drivers/pci/hotplug/acpiphp.h
++++ b/drivers/pci/hotplug/acpiphp.h
+@@ -37,6 +37,7 @@
+ 
+ #include <linux/acpi.h>
+ #include <linux/mutex.h>
++#include <linux/kref.h>
+ #include <linux/pci_hotplug.h>
+ 
+ #define dbg(format, arg...)					\
+@@ -74,6 +75,7 @@ static inline const char *slot_name(struct slot *slot)
+ struct acpiphp_bridge {
+ 	struct list_head list;
+ 	acpi_handle handle;
++	struct kref kref;
+ 	struct acpiphp_slot *slots;
+ 
+ 	/* Ejectable PCI-to-PCI bridge (PCI bridge and PCI function) */
+@@ -124,6 +126,7 @@ struct acpiphp_func {
+ 	struct list_head sibling;
+ 	struct notifier_block nb;
+ 	acpi_handle	handle;
++	struct kref	kref;
+ 
+ 	u8		function;	/* pci function# */
+ 	u32		flags;		/* see below */
+@@ -160,6 +163,7 @@ struct acpiphp_attention_info
+ #define BRIDGE_HAS_PS1		(0x00000020)
+ #define BRIDGE_HAS_PS2		(0x00000040)
+ #define BRIDGE_HAS_PS3		(0x00000080)
++#define BRIDGE_IS_DEAD		(0x80000000)
+ 
+ /* slot flags */
+ 
+@@ -175,7 +179,8 @@ struct acpiphp_attention_info
+ #define FUNC_HAS_PS1		(0x00000020)
+ #define FUNC_HAS_PS2		(0x00000040)
+ #define FUNC_HAS_PS3		(0x00000080)
+-#define FUNC_HAS_DCK            (0x00000100)
++#define FUNC_HAS_DCK		(0x00000100)
++#define FUNC_IS_DEAD		(0x80000000)
+ 
+ /* function prototypes */
+ 
+diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+index 003a6d5..764891e 100644
+--- a/drivers/pci/hotplug/acpiphp_glue.c
++++ b/drivers/pci/hotplug/acpiphp_glue.c
+@@ -115,6 +115,14 @@ static const struct acpi_dock_ops acpiphp_dock_ops = {
+ 	.handler = handle_hotplug_event_func,
+ };
+ 
++static void acpiphp_release_func(struct kref *kref)
++{
++	struct acpiphp_func *func;
 +
- 	return 0;
++	func = container_of(kref, struct acpiphp_func, kref);
++	kfree(func);
++}
++
+ /* callback routine to register each ACPI PCI slot object */
+ static acpi_status
+ register_slot(acpi_handle handle, u32 lvl, void *context, void **rv)
+@@ -153,6 +161,7 @@ register_slot(acpi_handle handle, u32 lvl, void *context, void **rv)
+ 		return AE_NO_MEMORY;
+ 
+ 	INIT_LIST_HEAD(&newfunc->sibling);
++	kref_init(&newfunc->kref);
+ 	newfunc->handle = handle;
+ 	newfunc->function = function;
+ 
+@@ -191,7 +200,7 @@ register_slot(acpi_handle handle, u32 lvl, void *context, void **rv)
+ 	if (!slot) {
+ 		slot = kzalloc(sizeof(struct acpiphp_slot), GFP_KERNEL);
+ 		if (!slot) {
+-			kfree(newfunc);
++			kref_put(&newfunc->kref, acpiphp_release_func);
+ 			return AE_NO_MEMORY;
+ 		}
+ 
+@@ -266,7 +275,7 @@ register_slot(acpi_handle handle, u32 lvl, void *context, void **rv)
+ 	bridge->nr_slots--;
+ 	bridge->slots = slot->next;
+ 	kfree(slot);
+-	kfree(newfunc);
++	kref_put(&newfunc->kref, acpiphp_release_func);
+ 
+ 	return AE_OK;
  }
- 
-@@ -212,8 +214,9 @@ int pci_bus_add_child(struct pci_bus *bus)
- 
- 	/* Create legacy_io and legacy_mem files for this bus */
- 	pci_create_legacy_files(bus);
-+	pci_call_hotplug_notifier(PCI_HP_EVENT_BUS_START, bus);
- 
--	return retval;
-+	return 0;
- }
- 
- /**
-diff --git a/drivers/pci/hotplug.c b/drivers/pci/hotplug.c
-index 2b5352a..df98119 100644
---- a/drivers/pci/hotplug.c
-+++ b/drivers/pci/hotplug.c
-@@ -1,8 +1,29 @@
- #include <linux/kernel.h>
- #include <linux/pci.h>
- #include <linux/module.h>
-+#include <linux/notifier.h>
- #include "pci.h"
- 
-+static BLOCKING_NOTIFIER_HEAD(pci_hotplug_notify_chain);
-+
-+int pci_register_hotplug_notifier(struct notifier_block *nb)
-+{
-+	return blocking_notifier_chain_register(&pci_hotplug_notify_chain, nb);
-+}
-+EXPORT_SYMBOL(pci_register_hotplug_notifier);
-+
-+void pci_unregister_hotplug_notifier(struct notifier_block *nb)
-+{
-+	blocking_notifier_chain_unregister(&pci_hotplug_notify_chain, nb);
-+}
-+EXPORT_SYMBOL(pci_unregister_hotplug_notifier);
-+
-+int pci_call_hotplug_notifier(int event, void *data)
-+{
-+	return blocking_notifier_call_chain(&pci_hotplug_notify_chain,
-+		event, data);
-+}
-+
- int pci_uevent(struct device *dev, struct kobj_uevent_env *env)
- {
- 	struct pci_dev *pdev;
-diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
-index 9378d81..f0f9252 100644
---- a/drivers/pci/pci.h
-+++ b/drivers/pci/pci.h
-@@ -126,6 +126,14 @@ static inline int pci_proc_detach_bus(struct pci_bus *bus) { return 0; }
- /* Functions for PCI Hotplug drivers to use */
- int pci_hp_add_bridge(struct pci_dev *dev);
- extern unsigned int pci_do_scan_bus(struct pci_bus *bus);
-+#ifdef	CONFIG_HOTPLUG
-+extern int pci_call_hotplug_notifier(int event, void *data);
-+#else
-+static inline int pci_call_hotplug_notifier(int event, void *data)
-+{
-+	return NOTIFY_DONE;
-+}
-+#endif
- 
- #ifdef HAVE_PCI_LEGACY
- extern void pci_create_legacy_files(struct pci_bus *bus);
-diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index d626c4e..edbc013 100644
---- a/drivers/pci/probe.c
-+++ b/drivers/pci/probe.c
-@@ -651,6 +651,7 @@ struct pci_bus *__ref pci_add_new_bus(struct pci_bus *parent, struct pci_dev *de
- 		down_write(&pci_bus_sem);
- 		list_add_tail(&child->node, &parent->children);
- 		up_write(&pci_bus_sem);
-+		pci_call_hotplug_notifier(PCI_HP_EVENT_BUS_ADD, child);
+@@ -371,8 +380,16 @@ static inline void config_p2p_bridge_flags(struct acpiphp_bridge *bridge)
  	}
- 	return child;
- }
-@@ -1472,6 +1473,8 @@ void pci_device_add(struct pci_dev *dev, struct pci_bus *bus)
- 	down_write(&pci_bus_sem);
- 	list_add_tail(&dev->bus_list, &bus->devices);
- 	up_write(&pci_bus_sem);
-+
-+	pci_call_hotplug_notifier(PCI_HP_EVENT_DEV_ADD, dev);
  }
  
- struct pci_dev *__ref pci_scan_single_device(struct pci_bus *bus, int devfn)
-@@ -1753,8 +1756,10 @@ static unsigned int __devinit __pci_scan_child_bus(struct pci_bus *bus,
- 	if (!bus->is_added) {
- 		dev_dbg(&bus->dev, "fixups for bus pass %d\n", pass);
- 		pcibios_fixup_bus(bus);
--		if (pci_is_root_bus(bus))
-+		if (pci_is_root_bus(bus)) {
- 			bus->is_added = 1;
-+			pci_call_hotplug_notifier(PCI_HP_EVENT_BUS_START, bus);
-+		}
- 	}
- 
- 	list_for_each_entry(dev, &bus->devices, bus_list)
-@@ -1876,6 +1881,9 @@ struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
- 	list_add_tail(&b->node, &pci_root_buses);
- 	up_write(&pci_bus_sem);
- 
-+	pci_call_hotplug_notifier(PCI_HP_EVENT_ROOT_ADD, bridge);
-+	pci_call_hotplug_notifier(PCI_HP_EVENT_BUS_ADD, b);
-+
- 	return b;
- 
- class_dev_reg_err:
-diff --git a/drivers/pci/remove.c b/drivers/pci/remove.c
-index 18efb31..2b6dd97 100644
---- a/drivers/pci/remove.c
-+++ b/drivers/pci/remove.c
-@@ -20,6 +20,7 @@ static void pci_free_resources(struct pci_dev *dev)
- static void pci_stop_dev(struct pci_dev *dev)
- {
- 	if (dev->is_added) {
-+		pci_call_hotplug_notifier(PCI_HP_EVENT_DEV_STOP, dev);
- 		pci_proc_detach_device(dev);
- 		pci_remove_sysfs_dev_files(dev);
- 		device_unregister(&dev->dev);
-@@ -32,6 +33,8 @@ static void pci_stop_dev(struct pci_dev *dev)
- 
- static void pci_destroy_dev(struct pci_dev *dev)
- {
-+	pci_call_hotplug_notifier(PCI_HP_EVENT_DEV_REMOVE, dev);
-+
- 	/* Remove the device from the device lists, and prevent any further
- 	 * list accesses from this device */
- 	down_write(&pci_bus_sem);
-@@ -64,16 +67,21 @@ int pci_remove_device_safe(struct pci_dev *dev)
- 
- void pci_remove_bus(struct pci_bus *pci_bus)
- {
--	pci_proc_detach_bus(pci_bus);
-+	if (pci_bus->is_added)
-+		pci_call_hotplug_notifier(PCI_HP_EVENT_BUS_STOP, pci_bus);
- 
--	down_write(&pci_bus_sem);
--	list_del(&pci_bus->node);
--	pci_bus_release_busn_res(pci_bus);
--	up_write(&pci_bus_sem);
- 	if (pci_bus->is_added || pci_is_root_bus(pci_bus)) {
- 		pci_remove_legacy_files(pci_bus);
- 		device_unregister(&pci_bus->dev);
-+		pci_bus->is_added = 0;
- 	}
-+
-+	pci_call_hotplug_notifier(PCI_HP_EVENT_BUS_REMOVE, pci_bus);
-+	pci_proc_detach_bus(pci_bus);
-+	down_write(&pci_bus_sem);
-+	list_del(&pci_bus->node);
-+	pci_bus_release_busn_res(pci_bus);
-+	up_write(&pci_bus_sem);
- }
- EXPORT_SYMBOL(pci_remove_bus);
- 
-@@ -171,8 +179,10 @@ void pci_stop_bus_device(struct pci_dev *dev)
- 
- static void pci_stop_host_bridge(struct pci_host_bridge *bridge)
- {
-+	pci_call_hotplug_notifier(PCI_HP_EVENT_ROOT_REMOVE, bridge);
- 	device_unregister(&bridge->dev);
- }
-+
- /*
-  * it will support pci root bus too, in that case we need
-  *  stop and remove host bridge
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index 427ea42..953e0ef 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -53,6 +53,7 @@
- #include <linux/device.h>
- #include <linux/io.h>
- #include <linux/irqreturn.h>
-+#include <linux/notifier.h>
- 
- /* Include the ID list */
- #include <linux/pci_ids.h>
-@@ -903,6 +904,56 @@ unsigned int pci_rescan_bus_bridge_resize(struct pci_dev *bridge);
- unsigned int pci_rescan_bus(struct pci_bus *bus);
- #endif
- 
-+/*
-+ * Notification event types for PCI root, bus and device hotplug.
-+ */
-+enum {
-+	PCI_HP_EVENT_BUS_ADD = 0x1,	/* New bus (struct pci_bus *)v has
-+					 * been created.
-+					 */
-+	PCI_HP_EVENT_BUS_REMOVE = 0x2,	/* Bus (struct pci_bus *)v will be
-+					 * destroyed.
-+					 */
-+	PCI_HP_EVENT_BUS_START = 0x3,	/* Bus (struct pci_bus *)v has been
-+					 * started.
-+					 */
-+	PCI_HP_EVENT_BUS_STOP = 0x4,	/* Bus (struct pci_bus *)v will be
-+					 * stopped.
-+					 */
-+	PCI_HP_EVENT_DEV_ADD = 0x11,	/* New device (struct pci_dev *)v has
-+					 * been created.
-+					 */
-+	PCI_HP_EVENT_DEV_REMOVE = 0x12,	/* Device (struct pci_dev *)v will be
-+					 * destroyed.
-+					 */
-+	PCI_HP_EVENT_DEV_START = 0x13,	/* Device (struct pci_dev *)v has been
-+					 * started.
-+					 */
-+	PCI_HP_EVENT_DEV_STOP = 0x14,	/* Device (struct pci_dev *)v will be
-+					 * stopped.
-+					 */
-+	PCI_HP_EVENT_ROOT_ADD = 0x21,	/* Root (struct pci_host_bridge *)v
-+					 * has been created.
-+					 */
-+	PCI_HP_EVENT_ROOT_REMOVE = 0x22,/* Root (struct pci_host_bridge *)v
-+					 * will be destroyed.
-+					 */
-+};
-+
-+#ifdef CONFIG_HOTPLUG
-+extern int pci_register_hotplug_notifier(struct notifier_block *nb);
-+extern void pci_unregister_hotplug_notifier(struct notifier_block *nb);
-+#else
-+static inline int pci_register_hotplug_notifier(struct notifier_block *nb)
++static void acpiphp_release_bridge(struct kref *kref)
 +{
-+	return 0;
++	struct acpiphp_bridge *bridge;
++
++	bridge = container_of(kref, struct acpiphp_bridge, kref);
++	kfree(bridge);
 +}
 +
-+static inline void pci_unregister_hotplug_notifier(struct notifier_block *nb)
-+{
-+}
-+#endif
+ /* allocate and initialize PCI-to-PCI bridge data structure */
+-static void add_p2p_bridge(acpi_handle *handle)
++static void add_p2p_bridge(acpi_handle handle)
+ {
+ 	struct acpiphp_bridge *bridge;
+ 
+@@ -382,6 +399,7 @@ static void add_p2p_bridge(acpi_handle *handle)
+ 		return;
+ 	}
+ 
++	kref_init(&bridge->kref);
+ 	bridge->handle = handle;
+ 	config_p2p_bridge_flags(bridge);
+ 
+@@ -403,7 +421,7 @@ static void add_p2p_bridge(acpi_handle *handle)
+ 	return;
+  err:
+ 	pci_dev_put(bridge->pci_dev);
+-	kfree(bridge);
++	kref_put(&bridge->kref, acpiphp_release_bridge);
+ 	return;
+ }
+ 
+@@ -515,7 +533,8 @@ static void cleanup_bridge(struct acpiphp_bridge *bridge)
+ 					err("failed to remove notify handler\n");
+ 			}
+ 			list_del(&func->sibling);
+-			kfree(func);
++			func->flags |= FUNC_IS_DEAD;
++			kref_put(&func->kref, acpiphp_release_func);
+ 		}
+ 		acpiphp_unregister_hotplug_slot(slot);
+ 		list_del(&slot->funcs);
+@@ -531,7 +550,8 @@ static void cleanup_bridge(struct acpiphp_bridge *bridge)
+ 
+ 	pci_dev_put(bridge->pci_dev);
+ 	list_del(&bridge->list);
+-	kfree(bridge);
++	bridge->flags |= BRIDGE_IS_DEAD;
++	kref_put(&bridge->kref, acpiphp_release_bridge);
+ }
+ 
+ static acpi_status
+@@ -1075,6 +1095,8 @@ static void _handle_hotplug_event_bridge(struct work_struct *work)
+ 	handle = hp_work->handle;
+ 	type = hp_work->type;
+ 	bridge = (struct acpiphp_bridge *)hp_work->context;
++	if (bridge->flags & BRIDGE_IS_DEAD)
++		goto out;
+ 
+ 	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
+ 
+@@ -1133,6 +1155,8 @@ static void _handle_hotplug_event_bridge(struct work_struct *work)
+ 		break;
+ 	}
+ 
++out:
++	kref_put(&bridge->kref, acpiphp_release_bridge);
+ 	kfree(hp_work); /* allocated in handle_hotplug_event_bridge */
+ }
+ 
+@@ -1147,6 +1171,11 @@ static void _handle_hotplug_event_bridge(struct work_struct *work)
+ static void handle_hotplug_event_bridge(acpi_handle handle, u32 type,
+ 					void *context)
+ {
++	struct acpiphp_bridge *bridge = (struct acpiphp_bridge *)context;
 +
- /* Vital product data routines */
- ssize_t pci_read_vpd(struct pci_dev *dev, loff_t pos, size_t count, void *buf);
- ssize_t pci_write_vpd(struct pci_dev *dev, loff_t pos, size_t count, const void *buf);
++	/* Will be released by _handle_hotplug_event_bridge() */
++	kref_get(&bridge->kref);
++
+ 	/*
+ 	 * Currently the code adds all hotplug events to the kacpid_wq
+ 	 * queue when it should add hotplug events to the kacpi_hotplug_wq.
+@@ -1172,6 +1201,8 @@ static void _handle_hotplug_event_func(struct work_struct *work)
+ 	handle = hp_work->handle;
+ 	type = hp_work->type;
+ 	func = (struct acpiphp_func *)hp_work->context;
++	if (func->flags & FUNC_IS_DEAD)
++		goto out;
+ 
+ 	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
+ 
+@@ -1205,6 +1236,8 @@ static void _handle_hotplug_event_func(struct work_struct *work)
+ 		break;
+ 	}
+ 
++out:
++	kref_put(&func->kref, acpiphp_release_func);
+ 	kfree(hp_work); /* allocated in handle_hotplug_event_func */
+ }
+ 
+@@ -1219,6 +1252,11 @@ static void _handle_hotplug_event_func(struct work_struct *work)
+ static void handle_hotplug_event_func(acpi_handle handle, u32 type,
+ 				      void *context)
+ {
++	struct acpiphp_func *func = (struct acpiphp_func *)context;
++
++	/* Will be released by _handle_hotplug_event_func() */
++	kref_get(&func->kref);
++
+ 	/*
+ 	 * Currently the code adds all hotplug events to the kacpid_wq
+ 	 * queue when it should add hotplug events to the kacpi_hotplug_wq.
 -- 
 1.7.5.4
 
