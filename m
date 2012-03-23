@@ -1,42 +1,81 @@
 From: Jiang Liu <liuj97@gmail.com>
-Subject: [RFC PATCH 09/11] PCI: serialize hotplug operations triggered by PCI hotplug sysfs interfaces
-Date: Fri, 23 Mar 2012 22:58:25 +0800
-Message-ID: <1332514707-9673-10-git-send-email-jiang.liu@huawei.com>
+Subject: [RFC PATCH 10/11] PCI,ACPI: serialize hotplug operations triggered by ACPI subsystem
+Date: Fri, 23 Mar 2012 22:58:26 +0800
+Message-ID: <1332514707-9673-11-git-send-email-jiang.liu@huawei.com>
 References: <1332514707-9673-1-git-send-email-jiang.liu@huawei.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:60748 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758607Ab2CWPCz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Mar 2012 11:02:55 -0400
 In-Reply-To: <1332514707-9673-1-git-send-email-jiang.liu@huawei.com>
-Sender: linux-pci-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Yinghai Lu <yinghai@kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>
 Cc: Jiang Liu <jiang.liu@huawei.com>, Bjorn Helgaas <bhelgaas@google.com>, Ashok Raj <ashok.raj@intel.com>, Jiang Liu <liuj97@gmail.com>, Keping Chen <chenkeping@huawei.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
-Use pci_lock_hotplug()/pci_unlock_hotplug() to serialize hotplug operations
-triggered by PCI hotplug sysfs interfaces.
+Use pci_lock_hotplug()/pci_unlock_hotplug() to serialize PCI
+hotplug operations related to ACPI root bridges.
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
 ---
- drivers/pci/hotplug/pci_hotplug_core.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ drivers/acpi/pci_root.c |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/pci/hotplug/pci_hotplug_core.c b/drivers/pci/hotplug/pci_hotplug_core.c
-index 202f4a9..633fe3a 100644
---- a/drivers/pci/hotplug/pci_hotplug_core.c
-+++ b/drivers/pci/hotplug/pci_hotplug_core.c
-@@ -121,6 +121,7 @@ static ssize_t power_write_file(struct pci_slot *pci_slot, const char *buf,
- 		retval = -ENODEV;
- 		goto exit;
- 	}
-+	pci_lock_hotplug();
- 	switch (power) {
- 		case 0:
- 			if (slot->ops->disable_slot)
-@@ -136,6 +137,7 @@ static ssize_t power_write_file(struct pci_slot *pci_slot, const char *buf,
- 			err ("Illegal value specified for power\n");
- 			retval = -EINVAL;
- 	}
-+	pci_unlock_hotplug();
- 	module_put(slot->ops->owner);
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index 24afd66..a8a3867 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -463,6 +463,8 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
+ 	if (!root)
+ 		return -ENOMEM;
  
- exit:	
++	pci_lock_hotplug();
++
+ 	segment = 0;
+ 	status = acpi_evaluate_integer(device->handle, METHOD_NAME__SEG, NULL,
+ 				       &segment);
+@@ -627,12 +629,14 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
+ 			driver->add(device->handle);
+ 
+ 	mutex_unlock(&acpi_pci_root_lock);
++	pci_unlock_hotplug();
+ 
+ 	return 0;
+ 
+ out_del_root:
+ 	list_del_rcu(&root->node);
+ 	mutex_unlock(&acpi_pci_root_lock);
++	pci_unlock_hotplug();
+ 	synchronize_rcu();
+ out_free:
+ 	kfree(root);
+@@ -643,7 +647,9 @@ static int acpi_pci_root_start(struct acpi_device *device)
+ {
+ 	struct acpi_pci_root *root = acpi_driver_data(device);
+ 
++	pci_lock_hotplug();
+ 	pci_bus_add_devices(root->bus);
++	pci_unlock_hotplug();
+ 	return 0;
+ }
+ 
+@@ -652,6 +658,7 @@ static int acpi_pci_root_remove(struct acpi_device *device, int type)
+ 	struct acpi_pci_root *root = acpi_driver_data(device);
+ 	struct acpi_pci_driver *driver;
+ 
++	pci_lock_hotplug();
+ 	mutex_lock(&acpi_pci_root_lock);
+ 
+ 	list_for_each_entry(driver, &acpi_pci_drivers, node)
+@@ -675,6 +682,7 @@ static int acpi_pci_root_remove(struct acpi_device *device, int type)
+ out:
+ 	list_del_rcu(&root->node);
+ 	mutex_unlock(&acpi_pci_root_lock);
++	pci_unlock_hotplug();
+ 	synchronize_rcu();
+ 	kfree(root);
+ 
 -- 
 1.7.5.4
+
