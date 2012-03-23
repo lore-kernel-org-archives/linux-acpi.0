@@ -1,81 +1,65 @@
 From: Jiang Liu <liuj97@gmail.com>
-Subject: [RFC PATCH 10/11] PCI,ACPI: serialize hotplug operations triggered by ACPI subsystem
-Date: Fri, 23 Mar 2012 22:58:26 +0800
-Message-ID: <1332514707-9673-11-git-send-email-jiang.liu@huawei.com>
+Subject: [RFC PATCH 11/11] PCI: Serialize hotplug operations triggered by acpiphp driver
+Date: Fri, 23 Mar 2012 22:58:27 +0800
+Message-ID: <1332514707-9673-12-git-send-email-jiang.liu@huawei.com>
 References: <1332514707-9673-1-git-send-email-jiang.liu@huawei.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mail-iy0-f174.google.com ([209.85.210.174]:60748 "EHLO
 	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758607Ab2CWPCz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Mar 2012 11:02:55 -0400
+	with ESMTP id S1754019Ab2CWPDG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Mar 2012 11:03:06 -0400
 In-Reply-To: <1332514707-9673-1-git-send-email-jiang.liu@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Yinghai Lu <yinghai@kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>
 Cc: Jiang Liu <jiang.liu@huawei.com>, Bjorn Helgaas <bhelgaas@google.com>, Ashok Raj <ashok.raj@intel.com>, Jiang Liu <liuj97@gmail.com>, Keping Chen <chenkeping@huawei.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Use pci_lock_hotplug()/pci_unlock_hotplug() to serialize PCI
-hotplug operations related to ACPI root bridges.
+User pci_lock_hotplug()/pci_unlock_hotplug() to serialize PCI
+hotplug operations triggered by acpiphp driver.
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
 ---
- drivers/acpi/pci_root.c |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
+ drivers/pci/hotplug/acpiphp_glue.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index 24afd66..a8a3867 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -463,6 +463,8 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
- 	if (!root)
- 		return -ENOMEM;
- 
-+	pci_lock_hotplug();
+diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+index 764891e..ee820a9 100644
+--- a/drivers/pci/hotplug/acpiphp_glue.c
++++ b/drivers/pci/hotplug/acpiphp_glue.c
+@@ -1095,6 +1095,8 @@ static void _handle_hotplug_event_bridge(struct work_struct *work)
+ 	handle = hp_work->handle;
+ 	type = hp_work->type;
+ 	bridge = (struct acpiphp_bridge *)hp_work->context;
 +
- 	segment = 0;
- 	status = acpi_evaluate_integer(device->handle, METHOD_NAME__SEG, NULL,
- 				       &segment);
-@@ -627,12 +629,14 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
- 			driver->add(device->handle);
- 
- 	mutex_unlock(&acpi_pci_root_lock);
-+	pci_unlock_hotplug();
- 
- 	return 0;
- 
- out_del_root:
- 	list_del_rcu(&root->node);
- 	mutex_unlock(&acpi_pci_root_lock);
-+	pci_unlock_hotplug();
- 	synchronize_rcu();
- out_free:
- 	kfree(root);
-@@ -643,7 +647,9 @@ static int acpi_pci_root_start(struct acpi_device *device)
- {
- 	struct acpi_pci_root *root = acpi_driver_data(device);
- 
 +	pci_lock_hotplug();
- 	pci_bus_add_devices(root->bus);
-+	pci_unlock_hotplug();
- 	return 0;
- }
+ 	if (bridge->flags & BRIDGE_IS_DEAD)
+ 		goto out;
  
-@@ -652,6 +658,7 @@ static int acpi_pci_root_remove(struct acpi_device *device, int type)
- 	struct acpi_pci_root *root = acpi_driver_data(device);
- 	struct acpi_pci_driver *driver;
+@@ -1156,6 +1158,7 @@ static void _handle_hotplug_event_bridge(struct work_struct *work)
+ 	}
  
-+	pci_lock_hotplug();
- 	mutex_lock(&acpi_pci_root_lock);
- 
- 	list_for_each_entry(driver, &acpi_pci_drivers, node)
-@@ -675,6 +682,7 @@ static int acpi_pci_root_remove(struct acpi_device *device, int type)
  out:
- 	list_del_rcu(&root->node);
- 	mutex_unlock(&acpi_pci_root_lock);
 +	pci_unlock_hotplug();
- 	synchronize_rcu();
- 	kfree(root);
+ 	kref_put(&bridge->kref, acpiphp_release_bridge);
+ 	kfree(hp_work); /* allocated in handle_hotplug_event_bridge */
+ }
+@@ -1201,6 +1204,8 @@ static void _handle_hotplug_event_func(struct work_struct *work)
+ 	handle = hp_work->handle;
+ 	type = hp_work->type;
+ 	func = (struct acpiphp_func *)hp_work->context;
++
++	pci_lock_hotplug();
+ 	if (func->flags & FUNC_IS_DEAD)
+ 		goto out;
  
+@@ -1237,6 +1242,7 @@ static void _handle_hotplug_event_func(struct work_struct *work)
+ 	}
+ 
+ out:
++	pci_unlock_hotplug();
+ 	kref_put(&func->kref, acpiphp_release_func);
+ 	kfree(hp_work); /* allocated in handle_hotplug_event_func */
+ }
 -- 
 1.7.5.4
 
