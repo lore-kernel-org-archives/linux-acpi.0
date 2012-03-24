@@ -1,63 +1,48 @@
 From: Thomas Renninger <trenn@suse.de>
 Subject: Re: [PATCH] ACPI: Implement overriding of arbitrary ACPI tables via initrd
-Date: Sat, 24 Mar 2012 02:26:34 +0100
-Message-ID: <201203240226.35314.trenn@suse.de>
-References: <1332512984-79664-1-git-send-email-trenn@suse.de> <CAE9FiQVFd=Zef2bH_3MinLEV_V+cEShrmRTe7Sr8HT2R46yHHw@mail.gmail.com>
+Date: Sat, 24 Mar 2012 02:42:06 +0100
+Message-ID: <201203240242.07724.trenn@suse.de>
+References: <1332512984-79664-1-git-send-email-trenn@suse.de> <4F6CD79A.8020805@zytor.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:60306 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751203Ab2CXB0h (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 23 Mar 2012 21:26:37 -0400
-In-Reply-To: <CAE9FiQVFd=Zef2bH_3MinLEV_V+cEShrmRTe7Sr8HT2R46yHHw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4F6CD79A.8020805@zytor.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: eric.piel@tremplin-utc.net, vojcek@tlen.pl, dsdt@gaugusch.at, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org, Lin Ming <ming.m.lin@intel.com>, lenb@kernel.org, robert.moore@intel.com
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: eric.piel@tremplin-utc.net, vojcek@tlen.pl, dsdt@gaugusch.at, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org, Lin Ming <ming.m.lin@intel.com>, lenb@kernel.org, robert.moore@intel.com, hpa@zytor.com
 
-On Friday 23 March 2012 21:54:12 Yinghai Lu wrote:
-> On Fri, Mar 23, 2012 at 7:29 AM, Thomas Renninger <trenn@suse.de> wrote:
-...
- 
-> great. that is very good feature for development and debug.
-Thanks.
-...
-
-> > +       int table_nr = 0;
-> > +       *table_length = 0;
-> > +       *address = 0;
-> > +       for (; table_nr < ACPI_OVERRIDE_TABLES &&
-> > +                    acpi_table_override_offset[table_nr]; table_nr++) {
-> > +               int table_offset;
-> > +               int table_len;
-> > +               struct acpi_table_header *table;
-> > +
-> > +               if (table_nr == 0)
-> > +                       table_offset = 0;
-> > +               else
-> > +                       table_offset = acpi_table_override_offset[table_nr - 1];
-> >
-> > +               table_len = acpi_table_override_offset[table_nr] - table_offset;
-> > +
-> > +               table = acpi_os_map_memory(acpi_tables_inram + table_offset,
-> > +                                          table_len);
-> > +
+On Friday 23 March 2012 21:05:46 H. Peter Anvin wrote:
+> On 03/23/2012 07:29 AM, Thomas Renninger wrote:
+> > Details can be found in:
+> > Documentation/acpi/initrd_table_override.txt
 > 
-> maybe could have dmi checking for more strict checking.
-I do not understand what should get checked?
-Hm, I guess you mean if a general table is always added that is distributed
-on different platforms and you want to white/blacklist machines to
-explicitly load/not load the table?
-This must not happen.
-The tables are always platform specific and you provide tables for
-a specific machine only for debugging purposes.
+> I did not see in this any discussion about how the data format of the
+> initrd/initramfs gets affected.  There are some other things too
+> (microcode updates, for example)
+Interesting.
 
-> also would help if have one boot command that could skip overriding.
-Same. Both should not be needed.
+> which also would like to get initramfs
+> data early, and maybe we need to think about how to containerize this
+> properly.
+Sounds as if this would get a bigger discussion...
 
-Or you have a use-case in mind I cannot not think of...
+I won't be able to come up with a detailed suggestion for such a general
+initrd format change (that's what you suggest?).
+I'd be interested to be put to CC and join the discussion, though.
+This patch only slightly touches x86 initrd specifics:
+(with Yinhai additions even 3 lines less):
+ arch/x86/kernel/setup.c                      |   15 ++
+ arch/x86/mm/init.c                           |    4 
+No general initrd code is touched at all, all the rest sits in
+drivers/acpi/
+
+If there is any initrd change this could easily be adopted.
+Would be great to see this one pushed into 3.4 before a possibly long
+taking discussion about bigger initrd layout changes.
+
+Thanks,
 
    Thomas
