@@ -1,77 +1,214 @@
 From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [PATCH] ACPI: Implement overriding of arbitrary ACPI tables via initrd
-Date: Sat, 24 Mar 2012 12:44:59 -0700
-Message-ID: <e2a36b54-ebd3-4191-95e1-a417d555b958@email.android.com>
+Subject: Re: [PATCH] ACPI: Implement overriding of arbitrary ACPI tables via
+ initrd
+Date: Sat, 24 Mar 2012 15:21:01 -0700
+Message-ID: <4F6E48CD.9050002@zytor.com>
 References: <1332512984-79664-1-git-send-email-trenn@suse.de> <4F6CD79A.8020805@zytor.com> <201203240242.07724.trenn@suse.de> <4F6D2AF8.3070707@zytor.com> <20120324184238.GB13978@phenom.dumpdata.com> <4F6E1D6F.4000308@zytor.com> <20120324191718.GA3927@phenom.dumpdata.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed;
+ boundary="------------080500020807000606090101"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from terminus.zytor.com ([198.137.202.10]:36400 "EHLO mail.zytor.com"
+Received: from terminus.zytor.com ([198.137.202.10]:37096 "EHLO mail.zytor.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753258Ab2CXTpa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 24 Mar 2012 15:45:30 -0400
+	id S1754026Ab2CXWV2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 24 Mar 2012 18:21:28 -0400
 In-Reply-To: <20120324191718.GA3927@phenom.dumpdata.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Cc: Thomas Renninger <trenn@suse.de>, eric.piel@tremplin-utc.net, vojcek@tlen.pl, dsdt@gaugusch.at, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org, Lin Ming <ming.m.lin@intel.com>, lenb@kernel.org, robert.moore@intel.com, Al Viro <viro@zeniv.linux.org.uk>, Harald Hoyer <harald@redhat.com>
 
-You're missing the point.  Unless you have specific rules how to deal.with extensions, and what thise extensions may do, you're not adding anything.
+This is a multi-part message in MIME format.
+--------------080500020807000606090101
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-I think the simpler just use cpio idea still wins out in my mind.
+The attached cpio-parsing code compiles to 458 bytes on x86-64 and 476
+bytes on i386, and that is without any library dependencies at all.
+Again, it will completely stop at the first compressed data item, so any
+such kernel objects absolutely will have to be first.  In good Linux
+tradition, it is also completely untested.
 
-Konrad Rzeszutek Wilk <konrad.wilk@oracle.com> wrote:
+However, given that very reasonable size I would think that this is a
+reasonable approach.  Anyone who has a better suggestion for the
+namespace than "kernel/"?
 
->On Sat, Mar 24, 2012 at 12:15:59PM -0700, H. Peter Anvin wrote:
->> On 03/24/2012 11:42 AM, Konrad Rzeszutek Wilk wrote:
->> > 
->> > Probably should also have:
->> > 		u32 version;
->> > 
->> > in case we decide to expand this structure in the future, and:
->> >> 		u32 type;	/* 1 = file data, 2 = ACPI, 3 = microcode... */
->> >> 		u32 length;	/* Length of data object */
->> >> 	};
->> > 
->> > and encapsulate the whole thing in a 4K union?
->> > 
->> 
->> For "version" you'd have to define what happens if you see a version
->> number you don't recognize, and why that is in any way better than
->> changing the magic number or the type.  It is something that people
->like
->> to throw in without thinking about it, and that is a mistake.
->
->I was thinking of interface version. So the first would be 1, and if
->there are extensions (so version 2 for example), it should support 1
->and 2.
->The idea is to expand past the structure with newer additions without
->breaking the binary interface.
->
->> 
->> Forcing everything to be page-aligned may be a good idea, although
->that
->> assumes all bootloaders actually align them that way...
->
->Oh, and be 4K.
->> 
->> > 
->> > Perhaps the header should be in big-endian (that is the same as the
->network
->> > byte order, right?) and each sub-type can define its own endian?
->> > 
->> 
->> The content of the encapsulation is its own thing; it will be
->different
->> for different types as most of them already
->> 
->> 	-hpa
->> 
->> -- 
->> H. Peter Anvin, Intel Open Source Technology Center
->> I work for Intel.  I don't speak on their behalf.
+	-hpa
 
 -- 
-Sent from my mobile phone. Please excuse my brevity and lack of formatting.
+H. Peter Anvin, Intel Open Source Technology Center
+I work for Intel.  I don't speak on their behalf.
+
+
+--------------080500020807000606090101
+Content-Type: text/x-csrc;
+ name="findcpio.c"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="findcpio.c"
+
+/*
+ * findcpio.c
+ *
+ * Find a specific cpio member; must precede any compressed content.
+ */
+
+#include <stddef.h>
+#include <stdbool.h>
+
+struct cpio_data {
+	void *data;
+	unsigned long size;
+};
+
+enum cpio_fields {
+	C_INO,
+	C_MODE,
+	C_UID,
+	C_GID,
+	C_NLINK,
+	C_MTIME,
+	C_FILESIZE,
+	C_MAJ,
+	C_MIN,
+	C_RMAJ,
+	C_RMIN,
+	C_NAMESIZE,
+	C_CHKSUM,
+	C_NFIELDS
+};
+
+/* Return true if this field is composed of valid hex digits */
+static bool validhex(const char *ptr, int len)
+{
+	unsigned char c, x;
+
+	while (len--) {
+		c = *ptr++;
+
+		x = c - '0';
+		if (x < 10)
+			continue;
+
+		x = (c | 0x20) - 'a' + 10;
+		if (x < 16)
+			continue;
+
+		return false;
+	}
+
+	return true;
+}
+
+/* Return the value of an already validated field */
+static unsigned int hexval(const char *ptr, int len)
+{
+	unsigned int v = 0;
+	unsigned char c, x;
+
+	while (len--) {
+		v <<= 4;
+		c = *ptr++;
+
+		x = c - '0';
+		if (x < 10) {
+			v += x;
+			continue;
+		}
+
+		x = (c | 0x20) - 'a' + 10;
+		v += x;
+	}
+
+	return v;
+}
+
+static int mystrlen(const char *name)
+{
+	int n = 0;
+
+	while (*name++)
+		n++;
+
+	return n;
+}
+
+#if 0
+# define memcmp(p1, p2, n) __builtin_memcmp(p1, p2, n)
+#else
+static int memcmp(const void *p1, const void *p2, size_t n)
+{
+	const unsigned char *u1 = p1;
+	const unsigned char *u2 = p2;
+	int d;
+
+	while (n--) {
+		d = *u2 - *u1;
+		if (d)
+			return d;
+	}
+	return 0;
+}
+#endif
+
+#define ALIGN4(p) ((void *)(((size_t)p + 3) & ~3))
+
+struct cpio_data find_cpio_data(const char *name, const void *data, size_t len)
+{
+	const size_t cpio_header_len = 6 + 8*C_NFIELDS;
+	struct cpio_data cd = { NULL, 0 };
+	const char *p, *dptr, *nptr;
+	unsigned int magic, ch[C_NFIELDS], *chp;
+	unsigned int mynamesize = mystrlen(name) + 1;
+	int i;
+
+	p = data;
+
+	while (len > cpio_header_len) {
+		if (!*p) {
+			/* All cpio headers need to be 4-byte aligned */
+			p += 4;
+			len -= 4;
+			continue;
+		}
+
+		if (!validhex(p, cpio_header_len))
+			break;	/* Not a valid cpio header */
+
+		magic = hexval(p, 6);
+		if ((magic - 0x070701) > 1)
+			break;	/* Not a valid cpio magic */
+
+		p += 6;
+		chp = ch;
+		for (i = 0; i < C_NFIELDS; i++) {
+			*chp++ = hexval(p, 8);
+			p += 8;
+
+		}
+
+		len -= cpio_header_len;
+
+		dptr = ALIGN4(p + ch[C_NAMESIZE]);
+		nptr = ALIGN4(dptr + ch[C_FILESIZE]);
+
+		if (nptr > p + len)
+			break;	/* Buffer overrun */
+
+		if ((ch[C_MODE] & 0170000) == 0100000 &&
+		    ch[C_NAMESIZE] == mynamesize &&
+		    memcmp(p, name, mynamesize)) {
+			cd.data = (void *)dptr;
+			cd.size = ch[C_FILESIZE];
+			break;
+		}
+
+		len -= (nptr - p);
+		p = nptr;
+	}
+
+	return cd;
+}
+
+
+--------------080500020807000606090101--
