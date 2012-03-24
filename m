@@ -1,46 +1,46 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
+From: "H. Peter Anvin" <hpa@kernel.org>
 Subject: Re: [PATCH] ACPI: Implement overriding of arbitrary ACPI tables via
  initrd
-Date: Sat, 24 Mar 2012 15:21:01 -0700
-Message-ID: <4F6E48CD.9050002@zytor.com>
-References: <1332512984-79664-1-git-send-email-trenn@suse.de> <4F6CD79A.8020805@zytor.com> <201203240242.07724.trenn@suse.de> <4F6D2AF8.3070707@zytor.com> <20120324184238.GB13978@phenom.dumpdata.com> <4F6E1D6F.4000308@zytor.com> <20120324191718.GA3927@phenom.dumpdata.com>
+Date: Sat, 24 Mar 2012 15:44:10 -0700
+Message-ID: <4F6E4E3A.7060307@kernel.org>
+References: <1332512984-79664-1-git-send-email-trenn@suse.de> <4F6CD79A.8020805@zytor.com> <201203240242.07724.trenn@suse.de> <4F6D2AF8.3070707@zytor.com> <20120324184238.GB13978@phenom.dumpdata.com> <4F6E1D6F.4000308@zytor.com> <20120324191718.GA3927@phenom.dumpdata.com> <4F6E48CD.9050002@zytor.com>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------080500020807000606090101"
+ boundary="------------050409000605000900000709"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from terminus.zytor.com ([198.137.202.10]:37096 "EHLO mail.zytor.com"
+Received: from terminus.zytor.com ([198.137.202.10]:37205 "EHLO mail.zytor.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754026Ab2CXWV2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 24 Mar 2012 18:21:28 -0400
-In-Reply-To: <20120324191718.GA3927@phenom.dumpdata.com>
+	id S1753099Ab2CXWom (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 24 Mar 2012 18:44:42 -0400
+In-Reply-To: <4F6E48CD.9050002@zytor.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Cc: Thomas Renninger <trenn@suse.de>, eric.piel@tremplin-utc.net, vojcek@tlen.pl, dsdt@gaugusch.at, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org, Lin Ming <ming.m.lin@intel.com>, lenb@kernel.org, robert.moore@intel.com, Al Viro <viro@zeniv.linux.org.uk>, Harald Hoyer <harald@redhat.com>
 
 This is a multi-part message in MIME format.
---------------080500020807000606090101
+--------------050409000605000900000709
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-The attached cpio-parsing code compiles to 458 bytes on x86-64 and 476
-bytes on i386, and that is without any library dependencies at all.
-Again, it will completely stop at the first compressed data item, so any
-such kernel objects absolutely will have to be first.  In good Linux
-tradition, it is also completely untested.
+On 03/24/2012 03:21 PM, H. Peter Anvin wrote:
+> The attached cpio-parsing code compiles to 458 bytes on x86-64 and 476
+> bytes on i386, and that is without any library dependencies at all.
+> Again, it will completely stop at the first compressed data item, so any
+> such kernel objects absolutely will have to be first.  In good Linux
+> tradition, it is also completely untested.
+> 
+> However, given that very reasonable size I would think that this is a
+> reasonable approach.  Anyone who has a better suggestion for the
+> namespace than "kernel/"?
+> 
 
-However, given that very reasonable size I would think that this is a
-reasonable approach.  Anyone who has a better suggestion for the
-namespace than "kernel/"?
+Slightly improved version with actually working memcmp()...
 
 	-hpa
 
--- 
-H. Peter Anvin, Intel Open Source Technology Center
-I work for Intel.  I don't speak on their behalf.
 
-
---------------080500020807000606090101
+--------------050409000605000900000709
 Content-Type: text/x-csrc;
  name="findcpio.c"
 Content-Transfer-Encoding: 7bit
@@ -123,9 +123,31 @@ static unsigned int hexval(const char *ptr, int len)
 	return v;
 }
 
-static int mystrlen(const char *name)
+#if defined(__i386__) || defined(__x86_64__)
+static size_t strlen(const char *name)
 {
-	int n = 0;
+	size_t n = -1;
+
+	asm("repne; scasb"
+	    : "+D" (name), "+c" (n)
+	    : "a" (0));
+
+	return -2 - n;
+}
+
+static int memcmp(const void *p1, const void *p2, size_t n)
+{
+	unsigned char rv;
+
+	asm("repe; cmpsb; setne %0"
+	    : "=r" (rv), "+S" (p1), "+D" (p2), "+c" (n));
+
+	return rv;
+}
+#else
+static size_t strlen(const char *name)
+{
+	size_t n = 0;
 
 	while (*name++)
 		n++;
@@ -133,9 +155,6 @@ static int mystrlen(const char *name)
 	return n;
 }
 
-#if 0
-# define memcmp(p1, p2, n) __builtin_memcmp(p1, p2, n)
-#else
 static int memcmp(const void *p1, const void *p2, size_t n)
 {
 	const unsigned char *u1 = p1;
@@ -143,7 +162,7 @@ static int memcmp(const void *p1, const void *p2, size_t n)
 	int d;
 
 	while (n--) {
-		d = *u2 - *u1;
+		d = *u2++ - *u1++;
 		if (d)
 			return d;
 	}
@@ -159,7 +178,7 @@ struct cpio_data find_cpio_data(const char *name, const void *data, size_t len)
 	struct cpio_data cd = { NULL, 0 };
 	const char *p, *dptr, *nptr;
 	unsigned int magic, ch[C_NFIELDS], *chp;
-	unsigned int mynamesize = mystrlen(name) + 1;
+	size_t mynamesize = strlen(name) + 1;
 	int i;
 
 	p = data;
@@ -197,7 +216,7 @@ struct cpio_data find_cpio_data(const char *name, const void *data, size_t len)
 
 		if ((ch[C_MODE] & 0170000) == 0100000 &&
 		    ch[C_NAMESIZE] == mynamesize &&
-		    memcmp(p, name, mynamesize)) {
+		    !memcmp(p, name, mynamesize)) {
 			cd.data = (void *)dptr;
 			cd.size = ch[C_FILESIZE];
 			break;
@@ -211,4 +230,4 @@ struct cpio_data find_cpio_data(const char *name, const void *data, size_t len)
 }
 
 
---------------080500020807000606090101--
+--------------050409000605000900000709--
