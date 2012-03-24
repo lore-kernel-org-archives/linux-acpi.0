@@ -1,73 +1,51 @@
 From: "H. Peter Anvin" <hpa@zytor.com>
 Subject: Re: [PATCH] ACPI: Implement overriding of arbitrary ACPI tables via
  initrd
-Date: Sat, 24 Mar 2012 11:49:38 -0700
-Message-ID: <4F6E1742.6060709@zytor.com>
-References: <1332512984-79664-1-git-send-email-trenn@suse.de> <201203240242.07724.trenn@suse.de> <4F6D2AF8.3070707@zytor.com> <201203240402.38749.trenn@suse.de> <4F6D50DD.4050306@zytor.com> <20120324092451.GA3352@liondog.tnic>
+Date: Sat, 24 Mar 2012 12:15:59 -0700
+Message-ID: <4F6E1D6F.4000308@zytor.com>
+References: <1332512984-79664-1-git-send-email-trenn@suse.de> <4F6CD79A.8020805@zytor.com> <201203240242.07724.trenn@suse.de> <4F6D2AF8.3070707@zytor.com> <20120324184238.GB13978@phenom.dumpdata.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from terminus.zytor.com ([198.137.202.10]:35986 "EHLO mail.zytor.com"
+Received: from terminus.zytor.com ([198.137.202.10]:36260 "EHLO mail.zytor.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753234Ab2CXSu0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 24 Mar 2012 14:50:26 -0400
-In-Reply-To: <20120324092451.GA3352@liondog.tnic>
+	id S1755641Ab2CXTQR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 24 Mar 2012 15:16:17 -0400
+In-Reply-To: <20120324184238.GB13978@phenom.dumpdata.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>, Thomas Renninger <trenn@suse.de>, eric.piel@tremplin-utc.net, vojcek@tlen.pl, dsdt@gaugusch.at, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org, Lin Ming <ming.m.lin@intel.com>, lenb@kernel.org, robert.moore@intel.com, Al Viro <viro@zeniv.linux.org.uk>
+To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Thomas Renninger <trenn@suse.de>, eric.piel@tremplin-utc.net, vojcek@tlen.pl, dsdt@gaugusch.at, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org, Lin Ming <ming.m.lin@intel.com>, lenb@kernel.org, robert.moore@intel.com, Al Viro <viro@zeniv.linux.org.uk>, Harald Hoyer <harald@redhat.com>
 
-[Adding Harald Hoyer, maintainer of dracut.  Harald, we're discussing
-adding components to the initrd blob which is used during early boot.
-We have at least two such users identified: microcode updates and ACPI
-override.  The two proposals on the table is either to stick with cpio
-format and using a special namespace (e.g. kernel/) or using a new
-header for these early objects that would be skipped by the initramfs
-decoder.]
-
-On 03/24/2012 02:24 AM, Borislav Petkov wrote:
-> On Fri, Mar 23, 2012 at 09:43:09PM -0700, H. Peter Anvin wrote:
->> By the way, if "relying on the bootloader" was an option in any way then
->> we would already have a solution in the form of the kernel data linked
->> list.  Unfortunately to the best of my knowledge not a single bootloader
->> provides support for it.
+On 03/24/2012 11:42 AM, Konrad Rzeszutek Wilk wrote:
 > 
-> ... and that's unfortunate because if we had that support, we wouldn't
-> need to redo the initrd each time microcode or BIOS tables change but
-> simply point the boot loader to the updated images.
+> Probably should also have:
+> 		u32 version;
 > 
-> :-(
+> in case we decide to expand this structure in the future, and:
+>> 		u32 type;	/* 1 = file data, 2 = ACPI, 3 = microcode... */
+>> 		u32 length;	/* Length of data object */
+>> 	};
 > 
-> Btw, hpa, didn't you have someone working on early microcode loading,
-> any results there?
+> and encapsulate the whole thing in a 4K union?
 > 
 
-Yes... unfortunately between the kernel.org disaster and having a baby I
-haven't had enough to time to get that work out of the freezer, which is
-unfortunate in the extreme.
+For "version" you'd have to define what happens if you see a version
+number you don't recognize, and why that is in any way better than
+changing the magic number or the type.  It is something that people like
+to throw in without thinking about it, and that is a mistake.
 
-On the other hand, perhaps it is a good thing we didn't end up settling
-on a protocol which was too narrow purpose for that one, too.
+Forcing everything to be page-aligned may be a good idea, although that
+assumes all bootloaders actually align them that way...
 
-This is my current thinking, and please comment on this so we don't
-spend a bunch of time bikeshedding this one... I'd like to come up with
-something that we can implement and move on.
+> 
+> Perhaps the header should be in big-endian (that is the same as the network
+> byte order, right?) and each sub-type can define its own endian?
+> 
 
-I have to say I'm personally leaning in the direction of just using a
-special namespace and still encode things as cpio.  However, in order
-for that to work we need to make sure that the invariant "early kernel
-objects come before any compressed blob" is maintained at all times,
-which might be sensitive.  However, it has serious advantages both from
-a bootloader UI point of view (names are ASCII strings) and from a tools
-point of view (it's just cpio, still.)
-
-The main downside is that the cpio header is mostly in ASCII encoded
-hexadecimal, which adds to the amount of code that needs to be ported
-into "special" environments... not a problem for the ACPI converter but
-for the early microcode it matters.
-
-I might try to throw a minimal walker together and see how much code it
-is, unless someone beats me to it ;)
+The content of the encapsulation is its own thing; it will be different
+for different types as most of them already
 
 	-hpa
 
