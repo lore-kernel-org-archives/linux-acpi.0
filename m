@@ -1,69 +1,53 @@
 From: Borislav Petkov <bp@alien8.de>
 Subject: Re: [PATCH] ACPI: Implement overriding of arbitrary ACPI tables via
  initrd
-Date: Sun, 25 Mar 2012 10:54:20 +0200
-Message-ID: <20120325085420.GA12565@liondog.tnic>
+Date: Sun, 25 Mar 2012 11:07:05 +0200
+Message-ID: <20120325090705.GB12565@liondog.tnic>
 References: <1332512984-79664-1-git-send-email-trenn@suse.de>
+ <4F6CD79A.8020805@zytor.com>
  <201203240242.07724.trenn@suse.de>
  <4F6D2AF8.3070707@zytor.com>
- <201203240402.38749.trenn@suse.de>
- <4F6D50DD.4050306@zytor.com>
- <20120324092451.GA3352@liondog.tnic>
- <4F6E1742.6060709@zytor.com>
+ <20120324184238.GB13978@phenom.dumpdata.com>
+ <4F6E1D6F.4000308@zytor.com>
+ <20120324191718.GA3927@phenom.dumpdata.com>
+ <4F6E48CD.9050002@zytor.com>
+ <4F6E9C51.9000406@zytor.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:42858 "EHLO mail.skyhub.de"
+Received: from mail.skyhub.de ([78.46.96.112]:37749 "EHLO mail.skyhub.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754806Ab2CYIy0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 25 Mar 2012 04:54:26 -0400
+	id S1754785Ab2CYJHJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 25 Mar 2012 05:07:09 -0400
 Content-Disposition: inline
-In-Reply-To: <4F6E1742.6060709@zytor.com>
+In-Reply-To: <4F6E9C51.9000406@zytor.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Renninger <trenn@suse.de>, eric.piel@tremplin-utc.net, vojcek@tlen.pl, dsdt@gaugusch.at, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org, Lin Ming <ming.m.lin@intel.com>, lenb@kernel.org, robert.moore@intel.com, Al Viro <viro@zeniv.linux.org.uk>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Thomas Renninger <trenn@suse.de>, eric.piel@tremplin-utc.net, vojcek@tlen.pl, dsdt@gaugusch.at, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org, Lin Ming <ming.m.lin@intel.com>, lenb@kernel.org, robert.moore@intel.com, Al Viro <viro@zeniv.linux.org.uk>, Harald Hoyer <harald@redhat.com>
 
-On Sat, Mar 24, 2012 at 11:49:38AM -0700, H. Peter Anvin wrote:
-> Yes... unfortunately between the kernel.org disaster and having a baby I
-
-Congrats on the second one!
-
-> haven't had enough to time to get that work out of the freezer, which is
-> unfortunate in the extreme.
+On Sat, Mar 24, 2012 at 09:17:21PM -0700, H. Peter Anvin wrote:
+> The more I think about it the more I really think this is the right
+> approach.  For microcode, this means we don't have to worry about
+> creating a super-container for the various microcode formats; we can
+> simply have:
 > 
-> On the other hand, perhaps it is a good thing we didn't end up settling
-> on a protocol which was too narrow purpose for that one, too.
+> 	kernel/x86/microcode/GenuineIntel
+> 	kernel/x86/microcode/AuthenticAMD
 > 
-> This is my current thinking, and please comment on this so we don't
-> spend a bunch of time bikeshedding this one... I'd like to come up with
-> something that we can implement and move on.
+> ... which solves the problem neatly.
+
+Yes, this is actually pretty neat. Basically, distro vendors will get
+ucode images from the resp. hw vendors, put them in the proper hierarchy
+as above and generate the cpio archive, easy.
+
+> It does beg the question if you want to be able to have multiple:
 > 
-> I have to say I'm personally leaning in the direction of just using a
-> special namespace and still encode things as cpio.  However, in order
-> for that to work we need to make sure that the invariant "early kernel
-> objects come before any compressed blob" is maintained at all times,
-
-That actually makes sense for ucode because we want it as early as
-possible.
-
-> which might be sensitive.  However, it has serious advantages both from
-> a bootloader UI point of view (names are ASCII strings) and from a tools
-> point of view (it's just cpio, still.)
+> 	kernel/acpi/...
 > 
-> The main downside is that the cpio header is mostly in ASCII encoded
-> hexadecimal, which adds to the amount of code that needs to be ported
-> into "special" environments... not a problem for the ACPI converter but
-> for the early microcode it matters.
+> ... files, to make managing different tables easier, or is that overkill?
 
-One other downside for this approach would be the need to have
-initrd/initramfs support always compiled into the kernel in order to do
-all those things but, hey, distro kernels already have that so we're
-probably stuck with it anyway.
-
-And, if someone wants to add the support to the bootloader later, he
-can still do that by handing in cpio archives to the kernel for further
-processing...
+Well, like the above, different sub-namespaces...
 
 -- 
 Regards/Gruss,
