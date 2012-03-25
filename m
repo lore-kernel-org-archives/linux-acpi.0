@@ -1,50 +1,70 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
+From: Borislav Petkov <bp@alien8.de>
 Subject: Re: [PATCH] ACPI: Implement overriding of arbitrary ACPI tables via
  initrd
-Date: Sat, 24 Mar 2012 21:17:21 -0700
-Message-ID: <4F6E9C51.9000406@zytor.com>
-References: <1332512984-79664-1-git-send-email-trenn@suse.de> <4F6CD79A.8020805@zytor.com> <201203240242.07724.trenn@suse.de> <4F6D2AF8.3070707@zytor.com> <20120324184238.GB13978@phenom.dumpdata.com> <4F6E1D6F.4000308@zytor.com> <20120324191718.GA3927@phenom.dumpdata.com> <4F6E48CD.9050002@zytor.com>
+Date: Sun, 25 Mar 2012 10:54:20 +0200
+Message-ID: <20120325085420.GA12565@liondog.tnic>
+References: <1332512984-79664-1-git-send-email-trenn@suse.de>
+ <201203240242.07724.trenn@suse.de>
+ <4F6D2AF8.3070707@zytor.com>
+ <201203240402.38749.trenn@suse.de>
+ <4F6D50DD.4050306@zytor.com>
+ <20120324092451.GA3352@liondog.tnic>
+ <4F6E1742.6060709@zytor.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from terminus.zytor.com ([198.137.202.10]:39319 "EHLO mail.zytor.com"
+Received: from mail.skyhub.de ([78.46.96.112]:42858 "EHLO mail.skyhub.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750812Ab2CYESL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 25 Mar 2012 00:18:11 -0400
-In-Reply-To: <4F6E48CD.9050002@zytor.com>
+	id S1754806Ab2CYIy0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 25 Mar 2012 04:54:26 -0400
+Content-Disposition: inline
+In-Reply-To: <4F6E1742.6060709@zytor.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Thomas Renninger <trenn@suse.de>, eric.piel@tremplin-utc.net, vojcek@tlen.pl, dsdt@gaugusch.at, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org, Lin Ming <ming.m.lin@intel.com>, lenb@kernel.org, robert.moore@intel.com, Al Viro <viro@zeniv.linux.org.uk>, Harald Hoyer <harald@redhat.com>, Borislav Petkov <bp@alien8.de>
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Renninger <trenn@suse.de>, eric.piel@tremplin-utc.net, vojcek@tlen.pl, dsdt@gaugusch.at, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org, Lin Ming <ming.m.lin@intel.com>, lenb@kernel.org, robert.moore@intel.com, Al Viro <viro@zeniv.linux.org.uk>
 
-On 03/24/2012 03:21 PM, H. Peter Anvin wrote:
-> The attached cpio-parsing code compiles to 458 bytes on x86-64 and 476
-> bytes on i386, and that is without any library dependencies at all.
-> Again, it will completely stop at the first compressed data item, so any
-> such kernel objects absolutely will have to be first.  In good Linux
-> tradition, it is also completely untested.
+On Sat, Mar 24, 2012 at 11:49:38AM -0700, H. Peter Anvin wrote:
+> Yes... unfortunately between the kernel.org disaster and having a baby I
+
+Congrats on the second one!
+
+> haven't had enough to time to get that work out of the freezer, which is
+> unfortunate in the extreme.
 > 
-> However, given that very reasonable size I would think that this is a
-> reasonable approach.  Anyone who has a better suggestion for the
-> namespace than "kernel/"?
+> On the other hand, perhaps it is a good thing we didn't end up settling
+> on a protocol which was too narrow purpose for that one, too.
 > 
+> This is my current thinking, and please comment on this so we don't
+> spend a bunch of time bikeshedding this one... I'd like to come up with
+> something that we can implement and move on.
+> 
+> I have to say I'm personally leaning in the direction of just using a
+> special namespace and still encode things as cpio.  However, in order
+> for that to work we need to make sure that the invariant "early kernel
+> objects come before any compressed blob" is maintained at all times,
 
-The more I think about it the more I really think this is the right
-approach.  For microcode, this means we don't have to worry about
-creating a super-container for the various microcode formats; we can
-simply have:
+That actually makes sense for ucode because we want it as early as
+possible.
 
-	kernel/x86/microcode/GenuineIntel
-	kernel/x86/microcode/AuthenticAMD
+> which might be sensitive.  However, it has serious advantages both from
+> a bootloader UI point of view (names are ASCII strings) and from a tools
+> point of view (it's just cpio, still.)
+> 
+> The main downside is that the cpio header is mostly in ASCII encoded
+> hexadecimal, which adds to the amount of code that needs to be ported
+> into "special" environments... not a problem for the ACPI converter but
+> for the early microcode it matters.
 
-... which solves the problem neatly.
+One other downside for this approach would be the need to have
+initrd/initramfs support always compiled into the kernel in order to do
+all those things but, hey, distro kernels already have that so we're
+probably stuck with it anyway.
 
-It does beg the question if you want to be able to have multiple:
+And, if someone wants to add the support to the bootloader later, he
+can still do that by handing in cpio archives to the kernel for further
+processing...
 
-	kernel/acpi/...
-
-... files, to make managing different tables easier, or is that overkill?
-
-	-hpa
-
+-- 
+Regards/Gruss,
+    Boris.
