@@ -1,27 +1,22 @@
-From: "H. Peter Anvin" <hpa@kernel.org>
+From: "H. Peter Anvin" <hpa@zytor.com>
 Subject: Re: [PATCH] ACPI: Implement overriding of arbitrary ACPI tables via
  initrd
-Date: Sat, 24 Mar 2012 15:44:10 -0700
-Message-ID: <4F6E4E3A.7060307@kernel.org>
+Date: Sat, 24 Mar 2012 21:17:21 -0700
+Message-ID: <4F6E9C51.9000406@zytor.com>
 References: <1332512984-79664-1-git-send-email-trenn@suse.de> <4F6CD79A.8020805@zytor.com> <201203240242.07724.trenn@suse.de> <4F6D2AF8.3070707@zytor.com> <20120324184238.GB13978@phenom.dumpdata.com> <4F6E1D6F.4000308@zytor.com> <20120324191718.GA3927@phenom.dumpdata.com> <4F6E48CD.9050002@zytor.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------050409000605000900000709"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from terminus.zytor.com ([198.137.202.10]:37205 "EHLO mail.zytor.com"
+Received: from terminus.zytor.com ([198.137.202.10]:39319 "EHLO mail.zytor.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753099Ab2CXWom (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 24 Mar 2012 18:44:42 -0400
+	id S1750812Ab2CYESL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 25 Mar 2012 00:18:11 -0400
 In-Reply-To: <4F6E48CD.9050002@zytor.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Thomas Renninger <trenn@suse.de>, eric.piel@tremplin-utc.net, vojcek@tlen.pl, dsdt@gaugusch.at, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org, Lin Ming <ming.m.lin@intel.com>, lenb@kernel.org, robert.moore@intel.com, Al Viro <viro@zeniv.linux.org.uk>, Harald Hoyer <harald@redhat.com>
-
-This is a multi-part message in MIME format.
---------------050409000605000900000709
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Cc: Thomas Renninger <trenn@suse.de>, eric.piel@tremplin-utc.net, vojcek@tlen.pl, dsdt@gaugusch.at, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org, Lin Ming <ming.m.lin@intel.com>, lenb@kernel.org, robert.moore@intel.com, Al Viro <viro@zeniv.linux.org.uk>, Harald Hoyer <harald@redhat.com>, Borislav Petkov <bp@alien8.de>
 
 On 03/24/2012 03:21 PM, H. Peter Anvin wrote:
 > The attached cpio-parsing code compiles to 458 bytes on x86-64 and 476
@@ -35,199 +30,21 @@ On 03/24/2012 03:21 PM, H. Peter Anvin wrote:
 > namespace than "kernel/"?
 > 
 
-Slightly improved version with actually working memcmp()...
+The more I think about it the more I really think this is the right
+approach.  For microcode, this means we don't have to worry about
+creating a super-container for the various microcode formats; we can
+simply have:
+
+	kernel/x86/microcode/GenuineIntel
+	kernel/x86/microcode/AuthenticAMD
+
+... which solves the problem neatly.
+
+It does beg the question if you want to be able to have multiple:
+
+	kernel/acpi/...
+
+... files, to make managing different tables easier, or is that overkill?
 
 	-hpa
 
-
---------------050409000605000900000709
-Content-Type: text/x-csrc;
- name="findcpio.c"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="findcpio.c"
-
-/*
- * findcpio.c
- *
- * Find a specific cpio member; must precede any compressed content.
- */
-
-#include <stddef.h>
-#include <stdbool.h>
-
-struct cpio_data {
-	void *data;
-	unsigned long size;
-};
-
-enum cpio_fields {
-	C_INO,
-	C_MODE,
-	C_UID,
-	C_GID,
-	C_NLINK,
-	C_MTIME,
-	C_FILESIZE,
-	C_MAJ,
-	C_MIN,
-	C_RMAJ,
-	C_RMIN,
-	C_NAMESIZE,
-	C_CHKSUM,
-	C_NFIELDS
-};
-
-/* Return true if this field is composed of valid hex digits */
-static bool validhex(const char *ptr, int len)
-{
-	unsigned char c, x;
-
-	while (len--) {
-		c = *ptr++;
-
-		x = c - '0';
-		if (x < 10)
-			continue;
-
-		x = (c | 0x20) - 'a' + 10;
-		if (x < 16)
-			continue;
-
-		return false;
-	}
-
-	return true;
-}
-
-/* Return the value of an already validated field */
-static unsigned int hexval(const char *ptr, int len)
-{
-	unsigned int v = 0;
-	unsigned char c, x;
-
-	while (len--) {
-		v <<= 4;
-		c = *ptr++;
-
-		x = c - '0';
-		if (x < 10) {
-			v += x;
-			continue;
-		}
-
-		x = (c | 0x20) - 'a' + 10;
-		v += x;
-	}
-
-	return v;
-}
-
-#if defined(__i386__) || defined(__x86_64__)
-static size_t strlen(const char *name)
-{
-	size_t n = -1;
-
-	asm("repne; scasb"
-	    : "+D" (name), "+c" (n)
-	    : "a" (0));
-
-	return -2 - n;
-}
-
-static int memcmp(const void *p1, const void *p2, size_t n)
-{
-	unsigned char rv;
-
-	asm("repe; cmpsb; setne %0"
-	    : "=r" (rv), "+S" (p1), "+D" (p2), "+c" (n));
-
-	return rv;
-}
-#else
-static size_t strlen(const char *name)
-{
-	size_t n = 0;
-
-	while (*name++)
-		n++;
-
-	return n;
-}
-
-static int memcmp(const void *p1, const void *p2, size_t n)
-{
-	const unsigned char *u1 = p1;
-	const unsigned char *u2 = p2;
-	int d;
-
-	while (n--) {
-		d = *u2++ - *u1++;
-		if (d)
-			return d;
-	}
-	return 0;
-}
-#endif
-
-#define ALIGN4(p) ((void *)(((size_t)p + 3) & ~3))
-
-struct cpio_data find_cpio_data(const char *name, const void *data, size_t len)
-{
-	const size_t cpio_header_len = 6 + 8*C_NFIELDS;
-	struct cpio_data cd = { NULL, 0 };
-	const char *p, *dptr, *nptr;
-	unsigned int magic, ch[C_NFIELDS], *chp;
-	size_t mynamesize = strlen(name) + 1;
-	int i;
-
-	p = data;
-
-	while (len > cpio_header_len) {
-		if (!*p) {
-			/* All cpio headers need to be 4-byte aligned */
-			p += 4;
-			len -= 4;
-			continue;
-		}
-
-		if (!validhex(p, cpio_header_len))
-			break;	/* Not a valid cpio header */
-
-		magic = hexval(p, 6);
-		if ((magic - 0x070701) > 1)
-			break;	/* Not a valid cpio magic */
-
-		p += 6;
-		chp = ch;
-		for (i = 0; i < C_NFIELDS; i++) {
-			*chp++ = hexval(p, 8);
-			p += 8;
-
-		}
-
-		len -= cpio_header_len;
-
-		dptr = ALIGN4(p + ch[C_NAMESIZE]);
-		nptr = ALIGN4(dptr + ch[C_FILESIZE]);
-
-		if (nptr > p + len)
-			break;	/* Buffer overrun */
-
-		if ((ch[C_MODE] & 0170000) == 0100000 &&
-		    ch[C_NAMESIZE] == mynamesize &&
-		    !memcmp(p, name, mynamesize)) {
-			cd.data = (void *)dptr;
-			cd.size = ch[C_FILESIZE];
-			break;
-		}
-
-		len -= (nptr - p);
-		p = nptr;
-	}
-
-	return cd;
-}
-
-
---------------050409000605000900000709--
