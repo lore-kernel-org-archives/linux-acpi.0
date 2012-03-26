@@ -1,52 +1,206 @@
 From: "H. Peter Anvin" <hpa@zytor.com>
 Subject: Re: [PATCH] ACPI: Implement overriding of arbitrary ACPI tables via
  initrd
-Date: Sun, 25 Mar 2012 18:25:17 -0700
-Message-ID: <4F6FC57D.3050404@zytor.com>
-References: <1332512984-79664-1-git-send-email-trenn@suse.de> <201203240402.38749.trenn@suse.de> <4F6D50DD.4050306@zytor.com> <201203260245.43177.trenn@suse.de>
+Date: Sun, 25 Mar 2012 18:36:56 -0700
+Message-ID: <4F6FC838.7000904@zytor.com>
+References: <1332512984-79664-1-git-send-email-trenn@suse.de> <201203240242.07724.trenn@suse.de> <4F6D2AF8.3070707@zytor.com> <201203240402.38749.trenn@suse.de> <4F6D50DD.4050306@zytor.com> <20120324092451.GA3352@liondog.tnic> <4F6E1742.6060709@zytor.com> <20120325085420.GA12565@liondog.tnic>
 Mime-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="------------080709060403040904020707"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120325085420.GA12565@liondog.tnic>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>, Thomas Renninger <trenn@suse.de>, eric.piel@tremplin-utc.net, vojcek@tlen.pl, dsdt@gaugusch.at, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org, Lin Ming <ming.m.lin@intel.com>, lenb@kernel.org, robert.moore@intel.com, Al Viro <viro@zeniv.linux.org.uk>
+List-Id: linux-acpi@vger.kernel.org
+
+This is a multi-part message in MIME format.
+--------------080709060403040904020707
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from terminus.zytor.com ([198.137.202.10]:46016 "EHLO mail.zytor.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754243Ab2CZBZi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 25 Mar 2012 21:25:38 -0400
-In-Reply-To: <201203260245.43177.trenn@suse.de>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: eric.piel@tremplin-utc.net, vojcek@tlen.pl, dsdt@gaugusch.at, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org, Lin Ming <ming.m.lin@intel.com>, lenb@kernel.org, robert.moore@intel.com, Al Viro <viro@zeniv.linux.org.uk>
 
-On 03/25/2012 05:45 PM, Thomas Renninger wrote:
-> Best would be if no distro specific mkinitrd magic is needed and it's
-> just as easy as it is:
-> cp DSDT.aml /boot/initrd-test
-> cat /boot/initrd >>/boot/initrd-test
-> and add a test boot entry to grub's menu.lst or whereever.
-> Then developers would not have to look at distro specific implementations
-> (which should not exist) about how to test a table quickly.
-
-There is no distro-specific magic needed.  What I'm proposing is
-basically what you have above, except that your DSDT.aml would be
-wrapped in a cpio header.  What I would like to ask from you is if it
-makes sense to have kernel/acpi/DSDT, kernel/acpi/SSDT and so on, or
-just make it a single kernel/acpi member.
-
-By wrapping in a cpio container it becomes a generic mechanism.
-
->> By the way, if "relying on the bootloader" was an option in any way
+On 03/25/2012 01:54 AM, Borislav Petkov wrote:
 > 
-> Why exactly is a change in the bootloader not an option?
-> Not sure whether a version number is passed, but the magic number could be
-> changed for now.
+> One other downside for this approach would be the need to have
+> initrd/initramfs support always compiled into the kernel in order to do
+> all those things but, hey, distro kernels already have that so we're
+> probably stuck with it anyway.
+> 
 
-There are a lot of bootloaders, and one of the most commonly used ones
-has a very adversarial relationship with the kernel maintainers.
+In theory we could make the early stuff independent of the initramfs
+code in the kernel -- just like we always build in an initramfs.
 
-> If the new magic number is passed, we get a linked list.
+Not that it matters much, at this point the no-initramfs configurations
+are mostly theoretical.
 
-The linked list stuff is already supported.  This interface has been
-supported in the kernel since 2007.
+I was able to shave a bit more off the code... optimizing for size can
+be fun sometimes.  The code is now 442 bytes on x86-64 and 413 on i386
+when compiled with -O2 -fomit-frame-pointer; with -Os
+-fomit-frame-pointer it is 372/410... all of that without any library
+calls or relocations of any kind (which means it should be safe to call
+from the prepaging environment.)
 
 	-hpa
+
+--------------080709060403040904020707
+Content-Type: text/x-csrc;
+ name="findcpio.c"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="findcpio.c"
+
+/*
+ * findcpio.c
+ *
+ * Find a specific cpio member; must precede any compressed content.
+ */
+
+#include <stddef.h>
+#include <stdbool.h>
+
+struct cpio_data {
+	void *data;
+	unsigned long size;
+};
+
+enum cpio_fields {
+	C_MAGIC,
+	C_INO,
+	C_MODE,
+	C_UID,
+	C_GID,
+	C_NLINK,
+	C_MTIME,
+	C_FILESIZE,
+	C_MAJ,
+	C_MIN,
+	C_RMAJ,
+	C_RMIN,
+	C_NAMESIZE,
+	C_CHKSUM,
+	C_NFIELDS
+};
+
+#if defined(__i386__) || defined(__x86_64__)
+static size_t strlen(const char *name)
+{
+	size_t n = -1;
+
+	asm("repne; scasb"
+	    : "+D" (name), "+c" (n)
+	    : "a" (0));
+
+	return -2 - n;
+}
+
+static int memcmp(const void *p1, const void *p2, size_t n)
+{
+	unsigned char rv;
+
+	asm("repe; cmpsb; setne %0"
+	    : "=r" (rv), "+S" (p1), "+D" (p2), "+c" (n));
+
+	return rv;
+}
+#else
+static size_t strlen(const char *name)
+{
+	size_t n = 0;
+
+	while (*name++)
+		n++;
+
+	return n;
+}
+
+static int memcmp(const void *p1, const void *p2, size_t n)
+{
+	const unsigned char *u1 = p1;
+	const unsigned char *u2 = p2;
+	int d;
+
+	while (n--) {
+		d = *u2++ - *u1++;
+		if (d)
+			return d;
+	}
+	return 0;
+}
+#endif
+
+#define ALIGN4(p) ((void *)(((size_t)p + 3) & ~3))
+
+struct cpio_data find_cpio_data(const char *name, const void *data, size_t len)
+{
+	const size_t cpio_header_len = 8*C_NFIELDS - 2;
+	struct cpio_data cd = { NULL, 0 };
+	const char *p, *dptr, *nptr;
+	unsigned int ch[C_NFIELDS], *chp, v;
+	unsigned char c, x;
+	size_t mynamesize = strlen(name) + 1;
+	int i, j;
+
+	p = data;
+
+	while (len > cpio_header_len) {
+		if (!*p) {
+			/* All cpio headers need to be 4-byte aligned */
+			p += 4;
+			len -= 4;
+			continue;
+		}
+
+		j = 6;		/* The magic field is only 6 characters */
+		chp = ch;
+		for (i = C_NFIELDS; i; i--) {
+			v = 0;
+			while (j--) {
+				v <<= 4;
+				c = *p++;
+
+				x = c - '0';
+				if (x < 10) {
+					v += x;
+					continue;
+				}
+
+				x = (c | 0x20) - 'a';
+				if (x < 6) {
+					v += x + 10;
+					continue;
+				}
+
+				goto quit; /* Invalid hexadecimal */
+			}
+			*chp++ = v;
+			j = 8;	/* All other fields are 8 characters */
+		}
+
+		if ((ch[C_MAGIC] - 0x070701) > 1)
+			goto quit; /* Invalid magic */
+
+		len -= cpio_header_len;
+
+		dptr = ALIGN4(p + ch[C_NAMESIZE]);
+		nptr = ALIGN4(dptr + ch[C_FILESIZE]);
+
+		if (nptr > p + len || dptr < p || nptr < dptr)
+			goto quit; /* Buffer overrun */
+
+		if ((ch[C_MODE] & 0170000) == 0100000 &&
+		    ch[C_NAMESIZE] == mynamesize &&
+		    !memcmp(p, name, mynamesize)) {
+			cd.data = (void *)dptr;
+			cd.size = ch[C_FILESIZE];
+			return cd; /* Found it! */
+		}
+
+		len -= (nptr - p);
+		p = nptr;
+	}
+
+quit:
+	return cd;
+}
+
+
+--------------080709060403040904020707--
