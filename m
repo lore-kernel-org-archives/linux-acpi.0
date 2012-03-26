@@ -1,60 +1,116 @@
 From: "Liu, Jinsong" <jinsong.liu@intel.com>
-Subject: RE: [PATCH 2/2] RFC: Xen pad logic
-Date: Mon, 26 Mar 2012 06:18:36 +0000
-Message-ID: <DE8DF0795D48FD4CA783C40EC8292335105DB9@SHSMSX101.ccr.corp.intel.com>
-References: <DE8DF0795D48FD4CA783C40EC82923350AD0A6@SHSMSX101.ccr.corp.intel.com>
- <20120314001833.GB20363@phenom.dumpdata.com>
+Subject: RE: [Xen-devel] [PATCH 1/2] RFC: Prepare PAD for native and	xen
+	platform
+Date: Mon, 26 Mar 2012 07:21:22 +0000
+Message-ID: <DE8DF0795D48FD4CA783C40EC8292335105EFA@SHSMSX101.ccr.corp.intel.com>
+References: <DE8DF0795D48FD4CA783C40EC82923350AD088@SHSMSX101.ccr.corp.intel.com>
+	<4F46530B020000780007F751@nat28.tlf.novell.com>
+	<DE8DF0795D48FD4CA783C40EC82923350AD9BB@SHSMSX101.ccr.corp.intel.com>
+	<DE8DF0795D48FD4CA783C40EC82923350B2013@SHSMSX101.ccr.corp.intel.com>
+	<20120226173458.GB18098@phenom.dumpdata.com>
+	<DE8DF0795D48FD4CA783C40EC82923350B9496@SHSMSX101.ccr.corp.intel.com>
+ <DE8DF0795D48FD4CA783C40EC82923350BAC09@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:27072 "EHLO mga03.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:51900 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753291Ab2CZGSk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Mar 2012 02:18:40 -0400
-In-Reply-To: <20120314001833.GB20363@phenom.dumpdata.com>
+	id S1751274Ab2CZHV0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Mar 2012 03:21:26 -0400
+In-Reply-To: <DE8DF0795D48FD4CA783C40EC82923350BAC09@SHSMSX101.ccr.corp.intel.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "Brown, Len" <len.brown@intel.com>, "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>, Kernel development list <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "keir.xen@gmail.com" <keir.xen@gmail.com>, Jan Beulich <JBeulich@suse.com>, "Li, Shaohua" <shaohua.li@intel.com>
+Cc: "Brown, Len" <len.brown@intel.com>, "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "keir.xen@gmail.com" <keir.xen@gmail.com>, Jan Beulich <jbeulich@suse.com>, "Li, Shaohua" <shaohua.li@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "Liu, Jinsong" <jinsong.liu@intel.com>
 
-Konrad Rzeszutek Wilk wrote:
-> On Thu, Feb 23, 2012 at 01:31:25PM +0000, Liu, Jinsong wrote:
->>> From ba9abf6ee7e5fe0515e2d51b14743c8d5416285c Mon Sep 17 00:00:00
->>> 2001 
->> From: Liu, Jinsong <jinsong.liu@intel.com>
->> Date: Fri, 24 Feb 2012 02:18:02 +0800
->> Subject: [PATCH 2/2] Xen pad logic
+Liu, Jinsong wrote:
+> Liu, Jinsong wrote:
+>> Konrad Rzeszutek Wilk wrote:
+>>> On Sun, Feb 26, 2012 at 08:25:41AM +0000, Liu, Jinsong wrote:
+>>>> Liu, Jinsong wrote:
+>>>>> Jan Beulich wrote:
+>>>>>>>>> "Liu, Jinsong" <jinsong.liu@intel.com> 02/23/12 2:29 PM >>>
+>>>>>>> --- a/drivers/acpi/Kconfig
+>>>>>>> +++ b/drivers/acpi/Kconfig
+>>>>>>> @@ -213,10 +213,11 @@ config ACPI_HOTPLUG_CPU
+>>>>>>>    default y
+>>>>>>  >
+>>>>>>> config ACPI_PROCESSOR_AGGREGATOR
+>>>>>>> -    tristate "Processor Aggregator"
+>>>>>>> +    bool "Processor Aggregator"
+>>>>>> 
+>>>>>> There must be ways to address whatever strange problem you see
+>>>>>> without making this piece of code non-modular.
+>>>>>> 
+>>>>> 
+>>>>> Yes, another approach is x86_init approach, defining acpi_pad_ops
+>>>>> at x86_init.c and overwritten when xen_start_kernel. This patch is
+>>>>> just a RFC patch, to evaluate which approch is more reasonable :-)
+>>>>> 
+>>>> 
+>>>> Have a more think about it, x86_init approach still need to disable
+>>>> acpi_pad module. Seems we have to set acpi_pad as bool, as long as
+>>>> it need to hook to native acpi_pad fucs/variables.
+>>> 
+>>> What about the other approach I suggested where there are some
+>>> function overrides in osl.c? Something similar to
+>>> https://lkml.org/lkml/2012/1/17/401, specifically
+>>> https://lkml.org/lkml/2012/1/17/403 - that way you are not turning
+>>> the modules into being built in, but intead have the function table
+>>> already in the kernel (as some form of EXPORT_SYMBOL_GPL or a
+>>> registration function). 
+>>> 
 >> 
->> This patch implement Xen pad logic, and when getting pad device
->> notification, it hypercalls to Xen hypervisor for core parking.
+>> Thanks for the example (it's good itself :-), but per my
+>> understanding they are different cases.
+>> 
+>> In the osl example case, tboot_late_init call
+>> acpi_os_set_prepare_sleep to register func, so it works no matter
+>> tboot.c built as y/n/m (through currently it's bool).
+>> 
+>> However, in our case, we just cannot do so. We need
+>> 1. predefine a hook to native acpi pad funcs, take effect when
+>> static compile stage; 
+>> 2. when xen init, redirect the hook to xen acpi pad funcs, take
+>> effect at running time; (The point is, we cannot do init twice for
+>> native and xen acpi pad, so we have to statically predefine a hook
+>> to native acpi_pad) 
+>> 
+>> For the reason above, I think we have to remove acpi_pad module, as
+>> long as we need to hook to native acpi_pad funcs. Thoughts?
+>> 
 > 
-> Can you explain to me how and what pad device is? And how it functions
-> right now in baremetal? And what kind of hardware do you need to use
-> this? 
-> And what happens if you do not use it? Can one ignore the "pad"
-> support? 
-> Please assume that I've a basic understanding of ACPI.
+> Compare approaches:
 > 
+> 1. xen overwritten approach (patches V2, x86_init, osl approach)
+>     Pros:
+>         a little simpler code
+>     Cons:
+>         1). specific to xen, cannot extend to other virt platform;
+>         2). need to change natvie acpi_pad as modular;
 > 
-> Also, what happens now, if the this patch is not implemented? What
-> will/is dom0 doing without these patches (so 3.2 for example on this
-> machine)? 
-> Is it just idling using mwait on idle CPUs and ending up trapping in
-> the hypervisor? Or is not mwaiting since the cstate.c doesn't get
-> executed since we have: 
+> 2. paravirt interface approach (original patches V1)
+>     Pros:
+>         1). standard hypervisor-agnostic interface (USENIX conference
+>         2006), can easily hook to Xen/lguest/... on demand; 2). arch
+>         independent; 3). no need to change native acpi_pad as
+>     non-modular; Cons:
+>         a little complicated code, and code patching is some
+> overkilled for this case (but no harm); 
 > 
->        boot_option_idle_override = IDLE_HALT;
+> (BTW, in the future we need add more and more pv ops, like pv_pm_ops,
+> pv_cpu_hotplug_ops, pv_mem_hotplug_ops, etc. So how about add a
+> pv_misc_ops template to handle them all? seems it's a common issue).  
 > 
-> in arch/x86/xen/setup.c ?
+> Your opinion?
+> 
 
+Konrad,
 
-Pad is an ACPI device used to direct os taking some action (depend on os itsef) for the sake of power consumption. 2 objs (PUR and OST) could be declared under PAD and as bios/os interface.
-
-PAD itself is pointless, unless it co-work with some external power control s/w (like NPTM). For example currently in baremetal, NPTM engine trigger sci to ospm, then evaluate and call sci handler, through which bios notify os with PUR value by which os could take corresponding action and feedback bios through OST. I don't think it's a problem if user don't use PAD or ignore it, it only make some external power control s/w unuseable.
-
-As for how os handle pad notify is os business. Native kernel use round robin and mwait, considering some app workload affinity (I was told so). For xen we don't need care it since it's a question of vcpu level. For xen acpi_pad, dom0 patches used to parse PUR and hypercall to hypervisor, which in turn idle pcpu by its own algorithm.
+Comments? we need make sure which approach we choose (patches for both approaches are basically done and tested). IMO I prefer paravirt interface approach (it need slightly update for the purpose of 'not change acpi_pad as non-modular'. If choose it I will update ASAP).
 
 Thanks,
 Jinsong
+
