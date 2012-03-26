@@ -1,206 +1,60 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [PATCH] ACPI: Implement overriding of arbitrary ACPI tables via
- initrd
-Date: Sun, 25 Mar 2012 18:36:56 -0700
-Message-ID: <4F6FC838.7000904@zytor.com>
-References: <1332512984-79664-1-git-send-email-trenn@suse.de> <201203240242.07724.trenn@suse.de> <4F6D2AF8.3070707@zytor.com> <201203240402.38749.trenn@suse.de> <4F6D50DD.4050306@zytor.com> <20120324092451.GA3352@liondog.tnic> <4F6E1742.6060709@zytor.com> <20120325085420.GA12565@liondog.tnic>
+From: "Liu, Jinsong" <jinsong.liu@intel.com>
+Subject: RE: [PATCH 2/2] RFC: Xen pad logic
+Date: Mon, 26 Mar 2012 06:18:36 +0000
+Message-ID: <DE8DF0795D48FD4CA783C40EC8292335105DB9@SHSMSX101.ccr.corp.intel.com>
+References: <DE8DF0795D48FD4CA783C40EC82923350AD0A6@SHSMSX101.ccr.corp.intel.com>
+ <20120314001833.GB20363@phenom.dumpdata.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------080709060403040904020707"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120325085420.GA12565@liondog.tnic>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>, Thomas Renninger <trenn@suse.de>, eric.piel@tremplin-utc.net, vojcek@tlen.pl, dsdt@gaugusch.at, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org, Lin Ming <ming.m.lin@intel.com>, lenb@kernel.org, robert.moore@intel.com, Al Viro <viro@zeniv.linux.org.uk>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:27072 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753291Ab2CZGSk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Mar 2012 02:18:40 -0400
+In-Reply-To: <20120314001833.GB20363@phenom.dumpdata.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "Brown, Len" <len.brown@intel.com>, "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>, Kernel development list <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "keir.xen@gmail.com" <keir.xen@gmail.com>, Jan Beulich <JBeulich@suse.com>, "Li, Shaohua" <shaohua.li@intel.com>
 
-This is a multi-part message in MIME format.
---------------080709060403040904020707
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-
-On 03/25/2012 01:54 AM, Borislav Petkov wrote:
+Konrad Rzeszutek Wilk wrote:
+> On Thu, Feb 23, 2012 at 01:31:25PM +0000, Liu, Jinsong wrote:
+>>> From ba9abf6ee7e5fe0515e2d51b14743c8d5416285c Mon Sep 17 00:00:00
+>>> 2001 
+>> From: Liu, Jinsong <jinsong.liu@intel.com>
+>> Date: Fri, 24 Feb 2012 02:18:02 +0800
+>> Subject: [PATCH 2/2] Xen pad logic
+>> 
+>> This patch implement Xen pad logic, and when getting pad device
+>> notification, it hypercalls to Xen hypervisor for core parking.
 > 
-> One other downside for this approach would be the need to have
-> initrd/initramfs support always compiled into the kernel in order to do
-> all those things but, hey, distro kernels already have that so we're
-> probably stuck with it anyway.
+> Can you explain to me how and what pad device is? And how it functions
+> right now in baremetal? And what kind of hardware do you need to use
+> this? 
+> And what happens if you do not use it? Can one ignore the "pad"
+> support? 
+> Please assume that I've a basic understanding of ACPI.
 > 
-
-In theory we could make the early stuff independent of the initramfs
-code in the kernel -- just like we always build in an initramfs.
-
-Not that it matters much, at this point the no-initramfs configurations
-are mostly theoretical.
-
-I was able to shave a bit more off the code... optimizing for size can
-be fun sometimes.  The code is now 442 bytes on x86-64 and 413 on i386
-when compiled with -O2 -fomit-frame-pointer; with -Os
--fomit-frame-pointer it is 372/410... all of that without any library
-calls or relocations of any kind (which means it should be safe to call
-from the prepaging environment.)
-
-	-hpa
-
---------------080709060403040904020707
-Content-Type: text/x-csrc;
- name="findcpio.c"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="findcpio.c"
-
-/*
- * findcpio.c
- *
- * Find a specific cpio member; must precede any compressed content.
- */
-
-#include <stddef.h>
-#include <stdbool.h>
-
-struct cpio_data {
-	void *data;
-	unsigned long size;
-};
-
-enum cpio_fields {
-	C_MAGIC,
-	C_INO,
-	C_MODE,
-	C_UID,
-	C_GID,
-	C_NLINK,
-	C_MTIME,
-	C_FILESIZE,
-	C_MAJ,
-	C_MIN,
-	C_RMAJ,
-	C_RMIN,
-	C_NAMESIZE,
-	C_CHKSUM,
-	C_NFIELDS
-};
-
-#if defined(__i386__) || defined(__x86_64__)
-static size_t strlen(const char *name)
-{
-	size_t n = -1;
-
-	asm("repne; scasb"
-	    : "+D" (name), "+c" (n)
-	    : "a" (0));
-
-	return -2 - n;
-}
-
-static int memcmp(const void *p1, const void *p2, size_t n)
-{
-	unsigned char rv;
-
-	asm("repe; cmpsb; setne %0"
-	    : "=r" (rv), "+S" (p1), "+D" (p2), "+c" (n));
-
-	return rv;
-}
-#else
-static size_t strlen(const char *name)
-{
-	size_t n = 0;
-
-	while (*name++)
-		n++;
-
-	return n;
-}
-
-static int memcmp(const void *p1, const void *p2, size_t n)
-{
-	const unsigned char *u1 = p1;
-	const unsigned char *u2 = p2;
-	int d;
-
-	while (n--) {
-		d = *u2++ - *u1++;
-		if (d)
-			return d;
-	}
-	return 0;
-}
-#endif
-
-#define ALIGN4(p) ((void *)(((size_t)p + 3) & ~3))
-
-struct cpio_data find_cpio_data(const char *name, const void *data, size_t len)
-{
-	const size_t cpio_header_len = 8*C_NFIELDS - 2;
-	struct cpio_data cd = { NULL, 0 };
-	const char *p, *dptr, *nptr;
-	unsigned int ch[C_NFIELDS], *chp, v;
-	unsigned char c, x;
-	size_t mynamesize = strlen(name) + 1;
-	int i, j;
-
-	p = data;
-
-	while (len > cpio_header_len) {
-		if (!*p) {
-			/* All cpio headers need to be 4-byte aligned */
-			p += 4;
-			len -= 4;
-			continue;
-		}
-
-		j = 6;		/* The magic field is only 6 characters */
-		chp = ch;
-		for (i = C_NFIELDS; i; i--) {
-			v = 0;
-			while (j--) {
-				v <<= 4;
-				c = *p++;
-
-				x = c - '0';
-				if (x < 10) {
-					v += x;
-					continue;
-				}
-
-				x = (c | 0x20) - 'a';
-				if (x < 6) {
-					v += x + 10;
-					continue;
-				}
-
-				goto quit; /* Invalid hexadecimal */
-			}
-			*chp++ = v;
-			j = 8;	/* All other fields are 8 characters */
-		}
-
-		if ((ch[C_MAGIC] - 0x070701) > 1)
-			goto quit; /* Invalid magic */
-
-		len -= cpio_header_len;
-
-		dptr = ALIGN4(p + ch[C_NAMESIZE]);
-		nptr = ALIGN4(dptr + ch[C_FILESIZE]);
-
-		if (nptr > p + len || dptr < p || nptr < dptr)
-			goto quit; /* Buffer overrun */
-
-		if ((ch[C_MODE] & 0170000) == 0100000 &&
-		    ch[C_NAMESIZE] == mynamesize &&
-		    !memcmp(p, name, mynamesize)) {
-			cd.data = (void *)dptr;
-			cd.size = ch[C_FILESIZE];
-			return cd; /* Found it! */
-		}
-
-		len -= (nptr - p);
-		p = nptr;
-	}
-
-quit:
-	return cd;
-}
+> 
+> Also, what happens now, if the this patch is not implemented? What
+> will/is dom0 doing without these patches (so 3.2 for example on this
+> machine)? 
+> Is it just idling using mwait on idle CPUs and ending up trapping in
+> the hypervisor? Or is not mwaiting since the cstate.c doesn't get
+> executed since we have: 
+> 
+>        boot_option_idle_override = IDLE_HALT;
+> 
+> in arch/x86/xen/setup.c ?
 
 
---------------080709060403040904020707--
+Pad is an ACPI device used to direct os taking some action (depend on os itsef) for the sake of power consumption. 2 objs (PUR and OST) could be declared under PAD and as bios/os interface.
+
+PAD itself is pointless, unless it co-work with some external power control s/w (like NPTM). For example currently in baremetal, NPTM engine trigger sci to ospm, then evaluate and call sci handler, through which bios notify os with PUR value by which os could take corresponding action and feedback bios through OST. I don't think it's a problem if user don't use PAD or ignore it, it only make some external power control s/w unuseable.
+
+As for how os handle pad notify is os business. Native kernel use round robin and mwait, considering some app workload affinity (I was told so). For xen we don't need care it since it's a question of vcpu level. For xen acpi_pad, dom0 patches used to parse PUR and hypercall to hypervisor, which in turn idle pcpu by its own algorithm.
+
+Thanks,
+Jinsong
