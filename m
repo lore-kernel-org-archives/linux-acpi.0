@@ -1,65 +1,95 @@
 From: Lin Ming <ming.m.lin@intel.com>
-Subject: [PATCH v2 1/2] ACPI: Introduce ACPI D3_COLD state support
-Date: Tue, 27 Mar 2012 15:50:23 +0800
-Message-ID: <1332834624-29310-2-git-send-email-ming.m.lin@intel.com>
-References: <1332834624-29310-1-git-send-email-ming.m.lin@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1332834624-29310-1-git-send-email-ming.m.lin@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCHv2 0/7] acpi/libata: Express dependencies for devices on
+ dock stations and bays
+Date: Tue, 27 Mar 2012 16:11:52 +0800
+Message-ID: <CAF1ivSY52ESfF02QywCFdf68_hSkOMg1R=0KwojeGJx2ALWCYg@mail.gmail.com>
+References: <20120120001817.GA27706@homac.suse.de>
+	<CAF1ivSYhOTitPctsJOTKWN9HDt0VZpQe_-_a0LnLefVGxOJtXg@mail.gmail.com>
+	<20120209073345.GA11121@homac.suse.de>
+	<4F33E615.6070607@garzik.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:61473 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753977Ab2C0ILx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Mar 2012 04:11:53 -0400
+In-Reply-To: <4F33E615.6070607@garzik.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jeff Garzik <jeff@garzik.org>
+Cc: Holger Macht <holger@homac.de>, linux-acpi@vger.kernel.org, linux-scsi@vger.kernel.org, Matthew Garrett <mjg@redhat.com>, James Bottomley <James.Bottomley@hansenpartnership.com>, Jeff Garzik <jgarzik@redhat.com>
 
-From: Zhang Rui <rui.zhang@intel.com>
+On Thu, Feb 9, 2012 at 11:28 PM, Jeff Garzik <jeff@garzik.org> wrote:
+> On 02/09/2012 02:33 AM, Holger Macht wrote:
+>>
+>> On Do 09. Feb - 14:46:11, Lin Ming wrote:
+>>>
+>>> On Fri, Jan 20, 2012 at 8:18 AM, Holger Macht<holger@homac.de> =A0w=
+rote:
+>>>>
+>>>> Patches 2 through 5 are just a refresh of the patches from Matthew
+>>>> Garrett sent to this list in September 2010 [1]:
+>>>>
+>>>> Patch 1 is a new patch incorporating the corrections from James
+>>>> Bottomley. Patch 6, 7 and 8 make the whole patch set actually work=
+ on my
+>>>> test hardware (Thinkpad x60/Thinkpad T60) by fixing minor issues a=
+nd
+>>>> compensating changes after the first submission.
+>>>>
+>>>> All patches now contain the correct Signed-off-by instead of Acked=
+-by
+>>>> tags.
+>>>>
+>>>> =A0[PATCH 1/8] scsi: Add wrapper to access and set scsi_bus_type i=
+n struct
+>>>> acpi_bus_type
+>>>> =A0[PATCH 2/8] libata: Bind the Linux device tree to the ACPI devi=
+ce tree
+>>>> =A0[PATCH 3/8] libata: Migrate ACPI code over to new bindings
+>>>> =A0[PATCH 4/8] acpi: Add support for linking docks to the objects =
+they
+>>>> contain
+>>>> =A0[PATCH 5/8] libata: Add links between removable devices and doc=
+ks
+>>>> =A0[PATCH 6/8] libata: Generate and pass correct acpi handles
+>>>> =A0[PATCH 7/8] acpi: Prevent duplicate hotplug device registration=
+ on dock
+>>>> stations
+>>>> =A0[PATCH 8/8] libata: Use correct PCI devices
+>>>
+>>>
+>>> Hi Holger,
+>>>
+>>> What's the status of these patches?
+>>
+>>
+>> They've been ACKed by both ACPI (Len Brown) and libata (James Bottom=
+ley)
+>> people, so I guess they are good to go and I'm waiting for someone (=
+Jeff
+>> Garzik?) to pick them up.
+>
+>
+> I ACK'd for libata. =A0It's queued in libata-dev... =A0but looks like=
+ that did
+> not get pushed out. =A0Should show up in the next linux-next.
+>
+> =A0 =A0 =A0 =A0Jeff
 
-If a device has _PR3, it means the device supports D3_COLD.
-Add the ability to validate and enter D3_COLD state in ACPI.
+Hi,
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-Signed-off-by: Lin Ming <ming.m.lin@intel.com>
----
- drivers/acpi/power.c |    4 ++--
- drivers/acpi/scan.c  |    7 +++++++
- 2 files changed, 9 insertions(+), 2 deletions(-)
+I didn't find these patches in libata-dev tree.
+git://git.kernel.org/pub/scm/linux/kernel/git/jgarzik/libata-dev.git
 
-diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-index 9ac2a9f..0d681fb 100644
---- a/drivers/acpi/power.c
-+++ b/drivers/acpi/power.c
-@@ -500,14 +500,14 @@ int acpi_power_transition(struct acpi_device *device, int state)
- {
- 	int result;
- 
--	if (!device || (state < ACPI_STATE_D0) || (state > ACPI_STATE_D3))
-+	if (!device || (state < ACPI_STATE_D0) || (state > ACPI_STATE_D3_COLD))
- 		return -EINVAL;
- 
- 	if (device->power.state == state)
- 		return 0;
- 
- 	if ((device->power.state < ACPI_STATE_D0)
--	    || (device->power.state > ACPI_STATE_D3))
-+	    || (device->power.state > ACPI_STATE_D3_COLD))
- 		return -ENODEV;
- 
- 	/* TBD: Resources must be ordered. */
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 8ab80ba..571396c 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -885,6 +885,13 @@ static int acpi_bus_get_power_flags(struct acpi_device *device)
- 				acpi_bus_add_power_resource(ps->resources.handles[j]);
- 		}
- 
-+		/* The exist of _PR3 indicates D3Cold support */
-+		if (i == ACPI_STATE_D3) {
-+			status = acpi_get_handle(device->handle, object_name, &handle);
-+			if (ACPI_SUCCESS(status))
-+				device->power.states[ACPI_STATE_D3_COLD].flags.valid = 1;
-+		}
-+
- 		/* Evaluate "_PSx" to see if we can do explicit sets */
- 		object_name[2] = 'S';
- 		status = acpi_get_handle(device->handle, object_name, &handle);
--- 
-1.7.2.5
+Are they removed for some reason?
+
+Regards,
+Lin Ming
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
