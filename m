@@ -1,31 +1,43 @@
-From: Peter Stuge <peter@stuge.se>
-Subject: Re: [PATCH] ACPI: Implement overriding of arbitrary ACPI tables
-	via initrd
-Date: Tue, 27 Mar 2012 06:46:43 +0200
-Message-ID: <20120327044643.18911.qmail@stuge.se>
-References: <1332512984-79664-1-git-send-email-trenn@suse.de> <201203240402.38749.trenn@suse.de> <4F6D50DD.4050306@zytor.com> <201203260245.43177.trenn@suse.de> <4F6FC57D.3050404@zytor.com>
+From: "H. Peter Anvin" <hpa@zytor.com>
+Subject: Re: [PATCH] ACPI: Implement overriding of arbitrary ACPI tables via
+ initrd
+Date: Mon, 26 Mar 2012 23:18:55 -0700
+Message-ID: <4F715BCF.8050808@zytor.com>
+References: <1332512984-79664-1-git-send-email-trenn@suse.de> <201203240402.38749.trenn@suse.de> <4F6D50DD.4050306@zytor.com> <201203260245.43177.trenn@suse.de> <4F6FC57D.3050404@zytor.com> <20120327044643.18911.qmail@stuge.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foo.stuge.se ([212.116.89.98]:58309 "HELO foo.stuge.se"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751621Ab2C0Ex0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 27 Mar 2012 00:53:26 -0400
-Content-Disposition: inline
-In-Reply-To: <4F6FC57D.3050404@zytor.com>
+Received: from terminus.zytor.com ([198.137.202.10]:35515 "EHLO mail.zytor.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750760Ab2C0GTT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 27 Mar 2012 02:19:19 -0400
+In-Reply-To: <20120327044643.18911.qmail@stuge.se>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Renninger <trenn@suse.de>, eric.piel@tremplin-utc.net, vojcek@tlen.pl, dsdt@gaugusch.at, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org, Lin Ming <ming.m.lin@intel.com>, lenb@kernel.org, robert.moore@intel.com, Al Viro <viro@zeniv.linux.org.uk>
+To: Thomas Renninger <trenn@suse.de>, eric.piel@tremplin-utc.net, vojcek@tlen.pl, dsdt@gaugusch.at, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org, Lin Ming <ming.m.lin@intel.com>, lenb@kernel.org, robert.moore@intel.com, Al Viro <viro@zeniv.linux.org.uk>
 
-H. Peter Anvin wrote:
-> There are a lot of bootloaders, and one of the most commonly used ones
-> has a very adversarial relationship with the kernel maintainers.
+On 03/26/2012 09:46 PM, Peter Stuge wrote:
+> H. Peter Anvin wrote:
+>> There are a lot of bootloaders, and one of the most commonly used ones
+>> has a very adversarial relationship with the kernel maintainers.
+> 
+> A couple of less commonly used ones, by or near the coreboot project,
+> haven't exactly been embraced by kernel maintainers. Dunno if it's
+> because coreboot doesn't much like ACPI, and thinks that it would
+> be interesting to explore and innovate firmware on x86.
+> 
+> //Peter
 
-A couple of less commonly used ones, by or near the coreboot project,
-haven't exactly been embraced by kernel maintainers. Dunno if it's
-because coreboot doesn't much like ACPI, and thinks that it would
-be interesting to explore and innovate firmware on x86.
+I think it is more because coreboot has tried to do things in
+nonstandard ways rather than fill in the gaps they have.  This is
+getting a *lot* better, as far as I can tell, but in a sane world there
+shouldn't be any need for "bootloaders by or near the coreboot project"
+since any standard x86 bootloader should Just Work[TM].
 
+I like to draw parallels with how we dealt with holes in applications in
+the early days of Linux.  For example, when Linux wasn't providing the
+interfaces that X needed, we didn't add a bunch of Linux-specific code
+to X, *we added the standard interfaces to Linux*.
 
-//Peter
+	-hpa
