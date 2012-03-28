@@ -1,64 +1,35 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: [PATCH v3 1/7] libata-acpi: set acpi state for SATA port
-Date: Wed, 28 Mar 2012 14:21:56 +0800
-Message-ID: <1332915722-15963-2-git-send-email-ming.m.lin@intel.com>
-References: <1332915722-15963-1-git-send-email-ming.m.lin@intel.com>
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <1332915722-15963-1-git-send-email-ming.m.lin@intel.com>
-Sender: linux-ide-owner@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>, Jeff Garzik <jgarzik@pobox.com>, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tejun Heo <tj@kernel.org>, Aaron Lu <aaron.lu@amd.com>
-Cc: linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, linux-scsi@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi <linux-acpi@vger.kernel.org>
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: [PATCH 0/5] usb/acpi: To bind usb hub ports with acpi when not attached usb devices.
+Date: Wed, 28 Mar 2012 14:49:08 +0800
+Message-ID: <1332917353-28123-1-git-send-email-tianyu.lan@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:51719 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751209Ab2C1GwZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 28 Mar 2012 02:52:25 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org, gregkh@linuxfoundation.org
+Cc: linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu, sarah.a.sharp@intel.com, mjg@redhat.com
 
-Currently, ata_acpi_set_state() only sets acpi sate for IDE port.
-Remove this limitation.
+Based on the Matthew Garrett's patch set.
+[PATCH V2 1/4] ACPI: Fix up _PLD methods
+[PATCH V2 2/4] ACPI: Add _PLD support
+[PATCH V2 3/4] usb: Bind devices to ACPI devices when possible
+[PATCH V2 4/4] usb: Set device removable state based on ACPI USB data
 
-Acked-by: Aaron Lu <aaron.lu@amd.com>
-Signed-off-by: Lin Ming <ming.m.lin@intel.com>
----
- drivers/ata/libata-acpi.c |   21 ++++++++++++---------
- 1 files changed, 12 insertions(+), 9 deletions(-)
+Add usb hub ports' platform_data to store acpi_handle. When a usb
+hub is found, getting all ports' acpi handle and check port's connect
+type through acpi method "_UPC" and "_PLD". When a usb device is found,
+set it's removalbe depending on the port's connect type.
 
-diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c
-index b03e468..104c1d0 100644
---- a/drivers/ata/libata-acpi.c
-+++ b/drivers/ata/libata-acpi.c
-@@ -841,23 +841,26 @@ void ata_acpi_on_resume(struct ata_port *ap)
- void ata_acpi_set_state(struct ata_port *ap, pm_message_t state)
- {
- 	struct ata_device *dev;
--
--	if (!ata_ap_acpi_handle(ap) || (ap->flags & ATA_FLAG_ACPI_SATA))
--		return;
-+	acpi_handle handle;
-+	int acpi_state;
- 
- 	/* channel first and then drives for power on and vica versa
- 	   for power off */
--	if (state.event == PM_EVENT_ON)
--		acpi_bus_set_power(ata_ap_acpi_handle(ap), ACPI_STATE_D0);
-+	handle = ata_ap_acpi_handle(ap);
-+	if (handle && state.event == PM_EVENT_ON)
-+		acpi_bus_set_power(handle, ACPI_STATE_D0);
- 
- 	ata_for_each_dev(dev, &ap->link, ENABLED) {
--		if (ata_dev_acpi_handle(dev))
--			acpi_bus_set_power(ata_dev_acpi_handle(dev),
-+		handle = ata_dev_acpi_handle(dev);
-+		if (handle)
-+			acpi_bus_set_power(handle,
- 				state.event == PM_EVENT_ON ?
- 					ACPI_STATE_D0 : ACPI_STATE_D3);
- 	}
--	if (state.event != PM_EVENT_ON)
--		acpi_bus_set_power(ata_ap_acpi_handle(ap), ACPI_STATE_D3);
-+
-+	handle = ata_ap_acpi_handle(ap);
-+	if (handle && state.event != PM_EVENT_ON)
-+		acpi_bus_set_power(handle, ACPI_STATE_D3);
- }
- 
- /**
--- 
-1.7.2.5
+
+git diff --stat
+ drivers/usb/core/devices.c      |    4 +-
+ drivers/usb/core/hub.c          |  141 ++++++++++++++++++++++++++++-----------
+ drivers/usb/core/usb-acpi.c     |  102 +++++++++++++++++++---------
+ drivers/usb/core/usb.h          |   10 +++
+ drivers/usb/host/r8a66597-hcd.c |    4 +-
+ include/linux/usb.h             |   10 +++-
+ 6 files changed, 196 insertions(+), 75 deletions(-)
 
