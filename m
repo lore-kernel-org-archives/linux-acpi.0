@@ -1,28 +1,20 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 Subject: Re: Kernel 3.3 boot panic (with screenshot) - ACPI related?
-Date: Wed, 28 Mar 2012 14:49:12 -0600
-Message-ID: <CAErSpo68=vx=bv1OqFrR4Mn39wKM9bwdY=9o1TM0_GYC70Ty-g@mail.gmail.com>
+Date: Wed, 28 Mar 2012 21:54:52 +0100
+Message-ID: <20120328205451.GA9389@srcf.ucam.org>
 References: <jkvsjr$a3$1@dough.gmane.org>
+ <CAErSpo68=vx=bv1OqFrR4Mn39wKM9bwdY=9o1TM0_GYC70Ty-g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <jkvsjr$a3$1@dough.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAErSpo68=vx=bv1OqFrR4Mn39wKM9bwdY=9o1TM0_GYC70Ty-g@mail.gmail.com>
 Sender: linux-pci-owner@vger.kernel.org
-To: =?ISO-8859-1?Q?D=E2niel_Fraga?= <fragabr@gmail.com>
-Cc: linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Matthew Garrett <mjg@redhat.com>
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: =?iso-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Mar 28, 2012 at 2:34 PM, D=E2niel Fraga <fragabr@gmail.com> wro=
-te:
-> =A0 =A0 =A0 =A0Could you take a look at this bug report?
->
-> https://bugzilla.kernel.org/show_bug.cgi?id=3D43003
->
-> =A0 =A0 =A0 =A0I attached the screenshot. Thanks.
+Can you test the patch in https://lkml.org/lkml/2012/3/27/170 ?
 
-Might be the same as this report:
-http://www.spinics.net/lists/linux-pci/msg14497.html
-
-Matthew, the screenshot in bugzilla has a partial backtrace, but I
-doubt it's enough to be useful.
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
