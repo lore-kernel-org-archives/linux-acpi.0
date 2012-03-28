@@ -1,17 +1,17 @@
 From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH 2/5] usb: move struct usb_device->children to struct
- usb_hub_port->child
-Date: Wed, 28 Mar 2012 15:13:46 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1203281502450.1599-100000@iolanthe.rowland.org>
-References: <1332917353-28123-3-git-send-email-tianyu.lan@intel.com>
+Subject: Re: [PATCH 4/5] usb/acpi: add the support of usb hub ports' acpi
+ binding without attached devices.
+Date: Wed, 28 Mar 2012 15:31:06 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1203281516451.1599-100000@iolanthe.rowland.org>
+References: <1332917353-28123-5-git-send-email-tianyu.lan@intel.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:34469 "HELO
+Received: from iolanthe.rowland.org ([192.131.102.54]:34492 "HELO
 	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753077Ab2C1TNr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Mar 2012 15:13:47 -0400
-In-Reply-To: <1332917353-28123-3-git-send-email-tianyu.lan@intel.com>
+	with SMTP id S1758027Ab2C1TbH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Mar 2012 15:31:07 -0400
+In-Reply-To: <1332917353-28123-5-git-send-email-tianyu.lan@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Lan Tianyu <tianyu.lan@intel.com>
@@ -19,56 +19,90 @@ Cc: lenb@kernel.org, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linu
 
 On Wed, 28 Mar 2012, Lan Tianyu wrote:
 
-> Move child's pointer to the struct usb_hub_port since the child device
-> is directly associated with the port. Provide usb_get_hub_child_device()
-> to get child's pointer.
+> The usb port is a device in the acpi table but it's not in the linux
+> usb subsystem. USB hub port doesn't have struct device. So the acpi
+> glue framework only can cover the usb port connected with usb device
+> and store the acpi handle to struct device.archdata.acpi_handle. This
+> patch gets the hub port's acpi_handle and store it in the port's platform_data
+> to resolve no attached device no binding problem. The acpi method "_UPC"
+> and "_PLD" can be accessed without attached device.
 
-> --- a/drivers/usb/core/devices.c
-> +++ b/drivers/usb/core/devices.c
-> @@ -590,7 +590,9 @@ static ssize_t usb_device_dump(char __user **buffer, size_t *nbytes,
+You can merge this patch with the previous one.  As it stands now, the 
+previous patch adds new routines but no callers.
+
+> diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
+> index ac7bd89..97b8993 100644
+> --- a/drivers/usb/core/hub.c
+> +++ b/drivers/usb/core/hub.c
+> @@ -1239,6 +1239,7 @@ static int hub_configure(struct usb_hub *hub,
+>  		hub->indicator [0] = INDICATOR_CYCLE;
 >  
->  	/* Now look at all of this device's children. */
->  	for (chix = 0; chix < usbdev->maxchild; chix++) {
-> -		struct usb_device *childdev = usbdev->children[chix];
-> +		struct usb_device *childdev;
-> +		if (usb_get_hub_child_device(usbdev, chix + 1, &childdev) < 0)
-> +			continue;
+>  	hub_activate(hub, HUB_INIT);
+> +	usb_acpi_bind_hub_ports(hdev);
+>  	return 0;
+
+You probably should put usb_acpi_bind_hub_ports before hub_activate 
+instead of after.  The hub can start to operate as soon as hub_activate 
+runs.
+
+> --- a/drivers/usb/core/usb-acpi.c
+> +++ b/drivers/usb/core/usb-acpi.c
+> @@ -82,7 +82,16 @@ static int usb_acpi_find_device(struct device *dev, acpi_handle *handle)
+>  	if (!parent_handle)
+>  		return -ENODEV;
 >  
-
-Whitespace issue: The blank line should come before the new executable 
-statement, not after it.
-
-> @@ -1475,11 +1477,12 @@ bool usb_device_is_owned(struct usb_device *udev)
+> -	*handle = acpi_get_child(parent_handle, udev->portnum);
+> +	/**
+> +	 * The root hub's acpi handle is got from acpi method.
+> +	 * Other device's acpi handle can be got from the usb hub
+> +	 * port's platform_data.
+> +	 */
+> +	if (!udev->parent)
+> +		*handle = acpi_get_child(parent_handle, udev->portnum);
+> +	else
+> +		usb_get_hub_port_platform_data(udev->parent, udev->portnum,
+> +			(unsigned long *)handle);
 >  
->  static void recursively_mark_NOTATTACHED(struct usb_device *udev)
->  {
-> +	struct usb_hub	*hub = hdev_to_hub(udev);
+>  	if (!*handle)
 
-I'm not sure this is good.  You are calling hdev_to_hub without knowing
-beforehand that udev really is a hub -- in fact, most of the time udev
-won't be a hub.  The routine wasn't meant to be used that way.  Have
-you checked that hdev_to_hub won't crash when the argument isn't a hub?  
-What happens if the active configuration has no interfaces?
+What happens if usb_get_hub_port_platform_data returns an error?  You 
+don't check the error code, and then handle never gets assigned any 
+value.  So the test "if (!*handle)" won't work right.
 
-> @@ -4147,3 +4151,15 @@ void usb_queue_reset_device(struct usb_interface *iface)
->  	schedule_work(&iface->reset_ws);
->  }
->  EXPORT_SYMBOL_GPL(usb_queue_reset_device);
-> +
-> +int usb_get_hub_child_device(struct usb_device *hdev, int port1,
-> +	struct usb_device **child)
+Instead of returning an error code, make usb_get_hub_port_platform_data 
+return the data directly.
+
+>  		return -ENODEV;
+> @@ -105,6 +114,33 @@ static struct acpi_bus_type usb_acpi_bus = {
+>  	.find_device = usb_acpi_find_device,
+>  };
+>  
+> +int usb_acpi_bind_hub_ports(struct usb_device *hdev)
 > +{
-> +	struct usb_hub *hub = hdev_to_hub(hdev);
+> +	acpi_handle hub_handle = NULL;
+> +	acpi_handle port_handle = NULL;
+> +	struct device *dev = &hdev->dev;
+> +	int i;
 > +
-> +	if (port1 > hdev->maxchild || port1 < 1)
-> +		return -EINVAL;
-> +	*child = hub->port_data[port1 - 1].child;
-> +	return 0;
-> +}
+> +	hub_handle = DEVICE_ACPI_HANDLE(dev);
+> +	if (!hub_handle)
+> +		return -ENODEV;
+> +
+> +	/**
+> +	 * The usb hub port is not a device in the usb subsystem but it is a device
+> +	 * in the acpi table. Store its acpi handle in the platform data of usb
+> +	 * hub port.
+> +	 */
+> +	for (i = 1; i <= hdev->maxchild; i++) {
+> +		port_handle = acpi_get_child(hub_handle, i);
+> +		if (!port_handle)
+> +			continue;
+> +		if (usb_set_hub_port_platform_data(hdev, i,
+> +				(unsigned long)port_handle) < 0)
+> +			return -ENODEV;
 
-This new routine is more complicated that it needs to be.  You don't
-have to return an error code; none of the callers make use of it.
-Just return the child pointer, and return NULL if there's an error.
+Similarly, make usb_set_hub_port_platform_data return void.  There's no 
+reason to check for errors here; they can never happen.
 
 Alan Stern
 
