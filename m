@@ -1,38 +1,28 @@
-From: =?UTF-8?B?RMOibmllbA==?= Fraga <fragabr@gmail.com>
-Subject: Kernel 3.3 boot panic (with screenshot) - ACPI related?
-Date: Wed, 28 Mar 2012 17:34:03 -0300
-Message-ID: <jkvsjr$a3$1@dough.gmane.org>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: Kernel 3.3 boot panic (with screenshot) - ACPI related?
+Date: Wed, 28 Mar 2012 14:49:12 -0600
+Message-ID: <CAErSpo68=vx=bv1OqFrR4Mn39wKM9bwdY=9o1TM0_GYC70Ty-g@mail.gmail.com>
+References: <jkvsjr$a3$1@dough.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:38045 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758300Ab2C1UeP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 28 Mar 2012 16:34:15 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <glad-acpi-devel@m.gmane.org>)
-	id 1SCzZN-0001X4-1A
-	for linux-acpi@vger.kernel.org; Wed, 28 Mar 2012 22:34:13 +0200
-Received: from 187.105.172.153 ([187.105.172.153])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Wed, 28 Mar 2012 22:34:13 +0200
-Received: from fragabr by 187.105.172.153 with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Wed, 28 Mar 2012 22:34:13 +0200
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <jkvsjr$a3$1@dough.gmane.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: =?ISO-8859-1?Q?D=E2niel_Fraga?= <fragabr@gmail.com>
+Cc: linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Matthew Garrett <mjg@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-	Could you take a look at this bug report?
+On Wed, Mar 28, 2012 at 2:34 PM, D=E2niel Fraga <fragabr@gmail.com> wro=
+te:
+> =A0 =A0 =A0 =A0Could you take a look at this bug report?
+>
+> https://bugzilla.kernel.org/show_bug.cgi?id=3D43003
+>
+> =A0 =A0 =A0 =A0I attached the screenshot. Thanks.
 
-https://bugzilla.kernel.org/show_bug.cgi?id=43003
+Might be the same as this report:
+http://www.spinics.net/lists/linux-pci/msg14497.html
 
-	I attached the screenshot. Thanks.
-
--- 
-Linux 3.2.2: Saber-toothed Squirrel
-http://www.youtube.com/DanielFragaBR
-
-
+Matthew, the screenshot in bugzilla has a partial backtrace, but I
+doubt it's enough to be useful.
