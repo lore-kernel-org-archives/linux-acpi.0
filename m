@@ -1,231 +1,76 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: [PATCH 5/5] usb/acpi: add usb check for the connect type of usb port
-Date: Wed, 28 Mar 2012 14:49:13 +0800
-Message-ID: <1332917353-28123-6-git-send-email-tianyu.lan@intel.com>
-References: <1332917353-28123-1-git-send-email-tianyu.lan@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:5333 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751143Ab2C1Gxd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 28 Mar 2012 02:53:33 -0400
-In-Reply-To: <1332917353-28123-1-git-send-email-tianyu.lan@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Aaron Lu <aaron.lu@amd.com>
+Subject: Re: [PATCH v3 1/7] libata-acpi: set acpi state for SATA port
+Date: Thu, 29 Mar 2012 03:55:16 +0800
+Message-ID: <20120328195509.GA1965@localhost.amd.com>
+References: <1332915722-15963-1-git-send-email-ming.m.lin@intel.com>
+ <1332915722-15963-2-git-send-email-ming.m.lin@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1332915722-15963-2-git-send-email-ming.m.lin@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lin Ming <ming.m.lin@intel.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, Jeff Garzik <jgarzik@pobox.com>, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tejun Heo <tj@kernel.org>, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, linux-scsi@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, gregkh@linuxfoundation.org
-Cc: linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu, sarah.a.sharp@intel.com, mjg@redhat.com, Lan Tianyu <tianyu.lan@intel.com>
 
-Check the connect type of usb port when getting the usb port's
-acpi_handle and store result into connect_type in the struct
-usb_hub_port.
+Hi,
 
-Accoding to ACPI Spec 9.13. PLD indicates whether usb port is
-user visible and _UPC indicates whether it is connectable. If
-the port was visible and connectable, it could be freely connected
-and disconnected with USB devices. If no visible and connectable,
-a usb device is directly hard-wired to the port. If no visible and
-no connectable, the port would be not used.
+The patch does not apply, are you using libata-devel/ALL branch?
 
-When a device was found on the port, if the connect_type was hot-plug,
-then the device would be removable. If the connect_type was hard-wired,
-the device would be non-removable.
+-Aaron
 
-Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
----
- drivers/usb/core/hub.c      |   25 +++++++++++++++++
- drivers/usb/core/usb-acpi.c |   64 +++++++++++++++++++++----------------------
- drivers/usb/core/usb.h      |    4 +++
- include/linux/usb.h         |    7 +++++
- 4 files changed, 67 insertions(+), 33 deletions(-)
-
-diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
-index 97b8993..c70c170 100644
---- a/drivers/usb/core/hub.c
-+++ b/drivers/usb/core/hub.c
-@@ -41,6 +41,7 @@ struct usb_hub_port {
- 	void			*port_owner;
- 	struct usb_device	*child;
- 	unsigned long		platform_data;
-+	enum usb_port_connect_type connect_type;
- };
- 
- struct usb_hub {
-@@ -4186,3 +4187,27 @@ int usb_get_hub_port_platform_data(struct usb_device *hdev, int port1,
- 	*data = hub->port_data[port1 - 1].platform_data;
- 	return 0;
- }
-+
-+int usb_set_hub_port_connect_type(struct usb_device *hdev, int port1,
-+	enum usb_port_connect_type type)
-+{
-+	struct usb_hub *hub = hdev_to_hub(hdev);
-+
-+	if (port1 > hdev->maxchild || port1 < 1)
-+		return -EINVAL;
-+
-+	hub->port_data[port1 - 1].connect_type = type;
-+	return 0;
-+}
-+
-+int usb_get_hub_port_connect_type(struct usb_device *hdev, int port1,
-+	enum usb_port_connect_type *type)
-+{
-+	struct usb_hub *hub = hdev_to_hub(hdev);
-+
-+	if (port1 > hdev->maxchild || port1 < 1)
-+		return -EINVAL;
-+
-+	*type = hub->port_data[port1 - 1].connect_type;
-+	return 0;
-+}
-diff --git a/drivers/usb/core/usb-acpi.c b/drivers/usb/core/usb-acpi.c
-index d287e1e..5c26bd4 100644
---- a/drivers/usb/core/usb-acpi.c
-+++ b/drivers/usb/core/usb-acpi.c
-@@ -19,58 +19,57 @@
- 
- #include "usb.h"
- 
--static int usb_acpi_check_upc(struct usb_device *udev, acpi_handle handle)
-+static int usb_acpi_check_port_connect_type(struct usb_device *hdev,
-+	acpi_handle handle, int port1)
- {
- 	acpi_status status;
- 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
- 	union acpi_object *upc;
-+	struct acpi_pld pld;
- 	int ret = 0;
- 
--	status = acpi_evaluate_object(handle, "_UPC", NULL, &buffer);
-+	/**
-+	 * Accoding to ACPI Spec 9.13. PLD indicates whether usb port is
-+	 * user visible and _UPC indicates whether it is connectable. If
-+	 * the port was visible and connectable, it could be freely connected
-+	 * and disconnected with USB devices. If no visible and connectable,
-+	 * a usb device is directly hard-wired to the port. If no visible and
-+	 * no connectable, the port would be not used.
-+	 */
-+	status = acpi_get_physical_device_location(handle, &pld);
-+	if (ACPI_FAILURE(status))
-+		return -ENODEV;
- 
-+	status = acpi_evaluate_object(handle, "_UPC", NULL, &buffer);
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
- 
- 	upc = buffer.pointer;
--
- 	if (!upc || (upc->type != ACPI_TYPE_PACKAGE) || upc->package.count != 4) {
- 		ret = -EINVAL;
- 		goto out;
- 	}
- 
--	if (upc->package.elements[0].integer.value)
--		udev->removable = USB_DEVICE_REMOVABLE;
--	else
--		udev->removable = USB_DEVICE_FIXED;
-+	if (upc->package.elements[0].integer.value && pld.user_visible)
-+		usb_set_hub_port_connect_type(hdev, port1,
-+			USB_PORT_CONNECT_TYPE_HOT_PLUG);
-+	else if (upc->package.elements[0].integer.value && !pld.user_visible)
-+		usb_set_hub_port_connect_type(hdev, port1,
-+			USB_PORT_CONNECT_TYPE_HARD_WIRED);
-+	else if (!upc->package.elements[0].integer.value && !pld.user_visible)
-+		usb_set_hub_port_connect_type(hdev, port1, USB_PORT_NOT_USED);
- 
- out:
- 	kfree(upc);
- 	return ret;
- }
- 
--static int usb_acpi_check_pld(struct usb_device *udev, acpi_handle handle)
--{
--	acpi_status status;
--	struct acpi_pld pld;
--
--	status = acpi_get_physical_device_location(handle, &pld);
--
--	if (ACPI_FAILURE(status))
--		return -ENODEV;
--
--	if (pld.user_visible)
--		udev->removable = USB_DEVICE_REMOVABLE;
--	else
--		udev->removable = USB_DEVICE_FIXED;
--
--	return 0;
--}
--
- static int usb_acpi_find_device(struct device *dev, acpi_handle *handle)
- {
- 	struct usb_device *udev;
- 	struct device *parent;
- 	acpi_handle *parent_handle;
-+	enum usb_port_connect_type type;
- 
- 	if (!is_usb_device(dev))
- 		return -ENODEV;
-@@ -96,14 +95,12 @@ static int usb_acpi_find_device(struct device *dev, acpi_handle *handle)
- 	if (!*handle)
- 		return -ENODEV;
- 
--	/*
--	 * PLD will tell us whether a port is removable to the user or
--	 * not. If we don't get an answer from PLD (it's not present
--	 * or it's malformed) then try to infer it from UPC. If a
--	 * device isn't connectable then it's probably not removable.
--	 */
--	if (usb_acpi_check_pld(udev, *handle) != 0)
--		usb_acpi_check_upc(udev, *handle);
-+	usb_get_hub_port_connect_type(udev->parent, udev->portnum, &type);
-+
-+	if (type == USB_PORT_CONNECT_TYPE_HOT_PLUG)
-+		udev->removable = USB_DEVICE_REMOVABLE;
-+	else if (type == USB_PORT_CONNECT_TYPE_HARD_WIRED)
-+		udev->removable = USB_DEVICE_FIXED;
- 
- 	return 0;
- }
-@@ -137,6 +134,7 @@ int usb_acpi_bind_hub_ports(struct usb_device *hdev)
- 		if (usb_set_hub_port_platform_data(hdev, i,
- 				(unsigned long)port_handle) < 0)
- 			return -ENODEV;
-+		usb_acpi_check_port_connect_type(hdev, port_handle, i);
- 	}
- 	return 0;
- }
-diff --git a/drivers/usb/core/usb.h b/drivers/usb/core/usb.h
-index 3865da1..3da0819 100644
---- a/drivers/usb/core/usb.h
-+++ b/drivers/usb/core/usb.h
-@@ -158,6 +158,10 @@ extern int usb_get_hub_port_platform_data(struct usb_device *hdev,
- 	int port1, unsigned long *data);
- extern int usb_set_hub_port_platform_data(struct usb_device *hdev,
- 	int port1, unsigned long data);
-+extern int usb_get_hub_port_connect_type(struct usb_device *hdev, int port1,
-+	enum usb_port_connect_type *type);
-+extern int usb_set_hub_port_connect_type(struct usb_device *hdev, int port1,
-+	enum usb_port_connect_type type);
- 
- #ifdef CONFIG_ACPI
- extern int usb_acpi_register(void);
-diff --git a/include/linux/usb.h b/include/linux/usb.h
-index 6d41c8d..8b3f356 100644
---- a/include/linux/usb.h
-+++ b/include/linux/usb.h
-@@ -382,6 +382,13 @@ enum usb_device_removable {
- 	USB_DEVICE_FIXED,
- };
- 
-+enum usb_port_connect_type {
-+	USB_PORT_CONNECT_TYPE_UNKNOWN = 0,
-+	USB_PORT_CONNECT_TYPE_HOT_PLUG,
-+	USB_PORT_CONNECT_TYPE_HARD_WIRED,
-+	USB_PORT_NOT_USED,
-+};
-+
- /**
-  * struct usb_device - kernel's representation of a USB device
-  * @devnum: device number; address on a USB bus
--- 
-1.7.6.rc2.8.g28eb
-
+On Wed, Mar 28, 2012 at 02:21:56PM +0800, Lin Ming wrote:
+> Currently, ata_acpi_set_state() only sets acpi sate for IDE port.
+> Remove this limitation.
+> 
+> Acked-by: Aaron Lu <aaron.lu@amd.com>
+> Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+> ---
+>  drivers/ata/libata-acpi.c |   21 ++++++++++++---------
+>  1 files changed, 12 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c
+> index b03e468..104c1d0 100644
+> --- a/drivers/ata/libata-acpi.c
+> +++ b/drivers/ata/libata-acpi.c
+> @@ -841,23 +841,26 @@ void ata_acpi_on_resume(struct ata_port *ap)
+>  void ata_acpi_set_state(struct ata_port *ap, pm_message_t state)
+>  {
+>  	struct ata_device *dev;
+> -
+> -	if (!ata_ap_acpi_handle(ap) || (ap->flags & ATA_FLAG_ACPI_SATA))
+> -		return;
+> +	acpi_handle handle;
+> +	int acpi_state;
+>  
+>  	/* channel first and then drives for power on and vica versa
+>  	   for power off */
+> -	if (state.event == PM_EVENT_ON)
+> -		acpi_bus_set_power(ata_ap_acpi_handle(ap), ACPI_STATE_D0);
+> +	handle = ata_ap_acpi_handle(ap);
+> +	if (handle && state.event == PM_EVENT_ON)
+> +		acpi_bus_set_power(handle, ACPI_STATE_D0);
+>  
+>  	ata_for_each_dev(dev, &ap->link, ENABLED) {
+> -		if (ata_dev_acpi_handle(dev))
+> -			acpi_bus_set_power(ata_dev_acpi_handle(dev),
+> +		handle = ata_dev_acpi_handle(dev);
+> +		if (handle)
+> +			acpi_bus_set_power(handle,
+>  				state.event == PM_EVENT_ON ?
+>  					ACPI_STATE_D0 : ACPI_STATE_D3);
+>  	}
+> -	if (state.event != PM_EVENT_ON)
+> -		acpi_bus_set_power(ata_ap_acpi_handle(ap), ACPI_STATE_D3);
+> +
+> +	handle = ata_ap_acpi_handle(ap);
+> +	if (handle && state.event != PM_EVENT_ON)
+> +		acpi_bus_set_power(handle, ACPI_STATE_D3);
+>  }
+>  
+>  /**
+> -- 
+> 1.7.2.5
+> 
+> 
