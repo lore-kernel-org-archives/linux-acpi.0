@@ -1,79 +1,40 @@
-From: "Liu, Jinsong" <jinsong.liu@intel.com>
-Subject: RE: [Xen-devel] [PATCH 1/2] RFC: Prepare PAD for native and	xen
- platform
-Date: Thu, 29 Mar 2012 07:04:34 +0000
-Message-ID: <DE8DF0795D48FD4CA783C40EC829233510F52B@SHSMSX101.ccr.corp.intel.com>
-References: <DE8DF0795D48FD4CA783C40EC82923350AD088@SHSMSX101.ccr.corp.intel.com>
- <4F46530B020000780007F751@nat28.tlf.novell.com>
- <DE8DF0795D48FD4CA783C40EC82923350AD9BB@SHSMSX101.ccr.corp.intel.com>
- <DE8DF0795D48FD4CA783C40EC82923350B2013@SHSMSX101.ccr.corp.intel.com>
- <20120226173458.GB18098@phenom.dumpdata.com>
- <DE8DF0795D48FD4CA783C40EC82923350B9496@SHSMSX101.ccr.corp.intel.com>
- <DE8DF0795D48FD4CA783C40EC82923350BAC09@SHSMSX101.ccr.corp.intel.com>
- <DE8DF0795D48FD4CA783C40EC8292335105EFA@SHSMSX101.ccr.corp.intel.com>
- <20120326164835.GE10236@phenom.dumpdata.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Chen Gong <gong.chen@linux.intel.com>
+Subject: [PATCH] ACPI, APEI: Add validation check before GHES error is recorded
+Date: Thu, 29 Mar 2012 15:09:12 +0800
+Message-ID: <1333004952-12403-1-git-send-email-gong.chen@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:63991 "EHLO mga14.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:3616 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758027Ab2C2HFO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Mar 2012 03:05:14 -0400
-In-Reply-To: <20120326164835.GE10236@phenom.dumpdata.com>
-Content-Language: en-US
+	id S1754583Ab2C2HIJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 29 Mar 2012 03:08:09 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: "Brown, Len" <len.brown@intel.com>, "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "keir.xen@gmail.com" <keir.xen@gmail.com>, Jan Beulich <jbeulich@suse.com>, "Li, Shaohua" <shaohua.li@intel.com>, "lenb@kernel.org" <lenb@kernel.org>
+To: tony.luck@intel.com, ying.huang@intel.com, lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, Chen Gong <gong.chen@linux.intel.com>
 
-Konrad Rzeszutek Wilk wrote:
->>> Compare approaches:
->>> 
->>> 1. xen overwritten approach (patches V2, x86_init, osl approach)   
->>>         Pros: a little simpler code
->>>     Cons:
->>>         1). specific to xen, cannot extend to other virt platform;
->>>         2). need to change natvie acpi_pad as modular;
->>> 
->>> 2. paravirt interface approach (original patches V1)     Pros:
->>>         1). standard hypervisor-agnostic interface (USENIX
->>>         conference 2006), can easily hook to Xen/lguest/... on
->>>         demand; 2). arch independent; 3). no need to change native
->>>         acpi_pad as     non-modular; Cons: a little complicated
->>> code, and code patching is some 
->>> overkilled for this case (but no harm);
->>> 
->>> (BTW, in the future we need add more and more pv ops, like
->>> pv_pm_ops, pv_cpu_hotplug_ops, pv_mem_hotplug_ops, etc. So how
->>> about add a pv_misc_ops template to handle them all? seems it's a
->>> common issue). 
->>> 
-> 
-> I think (and you probabaly have a better idea) is that the maintainer
-> of drivers/acpi/* is not very open to adding in code that only
-> benefits Xen. 
+When GHES error record is logged into mcelog kernel buffer,
+a validation check for physical address is necessary, which prevents
+invalid physical address is happened in error record.
 
-Take paravirt interface approach as example. We only change a little about native acpi_pad_init/acpi_pad_exit, intercept it and *implicitly* hook to native/paravirt platform (it didn't appear any 'xen' 'pv' word in native pad logic). This is what I can find out the least change to native pad logic, and it in fact benefits (extensiable) to all pv. If this is still not acceptable we have to find other way (but I'm not sure) :-)
+Signed-off-by: Chen Gong <gong.chen@linux.intel.com>
+---
+ arch/x86/kernel/cpu/mcheck/mce-apei.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-> 
-> If it benefits other architectures (say ARM) then adding in hooks
-> there (in osl for example) makes sense - but I am not sure if ARM has
-> a form 
-> of _PUR code/calls it needs to do.
-> 
-> So with that in mind, neither of those options seems proper - as all
-> of them depend on changing something in drivers/acpi/*.
-> 
-> I've one or two suggestions of what could be done to still make this
-> work, but I need you to first see what happens if the native acpi_pad
-> runs under Xen with the latest upstream code (along with three patches
-> that are in a BZ I pointed you too).
+diff --git a/arch/x86/kernel/cpu/mcheck/mce-apei.c b/arch/x86/kernel/cpu/mcheck/mce-apei.c
+index 507ea58..514b77f 100644
+--- a/arch/x86/kernel/cpu/mcheck/mce-apei.c
++++ b/arch/x86/kernel/cpu/mcheck/mce-apei.c
+@@ -49,7 +49,8 @@ void apei_mce_report_mem_error(int corrected, struct cper_sec_mem_err *mem_err)
+ 	m.bank = 1;
+ 	/* Fake a memory read corrected error with unknown channel */
+ 	m.status = MCI_STATUS_VAL | MCI_STATUS_EN | MCI_STATUS_ADDRV | 0x9f;
+-	m.addr = mem_err->physical_addr;
++	if (mem_err->validation_bits & CPER_MEM_VALID_PHYSICAL_ADDRESS)
++		m.addr = mem_err->physical_addr;
+ 	mce_log(&m);
+ 	mce_notify_irq();
+ }
+-- 
+1.7.10.rc2.27.g59012
 
-Do you mean test the patch http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blobdiff;f=arch/x86/xen/enlighten.c;h=b132ade26f778f2cfec7c2d5c7b6db48afe424d5;hp=4172af8ceeb363d06912af15bf89e8508752b794;hb=d4c6fa73fe984e504d52f3d6bba291fd76fe49f7;hpb=aab008db8063364dc3c8ccf4981c21124866b395 ?
-
-I also don't have proper machine to test native pad w/ _PUR :(
-But if your idea based on exposing mwait, I worry it may bring other troubles as I replied another thread yesterday. We can discuss it.
-
-Thanks,
-Jinsong
