@@ -1,114 +1,45 @@
-From: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 2/5] usb: move struct usb_device->children to struct usb_hub_port->child
-Date: Thu, 29 Mar 2012 16:35:35 +0800
-Message-ID: <4F741ED7.8010105@intel.com>
-References: <Pine.LNX.4.44L0.1203281502450.1599-100000@iolanthe.rowland.org>
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH v3 4/7] libata: detech Device Attention support
+Date: Thu, 29 Mar 2012 15:14:26 +0400
+Message-ID: <4F744412.4090806@mvista.com>
+References: <1332915722-15963-1-git-send-email-ming.m.lin@intel.com>  <1332915722-15963-5-git-send-email-ming.m.lin@intel.com>  <4F72F45D.7090800@mvista.com> <1332997594.3793.118.camel@minggr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.44L0.1203281502450.1599-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Cc: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, mjg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <1332997594.3793.118.camel@minggr>
+Sender: linux-ide-owner@vger.kernel.org
+To: Lin Ming <ming.m.lin@intel.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, Jeff Garzik <jgarzik@pobox.com>, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tejun Heo <tj@kernel.org>, Aaron Lu <aaron.lu@amd.com>, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, linux-scsi@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-hi alan:
-	Great thanks for your such careful review.
-On 2012=E5=B9=B403=E6=9C=8829=E6=97=A5 03:13, Alan Stern wrote:
-> On Wed, 28 Mar 2012, Lan Tianyu wrote:
->
->> Move child's pointer to the struct usb_hub_port since the child devi=
-ce
->> is directly associated with the port. Provide usb_get_hub_child_devi=
-ce()
->> to get child's pointer.
->
->> --- a/drivers/usb/core/devices.c
->> +++ b/drivers/usb/core/devices.c
->> @@ -590,7 +590,9 @@ static ssize_t usb_device_dump(char __user **buf=
-fer, size_t *nbytes,
->>
->>   	/* Now look at all of this device's children. */
->>   	for (chix =3D 0; chix<  usbdev->maxchild; chix++) {
->> -		struct usb_device *childdev =3D usbdev->children[chix];
->> +		struct usb_device *childdev;
->> +		if (usb_get_hub_child_device(usbdev, chix + 1,&childdev)<  0)
->> +			continue;
->>
->
-> Whitespace issue: The blank line should come before the new executabl=
-e
-> statement, not after it.
->
->> @@ -1475,11 +1477,12 @@ bool usb_device_is_owned(struct usb_device *=
-udev)
->>
->>   static void recursively_mark_NOTATTACHED(struct usb_device *udev)
->>   {
->> +	struct usb_hub	*hub =3D hdev_to_hub(udev);
->
-> I'm not sure this is good.  You are calling hdev_to_hub without knowi=
-ng
-> beforehand that udev really is a hub -- in fact, most of the time ude=
-v
-> won't be a hub.  The routine wasn't meant to be used that way.  Have
-> you checked that hdev_to_hub won't crash when the argument isn't a hu=
-b?
-> What happens if the active configuration has no interfaces?
-About this, I have an idea to add a check of hdev->maxchild. I have
-verified that hdev->maxchild only is set in the hub_configure() and
-hub_disconnect(). So we can identify whether the udev is a usb hub or
-not through hdev->maxchild. Does this make sense?
+Hello.
 
-diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
-index c70c170..d29a5dc 100644
---- a/drivers/usb/core/hub.c
-+++ b/drivers/usb/core/hub.c
-@@ -177,7 +177,7 @@ static inline char *portspeed(struct usb_hub *hub, =
-int=20
-portstatus)
-   /* Note that hdev or one of its children must be locked! */
-   static struct usb_hub *hdev_to_hub(struct usb_device *hdev)
-   {
--       if (!hdev || !hdev->actconfig)
-+       if (!hdev || !hdev->actconfig || hdev->maxchild =3D=3D 0)
-                  return NULL;
-          return usb_get_intfdata(hdev->actconfig->interface[0]);
-   }
+On 29-03-2012 9:06, Lin Ming wrote:
 
+>>> Add a new flag ATA_DFLAG_DA to indicate that device supports "Device
+>>> Attention".
 
->> @@ -4147,3 +4151,15 @@ void usb_queue_reset_device(struct usb_interf=
-ace *iface)
->>   	schedule_work(&iface->reset_ws);
->>   }
->>   EXPORT_SYMBOL_GPL(usb_queue_reset_device);
->> +
->> +int usb_get_hub_child_device(struct usb_device *hdev, int port1,
->> +	struct usb_device **child)
->> +{
->> +	struct usb_hub *hub =3D hdev_to_hub(hdev);
->> +
->> +	if (port1>  hdev->maxchild || port1<  1)
->> +		return -EINVAL;
->> +	*child =3D hub->port_data[port1 - 1].child;
->> +	return 0;
->> +}
->
-> This new routine is more complicated that it needs to be.  You don't
-> have to return an error code; none of the callers make use of it.
-> Just return the child pointer, and return NULL if there's an error.
->
-> Alan Stern
->
->
+>>> Acked-by: Aaron Lu<aaron.lu@amd.com>
+>>> Signed-off-by: Lin Ming<ming.m.lin@intel.com>
+>> [...]
 
---=20
-Best Regards
-Tianyu Lan
-linux kernel enabling team
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>> diff --git a/include/linux/ata.h b/include/linux/ata.h
+>>> index 32df2b6..6ee41cc 100644
+>>> --- a/include/linux/ata.h
+>>> +++ b/include/linux/ata.h
+>>> @@ -578,6 +578,7 @@ static inline int ata_is_data(u8 prot)
+>>>    	  ((u64) (id)[(n) + 0]) )
+>>>
+>>>    #define ata_id_cdb_intr(id)	(((id)[ATA_ID_CONFIG]&   0x60) == 0x20)
+>>> +#define atapi_id_has_da(id)	((id)[77]&   (1<<   4))
+
+>>      We prefix these macros with 'ata_' despite them being applied to IDENTIFY
+>> DEVICE data or IDENTIFY PAKCET DEVICE data. ata_id_cdb_intr(), for example,
+>> applies only to IDENTIFY PAKCET DEVICE data.
+
+> OK, will change it.
+
+    Also, what does the word "detech" mean in the subject?
+
+MBR, Sergei
