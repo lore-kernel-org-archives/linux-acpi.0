@@ -1,31 +1,39 @@
 From: Lin Ming <ming.m.lin@intel.com>
-Subject: [PATCH v3 0/3] ACPI/PM D3Cold state support
-Date: Thu, 29 Mar 2012 14:09:37 +0800
-Message-ID: <1333001380-6050-1-git-send-email-ming.m.lin@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Subject: [PATCH v3 3/3] PM / Runtime: Add may_power_off flag to subsys data
+Date: Thu, 29 Mar 2012 14:09:40 +0800
+Message-ID: <1333001380-6050-4-git-send-email-ming.m.lin@intel.com>
+References: <1333001380-6050-1-git-send-email-ming.m.lin@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:28780 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753557Ab2C2GJs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 29 Mar 2012 02:09:48 -0400
+In-Reply-To: <1333001380-6050-1-git-send-email-ming.m.lin@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: Alan Stern <stern@rowland.harvard.edu>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
-The ZPODD patch set involves 4 subsystems: ACPI, Generic PM, SATA and SCSI.
-This makes it hard to push upstream.
+Parent device will check child's may_power_off flag to see if child device can
+be powered off.
 
-So I decide to seprate it to two patch sets, one for ACPI/PM and the other
-for SATA/SCSI.
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+---
+ include/linux/pm.h |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-You can find the SATA/SCSI part at:
-[PATCH v3 0/7] SATA ZPODD support
-https://lkml.org/lkml/2012/3/28/20
+diff --git a/include/linux/pm.h b/include/linux/pm.h
+index e4982ac..c9953b4 100644
+--- a/include/linux/pm.h
++++ b/include/linux/pm.h
+@@ -465,6 +465,7 @@ struct pm_subsys_data {
+ #ifdef CONFIG_PM_GENERIC_DOMAINS
+ 	struct pm_domain_data *domain_data;
+ #endif
++	bool may_power_off;
+ };
+ 
+ struct dev_pm_info {
+-- 
+1.7.2.5
 
-[PATCH v3 1/3] ACPI: Introduce ACPI D3_COLD state support
-[PATCH v3 2/3] ACPI: Add interface to register/unregister device to/from power resources
-[PATCH v3 3/3] PM / Runtime: Add may_power_off flag to subsys data
-
-Rafael,
-
-Would you ack PATCH 3?
-I renamed the flag to may_power_off according to Alan's suggestion.
-
-Thanks,
-Lin Ming
