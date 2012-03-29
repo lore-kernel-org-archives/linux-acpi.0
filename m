@@ -1,89 +1,114 @@
-From: "Liu, Jinsong" <jinsong.liu@intel.com>
-Subject: RE: [Xen-devel] [PATCH 1/2] RFC: Prepare PAD for native and	xen
- platform
-Date: Thu, 29 Mar 2012 07:27:47 +0000
-Message-ID: <DE8DF0795D48FD4CA783C40EC829233510F5C5@SHSMSX101.ccr.corp.intel.com>
-References: <DE8DF0795D48FD4CA783C40EC82923350AD088@SHSMSX101.ccr.corp.intel.com>
- <4F46530B020000780007F751@nat28.tlf.novell.com>
- <DE8DF0795D48FD4CA783C40EC82923350AD9BB@SHSMSX101.ccr.corp.intel.com>
- <DE8DF0795D48FD4CA783C40EC82923350B2013@SHSMSX101.ccr.corp.intel.com>
- <20120226173458.GB18098@phenom.dumpdata.com>
- <DE8DF0795D48FD4CA783C40EC82923350B9496@SHSMSX101.ccr.corp.intel.com>
- <DE8DF0795D48FD4CA783C40EC82923350BAC09@SHSMSX101.ccr.corp.intel.com>
- <DE8DF0795D48FD4CA783C40EC8292335105EFA@SHSMSX101.ccr.corp.intel.com>
- <20120326164835.GE10236@phenom.dumpdata.com>
- <DE8DF0795D48FD4CA783C40EC829233510F52B@SHSMSX101.ccr.corp.intel.com>
+From: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 2/5] usb: move struct usb_device->children to struct usb_hub_port->child
+Date: Thu, 29 Mar 2012 16:35:35 +0800
+Message-ID: <4F741ED7.8010105@intel.com>
+References: <Pine.LNX.4.44L0.1203281502450.1599-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:34285 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751082Ab2C2H2s convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Mar 2012 03:28:48 -0400
-In-Reply-To: <DE8DF0795D48FD4CA783C40EC829233510F52B@SHSMSX101.ccr.corp.intel.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.44L0.1203281502450.1599-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Cc: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, mjg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Liu, Jinsong" <jinsong.liu@intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: "Brown, Len" <len.brown@intel.com>, "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "keir.xen@gmail.com" <keir.xen@gmail.com>, Jan Beulich <jbeulich@suse.com>, "Li, Shaohua" <shaohua.li@intel.com>, "lenb@kernel.org" <lenb@kernel.org>
 
-Liu, Jinsong wrote:
-> Konrad Rzeszutek Wilk wrote:
->>>> Compare approaches:
->>>> 
->>>> 1. xen overwritten approach (patches V2, x86_init, osl approach)
->>>>         Pros: a little simpler code
->>>>     Cons:
->>>>         1). specific to xen, cannot extend to other virt platform;
->>>>         2). need to change natvie acpi_pad as modular;
->>>> 
->>>> 2. paravirt interface approach (original patches V1)     Pros:
->>>>         1). standard hypervisor-agnostic interface (USENIX
->>>>         conference 2006), can easily hook to Xen/lguest/... on
->>>>         demand; 2). arch independent; 3). no need to change native
->>>>         acpi_pad as     non-modular; Cons: a little complicated
->>>> code, and code patching is some
->>>> overkilled for this case (but no harm);
->>>> 
->>>> (BTW, in the future we need add more and more pv ops, like
->>>> pv_pm_ops, pv_cpu_hotplug_ops, pv_mem_hotplug_ops, etc. So how
->>>> about add a pv_misc_ops template to handle them all? seems it's a
->>>> common issue). 
->>>> 
->> 
->> I think (and you probabaly have a better idea) is that the maintainer
->> of drivers/acpi/* is not very open to adding in code that only
->> benefits Xen.
-> 
-> Take paravirt interface approach as example. We only change a little
-> about native acpi_pad_init/acpi_pad_exit, intercept it and
-> *implicitly* hook to native/paravirt platform (it didn't appear any
-> 'xen' 'pv' word in native pad logic). This is what I can find out the
-> least change to native pad logic, and it in fact benefits
-> (extensiable) to all pv. If this is still not acceptable we have to
-> find other way (but I'm not sure) :-)      
-> 
->> 
->> If it benefits other architectures (say ARM) then adding in hooks
->> there (in osl for example) makes sense - but I am not sure if ARM
->> has a form of _PUR code/calls it needs to do.
->> 
->> So with that in mind, neither of those options seems proper - as all
->> of them depend on changing something in drivers/acpi/*.
->> 
->> I've one or two suggestions of what could be done to still make this
->> work, but I need you to first see what happens if the native acpi_pad
->> runs under Xen with the latest upstream code (along with three
->> patches that are in a BZ I pointed you too).
-> 
-> Do you mean test the patch
-> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blobdiff;f=arch/x86/xen/enlighten.c;h=b132ade26f778f2cfec7c2d5c7b6db48afe424d5;hp=4172af8ceeb363d06912af15bf89e8508752b794;hb=d4c6fa73fe984e504d52f3d6bba291fd76fe49f7;hpb=aab008db8063364dc3c8ccf4981c21124866b395
-> ?  
+hi alan:
+	Great thanks for your such careful review.
+On 2012=E5=B9=B403=E6=9C=8829=E6=97=A5 03:13, Alan Stern wrote:
+> On Wed, 28 Mar 2012, Lan Tianyu wrote:
+>
+>> Move child's pointer to the struct usb_hub_port since the child devi=
+ce
+>> is directly associated with the port. Provide usb_get_hub_child_devi=
+ce()
+>> to get child's pointer.
+>
+>> --- a/drivers/usb/core/devices.c
+>> +++ b/drivers/usb/core/devices.c
+>> @@ -590,7 +590,9 @@ static ssize_t usb_device_dump(char __user **buf=
+fer, size_t *nbytes,
+>>
+>>   	/* Now look at all of this device's children. */
+>>   	for (chix =3D 0; chix<  usbdev->maxchild; chix++) {
+>> -		struct usb_device *childdev =3D usbdev->children[chix];
+>> +		struct usb_device *childdev;
+>> +		if (usb_get_hub_child_device(usbdev, chix + 1,&childdev)<  0)
+>> +			continue;
+>>
+>
+> Whitespace issue: The blank line should come before the new executabl=
+e
+> statement, not after it.
+>
+>> @@ -1475,11 +1477,12 @@ bool usb_device_is_owned(struct usb_device *=
+udev)
+>>
+>>   static void recursively_mark_NOTATTACHED(struct usb_device *udev)
+>>   {
+>> +	struct usb_hub	*hub =3D hdev_to_hub(udev);
+>
+> I'm not sure this is good.  You are calling hdev_to_hub without knowi=
+ng
+> beforehand that udev really is a hub -- in fact, most of the time ude=
+v
+> won't be a hub.  The routine wasn't meant to be used that way.  Have
+> you checked that hdev_to_hub won't crash when the argument isn't a hu=
+b?
+> What happens if the active configuration has no interfaces?
+About this, I have an idea to add a check of hdev->maxchild. I have
+verified that hdev->maxchild only is set in the hub_configure() and
+hub_disconnect(). So we can identify whether the udev is a usb hub or
+not through hdev->maxchild. Does this make sense?
 
-Ah, you want to test https://bugzilla.redhat.com/show_bug.cgi?id=804347
-Anyway, I didn't have proper h/w platform, but seems the bug (ioapic) is irrelated to pad thread we are talking?
+diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
+index c70c170..d29a5dc 100644
+--- a/drivers/usb/core/hub.c
++++ b/drivers/usb/core/hub.c
+@@ -177,7 +177,7 @@ static inline char *portspeed(struct usb_hub *hub, =
+int=20
+portstatus)
+   /* Note that hdev or one of its children must be locked! */
+   static struct usb_hub *hdev_to_hub(struct usb_device *hdev)
+   {
+-       if (!hdev || !hdev->actconfig)
++       if (!hdev || !hdev->actconfig || hdev->maxchild =3D=3D 0)
+                  return NULL;
+          return usb_get_intfdata(hdev->actconfig->interface[0]);
+   }
 
-Thanks,
-Jinsong
 
+>> @@ -4147,3 +4151,15 @@ void usb_queue_reset_device(struct usb_interf=
+ace *iface)
+>>   	schedule_work(&iface->reset_ws);
+>>   }
+>>   EXPORT_SYMBOL_GPL(usb_queue_reset_device);
+>> +
+>> +int usb_get_hub_child_device(struct usb_device *hdev, int port1,
+>> +	struct usb_device **child)
+>> +{
+>> +	struct usb_hub *hub =3D hdev_to_hub(hdev);
+>> +
+>> +	if (port1>  hdev->maxchild || port1<  1)
+>> +		return -EINVAL;
+>> +	*child =3D hub->port_data[port1 - 1].child;
+>> +	return 0;
+>> +}
+>
+> This new routine is more complicated that it needs to be.  You don't
+> have to return an error code; none of the callers make use of it.
+> Just return the child pointer, and return NULL if there's an error.
+>
+> Alan Stern
+>
+>
+
+--=20
+Best Regards
+Tianyu Lan
+linux kernel enabling team
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
