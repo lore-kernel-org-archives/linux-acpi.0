@@ -1,85 +1,35 @@
 From: Igor Murzov <intergalactic.anonymous@gmail.com>
-Subject: [RESEND PATCH 2/2] ACPI video: Don't start video device until its associated input device has been allocated
-Date: Fri, 30 Mar 2012 21:32:09 +0400
-Message-ID: <1333128729-19844-2-git-send-email-e-mail@date.by>
-References: <4F756512.8030902@kernel.org>
- <1333128729-19844-1-git-send-email-e-mail@date.by>
+Subject: [PATCH] MAINTAINERS: Update git url for ACPI
+Date: Fri, 30 Mar 2012 22:40:12 +0400
+Message-ID: <1333132812-20100-1-git-send-email-e-mail@date.by>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:54801 "EHLO
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:51056 "EHLO
 	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756560Ab2C3RdV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Mar 2012 13:33:21 -0400
-Received: by mail-bk0-f46.google.com with SMTP id ik5so827144bkc.19
-        for <linux-acpi@vger.kernel.org>; Fri, 30 Mar 2012 10:33:21 -0700 (PDT)
-In-Reply-To: <1333128729-19844-1-git-send-email-e-mail@date.by>
+	with ESMTP id S1758565Ab2C3Skf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Mar 2012 14:40:35 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>
-Cc: linux-acpi@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Sergey V." <sftp.mtuci@gmail.com>, Igor Murzov <e-mail@date.by>
-
-Quoth Dmitry Torokhov:
-In addition to bus notifier we do install device notifier explicitly
-so it might fire up early. The easiest fox would be to move
-acpi_video_bus_start_devices() after input_allocate_device() but
-before input_register_device() - unregistered input devices can handle
-input_event() calls just fine.
-
-May fix crashes reported in:
-https://bugzilla.kernel.org/show_bug.cgi?id=40672
+To: Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Sergey V." <sftp.mtuci@gmail.com>, Igor Murzov <e-mail@date.by>
 
 Signed-off-by: Igor Murzov <e-mail@date.by>
 ---
- drivers/acpi/video.c |   15 ++++++++-------
- 1 files changed, 8 insertions(+), 7 deletions(-)
+ MAINTAINERS |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index fdb4b7d..e70036c 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -1658,16 +1658,17 @@ static int acpi_video_bus_add(struct acpi_device *device)
- 	error = acpi_video_bus_get_devices(video, device);
- 	if (error)
- 		goto err_free_video;
--	error = acpi_video_bus_start_devices(video);
--	if (error)
--		goto err_put_video;
- 
- 	video->input = input = input_allocate_device();
- 	if (!input) {
- 		error = -ENOMEM;
--		goto err_stop_video;
-+		goto err_put_video;
- 	}
- 
-+	error = acpi_video_bus_start_devices(video);
-+	if (error)
-+		goto err_free_input_dev;
-+
- 	snprintf(video->phys, sizeof(video->phys),
- 		"%s/video/input0", acpi_device_hid(video->device));
- 
-@@ -1688,7 +1689,7 @@ static int acpi_video_bus_add(struct acpi_device *device)
- 
- 	error = input_register_device(input);
- 	if (error)
--		goto err_free_input_dev;
-+		goto err_stop_video;
- 
- 	printk(KERN_INFO PREFIX "%s [%s] (multi-head: %s  rom: %s  post: %s)\n",
- 	       ACPI_VIDEO_DEVICE_NAME, acpi_device_bid(device),
-@@ -1706,10 +1707,10 @@ static int acpi_video_bus_add(struct acpi_device *device)
- 
-  err_unregister_input_dev:
- 	input_unregister_device(input);
-- err_free_input_dev:
--	input_free_device(input);
-  err_stop_video:
- 	acpi_video_bus_stop_devices(video);
-+ err_free_input_dev:
-+	input_free_device(input);
-  err_put_video:
- 	acpi_video_bus_put_devices(video);
- 	kfree(video->attached_array);
+diff --git a/MAINTAINERS b/MAINTAINERS
+index eecf344..c159e2f 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -228,7 +228,7 @@ M:	Len Brown <lenb@kernel.org>
+ L:	linux-acpi@vger.kernel.org
+ W:	http://www.lesswatts.org/projects/acpi/
+ Q:	http://patchwork.kernel.org/project/linux-acpi/list/
+-T:	git git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux
+ S:	Supported
+ F:	drivers/acpi/
+ F:	drivers/pnp/pnpacpi/
 -- 
 1.7.5.1
 
