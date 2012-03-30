@@ -1,118 +1,161 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: Re: [linux-pm] [PATCH 17/76] thermal_sys: convert printks to
- pr_<level>
-Date: Fri, 30 Mar 2012 16:41:19 +0300
-Message-ID: <20120330134119.GA13130@besouro>
-References: <09f98a825a821f7a3f1b162f9ed023f37213a63b.1333101989.git.len.brown@intel.com>
- <c5a01dd52dc4903772f464ea580895ccc36e911d.1333101989.git.len.brown@intel.com>
-Reply-To: eduardo.valentin@ti.com
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH v2] ACPI: Add CPU hotplug support for processor device
+ objects
+Date: Fri, 30 Mar 2012 08:14:54 -0600
+Message-ID: <1333116894.25679.67.camel@misato.fc.hp.com>
+References: <1332287906-31568-1-git-send-email-toshi.kani@hp.com>
+	 <4F755B22.6090904@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:35871 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932832Ab2C3Nlw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 30 Mar 2012 09:41:52 -0400
-Received: by obbeh20 with SMTP id eh20so978477obb.19
-        for <linux-acpi@vger.kernel.org>; Fri, 30 Mar 2012 06:41:50 -0700 (PDT)
-In-Reply-To: <c5a01dd52dc4903772f464ea580895ccc36e911d.1333101989.git.len.brown@intel.com>
-Content-Disposition: inline
+Received: from g4t0017.houston.hp.com ([15.201.24.20]:10076 "EHLO
+	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759877Ab2C3OPy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Mar 2012 10:15:54 -0400
+In-Reply-To: <4F755B22.6090904@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, Joe Perches <joe@perches.com>, Len Brown <len.brown@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Jesper Juhl <jj@chaosbits.net>, linux-kernel@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com
 
-Hello Joe, Len,
+On Fri, 2012-03-30 at 03:05 -0400, Len Brown wrote:
+> Tested on what?
 
-On Fri, Mar 30, 2012 at 06:13:20AM -0400, Len Brown wrote:
-> From: Joe Perches <joe@perches.com>
+Hi Len,
+
+The change was tested on HP internal prototype that implements processor
+device objects.
+
+Thanks,
+-Toshi
+
+
+> thanks,
+> -Len
 > 
-> Use the current logging style.
+> On 03/20/2012 07:58 PM, Toshi Kani wrote:
 > 
-> Remove PREFIX, add pr_fmt, convert the printks.  All dmesg output now
-> prefixed with "thermal_sys: ".
+> > acpi_processor_install_hotplug_notify() registers processor objects to
+> > receive ACPI CPU hotplug event notifications. This patch additionally
+> > registers processor device objects (ACPI0007) to receive the notifications
+> > as well.
+> > 
+> > v2: Changed is_processor_device() to a boolean func.
+> > 
+> > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+> > Reviewed-by: Bjorn Helgaas <bhelgaas@google.com>
+> > ---
+> >  drivers/acpi/processor_driver.c |   54 ++++++++++++++++++++++++++++++--------
+> >  1 files changed, 42 insertions(+), 12 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+> > index 8ae05ce..71bdaf1 100644
+> > --- a/drivers/acpi/processor_driver.c
+> > +++ b/drivers/acpi/processor_driver.c
+> > @@ -68,6 +68,7 @@
+> >  #define ACPI_PROCESSOR_NOTIFY_PERFORMANCE 0x80
+> >  #define ACPI_PROCESSOR_NOTIFY_POWER	0x81
+> >  #define ACPI_PROCESSOR_NOTIFY_THROTTLING	0x82
+> > +#define ACPI_PROCESSOR_DEVICE_HID	"ACPI0007"
+> >  
+> >  #define ACPI_PROCESSOR_LIMIT_USER	0
+> >  #define ACPI_PROCESSOR_LIMIT_THERMAL	1
+> > @@ -88,7 +89,7 @@ static int acpi_processor_start(struct acpi_processor *pr);
+> >  
+> >  static const struct acpi_device_id processor_device_ids[] = {
+> >  	{ACPI_PROCESSOR_OBJECT_HID, 0},
+> > -	{"ACPI0007", 0},
+> > +	{ACPI_PROCESSOR_DEVICE_HID, 0},
+> >  	{"", 0},
+> >  };
+> >  MODULE_DEVICE_TABLE(acpi, processor_device_ids);
+> > @@ -741,20 +742,48 @@ static void acpi_processor_hotplug_notify(acpi_handle handle,
+> >  	return;
+> >  }
+> >  
+> > +static bool is_processor_device(acpi_handle handle)
+> > +{
+> > +	struct acpi_device_info *info;
+> > +	char *hid;
+> > +	acpi_status status;
+> > +	bool is_proc;
+> > +
+> > +	status = acpi_get_object_info(handle, &info);
+> > +	if (ACPI_FAILURE(status))
+> > +		return false;
+> > +
+> > +	if (info->type == ACPI_TYPE_PROCESSOR) {
+> > +		is_proc = true;	/* found a processor object */
+> > +		goto cleanup;
+> > +	}
+> > +
+> > +	if (!(info->valid & ACPI_VALID_HID)) {
+> > +		is_proc = false;
+> > +		goto cleanup;
+> > +	}
+> > +
+> > +	hid = info->hardware_id.string;
+> > +	if ((hid == NULL) || strcmp(hid, ACPI_PROCESSOR_DEVICE_HID)) {
+> > +		is_proc = false;
+> > +		goto cleanup;
+> > +	}
+> > +
+> > +	is_proc = true;		/* found a processor device object */
+> > +
+> > +cleanup:
+> > +	kfree(info);
+> > +	return is_proc;
+> > +}
+> > +
+> >  static acpi_status
+> >  processor_walk_namespace_cb(acpi_handle handle,
+> >  			    u32 lvl, void *context, void **rv)
+> >  {
+> > -	acpi_status status;
+> >  	int *action = context;
+> > -	acpi_object_type type = 0;
+> > -
+> > -	status = acpi_get_type(handle, &type);
+> > -	if (ACPI_FAILURE(status))
+> > -		return (AE_OK);
+> >  
+> > -	if (type != ACPI_TYPE_PROCESSOR)
+> > -		return (AE_OK);
+> > +	if (!is_processor_device(handle))
+> > +		return AE_OK;	/* not a processor; continue to walk */
+> >  
+> >  	switch (*action) {
+> >  	case INSTALL_NOTIFY_HANDLER:
+> > @@ -772,7 +801,8 @@ processor_walk_namespace_cb(acpi_handle handle,
+> >  		break;
+> >  	}
+> >  
+> > -	return (AE_OK);
+> > +	/* found a processor; skip walking underneath */
+> > +	return AE_CTRL_DEPTH;
+> >  }
+> >  
+> >  static acpi_status acpi_processor_hotadd_init(struct acpi_processor *pr)
+> > @@ -830,7 +860,7 @@ void acpi_processor_install_hotplug_notify(void)
+> >  {
+> >  #ifdef CONFIG_ACPI_HOTPLUG_CPU
+> >  	int action = INSTALL_NOTIFY_HANDLER;
+> > -	acpi_walk_namespace(ACPI_TYPE_PROCESSOR,
+> > +	acpi_walk_namespace(ACPI_TYPE_ANY,
+> >  			    ACPI_ROOT_OBJECT,
+> >  			    ACPI_UINT32_MAX,
+> >  			    processor_walk_namespace_cb, NULL, &action, NULL);
+> > @@ -843,7 +873,7 @@ void acpi_processor_uninstall_hotplug_notify(void)
+> >  {
+> >  #ifdef CONFIG_ACPI_HOTPLUG_CPU
+> >  	int action = UNINSTALL_NOTIFY_HANDLER;
+> > -	acpi_walk_namespace(ACPI_TYPE_PROCESSOR,
+> > +	acpi_walk_namespace(ACPI_TYPE_ANY,
+> >  			    ACPI_ROOT_OBJECT,
+> >  			    ACPI_UINT32_MAX,
+> >  			    processor_walk_namespace_cb, NULL, &action, NULL);
 > 
-> Signed-off-by: Joe Perches <joe@perches.com>
-> Cc: Jesper Juhl <jj@chaosbits.net>
-> Cc: Len Brown <lenb@kernel.org>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> Signed-off-by: Len Brown <len.brown@intel.com>
-> ---
->  drivers/thermal/thermal_sys.c |   14 ++++++--------
->  1 file changed, 6 insertions(+), 8 deletions(-)
 > 
-> diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
-> index db5d8f8..fab970d 100644
-> --- a/drivers/thermal/thermal_sys.c
-> +++ b/drivers/thermal/thermal_sys.c
-> @@ -23,6 +23,8 @@
->   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
->   */
->  
-> +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-> +
->  #include <linux/module.h>
->  #include <linux/device.h>
->  #include <linux/err.h>
-> @@ -39,8 +41,6 @@ MODULE_AUTHOR("Zhang Rui");
->  MODULE_DESCRIPTION("Generic thermal management sysfs support");
->  MODULE_LICENSE("GPL");
->  
-> -#define PREFIX "Thermal: "
-> -
->  struct thermal_cooling_device_instance {
->  	int id;
->  	char name[THERMAL_NAME_LENGTH];
-> @@ -1023,8 +1023,7 @@ void thermal_zone_device_update(struct thermal_zone_device *tz)
->  
->  	if (tz->ops->get_temp(tz, &temp)) {
->  		/* get_temp failed - retry it later */
-> -		printk(KERN_WARNING PREFIX "failed to read out thermal zone "
-> -		       "%d\n", tz->id);
-> +		pr_warn("failed to read out thermal zone %d\n", tz->id);
-
-We should get the struct dev in thermal_zone_device, I think it makes more sense to use the dev_* helper functions.
-
->  		goto leave;
->  	}
->  
-> @@ -1039,9 +1038,8 @@ void thermal_zone_device_update(struct thermal_zone_device *tz)
->  					ret = tz->ops->notify(tz, count,
->  							      trip_type);
->  				if (!ret) {
-> -					printk(KERN_EMERG
-> -					       "Critical temperature reached (%ld C), shutting down.\n",
-> -					       temp/1000);
-> +					pr_emerg("Critical temperature reached (%ld C), shutting down\n",
-> +						 temp/1000);
-
-dito.
-
->  					orderly_poweroff(true);
->  				}
->  			}
-> @@ -1345,7 +1343,7 @@ int thermal_generate_netlink_event(u32 orig, enum events event)
->  
->  	result = genlmsg_multicast(skb, 0, thermal_event_mcgrp.id, GFP_ATOMIC);
->  	if (result)
-> -		printk(KERN_INFO "failed to send netlink event:%d", result);
-> +		pr_info("failed to send netlink event:%d\n", result);
-
-Here we probably would want to do the same, but we don't have the reference for the thermal zone device.
 
 
-The orig argument could probably be changed to a thermal zone device and the we use it's id as orig for the message.
-
-What do you think?
-
->  
->  	return result;
->  }
-> -- 
-> 1.7.10.rc2.19.gfae9d
-> 
-> _______________________________________________
-> linux-pm mailing list
-> linux-pm@lists.linux-foundation.org
-> https://lists.linuxfoundation.org/mailman/listinfo/linux-pm
