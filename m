@@ -1,126 +1,48 @@
-From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Subject: Re: [PATCH 00/11] Enhancements and bugfixes to PCI hotplug subsystem
-Date: Fri, 30 Mar 2012 13:15:10 +0900
-Message-ID: <4F75334E.5000003@jp.fujitsu.com>
-References: <1332514707-9673-1-git-send-email-jiang.liu@huawei.com> <4F7134ED.4040602@jp.fujitsu.com> <4F71CF55.2020909@gmail.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH v3 3/3] PM / Runtime: Add may_power_off flag to subsys
+ data
+Date: Fri, 30 Mar 2012 01:49:23 -0400
+Message-ID: <4F754963.4080104@kernel.org>
+References: <1333001380-6050-1-git-send-email-ming.m.lin@intel.com> <1333001380-6050-4-git-send-email-ming.m.lin@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <4F71CF55.2020909@gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jiang Liu <liuj97@gmail.com>
-Cc: Yinghai Lu <yinghai@kernel.org>, Jesse Barnes <jbarnes@virtuousgeek.org>, Len Brown <lenb@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Bjorn Helgaas <bhelgaas@google.com>, Ashok Raj <ashok.raj@intel.com>, Keping Chen <chenkeping@huawei.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:43501 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752421Ab2C3Ft0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Mar 2012 01:49:26 -0400
+In-Reply-To: <1333001380-6050-4-git-send-email-ming.m.lin@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lin Ming <ming.m.lin@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
 
-(2012/03/27 23:31), Jiang Liu wrote:
-> Hi Kenji,
-> 	Thanks for your comments!
-> 	As you have mentioned, I have a TODO list for all PCI hotplug drivers
-> under drivers/pci/hotplug. I plan to modify those drivers after doing stress
-> tests against the acpiphp driver. But one difficulty I'm facing is to find
-> hardware platforms to test those hotplug drivers, currently I could only find
-> platforms to test the acpiphp and pcie hotplug drivers.
+Why?
 
-I might be able to access the platform to test the shpchp driver.
+-Len
 
-> 	For the lock granularity issue,	I have thought about providing a more
-> fine-grained lock schema, such as "branch lock" which locks PCI sub trees.
-> But that solution needs much more changes and careful inspection over
-> the PCI code to avoid deadlock issues. So I think it would be better for us
-> to globally serialize all PCI hotplug operations first and optimize the lock
-> schema in future. Is that OK to you?
+On 03/29/2012 02:09 AM, Lin Ming wrote:
 
-Yes, it's OK.
-
-By the way, your lock mechanism is required even without host bridge hotplug.
-So I think you should implement it against the latest PCI source tree.
-
-Regards,
-Kenji Kaneshige
-
-
-
-> 	Thanks!
-> 	Gerry
+> Parent device will check child's may_power_off flag to see if child device can
+> be powered off.
 > 
-> On 03/27/2012 11:33 AM, Kenji Kaneshige wrote:
->>> The second prososal is to introduce a recursive mutex lock to
->>> serialize all hotplug operations triggered by sysfs interfaces,
->>> PCI HPC hardware events, ACPI hotplug events and other sources.
->>
->> The pciehp (and other hotplug controllers) needs this too.
->>
->> There is only one mutex in the current implementation. I think it
->> would be better if we can have the mutex per host bridge or per bus
->> or something so that we can run multiple hot-plug operation in
->> parallel on the independent PCI sub trees.
->>
->> Regards,
->> Kenji Kaneshige
->>
->>
->>
->> (2012/03/23 23:58), Jiang Liu wrote:
->>> This is a series of RFC patches, to make sure we are doing the
->>> right thing in the right way.  The patchset hasn't been tested yet.
->>> There are several minor bugfixes and two proposals.
->>>
->>> The first proposal is to add notification chain for PCI hotplug events,
->>> so other components interested in PCI root/bus/device hotplug events
->>> could subscribe to the chain.
->>>
->>> The second prososal is to introduce a recursive mutex lock to
->>> serialize all hotplug operations triggered by sysfs interfaces,
->>> PCI HPC hardware events, ACPI hotplug events and other sources.
->>>
->>> There are still works left in driver/pci/hotplug directory to apply
->>> the above two proposals.
->>>
->>> The patchset applies to Yinghai's work on PCI root bus hotplug at
->>> git://git.kernel.org/pub/scm/linux/kernel/git/yinghai/linux-yinghai.git for-x86-irq
->>> And it depends on my previous patchset, please refer to
->>> http://www.spinics.net/lists/linux-pci/msg14472.html
->>>
->>> Thanks!
->>>
->>> Jiang Liu (11):
->>>     PCI: Fix device reference count leakage in pci_dev_present()
->>>     PCI: introduce pci_bus_get()/pci_bus_put() to hide implementation
->>>       details
->>>     PCI: clean up root bridge related logic in acpiphp driver
->>>     ACPI,PCI: fix race windows caused by alloc_acpi_hotplug_work()
->>>     PCI: Add notification interfaces for PCI root/bus/device hotplug
->>>       events
->>>     ACPI,PCI: update ACPI<->PCI binding information when pci hotplug
->>>       event happens
->>>     ACPI,PCI: update ACPI slots when PCI hotplug event happens
->>>     PCI: Introduce recursive mutex to serialize PCI hotplug operations
->>>     PCI: serialize hotplug operations triggered by PCI hotplug sysfs
->>>       interfaces
->>>     PCI,ACPI: serialize hotplug operations triggered by ACPI subsystem
->>>     PCI: Serialize hotplug operations triggered by acpiphp driver
->>>
->>>    drivers/acpi/pci_bind.c                |  115 +++++++++++++++++++++++++
->>>    drivers/acpi/pci_root.c                |    8 ++
->>>    drivers/acpi/pci_slot.c                |   81 ++++++++++++++++++-
->>>    drivers/pci/bus.c                      |   20 ++++-
->>>    drivers/pci/hotplug.c                  |   47 +++++++++++
->>>    drivers/pci/hotplug/acpiphp.h          |    7 ++-
->>>    drivers/pci/hotplug/acpiphp_glue.c     |  143 ++++++++++++--------------------
->>>    drivers/pci/hotplug/pci_hotplug_core.c |    2 +
->>>    drivers/pci/pci-sysfs.c                |   29 +++----
->>>    drivers/pci/pci.h                      |    8 ++
->>>    drivers/pci/probe.c                    |   10 ++-
->>>    drivers/pci/remove.c                   |   20 ++++-
->>>    drivers/pci/search.c                   |   10 +-
->>>    include/linux/pci.h                    |   57 +++++++++++++
->>>    14 files changed, 437 insertions(+), 120 deletions(-)
->>>
->>
+> Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+> ---
+>  include/linux/pm.h |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> diff --git a/include/linux/pm.h b/include/linux/pm.h
+> index e4982ac..c9953b4 100644
+> --- a/include/linux/pm.h
+> +++ b/include/linux/pm.h
+> @@ -465,6 +465,7 @@ struct pm_subsys_data {
+>  #ifdef CONFIG_PM_GENERIC_DOMAINS
+>  	struct pm_domain_data *domain_data;
+>  #endif
+> +	bool may_power_off;
+>  };
+>  
+>  struct dev_pm_info {
+
+
