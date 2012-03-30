@@ -1,55 +1,85 @@
 From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH v3 7/7] [SCSI] sr: adds Zero-power ODD support
-Date: Fri, 30 Mar 2012 10:28:23 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1203301021140.1280-100000@iolanthe.rowland.org>
-References: <20120330010730.GA27346@ladygaga>
+Subject: Re: [PATCH V2 2/4] usb: move struct usb_device->children to struct
+ usb_hub_port->child
+Date: Fri, 30 Mar 2012 12:08:38 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1203301201250.1280-100000@iolanthe.rowland.org>
+References: <1333099617-11019-3-git-send-email-tianyu.lan@intel.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:51069 "HELO
+Received: from iolanthe.rowland.org ([192.131.102.54]:51111 "HELO
 	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1760834Ab2C3O2X (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Mar 2012 10:28:23 -0400
-In-Reply-To: <20120330010730.GA27346@ladygaga>
+	with SMTP id S1751832Ab2C3QIk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Mar 2012 12:08:40 -0400
+In-Reply-To: <1333099617-11019-3-git-send-email-tianyu.lan@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@amd.com>
-Cc: Lin Ming <ming.m.lin@intel.com>, Zhang Rui <rui.zhang@intel.com>, Jeff Garzik <jgarzik@pobox.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tejun Heo <tj@kernel.org>, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, linux-scsi@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi <linux-acpi@vger.kernel.org>
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: lenb@kernel.org, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, sarah.a.sharp@linux.intel.com, mjg@redhat.com
 
-On Fri, 30 Mar 2012, Aaron Lu wrote:
+On Fri, 30 Mar 2012, Lan Tianyu wrote:
 
-> > > For the ODD to be put into suspend state, the conditions should be:
-> > > 1 tray closed
-> > > 2 no media inside
-> > > I think we missed the condition 1 check now.
-> > > 
-> > > And if we follow the two conditions, the events can be safely ignored.
-> > 
-> > No, they can't.  Otherwise the device won't power back up when the user 
-> > inserts a new disc.
-> > 
-> 
-> The ODD is put to zero power state, so it can't react to the eject
-> button without being powered up back first ;-)
-> On current implementation, ACPI is used to power back up the ODD like this:
-> 1 User press the eject button;
-> 2 A gpe event fired, and ACPI interrupt, and the corresponding gpe
-> handler runs and the ODD's ACPI handle is notified about DEVICE_WAKE_UP;
-> 3 In ODD's acpi notify handler, we power back up it by scsi_autopm_get_device.
-> This is handled in the following Lin Ming's patch:
-> [PATCH v3 2/7] libata-acpi: add ata port runtime D3Cold support
+> Move child's pointer to the struct usb_hub_port since the child device
+> is directly associated with the port. Provide usb_get_hub_child_device()
+> to get child's pointer.
 
-I see.  Then you are right; it's not necessary to check for events 
-while the drive is at zero power.
+> --- a/drivers/staging/usbip/usbip_common.c
+> +++ b/drivers/staging/usbip/usbip_common.c
+> @@ -158,7 +158,7 @@ static void usbip_dump_usb_device(struct usb_device *udev)
+>  		udev->have_langid, udev->string_langid);
+>  
+>  	dev_dbg(dev, "maxchild %d, children %p\n",
+> -		udev->maxchild, udev->children);
+> +		udev->maxchild, usb_get_hub_child_device(udev, udev->devnum));
 
-> When the ODD is put to zero power state, it will not be able to handle
-> commands like CDROMEJECT. We have to power it up first and then handle
-> the ioctl request. Currently, we only power back up the ODD when user
-> press the eject button as explained above.
+This changes the meaning of the statement; it will print the address of 
+the first child rather than the address of the array of children.  You 
+might as well get rid of the whole "children %p" part.
 
-Then you may want to avoid going to zero-power while a program is
-holding the device file open.  After all, the program might issue a
-CDROMEJECT ioctl.
+> --- a/drivers/usb/core/hub.c
+> +++ b/drivers/usb/core/hub.c
+
+> @@ -1477,12 +1479,15 @@ bool usb_device_is_owned(struct usb_device *udev)
+>  
+>  static void recursively_mark_NOTATTACHED(struct usb_device *udev)
+>  {
+> +	struct usb_hub	*hub = hdev_to_hub(udev);
+>  	int i;
+>  
+> -	for (i = 0; i < udev->maxchild; ++i) {
+> -		if (udev->children[i])
+> -			recursively_mark_NOTATTACHED(udev->children[i]);
+> -	}
+> +	if (hub)
+
+You don't need this test.  If hub is NULL then udev->maxchild will be
+0, so the following loop will be skipped.
+
+> +		for (i = 0; i < udev->maxchild; ++i) {
+> +			if (hub->port_data[i].child)
+> +				recursively_mark_NOTATTACHED(
+> +					hub->port_data[i].child);
+> +		}
+>  	if (udev->state == USB_STATE_SUSPENDED)
+>  		udev->active_duration -= jiffies;
+>  	udev->state = USB_STATE_NOTATTACHED;
+
+> @@ -1659,10 +1665,11 @@ void usb_disconnect(struct usb_device **pdev)
+>  	usb_lock_device(udev);
+>  
+>  	/* Free up all the children before we remove this device */
+> -	for (i = 0; i < USB_MAXCHILDREN; i++) {
+> -		if (udev->children[i])
+> -			usb_disconnect(&udev->children[i]);
+> -	}
+> +	if (hub)
+
+The same is true here.
+
+> +		for (i = 0; i < udev->maxchild; i++) {
+> +			if (hub->port_data[i].child)
+> +				usb_disconnect(&hub->port_data[i].child);
+> +		}
 
 Alan Stern
 
