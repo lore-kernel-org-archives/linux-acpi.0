@@ -1,35 +1,39 @@
-From: huang ying <huang.ying.caritas@gmail.com>
-Subject: Re: [PATCH v3 3/3] PM / Runtime: Add may_power_off flag to subsys data
-Date: Fri, 30 Mar 2012 15:49:06 +0800
-Message-ID: <CAC=cRTMneWKgH_So+JO6h+w4S-SpgcX=pbY5QeWuFc6HXvCATQ@mail.gmail.com>
-References: <1333001380-6050-1-git-send-email-ming.m.lin@intel.com>
-	<1333001380-6050-4-git-send-email-ming.m.lin@intel.com>
-	<4F754963.4080104@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: [PATCH V2 0/4] usb/acpi: To bind usb hub ports with acpi when not attached usb devices.
+Date: Fri, 30 Mar 2012 17:26:53 +0800
+Message-ID: <1333099617-11019-1-git-send-email-tianyu.lan@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:56719 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757682Ab2C3HtH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Mar 2012 03:49:07 -0400
-In-Reply-To: <4F754963.4080104@kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:51344 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755411Ab2C3JaI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 30 Mar 2012 05:30:08 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Lin Ming <ming.m.lin@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
+To: lenb@kernel.org, gregkh@linuxfoundation.org
+Cc: linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu, sarah.a.sharp@linux.intel.com, mjg@redhat.com
 
-On Fri, Mar 30, 2012 at 1:49 PM, Len Brown <lenb@kernel.org> wrote:
-> Why?
+Based on the Matthew Garrett's patch set.
+[PATCH V2 1/4] ACPI: Fix up _PLD methods
+[PATCH V2 2/4] ACPI: Add _PLD support
+[PATCH V2 3/4] usb: Bind devices to ACPI devices when possible
+[PATCH V2 4/4] usb: Set device removable state based on ACPI USB data
 
-1) To support something like pm-qos.  power off device may have more
-exit.latency than normal low power state (such as D3Hot).  Some device
-may disable may_power_off based on that.  It can be used to implement
-the logic like,  only power off SSD, not HDD.
+Add usb hub ports' platform_data to store acpi_handle. When a usb
+hub is found, getting all ports' acpi handle and check port's connect
+type through acpi method "_UPC" and "_PLD". When a usb device is found,
+set it's removalbe depending on the port's connect type.
 
-2) Whether to go to power off should be determined by leaf device
-(such as SATA disk), but that may be done by its parent device (such
-as SATA port).  It's a way for leaf device to tell its parent device
-whether it want to go to power off.
+[PATCH V2 1/4] usb: add struct usb_hub_port to store port related
+[PATCH V2 2/4] usb: move struct usb_device->children to struct
+[PATCH V2 3/4] usb/acpi: add the support of usb hub ports' acpi
+[PATCH V2 4/4] usb/acpi: add usb check for the connect type of usb
 
-Best Regards,
-Huang Ying
+ drivers/staging/usbip/usbip_common.c |    2 +-
+ drivers/usb/core/devices.c           |    3 +-
+ drivers/usb/core/hub.c               |  145 ++++++++++++++++++++++++----------
+ drivers/usb/core/usb-acpi.c          |  104 +++++++++++++++++--------
+ drivers/usb/core/usb.h               |   10 +++
+ drivers/usb/host/r8a66597-hcd.c      |    3 +-
+ include/linux/usb.h                  |   11 ++-
+ 7 files changed, 199 insertions(+), 79 deletions(-)
+
