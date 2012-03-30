@@ -1,25 +1,35 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH v2 1/2] ACPI video: Harden video bus adding.
-Date: Fri, 30 Mar 2012 03:47:30 -0400
-Message-ID: <4F756512.8030902@kernel.org>
-References: <20120301175600.4c00eed3@garik>
+From: huang ying <huang.ying.caritas@gmail.com>
+Subject: Re: [PATCH v3 3/3] PM / Runtime: Add may_power_off flag to subsys data
+Date: Fri, 30 Mar 2012 15:49:06 +0800
+Message-ID: <CAC=cRTMneWKgH_So+JO6h+w4S-SpgcX=pbY5QeWuFc6HXvCATQ@mail.gmail.com>
+References: <1333001380-6050-1-git-send-email-ming.m.lin@intel.com>
+	<1333001380-6050-4-git-send-email-ming.m.lin@intel.com>
+	<4F754963.4080104@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:39539 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756114Ab2C3Hre (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Mar 2012 03:47:34 -0400
-In-Reply-To: <20120301175600.4c00eed3@garik>
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:56719 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757682Ab2C3HtH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Mar 2012 03:49:07 -0400
+In-Reply-To: <4F754963.4080104@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Igor Murzov <intergalactic.anonymous@gmail.com>
-Cc: Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-kernel@vger.kernel.org, Igor Murzov <e-mail@date.by>, "Sergey V." <sftp.mtuci@gmail.com>
+To: Len Brown <lenb@kernel.org>
+Cc: Lin Ming <ming.m.lin@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
 
-I like this patch, but it arrived with some kind of white-space
-formatting issue.  can you resend as plain text, or as a text attachment?
+On Fri, Mar 30, 2012 at 1:49 PM, Len Brown <lenb@kernel.org> wrote:
+> Why?
 
-thanks,
--Len
+1) To support something like pm-qos.  power off device may have more
+exit.latency than normal low power state (such as D3Hot).  Some device
+may disable may_power_off based on that.  It can be used to implement
+the logic like,  only power off SSD, not HDD.
 
+2) Whether to go to power off should be determined by leaf device
+(such as SATA disk), but that may be done by its parent device (such
+as SATA port).  It's a way for leaf device to tell its parent device
+whether it want to go to power off.
+
+Best Regards,
+Huang Ying
