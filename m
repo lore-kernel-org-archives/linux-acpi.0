@@ -1,35 +1,39 @@
-From: Igor Murzov <intergalactic.anonymous@gmail.com>
-Subject: [PATCH] MAINTAINERS: Update git url for ACPI
-Date: Fri, 30 Mar 2012 22:40:12 +0400
-Message-ID: <1333132812-20100-1-git-send-email-e-mail@date.by>
+From: Joe Perches <joe@perches.com>
+Subject: Re: [linux-pm] [PATCH 17/76] thermal_sys: convert printks to
+ pr_<level>
+Date: Fri, 30 Mar 2012 12:08:50 -0700
+Message-ID: <1333134530.27601.2.camel@joe2Laptop>
+References: <09f98a825a821f7a3f1b162f9ed023f37213a63b.1333101989.git.len.brown@intel.com>
+	 <c5a01dd52dc4903772f464ea580895ccc36e911d.1333101989.git.len.brown@intel.com>
+	 <20120330134119.GA13130@besouro>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:51056 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758565Ab2C3Skf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Mar 2012 14:40:35 -0400
+Received: from perches-mx.perches.com ([206.117.179.246]:54719 "EHLO
+	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1756818Ab2C3TIw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 30 Mar 2012 15:08:52 -0400
+In-Reply-To: <20120330134119.GA13130@besouro>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Sergey V." <sftp.mtuci@gmail.com>, Igor Murzov <e-mail@date.by>
+To: eduardo.valentin@ti.com
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, Len Brown <len.brown@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Jesper Juhl <jj@chaosbits.net>, linux-kernel@vger.kernel.org
 
-Signed-off-by: Igor Murzov <e-mail@date.by>
----
- MAINTAINERS |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+On Fri, 2012-03-30 at 16:41 +0300, Eduardo Valentin wrote:
+> On Fri, Mar 30, 2012 at 06:13:20AM -0400, Len Brown wrote:
+> > From: Joe Perches <joe@perches.com>
+> > Use the current logging style.
+[]
+> We should get the struct dev in thermal_zone_device, I think it makes
+> more sense to use the dev_* helper functions.
+[]
+> The orig argument could probably be changed to a thermal zone device
+> and the we use it's id as orig for the message.
+> What do you think?
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index eecf344..c159e2f 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -228,7 +228,7 @@ M:	Len Brown <lenb@kernel.org>
- L:	linux-acpi@vger.kernel.org
- W:	http://www.lesswatts.org/projects/acpi/
- Q:	http://patchwork.kernel.org/project/linux-acpi/list/
--T:	git git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux
- S:	Supported
- F:	drivers/acpi/
- F:	drivers/pnp/pnpacpi/
--- 
-1.7.5.1
+dev_<level> should be used instead of pr_<level> when
+an appropriate struct device * is available.
+
+cheers, Joe
 
