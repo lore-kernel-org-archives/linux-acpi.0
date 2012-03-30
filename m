@@ -1,60 +1,94 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [GIT PULL] ACPI & Power Management patches for Linux-3.4-merge
-Date: Fri, 30 Mar 2012 15:54:23 -0400
-Message-ID: <4F760F6F.5060002@kernel.org>
-References: <4F759B4A.5010807@kernel.org> <CA+55aFxHpGhs72T6BNSaHJiZVRSKg8LTtWm7728RzP=+mrGTmQ@mail.gmail.com> <CA+55aFx8XT0biUUWfTRf1VJC_2dgcqV5Lr3AxQG0ze+B0gSC9A@mail.gmail.com>
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Subject: Re: [PATCH 1/2] RFC: Prepare PAD for native and	xen
+ platform
+Date: Fri, 30 Mar 2012 17:13:27 -0400
+Message-ID: <20120330211327.GA28722@phenom.dumpdata.com>
+References: <DE8DF0795D48FD4CA783C40EC82923350B2013@SHSMSX101.ccr.corp.intel.com>
+	<20120226173458.GB18098@phenom.dumpdata.com>
+	<DE8DF0795D48FD4CA783C40EC82923350B9496@SHSMSX101.ccr.corp.intel.com>
+	<DE8DF0795D48FD4CA783C40EC82923350BAC09@SHSMSX101.ccr.corp.intel.com>
+	<DE8DF0795D48FD4CA783C40EC8292335105EFA@SHSMSX101.ccr.corp.intel.com>
+	<20120326164835.GE10236@phenom.dumpdata.com>
+	<DE8DF0795D48FD4CA783C40EC829233510F52B@SHSMSX101.ccr.corp.intel.com>
+	<DE8DF0795D48FD4CA783C40EC829233510F5C5@SHSMSX101.ccr.corp.intel.com>
+	<20120329180842.GA14789@phenom.dumpdata.com>
+	<DE8DF0795D48FD4CA783C40EC8292335113E50@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CA+55aFx8XT0biUUWfTRf1VJC_2dgcqV5Lr3AxQG0ze+B0gSC9A@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, Robert Lee <rob.lee@linaro.org>, linux-acpi <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
+Return-path: <xen-devel-bounces@lists.xen.org>
+Content-Disposition: inline
+In-Reply-To: <DE8DF0795D48FD4CA783C40EC8292335113E50@SHSMSX101.ccr.corp.intel.com>
+List-Unsubscribe: <http://lists.xen.org/cgi-bin/mailman/options/xen-devel>,
+	<mailto:xen-devel-request@lists.xen.org?subject=unsubscribe>
+List-Post: <mailto:xen-devel@lists.xen.org>
+List-Help: <mailto:xen-devel-request@lists.xen.org?subject=help>
+List-Subscribe: <http://lists.xen.org/cgi-bin/mailman/listinfo/xen-devel>,
+	<mailto:xen-devel-request@lists.xen.org?subject=subscribe>
+Sender: xen-devel-bounces@lists.xen.org
+Errors-To: xen-devel-bounces@lists.xen.org
+To: "Liu, Jinsong" <jinsong.liu@intel.com>
+Cc: "Brown, Len" <len.brown@intel.com>, "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "keir.xen@gmail.com" <keir.xen@gmail.com>, Jan Beulich <jbeulich@suse.com>, "Li, Shaohua" <shaohua.li@intel.com>, "lenb@kernel.org" <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-I'll take curtain C:-)
+On Fri, Mar 30, 2012 at 07:05:13AM +0000, Liu, Jinsong wrote:
+> Konrad Rzeszutek Wilk wrote:
+> >>>> If it benefits other architectures (say ARM) then adding in hooks
+> >>>> there (in osl for example) makes sense - but I am not sure if ARM
+> >>>> has a form of _PUR code/calls it needs to do.
+> >>>> 
+> >>>> So with that in mind, neither of those options seems proper - as
+> >>>> all of them depend on changing something in drivers/acpi/*.
+> >>>> 
+> >>>> I've one or two suggestions of what could be done to still make
+> >>>> this work, but I need you to first see what happens if the native
+> >>>> acpi_pad runs under Xen with the latest upstream code (along with
+> >>>> three patches that are in a BZ I pointed you too).
+> >>> 
+> >>> Do you mean test the patch
+> >>> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blobdiff;f=arch/x86/xen/enlighten.c;h=b132ade26f778f2cfec7c2d5c7b6db48afe424d5;hp=4172af8ceeb363d06912af15bf89e8508752b794;hb=d4c6fa73fe984e504d52f3d6bba291fd76fe49f7;hpb=aab008db8063364dc3c8ccf4981c21124866b395
+> > 
+> > Right.
+> 
+> OK, I test by simulated method (I don't have platform w/ _PUR), executed __monitor at dom0 kernel.
+> In the test, it in fact no need to use platform w/ _PUR since it only care mwait, and __monitor would generated UD no matter xen hypervisor exposing mwait or not (break cpuid law or CPL law).
+> 
+> As expected, UD not handled by hypervisor, then bounce back to the created bounce frame of dom0, then
+> 
+> [   82.282152] invalid opcode: 0000 [#1] SMP ^M
+> [   82.282170] CPU 0 ^M
+> [   82.282175] Modules linked in: monitor(O+) xen_gntdev [last unloaded: scsi_wait_scan]^M
+> [   82.282196] ^M
+> [   82.282203] Pid: 5315, comm: insmod Tainted: G           O 3.3.0-rc3+ #22 Intel Corporation S2600CP/S2600CP^M
+> [   82.282222] RIP: e030:[<ffffffffa0005019>]  [<ffffffffa0005019>] init_module+0x19/0x20 [monitor]^M
+> [   82.282243] RSP: e02b:ffff8807a6357e68  EFLAGS: 00010246^M
+> [   82.282251] RAX: ffffffffa0005068 RBX: 0000000001ab4010 RCX: 0000000000000000^M
+> [   82.282261] RDX: 0000000000000000 RSI: 0000000000000000 RDI: ffffffffa0005000^M
+> [   82.282271] RBP: ffff8807a6357e68 R08: ffff8807bdee2c60 R09: ffff8807b9802700^M
+> [   82.282280] R10: ffffffff8111bd9c R11: 0000000000000000 R12: 0000000000000000^M
+> [   82.282289] R13: ffffffffa0005000 R14: 0000000000000000 R15: ffff8807a6357ee8^M
+> [   82.282307] FS:  00007fb88c33c700(0000) GS:ffff8807bdecd000(0000) knlGS:0000000000000000^M
+> [   82.282318] CS:  e033 DS: 0000 ES: 0000 CR0: 000000008005003b^M
+> [   82.282327] CR2: 00000035044d9380 CR3: 00000007a637d000 CR4: 0000000000042660^M
+> [   82.282370] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000^M
+> [   82.282389] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400^M
+> [   82.282394] Process insmod (pid: 5315, threadinfo ffff8807a6356000, task ffff8807b22aba80)^M
+> [   82.282399] Stack:^M
+> [   82.282402]  ffff8807a6357e98 ffffffff8100203d 0000000001ab4010 ffffffffa0005080^M
+> [   82.282411]  ffffffffa0007210 0000000000000000 ffff8807a6357f78 ffffffff8109f298^M
+> [   82.282420]  ffff8807b3815300 ffffc90013f29000 ffff880700000005 ffff880700000003^M
+> [   82.282429] Call Trace:^M
+> [   82.282440]  [<ffffffff8100203d>] do_one_initcall+0x3d/0x170^M
+> [   82.282450]  [<ffffffff8109f298>] sys_init_module+0x138/0x1720^M
+> [   82.282462]  [<ffffffff8174f039>] system_call_fastpath+0x16/0x1b^M
+> [   82.282466] Code: <0f> 01 c8 31 c0 c9 c3 55 48 c7 c7 58 50 00 a0 31 c0 48 89 e5 e8 44 ^M
+> [   82.282500] RIP  [<ffffffffa0005019>] init_module+0x19/0x20 [monitor]^M
+> [   82.282526]  RSP <ffff8807a6357e68>^M
 
-Will send you a fresh merge request in about an hour.
-Sorry for the trouble.
 
-thanks,
--Len
-
-
-On 03/30/2012 03:32 PM, Linus Torvalds wrote:
-
-> On Fri, Mar 30, 2012 at 12:16 PM, Linus Torvalds
-> <torvalds@linux-foundation.org> wrote:
->>
->> But there's been at least three merges that submaintainers did for me
->> this merge window where I looked at their merge and said "No, that's
->> wrong, and I would have done it better". Two of those were the nice
->> kind of "I left it unmerged, but here's my example merge if you want
->> to take it", so the wrong merges didn't ever show up in the tree. But
->> yours is now no longer even the top commit in your pile of fixes, so
->> now I apparently have to take that *known*incorrect* merge and fix it
->> up with an evil merge of my own.
+Eww. Thanks for testing it out!
 > 
-> Ugh. I'm undoing my merge rather than do that evil merge that fixes up yours.
-> 
-> So I have three choices:
-> 
->  (a) I can just re-do your merge, and lose the two commits you had on top of it
-> 
->  (b) I can create a new local branch with your pre-merged state, and
-> cherry-pick the two commits on top of that, and then merge that, and
-> then fake out the pull request.
-> 
->  (c) I can ask you to do that fix up (rebase those two commits on top
-> of the state before the broken merge), and then you can ask me to pull
-> again, without the merge - same as (b) really, but I don't have to
-> fake the pull request message when I create the merge.
-> 
-> I think I'll do (c), but then probably fall back on (a) if I don't
-> hear from you. (b) gets me the tree I want, but I don't like faking
-> pull requests - I've occasionally pulled less than requested (exactly
-> because I didn't like the top merge), but I try to avoid actually
-> adding modified commits on top.
-> 
->                   Linus
+> _______________________________________________
+> Xen-devel mailing list
+> Xen-devel@lists.xen.org
+> http://lists.xen.org/xen-devel
