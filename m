@@ -1,35 +1,45 @@
 From: Chen Gong <gong.chen@linux.intel.com>
-Subject: Re: [PATCH] ACPI, APEI: Add validation check before GHES error is
- recorded
-Date: Sat, 31 Mar 2012 13:45:10 +0800
-Message-ID: <4F7699E6.90003@linux.intel.com>
-References: <1333004952-12403-1-git-send-email-gong.chen@linux.intel.com>  <3908561D78D1C84285E8C5FCA982C28F15B73074@ORSMSX104.amr.corp.intel.com>  <4F766381.4040104@linux.intel.com> <1333164263.7269.7.camel@yhuang-dev>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Subject: [PATCH V2] ACPI, APEI: Add validation check before GHES error is recorded
+Date: Sat, 31 Mar 2012 13:54:05 +0800
+Message-ID: <1333173245-22348-1-git-send-email-gong.chen@linux.intel.com>
+References: <1333164263.7269.7.camel@yhuang-dev>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:20410 "EHLO mga09.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:64815 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752065Ab2CaFpN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 31 Mar 2012 01:45:13 -0400
+	id S1752065Ab2CaFxB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 31 Mar 2012 01:53:01 -0400
 In-Reply-To: <1333164263.7269.7.camel@yhuang-dev>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: tony.luck@intel.com, ying.huang@intel.com, lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, Chen Gong <gong.chen@linux.intel.com>
 
-=E4=BA=8E 2012/3/31 11:24, Huang Ying =E5=86=99=E9=81=93:
-> How to filter it is a coding style issue.  The filter can be in
-> ghes_do_proc() or apei_mce_report_mem_error().  Both are OK for me.
-> Personally, I prefer to filter it in apei_mce_report_mem_error().
-> Because it is a MCE trick/quirk instead of GHES trick/quirk.
-Maybe some day channel information can be filtered so I will add it in
+When GHES error record is logged into mcelog kernel buffer,
+a validation check for physical address is necessary, which prevents
+invalid physical address is happened in error record.
 
-apei_mce_report_mem_error
+v2->v1:
+  Only report error to mcelog kernel buffer when physical address is valid.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Chen Gong <gong.chen@linux.intel.com>
+---
+ arch/x86/kernel/cpu/mcheck/mce-apei.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/arch/x86/kernel/cpu/mcheck/mce-apei.c b/arch/x86/kernel/cpu/mcheck/mce-apei.c
+index 507ea58..cd8b166 100644
+--- a/arch/x86/kernel/cpu/mcheck/mce-apei.c
++++ b/arch/x86/kernel/cpu/mcheck/mce-apei.c
+@@ -42,7 +42,8 @@ void apei_mce_report_mem_error(int corrected, struct cper_sec_mem_err *mem_err)
+ 	struct mce m;
+ 
+ 	/* Only corrected MC is reported */
+-	if (!corrected)
++	if (!corrected || !(mem_err->validation_bits &
++				CPER_MEM_VALID_PHYSICAL_ADDRESS))
+ 		return;
+ 
+ 	mce_setup(&m);
+-- 
+1.7.10.rc2.27.g59012
+
