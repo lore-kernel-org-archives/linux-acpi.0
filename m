@@ -1,64 +1,47 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: Re: [PATCH] ACPI, psargs: Fix small mem leaks on error paths
-Date: Sat, 31 Mar 2012 08:56:43 +0800
-Message-ID: <1333155403.2939.0.camel@minggr>
-References: <alpine.LNX.2.00.1202050210060.30244@swampdragon.chaosbits.net>
-	 <4F755CAC.9070209@kernel.org>
+From: Chen Gong <gong.chen@linux.intel.com>
+Subject: Re: [PATCH] ACPI, APEI: Add validation check before GHES error is
+ recorded
+Date: Sat, 31 Mar 2012 09:53:05 +0800
+Message-ID: <4F766381.4040104@linux.intel.com>
+References: <1333004952-12403-1-git-send-email-gong.chen@linux.intel.com> <3908561D78D1C84285E8C5FCA982C28F15B73074@ORSMSX104.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:38469 "EHLO mga03.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:4980 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752932Ab2CaA4q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 30 Mar 2012 20:56:46 -0400
-In-Reply-To: <4F755CAC.9070209@kernel.org>
+	id S1751106Ab2CaBxH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 30 Mar 2012 21:53:07 -0400
+In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F15B73074@ORSMSX104.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Bob Moore <robert.moore@intel.com>, Jesper Juhl <jj@chaosbits.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-We have ported this patch into ACPICA tree.
+=E4=BA=8E 2012/3/30 1:07, Luck, Tony =E5=86=99=E9=81=93:
+> +	if (mem_err->validation_bits&  CPER_MEM_VALID_PHYSICAL_ADDRESS)
+> +		m.addr =3D mem_err->physical_addr;
+>
+> At the moment "addr" is the only useful value in this record ... so
+> if we find that we can't supply it because we don't know it - then th=
+e
+> record has no value, and we might as well not send it.
+>
+> E.g. start the function with:
+>
+> 	if (!(mem_err->validation_bits&  CPER_MEM_VALID_PHYSICAL_ADDRESS))
+> 		return;
+>
+> -Tony
+>
+But as Ying said before, in theory we need to support this scenario,=20
+otherwise, I prefer to
+add check condition out of this function, not here.
 
-On Fri, 2012-03-30 at 03:11 -0400, Len Brown wrote:
-> Bob?
-> 
-> On 02/04/2012 08:12 PM, Jesper Juhl wrote:
-> 
-> > As far as I can see, there are two small mem leaks in error paths of
-> > 'acpi_ps_get_next_field()' where we neglect to free the memory
-> > previously allocated to 'field'.
-> > 
-> > I believe this patch should fix the leaks.
-> > 
-> > Signed-off-by: Jesper Juhl <jj@chaosbits.net>
-> > ---
-> >  drivers/acpi/acpica/psargs.c |    2 ++
-> >  1 files changed, 2 insertions(+), 0 deletions(-)
-> > 
-> >  Note: Compile tested only.
-> > 
-> > diff --git a/drivers/acpi/acpica/psargs.c b/drivers/acpi/acpica/psargs.c
-> > index 5ac36ab..a683d66 100644
-> > --- a/drivers/acpi/acpica/psargs.c
-> > +++ b/drivers/acpi/acpica/psargs.c
-> > @@ -618,6 +618,7 @@ static union acpi_parse_object *acpi_ps_get_next_field(struct acpi_parse_state
-> >  
-> >  				arg = acpi_ps_alloc_op(AML_INT_BYTELIST_OP);
-> >  				if (!arg) {
-> > +					acpi_ps_free_op(field);
-> >  					return_PTR(NULL);
-> >  				}
-> >  
-> > @@ -662,6 +663,7 @@ static union acpi_parse_object *acpi_ps_get_next_field(struct acpi_parse_state
-> >  		} else {
-> >  			arg = acpi_ps_alloc_op(AML_INT_NAMEPATH_OP);
-> >  			if (!arg) {
-> > +				acpi_ps_free_op(field);
-> >  				return_PTR(NULL);
-> >  			}
-> >  
-> 
-> 
-
-
+What's your opinion, Ying?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
