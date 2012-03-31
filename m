@@ -1,108 +1,83 @@
 From: Aaron Lu <aaron.lu@amd.com>
-Subject: Re: [PATCH v3 1/3] ACPI: Introduce ACPI D3_COLD state support
-Date: Sat, 31 Mar 2012 23:31:55 +0800
-Message-ID: <20120331153155.GA8169@localhost.amd.com>
-References: <1333001380-6050-1-git-send-email-ming.m.lin@intel.com>
- <1333001380-6050-2-git-send-email-ming.m.lin@intel.com>
+Subject: [PATCH] ACPI: evaluate _PS3 when entering D3 Cold
+Date: Sun, 1 Apr 2012 02:18:30 +0800
+Message-ID: <1333217910-29579-1-git-send-email-aaron.lu@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from tx2ehsobe005.messaging.microsoft.com ([65.55.88.15]:49733 "EHLO
-	tx2outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751274Ab2CaHcR (ORCPT
+Received: from ch1ehsobe004.messaging.microsoft.com ([216.32.181.184]:55658
+	"EHLO ch1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755935Ab2CaKTW (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 31 Mar 2012 03:32:17 -0400
-Content-Disposition: inline
-In-Reply-To: <1333001380-6050-2-git-send-email-ming.m.lin@intel.com>
+	Sat, 31 Mar 2012 06:19:22 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lin Ming <ming.m.lin@intel.com>
-Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Len Brown <lenb@kernel.org>, "Rafeal J. Wysocki" <rjw@sisk.pl>, Lin Ming <ming.m.lin@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Aaron Lu <aaron.lu@amd.com>, Andiry Xu <andiry.xu@amd.com>, Alex He <alex.he@amd.com>
 
-Hi,
+When entering D3 Cold from a higher device state, evaluate _PS3 first
+and then make the proper power transition.
+This is used to solve the ZPODD problem on AMD's platform, _PS3 on such
+platforms will power off the ODD device and thus make the device enter
+D3 cold state.
 
-On Thu, Mar 29, 2012 at 02:09:38PM +0800, Lin Ming wrote:
-> From: Zhang Rui <rui.zhang@intel.com>
-> 
-> If a device has _PR3, it means the device supports D3_COLD.
-> Add the ability to validate and enter D3_COLD state in ACPI.
+Signed-off-by: Aaron Lu <aaron.lu@amd.com>
+Cc: Andiry Xu <andiry.xu@amd.com>
+Cc: Alex He <alex.he@amd.com>
+---
+ drivers/acpi/bus.c |   17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
 
-Since we are going to support two D3 states, I think maybe we should
-clear their meanings in Linux. So D3 means D3 hot, right?
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 3263b68..68e593f 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -227,6 +227,8 @@ static int __acpi_bus_set_power(struct acpi_device *device, int state)
+ 	int result = 0;
+ 	acpi_status status = AE_OK;
+ 	char object_name[5] = { '_', 'P', 'S', '0' + state, '\0' };
++	struct acpi_device_power_state *ps;
++	u8 explicit_set;
+ 
+ 	if (!device || (state < ACPI_STATE_D0) || (state > ACPI_STATE_D3_COLD))
+ 		return -EINVAL;
+@@ -239,7 +241,8 @@ static int __acpi_bus_set_power(struct acpi_device *device, int state)
+ 		return 0;
+ 	}
+ 
+-	if (!device->power.states[state].flags.valid) {
++	ps = &device->power.states[state];
++	if (!ps->flags.valid) {
+ 		printk(KERN_WARNING PREFIX "Device does not support D%d\n", state);
+ 		return -ENODEV;
+ 	}
+@@ -263,7 +266,7 @@ static int __acpi_bus_set_power(struct acpi_device *device, int state)
+ 			if (result)
+ 				goto end;
+ 		}
+-		if (device->power.states[state].flags.explicit_set) {
++		if (ps->flags.explicit_set) {
+ 			status = acpi_evaluate_object(device->handle,
+ 						      object_name, NULL, NULL);
+ 			if (ACPI_FAILURE(status)) {
+@@ -272,7 +275,15 @@ static int __acpi_bus_set_power(struct acpi_device *device, int state)
+ 			}
+ 		}
+ 	} else {
+-		if (device->power.states[state].flags.explicit_set) {
++		/* If state is D3 Cold, try to evaluate _PS3 first */
++		if (state == ACPI_STATE_D3_COLD) {
++			explicit_set = (ps - 1)->flags.explicit_set;
++			object_name[3] -= 1;
++		}
++		else {
++			explicit_set = ps->flags.explicit_set;
++		}
++		if (explicit_set) {
+ 			status = acpi_evaluate_object(device->handle,
+ 						      object_name, NULL, NULL);
+ 			if (ACPI_FAILURE(status)) {
+-- 
+1.7.9.2.315.g25a78.dirty
 
-If so, I think the following code has problems:
-
-static int acpi_bus_get_power_flags(struct acpi_device *device)
-{
-	... ...
-
-	/* Set defaults for D0 and D3 states (always valid) */
-	device->power.states[ACPI_STATE_D0].flags.valid = 1;
-	device->power.states[ACPI_STATE_D0].power = 100;
-	device->power.states[ACPI_STATE_D3].flags.valid = 1;
-	device->power.states[ACPI_STATE_D3].power = 0;
-}
-
-The problem is, D3's valid flag shouldn't be set and its power shouldn't
-be 0 since it's D3 hot. It feels like D3_COLD should be used instead.
-
-What do you think? Thanks.
-
--Aaron
-
-> 
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> Signed-off-by: Lin Ming <ming.m.lin@intel.com>
-> ---
->  drivers/acpi/power.c |    4 ++--
->  drivers/acpi/scan.c  |    7 +++++++
->  2 files changed, 9 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-> index 9ac2a9f..0d681fb 100644
-> --- a/drivers/acpi/power.c
-> +++ b/drivers/acpi/power.c
-> @@ -500,14 +500,14 @@ int acpi_power_transition(struct acpi_device *device, int state)
->  {
->  	int result;
->  
-> -	if (!device || (state < ACPI_STATE_D0) || (state > ACPI_STATE_D3))
-> +	if (!device || (state < ACPI_STATE_D0) || (state > ACPI_STATE_D3_COLD))
->  		return -EINVAL;
->  
->  	if (device->power.state == state)
->  		return 0;
->  
->  	if ((device->power.state < ACPI_STATE_D0)
-> -	    || (device->power.state > ACPI_STATE_D3))
-> +	    || (device->power.state > ACPI_STATE_D3_COLD))
->  		return -ENODEV;
->  
->  	/* TBD: Resources must be ordered. */
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 8ab80ba..571396c 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -885,6 +885,13 @@ static int acpi_bus_get_power_flags(struct acpi_device *device)
->  				acpi_bus_add_power_resource(ps->resources.handles[j]);
->  		}
->  
-> +		/* The exist of _PR3 indicates D3Cold support */
-> +		if (i == ACPI_STATE_D3) {
-> +			status = acpi_get_handle(device->handle, object_name, &handle);
-> +			if (ACPI_SUCCESS(status))
-> +				device->power.states[ACPI_STATE_D3_COLD].flags.valid = 1;
-> +		}
-> +
->  		/* Evaluate "_PSx" to see if we can do explicit sets */
->  		object_name[2] = 'S';
->  		status = acpi_get_handle(device->handle, object_name, &handle);
-> -- 
-> 1.7.2.5
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pm" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
 
