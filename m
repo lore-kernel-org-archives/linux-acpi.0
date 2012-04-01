@@ -1,39 +1,39 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v2 1/2] ACPI: Introduce ACPI D3_COLD state support
-Date: Sun, 1 Apr 2012 08:50:03 +0200
-Message-ID: <201204010850.03736.rjw@sisk.pl>
-References: <1332834624-29310-1-git-send-email-ming.m.lin@intel.com> <1332834624-29310-2-git-send-email-ming.m.lin@intel.com>
+Subject: Re: [linux-pm] [PATCH 46/76] ACPI: Introduce ACPI D3_COLD state support
+Date: Sun, 1 Apr 2012 08:53:33 +0200
+Message-ID: <201204010853.33667.rjw@sisk.pl>
+References: <1333102459-23750-1-git-send-email-lenb@kernel.org> <3ebc81b8937d2bc1d0d0064bed29434dfce490aa.1333101989.git.len.brown@intel.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-2"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:47540 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:47549 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750898Ab2DAGpo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 1 Apr 2012 02:45:44 -0400
-In-Reply-To: <1332834624-29310-2-git-send-email-ming.m.lin@intel.com>
+	id S1750903Ab2DAGtN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 1 Apr 2012 02:49:13 -0400
+In-Reply-To: <3ebc81b8937d2bc1d0d0064bed29434dfce490aa.1333101989.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lin Ming <ming.m.lin@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-pm@lists.linux-foundation.org, Len Brown <lenb@kernel.org>, Lin Ming <ming.m.lin@intel.com>
+Cc: linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, linux-kernel@vger.kernel.org, Linux PM mailing list <linux-pm@vger.kernel.org>
 
-On Tuesday, March 27, 2012, Lin Ming wrote:
+On Friday, March 30, 2012, Len Brown wrote:
 > From: Zhang Rui <rui.zhang@intel.com>
 > 
 > If a device has _PR3, it means the device supports D3_COLD.
 > Add the ability to validate and enter D3_COLD state in ACPI.
 
-This is not the way I understand D3_cold in ACPI.
+This patch is wrong, IMO.
 
 Namely, _PR3 lists power resources that are supposed to be "on"
 in D3, which means that in that state the device is not completely
-off, so this must be D3_hot and _not_ D3_cold.
+off, so this must be D3_hot and not D3_cold.
 
 So. _PR3 means D3_hot is supported.  D3_cold, on the other hand,
 is always supported, although it may not be accessible through any
 direct software action (for example, it may be necessary to power
-a bus to put devices on it into D3_cold).
+down a bus to put devices on it into D3_cold).
 
 Thanks,
 Rafael
@@ -41,6 +41,7 @@ Rafael
 
 > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 > Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+> Signed-off-by: Len Brown <len.brown@intel.com>
 > ---
 >  drivers/acpi/power.c |    4 ++--
 >  drivers/acpi/scan.c  |    7 +++++++
