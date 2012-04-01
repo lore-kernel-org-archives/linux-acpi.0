@@ -1,98 +1,81 @@
-From: Lin Ming <ming.m.lin@intel.com>
+From: Aaron Lu <aaron.lu@amd.com>
 Subject: Re: [PATCH] ACPI: evaluate _PS3 when entering D3 Cold
-Date: Sun, 01 Apr 2012 13:27:33 +0800
-Message-ID: <1333258053.2939.22.camel@minggr>
+Date: Sun, 1 Apr 2012 13:56:03 +0800
+Message-ID: <20120401055603.GA11505@localhost.amd.com>
 References: <1333217910-29579-1-git-send-email-aaron.lu@amd.com>
+ <1333258053.2939.22.camel@minggr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1333217910-29579-1-git-send-email-aaron.lu@amd.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Aaron Lu <aaron.lu@amd.com>
-Cc: Len Brown <lenb@kernel.org>, "Rafeal J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Andiry Xu <andiry.xu@amd.com>, Alex He <alex.he@amd.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ch1ehsobe003.messaging.microsoft.com ([216.32.181.183]:29678
+	"EHLO ch1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751475Ab2DAF4m convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 1 Apr 2012 01:56:42 -0400
+Content-Disposition: inline
+In-Reply-To: <1333258053.2939.22.camel@minggr>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lin Ming <ming.m.lin@intel.com>
+Cc: Len Brown <lenb@kernel.org>, "Rafeal J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Andiry Xu <andiry.xu@amd.com>, Alex He <alex.he@amd.com>
 
-On Sun, 2012-04-01 at 02:18 +0800, Aaron Lu wrote:
-> When entering D3 Cold from a higher device state, evaluate _PS3 first
-> and then make the proper power transition.
-> This is used to solve the ZPODD problem on AMD's platform, _PS3 on such
-> platforms will power off the ODD device and thus make the device enter
-> D3 cold state.
-> 
-> Signed-off-by: Aaron Lu <aaron.lu@amd.com>
-> Cc: Andiry Xu <andiry.xu@amd.com>
-> Cc: Alex He <alex.he@amd.com>
-> ---
->  drivers/acpi/bus.c |   17 ++++++++++++++---
->  1 file changed, 14 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-> index 3263b68..68e593f 100644
-> --- a/drivers/acpi/bus.c
-> +++ b/drivers/acpi/bus.c
-> @@ -227,6 +227,8 @@ static int __acpi_bus_set_power(struct acpi_device *device, int state)
->  	int result = 0;
->  	acpi_status status = AE_OK;
->  	char object_name[5] = { '_', 'P', 'S', '0' + state, '\0' };
-> +	struct acpi_device_power_state *ps;
-> +	u8 explicit_set;
->  
->  	if (!device || (state < ACPI_STATE_D0) || (state > ACPI_STATE_D3_COLD))
->  		return -EINVAL;
-> @@ -239,7 +241,8 @@ static int __acpi_bus_set_power(struct acpi_device *device, int state)
->  		return 0;
->  	}
->  
-> -	if (!device->power.states[state].flags.valid) {
-> +	ps = &device->power.states[state];
-> +	if (!ps->flags.valid) {
->  		printk(KERN_WARNING PREFIX "Device does not support D%d\n", state);
->  		return -ENODEV;
->  	}
-> @@ -263,7 +266,7 @@ static int __acpi_bus_set_power(struct acpi_device *device, int state)
->  			if (result)
->  				goto end;
->  		}
-> -		if (device->power.states[state].flags.explicit_set) {
-> +		if (ps->flags.explicit_set) {
->  			status = acpi_evaluate_object(device->handle,
->  						      object_name, NULL, NULL);
->  			if (ACPI_FAILURE(status)) {
-> @@ -272,7 +275,15 @@ static int __acpi_bus_set_power(struct acpi_device *device, int state)
->  			}
->  		}
->  	} else {
-> -		if (device->power.states[state].flags.explicit_set) {
-> +		/* If state is D3 Cold, try to evaluate _PS3 first */
-> +		if (state == ACPI_STATE_D3_COLD) {
-> +			explicit_set = (ps - 1)->flags.explicit_set;
-> +			object_name[3] -= 1;
-> +		}
+Hi,
 
-I'm not sure whether this works or not.
+On Sun, Apr 01, 2012 at 01:27:33PM +0800, Lin Ming wrote:
+> > -		if (device->power.states[state].flags.explicit_set) {
+> > +		/* If state is D3 Cold, try to evaluate _PS3 first */
+> > +		if (state =3D=3D ACPI_STATE_D3_COLD) {
+> > +			explicit_set =3D (ps - 1)->flags.explicit_set;
+> > +			object_name[3] -=3D 1;
+> > +		}
+>=20
+> I'm not sure whether this works or not.
+>=20
+> From ACPI spec,
+>=20
+> _PS3 "is used to put the specific device into its D3hot or D3 state"
+>=20
+> D3 neither means D3hot nor D3cold. It's an old term before D3hot and
+> D3cold were introduced.
+I guess D3 has to mean something, right? :-)
 
->From ACPI spec,
+Here is the problem, there is no _PR3 in AMD's implementation, just _PS=
+3.
+And since _S0W evaluates 4, I've to put this device into D3 cold state
+with _PS3.
 
-_PS3 "is used to put the specific device into its D3hot or D3 state"
+And the ACPI does have some words like:
 
-D3 neither means D3hot nor D3cold. It's an old term before D3hot and
-D3cold were introduced.
+------
+Platform/drivers must assume that the device will have power completely
+removed when the device is place into =E2=80=9CD3=E2=80=9D via _PS3
+------
 
-Another problem:
+This is in section 7.2.11: _PR3.
 
-With your patch, both D3hot and D3cold will evaluate _PS3, right?
+>=20
+> Another problem:
+>=20
+> With your patch, both D3hot and D3cold will evaluate _PS3, right?
+>=20
+Yes.
 
-Will it have problem on AMD platform if you try to put ODD into D3hot
-state? _PS3 is evaluated, so it actually enters D3Cold state.
+> Will it have problem on AMD platform if you try to put ODD into D3hot
+> state? _PS3 is evaluated, so it actually enters D3Cold state.
 
-Thanks,
-Lin Ming
+There is no D3 hot support for this device(from the firmware's
+perspective), either it is at D0(via _PS0), or it will be at D3 cold(vi=
+a
+_PS3).
 
-> +		else {
-> +			explicit_set = ps->flags.explicit_set;
-> +		}
-> +		if (explicit_set) {
->  			status = acpi_evaluate_object(device->handle,
->  						      object_name, NULL, NULL);
->  			if (ACPI_FAILURE(status)) {
+
+Thanks for the review.
+
+-Aaron
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
