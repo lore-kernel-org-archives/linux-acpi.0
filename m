@@ -1,57 +1,59 @@
-From: =?ISO-8859-1?Q?J=F6rg_Otte?= <jrg.otte@googlemail.com>
-Subject: [V3.4-rc1] ACPI regression
-Date: Sun, 1 Apr 2012 12:37:15 +0200
-Message-ID: <CADDKRnAOzjpKWp_BMYROAGM4iYsNgSLk1vHn7UJ96WjvBiDR=g@mail.gmail.com>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Subject: Re: [PATCH 17/76] thermal_sys: convert printks to
+ pr_<level>
+Date: Sun, 1 Apr 2012 22:13:51 +0300
+Message-ID: <20120401191351.GA4010@besouro>
+References: <09f98a825a821f7a3f1b162f9ed023f37213a63b.1333101989.git.len.brown@intel.com>
+	<c5a01dd52dc4903772f464ea580895ccc36e911d.1333101989.git.len.brown@intel.com>
+	<20120330134119.GA13130@besouro>
+	<1333134530.27601.2.camel@joe2Laptop>
+Reply-To: eduardo.valentin@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:43879 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751332Ab2DAKhQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 1 Apr 2012 06:37:16 -0400
-Received: by iagz16 with SMTP id z16so2871196iag.19
-        for <linux-acpi@vger.kernel.org>; Sun, 01 Apr 2012 03:37:15 -0700 (PDT)
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+Content-Disposition: inline
+In-Reply-To: <1333134530.27601.2.camel@joe2Laptop>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Joe Perches <joe@perches.com>
+Cc: Len Brown <len.brown@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Jesper Juhl <jj@chaosbits.net>, linux-pm@lists.linux-foundation.org, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org
 
-Hi,
+Hello Joe,
 
-on my Notebook ( Thinkpad T43) I can not boot with V3.4-rc1.
+On Fri, Mar 30, 2012 at 12:08:50PM -0700, Joe Perches wrote:
+> On Fri, 2012-03-30 at 16:41 +0300, Eduardo Valentin wrote:
+> > On Fri, Mar 30, 2012 at 06:13:20AM -0400, Len Brown wrote:
+> > > From: Joe Perches <joe@perches.com>
+> > > Use the current logging style.
+> []
+> > We should get the struct dev in thermal_zone_device, I think it makes
+> > more sense to use the dev_* helper functions.
+> []
+> > The orig argument could probably be changed to a thermal zone device
+> > and the we use it's id as orig for the message.
+> > What do you think?
+> 
+> dev_<level> should be used instead of pr_<level> when
+> an appropriate struct device * is available.
 
-The kernel stops booting after displaying the following:
+Agreed that we need a struct device *. My comments are based on the fact
+that you have one of it inside the struct therma_zone_device, field device.
 
- ACPI: Core revision 20120320
- ACPI: setting ELCR to 0200 (from 0800)
- Performance Events: p6 PMU driver.
- ... version:                0
- ... bit width:              32
- ... generic registers:      2
- ... value mask:             00000000ffffffff
- ... max period:             000000007fffffff
- ... fixed-purpose events:   0
- ... event mask:             0000000000000003
- devtmpfs: initialized
- NET: Registered protocol family 16
- ACPI: bus type pci registered
- PCI: MMCONFIG for domain 0000 [bus 00-ff] at [mem
-0xe0000000-0xefffffff] (base 0xe0000000)
- PCI: MMCONFIG at [mem 0xe0000000-0xefffffff] reserved in E820
- PCI: Using MMCONFIG for extended config space
- PCI: Using configuration type 1 for base access
- bio: create slab <bio-0> at 0
- ACPI: Added _OSI(Module Device)
- ACPI: Added _OSI(Processor Device)
- ACPI: Added _OSI(3.0 _SCP Extensions)
- ACPI: Added _OSI(Processor Aggregator Device)
- ACPI: EC: EC description table is found, configuring boot EC
+Isn't that struct device appropriated enough to be used by the dev_* functions?
 
-Comparing this with the displays of kernel v3.3 the next expected
-outputs would be:
+> 
+> cheers, Joe
+> 
 
- ACPI: Interpreter enabled
- ACPI: (supports S0 S5)
+Cheers,
 
-Regards,
-Joerg Otte
+Eduardo
