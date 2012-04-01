@@ -1,35 +1,51 @@
-From: Aaron Lu <aaron.lu@amd.com>
-Subject: Re: [PATCH v3 7/7] [SCSI] sr: adds Zero-power ODD support
-Date: Sun, 1 Apr 2012 18:34:09 +0800
-Message-ID: <20120401103408.GA2815@localhost.amd.com>
-References: <CAOzJMDRajsjHwCC66XB6Mv-Deuy-wD4GiZbeuEqCQePSLw-Xxw@mail.gmail.com>
- <Pine.LNX.4.44L0.1203291050580.1417-100000@iolanthe.rowland.org>
- <20120330010730.GA27346@ladygaga>
- <4F76E054.8010301@computer.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-scsi-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4F76E054.8010301@computer.org>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Jan Ceuleers <jan.ceuleers@computer.org>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Lin Ming <ming.m.lin@intel.com>, Zhang Rui <rui.zhang@intel.com>, Jeff Garzik <jgarzik@pobox.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tejun Heo <tj@kernel.org>, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, linux-scsi@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi <linux-acpi@vger.kernel.org>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: [PATCH] cpuidle: Fix panic in CPU off-lining with no idle driver
+Date: Sat, 31 Mar 2012 21:37:02 -0600
+Message-ID: <1333251422-13479-1-git-send-email-toshi.kani@hp.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g6t0184.atlanta.hp.com ([15.193.32.61]:33249 "EHLO
+	g6t0184.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754388Ab2DADi3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 31 Mar 2012 23:38:29 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: len.brown@intel.com
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>, Boris Ostrovsky <boris.ostrovsky@amd.com>
 
-On Sat, Mar 31, 2012 at 12:45:40PM +0200, Jan Ceuleers wrote:
-> 
-> What about slot-loading optical drives, where the user does not
-> first have to press a button to open the tray (due to a lack of
-> tray)?
+Fix a NULL pointer dereference panic in cpuidle_play_dead() during
+CPU off-lining when no cpuidle driver is registered.  A cpuidle
+driver may be registered at boot-time based on CPU type.  This patch
+allows an off-lined CPU to enter HLT-based idle in this condition.
 
-For slot type ODD, the insert of a disk will fire the gpe event by
-means of the sata slimline connector's device attention pin.
+Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+Cc: Boris Ostrovsky <boris.ostrovsky@amd.com>
+---
+ drivers/cpuidle/cpuidle.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
 
-That means, the insert of a disk into a slot type ODD and the
-press of the eject button of a tray type ODD has the same effect to
-trigger the resume process.
-
-Thanks,
-Aaron
-
+diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
+index 87411ce..2f0083a 100644
+--- a/drivers/cpuidle/cpuidle.c
++++ b/drivers/cpuidle/cpuidle.c
+@@ -74,7 +74,7 @@ static cpuidle_enter_t cpuidle_enter_ops;
+ /**
+  * cpuidle_play_dead - cpu off-lining
+  *
+- * Only returns in case of an error
++ * Returns in case of an error or no driver
+  */
+ int cpuidle_play_dead(void)
+ {
+@@ -83,6 +83,9 @@ int cpuidle_play_dead(void)
+ 	int i, dead_state = -1;
+ 	int power_usage = -1;
+ 
++	if (!drv)
++		return -ENODEV;
++
+ 	/* Find lowest-power state that supports long-term idle */
+ 	for (i = CPUIDLE_DRIVER_STATE_START; i < drv->state_count; i++) {
+ 		struct cpuidle_state *s = &drv->states[i];
+-- 
+1.7.7.6
 
