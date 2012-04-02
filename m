@@ -1,29 +1,64 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [PATCH V2] ACPI, APEI: Add validation check before GHES error
- is recorded
-Date: Mon, 2 Apr 2012 15:47:58 +0000
-Message-ID: <3908561D78D1C84285E8C5FCA982C28F15B8ADDA@fmsmsx152.amr.corp.intel.com>
-References: <1333164263.7269.7.camel@yhuang-dev>
- <1333173245-22348-1-git-send-email-gong.chen@linux.intel.com>
+From: Tony Luck <tony.luck@gmail.com>
+Subject: Re: [PATCH 58/76] idle, x86: Allow off-lined CPU to enter deeper C states
+Date: Mon, 2 Apr 2012 09:13:46 -0700
+Message-ID: <CA+8MBbLROfbyfAGZ0xn1tZVHsndeTUNrn=-gHhsfzkocBLh=iQ@mail.gmail.com>
+References: <09f98a825a821f7a3f1b162f9ed023f37213a63b.1333101989.git.len.brown@intel.com>
+	<1333102459-23750-1-git-send-email-lenb@kernel.org>
+	<1a022e3f1be11730bd8747b1af96a0274bf6356e.1333101989.git.len.brown@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:20968 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751628Ab2DBPsQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 2 Apr 2012 11:48:16 -0400
-In-Reply-To: <1333173245-22348-1-git-send-email-gong.chen@linux.intel.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1a022e3f1be11730bd8747b1af96a0274bf6356e.1333101989.git.len.brown@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, Boris Ostrovsky <boris.ostrovsky@amd.com>, Len Brown <len.brown@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Chen Gong <gong.chen@linux.intel.com>, "Huang, Ying" <ying.huang@intel.com>, "lenb@kernel.org" <lenb@kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-	/* Only corrected MC is reported */
--	if (!corrected)
-+	if (!corrected || !(mem_err->validation_bits &
-+				CPER_MEM_VALID_PHYSICAL_ADDRESS))
- 		return;
+On Fri, Mar 30, 2012 at 3:14 AM, Len Brown <lenb@kernel.org> wrote:
+> From: Boris Ostrovsky <boris.ostrovsky@amd.com>
 
-Acked-by: Tony Luck <tony.luck@intel.com>
+This bit breaks ia64 build:
+
+> +
+> +/**
+> + * acpi_idle_play_dead - enters an ACPI state for long-term idle (i.=
+e. off-lining)
+> + * @dev: the target CPU
+> + * @index: the index of suggested state
+> + */
+> +static int acpi_idle_play_dead(struct cpuidle_device *dev, int index=
+)
+> +{
+> + =A0 =A0 =A0 struct cpuidle_state_usage *state_usage =3D &dev->state=
+s_usage[index];
+> + =A0 =A0 =A0 struct acpi_processor_cx *cx =3D cpuidle_get_statedata(=
+state_usage);
+> +
+> + =A0 =A0 =A0 ACPI_FLUSH_CPU_CACHE();
+> +
+> + =A0 =A0 =A0 while (1) {
+> +
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (cx->entry_method =3D=3D ACPI_CSTATE=
+_HALT)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 halt();
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 else if (cx->entry_method =3D=3D ACPI_C=
+STATE_SYSTEMIO) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 inb(cx->address);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* See comment in acpi_=
+idle_do_entry() */
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 inl(acpi_gbl_FADT.xpm_t=
+imer_block.address);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 } else
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENODEV;
+> + =A0 =A0 =A0 }
+
+drivers/acpi/processor_idle.c: In function 'acpi_idle_play_dead':
+drivers/acpi/processor_idle.c:789: error: implicit declaration of
+function 'halt'
+
+So the initial compiler complaint is just about "halt()" - but those "i=
+nb()" and
+"inl()" parts don't look very ia64 compatible either.
+
+-Tony
