@@ -1,76 +1,51 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH] cpuidle: Fix panic in CPU off-lining with no idle driver
-Date: Tue, 03 Apr 2012 10:10:42 -0600
-Message-ID: <4F7B2102.3080006@hp.com>
-References: <1333251422-13479-1-git-send-email-toshi.kani@hp.com> <4F7B0451.1010304@linux.vnet.ibm.com>
+From: Boris Ostrovsky <boris.ostrovsky@amd.com>
+Subject: Re: [PATCH] Use safe_halt() rather than halt() in acpi_idle_play_deay()
+Date: Tue, 3 Apr 2012 12:52:19 -0400
+Message-ID: <4F7B2AC3.3060706@amd.com>
+References: <4f7b27487632dad07@agluck-desktop.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:7897 "EHLO
-	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754641Ab2DCQKo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Apr 2012 12:10:44 -0400
-In-Reply-To: <4F7B0451.1010304@linux.vnet.ibm.com>
+Received: from db3ehsobe005.messaging.microsoft.com ([213.199.154.143]:48113
+	"EHLO db3outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753846Ab2DCQwc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Apr 2012 12:52:32 -0400
+In-Reply-To: <4f7b27487632dad07@agluck-desktop.sc.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Cc: len.brown@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Boris Ostrovsky <boris.ostrovsky@amd.com>, lenb@kernel.org, Daniel Lezcano <daniel.lezcano@linaro.org>, amit.kucheria@linaro.org, linux-pm@vger.kernel.org
+To: Tony Luck <tony.luck@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, Len Brown <len.brown@intel.com>
 
-On 4/3/2012 8:08 AM, Srivatsa S. Bhat wrote:
-> On 04/01/2012 09:07 AM, Toshi Kani wrote:
+On 04/03/12 12:37, Luck, Tony: <tony.luck@intel.com wrote:
+> ACPI code is shared by arch/x86 and arch/ia64. ia64 doesn't provide a plain
+> "halt()" function.  Use safe_halt() instead.
 >
->> Fix a NULL pointer dereference panic in cpuidle_play_dead() during
->> CPU off-lining when no cpuidle driver is registered.  A cpuidle
->> driver may be registered at boot-time based on CPU type.  This patch
->> allows an off-lined CPU to enter HLT-based idle in this condition.
->>
->> Signed-off-by: Toshi Kani<toshi.kani@hp.com>
->> Cc: Boris Ostrovsky<boris.ostrovsky@amd.com>
->> ---
->>   drivers/cpuidle/cpuidle.c |    5 ++++-
->>   1 files changed, 4 insertions(+), 1 deletions(-)
->>
->> diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
->> index 87411ce..2f0083a 100644
->> --- a/drivers/cpuidle/cpuidle.c
->> +++ b/drivers/cpuidle/cpuidle.c
->> @@ -74,7 +74,7 @@ static cpuidle_enter_t cpuidle_enter_ops;
->>   /**
->>    * cpuidle_play_dead - cpu off-lining
->>    *
->> - * Only returns in case of an error
->> + * Returns in case of an error or no driver
->>    */
->>   int cpuidle_play_dead(void)
->>   {
->> @@ -83,6 +83,9 @@ int cpuidle_play_dead(void)
->>   	int i, dead_state = -1;
->>   	int power_usage = -1;
->>
->> +	if (!drv)
->> +		return -ENODEV;
->> +
->>   	/* Find lowest-power state that supports long-term idle */
->>   	for (i = CPUIDLE_DRIVER_STATE_START; i<  drv->state_count; i++) {
->>   		struct cpuidle_state *s =&drv->states[i];
+> Signed-off-by: Tony Luck<tony.luck@intel.com>
 >
+> ---
 >
-> Reviewed-by: Srivatsa S. Bhat<srivatsa.bhat@linux.vnet.ibm.com>
-> Tested-by: Srivatsa S. Bhat<srivatsa.bhat@linux.vnet.ibm.com>
->
->
-> [The machine I tested on did support mwait. So, to disable mwait and ensure
-> that no idle driver is registered, I applied my fix for "idle=" parameters
-> (https://lkml.org/lkml/2012/4/3/158) and then passed idle=halt in the kernel
-> command line. Then the machine crashed during CPU offline. Then I tried your
-> patch and it fixed the issue.]
+> E-mail discussion indicated this would be OK. Please check on x86
+> before applying.
 
-Great!  Thanks a lot Srivatsa for reviewing and testing!
--Toshi
+Tested-by: Boris Ostrovsky <boris.ostrovsky@amd.com>
 
-> Regards,
-> Srivatsa S. Bhat
-> IBM Linux Technology Center
+-boris
+
 >
+> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+> index b3447f6..f3decb3 100644
+> --- a/drivers/acpi/processor_idle.c
+> +++ b/drivers/acpi/processor_idle.c
+> @@ -786,7 +786,7 @@ static int acpi_idle_play_dead(struct cpuidle_device *dev, int index)
+>   	while (1) {
+>
+>   		if (cx->entry_method == ACPI_CSTATE_HALT)
+> -			halt();
+> +			safe_halt();
+>   		else if (cx->entry_method == ACPI_CSTATE_SYSTEMIO) {
+>   			inb(cx->address);
+>   			/* See comment in acpi_idle_do_entry() */
+>
+
 
