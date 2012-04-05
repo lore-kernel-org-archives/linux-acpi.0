@@ -1,171 +1,314 @@
-From: huang ying <huang.ying.caritas@gmail.com>
-Subject: Re: [PATCH] ACPI: evaluate _PS3 when entering D3 Cold
-Date: Thu, 5 Apr 2012 11:20:26 +0800
-Message-ID: <CAC=cRTOA2YGvBUxNrx0aDAT0ivUaRKFjL0RLrRr8+Kz18CfTmA@mail.gmail.com>
-References: <1333217910-29579-1-git-send-email-aaron.lu@amd.com>
-	<201204010923.18330.rjw@sisk.pl>
-	<1333266346.2387.110.camel@rui.sh.intel.com>
-	<201204011049.08609.rjw@sisk.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Amit Daniel Kachhap <amit.kachhap@linaro.org>
+Subject: Re: [PATCH] ACPI-Thermal: Make Thermal trip points writeable
+Date: Thu,  5 Apr 2012 11:22:03 +0530
+Message-ID: <1333605123-29172-1-git-send-email-amit.kachhap@linaro.org>
+References: <1327681692-19299-1-git-send-email-durgadoss.r@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:60012 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752949Ab2DEDU1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Apr 2012 23:20:27 -0400
-In-Reply-To: <201204011049.08609.rjw@sisk.pl>
+Received: from mail-pz0-f52.google.com ([209.85.210.52]:33756 "EHLO
+	mail-pz0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750882Ab2DEFwh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Apr 2012 01:52:37 -0400
+Received: by dake40 with SMTP id e40so1171721dak.11
+        for <linux-acpi@vger.kernel.org>; Wed, 04 Apr 2012 22:52:37 -0700 (PDT)
+In-Reply-To: <1327681692-19299-1-git-send-email-durgadoss.r@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Zhang Rui <rui.zhang@intel.com>, Lin Ming <ming.m.lin@intel.com>, Aaron Lu <aaron.lu@amd.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Andiry Xu <andiry.xu@amd.com>, Alex He <alex.he@amd.com>, Huang Ying <ying.huang@intel.com>
+To: durgadoss.r@intel.com
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, rui.zhang@intel.com, amit.kachhap@linaro.org, linaro-dev@lists.linaro.org
 
-Hi, Rafael,
+Hi Durgadoss,
 
-On Sun, Apr 1, 2012 at 4:49 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Sunday, April 01, 2012, Zhang Rui wrote:
->> On =E6=97=A5, 2012-04-01 at 09:23 +0200, Rafael J. Wysocki wrote:
->> > Hi,
->> >
->> > Sorry for the delayed response, I've been travelling recently.
->> >
->> > On Sunday, April 01, 2012, Lin Ming wrote:
->> > > On Sun, 2012-04-01 at 13:56 +0800, Aaron Lu wrote:
->> > > > Hi,
->> > > >
->> > > > On Sun, Apr 01, 2012 at 01:27:33PM +0800, Lin Ming wrote:
->> > > > > > - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (device->power.sta=
-tes[state].flags.explicit_set) {
->> > > > > > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* If state is D3 Col=
-d, try to evaluate _PS3 first */
->> > > > > > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (state =3D=3D ACPI=
-_STATE_D3_COLD) {
->> > > > > > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
-=C2=A0 explicit_set =3D (ps - 1)->flags.explicit_set;
->> > > > > > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
-=C2=A0 object_name[3] -=3D 1;
->> > > > > > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 }
->> > > > >
->> > > > > I'm not sure whether this works or not.
->> > > > >
->> > > > > From ACPI spec,
->> > > > >
->> > > > > _PS3 "is used to put the specific device into its D3hot or D=
-3 state"
->> > > > >
->> > > > > D3 neither means D3hot nor D3cold. It's an old term before D=
-3hot and
->> > > > > D3cold were introduced.
->> > > > I guess D3 has to mean something, right? :-)
->> >
->> > Well, not necessarily.
->> >
->> > The problem is what state the _PS3 method puts the device into: D3=
-_hot or
->> > D3_cold.
->> >
->> > Unfortunately, as far as I can say, ACPI 4.0 didn't specify any "o=
-fficial"
->> > mapping between the "old" D3 and the "new" D3_{hod|cold} states, s=
-o we need to
->> > figure out something. =C2=A0In my opinion, the only reasonable app=
-roach is to
->> > assume that the state _PS3 puts the device into is always D3_cold,=
- becuase
->> > _PS3 may remove power completely from the device. =C2=A0It may not=
- do that, but
->> > we _must_ assume it does that in general.
->> >
->> There is a problem that I can think of.
->> Say currently, ACPI always returns D3 when _PS3 exists.
+Instead of making all the trip-points of a thermal zone writeable we should
+only allow non-critical trip points to be writeable.
+
+Thanks,
+Amit Daniel
+
+> -----Original Message-----
+> From: Durgadoss R <durgadoss.r@intel.com>
+> Sent: Friday, January 27, 2012 9:58 PM
+> To: linux-acpi@vger.kernel.org
+> Cc: lenb@kernel.org; rui.zhang@intel.com; durgadoss.r@intel.com
+> Subject: [PATCH] ACPI-Thermal: Make Thermal trip points writeable
+
+>Some of the thermal drivers using the Generic Thermal Framework
+>require (all/some) trip points to be writeable. This patch makes
+>the trip point temperatures writeable on a per-trip point basis,
+>and modifies the required function call in thermal.c. This patch
+>also updates the Documentation to reflect the new change.
 >
-> I'm not sure what you mean exactly, but please see below.
+>Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
+>---
+>v1
+>* patch1/2: Code for making trip points writeable
+>* patch2/2: Change the callee in thermal.c
+>v2
+>* Make both the changes in a single patch
+>* Update Documentation/thermal/sysfs-api.txt
+>---
+> Documentation/thermal/sysfs-api.txt |    4 +-
+> drivers/acpi/thermal.c              |    4 +-
+> drivers/thermal/thermal_sys.c       |  127 ++++++++++++++++++++++-------------
+> include/linux/thermal.h             |   10 ++-
+> 4 files changed, 91 insertions(+), 54 deletions(-)
 >
->> And this "ACPI_STATE_D3" is translated to PCI_D3hot.
->> But with this approach, we're going to put these devices to PCI_D3co=
-ld
->> instead, right?
->> I'm not against this approach, but this may affect a lot of PCI devi=
-ces,
->> which we need to take care of, no?
+>diff --git a/Documentation/thermal/sysfs-api.txt b/Documentation/thermal/sysfs-api.txt
+>index b61e46f..cd1476c 100644
+>--- a/Documentation/thermal/sysfs-api.txt
+>+++ b/Documentation/thermal/sysfs-api.txt
+>@@ -32,7 +32,8 @@ temperature) and throttle appropriate devices.
+> 
+> 1.1 thermal zone device interface
+> 1.1.1 struct thermal_zone_device *thermal_zone_device_register(char *name,
+>-		int trips, void *devdata, struct thermal_zone_device_ops *ops)
+>+		int trips, int flag, void *devdata,
+>+		struct thermal_zone_device_ops *ops)
+> 
+>     This interface function adds a new thermal zone device (sensor) to
+>     /sys/class/thermal folder as thermal_zone[0-*]. It tries to bind all the
+>@@ -40,6 +41,7 @@ temperature) and throttle appropriate devices.
+> 
+>     name: the thermal zone name.
+>     trips: the total number of trip points this thermal zone supports.
+>+    flag: Bit string: If 'n'th bit is set, then trip point 'n' is writeable.
+>     devdata: device private data
+>     ops: thermal zone device call-backs.
+> 	.bind: bind the thermal zone device with a thermal cooling device.
+>diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+>index 48fbc64..1c3133e 100644
+>--- a/drivers/acpi/thermal.c
+>+++ b/drivers/acpi/thermal.c
+>@@ -845,7 +845,7 @@ static int acpi_thermal_register_thermal_zone(struct acpi_thermal *tz)
+> 
+> 	if (tz->trips.passive.flags.valid)
+> 		tz->thermal_zone =
+>-			thermal_zone_device_register("acpitz", trips, tz,
+>+			thermal_zone_device_register("acpitz", trips, 0, tz,
+> 						     &acpi_thermal_zone_ops,
+> 						     tz->trips.passive.tc1,
+> 						     tz->trips.passive.tc2,
+>@@ -853,7 +853,7 @@ static int acpi_thermal_register_thermal_zone(struct acpi_thermal *tz)
+> 						     tz->polling_frequency*100);
+> 	else
+> 		tz->thermal_zone =
+>-			thermal_zone_device_register("acpitz", trips, tz,
+>+			thermal_zone_device_register("acpitz", trips, 0, tz,
+> 						     &acpi_thermal_zone_ops,
+> 						     0, 0, 0,
+> 						     tz->polling_frequency*100);
+>diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
+>index dd9a574..3a4341e 100644
+>--- a/drivers/thermal/thermal_sys.c
+>+++ b/drivers/thermal/thermal_sys.c
+>@@ -220,6 +220,28 @@ trip_point_temp_show(struct device *dev, struct device_attribute *attr,
+> }
+> 
+> static ssize_t
+>+trip_point_temp_store(struct device *dev, struct device_attribute *attr,
+>+		     const char *buf, size_t count)
+>+{
+>+	struct thermal_zone_device *tz = to_thermal_zone(dev);
+>+	int trip, ret;
+>+	unsigned long temperature;
+>+
+>+	if (!tz->ops->set_trip_temp)
+>+		return -EPERM;
+>+
+>+	if (!sscanf(attr->attr.name, "trip_point_%d_temp", &trip))
+>+		return -EINVAL;
+>+
+>+	if (kstrtoul(buf, 10, &temperature))
+>+		return -EINVAL;
+>+
+>+	ret = tz->ops->set_trip_temp(tz, trip, temperature);
+>+
+>+	return ret ? ret : count;
+>+}
+>+
+>+static ssize_t
+> passive_store(struct device *dev, struct device_attribute *attr,
+> 		    const char *buf, size_t count)
+> {
+>@@ -286,49 +308,6 @@ static DEVICE_ATTR(mode, 0644, mode_show, mode_store);
+> static DEVICE_ATTR(passive, S_IRUGO | S_IWUSR, passive_show, \
+> 		   passive_store);
+> 
+>-static struct device_attribute trip_point_attrs[] = {
+>-	__ATTR(trip_point_0_type, 0444, trip_point_type_show, NULL),
+>-	__ATTR(trip_point_0_temp, 0444, trip_point_temp_show, NULL),
+>-	__ATTR(trip_point_1_type, 0444, trip_point_type_show, NULL),
+>-	__ATTR(trip_point_1_temp, 0444, trip_point_temp_show, NULL),
+>-	__ATTR(trip_point_2_type, 0444, trip_point_type_show, NULL),
+>-	__ATTR(trip_point_2_temp, 0444, trip_point_temp_show, NULL),
+>-	__ATTR(trip_point_3_type, 0444, trip_point_type_show, NULL),
+>-	__ATTR(trip_point_3_temp, 0444, trip_point_temp_show, NULL),
+>-	__ATTR(trip_point_4_type, 0444, trip_point_type_show, NULL),
+>-	__ATTR(trip_point_4_temp, 0444, trip_point_temp_show, NULL),
+>-	__ATTR(trip_point_5_type, 0444, trip_point_type_show, NULL),
+>-	__ATTR(trip_point_5_temp, 0444, trip_point_temp_show, NULL),
+>-	__ATTR(trip_point_6_type, 0444, trip_point_type_show, NULL),
+>-	__ATTR(trip_point_6_temp, 0444, trip_point_temp_show, NULL),
+>-	__ATTR(trip_point_7_type, 0444, trip_point_type_show, NULL),
+>-	__ATTR(trip_point_7_temp, 0444, trip_point_temp_show, NULL),
+>-	__ATTR(trip_point_8_type, 0444, trip_point_type_show, NULL),
+>-	__ATTR(trip_point_8_temp, 0444, trip_point_temp_show, NULL),
+>-	__ATTR(trip_point_9_type, 0444, trip_point_type_show, NULL),
+>-	__ATTR(trip_point_9_temp, 0444, trip_point_temp_show, NULL),
+>-	__ATTR(trip_point_10_type, 0444, trip_point_type_show, NULL),
+>-	__ATTR(trip_point_10_temp, 0444, trip_point_temp_show, NULL),
+>-	__ATTR(trip_point_11_type, 0444, trip_point_type_show, NULL),
+>-	__ATTR(trip_point_11_temp, 0444, trip_point_temp_show, NULL),
+>-};
+>-
+>-#define TRIP_POINT_ATTR_ADD(_dev, _index, result)     \
+>-do {    \
+>-	result = device_create_file(_dev,	\
+>-				&trip_point_attrs[_index * 2]);	\
+>-	if (result)	\
+>-		break;	\
+>-	result = device_create_file(_dev,	\
+>-			&trip_point_attrs[_index * 2 + 1]);	\
+>-} while (0)
+>-
+>-#define TRIP_POINT_ATTR_REMOVE(_dev, _index)	\
+>-do {	\
+>-	device_remove_file(_dev, &trip_point_attrs[_index * 2]);	\
+>-	device_remove_file(_dev, &trip_point_attrs[_index * 2 + 1]);	\
+>-} while (0)
+>-
+> /* sys I/F for cooling device */
+> #define to_cooling_device(_dev)	\
+> 	container_of(_dev, struct thermal_cooling_device, device)
+>@@ -1112,9 +1091,54 @@ void thermal_zone_device_update(struct thermal_zone_device *tz)
+> EXPORT_SYMBOL(thermal_zone_device_update);
+> 
+> /**
+>+ * create_trip_type_attr - creates a trip point type attribute
+>+ * @tz:		the thermal zone device
+>+ * @indx:	index into the trip_type_attrs array
+>+ */
+>+static int create_trip_type_attr(struct thermal_zone_device *tz, int indx)
+>+{
+>+	char attr_name[THERMAL_NAME_LENGTH];
+>+
+>+	snprintf(attr_name, THERMAL_NAME_LENGTH, "trip_point_%d_type", indx);
+>+
+>+	sysfs_attr_init(&tz->trip_type_attrs[indx].attr);
+>+	tz->trip_type_attrs[indx].attr.name = attr_name;
+>+	tz->trip_type_attrs[indx].attr.mode = S_IRUGO;
+>+	tz->trip_type_attrs[indx].show = trip_point_type_show;
+>+
+>+	return device_create_file(&tz->device, &tz->trip_type_attrs[indx]);
+>+}
+>+
+>+/**
+>+ * create_trip_temp_attr - creates a trip point temp attribute
+>+ * @tz:		the thermal zone device
+>+ * @indx:	index into the trip_type_attrs array
+>+ * @writeable:	A flag: If 1, 'this' trip point is writeable; otherwise not
+>+ */
+>+static int create_trip_temp_attr(struct thermal_zone_device *tz,
+>+				int indx, int writeable)
+>+{
+>+	char attr_name[THERMAL_NAME_LENGTH];
+>+
+>+	snprintf(attr_name, THERMAL_NAME_LENGTH, "trip_point_%d_temp", indx);
+>+
+>+	sysfs_attr_init(&tz->trip_temp_attrs[indx].attr);
+>+	tz->trip_temp_attrs[indx].attr.name = attr_name;
+>+	tz->trip_temp_attrs[indx].attr.mode = S_IRUGO;
+>+	tz->trip_temp_attrs[indx].show = trip_point_temp_show;
+>+	if (writeable) {
+>+		tz->trip_temp_attrs[indx].attr.mode |= S_IWUSR;
+>+		tz->trip_temp_attrs[indx].store = trip_point_temp_store;
+>+	}
+>+
+>+	return device_create_file(&tz->device, &tz->trip_temp_attrs[indx]);
+>+}
+>+
+>+/**
+>  * thermal_zone_device_register - register a new thermal zone device
+>  * @type:	the thermal zone device type
+>  * @trips:	the number of trip points the thermal zone support
+>+ * @flag:	a bit string indicating the writeablility of trip points
+>  * @devdata:	private device data
+>  * @ops:	standard thermal zone device callbacks
+>  * @tc1:	thermal coefficient 1 for passive calculations
+>@@ -1130,7 +1154,7 @@ EXPORT_SYMBOL(thermal_zone_device_update);
+>  * section 11.1.5.1 of the ACPI specification 3.0.
+>  */
+> struct thermal_zone_device *thermal_zone_device_register(char *type,
+>-	int trips, void *devdata,
+>+	int trips, int flag, void *devdata,
+> 	const struct thermal_zone_device_ops *ops,
+> 	int tc1, int tc2, int passive_delay, int polling_delay)
+> {
+>@@ -1199,9 +1223,15 @@ struct thermal_zone_device *thermal_zone_device_register(char *type,
+> 	}
+> 
+> 	for (count = 0; count < trips; count++) {
+>-		TRIP_POINT_ATTR_ADD(&tz->device, count, result);
+>+		result = create_trip_type_attr(tz, count);
+> 		if (result)
+> 			goto unregister;
+>+
+>+		result = create_trip_temp_attr(tz, count,
+>+						(flag & (1 << count)));
+>+		if (result)
+>+			goto unregister;
+>+
+> 		tz->ops->get_trip_type(tz, count, &trip_type);
+> 		if (trip_type == THERMAL_TRIP_PASSIVE)
+> 			passive = 1;
+>@@ -1279,9 +1309,10 @@ void thermal_zone_device_unregister(struct thermal_zone_device *tz)
+> 	if (tz->ops->get_mode)
+> 		device_remove_file(&tz->device, &dev_attr_mode);
+> 
+>-	for (count = 0; count < tz->trips; count++)
+>-		TRIP_POINT_ATTR_REMOVE(&tz->device, count);
+>-
+>+	for (count = 0; count < tz->trips; count++) {
+>+		device_remove_file(&tz->device, &tz->trip_type_attrs[count]);
+>+		device_remove_file(&tz->device, &tz->trip_temp_attrs[count]);
+>+	}
+> 	thermal_remove_hwmon_sysfs(tz);
+> 	release_idr(&thermal_tz_idr, &thermal_idr_lock, tz->id);
+> 	idr_destroy(&tz->idr);
+>diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+>index 47b4a27..4aa5a45 100644
+>--- a/include/linux/thermal.h
+>+++ b/include/linux/thermal.h
+>@@ -58,6 +58,8 @@ struct thermal_zone_device_ops {
+> 		enum thermal_trip_type *);
+> 	int (*get_trip_temp) (struct thermal_zone_device *, int,
+> 			      unsigned long *);
+>+	int (*set_trip_temp) (struct thermal_zone_device *, int,
+>+			      unsigned long);
+> 	int (*get_crit_temp) (struct thermal_zone_device *, unsigned long *);
+> 	int (*notify) (struct thermal_zone_device *, int,
+> 		       enum thermal_trip_type);
+>@@ -89,6 +91,8 @@ struct thermal_zone_device {
+> 	int id;
+> 	char type[THERMAL_NAME_LENGTH];
+> 	struct device device;
+>+	struct device_attribute trip_temp_attrs[THERMAL_MAX_TRIPS];
+>+	struct device_attribute trip_type_attrs[THERMAL_MAX_TRIPS];
+> 	void *devdata;
+> 	int trips;
+> 	int tc1;
+>@@ -137,9 +141,9 @@ enum {
+> };
+> #define THERMAL_GENL_CMD_MAX (__THERMAL_GENL_CMD_MAX - 1)
+> 
+>-struct thermal_zone_device *thermal_zone_device_register(char *, int, void *,
+>-		const struct thermal_zone_device_ops *, int tc1, int tc2,
+>-		int passive_freq, int polling_freq);
+>+struct thermal_zone_device *thermal_zone_device_register(char *, int, int,
+>+		void *, const struct thermal_zone_device_ops *, int tc1,
+>+		int tc2, int passive_freq, int polling_freq);
+> void thermal_zone_device_unregister(struct thermal_zone_device *);
+> 
+> int thermal_zone_bind_cooling_device(struct thermal_zone_device *, int,
+>-- 
+>1.7.1
 >
-> Do you mean acpi_pm_device_sleep_state() should be modified? =C2=A0It=
- doesn't
-> refer to whether or not _PS3 exists, as far as I can say.
->
-> In the acpi_pci_set_power_state() code path, on the other hand, there=
- are
-> two potentially problematic situations when PCI wants to put the devi=
-ce into
-> PCI_D3hot (which need not map 1:1 onto ACPI D3_hot), one of which is =
-when _PS3
-> is present, and the other is when neither _PS3, nor _PR3 is present.
->
-> If _PS3 is present, then _PR3 may or may not be present. =C2=A0In the=
- latter case
-> we can only execute _PS3 in the hope it does the right thing, but as =
-long
-> as we restore the device's configuration registers while resuming it =
-(which is
-> done by all of our PCI device resume callback routines as far as I ca=
-n say),
-> the only possible difference is the resume latency (which may be grea=
-ter if
-> power is removed from the device entirely).
-
-Another difference between D3Hot and D3Cold for PCI devices is config
-space availability.  That is, in D3Hot, you can access D3Hot, while in
-D3Cold you can not do that.  For example, PME poll logic need to be
-disabled if we put device into D3Cold.
-
->=C2=A0However, in that case we shouldn't
-> turn off the device's power resources after _PS3 has been executed (i=
-f we
-> turned them off, power would be removed from the device, which wouldn=
-'t be
-> what PCI wanted). =C2=A0So, to handle this particular case we need to=
- pass
-> ACPI_STATE_D3_HOT to acpi_bus_set_power(), meaning "avoid going into =
-D3_cold,
-> if possible".
->
-> In both _PS3 and _PR3 are present, we should evaluate _PS3 and then t=
-urn off
-> the power resources listed as "off" by _PR3 (and turn on the power re=
-soruces
-> listed by it as "on"), but we need to restore the configuration regis=
-ters of
-> the device while resuming it. =C2=A0I think this is handled correctly=
- without
-> modifications.
->
-> If neither _PS3 nor _PR3 is present, we shouldn't turn off the device=
-'s
-> power resources, because PCI doesn't want power to be removed from th=
-e device.
-
-=46or PCI device plugged into system via slot (not integrated into PCH
-or motherboard), there is no ACPI handle associate with it, so that
-there are neither _PS3 nor _PR3 presented.  But it is still possible
-to turn off the device power via the associated PCIe port, which has
-_PS3 and/or _PR3 presented.  I think that situation is reasonable too.
-
-> In summary, if PCI wants the device to be put into PCI_D3hot and _PS3=
- is
-> present, we should evaluate _PS3. =C2=A0However, we shouldn't turn th=
-e device's
-> power resources off unless _PR3 is present, in which case we can turn=
- off
-> the power resources listed by it as "off".
-
-How to turn the device's power resources off without _PR3?  It may be
-possible via PCIe port as I said above.  Do you mean that?  Or
-something else?
-
-Best Regards,
-Huang Ying
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
