@@ -1,77 +1,175 @@
-From: Greg Kroah-Hartman <greg@kroah.com>
-Subject: Re: [3.0.y, 3.2.y,
- 3.3.y] Re: [PATCH 04/76] ACPICA: Fix regression in FADT revision
- checks
-Date: Wed, 4 Apr 2012 11:58:56 -0700
-Message-ID: <20120404185856.GA2272@kroah.com>
-References: <09f98a825a821f7a3f1b162f9ed023f37213a63b.1333101989.git.len.brown@intel.com>
-	<1333102459-23750-1-git-send-email-lenb@kernel.org>
-	<3e80acd1af40fcd91a200b0416a7616b20c5d647.1333101989.git.len.brown@intel.com>
-	<CA+5PVA4EBdoxgSrYKYRnaO2qSXDP_rxeQEogD+6jkKPi8sQB-g@mail.gmail.com>
-	<20120403195804.GA19239@burratino>
-	<CA+5PVA58jN8S9efACB==o5Z9frEOxVN__wo9yYU6ErQcsKyj8w@mail.gmail.com>
+From: Lin Ming <ming.m.lin@intel.com>
+Subject: Re: [PATCH] ACPI: evaluate _PS3 when entering D3 Cold
+Date: Thu, 05 Apr 2012 10:31:20 +0800
+Message-ID: <1333593080.11327.22.camel@minggr>
+References: <1333217910-29579-1-git-send-email-aaron.lu@amd.com>
+	 <20120401055603.GA11505@localhost.amd.com>
+	 <1333261737.2939.84.camel@minggr>  <201204010923.18330.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-Content-Disposition: inline
-In-Reply-To: <CA+5PVA58jN8S9efACB==o5Z9frEOxVN__wo9yYU6ErQcsKyj8w@mail.gmail.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Josh Boyer <jwboyer@gmail.com>
-Cc: Len Brown <len.brown@intel.com>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, Jonathan Nieder <jrnieder@gmail.com>, linux-acpi@vger.kernel.org, Julian Anastasov <ja@ssi.bg>, linux-pm@lists.linux-foundation.org, wzab@ise.pw.edu.pl
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:57217 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756637Ab2DECbY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 4 Apr 2012 22:31:24 -0400
+In-Reply-To: <201204010923.18330.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Aaron Lu <aaron.lu@amd.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Andiry Xu <andiry.xu@amd.com>, Alex He <alex.he@amd.com>
 
-On Tue, Apr 03, 2012 at 04:15:32PM -0400, Josh Boyer wrote:
-> On Tue, Apr 3, 2012 at 3:58 PM, Jonathan Nieder <jrnieder@gmail.com> wrot=
-e:
-> > Hi Greg,
-> >
-> > Josh Boyer wrote:
-> >> On Fri, Mar 30, 2012 at 6:13 AM, Len Brown <lenb@kernel.org> wrote:
-> >
-> >>> From: Julian Anastasov <ja@ssi.bg>
-> >>>
-> >>> =A0 =A0 =A0 =A0commit 64b3db22c04586997ab4be46dd5a5b99f8a2d390 (2.6.3=
-9),
-> >>> "Remove use of unreliable FADT revision field" causes regression
-> >>> for old P4 systems because now cst_control and other fields are
-> >>> not reset to 0.
-> > [...]
-> >>> =A0 =A0 =A0 =A0The fix is to update acpi_gbl_FADT.header.length after
-> >>> the original value is used to check for old revisions.
-> >>>
-> >>> https://bugzilla.kernel.org/show_bug.cgi?id=3D42700
-> >>> https://bugzilla.redhat.com/show_bug.cgi?id=3D727865
-> >>>
-> >>> Signed-off-by: Julian Anastasov <ja@ssi.bg>
-> >>> Acked-by: Bob Moore <robert.moore@intel.com>
-> >>> Signed-off-by: Len Brown <len.brown@intel.com>
-> >>
-> >> This one should go into the stable trees.
-> >
-> > Please apply
-> >
-> > =A03e80acd1af40 "ACPICA: Fix regression in FADT revision checks"
-> >
-> > which is in linus's master to the 3.0.y, 3.2.y, and 3.3.y series to
-> > fix this old boot problem. =A0(Many affected people disabled HT in the
-> > BIOS to work around it in the meantime.)
-> >
-> > WZab (cc-ed) has tested that the patch addresses the problem when
-> > applied to the 3.2.y and 3.3.y branches. =A0[1] has details.
-> =
+On Sun, 2012-04-01 at 09:23 +0200, Rafael J. Wysocki wrote:
+> Hi,
+>=20
+> Sorry for the delayed response, I've been travelling recently.
+>=20
+> On Sunday, April 01, 2012, Lin Ming wrote:
+> > On Sun, 2012-04-01 at 13:56 +0800, Aaron Lu wrote:
+> > > Hi,
+> > >=20
+> > > On Sun, Apr 01, 2012 at 01:27:33PM +0800, Lin Ming wrote:
+> > > > > -		if (device->power.states[state].flags.explicit_set) {
+> > > > > +		/* If state is D3 Cold, try to evaluate _PS3 first */
+> > > > > +		if (state =3D=3D ACPI_STATE_D3_COLD) {
+> > > > > +			explicit_set =3D (ps - 1)->flags.explicit_set;
+> > > > > +			object_name[3] -=3D 1;
+> > > > > +		}
+> > > >=20
+> > > > I'm not sure whether this works or not.
+> > > >=20
+> > > > From ACPI spec,
+> > > >=20
+> > > > _PS3 "is used to put the specific device into its D3hot or D3 s=
+tate"
+> > > >=20
+> > > > D3 neither means D3hot nor D3cold. It's an old term before D3ho=
+t and
+> > > > D3cold were introduced.
+> > > I guess D3 has to mean something, right? :-)
+>=20
+> Well, not necessarily.
+>=20
+> The problem is what state the _PS3 method puts the device into: D3_ho=
+t or
+> D3_cold.
+>=20
+> Unfortunately, as far as I can say, ACPI 4.0 didn't specify any "offi=
+cial"
+> mapping between the "old" D3 and the "new" D3_{hod|cold} states, so w=
+e need to
+> figure out something.  In my opinion, the only reasonable approach is=
+ to
+> assume that the state _PS3 puts the device into is always D3_cold, be=
+cuase
+> _PS3 may remove power completely from the device.  It may not do that=
+, but
+> we _must_ assume it does that in general.
+>=20
+> > > Here is the problem, there is no _PR3 in AMD's implementation, ju=
+st _PS3.
+> > > And since _S0W evaluates 4, I've to put this device into D3 cold =
+state
+> > > with _PS3.
+> > >=20
+> > > And the ACPI does have some words like:
+> > >=20
+> > > ------
+> > > Platform/drivers must assume that the device will have power comp=
+letely
+> > > removed when the device is place into =E2=80=9CD3=E2=80=9D via _P=
+S3
+>=20
+> Exactly.  What it means is basically "always reinitialize the device =
+from
+> scratch if you have run _PS3 on it".  And that's what we should do.
+>=20
+> > > ------
+> > >=20
+> > > This is in section 7.2.11: _PR3.
+> > >=20
+> > > >=20
+> > > > Another problem:
+> > > >=20
+> > > > With your patch, both D3hot and D3cold will evaluate _PS3, righ=
+t?
+> > > >=20
+> > > Yes.
+> > >=20
+> > > > Will it have problem on AMD platform if you try to put ODD into=
+ D3hot
+> > > > state? _PS3 is evaluated, so it actually enters D3Cold state.
+> > >=20
+> > > There is no D3 hot support for this device(from the firmware's
+> > > perspective), either it is at D0(via _PS0), or it will be at D3 c=
+old(via
+> > > _PS3).
+> >=20
+> > But this is the generic code. We can't only consider some special
+> > device.
+> >=20
+> > Maybe we need some flag to tell which D3 state _PS3 is used for.
+>=20
+> No, please.  As I said above, we need to reinitialize devices that _P=
+S3 was
+> executed on, which is equivalent to saying that those devices were pu=
+t into
+> D3_cold.
+>=20
+> The only situation where a device can be put into ACPI D3_hot (which =
+is not
+> the same as PCI D3_hot, mind you) is when:
+>=20
+> (1) There is _PR3 listing some of the device's power resources as "on=
+".
+> (2) The power resources listed by the _PR3 as "off" are turned off an=
+d the
+>     power resources listed by the _PR3 as "on" are left in the "on" s=
+tate.
 
-> We've had this applied in Fedora on 3.2 and 3.3 for a while now as
-> well.
+I don't understand item (2):
 
-Wonderful, now queued up, thanks for letting me know.
+If the power resource is listed as "off", which means it's already
+turned off. Then why should it be turned off again?
 
-greg k-h
+Let's see an example
+
+Assume a device "dev0" depends on 5 power resources:
+
+pr1, pr2, pr3, pr4, pr5
+
+_PR3 lists 3 power resources: pr3, pr4, pr5
+
+Device(dev0)
+{
+	Name(_PR3, Package (0x03)
+	{
+		pr3,
+		pr4,
+		pr5
+	})
+}
+
+If dev0 is put into ACPI D3_hot and pr1 and pr2 are not referenced by
+other devices, then it requires:
+
+- pr1 and pr2 are off
+- pr3, pr4 and pr5 are on
+
+right?
+
+Thanks,
+Lin Ming
+
+>=20
+> Our generic code should reflect that.
+>=20
+> Thanks,
+> Rafael
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
