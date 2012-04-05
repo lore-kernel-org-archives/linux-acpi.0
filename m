@@ -1,7 +1,7 @@
 From: Lin Ming <ming.m.lin@intel.com>
 Subject: Re: [PATCH] ACPI: evaluate _PS3 when entering D3 Cold
-Date: Thu, 05 Apr 2012 10:31:20 +0800
-Message-ID: <1333593080.11327.22.camel@minggr>
+Date: Thu, 05 Apr 2012 10:38:17 +0800
+Message-ID: <1333593497.11327.25.camel@minggr>
 References: <1333217910-29579-1-git-send-email-aaron.lu@amd.com>
 	 <20120401055603.GA11505@localhost.amd.com>
 	 <1333261737.2939.84.camel@minggr>  <201204010923.18330.rjw@sisk.pl>
@@ -9,10 +9,10 @@ Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:57217 "EHLO mga09.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:36832 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756637Ab2DECbY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 4 Apr 2012 22:31:24 -0400
+	id S1752238Ab2DECiU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 4 Apr 2012 22:38:20 -0400
 In-Reply-To: <201204010923.18330.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -127,36 +127,13 @@ d the
 >     power resources listed by the _PR3 as "on" are left in the "on" s=
 tate.
 
-I don't understand item (2):
+(1) and (2) seems conflict.
 
-If the power resource is listed as "off", which means it's already
-turned off. Then why should it be turned off again?
+(1) means all power resources listed in _PR3 are "on", but
+(2) means some power resources listed in _PR3 are "off" and others are
+"on"
 
-Let's see an example
-
-Assume a device "dev0" depends on 5 power resources:
-
-pr1, pr2, pr3, pr4, pr5
-
-_PR3 lists 3 power resources: pr3, pr4, pr5
-
-Device(dev0)
-{
-	Name(_PR3, Package (0x03)
-	{
-		pr3,
-		pr4,
-		pr5
-	})
-}
-
-If dev0 is put into ACPI D3_hot and pr1 and pr2 are not referenced by
-other devices, then it requires:
-
-- pr1 and pr2 are off
-- pr3, pr4 and pr5 are on
-
-right?
+Is my understanding correct?
 
 Thanks,
 Lin Ming
