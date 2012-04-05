@@ -1,124 +1,70 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: Re: [PATCH v3 7/7] [SCSI] sr: adds Zero-power ODD support
-Date: Thu, 5 Apr 2012 16:48:06 +0800
-Message-ID: <CAF1ivSYofajj+hr8zDGA=1c0J5mTjdqojjvyE5x1C3g1MkhgYA@mail.gmail.com>
-References: <1332915722-15963-8-git-send-email-ming.m.lin@intel.com>
-	<Pine.LNX.4.44L0.1203281023380.1599-100000@iolanthe.rowland.org>
-	<CAF1ivSahEvZ9+5gcNHiJGaJtwO94fT9XYEOkT2YH-Ej11==h+w@mail.gmail.com>
-	<CAOzJMDRajsjHwCC66XB6Mv-Deuy-wD4GiZbeuEqCQePSLw-Xxw@mail.gmail.com>
-	<CAF1ivSZ6cZ0G9uYSRsz=h0iTYarb1kx=k6_UOqCuBX+0OMOXSw@mail.gmail.com>
-	<20120405083245.GA19508@localhost.amd.com>
+From: "Liu, Jinsong" <jinsong.liu@intel.com>
+Subject: RE: [Xen-devel] [PATCH 1/2] RFC: Prepare PAD for native and	xen
+ platform
+Date: Thu, 5 Apr 2012 13:01:45 +0000
+Message-ID: <DE8DF0795D48FD4CA783C40EC82923351241B0@SHSMSX101.ccr.corp.intel.com>
+References: <DE8DF0795D48FD4CA783C40EC82923350AD088@SHSMSX101.ccr.corp.intel.com>
+ <4F46530B020000780007F751@nat28.tlf.novell.com>
+ <DE8DF0795D48FD4CA783C40EC82923350AD9BB@SHSMSX101.ccr.corp.intel.com>
+ <DE8DF0795D48FD4CA783C40EC82923350B2013@SHSMSX101.ccr.corp.intel.com>
+ <20120226173458.GB18098@phenom.dumpdata.com>
+ <DE8DF0795D48FD4CA783C40EC82923350B9496@SHSMSX101.ccr.corp.intel.com>
+ <DE8DF0795D48FD4CA783C40EC82923350BAC09@SHSMSX101.ccr.corp.intel.com>
+ <DE8DF0795D48FD4CA783C40EC8292335105EFA@SHSMSX101.ccr.corp.intel.com>
+ <20120326164835.GE10236@phenom.dumpdata.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:34974 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752758Ab2DEIsH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Apr 2012 04:48:07 -0400
-In-Reply-To: <20120405083245.GA19508@localhost.amd.com>
+Received: from mga14.intel.com ([143.182.124.37]:7646 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751840Ab2DENBt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Apr 2012 09:01:49 -0400
+In-Reply-To: <20120326164835.GE10236@phenom.dumpdata.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@amd.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Zhang Rui <rui.zhang@intel.com>, Jeff Garzik <jgarzik@pobox.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tejun Heo <tj@kernel.org>, linux-kernel@vger.kernel.org, linux-ide@vger.kernel.org, linux-scsi@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi <linux-acpi@vger.kernel.org>
+To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: "Brown, Len" <len.brown@intel.com>, "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "keir.xen@gmail.com" <keir.xen@gmail.com>, Jan Beulich <jbeulich@suse.com>, "Li, Shaohua" <shaohua.li@intel.com>, "lenb@kernel.org" <lenb@kernel.org>
 
-On Thu, Apr 5, 2012 at 4:32 PM, Aaron Lu <aaron.lu@amd.com> wrote:
-> Hi,
->
-> On Thu, Apr 05, 2012 at 02:00:57PM +0800, Lin Ming wrote:
->> >
->> > Another thing to consider is, user might want to eject the tray by
->> > software like the
->> > eject /dev/sr0 command or some UI mouse clicks against the cdrom i=
-con. I'm still
->> > thinking how to do this correctly.
->>
->> Assume eject /dev/sr0 is implemented as:
->>
->> int fd =3D open("/dev/sr0", ...)
->> ioctl(fd, CDROMEJECT)
->>
->
-> Indeed, it is implemented as this :-)
->
->> We may need to resume ODD in the ioctl handler(scsi_cmd_ioctl).
->>
->
-> I prefer we do this in sr_block_ioctl.
+Konrad Rzeszutek Wilk wrote:
+>>> Compare approaches:
+>>> 
+>>> 1. xen overwritten approach (patches V2, x86_init, osl approach)   
+>>>         Pros: a little simpler code
+>>>     Cons:
+>>>         1). specific to xen, cannot extend to other virt platform;
+>>>         2). need to change natvie acpi_pad as modular;
+>>> 
+>>> 2. paravirt interface approach (original patches V1)     Pros:
+>>>         1). standard hypervisor-agnostic interface (USENIX
+>>>         conference 2006), can easily hook to Xen/lguest/... on
+>>>         demand; 2). arch independent; 3). no need to change native
+>>>         acpi_pad as     non-modular; Cons: a little complicated
+>>> code, and code patching is some 
+>>> overkilled for this case (but no harm);
+>>> 
+>>> (BTW, in the future we need add more and more pv ops, like
+>>> pv_pm_ops, pv_cpu_hotplug_ops, pv_mem_hotplug_ops, etc. So how
+>>> about add a pv_misc_ops template to handle them all? seems it's a
+>>> common issue). 
+>>> 
+> 
+> I think (and you probabaly have a better idea) is that the maintainer
+> of drivers/acpi/* is not very open to adding in code that only
+> benefits Xen. 
+> 
+> If it benefits other architectures (say ARM) then adding in hooks
+> there (in osl for example) makes sense - but I am not sure if ARM has
+> a form 
+> of _PUR code/calls it needs to do.
+> 
+> So with that in mind, neither of those options seems proper - as all
+> of them depend on changing something in drivers/acpi/*.
+> 
+> I've one or two suggestions of what could be done to still make this
+> work, but I need you to first see what happens if the native acpi_pad
+> runs under Xen with the latest upstream code (along with three patches
+> that are in a BZ I pointed you too).
 
-That's better.
-
-> Suppose the ODD is now runtime suspended and received an ioctl:
-> if the ioctl's cmd is CDROMEJECT, resume it.
-> For other cases, return an error code like EPERM.
-> When done, according to the result of ioctl: if success, leave it res=
-umed;
-> if failed, put it back to sleep.
->
-> Something like this:
->
-> diff --git a/drivers/scsi/sr.c b/drivers/scsi/sr.c
-> index 5fc97d2..aa6e920 100644
-> --- a/drivers/scsi/sr.c
-> +++ b/drivers/scsi/sr.c
-> @@ -45,6 +45,7 @@
-> =A0#include <linux/blkdev.h>
-> =A0#include <linux/mutex.h>
-> =A0#include <linux/slab.h>
-> +#include <linux/pm_runtime.h>
-> =A0#include <asm/uaccess.h>
->
-> =A0#include <scsi/scsi.h>
-> @@ -538,10 +539,21 @@ static int sr_block_ioctl(struct block_device *=
-bdev, fmode_t mode, unsigned cmd,
-> =A0 =A0 =A0 =A0struct scsi_cd *cd =3D scsi_cd(bdev->bd_disk);
-> =A0 =A0 =A0 =A0struct scsi_device *sdev =3D cd->device;
-> =A0 =A0 =A0 =A0void __user *argp =3D (void __user *)arg;
-> - =A0 =A0 =A0 int ret;
-> + =A0 =A0 =A0 int ret, rpm_resumed =3D 0;
->
-> =A0 =A0 =A0 =A0mutex_lock(&sr_mutex);
->
-> + =A0 =A0 =A0 if (pm_runtime_suspended(&sdev->sdev_gendev)) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (cmd =3D=3D CDROMEJECT) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 scsi_autopm_get_device(=
-sdev);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 rpm_resumed =3D 1;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 else {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -EPERM;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto out;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
-> + =A0 =A0 =A0 }
-> +
-> =A0 =A0 =A0 =A0/*
-> =A0 =A0 =A0 =A0 * Send SCSI addressing ioctls directly to mid level, =
-send other
-> =A0 =A0 =A0 =A0 * ioctls to cdrom/block level.
-> @@ -570,6 +582,9 @@ static int sr_block_ioctl(struct block_device *bd=
-ev, fmode_t mode, unsigned cmd,
-> =A0 =A0 =A0 =A0ret =3D scsi_ioctl(sdev, cmd, argp);
->
-> =A0out:
-> + =A0 =A0 =A0 if (rpm_resumed && ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 scsi_autopm_put_device(sdev);
-> +
-> =A0 =A0 =A0 =A0mutex_unlock(&sr_mutex);
-> =A0 =A0 =A0 =A0return ret;
-> =A0}
->
-> Does this work?
-
-I think so.
-Will add this patch.
-
-Thanks,
-Lin Ming
-
->
-> -Aaron
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Konrad, any new idea? seems we hardly totally walk around acpi staff. Thanks, Jinsong
