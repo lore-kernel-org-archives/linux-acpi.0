@@ -1,57 +1,19 @@
-From: Seth Forshee <seth.forshee@canonical.com>
-Subject: Re: [PATCH] samsung-laptop: unregister ACPI video module for some
- well known laptops
-Date: Fri, 6 Apr 2012 09:34:55 -0500
-Message-ID: <20120406143455.GC8666@thinkpad-t410>
-References: <20120320163002.GB6811@srcf.ucam.org>
- <1332421699-5315-1-git-send-email-corentincj@iksaif.net>
- <CAHR064hc4AdFUeoO8Szg0FG6CwLK+xauGn9VMJntWV1Gik=ACQ@mail.gmail.com>
- <20120327112105.GA2845@srcf.ucam.org>
- <CAHR064hBVJjmEd=GeGuG-xTg5ONfJTxwqzP88=JABaXFrfiehA@mail.gmail.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] cpuidle: Fix panic in CPU off-lining with no idle driver
+Date: Fri, 06 Apr 2012 14:58:25 -0400
+Message-ID: <4F7F3CD1.9020800@kernel.org>
+References: <1333251422-13479-1-git-send-email-toshi.kani@hp.com> <4F7B0451.1010304@linux.vnet.ibm.com> <4F7B2102.3080006@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAHR064hBVJjmEd=GeGuG-xTg5ONfJTxwqzP88=JABaXFrfiehA@mail.gmail.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>, Corentin Chary <corentin.chary@gmail.com>
-Cc: platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <len.brown@intel.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4F7B2102.3080006@hp.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Boris Ostrovsky <boris.ostrovsky@amd.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, amit.kucheria@linaro.org, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Apr 06, 2012 at 11:42:18AM +0200, Corentin Chary wrote:
-> On Tue, Mar 27, 2012 at 1:21 PM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
-> > On Tue, Mar 27, 2012 at 11:11:18AM +0200, Corentin Chary wrote:
-> >> Matthew, is this one ok ? I really hope this patch can go in 3.4 so we
-> >> don't introduce a regression for old laptops.
-> >
-> > Yes, I've got this now.
-> >
-> > Thanks,
-> 
-> 
-> A user just found a DSDT which is broken by this way of doing things
-> (this is not really a regression since it was also broken before).
-> 
-> _BCL contains a wierd "Or (VDRV, 0x02, VDRV)".
-> So if you call _BLC once (video.ko will), it set a flag that affect
-> the behavior of all backlight related stuff, and it breaks
-> samsung-laptop's backlight even if samsung-laptop unload the acpi
-> backlight.
-> Using acpi_backlight=vendor solves that since it prevents the module
-> from being loaded. My previous patch also fix that since it use
-> acpi_backlight= mechanism.
-> 
-> Do you think using acpi_backlight=vendor is a good enought solution
-> here ? Should we use my first patch instead ?
+applied.
 
-I've recently noticed another problem with using acpi_video_unregister()
-to disable known broken backlights -- another module might call
-acpi_video_register() and make it reappear. i915 does this, so when I
-EFI boot the MacBook Pro 8,2 the acpi backlights reappear (under a BIOS
-compatible boot the Intel GPU doesn't show up on the bus).
-
-So Corentin's solution does seem like a better way to go, or else
-something similar that forces the ACPI video driver to behave as with
-acpi_video=vendor.
-
-Seth
+thanks,
+Len Brown, Intel Open Source Technology Center
