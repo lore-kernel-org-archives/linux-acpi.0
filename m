@@ -1,75 +1,201 @@
-From: Ang Way Chuang <wcang79@gmail.com>
-Subject: ACPI reports critical temperature even though the sensors data says
- otherwise
-Date: Sun, 08 Apr 2012 11:32:36 +0800
-Message-ID: <4F8106D4.7080507@gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] ACPI: evaluate _PS3 when entering D3 Cold
+Date: Mon, 9 Apr 2012 01:41:36 +0200
+Message-ID: <201204090141.36766.rjw@sisk.pl>
+References: <1333217910-29579-1-git-send-email-aaron.lu@amd.com> <201204011049.08609.rjw@sisk.pl> <CAC=cRTOA2YGvBUxNrx0aDAT0ivUaRKFjL0RLrRr8+Kz18CfTmA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pz0-f52.google.com ([209.85.210.52]:55852 "EHLO
-	mail-pz0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752736Ab2DHDcj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Apr 2012 23:32:39 -0400
-Received: by dake40 with SMTP id e40so4039624dak.11
-        for <linux-acpi@vger.kernel.org>; Sat, 07 Apr 2012 20:32:39 -0700 (PDT)
+Received: from ogre.sisk.pl ([217.79.144.158]:59158 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756148Ab2DHXhJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 8 Apr 2012 19:37:09 -0400
+In-Reply-To: <CAC=cRTOA2YGvBUxNrx0aDAT0ivUaRKFjL0RLrRr8+Kz18CfTmA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: huang ying <huang.ying.caritas@gmail.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, Lin Ming <ming.m.lin@intel.com>, Aaron Lu <aaron.lu@amd.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Andiry Xu <andiry.xu@amd.com>, Alex He <alex.he@amd.com>, Huang Ying <ying.huang@intel.com>
 
-Hi all,
-  I am not sure if this is the right mailing list to ask for help. I have a Dell Vostro 3350 that I have been using for almost one year, but the laptop got a big problem of auto-shutdown from time to time. The problem was ACPI reports critical temperature even though the output of sensors command says otherwise. I had tried Fedora 15, Fedora 16, CentOS 6.2, Ubuntu 11.10 and Ubuntu 12.04-beta2 and many version of kernels, but they all exhibited the same problem. Long story short, this problem occurs when bluetooth is enabled. If I use dual display + bluetooth, the auto-shutdown can be triggered within 5 minutes. If I enable bluetooth without using dual display, the auto-shutdown may take some time before it is triggered. I had enabled ACPI debug in the kernel, but the output is too verbose 
- and I don't understand ACPI well enough to know what's the cause of the problem. Therefore, I would like to ask for your help on this matter. The following is the syslog output from the kernel:
+On Thursday, April 05, 2012, huang ying wrote:
+> Hi, Rafael,
 
-Apr  7 02:12:26 wcang-laptop kernel: [  364.265571]      osl-1128 [430818512] [4294967291] os_wait_semaphore     : Waiting for semaphore[ffff88011b004300|1|65535]
-Apr  7 02:12:26 wcang-laptop kernel: [  364.265601]      osl-1147 [430818512] [4294967291] os_wait_semaphore     : Acquired semaphore[ffff88011b004300|1|65535] utmutex-0269 [430818512] [4294967291] ut_acquire_mutex      : Thread 430818512 acquired Mutex [ACPI_MTX_Interpreter]
-Apr  7 02:12:26 wcang-laptop kernel: [  364.265655]  exutils-0099 [430818512] [4294967291] ex_enter_interpreter  : ----Exit-
-Apr  7 02:12:26 wcang-laptop kernel: [  364.265680] utdelete-0678 [430818512] [4294967291] ut_remove_reference   : ----Entry ffff880030afa480
-Apr  7 02:12:26 wcang-laptop kernel: [  364.265706] utdelete-0698 [430818512] [4294967291] ut_remove_reference   : Obj ffff880030afa480 Current Refs=1 [To Be Decremented]
-Apr  7 02:12:26 wcang-laptop kernel: [  364.265737] utdelete-0486 [430818512] [4294967292] ut_update_object_refer: ----Entry ffff880030afa480
-Apr  7 02:12:26 wcang-laptop kernel: [  364.265764] utdelete-0412 [430818512] [4294967292] ut_update_ref_count   : Obj ffff880030afa480 Refs=0, [Decremented]
-Apr  7 02:12:26 wcang-laptop kernel: [  364.265795] utdelete-0080 [430818512] [4294967293] ut_delete_internal_obj: ----Entry ffff880030afa480
-Apr  7 02:12:26 wcang-laptop kernel: [  364.265821] utdelete-0320 [430818512] [4294967293] ut_delete_internal_obj: Deleting Object ffff880030afa480 [Integer]
-Apr  7 02:12:26 wcang-laptop kernel: [  364.265851] utobject-0420 [430818512] [4294967294] ut_delete_object_desc : ----Entry ffff880030afa480
-Apr  7 02:12:26 wcang-laptop kernel: [  364.265877] utobject-0432 [430818512] [4294967294] ut_delete_object_desc : ----Exit-
-Apr  7 02:12:26 wcang-laptop kernel: [  364.265901] utdelete-0323 [430818512] [4294967293] ut_delete_internal_obj: ----Exit-
-Apr  7 02:12:26 wcang-laptop kernel: [  364.265926] utdelete-0612 [430818512] [4294967292] ut_update_object_refer: ----Exit- AE_OK
-Apr  7 02:12:26 wcang-laptop kernel: [  364.265947] utdelete-0706 [430818512] [4294967291] ut_remove_reference   : ----Exit-
-Apr  7 02:12:26 wcang-laptop kernel: [  364.265963]  exutils-0151 [430818512] [4294967291] ex_exit_interpreter   : ----Entry
-Apr  7 02:12:26 wcang-laptop kernel: [  364.265980]  utmutex-0300 [430818512] [4294967291] ut_release_mutex      : Thread 430818512 releasing Mutex [ACPI_MTX_Interpreter]
-Apr  7 02:12:26 wcang-laptop kernel: [  364.266001]      osl-1167 [430818512] [4294967291] os_signal_semaphore   : Signaling semaphore[ffff88011b004300|1]
-Apr  7 02:12:26 wcang-laptop kernel: [  364.266021]  exutils-0159 [430818512] [4294967291] ex_exit_interpreter   : ----Exit-
-Apr  7 02:12:26 wcang-laptop kernel: [  364.266038] nsxfeval-0358 [430818512] [4294967290] evaluate_object       : ----Exit- AE_OK
-Apr  7 02:12:26 wcang-laptop kernel: [  364.266055]    utils-0286 [430818512] [4294967289] evaluate_integer      : Return value [3732]
-Apr  7 02:12:26 wcang-laptop kernel: [  364.266073]  thermal-0212 [430818512] [4294967289] thermal_get_temperatur: Temperature is 3732 dK
-Apr  7 02:12:26 wcang-laptop kernel: [  364.266115] Critical temperature reached (100 C), shutting down.
-Apr  7 02:12:26 wcang-laptop kernel: [  364.266128] Pid: 4, comm: kworker/0:0 Tainted: G         C   3.3.1+ #4
-Apr  7 02:12:26 wcang-laptop kernel: [  364.266135] Call Trace:
-Apr  7 02:12:26 wcang-laptop kernel: [  364.266158]  [<ffffffff814ce287>] thermal_zone_device_update+0x1e7/0x2f0
-Apr  7 02:12:26 wcang-laptop kernel: [  364.266179]  [<ffffffff810687df>] ? queue_delayed_work_on+0x11f/0x130
-Apr  7 02:12:26 wcang-laptop kernel: [  364.266195]  [<ffffffff8136d56c>] ? acpi_os_wait_events_complete+0x23/0x23
-Apr  7 02:12:26 wcang-laptop kernel: [  364.266210]  [<ffffffff813ae5ad>] acpi_thermal_notify+0x4c/0x124
-Apr  7 02:12:26 wcang-laptop kernel: [  364.266224]  [<ffffffff81370b63>] acpi_device_notify+0x19/0x1b
-Apr  7 02:12:26 wcang-laptop kernel: [  364.266240]  [<ffffffff813825c8>] acpi_ev_notify_dispatch+0x6c/0x83
-Apr  7 02:12:26 wcang-laptop kernel: [  364.266252]  [<ffffffff8136d593>] acpi_os_execute_deferred+0x27/0x34
-Apr  7 02:12:26 wcang-laptop kernel: [  364.266272]  [<ffffffff8106abaa>] process_one_work+0x11a/0x480
-Apr  7 02:12:26 wcang-laptop kernel: [  364.266286]  [<ffffffff8106b864>] worker_thread+0x164/0x370
-Apr  7 02:12:26 wcang-laptop kernel: [  364.266299]  [<ffffffff8106b700>] ? manage_workers.isra.29+0x230/0x230
-Apr  7 02:12:26 wcang-laptop kernel: [  364.266312]  [<ffffffff81070043>] kthread+0x93/0xa0
-Apr  7 02:12:26 wcang-laptop kernel: [  364.266329]  [<ffffffff816391a4>] kernel_thread_helper+0x4/0x10
-Apr  7 02:12:26 wcang-laptop kernel: [  364.266343]  [<ffffffff8106ffb0>] ? kthread_freezable_should_stop+0x70/0x70
-Apr  7 02:12:26 wcang-laptop kernel: [  364.266358]  [<ffffffff816391a0>] ? gs_change+0x13/0x13
-Apr  7 02:12:26 wcang-laptop kernel: [  364.266380]  utstate-0339 [430818512] [4294967290] ut_delete_generic_stat: ----Entry
-Apr  7 02:12:26 wcang-laptop kernel: [  364.266396]  utstate-0346 [430818512] [4294967290] ut_delete_generic_stat: ----Exit-
-Apr  7 02:12:26 wcang-laptop kernel: [  364.266439]  hwvalid-0132 [430818512] [4294967290] hw_validate_io_request: ----Entry
+Hi,
 
-Do note that I don't use any proprietary kernel module and I added dump_stack call to trace the event.
+> On Sun, Apr 1, 2012 at 4:49 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote=
+:
+> > On Sunday, April 01, 2012, Zhang Rui wrote:
+> >> On =E6=97=A5, 2012-04-01 at 09:23 +0200, Rafael J. Wysocki wrote:
+> >> > Hi,
+> >> >
+> >> > Sorry for the delayed response, I've been travelling recently.
+> >> >
+> >> > On Sunday, April 01, 2012, Lin Ming wrote:
+> >> > > On Sun, 2012-04-01 at 13:56 +0800, Aaron Lu wrote:
+> >> > > > Hi,
+> >> > > >
+> >> > > > On Sun, Apr 01, 2012 at 01:27:33PM +0800, Lin Ming wrote:
+> >> > > > > > -           if (device->power.states[state].flags.explic=
+it_set) {
+> >> > > > > > +           /* If state is D3 Cold, try to evaluate _PS3=
+ first */
+> >> > > > > > +           if (state =3D=3D ACPI_STATE_D3_COLD) {
+> >> > > > > > +                   explicit_set =3D (ps - 1)->flags.exp=
+licit_set;
+> >> > > > > > +                   object_name[3] -=3D 1;
+> >> > > > > > +           }
+> >> > > > >
+> >> > > > > I'm not sure whether this works or not.
+> >> > > > >
+> >> > > > > From ACPI spec,
+> >> > > > >
+> >> > > > > _PS3 "is used to put the specific device into its D3hot or=
+ D3 state"
+> >> > > > >
+> >> > > > > D3 neither means D3hot nor D3cold. It's an old term before=
+ D3hot and
+> >> > > > > D3cold were introduced.
+> >> > > > I guess D3 has to mean something, right? :-)
+> >> >
+> >> > Well, not necessarily.
+> >> >
+> >> > The problem is what state the _PS3 method puts the device into: =
+D3_hot or
+> >> > D3_cold.
+> >> >
+> >> > Unfortunately, as far as I can say, ACPI 4.0 didn't specify any =
+"official"
+> >> > mapping between the "old" D3 and the "new" D3_{hod|cold} states,=
+ so we need to
+> >> > figure out something.  In my opinion, the only reasonable approa=
+ch is to
+> >> > assume that the state _PS3 puts the device into is always D3_col=
+d, becuase
+> >> > _PS3 may remove power completely from the device.  It may not do=
+ that, but
+> >> > we _must_ assume it does that in general.
+> >> >
+> >> There is a problem that I can think of.
+> >> Say currently, ACPI always returns D3 when _PS3 exists.
+> >
+> > I'm not sure what you mean exactly, but please see below.
+> >
+> >> And this "ACPI_STATE_D3" is translated to PCI_D3hot.
+> >> But with this approach, we're going to put these devices to PCI_D3=
+cold
+> >> instead, right?
+> >> I'm not against this approach, but this may affect a lot of PCI de=
+vices,
+> >> which we need to take care of, no?
+> >
+> > Do you mean acpi_pm_device_sleep_state() should be modified?  It do=
+esn't
+> > refer to whether or not _PS3 exists, as far as I can say.
+> >
+> > In the acpi_pci_set_power_state() code path, on the other hand, the=
+re are
+> > two potentially problematic situations when PCI wants to put the de=
+vice into
+> > PCI_D3hot (which need not map 1:1 onto ACPI D3_hot), one of which i=
+s when _PS3
+> > is present, and the other is when neither _PS3, nor _PR3 is present=
+=2E
+> >
+> > If _PS3 is present, then _PR3 may or may not be present.  In the la=
+tter case
+> > we can only execute _PS3 in the hope it does the right thing, but a=
+s long
+> > as we restore the device's configuration registers while resuming i=
+t (which is
+> > done by all of our PCI device resume callback routines as far as I =
+can say),
+> > the only possible difference is the resume latency (which may be gr=
+eater if
+> > power is removed from the device entirely).
+>=20
+> Another difference between D3Hot and D3Cold for PCI devices is config
+> space availability.  That is, in D3Hot, you can access D3Hot, while i=
+n
+> D3Cold you can not do that.  For example, PME poll logic need to be
+> disabled if we put device into D3Cold.
 
-I'll appreciate if someone can give a pointer or two. 
+We're not talking about PCI here.  PCI D3hot/D3cold is actually well de=
+fined,
+while the ACPI "couterparts" aren't.  And BTW I know the properties of =
+the PCI
+power management states. :-)
 
-Thank you very much.
+> > However, in that case we shouldn't
+> > turn off the device's power resources after _PS3 has been executed =
+(if we
+> > turned them off, power would be removed from the device, which woul=
+dn't be
+> > what PCI wanted).  So, to handle this particular case we need to pa=
+ss
+> > ACPI_STATE_D3_HOT to acpi_bus_set_power(), meaning "avoid going int=
+o D3_cold,
+> > if possible".
+> >
+> > In both _PS3 and _PR3 are present, we should evaluate _PS3 and then=
+ turn off
+> > the power resources listed as "off" by _PR3 (and turn on the power =
+resoruces
+> > listed by it as "on"), but we need to restore the configuration reg=
+isters of
+> > the device while resuming it.  I think this is handled correctly wi=
+thout
+> > modifications.
+> >
+> > If neither _PS3 nor _PR3 is present, we shouldn't turn off the devi=
+ce's
+> > power resources, because PCI doesn't want power to be removed from =
+the device.
+>=20
+> For PCI device plugged into system via slot (not integrated into PCH
+> or motherboard), there is no ACPI handle associate with it, so that
+> there are neither _PS3 nor _PR3 presented.  But it is still possible
+> to turn off the device power via the associated PCIe port, which has
+> _PS3 and/or _PR3 presented.  I think that situation is reasonable too=
+=2E
 
-Regards,
-Ang 
+Again, this hasn't anything to do with ACPI.
 
+We're discussing standard interfaces exposed by ACPI.  That is, if I sa=
+y
+"to turn of the device's power resources" I mean to call _OFF for all o=
+f the
+power resources listed by _PR0 for that device.  Nothing more or less t=
+han
+that.
 
+> > In summary, if PCI wants the device to be put into PCI_D3hot and _P=
+S3 is
+> > present, we should evaluate _PS3.  However, we shouldn't turn the d=
+evice's
+> > power resources off unless _PR3 is present, in which case we can tu=
+rn off
+> > the power resources listed by it as "off".
+>=20
+> How to turn the device's power resources off without _PR3?  It may be
+> possible via PCIe port as I said above.  Do you mean that?  Or
+> something else?
+
+If _PR0 is present, it returns the list of power resources needed by th=
+e
+device.  If you turn them all off, the assumption is that power has bee=
+n
+removed from the device, so it is in D3(cold).
+
+PCI hotplug (and other standards) provide alternative means for removin=
+g
+power from devices, but that's beyond the scope of what is being discus=
+sed
+in this thread.
+
+Thanks,
+Rafael
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
