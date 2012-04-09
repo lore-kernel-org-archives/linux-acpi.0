@@ -1,52 +1,65 @@
-From: Ang Way Chuang <wcang79@gmail.com>
-Subject: Re: ACPI reports critical temperature even the sensors data says otherwise
-Date: Mon, 9 Apr 2012 16:51:41 +0800
-Message-ID: <CAKJRshmJiFBpvjD2Lm2wBR3AchOdm-mSWuCd8zXK=HCAHvdtKQ@mail.gmail.com>
-References: <CAKJRsh=j36WH_e2KvJ6F-e5QWai3BP8YuEQUbGZK2vr1=ciJnA@mail.gmail.com>
-	<1333931948.2387.174.camel@rui.sh.intel.com>
+From: "R, Durgadoss" <durgadoss.r@intel.com>
+Subject: RE: [PATCHv3] ACPI-Thermal: Make Thermal trip points writeable
+Date: Mon, 9 Apr 2012 09:10:36 +0000
+Message-ID: <4D68720C2E767A4AA6A8796D42C8EB590D1D77@BGSMSX101.gar.corp.intel.com>
+References: <1333710717-24691-1-git-send-email-durgadoss.r@intel.com>
+ <1333951195.2387.192.camel@rui.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:50330 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753548Ab2DIIvm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Apr 2012 04:51:42 -0400
-Received: by pbcun15 with SMTP id un15so4795743pbc.19
-        for <linux-acpi@vger.kernel.org>; Mon, 09 Apr 2012 01:51:41 -0700 (PDT)
-In-Reply-To: <1333931948.2387.174.camel@rui.sh.intel.com>
+Received: from mga03.intel.com ([143.182.124.21]:19230 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751520Ab2DIJK6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 9 Apr 2012 05:10:58 -0400
+In-Reply-To: <1333951195.2387.192.camel@rui.sh.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: "Zhang, Rui" <rui.zhang@intel.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Thanks. Reported.
-https://bugzilla.kernel.org/show_bug.cgi?id=3D43075
-It seems like the bug occurs even when bluetooth is disabled. At this
-point, I am not sure what triggers the bug.
-
-On 4/9/12, Zhang Rui <rui.zhang@intel.com> wrote:
-> On =E5=85=AD, 2012-04-07 at 20:08 +0800, Ang Way Chuang wrote:
->> Hi all,
->>    I am not sure if this is the right mailing list to ask for help. =
-I
->> have a Dell Vostro 3350 that I had been using
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi=
-" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-> please file a bug report at
-> https://bugzilla.kernel.org/enter_bug.cgi?product=3DACPI
-> please attach the output of acpidump as well.
->
-> thanks,
-> rui
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SGkgUnVpLA0KDQo+IA0KPiBPbiDkupQsIDIwMTItMDQtMDYgYXQgMTY6NDEgKzA1MzAsIER1cmdh
+ZG9zcyBSIHdyb3RlOg0KPiA+IFNvbWUgb2YgdGhlIHRoZXJtYWwgZHJpdmVycyB1c2luZyB0aGUg
+R2VuZXJpYyBUaGVybWFsIEZyYW1ld29yaw0KPiA+IHJlcXVpcmUgKGFsbC9zb21lKSB0cmlwIHBv
+aW50cyB0byBiZSB3cml0ZWFibGUuIFRoaXMgcGF0Y2ggbWFrZXMNCj4gPiB0aGUgdHJpcCBwb2lu
+dCB0ZW1wZXJhdHVyZXMgd3JpdGVhYmxlIG9uIGEgcGVyLXRyaXAgcG9pbnQgYmFzaXMsDQo+ID4g
+YW5kIG1vZGlmaWVzIHRoZSByZXF1aXJlZCBmdW5jdGlvbiBjYWxsIGluIHRoZXJtYWwuYy4gVGhp
+cyBwYXRjaA0KPiA+IGFsc28gdXBkYXRlcyB0aGUgRG9jdW1lbnRhdGlvbiB0byByZWZsZWN0IHRo
+ZSBuZXcgY2hhbmdlLg0KPiA+DQo+IEknbSBva2F5IHdpdGggdGhpcyBwYXRjaCwgZXhjZXB0IHNv
+bWUgbWlub3IgY29tbWVudHMuDQo+IA0KPiA+IFNpZ25lZC1vZmYtYnk6IER1cmdhZG9zcyBSIDxk
+dXJnYWRvc3MuckBpbnRlbC5jb20+DQo+IA0KPiBBY2tlZC1ieTogWmhhbmcgUnVpIDxydWkuemhh
+bmdAaW50ZWwuY29tPg0KDQpUaGFuayB5b3UuLg0KDQo+IA0KPiA+IC0tLQ0KPiA+IHYxDQo+ID4g
+KiBwYXRjaDEvMjogQ29kZSBmb3IgbWFraW5nIHRyaXAgcG9pbnRzIHdyaXRlYWJsZQ0KPiA+ICog
+cGF0Y2gyLzI6IENoYW5nZSB0aGUgY2FsbGVlIGluIHRoZXJtYWwuYw0KPiA+IHYyDQo+ID4gKiBN
+YWtlIGJvdGggdGhlIGNoYW5nZXMgaW4gYSBzaW5nbGUgcGF0Y2gNCj4gPiAqIFVwZGF0ZSBEb2N1
+bWVudGF0aW9uL3RoZXJtYWwvc3lzZnMtYXBpLnR4dA0KPiA+IHYzDQo+ID4gKiBSZS1zdWJtaXR0
+aW5nLCBvbiB0b3Agb2YgdGhlIGxhdGVzdCBtYWlubGluZSBrZXJuZWwNCj4gPiAtLS0NCj4gPiAg
+RG9jdW1lbnRhdGlvbi90aGVybWFsL3N5c2ZzLWFwaS50eHQgfCAgICA0ICstDQo+ID4gIGRyaXZl
+cnMvYWNwaS90aGVybWFsLmMgICAgICAgICAgICAgIHwgICAgNCArLQ0KPiA+ICBkcml2ZXJzL3Ro
+ZXJtYWwvdGhlcm1hbF9zeXMuYyAgICAgICB8ICAxMTIgKysrKysrKysrKysrKysrKysrKysrKyst
+LS0tLS0tLS0tDQo+IC0tDQo+ID4gIGluY2x1ZGUvbGludXgvdGhlcm1hbC5oICAgICAgICAgICAg
+IHwgICAxMCArKy0NCj4gPiAgNCBmaWxlcyBjaGFuZ2VkLCA4NyBpbnNlcnRpb25zKCspLCA0MyBk
+ZWxldGlvbnMoLSkNCj4gPg0KPiANCj4gPiArLyoqDQo+ID4gICAqIHRoZXJtYWxfem9uZV9kZXZp
+Y2VfcmVnaXN0ZXIgLSByZWdpc3RlciBhIG5ldyB0aGVybWFsIHpvbmUgZGV2aWNlDQo+ID4gICAq
+IEB0eXBlOgl0aGUgdGhlcm1hbCB6b25lIGRldmljZSB0eXBlDQo+ID4gICAqIEB0cmlwczoJdGhl
+IG51bWJlciBvZiB0cmlwIHBvaW50cyB0aGUgdGhlcm1hbCB6b25lIHN1cHBvcnQNCj4gPiArICog
+QGZsYWc6CWEgYml0IHN0cmluZyBpbmRpY2F0aW5nIHRoZSB3cml0ZWFibGlsaXR5IG9mIHRyaXAg
+cG9pbnRzDQo+ID4gICAqIEBkZXZkYXRhOglwcml2YXRlIGRldmljZSBkYXRhDQo+ID4gICAqIEBv
+cHM6CXN0YW5kYXJkIHRoZXJtYWwgem9uZSBkZXZpY2UgY2FsbGJhY2tzDQo+ID4gICAqIEB0YzE6
+CXRoZXJtYWwgY29lZmZpY2llbnQgMSBmb3IgcGFzc2l2ZSBjYWxjdWxhdGlvbnMNCj4gPiBAQCAt
+MTEwNyw3ICsxMTQ3LDcgQEAgRVhQT1JUX1NZTUJPTCh0aGVybWFsX3pvbmVfZGV2aWNlX3VwZGF0
+ZSk7DQo+ID4gICAqIHNlY3Rpb24gMTEuMS41LjEgb2YgdGhlIEFDUEkgc3BlY2lmaWNhdGlvbiAz
+LjAuDQo+ID4gICAqLw0KPiA+ICBzdHJ1Y3QgdGhlcm1hbF96b25lX2RldmljZSAqdGhlcm1hbF96
+b25lX2RldmljZV9yZWdpc3RlcihjaGFyICp0eXBlLA0KPiA+IC0JaW50IHRyaXBzLCB2b2lkICpk
+ZXZkYXRhLA0KPiA+ICsJaW50IHRyaXBzLCBpbnQgZmxhZywgdm9pZCAqZGV2ZGF0YSwNCj4gPiAg
+CWNvbnN0IHN0cnVjdCB0aGVybWFsX3pvbmVfZGV2aWNlX29wcyAqb3BzLA0KPiA+ICAJaW50IHRj
+MSwgaW50IHRjMiwgaW50IHBhc3NpdmVfZGVsYXksIGludCBwb2xsaW5nX2RlbGF5KQ0KPiA+ICB7
+DQo+IA0KPiBEbyB3ZSBuZWVkIGEgc2ltcGxlIGNoZWNrIG9mIHRoZSAiZmxhZyIgcGFyYW1ldGVy
+Pw0KPiBlLmcsDQo+IGlmIChmbGFnID4+IHRyaXBzKQ0KPiAgICAgcmV0dXJuIC1FSU5WQUw7DQoN
+CkkgYWdyZWUgd2l0aCB5b3UuIFdpbGwgYWRkIHRoaXMgY2hlY2sgYW5kIHNlbmQgdjQgb2YgdGhl
+IHBhdGNoLg0KDQo+IA0KPiBCVFcsIHNob3VsZCB3ZSBpbnRyb2R1Y2Ugc29tZSBoZWxwZXIgZnVu
+Y3Rpb24gbGlrZSB0aGlzDQo+IFRIRVJNQUxfU0VUX1RSSVBfV1JJVEFCTEUgKHRyaXAsIGZsYWcp
+IGZsYWcgfD0gMSA8PCB0cmlwOw0KPiANCg0KU2luY2UgdGhlIGNhbGxlcnMgb2YgdGhpcyBBUEkg
+cGFzcyB0aGUgZmxhZywgSSB0aG91Z2h0IHRoZXkgd2lsbA0KaGFuZGxlIHRoaXMuDQoNClRoYW5r
+cywNCkR1cmdhDQoNCg==
