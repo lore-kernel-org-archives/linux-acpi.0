@@ -1,182 +1,102 @@
 From: Jiang Liu <liuj97@gmail.com>
-Subject: [PATCH V2 3/6] PCI, x86: use RCU list to protect mmconfig list
-Date: Tue, 10 Apr 2012 00:22:45 +0800
-Message-ID: <1333988568-11282-4-git-send-email-jiang.liu@huawei.com>
+Subject: [PATCH V2 4/6] PCI, x86: introduce pci_mmcfg_arch_map()/pci_mmcfg_arch_unmap()
+Date: Tue, 10 Apr 2012 00:22:46 +0800
+Message-ID: <1333988568-11282-5-git-send-email-jiang.liu@huawei.com>
 References: <1333988568-11282-1-git-send-email-jiang.liu@huawei.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:40501 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932108Ab2DIQZ6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Apr 2012 12:25:58 -0400
 In-Reply-To: <1333988568-11282-1-git-send-email-jiang.liu@huawei.com>
-Sender: linux-pci-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Taku Izumi <izumi.taku@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Yinghai Lu <yinghai@kernel.org>
 Cc: Jiang Liu <jiang.liu@huawei.com>, Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <liuj97@gmail.com>, Keping Chen <chenkeping@huawei.com>, x86@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
-Use RCU list to protect mmconfig list from dynamic change
-when supporting PCI host bridge hotplug.
+Introduce pci_mmcfg_arch_map()/pci_mmcfg_arch_unmap(), which will be used
+when supporting PCI root bridge hotplug.
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
 ---
- arch/x86/pci/mmconfig-shared.c |   11 ++++++-----
- arch/x86/pci/mmconfig_32.c     |   13 +++++++++++--
- arch/x86/pci/mmconfig_64.c     |   13 +++++++++++--
- 3 files changed, 28 insertions(+), 9 deletions(-)
+ arch/x86/include/asm/pci_x86.h |    2 ++
+ arch/x86/pci/mmconfig_32.c     |   15 +++++++++++++++
+ arch/x86/pci/mmconfig_64.c     |   22 +++++++++++++++++++++-
+ 3 files changed, 38 insertions(+), 1 deletions(-)
 
-diff --git a/arch/x86/pci/mmconfig-shared.c b/arch/x86/pci/mmconfig-shared.c
-index 5e2cd2a..3bcc361 100644
---- a/arch/x86/pci/mmconfig-shared.c
-+++ b/arch/x86/pci/mmconfig-shared.c
-@@ -17,6 +17,7 @@
- #include <linux/bitmap.h>
- #include <linux/dmi.h>
- #include <linux/slab.h>
-+#include <linux/rculist.h>
- #include <asm/e820.h>
- #include <asm/pci_x86.h>
- #include <asm/acpi.h>
-@@ -45,20 +46,20 @@ static __init void free_all_mmcfg(void)
- 		pci_mmconfig_remove(cfg);
- }
+diff --git a/arch/x86/include/asm/pci_x86.h b/arch/x86/include/asm/pci_x86.h
+index b3a5317..4611294 100644
+--- a/arch/x86/include/asm/pci_x86.h
++++ b/arch/x86/include/asm/pci_x86.h
+@@ -135,6 +135,8 @@ struct pci_mmcfg_region {
  
--static __init void list_add_sorted(struct pci_mmcfg_region *new)
-+static __devinit void list_add_sorted(struct pci_mmcfg_region *new)
- {
- 	struct pci_mmcfg_region *cfg;
+ extern int __init pci_mmcfg_arch_init(void);
+ extern void __init pci_mmcfg_arch_free(void);
++extern int __devinit pci_mmcfg_arch_map(struct pci_mmcfg_region *cfg);
++extern void __devinit pci_mmcfg_arch_unmap(struct pci_mmcfg_region *cfg);
+ extern struct pci_mmcfg_region *pci_mmconfig_lookup(int segment, int bus);
  
- 	/* keep list sorted by segment and starting bus number */
--	list_for_each_entry(cfg, &pci_mmcfg_list, list) {
-+	list_for_each_entry_rcu(cfg, &pci_mmcfg_list, list) {
- 		if (cfg->segment > new->segment ||
- 		    (cfg->segment == new->segment &&
- 		     cfg->start_bus >= new->start_bus)) {
--			list_add_tail(&new->list, &cfg->list);
-+			list_add_tail_rcu(&new->list, &cfg->list);
- 			return;
- 		}
- 	}
--	list_add_tail(&new->list, &pci_mmcfg_list);
-+	list_add_tail_rcu(&new->list, &pci_mmcfg_list);
- }
- 
- static __devinit struct pci_mmcfg_region *pci_mmconfig_alloc(int segment,
-@@ -111,7 +112,7 @@ struct pci_mmcfg_region *pci_mmconfig_lookup(int segment, int bus)
- {
- 	struct pci_mmcfg_region *cfg;
- 
--	list_for_each_entry(cfg, &pci_mmcfg_list, list)
-+	list_for_each_entry_rcu(cfg, &pci_mmcfg_list, list)
- 		if (cfg->segment == segment &&
- 		    cfg->start_bus <= bus && bus <= cfg->end_bus)
- 			return cfg;
+ extern struct list_head pci_mmcfg_list;
 diff --git a/arch/x86/pci/mmconfig_32.c b/arch/x86/pci/mmconfig_32.c
-index 5372e86..5dad04a 100644
+index 5dad04a..c2756de 100644
 --- a/arch/x86/pci/mmconfig_32.c
 +++ b/arch/x86/pci/mmconfig_32.c
-@@ -11,6 +11,7 @@
- 
- #include <linux/pci.h>
- #include <linux/init.h>
-+#include <linux/rcupdate.h>
- #include <asm/e820.h>
- #include <asm/pci_x86.h>
- #include <acpi/acpi.h>
-@@ -60,9 +61,12 @@ err:		*value = -1;
- 		return -EINVAL;
- 	}
- 
-+	rcu_read_lock();
- 	base = get_base_addr(seg, bus, devfn);
--	if (!base)
-+	if (!base) {
-+		rcu_read_unlock();
- 		goto err;
-+	}
- 
- 	raw_spin_lock_irqsave(&pci_config_lock, flags);
- 
-@@ -80,6 +84,7 @@ err:		*value = -1;
- 		break;
- 	}
- 	raw_spin_unlock_irqrestore(&pci_config_lock, flags);
-+	rcu_read_unlock();
- 
- 	return 0;
+@@ -141,3 +141,18 @@ int __init pci_mmcfg_arch_init(void)
+ void __init pci_mmcfg_arch_free(void)
+ {
  }
-@@ -93,9 +98,12 @@ static int pci_mmcfg_write(unsigned int seg, unsigned int bus,
- 	if ((bus > 255) || (devfn > 255) || (reg > 4095))
- 		return -EINVAL;
- 
-+	rcu_read_lock();
- 	base = get_base_addr(seg, bus, devfn);
--	if (!base)
-+	if (!base) {
-+		rcu_read_unlock();
- 		return -EINVAL;
-+	}
- 
- 	raw_spin_lock_irqsave(&pci_config_lock, flags);
- 
-@@ -113,6 +121,7 @@ static int pci_mmcfg_write(unsigned int seg, unsigned int bus,
- 		break;
- 	}
- 	raw_spin_unlock_irqrestore(&pci_config_lock, flags);
-+	rcu_read_unlock();
- 
- 	return 0;
- }
++
++int __devinit pci_mmcfg_arch_map(struct pci_mmcfg_region *cfg)
++{
++	return 0;
++}
++
++void __devinit pci_mmcfg_arch_unmap(struct pci_mmcfg_region *cfg)
++{
++	unsigned long flags;
++
++	/* Invalidate the cached mmcfg map entry. */
++	raw_spin_lock_irqsave(&pci_config_lock, flags);
++	mmcfg_last_accessed_device = 0;
++	raw_spin_unlock_irqrestore(&pci_config_lock, flags);
++}
 diff --git a/arch/x86/pci/mmconfig_64.c b/arch/x86/pci/mmconfig_64.c
-index 915a493..acc48c5 100644
+index acc48c5..6822dd6 100644
 --- a/arch/x86/pci/mmconfig_64.c
 +++ b/arch/x86/pci/mmconfig_64.c
-@@ -9,6 +9,7 @@
- #include <linux/init.h>
- #include <linux/acpi.h>
- #include <linux/bitmap.h>
-+#include <linux/rcupdate.h>
- #include <asm/e820.h>
- #include <asm/pci_x86.h>
+@@ -95,7 +95,7 @@ static const struct pci_raw_ops pci_mmcfg = {
+ 	.write =	pci_mmcfg_write,
+ };
  
-@@ -34,9 +35,12 @@ err:		*value = -1;
- 		return -EINVAL;
+-static void __iomem * __init mcfg_ioremap(struct pci_mmcfg_region *cfg)
++static void __iomem * __devinit mcfg_ioremap(struct pci_mmcfg_region *cfg)
+ {
+ 	void __iomem *addr;
+ 	u64 start, size;
+@@ -138,3 +138,23 @@ void __init pci_mmcfg_arch_free(void)
+ 		}
  	}
- 
-+	rcu_read_lock();
- 	addr = pci_dev_base(seg, bus, devfn);
--	if (!addr)
-+	if (!addr) {
-+		rcu_read_unlock();
- 		goto err;
-+	}
- 
- 	switch (len) {
- 	case 1:
-@@ -49,6 +53,7 @@ err:		*value = -1;
- 		*value = mmio_config_readl(addr + reg);
- 		break;
- 	}
-+	rcu_read_unlock();
- 
- 	return 0;
  }
-@@ -62,9 +67,12 @@ static int pci_mmcfg_write(unsigned int seg, unsigned int bus,
- 	if (unlikely((bus > 255) || (devfn > 255) || (reg > 4095)))
- 		return -EINVAL;
- 
-+	rcu_read_lock();
- 	addr = pci_dev_base(seg, bus, devfn);
--	if (!addr)
-+	if (!addr) {
-+		rcu_read_unlock();
- 		return -EINVAL;
++
++int __devinit pci_mmcfg_arch_map(struct pci_mmcfg_region *cfg)
++{
++	cfg->virt = mcfg_ioremap(cfg);
++	if (!cfg->virt) {
++		printk(KERN_ERR PREFIX "can't map MMCONFIG at %pR\n",
++		       &cfg->res);
++		return -ENOMEM;
 +	}
- 
- 	switch (len) {
- 	case 1:
-@@ -77,6 +85,7 @@ static int pci_mmcfg_write(unsigned int seg, unsigned int bus,
- 		mmio_config_writel(addr + reg, value);
- 		break;
- 	}
-+	rcu_read_unlock();
- 
- 	return 0;
- }
++
++	return 0;
++}
++
++void __devinit pci_mmcfg_arch_unmap(struct pci_mmcfg_region *cfg)
++{
++	if (cfg && cfg->virt) {
++		iounmap(cfg->virt + PCI_MMCFG_BUS_OFFSET(cfg->start_bus));
++		cfg->virt = NULL;
++	}
++}
 -- 
 1.7.5.4
+
