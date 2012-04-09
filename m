@@ -1,238 +1,97 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH V2 6/6] PCI, ACPI, x86: update MMCFG information when
- hot-plugging PCI host bridges
-Date: Mon, 9 Apr 2012 11:00:50 -0700
-Message-ID: <CAE9FiQWtA+PBsEgd3zakzvdNUgmVR42_yHK0DrM3Tn20jDU0Fg@mail.gmail.com>
-References: <1333988568-11282-1-git-send-email-jiang.liu@huawei.com>
-	<1333988568-11282-7-git-send-email-jiang.liu@huawei.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] ACPI: evaluate _PS3 when entering D3 Cold
+Date: Mon, 9 Apr 2012 23:24:30 +0200
+Message-ID: <201204092324.31004.rjw@sisk.pl>
+References: <1333217910-29579-1-git-send-email-aaron.lu@amd.com> <201204090141.36766.rjw@sisk.pl> <1333938285.26747.8.camel@yhuang-dev>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pz0-f52.google.com ([209.85.210.52]:35350 "EHLO
-	mail-pz0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753670Ab2DISAv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Apr 2012 14:00:51 -0400
-In-Reply-To: <1333988568-11282-7-git-send-email-jiang.liu@huawei.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:60912 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752396Ab2DIVUE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 9 Apr 2012 17:20:04 -0400
+In-Reply-To: <1333938285.26747.8.camel@yhuang-dev>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <liuj97@gmail.com>
-Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Keping Chen <chenkeping@huawei.com>, x86@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Huang Ying <ying.huang@intel.com>
+Cc: huang ying <huang.ying.caritas@gmail.com>, Zhang Rui <rui.zhang@intel.com>, Lin Ming <ming.m.lin@intel.com>, Aaron Lu <aaron.lu@amd.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Andiry Xu <andiry.xu@amd.com>, Alex He <alex.he@amd.com>, Yan Zheng <zheng.z.yan@intel.com>
 
-On Mon, Apr 9, 2012 at 9:22 AM, Jiang Liu <liuj97@gmail.com> wrote:
-> This patch enhances pci_root driver to update MMCFG information when
-> hot-plugging PCI root bridges on x86 platforms.
->
-> Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-> ---
-> =A0arch/x86/pci/acpi.c =A0 =A0 =A0| =A0 66 ++++++++++++++++++++++++++=
-++++++++++++++++++++
-> =A0drivers/acpi/pci_root.c =A0| =A0 20 ++++++++++++++
-> =A0include/acpi/acnames.h =A0 | =A0 =A01 +
-> =A0include/linux/pci-acpi.h | =A0 =A02 +
-> =A04 files changed, 89 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-> index da0149d..e38d9b7 100644
-> --- a/arch/x86/pci/acpi.c
-> +++ b/arch/x86/pci/acpi.c
-> @@ -488,6 +488,72 @@ struct pci_bus * __devinit pci_acpi_scan_root(st=
-ruct acpi_pci_root *root)
-> =A0 =A0 =A0 =A0return bus;
-> =A0}
->
-> +int arch_acpi_pci_root_add(struct acpi_pci_root *root)
-> +{
-> + =A0 =A0 =A0 int result =3D 0;
-> + =A0 =A0 =A0 acpi_status status;
-> + =A0 =A0 =A0 unsigned long long base_addr;
-> + =A0 =A0 =A0 struct pci_mmcfg_region *cfg;
-> +
-> + =A0 =A0 =A0 /* MMCONFIG disabled */
-> + =A0 =A0 =A0 if ((pci_probe & PCI_PROBE_MMCONF) =3D=3D 0)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 0;
+On Monday, April 09, 2012, Huang Ying wrote:
+> On Mon, 2012-04-09 at 01:41 +0200, Rafael J. Wysocki wrote:
+> > > >
+> > > > If _PS3 is present, then _PR3 may or may not be present.  In the latter case
+> > > > we can only execute _PS3 in the hope it does the right thing, but as long
+> > > > as we restore the device's configuration registers while resuming it (which is
+> > > > done by all of our PCI device resume callback routines as far as I can say),
+> > > > the only possible difference is the resume latency (which may be greater if
+> > > > power is removed from the device entirely).
+> > > 
+> > > Another difference between D3Hot and D3Cold for PCI devices is config
+> > > space availability.  That is, in D3Hot, you can access D3Hot, while in
+> > > D3Cold you can not do that.  For example, PME poll logic need to be
+> > > disabled if we put device into D3Cold.
+> > 
+> > We're not talking about PCI here.  PCI D3hot/D3cold is actually well defined,
+> > while the ACPI "couterparts" aren't.  And BTW I know the properties of the PCI
+> > power management states. :-)
+> 
+> I see.
+> 
+> > > > However, in that case we shouldn't
+> > > > turn off the device's power resources after _PS3 has been executed (if we
+> > > > turned them off, power would be removed from the device, which wouldn't be
+> > > > what PCI wanted).  So, to handle this particular case we need to pass
+> > > > ACPI_STATE_D3_HOT to acpi_bus_set_power(), meaning "avoid going into D3_cold,
+> > > > if possible".
+> > > >
+> > > > In both _PS3 and _PR3 are present, we should evaluate _PS3 and then turn off
+> > > > the power resources listed as "off" by _PR3 (and turn on the power resoruces
+> > > > listed by it as "on"), but we need to restore the configuration registers of
+> > > > the device while resuming it.  I think this is handled correctly without
+> > > > modifications.
+> > > >
+> > > > If neither _PS3 nor _PR3 is present, we shouldn't turn off the device's
+> > > > power resources, because PCI doesn't want power to be removed from the device.
+> > > 
+> > > For PCI device plugged into system via slot (not integrated into PCH
+> > > or motherboard), there is no ACPI handle associate with it, so that
+> > > there are neither _PS3 nor _PR3 presented.  But it is still possible
+> > > to turn off the device power via the associated PCIe port, which has
+> > > _PS3 and/or _PR3 presented.  I think that situation is reasonable too.
+> > 
+> > Again, this hasn't anything to do with ACPI.
+> > 
+> > We're discussing standard interfaces exposed by ACPI.  That is, if I say
+> > "to turn of the device's power resources" I mean to call _OFF for all of the
+> > power resources listed by _PR0 for that device.  Nothing more or less than
+> > that.
+> > 
+> > > > In summary, if PCI wants the device to be put into PCI_D3hot and _PS3 is
+> > > > present, we should evaluate _PS3.  However, we shouldn't turn the device's
+> > > > power resources off unless _PR3 is present, in which case we can turn off
+> > > > the power resources listed by it as "off".
+> > > 
+> > > How to turn the device's power resources off without _PR3?  It may be
+> > > possible via PCIe port as I said above.  Do you mean that?  Or
+> > > something else?
+> > 
+> > If _PR0 is present, it returns the list of power resources needed by the
+> > device.  If you turn them all off, the assumption is that power has been
+> > removed from the device, so it is in D3(cold).
+> 
+> So.  If PCI wants the device to be put into PCI_D3hot and _PS3 is
+> present.  We should evaluate _PS3 AND set the pci_dev->current_state to
+> PCI_D3cold?
 
-should be
+No, I believe we should use the standard PCI PM interface to put the device
+into PCI_D3hot and skip the execution of _PS3 (which is not what we do now,
+but that's only because acpi_pci_set_power_state() doesn't distinguish
+ACPI D3_hot from ACPI D3_cold).
 
-if (!!(pci_probe & PCI_PROBE_MASK & ~PCI_PROBE_MMCONF))
-       return 0;
+If the standard PCI PM interface is not supported, the PCI_D3hot state is not
+well defined for the device.
 
-> +
-> + =A0 =A0 =A0 /*
-> + =A0 =A0 =A0 =A0* Try to insert MMCFG information for host bridges w=
-ith _CBA method
-> + =A0 =A0 =A0 =A0*/
-> + =A0 =A0 =A0 status =3D acpi_evaluate_integer(root->device->handle, =
-METHOD_NAME__CBA,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0NULL, &base_addr);
-> + =A0 =A0 =A0 if (ACPI_SUCCESS(status)) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 result =3D pci_mmconfig_insert(root->se=
-gment,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0root->secondary.start,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0root->secondary.end,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0base_addr);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /*
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* MMCFG information for hot-pluggabl=
-e host bridges may have
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* already been added by __pci_mmcfg_=
-init();
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (result =3D=3D -EEXIST)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 result =3D 0;
-> + =A0 =A0 =A0 } else if (status =3D=3D AE_NOT_FOUND) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /*
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* Check whether MMCFG information ha=
-s been added for
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* host bridges without _CBA method.
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 rcu_read_lock();
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 cfg =3D pci_mmconfig_lookup(root->segme=
-nt, root->secondary.start);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!cfg || cfg->end_bus < root->second=
-ary.end)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 result =3D -ENODEV;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 rcu_read_unlock();
-> + =A0 =A0 =A0 } else
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 result =3D -ENODEV;
-> +
-> + =A0 =A0 =A0 return result;
-> +}
-> +
-> +int arch_acpi_pci_root_remove(struct acpi_pci_root *root)
-> +{
-> + =A0 =A0 =A0 acpi_status status;
-> + =A0 =A0 =A0 unsigned long long base_addr;
-> +
-> + =A0 =A0 =A0 /* MMCONFIG disabled */
-> + =A0 =A0 =A0 if ((pci_probe & PCI_PROBE_MMCONF) =3D=3D 0)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 0;
-
-again should be
-
-if (!!(pci_probe & PCI_PROBE_MASK & ~PCI_PROBE_MMCONF))
-       return 0;
-
-
-
-> +
-> + =A0 =A0 =A0 /* Remove MMCFG information for host bridges with _CBA =
-method */
-> + =A0 =A0 =A0 status =3D acpi_evaluate_integer(root->device->handle, =
-METHOD_NAME__CBA,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0NULL, &base_addr);
-> + =A0 =A0 =A0 if (ACPI_SUCCESS(status))
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return pci_mmconfig_delete(root->segmen=
-t,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0root->secondary.start,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0root->secondary.end,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0base_addr);
-> + =A0 =A0 =A0 else if (status !=3D AE_NOT_FOUND)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENODEV;
-> +
-> + =A0 =A0 =A0 return 0;
-> +}
-> +
-> =A0int __init pci_acpi_init(void)
-> =A0{
-> =A0 =A0 =A0 =A0struct pci_dev *dev =3D NULL;
-> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> index 4a7d575..a62bfa8 100644
-> --- a/drivers/acpi/pci_root.c
-> +++ b/drivers/acpi/pci_root.c
-> @@ -448,6 +448,16 @@ out:
-> =A0}
-> =A0EXPORT_SYMBOL(acpi_pci_osc_control_set);
->
-> +int __weak arch_acpi_pci_root_add(struct acpi_pci_root *root)
-> +{
-> + =A0 =A0 =A0 return 0;
-> +}
-> +
-> +int __weak arch_acpi_pci_root_remove(struct acpi_pci_root *root)
-> +{
-> + =A0 =A0 =A0 return 0;
-> +}
-> +
-> =A0static int __devinit acpi_pci_root_add(struct acpi_device *device)
-> =A0{
-> =A0 =A0 =A0 =A0unsigned long long segment, bus;
-> @@ -504,6 +514,14 @@ static int __devinit acpi_pci_root_add(struct ac=
-pi_device *device)
-> =A0 =A0 =A0 =A0strcpy(acpi_device_class(device), ACPI_PCI_ROOT_CLASS)=
-;
-> =A0 =A0 =A0 =A0device->driver_data =3D root;
->
-> + =A0 =A0 =A0 if (arch_acpi_pci_root_add(root)) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk(KERN_ERR PREFIX
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "can't add MMCFG inform=
-ation for Bus %04x:%02x\n",
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 root->segment, (unsigne=
-d int)root->secondary.start);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 result =3D -ENODEV;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto out_free;
-> + =A0 =A0 =A0 }
-> +
-> =A0 =A0 =A0 =A0/*
-> =A0 =A0 =A0 =A0 * All supported architectures that use ACPI have supp=
-ort for
-> =A0 =A0 =A0 =A0 * PCI domains, so we indicate this in _OSC support ca=
-pabilities.
-> @@ -629,6 +647,7 @@ out_del_root:
-> =A0 =A0 =A0 =A0list_del_rcu(&root->node);
-> =A0 =A0 =A0 =A0mutex_unlock(&acpi_pci_root_lock);
-> =A0 =A0 =A0 =A0synchronize_rcu();
-> + =A0 =A0 =A0 arch_acpi_pci_root_remove(root);
-> =A0out_free:
-> =A0 =A0 =A0 =A0kfree(root);
-> =A0 =A0 =A0 =A0return result;
-> @@ -679,6 +698,7 @@ out:
-> =A0 =A0 =A0 =A0list_del_rcu(&root->node);
-> =A0 =A0 =A0 =A0mutex_unlock(&acpi_pci_root_lock);
-> =A0 =A0 =A0 =A0synchronize_rcu();
-> + =A0 =A0 =A0 arch_acpi_pci_root_remove(root);
-> =A0 =A0 =A0 =A0kfree(root);
->
-> =A0 =A0 =A0 =A0return 0;
-> diff --git a/include/acpi/acnames.h b/include/acpi/acnames.h
-> index 38f5088..99bda75 100644
-> --- a/include/acpi/acnames.h
-> +++ b/include/acpi/acnames.h
-> @@ -62,6 +62,7 @@
-> =A0#define METHOD_NAME__AEI =A0 =A0 =A0 =A0"_AEI"
-> =A0#define METHOD_NAME__PRW =A0 =A0 =A0 =A0"_PRW"
-> =A0#define METHOD_NAME__SRS =A0 =A0 =A0 =A0"_SRS"
-> +#define METHOD_NAME__CBA =A0 =A0 =A0 "_CBA"
->
-> =A0/* Method names - these methods must appear at the namespace root =
-*/
->
-> diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
-> index ac93634..6e8dd10 100644
-> --- a/include/linux/pci-acpi.h
-> +++ b/include/linux/pci-acpi.h
-> @@ -37,6 +37,8 @@ static inline acpi_handle acpi_pci_get_bridge_handl=
-e(struct pci_bus *pbus)
-> =A0}
->
-> =A0void acpi_pci_root_rescan(void);
-> +int arch_acpi_pci_root_add(struct acpi_pci_root *root);
-> +int arch_acpi_pci_root_remove(struct acpi_pci_root *root);
->
-> =A0#else
->
-> --
-> 1.7.5.4
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Rafael
