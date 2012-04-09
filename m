@@ -1,86 +1,87 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: Re: [PATCH] ACPI: evaluate _PS3 when entering D3 Cold
-Date: Mon, 09 Apr 2012 10:24:45 +0800
-Message-ID: <1333938285.26747.8.camel@yhuang-dev>
-References: <1333217910-29579-1-git-send-email-aaron.lu@amd.com>
-	 <201204011049.08609.rjw@sisk.pl>
-	 <CAC=cRTOA2YGvBUxNrx0aDAT0ivUaRKFjL0RLrRr8+Kz18CfTmA@mail.gmail.com>
-	 <201204090141.36766.rjw@sisk.pl>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCHv3] ACPI-Thermal: Make Thermal trip points writeable
+Date: Mon, 09 Apr 2012 13:59:55 +0800
+Message-ID: <1333951195.2387.192.camel@rui.sh.intel.com>
+References: <1333710717-24691-1-git-send-email-durgadoss.r@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201204090141.36766.rjw@sisk.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: huang ying <huang.ying.caritas@gmail.com>, Zhang Rui <rui.zhang@intel.com>, Lin Ming <ming.m.lin@intel.com>, Aaron Lu <aaron.lu@amd.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Andiry Xu <andiry.xu@amd.com>, Alex He <alex.he@amd.com>, Yan Zheng <zheng.z.yan@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:5931 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751423Ab2DIF71 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 9 Apr 2012 01:59:27 -0400
+In-Reply-To: <1333710717-24691-1-git-send-email-durgadoss.r@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Durgadoss R <durgadoss.r@intel.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
 
-On Mon, 2012-04-09 at 01:41 +0200, Rafael J. Wysocki wrote:
-> > >
-> > > If _PS3 is present, then _PR3 may or may not be present.  In the latter case
-> > > we can only execute _PS3 in the hope it does the right thing, but as long
-> > > as we restore the device's configuration registers while resuming it (which is
-> > > done by all of our PCI device resume callback routines as far as I can say),
-> > > the only possible difference is the resume latency (which may be greater if
-> > > power is removed from the device entirely).
-> > 
-> > Another difference between D3Hot and D3Cold for PCI devices is config
-> > space availability.  That is, in D3Hot, you can access D3Hot, while in
-> > D3Cold you can not do that.  For example, PME poll logic need to be
-> > disabled if we put device into D3Cold.
-> 
-> We're not talking about PCI here.  PCI D3hot/D3cold is actually well defined,
-> while the ACPI "couterparts" aren't.  And BTW I know the properties of the PCI
-> power management states. :-)
+Hi, Durga,
 
-I see.
+On =E4=BA=94, 2012-04-06 at 16:41 +0530, Durgadoss R wrote:
+> Some of the thermal drivers using the Generic Thermal Framework
+> require (all/some) trip points to be writeable. This patch makes
+> the trip point temperatures writeable on a per-trip point basis,
+> and modifies the required function call in thermal.c. This patch
+> also updates the Documentation to reflect the new change.
+>=20
+I'm okay with this patch, except some minor comments.
 
-> > > However, in that case we shouldn't
-> > > turn off the device's power resources after _PS3 has been executed (if we
-> > > turned them off, power would be removed from the device, which wouldn't be
-> > > what PCI wanted).  So, to handle this particular case we need to pass
-> > > ACPI_STATE_D3_HOT to acpi_bus_set_power(), meaning "avoid going into D3_cold,
-> > > if possible".
-> > >
-> > > In both _PS3 and _PR3 are present, we should evaluate _PS3 and then turn off
-> > > the power resources listed as "off" by _PR3 (and turn on the power resoruces
-> > > listed by it as "on"), but we need to restore the configuration registers of
-> > > the device while resuming it.  I think this is handled correctly without
-> > > modifications.
-> > >
-> > > If neither _PS3 nor _PR3 is present, we shouldn't turn off the device's
-> > > power resources, because PCI doesn't want power to be removed from the device.
-> > 
-> > For PCI device plugged into system via slot (not integrated into PCH
-> > or motherboard), there is no ACPI handle associate with it, so that
-> > there are neither _PS3 nor _PR3 presented.  But it is still possible
-> > to turn off the device power via the associated PCIe port, which has
-> > _PS3 and/or _PR3 presented.  I think that situation is reasonable too.
-> 
-> Again, this hasn't anything to do with ACPI.
-> 
-> We're discussing standard interfaces exposed by ACPI.  That is, if I say
-> "to turn of the device's power resources" I mean to call _OFF for all of the
-> power resources listed by _PR0 for that device.  Nothing more or less than
-> that.
-> 
-> > > In summary, if PCI wants the device to be put into PCI_D3hot and _PS3 is
-> > > present, we should evaluate _PS3.  However, we shouldn't turn the device's
-> > > power resources off unless _PR3 is present, in which case we can turn off
-> > > the power resources listed by it as "off".
-> > 
-> > How to turn the device's power resources off without _PR3?  It may be
-> > possible via PCIe port as I said above.  Do you mean that?  Or
-> > something else?
-> 
-> If _PR0 is present, it returns the list of power resources needed by the
-> device.  If you turn them all off, the assumption is that power has been
-> removed from the device, so it is in D3(cold).
+> Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
 
-So.  If PCI wants the device to be put into PCI_D3hot and _PS3 is
-present.  We should evaluate _PS3 AND set the pci_dev->current_state to
-PCI_D3cold?
+Acked-by: Zhang Rui <rui.zhang@intel.com>
 
-Best Regards,
-Huang Ying
+> ---
+> v1
+> * patch1/2: Code for making trip points writeable
+> * patch2/2: Change the callee in thermal.c
+> v2
+> * Make both the changes in a single patch
+> * Update Documentation/thermal/sysfs-api.txt
+> v3
+> * Re-submitting, on top of the latest mainline kernel
+> ---
+>  Documentation/thermal/sysfs-api.txt |    4 +-
+>  drivers/acpi/thermal.c              |    4 +-
+>  drivers/thermal/thermal_sys.c       |  112 +++++++++++++++++++++++--=
+----------
+>  include/linux/thermal.h             |   10 ++-
+>  4 files changed, 87 insertions(+), 43 deletions(-)
+>=20
+
+> +/**
+>   * thermal_zone_device_register - register a new thermal zone device
+>   * @type:	the thermal zone device type
+>   * @trips:	the number of trip points the thermal zone support
+> + * @flag:	a bit string indicating the writeablility of trip points
+>   * @devdata:	private device data
+>   * @ops:	standard thermal zone device callbacks
+>   * @tc1:	thermal coefficient 1 for passive calculations
+> @@ -1107,7 +1147,7 @@ EXPORT_SYMBOL(thermal_zone_device_update);
+>   * section 11.1.5.1 of the ACPI specification 3.0.
+>   */
+>  struct thermal_zone_device *thermal_zone_device_register(char *type,
+> -	int trips, void *devdata,
+> +	int trips, int flag, void *devdata,
+>  	const struct thermal_zone_device_ops *ops,
+>  	int tc1, int tc2, int passive_delay, int polling_delay)
+>  {
+
+Do we need a simple check of the "flag" parameter?
+e.g,
+if (flag >> trips)
+    return -EINVAL;
+
+BTW, should we introduce some helper function like this
+THERMAL_SET_TRIP_WRITABLE (trip, flag) flag |=3D 1 << trip;
+
+thanks,
+rui
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
