@@ -1,85 +1,50 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCHv3] ACPI-Thermal: Make Thermal trip points writeable
-Date: Mon, 09 Apr 2012 13:59:55 +0800
-Message-ID: <1333951195.2387.192.camel@rui.sh.intel.com>
-References: <1333710717-24691-1-git-send-email-durgadoss.r@intel.com>
+From: Ang Way Chuang <wcang79@gmail.com>
+Subject: Re: ACPI reports critical temperature even the sensors data says otherwise
+Date: Mon, 9 Apr 2012 16:51:41 +0800
+Message-ID: <CAKJRshmJiFBpvjD2Lm2wBR3AchOdm-mSWuCd8zXK=HCAHvdtKQ@mail.gmail.com>
+References: <CAKJRsh=j36WH_e2KvJ6F-e5QWai3BP8YuEQUbGZK2vr1=ciJnA@mail.gmail.com>
+	<1333931948.2387.174.camel@rui.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:5931 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751423Ab2DIF71 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 9 Apr 2012 01:59:27 -0400
-In-Reply-To: <1333710717-24691-1-git-send-email-durgadoss.r@intel.com>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:50330 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753548Ab2DIIvm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Apr 2012 04:51:42 -0400
+Received: by pbcun15 with SMTP id un15so4795743pbc.19
+        for <linux-acpi@vger.kernel.org>; Mon, 09 Apr 2012 01:51:41 -0700 (PDT)
+In-Reply-To: <1333931948.2387.174.camel@rui.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Durgadoss R <durgadoss.r@intel.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-Hi, Durga,
+Thanks. Reported.
+https://bugzilla.kernel.org/show_bug.cgi?id=3D43075
+It seems like the bug occurs even when bluetooth is disabled. At this
+point, I am not sure what triggers the bug.
 
-On =E4=BA=94, 2012-04-06 at 16:41 +0530, Durgadoss R wrote:
-> Some of the thermal drivers using the Generic Thermal Framework
-> require (all/some) trip points to be writeable. This patch makes
-> the trip point temperatures writeable on a per-trip point basis,
-> and modifies the required function call in thermal.c. This patch
-> also updates the Documentation to reflect the new change.
->=20
-I'm okay with this patch, except some minor comments.
-
-> Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
-
-Acked-by: Zhang Rui <rui.zhang@intel.com>
-
-> ---
-> v1
-> * patch1/2: Code for making trip points writeable
-> * patch2/2: Change the callee in thermal.c
-> v2
-> * Make both the changes in a single patch
-> * Update Documentation/thermal/sysfs-api.txt
-> v3
-> * Re-submitting, on top of the latest mainline kernel
-> ---
->  Documentation/thermal/sysfs-api.txt |    4 +-
->  drivers/acpi/thermal.c              |    4 +-
->  drivers/thermal/thermal_sys.c       |  112 +++++++++++++++++++++++--=
-----------
->  include/linux/thermal.h             |   10 ++-
->  4 files changed, 87 insertions(+), 43 deletions(-)
->=20
-
-> +/**
->   * thermal_zone_device_register - register a new thermal zone device
->   * @type:	the thermal zone device type
->   * @trips:	the number of trip points the thermal zone support
-> + * @flag:	a bit string indicating the writeablility of trip points
->   * @devdata:	private device data
->   * @ops:	standard thermal zone device callbacks
->   * @tc1:	thermal coefficient 1 for passive calculations
-> @@ -1107,7 +1147,7 @@ EXPORT_SYMBOL(thermal_zone_device_update);
->   * section 11.1.5.1 of the ACPI specification 3.0.
->   */
->  struct thermal_zone_device *thermal_zone_device_register(char *type,
-> -	int trips, void *devdata,
-> +	int trips, int flag, void *devdata,
->  	const struct thermal_zone_device_ops *ops,
->  	int tc1, int tc2, int passive_delay, int polling_delay)
->  {
-
-Do we need a simple check of the "flag" parameter?
-e.g,
-if (flag >> trips)
-    return -EINVAL;
-
-BTW, should we introduce some helper function like this
-THERMAL_SET_TRIP_WRITABLE (trip, flag) flag |=3D 1 << trip;
-
-thanks,
-rui
-
-
+On 4/9/12, Zhang Rui <rui.zhang@intel.com> wrote:
+> On =E5=85=AD, 2012-04-07 at 20:08 +0800, Ang Way Chuang wrote:
+>> Hi all,
+>>    I am not sure if this is the right mailing list to ask for help. =
+I
+>> have a Dell Vostro 3350 that I had been using
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi=
+" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> please file a bug report at
+> https://bugzilla.kernel.org/enter_bug.cgi?product=3DACPI
+> please attach the output of acpidump as well.
+>
+> thanks,
+> rui
+>
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
