@@ -1,295 +1,86 @@
-From: Durgadoss R <durgadoss.r@intel.com>
-Subject: [PATCHv4] ACPI-Thermal: Make Thermal trip points writeable
-Date: Mon,  9 Apr 2012 14:48:21 +0530
-Message-ID: <1333963101-29499-1-git-send-email-durgadoss.r@intel.com>
+From: "Pandruvada, Srinivas" <srinivas.pandruvada@intel.com>
+Subject: RE: [PATCH] ACPI Battery: Added capacity
+Date: Mon, 9 Apr 2012 14:59:43 +0000
+Message-ID: <4FA419E87744DF4DAECD5BCE1214B7A9170E8316@ORSMSX104.amr.corp.intel.com>
+References: <1333672734-10536-1-git-send-email-srinivas.pandruvada@intel.com>
+ <4F7F984C.5010907@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:49129 "EHLO mga14.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:16630 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751520Ab2DIJRL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 9 Apr 2012 05:17:11 -0400
+	id S1755462Ab2DIO7p convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Apr 2012 10:59:45 -0400
+In-Reply-To: <4F7F984C.5010907@kernel.org>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: rui.zhang@intel.com, linux-acpi@vger.kernel.org, Durgadoss R <durgadoss.r@intel.com>
+To: Len Brown <lenb@kernel.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Some of the thermal drivers using the Generic Thermal Framework
-require (all/some) trip points to be writeable. This patch makes
-the trip point temperatures writeable on a per-trip point basis,
-and modifies the required function call in thermal.c. This patch
-also updates the Documentation to reflect the new change.
+This can be computed in user space. But this patch is targeting ANDROID, where this needs change in Android framework. Other battery drivers are providing this field, so added this field in ACPI battery also.
 
-Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
----
-v1
-* patch1/2: Code for making trip points writeable
-* patch2/2: Change the callee in thermal.c
-v2
-* Make both the changes in a single patch
-* Update Documentation/thermal/sysfs-api.txt
-v3
-* Re-submitting, on top of the latest mainline kernel
-v4
-* Added a check on the 'flag' parameter in tzd register function
----
- Documentation/thermal/sysfs-api.txt |    4 +-
- drivers/acpi/thermal.c              |    4 +-
- drivers/thermal/thermal_sys.c       |  115 +++++++++++++++++++++++-----------
- include/linux/thermal.h             |   10 ++-
- 4 files changed, 90 insertions(+), 43 deletions(-)
+Thanks,
+Srinivas
 
-diff --git a/Documentation/thermal/sysfs-api.txt b/Documentation/thermal/sysfs-api.txt
-index 1733ab9..0c7c423 100644
---- a/Documentation/thermal/sysfs-api.txt
-+++ b/Documentation/thermal/sysfs-api.txt
-@@ -32,7 +32,8 @@ temperature) and throttle appropriate devices.
- 
- 1.1 thermal zone device interface
- 1.1.1 struct thermal_zone_device *thermal_zone_device_register(char *name,
--		int trips, void *devdata, struct thermal_zone_device_ops *ops)
-+		int trips, int flag, void *devdata,
-+		struct thermal_zone_device_ops *ops)
- 
-     This interface function adds a new thermal zone device (sensor) to
-     /sys/class/thermal folder as thermal_zone[0-*]. It tries to bind all the
-@@ -40,6 +41,7 @@ temperature) and throttle appropriate devices.
- 
-     name: the thermal zone name.
-     trips: the total number of trip points this thermal zone supports.
-+    flag: Bit string: If 'n'th bit is set, then trip point 'n' is writeable.
-     devdata: device private data
-     ops: thermal zone device call-backs.
- 	.bind: bind the thermal zone device with a thermal cooling device.
-diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-index 7dbebea..2107d1b 100644
---- a/drivers/acpi/thermal.c
-+++ b/drivers/acpi/thermal.c
-@@ -845,7 +845,7 @@ static int acpi_thermal_register_thermal_zone(struct acpi_thermal *tz)
- 
- 	if (tz->trips.passive.flags.valid)
- 		tz->thermal_zone =
--			thermal_zone_device_register("acpitz", trips, tz,
-+			thermal_zone_device_register("acpitz", trips, 0, tz,
- 						     &acpi_thermal_zone_ops,
- 						     tz->trips.passive.tc1,
- 						     tz->trips.passive.tc2,
-@@ -853,7 +853,7 @@ static int acpi_thermal_register_thermal_zone(struct acpi_thermal *tz)
- 						     tz->polling_frequency*100);
- 	else
- 		tz->thermal_zone =
--			thermal_zone_device_register("acpitz", trips, tz,
-+			thermal_zone_device_register("acpitz", trips, 0, tz,
- 						     &acpi_thermal_zone_ops,
- 						     0, 0, 0,
- 						     tz->polling_frequency*100);
-diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
-index 022bacb..35b2e4d 100644
---- a/drivers/thermal/thermal_sys.c
-+++ b/drivers/thermal/thermal_sys.c
-@@ -196,6 +196,28 @@ trip_point_type_show(struct device *dev, struct device_attribute *attr,
- }
- 
- static ssize_t
-+trip_point_temp_store(struct device *dev, struct device_attribute *attr,
-+		     const char *buf, size_t count)
-+{
-+	struct thermal_zone_device *tz = to_thermal_zone(dev);
-+	int trip, ret;
-+	unsigned long temperature;
-+
-+	if (!tz->ops->set_trip_temp)
-+		return -EPERM;
-+
-+	if (!sscanf(attr->attr.name, "trip_point_%d_temp", &trip))
-+		return -EINVAL;
-+
-+	if (kstrtoul(buf, 10, &temperature))
-+		return -EINVAL;
-+
-+	ret = tz->ops->set_trip_temp(tz, trip, temperature);
-+
-+	return ret ? ret : count;
-+}
-+
-+static ssize_t
- trip_point_temp_show(struct device *dev, struct device_attribute *attr,
- 		     char *buf)
- {
-@@ -283,33 +305,6 @@ static DEVICE_ATTR(temp, 0444, temp_show, NULL);
- static DEVICE_ATTR(mode, 0644, mode_show, mode_store);
- static DEVICE_ATTR(passive, S_IRUGO | S_IWUSR, passive_show, passive_store);
- 
--static struct device_attribute trip_point_attrs[] = {
--	__ATTR(trip_point_0_type, 0444, trip_point_type_show, NULL),
--	__ATTR(trip_point_0_temp, 0444, trip_point_temp_show, NULL),
--	__ATTR(trip_point_1_type, 0444, trip_point_type_show, NULL),
--	__ATTR(trip_point_1_temp, 0444, trip_point_temp_show, NULL),
--	__ATTR(trip_point_2_type, 0444, trip_point_type_show, NULL),
--	__ATTR(trip_point_2_temp, 0444, trip_point_temp_show, NULL),
--	__ATTR(trip_point_3_type, 0444, trip_point_type_show, NULL),
--	__ATTR(trip_point_3_temp, 0444, trip_point_temp_show, NULL),
--	__ATTR(trip_point_4_type, 0444, trip_point_type_show, NULL),
--	__ATTR(trip_point_4_temp, 0444, trip_point_temp_show, NULL),
--	__ATTR(trip_point_5_type, 0444, trip_point_type_show, NULL),
--	__ATTR(trip_point_5_temp, 0444, trip_point_temp_show, NULL),
--	__ATTR(trip_point_6_type, 0444, trip_point_type_show, NULL),
--	__ATTR(trip_point_6_temp, 0444, trip_point_temp_show, NULL),
--	__ATTR(trip_point_7_type, 0444, trip_point_type_show, NULL),
--	__ATTR(trip_point_7_temp, 0444, trip_point_temp_show, NULL),
--	__ATTR(trip_point_8_type, 0444, trip_point_type_show, NULL),
--	__ATTR(trip_point_8_temp, 0444, trip_point_temp_show, NULL),
--	__ATTR(trip_point_9_type, 0444, trip_point_type_show, NULL),
--	__ATTR(trip_point_9_temp, 0444, trip_point_temp_show, NULL),
--	__ATTR(trip_point_10_type, 0444, trip_point_type_show, NULL),
--	__ATTR(trip_point_10_temp, 0444, trip_point_temp_show, NULL),
--	__ATTR(trip_point_11_type, 0444, trip_point_type_show, NULL),
--	__ATTR(trip_point_11_temp, 0444, trip_point_temp_show, NULL),
--};
--
- /* sys I/F for cooling device */
- #define to_cooling_device(_dev)	\
- 	container_of(_dev, struct thermal_cooling_device, device)
-@@ -1089,9 +1084,54 @@ leave:
- EXPORT_SYMBOL(thermal_zone_device_update);
- 
- /**
-+ * create_trip_type_attr - creates a trip point type attribute
-+ * @tz:		the thermal zone device
-+ * @indx:	index into the trip_type_attrs array
-+ */
-+static int create_trip_type_attr(struct thermal_zone_device *tz, int indx)
-+{
-+	char attr_name[THERMAL_NAME_LENGTH];
-+
-+	snprintf(attr_name, THERMAL_NAME_LENGTH, "trip_point_%d_type", indx);
-+
-+	sysfs_attr_init(&tz->trip_type_attrs[indx].attr);
-+	tz->trip_type_attrs[indx].attr.name = attr_name;
-+	tz->trip_type_attrs[indx].attr.mode = S_IRUGO;
-+	tz->trip_type_attrs[indx].show = trip_point_type_show;
-+
-+	return device_create_file(&tz->device, &tz->trip_type_attrs[indx]);
-+}
-+
-+/**
-+ * create_trip_temp_attr - creates a trip point temp attribute
-+ * @tz:		the thermal zone device
-+ * @indx:	index into the trip_type_attrs array
-+ * @writeable:	A flag: If 1, 'this' trip point is writeable; otherwise not
-+ */
-+static int create_trip_temp_attr(struct thermal_zone_device *tz,
-+				int indx, int writeable)
-+{
-+	char attr_name[THERMAL_NAME_LENGTH];
-+
-+	snprintf(attr_name, THERMAL_NAME_LENGTH, "trip_point_%d_temp", indx);
-+
-+	sysfs_attr_init(&tz->trip_temp_attrs[indx].attr);
-+	tz->trip_temp_attrs[indx].attr.name = attr_name;
-+	tz->trip_temp_attrs[indx].attr.mode = S_IRUGO;
-+	tz->trip_temp_attrs[indx].show = trip_point_temp_show;
-+	if (writeable) {
-+		tz->trip_temp_attrs[indx].attr.mode |= S_IWUSR;
-+		tz->trip_temp_attrs[indx].store = trip_point_temp_store;
-+	}
-+
-+	return device_create_file(&tz->device, &tz->trip_temp_attrs[indx]);
-+}
-+
-+/**
-  * thermal_zone_device_register - register a new thermal zone device
-  * @type:	the thermal zone device type
-  * @trips:	the number of trip points the thermal zone support
-+ * @flag:	a bit string indicating the writeablility of trip points
-  * @devdata:	private device data
-  * @ops:	standard thermal zone device callbacks
-  * @tc1:	thermal coefficient 1 for passive calculations
-@@ -1107,7 +1147,7 @@ EXPORT_SYMBOL(thermal_zone_device_update);
-  * section 11.1.5.1 of the ACPI specification 3.0.
-  */
- struct thermal_zone_device *thermal_zone_device_register(char *type,
--	int trips, void *devdata,
-+	int trips, int flag, void *devdata,
- 	const struct thermal_zone_device_ops *ops,
- 	int tc1, int tc2, int passive_delay, int polling_delay)
- {
-@@ -1124,6 +1164,9 @@ struct thermal_zone_device *thermal_zone_device_register(char *type,
- 	if (trips > THERMAL_MAX_TRIPS || trips < 0)
- 		return ERR_PTR(-EINVAL);
- 
-+	if (flag >> trips)
-+		return ERR_PTR(-EINVAL);
-+
- 	if (!ops || !ops->get_temp)
- 		return ERR_PTR(-EINVAL);
- 
-@@ -1176,14 +1219,14 @@ struct thermal_zone_device *thermal_zone_device_register(char *type,
- 	}
- 
- 	for (count = 0; count < trips; count++) {
--		result = device_create_file(&tz->device,
--					    &trip_point_attrs[count * 2]);
-+		result = create_trip_type_attr(tz, count);
- 		if (result)
--			break;
--		result = device_create_file(&tz->device,
--					    &trip_point_attrs[count * 2 + 1]);
-+			goto unregister;
-+		result = create_trip_temp_attr(tz, count,
-+						!!(flag & (1 << count)));
- 		if (result)
- 			goto unregister;
-+
- 		tz->ops->get_trip_type(tz, count, &trip_type);
- 		if (trip_type == THERMAL_TRIP_PASSIVE)
- 			passive = 1;
-@@ -1261,10 +1304,8 @@ void thermal_zone_device_unregister(struct thermal_zone_device *tz)
- 		device_remove_file(&tz->device, &dev_attr_mode);
- 
- 	for (count = 0; count < tz->trips; count++) {
--		device_remove_file(&tz->device,
--				   &trip_point_attrs[count * 2]);
--		device_remove_file(&tz->device,
--				   &trip_point_attrs[count * 2 + 1]);
-+		device_remove_file(&tz->device, &tz->trip_type_attrs[count]);
-+		device_remove_file(&tz->device, &tz->trip_temp_attrs[count]);
- 	}
- 	thermal_remove_hwmon_sysfs(tz);
- 	release_idr(&thermal_tz_idr, &thermal_idr_lock, tz->id);
-diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-index 796f1ff..825d4b0 100644
---- a/include/linux/thermal.h
-+++ b/include/linux/thermal.h
-@@ -58,6 +58,8 @@ struct thermal_zone_device_ops {
- 		enum thermal_trip_type *);
- 	int (*get_trip_temp) (struct thermal_zone_device *, int,
- 			      unsigned long *);
-+	int (*set_trip_temp) (struct thermal_zone_device *, int,
-+			      unsigned long);
- 	int (*get_crit_temp) (struct thermal_zone_device *, unsigned long *);
- 	int (*notify) (struct thermal_zone_device *, int,
- 		       enum thermal_trip_type);
-@@ -89,6 +91,8 @@ struct thermal_zone_device {
- 	int id;
- 	char type[THERMAL_NAME_LENGTH];
- 	struct device device;
-+	struct device_attribute trip_temp_attrs[THERMAL_MAX_TRIPS];
-+	struct device_attribute trip_type_attrs[THERMAL_MAX_TRIPS];
- 	void *devdata;
- 	int trips;
- 	int tc1;
-@@ -137,9 +141,9 @@ enum {
- };
- #define THERMAL_GENL_CMD_MAX (__THERMAL_GENL_CMD_MAX - 1)
- 
--struct thermal_zone_device *thermal_zone_device_register(char *, int, void *,
--		const struct thermal_zone_device_ops *, int tc1, int tc2,
--		int passive_freq, int polling_freq);
-+struct thermal_zone_device *thermal_zone_device_register(char *, int, int,
-+		void *, const struct thermal_zone_device_ops *, int tc1,
-+		int tc2, int passive_freq, int polling_freq);
- void thermal_zone_device_unregister(struct thermal_zone_device *);
- 
- int thermal_zone_bind_cooling_device(struct thermal_zone_device *, int,
--- 
-1.7.0.4
+-----Original Message-----
+From: Len Brown [mailto:lenb417@gmail.com] On Behalf Of Len Brown
+Sent: Friday, April 06, 2012 6:29 PM
+To: Pandruvada, Srinivas
+Cc: linux-acpi@vger.kernel.org
+Subject: Re: [PATCH] ACPI Battery: Added capacity
+
+Can't this be computed in user-space?
+
+-L
+
+On 04/05/2012 08:38 PM, srinivas pandruvada wrote:
+
+> Added Capacity field, which is a pre-defined power_supply property. 
+> Calculating capacity using current charge/energy and full 
+> charge/energy.
+> Some user mode implementations are relying on capacity field to show 
+> battery strength and power down decision.
+> 
+> Signed-off-by: srinivas pandruvada <srinivas.pandruvada@intel.com>
+> ---
+>  drivers/acpi/battery.c |    9 +++++++++
+>  1 files changed, 9 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c index 
+> fcc13ac..997b369 100644
+> --- a/drivers/acpi/battery.c
+> +++ b/drivers/acpi/battery.c
+> @@ -251,6 +251,13 @@ static int acpi_battery_get_property(struct power_supply *psy,
+>  		else
+>  			val->intval = battery->capacity_now * 1000;
+>  		break;
+> +	case POWER_SUPPLY_PROP_CAPACITY:
+> +		if (battery->capacity_now && battery->full_charge_capacity)
+> +			val->intval = battery->capacity_now * 100/
+> +					battery->full_charge_capacity;
+> +		else
+> +			val->intval = 0;
+> +		break;
+>  	case POWER_SUPPLY_PROP_MODEL_NAME:
+>  		val->strval = battery->model_number;
+>  		break;
+> @@ -277,6 +284,7 @@ static enum power_supply_property charge_battery_props[] = {
+>  	POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN,
+>  	POWER_SUPPLY_PROP_CHARGE_FULL,
+>  	POWER_SUPPLY_PROP_CHARGE_NOW,
+> +	POWER_SUPPLY_PROP_CAPACITY,
+>  	POWER_SUPPLY_PROP_MODEL_NAME,
+>  	POWER_SUPPLY_PROP_MANUFACTURER,
+>  	POWER_SUPPLY_PROP_SERIAL_NUMBER,
+> @@ -293,6 +301,7 @@ static enum power_supply_property energy_battery_props[] = {
+>  	POWER_SUPPLY_PROP_ENERGY_FULL_DESIGN,
+>  	POWER_SUPPLY_PROP_ENERGY_FULL,
+>  	POWER_SUPPLY_PROP_ENERGY_NOW,
+> +	POWER_SUPPLY_PROP_CAPACITY,
+>  	POWER_SUPPLY_PROP_MODEL_NAME,
+>  	POWER_SUPPLY_PROP_MANUFACTURER,
+>  	POWER_SUPPLY_PROP_SERIAL_NUMBER,
+
 
