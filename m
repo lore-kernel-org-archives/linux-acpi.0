@@ -1,96 +1,66 @@
 From: Jiang Liu <liuj97@gmail.com>
-Subject: [PATCH V2 1/6] PCI, x86: split out pci_mmcfg_check_reserved() for code reuse
-Date: Tue, 10 Apr 2012 00:22:43 +0800
-Message-ID: <1333988568-11282-2-git-send-email-jiang.liu@huawei.com>
+Subject: [PATCH V2 2/6] PCI, x86: split out pci_mmconfig_alloc() for code reuse
+Date: Tue, 10 Apr 2012 00:22:44 +0800
+Message-ID: <1333988568-11282-3-git-send-email-jiang.liu@huawei.com>
 References: <1333988568-11282-1-git-send-email-jiang.liu@huawei.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:40501 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757437Ab2DIQZd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Apr 2012 12:25:33 -0400
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1333988568-11282-1-git-send-email-jiang.liu@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
 To: Taku Izumi <izumi.taku@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Yinghai Lu <yinghai@kernel.org>
 Cc: Jiang Liu <jiang.liu@huawei.com>, Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <liuj97@gmail.com>, Keping Chen <chenkeping@huawei.com>, x86@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-Split out pci_mmcfg_check_reserved() for code reuse, which will be used
-when supporting PCI host bridge hotplug.
+Split out pci_mmconfig_alloc() for code reuse, which will be used
+when supporting PCI root bridge hotplug.
 
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
 ---
- arch/x86/pci/mmconfig-shared.c |   51 +++++++++++++++++++--------------------
- 1 files changed, 25 insertions(+), 26 deletions(-)
+ arch/x86/pci/mmconfig-shared.c |   19 +++++++++++++++----
+ 1 files changed, 15 insertions(+), 4 deletions(-)
 
 diff --git a/arch/x86/pci/mmconfig-shared.c b/arch/x86/pci/mmconfig-shared.c
-index 301e325..f799949 100644
+index f799949..5e2cd2a 100644
 --- a/arch/x86/pci/mmconfig-shared.c
 +++ b/arch/x86/pci/mmconfig-shared.c
-@@ -474,39 +474,38 @@ static int __init is_mmconf_reserved(check_reserved_t is_reserved,
- 	return valid;
+@@ -61,8 +61,9 @@ static __init void list_add_sorted(struct pci_mmcfg_region *new)
+ 	list_add_tail(&new->list, &pci_mmcfg_list);
  }
  
-+static int __devinit pci_mmcfg_check_reserved(struct pci_mmcfg_region *cfg,
-+					      int early)
+-static __init struct pci_mmcfg_region *pci_mmconfig_add(int segment, int start,
+-							int end, u64 addr)
++static __devinit struct pci_mmcfg_region *pci_mmconfig_alloc(int segment,
++							     int start,
++							     int end, u64 addr)
+ {
+ 	struct pci_mmcfg_region *new;
+ 	struct resource *res;
+@@ -79,8 +80,6 @@ static __init struct pci_mmcfg_region *pci_mmconfig_add(int segment, int start,
+ 	new->start_bus = start;
+ 	new->end_bus = end;
+ 
+-	list_add_sorted(new);
+-
+ 	res = &new->res;
+ 	res->start = addr + PCI_MMCFG_BUS_OFFSET(start);
+ 	res->end = addr + PCI_MMCFG_BUS_OFFSET(end + 1) - 1;
+@@ -96,6 +95,18 @@ static __init struct pci_mmcfg_region *pci_mmconfig_add(int segment, int start,
+ 	return new;
+ }
+ 
++static __init struct pci_mmcfg_region *pci_mmconfig_add(int segment, int start,
++							int end, u64 addr)
 +{
-+	if (!early && !acpi_disabled) {
-+		if (is_mmconf_reserved(is_acpi_reserved, cfg, 0))
-+			return 1;
-+		else
-+			printk(KERN_ERR FW_BUG PREFIX
-+			       "MMCONFIG at %pR not reserved in "
-+			       "ACPI motherboard resources\n",
-+			       &cfg->res);
-+	}
++	struct pci_mmcfg_region *new;
 +
-+	/* Don't try to do this check unless configuration
-+	   type 1 is available. how about type 2 ?*/
-+	if (raw_pci_ops)
-+		return is_mmconf_reserved(e820_all_mapped, cfg, 1);
++	new = pci_mmconfig_alloc(segment, start, end, addr);
++	if (new)
++		list_add_sorted(new);
 +
-+	return 0;
++	return new;
 +}
 +
- static void __init pci_mmcfg_reject_broken(int early)
+ struct pci_mmcfg_region *pci_mmconfig_lookup(int segment, int bus)
  {
  	struct pci_mmcfg_region *cfg;
- 
- 	list_for_each_entry(cfg, &pci_mmcfg_list, list) {
--		int valid = 0;
--
--		if (!early && !acpi_disabled) {
--			valid = is_mmconf_reserved(is_acpi_reserved, cfg, 0);
--
--			if (valid)
--				continue;
--			else
--				printk(KERN_ERR FW_BUG PREFIX
--				       "MMCONFIG at %pR not reserved in "
--				       "ACPI motherboard resources\n",
--				       &cfg->res);
-+		if (pci_mmcfg_check_reserved(cfg, early) == 0) {
-+			printk(KERN_INFO PREFIX "not using MMCONFIG\n");
-+			free_all_mmcfg();
-+			return;
- 		}
--
--		/* Don't try to do this check unless configuration
--		   type 1 is available. how about type 2 ?*/
--		if (raw_pci_ops)
--			valid = is_mmconf_reserved(e820_all_mapped, cfg, 1);
--
--		if (!valid)
--			goto reject;
- 	}
--
--	return;
--
--reject:
--	printk(KERN_INFO PREFIX "not using MMCONFIG\n");
--	free_all_mmcfg();
- }
- 
- static int __initdata known_bridge;
 -- 
 1.7.5.4
-
