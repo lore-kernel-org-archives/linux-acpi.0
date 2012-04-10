@@ -1,68 +1,218 @@
-From: Ang Way Chuang <wcang79@gmail.com>
-Subject: [PATCH]: Trivial modification to ACPI custom method doc
-Date: Tue, 10 Apr 2012 13:14:16 +0800
-Message-ID: <4F83C1A8.2010809@gmail.com>
+From: Jiang Liu <jiang.liu@huawei.com>
+Subject: Re: [PATCH V2 6/6] PCI, ACPI,
+ x86: update MMCFG information when hot-plugging PCI host bridges
+Date: Tue, 10 Apr 2012 14:26:44 +0800
+Message-ID: <4F83D2A4.5040209@huawei.com>
+References: <1333988568-11282-1-git-send-email-jiang.liu@huawei.com>
+ <1333988568-11282-7-git-send-email-jiang.liu@huawei.com>
+ <CAE9FiQWtA+PBsEgd3zakzvdNUgmVR42_yHK0DrM3Tn20jDU0Fg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pz0-f52.google.com ([209.85.210.52]:55935 "EHLO
-	mail-pz0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751321Ab2DJFOU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Apr 2012 01:14:20 -0400
-Received: by dake40 with SMTP id e40so6121251dak.11
-        for <linux-acpi@vger.kernel.org>; Mon, 09 Apr 2012 22:14:19 -0700 (PDT)
+Received: from szxga01-in.huawei.com ([58.251.152.64]:46458 "EHLO
+	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751864Ab2DJG3G (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Apr 2012 02:29:06 -0400
+In-reply-to: <CAE9FiQWtA+PBsEgd3zakzvdNUgmVR42_yHK0DrM3Tn20jDU0Fg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Jiang Liu <liuj97@gmail.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Keping Chen <chenkeping@huawei.com>, x86@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Trivial modification to ACPI custom method doc.
-
-Note: Yours truly is not a native speaker.
-
-Sign-off-by: Ang Way Chuang <wcang79@gmail.com>
+On 2012-4-10 2:00, Yinghai Lu wrote:
+> On Mon, Apr 9, 2012 at 9:22 AM, Jiang Liu<liuj97@gmail.com>  wrote:
+>> This patch enhances pci_root driver to update MMCFG information when
+>> hot-plugging PCI root bridges on x86 platforms.
+>>
+>> Signed-off-by: Jiang Liu<jiang.liu@huawei.com>
+>> ---
+>>   arch/x86/pci/acpi.c      |   66 ++++++++++++++++++++++++++++++++++++++++++++++
+>>   drivers/acpi/pci_root.c  |   20 ++++++++++++++
+>>   include/acpi/acnames.h   |    1 +
+>>   include/linux/pci-acpi.h |    2 +
+>>   4 files changed, 89 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+>> index da0149d..e38d9b7 100644
+>> --- a/arch/x86/pci/acpi.c
+>> +++ b/arch/x86/pci/acpi.c
+>> @@ -488,6 +488,72 @@ struct pci_bus * __devinit pci_acpi_scan_root(struct acpi_pci_root *root)
+>>         return bus;
+>>   }
+>>
+>> +int arch_acpi_pci_root_add(struct acpi_pci_root *root)
+>> +{
+>> +       int result = 0;
+>> +       acpi_status status;
+>> +       unsigned long long base_addr;
+>> +       struct pci_mmcfg_region *cfg;
+>> +
+>> +       /* MMCONFIG disabled */
+>> +       if ((pci_probe&  PCI_PROBE_MMCONF) == 0)
+>> +               return 0;
+>
+> should be
+>
+> if (!!(pci_probe&  PCI_PROBE_MASK&  ~PCI_PROBE_MMCONF))
+>         return 0;
+OK, will change to use this.
+I thought it's the same because it will clear all other PCI_PROBE_XXX
+flags if MMCONF is enabled. But it's more reliable to make sure all
+other PCI_PROBE_XXX flags are cleared.
 ---
-diff --git a/Documentation/acpi/method-customizing.txt b/Documentation/acpi/method-customizing.txt
-index 5f55373..9541709 100644
---- a/Documentation/acpi/method-customizing.txt
-+++ b/Documentation/acpi/method-customizing.txt
-@@ -13,12 +13,12 @@ Users can use this to
-    method such as _OFF, _ON, _STA, _INI, etc.
- For these cases, it is far simpler to dynamically install a single
- control method rather than override the entire DSDT, because kernel
--rebuild/reboot is not needed and test result can be got in minutes.
-+rebuild/reboot is not needed and test result can be obtained in minutes.
- 
- Note: Only ACPI METHOD can be overridden, any other object types like
-       "Device", "OperationRegion", are not recognized.
--Note: The same ACPI control method can be overridden for many times,
--      and it's always the latest one that used by Linux/kernel.
-+Note: The same ACPI control method can be overridden many times, Linux
-+      always uses the latest ACPI control method.
- Note: To get the ACPI debug object output (Store (AAAA, Debug)),
-       please run "echo 1 > /sys/module/acpi/parameters/aml_debug_output".
- 
-@@ -47,7 +47,9 @@ Note: To get the ACPI debug object output (Store (AAAA, Debug)),
-       e.g. "iasl psr.asl" (psr.aml is generated as a result)
-    f) mount debugfs by "mount -t debugfs none /sys/kernel/debug"
-    g) override the old method via the debugfs by running
--      "cat /tmp/psr.aml > /sys/kernel/debug/acpi/custom_method"
-+      "cat /tmp/psr.aml > /sys/kernel/debug/acpi/custom_method".
-+      If ACPI_CUSTOM_METHOD is compiled as a module. Please load
-+      the "custom_method" module first.
- 
- 2. insert a new method
-    This is easier than overriding an existing method.
-@@ -57,9 +59,9 @@ Note: To get the ACPI debug object output (Store (AAAA, Debug)),
- 3. undo your changes
-    The "undo" operation is not supported for a new inserted method
-    right now, i.e. we can not remove a method currently.
--   For an overrided method, in order to undo your changes, please
--   save a copy of the method original ASL code in step c) section 1,
--   and redo step c) ~ g) to override the method with the original one.
-+   To restore an overriden method to its original form, please
-+   save a copy of the method in the original ASL code in step c) section 1,
-+   and redo step c) ~ g) to restore the original method.
- 
- 
- Note: We can use a kernel with multiple custom ACPI method running,
+pci_probe = (pci_probe & ~PCI_PROBE_MASK) | PCI_PROBE_MMCONF;
+---
+>
+>> +
+>> +       /*
+>> +        * Try to insert MMCFG information for host bridges with _CBA method
+>> +        */
+>> +       status = acpi_evaluate_integer(root->device->handle, METHOD_NAME__CBA,
+>> +                                      NULL,&base_addr);
+>> +       if (ACPI_SUCCESS(status)) {
+>> +               result = pci_mmconfig_insert(root->segment,
+>> +                                            root->secondary.start,
+>> +                                            root->secondary.end,
+>> +                                            base_addr);
+>> +               /*
+>> +                * MMCFG information for hot-pluggable host bridges may have
+>> +                * already been added by __pci_mmcfg_init();
+>> +                */
+>> +               if (result == -EEXIST)
+>> +                       result = 0;
+>> +       } else if (status == AE_NOT_FOUND) {
+>> +               /*
+>> +                * Check whether MMCFG information has been added for
+>> +                * host bridges without _CBA method.
+>> +                */
+>> +               rcu_read_lock();
+>> +               cfg = pci_mmconfig_lookup(root->segment, root->secondary.start);
+>> +               if (!cfg || cfg->end_bus<  root->secondary.end)
+>> +                       result = -ENODEV;
+>> +               rcu_read_unlock();
+>> +       } else
+>> +               result = -ENODEV;
+>> +
+>> +       return result;
+>> +}
+>> +
+>> +int arch_acpi_pci_root_remove(struct acpi_pci_root *root)
+>> +{
+>> +       acpi_status status;
+>> +       unsigned long long base_addr;
+>> +
+>> +       /* MMCONFIG disabled */
+>> +       if ((pci_probe&  PCI_PROBE_MMCONF) == 0)
+>> +               return 0;
+>
+> again should be
+>
+> if (!!(pci_probe&  PCI_PROBE_MASK&  ~PCI_PROBE_MMCONF))
+>         return 0;
+>
+>
+>
+>> +
+>> +       /* Remove MMCFG information for host bridges with _CBA method */
+>> +       status = acpi_evaluate_integer(root->device->handle, METHOD_NAME__CBA,
+>> +                                      NULL,&base_addr);
+>> +       if (ACPI_SUCCESS(status))
+>> +               return pci_mmconfig_delete(root->segment,
+>> +                                          root->secondary.start,
+>> +                                          root->secondary.end,
+>> +                                          base_addr);
+>> +       else if (status != AE_NOT_FOUND)
+>> +               return -ENODEV;
+>> +
+>> +       return 0;
+>> +}
+>> +
+>>   int __init pci_acpi_init(void)
+>>   {
+>>         struct pci_dev *dev = NULL;
+>> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+>> index 4a7d575..a62bfa8 100644
+>> --- a/drivers/acpi/pci_root.c
+>> +++ b/drivers/acpi/pci_root.c
+>> @@ -448,6 +448,16 @@ out:
+>>   }
+>>   EXPORT_SYMBOL(acpi_pci_osc_control_set);
+>>
+>> +int __weak arch_acpi_pci_root_add(struct acpi_pci_root *root)
+>> +{
+>> +       return 0;
+>> +}
+>> +
+>> +int __weak arch_acpi_pci_root_remove(struct acpi_pci_root *root)
+>> +{
+>> +       return 0;
+>> +}
+>> +
+>>   static int __devinit acpi_pci_root_add(struct acpi_device *device)
+>>   {
+>>         unsigned long long segment, bus;
+>> @@ -504,6 +514,14 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
+>>         strcpy(acpi_device_class(device), ACPI_PCI_ROOT_CLASS);
+>>         device->driver_data = root;
+>>
+>> +       if (arch_acpi_pci_root_add(root)) {
+>> +               printk(KERN_ERR PREFIX
+>> +                       "can't add MMCFG information for Bus %04x:%02x\n",
+>> +                       root->segment, (unsigned int)root->secondary.start);
+>> +               result = -ENODEV;
+>> +               goto out_free;
+>> +       }
+>> +
+>>         /*
+>>          * All supported architectures that use ACPI have support for
+>>          * PCI domains, so we indicate this in _OSC support capabilities.
+>> @@ -629,6 +647,7 @@ out_del_root:
+>>         list_del_rcu(&root->node);
+>>         mutex_unlock(&acpi_pci_root_lock);
+>>         synchronize_rcu();
+>> +       arch_acpi_pci_root_remove(root);
+>>   out_free:
+>>         kfree(root);
+>>         return result;
+>> @@ -679,6 +698,7 @@ out:
+>>         list_del_rcu(&root->node);
+>>         mutex_unlock(&acpi_pci_root_lock);
+>>         synchronize_rcu();
+>> +       arch_acpi_pci_root_remove(root);
+>>         kfree(root);
+>>
+>>         return 0;
+>> diff --git a/include/acpi/acnames.h b/include/acpi/acnames.h
+>> index 38f5088..99bda75 100644
+>> --- a/include/acpi/acnames.h
+>> +++ b/include/acpi/acnames.h
+>> @@ -62,6 +62,7 @@
+>>   #define METHOD_NAME__AEI        "_AEI"
+>>   #define METHOD_NAME__PRW        "_PRW"
+>>   #define METHOD_NAME__SRS        "_SRS"
+>> +#define METHOD_NAME__CBA       "_CBA"
+>>
+>>   /* Method names - these methods must appear at the namespace root */
+>>
+>> diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
+>> index ac93634..6e8dd10 100644
+>> --- a/include/linux/pci-acpi.h
+>> +++ b/include/linux/pci-acpi.h
+>> @@ -37,6 +37,8 @@ static inline acpi_handle acpi_pci_get_bridge_handle(struct pci_bus *pbus)
+>>   }
+>>
+>>   void acpi_pci_root_rescan(void);
+>> +int arch_acpi_pci_root_add(struct acpi_pci_root *root);
+>> +int arch_acpi_pci_root_remove(struct acpi_pci_root *root);
+>>
+>>   #else
+>>
+>> --
+>> 1.7.5.4
+>>
+>
+> .
+>
+
+
