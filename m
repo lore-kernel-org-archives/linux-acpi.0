@@ -1,194 +1,68 @@
-From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: Re: [PATCH 1/2] ACPI: Convert wake_sleep_flags to a value instead of
- function (v2)
-Date: Mon, 9 Apr 2012 23:22:46 -0400
-Message-ID: <20120410032246.GB17300@phenom.dumpdata.com>
-References: <1334025246-8811-1-git-send-email-konrad.wilk@oracle.com>
- <1334025246-8811-2-git-send-email-konrad.wilk@oracle.com>
- <1334026226.3044.4.camel@minggr>
+From: Ang Way Chuang <wcang79@gmail.com>
+Subject: [PATCH]: Trivial modification to ACPI custom method doc
+Date: Tue, 10 Apr 2012 13:14:16 +0800
+Message-ID: <4F83C1A8.2010809@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:22336 "EHLO
-	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753938Ab2DJD1h (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Apr 2012 23:27:37 -0400
-Content-Disposition: inline
-In-Reply-To: <1334026226.3044.4.camel@minggr>
+Received: from mail-pz0-f52.google.com ([209.85.210.52]:55935 "EHLO
+	mail-pz0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751321Ab2DJFOU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Apr 2012 01:14:20 -0400
+Received: by dake40 with SMTP id e40so6121251dak.11
+        for <linux-acpi@vger.kernel.org>; Mon, 09 Apr 2012 22:14:19 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lin Ming <ming.m.lin@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, konrad.r.wilk@gmail.com
+To: linux-acpi@vger.kernel.org
 
-On Tue, Apr 10, 2012 at 10:50:26AM +0800, Lin Ming wrote:
-> On Mon, 2012-04-09 at 22:34 -0400, Konrad Rzeszutek Wilk wrote:
-> > With commit a2ef5c4fd44ce3922435139393b89f2cce47f576
-> > "ACPI: Move module parameter gts and bfs to sleep.c" the wake_sleep_flags
-> > is required when calling acpi_enter_sleep_state, which means
-> > that if there are functions outside the sleep.c code they
-> > can't get get the wake_sleep_flags values.
-> > 
-> > This converts the function in to a exported value and converts
-> > the module config operands to a function.
-> > 
-> > [v2: Parameters can be turned on/off dynamically]
+Trivial modification to ACPI custom method doc.
 
-v3 version:
+Note: Yours truly is not a native speaker.
 
-commit 667c0e7d85ac2fb8b852b9b777b78e392e6a72e9
-Author: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Date:   Fri Apr 6 17:53:51 2012 -0400
-
-    ACPI: Convert wake_sleep_flags to a value instead of function (v2)
-    
-    With commit a2ef5c4fd44ce3922435139393b89f2cce47f576
-    "ACPI: Move module parameter gts and bfs to sleep.c" the wake_sleep_flags
-    is required when calling acpi_enter_sleep_state, which means
-    that if there are functions outside the sleep.c code they
-    can't get get the wake_sleep_flags values.
-    
-    This converts the function in to a exported value and converts
-    the module config operands to a function.
-    
-    Acked-by: Lin Ming <ming.m.lin@intel.com>
-    [v2: Parameters can be turned on/off dynamically]
-    [v3: unsigned char -> u8]
-    Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-
-diff --git a/arch/x86/kernel/acpi/sleep.h b/arch/x86/kernel/acpi/sleep.h
-index 416d4be..fe5fdda 100644
---- a/arch/x86/kernel/acpi/sleep.h
-+++ b/arch/x86/kernel/acpi/sleep.h
-@@ -9,6 +9,8 @@ extern long saved_magic;
+Sign-off-by: Ang Way Chuang <wcang79@gmail.com>
+---
+diff --git a/Documentation/acpi/method-customizing.txt b/Documentation/acpi/method-customizing.txt
+index 5f55373..9541709 100644
+--- a/Documentation/acpi/method-customizing.txt
++++ b/Documentation/acpi/method-customizing.txt
+@@ -13,12 +13,12 @@ Users can use this to
+    method such as _OFF, _ON, _STA, _INI, etc.
+ For these cases, it is far simpler to dynamically install a single
+ control method rather than override the entire DSDT, because kernel
+-rebuild/reboot is not needed and test result can be got in minutes.
++rebuild/reboot is not needed and test result can be obtained in minutes.
  
- extern int wakeup_pmode_return;
+ Note: Only ACPI METHOD can be overridden, any other object types like
+       "Device", "OperationRegion", are not recognized.
+-Note: The same ACPI control method can be overridden for many times,
+-      and it's always the latest one that used by Linux/kernel.
++Note: The same ACPI control method can be overridden many times, Linux
++      always uses the latest ACPI control method.
+ Note: To get the ACPI debug object output (Store (AAAA, Debug)),
+       please run "echo 1 > /sys/module/acpi/parameters/aml_debug_output".
  
-+extern u8 wake_sleep_flags;
-+
- extern unsigned long acpi_copy_wakeup_routine(unsigned long);
- extern void wakeup_long64(void);
+@@ -47,7 +47,9 @@ Note: To get the ACPI debug object output (Store (AAAA, Debug)),
+       e.g. "iasl psr.asl" (psr.aml is generated as a result)
+    f) mount debugfs by "mount -t debugfs none /sys/kernel/debug"
+    g) override the old method via the debugfs by running
+-      "cat /tmp/psr.aml > /sys/kernel/debug/acpi/custom_method"
++      "cat /tmp/psr.aml > /sys/kernel/debug/acpi/custom_method".
++      If ACPI_CUSTOM_METHOD is compiled as a module. Please load
++      the "custom_method" module first.
  
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index 1d661b5..f81f5d4 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -28,23 +28,33 @@
- #include "internal.h"
- #include "sleep.h"
+ 2. insert a new method
+    This is easier than overriding an existing method.
+@@ -57,9 +59,9 @@ Note: To get the ACPI debug object output (Store (AAAA, Debug)),
+ 3. undo your changes
+    The "undo" operation is not supported for a new inserted method
+    right now, i.e. we can not remove a method currently.
+-   For an overrided method, in order to undo your changes, please
+-   save a copy of the method original ASL code in step c) section 1,
+-   and redo step c) ~ g) to override the method with the original one.
++   To restore an overriden method to its original form, please
++   save a copy of the method in the original ASL code in step c) section 1,
++   and redo step c) ~ g) to restore the original method.
  
-+u8 wake_sleep_flags = ACPI_NO_OPTIONAL_METHODS;
- static unsigned int gts, bfs;
--module_param(gts, uint, 0644);
--module_param(bfs, uint, 0644);
--MODULE_PARM_DESC(gts, "Enable evaluation of _GTS on suspend.");
--MODULE_PARM_DESC(bfs, "Enable evaluation of _BFS on resume".);
--
--static u8 wake_sleep_flags(void)
-+static int set_param_wake_flag(const char *val, struct kernel_param *kp)
- {
--	u8 flags = ACPI_NO_OPTIONAL_METHODS;
-+	int ret = param_set_int(val, kp);
  
--	if (gts)
--		flags |= ACPI_EXECUTE_GTS;
--	if (bfs)
--		flags |= ACPI_EXECUTE_BFS;
-+	if (ret)
-+		return ret;
- 
--	return flags;
-+	if (val == (const char *)&gts) {
-+		if (gts)
-+			wake_sleep_flags |= ACPI_EXECUTE_GTS;
-+		else
-+			wake_sleep_flags &= ~ACPI_EXECUTE_GTS;
-+	}
-+	if (val == (const char *)&bfs) {
-+		if (bfs)
-+			wake_sleep_flags |= ACPI_EXECUTE_BFS;
-+		else
-+			wake_sleep_flags &= ~ACPI_EXECUTE_BFS;
-+	}
-+	return ret;
- }
-+module_param_call(gts, set_param_wake_flag, param_get_int, &gts, 0644);
-+module_param_call(bfs, set_param_wake_flag, param_get_int, &bfs, 0644);
-+MODULE_PARM_DESC(gts, "Enable evaluation of _GTS on suspend.");
-+MODULE_PARM_DESC(bfs, "Enable evaluation of _BFS on resume".);
- 
- static u8 sleep_states[ACPI_S_STATE_COUNT];
- 
-@@ -263,7 +273,6 @@ static int acpi_suspend_enter(suspend_state_t pm_state)
- {
- 	acpi_status status = AE_OK;
- 	u32 acpi_state = acpi_target_sleep_state;
--	u8 flags = wake_sleep_flags();
- 	int error;
- 
- 	ACPI_FLUSH_CPU_CACHE();
-@@ -271,7 +280,7 @@ static int acpi_suspend_enter(suspend_state_t pm_state)
- 	switch (acpi_state) {
- 	case ACPI_STATE_S1:
- 		barrier();
--		status = acpi_enter_sleep_state(acpi_state, flags);
-+		status = acpi_enter_sleep_state(acpi_state, wake_sleep_flags);
- 		break;
- 
- 	case ACPI_STATE_S3:
-@@ -286,7 +295,7 @@ static int acpi_suspend_enter(suspend_state_t pm_state)
- 	acpi_write_bit_register(ACPI_BITREG_SCI_ENABLE, 1);
- 
- 	/* Reprogram control registers and execute _BFS */
--	acpi_leave_sleep_state_prep(acpi_state, flags);
-+	acpi_leave_sleep_state_prep(acpi_state, wake_sleep_flags);
- 
- 	/* ACPI 3.0 specs (P62) says that it's the responsibility
- 	 * of the OSPM to clear the status bit [ implying that the
-@@ -550,30 +559,27 @@ static int acpi_hibernation_begin(void)
- 
- static int acpi_hibernation_enter(void)
- {
--	u8 flags = wake_sleep_flags();
- 	acpi_status status = AE_OK;
- 
- 	ACPI_FLUSH_CPU_CACHE();
- 
- 	/* This shouldn't return.  If it returns, we have a problem */
--	status = acpi_enter_sleep_state(ACPI_STATE_S4, flags);
-+	status = acpi_enter_sleep_state(ACPI_STATE_S4, wake_sleep_flags);
- 	/* Reprogram control registers and execute _BFS */
--	acpi_leave_sleep_state_prep(ACPI_STATE_S4, flags);
-+	acpi_leave_sleep_state_prep(ACPI_STATE_S4, wake_sleep_flags);
- 
- 	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
- }
- 
- static void acpi_hibernation_leave(void)
- {
--	u8 flags = wake_sleep_flags();
--
- 	/*
- 	 * If ACPI is not enabled by the BIOS and the boot kernel, we need to
- 	 * enable it here.
- 	 */
- 	acpi_enable();
- 	/* Reprogram control registers and execute _BFS */
--	acpi_leave_sleep_state_prep(ACPI_STATE_S4, flags);
-+	acpi_leave_sleep_state_prep(ACPI_STATE_S4, wake_sleep_flags);
- 	/* Check the hardware signature */
- 	if (facs && s4_hardware_signature != facs->hardware_signature) {
- 		printk(KERN_EMERG "ACPI: Hardware changed while hibernated, "
-@@ -828,12 +834,10 @@ static void acpi_power_off_prepare(void)
- 
- static void acpi_power_off(void)
- {
--	u8 flags = wake_sleep_flags();
--
- 	/* acpi_sleep_prepare(ACPI_STATE_S5) should have already been called */
- 	printk(KERN_DEBUG "%s called\n", __func__);
- 	local_irq_disable();
--	acpi_enter_sleep_state(ACPI_STATE_S5, flags);
-+	acpi_enter_sleep_state(ACPI_STATE_S5, wake_sleep_flags);
- }
- 
- /*
+ Note: We can use a kernel with multiple custom ACPI method running,
