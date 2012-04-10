@@ -1,218 +1,55 @@
-From: Jiang Liu <jiang.liu@huawei.com>
-Subject: Re: [PATCH V2 6/6] PCI, ACPI,
- x86: update MMCFG information when hot-plugging PCI host bridges
-Date: Tue, 10 Apr 2012 14:26:44 +0800
-Message-ID: <4F83D2A4.5040209@huawei.com>
-References: <1333988568-11282-1-git-send-email-jiang.liu@huawei.com>
- <1333988568-11282-7-git-send-email-jiang.liu@huawei.com>
- <CAE9FiQWtA+PBsEgd3zakzvdNUgmVR42_yHK0DrM3Tn20jDU0Fg@mail.gmail.com>
+From: "Lan, Tianyu" <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH V2 1/4] ACPI: Fix up _PLD methods
+Date: Tue, 10 Apr 2012 07:56:40 +0000
+Message-ID: <4CFBC02C07DA244CA19D6815A05BE6EE05C77B@SHSMSX101.ccr.corp.intel.com>
+References: <1331588747-1247-1-git-send-email-mjg@redhat.com>
+ <20120313213207.GA23216@kroah.com> <20120313213850.GB22956@srcf.ucam.org>
+ <20120313214941.GA4534@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([58.251.152.64]:46458 "EHLO
-	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751864Ab2DJG3G (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Apr 2012 02:29:06 -0400
-In-reply-to: <CAE9FiQWtA+PBsEgd3zakzvdNUgmVR42_yHK0DrM3Tn20jDU0Fg@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20120313214941.GA4534-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Cc: "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Jiang Liu <liuj97@gmail.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Keping Chen <chenkeping@huawei.com>, x86@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On 2012-4-10 2:00, Yinghai Lu wrote:
-> On Mon, Apr 9, 2012 at 9:22 AM, Jiang Liu<liuj97@gmail.com>  wrote:
->> This patch enhances pci_root driver to update MMCFG information when
->> hot-plugging PCI root bridges on x86 platforms.
->>
->> Signed-off-by: Jiang Liu<jiang.liu@huawei.com>
->> ---
->>   arch/x86/pci/acpi.c      |   66 ++++++++++++++++++++++++++++++++++++++++++++++
->>   drivers/acpi/pci_root.c  |   20 ++++++++++++++
->>   include/acpi/acnames.h   |    1 +
->>   include/linux/pci-acpi.h |    2 +
->>   4 files changed, 89 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
->> index da0149d..e38d9b7 100644
->> --- a/arch/x86/pci/acpi.c
->> +++ b/arch/x86/pci/acpi.c
->> @@ -488,6 +488,72 @@ struct pci_bus * __devinit pci_acpi_scan_root(struct acpi_pci_root *root)
->>         return bus;
->>   }
->>
->> +int arch_acpi_pci_root_add(struct acpi_pci_root *root)
->> +{
->> +       int result = 0;
->> +       acpi_status status;
->> +       unsigned long long base_addr;
->> +       struct pci_mmcfg_region *cfg;
->> +
->> +       /* MMCONFIG disabled */
->> +       if ((pci_probe&  PCI_PROBE_MMCONF) == 0)
->> +               return 0;
->
-> should be
->
-> if (!!(pci_probe&  PCI_PROBE_MASK&  ~PCI_PROBE_MMCONF))
->         return 0;
-OK, will change to use this.
-I thought it's the same because it will clear all other PCI_PROBE_XXX
-flags if MMCONF is enabled. But it's more reliable to make sure all
-other PCI_PROBE_XXX flags are cleared.
----
-pci_probe = (pci_probe & ~PCI_PROBE_MASK) | PCI_PROBE_MMCONF;
----
->
->> +
->> +       /*
->> +        * Try to insert MMCFG information for host bridges with _CBA method
->> +        */
->> +       status = acpi_evaluate_integer(root->device->handle, METHOD_NAME__CBA,
->> +                                      NULL,&base_addr);
->> +       if (ACPI_SUCCESS(status)) {
->> +               result = pci_mmconfig_insert(root->segment,
->> +                                            root->secondary.start,
->> +                                            root->secondary.end,
->> +                                            base_addr);
->> +               /*
->> +                * MMCFG information for hot-pluggable host bridges may have
->> +                * already been added by __pci_mmcfg_init();
->> +                */
->> +               if (result == -EEXIST)
->> +                       result = 0;
->> +       } else if (status == AE_NOT_FOUND) {
->> +               /*
->> +                * Check whether MMCFG information has been added for
->> +                * host bridges without _CBA method.
->> +                */
->> +               rcu_read_lock();
->> +               cfg = pci_mmconfig_lookup(root->segment, root->secondary.start);
->> +               if (!cfg || cfg->end_bus<  root->secondary.end)
->> +                       result = -ENODEV;
->> +               rcu_read_unlock();
->> +       } else
->> +               result = -ENODEV;
->> +
->> +       return result;
->> +}
->> +
->> +int arch_acpi_pci_root_remove(struct acpi_pci_root *root)
->> +{
->> +       acpi_status status;
->> +       unsigned long long base_addr;
->> +
->> +       /* MMCONFIG disabled */
->> +       if ((pci_probe&  PCI_PROBE_MMCONF) == 0)
->> +               return 0;
->
-> again should be
->
-> if (!!(pci_probe&  PCI_PROBE_MASK&  ~PCI_PROBE_MMCONF))
->         return 0;
->
->
->
->> +
->> +       /* Remove MMCFG information for host bridges with _CBA method */
->> +       status = acpi_evaluate_integer(root->device->handle, METHOD_NAME__CBA,
->> +                                      NULL,&base_addr);
->> +       if (ACPI_SUCCESS(status))
->> +               return pci_mmconfig_delete(root->segment,
->> +                                          root->secondary.start,
->> +                                          root->secondary.end,
->> +                                          base_addr);
->> +       else if (status != AE_NOT_FOUND)
->> +               return -ENODEV;
->> +
->> +       return 0;
->> +}
->> +
->>   int __init pci_acpi_init(void)
->>   {
->>         struct pci_dev *dev = NULL;
->> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
->> index 4a7d575..a62bfa8 100644
->> --- a/drivers/acpi/pci_root.c
->> +++ b/drivers/acpi/pci_root.c
->> @@ -448,6 +448,16 @@ out:
->>   }
->>   EXPORT_SYMBOL(acpi_pci_osc_control_set);
->>
->> +int __weak arch_acpi_pci_root_add(struct acpi_pci_root *root)
->> +{
->> +       return 0;
->> +}
->> +
->> +int __weak arch_acpi_pci_root_remove(struct acpi_pci_root *root)
->> +{
->> +       return 0;
->> +}
->> +
->>   static int __devinit acpi_pci_root_add(struct acpi_device *device)
->>   {
->>         unsigned long long segment, bus;
->> @@ -504,6 +514,14 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
->>         strcpy(acpi_device_class(device), ACPI_PCI_ROOT_CLASS);
->>         device->driver_data = root;
->>
->> +       if (arch_acpi_pci_root_add(root)) {
->> +               printk(KERN_ERR PREFIX
->> +                       "can't add MMCFG information for Bus %04x:%02x\n",
->> +                       root->segment, (unsigned int)root->secondary.start);
->> +               result = -ENODEV;
->> +               goto out_free;
->> +       }
->> +
->>         /*
->>          * All supported architectures that use ACPI have support for
->>          * PCI domains, so we indicate this in _OSC support capabilities.
->> @@ -629,6 +647,7 @@ out_del_root:
->>         list_del_rcu(&root->node);
->>         mutex_unlock(&acpi_pci_root_lock);
->>         synchronize_rcu();
->> +       arch_acpi_pci_root_remove(root);
->>   out_free:
->>         kfree(root);
->>         return result;
->> @@ -679,6 +698,7 @@ out:
->>         list_del_rcu(&root->node);
->>         mutex_unlock(&acpi_pci_root_lock);
->>         synchronize_rcu();
->> +       arch_acpi_pci_root_remove(root);
->>         kfree(root);
->>
->>         return 0;
->> diff --git a/include/acpi/acnames.h b/include/acpi/acnames.h
->> index 38f5088..99bda75 100644
->> --- a/include/acpi/acnames.h
->> +++ b/include/acpi/acnames.h
->> @@ -62,6 +62,7 @@
->>   #define METHOD_NAME__AEI        "_AEI"
->>   #define METHOD_NAME__PRW        "_PRW"
->>   #define METHOD_NAME__SRS        "_SRS"
->> +#define METHOD_NAME__CBA       "_CBA"
->>
->>   /* Method names - these methods must appear at the namespace root */
->>
->> diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
->> index ac93634..6e8dd10 100644
->> --- a/include/linux/pci-acpi.h
->> +++ b/include/linux/pci-acpi.h
->> @@ -37,6 +37,8 @@ static inline acpi_handle acpi_pci_get_bridge_handle(struct pci_bus *pbus)
->>   }
->>
->>   void acpi_pci_root_rescan(void);
->> +int arch_acpi_pci_root_add(struct acpi_pci_root *root);
->> +int arch_acpi_pci_root_remove(struct acpi_pci_root *root);
->>
->>   #else
->>
->> --
->> 1.7.5.4
->>
->
-> .
->
+The new version of the patch has been merged in 3.4
+	http://marc.info/?l=linux-acpi&m=133311010407354&w=2
 
+Best Regards 
+Tianyu Lan 
 
+-----Original Message-----
+From: linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-acpi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Greg KH
+Sent: Wednesday, March 14, 2012 5:50 AM
+To: Matthew Garrett
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Subject: Re: [PATCH V2 1/4] ACPI: Fix up _PLD methods
+
+On Tue, Mar 13, 2012 at 09:38:50PM +0000, Matthew Garrett wrote:
+> On Tue, Mar 13, 2012 at 02:32:07PM -0700, Greg KH wrote:
+> > On Mon, Mar 12, 2012 at 05:45:44PM -0400, Matthew Garrett wrote:
+> > > _PLD is defined as returning a package of buffers, but many 
+> > > implementations simply return a buffer. Fix this up.
+> > > 
+> > > (Original patch by Bob Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>)
+> > 
+> > Does that mean the "From:" line should be set to Bob?
+> > 
+> > Any objection from the ACPI developers for me to apply this series?
+> 
+> Bob's asked me to hold off on this - he has a better patch for acpica 
+> that he'll post later this month.
+
+Ok, so I'll drop the whole series, I guess this will miss 3.4 then :(
+
+greg k-h
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
