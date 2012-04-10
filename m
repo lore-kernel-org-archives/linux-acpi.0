@@ -1,38 +1,87 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH 0/5] ACPI: Add _OST support for ACPI hotplug
-Date: Tue, 10 Apr 2012 16:21:46 -0600
-Message-ID: <1334096510-17319-1-git-send-email-toshi.kani@hp.com>
+Subject: [PATCH 3/4] ACPI: Add _OST support for ACPI CPU hotplug
+Date: Tue, 10 Apr 2012 16:21:49 -0600
+Message-ID: <1334096510-17319-4-git-send-email-toshi.kani@hp.com>
+References: <1334096510-17319-1-git-send-email-toshi.kani@hp.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1334096510-17319-1-git-send-email-toshi.kani@hp.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: lenb@kernel.org, linux-acpi@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>
 List-Id: linux-acpi@vger.kernel.org
 
-This series of patches supports ACPI _OST (OSPM Status Indication)
-method for ACPI-based CPU and memory hotplug operations.  After
-ACPI-based hotplug operation completed, OSPM calls _OST to convey
-the completion status to ACPI firmware.  If _OST is not present,
-this change has no effect on the platform.
+Changed acpi_processor_hotplug_notify() to call ACPI _OST method
+when ACPI-based CPU hotplug operation completed.
 
-The _OST definition can be found in section 6.3.5 of ACPI 5.0 spec.
-The HPPF spec below also describes hotplug flows with _OST.
-
-  DIG64 Hot-Plug & Partitioning Flow (HPPF) Specification R1.0
-  http://www.dig64.org/home/DIG64_HPPF_R1_0.pdf
-
-The change was tested by overriding DSDT with fake _OST methods.
-
+Signed-off-by: Toshi Kani <toshi.kani@hp.com>
 ---
-Toshi Kani (4):
- ACPI: Set hotplug _OST support bit to _OSC
- ACPI: Add acpi_evaluate_ost() for calling _OST
- ACPI: Add _OST support for ACPI CPU hotplug
- ACPI: Add _OST support for ACPI memory hotplug
+ drivers/acpi/processor_driver.c |   28 ++++++++++++++++++++--------
+ 1 files changed, 20 insertions(+), 8 deletions(-)
 
- drivers/acpi/acpi_memhotplug.c  |   43 +++++++++++++++++++++++++++++----------
- drivers/acpi/bus.c              |    5 ++++
- drivers/acpi/processor_driver.c |   28 ++++++++++++++++++-------
- drivers/acpi/utils.c            |   34 ++++++++++++++++++++++++++++++
- include/acpi/acpi_bus.h         |    3 ++
- include/linux/acpi.h            |   26 ++++++++++++++++++++++-
- 6 files changed, 119 insertions(+), 20 deletions(-)
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index 0734086..5d9b5a8 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -701,9 +701,9 @@ static void acpi_processor_hotplug_notify(acpi_handle handle,
+ {
+ 	struct acpi_processor *pr;
+ 	struct acpi_device *device = NULL;
++	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE; /* default */
+ 	int result;
+ 
+-
+ 	switch (event) {
+ 	case ACPI_NOTIFY_BUS_CHECK:
+ 	case ACPI_NOTIFY_DEVICE_CHECK:
+@@ -715,14 +715,18 @@ static void acpi_processor_hotplug_notify(acpi_handle handle,
+ 		if (!is_processor_present(handle))
+ 			break;
+ 
+-		if (acpi_bus_get_device(handle, &device)) {
+-			result = acpi_processor_device_add(handle, &device);
+-			if (result)
+-				printk(KERN_ERR PREFIX
+-					    "Unable to add the device\n");
++		if (!acpi_bus_get_device(handle, &device))
++			break;
++
++		result = acpi_processor_device_add(handle, &device);
++		if (result) {
++			printk(KERN_ERR PREFIX "Unable to add the device\n");
+ 			break;
+ 		}
++
++		ost_code = ACPI_OST_SC_SUCCESS;
+ 		break;
++
+ 	case ACPI_NOTIFY_EJECT_REQUEST:
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 				  "received ACPI_NOTIFY_EJECT_REQUEST\n"));
+@@ -736,15 +740,23 @@ static void acpi_processor_hotplug_notify(acpi_handle handle,
+ 		if (!pr) {
+ 			printk(KERN_ERR PREFIX
+ 				    "Driver data is NULL, dropping EJECT\n");
+-			return;
++			break;
+ 		}
++
++		/* REVISIT: update when eject is supported */
++		ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
+ 		break;
++
+ 	default:
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 				  "Unsupported event [0x%x]\n", event));
+-		break;
++
++		/* non-hotplug event; possibly handled by other handler */
++		return;
+ 	}
+ 
++	/* Inform firmware that the hotplug operation has completed */
++	(void) acpi_evaluate_ost(handle, event, ost_code, NULL);
+ 	return;
+ }
+ 
+-- 
+1.7.7.6
