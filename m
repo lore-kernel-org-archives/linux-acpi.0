@@ -1,41 +1,134 @@
-From: Shuah Khan <shuahkhan@gmail.com>
-Subject: Re: [PATCH 0/5] ACPI: Add _OST support for ACPI hotplug
-Date: Thu, 12 Apr 2012 08:19:13 -0600
-Message-ID: <1334240353.2222.3.camel@lorien2>
-References: <1334096510-17319-1-git-send-email-toshi.kani@hp.com>
-	 <1334161991.2226.18.camel@lorien2>
-	 <1334170247.20190.34.camel@misato.fc.hp.com>
-Reply-To: shuahkhan@gmail.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Daniel Drake <dsd@laptop.org>
+Subject: [PATCH] ACPI: generate wakeup events on fixed power button
+Date: Thu, 12 Apr 2012 17:35:14 +0100 (BST)
+Message-ID: <20120412163514.487C09D401E@zog.reactivated.net>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0026.austin.hp.com ([15.216.28.33]:2280 "EHLO
-	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964814Ab2DLOTQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Apr 2012 10:19:16 -0400
-In-Reply-To: <1334170247.20190.34.camel@misato.fc.hp.com>
+Received: from queueout02-winn.ispmail.ntl.com ([81.103.221.56]:15819 "EHLO
+	queueout02-winn.ispmail.ntl.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753906Ab2DLSsC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 12 Apr 2012 14:48:02 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: shuahkhan@gmail.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, pgf@laptop.org, dilinger@queued.net, linux-pm@vger.kernel.org
 
+When the system is woken up by the ACPI fixed power button, currently there
+is no way of userspace becoming aware that the power button was pressed.
 
-> Hi Shuah,
-> 
-> The fake _OST methods print arguments to verify successful execution of
-> the methods.  Since the purpose of _OST is firmware-internal
-> communication, there is no difference in testing on real firmware from
-> the OS perspective.  Overriding DSDT with fake ACPI methods is a
-> well-established and widely used testing method as well.
+OLPC would like to know this, so that we can respond appropriately.
+For example, if the system was woken up by a network packet, we know
+we can go back to sleep very quickly. But if the user explicitly woke the
+system with the power button, we're going to want to stay awake for a
+while.
 
-Toshi,
+The wakeup count mechanism seems like a good fit for communicating this.
+Mark the fixed power button as wakeup-enabled, and increment its wakeup
+counter when the system is woken with the power button. (The wakeup counter
+is also incremented when the power button is pressed during system
+operation; this is already handled by an existing acpi-button codepath).
 
-This patch hasn't gone through sufficient new functionality testing as
-the only testing that was done was exercising it with stubbed out
-firmware calls. I am not clear on how much regression testing this patch
-has undergone. Sorry, it doesn't give me the warm and fuzzies.
+Signed-off-by: Daniel Drake <dsd@laptop.org>
+---
+ drivers/acpi/scan.c  |    1 +
+ drivers/acpi/sleep.c |   43 +++++++++++++++++++++++++++++++++++++++++--
+ 2 files changed, 42 insertions(+), 2 deletions(-)
 
--- Shuah
-
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 767e2dc..bf1f4f7 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -1566,6 +1566,7 @@ static int acpi_bus_scan_fixed(void)
+ 						ACPI_BUS_TYPE_POWER_BUTTON,
+ 						ACPI_STA_DEFAULT,
+ 						&ops);
++		device_init_wakeup(&device->dev, true);
+ 	}
+ 
+ 	if ((acpi_gbl_FADT.flags & ACPI_FADT_SLEEP_BUTTON) == 0) {
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index 1d661b5..2c88796 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -47,6 +47,7 @@ static u8 wake_sleep_flags(void)
+ }
+ 
+ static u8 sleep_states[ACPI_S_STATE_COUNT];
++static bool pwr_btn_event_pending;
+ 
+ static void acpi_sleep_tts_switch(u32 acpi_state)
+ {
+@@ -176,6 +177,14 @@ static int acpi_pm_prepare(void)
+ 	return error;
+ }
+ 
++static int find_powerf_dev(struct device *dev, void *data)
++{
++	struct acpi_device *device = to_acpi_device(dev);
++	const char *hid = acpi_device_hid(device);
++
++	return !strcmp(hid, ACPI_BUTTON_HID_POWERF);
++}
++
+ /**
+  *	acpi_pm_finish - Instruct the platform to leave a sleep state.
+  *
+@@ -184,6 +193,7 @@ static int acpi_pm_prepare(void)
+  */
+ static void acpi_pm_finish(void)
+ {
++	struct device *pwr_btn_dev;
+ 	u32 acpi_state = acpi_target_sleep_state;
+ 
+ 	acpi_ec_unblock_transactions();
+@@ -201,6 +211,21 @@ static void acpi_pm_finish(void)
+ 	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
+ 
+ 	acpi_target_sleep_state = ACPI_STATE_S0;
++
++	/* If we were woken with the fixed power button, provide a small
++	 * hint to userspace in the form of a wakeup event on the fixed power
++	 * button device (if it can be found).
++	 *
++	 * We delay the event generation til now, as the PM layer requires
++	 * timekeeping to be running before we generate events. */
++	if (!pwr_btn_event_pending)
++		return;
++
++	pwr_btn_event_pending = false;
++	pwr_btn_dev = bus_find_device(&acpi_bus_type, NULL, NULL,
++				      find_powerf_dev);
++	if (pwr_btn_dev)
++		pm_wakeup_event(pwr_btn_dev, 0);
+ }
+ 
+ /**
+@@ -291,9 +316,23 @@ static int acpi_suspend_enter(suspend_state_t pm_state)
+ 	/* ACPI 3.0 specs (P62) says that it's the responsibility
+ 	 * of the OSPM to clear the status bit [ implying that the
+ 	 * POWER_BUTTON event should not reach userspace ]
++	 *
++	 * However, we do generate a small hint for userspace in the form of
++	 * a wakeup event. We flag this condition for now and generate the
++	 * event later, as we're currently too early in resume to be able to
++	 * generate wakeup events.
+ 	 */
+-	if (ACPI_SUCCESS(status) && (acpi_state == ACPI_STATE_S3))
+-		acpi_clear_event(ACPI_EVENT_POWER_BUTTON);
++	if (ACPI_SUCCESS(status) && (acpi_state == ACPI_STATE_S3)) {
++		acpi_event_status pwr_btn_status;
++
++		acpi_get_event_status(ACPI_EVENT_POWER_BUTTON, &pwr_btn_status);
++
++		if (pwr_btn_status & ACPI_EVENT_FLAG_SET) {
++			acpi_clear_event(ACPI_EVENT_POWER_BUTTON);
++			/* Flag for later */
++			pwr_btn_event_pending = true;
++		}
++	}
+ 
+ 	/*
+ 	 * Disable and clear GPE status before interrupt is enabled. Some GPEs
+-- 
+1.7.7.6
 
