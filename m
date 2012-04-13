@@ -1,47 +1,35 @@
-From: "Luck, Tony: <tony.luck@intel.com>"@mail.linuxfoundation.org
-Subject: [PATCH] Use safe_halt() rather than halt() in
-	acpi_idle_play_deay()
-Date: Tue, 03 Apr 2012 09:37:28 -0700
-Message-ID: <4f7b27487632dad07@agluck-desktop.sc.intel.com>
-References: <4F79EBAA.7040602@amd.com>
+From: Shuah Khan <shuahkhan@gmail.com>
+Subject: Re: [PATCH 0/5] ACPI: Add _OST support for ACPI hotplug
+Date: Fri, 13 Apr 2012 12:34:49 -0600
+Message-ID: <1334342089.3422.5.camel@lorien2>
+References: <1334096510-17319-1-git-send-email-toshi.kani@hp.com>
+	 <1334161991.2226.18.camel@lorien2>
+	 <1334170247.20190.34.camel@misato.fc.hp.com>
+	 <1334240353.2222.3.camel@lorien2> <4F88371D.7030305@gmail.com>
+	 <1334330617.2250.4.camel@lorien2>
+	 <1334333152.20190.85.camel@misato.fc.hp.com>
+Reply-To: shuahkhan@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <4F79EBAA.7040602@amd.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Boris Ostrovsky <boris.ostrovsky@amd.com>
-Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, Len Brown <len.brown@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g1t0027.austin.hp.com ([15.216.28.34]:27223 "EHLO
+	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751970Ab2DMSev (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Apr 2012 14:34:51 -0400
+In-Reply-To: <1334333152.20190.85.camel@misato.fc.hp.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: shuahkhan@gmail.com, Jiang Liu <liuj97@gmail.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-ACPI code is shared by arch/x86 and arch/ia64. ia64 doesn't provide a plain
-"halt()" function.  Use safe_halt() instead.
 
-Signed-off-by: Tony Luck <tony.luck@intel.com>
+> I would like to explain more detail about my testing.  Unlike other ACPI
+> methods, the functionality of _OST method is not defined by the spec.
+> It is all up to the firmware implementation.  
 
----
+A good reason why this patch requires more testing than on simulated
+firmware code that is based on one single firmware implementation.
 
-E-mail discussion indicated this would be OK. Please check on x86
-before applying.
+-- Shuah
 
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index b3447f6..f3decb3 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -786,7 +786,7 @@ static int acpi_idle_play_dead(struct cpuidle_device *dev, int index)
- 	while (1) {
- 
- 		if (cx->entry_method == ACPI_CSTATE_HALT)
--			halt();
-+			safe_halt();
- 		else if (cx->entry_method == ACPI_CSTATE_SYSTEMIO) {
- 			inb(cx->address);
- 			/* See comment in acpi_idle_do_entry() */
