@@ -1,48 +1,41 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH 0/5] ACPI: Add _OST support for ACPI hotplug
-Date: Mon, 16 Apr 2012 12:24:16 -0600
-Message-ID: <1334600656.20190.139.camel@misato.fc.hp.com>
-References: <1334096510-17319-1-git-send-email-toshi.kani@hp.com>
-	 <1334161991.2226.18.camel@lorien2>
-	 <1334170247.20190.34.camel@misato.fc.hp.com>
-	 <1334240353.2222.3.camel@lorien2> <4F88371D.7030305@gmail.com>
-	 <1334330617.2250.4.camel@lorien2>
-	 <1334333152.20190.85.camel@misato.fc.hp.com>
-	 <1334342089.3422.5.camel@lorien2>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC PATCH] PCIe: Add PCIe runtime D3cold support
+Date: Mon, 16 Apr 2012 23:11:37 +0200
+Message-ID: <201204162311.37499.rjw@sisk.pl>
+References: <4F8790F6.5080408@intel.com> <201204132141.58063.rjw@sisk.pl> <4F8BCF00.3020004@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: Text/Plain;
+  charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0026.austin.hp.com ([15.216.28.33]:39119 "EHLO
-	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750823Ab2DPSZd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Apr 2012 14:25:33 -0400
-In-Reply-To: <1334342089.3422.5.camel@lorien2>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <4F8BCF00.3020004@intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Yan, Zheng" <zheng.z.yan@intel.com>
+Cc: bhelgaas@google.com, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-pm@vger.kernel.org, Lin Ming <ming.m.lin@intel.com>, Zhang Rui <rui.zhang@intel.com>, huang ying <huang.ying.caritas@gmail.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: shuahkhan@gmail.com
-Cc: Jiang Liu <liuj97@gmail.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, 2012-04-13 at 12:34 -0600, Shuah Khan wrote:
-> > I would like to explain more detail about my testing.  Unlike other ACPI
-> > methods, the functionality of _OST method is not defined by the spec.
-> > It is all up to the firmware implementation.  
+On Monday, April 16, 2012, Yan, Zheng wrote:
+> On 04/14/2012 03:41 AM, Rafael J. Wysocki wrote:
+> >> > @@ -296,7 +296,8 @@ static void acpi_pci_propagate_run_wake(struct pci_bus *bus, bool enable)
+> >> >  
+> >> >  static int acpi_pci_run_wake(struct pci_dev *dev, bool enable)
+> >> >  {
+> >> > -	if (dev->pme_interrupt)
+> >> > +	/* PME interrupt isn't available in the D3cold case */
+> >> > +	if (dev->pme_interrupt && !dev->runtime_d3cold)
+> >
+> > This whole thing is wrong.  First off, I don't think that the runtime_d3cold
+> > flag makes any sense.  We already cover that in dev->pme_support.
+> > 
+> > Second, pme_interrupt means that the _root_ _port_, not the device itself will
+> > trigger an interrupt whenever the device sends the PME message to it (which
+> > very well may happen for a device in D3_cold woken up by an external signal).
+> > 
 > 
-> A good reason why this patch requires more testing than on simulated
-> firmware code that is based on one single firmware implementation.
+> I rechecked this. The port does trigger PME interrupt, but after the WAKE# signal
+> restores device power. So my comments "PME interrupt isn't available in the D3cold
+> case" is wrong, but setup ACPI wakeup is still required.
 
-Thanks Shuah for the guidance.  Do they summarize your point properly?
+What exactly do you mean by "setup ACPI wakeup"?
 
-1. Testing a new feature on simulated / virtualized environment alone is
-not sufficient.
-
-2. Pre-enablement of a new feature is not allowed.
-
-3. Contributing code that supports a new feature shall wait until there
-are multiple firmware implementations available for the testing.
-
-I like clear guidance, but this may be challenging for emerging
-features.
--Toshi 
-
-
+Rafael
