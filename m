@@ -1,59 +1,58 @@
-From: Michael Tokarev <mjt@tls.msk.ru>
-Subject: Recent intel Cedarview motherboards: does not poweroff
-Date: Sun, 15 Apr 2012 23:20:04 +0400
-Message-ID: <4F8B1F64.9030502@msgid.tls.msk.ru>
+From: Lin Ming <ming.m.lin@intel.com>
+Subject: Re: [RFC PATCH] PCIe: Add PCIe runtime D3cold support
+Date: Mon, 16 Apr 2012 08:48:31 +0800
+Message-ID: <1334537311.11188.118.camel@minggr>
+References: <4F8790F6.5080408@intel.com>  <201204132141.58063.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from isrv.corpit.ru ([86.62.121.231]:53663 "EHLO isrv.corpit.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750789Ab2DOTUI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 15 Apr 2012 15:20:08 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <201204132141.58063.rjw@sisk.pl>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "Yan, Zheng" <zheng.z.yan@intel.com>, bhelgaas@google.com, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-pm@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, huang ying <huang.ying.caritas@gmail.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Linux-kernel <linux-kernel@vger.kernel.org>
-Cc: linux-acpi@vger.kernel.org
 
-Hello.
+On Fri, 2012-04-13 at 21:41 +0200, Rafael J. Wysocki wrote:
+> Hi,
+> 
+> On Friday, April 13, 2012, Yan, Zheng wrote:
+> > Hi all,
+> > 
+> > This patch adds PCIe runtime D3cold support, namely cut power supply for functions
+> > beneath a PCIe port when they all have entered D3. A device in D3cold can only
+> > generate wake event through the WAKE# pin. Because we can not access to a device's
+> > configure space while it's in D3cold, pme_poll is disabled for devices in D3cold.
+> > 
+> > Any comment will be appreciated.
+> > 
+> > Signed-off-by: Zheng Yan <zheng.z.yan@intel.com>
+> > ---
+> > diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+> > index 0f150f2..e210e8cb 100644
+> > --- a/drivers/pci/pci-acpi.c
+> > +++ b/drivers/pci/pci-acpi.c
+> > @@ -224,7 +224,7 @@ static int acpi_pci_set_power_state(struct pci_dev *dev, pci_power_t state)
+> >  		[PCI_D1] = ACPI_STATE_D1,
+> >  		[PCI_D2] = ACPI_STATE_D2,
+> >  		[PCI_D3hot] = ACPI_STATE_D3,
+> > -		[PCI_D3cold] = ACPI_STATE_D3
+> > +		[PCI_D3cold] = ACPI_STATE_D3_COLD
+> >  	};
+> >  	int error = -EINVAL;
+> >  
+> 
+> Please don't use that ACPI_STATE_D3_COLD thing, it's not defined correctly.
+> 
+> We should define ACPI_STATE_D3_COLD == ACPI_STATE_D3 and add ACPI_STATE_D3_HOT
+> instead.  I'll prepare a patch for that over the weekend if no one has done
+> that already.
 
-Intel produced a set of very nice mini-ITX boards with new Cedarview
-Atom CPUs onboard -- D2500CC, D2700MUD, D2800MT etc.  Apparently
-all of these boards have issues powering off from linux.
+Hi Rafael,
 
-Here's the last few lines left on the screen when the system should
-turn the power off:
+Have you started to write the patch?
 
-ACPI: Preparing to enter system sleep state S5
-ACPI Error (psargs-8359): [\_SB_.PCI0.LPCB.TPM_.PTS_] Namespace lookup failure, AE_NOT_FOUND
-ACPI Error (psparse-8537): Method parse/execution failed [\_PTS] (Node f703c504), AE_NOT_FOUND
-Disabling non-boot CPUs ...
-CPU1 is now offline
-SNP alternatives: switching to UP code
-Power down.
-_
+If not, I can do it.
 
-
-The cursor is blinking, and power staus on.
-
-Is there anything can be done with this?
-
-Thanks!
-
-
-Besides, these boards have a bios bug which is kinda difficult to work
-around if you don't know how.  Even with latest BIOS, the beasts don't
-REboot if the active partition is something not FAT/NTFS -- eg, any linux
-native filesystem.  It boots fine after power on, but on reboot, instead
-of displaying bootloader prompt, the screen becomes blank with cursor
-blinking at the upper left corner, and after about 30..40 seconds staying
-in this state and not reacting to Ctrl+Alt+Del, the system reboots, ad
-infinitum.  One can powercycle the motherboard and it will boot again
-(just once again), or it is possible to enter bios settings and save
-settings (without changing anything) -- this way it will also boot, but
-also just once.  The workaround is to create a small fat16 /boot partition...
-
-Maybe this information will save quite some time and frustration to
-someone... ;)
-
-/mjt
+Thanks,
+Lin Ming
