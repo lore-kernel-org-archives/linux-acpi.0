@@ -1,35 +1,42 @@
-From: Marc MERLIN <marc@merlins.org>
-Subject: How to detect reason for ACPI wakeup?
-Date: Tue, 17 Apr 2012 10:17:09 -0700
-Message-ID: <20120417171709.GC5632@merlins.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Subject: [PATCH] gts and bfs fixes (v3).
+Date: Tue, 17 Apr 2012 14:29:17 -0400
+Message-ID: <1334687359-9970-1-git-send-email-konrad.wilk@oracle.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from magic.merlins.org ([209.81.13.136]:52199 "EHLO
-	mail1.merlins.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753946Ab2DQRRK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Apr 2012 13:17:10 -0400
-Received: from merlin by mail1.merlins.org with local (Exim 4.77 #2)
-	id 1SKC1e-0006Bb-14
-	for <linux-acpi@vger.kernel.org>; Tue, 17 Apr 2012 10:17:10 -0700
-Content-Disposition: inline
+Received: from rcsinet15.oracle.com ([148.87.113.117]:47935 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751207Ab2DQSeb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Apr 2012 14:34:31 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, ming.m.lin@intel.com, hpa@zytor.com, rjw@sisk.pl, x86@kernel.org
 
-Howdy,
+Since v2 [https://lkml.org/lkml/2012/4/9/474]
+ - ditched the assembler version and used a C wrapper
 
-My HTPC goes to sleep (S3) and resumes just fine (via RTC or WOL).
+With git commit a2ef5c4fd44ce3922435139393b89f2cce47f576
+"ACPI: Move module parameter gts and bfs to sleep.c" the
+sampling of gts/bfs module parameters flag by acpi_enter_sleep_state
+has been moved. It has been moved out of the inner ACPI code and
+out in the more x86 specific. This means that any caller of
+the exported acpi_enter_sleep_state function needs to provide
+two parameters now: sleep state and the bit flag whether to us _GTS|_BFS.
 
-My problem is that I need to know whether it woke up from RTC or WOL and I
-find nothing in dmesg that gives me a clue for the wakeup reason.
+All of the callers of acpi_enter_sleep_state did that, with
+the exception of the assembler version and as well any
+third-party callers of acpi_enter_sleep_state.
 
-Is it something that I can get from somewhere?
+These two patches expose 'wake_sleep_flags' as the product
+of the gts/bfs module parameter invocation. And also use said
+flag in the assembler 'do_suspend_lowlevel()' function.
 
-Thanks,
-Marc
--- 
-"A mouse is a device used to point at the xterm you want to type in" - A.S.R.
-Microsoft is to operating systems ....
-                                      .... what McDonalds is to gourmet cooking
-Home page: http://marc.merlins.org/  
+Konrad Rzeszutek Wilk (2):
+      ACPI: Convert wake_sleep_flags to a value instead of function (v4)
+      x86/acpi: Call acpi_enter_sleep_state via an asmlinkage C function from assembler.
+
+ arch/x86/kernel/acpi/sleep.c     |    4 +++
+ arch/x86/kernel/acpi/sleep.h     |    4 +++
+ arch/x86/kernel/acpi/wakeup_32.S |    3 +-
+ arch/x86/kernel/acpi/wakeup_64.S |    3 +-
+ drivers/acpi/sleep.c             |   52 ++++++++++++++++++++-----------------
+ 5 files changed, 38 insertions(+), 28 deletions(-)
