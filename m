@@ -1,112 +1,59 @@
-From: huang ying <huang.ying.caritas@gmail.com>
-Subject: Re: [PATCH 1/6] ACPI: D3cold state is always valid
-Date: Tue, 17 Apr 2012 14:03:34 +0800
-Message-ID: <CAC=cRTPkFM5=az2B0A22miqt_X+XxcWPLrqPfeeRabho9yx-1Q@mail.gmail.com>
-References: <1334641676-14566-1-git-send-email-ming.m.lin@intel.com>
-	<1334641676-14566-2-git-send-email-ming.m.lin@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:55631 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751201Ab2DQGDf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Apr 2012 02:03:35 -0400
-In-Reply-To: <1334641676-14566-2-git-send-email-ming.m.lin@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 0/7] usb/acpi: Add binding usb device with acpi
+Date: Tue, 17 Apr 2012 14:01:55 +0800
+Message-ID: <1334642522-22021-1-git-send-email-tianyu.lan@intel.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lin Ming <ming.m.lin@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.og>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Aaron Lu <aaron.lu@amd.com>
 
-On Tue, Apr 17, 2012 at 1:47 PM, Lin Ming <ming.m.lin@intel.com> wrote:
-> ACPI_STATE_D3 actually means ACPI D3hot which is not always valid.
-> Instead, ACPI D3cold is always valid.
->
-> Signed-off-by: Lin Ming <ming.m.lin@intel.com>
-> ---
-> =C2=A0drivers/acpi/scan.c | =C2=A0 11 ++---------
-> =C2=A01 files changed, 2 insertions(+), 9 deletions(-)
->
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 767e2dc..fb56388 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -884,13 +884,6 @@ static int acpi_bus_get_power_flags(struct acpi_=
-device *device)
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0acpi_bus_add_power_resource(p=
-s->resources.handles[j]);
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0}
->
-> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* The exist of _P=
-R3 indicates D3Cold support */
-> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (i =3D=3D ACPI_=
-STATE_D3) {
-> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 status =3D acpi_get_handle(device->handle, object_name, &handle=
-);
-> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 if (ACPI_SUCCESS(status))
-> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 device->power.states[ACPI_STATE_D3_=
-COLD].flags.valid =3D 1;
-> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 }
-> -
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0/* Evaluate "_=
-PSx" to see if we can do explicit sets */
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0object_name[2]=
- =3D 'S';
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0status =3D acp=
-i_get_handle(device->handle, object_name, &handle);
-> @@ -908,8 +901,8 @@ static int acpi_bus_get_power_flags(struct acpi_d=
-evice *device)
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0/* Set defaults for D0 and D3 states (alwa=
-ys valid) */
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0device->power.states[ACPI_STATE_D0].flags.=
-valid =3D 1;
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0device->power.states[ACPI_STATE_D0].power =
-=3D 100;
-> - =C2=A0 =C2=A0 =C2=A0 device->power.states[ACPI_STATE_D3].flags.vali=
-d =3D 1;
-> - =C2=A0 =C2=A0 =C2=A0 device->power.states[ACPI_STATE_D3].power =3D =
-0;
-> + =C2=A0 =C2=A0 =C2=A0 device->power.states[ACPI_STATE_D3_COLD].flags=
-=2Evalid =3D 1;
-> + =C2=A0 =C2=A0 =C2=A0 device->power.states[ACPI_STATE_D3_COLD].power=
- =3D 0;
->
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0acpi_bus_init_power(device);
+This patchset's purppose is to bind usb device with associated
+acpi node. The ACPI method "_PLD" and "_UPC" can be used to
+identify usb port's connect type(hot-plug, hard-wired and
+not-used). The patchset also can work on the port without device
+connected.
 
-I think D3_HOT should be always valid, while D3_COLD should be valid
-for some situation.
+This patchset derives from following patches.
+>From Matthew Garrett
+[PATCH V2 2/4] ACPI: Add _PLD support
+[PATCH V2 3/4] usb: Bind devices to ACPI devices when possible
+[PATCH v2 4/4] usb: Set device removable state based on ACPI USB data
 
- - has _PS3, no _PR3
-   - support D3_HOT, D3_COLD
-   - set state
-     - D3_HOT: do nothing in ACPI
-     - D3_COLD: _PS3
+>From Tianyu Lan
+[PATCH V3 1/4] usb: add struct usb_hub_port to store port related members
+[PATCH V3 2/4] usb: move struct usb_device->children to struct usb_hub_port->child
+[PATCH V3 3/4] usb/acpi: add the support of usb hub ports' acpi binding without attached devices.
+[PATCH V3 4/4] usb/acpi: add usb check for the connect type of usb port
 
- - has _PR3, no _PS3
-   - support D3_HOT, D3_COLD
-   - set state
-     - D3_HOT: _PR3 on, _PR0 off
-     - D3_COLD: _PR3 on, _PR0 off, _PR3 off
+Previously those patches was blocked by [PATCH V2 1/4] ACPI: Fix up _PLD methods.
+Current the final version of this patch has been integrated into ACPICA and released as:
+6a99b1c94d053b3420eaa4a4bc8b2883dd90a2f9
+ACPICA: Object repair code: Support to add Package wrappers
 
- - has _PS3, has _PR3
-   - support D3_HOT, D3_COLD
-   - set state
-     - D3_HOT: _PS3, _PR3 on, _PR0 off
-     - D3_COLD: _PS3, _PR3 on, _PR0 off, _PR3 off
+[PATCH 1/7] ACPI: Add _PLD support
+[PATCH 2/7] usb: Bind devices to ACPI devices when possible
+[PATCH 3/7] usb: Set device removable state based on ACPI USB data
+[PATCH 4/7] usb: add struct usb_hub_port to store port related
+[PATCH 5/7] usb: move struct usb_device->children to struct
+[PATCH 6/7] usb/acpi: add the support of usb hub ports' acpi binding
+[PATCH 7/7] usb/acpi: add usb check for the connect type of usb port
 
- - no _PS3, no _PR3
-   - support D3_HOT
-   - set state
-     - D3_HOT: do nothing in ACPI
+git diff --stat
+ drivers/acpi/utils.c                 |   29 +++++++
+ drivers/staging/usbip/usbip_common.c |    3 +-
+ drivers/usb/core/Makefile            |    1 +
+ drivers/usb/core/devices.c           |    3 +-
+ drivers/usb/core/hub.c               |  133 +++++++++++++++++++++--------
+ drivers/usb/core/usb-acpi.c          |  154 ++++++++++++++++++++++++++++++++++
+ drivers/usb/core/usb.c               |    6 ++
+ drivers/usb/core/usb.h               |   19 ++++-
+ drivers/usb/host/r8a66597-hcd.c      |    3 +-
+ include/acpi/acpi_bus.h              |   31 +++++++
+ include/linux/usb.h                  |   10 ++-
+ 11 files changed, 349 insertions(+), 43 deletions(-)
 
-Best Regards,
-Huang Ying
 --
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
