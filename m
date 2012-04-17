@@ -1,57 +1,40 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [PATCH 2/2] x86/acpi: Call acpi_enter_sleep_state via an asmlinkage
- C function from assembler.
-Date: Tue, 17 Apr 2012 11:36:45 -0700
-Message-ID: <4F8DB83D.8000208@zytor.com>
-References: <1334687359-9970-1-git-send-email-konrad.wilk@oracle.com> <1334687359-9970-3-git-send-email-konrad.wilk@oracle.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC PATCH] PCIe: Add PCIe runtime D3cold support
+Date: Tue, 17 Apr 2012 22:20:45 +0200
+Message-ID: <201204172220.45970.rjw@sisk.pl>
+References: <4F8790F6.5080408@intel.com> <201204161907.13806.rjw@sisk.pl> <CAC=cRTNdLu=A64YAEp78ENc1h2OJKusXY3Wm9LuY4drz9pbomg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from terminus.zytor.com ([198.137.202.10]:58671 "EHLO mail.zytor.com"
+Received: from ogre.sisk.pl ([217.79.144.158]:48956 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752259Ab2DQSg6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Apr 2012 14:36:58 -0400
-In-Reply-To: <1334687359-9970-3-git-send-email-konrad.wilk@oracle.com>
+	id S1751542Ab2DQUQK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Apr 2012 16:16:10 -0400
+In-Reply-To: <CAC=cRTNdLu=A64YAEp78ENc1h2OJKusXY3Wm9LuY4drz9pbomg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, ming.m.lin@intel.com, rjw@sisk.pl, x86@kernel.org
+To: huang ying <huang.ying.caritas@gmail.com>
+Cc: "Yan, Zheng" <zheng.z.yan@intel.com>, bhelgaas@google.com, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-pm@vger.kernel.org, Lin Ming <ming.m.lin@intel.com>, Zhang Rui <rui.zhang@intel.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-On 04/17/2012 11:29 AM, Konrad Rzeszutek Wilk wrote:
-> diff --git a/arch/x86/kernel/acpi/wakeup_32.S b/arch/x86/kernel/acpi/wakeup_32.S
-> index 13ab720..d3a18a4 100644
-> --- a/arch/x86/kernel/acpi/wakeup_32.S
-> +++ b/arch/x86/kernel/acpi/wakeup_32.S
-> @@ -74,8 +74,7 @@ restore_registers:
->  ENTRY(do_suspend_lowlevel)
->  	call	save_processor_state
->  	call	save_registers
-> -	pushl	$3
-> -	call	acpi_enter_sleep_state
-> +	call	acpi_enter_s3
->  	addl	$4, %esp
->  
+On Tuesday, April 17, 2012, huang ying wrote:
+> On Tue, Apr 17, 2012 at 1:07 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > Moreover, I really don't think it's a good idea to put PCI Express ports into
+> > low-power states in general.  It might work on your platform, whatever it is,
+> > but that doesn't mean it's going to work on every PCI Express system out
+> > there.  I actually know of a number of such systems where it surely won't
+> > work at all.
+> 
+> The runtime PM support for PCIe port is not turned on by default, we need
+> 
+> # echo auto > /sys/devices/pcixxxx:xx/<pci id>/power/control
+> 
+> to turn on it.  And we will turn on it on system it works.  Is this sufficient?
 
-You need to drop the %esp adjustment here.
+No, it is not.  In some cases it shouldn't be enabled at all for PCI Express
+ports, as far as I can say, so to be on the safe side we should only enable it
+on platforms where PCI Express ports are known to work correctly with runtime PM.
 
->  #	In case of S3 failure, we'll emerge here.  Jump
-> diff --git a/arch/x86/kernel/acpi/wakeup_64.S b/arch/x86/kernel/acpi/wakeup_64.S
-> index 8ea5164..fea733d 100644
-> --- a/arch/x86/kernel/acpi/wakeup_64.S
-> +++ b/arch/x86/kernel/acpi/wakeup_64.S
-> @@ -71,9 +71,8 @@ ENTRY(do_suspend_lowlevel)
->  	movq	%rsi, saved_rsi
->  
->  	addq	$8, %rsp
-> -	movl	$3, %edi
->  	xorl	%eax, %eax
-> -	call	acpi_enter_sleep_state
-> +	call	acpi_enter_s3
->  	/* in case something went wrong, restore the machine status and go on */
-
-You can presumably remove the xorl here ... setting %eax to zero
-immediately before calling a non-varadic C function is meaningless.
-
-	-hpa
-
+Thanks,
+Rafael
