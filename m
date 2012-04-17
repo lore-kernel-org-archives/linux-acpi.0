@@ -1,42 +1,44 @@
 From: Lin Ming <ming.m.lin@intel.com>
-Subject: [PATCH 3/6] ACPI: Set D3cold state as default inferred state
-Date: Tue, 17 Apr 2012 13:47:53 +0800
-Message-ID: <1334641676-14566-4-git-send-email-ming.m.lin@intel.com>
+Subject: [PATCH 4/6] ACPI: Fix power resource's device power state when it's off
+Date: Tue, 17 Apr 2012 13:47:54 +0800
+Message-ID: <1334641676-14566-5-git-send-email-ming.m.lin@intel.com>
 References: <1334641676-14566-1-git-send-email-ming.m.lin@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:49201 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752055Ab2DQFsO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Apr 2012 01:48:14 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1334641676-14566-1-git-send-email-ming.m.lin@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.og>
 Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Huang Ying <huang.ying.caritas@gmail.com>, Aaron Lu <aaron.lu@amd.com>
+List-Id: linux-acpi@vger.kernel.org
 
-ACPI_STATE_D3 means ACPI D3hot state which should only be returned when
-power resources listed in _PR3 are 'on'.
-
-Return ACPI D3cold state if no other state is known.
+Power resource's device power state should be
+ACPI_STATE_D3_COLD when it's off.
 
 Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 ---
- drivers/acpi/power.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/acpi/power.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-index 7049a7d..27a2bad 100644
+index 27a2bad..d6065110 100644
 --- a/drivers/acpi/power.c
 +++ b/drivers/acpi/power.c
-@@ -646,7 +646,7 @@ int acpi_power_get_inferred_state(struct acpi_device *device, int *state)
- 		}
- 	}
+@@ -300,7 +300,7 @@ static int acpi_power_off(acpi_handle handle)
+ 		result = -ENODEV;
+ 	} else {
+ 		/* Update the power resource's _device_ power state */
+-		resource->device->power.state = ACPI_STATE_D3;
++		resource->device->power.state = ACPI_STATE_D3_COLD;
  
--	*state = ACPI_STATE_D3;
-+	*state = ACPI_STATE_D3_COLD;
- 	return 0;
- }
- 
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 				  "Power resource [%s] turned off\n",
+@@ -735,7 +735,7 @@ static int acpi_power_add(struct acpi_device *device)
+ 		device->power.state = ACPI_STATE_D0;
+ 		break;
+ 	case ACPI_POWER_RESOURCE_STATE_OFF:
+-		device->power.state = ACPI_STATE_D3;
++		device->power.state = ACPI_STATE_D3_COLD;
+ 		break;
+ 	default:
+ 		device->power.state = ACPI_STATE_UNKNOWN;
 -- 
 1.7.2.5
-
