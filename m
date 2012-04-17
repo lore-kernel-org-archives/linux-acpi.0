@@ -1,67 +1,257 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 1/6] ACPI: D3cold state is always valid
-Date: Tue, 17 Apr 2012 22:29:18 +0200
-Message-ID: <201204172229.18203.rjw@sisk.pl>
-References: <1334641676-14566-1-git-send-email-ming.m.lin@intel.com> <1334641676-14566-2-git-send-email-ming.m.lin@intel.com>
+Subject: Re: [RFC PATCH] PCIe: Add PCIe runtime D3cold support
+Date: Tue, 17 Apr 2012 22:35:17 +0200
+Message-ID: <201204172235.17910.rjw@sisk.pl>
+References: <4F8790F6.5080408@intel.com> <201204161907.13806.rjw@sisk.pl> <4F8CD18A.5080903@intel.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-2"
+  charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:48975 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:48986 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750859Ab2DQUYm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Apr 2012 16:24:42 -0400
-In-Reply-To: <1334641676-14566-2-git-send-email-ming.m.lin@intel.com>
+	id S1750859Ab2DQUan (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Apr 2012 16:30:43 -0400
+In-Reply-To: <4F8CD18A.5080903@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lin Ming <ming.m.lin@intel.com>
-Cc: Len Brown <lenb@kernel.og>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Huang Ying <huang.ying.caritas@gmail.com>, Aaron Lu <aaron.lu@amd.com>
+To: "Yan, Zheng" <zheng.z.yan@intel.com>
+Cc: bhelgaas@google.com, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-pm@vger.kernel.org, Lin Ming <ming.m.lin@intel.com>, Zhang Rui <rui.zhang@intel.com>, huang ying <huang.ying.caritas@gmail.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-On Tuesday, April 17, 2012, Lin Ming wrote:
-> ACPI_STATE_D3 actually means ACPI D3hot which is not always valid.
-> Instead, ACPI D3cold is always valid.
+On Tuesday, April 17, 2012, Yan, Zheng wrote:
+> On 04/17/2012 01:07 AM, Rafael J. Wysocki wrote:
+> > Hi,
+> > 
+> > On Monday, April 16, 2012, Yan, Zheng wrote:
+> >> On 04/14/2012 03:41 AM, Rafael J. Wysocki wrote:
+> >>> Hi,
+> >>>
+> >>> On Friday, April 13, 2012, Yan, Zheng wrote:
+> >>>> Hi all,
+> >>>>
+> >>>> This patch adds PCIe runtime D3cold support, namely cut power supply for functions
+> >>>> beneath a PCIe port when they all have entered D3. A device in D3cold can only
+> >>>> generate wake event through the WAKE# pin. Because we can not access to a device's
+> >>>> configure space while it's in D3cold, pme_poll is disabled for devices in D3cold.
+> >>>>
+> >>>> Any comment will be appreciated.
+> >>>>
+> >>>> Signed-off-by: Zheng Yan <zheng.z.yan@intel.com>
+> >>>> ---
+> >>>> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+> >>>> index 0f150f2..e210e8cb 100644
+> >>>> --- a/drivers/pci/pci-acpi.c
+> >>>> +++ b/drivers/pci/pci-acpi.c
+> >>>> @@ -224,7 +224,7 @@ static int acpi_pci_set_power_state(struct pci_dev *dev, pci_power_t state)
+> >>>>  		[PCI_D1] = ACPI_STATE_D1,
+> >>>>  		[PCI_D2] = ACPI_STATE_D2,
+> >>>>  		[PCI_D3hot] = ACPI_STATE_D3,
+> >>>> -		[PCI_D3cold] = ACPI_STATE_D3
+> >>>> +		[PCI_D3cold] = ACPI_STATE_D3_COLD
+> >>>>  	};
+> >>>>  	int error = -EINVAL;
+> >>>>  
+> >>>
+> >>> Please don't use that ACPI_STATE_D3_COLD thing, it's not defined correctly.
+> >>>
+> >>> We should define ACPI_STATE_D3_COLD == ACPI_STATE_D3 and add ACPI_STATE_D3_HOT
+> >>> instead.  I'll prepare a patch for that over the weekend if no one has done
+> >>> that already.
+> >>>
+> >>>> @@ -296,7 +296,8 @@ static void acpi_pci_propagate_run_wake(struct pci_bus *bus, bool enable)
+> >>>>  
+> >>>>  static int acpi_pci_run_wake(struct pci_dev *dev, bool enable)
+> >>>>  {
+> >>>> -	if (dev->pme_interrupt)
+> >>>> +	/* PME interrupt isn't available in the D3cold case */
+> >>>> +	if (dev->pme_interrupt && !dev->runtime_d3cold)
+> >>>
+> >>> This whole thing is wrong.  First off, I don't think that the runtime_d3cold
+> >>> flag makes any sense.  We already cover that in dev->pme_support.
+> >>>
+> >>> Second, pme_interrupt means that the _root_ _port_, not the device itself will
+> >>> trigger an interrupt whenever the device sends the PME message to it (which
+> >>> very well may happen for a device in D3_cold woken up by an external signal).
+> >>>
+> >> The reason I introduced the runtime_d3cold flag is I can't make the PME interrupt
+> >> work in the D3cold case in our test platform. Document for our test platform says
+> >> A device in D3cold can only generate wake event through the WAKE# pin.
+> > 
+> > OK, so that clearly is not a standard PCI device, so please don't try to
+> > make our PCI bus type handle non-standard devices.
+> > 
+> >>>>  		return 0;
+> >>>>  
+> >>>>  	if (!acpi_pm_device_run_wake(&dev->dev, enable))
+> >>>> diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+> >>>> index 8156744..bc16869 100644
+> >>>> --- a/drivers/pci/pci.c
+> >>>> +++ b/drivers/pci/pci.c
+> >>>> @@ -731,8 +731,8 @@ int pci_set_power_state(struct pci_dev *dev, pci_power_t state)
+> >>>>  	int error;
+> >>>>  
+> >>>
+> >>> Guys, please.  Never, _ever_, touch pci_set_power_state() without discussing
+> >>> your ideas with someone who knows how it works and _why_ it works this way.
+> >>>
+> >>> The problem here is that you can't program a PCI device into D3_cold, so it
+> >>> doesn't even make sense to have a helper for that.
+> >>>
+> >>>>  	/* bound the state we're entering */
+> >>>> -	if (state > PCI_D3hot)
+> >>>> -		state = PCI_D3hot;
+> >>>> +	if (state > PCI_D3cold)
+> >>>> +		state = PCI_D3cold;
+> >>>>  	else if (state < PCI_D0)
+> >>>>  		state = PCI_D0;
+> >>>>  	else if ((state == PCI_D1 || state == PCI_D2) && pci_no_d1d2(dev))
+> >>>> @@ -750,7 +750,8 @@ int pci_set_power_state(struct pci_dev *dev, pci_power_t state)
+> >>>>  	if (state == PCI_D3hot && (dev->dev_flags & PCI_DEV_FLAGS_NO_D3))
+> >>>>  		return 0;
+> >>>>  
+> >>>> -	error = pci_raw_set_power_state(dev, state);
+> >>>> +	error = pci_raw_set_power_state(dev, state > PCI_D3hot ?
+> >>>> +					PCI_D3hot : state);
+> >>>>  
+> >>>>  	if (!__pci_complete_power_transition(dev, state))
+> >>>>  		error = 0;
+> >>>> @@ -1482,6 +1483,17 @@ bool pci_pme_capable(struct pci_dev *dev, pci_power_t state)
+> >>>>  	return !!(dev->pme_support & (1 << state));
+> >>>>  }
+> >>>>  
+> >>>> +static void pci_pme_poll_wakeup(struct pci_dev *dev)
+> >>>> +{
+> >>>> +	struct pci_dev *bridge = dev->bus->self;
+> >>>> +
+> >>>> +	/* don't poll the pme bit if parent is in low power state */
+> >>>> +	if (bridge && bridge->current_state != PCI_D0)
+> >>>> +		return;
+> >>>> +
+> >>>> +	pci_pme_wakeup(dev, NULL);
+> >>>> +}
+> >>>
+> >>> This one actually makes some sense, although it might be better to put the
+> >>> test into pci_pme_wakeup() itself.
+> >>
+> >> put it into pci_pme_wakeup will break ACPI wakeup, because ACPI wakeup also
+> >> uses pci_pme_wakeup. When a device exits from D3cold by asserting the WAKE#
+> >> signal, device power is restored automatically by ACPI, then pci_pme_wakeup
+> >> is called to check device's PME bit. pci_dev->current_state is PCI_D3hot
+> >> during the checking. 
+> > 
+> > You seem to be talking about two different device here.  One device is
+> > dev, which is the one being checked for the PME bit and the second one
+> > is the bridge that should be in D0 so that dev is accessible, right?
 > 
-> Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+> Yes
+> > 
+> > So if you put this code into pci_pme_wakeup():
+> > 
+> > 	struct pci_dev *bridge = pci_dev->bus->self;
+> > 
+> > 	...
+> > 
+> > 	if (bridge && bridge->current_state != PCI_D0)
+> > 		return 0;
+> > 
+> > then it should work just like your code above.
+> No. In the wakeup case, bridge's power is restored automatically by ACPI,
+> but bridge->current_state does not reflect the power state, it's still PCI_D3hot.
 
-Can you just introduce ACPI_STATE_D3_HOT and redefine D3_COLD so that
-it's the same as D3, as I said?
+So there's a bug somewhere, because the port (bridge) is the parent of the
+device being resumed, so it should be resumed automatically by runtime PM
+before that device.  Do you have any idea why that doesn't happen?
 
+> > BTW, can you please explain to me what the #WAKE signal is and how it is
+> > different from PME#?
+> 
+> #WAKE signal is triggered by a pin connected to the root complex or other
+> motherboard logic. PME# is triggered by PME message sent to the port.
+
+And #WAKE triggers a GPE in turn?
+
+> >>>> +
+> >>>>  static void pci_pme_list_scan(struct work_struct *work)
+> >>>>  {
+> >>>>  	struct pci_pme_device *pme_dev, *n;
+> >>>> @@ -1490,7 +1502,7 @@ static void pci_pme_list_scan(struct work_struct *work)
+> >>>>  	if (!list_empty(&pci_pme_list)) {
+> >>>>  		list_for_each_entry_safe(pme_dev, n, &pci_pme_list, list) {
+> >>>>  			if (pme_dev->dev->pme_poll) {
+> >>>> -				pci_pme_wakeup(pme_dev->dev, NULL);
+> >>>> +				pci_pme_poll_wakeup(pme_dev->dev);
+> >>>>  			} else {
+> >>>>  				list_del(&pme_dev->list);
+> >>>>  				kfree(pme_dev);
+> >>>> @@ -1608,6 +1620,10 @@ int __pci_enable_wake(struct pci_dev *dev, pci_power_t state,
+> >>>>  	if (enable) {
+> >>>>  		int error;
+> >>>>  
+> >>>> +		if (runtime && state >= PCI_D3cold)
+> >>>> +			dev->runtime_d3cold = true;
+> >>>> +		else
+> >>>> +			dev->runtime_d3cold = false;
+> >>>>  		if (pci_pme_capable(dev, state))
+> >>>>  			pci_pme_active(dev, true);
+> >>>>  		else
+> >>>> diff --git a/drivers/pci/pcie/portdrv_pci.c b/drivers/pci/pcie/portdrv_pci.c
+> >>>> index e0610bd..d66b7e9 100644
+> >>>> --- a/drivers/pci/pcie/portdrv_pci.c
+> >>>> +++ b/drivers/pci/pcie/portdrv_pci.c
+> >>>> @@ -11,11 +11,13 @@
+> >>>>  #include <linux/kernel.h>
+> >>>>  #include <linux/errno.h>
+> >>>>  #include <linux/pm.h>
+> >>>> +#include <linux/pm_runtime.h>
+> >>>>  #include <linux/init.h>
+> >>>>  #include <linux/pcieport_if.h>
+> >>>>  #include <linux/aer.h>
+> >>>>  #include <linux/dmi.h>
+> >>>>  #include <linux/pci-aspm.h>
+> >>>> +#include <linux/delay.h>
+> >>>>  
+> >>>>  #include "portdrv.h"
+> >>>>  #include "aer/aerdrv.h"
+> >>>> @@ -99,6 +101,25 @@ static int pcie_port_resume_noirq(struct device *dev)
+> >>>>  	return 0;
+> >>>>  }
+> >>>>  
+> >>>> +static int pcie_port_runtime_suspend(struct device *dev)
+> >>>> +{
+> >>>> +	struct pci_dev *pdev = to_pci_dev(dev);
+> >>>> +
+> >>>> +	pci_save_state(pdev);
+> >>>
+> >>> Are you sure this is sufficient?
+> >>
+> >> What else should I do?
+> > 
+> > First off, you need not do pci_save_state() here, most likely, because
+> > pci_pm_runtime_suspend() will do it for you later.
+> 
+> Our test platform behaves strangely if this pci_save_state is removed.
+> I guess it's because pci_fixup_device is called before pci_save_state
+> in pci_pm_runtime_suspend
+
+It would be good to verify that theory, so that we have a clear picture.
+
+> > Second, you're suspending a device that has children here.  Namely,
+> > the PCIe service devices are children of the port they are associated with.
+> > I wonder if they are suspended and how exactly, if so?
+> > 
+> Only the PME service has the PM callbacks.
+
+For now.  That may change in the future, though.
+
+> I don't think we should stop the PME service in the runtime suspend case.
+
+You're right.
+
+> For example, when both device and port are
+> in D3hot, No PME interrupt can be received if we stop the PME service.
+
+Well, I don't think that PME interrupts are necessary at all on this platform,
+because it uses ACPI for wakeup signaling anyway.
+
+Thanks,
 Rafael
-
-
-> ---
->  drivers/acpi/scan.c |   11 ++---------
->  1 files changed, 2 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 767e2dc..fb56388 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -884,13 +884,6 @@ static int acpi_bus_get_power_flags(struct acpi_device *device)
->  				acpi_bus_add_power_resource(ps->resources.handles[j]);
->  		}
->  
-> -		/* The exist of _PR3 indicates D3Cold support */
-> -		if (i == ACPI_STATE_D3) {
-> -			status = acpi_get_handle(device->handle, object_name, &handle);
-> -			if (ACPI_SUCCESS(status))
-> -				device->power.states[ACPI_STATE_D3_COLD].flags.valid = 1;
-> -		}
-> -
->  		/* Evaluate "_PSx" to see if we can do explicit sets */
->  		object_name[2] = 'S';
->  		status = acpi_get_handle(device->handle, object_name, &handle);
-> @@ -908,8 +901,8 @@ static int acpi_bus_get_power_flags(struct acpi_device *device)
->  	/* Set defaults for D0 and D3 states (always valid) */
->  	device->power.states[ACPI_STATE_D0].flags.valid = 1;
->  	device->power.states[ACPI_STATE_D0].power = 100;
-> -	device->power.states[ACPI_STATE_D3].flags.valid = 1;
-> -	device->power.states[ACPI_STATE_D3].power = 0;
-> +	device->power.states[ACPI_STATE_D3_COLD].flags.valid = 1;
-> +	device->power.states[ACPI_STATE_D3_COLD].power = 0;
->  
->  	acpi_bus_init_power(device);
->  
-> 
-
