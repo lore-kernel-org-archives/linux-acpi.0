@@ -1,115 +1,444 @@
-From: =?UTF-8?Q?jamesmichaels?= <jamesmichaels@o2.pl>
-Subject: =?UTF-8?Q?TRANSFER_INFORMATION!?=
-Date: Tue, 17 Apr 2012 03:26:51 +0200
-Message-ID: <34cb467c.700ca28f.4f8cc6db.c6724__42194.1368062564$1334626030$gmane$org@o2.pl>
+From: huang ying <huang.ying.caritas@gmail.com>
+Subject: Re: [RFC PATCH] PCIe: Add PCIe runtime D3cold support
+Date: Tue, 17 Apr 2012 10:02:27 +0800
+Message-ID: <CAC=cRTNL0R--5njYdWzvREx7fhebAhFW_sBJ4jt9n_c8rp_ZTQ@mail.gmail.com>
+References: <4F8790F6.5080408@intel.com>
+	<201204132141.58063.rjw@sisk.pl>
+	<CAC=cRTNYGGq2ncJr7mvEOm2udqXsAD3T9T=5Tafue_jrjAWCug@mail.gmail.com>
+	<201204162330.12178.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="==o2.pl-WebMail-13a2e5bc.6b5e10b3.c672a=="
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from moh2-ve3.go2.pl ([193.17.41.208]:37795 "EHLO moh2-ve3.go2.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753904Ab2DQB1E (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 16 Apr 2012 21:27:04 -0400
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:45202 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750892Ab2DQCC2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Apr 2012 22:02:28 -0400
+In-Reply-To: <201204162330.12178.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "Yan, Zheng" <zheng.z.yan@intel.com>, bhelgaas@google.com, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-pm@vger.kernel.org, Lin Ming <ming.m.lin@intel.com>, Zhang Rui <rui.zhang@intel.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-This is a multi-part message in MIME format.
+On Tue, Apr 17, 2012 at 5:30 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> On Monday, April 16, 2012, huang ying wrote:
+>> Hi,
+>>
+>> On Sat, Apr 14, 2012 at 3:41 AM, Rafael J. Wysocki <rjw@sisk.pl> wro=
+te:
+>> > Hi,
+>> >
+>> > On Friday, April 13, 2012, Yan, Zheng wrote:
+>> >> Hi all,
+>> >>
+>> >> This patch adds PCIe runtime D3cold support, namely cut power sup=
+ply for functions
+>> >> beneath a PCIe port when they all have entered D3. A device in D3=
+cold can only
+>> >> generate wake event through the WAKE# pin. Because we can not acc=
+ess to a device's
+>> >> configure space while it's in D3cold, pme_poll is disabled for de=
+vices in D3cold.
+>> >>
+>> >> Any comment will be appreciated.
+>> >>
+>> >> Signed-off-by: Zheng Yan <zheng.z.yan@intel.com>
+>> >> ---
+>> >> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+>> >> index 0f150f2..e210e8cb 100644
+>> >> --- a/drivers/pci/pci-acpi.c
+>> >> +++ b/drivers/pci/pci-acpi.c
+>> >> @@ -224,7 +224,7 @@ static int acpi_pci_set_power_state(struct pc=
+i_dev *dev, pci_power_t state)
+>> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 [PCI_D1] =3D ACP=
+I_STATE_D1,
+>> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 [PCI_D2] =3D ACP=
+I_STATE_D2,
+>> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 [PCI_D3hot] =3D =
+ACPI_STATE_D3,
+>> >> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 [PCI_D3cold] =3D ACPI=
+_STATE_D3
+>> >> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 [PCI_D3cold] =3D ACPI=
+_STATE_D3_COLD
+>> >> =C2=A0 =C2=A0 =C2=A0 };
+>> >> =C2=A0 =C2=A0 =C2=A0 int error =3D -EINVAL;
+>> >>
+>> >
+>> > Please don't use that ACPI_STATE_D3_COLD thing, it's not defined c=
+orrectly.
+>> >
+>> > We should define ACPI_STATE_D3_COLD =3D=3D ACPI_STATE_D3 and add A=
+CPI_STATE_D3_HOT
+>> > instead. =C2=A0I'll prepare a patch for that over the weekend if n=
+o one has done
+>> > that already.
+>> >
+>> >> @@ -296,7 +296,8 @@ static void acpi_pci_propagate_run_wake(struc=
+t pci_bus *bus, bool enable)
+>> >>
+>> >> =C2=A0static int acpi_pci_run_wake(struct pci_dev *dev, bool enab=
+le)
+>> >> =C2=A0{
+>> >> - =C2=A0 =C2=A0 if (dev->pme_interrupt)
+>> >> + =C2=A0 =C2=A0 /* PME interrupt isn't available in the D3cold ca=
+se */
+>> >> + =C2=A0 =C2=A0 if (dev->pme_interrupt && !dev->runtime_d3cold)
+>> >
+>> > This whole thing is wrong. =C2=A0First off, I don't think that the=
+ runtime_d3cold
+>> > flag makes any sense. =C2=A0We already cover that in dev->pme_supp=
+ort.
+>>
+>> PCIe devices and PCIe root port may have proper PME interrupt suppor=
+t
+>> (that is, dev->pme_interrupt =3D true), but the process of remote wa=
+keup
+>> from D3cold is as follow:
+>>
+>> 1) In D3cold, the power of the main link is turned off, aux power is
+>> provided (PCIe L2 link state)
+>> 2) Device detect condition to resume, then assert #WAKE pin
+>> 2) ACPI circuit linked with #WAKE pin, and will generate a GPE for t=
+hat
+>> 3) GPE handler will resume device with ACPI (via _PS3 and _PR0), the
+>> power of the main link is turned on, after a while, link goes into L=
+0
+>> state
+>> 4) The PME message is sent to root port, pme interrupt generated
+>
+> This isn't how it's supposed to work in theory. =C2=A0If the device c=
+an signal PME
+> from D3cold, it should be able to reestablish the link and send a PME
+> message from there. =C2=A0dev->pme_interrupt set means exactly that.
+>
+> ACPI is only supposed to be needed for things that don't send PME
+> messages (in your case the PME interrupt generated by the port is ess=
+entially
+> useless, because the wakeup event has already been signaled through A=
+CPI).
+>
+>> So, for deivce, dev->pme_interrupt =3D true and dev->pme_support
+>> advocate it support PME in D3cold. =C2=A0But we still need ACPI to s=
+etup
+>> run wake for the device.
+>
+> OK, so this is nonstandard.
 
---==o2.pl-WebMail-13a2e5bc.6b5e10b3.c672a==
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+This is the standard behavior.  Please refer to PCI Express Base
+Sepcification Revision 2.0, section 5.3.3.2 Link Wakeup.  In D1, D2
+and D3hot state, PCIe device can transit the link from L1 to L0 state,
+and send the PME message.  In D3cold, the main link is powered off,
+PCIe device will use a STANDARD sideband signal WAKE# to signal wakeup
+firstly, then platform (power controller in spec) will power on the
+main link for the device, after main link is back to L0, the PME
+message is send to root port, pme interrupt is generated.  So in
+theory, the wake up process can be divided into platform part (which
+power on the main link) and PCIe part (which send PME).
 
+>> So we need a way to inform acpi_pci_run_wake(), one way is using a
+>> flag, there is other ways such as adding another parameter to
+>> acpi_pci_run_wake() to tell it which power state to go.
+>
+> I'm not sure what to do with that. =C2=A0It looks like we should use =
+ACPI for
+> signaling remote wakeup on this platform and additionally provide a d=
+ummy
+> interrupt handler for root ports that will only clear PME Status.
+>
+>> > Second, pme_interrupt means that the _root_ _port_, not the device=
+ itself will
+>> > trigger an interrupt whenever the device sends the PME message to =
+it (which
+>> > very well may happen for a device in D3_cold woken up by an extern=
+al signal).
+>>
+>> As above, that may happend after ACPI GPE.
+>
+> Because it's not a standard PCIe system.
+>
+>> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return 0;
+>> >>
+>> >> =C2=A0 =C2=A0 =C2=A0 if (!acpi_pm_device_run_wake(&dev->dev, enab=
+le))
+>> >> diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+>> >> index 8156744..bc16869 100644
+>> >> --- a/drivers/pci/pci.c
+>> >> +++ b/drivers/pci/pci.c
+>> >> @@ -731,8 +731,8 @@ int pci_set_power_state(struct pci_dev *dev, =
+pci_power_t state)
+>> >> =C2=A0 =C2=A0 =C2=A0 int error;
+>> >>
+>> >
+>> > Guys, please. =C2=A0Never, _ever_, touch pci_set_power_state() wit=
+hout discussing
+>> > your ideas with someone who knows how it works and _why_ it works =
+this way.
+>>
+>> This patch is sent as RFC, I think this is to call for discussing
+>> instead of merging, isn't it?
+>>
+>> > The problem here is that you can't program a PCI device into D3_co=
+ld, so it
+>> > doesn't even make sense to have a helper for that.
+>>
+>> We need to program ACPI to make the PCI device go into D3_cold. =C2=A0=
+That
+>> is called in this function.
+>>
+>> pci_set_power_sate
+>> =C2=A0 -> __pci_complete_power_transition
+>> =C2=A0 =C2=A0 -> pci_platform_power_transition
+>
+> So don't use pci_set_power_state() for that, because it's essentially
+> a different operation. =C2=A0You need a pci_platform_remove_power() h=
+elper or
+> similar for that.
+>
+> What ACPI method exactly is used to remove power from the device?
 
---==o2.pl-WebMail-13a2e5bc.6b5e10b3.c672a==
-Content-Type: application/msword;
-	name="=?UTF-8?Q?OPEN_YOUR_ATTACHMENT_FILE_FOR_YOUR?=
-	=?UTF-8?Q?_TRANSFER_INFORMATION.rtf?="
-Content-Disposition: attachment;
-	filename="=?UTF-8?Q?OPEN_YOUR_ATTACHMENT_FILE_FOR_YOUR?=
-	=?UTF-8?Q?_TRANSFER_INFORMATION.rtf?="
-Content-Transfer-Encoding: base64
+The ACPI method executed is as follow:
 
-e1xydGYxXGFuc2lcYW5zaWNwZzEyNTJcdWMxXGRlZmYwXHN0c2hmZGJjaDBcc3RzaGZsb2No
-MFxzdHNoZmhpY2gwXHN0c2hmYmkwXGRlZmxhbmcxMDMzXGRlZmxhbmdmZTEwMzN7XGZvbnR0
-Ymx7XGYwXGZyb21hblxmY2hhcnNldDBcZnBycTJ7XCpccGFub3NlIDAyMDIwNjAzMDUwNDA1
-MDIwMzA0fVRpbWVzIE5ldyBSb21hbjt9e1xmMVxmc3dpc3NcZmNoYXJzZXQwXGZwcnEye1wq
-XHBhbm9zZSAwMjBiMDYwNDAyMDIwMjAyMDIwNH1BcmlhbDt9DQp7XGYzN1xmcm9tYW5cZmNo
-YXJzZXQyMzhcZnBycTIgVGltZXMgTmV3IFJvbWFuIENFO317XGYzOFxmcm9tYW5cZmNoYXJz
-ZXQyMDRcZnBycTIgVGltZXMgTmV3IFJvbWFuIEN5cjt9e1xmNDBcZnJvbWFuXGZjaGFyc2V0
-MTYxXGZwcnEyIFRpbWVzIE5ldyBSb21hbiBHcmVlazt9e1xmNDFcZnJvbWFuXGZjaGFyc2V0
-MTYyXGZwcnEyIFRpbWVzIE5ldyBSb21hbiBUdXI7fQ0Ke1xmNDJcZnJvbWFuXGZjaGFyc2V0
-MTc3XGZwcnEyIFRpbWVzIE5ldyBSb21hbiAoSGVicmV3KTt9e1xmNDNcZnJvbWFuXGZjaGFy
-c2V0MTc4XGZwcnEyIFRpbWVzIE5ldyBSb21hbiAoQXJhYmljKTt9e1xmNDRcZnJvbWFuXGZj
-aGFyc2V0MTg2XGZwcnEyIFRpbWVzIE5ldyBSb21hbiBCYWx0aWM7fXtcZjQ1XGZyb21hblxm
-Y2hhcnNldDE2M1xmcHJxMiBUaW1lcyBOZXcgUm9tYW4gKFZpZXRuYW1lc2UpO30NCntcZjQ3
-XGZzd2lzc1xmY2hhcnNldDIzOFxmcHJxMiBBcmlhbCBDRTt9e1xmNDhcZnN3aXNzXGZjaGFy
-c2V0MjA0XGZwcnEyIEFyaWFsIEN5cjt9e1xmNTBcZnN3aXNzXGZjaGFyc2V0MTYxXGZwcnEy
-IEFyaWFsIEdyZWVrO317XGY1MVxmc3dpc3NcZmNoYXJzZXQxNjJcZnBycTIgQXJpYWwgVHVy
-O317XGY1Mlxmc3dpc3NcZmNoYXJzZXQxNzdcZnBycTIgQXJpYWwgKEhlYnJldyk7fQ0Ke1xm
-NTNcZnN3aXNzXGZjaGFyc2V0MTc4XGZwcnEyIEFyaWFsIChBcmFiaWMpO317XGY1NFxmc3dp
-c3NcZmNoYXJzZXQxODZcZnBycTIgQXJpYWwgQmFsdGljO317XGY1NVxmc3dpc3NcZmNoYXJz
-ZXQxNjNcZnBycTIgQXJpYWwgKFZpZXRuYW1lc2UpO319e1xjb2xvcnRibDtccmVkMFxncmVl
-bjBcYmx1ZTA7XHJlZDBcZ3JlZW4wXGJsdWUyNTU7XHJlZDBcZ3JlZW4yNTVcYmx1ZTI1NTtc
-cmVkMFxncmVlbjI1NVxibHVlMDsNClxyZWQyNTVcZ3JlZW4wXGJsdWUyNTU7XHJlZDI1NVxn
-cmVlbjBcYmx1ZTA7XHJlZDI1NVxncmVlbjI1NVxibHVlMDtccmVkMjU1XGdyZWVuMjU1XGJs
-dWUyNTU7XHJlZDBcZ3JlZW4wXGJsdWUxMjg7XHJlZDBcZ3JlZW4xMjhcYmx1ZTEyODtccmVk
-MFxncmVlbjEyOFxibHVlMDtccmVkMTI4XGdyZWVuMFxibHVlMTI4O1xyZWQxMjhcZ3JlZW4w
-XGJsdWUwO1xyZWQxMjhcZ3JlZW4xMjhcYmx1ZTA7XHJlZDEyOFxncmVlbjEyOFxibHVlMTI4
-Ow0KXHJlZDE5MlxncmVlbjE5MlxibHVlMTkyO317XHN0eWxlc2hlZXR7XHFsIFxsaTBccmkw
-XHdpZGN0bHBhclxhc3BhbHBoYVxhc3BudW1cZmFhdXRvXGFkanVzdHJpZ2h0XHJpbjBcbGlu
-MFxpdGFwMCBcZnMyNFxsYW5nMTAzM1xsYW5nZmUxMDMzXGNncmlkXGxhbmducDEwMzNcbGFu
-Z2ZlbnAxMDMzIFxzbmV4dDAgTm9ybWFsO317XCpcY3MxMCBcYWRkaXRpdmUgXHNzZW1paGlk
-ZGVuIERlZmF1bHQgUGFyYWdyYXBoIEZvbnQ7fXtcKg0KXHRzMTFcdHNyb3dkXHRyZnRzV2lk
-dGhCM1x0cnBhZGRsMTA4XHRycGFkZHIxMDhcdHJwYWRkZmwzXHRycGFkZGZ0M1x0cnBhZGRm
-YjNcdHJwYWRkZnIzXHRyY2JwYXQxXHRyY2ZwYXQxXHRzY2VsbHdpZHRoZnRzMFx0c3ZlcnRh
-bHRcdHNicmRydFx0c2JyZHJsXHRzYnJkcmJcdHNicmRyclx0c2JyZHJkZ2xcdHNicmRyZGdy
-XHRzYnJkcmhcdHNicmRydiANClxxbCBcbGkwXHJpMFx3aWRjdGxwYXJcYXNwYWxwaGFcYXNw
-bnVtXGZhYXV0b1xhZGp1c3RyaWdodFxyaW4wXGxpbjBcaXRhcDAgXGZzMjBcbGFuZzEwMjRc
-bGFuZ2ZlMTAyNFxjZ3JpZFxsYW5nbnAxMDI0XGxhbmdmZW5wMTAyNCBcc25leHQxMSBcc3Nl
-bWloaWRkZW4gTm9ybWFsIFRhYmxlO319e1wqXGxhdGVudHN0eWxlc1xsc2RzdGltYXgxNTZc
-bHNkbG9ja2VkZGVmMH17XCpccnNpZHRibCBccnNpZDE0MzE5Nlxyc2lkODE5MDU5DQpccnNp
-ZDQwMTQyODJccnNpZDczMDE1NzB9e1wqXGdlbmVyYXRvciBNaWNyb3NvZnQgV29yZCAxMS4w
-LjY1Njg7fXtcaW5mb3tcdGl0bGUgSGVsbG8sfXtcYXV0aG9yIFVTRVJ9e1xvcGVyYXRvciBV
-U0VSfXtcY3JlYXRpbVx5cjIwMTJcbW80XGR5MTNcaHIyXG1pbjMwfXtccmV2dGltXHlyMjAx
-MlxtbzRcZHkxNlxocjJ9e1x2ZXJzaW9uM317XGVkbWluczF9e1xub2ZwYWdlczF9e1xub2Z3
-b3JkczEwNn17XG5vZmNoYXJzNjA1fQ0Ke1wqXGNvbXBhbnkgPGFyYWJpYW5ob3JzZT59e1xu
-b2ZjaGFyc3dzNzEwfXtcdmVybjI0NTc5fX1cd2lkb3djdHJsXGZ0bmJqXGFlbmRkb2Ncbm94
-bGF0dG95ZW5cZXhwc2hydG5cbm91bHRybHNwY1xkbnRibG5zYmRiXG5vc3BhY2Vmb3J1bFxo
-eXBoY2FwczBcaG9yemRvY1xkZ2hzcGFjZTEyMFxkZ3ZzcGFjZTEyMFxkZ2hvcmlnaW4xNzAx
-XGRndm9yaWdpbjE5ODRcZGdoc2hvdzBcZGd2c2hvdzMNClxqY29tcHJlc3Ncdmlld2tpbmQ0
-XHZpZXdzY2FsZTExMFxub2xuaHRhZGp0YmxccnNpZHJvb3QxNDMxOTYgXGZldDBcc2VjdGQg
-XGxpbmV4MFxzZWN0ZGVmYXVsdGNsXHNmdG5iaiB7XCpccG5zZWNsdmwxXHBudWNybVxwbnN0
-YXJ0MVxwbmluZGVudDcyMFxwbmhhbmcge1xwbnR4dGEgLn19e1wqXHBuc2VjbHZsMlxwbnVj
-bHRyXHBuc3RhcnQxXHBuaW5kZW50NzIwXHBuaGFuZyB7XHBudHh0YSAufX17XCpccG5zZWNs
-dmwzDQpccG5kZWNccG5zdGFydDFccG5pbmRlbnQ3MjBccG5oYW5nIHtccG50eHRhIC59fXtc
-KlxwbnNlY2x2bDRccG5sY2x0clxwbnN0YXJ0MVxwbmluZGVudDcyMFxwbmhhbmcge1xwbnR4
-dGEgKX19e1wqXHBuc2VjbHZsNVxwbmRlY1xwbnN0YXJ0MVxwbmluZGVudDcyMFxwbmhhbmcg
-e1xwbnR4dGIgKH17XHBudHh0YSApfX17XCpccG5zZWNsdmw2XHBubGNsdHJccG5zdGFydDFc
-cG5pbmRlbnQ3MjBccG5oYW5nIHtccG50eHRiICh9e1xwbnR4dGEgKX19DQp7XCpccG5zZWNs
-dmw3XHBubGNybVxwbnN0YXJ0MVxwbmluZGVudDcyMFxwbmhhbmcge1xwbnR4dGIgKH17XHBu
-dHh0YSApfX17XCpccG5zZWNsdmw4XHBubGNsdHJccG5zdGFydDFccG5pbmRlbnQ3MjBccG5o
-YW5nIHtccG50eHRiICh9e1xwbnR4dGEgKX19e1wqXHBuc2VjbHZsOVxwbmxjcm1ccG5zdGFy
-dDFccG5pbmRlbnQ3MjBccG5oYW5nIHtccG50eHRiICh9e1xwbnR4dGEgKX19XHBhcmRccGxh
-aW4gDQpccWwgXGxpMFxyaTBcd2lkY3RscGFyXGFzcGFscGhhXGFzcG51bVxmYWF1dG9cYWRq
-dXN0cmlnaHRccmluMFxsaW4wXGl0YXAwXHBhcmFyc2lkODE5MDU5IFxmczI0XGxhbmcxMDMz
-XGxhbmdmZTEwMzNcY2dyaWRcbGFuZ25wMTAzM1xsYW5nZmVucDEwMzMge1xpXGYxXGZzMjBc
-aW5zcnNpZDgxOTA1OVxjaGFycnNpZDgxOTA1OSANClxwYXIgDQpccGFyIEhlbGxvLA0KXHBh
-ciANClxwYXIgSSBoYXZlIGNvbnRhY3RlZCB5b3UgYmVjYXVzZSBJJ3ZlIHNlbnQgeW91IHRo
-ZSBmaXJzdCBwYXltZW50IG9mICQ1LDAwMA0KXHBhciB0b2RheSBmcm9tIHlvdXIgd2lubmlu
-ZyBmdW5kcyB0b3RhbCBhbW91bnQgb2YgJDEuNU1pbGxpb24gVVNELFRoZXJlZm9yZQ0KXHBh
-ciB5b3UgbmVlZCB0byBjb250YWN0IHdlc3Rlcm4gdW5pb24gYWdlbnQgTXIuIERhcnJlbGwg
-TW9yZ2FuICwgZm9yIGhpbSB0bw0KXHBhciBnaXZlIHlvdSB0aGUgdHJhbnNmZXIgcGF5bWVu
-dCBpbmZvcm1hdGlvbiBhbmQgTVRDTi4NClxwYXIgDQpccGFyIEFnZW50OiBNci4gRGFycmVs
-bCBNb3JnYW4NClxwYXIgRW1haWw6IGluZm8ud3VtdHJhbnNmZXJAYWRtaW5pc3RyYXRpdm9z
-LmNvbQ0KXHBhciBQaG9uZTogKzIyOSA5OTgwNzU4NQ0KXHBhciANClxwYXIgUGxlYXNlIHRy
-eSB0byBjb250YWN0IGhpbSB0b2RheSBmb3IgaGltIHRvIGZvcndhcmQgdGhlIHBheW1lbnQg
-aW5mb3JtYXRpb24NClxwYXIgdG8geW91LCBSZW1lbWJlciB0byBJbmRpY2F0ZSB0aGUgcmVn
-aXN0cmF0aW9uIGNvZGUgb2YgRUItMjUyMCB0byBoaW0gd2hlbg0KXHBhciBlLW1haWxpbmcg
-b3IgY2FsbGluZyBoaW0sIEFsc28gaGUgd2lsbCBiZSBzZW5kaW5nIHlvdSAkNSwwMDAuMDAg
-ZGFpbHkgYXMNClxwYXIgcGVyIG15IGRpc2N1c3Npb24gd2l0aCBoaW0uDQpccGFyIA0KXHBh
-ciBEbyBnZXQgaW4gdG91Y2ggd2l0aCBtZSBvbmNlIHlvdSBoYXZlIFJlY2VpdmVkIHRoZSB0
-cmFuc2Zlci4NClxwYXIgDQpccGFyIFNpbmNlcmVseSwNClxwYXIgTXIuIEZyZWQgSm9obnNv
-bn17XGlcZjFcZnMyMFxpbnNyc2lkMTQzMTk2XGNoYXJyc2lkODE5MDU5IA0KXHBhciB9fQ==
+- _PS3 (if exist)
+- Power resources in _PR3 is turned on
+- Power resources in _PR0 is turned off
+- Power resources in _PR3 is turned off
 
---==o2.pl-WebMail-13a2e5bc.6b5e10b3.c672a==--
+I think the process can fit pci_set_power_state() quite well, so why
+invent another helper for that?
 
+>> >> =C2=A0 =C2=A0 =C2=A0 /* bound the state we're entering */
+>> >> - =C2=A0 =C2=A0 if (state > PCI_D3hot)
+>> >> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 state =3D PCI_D3hot;
+>> >> + =C2=A0 =C2=A0 if (state > PCI_D3cold)
+>> >> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 state =3D PCI_D3cold;
+>> >> =C2=A0 =C2=A0 =C2=A0 else if (state < PCI_D0)
+>> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 state =3D PCI_D0=
+;
+>> >> =C2=A0 =C2=A0 =C2=A0 else if ((state =3D=3D PCI_D1 || state =3D=3D=
+ PCI_D2) && pci_no_d1d2(dev))
+>> >> @@ -750,7 +750,8 @@ int pci_set_power_state(struct pci_dev *dev, =
+pci_power_t state)
+>> >> =C2=A0 =C2=A0 =C2=A0 if (state =3D=3D PCI_D3hot && (dev->dev_flag=
+s & PCI_DEV_FLAGS_NO_D3))
+>> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return 0;
+>> >>
+>> >> - =C2=A0 =C2=A0 error =3D pci_raw_set_power_state(dev, state);
+>> >> + =C2=A0 =C2=A0 error =3D pci_raw_set_power_state(dev, state > PC=
+I_D3hot ?
+>> >> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 PCI_D3ho=
+t : state);
+>> >>
+>> >> =C2=A0 =C2=A0 =C2=A0 if (!__pci_complete_power_transition(dev, st=
+ate))
+>> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 error =3D 0;
+>> >> @@ -1482,6 +1483,17 @@ bool pci_pme_capable(struct pci_dev *dev, =
+pci_power_t state)
+>> >> =C2=A0 =C2=A0 =C2=A0 return !!(dev->pme_support & (1 << state));
+>> >> =C2=A0}
+>> >>
+>> >> +static void pci_pme_poll_wakeup(struct pci_dev *dev)
+>> >> +{
+>> >> + =C2=A0 =C2=A0 struct pci_dev *bridge =3D dev->bus->self;
+>> >> +
+>> >> + =C2=A0 =C2=A0 /* don't poll the pme bit if parent is in low pow=
+er state */
+>> >> + =C2=A0 =C2=A0 if (bridge && bridge->current_state !=3D PCI_D0)
+>> >> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return;
+>> >> +
+>> >> + =C2=A0 =C2=A0 pci_pme_wakeup(dev, NULL);
+>> >> +}
+>> >
+>> > This one actually makes some sense, although it might be better to=
+ put the
+>> > test into pci_pme_wakeup() itself.
+>> >
+>> >> +
+>> >> =C2=A0static void pci_pme_list_scan(struct work_struct *work)
+>> >> =C2=A0{
+>> >> =C2=A0 =C2=A0 =C2=A0 struct pci_pme_device *pme_dev, *n;
+>> >> @@ -1490,7 +1502,7 @@ static void pci_pme_list_scan(struct work_s=
+truct *work)
+>> >> =C2=A0 =C2=A0 =C2=A0 if (!list_empty(&pci_pme_list)) {
+>> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 list_for_each_en=
+try_safe(pme_dev, n, &pci_pme_list, list) {
+>> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 if (pme_dev->dev->pme_poll) {
+>> >> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 pci_pme_wakeup(pme_dev->dev, NULL);
+>> >> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 pci_pme_poll_wakeup(pme_dev->dev);
+>> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 } else {
+>> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 list_del(&pme_dev->list);
+>> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 kfree(pme_dev);
+>> >> @@ -1608,6 +1620,10 @@ int __pci_enable_wake(struct pci_dev *dev,=
+ pci_power_t state,
+>> >> =C2=A0 =C2=A0 =C2=A0 if (enable) {
+>> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 int error;
+>> >>
+>> >> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (runtime && state =
+>=3D PCI_D3cold)
+>> >> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0 dev->runtime_d3cold =3D true;
+>> >> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 else
+>> >> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0 dev->runtime_d3cold =3D false;
+>> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (pci_pme_capa=
+ble(dev, state))
+>> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 pci_pme_active(dev, true);
+>> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 else
+>> >> diff --git a/drivers/pci/pcie/portdrv_pci.c b/drivers/pci/pcie/po=
+rtdrv_pci.c
+>> >> index e0610bd..d66b7e9 100644
+>> >> --- a/drivers/pci/pcie/portdrv_pci.c
+>> >> +++ b/drivers/pci/pcie/portdrv_pci.c
+>> >> @@ -11,11 +11,13 @@
+>> >> =C2=A0#include <linux/kernel.h>
+>> >> =C2=A0#include <linux/errno.h>
+>> >> =C2=A0#include <linux/pm.h>
+>> >> +#include <linux/pm_runtime.h>
+>> >> =C2=A0#include <linux/init.h>
+>> >> =C2=A0#include <linux/pcieport_if.h>
+>> >> =C2=A0#include <linux/aer.h>
+>> >> =C2=A0#include <linux/dmi.h>
+>> >> =C2=A0#include <linux/pci-aspm.h>
+>> >> +#include <linux/delay.h>
+>> >>
+>> >> =C2=A0#include "portdrv.h"
+>> >> =C2=A0#include "aer/aerdrv.h"
+>> >> @@ -99,6 +101,25 @@ static int pcie_port_resume_noirq(struct devi=
+ce *dev)
+>> >> =C2=A0 =C2=A0 =C2=A0 return 0;
+>> >> =C2=A0}
+>> >>
+>> >> +static int pcie_port_runtime_suspend(struct device *dev)
+>> >> +{
+>> >> + =C2=A0 =C2=A0 struct pci_dev *pdev =3D to_pci_dev(dev);
+>> >> +
+>> >> + =C2=A0 =C2=A0 pci_save_state(pdev);
+>> >
+>> > Are you sure this is sufficient?
+>>
+>> Maybe we need to pay attention to the pcie port drivers? =C2=A0Run -=
+>runtime_
+>
+> Yes.
+>
+>> >> + =C2=A0 =C2=A0 return 0;
+>> >> +}
+>> >> +
+>> >> +static int pcie_port_runtime_resume(struct device *dev)
+>> >> +{
+>> >> + =C2=A0 =C2=A0 struct pci_dev *pdev =3D to_pci_dev(dev);
+>> >> +
+>> >> + =C2=A0 =C2=A0 pci_restore_state(pdev);
+>> >> + =C2=A0 =C2=A0 if (pdev->runtime_d3cold)
+>> >> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 msleep(100);
+>> >
+>> > What's _that_ supposed to do?
+>>
+>> When resume from d3cold, PCIe main link will be powered on again, it
+>> will take quite some time before the main link go into L0 state.
+>> Otherwise, accessing devices under the port may return wrong result.
+>
+> OK, but this is generic code and as per the standard the link should =
+have been
+> reestablished at this point already.
+
+Maybe we can have some other way to check whether the link is
+reestablished.  I will check the this.
+
+> Please don't put some nonstandard-platform-specific quirks like this =
+into
+> code that's supposed to handle _every_ PCIe system.
+>
+>> >> +
+>> >> + =C2=A0 =C2=A0 return 0;
+>> >> +}
+>> >> +
+>> >> =C2=A0static const struct dev_pm_ops pcie_portdrv_pm_ops =3D {
+>> >> =C2=A0 =C2=A0 =C2=A0 .suspend =C2=A0 =C2=A0 =C2=A0 =C2=A0=3D pcie=
+_port_device_suspend,
+>> >> =C2=A0 =C2=A0 =C2=A0 .resume =C2=A0 =C2=A0 =C2=A0 =C2=A0 =3D pcie=
+_port_device_resume,
+>> >> @@ -107,6 +128,8 @@ static const struct dev_pm_ops pcie_portdrv_p=
+m_ops =3D {
+>> >> =C2=A0 =C2=A0 =C2=A0 .poweroff =C2=A0 =C2=A0 =C2=A0 =3D pcie_port=
+_device_suspend,
+>> >> =C2=A0 =C2=A0 =C2=A0 .restore =C2=A0 =C2=A0 =C2=A0 =C2=A0=3D pcie=
+_port_device_resume,
+>> >> =C2=A0 =C2=A0 =C2=A0 .resume_noirq =C2=A0 =3D pcie_port_resume_no=
+irq,
+>> >> + =C2=A0 =C2=A0 .runtime_suspend =3D pcie_port_runtime_suspend,
+>> >> + =C2=A0 =C2=A0 .runtime_resume =3D pcie_port_runtime_resume,
+>> >> =C2=A0};
+>> >>
+>> >> =C2=A0#define PCIE_PORTDRV_PM_OPS =C2=A0(&pcie_portdrv_pm_ops)
+>> >> @@ -144,12 +167,14 @@ static int __devinit pcie_portdrv_probe(str=
+uct pci_dev *dev,
+>> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return status;
+>> >>
+>> >> =C2=A0 =C2=A0 =C2=A0 pci_save_state(dev);
+>> >> + =C2=A0 =C2=A0 pm_runtime_put_noidle(&dev->dev);
+>> >
+>> > What's the purpose of this?
+>>
+>> I think this is needed by PCI runtime PM support. =C2=A0Before ->pro=
+be,
+>> pm_runtime_get_xxx() is executed on device.
+>
+> ok
+>
+>> >> =C2=A0 =C2=A0 =C2=A0 return 0;
+>> >> =C2=A0}
+>> >>
+>> >> =C2=A0static void pcie_portdrv_remove(struct pci_dev *dev)
+>> >> =C2=A0{
+>> >> + =C2=A0 =C2=A0 pm_runtime_get_noresume(&dev->dev);
+>> >> =C2=A0 =C2=A0 =C2=A0 pcie_port_device_remove(dev);
+>> >> =C2=A0 =C2=A0 =C2=A0 pci_disable_device(dev);
+>> >> =C2=A0}
+>> >> diff --git a/include/linux/pci.h b/include/linux/pci.h
+>> >> index e444f5b..b41d9a1 100644
+>> >> --- a/include/linux/pci.h
+>> >> +++ b/include/linux/pci.h
+>> >> @@ -281,6 +281,7 @@ struct pci_dev {
+>> >> =C2=A0 =C2=A0 =C2=A0 unsigned int =C2=A0 =C2=A0no_d1d2:1; =C2=A0 =
+=C2=A0 =C2=A0/* Only allow D0 and D3 */
+>> >> =C2=A0 =C2=A0 =C2=A0 unsigned int =C2=A0 =C2=A0mmio_always_on:1; =
+=C2=A0 =C2=A0 =C2=A0 /* disallow turning off io/mem
+>> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0decoding during bar sizing */
+>> >> + =C2=A0 =C2=A0 unsigned int =C2=A0 =C2=A0runtime_d3cold:1;
+>> >> =C2=A0 =C2=A0 =C2=A0 unsigned int =C2=A0 =C2=A0wakeup_prepared:1;
+>> >> =C2=A0 =C2=A0 =C2=A0 unsigned int =C2=A0 =C2=A0d3_delay; =C2=A0 =C2=
+=A0 =C2=A0 /* D3->D0 transition time in ms */
+>> >
+>> > OK
+>> >
+>> > So now please tell me what exactly you want to achieve and why you=
+ want to do
+>> > that in the first place.
+>
+> Well, is there any chance to get that information?
+
+You mean the runtime_d3cold flag? That flag is used to tell
+acpi_pci_run_wake() that we need ACPI wakeup setup for the device
+because that is needed by D3cold.  The ACPI wakeup setup here means
+turn on power resources needed by wake up (_PRW) and execute _DSW.
+
+If you mean the whole patch, we want to implement runtime D3cold
+support, which can save more power than D3hot.
+
+Best Regards,
+Huang Ying
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
