@@ -1,71 +1,54 @@
-From: Corentin Chary <corentin.chary@gmail.com>
-Subject: Re: [PATCH] samsung-laptop: unregister ACPI video module for some
- well known laptops
-Date: Tue, 17 Apr 2012 10:31:44 +0200
-Message-ID: <CAHR064hagc7s19fn=bF90WXvnrdT=yh_vTDcMmf3aKdaL66HnQ@mail.gmail.com>
-References: <20120320163002.GB6811@srcf.ucam.org>
-	<1332421699-5315-1-git-send-email-corentincj@iksaif.net>
-	<CAHR064hc4AdFUeoO8Szg0FG6CwLK+xauGn9VMJntWV1Gik=ACQ@mail.gmail.com>
-	<20120327112105.GA2845@srcf.ucam.org>
-	<CAHR064hBVJjmEd=GeGuG-xTg5ONfJTxwqzP88=JABaXFrfiehA@mail.gmail.com>
-	<20120406143455.GC8666@thinkpad-t410>
+From: Sarah Sharp <sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH 5/7] usb: move struct usb_device->children to struct
+ usb_hub_port->child
+Date: Tue, 17 Apr 2012 10:02:25 -0700
+Message-ID: <20120417170225.GA4670@xanatos>
+References: <1334642522-22021-1-git-send-email-tianyu.lan@intel.com>
+ <1334642522-22021-6-git-send-email-tianyu.lan@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:58196 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755296Ab2DQIbq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Apr 2012 04:31:46 -0400
-In-Reply-To: <20120406143455.GC8666@thinkpad-t410>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1334642522-22021-6-git-send-email-tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>, Corentin Chary <corentin.chary@gmail.com>, platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org, linux acpi <linux-acpi@vger.kernel.org>, Len Brown <len.brown@intel.com>
 
-On Fri, Apr 6, 2012 at 4:34 PM, Seth Forshee <seth.forshee@canonical.com> wrote:
-> On Fri, Apr 06, 2012 at 11:42:18AM +0200, Corentin Chary wrote:
->> On Tue, Mar 27, 2012 at 1:21 PM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
->> > On Tue, Mar 27, 2012 at 11:11:18AM +0200, Corentin Chary wrote:
->> >> Matthew, is this one ok ? I really hope this patch can go in 3.4 so we
->> >> don't introduce a regression for old laptops.
->> >
->> > Yes, I've got this now.
->> >
->> > Thanks,
->>
->>
->> A user just found a DSDT which is broken by this way of doing things
->> (this is not really a regression since it was also broken before).
->>
->> _BCL contains a wierd "Or (VDRV, 0x02, VDRV)".
->> So if you call _BLC once (video.ko will), it set a flag that affect
->> the behavior of all backlight related stuff, and it breaks
->> samsung-laptop's backlight even if samsung-laptop unload the acpi
->> backlight.
->> Using acpi_backlight=vendor solves that since it prevents the module
->> from being loaded. My previous patch also fix that since it use
->> acpi_backlight= mechanism.
->>
->> Do you think using acpi_backlight=vendor is a good enought solution
->> here ? Should we use my first patch instead ?
->
-> I've recently noticed another problem with using acpi_video_unregister()
-> to disable known broken backlights -- another module might call
-> acpi_video_register() and make it reappear. i915 does this, so when I
-> EFI boot the MacBook Pro 8,2 the acpi backlights reappear (under a BIOS
-> compatible boot the Intel GPU doesn't show up on the bus).
->
-> So Corentin's solution does seem like a better way to go, or else
-> something similar that forces the ACPI video driver to behave as with
-> acpi_video=vendor.
->
-> Seth
->
+On Tue, Apr 17, 2012 at 02:02:00PM +0800, Lan Tianyu wrote:
+> Move child's pointer to the struct usb_hub_port since the child device
+> is directly associated with the port. Provide usb_get_hub_child_device()
+> to get child's pointer.
 
-Matthew, Len, any input on that ? Should we keep the current code even
-if broken with some (also broken) hardware or should we move the
-blacklist in acpi/video.c ?
+It looks like you deleted the documentation for the children pointer
+from usb_hub_port, but didn't actually remove the pointer from the
+structure.  Did you mean to do that?
 
-
--- 
-Corentin Chary
-http://xf.iksaif.net
+> diff --git a/include/linux/usb.h b/include/linux/usb.h
+> index 73b68d1..1ea01a5 100644
+> --- a/include/linux/usb.h
+> +++ b/include/linux/usb.h
+> @@ -428,7 +428,6 @@ enum usb_device_removable {
+>   *	access from userspace
+>   * @usbfs_dentry: usbfs dentry entry for the device
+>   * @maxchild: number of ports if hub
+> - * @children: child devices - USB devices that are attached to this hub
+>   * @quirks: quirks of the whole device
+>   * @urbnum: number of URBs submitted for the whole device
+>   * @active_duration: total time device is not suspended
+> @@ -527,6 +526,8 @@ static inline struct usb_device *interface_to_usbdev(struct usb_interface *intf)
+>  
+>  extern struct usb_device *usb_get_dev(struct usb_device *dev);
+>  extern void usb_put_dev(struct usb_device *dev);
+> +extern struct usb_device *usb_get_hub_child_device(struct usb_device *hdev,
+> +	int port1);
+>  
+>  /* USB device locking */
+>  #define usb_lock_device(udev)		device_lock(&(udev)->dev)
+> -- 
+> 1.7.6.rc2.8.g28eb
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
