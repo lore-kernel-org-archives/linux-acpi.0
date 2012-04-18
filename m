@@ -1,69 +1,53 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+From: huang ying <huang.ying.caritas@gmail.com>
 Subject: Re: [RFC PATCH] PCIe: Add PCIe runtime D3cold support
-Date: Tue, 17 Apr 2012 23:10:38 +0200
-Message-ID: <201204172310.38816.rjw@sisk.pl>
-References: <4F8790F6.5080408@intel.com> <201204162330.12178.rjw@sisk.pl> <CAC=cRTMXNnZQ_bDes9JFp9yreGC63b_i9fUX6apQzWrUHw2a0Q@mail.gmail.com>
+Date: Wed, 18 Apr 2012 09:19:55 +0800
+Message-ID: <CAC=cRTN2QHWu1aD4AGyTB=wuHW-0oyLreZ2QiWSMvf_Ne_Nz0g@mail.gmail.com>
+References: <4F8790F6.5080408@intel.com>
+	<201204161907.13806.rjw@sisk.pl>
+	<CAC=cRTNdLu=A64YAEp78ENc1h2OJKusXY3Wm9LuY4drz9pbomg@mail.gmail.com>
+	<201204172220.45970.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAC=cRTMXNnZQ_bDes9JFp9yreGC63b_i9fUX6apQzWrUHw2a0Q@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: huang ying <huang.ying.caritas@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <201204172220.45970.rjw@sisk.pl>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: "Yan, Zheng" <zheng.z.yan@intel.com>, bhelgaas@google.com, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-pm@vger.kernel.org, Lin Ming <ming.m.lin@intel.com>, Zhang Rui <rui.zhang@intel.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, April 17, 2012, huang ying wrote:
-> On Tue, Apr 17, 2012 at 5:30 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> >> >> +     return 0;
-> >> >> +}
-> >> >> +
-> >> >> +static int pcie_port_runtime_resume(struct device *dev)
-> >> >> +{
-> >> >> +     struct pci_dev *pdev = to_pci_dev(dev);
-> >> >> +
-> >> >> +     pci_restore_state(pdev);
-> >> >> +     if (pdev->runtime_d3cold)
-> >> >> +             msleep(100);
-> >> >
-> >> > What's _that_ supposed to do?
-> >>
-> >> When resume from d3cold, PCIe main link will be powered on again, it
-> >> will take quite some time before the main link go into L0 state.
-> >> Otherwise, accessing devices under the port may return wrong result.
-> >
-> > OK, but this is generic code and as per the standard the link should have been
-> > reestablished at this point already.
-> >
-> > Please don't put some nonstandard-platform-specific quirks like this into
-> > code that's supposed to handle _every_ PCIe system.
-> 
-> After checking PCIe spec, I found that the 100ms here has its standard origin :)
-> 
-> In PCI Express Base Specification Revision 2.0:
-> 
-> Section 6.6.1 Conventional Reset
-> 
-> "
-> To allow components to perform internal initialization, system
-> software must wait for at least
-> 100 ms from the end of a Conventional Reset of one or more devices
-> before it is permitted to
-> issue Configuration Requests to those devices
-> "
-> 
-> But I think we should move the 100ms delay here to PCIe bus code or
-> PCIe/ACPI code, because that is needed by all PCIe devices for D3cold
-> support.
+On Wed, Apr 18, 2012 at 4:20 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> On Tuesday, April 17, 2012, huang ying wrote:
+>> On Tue, Apr 17, 2012 at 1:07 AM, Rafael J. Wysocki <rjw@sisk.pl> wro=
+te:
+>> > Moreover, I really don't think it's a good idea to put PCI Express=
+ ports into
+>> > low-power states in general. =C2=A0It might work on your platform,=
+ whatever it is,
+>> > but that doesn't mean it's going to work on every PCI Express syst=
+em out
+>> > there. =C2=A0I actually know of a number of such systems where it =
+surely won't
+>> > work at all.
+>>
+>> The runtime PM support for PCIe port is not turned on by default, we=
+ need
+>>
+>> # echo auto > /sys/devices/pcixxxx:xx/<pci id>/power/control
+>>
+>> to turn on it. =C2=A0And we will turn on it on system it works. =C2=A0=
+Is this sufficient?
+>
+> No, it is not. =C2=A0In some cases it shouldn't be enabled at all for=
+ PCI Express
+> ports, as far as I can say, so to be on the safe side we should only =
+enable it
+> on platforms where PCI Express ports are known to work correctly with=
+ runtime PM.
 
-I think it should be sufficient to wait for the PME message to arrive at
-the root port (which will cause the PME interrupt to appear), at which
-point the device that sent it should be able to receive configuration
-requests.
+Sorry, I did not catch your idea exactly.  I think disable it by
+default and enable it by sysfs interface is what you suggested, isn't
+it?  Or you suggest something like "white list"?
 
-At this point, I need to konw what exactly happens when the GPE is triggered
-by WAKE#.
-
-Thanks,
-Rafael
+Best Regards,
+Huang Ying
