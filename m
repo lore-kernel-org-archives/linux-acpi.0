@@ -1,77 +1,59 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: Re: [PATCH 1/6] ACPI: D3cold state is always valid
-Date: Wed, 18 Apr 2012 10:32:28 +0800
-Message-ID: <1334716348.11188.148.camel@minggr>
-References: <1334641676-14566-1-git-send-email-ming.m.lin@intel.com>
-	 <1334641676-14566-2-git-send-email-ming.m.lin@intel.com>
-	 <201204172229.18203.rjw@sisk.pl>  <1334715327.11188.144.camel@minggr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: [PATCH V2 0/7] usb/acpi: Add binding usb device with acpi
+Date: Wed, 18 Apr 2012 10:36:34 +0800
+Message-ID: <1334716601-12266-1-git-send-email-tianyu.lan@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:11569 "EHLO mga14.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:28324 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752430Ab2DRCca (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Apr 2012 22:32:30 -0400
-In-Reply-To: <1334715327.11188.144.camel@minggr>
+	id S1751708Ab2DRClV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Apr 2012 22:41:21 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Huang Ying <huang.ying.caritas@gmail.com>, Aaron Lu <aaron.lu@amd.com>
+To: lenb@kernel.org, gregkh@linuxfoundation.org
+Cc: linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu, sarah.a.sharp@linux.intel.com, mjg59@srcf.ucam.org, tianyu.lan@intel.com
 
-On Wed, 2012-04-18 at 10:15 +0800, Lin Ming wrote:
-> (fix Len's address)
-> 
-> On Tue, 2012-04-17 at 22:29 +0200, Rafael J. Wysocki wrote:
-> > On Tuesday, April 17, 2012, Lin Ming wrote:
-> > > ACPI_STATE_D3 actually means ACPI D3hot which is not always valid.
-> > > Instead, ACPI D3cold is always valid.
-> > > 
-> > > Signed-off-by: Lin Ming <ming.m.lin@intel.com>
-> > 
-> > Can you just introduce ACPI_STATE_D3_HOT and redefine D3_COLD so that
-> > it's the same as D3, as I said?
-> 
-> Do you mean below?
+This patchset's purppose is to bind usb device with associated
+acpi node. The ACPI method "_PLD" and "_UPC" can be used to
+identify usb port's connect type(hot-plug, hard-wired and
+not-used). The patchset also can work on the port without device
+connected.
 
-Or you mean below?
+This patchset derives from following patches.
+>From Matthew Garrett
+[PATCH V2 2/4] ACPI: Add _PLD support
+[PATCH V2 3/4] usb: Bind devices to ACPI devices when possible
+[PATCH v2 4/4] usb: Set device removable state based on ACPI USB data
 
-diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-index eba6604..5852b8a 100644
---- a/include/acpi/actypes.h
-+++ b/include/acpi/actypes.h
-@@ -499,8 +499,9 @@ typedef u64 acpi_integer;
- #define ACPI_STATE_D0                   (u8) 0
- #define ACPI_STATE_D1                   (u8) 1
- #define ACPI_STATE_D2                   (u8) 2
--#define ACPI_STATE_D3                   (u8) 3
--#define ACPI_STATE_D3_COLD              (u8) 4
-+#define ACPI_STATE_D3_HOT               (u8) 3
-+#define ACPI_STATE_D3                   (u8) 4
-+#define ACPI_STATE_D3_COLD              ACPI_STATE_D3
- #define ACPI_D_STATES_MAX               ACPI_STATE_D3_COLD
- #define ACPI_D_STATE_COUNT              5
- 
+>From Tianyu Lan 
+[PATCH V3 1/4] usb: add struct usb_hub_port to store port related members
+[PATCH V3 2/4] usb: move struct usb_device->children to struct usb_hub_port->child
+[PATCH V3 3/4] usb/acpi: add the support of usb hub ports' acpi binding without attached devices.
+[PATCH V3 4/4] usb/acpi: add usb check for the connect type of usb port
 
+Previously those patches was blocked by [PATCH V2 1/4] ACPI: Fix up _PLD methods.
+Current the final version of this patch has been integrated into ACPICA and released as:
+6a99b1c94d053b3420eaa4a4bc8b2883dd90a2f9
+ACPICA: Object repair code: Support to add Package wrappers
 
-> 
-> diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-> index eba6604..f0b25c8 100644
-> --- a/include/acpi/actypes.h
-> +++ b/include/acpi/actypes.h
-> @@ -499,9 +499,9 @@ typedef u64 acpi_integer;
->  #define ACPI_STATE_D0                   (u8) 0
->  #define ACPI_STATE_D1                   (u8) 1
->  #define ACPI_STATE_D2                   (u8) 2
-> -#define ACPI_STATE_D3                   (u8) 3
-> -#define ACPI_STATE_D3_COLD              (u8) 4
-> -#define ACPI_D_STATES_MAX               ACPI_STATE_D3_COLD
-> +#define ACPI_STATE_D3_HOT               (u8) 3
-> +#define ACPI_STATE_D3                   (u8) 4
-> +#define ACPI_D_STATES_MAX               ACPI_STATE_D3
->  #define ACPI_D_STATE_COUNT              5
->  
->  #define ACPI_STATE_C0                   (u8) 0
-> 
+[PATCH V2 1/7] ACPI: Add _PLD support
+[PATCH V2 2/7] usb: Bind devices to ACPI devices when possible
+[PATCH V2 3/7] usb: Set device removable state based on ACPI USB data
+[PATCH V2 4/7] usb: add struct usb_hub_port to store port related
+[PATCH V2 5/7] usb: move struct usb_device->children to struct
+[PATCH V2 6/7] usb/acpi: add the support of usb hub ports' acpi binding
+[PATCH V2 7/7] usb/acpi: add usb check for the connect type of usb port
 
+git diff --stat 
+ drivers/acpi/utils.c                 |   29 +++++++
+ drivers/staging/usbip/usbip_common.c |    3 +-
+ drivers/usb/core/Makefile            |    1 +
+ drivers/usb/core/devices.c           |    3 +-
+ drivers/usb/core/hub.c               |  133 +++++++++++++++++++++--------
+ drivers/usb/core/usb-acpi.c          |  154 ++++++++++++++++++++++++++++++++++
+ drivers/usb/core/usb.c               |    6 ++
+ drivers/usb/core/usb.h               |   19 ++++-
+ drivers/usb/host/r8a66597-hcd.c      |    3 +-
+ include/acpi/acpi_bus.h              |   31 +++++++
+ include/linux/usb.h                  |   10 ++-
+ 11 files changed, 349 insertions(+), 43 deletions(-)
 
