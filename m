@@ -1,78 +1,77 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: Re: [PATCH 5/7] usb: move struct usb_device->children to struct usb_hub_port->child
-Date: Wed, 18 Apr 2012 10:19:59 +0800
-Message-ID: <4F8E24CF.8050300@intel.com>
-References: <1334642522-22021-1-git-send-email-tianyu.lan@intel.com> <1334642522-22021-6-git-send-email-tianyu.lan@intel.com> <20120417170225.GA4670@xanatos>
+From: Lin Ming <ming.m.lin@intel.com>
+Subject: Re: [PATCH 1/6] ACPI: D3cold state is always valid
+Date: Wed, 18 Apr 2012 10:32:28 +0800
+Message-ID: <1334716348.11188.148.camel@minggr>
+References: <1334641676-14566-1-git-send-email-ming.m.lin@intel.com>
+	 <1334641676-14566-2-git-send-email-ming.m.lin@intel.com>
+	 <201204172229.18203.rjw@sisk.pl>  <1334715327.11188.144.camel@minggr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:63953 "EHLO mga03.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:11569 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752512Ab2DRCYA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Apr 2012 22:24:00 -0400
-In-Reply-To: <20120417170225.GA4670@xanatos>
+	id S1752430Ab2DRCca (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Apr 2012 22:32:30 -0400
+In-Reply-To: <1334715327.11188.144.camel@minggr>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sarah Sharp <sarah.a.sharp@linux.intel.com>
-Cc: lenb@kernel.org, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu, mjg59@srcf.ucam.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Huang Ying <huang.ying.caritas@gmail.com>, Aaron Lu <aaron.lu@amd.com>
 
-hi sarah:
-             Oh. Thanks for review.  Good catching. This is a missing=20
-caused
-by carelessness during updating patch.  I will update patch soon.
+On Wed, 2012-04-18 at 10:15 +0800, Lin Ming wrote:
+> (fix Len's address)
+> 
+> On Tue, 2012-04-17 at 22:29 +0200, Rafael J. Wysocki wrote:
+> > On Tuesday, April 17, 2012, Lin Ming wrote:
+> > > ACPI_STATE_D3 actually means ACPI D3hot which is not always valid.
+> > > Instead, ACPI D3cold is always valid.
+> > > 
+> > > Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+> > 
+> > Can you just introduce ACPI_STATE_D3_HOT and redefine D3_COLD so that
+> > it's the same as D3, as I said?
+> 
+> Do you mean below?
 
-=E4=BA=8E2012=E5=B9=B404=E6=9C=8818=E6=97=A5 =E6=98=9F=E6=9C=9F=E4=B8=89=
- 01=E6=97=B602=E5=88=8625=E7=A7=92,Sarah Sharp=E5=86=99=E5=88=B0:
-> On Tue, Apr 17, 2012 at 02:02:00PM +0800, Lan Tianyu wrote:
->> Move child's pointer to the struct usb_hub_port since the child devi=
-ce
->> is directly associated with the port. Provide usb_get_hub_child_devi=
-ce()
->> to get child's pointer.
->
-> It looks like you deleted the documentation for the children pointer
-> from usb_hub_port, but didn't actually remove the pointer from the
-> structure.  Did you mean to do that?
->
->> diff --git a/include/linux/usb.h b/include/linux/usb.h
->> index 73b68d1..1ea01a5 100644
->> --- a/include/linux/usb.h
->> +++ b/include/linux/usb.h
->> @@ -428,7 +428,6 @@ enum usb_device_removable {
->>    *	access from userspace
->>    * @usbfs_dentry: usbfs dentry entry for the device
->>    * @maxchild: number of ports if hub
->> - * @children: child devices - USB devices that are attached to this=
- hub
->>    * @quirks: quirks of the whole device
->>    * @urbnum: number of URBs submitted for the whole device
->>    * @active_duration: total time device is not suspended
->> @@ -527,6 +526,8 @@ static inline struct usb_device *interface_to_us=
-bdev(struct usb_interface *intf)
->>
->>   extern struct usb_device *usb_get_dev(struct usb_device *dev);
->>   extern void usb_put_dev(struct usb_device *dev);
->> +extern struct usb_device *usb_get_hub_child_device(struct usb_devic=
-e *hdev,
->> +	int port1);
->>
->>   /* USB device locking */
->>   #define usb_lock_device(udev)		device_lock(&(udev)->dev)
->> --=20
->> 1.7.6.rc2.8.g28eb
->>
->
+Or you mean below?
+
+diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+index eba6604..5852b8a 100644
+--- a/include/acpi/actypes.h
++++ b/include/acpi/actypes.h
+@@ -499,8 +499,9 @@ typedef u64 acpi_integer;
+ #define ACPI_STATE_D0                   (u8) 0
+ #define ACPI_STATE_D1                   (u8) 1
+ #define ACPI_STATE_D2                   (u8) 2
+-#define ACPI_STATE_D3                   (u8) 3
+-#define ACPI_STATE_D3_COLD              (u8) 4
++#define ACPI_STATE_D3_HOT               (u8) 3
++#define ACPI_STATE_D3                   (u8) 4
++#define ACPI_STATE_D3_COLD              ACPI_STATE_D3
+ #define ACPI_D_STATES_MAX               ACPI_STATE_D3_COLD
+ #define ACPI_D_STATE_COUNT              5
+ 
 
 
+> 
+> diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+> index eba6604..f0b25c8 100644
+> --- a/include/acpi/actypes.h
+> +++ b/include/acpi/actypes.h
+> @@ -499,9 +499,9 @@ typedef u64 acpi_integer;
+>  #define ACPI_STATE_D0                   (u8) 0
+>  #define ACPI_STATE_D1                   (u8) 1
+>  #define ACPI_STATE_D2                   (u8) 2
+> -#define ACPI_STATE_D3                   (u8) 3
+> -#define ACPI_STATE_D3_COLD              (u8) 4
+> -#define ACPI_D_STATES_MAX               ACPI_STATE_D3_COLD
+> +#define ACPI_STATE_D3_HOT               (u8) 3
+> +#define ACPI_STATE_D3                   (u8) 4
+> +#define ACPI_D_STATES_MAX               ACPI_STATE_D3
+>  #define ACPI_D_STATE_COUNT              5
+>  
+>  #define ACPI_STATE_C0                   (u8) 0
+> 
 
---=20
-Best Regards
-Tianyu Lan
-linux kernel enabling team
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
