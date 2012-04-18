@@ -1,129 +1,49 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 2/2] x86/acpi: Call acpi_enter_sleep_state via an asmlinkage C function from assembler.
-Date: Wed, 18 Apr 2012 21:48:14 +0200
-Message-ID: <201204182148.15169.rjw@sisk.pl>
-References: <1334769518-7660-1-git-send-email-konrad.wilk@oracle.com> <1334769518-7660-3-git-send-email-konrad.wilk@oracle.com>
+Subject: Re: [RFC PATCH] PCIe: Add PCIe runtime D3cold support
+Date: Wed, 18 Apr 2012 21:51:33 +0200
+Message-ID: <201204182151.33854.rjw@sisk.pl>
+References: <4F8790F6.5080408@intel.com> <201204172220.45970.rjw@sisk.pl> <CAC=cRTN2QHWu1aD4AGyTB=wuHW-0oyLreZ2QiWSMvf_Ne_Nz0g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-2"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1334769518-7660-3-git-send-email-konrad.wilk@oracle.com>
+In-Reply-To: <CAC=cRTN2QHWu1aD4AGyTB=wuHW-0oyLreZ2QiWSMvf_Ne_Nz0g@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: ming.m.lin@intel.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, hpa@zytor.com, x86@kernel.org
+To: huang ying <huang.ying.caritas@gmail.com>
+Cc: "Yan, Zheng" <zheng.z.yan@intel.com>, bhelgaas@google.com, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-pm@vger.kernel.org, Lin Ming <ming.m.lin@intel.com>, Zhang Rui <rui.zhang@intel.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, April 18, 2012, Konrad Rzeszutek Wilk wrote:
-> With commit a2ef5c4fd44ce3922435139393b89f2cce47f576
-> "ACPI: Move module parameter gts and bfs to sleep.c" the
-> wake_sleep_flags is required when calling acpi_enter_sleep_state.
+On Wednesday, April 18, 2012, huang ying wrote:
+> On Wed, Apr 18, 2012 at 4:20 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > On Tuesday, April 17, 2012, huang ying wrote:
+> >> On Tue, Apr 17, 2012 at 1:07 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> >> > Moreover, I really don't think it's a good idea to put PCI Express ports into
+> >> > low-power states in general.  It might work on your platform, whatever it is,
+> >> > but that doesn't mean it's going to work on every PCI Express system out
+> >> > there.  I actually know of a number of such systems where it surely won't
+> >> > work at all.
+> >>
+> >> The runtime PM support for PCIe port is not turned on by default, we need
+> >>
+> >> # echo auto > /sys/devices/pcixxxx:xx/<pci id>/power/control
+> >>
+> >> to turn on it.  And we will turn on it on system it works.  Is this sufficient?
+> >
+> > No, it is not.  In some cases it shouldn't be enabled at all for PCI Express
+> > ports, as far as I can say, so to be on the safe side we should only enable it
+> > on platforms where PCI Express ports are known to work correctly with runtime PM.
 > 
-> The assembler code in wakeup_*.S did not do that. One solution
-> is to call it from assembler and stick the wake_sleep_flags on
-> the stack (for 32-bit) or in %esi (for 64-bit). hpa and rafael
-> both suggested however to create a wrapper function to call
-> acpi_enter_sleep_state and call said wrapper function
-> ("acpi_enter_s3") from assembler.
-> 
-> For 32-bit, the acpi_enter_s3 ends up looking as so:
-> 
->   push   %ebp
->   mov    %esp,%ebp
->   sub    $0x8,%esp
->   movzbl 0xc1809314,%eax [wake_sleep_flags]
->   movl   $0x3,(%esp)
->   mov    %eax,0x4(%esp)
->   call   0xc12d1fa0 <acpi_enter_sleep_state>
->   leave
->   ret
-> 
-> And 64-bit:
-> 
->   movzbl 0x9afde1(%rip),%esi        [wake_sleep_flags]
->   push   %rbp
->   mov    $0x3,%edi
->   mov    %rsp,%rbp
->   callq  0xffffffff812e9800 <acpi_enter_sleep_state>
->   leaveq
->   retq
-> 
-> Suggested-by: H. Peter Anvin <hpa@zytor.com>
-> [v2: Remove extra assembler operations, per hpa review]
-> Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+> Sorry, I did not catch your idea exactly.  I think disable it by
+> default and enable it by sysfs interface is what you suggested, isn't
+> it?
 
-Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
+No, it isn't.  User space shouldn't be able to enable functionality that's
+going to break on a subset of systems.
 
-> ---
->  arch/x86/kernel/acpi/sleep.c     |    4 ++++
->  arch/x86/kernel/acpi/sleep.h     |    2 ++
->  arch/x86/kernel/acpi/wakeup_32.S |    4 +---
->  arch/x86/kernel/acpi/wakeup_64.S |    4 +---
->  4 files changed, 8 insertions(+), 6 deletions(-)
-> 
-> diff --git a/arch/x86/kernel/acpi/sleep.c b/arch/x86/kernel/acpi/sleep.c
-> index 103b6ab..146a49c 100644
-> --- a/arch/x86/kernel/acpi/sleep.c
-> +++ b/arch/x86/kernel/acpi/sleep.c
-> @@ -24,6 +24,10 @@ unsigned long acpi_realmode_flags;
->  static char temp_stack[4096];
->  #endif
->  
-> +asmlinkage void acpi_enter_s3(void)
-> +{
-> +	acpi_enter_sleep_state(3, wake_sleep_flags);
-> +}
->  /**
->   * acpi_suspend_lowlevel - save kernel state
->   *
-> diff --git a/arch/x86/kernel/acpi/sleep.h b/arch/x86/kernel/acpi/sleep.h
-> index fe5fdda..d68677a 100644
-> --- a/arch/x86/kernel/acpi/sleep.h
-> +++ b/arch/x86/kernel/acpi/sleep.h
-> @@ -3,6 +3,7 @@
->   */
->  
->  #include <asm/trampoline.h>
-> +#include <linux/linkage.h>
->  
->  extern unsigned long saved_video_mode;
->  extern long saved_magic;
-> @@ -10,6 +11,7 @@ extern long saved_magic;
->  extern int wakeup_pmode_return;
->  
->  extern u8 wake_sleep_flags;
-> +extern asmlinkage void acpi_enter_s3(void);
->  
->  extern unsigned long acpi_copy_wakeup_routine(unsigned long);
->  extern void wakeup_long64(void);
-> diff --git a/arch/x86/kernel/acpi/wakeup_32.S b/arch/x86/kernel/acpi/wakeup_32.S
-> index 13ab720..7261083 100644
-> --- a/arch/x86/kernel/acpi/wakeup_32.S
-> +++ b/arch/x86/kernel/acpi/wakeup_32.S
-> @@ -74,9 +74,7 @@ restore_registers:
->  ENTRY(do_suspend_lowlevel)
->  	call	save_processor_state
->  	call	save_registers
-> -	pushl	$3
-> -	call	acpi_enter_sleep_state
-> -	addl	$4, %esp
-> +	call	acpi_enter_s3
->  
->  #	In case of S3 failure, we'll emerge here.  Jump
->  # 	to ret_point to recover
-> diff --git a/arch/x86/kernel/acpi/wakeup_64.S b/arch/x86/kernel/acpi/wakeup_64.S
-> index 8ea5164..014d1d2 100644
-> --- a/arch/x86/kernel/acpi/wakeup_64.S
-> +++ b/arch/x86/kernel/acpi/wakeup_64.S
-> @@ -71,9 +71,7 @@ ENTRY(do_suspend_lowlevel)
->  	movq	%rsi, saved_rsi
->  
->  	addq	$8, %rsp
-> -	movl	$3, %edi
-> -	xorl	%eax, %eax
-> -	call	acpi_enter_sleep_state
-> +	call	acpi_enter_s3
->  	/* in case something went wrong, restore the machine status and go on */
->  	jmp	resume_point
->  
-> 
+> Or you suggest something like "white list"?
+
+Yes, something like this.
+
+Thanks,
+Rafael
