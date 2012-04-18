@@ -1,59 +1,109 @@
 From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: [PATCH V2 0/7] usb/acpi: Add binding usb device with acpi
-Date: Wed, 18 Apr 2012 10:36:34 +0800
-Message-ID: <1334716601-12266-1-git-send-email-tianyu.lan@intel.com>
+Subject: [PATCH V2 1/7] ACPI: Add _PLD support
+Date: Wed, 18 Apr 2012 10:36:35 +0800
+Message-ID: <1334716601-12266-2-git-send-email-tianyu.lan@intel.com>
+References: <1334716601-12266-1-git-send-email-tianyu.lan@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:28324 "EHLO mga11.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:26664 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751708Ab2DRClV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Apr 2012 22:41:21 -0400
+	id S1751708Ab2DRClY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Apr 2012 22:41:24 -0400
+In-Reply-To: <1334716601-12266-1-git-send-email-tianyu.lan@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org, gregkh@linuxfoundation.org
-Cc: linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu, sarah.a.sharp@linux.intel.com, mjg59@srcf.ucam.org, tianyu.lan@intel.com
+Cc: linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu, sarah.a.sharp@linux.intel.com, mjg59@srcf.ucam.org, tianyu.lan@intel.com, Matthew Garrett <mjg@redhat.com>
 
-This patchset's purppose is to bind usb device with associated
-acpi node. The ACPI method "_PLD" and "_UPC" can be used to
-identify usb port's connect type(hot-plug, hard-wired and
-not-used). The patchset also can work on the port without device
-connected.
+From: Matthew Garrett <mjg@redhat.com>
 
-This patchset derives from following patches.
->From Matthew Garrett
-[PATCH V2 2/4] ACPI: Add _PLD support
-[PATCH V2 3/4] usb: Bind devices to ACPI devices when possible
-[PATCH v2 4/4] usb: Set device removable state based on ACPI USB data
+Add a simple helper function to allow drivers to obtain the physical
+device location data.
 
->From Tianyu Lan 
-[PATCH V3 1/4] usb: add struct usb_hub_port to store port related members
-[PATCH V3 2/4] usb: move struct usb_device->children to struct usb_hub_port->child
-[PATCH V3 3/4] usb/acpi: add the support of usb hub ports' acpi binding without attached devices.
-[PATCH V3 4/4] usb/acpi: add usb check for the connect type of usb port
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+---
+ drivers/acpi/utils.c    |   29 +++++++++++++++++++++++++++++
+ include/acpi/acpi_bus.h |   31 +++++++++++++++++++++++++++++++
+ 2 files changed, 60 insertions(+), 0 deletions(-)
 
-Previously those patches was blocked by [PATCH V2 1/4] ACPI: Fix up _PLD methods.
-Current the final version of this patch has been integrated into ACPICA and released as:
-6a99b1c94d053b3420eaa4a4bc8b2883dd90a2f9
-ACPICA: Object repair code: Support to add Package wrappers
-
-[PATCH V2 1/7] ACPI: Add _PLD support
-[PATCH V2 2/7] usb: Bind devices to ACPI devices when possible
-[PATCH V2 3/7] usb: Set device removable state based on ACPI USB data
-[PATCH V2 4/7] usb: add struct usb_hub_port to store port related
-[PATCH V2 5/7] usb: move struct usb_device->children to struct
-[PATCH V2 6/7] usb/acpi: add the support of usb hub ports' acpi binding
-[PATCH V2 7/7] usb/acpi: add usb check for the connect type of usb port
-
-git diff --stat 
- drivers/acpi/utils.c                 |   29 +++++++
- drivers/staging/usbip/usbip_common.c |    3 +-
- drivers/usb/core/Makefile            |    1 +
- drivers/usb/core/devices.c           |    3 +-
- drivers/usb/core/hub.c               |  133 +++++++++++++++++++++--------
- drivers/usb/core/usb-acpi.c          |  154 ++++++++++++++++++++++++++++++++++
- drivers/usb/core/usb.c               |    6 ++
- drivers/usb/core/usb.h               |   19 ++++-
- drivers/usb/host/r8a66597-hcd.c      |    3 +-
- include/acpi/acpi_bus.h              |   31 +++++++
- include/linux/usb.h                  |   10 ++-
- 11 files changed, 349 insertions(+), 43 deletions(-)
+diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+index b002a47..5c320a0 100644
+--- a/drivers/acpi/utils.c
++++ b/drivers/acpi/utils.c
+@@ -382,3 +382,32 @@ acpi_evaluate_reference(acpi_handle handle,
+ }
+ 
+ EXPORT_SYMBOL(acpi_evaluate_reference);
++
++acpi_status
++acpi_get_physical_device_location(acpi_handle handle, struct acpi_pld *pld)
++{
++	acpi_status status;
++	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
++	union acpi_object *output;
++
++	status = acpi_evaluate_object(handle, "_PLD", NULL, &buffer);
++
++	if (ACPI_FAILURE(status))
++		return status;
++
++	output = buffer.pointer;
++
++	if (!output || output->type != ACPI_TYPE_PACKAGE
++	    || !output->package.count
++	    || output->package.elements[0].type != ACPI_TYPE_BUFFER
++	    || output->package.elements[0].buffer.length > sizeof(*pld)) {
++		status = AE_TYPE;
++		goto out;
++	}
++
++	memcpy(pld, output->package.elements[0].buffer.pointer,
++	       output->package.elements[0].buffer.length);
++out:
++	kfree(buffer.pointer);
++	return status;
++}
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index f1c8ca6..2642744 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -51,6 +51,37 @@ acpi_evaluate_reference(acpi_handle handle,
+ 			struct acpi_object_list *arguments,
+ 			struct acpi_handle_list *list);
+ 
++struct acpi_pld {
++	unsigned int revision:7; /* 0 */
++	unsigned int ignore_colour:1; /* 7 */
++	unsigned int colour:24; /* 8 */
++	unsigned int width:16; /* 32 */
++	unsigned int height:16; /* 48 */
++	unsigned int user_visible:1; /* 64 */
++	unsigned int dock:1; /* 65 */
++	unsigned int lid:1; /* 66 */
++	unsigned int panel:3; /* 67 */
++	unsigned int vertical_pos:2; /* 70 */
++	unsigned int horizontal_pos:2; /* 72 */
++	unsigned int shape:4; /* 74 */
++	unsigned int group_orientation:1; /* 78 */
++	unsigned int group_token:8; /* 79 */
++	unsigned int group_position:8; /* 87 */
++	unsigned int bay:1; /* 95 */
++	unsigned int ejectable:1; /* 96 */
++	unsigned int ospm_eject_required:1; /* 97 */
++	unsigned int cabinet_number:8; /* 98 */
++	unsigned int card_cage_number:8; /* 106 */
++	unsigned int reference:1; /* 114 */
++	unsigned int rotation:4; /* 115 */
++	unsigned int order:5; /* 119 */
++	unsigned int reserved:4; /* 124 */
++	unsigned int vertical_offset:16; /* 128 */
++	unsigned int horizontal_offset:16; /* 144 */
++};
++
++acpi_status
++acpi_get_physical_device_location(acpi_handle handle, struct acpi_pld *pld);
+ #ifdef CONFIG_ACPI
+ 
+ #include <linux/proc_fs.h>
+-- 
+1.7.6.rc2.8.g28eb
 
