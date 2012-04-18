@@ -1,231 +1,59 @@
-From: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH V2 7/7] usb/acpi: add usb check for the connect type of usb port
-Date: Wed, 18 Apr 2012 10:36:41 +0800
-Message-ID: <1334716601-12266-8-git-send-email-tianyu.lan@intel.com>
-References: <1334716601-12266-1-git-send-email-tianyu.lan@intel.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1334716601-12266-1-git-send-email-tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org, tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 1/6] ACPI: D3cold state is always valid
+Date: Wed, 18 Apr 2012 11:09:29 +0200
+Message-ID: <201204181109.29355.rjw@sisk.pl>
+References: <1334641676-14566-1-git-send-email-ming.m.lin@intel.com> <1334715327.11188.144.camel@minggr> <1334716348.11188.148.camel@minggr>
+Mime-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1334716348.11188.148.camel@minggr>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lin Ming <ming.m.lin@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Huang Ying <huang.ying.caritas@gmail.com>, Aaron Lu <aaron.lu@amd.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Check the connect type of usb port when getting the usb port's
-acpi_handle and store result into connect_type in the struct
-usb_hub_port.
+On Wednesday, April 18, 2012, Lin Ming wrote:
+> On Wed, 2012-04-18 at 10:15 +0800, Lin Ming wrote:
+> > (fix Len's address)
+> > 
+> > On Tue, 2012-04-17 at 22:29 +0200, Rafael J. Wysocki wrote:
+> > > On Tuesday, April 17, 2012, Lin Ming wrote:
+> > > > ACPI_STATE_D3 actually means ACPI D3hot which is not always valid.
+> > > > Instead, ACPI D3cold is always valid.
+> > > > 
+> > > > Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+> > > 
+> > > Can you just introduce ACPI_STATE_D3_HOT and redefine D3_COLD so that
+> > > it's the same as D3, as I said?
+> > 
+> > Do you mean below?
+> 
+> Or you mean below?
 
-Accoding to ACPI Spec 9.13. PLD indicates whether usb port is
-user visible and _UPC indicates whether it is connectable. If
-the port was visible and connectable, it could be freely connected
-and disconnected with USB devices. If no visible and connectable,
-a usb device is directly hard-wired to the port. If no visible and
-no connectable, the port would be not used.
+This one, with a minor nit.
 
-When a device was found on the port, if the connect_type was hot-plug,
-then the device would be removable. If the connect_type was hard-wired,
-the device would be non-removable.
+> diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+> index eba6604..5852b8a 100644
+> --- a/include/acpi/actypes.h
+> +++ b/include/acpi/actypes.h
+> @@ -499,8 +499,9 @@ typedef u64 acpi_integer;
+>  #define ACPI_STATE_D0                   (u8) 0
+>  #define ACPI_STATE_D1                   (u8) 1
+>  #define ACPI_STATE_D2                   (u8) 2
+> -#define ACPI_STATE_D3                   (u8) 3
+> -#define ACPI_STATE_D3_COLD              (u8) 4
+> +#define ACPI_STATE_D3_HOT               (u8) 3
+> +#define ACPI_STATE_D3                   (u8) 4
+> +#define ACPI_STATE_D3_COLD              ACPI_STATE_D3
+>  #define ACPI_D_STATES_MAX               ACPI_STATE_D3_COLD
 
-Signed-off-by: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/usb/core/hub.c      |   21 +++++++++++++
- drivers/usb/core/usb-acpi.c |   67 ++++++++++++++++++++++--------------------
- drivers/usb/core/usb.h      |    4 ++
- include/linux/usb.h         |    7 ++++
- 4 files changed, 67 insertions(+), 32 deletions(-)
+I'd say
 
-diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
-index 6dd4d3c..d9d66c9 100644
---- a/drivers/usb/core/hub.c
-+++ b/drivers/usb/core/hub.c
-@@ -41,6 +41,7 @@ struct usb_hub_port {
- 	void			*port_owner;
- 	struct usb_device	*child;
- 	unsigned long		platform_data;
-+	enum usb_port_connect_type connect_type;
- };
- 
- struct usb_hub {
-@@ -4270,3 +4271,23 @@ unsigned long usb_get_hub_port_platform_data(struct usb_device *hdev, int port1)
- 		return 0;
- 	return hub->port_data[port1 - 1].platform_data;
- }
-+
-+void usb_set_hub_port_connect_type(struct usb_device *hdev, int port1,
-+	enum usb_port_connect_type type)
-+{
-+	struct usb_hub *hub = hdev_to_hub(hdev);
-+
-+	if (!hub || port1 > hdev->maxchild || port1 < 1)
-+		return;
-+	hub->port_data[port1 - 1].connect_type = type;
-+}
-+
-+enum usb_port_connect_type
-+usb_get_hub_port_connect_type(struct usb_device *hdev,	int port1)
-+{
-+	struct usb_hub *hub = hdev_to_hub(hdev);
-+
-+	if (!hub || port1 > hdev->maxchild || port1 < 1)
-+		return USB_PORT_CONNECT_TYPE_UNKNOWN;
-+	return hub->port_data[port1 - 1].connect_type;
-+}
-diff --git a/drivers/usb/core/usb-acpi.c b/drivers/usb/core/usb-acpi.c
-index 984c559..ef7810b 100644
---- a/drivers/usb/core/usb-acpi.c
-+++ b/drivers/usb/core/usb-acpi.c
-@@ -19,58 +19,56 @@
- 
- #include "usb.h"
- 
--static int usb_acpi_check_upc(struct usb_device *udev, acpi_handle handle)
-+static int usb_acpi_check_port_connect_type(struct usb_device *hdev,
-+	acpi_handle handle, int port1)
- {
- 	acpi_status status;
- 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
- 	union acpi_object *upc;
-+	struct acpi_pld pld;
- 	int ret = 0;
- 
--	status = acpi_evaluate_object(handle, "_UPC", NULL, &buffer);
-+	/**
-+	 * Accoding to ACPI Spec 9.13. PLD indicates whether usb port is
-+	 * user visible and _UPC indicates whether it is connectable. If
-+	 * the port was visible and connectable, it could be freely connected
-+	 * and disconnected with USB devices. If no visible and connectable,
-+	 * a usb device is directly hard-wired to the port. If no visible and
-+	 * no connectable, the port would be not used.
-+	 */
-+	status = acpi_get_physical_device_location(handle, &pld);
-+	if (ACPI_FAILURE(status))
-+		return -ENODEV;
- 
-+	status = acpi_evaluate_object(handle, "_UPC", NULL, &buffer);
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
- 
- 	upc = buffer.pointer;
--
- 	if (!upc || (upc->type != ACPI_TYPE_PACKAGE) || upc->package.count != 4) {
- 		ret = -EINVAL;
- 		goto out;
- 	}
- 
- 	if (upc->package.elements[0].integer.value)
--		udev->removable = USB_DEVICE_REMOVABLE;
--	else
--		udev->removable = USB_DEVICE_FIXED;
-+		usb_set_hub_port_connect_type(hdev, port1,
-+				pld.user_visible ?
-+					USB_PORT_CONNECT_TYPE_HOT_PLUG :
-+					USB_PORT_CONNECT_TYPE_HARD_WIRED);
-+	else if (!pld.user_visible)
-+		usb_set_hub_port_connect_type(hdev, port1, USB_PORT_NOT_USED);
- 
- out:
- 	kfree(upc);
- 	return ret;
- }
- 
--static int usb_acpi_check_pld(struct usb_device *udev, acpi_handle handle)
--{
--	acpi_status status;
--	struct acpi_pld pld;
--
--	status = acpi_get_physical_device_location(handle, &pld);
--
--	if (ACPI_FAILURE(status))
--		return -ENODEV;
--
--	if (pld.user_visible)
--		udev->removable = USB_DEVICE_REMOVABLE;
--	else
--		udev->removable = USB_DEVICE_FIXED;
--
--	return 0;
--}
--
- static int usb_acpi_find_device(struct device *dev, acpi_handle *handle)
- {
- 	struct usb_device *udev;
- 	struct device *parent;
- 	acpi_handle *parent_handle;
-+	enum usb_port_connect_type type;
- 
- 	if (!is_usb_device(dev))
- 		return -ENODEV;
-@@ -96,14 +94,18 @@ static int usb_acpi_find_device(struct device *dev, acpi_handle *handle)
- 	if (!*handle)
- 		return -ENODEV;
- 
--	/*
--	 * PLD will tell us whether a port is removable to the user or
--	 * not. If we don't get an answer from PLD (it's not present
--	 * or it's malformed) then try to infer it from UPC. If a
--	 * device isn't connectable then it's probably not removable.
--	 */
--	if (usb_acpi_check_pld(udev, *handle) != 0)
--		usb_acpi_check_upc(udev, *handle);
-+	type = usb_get_hub_port_connect_type(udev->parent, udev->portnum);
-+	switch (type) {
-+	case USB_PORT_CONNECT_TYPE_HOT_PLUG:
-+		udev->removable = USB_DEVICE_REMOVABLE;
-+		break;
-+	case USB_PORT_CONNECT_TYPE_HARD_WIRED:
-+		udev->removable = USB_DEVICE_FIXED;
-+		break;
-+	default:
-+		udev->removable = USB_DEVICE_REMOVABLE_UNKNOWN;
-+		break;
-+	}
- 
- 	return 0;
- }
-@@ -136,6 +138,7 @@ int usb_acpi_bind_hub_ports(struct usb_device *hdev)
- 			continue;
- 		usb_set_hub_port_platform_data(hdev, i,
- 			(unsigned long)port_handle);
-+		usb_acpi_check_port_connect_type(hdev, port_handle, i);
- 	}
- 	return 0;
- }
-diff --git a/drivers/usb/core/usb.h b/drivers/usb/core/usb.h
-index d69d5f6..26fcabc1 100644
---- a/drivers/usb/core/usb.h
-+++ b/drivers/usb/core/usb.h
-@@ -159,6 +159,10 @@ extern unsigned long usb_get_hub_port_platform_data(struct usb_device *hdev,
- 	int port1);
- extern void usb_set_hub_port_platform_data(struct usb_device *hdev,
- 	int port1, unsigned long data);
-+extern enum usb_port_connect_type
-+	usb_get_hub_port_connect_type(struct usb_device *hdev, int port1);
-+extern void usb_set_hub_port_connect_type(struct usb_device *hdev, int port1,
-+	enum usb_port_connect_type type);
- 
- #ifdef CONFIG_ACPI
- extern int usb_acpi_register(void);
-diff --git a/include/linux/usb.h b/include/linux/usb.h
-index 5e7058d..848809a 100644
---- a/include/linux/usb.h
-+++ b/include/linux/usb.h
-@@ -382,6 +382,13 @@ enum usb_device_removable {
- 	USB_DEVICE_FIXED,
- };
- 
-+enum usb_port_connect_type {
-+	USB_PORT_CONNECT_TYPE_UNKNOWN = 0,
-+	USB_PORT_CONNECT_TYPE_HOT_PLUG,
-+	USB_PORT_CONNECT_TYPE_HARD_WIRED,
-+	USB_PORT_NOT_USED,
-+};
-+
- /**
-  * struct usb_device - kernel's representation of a USB device
-  * @devnum: device number; address on a USB bus
--- 
-1.7.6.rc2.8.g28eb
+  #define ACPI_D_STATES_MAX               ACPI_STATE_D3
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  #define ACPI_D_STATE_COUNT              5
+
+Thanks,
+Rafael
