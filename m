@@ -1,38 +1,79 @@
-From: Yoshi Rokuko <yoshi@rokuko.net>
-Subject: Re: =?utf-8?b?L3N5cy9jbGFzcy9wb3dlcl9zdXBwbHkvQkFUMC8=?= =?utf-8?b?Y2hhcmdlXw==?= vs =?utf-8?b?ZW5lcmd5Xw==?=
-Date: Wed, 18 Apr 2012 11:44:50 +0000 (UTC)
-Message-ID: <loom.20120418T134242-823@post.gmane.org>
-References: <CA+z-pWGrhtT3m=tOXcCDph3TC6AcbTVQJTF35V-o5MHeAB=HCg@mail.gmail.com> <CA+z-pWHyhVO16AGz-fxmDhTyO0xXGfOB-_pPQZjMqf4vBUZw_g@mail.gmail.com> <CA+z-pWHPj-_ZA0v+siLaVtwFtyd-tDFM5+71s3j6ng3=pWGu0Q@mail.gmail.com> <CA+z-pWGJ_sFh138kgZh-oX=rwv3t_LRDvgCvdGxuxnMDegxgaA@mail.gmail.com> <CA+z-pWEtiW9Rc9yjXNZSc7daFRwDieYb3Bnxt6=m+G+k_ELL8g@mail.gmail.com> <CA+z-pWGmiRvpYQWQwb-f9TjH18k1pvu1rbOPUuF1t9-m3HvHqA@mail.gmail.com> <CA+z-pWE9LmEiYDxVAbdR7GhO=C5fiDf1QozO2n4v0fQ4V6hrNQ@mail.gmail.com> <20120109133722.GA9981@srcf.ucam.org> <CA+z-pWEcv7ejAPbD+oLXdptf5h4xbZ4g4sxm0uuqxdGp7n7r4A@mail.gmail.com> <20120109213902.GB18923@srcf.ucam.org> <CA+z-pWF+pvFrfJ8O9ddF6dXaK+Wo-WvUVX3uHuScEbbAn5qYhA@mail.gmail.com>
+From: Sergio Correia <lists@uece.net>
+Subject: Re: [v3.4-rc] regression: reboot not working
+Date: Wed, 18 Apr 2012 12:12:33 -0400
+Message-ID: <CAJyhjX0QMf7FcDfx+KDggF7avBnRFcGX6KWy6hJZ_p=ceTFh+g@mail.gmail.com>
+References: <CADDKRnALwHa=QteDDcMxBU24rfbKoTOGX=iTcfeE7=M7a+NFcw@mail.gmail.com>
+ <CADDKRnAhqi-fwFrr85QC-ZP2g0=_ZSb__jEbZqAekCKXs2CtCg@mail.gmail.com> <CADDKRnDJ_u7FkOHPDr0kJ+mh4k06wv2imVh8DV=GzDUQiKEWQw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:47179 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752620Ab2DRLuF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 18 Apr 2012 07:50:05 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <glad-acpi-devel@m.gmane.org>)
-	id 1SKTOd-0004K6-6Z
-	for linux-acpi@vger.kernel.org; Wed, 18 Apr 2012 13:50:03 +0200
-Received: from host18211.pik-potsdam.de ([193.174.18.211])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Wed, 18 Apr 2012 13:50:03 +0200
-Received: from yoshi by host18211.pik-potsdam.de with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-acpi@vger.kernel.org>; Wed, 18 Apr 2012 13:50:03 +0200
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:42815 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751151Ab2DRQMz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Apr 2012 12:12:55 -0400
+Received: by vcqp1 with SMTP id p1so4987219vcq.19
+        for <linux-acpi@vger.kernel.org>; Wed, 18 Apr 2012 09:12:54 -0700 (PDT)
+In-Reply-To: <CADDKRnDJ_u7FkOHPDr0kJ+mh4k06wv2imVh8DV=GzDUQiKEWQw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: =?ISO-8859-1?Q?J=F6rg_Otte?= <jrg.otte@googlemail.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, hpa@zytor.com, torvalds@linux-foundation.org
 
-Jamie Kitson <jamie <at> kitten-x.com> writes:
+On Wed, Apr 18, 2012 at 12:00 PM, J=F6rg Otte <jrg.otte@googlemail.com>=
+ wrote:
+> 9 days and still no response. Maybe I addressed the wrong person(s).
+> I Cc to Linus.
+>
+> Who can help with this topic?
+>
 
-> 
-> Could we not have a new generic file (or two) in the directory to
-> state battery level as a percentage, and perhaps another for warning
-> level as a percentage?
+CC'ing linux-acpi.
 
-that would be great indead! actually the first would suffice I think.
-but this change of charge to energy and back is really a pain ...
-
+> Thanks, Joerg
+>
+>
+>
+> Am 14. April 2012 12:46 schrieb J=F6rg Otte <jrg.otte@googlemail.com>=
+:
+>> It's now bisected:
+>>
+>> cf450136bfde77c7f95065c91bffded4aa7fa731 =A0 ACPI: ignore FADT reset=
+-reg-sup flag
+>>
+>> Thanks, Joerg
+>>
+>>
+>> Am 9. April 2012 17:19 schrieb J=F6rg Otte <jrg.otte@googlemail.com>=
+:
+>>> Hi,
+>>>
+>>> On reboot it shuts down as normal.
+>>> The last lines displayed are:
+>>>
+>>>>.
+>>>>Unmounting temporary filesystems.. [OK]
+>>>>Deactivating swap... =A0 =A0 =A0 =A0 =A0 =A0 =A0 [OK]
+>>>>Unmounting local filesystems... =A0 =A0[OK]
+>>>>Will now restart
+>>>> =A0 =A0Restarting system
+>>>
+>>> Then I hear it accessing the cd-drive, but then
+>>> it's being stuck.
+>>>
+>>> v3.3 was ok. HW is a Thinkpad T43.
+>>>
+>>> Please Cc me I'm not subscribed.
+>>>
+>>> Thanks,Joerg
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kerne=
+l" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at =A0http://www.tux.org/lkml/
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
