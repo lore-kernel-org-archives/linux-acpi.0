@@ -1,59 +1,38 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 1/6] ACPI: D3cold state is always valid
-Date: Wed, 18 Apr 2012 11:09:29 +0200
-Message-ID: <201204181109.29355.rjw@sisk.pl>
-References: <1334641676-14566-1-git-send-email-ming.m.lin@intel.com> <1334715327.11188.144.camel@minggr> <1334716348.11188.148.camel@minggr>
+From: Yoshi Rokuko <yoshi@rokuko.net>
+Subject: Re: =?utf-8?b?L3N5cy9jbGFzcy9wb3dlcl9zdXBwbHkvQkFUMC8=?= =?utf-8?b?Y2hhcmdlXw==?= vs =?utf-8?b?ZW5lcmd5Xw==?=
+Date: Wed, 18 Apr 2012 11:44:50 +0000 (UTC)
+Message-ID: <loom.20120418T134242-823@post.gmane.org>
+References: <CA+z-pWGrhtT3m=tOXcCDph3TC6AcbTVQJTF35V-o5MHeAB=HCg@mail.gmail.com> <CA+z-pWHyhVO16AGz-fxmDhTyO0xXGfOB-_pPQZjMqf4vBUZw_g@mail.gmail.com> <CA+z-pWHPj-_ZA0v+siLaVtwFtyd-tDFM5+71s3j6ng3=pWGu0Q@mail.gmail.com> <CA+z-pWGJ_sFh138kgZh-oX=rwv3t_LRDvgCvdGxuxnMDegxgaA@mail.gmail.com> <CA+z-pWEtiW9Rc9yjXNZSc7daFRwDieYb3Bnxt6=m+G+k_ELL8g@mail.gmail.com> <CA+z-pWGmiRvpYQWQwb-f9TjH18k1pvu1rbOPUuF1t9-m3HvHqA@mail.gmail.com> <CA+z-pWE9LmEiYDxVAbdR7GhO=C5fiDf1QozO2n4v0fQ4V6hrNQ@mail.gmail.com> <20120109133722.GA9981@srcf.ucam.org> <CA+z-pWEcv7ejAPbD+oLXdptf5h4xbZ4g4sxm0uuqxdGp7n7r4A@mail.gmail.com> <20120109213902.GB18923@srcf.ucam.org> <CA+z-pWF+pvFrfJ8O9ddF6dXaK+Wo-WvUVX3uHuScEbbAn5qYhA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1334716348.11188.148.camel@minggr>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lin Ming <ming.m.lin@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Huang Ying <huang.ying.caritas@gmail.com>, Aaron Lu <aaron.lu@amd.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from plane.gmane.org ([80.91.229.3]:47179 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752620Ab2DRLuF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 18 Apr 2012 07:50:05 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <glad-acpi-devel@m.gmane.org>)
+	id 1SKTOd-0004K6-6Z
+	for linux-acpi@vger.kernel.org; Wed, 18 Apr 2012 13:50:03 +0200
+Received: from host18211.pik-potsdam.de ([193.174.18.211])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Wed, 18 Apr 2012 13:50:03 +0200
+Received: from yoshi by host18211.pik-potsdam.de with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-acpi@vger.kernel.org>; Wed, 18 Apr 2012 13:50:03 +0200
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Wednesday, April 18, 2012, Lin Ming wrote:
-> On Wed, 2012-04-18 at 10:15 +0800, Lin Ming wrote:
-> > (fix Len's address)
-> > 
-> > On Tue, 2012-04-17 at 22:29 +0200, Rafael J. Wysocki wrote:
-> > > On Tuesday, April 17, 2012, Lin Ming wrote:
-> > > > ACPI_STATE_D3 actually means ACPI D3hot which is not always valid.
-> > > > Instead, ACPI D3cold is always valid.
-> > > > 
-> > > > Signed-off-by: Lin Ming <ming.m.lin@intel.com>
-> > > 
-> > > Can you just introduce ACPI_STATE_D3_HOT and redefine D3_COLD so that
-> > > it's the same as D3, as I said?
-> > 
-> > Do you mean below?
+Jamie Kitson <jamie <at> kitten-x.com> writes:
+
 > 
-> Or you mean below?
+> Could we not have a new generic file (or two) in the directory to
+> state battery level as a percentage, and perhaps another for warning
+> level as a percentage?
 
-This one, with a minor nit.
+that would be great indead! actually the first would suffice I think.
+but this change of charge to energy and back is really a pain ...
 
-> diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-> index eba6604..5852b8a 100644
-> --- a/include/acpi/actypes.h
-> +++ b/include/acpi/actypes.h
-> @@ -499,8 +499,9 @@ typedef u64 acpi_integer;
->  #define ACPI_STATE_D0                   (u8) 0
->  #define ACPI_STATE_D1                   (u8) 1
->  #define ACPI_STATE_D2                   (u8) 2
-> -#define ACPI_STATE_D3                   (u8) 3
-> -#define ACPI_STATE_D3_COLD              (u8) 4
-> +#define ACPI_STATE_D3_HOT               (u8) 3
-> +#define ACPI_STATE_D3                   (u8) 4
-> +#define ACPI_STATE_D3_COLD              ACPI_STATE_D3
->  #define ACPI_D_STATES_MAX               ACPI_STATE_D3_COLD
-
-I'd say
-
-  #define ACPI_D_STATES_MAX               ACPI_STATE_D3
-
->  #define ACPI_D_STATE_COUNT              5
-
-Thanks,
-Rafael
