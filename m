@@ -1,130 +1,128 @@
 From: huang ying <huang.ying.caritas@gmail.com>
-Subject: Re: [PATCH 1/6] ACPI: D3cold state is always valid
-Date: Thu, 19 Apr 2012 09:35:46 +0800
-Message-ID: <CAC=cRTMts3q4s2qYr0Ds3W98WhXXXMa8P2qCAqm-fQcT+HFfDw@mail.gmail.com>
-References: <1334641676-14566-1-git-send-email-ming.m.lin@intel.com>
-	<1334641676-14566-2-git-send-email-ming.m.lin@intel.com>
-	<CAC=cRTPkFM5=az2B0A22miqt_X+XxcWPLrqPfeeRabho9yx-1Q@mail.gmail.com>
-	<201204182313.59916.rjw@sisk.pl>
+Subject: Re: [RFC PATCH] PCIe: Add PCIe runtime D3cold support
+Date: Thu, 19 Apr 2012 10:08:08 +0800
+Message-ID: <CAC=cRTMPrSsK5Y8uVxVrtGNqJAGFyRMLU7WsYm185siZd-V_8w@mail.gmail.com>
+References: <4F8790F6.5080408@intel.com>
+	<201204172310.38816.rjw@sisk.pl>
+	<CAC=cRTNc3XeniOzttRVUTFEzZY1RY7Ds7m+hE8_86A-Ep-5Czw@mail.gmail.com>
+	<201204182251.46335.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:48919 "EHLO
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:49449 "EHLO
 	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750943Ab2DSBfr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Apr 2012 21:35:47 -0400
-In-Reply-To: <201204182313.59916.rjw@sisk.pl>
+	with ESMTP id S1751180Ab2DSCIJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Apr 2012 22:08:09 -0400
+In-Reply-To: <201204182251.46335.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Lin Ming <ming.m.lin@intel.com>, Len Brown <lenb@kernel.og>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Aaron Lu <aaron.lu@amd.com>
+Cc: "Yan, Zheng" <zheng.z.yan@intel.com>, bhelgaas@google.com, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-pm@vger.kernel.org, Lin Ming <ming.m.lin@intel.com>, Zhang Rui <rui.zhang@intel.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-On Thu, Apr 19, 2012 at 5:13 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Tuesday, April 17, 2012, huang ying wrote:
->> On Tue, Apr 17, 2012 at 1:47 PM, Lin Ming <ming.m.lin@intel.com> wro=
+On Thu, Apr 19, 2012 at 4:51 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> On Wednesday, April 18, 2012, huang ying wrote:
+>> On Wed, Apr 18, 2012 at 5:10 AM, Rafael J. Wysocki <rjw@sisk.pl> wro=
 te:
->> > ACPI_STATE_D3 actually means ACPI D3hot which is not always valid.
->> > Instead, ACPI D3cold is always valid.
+>> > On Tuesday, April 17, 2012, huang ying wrote:
+>> >> On Tue, Apr 17, 2012 at 5:30 AM, Rafael J. Wysocki <rjw@sisk.pl> =
+wrote:
+>> >> >> >> + =C2=A0 =C2=A0 return 0;
+>> >> >> >> +}
+>> >> >> >> +
+>> >> >> >> +static int pcie_port_runtime_resume(struct device *dev)
+>> >> >> >> +{
+>> >> >> >> + =C2=A0 =C2=A0 struct pci_dev *pdev =3D to_pci_dev(dev);
+>> >> >> >> +
+>> >> >> >> + =C2=A0 =C2=A0 pci_restore_state(pdev);
+>> >> >> >> + =C2=A0 =C2=A0 if (pdev->runtime_d3cold)
+>> >> >> >> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 msleep(100);
+>> >> >> >
+>> >> >> > What's _that_ supposed to do?
+>> >> >>
+>> >> >> When resume from d3cold, PCIe main link will be powered on aga=
+in, it
+>> >> >> will take quite some time before the main link go into L0 stat=
+e.
+>> >> >> Otherwise, accessing devices under the port may return wrong r=
+esult.
+>> >> >
+>> >> > OK, but this is generic code and as per the standard the link s=
+hould have been
+>> >> > reestablished at this point already.
+>> >> >
+>> >> > Please don't put some nonstandard-platform-specific quirks like=
+ this into
+>> >> > code that's supposed to handle _every_ PCIe system.
+>> >>
+>> >> After checking PCIe spec, I found that the 100ms here has its sta=
+ndard origin :)
+>> >>
+>> >> In PCI Express Base Specification Revision 2.0:
+>> >>
+>> >> Section 6.6.1 Conventional Reset
+>> >>
+>> >> "
+>> >> To allow components to perform internal initialization, system
+>> >> software must wait for at least
+>> >> 100 ms from the end of a Conventional Reset of one or more device=
+s
+>> >> before it is permitted to
+>> >> issue Configuration Requests to those devices
+>> >> "
+>> >>
+>> >> But I think we should move the 100ms delay here to PCIe bus code =
+or
+>> >> PCIe/ACPI code, because that is needed by all PCIe devices for D3=
+cold
+>> >> support.
 >> >
->> > Signed-off-by: Lin Ming <ming.m.lin@intel.com>
->> > ---
->> > =C2=A0drivers/acpi/scan.c | =C2=A0 11 ++---------
->> > =C2=A01 files changed, 2 insertions(+), 9 deletions(-)
->> >
->> > diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
->> > index 767e2dc..fb56388 100644
->> > --- a/drivers/acpi/scan.c
->> > +++ b/drivers/acpi/scan.c
->> > @@ -884,13 +884,6 @@ static int acpi_bus_get_power_flags(struct ac=
-pi_device *device)
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0acpi_bus_add_power_resourc=
-e(ps->resources.handles[j]);
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0}
->> >
->> > - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* The exist of=
- _PR3 indicates D3Cold support */
->> > - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (i =3D=3D AC=
-PI_STATE_D3) {
->> > - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 status =3D acpi_get_handle(device->handle, object_name, &han=
-dle);
->> > - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 if (ACPI_SUCCESS(status))
->> > - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 device->power.states[ACPI_STATE_=
-D3_COLD].flags.valid =3D 1;
->> > - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 }
->> > -
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0/* Evaluate=
- "_PSx" to see if we can do explicit sets */
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0object_name=
-[2] =3D 'S';
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0status =3D =
-acpi_get_handle(device->handle, object_name, &handle);
->> > @@ -908,8 +901,8 @@ static int acpi_bus_get_power_flags(struct acp=
-i_device *device)
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0/* Set defaults for D0 and D3 states (a=
-lways valid) */
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0device->power.states[ACPI_STATE_D0].fla=
-gs.valid =3D 1;
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0device->power.states[ACPI_STATE_D0].pow=
-er =3D 100;
->> > - =C2=A0 =C2=A0 =C2=A0 device->power.states[ACPI_STATE_D3].flags.v=
-alid =3D 1;
->> > - =C2=A0 =C2=A0 =C2=A0 device->power.states[ACPI_STATE_D3].power =3D=
- 0;
->> > + =C2=A0 =C2=A0 =C2=A0 device->power.states[ACPI_STATE_D3_COLD].fl=
-ags.valid =3D 1;
->> > + =C2=A0 =C2=A0 =C2=A0 device->power.states[ACPI_STATE_D3_COLD].po=
-wer =3D 0;
->> >
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0acpi_bus_init_power(device);
+>> > I think it should be sufficient to wait for the PME message to arr=
+ive at
+>> > the root port (which will cause the PME interrupt to appear), at w=
+hich
+>> > point the device that sent it should be able to receive configurat=
+ion
+>> > requests.
 >>
->> I think D3_HOT should be always valid, while D3_COLD should be valid
->> for some situation.
+>> For remote wake up, it is sufficient. =C2=A0But for host wake up, we=
+ still
+>> need to wait 100ms.
 >
-> This need not be PCI, mind you.
+> Yes, we do.
 >
->> =C2=A0- has _PS3, no _PR3
->> =C2=A0 =C2=A0- support D3_HOT, D3_COLD
+>> > At this point, I need to konw what exactly happens when the GPE is=
+ triggered
+>> > by WAKE#.
+>>
+>> - Lxx handler will be executed
+>> - in Lxx handler, Notify the ACPI handle PCIe port
+>> - Linux has registered a handler for the ACPI handle of PCIe port, i=
+n
+>> the handler, turn on _PR0 and execute _PS0, which will power on the
+>> link.
 >
-> Nope. =C2=A0D3_HOT cannot be supported in that case at the ACPI level=
-=2E
+> But the handler we have is not the handler we want here.
 >
->> =C2=A0 =C2=A0- set state
->> =C2=A0 =C2=A0 =C2=A0- D3_HOT: do nothing in ACPI
->
-> That is not D3_HOT, then, from the ACPI point of view. =C2=A0It is a =
-different
-> power state.
->
-> Suppose you have a non-PCI device that can be only power-manageable v=
-ia ACPI
-> and that device has only _PS0 and _PS3. =C2=A0How would you put it in=
-to D3_HOT,
-> in particular?
+> In fact, there are two handlers, pci_acpi_wake_bus() and pci_acpi_wak=
+e_dev()
+> and they only do useful things for ACPI_NOTIFY_DEVICE_WAKE. =C2=A0Is =
+that the
+> event type we receive from that _Lxx?
 
-Normally, we will put it into D3_COLD (via _PS3).
+I check the DSDT, in _Lxx, there is
 
-If it is prevented to be put in D3_COLD,
-  - If D3_HOT is not marked as supported, we will keep it in D0
-  - otherwise, we advocate we put it into D3_HOT, but in fact, it is in=
- D0.
+Notify (\_SB.PCI0.RP03, 0x02)
 
-The result is same, but with wrong name.
+That is, the event type is ACPI_NOTIFY_DEVICE_WAKE.
 
-But there will be some real problem if we have something like CPU
-governor.  Because governor may choose D3_HOT for device.
+> Even if so, these routines don't seem to be suitable to handle the ca=
+se at hand.
 
-But for PCI device, D3_HOT is supported for the device.
-
-So the bus layer should combine the information from native power
-state supported and ACPI power state supported to determine which
-power states are supported?  For example, for a PCI device, ACPI
-advocates D0 and D3_COLD are supported, and PCI layer may advocate D0,
-D3_HOT and D3_COLD are supported.
+Yes.  Maybe add a flag named like "come_from_d3cold", and if
+come_from_d3cold =3D=3D true, resume the dev itself without checking pm=
+e
+bits, because the PCIe main link is not available now.
 
 Best Regards,
 Huang Ying
