@@ -1,88 +1,29 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [v3.4-rc] regression: reboot not working
-Date: Fri, 20 Apr 2012 11:29:50 -0700
-Message-ID: <CA+55aFzjxrOGejBoMNbQxN=tri08ZZVG9DM3mA-3_uU+pMumtA@mail.gmail.com>
-References: <CADDKRnALwHa=QteDDcMxBU24rfbKoTOGX=iTcfeE7=M7a+NFcw@mail.gmail.com>
- <CADDKRnAhqi-fwFrr85QC-ZP2g0=_ZSb__jEbZqAekCKXs2CtCg@mail.gmail.com>
- <CADDKRnDJ_u7FkOHPDr0kJ+mh4k06wv2imVh8DV=GzDUQiKEWQw@mail.gmail.com> <CAJyhjX0QMf7FcDfx+KDggF7avBnRFcGX6KWy6hJZ_p=ceTFh+g@mail.gmail.com>
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: RE: [RESEND PATCH V2] ACPI, APEI: Add validation check before GHES
+ error is recorded
+Date: Fri, 20 Apr 2012 23:13:40 +0000
+Message-ID: <3908561D78D1C84285E8C5FCA982C28F170E703B@ORSMSX104.amr.corp.intel.com>
+References: <1334913860-24651-1-git-send-email-gong.chen@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:59206 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757410Ab2DTSaM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Apr 2012 14:30:12 -0400
-In-Reply-To: <CAJyhjX0QMf7FcDfx+KDggF7avBnRFcGX6KWy6hJZ_p=ceTFh+g@mail.gmail.com>
+Received: from mga09.intel.com ([134.134.136.24]:34321 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932192Ab2DTXNl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Apr 2012 19:13:41 -0400
+In-Reply-To: <1334913860-24651-1-git-send-email-gong.chen@linux.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sergio Correia <lists@uece.net>
-Cc: =?ISO-8859-1?Q?J=F6rg_Otte?= <jrg.otte@googlemail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, hpa@zytor.com
+To: Chen Gong <gong.chen@linux.intel.com>, "lenb@kernel.org" <lenb@kernel.org>
+Cc: "Huang, Ying" <ying.huang@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Since nothing ever happened on this, and since the original bugzilla
-entry that caused the commit indicates that there were other
-workarounds for the problem, I have reverted the offending commit in
-my tree.
+arch/x86/kernel/cpu/mcheck/mce-apei.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-J=F6rg, can you please verify that current -git works for you again?
+This patch seems to be in cross-over territory between ACPI and MCE
 
-                   Linus
+... I just applied it to the RAS tree.
 
-On Wed, Apr 18, 2012 at 9:12 AM, Sergio Correia <lists@uece.net> wrote:
-> On Wed, Apr 18, 2012 at 12:00 PM, J=F6rg Otte <jrg.otte@googlemail.co=
-m> wrote:
->> 9 days and still no response. Maybe I addressed the wrong person(s).
->> I Cc to Linus.
->>
->> Who can help with this topic?
->>
->
-> CC'ing linux-acpi.
->
->> Thanks, Joerg
->>
->>
->>
->> Am 14. April 2012 12:46 schrieb J=F6rg Otte <jrg.otte@googlemail.com=
->:
->>> It's now bisected:
->>>
->>> cf450136bfde77c7f95065c91bffded4aa7fa731 =A0 ACPI: ignore FADT rese=
-t-reg-sup flag
->>>
->>> Thanks, Joerg
->>>
->>>
->>> Am 9. April 2012 17:19 schrieb J=F6rg Otte <jrg.otte@googlemail.com=
->:
->>>> Hi,
->>>>
->>>> On reboot it shuts down as normal.
->>>> The last lines displayed are:
->>>>
->>>>>.
->>>>>Unmounting temporary filesystems.. [OK]
->>>>>Deactivating swap... =A0 =A0 =A0 =A0 =A0 =A0 =A0 [OK]
->>>>>Unmounting local filesystems... =A0 =A0[OK]
->>>>>Will now restart
->>>>> =A0 =A0Restarting system
->>>>
->>>> Then I hear it accessing the cd-drive, but then
->>>> it's being stuck.
->>>>
->>>> v3.3 was ok. HW is a Thinkpad T43.
->>>>
->>>> Please Cc me I'm not subscribed.
->>>>
->>>> Thanks,Joerg
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-kern=
-el" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->> Please read the FAQ at =A0http://www.tux.org/lkml/
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-Tony
