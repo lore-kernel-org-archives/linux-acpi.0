@@ -1,217 +1,352 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 1/6] ACPI: D3cold state is always valid
-Date: Thu, 19 Apr 2012 22:39:54 +0200
-Message-ID: <201204192239.55048.rjw@sisk.pl>
-References: <1334641676-14566-1-git-send-email-ming.m.lin@intel.com> <201204191351.41875.rjw@sisk.pl> <1334849015.4067.1.camel@hp6530s>
+From: huang ying <huang.ying.caritas@gmail.com>
+Subject: Re: [RFC PATCH] PCIe: Add PCIe runtime D3cold support
+Date: Fri, 20 Apr 2012 08:48:21 +0800
+Message-ID: <CAC=cRTMmSxTh1btaXw5uBe6h8QsH6OYah7eyALjtUbM2Dt4vQA@mail.gmail.com>
+References: <4F8790F6.5080408@intel.com>
+	<201204182300.48882.rjw@sisk.pl>
+	<CAC=cRTOJEyfou68Lt3x0Ro8YLsKkQTri1Hd1g4usL+3eXbUGCQ@mail.gmail.com>
+	<201204191431.14986.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1334849015.4067.1.camel@hp6530s>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lin Ming <ming.m.lin@intel.com>
-Cc: huang ying <huang.ying.caritas@gmail.com>, Len Brown <lenb@kernel.og>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Aaron Lu <aaron.lu@amd.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:33611 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932263Ab2DTAsX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Apr 2012 20:48:23 -0400
+In-Reply-To: <201204191431.14986.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "Yan, Zheng" <zheng.z.yan@intel.com>, bhelgaas@google.com, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-pm@vger.kernel.org, Lin Ming <ming.m.lin@intel.com>, Zhang Rui <rui.zhang@intel.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-On Thursday, April 19, 2012, Lin Ming wrote:
-> On Thu, 2012-04-19 at 13:51 +0200, Rafael J. Wysocki wrote:
-> > On Thursday, April 19, 2012, huang ying wrote:
-> > > On Thu, Apr 19, 2012 at 5:13 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > > > On Tuesday, April 17, 2012, huang ying wrote:
-> > > >> On Tue, Apr 17, 2012 at 1:47 PM, Lin Ming <ming.m.lin@intel.com> wrote:
-> > > >> > ACPI_STATE_D3 actually means ACPI D3hot which is not always valid.
-> > > >> > Instead, ACPI D3cold is always valid.
-> > > >> >
-> > > >> > Signed-off-by: Lin Ming <ming.m.lin@intel.com>
-> > > >> > ---
-> > > >> >  drivers/acpi/scan.c |   11 ++---------
-> > > >> >  1 files changed, 2 insertions(+), 9 deletions(-)
-> > > >> >
-> > > >> > diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> > > >> > index 767e2dc..fb56388 100644
-> > > >> > --- a/drivers/acpi/scan.c
-> > > >> > +++ b/drivers/acpi/scan.c
-> > > >> > @@ -884,13 +884,6 @@ static int acpi_bus_get_power_flags(struct acpi_device *device)
-> > > >> >                                acpi_bus_add_power_resource(ps->resources.handles[j]);
-> > > >> >                }
-> > > >> >
-> > > >> > -               /* The exist of _PR3 indicates D3Cold support */
-> > > >> > -               if (i == ACPI_STATE_D3) {
-> > > >> > -                       status = acpi_get_handle(device->handle, object_name, &handle);
-> > > >> > -                       if (ACPI_SUCCESS(status))
-> > > >> > -                               device->power.states[ACPI_STATE_D3_COLD].flags.valid = 1;
-> > > >> > -               }
-> > > >> > -
-> > > >> >                /* Evaluate "_PSx" to see if we can do explicit sets */
-> > > >> >                object_name[2] = 'S';
-> > > >> >                status = acpi_get_handle(device->handle, object_name, &handle);
-> > > >> > @@ -908,8 +901,8 @@ static int acpi_bus_get_power_flags(struct acpi_device *device)
-> > > >> >        /* Set defaults for D0 and D3 states (always valid) */
-> > > >> >        device->power.states[ACPI_STATE_D0].flags.valid = 1;
-> > > >> >        device->power.states[ACPI_STATE_D0].power = 100;
-> > > >> > -       device->power.states[ACPI_STATE_D3].flags.valid = 1;
-> > > >> > -       device->power.states[ACPI_STATE_D3].power = 0;
-> > > >> > +       device->power.states[ACPI_STATE_D3_COLD].flags.valid = 1;
-> > > >> > +       device->power.states[ACPI_STATE_D3_COLD].power = 0;
-> > > >> >
-> > > >> >        acpi_bus_init_power(device);
-> > > >>
-> > > >> I think D3_HOT should be always valid, while D3_COLD should be valid
-> > > >> for some situation.
-> > > >
-> > > > This need not be PCI, mind you.
-> > > >
-> > > >>  - has _PS3, no _PR3
-> > > >>    - support D3_HOT, D3_COLD
-> > > >
-> > > > Nope.  D3_HOT cannot be supported in that case at the ACPI level.
-> > > >
-> > > >>    - set state
-> > > >>      - D3_HOT: do nothing in ACPI
-> > > >
-> > > > That is not D3_HOT, then, from the ACPI point of view.  It is a different
-> > > > power state.
-> > > >
-> > > > Suppose you have a non-PCI device that can be only power-manageable via ACPI
-> > > > and that device has only _PS0 and _PS3.  How would you put it into D3_HOT,
-> > > > in particular?
-> > > 
-> > > Normally, we will put it into D3_COLD (via _PS3).
-> > > 
-> > > If it is prevented to be put in D3_COLD,
-> > >   - If D3_HOT is not marked as supported, we will keep it in D0
-> > >   - otherwise, we advocate we put it into D3_HOT, but in fact, it is in D0.
-> > > 
-> > > The result is same, but with wrong name.
-> > > 
-> > > But there will be some real problem if we have something like CPU
-> > > governor.  Because governor may choose D3_HOT for device.
-> > 
-> > In that case the ACPI layer should simply return an error code indicating
-> > that the requested state is not available _from_ _it_.  If there are
-> > more layers, however, they may be able to change the power state of
-> > the device.
-> > 
-> > > But for PCI device, D3_HOT is supported for the device.
-> > 
-> > Yes, if the device supports native PM.  However, PCI D-states and ACPI D-states
-> > are different things.  We kind of combine them in our PCI bus type.
-> > 
-> > > So the bus layer should combine the information from native power
-> > > state supported and ACPI power state supported to determine which
-> > > power states are supported?
-> > 
-> > Yes, we do that all the time, with the exception of D3 cold/hot.
-> > 
-> > > For example, for a PCI device, ACPI advocates D0 and D3_COLD are supported,
-> > > and PCI layer may advocate D0, D3_HOT and D3_COLD are supported.
-> > 
-> > Exactly.  All of the available power states of the device depend on both
-> > the device's own capabilities (ie. what PCI D-states the device may be
-> > programmed into by register writes) and whatever is available from ACPI.
-> > 
-> > On embedded systems there are other factors as well.
-> 
-> So seems the patch is much simpler.
+On Thu, Apr 19, 2012 at 8:31 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> On Thursday, April 19, 2012, huang ying wrote:
+>> On Thu, Apr 19, 2012 at 5:00 AM, Rafael J. Wysocki <rjw@sisk.pl> wro=
+te:
+>> > On Wednesday, April 18, 2012, huang ying wrote:
+>> >> On Wed, Apr 18, 2012 at 5:03 AM, Rafael J. Wysocki <rjw@sisk.pl> =
+wrote:
+>> >> > On Tuesday, April 17, 2012, huang ying wrote:
+>> >> >> On Tue, Apr 17, 2012 at 5:30 AM, Rafael J. Wysocki <rjw@sisk.p=
+l> wrote:
+>> >> >> > On Monday, April 16, 2012, huang ying wrote:
+>> >> >> >> Hi,
+>> >> >> >>
+>> >> >> >> On Sat, Apr 14, 2012 at 3:41 AM, Rafael J. Wysocki <rjw@sis=
+k.pl> wrote:
+>> >> >> >> > Hi,
+>> >> >> >> >
+>> >> >> >> > On Friday, April 13, 2012, Yan, Zheng wrote:
+>> >> >> >> >> Hi all,
+>> >> >> >> >>
+>> >> >> >> >> This patch adds PCIe runtime D3cold support, namely cut =
+power supply for functions
+>> >> >> >> >> beneath a PCIe port when they all have entered D3. A dev=
+ice in D3cold can only
+>> >> >> >> >> generate wake event through the WAKE# pin. Because we ca=
+n not access to a device's
+>> >> >> >> >> configure space while it's in D3cold, pme_poll is disabl=
+ed for devices in D3cold.
+>> >> >> >> >>
+>> >> >> >> >> Any comment will be appreciated.
+>> >> >> >> >>
+>> >> >> >> >> Signed-off-by: Zheng Yan <zheng.z.yan@intel.com>
+>> >> >> >> >> ---
+>> >> >> >> >> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-ac=
+pi.c
+>> >> >> >> >> index 0f150f2..e210e8cb 100644
+>> >> >> >> >> --- a/drivers/pci/pci-acpi.c
+>> >> >> >> >> +++ b/drivers/pci/pci-acpi.c
+>> >> >> >> >> @@ -224,7 +224,7 @@ static int acpi_pci_set_power_state(=
+struct pci_dev *dev, pci_power_t state)
+>> >> >> >> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 [PCI_D1=
+] =3D ACPI_STATE_D1,
+>> >> >> >> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 [PCI_D2=
+] =3D ACPI_STATE_D2,
+>> >> >> >> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 [PCI_D3=
+hot] =3D ACPI_STATE_D3,
+>> >> >> >> >> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 [PCI_D3cold]=
+ =3D ACPI_STATE_D3
+>> >> >> >> >> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 [PCI_D3cold]=
+ =3D ACPI_STATE_D3_COLD
+>> >> >> >> >> =C2=A0 =C2=A0 =C2=A0 };
+>> >> >> >> >> =C2=A0 =C2=A0 =C2=A0 int error =3D -EINVAL;
+>> >> >> >> >>
+>> >> >> >> >
+>> >> >> >> > Please don't use that ACPI_STATE_D3_COLD thing, it's not =
+defined correctly.
+>> >> >> >> >
+>> >> >> >> > We should define ACPI_STATE_D3_COLD =3D=3D ACPI_STATE_D3 =
+and add ACPI_STATE_D3_HOT
+>> >> >> >> > instead. =C2=A0I'll prepare a patch for that over the wee=
+kend if no one has done
+>> >> >> >> > that already.
+>> >> >> >> >
+>> >> >> >> >> @@ -296,7 +296,8 @@ static void acpi_pci_propagate_run_w=
+ake(struct pci_bus *bus, bool enable)
+>> >> >> >> >>
+>> >> >> >> >> =C2=A0static int acpi_pci_run_wake(struct pci_dev *dev, =
+bool enable)
+>> >> >> >> >> =C2=A0{
+>> >> >> >> >> - =C2=A0 =C2=A0 if (dev->pme_interrupt)
+>> >> >> >> >> + =C2=A0 =C2=A0 /* PME interrupt isn't available in the =
+D3cold case */
+>> >> >> >> >> + =C2=A0 =C2=A0 if (dev->pme_interrupt && !dev->runtime_=
+d3cold)
+>> >> >> >> >
+>> >> >> >> > This whole thing is wrong. =C2=A0First off, I don't think=
+ that the runtime_d3cold
+>> >> >> >> > flag makes any sense. =C2=A0We already cover that in dev-=
+>pme_support.
+>> >> >> >>
+>> >> >> >> PCIe devices and PCIe root port may have proper PME interru=
+pt support
+>> >> >> >> (that is, dev->pme_interrupt =3D true), but the process of =
+remote wakeup
+>> >> >> >> from D3cold is as follow:
+>> >> >> >>
+>> >> >> >> 1) In D3cold, the power of the main link is turned off, aux=
+ power is
+>> >> >> >> provided (PCIe L2 link state)
+>> >> >> >> 2) Device detect condition to resume, then assert #WAKE pin
+>> >> >> >> 2) ACPI circuit linked with #WAKE pin, and will generate a =
+GPE for that
+>> >> >> >> 3) GPE handler will resume device with ACPI (via _PS3 and _=
+PR0), the
+>> >> >> >> power of the main link is turned on, after a while, link go=
+es into L0
+>> >> >> >> state
+>> >> >> >> 4) The PME message is sent to root port, pme interrupt gene=
+rated
+>> >> >> >
+>> >> >> > This isn't how it's supposed to work in theory. =C2=A0If the=
+ device can signal PME
+>> >> >> > from D3cold, it should be able to reestablish the link and s=
+end a PME
+>> >> >> > message from there. =C2=A0dev->pme_interrupt set means exact=
+ly that.
+>> >> >> >
+>> >> >> > ACPI is only supposed to be needed for things that don't sen=
+d PME
+>> >> >> > messages (in your case the PME interrupt generated by the po=
+rt is essentially
+>> >> >> > useless, because the wakeup event has already been signaled =
+through ACPI).
+>> >> >> >
+>> >> >> >> So, for deivce, dev->pme_interrupt =3D true and dev->pme_su=
+pport
+>> >> >> >> advocate it support PME in D3cold. =C2=A0But we still need =
+ACPI to setup
+>> >> >> >> run wake for the device.
+>> >> >> >
+>> >> >> > OK, so this is nonstandard.
+>> >> >>
+>> >> >> This is the standard behavior. =C2=A0Please refer to PCI Expre=
+ss Base
+>> >> >> Sepcification Revision 2.0, section 5.3.3.2 Link Wakeup. =C2=A0=
+In D1, D2
+>> >> >> and D3hot state, PCIe device can transit the link from L1 to L=
+0 state,
+>> >> >> and send the PME message. =C2=A0In D3cold, the main link is po=
+wered off,
+>> >> >> PCIe device will use a STANDARD sideband signal WAKE# to signa=
+l wakeup
+>> >> >> firstly, then platform (power controller in spec) will power o=
+n the
+>> >> >> main link for the device, after main link is back to L0, the P=
+ME
+>> >> >> message is send to root port, pme interrupt is generated. =C2=A0=
+So in
+>> >> >> theory, the wake up process can be divided into platform part =
+(which
+>> >> >> power on the main link) and PCIe part (which send PME).
+>> >> >
+>> >> > That's fine. =C2=A0However, the platform part should be complet=
+ely transparent
+>> >> > to the PCI bus type, then. =C2=A0It just should power up the li=
+nk to allow a
+>> >> > PME message to be transmitted through it.
+>> >>
+>> >> Yes.
+>> >>
+>> >> >[...]
+>> >> >
+>> >> >> > So don't use pci_set_power_state() for that, because it's es=
+sentially
+>> >> >> > a different operation. =C2=A0You need a pci_platform_remove_=
+power() helper or
+>> >> >> > similar for that.
+>> >> >> >
+>> >> >> > What ACPI method exactly is used to remove power from the de=
+vice?
+>> >> >>
+>> >> >> The ACPI method executed is as follow:
+>> >> >>
+>> >> >> - _PS3 (if exist)
+>> >> >> - Power resources in _PR3 is turned on
+>> >> >> - Power resources in _PR0 is turned off
+>> >> >> - Power resources in _PR3 is turned off
+>> >> >
+>> >> > I'd rather think
+>> >> >
+>> >> > - make sure that _PR3 resources are referenced
+>> >> > - drop references (from this device) for all other power resour=
+ces
+>> >> > - execute _PS3 (if any)
+>> >> > - drop references for _PR3 resources
+>> >> >
+>> >> > if Section 7.2.11 of ACPI 5.0 is to be followed.
+>> >>
+>> >> Yes. =C2=A0You are right.
+>> >>
+>> >> >> I think the process can fit pci_set_power_state() quite well, =
+so why
+>> >> >> invent another helper for that?
+>> >> >
+>> >> > OK, we can special case it, perhaps.
+>> >> >
+>> >> > Suppose we have a "this device may be put into D3_cold" flag.
+>> >> >
+>> >> > Who's going to decide whether to put it into D3_hot or D3_cold?
+>> >>
+>> >> In most cases, I think it is OK to put device into D3_cold if tha=
+t is
+>> >> supported.
+>> >
+>> > Well, there may be PM QoS latency requirements preventing us from =
+doing so.
+>>
+>> Yes.
+>>
+>> >> But there should be some special case where D3_cold is not
+>> >> desirable, for example, we can put SSD into D3_cold safely, but i=
+t is
+>> >> not quite safe to put HDD into D3_cold. =C2=A0So we want to intro=
+duce a
+>> >> flag: "may_power_off" like in the following patch
+>> >>
+>> >> https://lkml.org/lkml/2012/3/29/41
+>> >>
+>> >> It gives device driver a chance to prevent the device to be put i=
+nto D3_cold.
+>> >
+>> > I see. =C2=A0So your proposal is that the flag might be used to in=
+dicate to
+>> > whoever carries out power transitions of devices that power must n=
+ot be
+>> > removed from this particular device, right?
+>>
+>> Yes.
+>>
+>> > In that case we can put that flag into struct dev_pm_info after al=
+l, but
+>> > perhaps the name should indicate more precisely what it is about. =
+=C2=A0Something
+>> > like "power_must_be_on" maybe?
+>>
+>> I am not good at naming in English :)
+>> I will accept your proposal.
+>>
+>> >> > [...]
+>> >> >
+>> >> >> >> > So now please tell me what exactly you want to achieve an=
+d why you want to do
+>> >> >> >> > that in the first place.
+>> >> >> >
+>> >> >> > Well, is there any chance to get that information?
+>> >> >>
+>> >> >> You mean the runtime_d3cold flag? That flag is used to tell
+>> >> >> acpi_pci_run_wake() that we need ACPI wakeup setup for the dev=
+ice
+>> >> >> because that is needed by D3cold. =C2=A0The ACPI wakeup setup =
+here means
+>> >> >> turn on power resources needed by wake up (_PRW) and execute _=
+DSW.
+>> >> >>
+>> >> >> If you mean the whole patch, we want to implement runtime D3co=
+ld
+>> >> >> support, which can save more power than D3hot.
+>> >> >
+>> >> > So, do I think correctly that you'd like to put devices into D3=
+_cold
+>> >> > if that's possible via ACPI and to be able to wake it up from t=
+hat state
+>> >> > using remote wakeup?
+>> >>
+>> >> Yes. =C2=A0Support both remote wakeup and host wakeup.
+>> >
+>> > OK, so we need to clean up the ACPI D3_HOT/D3_COLD mess first. =C2=
+=A0Then, we need
+>> > to change PCI so that devices are not put into D3cold (by ACPI) if=
+ only D3hot
+>> > is requested by the caller of pci_set_power_state().
+>> >
+>> > Having done that, we can modify pci_set_power_state() to handle D3=
+cold as
+>> > a special case (essentially, it should check that case before doin=
+g anything
+>> > else). =C2=A0Finally, we need to teach the ACPI notify handler abo=
+ut the WAKE#
+>> > event and we need to add the 100 ms wait to the device resume code=
+ path
+>> > somewhere (I guess in pci_set_power_state() for the D3cold->D0 tra=
+nsition).
+>>
+>> Yes. =C2=A0Sound good to me.
+>>
+>> > Now, there's one more thing to consider. =C2=A0Namely, if a PCIe e=
+ndpoint is put
+>> > into D3hot (via native PM) and then the port it is connected to is=
+ put into
+>> > D3_hot (via native PM), does that transfer the endpoint into D3col=
+d?
+>>
+>> No.
+>>
+>> But if a PCIe endpoint is put into D3hot and then the port it is
+>> connected is put into D3_cold (via ACPI), this will transfer the
+>> endpoint into D3_cold, and if the port is put into D0 afterwards, al=
+l
+>> subordinate endpoint devices will be put into D0 (because of power o=
+n
+>> reset). =C2=A0I think what we need to do here is:
+>>
+>> - when choose power state, if any subordinate device has
+>> power_must_be_on set, will not choose D3_cold
+>
+> Well, that's quite obvious. :-)
+>
+>> - when put PCIe port from D3_cold to D0, resume all subordinate
+>> devices too.
+>
+> Alternatively, we can just call pci_restore_state() on them and put
+> them into PCI_D3hot again without actually resuming.
 
-Yes, it should be simpler.
+That is better.  But as the first step, I prefer the simpler way to
+just resume the device.  In this way, the synchronization between
+remote resume, host resume and system suspend can be easier.
 
-> How about below?
+>> We design a method to do that in following patch:
+>>
+>> https://lkml.org/lkml/2012/3/29/38
+>>
+>> Where we will register all subordinate devices via
+>> acpi_power_resource_register_device(endpoint_device,
+>> bridget_acpi_handle).
+>
+> I think that's overkill in the case of PCI devices under a PCIe port.
+> We only need to walk the bus below the port and do something for each=
+ device
+> in there then.
 
-It looks good to me.  Feel free to add my ACK to the final version.
+Yes.  That is something like power domain, if the power resources are
+shared by multiple devices.
 
-Thanks,
-Rafael
-
-
->  drivers/acpi/power.c   |    2 +-
->  drivers/acpi/scan.c    |    9 +--------
->  drivers/pci/pci-acpi.c |    4 ++--
->  include/acpi/actypes.h |    7 ++++---
->  4 files changed, 8 insertions(+), 14 deletions(-)
-> 
-> diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-> index 7049a7d..330bb4d 100644
-> --- a/drivers/acpi/power.c
-> +++ b/drivers/acpi/power.c
-> @@ -631,7 +631,7 @@ int acpi_power_get_inferred_state(struct acpi_device *device, int *state)
->  	 * We know a device's inferred power state when all the resources
->  	 * required for a given D-state are 'on'.
->  	 */
-> -	for (i = ACPI_STATE_D0; i < ACPI_STATE_D3; i++) {
-> +	for (i = ACPI_STATE_D0; i < ACPI_STATE_D3_HOT; i++) {
->  		list = &device->power.states[i].resources;
->  		if (list->count < 1)
->  			continue;
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 767e2dc..fbf38ad 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -869,7 +869,7 @@ static int acpi_bus_get_power_flags(struct acpi_device *device)
->  	/*
->  	 * Enumerate supported power management states
->  	 */
-> -	for (i = ACPI_STATE_D0; i <= ACPI_STATE_D3; i++) {
-> +	for (i = ACPI_STATE_D0; i <= ACPI_STATE_D3_HOT; i++) {
->  		struct acpi_device_power_state *ps = &device->power.states[i];
->  		char object_name[5] = { '_', 'P', 'R', '0' + i, '\0' };
->  
-> @@ -884,13 +884,6 @@ static int acpi_bus_get_power_flags(struct acpi_device *device)
->  				acpi_bus_add_power_resource(ps->resources.handles[j]);
->  		}
->  
-> -		/* The exist of _PR3 indicates D3Cold support */
-> -		if (i == ACPI_STATE_D3) {
-> -			status = acpi_get_handle(device->handle, object_name, &handle);
-> -			if (ACPI_SUCCESS(status))
-> -				device->power.states[ACPI_STATE_D3_COLD].flags.valid = 1;
-> -		}
-> -
->  		/* Evaluate "_PSx" to see if we can do explicit sets */
->  		object_name[2] = 'S';
->  		status = acpi_get_handle(device->handle, object_name, &handle);
-> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-> index 0f150f2..1929c0c 100644
-> --- a/drivers/pci/pci-acpi.c
-> +++ b/drivers/pci/pci-acpi.c
-> @@ -200,7 +200,7 @@ static pci_power_t acpi_pci_choose_state(struct pci_dev *pdev)
->  		return PCI_D1;
->  	case ACPI_STATE_D2:
->  		return PCI_D2;
-> -	case ACPI_STATE_D3:
-> +	case ACPI_STATE_D3_HOT:
->  		return PCI_D3hot;
->  	case ACPI_STATE_D3_COLD:
->  		return PCI_D3cold;
-> @@ -223,7 +223,7 @@ static int acpi_pci_set_power_state(struct pci_dev *dev, pci_power_t state)
->  		[PCI_D0] = ACPI_STATE_D0,
->  		[PCI_D1] = ACPI_STATE_D1,
->  		[PCI_D2] = ACPI_STATE_D2,
-> -		[PCI_D3hot] = ACPI_STATE_D3,
-> +		[PCI_D3hot] = ACPI_STATE_D3_HOT,
->  		[PCI_D3cold] = ACPI_STATE_D3
->  	};
->  	int error = -EINVAL;
-> diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-> index eba6604..e8bcc47 100644
-> --- a/include/acpi/actypes.h
-> +++ b/include/acpi/actypes.h
-> @@ -499,9 +499,10 @@ typedef u64 acpi_integer;
->  #define ACPI_STATE_D0                   (u8) 0
->  #define ACPI_STATE_D1                   (u8) 1
->  #define ACPI_STATE_D2                   (u8) 2
-> -#define ACPI_STATE_D3                   (u8) 3
-> -#define ACPI_STATE_D3_COLD              (u8) 4
-> -#define ACPI_D_STATES_MAX               ACPI_STATE_D3_COLD
-> +#define ACPI_STATE_D3_HOT               (u8) 3
-> +#define ACPI_STATE_D3                   (u8) 4
-> +#define ACPI_STATE_D3_COLD              ACPI_STATE_D3
-> +#define ACPI_D_STATES_MAX               ACPI_STATE_D3
->  #define ACPI_D_STATE_COUNT              5
->  
->  #define ACPI_STATE_C0                   (u8) 0
-> 
-> 
-> 
-> 
+Best Regards,
+Huang Ying
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
