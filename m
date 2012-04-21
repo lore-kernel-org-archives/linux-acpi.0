@@ -1,86 +1,92 @@
-From: "Lu, Aaron" <Aaron.Lu@amd.com>
-Subject: Re: [PATCH v2] ACPI: D3 states cleanup
-Date: Sat, 21 Apr 2012 01:36:36 +0000
-Message-ID: <BF35EBA5-A9E1-47C4-A2E2-197C8FE457F5@amd.com>
-References: <1334884749.4927.6.camel@minggr>
- <1334900255.4927.36.camel@minggr>
- <20120420074725.GA30140@localhost.amd.com>,<201204201312.54949.rjw@sisk.pl>
+From: =?ISO-8859-1?Q?J=F6rg_Otte?= <jrg.otte@googlemail.com>
+Subject: Re: [v3.4-rc] regression: reboot not working
+Date: Sat, 21 Apr 2012 11:12:08 +0200
+Message-ID: <CADDKRnDM_=6XfH2c-3z9umeZcLX1i=6XRRAUS9nyV8D0W3fB7Q@mail.gmail.com>
+References: <CADDKRnALwHa=QteDDcMxBU24rfbKoTOGX=iTcfeE7=M7a+NFcw@mail.gmail.com>
+	<CADDKRnAhqi-fwFrr85QC-ZP2g0=_ZSb__jEbZqAekCKXs2CtCg@mail.gmail.com>
+	<CADDKRnDJ_u7FkOHPDr0kJ+mh4k06wv2imVh8DV=GzDUQiKEWQw@mail.gmail.com>
+	<CAJyhjX0QMf7FcDfx+KDggF7avBnRFcGX6KWy6hJZ_p=ceTFh+g@mail.gmail.com>
+	<CA+55aFzjxrOGejBoMNbQxN=tri08ZZVG9DM3mA-3_uU+pMumtA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="gb2312"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from am1ehsobe001.messaging.microsoft.com ([213.199.154.204]:42810
-	"EHLO am1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751261Ab2DUBhG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 20 Apr 2012 21:37:06 -0400
-In-Reply-To: <201204201312.54949.rjw@sisk.pl>
-Content-Language: zh-CN
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CA+55aFzjxrOGejBoMNbQxN=tri08ZZVG9DM3mA-3_uU+pMumtA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Sergio Correia <lists@uece.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, hpa@zytor.com
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Lin Ming <ming.m.lin@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, "Huang, Ying" <ying.huang@intel.com>
 
-DQrU2iAyMDEyLTQtMjCjrM/Czuc3OjA4o6wiUmFmYWVsIEouIFd5c29ja2kiIDxyandAc2lzay5w
-bD4g0LS1wKO6DQoNCj4gT24gRnJpZGF5LCBBcHJpbCAyMCwgMjAxMiwgQWFyb24gTHUgd3JvdGU6
-DQo+PiBIaSwNCj4+IA0KPj4gT24gRnJpLCBBcHIgMjAsIDIwMTIgYXQgMDE6Mzc6MzVQTSArMDgw
-MCwgTGluIE1pbmcgd3JvdGU6DQo+Pj4+Pj4+IFRoZXJlIGFyZSB0d28gQUNQSSBEMyBzdGF0ZXMg
-ZGVmaW5lZCBub3c6DQo+Pj4+Pj4+IEFDUElfU1RBVEVfRDMgYW5kIEFDUElfU1RBVEVfRDNfQ09M
-RC4NCj4+Pj4+Pj4gDQo+Pj4+Pj4+IEJ1dCB0aGUgdXNlcyBvZiB0aGVzZSBzdGF0ZXMgYXJlIG5v
-dCBjbGVhci9jb3JyZWN0IGluIHNvbWUgY29kZS4NCj4+Pj4+Pj4gRm9yIGV4YW1wbGUsIHNvbWUg
-Y29kZSByZWZlciBBQ1BJX1NUQVRFX0QzIGFzIEQzaG90IGFuZCBvdGhlcnMgcmVmZXINCj4+Pj4+
-Pj4gaXQgYXMgRDNjb2xkLg0KPj4+Pj4+PiANCj4+Pj4+Pj4gVGhpcyBwYXRjaCBpbnRyb2R1Y2Vz
-IEFDUElfU1RBVEVfRDNfSE9UIHRvIHJlZmVyIHRvIEFDUEkgRDNob3Qgc3RhdGUuDQo+Pj4+Pj4+
-IEFuZCBjaGFuZ2VzIEFDUElfU1RBVEVfRDMgdG8gcmVmZXIgdG8gQUNQSSBEM2NvbGQgc3RhdGUg
-b25seS4NCj4+Pj4+Pj4gQWxzbyByZWRlZmluZXMgQUNQSV9TVEFURV9EM19DT0xEIHRoZSBzYW1l
-IGFzIEFDUElfU1RBVEVfRDMuDQo+Pj4+Pj4+IA0KPj4+Pj4+IA0KPj4+Pj4+IFdpdGggdGhpcyBw
-YXRjaCBub3csIGlmIGEgZGV2aWNlIGhhcyBfUFMzLCB0aGVuIHdlIHdpbGwgc2V0IGl0cyBEM2hv
-dA0KPj4+Pj4+IGZsYWcgdmFsaWQuIFRoaXMgZG9lc24ndCBmZWVsIHJpZ2h0IHRvIG1lLCBzaW5j
-ZSBwZXIgb3VyIGRpc2N1c3Npb24gdGhlDQo+Pj4+Pj4gb3RoZXIgZGF5LCB3ZSBzaG91bGQgYXNz
-dW1lIF9QUzMgd2lsbCBwdXQgdGhlIGRldmljZSBpbnRvIEQzY29sZC4NCj4+Pj4+PiANCj4+Pj4+
-PiBPciBkbyB5b3UgbWVhbjogaWYgX1BTMyBpcyBhdmFpbGFibGUsIHRoZW4gYm90aCBEM2hvdCBh
-bmQgRDNjb2xkIGlzDQo+Pj4+Pj4gdmFsaWQgZnJvbSB0aGUgcGVyc3BlY3RpdmUgb2YgYWNwaSwg
-aXQgaXMgdGhlIGluZGl2aWR1YWwgZHJpdmVyJ3MNCj4+Pj4+PiByZXNwb25zaWJpbGl0eSB0byBk
-ZWNpZGUgd2hpY2ggc3RhdGUgaXMgYWN0dWFsbHkgdmFsaWQgYW5kIHdpbGwgYmUgdXNlZC4NCj4+
-Pj4+IA0KPj4+Pj4gUmlnaHQuDQo+Pj4+PiANCj4+Pj4+IEFDUElfU1RBVEVfRDMoc2FtZSBhcyBB
-Q1BJX1NUQVRFX0QzX0NPTEQgbm93KSBpcyBhbHdheXMgdmFsaWQuDQo+Pj4+PiANCj4+Pj4gDQo+
-Pj4+IEkgbWVhbiwgaWYgX1BTMyBpcyBhdmFpbGFibGUsIGNhbiB3ZSBzYXkgRDNob3QgaXMgdmFs
-aWQ/DQo+Pj4gDQo+Pj4gWWVzLg0KPj4+IA0KPj4gDQo+PiBPSywgbm93IEknbSBjb25mdXNlZC4u
-Lg0KPj4gDQo+PiBGaXJzdCwgbGV0IG1lIHRyeSB0byBjbGFyaWZ5IHRoZSBtZWFuaW5nIG9mIGFj
-cGkgcG93ZXIgc3RhdGUncyB2YWxpZA0KPj4gZmxhZy4NCj4+IA0KPj4gQnkgdmFsaWQsIEkgc3Vw
-cG9zZSBpdCBtZWFucyB0aGUgZGV2aWNlIGNhbiBiZSBpbiB0aGF0IHN0YXRlLCBpbnN0ZWFkIG9m
-DQo+PiB3ZSBoYXZlIGEgd2F5IHRvIHByb2dyYW0gdGhpcyBkZXZpY2UgdG8gZ28gaW50byB0aGF0
-IHN0YXRlLg0KPj4gDQo+PiBlLmcuIEQwIGlzIHZhbGlkIG1lYW5zIHRoZSBkZXZpY2UgY2FuIGJl
-IGluIEQwIHN0YXRlLCBhbmQgRDNfY29sZCBpcw0KPj4gdmFsaWQgbWVhbnMgdGhlIGRldmljZSBj
-YW4gYmUgaW4gRDNfY29sZCBzdGF0ZS4gV2UgdW5jb25kaXRpb25hbGx5IHNldA0KPj4gdGhlc2Ug
-dHdvIHN0YXRlcyBhcyB2YWxpZCwgYmVjYXVzZSB3ZSBrbm93IGV2ZXJ5IGRldmljZSBzdXBwb3J0
-cyB0aGVzZQ0KPj4gdHdvIHN0YXRlcy4gQnV0IHdlIG1pZ2h0IG5vdCBiZSBhYmxlIHRvIHB1dCB0
-aGUgZGV2aWNlIGludG8gdGhhdCBzdGF0ZQ0KPj4gaW4gc29mdHdhcmUsIHNpbmNlIHdlIG1pZ2h0
-IG5vdCBoYXZlIF9QUzAgb3IgX1BTMyBjb250cm9sIG1ldGhvZHMgZm9yIGl0Lg0KPj4gDQo+PiBB
-bmQgaWYgd2UgZG8gaGF2ZSB0aGUgX1BTeCBvciBfUFJ4IGNvbnRyb2wgbWV0aG9kcywgd2Uga25v
-d3Mgd2UgaGF2ZSBhDQo+PiB3YXkgdG8gcHV0IHRoZSBkZXZpY2UgaW50byB0aGF0IHN0YXRlLCBh
-bmQgaGVuY2UgdGhlIGRldmljZSBzaG91bGQgYmUNCj4+IGFibGUgdG8gc3VwcG9ydCB0aGF0IHBv
-d2VyIHN0YXRlLCBzbyB3ZSB3aWxsIHNldCB0aGF0IHN0YXRlIGFzIHZhbGlkIHRvby4NCj4+IA0K
-Pj4gSXMgdGhpcyBjb3JyZWN0Pw0KPj4gDQo+PiBGb3IgRDNob3QsIG9idmlvdXNseSBub3QgYWxs
-IGRldmljZSBzdXBwb3J0cyB0aGlzIHN0YXRlLCBzbyB3ZSB3aWxsIG5lZWQNCj4+IHRvIGZpZ3Vy
-ZSBpdCBvdXQgdGhyb3VnaCB0aGUgYWNwaSB0YWJsZS4NCj4+IEkgcmVtZW1iZXJlZCBSYWZhZWwg
-c2FpZCB0aGUgZm9sbG93aW5nIHdvcmRzIHRoZSBvdGhlciBkYXkgaW4gYSByZXBseSB0bw0KPj4g
-bXkgZXZhbHVhdGVfcHMzX3doZW5fZW50ZXJpbmdfZDNfY29sZF9wYXRjaDoNCj4+IA0KPj4gLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0NCj4+IEknZCByYXRoZXIgc2F5IHRoYXQgd2l0aCBfUFIzIHdlIGhhdmUgdGhl
-IG9wcG9ydHVuaXR5IHRvIGF2b2lkIHJlbW92aW5nDQo+PiBwb3dlciBjb21wbGV0ZWx5IGZyb20g
-dGhlIGRldmljZS4gIEluIG90aGVyIHdvcmRzLCBEM19ob3QgaXMgc3VwcG9ydGVkIChhbmQNCj4+
-IGl0IGlzIHN1cHBvcnRlZCBfb25seV8gaW4gdGhhdCBjYXNlKS4NCj4+IC0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-DQo+PiANCj4+IFNvIEkgdGhpbmsgaGVyZSBpcyBhIHByb2JsZW0sIHRoYXQgaWYgYSBkZXZpY2Ug
-aGFzIG9ubHkgX1BTMywgd2h5IHNob3VsZA0KPj4gd2Ugc2F5IEQzaG90IGlzIHN1cHBvcnRlZD8g
-SXMgdGhlcmUgYSByZWFzb24gZm9yIHRoaXMgdGhhdCBJIG1pc3NlZD8NCj4gDQo+IE9LLCBJIGFn
-cmVlLiAgV2UgbmVlZCB0byBzcGVjaWFsIGNhc2UgdGhlIHNpdHVhdGlvbiBpbiB3aGljaCBfUFIz
-IGlzIG5vdA0KPiBwcmVzZW50LCBidXQgX1BTMyBpcy4gIElPVywgd2Ugc2hvdWxkIGRvIHNvbWV0
-aGluZyBsaWtlIHRoaXMgaW4gdGhlIGxvb3AgaW4NCj4gYWNwaV9idXNfZ2V0X3Bvd2VyX2ZsYWdz
-KCk6DQo+IA0KPiANCj4gICAgICAgIC8qIFN0YXRlIGlzIHZhbGlkIGlmIHdlIGhhdmUgc29tZSBw
-b3dlciBjb250cm9sICovDQo+ICAgICAgICBpZiAocHMtPnJlc291cmNlcy5jb3VudA0KPiAgICAg
-ICAgICAgIHx8IChwcy0+ZmxhZ3MuZXhwbGljaXRfc2V0ICYmIGkgPCBBQ1BJX1NUQVRFX0QzKSkN
-Cj4gICAgICAgICAgICBwcy0+ZmxhZ3MudmFsaWQgPSAxOw0KPiANCg0KTG9va3MgZ29vZCB0byBt
-ZSwgdGhhbmtzLg0KDQotQWFyb24NCg0K
+Yes, for me it works.
+I'm now now up to 6be5ceb02e98eaf6cfc4f8b12a896d04023f340d VM: add
+"vm_mmap()" helper function
 
+Thanks, J=F6rg
+
+Am 20. April 2012 20:29 schrieb Linus Torvalds <torvalds@linux-foundati=
+on.org>:
+> Since nothing ever happened on this, and since the original bugzilla
+> entry that caused the commit indicates that there were other
+> workarounds for the problem, I have reverted the offending commit in
+> my tree.
+>
+> J=F6rg, can you please verify that current -git works for you again?
+>
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 Linus
+>
+> On Wed, Apr 18, 2012 at 9:12 AM, Sergio Correia <lists@uece.net> wrot=
+e:
+>> On Wed, Apr 18, 2012 at 12:00 PM, J=F6rg Otte <jrg.otte@googlemail.c=
+om> wrote:
+>>> 9 days and still no response. Maybe I addressed the wrong person(s)=
+=2E
+>>> I Cc to Linus.
+>>>
+>>> Who can help with this topic?
+>>>
+>>
+>> CC'ing linux-acpi.
+>>
+>>> Thanks, Joerg
+>>>
+>>>
+>>>
+>>> Am 14. April 2012 12:46 schrieb J=F6rg Otte <jrg.otte@googlemail.co=
+m>:
+>>>> It's now bisected:
+>>>>
+>>>> cf450136bfde77c7f95065c91bffded4aa7fa731 =A0 ACPI: ignore FADT res=
+et-reg-sup flag
+>>>>
+>>>> Thanks, Joerg
+>>>>
+>>>>
+>>>> Am 9. April 2012 17:19 schrieb J=F6rg Otte <jrg.otte@googlemail.co=
+m>:
+>>>>> Hi,
+>>>>>
+>>>>> On reboot it shuts down as normal.
+>>>>> The last lines displayed are:
+>>>>>
+>>>>>>.
+>>>>>>Unmounting temporary filesystems.. [OK]
+>>>>>>Deactivating swap... =A0 =A0 =A0 =A0 =A0 =A0 =A0 [OK]
+>>>>>>Unmounting local filesystems... =A0 =A0[OK]
+>>>>>>Will now restart
+>>>>>> =A0 =A0Restarting system
+>>>>>
+>>>>> Then I hear it accessing the cd-drive, but then
+>>>>> it's being stuck.
+>>>>>
+>>>>> v3.3 was ok. HW is a Thinkpad T43.
+>>>>>
+>>>>> Please Cc me I'm not subscribed.
+>>>>>
+>>>>> Thanks,Joerg
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-ker=
+nel" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.htm=
+l
+>>> Please read the FAQ at =A0http://www.tux.org/lkml/
