@@ -1,44 +1,60 @@
-From: Sedat Dilek <sedat.dilek@googlemail.com>
-Subject: Warning: pnp 00:0b: can't evaluate _CRS: 12311
-Date: Mon, 23 Apr 2012 11:48:23 +0200
-Message-ID: <CA+icZUWVwUr19xL0Dn5mHnZjQaVjj6VYD3BMMktEWO0vgoZEXw@mail.gmail.com>
-Reply-To: sedat.dilek@gmail.com
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [GIT PULL/PATCH] gts and bfs fixes (v5).
+Date: Mon, 23 Apr 2012 13:34:51 +0200
+Message-ID: <201204231334.51376.rjw@sisk.pl>
+References: <1335150198-21899-1-git-send-email-konrad.wilk@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qa0-f53.google.com ([209.85.216.53]:42126 "EHLO
-	mail-qa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754587Ab2DWJsX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Apr 2012 05:48:23 -0400
+Received: from ogre.sisk.pl ([193.178.161.156]:59378 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752330Ab2DWLaM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 23 Apr 2012 07:30:12 -0400
+In-Reply-To: <1335150198-21899-1-git-send-email-konrad.wilk@oracle.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Len Brown <lenb@kernel.org>, Adam Belay <abelay@mit.edu>, Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org
+To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, hpa@zytor.com
+Cc: ming.m.lin@intel.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org
 
-[ Please CC me I am not subscribed to this ML ]
+On Monday, April 23, 2012, Konrad Rzeszutek Wilk wrote:
+> Please git pull (or use the patches that follow this email) the following branch:
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/konrad/xen.git stable/for-x86-for-3.4
+> 
+> Changes since v4 [https://lkml.org/lkml/2012/4/18/396]
+>  - Added Acked and Reviewed-by
+> v2 [https://lkml.org/lkml/2012/4/9/474]
+>  - ditched the assembler version and used a C wrapper
+> 
+> With git commit a2ef5c4fd44ce3922435139393b89f2cce47f576
+> "ACPI: Move module parameter gts and bfs to sleep.c" the
+> sampling of gts/bfs module parameters flag by acpi_enter_sleep_state
+> has been moved. It has been moved out of the inner ACPI code and
+> out in the more x86 specific. This means that any caller of
+> the exported acpi_enter_sleep_state function needs to provide
+> two parameters now: sleep state and the bit flag whether to us _GTS|_BFS.
+> 
+> All of the callers of acpi_enter_sleep_state did that, with
+> the exception of the assembler version and as well any
+> third-party callers of acpi_enter_sleep_state.
+> 
+> These two patches expose 'wake_sleep_flags' as the product
+> of the gts/bfs module parameter invocation. And also use said
+> flag in the assembler 'do_suspend_lowlevel()' function.
+> 
+> Konrad Rzeszutek Wilk (2):
+>       ACPI: Convert wake_sleep_flags to a value instead of function (v5)
+>       x86/acpi: Call acpi_enter_sleep_state via an asmlinkage C function from assembler (v2).
+> 
+>  arch/x86/kernel/acpi/sleep.c     |    4 +++
+>  arch/x86/kernel/acpi/sleep.h     |    4 +++
+>  arch/x86/kernel/acpi/wakeup_32.S |    4 +--
+>  arch/x86/kernel/acpi/wakeup_64.S |    4 +--
+>  drivers/acpi/sleep.c             |   52 ++++++++++++++++++++-----------------
+>  5 files changed, 38 insertions(+), 30 deletions(-)
 
-Hi,
+Peter, are you going to take this?
 
-with a self-compiled linux-3.4-rc4 I am seeing this bugs/failures/warnings:
-
-[    0.241572] [Firmware Bug]: ACPI: BIOS _OSI(Linux) query ignored
-
-[    0.279385]  pci0000:00: ACPI _OSC request failed (AE_ERROR),
-returned control mask: 0x1d
-
-[    0.293699] system 00:0a: Plug and Play ACPI device, IDs PNP0c02 (active)
-[    0.294032] ACPI Error: Invalid/unsupported resource descriptor:
-Type 0x00 (20120320/utresrc-650)
-[    0.294037] pnp 00:0b: can't evaluate _CRS: 12311
-
-The same outputs I have seen also with an unsupported drm-intel-next
-kernel from Ubuntu/PPA archives [1].
-
-What does ist mean? Is it harmless? Buggy firmware/bios?
-
-Do you need more background infos (dmesg, kernel-config, etc.)?
-
-Regards,
-- Sedat -
-
-[1] http://kernel.ubuntu.com/~kernel-ppa/mainline/drm-intel-next/current/
+Rafael
