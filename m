@@ -1,37 +1,57 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [GIT PULL/PATCH] gts and bfs fixes (v5).
-Date: Mon, 23 Apr 2012 11:00:44 -0700
-Message-ID: <d872092e-6e4a-46d1-87cf-379be0c26f87@email.android.com>
-References: <1335150198-21899-1-git-send-email-konrad.wilk@oracle.com> <201204231334.51376.rjw@sisk.pl> <b4633284-02f7-454b-a35a-2bf844db05c6@email.android.com> <20120423173917.GA24965@phenom.dumpdata.com>
+From: Panagiotis Papadakos <papadako@ics.forth.gr>
+Subject: Re: Sony CR21/Z laptop (Latency problems related to ACPI?)
+Date: Mon, 23 Apr 2012 22:37:56 +0300
+Message-ID: <3016996.TpuJ1apcko@cray-7>
+References: <5612856.clGBGkmtMC@cray-7>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120423173917.GA24965@phenom.dumpdata.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, ming.m.lin@intel.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mailgate-4.ics.forth.gr ([139.91.1.7]:16330 "EHLO
+	mailgate-4.ics.forth.gr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753040Ab2DWTiP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Apr 2012 15:38:15 -0400
+Received: from av1.ics.forth.gr (smtp-out.ics.forth.gr. [139.91.1.71])
+	by mailgate-4.ics.forth.gr (8.14.5/ICS-FORTH/V10-1.9-GATE-OUT) with ESMTP id q3NJcBqa093805
+	for <linux-acpi@vger.kernel.org>; Mon, 23 Apr 2012 22:38:13 +0300 (EEST)
+Received: from cray-7.localnet (mythos@mikroulhs.ics.forth.gr [139.91.183.24] (may be forged))
+	(authenticated bits=0)
+	by enigma.ics.forth.gr (8.14.3//ICS-FORTH/V10.3.0C-EXTNULL-SSL-SASL) with ESMTP id q3NJcB3t017859
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-acpi@vger.kernel.org>; Mon, 23 Apr 2012 22:38:11 +0300
+In-Reply-To: <5612856.clGBGkmtMC@cray-7>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-No problem ... I'll pull it after lunch.
+Well, it seems that I only need noapic in my kernel options.
+Also I guess this is a motherboard or BIOS bug right?
 
-Konrad Rzeszutek Wilk <konrad.wilk@oracle.com> wrote:
+Thanks in advance.
 
->On Mon, Apr 23, 2012 at 10:34:44AM -0700, H. Peter Anvin wrote:
->> Do I have your ACK?
->
->Yes from me. Rafeal already Acked:
->
->https://lkml.org/lkml/2012/4/18/472
->https://lkml.org/lkml/2012/4/18/473
->
->Duh! I forgot to stick his Acked-by on the last patch.
->.. snip..
->
->> >Peter, are you going to take this?
->> >
->> >Rafael
-
--- 
-Sent from my mobile phone. Please excuse brevity and lack of formatting.
+On Monday 23 of April 2012 15:18:48 Panagiotis Papadakos wrote:
+> Hello.
+> 
+> I have been using a cr21/z laptop which probably has
+> acpi related problems that introduce latency. I noticed
+> it because a recent update in my Ubuntu precise
+> makes my system's clock stay behind, and freezes
+> my laptop when there are no mouse or keyboard actions.
+> 
+> Somehow it looks related to
+> https://bugzilla.kernel.org/show_bug.cgi?id=20172
+> 
+> If I boot my kernel with noapictimer clocksource=jiffies irqpoll
+> options the system reacts to my actions instantly. It is the first
+> time that I have exprerience lag free reactions from my system.
+> Unfortunately there are spikes of 100% CPU usage, due to irq polling I
+> assume, which makes my system less power efficient.
+> 
+> Is there any case that we can somehow fix this problem?
+> 
+> I am using latest git kernel. The same problem also exists
+> in current Ubuntu precise 3.2 kernel.
+> 
+> Thank you in advance.
+> 
+> Panagiotis Papadakos
