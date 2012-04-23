@@ -1,128 +1,44 @@
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: [PATCH 2/2] x86/acpi: Call acpi_enter_sleep_state via an asmlinkage C function from assembler (v2).
-Date: Sun, 22 Apr 2012 23:03:18 -0400
-Message-ID: <1335150198-21899-3-git-send-email-konrad.wilk@oracle.com>
-References: <1335150198-21899-1-git-send-email-konrad.wilk@oracle.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from acsinet15.oracle.com ([141.146.126.227]:50752 "EHLO
-	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753298Ab2DWDId (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 22 Apr 2012 23:08:33 -0400
-In-Reply-To: <1335150198-21899-1-git-send-email-konrad.wilk@oracle.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [GIT PULL/PATCH] gts and bfs fixes (v5).
+Date: Sun, 22 Apr 2012 23:03:16 -0400
+Message-ID: <1335150198-21899-1-git-send-email-konrad.wilk@oracle.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: ming.m.lin@intel.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, hpa@zytor.com, x86@kernel.org, rjw@sisk.pl
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+List-Id: linux-acpi@vger.kernel.org
 
-With commit a2ef5c4fd44ce3922435139393b89f2cce47f576
+Please git pull (or use the patches that follow this email) the following branch:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/konrad/xen.git stable/for-x86-for-3.4
+
+Changes since v4 [https://lkml.org/lkml/2012/4/18/396]
+ - Added Acked and Reviewed-by
+v2 [https://lkml.org/lkml/2012/4/9/474]
+ - ditched the assembler version and used a C wrapper
+
+With git commit a2ef5c4fd44ce3922435139393b89f2cce47f576
 "ACPI: Move module parameter gts and bfs to sleep.c" the
-wake_sleep_flags is required when calling acpi_enter_sleep_state.
+sampling of gts/bfs module parameters flag by acpi_enter_sleep_state
+has been moved. It has been moved out of the inner ACPI code and
+out in the more x86 specific. This means that any caller of
+the exported acpi_enter_sleep_state function needs to provide
+two parameters now: sleep state and the bit flag whether to us _GTS|_BFS.
 
-The assembler code in wakeup_*.S did not do that. One solution
-is to call it from assembler and stick the wake_sleep_flags on
-the stack (for 32-bit) or in %esi (for 64-bit). hpa and rafael
-both suggested however to create a wrapper function to call
-acpi_enter_sleep_state and call said wrapper function
-("acpi_enter_s3") from assembler.
+All of the callers of acpi_enter_sleep_state did that, with
+the exception of the assembler version and as well any
+third-party callers of acpi_enter_sleep_state.
 
-For 32-bit, the acpi_enter_s3 ends up looking as so:
+These two patches expose 'wake_sleep_flags' as the product
+of the gts/bfs module parameter invocation. And also use said
+flag in the assembler 'do_suspend_lowlevel()' function.
 
-  push   %ebp
-  mov    %esp,%ebp
-  sub    $0x8,%esp
-  movzbl 0xc1809314,%eax [wake_sleep_flags]
-  movl   $0x3,(%esp)
-  mov    %eax,0x4(%esp)
-  call   0xc12d1fa0 <acpi_enter_sleep_state>
-  leave
-  ret
+Konrad Rzeszutek Wilk (2):
+      ACPI: Convert wake_sleep_flags to a value instead of function (v5)
+      x86/acpi: Call acpi_enter_sleep_state via an asmlinkage C function from assembler (v2).
 
-And 64-bit:
-
-  movzbl 0x9afde1(%rip),%esi        [wake_sleep_flags]
-  push   %rbp
-  mov    $0x3,%edi
-  mov    %rsp,%rbp
-  callq  0xffffffff812e9800 <acpi_enter_sleep_state>
-  leaveq
-  retq
-
-Reviewed-by: H. Peter Anvin <hpa@zytor.com>
-Suggested-by: H. Peter Anvin <hpa@zytor.com>
-[v2: Remove extra assembler operations, per hpa review]
-Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
----
- arch/x86/kernel/acpi/sleep.c     |    4 ++++
- arch/x86/kernel/acpi/sleep.h     |    2 ++
- arch/x86/kernel/acpi/wakeup_32.S |    4 +---
- arch/x86/kernel/acpi/wakeup_64.S |    4 +---
- 4 files changed, 8 insertions(+), 6 deletions(-)
-
-diff --git a/arch/x86/kernel/acpi/sleep.c b/arch/x86/kernel/acpi/sleep.c
-index 103b6ab..146a49c 100644
---- a/arch/x86/kernel/acpi/sleep.c
-+++ b/arch/x86/kernel/acpi/sleep.c
-@@ -24,6 +24,10 @@ unsigned long acpi_realmode_flags;
- static char temp_stack[4096];
- #endif
- 
-+asmlinkage void acpi_enter_s3(void)
-+{
-+	acpi_enter_sleep_state(3, wake_sleep_flags);
-+}
- /**
-  * acpi_suspend_lowlevel - save kernel state
-  *
-diff --git a/arch/x86/kernel/acpi/sleep.h b/arch/x86/kernel/acpi/sleep.h
-index fe5fdda..d68677a 100644
---- a/arch/x86/kernel/acpi/sleep.h
-+++ b/arch/x86/kernel/acpi/sleep.h
-@@ -3,6 +3,7 @@
-  */
- 
- #include <asm/trampoline.h>
-+#include <linux/linkage.h>
- 
- extern unsigned long saved_video_mode;
- extern long saved_magic;
-@@ -10,6 +11,7 @@ extern long saved_magic;
- extern int wakeup_pmode_return;
- 
- extern u8 wake_sleep_flags;
-+extern asmlinkage void acpi_enter_s3(void);
- 
- extern unsigned long acpi_copy_wakeup_routine(unsigned long);
- extern void wakeup_long64(void);
-diff --git a/arch/x86/kernel/acpi/wakeup_32.S b/arch/x86/kernel/acpi/wakeup_32.S
-index 13ab720..7261083 100644
---- a/arch/x86/kernel/acpi/wakeup_32.S
-+++ b/arch/x86/kernel/acpi/wakeup_32.S
-@@ -74,9 +74,7 @@ restore_registers:
- ENTRY(do_suspend_lowlevel)
- 	call	save_processor_state
- 	call	save_registers
--	pushl	$3
--	call	acpi_enter_sleep_state
--	addl	$4, %esp
-+	call	acpi_enter_s3
- 
- #	In case of S3 failure, we'll emerge here.  Jump
- # 	to ret_point to recover
-diff --git a/arch/x86/kernel/acpi/wakeup_64.S b/arch/x86/kernel/acpi/wakeup_64.S
-index 8ea5164..014d1d2 100644
---- a/arch/x86/kernel/acpi/wakeup_64.S
-+++ b/arch/x86/kernel/acpi/wakeup_64.S
-@@ -71,9 +71,7 @@ ENTRY(do_suspend_lowlevel)
- 	movq	%rsi, saved_rsi
- 
- 	addq	$8, %rsp
--	movl	$3, %edi
--	xorl	%eax, %eax
--	call	acpi_enter_sleep_state
-+	call	acpi_enter_s3
- 	/* in case something went wrong, restore the machine status and go on */
- 	jmp	resume_point
- 
--- 
-1.7.7.5
-
+ arch/x86/kernel/acpi/sleep.c     |    4 +++
+ arch/x86/kernel/acpi/sleep.h     |    4 +++
+ arch/x86/kernel/acpi/wakeup_32.S |    4 +--
+ arch/x86/kernel/acpi/wakeup_64.S |    4 +--
+ drivers/acpi/sleep.c             |   52 ++++++++++++++++++++-----------------
+ 5 files changed, 38 insertions(+), 30 deletions(-)
