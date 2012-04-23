@@ -1,48 +1,154 @@
-From: Panagiotis Papadakos <papadako@ics.forth.gr>
-Subject: Sony CR21/Z laptop (Latency problems related to ACPI?)
-Date: Mon, 23 Apr 2012 15:18:48 +0300
-Message-ID: <5612856.clGBGkmtMC@cray-7>
+From: Aaron Lu <aaron.lu@amd.com>
+Subject: Re: [PATCH] ACPI: evaluate _PS3 when entering D3 Cold
+Date: Mon, 23 Apr 2012 23:13:27 +0800
+Message-ID: <20120423151327.GA4019@fedora>
+References: <1333217910-29579-1-git-send-email-aaron.lu@amd.com>
+ <20120423010929.GA13246@ladygaga>
+ <201204231343.03382.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailgate-4.ics.forth.gr ([139.91.1.7]:32388 "EHLO
-	mailgate-4.ics.forth.gr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754483Ab2DWM3i (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Apr 2012 08:29:38 -0400
-Received: from av1.ics.forth.gr (smtp-out.ics.forth.gr. [139.91.1.71])
-	by mailgate-4.ics.forth.gr (8.14.5/ICS-FORTH/V10-1.9-GATE-OUT) with ESMTP id q3NCJ48e084851
-	for <linux-acpi@vger.kernel.org>; Mon, 23 Apr 2012 15:19:14 +0300 (EEST)
-Received: from cray-7.localnet (mythos@mikroulhs.ics.forth.gr [139.91.183.24] (may be forged))
-	(authenticated bits=0)
-	by enigma.ics.forth.gr (8.14.3//ICS-FORTH/V10.3.0C-EXTNULL-SSL-SASL) with ESMTP id q3NCJDwq021387
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-acpi@vger.kernel.org>; Mon, 23 Apr 2012 15:19:14 +0300
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:38403 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752452Ab2DWPNw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Apr 2012 11:13:52 -0400
+Content-Disposition: inline
+In-Reply-To: <201204231343.03382.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>, Lin Ming <ming.m.lin@intel.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Andiry Xu <andiry.xu@amd.com>, Alex He <alex.he@amd.com>
 
-Hello.
+On Mon, Apr 23, 2012 at 01:43:03PM +0200, Rafael J. Wysocki wrote:
+> On Monday, April 23, 2012, Aaron Lu wrote:
+> > Hi Rafael and Ming,
+> > 
+> > Do you have any more comments on this patch?
+> > If not, can I have your ack? Thanks.
+> > 
+> > -Aaron
+> > 
+> > On Sun, Apr 01, 2012 at 02:18:30AM +0800, Aaron Lu wrote:
+> > > When entering D3 Cold from a higher device state, evaluate _PS3 first
+> > > and then make the proper power transition.
+> > > This is used to solve the ZPODD problem on AMD's platform, _PS3 on such
+> > > platforms will power off the ODD device and thus make the device enter
+> > > D3 cold state.
+> > > 
+> > > Signed-off-by: Aaron Lu <aaron.lu@amd.com>
+> > > Cc: Andiry Xu <andiry.xu@amd.com>
+> > > Cc: Alex He <alex.he@amd.com>
+> > > ---
+> > >  drivers/acpi/bus.c |   17 ++++++++++++++---
+> > >  1 file changed, 14 insertions(+), 3 deletions(-)
+> > > 
+> > > diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> > > index 3263b68..68e593f 100644
+> > > --- a/drivers/acpi/bus.c
+> > > +++ b/drivers/acpi/bus.c
+> > > @@ -227,6 +227,8 @@ static int __acpi_bus_set_power(struct acpi_device *device, int state)
+> > >  	int result = 0;
+> > >  	acpi_status status = AE_OK;
+> > >  	char object_name[5] = { '_', 'P', 'S', '0' + state, '\0' };
+> > > +	struct acpi_device_power_state *ps;
+> > > +	u8 explicit_set;
+> > >  
+> > >  	if (!device || (state < ACPI_STATE_D0) || (state > ACPI_STATE_D3_COLD))
+> > >  		return -EINVAL;
+> > > @@ -239,7 +241,8 @@ static int __acpi_bus_set_power(struct acpi_device *device, int state)
+> > >  		return 0;
+> > >  	}
+> > >  
+> > > -	if (!device->power.states[state].flags.valid) {
+> > > +	ps = &device->power.states[state];
+> > > +	if (!ps->flags.valid) {
+> > >  		printk(KERN_WARNING PREFIX "Device does not support D%d\n", state);
+> > >  		return -ENODEV;
+> > >  	}
+> > > @@ -263,7 +266,7 @@ static int __acpi_bus_set_power(struct acpi_device *device, int state)
+> > >  			if (result)
+> > >  				goto end;
+> > >  		}
+> > > -		if (device->power.states[state].flags.explicit_set) {
+> > > +		if (ps->flags.explicit_set) {
+> > >  			status = acpi_evaluate_object(device->handle,
+> > >  						      object_name, NULL, NULL);
+> > >  			if (ACPI_FAILURE(status)) {
+> > > @@ -272,7 +275,15 @@ static int __acpi_bus_set_power(struct acpi_device *device, int state)
+> > >  			}
+> > >  		}
+> > >  	} else {
+> > > -		if (device->power.states[state].flags.explicit_set) {
+> > > +		/* If state is D3 Cold, try to evaluate _PS3 first */
+> > > +		if (state == ACPI_STATE_D3_COLD) {
+> > > +			explicit_set = (ps - 1)->flags.explicit_set;
+> > > +			object_name[3] -= 1;
+> > > +		}
+> > > +		else {
+> > > +			explicit_set = ps->flags.explicit_set;
+> > > +		}
+> 
+> I really don't like this.  I think you should modify acpi_bus_get_power_flags(),
+> on top of the recent Lin Ming's patch, so that it sets flags.explicit_set for
+> D3_COLD if _PS3 is present and _PR3 is not.
+> 
 
-I have been using a cr21/z laptop which probably has
-acpi related problems that introduce latency. I noticed
-it because a recent update in my Ubuntu precise
-makes my system's clock stay behind, and freezes
-my laptop when there are no mouse or keyboard actions.
+Thanks for your comments.
 
-Somehow it looks related to https://bugzilla.kernel.org/show_bug.cgi?id=20172
+> I'm not sure you'll need the $subject patch any more then.
+> 
+
+A little change is still required. I attached the code below.
+BTW, I think _PS3 will also need be executed if both _PS3 and _PR3
+available when putting a device into D3cold.
+
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 3263b68..187433f 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -273,6 +273,9 @@ static int __acpi_bus_set_power(struct acpi_device *device, int state)
+ 		}
+ 	} else {
+ 		if (device->power.states[state].flags.explicit_set) {
++			/* evaluate _PS3 instead of _PS4 when entering D3Cold */
++			if (state == ACPI_STATE_D3)
++				object_name[3] -= 1;
+ 			status = acpi_evaluate_object(device->handle,
+ 						      object_name, NULL, NULL);
+ 			if (ACPI_FAILURE(status)) {
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 7417267..de2ae10 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -887,8 +887,12 @@ static int acpi_bus_get_power_flags(struct acpi_device *device)
+ 		/* Evaluate "_PSx" to see if we can do explicit sets */
+ 		object_name[2] = 'S';
+ 		status = acpi_get_handle(device->handle, object_name, &handle);
+-		if (ACPI_SUCCESS(status))
++		if (ACPI_SUCCESS(status)) {
+ 			ps->flags.explicit_set = 1;
++			/* Also set D3Cold's explicit flag when _PS3 exists */
++			if (i == ACPI_STATE_D3_HOT)
++				(ps+1)->flags.explicit_set = 1;
++		}
  
-If I boot my kernel with noapictimer clocksource=jiffies irqpoll
-options the system reacts to my actions instantly. It is the first
-time that I have exprerience lag free reactions from my system.
-Unfortunately there are spikes of 100% CPU usage, due to irq polling I assume,
-which makes my system less power efficient.
+ 		/*
+ 		 * State is valid if there are means to put the device into it.
 
-Is there any case that we can somehow fix this problem?
 
-I am using latest git kernel. The same problem also exists
-in current Ubuntu precise 3.2 kernel.
+Do you like this?
 
-Thank you in advance.
+Thanks,
+Aaron
 
-Panagiotis Papadakos
+> > > +		if (explicit_set) {
+> > >  			status = acpi_evaluate_object(device->handle,
+> > >  						      object_name, NULL, NULL);
+> > >  			if (ACPI_FAILURE(status)) {
+> 
+> Thanks,
+> Rafael
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pm" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
