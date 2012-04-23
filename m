@@ -1,33 +1,75 @@
-From: Daniel Drake <dsd@laptop.org>
-Subject: Re: How to detect reason for ACPI wakeup?
-Date: Mon, 23 Apr 2012 14:26:37 -0600
-Message-ID: <CAMLZHHTS14ZQmO5H6E3vy8zhW=yRtCN2O3KaYraAtd0TXNd1ng@mail.gmail.com>
-References: <20120417171709.GC5632@merlins.org>
-	<CAErSpo7fOL_JD8eTJSESfJ5BnXvE5BZWkv02mJQmozj0ngu1LA@mail.gmail.com>
-	<CAMLZHHRmRWUdFxPdhQ3ZE==NXFEMTRG2UKK1=aTPbqa6YMLoKg@mail.gmail.com>
-	<20120423202450.GD11480@merlins.org>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: Warning: pnp 00:0b: can't evaluate _CRS: 12311
+Date: Mon, 23 Apr 2012 16:04:25 -0600
+Message-ID: <CAErSpo5vZSf_EZr6-XnAA8N2Luv6rA92YtZsidWZCZ8rarkPUQ@mail.gmail.com>
+References: <CA+icZUWVwUr19xL0Dn5mHnZjQaVjj6VYD3BMMktEWO0vgoZEXw@mail.gmail.com>
+ <CA+icZUUGFaz0c-tHa9EGUxZaxPj_M=zrE+kE0dv5UMoA6GyN3w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pz0-f51.google.com ([209.85.210.51]:40981 "EHLO
-	mail-pz0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755308Ab2DWU0i (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Apr 2012 16:26:38 -0400
-Received: by mail-pz0-f51.google.com with SMTP id z8so16022027dad.10
-        for <linux-acpi@vger.kernel.org>; Mon, 23 Apr 2012 13:26:38 -0700 (PDT)
-In-Reply-To: <20120423202450.GD11480@merlins.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CA+icZUUGFaz0c-tHa9EGUxZaxPj_M=zrE+kE0dv5UMoA6GyN3w@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: sedat.dilek@gmail.com
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Adam Belay <abelay@mit.edu>, linux-kernel@vger.kernel.org, Bob Moore <robert.moore@intel.com>, Lin Ming <ming.m.lin@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Marc MERLIN <marc@merlins.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>
 
-On Mon, Apr 23, 2012 at 2:24 PM, Marc MERLIN <marc@merlins.org> wrote:
-> Thanks for the patches.
+On Mon, Apr 23, 2012 at 6:03 AM, Sedat Dilek <sedat.dilek@googlemail.co=
+m> wrote:
+> On Mon, Apr 23, 2012 at 11:48 AM, Sedat Dilek
+> <sedat.dilek@googlemail.com> wrote:
+>> [ Please CC me I am not subscribed to this ML ]
+>>
+>> Hi,
+>>
+>> with a self-compiled linux-3.4-rc4 I am seeing this bugs/failures/wa=
+rnings:
+>>
+>> [ =A0 =A00.241572] [Firmware Bug]: ACPI: BIOS _OSI(Linux) query igno=
+red
+>>
+>> [ =A0 =A00.279385] =A0pci0000:00: ACPI _OSC request failed (AE_ERROR=
+),
+>> returned control mask: 0x1d
+>>
+>> [ =A0 =A00.293699] system 00:0a: Plug and Play ACPI device, IDs PNP0=
+c02 (active)
+>> [ =A0 =A00.294032] ACPI Error: Invalid/unsupported resource descript=
+or:
+>> Type 0x00 (20120320/utresrc-650)
+>> [ =A0 =A00.294037] pnp 00:0b: can't evaluate _CRS: 12311
+>>
+>> The same outputs I have seen also with an unsupported drm-intel-next
+>> kernel from Ubuntu/PPA archives [1].
+>>
+>> What does ist mean? Is it harmless? Buggy firmware/bios?
+>>
+>> Do you need more background infos (dmesg, kernel-config, etc.)?
+>>
+>> Regards,
+>> - Sedat -
+>>
+>> [1] http://kernel.ubuntu.com/~kernel-ppa/mainline/drm-intel-next/cur=
+rent/
 >
-> Do you know if either is likely to ever make it to mainline?
+> I have upgraded this Samsung series-5 notebook from BIOS version 05XK
+> to 06XK, but the pnp/_CRS warning still remains.
 
-I'm planning on pestering people until they do. The button wakeup one
-has been acked so I assume that one is close.
-Waiting for comments on the rtc-cmos patch.
+Resource type 0 is "reserved" per the ACPI spec, so this is likely a
+BIOS defect.  However, we might be able to handle it better than we
+currently do.
 
-Daniel
+I would expect all versions of Linux would report this error -- can
+you confirm that or identify a version that didn't complain?  Also,
+can you collect an acpidump (see
+http://www.lesswatts.org/projects/acpi/utilities.php)?
+
+In acpi_ut_validate_resource(), we return AE_AML_INVALID_RESOURCE_TYPE
+(0x3017 =3D=3D 12311), which explains the messages you see.  The commen=
+ts
+in acpi_ut_walk_aml_resources() suggest that we can't continue because
+the length may be bogus if the type is invalid.  But I suspect that if
+we just treat it as a zero-length descriptor and ignore it, things
+will probably work, and that's likely what Windows does.
+
+Bjorn
