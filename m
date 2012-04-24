@@ -1,31 +1,66 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 2/3] acpi_video: Intel video is not always i915
-Date: Tue, 24 Apr 2012 22:02:18 +0100
-Message-ID: <20120424210218.GA25961@srcf.ucam.org>
-References: <20120424154402.1575.90373.stgit@bluebook>
- <20120424154434.1575.91463.stgit@bluebook>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] ACPI: evaluate _PS3 when entering D3 Cold
+Date: Tue, 24 Apr 2012 23:15:00 +0200
+Message-ID: <201204242315.00419.rjw@sisk.pl>
+References: <1333217910-29579-1-git-send-email-aaron.lu@amd.com> <CAF1ivSbOhUbE6wreRQ5E3jV5N_haHn1y9q48CU_OZFeCRTed+A@mail.gmail.com> <20120424142457.GA5292@fedora>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:51468 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757643Ab2DXVCV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Apr 2012 17:02:21 -0400
-Content-Disposition: inline
-In-Reply-To: <20120424154434.1575.91463.stgit@bluebook>
+Received: from ogre.sisk.pl ([193.178.161.156]:34906 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757708Ab2DXVKW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 24 Apr 2012 17:10:22 -0400
+In-Reply-To: <20120424142457.GA5292@fedora>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: airlied@linux.ie, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lu@amd.com>
+Cc: Lin Ming <ming.m.lin@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Andiry Xu <andiry.xu@amd.com>, Alex He <alex.he@amd.com>
 
-On Tue, Apr 24, 2012 at 04:45:01PM +0100, Alan Cox wrote:
-> From: Alan Cox <alan@linux.intel.com>
+On Tuesday, April 24, 2012, Aaron Lu wrote:
+> On Tue, Apr 24, 2012 at 09:15:37PM +0800, Lin Ming wrote:
+> > >> > diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> > >> > index 7417267..734d946 100644
+> > >> > --- a/drivers/acpi/scan.c
+> > >> > +++ b/drivers/acpi/scan.c
+> > >> > @@ -908,6 +908,10 @@ static int acpi_bus_get_power_flags(struct acpi_device *device)
+> > >> >     device->power.states[ACPI_STATE_D3].flags.valid = 1;
+> > >> >     device->power.states[ACPI_STATE_D3].power = 0;
+> > >> >
+> > >> > +   /* Also set D3cold's explicit flag when _PS3 exists */
+> > >> > +   if (device->power.states[ACPI_STATE_D3_HOT].flags.explicit_set)
+> > >> > +           device->power.states[ACPI_STATE_D3].flags.explicit_set = 1;
+> > >>
+> > >> We should use ACPI_STATE_D3_COLD instead of ACPI_STATE_D3 to make thing
+> > >> clear.
+> > >>
+> > > Thanks for your suggestion.
+> > >
+> > > Well, considering all those ACPI_STATE_D3 used in tree, I don't think I
+> > > should use ACPI_STATE_D3_COLD here, especially the two lines above are
+> > > still using ACPI_STATE_D3.
+> > >
+> > > But if that is desired, we should probably change all the existing
+> > > ACPI_STATE_D3 macros to ACPI_STATE_D3_COLD to make things clear.
+> > >
+> > > Or we all use ACPI_STATE_D3, since it is defined as 4 and means D3 cold,
+> > > and people will learn this, won't they?
+> > >
+> > > What do you think?
+> > 
+> > OK.
+> > 
+> > But we may do more cleanup later.
+> > 
 > 
-> Handle the GMA500/600/36x0 cases. Also stop it poking at random registers on
-> the i740 cards that may be out there still.
+> Sure :-)
+> I think the first thing to do is to agree on which macro should be used,
+> ACPI_STATE_D3 or ACPI_STATE_D3_COLD. And then replace the other one
+> altogether.
 
-The PowerVR Intels I'd seen had the opregion address in the 0xfc 
-register as well. Is this no longer true on the latest?
+I'd prefer to use ACPI_STATE_D3 wherever it makes sense, because that's
+also well defined in older versions of ACPI (think pre-ACPI-4.0 BIOSes).
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Thanks,
+Rafael
