@@ -1,83 +1,132 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: Warning: pnp 00:0b: can't evaluate _CRS: 12311
-Date: Wed, 25 Apr 2012 20:36:14 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E346A77806@ORSMSX101.amr.corp.intel.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: Warning: pnp 00:0b: can't evaluate _CRS: 12311
+Date: Wed, 25 Apr 2012 14:50:40 -0600
+Message-ID: <CAErSpo5E3E=A+EEAZjmkYc8x3B==9ZtYufNaG4t8xQegtOfxfA@mail.gmail.com>
 References: <CA+icZUWVwUr19xL0Dn5mHnZjQaVjj6VYD3BMMktEWO0vgoZEXw@mail.gmail.com>
-	<CA+icZUUGFaz0c-tHa9EGUxZaxPj_M=zrE+kE0dv5UMoA6GyN3w@mail.gmail.com>
-	<CAErSpo5vZSf_EZr6-XnAA8N2Luv6rA92YtZsidWZCZ8rarkPUQ@mail.gmail.com>
- <CA+icZUU+asnLWAevwqKBgnvrmKNitL8-0+8ijDii4pt9VsjspA@mail.gmail.com>
+ <CA+icZUUGFaz0c-tHa9EGUxZaxPj_M=zrE+kE0dv5UMoA6GyN3w@mail.gmail.com>
+ <CAErSpo5vZSf_EZr6-XnAA8N2Luv6rA92YtZsidWZCZ8rarkPUQ@mail.gmail.com>
+ <CA+icZUU+asnLWAevwqKBgnvrmKNitL8-0+8ijDii4pt9VsjspA@mail.gmail.com> <94F2FBAB4432B54E8AACC7DFDE6C92E346A77806@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:64157 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758800Ab2DYUg2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Apr 2012 16:36:28 -0400
-In-Reply-To: <CA+icZUU+asnLWAevwqKBgnvrmKNitL8-0+8ijDii4pt9VsjspA@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:58489 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757159Ab2DYUvE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Apr 2012 16:51:04 -0400
+Received: by lbbgf7 with SMTP id gf7so445417lbb.19
+        for <linux-acpi@vger.kernel.org>; Wed, 25 Apr 2012 13:51:00 -0700 (PDT)
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E346A77806@ORSMSX101.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "sedat.dilek@gmail.com" <sedat.dilek@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Lin, Ming M" <ming.m.lin@intel.com>
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: "sedat.dilek@gmail.com" <sedat.dilek@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Lin, Ming M" <ming.m.lin@intel.com>
 
-PiA+Pj4gWyAgICAwLjI5NDAzN10gcG5wIDAwOjBiOiBjYW4ndCBldmFsdWF0ZSBfQ1JTOiAxMjMx
-MQ0KDQpJdCBzdXJlIHdvdWxkIGJlIG5pY2UgaWYgdGhpcyBlcnJvciBtZXNzYWdlIHdvdWxkIGlu
-Y2x1ZGUgdGhlIGZ1bGwgcGF0aG5hbWUgdG8gdGhlIF9DUlMgbWV0aG9kLiBBcyBpdCBzdGFuZHMs
-IGl0IGlzIHJhdGhlciBkaWZmaWN1bHQgdG8gZGV0ZXJtaW5lIGp1c3Qgd2hhdCBjYXVzZWQgdGhp
-cy4NCg0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFNlZGF0IERpbGVr
-IFttYWlsdG86c2VkYXQuZGlsZWtAZ29vZ2xlbWFpbC5jb21dDQo+IFNlbnQ6IE1vbmRheSwgQXBy
-aWwgMjMsIDIwMTIgMzoyNyBQTQ0KPiBUbzogQmpvcm4gSGVsZ2Fhcw0KPiBDYzogbGludXgtYWNw
-aUB2Z2VyLmtlcm5lbC5vcmc7IExlbiBCcm93bjsgbGludXgtDQo+IGtlcm5lbEB2Z2VyLmtlcm5l
-bC5vcmc7IE1vb3JlLCBSb2JlcnQ7IExpbiwgTWluZyBNDQo+IFN1YmplY3Q6IFJlOiBXYXJuaW5n
-OiBwbnAgMDA6MGI6IGNhbid0IGV2YWx1YXRlIF9DUlM6IDEyMzExDQo+IA0KPiBPbiBUdWUsIEFw
-ciAyNCwgMjAxMiBhdCAxMjowNCBBTSwgQmpvcm4gSGVsZ2FhcyA8YmhlbGdhYXNAZ29vZ2xlLmNv
-bT4NCj4gd3JvdGU6DQo+ID4gT24gTW9uLCBBcHIgMjMsIDIwMTIgYXQgNjowMyBBTSwgU2VkYXQg
-RGlsZWsNCj4gPHNlZGF0LmRpbGVrQGdvb2dsZW1haWwuY29tPiB3cm90ZToNCj4gPj4gT24gTW9u
-LCBBcHIgMjMsIDIwMTIgYXQgMTE6NDggQU0sIFNlZGF0IERpbGVrDQo+ID4+IDxzZWRhdC5kaWxl
-a0Bnb29nbGVtYWlsLmNvbT4gd3JvdGU6DQo+ID4+PiBbIFBsZWFzZSBDQyBtZSBJIGFtIG5vdCBz
-dWJzY3JpYmVkIHRvIHRoaXMgTUwgXQ0KPiA+Pj4NCj4gPj4+IEhpLA0KPiA+Pj4NCj4gPj4+IHdp
-dGggYSBzZWxmLWNvbXBpbGVkIGxpbnV4LTMuNC1yYzQgSSBhbSBzZWVpbmcgdGhpcw0KPiBidWdz
-L2ZhaWx1cmVzL3dhcm5pbmdzOg0KPiA+Pj4NCj4gPj4+IFsgwqAgwqAwLjI0MTU3Ml0gW0Zpcm13
-YXJlIEJ1Z106IEFDUEk6IEJJT1MgX09TSShMaW51eCkgcXVlcnkgaWdub3JlZA0KPiA+Pj4NCj4g
-Pj4+IFsgwqAgwqAwLjI3OTM4NV0gwqBwY2kwMDAwOjAwOiBBQ1BJIF9PU0MgcmVxdWVzdCBmYWls
-ZWQgKEFFX0VSUk9SKSwNCj4gPj4+IHJldHVybmVkIGNvbnRyb2wgbWFzazogMHgxZA0KPiA+Pj4N
-Cj4gPj4+IFsgwqAgwqAwLjI5MzY5OV0gc3lzdGVtIDAwOjBhOiBQbHVnIGFuZCBQbGF5IEFDUEkg
-ZGV2aWNlLCBJRHMgUE5QMGMwMg0KPiA+Pj4gKGFjdGl2ZSkgWyDCoCDCoDAuMjk0MDMyXSBBQ1BJ
-IEVycm9yOiBJbnZhbGlkL3Vuc3VwcG9ydGVkIHJlc291cmNlDQo+IGRlc2NyaXB0b3I6DQo+ID4+
-PiBUeXBlIDB4MDAgKDIwMTIwMzIwL3V0cmVzcmMtNjUwKQ0KPiA+Pj4gWyDCoCDCoDAuMjk0MDM3
-XSBwbnAgMDA6MGI6IGNhbid0IGV2YWx1YXRlIF9DUlM6IDEyMzExDQo+ID4+Pg0KPiA+Pj4gVGhl
-IHNhbWUgb3V0cHV0cyBJIGhhdmUgc2VlbiBhbHNvIHdpdGggYW4gdW5zdXBwb3J0ZWQgZHJtLWlu
-dGVsLQ0KPiBuZXh0DQo+ID4+PiBrZXJuZWwgZnJvbSBVYnVudHUvUFBBIGFyY2hpdmVzIFsxXS4N
-Cj4gPj4+DQo+ID4+PiBXaGF0IGRvZXMgaXN0IG1lYW4/IElzIGl0IGhhcm1sZXNzPyBCdWdneSBm
-aXJtd2FyZS9iaW9zPw0KPiA+Pj4NCj4gPj4+IERvIHlvdSBuZWVkIG1vcmUgYmFja2dyb3VuZCBp
-bmZvcyAoZG1lc2csIGtlcm5lbC1jb25maWcsIGV0Yy4pPw0KPiA+Pj4NCj4gPj4+IFJlZ2FyZHMs
-DQo+ID4+PiAtIFNlZGF0IC0NCj4gPj4+DQo+ID4+PiBbMV0NCj4gPj4+IGh0dHA6Ly9rZXJuZWwu
-dWJ1bnR1LmNvbS9+a2VybmVsLXBwYS9tYWlubGluZS9kcm0taW50ZWwtDQo+IG5leHQvY3VycmVu
-dA0KPiA+Pj4gLw0KPiA+Pg0KPiA+PiBJIGhhdmUgdXBncmFkZWQgdGhpcyBTYW1zdW5nIHNlcmll
-cy01IG5vdGVib29rIGZyb20gQklPUyB2ZXJzaW9uDQo+IDA1WEsNCj4gPj4gdG8gMDZYSywgYnV0
-IHRoZSBwbnAvX0NSUyB3YXJuaW5nIHN0aWxsIHJlbWFpbnMuDQo+ID4NCj4gPiBSZXNvdXJjZSB0
-eXBlIDAgaXMgInJlc2VydmVkIiBwZXIgdGhlIEFDUEkgc3BlYywgc28gdGhpcyBpcyBsaWtlbHkg
-YQ0KPiA+IEJJT1MgZGVmZWN0LiDCoEhvd2V2ZXIsIHdlIG1pZ2h0IGJlIGFibGUgdG8gaGFuZGxl
-IGl0IGJldHRlciB0aGFuIHdlDQo+ID4gY3VycmVudGx5IGRvLg0KPiA+DQo+ID4gSSB3b3VsZCBl
-eHBlY3QgYWxsIHZlcnNpb25zIG9mIExpbnV4IHdvdWxkIHJlcG9ydCB0aGlzIGVycm9yIC0tIGNh
-bg0KPiA+IHlvdSBjb25maXJtIHRoYXQgb3IgaWRlbnRpZnkgYSB2ZXJzaW9uIHRoYXQgZGlkbid0
-IGNvbXBsYWluPyDCoEFsc28sDQo+ID4gY2FuIHlvdSBjb2xsZWN0IGFuIGFjcGlkdW1wIChzZWUN
-Cj4gPiBodHRwOi8vd3d3Lmxlc3N3YXR0cy5vcmcvcHJvamVjdHMvYWNwaS91dGlsaXRpZXMucGhw
-KT8NCj4gPg0KPiA+IEluIGFjcGlfdXRfdmFsaWRhdGVfcmVzb3VyY2UoKSwgd2UgcmV0dXJuDQo+
-IEFFX0FNTF9JTlZBTElEX1JFU09VUkNFX1RZUEUNCj4gPiAoMHgzMDE3ID09IDEyMzExKSwgd2hp
-Y2ggZXhwbGFpbnMgdGhlIG1lc3NhZ2VzIHlvdSBzZWUuIMKgVGhlIGNvbW1lbnRzDQo+ID4gaW4g
-YWNwaV91dF93YWxrX2FtbF9yZXNvdXJjZXMoKSBzdWdnZXN0IHRoYXQgd2UgY2FuJ3QgY29udGlu
-dWUNCj4gYmVjYXVzZQ0KPiA+IHRoZSBsZW5ndGggbWF5IGJlIGJvZ3VzIGlmIHRoZSB0eXBlIGlz
-IGludmFsaWQuIMKgQnV0IEkgc3VzcGVjdCB0aGF0DQo+IGlmDQo+ID4gd2UganVzdCB0cmVhdCBp
-dCBhcyBhIHplcm8tbGVuZ3RoIGRlc2NyaXB0b3IgYW5kIGlnbm9yZSBpdCwgdGhpbmdzDQo+ID4g
-d2lsbCBwcm9iYWJseSB3b3JrLCBhbmQgdGhhdCdzIGxpa2VseSB3aGF0IFdpbmRvd3MgZG9lcy4N
-Cj4gPg0KPiA+IEJqb3JuDQo+IA0KPiBbIFJlbW92ZWQgQWRhbSBCZWxheSA8YWJlbGF5QG1pdC5l
-ZHU+IChlbWFpbC1hZGRyZXNzIGRvZXMgbm90IGV4aXN0DQo+IGFueW1vcmUpIF0NCj4gDQo+IFll
-YWgsIEkgYXNrZWQgdG9kYXkgb24gI3VidW50dS1rZXJuZWwgYW5kIHBlb3BsZSB0aGVyZSB3ZXJl
-IHZlcnkNCj4gaGVscGZ1bCBhbmQgZ2F2ZSBzb21lIGdvb2QgZXhwbGFuYXRpb25zIChBRV9BTUxf
-SU5WQUxJRF9SRVNPVVJDRV9UWVBFDQo+IGV0Yy4pLg0KPiANCj4gVGhlIGFjcGlkdW1wLmxvZyBJ
-IHBhc3RlYmluLWVkIHRvZGF5LCBzbyBoZXJlIGl0IGlzIDotKS4NCj4gDQo+IFRoZSBrZXJuZWwg
-c2hpcHBlZCB3aXRoIFVidW50dS9wcmVjaXNlIGRvZXMgbm90IHNob3cgdGhlIHBucC9fQ1NSDQo+
-IGlzc3VlLCB0aGlzIGlzIGxpbnV4LWltYWdlLTMuMi4wLTIzLWdlbmVyaWMgKDMuMi4wLTIzLjM2
-KS4NCj4gDQo+IEhvcGUgdGhpcyBoZWxwcy4NCj4gDQo+IC0gU2VkYXQgLQ0K
+On Wed, Apr 25, 2012 at 2:36 PM, Moore, Robert <robert.moore@intel.com>=
+ wrote:
+>> >>> [ =A0 =A00.294037] pnp 00:0b: can't evaluate _CRS: 12311
+>
+> It sure would be nice if this error message would include the full pa=
+thname to the _CRS method. As it stands, it is rather difficult to dete=
+rmine just what caused this.
+
+Agreed.
+
+I extracted and disassembled the acpidump.  There were five
+occurrences of PNP0C02:
+
+DSDT.dsl  \_SB.PCI0.LPCB.LDRC (has a constant _CRS)
+DSDT.dsl  \_SB.PCI0.LPCB.CWDT (has _HID INT3F0D and _CID PNP0C02, so
+doesn't match message)
+DSDT.dsl  \_SB.PCI0.PDRC
+SSDT1.dsl  \_SB.PTID (has no _CRS and has _HID INT340E and _CID
+PNP0C02, so doesn't match message)
+SSDT4.dsl  \_SB.IFFS (has no _CRS)
+
+So I think PDRC must be the one causing the trouble.  Its _CRS runs
+some AML, but I'm not AML-savvy enough to figure it out:
+
+    Scope (_SB.PCI0)
+    {
+        Device (PDRC)
+        {
+            Name (_HID, EisaId ("PNP0C02"))
+            Name (_UID, One)
+            Name (BUF0, ResourceTemplate ()
+            {
+                Memory32Fixed (ReadWrite,
+                    0x00000000,         // Address Base
+                    0x00004000,         // Address Length
+                    )
+                Memory32Fixed (ReadWrite,
+                    0x00000000,         // Address Base
+                    0x00008000,         // Address Length
+                    )
+                Memory32Fixed (ReadWrite,
+                    0x00000000,         // Address Base
+                    0x00001000,         // Address Length
+                    )
+                Memory32Fixed (ReadWrite,
+                    0x00000000,         // Address Base
+                    0x00001000,         // Address Length
+                    )
+                Memory32Fixed (ReadWrite,
+                    0x00000000,         // Address Base
+                    0x00000000,         // Address Length
+                    )
+                Memory32Fixed (ReadWrite,
+                    0xFED20000,         // Address Base
+                    0x00020000,         // Address Length
+                    )
+                Memory32Fixed (ReadOnly,
+                    0xFED90000,         // Address Base
+                    0x00004000,         // Address Length
+                    )
+                Memory32Fixed (ReadWrite,
+                    0xFED45000,         // Address Base
+                    0x0004B000,         // Address Length
+                    )
+                Memory32Fixed (ReadOnly,
+                    0xFF000000,         // Address Base
+                    0x01000000,         // Address Length
+                    )
+                Memory32Fixed (ReadOnly,
+                    0xFEE00000,         // Address Base
+                    0x00100000,         // Address Length
+                    )
+                Memory32Fixed (ReadWrite,
+                    0x00000000,         // Address Base
+                    0x00001000,         // Address Length
+                    )
+            })
+            Method (_CRS, 0, Serialized)
+            {
+                CreateDWordField (BUF0, 0x04, RBR0)
+                ShiftLeft (^^LPCB.RCBA, 0x0E, RBR0)
+                CreateDWordField (BUF0, 0x7C, TBR0)
+                Store (TBAB, TBR0)
+                CreateDWordField (BUF0, 0x80, TBLN)
+                If (LEqual (TBAB, Zero))
+                {
+                    Store (Zero, TBLN)
+                }
+
+                CreateDWordField (BUF0, 0x10, MBR0)
+                ShiftLeft (MHBR, 0x0F, MBR0)
+                CreateDWordField (BUF0, 0x1C, DBR0)
+                ShiftLeft (DIBR, 0x0C, DBR0)
+                CreateDWordField (BUF0, 0x28, EBR0)
+                ShiftLeft (EPBR, 0x0C, EBR0)
+                CreateDWordField (BUF0, 0x34, XBR0)
+                ShiftLeft (PXBR, 0x1A, XBR0)
+                CreateDWordField (BUF0, 0x38, XSZ0)
+                ShiftRight (0x10000000, PXSZ, XSZ0)
+                Return (BUF0)
+            }
+        }
+    }
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
