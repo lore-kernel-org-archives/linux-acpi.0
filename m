@@ -1,71 +1,83 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v2] ACPI: Evaluate _PS3 when entering D3 Cold
-Date: Wed, 25 Apr 2012 21:56:21 +0200
-Message-ID: <201204252156.21687.rjw@sisk.pl>
-References: <1335328190-5748-1-git-send-email-aaron.lu@amd.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: Warning: pnp 00:0b: can't evaluate _CRS: 12311
+Date: Wed, 25 Apr 2012 20:36:14 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E346A77806@ORSMSX101.amr.corp.intel.com>
+References: <CA+icZUWVwUr19xL0Dn5mHnZjQaVjj6VYD3BMMktEWO0vgoZEXw@mail.gmail.com>
+	<CA+icZUUGFaz0c-tHa9EGUxZaxPj_M=zrE+kE0dv5UMoA6GyN3w@mail.gmail.com>
+	<CAErSpo5vZSf_EZr6-XnAA8N2Luv6rA92YtZsidWZCZ8rarkPUQ@mail.gmail.com>
+ <CA+icZUU+asnLWAevwqKBgnvrmKNitL8-0+8ijDii4pt9VsjspA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:37498 "EHLO ogre.sisk.pl"
+Received: from mga01.intel.com ([192.55.52.88]:64157 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758043Ab2DYTvl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Apr 2012 15:51:41 -0400
-In-Reply-To: <1335328190-5748-1-git-send-email-aaron.lu@amd.com>
+	id S1758800Ab2DYUg2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 25 Apr 2012 16:36:28 -0400
+In-Reply-To: <CA+icZUU+asnLWAevwqKBgnvrmKNitL8-0+8ijDii4pt9VsjspA@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@amd.com>
-Cc: Len Brown <lenb@kernel.org>, Lin Ming <ming.m.lin@intel.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Andiry Xu <andiry.xu@amd.com>, Alex He <alex.he@amd.com>
+To: "sedat.dilek@gmail.com" <sedat.dilek@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Lin, Ming M" <ming.m.lin@intel.com>
 
-On Wednesday, April 25, 2012, Aaron Lu wrote:
-> V2: set D3 Cold's explicit_set flag in acpi_bus_get_power_flags if _PS3
-> exists as suggested by Rafael and modify the way to change object_name
-> to _PS3 from _PS4 when doing explicit set to enter D3 Cold.
-> The patch is based on top of Lin Ming's ACPI D3 clean up patch.
-> 
-> V1: When entering D3 Cold from a lower device power state(higher power),
-> evaluate _PS3 before doing power transition.
-> 
-> Signed-off-by: Aaron Lu <aaron.lu@amd.com>
-> Cc: Andiry Xu <andiry.xu@amd.com>
-> Cc: Alex He <alex.he@amd.com>
-
-Reviewed-by: Rafael J. Wysocki <rjw@sisk.pl>
-
-> ---
->  drivers/acpi/bus.c  |    3 +++
->  drivers/acpi/scan.c |    4 ++++
->  2 files changed, 7 insertions(+)
-> 
-> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-> index 3263b68..3a7860f 100644
-> --- a/drivers/acpi/bus.c
-> +++ b/drivers/acpi/bus.c
-> @@ -273,6 +273,9 @@ static int __acpi_bus_set_power(struct acpi_device *device, int state)
->  		}
->  	} else {
->  		if (device->power.states[state].flags.explicit_set) {
-> +			/* Evaluate _PS3 when entering D3cold */
-> +			if (state == ACPI_STATE_D3)
-> +				object_name[3] = '3';
->  			status = acpi_evaluate_object(device->handle,
->  						      object_name, NULL, NULL);
->  			if (ACPI_FAILURE(status)) {
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 7417267..27906d0 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -908,6 +908,10 @@ static int acpi_bus_get_power_flags(struct acpi_device *device)
->  	device->power.states[ACPI_STATE_D3].flags.valid = 1;
->  	device->power.states[ACPI_STATE_D3].power = 0;
->  
-> +	/* Also set D3cold's explicit flag when _PS3 exists */
-> +	if (device->power.states[ACPI_STATE_D3_HOT].flags.explicit_set)
-> +		device->power.states[ACPI_STATE_D3].flags.explicit_set = 1;
-> +
->  	acpi_bus_init_power(device);
->  
->  	return 0;
-> 
-
+PiA+Pj4gWyAgICAwLjI5NDAzN10gcG5wIDAwOjBiOiBjYW4ndCBldmFsdWF0ZSBfQ1JTOiAxMjMx
+MQ0KDQpJdCBzdXJlIHdvdWxkIGJlIG5pY2UgaWYgdGhpcyBlcnJvciBtZXNzYWdlIHdvdWxkIGlu
+Y2x1ZGUgdGhlIGZ1bGwgcGF0aG5hbWUgdG8gdGhlIF9DUlMgbWV0aG9kLiBBcyBpdCBzdGFuZHMs
+IGl0IGlzIHJhdGhlciBkaWZmaWN1bHQgdG8gZGV0ZXJtaW5lIGp1c3Qgd2hhdCBjYXVzZWQgdGhp
+cy4NCg0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFNlZGF0IERpbGVr
+IFttYWlsdG86c2VkYXQuZGlsZWtAZ29vZ2xlbWFpbC5jb21dDQo+IFNlbnQ6IE1vbmRheSwgQXBy
+aWwgMjMsIDIwMTIgMzoyNyBQTQ0KPiBUbzogQmpvcm4gSGVsZ2Fhcw0KPiBDYzogbGludXgtYWNw
+aUB2Z2VyLmtlcm5lbC5vcmc7IExlbiBCcm93bjsgbGludXgtDQo+IGtlcm5lbEB2Z2VyLmtlcm5l
+bC5vcmc7IE1vb3JlLCBSb2JlcnQ7IExpbiwgTWluZyBNDQo+IFN1YmplY3Q6IFJlOiBXYXJuaW5n
+OiBwbnAgMDA6MGI6IGNhbid0IGV2YWx1YXRlIF9DUlM6IDEyMzExDQo+IA0KPiBPbiBUdWUsIEFw
+ciAyNCwgMjAxMiBhdCAxMjowNCBBTSwgQmpvcm4gSGVsZ2FhcyA8YmhlbGdhYXNAZ29vZ2xlLmNv
+bT4NCj4gd3JvdGU6DQo+ID4gT24gTW9uLCBBcHIgMjMsIDIwMTIgYXQgNjowMyBBTSwgU2VkYXQg
+RGlsZWsNCj4gPHNlZGF0LmRpbGVrQGdvb2dsZW1haWwuY29tPiB3cm90ZToNCj4gPj4gT24gTW9u
+LCBBcHIgMjMsIDIwMTIgYXQgMTE6NDggQU0sIFNlZGF0IERpbGVrDQo+ID4+IDxzZWRhdC5kaWxl
+a0Bnb29nbGVtYWlsLmNvbT4gd3JvdGU6DQo+ID4+PiBbIFBsZWFzZSBDQyBtZSBJIGFtIG5vdCBz
+dWJzY3JpYmVkIHRvIHRoaXMgTUwgXQ0KPiA+Pj4NCj4gPj4+IEhpLA0KPiA+Pj4NCj4gPj4+IHdp
+dGggYSBzZWxmLWNvbXBpbGVkIGxpbnV4LTMuNC1yYzQgSSBhbSBzZWVpbmcgdGhpcw0KPiBidWdz
+L2ZhaWx1cmVzL3dhcm5pbmdzOg0KPiA+Pj4NCj4gPj4+IFsgwqAgwqAwLjI0MTU3Ml0gW0Zpcm13
+YXJlIEJ1Z106IEFDUEk6IEJJT1MgX09TSShMaW51eCkgcXVlcnkgaWdub3JlZA0KPiA+Pj4NCj4g
+Pj4+IFsgwqAgwqAwLjI3OTM4NV0gwqBwY2kwMDAwOjAwOiBBQ1BJIF9PU0MgcmVxdWVzdCBmYWls
+ZWQgKEFFX0VSUk9SKSwNCj4gPj4+IHJldHVybmVkIGNvbnRyb2wgbWFzazogMHgxZA0KPiA+Pj4N
+Cj4gPj4+IFsgwqAgwqAwLjI5MzY5OV0gc3lzdGVtIDAwOjBhOiBQbHVnIGFuZCBQbGF5IEFDUEkg
+ZGV2aWNlLCBJRHMgUE5QMGMwMg0KPiA+Pj4gKGFjdGl2ZSkgWyDCoCDCoDAuMjk0MDMyXSBBQ1BJ
+IEVycm9yOiBJbnZhbGlkL3Vuc3VwcG9ydGVkIHJlc291cmNlDQo+IGRlc2NyaXB0b3I6DQo+ID4+
+PiBUeXBlIDB4MDAgKDIwMTIwMzIwL3V0cmVzcmMtNjUwKQ0KPiA+Pj4gWyDCoCDCoDAuMjk0MDM3
+XSBwbnAgMDA6MGI6IGNhbid0IGV2YWx1YXRlIF9DUlM6IDEyMzExDQo+ID4+Pg0KPiA+Pj4gVGhl
+IHNhbWUgb3V0cHV0cyBJIGhhdmUgc2VlbiBhbHNvIHdpdGggYW4gdW5zdXBwb3J0ZWQgZHJtLWlu
+dGVsLQ0KPiBuZXh0DQo+ID4+PiBrZXJuZWwgZnJvbSBVYnVudHUvUFBBIGFyY2hpdmVzIFsxXS4N
+Cj4gPj4+DQo+ID4+PiBXaGF0IGRvZXMgaXN0IG1lYW4/IElzIGl0IGhhcm1sZXNzPyBCdWdneSBm
+aXJtd2FyZS9iaW9zPw0KPiA+Pj4NCj4gPj4+IERvIHlvdSBuZWVkIG1vcmUgYmFja2dyb3VuZCBp
+bmZvcyAoZG1lc2csIGtlcm5lbC1jb25maWcsIGV0Yy4pPw0KPiA+Pj4NCj4gPj4+IFJlZ2FyZHMs
+DQo+ID4+PiAtIFNlZGF0IC0NCj4gPj4+DQo+ID4+PiBbMV0NCj4gPj4+IGh0dHA6Ly9rZXJuZWwu
+dWJ1bnR1LmNvbS9+a2VybmVsLXBwYS9tYWlubGluZS9kcm0taW50ZWwtDQo+IG5leHQvY3VycmVu
+dA0KPiA+Pj4gLw0KPiA+Pg0KPiA+PiBJIGhhdmUgdXBncmFkZWQgdGhpcyBTYW1zdW5nIHNlcmll
+cy01IG5vdGVib29rIGZyb20gQklPUyB2ZXJzaW9uDQo+IDA1WEsNCj4gPj4gdG8gMDZYSywgYnV0
+IHRoZSBwbnAvX0NSUyB3YXJuaW5nIHN0aWxsIHJlbWFpbnMuDQo+ID4NCj4gPiBSZXNvdXJjZSB0
+eXBlIDAgaXMgInJlc2VydmVkIiBwZXIgdGhlIEFDUEkgc3BlYywgc28gdGhpcyBpcyBsaWtlbHkg
+YQ0KPiA+IEJJT1MgZGVmZWN0LiDCoEhvd2V2ZXIsIHdlIG1pZ2h0IGJlIGFibGUgdG8gaGFuZGxl
+IGl0IGJldHRlciB0aGFuIHdlDQo+ID4gY3VycmVudGx5IGRvLg0KPiA+DQo+ID4gSSB3b3VsZCBl
+eHBlY3QgYWxsIHZlcnNpb25zIG9mIExpbnV4IHdvdWxkIHJlcG9ydCB0aGlzIGVycm9yIC0tIGNh
+bg0KPiA+IHlvdSBjb25maXJtIHRoYXQgb3IgaWRlbnRpZnkgYSB2ZXJzaW9uIHRoYXQgZGlkbid0
+IGNvbXBsYWluPyDCoEFsc28sDQo+ID4gY2FuIHlvdSBjb2xsZWN0IGFuIGFjcGlkdW1wIChzZWUN
+Cj4gPiBodHRwOi8vd3d3Lmxlc3N3YXR0cy5vcmcvcHJvamVjdHMvYWNwaS91dGlsaXRpZXMucGhw
+KT8NCj4gPg0KPiA+IEluIGFjcGlfdXRfdmFsaWRhdGVfcmVzb3VyY2UoKSwgd2UgcmV0dXJuDQo+
+IEFFX0FNTF9JTlZBTElEX1JFU09VUkNFX1RZUEUNCj4gPiAoMHgzMDE3ID09IDEyMzExKSwgd2hp
+Y2ggZXhwbGFpbnMgdGhlIG1lc3NhZ2VzIHlvdSBzZWUuIMKgVGhlIGNvbW1lbnRzDQo+ID4gaW4g
+YWNwaV91dF93YWxrX2FtbF9yZXNvdXJjZXMoKSBzdWdnZXN0IHRoYXQgd2UgY2FuJ3QgY29udGlu
+dWUNCj4gYmVjYXVzZQ0KPiA+IHRoZSBsZW5ndGggbWF5IGJlIGJvZ3VzIGlmIHRoZSB0eXBlIGlz
+IGludmFsaWQuIMKgQnV0IEkgc3VzcGVjdCB0aGF0DQo+IGlmDQo+ID4gd2UganVzdCB0cmVhdCBp
+dCBhcyBhIHplcm8tbGVuZ3RoIGRlc2NyaXB0b3IgYW5kIGlnbm9yZSBpdCwgdGhpbmdzDQo+ID4g
+d2lsbCBwcm9iYWJseSB3b3JrLCBhbmQgdGhhdCdzIGxpa2VseSB3aGF0IFdpbmRvd3MgZG9lcy4N
+Cj4gPg0KPiA+IEJqb3JuDQo+IA0KPiBbIFJlbW92ZWQgQWRhbSBCZWxheSA8YWJlbGF5QG1pdC5l
+ZHU+IChlbWFpbC1hZGRyZXNzIGRvZXMgbm90IGV4aXN0DQo+IGFueW1vcmUpIF0NCj4gDQo+IFll
+YWgsIEkgYXNrZWQgdG9kYXkgb24gI3VidW50dS1rZXJuZWwgYW5kIHBlb3BsZSB0aGVyZSB3ZXJl
+IHZlcnkNCj4gaGVscGZ1bCBhbmQgZ2F2ZSBzb21lIGdvb2QgZXhwbGFuYXRpb25zIChBRV9BTUxf
+SU5WQUxJRF9SRVNPVVJDRV9UWVBFDQo+IGV0Yy4pLg0KPiANCj4gVGhlIGFjcGlkdW1wLmxvZyBJ
+IHBhc3RlYmluLWVkIHRvZGF5LCBzbyBoZXJlIGl0IGlzIDotKS4NCj4gDQo+IFRoZSBrZXJuZWwg
+c2hpcHBlZCB3aXRoIFVidW50dS9wcmVjaXNlIGRvZXMgbm90IHNob3cgdGhlIHBucC9fQ1NSDQo+
+IGlzc3VlLCB0aGlzIGlzIGxpbnV4LWltYWdlLTMuMi4wLTIzLWdlbmVyaWMgKDMuMi4wLTIzLjM2
+KS4NCj4gDQo+IEhvcGUgdGhpcyBoZWxwcy4NCj4gDQo+IC0gU2VkYXQgLQ0K
