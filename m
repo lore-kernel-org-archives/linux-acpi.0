@@ -1,64 +1,109 @@
-From: Gordon Cock <gordonc@gnisp.net>
-Subject: as requested...
-Date: Fri, 27 Apr 2012 08:54:50 +0100
-Message-ID: <1335513290.20963.0.camel@pisces>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH 1/4] ACPI: Set hotplug _OST support bit to _OSC
+Date: Fri, 27 Apr 2012 16:05:23 -0600
+Message-ID: <1335564323.16730.41.camel@misato.fc.hp.com>
+References: <1334096510-17319-1-git-send-email-toshi.kani@hp.com>
+	 <1334096510-17319-2-git-send-email-toshi.kani@hp.com>
+	 <CAErSpo6Ofm8qHUophN+oXrsKKfnJXvaEJUfFkEFwbXLfb4xZ=g@mail.gmail.com>
+	 <1335460230.17002.62.camel@misato.fc.hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gateway.gnisp.net ([80.85.69.130]:41686 "EHLO
-	mail.ninjahdev.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753968Ab2D0IZR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Apr 2012 04:25:17 -0400
-Received: from [192.168.1.69] ([87.194.68.236])
-	(authenticated user dubno@ninjahdev.com)
-	by mail.ninjahdev.com
-	(using TLSv1/SSLv3 with cipher AES256-SHA (256 bits))
-	for linux-acpi@vger.kernel.org;
-	Fri, 27 Apr 2012 08:56:41 +0100
+Received: from g4t0017.houston.hp.com ([15.201.24.20]:3085 "EHLO
+	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754520Ab2D0WHo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Apr 2012 18:07:44 -0400
+In-Reply-To: <1335460230.17002.62.camel@misato.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-[ 1025.836461] ACPI: EC: Look up EC in DSDT
-[ 1025.838321] ACPI: BIOS _OSI(Linux) query ignored
-[ 1025.838323] ACPI: DMI System Vendor: Dell Inc.
-[ 1025.838323] ACPI: DMI Product Name: PowerEdge T300
-[ 1025.838324] ACPI: DMI Product Version: 
-[ 1025.838325] ACPI: DMI Board Name: 0TY177
-[ 1025.838326] ACPI: DMI BIOS Vendor: Dell Inc.
-[ 1025.838327] ACPI: DMI BIOS Date: 08/15/2008
-[ 1025.838327] ACPI: Please send DMI info above to
-linux-acpi@vger.kernel.org
-[ 1025.838328] ACPI: If "acpi_osi=Linux" works better, please notify
-linux-acpi@vger.kernel.org
-[ 1025.838388] ACPI: Interpreter enabled
-[ 1025.838389] ACPI: (supports S0 S4 S5)
-[ 1025.838395] ACPI: Using IOAPIC for interrupt routing
-[ 1025.841478] ACPI: PCI Root Bridge [PCI0] (0000:00)
+On Thu, 2012-04-26 at 11:10 -0600, Toshi Kani wrote:
+> On Thu, 2012-04-26 at 09:16 -0600, Bjorn Helgaas wrote:
+> > On Tue, Apr 10, 2012 at 4:21 PM, Toshi Kani <toshi.kani@hp.com> wrote:
+> > > Added macro definitions of _OST source event and status codes.
+> > > Also renamed OSC_SB_CPUHP_OST_SUPPORT to OSC_SB_HOTPLUG_OST_SUPPORT
+> > > since this _OSC bit is not specific to CPU hotplug.  This bit is
+> > > defined in table 6-147 of ACPI 5.0 as follows.
+> > >
+> > >  Bits:       3
+> > >  Field Name: Insertion / Ejection _OST Processing Support
+> > >  Definition: This bit is set if OSPM will evaluate the _OST
+> > >              object defined under a device when processing
+> > >              insertion and ejection source event codes.
+> > >
+> > > This patch sets OSC_SB_HOTPLUG_OST_SUPPORT to the platform-wide
+> > > OSPM capabilities when CONFIG option of ACPI CPU hotplug or memory
+> > > hotplug is enabled.
+> > >
+> > > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+> > > ---
+> > >  drivers/acpi/bus.c   |    5 +++++
+> > >  include/linux/acpi.h |   26 +++++++++++++++++++++++++-
+> > >  2 files changed, 30 insertions(+), 1 deletions(-)
+> > >
+> > > diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> > > index 3263b68..a492d64 100644
+> > > --- a/drivers/acpi/bus.c
+> > > +++ b/drivers/acpi/bus.c
+> > > @@ -544,6 +544,11 @@ static void acpi_bus_osc_support(void)
+> > >        capbuf[OSC_SUPPORT_TYPE] |= OSC_SB_PPC_OST_SUPPORT;
+> > >  #endif
+> > >
+> > > +#if defined(CONFIG_ACPI_HOTPLUG_CPU) || defined(CONFIG_ACPI_HOTPLUG_MEMORY) ||\
+> > > +                defined(CONFIG_ACPI_HOTPLUG_MEMORY_MODULE)
+> > > +       capbuf[OSC_SUPPORT_TYPE] |= OSC_SB_HOTPLUG_OST_SUPPORT;
+> > > +#endif
+> > 
+> > This seems a bit strange to me.  For one thing, the _OSC discussion
+> > doesn't seem to indicate that _OST support is specific to CPU or
+> > memory hotplug.  If we tell the platform that we support _OST, the
+> > platform can assume that we'll evaluate _OST for *any* device, which
+> > is not the case.  I guess this is just another reason why we need
+> > hotplug support in the ACPI core, not in the individual drivers.  Then
+> > we wouldn't have the ifdefs at all.
+> 
+> I agree, and it should be called for any device.  As you know, the issue
+> is that the global system notify handler acpi_bus_notify() and driver's
+> notify handler work independently, and their functionality conflicts
+> each other.  I have not thought out yet, but my current thinking is that
+> we may be able to integrate them into acpi_bus_notify() in the following
+> way.  This model allows a choice -- use the default handler or driver's
+> handler.  We can then call _OST for any device.  It can also eliminate
+> redundant ACPI namespace walks performed by drivers when registering
+> their notify handlers.  What do you think?
+> 
+> struct acpi_device_ops {
+> 		:
+>    acpi_op_sys_notify sys_notify;  // driver's system notify (new entry)
+> }
+> 
+> acpi_bus_notify()
+> {
+> 	driver = lookup-driver-with-HID();
+> 
+> 	if ((driver) && (driver->ops->sys_notify)
+> 		driver->ops.sys_notify();
+> 	else
+> 		Call the system default notify handler;
+> 
+> 	Call _OST if present;
+> }
 
--- 
-Gordon Cock
+I looked at the this model more carefully.  While the basic idea of
+integration seems doable, I realized that calling _OST as described in
+the above pseudo code has some issue.  For instance,
+container_notify_cb() only generates a KOBJ_OFFLINE event for
+ACPI_NOTIFY_EJECT_REQUEST.  Since an eject operation may or may not
+happen asynchronously via udev, the notify handler may not call _OST
+(other than in-progress update).  So for now, _OST support needs to be
+made for each driver basis.  The above model allows drivers to choose
+the default notify handler, so it would help to have more consistent
+behavior over the time.  Without such changes, acpi_bus_notify() cannot
+perform anything since it conflicts with driver's handler. 
 
-GNisp.net - Providing Enterprise Solutions for your business.
-
-M: +44 (0) 7941 22 77 42
-E: gordonc@gnisp.net
-W: www.gnisp.net
-
-IMPORTANT NOTICE: No binding contract will be made between an employee
-of GNisp and a third party either verbally or by email, until a written
-document has been signed on behalf of GNisp Ltd.
-
-This document/email and any attachments are confidential and intended
-for the addressee only. If you are not the named recipient, you must not
-use, disclose, reproduce, copy or distribute the contents of this
-communication. If you have received this in error, please contact the
-sender and then delete this email from your system. Although GNisp Ltd
-has taken reasonable precautions to ensure no viruses are present in
-this email, the company cannot accept responsibility for any loss or
-damage arising from the use of this email or any attachments contained
-within.
-
+-Toshi
 
 
