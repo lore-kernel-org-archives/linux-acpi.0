@@ -1,124 +1,108 @@
-From: Servet Portakal <servetportakal@gmail.com>
-Subject: [BUG] Ksoftirqd and kworker use 100 percent of the cpu core
-Date: Sat, 28 Apr 2012 14:33:13 +0300
-Message-ID: <CAFp-nYjEWA-W2X9eYYGD2hAPMosQpZCowiiPCG70D2ZZQB22Qg@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH] ACPI / PCI: Make _SxD/_SxW check follow ACPI 4.0a spec
+Date: Sun, 29 Apr 2012 22:44:16 +0200
+Message-ID: <201204292244.16467.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:43676 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751905Ab2D1LdP convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 28 Apr 2012 07:33:15 -0400
+Received: from ogre.sisk.pl ([193.178.161.156]:44489 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751674Ab2D2Uje (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Apr 2012 16:39:34 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>
+Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, linux-pci@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, "Oleksij Rempel (fishor)" <bug-track@fisher-privat.net>, LKML <linux-kernel@vger.kernel.org>
 
-Hello,
+From: Oleksij Rempel <bug-track@fisher-privat.net>
 
-Ksoftirqd and kworker use 100 percent of the cpu core after resuming fr=
-om the
-suspend and the hibernation mode. For example;  Ksoftirqd/1 %42,
-kworker/1:0 %29, kworker/1:1 %28.
+This patch makes _SxD/_SxW check follow the ACPI 4.0a specification
+more closely and fixes suspend bug found on ASUS Zenbook UX31E.
 
-I'm not an expert. nonetheless I tried to pick some
-error messegas to ease your work.
+Some OEM use _SxD fileds do blacklist brocken Dx states.
+If _SxD/_SxW return values are check before suspend as appropriate,
+some nasty suspend/resume issues may be avoided.
 
-ata1: ACP=C4=B0 set timing mode failed (status: 0x300b)
-ata3.00 : exception Emask 0x0 SAct 0x0 SErr 0x0 action 0x6 frozen
-ata3.00 : failed command :READ VER=C4=B0FY SECTOR(S)
-cmd: 40/00:01:00:00:00/00:00:00:00/e0 tag 0
-res: 40/00:01:00:00:00/00:00:00:00/40 Emask:0x4 (timeout)
-pm_op():scsi_bus_resume_common+0x0/0x60 returns 134217730
-PM: Device 2:0:0:0 failed to resume async:error 134217730
+References: https://bugzilla.kernel.org/show_bug.cgi?id=42728
+Signed-off-by: Oleksij Rempel <bug-track@fisher-privat.net>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
 
-Other messages that I picked randomly...
+Bjorn, Len,
 
-ata3: lost interrupt
-(Status 0x50)
-ACPI Exception: AE_AML_PACKAGE_LIMIT, Index (0x00000000FFFFFFFF) is
-beyond end of
-object (20110623/exoparg2-418)
-ACPI Error: Method parse/execution failed [\_SB_.PCI0.IDEC.IDE0._STM] (=
-Node
-ffff8800ba233b40), AE_AML_PACKAGE_LIMIT (20110623/psparse-536)
-ata3.00: status: { DRDY }
-ata3: soft resetting link
-ata3.00: configured for UDMA/133
-ata3.00: device reported invalid CHS sector 0
-ata3: EH complete
-sd 2:0:0:0: [sda] START_STOP FAILED
-sd 2:0:0:0: [sda] Result: hostbyte=3DDID_OK driverbyte=3DDRIVER_SENSE
-sd 2:0:0:0: [sda] Sense Key : Aborted Command [current] [descriptor]
-sd 2:0:0:0: [sda]  Add. Sense: No additional sense information
-WARNING: at /build/buildd/linux-3.2.0/kernel/power/suspend_test.c:53
-suspend_test_finish+0x86/0x90()
-Hardware name: F5SR
-Component: resume devices, time: 30308
-Modules linked in: nls_iso8859_1 nls_cp437 vfat fat bnep rfcomm
-pci_stub vboxpci(O) vboxnetadp(O) vboxnetflt(O) fglrx(P) vboxdrv(O)
-parport_pc ppdev joydev btusb bluetooth snd_hda_codec_realtek uvcvideo
-videodev v4l2_compat_ioctl32 snd_hda_intel snd_hda_codec snd_hwdep
-snd_pcm snd_seq_midi snd_rawmidi arc4 snd_seq_midi_event snd_seq
-snd_timer snd_seq_device snd psmouse serio_raw video ath9k mac80211
-soundcore asus_laptop sparse_keymap input_polldev snd_page_alloc
-ath9k_common ath9k_hw ath cfg80211 sis_agp lp parport usbhid hid
-usb_storage uas sata_sis sis190
-Pid: 5804, comm: pm-suspend Tainted: P
-Call Trace:
-[<ffffffff810651af>] warn_slowpath_common+0x7f/0xc0
-[<ffffffff810652a6>] warn_slowpath_fmt+0x46/0x50
-[<ffffffff810a9566>] suspend_test_finish+0x86/0x90
-[<ffffffff810a925b>] suspend_devices_and_enter+0xfb/0x1f0
-[<ffffffff810a9421>] enter_state+0xd1/0x110
-[<ffffffff810a7e27>] state_store+0xb7/0x130
-[<ffffffff8130854f>] kobj_attr_store+0xf/0x30
-[<ffffffff811e995f>] sysfs_write_file+0xef/0x170
-[<ffffffff81176393>] vfs_write+0xb3/0x180
-[<ffffffff811766ba>] sys_write+0x4a/0x90
-[<ffffffff81659fc2>] system_call_fastpath+0x16/0x1b
-PM: Finishing wakeup.
-Restarting tasks ... done.
-[fglrx:fireglAsyncioIntEnableMsgHandler] *ERROR* interrupt source
-ff000066 is not supported on this hardware (return code =3D 1)
-EXT4-fs (sda5): re-mounted. Opts: errors=3Dremount-ro,commit=3D0
-[fglrx:fireglAsyncioIntEnableMsgHandler] *ERROR* interrupt source
-ff000066 is not supported on this hardware (return code =3D 1)
-sis190: 0000:00:04.0: Error EEPROM read 0
-ERST: Table is not found!
-GHES: HEST is not enabled!
-Simple Boot Flag value
-0xc0 read from CMOS RAM was invalid
+This is -stable material and therefore v3.4 as well, IMO.  Please let me
+know if one of you can take it or whether you want me to handle it all the
+way to Linus.
 
-/usr/lib/pm-utils/sleep.d/49bluetooth suspend suspend: not applicable.
-Running hook /usr/lib/pm-utils/sleep.d/55NetworkManager suspend suspend=
-:
-Having NetworkManager put all interaces to sleep...Failed.
+Thanks,
+Rafael
 
-/usr/lib/pm-utils/sleep.d/55NetworkManager suspend suspend: success.
-Running hook /usr/lib/pm-utils/sleep.d/60_wpa_supplicant suspend suspen=
-d:
-=46ailed to connect to wpa_supplicant - wpa_ctrl_open: No such file or =
-directory
+---
+ drivers/acpi/sleep.c |   22 +++++++++++++++++++++-
+ drivers/pci/pci.c    |   12 +++++++++++-
+ 2 files changed, 32 insertions(+), 2 deletions(-)
 
-ACPI Error: Method parse/execution failed [\_SB_.PCI0.IDEC.IDE0._STM] (=
-Node
-ffff8800ba233b40), AE_AML_PACKAGE_LIMIT (20110623/psparse-536)
-pulseaudio[1821]: [pulseaudio]
-bluetooth-util.c: Error from RegisterEndpoint reply:
-org.freedesktop.DBus.Error.UnknownMethod
-
-On windows 7, suspend mode was not working when I open hybrid-sleep
-mode. =C4=B0t may help...
-
-You know suspend mode is crucial for mobile devices. So I can't use
-ubuntu regularly.
-=C4=B0f you solve this problem, I will be so delighted.
-
-Best regards.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Index: linux/drivers/acpi/sleep.c
+===================================================================
+--- linux.orig/drivers/acpi/sleep.c
++++ linux/drivers/acpi/sleep.c
+@@ -714,10 +714,30 @@ int acpi_pm_device_sleep_state(struct de
+ 	 *
+ 	 * NOTE: We rely on acpi_evaluate_integer() not clobbering the integer
+ 	 * provided -- that's our fault recovery, we ignore retval.
++	 *
++	 * According to ACPI 4.0a (April 5, 2010), page 294,
++	 * Table 7-7 S3 Action / Result Table, we need to evaluate _SxW in
++	 * addition to _SxD if the device is configured for wakeup:
++	 * Desired Action    | _S3D | _PRW | _S3W | Resultant D-state
++	 * Enter S3          |  N/A |  D/C |  N/A | OSPM decides
++	 * Enter S3, No Wake |   2  |  D/C |  D/C | Enter D2 or D3
++	 * Enter S3, Wake    |   2  |   3  |  N/A | Enter D2
++	 * Enter S3, Wake    |   2  |   3  |   3  | Enter D2 or D3
++	 * Enter S3, Wake    |  N/A |   3  |   2  | Enter D0, D1 or D2
+ 	 */
+-	if (acpi_target_sleep_state > ACPI_STATE_S0)
++	if (acpi_target_sleep_state > ACPI_STATE_S0) {
++		acpi_status status;
++
+ 		acpi_evaluate_integer(handle, acpi_method, NULL, &d_min);
+ 
++		if (device_may_wakeup(dev)) {
++			acpi_method[3] = 'W';
++			status = acpi_evaluate_integer(handle, acpi_method,
++						       NULL, &d_max);
++			if (ACPI_FAILURE(status))
++				d_max = d_min;
++		}
++	}
+ 	/*
+ 	 * If _PRW says we can wake up the system from the target sleep state,
+ 	 * the D-state returned by _SxD is sufficient for that (we assume a
+Index: linux/drivers/pci/pci.c
+===================================================================
+--- linux.orig/drivers/pci/pci.c
++++ linux/drivers/pci/pci.c
+@@ -1691,10 +1691,20 @@ pci_power_t pci_target_state(struct pci_
+ {
+ 	pci_power_t target_state = PCI_D3hot;
+ 
+-	if (platform_pci_power_manageable(dev)) {
++	/*
++	 * According to ACPI 4.0a,7.2 Device Power Management Objects, device
++	 * with wake capability should have _PRW or _PSW object and can have
++	 * _SxD or _SxW object.
++	 * It looks like some OEMs use this fields to avoid buggy Dx states
++	 * of devices, so we need to check for _PRW or _PSW and see if _SxD or
++	 * _SxW indicate to overwrite Dx.
++	 */
++	if (platform_pci_power_manageable(dev)
++	    || platform_pci_can_wakeup(dev)) {
+ 		/*
+ 		 * Call the platform to choose the target state of the device
+ 		 * and enable wake-up from this state if supported.
++		 * (Check _SxD and _SxW)
+ 		 */
+ 		pci_power_t state = platform_pci_choose_state(dev);
+ 
