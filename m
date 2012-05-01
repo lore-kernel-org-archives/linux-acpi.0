@@ -1,70 +1,339 @@
-From: "Oleksij Rempel (fishor)" <bug-track@fisher-privat.net>
-Subject: Re: [PATCH] ACPI / PCI: Make _SxD/_SxW check follow ACPI 4.0a spec
-Date: Wed, 02 May 2012 06:10:35 +0200
-Message-ID: <4FA0B3BB.1020005@fisher-privat.net>
-References: <Pine.LNX.4.44L0.1205011258180.1499-100000@iolanthe.rowland.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.1205011258180.1499-100000@iolanthe.rowland.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, linux-pci@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Andrey Rahmatullin <wrar@wrar.name>, Steven Rostedt <rostedt@goodmis.org>
+From: Durgadoss R <durgadoss.r@intel.com>
+Subject: [PATCHv5] ACPI-Thermal: Make Thermal trip points writeable
+Date: Wed,  2 May 2012 03:25:27 +0530
+Message-ID: <1335909327-22170-1-git-send-email-durgadoss.r@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:55916 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751617Ab2EBJsP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 2 May 2012 05:48:15 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: rui.zhang@intel.com, linux-acpi@vger.kernel.org, Durgadoss R <durgadoss.r@intel.com>
 
-On 01.05.2012 18:59, Alan Stern wrote:
-> On Tue, 1 May 2012, Oleksij Rempel (fishor) wrote:
->
->>> There also remains a question about runtime power states and resume.
->>>
->>> Oleksij, with your patch, which state does the controller get put into
->>> during runtime suspend, D2 or D3?  (You may need to enable runtime
->>> suspend by doing
->>>
->>> 	echo auto>/sys/bus/pci/devices/0000:00:1d.0/power/control
->>>
->>> in order to test this.)  And if the controller is in runtime suspend,
->>> does it resume correctly when you plug in a new USB device?
->>>
->>> I'm pretty sure that without the patch, the controller gets put into D3
->>> and resume does work.
->>
->> I do not know if device really suspended, but every thing works like
->> before. New usb devices are recognized and working.
->
-> You ought to be able to tell the controller's state by looking at the
-> dmesg log (after doing the "echo" command above) or the output from
-> lspci -v.
->
-> Alan Stern
->
+Some of the thermal drivers using the Generic Thermal Framework
+require (all/some) trip points to be writeable. This patch makes
+the trip point temperatures writeable on a per-trip point basis,
+and modifies the required function call in thermal.c. This patch
+also updates the Documentation to reflect the new change.
 
-looks like it stay in D0 after echo auto > contreol, or even after
-"echo 0000:00:1d.0 > /sys/bus/pci/drivers/ehci_hcd/unbind"
-Only difference i got is "AFStatus: TP+" after last command changed to 
-"TP-". Devices are powersupplied, but not recognized by the OS.
+Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
+---
+v1
+* patch1/2: Code for making trip points writeable
+* patch2/2: Change the callee in thermal.c
+v2
+* Make both the changes in a single patch
+* Update Documentation/thermal/sysfs-api.txt
+v3
+* Re-submitting, on top of the latest mainline kernel
+v4
+* Added a check on the 'flag' parameter in tzd register function
+v5
+* Updated the tzd register call in other drivers
+---
+ Documentation/thermal/sysfs-api.txt      |    4 +-
+ drivers/acpi/thermal.c                   |    4 +-
+ drivers/platform/x86/acerhdf.c           |    2 +-
+ drivers/platform/x86/intel_mid_thermal.c |    2 +-
+ drivers/thermal/spear_thermal.c          |    2 +-
+ drivers/thermal/thermal_sys.c            |  115 ++++++++++++++++++++----------
+ include/linux/thermal.h                  |   10 ++-
+ 7 files changed, 93 insertions(+), 46 deletions(-)
 
+diff --git a/Documentation/thermal/sysfs-api.txt b/Documentation/thermal/sysfs-api.txt
+index 1733ab9..0c7c423 100644
+--- a/Documentation/thermal/sysfs-api.txt
++++ b/Documentation/thermal/sysfs-api.txt
+@@ -32,7 +32,8 @@ temperature) and throttle appropriate devices.
+ 
+ 1.1 thermal zone device interface
+ 1.1.1 struct thermal_zone_device *thermal_zone_device_register(char *name,
+-		int trips, void *devdata, struct thermal_zone_device_ops *ops)
++		int trips, int flag, void *devdata,
++		struct thermal_zone_device_ops *ops)
+ 
+     This interface function adds a new thermal zone device (sensor) to
+     /sys/class/thermal folder as thermal_zone[0-*]. It tries to bind all the
+@@ -40,6 +41,7 @@ temperature) and throttle appropriate devices.
+ 
+     name: the thermal zone name.
+     trips: the total number of trip points this thermal zone supports.
++    flag: Bit string: If 'n'th bit is set, then trip point 'n' is writeable.
+     devdata: device private data
+     ops: thermal zone device call-backs.
+ 	.bind: bind the thermal zone device with a thermal cooling device.
+diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+index 7dbebea..2107d1b 100644
+--- a/drivers/acpi/thermal.c
++++ b/drivers/acpi/thermal.c
+@@ -845,7 +845,7 @@ static int acpi_thermal_register_thermal_zone(struct acpi_thermal *tz)
+ 
+ 	if (tz->trips.passive.flags.valid)
+ 		tz->thermal_zone =
+-			thermal_zone_device_register("acpitz", trips, tz,
++			thermal_zone_device_register("acpitz", trips, 0, tz,
+ 						     &acpi_thermal_zone_ops,
+ 						     tz->trips.passive.tc1,
+ 						     tz->trips.passive.tc2,
+@@ -853,7 +853,7 @@ static int acpi_thermal_register_thermal_zone(struct acpi_thermal *tz)
+ 						     tz->polling_frequency*100);
+ 	else
+ 		tz->thermal_zone =
+-			thermal_zone_device_register("acpitz", trips, tz,
++			thermal_zone_device_register("acpitz", trips, 0, tz,
+ 						     &acpi_thermal_zone_ops,
+ 						     0, 0, 0,
+ 						     tz->polling_frequency*100);
+diff --git a/drivers/platform/x86/acerhdf.c b/drivers/platform/x86/acerhdf.c
+index 639db4d..eeacdde 100644
+--- a/drivers/platform/x86/acerhdf.c
++++ b/drivers/platform/x86/acerhdf.c
+@@ -660,7 +660,7 @@ static int acerhdf_register_thermal(void)
+ 	if (IS_ERR(cl_dev))
+ 		return -EINVAL;
+ 
+-	thz_dev = thermal_zone_device_register("acerhdf", 1, NULL,
++	thz_dev = thermal_zone_device_register("acerhdf", 1, 0, NULL,
+ 					      &acerhdf_dev_ops, 0, 0, 0,
+ 					      (kernelmode) ? interval*1000 : 0);
+ 	if (IS_ERR(thz_dev))
+diff --git a/drivers/platform/x86/intel_mid_thermal.c b/drivers/platform/x86/intel_mid_thermal.c
+index 5ae9cd9..2b2c212 100644
+--- a/drivers/platform/x86/intel_mid_thermal.c
++++ b/drivers/platform/x86/intel_mid_thermal.c
+@@ -499,7 +499,7 @@ static int mid_thermal_probe(struct platform_device *pdev)
+ 			goto err;
+ 		}
+ 		pinfo->tzd[i] = thermal_zone_device_register(name[i],
+-				0, td_info, &tzd_ops, 0, 0, 0, 0);
++				0, 0, td_info, &tzd_ops, 0, 0, 0, 0);
+ 		if (IS_ERR(pinfo->tzd[i])) {
+ 			kfree(td_info);
+ 			ret = PTR_ERR(pinfo->tzd[i]);
+diff --git a/drivers/thermal/spear_thermal.c b/drivers/thermal/spear_thermal.c
+index c2e32df..69a55d4 100644
+--- a/drivers/thermal/spear_thermal.c
++++ b/drivers/thermal/spear_thermal.c
+@@ -147,7 +147,7 @@ static int spear_thermal_probe(struct platform_device *pdev)
+ 	stdev->flags = pdata->thermal_flags;
+ 	writel_relaxed(stdev->flags, stdev->thermal_base);
+ 
+-	spear_thermal = thermal_zone_device_register("spear_thermal", 0,
++	spear_thermal = thermal_zone_device_register("spear_thermal", 0, 0,
+ 				stdev, &ops, 0, 0, 0, 0);
+ 	if (IS_ERR(spear_thermal)) {
+ 		dev_err(&pdev->dev, "thermal zone device is NULL\n");
+diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
+index 022bacb..35b2e4d 100644
+--- a/drivers/thermal/thermal_sys.c
++++ b/drivers/thermal/thermal_sys.c
+@@ -196,6 +196,28 @@ trip_point_type_show(struct device *dev, struct device_attribute *attr,
+ }
+ 
+ static ssize_t
++trip_point_temp_store(struct device *dev, struct device_attribute *attr,
++		     const char *buf, size_t count)
++{
++	struct thermal_zone_device *tz = to_thermal_zone(dev);
++	int trip, ret;
++	unsigned long temperature;
++
++	if (!tz->ops->set_trip_temp)
++		return -EPERM;
++
++	if (!sscanf(attr->attr.name, "trip_point_%d_temp", &trip))
++		return -EINVAL;
++
++	if (kstrtoul(buf, 10, &temperature))
++		return -EINVAL;
++
++	ret = tz->ops->set_trip_temp(tz, trip, temperature);
++
++	return ret ? ret : count;
++}
++
++static ssize_t
+ trip_point_temp_show(struct device *dev, struct device_attribute *attr,
+ 		     char *buf)
+ {
+@@ -283,33 +305,6 @@ static DEVICE_ATTR(temp, 0444, temp_show, NULL);
+ static DEVICE_ATTR(mode, 0644, mode_show, mode_store);
+ static DEVICE_ATTR(passive, S_IRUGO | S_IWUSR, passive_show, passive_store);
+ 
+-static struct device_attribute trip_point_attrs[] = {
+-	__ATTR(trip_point_0_type, 0444, trip_point_type_show, NULL),
+-	__ATTR(trip_point_0_temp, 0444, trip_point_temp_show, NULL),
+-	__ATTR(trip_point_1_type, 0444, trip_point_type_show, NULL),
+-	__ATTR(trip_point_1_temp, 0444, trip_point_temp_show, NULL),
+-	__ATTR(trip_point_2_type, 0444, trip_point_type_show, NULL),
+-	__ATTR(trip_point_2_temp, 0444, trip_point_temp_show, NULL),
+-	__ATTR(trip_point_3_type, 0444, trip_point_type_show, NULL),
+-	__ATTR(trip_point_3_temp, 0444, trip_point_temp_show, NULL),
+-	__ATTR(trip_point_4_type, 0444, trip_point_type_show, NULL),
+-	__ATTR(trip_point_4_temp, 0444, trip_point_temp_show, NULL),
+-	__ATTR(trip_point_5_type, 0444, trip_point_type_show, NULL),
+-	__ATTR(trip_point_5_temp, 0444, trip_point_temp_show, NULL),
+-	__ATTR(trip_point_6_type, 0444, trip_point_type_show, NULL),
+-	__ATTR(trip_point_6_temp, 0444, trip_point_temp_show, NULL),
+-	__ATTR(trip_point_7_type, 0444, trip_point_type_show, NULL),
+-	__ATTR(trip_point_7_temp, 0444, trip_point_temp_show, NULL),
+-	__ATTR(trip_point_8_type, 0444, trip_point_type_show, NULL),
+-	__ATTR(trip_point_8_temp, 0444, trip_point_temp_show, NULL),
+-	__ATTR(trip_point_9_type, 0444, trip_point_type_show, NULL),
+-	__ATTR(trip_point_9_temp, 0444, trip_point_temp_show, NULL),
+-	__ATTR(trip_point_10_type, 0444, trip_point_type_show, NULL),
+-	__ATTR(trip_point_10_temp, 0444, trip_point_temp_show, NULL),
+-	__ATTR(trip_point_11_type, 0444, trip_point_type_show, NULL),
+-	__ATTR(trip_point_11_temp, 0444, trip_point_temp_show, NULL),
+-};
+-
+ /* sys I/F for cooling device */
+ #define to_cooling_device(_dev)	\
+ 	container_of(_dev, struct thermal_cooling_device, device)
+@@ -1089,9 +1084,54 @@ leave:
+ EXPORT_SYMBOL(thermal_zone_device_update);
+ 
+ /**
++ * create_trip_type_attr - creates a trip point type attribute
++ * @tz:		the thermal zone device
++ * @indx:	index into the trip_type_attrs array
++ */
++static int create_trip_type_attr(struct thermal_zone_device *tz, int indx)
++{
++	char attr_name[THERMAL_NAME_LENGTH];
++
++	snprintf(attr_name, THERMAL_NAME_LENGTH, "trip_point_%d_type", indx);
++
++	sysfs_attr_init(&tz->trip_type_attrs[indx].attr);
++	tz->trip_type_attrs[indx].attr.name = attr_name;
++	tz->trip_type_attrs[indx].attr.mode = S_IRUGO;
++	tz->trip_type_attrs[indx].show = trip_point_type_show;
++
++	return device_create_file(&tz->device, &tz->trip_type_attrs[indx]);
++}
++
++/**
++ * create_trip_temp_attr - creates a trip point temp attribute
++ * @tz:		the thermal zone device
++ * @indx:	index into the trip_type_attrs array
++ * @writeable:	A flag: If 1, 'this' trip point is writeable; otherwise not
++ */
++static int create_trip_temp_attr(struct thermal_zone_device *tz,
++				int indx, int writeable)
++{
++	char attr_name[THERMAL_NAME_LENGTH];
++
++	snprintf(attr_name, THERMAL_NAME_LENGTH, "trip_point_%d_temp", indx);
++
++	sysfs_attr_init(&tz->trip_temp_attrs[indx].attr);
++	tz->trip_temp_attrs[indx].attr.name = attr_name;
++	tz->trip_temp_attrs[indx].attr.mode = S_IRUGO;
++	tz->trip_temp_attrs[indx].show = trip_point_temp_show;
++	if (writeable) {
++		tz->trip_temp_attrs[indx].attr.mode |= S_IWUSR;
++		tz->trip_temp_attrs[indx].store = trip_point_temp_store;
++	}
++
++	return device_create_file(&tz->device, &tz->trip_temp_attrs[indx]);
++}
++
++/**
+  * thermal_zone_device_register - register a new thermal zone device
+  * @type:	the thermal zone device type
+  * @trips:	the number of trip points the thermal zone support
++ * @flag:	a bit string indicating the writeablility of trip points
+  * @devdata:	private device data
+  * @ops:	standard thermal zone device callbacks
+  * @tc1:	thermal coefficient 1 for passive calculations
+@@ -1107,7 +1147,7 @@ EXPORT_SYMBOL(thermal_zone_device_update);
+  * section 11.1.5.1 of the ACPI specification 3.0.
+  */
+ struct thermal_zone_device *thermal_zone_device_register(char *type,
+-	int trips, void *devdata,
++	int trips, int flag, void *devdata,
+ 	const struct thermal_zone_device_ops *ops,
+ 	int tc1, int tc2, int passive_delay, int polling_delay)
+ {
+@@ -1124,6 +1164,9 @@ struct thermal_zone_device *thermal_zone_device_register(char *type,
+ 	if (trips > THERMAL_MAX_TRIPS || trips < 0)
+ 		return ERR_PTR(-EINVAL);
+ 
++	if (flag >> trips)
++		return ERR_PTR(-EINVAL);
++
+ 	if (!ops || !ops->get_temp)
+ 		return ERR_PTR(-EINVAL);
+ 
+@@ -1176,14 +1219,14 @@ struct thermal_zone_device *thermal_zone_device_register(char *type,
+ 	}
+ 
+ 	for (count = 0; count < trips; count++) {
+-		result = device_create_file(&tz->device,
+-					    &trip_point_attrs[count * 2]);
++		result = create_trip_type_attr(tz, count);
+ 		if (result)
+-			break;
+-		result = device_create_file(&tz->device,
+-					    &trip_point_attrs[count * 2 + 1]);
++			goto unregister;
++		result = create_trip_temp_attr(tz, count,
++						!!(flag & (1 << count)));
+ 		if (result)
+ 			goto unregister;
++
+ 		tz->ops->get_trip_type(tz, count, &trip_type);
+ 		if (trip_type == THERMAL_TRIP_PASSIVE)
+ 			passive = 1;
+@@ -1261,10 +1304,8 @@ void thermal_zone_device_unregister(struct thermal_zone_device *tz)
+ 		device_remove_file(&tz->device, &dev_attr_mode);
+ 
+ 	for (count = 0; count < tz->trips; count++) {
+-		device_remove_file(&tz->device,
+-				   &trip_point_attrs[count * 2]);
+-		device_remove_file(&tz->device,
+-				   &trip_point_attrs[count * 2 + 1]);
++		device_remove_file(&tz->device, &tz->trip_type_attrs[count]);
++		device_remove_file(&tz->device, &tz->trip_temp_attrs[count]);
+ 	}
+ 	thermal_remove_hwmon_sysfs(tz);
+ 	release_idr(&thermal_tz_idr, &thermal_idr_lock, tz->id);
+diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+index 796f1ff..825d4b0 100644
+--- a/include/linux/thermal.h
++++ b/include/linux/thermal.h
+@@ -58,6 +58,8 @@ struct thermal_zone_device_ops {
+ 		enum thermal_trip_type *);
+ 	int (*get_trip_temp) (struct thermal_zone_device *, int,
+ 			      unsigned long *);
++	int (*set_trip_temp) (struct thermal_zone_device *, int,
++			      unsigned long);
+ 	int (*get_crit_temp) (struct thermal_zone_device *, unsigned long *);
+ 	int (*notify) (struct thermal_zone_device *, int,
+ 		       enum thermal_trip_type);
+@@ -89,6 +91,8 @@ struct thermal_zone_device {
+ 	int id;
+ 	char type[THERMAL_NAME_LENGTH];
+ 	struct device device;
++	struct device_attribute trip_temp_attrs[THERMAL_MAX_TRIPS];
++	struct device_attribute trip_type_attrs[THERMAL_MAX_TRIPS];
+ 	void *devdata;
+ 	int trips;
+ 	int tc1;
+@@ -137,9 +141,9 @@ enum {
+ };
+ #define THERMAL_GENL_CMD_MAX (__THERMAL_GENL_CMD_MAX - 1)
+ 
+-struct thermal_zone_device *thermal_zone_device_register(char *, int, void *,
+-		const struct thermal_zone_device_ops *, int tc1, int tc2,
+-		int passive_freq, int polling_freq);
++struct thermal_zone_device *thermal_zone_device_register(char *, int, int,
++		void *, const struct thermal_zone_device_ops *, int tc1,
++		int tc2, int passive_freq, int polling_freq);
+ void thermal_zone_device_unregister(struct thermal_zone_device *);
+ 
+ int thermal_zone_bind_cooling_device(struct thermal_zone_device *, int,
+-- 
+1.7.0.4
 
-lspci -vvs 00:1d.0
-00:1d.0 USB controller: Intel Corporation 6 Series/C200 Series Chipset 
-Family USB Enhanced Host Controller #1 (rev 05) (prog-if 20 [EHCI])
-	Subsystem: ASUSTeK Computer Inc. Device 1427
-	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- 
-Stepping- SERR- FastB2B- DisINTx-
-	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- 
-<TAbort- <MAbort- >SERR- <PERR- INTx-
-	Latency: 0
-	Interrupt: pin A routed to IRQ 23
-	Region 0: Memory at dfe07000 (32-bit, non-prefetchable) [size=1K]
-	Capabilities: [50] Power Management version 2
-		Flags: PMEClk- DSI- D1- D2- AuxCurrent=375mA 
-PME(D0+,D1-,D2-,D3hot+,D3cold+)
-		Status: D0 NoSoftRst- PME-Enable- DSel=0 DScale=0 PME-
-	Capabilities: [58] Debug port: BAR=1 offset=00a0
-	Capabilities: [98] PCI Advanced Features
-		AFCap: TP+ FLR+
-		AFCtrl: FLR-
-		AFStatus: TP+
-	Kernel driver in use: ehci_hcd
-	Kernel modules: ehci-hcd
