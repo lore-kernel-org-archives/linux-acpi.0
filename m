@@ -1,38 +1,61 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH] ACPI / PCI: Make _SxD/_SxW check follow ACPI 4.0a spec
-Date: Tue, 1 May 2012 12:59:34 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1205011258180.1499-100000@iolanthe.rowland.org>
-References: <4FA00EE5.2060403@fisher-privat.net>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <4FA00EE5.2060403@fisher-privat.net>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Oleksij Rempel (fishor)" <bug-track@fisher-privat.net>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, linux-pci@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Andrey Rahmatullin <wrar@wrar.name>, Steven Rostedt <rostedt@goodmis.org>
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Subject: [PATCH 2/2] xen/acpi: Execute _PDC on CPUs past the ones seen to the guest.
+Date: Tue,  1 May 2012 13:24:54 -0400
+Message-ID: <1335893094-6904-2-git-send-email-konrad.wilk@oracle.com>
+References: <1335893094-6904-1-git-send-email-konrad.wilk@oracle.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from rcsinet15.oracle.com ([148.87.113.117]:24802 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752700Ab2EARar (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 May 2012 13:30:47 -0400
+In-Reply-To: <1335893094-6904-1-git-send-email-konrad.wilk@oracle.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: xen-devel@lists.xensource.com, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 
-On Tue, 1 May 2012, Oleksij Rempel (fishor) wrote:
+acpi_early_processor_set_pdc does this (executes _PDC), but it
+cannot do it for vCPUS that are past the currently available vCPUS
+(so dom0_max_vcpus=X is used). We can easily find if that is
+the case by seeing if we get the same failure as the generic code
+and if so run _PDC ourselves. We also (by doing some other hypercalls)
+know how many physical CPUs there are - which the acpi_get_cpuid
+can't - as it bands the amount of CPUs up to 'cpu_possible()'
+which has been influenced by 'dom0_max_vcpus=X' flag.
 
-> > There also remains a question about runtime power states and resume.
-> >
-> > Oleksij, with your patch, which state does the controller get put into
-> > during runtime suspend, D2 or D3?  (You may need to enable runtime
-> > suspend by doing
-> >
-> > 	echo auto>/sys/bus/pci/devices/0000:00:1d.0/power/control
-> >
-> > in order to test this.)  And if the controller is in runtime suspend,
-> > does it resume correctly when you plug in a new USB device?
-> >
-> > I'm pretty sure that without the patch, the controller gets put into D3
-> > and resume does work.
-> 
-> I do not know if device really suspended, but every thing works like 
-> before. New usb devices are recognized and working.
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+---
+ drivers/xen/xen-acpi-processor.c |   10 +++++++++-
+ 1 files changed, 9 insertions(+), 1 deletions(-)
 
-You ought to be able to tell the controller's state by looking at the
-dmesg log (after doing the "echo" command above) or the output from
-lspci -v.
+diff --git a/drivers/xen/xen-acpi-processor.c b/drivers/xen/xen-acpi-processor.c
+index 0b48579..bb9f711 100644
+--- a/drivers/xen/xen-acpi-processor.c
++++ b/drivers/xen/xen-acpi-processor.c
+@@ -323,7 +323,7 @@ static unsigned int __init get_max_acpi_id(void)
+ /*
+  * The read_acpi_id and check_acpi_ids are there to support the Xen
+  * oddity of virtual CPUs != physical CPUs in the initial domain.
+- * The user can supply 'xen_max_vcpus=X' on the Xen hypervisor line
++ * The user can supply 'dom0_max_vcps=X' on the Xen hypervisor line
+  * which will band the amount of CPUs the initial domain can see.
+  * In general that is OK, except it plays havoc with any of the
+  * for_each_[present|online]_cpu macros which are banded to the virtual
+@@ -374,6 +374,14 @@ read_acpi_id(acpi_handle handle, u32 lvl, void *context, void **rv)
+ 	pr_debug(DRV_NAME "ACPI CPU%u w/ PBLK:0x%lx\n", acpi_id,
+ 		 (unsigned long)pblk);
+ 
++	/* acpi_early_processor_set_pdc does this, but it cannot do it for vCPUS
++	 * that are past the currently available vCPUS (so dom0_max_vcpus=X is
++	 * used). We can easily find if that is the case by seeing if we get the
++	 * same failure as the generic code and if so run _PDC ourselves.
++	 */
++	if (acpi_get_cpuid(handle, (acpi_type == ACPI_TYPE_DEVICE) ? 1 : 0, acpi_id) == -1)
++		acpi_processor_set_pdc(handle);
++
+ 	status = acpi_evaluate_object(handle, "_CST", NULL, &buffer);
+ 	if (ACPI_FAILURE(status)) {
+ 		if (!pblk)
+-- 
+1.7.7.5
 
-Alan Stern
