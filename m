@@ -1,74 +1,59 @@
-From: Paolo Scarabelli <paolo@msw.it>
-Subject: Re: [bug?] Battery notifications produce flashing battery icon, syslog
- spam (Re: [PATCH 11/11] ACPI / Battery: Update information on info notification
- and resume)
-Date: Wed, 02 May 2012 19:49:11 +0800
-Message-ID: <4FA11F37.5070903@msw.it>
-References: <201101062331.17079.rjw@sisk.pl> <4FA032EA.1090608@gmail.com> <20120501191408.GD19143@burratino> <201205012142.55664.post@ralfj.de>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: [PATCH 00/13] More GMA500 work
+Date: Wed, 02 May 2012 19:12:20 +0100
+Message-ID: <20120502181044.26650.40123.stgit@bluebook>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:41003 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754067Ab2EBLtS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 May 2012 07:49:18 -0400
-In-Reply-To: <201205012142.55664.post@ralfj.de>
+Received: from lxorguk.ukuu.org.uk ([81.2.110.251]:56268 "EHLO
+	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755131Ab2EBSNK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 May 2012 14:13:10 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ralf Jung <post@ralfj.de>
-Cc: Jonathan Nieder <jrnieder@gmail.com>, Adrian Fita <adrian.fita@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Andy Whitcroft <apw@canonical.com>
+To: airlied@linux.ie, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org
 
-Hi,
+This follows on from the last set and sorts out the lid regression
+they caused on the Poulsbo devices. It then includes another pile
+of clean up work and Medfield fixes from Kirill.
+---
 
-I have the same problem on kernel 3.2.0 (actually I have the same
-problem with all kernels I tried since reporting the issue the first time).
+Alan Cox (1):
+      gma500: address the lid code
 
-I'm almost sure this is related to several Debian bugs open for upower:
-#606414, #596721 and #619343.
+Kirill A. Shutemov (12):
+      gma500: mdfld_dsi_dpi_mode_set() do not corrupt DSPSTRIDE
+      gma500: mid-bios: rewrite VBT/GCT handling in a cleaner way
+      gma500: fix -Wmissing-include-dirs warnings
+      gma500: cdv_intel_lvds: mark cdv_intel_lvds_enc_funcs as static
+      gma500: oaktrail_hdmi_i2c_handler(): base should be __iomem
+      gma500: lid_state should be __iomem
+      gma500: psb_irq_turn_off_dpst() fix bit operation
+      gma500: framebuffer: mark psb_fb_helper_funcs as static
+      gma500: vram_addr should be __iomem
+      gma500: sgx_reg and vdc_reg should be __iomem
+      gma500: gtt: fix __iomem sparse warnings
+      gma500: psb_gtt_init(): drop unused variable
 
-Is it possible that the high cpu problem with upowerd is caused just to
-the log size increasing too much when the laptop is left on for a long time?
 
-In my laptop upowerd starts using a lot of cpu only when I leave it on
-overnight.
+ drivers/gpu/drm/gma500/Makefile            |    2 
+ drivers/gpu/drm/gma500/cdv_intel_lvds.c    |    2 
+ drivers/gpu/drm/gma500/framebuffer.c       |    5 
+ drivers/gpu/drm/gma500/gtt.c               |   14 +
+ drivers/gpu/drm/gma500/mdfld_dsi_dpi.c     |    1 
+ drivers/gpu/drm/gma500/mid_bios.c          |  295 ++++++++++++++++++----------
+ drivers/gpu/drm/gma500/oaktrail.h          |   25 +-
+ drivers/gpu/drm/gma500/oaktrail_device.c   |    8 -
+ drivers/gpu/drm/gma500/oaktrail_hdmi_i2c.c |    2 
+ drivers/gpu/drm/gma500/oaktrail_lvds.c     |    4 
+ drivers/gpu/drm/gma500/opregion.c          |    2 
+ drivers/gpu/drm/gma500/psb_drv.c           |    2 
+ drivers/gpu/drm/gma500/psb_drv.h           |   11 -
+ drivers/gpu/drm/gma500/psb_irq.c           |    2 
+ drivers/gpu/drm/gma500/psb_lid.c           |    2 
+ 15 files changed, 224 insertions(+), 153 deletions(-)
 
+-- 
+#include <witty.h>
 
-Regards,
-
-
-Paolo
-
-
-On 05/02/2012 03:42 AM, Ralf Jung wrote:
-> Hi,
-> 
-> in addition to the constant flickering when running on AC, there is a more 
-> "high frequency" flickering immediately after plugging in the AC: For some 5 
-> to 10 seconds, the battery appears and disappears (according to upower) around 
-> once per second. There's also a short moment without battery after plugging 
-> out the AC.
-> All this is gone after going to a kernel version without this patch applied.
-> 
-> I did not notice unusual high CPU usage of upower on my system, however I 
-> noticed disc activity - according to iotop, upower is writing several MiB of 
-> data per minute to /var/lib/upower/ where it keeps some battery statistics. I 
-> do not know whether this is out of the ordinary.
-> 
-> Kind regards,
-> Ralf
-> 
-> 
-> On Tuesday 01 May 2012 21:14:08 Jonathan Nieder wrote:
->> (cc-ing Andy)
->>
->> Adrian Fita wrote:
->>> Also, searching on Google after "upowerd device
->>> removed:/org/freedesktop/UPower/devices/battery_BAT0", reveals much
->>> more bug reports with the exact issue.
->>
->> Thanks.  That confirms the high CPU consumption in upowerd ---
->> see [1], for example.
->>
->> [1] https://bugs.launchpad.net/ubuntu/+source/linux/+bug/987807
-> 
