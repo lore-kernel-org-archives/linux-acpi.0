@@ -1,46 +1,65 @@
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: [PATCH 13/13] gma500: mdfld_dsi_dpi_mode_set() do not corrupt
- DSPSTRIDE
-Date: Wed, 02 May 2012 19:17:18 +0100
-Message-ID: <20120502181715.26650.71227.stgit@bluebook>
-References: <20120502181044.26650.40123.stgit@bluebook>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH 1/4] ACPI: Set hotplug _OST support bit to _OSC
+Date: Wed, 02 May 2012 15:20:31 -0600
+Message-ID: <1335993631.16730.74.camel@misato.fc.hp.com>
+References: <1334096510-17319-1-git-send-email-toshi.kani@hp.com>
+	 <1334096510-17319-2-git-send-email-toshi.kani@hp.com>
+	 <CAErSpo6Ofm8qHUophN+oXrsKKfnJXvaEJUfFkEFwbXLfb4xZ=g@mail.gmail.com>
+	 <1335460230.17002.62.camel@misato.fc.hp.com>
+	 <1335564323.16730.41.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from lxorguk.ukuu.org.uk ([81.2.110.251]:56316 "EHLO
-	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755726Ab2EBSSB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 May 2012 14:18:01 -0400
-In-Reply-To: <20120502181044.26650.40123.stgit@bluebook>
+Received: from g6t0184.atlanta.hp.com ([15.193.32.61]:12241 "EHLO
+	g6t0184.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753456Ab2EBVW6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 May 2012 17:22:58 -0400
+In-Reply-To: <1335564323.16730.41.camel@misato.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: airlied@linux.ie, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, shuahkhan@gmail.com
 
-From: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+On Fri, 2012-04-27 at 16:05 -0600, Toshi Kani wrote:
+> On Thu, 2012-04-26 at 11:10 -0600, Toshi Kani wrote:
+> > On Thu, 2012-04-26 at 09:16 -0600, Bjorn Helgaas wrote:
+> > > On Tue, Apr 10, 2012 at 4:21 PM, Toshi Kani <toshi.kani@hp.com> wrote:
+	:
+> > > >
+> > > > +#if defined(CONFIG_ACPI_HOTPLUG_CPU) || defined(CONFIG_ACPI_HOTPLUG_MEMORY) ||\
+> > > > +                defined(CONFIG_ACPI_HOTPLUG_MEMORY_MODULE)
+> > > > +       capbuf[OSC_SUPPORT_TYPE] |= OSC_SB_HOTPLUG_OST_SUPPORT;
+> > > > +#endif
+> > > 
+> > > This seems a bit strange to me.  For one thing, the _OSC discussion
+> > > doesn't seem to indicate that _OST support is specific to CPU or
+> > > memory hotplug.  If we tell the platform that we support _OST, the
+> > > platform can assume that we'll evaluate _OST for *any* device, which
+> > > is not the case.  I guess this is just another reason why we need
+> > > hotplug support in the ACPI core, not in the individual drivers.  Then
+> > > we wouldn't have the ifdefs at all.
 
-The proper stride value set in mdfld__intel_pipe_set_base().
+Thinking further, I am going to make the following changes to address
+this comment.
 
-TODO: move tc35876x support to separate driver and get rid of all
-if (mdfld_get_panel_type(dev, pipe) == TC35876X) { ... }
+1. Add CONFIG_ACPI_HOTPLUG_OST (disable by default)
+When this option is set, the kernel calls _OSC with the hotplug _OST
+flag at boot-time.  This replaces the current use of device-specific
+config options, such as CONFIG_ACPI_HOTPLUG_CPU.  Also, the kernel only
+calls _OST when this option is set.  In other words, all features in
+this patch set is disabled when this option is not set (default).  This
+should address Shuah's concerns about pre-enablement as well.
 
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Signed-off-by: Alan Cox <alan@linux.intel.com>
----
+2. Add support of container hotplug
+_OST will be supported for three major ACPI hotplug operations; CPU,
+memory and container.  (This assumes PCI will use native hotplug going
+forward.)  It will also support asynchronous hot-removal, such as
+KOBJ_OFFLINE -> udev -> eject.
 
- drivers/gpu/drm/gma500/mdfld_dsi_dpi.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+I will send updated _OST patches when they are ready.
 
-diff --git a/drivers/gpu/drm/gma500/mdfld_dsi_dpi.c b/drivers/gpu/drm/gma500/mdfld_dsi_dpi.c
-index d52358b..b34ff09 100644
---- a/drivers/gpu/drm/gma500/mdfld_dsi_dpi.c
-+++ b/drivers/gpu/drm/gma500/mdfld_dsi_dpi.c
-@@ -869,7 +869,6 @@ void mdfld_dsi_dpi_mode_set(struct drm_encoder *encoder,
- 		mdfld_set_pipe_timing(dsi_config, pipe);
- 
- 		REG_WRITE(DSPABASE, 0x00);
--		REG_WRITE(DSPASTRIDE, (mode->hdisplay * 4));
- 		REG_WRITE(DSPASIZE,
- 			((mode->vdisplay - 1) << 16) | (mode->hdisplay - 1));
- 
+Thanks,
+-Toshi
+
 
