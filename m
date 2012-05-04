@@ -1,7 +1,7 @@
 From: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [Resend PATCH V2 6/7] usb/acpi: add the support of usb hub ports' acpi binding without attached devices.
-Date: Fri,  4 May 2012 11:06:42 +0800
-Message-ID: <1336100803-28353-7-git-send-email-tianyu.lan@intel.com>
+Subject: [Resend PATCH V2 4/7] usb: add struct usb_hub_port to store port related members.
+Date: Fri,  4 May 2012 11:06:40 +0800
+Message-ID: <1336100803-28353-5-git-send-email-tianyu.lan@intel.com>
 References: <1336100803-28353-1-git-send-email-tianyu.lan@intel.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1336100803-28353-1-git-send-email-tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -10,141 +10,99 @@ To: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B
 Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org, mfm-Oo0r1OC9pj9iLUuM0BA3LQ@public.gmane.org, Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-The usb port is a device in the acpi table but it's not in the linux
-usb subsystem. USB hub port doesn't have struct device. So the acpi
-glue framework only can cover the usb port connected with usb device
-and store the acpi handle to struct device.archdata.acpi_handle. This
-patch adds the member platform_data in the struct usb_hub_port and
-gets the hub port's acpi_handle and store it in the port's platform_data
-to resolve no attached device no binding problem. The acpi method "_UPC"
-and "_PLD" can be accessed without attached device.
+Add struct usb_hub_port pointer port_data in the struct usb_hub and allocate
+struct usb_hub_port perspectively for each ports to store private data.
 
 Signed-off-by: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/usb/core/hub.c      |   20 ++++++++++++++++++++
- drivers/usb/core/usb-acpi.c |   37 ++++++++++++++++++++++++++++++++++++-
- drivers/usb/core/usb.h      |    6 ++++++
- 3 files changed, 62 insertions(+), 1 deletions(-)
+ drivers/usb/core/hub.c |   29 ++++++++++++++++-------------
+ 1 files changed, 16 insertions(+), 13 deletions(-)
 
 diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
-index bdf46fb..5ea9618 100644
+index ec6c97d..0c17d5a 100644
 --- a/drivers/usb/core/hub.c
 +++ b/drivers/usb/core/hub.c
-@@ -40,6 +40,7 @@
- struct usb_hub_port {
- 	void			*port_owner;
- 	struct usb_device	*child;
-+	unsigned long		platform_data;
- };
- 
- struct usb_hub {
-@@ -1263,6 +1264,7 @@ static int hub_configure(struct usb_hub *hub,
- 	if (hub->has_indicators && blinkenlights)
- 		hub->indicator [0] = INDICATOR_CYCLE;
- 
-+	usb_acpi_bind_hub_ports(hdev);
- 	hub_activate(hub, HUB_INIT);
- 	return 0;
- 
-@@ -4246,3 +4248,21 @@ struct usb_device *usb_get_hub_child_device(struct usb_device *hdev,
- }
- EXPORT_SYMBOL_GPL(usb_get_hub_child_device);
- 
-+void usb_set_hub_port_platform_data(struct usb_device *hdev, int port1,
-+	unsigned long data)
-+{
-+	struct usb_hub *hub = hdev_to_hub(hdev);
-+
-+	if (!hub || port1 > hdev->maxchild || port1 < 1)
-+		return;
-+	hub->port_data[port1 - 1].platform_data = data;
-+}
-+
-+unsigned long usb_get_hub_port_platform_data(struct usb_device *hdev, int port1)
-+{
-+	struct usb_hub *hub = hdev_to_hub(hdev);
-+
-+	if (!hub || port1 > hdev->maxchild || port1 < 1)
-+		return 0;
-+	return hub->port_data[port1 - 1].platform_data;
-+}
-diff --git a/drivers/usb/core/usb-acpi.c b/drivers/usb/core/usb-acpi.c
-index e49373a..984c559 100644
---- a/drivers/usb/core/usb-acpi.c
-+++ b/drivers/usb/core/usb-acpi.c
-@@ -82,7 +82,16 @@ static int usb_acpi_find_device(struct device *dev, acpi_handle *handle)
- 	if (!parent_handle)
- 		return -ENODEV;
- 
--	*handle = acpi_get_child(parent_handle, udev->portnum);
-+	/**
-+	 * The root hub's acpi handle is got from acpi method.
-+	 * Other device's acpi handle can be got from the usb hub
-+	 * port's platform_data.
-+	 */
-+	if (!udev->parent)
-+		*handle = acpi_get_child(parent_handle, udev->portnum);
-+	else
-+		*handle = (acpi_handle)usb_get_hub_port_platform_data(
-+				udev->parent, udev->portnum);
- 
- 	if (!*handle)
- 		return -ENODEV;
-@@ -105,6 +114,32 @@ static struct acpi_bus_type usb_acpi_bus = {
- 	.find_device = usb_acpi_find_device,
- };
- 
-+int usb_acpi_bind_hub_ports(struct usb_device *hdev)
-+{
-+	acpi_handle hub_handle = NULL;
-+	acpi_handle port_handle = NULL;
-+	struct device *dev = &hdev->dev;
-+	int i;
-+
-+	hub_handle = DEVICE_ACPI_HANDLE(dev);
-+	if (!hub_handle)
-+		return -ENODEV;
-+
-+	/**
-+	 * The usb hub port is not a device in the usb subsystem but it is a device
-+	 * in the acpi table. Store its acpi handle in the platform data of usb
-+	 * hub port.
-+	 */
-+	for (i = 1; i <= hdev->maxchild; i++) {
-+		port_handle = acpi_get_child(hub_handle, i);
-+		if (!port_handle)
-+			continue;
-+		usb_set_hub_port_platform_data(hdev, i,
-+			(unsigned long)port_handle);
-+	}
-+	return 0;
-+}
-+
- int usb_acpi_register(void)
- {
- 	return register_acpi_bus_type(&usb_acpi_bus);
-diff --git a/drivers/usb/core/usb.h b/drivers/usb/core/usb.h
-index 5c5c538..d69d5f6 100644
---- a/drivers/usb/core/usb.h
-+++ b/drivers/usb/core/usb.h
-@@ -155,11 +155,17 @@ extern void usb_notify_add_device(struct usb_device *udev);
- extern void usb_notify_remove_device(struct usb_device *udev);
- extern void usb_notify_add_bus(struct usb_bus *ubus);
- extern void usb_notify_remove_bus(struct usb_bus *ubus);
-+extern unsigned long usb_get_hub_port_platform_data(struct usb_device *hdev,
-+	int port1);
-+extern void usb_set_hub_port_platform_data(struct usb_device *hdev,
-+	int port1, unsigned long data);
- 
- #ifdef CONFIG_ACPI
- extern int usb_acpi_register(void);
- extern void usb_acpi_unregister(void);
-+extern int usb_acpi_bind_hub_ports(struct usb_device *hdev);
- #else
- static inline int usb_acpi_register(void) { return 0; };
- static inline void usb_acpi_unregister(void) { };
-+static inline int usb_acpi_bind_hub_ports(struct usb_device *dev) { return 0; };
+@@ -37,6 +37,10 @@
  #endif
+ #endif
+ 
++struct usb_hub_port {
++	void			*port_owner;
++};
++
+ struct usb_hub {
+ 	struct device		*intfdev;	/* the "interface" device */
+ 	struct usb_device	*hdev;
+@@ -81,7 +85,7 @@ struct usb_hub {
+ 	u8			indicator[USB_MAXCHILDREN];
+ 	struct delayed_work	leds;
+ 	struct delayed_work	init_work;
+-	void			**port_owners;
++	struct usb_hub_port	*port_data;
+ };
+ 
+ static inline int hub_is_superspeed(struct usb_device *hdev)
+@@ -1049,8 +1053,9 @@ static int hub_configure(struct usb_hub *hub,
+ 
+ 	hdev->children = kzalloc(hdev->maxchild *
+ 				sizeof(struct usb_device *), GFP_KERNEL);
+-	hub->port_owners = kzalloc(hdev->maxchild * sizeof(void *), GFP_KERNEL);
+-	if (!hdev->children || !hub->port_owners) {
++	hub->port_data = kzalloc(hdev->maxchild * sizeof(struct usb_hub_port),
++			GFP_KERNEL);
++	if (!hub->port_data || !hdev->children) {
+ 		ret = -ENOMEM;
+ 		goto fail;
+ 	}
+@@ -1305,7 +1310,7 @@ static void hub_disconnect(struct usb_interface *intf)
+ 
+ 	usb_free_urb(hub->urb);
+ 	kfree(hdev->children);
+-	kfree(hub->port_owners);
++	kfree(hub->port_data);
+ 	kfree(hub->descriptor);
+ 	kfree(hub->status);
+ 	kfree(hub->buffer);
+@@ -1437,7 +1442,7 @@ static int find_port_owner(struct usb_device *hdev, unsigned port1,
+ 	/* This assumes that devices not managed by the hub driver
+ 	 * will always have maxchild equal to 0.
+ 	 */
+-	*ppowner = &(hdev_to_hub(hdev)->port_owners[port1 - 1]);
++	*ppowner = &(hdev_to_hub(hdev)->port_data[port1 - 1].port_owner);
+ 	return 0;
+ }
+ 
+@@ -1472,16 +1477,14 @@ int usb_hub_release_port(struct usb_device *hdev, unsigned port1, void *owner)
+ 
+ void usb_hub_release_all_ports(struct usb_device *hdev, void *owner)
+ {
++	struct usb_hub *hub = hdev_to_hub(hdev);
+ 	int n;
+-	void **powner;
+ 
+-	n = find_port_owner(hdev, 1, &powner);
+-	if (n == 0) {
+-		for (; n < hdev->maxchild; (++n, ++powner)) {
+-			if (*powner == owner)
+-				*powner = NULL;
+-		}
++	for (n = 0; n < hdev->maxchild; n++) {
++		if (hub->port_data[n].port_owner == owner)
++			hub->port_data[n].port_owner = NULL;
+ 	}
++
+ }
+ 
+ /* The caller must hold udev's lock */
+@@ -1492,7 +1495,7 @@ bool usb_device_is_owned(struct usb_device *udev)
+ 	if (udev->state == USB_STATE_NOTATTACHED || !udev->parent)
+ 		return false;
+ 	hub = hdev_to_hub(udev->parent);
+-	return !!hub->port_owners[udev->portnum - 1];
++	return !!hub->port_data[udev->portnum - 1].port_owner;
+ }
+ 
+ 
 -- 
 1.7.6.rc2.8.g28eb
 
