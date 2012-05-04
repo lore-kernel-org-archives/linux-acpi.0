@@ -1,67 +1,66 @@
-From: Ralf Jung <post@ralfj.de>
-Subject: Re: [PATCH 1/1] battery: only refresh the sysfs files when pertinant information changes
-Date: Fri, 4 May 2012 15:29:06 +0200
-Message-ID: <201205041529.07142.post@ralfj.de>
-References: <20120503124708.GA18622@srcf.ucam.org> <1336052907-15084-1-git-send-email-apw@canonical.com>
+From: Marco Aurelio da Costa <costa@gamic.com>
+Subject: [RFC][PATCH] ACPI: Ignore invalid _PSS entries, but use valid ones
+Date: Fri, 4 May 2012 10:46:01 -0300
+Message-ID: <CAEe-dwgCR55urie0c1MdBWTS6-E=3faXj68=WMcb6NvQCQX0rg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ralfj.de ([85.214.220.216]:54235 "EHLO ralfj.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754010Ab2EDN3L (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 4 May 2012 09:29:11 -0400
-In-Reply-To: <1336052907-15084-1-git-send-email-apw@canonical.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Whitcroft <apw@canonical.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Jonathan Nieder <jrnieder@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Adrian Fita <adrian.fita@gmail.com>, Len Brown <lenb@kernel.org>, Paolo Scarabelli <paolo@msw.it>, linux-kernel@vger.kernel.org
 
-Hi,
+From: Marco Aurelio da Costa <costa@gamic.com>
+Signed-off-by: Marco Aurelio da Costa <costa@gamic.com>
 
-I applied this to 3.4-rc5, and it fixes the issue. Thanks a lot :)
+The EliteBook 8560W has non-initialized entries in its _PSS ACPI
+table. Instead of bailing out when the first non-initialized entry is
+found, ignore it and use only  the valid entries. Only bail out if there
+is no valid entry at all.
 
-> We only need to regenerate the sysfs files when the capacity units
-> change, avoid the update otherwise.
-> 
-> Signed-off-by: Andy Whitcroft <apw@canonical.com>
-Tested-by: Ralf Jung <post@ralfj.de>
-> ---
->  drivers/acpi/battery.c |   10 +++++++++-
->  1 file changed, 9 insertions(+), 1 deletion(-)
-> 
-> 	Based on Matthew's feedback here is a version which optimises
-> 	based on the power_unit field as returned from the battery info.
-> 	Could someone who suffers from this issue please test this out
-> 	and report back.  Thanks.
-> 
-> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-> index 86933ca..7dd3f9f 100644
-> --- a/drivers/acpi/battery.c
-> +++ b/drivers/acpi/battery.c
-> @@ -643,11 +643,19 @@ static int acpi_battery_update(struct acpi_battery
-> *battery)
-> 
->  static void acpi_battery_refresh(struct acpi_battery *battery)
->  {
-> +	int power_unit;
-> +
->  	if (!battery->bat.dev)
->  		return;
-> 
-> +	power_unit = battery->power_unit;
-> +
->  	acpi_battery_get_info(battery);
-> -	/* The battery may have changed its reporting units. */
-> +
-> +	if (power_unit == battery->power_unit)
-> +		return;
-> +
-> +	/* The battery has changed its reporting units. */
->  	sysfs_remove_battery(battery);
->  	sysfs_add_battery(battery);
->  }
+---
+--- linux-3.3.3/drivers/acpi/processor_perflib.c.orig   2012-04-24
+22:18:23.288041268 +0200
++++ linux-3.3.3/drivers/acpi/processor_perflib.c        2012-04-24
+22:19:25.912042603 +0200
+@@ -311,6 +311,7 @@ static int acpi_processor_get_performanc
+       struct acpi_buffer state = { 0, NULL };
+       union acpi_object *pss = NULL;
+       int i;
++       int last_invalid = -1;
 
-Kind regards,
-Ralf Jung
+
+       status = acpi_evaluate_object(pr->handle, "_PSS", NULL, &buffer);
+@@ -374,12 +375,30 @@ static int acpi_processor_get_performanc
+                       printk(KERN_ERR FW_BUG PREFIX
+                              "Invalid BIOS _PSS frequency: 0x%llx MHz\n",
+                              px->core_frequency);
+-                       result = -EFAULT;
+-                       kfree(pr->performance->states);
+-                       goto end;
++                       if (-1 == last_invalid)
++                               last_invalid = i;
++               } else {
++                       if (last_invalid != -1) {
++                               /*
++                                * Copy this valid entry over last_invalid entry
++                                */
++                               memcpy(&(pr->performance->states[last_invalid]),
++                                      px, sizeof(struct acpi_processor_px));
++                               ++last_invalid;
++                       }
+               }
+       }
+
++       if (0 == last_invalid) {
++               printk(KERN_ERR FW_BUG PREFIX
++                      "No valid BIOS _PSS frequency found\n");
++               result = -EFAULT;
++               kfree(pr->performance->states);
++       }
++
++       if (last_invalid > 0)
++               pr->performance->state_count = last_invalid;
++
+      end:
+       kfree(buffer.pointer);
