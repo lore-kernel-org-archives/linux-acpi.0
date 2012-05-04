@@ -1,33 +1,67 @@
-From: Oliver Neukum <oneukum@suse.de>
-Subject: Re: [Resend PATCH V2 7/7] usb/acpi: add usb check for the connect type of usb port
-Date: Fri, 4 May 2012 08:37:55 +0200
-Message-ID: <201205040837.55905.oneukum@suse.de>
-References: <1336100803-28353-1-git-send-email-tianyu.lan@intel.com> <1336100803-28353-8-git-send-email-tianyu.lan@intel.com>
+From: Ralf Jung <post@ralfj.de>
+Subject: Re: [PATCH 1/1] battery: only refresh the sysfs files when pertinant information changes
+Date: Fri, 4 May 2012 15:29:06 +0200
+Message-ID: <201205041529.07142.post@ralfj.de>
+References: <20120503124708.GA18622@srcf.ucam.org> <1336052907-15084-1-git-send-email-apw@canonical.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:43327 "EHLO mx2.suse.de"
+Received: from ralfj.de ([85.214.220.216]:54235 "EHLO ralfj.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751859Ab2EDGqo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 4 May 2012 02:46:44 -0400
-In-Reply-To: <1336100803-28353-8-git-send-email-tianyu.lan@intel.com>
+	id S1754010Ab2EDN3L (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 4 May 2012 09:29:11 -0400
+In-Reply-To: <1336052907-15084-1-git-send-email-apw@canonical.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: lenb@kernel.org, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu, sarah.a.sharp@linux.intel.com, mjg59@srcf.ucam.org, mfm@muteddisk.com
+To: Andy Whitcroft <apw@canonical.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Jonathan Nieder <jrnieder@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Adrian Fita <adrian.fita@gmail.com>, Len Brown <lenb@kernel.org>, Paolo Scarabelli <paolo@msw.it>, linux-kernel@vger.kernel.org
 
-Am Freitag, 4. Mai 2012, 05:06:43 schrieb Lan Tianyu:
-> +enum usb_port_connect_type {
-> +       USB_PORT_CONNECT_TYPE_UNKNOWN = 0,
-> +       USB_PORT_CONNECT_TYPE_HOT_PLUG,
-> +       USB_PORT_CONNECT_TYPE_HARD_WIRED,
-> +       USB_PORT_NOT_USED,
-> +};
+Hi,
 
-Is this actually useful? If we have ports known to ACPI (eg. hotplugged PCcard)
-we must assume the ports are fully hotpluggable.
+I applied this to 3.4-rc5, and it fixes the issue. Thanks a lot :)
 
-	Regards
-		Oliver
+> We only need to regenerate the sysfs files when the capacity units
+> change, avoid the update otherwise.
+> 
+> Signed-off-by: Andy Whitcroft <apw@canonical.com>
+Tested-by: Ralf Jung <post@ralfj.de>
+> ---
+>  drivers/acpi/battery.c |   10 +++++++++-
+>  1 file changed, 9 insertions(+), 1 deletion(-)
+> 
+> 	Based on Matthew's feedback here is a version which optimises
+> 	based on the power_unit field as returned from the battery info.
+> 	Could someone who suffers from this issue please test this out
+> 	and report back.  Thanks.
+> 
+> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+> index 86933ca..7dd3f9f 100644
+> --- a/drivers/acpi/battery.c
+> +++ b/drivers/acpi/battery.c
+> @@ -643,11 +643,19 @@ static int acpi_battery_update(struct acpi_battery
+> *battery)
+> 
+>  static void acpi_battery_refresh(struct acpi_battery *battery)
+>  {
+> +	int power_unit;
+> +
+>  	if (!battery->bat.dev)
+>  		return;
+> 
+> +	power_unit = battery->power_unit;
+> +
+>  	acpi_battery_get_info(battery);
+> -	/* The battery may have changed its reporting units. */
+> +
+> +	if (power_unit == battery->power_unit)
+> +		return;
+> +
+> +	/* The battery has changed its reporting units. */
+>  	sysfs_remove_battery(battery);
+>  	sysfs_add_battery(battery);
+>  }
+
+Kind regards,
+Ralf Jung
