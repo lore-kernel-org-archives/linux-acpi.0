@@ -1,38 +1,21 @@
-From: "Jonson Chong" <jclegalfirm002@gmail.com>
-Subject: Mutual Benefit
-Date: Wed, 9 May 2012 18:51:25 -0700
-Message-ID: <201205102251.q4AMpWNg017193@smtp-newsletter.intersaar.de>
-Reply-To: <jclegalfirm001@yahoo.com>
+From: Mrs Sabah Halif <mangrove@dephut.go.id>
+Subject: (unknown)
+Date: Sun, 6 May 2012 01:59:22 +0700 (WIT)
+Message-ID: <6892760.345591336244362205.JavaMail.root__49345.8690042191$1336702280$gmane$org@zm>
+Reply-To: Mrs Sabah Halif <sabah.halif12@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="Windows-1251"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp-newsletter.intersaar.de ([213.135.15.218]:33071 "EHLO
-	smtp-newsletter.intersaar.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755929Ab2EKBGQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 10 May 2012 21:06:16 -0400
+Received: from 9.subnet118-97-90.static.astinet.telkom.net.id ([118.97.90.9]:50304
+	"EHLO zm.dephut.go.id" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1758485Ab2EKCLP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 May 2012 22:11:15 -0400
+Subject: 
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-62A-1 Jalan PJU 5/21,
-The Strand Kota Damansara,
-47801 Petaling Jaya, Malaysia.
 
-I am Jonson Chong,an attorney at law and i would love to share with you a very important business 
-proposition that will be of mutual benefit to both of us.
- A deceased client of mine,that shares the same last name as yours,who after shall be referred to as 
-my late client,died as the result of a heart-related condition on March 12th 2009.
-His heart condition was due to the death of all the members of his family in the tsunami disaster on the 26th
- December 2004 in Sumatra Indonesia .
-
-http://en.wikipedia.org/wiki/2004_Indian_Ocean_earthquake
-My late Client has a deposit of ( US$17.5 Million Dollars) left behind.
-I can be reached on (jclegalfirm001@gmail.com) for more information.
-
-Email: jclegalfirm001@gmail.com
-Best regards,
-Jonson Chong
-Attorney at Law
+-- 
+Good day,my name is Mrs Sabah Halif  i have a business proposal please contact me for details.
