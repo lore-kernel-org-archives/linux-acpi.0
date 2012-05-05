@@ -1,55 +1,64 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH v3] ACPI: D3 states cleanup
-Date: Sat, 05 May 2012 01:24:34 -0400
-Message-ID: <4FA4B992.2010808@kernel.org>
-References: <1335143029.4927.45.camel@minggr>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [Resend PATCH V2 2/7] usb: Bind devices to ACPI devices when
+ possible
+Date: Sat, 5 May 2012 06:26:24 +0100
+Message-ID: <20120505052624.GA574@srcf.ucam.org>
+References: <1336100803-28353-1-git-send-email-tianyu.lan@intel.com>
+ <1336100803-28353-3-git-send-email-tianyu.lan@intel.com>
+ <20120505002155.GA12282@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qa0-f46.google.com ([209.85.216.46]:63052 "EHLO
-	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751489Ab2EEFYh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 5 May 2012 01:24:37 -0400
-In-Reply-To: <1335143029.4927.45.camel@minggr>
+Received: from cavan.codon.org.uk ([93.93.128.6]:55398 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751373Ab2EEF0f (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 5 May 2012 01:26:35 -0400
+Content-Disposition: inline
+In-Reply-To: <20120505002155.GA12282@kroah.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lin Ming <ming.m.lin@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi <linux-acpi@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, aaron.lu@amd.com
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Lan Tianyu <tianyu.lan@intel.com>, lenb@kernel.org, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu, sarah.a.sharp@linux.intel.com, mfm@muteddisk.com
 
-Applied using updated check-in comment below.
+On Fri, May 04, 2012 at 05:21:55PM -0700, Greg KH wrote:
 
-thanks,
--Len Brown, Intel Open Source Technology Center
+> This patch breaks the build with:
+> 	ERROR: "unregister_acpi_bus_type" [drivers/usb/core/usbcore.ko] undefined!
+> 	ERROR: "register_acpi_bus_type" [drivers/usb/core/usbcore.ko] undefined!
+> 
+> {sigh}
+> 
+> Care to resend them after fixing this?
 
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: [PATCH] ACPI: Fix D3hot v D3cold confusion
+Does this fix it?
 
-Before this patch, ACPI_STATE_D3 incorrectly referenced D3hot
-in some places, but D3cold in other places.
+commit f5c5fea66ab7db94cea5a51c474ff5111ec55800
+Author: Matthew Garrett <mjg@redhat.com>
+Date:   Sat May 5 01:21:45 2012 -0400
 
-After this patch, ACPI_STATE_D3 always means ACPI_STATE_D3_COLD;
-and all references to D3hot use ACPI_STATE_D3_HOT.
+    ACPI: Add stubs for (un)register_acpi_bus_type
+    
+    It's unreasonable to have CONFIG_ACPI for these in drivers, so add some
+    stub functions.
+    
+    Signed-off-by: Matthew Garrett <mjg@redhat.com>
 
-ACPI's _PR3 method is used to enter both D3hot and D3cold states.
-What distinguishes D3hot from D3cold is the presence _PR3
-(Power Resources for D3hot)  If these resources are all ON,
-then the state is D3hot.  If _PR3 is not present,
-or all _PR0 resources for the devices are OFF,
-then the state is D3cold.
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 30a9250..19f9483 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -431,6 +431,11 @@ static inline int acpi_pm_device_sleep_wake(struct device *dev, bool enable)
+ }
+ #endif
+ 
++#else	/* CONFIG_ACPI */
++
++static int register_acpi_bus_type (struct acpi_bus_type *bus) { return 0; }
++static int unregister_acpi_bus_type (struct acpi_bus_type *bus) { return 0; }
++
+ #endif				/* CONFIG_ACPI */
+ 
+ #endif /*__ACPI_BUS_H__*/
 
-This patch applies after Linux-3.4-rc1.
-A future syntax cleanup may remove ACPI_STATE_D3
-to emphasize that it always means ACPI_STATE_D3_COLD.
-
-Signed-off-by: Lin Ming <ming.m.lin@intel.com>
-Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
-Reviewed-by: Aaron Lu <aaron.lu@amd.com>
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- drivers/acpi/power.c   |  2 +-
- drivers/acpi/scan.c    | 17 +++++++----------
- drivers/pci/pci-acpi.c |  4 ++--
- include/acpi/actypes.h |  7 ++++---
- 4 files changed, 14 insertions(+), 16 deletions(-)
-
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
