@@ -1,46 +1,49 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [GIT PULL] ACPI patch for Linux-3.4-rc5
-Date: Sat, 05 May 2012 01:35:25 -0400
-Message-ID: <4FA4BC1D.80101@kernel.org>
+From: Adrian Fita <adrian.fita@gmail.com>
+Subject: Re: [PATCH 1/1] battery: only refresh the sysfs files
+ when pertinant information changes
+Date: Sat, 05 May 2012 13:37:10 +0300
+Message-ID: <4FA502D6.3000500@gmail.com>
+References: <20120503124708.GA18622@srcf.ucam.org>
+	<1336052907-15084-1-git-send-email-apw@canonical.com>
+	<201205041529.07142.post@ralfj.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qa0-f49.google.com ([209.85.216.49]:52472 "EHLO
-	mail-qa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751373Ab2EEFf2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 5 May 2012 01:35:28 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <201205041529.07142.post@ralfj.de>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Andy Whitcroft <apw@canonical.com>
+Cc: Ralf Jung <post@ralfj.de>, Paolo Scarabelli <paolo@msw.it>, linux-kernel@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Jonathan Nieder <jrnieder@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 
-Hi Linus,
+On 04/05/12 16:29, Ralf Jung wrote:
+> Hi,
+> 
+> I applied this to 3.4-rc5, and it fixes the issue. Thanks a lot :)
 
-Please pull this ACPI patch.
-It fixes a D3 issue new in 3.4-rc1.
+[...]
 
-thanks!
-Len Brown, Intel Open Source Technology Center
+Hi. I got to test the patch today against the 3.2.16 stable kernel and I
+can confirm that it solved the issue. I no longer see "remove"/"add"
+events when running "udevadm monitor --property"; I only see "change"
+events.
 
-The following changes since commit ec612fcf43e09f5e05d37baf4d3f138b3fcc2f3d:
+Thanks alot!
 
-  Merge branch 'd3' into release (2012-03-30 16:21:26 -0400)
+Do you know if this patch will be backported to the 3.2 kernel, which
+will be the stable kernel for many linux distributions for many years (I
+know that the next Debian Stable/wheezy will be using the 3.2 kernel)?
 
-are available in the git repository at:
+PS: you misspelled "pertinent" in the patch's title. You wrote "pertinant".
 
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux.git release
-
-for you to fetch changes up to 1cc0c998fdf2cb665d625fb565a0d6db5c81c639:
-
-  ACPI: Fix D3hot v D3cold confusion (2012-05-05 01:19:52 -0400)
-
-----------------------------------------------------------------
-Lin Ming (1):
-      ACPI: Fix D3hot v D3cold confusion
-
- drivers/acpi/power.c   |  2 +-
- drivers/acpi/scan.c    | 17 +++++++----------
- drivers/pci/pci-acpi.c |  4 ++--
- include/acpi/actypes.h |  7 ++++---
- 4 files changed, 14 insertions(+), 16 deletions(-)
+Regards,
+-- 
+Fita Adrian
