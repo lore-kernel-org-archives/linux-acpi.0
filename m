@@ -1,81 +1,63 @@
-From: Marco Aurelio da Costa <costa@gamic.com>
-Subject: Re: [RFC][PATCH v3]: ACPI: Ignore invalid _PSS entries, but use valid ones
-Date: Mon, 7 May 2012 11:42:13 -0300
-Message-ID: <CAEe-dwiR7kez7-b+gnZc5xNbnCPVtUjarqU80y7yiWuo9MsewQ@mail.gmail.com>
-References: <CAEe-dwjEM8bHV838VwAO1riQk7tVUgdwKxnULxXzrajqjHkLaQ@mail.gmail.com>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [Resend PATCH V2 3/7] usb: Set device removable state based on
+ ACPI USB data
+Date: Mon, 7 May 2012 09:57:44 -0700
+Message-ID: <20120507165744.GA28045@kroah.com>
+References: <1336100803-28353-1-git-send-email-tianyu.lan@intel.com>
+ <1336100803-28353-4-git-send-email-tianyu.lan@intel.com>
+ <201205040824.17010.oneukum@suse.de>
+ <4FA72787.5000106@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:35789 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756467Ab2EGOmO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 May 2012 10:42:14 -0400
-Received: by qcro28 with SMTP id o28so1894474qcr.19
-        for <linux-acpi@vger.kernel.org>; Mon, 07 May 2012 07:42:14 -0700 (PDT)
-In-Reply-To: <CAEe-dwjEM8bHV838VwAO1riQk7tVUgdwKxnULxXzrajqjHkLaQ@mail.gmail.com>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:35090 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757383Ab2EGQ5u (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 May 2012 12:57:50 -0400
+Received: by pbbrp8 with SMTP id rp8so6901191pbb.19
+        for <linux-acpi@vger.kernel.org>; Mon, 07 May 2012 09:57:50 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <4FA72787.5000106@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: Oliver Neukum <oneukum@suse.de>, lenb@kernel.org, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu, sarah.a.sharp@linux.intel.com, mjg59@srcf.ucam.org, mfm@muteddisk.com, Matthew Garrett <mjg@redhat.com>
 
-SGksIEtvbnJhZC4KClNob3VsZCBJIGNoYW5nZSBhbnl0aGluZyBlbHNlPwpJIHRlc3RlZCB0aGUg
-Y2hhbmdlcyBpbiBteSBub3RlYm9vayBhbmQgaXQgaXMgd29ya2luZyBmaW5lLgoKQ2hlZXJzLgoK
-T24gRnJpLCBNYXkgNCwgMjAxMiBhdCAxOjUzIFBNLCBNYXJjbyBBdXJlbGlvIGRhIENvc3RhIDxj
-b3N0YUBnYW1pYy5jb20+IHdyb3RlOgo+IEZyb206IE1hcmNvIEF1cmVsaW8gZGEgQ29zdGEgPGNv
-c3RhQGdhbWljLmNvbT4KPiBbdjM6IEZpeGVzIHN1Z2dlc3RlZCBieSBLb25yYWRdCj4gU2lnbmVk
-LW9mZi1ieTogTWFyY28gQXVyZWxpbyBkYSBDb3N0YSA8Y29zdGFAZ2FtaWMuY29tPgo+Cj4gVGhl
-IEVsaXRlQm9vayA4NTYwVyBoYXMgbm9uLWluaXRpYWxpemVkIGVudHJpZXMgaW4gaXRzIF9QU1Mg
-QUNQSQo+IHRhYmxlLiBJbnN0ZWFkIG9mIGJhaWxpbmcgb3V0IHdoZW4gdGhlIGZpcnN0IG5vbi1p
-bml0aWFsaXplZCBlbnRyeSBpcwo+IGZvdW5kLCBpZ25vcmUgaXQgYW5kIHVzZSBvbmx5IMKgdGhl
-IHZhbGlkIGVudHJpZXMuIE9ubHkgYmFpbCBvdXQgaWYgdGhlcmUKPiBpcyBubyB2YWxpZCBlbnRy
-eSBhdCBhbGwuCj4KPiAtLS0KPiAtLS0gbGludXgtMy4zLjMvZHJpdmVycy9hY3BpL3Byb2Nlc3Nv
-cl9wZXJmbGliLmMub3JpZyDCoCAyMDEyLTA0LTI0Cj4gMjI6MTg6MjMuMjg4MDQxMjY4ICswMjAw
-Cj4gKysrIGxpbnV4LTMuMy4zL2RyaXZlcnMvYWNwaS9wcm9jZXNzb3JfcGVyZmxpYi5jIMKgIMKg
-IMKgIMKgMjAxMi0wNS0wNAo+IDE4OjIzOjAyLjY0MDExMTI0NiArMDIwMAo+IEBAIC0zMTEsNiAr
-MzExLDcgQEAgc3RhdGljIGludCBhY3BpX3Byb2Nlc3Nvcl9nZXRfcGVyZm9ybWFuYwo+IMKgIMKg
-IMKgIMKgc3RydWN0IGFjcGlfYnVmZmVyIHN0YXRlID0geyAwLCBOVUxMIH07Cj4gwqAgwqAgwqAg
-wqB1bmlvbiBhY3BpX29iamVjdCAqcHNzID0gTlVMTDsKPiDCoCDCoCDCoCDCoGludCBpOwo+ICsg
-wqAgwqAgwqAgaW50IGxhc3RfaW52YWxpZCA9IC0xOwo+Cj4KPiDCoCDCoCDCoCDCoHN0YXR1cyA9
-IGFjcGlfZXZhbHVhdGVfb2JqZWN0KHByLT5oYW5kbGUsICJfUFNTIiwgTlVMTCwgJmJ1ZmZlcik7
-Cj4gQEAgLTM3MiwxNCArMzczLDMzIEBAIHN0YXRpYyBpbnQgYWNwaV9wcm9jZXNzb3JfZ2V0X3Bl
-cmZvcm1hbmMKPiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCgodTMyKShweC0+Y29yZV9m
-cmVxdWVuY3kgKiAxMDAwKSAhPQo+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIChweC0+
-Y29yZV9mcmVxdWVuY3kgKiAxMDAwKSkpIHsKPiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoHByaW50ayhLRVJOX0VSUiBGV19CVUcgUFJFRklYCj4gLSDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCJJbnZhbGlkIEJJT1MgX1BTUyBmcmVxdWVuY3k6
-IDB4JWxseCBNSHpcbiIsCj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoHB4LT5jb3JlX2ZyZXF1ZW5jeSk7Cj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCByZXN1bHQgPSAtRUZBVUxUOwo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAga2ZyZWUocHItPnBlcmZvcm1hbmNlLT5zdGF0ZXMpOwo+IC0gwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgZ290byBlbmQ7Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCJJbnZhbGlkIEJJT1MgX1BTUyBmcmVxdWVuY3kgZm91bmQgZm9y
-IHByb2Nlc3NvciAlZDogMHglbGx4IE1IelxuIiwKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgcHItPmlkLCBweC0+Y29yZV9mcmVxdWVuY3kpOwo+ICsgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgaWYgKGxhc3RfaW52YWxpZCA9PSAtMSkKPiAr
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGxhc3RfaW52YWxp
-ZCA9IGk7Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCB9IGVsc2Ugewo+ICsgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgaWYgKGxhc3RfaW52YWxpZCAhPSAtMSkgewo+ICsgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgLyoKPiArIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgKiBDb3B5IHRoaXMgdmFsaWQgZW50
-cnkgb3ZlciBsYXN0X2ludmFsaWQgZW50cnkKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgKi8KPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIG1lbWNweSgmKHByLT5wZXJmb3JtYW5jZS0+c3RhdGVzW2xhc3RfaW52
-YWxpZF0pLAo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqBweCwgc2l6ZW9mKHN0cnVjdCBhY3BpX3Byb2Nlc3Nvcl9weCkpOwo+ICsgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgKytsYXN0X2ludmFsaWQ7
-Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCB9Cj4gwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqB9Cj4gwqAgwqAgwqAgwqB9Cj4KPiArIMKgIMKgIMKgIGlmIChsYXN0X2ludmFsaWQg
-PT0gMCkgewo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgcHJpbnRrKEtFUk5fRVJSIEZXX0JVRyBQ
-UkVGSVgKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIk5vIHZhbGlkIEJJT1Mg
-X1BTUyBmcmVxdWVuY3kgZm91bmQgZm9yIHByb2Nlc3NvciAlZFxuIiwgcHItPmlkKTsKPiArIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIHJlc3VsdCA9IC1FRkFVTFQ7Cj4gKyDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCBrZnJlZShwci0+cGVyZm9ybWFuY2UtPnN0YXRlcyk7Cj4gKyDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCBwci0+cGVyZm9ybWFuY2UtPnN0YXRlcyA9IE5VTEw7Cj4gKyDCoCDCoCDCoCB9Cj4gKwo+
-ICsgwqAgwqAgwqAgaWYgKGxhc3RfaW52YWxpZCA+IDApCj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCBwci0+cGVyZm9ybWFuY2UtPnN0YXRlX2NvdW50ID0gbGFzdF9pbnZhbGlkOwo+ICsKPiDCoCDC
-oCDCoCBlbmQ6Cj4gwqAgwqAgwqAgwqBrZnJlZShidWZmZXIucG9pbnRlcik7Cj4KPiAtLQo+IE1h
-cmNvIENvc3RhCj4gQ3VzdG9tZXIgU3VwcG9ydAo+IC0tCj4gR0FNSUMgbWJICj4gUm9lcm1vbmRl
-ciBTdHJhc3NlLCAxNTEKPiA1MjA3MiBBYWNoZW4KPiBHZXJtYW55CgoKCi0tIApNYXJjbyBDb3N0
-YQpDdXN0b21lciBTdXBwb3J0Ci0tCkdBTUlDIG1iSApSb2VybW9uZGVyIFN0cmFzc2UsIDE1MQo1
-MjA3MiBBYWNoZW4KR2VybWFueQo=
+On Mon, May 07, 2012 at 09:38:15AM +0800, Lan Tianyu wrote:
+> On 2012=E5=B9=B405=E6=9C=8804=E6=97=A5 14:24, Oliver Neukum wrote:
+> >Am Freitag, 4. Mai 2012, 05:06:39 schrieb Lan Tianyu:
+> >>
+> >>From: Matthew Garrett<mjg@redhat.com>
+> >>
+> >>ACPI offers two methods that allow us to infer whether or not a USB=
+ port
+> >>is removable. The _PLD method gives us information on whether the p=
+ort is
+> >>"user visible" or not. If that's not present then we can fall back =
+to the
+> >>_UPC method which tells us whether or not a port is connectable.
+> >
+> >How does this act on bluetooth devices that are (dis)connected by sw=
+itches
+> >on laptops?
+> This depends on the bios. From my opinion, the bluetooth is device on=
+ the
+> motherboard so it belongs to hard-wired type.
+
+That's nice, but it's not what is happening in lots of different laptop=
+s
+out there today.
+
+Oliver is right, how does this handle bluetooth USB controllers that ar=
+e
+turned on/off from magic function-key presses?
+
+thanks,
+
+greg k-h
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
