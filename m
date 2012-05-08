@@ -1,25 +1,42 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: ACPICA Release 20120420 linuxized patches
-Date: Mon, 07 May 2012 22:02:40 -0400
-Message-ID: <4FA87EC0.1090800@kernel.org>
-References: <1336094199.5520.56.camel@minggr>
+From: Matthew Garrett <mjg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [Resend PATCH V2 3/7] usb: Set device removable state based on
+ ACPI USB data
+Date: Tue, 8 May 2012 03:58:17 +0100
+Message-ID: <20120508025817.GB23448@srcf.ucam.org>
+References: <1336100803-28353-1-git-send-email-tianyu.lan@intel.com>
+ <1336100803-28353-4-git-send-email-tianyu.lan@intel.com>
+ <201205040824.17010.oneukum@suse.de>
+ <4FA72787.5000106@intel.com>
+ <20120507165744.GA28045@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:42442 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757588Ab2EHCCo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 May 2012 22:02:44 -0400
-Received: by qcro28 with SMTP id o28so2386927qcr.19
-        for <linux-acpi@vger.kernel.org>; Mon, 07 May 2012 19:02:43 -0700 (PDT)
-In-Reply-To: <1336094199.5520.56.camel@minggr>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20120507165744.GA28045-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Oliver Neukum <oneukum-l3A5Bk7waGM@public.gmane.org>, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, mfm-Oo0r1OC9pj9iLUuM0BA3LQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lin Ming <ming.m.lin@intel.com>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-applied to next branch
+On Mon, May 07, 2012 at 09:57:44AM -0700, Greg KH wrote:
+> On Mon, May 07, 2012 at 09:38:15AM +0800, Lan Tianyu wrote:
+> > This depends on the bios. From my opinion, the bluetooth is device on the
+> > motherboard so it belongs to hard-wired type.
+> 
+> That's nice, but it's not what is happening in lots of different laptops
+> out there today.
+> 
+> Oliver is right, how does this handle bluetooth USB controllers that are
+> turned on/off from magic function-key presses?
 
-thanks,
-Len Brown, Intel Open Source Technology Center
+I /believe/ that such devices will be indicated as fixed rather than 
+removable. The variable indicates the physical state rather than the 
+logical one - fixed doesn't mean that a device will never go away, it 
+means that a user can't physically unplug it.
+
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
