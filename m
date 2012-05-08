@@ -1,7 +1,7 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v2 5/7] ACPI: Add _OST support for ACPI memory hotplug
-Date: Tue,  8 May 2012 14:12:22 -0600
-Message-ID: <1336507944-10219-6-git-send-email-toshi.kani@hp.com>
+Subject: [PATCH v2 7/7] ACPI: Set hotplug _OST support bit to _OSC
+Date: Tue,  8 May 2012 14:12:24 -0600
+Message-ID: <1336507944-10219-8-git-send-email-toshi.kani@hp.com>
 References: <1336507944-10219-1-git-send-email-toshi.kani@hp.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1336507944-10219-1-git-send-email-toshi.kani@hp.com>
@@ -10,93 +10,30 @@ To: lenb@kernel.org, linux-acpi@vger.kernel.org
 Cc: bhelgaas@google.com, shuahkhan@gmail.com, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Changed acpi_memory_device_notify() to call ACPI _OST method
-when ACPI memory hotplug operation has completed.
+When CONFIG_ACPI_HOTPLUG_OST is enabled, set hotplug _OST support bit
+OSC_SB_HOTPLUG_OST_SUPPORT to indicate that the OS supports hotplug
+_OST by calling the platform-wide ACPI Operating System Capabilities
+(_OSC).
 
 Signed-off-by: Toshi Kani <toshi.kani@hp.com>
 ---
- drivers/acpi/acpi_memhotplug.c |   43 +++++++++++++++++++++++++++++----------
- 1 files changed, 32 insertions(+), 11 deletions(-)
+ drivers/acpi/bus.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-index d985713..24c807f 100644
---- a/drivers/acpi/acpi_memhotplug.c
-+++ b/drivers/acpi/acpi_memhotplug.c
-@@ -341,7 +341,7 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
- {
- 	struct acpi_memory_device *mem_device;
- 	struct acpi_device *device;
--
-+	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE; /* default */
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 3263b68..93bf515 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -544,6 +544,10 @@ static void acpi_bus_osc_support(void)
+ 	capbuf[OSC_SUPPORT_TYPE] |= OSC_SB_PPC_OST_SUPPORT;
+ #endif
  
- 	switch (event) {
- 	case ACPI_NOTIFY_BUS_CHECK:
-@@ -354,15 +354,20 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
- 					  "\nReceived DEVICE CHECK notification for device\n"));
- 		if (acpi_memory_get_device(handle, &mem_device)) {
- 			printk(KERN_ERR PREFIX "Cannot find driver data\n");
--			return;
-+			break;
- 		}
- 
--		if (!acpi_memory_check_device(mem_device)) {
--			if (acpi_memory_enable_device(mem_device))
--				printk(KERN_ERR PREFIX
--					    "Cannot enable memory device\n");
-+		if (acpi_memory_check_device(mem_device))
-+			break;
++#ifdef CONFIG_ACPI_HOTPLUG_OST
++	capbuf[OSC_SUPPORT_TYPE] |= OSC_SB_HOTPLUG_OST_SUPPORT;
++#endif
 +
-+		if (acpi_memory_enable_device(mem_device)) {
-+			printk(KERN_ERR PREFIX "Cannot enable memory device\n");
-+			break;
- 		}
-+
-+		ost_code = ACPI_OST_SC_SUCCESS;
- 		break;
-+
- 	case ACPI_NOTIFY_EJECT_REQUEST:
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 				  "\nReceived EJECT REQUEST notification for device\n"));
-@@ -383,19 +388,35 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
- 		 * TBD: Can also be disabled by Callback registration
- 		 *      with generic sysfs driver
- 		 */
--		if (acpi_memory_disable_device(mem_device))
--			printk(KERN_ERR PREFIX
--				    "Disable memory device\n");
-+		if (acpi_memory_disable_device(mem_device)) {
-+			printk(KERN_ERR PREFIX "Disable memory device\n");
-+			/*
-+			 * If _EJ0 was called but failed, _OST is not
-+			 * necessary.
-+			 */
-+			if (mem_device->state == MEMORY_INVALID_STATE)
-+				return;
-+
-+			break;
-+		}
-+
- 		/*
- 		 * TBD: Invoke acpi_bus_remove to cleanup data structures
- 		 */
--		break;
-+
-+		/* _EJ0 succeeded; _OST is not necessary */
-+		return;
-+
- 	default:
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 				  "Unsupported event [0x%x]\n", event));
--		break;
-+
-+		/* non-hotplug event; possibly handled by other handler */
-+		return;
- 	}
- 
-+	/* Inform firmware that the hotplug operation has completed */
-+	(void) acpi_evaluate_hotplug_ost(handle, event, ost_code, NULL);
- 	return;
- }
- 
+ 	if (!ghes_disable)
+ 		capbuf[OSC_SUPPORT_TYPE] |= OSC_SB_APEI_SUPPORT;
+ 	if (ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB", &handle)))
 -- 
 1.7.7.6
