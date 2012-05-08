@@ -1,25 +1,29 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 1/1] battery: only refresh the sysfs files when pertinant
- information changes
-Date: Tue, 08 May 2012 01:50:40 -0400
-Message-ID: <4FA8B430.3050401@kernel.org>
-References: <20120503124708.GA18622@srcf.ucam.org> <1336052907-15084-1-git-send-email-apw@canonical.com>
+Subject: Re: [RFC][PATCH v3]: ACPI: Ignore invalid _PSS entries, but use valid
+ ones
+Date: Tue, 08 May 2012 01:59:09 -0400
+Message-ID: <4FA8B62D.7000102@kernel.org>
+References: <CAEe-dwjEM8bHV838VwAO1riQk7tVUgdwKxnULxXzrajqjHkLaQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:35683 "EHLO
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:42403 "EHLO
 	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750834Ab2EHFun (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 May 2012 01:50:43 -0400
-In-Reply-To: <1336052907-15084-1-git-send-email-apw@canonical.com>
+	with ESMTP id S1752178Ab2EHF7M (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 May 2012 01:59:12 -0400
+Received: by qcro28 with SMTP id o28so2453247qcr.19
+        for <linux-acpi@vger.kernel.org>; Mon, 07 May 2012 22:59:12 -0700 (PDT)
+In-Reply-To: <CAEe-dwjEM8bHV838VwAO1riQk7tVUgdwKxnULxXzrajqjHkLaQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Whitcroft <apw@canonical.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Jonathan Nieder <jrnieder@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Adrian Fita <adrian.fita@gmail.com>, Ralf Jung <ralfjung-e@gmx.de>, Paolo Scarabelli <paolo@msw.it>, linux-kernel@vger.kernel.org
+To: Marco Aurelio da Costa <costa@gamic.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, linux-acpi@vger.kernel.org
 
-applied to ACPI next branch
+A BIOS bug workaround like this is sort of a guessing game...
+
+What additional benefit do we get by making the workaround more complicated?
 
 thanks,
-Len Brown, Intel Open Source Technology Center
+-Len
 
