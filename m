@@ -1,49 +1,92 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v2 1/7] ACPI: Add CONFIG_HOTPLUG_OST option
-Date: Tue,  8 May 2012 14:12:18 -0600
-Message-ID: <1336507944-10219-2-git-send-email-toshi.kani@hp.com>
+Subject: [PATCH v2 4/7] ACPI: Add _OST support for ACPI CPU hotplug
+Date: Tue,  8 May 2012 14:12:21 -0600
+Message-ID: <1336507944-10219-5-git-send-email-toshi.kani@hp.com>
 References: <1336507944-10219-1-git-send-email-toshi.kani@hp.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:32285 "EHLO
+	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757136Ab2EHUP6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 May 2012 16:15:58 -0400
 In-Reply-To: <1336507944-10219-1-git-send-email-toshi.kani@hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org, linux-acpi@vger.kernel.org
 Cc: bhelgaas@google.com, shuahkhan@gmail.com, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>
-List-Id: linux-acpi@vger.kernel.org
 
-Added CONFIG_ACPI_HOTPLUG_OPT option. When this config option is disabled,
-this patchset has no effect on the platform. This option is disabled by
-default. The dependency list assures consistent behavior among CPU, memory
-and container hotplug operations with regarding the _OST support.
+Changed acpi_processor_hotplug_notify() to call ACPI _OST method
+when ACPI CPU hotplug operation has completed.
 
 Signed-off-by: Toshi Kani <toshi.kani@hp.com>
 ---
- drivers/acpi/Kconfig |   14 ++++++++++++++
- 1 files changed, 14 insertions(+), 0 deletions(-)
+ drivers/acpi/processor_driver.c |   28 ++++++++++++++++++++--------
+ 1 files changed, 20 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 47768ff..1e3a756 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -351,6 +351,20 @@ config ACPI_HOTPLUG_MEMORY
- 	  To compile this driver as a module, choose M here:
- 	  the module will be called acpi_memhotplug.
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index 0734086..971c454 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -701,9 +701,9 @@ static void acpi_processor_hotplug_notify(acpi_handle handle,
+ {
+ 	struct acpi_processor *pr;
+ 	struct acpi_device *device = NULL;
++	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE; /* default */
+ 	int result;
  
-+config ACPI_HOTPLUG_OST
-+	bool "Hotplug Status Indication Support"
-+	depends on ACPI_HOTPLUG_CPU
-+	depends on ACPI_HOTPLUG_MEMORY
-+	depends on ACPI_CONTAINER
-+	default n
-+	help
-+	  This option enables the use of the ACPI OSPM Status Indication
-+          (_OST), if available, for the platform to determine the status
-+	  of various hotplug operations. Some platforms may require this
-+	  option be enabled to track the status of hotplug operations.
-+	  This option has no effect when the platform does not support
-+	  _OST.
+-
+ 	switch (event) {
+ 	case ACPI_NOTIFY_BUS_CHECK:
+ 	case ACPI_NOTIFY_DEVICE_CHECK:
+@@ -715,14 +715,18 @@ static void acpi_processor_hotplug_notify(acpi_handle handle,
+ 		if (!is_processor_present(handle))
+ 			break;
+ 
+-		if (acpi_bus_get_device(handle, &device)) {
+-			result = acpi_processor_device_add(handle, &device);
+-			if (result)
+-				printk(KERN_ERR PREFIX
+-					    "Unable to add the device\n");
++		if (!acpi_bus_get_device(handle, &device))
++			break;
 +
- config ACPI_SBS
- 	tristate "Smart Battery System"
- 	depends on X86
++		result = acpi_processor_device_add(handle, &device);
++		if (result) {
++			printk(KERN_ERR PREFIX "Unable to add the device\n");
+ 			break;
+ 		}
++
++		ost_code = ACPI_OST_SC_SUCCESS;
+ 		break;
++
+ 	case ACPI_NOTIFY_EJECT_REQUEST:
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 				  "received ACPI_NOTIFY_EJECT_REQUEST\n"));
+@@ -736,15 +740,23 @@ static void acpi_processor_hotplug_notify(acpi_handle handle,
+ 		if (!pr) {
+ 			printk(KERN_ERR PREFIX
+ 				    "Driver data is NULL, dropping EJECT\n");
+-			return;
++			break;
+ 		}
++
++		/* REVISIT: update when eject is supported */
++		ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
+ 		break;
++
+ 	default:
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 				  "Unsupported event [0x%x]\n", event));
+-		break;
++
++		/* non-hotplug event; possibly handled by other handler */
++		return;
+ 	}
+ 
++	/* Inform firmware that the hotplug operation has completed */
++	(void) acpi_evaluate_hotplug_ost(handle, event, ost_code, NULL);
+ 	return;
+ }
+ 
 -- 
 1.7.7.6
+
