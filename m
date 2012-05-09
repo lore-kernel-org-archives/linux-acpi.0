@@ -1,41 +1,46 @@
-From: Peter Stuge <peter@stuge.se>
-Subject: Re: [RFC PATCH] usb/acpi: Add support usb port power off mechanism
-	for device fixed on the motherboard
-Date: Tue, 15 May 2012 06:57:46 +0200
-Message-ID: <20120515045746.31559.qmail@stuge.se>
-References: <4FAD3A51.4010803@intel.com> <Pine.LNX.4.44L0.1205111302080.1865-100000@iolanthe.rowland.org> <20120511183543.GF7920@kroah.com> <20120511201124.GF18754@xanatos> <20120511210940.8350.qmail@stuge.se> <20120515014726.GL18754@xanatos>
+From: "Mr.Saeed Ahmed." <seal@co.net>
+Subject: Will You Be Trusted?
+Date: Wed, 09 May 2012 02:27:58 -0400
+Message-ID: <20120509022758.yrl0e5oxkwcswg4w@webmail.educacao.niteroi.rj.gov.br>
+Reply-To: mr.saeed01@linuxmail.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset=ISO-8859-1;
+	DelSp="Yes";
+	format="flowed"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foo.stuge.se ([212.116.89.98]:60510 "HELO foo.stuge.se"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751892Ab2EOE5s (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 May 2012 00:57:48 -0400
+Received: from educacao.niteroi.urbi.com.br ([200.152.56.131]:38312 "EHLO
+	FMEmail.localdomain" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751416Ab2EOFtx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 May 2012 01:49:53 -0400
 Content-Disposition: inline
-In-Reply-To: <20120515014726.GL18754@xanatos>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sarah Sharp <sarah.a.sharp@linux.intel.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>, Alan Stern <stern@rowland.harvard.edu>, Lan Tianyu <tianyu.lan@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-usb@vger.kernel.org
-
-Sarah Sharp wrote:
-> > > Theoretically there's no maximum number for xHCI root ports
-> > 
-> > Hm? Please clarify this?
-> > 
-> > HCSPARAMS1 MaxPorts is 8 bits and "Valid values are in the range of
-> > 1h to FFh."
-> 
-> Sorry, yes, you're correct, the maximum number of ports for xHCI is 255.
-
-Thanks for confirming!
 
 
-> I was just trying to point out that it's possible that xHCI hosts will
-> have a much larger number of USB ports than what we've previously seen
-> on EHCI host controllers.
 
-Yep, absolutely. I was just worried that I had missed something.
+Dear Friend,
+
+As you read this, I don't want you to feel sorry for me,because, I
+believe everyone will die someday,and am contacting you because
+I really do need your help and I want you to help me with all your
+effort and time for just seven to fourteen workings days of your time.I
+want you to be honest and truthful with me that you will help me
+with my last wish as a dying man.
+
+Please i need a reliable person who will usethe Money($18 milliondollars)to
+build orphanage home or charity organization.
+
+Please kindly reply to my most confidential email if you are really
+interested in helping me please: mr.saeed01@linuxmail.org
 
 
-//Peter
+God be with you.
+
+Mr.Saeed Ahmed.
+
+----------------------------------------------------------------
+FME Webmail
+www.educacao.niteroi.rj.gov.br
+
