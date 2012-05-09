@@ -1,319 +1,284 @@
-From: Amit Kachhap <amit.kachhap@linaro.org>
-Subject: Re: [PATCH v3 0/6] thermal: exynos: Add kernel thermal support for
- exynos platform
-Date: Wed, 9 May 2012 18:14:51 +0530
-Message-ID: <CAK44p23=Xo2NC_XyCDxEDicQc0SuMm9DHCrpUXfU4pi_1i68Pg@mail.gmail.com>
-References: <1336493898-7039-1-git-send-email-amit.kachhap@linaro.org>
-	<744357E9AAD1214791ACBA4B0B90926310025F@SHSMSX101.ccr.corp.intel.com>
+From: Martin Lucina <martin@lucina.net>
+Subject: Machine check errors, unusual cpufreq behaviour on a Panasonic
+ CF-S10 (Sandy Bridge) laptop
+Date: Wed, 9 May 2012 16:28:28 +0200
+Message-ID: <20120509142826.GA21969@nodbug.moloch.sk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <744357E9AAD1214791ACBA4B0B90926310025F@SHSMSX101.ccr.corp.intel.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "R, Durgadoss" <durgadoss.r@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "patches@linaro.org" <patches@linaro.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from chrocht.moloch.sk ([62.176.169.44]:40262 "EHLO mail.moloch.sk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759816Ab2EIOi1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 9 May 2012 10:38:27 -0400
+Received: from nodbug.moloch.sk (unknown [118.131.79.166])
+	by mail.moloch.sk (Postfix) with ESMTPSA id 07E501813B5C
+	for <linux-acpi@vger.kernel.org>; Wed,  9 May 2012 16:28:33 +0200 (CEST)
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On 9 May 2012 01:36, Zhang, Rui <rui.zhang@intel.com> wrote:
-> Hi, Amit,
->
-> Sorry for the late response as I'm in a travel recently.
->
-> I think the generic cpufreq cooling patches are good.
->
-> But about the THERMAL_TRIP_STATE_INSTANCE patch, what I'd like to see=
- is that
-> 1. from thermal zone point of view, when the temperature is higher th=
-an a trip point, either ACTIVE or PASSIVE, what we should do is to set =
-device cooling state to cur_state+1, right?
-> =A0The only difference is that if we should take passive cooling acti=
-ons or active cooling actions based on the policy.
-> =A0So my question would be if it is possible to combine these two kin=
-d of trip points together. Maybe something like this:
->
-> =A0In thermal_zone_device_update(),
->
-> =A0...
-> =A0case THERMAL_TRIP_PASSIVE:
-> =A0 =A0 =A0if (passive cooling not allowed)
-> =A0 =A0 =A0 =A0 =A0 continue;
-> =A0 =A0 =A0if (tc1)
-> =A0 =A0 =A0 =A0 =A0 thermal_zone_device_passive();
-> =A0 =A0 =A0else
-> =A0 =A0 =A0 =A0 =A0 thermal_set_cooling_state();
-> =A0 =A0 =A0break;
-> =A0case THERMAL_TRIP_ACTIVE:
-> =A0 =A0 if (active cooling not allowed)
-> =A0 =A0 =A0 =A0 =A0continue;
-> =A0 =A0 thermal_set_cooling_state();
-> =A0 =A0 break;
-> =A0...
->
-> and thermal_set_cooling_state() {
-> =A0 list_for_each_entry(instance, &tz->cooling_devices, node) {
-> =A0 =A0 =A0if (instance->trip !=3D count)
-> =A0 =A0 =A0 =A0 continue;
->
-> =A0 =A0 =A0cdev =3D instance->cdev;
->
-> =A0 =A0 =A0if (temp >=3D trip_temp)
-> =A0 =A0 =A0 =A0 =A0cdev->ops->set_cur_state(cdev, 1);
-> =A0 =A0 =A0else
-> =A0 =A0 =A0 =A0 =A0cdev->ops->set_cur_state(cdev, 0);
-> =A0 }
-> }
->
-> 2. use only one cooling_device instance for a thermal_zone, and intro=
-duce cdev->trips which shows the trip points this cooling device is bin=
-d to.
-> =A0And we may use multiple cooling devices states for one active trip=
- point.
->
-> Then, thermal_set_cooling_state() would be look like
->
-> list_for_each_entry(instance, &tz->cooling_devices, node) {
-> =A0 cdev =3D instance->cdev;
-> =A0 /* check whether this cooling device is bind to the trip point */
-> =A0 if (!(cdev->trips & 1<<count))
-> =A0 =A0 =A0continue;
-> =A0 cdev->ops->get_max_state(cdev, &max_state);
-> =A0 cdev->ops->get_cur_state(cdev, &cur_state);
->
-> =A0 if (temp >=3D trip_temp) {
-> =A0 =A0 =A0if (cur_state++ <=3D max_state))
-> =A0 =A0 =A0 =A0cdev->ops->set_cur_state(cdev, cur_state);
-> =A0 } else if ((temp < trip_temp) && (cur_state-- >=3D 0))
-> =A0 =A0 =A0cdev->ops->set_cur_state(cdev, cur_state);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
-> }
+Hi,
 
-Hi Rui,
+I recently purchased a fairly recent (2011) model Panasonic CF-S10 laptop
+with an Intel Core i5-2540M CPU.
 
-The above implementation  also cools instance based cooling devices
-like passive trip type. I need some changes on top of your
-implementation such as,
-thermal_set_cooling_state() {
-    list_for_each_entry(instance, &tz->cooling_devices,
-                                     node) {
-        cdev =3D instance->cdev;
-        if (!cdev->trips & 1<<count)
-                  continue;
+I've noticed that under normal operation with the mainline 3.3.4 kernel I
+can consistently provoke machine checks when loading the system, such as by
+running a -j4 kernel build.
 
-        inst_id =3D 0;
-        for_each_bit_set(i, cdev->trips, count)
-                   inst_id++;
-         cdev->ops->get_max_state(cdev, &max_state);
-         if ((temp >=3D trip_temp) && (inst_id <=3D max_state))
-              cdev->ops->set_cur_state(cdev, inst_id);
-         else if ((temp < trip_temp) && (--inst_id >=3D 0))
-               cdev->ops->set_cur_state(cdev, inst_id);
-     }
-}
+The following log is produced by running cpufreq-info -f (the first
+frequency), -w (the 2nd frequency) for all CPUs, and looking at the
+temperatures of /sys/class/thermal_zone[0,1] once a second while starting a
+kernel build on a freshly booted system with the ondemand cpufreq governor.
 
-I agree with you that the instance based trip types violates the
-concept like reading the cur_state and do cur_state++/cur_state--
-depending upon threshold increase or decrease because it needs the
-state_id/inst_id.
-I am actually thinking of dropping this new trip type and use the
-existing THERMAL_TRIP_ACTIVE because there is so much logic in
-calculating the state_id. The only flip side of using TRIP_ACTIVE is
-that I need to create so many cooling devices.
+I have additionally correlated the kernel (and mcelog) messages with that
+output and inserted them into the log:
 
-Thanks,
-Amit D
->
-> With these two things, I think the WARN_ZONE AND MONITOR_ZONE can be =
-registered as two PASSIVE trip points in the generic thermal layer, rig=
-ht?
-> Actually, this is one thing in my TODO list. And I'd glad to make it =
-high priority if this solves the problem you have.
->
-> Thanks,
-> rui
->
-> -----Original Message-----
-> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.=
-kernel.org] On Behalf Of Amit Daniel Kachhap
-> Sent: Tuesday, May 08, 2012 9:18 AM
-> To: akpm@linux-foundation.org; linux-pm@lists.linux-foundation.org
-> Cc: R, Durgadoss; linux-acpi@vger.kernel.org; lenb@kernel.org; Zhang,=
- Rui; amit.kachhap@linaro.org; linaro-dev@lists.linaro.org; linux-kerne=
-l@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-samsung-=
-soc@vger.kernel.org; patches@linaro.org
-> Subject: [PATCH v3 0/6] thermal: exynos: Add kernel thermal support f=
-or exynos platform
-> Importance: High
->
-> Hi Andrew,
->
-> This patchset introduces a new generic cooling device based on cpufre=
-q that can be used on non-ACPI platforms. As a proof of concept, we hav=
-e drivers for the following platforms using this mechanism now:
->
-> =A0* TI OMAP (git://git.linaro.org/people/amitdanielk/linux.git omap4=
-460_thermal)
-> =A0* Samsung Exynos (Exynos4 and Exynos5) in the current patchset.
-> =A0* Freescale i.MX (git://git.linaro.org/people/amitdanielk/linux.gi=
-t imx6q_thermal)
->
-> These patches have been reviewed by Rui Zhang (https://lkml.org/lkml/=
-2012/4/9/448)
-> who seems to agree with them in principle, but I haven't had any luck=
- getting them merged, perhaps a lack of maintainer bandwidth.
->
-> ACPI platforms currently have such a mechanism but it is wrapped in A=
-CPI'isms that we don't have on ARM platforms. If this is accepted, I'm =
-proposing to convert over the ACPI thermal driver to use this common co=
-de too.
->
-> Can you please merge these patches for 3.5?
->
-> Thanks,
-> Amit Daniel
->
->
-> Changes since V2:
-> *Added Exynos5 TMU sensor support by enhancing the exynos4 tmu driver=
-=2E Exynos5 TMU =A0driver was internally developed by SangWook Ju <sw.j=
-u@samsung.com>.
-> *Removed cpuhotplug cooling code in this patchset.
-> *Rebased the patches against 3.4-rc6 kernel.
->
-> Changes since V1:
-> *Moved the sensor driver to driver/thermal folder from driver/hwmon f=
-older =A0as suggested by Mark Brown and Guenter Roeck *Added notifier s=
-upport to notify the registered drivers of any cpu cooling =A0action. T=
-he driver can modify the default cooling behaviour(eg set different =A0=
-max clip frequency).
-> *The percentage based frequency replaced with absolute clipped freque=
-ncy.
-> *Some more conditional checks when setting max frequency.
-> *Renamed the new trip type THERMAL_TRIP_STATE_ACTIVE to =A0THERMAL_TR=
-IP_STATE_INSTANCE *Many review comments from R, Durgadoss <durgadoss.r@=
-intel.com> and =A0eduardo.valentin@ti.com implemented.
-> *Removed cooling stats through debugfs patch *The V1 based can be fou=
-nd here,
-> =A0https://lkml.org/lkml/2012/2/22/123
-> =A0http://lkml.org/lkml/2012/3/3/32
->
-> Changes since RFC:
-> *Changed the cpu cooling registration/unregistration API's to instanc=
-e based *Changed the STATE_ACTIVE trip type to pass correct instance id=
- *Adding support to restore back the policy->max_freq after doing frequ=
-ency
-> =A0clipping.
-> *Moved the trip cooling stats from sysfs node to debugfs node as sugg=
-ested
-> =A0by Greg KH greg@kroah.com
-> *Incorporated several review comments from eduardo.valentin@ti.com *M=
-oved the Temperature sensor driver from driver/hwmon/ to driver/mfd =A0=
-as discussed with Guenter Roeck <guenter.roeck@ericsson.com> and =A0Don=
-ggeun Kim <dg77.kim@samsung.com> (https://lkml.org/lkml/2012/1/5/7)
-> *Some changes according to the changes in common cpu cooling APIs *Th=
-e RFC based patches can be found here,
-> =A0https://lkml.org/lkml/2011/12/13/186
-> =A0https://lkml.org/lkml/2011/12/21/169
->
->
-> Brief Description:
->
-> 1) The generic cooling devices code is placed inside driver/thermal/*=
- as placing inside acpi folder will need un-necessary enabling of acpi =
-code. This codes is architecture independent.
->
-> 2) This patchset adds a new trip type THERMAL_TRIP_STATE_INSTANCE whi=
-ch passes cooling device instance number and may be helpful for cpufreq=
- cooling devices to take the correct cooling action. This trip type avo=
-ids the temperature comparision check again inside the cooling handler.
->
-> 3) This patchset adds generic cpu cooling low level implementation th=
-rough frequency clipping and cpu hotplug. In future, other cpu related =
-cooling devices may be added here. An ACPI version of this already exis=
-ts (drivers/acpi/processor_thermal.c). But this will be useful for plat=
-forms like ARM using the generic thermal interface along with the gener=
-ic cpu cooling devices. The cooling device registration API's return co=
-oling device pointers which can be easily binded with the thermal zone =
-trip points.
-> The important APIs exposed are,
-> =A0 a)struct thermal_cooling_device *cpufreq_cooling_register(
-> =A0 =A0 =A0 =A0struct freq_clip_table *tab_ptr, unsigned int tab_size=
-,
-> =A0 =A0 =A0 =A0const struct cpumask *mask_val)
-> =A0 b)void cpufreq_cooling_unregister(struct thermal_cooling_device *=
-cdev)
->
-> 4) Samsung exynos platform thermal implementation is done using the g=
-eneric cpu cooling APIs and the new trip type. The temperature sensor d=
-river present in the hwmon folder(registered as hwmon driver) is moved =
-to thermal folder and registered as a thermal driver.
->
-> All this patchset is based on Kernel version 3.4-rc6
->
-> A simple data/control flow diagrams is shown below,
->
-> Core Linux thermal <-----> =A0Exynos thermal interface <----- Tempera=
-ture Sensor
-> =A0 =A0 =A0 =A0 =A0| =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 |
-> =A0 =A0 =A0 =A0 \|/ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0|
-> =A0Cpufreq cooling device <---------------
->
-> TODO:
-> *Will send the DT enablement patches later after the driver is merged=
-=2E
->
->
-> Amit Daniel Kachhap (6):
-> =A0thermal: Add a new trip type to use cooling device instance number
-> =A0thermal: Add generic cpufreq cooling implementation
-> =A0hwmon: exynos4: Move thermal sensor driver to driver/thermal
-> =A0 =A0directory
-> =A0thermal: exynos5: Add exynos5 thermal sensor driver support
-> =A0thermal: exynos: Register the tmu sensor with the kernel thermal
-> =A0 =A0layer
-> =A0ARM: exynos: Add thermal sensor driver platform data support
->
-> =A0Documentation/hwmon/exynos4_tmu =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 8=
-1 ---
-> =A0Documentation/thermal/cpu-cooling-api.txt =A0 =A0| =A0 60 ++
-> =A0Documentation/thermal/exynos_thermal =A0 =A0 =A0 =A0 | =A0 52 ++
-> =A0Documentation/thermal/sysfs-api.txt =A0 =A0 =A0 =A0 =A0| =A0 =A04 =
-+-
-> =A0drivers/hwmon/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0| =A0 10 -
-> =A0drivers/hwmon/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- | =A0 =A01 -
-> =A0drivers/hwmon/exynos4_tmu.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0=
-514 --------------
-> =A0drivers/thermal/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-| =A0 20 +
-> =A0drivers/thermal/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 |=
- =A0 =A04 +-
-> =A0drivers/thermal/cpu_cooling.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0=
-359 ++++++++++
-> =A0drivers/thermal/exynos_thermal.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0933 =
-++++++++++++++++++++++++++
-> =A0drivers/thermal/thermal_sys.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0=
- 62 ++-
-> =A0include/linux/cpu_cooling.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0=
- 62 ++
-> =A0include/linux/platform_data/exynos4_tmu.h =A0 =A0| =A0 83 ---
-> =A0include/linux/platform_data/exynos_thermal.h | =A0100 +++
-> =A0include/linux/thermal.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-| =A0 =A01 +
-> =A016 files changed, 1651 insertions(+), 695 deletions(-) =A0delete m=
-ode 100644 Documentation/hwmon/exynos4_tmu =A0create mode 100644 Docume=
-ntation/thermal/cpu-cooling-api.txt
-> =A0create mode 100644 Documentation/thermal/exynos_thermal
-> =A0delete mode 100644 drivers/hwmon/exynos4_tmu.c =A0create mode 1006=
-44 drivers/thermal/cpu_cooling.c =A0create mode 100644 drivers/thermal/=
-exynos_thermal.c =A0create mode 100644 include/linux/cpu_cooling.h =A0d=
-elete mode 100644 include/linux/platform_data/exynos4_tmu.h
-> =A0create mode 100644 include/linux/platform_data/exynos_thermal.h
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
- in the body of a message to majordomo@vger.kernel.org More majordomo i=
-nfo at =A0http://vger.kernel.org/majordomo-info.html
+[Wed May  9 15:56:00 CEST 2012] cpu0 800000/800000 cpu1 800000/800000 cpu2 800000/800000 cpu3 800000/800000 tz0 61000 tz1 61000
+[Wed May  9 15:56:01 CEST 2012] cpu0 800000/2601000 cpu1 800000/800000 cpu2 800000/2601000 cpu3 2601000/800000 tz0 61000 tz1 61000
+[Wed May  9 15:56:02 CEST 2012] cpu0 800000/800000 cpu1 800000/800000 cpu2 800000/800000 cpu3 800000/800000 tz0 61000 tz1 61000
+[Wed May  9 15:56:04 CEST 2012] cpu0 800000/800000 cpu1 800000/800000 cpu2 800000/800000 cpu3 800000/800000 tz0 61000 tz1 61000
+[Wed May  9 15:56:05 CEST 2012] cpu0 800000/800000 cpu1 800000/800000 cpu2 800000/800000 cpu3 800000/800000 tz0 61000 tz1 61000
+[Wed May  9 15:56:06 CEST 2012] cpu0 800000/2601000 cpu1 800000/800000 cpu2 800000/2601000 cpu3 2601000/2601000 tz0 61000 tz1 61000
+[Wed May  9 15:56:07 CEST 2012] cpu0 800000/800000 cpu1 800000/800000 cpu2 800000/800000 cpu3 800000/800000 tz0 61000 tz1 61000
+[Wed May  9 15:56:08 CEST 2012] cpu0 800000/800000 cpu1 800000/800000 cpu2 800000/800000 cpu3 800000/800000 tz0 61000 tz1 61000
+[Wed May  9 15:56:09 CEST 2012] cpu0 800000/2601000 cpu1 800000/800000 cpu2 800000/2601000 cpu3 2601000/800000 tz0 61000 tz1 61000
+[Wed May  9 15:56:10 CEST 2012] cpu0 2601000/2601000 cpu1 800000/2601000 cpu2 800000/2601000 cpu3 800000/2601000 tz0 61000 tz1 61000
+[Wed May  9 15:56:11 CEST 2012] cpu0 800000/800000 cpu1 800000/2601000 cpu2 800000/800000 cpu3 2601000/2601000 tz0 61000 tz1 61000
+[Wed May  9 15:56:12 CEST 2012] cpu0 800000/800000 cpu1 800000/800000 cpu2 800000/800000 cpu3 800000/800000 tz0 61000 tz1 61000
+[Wed May  9 15:56:13 CEST 2012] cpu0 800000/800000 cpu1 800000/800000 cpu2 800000/800000 cpu3 800000/800000 tz0 61100 tz1 61100
+[Wed May  9 15:56:14 CEST 2012] cpu0 800000/800000 cpu1 800000/800000 cpu2 800000/800000 cpu3 800000/800000 tz0 61100 tz1 61100
+[Wed May  9 15:56:15 CEST 2012] cpu0 800000/800000 cpu1 800000/800000 cpu2 800000/800000 cpu3 800000/800000 tz0 61000 tz1 61000
+[Wed May  9 15:56:16 CEST 2012] cpu0 800000/800000 cpu1 800000/800000 cpu2 800000/800000 cpu3 800000/800000 tz0 61000 tz1 61000
+[Wed May  9 15:56:17 CEST 2012] cpu0 800000/2601000 cpu1 800000/800000 cpu2 800000/2601000 cpu3 2601000/800000 tz0 61000 tz1 61000
+[Wed May  9 15:56:18 CEST 2012] cpu0 800000/2601000 cpu1 800000/800000 cpu2 800000/2601000 cpu3 2601000/800000 tz0 61000 tz1 61000
+[Wed May  9 15:56:19 CEST 2012] cpu0 800000/800000 cpu1 800000/800000 cpu2 800000/800000 cpu3 800000/800000 tz0 61000 tz1 61000
+[Wed May  9 15:56:20 CEST 2012] cpu0 800000/800000 cpu1 800000/800000 cpu2 800000/800000 cpu3 800000/800000 tz0 61000 tz1 61000
+[Wed May  9 15:56:21 CEST 2012] cpu0 800000/800000 cpu1 800000/800000 cpu2 800000/800000 cpu3 800000/800000 tz0 61000 tz1 61000
+[Wed May  9 15:56:22 CEST 2012] cpu0 800000/800000 cpu1 800000/2601000 cpu2 2601000/800000 cpu3 800000/800000 tz0 61000 tz1 61000
+[Wed May  9 15:56:23 CEST 2012] cpu0 800000/800000 cpu1 800000/800000 cpu2 800000/800000 cpu3 800000/800000 tz0 61000 tz1 61000
+[Wed May  9 15:56:24 CEST 2012] cpu0 800000/800000 cpu1 800000/800000 cpu2 800000/800000 cpu3 800000/800000 tz0 61000 tz1 61000
+[Wed May  9 15:56:25 CEST 2012] cpu0 800000/800000 cpu1 800000/800000 cpu2 800000/800000 cpu3 800000/800000 tz0 61000 tz1 61000
+[Wed May  9 15:56:26 CEST 2012] cpu0 800000/800000 cpu1 800000/800000 cpu2 800000/800000 cpu3 800000/800000 tz0 61000 tz1 61000
+[Wed May  9 15:56:27 CEST 2012] cpu0 800000/2601000 cpu1 800000/2601000 cpu2 2601000/2601000 cpu3 800000/800000 tz0 61000 tz1 61000
+[Wed May  9 15:56:28 CEST 2012] cpu0 800000/800000 cpu1 800000/800000 cpu2 800000/800000 cpu3 800000/800000 tz0 61000 tz1 61000
+[Wed May  9 15:56:29 CEST 2012] cpu0 800000/2601000 cpu1 800000/800000 cpu2 800000/2601000 cpu3 1200000/800000 tz0 63800 tz1 63800
+[Wed May  9 15:56:30 CEST 2012] cpu0 800000/800000 cpu1 800000/800000 cpu2 800000/2601000 cpu3 1000000/800000 tz0 64100 tz1 64100
+*** Build starts roughly here ***
+[Wed May  9 15:56:31 CEST 2012] cpu0 800000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 800000/2601000 tz0 64100 tz1 64100
+[Wed May  9 15:56:32 CEST 2012] cpu0 2601000/800000 cpu1 2601000/2601000 cpu2 800000/800000 cpu3 800000/1000000 tz0 64300 tz1 64300
+[Wed May  9 15:56:33 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/800000 cpu2 800000/2601000 cpu3 800000/2601000 tz0 64600 tz1 64600
+[Wed May  9 15:56:34 CEST 2012] cpu0 2601000/800000 cpu1 800000/2601000 cpu2 800000/2601000 cpu3 800000/800000 tz0 65400 tz1 65400
+[Wed May  9 15:56:35 CEST 2012] cpu0 800000/800000 cpu1 800000/2601000 cpu2 2601000/800000 cpu3 2601000/2601000 tz0 65600 tz1 65600
+[Wed May  9 15:56:36 CEST 2012] cpu0 800000/800000 cpu1 800000/800000 cpu2 800000/800000 cpu3 800000/800000 tz0 65700 tz1 65700
+[Wed May  9 15:56:37 CEST 2012] cpu0 800000/2601000 cpu1 2601000/2601000 cpu2 800000/2601000 cpu3 800000/2601000 tz0 65700 tz1 65700
+[Wed May  9 15:56:38 CEST 2012] cpu0 800000/800000 cpu1 800000/800000 cpu2 800000/800000 cpu3 800000/800000 tz0 65700 tz1 65700
+[Wed May  9 15:56:39 CEST 2012] cpu0 2601000/2601000 cpu1 800000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 66300 tz1 66300
+[Wed May  9 15:56:40 CEST 2012] cpu0 800000/800000 cpu1 800000/2601000 cpu2 800000/800000 cpu3 2601000/800000 tz0 67900 tz1 67900
+[Wed May  9 15:56:41 CEST 2012] cpu0 800000/2601000 cpu1 2601000/800000 cpu2 800000/2601000 cpu3 800000/2601000 tz0 67900 tz1 67900
+[Wed May  9 15:56:42 CEST 2012] cpu0 2601000/800000 cpu1 800000/800000 cpu2 800000/2601000 cpu3 800000/800000 tz0 67300 tz1 67300
+[Wed May  9 15:56:43 CEST 2012] cpu0 800000/800000 cpu1 800000/800000 cpu2 800000/800000 cpu3 800000/800000 tz0 67300 tz1 67300
+[Wed May  9 15:56:44 CEST 2012] cpu0 800000/800000 cpu1 800000/800000 cpu2 800000/800000 cpu3 800000/800000 tz0 67300 tz1 67300
+[Wed May  9 15:56:45 CEST 2012] cpu0 800000/800000 cpu1 800000/2601000 cpu2 2601000/2601000 cpu3 1600000/2601000 tz0 67300 tz1 67300
+[Wed May  9 15:56:46 CEST 2012] cpu0 2601000/2601000 cpu1 800000/2601000 cpu2 800000/2601000 cpu3 2601000/2601000 tz0 67400 tz1 67400
+[Wed May  9 15:56:47 CEST 2012] cpu0 1000000/2601000 cpu1 800000/2601000 cpu2 800000/2601000 cpu3 800000/2601000 tz0 67800 tz1 67800
+[Wed May  9 15:56:49 CEST 2012] cpu0 800000/800000 cpu1 800000/2601000 cpu2 800000/800000 cpu3 2601000/2601000 tz0 67800 tz1 67800
+[Wed May  9 15:56:50 CEST 2012] cpu0 2601000/2601000 cpu1 800000/800000 cpu2 2601000/800000 cpu3 800000/800000 tz0 67700 tz1 67700
+[Wed May  9 15:56:51 CEST 2012] cpu0 800000/2601000 cpu1 800000/2601000 cpu2 800000/2601000 cpu3 2601000/2601000 tz0 67700 tz1 67700
+[Wed May  9 15:56:52 CEST 2012] cpu0 800000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 800000/2601000 tz0 67700 tz1 67700
+[Wed May  9 15:56:53 CEST 2012] cpu0 2601000/800000 cpu1 800000/800000 cpu2 800000/2601000 cpu3 800000/2601000 tz0 67800 tz1 67800
+[Wed May  9 15:56:54 CEST 2012] cpu0 800000/2601000 cpu1 800000/2601000 cpu2 2601000/2601000 cpu3 1200000/2601000 tz0 67800 tz1 67800
+[Wed May  9 15:56:55 CEST 2012] cpu0 800000/800000 cpu1 800000/2000000 cpu2 800000/2000000 cpu3 2000000/2000000 tz0 67800 tz1 67800
+[Wed May  9 15:56:56 CEST 2012] cpu0 800000/800000 cpu1 800000/800000 cpu2 800000/800000 cpu3 800000/800000 tz0 67800 tz1 67800
+[Wed May  9 15:56:57 CEST 2012] cpu0 800000/2601000 cpu1 2601000/2601000 cpu2 800000/2601000 cpu3 800000/2601000 tz0 67700 tz1 67700
+[Wed May  9 15:56:58 CEST 2012] cpu0 2601000/2601000 cpu1 2200000/2601000 cpu2 2600000/2601000 cpu3 2200000/2601000 tz0 67800 tz1 67800
+[Wed May  9 15:56:59 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 67800 tz1 67800
+[Wed May  9 15:57:00 CEST 2012] cpu0 2601000/2601000 cpu1 800000/2601000 cpu2 800000/2601000 cpu3 800000/2601000 tz0 71300 tz1 71300
+[Wed May  9 15:57:01 CEST 2012] cpu0 800000/2601000 cpu1 2601000/2601000 cpu2 800000/2601000 cpu3 800000/2601000 tz0 80600 tz1 80600
+[Wed May  9 15:57:02 CEST 2012] cpu0 800000/2601000 cpu1 800000/2601000 cpu2 800000/2601000 cpu3 2601000/2601000 tz0 80600 tz1 80600
+[Wed May  9 15:57:03 CEST 2012] cpu0 1400000/2601000 cpu1 2601000/2601000 cpu2 800000/2601000 cpu3 2601000/2601000 tz0 77700 tz1 77700
+[Wed May  9 15:57:04 CEST 2012] cpu0 800000/2601000 cpu1 800000/2601000 cpu2 2601000/2601000 cpu3 800000/2601000 tz0 77700 tz1 77700
+[Wed May  9 15:57:05 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 77700 tz1 77700
+[Wed May  9 15:57:06 CEST 2012] cpu0 2000000/2601000 cpu1 2601000/2601000 cpu2 2601000/2600000 cpu3 1600000/2601000 tz0 78400 tz1 78400
+[Wed May  9 15:57:07 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 80900 tz1 80900
+May  9 15:57:07 nodbug kernel: [  586.351347] CPU1: Core temperature/speed normal
+May  9 15:57:07 nodbug kernel: [  586.351351] CPU2: Package temperature/speed normal
+May  9 15:57:07 nodbug kernel: [  586.351353] CPU0: Package temperature/speed normal
+May  9 15:57:07 nodbug kernel: [  586.351356] CPU1: Package temperature/speed normal
+May  9 15:57:07 nodbug kernel: [  586.356899] CPU3: Core temperature/speed normal
+May  9 15:57:07 nodbug kernel: [  586.356902] CPU3: Package temperature/speed normal
+[Wed May  9 15:57:08 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 90700 tz1 90700
+[Wed May  9 15:57:09 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 90700 tz1 90700
+[Wed May  9 15:57:10 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 76500 tz1 76500
+[Wed May  9 15:57:11 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 76500 tz1 76500
+[Wed May  9 15:57:12 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 76500 tz1 76500
+[Wed May  9 15:57:13 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 92700 tz1 92700
+[Wed May  9 15:57:14 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 92700 tz1 92700
+[Wed May  9 15:57:15 CEST 2012] cpu0 2601000/2601000 cpu1 2400000/2600000 cpu2 2601000/2601000 cpu3 2400000/2601000 tz0 77600 tz1 77600
+[Wed May  9 15:57:16 CEST 2012] cpu0 2200000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 77600 tz1 77600
+[Wed May  9 15:57:17 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 77600 tz1 77600
+[Wed May  9 15:57:18 CEST 2012] cpu0 1000000/1000000 cpu1 800000/1000000 cpu2 1000000/1000000 cpu3 800000/1000000 tz0 92700 tz1 92700
+[Wed May  9 15:57:19 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 92700 tz1 92700
+[Wed May  9 15:57:20 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2600000/2601000 cpu3 2601000/2601000 tz0 78000 tz1 78000
+[Wed May  9 15:57:21 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 78000 tz1 78000
+May  9 15:57:21 nodbug kernel: [  599.746720] [Hardware Error]: Machine check events logged
+May  9 15:57:21 nodbug mcelog: Processor 1 heated above trip temperature. Throttling enabled.
+May  9 15:57:21 nodbug mcelog: Please check your system cooling. Performance will be impacted
+May  9 15:57:21 nodbug mcelog: Processor 1 below trip temperature. Throttling disabled
+May  9 15:57:21 nodbug mcelog: Processor 3 heated above trip temperature. Throttling enabled.
+May  9 15:57:21 nodbug mcelog: Please check your system cooling. Performance will be impacted
+May  9 15:57:21 nodbug mcelog: Processor 3 below trip temperature. Throttling disabled
+[Wed May  9 15:57:22 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 78000 tz1 78000
+[Wed May  9 15:57:23 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 93600 tz1 93600
+[Wed May  9 15:57:24 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 800000/1000000 cpu3 1000000/1000000 tz0 93600 tz1 93600
+[Wed May  9 15:57:25 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 78600 tz1 78600
+[Wed May  9 15:57:26 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 78600 tz1 78600
+[Wed May  9 15:57:27 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2600000/2601000 cpu3 2601000/2601000 tz0 78600 tz1 78600
+[Wed May  9 15:57:28 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 93700 tz1 93700
+[Wed May  9 15:57:29 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 93700 tz1 93700
+[Wed May  9 15:57:30 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 79000 tz1 79000
+[Wed May  9 15:57:31 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 79000 tz1 79000
+[Wed May  9 15:57:32 CEST 2012] cpu0 2600000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 79000 tz1 79000
+[Wed May  9 15:57:33 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 93800 tz1 93800
+[Wed May  9 15:57:34 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 93800 tz1 93800
+[Wed May  9 15:57:35 CEST 2012] cpu0 1600000/2601000 cpu1 2400000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 79400 tz1 79400
+[Wed May  9 15:57:36 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2600000/2601000 cpu3 2601000/2601000 tz0 79400 tz1 79400
+[Wed May  9 15:57:37 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 79400 tz1 79400
+[Wed May  9 15:57:38 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 93700 tz1 93700
+[Wed May  9 15:57:40 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 93700 tz1 93700
+[Wed May  9 15:57:41 CEST 2012] cpu0 1400000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2600000/2601000 tz0 79700 tz1 79700
+[Wed May  9 15:57:42 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 79700 tz1 79700
+[Wed May  9 15:57:43 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 79700 tz1 79700
+[Wed May  9 15:57:44 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 93700 tz1 93700
+[Wed May  9 15:57:45 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 80100 tz1 80100
+[Wed May  9 15:57:46 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 1200000/2601000 tz0 80100 tz1 80100
+[Wed May  9 15:57:47 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 80100 tz1 80100
+[Wed May  9 15:57:48 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 94000 tz1 94000
+[Wed May  9 15:57:49 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 94000 tz1 94000
+[Wed May  9 15:57:50 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 80400 tz1 80400
+[Wed May  9 15:57:51 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 80400 tz1 80400
+[Wed May  9 15:57:52 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 80400 tz1 80400
+[Wed May  9 15:57:53 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 93900 tz1 93900
+[Wed May  9 15:57:54 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 93900 tz1 93900
+[Wed May  9 15:57:55 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2400000/2601000 cpu3 1600000/2601000 tz0 80300 tz1 80300
+[Wed May  9 15:57:56 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 80300 tz1 80300
+[Wed May  9 15:57:57 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 80300 tz1 80300
+[Wed May  9 15:57:58 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 93400 tz1 93400
+[Wed May  9 15:57:59 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 93400 tz1 93400
+[Wed May  9 15:58:00 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 80700 tz1 80700
+[Wed May  9 15:58:01 CEST 2012] cpu0 2601000/2601000 cpu1 2000000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 80700 tz1 80700
+[Wed May  9 15:58:02 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 80700 tz1 80700
+[Wed May  9 15:58:03 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 94000 tz1 94000
+[Wed May  9 15:58:04 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 94000 tz1 94000
+[Wed May  9 15:58:05 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 80900 tz1 80900
+[Wed May  9 15:58:06 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 80900 tz1 80900
+[Wed May  9 15:58:07 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 80900 tz1 80900
+[Wed May  9 15:58:08 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 93900 tz1 93900
+[Wed May  9 15:58:09 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 93900 tz1 93900
+[Wed May  9 15:58:10 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 81000 tz1 81000
+[Wed May  9 15:58:11 CEST 2012] cpu0 2600000/2600000 cpu1 2601000/2600000 cpu2 2601000/2600000 cpu3 2200000/2600000 tz0 79000 tz1 79000
+[Wed May  9 15:58:12 CEST 2012] cpu0 1400000/2600000 cpu1 2601000/2600000 cpu2 1200000/2600000 cpu3 2601000/2600000 tz0 79000 tz1 79000
+[Wed May  9 15:58:13 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 79000 tz1 79000
+[Wed May  9 15:58:14 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 93600 tz1 93600
+[Wed May  9 15:58:15 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 93600 tz1 93600
+[Wed May  9 15:58:16 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 81000 tz1 81000
+[Wed May  9 15:58:17 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 78800 tz1 78800
+[Wed May  9 15:58:18 CEST 2012] cpu0 2601000/2601000 cpu1 2400000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 78800 tz1 78800
+[Wed May  9 15:58:20 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 78800 tz1 78800
+[Wed May  9 15:58:21 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 800000/1000000 tz0 93800 tz1 93800
+[Wed May  9 15:58:22 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 93800 tz1 93800
+[Wed May  9 15:58:23 CEST 2012] cpu0 2601000/2601000 cpu1 2200000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 80700 tz1 80700
+[Wed May  9 15:58:24 CEST 2012] cpu0 2601000/2600000 cpu1 2601000/2600000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 80700 tz1 80700
+[Wed May  9 15:58:25 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 80700 tz1 80700
+[Wed May  9 15:58:26 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 93800 tz1 93800
+[Wed May  9 15:58:27 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 80900 tz1 80900
+[Wed May  9 15:58:28 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 80900 tz1 80900
+[Wed May  9 15:58:29 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 80900 tz1 80900
+[Wed May  9 15:58:30 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 94000 tz1 94000
+[Wed May  9 15:58:31 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 94000 tz1 94000
+[Wed May  9 15:58:32 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 81000 tz1 81000
+[Wed May  9 15:58:33 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 79100 tz1 79100
+[Wed May  9 15:58:34 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 79100 tz1 79100
+[Wed May  9 15:58:35 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 79100 tz1 79100
+[Wed May  9 15:58:36 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 94000 tz1 94000
+[Wed May  9 15:58:37 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 94000 tz1 94000
+[Wed May  9 15:58:38 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 81500 tz1 81500
+[Wed May  9 15:58:39 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 79300 tz1 79300
+[Wed May  9 15:58:40 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 79300 tz1 79300
+[Wed May  9 15:58:41 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 79300 tz1 79300
+[Wed May  9 15:58:42 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 93100 tz1 93100
+[Wed May  9 15:58:43 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 93100 tz1 93100
+[Wed May  9 15:58:44 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 81300 tz1 81300
+[Wed May  9 15:58:45 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2000000/2601000 tz0 79300 tz1 79300
+[Wed May  9 15:58:46 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2400000/2601000 cpu3 2601000/2601000 tz0 79300 tz1 79300
+[Wed May  9 15:58:47 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 79300 tz1 79300
+[Wed May  9 15:58:48 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 93200 tz1 93200
+[Wed May  9 15:58:49 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 93200 tz1 93200
+[Wed May  9 15:58:50 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 81300 tz1 81300
+[Wed May  9 15:58:51 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 79300 tz1 79300
+[Wed May  9 15:58:52 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 79300 tz1 79300
+[Wed May  9 15:58:53 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 79300 tz1 79300
+[Wed May  9 15:58:54 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 93700 tz1 93700
+[Wed May  9 15:58:55 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 93700 tz1 93700
+[Wed May  9 15:58:56 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 81200 tz1 81200
+[Wed May  9 15:58:57 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 79100 tz1 79100
+[Wed May  9 15:58:59 CEST 2012] cpu0 2400000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 79100 tz1 79100
+[Wed May  9 15:59:00 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 79100 tz1 79100
+[Wed May  9 15:59:01 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 93900 tz1 93900
+[Wed May  9 15:59:02 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 93900 tz1 93900
+[Wed May  9 15:59:03 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 81600 tz1 81600
+[Wed May  9 15:59:04 CEST 2012] cpu0 2601000/2601000 cpu1 2400000/2601000 cpu2 2600000/2601000 cpu3 2600000/2601000 tz0 79500 tz1 79500
+[Wed May  9 15:59:05 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2601000/2601000 cpu3 2601000/2601000 tz0 79500 tz1 79500
+[Wed May  9 15:59:06 CEST 2012] cpu0 2601000/2601000 cpu1 2601000/2601000 cpu2 2200000/2601000 cpu3 2601000/2601000 tz0 79500 tz1 79500
+[Wed May  9 15:59:07 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 94000 tz1 94000
+[Wed May  9 15:59:08 CEST 2012] cpu0 1000000/1000000 cpu1 1000000/1000000 cpu2 1000000/1000000 cpu3 1000000/1000000 tz0 81300 tz1 81300
+*** I killed the build here ***
+[Wed May  9 15:59:09 CEST 2012] cpu0 800000/800000 cpu1 800000/800000 cpu2 800000/800000 cpu3 800000/800000 tz0 79600 tz1 79600
+[Wed May  9 15:59:10 CEST 2012] cpu0 800000/800000 cpu1 800000/800000 cpu2 800000/800000 cpu3 800000/800000 tz0 76000 tz1 76000
+[Wed May  9 15:59:11 CEST 2012] cpu0 800000/2601000 cpu1 800000/800000 cpu2 800000/2601000 cpu3 2601000/800000 tz0 74500 tz1 74500
+[Wed May  9 15:59:12 CEST 2012] cpu0 800000/800000 cpu1 800000/800000 cpu2 800000/800000 cpu3 800000/800000 tz0 73900 tz1 73900
+[Wed May  9 15:59:13 CEST 2012] cpu0 800000/800000 cpu1 800000/800000 cpu2 800000/800000 cpu3 800000/800000 tz0 73300 tz1 73300
+[Wed May  9 15:59:14 CEST 2012] cpu0 800000/800000 cpu1 800000/800000 cpu2 800000/800000 cpu3 800000/800000 tz0 73000 tz1 73000
+[Wed May  9 15:59:15 CEST 2012] cpu0 800000/800000 cpu1 800000/800000 cpu2 800000/800000 cpu3 800000/800000 tz0 72900 tz1 72900
+
+I have several questions:
+
+1) Is this normal? Should I be worried about my machine's cooling?
+
+2) The kernel claims to have enabled and then disabled throttling, but the
+cpu frequencies reported (and subjectively, expected performance) don't
+seem to reflect that as we can see by the presence of 1GHz in the log.
+
+3) I assume throttling was enabled because of the tz0 passive trip point?
+(from acpi -V):
+
+Thermal 0: ok, 60.8 degrees C
+Thermal 0: trip point 0 switches to mode critical at temperature 130.0 degrees C
+Thermal 0: trip point 1 switches to mode passive at temperature 81.0 degrees C
+Thermal 1: ok, 60.8 degrees C
+Thermal 1: trip point 0 switches to mode critical at temperature 105.0 degrees C
+
+4) .../cpu0/cpufreq/scaling_available_frequencies gives:
+
+2601000 2600000 2400000 2200000 2000000 1800000 1600000 1400000 1200000 1000000 800000
+
+What is 2601000? Some googling seems to suggest it might be a step for
+"Turbo mode" but this is not documented anywhere.
+
+5) I also tried monitoring the CPU speed with "i7z" [1] which unlike
+cpufreq-info actually appears to be able to report the turbo mode
+frequencies, but that showed similarly strange results (e.g. CPU running at
+1GHz as above). Can i7z direct access to MSRs confuse or otherwise affect
+the kernel cpufreq governor?
+
+6) If I run a kernel build for longer, I don't usually see more MCEs (maybe
+one or two, maybe none). Haven't tried monitoring the thermal zones and
+frequencies for a full build, will do that now.
+
+-mato
+-- 
+Martin Lucina
+http://lucina.net/ (interwebs/blogs/rants/consulting)
+martin@lucina.net  (smtp/xmpp/jabber/gtalk)
+@matolucina        (twitter)
