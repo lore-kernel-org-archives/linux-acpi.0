@@ -1,86 +1,88 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH v2 3/7] ACPI: Add _OST support for sysfs eject
-Date: Wed, 09 May 2012 12:16:17 -0600
-Message-ID: <1336587377.16730.150.camel@misato.fc.hp.com>
+Subject: Re: [PATCH v2 0/7] ACPI: Add _OST support for ACPI hotplug
+Date: Wed, 09 May 2012 12:44:02 -0600
+Message-ID: <1336589042.16730.170.camel@misato.fc.hp.com>
 References: <1336507944-10219-1-git-send-email-toshi.kani@hp.com>
-	 <1336507944-10219-4-git-send-email-toshi.kani@hp.com>
-	 <1336581973.2498.15.camel@lorien2>
+	 <1336585000.2498.23.camel@lorien2>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0007.atlanta.hp.com ([15.192.0.44]:21276 "EHLO
-	g5t0007.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753717Ab2EISSu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 May 2012 14:18:50 -0400
-In-Reply-To: <1336581973.2498.15.camel@lorien2>
+Received: from g1t0029.austin.hp.com ([15.216.28.36]:16040 "EHLO
+	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752964Ab2EISqf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 May 2012 14:46:35 -0400
+In-Reply-To: <1336585000.2498.23.camel@lorien2>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: shuahkhan@gmail.com
 Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, bhelgaas@google.com, linux-kernel@vger.kernel.org
 
-On Wed, 2012-05-09 at 10:46 -0600, Shuah Khan wrote:
+On Wed, 2012-05-09 at 11:36 -0600, Shuah Khan wrote:
 > On Tue, 2012-05-08 at 14:12 -0600, Toshi Kani wrote:
-> > Changed acpi_bus_hot_remove_device() to support _OST. This function is
-> > also changed to global so that it can be called from hotplug notify
-> > handlers to perform hot-remove operation.
+> > This patchset supports ACPI OSPM Status Indication (_OST) method for
+> > ACPI CPU/memory/container hotplug operations and sysfs eject. After
+> > ACPI hotplug operation has completed, OSPM calls _OST to indicate the
+> > status of the operation to the platform. If _OST is not present, this
+> > patchset has no effect on the platform.
 > > 
-> > Changed acpi_eject_store(), which is the sysfs eject handler. It checks
-> > eject_pending to see if the request was originated from ACPI eject
-> > notification. If not, it calls _OST(0x103,84,) per Figure 6-37 in ACPI
-> > 5.0 spec.
+> > This _OST support can be enabled or disabled with a new config option
+> > CONFIG_ACPI_HOTPLUG_OST. This option is disabled by default. When
+> > this option is disabled, this patchset has no effect on the platform.
 > > 
-> > Added eject_pending bit to acpi_device_flags. This bit is set when the
-> > kernel has received an ACPI eject notification, but does not initiate
-> > its hot-remove operation by itself.
+> > The _OST definition can be found in section 6.3.5 of ACPI 5.0 spec.
+> > The HPPF spec below also describes hotplug flows with _OST.
 > > 
-> > Added struct acpi_eject_event. This structure is used to pass extended
-> > information to acpi_bus_hot_remove_device(), which has a single argument
-> > to support asynchronous call.
+> >   DIG64 Hot-Plug & Partitioning Flow (HPPF) Specification R1.0
+> >   http://www.dig64.org/home/DIG64_HPPF_R1_0.pdf
 > > 
-> > Added macro definitions of _OST source events and status codes.
-> > Also renamed OSC_SB_CPUHP_OST_SUPPORT to OSC_SB_HOTPLUG_OST_SUPPORT
-> > since this _OSC bit is not specific to CPU hotplug. This bit is
-> > defined in Table 6-147 of ACPI 5.0 as follows.
+> > The changes have been tested with simulated _OST methods.
+> > 
+> > v2:
+> >  - Added CONFIG_ACPI_HOTPLUG_OST option. 
+> >  - Added _OST support for container hotplug and sysfs eject.
+> >  - Reordered patchset to enable _OST support bit of _OSC in the 
+> >    last patch.
+> > 
+> > ---
+> > Toshi Kani (7):
+> >  ACPI: Add CONFIG_HOTPLUG_OST option
+> >  ACPI: Add an interface to evaluate _OST
+> >  ACPI: Add _OST support for sysfs eject
+> >  ACPI: Add _OST support for ACPI CPU hotplug
+> >  ACPI: Add _OST support for ACPI memory hotplug
+> >  ACPI: Add _OST support for ACPI container hotplug
+> >  ACPI: Set hotplug _OST support bit to _OSC
+> > 
 > 
-> I am confused. This patch adds lot of new code that is for _OST handling
-> without CONFIG_ACPI_HOTPLUG_OST check. Is this intended? Doesn't jive
-> with the intent communicated in the [PATCH v2 0/7] introduction.
+> Did you look into implementing this maybe in a generic way by adding a
+> new device_ops that adds the ability to return status back to firmware?
+> It can be left null on systems that don't implement _OST. This way it
+> might be cleaner and can extend to other means of returning status back
+> to firmware if any.
 
-Yes, it is intended to minimize the use of #ifdefs in order to improve
-its code readability and maintainability.  The statement in the [PATCH
-v2 0/7] is correct.  When CONFIG_ACPI_HOTPLUG_OST is disabled, there is
-no change in the kernel functionality nor in the OS-firmware
-interaction.  
+As Bjorn pointed out in his review comments, if the OS indicates hotplug
+_OST support to _OSC, it needs to evaluate _OST for any devices.
+Therefore, we should not provide a way for each device to have different
+ways of supporting _OST.  This patchset is designed to provide
+consistent behavior among multiple devices.
 
 
-> Could you please walk though the steps on what happens with this code on
-> a system that doesn't enable _OST and doesn't support _OST. That will
-> help me understand how this code would behave on a system that doesn't
-> support _OST.
+> Adding _OST support the way it is done in this patch set is rather
+> invasive and CONFIG_HOTPLUG_OST only helps disable just the evaluation
+> of _OST method. Other code changes do get executed on all platforms.
 
-1. CONFIG_ACPI_HOTPLUG_OST disabled
-There is no change in the kernel functionality nor in the OS-firmware
-interaction.  This case is same whether or not the system supports _OST.
-
-- At boot-time, the kernel calls ACPI Operating System Capabilities
-(_OSC) method, if present, with hotplug _OST bit unset. This indicates
-that the OS does not support hotplug _OST.
-- During a hotplug operation, the OS does not call _OST method because
-acpi_evaluate_hotplug_ost() is stubbed out.
-
-2. CONFIG_ACPI_HOTPLUG_OST enabled, but the system does not support _OST
-
-- At boot-time, the kernel calls ACPI _OSC method, if present, with
-hotplug _OST bit set. This indicates that the OS supports hotplug _OST.
-Firmware ignores this bit since it does not support _OST.
-- During a hotplug operation, the OS attempts to call _OST method.
-Since _OST method is not present, this _OST call is a no-op
-(AE_NOT_FOUND).
+This _OST config option, as it is defined, enables or disables _OST
+support.  The _OST code changes are limited to the scope of hotplug
+operation code paths, which can also be enabled / disabled with their
+HOTPLUG config options.
 
 
 Thanks,
 -Toshi
- 
+
+
+
+
 
 
