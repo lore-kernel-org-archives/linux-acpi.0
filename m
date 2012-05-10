@@ -1,76 +1,160 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [opensuse-kernel] 3.4rc6: ACPI change/regression ?
-Date: Thu, 10 May 2012 20:31:26 +0200
-Message-ID: <201205102031.26807.rjw@sisk.pl>
-References: <4FAA8C36.7040503@opensuse.org> <201205102028.33871.rjw@suse.de>
+From: Dan Williams <dcbw-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [RFC PATCH] usb/acpi: Add support usb port power off mechanism
+ for device fixed on the motherboard
+Date: Thu, 10 May 2012 14:19:38 -0500
+Message-ID: <1336677578.6463.5.camel@dcbw.foobar.com>
+References: <Pine.LNX.4.44L0.1205101136470.1831-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:36630 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761098Ab2EJS0f convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 May 2012 14:26:35 -0400
-In-Reply-To: <201205102028.33871.rjw@suse.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.44L0.1205101136470.1831-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Cc: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: opensuse-kernel@opensuse.org
-Cc: Linux PM list <linux-pm@vger.kernel.org>, Cristian =?iso-8859-1?q?Rodr=EDguez?= <crrodriguez@opensuse.org>, len.brown@intel.com, ming.m.lin@intel.com, Len Brown <lenb@kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-Hi,
+On Thu, 2012-05-10 at 11:54 -0400, Alan Stern wrote:
+> On Thu, 10 May 2012, Lan Tianyu wrote:
+> 
+> > hi all:
+> > 	Currently, we are working on usb port power off mechanism. Our developing
+> > machine provides usb port power control (a vbus switch)via ACPI power resource.
+> > When the power resource turns off, usb port powers off and usb device loses
+> > power. From usb hub side, just like the device being unplugged.
+> > 
+> > 	Since usb port power off will affect hot-plug and devices remote wakeup
+> > function, it should be careful to do that.
+> > 	We conclude three different situations for power off mechanism.
+> > 	(1) hard-wired port with device
+> > 	(2) hot-pluggable port without device
+> > 	(3) hot-pluggable port with device
+> > 
+> > For hard-wired port, the device will not be removed physically. So we can
+> > power off it when device is suspended and remote wakeup is disabled without
+> > concerning with hot-plug. This patch is dedicated to this siutation.
+> > 
+> > This patch is to provide usb acpi power control method and call them in the
+> > usb_port_suspend() and usb_port_resume() when port can be power off. When the
+> > usb port is in the power off state, usb core doesn't remove device which is
+> > attached to the port. The device is still on the system and user can access
+> > the device.
+> 
+> Can you provide any examples where this would be useful?  It won't end 
+> up saving very much power (although on a laptop even a little bit might 
+> help).
 
-On Thursday, May 10, 2012, Rafael J. Wysocki wrote:
-> On Wednesday, May 09, 2012, Cristian Rodr=EDguez wrote:
-> > Hi:
-> >=20
-> > Since 3.4rc6 I am not able to "turn off" unused Nvidia "optimus" ca=
-rd,=20
-> > either with 3rd party modules or vga_switchero.
-> >=20
-> > In rc5 it worked fine, now I get:
-> >=20
-> > a) with third party bbswitch module.
-> >=20
-> > bbswitch: Found integrated VGA device 0000:00:02.0: \_SB_.PCI0.GFX0
-> > bbswitch: Found discrete VGA device 0000:01:00.0: \_SB_.PCI0.PEG0.P=
-EGP
-> > bbswitch: detected an Optimus _DSM function
-> > bbswitch: disabling discrete graphics
-> > bbswitch: Result of Optimus _DSM call: 11000059
-> > pci 0000:01:00.0: Refused to change power state, currently in D0
-> > ACPI: Device does not support D3
-> > bbswitch: Succesfully loaded. Discrete card 0000:01:00.0 is on
-> >=20
-> > Ok, third party module may be buggy and I don't expect anyone here =
-to=20
-> > support it, so I went to try kernel vga_switchero..
-> >=20
-> > VGA switcheroo: switched nouveau off
-> > [drm] nouveau 0000:01:00.0: Disabling display...
-> > [drm] nouveau 0000:01:00.0: Disabling fbcon...
-> > [drm] nouveau 0000:01:00.0: Unpinning framebuffer(s)...
-> > [drm] nouveau 0000:01:00.0: Evicting buffers...
-> > [drm] nouveau 0000:01:00.0: Idling channels...
-> > [drm] nouveau 0000:01:00.0: Suspending GPU objects...
-> > [drm] nouveau 0000:01:00.0: And we're gone!
-> > ACPI: Device does not support D3
-> >=20
-> > But device DOES support D3 states or at least it did in rc5..
-> >=20
-> > The ill effec of this change is that now the video card fan is runn=
-ing=20
-> > almost all the time.
-> >=20
-> > Is this a side effect of=20
-> > http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux.git;a=3D=
-commit;h=3D1cc0c998fdf2cb665d625fb565a0d6db5c81c639=20
-> > ?
+I'd love to do this with ModemManager to shoot a modem in the head if
+it's crashed.  Right now there's simply no way to reset a device that's
+misbehaving or crashed.  Powering off the port would be a last resort,
+but not all devices actually disconnect from the bus when they crash and
+reconnect after the firmware reboots.
 
-Yes, it's probably this one.  Have you tried to revert it?
+Dan
 
-Rafael
+> > introduce three port's states.
+> > 
+> > USB_PORT_POWER_STATE_ON
+> > USB_PORT_WAITING_FOR_CONNECTION
+> > USB_PORT_POWER_STATE_OFF
+> > 
+> > "on"
+> > 	port power on
+> > 
+> > "waiting for connection"
+> > 	port power on but hub port has not detected the device or detect event has
+> > not been processed.
+> 
+> This state is not needed.
+> 
+> > "off"
+> > 	port power off
+> > 
+> > At first, port's state is "on". When the device is suspended, power off the port and
+> > set port's state to "off". After the port powering off, the usb hub will detect a
+> > connection change event. Normally, the device will be removed with regarding as being
+> > unplugged. But in the power off mechanism, the device is still on the port and user
+> > can still access the device. So ignore the event.
+> > 
+> > When the device is resumed, turn on the power resource and set port's state to
+> > "waiting for connection". After the port powering on, the usb hub will detect a
+> > connection change event which originally means a device plugged in and previous
+> > device will be removed. But in the power offmechanism, the device is not changed
+> > and so ignore the event. When port's state is "waiting for connection", receive
+> > an event "connection" and the port's connection state is on. This means the usb
+> > the device is detected by usb hub again after powering on port. Set port's state
+> > to "on".
+> > 
+> >  "on"
+> >   |
+> >  "off"
+> >   |
+> >  "waiting for connection"
+> >   |
+> >  "on"
+> > 
+> > "waiting for connection" state is to avoid device to being removed.
+> 
+> Why would the device be removed?
+> 
+> > If set to "on" after powering on, the connection event may not be processed at that
+> > time. When it is processed, the port's state has been "on" and the device will be
+> > removed. So introduce "waiting for connection" state.
+> 
+> Instead you should simply delay setting the state back to "on" until
+> the device has connected.
+> 
+> > We also have a proposal to add sys file for each port to control port power off
+> > under usb hub sys directory. If the port's power off is supported by platform,
+> > create a sys file e.g "port1_power"  for port one. Echo "on" to "port1_power" is
+> > to not allow port to be power off. Echo "auto" to "port1_power" is to power off
+> > port if possible.
+> > 
+> > Different type ports have different default values.
+> > (1) hard-wired port with device				"auto"
+> > (2) hot-pluggable port without device		"on"
+> > (3) hot-pluggable port with device			"on"
+> > 
+> > Add member port_power_control, can_power_off  to struct usb_hub_port. port_power_control
+> > records user choice. Can_power_off means the platform and device support to power off.
+> > When a device is attached, check whether port can be power off if yes set can_power_off
+> > to true. When device driver is load, the driver also can set value to can_power_off. When
+> 
+> That's no good.  What happens if the driver sets the value to false and 
+> then the driver is unloaded?
+> 
+> > try to power off port, can_power_off and port_power_control should be taken into account.
+> > Only when these two members  are set to true, the port could be power off.
+> > 
+> > sys file operation
+> > port with device
+> >  port1_power "auto" => "on" or "on" => "auto" implement
+> > 	pm_runtime_get_syn(udev)
+> > 	port_power_control = "auto" or "on"
+> > 	pm_runtime_put_syn(udev)
+> > 
+> > port without device
+> > 	port can power on or power power off directly.
+> 
+> We have no code for powering off ports that don't have a device.  If 
+> you did power off such a port, it would not be able to detect when a 
+> device was plugged in.
+> 
+> > Suggestion and comments more welcome.
+> 
+> Your code style for continuation lines is wrong.  Continuation lines 
+> should be indented more than one tab stop -- otherwise they look like 
+> regular lines in an inner block.
+> 
+> Alan Stern
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
