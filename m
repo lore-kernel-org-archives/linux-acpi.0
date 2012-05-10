@@ -1,74 +1,43 @@
-From: Uwe Bonnes <bon@elektron.ikp.physik.tu-darmstadt.de>
-Subject: Re: [opensuse-kernel] 3.4rc6: ACPI change/regression ?
-Date: Thu, 10 May 2012 23:20:19 +0200
-Message-ID: <20396.12563.795116.287165@elektron.ikp.physik.tu-darmstadt.de>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH V3 3/8] usb: Bind devices to ACPI devices when possible
+Date: Thu, 10 May 2012 16:01:42 -0700
+Message-ID: <20120510230142.GA11125@kroah.com>
+References: <1336575635-13120-1-git-send-email-tianyu.lan@intel.com>
+ <1336575635-13120-4-git-send-email-tianyu.lan@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:63826 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932783Ab2EJXBr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 May 2012 19:01:47 -0400
+Received: by pbbrp8 with SMTP id rp8so2490913pbb.19
+        for <linux-acpi@vger.kernel.org>; Thu, 10 May 2012 16:01:47 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1336575635-13120-4-git-send-email-tianyu.lan@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: lenb@kernel.org, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu, sarah.a.sharp@linux.intel.com, mjg59@srcf.ucam.org, mfm@muteddisk.com, Matthew Garrett <mjg@redhat.com>
 
-In article <201205102031.26807.rjw@sisk.pl> you wrote:
-> Hi,
->=20
-> On Thursday, May 10, 2012, Rafael J. Wysocki wrote:
->> On Wednesday, May 09, 2012, Cristian Rodr=EDguez wrote:
->> > Hi:
->> >=20
->> > Since 3.4rc6 I am not able to "turn off" unused Nvidia "optimus" c=
-ard,=20
->> > either with 3rd party modules or vga_switchero.
->> >=20
->> > In rc5 it worked fine, now I get:
->> >=20
->> > a) with third party bbswitch module.
->> >=20
->> > bbswitch: Found integrated VGA device 0000:00:02.0: \_SB_.PCI0.GFX=
-0
->> > bbswitch: Found discrete VGA device 0000:01:00.0: \_SB_.PCI0.PEG0.=
-PEGP
->> > bbswitch: detected an Optimus _DSM function
->> > bbswitch: disabling discrete graphics
->> > bbswitch: Result of Optimus _DSM call: 11000059
->> > pci 0000:01:00.0: Refused to change power state, currently in D0
->> > ACPI: Device does not support D3
->> > bbswitch: Succesfully loaded. Discrete card 0000:01:00.0 is on
->> >=20
->> > Ok, third party module may be buggy and I don't expect anyone here=
- to=20
->> > support it, so I went to try kernel vga_switchero..
->> >=20
->> > VGA switcheroo: switched nouveau off
->> > [drm] nouveau 0000:01:00.0: Disabling display...
->> > [drm] nouveau 0000:01:00.0: Disabling fbcon...
->> > [drm] nouveau 0000:01:00.0: Unpinning framebuffer(s)...
->> > [drm] nouveau 0000:01:00.0: Evicting buffers...
->> > [drm] nouveau 0000:01:00.0: Idling channels...
->> > [drm] nouveau 0000:01:00.0: Suspending GPU objects...
->> > [drm] nouveau 0000:01:00.0: And we're gone!
->> > ACPI: Device does not support D3
->> >=20
->> > But device DOES support D3 states or at least it did in rc5..
->> >=20
->> > The ill effec of this change is that now the video card fan is run=
-ning=20
->> > almost all the time.
->> >=20
->> > Is this a side effect of=20
->> > http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux.git;a=3D=
-commit;h=3D1cc0c998fdf2cb665d625fb565a0d6db5c81c639=20
+On Wed, May 09, 2012 at 11:00:30PM +0800, Lan Tianyu wrote:
+> From: Matthew Garrett <mjg@redhat.com>
+> 
+> Built-in USB devices will typically have a representation in the system
+> ACPI tables. Add support for binding the two together so the USB code can
+> make use of the associated methods.
+> 
+> Signed-off-by: Matthew Garrett <mjg@redhat.com>
+> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
 
->=20
-> Yes, it's probably this one.  Have you tried to revert it?
+This patch doesn't apply to my usb-next branch.
 
-Probably the name change ACPI_STATE_D3 -> ACPI_STATE_D3_HOT wasn't
-propagated to the nouveau and probaly other driver ...
+Last time around, I hand-edited the patch, but I'm tired of doing that
+with this series, and it shows you didn't test it against my latest
+tree.
 
+This is getting annoying, what would you do in my situation?
 
---=20
-Uwe Bonnes                bon@elektron.ikp.physik.tu-darmstadt.de
+Please try again...
 
-Institut fuer Kernphysik  Schlossgartenstrasse 9  64289 Darmstadt
---------- Tel. 06151 162516 -------- Fax. 06151 164321 ----------
+greg k-h
