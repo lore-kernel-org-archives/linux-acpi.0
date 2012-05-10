@@ -1,44 +1,76 @@
-From: Shuah Khan <shuahkhan@gmail.com>
-Subject: Re: [PATCH v2 3/7] ACPI: Add _OST support for sysfs eject
-Date: Thu, 10 May 2012 10:55:31 -0600
-Message-ID: <1336668931.2581.27.camel@lorien2>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH v2 1/7] ACPI: Add CONFIG_HOTPLUG_OST option
+Date: Thu, 10 May 2012 11:26:30 -0600
+Message-ID: <1336670790.16730.215.camel@misato.fc.hp.com>
 References: <1336507944-10219-1-git-send-email-toshi.kani@hp.com>
-	 <1336507944-10219-4-git-send-email-toshi.kani@hp.com>
-	 <1336581973.2498.15.camel@lorien2>
-	 <1336587377.16730.150.camel@misato.fc.hp.com>
-	 <1336664428.2581.21.camel@lorien2>
-	 <1336667664.16730.201.camel@misato.fc.hp.com>
-Reply-To: shuahkhan@gmail.com
+	 <1336507944-10219-2-git-send-email-toshi.kani@hp.com>
+	 <4FABEF90.4040602@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0026.austin.hp.com ([15.216.28.33]:18081 "EHLO
-	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757149Ab2EJQzd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 May 2012 12:55:33 -0400
-In-Reply-To: <1336667664.16730.201.camel@misato.fc.hp.com>
+Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:41215 "EHLO
+	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754643Ab2EJR3F (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 May 2012 13:29:05 -0400
+In-Reply-To: <4FABEF90.4040602@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: shuahkhan@gmail.com, lenb@kernel.org, linux-acpi@vger.kernel.org, bhelgaas@google.com, linux-kernel@vger.kernel.org
+To: Jiang Liu <liuj97@gmail.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, bhelgaas@google.com, shuahkhan@gmail.com, linux-kernel@vger.kernel.org
 
-On Thu, 2012-05-10 at 10:34 -0600, Toshi Kani wrote:
+On Fri, 2012-05-11 at 00:40 +0800, Jiang Liu wrote:
+> On 05/09/2012 04:12 AM, Toshi Kani wrote:
+> > Added CONFIG_ACPI_HOTPLUG_OPT option. When this config option is disabled,
+> > this patchset has no effect on the platform. This option is disabled by
+> > default. The dependency list assures consistent behavior among CPU, memory
+> > and container hotplug operations with regarding the _OST support.
+> Seems also need to enhance the acpiphp driver for PCI hotplug operations too.
+> acpiphp driver is also based on the ACPI device hotplug model.
 
-> _OST is the ACPI standard method for the platform to receive the status
-> of hotplug operations.  Some platforms may require the OS to support
-> _OST in order to support ACPI hotplug operations.  For instance, if the
-> platform has the management console where user can request a hotplug
-> operation from, this _OST support would be required for the management
-> console to show the result of a hotplug request to user.  
+Good question.  ACPI PCI hotplug is a legacy method, which is being
+replaced by PCI native hotplug.  I expect PCI native hotplug will be
+used for any platforms supporting PCI-E.  Since this _OST support is
+targeted for new platforms (as _OST is not supported on the current
+platforms), I thought that it would be prudent to avoid changing PCI
+hotplug code for this.
+
+
+Thanks,
+-Toshi
+
+
+> > 
+> > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+> > ---
+> >  drivers/acpi/Kconfig |   14 ++++++++++++++
+> >  1 files changed, 14 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> > index 47768ff..1e3a756 100644
+> > --- a/drivers/acpi/Kconfig
+> > +++ b/drivers/acpi/Kconfig
+> > @@ -351,6 +351,20 @@ config ACPI_HOTPLUG_MEMORY
+> >  	  To compile this driver as a module, choose M here:
+> >  	  the module will be called acpi_memhotplug.
+> >  
+> > +config ACPI_HOTPLUG_OST
+> > +	bool "Hotplug Status Indication Support"
+> > +	depends on ACPI_HOTPLUG_CPU
+> > +	depends on ACPI_HOTPLUG_MEMORY
+> > +	depends on ACPI_CONTAINER
+> > +	default n
+> > +	help
+> > +	  This option enables the use of the ACPI OSPM Status Indication
+> > +          (_OST), if available, for the platform to determine the status
+> > +	  of various hotplug operations. Some platforms may require this
+> > +	  option be enabled to track the status of hotplug operations.
+> > +	  This option has no effect when the platform does not support
+> > +	  _OST.
+> > +
+> >  config ACPI_SBS
+> >  	tristate "Smart Battery System"
+> >  	depends on X86
 > 
 
-This will be a good information capture in the change log.
-
-Thanks Toshi. It is interesting to have platforms require optional
-methods. Guess  you can never rule out weirdness in how these Specs.
-actually get implemented :)
-
-
--- Shuah
 
