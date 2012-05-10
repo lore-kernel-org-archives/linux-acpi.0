@@ -1,147 +1,69 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI / PCI: Make _SxD/_SxW check follow ACPI 4.0a spec
-Date: Thu, 10 May 2012 22:14:20 +0200
-Message-ID: <201205102214.20947.rjw@sisk.pl>
-References: <201204292244.16467.rjw@sisk.pl> <CAErSpo7oGWNVeT6OCgaFdb_+uPAumggE-Z+OdnH=9aW+_N3B6g@mail.gmail.com> <201204302341.12528.rjw@sisk.pl>
+From: Sarah Sharp <sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [RFC PATCH] usb/acpi: Add support usb port power off mechanism
+ for device fixed on the motherboard
+Date: Thu, 10 May 2012 14:11:56 -0700
+Message-ID: <20120510211156.GA18754@xanatos>
+References: <Pine.LNX.4.44L0.1205101136470.1831-100000@iolanthe.rowland.org>
+ <1336677578.6463.5.camel@dcbw.foobar.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <201204302341.12528.rjw@sisk.pl>
-Sender: linux-pci-owner@vger.kernel.org
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, linux-pci@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, "Oleksij Rempel (fishor)" <bug-track@fisher-privat.net>, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1336677578.6463.5.camel-wKZy7rqYPVb5EHUCmHmTqw@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dan Williams <dcbw-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday, April 30, 2012, Rafael J. Wysocki wrote:
-> On Monday, April 30, 2012, Bjorn Helgaas wrote:
-> > On Sun, Apr 29, 2012 at 2:44 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > > From: Oleksij Rempel <bug-track@fisher-privat.net>
-> > >
-> > > This patch makes _SxD/_SxW check follow the ACPI 4.0a specification
-> > > more closely and fixes suspend bug found on ASUS Zenbook UX31E.
-> > >
-> > > Some OEM use _SxD fileds do blacklist brocken Dx states.
-> > > If _SxD/_SxW return values are check before suspend as appropriate,
-> > > some nasty suspend/resume issues may be avoided.
-> > >
-> > > References: https://bugzilla.kernel.org/show_bug.cgi?id=42728
-> > > Signed-off-by: Oleksij Rempel <bug-track@fisher-privat.net>
-> > > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> > > ---
-> > >
-> > > Bjorn, Len,
-> > >
-> > > This is -stable material and therefore v3.4 as well, IMO.  Please let me
-> > > know if one of you can take it or whether you want me to handle it all the
-> > > way to Linus.
+On Thu, May 10, 2012 at 02:19:38PM -0500, Dan Williams wrote:
+> On Thu, 2012-05-10 at 11:54 -0400, Alan Stern wrote:
+> > On Thu, 10 May 2012, Lan Tianyu wrote:
 > > 
-> > I'm OK with this from a PCI perspective.  Most of the change is in
-> > ACPI, so I propose that either you or Len take care of it.
+> > > hi all:
+> > > 	Currently, we are working on usb port power off mechanism. Our developing
+> > > machine provides usb port power control (a vbus switch)via ACPI power resource.
+> > > When the power resource turns off, usb port powers off and usb device loses
+> > > power. From usb hub side, just like the device being unplugged.
+> > > 
+> > > 	Since usb port power off will affect hot-plug and devices remote wakeup
+> > > function, it should be careful to do that.
+> > > 	We conclude three different situations for power off mechanism.
+> > > 	(1) hard-wired port with device
+> > > 	(2) hot-pluggable port without device
+> > > 	(3) hot-pluggable port with device
+> > > 
+> > > For hard-wired port, the device will not be removed physically. So we can
+> > > power off it when device is suspended and remote wakeup is disabled without
+> > > concerning with hot-plug. This patch is dedicated to this siutation.
+> > > 
+> > > This patch is to provide usb acpi power control method and call them in the
+> > > usb_port_suspend() and usb_port_resume() when port can be power off. When the
+> > > usb port is in the power off state, usb core doesn't remove device which is
+> > > attached to the port. The device is still on the system and user can access
+> > > the device.
 > > 
-> > The second paragraph of the changelog has several typos
-> > (fileds/fields, do/to, brocken/broken, etc).
+> > Can you provide any examples where this would be useful?  It won't end 
+> > up saving very much power (although on a laptop even a little bit might 
+> > help).
 > 
-> Thanks for spotting that, the version below should be better.
-> 
-> I'll wait for Len to respond till Friday and will take care of the patch myself
-> if he doesn't say anything.
-> 
-> May I assume an ACK from you?
-> 
-> Rafael
-> 
-> ---
-> From: Oleksij Rempel <bug-track@fisher-privat.net>
-> Subject: ACPI / PCI: Make _SxD/_SxW check follow ACPI 4.0a spec
-> 
-> This patch makes _SxD/_SxW check follow the ACPI 4.0a specification
-> more closely and fixes suspend bug found on ASUS Zenbook UX31E.
-> 
-> Some OEM use _SxD fields to blacklist broken device Dx states, so
-> if _SxD/_SxW return values are checked before suspend as appropriate,
-> some nasty suspend/resume issues may be avoided.
-> 
-> References: https://bugzilla.kernel.org/show_bug.cgi?id=42728
-> Signed-off-by: Oleksij Rempel <bug-track@fisher-privat.net>
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> I'd love to do this with ModemManager to shoot a modem in the head if
+> it's crashed.  Right now there's simply no way to reset a device that's
+> misbehaving or crashed.  Powering off the port would be a last resort,
+> but not all devices actually disconnect from the bus when they crash and
+> reconnect after the firmware reboots.
 
-Len, this is an important fix, any chance to take it for v3.5 and -stable?
-Or do you want me to do that?
+I'm not sure if the policy we set up would allow that, if the device was
+still connected and not suspended.  Maybe we need an "off" setting that
+forces the port off?
 
-Rafael
+Also, setting the port power off via ACPI may not actually cut power,
+because port power might be ganged.  Once we signal via ACPI that all
+the ports that are ganged together can be powered off, they will.  So
+there's no guarantees that you can power off the buggy modem unless you
+power off the other ganged ports as well.
 
-
-> ---
->  drivers/acpi/sleep.c |   22 +++++++++++++++++++++-
->  drivers/pci/pci.c    |   12 +++++++++++-
->  2 files changed, 32 insertions(+), 2 deletions(-)
-> 
-> Index: linux/drivers/acpi/sleep.c
-> ===================================================================
-> --- linux.orig/drivers/acpi/sleep.c
-> +++ linux/drivers/acpi/sleep.c
-> @@ -720,10 +720,30 @@ int acpi_pm_device_sleep_state(struct de
->  	 *
->  	 * NOTE: We rely on acpi_evaluate_integer() not clobbering the integer
->  	 * provided -- that's our fault recovery, we ignore retval.
-> +	 *
-> +	 * According to ACPI 4.0a (April 5, 2010), page 294,
-> +	 * Table 7-7 S3 Action / Result Table, we need to evaluate _SxW in
-> +	 * addition to _SxD if the device is configured for wakeup:
-> +	 * Desired Action    | _S3D | _PRW | _S3W | Resultant D-state
-> +	 * Enter S3          |  N/A |  D/C |  N/A | OSPM decides
-> +	 * Enter S3, No Wake |   2  |  D/C |  D/C | Enter D2 or D3
-> +	 * Enter S3, Wake    |   2  |   3  |  N/A | Enter D2
-> +	 * Enter S3, Wake    |   2  |   3  |   3  | Enter D2 or D3
-> +	 * Enter S3, Wake    |  N/A |   3  |   2  | Enter D0, D1 or D2
->  	 */
-> -	if (acpi_target_sleep_state > ACPI_STATE_S0)
-> +	if (acpi_target_sleep_state > ACPI_STATE_S0) {
-> +		acpi_status status;
-> +
->  		acpi_evaluate_integer(handle, acpi_method, NULL, &d_min);
->  
-> +		if (device_may_wakeup(dev)) {
-> +			acpi_method[3] = 'W';
-> +			status = acpi_evaluate_integer(handle, acpi_method,
-> +						       NULL, &d_max);
-> +			if (ACPI_FAILURE(status))
-> +				d_max = d_min;
-> +		}
-> +	}
->  	/*
->  	 * If _PRW says we can wake up the system from the target sleep state,
->  	 * the D-state returned by _SxD is sufficient for that (we assume a
-> Index: linux/drivers/pci/pci.c
-> ===================================================================
-> --- linux.orig/drivers/pci/pci.c
-> +++ linux/drivers/pci/pci.c
-> @@ -1691,10 +1691,20 @@ pci_power_t pci_target_state(struct pci_
->  {
->  	pci_power_t target_state = PCI_D3hot;
->  
-> -	if (platform_pci_power_manageable(dev)) {
-> +	/*
-> +	 * According to ACPI 4.0a,7.2 Device Power Management Objects, device
-> +	 * with wake capability should have _PRW or _PSW object and can have
-> +	 * _SxD or _SxW object.
-> +	 * It looks like some OEMs use this fields to avoid buggy Dx states
-> +	 * of devices, so we need to check for _PRW or _PSW and see if _SxD or
-> +	 * _SxW indicate to overwrite Dx.
-> +	 */
-> +	if (platform_pci_power_manageable(dev)
-> +	    || platform_pci_can_wakeup(dev)) {
->  		/*
->  		 * Call the platform to choose the target state of the device
->  		 * and enable wake-up from this state if supported.
-> +		 * (Check _SxD and _SxW)
->  		 */
->  		pci_power_t state = platform_pci_choose_state(dev);
->  
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pm" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+Sarah Sharp
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
