@@ -1,49 +1,47 @@
-From: Jiang Liu <liuj97@gmail.com>
-Subject: Re: [PATCH v2 1/7] ACPI: Add CONFIG_HOTPLUG_OST option
-Date: Fri, 11 May 2012 01:43:15 +0800
-Message-ID: <4FABFE33.9040502@gmail.com>
-References: <1336507944-10219-1-git-send-email-toshi.kani@hp.com>  <1336507944-10219-2-git-send-email-toshi.kani@hp.com>  <4FABEF90.4040602@gmail.com> <1336670790.16730.215.camel@misato.fc.hp.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH v2 3/7] ACPI: Add _OST support for sysfs eject
+Date: Thu, 10 May 2012 11:41:05 -0600
+Message-ID: <1336671665.16730.228.camel@misato.fc.hp.com>
+References: <1336507944-10219-1-git-send-email-toshi.kani@hp.com>
+	 <1336507944-10219-4-git-send-email-toshi.kani@hp.com>
+	 <1336581973.2498.15.camel@lorien2>
+	 <1336587377.16730.150.camel@misato.fc.hp.com>
+	 <1336664428.2581.21.camel@lorien2>
+	 <1336667664.16730.201.camel@misato.fc.hp.com>
+	 <1336668931.2581.27.camel@lorien2>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:37534 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760674Ab2EJRnX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 May 2012 13:43:23 -0400
-In-Reply-To: <1336670790.16730.215.camel@misato.fc.hp.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1336668931.2581.27.camel@lorien2>
+Sender: linux-kernel-owner@vger.kernel.org
+To: shuahkhan@gmail.com
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, bhelgaas@google.com, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, bhelgaas@google.com, shuahkhan@gmail.com, linux-kernel@vger.kernel.org
 
-On 05/11/2012 01:26 AM, Toshi Kani wrote:
-> On Fri, 2012-05-11 at 00:40 +0800, Jiang Liu wrote:
->> On 05/09/2012 04:12 AM, Toshi Kani wrote:
->>> Added CONFIG_ACPI_HOTPLUG_OPT option. When this config option is disabled,
->>> this patchset has no effect on the platform. This option is disabled by
->>> default. The dependency list assures consistent behavior among CPU, memory
->>> and container hotplug operations with regarding the _OST support.
->> Seems also need to enhance the acpiphp driver for PCI hotplug operations too.
->> acpiphp driver is also based on the ACPI device hotplug model.
+On Thu, 2012-05-10 at 10:55 -0600, Shuah Khan wrote:
+> On Thu, 2012-05-10 at 10:34 -0600, Toshi Kani wrote:
 > 
-> Good question.  ACPI PCI hotplug is a legacy method, which is being
-> replaced by PCI native hotplug.  I expect PCI native hotplug will be
-> used for any platforms supporting PCI-E.  Since this _OST support is
-> targeted for new platforms (as _OST is not supported on the current
-> platforms), I thought that it would be prudent to avoid changing PCI
-> hotplug code for this.
-You are right, acpiphp is legacy method. But it may also be used to support
-some cases which can't be supported by the pciehp driver.
-For example, we have a PCIe system which needs to run acpiphp and pciehp
-concurrently. The pciehp driver is used to manage hot-pluggable PCIe slot,
-and the acpiphp driver is used to migrate downstream ports among virtual 
-PCIe switches of an MR-IOV switch. It would be great if we could enable 
-_OST for acpiphp too.
+> > _OST is the ACPI standard method for the platform to receive the status
+> > of hotplug operations.  Some platforms may require the OS to support
+> > _OST in order to support ACPI hotplug operations.  For instance, if the
+> > platform has the management console where user can request a hotplug
+> > operation from, this _OST support would be required for the management
+> > console to show the result of a hotplug request to user.  
+> > 
+> 
+> This will be a good information capture in the change log.
 
-To be honest, our BIOS doesn't provide _OST for acpiphp yet, so we could
-enhance acpiphp driver in future when a system really needing that feature
-appears.
+Sounds good.  I will add this information to patch 0/1 and 1/1.
 
-Thanks!
---gerry
+
+> Thanks Toshi. It is interesting to have platforms require optional
+> methods. Guess  you can never rule out weirdness in how these Specs.
+> actually get implemented :)
+
+It is optional for platforms to implement it.  But when some platforms
+start implementing it, it is necessary for the OS to support it. :) 
+
+
+Thanks,
+-Toshi
