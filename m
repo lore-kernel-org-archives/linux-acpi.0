@@ -1,153 +1,147 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v2 resend] ACPI: generate wakeup events on fixed power button
-Date: Thu, 10 May 2012 22:08:27 +0200
-Message-ID: <201205102208.28013.rjw@sisk.pl>
-References: <20120509230843.C3EF79D401E@zog.reactivated.net>
+Subject: Re: [PATCH] ACPI / PCI: Make _SxD/_SxW check follow ACPI 4.0a spec
+Date: Thu, 10 May 2012 22:14:20 +0200
+Message-ID: <201205102214.20947.rjw@sisk.pl>
+References: <201204292244.16467.rjw@sisk.pl> <CAErSpo7oGWNVeT6OCgaFdb_+uPAumggE-Z+OdnH=9aW+_N3B6g@mail.gmail.com> <201204302341.12528.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-2"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:36810 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761364Ab2EJUDg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 10 May 2012 16:03:36 -0400
-In-Reply-To: <20120509230843.C3EF79D401E@zog.reactivated.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <201204302341.12528.rjw@sisk.pl>
+Sender: linux-pci-owner@vger.kernel.org
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, linux-pci@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, "Oleksij Rempel (fishor)" <bug-track@fisher-privat.net>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Drake <dsd@laptop.org>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, pgf@laptop.org, rui.zhang@intel.com
 
-On Thursday, May 10, 2012, Daniel Drake wrote:
-> When the system is woken up by the ACPI fixed power button, currently there
-> is no way of userspace becoming aware that the power button was pressed.
+On Monday, April 30, 2012, Rafael J. Wysocki wrote:
+> On Monday, April 30, 2012, Bjorn Helgaas wrote:
+> > On Sun, Apr 29, 2012 at 2:44 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > > From: Oleksij Rempel <bug-track@fisher-privat.net>
+> > >
+> > > This patch makes _SxD/_SxW check follow the ACPI 4.0a specification
+> > > more closely and fixes suspend bug found on ASUS Zenbook UX31E.
+> > >
+> > > Some OEM use _SxD fileds do blacklist brocken Dx states.
+> > > If _SxD/_SxW return values are check before suspend as appropriate,
+> > > some nasty suspend/resume issues may be avoided.
+> > >
+> > > References: https://bugzilla.kernel.org/show_bug.cgi?id=42728
+> > > Signed-off-by: Oleksij Rempel <bug-track@fisher-privat.net>
+> > > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> > > ---
+> > >
+> > > Bjorn, Len,
+> > >
+> > > This is -stable material and therefore v3.4 as well, IMO.  Please let me
+> > > know if one of you can take it or whether you want me to handle it all the
+> > > way to Linus.
+> > 
+> > I'm OK with this from a PCI perspective.  Most of the change is in
+> > ACPI, so I propose that either you or Len take care of it.
+> > 
+> > The second paragraph of the changelog has several typos
+> > (fileds/fields, do/to, brocken/broken, etc).
 > 
-> OLPC would like to know this, so that we can respond appropriately.
-> For example, if the system was woken up by a network packet, we know
-> we can go back to sleep very quickly. But if the user explicitly woke the
-> system with the power button, we're going to want to stay awake for a
-> while.
+> Thanks for spotting that, the version below should be better.
 > 
-> The wakeup count mechanism seems like a good fit for communicating this.
-> Mark the fixed power button as wakeup-enabled, and increment its wakeup
-> counter when the system is woken with the power button. (The wakeup counter
-> is also incremented when the power button is pressed during system
-> operation; this is already handled by an existing acpi-button codepath).
+> I'll wait for Len to respond till Friday and will take care of the patch myself
+> if he doesn't say anything.
 > 
-> Signed-off-by: Daniel Drake <dsd@laptop.org>
-> Acked-by: Zhang Rui <rui.zhang@intel.com>
+> May I assume an ACK from you?
+> 
+> Rafael
+> 
+> ---
+> From: Oleksij Rempel <bug-track@fisher-privat.net>
+> Subject: ACPI / PCI: Make _SxD/_SxW check follow ACPI 4.0a spec
+> 
+> This patch makes _SxD/_SxW check follow the ACPI 4.0a specification
+> more closely and fixes suspend bug found on ASUS Zenbook UX31E.
+> 
+> Some OEM use _SxD fields to blacklist broken device Dx states, so
+> if _SxD/_SxW return values are checked before suspend as appropriate,
+> some nasty suspend/resume issues may be avoided.
+> 
+> References: https://bugzilla.kernel.org/show_bug.cgi?id=42728
+> Signed-off-by: Oleksij Rempel <bug-track@fisher-privat.net>
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 
-Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
-
-Len, this looks like v3.5 material to me, any chance to pick it up?
+Len, this is an important fix, any chance to take it for v3.5 and -stable?
+Or do you want me to do that?
 
 Rafael
 
 
 > ---
->  drivers/acpi/scan.c  |    1 +
->  drivers/acpi/sleep.c |   45 +++++++++++++++++++++++++++++++++++++++++++--
->  2 files changed, 44 insertions(+), 2 deletions(-)
+>  drivers/acpi/sleep.c |   22 +++++++++++++++++++++-
+>  drivers/pci/pci.c    |   12 +++++++++++-
+>  2 files changed, 32 insertions(+), 2 deletions(-)
 > 
-> v2: add missing put_device() call
-> Resending after 3 weeks with no response.
-> 
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 7417267..06d2135 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -1563,6 +1563,7 @@ static int acpi_bus_scan_fixed(void)
->  						ACPI_BUS_TYPE_POWER_BUTTON,
->  						ACPI_STA_DEFAULT,
->  						&ops);
-> +		device_init_wakeup(&device->dev, true);
->  	}
->  
->  	if ((acpi_gbl_FADT.flags & ACPI_FADT_SLEEP_BUTTON) == 0) {
-> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-> index eb6fd23..a564fc3 100644
-> --- a/drivers/acpi/sleep.c
-> +++ b/drivers/acpi/sleep.c
-> @@ -57,6 +57,7 @@ MODULE_PARM_DESC(gts, "Enable evaluation of _GTS on suspend.");
->  MODULE_PARM_DESC(bfs, "Enable evaluation of _BFS on resume".);
->  
->  static u8 sleep_states[ACPI_S_STATE_COUNT];
-> +static bool pwr_btn_event_pending;
->  
->  static void acpi_sleep_tts_switch(u32 acpi_state)
->  {
-> @@ -186,6 +187,14 @@ static int acpi_pm_prepare(void)
->  	return error;
->  }
->  
-> +static int find_powerf_dev(struct device *dev, void *data)
-> +{
-> +	struct acpi_device *device = to_acpi_device(dev);
-> +	const char *hid = acpi_device_hid(device);
-> +
-> +	return !strcmp(hid, ACPI_BUTTON_HID_POWERF);
-> +}
-> +
->  /**
->   *	acpi_pm_finish - Instruct the platform to leave a sleep state.
->   *
-> @@ -194,6 +203,7 @@ static int acpi_pm_prepare(void)
->   */
->  static void acpi_pm_finish(void)
->  {
-> +	struct device *pwr_btn_dev;
->  	u32 acpi_state = acpi_target_sleep_state;
->  
->  	acpi_ec_unblock_transactions();
-> @@ -211,6 +221,23 @@ static void acpi_pm_finish(void)
->  	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
->  
->  	acpi_target_sleep_state = ACPI_STATE_S0;
-> +
-> +	/* If we were woken with the fixed power button, provide a small
-> +	 * hint to userspace in the form of a wakeup event on the fixed power
-> +	 * button device (if it can be found).
+> Index: linux/drivers/acpi/sleep.c
+> ===================================================================
+> --- linux.orig/drivers/acpi/sleep.c
+> +++ linux/drivers/acpi/sleep.c
+> @@ -720,10 +720,30 @@ int acpi_pm_device_sleep_state(struct de
+>  	 *
+>  	 * NOTE: We rely on acpi_evaluate_integer() not clobbering the integer
+>  	 * provided -- that's our fault recovery, we ignore retval.
 > +	 *
-> +	 * We delay the event generation til now, as the PM layer requires
-> +	 * timekeeping to be running before we generate events. */
-> +	if (!pwr_btn_event_pending)
-> +		return;
-> +
-> +	pwr_btn_event_pending = false;
-> +	pwr_btn_dev = bus_find_device(&acpi_bus_type, NULL, NULL,
-> +				      find_powerf_dev);
-> +	if (pwr_btn_dev) {
-> +		pm_wakeup_event(pwr_btn_dev, 0);
-> +		put_device(pwr_btn_dev);
-> +	}
->  }
->  
->  /**
-> @@ -300,9 +327,23 @@ static int acpi_suspend_enter(suspend_state_t pm_state)
->  	/* ACPI 3.0 specs (P62) says that it's the responsibility
->  	 * of the OSPM to clear the status bit [ implying that the
->  	 * POWER_BUTTON event should not reach userspace ]
-> +	 *
-> +	 * However, we do generate a small hint for userspace in the form of
-> +	 * a wakeup event. We flag this condition for now and generate the
-> +	 * event later, as we're currently too early in resume to be able to
-> +	 * generate wakeup events.
+> +	 * According to ACPI 4.0a (April 5, 2010), page 294,
+> +	 * Table 7-7 S3 Action / Result Table, we need to evaluate _SxW in
+> +	 * addition to _SxD if the device is configured for wakeup:
+> +	 * Desired Action    | _S3D | _PRW | _S3W | Resultant D-state
+> +	 * Enter S3          |  N/A |  D/C |  N/A | OSPM decides
+> +	 * Enter S3, No Wake |   2  |  D/C |  D/C | Enter D2 or D3
+> +	 * Enter S3, Wake    |   2  |   3  |  N/A | Enter D2
+> +	 * Enter S3, Wake    |   2  |   3  |   3  | Enter D2 or D3
+> +	 * Enter S3, Wake    |  N/A |   3  |   2  | Enter D0, D1 or D2
 >  	 */
-> -	if (ACPI_SUCCESS(status) && (acpi_state == ACPI_STATE_S3))
-> -		acpi_clear_event(ACPI_EVENT_POWER_BUTTON);
-> +	if (ACPI_SUCCESS(status) && (acpi_state == ACPI_STATE_S3)) {
-> +		acpi_event_status pwr_btn_status;
+> -	if (acpi_target_sleep_state > ACPI_STATE_S0)
+> +	if (acpi_target_sleep_state > ACPI_STATE_S0) {
+> +		acpi_status status;
 > +
-> +		acpi_get_event_status(ACPI_EVENT_POWER_BUTTON, &pwr_btn_status);
-> +
-> +		if (pwr_btn_status & ACPI_EVENT_FLAG_SET) {
-> +			acpi_clear_event(ACPI_EVENT_POWER_BUTTON);
-> +			/* Flag for later */
-> +			pwr_btn_event_pending = true;
+>  		acpi_evaluate_integer(handle, acpi_method, NULL, &d_min);
+>  
+> +		if (device_may_wakeup(dev)) {
+> +			acpi_method[3] = 'W';
+> +			status = acpi_evaluate_integer(handle, acpi_method,
+> +						       NULL, &d_max);
+> +			if (ACPI_FAILURE(status))
+> +				d_max = d_min;
 > +		}
 > +	}
->  
 >  	/*
->  	 * Disable and clear GPE status before interrupt is enabled. Some GPEs
+>  	 * If _PRW says we can wake up the system from the target sleep state,
+>  	 * the D-state returned by _SxD is sufficient for that (we assume a
+> Index: linux/drivers/pci/pci.c
+> ===================================================================
+> --- linux.orig/drivers/pci/pci.c
+> +++ linux/drivers/pci/pci.c
+> @@ -1691,10 +1691,20 @@ pci_power_t pci_target_state(struct pci_
+>  {
+>  	pci_power_t target_state = PCI_D3hot;
+>  
+> -	if (platform_pci_power_manageable(dev)) {
+> +	/*
+> +	 * According to ACPI 4.0a,7.2 Device Power Management Objects, device
+> +	 * with wake capability should have _PRW or _PSW object and can have
+> +	 * _SxD or _SxW object.
+> +	 * It looks like some OEMs use this fields to avoid buggy Dx states
+> +	 * of devices, so we need to check for _PRW or _PSW and see if _SxD or
+> +	 * _SxW indicate to overwrite Dx.
+> +	 */
+> +	if (platform_pci_power_manageable(dev)
+> +	    || platform_pci_can_wakeup(dev)) {
+>  		/*
+>  		 * Call the platform to choose the target state of the device
+>  		 * and enable wake-up from this state if supported.
+> +		 * (Check _SxD and _SxW)
+>  		 */
+>  		pci_power_t state = platform_pci_choose_state(dev);
+>  
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pm" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
-
+> 
