@@ -1,76 +1,49 @@
-From: Toshi Kani <toshi.kani@hp.com>
+From: Jiang Liu <liuj97@gmail.com>
 Subject: Re: [PATCH v2 1/7] ACPI: Add CONFIG_HOTPLUG_OST option
-Date: Thu, 10 May 2012 11:26:30 -0600
-Message-ID: <1336670790.16730.215.camel@misato.fc.hp.com>
-References: <1336507944-10219-1-git-send-email-toshi.kani@hp.com>
-	 <1336507944-10219-2-git-send-email-toshi.kani@hp.com>
-	 <4FABEF90.4040602@gmail.com>
+Date: Fri, 11 May 2012 01:43:15 +0800
+Message-ID: <4FABFE33.9040502@gmail.com>
+References: <1336507944-10219-1-git-send-email-toshi.kani@hp.com>  <1336507944-10219-2-git-send-email-toshi.kani@hp.com>  <4FABEF90.4040602@gmail.com> <1336670790.16730.215.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:41215 "EHLO
-	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754643Ab2EJR3F (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 May 2012 13:29:05 -0400
-In-Reply-To: <4FABEF90.4040602@gmail.com>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:37534 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760674Ab2EJRnX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 May 2012 13:43:23 -0400
+In-Reply-To: <1336670790.16730.215.camel@misato.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <liuj97@gmail.com>
+To: Toshi Kani <toshi.kani@hp.com>
 Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, bhelgaas@google.com, shuahkhan@gmail.com, linux-kernel@vger.kernel.org
 
-On Fri, 2012-05-11 at 00:40 +0800, Jiang Liu wrote:
-> On 05/09/2012 04:12 AM, Toshi Kani wrote:
-> > Added CONFIG_ACPI_HOTPLUG_OPT option. When this config option is disabled,
-> > this patchset has no effect on the platform. This option is disabled by
-> > default. The dependency list assures consistent behavior among CPU, memory
-> > and container hotplug operations with regarding the _OST support.
-> Seems also need to enhance the acpiphp driver for PCI hotplug operations too.
-> acpiphp driver is also based on the ACPI device hotplug model.
-
-Good question.  ACPI PCI hotplug is a legacy method, which is being
-replaced by PCI native hotplug.  I expect PCI native hotplug will be
-used for any platforms supporting PCI-E.  Since this _OST support is
-targeted for new platforms (as _OST is not supported on the current
-platforms), I thought that it would be prudent to avoid changing PCI
-hotplug code for this.
-
-
-Thanks,
--Toshi
-
-
-> > 
-> > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-> > ---
-> >  drivers/acpi/Kconfig |   14 ++++++++++++++
-> >  1 files changed, 14 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> > index 47768ff..1e3a756 100644
-> > --- a/drivers/acpi/Kconfig
-> > +++ b/drivers/acpi/Kconfig
-> > @@ -351,6 +351,20 @@ config ACPI_HOTPLUG_MEMORY
-> >  	  To compile this driver as a module, choose M here:
-> >  	  the module will be called acpi_memhotplug.
-> >  
-> > +config ACPI_HOTPLUG_OST
-> > +	bool "Hotplug Status Indication Support"
-> > +	depends on ACPI_HOTPLUG_CPU
-> > +	depends on ACPI_HOTPLUG_MEMORY
-> > +	depends on ACPI_CONTAINER
-> > +	default n
-> > +	help
-> > +	  This option enables the use of the ACPI OSPM Status Indication
-> > +          (_OST), if available, for the platform to determine the status
-> > +	  of various hotplug operations. Some platforms may require this
-> > +	  option be enabled to track the status of hotplug operations.
-> > +	  This option has no effect when the platform does not support
-> > +	  _OST.
-> > +
-> >  config ACPI_SBS
-> >  	tristate "Smart Battery System"
-> >  	depends on X86
+On 05/11/2012 01:26 AM, Toshi Kani wrote:
+> On Fri, 2012-05-11 at 00:40 +0800, Jiang Liu wrote:
+>> On 05/09/2012 04:12 AM, Toshi Kani wrote:
+>>> Added CONFIG_ACPI_HOTPLUG_OPT option. When this config option is disabled,
+>>> this patchset has no effect on the platform. This option is disabled by
+>>> default. The dependency list assures consistent behavior among CPU, memory
+>>> and container hotplug operations with regarding the _OST support.
+>> Seems also need to enhance the acpiphp driver for PCI hotplug operations too.
+>> acpiphp driver is also based on the ACPI device hotplug model.
 > 
+> Good question.  ACPI PCI hotplug is a legacy method, which is being
+> replaced by PCI native hotplug.  I expect PCI native hotplug will be
+> used for any platforms supporting PCI-E.  Since this _OST support is
+> targeted for new platforms (as _OST is not supported on the current
+> platforms), I thought that it would be prudent to avoid changing PCI
+> hotplug code for this.
+You are right, acpiphp is legacy method. But it may also be used to support
+some cases which can't be supported by the pciehp driver.
+For example, we have a PCIe system which needs to run acpiphp and pciehp
+concurrently. The pciehp driver is used to manage hot-pluggable PCIe slot,
+and the acpiphp driver is used to migrate downstream ports among virtual 
+PCIe switches of an MR-IOV switch. It would be great if we could enable 
+_OST for acpiphp too.
 
+To be honest, our BIOS doesn't provide _OST for acpiphp yet, so we could
+enhance acpiphp driver in future when a system really needing that feature
+appears.
 
+Thanks!
+--gerry
