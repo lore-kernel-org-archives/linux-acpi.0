@@ -1,63 +1,38 @@
-From: Jiang Liu <liuj97@gmail.com>
-Subject: Re: [PATCH v2 1/7] ACPI: Add CONFIG_HOTPLUG_OST option
-Date: Fri, 11 May 2012 08:15:26 +0800
-Message-ID: <4FAC5A1E.3090602@gmail.com>
-References: <1336507944-10219-1-git-send-email-toshi.kani@hp.com>   <1336507944-10219-2-git-send-email-toshi.kani@hp.com>   <4FABEF90.4040602@gmail.com> <1336670790.16730.215.camel@misato.fc.hp.com>  <4FABFE33.9040502@gmail.com> <1336674019.16730.239.camel@misato.fc.hp.com>
+From: "Jonson Chong" <jclegalfirm002@gmail.com>
+Subject: Mutual Benefit
+Date: Wed, 9 May 2012 18:51:25 -0700
+Message-ID: <201205102251.q4AMpWNg017193@smtp-newsletter.intersaar.de>
+Reply-To: <jclegalfirm001@yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain;
+	charset="Windows-1251"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:40501 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750706Ab2EKAPd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 May 2012 20:15:33 -0400
-In-Reply-To: <1336674019.16730.239.camel@misato.fc.hp.com>
+Received: from smtp-newsletter.intersaar.de ([213.135.15.218]:33071 "EHLO
+	smtp-newsletter.intersaar.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755929Ab2EKBGQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 10 May 2012 21:06:16 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, bhelgaas@google.com, shuahkhan@gmail.com, linux-kernel@vger.kernel.org
 
-On 05/11/2012 02:20 AM, Toshi Kani wrote:
-> On Fri, 2012-05-11 at 01:43 +0800, Jiang Liu wrote:
->> On 05/11/2012 01:26 AM, Toshi Kani wrote:
->>> On Fri, 2012-05-11 at 00:40 +0800, Jiang Liu wrote:
->>>> On 05/09/2012 04:12 AM, Toshi Kani wrote:
->>>>> Added CONFIG_ACPI_HOTPLUG_OPT option. When this config option is disabled,
->>>>> this patchset has no effect on the platform. This option is disabled by
->>>>> default. The dependency list assures consistent behavior among CPU, memory
->>>>> and container hotplug operations with regarding the _OST support.
->>>> Seems also need to enhance the acpiphp driver for PCI hotplug operations too.
->>>> acpiphp driver is also based on the ACPI device hotplug model.
->>>
->>> Good question.  ACPI PCI hotplug is a legacy method, which is being
->>> replaced by PCI native hotplug.  I expect PCI native hotplug will be
->>> used for any platforms supporting PCI-E.  Since this _OST support is
->>> targeted for new platforms (as _OST is not supported on the current
->>> platforms), I thought that it would be prudent to avoid changing PCI
->>> hotplug code for this.
->> You are right, acpiphp is legacy method. But it may also be used to support
->> some cases which can't be supported by the pciehp driver.
->> For example, we have a PCIe system which needs to run acpiphp and pciehp
->> concurrently. The pciehp driver is used to manage hot-pluggable PCIe slot,
->> and the acpiphp driver is used to migrate downstream ports among virtual 
->> PCIe switches of an MR-IOV switch. It would be great if we could enable 
->> _OST for acpiphp too.
->>
->> To be honest, our BIOS doesn't provide _OST for acpiphp yet, so we could
->> enhance acpiphp driver in future when a system really needing that feature
->> appears.
-> 
-> Interesting.  In such case, I am willing to change acpiphp, but I am
-> afraid that I do not have access to platforms with ACPI PCI hotplug
-> support.  My test systems are all PCI-E based.  So, it would be great if
-> you could enhance acpiphp when you need it.
-Sure, I will enhance it based on your work when needed.
-Thanks!
--Gerry
 
-> 
-> 
-> Thanks!
-> -Toshi
-> 
+62A-1 Jalan PJU 5/21,
+The Strand Kota Damansara,
+47801 Petaling Jaya, Malaysia.
 
+I am Jonson Chong,an attorney at law and i would love to share with you a very important business 
+proposition that will be of mutual benefit to both of us.
+ A deceased client of mine,that shares the same last name as yours,who after shall be referred to as 
+my late client,died as the result of a heart-related condition on March 12th 2009.
+His heart condition was due to the death of all the members of his family in the tsunami disaster on the 26th
+ December 2004 in Sumatra Indonesia .
+
+http://en.wikipedia.org/wiki/2004_Indian_Ocean_earthquake
+My late Client has a deposit of ( US$17.5 Million Dollars) left behind.
+I can be reached on (jclegalfirm001@gmail.com) for more information.
+
+Email: jclegalfirm001@gmail.com
+Best regards,
+Jonson Chong
+Attorney at Law
