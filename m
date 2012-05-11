@@ -1,21 +1,56 @@
-From: Mrs Sabah Halif <mangrove@dephut.go.id>
-Subject: (unknown)
-Date: Sun, 6 May 2012 01:59:22 +0700 (WIT)
-Message-ID: <6892760.345591336244362205.JavaMail.root__49345.8690042191$1336702280$gmane$org@zm>
-Reply-To: Mrs Sabah Halif <sabah.halif12@hotmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+From: Youquan Song <youquan.song@intel.com>
+Subject: [PATCH 0/3] x86,idle: Enhance cpuidle prediction to handle its failure
+Date: Fri, 11 May 2012 11:15:54 -0400
+Message-ID: <1336749357-9133-1-git-send-email-youquan.song@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 9.subnet118-97-90.static.astinet.telkom.net.id ([118.97.90.9]:50304
-	"EHLO zm.dephut.go.id" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1758485Ab2EKCLP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 May 2012 22:11:15 -0400
-Subject: 
+Received: from mga11.intel.com ([192.55.52.93]:62264 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932182Ab2EKDCb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 10 May 2012 23:02:31 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, len.brown@intel.com, akpm@linux-foundation.org
+Cc: arjan@linux.intel.com, len.brown@linux.intel.com, suresh.b.siddha@intel.com, Youquan Song <youquan.song@linux.intel.com>, Youquan Song <youquan.song@intel.com>
 
+The prediction for future is difficult and when the cpuidle governor prediction 
+fails and govenor possibly choose the shallower C-state than it should. How to 
+quickly notice and find the failure becomes important for power saving.    
 
+cpuidle menu governor has a method to predict the repeat pattern if there are 8
+C-states residency which are continuous and the same or very close, so it will
+predict the next C-states residency will keep same residency time.
 
--- 
-Good day,my name is Mrs Sabah Halif  i have a business proposal please contact me for details.
+We encountered a real case that turbostat utility (tools/power/x86/turbostat) 
+at kernel 3.3 or early. turbostat utility will read 10 registers one by one at
+Sandybridge, so it will generate 10 IPIs to wake up idle CPUs. So cpuidle menu
+ governor will predict it is repeat mode and there is another IPI wake up idle
+ CPU soon, so it keeps idle CPU stay at C1 state even though CPU is totally 
+idle. However, in the turbostat, following 10 registers reading is sleep 5 
+seconds by default, so the idle CPU will keep at C1 for a long time though it is
+ idle until break event occurs.
+
+The "old turbostat" is specific case and it is already fix by skip to read CPU
+MSRs. But we do not guarantee that other application will not do it like this.
+So the proper ways is to enhance the logic of the men governor prediction for 
+next C-states. 
+
+This patchset adds a timer when menu governor choose a non-deepest C-state in
+order to wake up quickly from shallow C-state to avoid staying too long at 
+shallow C-state for prediction failure. If the timer is not triggered and CPU
+is waken up from C-state, the timer will be cancelled initiatively to avoid the
+adding timer bring affect to system. If the timer is time out, CPU will quickly
+be waken up from shallow C-state and re-evaluates deeper C-states possibility. 
+
+After plenty of testing and tuning, the patchset get about 1% power efficiency
+ehancement in SpecPower2008 on Romley-EP. Especailly, when workload is not so 
+high < 70%, it can notice 1~3 watts power saving; while workload is high > 80%,
+It will cost more power consumption. Another benchmarks non-CPU intensive, like 
+fio, apache and aio-stress will also get power saving while the performance does 
+not drop.
+
+While I try to fix the issue, I got a lot of help and suggestion from Arjan,
+Thanks a lot Arjan!
+
+Thanks 
+-Youquan
+
