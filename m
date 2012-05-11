@@ -1,35 +1,37 @@
-From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+From: Alan Stern <stern@rowland.harvard.edu>
 Subject: Re: [RFC PATCH] usb/acpi: Add support usb port power off mechanism
  for device fixed on the motherboard
-Date: Fri, 11 May 2012 10:08:33 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1205111005370.1865-100000@iolanthe.rowland.org>
-References: <20120510211156.GA18754@xanatos>
+Date: Fri, 11 May 2012 10:20:31 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1205111019000.1865-100000@iolanthe.rowland.org>
+References: <20120511041309.22096.qmail@stuge.se>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120510211156.GA18754@xanatos>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sarah Sharp <sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: Dan Williams <dcbw-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from iolanthe.rowland.org ([192.131.102.54]:47405 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755382Ab2EKOUc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 May 2012 10:20:32 -0400
+In-Reply-To: <20120511041309.22096.qmail@stuge.se>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Peter Stuge <peter@stuge.se>
+Cc: Sarah Sharp <sarah.a.sharp@linux.intel.com>, Dan Williams <dcbw@redhat.com>, Lan Tianyu <tianyu.lan@intel.com>, lenb@kernel.org, gregkh@linuxfoundation.org, linux-acpi@vger.kernel.org, linux-usb@vger.kernel.org
 
-On Thu, 10 May 2012, Sarah Sharp wrote:
+On Fri, 11 May 2012, Peter Stuge wrote:
 
-> Also, setting the port power off via ACPI may not actually cut power,
-> because port power might be ganged.  Once we signal via ACPI that all
-> the ports that are ganged together can be powered off, they will.  So
-> there's no guarantees that you can power off the buggy modem unless you
-> power off the other ganged ports as well.
+> Sarah Sharp wrote:
+> > Maybe we need an "off" setting that forces the port off?
+> 
+> FWIW this would be very welcome in libusb, to do a hard reset of
+> bus-powered devices.
+> 
+> It can be attempted via SET_FEATURE(PORT_POWER) to the hub, but a
+> "real" API would be nice.
 
-That reminds me...  I think this should not be so closely linked with
-ACPI.  There's a perfectly good USB Clear-Feature request for turning
-off port power; that's what we should use.  If hooks are required for
-interfacing with platform-specific code (such as ACPI), they can be
-added at the appropriate places.
+But remember that such an API would be very unreliable.  Many hubs and
+root hubs cannot shut off port power at all, and some of the remaining
+ones use ganged power switches (you have to turn off all the ports in a
+gang before power is removed from any of them).
 
 Alan Stern
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
