@@ -1,67 +1,158 @@
-From: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [Resend PATCH V3 1/8] ACPI: Add stubs for (un)register_acpi_bus_type
-Date: Fri, 11 May 2012 16:08:25 +0800
-Message-ID: <1336723712-7686-2-git-send-email-tianyu.lan@intel.com>
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: [Resend PATCH V3 3/8] usb: Bind devices to ACPI devices when possible
+Date: Fri, 11 May 2012 16:08:27 +0800
+Message-ID: <1336723712-7686-4-git-send-email-tianyu.lan@intel.com>
 References: <1336723712-7686-1-git-send-email-tianyu.lan@intel.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1336723712-7686-1-git-send-email-tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org, mfm-Oo0r1OC9pj9iLUuM0BA3LQ@public.gmane.org, Matthew Garrett <mjg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:61385 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757074Ab2EKIO5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 11 May 2012 04:14:57 -0400
+In-Reply-To: <1336723712-7686-1-git-send-email-tianyu.lan@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org, gregkh@linuxfoundation.org
+Cc: linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu, sarah.a.sharp@linux.intel.com, mjg59@srcf.ucam.org, mfm@muteddisk.com, Matthew Garrett <mjg@redhat.com>, Lan Tianyu <tianyu.lan@intel.com>
 
-From: Matthew Garrett <mjg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+From: Matthew Garrett <mjg@redhat.com>
 
-It's unreasonable to have CONFIG_ACPI for these in drivers, so add some
-stub functions.
+Built-in USB devices will typically have a representation in the system
+ACPI tables. Add support for binding the two together so the USB code can
+make use of the associated methods.
 
-Signed-off-by: Matthew Garrett <mjg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
 ---
- drivers/acpi/glue.c     |    2 ++
- include/acpi/acpi_bus.h |    5 +++++
- 2 files changed, 7 insertions(+), 0 deletions(-)
+ drivers/usb/core/Makefile   |    1 +
+ drivers/usb/core/usb-acpi.c |   60 +++++++++++++++++++++++++++++++++++++++++++
+ drivers/usb/core/usb.c      |    6 ++++
+ drivers/usb/core/usb.h      |    7 +++++
+ 4 files changed, 74 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/usb/core/usb-acpi.c
 
-diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
-index 29a4a5c..1564e09 100644
---- a/drivers/acpi/glue.c
-+++ b/drivers/acpi/glue.c
-@@ -69,6 +69,7 @@ static struct acpi_bus_type *acpi_get_bus_type(struct bus_type *type)
- 	up_read(&bus_type_sem);
- 	return ret;
- }
-+EXPORT_SYMBOL_GPL(register_acpi_bus_type);
+diff --git a/drivers/usb/core/Makefile b/drivers/usb/core/Makefile
+index c4ea846..26059b9 100644
+--- a/drivers/usb/core/Makefile
++++ b/drivers/usb/core/Makefile
+@@ -9,5 +9,6 @@ usbcore-y += config.o file.o buffer.o sysfs.o endpoint.o
+ usbcore-y += devio.o notify.o generic.o quirks.o devices.o
  
- static int acpi_find_bridge_device(struct device *dev, acpi_handle * handle)
- {
-@@ -85,6 +86,7 @@ static int acpi_find_bridge_device(struct device *dev, acpi_handle * handle)
- 	up_read(&bus_type_sem);
- 	return ret;
- }
-+EXPORT_SYMBOL_GPL(unregister_acpi_bus_type);
+ usbcore-$(CONFIG_PCI)		+= hcd-pci.o
++usbcore-$(CONFIG_ACPI)		+= usb-acpi.o
  
- /* Get device's handler per its address under its parent */
- struct acpi_find_child {
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index f1c8ca6..c909984 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -407,6 +407,11 @@ static inline int acpi_pm_device_sleep_wake(struct device *dev, bool enable)
- }
- #endif
- 
-+#else	/* CONFIG_ACPI */
+ obj-$(CONFIG_USB)		+= usbcore.o
+diff --git a/drivers/usb/core/usb-acpi.c b/drivers/usb/core/usb-acpi.c
+new file mode 100644
+index 0000000..cab5cb7
+--- /dev/null
++++ b/drivers/usb/core/usb-acpi.c
+@@ -0,0 +1,60 @@
++/*
++ * USB-ACPI glue code
++ *
++ * Copyright 2012 Red Hat <mjg@redhat.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the Free
++ * Software Foundation, version 2.
++ *
++ */
++#include <linux/module.h>
++#include <linux/usb.h>
++#include <linux/device.h>
++#include <linux/errno.h>
++#include <linux/kernel.h>
++#include <linux/acpi.h>
++#include <linux/pci.h>
++#include <acpi/acpi_bus.h>
 +
-+static int register_acpi_bus_type(struct acpi_bus_type *bus) { return 0; }
-+static int unregister_acpi_bus_type(struct acpi_bus_type *bus) { return 0; }
++#include "usb.h"
 +
- #endif				/* CONFIG_ACPI */
++static int usb_acpi_find_device(struct device *dev, acpi_handle *handle)
++{
++	struct usb_device *udev;
++	struct device *parent;
++	acpi_handle *parent_handle;
++
++	if (!is_usb_device(dev))
++		return -ENODEV;
++
++	udev = to_usb_device(dev);
++	parent = dev->parent;
++	parent_handle = DEVICE_ACPI_HANDLE(parent);
++
++	if (!parent_handle)
++		return -ENODEV;
++
++	*handle = acpi_get_child(parent_handle, udev->portnum);
++
++	if (!*handle)
++		return -ENODEV;
++
++	return 0;
++}
++
++static struct acpi_bus_type usb_acpi_bus = {
++	.bus = &usb_bus_type,
++	.find_bridge = NULL,
++	.find_device = usb_acpi_find_device,
++};
++
++int usb_acpi_register(void)
++{
++	return register_acpi_bus_type(&usb_acpi_bus);
++}
++
++void usb_acpi_unregister(void)
++{
++	unregister_acpi_bus_type(&usb_acpi_bus);
++}
+diff --git a/drivers/usb/core/usb.c b/drivers/usb/core/usb.c
+index 0ce862b..7998a67 100644
+--- a/drivers/usb/core/usb.c
++++ b/drivers/usb/core/usb.c
+@@ -1015,6 +1015,9 @@ static int __init usb_init(void)
+ 	if (retval)
+ 		goto out;
  
- #endif /*__ACPI_BUS_H__*/
++	retval = usb_acpi_register();
++	if (retval)
++		goto acpi_register_failed;
+ 	retval = bus_register(&usb_bus_type);
+ 	if (retval)
+ 		goto bus_register_failed;
+@@ -1049,6 +1052,8 @@ major_init_failed:
+ bus_notifier_failed:
+ 	bus_unregister(&usb_bus_type);
+ bus_register_failed:
++	usb_acpi_unregister();
++acpi_register_failed:
+ 	usb_debugfs_cleanup();
+ out:
+ 	return retval;
+@@ -1070,6 +1075,7 @@ static void __exit usb_exit(void)
+ 	usb_hub_cleanup();
+ 	bus_unregister_notifier(&usb_bus_type, &usb_bus_nb);
+ 	bus_unregister(&usb_bus_type);
++	usb_acpi_unregister();
+ 	usb_debugfs_cleanup();
+ }
+ 
+diff --git a/drivers/usb/core/usb.h b/drivers/usb/core/usb.h
+index 71648dc..5c5c538 100644
+--- a/drivers/usb/core/usb.h
++++ b/drivers/usb/core/usb.h
+@@ -156,3 +156,10 @@ extern void usb_notify_remove_device(struct usb_device *udev);
+ extern void usb_notify_add_bus(struct usb_bus *ubus);
+ extern void usb_notify_remove_bus(struct usb_bus *ubus);
+ 
++#ifdef CONFIG_ACPI
++extern int usb_acpi_register(void);
++extern void usb_acpi_unregister(void);
++#else
++static inline int usb_acpi_register(void) { return 0; };
++static inline void usb_acpi_unregister(void) { };
++#endif
 -- 
 1.7.6.rc2.8.g28eb
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
