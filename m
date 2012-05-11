@@ -1,13 +1,13 @@
 From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: [Resend PATCH V3 3/8] usb: Bind devices to ACPI devices when possible
-Date: Fri, 11 May 2012 16:08:27 +0800
-Message-ID: <1336723712-7686-4-git-send-email-tianyu.lan@intel.com>
+Subject: [Resend PATCH V3 4/8] usb: Set device removable state based on ACPI USB data
+Date: Fri, 11 May 2012 16:08:28 +0800
+Message-ID: <1336723712-7686-5-git-send-email-tianyu.lan@intel.com>
 References: <1336723712-7686-1-git-send-email-tianyu.lan@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:61385 "EHLO mga11.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:55054 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757074Ab2EKIO5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 11 May 2012 04:14:57 -0400
+	id S1755932Ab2EKIO7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 11 May 2012 04:14:59 -0400
 In-Reply-To: <1336723712-7686-1-git-send-email-tianyu.lan@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,143 +16,92 @@ Cc: linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, stern@rowland.harvard
 
 From: Matthew Garrett <mjg@redhat.com>
 
-Built-in USB devices will typically have a representation in the system
-ACPI tables. Add support for binding the two together so the USB code can
-make use of the associated methods.
+ACPI offers two methods that allow us to infer whether or not a USB port
+is removable. The _PLD method gives us information on whether the port is
+"user visible" or not. If that's not present then we can fall back to the
+_UPC method which tells us whether or not a port is connectable.
 
 Signed-off-by: Matthew Garrett <mjg@redhat.com>
 Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
 ---
- drivers/usb/core/Makefile   |    1 +
- drivers/usb/core/usb-acpi.c |   60 +++++++++++++++++++++++++++++++++++++++++++
- drivers/usb/core/usb.c      |    6 ++++
- drivers/usb/core/usb.h      |    7 +++++
- 4 files changed, 74 insertions(+), 0 deletions(-)
- create mode 100644 drivers/usb/core/usb-acpi.c
+ drivers/usb/core/usb-acpi.c |   57 +++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 57 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/usb/core/Makefile b/drivers/usb/core/Makefile
-index c4ea846..26059b9 100644
---- a/drivers/usb/core/Makefile
-+++ b/drivers/usb/core/Makefile
-@@ -9,5 +9,6 @@ usbcore-y += config.o file.o buffer.o sysfs.o endpoint.o
- usbcore-y += devio.o notify.o generic.o quirks.o devices.o
- 
- usbcore-$(CONFIG_PCI)		+= hcd-pci.o
-+usbcore-$(CONFIG_ACPI)		+= usb-acpi.o
- 
- obj-$(CONFIG_USB)		+= usbcore.o
 diff --git a/drivers/usb/core/usb-acpi.c b/drivers/usb/core/usb-acpi.c
-new file mode 100644
-index 0000000..cab5cb7
---- /dev/null
+index cab5cb7..8947b20 100644
+--- a/drivers/usb/core/usb-acpi.c
 +++ b/drivers/usb/core/usb-acpi.c
-@@ -0,0 +1,60 @@
-+/*
-+ * USB-ACPI glue code
-+ *
-+ * Copyright 2012 Red Hat <mjg@redhat.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the Free
-+ * Software Foundation, version 2.
-+ *
-+ */
-+#include <linux/module.h>
-+#include <linux/usb.h>
-+#include <linux/device.h>
-+#include <linux/errno.h>
-+#include <linux/kernel.h>
-+#include <linux/acpi.h>
-+#include <linux/pci.h>
-+#include <acpi/acpi_bus.h>
-+
-+#include "usb.h"
-+
-+static int usb_acpi_find_device(struct device *dev, acpi_handle *handle)
+@@ -19,6 +19,54 @@
+ 
+ #include "usb.h"
+ 
++static int usb_acpi_check_upc(struct usb_device *udev, acpi_handle handle)
 +{
-+	struct usb_device *udev;
-+	struct device *parent;
-+	acpi_handle *parent_handle;
++	acpi_status status;
++	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
++	union acpi_object *upc;
++	int ret = 0;
 +
-+	if (!is_usb_device(dev))
++	status = acpi_evaluate_object(handle, "_UPC", NULL, &buffer);
++
++	if (ACPI_FAILURE(status))
 +		return -ENODEV;
 +
-+	udev = to_usb_device(dev);
-+	parent = dev->parent;
-+	parent_handle = DEVICE_ACPI_HANDLE(parent);
++	upc = buffer.pointer;
 +
-+	if (!parent_handle)
++	if (!upc || (upc->type != ACPI_TYPE_PACKAGE)
++		|| upc->package.count != 4) {
++		ret = -EINVAL;
++		goto out;
++	}
++
++	if (upc->package.elements[0].integer.value)
++		udev->removable = USB_DEVICE_REMOVABLE;
++	else
++		udev->removable = USB_DEVICE_FIXED;
++
++out:
++	kfree(upc);
++	return ret;
++}
++
++static int usb_acpi_check_pld(struct usb_device *udev, acpi_handle handle)
++{
++	acpi_status status;
++	struct acpi_pld pld;
++
++	status = acpi_get_physical_device_location(handle, &pld);
++
++	if (ACPI_FAILURE(status))
 +		return -ENODEV;
 +
-+	*handle = acpi_get_child(parent_handle, udev->portnum);
-+
-+	if (!*handle)
-+		return -ENODEV;
++	if (pld.user_visible)
++		udev->removable = USB_DEVICE_REMOVABLE;
++	else
++		udev->removable = USB_DEVICE_FIXED;
 +
 +	return 0;
 +}
 +
-+static struct acpi_bus_type usb_acpi_bus = {
-+	.bus = &usb_bus_type,
-+	.find_bridge = NULL,
-+	.find_device = usb_acpi_find_device,
-+};
-+
-+int usb_acpi_register(void)
-+{
-+	return register_acpi_bus_type(&usb_acpi_bus);
-+}
-+
-+void usb_acpi_unregister(void)
-+{
-+	unregister_acpi_bus_type(&usb_acpi_bus);
-+}
-diff --git a/drivers/usb/core/usb.c b/drivers/usb/core/usb.c
-index 0ce862b..7998a67 100644
---- a/drivers/usb/core/usb.c
-+++ b/drivers/usb/core/usb.c
-@@ -1015,6 +1015,9 @@ static int __init usb_init(void)
- 	if (retval)
- 		goto out;
+ static int usb_acpi_find_device(struct device *dev, acpi_handle *handle)
+ {
+ 	struct usb_device *udev;
+@@ -40,6 +88,15 @@ static int usb_acpi_find_device(struct device *dev, acpi_handle *handle)
+ 	if (!*handle)
+ 		return -ENODEV;
  
-+	retval = usb_acpi_register();
-+	if (retval)
-+		goto acpi_register_failed;
- 	retval = bus_register(&usb_bus_type);
- 	if (retval)
- 		goto bus_register_failed;
-@@ -1049,6 +1052,8 @@ major_init_failed:
- bus_notifier_failed:
- 	bus_unregister(&usb_bus_type);
- bus_register_failed:
-+	usb_acpi_unregister();
-+acpi_register_failed:
- 	usb_debugfs_cleanup();
- out:
- 	return retval;
-@@ -1070,6 +1075,7 @@ static void __exit usb_exit(void)
- 	usb_hub_cleanup();
- 	bus_unregister_notifier(&usb_bus_type, &usb_bus_nb);
- 	bus_unregister(&usb_bus_type);
-+	usb_acpi_unregister();
- 	usb_debugfs_cleanup();
++	/*
++	 * PLD will tell us whether a port is removable to the user or
++	 * not. If we don't get an answer from PLD (it's not present
++	 * or it's malformed) then try to infer it from UPC. If a
++	 * device isn't connectable then it's probably not removable.
++	 */
++	if (usb_acpi_check_pld(udev, *handle) != 0)
++		usb_acpi_check_upc(udev, *handle);
++
+ 	return 0;
  }
  
-diff --git a/drivers/usb/core/usb.h b/drivers/usb/core/usb.h
-index 71648dc..5c5c538 100644
---- a/drivers/usb/core/usb.h
-+++ b/drivers/usb/core/usb.h
-@@ -156,3 +156,10 @@ extern void usb_notify_remove_device(struct usb_device *udev);
- extern void usb_notify_add_bus(struct usb_bus *ubus);
- extern void usb_notify_remove_bus(struct usb_bus *ubus);
- 
-+#ifdef CONFIG_ACPI
-+extern int usb_acpi_register(void);
-+extern void usb_acpi_unregister(void);
-+#else
-+static inline int usb_acpi_register(void) { return 0; };
-+static inline void usb_acpi_unregister(void) { };
-+#endif
 -- 
 1.7.6.rc2.8.g28eb
 
