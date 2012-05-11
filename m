@@ -1,43 +1,63 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH V3 3/8] usb: Bind devices to ACPI devices when possible
-Date: Thu, 10 May 2012 16:01:42 -0700
-Message-ID: <20120510230142.GA11125@kroah.com>
-References: <1336575635-13120-1-git-send-email-tianyu.lan@intel.com>
- <1336575635-13120-4-git-send-email-tianyu.lan@intel.com>
+From: Jiang Liu <liuj97@gmail.com>
+Subject: Re: [PATCH v2 1/7] ACPI: Add CONFIG_HOTPLUG_OST option
+Date: Fri, 11 May 2012 08:15:26 +0800
+Message-ID: <4FAC5A1E.3090602@gmail.com>
+References: <1336507944-10219-1-git-send-email-toshi.kani@hp.com>   <1336507944-10219-2-git-send-email-toshi.kani@hp.com>   <4FABEF90.4040602@gmail.com> <1336670790.16730.215.camel@misato.fc.hp.com>  <4FABFE33.9040502@gmail.com> <1336674019.16730.239.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:63826 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932783Ab2EJXBr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 May 2012 19:01:47 -0400
-Received: by pbbrp8 with SMTP id rp8so2490913pbb.19
-        for <linux-acpi@vger.kernel.org>; Thu, 10 May 2012 16:01:47 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <1336575635-13120-4-git-send-email-tianyu.lan@intel.com>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:40501 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750706Ab2EKAPd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 May 2012 20:15:33 -0400
+In-Reply-To: <1336674019.16730.239.camel@misato.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: lenb@kernel.org, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu, sarah.a.sharp@linux.intel.com, mjg59@srcf.ucam.org, mfm@muteddisk.com, Matthew Garrett <mjg@redhat.com>
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, bhelgaas@google.com, shuahkhan@gmail.com, linux-kernel@vger.kernel.org
 
-On Wed, May 09, 2012 at 11:00:30PM +0800, Lan Tianyu wrote:
-> From: Matthew Garrett <mjg@redhat.com>
+On 05/11/2012 02:20 AM, Toshi Kani wrote:
+> On Fri, 2012-05-11 at 01:43 +0800, Jiang Liu wrote:
+>> On 05/11/2012 01:26 AM, Toshi Kani wrote:
+>>> On Fri, 2012-05-11 at 00:40 +0800, Jiang Liu wrote:
+>>>> On 05/09/2012 04:12 AM, Toshi Kani wrote:
+>>>>> Added CONFIG_ACPI_HOTPLUG_OPT option. When this config option is disabled,
+>>>>> this patchset has no effect on the platform. This option is disabled by
+>>>>> default. The dependency list assures consistent behavior among CPU, memory
+>>>>> and container hotplug operations with regarding the _OST support.
+>>>> Seems also need to enhance the acpiphp driver for PCI hotplug operations too.
+>>>> acpiphp driver is also based on the ACPI device hotplug model.
+>>>
+>>> Good question.  ACPI PCI hotplug is a legacy method, which is being
+>>> replaced by PCI native hotplug.  I expect PCI native hotplug will be
+>>> used for any platforms supporting PCI-E.  Since this _OST support is
+>>> targeted for new platforms (as _OST is not supported on the current
+>>> platforms), I thought that it would be prudent to avoid changing PCI
+>>> hotplug code for this.
+>> You are right, acpiphp is legacy method. But it may also be used to support
+>> some cases which can't be supported by the pciehp driver.
+>> For example, we have a PCIe system which needs to run acpiphp and pciehp
+>> concurrently. The pciehp driver is used to manage hot-pluggable PCIe slot,
+>> and the acpiphp driver is used to migrate downstream ports among virtual 
+>> PCIe switches of an MR-IOV switch. It would be great if we could enable 
+>> _OST for acpiphp too.
+>>
+>> To be honest, our BIOS doesn't provide _OST for acpiphp yet, so we could
+>> enhance acpiphp driver in future when a system really needing that feature
+>> appears.
 > 
-> Built-in USB devices will typically have a representation in the system
-> ACPI tables. Add support for binding the two together so the USB code can
-> make use of the associated methods.
+> Interesting.  In such case, I am willing to change acpiphp, but I am
+> afraid that I do not have access to platforms with ACPI PCI hotplug
+> support.  My test systems are all PCI-E based.  So, it would be great if
+> you could enhance acpiphp when you need it.
+Sure, I will enhance it based on your work when needed.
+Thanks!
+-Gerry
+
 > 
-> Signed-off-by: Matthew Garrett <mjg@redhat.com>
-> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+> 
+> Thanks!
+> -Toshi
+> 
 
-This patch doesn't apply to my usb-next branch.
-
-Last time around, I hand-edited the patch, but I'm tired of doing that
-with this series, and it shows you didn't test it against my latest
-tree.
-
-This is getting annoying, what would you do in my situation?
-
-Please try again...
-
-greg k-h
