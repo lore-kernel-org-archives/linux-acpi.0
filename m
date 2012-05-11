@@ -1,87 +1,44 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v3 4/7] ACPI: Add _OST support for ACPI CPU hotplug
-Date: Fri, 11 May 2012 10:37:00 -0600
-Message-ID: <1336754223-5346-5-git-send-email-toshi.kani@hp.com>
+Subject: [PATCH v3 7/7] ACPI: Set hotplug _OST support bit to _OSC
+Date: Fri, 11 May 2012 10:37:03 -0600
+Message-ID: <1336754223-5346-8-git-send-email-toshi.kani@hp.com>
 References: <1336754223-5346-1-git-send-email-toshi.kani@hp.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g1t0027.austin.hp.com ([15.216.28.34]:26347 "EHLO
+	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932627Ab2EKQkq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 May 2012 12:40:46 -0400
 In-Reply-To: <1336754223-5346-1-git-send-email-toshi.kani@hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org, linux-acpi@vger.kernel.org
 Cc: bhelgaas@google.com, shuahkhan@gmail.com, liuj97@gmail.com, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>
-List-Id: linux-acpi@vger.kernel.org
 
-Changed acpi_processor_hotplug_notify() to call ACPI _OST method
-when ACPI CPU hotplug operation has completed.
+When CONFIG_ACPI_HOTPLUG_OST is enabled, set hotplug _OST support bit
+OSC_SB_HOTPLUG_OST_SUPPORT to indicate that the OS supports hotplug
+_OST by calling the platform-wide ACPI Operating System Capabilities
+(_OSC).
 
 Signed-off-by: Toshi Kani <toshi.kani@hp.com>
 ---
- drivers/acpi/processor_driver.c |   28 ++++++++++++++++++++--------
- 1 files changed, 20 insertions(+), 8 deletions(-)
+ drivers/acpi/bus.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-index 0734086..971c454 100644
---- a/drivers/acpi/processor_driver.c
-+++ b/drivers/acpi/processor_driver.c
-@@ -701,9 +701,9 @@ static void acpi_processor_hotplug_notify(acpi_handle handle,
- {
- 	struct acpi_processor *pr;
- 	struct acpi_device *device = NULL;
-+	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE; /* default */
- 	int result;
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 3263b68..93bf515 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -544,6 +544,10 @@ static void acpi_bus_osc_support(void)
+ 	capbuf[OSC_SUPPORT_TYPE] |= OSC_SB_PPC_OST_SUPPORT;
+ #endif
  
--
- 	switch (event) {
- 	case ACPI_NOTIFY_BUS_CHECK:
- 	case ACPI_NOTIFY_DEVICE_CHECK:
-@@ -715,14 +715,18 @@ static void acpi_processor_hotplug_notify(acpi_handle handle,
- 		if (!is_processor_present(handle))
- 			break;
- 
--		if (acpi_bus_get_device(handle, &device)) {
--			result = acpi_processor_device_add(handle, &device);
--			if (result)
--				printk(KERN_ERR PREFIX
--					    "Unable to add the device\n");
-+		if (!acpi_bus_get_device(handle, &device))
-+			break;
++#ifdef CONFIG_ACPI_HOTPLUG_OST
++	capbuf[OSC_SUPPORT_TYPE] |= OSC_SB_HOTPLUG_OST_SUPPORT;
++#endif
 +
-+		result = acpi_processor_device_add(handle, &device);
-+		if (result) {
-+			printk(KERN_ERR PREFIX "Unable to add the device\n");
- 			break;
- 		}
-+
-+		ost_code = ACPI_OST_SC_SUCCESS;
- 		break;
-+
- 	case ACPI_NOTIFY_EJECT_REQUEST:
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 				  "received ACPI_NOTIFY_EJECT_REQUEST\n"));
-@@ -736,15 +740,23 @@ static void acpi_processor_hotplug_notify(acpi_handle handle,
- 		if (!pr) {
- 			printk(KERN_ERR PREFIX
- 				    "Driver data is NULL, dropping EJECT\n");
--			return;
-+			break;
- 		}
-+
-+		/* REVISIT: update when eject is supported */
-+		ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
- 		break;
-+
- 	default:
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 				  "Unsupported event [0x%x]\n", event));
--		break;
-+
-+		/* non-hotplug event; possibly handled by other handler */
-+		return;
- 	}
- 
-+	/* Inform firmware that the hotplug operation has completed */
-+	(void) acpi_evaluate_hotplug_ost(handle, event, ost_code, NULL);
- 	return;
- }
- 
+ 	if (!ghes_disable)
+ 		capbuf[OSC_SUPPORT_TYPE] |= OSC_SB_APEI_SUPPORT;
+ 	if (ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB", &handle)))
 -- 
 1.7.7.6
+
