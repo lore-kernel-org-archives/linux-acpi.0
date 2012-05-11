@@ -1,77 +1,47 @@
-From: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+From: Alan Stern <stern@rowland.harvard.edu>
 Subject: Re: [RFC PATCH] usb/acpi: Add support usb port power off mechanism
  for device fixed on the motherboard
-Date: Fri, 11 May 2012 11:35:43 -0700
-Message-ID: <20120511183543.GF7920@kroah.com>
-References: <4FAD3A51.4010803@intel.com>
- <Pine.LNX.4.44L0.1205111302080.1865-100000@iolanthe.rowland.org>
+Date: Fri, 11 May 2012 15:14:37 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1205111504130.1865-100000@iolanthe.rowland.org>
+References: <20120511180352.GC18754@xanatos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.1205111302080.1865-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Cc: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sarah Sharp <sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from iolanthe.rowland.org ([192.131.102.54]:47572 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1759873Ab2EKTOi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 May 2012 15:14:38 -0400
+In-Reply-To: <20120511180352.GC18754@xanatos>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Cc: Dan Williams <dcbw@redhat.com>, Lan Tianyu <tianyu.lan@intel.com>, lenb@kernel.org, gregkh@linuxfoundation.org, linux-acpi@vger.kernel.org, linux-usb@vger.kernel.org
 
-On Fri, May 11, 2012 at 01:44:26PM -0400, Alan Stern wrote:
-> On Sat, 12 May 2012, Lan Tianyu wrote:
-> 
-> >     The power saving depends on devices. I test a usb3.0 ssd. The power saving of
-> > power off is about 2.2w more than just selective suspend. In theory, power
-> > off can help to save remaining power after selective suspend.
-> 
-> That's a lot of power!  Suspended USB devices aren't supposed to
-> consume more than 2.5 mA of bus current, which at 5 V amounts to <=
-> 0.0125 W.  Does the port really use that much?  Or does the SSD have a
-> separate power supply that it disables when port power is removed?
-> 
-> > > The patch did not address the case of powering down ports that have no
-> > > devices attached.  That might be a better place to start, because it's
-> > > simpler, even though it might not yield as much power savings.
-> > 
-> > Do you mean internal ports?
-> 
-> Internal or external.
-> 
-> >  From my opinion, ACPI will tell us whether the port is connectable or not.
-> 
-> ACPI will tell you about some ports, not others (for example, ACPI
-> knows nothing about the ports on hubs that the user plugs in).  On
-> other systems, a Device Tree database might provide the same
-> information.
-> 
-> > When the internal port is not connectable, this means the port is not used
-> > and this patch will power down the port.
-> 
-> ...
-> 
-> > For external ports, this should be associated with sys file control. The users
-> > need to determine when they should be power off.
-> 
-> You don't mean "external", you mean "not described as unconnectable by 
-> ACPI".
-> 
-> > So I should work on the external ports without devices firstly and
-> > add the sys file for user to control?
-> 
-> Yes, I think so.  It will be less controversial and probably simpler.  
-> When that mechanism is ready, you should be able to use it
-> automatically for unconnectable ports.
-> 
-> One tricky thing: In theory, there should be a separate sysfs file for 
-> each port.  That seems like a lot of overhead though; is there any way 
-> to present the information in a single file that won't offend sysfs 
-> purists?
+On Fri, 11 May 2012, Sarah Sharp wrote:
 
-Why is that a lot of "overhead"?  It's what, 7-9 files max?  As Sarah
-points out, one file for all ports is racy and can get to be a mess.
+> > That reminds me...  I think this should not be so closely linked with
+> > ACPI.  There's a perfectly good USB Clear-Feature request for turning
+> > off port power; that's what we should use.  If hooks are required for
+> > interfacing with platform-specific code (such as ACPI), they can be
+> > added at the appropriate places.
+> 
+> So would you rather userspace issue a clear port power feature request
+> to the roothub through libusb than have a sysfs file per port in
+> /sys/bus/usb/devices/../power/ ?  Or are you just saying that the sysfs
+> interface should issue the request to the hub (which may be the
+> roothub), and the xHCI driver can just implement the ACPI calls in its
+> roothub control method?
 
-But then again, I'm a "sysfs purist" :)
+The latter.  Except that the ACPI calls may need to occur in more
+places than just xhci-hcd (ehci-hcd, for example).  And what about
+ports on the USB-2 "rate-matching" hubs that Intel now builds into its
+chipsets?
 
-greg k-h
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+For that matter, is it really necessary to involve ACPI in port power
+changes at all?  Why can't xhci-hcd simply set the PP bit in the PORTSC
+register, and rely on the PPC bit in the HCCPARAMS register to indicate
+whether or not port power control is supported?  In other words, what 
+advantage does ACPI have over USB native power control?
+
+Alan Stern
+
