@@ -1,107 +1,112 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: [Resend PATCH V3 4/8] usb: Set device removable state based on ACPI USB data
-Date: Fri, 11 May 2012 16:08:28 +0800
-Message-ID: <1336723712-7686-5-git-send-email-tianyu.lan@intel.com>
+From: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [Resend PATCH V3 2/8] ACPI: Add _PLD support
+Date: Fri, 11 May 2012 16:08:26 +0800
+Message-ID: <1336723712-7686-3-git-send-email-tianyu.lan@intel.com>
 References: <1336723712-7686-1-git-send-email-tianyu.lan@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:55054 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755932Ab2EKIO7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 11 May 2012 04:14:59 -0400
-In-Reply-To: <1336723712-7686-1-git-send-email-tianyu.lan@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1336723712-7686-1-git-send-email-tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org, mfm-Oo0r1OC9pj9iLUuM0BA3LQ@public.gmane.org, Matthew Garrett <mjg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, gregkh@linuxfoundation.org
-Cc: linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu, sarah.a.sharp@linux.intel.com, mjg59@srcf.ucam.org, mfm@muteddisk.com, Matthew Garrett <mjg@redhat.com>, Lan Tianyu <tianyu.lan@intel.com>
 
-From: Matthew Garrett <mjg@redhat.com>
+From: Matthew Garrett <mjg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
-ACPI offers two methods that allow us to infer whether or not a USB port
-is removable. The _PLD method gives us information on whether the port is
-"user visible" or not. If that's not present then we can fall back to the
-_UPC method which tells us whether or not a port is connectable.
+Add a simple helper function to allow drivers to obtain the physical
+device location data.
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
-Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+Acked-by: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Matthew Garrett <mjg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/usb/core/usb-acpi.c |   57 +++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 57 insertions(+), 0 deletions(-)
+ drivers/acpi/utils.c    |   30 ++++++++++++++++++++++++++++++
+ include/acpi/acpi_bus.h |   31 +++++++++++++++++++++++++++++++
+ 2 files changed, 61 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/usb/core/usb-acpi.c b/drivers/usb/core/usb-acpi.c
-index cab5cb7..8947b20 100644
---- a/drivers/usb/core/usb-acpi.c
-+++ b/drivers/usb/core/usb-acpi.c
-@@ -19,6 +19,54 @@
+diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+index b002a47..adbbc1c 100644
+--- a/drivers/acpi/utils.c
++++ b/drivers/acpi/utils.c
+@@ -382,3 +382,33 @@ acpi_evaluate_reference(acpi_handle handle,
+ }
  
- #include "usb.h"
- 
-+static int usb_acpi_check_upc(struct usb_device *udev, acpi_handle handle)
+ EXPORT_SYMBOL(acpi_evaluate_reference);
++
++acpi_status
++acpi_get_physical_device_location(acpi_handle handle, struct acpi_pld *pld)
 +{
 +	acpi_status status;
 +	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-+	union acpi_object *upc;
-+	int ret = 0;
++	union acpi_object *output;
 +
-+	status = acpi_evaluate_object(handle, "_UPC", NULL, &buffer);
++	status = acpi_evaluate_object(handle, "_PLD", NULL, &buffer);
 +
 +	if (ACPI_FAILURE(status))
-+		return -ENODEV;
++		return status;
 +
-+	upc = buffer.pointer;
++	output = buffer.pointer;
 +
-+	if (!upc || (upc->type != ACPI_TYPE_PACKAGE)
-+		|| upc->package.count != 4) {
-+		ret = -EINVAL;
++	if (!output || output->type != ACPI_TYPE_PACKAGE
++	    || !output->package.count
++	    || output->package.elements[0].type != ACPI_TYPE_BUFFER
++	    || output->package.elements[0].buffer.length > sizeof(*pld)) {
++		status = AE_TYPE;
 +		goto out;
 +	}
 +
-+	if (upc->package.elements[0].integer.value)
-+		udev->removable = USB_DEVICE_REMOVABLE;
-+	else
-+		udev->removable = USB_DEVICE_FIXED;
-+
++	memcpy(pld, output->package.elements[0].buffer.pointer,
++	       output->package.elements[0].buffer.length);
 +out:
-+	kfree(upc);
-+	return ret;
++	kfree(buffer.pointer);
++	return status;
 +}
-+
-+static int usb_acpi_check_pld(struct usb_device *udev, acpi_handle handle)
-+{
-+	acpi_status status;
-+	struct acpi_pld pld;
-+
-+	status = acpi_get_physical_device_location(handle, &pld);
-+
-+	if (ACPI_FAILURE(status))
-+		return -ENODEV;
-+
-+	if (pld.user_visible)
-+		udev->removable = USB_DEVICE_REMOVABLE;
-+	else
-+		udev->removable = USB_DEVICE_FIXED;
-+
-+	return 0;
-+}
-+
- static int usb_acpi_find_device(struct device *dev, acpi_handle *handle)
- {
- 	struct usb_device *udev;
-@@ -40,6 +88,15 @@ static int usb_acpi_find_device(struct device *dev, acpi_handle *handle)
- 	if (!*handle)
- 		return -ENODEV;
++EXPORT_SYMBOL(acpi_get_physical_device_location);
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index c909984..b0d6282 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -51,6 +51,37 @@ acpi_evaluate_reference(acpi_handle handle,
+ 			struct acpi_object_list *arguments,
+ 			struct acpi_handle_list *list);
  
-+	/*
-+	 * PLD will tell us whether a port is removable to the user or
-+	 * not. If we don't get an answer from PLD (it's not present
-+	 * or it's malformed) then try to infer it from UPC. If a
-+	 * device isn't connectable then it's probably not removable.
-+	 */
-+	if (usb_acpi_check_pld(udev, *handle) != 0)
-+		usb_acpi_check_upc(udev, *handle);
++struct acpi_pld {
++	unsigned int revision:7; /* 0 */
++	unsigned int ignore_colour:1; /* 7 */
++	unsigned int colour:24; /* 8 */
++	unsigned int width:16; /* 32 */
++	unsigned int height:16; /* 48 */
++	unsigned int user_visible:1; /* 64 */
++	unsigned int dock:1; /* 65 */
++	unsigned int lid:1; /* 66 */
++	unsigned int panel:3; /* 67 */
++	unsigned int vertical_pos:2; /* 70 */
++	unsigned int horizontal_pos:2; /* 72 */
++	unsigned int shape:4; /* 74 */
++	unsigned int group_orientation:1; /* 78 */
++	unsigned int group_token:8; /* 79 */
++	unsigned int group_position:8; /* 87 */
++	unsigned int bay:1; /* 95 */
++	unsigned int ejectable:1; /* 96 */
++	unsigned int ospm_eject_required:1; /* 97 */
++	unsigned int cabinet_number:8; /* 98 */
++	unsigned int card_cage_number:8; /* 106 */
++	unsigned int reference:1; /* 114 */
++	unsigned int rotation:4; /* 115 */
++	unsigned int order:5; /* 119 */
++	unsigned int reserved:4; /* 124 */
++	unsigned int vertical_offset:16; /* 128 */
++	unsigned int horizontal_offset:16; /* 144 */
++} __attribute__((__packed__));
 +
- 	return 0;
- }
++acpi_status
++acpi_get_physical_device_location(acpi_handle handle, struct acpi_pld *pld);
+ #ifdef CONFIG_ACPI
  
+ #include <linux/proc_fs.h>
 -- 
 1.7.6.rc2.8.g28eb
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
