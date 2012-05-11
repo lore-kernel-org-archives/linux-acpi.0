@@ -1,59 +1,43 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v3 1/7] ACPI: Add CONFIG_HOTPLUG_OST option
-Date: Fri, 11 May 2012 10:36:57 -0600
-Message-ID: <1336754223-5346-2-git-send-email-toshi.kani@hp.com>
+From: Andi Kleen <andi@firstfloor.org>
+Subject: Re: [PATCH v3 0/7] ACPI: Add _OST support for ACPI hotplug
+Date: Fri, 11 May 2012 10:09:38 -0700
+Message-ID: <m2vck2lk4t.fsf@firstfloor.org>
 References: <1336754223-5346-1-git-send-email-toshi.kani@hp.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1336754223-5346-1-git-send-email-toshi.kani@hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: lenb@kernel.org, linux-acpi@vger.kernel.org
-Cc: bhelgaas@google.com, shuahkhan@gmail.com, liuj97@gmail.com, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:50217 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760489Ab2EKRJl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 11 May 2012 13:09:41 -0400
+In-Reply-To: <1336754223-5346-1-git-send-email-toshi.kani@hp.com> (Toshi
+	Kani's message of "Fri, 11 May 2012 10:36:56 -0600")
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, bhelgaas@google.com, shuahkhan@gmail.com, liuj97@gmail.com, linux-kernel@vger.kernel.org
 
-Added CONFIG_ACPI_HOTPLUG_OPT option. When this config option is disabled,
-this patchset has no effect on the platform. This option is disabled by
-default. The dependency list assures consistent behavior among CPU, memory
-and container hotplug operations with regarding the _OST support.
+Toshi Kani <toshi.kani@hp.com> writes:
 
-Some platforms may require the OS to support _OST in order to support
-ACPI hotplug operations. For example, if a platform has the management
-console where user can request a hotplug operation from, this _OST support
-would be required for the management console to show the result of the
-hotplug request to user.
+> This patchset supports ACPI OSPM Status Indication (_OST) method for
+> ACPI CPU/memory/container hotplug operations and sysfs eject. After
+> ACPI hotplug operation has completed, OSPM calls _OST to indicate the
+> result of the operation to the platform. If _OST is not present, this
+> patchset has no effect on the platform.
+>
+> This _OST support can be enabled or disabled with a new config option
+> CONFIG_ACPI_HOTPLUG_OST. This option is disabled by default. When
+> this option is disabled, this patchset has no effect on the platform.
 
-ACPI PCI hotplug is not enhanced to support _OST at this time since it is
-a legacy method being replaced by PCI native hotplug. _OST support for
-ACPI PCI hotplug may be added in future if necessary.
+Does that control compiling in/out significant sized code?
 
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
----
- drivers/acpi/Kconfig |   14 ++++++++++++++
- 1 files changed, 14 insertions(+), 0 deletions(-)
+Controlling code behaviour by CONFIG option has been long deprecated.
+This is always better done as a runtime option.
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 47768ff..d318c5e 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -351,6 +351,20 @@ config ACPI_HOTPLUG_MEMORY
- 	  To compile this driver as a module, choose M here:
- 	  the module will be called acpi_memhotplug.
- 
-+config ACPI_HOTPLUG_OST
-+	bool "Hotplug Status Indication Support"
-+	depends on ACPI_HOTPLUG_CPU
-+	depends on ACPI_HOTPLUG_MEMORY
-+	depends on ACPI_CONTAINER
-+	default n
-+	help
-+	  This option enables the use of the ACPI OSPM Status Indication
-+          (_OST), if available, for the platform to determine the status
-+	  of various hotplug operations. Some platforms may require that
-+	  this option be enabled to track the status of hotplug operations.
-+	  This option has no effect when the platform does not support
-+	  _OST.
-+
- config ACPI_SBS
- 	tristate "Smart Battery System"
- 	depends on X86
+Just think what should a distribution who wants to use the same binary
+on all systems set.
+
+-Andi
+
 -- 
-1.7.7.6
+ak@linux.intel.com -- Speaking for myself only
