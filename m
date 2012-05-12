@@ -1,72 +1,46 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [RFC PATCH] usb/acpi: Add support usb port power off mechanism
- for device fixed on the motherboard
-Date: Sat, 12 May 2012 07:04:38 -0700
-Message-ID: <20120512140438.GA30539@kroah.com>
-References: <4FAD3A51.4010803@intel.com>
- <Pine.LNX.4.44L0.1205111302080.1865-100000@iolanthe.rowland.org>
- <20120511181256.GD18754@xanatos>
- <4FAE5BFE.4000904@mvista.com>
+From: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [Resend PATCH V3 6/8] usb: move struct usb_device->children to
+ struct usb_hub_port->child
+Date: Sat, 12 May 2012 23:31:16 +0800
+Message-ID: <4FAE8244.6090402@intel.com>
+References: <1336723712-7686-1-git-send-email-tianyu.lan@intel.com> <1336723712-7686-7-git-send-email-tianyu.lan@intel.com> <20120512001027.GA25600@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:43641 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755489Ab2ELOEl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 May 2012 10:04:41 -0400
-Received: by dady13 with SMTP id y13so4188841dad.19
-        for <linux-acpi@vger.kernel.org>; Sat, 12 May 2012 07:04:41 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <4FAE5BFE.4000904@mvista.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20120512001027.GA25600-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org, mfm-Oo0r1OC9pj9iLUuM0BA3LQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: Sarah Sharp <sarah.a.sharp@linux.intel.com>, Alan Stern <stern@rowland.harvard.edu>, Lan Tianyu <tianyu.lan@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-usb@vger.kernel.org
 
-On Sat, May 12, 2012 at 04:47:58PM +0400, Sergei Shtylyov wrote:
-> Hello.
-> 
-> On 11-05-2012 22:12, Sarah Sharp wrote:
-> 
-> >>>For external ports, this should be associated with sys file control. The users
-> >>>need to determine when they should be power off.
-> 
-> >>You don't mean "external", you mean "not described as unconnectable by
-> >>ACPI".
-> 
-> >>>So I should work on the external ports without devices firstly and
-> >>>add the sys file for user to control?
-> 
-> >>Yes, I think so.  It will be less controversial and probably simpler.
-> >>When that mechanism is ready, you should be able to use it
-> >>automatically for unconnectable ports.
-> 
-> >>One tricky thing: In theory, there should be a separate sysfs file for
-> >>each port.  That seems like a lot of overhead though; is there any way
-> >>to present the information in a single file that won't offend sysfs
-> >>purists?
-> 
-> >Tianyu proposed having one file per hub, with a bit field that
-> >controlled each port power.  However, I was concerned about different
-> >userspace applications racing with each other to turn or off ports.  For
-> >example, one app could read the bit field, attempt to power off just
-> >port 1, but before it can write to the sysfs file, a second app powers
-> >on port2, and the first app then writes to the sysfs file, leaving port
-> >1 powered off, and port 2 powered off, which is not what the second app
-> >wanted.
-> 
-> >But if you can think of a better way to coalesce the port power off
-> >mechanisms into one file, we're all ears. :)
-> 
->    How about two files? You write 1 to the bit that matcheas port
-> you want powered on in the 'poweron' file, and vice versa, you write
-> 1 to the bit that matches port you want powered off in the
-> 'poweroff' file.
+On 2012/5/12 8:10, Greg KH wrote:
+> On Fri, May 11, 2012 at 04:08:30PM +0800, Lan Tianyu wrote:
+>
+>> +struct usb_device *usb_get_hub_child_device(struct usb_device *hdev,
+>> +	int port1)
+>> +{
+>> +	struct usb_hub *hub = hdev_to_hub(hdev);
+>> +
+>> +	if (!hub || port1>  hdev->maxchild || port1<  1)
+>> +		return NULL;
+>> +	return hub->port_data[port1 - 1].child;
+>> +}
+>> +EXPORT_SYMBOL_GPL(usb_get_hub_child_device);
+> We need kerneldoc documentation for this new public function.  Please
+> send a follow-on patch that adds this.
+Ok. I will do it later.
+> thanks,
+>
+> greg k-h
 
-Ick, no, bit manipulation in sysfs files isn't the nicest thing at all
-(especially as Sarah implied that we could have more than 64 ports for a
-host, and then what, we have what, 128bit variables here?)
 
-One file per port please, in a generic way.
+-- 
+Best Regards
+Tianyu Lan
+linux kernel enabling team
 
-greg k-h
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
