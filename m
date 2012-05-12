@@ -1,175 +1,64 @@
-From: Amit Daniel Kachhap <amit.kachhap-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: [PATCH v4 5/5] ARM: exynos: Add thermal sensor driver platform data
-	support
-Date: Sat, 12 May 2012 15:10:45 +0530
-Message-ID: <1336815645-29625-6-git-send-email-amit.kachhap@linaro.org>
-References: <1336815645-29625-1-git-send-email-amit.kachhap@linaro.org>
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [RFC PATCH] usb/acpi: Add support usb port power off mechanism
+ for device fixed on the motherboard
+Date: Sat, 12 May 2012 16:47:58 +0400
+Message-ID: <4FAE5BFE.4000904@mvista.com>
+References: <4FAD3A51.4010803@intel.com> <Pine.LNX.4.44L0.1205111302080.1865-100000@iolanthe.rowland.org> <20120511181256.GD18754@xanatos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-In-Reply-To: <1336815645-29625-1-git-send-email-amit.kachhap-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
-List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
-Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-To: linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org
-Cc: linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, durgadoss.r-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, guenter.roeck-IzeFyvvaP7pWk0Htik3J/w@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:60348 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751786Ab2ELMs3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 12 May 2012 08:48:29 -0400
+Received: by lahd3 with SMTP id d3so2464682lah.19
+        for <linux-acpi@vger.kernel.org>; Sat, 12 May 2012 05:48:27 -0700 (PDT)
+In-Reply-To: <20120511181256.GD18754@xanatos>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Lan Tianyu <tianyu.lan@intel.com>, lenb@kernel.org, gregkh@linuxfoundation.org, linux-acpi@vger.kernel.org, linux-usb@vger.kernel.org
 
-This patch adds necessary default platform data support needed for TMU driver.
-This dt/non-dt values are tested for origen exynos4210 and smdk exynos5250 platforms.
+Hello.
 
-Signed-off-by: Amit Daniel Kachhap <amit.kachhap-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
----
- drivers/thermal/exynos_thermal.c |  111 +++++++++++++++++++++++++++++++++++++-
- 1 files changed, 110 insertions(+), 1 deletions(-)
+On 11-05-2012 22:12, Sarah Sharp wrote:
 
-diff --git a/drivers/thermal/exynos_thermal.c b/drivers/thermal/exynos_thermal.c
-index 48106d8..e4e6759 100644
---- a/drivers/thermal/exynos_thermal.c
-+++ b/drivers/thermal/exynos_thermal.c
-@@ -662,14 +662,121 @@ static irqreturn_t exynos_tmu_irq(int irq, void *id)
- static struct thermal_sensor_conf exynos_sensor_conf = {
- 	.name			= "exynos-therm",
- 	.read_temperature	= (int (*)(void *))exynos_tmu_read,
-+};
-+
-+#if defined(CONFIG_CPU_EXYNOS4210)
-+static struct exynos_tmu_platform_data const exynos4_default_tmu_data = {
-+	.threshold = 80,
-+	.trigger_levels[0] = 5,
-+	.trigger_levels[1] = 20,
-+	.trigger_levels[2] = 30,
-+	.trigger_level0_en = 1,
-+	.trigger_level1_en = 1,
-+	.trigger_level2_en = 1,
-+	.trigger_level3_en = 0,
-+	.gain = 15,
-+	.reference_voltage = 7,
-+	.cal_type = TYPE_ONE_POINT_TRIMMING,
-+	.freq_tab[0] = {
-+		.freq_clip_max = 800 * 1000,
-+		.temp_level = 85,
-+	},
-+	.freq_tab[1] = {
-+		.freq_clip_max = 200 * 1000,
-+		.temp_level = 100,
-+	},
-+	.freq_tab_count = 2,
-+	.type = SOC_ARCH_EXYNOS4,
-+};
-+#define EXYNOS4_TMU_DRV_DATA (&exynos4_default_tmu_data)
-+#else
-+#define EXYNOS4_TMU_DRV_DATA (NULL)
-+#endif
-+
-+#if defined(CONFIG_SOC_EXYNOS5250)
-+static struct exynos_tmu_platform_data const exynos5_default_tmu_data = {
-+	.trigger_levels[0] = 85,
-+	.trigger_levels[1] = 103,
-+	.trigger_levels[2] = 110,
-+	.trigger_level0_en = 1,
-+	.trigger_level1_en = 1,
-+	.trigger_level2_en = 1,
-+	.trigger_level3_en = 0,
-+	.gain = 8,
-+	.reference_voltage = 16,
-+	.noise_cancel_mode = 4,
-+	.cal_type = TYPE_ONE_POINT_TRIMMING,
-+	.efuse_value = 55,
-+	.freq_tab[0] = {
-+		.freq_clip_max = 800 * 1000,
-+		.temp_level = 85,
-+	},
-+	.freq_tab[1] = {
-+		.freq_clip_max = 200 * 1000,
-+		.temp_level = 103,
-+	},
-+	.freq_tab_count = 2,
-+	.type = SOC_ARCH_EXYNOS5,
-+};
-+#define EXYNOS5_TMU_DRV_DATA (&exynos5_default_tmu_data)
-+#else
-+#define EXYNOS5_TMU_DRV_DATA (NULL)
-+#endif
-+
-+#ifdef CONFIG_OF
-+static const struct of_device_id exynos_tmu_match[] = {
-+	{
-+		.compatible = "samsung,exynos4-tmu",
-+		.data = (void *)EXYNOS4_TMU_DRV_DATA,
-+	},
-+	{
-+		.compatible = "samsung,exynos5-tmu",
-+		.data = (void *)EXYNOS5_TMU_DRV_DATA,
-+	},
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, exynos_tmu_match);
-+#else
-+#define  exynos_tmu_match NULL
-+#endif
-+
-+static struct platform_device_id exynos_tmu_driver_ids[] = {
-+	{
-+		.name		= "exynos4-tmu",
-+		.driver_data    = (kernel_ulong_t)EXYNOS4_TMU_DRV_DATA,
-+	},
-+	{
-+		.name		= "exynos5-tmu",
-+		.driver_data    = (kernel_ulong_t)EXYNOS5_TMU_DRV_DATA,
-+	},
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(platform, exynos4_tmu_driver_ids);
-+
-+static inline struct  exynos_tmu_platform_data *exynos_get_driver_data(
-+			struct platform_device *pdev)
-+{
-+#ifdef CONFIG_OF
-+	if (pdev->dev.of_node) {
-+		const struct of_device_id *match;
-+		match = of_match_node(exynos_tmu_match, pdev->dev.of_node);
-+		if (!match)
-+			return NULL;
-+		return (struct exynos_tmu_platform_data *) match->data;
-+	}
-+#endif
-+	return (struct exynos_tmu_platform_data *)
-+			platform_get_device_id(pdev)->driver_data;
- }
--;
- static int __devinit exynos_tmu_probe(struct platform_device *pdev)
- {
- 	struct exynos_tmu_data *data;
- 	struct exynos_tmu_platform_data *pdata = pdev->dev.platform_data;
- 	int ret, i;
- 
-+	if (!pdata)
-+		pdata = exynos_get_driver_data(pdev);
-+
- 	if (!pdata) {
- 		dev_err(&pdev->dev, "No platform init data supplied.\n");
- 		return -ENODEV;
-@@ -832,11 +939,13 @@ static struct platform_driver exynos_tmu_driver = {
- 	.driver = {
- 		.name   = "exynos-tmu",
- 		.owner  = THIS_MODULE,
-+		.of_match_table = exynos_tmu_match,
- 	},
- 	.probe = exynos_tmu_probe,
- 	.remove	= __devexit_p(exynos_tmu_remove),
- 	.suspend = exynos_tmu_suspend,
- 	.resume = exynos_tmu_resume,
-+	.id_table = exynos_tmu_driver_ids,
- };
- 
- module_platform_driver(exynos_tmu_driver);
--- 
-1.7.1
+>>> For external ports, this should be associated with sys file control. The users
+>>> need to determine when they should be power off.
+
+>> You don't mean "external", you mean "not described as unconnectable by
+>> ACPI".
+
+>>> So I should work on the external ports without devices firstly and
+>>> add the sys file for user to control?
+
+>> Yes, I think so.  It will be less controversial and probably simpler.
+>> When that mechanism is ready, you should be able to use it
+>> automatically for unconnectable ports.
+
+>> One tricky thing: In theory, there should be a separate sysfs file for
+>> each port.  That seems like a lot of overhead though; is there any way
+>> to present the information in a single file that won't offend sysfs
+>> purists?
+
+> Tianyu proposed having one file per hub, with a bit field that
+> controlled each port power.  However, I was concerned about different
+> userspace applications racing with each other to turn or off ports.  For
+> example, one app could read the bit field, attempt to power off just
+> port 1, but before it can write to the sysfs file, a second app powers
+> on port2, and the first app then writes to the sysfs file, leaving port
+> 1 powered off, and port 2 powered off, which is not what the second app
+> wanted.
+
+> But if you can think of a better way to coalesce the port power off
+> mechanisms into one file, we're all ears. :)
+
+    How about two files? You write 1 to the bit that matcheas port you want 
+powered on in the 'poweron' file, and vice versa, you write 1 to the bit that 
+matches port you want powered off in the 'poweroff' file.
+
+> Sarah Sharp
+
+WBR, Sergei
