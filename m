@@ -1,60 +1,67 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Subject: Re: [PATCH v4 2/5] hwmon: exynos4: Move thermal sensor driver to
- driver/thermal directory
-Date: Sat, 12 May 2012 08:38:05 -0700
-Message-ID: <20120512153805.GB5769@ericsson.com>
-References: <1336815645-29625-1-git-send-email-amit.kachhap@linaro.org>
- <1336815645-29625-3-git-send-email-amit.kachhap@linaro.org>
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: Re: [Resend PATCH V3 7/8] usb/acpi: add the support of usb hub ports'
+ acpi binding without attached devices.
+Date: Sun, 13 May 2012 00:00:06 +0800
+Message-ID: <4FAE8906.9050606@intel.com>
+References: <1336723712-7686-1-git-send-email-tianyu.lan@intel.com> <1336723712-7686-8-git-send-email-tianyu.lan@intel.com> <20120512001548.GA31948@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from imr4.ericy.com ([198.24.6.9]:45715 "EHLO imr4.ericy.com"
+Received: from mga14.intel.com ([143.182.124.37]:7594 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753670Ab2ELPlo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 12 May 2012 11:41:44 -0400
-Content-Disposition: inline
-In-Reply-To: <1336815645-29625-3-git-send-email-amit.kachhap@linaro.org>
+	id S1753552Ab2ELQAK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 12 May 2012 12:00:10 -0400
+In-Reply-To: <20120512001548.GA31948@kroah.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Amit Daniel Kachhap <amit.kachhap@linaro.org>
-Cc: "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "durgadoss.r@intel.com" <durgadoss.r@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "rui.zhang@intel.com" <rui.zhang@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "khali@linux-fr.org" <khali@linux-fr.org>, "patches@linaro.org" <patches@linaro.org>
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: lenb@kernel.org, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu, sarah.a.sharp@linux.intel.com, mjg59@srcf.ucam.org, mfm@muteddisk.com
 
-On Sat, May 12, 2012 at 05:40:42AM -0400, Amit Daniel Kachhap wrote:
-> This movement is needed because the hwmon entries and corresponding
-> sysfs interface is a duplicate of utilities already provided by
-> driver/thermal/thermal_sys.c. The goal is to place it in thermal folder
-> and add necessary functions to use the in-kernel thermal interfaces.
-> 
-> CC: Guenter Roeck <guenter.roeck@ericsson.com>
-> Signed-off-by: Amit Daniel Kachhap <amit.kachhap@linaro.org>
-> Signed-off-by: Donggeun Kim <dg77.kim@samsung.com>
+On 2012/5/12 8:15, Greg KH wrote:
+> On Fri, May 11, 2012 at 04:08:31PM +0800, Lan Tianyu wrote:
+>> The usb port is a device in the acpi table but it's not in the linux
+>> usb subsystem. USB hub port doesn't have struct device. So the acpi
+>> glue framework only can cover the usb port connected with usb device
+>> and store the acpi handle to struct device.archdata.acpi_handle. This
+>> patch adds the member platform_data in the struct usb_hub_port and
+>> gets the hub port's acpi_handle and store it in the port's platform_data
+>> to resolve no attached device no binding problem. The acpi method "_UPC"
+>> and "_PLD" can be accessed without attached device.
+> No, that's a hack.  Please do this correctly and use the real structures
+> here, not an unsigned long.
+>
+> Why not make the hub a real struct device?  That would solve this
+> problem, right?
+You mean make the hub ports a real struct device. Yeah. But that may be
+a little complex.  The device tree and sys fs hierarchy will be changed.
+>   struct usb_hub_port {
+>   	void			*port_owner;
+>   	struct usb_device	*child;
+> +	unsigned long		platform_data;
+How about this?
 
-Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
+struct usb_hub_port {
+  	void			*port_owner;
+  	struct usb_device	*child;
++	#ifdef CONFIG_ACPI
++	acpi_handle		port_acpi_handle;
++	#endif
 
-Some suggestions, possibly for later cleanup.
+> Yeah, no, that's not ok, sorry.  We use real pointers because we can,
+> don't use opaque types here, where you are really putting a pointer in
+> here.  Be specific.
+>
+> I'm not going to accept this patch, sorry.  Please rework it, and I'm
+> guessing, the one after this.
+All right.
+> I'll go test the other patches in this series now...
+Great thanks for your  patience to me(a freshman). :)
+> greg k-h
 
-> -
-> -       data = kzalloc(sizeof(struct exynos4_tmu_data), GFP_KERNEL);
 
-If you use devm_kzalloc, you won't have to free it.
+-- 
+Best Regards
+Tianyu Lan
+linux kernel enabling team
 
-[ ...]
-
-> -       data->mem = request_mem_region(data->mem->start,
-> -                       resource_size(data->mem), pdev->name);
-
-Same here, with devm_request_mem_region.
-
-[ ... ]
-
-> -       data->base = ioremap(data->mem->start, resource_size(data->mem));
-
-and devm_ioremap
-
-[ ... ]
-
-> -       ret = request_irq(data->irq, exynos4_tmu_irq,
-
-and devm_request_irq
-
-Guenter
