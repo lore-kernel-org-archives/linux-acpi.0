@@ -1,64 +1,40 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
+From: Alan Stern <stern@rowland.harvard.edu>
 Subject: Re: [RFC PATCH] usb/acpi: Add support usb port power off mechanism
  for device fixed on the motherboard
-Date: Sat, 12 May 2012 16:47:58 +0400
-Message-ID: <4FAE5BFE.4000904@mvista.com>
-References: <4FAD3A51.4010803@intel.com> <Pine.LNX.4.44L0.1205111302080.1865-100000@iolanthe.rowland.org> <20120511181256.GD18754@xanatos>
+Date: Sat, 12 May 2012 09:54:42 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1205120951480.6778-100000@netrider.rowland.org>
+References: <20120512001722.GA28011@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:60348 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751786Ab2ELMs3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 12 May 2012 08:48:29 -0400
-Received: by lahd3 with SMTP id d3so2464682lah.19
-        for <linux-acpi@vger.kernel.org>; Sat, 12 May 2012 05:48:27 -0700 (PDT)
-In-Reply-To: <20120511181256.GD18754@xanatos>
+Received: from netrider.rowland.org ([192.131.102.5]:47267 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752137Ab2ELNyo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 May 2012 09:54:44 -0400
+In-Reply-To: <20120512001722.GA28011@kroah.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sarah Sharp <sarah.a.sharp@linux.intel.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Lan Tianyu <tianyu.lan@intel.com>, lenb@kernel.org, gregkh@linuxfoundation.org, linux-acpi@vger.kernel.org, linux-usb@vger.kernel.org
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Sarah Sharp <sarah.a.sharp@linux.intel.com>, Dan Williams <dcbw@redhat.com>, Lan Tianyu <tianyu.lan@intel.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-usb@vger.kernel.org
 
-Hello.
+On Fri, 11 May 2012, Greg KH wrote:
 
-On 11-05-2012 22:12, Sarah Sharp wrote:
+> On Fri, May 11, 2012 at 04:59:22PM -0700, Sarah Sharp wrote:
+> > > > Only the xHCI host controller will have the port power off mechanism.
+> > > 
+> > > You're only talking about the upcoming Intel implementation, right?
+> > 
+> > Yes.  The port power off mechanism is an Intel specific ACPI call.
+> > AFAIK, there isn't anyone else who is going to have this mechanism.
+> 
+> That's not fair, you don't know what other vendors are going to do in
+> their controllers, or their system firmware, to be able to accurately say
+> this.
 
->>> For external ports, this should be associated with sys file control. The users
->>> need to determine when they should be power off.
+Right.  Even if other vendors don't use this ACPI mechanism, some of
+them may very well implement the native USB port power control
+mechanism.  If we add port power support to our drivers, we should 
+certainly include native support.
 
->> You don't mean "external", you mean "not described as unconnectable by
->> ACPI".
+Alan Stern
 
->>> So I should work on the external ports without devices firstly and
->>> add the sys file for user to control?
-
->> Yes, I think so.  It will be less controversial and probably simpler.
->> When that mechanism is ready, you should be able to use it
->> automatically for unconnectable ports.
-
->> One tricky thing: In theory, there should be a separate sysfs file for
->> each port.  That seems like a lot of overhead though; is there any way
->> to present the information in a single file that won't offend sysfs
->> purists?
-
-> Tianyu proposed having one file per hub, with a bit field that
-> controlled each port power.  However, I was concerned about different
-> userspace applications racing with each other to turn or off ports.  For
-> example, one app could read the bit field, attempt to power off just
-> port 1, but before it can write to the sysfs file, a second app powers
-> on port2, and the first app then writes to the sysfs file, leaving port
-> 1 powered off, and port 2 powered off, which is not what the second app
-> wanted.
-
-> But if you can think of a better way to coalesce the port power off
-> mechanisms into one file, we're all ears. :)
-
-    How about two files? You write 1 to the bit that matcheas port you want 
-powered on in the 'poweron' file, and vice versa, you write 1 to the bit that 
-matches port you want powered off in the 'poweroff' file.
-
-> Sarah Sharp
-
-WBR, Sergei
