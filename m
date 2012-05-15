@@ -1,152 +1,49 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 1/5] ACPI, PM, Specify lowest allowed state for device sleep state
-Date: Tue, 15 May 2012 20:48:08 +0200
-Message-ID: <201205152048.08196.rjw@sisk.pl>
-References: <1337052191-19411-1-git-send-email-ying.huang@intel.com>
+From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Subject: Re: [RFC PATCH] usb/acpi: Add support usb port power off mechanism
+ for device fixed on the motherboard
+Date: Tue, 15 May 2012 13:00:47 -0700
+Message-ID: <20120515200047.GA20507@xanatos>
+References: <20120511202113.GH18754@xanatos>
+ <Pine.LNX.4.44L0.1205111629150.1865-100000@iolanthe.rowland.org>
+ <20120511235922.GJ18754@xanatos>
+ <20120512001722.GA28011@kroah.com>
+ <20120514232123.GK18754@xanatos>
+ <4FB268CA.9060304@intel.com>
+ <20120515151800.GC23916@kroah.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:46342 "EHLO ogre.sisk.pl"
+Received: from mga09.intel.com ([134.134.136.24]:11111 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932419Ab2EOSnM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 May 2012 14:43:12 -0400
-In-Reply-To: <1337052191-19411-1-git-send-email-ying.huang@intel.com>
+	id S966685Ab2EOUBB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 May 2012 16:01:01 -0400
+Content-Disposition: inline
+In-Reply-To: <20120515151800.GC23916@kroah.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Lan Tianyu <tianyu.lan@intel.com>, Alan Stern <stern@rowland.harvard.edu>, Dan Williams <dcbw@redhat.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-usb@vger.kernel.org
 
-On Tuesday, May 15, 2012, Huang Ying wrote:
-> Lower device sleep state can save more power, but has more exit
-> latency too.  Sometimes, to satisfy some power QoS and other
-> requirement, we need to constrain the lowest device sleep state.
+On Tue, May 15, 2012 at 08:18:00AM -0700, Greg KH wrote:
+> On Tue, May 15, 2012 at 10:31:38PM +0800, Lan Tianyu wrote:
+> > Since alan suggested we should start simpler version(power
+> > down port that have no devices attached) firstly. And we
+> > also should provide general power off mechanism.
+> > 
+> > I have a proposal.
+> > first:  add portx_power_control sys file.
+> >      echo "auto" => portx_power_control
+> >                     check whether there is a device. if no, send the clear
+> >                     USB_PORT_FEAT_POWER request. (since general way
+> >                     to control port power is via set or clear PORT_POWER)
+> > 
+> >     echo "on" =>  portx_power_control
+> >                     send the set  USB_PORT_FEAT_POWER request.
 > 
-> In this patch, a parameter to specify lowest allowed state for
-> acpi_pm_device_sleep_state is added.  So that the caller can enforce
-> the constraint via the parameter.
-> 
-> This is needed by PCIe D3cold support, where the lowest power state
-> allowed may be D3_HOT instead of default D3_COLD.
-> 
-> Signed-off-by: Huang Ying <ying.huang@intel.com>
-> ---
->  drivers/acpi/sleep.c       |   24 +++++++++++++++++++-----
->  drivers/pci/pci-acpi.c     |    3 ++-
->  drivers/pnp/pnpacpi/core.c |    4 ++--
->  include/acpi/acpi_bus.h    |    6 +++---
->  4 files changed, 26 insertions(+), 11 deletions(-)
-> 
-> --- a/drivers/acpi/sleep.c
-> +++ b/drivers/acpi/sleep.c
-> @@ -677,8 +677,9 @@ int acpi_suspend(u32 acpi_state)
->   *	@dev: device to examine; its driver model wakeup flags control
->   *		whether it should be able to wake up the system
->   *	@d_min_p: used to store the upper limit of allowed states range
-> - *	Return value: preferred power state of the device on success, -ENODEV on
-> - *		failure (ie. if there's no 'struct acpi_device' for @dev)
-> + *	@d_max_in: specify the lowest allowed states
-> + *	Return value: preferred power state of the device on success, -ENODEV
-> + *	(ie. if there's no 'struct acpi_device' for @dev) or -EINVAL on failure
->   *
->   *	Find the lowest power (highest number) ACPI device power state that
->   *	device @dev can be in while the system is in the sleep state represented
-> @@ -693,13 +694,15 @@ int acpi_suspend(u32 acpi_state)
->   *	via @wake.
->   */
->  
-> -int acpi_pm_device_sleep_state(struct device *dev, int *d_min_p)
-> +int acpi_pm_device_sleep_state(struct device *dev, int *d_min_p, int d_max_in)
->  {
->  	acpi_handle handle = DEVICE_ACPI_HANDLE(dev);
->  	struct acpi_device *adev;
->  	char acpi_method[] = "_SxD";
->  	unsigned long long d_min, d_max;
->  
-> +	if (d_max_in < ACPI_STATE_D0 || d_max_in > ACPI_STATE_D3)
-> +		return -EINVAL;
->  	if (!handle || ACPI_FAILURE(acpi_bus_get_device(handle, &adev))) {
->  		printk(KERN_DEBUG "ACPI handle has no context!\n");
->  		return -ENODEV;
-> @@ -707,8 +710,10 @@ int acpi_pm_device_sleep_state(struct de
->  
->  	acpi_method[2] = '0' + acpi_target_sleep_state;
->  	/*
-> -	 * If the sleep state is S0, we will return D3, but if the device has
-> -	 * _S0W, we will use the value from _S0W
-> +	 * If the sleep state is S0, the lowest limit from ACPI is D3,
-> +	 * but if the device has _S0W, we will use the value from _S0W
-> +	 * as the lowest limit from ACPI.  Finally, we will constrain
-> +	 * the lowest limit with the specified one.
->  	 */
->  	d_min = ACPI_STATE_D0;
->  	d_max = ACPI_STATE_D3;
-> @@ -754,6 +759,15 @@ int acpi_pm_device_sleep_state(struct de
->  
->  	if (d_min_p)
->  		*d_min_p = d_min;
-> +	if (d_max_in < d_min)
-> +		return -EINVAL;
+> No "off"?
 
-This check should go before the modification of the variable pointed to by
-d_min_p, so that we don't change things in case the error code is returned.
+Yeah, we probably need an "off" for those libusb and ModemManager
+developers who want to try and simulate a disconnect of a misbehaving
+device.
 
-Apart from this, the patch looks good to me.
-
-> +	/* constrain d_max with specified lowest limit (max number) */
-> +	if (d_max > d_max_in) {
-> +		for (d_max = d_max_in; d_max > d_min; d_max--) {
-> +			if (adev->power.states[d_max].flags.valid)
-> +				break;
-> +		}
-> +	}
->  	return d_max;
->  }
->  #endif /* CONFIG_PM */
-> --- a/drivers/pci/pci-acpi.c
-> +++ b/drivers/pci/pci-acpi.c
-> @@ -189,7 +189,8 @@ static pci_power_t acpi_pci_choose_state
->  {
->  	int acpi_state;
->  
-> -	acpi_state = acpi_pm_device_sleep_state(&pdev->dev, NULL);
-> +	acpi_state = acpi_pm_device_sleep_state(&pdev->dev, NULL,
-> +						ACPI_STATE_D3);
->  	if (acpi_state < 0)
->  		return PCI_POWER_ERROR;
->  
-> --- a/drivers/pnp/pnpacpi/core.c
-> +++ b/drivers/pnp/pnpacpi/core.c
-> @@ -170,8 +170,8 @@ static int pnpacpi_suspend(struct pnp_de
->  	}
->  
->  	if (acpi_bus_power_manageable(handle)) {
-> -		int power_state = acpi_pm_device_sleep_state(&dev->dev, NULL);
-> -
-> +		int power_state = acpi_pm_device_sleep_state(&dev->dev, NULL,
-> +							     ACPI_STATE_D3);
->  		if (power_state < 0)
->  			power_state = (state.event == PM_EVENT_ON) ?
->  					ACPI_STATE_D0 : ACPI_STATE_D3;
-> --- a/include/acpi/acpi_bus.h
-> +++ b/include/acpi/acpi_bus.h
-> @@ -383,13 +383,13 @@ int acpi_enable_wakeup_device_power(stru
->  int acpi_disable_wakeup_device_power(struct acpi_device *dev);
->  
->  #ifdef CONFIG_PM
-> -int acpi_pm_device_sleep_state(struct device *, int *);
-> +int acpi_pm_device_sleep_state(struct device *, int *, int);
->  #else
-> -static inline int acpi_pm_device_sleep_state(struct device *d, int *p)
-> +static inline int acpi_pm_device_sleep_state(struct device *d, int *p, int m)
->  {
->  	if (p)
->  		*p = ACPI_STATE_D0;
-> -	return ACPI_STATE_D3;
-> +	return (m >= ACPI_STATE_D0 && <= ACPI_STATE_D3) ? m : ACPI_STATE_D0;
->  }
->  #endif
-
-Thanks,
-Rafael
+Sarah Sharp
