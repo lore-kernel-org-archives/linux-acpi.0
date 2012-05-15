@@ -1,46 +1,31 @@
-From: "Mr.Saeed Ahmed." <seal@co.net>
-Subject: Will You Be Trusted?
-Date: Wed, 09 May 2012 02:27:58 -0400
-Message-ID: <20120509022758.yrl0e5oxkwcswg4w@webmail.educacao.niteroi.rj.gov.br>
-Reply-To: mr.saeed01@linuxmail.org
+From: Huang Ying <ying.huang@intel.com>
+Subject: Re: [PATCH 1/5] ACPI, PM, Specify lowest allowed state for device
+ sleep state
+Date: Tue, 15 May 2012 15:01:18 +0800
+Message-ID: <1337065278.6487.33.camel@yhuang-dev>
+References: <1337052191-19411-1-git-send-email-ying.huang@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset=ISO-8859-1;
-	DelSp="Yes";
-	format="flowed"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from educacao.niteroi.urbi.com.br ([200.152.56.131]:38312 "EHLO
-	FMEmail.localdomain" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751416Ab2EOFtx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 May 2012 01:49:53 -0400
-Content-Disposition: inline
+Received: from mga01.intel.com ([192.55.52.88]:7414 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754169Ab2EOHBU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 May 2012 03:01:20 -0400
+In-Reply-To: <1337052191-19411-1-git-send-email-ying.huang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
 
+Sorry, the subject should be:
 
+[PATCH] ACPI, PM, Specify lowest allowed state for device sleep state
 
-Dear Friend,
+1/5 is just my local patch queue number.  Should have changed it before
+sending out.
 
-As you read this, I don't want you to feel sorry for me,because, I
-believe everyone will die someday,and am contacting you because
-I really do need your help and I want you to help me with all your
-effort and time for just seven to fourteen workings days of your time.I
-want you to be honest and truthful with me that you will help me
-with my last wish as a dying man.
+Best Regards,
+Huang Ying
 
-Please i need a reliable person who will usethe Money($18 milliondollars)to
-build orphanage home or charity organization.
-
-Please kindly reply to my most confidential email if you are really
-interested in helping me please: mr.saeed01@linuxmail.org
-
-
-God be with you.
-
-Mr.Saeed Ahmed.
-
-----------------------------------------------------------------
-FME Webmail
-www.educacao.niteroi.rj.gov.br
 
