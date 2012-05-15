@@ -1,44 +1,152 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: thinkpad x60: critical thermal shutdown does not work (and ethernet
- overheats)
-Date: Tue, 15 May 2012 20:10:04 +0200
-Message-ID: <20120515181004.GA2499@elf.ucw.cz>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 1/5] ACPI, PM, Specify lowest allowed state for device sleep state
+Date: Tue, 15 May 2012 20:48:08 +0200
+Message-ID: <201205152048.08196.rjw@sisk.pl>
+References: <1337052191-19411-1-git-send-email-ying.huang@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:53622 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932750Ab2EOSKQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 May 2012 14:10:16 -0400
-Content-Disposition: inline
+Received: from ogre.sisk.pl ([193.178.161.156]:46342 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932419Ab2EOSnM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 May 2012 14:43:12 -0400
+In-Reply-To: <1337052191-19411-1-git-send-email-ying.huang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, linux-acpi@vger.kernel.org, kernel list <linux-kernel@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net, platform-driver-x86@vger.kernel.org
+To: Huang Ying <ying.huang@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi!
+On Tuesday, May 15, 2012, Huang Ying wrote:
+> Lower device sleep state can save more power, but has more exit
+> latency too.  Sometimes, to satisfy some power QoS and other
+> requirement, we need to constrain the lowest device sleep state.
+> 
+> In this patch, a parameter to specify lowest allowed state for
+> acpi_pm_device_sleep_state is added.  So that the caller can enforce
+> the constraint via the parameter.
+> 
+> This is needed by PCIe D3cold support, where the lowest power state
+> allowed may be D3_HOT instead of default D3_COLD.
+> 
+> Signed-off-by: Huang Ying <ying.huang@intel.com>
+> ---
+>  drivers/acpi/sleep.c       |   24 +++++++++++++++++++-----
+>  drivers/pci/pci-acpi.c     |    3 ++-
+>  drivers/pnp/pnpacpi/core.c |    4 ++--
+>  include/acpi/acpi_bus.h    |    6 +++---
+>  4 files changed, 26 insertions(+), 11 deletions(-)
+> 
+> --- a/drivers/acpi/sleep.c
+> +++ b/drivers/acpi/sleep.c
+> @@ -677,8 +677,9 @@ int acpi_suspend(u32 acpi_state)
+>   *	@dev: device to examine; its driver model wakeup flags control
+>   *		whether it should be able to wake up the system
+>   *	@d_min_p: used to store the upper limit of allowed states range
+> - *	Return value: preferred power state of the device on success, -ENODEV on
+> - *		failure (ie. if there's no 'struct acpi_device' for @dev)
+> + *	@d_max_in: specify the lowest allowed states
+> + *	Return value: preferred power state of the device on success, -ENODEV
+> + *	(ie. if there's no 'struct acpi_device' for @dev) or -EINVAL on failure
+>   *
+>   *	Find the lowest power (highest number) ACPI device power state that
+>   *	device @dev can be in while the system is in the sleep state represented
+> @@ -693,13 +694,15 @@ int acpi_suspend(u32 acpi_state)
+>   *	via @wake.
+>   */
+>  
+> -int acpi_pm_device_sleep_state(struct device *dev, int *d_min_p)
+> +int acpi_pm_device_sleep_state(struct device *dev, int *d_min_p, int d_max_in)
+>  {
+>  	acpi_handle handle = DEVICE_ACPI_HANDLE(dev);
+>  	struct acpi_device *adev;
+>  	char acpi_method[] = "_SxD";
+>  	unsigned long long d_min, d_max;
+>  
+> +	if (d_max_in < ACPI_STATE_D0 || d_max_in > ACPI_STATE_D3)
+> +		return -EINVAL;
+>  	if (!handle || ACPI_FAILURE(acpi_bus_get_device(handle, &adev))) {
+>  		printk(KERN_DEBUG "ACPI handle has no context!\n");
+>  		return -ENODEV;
+> @@ -707,8 +710,10 @@ int acpi_pm_device_sleep_state(struct de
+>  
+>  	acpi_method[2] = '0' + acpi_target_sleep_state;
+>  	/*
+> -	 * If the sleep state is S0, we will return D3, but if the device has
+> -	 * _S0W, we will use the value from _S0W
+> +	 * If the sleep state is S0, the lowest limit from ACPI is D3,
+> +	 * but if the device has _S0W, we will use the value from _S0W
+> +	 * as the lowest limit from ACPI.  Finally, we will constrain
+> +	 * the lowest limit with the specified one.
+>  	 */
+>  	d_min = ACPI_STATE_D0;
+>  	d_max = ACPI_STATE_D3;
+> @@ -754,6 +759,15 @@ int acpi_pm_device_sleep_state(struct de
+>  
+>  	if (d_min_p)
+>  		*d_min_p = d_min;
+> +	if (d_max_in < d_min)
+> +		return -EINVAL;
 
-I have rather old thinkpad x60 here. Long time ago, I noticed that on
-high continuous ethernet load, it shuts itself down in regular
-way. I traced it down to overheat, followed by ACPI signaling system
-to go down.
+This check should go before the modification of the variable pointed to by
+d_min_p, so that we don't change things in case the error code is returned.
 
-This no longer works in recent kernels. (3.4-rc7 tested, but probably
-it does not work correctly in 3.2 either). Now machine just hangs when
-it should start /sbin/poweroff. If I then turn it on, it hangs during
-ACPI init. I have to let it cool down, then it can boot.
+Apart from this, the patch looks good to me.
 
-Now:
+> +	/* constrain d_max with specified lowest limit (max number) */
+> +	if (d_max > d_max_in) {
+> +		for (d_max = d_max_in; d_max > d_min; d_max--) {
+> +			if (adev->power.states[d_max].flags.valid)
+> +				break;
+> +		}
+> +	}
+>  	return d_max;
+>  }
+>  #endif /* CONFIG_PM */
+> --- a/drivers/pci/pci-acpi.c
+> +++ b/drivers/pci/pci-acpi.c
+> @@ -189,7 +189,8 @@ static pci_power_t acpi_pci_choose_state
+>  {
+>  	int acpi_state;
+>  
+> -	acpi_state = acpi_pm_device_sleep_state(&pdev->dev, NULL);
+> +	acpi_state = acpi_pm_device_sleep_state(&pdev->dev, NULL,
+> +						ACPI_STATE_D3);
+>  	if (acpi_state < 0)
+>  		return PCI_POWER_ERROR;
+>  
+> --- a/drivers/pnp/pnpacpi/core.c
+> +++ b/drivers/pnp/pnpacpi/core.c
+> @@ -170,8 +170,8 @@ static int pnpacpi_suspend(struct pnp_de
+>  	}
+>  
+>  	if (acpi_bus_power_manageable(handle)) {
+> -		int power_state = acpi_pm_device_sleep_state(&dev->dev, NULL);
+> -
+> +		int power_state = acpi_pm_device_sleep_state(&dev->dev, NULL,
+> +							     ACPI_STATE_D3);
+>  		if (power_state < 0)
+>  			power_state = (state.event == PM_EVENT_ON) ?
+>  					ACPI_STATE_D0 : ACPI_STATE_D3;
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -383,13 +383,13 @@ int acpi_enable_wakeup_device_power(stru
+>  int acpi_disable_wakeup_device_power(struct acpi_device *dev);
+>  
+>  #ifdef CONFIG_PM
+> -int acpi_pm_device_sleep_state(struct device *, int *);
+> +int acpi_pm_device_sleep_state(struct device *, int *, int);
+>  #else
+> -static inline int acpi_pm_device_sleep_state(struct device *d, int *p)
+> +static inline int acpi_pm_device_sleep_state(struct device *d, int *p, int m)
+>  {
+>  	if (p)
+>  		*p = ACPI_STATE_D0;
+> -	return ACPI_STATE_D3;
+> +	return (m >= ACPI_STATE_D0 && <= ACPI_STATE_D3) ? m : ACPI_STATE_D0;
+>  }
+>  #endif
 
-a) Any ideas how to solve the overheating problem? Is it hw or sw? Are
-there workarounds... like should I go to 10mbit? (It overheats even
-under 2MB/sec continuous load...). Is it common thinkpad fault?
-
-b) Why did it stop shutting down correctly? Can you reproduce it by
-overheating machine artifically?
-
-Ideas?
-									Pavel
-
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Thanks,
+Rafael
