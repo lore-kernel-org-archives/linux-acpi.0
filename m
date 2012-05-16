@@ -1,72 +1,128 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: Re: [RFC PATCH] usb/acpi: Add support usb port power off mechanism
- for device fixed on the motherboard
-Date: Wed, 16 May 2012 14:26:51 +0800
-Message-ID: <4FB348AB.5050308@intel.com>
-References: <20120511202113.GH18754@xanatos> <Pine.LNX.4.44L0.1205111629150.1865-100000@iolanthe.rowland.org> <20120511235922.GJ18754@xanatos> <20120512001722.GA28011@kroah.com> <20120514232123.GK18754@xanatos> <4FB268CA.9060304@intel.com> <20120515151800.GC23916@kroah.com> <20120515200047.GA20507@xanatos>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] acpi: fix regression on D3hot detection
+Date: Wed, 16 May 2012 12:24:25 +0200
+Message-ID: <201205161224.26007.rjw@sisk.pl>
+References: <5165867.6kdtKH1k0B@penguin> <1430051.zWhrZKIcmE@penguin> <201205151928.36026.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
+Content-Type: Text/Plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:27228 "EHLO mga01.intel.com"
+Received: from ogre.sisk.pl ([193.178.161.156]:47796 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759077Ab2EPGcZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 May 2012 02:32:25 -0400
-In-Reply-To: <20120515200047.GA20507@xanatos>
+	id S966231Ab2EPKTa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 May 2012 06:19:30 -0400
+In-Reply-To: <201205151928.36026.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sarah Sharp <sarah.a.sharp@linux.intel.com>, Greg KH <gregkh@linuxfoundation.org>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Dan Williams <dcbw@redhat.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-usb@vger.kernel.org
+To: Lekensteyn <lekensteyn@gmail.com>, rockorequin@hotmail.com, Cristian =?iso-8859-1?q?Rodr=EDguez?= <crrodriguez@opensuse.org>
+Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Lin Ming <ming.m.lin@intel.com>, Linux PM list <linux-pm@vger.kernel.org>
 
-On 2012=E5=B9=B405=E6=9C=8816=E6=97=A5 04:00, Sarah Sharp wrote:
-> On Tue, May 15, 2012 at 08:18:00AM -0700, Greg KH wrote:
->> On Tue, May 15, 2012 at 10:31:38PM +0800, Lan Tianyu wrote:
->>> Since alan suggested we should start simpler version(power
->>> down port that have no devices attached) firstly. And we
->>> also should provide general power off mechanism.
->>>
->>> I have a proposal.
->>> first:  add portx_power_control sys file.
->>>       echo "auto" =3D>  portx_power_control
->>>                      check whether there is a device. if no, send t=
-he clear
->>>                      USB_PORT_FEAT_POWER request. (since general wa=
-y
->>>                      to control port power is via set or clear PORT=
-_POWER)
->>>
->>>      echo "on" =3D>   portx_power_control
->>>                      send the set  USB_PORT_FEAT_POWER request.
->>
->> No "off"?
->
-> Yeah, we probably need an "off" for those libusb and ModemManager
-> developers who want to try and simulate a disconnect of a misbehaving
-> device.
->
-> Sarah Sharp
+On Tuesday, May 15, 2012, Rafael J. Wysocki wrote:
+> On Tuesday, May 15, 2012, Lekensteyn wrote:
+> > On Tuesday 15 May 2012 17:47:43 you wrote:
+> > > On Tuesday, May 15, 2012, Lekensteyn wrote:
+> > > > Commit 1cc0c998fdf2cb665d625fb565a0d6db5c81c639 tried clear up =
+some
+> > > > confusion around D3hot and D3cold but accidentally changed beha=
+viour on
+> > > > validating device power states. It added an extra condition: i =
+<
+> > > > ACPI_STATE_D3_HOT which means that only states D0, D1 and D2 ar=
+e accepted
+> > > > if there are no power resources but the _PSx method exist. D3(h=
+ot) is
+> > > > missing here.
+> > >=20
+> > > Which is intentional (that follows from the ACPI spec.).
+> > Now that I am reading it back, this patch invalidates the comment i=
+n the code=20
+> > and could be achieved by removing the whole i < ... condition (beca=
+use that is=20
+> > the for-loop condition too). In the ACPI spec [1], I cannot find a =
+statement=20
+> > that D3 is invalid if there is no _PR3 state. Do you have a referen=
+ce for the=20
+> > behaviour?
+>=20
+> Yes, pretty much.  ACPI 4.0 Section 7.2.10 _PR3 (Power Resources for =
+D3hot)
+> says:
+>=20
+> "Platform/drivers must assume that the device will have power complet=
+ely
+> removed when the device is place[d] into "D3" via _PS3."
+>=20
+> This basically means that if _PR3 is not present, we must assume that=
+ _PS3
+> puts the device into D3cold.
+>=20
+> > About the linked bug, I do not see any _PR3 methods on at least 258=
+ Optimus=20
+> > machines (acpidumps for a lot hybrid graphics machines [2]) althoug=
+h the _PS3=20
+> > methods on those machines really put the device in a lower power st=
+ate.
+>=20
+> That's correct and that state is D3cold.
 
-Ok. Let me reconfirm the meaning of these opinions.
+So, I believe the patch below should fix the problem and I'll appreciat=
+e it
+if someone who can reproduce it can test.
 
-"auto"
-	if port without device, turn off power directly.
-	if port with device, turn off power when the device is suspended.
+Thanks,
+Rafael
 
-"on"	the port's power must be on.
+---
+=46rom: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: ACPI / PCI / PM: Restore old behavior of acpi_pci_set_power_st=
+ate()
 
-"off"	the port's power must be off.
+Commit 1cc0c998fdf2cb665d625fb565a0d6db5c81c639 (ACPI: Fix D3hot
+v D3cold confusion) changed the behavior of
+acpi_pci_set_power_state() in such a way that if PCI_D3hot is
+passed to it, the function will request a transition to
+ACPI_STATE_D3_HOT instead of ACPI_STATE_D3, but ACPI_STATE_D3_HOT
+is only supported if the _PR3 AML method is defined for the given
+device, which is rare.  This causes problems to happen on systems
+where devices were successfully put into ACPI D3 by
+pci_set_power_state(PCI_D3hot) which doesn't work now.  In
+particular, some unused graphics adapters are not turned off as a
+result.
 
-Right?
+To fix this issue restore the old behavior of
+acpi_pci_set_power_state(), which is to request a transition to
+ACPI_STATE_D3 (defined to be the same as ACPI_STATE_D3_COLD) if
+either PCI_D3hot or PCI_D3cold is passed to it as the argument.
 
-> On Tue, May 15, 2012 at 08:18:00AM -0700, Greg KH wrote:
->> Do you have a patch showing that this works?
-Currently no. I will write a RFC version and send out for discuss.
+This approach is not ideal, because generally power should not
+be removed from devices if PCI_D3hot is the target power state,
+but since this behavior is relied on, we have no choice but to
+restore it at the moment and spend more time on providing a
+better solution in the future.
 
---=20
-Best Regards
-Tianyu Lan
-linux kernel enabling team
+References: https://bugzilla.kernel.org/show_bug.cgi?id=3D43228
+Reported-by: rocko <rockorequin@hotmail.com>
+Reported-by: Cristian Rodr=EDguez <crrodriguez@opensuse.org>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/pci/pci-acpi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+Index: linux/drivers/pci/pci-acpi.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux.orig/drivers/pci/pci-acpi.c
++++ linux/drivers/pci/pci-acpi.c
+@@ -223,7 +223,7 @@ static int acpi_pci_set_power_state(stru
+ 		[PCI_D0] =3D ACPI_STATE_D0,
+ 		[PCI_D1] =3D ACPI_STATE_D1,
+ 		[PCI_D2] =3D ACPI_STATE_D2,
+-		[PCI_D3hot] =3D ACPI_STATE_D3_HOT,
++		[PCI_D3hot] =3D ACPI_STATE_D3,
+ 		[PCI_D3cold] =3D ACPI_STATE_D3
+ 	};
+ 	int error =3D -EINVAL;
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
