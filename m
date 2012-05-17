@@ -1,17 +1,17 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Update 3x][PATCH] ACPI / PCI / PM: Fix device PM regression related to D3hot/D3cold
-Date: Thu, 17 May 2012 21:34:06 +0200
-Message-ID: <201205172134.06623.rjw@sisk.pl>
-References: <5165867.6kdtKH1k0B@penguin> <4FB4125C.6090808@opensuse.org> <201205162301.53607.rjw@sisk.pl>
+Subject: [Update 4x][PATCH] ACPI / PCI / PM: Fix device PM regression related to D3hot/D3cold
+Date: Thu, 17 May 2012 23:56:39 +0200
+Message-ID: <201205172356.39580.rjw@sisk.pl>
+References: <5165867.6kdtKH1k0B@penguin> <201205162301.53607.rjw@sisk.pl> <201205172134.06623.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:50906 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([193.178.161.156]:51115 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750901Ab2EQT3K convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 May 2012 15:29:10 -0400
-In-Reply-To: <201205162301.53607.rjw@sisk.pl>
+	id S1761163Ab2EQVvo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 May 2012 17:51:44 -0400
+In-Reply-To: <201205172134.06623.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Cristian =?iso-8859-1?q?Rodr=EDguez?= <crrodriguez@opensuse.org>
@@ -67,11 +67,15 @@ Reported-by: Peter <lekensteyn@gmail.com>
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
 
-Another day, another update.
+Well, one more update today.
 
-This probably still isn't the final version, but please test it if you =
-can
-reproduce the problem.
+It turns out that in some cases devices are transitioned to D3(cold) di=
+rectly
+from ACPI_STATE_UNKNOWN (255), so we need to make sure that _PS3 is cal=
+led in
+those cases too.
+
+Please test!
 
 Thanks,
 Rafael
@@ -104,17 +108,17 @@ Index: linux/drivers/acpi/bus.c
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
 --- linux.orig/drivers/acpi/bus.c
 +++ linux/drivers/acpi/bus.c
-@@ -273,6 +273,10 @@ static int __acpi_bus_set_power(struct a
- 		}
- 	} else {
- 		if (device->power.states[state].flags.explicit_set) {
-+			/* _PS3 should be executed for D3cold, not _PS4. */
-+			if (state =3D=3D ACPI_STATE_D3_COLD)
-+				object_name[3] =3D '3';
+@@ -250,6 +250,10 @@ static int __acpi_bus_set_power(struct a
+ 		return -ENODEV;
+ 	}
+=20
++	/* For D3cold we should execute _PS3, not _PS4. */
++	if (state =3D=3D ACPI_STATE_D3_COLD)
++		object_name[3] =3D '3';
 +
- 			status =3D acpi_evaluate_object(device->handle,
- 						      object_name, NULL, NULL);
- 			if (ACPI_FAILURE(status)) {
+ 	/*
+ 	 * Transition Power
+ 	 * ----------------
 Index: linux/drivers/acpi/scan.c
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -164,6 +168,7 @@ Index: linux/drivers/acpi/power.c
  		acpi_power_off_list(
  			&device->power.states[device->power.state].resources);
 =20
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
