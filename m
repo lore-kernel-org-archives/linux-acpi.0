@@ -1,42 +1,48 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Update][PATCH] ACPI / PCI / PM: Fix device PM regression related to D3hot/D3cold
-Date: Wed, 16 May 2012 23:01:53 +0200
-Message-ID: <201205162301.53607.rjw@sisk.pl>
-References: <5165867.6kdtKH1k0B@penguin> <201205162250.11101.rjw@sisk.pl> <4FB4125C.6090808@opensuse.org>
+From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [RFC PATCH] usb/acpi: Add support usb port power off mechanism
+ for device fixed on the motherboard
+Date: Thu, 17 May 2012 15:42:52 +0400
+Message-ID: <4FB4E43C.60507@mvista.com>
+References: <4FB348AB.5050308@intel.com> <Pine.LNX.4.44L0.1205161033340.1852-100000@iolanthe.rowland.org> <20120516143958.GA612@kroah.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:48941 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756931Ab2EPU47 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 May 2012 16:56:59 -0400
-In-Reply-To: <4FB4125C.6090808@opensuse.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20120516143958.GA612-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sarah Sharp <sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Dan Williams <dcbw-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Cristian =?iso-8859-1?q?Rodr=EDguez?= <crrodriguez@opensuse.org>
-Cc: Lekensteyn <lekensteyn@gmail.com>, rockorequin@hotmail.com, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Lin Ming <ming.m.lin@intel.com>, Linux PM list <linux-pm@vger.kernel.org>
 
-On Wednesday, May 16, 2012, Cristian Rodr=EDguez wrote:
-> El 16/05/12 16:50, Rafael J. Wysocki escribi=F3:
->=20
-> > References: https://bugzilla.kernel.org/show_bug.cgi?id=3D43228
-> > Reported-by: rocko<rockorequin@hotmail.com>
-> > Reported-by: Cristian Rodr=EDguez<crrodriguez@opensuse.org>
-> > Reported-and-tested-by: Peter<lekensteyn@gmail.com>
-> > Signed-off-by: Rafael J. Wysocki<rjw@sisk.pl>
-> > ---
-> >
-> > The previous patch was still insufficient due to the missing change
-> > in drivers/acpi/scan.c.  Please test this one.
-> >
-> Thank you for taking a look at this, I will test this last patch late=
-r=20
-> today, sorry for the lag ;)
+Hello.
 
-No problem, thanks!
+On 16-05-2012 18:39, Greg KH wrote:
+
+>>> Ok. Let me reconfirm the meaning of these opinions.
+
+>>> "auto"
+>>> 	if port without device, turn off power directly.
+>>> 	if port with device, turn off power when the device is suspended.
+
+>>> "on"	the port's power must be on.
+
+>>> "off"	the port's power must be off.
+
+>>> Right?
+
+>> Maybe the "auto" setting should be renamed "active".  Then "auto" can
+>> be used for:
+
+>> 	If the port has a device, turn the power on.
+>> 	If the port doesn't have a device, turn the power off.
+
+> And plugging a new device into a port that was powered off is going to
+> cause the power to come back on, right?
+
+    How plugging a device can be detected on unpowered port?
+
+WBR, Sergei
 --
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
