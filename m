@@ -1,265 +1,171 @@
-From: Andi Kleen <andi@firstfloor.org>
-Subject: [PATCH] Add ACPI and power trace points for laptop overheating
-Date: Thu, 17 May 2012 07:08:57 -0700
-Message-ID: <1337263737-3541-1-git-send-email-andi@firstfloor.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [Update 3x][PATCH] ACPI / PCI / PM: Fix device PM regression related to D3hot/D3cold
+Date: Thu, 17 May 2012 21:34:06 +0200
+Message-ID: <201205172134.06623.rjw@sisk.pl>
+References: <5165867.6kdtKH1k0B@penguin> <4FB4125C.6090808@opensuse.org> <201205162301.53607.rjw@sisk.pl>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:50485 "EHLO mga11.intel.com"
+Received: from ogre.sisk.pl ([193.178.161.156]:50906 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966342Ab2EQOJJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 May 2012 10:09:09 -0400
+	id S1750901Ab2EQT3K convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 May 2012 15:29:10 -0400
+In-Reply-To: <201205162301.53607.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: lenb@kernel.org, linux-kernel@vger.kernel.org, Andi Kleen <ak@linux.intel.com>
+To: Cristian =?iso-8859-1?q?Rodr=EDguez?= <crrodriguez@opensuse.org>
+Cc: Lekensteyn <lekensteyn@gmail.com>, rockorequin@hotmail.com, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Lin Ming <ming.m.lin@intel.com>, Linux PM list <linux-pm@vger.kernel.org>
 
-From: Andi Kleen <ak@linux.intel.com>
+=46rom: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: ACPI / PCI / PM: Fix device PM regression related to D3hot/D3c=
+old
 
-Add trace points for ACPI power events which are important for a laptop's
-thermal: acpi throttling/pstate, ec communication, GPU overheating. Useful
-for understanding the thermal behaviour of laptops on the thermal edge.
+Commit 1cc0c998fdf2cb665d625fb565a0d6db5c81c639 (ACPI: Fix D3hot
+v D3cold confusion) introduced a bug in __acpi_bus_set_power() and
+changed the behavior of acpi_pci_set_power_state() in such a way that
+it generally doesn't work as expected if PCI_D3hot is passed to it
+as the second argument.
 
-The generic power events have gpu_limit, overtemp_pstate and overtemp_throttling
-I added ACPI specific new events for EC desynchronization (which
-seems to be a common problem, but is entirely uninstrumented currently),
-and can lead to lost throttling events.
+=46irst off, if ACPI_STATE_D3 (equal to ACPI_STATE_D3_COLD) is passed
+to __acpi_bus_set_power() and the explicit_set flag is set for the
+D3cold state, the function will try to execute AML method called
+"_PS4", which doesn't exist.
 
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
+=46ix this by adding a check to ensure that the name of the AML method
+to execute for transitions to ACPI_STATE_D3_COLD is correct in
+__acpi_bus_set_power().  Also make sure that the explicit_set flag
+for ACPI_STATE_D3_COLD will be set if _PS3 is present and modify
+acpi_power_transition() to avoid accessing power resources for
+ACPI_STATE_D3_COLD, because they don't exist.
+
+Second, if PCI_D3hot is passed to acpi_pci_set_power_state() as the
+target state, the function will request a transition to
+ACPI_STATE_D3_HOT instead of ACPI_STATE_D3.  However,
+ACPI_STATE_D3_HOT is now only marked as supported if the _PR3 AML
+method is defined for the given device, which is rare.  This causes
+problems to happen on systems where devices were successfully put
+into ACPI D3 by pci_set_power_state(PCI_D3hot) which doesn't work
+now.  In particular, some unused graphics adapters are not turned
+off as a result.
+
+To fix this issue restore the old behavior of
+acpi_pci_set_power_state(), which is to request a transition to
+ACPI_STATE_D3 (equal to ACPI_STATE_D3_COLD) if either PCI_D3hot or
+PCI_D3cold is passed to it as the argument.
+
+This approach is not ideal, because generally power should not
+be removed from devices if PCI_D3hot is the target power state,
+but since this behavior is relied on, we have no choice but to
+restore it at the moment and spend more time on designing a
+better solution in the future.
+
+References: https://bugzilla.kernel.org/show_bug.cgi?id=3D43228
+Reported-by: rocko <rockorequin@hotmail.com>
+Reported-by: Cristian Rodr=EDguez <crrodriguez@opensuse.org>
+Reported-by: Peter <lekensteyn@gmail.com>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- Documentation/trace/events-acpi.txt  |   13 ++++++++
- Documentation/trace/events-power.txt |   20 +++++++++++++
- drivers/acpi/Makefile                |    1 +
- drivers/acpi/acpi-trace.c            |    7 ++++
- drivers/acpi/ec.c                    |    4 ++
- drivers/acpi/processor_thermal.c     |    4 ++
- drivers/platform/x86/intel_ips.c     |    4 ++
- include/trace/events/power.h         |   51 ++++++++++++++++++++++++++++++++++
- kernel/trace/power-traces.c          |    3 ++
- 9 files changed, 107 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/trace/events-acpi.txt
- create mode 100644 drivers/acpi/acpi-trace.c
 
-diff --git a/Documentation/trace/events-acpi.txt b/Documentation/trace/events-acpi.txt
-new file mode 100644
-index 0000000..c6638d5
---- /dev/null
-+++ b/Documentation/trace/events-acpi.txt
-@@ -0,0 +1,13 @@
-+ACPI specific trace points
-+
-+acpi_ec_unsynchronized "status=%x wlen=%u rlen=%u wi=%u ri=%u"
-+
-+Communication with the embedded controller became unsynchronized
-+(and some information may get lost)
-+status is the EC status word, w/rlen and wi/ri is the state
-+of the FIFO to the controller mailbox.
-+
-+acpi_ec_good "status=%x"
-+
-+Successfull communication with the EC controller. 
-+status is the status word.
-diff --git a/Documentation/trace/events-power.txt b/Documentation/trace/events-power.txt
-index cf794af..796ef6a 100644
---- a/Documentation/trace/events-power.txt
-+++ b/Documentation/trace/events-power.txt
-@@ -8,6 +8,7 @@ within the kernel. Broadly speaking there are three major subheadings:
-      cpuidle (C-states) and cpufreq (P-states)
-   o System clock related changes
-   o Power domains related changes and transitions
-+  o Overheat events
- 
- This document describes what each of the tracepoints is and why they
- might be useful.
-@@ -88,3 +89,22 @@ power_domain_target	"%s state=%lu cpu_id=%lu"
- The first parameter gives the power domain name (e.g. "mpu_pwrdm").
- The second parameter is the power domain target state.
- 
-+4. Overheat events
-+==================
-+
-+gpu_limit "avg=%u limit=%u"
-+
-+GPU specific thermal management. When the GPU gets to hot and throttles
-+its frequency this event is invoked. avg and limit are GPU specific 
-+measures of temperature. Currently only used by the Intel graphics IPS 
-+"graphics turbo" driver.
-+
-+overtemp_pstate "cpu=%u pstate=%u throttling=%u"
-+
-+An overheating event forces the lowest p-state and may enable throttling
-+later.
-+
-+overtemp_throttling "cpu=%u state=%u throttling=%u ret=%d"
-+
-+An overheating event enables throttling. ret=0 && throttling==1 means 
-+throttling worked, otherwise it failed.
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 47199e2..cac35a8 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -73,3 +73,4 @@ obj-$(CONFIG_ACPI_PROCESSOR_AGGREGATOR) += acpi_pad.o
- obj-$(CONFIG_ACPI_IPMI)		+= acpi_ipmi.o
- 
- obj-$(CONFIG_ACPI_APEI)		+= apei/
-+obj-$(CONFIG_TRACEPOINTS)	+= acpi-trace.o
-\ No newline at end of file
-diff --git a/drivers/acpi/acpi-trace.c b/drivers/acpi/acpi-trace.c
-new file mode 100644
-index 0000000..3b1c3ae
---- /dev/null
-+++ b/drivers/acpi/acpi-trace.c
-@@ -0,0 +1,7 @@
-+/* Tracepoints for ACPI */
-+#include <linux/export.h>
-+#define CREATE_TRACE_POINTS
-+#include <trace/events/acpi.h>
-+
-+EXPORT_TRACEPOINT_SYMBOL(acpi_ec_unsynchronized);
-+EXPORT_TRACEPOINT_SYMBOL(acpi_ec_good);
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 7edaccc..e520310 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -42,6 +42,7 @@
- #include <acpi/acpi_bus.h>
- #include <acpi/acpi_drivers.h>
- #include <linux/dmi.h>
-+#include <trace/events/acpi.h>
- 
- #include "internal.h"
- 
-@@ -188,8 +189,11 @@ static void advance_transaction(struct acpi_ec *ec, u8 status)
- 	} else if (ec->curr->wlen == ec->curr->wi &&
- 		   (status & ACPI_EC_FLAG_IBF) == 0)
- 		ec->curr->done = true;
-+	trace_acpi_ec_good(status);
- 	goto unlock;
- err:
-+	trace_acpi_ec_unsynchronized(status, ec->curr->wlen, ec->curr->rlen, 
-+				     ec->curr->wi, ec->curr->ri);
- 	/* false interrupt, state didn't change */
- 	if (in_interrupt())
- 		++ec->curr->irq_count;
-diff --git a/drivers/acpi/processor_thermal.c b/drivers/acpi/processor_thermal.c
-index 641b545..e2da52f 100644
---- a/drivers/acpi/processor_thermal.c
-+++ b/drivers/acpi/processor_thermal.c
-@@ -30,6 +30,7 @@
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/cpufreq.h>
-+#include <trace/events/power.h>
- 
- #include <asm/uaccess.h>
- 
-@@ -264,10 +265,13 @@ processor_set_cur_state(struct thermal_cooling_device *cdev,
- 		if (pr->flags.throttling && pr->throttling.state)
- 			result = acpi_processor_set_throttling(pr, 0, false);
- 		cpufreq_set_cur_state(pr->id, state);
-+		trace_overtemp_pstate(pr->id, state, pr->flags.throttling);
+Another day, another update.
+
+This probably still isn't the final version, but please test it if you =
+can
+reproduce the problem.
+
+Thanks,
+Rafael
+
+---
+ drivers/acpi/bus.c     |    4 ++++
+ drivers/acpi/power.c   |    9 ++++++---
+ drivers/acpi/scan.c    |    4 ++++
+ drivers/pci/pci-acpi.c |    2 +-
+ 4 files changed, 15 insertions(+), 4 deletions(-)
+
+Index: linux/drivers/pci/pci-acpi.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux.orig/drivers/pci/pci-acpi.c
++++ linux/drivers/pci/pci-acpi.c
+@@ -223,7 +223,7 @@ static int acpi_pci_set_power_state(stru
+ 		[PCI_D0] =3D ACPI_STATE_D0,
+ 		[PCI_D1] =3D ACPI_STATE_D1,
+ 		[PCI_D2] =3D ACPI_STATE_D2,
+-		[PCI_D3hot] =3D ACPI_STATE_D3_HOT,
++		[PCI_D3hot] =3D ACPI_STATE_D3,
+ 		[PCI_D3cold] =3D ACPI_STATE_D3
+ 	};
+ 	int error =3D -EINVAL;
+Index: linux/drivers/acpi/bus.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux.orig/drivers/acpi/bus.c
++++ linux/drivers/acpi/bus.c
+@@ -273,6 +273,10 @@ static int __acpi_bus_set_power(struct a
+ 		}
  	} else {
- 		cpufreq_set_cur_state(pr->id, max_pstate);
- 		result = acpi_processor_set_throttling(pr,
- 				state - max_pstate, false);
-+		trace_overtemp_throttling(pr->id, state - max_pstate, 
-+					  pr->flags.throttling, result);
- 	}
- 	return result;
- }
-diff --git a/drivers/platform/x86/intel_ips.c b/drivers/platform/x86/intel_ips.c
-index 0ffdb3c..a32d422 100644
---- a/drivers/platform/x86/intel_ips.c
-+++ b/drivers/platform/x86/intel_ips.c
-@@ -72,6 +72,7 @@
- #include <linux/string.h>
- #include <linux/tick.h>
- #include <linux/timer.h>
-+#include <trace/events/power.h>
- #include <drm/i915_drm.h>
- #include <asm/msr.h>
- #include <asm/processor.h>
-@@ -622,6 +623,9 @@ static bool mcp_exceeded(struct ips_driver *ips)
- 
- 	spin_unlock_irqrestore(&ips->turbo_status_lock, flags);
- 
-+	if (ret)
-+		trace_gpu_limit(avg_power, ips->mcp_power_limit);
+ 		if (device->power.states[state].flags.explicit_set) {
++			/* _PS3 should be executed for D3cold, not _PS4. */
++			if (state =3D=3D ACPI_STATE_D3_COLD)
++				object_name[3] =3D '3';
 +
- 	return ret;
- }
- 
-diff --git a/include/trace/events/power.h b/include/trace/events/power.h
-index cae9a94..2e9b2ae 100644
---- a/include/trace/events/power.h
-+++ b/include/trace/events/power.h
-@@ -65,6 +65,57 @@ TRACE_EVENT(machine_suspend,
- 	TP_printk("state=%lu", (unsigned long)__entry->state)
- );
- 
-+TRACE_EVENT(gpu_limit,
-+	TP_PROTO(unsigned avg, unsigned limit),
-+	TP_ARGS(avg, limit),
-+	TP_STRUCT__entry(
-+		__field(	unsigned,	avg		)
-+		__field(	unsigned,	limit		)
-+	),
-+	TP_fast_assign(
-+		__entry->avg = avg;
-+		__entry->limit = limit;
-+	),
-+	TP_printk("avg=%u limit=%u", __entry->avg, __entry->limit)
-+);
+ 			status =3D acpi_evaluate_object(device->handle,
+ 						      object_name, NULL, NULL);
+ 			if (ACPI_FAILURE(status)) {
+Index: linux/drivers/acpi/scan.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux.orig/drivers/acpi/scan.c
++++ linux/drivers/acpi/scan.c
+@@ -908,6 +908,10 @@ static int acpi_bus_get_power_flags(stru
+ 	device->power.states[ACPI_STATE_D3].flags.valid =3D 1;
+ 	device->power.states[ACPI_STATE_D3].power =3D 0;
+=20
++	/* Set D3cold's explicit_set flag if _PS3 exists. */
++	if (device->power.states[ACPI_STATE_D3_HOT].flags.explicit_set)
++		device->power.states[ACPI_STATE_D3_COLD].flags.explicit_set =3D 1;
 +
-+TRACE_EVENT(overtemp_pstate,
-+	TP_PROTO(unsigned cpu, unsigned pstate, unsigned throttling),
-+	TP_ARGS(cpu, pstate, throttling),
-+	TP_STRUCT__entry(
-+		__field(	unsigned,	cpu		)
-+		__field(	unsigned,	pstate		)
-+		__field(	unsigned,	throttling 	)
-+	),
-+	TP_fast_assign(
-+		__entry->cpu = cpu;
-+		__entry->pstate = pstate;
-+		__entry->throttling = throttling;
-+	),
-+	TP_printk("cpu=%u pstate=%u throttling=%u", 
-+		  __entry->cpu, __entry->pstate, __entry->throttling)
-+);
+ 	acpi_bus_init_power(device);
+=20
+ 	return 0;
+Index: linux/drivers/acpi/power.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux.orig/drivers/acpi/power.c
++++ linux/drivers/acpi/power.c
+@@ -660,7 +660,7 @@ int acpi_power_on_resources(struct acpi_
+=20
+ int acpi_power_transition(struct acpi_device *device, int state)
+ {
+-	int result;
++	int result =3D 0;
+=20
+ 	if (!device || (state < ACPI_STATE_D0) || (state > ACPI_STATE_D3_COLD=
+))
+ 		return -EINVAL;
+@@ -679,8 +679,11 @@ int acpi_power_transition(struct acpi_de
+ 	 * (e.g. so the device doesn't lose power while transitioning).  Then=
+,
+ 	 * we dereference all power resources used in the current list.
+ 	 */
+-	result =3D acpi_power_on_list(&device->power.states[state].resources)=
+;
+-	if (!result)
++	if (state < ACPI_STATE_D3_COLD)
++		result =3D acpi_power_on_list(
++			&device->power.states[state].resources);
 +
-+TRACE_EVENT(overtemp_throttling,
-+	TP_PROTO(unsigned cpu, unsigned state, unsigned throttling, int ret),
-+	TP_ARGS(cpu, state, throttling, ret),
-+	TP_STRUCT__entry(
-+		__field(	unsigned,	cpu		)
-+		__field(	unsigned,	state		)
-+		__field(	unsigned,	throttling 	)
-+		__field(	int,		ret		)
-+	),
-+	TP_fast_assign(
-+		__entry->cpu = cpu;
-+		__entry->state = state;
-+		__entry->throttling = throttling;
-+		__entry->ret = ret;
-+	),
-+	TP_printk("cpu=%u state=%u throttling=%u ret=%d", 
-+		  __entry->cpu, __entry->state, __entry->throttling,
-+		  __entry->ret)
-+);
-+
- #ifdef CONFIG_EVENT_POWER_TRACING_DEPRECATED
- 
- /*
-diff --git a/kernel/trace/power-traces.c b/kernel/trace/power-traces.c
-index f55fcf6..ce2ab6d 100644
---- a/kernel/trace/power-traces.c
-+++ b/kernel/trace/power-traces.c
-@@ -18,3 +18,6 @@ EXPORT_TRACEPOINT_SYMBOL_GPL(power_start);
- #endif
- EXPORT_TRACEPOINT_SYMBOL_GPL(cpu_idle);
- 
-+EXPORT_TRACEPOINT_SYMBOL(gpu_limit);
-+EXPORT_TRACEPOINT_SYMBOL(overtemp_pstate);
-+EXPORT_TRACEPOINT_SYMBOL(overtemp_throttling);
--- 
-1.7.7.6
-
++	if (!result && device->power.state < ACPI_STATE_D3_COLD)
+ 		acpi_power_off_list(
+ 			&device->power.states[device->power.state].resources);
+=20
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
