@@ -1,25 +1,21 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [Update 4x][PATCH] ACPI / PCI / PM: Fix device PM regression related to D3hot/D3cold
-Date: Thu, 17 May 2012 23:56:39 +0200
-Message-ID: <201205172356.39580.rjw@sisk.pl>
-References: <5165867.6kdtKH1k0B@penguin> <201205162301.53607.rjw@sisk.pl> <201205172134.06623.rjw@sisk.pl>
+Subject: [PATCH] ACPI / PCI / PM: Fix device PM regression related to D3hot/D3cold
+Date: Fri, 18 May 2012 00:39:35 +0200
+Message-ID: <201205180039.35318.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
+Content-Type: Text/Plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:51115 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([193.178.161.156]:51236 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761163Ab2EQVvo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 May 2012 17:51:44 -0400
-In-Reply-To: <201205172134.06623.rjw@sisk.pl>
+	id S1030477Ab2EQWei convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 May 2012 18:34:38 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Cristian =?iso-8859-1?q?Rodr=EDguez?= <crrodriguez@opensuse.org>
-Cc: Lekensteyn <lekensteyn@gmail.com>, rockorequin@hotmail.com, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Lin Ming <ming.m.lin@intel.com>, Linux PM list <linux-pm@vger.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Len Brown <lenb@kernel.org>, Lekensteyn <lekensteyn@gmail.com>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Lin Ming <ming.m.lin@intel.com>, Cristian =?utf-8?q?Rodr=C3=ADguez?= <crrodriguez@opensuse.org>, rocko <rockorequin@hotmail.com>
 
 =46rom: Rafael J. Wysocki <rjw@sisk.pl>
-Subject: ACPI / PCI / PM: Fix device PM regression related to D3hot/D3c=
-old
 
 Commit 1cc0c998fdf2cb665d625fb565a0d6db5c81c639 (ACPI: Fix D3hot
 v D3cold confusion) introduced a bug in __acpi_bus_set_power() and
@@ -62,20 +58,16 @@ better solution in the future.
 
 References: https://bugzilla.kernel.org/show_bug.cgi?id=3D43228
 Reported-by: rocko <rockorequin@hotmail.com>
-Reported-by: Cristian Rodr=EDguez <crrodriguez@opensuse.org>
-Reported-by: Peter <lekensteyn@gmail.com>
+Reported-by: Cristian Rodr=C3=ADguez <crrodriguez@opensuse.org>
+Reported-and-tested-by: Peter <lekensteyn@gmail.com>
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
 
-Well, one more update today.
+Hi Linus,
 
-It turns out that in some cases devices are transitioned to D3(cold) di=
-rectly
-from ACPI_STATE_UNKNOWN (255), so we need to make sure that _PS3 is cal=
-led in
-those cases too.
-
-Please test!
+Could you please take this one directly?  It fixes obvious bugs and
+makes pci_set_power_state(PCI_D3hot) work the same way as it did in
+v3.3 and before, which is quite a big deal IMO.
 
 Thanks,
 Rafael
@@ -168,7 +160,6 @@ Index: linux/drivers/acpi/power.c
  		acpi_power_off_list(
  			&device->power.states[device->power.state].resources);
 =20
-
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
