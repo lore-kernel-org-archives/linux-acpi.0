@@ -1,44 +1,62 @@
-From: Andi Kleen <andi@firstfloor.org>
-Subject: Re: [PATCH] Add ACPI and power trace points for laptop overheating
-Date: Fri, 18 May 2012 16:14:29 +0200
-Message-ID: <20120518141429.GO27374@one.firstfloor.org>
-References: <1337263737-3541-1-git-send-email-andi@firstfloor.org> <CAJd=RBCwLOxQwfmppxxJjfJzEJ+RSoL4MaE9wKtSrotKe2J56w@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] ACPI / PM: Fix error message in __acpi_bus_set_power()
+Date: Fri, 18 May 2012 22:56:23 +0200
+Message-ID: <201205182256.23670.rjw@sisk.pl>
+References: <201205142253.57023.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from one.firstfloor.org ([213.235.205.2]:40261 "EHLO
-	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1946089Ab2EROOg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 May 2012 10:14:36 -0400
-Content-Disposition: inline
-In-Reply-To: <CAJd=RBCwLOxQwfmppxxJjfJzEJ+RSoL4MaE9wKtSrotKe2J56w@mail.gmail.com>
+Received: from ogre.sisk.pl ([193.178.161.156]:53333 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965500Ab2ERUv0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 18 May 2012 16:51:26 -0400
+In-Reply-To: <201205142253.57023.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hillf Danton <dhillf@gmail.com>
-Cc: Andi Kleen <andi@firstfloor.org>, linux-acpi@vger.kernel.org, lenb@kernel.org, linux-kernel@vger.kernel.org, Andi Kleen <ak@linux.intel.com>
+To: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
 
-> > --- a/drivers/acpi/Makefile
-> > +++ b/drivers/acpi/Makefile
-> > @@ -73,3 +73,4 @@ obj-$(CONFIG_ACPI_PROCESSOR_AGGREGATOR) +=3D acpi=
-_pad.o
-> > =A0obj-$(CONFIG_ACPI_IPMI) =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0+=3D acpi=
-_ipmi.o
-> >
-> > =A0obj-$(CONFIG_ACPI_APEI) =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0+=3D apei=
-/
-> > +obj-$(CONFIG_TRACEPOINTS) =A0 =A0 =A0+=3D acpi-trace.o
-> > \ No newline at end of file
->=20
-> For what the newline is?
+On Monday, May 14, 2012, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rjw@sisk.pl>
+> 
+> After recent changes of the ACPI device low-power states definitions
+> an error message in __acpi_bus_set_power() needs to be updated so
+> that it prints the correct name of the state that has been requested
+> (currently it will print "D3" for D3hot and "D4" for D3cold).
 
-=46or nothing as make works.
+Please disregard this patch, I'll send a better one in a little while.
 
--Andi
---=20
-ak@linux.intel.com -- Speaking for myself only.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Rafael
+
+
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> ---
+>  drivers/acpi/bus.c |    4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> Index: linux/drivers/acpi/bus.c
+> ===================================================================
+> --- linux.orig/drivers/acpi/bus.c
+> +++ linux/drivers/acpi/bus.c
+> @@ -240,7 +240,9 @@ static int __acpi_bus_set_power(struct a
+>  	}
+>  
+>  	if (!device->power.states[state].flags.valid) {
+> -		printk(KERN_WARNING PREFIX "Device does not support D%d\n", state);
+> +		printk(KERN_WARNING PREFIX "Device does not support D%d%s\n",
+> +			state == ACPI_STATE_D3_COLD ? 3 : state,
+> +			state == ACPI_STATE_D3_HOT ? "hot" : "");
+>  		return -ENODEV;
+>  	}
+>  	if (device->parent && (state < device->parent->power.state)) {
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+> 
+> 
+
