@@ -1,167 +1,144 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] ACPI / PCI / PM: Fix device PM regression related to D3hot/D3cold
-Date: Fri, 18 May 2012 00:39:35 +0200
-Message-ID: <201205180039.35318.rjw@sisk.pl>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Huang Ying <ying.huang@intel.com>
+Subject: [PATCH -v2] ACPI, PM, Specify lowest allowed state for device sleep state
+Date: Fri, 18 May 2012 09:45:44 +0800
+Message-ID: <1337305544-10393-1-git-send-email-ying.huang@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:51236 "EHLO ogre.sisk.pl"
+Received: from mga01.intel.com ([192.55.52.88]:24063 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030477Ab2EQWei convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 May 2012 18:34:38 -0400
+	id S1761998Ab2ERBps (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 May 2012 21:45:48 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Len Brown <lenb@kernel.org>, Lekensteyn <lekensteyn@gmail.com>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Lin Ming <ming.m.lin@intel.com>, Cristian =?utf-8?q?Rodr=C3=ADguez?= <crrodriguez@opensuse.org>, rocko <rockorequin@hotmail.com>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, ying.huang@intel.com, linux-acpi@vger.kernel.org
 
-=46rom: Rafael J. Wysocki <rjw@sisk.pl>
+Lower device sleep state can save more power, but has more exit
+latency too.  Sometimes, to satisfy some power QoS and other
+requirement, we need to constrain the lowest device sleep state.
 
-Commit 1cc0c998fdf2cb665d625fb565a0d6db5c81c639 (ACPI: Fix D3hot
-v D3cold confusion) introduced a bug in __acpi_bus_set_power() and
-changed the behavior of acpi_pci_set_power_state() in such a way that
-it generally doesn't work as expected if PCI_D3hot is passed to it
-as the second argument.
+In this patch, a parameter to specify lowest allowed state for
+acpi_pm_device_sleep_state is added.  So that the caller can enforce
+the constraint via the parameter.
 
-=46irst off, if ACPI_STATE_D3 (equal to ACPI_STATE_D3_COLD) is passed
-to __acpi_bus_set_power() and the explicit_set flag is set for the
-D3cold state, the function will try to execute AML method called
-"_PS4", which doesn't exist.
+This is needed by PCIe D3cold support, where the lowest power state
+allowed may be D3_HOT instead of default D3_COLD.
 
-=46ix this by adding a check to ensure that the name of the AML method
-to execute for transitions to ACPI_STATE_D3_COLD is correct in
-__acpi_bus_set_power().  Also make sure that the explicit_set flag
-for ACPI_STATE_D3_COLD will be set if _PS3 is present and modify
-acpi_power_transition() to avoid accessing power resources for
-ACPI_STATE_D3_COLD, because they don't exist.
+Changelog:
 
-Second, if PCI_D3hot is passed to acpi_pci_set_power_state() as the
-target state, the function will request a transition to
-ACPI_STATE_D3_HOT instead of ACPI_STATE_D3.  However,
-ACPI_STATE_D3_HOT is now only marked as supported if the _PR3 AML
-method is defined for the given device, which is rare.  This causes
-problems to happen on systems where devices were successfully put
-into ACPI D3 by pci_set_power_state(PCI_D3hot) which doesn't work
-now.  In particular, some unused graphics adapters are not turned
-off as a result.
+v2:
+- Minor change per Rafeal's comments
 
-To fix this issue restore the old behavior of
-acpi_pci_set_power_state(), which is to request a transition to
-ACPI_STATE_D3 (equal to ACPI_STATE_D3_COLD) if either PCI_D3hot or
-PCI_D3cold is passed to it as the argument.
-
-This approach is not ideal, because generally power should not
-be removed from devices if PCI_D3hot is the target power state,
-but since this behavior is relied on, we have no choice but to
-restore it at the moment and spend more time on designing a
-better solution in the future.
-
-References: https://bugzilla.kernel.org/show_bug.cgi?id=3D43228
-Reported-by: rocko <rockorequin@hotmail.com>
-Reported-by: Cristian Rodr=C3=ADguez <crrodriguez@opensuse.org>
-Reported-and-tested-by: Peter <lekensteyn@gmail.com>
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: Huang Ying <ying.huang@intel.com>
 ---
+ drivers/acpi/sleep.c       |   24 +++++++++++++++++++-----
+ drivers/pci/pci-acpi.c     |    3 ++-
+ drivers/pnp/pnpacpi/core.c |    4 ++--
+ include/acpi/acpi_bus.h    |    6 +++---
+ 4 files changed, 26 insertions(+), 11 deletions(-)
 
-Hi Linus,
-
-Could you please take this one directly?  It fixes obvious bugs and
-makes pci_set_power_state(PCI_D3hot) work the same way as it did in
-v3.3 and before, which is quite a big deal IMO.
-
-Thanks,
-Rafael
-
----
- drivers/acpi/bus.c     |    4 ++++
- drivers/acpi/power.c   |    9 ++++++---
- drivers/acpi/scan.c    |    4 ++++
- drivers/pci/pci-acpi.c |    2 +-
- 4 files changed, 15 insertions(+), 4 deletions(-)
-
-Index: linux/drivers/pci/pci-acpi.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux.orig/drivers/pci/pci-acpi.c
-+++ linux/drivers/pci/pci-acpi.c
-@@ -223,7 +223,7 @@ static int acpi_pci_set_power_state(stru
- 		[PCI_D0] =3D ACPI_STATE_D0,
- 		[PCI_D1] =3D ACPI_STATE_D1,
- 		[PCI_D2] =3D ACPI_STATE_D2,
--		[PCI_D3hot] =3D ACPI_STATE_D3_HOT,
-+		[PCI_D3hot] =3D ACPI_STATE_D3,
- 		[PCI_D3cold] =3D ACPI_STATE_D3
- 	};
- 	int error =3D -EINVAL;
-Index: linux/drivers/acpi/bus.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux.orig/drivers/acpi/bus.c
-+++ linux/drivers/acpi/bus.c
-@@ -250,6 +250,10 @@ static int __acpi_bus_set_power(struct a
- 		return -ENODEV;
- 	}
-=20
-+	/* For D3cold we should execute _PS3, not _PS4. */
-+	if (state =3D=3D ACPI_STATE_D3_COLD)
-+		object_name[3] =3D '3';
-+
- 	/*
- 	 * Transition Power
- 	 * ----------------
-Index: linux/drivers/acpi/scan.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux.orig/drivers/acpi/scan.c
-+++ linux/drivers/acpi/scan.c
-@@ -908,6 +908,10 @@ static int acpi_bus_get_power_flags(stru
- 	device->power.states[ACPI_STATE_D3].flags.valid =3D 1;
- 	device->power.states[ACPI_STATE_D3].power =3D 0;
-=20
-+	/* Set D3cold's explicit_set flag if _PS3 exists. */
-+	if (device->power.states[ACPI_STATE_D3_HOT].flags.explicit_set)
-+		device->power.states[ACPI_STATE_D3_COLD].flags.explicit_set =3D 1;
-+
- 	acpi_bus_init_power(device);
-=20
- 	return 0;
-Index: linux/drivers/acpi/power.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux.orig/drivers/acpi/power.c
-+++ linux/drivers/acpi/power.c
-@@ -660,7 +660,7 @@ int acpi_power_on_resources(struct acpi_
-=20
- int acpi_power_transition(struct acpi_device *device, int state)
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -677,8 +677,9 @@ int acpi_suspend(u32 acpi_state)
+  *	@dev: device to examine; its driver model wakeup flags control
+  *		whether it should be able to wake up the system
+  *	@d_min_p: used to store the upper limit of allowed states range
+- *	Return value: preferred power state of the device on success, -ENODEV on
+- *		failure (ie. if there's no 'struct acpi_device' for @dev)
++ *	@d_max_in: specify the lowest allowed states
++ *	Return value: preferred power state of the device on success, -ENODEV
++ *	(ie. if there's no 'struct acpi_device' for @dev) or -EINVAL on failure
+  *
+  *	Find the lowest power (highest number) ACPI device power state that
+  *	device @dev can be in while the system is in the sleep state represented
+@@ -693,13 +694,15 @@ int acpi_suspend(u32 acpi_state)
+  *	via @wake.
+  */
+ 
+-int acpi_pm_device_sleep_state(struct device *dev, int *d_min_p)
++int acpi_pm_device_sleep_state(struct device *dev, int *d_min_p, int d_max_in)
  {
--	int result;
-+	int result =3D 0;
-=20
- 	if (!device || (state < ACPI_STATE_D0) || (state > ACPI_STATE_D3_COLD=
-))
- 		return -EINVAL;
-@@ -679,8 +679,11 @@ int acpi_power_transition(struct acpi_de
- 	 * (e.g. so the device doesn't lose power while transitioning).  Then=
-,
- 	 * we dereference all power resources used in the current list.
+ 	acpi_handle handle = DEVICE_ACPI_HANDLE(dev);
+ 	struct acpi_device *adev;
+ 	char acpi_method[] = "_SxD";
+ 	unsigned long long d_min, d_max;
+ 
++	if (d_max_in < ACPI_STATE_D0 || d_max_in > ACPI_STATE_D3)
++		return -EINVAL;
+ 	if (!handle || ACPI_FAILURE(acpi_bus_get_device(handle, &adev))) {
+ 		printk(KERN_DEBUG "ACPI handle has no context!\n");
+ 		return -ENODEV;
+@@ -707,8 +710,10 @@ int acpi_pm_device_sleep_state(struct de
+ 
+ 	acpi_method[2] = '0' + acpi_target_sleep_state;
+ 	/*
+-	 * If the sleep state is S0, we will return D3, but if the device has
+-	 * _S0W, we will use the value from _S0W
++	 * If the sleep state is S0, the lowest limit from ACPI is D3,
++	 * but if the device has _S0W, we will use the value from _S0W
++	 * as the lowest limit from ACPI.  Finally, we will constrain
++	 * the lowest limit with the specified one.
  	 */
--	result =3D acpi_power_on_list(&device->power.states[state].resources)=
-;
--	if (!result)
-+	if (state < ACPI_STATE_D3_COLD)
-+		result =3D acpi_power_on_list(
-+			&device->power.states[state].resources);
-+
-+	if (!result && device->power.state < ACPI_STATE_D3_COLD)
- 		acpi_power_off_list(
- 			&device->power.states[device->power.state].resources);
-=20
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ 	d_min = ACPI_STATE_D0;
+ 	d_max = ACPI_STATE_D3;
+@@ -752,8 +757,17 @@ int acpi_pm_device_sleep_state(struct de
+ 		}
+ 	}
+ 
++	if (d_max_in < d_min)
++		return -EINVAL;
+ 	if (d_min_p)
+ 		*d_min_p = d_min;
++	/* constrain d_max with specified lowest limit (max number) */
++	if (d_max > d_max_in) {
++		for (d_max = d_max_in; d_max > d_min; d_max--) {
++			if (adev->power.states[d_max].flags.valid)
++				break;
++		}
++	}
+ 	return d_max;
+ }
+ #endif /* CONFIG_PM */
+--- a/drivers/pci/pci-acpi.c
++++ b/drivers/pci/pci-acpi.c
+@@ -189,7 +189,8 @@ static pci_power_t acpi_pci_choose_state
+ {
+ 	int acpi_state;
+ 
+-	acpi_state = acpi_pm_device_sleep_state(&pdev->dev, NULL);
++	acpi_state = acpi_pm_device_sleep_state(&pdev->dev, NULL,
++						ACPI_STATE_D3);
+ 	if (acpi_state < 0)
+ 		return PCI_POWER_ERROR;
+ 
+--- a/drivers/pnp/pnpacpi/core.c
++++ b/drivers/pnp/pnpacpi/core.c
+@@ -170,8 +170,8 @@ static int pnpacpi_suspend(struct pnp_de
+ 	}
+ 
+ 	if (acpi_bus_power_manageable(handle)) {
+-		int power_state = acpi_pm_device_sleep_state(&dev->dev, NULL);
+-
++		int power_state = acpi_pm_device_sleep_state(&dev->dev, NULL,
++							     ACPI_STATE_D3);
+ 		if (power_state < 0)
+ 			power_state = (state.event == PM_EVENT_ON) ?
+ 					ACPI_STATE_D0 : ACPI_STATE_D3;
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -383,13 +383,13 @@ int acpi_enable_wakeup_device_power(stru
+ int acpi_disable_wakeup_device_power(struct acpi_device *dev);
+ 
+ #ifdef CONFIG_PM
+-int acpi_pm_device_sleep_state(struct device *, int *);
++int acpi_pm_device_sleep_state(struct device *, int *, int);
+ #else
+-static inline int acpi_pm_device_sleep_state(struct device *d, int *p)
++static inline int acpi_pm_device_sleep_state(struct device *d, int *p, int m)
+ {
+ 	if (p)
+ 		*p = ACPI_STATE_D0;
+-	return ACPI_STATE_D3;
++	return (m >= ACPI_STATE_D0 && <= ACPI_STATE_D3) ? m : ACPI_STATE_D0;
+ }
+ #endif
+ 
