@@ -1,144 +1,116 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: [PATCH -v2] ACPI, PM, Specify lowest allowed state for device sleep state
-Date: Fri, 18 May 2012 09:45:44 +0800
-Message-ID: <1337305544-10393-1-git-send-email-ying.huang@intel.com>
+From: Paul Hartman <paul.hartman@gmail.com>
+Subject: ACPI Error: Method parse/execution failed
+Date: Thu, 17 May 2012 23:27:59 -0500
+Message-ID: <CAEH5T2Pd6qP8xnE6d4Qu4VHdL9Snw5istAZDs55eF660eCds8Q@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:24063 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761998Ab2ERBps (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 17 May 2012 21:45:48 -0400
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:57669 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753725Ab2ERE2V (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 18 May 2012 00:28:21 -0400
+Received: by lahd3 with SMTP id d3so1807041lah.19
+        for <linux-acpi@vger.kernel.org>; Thu, 17 May 2012 21:28:19 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, ying.huang@intel.com, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Lower device sleep state can save more power, but has more exit
-latency too.  Sometimes, to satisfy some power QoS and other
-requirement, we need to constrain the lowest device sleep state.
+Hi,
 
-In this patch, a parameter to specify lowest allowed state for
-acpi_pm_device_sleep_state is added.  So that the caller can enforce
-the constraint via the parameter.
+I hope this is an appropriate place to post this. I have a laptop,
+circa 2004, which apparently has a buggy DSDT that causes the battery
+monitoring to stop working. I'm presently using kernel 3.3.5 but this
+has happened for years, as long as I've had the laptop.
 
-This is needed by PCIe D3cold support, where the lowest power state
-allowed may be D3_HOT instead of default D3_COLD.
+My battery/power readings will work normally until suddenly, randomly
+it shows something like this in dmesg:
 
-Changelog:
+[ 6286.707038] ACPI Error: Method parse/execution failed
+[\_SB_.PCI0.PIB_.EC0_.SMWR] (Node ffff88007d028348),
+AE_AML_INFINITE_LOOP (20120111/psparse-536)
+[ 6286.707074] ACPI Error: Method parse/execution failed
+[\_SB_.PCI0.PIB_.EC0_.SMSL] (Node ffff88007d028398),
+AE_AML_INFINITE_LOOP (20120111/psparse-536)
+[ 6286.707096] ACPI Error: Method parse/execution failed
+[\_SB_.PCI0.PIB_.EC0_._Q09] (Node ffff88007d028438),
+AE_AML_INFINITE_LOOP (20120111/psparse-536)
 
-v2:
-- Minor change per Rafeal's comments
+After that, the battery state is no longer updated and eventually my
+laptop powers off without any warning or proper shutdown.  Sometimes
+the messages are repeated. Because it is unpredictable, it is
+difficult to test. Sometimes it fails within a minute of booting,
+other times it could go hours or even days before failing. It's
+usually within an hour or two of booting the computer.
 
-Signed-off-by: Huang Ying <ying.huang@intel.com>
----
- drivers/acpi/sleep.c       |   24 +++++++++++++++++++-----
- drivers/pci/pci-acpi.c     |    3 ++-
- drivers/pnp/pnpacpi/core.c |    4 ++--
- include/acpi/acpi_bus.h    |    6 +++---
- 4 files changed, 26 insertions(+), 11 deletions(-)
+I've tried decompiling/recompiling the DSDT and "fixing" things in it,
+but I have only managed to make things behave even worse. Probably due
+to my complete lack of understanding of ACPI, DSDT or ASL. :)
 
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -677,8 +677,9 @@ int acpi_suspend(u32 acpi_state)
-  *	@dev: device to examine; its driver model wakeup flags control
-  *		whether it should be able to wake up the system
-  *	@d_min_p: used to store the upper limit of allowed states range
-- *	Return value: preferred power state of the device on success, -ENODEV on
-- *		failure (ie. if there's no 'struct acpi_device' for @dev)
-+ *	@d_max_in: specify the lowest allowed states
-+ *	Return value: preferred power state of the device on success, -ENODEV
-+ *	(ie. if there's no 'struct acpi_device' for @dev) or -EINVAL on failure
-  *
-  *	Find the lowest power (highest number) ACPI device power state that
-  *	device @dev can be in while the system is in the sleep state represented
-@@ -693,13 +694,15 @@ int acpi_suspend(u32 acpi_state)
-  *	via @wake.
-  */
- 
--int acpi_pm_device_sleep_state(struct device *dev, int *d_min_p)
-+int acpi_pm_device_sleep_state(struct device *dev, int *d_min_p, int d_max_in)
- {
- 	acpi_handle handle = DEVICE_ACPI_HANDLE(dev);
- 	struct acpi_device *adev;
- 	char acpi_method[] = "_SxD";
- 	unsigned long long d_min, d_max;
- 
-+	if (d_max_in < ACPI_STATE_D0 || d_max_in > ACPI_STATE_D3)
-+		return -EINVAL;
- 	if (!handle || ACPI_FAILURE(acpi_bus_get_device(handle, &adev))) {
- 		printk(KERN_DEBUG "ACPI handle has no context!\n");
- 		return -ENODEV;
-@@ -707,8 +710,10 @@ int acpi_pm_device_sleep_state(struct de
- 
- 	acpi_method[2] = '0' + acpi_target_sleep_state;
- 	/*
--	 * If the sleep state is S0, we will return D3, but if the device has
--	 * _S0W, we will use the value from _S0W
-+	 * If the sleep state is S0, the lowest limit from ACPI is D3,
-+	 * but if the device has _S0W, we will use the value from _S0W
-+	 * as the lowest limit from ACPI.  Finally, we will constrain
-+	 * the lowest limit with the specified one.
- 	 */
- 	d_min = ACPI_STATE_D0;
- 	d_max = ACPI_STATE_D3;
-@@ -752,8 +757,17 @@ int acpi_pm_device_sleep_state(struct de
- 		}
- 	}
- 
-+	if (d_max_in < d_min)
-+		return -EINVAL;
- 	if (d_min_p)
- 		*d_min_p = d_min;
-+	/* constrain d_max with specified lowest limit (max number) */
-+	if (d_max > d_max_in) {
-+		for (d_max = d_max_in; d_max > d_min; d_max--) {
-+			if (adev->power.states[d_max].flags.valid)
-+				break;
-+		}
-+	}
- 	return d_max;
- }
- #endif /* CONFIG_PM */
---- a/drivers/pci/pci-acpi.c
-+++ b/drivers/pci/pci-acpi.c
-@@ -189,7 +189,8 @@ static pci_power_t acpi_pci_choose_state
- {
- 	int acpi_state;
- 
--	acpi_state = acpi_pm_device_sleep_state(&pdev->dev, NULL);
-+	acpi_state = acpi_pm_device_sleep_state(&pdev->dev, NULL,
-+						ACPI_STATE_D3);
- 	if (acpi_state < 0)
- 		return PCI_POWER_ERROR;
- 
---- a/drivers/pnp/pnpacpi/core.c
-+++ b/drivers/pnp/pnpacpi/core.c
-@@ -170,8 +170,8 @@ static int pnpacpi_suspend(struct pnp_de
- 	}
- 
- 	if (acpi_bus_power_manageable(handle)) {
--		int power_state = acpi_pm_device_sleep_state(&dev->dev, NULL);
--
-+		int power_state = acpi_pm_device_sleep_state(&dev->dev, NULL,
-+							     ACPI_STATE_D3);
- 		if (power_state < 0)
- 			power_state = (state.event == PM_EVENT_ON) ?
- 					ACPI_STATE_D0 : ACPI_STATE_D3;
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -383,13 +383,13 @@ int acpi_enable_wakeup_device_power(stru
- int acpi_disable_wakeup_device_power(struct acpi_device *dev);
- 
- #ifdef CONFIG_PM
--int acpi_pm_device_sleep_state(struct device *, int *);
-+int acpi_pm_device_sleep_state(struct device *, int *, int);
- #else
--static inline int acpi_pm_device_sleep_state(struct device *d, int *p)
-+static inline int acpi_pm_device_sleep_state(struct device *d, int *p, int m)
- {
- 	if (p)
- 		*p = ACPI_STATE_D0;
--	return ACPI_STATE_D3;
-+	return (m >= ACPI_STATE_D0 && <= ACPI_STATE_D3) ? m : ACPI_STATE_D0;
- }
- #endif
- 
+I'm sure there's some logical flaw causing the infinite loop but I
+can't find it. If anyone is familiar with this and can guide me in the
+right direction to figure out where the problem lies and how (or if)
+it can be fixed, worked around, or what the error message is telling
+me, I would be very grafeful. Thanks in advance.
+
+Recompilation output is below. Please let me know if I should provide
+any other data, or post/make available the DSDT file itself.
+
+Intel ACPI Component Architecture
+ASL Optimizing Compiler version 20111123-64 [May 16 2012]
+Copyright (c) 2000 - 2011 Intel Corporation
+
+dsdt.dsl    381:     Method (\_WAK, 1, NotSerialized)
+Warning  1105 -                  ^ Reserved method must return a value
+(Integer/Package required for _WAK)
+
+dsdt.dsl   2109:                         CreateWordField (BUFA,
+\_SB.PCI0.PIB.ALKA._CRS._Y0B._INT, IRAI)
+Warning  1125 -
+ResourceTag larger than Field ^  (Tag: 32 bits, Field: 16 bits)
+
+dsdt.dsl   2164:                         CreateWordField (BUFB,
+\_SB.PCI0.PIB.ALKB._CRS._Y0C._INT, IRBI)
+Warning  1125 -
+ResourceTag larger than Field ^  (Tag: 32 bits, Field: 16 bits)
+
+dsdt.dsl   2212:                         CreateWordField (BUFC,
+\_SB.PCI0.PIB.ALKC._CRS._Y0D._INT, IRCI)
+Warning  1125 -
+ResourceTag larger than Field ^  (Tag: 32 bits, Field: 16 bits)
+
+dsdt.dsl   2260:                         CreateWordField (BUFD,
+\_SB.PCI0.PIB.ALKD._CRS._Y0E._INT, IRDI)
+Warning  1125 -
+ResourceTag larger than Field ^  (Tag: 32 bits, Field: 16 bits)
+
+dsdt.dsl   2303:                         CreateByteField (BUFA,
+\_SB.PCI0.PIB.LNKA._CRS._Y0F._INT, IRA1)
+Warning  1125 -
+ResourceTag larger than Field ^  (Tag: 16 bits, Field: 8 bits)
+
+dsdt.dsl   2377:                         CreateByteField (BUFB,
+\_SB.PCI0.PIB.LNKB._CRS._Y10._INT, IRB1)
+Warning  1125 -
+ResourceTag larger than Field ^  (Tag: 16 bits, Field: 8 bits)
+
+dsdt.dsl   2451:                         CreateByteField (BUFC,
+\_SB.PCI0.PIB.LNKC._CRS._Y11._INT, IRC1)
+Warning  1125 -
+ResourceTag larger than Field ^  (Tag: 16 bits, Field: 8 bits)
+
+dsdt.dsl   2525:                         CreateByteField (BUFD,
+\_SB.PCI0.PIB.LNKD._CRS._Y12._INT, IRD1)
+Warning  1125 -
+ResourceTag larger than Field ^  (Tag: 16 bits, Field: 8 bits)
+
+dsdt.dsl   5095:                     Method (SMSL, 0, NotSerialized)
+Warning  1113 -                                 ^ Not all control
+paths return a value (SMSL)
+
+ASL Input:     dsdt.dsl - 5911 lines, 229987 bytes, 2466 keywords
+AML Output:    dsdt.aml - 20957 bytes, 572 named objects, 1894
+executable opcodes
+Hex Dump:      dsdt.hex - 196818 bytes
+
+Compilation complete. 0 Errors, 10 Warnings, 0 Remarks, 799 Optimizations
