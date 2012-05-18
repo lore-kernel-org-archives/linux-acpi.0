@@ -1,62 +1,31 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI / PM: Fix error message in __acpi_bus_set_power()
-Date: Fri, 18 May 2012 22:56:23 +0200
-Message-ID: <201205182256.23670.rjw@sisk.pl>
+Subject: [PATCH 0/2] ACPI / PM: Fixes related to new definitions of device power states
+Date: Fri, 18 May 2012 22:58:56 +0200
+Message-ID: <201205182258.56497.rjw@sisk.pl>
 References: <201205142253.57023.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:53333 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([193.178.161.156]:53345 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965500Ab2ERUv0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 18 May 2012 16:51:26 -0400
+	id S933078Ab2ERU5O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 18 May 2012 16:57:14 -0400
 In-Reply-To: <201205142253.57023.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Lin Ming <ming.m.lin@intel.com>
 
-On Monday, May 14, 2012, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rjw@sisk.pl>
-> 
-> After recent changes of the ACPI device low-power states definitions
-> an error message in __acpi_bus_set_power() needs to be updated so
-> that it prints the correct name of the state that has been requested
-> (currently it will print "D3" for D3hot and "D4" for D3cold).
+Hi,
 
-Please disregard this patch, I'll send a better one in a little while.
+The following two patches fix a couple of remaining issues that appeared
+when the definitions of ACPI device power states were changed.
+
+[1/2] - Fix messages printing power states in drivers/acpi/bus.c.
+[2/2] - Fix the reading of device power states.
 
 Thanks,
 Rafael
-
-
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> ---
->  drivers/acpi/bus.c |    4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> Index: linux/drivers/acpi/bus.c
-> ===================================================================
-> --- linux.orig/drivers/acpi/bus.c
-> +++ linux/drivers/acpi/bus.c
-> @@ -240,7 +240,9 @@ static int __acpi_bus_set_power(struct a
->  	}
->  
->  	if (!device->power.states[state].flags.valid) {
-> -		printk(KERN_WARNING PREFIX "Device does not support D%d\n", state);
-> +		printk(KERN_WARNING PREFIX "Device does not support D%d%s\n",
-> +			state == ACPI_STATE_D3_COLD ? 3 : state,
-> +			state == ACPI_STATE_D3_HOT ? "hot" : "");
->  		return -ENODEV;
->  	}
->  	if (device->parent && (state < device->parent->power.state)) {
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
-> 
 
