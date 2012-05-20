@@ -1,40 +1,49 @@
-From: Andreas Mohr <andi@lisas.de>
-Subject: Re: [PATCH 1/2] ACPI / PM: Fix error messages in drivers/acpi/bus.c
-Date: Sun, 20 May 2012 12:01:38 +0200
-Message-ID: <20120520100138.GA20179@rhlx01.hs-esslingen.de>
-References: <201205182300.23142.rjw@sisk.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Alex Hung <alex.hung@canonical.com>
+Subject: [PATCH] ACPI: battery: fix battery->alarm is updated when it is not supported
+Date: Sun, 20 May 2012 20:05:56 +0800
+Message-ID: <1337515556-5232-1-git-send-email-alex.hung@canonical.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rhlx01.hs-esslingen.de ([129.143.116.10]:50970 "EHLO
-	rhlx01.hs-esslingen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752688Ab2ETKI4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 20 May 2012 06:08:56 -0400
-Content-Disposition: inline
-In-Reply-To: <201205182300.23142.rjw@sisk.pl>
+Received: from youngberry.canonical.com ([91.189.89.112]:45789 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753849Ab2ETMGF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 20 May 2012 08:06:05 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Lin Ming <ming.m.lin@intel.com>
+To: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, alex.hung@canonical.com
 
-Hi,
+battery alarm is checked whether BIOS supports it before past to BIOS;
+however, the value is updatd without being checked. This causes alarm return
+an incorrect value that never represents an actual state BIOS is in.
 
-> --- linux.orig/drivers/acpi/bus.c
-> +++ linux/drivers/acpi/bus.c
-> @@ -182,6 +182,24 @@ EXPORT_SYMBOL(acpi_bus_get_private_data)
->                                   Power Management
->     -------------------------------------------------------------------------- */
->  
-> +static char *state_string(int state)
-> +{
-> +	switch (state) {
-> +	case ACPI_STATE_D0:
-> +		return "D0";
-> +	case ACPI_STATE_D1:
-> +		return "D1";
+Signed-off-by: Alex Hung <alex.hung@canonical.com>
+---
+ drivers/acpi/battery.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-"const char", please?
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 86933ca..14548e8 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -535,7 +535,8 @@ static ssize_t acpi_battery_alarm_store(struct device *dev,
+ {
+ 	unsigned long x;
+ 	struct acpi_battery *battery = to_acpi_battery(dev_get_drvdata(dev));
+-	if (sscanf(buf, "%ld\n", &x) == 1)
++	if (sscanf(buf, "%ld\n", &x) == 1 &&
++		test_bit(ACPI_BATTERY_ALARM_PRESENT, &battery->flags))
+ 		battery->alarm = x/1000;
+ 	if (acpi_battery_present(battery))
+ 		acpi_battery_set_alarm(battery);
+@@ -805,7 +806,8 @@ static ssize_t acpi_battery_write_alarm(struct file *file,
+ 		goto end;
+ 	}
+ 	alarm_string[count] = '\0';
+-	battery->alarm = simple_strtol(alarm_string, NULL, 0);
++	if (test_bit(ACPI_BATTERY_ALARM_PRESENT, &battery->flags))
++		battery->alarm = simple_strtol(alarm_string, NULL, 0);
+ 	result = acpi_battery_set_alarm(battery);
+       end:
+ 	if (!result)
+-- 
+1.7.0.4
 
-In general: nice work, thanks!
-
-Andreas Mohr
