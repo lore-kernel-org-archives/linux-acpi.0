@@ -1,68 +1,96 @@
-From: =?utf-8?B?5LuFMzAw5YWD77yM5pyJ5pWI5p6c5YaN5LuY5qy+?=
-	<admin@sksesl.com>
-Subject: =?utf-8?B?5pyA5paw5bm/5Lqk5Lya5Lmw5a625bqT77yMQjJC6K+i55uY5Lmw5a6244CBdGhv?=
-	=?utf-8?B?bWFzbmV0IOmHh+i0reWVhizmtbflhbPmlbDmja4s576k5Y+R6L2v5Lu2?=
-	=?utf-8?B?77yM5bGV5Lya5Lmw5a62IOS7hTMwMOWFgyE=?=
-Date: Sun, 20 May 2012 20:39:41 +0000 (UTC)
-Message-ID: <20190520235439184057@sksesl.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: ACPI ALS Status ?
+Date: Mon, 21 May 2012 09:03:46 +0800
+Message-ID: <1337562226.1503.12.camel@rui.sh.intel.com>
+References: <CAHR064iRm37Wf4QrYEOvsxT0=wZZbY1XQiZfmrJdqyTj1h8sPA@mail.gmail.com>
+	 <CAJvTdKnW9VESyiF7Rden698EvRgT=805hyKXtXhFpKkTxLv64w@mail.gmail.com>
+	 <CAHR064h74hCe6chXskyT=C+PpQbJ9z2+RYHERoFoYzw9QgzsBA@mail.gmail.com>
+	 <CAHR064h4bed0koP--TcJkogMcF_fMYm0dXV74q_jSbuDd98qSQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail1.sksesl.com ([180.150.241.68]:35330 "EHLO mail1.sksesl.com"
+Received: from mga11.intel.com ([192.55.52.93]:51655 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752453Ab2ETUjc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 20 May 2012 16:39:32 -0400
-Date: Mon, 20 May 2019 23:54:32 +0800
+	id S1752848Ab2EUBC2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 20 May 2012 21:02:28 -0400
+In-Reply-To: <CAHR064h4bed0koP--TcJkogMcF_fMYm0dXV74q_jSbuDd98qSQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linshaobo@hotmail.c, linusm@alsa-g.com, linux@topzeal.net, linux-acpi@vger.kernel.org, linuxjet@163.com, linuxworld@ccu.com.cn, linwai-808@hotmail.com, linwanglian@myce.net.cn, linwe@sohu.com, linwei@shimz.cn, linwei840614@yahoo.com.cn
+To: Corentin Chary <corentin.chary@gmail.com>
+Cc: Len Brown <lenb@kernel.org>, Pavel Machek <pavel@suse.cz>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux acpi <linux-acpi@vger.kernel.org>, Jonathan Cameron <jic23@cam.ac.uk>, Amit Kucheria <amit.kucheria@verdurent.com>, Jean Delvare <khali@linux-fr.org>
 
-MjAwOC0yMDEy5bm0OOWxiuW5v+S6pOS8muaVsOaNru+8jDIwMTDmtbflhbPmj5DljZVwaWVyc+eJ
-iDEwMDDkuIfmlbDmja7vvIzlhY3otLnmm7TmlrAyMDEy5bm05bm/5Lqk5Lya5Lmw5a625pWw5o2u
-44CCDQoNCuS4gOWFsTEw5Liq5YyFKOaVsOaNruaYr+WFqOihjOS4mueahO+8jOaMieeFp+ihjOS4
-muWIhuWlveexu++8jOW5tuS4lOWPr+S7peaMieeFp+WFs+mUruivjeaPkOWPluWHuuadpeeahCnv
-vJogDQox77yMMjAxMeeni+WtoyvmmKXlraPlub/kuqTkvJrkubDlrrbnjrDlnLror6Lnm5jmlbDm
-ja7lupPmlrDpspzlh7rngonvvIzotoXnuqfmlrDpspzkubDlrrbvvIzmlrDpspzmlbDmja7vvIzl
-rrnmmJPmiJDljZXvvIEgDQoy77yM6LSt5Lmw5ZCO5Y+v5Lul5YWN6LS55pu05pawMjAxMuaYpeWt
-o+W5v+S6pOS8misyMDEy56eL5a2j5bm/5Lqk5Lya5Lmw5a625pWw5o2u44CC5aSq6LaF5YC85LqG
-44CCDQoz77yMMjAxMuacgOaWsOWFqOeQg+WxleS8mueOsOWcuuS5sOWutuW6kyjkuI7otLjlj5Hl
-kIzmraUpLOWFsTQ25LiH5p2h5pWw5o2u44CCICjmjInnhafooYzkuJrliIbnsbspDQo077yMMjAx
-MOW5tCwyMDA55bm0LDIwMDjlubQg5pil5a2jK+eni+Wto+W5v+S6pOS8muS5sOWutuWQjeW9le+8
-jDEwMyAxMDQgMTA1IDEwNiAxMDcgMTA4IOWFseWFreWxiiDlhbExMjAuNuS4h+aVsOaNruOAgg0K
-Ne+8jDQ4LjY45LiH5p2h5pyA5paw5Lmw5a626K+i55uY77yM6YO95bim5pyJRW1haWzvvIzmnIDm
-nInku7flgLznmoTor6Lnm5jjgIINCjbvvIwyMDEx5pyA5pawIEIyQiDoi7Hmloflm73pmYXnq5k2
-MOS4h+W4puiBlOe7nOaWueW8j+ivouebmCDmnIDmnInku7flgLzor6Lnm5jkuYvkuIAuDQo377yM
-MjAxMOa1t+WFs+aPkOWNlXBpZXJz54mIMTAwMOS4h+aVsOaNri4NCjjvvIwyMDEx5bm05Yiw6aaZ
-5riv6YeH6LSt55qE5Zu95aSW5a6i5Lq65ZCN5b2VKOmmmea4r+i0uOWPkeWxgOaPkOS+mynvvIzo
-toXnuqfph43opoHnmoTkubDlrrbjgIINCjnvvIwyMDEx5bm05paw5aKe5Yqg55qELee+juWbvUIy
-QiB0aG9tYXNuZXQg6YeH6LSt5ZWG5ZCN5Y2V44CCDQoxMO+8jOe+pOWPkei9r+S7tuWuieijheS4
-jumDqOe9suacjeWKoeOAgg0KDQrov5nkupvlhajmnInvvIzlhbExMjgw5LiHIOaVsOaNruOAgg0K
-DQogDQropoHnmoTmipPntKfogZTns7tRUTogMTc2MDMwMTE4MyDmiJbogIXnq4vljbPlm57lpI3p
-gq7nrrE6IDE3NjAzMDExODNAcXEuY29tDQropoHnmoTmipPntKfogZTns7tRUTogMTc2MDMwMTE4
-MyDmiJbogIXnq4vljbPlm57lpI3pgq7nrrE6IDE3NjAzMDExODNAcXEuY29tDQropoHnmoTmipPn
-tKfogZTns7tRUTogMTc2MDMwMTE4MyDmiJbogIXnq4vljbPlm57lpI3pgq7nrrE6IDE3NjAzMDEx
-ODNAcXEuY29tDQoNCg0K6K+a5L+h5Li65pys77yM5aaC5p6c5LiN5L+h5Lu75pys5Lq6LOWPr+S7
-pei1sOa3mOWuneS6pOaYkyzmlLbliLDmlbDmja7pqozor4ExMOWkqeWQjuWGjeS7mOasvizov5nm
-mK/lr7nmgqjmnIDlpb3nmoTkv53pmpzkuobjgIIgDQoNCg0KDQrlsI/mioDlt6fvvJogDQrmioo1
-MDDkuIfkubDlrrbnvqTlj5Hku6XkuIDpgY3vvIzlnYfkvJrmnInmlbDljYPkuKrlm57lpI3nmoTv
-vIzov5nkupvlsLHmmK/pnZ7luLjpq5jotKjph4/nmoTkubDlrrbjgIIgDQrkvb/nlKjmiJHku6zp
-gIHnmoTnvqTlj5Hova/ku7bvvIwxLTLlkajlsLHlj6/lrozlhajlj5HlrozjgIINCg0KDQoNCg0K
-DQrlub/kuqTkvJrkubDlrrbmjInkuqflk4HnsbvliKvliIbnsbvvvIzliIbkuLrku6XkuIvlh6Dn
-sbvvvJoNCjEg5Yqe5YWs6K6+5aSHDQoyIOe8lue7h+WPiuiXpOmTgeW3peiJuuWTgQ0KMyDnjrvn
-koMNCjQg6aSQ5Y6o55So5YW3DQo1IOi9pui+hg0KNiDlpKflnovmnLrmorDlj4rorr7lpIcNCjcg
-55S15a2Q55S15rCUDQo4IOeUteWtkOa2iOi0ueWTgQ0KOSDnurrnu4cNCjEwIOacjeijhQ0KMTEg
-5Liq5Lq65oqk55CGDQoxMiDlt6XnqIvmnLrmorANCjEzIOW3peWFtw0KMTQg5YyW5belDQoxNSDo
-rqHnrpfmnLrlj4rpgJrorq8NCjE2IOWutuWxheeUqOWTgQ0KMTcg5a625bGF6KOF6aWwDQoxOCDl
-rrblhbcNCjE5IOWutueUqOeUteWZqA0KMjAg5bu6562R5Y+K6KOF6aWw5p2Q5paZDQoyMSDoioLm
-l6XnlKjlk4ENCjIyIOekvOWTgeWPiui1oOWTgQ0KMjMg5pGp5omY6L2mDQoyNCDmsb3ovabphY3k
-u7YNCjI1IOmjn+WTgQ0KMjYg6Zm255O3DQoyNyDpk4Hnn7MNCjI4IOeOqeWFtw0KMjkg5Y2r5rW0
-DQozMCDkupTph5ENCjMxIOWwj+Wei+acuuaisA0KMzIg6Z6LDQozMyDkvJHpl7LnlKjlk4ENCjM0
-IOWMu+eWlw0KMzUg5rW05a6k5Lqn5ZOBDQozNiDlm63mnpcNCjM3IOeFp+aYjuS6p+WTgQ0KMzgg
-6ZKf6KGo55y86ZWcDQozOSDoh6rooYzovaYNCjQwIOWMhQ0KDQoNCuaWsOmynOaVsOaNri3miJDl
-jZXnjofmnoHpq5gNCuaWsOmynOaVsOaNri3miJDljZXnjofmnoHpq5gNCuaWsOmynOaVsOaNri3m
-iJDljZXnjofmnoHpq5gNCuaWsOmynOaVsOaNri3miJDljZXnjofmnoHpq5gNCuaWsOmynOaVsOaN
-ri3miJDljZXnjofmnoHpq5gNCg==
+On =E6=97=A5, 2012-05-20 at 15:09 +0200, Corentin Chary wrote:
+> On Mon, Mar 5, 2012 at 10:12 AM, Corentin Chary
+> <corentin.chary@gmail.com> wrote:
+> > On Sun, Nov 6, 2011 at 11:16 PM, Len Brown <lenb@kernel.org> wrote:
+> >>> I was looking at the DSDT of a new samsung laptop (I can send you=
+ the
+> >>> output of acpidump if interested), and it export a standard ACPI =
+ALS
+> >>> device. So, it's actually great to see vendor using that, but it =
+seems
+> >>> that the series adding support for that and sent back in 2009 is =
+not
+> >>> available in the kernel. I'd really like to use my the ALS, what'=
+s the
+> >>> current status of the driver ? Still blocked because we don't hav=
+e a
+> >>> generic sysfs class ? If yes, can't we just use a non-standard
+> >>> interface ? It would still be better than no driver at all.
+> >>
+> >> Yes, I think ACPI ALS support has been waiting for hardware to jus=
+tify
+> >> its existence.
+> >>
+> >> When it first entered the spec, we were excited to see it was pres=
+ent
+> >> in some high-end laptops, but IIR on closer examination the AML tu=
+rned
+> >> out to be dummy code.
+> >>
+> >> If you can verify that your Samsung really does implement ACPI ALS=
+,
+> >> then that is all we need to stumble forward.
+> >>
+> >> thanks,
+> >> -Len Brown, Intel Open Source Technology Center
+> >
+> > Hello,
+> >
+> > As stated in my previous mails, the implementation on this laptop i=
+s
+> > perfectly functional,  and since Windows 7 seems to be able to use
+> > ACPI ALS nativelly [1] I suspect new (high end ?) laptop will all
+> > support that.
+> > Is there any plan to revive this driver for 3.4 or 3.5 ? Should
+> > someone repost the last version of the previous patchset for
+> > discussion ?
+> > And no, on this laptop ALS is definitively not a gadget.
+> >
+> > Thanks,
+> >
+> > - http://download.microsoft.com/download/3/0/2/3027D574-C433-412A-A=
+8B6-5E0A75D5B237/ambient-light-sensors.docx
+>=20
+> Adding more people that were interested in the previous discussion.
+> What was the exact status of the als class ? Rui Zhang are you still
+> interested in this ?
+> Thanks,
+>=20
+well, I need some time to get updated about this.
+Say I'm not sure if we still want to introduce an ALS class or we need
+to use drivers/staging/iio/ instead, today.
+
+BTW, you own this laptop, right? Can you send me the model name of this
+laptop and its acpidump output?
+
+thanks,
+rui
 
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
