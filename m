@@ -1,125 +1,36 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: ACPICA version 20120518 linuxized patches
-Date: Tue, 22 May 2012 16:52:05 +0800
-Message-ID: <1337676725.24434.34.camel@minggr>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH resend] rtc-cmos: report wakeup event on ACPI RTC alarm
+Date: Tue, 22 May 2012 17:12:07 +0200
+Message-ID: <201205221712.07797.rjw@sisk.pl>
+References: <20120509231845.0301C9D401E@zog.reactivated.net> <201205102206.42891.rjw@sisk.pl> <4FBADFFE.7030508@linaro.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-gAzQWdY5UPdbtfBjmjFS"
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:56272 "EHLO mga03.intel.com"
+Received: from ogre.sisk.pl ([193.178.161.156]:58927 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755922Ab2EVIwH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 22 May 2012 04:52:07 -0400
+	id S1754737Ab2EVPHI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 22 May 2012 11:07:08 -0400
+In-Reply-To: <4FBADFFE.7030508@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb <lenb@kernel.org>
-Cc: "Moore, Robert" <robert.moore@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
+To: John Stultz <john.stultz@linaro.org>
+Cc: Daniel Drake <dsd@laptop.org>, Len Brown <lenb@kernel.org>, a.zummo@towertech.it, rtc-linux@googlegroups.com, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, pgf@laptop.org
 
+On Tuesday, May 22, 2012, John Stultz wrote:
+> On 05/10/2012 01:06 PM, Rafael J. Wysocki wrote:
+> > On Thursday, May 10, 2012, Daniel Drake wrote:
+> >> When the ACPI-driven RTC alarm wakes the system, report it as a wakeup
+> >> event. This allows userspace to determine that the reason for system
+> >> wakeup was RTC alarm.
+> >>
+> >> Signed-off-by: Daniel Drake<dsd@laptop.org>
+> > Len, John, any objections to this or may I take it for v3.5?
+> Seems reasonable. Although could this maybe be done more generically at 
+> the rtc infrastructure level instead of in the rtc-cmos driver?
 
---=-gAzQWdY5UPdbtfBjmjFS
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+I think it could, but it can be moved to the RTC layer later too.
 
-Hi Len,
-
-ACPICA version 20120518 linuxized patches attached.
-
-[PATCH 1/6] ACPICA: Disassembler: Add support for Operation Region externals
-[PATCH 2/6] ACPICA: ACPI 5/iASL: Add support for PCC keyword
-[PATCH 3/6] ACPICA: iASL: Improved pathname support
-[PATCH 4/6] ACPICA: Remove argument of acpi_os_wait_events_complete
-[PATCH 5/6] ACPICA: Add FADT error message for GAS BitWidth overflow
-[PATCH 6/6] ACPICA: Update to version 20120518
-
-Regards,
-Lin Ming
-
---=-gAzQWdY5UPdbtfBjmjFS
-Content-Type: application/x-bzip-compressed-tar; name="acpica-v20120518.patch.tar.bz2"
-Content-Disposition: attachment; filename="acpica-v20120518.patch.tar.bz2"
-Content-Transfer-Encoding: base64
-
-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
-
-
---=-gAzQWdY5UPdbtfBjmjFS--
-
+Thanks,
+Rafael
