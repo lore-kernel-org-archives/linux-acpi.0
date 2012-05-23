@@ -1,16 +1,17 @@
 From: Jiang Liu <jiang.liu@huawei.com>
-Subject: [PATCH v6 6/9] PCI, ACPI: provide MCFG address for PCI host bridges
-Date: Wed, 23 May 2012 11:50:23 +0800
-Message-ID: <1337745026-1180-7-git-send-email-jiang.liu@huawei.com>
+Subject: [PATCH v6 7/9] PCI, x86: update MMCFG information when hot-plugging
+ PCI host bridges
+Date: Wed, 23 May 2012 11:50:24 +0800
+Message-ID: <1337745026-1180-8-git-send-email-jiang.liu@huawei.com>
 References: <1337745026-1180-1-git-send-email-jiang.liu@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([58.251.152.64]:60629 "EHLO
-	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756729Ab2EWDvw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 May 2012 23:51:52 -0400
+Received: from szxga03-in.huawei.com ([58.251.152.66]:34469 "EHLO
+	szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933447Ab2EWDwI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 May 2012 23:52:08 -0400
 In-reply-to: <1337745026-1180-1-git-send-email-jiang.liu@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -21,143 +22,191 @@ From: Jiang Liu <liuj97@gmail.com>
 
 From: Jiang Liu <jiang.liu@huawei.com>
 
-This patch provide MCFG address for PCI host bridges, which will
-be used to support host bridge hotplug. It gets MCFG address
-by evaluating _CBA method if available, or by scanning the ACPI
-MCFG table.
+This patch enhances x86 arch specific code to update MMCFG information
+when PCI host bridge hotplug event happens.
 
 Signed-off-by: Jiang Liu <liuj97@gmail.com>
 ---
- drivers/acpi/pci_root.c  |   12 ++++++++++++
- drivers/pci/pci-acpi.c   |   34 ++++++++++++++++++++++++++++++++++
- include/acpi/acnames.h   |    1 +
- include/acpi/acpi_bus.h  |    3 +++
- include/linux/pci-acpi.h |    5 +++++
- 5 files changed, 55 insertions(+), 0 deletions(-)
+ arch/x86/include/asm/pci_x86.h |    1 +
+ arch/x86/pci/acpi.c            |   71 ++++++++++++++++++++++++++++++++++++++++
+ arch/x86/pci/mmconfig-shared.c |    7 +---
+ arch/x86/pci/mmconfig_32.c     |    2 +-
+ arch/x86/pci/mmconfig_64.c     |    2 +-
+ 5 files changed, 75 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index 7aff631..fc716cf 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -458,6 +458,7 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
- 	acpi_handle handle;
- 	struct acpi_device *child;
- 	u32 flags, base_flags;
-+	int end_bus = -1;
+diff --git a/arch/x86/include/asm/pci_x86.h b/arch/x86/include/asm/pci_x86.h
+index 1a3c12f..a50e783 100644
+--- a/arch/x86/include/asm/pci_x86.h
++++ b/arch/x86/include/asm/pci_x86.h
+@@ -100,6 +100,7 @@ struct pci_raw_ops {
+ extern const struct pci_raw_ops *raw_pci_ops;
+ extern const struct pci_raw_ops *raw_pci_ext_ops;
  
- 	root = kzalloc(sizeof(struct acpi_pci_root), GFP_KERNEL);
- 	if (!root)
-@@ -505,6 +506,17 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
- 	strcpy(acpi_device_class(device), ACPI_PCI_ROOT_CLASS);
- 	device->driver_data = root;
++extern const struct pci_raw_ops pci_mmcfg;
+ extern const struct pci_raw_ops pci_direct_conf1;
+ extern bool port_cf9_safe;
  
-+	root->mcfg_addr = acpi_pci_root_get_mcfg_addr(device->handle,
-+		root->segment, (uint8_t)root->secondary.start, &end_bus);
-+
-+	/*
-+	 * End bus number for MCFG may be less than root's subordinary
-+	 * bus number with buggy BIOS implementation.
-+	 */
-+	if (end_bus < 0 || end_bus > root->secondary.end)
-+		end_bus = root->secondary.end;
-+	root->mcfg_end_bus = (uint8_t)end_bus;
-+
- 	/*
- 	 * All supported architectures that use ACPI have support for
- 	 * PCI domains, so we indicate this in _OSC support capabilities.
-diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-index 0f150f2..9af71d2 100644
---- a/drivers/pci/pci-acpi.c
-+++ b/drivers/pci/pci-acpi.c
-@@ -162,6 +162,40 @@ acpi_status pci_acpi_remove_pm_notifier(struct acpi_device *dev)
- 	return remove_pm_notifier(dev, pci_acpi_wake_dev);
- }
+diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+index 2bb885a..ce29bdf 100644
+--- a/arch/x86/pci/acpi.c
++++ b/arch/x86/pci/acpi.c
+@@ -4,6 +4,7 @@
+ #include <linux/irq.h>
+ #include <linux/dmi.h>
+ #include <linux/slab.h>
++#include <linux/pci-acpi.h>
+ #include <asm/numa.h>
+ #include <asm/pci_x86.h>
  
-+/* acpi_table_parse() is marked as __init, so cache MCFG info at boot time */
-+int pci_acpi_mcfg_entries;
-+struct acpi_mcfg_allocation *pci_acpi_mcfg_array;
-+
-+phys_addr_t acpi_pci_root_get_mcfg_addr(acpi_handle handle, uint16_t seg,
-+					uint8_t start, int *endp)
-+{
-+	int i, end_bus = -1;
-+	acpi_status status = AE_NOT_EXIST;
-+	unsigned long long mcfg_addr = 0;
-+	struct acpi_mcfg_allocation *cfg;
-+
-+	if (handle)
-+		status = acpi_evaluate_integer(handle, METHOD_NAME__CBA,
-+					       NULL, &mcfg_addr);
-+	if (ACPI_FAILURE(status) && pci_acpi_mcfg_entries &&
-+	    pci_acpi_mcfg_array) {
-+		mcfg_addr = 0;
-+		cfg = pci_acpi_mcfg_array;
-+		for (i = 0; i < pci_acpi_mcfg_entries; i++, cfg++)
-+			if (seg == cfg->pci_segment &&
-+			    start >= cfg->start_bus_number &&
-+			    start <= cfg->end_bus_number) {
-+				end_bus = cfg->end_bus_number;
-+				mcfg_addr = cfg->address;
-+				break;
-+			}
-+	}
-+	if (endp)
-+		*endp = end_bus;
-+
-+	return (phys_addr_t)mcfg_addr;
-+}
-+
- /*
-  * _SxD returns the D-state with the highest power
-  * (lowest D-state number) supported in the S-state "x".
-diff --git a/include/acpi/acnames.h b/include/acpi/acnames.h
-index 38f5088..99bda75 100644
---- a/include/acpi/acnames.h
-+++ b/include/acpi/acnames.h
-@@ -62,6 +62,7 @@
- #define METHOD_NAME__AEI        "_AEI"
- #define METHOD_NAME__PRW        "_PRW"
- #define METHOD_NAME__SRS        "_SRS"
-+#define METHOD_NAME__CBA	"_CBA"
- 
- /* Method names - these methods must appear at the namespace root */
- 
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index f1c8ca6..8bc5229 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -370,6 +370,9 @@ struct acpi_pci_root {
- 
- 	u32 osc_support_set;	/* _OSC state of support bits */
- 	u32 osc_control_set;	/* _OSC state of control bits */
-+	uint8_t mcfg_end_bus;	/* End bus for MCFG may differ from
-+				 * root's subordinary bus. */
-+	phys_addr_t mcfg_addr;
+@@ -13,6 +14,12 @@ struct pci_root_info {
+ 	unsigned int res_num;
+ 	struct resource *res;
+ 	struct pci_sysdata sd;
++#ifdef	CONFIG_PCI_MMCONFIG
++	bool mcfg_added;
++	uint16_t segment;
++	uint8_t start_bus;
++	uint8_t end_bus;
++#endif
  };
  
- /* helper */
-diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
-index 4462350..0369149 100644
---- a/include/linux/pci-acpi.h
-+++ b/include/linux/pci-acpi.h
-@@ -11,12 +11,17 @@
- #include <linux/acpi.h>
+ static bool pci_use_crs = true;
+@@ -119,6 +126,63 @@ void __init pci_acpi_crs_quirks(void)
+ 	       pci_use_crs ? "nocrs" : "use_crs");
+ }
  
- #ifdef CONFIG_ACPI
-+extern int pci_acpi_mcfg_entries;
-+extern struct acpi_mcfg_allocation *pci_acpi_mcfg_array;
++static int __devinit setup_mcfg_map(struct pci_root_info *info,
++				    uint16_t seg, uint8_t start, uint8_t end,
++				    phys_addr_t addr)
++{
++#ifdef	CONFIG_PCI_MMCONFIG
++	int result;
 +
- extern acpi_status pci_acpi_add_bus_pm_notifier(struct acpi_device *dev,
- 						 struct pci_bus *pci_bus);
- extern acpi_status pci_acpi_remove_bus_pm_notifier(struct acpi_device *dev);
- extern acpi_status pci_acpi_add_pm_notifier(struct acpi_device *dev,
- 					     struct pci_dev *pci_dev);
- extern acpi_status pci_acpi_remove_pm_notifier(struct acpi_device *dev);
-+extern phys_addr_t acpi_pci_root_get_mcfg_addr(acpi_handle handle,
-+			uint16_t seg, uint8_t start, int *endp);
++	info->start_bus = start;
++	info->end_bus = end;
++	info->mcfg_added = false;
++
++	/* return success if MMCFG is not in use */
++	if (raw_pci_ext_ops && raw_pci_ext_ops != &pci_mmcfg)
++		return 0;
++
++	if (!(pci_probe & PCI_PROBE_MMCONF)) {
++		/* still could use raw_pci_ops for devices on segment 0 */
++		if (seg)
++			printk(KERN_WARNING
++				"MMCONFIG is disabled, can't access PCI device "
++				"configuration space on  %04x:%02x-%02x\n",
++				seg, start, end);
++		return 0;
++	}
++
++	result = pci_mmconfig_insert(seg, start, end, addr);
++	if (result == 0) {
++		/* enable MMCFG if it hasn't been enabled yet */
++		if (raw_pci_ext_ops == NULL)
++			raw_pci_ext_ops = &pci_mmcfg;
++		info->mcfg_added = true;
++	} else if (result != -EEXIST && addr) {
++		/*
++		 * Failure in adding MMCFG information is not fatal,
++		 * just can't access [extended] configuration space of
++		 * devices under this host bridge.
++		 */
++		printk(KERN_WARNING
++			"Fail to add MMCONFIG information for %04x:%02x-%02x\n",
++			seg, start, end);
++	}
++#endif
++
++	return 0;
++}
++
++static void teardown_mcfg_map(struct pci_root_info *info)
++{
++#ifdef	CONFIG_PCI_MMCONFIG
++	if (info->mcfg_added) {
++		pci_mmconfig_delete(info->segment, info->start_bus,
++				    info->end_bus);
++		info->mcfg_added = false;
++	}
++#endif
++}
++
+ static acpi_status
+ resource_to_addr(struct acpi_resource *resource,
+ 			struct acpi_resource_address64 *addr)
+@@ -331,6 +395,8 @@ static void __release_pci_root_info(struct pci_root_info *info)
  
- static inline acpi_handle acpi_find_root_bridge_handle(struct pci_dev *pdev)
- {
+ 	free_pci_root_info_res(info);
+ 
++	teardown_mcfg_map(info);
++
+ 	kfree(info);
+ }
+ static void release_pci_root_info(struct pci_host_bridge *bridge)
+@@ -423,6 +489,11 @@ struct pci_bus * __devinit pci_acpi_scan_root(struct acpi_pci_root *root)
+ 		memcpy(bus->sysdata, sd, sizeof(*sd));
+ 		kfree(info);
+ 	} else {
++		if (root->mcfg_addr)
++			setup_mcfg_map(info, root->segment,
++				       (uint8_t)root->secondary.start,
++				       root->mcfg_end_bus, root->mcfg_addr);
++
+ 		probe_pci_root_info(info, device, busnum, domain);
+ 
+ 		/* insert busn res at first */
+diff --git a/arch/x86/pci/mmconfig-shared.c b/arch/x86/pci/mmconfig-shared.c
+index 8d0c287..4d0600b 100644
+--- a/arch/x86/pci/mmconfig-shared.c
++++ b/arch/x86/pci/mmconfig-shared.c
+@@ -707,7 +707,7 @@ int __devinit pci_mmconfig_insert(uint16_t seg, uint8_t start, uint8_t end,
+ 	struct resource *tmp;
+ 	struct pci_mmcfg_region *cfg;
+ 
+-	if (start > end)
++	if (start > end || !addr)
+ 		return -EINVAL;
+ 
+ 	if (pci_mmcfg_arch_init_failed)
+@@ -726,11 +726,6 @@ int __devinit pci_mmconfig_insert(uint16_t seg, uint8_t start, uint8_t end,
+ 		return -EEXIST;
+ 	}
+ 
+-	if (!addr) {
+-		mutex_unlock(&pci_mmcfg_lock);
+-		return -EINVAL;
+-	}
+-
+ 	rc = -EBUSY;
+ 	cfg = pci_mmconfig_alloc(seg, start, end, addr);
+ 	if (cfg == NULL) {
+diff --git a/arch/x86/pci/mmconfig_32.c b/arch/x86/pci/mmconfig_32.c
+index a22785d..db63ac2 100644
+--- a/arch/x86/pci/mmconfig_32.c
++++ b/arch/x86/pci/mmconfig_32.c
+@@ -126,7 +126,7 @@ static int pci_mmcfg_write(unsigned int seg, unsigned int bus,
+ 	return 0;
+ }
+ 
+-static const struct pci_raw_ops pci_mmcfg = {
++const struct pci_raw_ops pci_mmcfg = {
+ 	.read =		pci_mmcfg_read,
+ 	.write =	pci_mmcfg_write,
+ };
+diff --git a/arch/x86/pci/mmconfig_64.c b/arch/x86/pci/mmconfig_64.c
+index 4e05779..34c08dd 100644
+--- a/arch/x86/pci/mmconfig_64.c
++++ b/arch/x86/pci/mmconfig_64.c
+@@ -90,7 +90,7 @@ static int pci_mmcfg_write(unsigned int seg, unsigned int bus,
+ 	return 0;
+ }
+ 
+-static const struct pci_raw_ops pci_mmcfg = {
++const struct pci_raw_ops pci_mmcfg = {
+ 	.read =		pci_mmcfg_read,
+ 	.write =	pci_mmcfg_write,
+ };
 -- 
 1.7.1
 
