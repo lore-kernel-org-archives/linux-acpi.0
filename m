@@ -1,119 +1,60 @@
 From: Shuah Khan <shuahkhan@gmail.com>
-Subject: Re: [PATCH v4 4/6] ACPI: Add _OST support for ACPI memory hotplug
-Date: Thu, 24 May 2012 12:21:50 -0600
-Message-ID: <1337883710.2718.85.camel@lorien2>
+Subject: Re: [PATCH v4 6/6] ACPI: Set hotplug _OST support bit to _OSC
+Date: Thu, 24 May 2012 12:27:00 -0600
+Message-ID: <1337884020.2718.89.camel@lorien2>
 References: <1337826324-16802-1-git-send-email-toshi.kani@hp.com>
-	 <1337826324-16802-5-git-send-email-toshi.kani@hp.com>
+	 <1337826324-16802-7-git-send-email-toshi.kani@hp.com>
 Reply-To: shuahkhan@gmail.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0029.austin.hp.com ([15.216.28.36]:1071 "EHLO
+Received: from g1t0029.austin.hp.com ([15.216.28.36]:3151 "EHLO
 	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964942Ab2EXSVx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 May 2012 14:21:53 -0400
-In-Reply-To: <1337826324-16802-5-git-send-email-toshi.kani@hp.com>
+	with ESMTP id S933458Ab2EXS1B (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 May 2012 14:27:01 -0400
+In-Reply-To: <1337826324-16802-7-git-send-email-toshi.kani@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Toshi Kani <toshi.kani@hp.com>
 Cc: shuahkhan@gmail.com, lenb@kernel.org, linux-acpi@vger.kernel.org, bhelgaas@google.com, liuj97@gmail.com, andi@firstfloor.org, linux-kernel@vger.kernel.org
 
 On Wed, 2012-05-23 at 20:25 -0600, Toshi Kani wrote:
-> Changed acpi_memory_device_notify() to call ACPI _OST method
-> when ACPI memory hotplug operation has completed.
+> When ACPI_HOTPLUG_OST is defined, set hotplug _OST support bit
+> OSC_SB_HOTPLUG_OST_SUPPORT to indicate that the OS supports hotplug
+> _OST by calling the platform-wide ACPI Operating System Capabilities
+> (_OSC).
 > 
 > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
 > ---
->  drivers/acpi/acpi_memhotplug.c |   43 +++++++++++++++++++++++++++++----------
->  1 files changed, 32 insertions(+), 11 deletions(-)
+>  drivers/acpi/bus.c |    4 ++++
+>  1 files changed, 4 insertions(+), 0 deletions(-)
 > 
-> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-> index d985713..24c807f 100644
-> --- a/drivers/acpi/acpi_memhotplug.c
-> +++ b/drivers/acpi/acpi_memhotplug.c
-> @@ -341,7 +341,7 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
->  {
->  	struct acpi_memory_device *mem_device;
->  	struct acpi_device *device;
-> -
-> +	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE; /* default */
+> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> index 3188da3..3d4fc7a 100644
+> --- a/drivers/acpi/bus.c
+> +++ b/drivers/acpi/bus.c
+> @@ -548,6 +548,10 @@ static void acpi_bus_osc_support(void)
+>  	capbuf[OSC_SUPPORT_TYPE] |= OSC_SB_PPC_OST_SUPPORT;
+>  #endif
 >  
->  	switch (event) {
->  	case ACPI_NOTIFY_BUS_CHECK:
-> @@ -354,15 +354,20 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
->  					  "\nReceived DEVICE CHECK notification for device\n"));
->  		if (acpi_memory_get_device(handle, &mem_device)) {
->  			printk(KERN_ERR PREFIX "Cannot find driver data\n");
-> -			return;
-> +			break;
->  		}
->  
-> -		if (!acpi_memory_check_device(mem_device)) {
-> -			if (acpi_memory_enable_device(mem_device))
-> -				printk(KERN_ERR PREFIX
-> -					    "Cannot enable memory device\n");
-> +		if (acpi_memory_check_device(mem_device))
-> +			break;
-> +
-> +		if (acpi_memory_enable_device(mem_device)) {
-> +			printk(KERN_ERR PREFIX "Cannot enable memory device\n");
-> +			break;
->  		}
-> +
-> +		ost_code = ACPI_OST_SC_SUCCESS;
->  		break;
-> +
->  	case ACPI_NOTIFY_EJECT_REQUEST:
->  		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
->  				  "\nReceived EJECT REQUEST notification for device\n"));
-> @@ -383,19 +388,35 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
->  		 * TBD: Can also be disabled by Callback registration
->  		 *      with generic sysfs driver
->  		 */
-> -		if (acpi_memory_disable_device(mem_device))
-> -			printk(KERN_ERR PREFIX
-> -				    "Disable memory device\n");
-> +		if (acpi_memory_disable_device(mem_device)) {
-> +			printk(KERN_ERR PREFIX "Disable memory device\n");
-> +			/*
-> +			 * If _EJ0 was called but failed, _OST is not
-> +			 * necessary.
-> +			 */
-> +			if (mem_device->state == MEMORY_INVALID_STATE)
-> +				return;
-> +
-> +			break;
-> +		}
+> +#ifdef ACPI_HOTPLUG_OST
+> +	capbuf[OSC_SUPPORT_TYPE] |= OSC_SB_HOTPLUG_OST_SUPPORT;
+> +#endif
 
-Why isn't _OST called in this case to report failure? Isn't this one of
-the cases Spec talks about. Reference: 6.3.5 _OST (OSPM Status
-Indication) page 302.
+Why isn't firmware response to _OSC checked to make sure firmware also
+supports _OST? My general comments about compile time switch that is
+enabled only a few cases _OST Ejection/Insertion is intended to be used
+are applicable here.
 
 -- Shuah
 
+
+
+
 > +
->  		/*
->  		 * TBD: Invoke acpi_bus_remove to cleanup data structures
->  		 */
-> -		break;
-> +
-> +		/* _EJ0 succeeded; _OST is not necessary */
-> +		return;
-> +
->  	default:
->  		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
->  				  "Unsupported event [0x%x]\n", event));
-> -		break;
-> +
-> +		/* non-hotplug event; possibly handled by other handler */
-> +		return;
->  	}
->  
-> +	/* Inform firmware that the hotplug operation has completed */
-> +	(void) acpi_evaluate_hotplug_ost(handle, event, ost_code, NULL);
->  	return;
->  }
->  
+>  	if (!ghes_disable)
+>  		capbuf[OSC_SUPPORT_TYPE] |= OSC_SB_APEI_SUPPORT;
+>  	if (ACPI_FAILURE(acpi_get_handle(NULL, "\\_SB", &handle)))
 
 
