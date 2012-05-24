@@ -1,133 +1,63 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH v4 4/6] ACPI: Add _OST support for ACPI memory hotplug
-Date: Thu, 24 May 2012 14:25:35 -0600
-Message-ID: <1337891135.16730.404.camel@misato.fc.hp.com>
-References: <1337826324-16802-1-git-send-email-toshi.kani@hp.com>
-	 <1337826324-16802-5-git-send-email-toshi.kani@hp.com>
-	 <1337883710.2718.85.camel@lorien2>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH] PCI / ACPI: Do not request control of ASPM if the BIOS has disabled it
+Date: Thu, 24 May 2012 22:45:45 +0200
+Message-ID: <201205242245.45888.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0026.austin.hp.com ([15.216.28.33]:38726 "EHLO
-	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756374Ab2EXU2Y (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 May 2012 16:28:24 -0400
-In-Reply-To: <1337883710.2718.85.camel@lorien2>
+Received: from ogre.sisk.pl ([193.178.161.156]:35699 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752563Ab2EXUkn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 24 May 2012 16:40:43 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: shuahkhan@gmail.com
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, bhelgaas@google.com, liuj97@gmail.com, andi@firstfloor.org, linux-kernel@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, Len Brown <lenb@kernel.org>, Wei Kong <wkong@novell.com>, Jean Delvare <jdelvare@suse.com>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On Thu, 2012-05-24 at 12:21 -0600, Shuah Khan wrote:
-> On Wed, 2012-05-23 at 20:25 -0600, Toshi Kani wrote:
-> > Changed acpi_memory_device_notify() to call ACPI _OST method
-> > when ACPI memory hotplug operation has completed.
-> > 
-> > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-> > ---
-> >  drivers/acpi/acpi_memhotplug.c |   43 +++++++++++++++++++++++++++++----------
-> >  1 files changed, 32 insertions(+), 11 deletions(-)
-> > 
-> > diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-> > index d985713..24c807f 100644
-> > --- a/drivers/acpi/acpi_memhotplug.c
-> > +++ b/drivers/acpi/acpi_memhotplug.c
-> > @@ -341,7 +341,7 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
-> >  {
-> >  	struct acpi_memory_device *mem_device;
-> >  	struct acpi_device *device;
-> > -
-> > +	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE; /* default */
-> >  
-> >  	switch (event) {
-> >  	case ACPI_NOTIFY_BUS_CHECK:
-> > @@ -354,15 +354,20 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
-> >  					  "\nReceived DEVICE CHECK notification for device\n"));
-> >  		if (acpi_memory_get_device(handle, &mem_device)) {
-> >  			printk(KERN_ERR PREFIX "Cannot find driver data\n");
-> > -			return;
-> > +			break;
-> >  		}
-> >  
-> > -		if (!acpi_memory_check_device(mem_device)) {
-> > -			if (acpi_memory_enable_device(mem_device))
-> > -				printk(KERN_ERR PREFIX
-> > -					    "Cannot enable memory device\n");
-> > +		if (acpi_memory_check_device(mem_device))
-> > +			break;
-> > +
-> > +		if (acpi_memory_enable_device(mem_device)) {
-> > +			printk(KERN_ERR PREFIX "Cannot enable memory device\n");
-> > +			break;
-> >  		}
-> > +
-> > +		ost_code = ACPI_OST_SC_SUCCESS;
-> >  		break;
-> > +
-> >  	case ACPI_NOTIFY_EJECT_REQUEST:
-> >  		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-> >  				  "\nReceived EJECT REQUEST notification for device\n"));
-> > @@ -383,19 +388,35 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
-> >  		 * TBD: Can also be disabled by Callback registration
-> >  		 *      with generic sysfs driver
-> >  		 */
-> > -		if (acpi_memory_disable_device(mem_device))
-> > -			printk(KERN_ERR PREFIX
-> > -				    "Disable memory device\n");
-> > +		if (acpi_memory_disable_device(mem_device)) {
-> > +			printk(KERN_ERR PREFIX "Disable memory device\n");
-> > +			/*
-> > +			 * If _EJ0 was called but failed, _OST is not
-> > +			 * necessary.
-> > +			 */
-> > +			if (mem_device->state == MEMORY_INVALID_STATE)
-> > +				return;
-> > +
-> > +			break;
-> > +		}
-> 
-> Why isn't _OST called in this case to report failure? Isn't this one of
-> the cases Spec talks about. Reference: 6.3.5 _OST (OSPM Status
-> Indication) page 302.
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-If an ejection operation failed before calling _EJ0, the OS needs to
-call _OST.  Once the OS called _EJ0, the OS need not to call _OST again
-since FW has been informed with _EJ0 already.  If _EJ0 failed, FW knows
-it failed as well.  Please see page 14, Figure 2, of DIG64 HPPF doc.
-The pointer to the doc is described in patch [0/6].
+We want to report that the kernel supports ASPM to the BIOS even if
+the BIOS signals us that it doesn't.  So, we need the flags to include
+(OSC_ACTIVE_STATE_PWR_SUPPORT | OSC_CLOCK_PWR_CAPABILITY_SUPPORT)
+before calling acpi_pci_osc_support(root, flags) in
+acpi_pci_root_add() (unless there's a command line telling us that
+ASPM is not to be supported).
+
+However, knowing that the BIOS doesn't support ASPM, we shouldn't
+request the control of it, so we should remove
+(OSC_ACTIVE_STATE_PWR_SUPPORT | OSC_CLOCK_PWR_CAPABILITY_SUPPORT)
+from the flags before calling acpi_pci_osc_control_set() in those
+cases.  Failing to do so causes the evaluation of _OSC for the PCI
+root bridge to return error codes on some systems where it should
+work correctly.
+
+Reported-and-tested-by: Wei Kong <wkong@novell.com>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+
+-stable material, I think.
 
 Thanks,
--Toshi
+Rafael
 
+---
+ drivers/acpi/pci_root.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-> 
-> -- Shuah
-> 
-> > +
-> >  		/*
-> >  		 * TBD: Invoke acpi_bus_remove to cleanup data structures
-> >  		 */
-> > -		break;
-> > +
-> > +		/* _EJ0 succeeded; _OST is not necessary */
-> > +		return;
-> > +
-> >  	default:
-> >  		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-> >  				  "Unsupported event [0x%x]\n", event));
-> > -		break;
-> > +
-> > +		/* non-hotplug event; possibly handled by other handler */
-> > +		return;
-> >  	}
-> >  
-> > +	/* Inform firmware that the hotplug operation has completed */
-> > +	(void) acpi_evaluate_hotplug_ost(handle, event, ost_code, NULL);
-> >  	return;
-> >  }
-> >  
-> 
-> 
-
-
+Index: linux/drivers/acpi/pci_root.c
+===================================================================
+--- linux.orig/drivers/acpi/pci_root.c
++++ linux/drivers/acpi/pci_root.c
+@@ -574,6 +574,10 @@ static int __devinit acpi_pci_root_add(s
+ 	if (flags != base_flags)
+ 		acpi_pci_osc_support(root, flags);
+ 
++	if (!pcie_aspm_enabled())
++		flags &= ~(OSC_ACTIVE_STATE_PWR_SUPPORT |
++			OSC_CLOCK_PWR_CAPABILITY_SUPPORT);
++
+ 	if (!pcie_ports_disabled
+ 	    && (flags & ACPI_PCIE_REQ_SUPPORT) == ACPI_PCIE_REQ_SUPPORT) {
+ 		flags = OSC_PCI_EXPRESS_CAP_STRUCTURE_CONTROL
