@@ -1,49 +1,52 @@
-From: joeyli <jlee@suse.com>
-Subject: Re: [PATCH] gpu: remove gma500 stub driver
-Date: Fri, 25 May 2012 15:43:51 +0800
-Message-ID: <1337931831.9751.561.camel@linux-s257.site>
-References: <1337910644-21694-1-git-send-email-jlee@suse.com>
-	 <20120525070717.GB16955@kroah.com>
+From: Aaron Lewis <the.warl0ck.1989@gmail.com>
+Subject: needs help on setting up Lenovo micmute button on Arch Linux
+Date: Fri, 25 May 2012 19:19:00 +0800
+Message-ID: <20120525111900.GA11374@devnull>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from charybdis-ext.suse.de ([195.135.221.2]:37817 "EHLO
-	nat.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751164Ab2EYHrx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 May 2012 03:47:53 -0400
-In-Reply-To: <20120525070717.GB16955@kroah.com>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:59543 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752697Ab2EYLTH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 May 2012 07:19:07 -0400
+Received: by dady13 with SMTP id y13so1129571dad.19
+        for <linux-acpi@vger.kernel.org>; Fri, 25 May 2012 04:19:06 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, randy.dunlap@oracle.com, mjg59@srcf.ucam.org, gregkh@suse.de, trenn@suse.de, Valdis.Kletnieks@vt.edu, Dennis.Jansen@web.de, airlied@redhat.com, eric@anholt.net, alexdeucher@gmail.com, bskeggs@redhat.com, chris@chris-wilson.co.uk
+To: linux-acpi@vger.kernel.org
 
-=E6=96=BC =E4=BA=94=EF=BC=8C2012-05-25 =E6=96=BC 16:07 +0900=EF=BC=8CGr=
-eg KH =E6=8F=90=E5=88=B0=EF=BC=9A
-> On Fri, May 25, 2012 at 09:50:44AM +0800, Lee, Chun-Yi wrote:
-> > In v3.3, the gma500 drm driver moved from staging to drm group by
-> > Alan Cox's 3abcf41fb patch. the gma500 drm driver should control
-> > brightness well and don't need gma500 stub driver anymore.
-> >=20
-> > Cc: randy.dunlap@oracle.com
-> > Cc: mjg59@srcf.ucam.org
-> > Cc: gregkh@suse.de
->=20
-> Note, my email address has changed :)
->=20
+Hi,
+	I'm trying to make my Lenovo Micmute button functions on arch linux,
+	I've done this already on Ubuntu 12.04 (with acpid), but ,
 
-Sorry~~~!
-I will keep in mind! :-)
+	On arch linux , acpi_listen has no output when I press the micmute
+	key , while Ubuntu does , which is:
 
-> Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
->=20
->=20
+	*ibm/hotkey HKEY 00000080 0000101b*
 
-Thanks a lot!
-Joey Lee
+	xev has no output on neither Arch or Ubuntu 12.04
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	I really don't know where to start .. needs solutions .. thanks
+
+	P.S: other information:
+
+	# /usr/lib/udev/keymap -i /dev/input/by-path/platform-thinkpad_acpi-event
+	Press ESC to finish, or Control-C if this device is not your primary keyboard
+	scan code: 0x1A   key code: micmute
+
+	Just not sure how to map it .. there's also definitions of micmute in
+	/usr/lib/udev/keymaps/module-lenovo
+
+	And I tried:
+
+	# /usr/lib/udev/keymap /dev/input/by-path/platform-thinkpad_acpi-event
+	0x01a micmute
+	setting scancode 0x1A to key code 248
+
+	And no changes here
+
+-- 
+Best Regards,
+Aaron Lewis - PGP: 0xDFE6C29E ( http://pgp.mit.edu/ )
+Finger Print: 9482 448F C7C3 896C 1DFE 7DD3 2492 A7D0 DFE6 C29E
