@@ -1,82 +1,52 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI / PCI: Make _SxD/_SxW check follow ACPI 4.0a spec
-Date: Fri, 25 May 2012 22:00:24 +0200
-Message-ID: <201205252200.24331.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.1205251511170.1907-100000@iolanthe.rowland.org>
+Subject: [PATCH] ACPI / PM: Make acpi_pm_device_sleep_state() follow the specification
+Date: Sat, 26 May 2012 00:04:02 +0200
+Message-ID: <201205260004.02778.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:37710 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([193.178.161.156]:37888 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933230Ab2EYU1K (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 25 May 2012 16:27:10 -0400
-In-Reply-To: <Pine.LNX.4.44L0.1205251511170.1907-100000@iolanthe.rowland.org>
+	id S1753054Ab2EYV7F (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 25 May 2012 17:59:05 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: "Oleksij Rempel (fishor)" <bug-track@fisher-privat.net>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Lin Ming <ming.m.lin@intel.com>
 
-On Friday, May 25, 2012, Alan Stern wrote:
-> Oleksij:
-> 
-> Please take a look at this bug report:
-> 
-> 	https://bugzilla.kernel.org/show_bug.cgi?id=43278
-> 
-> Apparently your patch breaks wakeup on this machine by preventing the 
-> USB host controllers from being put into D3.
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-I think the patch is incorrect, actually.
+The comparison between the system sleep state being entered
+and the lowest system sleep state the given device may wake up
+from in acpi_pm_device_sleep_state() is reversed, because the
+specification (ACPI 5.0) says that for wakeup to work:
 
-First, if you look at the first hunk:
+"The sleeping state being entered must be less than or equal to the
+ power state declared in element 1 of the _PRW object."
 
--       if (acpi_target_sleep_state > ACPI_STATE_S0)
-+       if (acpi_target_sleep_state > ACPI_STATE_S0) {
-+               acpi_status status;
-+
-                acpi_evaluate_integer(handle, acpi_method, NULL, &d_min);
+Moreover, it also should check if the wakeup capability is supported
+through ACPI, because in principle it may be done via native PCIe
+PME, for example.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/acpi/sleep.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+Index: linux/drivers/acpi/sleep.c
+===================================================================
+--- linux.orig/drivers/acpi/sleep.c
++++ linux/drivers/acpi/sleep.c
+@@ -732,8 +732,8 @@ int acpi_pm_device_sleep_state(struct de
+ 	 * can wake the system.  _S0W may be valid, too.
+ 	 */
+ 	if (acpi_target_sleep_state == ACPI_STATE_S0 ||
+-	    (device_may_wakeup(dev) &&
+-	     adev->wakeup.sleep_state <= acpi_target_sleep_state)) {
++	    (device_may_wakeup(dev) && adev->wakeup.flags.valid &&
++	     adev->wakeup.sleep_state >= acpi_target_sleep_state)) {
+ 		acpi_status status;
  
-+               if (device_may_wakeup(dev)) {
-+                       acpi_method[3] = 'W';
-+                       status = acpi_evaluate_integer(handle, acpi_method,
-+                                                      NULL, &d_max);
-+                       if (ACPI_FAILURE(status))
-+                               d_max = d_min;
-+               }
-+       }
-
-it will do something like this: if the device is wakeup-capable, get d_max
-from _SxW, unless it fails.  However, the code just below in that function:
-
-	if (acpi_target_sleep_state == ACPI_STATE_S0 ||
-	    (device_may_wakeup(dev) &&
-	     adev->wakeup.sleep_state <= acpi_target_sleep_state)) {
-		acpi_status status;
-
-		acpi_method[3] = 'W';
-		status = acpi_evaluate_integer(handle, acpi_method, NULL,
-						&d_max);
-		if (ACPI_FAILURE(status)) {
-			if (acpi_target_sleep_state != ACPI_STATE_S0 ||
-			    status != AE_NOT_FOUND)
-				d_max = d_min;
-		} else if (d_max < d_min) {
-			/* Warn the user of the broken DSDT */
-			printk(KERN_WARNING "ACPI: Wrong value from %s\n",
-				acpi_method);
-			/* Sanitize it */
-			d_min = d_max;
-		}
-	}
-
-does _exactly_ the same thing (it only has a more sophisticated error code path).
-
-It might check adev->wakeup.flags.valid instead of device_may_wakeup(dev),
-but that's a different story.
-
-So the only difference made by the patch is te hunk in pci_target_state().
-
-Thanks,
-Rafael
+ 		acpi_method[3] = 'W';
