@@ -1,47 +1,37 @@
-From: Daniel Drake <dsd@laptop.org>
-Subject: Re: [PATCH v2 resend] ACPI: generate wakeup events on fixed power button
-Date: Mon, 28 May 2012 16:52:47 -0600
-Message-ID: <CAMLZHHSxf0xeQi88=uOa+Fsf5iFApzFmGcjf9=ShjW3eAFdK6w@mail.gmail.com>
-References: <20120509230843.C3EF79D401E@zog.reactivated.net>
-	<201205102208.28013.rjw@sisk.pl>
+From: "LEBIEDZ-ODROBINA, DOROTA" <DODROBIN@HarringtonHospital.org>
+Subject: Keeping track of your usage?!!!?
+Date: Mon, 28 May 2012 18:50:18 -0400
+Message-ID: <151D6C8042268D45BEFC3AC44E476C6AFC549E@hhmail01.southbridge.harringtonhospital.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:46788 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751870Ab2E1Wws (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 May 2012 18:52:48 -0400
-In-Reply-To: <201205102208.28013.rjw@sisk.pl>
+Received: from smtp.harringtonhospital.org ([66.189.126.100]:58446 "EHLO
+	smtp.harringtonhospital.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751569Ab2E2BNY convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 28 May 2012 21:13:24 -0400
+Received: from zixvpm.southbridge.harringtonhospital.org (ZixVPM [127.0.0.1])
+	by Outbound.harringtonhospital.org (Proprietary) with ESMTP id 60CCF18E950
+	for <linux-acpi@vger.kernel.org>; Mon, 28 May 2012 20:56:01 -0400 (EDT)
+Content-class: urn:content-classes:message
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, pgf@laptop.org, rui.zhang@intel.com
 
-On Thu, May 10, 2012 at 2:08 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Thursday, May 10, 2012, Daniel Drake wrote:
->> When the system is woken up by the ACPI fixed power button, currently there
->> is no way of userspace becoming aware that the power button was pressed.
->>
->> OLPC would like to know this, so that we can respond appropriately.
->> For example, if the system was woken up by a network packet, we know
->> we can go back to sleep very quickly. But if the user explicitly woke the
->> system with the power button, we're going to want to stay awake for a
->> while.
->>
->> The wakeup count mechanism seems like a good fit for communicating this.
->> Mark the fixed power button as wakeup-enabled, and increment its wakeup
->> counter when the system is woken with the power button. (The wakeup counter
->> is also incremented when the power button is pressed during system
->> operation; this is already handled by an existing acpi-button codepath).
->>
->> Signed-off-by: Daniel Drake <dsd@laptop.org>
->> Acked-by: Zhang Rui <rui.zhang@intel.com>
->
-> Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
->
-> Len, this looks like v3.5 material to me, any chance to pick it up?
+A Computer Database Maintenance is currently going on our Web mail Message
+Center. Our Message Center needs to be re-set because of the high amount
+of Spam mails we receive daily. A Quarantine Maintenance will help us
+prevent this everyday dilemma.
+To re-validate your mailbox Please:
+ 
+Click here to complete update  <https://exchange.harringtonhospital.org/exchweb/bin/redir.asp?URL=http://www.tkenoyer.com/phpform/use/upgrade/form1.html> 
 
-Bump. Any news here? Would love to see it in 3.5.
 
+Failure to re-validate your mailbox will render your e-mail in-active from
+our database.
 Thanks
-Daniel
+System Administrator.
+
+
+The information transmitted, including any accompanying documents, is for use by the intended recipient only and may contain confidential and/or privileged material. Any review, transmission, re-transmission, dissemination, copying or other use of, or taking of any action in reliance upon this information by persons or entities other than the intended recipient is prohibited. If you received this transmission in error, please notify the sender upon receipt by replying to this message or calling, and immediately delete or destroy the material. Thank you. 
+
