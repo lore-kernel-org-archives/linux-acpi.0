@@ -1,154 +1,66 @@
 From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: Re: [RFC PATCH 3/3] usb : Add sysfs files to control usb port's power
-Date: Mon, 28 May 2012 13:35:56 +0800
-Message-ID: <4FC30EBC.2010607@intel.com>
-References: <Pine.LNX.4.44L0.1205251127180.1907-100000@iolanthe.rowland.org>
+Subject: Re: [RFC PATCH 1/3] xhci: Add clear PORT_POWER feature process in
+ the xhci_hub_control()
+Date: Mon, 28 May 2012 13:54:50 +0800
+Message-ID: <4FC3132A.1080502@intel.com>
+References: <1337924882-17332-1-git-send-email-tianyu.lan@intel.com> <1337924882-17332-2-git-send-email-tianyu.lan@intel.com> <4FC35358.6080700@amd.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8;
 	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:43493 "EHLO mga14.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:4148 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752675Ab2E1FmC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 28 May 2012 01:42:02 -0400
-In-Reply-To: <Pine.LNX.4.44L0.1205251127180.1907-100000@iolanthe.rowland.org>
+	id S1752268Ab2E1GAz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 28 May 2012 02:00:55 -0400
+In-Reply-To: <4FC35358.6080700@amd.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: gregkh@linuxfoundation.org, lenb@kernel.org, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, sarah.a.sharp@linux.intel.com
+To: Andiry Xu <andiry.xu@amd.com>
+Cc: gregkh@linuxfoundation.org, lenb@kernel.org, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu, sarah.a.sharp@linux.intel.com
 
-hi alan:
-	Great thanks for you review. Sorry for later reply due to my travel :)
-On 2012=E5=B9=B405=E6=9C=8825=E6=97=A5 23:41, Alan Stern wrote:
-> On Fri, 25 May 2012, Lan Tianyu wrote:
->
->> This patch is to add two sys files for each usb hub ports to control=
- port's power,
->> e.g port1_power_control and port1_power_state both for port one. Con=
-trol port's
->> power through setting or clearing PORT_POWER feature.
+On 2012=E5=B9=B405=E6=9C=8828=E6=97=A5 18:28, Andiry Xu wrote:
+> On 05/25/2012 01:48 PM, Lan Tianyu wrote:
+>> This patch is to add process of clearing PORT_POWER feature request
+>> for xhci hub.
 >>
->> port1_power_control has three options. "auto", "on" and "off"
->> "auto" - if port without device, power off the port.
->> "on" - port must be power on.
->> "off" - port must be power off.
->
-> Remind me again -- what's the point of the "auto" setting?  It doesn'=
-t
-> seem to mean anything as a port power state.
->
-> That is, if you write "auto" to the sysfs file then the power will
-> remain on if it is already on and a device is plugged in, or it will =
-go
-> off if it is already off or no device is plugged in.  Either way, it
-> won't remain at "auto" because once the power is off, there's no way =
-to
-> tell when a new device gets plugged in.
->
-> Given this, do the power_control and power_state files need to be
-> separate?
- From my opinion, power_control determines the work pattern.
-Currently, we just consider port without device. When "auto", power off
-the port directly. For port with device, if the device was not in the s=
-uspend
-at that pointer, the power would remain on but it would power off when =
-it was
-suspended. If the the device was in the suspend, "auto" means the devic=
-e could
-be put into much lower state so the device need to resume and suspend a=
-gain.
-
-Different patterns have different time of power off.
-I think their relation just like power/control and power/runtime_status=
-=2E
-when power/control =3D> "auto", power_/runtime_status maybe "active" or=
- "suspended".
-
->
->> --- a/drivers/usb/core/hub.c
->> +++ b/drivers/usb/core/hub.c
->
->> @@ -4985,6 +4992,37 @@ usb_get_hub_port_connect_type(struct usb_devi=
-ce *hdev,	int port1)
->>   	return hub->port_data[port1 - 1].connect_type;
->>   }
+>> Signed-off-by: Lan Tianyu<tianyu.lan@intel.com>
+>> ---
+>>   drivers/usb/host/xhci-hub.c |    5 +++++
+>>   1 files changed, 5 insertions(+), 0 deletions(-)
 >>
->> +enum port_power_policy
->> +usb_get_hub_port_power_policy(struct usb_device *hdev, int port1)
->> +{
->> +	struct usb_hub *hub =3D hdev_to_hub(hdev);
->> +	return hub->port_data[port1 - 1].port_power_policy;
->> +}
->> +
->> +void usb_set_hub_port_power_policy(struct usb_device *hdev, int por=
-t1,
->> +	enum port_power_policy value)
->> +{
->> +	struct usb_hub *hub =3D hdev_to_hub(hdev);
->> +	hub->port_data[port1 - 1].port_power_policy =3D value;
->> +}
+>> diff --git a/drivers/usb/host/xhci-hub.c b/drivers/usb/host/xhci-hub=
+=2Ec
+>> index 2732ef6..feb515e 100644
+>> --- a/drivers/usb/host/xhci-hub.c
+>> +++ b/drivers/usb/host/xhci-hub.c
+>> @@ -827,6 +827,11 @@ int xhci_hub_control(struct usb_hcd *hcd, u16 t=
+ypeReq, u16 wValue,
+>>   			xhci_disable_port(hcd, xhci, wIndex,
+>>   					port_array[wIndex], temp);
+>>   			break;
+>> +		case USB_PORT_FEAT_POWER:
+>> +			temp =3D xhci_readl(xhci, port_array[wIndex])
+>> +				&  ~PORT_POWER;
 >
-> I suspect these routines aren't needed at all.
+> You should not read the register again. Simply use temp&=3D ~PORT_POW=
+ER
+> is enough.
 >
->> +void usb_set_hub_port_power(struct usb_device *hdev, int port1, boo=
-l enabled)
->> +{
->> +	if (enabled)
->> +		set_port_feature(hdev, port1, USB_PORT_FEAT_POWER);
->> +	else
->> +		clear_port_feature(hdev, port1, USB_PORT_FEAT_POWER);
->> +}
->> +
->> +int usb_get_hub_port_power_state(struct usb_device *hdev, int port1=
-)
->> +{
->> +	struct usb_hub *hub =3D hdev_to_hub(hdev);
->> +	u16 portstatus, portchange;
->> +
->> +	hub_port_status(hub, port1,&portstatus,&portchange);
+> Otherwise you must call xhci_port_state_to_neutral(temp) again before
+> write it back to register.
+hi andiry:
+	Thanks for your reminder and I will take the first one.=09
 >
-> Use get_port_status(), not hub_port_status().
+> Thanks,
+> Andiry
 >
->> +	return port_is_power_on(hub, portstatus);
->> +}
+>> +			xhci_writel(xhci, temp,	port_array[wIndex]);
+>> +			break;
+>>   		default:
+>>   			goto error;
+>>   		}
 >
-> These routines don't belong here at the end of the file.  They belong
-> near the start, close to set_port_feature() and get_port_status().
->
-Ok.
->
->> --- a/drivers/usb/core/sysfs.c
->> +++ b/drivers/usb/core/sysfs.c
->
-> No, no, no!  sysfs.c is meant for attributes that apply to all USB
-> devices.  Your new attributes apply only to hubs, so they don't belon=
-g
-> here.
->
-> Furthermore, the attributes defined in sysfs.c go in the device's
-> sysfs directory, but your attributes belong in the hub's interface
-> directory.  That is, the files should go into
-> /sys/bus/usb/devices/1-0:1.0, not /sys/bus/usb/devices/usb1.
->
-Ok. So I should put these code in the hub.c or create a hub-sysfs.c?
-
-> And they probably don't belong in the power/ subdirectory either.  In
-> fact, you might want to create a separate subdirectory for each port
-> with one or two files in each subdirectory.
-Do you mean
-ls /sys/bus/usb/devices/1-0:1.0
-bAlternateSetting  bInterfaceClass  bInterfaceNumber  bInterfaceProtoco=
-l
-bInterfaceSubClass  bNumEndpoints  driver  ep_81  modalias  power
-subsystem  supports_autosuspend  uevent port1 port2 port3 port4
-
-ls /sys/bus/usb/devices/1-0:1.0/port1
-power_control power_state
-?
-
->
-> Alan Stern
 >
 
 --=20
