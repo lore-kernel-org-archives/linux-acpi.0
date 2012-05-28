@@ -1,60 +1,38 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFT] PCI changes related to wakeup (was: Re:
-	ehci_hcd related S3 lockup on ASUS laptops, again)
-Date: Mon, 28 May 2012 22:13:01 +0200
-Message-ID: <201205282213.01560.rjw@sisk.pl>
-References: <20120526223611.GF5012@belkar.wrar.name>
-	<Pine.LNX.4.44L0.1205271238040.14937-100000@netrider.rowland.org>
-	<20120527211714.GC4994@belkar.wrar.name>
+From: Daniel Drake <dsd@laptop.org>
+Subject: Re: [PATCH resend] rtc-cmos: report wakeup event on ACPI RTC alarm
+Date: Mon, 28 May 2012 16:51:55 -0600
+Message-ID: <CAMLZHHQq-vxbmm2-qK1ZH5D8Rii1btuUR-HFu_p0_7qP1hA74w@mail.gmail.com>
+References: <20120509231845.0301C9D401E@zog.reactivated.net>
+	<201205102206.42891.rjw@sisk.pl>
+	<4FBADFFE.7030508@linaro.org>
+	<201205221712.07797.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <20120527211714.GC4994@belkar.wrar.name>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Andrey Rahmatullin <wrar@wrar.name>, Steven Rostedt <rostedt@goodmis.org>
-Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, linux-pm@lists.linux-foundation.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:56410 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751913Ab2E1Wvz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 May 2012 18:51:55 -0400
+In-Reply-To: <201205221712.07797.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: John Stultz <john.stultz@linaro.org>, Len Brown <lenb@kernel.org>, a.zummo@towertech.it, rtc-linux@googlegroups.com, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, pgf@laptop.org
 
-On Sunday, May 27, 2012, Andrey Rahmatullin wrote:
-> On Sun, May 27, 2012 at 12:41:43PM -0400, Alan Stern wrote:
-> > > > > > Andrey, Stephen,
-> > > > > > 
-> > > > > > We still have problems with this patch in https://bugzilla.kernel.org/show_bug.cgi?id=43278
-> > > > > > so some more testing will be necessary, I'm afraid.
-> > > > > > 
-> > > > > > I will send a series of ACPI and PCI patches I have collected so far,
-> > > > > > that I'd like you to test on top of kernel 3.4.0 with commit
-> > > > > > 151b61284776 reverted.
-> > > > > > 
-> > > > > > Please let me know if suspend/wakeup work for you with these patches applied.
-> > > > > I get the usual freeze on suspending with these patches.
-> > > > 
-> > > > I see.
-> > > > 
-> > > > Please try to unapply [4/4] and see if that helps.
-> > > It helps.
-> > 
-> > Andrey, can you try out Rafael's patches 1-3 (with 151b... reverted)  
-> > and see what happens if the EHCI controllers' power/wakeup sysfs
-> > atributes are first set to "disabled"?
-> It freezes.
+On Tue, May 22, 2012 at 9:12 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+>> Seems reasonable. Although could this maybe be done more generically at
+>> the rtc infrastructure level instead of in the rtc-cmos driver?
+>
+> I think it could, but it can be moved to the RTC layer later too.
 
-Well, that means trying to work around this through changing the algorithm
-of selecting the target state of a device wasn't a good idea after all.
+I don't think there is much you can win by making it generic - the
+event has to be caught via the ACPI subsystem.
 
-Still, we've found some bugs in the process, so it was worth the effort.
+Instead of calling pm_wakeup_event() directly you could add a generic
+RTC function to do the exact same thing, but I don't see the need to
+hide wakeup event generation in a RTC-level API.
 
-Please attach the output of dmidecode from your machine.
-Steven, please do that too.
+Rafael, is this OK for 3.5?
 
 Thanks,
-Rafael
+Daniel
