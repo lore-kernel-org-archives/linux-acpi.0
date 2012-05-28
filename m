@@ -1,80 +1,58 @@
-From: Andrey Rahmatullin <wrar@wrar.name>
-Subject: Re: [RFT] PCI changes related to wakeup (was: Re: [linux-pm]
- ehci_hcd related S3 lockup on ASUS laptops, again)
-Date: Mon, 28 May 2012 03:17:14 +0600
-Message-ID: <20120527211714.GC4994@belkar.wrar.name>
-References: <20120526223611.GF5012@belkar.wrar.name>
- <Pine.LNX.4.44L0.1205271238040.14937-100000@netrider.rowland.org>
+From: Andiry Xu <andiry.xu@amd.com>
+Subject: Re: [RFC PATCH 1/3] xhci: Add clear PORT_POWER feature process in
+ the xhci_hub_control()
+Date: Mon, 28 May 2012 18:28:40 +0800
+Message-ID: <4FC35358.6080700@amd.com>
+References: <1337924882-17332-1-git-send-email-tianyu.lan@intel.com> <1337924882-17332-2-git-send-email-tianyu.lan@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="iFRdW5/EC4oqxDHL"
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from wrar.name ([109.74.195.39]:57088 "EHLO haley.wrar.name"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751921Ab2E0VR0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 27 May 2012 17:17:26 -0400
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.1205271238040.14937-100000@netrider.rowland.org>
+Received: from tx2ehsobe002.messaging.microsoft.com ([65.55.88.12]:43496 "EHLO
+	tx2outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750974Ab2E1C3v (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 27 May 2012 22:29:51 -0400
+In-Reply-To: <1337924882-17332-2-git-send-email-tianyu.lan@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Steven Rostedt <rostedt@goodmis.org>, linux-pm@lists.linux-foundation.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: gregkh@linuxfoundation.org, lenb@kernel.org, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu, sarah.a.sharp@linux.intel.com
+
+On 05/25/2012 01:48 PM, Lan Tianyu wrote:
+> This patch is to add process of clearing PORT_POWER feature request
+> for xhci hub.
+> 
+> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+> ---
+>  drivers/usb/host/xhci-hub.c |    5 +++++
+>  1 files changed, 5 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/usb/host/xhci-hub.c b/drivers/usb/host/xhci-hub.c
+> index 2732ef6..feb515e 100644
+> --- a/drivers/usb/host/xhci-hub.c
+> +++ b/drivers/usb/host/xhci-hub.c
+> @@ -827,6 +827,11 @@ int xhci_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
+>  			xhci_disable_port(hcd, xhci, wIndex,
+>  					port_array[wIndex], temp);
+>  			break;
+> +		case USB_PORT_FEAT_POWER:
+> +			temp = xhci_readl(xhci, port_array[wIndex])
+> +				& ~PORT_POWER;
+
+You should not read the register again. Simply use temp &= ~PORT_POWER
+is enough.
+
+Otherwise you must call xhci_port_state_to_neutral(temp) again before
+write it back to register.
+
+Thanks,
+Andiry
+
+> +			xhci_writel(xhci, temp,	port_array[wIndex]);
+> +			break;
+>  		default:
+>  			goto error;
+>  		}
 
 
---iFRdW5/EC4oqxDHL
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Sun, May 27, 2012 at 12:41:43PM -0400, Alan Stern wrote:
-> > > > > Andrey, Stephen,
-> > > > >=20
-> > > > > We still have problems with this patch in https://bugzilla.kernel=
-=2Eorg/show_bug.cgi?id=3D43278
-> > > > > so some more testing will be necessary, I'm afraid.
-> > > > >=20
-> > > > > I will send a series of ACPI and PCI patches I have collected so =
-far,
-> > > > > that I'd like you to test on top of kernel 3.4.0 with commit
-> > > > > 151b61284776 reverted.
-> > > > >=20
-> > > > > Please let me know if suspend/wakeup work for you with these patc=
-hes applied.
-> > > > I get the usual freeze on suspending with these patches.
-> > >=20
-> > > I see.
-> > >=20
-> > > Please try to unapply [4/4] and see if that helps.
-> > It helps.
->=20
-> Andrey, can you try out Rafael's patches 1-3 (with 151b... reverted) =20
-> and see what happens if the EHCI controllers' power/wakeup sysfs
-> atributes are first set to "disabled"?
-It freezes.
-
---=20
-WBR, wRAR
-
---iFRdW5/EC4oqxDHL
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBCAAGBQJPwpnZAAoJEDNi9wMaSZLhzHEP/jC1Jr3NuO19PRlunsJlIhq2
-UEkE/QY0e+xoDSdO6xcsDF8NwMHsQy+hSN8M2H4U9VpnHL0BPUinpS8v8GUVsMd5
-l7aYKbT+OVS3E+42yJ/hyN0vYLtwL7osSNslDo/LKvYjXYBq7AqTKSSMeYNybqk0
-Qn2LDL5BH3W+HgRHVQ9XMs799lEBkswDVG3zVPHNcrj6YCG0kO2lh4DYiQerI2ge
-VN9hDk6O7kMrcnSHHEenzINdB26uhQfq77v7JHozNKB8pRWDibZ/apoA1t1HB+8A
-gDafLB8mzF5vne4JW4unYLzYvx2Pu7XL6wcB/gSkxnl0junQCkMz/Tr+JElDD4s9
-Aagvgbs33y6BTh/vYHjsVx0qoMMXktaejPI3MUQMKhjQuunDV4AjszeXeawuq1O4
-W59uAgA/jk0QVY/aMD8EsFjBp+ak75SpZxhUfC39g3rvcaTxpvTcXaebtVGou8xm
-EFh3lOGkyvkKt00DYmek/Ng0DCVhq8JPHltHBITFPOMmqp5Va7nPm4ZTweEQm+2D
-uSwRYL3vMJzhuGOGXyKH2/loO73ifwWASd4dRcfomx0862vyNdFa9XO+fsOuYqRv
-0Pv7BkhIGgoCHlD9WJsFoAUG+O7f6iSGupT+uz6dvWOtpFYgopgHRvUHg3H+h66X
-MWBxZsoLC3BWkcBmMZkJ
-=H6vI
------END PGP SIGNATURE-----
-
---iFRdW5/EC4oqxDHL--
