@@ -1,74 +1,42 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: Re: [RFC PATCH 1/3] xhci: Add clear PORT_POWER feature process in
- the xhci_hub_control()
-Date: Mon, 28 May 2012 13:54:50 +0800
-Message-ID: <4FC3132A.1080502@intel.com>
-References: <1337924882-17332-1-git-send-email-tianyu.lan@intel.com> <1337924882-17332-2-git-send-email-tianyu.lan@intel.com> <4FC35358.6080700@amd.com>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: [PATCH v4 0/13] SATA ZPODD support
+Date: Mon, 28 May 2012 10:44:38 +0100
+Message-ID: <20120528104438.044ae385@pyramind.ukuu.org.uk>
+References: <1338181720-4149-1-git-send-email-ming.m.lin@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:4148 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752268Ab2E1GAz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 28 May 2012 02:00:55 -0400
-In-Reply-To: <4FC35358.6080700@amd.com>
+Received: from lxorguk.ukuu.org.uk ([81.2.110.251]:34551 "EHLO
+	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752640Ab2E1JmI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 May 2012 05:42:08 -0400
+In-Reply-To: <1338181720-4149-1-git-send-email-ming.m.lin@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andiry Xu <andiry.xu@amd.com>
-Cc: gregkh@linuxfoundation.org, lenb@kernel.org, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu, sarah.a.sharp@linux.intel.com
+To: Lin Ming <ming.m.lin@intel.com>
+Cc: Jeff Garzik <jgarzik@pobox.com>, David Woodhouse <David.Woodhouse@intel.com>, Aaron Lu <aaron.lu@amd.com>, Holger Macht <holger@homac.de>, Matthew Garrett <mjg@redhat.com>, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On 2012=E5=B9=B405=E6=9C=8828=E6=97=A5 18:28, Andiry Xu wrote:
-> On 05/25/2012 01:48 PM, Lan Tianyu wrote:
->> This patch is to add process of clearing PORT_POWER feature request
->> for xhci hub.
->>
->> Signed-off-by: Lan Tianyu<tianyu.lan@intel.com>
->> ---
->>   drivers/usb/host/xhci-hub.c |    5 +++++
->>   1 files changed, 5 insertions(+), 0 deletions(-)
->>
->> diff --git a/drivers/usb/host/xhci-hub.c b/drivers/usb/host/xhci-hub=
-=2Ec
->> index 2732ef6..feb515e 100644
->> --- a/drivers/usb/host/xhci-hub.c
->> +++ b/drivers/usb/host/xhci-hub.c
->> @@ -827,6 +827,11 @@ int xhci_hub_control(struct usb_hcd *hcd, u16 t=
-ypeReq, u16 wValue,
->>   			xhci_disable_port(hcd, xhci, wIndex,
->>   					port_array[wIndex], temp);
->>   			break;
->> +		case USB_PORT_FEAT_POWER:
->> +			temp =3D xhci_readl(xhci, port_array[wIndex])
->> +				&  ~PORT_POWER;
->
-> You should not read the register again. Simply use temp&=3D ~PORT_POW=
-ER
-> is enough.
->
-> Otherwise you must call xhci_port_state_to_neutral(temp) again before
-> write it back to register.
-hi andiry:
-	Thanks for your reminder and I will take the first one.=09
->
-> Thanks,
-> Andiry
->
->> +			xhci_writel(xhci, temp,	port_array[wIndex]);
->> +			break;
->>   		default:
->>   			goto error;
->>   		}
->
->
+On Mon, 28 May 2012 13:08:27 +0800
+Lin Ming <ming.m.lin@intel.com> wrote:
 
---=20
-Best Regards
-Tianyu Lan
-linux kernel enabling team
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Hi all,
+> 
+> This is the v4 patches to add SATA ZPODD support, to try it:
+> git pull git://git.kernel.org/pub/scm/linux/kernel/git/mlin/linux.git zpodd
+> 
+> Holger and Mathtew,
+> Patch 1 to Patch 4 are the libata acpi binding patches from you.
+> I removed dock related code from your original version.
+> Would you help to review?
+> 
+> v4:
+> - Includes libata acpi binding patches from Holger Macht and Matthew Garrett.
+> - tell scsi layer device supports runtime power off
+> - check support for device busy class events
+
+Have you fixed the fact that Matthews patches broke things like pata_acpi
+last time ? Until that is fixed properly I don't see that these patches
+can make any progress.
+
+Alan
