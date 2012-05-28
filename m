@@ -1,79 +1,60 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [RFC PATCH 3/3] usb : Add sysfs files to control usb port's
- power
-Date: Mon, 28 May 2012 11:14:16 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1205281109230.31801-100000@netrider.rowland.org>
-References: <4FC30EBC.2010607@intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFT] PCI changes related to wakeup (was: Re:
+	ehci_hcd related S3 lockup on ASUS laptops, again)
+Date: Mon, 28 May 2012 22:13:01 +0200
+Message-ID: <201205282213.01560.rjw@sisk.pl>
+References: <20120526223611.GF5012@belkar.wrar.name>
+	<Pine.LNX.4.44L0.1205271238040.14937-100000@netrider.rowland.org>
+	<20120527211714.GC4994@belkar.wrar.name>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:35598 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752411Ab2E1POS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 May 2012 11:14:18 -0400
-In-Reply-To: <4FC30EBC.2010607@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <20120527211714.GC4994@belkar.wrar.name>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Andrey Rahmatullin <wrar@wrar.name>, Steven Rostedt <rostedt@goodmis.org>
+Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, linux-pm@lists.linux-foundation.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: gregkh@linuxfoundation.org, lenb@kernel.org, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, sarah.a.sharp@linux.intel.com
 
-On Mon, 28 May 2012, Lan Tianyu wrote:
+On Sunday, May 27, 2012, Andrey Rahmatullin wrote:
+> On Sun, May 27, 2012 at 12:41:43PM -0400, Alan Stern wrote:
+> > > > > > Andrey, Stephen,
+> > > > > > 
+> > > > > > We still have problems with this patch in https://bugzilla.kernel.org/show_bug.cgi?id=43278
+> > > > > > so some more testing will be necessary, I'm afraid.
+> > > > > > 
+> > > > > > I will send a series of ACPI and PCI patches I have collected so far,
+> > > > > > that I'd like you to test on top of kernel 3.4.0 with commit
+> > > > > > 151b61284776 reverted.
+> > > > > > 
+> > > > > > Please let me know if suspend/wakeup work for you with these patches applied.
+> > > > > I get the usual freeze on suspending with these patches.
+> > > > 
+> > > > I see.
+> > > > 
+> > > > Please try to unapply [4/4] and see if that helps.
+> > > It helps.
+> > 
+> > Andrey, can you try out Rafael's patches 1-3 (with 151b... reverted)  
+> > and see what happens if the EHCI controllers' power/wakeup sysfs
+> > atributes are first set to "disabled"?
+> It freezes.
 
-> >> port1_power_control has three options. "auto", "on" and "off"
-> >> "auto" - if port without device, power off the port.
-> >> "on" - port must be power on.
-> >> "off" - port must be power off.
-> >
-> > Remind me again -- what's the point of the "auto" setting?  It doesn't
-> > seem to mean anything as a port power state.
-> >
-> > That is, if you write "auto" to the sysfs file then the power will
-> > remain on if it is already on and a device is plugged in, or it will go
-> > off if it is already off or no device is plugged in.  Either way, it
-> > won't remain at "auto" because once the power is off, there's no way to
-> > tell when a new device gets plugged in.
-> >
-> > Given this, do the power_control and power_state files need to be
-> > separate?
->  From my opinion, power_control determines the work pattern.
-> Currently, we just consider port without device. When "auto", power off
-> the port directly. For port with device, if the device was not in the suspend
-> at that pointer, the power would remain on but it would power off when it was
-> suspended. If the the device was in the suspend, "auto" means the device could
-> be put into much lower state so the device need to resume and suspend again.
+Well, that means trying to work around this through changing the algorithm
+of selecting the target state of a device wasn't a good idea after all.
 
-Okay, this is different from what you wrote above.  "auto" means power 
-off the port whenever there is no device or the device is suspended 
-(and wakeup isn't enabled).
+Still, we've found some bugs in the process, so it was worth the effort.
 
-> > No, no, no!  sysfs.c is meant for attributes that apply to all USB
-> > devices.  Your new attributes apply only to hubs, so they don't belong
-> > here.
-> >
-> > Furthermore, the attributes defined in sysfs.c go in the device's
-> > sysfs directory, but your attributes belong in the hub's interface
-> > directory.  That is, the files should go into
-> > /sys/bus/usb/devices/1-0:1.0, not /sys/bus/usb/devices/usb1.
-> >
-> Ok. So I should put these code in the hub.c or create a hub-sysfs.c?
+Please attach the output of dmidecode from your machine.
+Steven, please do that too.
 
-For now, put them into hub.c.  hub.c needs to be broken up into several 
-files anyway.
-
-> > And they probably don't belong in the power/ subdirectory either.  In
-> > fact, you might want to create a separate subdirectory for each port
-> > with one or two files in each subdirectory.
-> Do you mean
-> ls /sys/bus/usb/devices/1-0:1.0
-> bAlternateSetting  bInterfaceClass  bInterfaceNumber  bInterfaceProtocol
-> bInterfaceSubClass  bNumEndpoints  driver  ep_81  modalias  power
-> subsystem  supports_autosuspend  uevent port1 port2 port3 port4
-> 
-> ls /sys/bus/usb/devices/1-0:1.0/port1
-> power_control power_state
-> ?
-
-Yes.  Except that perhaps you can leave out the "power_" prefixes.
-
-Alan Stern
-
+Thanks,
+Rafael
