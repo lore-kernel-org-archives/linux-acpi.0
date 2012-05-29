@@ -1,28 +1,60 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: Re: [PATCH v4 0/13] SATA ZPODD support
-Date: Tue, 29 May 2012 20:32:49 +0800
-Message-ID: <CAF1ivSaYo8bcYAJ0i1b44HTarz11gndUU_pG109sGPOaupDi3w@mail.gmail.com>
-References: <1338181720-4149-1-git-send-email-ming.m.lin@intel.com>
-	<20120528104438.044ae385@pyramind.ukuu.org.uk>
-	<20120528105428.689d0102@pyramind.ukuu.org.uk>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFT] PCI changes related to wakeup (was: Re: [linux-pm] ehci_hcd
+ related S3 lockup on ASUS laptops, again)
+Date: Tue, 29 May 2012 10:23:54 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1205291010190.1289-100000@iolanthe.rowland.org>
+References: <201205270059.04166.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <20120528105428.689d0102@pyramind.ukuu.org.uk>
-Sender: linux-ide-owner@vger.kernel.org
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Jeff Garzik <jgarzik@pobox.com>, David Woodhouse <David.Woodhouse@intel.com>, Aaron Lu <aaron.lu@amd.com>, Holger Macht <holger@homac.de>, Matthew Garrett <mjg@redhat.com>, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from iolanthe.rowland.org ([192.131.102.54]:44646 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753834Ab2E2OXz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 May 2012 10:23:55 -0400
+In-Reply-To: <201205270059.04166.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "Oleksij Rempel (fishor)" <bug-track@fisher-privat.net>, =?UTF-8?Q?D=C3=A2niel_Fraga?= <fragabr@gmail.com>, Andrey Rahmatullin <wrar@wrar.name>, Steven Rostedt <rostedt@goodmis.org>, linux-pm@lists.linux-foundation.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-On Mon, May 28, 2012 at 5:54 PM, Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
->> Have you fixed the fact that Matthews patches broke things like pata_acpi
->> last time ? Until that is fixed properly I don't see that these patches
->> can make any progress.
->
-> https://lkml.org/lkml/2012/2/24/2
+On Sun, 27 May 2012, Rafael J. Wysocki wrote:
 
-Aaron has a fix.
-We'll do more test.
+> So, do you think we should apply [1/4] and [2/4] and try to work arou=
+nd the
+> BIOS bug from https://bugzilla.kernel.org/show_bug.cgi?id=3D43278 (I =
+suppose
+> we can do that by double checking if the target state returned by ACP=
+I is
+> in agreement with the capabilities returned by the PCI layer)?
 
-Thanks for the info.
-Lin Ming
+Here's one possible approach.  It only solves part of the problem, but
+it ought to help with Bugzilla 43278 (D=C3=A2niel's case).  I suggest t=
+hat
+we don't believe the output from _SxW if the PCI PM capability
+indicates that PME is supported in a higher-numbered D state than _SxW
+says.
+
+On D=C3=A2niel's smachine, _SxW returns D2 but the controller supports =
+PME=20
+in D3; therefore we would use D3.
+
+This still leaves the original problem.  It seems clear that ACPI
+won't be sufficient to solve this -- at least, it won't help in the
+case where the controller isn't enabled for wakeup.
+
+Therefore we really do need a quirk, probably in ehci-hcd like the=20
+original patch.  If it is restricted to apply only in cases where the=20
+DMI information lists ASUSTeK as the manufacturer, perhaps that will be=
+=20
+sufficient.  (For some reason, the manufacturer field in D=C3=A2niel's =
+BIOS=20
+isn't initialized.)
+
+Alan Stern
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
