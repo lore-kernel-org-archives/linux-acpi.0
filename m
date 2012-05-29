@@ -1,116 +1,54 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: Re: [RFT] PCI changes related to wakeup (was: Re:
- ehci_hcd related S3 lockup on ASUS laptops, again)
-Date: Tue, 29 May 2012 18:39:08 -0400
-Message-ID: <1338331148.13348.296.camel@gandalf.stny.rr.com>
-References: <20120526223611.GF5012@belkar.wrar.name>
-	<Pine.LNX.4.44L0.1205271238040.14937-100000@netrider.rowland.org>
-	<20120527211714.GC4994@belkar.wrar.name>
-	<201205282213.01560.rjw@sisk.pl>
+From: Shuah Khan <shuahkhan@gmail.com>
+Subject: RE: [PATCH v4 0/6] ACPI: Add _OST support for ACPI hotplug
+Date: Tue, 29 May 2012 16:44:56 -0600
+Message-ID: <1338331496.2722.18.camel@lorien2>
+References: <1337826324-16802-1-git-send-email-toshi.kani@hp.com>
+	 <1337880880.2718.68.camel@lorien2>
+	 <1337888931.16730.393.camel@misato.fc.hp.com>
+	 <94F2FBAB4432B54E8AACC7DFDE6C92E346ACC639@ORSMSX101.amr.corp.intel.com>
+Reply-To: shuahkhan@gmail.com
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-gPp6IrJjfd56YmlfKJIm"
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <201205282213.01560.rjw@sisk.pl>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Andrey Rahmatullin <wrar@wrar.name>, linux-pm@lists.linux-foundation.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g1t0029.austin.hp.com ([15.216.28.36]:15400 "EHLO
+	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752176Ab2E2Wo6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 May 2012 18:44:58 -0400
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E346ACC639@ORSMSX101.amr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: shuahkhan@gmail.com, Toshi Kani <toshi.kani@hp.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "bhelgaas@google.com" <bhelgaas@google.com>, "liuj97@gmail.com" <liuj97@gmail.com>, "andi@firstfloor.org" <andi@firstfloor.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+
+On Tue, 2012-05-29 at 22:27 +0000, Moore, Robert wrote:
+> > > 2. Calling acpi_get_handle() on _OST prior to executing the method.
+> > > This will ensure that this method only gets run if it is present
+> > under
+> > > the device in question. Coupled with what is already outlined in #1
+> > > above, now _OST gets executed only when it is defined under the
+> > device object.
+> > > Example case in the existing code, please see
+> > acpi_processor_ppc_ost()
+> > > implementation.
+> > 
+> > Yes, I did look at acpi_processor_ppc_ost() when I implemented the
+> > function.  I believe calling acpi_get_handle() is redundant since
+> > acpi_ns_get_node() is called within acpi_evaluate_object() as well.
+> > acpi_evaluate_object() simply returns with AE_NOT_FOUND when _OST
+> > method does not exist.
+> >
+> 
+> This is correct. If _OST does not exist, AE_NOT_FOUND will be returned from evaluate_object.
+
+Yes that is correct from the ACPI Spec and implementation point of view.
+My thinking is that a call to acpi_get_handle() might not penalize the
+OS as much as acpi_evaluate_object() would on systems that don't
+actually implement _OST. In other words, acpi_get_handle() might not go
+as deep as acpi_evaluate_object() would go into the ACPI layer, hence
+might be a safer measure on platforms that don't actually implement this
+optional method under all devices included in this patch set.
+
+-- Shuah
 
 
---=-gPp6IrJjfd56YmlfKJIm
-Content-Type: text/plain; charset="ISO-8859-15"
-Content-Transfer-Encoding: 7bit
-
-On Mon, 2012-05-28 at 22:13 +0200, Rafael J. Wysocki wrote:
-
-> Please attach the output of dmidecode from your machine.
-> Steven, please do that too.
-
-Attached.
-
--- Steve
-
-
---=-gPp6IrJjfd56YmlfKJIm
-Content-Type: application/x-gzip; name="dmi.gz"
-Content-Disposition: attachment; filename="dmi.gz"
-Content-Transfer-Encoding: base64
-
-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
-EgmlFJed6MiEgjbDYq1x8o6N/wCg9BA7zEwAAA==
-
-
---=-gPp6IrJjfd56YmlfKJIm
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---=-gPp6IrJjfd56YmlfKJIm--
