@@ -1,157 +1,90 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [linux-pm] [RFC] the generic thermal layer enhancement
-Date: Wed, 30 May 2012 16:51:00 +0800
-Message-ID: <1338367860.1472.129.camel@rui.sh.intel.com>
-References: <1338367742.1472.128.camel@rui.sh.intel.com>
+From: Fuzhou Chen <fuzhouch@microsoft.com>
+Subject: RE: [PATCH v4 0/13] SATA ZPODD support
+Date: Wed, 30 May 2012 09:06:43 +0000
+Message-ID: <6689D53B948ACF469C8E9C8CCD48EBE1166CD91A@SINEX14MBXC403.southpacific.corp.microsoft.com>
+References: <1338181720-4149-1-git-send-email-ming.m.lin@intel.com>
+ <20120528104438.044ae385@pyramind.ukuu.org.uk>
+ <20120528105428.689d0102@pyramind.ukuu.org.uk>
+ <CAF1ivSaYo8bcYAJ0i1b44HTarz11gndUU_pG109sGPOaupDi3w@mail.gmail.com>
+ <20120530054310.GA11672@ladygaga>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:50695 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932264Ab2E3Ite (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 May 2012 04:49:34 -0400
-In-Reply-To: <1338367742.1472.128.camel@rui.sh.intel.com>
+Received: from db3ehsobe004.messaging.microsoft.com ([213.199.154.142]:59116
+	"EHLO db3outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932272Ab2E3JHt convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 30 May 2012 05:07:49 -0400
+In-Reply-To: <20120530054310.GA11672@ladygaga>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Jean Delvare <jdelvare@suse.com>, "Brown, Len" <len.brown@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>, Amit Kachhap <amit.kachhap@linaro.org>
+To: Aaron Lu <aaron.lu@amd.com>, Lin Ming <ming.m.lin@intel.com>, Hashir Abdi <habdi@microsoft.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Jeff Garzik <jgarzik@pobox.com>, David Woodhouse <David.Woodhouse@intel.com>, Holger Macht <holger@homac.de>, Matthew Garrett <mjg@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On =E4=B8=89, 2012-05-30 at 16:49 +0800, Zhang Rui wrote:
-> Hi, all,
->=20
-> It is great to see more and more users of the generic thermal layer.
-> But as we know, the original design of the generic thermal layer come=
-s
-> from ACPI thermal management, and some of its implementation seems to=
- be
-> too ACPI specific nowadays.
->=20
-> Recently I'm thinking of enhance the generic thermal layer so that it
-> works well for more platforms.
->=20
-> Below are some thoughts of mine, after reading the patches from Amit
-> Daniel Kachhap, and ACPI 3.0 thermal model. Actually, I have started
-> coding some RFC patches. But I do really want to get feedback from yo=
-u
-> before going on.
->=20
-> G1. supporting multiple cooling states for active cooling devices.
->=20
->     The current active cooling device supports two cooling states onl=
-y,
->     please refer to the code below, in driver/thermal/thermal_sys.c
->                 case THERMAL_TRIP_ACTIVE:
->                         ...
->                         if (temp >=3D trip_temp)
->                                 cdev->ops->set_cur_state(cdev, 1);
->                         else
->                                 cdev->ops->set_cur_state(cdev, 0);
->                         break;
->=20
->     This is an ACPI specific thing, as our ACPI FAN used to support
->     ON/OFF only.
->     I think it is reasonable to support multiple active cooling state=
-s
->     as they are common on many platforms, and note that this is also
->     true for ACPI 3.0 FAN device (_FPS).
->=20
-> G2. introduce cooling states range for a certain trip point
->=20
->     This problem comes with the first one.
->     If the cooling devices support multiple cooling states, and surel=
-y
->     we may want only several cooling states for a certain trip point,
->     and other cooling states for other active trip points.
->     To do this, we should be able to describe the cooling device
->     behavior for a certain trip point, rather than for the entire
->     thermal zone.
->=20
-> G3. kernel thermal passive cooling algorithm
->=20
->     Currently, tc1 and tc2 are hard requirements for kernel passive
->     cooling. But non-ACPI platforms do not have this information
->     (please correct me if I'm wrong).
->     Say, for the patches here
->     http://marc.info/?l=3Dlinux-acpi&m=3D133681581305341&w=3D2
+Sorry Aaron, but I have left Microsoft Open Source team for a while. Due to policy limitations, I can't touch Linux kernel source now. 
 
-Sorry, forgot to cc Amit, the author of this patch set.
+Hi Hashir, could you help find current owner of our HDD driver to verify this fix? This is a ata-acpi module bug I reported last year. Our daily BVT in linux-next tree should be able to handle this verification
 
-thanks,
-rui
->     They just want to slow down the processor when current temperatur=
-e
->     is higher than the trip point and speed up the processor when the
->     temperature is lower than the trip point.
->=20
->     According to Matthew, the platform drivers are responsible to
->     provide proper tc1 and tc2 values to use kernel passive cooling.
->     But I'm just wondering if we can use something instead.
->     Say, introduce .get_trend() in thermal_zone_device_ops.
->     And we set cur_state++ or cur_state-- based on the value returned
->     by .get_trend(), instead of using tc1 and tc2.
->=20
-> G4. Multiple passive trip points
->=20
->     I get this idea also from the patches at
->     http://marc.info/?l=3Dlinux-acpi&m=3D133681581305341&w=3D2
->=20
->     IMO, they want to get an acceptable performance at a tolerable
->     temperature.
->     Say, a platform with four P-states. P3 is really low.
->     And I'm okay with the temperature at 60C, but 80C? No.
->     With G2 resolved, we can use processor P0~P2 for Passive trip poi=
-nt
->     0 (50C), and P3 for Passive trip point 1 (70C). And then the
->     temperature may be jumping at around 60C or even 65C, without
->     entering P3.
->=20
->     Further more, IMO, this also works for ACPI platforms.
->     Say, we can easily change p-state to cool the system, but using
->     t-state is definitely what we do not want to see. The current
->     implementation does not expose this difference to the generic
->     thermal layer, but if we can have two passive trip points, and us=
-e
->     p-state for the first one only... (this works if we start polling
->     after entering passive cooling mode, without hardware notificatio=
-n)
->=20
-> G5. unify active cooling and passive cooling code
->=20
->     If G4 and G5 are resolved, a new problem to me is that there is n=
-o
->     difference between passive cooling and active cooling except the
->     cooling policy.
->     Then we can share the same code for both active and passive cooli=
-ng.
->     maybe something like:
->=20
->     case THERMAL_TRIP_ACTIVE:
->     case THERMAL_TRIP_PASSIVE:
->          ...
->          tz->ops->get_trend();
->          if (trend =3D=3D HEATING)
->                  cdev->ops->set_cur_state(cdev, cur_state++);
->          else if (trend =3D=3D COOLING)
->                  cdev->ops->set_cur_state(cdev, cur_state--);
->          break;
->=20
-> Here are the gaps in my point of view, I'd like to get your ideas abo=
-ut
-> which are reasonable and which are not.
->=20
-> Any comments are appreciated! Thanks!
->=20
-> -rui
->=20
-> _______________________________________________
-> linux-pm mailing list
-> linux-pm@lists.linux-foundation.org
-> https://lists.linuxfoundation.org/mailman/listinfo/linux-pm
+Thanks,
+Fuzhou
+
+-----Original Message-----
+From: Aaron Lu [mailto:aaron.lu@amd.com] 
+Sent: Wednesday, May 30, 2012 1:43 PM
+To: Lin Ming; Fuzhou Chen
+Cc: Alan Cox; Jeff Garzik; David Woodhouse; Holger Macht; Matthew Garrett; linux-kernel@vger.kernel.org; linux-pm@vger.kernel.org; linux-scsi@vger.kernel.org; linux-ide@vger.kernel.org; linux-acpi@vger.kernel.org
+Subject: Re: [PATCH v4 0/13] SATA ZPODD support
+
+On Tue, May 29, 2012 at 08:32:49PM +0800, Lin Ming wrote:
+> On Mon, May 28, 2012 at 5:54 PM, Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
+> >> Have you fixed the fact that Matthews patches broke things like 
+> >> pata_acpi last time ? Until that is fixed properly I don't see that 
+> >> these patches can make any progress.
+> >
+> > https://lkml.org/lkml/2012/2/24/2
+> 
+> Aaron has a fix.
+> We'll do more test.
+
+Here is the patch, apply on top of the ZPODD patch set.
+
+Hi Fuzhou,
+Can you please give it a test? Thanks.
+I tested on my system with a ATI IDE controller and it could work with pata_acpi module.
+
+diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c index 6de8f32..c53266a 100644
+--- a/drivers/ata/libata-acpi.c
++++ b/drivers/ata/libata-acpi.c
+@@ -59,7 +59,18 @@ acpi_handle ata_ap_acpi_handle(struct ata_port *ap)  {
+ 	if (ap->flags & ATA_FLAG_ACPI_SATA)
+ 		return NULL;
+-	return DEVICE_ACPI_HANDLE(&ap->scsi_host->shost_gendev);
++
++	/*
++	 * If acpi bind operation has already happened, we can get the handle
++	 * for the port by checking the corresponding scsi_host device's
++	 * firmware node, otherwise we will need to find out the handle from
++	 * its parent's acpi node.
++	 */
++	if (ap->scsi_host)
++		return DEVICE_ACPI_HANDLE(&ap->scsi_host->shost_gendev);
++	else
++		return acpi_get_child(DEVICE_ACPI_HANDLE(ap->host->dev),
++				ap->port_no);
+ }
+ EXPORT_SYMBOL(ata_ap_acpi_handle);
+
+-Aaron
+
+> 
+> Thanks for the info.
+> Lin Ming
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-scsi" 
+> in the body of a message to majordomo@vger.kernel.org More majordomo 
+> info at  http://vger.kernel.org/majordomo-info.html
+> 
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
