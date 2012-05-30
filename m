@@ -1,104 +1,128 @@
-From: "H. Peter Anvin" <hpa@kernel.org>
-Subject: Re: [PATCH] x86, realmode: ia64 build fix (drivers/acpi/sleep.c)
-Date: Tue, 29 May 2012 23:47:45 -0700
-Message-ID: <4FC5C291.3060801@kernel.org>
-References: <1338359162-5785-1-git-send-email-jarkko.sakkinen@intel.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [RFC] the generic thermal layer enhancement
+Date: Wed, 30 May 2012 16:49:02 +0800
+Message-ID: <1338367742.1472.128.camel@rui.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------090301000109010505070109"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from terminus.zytor.com ([198.137.202.10]:34523 "EHLO mail.zytor.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751922Ab2E3GsA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 May 2012 02:48:00 -0400
-In-Reply-To: <1338359162-5785-1-git-send-email-jarkko.sakkinen@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Jarkko Sakkinen <jarkko.sakkinen@intel.com>, "Luck, Tony" <tony.luck@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Paul Gortmaker <paul.gortmaker@windriver.com>
-
-This is a multi-part message in MIME format.
---------------090301000109010505070109
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Jean Delvare <jdelvare@suse.com>, "Brown, Len" <len.brown@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>
+List-Id: linux-acpi@vger.kernel.org
 
-On 05/29/2012 11:26 PM, Jarkko Sakkinen wrote:
-> From: Jarkko Sakkinen <Jarkko Sakkinen jarkko.sakkinen@intel.com>
-> 
-> Added CONFIG_ACPI_SLEEP caging for #include <asm/realmode.h>.
-> 
-> Signed-off-by: Jarkko Sakkinen <Jarkko Sakkinen jarkko.sakkinen@intel.com>
-> ---
->  drivers/acpi/sleep.c |    2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-> index a82fbf6..5b99f64 100644
-> --- a/drivers/acpi/sleep.c
-> +++ b/drivers/acpi/sleep.c
-> @@ -25,7 +25,9 @@
->  #include <acpi/acpi_bus.h>
->  #include <acpi/acpi_drivers.h>
->  
-> +#ifdef CONFIG_ACPI_SLEEP
->  #include <asm/realmode.h>
-> +#endif
->  
->  #include "internal.h"
->  #include "sleep.h"
+Hi, all,
 
-We rarely want to do things this way, because it masks build problems.
-The right way to do this is the way it was before
-c9b77ccb52a5c77233b0e557b7d4417b00ef4012, where the dependency on the
-trampoline code was located in an architecture-specific asm header.
+It is great to see more and more users of the generic thermal layer.
+But as we know, the original design of the generic thermal layer comes
+from ACPI thermal management, and some of its implementation seems to be
+too ACPI specific nowadays.
 
-ia64 actually still has acpi_wakeup_address defined, although it seems
-to always be zero.
+Recently I'm thinking of enhance the generic thermal layer so that it
+works well for more platforms.
 
-So I would say the right thing is more along the lines of the attached
-(and totally untested) patch.
+Below are some thoughts of mine, after reading the patches from Amit
+Daniel Kachhap, and ACPI 3.0 thermal model. Actually, I have started
+coding some RFC patches. But I do really want to get feedback from you
+before going on.
 
-Also, your SOB line is messed up.
+G1. supporting multiple cooling states for active cooling devices.
 
+    The current active cooling device supports two cooling states only,
+    please refer to the code below, in driver/thermal/thermal_sys.c
+                case THERMAL_TRIP_ACTIVE:
+                        ...
+                        if (temp >= trip_temp)
+                                cdev->ops->set_cur_state(cdev, 1);
+                        else
+                                cdev->ops->set_cur_state(cdev, 0);
+                        break;
 
+    This is an ACPI specific thing, as our ACPI FAN used to support
+    ON/OFF only.
+    I think it is reasonable to support multiple active cooling states
+    as they are common on many platforms, and note that this is also
+    true for ACPI 3.0 FAN device (_FPS).
 
+G2. introduce cooling states range for a certain trip point
 
---------------090301000109010505070109
-Content-Type: text/plain; charset=UTF-8;
- name="diff"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="diff"
+    This problem comes with the first one.
+    If the cooling devices support multiple cooling states, and surely
+    we may want only several cooling states for a certain trip point,
+    and other cooling states for other active trip points.
+    To do this, we should be able to describe the cooling device
+    behavior for a certain trip point, rather than for the entire
+    thermal zone.
 
-ZGlmZiAtLWdpdCBhL2FyY2gveDg2L2luY2x1ZGUvYXNtL2FjcGkuaCBiL2FyY2gveDg2L2lu
-Y2x1ZGUvYXNtL2FjcGkuaAppbmRleCA3MjRhYTQ0Li4wYzQ0NjMwIDEwMDY0NAotLS0gYS9h
-cmNoL3g4Ni9pbmNsdWRlL2FzbS9hY3BpLmgKKysrIGIvYXJjaC94ODYvaW5jbHVkZS9hc20v
-YWNwaS5oCkBAIC0yOSw2ICsyOSw3IEBACiAjaW5jbHVkZSA8YXNtL3Byb2Nlc3Nvci5oPgog
-I2luY2x1ZGUgPGFzbS9tbXUuaD4KICNpbmNsdWRlIDxhc20vbXBzcGVjLmg+CisjaW5jbHVk
-ZSA8YXNtL3JlYWxtb2RlLmg+CiAKICNkZWZpbmUgQ09NUElMRVJfREVQRU5ERU5UX0lOVDY0
-ICAgbG9uZyBsb25nCiAjZGVmaW5lIENPTVBJTEVSX0RFUEVOREVOVF9VSU5UNjQgIHVuc2ln
-bmVkIGxvbmcgbG9uZwpAQCAtMTE2LDEwICsxMTcsOCBAQCBzdGF0aWMgaW5saW5lIHZvaWQg
-YWNwaV9kaXNhYmxlX3BjaSh2b2lkKQogLyogTG93LWxldmVsIHN1c3BlbmQgcm91dGluZS4g
-Ki8KIGV4dGVybiBpbnQgYWNwaV9zdXNwZW5kX2xvd2xldmVsKHZvaWQpOwogCi1leHRlcm4g
-Y29uc3QgdW5zaWduZWQgY2hhciBhY3BpX3dha2V1cF9jb2RlW107Ci0KLS8qIGVhcmx5IGlu
-aXRpYWxpemF0aW9uIHJvdXRpbmUgKi8KLWV4dGVybiB2b2lkIGFjcGlfcmVzZXJ2ZV93YWtl
-dXBfbWVtb3J5KHZvaWQpOworLyogUGh5c2ljYWwgYWRkcmVzcyB0byByZXN1bWUgYWZ0ZXIg
-d2FrZXVwICovCisjZGVmaW5lIGFjcGlfd2FrZXVwX2FkZHJlc3MgKCh1bnNpZ25lZCBsb25n
-KShyZWFsX21vZGVfaGVhZGVyLT53YWtldXBfc3RhcnQpKQogCiAvKgogICogQ2hlY2sgaWYg
-dGhlIENQVSBjYW4gaGFuZGxlIEMyIGFuZCBkZWVwZXIKZGlmZiAtLWdpdCBhL2RyaXZlcnMv
-YWNwaS9zbGVlcC5jIGIvZHJpdmVycy9hY3BpL3NsZWVwLmMKaW5kZXggZWJhYTA0NS4uNzRl
-ZTRhYiAxMDA2NDQKLS0tIGEvZHJpdmVycy9hY3BpL3NsZWVwLmMKKysrIGIvZHJpdmVycy9h
-Y3BpL3NsZWVwLmMKQEAgLTI1LDggKzI1LDYgQEAKICNpbmNsdWRlIDxhY3BpL2FjcGlfYnVz
-Lmg+CiAjaW5jbHVkZSA8YWNwaS9hY3BpX2RyaXZlcnMuaD4KIAotI2luY2x1ZGUgPGFzbS9y
-ZWFsbW9kZS5oPgotCiAjaW5jbHVkZSAiaW50ZXJuYWwuaCIKICNpbmNsdWRlICJzbGVlcC5o
-IgogCkBAIC05MywxMyArOTEsMTEgQEAgc3RhdGljIHN0cnVjdCBub3RpZmllcl9ibG9jayB0
-dHNfbm90aWZpZXIgPSB7CiBzdGF0aWMgaW50IGFjcGlfc2xlZXBfcHJlcGFyZSh1MzIgYWNw
-aV9zdGF0ZSkKIHsKICNpZmRlZiBDT05GSUdfQUNQSV9TTEVFUAotCXVuc2lnbmVkIGxvbmcg
-d2FrZXVwX3BhID0gcmVhbF9tb2RlX2hlYWRlci0+d2FrZXVwX3N0YXJ0OwogCS8qIGRvIHdl
-IGhhdmUgYSB3YWtldXAgYWRkcmVzcyBmb3IgUzIgYW5kIFMzPyAqLwogCWlmIChhY3BpX3N0
-YXRlID09IEFDUElfU1RBVEVfUzMpIHsKLQkJaWYgKCF3YWtldXBfcGEpCisJCWlmICghYWNw
-aV93YWtldXBfYWRkcmVzcykKIAkJCXJldHVybiAtRUZBVUxUOwotCQlhY3BpX3NldF9maXJt
-d2FyZV93YWtpbmdfdmVjdG9yKAotCQkJCShhY3BpX3BoeXNpY2FsX2FkZHJlc3Mpd2FrZXVw
-X3BhKTsKKwkJYWNwaV9zZXRfZmlybXdhcmVfd2FraW5nX3ZlY3RvcihhY3BpX3dha2V1cF9h
-ZGRyZXNzKTsKIAogCX0KIAlBQ1BJX0ZMVVNIX0NQVV9DQUNIRSgpOwo=
---------------090301000109010505070109--
+G3. kernel thermal passive cooling algorithm
+
+    Currently, tc1 and tc2 are hard requirements for kernel passive
+    cooling. But non-ACPI platforms do not have this information
+    (please correct me if I'm wrong).
+    Say, for the patches here
+    http://marc.info/?l=linux-acpi&m=133681581305341&w=2
+    They just want to slow down the processor when current temperature
+    is higher than the trip point and speed up the processor when the
+    temperature is lower than the trip point.
+
+    According to Matthew, the platform drivers are responsible to
+    provide proper tc1 and tc2 values to use kernel passive cooling.
+    But I'm just wondering if we can use something instead.
+    Say, introduce .get_trend() in thermal_zone_device_ops.
+    And we set cur_state++ or cur_state-- based on the value returned
+    by .get_trend(), instead of using tc1 and tc2.
+
+G4. Multiple passive trip points
+
+    I get this idea also from the patches at
+    http://marc.info/?l=linux-acpi&m=133681581305341&w=2
+
+    IMO, they want to get an acceptable performance at a tolerable
+    temperature.
+    Say, a platform with four P-states. P3 is really low.
+    And I'm okay with the temperature at 60C, but 80C? No.
+    With G2 resolved, we can use processor P0~P2 for Passive trip point
+    0 (50C), and P3 for Passive trip point 1 (70C). And then the
+    temperature may be jumping at around 60C or even 65C, without
+    entering P3.
+
+    Further more, IMO, this also works for ACPI platforms.
+    Say, we can easily change p-state to cool the system, but using
+    t-state is definitely what we do not want to see. The current
+    implementation does not expose this difference to the generic
+    thermal layer, but if we can have two passive trip points, and use
+    p-state for the first one only... (this works if we start polling
+    after entering passive cooling mode, without hardware notification)
+
+G5. unify active cooling and passive cooling code
+
+    If G4 and G5 are resolved, a new problem to me is that there is no
+    difference between passive cooling and active cooling except the
+    cooling policy.
+    Then we can share the same code for both active and passive cooling.
+    maybe something like:
+
+    case THERMAL_TRIP_ACTIVE:
+    case THERMAL_TRIP_PASSIVE:
+         ...
+         tz->ops->get_trend();
+         if (trend == HEATING)
+                 cdev->ops->set_cur_state(cdev, cur_state++);
+         else if (trend == COOLING)
+                 cdev->ops->set_cur_state(cdev, cur_state--);
+         break;
+
+Here are the gaps in my point of view, I'd like to get your ideas about
+which are reasonable and which are not.
+
+Any comments are appreciated! Thanks!
+
+-rui
