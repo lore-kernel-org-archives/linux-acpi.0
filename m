@@ -1,90 +1,87 @@
-From: Fuzhou Chen <fuzhouch@microsoft.com>
-Subject: RE: [PATCH v4 0/13] SATA ZPODD support
-Date: Wed, 30 May 2012 09:06:43 +0000
-Message-ID: <6689D53B948ACF469C8E9C8CCD48EBE1166CD91A@SINEX14MBXC403.southpacific.corp.microsoft.com>
-References: <1338181720-4149-1-git-send-email-ming.m.lin@intel.com>
- <20120528104438.044ae385@pyramind.ukuu.org.uk>
- <20120528105428.689d0102@pyramind.ukuu.org.uk>
- <CAF1ivSaYo8bcYAJ0i1b44HTarz11gndUU_pG109sGPOaupDi3w@mail.gmail.com>
- <20120530054310.GA11672@ladygaga>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Jarkko Sakkinen <jarkko.sakkinen@intel.com>
+Subject: [PATCH] x86, realmode: build fix drivers/acpi/sleep.c
+Date: Wed, 30 May 2012 12:33:41 +0300
+Message-ID: <1338370421-27735-1-git-send-email-jarkko.sakkinen@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from db3ehsobe004.messaging.microsoft.com ([213.199.154.142]:59116
-	"EHLO db3outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932272Ab2E3JHt convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 May 2012 05:07:49 -0400
-In-Reply-To: <20120530054310.GA11672@ladygaga>
-Content-Language: en-US
+Received: from mga01.intel.com ([192.55.52.88]:47655 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757143Ab2E3Jdl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 30 May 2012 05:33:41 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@amd.com>, Lin Ming <ming.m.lin@intel.com>, Hashir Abdi <habdi@microsoft.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Jeff Garzik <jgarzik@pobox.com>, David Woodhouse <David.Woodhouse@intel.com>, Holger Macht <holger@homac.de>, Matthew Garrett <mjg@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>, "H. Peter Anvin" <hpa@kernel.org>, Jarkko Sakkinen <jarkko.sakkinen@intel.com>
 
-Sorry Aaron, but I have left Microsoft Open Source team for a while. Due to policy limitations, I can't touch Linux kernel source now. 
+From: "H. Peter Anvin" <hpa@kernel.org>
 
-Hi Hashir, could you help find current owner of our HDD driver to verify this fix? This is a ata-acpi module bug I reported last year. Our daily BVT in linux-next tree should be able to handle this verification
+Revert usage of acpi_wakeup_address and move definition
+to x86 architecture code in order to make compilation work
+in ia64.
 
-Thanks,
-Fuzhou
+[jsakkine: tested compilation in ia64/x86-64 and added
+proper commit message]
 
------Original Message-----
-From: Aaron Lu [mailto:aaron.lu@amd.com] 
-Sent: Wednesday, May 30, 2012 1:43 PM
-To: Lin Ming; Fuzhou Chen
-Cc: Alan Cox; Jeff Garzik; David Woodhouse; Holger Macht; Matthew Garrett; linux-kernel@vger.kernel.org; linux-pm@vger.kernel.org; linux-scsi@vger.kernel.org; linux-ide@vger.kernel.org; linux-acpi@vger.kernel.org
-Subject: Re: [PATCH v4 0/13] SATA ZPODD support
+Originally-by: H. Peter Anvin <hpa@kernel.org>
+Signed-off-by: Jarkko Sakkinen <jarkko.sakkinen@intel.com>
+---
+ arch/x86/include/asm/acpi.h |    7 +++----
+ drivers/acpi/sleep.c        |    8 ++------
+ 2 files changed, 5 insertions(+), 10 deletions(-)
 
-On Tue, May 29, 2012 at 08:32:49PM +0800, Lin Ming wrote:
-> On Mon, May 28, 2012 at 5:54 PM, Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
-> >> Have you fixed the fact that Matthews patches broke things like 
-> >> pata_acpi last time ? Until that is fixed properly I don't see that 
-> >> these patches can make any progress.
-> >
-> > https://lkml.org/lkml/2012/2/24/2
-> 
-> Aaron has a fix.
-> We'll do more test.
-
-Here is the patch, apply on top of the ZPODD patch set.
-
-Hi Fuzhou,
-Can you please give it a test? Thanks.
-I tested on my system with a ATI IDE controller and it could work with pata_acpi module.
-
-diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c index 6de8f32..c53266a 100644
---- a/drivers/ata/libata-acpi.c
-+++ b/drivers/ata/libata-acpi.c
-@@ -59,7 +59,18 @@ acpi_handle ata_ap_acpi_handle(struct ata_port *ap)  {
- 	if (ap->flags & ATA_FLAG_ACPI_SATA)
- 		return NULL;
--	return DEVICE_ACPI_HANDLE(&ap->scsi_host->shost_gendev);
-+
-+	/*
-+	 * If acpi bind operation has already happened, we can get the handle
-+	 * for the port by checking the corresponding scsi_host device's
-+	 * firmware node, otherwise we will need to find out the handle from
-+	 * its parent's acpi node.
-+	 */
-+	if (ap->scsi_host)
-+		return DEVICE_ACPI_HANDLE(&ap->scsi_host->shost_gendev);
-+	else
-+		return acpi_get_child(DEVICE_ACPI_HANDLE(ap->host->dev),
-+				ap->port_no);
- }
- EXPORT_SYMBOL(ata_ap_acpi_handle);
-
--Aaron
-
-> 
-> Thanks for the info.
-> Lin Ming
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-scsi" 
-> in the body of a message to majordomo@vger.kernel.org More majordomo 
-> info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+diff --git a/arch/x86/include/asm/acpi.h b/arch/x86/include/asm/acpi.h
+index 724aa44..0c44630 100644
+--- a/arch/x86/include/asm/acpi.h
++++ b/arch/x86/include/asm/acpi.h
+@@ -29,6 +29,7 @@
+ #include <asm/processor.h>
+ #include <asm/mmu.h>
+ #include <asm/mpspec.h>
++#include <asm/realmode.h>
+ 
+ #define COMPILER_DEPENDENT_INT64   long long
+ #define COMPILER_DEPENDENT_UINT64  unsigned long long
+@@ -116,10 +117,8 @@ static inline void acpi_disable_pci(void)
+ /* Low-level suspend routine. */
+ extern int acpi_suspend_lowlevel(void);
+ 
+-extern const unsigned char acpi_wakeup_code[];
+-
+-/* early initialization routine */
+-extern void acpi_reserve_wakeup_memory(void);
++/* Physical address to resume after wakeup */
++#define acpi_wakeup_address ((unsigned long)(real_mode_header->wakeup_start))
+ 
+ /*
+  * Check if the CPU can handle C2 and deeper
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index a82fbf6..d2311f7 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -25,8 +25,6 @@
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+ 
+-#include <asm/realmode.h>
+-
+ #include "internal.h"
+ #include "sleep.h"
+ 
+@@ -94,13 +92,11 @@ static struct notifier_block tts_notifier = {
+ static int acpi_sleep_prepare(u32 acpi_state)
+ {
+ #ifdef CONFIG_ACPI_SLEEP
+-	unsigned long wakeup_pa = real_mode_header->wakeup_start;
+ 	/* do we have a wakeup address for S2 and S3? */
+ 	if (acpi_state == ACPI_STATE_S3) {
+-		if (!wakeup_pa)
++		if (!acpi_wakeup_address)
+ 			return -EFAULT;
+-		acpi_set_firmware_waking_vector(
+-				(acpi_physical_address)wakeup_pa);
++		acpi_set_firmware_waking_vector(acpi_wakeup_address);
+ 
+ 	}
+ 	ACPI_FLUSH_CPU_CACHE();
+-- 
+1.7.9.5
 
