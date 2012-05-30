@@ -1,96 +1,60 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 Subject: Re: [RFC] the generic thermal layer enhancement
-Date: Wed, 30 May 2012 14:17:29 +0300
-Message-ID: <20120530111729.GC3261@besouro>
+Date: Wed, 30 May 2012 13:50:35 +0100
+Message-ID: <20120530125035.GA17379@srcf.ucam.org>
 References: <1338367742.1472.128.camel@rui.sh.intel.com>
-	<1338367860.1472.129.camel@rui.sh.intel.com>
-	<20120530103006.GA3261@besouro>
-	<4D68720C2E767A4AA6A8796D42C8EB5912C976@BGSMSX101.gar.corp.intel.com>
-Reply-To: eduardo.valentin@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:51474 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753540Ab2E3Mur (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 May 2012 08:50:47 -0400
 Content-Disposition: inline
-In-Reply-To: <4D68720C2E767A4AA6A8796D42C8EB5912C976@BGSMSX101.gar.corp.intel.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: "R, Durgadoss" <durgadoss.r@intel.com>
-Cc: Jean Delvare <jdelvare@suse.com>, "Brown, Len" <len.brown@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>
+In-Reply-To: <1338367742.1472.128.camel@rui.sh.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Jean Delvare <jdelvare@suse.com>, "Brown, Len" <len.brown@intel.com>, linux-pm <linux-pm@lists.linux-foundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, amit.kachhap@linaro.org
 
-SGVsbG8gRHVyZ2EsCgpPbiBXZWQsIE1heSAzMCwgMjAxMiBhdCAxMTowNToxOEFNICswMDAwLCBS
-LCBEdXJnYWRvc3Mgd3JvdGU6Cj4gSGkgRWR1YXJkbywKPiAKPiA+IAo+ID4gRm9yIEcxK0cyLCBJ
-IGFncmVlIHdpdGggeW91ciBwcm9wb3NhbC4gSSBoYWQgc29tZSBkaXNjdXNzaW9uIHdpdGggQW1p
-dAo+ID4gcmVnYXJkaW5nIHRoaXMuIEluIGhpcyBzZXJpZXMgb2YgcGF0Y2hlcyB3ZSBpbmNyZWFz
-ZSAvIGRlY3JlYXNlIHRoZSBjb29saW5nCj4gPiBkZXZpY2Ugc3RhdGUgbGluZWFybHkgYW5kIHN0
-ZWFkaWx5Lgo+ID4gCj4gPiBCdXQgaWYgd2Ugd291bGQgaGF2ZSB3aGF0IHlvdSBhcmUgc2F5aW5n
-LCB3ZSBjb3VsZCBiaW5kIGNvb2xpbmcgZGV2aWNlCj4gPiBzZXQgb2Ygc3RhdGVzIHdpdGggdHJp
-cCBwb2ludHMuCj4gCj4gVHJ1ZSwgV2Ugd2FudCB0byBiaW5kIHRoZSBsZXZlbHMgb2YgY29vbGlu
-ZyB3aXRoIHRoZSB0cmlwcyBwb2ludHMgYSB0aGVybWFsIHpvbmUgaGFzLgo+IEJ1dCB3ZSBtaWdo
-dCBub3QgZ2V0IGEgMS0xIG1hcHBpbmcgYWx3YXlzLgoKSnVzdCB0byBtYWtlIHN1cmUgd2UgYXJl
-IGFsbCB0YWtpbmcgdGhlIHNhbWUgdGhpbmcuCgpJbiB0aGlzIGNhc2UgYSBjb29saW5nIGRldmlj
-ZSB3b3VsZCBoYXZlIDEtTiBzdGF0ZXMuIEFuZCB0aGlzIHNldCBjb3VsZApiZSBwYXJ0aXRpb25l
-ZCBhbmQgZWFjaCBwYXJ0aXRpb24gd291bGQgYmUgYXNzaWduZWQgdG8gYSBzcGVjaWZpYyB0cmlw
-IHBvaW50Cm9mIGEgdGhlcm1hbCB6b25lLCByaWdodD8KCgoKPiAKPiA+IAo+ID4gSSBmdWxseSBz
-dXBwb3J0IHRoaXMgb3B0aW9uIGFuZCBjb3VsZCBjb29rIHVwIHNvbWV0aGluZyBvbiB0aGlzLgo+
-ID4gVGhlIFRDMSBhbmQgVEMyIHNob3VsZCBnbyBpbnNpZGUgdGhlIC5nZXRfdHJlbmQoKcKgY2Fs
-bGJhY2tzIGZvciBBQ1BJLgo+ID4gU2hvdWxkIHByb2JhYmx5IGdvIGF3YXkgZnJvbSB0aGUgcmVn
-aXN0cmF0aW9uIGZ1bmN0aW9uIHRoYXQgd2UgaGF2ZQo+ID4gY3VycmVudGx5Lgo+IAo+IEkgcmVh
-bGl6ZSBJIGp1c3Qgc2FpZCB0aGUgc2FtZSB0aGluZyA6LSkKCkNvb2wgOi0pCgo+IAo+ID4gCj4g
-PiBXZSBjb3VsZCBoYXZlIGdlbmVyaWMgdHJlbmRpbmcgY29tcHV0YXRpb24gdGhvdWdoLiBCYXNl
-ZCBvbiB0aW1lc3RhbXBpbmcKPiA+IGFuZCB0ZW1wZXJhdHVyZSByZWFkcywgYW5kIG1ha2UgaXQg
-YXZhaWxhYmxlIGZvciB6b25lcyB0aGF0IHdhbnQgdG8gdXNlZCBpdC4KPiAKPiBBZ3JlZSwgYnV0
-IEkgd291bGQgbGlrZSB0aGlzIGdvIGludG8gdGhlIHBsYXRmb3JtIHRoZXJtYWwgZHJpdmVycy4g
-QW5kIHRoZW4gd2hlbgo+IHRob3NlIGRyaXZlcnMgbm90aWZ5IHRoZSBmcmFtZXdvcmsgdGhleSBj
-YW4gc3BlY2lmeSB0aGUgdHJlbmQgYWxzby4gVGhpcyBzb3J0IG9mCj4gbm90aWZpY2F0aW9uIGlz
-IG5vdCB0aGVyZSwgYnV0IHRoYXQgaXMgd2hhdCBJIGFtIGltcGxlbWVudGluZyB0aGVzZSBkYXlz
-Li4KPiBIb3BlIHRvIHN1Ym1pdCB0aGlzIHBhdGNoIGluIGEgd2VlaydzIHRpbWUuLgoKTmljZSwg
-SSBhY3R1YWxseSBoYXZlIHNvbWV0aGluZyBiZWluZyBjb29rZWQgZm9yIHRoZSBzYW1lIHRoaW5n
-LiBXZSBzaG91bGQgcHJvYmFibHkKYWxpZ24gdG8gYXZvaWQgd29yayBkdXBsaWNhdGlvbi4uLgoK
-PiAKPiA+ID4gPiAgICAgY2FzZSBUSEVSTUFMX1RSSVBfQUNUSVZFOgo+ID4gPiA+ICAgICBjYXNl
-IFRIRVJNQUxfVFJJUF9QQVNTSVZFOgo+ID4gPiA+ICAgICAgICAgIC4uLgo+ID4gPiA+ICAgICAg
-ICAgIHR6LT5vcHMtPmdldF90cmVuZCgpOwo+ID4gCj4gPiBXb3VsZCB0aGUgZ2V0X3RyZW5kIHRh
-a2UgaW50byBhY2NvdW50IGlmIHdlIGFyZSBjb29saW5nIHdpdGggYWN0aXZlIG9yIHBhc3NpdmUK
-PiA+IGNvb2xpbmcgZGV2aWNlPwo+IAo+IFRvIG1lLCBpdCBkb2VzIG5vdCBtYXR0ZXIuIEl0IGlz
-IHVwIHRvIHRoZSBmcmFtZXdvcmsgdG8gZGVjaWRlIGFuZCB0aHJvdHRsZSwKPiB0aGUgcmVzcGVj
-dGl2ZSBjb29saW5nIGRldmljZXMgYWNjb3JkaW5nIHRvIHRoZSB0cmVuZC4KCk9LLiBGb3IgbWUg
-aXQgZG9lc24ndCByZWFsbHkgbWF0dGVyIGFzIHdlbGwuIEhhdmluZyBhIHNpbXBsaWZpZWQgem9u
-ZSB1cGRhdGUgaXMgYmV0dGVyLgoKPiAKPiA+IAo+ID4gPiA+ICAgICAgICAgIGlmICh0cmVuZCA9
-PSBIRUFUSU5HKQo+ID4gPiA+ICAgICAgICAgICAgICAgICAgY2Rldi0+b3BzLT5zZXRfY3VyX3N0
-YXRlKGNkZXYsIGN1cl9zdGF0ZSsrKTsKPiA+ID4gPiAgICAgICAgICBlbHNlIGlmICh0cmVuZCA9
-PSBDT09MSU5HKQo+ID4gPiA+ICAgICAgICAgICAgICAgICAgY2Rldi0+b3BzLT5zZXRfY3VyX3N0
-YXRlKGNkZXYsIGN1cl9zdGF0ZS0tKTsKPiA+ID4gPiAgICAgICAgICBicmVhazsKPiA+IAo+ID4g
-SSBiZWxpZXZlIHdlIHNob3VsZCBoYXZlIHNvbWV0aGluZyBmb3IgdGVtcGVyYXR1cmUgc3RhYmls
-aXphdGlvbiB0aGVyZSBhcyB3ZWxsLgo+ID4gCj4gPiBCZXNpZGVzLCBpZiB3ZSBnbyB3aXRoIHRo
-aXMgZ2VuZXJpYyBwb2xpY3ksIHRoZW4gdGhlIHpvbmUgdXBkYXRlIHdvdWxkIGJlIG11Y2gKPiA+
-IHNpbXBsZXIgbm8/Cj4gCj4gWWVzLCBhbmQgdGhhdOKAmXMgd2hhdCB3ZSB3YW50IHRvbyAgOi0p
-CgpOaWNlIQoKPiAKPiA+IEhlcmUgYXJlIHNvbWUgb3RoZXIgdGhvdWdodHM6Cj4gPiBHNi4gQW5v
-dGhlciBwb2ludCBpcywgd291bGQgaXQgbWFrZSBzZW5zZSB0byBhbGxvdyBmb3IgcG9saWN5IGV4
-dGVuc2lvbj8gTWVhbmluZywKPiA+IHRoZSB6b25lIHVwZGF0ZSB3b3VsZCBjYWxsIGEgY2FsbGJh
-Y2sgdG8gcmVxdWVzdCBmb3IgdXBkYXRlIGZyb20gdGhlIHpvbmUKPiA+IGRldmljZSBkcml2ZXI/
-Cj4gPiAKPiA+IEc3LiBIb3cgZG8gd2Ugc29sdmUgY29vbGluZyBkZXZpY2VzIGJlaW5nIHNoYXJl
-ZCBiZXR3ZWVuIGRpZmZlcmVudCB0aGVybWFsCj4gPiB6b25lcz8KPiA+IFNob3VsZCB3ZSBoYXZl
-IGEgYmV0dGVyIGNvb2xpbmcgZGV2aWNlIGNvbnN0cmFpbnQgbWFuYWdlbWVudD8KPiAKPiBUaGlz
-IGlzIGFub3RoZXIgdGhpbmcgdGhhdCB3YXMgaGF1bnRpbmcgbWUgZm9yIHF1aXRlIHNvbWUgdGlt
-ZS4KPiBBbmQgV2hhdCBJIGhhdmUgaW4gbWluZCBpcyBhIG1hcHBpbmcga2luZCBvZiB0aGluZyBp
-biB0aGUgcGxhdGZvcm0gbGF5ZXIsCj4gdGhhdCB3aWxsIHByb3ZpZGUgZGV0YWlscyBhYm91dCB3
-aGljaCBjb29saW5nIGRldmljZSBpcyBzaGFyZWQgd2l0aCB3aG9tLgo+IFRoZSBmcmFtZXdvcmsg
-Y2FuIHRoZW4gdXNlIHRoaXMgYW5kIGZpZ3VyZSBvdXQgdGhlIGFzc29jaWF0aW9uIGFtb25nIHZh
-cmlvdXMgZGV2aWNlcy4KPiBJIGFtIHRlc3RpbmcgaXQgb3V0LCBhbmQgd2lsbCBzdWJtaXQgb25j
-ZSBpdCBjb21lcyB0byBhIGdvb2Qgc2hhcGUuCgpSaWdodCwgSSBhbSBub3Qgc3VyZSB3ZSB3YW50
-IHRvIGdvIGluIHRoaXMgZGlyZWN0aW9uPwoKTWF5YmUgYSBiZXR0ZXIgd2F5IHdvdWxkIGJlIHRv
-IGhhdmUgc29ydCBvZiBwbS90aGVybWFsIGNvbnRyYWludCBmcmFtZXdvcmssIHdoaWNoCndvdWxk
-IG1hcCB0aGVzZSBwZXIgZGV2aWNlLCBhdCBMRE0gbGV2ZWw/CgpJIGFtIGNvcHlpbmcgSmVhbi1Q
-aWhldCwgaGUgaGFzIGJlZW4gd29ya2luZyBpbiB0aGlzIGZyb250LiBKZWFuLCBhbnkgdGhvdWdo
-dHM/Cgo+IAo+IFRoYW5rcywKPiBEdXJnYQo+IAoKQWxsIEJlc3QsCgotLQpFZHVhcmRvCl9fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LXBtIG1haWxp
-bmcgbGlzdApsaW51eC1wbUBsaXN0cy5saW51eC1mb3VuZGF0aW9uLm9yZwpodHRwczovL2xpc3Rz
-LmxpbnV4Zm91bmRhdGlvbi5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1wbQ==
+On Wed, May 30, 2012 at 04:49:02PM +0800, Zhang Rui wrote:
+
+> G1. supporting multiple cooling states for active cooling devices.
+
+Sounds fine.
+
+> G2. introduce cooling states range for a certain trip point
+
+Again, no problem here.
+
+> G3. kernel thermal passive cooling algorithm
+
+>     Currently, tc1 and tc2 are hard requirements for kernel passive
+>     cooling. But non-ACPI platforms do not have this information
+>     (please correct me if I'm wrong).
+>     Say, for the patches here
+>     http://marc.info/?l=linux-acpi&m=133681581305341&w=2
+>     They just want to slow down the processor when current temperature
+>     is higher than the trip point and speed up the processor when the
+>     temperature is lower than the trip point.
+
+Just slowing the CPU down above a certain temperature is a pretty awful 
+approach to passive cooling. You want to maximise performance while 
+staying within your thermal envelope, so you need a more advanced 
+approach. The existing algorithm provides a generic mechanism for 
+balancing performance and thermal output, with the only requirement 
+being that the platform provide constants that represent the heating and 
+cooling properties of the system.
+
+I don't fundamentally object to adding support for platform-specific 
+passive formulae, but I'd like an explanation for how they're better 
+than the existing one.
+
+> G4. Multiple passive trip points
+
+It would be good to have an explanation of the use case here. If it's 
+acceptable for the device to be at the lower passive trip point, why are 
+we slowing it down at all?
+
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
