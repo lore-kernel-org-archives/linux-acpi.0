@@ -1,30 +1,134 @@
-From: Sedat Dilek <sedat.dilek@googlemail.com>
-Subject: Re: help debugging suspend/resume problem?
-Date: Thu, 31 May 2012 20:16:04 +0200
-Message-ID: <CA+icZUUN-51_jXOJHd5LVQ8u4EPZkVKR0gQkPR1xDcakm0j6Ww@mail.gmail.com>
-Reply-To: sedat.dilek@gmail.com
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFT] PCI changes related to wakeup (was: Re: [linux-pm] ehci_hcd
+ related S3 lockup on ASUS laptops, again)
+Date: Thu, 31 May 2012 17:07:36 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1205311704340.1178-100000@iolanthe.rowland.org>
+References: <201205292116.33587.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qa0-f49.google.com ([209.85.216.49]:44692 "EHLO
-	mail-qa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754388Ab2EaSQF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 May 2012 14:16:05 -0400
+Received: from iolanthe.rowland.org ([192.131.102.54]:51602 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1758374Ab2EaVHh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 May 2012 17:07:37 -0400
+In-Reply-To: <201205292116.33587.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Michael Tokarev <mjt@tls.msk.ru>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "Oleksij Rempel (fishor)" <bug-track@fisher-privat.net>, =?utf-8?q?D=C3=A2niel_Fraga?= <fragabr@gmail.com>, Andrey Rahmatullin <wrar@wrar.name>, Steven Rostedt <rostedt@goodmis.org>, linux-pm@lists.linux-foundation.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-[ Original posting see [1] ]
+On Tue, 29 May 2012, Rafael J. Wysocki wrote:
 
-Hi Michael,
+> > > > Therefore we really do need a quirk, probably in ehci-hcd like =
+the=20
+> > > > original patch.  If it is restricted to apply only in cases whe=
+re the=20
+> > > > DMI information lists ASUSTeK as the manufacturer, perhaps that=
+ will be=20
+> > > > sufficient.  (For some reason, the manufacturer field in D=C3=A2=
+niel's BIOS=20
+> > > > isn't initialized.)
+> > >=20
+> > > Yeah.
+> > >=20
+> > > I'll have a deeper look at this later today, I think.
+> >=20
+> > It's easy enough to write such a check (or perhaps more reliably, c=
+heck
+> > for a product name matching "P8Z68-V").
+>=20
+> I think we should try to express it as a PCI quirk in quirks.c, thoug=
+h.
 
-[3] and [4] might help you?
+Here's my attempt.  Everybody, please try this patch with the
+151b61284776 commit removed.  Make sure that CONFIG_USB_DEBUG is
+enabled so we can check the controller's power state during suspend,=20
+and check that the "broken D3 during system sleep on ASUS" message=20
+shows up during booting.
 
-Regards,
-- Sedat -
+Alan Stern
 
-[1] http://marc.info/?l=linux-kernel&m=133848043602770&w=2
-[2] https://wiki.ubuntu.com/Kernel/Debugging
-[3] https://wiki.ubuntu.com/DebuggingKernelSuspend
-[4] https://wiki.ubuntu.com/DebuggingKernelSuspendHibernateResume
+
+
+Index: usb-3.4/drivers/pci/pci.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- usb-3.4.orig/drivers/pci/pci.c
++++ usb-3.4/drivers/pci/pci.c
+@@ -1743,6 +1743,11 @@ int pci_prepare_to_sleep(struct pci_dev
+ 	if (target_state =3D=3D PCI_POWER_ERROR)
+ 		return -EIO;
+=20
++	/* Some devices mustn't be in D3 during system sleep */
++	if (target_state =3D=3D PCI_D3hot &&
++			(dev->dev_flags & PCI_DEV_FLAGS_NO_D3_DURING_SLEEP))
++		return 0;
++
+ 	pci_enable_wake(dev, target_state, device_may_wakeup(&dev->dev));
+=20
+ 	error =3D pci_set_power_state(dev, target_state);
+Index: usb-3.4/drivers/pci/quirks.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- usb-3.4.orig/drivers/pci/quirks.c
++++ usb-3.4/drivers/pci/quirks.c
+@@ -2917,6 +2917,32 @@ static void __devinit disable_igfx_irq(s
+ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x0102, disable_igfx_irq)=
+;
+ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x010a, disable_igfx_irq)=
+;
+=20
++/*
++ * The Intel 6 Series/C200 Series chipset's EHCI controllers on many
++ * ASUS motherboards will cause memory corruption or a system crash
++ * if they are in D3 while the system is put into S3 sleep.
++ */
++static void __devinit asus_ehci_no_d3(struct pci_dev *dev)
++{
++	const char *sys_info;
++	static const char good_Asus_board[] =3D "P8Z68-V";
++
++	if (dev->dev_flags & PCI_DEV_FLAGS_NO_D3_DURING_SLEEP)
++		return;
++	if (dev->subsystem_vendor !=3D PCI_VENDOR_ID_ASUSTEK)
++		return;
++	sys_info =3D dmi_get_system_info(DMI_BOARD_NAME);
++	if (sys_info && memcmp(sys_info, good_Asus_board,
++			sizeof(good_Asus_board) - 1) =3D=3D 0)
++		return;
++
++	dev_info(&dev->dev, "broken D3 during system sleep on ASUS\n");
++	dev->dev_flags |=3D PCI_DEV_FLAGS_NO_D3_DURING_SLEEP;
++	device_set_wakeup_capable(&dev->dev, false);
++}
++DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x1c26, asus_ehci_no_d3);
++DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x1c2d, asus_ehci_no_d3);
++
+ static void pci_do_fixups(struct pci_dev *dev, struct pci_fixup *f,
+ 			  struct pci_fixup *end)
+ {
+Index: usb-3.4/include/linux/pci.h
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- usb-3.4.orig/include/linux/pci.h
++++ usb-3.4/include/linux/pci.h
+@@ -176,6 +176,8 @@ enum pci_dev_flags {
+ 	PCI_DEV_FLAGS_NO_D3 =3D (__force pci_dev_flags_t) 2,
+ 	/* Provide indication device is assigned by a Virtual Machine Manager=
+ */
+ 	PCI_DEV_FLAGS_ASSIGNED =3D (__force pci_dev_flags_t) 4,
++	/* Device causes system crash if in D3 during S3 sleep */
++	PCI_DEV_FLAGS_NO_D3_DURING_SLEEP =3D (__force pci_dev_flags_t) 8,
+ };
+=20
+ enum pci_irq_reroute_variant {
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
