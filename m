@@ -1,182 +1,324 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH v4 0/6] ACPI: Add _OST support for ACPI hotplug
-Date: Wed, 30 May 2012 11:19:50 -0600
-Message-ID: <1338398390.16730.483.camel@misato.fc.hp.com>
-References: <1337826324-16802-1-git-send-email-toshi.kani@hp.com>
-	 <1337880880.2718.68.camel@lorien2>
-	 <1337888931.16730.393.camel@misato.fc.hp.com>
-	 <1338391495.2566.18.camel@lorien2>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [linux-pm] [RFC] the generic thermal layer enhancement
+Date: Thu, 31 May 2012 10:20:52 +0800
+Message-ID: <1338430852.1472.175.camel@rui.sh.intel.com>
+References: <1338367742.1472.128.camel@rui.sh.intel.com>
+	 <1338367860.1472.129.camel@rui.sh.intel.com>
+	 <20120530103006.GA3261@besouro>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0007.atlanta.hp.com ([15.192.0.44]:4002 "EHLO
-	g5t0007.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756083Ab2E3RWq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 May 2012 13:22:46 -0400
-In-Reply-To: <1338391495.2566.18.camel@lorien2>
+Received: from mga14.intel.com ([143.182.124.37]:36138 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757724Ab2EaCT1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 30 May 2012 22:19:27 -0400
+In-Reply-To: <20120530103006.GA3261@besouro>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: shuahkhan@gmail.com
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, bhelgaas@google.com, liuj97@gmail.com, andi@firstfloor.org, linux-kernel@vger.kernel.org
+To: eduardo.valentin@ti.com
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "Brown, Len" <len.brown@intel.com>, amit.kachhap@linaro.org, Jean Delvare <jdelvare@suse.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>
 
-On Wed, 2012-05-30 at 09:24 -0600, Shuah Khan wrote:
-> On Thu, 2012-05-24 at 13:48 -0600, Toshi Kani wrote:
-> > On Thu, 2012-05-24 at 11:34 -0600, Shuah Khan wrote:
-> > > On Wed, 2012-05-23 at 20:25 -0600, Toshi Kani wrote:
-> > > > This patchset supports ACPI OSPM Status Indication (_OST) method for
-> > > > ACPI CPU/memory/container hotplug operations and sysfs eject. After
-> > > > an ACPI hotplug operation has completed, OSPM calls _OST to indicate
-> > > > the result of the operation to the platform. If a platform does not
-> > > > support _OST, this patchset has no effect on the platform.
-> > > > 
-> > > > This _OST support is enabled when all relevant ACPI hotplug operations,
-> > > > such as CPU, memory and container hotplug, are enabled. This assures
-> > > > consistent behavior among the hotplug operations with regarding the
-> > > > _OST support.
-> > > > 
-> > > > Some platforms may require the OS to support _OST in order to support
-> > > > ACPI hotplug operations. For example, if a platform has the management
-> > > > console where user can request a hotplug operation from, this _OST
-> > > > support would be required for the management console to show the result
-> > > > of the hotplug request to user.
-> > > > 
-> > > > The _OST definition can be found in section 6.3.5 of ACPI 5.0 spec.
-> > > > The HPPF spec below also describes hotplug flows with _OST.
-> > > > 
-> > > >   DIG64 Hot-Plug & Partitioning Flow (HPPF) Specification R1.0
-> > > >   http://www.dig64.org/home/DIG64_HPPF_R1_0.pdf
-> > > > 
-> > > > The changes have been tested with simulated _OST methods.
-> > > 
-> > > Toshi,
-> > > 
-> > > First of all thanks for asking for my feedback. :) Having benefited from
-> > > reviewing the previous versions of this patch set, my thoughts on the
-> > > implementation have evolved.
-> > 
-> > Thanks for reviewing! :)
-> > 
-> > > I have some general comments first in the response, and please find code
-> > > specific comments on individual patches.
-> > > 
-> > > This patch set enables Insertion/Ejection _OST processing support which
-> > > will be a good addition since OS already supports it for Processor
-> > > Aggregator Device Support and _PPC.
-> > 
-> > Right.
-> > 
-> > > However, in this case it is enabled as a compile time option and would
-> > > require a kernel build when firmware starts supporting _OST method in
-> > > some cases. Reference: PATCH v4 1/6. 
-> > 
-> > Yes, it requires ACPI CPU, Memory and Container hotplug be enabled in the kernel.
-> > 
-> > > It also restricts the support to be all or nothing. i.e _OST is
-> > > supported only when all relevant hotplug operations are supported and
-> > > these need to be specifically enabled using the config options that
-> > > control it. For example, if a platform supports CPU_HOTPLUG and not
-> > > MEMORY_HOTPLUG, _OST support will be disabled even when firmware
-> > > supports it for cpus. Also the set of hotplug operations is limited as
-> > > _OST could be present in other hotplug cases such as PCI and PCIe.
-> > >
-> > > I understand the spirit of this restriction that you are trying to limit
-> > > the exposure and it is a good goal. However, it probably could be
-> > > achieved in a way that doesn't shoehorn the implementation.
-> > 
-> > This restriction is to assure that the OS is compliant with the ACPI
-> > spec. When the OS calls _OSC with the hotplug _OST bit set, the OS needs
-> > to support _OST for all relevant ACPI hotplug operations. Unfortunately,
-> > this requires all relevant hotplug modules be enabled in the OS under
-> > the current implementation.
-> > 
-> > For example, when the platform supports ACPI memory hotplug, but
-> > ACPI_HOTPLUG_MEMORY is undefined in the OS, the OS needs to call _OSC
-> > with the hotplug _OST bit unset. This is because the OS cannot receive
-> > an ACPI notification to a memory object when ACPI_HOTPLUG_MEMORY is
-> > undefined. Without the notify handler, we cannot call _OST.
-> > 
-> > A long term solution to address this issue is to have the system global
-> > notify handler to receive all hotplug notifications, and call _OST
-> > accordingly. However, it will require restructuring efforts which well
-> > beyond the scope of this patchset. The email below describes this issue
-> > and my thoughts on this.
-> > http://marc.info/?l=linux-acpi&m=133546048929384&w=2
-> > 
-> > > I think here are the goals, 
-> > > 
-> > > 1. limit exposure so platforms that don't implement _OST are not
-> > > penalized evaluation _OST unnecessarily.
-> > 
-> > This goal is met since the OS cannot evaluate _OST unless it is
-> > implemented.
-> > 
-> > > 2. enable it when needed without requiring special compile time steps
-> > > and not worrying about sorting through various config options.
-> > 
-> > I agree, but as I explained above, this is required to be compliant with
-> > ACPI spec at this point. We can remove this restriction by improving the
-> > notify handler design, but it will take more steps to do so.
-> > 
-> > > 3. don't require all hotplug variants to be enabled in config, before OS
-> > > enables _OST support.
-> > 
-> > I agree, but the same reason above.
-> > 
-> > > I see that you are enabling _OST evaluation and set the cap bit
-> > > OSC_SB_PPC_OST_SUPPORT only when ACPI_HOTPLUG_OST is defined. What
-> > > happens on when a kernel is configured with the config options that
-> > > enable ACPI_HOTPLUG_OST at compile time, and other hotplug options for
-> > > example CONFIG_HOTPLUG_PCI_PCIE, and CONFIG_HOTPLUG_PCI.
-> > 
-> > Non-ACPI hotplug operations like PCIe native hotplug are irrelevant to _OST.
-> 
-> Yes I agree with your statement about PCIe native hot-plug operations.
-> However, as Jiang Liu pointed out in one of the reviews of an earlier
-> version of this patch set, _OST method has been defined in ACPI4.0 spec
-> and there are some platforms that already implement the _OST method. For
-> example,
-> Quanta QSSC-S4R server implements _OST for hot-pluggable PCI slots.
+Hi, Eduardo,
 
-This means this server is already working fine without Linux's _OST
-support or with some private patch.
+On =E4=B8=89, 2012-05-30 at 13:30 +0300, Eduardo Valentin wrote:
+> > >=20
+> > > G1. supporting multiple cooling states for active cooling devices=
+=2E
+> > >=20
+> > >     The current active cooling device supports two cooling states=
+ only,
+> > >     please refer to the code below, in driver/thermal/thermal_sys=
+=2Ec
+> > >                 case THERMAL_TRIP_ACTIVE:
+> > >                         ...
+> > >                         if (temp >=3D trip_temp)
+> > >                                 cdev->ops->set_cur_state(cdev, 1)=
+;
+> > >                         else
+> > >                                 cdev->ops->set_cur_state(cdev, 0)=
+;
+> > >                         break;
+> > >=20
+> > >     This is an ACPI specific thing, as our ACPI FAN used to suppo=
+rt
+> > >     ON/OFF only.
+> > >     I think it is reasonable to support multiple active cooling s=
+tates
+> > >     as they are common on many platforms, and note that this is a=
+lso
+> > >     true for ACPI 3.0 FAN device (_FPS).
+> > >=20
+> > > G2. introduce cooling states range for a certain trip point
+> > >=20
+> > >     This problem comes with the first one.
+> > >     If the cooling devices support multiple cooling states, and s=
+urely
+> > >     we may want only several cooling states for a certain trip po=
+int,
+> > >     and other cooling states for other active trip points.
+> > >     To do this, we should be able to describe the cooling device
+> > >     behavior for a certain trip point, rather than for the entire
+> > >     thermal zone.
+>=20
+> For G1+G2, I agree with your proposal. I had some discussion with Ami=
+t
+> regarding this. In his series of patches we increase / decrease the c=
+ooling
+> device state linearly and steadily.
+>=20
+> But if we would have what you are saying, we could bind cooling devic=
+e
+> set of states with trip points.
+>=20
+Great.
+But further more, IMO, with G3/G4 solved, this patch set can use passiv=
+e
+trip points instead of active trip points for processors, right?
 
-> So, we do have one example of a server that implements it for
-> hot-pluggable PCI slots. Even if APCI PCI hotplug becomes legacy only,
-> it still needs to be supported.
+> > >=20
+> > > G3. kernel thermal passive cooling algorithm
+> > >=20
+> > >     Currently, tc1 and tc2 are hard requirements for kernel passi=
+ve
+> > >     cooling. But non-ACPI platforms do not have this information
+> > >     (please correct me if I'm wrong).
+> > >     Say, for the patches here
+> > >     http://marc.info/?l=3Dlinux-acpi&m=3D133681581305341&w=3D2
+> >=20
+> > Sorry, forgot to cc Amit, the author of this patch set.
+> >=20
+> > thanks,
+> > rui
+> > >     They just want to slow down the processor when current temper=
+ature
+> > >     is higher than the trip point and speed up the processor when=
+ the
+> > >     temperature is lower than the trip point.
+> > >=20
+> > >     According to Matthew, the platform drivers are responsible to
+> > >     provide proper tc1 and tc2 values to use kernel passive cooli=
+ng.
+> > >     But I'm just wondering if we can use something instead.
+> > >     Say, introduce .get_trend() in thermal_zone_device_ops.
+> > >     And we set cur_state++ or cur_state-- based on the value retu=
+rned
+> > >     by .get_trend(), instead of using tc1 and tc2.
+>=20
+> I fully support this option and could cook up something on this.
+> The TC1 and TC2 should go inside the .get_trend() callbacks for ACPI.
+> Should probably go away from the registration function that we have
+> currently.
+>=20
+> We could have generic trending computation though. Based on timestamp=
+ing
+> and temperature reads, and make it available for zones that want to u=
+sed it.
+>=20
+Agreed.
+I already have this patch in hand.
 
-This can be incremental effort if we indeed need _OST support for legacy
-ACPI hotplug.  Jiang and I had also agreed on this.
+> > >=20
+> > > G4. Multiple passive trip points
+> > >=20
+> > >     I get this idea also from the patches at
+> > >     http://marc.info/?l=3Dlinux-acpi&m=3D133681581305341&w=3D2
+> > >=20
+> > >     IMO, they want to get an acceptable performance at a tolerabl=
+e
+> > >     temperature.
+> > >     Say, a platform with four P-states. P3 is really low.
+> > >     And I'm okay with the temperature at 60C, but 80C? No.
+> > >     With G2 resolved, we can use processor P0~P2 for Passive trip=
+ point
+> > >     0 (50C), and P3 for Passive trip point 1 (70C). And then the
+> > >     temperature may be jumping at around 60C or even 65C, without
+> > >     entering P3.
+>=20
+> Yeah, I guess we need to solve G1+G2 first to allow this.
 
-> Based on my reading of the ACPI 5.0 Spec, _OST method as it is defined
-> under the scope of Device Ejection/Insertion is applicable to not just
-> memory, cpu, container, and PCI slots, it could also be applicable
-> depending how a platform chooses implement it, "even in the cases of
-> docking and undocking mobile platforms to and from a peripheral
-> expansion dock." Reference: 6.3 of ACPI 5.0 Spec.
+yes.
 
-The OS-FW interface of docking / undocking operations is fairly
-well-established with unique _DCK method.  It is not clear to me if
-there is any need to modify the current interface with _OST.  There
-might be such need in future, but I do not want to mess up with this
-procedure with my speculation.  
+>  But I also agree
+> that ideally, there should be possibility to have multiple passive tr=
+ip points.
+>=20
 
-> So I think it is wrong and narrow scoped to assume _OST will be and is
-> implemented only in the device ejection/insertion cases this patch set
-> addresses.
+I think this is still an open question for Amit.
 
-I agree with your concerns.  However, this patchset is the first step,
-not the final step.  This first step is targeted to support the _OST
-use-cases defined in the DIG64 HPPF spec.  We can continue to enhance it
-as we find more needs.  I am willing to help anyone who has plan to
-implement _OST for other use-cases.
+As I mentioned above, the idea comes from Amit's patch set, and what I'=
+m
+doing here is to try to make the passive cooling implementation works
+well on exynos platforms.
+As we know, in his patch set, MONITOR_ZONE and WARN_ZONE are mapped to
+active trip points. But actually, with G2/G3/G4 solved, they SHOULD be
+passive trip points as all the cooling devices are processors, right?
 
-Thanks,
--Toshi 
+So, my question, and probably this is also the question from Matthew,
+would be:
+Why we need two passive trip points?
+What if we use all p-state for MONITOR_ZONE and discard the WARN_ZONE?
 
+I'd like to see Amit's explanation on this. :)
 
-> -- Shuah
-> 
-> 
+> > >=20
+> > >     Further more, IMO, this also works for ACPI platforms.
+> > >     Say, we can easily change p-state to cool the system, but usi=
+ng
+> > >     t-state is definitely what we do not want to see. The current
+> > >     implementation does not expose this difference to the generic
+> > >     thermal layer, but if we can have two passive trip points, an=
+d use
+> > >     p-state for the first one only... (this works if we start pol=
+ling
+> > >     after entering passive cooling mode, without hardware notific=
+ation)
+> > >=20
+> > > G5. unify active cooling and passive cooling code
+> > >=20
+> > >     If G4 and G5 are resolved, a new problem to me is that there =
+is no
+> > >     difference between passive cooling and active cooling except =
+the
+> > >     cooling policy.
+>=20
+> OK...
+>=20
+> > >     Then we can share the same code for both active and passive c=
+ooling.
+> > >     maybe something like:
+> > >=20
+> > >     case THERMAL_TRIP_ACTIVE:
+> > >     case THERMAL_TRIP_PASSIVE:
+> > >          ...
+> > >          tz->ops->get_trend();
+>=20
+> Would the get_trend take into account if we are cooling with active o=
+r passive
+> cooling device?
+>=20
+YES.
+We need this as a hint for active/passive cooling management.
+But how it actually works depends on the implementation of
+the .get_trend callback in the platform driver.
 
+Say, for active trip points,
+=2Eget_trend can always return HEATING, so that fan will start to run
+faster and faster when the temperature keeps higher than the trip point=
+=2E
+Or it can return COOLING when cur_temperature < last_temperature, so
+that the fan will slow down when the temperature is dropping, but still
+higher than the trip point.
 
+> > >          if (trend =3D=3D HEATING)
+> > >                  cdev->ops->set_cur_state(cdev, cur_state++);
+> > >          else if (trend =3D=3D COOLING)
+> > >                  cdev->ops->set_cur_state(cdev, cur_state--);
+> > >          break;
+>=20
+> I believe we should have something for temperature stabilization ther=
+e as well.
+>=20
+> Besides, if we go with this generic policy, then the zone update woul=
+d be much
+> simpler no?
+>=20
+Agree with Durga.
+
+> > >=20
+> > > Here are the gaps in my point of view, I'd like to get your ideas=
+ about
+> > > which are reasonable and which are not.
+>=20
+> Here are some other thoughts:
+> G6. Another point is, would it make sense to allow for policy extensi=
+on? Meaning,
+> the zone update would call a callback to request for update from the =
+zone
+> device driver?
+>=20
+I'm not against this idea. But do we really have a request for such a
+case?
+And BTW, if we really have such a request, I think the first thing to d=
+o
+is to investigate if this is a general request that should be
+implemented in the generic thermal layer, rather than go to the zone
+device driver directly?
+
+> G7. How do we solve cooling devices being shared between different th=
+ermal zones?
+> Should we have a better cooling device constraint management?
+>=20
+Maybe we just need a simple Arbitrator in kernel?
+
+When changing a cooling device state, it can only override the cur_stat=
+e
+value for the current cooling device instance!
+And the code should parse all the cooling device instance of this
+cooling device, and choose the deepest cooling state.
+
+what do you think?
+
+> G8. On same topic as G7, how are we currently making sure that therma=
+l constraints
+> don't get overwritten by, let's say, userspace APIs?
+
+what kind of userspace APIs can change this?
+
+> I guess the generic CPU cooling
+> propose by Amit suffers of an issue. If user sets cpufreq governor to=
+ userspace
+> and sets the frequency to its maximum, say in a busy loop, the therma=
+l cooling
+> could potentially be ruined.
+>=20
+that's true, but I don't think that's the case we need to cover.
+
+Setting cpufreq governor to "Userspace" means user needs to be
+responsible for the p-state controlling. If the system overheats, that'=
+s
+the thing that the user needs to worry about.
+
+> G9. Is there any possibility to have multiple sensors per thermal zon=
+e?
+>=20
+I do not think we need to consider this situation, until there is such
+an requirement.
+
+> G10. Do we want to represent other sensing stimuli other that tempera=
+ture? Say,
+> current sensing?
+>=20
+what do you mean by "current sensing"?
+
+> G11. Do we want to allow for cross zoning policies? Sometimes a polic=
+y may use
+> temperature from different thermal zone in order to better represent =
+what
+> is going on in its thermal zone.
+>=20
+Good question. This bothered me a lot actually.
+
+Each zone device just represents a certain part of the overall system,
+and these different zones may interact with each other.
+But the current implementation does not take care of this.
+Unfortunately I do not have any ideas about this yet. :)
+
+> > >=20
+> > > Any comments are appreciated! Thanks!
+>=20
+>=20
+> Thanks to you for starting this up! The above are points that come to=
+ my mind now.
+> I will keep updating the list if something else come to my mind.
+>=20
+They are all good points, thank you for your valuable feedback, Eduardo=
+!
+
+-rui
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
