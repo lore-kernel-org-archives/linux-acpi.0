@@ -1,53 +1,30 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
-Subject: Re: [RFC] the generic thermal layer enhancement
-Date: Thu, 31 May 2012 11:14:01 +0000
-Message-ID: <4D68720C2E767A4AA6A8796D42C8EB5912D03E@BGSMSX101.gar.corp.intel.com>
-References: <1338367742.1472.128.camel@rui.sh.intel.com>
-	<1338367860.1472.129.camel@rui.sh.intel.com>
-	<20120530103006.GA3261@besouro>
-	<4D68720C2E767A4AA6A8796D42C8EB5912C976@BGSMSX101.gar.corp.intel.com>
-	<20120530111729.GC3261@besouro>
-	<1338435161.1472.205.camel@rui.sh.intel.com>
-	<20120531110607.GB3673@besouro>
+From: Sedat Dilek <sedat.dilek@googlemail.com>
+Subject: Re: help debugging suspend/resume problem?
+Date: Thu, 31 May 2012 20:16:04 +0200
+Message-ID: <CA+icZUUN-51_jXOJHd5LVQ8u4EPZkVKR0gQkPR1xDcakm0j6Ww@mail.gmail.com>
+Reply-To: sedat.dilek@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <20120531110607.GB3673@besouro>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>, "Zhang, Rui" <rui.zhang@intel.com>
-Cc: Jean Delvare <jdelvare@suse.com>, "Brown, Len" <len.brown@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qa0-f49.google.com ([209.85.216.49]:44692 "EHLO
+	mail-qa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754388Ab2EaSQF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 May 2012 14:16:05 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Michael Tokarev <mjt@tls.msk.ru>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-Hi Eduardo,
+[ Original posting see [1] ]
 
-[A big cut]
+Hi Michael,
 
-> > >
-> > > Maybe a better way would be to have sort of pm/thermal contraint
-> framework, which
-> > > would map these per device, at LDM level?
-> > >
-> > > I am copying Jean-Pihet, he has been working in this front. Jean, any
-> thoughts?
-> > >
-> > Durga and I are investigating how to introduce some concepts like
-> > "influence/weight" to generic thermal layer. :)
-> 
-> What do you mean here? Describing the cooling devices effectiveness on each
-> zone and
-> derive algorithms to act accordingly?
+[3] and [4] might help you?
 
-Yes. something like that..
+Regards,
+- Sedat -
 
-Thanks,
-Durga
+[1] http://marc.info/?l=linux-kernel&m=133848043602770&w=2
+[2] https://wiki.ubuntu.com/Kernel/Debugging
+[3] https://wiki.ubuntu.com/DebuggingKernelSuspend
+[4] https://wiki.ubuntu.com/DebuggingKernelSuspendHibernateResume
