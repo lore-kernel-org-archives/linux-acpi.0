@@ -1,47 +1,55 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: ACPICA version 20120518 linuxized patches
-Date: Fri, 01 Jun 2012 11:56:44 -0400
-Message-ID: <4FC8E63C.9020109@kernel.org>
-References: <1337676725.24434.34.camel@minggr>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFT] PCI changes related to wakeup (was: Re:
+ ehci_hcd related S3 lockup on ASUS laptops, again)
+Date: Fri, 1 Jun 2012 11:59:17 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1206011157570.1610-100000@iolanthe.rowland.org>
+References: <1338565844.13348.468.camel@gandalf.stny.rr.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:35449 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965125Ab2FAP4t (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Jun 2012 11:56:49 -0400
-Received: by qcro28 with SMTP id o28so1202488qcr.19
-        for <linux-acpi@vger.kernel.org>; Fri, 01 Jun 2012 08:56:48 -0700 (PDT)
-In-Reply-To: <1337676725.24434.34.camel@minggr>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <1338565844.13348.468.camel@gandalf.stny.rr.com>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Steven Rostedt <rostedt@goodmis.org>
+Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>, Andrey Rahmatullin <wrar@wrar.name>, "Oleksij Rempel (fishor)" <bug-track@fisher-privat.net>, linux-pm@lists.linux-foundation.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lin Ming <ming.m.lin@intel.com>
-Cc: "Moore, Robert" <robert.moore@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
 
-On 05/22/2012 04:52 AM, Lin Ming wrote:
+On Fri, 1 Jun 2012, Steven Rostedt wrote:
 
-> Hi Len,
+> > > Why do you want to skip the wakeup setting in that case?
+> > 
+> > Because that's what the 151b61284776 commit did.  Also, the quirk marks 
+> > the controller as not wakeup-capable.
+> > 
+> > Still, it's worth testing.  Andrey and Steve, here's an updated patch 
+> > which should leave wakeup enabled on your EHCI controllers.  If you 
+> > don't have a USB keyboard handy for generating a wakeup signal, you 
+> > can test the wakeup functionality by doing:
+> > 
+> > 	echo enabled >/sys/bus/usb/devices/usb1/power/wakeup
+> > 	echo enabled >/sys/bus/usb/devices/usb2/power/wakeup
+> > 
+> > before suspending.  (In fact you need only one of those two lines, but
+> > at the moment I forget which -- probably the usb2 one.)  Then while
+> > the system is asleep, either plugging or unplugging a USB device
+> > directly into the computer should cause it to wake up.
 > 
-> ACPICA version 20120518 linuxized patches attached.
+> I applied the patch, it suspends and resumes fine, but still no wakeup.
 > 
-> [PATCH 1/6] ACPICA: Disassembler: Add support for Operation Region externals
-> [PATCH 2/6] ACPICA: ACPI 5/iASL: Add support for PCC keyword
-> [PATCH 3/6] ACPICA: iASL: Improved pathname support
-> [PATCH 4/6] ACPICA: Remove argument of acpi_os_wait_events_complete
-> [PATCH 5/6] ACPICA: Add FADT error message for GAS BitWidth overflow
-> [PATCH 6/6] ACPICA: Update to version 20120518
-> 
-> Regards,
-> Lin Ming
+> I even plugged in a USB keyboard, suspended, and tried to wake it up
+> with that. That did not work. I even enabled what you stated above, with
+> no effect (with keyboard or usb storage).
 
+This suggests that the original version of the patch is superior.  
+There's not point in saying the controller is wakeup-capable and trying 
+to enable wakeup if it's not going to work.
 
-Applied.
-
-I is great that the compiler and interpreter share the same code.
-However, there is also the risk of building dead compiler code
-into the kernel.  We should probably do an analysis of that...
-
-thanks,
-Len Brown, Intel Open Source Technology Center
-
+Alan Stern
