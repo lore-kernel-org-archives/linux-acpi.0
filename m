@@ -1,28 +1,44 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [patch] ACPI video: use after input_unregister_device()
-Date: Fri, 01 Jun 2012 13:42:24 -0400
-Message-ID: <4FC8FF00.7090306@kernel.org>
-References: <20120404111916.GA23719@elgon.mountain> <20120404161930.GA9229@core.coreip.homeip.net>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: ACPICA version 20120518 linuxized patches
+Date: Fri, 1 Jun 2012 19:00:43 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E346ACD057@ORSMSX101.amr.corp.intel.com>
+References: <1337676725.24434.34.camel@minggr> <4FC8E63C.9020109@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:36933 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759261Ab2FARm3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Jun 2012 13:42:29 -0400
-In-Reply-To: <20120404161930.GA9229@core.coreip.homeip.net>
+Received: from mga02.intel.com ([134.134.136.20]:34476 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933638Ab2FATAp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 1 Jun 2012 15:00:45 -0400
+In-Reply-To: <4FC8E63C.9020109@kernel.org>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>, Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, kernel-janitors@vger.kernel.org
+To: Len Brown <lenb@kernel.org>, "Lin, Ming M" <ming.m.lin@intel.com>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>
 
-On 04/04/2012 12:19 PM, Dmitry Torokhov wrote:
-
-> Acked-by: Dmitry Torokhov <dtor@mail.ru>
-
-Applied.
-
-thanks,
-Len Brown, Intel Open Source Technology Center
-
+V2UndmUgdHJpZWQgdG8gYmUgdmVyeSBjYXJlZnVsIGFib3V0IG5vdCBpbmNsdWRpbmcgY29tcGls
+ZXItb25seSBjb2RlIGludG8ga2VybmVsIGNvZGUuDQoNCkknbSBub3QgZW50aXJlbHkgc3VyZSB3
+aHkgcGF0Y2hlcyAxLDIsIGFuZCAzIGFyZSBhcHBsaWVkIGFnYWluc3QgTGludXguIFBlcmhhcHMg
+TWluZyBjYW4gYW5zd2VyIHRoaXMsIG9yIEknbGwgdGFrZSBhIGxvb2sgYXQgdGhlIHBhdGNoZXMu
+DQoNCkJvYg0KDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogTGVuIEJy
+b3duIFttYWlsdG86bGVuYjQxN0BnbWFpbC5jb21dIE9uIEJlaGFsZiBPZiBMZW4gQnJvd24NCj4g
+U2VudDogRnJpZGF5LCBKdW5lIDAxLCAyMDEyIDg6NTcgQU0NCj4gVG86IExpbiwgTWluZyBNDQo+
+IENjOiBNb29yZSwgUm9iZXJ0OyBsaW51eC1hY3BpDQo+IFN1YmplY3Q6IFJlOiBBQ1BJQ0EgdmVy
+c2lvbiAyMDEyMDUxOCBsaW51eGl6ZWQgcGF0Y2hlcw0KPiANCj4gT24gMDUvMjIvMjAxMiAwNDo1
+MiBBTSwgTGluIE1pbmcgd3JvdGU6DQo+IA0KPiA+IEhpIExlbiwNCj4gPg0KPiA+IEFDUElDQSB2
+ZXJzaW9uIDIwMTIwNTE4IGxpbnV4aXplZCBwYXRjaGVzIGF0dGFjaGVkLg0KPiA+DQo+ID4gW1BB
+VENIIDEvNl0gQUNQSUNBOiBEaXNhc3NlbWJsZXI6IEFkZCBzdXBwb3J0IGZvciBPcGVyYXRpb24g
+UmVnaW9uDQo+ID4gZXh0ZXJuYWxzIFtQQVRDSCAyLzZdIEFDUElDQTogQUNQSSA1L2lBU0w6IEFk
+ZCBzdXBwb3J0IGZvciBQQ0MNCj4ga2V5d29yZA0KPiA+IFtQQVRDSCAzLzZdIEFDUElDQTogaUFT
+TDogSW1wcm92ZWQgcGF0aG5hbWUgc3VwcG9ydCBbUEFUQ0ggNC82XQ0KPiA+IEFDUElDQTogUmVt
+b3ZlIGFyZ3VtZW50IG9mIGFjcGlfb3Nfd2FpdF9ldmVudHNfY29tcGxldGUgW1BBVENIIDUvNl0N
+Cj4gPiBBQ1BJQ0E6IEFkZCBGQURUIGVycm9yIG1lc3NhZ2UgZm9yIEdBUyBCaXRXaWR0aCBvdmVy
+ZmxvdyBbUEFUQ0ggNi82XQ0KPiA+IEFDUElDQTogVXBkYXRlIHRvIHZlcnNpb24gMjAxMjA1MTgN
+Cj4gPg0KPiA+IFJlZ2FyZHMsDQo+ID4gTGluIE1pbmcNCj4gDQo+IA0KPiBBcHBsaWVkLg0KPiAN
+Cj4gSSBpcyBncmVhdCB0aGF0IHRoZSBjb21waWxlciBhbmQgaW50ZXJwcmV0ZXIgc2hhcmUgdGhl
+IHNhbWUgY29kZS4NCj4gSG93ZXZlciwgdGhlcmUgaXMgYWxzbyB0aGUgcmlzayBvZiBidWlsZGlu
+ZyBkZWFkIGNvbXBpbGVyIGNvZGUgaW50byB0aGUNCj4ga2VybmVsLiAgV2Ugc2hvdWxkIHByb2Jh
+Ymx5IGRvIGFuIGFuYWx5c2lzIG9mIHRoYXQuLi4NCj4gDQo+IHRoYW5rcywNCj4gTGVuIEJyb3du
+LCBJbnRlbCBPcGVuIFNvdXJjZSBUZWNobm9sb2d5IENlbnRlcg0KDQo=
