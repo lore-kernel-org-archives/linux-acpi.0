@@ -1,60 +1,47 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: Re: [RFT] PCI changes related to wakeup (was: Re: [linux-pm]
- ehci_hcd related S3 lockup on ASUS laptops, again)
-Date: Fri, 01 Jun 2012 11:50:44 -0400
-Message-ID: <1338565844.13348.468.camel@gandalf.stny.rr.com>
-References: <Pine.LNX.4.44L0.1206011046460.1610-100000@iolanthe.rowland.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: ACPICA version 20120518 linuxized patches
+Date: Fri, 01 Jun 2012 11:56:44 -0400
+Message-ID: <4FC8E63C.9020109@kernel.org>
+References: <1337676725.24434.34.camel@minggr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-15"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hrndva-omtalb.mail.rr.com ([71.74.56.122]:25856 "EHLO
-	hrndva-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754604Ab2FAPur (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Jun 2012 11:50:47 -0400
-In-Reply-To: <Pine.LNX.4.44L0.1206011046460.1610-100000@iolanthe.rowland.org>
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:35449 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965125Ab2FAP4t (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Jun 2012 11:56:49 -0400
+Received: by qcro28 with SMTP id o28so1202488qcr.19
+        for <linux-acpi@vger.kernel.org>; Fri, 01 Jun 2012 08:56:48 -0700 (PDT)
+In-Reply-To: <1337676725.24434.34.camel@minggr>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "Oleksij Rempel (fishor)" <bug-track@fisher-privat.net>, =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>, Andrey Rahmatullin <wrar@wrar.name>, linux-pm@lists.linux-foundation.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+To: Lin Ming <ming.m.lin@intel.com>
+Cc: "Moore, Robert" <robert.moore@intel.com>, linux-acpi <linux-acpi@vger.kernel.org>
 
-On Fri, 2012-06-01 at 11:13 -0400, Alan Stern wrote:
-> On Thu, 31 May 2012, Rafael J. Wysocki wrote:
-> 
-> > > @@ -1743,6 +1743,11 @@ int pci_prepare_to_sleep(struct pci_dev
-> > >  	if (target_state == PCI_POWER_ERROR)
-> > >  		return -EIO;
-> > >  
-> > > +	/* Some devices mustn't be in D3 during system sleep */
-> > > +	if (target_state == PCI_D3hot &&
-> > > +			(dev->dev_flags & PCI_DEV_FLAGS_NO_D3_DURING_SLEEP))
-> > > +		return 0;
-> > > +
-> > 
-> > Why do you want to skip the wakeup setting in that case?
-> 
-> Because that's what the 151b61284776 commit did.  Also, the quirk marks 
-> the controller as not wakeup-capable.
-> 
-> Still, it's worth testing.  Andrey and Steve, here's an updated patch 
-> which should leave wakeup enabled on your EHCI controllers.  If you 
-> don't have a USB keyboard handy for generating a wakeup signal, you 
-> can test the wakeup functionality by doing:
-> 
-> 	echo enabled >/sys/bus/usb/devices/usb1/power/wakeup
-> 	echo enabled >/sys/bus/usb/devices/usb2/power/wakeup
-> 
-> before suspending.  (In fact you need only one of those two lines, but
-> at the moment I forget which -- probably the usb2 one.)  Then while
-> the system is asleep, either plugging or unplugging a USB device
-> directly into the computer should cause it to wake up.
+On 05/22/2012 04:52 AM, Lin Ming wrote:
 
-I applied the patch, it suspends and resumes fine, but still no wakeup.
+> Hi Len,
+> 
+> ACPICA version 20120518 linuxized patches attached.
+> 
+> [PATCH 1/6] ACPICA: Disassembler: Add support for Operation Region externals
+> [PATCH 2/6] ACPICA: ACPI 5/iASL: Add support for PCC keyword
+> [PATCH 3/6] ACPICA: iASL: Improved pathname support
+> [PATCH 4/6] ACPICA: Remove argument of acpi_os_wait_events_complete
+> [PATCH 5/6] ACPICA: Add FADT error message for GAS BitWidth overflow
+> [PATCH 6/6] ACPICA: Update to version 20120518
+> 
+> Regards,
+> Lin Ming
 
-I even plugged in a USB keyboard, suspended, and tried to wake it up
-with that. That did not work. I even enabled what you stated above, with
-no effect (with keyboard or usb storage).
 
--- Steve
+Applied.
 
+I is great that the compiler and interpreter share the same code.
+However, there is also the risk of building dead compiler code
+into the kernel.  We should probably do an analysis of that...
+
+thanks,
+Len Brown, Intel Open Source Technology Center
 
