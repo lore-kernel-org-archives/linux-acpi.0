@@ -1,46 +1,83 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
+From: Len Brown <lenb@kernel.org>
 Subject: Re: [GIT PULL] ACPI & Power Management Patches for Linux-3.5-merge
-Date: Sat, 2 Jun 2012 16:51:30 -0700
-Message-ID: <CA+55aFyGqZnVvd5-ZLUkS=EE72QG1FqempZrs+vBLyCkWP6T_Q@mail.gmail.com>
-References: <4FC9B39B.403@kernel.org>
+Date: Sat, 02 Jun 2012 23:01:05 -0400
+Message-ID: <4FCAD371.6080205@kernel.org>
+References: <4FC9B39B.403@kernel.org> <CA+55aFyGqZnVvd5-ZLUkS=EE72QG1FqempZrs+vBLyCkWP6T_Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:42114 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964986Ab2FBXvv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 2 Jun 2012 19:51:51 -0400
-In-Reply-To: <4FC9B39B.403@kernel.org>
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:63277 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752844Ab2FCDBJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 2 Jun 2012 23:01:09 -0400
+In-Reply-To: <CA+55aFyGqZnVvd5-ZLUkS=EE72QG1FqempZrs+vBLyCkWP6T_Q@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: linux-acpi <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 
-On Fri, Jun 1, 2012 at 11:32 PM, Len Brown <lenb@kernel.org> wrote:
+On 06/02/2012 07:51 PM, Linus Torvalds wrote:
+
+> On Fri, Jun 1, 2012 at 11:32 PM, Len Brown <lenb@kernel.org> wrote:
+>>
+>> ps. Sorry for sending this request at the tails of the merge window --
+>> I'll try to be earlier next time.
+> 
+> Christ, not only is it after I really wanted to do -rc1 (held up by
+> the tty locking problems), but it doesn't even compile.
+> 
+> Find the bug (the compiler certainly did):
+> 
+> static inline int acpi_pm_device_sleep_state(struct device *d, int *p, int m)
+> {
+>         if (p)
+>                 *p = ACPI_STATE_D0;
+>         return (m >= ACPI_STATE_D0 && <= ACPI_STATE_D3) ? m : ACPI_STATE_D0;
+> }
+> 
+> and no, it wasn't a merge error. That's what it looks like in your tree.
+
 >
-> ps. Sorry for sending this request at the tails of the merge window --
-> I'll try to be earlier next time.
 
-Christ, not only is it after I really wanted to do -rc1 (held up by
-the tty locking problems), but it doesn't even compile.
+> The commit was done yesterday. It clearly had *zero* testing.
 
-Find the bug (the compiler certainly did):
+Hmm.
 
-static inline int acpi_pm_device_sleep_state(struct device *d, int *p, int m)
-{
-        if (p)
-                *p = ACPI_STATE_D0;
-        return (m >= ACPI_STATE_D0 && <= ACPI_STATE_D3) ? m : ACPI_STATE_D0;
-}
+This hunk is in the CONFIG_PM=n case.
 
-and no, it wasn't a merge error. That's what it looks like in your tree.
+Of the several hundred x86_64 and i386 kernels I build
+before sending you a pull request, only two do not have CONFIG_PM=y --
+x86_64 allnoconfig and i386 allnoconfig.
+Like the other kernels, those build fine.
 
-The commit was done yesterday. It clearly had *zero* testing.
+I'm curious what config and compiler tripped on this for you.
 
-Looking more at the pull as a result of this, I notice that almost
-every commit in that tree is from yesterday, and thus cleary cannot
-have been in -next. I was going to just fix up the obvious one-liner
-fixup, but looking at the bigger picture I'm going to say "3.6
-material" for this whole thing.
+> Looking more at the pull as a result of this, I notice that almost
+> every commit in that tree is from yesterday, and thus cleary cannot
+> have been in -next.
 
-              Linus
+
+Yes, I did check in Ying's patch this week, and a few others.
+
+But a bunch of the patches have been in linux-next for some time.
+
+I know you'd prefer patches to live in the tree frozen at the
+date that they were 1st checked in, but that doesn't work well
+when patches change.  To update a patch in a series I need to re-base.
+Yes, I could re-base in place -- in the context of an rc
+that nobody anywhere (including me) will ever build or boot.
+Or I could re-base up to the latest release boundary which
+a lot of people (including me) will test.  In this case
+I think I re-based everything up to 3.4.
+
+> I was going to just fix up the obvious one-liner
+
+> fixup, but looking at the bigger picture I'm going to say "3.6
+> material" for this whole thing.
+
+
+It would be sad for a simple, though embarrassing,
+issue with this patch to delay the other patches.
+
+-Len
