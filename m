@@ -1,48 +1,122 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [GIT PULL] ACPI & Power Management Patches for Linux-3.5-merge
-Date: Mon, 04 Jun 2012 16:53:17 +0800
-Message-ID: <1338799997.1492.3.camel@rui.sh.intel.com>
-References: <4FC9B39B.403@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: [RFC PATCH V3 2/3] USB/ACPI: Add usb port's acpi power control in the xhci PORT_POWER feature request process.
+Date: Mon,  4 Jun 2012 16:47:44 +0800
+Message-ID: <1338799665-13997-2-git-send-email-tianyu.lan@intel.com>
+References: <1338799665-13997-1-git-send-email-tianyu.lan@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:40919 "EHLO mga03.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:63265 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754066Ab2FDIvo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 4 Jun 2012 04:51:44 -0400
-In-Reply-To: <4FC9B39B.403@kernel.org>
+	id S1756569Ab2FDIyj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 4 Jun 2012 04:54:39 -0400
+In-Reply-To: <1338799665-13997-1-git-send-email-tianyu.lan@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
+To: gregkh@linuxfoundation.org, lenb@kernel.org
+Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu, sarah.a.sharp@linux.intel.com
 
-Hi, Len,
+On our developping machine, bios can provide usb port's  power control via
+acpi. This patch is to provide usb port's power control way through setting
+or clearing PORT_POWER feature requests. Add two functions usb_acpi_power_manageable()
+and usb_acpi_set_power_state(). The first one is used to find whether the
+usb port has acpi power resource and the second is to set the power state.
+They are invoked in the xhci_hub_control() where clearing or setting PORT_POWER
+feature requests are processed.
 
-On =E5=85=AD, 2012-06-02 at 02:32 -0400, Len Brown wrote:
->=20
-> Amit Daniel Kachhap (5):
->       thermal: add generic cpufreq cooling implementation
->       hwmon: exynos4: move thermal sensor driver to driver/thermal di=
-rectory
->       thermal: exynos5: add exynos5 thermal sensor driver support
->       thermal: exynos: register the tmu sensor with the kernel therma=
-l layer
->       ARM: exynos: add thermal sensor driver platform data support
+Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+---
+ drivers/usb/core/usb-acpi.c |   28 ++++++++++++++++++++++++++++
+ drivers/usb/host/xhci-hub.c |   10 ++++++++++
+ include/linux/usb.h         |   10 ++++++++++
+ 3 files changed, 48 insertions(+), 0 deletions(-)
 
-please drop this patch set for now.
-I'm cooking up a couple of patches, most of which are making the generi=
-c
-thermal layer more friendly to this patch set. So this patch set should
-rather be re-based on the upcoming changes.
+diff --git a/drivers/usb/core/usb-acpi.c b/drivers/usb/core/usb-acpi.c
+index 82c90d0..e95f26f 100644
+--- a/drivers/usb/core/usb-acpi.c
++++ b/drivers/usb/core/usb-acpi.c
+@@ -19,6 +19,34 @@
+ 
+ #include "usb.h"
+ 
++bool usb_acpi_power_manageable(struct usb_device *hdev, int port1)
++{
++	acpi_handle port_handle;
++
++	port_handle = usb_get_hub_port_acpi_handle(hdev,
++		port1);
++	return port_handle ? acpi_bus_power_manageable(port_handle) : false;
++}
++EXPORT_SYMBOL_GPL(usb_acpi_power_manageable);
++
++int usb_acpi_set_power_state(struct usb_device *hdev, int port1, bool enable)
++{
++	acpi_handle port_handle;
++	unsigned char state;
++	int error = -EINVAL;
++
++	port_handle = (acpi_handle)usb_get_hub_port_acpi_handle(hdev,
++		port1);
++	state = enable ? ACPI_STATE_D0 : ACPI_STATE_D3_COLD;
++	error = acpi_bus_set_power(port_handle, state);
++	if (!error)
++		dev_dbg(&hdev->dev, "The power of hub port %d was set to %s\n",
++			port1, enable ? "enable" : "disabe");
++
++	return error;
++}
++EXPORT_SYMBOL_GPL(usb_acpi_set_power_state);
++
+ static int usb_acpi_check_port_connect_type(struct usb_device *hdev,
+ 	acpi_handle handle, int port1)
+ {
+diff --git a/drivers/usb/host/xhci-hub.c b/drivers/usb/host/xhci-hub.c
+index 2c55fcf..0ce48b3 100644
+--- a/drivers/usb/host/xhci-hub.c
++++ b/drivers/usb/host/xhci-hub.c
+@@ -728,6 +728,11 @@ int xhci_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
+ 
+ 			temp = xhci_readl(xhci, port_array[wIndex]);
+ 			xhci_dbg(xhci, "set port power, actual port %d status  = 0x%x\n", wIndex, temp);
++
++			if (usb_acpi_power_manageable(hcd->self.root_hub,
++					wIndex + 1))
++				usb_acpi_set_power_state(hcd->self.root_hub,
++					wIndex + 1, true);
+ 			break;
+ 		case USB_PORT_FEAT_RESET:
+ 			temp = (temp | PORT_RESET);
+@@ -830,6 +835,11 @@ int xhci_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
+ 		case USB_PORT_FEAT_POWER:
+ 			xhci_writel(xhci, temp & ~PORT_POWER,
+ 				port_array[wIndex]);
++
++			if (usb_acpi_power_manageable(hcd->self.root_hub,
++					wIndex + 1))
++				usb_acpi_set_power_state(hcd->self.root_hub,
++					wIndex + 1, false);
+ 			break;
+ 		default:
+ 			goto error;
+diff --git a/include/linux/usb.h b/include/linux/usb.h
+index feb0a04..92f8898 100644
+--- a/include/linux/usb.h
++++ b/include/linux/usb.h
+@@ -599,6 +599,16 @@ extern int usb_lock_device_for_reset(struct usb_device *udev,
+ extern int usb_reset_device(struct usb_device *dev);
+ extern void usb_queue_reset_device(struct usb_interface *dev);
+ 
++#ifdef CONFIG_ACPI
++extern int usb_acpi_set_power_state(struct usb_device *hdev, int port,
++	bool enable);
++extern bool usb_acpi_power_manageable(struct usb_device *hdev, int port);
++#else
++static inline int usb_acpi_set_power_state(struct usb_device *hdev, int port,
++	bool enable) { return 0; }
++static inline bool usb_acpi_power_manageable(struct usb_device *hdev, int port)
++	{ return 0; }
++#endif
+ 
+ /* USB autosuspend and autoresume */
+ #ifdef CONFIG_USB_SUSPEND
+-- 
+1.7.6.rc2.8.g28eb
 
-Sorry that I did not let you know earlier.
-
--rui
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
