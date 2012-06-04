@@ -1,103 +1,150 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH -next] acpi: fix acpi_bus.h warnings when ACPI is not
- enabled
-Date: Mon, 04 Jun 2012 00:32:12 -0400
-Message-ID: <4FCC3A4C.2080407@kernel.org>
-References: <20120523170740.ae058d8d5468d471eb948c39@canb.auug.org.au> <4FBD0CDD.6010003@xenotime.net>
+From: Jiang Liu <jiang.liu@huawei.com>
+Subject: [RFC PATCH v1 5/6] PCI, ACPI: update ACPI hotplug slot information
+ when PCI hotplug event happens
+Date: Mon, 04 Jun 2012 13:17:01 +0800
+Message-ID: <1338787022-400-5-git-send-email-jiang.liu@huawei.com>
+References: <1338787022-400-1-git-send-email-jiang.liu@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <4FBD0CDD.6010003@xenotime.net>
-Sender: linux-next-owner@vger.kernel.org
-To: Randy Dunlap <rdunlap@xenotime.net>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Matthew Garrett <mjg@redhat.com>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-reply-to: <1338787022-400-1-git-send-email-jiang.liu@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alex Chiang <achiang@hp.com>
+Cc: Jiang Liu <liuj97@gmail.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Don Dutile <ddutile@redhat.com>, Greg KH <gregkh@linuxfoundation.org>, Yijing Wang <wangyijing@huawei.com>, Keping Chen <chenkeping@huawei.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Randy,
-with your patch applied and CONFIG_ACPI=3Dn, I still get:
+From: Jiang Liu <liuj97@gmail.com>
 
-include/acpi/acpi_bus.h:445:12: warning: =E2=80=98register_acpi_bus_typ=
-e=E2=80=99 defined but not used [-Wunused-function]
-include/acpi/acpi_bus.h:446:12: warning: =E2=80=98unregister_acpi_bus_t=
-ype=E2=80=99 defined but not used [-Wunused-function]
+Currently the acpiphp driver fails to update hotplug slot information under
+several conditions, such as:
+1) The bridge device is removed through /sys/bus/pci/devices/.../remove
+2) The bridge device is added/removed by PCI hotplug driver other than the
+   acpiphp driver itself. For example, if an IO expansion box with ACPI
+   hotplug slots available is hot-added by the pciehp driver, all ACPI
+   hotplug slots won't be discovered by the acpiphp driver.
 
-so I think I prefer the patch below.
+So hook the BUS_NOTIFY_ADD_DEVICE/BUS_NOTIFY_DEL_DEVICE events to
+update ACPI hotplug slot information when PCI hotplug event happens.
 
-thanks,
-Len Brown, Intel Open Source Technology Center
-
-On 05/23/2012 12:14 PM, Randy Dunlap wrote:
-
-> From: Randy Dunlap <rdunlap@xenotime.net>
->=20
-> Fix header file warnings when CONFIG_ACPI is not enabled:
->=20
-> include/acpi/acpi_bus.h:443:42: warning: 'struct acpi_bus_type' decla=
-red inside parameter list
-> include/acpi/acpi_bus.h:443:42: warning: its scope is only this defin=
-ition or declaration, which is probably not what you want
-> include/acpi/acpi_bus.h:444:44: warning: 'struct acpi_bus_type' decla=
-red inside parameter list
->=20
-> Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
-> ---
->  include/acpi/acpi_bus.h |    2 ++
->  1 file changed, 2 insertions(+)
->=20
-> --- linux-next-20120523.orig/include/acpi/acpi_bus.h
-> +++ linux-next-20120523/include/acpi/acpi_bus.h
-> @@ -440,6 +440,8 @@ static inline int acpi_pm_device_sleep_w
-> =20
->  #else	/* CONFIG_ACPI */
-> =20
-> +struct acpi_bus_type;
-> +
->  static int register_acpi_bus_type(struct acpi_bus_type *bus) { retur=
-n 0; }
->  static int unregister_acpi_bus_type(struct acpi_bus_type *bus) { ret=
-urn 0; }
-> =20
-
-
-Subject: [PATCH] ACPI: fix acpi_bus.h build warnings when ACPI is not e=
-nabled
-
-introduced in Linux-3.5-rc1 by
-66886d6f8c9bcdee3d7fce5796dcffd6b4bc0b48
-(ACPI: Add stubs for (un)register_acpi_bus_type)
-
-=46ix header file warnings when CONFIG_ACPI is not enabled:
-
-include/acpi/acpi_bus.h:443:42: warning: 'struct acpi_bus_type' declare=
-d inside parameter list
-include/acpi/acpi_bus.h:443:42: warning: its scope is only this definit=
-ion or declaration, which is probably not
-include/acpi/acpi_bus.h:444:44: warning: 'struct acpi_bus_type' declare=
-d inside parameter list
-
-Signed-off-by: Len Brown <len.brown@intel.com>
+Signed-off-by: Jiang Liu <liuj97@gmail.com>
 ---
- include/acpi/acpi_bus.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/pci/hotplug/acpiphp_glue.c |   64 ++++++++++++++++++++++++++++++++++--
+ 1 files changed, 61 insertions(+), 3 deletions(-)
 
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index b0d6282..9e6e1c6 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -440,8 +440,8 @@ static inline int acpi_pm_device_sleep_wake(struct =
-device *dev, bool enable)
-=20
- #else	/* CONFIG_ACPI */
-=20
--static int register_acpi_bus_type(struct acpi_bus_type *bus) { return =
-0; }
--static int unregister_acpi_bus_type(struct acpi_bus_type *bus) { retur=
-n 0; }
-+static inline int register_acpi_bus_type(void *bus) { return 0; }
-+static inline int unregister_acpi_bus_type(void *bus) { return 0; }
-=20
- #endif				/* CONFIG_ACPI */
-=20
---=20
-1.7.11.rc0.100.g5498c5f
+diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+index 73af337..44d055c 100644
+--- a/drivers/pci/hotplug/acpiphp_glue.c
++++ b/drivers/pci/hotplug/acpiphp_glue.c
+@@ -61,6 +61,7 @@ static void handle_hotplug_event_bridge (acpi_handle, u32, void *);
+ static void acpiphp_sanitize_bus(struct pci_bus *bus);
+ static void acpiphp_set_hpp_values(struct pci_bus *bus);
+ static void handle_hotplug_event_func(acpi_handle handle, u32 type, void *context);
++static struct acpiphp_bridge *acpiphp_handle_to_bridge(acpi_handle handle);
+ 
+ /* callback routine to check for the existence of a pci dock device */
+ static acpi_status
+@@ -377,7 +378,7 @@ static inline void config_p2p_bridge_flags(struct acpiphp_bridge *bridge)
+ 
+ 
+ /* allocate and initialize host bridge data structure */
+-static void add_host_bridge(acpi_handle *handle)
++static void add_host_bridge(acpi_handle handle)
+ {
+ 	struct acpiphp_bridge *bridge;
+ 	struct acpi_pci_root *root = acpi_pci_find_root(handle);
+@@ -396,12 +397,14 @@ static void add_host_bridge(acpi_handle *handle)
+ 	init_bridge_misc(bridge);
+ }
+ 
+-
+ /* allocate and initialize PCI-to-PCI bridge data structure */
+-static void add_p2p_bridge(acpi_handle *handle)
++static void add_p2p_bridge(acpi_handle handle)
+ {
+ 	struct acpiphp_bridge *bridge;
+ 
++	if (acpiphp_handle_to_bridge(handle))
++		return;
++
+ 	bridge = kzalloc(sizeof(struct acpiphp_bridge), GFP_KERNEL);
+ 	if (bridge == NULL) {
+ 		err("out of memory\n");
+@@ -1419,6 +1422,58 @@ find_root_bridges(acpi_handle handle, u32 lvl, void *context, void **rv)
+ 	return AE_OK ;
+ }
+ 
++static void acpiphp_hp_notify_add(struct pci_dev *dev)
++{
++	acpi_handle handle = DEVICE_ACPI_HANDLE(&dev->dev);
++
++	if (!dev->subordinate || !handle)
++		return;
++
++	/* check if this bridge has ejectable slots */
++	if (detect_ejectable_slots(handle) > 0) {
++		dbg("found PCI-to-PCI bridge at PCI %s\n", pci_name(dev));
++		add_p2p_bridge(handle);
++	}
++}
++
++static void acpiphp_hp_notify_del(struct pci_dev *dev)
++{
++	struct acpiphp_bridge *bridge, *tmp;
++	struct pci_bus *bus = dev->subordinate;
++
++	if (!bus)
++		return;
++
++	list_for_each_entry_safe(bridge, tmp, &bridge_list, list)
++		if (bridge->pci_bus == bus) {
++			cleanup_bridge(bridge);
++			break;
++		}
++}
++
++static int acpi_pci_hp_notify_fn(struct notifier_block *nb,
++				 unsigned long event, void *data)
++{
++	struct device *dev = data;
++
++	switch (event) {
++	case BUS_NOTIFY_ADD_DEVICE:
++		acpiphp_hp_notify_add(to_pci_dev(dev));
++		break;
++	case BUS_NOTIFY_DEL_DEVICE:
++		acpiphp_hp_notify_del(to_pci_dev(dev));
++		break;
++	default:
++		return NOTIFY_DONE;
++	}
++
++	return NOTIFY_OK;
++}
++
++static struct notifier_block acpi_pci_hp_notifier = {
++	.notifier_call = &acpi_pci_hp_notify_fn,
++};
++
+ static struct acpi_pci_driver acpi_pci_hp_driver = {
+ 	.add =		add_bridge,
+ 	.remove =	remove_bridge,
+@@ -1439,6 +1494,8 @@ int __init acpiphp_glue_init(void)
+ 	else
+ 		acpi_pci_register_driver(&acpi_pci_hp_driver);
+ 
++	bus_register_notifier(&pci_bus_type, &acpi_pci_hp_notifier);
++
+ 	return 0;
+ }
+ 
+@@ -1450,6 +1507,7 @@ int __init acpiphp_glue_init(void)
+  */
+ void  acpiphp_glue_exit(void)
+ {
++	bus_unregister_notifier(&pci_bus_type, &acpi_pci_hp_notifier);
+ 	acpi_pci_unregister_driver(&acpi_pci_hp_driver);
+ }
+ 
+-- 
+1.7.1
