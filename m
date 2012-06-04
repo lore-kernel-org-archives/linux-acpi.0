@@ -1,87 +1,107 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: Re: ACPICA version 20120518 linuxized patches
-Date: Mon, 4 Jun 2012 10:18:10 +0800
-Message-ID: <CAF1ivSa_fc9a=+qphxVHQxk9pcM3WQdi-sdo4wsMXoS8jMuKBQ@mail.gmail.com>
-References: <1337676725.24434.34.camel@minggr>
-	<4FC8E63C.9020109@kernel.org>
-	<94F2FBAB4432B54E8AACC7DFDE6C92E346ACD057@ORSMSX101.amr.corp.intel.com>
+From: Feng Tang <feng.tang@intel.com>
+Subject: Re: [PATCH] ACPI: Fix the irq0 assigning issue for AMILO PRO V2030
+ platform
+Date: Mon, 4 Jun 2012 11:17:25 +0800
+Message-ID: <20120604111725.2cd9828e@feng-i7>
+References: <1338259418-6167-1-git-send-email-feng.tang@intel.com>
+	<4FC8F36C.8080409@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:47643 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755009Ab2FDCSL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 3 Jun 2012 22:18:11 -0400
-Received: by vcbf11 with SMTP id f11so2213542vcb.19
-        for <linux-acpi@vger.kernel.org>; Sun, 03 Jun 2012 19:18:10 -0700 (PDT)
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E346ACD057@ORSMSX101.amr.corp.intel.com>
+Received: from mga11.intel.com ([192.55.52.93]:32617 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755642Ab2FDDVA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 3 Jun 2012 23:21:00 -0400
+In-Reply-To: <4FC8F36C.8080409@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rui.zhang@intel.com, fazerxlo@o2.pl, x86@kernel.org
 
-On Sat, Jun 2, 2012 at 3:00 AM, Moore, Robert <robert.moore@intel.com> =
-wrote:
-> We've tried to be very careful about not including compiler-only code=
- into kernel code.
->
-> I'm not entirely sure why patches 1,2, and 3 are applied against Linu=
-x. Perhaps Ming can answer this, or I'll take a look at the patches.
+Hi Len,
 
-That is because the patches also changed the core code.
+On Fri, 1 Jun 2012 12:53:00 -0400
+Len Brown <lenb@kernel.org> wrote:
 
-drivers/acpi/acpica/dsfield.c
-include/acpi/actypes.h
-drivers/acpi/acpica/utmisc.c
+> Hello Tang-Feng,
+> 
+> This looks good, but especially w/ interrupt patches,
+> it is important to take logically independent baby steps.
+> So please break this patch into two, and add another small bit
+> in a 3 patch series:
+> 
+> 1. allow the workaround to apply to non global_irq 2
+> 2. delete the WARN from dmi_ignore_irq0_timer_override
+> 	as it causes alarm, but gives no benefit
+> 3. add the DMI to invoke the workaround for this platform
 
-So we need to apply them to avoid divergence problem.
+Thanks for the review, will make it 3 patches as you suggested.
 
-Lin Ming
+- Feng
 
->
-> Bob
->
->
->> -----Original Message-----
->> From: Len Brown [mailto:lenb417@gmail.com] On Behalf Of Len Brown
->> Sent: Friday, June 01, 2012 8:57 AM
->> To: Lin, Ming M
->> Cc: Moore, Robert; linux-acpi
->> Subject: Re: ACPICA version 20120518 linuxized patches
->>
->> On 05/22/2012 04:52 AM, Lin Ming wrote:
->>
->> > Hi Len,
->> >
->> > ACPICA version 20120518 linuxized patches attached.
->> >
->> > [PATCH 1/6] ACPICA: Disassembler: Add support for Operation Region
->> > externals [PATCH 2/6] ACPICA: ACPI 5/iASL: Add support for PCC
->> keyword
->> > [PATCH 3/6] ACPICA: iASL: Improved pathname support [PATCH 4/6]
->> > ACPICA: Remove argument of acpi_os_wait_events_complete [PATCH 5/6=
-]
->> > ACPICA: Add FADT error message for GAS BitWidth overflow [PATCH 6/=
-6]
->> > ACPICA: Update to version 20120518
->> >
->> > Regards,
->> > Lin Ming
->>
->>
->> Applied.
->>
->> I is great that the compiler and interpreter share the same code.
->> However, there is also the risk of building dead compiler code into =
-the
->> kernel. =A0We should probably do an analysis of that...
->>
->> thanks,
->> Len Brown, Intel Open Source Technology Center
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> thanks,
+> -Len Brown, Intel Open Source Technology Center
+> 
+> On 05/28/2012 10:43 PM, Feng Tang wrote:
+> 
+> > This is to fix the kernel bugzilla 40002: "IRQ 0 assigned to VGA"
+> >  https://bugzilla.kernel.org/show_bug.cgi?id=40002
+> > 
+> > The root cause is the buggy FW, whose ACPI tables assign the GSI 16
+> > to 2 irqs 0 and 16(VGA), and the VGA is the right owner of GSI 16.
+> > So add a quirk to ignore the irq0 overriding GSI 16 for the
+> > FUJITSU SIEMENS AMILO PRO V2030 platform will solve this issue.
+> > 
+> > This also slightly modify the current irq0 override handling, as it
+> > only covered the irq0 overriding GSI 2 case.
+> > 
+> > Reported-and-tested-by: Szymon Kowalczyk <fazerxlo@o2.pl>
+> > Signed-off-by: Feng Tang <feng.tang@intel.com>
+> > Cc: x86@kernel.org
+> > ---
+> >  arch/x86/kernel/acpi/boot.c |   17 ++++++++++++++---
+> >  1 files changed, 14 insertions(+), 3 deletions(-)
+> > 
+> > diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+> > index 4558f0d..06c78c3 100644
+> > --- a/arch/x86/kernel/acpi/boot.c
+> > +++ b/arch/x86/kernel/acpi/boot.c
+> > @@ -416,12 +416,14 @@ acpi_parse_int_src_ovr(struct acpi_subtable_header *
+> > header, return 0;
+> >  	}
+> >  
+> > -	if (intsrc->source_irq == 0 && intsrc->global_irq == 2) {
+> > +	if (intsrc->source_irq == 0) {
+> >  		if (acpi_skip_timer_override) {
+> > -			printk(PREFIX "BIOS IRQ0 pin2 override
+> > ignored.\n");
+> > +			printk(PREFIX "BIOS IRQ0 override ignored.\n");
+> >  			return 0;
+> >  		}
+> > -		if (acpi_fix_pin2_polarity && (intsrc->inti_flags &
+> > ACPI_MADT_POLARITY_MASK)) { +
+> > +		if ((intsrc->global_irq == 2) && acpi_fix_pin2_polarity
+> > +			&& (intsrc->inti_flags & ACPI_MADT_POLARITY_MASK))
+> > { intsrc->inti_flags &= ~ACPI_MADT_POLARITY_MASK;
+> >  			printk(PREFIX "BIOS IRQ0 pin2 override: forcing
+> > polarity to high active.\n"); }
+> > @@ -1466,6 +1468,15 @@ static struct dmi_system_id __initdata
+> > acpi_dmi_table_late[] = { DMI_MATCH(DMI_PRODUCT_NAME, "HP Compaq 6715b"),
+> >  		     },
+> >  	 },
+> > +	{
+> > +	 .callback = dmi_ignore_irq0_timer_override,
+> > +	 .ident = "FUJITSU SIEMENS",
+> > +	 .matches = {
+> > +		     DMI_MATCH(DMI_SYS_VENDOR, "FUJITSU SIEMENS"),
+> > +		     DMI_MATCH(DMI_PRODUCT_NAME, "AMILO PRO V2030"),
+> > +		     },
+> > +	 },
+> > +
+> >  	{}
+> >  };
+> >  
+> 
+> 
