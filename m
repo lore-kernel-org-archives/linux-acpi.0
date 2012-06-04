@@ -1,56 +1,48 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 13/15] tools/power turbostat: fix IVB support
-Date: Mon,  4 Jun 2012 01:40:04 -0400
-Message-ID: <650a37f32d2bc16fa802075be579802bc4ec4132.1338786832.git.len.brown@intel.com>
-References: <1338788406-29981-1-git-send-email-lenb@kernel.org>
-Reply-To: Len Brown <lenb@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1338788406-29981-1-git-send-email-lenb@kernel.org>
-In-Reply-To: <c5971456964290da7e98222892797b71ef793e62.1338786831.git.len.brown@intel.com>
-References: <c5971456964290da7e98222892797b71ef793e62.1338786831.git.len.brown@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, Len Brown <len.brown@intel.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [GIT PULL] ACPI & Power Management Patches for Linux-3.5-merge
+Date: Mon, 04 Jun 2012 16:53:17 +0800
+Message-ID: <1338799997.1492.3.camel@rui.sh.intel.com>
+References: <4FC9B39B.403@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:40919 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754066Ab2FDIvo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 4 Jun 2012 04:51:44 -0400
+In-Reply-To: <4FC9B39B.403@kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-acpi <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 
-From: Len Brown <len.brown@intel.com>
+Hi, Len,
 
-Initial IVB support went into turbostat in Linux-3.1:
-553575f1ae048aa44682b46b3c51929a0b3ad337
-(tools turbostat: recognize and run properly on IVB)
+On =E5=85=AD, 2012-06-02 at 02:32 -0400, Len Brown wrote:
+>=20
+> Amit Daniel Kachhap (5):
+>       thermal: add generic cpufreq cooling implementation
+>       hwmon: exynos4: move thermal sensor driver to driver/thermal di=
+rectory
+>       thermal: exynos5: add exynos5 thermal sensor driver support
+>       thermal: exynos: register the tmu sensor with the kernel therma=
+l layer
+>       ARM: exynos: add thermal sensor driver platform data support
 
-However, when running on IVB, turbostat would fail
-to report the new couters added with SNB, c7, pc2 and pc7.
-So in scenarios where these counters are non-zero on IVB,
-turbostat would report erroneous residencey results.
+please drop this patch set for now.
+I'm cooking up a couple of patches, most of which are making the generi=
+c
+thermal layer more friendly to this patch set. So this patch set should
+rather be re-based on the upcoming changes.
 
-In particular c7 time would be added to c1 time,
-since c1 time is calculated as "that which is left over".
+Sorry that I did not let you know earlier.
 
-Also, turbostat reports MHz capabilities when passed
-the "-v" option, and it would incorrectly report 133MHz
-bclk instead of 100MHz bclk for IVB, which would inflate
-GHz reported with that option.
+-rui
 
-This patch is a backport of a fix already included in turbostat v2.
 
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- tools/power/x86/turbostat/turbostat.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/tools/power/x86/turbostat/turbostat.c b/tools/power/x86/turbostat/turbostat.c
-index d5d6a3d..16de7ad 100644
---- a/tools/power/x86/turbostat/turbostat.c
-+++ b/tools/power/x86/turbostat/turbostat.c
-@@ -933,6 +933,8 @@ int is_snb(unsigned int family, unsigned int model)
- 	switch (model) {
- 	case 0x2A:
- 	case 0x2D:
-+	case 0x3A:	/* IVB */
-+	case 0x3D:	/* IVB Xeon */
- 		return 1;
- 	}
- 	return 0;
--- 
-1.7.11.rc0.100.g5498c5f
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
