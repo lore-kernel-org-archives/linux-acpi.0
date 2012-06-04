@@ -1,107 +1,103 @@
-From: Feng Tang <feng.tang@intel.com>
-Subject: Re: [PATCH] ACPI: Fix the irq0 assigning issue for AMILO PRO V2030
- platform
-Date: Mon, 4 Jun 2012 11:17:25 +0800
-Message-ID: <20120604111725.2cd9828e@feng-i7>
-References: <1338259418-6167-1-git-send-email-feng.tang@intel.com>
-	<4FC8F36C.8080409@kernel.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH -next] acpi: fix acpi_bus.h warnings when ACPI is not
+ enabled
+Date: Mon, 04 Jun 2012 00:32:12 -0400
+Message-ID: <4FCC3A4C.2080407@kernel.org>
+References: <20120523170740.ae058d8d5468d471eb948c39@canb.auug.org.au> <4FBD0CDD.6010003@xenotime.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:32617 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755642Ab2FDDVA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 3 Jun 2012 23:21:00 -0400
-In-Reply-To: <4FC8F36C.8080409@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <4FBD0CDD.6010003@xenotime.net>
+Sender: linux-next-owner@vger.kernel.org
+To: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Matthew Garrett <mjg@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rui.zhang@intel.com, fazerxlo@o2.pl, x86@kernel.org
 
-Hi Len,
+Hi Randy,
+with your patch applied and CONFIG_ACPI=3Dn, I still get:
 
-On Fri, 1 Jun 2012 12:53:00 -0400
-Len Brown <lenb@kernel.org> wrote:
+include/acpi/acpi_bus.h:445:12: warning: =E2=80=98register_acpi_bus_typ=
+e=E2=80=99 defined but not used [-Wunused-function]
+include/acpi/acpi_bus.h:446:12: warning: =E2=80=98unregister_acpi_bus_t=
+ype=E2=80=99 defined but not used [-Wunused-function]
 
-> Hello Tang-Feng,
-> 
-> This looks good, but especially w/ interrupt patches,
-> it is important to take logically independent baby steps.
-> So please break this patch into two, and add another small bit
-> in a 3 patch series:
-> 
-> 1. allow the workaround to apply to non global_irq 2
-> 2. delete the WARN from dmi_ignore_irq0_timer_override
-> 	as it causes alarm, but gives no benefit
-> 3. add the DMI to invoke the workaround for this platform
+so I think I prefer the patch below.
 
-Thanks for the review, will make it 3 patches as you suggested.
+thanks,
+Len Brown, Intel Open Source Technology Center
 
-- Feng
+On 05/23/2012 12:14 PM, Randy Dunlap wrote:
 
-> 
-> thanks,
-> -Len Brown, Intel Open Source Technology Center
-> 
-> On 05/28/2012 10:43 PM, Feng Tang wrote:
-> 
-> > This is to fix the kernel bugzilla 40002: "IRQ 0 assigned to VGA"
-> >  https://bugzilla.kernel.org/show_bug.cgi?id=40002
-> > 
-> > The root cause is the buggy FW, whose ACPI tables assign the GSI 16
-> > to 2 irqs 0 and 16(VGA), and the VGA is the right owner of GSI 16.
-> > So add a quirk to ignore the irq0 overriding GSI 16 for the
-> > FUJITSU SIEMENS AMILO PRO V2030 platform will solve this issue.
-> > 
-> > This also slightly modify the current irq0 override handling, as it
-> > only covered the irq0 overriding GSI 2 case.
-> > 
-> > Reported-and-tested-by: Szymon Kowalczyk <fazerxlo@o2.pl>
-> > Signed-off-by: Feng Tang <feng.tang@intel.com>
-> > Cc: x86@kernel.org
-> > ---
-> >  arch/x86/kernel/acpi/boot.c |   17 ++++++++++++++---
-> >  1 files changed, 14 insertions(+), 3 deletions(-)
-> > 
-> > diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-> > index 4558f0d..06c78c3 100644
-> > --- a/arch/x86/kernel/acpi/boot.c
-> > +++ b/arch/x86/kernel/acpi/boot.c
-> > @@ -416,12 +416,14 @@ acpi_parse_int_src_ovr(struct acpi_subtable_header *
-> > header, return 0;
-> >  	}
-> >  
-> > -	if (intsrc->source_irq == 0 && intsrc->global_irq == 2) {
-> > +	if (intsrc->source_irq == 0) {
-> >  		if (acpi_skip_timer_override) {
-> > -			printk(PREFIX "BIOS IRQ0 pin2 override
-> > ignored.\n");
-> > +			printk(PREFIX "BIOS IRQ0 override ignored.\n");
-> >  			return 0;
-> >  		}
-> > -		if (acpi_fix_pin2_polarity && (intsrc->inti_flags &
-> > ACPI_MADT_POLARITY_MASK)) { +
-> > +		if ((intsrc->global_irq == 2) && acpi_fix_pin2_polarity
-> > +			&& (intsrc->inti_flags & ACPI_MADT_POLARITY_MASK))
-> > { intsrc->inti_flags &= ~ACPI_MADT_POLARITY_MASK;
-> >  			printk(PREFIX "BIOS IRQ0 pin2 override: forcing
-> > polarity to high active.\n"); }
-> > @@ -1466,6 +1468,15 @@ static struct dmi_system_id __initdata
-> > acpi_dmi_table_late[] = { DMI_MATCH(DMI_PRODUCT_NAME, "HP Compaq 6715b"),
-> >  		     },
-> >  	 },
-> > +	{
-> > +	 .callback = dmi_ignore_irq0_timer_override,
-> > +	 .ident = "FUJITSU SIEMENS",
-> > +	 .matches = {
-> > +		     DMI_MATCH(DMI_SYS_VENDOR, "FUJITSU SIEMENS"),
-> > +		     DMI_MATCH(DMI_PRODUCT_NAME, "AMILO PRO V2030"),
-> > +		     },
-> > +	 },
-> > +
-> >  	{}
-> >  };
-> >  
-> 
-> 
+> From: Randy Dunlap <rdunlap@xenotime.net>
+>=20
+> Fix header file warnings when CONFIG_ACPI is not enabled:
+>=20
+> include/acpi/acpi_bus.h:443:42: warning: 'struct acpi_bus_type' decla=
+red inside parameter list
+> include/acpi/acpi_bus.h:443:42: warning: its scope is only this defin=
+ition or declaration, which is probably not what you want
+> include/acpi/acpi_bus.h:444:44: warning: 'struct acpi_bus_type' decla=
+red inside parameter list
+>=20
+> Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+> ---
+>  include/acpi/acpi_bus.h |    2 ++
+>  1 file changed, 2 insertions(+)
+>=20
+> --- linux-next-20120523.orig/include/acpi/acpi_bus.h
+> +++ linux-next-20120523/include/acpi/acpi_bus.h
+> @@ -440,6 +440,8 @@ static inline int acpi_pm_device_sleep_w
+> =20
+>  #else	/* CONFIG_ACPI */
+> =20
+> +struct acpi_bus_type;
+> +
+>  static int register_acpi_bus_type(struct acpi_bus_type *bus) { retur=
+n 0; }
+>  static int unregister_acpi_bus_type(struct acpi_bus_type *bus) { ret=
+urn 0; }
+> =20
+
+
+Subject: [PATCH] ACPI: fix acpi_bus.h build warnings when ACPI is not e=
+nabled
+
+introduced in Linux-3.5-rc1 by
+66886d6f8c9bcdee3d7fce5796dcffd6b4bc0b48
+(ACPI: Add stubs for (un)register_acpi_bus_type)
+
+=46ix header file warnings when CONFIG_ACPI is not enabled:
+
+include/acpi/acpi_bus.h:443:42: warning: 'struct acpi_bus_type' declare=
+d inside parameter list
+include/acpi/acpi_bus.h:443:42: warning: its scope is only this definit=
+ion or declaration, which is probably not
+include/acpi/acpi_bus.h:444:44: warning: 'struct acpi_bus_type' declare=
+d inside parameter list
+
+Signed-off-by: Len Brown <len.brown@intel.com>
+---
+ include/acpi/acpi_bus.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index b0d6282..9e6e1c6 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -440,8 +440,8 @@ static inline int acpi_pm_device_sleep_wake(struct =
+device *dev, bool enable)
+=20
+ #else	/* CONFIG_ACPI */
+=20
+-static int register_acpi_bus_type(struct acpi_bus_type *bus) { return =
+0; }
+-static int unregister_acpi_bus_type(struct acpi_bus_type *bus) { retur=
+n 0; }
++static inline int register_acpi_bus_type(void *bus) { return 0; }
++static inline int unregister_acpi_bus_type(void *bus) { return 0; }
+=20
+ #endif				/* CONFIG_ACPI */
+=20
+--=20
+1.7.11.rc0.100.g5498c5f
