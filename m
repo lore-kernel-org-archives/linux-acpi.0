@@ -1,89 +1,53 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: [PATCH] ACPI  : Implement ACPI_NOTIFY_EJECT_REQUEST for ACPI container
-Date: Tue, 05 Jun 2012 15:26:36 +0900
-Message-ID: <4FCDA69C.3040204@jp.fujitsu.com>
+From: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC PATCH V3 3/3] usb : Add sysfs files to control usb port's
+ power
+Date: Tue, 05 Jun 2012 16:30:51 +0800
+Message-ID: <4FCDC3BB.50809@intel.com>
+References: <Pine.LNX.4.44L0.1206041040510.1555-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:50930 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753693Ab2FEG0i (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Jun 2012 02:26:38 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.44L0.1206041040510.1555-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Even if ACPI_NOTIFY_EJECT_REQUEST is notified to ACPI container, ACPI
-container just calls kobject_uevent(). The patch implements a function
-to remove all devices included in ACPI container.
+On 2012=E5=B9=B406=E6=9C=8804=E6=97=A5 23:02, Alan Stern wrote:
+> On Mon, 4 Jun 2012, Lan Tianyu wrote:
+> s/attribue/attribute/  -- here and below
+>
+>> +		allows the user space to control the power policy on the usb port
+>> +
+>> +		All ports have one of the following three values for portX/contro=
+l
+>> +		"auto" - For ports with device, if the device was not in the susp=
+end
+>> +			at that pointer, the power would remain on but it would power
+>> +			off when it was suspended. If the the device was in the suspend,
+>> +			"auto" means the device could be put into much lower state so
+>> +			the device would be resumed and suspended again.
+>
+> The patch does not implement anything at all for "auto".  It should d=
+o
+> _something_.
+>
+Yeah, if we don't power off port without device when echo "auto" > port=
+X/control,
+this patch does nothing about "auto". Original plan is to deal with por=
+t without
+devices firstly. Do you mean I should add the process of port with devi=
+ce in this
+patch?
 
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
----
- drivers/acpi/container.c |   32 ++++++++++++++++++++++++++++++--
- 1 file changed, 30 insertions(+), 2 deletions(-)
-
-Index: linux-3.5-rc1/drivers/acpi/container.c
-===================================================================
---- linux-3.5-rc1.orig/drivers/acpi/container.c	2012-06-05 14:01:54.000000000 +0900
-+++ linux-3.5-rc1/drivers/acpi/container.c	2012-06-05 14:17:40.940836226 +0900
-@@ -123,6 +123,8 @@ static int acpi_container_remove(struct
- 	acpi_status status = AE_OK;
- 	struct acpi_container *pc = NULL;
-
-+	kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
-+
- 	pc = acpi_driver_data(device);
- 	kfree(pc);
- 	return status;
-@@ -152,6 +154,32 @@ static int container_device_add(struct a
- 	return result;
- }
-
-+static void container_device_remove(struct acpi_device *device,
-+				    acpi_handle handle)
-+{
-+	struct acpi_object_list arg_list;
-+	union acpi_object arg;
-+	int result;
-+	acpi_status status;
-+
-+	result = acpi_bus_trim(device, 1);
-+	if (result) {
-+		printk(KERN_WARNING "Removing contaier failed");
-+		return;
-+	}
-+
-+	arg_list.count = 1;
-+	arg_list.pointer = &arg;
-+	arg.type = ACPI_TYPE_INTEGER;
-+	arg.integer.value = 1;
-+
-+	status = acpi_evaluate_object(handle, "_EJ0", &arg_list, NULL);
-+	if (ACPI_FAILURE(status))
-+		printk(KERN_WARNING "Eject device failed\n");
-+
-+	return;
-+}
-+
- static void container_notify_cb(acpi_handle handle, u32 type, void *context)
- {
- 	struct acpi_device *device = NULL;
-@@ -183,13 +211,13 @@ static void container_notify_cb(acpi_han
- 		} else {
- 			if (ACPI_SUCCESS(status)) {
- 				/* device exist and this is a remove request */
--				kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
-+				container_device_remove(device, handle);
- 			}
- 		}
- 		break;
- 	case ACPI_NOTIFY_EJECT_REQUEST:
- 		if (!acpi_bus_get_device(handle, &device) && device) {
--			kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
-+			container_device_remove(device, handle);
- 		}
- 		break;
- 	default:
-
+--=20
+Best Regards
+Tianyu Lan
+linux kernel enabling team
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
