@@ -1,53 +1,66 @@
-From: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC PATCH V3 3/3] usb : Add sysfs files to control usb port's
- power
-Date: Tue, 05 Jun 2012 16:30:51 +0800
-Message-ID: <4FCDC3BB.50809@intel.com>
-References: <Pine.LNX.4.44L0.1206041040510.1555-100000@iolanthe.rowland.org>
+From: =?utf-8?B?5pyJ5pWI5p6c5YaN5LuY5qy+?= <admin@efirstrate.com>
+Subject: =?utf-8?B?MjAxMuaYpeWtozExMeWxiuW5v+S6pOS8muS5sOWutu+8jEIyQuivog==?=
+	=?utf-8?B?55uY5Lmw5a6244CBdGhvbWFzbmV0IOmHh+i0reWVhizmtbflhbM=?=
+	=?utf-8?B?5pWw5o2uLOe+pOWPkei9r+S7tu+8jOWxleS8muS5sOWutiDku4UzMDDlhYMh?=
+Date: Tue, 5 Jun 2012 10:48:33 +0000 (UTC)
+Message-ID: <20190605184254516163@efirstrate.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.44L0.1206041040510.1555-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from [58.220.234.169] ([58.220.234.169]:61552 "HELO efirstrate.com"
+	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with SMTP
+	id S1761810Ab2FEKs0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 5 Jun 2012 06:48:26 -0400
+Date: Wed, 5 Jun 2019 18:42:49 +0800
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linuton@hotmail.com, linux123@263.net, linux21st@sohu.com, linux-acpi@vger.kernel.org, linwang@wzptt.zj.cn, linwangda@263.net, linwangniao@sohu.com, Linwanhui@fashionflying.cn, linwencheng0219@163.com, linwendiao@yahoo.cn
 
-On 2012=E5=B9=B406=E6=9C=8804=E6=97=A5 23:02, Alan Stern wrote:
-> On Mon, 4 Jun 2012, Lan Tianyu wrote:
-> s/attribue/attribute/  -- here and below
->
->> +		allows the user space to control the power policy on the usb port
->> +
->> +		All ports have one of the following three values for portX/contro=
-l
->> +		"auto" - For ports with device, if the device was not in the susp=
-end
->> +			at that pointer, the power would remain on but it would power
->> +			off when it was suspended. If the the device was in the suspend,
->> +			"auto" means the device could be put into much lower state so
->> +			the device would be resumed and suspended again.
->
-> The patch does not implement anything at all for "auto".  It should d=
-o
-> _something_.
->
-Yeah, if we don't power off port without device when echo "auto" > port=
-X/control,
-this patch does nothing about "auto". Original plan is to deal with por=
-t without
-devices firstly. Do you mean I should add the process of port with devi=
-ce in this
-patch?
+MjAxMuaYpeWtozExMeWxiuW5v+S6pOS8muS5sOWutu+8jOa1t+WFs+aVsOaNruaPkOWNlXBpZXJz
+54mI77yMMjAwOC0yMDEy5bm0OeWxiuW5v+S6pOS8muaVsOaNruOAgg0KDQrkuIDlhbExMOS4quWM
+hSjmlbDmja7mmK/lhajooYzkuJrnmoTvvIzlj6/ku6XmjInnhaflhbPplK7or43mj5Dlj5blh7rm
+naXnmoQp77yaIA0KMe+8jDIwMTLmmKXlraMxMTHlsYrlub/kuqTkvJrkubDlrrbnjrDlnLror6Ln
+m5jmlbDmja7lupPmlrDpspzlh7rngonvvIzotoXnuqfmlrDpspzkubDlrrbvvIzmlrDpspzmlbDm
+ja7vvIzlrrnmmJPmiJDljZXvvIEgDQoy77yM6LSt5Lmw5ZCO5Y+v5Lul5YWN6LS55pu05pawMjAx
+Mueni+Wto+W5v+S6pOS8muS5sOWutuaVsOaNruOAguWkqui2heWAvOS6huOAgg0KM++8jDIwMTLm
+nIDmlrDlhajnkIPlsZXkvJrnjrDlnLrkubDlrrblupMo5LiO6LS45Y+R5ZCM5q2lKSzlhbE0NuS4
+h+adoeaVsOaNruOAgiAo5oyJ54Wn6KGM5Lia5YiG57G7KQ0KNO+8jDIwMTEsMjAxMOW5tCwyMDA5
+5bm0LDIwMDjlubQg5pil5a2jK+eni+Wto+W5v+S6pOS8muS5sOWutuWQjeW9le+8jDEwMyAxMDQg
+MTA1IDEwNiAxMDcgMTA4LDEwOSwxMTAg5YWx5YWt5bGKIOWFsTEyMC425LiH5pWw5o2u44CCDQo1
+77yMNDguNjjkuIfmnaHmnIDmlrDkubDlrrbor6Lnm5jvvIzpg73luKbmnIlFbWFpbO+8jOacgOac
+ieS7t+WAvOeahOivouebmOOAgg0KNu+8jDIwMTHmnIDmlrAgQjJCIOiLseaWh+WbvemZheermTYw
+5LiH5bim6IGU57uc5pa55byP6K+i55uYIOacgOacieS7t+WAvOivouebmOS5i+S4gC4NCjfvvIwy
+MDEw5rW35YWz5o+Q5Y2VcGllcnPniYgxMDAw5LiH5pWw5o2uLg0KOO+8jDIwMTHlubTliLDpppnm
+uK/ph4fotK3nmoTlm73lpJblrqLkurrlkI3lvZUo6aaZ5riv6LS45Y+R5bGA5o+Q5L6bKe+8jOi2
+hee6p+mHjeimgeeahOS5sOWutuOAgg0KOe+8jDIwMTHlubTmlrDlop7liqDnmoQt576O5Zu9QjJC
+IHRob21hc25ldCDph4fotK3llYblkI3ljZXjgIINCjEw77yM576k5Y+R6L2v5Lu25a6J6KOF5LiO
+6YOo572y5pyN5Yqh44CCDQoNCui/meS6m+WFqOacie+8jOWFsTEyODDkuIcg5pWw5o2u44CCDQoN
+CiANCuimgeeahOaKk+e0p+iBlOezu1FROiAxNzYwMzAxMTgzIOaIluiAheeri+WNs+WbnuWkjemC
+rueusTogMTc2MDMwMTE4M0BxcS5jb20NCuimgeeahOaKk+e0p+iBlOezu1FROiAxNzYwMzAxMTgz
+IOaIluiAheeri+WNs+WbnuWkjemCrueusTogMTc2MDMwMTE4M0BxcS5jb20NCuimgeeahOaKk+e0
+p+iBlOezu1FROiAxNzYwMzAxMTgzIOaIluiAheeri+WNs+WbnuWkjemCrueusTogMTc2MDMwMTE4
+M0BxcS5jb20NCg0KDQror5rkv6HkuLrmnKzvvIzlpoLmnpzkuI3kv6Hku7vmnKzkuros5Y+v5Lul
+6LWw5reY5a6d5Lqk5piTLOaUtuWIsOaVsOaNrumqjOivgTPlpKnlkI7lho3ku5jmrL4s6L+Z5piv
+5a+55oKo5pyA5aW955qE5L+d6Zqc5LqG44CCIA0KDQoNCg0K5bCP5oqA5ben77yaIA0K5oqKNTAw
+5LiH5Lmw5a62576k5Y+R5Lul5LiA6YGN77yM5Z2H5Lya5pyJ5pWw5Y2D5Liq5Zue5aSN55qE77yM
+6L+Z5Lqb5bCx5piv6Z2e5bi46auY6LSo6YeP55qE5Lmw5a6244CCIA0K5L2/55So5oiR5Lus6YCB
+55qE576k5Y+R6L2v5Lu277yMMS0y5ZGo5bCx5Y+v5a6M5YWo5Y+R5a6M44CCDQoNCg0KDQoNCg0K
+5bm/5Lqk5Lya5Lmw5a625oyJ5Lqn5ZOB57G75Yir5YiG57G777yM5YiG5Li65Lul5LiL5Yeg57G7
+77yaDQoxIOWKnuWFrOiuvuWkhw0KMiDnvJbnu4flj4rol6Tpk4Hlt6Xoibrlk4ENCjMg546755KD
+DQo0IOmkkOWOqOeUqOWFtw0KNSDovabovoYNCjYg5aSn5Z6L5py65qKw5Y+K6K6+5aSHDQo3IOeU
+teWtkOeUteawlA0KOCDnlLXlrZDmtojotLnlk4ENCjkg57q657uHDQoxMCDmnI3oo4UNCjExIOS4
+quS6uuaKpOeQhg0KMTIg5bel56iL5py65qKwDQoxMyDlt6XlhbcNCjE0IOWMluW3pQ0KMTUg6K6h
+566X5py65Y+K6YCa6K6vDQoxNiDlrrblsYXnlKjlk4ENCjE3IOWutuWxheijhemlsA0KMTgg5a62
+5YW3DQoxOSDlrrbnlKjnlLXlmagNCjIwIOW7uuetkeWPiuijhemlsOadkOaWmQ0KMjEg6IqC5pel
+55So5ZOBDQoyMiDnpLzlk4Hlj4rotaDlk4ENCjIzIOaRqeaJmOi9pg0KMjQg5rG96L2m6YWN5Lu2
+DQoyNSDpo5/lk4ENCjI2IOmZtueTtw0KMjcg6ZOB55+zDQoyOCDnjqnlhbcNCjI5IOWNq+a1tA0K
+MzAg5LqU6YeRDQozMSDlsI/lnovmnLrmorANCjMyIOmeiw0KMzMg5LyR6Zey55So5ZOBDQozNCDl
+jLvnlpcNCjM1IOa1tOWupOS6p+WTgQ0KMzYg5Zut5p6XDQozNyDnhafmmI7kuqflk4ENCjM4IOmS
+n+ihqOecvOmVnA0KMzkg6Ieq6KGM6L2mDQo0MCDljIUNCg0KDQrmlrDpspzmlbDmja4t5oiQ5Y2V
+546H5p6B6auYDQrmlrDpspzmlbDmja4t5oiQ5Y2V546H5p6B6auYDQrmlrDpspzmlbDmja4t5oiQ
+5Y2V546H5p6B6auYDQrmlrDpspzmlbDmja4t5oiQ5Y2V546H5p6B6auYDQrmlrDpspzmlbDmja4t
+5oiQ5Y2V546H5p6B6auYDQo=
 
 
---=20
-Best Regards
-Tianyu Lan
-linux kernel enabling team
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
