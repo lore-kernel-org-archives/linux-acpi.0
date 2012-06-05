@@ -1,84 +1,121 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [GIT PULL] ACPI & Power Management Patches for Linux-3.5-rc1
-Date: Mon, 04 Jun 2012 11:34:35 -0400
-Message-ID: <4FCCD58B.30000@kernel.org>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [PATCH v4 5/6] ACPI: Add _OST support for ACPI container hotplug
+Date: Tue, 05 Jun 2012 13:39:49 +0900
+Message-ID: <4FCD8D95.1060700@jp.fujitsu.com>
+References: <1337826324-16802-1-git-send-email-toshi.kani@hp.com> <1337826324-16802-6-git-send-email-toshi.kani@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-2022-JP
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qa0-f46.google.com ([209.85.216.46]:36418 "EHLO
-	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752716Ab2FDPek (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Jun 2012 11:34:40 -0400
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:35296 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750899Ab2FEEkE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Jun 2012 00:40:04 -0400
+In-Reply-To: <1337826324-16802-6-git-send-email-toshi.kani@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, bhelgaas@google.com, shuahkhan@gmail.com, liuj97@gmail.com, andi@firstfloor.org, linux-kernel@vger.kernel.org
 
-Hi Linus,
+Hi Toshi,
 
-Please pull these ACPI & Power Management bug fixes.
+2012/05/24 11:25, Toshi Kani wrote:
+> Changed container_notify_cb() to call ACPI _OST method when ACPI
+> container hotplug operation has completed. Slightly restructured
+> the code with the same logic. The function sets eject_pending bit
+> for an eject request since it does not initiate hot-remove operation.
+> This bit is checked by the sysfs eject handler to determine if the
+> request is originated from an ACPI eject notification.
+> 
+> Signed-off-by: Toshi Kani<toshi.kani@hp.com>
+> ---
+>   drivers/acpi/container.c |   43 ++++++++++++++++++++++++++++---------------
+>   1 files changed, 28 insertions(+), 15 deletions(-)
+> 
+> diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
+> index 45cd03b..1f9f7d7 100644
+> --- a/drivers/acpi/container.c
+> +++ b/drivers/acpi/container.c
+> @@ -158,9 +158,7 @@ static void container_notify_cb(acpi_handle handle, u32 type, void *context)
+>   	int result;
+>   	int present;
+>   	acpi_status status;
+> -
+> -
+> -	present = is_device_present(handle);
+> +	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE; /* default */
+> 
+>   	switch (type) {
+>   	case ACPI_NOTIFY_BUS_CHECK:
+> @@ -169,32 +167,47 @@ static void container_notify_cb(acpi_handle handle, u32 type, void *context)
+>   		printk(KERN_WARNING "Container driver received %s event\n",
+>   		       (type == ACPI_NOTIFY_BUS_CHECK) ?
+>   		       "ACPI_NOTIFY_BUS_CHECK" : "ACPI_NOTIFY_DEVICE_CHECK");
+> +
+> +		present = is_device_present(handle);
+>   		status = acpi_bus_get_device(handle,&device);
+> -		if (present) {
+> -			if (ACPI_FAILURE(status) || !device) {
+> -				result = container_device_add(&device, handle);
+> -				if (!result)
+> -					kobject_uevent(&device->dev.kobj,
+> -						       KOBJ_ONLINE);
+> -				else
+> -					printk(KERN_WARNING
+> -					       "Failed to add container\n");
+> -			}
+> -		} else {
+> +		if (!present) {
+>   			if (ACPI_SUCCESS(status)) {
+>   				/* device exist and this is a remove request */
+> +				device->flags.eject_pending = 1;
+>   				kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
+> +				return;
+>   			}
+> +			break;
+> +		}
+> +
 
-thanks!
-Len Brown, Intel Open Source Technology Center
+> +		if (!ACPI_FAILURE(status) || device)
+> +			break;
 
-The following changes since commit f8f5701bdaf9134b1f90e5044a82c66324d2073f:
+The logic is not same as previous logic.
+I think the following logic is correct.
 
-  Linux 3.5-rc1 (2012-06-02 18:29:26 -0700)
+		if (!ACPI_FAILURE(status) && device)
+			break;
+Thanks,
+Yasuaki Ishimatsu
 
-are available in the git repository at:
+> +
+> +		result = container_device_add(&device, handle);
+> +		if (result) {
+> +			printk(KERN_WARNING "Failed to add container\n");
+> +			break;
+>   		}
+> +
+> +		kobject_uevent(&device->dev.kobj, KOBJ_ONLINE);
+> +		ost_code = ACPI_OST_SC_SUCCESS;
+>   		break;
+> +
+>   	case ACPI_NOTIFY_EJECT_REQUEST:
+>   		if (!acpi_bus_get_device(handle,&device)&&  device) {
+> +			device->flags.eject_pending = 1;
+>   			kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
+> +			return;
+>   		}
+>   		break;
+> +
+>   	default:
+> -		break;
+> +		/* non-hotplug event; possibly handled by other handler */
+> +		return;
+>   	}
+> +
+> +	/* Inform firmware that the hotplug operation has completed */
+> +	(void) acpi_evaluate_hotplug_ost(handle, type, ost_code, NULL);
+>   	return;
+>   }
+> 
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux.git release
 
-for you to fetch changes up to d3514abcf5b896a3a66d8b7c960a0018a52ebc2c:
-
-  Merge branches 'bugfix-battery', 'bugfix-misc', 'bugfix-rafael', 'bugfix-turbostat', 'bugfix-video' and 'workaround-pss' into release (2012-06-04 00:48:41 -0400)
-
-----------------------------------------------------------------
-
-Alan Cox (3):
-      acpi_video: fix leaking PCI references
-      acpi_video: Intel video is not always i915
-      gma500: don't register the ACPI video bus
-
-Andy Whitcroft (1):
-      ACPI battery: only refresh the sysfs files when pertinent information changes
-
-Dan Carpenter (1):
-      ACPI video: use after input_unregister_device()
-
-Daniel Drake (2):
-      ACPI / PM: Generate wakeup events on fixed power button
-      rtc-cmos / PM: report wakeup event on ACPI RTC alarm
-
-Fabio Estevam (1):
-      drivers: acpi: Fix dependency for ACPI_HOTPLUG_CPU
-
-Len Brown (5):
-      tools/power turbostat: fix un-intended affinity of forked program
-      tools/power turbostat: fix IVB support
-      ACPI: fix acpi_bus.h build warnings when ACPI is not enabled
-      Merge branch 'upstream' into bugfix-video
-      Merge branches 'bugfix-battery', 'bugfix-misc', 'bugfix-rafael', 'bugfix-turbostat', 'bugfix-video' and 'workaround-pss' into release
-
-Marco Aurelio da Costa (1):
-      ACPI: Ignore invalid _PSS entries, but use valid ones
-
-Rafael J. Wysocki (3):
-      ACPI / PM: Fix error messages in drivers/acpi/bus.c
-      ACPI / PM: Make __acpi_bus_get_power() cover D3cold correctly
-      ACPI / PM: Make acpi_pm_device_sleep_state() follow the specification
-
- drivers/acpi/Kconfig                  |  2 +-
- drivers/acpi/battery.c                | 10 +++-
- drivers/acpi/bus.c                    | 88 +++++++++++++++++++++++------------
- drivers/acpi/power.c                  |  2 +-
- drivers/acpi/processor_perflib.c      | 30 ++++++++++--
- drivers/acpi/scan.c                   |  1 +
- drivers/acpi/sleep.c                  | 49 +++++++++++++++++--
- drivers/acpi/video.c                  | 33 ++++++++-----
- drivers/gpu/drm/gma500/psb_drv.c      |  3 +-
- drivers/rtc/rtc-cmos.c                |  9 ++--
- include/acpi/acpi_bus.h               |  4 +-
- tools/power/x86/turbostat/turbostat.c | 30 +++++++++++-
- 12 files changed, 199 insertions(+), 62 deletions(-)
