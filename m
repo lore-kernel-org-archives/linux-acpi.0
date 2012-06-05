@@ -1,133 +1,40 @@
-From: "Kani, Toshimitsu" <toshi.kani@hp.com>
-Subject: Re: [PATCH v4 5/6] ACPI: Add _OST support for ACPI container hotplug
-Date: Tue, 5 Jun 2012 15:36:24 +0000
-Message-ID: <45D38E03-0465-42A1-AEB3-4D120FFF66DC@hp.com>
-References: <1337826324-16802-1-git-send-email-toshi.kani@hp.com>
- <1337826324-16802-6-git-send-email-toshi.kani@hp.com>,<4FCD8D95.1060700@jp.fujitsu.com>
+From: Sarah Sharp <sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [RFC PATCH V3 3/3] usb : Add sysfs files to control usb port's
+ power
+Date: Tue, 5 Jun 2012 08:58:40 -0700
+Message-ID: <20120605155840.GB7534@xanatos>
+References: <4FCDC3BB.50809@intel.com>
+ <Pine.LNX.4.44L0.1206051017040.1542-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4FCD8D95.1060700@jp.fujitsu.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "bhelgaas@google.com" <bhelgaas@google.com>, "shuahkhan@gmail.com" <shuahkhan@gmail.com>, "liuj97@gmail.com" <liuj97@gmail.com>, "andi@firstfloor.org" <andi@firstfloor.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44L0.1206051017040.1542-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Cc: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Jun 4, 2012, at 9:40 PM, "Yasuaki Ishimatsu" <isimatu.yasuaki@jp.fujitsu.com> wrote:
+On Tue, Jun 05, 2012 at 10:18:50AM -0400, Alan Stern wrote:
+> On Tue, 5 Jun 2012, Lan Tianyu wrote:
+> 
+> > > The patch does not implement anything at all for "auto".  It should do
+> > > _something_.
+> > >
+> > Yeah, if we don't power off port without device when echo "auto" > portX/control,
+> > this patch does nothing about "auto". Original plan is to deal with port without
+> > devices firstly. Do you mean I should add the process of port with device in this
+> > patch?
+> 
+> At least make a start.  For example, have "auto" turn off the power if
+> no device is attached to the port.
 
-> Hi Toshi,
-> 
-> 2012/05/24 11:25, Toshi Kani wrote:
->> Changed container_notify_cb() to call ACPI _OST method when ACPI
->> container hotplug operation has completed. Slightly restructured
->> the code with the same logic. The function sets eject_pending bit
->> for an eject request since it does not initiate hot-remove operation.
->> This bit is checked by the sysfs eject handler to determine if the
->> request is originated from an ACPI eject notification.
->> 
->> Signed-off-by: Toshi Kani<toshi.kani@hp.com>
->> ---
->>  drivers/acpi/container.c |   43 ++++++++++++++++++++++++++++---------------
->>  1 files changed, 28 insertions(+), 15 deletions(-)
->> 
->> diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
->> index 45cd03b..1f9f7d7 100644
->> --- a/drivers/acpi/container.c
->> +++ b/drivers/acpi/container.c
->> @@ -158,9 +158,7 @@ static void container_notify_cb(acpi_handle handle, u32 type, void *context)
->>      int result;
->>      int present;
->>      acpi_status status;
->> -
->> -
->> -    present = is_device_present(handle);
->> +    u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE; /* default */
->> 
->>      switch (type) {
->>      case ACPI_NOTIFY_BUS_CHECK:
->> @@ -169,32 +167,47 @@ static void container_notify_cb(acpi_handle handle, u32 type, void *context)
->>          printk(KERN_WARNING "Container driver received %s event\n",
->>                 (type == ACPI_NOTIFY_BUS_CHECK) ?
->>                 "ACPI_NOTIFY_BUS_CHECK" : "ACPI_NOTIFY_DEVICE_CHECK");
->> +
->> +        present = is_device_present(handle);
->>          status = acpi_bus_get_device(handle,&device);
->> -        if (present) {
->> -            if (ACPI_FAILURE(status) || !device) {
->> -                result = container_device_add(&device, handle);
->> -                if (!result)
->> -                    kobject_uevent(&device->dev.kobj,
->> -                               KOBJ_ONLINE);
->> -                else
->> -                    printk(KERN_WARNING
->> -                           "Failed to add container\n");
->> -            }
->> -        } else {
->> +        if (!present) {
->>              if (ACPI_SUCCESS(status)) {
->>                  /* device exist and this is a remove request */
->> +                device->flags.eject_pending = 1;
->>                  kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
->> +                return;
->>              }
->> +            break;
->> +        }
->> +
-> 
->> +        if (!ACPI_FAILURE(status) || device)
->> +            break;
-> 
-> The logic is not same as previous logic.
-> I think the following logic is correct.
-> 
->        if (!ACPI_FAILURE(status) && device)
->            break;
+Auto should only turn off power if no device is attached to the port
+*and* we know it's an internal port through ACPI.  Don't forget that
+we'll lose port connect events when the power is off.
 
-Hi Yasuaki,
-
-Great catch! You are right about that. Now the question is what this code should do when the call failed but the device gets set. This is rather hypothetical case, but I think it is safer to fail a hot add request whenever the device is set. What do you think?
-
-Thanks,
--Toshi
-
-> Thanks,
-> Yasuaki Ishimatsu
-> 
->> +
->> +        result = container_device_add(&device, handle);
->> +        if (result) {
->> +            printk(KERN_WARNING "Failed to add container\n");
->> +            break;
->>          }
->> +
->> +        kobject_uevent(&device->dev.kobj, KOBJ_ONLINE);
->> +        ost_code = ACPI_OST_SC_SUCCESS;
->>          break;
->> +
->>      case ACPI_NOTIFY_EJECT_REQUEST:
->>          if (!acpi_bus_get_device(handle,&device)&&  device) {
->> +            device->flags.eject_pending = 1;
->>              kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
->> +            return;
->>          }
->>          break;
->> +
->>      default:
->> -        break;
->> +        /* non-hotplug event; possibly handled by other handler */
->> +        return;
->>      }
->> +
->> +    /* Inform firmware that the hotplug operation has completed */
->> +    (void) acpi_evaluate_hotplug_ost(handle, type, ost_code, NULL);
->>      return;
->>  }
->> 
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sarah Sharp
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
