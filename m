@@ -1,44 +1,67 @@
-From: Tony Zelenoff <antonz@parallels.com>
-Subject: [PATCH] acpi: resource conflict check must handle disabled state
-Date: Fri, 8 Jun 2012 14:51:31 +0400
-Message-ID: <1339152691-26840-1-git-send-email-antonz@parallels.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: [RFC 1/4] cpuidle: define the enter function in the driver structure
+Date: Fri,  8 Jun 2012 18:02:42 +0200
+Message-ID: <1339171365-4098-1-git-send-email-daniel.lezcano@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from relay.parallels.com ([195.214.232.42]:57997 "EHLO
-	relay.parallels.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755312Ab2FHKvc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Jun 2012 06:51:32 -0400
+Received: from mail-we0-f174.google.com ([74.125.82.174]:60637 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933070Ab2FHQCt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Jun 2012 12:02:49 -0400
+Received: by weyu7 with SMTP id u7so699168wey.19
+        for <linux-acpi@vger.kernel.org>; Fri, 08 Jun 2012 09:02:47 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: lenb@kernel.org, antonz@parallels.com
+To: lenb@kernel.org
+Cc: linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-dev@lists.linaro.org
 
-If acpi disabled via kernel parameter, then resource checks
-should report no conflicts instead of reporting error.
+We have the state index passed as parameter to the 'enter' function.
+Most of the drivers assign their 'enter' functions several times in
+the cpuidle_state structure, as we have the index, we can delegate
+to the driver to handle their own callback array.
 
-kernel log error sample:
-ACPI Exception: AE_BAD_PARAMETER, Thread 920463680 could not acquire
-Mutex [0x1] (20120320/utmutex-276)
+That will have the benefit of removing multiple lines of code in the
+different drivers.
 
-Signed-off-by: Tony Zelenoff <antonz@parallels.com>
+In order to smoothly modify the driver, the 'enter' function are in
+the driver structure and in the cpuidle state structure. That will
+let the time to modify the different drivers one by one.
+So the 'cpuidle_enter' function checks if the 'enter' callback is
+assigned in the driver structure and use it, otherwise it invokes
+the 'enter' assigned to the cpuidle_state.
+
+Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
 ---
- drivers/acpi/osl.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ drivers/cpuidle/cpuidle.c |    4 +++-
+ include/linux/cpuidle.h   |    1 +
+ 2 files changed, 4 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index c3881b2..a05baa1 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -1360,6 +1360,8 @@ int acpi_check_resource_conflict(const struct resource *res)
- 	u8 warn = 0;
- 	int clash = 0;
+diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
+index d90519c..155dee7 100644
+--- a/drivers/cpuidle/cpuidle.c
++++ b/drivers/cpuidle/cpuidle.c
+@@ -46,7 +46,9 @@ static inline int cpuidle_enter(struct cpuidle_device *dev,
+ 				struct cpuidle_driver *drv, int index)
+ {
+ 	struct cpuidle_state *target_state = &drv->states[index];
+-	return target_state->enter(dev, drv, index);
++
++	return drv->enter(dev, drv, index) ? drv->enter(dev, drv, index) :
++		target_state->enter(dev, drv, index);
+ }
  
-+	if (acpi_disabled)
-+		return 0;
- 	if (acpi_enforce_resources == ENFORCE_RESOURCES_NO)
- 		return 0;
- 	if (!(res->flags & IORESOURCE_IO) && !(res->flags & IORESOURCE_MEM))
+ static inline int cpuidle_enter_tk(struct cpuidle_device *dev,
+diff --git a/include/linux/cpuidle.h b/include/linux/cpuidle.h
+index 6c26a3d..d82e169 100644
+--- a/include/linux/cpuidle.h
++++ b/include/linux/cpuidle.h
+@@ -130,6 +130,7 @@ struct cpuidle_driver {
+ 	struct cpuidle_state	states[CPUIDLE_STATE_MAX];
+ 	int			state_count;
+ 	int			safe_state_index;
++	int (*enter)(struct cpuidle_device *, struct cpuidle_driver *, int);
+ };
+ 
+ #ifdef CONFIG_CPU_IDLE
 -- 
-1.7.1
+1.7.5.4
 
