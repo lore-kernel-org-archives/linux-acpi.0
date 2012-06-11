@@ -1,123 +1,91 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [RFC PATCH 4/12] thermal: introduce .get_trend()
-	callback
-Date: Tue, 12 Jun 2012 12:59:39 +0800
-Message-ID: <1339477179.1492.213.camel@rui.sh.intel.com>
-References: <1339384806.1492.157.camel@rui.sh.intel.com>
-	<20120611095443.GB3649@besouro>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <20120611095443.GB3649@besouro>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: eduardo.valentin@ti.com
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>
+From: Durgadoss R <durgadoss.r@intel.com>
+Subject: [PATCH 0/4] Thermal Framework Enhancements
+Date: Mon, 11 Jun 2012 23:09:30 +0530
+Message-ID: <1339436374-26881-1-git-send-email-durgadoss.r@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:45134 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752049Ab2FLFW2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 Jun 2012 01:22:28 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org, rui.zhang@intel.com
+Cc: linux-acpi@vger.kernel.org, eduardo.valentin@ti.com, amit.kachhap@linaro.org, Durgadoss R <durgadoss.r@intel.com>
 
-T24g5LiALCAyMDEyLTA2LTExIGF0IDEyOjU0ICswMzAwLCBFZHVhcmRvIFZhbGVudGluIHdyb3Rl
-Ogo+IEhlbGxvIFJ1aSwKPiAKPiBPbiBNb24sIEp1biAxMSwgMjAxMiBhdCAxMToyMDowNkFNICsw
-ODAwLCBaaGFuZyBSdWkgd3JvdGU6Cj4gPiAKPiA+IHRjMSBhbmQgdGMyIGFyZSBBQ1BJIHBsYXRm
-b3JtIHNwZWNpZmljIGNvbmNlcHRzLCBpbnRyb2R1Y2UKPiA+IC5nZXRfdHJlbmQoKSBhcyBhIG1v
-cmUgZ2VuZXJhbCBzb2x1dGlvbi4KPiA+IAo+ID4gCj4gPiBTaWduZWQtb2ZmLWJ5OiBaaGFuZyBS
-dWkgPHJ1aS56aGFuZ0BpbnRlbC5jb20+Cj4gPiAtLS0KPiA+ICBkcml2ZXJzL2FjcGkvdGhlcm1h
-bC5jICAgICAgICB8ICAgMzIgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysKPiA+ICBk
-cml2ZXJzL3RoZXJtYWwvdGhlcm1hbF9zeXMuYyB8ICAgMTkgKysrKysrKysrKysrKysrKystLQo+
-ID4gIGluY2x1ZGUvbGludXgvdGhlcm1hbC5oICAgICAgIHwgICAgOSArKysrKysrKysKPiA+ICAz
-IGZpbGVzIGNoYW5nZWQsIDU4IGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pCj4gPiAKPiA+
-IEluZGV4OiBydGQzL2RyaXZlcnMvYWNwaS90aGVybWFsLmMKPiA+ID09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KPiA+IC0t
-LSBydGQzLm9yaWcvZHJpdmVycy9hY3BpL3RoZXJtYWwuYwo+ID4gKysrIHJ0ZDMvZHJpdmVycy9h
-Y3BpL3RoZXJtYWwuYwo+ID4gQEAgLTcwNiw2ICs3MDYsMzcgQEAgc3RhdGljIGludCB0aGVybWFs
-X2dldF9jcml0X3RlbXAoc3RydWN0Cj4gPiAgCQlyZXR1cm4gLUVJTlZBTDsKPiA+ICB9Cj4gPiAg
-Cj4gPiArc3RhdGljIGludCB0aGVybWFsX2dldF90cmVuZChzdHJ1Y3QgdGhlcm1hbF96b25lX2Rl
-dmljZSAqdGhlcm1hbCwKPiA+ICsJCQkJaW50IHRyaXAsIGVudW0gdGhlcm1hbF90cmVuZCAqdHJl
-bmQpCj4gPiArewo+ID4gKwlzdHJ1Y3QgYWNwaV90aGVybWFsICp0eiA9IHRoZXJtYWwtPmRldmRh
-dGE7Cj4gPiArCWVudW0gdGhlcm1hbF90cmlwX3R5cGUgdHlwZTsKPiA+ICsJdW5zaWduZWQgbG9u
-ZyB0cmlwX3RlbXA7Cj4gPiArCWludCBpOwo+ID4gKwo+ID4gKwlpZiAodGhlcm1hbF9nZXRfdHJp
-cF90eXBlKHRoZXJtYWwsIHRyaXAsICZ0eXBlKSkKPiA+ICsJCXJldHVybiAtRUlOVkFMOwo+ID4g
-Kwo+ID4gKwkvKiBPbmx5IFBBU1NJVkUgdHJpcCBwb2ludHMgbmVlZCBUUkVORCAqLwo+ID4gKwlp
-ZiAodHlwZSAhPSBUSEVSTUFMX1RSSVBfUEFTU0lWRSkKPiA+ICsJCXJldHVybiAtRUlOVkFMOwo+
-ID4gKwo+ID4gKwlpZiAodGhlcm1hbF9nZXRfdHJpcF90ZW1wKHRoZXJtYWwsIHRyaXAsICZ0cmlw
-X3RlbXApKQo+ID4gKwkJcmV0dXJuIC1FSU5WQUw7Cj4gPiArCj4gPiArCS8qCj4gPiArCSAqIHR6
-LT50ZW1wZXJhdHVyZSBoYXMgYWxyZWFkeSBiZWVuIHVwZGF0ZWQgYnkgZ2VuZXJpYyB0aGVybWFs
-IGxheWVyLAo+ID4gKwkgKiBiZWZvcmUgdGhpcyBjYWxsYmFjayBiZWluZyBpbnZva2VkCj4gPiAr
-CSAqLwo+ID4gKwlpID0gKHR6LT50cmlwcy5wYXNzaXZlLnRjMSAqICh0ei0+dGVtcGVyYXR1cmUg
-LSB0ei0+bGFzdF90ZW1wZXJhdHVyZSkpCj4gPiArCQkrICh0ei0+dHJpcHMucGFzc2l2ZS50YzIg
-KiAodHotPnRlbXBlcmF0dXJlIC0gdHJpcF90ZW1wKSk7Cj4gPiArCj4gPiArCSp0cmVuZCA9IGkg
-PiAwID8gVEhFUk1BTF9UUkVORF9SQUlTSU5HIDoKPiA+ICsJCShpIDwgMCA/IFRIRVJNQUxfVFJF
-TkRfRFJPUFBJTkcgOiBUSEVSTUFMX1RSRU5EX05PTkUpOwo+ID4gKwlyZXR1cm4gMDsKPiA+ICt9
-Cj4gPiArCj4gPiArCj4gPiAgc3RhdGljIGludCB0aGVybWFsX25vdGlmeShzdHJ1Y3QgdGhlcm1h
-bF96b25lX2RldmljZSAqdGhlcm1hbCwgaW50IHRyaXAsCj4gPiAgCQkJICAgZW51bSB0aGVybWFs
-X3RyaXBfdHlwZSB0cmlwX3R5cGUpCj4gPiAgewo+ID4gQEAgLTgzNSw2ICs4NjYsNyBAQCBzdGF0
-aWMgY29uc3Qgc3RydWN0IHRoZXJtYWxfem9uZV9kZXZpY2VfCj4gPiAgCS5nZXRfdHJpcF90eXBl
-ID0gdGhlcm1hbF9nZXRfdHJpcF90eXBlLAo+ID4gIAkuZ2V0X3RyaXBfdGVtcCA9IHRoZXJtYWxf
-Z2V0X3RyaXBfdGVtcCwKPiA+ICAJLmdldF9jcml0X3RlbXAgPSB0aGVybWFsX2dldF9jcml0X3Rl
-bXAsCj4gPiArCS5nZXRfdHJlbmQgPSB0aGVybWFsX2dldF90cmVuZCwKPiA+ICAJLm5vdGlmeSA9
-IHRoZXJtYWxfbm90aWZ5LAo+ID4gIH07Cj4gPiAgCj4gPiBJbmRleDogcnRkMy9kcml2ZXJzL3Ro
-ZXJtYWwvdGhlcm1hbF9zeXMuYwo+ID4gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQo+ID4gLS0tIHJ0ZDMub3JpZy9kcml2
-ZXJzL3RoZXJtYWwvdGhlcm1hbF9zeXMuYwo+ID4gKysrIHJ0ZDMvZHJpdmVycy90aGVybWFsL3Ro
-ZXJtYWxfc3lzLmMKPiA+IEBAIC02NTcsNiArNjU3LDE4IEBAIHRoZXJtYWxfcmVtb3ZlX2h3bW9u
-X3N5c2ZzKHN0cnVjdCB0aGVybWEKPiA+ICB9Cj4gPiAgI2VuZGlmCj4gPiAgCj4gPiArc3RhdGlj
-IHZvaWQgdGhlcm1hbF9nZXRfdHJlbmQgKHN0cnVjdCB0aGVybWFsX3pvbmVfZGV2aWNlICp0eiwK
-PiA+ICsJCWludCB0cmlwLCBlbnVtIHRoZXJtYWxfdHJlbmQgKnRyZW5kKQo+ID4gK3sKPiA+ICsJ
-aWYgKHR6LT5vcHMtPmdldF90cmVuZCkKPiA+ICsJCWlmICghdHotPm9wcy0+Z2V0X3RyZW5kKHR6
-LCB0cmlwLCB0cmVuZCkpCj4gPiArCQkJcmV0dXJuOwo+ID4gKwo+ID4gKwkqdHJlbmQgPSB0ei0+
-dGVtcGVyYXR1cmUgPj0gdHotPmxhc3RfdGVtcGVyYXR1cmUgPwo+ID4gKwkJIFRIRVJNQUxfVFJF
-TkRfUkFJU0lORyA6IFRIRVJNQUxfVFJFTkRfRFJPUFBJTkc7Cj4gPiArCXJldHVybjsKPiA+ICt9
-Cj4gPiArCj4gPiAgc3RhdGljIHZvaWQgdGhlcm1hbF96b25lX2RldmljZV9zZXRfcG9sbGluZyhz
-dHJ1Y3QgdGhlcm1hbF96b25lX2RldmljZSAqdHosCj4gPiAgCQkJCQkgICAgaW50IGRlbGF5KQo+
-ID4gIHsKPiA+IEBAIC02OTEsNiArNzAzLDggQEAgc3RhdGljIHZvaWQgdGhlcm1hbF96b25lX2Rl
-dmljZV9wYXNzaXZlKAo+ID4gIAlpZiAodGVtcCA+PSB0cmlwX3RlbXApIHsKPiA+ICAJCXR6LT5w
-YXNzaXZlID0gdHJ1ZTsKPiA+ICAKPiA+ICsJCXRoZXJtYWxfZ2V0X3RyZW5kKHR6LCB0cmlwLCAo
-ZW51bSB0aGVybWFsX3RyZW5kICopJnRyZW5kKTsKPiA+ICsKPiA+ICAJCXRyZW5kID0gKHR6LT50
-YzEgKiAodGVtcCAtIHR6LT5sYXN0X3RlbXBlcmF0dXJlKSkgKwo+ID4gIAkJCSh0ei0+dGMyICog
-KHRlbXAgLSB0cmlwX3RlbXApKTsKPiA+ICAKPiA+IEBAIC0xMDQ5LDYgKzEwNjMsOSBAQCB2b2lk
-IHRoZXJtYWxfem9uZV9kZXZpY2VfdXBkYXRlKHN0cnVjdCB0Cj4gPiAgCQlnb3RvIGxlYXZlOwo+
-ID4gIAl9Cj4gPiAgCj4gPiArCXR6LT5sYXN0X3RlbXBlcmF0dXJlID0gdHotPnRlbXBlcmF0dXJl
-Owo+ID4gKwl0ei0+dGVtcGVyYXR1cmUgPSB0ZW1wOwo+ID4gKwo+ID4gIAlmb3IgKGNvdW50ID0g
-MDsgY291bnQgPCB0ei0+dHJpcHM7IGNvdW50KyspIHsKPiA+ICAJCXR6LT5vcHMtPmdldF90cmlw
-X3R5cGUodHosIGNvdW50LCAmdHJpcF90eXBlKTsKPiA+ICAJCXR6LT5vcHMtPmdldF90cmlwX3Rl
-bXAodHosIGNvdW50LCAmdHJpcF90ZW1wKTsKPiA+IEBAIC0xMTA4LDggKzExMjUsNiBAQCB2b2lk
-IHRoZXJtYWxfem9uZV9kZXZpY2VfdXBkYXRlKHN0cnVjdCB0Cj4gPiAgCQl0aGVybWFsX3pvbmVf
-ZGV2aWNlX3Bhc3NpdmUodHosIHRlbXAsIHR6LT5mb3JjZWRfcGFzc2l2ZSwKPiA+ICAJCQkJCSAg
-ICBUSEVSTUFMX1RSSVBTX05PTkUpOwo+ID4gIAo+ID4gLQl0ei0+bGFzdF90ZW1wZXJhdHVyZSA9
-IHRlbXA7Cj4gPiAtCj4gPiAgbGVhdmU6Cj4gPiAgCWlmICh0ei0+cGFzc2l2ZSkKPiA+ICAJCXRo
-ZXJtYWxfem9uZV9kZXZpY2Vfc2V0X3BvbGxpbmcodHosIHR6LT5wYXNzaXZlX2RlbGF5KTsKPiA+
-IEluZGV4OiBydGQzL2luY2x1ZGUvbGludXgvdGhlcm1hbC5oCj4gPiA9PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Cj4gPiAt
-LS0gcnRkMy5vcmlnL2luY2x1ZGUvbGludXgvdGhlcm1hbC5oCj4gPiArKysgcnRkMy9pbmNsdWRl
-L2xpbnV4L3RoZXJtYWwuaAo+ID4gQEAgLTQ0LDYgKzQ0LDEyIEBAIGVudW0gdGhlcm1hbF90cmlw
-X3R5cGUgewo+ID4gIAlUSEVSTUFMX1RSSVBfQ1JJVElDQUwsCj4gPiAgfTsKPiA+ICAKPiA+ICtl
-bnVtIHRoZXJtYWxfdHJlbmQgewo+ID4gKwlUSEVSTUFMX1RSRU5EX05PTkUsCj4gPiArCVRIRVJN
-QUxfVFJFTkRfUkFJU0lORywKPiA+ICsJVEhFUk1BTF9UUkVORF9EUk9QUElORywKPiA+ICt9Owo+
-ID4gKwo+IAo+IE5pcDogQ2FuIHlvdSBwbGVhc2UgYWRkIHNvbWUgZG9jIGZvciB0aGUgZXhwZWN0
-ZWQgZGVmaW5pdGlvbiBmb3IgYWxsIGVudW0gZW50cmllcyBhYm92ZT8KPiBJcyBUUkVORF9OT05F
-IHN1cHBvc2VkIHRvIG1lYW4gIlN0YWJsZSIsIGZvciBpbnN0YW5jZT8KPiAKeWVwLiBUUkVORF9T
-VEFCTEUgc291bmRzIGJldHRlci4gSSdtIG5vdCBnb29kIGF0IG5hbWluZy4KCnRoYW5rcywKcnVp
-Cj4gPiAgc3RydWN0IHRoZXJtYWxfem9uZV9kZXZpY2Vfb3BzIHsKPiA+ICAJaW50ICgqYmluZCkg
-KHN0cnVjdCB0aGVybWFsX3pvbmVfZGV2aWNlICosCj4gPiAgCQkgICAgIHN0cnVjdCB0aGVybWFs
-X2Nvb2xpbmdfZGV2aWNlICopOwo+ID4gQEAgLTU5LDYgKzY1LDggQEAgc3RydWN0IHRoZXJtYWxf
-em9uZV9kZXZpY2Vfb3BzIHsKPiA+ICAJaW50ICgqZ2V0X3RyaXBfdGVtcCkgKHN0cnVjdCB0aGVy
-bWFsX3pvbmVfZGV2aWNlICosIGludCwKPiA+ICAJCQkgICAgICB1bnNpZ25lZCBsb25nICopOwo+
-ID4gIAlpbnQgKCpnZXRfY3JpdF90ZW1wKSAoc3RydWN0IHRoZXJtYWxfem9uZV9kZXZpY2UgKiwg
-dW5zaWduZWQgbG9uZyAqKTsKPiA+ICsJaW50ICgqZ2V0X3RyZW5kKSAoc3RydWN0IHRoZXJtYWxf
-em9uZV9kZXZpY2UgKiwgaW50LAo+ID4gKwkJCSAgZW51bSB0aGVybWFsX3RyZW5kICopOwo+ID4g
-IAlpbnQgKCpub3RpZnkpIChzdHJ1Y3QgdGhlcm1hbF96b25lX2RldmljZSAqLCBpbnQsCj4gPiAg
-CQkgICAgICAgZW51bSB0aGVybWFsX3RyaXBfdHlwZSk7Cj4gPiAgfTsKPiA+IEBAIC05NSw2ICsx
-MDMsNyBAQCBzdHJ1Y3QgdGhlcm1hbF96b25lX2RldmljZSB7Cj4gPiAgCWludCB0YzI7Cj4gPiAg
-CWludCBwYXNzaXZlX2RlbGF5Owo+ID4gIAlpbnQgcG9sbGluZ19kZWxheTsKPiA+ICsJaW50IHRl
-bXBlcmF0dXJlOwo+ID4gIAlpbnQgbGFzdF90ZW1wZXJhdHVyZTsKPiA+ICAJYm9vbCBwYXNzaXZl
-Owo+ID4gIAl1bnNpZ25lZCBpbnQgZm9yY2VkX3Bhc3NpdmU7Cj4gPiAKPiA+IAoKCl9fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LXBtIG1haWxpbmcg
-bGlzdApsaW51eC1wbUBsaXN0cy5saW51eC1mb3VuZGF0aW9uLm9yZwpodHRwczovL2xpc3RzLmxp
-bnV4Zm91bmRhdGlvbi5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1wbQ==
+This patch series attempts to add some simple governors/
+throttling algorithms to the generic thermal layer.
+Although this patch set creates simple governors which depend
+on the platform data provided, we can start here, and write
+some really smart algorithms that will do the wonder!!
+
+Patch 1/4: Creates necessary infrastructure required to
+	   add throttling algorithms in thermal_sys.c
+	   1. Introduces the get_trend callback
+	   2. Introduces the notify_thermal_framework() API
+	   3. Exposes sysfs to show/store the throttle_policy
+
+Patch 2/4: Introduce fair_share governor
+	   This throttles the cooling_devices according to their
+	   weights (and hence the name; Suggestion are welcome :-).
+	   The weights in turn describe the effectiveness of a
+	   particular cooling device in cooling a thermal zone.
+
+Patch 3/4: Introduce step_wise governor
+	   This throttles/de-throttles the cooling devices one
+	   step at a time. This is exactly similar to the code
+	   we have in thermal_zone_device_update function. The
+	   intention is to move all 'throttling logic' related
+	   code outside thermal_sys.c and keep them separate.
+
+Patch 4/4: Platform data patch
+	   This patch is not for merge. Just as an example to
+	   show how we can provide platform data to thermal
+	   framework. Not that we do not know how to fill structures,
+	   I felt the patch set is in-complete without this. That's
+	   why it is here. From next versions, I will ignore this one.
+
+TODO on these patch sets:
+* Sync up with Rui's latest patches
+* Add more protection and tidy up the existing ones
+* Expose the weights and cooling devices through sysfs (Read-Only)
+* Remove all throttling related code(if we all agree) from thermal_sys.c
+* In fair_share, before setting new state, check if there are other zones,
+  which do not want the 'state' to be changed.
+  (To do this, we have to loop through the thermal_tz_list and 
+  thermal_cdev_list inside fair_share.c. Need to see how good it is
+  to make this lists public)
+* If we all agree, use step_wise and remove linear_throttle from thermal_sys.c
+* Enhance notify_user_space(), so that the use land can extract some sane
+  information out of UEvent.
+
+WishList:
+* Find a way to provide platform data so that we can map cooling devices
+  for a trip point in a thermal zone.
+* Make all _throttle methods have same signature. This way we can make use
+  of function pointers and make the code a bit simpler.
+* The simple governors heavily depend on the platform data provided. We
+  can think of some really smart logic, that depends on very minimal platform
+  data, and do things on its own :-)
+* Make other subsystem core files register with the thermal framework as a
+  thermal sensor or as a cooling device as appropriate.
+  (I am thinking of Power Supply, Video, cpufreq for now)
+* Ah, Find time to do all this !
+
+Durgadoss R (4):
+  RFC Thermal: Enhance Generic Thermal layer with policies
+  RFC Thermal: Introduce fair-share thermal governor
+  RFC Thermal: Introduce a step-wise thermal governor
+  RFC Thermal: Platform layer changes to provide thermal data
+
+ Documentation/thermal/sysfs-api.txt |   26 +++
+ arch/x86/platform/mrst/mrst.c       |   39 ++++
+ drivers/thermal/Kconfig             |   13 ++
+ drivers/thermal/Makefile            |    4 +-
+ drivers/thermal/fair_share.c        |  111 ++++++++++
+ drivers/thermal/step_wise.c         |   86 ++++++++
+ drivers/thermal/thermal_sys.c       |  383 ++++++++++++++++++++++++++---------
+ include/linux/thermal.h             |   55 +++++
+ 8 files changed, 620 insertions(+), 97 deletions(-)
+ create mode 100644 drivers/thermal/fair_share.c
+ create mode 100644 drivers/thermal/step_wise.c
+
