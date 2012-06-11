@@ -1,86 +1,126 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [RFC PATCH 7/12] thermal: rename structure
- thermal_cooling_device_instance to thermal_instance
-Date: Mon, 11 Jun 2012 14:21:36 +0800
-Message-ID: <1339395696.1492.179.camel@rui.sh.intel.com>
-References: <1339384821.1492.161.camel@rui.sh.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <1339384821.1492.161.camel@rui.sh.intel.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: linux-pm <linux-pm@lists.linux-foundation.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+From: Huang Ying <ying.huang@intel.com>
+Subject: [BUGFIX] ACPI, APEI, Avoid too much error reporting in runtime
+Date: Mon, 11 Jun 2012 14:23:42 +0800
+Message-ID: <1339395822-12032-1-git-send-email-ying.huang@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:62039 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751431Ab2FKGYA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 11 Jun 2012 02:24:00 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-kernel@vger.kernel.org, Tony Luck <tony.luck@intel.com>, ying.huang@intel.com, linux-acpi@vger.kernel.org, stable@vger.kernel.org
 
-c2VlbXMgdGhpcyBwYXRjaCBpcyBtaXNzZWQuIFJlc2VuZCBpdC4KCk9uIOS4gCwgMjAxMi0wNi0x
-MSBhdCAxMToyMCArMDgwMCwgWmhhbmcgUnVpIHdyb3RlOgo+IFJlbmFtZSBzdHJ1Y3R1cmUgdGhl
-cm1hbF9jb29saW5nX2RldmljZV9pbnN0YW5jZSB0byB0aGVybWFsX2luc3RhbmNlLgo+IAo+IFRo
-aXMgc3RydWN0IGlzIHVzZWQgdG8gZGVzY3JpYmUgdGhlIGJlaGF2aW9yIGZvciBhIHRoZXJtYWwK
-PiBjb29saW5nIGRldmljZSBvbiBhIGNlcnRhaW4gdHJpcCBwb2ludCBmb3IgYSBjZXJ0YWluIHRo
-cmVtYWwgem9uZS4KPiAKPiB0aGVybWFsX2Nvb2xpbmdfZGV2aWNlX2luc3RhbmNlIGlzIG5vdCBh
-Y2N1cmF0ZSwgYXMgYSBjb29saW5nIGRldmljZQo+IGNhbiBiZSB1c2VkIGZvciBtb3JlIHRoYW4g
-b25lIHRyaXAgcG9pbnQgaW4gb25lIHRoZXJtYWwgem9uZSBkZXZpY2UuCj4gCj4gU2lnbmVkLW9m
-Zi1ieTogWmhhbmcgUnVpIDxydWkuemhhbmdAaW50ZWwuY29tPgo+IC0tLQo+ICBkcml2ZXJzL3Ro
-ZXJtYWwvdGhlcm1hbF9zeXMuYyB8ICAgMTggKysrKysrKysrLS0tLS0tLS0tCj4gIDEgZmlsZSBj
-aGFuZ2VkLCA5IGluc2VydGlvbnMoKyksIDkgZGVsZXRpb25zKC0pCj4gCj4gSW5kZXg6IHJ0ZDMv
-ZHJpdmVycy90aGVybWFsL3RoZXJtYWxfc3lzLmMKPiA9PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Cj4gLS0tIHJ0ZDMub3Jp
-Zy9kcml2ZXJzL3RoZXJtYWwvdGhlcm1hbF9zeXMuYwo+ICsrKyBydGQzL2RyaXZlcnMvdGhlcm1h
-bC90aGVybWFsX3N5cy5jCj4gQEAgLTQ2LDcgKzQ2LDcgQEAgTU9EVUxFX0xJQ0VOU0UoIkdQTCIp
-Owo+ICAgKiBhIGNlcnRhaW4gY29vbGluZyBkZXZpY2Ugb24gYSBjZXJ0YWluIHRyaXAgcG9pbnQK
-PiAgICogaW4gYSBjZXJ0YWluIHRoZXJtYWwgem9uZQo+ICAgKi8KPiAtc3RydWN0IHRoZXJtYWxf
-Y29vbGluZ19kZXZpY2VfaW5zdGFuY2Ugewo+ICtzdHJ1Y3QgdGhlcm1hbF9pbnN0YW5jZSB7Cj4g
-IAlpbnQgaWQ7Cj4gIAljaGFyIG5hbWVbVEhFUk1BTF9OQU1FX0xFTkdUSF07Cj4gIAlzdHJ1Y3Qg
-dGhlcm1hbF96b25lX2RldmljZSAqdHo7Cj4gQEAgLTM4OCwxMCArMzg4LDEwIEBAIHN0YXRpYyBz
-c2l6ZV90Cj4gIHRoZXJtYWxfY29vbGluZ19kZXZpY2VfdHJpcF9wb2ludF9zaG93KHN0cnVjdCBk
-ZXZpY2UgKmRldiwKPiAgCQkJCSAgICAgICBzdHJ1Y3QgZGV2aWNlX2F0dHJpYnV0ZSAqYXR0ciwg
-Y2hhciAqYnVmKQo+ICB7Cj4gLQlzdHJ1Y3QgdGhlcm1hbF9jb29saW5nX2RldmljZV9pbnN0YW5j
-ZSAqaW5zdGFuY2U7Cj4gKwlzdHJ1Y3QgdGhlcm1hbF9pbnN0YW5jZSAqaW5zdGFuY2U7Cj4gIAo+
-ICAJaW5zdGFuY2UgPQo+IC0JICAgIGNvbnRhaW5lcl9vZihhdHRyLCBzdHJ1Y3QgdGhlcm1hbF9j
-b29saW5nX2RldmljZV9pbnN0YW5jZSwgYXR0cik7Cj4gKwkgICAgY29udGFpbmVyX29mKGF0dHIs
-IHN0cnVjdCB0aGVybWFsX2luc3RhbmNlLCBhdHRyKTsKPiAgCj4gIAlpZiAoaW5zdGFuY2UtPnRy
-aXAgPT0gVEhFUk1BTF9UUklQU19OT05FKQo+ICAJCXJldHVybiBzcHJpbnRmKGJ1ZiwgIi0xXG4i
-KTsKPiBAQCAtNjg2LDcgKzY4Niw3IEBAIHN0YXRpYyB2b2lkIHRoZXJtYWxfem9uZV9kZXZpY2Vf
-cGFzc2l2ZSgKPiAgCQkJCQlpbnQgdGVtcCwgaW50IHRyaXBfdGVtcCwgaW50IHRyaXApCj4gIHsK
-PiAgCWludCB0cmVuZCA9IDA7Cj4gLQlzdHJ1Y3QgdGhlcm1hbF9jb29saW5nX2RldmljZV9pbnN0
-YW5jZSAqaW5zdGFuY2U7Cj4gKwlzdHJ1Y3QgdGhlcm1hbF9pbnN0YW5jZSAqaW5zdGFuY2U7Cj4g
-IAlzdHJ1Y3QgdGhlcm1hbF9jb29saW5nX2RldmljZSAqY2RldjsKPiAgCWxvbmcgc3RhdGUsIG1h
-eF9zdGF0ZTsKPiAgCj4gQEAgLTc3MSw4ICs3NzEsOCBAQCBpbnQgdGhlcm1hbF96b25lX2JpbmRf
-Y29vbGluZ19kZXZpY2Uoc3RyCj4gIAkJCQkgICAgIHN0cnVjdCB0aGVybWFsX2Nvb2xpbmdfZGV2
-aWNlICpjZGV2LAo+ICAJCQkJICAgICBsb25nIHVwcGVyLCBsb25nIGxvd2VyKQo+ICB7Cj4gLQlz
-dHJ1Y3QgdGhlcm1hbF9jb29saW5nX2RldmljZV9pbnN0YW5jZSAqZGV2Owo+IC0Jc3RydWN0IHRo
-ZXJtYWxfY29vbGluZ19kZXZpY2VfaW5zdGFuY2UgKnBvczsKPiArCXN0cnVjdCB0aGVybWFsX2lu
-c3RhbmNlICpkZXY7Cj4gKwlzdHJ1Y3QgdGhlcm1hbF9pbnN0YW5jZSAqcG9zOwo+ICAJc3RydWN0
-IHRoZXJtYWxfem9uZV9kZXZpY2UgKnBvczE7Cj4gIAlzdHJ1Y3QgdGhlcm1hbF9jb29saW5nX2Rl
-dmljZSAqcG9zMjsKPiAgCXVuc2lnbmVkIGxvbmcgbWF4X3N0YXRlOwo+IEBAIC04MDMsNyArODAz
-LDcgQEAgaW50IHRoZXJtYWxfem9uZV9iaW5kX2Nvb2xpbmdfZGV2aWNlKHN0cgo+ICAJCXJldHVy
-biAtRUlOVkFMOwo+ICAKPiAgCWRldiA9Cj4gLQkgICAga3phbGxvYyhzaXplb2Yoc3RydWN0IHRo
-ZXJtYWxfY29vbGluZ19kZXZpY2VfaW5zdGFuY2UpLCBHRlBfS0VSTkVMKTsKPiArCSAgICBremFs
-bG9jKHNpemVvZihzdHJ1Y3QgdGhlcm1hbF9pbnN0YW5jZSksIEdGUF9LRVJORUwpOwo+ICAJaWYg
-KCFkZXYpCj4gIAkJcmV0dXJuIC1FTk9NRU07Cj4gIAlkZXYtPnR6ID0gdHo7Cj4gQEAgLTg2OCw3
-ICs4NjgsNyBAQCBpbnQgdGhlcm1hbF96b25lX3VuYmluZF9jb29saW5nX2RldmljZShzCj4gIAkJ
-CQkgICAgICAgaW50IHRyaXAsCj4gIAkJCQkgICAgICAgc3RydWN0IHRoZXJtYWxfY29vbGluZ19k
-ZXZpY2UgKmNkZXYpCj4gIHsKPiAtCXN0cnVjdCB0aGVybWFsX2Nvb2xpbmdfZGV2aWNlX2luc3Rh
-bmNlICpwb3MsICpuZXh0Owo+ICsJc3RydWN0IHRoZXJtYWxfaW5zdGFuY2UgKnBvcywgKm5leHQ7
-Cj4gIAo+ICAJbXV0ZXhfbG9jaygmdHotPmxvY2spOwo+ICAJbGlzdF9mb3JfZWFjaF9lbnRyeV9z
-YWZlKHBvcywgbmV4dCwgJnR6LT5jb29saW5nX2RldmljZXMsIG5vZGUpIHsKPiBAQCAtMTA1NCw3
-ICsxMDU0LDcgQEAgRVhQT1JUX1NZTUJPTCh0aGVybWFsX2Nvb2xpbmdfZGV2aWNlX3Vucgo+ICBz
-dGF0aWMgdm9pZCB0aGVybWFsX3pvbmVfdHJpcF91cGRhdGUoc3RydWN0IHRoZXJtYWxfem9uZV9k
-ZXZpY2UgKnR6LAo+ICAJCQkJICAgICBpbnQgdHJpcCwgbG9uZyB0ZW1wKQo+ICB7Cj4gLQlzdHJ1
-Y3QgdGhlcm1hbF9jb29saW5nX2RldmljZV9pbnN0YW5jZSAqaW5zdGFuY2U7Cj4gKwlzdHJ1Y3Qg
-dGhlcm1hbF9pbnN0YW5jZSAqaW5zdGFuY2U7Cj4gIAlzdHJ1Y3QgdGhlcm1hbF9jb29saW5nX2Rl
-dmljZSAqY2RldiA9IE5VTEw7Cj4gIAl1bnNpZ25lZCBsb25nIGN1cl9zdGF0ZSwgbWF4X3N0YXRl
-Owo+ICAJbG9uZyB0cmlwX3RlbXA7Cj4gCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX18KbGludXgtcG0gbWFpbGluZyBsaXN0CmxpbnV4LXBtQGxpc3RzLmxp
-bnV4LWZvdW5kYXRpb24ub3JnCmh0dHBzOi8vbGlzdHMubGludXhmb3VuZGF0aW9uLm9yZy9tYWls
-bWFuL2xpc3RpbmZvL2xpbnV4LXBt
+This patch fixed the following bug.
+
+https://bugzilla.kernel.org/show_bug.cgi?id=43282
+
+This is caused by a firmware bug checking (checking generic address
+register provided by firmware) in runtime.  The checking should be
+done in address mapping time instead of runtime to avoid too much
+error reporting in runtime.
+
+Reported-by: Pawel Sikora <pluto@agmk.net>
+Signed-off-by: Huang Ying <ying.huang@intel.com>
+Tested-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/acpi/apei/apei-base.c     |   17 +++++++++++++++--
+ drivers/acpi/apei/apei-internal.h |    9 +++++++++
+ drivers/acpi/apei/ghes.c          |    6 +++---
+ 3 files changed, 27 insertions(+), 5 deletions(-)
+
+--- a/drivers/acpi/apei/apei-base.c
++++ b/drivers/acpi/apei/apei-base.c
+@@ -243,7 +243,7 @@ static int pre_map_gar_callback(struct a
+ 	u8 ins = entry->instruction;
+ 
+ 	if (ctx->ins_table[ins].flags & APEI_EXEC_INS_ACCESS_REGISTER)
+-		return acpi_os_map_generic_address(&entry->register_region);
++		return apei_map_generic_address(&entry->register_region);
+ 
+ 	return 0;
+ }
+@@ -276,7 +276,7 @@ static int post_unmap_gar_callback(struc
+ 	u8 ins = entry->instruction;
+ 
+ 	if (ctx->ins_table[ins].flags & APEI_EXEC_INS_ACCESS_REGISTER)
+-		acpi_os_unmap_generic_address(&entry->register_region);
++		apei_unmap_generic_address(&entry->register_region);
+ 
+ 	return 0;
+ }
+@@ -606,6 +606,19 @@ static int apei_check_gar(struct acpi_ge
+ 	return 0;
+ }
+ 
++int apei_map_generic_address(struct acpi_generic_address *reg)
++{
++	int rc;
++	u32 access_bit_width;
++	u64 address;
++
++	rc = apei_check_gar(reg, &address, &access_bit_width);
++	if (rc)
++		return rc;
++	return acpi_os_map_generic_address(reg);
++}
++EXPORT_SYMBOL_GPL(apei_map_generic_address);
++
+ /* read GAR in interrupt (including NMI) or process context */
+ int apei_read(u64 *val, struct acpi_generic_address *reg)
+ {
+--- a/drivers/acpi/apei/apei-internal.h
++++ b/drivers/acpi/apei/apei-internal.h
+@@ -7,6 +7,8 @@
+ #define APEI_INTERNAL_H
+ 
+ #include <linux/cper.h>
++#include <linux/acpi.h>
++#include <linux/acpi_io.h>
+ 
+ struct apei_exec_context;
+ 
+@@ -68,6 +70,13 @@ static inline int apei_exec_run_optional
+ /* IP has been set in instruction function */
+ #define APEI_EXEC_SET_IP	1
+ 
++int apei_map_generic_address(struct acpi_generic_address *reg);
++
++static inline void apei_unmap_generic_address(struct acpi_generic_address *reg)
++{
++	acpi_os_unmap_generic_address(reg);
++}
++
+ int apei_read(u64 *val, struct acpi_generic_address *reg);
+ int apei_write(u64 val, struct acpi_generic_address *reg);
+ 
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -301,7 +301,7 @@ static struct ghes *ghes_new(struct acpi
+ 	if (!ghes)
+ 		return ERR_PTR(-ENOMEM);
+ 	ghes->generic = generic;
+-	rc = acpi_os_map_generic_address(&generic->error_status_address);
++	rc = apei_map_generic_address(&generic->error_status_address);
+ 	if (rc)
+ 		goto err_free;
+ 	error_block_length = generic->error_block_length;
+@@ -321,7 +321,7 @@ static struct ghes *ghes_new(struct acpi
+ 	return ghes;
+ 
+ err_unmap:
+-	acpi_os_unmap_generic_address(&generic->error_status_address);
++	apei_unmap_generic_address(&generic->error_status_address);
+ err_free:
+ 	kfree(ghes);
+ 	return ERR_PTR(rc);
+@@ -330,7 +330,7 @@ err_free:
+ static void ghes_fini(struct ghes *ghes)
+ {
+ 	kfree(ghes->estatus);
+-	acpi_os_unmap_generic_address(&ghes->generic->error_status_address);
++	apei_unmap_generic_address(&ghes->generic->error_status_address);
+ }
+ 
+ enum {
