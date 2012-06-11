@@ -1,163 +1,170 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [RFC PATCH 6/12] thermal: introduce active cooling
-	algorithm
-Date: Mon, 11 Jun 2012 14:38:24 +0800
-Message-ID: <1339396704.1492.193.camel@rui.sh.intel.com>
-References: <1339384817.1492.160.camel@rui.sh.intel.com>
-	<CAK44p227RorAEGcikmXSYHJizxVvwbQkZY9fSS0MvpsA4XyATQ@mail.gmail.com>
+From: "Kani, Toshimitsu" <toshi.kani@hp.com>
+Subject: Re: [PATCH v4 5/6] ACPI: Add _OST support for ACPI container hotplug
+Date: Mon, 11 Jun 2012 07:12:28 +0000
+Message-ID: <DDF4AA7E-2E19-4919-BBEB-9993D0456755@hp.com>
+References: <1337826324-16802-1-git-send-email-toshi.kani@hp.com>
+ <1337826324-16802-6-git-send-email-toshi.kani@hp.com>,<4FCD8D95.1060700@jp.fujitsu.com>
+ <45D38E03-0465-42A1-AEB3-4D120FFF66DC@hp.com>,<4FD5500F.40404@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <CAK44p227RorAEGcikmXSYHJizxVvwbQkZY9fSS0MvpsA4XyATQ@mail.gmail.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Amit Kachhap <amit.kachhap@linaro.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g1t0026.austin.hp.com ([15.216.28.33]:2161 "EHLO
+	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751483Ab2FKHNG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Jun 2012 03:13:06 -0400
+In-Reply-To: <4FD5500F.40404@jp.fujitsu.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "bhelgaas@google.com" <bhelgaas@google.com>, "shuahkhan@gmail.com" <shuahkhan@gmail.com>, "liuj97@gmail.com" <liuj97@gmail.com>, "andi@firstfloor.org" <andi@firstfloor.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-T24g5LiALCAyMDEyLTA2LTExIGF0IDEwOjIxICswNTMwLCBBbWl0IEthY2hoYXAgd3JvdGU6Cj4g
-T24gMTEgSnVuZSAyMDEyIDA4OjUwLCBaaGFuZyBSdWkgPHJ1aS56aGFuZ0BpbnRlbC5jb20+IHdy
-b3RlOgo+ID4KPiA+IEludHJvZHVjZSB0aGVybWFsX3pvbmVfdHJpcF91cGRhdGUoKSB0byB1cGRh
-dGUgdGhlIGNvb2xpbmcgc3RhdGUKPiA+IG9mIGFsbCB0aGUgY29vbGluZyBkZXZpY2VzIHRoYXQg
-YXJlIGJpbmRlZCB0byBhbiBhY3RpdmUgdHJpcCBwb2ludC4KPiA+Cj4gPiBUaGlzIHdpbGwgYmUg
-dXNlZCBmb3IgcGFzc2l2ZSBjb29saW5nIGFzIHdlbGwsIGluIHRoZSBmdXR1cmUgcGF0Y2hlcy4K
-PiA+IGFzIGJvdGggYWN0aXZlIGFuZCBwYXNzaXZlIGNvb2xpbmcgY2FuIHNoYXJlIHRoZSBzYW1l
-IGFsZ29yaXRobSwKPiA+IHdoaWNoIGlzCj4gPgo+ID4gMS4gaWYgdGhlIHRlbXBlcmF0dXJlIGlz
-IGhpZ2hlciB0aGFuIGEgdHJpcCBwb2ludCwKPiA+ICAgYS4gaWYgdGhlIHRyZW5kIGlzIFRIRVJN
-QUxfVFJFTkRfUkFJU0lORywgdXNlIGhpZ2hlciBjb29saW5nCj4gPiAgICAgIHN0YXRlIGZvciB0
-aGlzIHRyaXAgcG9pbnQKPiA+ICAgYi4gaWYgdGhlIHRyZW5kIGlzIFRIRVJNQUxfVFJFTkRfRFJP
-UFBJTkcsIHVzZSBsb3dlciBjb29saW5nCj4gPiAgICAgIHN0YXRlIGZvciB0aGlzIHRyaXAgcG9p
-bnQKPiA+Cj4gPiAyLiBpZiB0aGUgdGVtcGVyYXR1cmUgaXMgbG93ZXIgdGhhbiBhIHRyaXAgcG9p
-bnQsIHVzZSBsb3dlcgo+ID4gICBjb29saW5nIHN0YXRlIGZvciB0aGlzIHRyaXAgcG9pbnQuCj4g
-Pgo+ID4gU2lnbmVkLW9mZi1ieTogWmhhbmcgUnVpIDxydWkuemhhbmdAaW50ZWwuY29tPgo+ID4g
-LS0tCj4gPiAgZHJpdmVycy9hY3BpL3RoZXJtYWwuYyAgICAgICAgfCAgICA3ICsrLQo+ID4gIGRy
-aXZlcnMvdGhlcm1hbC90aGVybWFsX3N5cy5jIHwgICA5MSArKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKystLS0tLS0tLS0tLS0KPiA+ICAyIGZpbGVzIGNoYW5nZWQsIDcxIGluc2VydGlvbnMo
-KyksIDI3IGRlbGV0aW9ucygtKQo+ID4KPiA+IEluZGV4OiBydGQzL2RyaXZlcnMvdGhlcm1hbC90
-aGVybWFsX3N5cy5jCj4gPiA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09Cj4gPiAtLS0gcnRkMy5vcmlnL2RyaXZlcnMvdGhl
-cm1hbC90aGVybWFsX3N5cy5jCj4gPiArKysgcnRkMy9kcml2ZXJzL3RoZXJtYWwvdGhlcm1hbF9z
-eXMuYwo+ID4gQEAgLTEwMzUsNiArMTAzNSw3MCBAQCB2b2lkIHRoZXJtYWxfY29vbGluZ19kZXZp
-Y2VfdW5yZWdpc3RlcihzCj4gPiAgfQo+ID4gIEVYUE9SVF9TWU1CT0wodGhlcm1hbF9jb29saW5n
-X2RldmljZV91bnJlZ2lzdGVyKTsKPiA+Cj4gPiArLyoKPiA+ICsgKiBDb29saW5nIGFsZ29yaXRo
-bSBmb3IgYWN0aXZlIHRyaXAgcG9pbnRzCj4gPiArICoKPiA+ICsgKiAxLiBpZiB0aGUgdGVtcGVy
-YXR1cmUgaXMgaGlnaGVyIHRoYW4gYSB0cmlwIHBvaW50LAo+ID4gKyAqICAgIGEuIGlmIHRoZSB0
-cmVuZCBpcyBUSEVSTUFMX1RSRU5EX1JBSVNJTkcsIHVzZSBoaWdoZXIgY29vbGluZwo+ID4gKyAq
-ICAgICAgIHN0YXRlIGZvciB0aGlzIHRyaXAgcG9pbnQKPiA+ICsgKiAgICBiLiBpZiB0aGUgdHJl
-bmQgaXMgVEhFUk1BTF9UUkVORF9EUk9QUElORywgdXNlIGxvd2VyIGNvb2xpbmcKPiA+ICsgKiAg
-ICAgICBzdGF0ZSBmb3IgdGhpcyB0cmlwIHBvaW50Cj4gPiArICoKPiA+ICsgKiAyLiBpZiB0aGUg
-dGVtcGVyYXR1cmUgaXMgbG93ZXIgdGhhbiBhIHRyaXAgcG9pbnQsIHVzZSBsb3dlcgo+ID4gKyAq
-ICAgIGNvb2xpbmcgc3RhdGUgZm9yIHRoaXMgdHJpcCBwb2ludAo+ID4gKyAqCj4gPiArICogTm90
-ZSB0aGF0IHRoaXMgYmVoYXZlcyB0aGUgc2FtZSBhcyB0aGUgcHJldmlvdXMgcGFzc2l2ZSBjb29s
-aW5nCj4gPiArICogYWxnb3JpdGhtLgo+ID4gKyAqLwo+ID4gKwo+ID4gK3N0YXRpYyB2b2lkIHRo
-ZXJtYWxfem9uZV90cmlwX3VwZGF0ZShzdHJ1Y3QgdGhlcm1hbF96b25lX2RldmljZSAqdHosCj4g
-PiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgaW50IHRyaXAsIGxvbmcgdGVt
-cCkKPiA+ICt7Cj4gPiArICAgICAgIHN0cnVjdCB0aGVybWFsX2Nvb2xpbmdfZGV2aWNlX2luc3Rh
-bmNlICppbnN0YW5jZTsKPiA+ICsgICAgICAgc3RydWN0IHRoZXJtYWxfY29vbGluZ19kZXZpY2Ug
-KmNkZXYgPSBOVUxMOwo+ID4gKyAgICAgICB1bnNpZ25lZCBsb25nIGN1cl9zdGF0ZSwgbWF4X3N0
-YXRlOwo+ID4gKyAgICAgICBsb25nIHRyaXBfdGVtcDsKPiA+ICsgICAgICAgZW51bSB0aGVybWFs
-X3RyZW5kIHRyZW5kOwo+ID4gKwo+ID4gKyAgICAgICB0ei0+b3BzLT5nZXRfdHJpcF90ZW1wKHR6
-LCB0cmlwLCAmdHJpcF90ZW1wKTsKPiA+ICsKPiA+ICsgICAgICAgaWYgKHRlbXAgPj0gdHJpcF90
-ZW1wKSB7Cj4gPiArICAgICAgICAgICAgICAgdGhlcm1hbF9nZXRfdHJlbmQodHosIHRyaXAsICZ0
-cmVuZCk7Cj4gPiArCj4gPiArICAgICAgICAgICAgICAgbGlzdF9mb3JfZWFjaF9lbnRyeShpbnN0
-YW5jZSwgJnR6LT5jb29saW5nX2RldmljZXMsIG5vZGUpIHsKPiA+ICsgICAgICAgICAgICAgICAg
-ICAgICAgIGlmIChpbnN0YW5jZS0+dHJpcCAhPSB0cmlwKQo+ID4gKyAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICBjb250aW51ZTsKPiA+ICsKPiA+ICsgICAgICAgICAgICAgICAgICAgICAg
-IGNkZXYgPSBpbnN0YW5jZS0+Y2RldjsKPiA+ICsKPiA+ICsgICAgICAgICAgICAgICAgICAgICAg
-IGNkZXYtPm9wcy0+Z2V0X2N1cl9zdGF0ZShjZGV2LCAmY3VyX3N0YXRlKTsKPiA+ICsgICAgICAg
-ICAgICAgICAgICAgICAgIGNkZXYtPm9wcy0+Z2V0X21heF9zdGF0ZShjZGV2LCAmbWF4X3N0YXRl
-KTsKPiA+ICsKPiA+ICsgICAgICAgICAgICAgICAgICAgICAgIGlmICh0cmVuZCA9PSBUSEVSTUFM
-X1RSRU5EX1JBSVNJTkcpIHsKPiA+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgY3Vy
-X3N0YXRlID0gY3VyX3N0YXRlIDwgaW5zdGFuY2UtPnVwcGVyID8KPiA+ICsgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgKGN1cl9zdGF0ZSArIDEpIDogaW5zdGFuY2Ut
-PnVwcGVyOwo+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgfSBlbHNlIGlmICh0cmVuZCA9PSBU
-SEVSTUFMX1RSRU5EX0RST1BQSU5HKSB7Cj4gPiArICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgIGN1cl9zdGF0ZSA9IGN1cl9zdGF0ZSA+IGluc3RhbmNlLT5sb3dlciA/Cj4gPiArICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAoY3VyX3N0YXRlIC0gMSkgOiBpbnN0YW5jZS0+
-bG93ZXI7Cj4gPiArICAgICAgICAgICAgICAgICAgICAgICB9Cj4gPiArICAgICAgICAgICAgICAg
-ICAgICAgICBjZGV2LT5vcHMtPnNldF9jdXJfc3RhdGUoY2RldiwgY3VyX3N0YXRlKTsKPiA+ICsg
-ICAgICAgICAgICAgICB9Cj4gPiArICAgICAgIH0gZWxzZSB7ICAgICAgICAvKiBiZWxvdyB0cmlw
-ICovCj4gPiArICAgICAgICAgICAgICAgbGlzdF9mb3JfZWFjaF9lbnRyeShpbnN0YW5jZSwgJnR6
-LT5jb29saW5nX2RldmljZXMsIG5vZGUpIHsKPiA+ICsgICAgICAgICAgICAgICAgICAgICAgIGlm
-IChpbnN0YW5jZS0+dHJpcCAhPSB0cmlwKQo+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICBjb250aW51ZTsKPiBDYW4gd2UgdXNlIHRoZSB0cmVuZCBjYWxsYmFjayBoZXJlIGV2ZW4g
-aWYgdGhlIGN1cnJlbnQgdGVtcGVyYXR1cmUgaXMKPiBsZXNzIHRoYW4gdGhlIHRyaXAgdGVtcGVy
-YXR1cmUuIEJhc2ljYWxseSBhY2NvcmRpbmcgdG8gdHJlbmQgaXQgc2hvdWxkCj4gZGVhY3RpdmF0
-ZSB0aGUgY29vbGluZyBkZXZpY2VzIGFzIGRvbmUgZm9yIGFjdGl2YXRpbmcgY29vbGluZyBkZXZp
-Y2VzLgoKeWVzLCB0aGlzIGRlcGVuZHMgb24gdGhlIGNvb2xpbmcgYWxnb3JpdGhtIHdlIHdhbnQg
-dG8gdXNlLgpXaGVuIHRoZSB0ZW1wZXJhdHVyZSBpcyBsb3dlciB0aGFuIHRoZSB0cmlwIHBvaW50
-LCBpZiB3ZSB3YW50IHRvIHN0b3AKdGhlIGZhbiBpbW1lZGlhdGVseSBpbnN0ZWFkIG9mIHNwaW5u
-aW5nIGRvd24gc3RlcCBieSBzdGVwLCB3ZSBjYW4gZG8KdGhpcy4KCkFjdHVhbGx5LCB3aGF0IHdl
-IGFyZSBkaXNjdXNzaW5nIHJpZ2h0IG5vdyBzaG91bGQgYmUgc29tZSBjb29saW5nCmdvdmVybm9y
-IHN0dWZmLiB3aGljaCBJJ20gbm90IHN1cmUgaWYgd2Ugc2hvdWxkIGludHJvZHVjZSB0byB0aGUg
-Z2VuZXJpYwp0aGVybWFsIG1hbmFnZXIgb3Igbm90LCByaWdodCBub3cuIDopCgp0aGFua3MsCnJ1
-aQoKPiA+ICsKPiA+ICsgICAgICAgICAgICAgICAgICAgICAgIGNkZXYgPSBpbnN0YW5jZS0+Y2Rl
-djsKPiA+ICsgICAgICAgICAgICAgICAgICAgICAgIGNkZXYtPm9wcy0+Z2V0X2N1cl9zdGF0ZShj
-ZGV2LCAmY3VyX3N0YXRlKTsKPiA+ICsKPiA+ICsgICAgICAgICAgICAgICAgICAgICAgIGN1cl9z
-dGF0ZSA9IGN1cl9zdGF0ZSA+IGluc3RhbmNlLT5sb3dlciA/Cj4gPiArICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAoY3VyX3N0YXRlIC0gMSkgOiBpbnN0YW5jZS0+bG93ZXI7Cj4g
-PiArICAgICAgICAgICAgICAgICAgICAgICBjZGV2LT5vcHMtPnNldF9jdXJfc3RhdGUoY2Rldiwg
-Y3VyX3N0YXRlKTsKPiA+ICsgICAgICAgICAgICAgICB9Cj4gPiArICAgICAgIH0KPiA+ICsKPiA+
-ICsgICAgICAgcmV0dXJuOwo+ID4gK30KPiA+ICAvKioKPiA+ICAqIHRoZXJtYWxfem9uZV9kZXZp
-Y2VfdXBkYXRlIC0gZm9yY2UgYW4gdXBkYXRlIG9mIGEgdGhlcm1hbCB6b25lJ3Mgc3RhdGUKPiA+
-ICAqIEB0dHo6ICAgICAgIHRoZSB0aGVybWFsIHpvbmUgdG8gdXBkYXRlCj4gPiBAQCAtMTA0NSw5
-ICsxMTA5LDYgQEAgdm9pZCB0aGVybWFsX3pvbmVfZGV2aWNlX3VwZGF0ZShzdHJ1Y3QgdAo+ID4g
-ICAgICAgIGludCBjb3VudCwgcmV0ID0gMDsKPiA+ICAgICAgICBsb25nIHRlbXAsIHRyaXBfdGVt
-cDsKPiA+ICAgICAgICBlbnVtIHRoZXJtYWxfdHJpcF90eXBlIHRyaXBfdHlwZTsKPiA+IC0gICAg
-ICAgc3RydWN0IHRoZXJtYWxfY29vbGluZ19kZXZpY2VfaW5zdGFuY2UgKmluc3RhbmNlOwo+ID4g
-LSAgICAgICBzdHJ1Y3QgdGhlcm1hbF9jb29saW5nX2RldmljZSAqY2RldjsKPiA+IC0gICAgICAg
-dW5zaWduZWQgbG9uZyBjdXJfc3RhdGUsIG1heF9zdGF0ZTsKPiA+Cj4gPiAgICAgICAgbXV0ZXhf
-bG9jaygmdHotPmxvY2spOwo+ID4KPiA+IEBAIC0xMDgzLDI5ICsxMTQ0LDcgQEAgdm9pZCB0aGVy
-bWFsX3pvbmVfZGV2aWNlX3VwZGF0ZShzdHJ1Y3QgdAo+ID4gICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgdHotPm9wcy0+bm90aWZ5KHR6LCBjb3VudCwgdHJpcF90eXBlKTsK
-PiA+ICAgICAgICAgICAgICAgICAgICAgICAgYnJlYWs7Cj4gPiAgICAgICAgICAgICAgICBjYXNl
-IFRIRVJNQUxfVFJJUF9BQ1RJVkU6Cj4gPiAtICAgICAgICAgICAgICAgICAgICAgICBsaXN0X2Zv
-cl9lYWNoX2VudHJ5KGluc3RhbmNlLCAmdHotPmNvb2xpbmdfZGV2aWNlcywKPiA+IC0gICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgbm9kZSkgewo+ID4gLSAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICBpZiAoaW5zdGFuY2UtPnRyaXAgIT0gY291bnQpCj4gPiAt
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgY29udGludWU7Cj4gPiAtCj4g
-PiAtICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGNkZXYgPSBpbnN0YW5jZS0+Y2RldjsK
-PiA+IC0KPiA+IC0gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgY2Rldi0+b3BzLT5nZXRf
-Y3VyX3N0YXRlKGNkZXYsICZjdXJfc3RhdGUpOwo+ID4gLSAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICBjZGV2LT5vcHMtPmdldF9tYXhfc3RhdGUoY2RldiwgJm1heF9zdGF0ZSk7Cj4gPiAt
-Cj4gPiAtICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGlmICh0ZW1wID49IHRyaXBfdGVt
-cCkKPiA+IC0gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBjdXJfc3RhdGUg
-PQo+ID4gLSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgY3Vy
-X3N0YXRlIDwgaW5zdGFuY2UtPnVwcGVyID8KPiA+IC0gICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgIChjdXJfc3RhdGUgKyAxKSA6Cj4gPiAtICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBpbnN0YW5jZS0+dXBwZXI7Cj4gPiAt
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGVsc2UKPiA+IC0gICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICBjdXJfc3RhdGUgPQo+ID4gLSAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgY3VyX3N0YXRlID4gaW5zdGFuY2UtPmxvd2Vy
-ID8KPiA+IC0gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIChj
-dXJfc3RhdGUgLSAxKSA6Cj4gPiAtICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICBpbnN0YW5jZS0+bG93ZXI7Cj4gPiAtCj4gPiAtICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgIGNkZXYtPm9wcy0+c2V0X2N1cl9zdGF0ZShjZGV2LCBjdXJfc3RhdGUpOwo+
-ID4gLSAgICAgICAgICAgICAgICAgICAgICAgfQo+ID4gKyAgICAgICAgICAgICAgICAgICAgICAg
-dGhlcm1hbF96b25lX3RyaXBfdXBkYXRlKHR6LCBjb3VudCwgdGVtcCk7Cj4gPiAgICAgICAgICAg
-ICAgICAgICAgICAgIGJyZWFrOwo+ID4gICAgICAgICAgICAgICAgY2FzZSBUSEVSTUFMX1RSSVBf
-UEFTU0lWRToKPiA+ICAgICAgICAgICAgICAgICAgICAgICAgaWYgKHRlbXAgPj0gdHJpcF90ZW1w
-IHx8IHR6LT5wYXNzaXZlKQo+ID4gSW5kZXg6IHJ0ZDMvZHJpdmVycy9hY3BpL3RoZXJtYWwuYwo+
-ID4gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PQo+ID4gLS0tIHJ0ZDMub3JpZy9kcml2ZXJzL2FjcGkvdGhlcm1hbC5jCj4g
-PiArKysgcnRkMy9kcml2ZXJzL2FjcGkvdGhlcm1hbC5jCj4gPiBAQCAtNzE3LDcgKzcxNywxMiBA
-QCBzdGF0aWMgaW50IHRoZXJtYWxfZ2V0X3RyZW5kKHN0cnVjdCB0aGVyCj4gPiAgICAgICAgaWYg
-KHRoZXJtYWxfZ2V0X3RyaXBfdHlwZSh0aGVybWFsLCB0cmlwLCAmdHlwZSkpCj4gPiAgICAgICAg
-ICAgICAgICByZXR1cm4gLUVJTlZBTDsKPiA+Cj4gPiAtICAgICAgIC8qIE9ubHkgUEFTU0lWRSB0
-cmlwIHBvaW50cyBuZWVkIFRSRU5EICovCj4gPiArICAgICAgIGlmICh0eXBlID09IFRIRVJNQUxf
-VFJJUF9BQ1RJVkUpIHsKPiA+ICsgICAgICAgICAgICAgICAvKiBhZ2dyZXNzaXZlIGFjdGl2ZSBj
-b29saW5nICovCj4gPiArICAgICAgICAgICAgICAgKnRyZW5kID0gVEhFUk1BTF9UUkVORF9SQUlT
-SU5HOwo+ID4gKyAgICAgICAgICAgICAgIHJldHVybiAwOwo+ID4gKyAgICAgICB9Cj4gPiArCj4g
-PiAgICAgICAgaWYgKHR5cGUgIT0gVEhFUk1BTF9UUklQX1BBU1NJVkUpCj4gPiAgICAgICAgICAg
-ICAgICByZXR1cm4gLUVJTlZBTDsKPiA+Cj4gPgo+ID4KCgpfX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1wbSBtYWlsaW5nIGxpc3QKbGludXgtcG1A
-bGlzdHMubGludXgtZm91bmRhdGlvbi5vcmcKaHR0cHM6Ly9saXN0cy5saW51eGZvdW5kYXRpb24u
-b3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtcG0=
+On Jun 11, 2012, at 10:55 AM, "Yasuaki Ishimatsu" <isimatu.yasuaki@jp.fujitsu.com> wrote:
+
+> Hi Toshi,
+> 
+> Sorry for late reply.
+> 
+> 2012/06/06 0:36, Kani, Toshimitsu wrote:
+>> On Jun 4, 2012, at 9:40 PM, "Yasuaki Ishimatsu"<isimatu.yasuaki@jp.fujitsu.com>  wrote:
+>> 
+>>> Hi Toshi,
+>>> 
+>>> 2012/05/24 11:25, Toshi Kani wrote:
+>>>> Changed container_notify_cb() to call ACPI _OST method when ACPI
+>>>> container hotplug operation has completed. Slightly restructured
+>>>> the code with the same logic. The function sets eject_pending bit
+>>>> for an eject request since it does not initiate hot-remove operation.
+>>>> This bit is checked by the sysfs eject handler to determine if the
+>>>> request is originated from an ACPI eject notification.
+>>>> 
+>>>> Signed-off-by: Toshi Kani<toshi.kani@hp.com>
+>>>> ---
+>>>>  drivers/acpi/container.c |   43 ++++++++++++++++++++++++++++---------------
+>>>>  1 files changed, 28 insertions(+), 15 deletions(-)
+>>>> 
+>>>> diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
+>>>> index 45cd03b..1f9f7d7 100644
+>>>> --- a/drivers/acpi/container.c
+>>>> +++ b/drivers/acpi/container.c
+>>>> @@ -158,9 +158,7 @@ static void container_notify_cb(acpi_handle handle, u32 type, void *context)
+>>>>      int result;
+>>>>      int present;
+>>>>      acpi_status status;
+>>>> -
+>>>> -
+>>>> -    present = is_device_present(handle);
+>>>> +    u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE; /* default */
+>>>> 
+>>>>      switch (type) {
+>>>>      case ACPI_NOTIFY_BUS_CHECK:
+>>>> @@ -169,32 +167,47 @@ static void container_notify_cb(acpi_handle handle, u32 type, void *context)
+>>>>          printk(KERN_WARNING "Container driver received %s event\n",
+>>>>                 (type == ACPI_NOTIFY_BUS_CHECK) ?
+>>>>                 "ACPI_NOTIFY_BUS_CHECK" : "ACPI_NOTIFY_DEVICE_CHECK");
+>>>> +
+>>>> +        present = is_device_present(handle);
+>>>>          status = acpi_bus_get_device(handle,&device);
+>>>> -        if (present) {
+>>>> -            if (ACPI_FAILURE(status) || !device) {
+>>>> -                result = container_device_add(&device, handle);
+>>>> -                if (!result)
+>>>> -                    kobject_uevent(&device->dev.kobj,
+>>>> -                               KOBJ_ONLINE);
+>>>> -                else
+>>>> -                    printk(KERN_WARNING
+>>>> -                           "Failed to add container\n");
+>>>> -            }
+>>>> -        } else {
+>>>> +        if (!present) {
+>>>>              if (ACPI_SUCCESS(status)) {
+>>>>                  /* device exist and this is a remove request */
+>>>> +                device->flags.eject_pending = 1;
+>>>>                  kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
+>>>> +                return;
+>>>>              }
+>>>> +            break;
+>>>> +        }
+>>>> +
+>>> 
+>>>> +        if (!ACPI_FAILURE(status) || device)
+>>>> +            break;
+>>> 
+>>> The logic is not same as previous logic.
+>>> I think the following logic is correct.
+>>> 
+>>>        if (!ACPI_FAILURE(status)&&  device)
+>>>            break;
+>> 
+>> Hi Yasuaki,
+>> 
+>> Great catch! You are right about that. Now the question is what this code should do when the call failed but the device gets set. This is rather hypothetical case, but I think it is safer to fail a hot add request whenever the device is set. What do you think?
+>> 
+> 
+> I think so, too.
+> So there is no comment on your patch.
+> 
+
+Hi Yasuaki,
+
+I will update the change log to clarify this change.
+I am traveling now. I will work on the change when I am 
+back on Jun 21.
+
+Thanks,
+-Toshi
+
+> Thanks,
+> Yasuaki Ishimatsu
+> 
+>> Thanks,
+>> -Toshi
+>> 
+>>> Thanks,
+>>> Yasuaki Ishimatsu
+>>> 
+>>>> +
+>>>> +        result = container_device_add(&device, handle);
+>>>> +        if (result) {
+>>>> +            printk(KERN_WARNING "Failed to add container\n");
+>>>> +            break;
+>>>>          }
+>>>> +
+>>>> +        kobject_uevent(&device->dev.kobj, KOBJ_ONLINE);
+>>>> +        ost_code = ACPI_OST_SC_SUCCESS;
+>>>>          break;
+>>>> +
+>>>>      case ACPI_NOTIFY_EJECT_REQUEST:
+>>>>          if (!acpi_bus_get_device(handle,&device)&&   device) {
+>>>> +            device->flags.eject_pending = 1;
+>>>>              kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
+>>>> +            return;
+>>>>          }
+>>>>          break;
+>>>> +
+>>>>      default:
+>>>> -        break;
+>>>> +        /* non-hotplug event; possibly handled by other handler */
+>>>> +        return;
+>>>>      }
+>>>> +
+>>>> +    /* Inform firmware that the hotplug operation has completed */
+>>>> +    (void) acpi_evaluate_hotplug_ost(handle, type, ost_code, NULL);
+>>>>      return;
+>>>>  }
+>>>> 
+>>> 
+>>> 
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> 
+>> 
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
