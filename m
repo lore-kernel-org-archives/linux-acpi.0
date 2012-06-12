@@ -1,75 +1,207 @@
-From: =?ISO-8859-1?Q?Malte_Schr=F6der?= <maltesch@gmx.de>
-Subject: AVM B1 PCI on DH77KC (H77 chipset) problem, requires pci=noirq
-Date: Tue, 12 Jun 2012 22:39:43 +0200
-Message-ID: <4FD7A90F.7070900@gmx.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Andi Kleen <andi@firstfloor.org>
+Subject: [PATCH] turbostat: Add SMI count to turbostat v2
+Date: Tue, 12 Jun 2012 14:17:31 -0700
+Message-ID: <1339535851-10305-1-git-send-email-andi@firstfloor.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:50479 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751445Ab2FLUjr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Jun 2012 16:39:47 -0400
+Received: from mga03.intel.com ([143.182.124.21]:11053 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753660Ab2FLVRq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 Jun 2012 17:17:46 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andi Kleen <ak@linux.intel.com>
 
-Hello,
-I am trying to get an old and trusty active ISDN-card to work on a shiny
-new Intel DH77KC mainboard in conjunction with an i7 Ivy Bridge
-processor. (it's supposed to bridge VoIP to ISDN, amongst other stuff).
+From: Andi Kleen <ak@linux.intel.com>
 
-The PCI bus seems to be behind a PCIe-PCI bridge.
+[This version is for the turbostat v2 in -next]
 
-When booting "normally", the card is recognized by the kernel. But then
-the firmware upload fails. I can get this to work when using irqfixup or
-irqpoll.
+When debugging timing related problems it's often useful to know
+the SMI count. Newer Intel CPUs have a MSR to read it. Since turbostat
+already has all the required infrastructure for polling MSRs I just
+added it there (even though it's strictly not power related)
+The counter is printed by default.
 
-The strange thing is that it doesn't seem to receive any interrupts. See
-interrupt 18:
+Unfortunately since it's a model specific counter needs a model
+list number. I added Nehalems and Westmeres for it, and reused
+the existing Sandy Bridge model list. This will need to be later
+extended for each new CPU.
 
-> # cat /proc/interrupts                                                                                                                                                                                       :(
->            CPU0       CPU1       CPU2       CPU3       CPU4       CPU5       CPU6       CPU7       
->   0:         39          0          0          0          0          0          0          0   IO-APIC-edge      timer
->   1:          5          0          0          0          2          1          0          1   IO-APIC-edge      i8042
->   8:          1          0          0          0          0          0          0          0   IO-APIC-edge      rtc0
->   9:          0          0          0          0          0          0          0          0   IO-APIC-fasteoi   acpi
->  12:          3          0          0          0          0          1          0          0   IO-APIC-edge      i8042
->  16:         16          1          0          0          5          0          6          0   IO-APIC-fasteoi   ehci_hcd:usb3
->  18:          0          0          0          0          0          0          0          0   IO-APIC-fasteoi   b1pci-e040
->  23:        951          1          1          1       3508        113          7          3   IO-APIC-fasteoi   ehci_hcd:usb4
->  40:          0          0          0          0          0          0          0          0   PCI-MSI-edge      PCIe PME
->  41:          0          0          0          0          0          0          0          0   PCI-MSI-edge      PCIe PME
->  42:      22174        151         37         31       4929       3408        505         78   PCI-MSI-edge      ahci
->  43:          0          0          0          0          0          0          0          0   PCI-MSI-edge      xhci_hcd
->  44:      83408         13          7          1      16731      45447       3778        434   PCI-MSI-edge      eth0
-> NMI:          0          0          0          0          0          0          0          0   Non-maskable interrupts
-> LOC:     100444      42739      43037      43502      20252      27063      11456       8737   Local timer interrupts
-> SPU:          0          0          0          0          0          0          0          0   Spurious interrupts
-> PMI:          0          0          0          0          0          0          0          0   Performance monitoring interrupts
-> IWI:          0          0          0          0          0          0          0          0   IRQ work interrupts
-> RTR:          7          0          0          0          0          0          0          0   APIC ICR read retries
-> RES:       7601       5517       1005        519       2245        607        539        136   Rescheduling interrupts
-> CAL:        396       1190       1168       1197       1057       1062       1175       1182   Function call interrupts
-> TLB:        910        964        879        824       1998       1683       1682       1942   TLB shootdowns
-> TRM:          0          0          0          0          0          0          0          0   Thermal event interrupts
-> THR:          0          0          0          0          0          0          0          0   Threshold APIC interrupts
-> MCE:          0          0          0          0          0          0          0          0   Machine check exceptions
-> MCP:          3          3          3          3          3          3          3          3   Machine check polls
-> ERR:          0
-> MIS:          0
+I also fixed the extra MSR display which didn't line up correctly.
 
+v2: Port to turbostat2 in next. Fix extra MSR too.
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+---
+ tools/power/x86/turbostat/turbostat.c |   65 +++++++++++++++++++++++++++++++--
+ 1 files changed, 62 insertions(+), 3 deletions(-)
 
-When I boot using pci=noacpi it becomes better. The driver receives
-interrupts (on the one remaining CPU core in that mode). The card
-doesn't work properly in that mode, though.
+diff --git a/tools/power/x86/turbostat/turbostat.c b/tools/power/x86/turbostat/turbostat.c
+index 8ee4115..9023b67 100644
+--- a/tools/power/x86/turbostat/turbostat.c
++++ b/tools/power/x86/turbostat/turbostat.c
+@@ -36,6 +36,7 @@
+ #include <sched.h>
+ 
+ #define MSR_TSC	0x10
++#define MSR_SMI_COUNT 0x34
+ #define MSR_NEHALEM_PLATFORM_INFO	0xCE
+ #define MSR_NEHALEM_TURBO_RATIO_LIMIT	0x1AD
+ #define MSR_APERF	0xE8
+@@ -69,6 +70,7 @@ unsigned int show_core;
+ unsigned int show_cpu;
+ unsigned int show_pkg_only;
+ unsigned int show_core_only;
++unsigned int do_smi_count;
+ char *output_buffer, *outp;
+ 
+ int aperf_mperf_unstable;
+@@ -84,6 +86,7 @@ struct thread_data {
+ 	unsigned long long mperf;
+ 	unsigned long long c1;	/* derived */
+ 	unsigned long long extra_msr;
++	unsigned long long smi_count;
+ 	unsigned int cpu_id;
+ 	unsigned int flags;
+ #define CPU_IS_FIRST_THREAD_IN_CORE	0x2
+@@ -199,6 +202,8 @@ void print_header(void)
+ 		outp += sprintf(outp, "   %%pc7");
+ 	if (extra_msr_offset)
+ 		outp += sprintf(outp, "        MSR 0x%x ", extra_msr_offset);
++	if (do_smi_count)
++		outp += sprintf(outp, "       SMIs");
+ 
+ 	outp += sprintf(outp, "\n");
+ }
+@@ -216,6 +221,7 @@ int dump_counters(struct thread_data *t, struct core_data *c,
+ 		fprintf(stderr, "c1: %016llX\n", t->c1);
+ 		fprintf(stderr, "msr0x%x: %016llX\n",
+ 			extra_msr_offset, t->extra_msr);
++		fprintf(stderr, "smi: %llu\n", t->smi_count);
+ 	}
+ 
+ 	if (c) {
+@@ -235,6 +241,18 @@ int dump_counters(struct thread_data *t, struct core_data *c,
+ 	return 0;
+ }
+ 
++static void to_column(int column)
++{
++	char *p = strrchr(output_buffer, '\n');
++	int len = strlen(p ? p + 1 : output_buffer);
++
++	while (len < column) {
++		*outp++ = ' ';
++		len++;
++	}
++	*outp = 0;
++}
++
+ /*
+  * column formatting convention & formats
+  * package: "pk" 2 columns %2d
+@@ -248,6 +266,7 @@ int format_counters(struct thread_data *t, struct core_data *c,
+ 	struct pkg_data *p)
+ {
+ 	double interval_float;
++	int column, len;
+ 
+ 	 /* if showing only 1st thread in core and this isn't one, bail out */
+ 	if (show_core_only && !(t->flags & CPU_IS_FIRST_THREAD_IN_CORE))
+@@ -350,8 +369,19 @@ int format_counters(struct thread_data *t, struct core_data *c,
+ 	if (do_snb_cstates)
+ 		outp += sprintf(outp, " %6.2f", 100.0 * p->pc7/t->tsc);
+ done:
+-	if (extra_msr_offset)
+-		outp += sprintf(outp, "  0x%016llx", t->extra_msr);
++	column = 61;
++	if (extra_msr_offset) {
++		to_column(column);
++		len = sprintf(outp, " 0x%016llx", t->extra_msr);
++		column += len;
++		outp += len;
++	}
++	if (do_smi_count) {
++		to_column(column);
++		len = sprintf(outp, " %6llu", t->smi_count);
++		column += len;
++		outp += len;
++	}
+ 	outp += sprintf(outp, "\n");
+ 
+ 	return 0;
+@@ -462,6 +492,8 @@ delta_thread(struct thread_data *new, struct thread_data *old,
+ 	 * for "extra msr", just copy the latest w/o subtracting
+ 	 */
+ 	old->extra_msr = new->extra_msr;
++
++	old->smi_count = new->smi_count - old->smi_count;
+ }
+ 
+ int delta_cpu(struct thread_data *t, struct core_data *c,
+@@ -508,6 +540,7 @@ int sum_counters(struct thread_data *t, struct core_data *c,
+ 	average.threads.aperf += t->aperf;
+ 	average.threads.mperf += t->mperf;
+ 	average.threads.c1 += t->c1;
++	average.threads.smi_count += t->smi_count;
+ 
+ 	/* sum per-core values only for 1st thread in core */
+ 	if (!(t->flags & CPU_IS_FIRST_THREAD_IN_CORE))
+@@ -589,6 +622,12 @@ int get_counters(struct thread_data *t, struct core_data *c, struct pkg_data *p)
+ 		if (get_msr(cpu, extra_msr_offset, &t->extra_msr))
+ 			return -5;
+ 
++	if (do_smi_count) {
++		if (get_msr(cpu, MSR_SMI_COUNT, &t->smi_count))
++			return -13;
++		t->smi_count &= 0xffffffff;
++	}
++
+ 	/* collect core counters only for 1st thread in core */
+ 	if (!(t->flags & CPU_IS_FIRST_THREAD_IN_CORE))
+ 		return 0;
+@@ -1044,7 +1083,7 @@ int has_nehalem_turbo_ratio_limit(unsigned int family, unsigned int model)
+ 
+ int is_snb(unsigned int family, unsigned int model)
+ {
+-	if (!genuine_intel)
++	if (!genuine_intel || family != 6)
+ 		return 0;
+ 
+ 	switch (model) {
+@@ -1057,6 +1096,22 @@ int is_snb(unsigned int family, unsigned int model)
+ 	return 0;
+ }
+ 
++int is_nhm_wsm(unsigned int family, unsigned int model)
++{
++	if (!genuine_intel || family != 6)
++		return 0;
++
++	switch (model) {
++	case 26:
++	case 30:
++	case 46:
++	case 37:
++	case 44:
++	case 47:
++		return 1;
++	}
++	return 0;
++}
+ double discover_bclk(unsigned int family, unsigned int model)
+ {
+ 	if (is_snb(family, model))
+@@ -1140,6 +1195,10 @@ void check_cpuid()
+ 	bclk = discover_bclk(family, model);
+ 
+ 	do_nehalem_turbo_ratio_limit = has_nehalem_turbo_ratio_limit(family, model);
++
++	/* Do unconditionally? Started with Nehalem, but may not be on Atoms */
++	if (is_snb(family, model) || is_nhm_wsm(family, model))
++		do_smi_count = 1;
+ }
+ 
+ 
+-- 
+1.7.7.6
 
-
-Could that be an ACPI problem of the kernel or should I pester Intel for
-a BIOS problem?
-
-
-I am not on list, so please CC me ...
-
-Regards
-Malte
