@@ -1,19 +1,19 @@
 From: "R, Durgadoss" <durgadoss.r@intel.com>
-Subject: RE: [PATCH 3/4] RFC Thermal: Introduce a step-wise thermal governor
-Date: Tue, 12 Jun 2012 14:46:03 +0000
-Message-ID: <4D68720C2E767A4AA6A8796D42C8EB5913618B@BGSMSX101.gar.corp.intel.com>
+Subject: RE: [PATCH 2/4] RFC Thermal: Introduce fair-share thermal governor
+Date: Tue, 12 Jun 2012 14:49:46 +0000
+Message-ID: <4D68720C2E767A4AA6A8796D42C8EB5913619B@BGSMSX101.gar.corp.intel.com>
 References: <1339436374-26881-1-git-send-email-durgadoss.r@intel.com>
- <1339436374-26881-4-git-send-email-durgadoss.r@intel.com>
- <20120612125901.GD8724@besouro>
+ <1339436374-26881-3-git-send-email-durgadoss.r@intel.com>
+ <20120612125508.GC8724@besouro>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:41358 "EHLO mga03.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:10737 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751924Ab2FLOqI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Jun 2012 10:46:08 -0400
-In-Reply-To: <20120612125901.GD8724@besouro>
+	id S1753328Ab2FLOtv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Jun 2012 10:49:51 -0400
+In-Reply-To: <20120612125508.GC8724@besouro>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -22,37 +22,24 @@ Cc: "lenb@kernel.org" <lenb@kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, "li
 
 Hi Eduardo,
 
-> > +	  Enable this to manage platform thermals using a simple linear
-> > +          throttling algorithm
+> > +	int cur_trip_level = get_trip_level(tz);
+> > +
+> > +	/* Do not throttle:
+> > +	 * if there are no parameters defined for this zone
+> > +	 * if current trip level is 0 (for performance reasons)
+> > +	 */
 > 
-> Same as before, add some description of the governor-policy.
+> Nip: I suppose the kernel coding for comments should be:
 
-I added comments while defining this function inside the file.
-Never mind, will make it more readable in next version :-)
-
-> > +		else if (new_state <= 0)
-> 
-> new_state can not be negative as it is declared as unsigned.
-
-Good one. Thank you. will fix.
+Missed it here :-) Will fix..
+Surprised checkpatch did not complain !!
 
 > 
-> Again, what was the difference between linear and step_wise?
-> 
+> I think, while merging your work with Rui's, you need to take care of the
+> cooling state range bound to the trip point..
 
-Not intended to be different.
-
-> Is it so that linear applies only to the passive trip points and
-> step wise applies to all cooling devices in the specific zone?
-
-No. Right now it is like that.
-Now that we agree to clean thermal_sys.c from throttling code,
-I will add that functionality here.
-
-> 
-> I guess we need some more clarity on the differences.
-
-I hope my next patch set will make things clear.
+Yes Sure. I have not started looking into them yet.
+I will Sync up before sending my next set.
 
 Thanks,
 Durga
