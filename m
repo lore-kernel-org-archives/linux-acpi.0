@@ -1,96 +1,105 @@
-From: Durgadoss R <durgadoss.r@intel.com>
-Subject: [PATCH 4/4] RFC Thermal: Platform layer changes to provide thermal data
-Date: Mon, 11 Jun 2012 23:09:34 +0530
-Message-ID: <1339436374-26881-5-git-send-email-durgadoss.r@intel.com>
-References: <1339436374-26881-1-git-send-email-durgadoss.r@intel.com>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [PATCH] ACPI  : Implement ACPI_NOTIFY_EJECT_REQUEST for ACPI
+ container
+Date: Tue, 12 Jun 2012 14:33:06 +0900
+Message-ID: <4FD6D492.504@jp.fujitsu.com>
+References: <4FCDA69C.3040204@jp.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-2022-JP
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:22592 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752242Ab2FLFWz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 12 Jun 2012 01:22:55 -0400
-In-Reply-To: <1339436374-26881-1-git-send-email-durgadoss.r@intel.com>
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:33671 "EHLO
+	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751492Ab2FLFdJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Jun 2012 01:33:09 -0400
+In-Reply-To: <4FCDA69C.3040204@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, rui.zhang@intel.com
-Cc: linux-acpi@vger.kernel.org, eduardo.valentin@ti.com, amit.kachhap@linaro.org, Durgadoss R <durgadoss.r@intel.com>
+To: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-This patch shows how can we add platform specific thermal data
-required by the enhanced thermal framework.
-This is just an example patch, and _not_ for merge.
+Please ignore the patch.
+I found that ACPI container driver does not need to implement EJECT routine
+because it has already prepared eject file at userland.
 
-Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
----
- arch/x86/platform/mrst/mrst.c |   39 +++++++++++++++++++++++++++++++++++++++
- 1 files changed, 39 insertions(+), 0 deletions(-)
+2012/06/05 15:26, Yasuaki Ishimatsu wrote:
+> Even if ACPI_NOTIFY_EJECT_REQUEST is notified to ACPI container, ACPI
+> container just calls kobject_uevent(). The patch implements a function
+> to remove all devices included in ACPI container.
+> 
+> Signed-off-by: Yasuaki Ishimatsu<isimatu.yasuaki@jp.fujitsu.com>
+> 
+> ---
+>   drivers/acpi/container.c |   32 ++++++++++++++++++++++++++++++--
+>   1 file changed, 30 insertions(+), 2 deletions(-)
+> 
+> Index: linux-3.5-rc1/drivers/acpi/container.c
+> ===================================================================
+> --- linux-3.5-rc1.orig/drivers/acpi/container.c	2012-06-05 14:01:54.000000000 +0900
+> +++ linux-3.5-rc1/drivers/acpi/container.c	2012-06-05 14:17:40.940836226 +0900
+> @@ -123,6 +123,8 @@ static int acpi_container_remove(struct
+>   	acpi_status status = AE_OK;
+>   	struct acpi_container *pc = NULL;
+> 
+> +	kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
+> +
+>   	pc = acpi_driver_data(device);
+>   	kfree(pc);
+>   	return status;
+> @@ -152,6 +154,32 @@ static int container_device_add(struct a
+>   	return result;
+>   }
+> 
+> +static void container_device_remove(struct acpi_device *device,
+> +				    acpi_handle handle)
+> +{
+> +	struct acpi_object_list arg_list;
+> +	union acpi_object arg;
+> +	int result;
+> +	acpi_status status;
+> +
+> +	result = acpi_bus_trim(device, 1);
+> +	if (result) {
+> +		printk(KERN_WARNING "Removing contaier failed");
+> +		return;
+> +	}
+> +
+> +	arg_list.count = 1;
+> +	arg_list.pointer =&arg;
+> +	arg.type = ACPI_TYPE_INTEGER;
+> +	arg.integer.value = 1;
+> +
+> +	status = acpi_evaluate_object(handle, "_EJ0",&arg_list, NULL);
+> +	if (ACPI_FAILURE(status))
+> +		printk(KERN_WARNING "Eject device failed\n");
+> +
+> +	return;
+> +}
+> +
+>   static void container_notify_cb(acpi_handle handle, u32 type, void *context)
+>   {
+>   	struct acpi_device *device = NULL;
+> @@ -183,13 +211,13 @@ static void container_notify_cb(acpi_han
+>   		} else {
+>   			if (ACPI_SUCCESS(status)) {
+>   				/* device exist and this is a remove request */
+> -				kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
+> +				container_device_remove(device, handle);
+>   			}
+>   		}
+>   		break;
+>   	case ACPI_NOTIFY_EJECT_REQUEST:
+>   		if (!acpi_bus_get_device(handle,&device)&&  device) {
+> -			kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
+> +			container_device_remove(device, handle);
+>   		}
+>   		break;
+>   	default:
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
 
-diff --git a/arch/x86/platform/mrst/mrst.c b/arch/x86/platform/mrst/mrst.c
-index e31bcd8..eeb3cd0 100644
---- a/arch/x86/platform/mrst/mrst.c
-+++ b/arch/x86/platform/mrst/mrst.c
-@@ -30,6 +30,7 @@
- #include <linux/mfd/intel_msic.h>
- #include <linux/gpio.h>
- #include <linux/i2c/tc35876x.h>
-+#include <linux/thermal.h>
- 
- #include <asm/setup.h>
- #include <asm/mpspec_def.h>
-@@ -78,6 +79,27 @@ struct sfi_rtc_table_entry sfi_mrtc_array[SFI_MRTC_MAX];
- EXPORT_SYMBOL_GPL(sfi_mrtc_array);
- int sfi_mrtc_num;
- 
-+#define MRST_THERMAL_ZONES	3
-+struct thermal_zone_params tzp[MRST_THERMAL_ZONES] = {
-+	{ .thermal_zone_name = "CPU",
-+	.throttle_policy = THERMAL_FAIR_SHARE,
-+	.num_cdevs = 2,
-+	.cdevs_name = {"CPU", "Battery"},
-+	.weights = {80, 20}, },
-+
-+	{ .thermal_zone_name = "Battery",
-+	.throttle_policy = THERMAL_FAIR_SHARE,
-+	.num_cdevs = 1,
-+	.cdevs_name = {"Battery"},
-+	.weights = {100}, },
-+
-+	{ .thermal_zone_name = "Skin",
-+	.throttle_policy = THERMAL_FAIR_SHARE,
-+	.num_cdevs = 2,
-+	.cdevs_name = {"Display", "Battery"},
-+	.weights = {50, 50}, }
-+};
-+
- static void mrst_power_off(void)
- {
- }
-@@ -983,10 +1005,27 @@ static int __init sfi_parse_devs(struct sfi_table_header *table)
- 	return 0;
- }
- 
-+static int mrst_get_thermal_params(struct thermal_zone_device *tz)
-+{
-+	int i;
-+
-+	for (i = 0; i < MRST_THERMAL_ZONES; i++) {
-+		if (!strcmp(tzp[i].thermal_zone_name, tz->type)) {
-+			tz->tzp = &tzp[i];
-+			return 0;
-+		}
-+	}
-+	return -ENODEV;
-+}
-+
- static int __init mrst_platform_init(void)
- {
- 	sfi_table_parse(SFI_SIG_GPIO, NULL, NULL, sfi_parse_gpio);
- 	sfi_table_parse(SFI_SIG_DEVS, NULL, NULL, sfi_parse_devs);
-+
-+	/* Set platform thermal data pointer */
-+	get_platform_thermal_params = mrst_get_thermal_params;
-+
- 	return 0;
- }
- arch_initcall(mrst_platform_init);
--- 
-1.7.0.4
 
