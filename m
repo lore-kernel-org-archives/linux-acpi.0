@@ -1,38 +1,74 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: Re: [PATCH] ACPI, APEI: Fixup common access width firmware bug
-Date: Tue, 12 Jun 2012 16:46:47 +0800
-Message-ID: <1339490807.7404.39.camel@yhuang-dev>
-References: <1339490608.21507.5.camel@amber.site>
+From: "R, Durgadoss" <durgadoss.r@intel.com>
+Subject: RE: [PATCH 0/4] Thermal Framework Enhancements
+Date: Tue, 12 Jun 2012 08:59:54 +0000
+Message-ID: <4D68720C2E767A4AA6A8796D42C8EB59135DE1@BGSMSX101.gar.corp.intel.com>
+References: <1339436374-26881-1-git-send-email-durgadoss.r@intel.com>
+ <1339487081.1973.13.camel@rui.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:43383 "EHLO mga09.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:38126 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751957Ab2FLIqt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 12 Jun 2012 04:46:49 -0400
-In-Reply-To: <1339490608.21507.5.camel@amber.site>
+	id S1752371Ab2FLJAN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 Jun 2012 05:00:13 -0400
+In-Reply-To: <1339487081.1973.13.camel@rui.sh.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jean Delvare <jdelvare@suse.de>
-Cc: Gary Hade <garyhade@us.ibm.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: "Zhang, Rui" <rui.zhang@intel.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>, "amit.kachhap@linaro.org" <amit.kachhap@linaro.org>
 
-On Tue, 2012-06-12 at 10:43 +0200, Jean Delvare wrote:
-> Many firmwares have a common register definition bug where 8-bit
-> access width is specified for a 32-bit register. Ideally this should
-> be fixed in the BIOS, but earlier versions of the kernel did not
-> complain, so fix that up silently.
-> 
-> This closes kernel bug #43282:
-> https://bugzilla.kernel.org/show_bug.cgi?id=43282
-> 
-> Signed-off-by: Jean Delvare <jdelvare@suse.de>
-> Cc: Gary Hade <garyhade@us.ibm.com>
-> Cc: Len Brown <len.brown@intel.com>
-> Cc: stable@vger.kernel.org [3.4+]
-Acked-by: Huang Ying <ying.huang@intel.com>
-
-Best Regards,
-Huang Ying
-
-
+VGhhbmtzIFJ1aSBmb3IgdGFraW5nIGEgUXVpY2sgTG9vay4NCkkgYW0gbm90IHJlcGx5aW5nIHRv
+IGFsbCB5b3VyIGNvbW1lbnRzLCBiZWNhdXNlIG1vc3Qgb2YgdGhlbSBsb29rIGZpbmUgdG8gbWUu
+DQoNCltBIGJpZyBjdXRdDQoNCj4gPiAJICAgMS4gSW50cm9kdWNlcyB0aGUgZ2V0X3RyZW5kIGNh
+bGxiYWNrDQo+IHNlZW1zIGR1cGxpY2F0ZSB3b3JrIG9mIG15IHBhdGNoIHNldC4gOigNCg0KWWVz
+IEkgYWdyZWUuIEkgd2FzIGluIHRoZSBtaWRkbGUgb2YgdGVzdGluZyB5ZXN0ZXJkYXksDQpzbyBj
+b3VsZCBub3QgY2hhbmdlIGl0IGJlZm9yZSB0b2RheS4NCkkgd2lsbCByZXZpZXcgeW91ciAxMiBw
+YXRjaGVzLCBhbmQgcHVsbCBpbiBoZXJlIHRoZSBuZWVkZWQgb25lcy4NClNvLCBteSBuZXh0IHBh
+dGNoIHNldCB3aWxsIGhhdmUgdGhvc2UgY2hhbmdlcywgYW5kIHRoZXkgZG9u4oCZdCBjb25mbGlj
+dC4NCg0KPiANCj4gPiAJICAgMi4gSW50cm9kdWNlcyB0aGUgbm90aWZ5X3RoZXJtYWxfZnJhbWV3
+b3JrKCkgQVBJDQo+IA0KPiA+IAkgICAzLiBFeHBvc2VzIHN5c2ZzIHRvIHNob3cvc3RvcmUgdGhl
+IHRocm90dGxlX3BvbGljeQ0KPiA+DQo+IHllcywgSSB0aGluayB3ZSBuZWVkIHRoaXMuDQo+IA0K
+PiA+IFBhdGNoIDIvNDogSW50cm9kdWNlIGZhaXJfc2hhcmUgZ292ZXJub3INCj4gPiAJICAgVGhp
+cyB0aHJvdHRsZXMgdGhlIGNvb2xpbmdfZGV2aWNlcyBhY2NvcmRpbmcgdG8gdGhlaXINCj4gPiAJ
+ICAgd2VpZ2h0cyAoYW5kIGhlbmNlIHRoZSBuYW1lOyBTdWdnZXN0aW9uIGFyZSB3ZWxjb21lIDot
+KS4NCj4gPiAJICAgVGhlIHdlaWdodHMgaW4gdHVybiBkZXNjcmliZSB0aGUgZWZmZWN0aXZlbmVz
+cyBvZiBhDQo+ID4gCSAgIHBhcnRpY3VsYXIgY29vbGluZyBkZXZpY2UgaW4gY29vbGluZyBhIHRo
+ZXJtYWwgem9uZS4NCj4gPg0KPiANCj4gPiBQYXRjaCAzLzQ6IEludHJvZHVjZSBzdGVwX3dpc2Ug
+Z292ZXJub3INCj4gPiAJICAgVGhpcyB0aHJvdHRsZXMvZGUtdGhyb3R0bGVzIHRoZSBjb29saW5n
+IGRldmljZXMgb25lDQo+ID4gCSAgIHN0ZXAgYXQgYSB0aW1lLiBUaGlzIGlzIGV4YWN0bHkgc2lt
+aWxhciB0byB0aGUgY29kZQ0KPiA+IAkgICB3ZSBoYXZlIGluIHRoZXJtYWxfem9uZV9kZXZpY2Vf
+dXBkYXRlIGZ1bmN0aW9uLiBUaGUNCj4gPiAJICAgaW50ZW50aW9uIGlzIHRvIG1vdmUgYWxsICd0
+aHJvdHRsaW5nIGxvZ2ljJyByZWxhdGVkDQo+ID4gCSAgIGNvZGUgb3V0c2lkZSB0aGVybWFsX3N5
+cy5jIGFuZCBrZWVwIHRoZW0gc2VwYXJhdGUuDQo+IA0KPiB0b3RhbGx5IGFncmVlLg0KDQpPaCB0
+aGF04oCZcyBuaWNlLiBXaWxsIGluY29ycG9yYXRlIHRoaXMgY2hhbmdlIGluIG15IG5leHQgcGF0
+Y2ggc2V0Lg0KVGhhbmsgeW91IGZvciB0aGlzLg0KDQo+ID4gKiBBZGQgbW9yZSBwcm90ZWN0aW9u
+IGFuZCB0aWR5IHVwIHRoZSBleGlzdGluZyBvbmVzDQo+ID4gKiBFeHBvc2UgdGhlIHdlaWdodHMg
+YW5kIGNvb2xpbmcgZGV2aWNlcyB0aHJvdWdoIHN5c2ZzIChSZWFkLU9ubHkpDQo+IA0KPiB3aGF0
+IGRvIHlvdSBtZWFuICJjb29saW5nIGRldmljZXMiPw0KDQpJIG1lYW50IGZvciBhIHRoZXJtYWwg
+em9uZSwgd2Ugc2hvdWxkIGV4cG9zZToNCm9uZSBTeXNmczogdGhhdCB3aWxsIGxpc3QgdGhlIHdl
+aWdodHMgb2YgYWxsIGNvb2xpbmcgZGV2aWNlcyBhc3NvY2lhdGVkIHdpdGggdGhpcw0Kb3RoZXIg
+U3lzZnM6IHRoYXQgd2lsbCBsaXN0IHRoZSBuYW1lcyBvZiBjb29saW5nIGRldmljZXMgKGluIHRo
+ZSBzYW1lIG9yZGVyIGFzDQp3ZWlnaHRzKQ0KVGhpcyBpcyBqdXN0IHRvIGxldCB1c2VyIGxhbmQg
+a25vdyBvZiB0aGUgYmluZGluZw0KSSBzaG91bGQgaGF2ZSBwdXQgJ25hbWVzIG9mIGNvb2xpbmcg
+ZGV2aWNlcycuDQoNCj4gDQo+IFllcCwgSSB0aGluayB0aGlzIGlzIGhhbmRsZWQgaW4gbXkgYXJi
+aXRyYXRvciBwYXRjaC4gOnANCg0Kb2suLi5JIGhhdmUgbm90IGxvb2tlZCBhdCBpdCB5ZXQuDQpX
+aWxsIGhhdmUgYSBsb29rIGFuZCBpbmNvcnBvcmF0ZSB0aGUgY2hhbmdlIGluIG5leHQgcGF0Y2gg
+c2V0Lg0KDQo+IA0KPiA+ICAgKFRvIGRvIHRoaXMsIHdlIGhhdmUgdG8gbG9vcCB0aHJvdWdoIHRo
+ZSB0aGVybWFsX3R6X2xpc3QgYW5kDQo+ID4gICB0aGVybWFsX2NkZXZfbGlzdCBpbnNpZGUgZmFp
+cl9zaGFyZS5jLiBOZWVkIHRvIHNlZSBob3cgZ29vZCBpdCBpcw0KPiA+ICAgdG8gbWFrZSB0aGlz
+IGxpc3RzIHB1YmxpYykNCj4gDQo+IElNTywgdGhlc2UgZ292ZXJub3JzIHNob3VsZCBqdXN0IHVw
+ZGF0ZSB0aGUgdGhlcm1hbF9pbnN0YW5jZSwgYW5kIHRoZW4NCj4gaW52b2tlcyB0aGVybWFsX3pv
+bmVfZG9fdXBkYXRlKCkuIFRoZXkgc2hvdWxkIG5vdCBjaGFuZ2UgdGhlIGNvb2xpbmcNCj4gc3Rh
+dGUgZGlyZWN0bHkuDQo+IA0KDQpHaXZlIG1lIHNvbWUgdGltZSB0byB0aGluayBhYm91dCB0aGlz
+IG9uZSwgd2lsbCBjb21lIGJhY2sgdG8geW91IDotKQ0KDQo+ID4gKiBNYWtlIGFsbCBfdGhyb3R0
+bGUgbWV0aG9kcyBoYXZlIHNhbWUgc2lnbmF0dXJlLiBUaGlzIHdheSB3ZSBjYW4gbWFrZSB1c2UN
+Cj4gPiAgIG9mIGZ1bmN0aW9uIHBvaW50ZXJzIGFuZCBtYWtlIHRoZSBjb2RlIGEgYml0IHNpbXBs
+ZXIuDQo+IA0KPiB3aGF0IGRvZXMgc2lnbmF0dXJlIG1lYW4/DQoNCk9oIEkgbWVhbnQgdGhleSBh
+cmUgYWxsIHNhbWUgJ3Rha2luZyBzaW1pbGFyIGFyZ3VtZW50cyBhbmQgc2FtZSByZXR1cm4gdHlw
+ZScuDQpUaGlzIHdheSB3ZSBjYW4gdXNlIGFuIGFycltmdW5jdGlvbiBwdHJzXSB0aGF0IHdpbGwg
+YmUgcG9wdWxhdGVkIGluIGVhY2ggZ292ZXJub3Incw0KaW5pdC4gVGhpcyB3YXkgaW5zaWRlIHRo
+ZSBub3RpZnlfZnJhbWV3b3JrIG1ldGhvZCB3ZSBkb27igJl0IHNvIG1hbnkgY2FzZSBzdGF0ZW1l
+bnRzLg0KV2UgY291bGQganVzdCBkbyBhcnJbdGhyb3R0bGVfcG9saWN5XSguLi4pDQoNClRoYW5r
+cywNCkR1cmdhDQoNCg==
