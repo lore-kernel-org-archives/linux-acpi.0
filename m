@@ -1,137 +1,44 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [RFC PATCH 0/12] generic thermal layer enhancement
-Date: Tue, 12 Jun 2012 11:01:12 +0800
-Message-ID: <1339470072.1492.211.camel@rui.sh.intel.com>
-References: <1339384751.1492.153.camel@rui.sh.intel.com>
-	 <20120611094940.GA3649@besouro>
+From: Huang Ying <ying.huang@intel.com>
+Subject: Re: [BUGFIX] ACPI, APEI, Avoid too much error reporting in runtime
+Date: Tue, 12 Jun 2012 11:08:10 +0800
+Message-ID: <1339470490.7404.34.camel@yhuang-dev>
+References: <1339395822-12032-1-git-send-email-ying.huang@intel.com>
+	 <1339421127.4942.8.camel@deadeye.wl.decadent.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:10663 "EHLO mga01.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:53512 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751032Ab2FLC7n (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 11 Jun 2012 22:59:43 -0400
-In-Reply-To: <20120611094940.GA3649@besouro>
+	id S1751032Ab2FLDIM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 11 Jun 2012 23:08:12 -0400
+In-Reply-To: <1339421127.4942.8.camel@deadeye.wl.decadent.org.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: eduardo.valentin@ti.com
-Cc: linux-pm <linux-pm@lists.linux-foundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Amit Kachhap <amit.kachhap@linaro.org>, "R, Durgadoss" <durgadoss.r@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, "Len, Brown" <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: Ben Hutchings <ben@decadent.org.uk>
+Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, stable@vger.kernel.org
 
-On =E4=B8=80, 2012-06-11 at 12:49 +0300, Eduardo Valentin wrote:
-> Hello Rui,
->=20
-> On Mon, Jun 11, 2012 at 11:19:11AM +0800, Zhang Rui wrote:
-> > Hi, all,
-> >=20
-> > this patch set is made to enhance the current generic thermal layer=
-=2E
-> > It fixes several gaps discussed in
-> > http://marc.info/?l=3Dlinux-acpi&m=3D133836783425764&w=3D2
-> > and introduces a simple arbitrator to fix the "one cooling devices
-> > referenced by multiple trip points in multiple thermal zones" probl=
-em.
->=20
-> Thanks for taking this further. With code it is much better to progre=
-ss.
->=20
-> BTW, are you keeping this series somewhere in a branch?
->=20
-Not yet.
-But I'm thinking of create one. :)
+On Mon, 2012-06-11 at 14:25 +0100, Ben Hutchings wrote:
+> On Mon, 2012-06-11 at 14:23 +0800, Huang Ying wrote:
+> > This patch fixed the following bug.
+> > 
+> > https://bugzilla.kernel.org/show_bug.cgi?id=43282
+> > 
+> > This is caused by a firmware bug checking (checking generic address
+> > register provided by firmware) in runtime.  The checking should be
+> > done in address mapping time instead of runtime to avoid too much
+> > error reporting in runtime.
+> > 
+> > Reported-by: Pawel Sikora <pluto@agmk.net>
+> > Signed-off-by: Huang Ying <ying.huang@intel.com>
+> > Tested-by: Jean Delvare <khali@linux-fr.org>
+> [...]
+> 
+> This is not the correct way to submit a patch for stable.  See
+> Documentation/stable_kernel_rules.txt.
 
-> > =20
-> > The whole idea is
-> > 1) make sure we have multiple cooling states for both active coolin=
-g and
-> >    passive cooling devices. (patch 1,2,3)
->=20
-> Nice!
->=20
-> > 2) remove passive specific requirement, aka, tc1/tc2, and
-> >    introduce .get_trend() instead, for both active and passive cool=
-ing
-> >    algorithm. (patch 4,5)
->=20
-> Cool. The .get_trend() might be also helpful in case there are sensor=
-s
-> that provide trending computation, or at least, some history buffer.
->=20
-> So, I definitely agree with this approach.
->=20
-> > 3) introduce new function thermal_zone_trip_update(), this contains=
- the
-> >    code for the general cooling algorithm. (patch 6)
->=20
-> Ok.
->=20
-> > 4) rename some thermal structures. Use thermal_instance instead of
-> >    thermal_cooling_device_instance, as this structure is used to
-> >    describe the behavior of a certain cooling device for a certain =
-trip
-> >    point in a certain thermal zone.
-> >    thermal_zone_device has a list of all the thermal instances in t=
-his
-> >    thermal zone so that it can update them when the temperature cha=
-nges.
-> >    thermal_cooling_device has a list of all the thermal instances f=
-or
-> >    this cooling device so that it can make decision which cooling s=
-tate
-> >    should be in when the temperature changes. (patch 7,8,9,10)
->=20
-> Ok.
->=20
-> > 5) introduce a simple arbitrator. (patch 11)
-> >    When temperature changes, we update a thermal zone in two stages=
-,
-> >    a) thermal_zone_trip_point() is the general cooling algorithm to
-> >       update the thermal instances in the thermal zone device
-> >    b) thermal_zone_do_update() is the arbitrator for the cooling de=
-vice
-> >       to choose the deepest cooling state required to enter.
->=20
-> The arbitrator is good starting point. I will have a deeper look on i=
-t.
->=20
-> But we may be careful to solve the constraint issue only at thermal c=
-ode
-> level. There might be conflicting constraints coming from PM QoS laye=
-r,
-> for instance.
->=20
-hmmm, do you have a link for the discussions/patches mentioned?
+Thanks for reminding.  Will resend the patch.
 
-I'll take a look at this. :)
+Best Regards,
+Huang Ying
 
-> > 6) unify the code for both passive and active cooling.
->=20
-> This is good.
->=20
-> >=20
-> > TODO, add locking mechanism. I know this is important but as this p=
-atch
-> > set changes the thermal layer a(lot, I just want to make sure I'm i=
-n the
-> > right direction before going on.
->=20
-> Right. I second you on the incremental approach.
->=20
-> >=20
-> > BTW, in theory, they should make no change to the behavior of the
-> > current generic thermal layer users. But I have just done the build
-> > test.
->=20
-> OK. I will fetch them and give them a trial on my side, then send bet=
-ter review.
->=20
-Great. That would be really helpful. Thanks for your interest on this,
-Eduardo! :)
-
--rui
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
