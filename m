@@ -1,79 +1,107 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [RFC] ACPI, APEI: Fix incorrect bit width + offset check
- condition
-Date: Wed, 13 Jun 2012 10:46:51 +0200
-Message-ID: <20120613104651.52ce8840@endymion.delvare>
-References: <1339573184-3122-1-git-send-email-hui.xiao@linux.intel.com>
+From: Dirk Behme <dirk.behme@de.bosch.com>
+Subject: Re: [RFC PATCH v4] ARM: imx: Add basic imx6q thermal management
+Date: Wed, 13 Jun 2012 10:46:31 +0200
+Message-ID: <4FD85367.5000302@de.bosch.com>
+References: <1326940051-31016-1-git-send-email-rob.lee@linaro.org>
+ <1326940051-31016-2-git-send-email-rob.lee@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from zoneX.GCU-Squad.org ([194.213.125.0]:27711 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751532Ab2FMIrW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Jun 2012 04:47:22 -0400
-In-Reply-To: <1339573184-3122-1-git-send-email-hui.xiao@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1326940051-31016-2-git-send-email-rob.lee@linaro.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Robert Lee <rob.lee@linaro.org>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, Philipp Ahmann <pahmann@de.adit-jv.com>, "s.hauer@pengutronix.de" <s.hauer@pengutronix.de>, "amit.kucheria@linaro.org" <amit.kucheria@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "amit.kachhap@linaro.org" <amit.kachhap@linaro.org>, Ying-Chun Liu <paul.liu@linaro.org>, "shawn.guo@freescale.com" <shawn.guo@freescale.com>, "lenb@kernel.org" <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Xiao, Hui" <hui.xiao@linux.intel.com>
-Cc: garyhade@us.ibm.com, tony.luck@intel.com, ying.huang@intel.com, lenb@kernel.org, pluto@agmk.net, linux-acpi@vger.kernel.org, Chen Gong <gong.chen@linux.intel.com>
 
-Hi Xiao,
-
-On Wed, 13 Jun 2012 15:39:44 +0800, Xiao, Hui wrote:
-> Fix the incorrect bit width + offset check condition in apei_check_gar()
-> function introduced by commit v3.3-5-g15afae6.
+On 19.01.2012 03:27, Robert Lee wrote:
+> Adds support for temperature sensor readings, registers with common
+> thermal framework, and uses the new common cpu_cooling interface.
 > 
-> The bug caused regression on EINJ error injection with errors:
-> 
-> [Firmware Bug]: APEI: Invalid bit width + offset in GAR [0x1121a5000/64/0/3/0]
-> 
-> on a valid address region of:
->     - Register bit width: 64 bits
->     - Register bit offset: 0
->     - Access Size: 03 [DWord Access: 32]
-
-I don't see how this is valid, sorry. If you have a 64-bit register,
-you want 64-bit access, don't you?
-
-If the access code is supposed to be able to read large registers in
-smaller chunks and assemble them transparently to a larger value, then
-there is no point in having any check at all, everything is valid. If
-not, then the above is just as invalid as the firmware issue discussed
-in bug #43282.
-
-> 
-> Signed-off-by: Xiao, Hui <hui.xiao@linux.intel.com>
-> Signed-off-by: Chen Gong <gong.chen@linux.intel.com>
+> Signed-off-by: Robert Lee <rob.lee@linaro.org>
 > ---
->  drivers/acpi/apei/apei-base.c |    7 +++++--
->  1 files changed, 5 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
-> index 5577762..95e07b2 100644
-> --- a/drivers/acpi/apei/apei-base.c
-> +++ b/drivers/acpi/apei/apei-base.c
-> @@ -586,9 +586,12 @@ static int apei_check_gar(struct acpi_generic_address *reg, u64 *paddr,
->  	}
->  	*access_bit_width = 1UL << (access_size_code + 2);
->  
-> -	if ((bit_width + bit_offset) > *access_bit_width) {
-> +	/* bit_width and bit_offset must be zero when addressing a data
-> +	 * structure. So just check for non-zero case here */
-> +	if ((bit_width != 0 && *access_bit_width > bit_width) ||
-> +			bit_offset > *access_bit_width) {
+>  arch/arm/boot/dts/imx6q.dtsi    |    1 +
+>  drivers/thermal/Kconfig         |    6 +
+>  drivers/thermal/Makefile        |    1 +
+>  drivers/thermal/imx6q_thermal.c |  540 +++++++++++++++++++++++++++++++++++++++
+>  4 files changed, 548 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/thermal/imx6q_thermal.c
+...
+> +static int __init imx6q_thermal_init(void)
+> +{
+> +       struct device_node *np_ocotp, *np_anatop;
+> +       unsigned int fuse_data;
+> +       int ret;
+> +
+> +       np_ocotp = of_find_compatible_node(NULL, NULL, "fsl,imx6q-ocotp");
+> +       np_anatop = of_find_compatible_node(NULL, NULL, "fsl,imx6q-anatop");
+> +
+> +       if (!(np_ocotp && np_anatop))
+> +               return -ENXIO; /* not a compatible platform */
+> +
+> +       ocotp_base = of_iomap(np_ocotp, 0);
+> +
+> +       if (!ocotp_base) {
+> +               pr_err("Could not retrieve ocotp-base\n");
+> +               ret = -ENXIO;
+> +               goto err_unregister;
+> +       }
+> +
+> +       anatop_base = of_iomap(np_anatop, 0);
+> +
+> +       if (!anatop_base) {
+> +               pr_err("Could not retrieve anantop-base\n");
+> +               ret = -ENXIO;
+> +               goto err_unregister;
+> +       }
+> +
+> +       fuse_data = readl_relaxed(ocotp_base + HW_OCOTP_ANA1);
 
-I can't make any sense of this test, sorry. And it will trigger on
-valid cases, starting with the most frequent case where
-*access_bit_width == bit_width. So, nack.
+To be able to use this on non-calibrated sample devices, we had to add [1].
 
->  		pr_warning(FW_BUG APEI_PFX
-> -			   "Invalid bit width + offset in GAR [0x%llx/%u/%u/%u/%u]\n",
-> +			   "Invalid bit width or offset in GAR [0x%llx/%u/%u/%u/%u]\n",
->  			   *paddr, bit_width, bit_offset, access_size_code,
->  			   space_id);
->  		return -EINVAL;
+Best regards
 
+Dirk
 
+[1]
+
+From: Ying-Chun Liu (PaulLiu) <paul.liu@linaro.org>
+Subject: [PATCH] ARM: imx6: thermal: Add workaround for missing 
+calibration data
+
+Sample devices not calibrated in the production don't have the fuses 
+containing
+the calibration data. Hardcode this value if the fuse data read is zero 
+to be able
+to use the thermal functinality on these sample devices, too.
+
+Signed-off-by: Ying-Chun Liu <paul.liu@linaro.org>
+Signed-off-by: Philipp Ahmann <pahmann@de.adit-jv.com>
+---
+  drivers/thermal/imx6q_thermal.c |    2 ++
+  1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/thermal/imx6q_thermal.c 
+b/drivers/thermal/imx6q_thermal.c
+index 76b7ba1..543cd75 100644
+--- a/drivers/thermal/imx6q_thermal.c
++++ b/drivers/thermal/imx6q_thermal.c
+@@ -446,6 +446,8 @@ static int __init imx6q_thermal_init(void)
+  	}
+
+  	fuse_data = readl_relaxed(ocotp_base + HW_OCOTP_ANA1);
++	if (fuse_data == 0)
++		fuse_data = 0x5704c67d;
+
+  	th_zone = kzalloc(sizeof(struct imx6q_thermal_zone), GFP_KERNEL);
+  	if (!th_zone) {
 -- 
-Jean Delvare
+1.7.0.4
