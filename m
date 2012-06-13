@@ -1,72 +1,36 @@
-From: Corentin Chary <corentin.chary@gmail.com>
-Subject: [PATCH 4/7] acpi/video_detect: blacklist samsung x360
-Date: Wed, 13 Jun 2012 09:32:04 +0200
-Message-ID: <1339572727-24744-5-git-send-email-corentin.chary@gmail.com>
-References: <1339572727-24744-1-git-send-email-corentin.chary@gmail.com>
+From: "Xiao, Hui" <hui.xiao@linux.intel.com>
+Subject: Re: [BUGFIX] ACPI, APEI, Avoid too much error reporting in runtime
+Date: Wed, 13 Jun 2012 16:03:02 +0800
+Message-ID: <4FD84936.5080006@linux.intel.com>
+References: <1339471219-4057-1-git-send-email-ying.huang@intel.com> <4FD6C310.3060507@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1339572727-24744-1-git-send-email-corentin.chary@gmail.com>
+In-Reply-To: <4FD6C310.3060507@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, Corentin Chary <corentin.chary@gmail.com>, linux-kernel@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Huang Ying <ying.huang@intel.com>, linux-kernel@vger.kernel.org, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Samsung X360, the BIOS will set a flag (VDRV) if the generic
-ACPI backlight device is used. This flag will definitively break
-the backlight interface (even the vendor interface) untill next
-reboot. It's why we should prevent video.ko from being used here
-and we can't rely on a later call to acpi_video_unregister().
+On 2012/6/12 12:18, Len Brown wrote:
+> applied.
+> 
+> thanks,
+> -Len Brown, Intel Open Source Technology Center
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+Hi all,
 
-Signed-off-by: Corentin Chary <corentin.chary@gmail.com>
----
- drivers/acpi/video_detect.c |   29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
+I've also encountered the similar bug:
+  [Firmware Bug]: APEI: Invalid bit width + offset in GAR [0x1121a5000/64/0/3/0]
+during einj test. 
 
-diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index 942fa2a..b728880 100644
---- a/drivers/acpi/video_detect.c
-+++ b/drivers/acpi/video_detect.c
-@@ -132,6 +132,33 @@ find_video(acpi_handle handle, u32 lvl, void *context, void **rv)
- 	return AE_OK;
- }
- 
-+/* Force to use vendor driver when the ACPI device is known to be
-+ * buggy */
-+static int video_detect_force_vendor(const struct dmi_system_id *d)
-+{
-+	acpi_video_support |= ACPI_VIDEO_BACKLIGHT_DMI_VENDOR;
-+	return 0;
-+}
-+
-+static struct dmi_system_id video_detect_dmi_table[] = {
-+	/* On Samsung X360, the BIOS will set a flag (VDRV) if generic
-+	 * ACPI backlight device is used. This flag will definitively break
-+	 * the backlight interface (even the vendor interface) untill next
-+	 * reboot. It's why we should prevent video.ko from being used here
-+	 * and we can't rely on a later call to acpi_video_unregister().
-+	 */
-+	{
-+	 .callback = video_detect_force_vendor,
-+	 .ident = "X360",
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "X360"),
-+		DMI_MATCH(DMI_BOARD_NAME, "X360"),
-+		},
-+	},
-+	{ },
-+};
-+
- /*
-  * Returns the video capabilities of a specific ACPI graphics device
-  *
-@@ -164,6 +191,8 @@ long acpi_video_get_capabilities(acpi_handle graphics_handle)
- 		 *		ACPI_VIDEO_BACKLIGHT_DMI_VENDOR;
- 		 *}
- 		 */
-+
-+		dmi_check_system(video_detect_dmi_table);
- 	} else {
- 		status = acpi_bus_get_device(graphics_handle, &tmp_dev);
- 		if (ACPI_FAILURE(status)) {
--- 
-1.7.9.5
+Besides Ying's fix patch, I think its a regression caused by incorrect bit width + offset check condition introduced by commit v3.3-5-g15afae6. I've written a fix patch for it and will send it in a separate mail soon.
+
+Thanks,
+-Hui
