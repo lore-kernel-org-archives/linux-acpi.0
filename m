@@ -1,147 +1,103 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFT] PCI changes related to wakeup (was: Re: [linux-pm] ehci_hcd related S3 lockup on ASUS laptops, again)
-Date: Wed, 13 Jun 2012 11:22:35 +0200
-Message-ID: <201206131122.36198.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.1205311704340.1178-100000@iolanthe.rowland.org>
+From: "Xiao, Hui" <hui.xiao@linux.intel.com>
+Subject: Re: [RFC] ACPI, APEI: Fix incorrect bit width + offset check condition
+Date: Wed, 13 Jun 2012 18:44:15 +0800
+Message-ID: <4FD86EFF.1080004@linux.intel.com>
+References: <1339573184-3122-1-git-send-email-hui.xiao@linux.intel.com> <20120613104651.52ce8840@endymion.delvare>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:39504 "EHLO ogre.sisk.pl"
+Received: from mga03.intel.com ([143.182.124.21]:35915 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750731Ab2FMJRT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Jun 2012 05:17:19 -0400
-In-Reply-To: <Pine.LNX.4.44L0.1205311704340.1178-100000@iolanthe.rowland.org>
+	id S1751255Ab2FMKoW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 13 Jun 2012 06:44:22 -0400
+In-Reply-To: <20120613104651.52ce8840@endymion.delvare>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: "Oleksij Rempel (fishor)" <bug-track@fisher-privat.net>, =?utf-8?q?D=C3=A2niel_Fraga?= <fragabr@gmail.com>, Andrey Rahmatullin <wrar@wrar.name>, Steven Rostedt <rostedt@goodmis.org>, linux-pm@lists.linux-foundation.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: garyhade@us.ibm.com, tony.luck@intel.com, ying.huang@intel.com, lenb@kernel.org, pluto@agmk.net, linux-acpi@vger.kernel.org, Chen Gong <gong.chen@linux.intel.com>
 
-Hi Alan,
+Hi Jean,
 
-On Thursday, May 31, 2012, Alan Stern wrote:
-> On Tue, 29 May 2012, Rafael J. Wysocki wrote:
->=20
-> > > > > Therefore we really do need a quirk, probably in ehci-hcd lik=
-e the=20
-> > > > > original patch.  If it is restricted to apply only in cases w=
-here the=20
-> > > > > DMI information lists ASUSTeK as the manufacturer, perhaps th=
-at will be=20
-> > > > > sufficient.  (For some reason, the manufacturer field in D=C3=
-=A2niel's BIOS=20
-> > > > > isn't initialized.)
-> > > >=20
-> > > > Yeah.
-> > > >=20
-> > > > I'll have a deeper look at this later today, I think.
-> > >=20
-> > > It's easy enough to write such a check (or perhaps more reliably,=
- check
-> > > for a product name matching "P8Z68-V").
-> >=20
-> > I think we should try to express it as a PCI quirk in quirks.c, tho=
-ugh.
->=20
-> Here's my attempt.  Everybody, please try this patch with the
-> 151b61284776 commit removed.  Make sure that CONFIG_USB_DEBUG is
-> enabled so we can check the controller's power state during suspend,=20
-> and check that the "broken D3 during system sleep on ASUS" message=20
-> shows up during booting.
+On 2012/6/13 16:46, Jean Delvare wrote:
+> Hi Xiao,
+> 
+> On Wed, 13 Jun 2012 15:39:44 +0800, Xiao, Hui wrote:
+>> Fix the incorrect bit width + offset check condition in apei_check_gar()
+>> function introduced by commit v3.3-5-g15afae6.
+>>
+>> The bug caused regression on EINJ error injection with errors:
+>>
+>> [Firmware Bug]: APEI: Invalid bit width + offset in GAR [0x1121a5000/64/0/3/0]
+>>
+>> on a valid address region of:
+>>     - Register bit width: 64 bits
+>>     - Register bit offset: 0
+>>     - Access Size: 03 [DWord Access: 32]
+> 
+> I don't see how this is valid, sorry. If you have a 64-bit register,
+> you want 64-bit access, don't you?
+>
 
-It looks like this worked for everyone concerned, is that correct?
+Ideally yes. But I don't think if there is a 64-bit width register and only 
+lower 32-bit access authority given will make this region invalid.
 
-In that case, do you intend to send this patch for inclusion any time s=
-oon?
-It would be good to have this particular issue taken care of.
+Assuming a 64-bit register but only lower 32-bit is writable.
+
+> If the access code is supposed to be able to read large registers in
+> smaller chunks and assemble them transparently to a larger value, then
+> there is no point in having any check at all, everything is valid. If
+> not, then the above is just as invalid as the firmware issue discussed
+> in bug #43282.
+> 
+Able to read large registers in smaller chunk, I think so and the register
+bit width set the access boundary.
+
+For "assemble them transparently to a larger value, then...", not quite 
+understand what you mean here.... 
+
+>>
+>> Signed-off-by: Xiao, Hui <hui.xiao@linux.intel.com>
+>> Signed-off-by: Chen Gong <gong.chen@linux.intel.com>
+>> ---
+>>  drivers/acpi/apei/apei-base.c |    7 +++++--
+>>  1 files changed, 5 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
+>> index 5577762..95e07b2 100644
+>> --- a/drivers/acpi/apei/apei-base.c
+>> +++ b/drivers/acpi/apei/apei-base.c
+>> @@ -586,9 +586,12 @@ static int apei_check_gar(struct acpi_generic_address *reg, u64 *paddr,
+>>  	}
+>>  	*access_bit_width = 1UL << (access_size_code + 2);
+>>  
+>> -	if ((bit_width + bit_offset) > *access_bit_width) {
+>> +	/* bit_width and bit_offset must be zero when addressing a data
+>> +	 * structure. So just check for non-zero case here */
+>> +	if ((bit_width != 0 && *access_bit_width > bit_width) ||
+>> +			bit_offset > *access_bit_width) {
+> 
+> I can't make any sense of this test, sorry. And it will trigger on
+> valid cases, starting with the most frequent case where
+> *access_bit_width == bit_width. So, nack.
+> 
+The condition here is for checking invalid GAR. When 
+  *access_bit_width == bit_width
+I don't think my code will trigger the error. Instead, the original condition
+will trigger the error once bit_offset != 0, which doesn't make sense.
+
+Besides if addressing a data structure, per ACPI spec bit_width and bit_offset
+must be zero, the original condition will always end with error even valid 
+access width is given.
+
+>>  		pr_warning(FW_BUG APEI_PFX
+>> -			   "Invalid bit width + offset in GAR [0x%llx/%u/%u/%u/%u]\n",
+>> +			   "Invalid bit width or offset in GAR [0x%llx/%u/%u/%u/%u]\n",
+>>  			   *paddr, bit_width, bit_offset, access_size_code,
+>>  			   space_id);
+>>  		return -EINVAL;
+> 
+> 
 
 Thanks,
-Rafael
-
-
-> Index: usb-3.4/drivers/pci/pci.c
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --- usb-3.4.orig/drivers/pci/pci.c
-> +++ usb-3.4/drivers/pci/pci.c
-> @@ -1743,6 +1743,11 @@ int pci_prepare_to_sleep(struct pci_dev
->  	if (target_state =3D=3D PCI_POWER_ERROR)
->  		return -EIO;
-> =20
-> +	/* Some devices mustn't be in D3 during system sleep */
-> +	if (target_state =3D=3D PCI_D3hot &&
-> +			(dev->dev_flags & PCI_DEV_FLAGS_NO_D3_DURING_SLEEP))
-> +		return 0;
-> +
->  	pci_enable_wake(dev, target_state, device_may_wakeup(&dev->dev));
-> =20
->  	error =3D pci_set_power_state(dev, target_state);
-> Index: usb-3.4/drivers/pci/quirks.c
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --- usb-3.4.orig/drivers/pci/quirks.c
-> +++ usb-3.4/drivers/pci/quirks.c
-> @@ -2917,6 +2917,32 @@ static void __devinit disable_igfx_irq(s
->  DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x0102, disable_igfx_ir=
-q);
->  DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x010a, disable_igfx_ir=
-q);
-> =20
-> +/*
-> + * The Intel 6 Series/C200 Series chipset's EHCI controllers on many
-> + * ASUS motherboards will cause memory corruption or a system crash
-> + * if they are in D3 while the system is put into S3 sleep.
-> + */
-> +static void __devinit asus_ehci_no_d3(struct pci_dev *dev)
-> +{
-> +	const char *sys_info;
-> +	static const char good_Asus_board[] =3D "P8Z68-V";
-> +
-> +	if (dev->dev_flags & PCI_DEV_FLAGS_NO_D3_DURING_SLEEP)
-> +		return;
-> +	if (dev->subsystem_vendor !=3D PCI_VENDOR_ID_ASUSTEK)
-> +		return;
-> +	sys_info =3D dmi_get_system_info(DMI_BOARD_NAME);
-> +	if (sys_info && memcmp(sys_info, good_Asus_board,
-> +			sizeof(good_Asus_board) - 1) =3D=3D 0)
-> +		return;
-> +
-> +	dev_info(&dev->dev, "broken D3 during system sleep on ASUS\n");
-> +	dev->dev_flags |=3D PCI_DEV_FLAGS_NO_D3_DURING_SLEEP;
-> +	device_set_wakeup_capable(&dev->dev, false);
-> +}
-> +DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x1c26, asus_ehci_no_d3=
-);
-> +DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x1c2d, asus_ehci_no_d3=
-);
-> +
->  static void pci_do_fixups(struct pci_dev *dev, struct pci_fixup *f,
->  			  struct pci_fixup *end)
->  {
-> Index: usb-3.4/include/linux/pci.h
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --- usb-3.4.orig/include/linux/pci.h
-> +++ usb-3.4/include/linux/pci.h
-> @@ -176,6 +176,8 @@ enum pci_dev_flags {
->  	PCI_DEV_FLAGS_NO_D3 =3D (__force pci_dev_flags_t) 2,
->  	/* Provide indication device is assigned by a Virtual Machine Manag=
-er */
->  	PCI_DEV_FLAGS_ASSIGNED =3D (__force pci_dev_flags_t) 4,
-> +	/* Device causes system crash if in D3 during S3 sleep */
-> +	PCI_DEV_FLAGS_NO_D3_DURING_SLEEP =3D (__force pci_dev_flags_t) 8,
->  };
-> =20
->  enum pci_irq_reroute_variant {
->=20
->=20
->=20
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-Hui
