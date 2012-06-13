@@ -1,241 +1,258 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [RFC PATCH 3/12] thermal: set upper and lower limits when
- binding
-Date: Wed, 13 Jun 2012 08:51:18 +0800
-Message-ID: <1339548678.1973.59.camel@rui.sh.intel.com>
-References: <1339384801.1492.156.camel@rui.sh.intel.com>
-	 <20120612095215.GA3837@besouro>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: [Resend PATCH V3 4/4] usb/acpi: add usb check for the connect type of usb port
+Date: Wed, 13 Jun 2012 11:07:20 +0800
+Message-ID: <1339556840-2663-4-git-send-email-tianyu.lan@intel.com>
+References: <1339556840-2663-1-git-send-email-tianyu.lan@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:27287 "EHLO mga03.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:6172 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752400Ab2FMAtl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 12 Jun 2012 20:49:41 -0400
-In-Reply-To: <20120612095215.GA3837@besouro>
+	id S1751460Ab2FMDOZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 Jun 2012 23:14:25 -0400
+In-Reply-To: <1339556840-2663-1-git-send-email-tianyu.lan@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: eduardo.valentin@ti.com
-Cc: linux-pm <linux-pm@lists.linux-foundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Amit Kachhap <amit.kachhap@linaro.org>, "R, Durgadoss" <durgadoss.r@intel.com>, "Len, Brown" <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: gregkh@linuxfoundation.org, lenb@kernel.org
+Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu, sarah.a.sharp@linux.intel.com
 
-On =E4=BA=8C, 2012-06-12 at 12:52 +0300, Eduardo Valentin wrote:
-> Hello Rui,
->=20
-> On Mon, Jun 11, 2012 at 11:20:01AM +0800, Zhang Rui wrote:
-> >=20
-> > Set upper and lower limits when binding
-> > a thermal cooling device to a thermal zone device.
-> >=20
-> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> > ---
-> >  drivers/acpi/thermal.c         |   34 ++++++++++++++++++++++++----=
-------
-> >  drivers/platform/x86/acerhdf.c |    2 +-
-> >  drivers/thermal/thermal_sys.c  |   20 ++++++++++++++------
-> >  include/linux/thermal.h        |    3 ++-
-> >  4 files changed, 41 insertions(+), 18 deletions(-)
-> >=20
-> > Index: rtd3/drivers/thermal/thermal_sys.c
-> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > --- rtd3.orig/drivers/thermal/thermal_sys.c
-> > +++ rtd3/drivers/thermal/thermal_sys.c
-> > @@ -248,7 +248,7 @@ passive_store(struct device *dev, struct
-> >  				     sizeof("Processor")))
-> >  				thermal_zone_bind_cooling_device(tz,
-> >  								 THERMAL_TRIPS_NONE,
-> > -								 cdev);
-> > +								 cdev, -1, -1);
-> >  		}
-> >  		mutex_unlock(&thermal_list_lock);
-> >  		if (!tz->passive_delay)
-> > @@ -760,7 +760,8 @@ static void thermal_zone_device_check(st
-> >   */
-> >  int thermal_zone_bind_cooling_device(struct thermal_zone_device *t=
-z,
-> >  				     int trip,
-> > -				     struct thermal_cooling_device *cdev)
-> > +				     struct thermal_cooling_device *cdev,
-> > +				     long upper, long lower)
-> >  {
-> >  	struct thermal_cooling_device_instance *dev;
-> >  	struct thermal_cooling_device_instance *pos;
-> > @@ -784,6 +785,15 @@ int thermal_zone_bind_cooling_device(str
-> >  	if (tz !=3D pos1 || cdev !=3D pos2)
-> >  		return -EINVAL;
-> > =20
-> > +	cdev->ops->get_max_state(cdev, &max_state);
-> > +
-> > +	/* lower default 0, upper default max_state */
-> > +	lower =3D lower < 0 ? 0 : lower;
-> > +	upper =3D upper < 0 ? max_state : upper;
-> > +
-> > +	if (lower > upper || upper > max_state)
-> > +		return -EINVAL;
-> > +
->=20
-> From this version of the code, I assume we want to:
-> a. Allow cooling binding instances to have ranges overlapping.
+Check the connect type of usb port when getting the usb port's
+acpi_handle and store result into connect_type in the struct
+usb_hub_port.
 
-yep.
+Accoding to ACPI Spec 9.13. PLD indicates whether usb port is
+user visible and _UPC indicates whether it is connectable. If
+the port was visible and connectable, it could be freely connected
+and disconnected with USB devices. If no visible and connectable,
+a usb device is directly hard-wired to the port. If no visible and
+no connectable, the port would be not used.
 
-> b. Allow a binding with only one state (lower =3D=3D upper).
->=20
-yep.
+When a device was found on the port, if the connect_type was hot-plug,
+then the device would be removable. If the connect_type was hard-wired,
+the device would be non-removable.
 
+Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+---
+ drivers/usb/core/hub.c      |   44 ++++++++++++++++++++++++++++
+ drivers/usb/core/usb-acpi.c |   67 ++++++++++++++++++++++--------------------
+ drivers/usb/core/usb.h      |    4 ++
+ include/linux/usb.h         |    7 ++++
+ 4 files changed, 90 insertions(+), 32 deletions(-)
 
-> Is this the expected behavior?
->=20
-yes. :)
+diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
+index 82658de..2ed5244 100644
+--- a/drivers/usb/core/hub.c
++++ b/drivers/usb/core/hub.c
+@@ -47,6 +47,7 @@ struct usb_hub_port {
+ #ifdef CONFIG_ACPI
+ 	acpi_handle		port_acpi_handle;
+ #endif
++	enum usb_port_connect_type connect_type;
+ };
+ 
+ struct usb_hub {
+@@ -4941,6 +4942,49 @@ struct usb_device *usb_get_hub_child(struct usb_device *hdev,
+ }
+ EXPORT_SYMBOL_GPL(usb_get_hub_child);
+ 
++/**
++ * usb_set_hub_port_connect_type - set hub port connect type.
++ * @hdev: USB device belonging to the usb hub
++ * @port1: port num of the port
++ * @type: connect type of the port
++ *		USB_PORT_CONNECT_TYPE_UNKNOWN
++ *		USB_PORT_CONNECT_TYPE_HOT_PLUG
++ *		USB_PORT_CONNECT_TYPE_HARD_WIRED
++ *		USB_PORT_NOT_USED
++ */
++void usb_set_hub_port_connect_type(struct usb_device *hdev, int port1,
++	enum usb_port_connect_type type)
++{
++	struct usb_hub *hub = hdev_to_hub(hdev);
++
++	if (port1 < 1 || port1 > hdev->maxchild)
++		return;
++	hub->port_data[port1 - 1].connect_type = type;
++}
++
++/**
++ * usb_get_hub_port_connect_type - Get the port's connect
++ * type
++ * @hdev: USB device belonging to the usb hub
++ * @port1: port num of the port
++ *
++ * Return connect type of the port annd if input params are
++ *	invalid, return USB_PORT_CONNECT_TYPE_UNKNOWN.
++ *		USB_PORT_CONNECT_TYPE_UNKNOWN
++ *		USB_PORT_CONNECT_TYPE_HOT_PLUG
++ *		USB_PORT_CONNECT_TYPE_HARD_WIRED
++ *		USB_PORT_NOT_USED
++ */
++enum usb_port_connect_type
++usb_get_hub_port_connect_type(struct usb_device *hdev,	int port1)
++{
++	struct usb_hub *hub = hdev_to_hub(hdev);
++
++	if (port1 < 1 || port1 > hdev->maxchild)
++		return USB_PORT_CONNECT_TYPE_UNKNOWN;
++	return hub->port_data[port1 - 1].connect_type;
++}
++
+ #ifdef CONFIG_ACPI
+ /**
+  * usb_set_hub_port_acpi_handle - Set the usb port's acpi handle
+diff --git a/drivers/usb/core/usb-acpi.c b/drivers/usb/core/usb-acpi.c
+index e609664..82c90d0 100644
+--- a/drivers/usb/core/usb-acpi.c
++++ b/drivers/usb/core/usb-acpi.c
+@@ -19,20 +19,32 @@
+ 
+ #include "usb.h"
+ 
+-static int usb_acpi_check_upc(struct usb_device *udev, acpi_handle handle)
++static int usb_acpi_check_port_connect_type(struct usb_device *hdev,
++	acpi_handle handle, int port1)
+ {
+ 	acpi_status status;
+ 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+ 	union acpi_object *upc;
++	struct acpi_pld pld;
+ 	int ret = 0;
+ 
+-	status = acpi_evaluate_object(handle, "_UPC", NULL, &buffer);
++	/*
++	 * Accoding to ACPI Spec 9.13. PLD indicates whether usb port is
++	 * user visible and _UPC indicates whether it is connectable. If
++	 * the port was visible and connectable, it could be freely connected
++	 * and disconnected with USB devices. If no visible and connectable,
++	 * a usb device is directly hard-wired to the port. If no visible and
++	 * no connectable, the port would be not used.
++	 */
++	status = acpi_get_physical_device_location(handle, &pld);
++	if (ACPI_FAILURE(status))
++		return -ENODEV;
+ 
++	status = acpi_evaluate_object(handle, "_UPC", NULL, &buffer);
+ 	if (ACPI_FAILURE(status))
+ 		return -ENODEV;
+ 
+ 	upc = buffer.pointer;
+-
+ 	if (!upc || (upc->type != ACPI_TYPE_PACKAGE)
+ 		|| upc->package.count != 4) {
+ 		ret = -EINVAL;
+@@ -40,38 +52,24 @@ static int usb_acpi_check_upc(struct usb_device *udev, acpi_handle handle)
+ 	}
+ 
+ 	if (upc->package.elements[0].integer.value)
+-		udev->removable = USB_DEVICE_REMOVABLE;
+-	else
+-		udev->removable = USB_DEVICE_FIXED;
++		usb_set_hub_port_connect_type(hdev, port1,
++				pld.user_visible ?
++					USB_PORT_CONNECT_TYPE_HOT_PLUG :
++					USB_PORT_CONNECT_TYPE_HARD_WIRED);
++	else if (!pld.user_visible)
++		usb_set_hub_port_connect_type(hdev, port1, USB_PORT_NOT_USED);
+ 
+ out:
+ 	kfree(upc);
+ 	return ret;
+ }
+ 
+-static int usb_acpi_check_pld(struct usb_device *udev, acpi_handle handle)
+-{
+-	acpi_status status;
+-	struct acpi_pld pld;
+-
+-	status = acpi_get_physical_device_location(handle, &pld);
+-
+-	if (ACPI_FAILURE(status))
+-		return -ENODEV;
+-
+-	if (pld.user_visible)
+-		udev->removable = USB_DEVICE_REMOVABLE;
+-	else
+-		udev->removable = USB_DEVICE_FIXED;
+-
+-	return 0;
+-}
+-
+ static int usb_acpi_find_device(struct device *dev, acpi_handle *handle)
+ {
+ 	struct usb_device *udev;
+ 	struct device *parent;
+ 	acpi_handle *parent_handle;
++	enum usb_port_connect_type type;
+ 
+ 	if (!is_usb_device(dev))
+ 		return -ENODEV;
+@@ -97,14 +95,18 @@ static int usb_acpi_find_device(struct device *dev, acpi_handle *handle)
+ 	if (!*handle)
+ 		return -ENODEV;
+ 
+-	/*
+-	 * PLD will tell us whether a port is removable to the user or
+-	 * not. If we don't get an answer from PLD (it's not present
+-	 * or it's malformed) then try to infer it from UPC. If a
+-	 * device isn't connectable then it's probably not removable.
+-	 */
+-	if (usb_acpi_check_pld(udev, *handle) != 0)
+-		usb_acpi_check_upc(udev, *handle);
++	type = usb_get_hub_port_connect_type(udev->parent, udev->portnum);
++	switch (type) {
++	case USB_PORT_CONNECT_TYPE_HOT_PLUG:
++		udev->removable = USB_DEVICE_REMOVABLE;
++		break;
++	case USB_PORT_CONNECT_TYPE_HARD_WIRED:
++		udev->removable = USB_DEVICE_FIXED;
++		break;
++	default:
++		udev->removable = USB_DEVICE_REMOVABLE_UNKNOWN;
++		break;
++	}
+ 
+ 	return 0;
+ }
+@@ -137,6 +139,7 @@ int usb_acpi_bind_hub_ports(struct usb_device *hdev)
+ 			continue;
+ 		usb_set_hub_port_acpi_handle(hdev, i,
+ 			port_handle);
++		usb_acpi_check_port_connect_type(hdev, port_handle, i);
+ 	}
+ 	return 0;
+ }
+diff --git a/drivers/usb/core/usb.h b/drivers/usb/core/usb.h
+index b2b0cb3..da78c15 100644
+--- a/drivers/usb/core/usb.h
++++ b/drivers/usb/core/usb.h
+@@ -158,6 +158,10 @@ extern void usb_notify_add_device(struct usb_device *udev);
+ extern void usb_notify_remove_device(struct usb_device *udev);
+ extern void usb_notify_add_bus(struct usb_bus *ubus);
+ extern void usb_notify_remove_bus(struct usb_bus *ubus);
++extern enum usb_port_connect_type
++	usb_get_hub_port_connect_type(struct usb_device *hdev, int port1);
++extern void usb_set_hub_port_connect_type(struct usb_device *hdev, int port1,
++	enum usb_port_connect_type type);
+ 
+ #ifdef CONFIG_ACPI
+ extern int usb_acpi_register(void);
+diff --git a/include/linux/usb.h b/include/linux/usb.h
+index 8883f5e..feb0a04 100644
+--- a/include/linux/usb.h
++++ b/include/linux/usb.h
+@@ -417,6 +417,13 @@ struct usb3_lpm_parameters {
+ 	int timeout;
+ };
+ 
++enum usb_port_connect_type {
++	USB_PORT_CONNECT_TYPE_UNKNOWN = 0,
++	USB_PORT_CONNECT_TYPE_HOT_PLUG,
++	USB_PORT_CONNECT_TYPE_HARD_WIRED,
++	USB_PORT_NOT_USED,
++};
++
+ /**
+  * struct usb_device - kernel's representation of a USB device
+  * @devnum: device number; address on a USB bus
+-- 
+1.7.6.rc2.8.g28eb
 
-thanks,
-rui
-
-> >  	dev =3D
-> >  	    kzalloc(sizeof(struct thermal_cooling_device_instance), GFP_K=
-ERNEL);
-> >  	if (!dev)
-> > @@ -791,10 +801,8 @@ int thermal_zone_bind_cooling_device(str
-> >  	dev->tz =3D tz;
-> >  	dev->cdev =3D cdev;
-> >  	dev->trip =3D trip;
-> > -
-> > -	cdev->ops->get_max_state(dev, &max_state);
-> > -	dev->upper =3D max_state;
-> > -	dev->lower =3D 0;
-> > +	dev->upper =3D upper;
-> > +	dev->lower =3D lower;
-> > =20
-> >  	result =3D get_idr(&tz->idr, &tz->lock, &dev->id);
-> >  	if (result)
-> > Index: rtd3/include/linux/thermal.h
-> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > --- rtd3.orig/include/linux/thermal.h
-> > +++ rtd3/include/linux/thermal.h
-> > @@ -143,7 +143,8 @@ struct thermal_zone_device *thermal_zone
-> >  void thermal_zone_device_unregister(struct thermal_zone_device *);
-> > =20
-> >  int thermal_zone_bind_cooling_device(struct thermal_zone_device *,=
- int,
-> > -				     struct thermal_cooling_device *);
-> > +				     struct thermal_cooling_device *,
-> > +				     long, long);
-> >  int thermal_zone_unbind_cooling_device(struct thermal_zone_device =
-*, int,
-> >  				       struct thermal_cooling_device *);
-> >  void thermal_zone_device_update(struct thermal_zone_device *);
-> > Index: rtd3/drivers/acpi/thermal.c
-> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > --- rtd3.orig/drivers/acpi/thermal.c
-> > +++ rtd3/drivers/acpi/thermal.c
-> > @@ -729,11 +729,9 @@ static int thermal_notify(struct thermal
-> >  	return 0;
-> >  }
-> > =20
-> > -typedef int (*cb)(struct thermal_zone_device *, int,
-> > -		  struct thermal_cooling_device *);
-> >  static int acpi_thermal_cooling_device_cb(struct thermal_zone_devi=
-ce *thermal,
-> >  					struct thermal_cooling_device *cdev,
-> > -					cb action)
-> > +					int bind)
-> >  {
-> >  	struct acpi_device *device =3D cdev->devdata;
-> >  	struct acpi_thermal *tz =3D thermal->devdata;
-> > @@ -758,7 +756,14 @@ static int acpi_thermal_cooling_device_c
-> >  			handle =3D tz->trips.passive.devices.handles[i];
-> >  			status =3D acpi_bus_get_device(handle, &dev);
-> >  			if (ACPI_SUCCESS(status) && (dev =3D=3D device)) {
-> > -				result =3D action(thermal, trip, cdev);
-> > +				if (bind)
-> > +					result =3D
-> > +						thermal_zone_bind_cooling_device(
-> > +							thermal, trip, cdev, -1, -1);
-> > +				else
-> > +					result =3D
-> > +						thermal_zone_unbind_cooling_device(
-> > +							thermal, trip, cdev);
-> >  				if (result)
-> >  					goto failed;
-> >  			}
-> > @@ -775,7 +780,13 @@ static int acpi_thermal_cooling_device_c
-> >  			handle =3D tz->trips.active[i].devices.handles[j];
-> >  			status =3D acpi_bus_get_device(handle, &dev);
-> >  			if (ACPI_SUCCESS(status) && (dev =3D=3D device)) {
-> > -				result =3D action(thermal, trip, cdev);
-> > +				if (bind)
-> > +					result =3D
-> > +						thermal_zone_bind_cooling_device(
-> > +							thermal, trip, cdev, -1, -1);
-> > +				else
-> > +					result =3D thermal_zone_unbind_cooling_device(
-> > +							thermal, trip, cdev);
-> >  				if (result)
-> >  					goto failed;
-> >  			}
-> > @@ -786,7 +797,12 @@ static int acpi_thermal_cooling_device_c
-> >  		handle =3D tz->devices.handles[i];
-> >  		status =3D acpi_bus_get_device(handle, &dev);
-> >  		if (ACPI_SUCCESS(status) && (dev =3D=3D device)) {
-> > -			result =3D action(thermal, -1, cdev);
-> > +			if (bind)
-> > +				result =3D thermal_zone_bind_cooling_device(thermal,
-> > +								-1, cdev, -1, -1);
-> > +			else
-> > +				result =3D thermal_zone_unbind_cooling_device(thermal,
-> > +								-1, cdev);
-> >  			if (result)
-> >  				goto failed;
-> >  		}
-> > @@ -800,16 +816,14 @@ static int
-> >  acpi_thermal_bind_cooling_device(struct thermal_zone_device *therm=
-al,
-> >  					struct thermal_cooling_device *cdev)
-> >  {
-> > -	return acpi_thermal_cooling_device_cb(thermal, cdev,
-> > -				thermal_zone_bind_cooling_device);
-> > +	return acpi_thermal_cooling_device_cb(thermal, cdev, 1);
-> >  }
-> > =20
-> >  static int
-> >  acpi_thermal_unbind_cooling_device(struct thermal_zone_device *the=
-rmal,
-> >  					struct thermal_cooling_device *cdev)
-> >  {
-> > -	return acpi_thermal_cooling_device_cb(thermal, cdev,
-> > -				thermal_zone_unbind_cooling_device);
-> > +	return acpi_thermal_cooling_device_cb(thermal, cdev, 0);
-> >  }
-> > =20
-> >  static const struct thermal_zone_device_ops acpi_thermal_zone_ops =
-=3D {
-> > Index: rtd3/drivers/platform/x86/acerhdf.c
-> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > --- rtd3.orig/drivers/platform/x86/acerhdf.c
-> > +++ rtd3/drivers/platform/x86/acerhdf.c
-> > @@ -329,7 +329,7 @@ static int acerhdf_bind(struct thermal_z
-> >  	if (cdev !=3D cl_dev)
-> >  		return 0;
-> > =20
-> > -	if (thermal_zone_bind_cooling_device(thermal, 0, cdev)) {
-> > +	if (thermal_zone_bind_cooling_device(thermal, 0, cdev, -1, -1)) {
-> >  		pr_err("error binding cooling dev\n");
-> >  		return -EINVAL;
-> >  	}
-> >=20
-> >=20
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
