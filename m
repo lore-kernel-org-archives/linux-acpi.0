@@ -1,107 +1,147 @@
-From: Dirk Behme <dirk.behme@de.bosch.com>
-Subject: Re: [RFC PATCH v4] ARM: imx: Add basic imx6q thermal management
-Date: Wed, 13 Jun 2012 10:46:31 +0200
-Message-ID: <4FD85367.5000302@de.bosch.com>
-References: <1326940051-31016-1-git-send-email-rob.lee@linaro.org>
- <1326940051-31016-2-git-send-email-rob.lee@linaro.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFT] PCI changes related to wakeup (was: Re: [linux-pm] ehci_hcd related S3 lockup on ASUS laptops, again)
+Date: Wed, 13 Jun 2012 11:22:35 +0200
+Message-ID: <201206131122.36198.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.1205311704340.1178-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1326940051-31016-2-git-send-email-rob.lee@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Robert Lee <rob.lee@linaro.org>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, Philipp Ahmann <pahmann@de.adit-jv.com>, "s.hauer@pengutronix.de" <s.hauer@pengutronix.de>, "amit.kucheria@linaro.org" <amit.kucheria@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "amit.kachhap@linaro.org" <amit.kachhap@linaro.org>, Ying-Chun Liu <paul.liu@linaro.org>, "shawn.guo@freescale.com" <shawn.guo@freescale.com>, "lenb@kernel.org" <lenb@kernel.org>
+Content-Type: Text/Plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([193.178.161.156]:39504 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750731Ab2FMJRT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Jun 2012 05:17:19 -0400
+In-Reply-To: <Pine.LNX.4.44L0.1205311704340.1178-100000@iolanthe.rowland.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: "Oleksij Rempel (fishor)" <bug-track@fisher-privat.net>, =?utf-8?q?D=C3=A2niel_Fraga?= <fragabr@gmail.com>, Andrey Rahmatullin <wrar@wrar.name>, Steven Rostedt <rostedt@goodmis.org>, linux-pm@lists.linux-foundation.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-On 19.01.2012 03:27, Robert Lee wrote:
-> Adds support for temperature sensor readings, registers with common
-> thermal framework, and uses the new common cpu_cooling interface.
-> 
-> Signed-off-by: Robert Lee <rob.lee@linaro.org>
-> ---
->  arch/arm/boot/dts/imx6q.dtsi    |    1 +
->  drivers/thermal/Kconfig         |    6 +
->  drivers/thermal/Makefile        |    1 +
->  drivers/thermal/imx6q_thermal.c |  540 +++++++++++++++++++++++++++++++++++++++
->  4 files changed, 548 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/thermal/imx6q_thermal.c
-...
-> +static int __init imx6q_thermal_init(void)
+Hi Alan,
+
+On Thursday, May 31, 2012, Alan Stern wrote:
+> On Tue, 29 May 2012, Rafael J. Wysocki wrote:
+>=20
+> > > > > Therefore we really do need a quirk, probably in ehci-hcd lik=
+e the=20
+> > > > > original patch.  If it is restricted to apply only in cases w=
+here the=20
+> > > > > DMI information lists ASUSTeK as the manufacturer, perhaps th=
+at will be=20
+> > > > > sufficient.  (For some reason, the manufacturer field in D=C3=
+=A2niel's BIOS=20
+> > > > > isn't initialized.)
+> > > >=20
+> > > > Yeah.
+> > > >=20
+> > > > I'll have a deeper look at this later today, I think.
+> > >=20
+> > > It's easy enough to write such a check (or perhaps more reliably,=
+ check
+> > > for a product name matching "P8Z68-V").
+> >=20
+> > I think we should try to express it as a PCI quirk in quirks.c, tho=
+ugh.
+>=20
+> Here's my attempt.  Everybody, please try this patch with the
+> 151b61284776 commit removed.  Make sure that CONFIG_USB_DEBUG is
+> enabled so we can check the controller's power state during suspend,=20
+> and check that the "broken D3 during system sleep on ASUS" message=20
+> shows up during booting.
+
+It looks like this worked for everyone concerned, is that correct?
+
+In that case, do you intend to send this patch for inclusion any time s=
+oon?
+It would be good to have this particular issue taken care of.
+
+Thanks,
+Rafael
+
+
+> Index: usb-3.4/drivers/pci/pci.c
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- usb-3.4.orig/drivers/pci/pci.c
+> +++ usb-3.4/drivers/pci/pci.c
+> @@ -1743,6 +1743,11 @@ int pci_prepare_to_sleep(struct pci_dev
+>  	if (target_state =3D=3D PCI_POWER_ERROR)
+>  		return -EIO;
+> =20
+> +	/* Some devices mustn't be in D3 during system sleep */
+> +	if (target_state =3D=3D PCI_D3hot &&
+> +			(dev->dev_flags & PCI_DEV_FLAGS_NO_D3_DURING_SLEEP))
+> +		return 0;
+> +
+>  	pci_enable_wake(dev, target_state, device_may_wakeup(&dev->dev));
+> =20
+>  	error =3D pci_set_power_state(dev, target_state);
+> Index: usb-3.4/drivers/pci/quirks.c
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- usb-3.4.orig/drivers/pci/quirks.c
+> +++ usb-3.4/drivers/pci/quirks.c
+> @@ -2917,6 +2917,32 @@ static void __devinit disable_igfx_irq(s
+>  DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x0102, disable_igfx_ir=
+q);
+>  DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x010a, disable_igfx_ir=
+q);
+> =20
+> +/*
+> + * The Intel 6 Series/C200 Series chipset's EHCI controllers on many
+> + * ASUS motherboards will cause memory corruption or a system crash
+> + * if they are in D3 while the system is put into S3 sleep.
+> + */
+> +static void __devinit asus_ehci_no_d3(struct pci_dev *dev)
 > +{
-> +       struct device_node *np_ocotp, *np_anatop;
-> +       unsigned int fuse_data;
-> +       int ret;
+> +	const char *sys_info;
+> +	static const char good_Asus_board[] =3D "P8Z68-V";
 > +
-> +       np_ocotp = of_find_compatible_node(NULL, NULL, "fsl,imx6q-ocotp");
-> +       np_anatop = of_find_compatible_node(NULL, NULL, "fsl,imx6q-anatop");
+> +	if (dev->dev_flags & PCI_DEV_FLAGS_NO_D3_DURING_SLEEP)
+> +		return;
+> +	if (dev->subsystem_vendor !=3D PCI_VENDOR_ID_ASUSTEK)
+> +		return;
+> +	sys_info =3D dmi_get_system_info(DMI_BOARD_NAME);
+> +	if (sys_info && memcmp(sys_info, good_Asus_board,
+> +			sizeof(good_Asus_board) - 1) =3D=3D 0)
+> +		return;
 > +
-> +       if (!(np_ocotp && np_anatop))
-> +               return -ENXIO; /* not a compatible platform */
+> +	dev_info(&dev->dev, "broken D3 during system sleep on ASUS\n");
+> +	dev->dev_flags |=3D PCI_DEV_FLAGS_NO_D3_DURING_SLEEP;
+> +	device_set_wakeup_capable(&dev->dev, false);
+> +}
+> +DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x1c26, asus_ehci_no_d3=
+);
+> +DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL, 0x1c2d, asus_ehci_no_d3=
+);
 > +
-> +       ocotp_base = of_iomap(np_ocotp, 0);
-> +
-> +       if (!ocotp_base) {
-> +               pr_err("Could not retrieve ocotp-base\n");
-> +               ret = -ENXIO;
-> +               goto err_unregister;
-> +       }
-> +
-> +       anatop_base = of_iomap(np_anatop, 0);
-> +
-> +       if (!anatop_base) {
-> +               pr_err("Could not retrieve anantop-base\n");
-> +               ret = -ENXIO;
-> +               goto err_unregister;
-> +       }
-> +
-> +       fuse_data = readl_relaxed(ocotp_base + HW_OCOTP_ANA1);
+>  static void pci_do_fixups(struct pci_dev *dev, struct pci_fixup *f,
+>  			  struct pci_fixup *end)
+>  {
+> Index: usb-3.4/include/linux/pci.h
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- usb-3.4.orig/include/linux/pci.h
+> +++ usb-3.4/include/linux/pci.h
+> @@ -176,6 +176,8 @@ enum pci_dev_flags {
+>  	PCI_DEV_FLAGS_NO_D3 =3D (__force pci_dev_flags_t) 2,
+>  	/* Provide indication device is assigned by a Virtual Machine Manag=
+er */
+>  	PCI_DEV_FLAGS_ASSIGNED =3D (__force pci_dev_flags_t) 4,
+> +	/* Device causes system crash if in D3 during S3 sleep */
+> +	PCI_DEV_FLAGS_NO_D3_DURING_SLEEP =3D (__force pci_dev_flags_t) 8,
+>  };
+> =20
+>  enum pci_irq_reroute_variant {
+>=20
+>=20
+>=20
 
-To be able to use this on non-calibrated sample devices, we had to add [1].
-
-Best regards
-
-Dirk
-
-[1]
-
-From: Ying-Chun Liu (PaulLiu) <paul.liu@linaro.org>
-Subject: [PATCH] ARM: imx6: thermal: Add workaround for missing 
-calibration data
-
-Sample devices not calibrated in the production don't have the fuses 
-containing
-the calibration data. Hardcode this value if the fuse data read is zero 
-to be able
-to use the thermal functinality on these sample devices, too.
-
-Signed-off-by: Ying-Chun Liu <paul.liu@linaro.org>
-Signed-off-by: Philipp Ahmann <pahmann@de.adit-jv.com>
----
-  drivers/thermal/imx6q_thermal.c |    2 ++
-  1 files changed, 2 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/thermal/imx6q_thermal.c 
-b/drivers/thermal/imx6q_thermal.c
-index 76b7ba1..543cd75 100644
---- a/drivers/thermal/imx6q_thermal.c
-+++ b/drivers/thermal/imx6q_thermal.c
-@@ -446,6 +446,8 @@ static int __init imx6q_thermal_init(void)
-  	}
-
-  	fuse_data = readl_relaxed(ocotp_base + HW_OCOTP_ANA1);
-+	if (fuse_data == 0)
-+		fuse_data = 0x5704c67d;
-
-  	th_zone = kzalloc(sizeof(struct imx6q_thermal_zone), GFP_KERNEL);
-  	if (!th_zone) {
--- 
-1.7.0.4
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
