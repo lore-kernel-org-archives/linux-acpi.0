@@ -1,191 +1,111 @@
-From: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [Resend PATCH V3 3/4] usb/acpi: add the support of usb hub ports' acpi binding without attached devices.
-Date: Wed, 13 Jun 2012 11:07:19 +0800
-Message-ID: <1339556840-2663-3-git-send-email-tianyu.lan@intel.com>
-References: <1339556840-2663-1-git-send-email-tianyu.lan@intel.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1339556840-2663-1-git-send-email-tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
+From: Corentin Chary <corentin.chary@gmail.com>
+Subject: [PATCH 1/7] acpi: add a way to promote/demote vendor backlight drivers
+Date: Wed, 13 Jun 2012 09:32:01 +0200
+Message-ID: <1339572727-24744-2-git-send-email-corentin.chary@gmail.com>
+References: <1339572727-24744-1-git-send-email-corentin.chary@gmail.com>
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <1339572727-24744-1-git-send-email-corentin.chary@gmail.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, Corentin Chary <corentin.chary@gmail.com>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-The usb port is a device in the acpi table but it's not in the linux
-usb subsystem. USB hub port doesn't have struct device. So the acpi
-glue framework only can cover the usb port connected with usb device
-and store the acpi handle to struct device.archdata.acpi_handle. This
-patch is to add member port_acpi_handle in the struct usb_hub_port to
-store acpi handle. The acpi method "_UPC" and "_PLD" can be accessed
-without attached device.
+Instead of adding a big blacklist in video_detect.c to set
+ACPI_VIDEO_BACKLIGHT_DMI_VENDOR correctly, let external modules
+promote or demote themselves when they know the generic video
+module won't work.
 
-v2
- replace struct usb_hub_port member platform_data with member port_acpi_handle
-to store acpi_handle
+Currently drivers where using acpi_video_unregister() directly
+but:
+- That didn't respect any acpi_backlight=[video|vendor] parameter
+  provided by the user.
+- Any later call to acpi_video_register() would still re-load the
+  generic video module (and some gpu drivers are doing that).
 
-Signed-off-by: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+This patch fix those two issues.
+
+Signed-off-by: Corentin Chary <corentin.chary@gmail.com>
 ---
- drivers/usb/core/hub.c      |   42 ++++++++++++++++++++++++++++++++++++++++++
- drivers/usb/core/usb-acpi.c |   37 ++++++++++++++++++++++++++++++++++++-
- drivers/usb/core/usb.h      |    9 +++++++++
- 3 files changed, 87 insertions(+), 1 deletions(-)
+ drivers/acpi/video_detect.c |   31 +++++++++++++++++++++++++++++--
+ include/linux/acpi.h        |   10 ++++++++++
+ 2 files changed, 39 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
-index 3f547f5..82658de 100644
---- a/drivers/usb/core/hub.c
-+++ b/drivers/usb/core/hub.c
-@@ -30,6 +30,10 @@
- 
- #include "usb.h"
- 
-+#ifdef CONFIG_ACPI
-+#include <linux/acpi.h>
-+#endif
-+
- /* if we are in debug mode, always announce new devices */
- #ifdef DEBUG
- #ifndef CONFIG_USB_ANNOUNCE_NEW_DEVICES
-@@ -40,6 +44,9 @@
- struct usb_hub_port {
- 	void			*port_owner;
- 	struct usb_device	*child;
-+#ifdef CONFIG_ACPI
-+	acpi_handle		port_acpi_handle;
-+#endif
- };
- 
- struct usb_hub {
-@@ -1485,6 +1492,7 @@ static int hub_configure(struct usb_hub *hub,
- 	if (hub->has_indicators && blinkenlights)
- 		hub->indicator [0] = INDICATOR_CYCLE;
- 
-+	usb_acpi_bind_hub_ports(hdev);
- 	hub_activate(hub, HUB_INIT);
- 	return 0;
- 
-@@ -4933,3 +4941,37 @@ struct usb_device *usb_get_hub_child(struct usb_device *hdev,
+diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+index 45d8097..942fa2a 100644
+--- a/drivers/acpi/video_detect.c
++++ b/drivers/acpi/video_detect.c
+@@ -182,8 +182,7 @@ long acpi_video_get_capabilities(acpi_handle graphics_handle)
  }
- EXPORT_SYMBOL_GPL(usb_get_hub_child);
+ EXPORT_SYMBOL(acpi_video_get_capabilities);
  
-+#ifdef CONFIG_ACPI
-+/**
-+ * usb_set_hub_port_acpi_handle - Set the usb port's acpi handle
-+ * @hdev: USB device belonging to the usb hub
-+ * @port1: port num of the port
-+ * @handle: port's acpi handle
-+ */
-+void usb_set_hub_port_acpi_handle(struct usb_device *hdev, int port1,
-+	void *handle)
-+{
-+	struct usb_hub *hub = hdev_to_hub(hdev);
-+
-+	if (port1 < 1 || port1 > hdev->maxchild)
-+		return;
-+	hub->port_data[port1 - 1].port_acpi_handle = handle;
-+}
-+
-+/**
-+ * usb_get_hub_port_acpi_handle - Get the usb port's acpi handle
-+ * @hdev: USB device belonging to the usb hub
-+ * @port1: port num of the port
-+ *
-+ * Return port's acpi handle if successful, NULL if params are
-+ * invaild.
-+ */
-+acpi_handle usb_get_hub_port_acpi_handle(struct usb_device *hdev, int port1)
-+{
-+	struct usb_hub *hub = hdev_to_hub(hdev);
-+
-+	if (port1 < 1 || port1 > hdev->maxchild)
-+		return NULL;
-+	return hub->port_data[port1 - 1].port_acpi_handle;
-+}
-+#endif
-diff --git a/drivers/usb/core/usb-acpi.c b/drivers/usb/core/usb-acpi.c
-index 8947b20..e609664 100644
---- a/drivers/usb/core/usb-acpi.c
-+++ b/drivers/usb/core/usb-acpi.c
-@@ -83,7 +83,16 @@ static int usb_acpi_find_device(struct device *dev, acpi_handle *handle)
- 	if (!parent_handle)
- 		return -ENODEV;
- 
--	*handle = acpi_get_child(parent_handle, udev->portnum);
-+	/*
-+	 * The root hub's acpi handle is got from acpi method.
-+	 * Other device's acpi handle can be got from the usb hub
-+	 * port's platform_data.
-+	 */
-+	if (!udev->parent)
-+		*handle = acpi_get_child(parent_handle, udev->portnum);
-+	else
-+		*handle = usb_get_hub_port_acpi_handle(
-+				udev->parent, udev->portnum);
- 
- 	if (!*handle)
- 		return -ENODEV;
-@@ -106,6 +115,32 @@ static struct acpi_bus_type usb_acpi_bus = {
- 	.find_device = usb_acpi_find_device,
- };
- 
-+int usb_acpi_bind_hub_ports(struct usb_device *hdev)
-+{
-+	acpi_handle hub_handle = NULL;
-+	acpi_handle port_handle = NULL;
-+	struct device *dev = &hdev->dev;
-+	int i;
-+
-+	hub_handle = DEVICE_ACPI_HANDLE(dev);
-+	if (!hub_handle)
-+		return -ENODEV;
-+
-+	/*
-+	 * usb hub port is not a device in the usb subsystem but it is a device
-+	 * in the acpi table. Store its acpi handle in the platform data of usb
-+	 * hub port.
-+	 */
-+	for (i = 1; i <= hdev->maxchild; i++) {
-+		port_handle = acpi_get_child(hub_handle, i);
-+		if (!port_handle)
-+			continue;
-+		usb_set_hub_port_acpi_handle(hdev, i,
-+			port_handle);
-+	}
-+	return 0;
-+}
-+
- int usb_acpi_register(void)
+-/* Returns true if video.ko can do backlight switching */
+-int acpi_video_backlight_support(void)
++static void acpi_video_caps_check(void)
  {
- 	return register_acpi_bus_type(&usb_acpi_bus);
-diff --git a/drivers/usb/core/usb.h b/drivers/usb/core/usb.h
-index 5c5c538..b2b0cb3 100644
---- a/drivers/usb/core/usb.h
-+++ b/drivers/usb/core/usb.h
-@@ -1,5 +1,8 @@
- #include <linux/pm.h>
+ 	/*
+ 	 * We must check whether the ACPI graphics device is physically plugged
+@@ -191,6 +190,34 @@ int acpi_video_backlight_support(void)
+ 	 */
+ 	if (!acpi_video_caps_checked)
+ 		acpi_video_get_capabilities(NULL);
++}
++
++/* Promote the vendor interface instead of the generic video module.
++ * This function allow DMI blacklists to be implemented by externals
++ * platform drivers instead of putting a big blacklist in video_detect.c
++ * After calling this function you will probably want to call
++ * acpi_video_unregister() to make sure the video module is not loaded
++ */
++void acpi_video_dmi_promote_vendor(void)
++{
++	acpi_video_caps_check();
++	acpi_video_support |= ACPI_VIDEO_BACKLIGHT_DMI_VENDOR;
++}
++EXPORT_SYMBOL(acpi_video_dmi_promote_vendor);
++
++/* To be called when a driver who previously promoted the vendor
++ * interface */
++void acpi_video_dmi_demote_vendor(void)
++{
++	acpi_video_caps_check();
++	acpi_video_support &= ~ACPI_VIDEO_BACKLIGHT_DMI_VENDOR;
++}
++EXPORT_SYMBOL(acpi_video_dmi_demote_vendor);
++
++/* Returns true if video.ko can do backlight switching */
++int acpi_video_backlight_support(void)
++{
++	acpi_video_caps_check();
  
-+#ifdef CONFIG_ACPI
-+#include <linux/acpi.h>
-+#endif
- /* Functions local to drivers/usb/core/ */
+ 	/* First check for boot param -> highest prio */
+ 	if (acpi_video_support & ACPI_VIDEO_BACKLIGHT_FORCE_VENDOR)
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index f421dd8..27ab201 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -190,6 +190,8 @@ extern bool wmi_has_guid(const char *guid);
  
- extern int usb_create_sysfs_dev_files(struct usb_device *dev);
-@@ -159,7 +162,13 @@ extern void usb_notify_remove_bus(struct usb_bus *ubus);
- #ifdef CONFIG_ACPI
- extern int usb_acpi_register(void);
- extern void usb_acpi_unregister(void);
-+extern int usb_acpi_bind_hub_ports(struct usb_device *hdev);
-+extern void usb_set_hub_port_acpi_handle(struct usb_device *hdev,
-+	int port1, acpi_handle handle);
-+extern acpi_handle usb_get_hub_port_acpi_handle(struct usb_device *hdev,
-+	int port1);
- #else
- static inline int usb_acpi_register(void) { return 0; };
- static inline void usb_acpi_unregister(void) { };
-+static inline int usb_acpi_bind_hub_ports(struct usb_device *dev) { return 0; };
- #endif
+ extern long acpi_video_get_capabilities(acpi_handle graphics_dev_handle);
+ extern long acpi_is_video_device(struct acpi_device *device);
++extern void acpi_video_dmi_promote_vendor(void);
++extern void acpi_video_dmi_demote_vendor(void);
+ extern int acpi_video_backlight_support(void);
+ extern int acpi_video_display_switch_support(void);
+ 
+@@ -205,6 +207,14 @@ static inline long acpi_is_video_device(struct acpi_device *device)
+ 	return 0;
+ }
+ 
++static inline void acpi_video_dmi_promote_vendor(void)
++{
++}
++
++static inline void acpi_video_dmi_demote_vendor(void)
++{
++}
++
+ static inline int acpi_video_backlight_support(void)
+ {
+ 	return 0;
 -- 
-1.7.6.rc2.8.g28eb
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.7.9.5
