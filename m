@@ -1,177 +1,62 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI, cpuidle: Fix suspend/resume regression caused by cpuidle cleanup.
-Date: Wed, 13 Jun 2012 22:01:25 +0200
-Message-ID: <201206132201.26058.rjw@sisk.pl>
-References: <4FD87249.6010302@linux.vnet.ibm.com>
+From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Subject: Re: [PATCH 2/3] USB/ACPI: Add usb port's acpi power control in the
+ xhci PORT_POWER feature request process.
+Date: Wed, 13 Jun 2012 13:53:29 -0700
+Message-ID: <20120613205329.GA5597@xanatos>
+References: <1339381474-17413-1-git-send-email-tianyu.lan@intel.com>
+ <1339381474-17413-3-git-send-email-tianyu.lan@intel.com>
+ <20120613193038.GA6312@kroah.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:40504 "EHLO ogre.sisk.pl"
+Received: from mga01.intel.com ([192.55.52.88]:5914 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753389Ab2FMT4I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 13 Jun 2012 15:56:08 -0400
-In-Reply-To: <4FD87249.6010302@linux.vnet.ibm.com>
+	id S1751709Ab2FMUxb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 13 Jun 2012 16:53:31 -0400
+Content-Disposition: inline
+In-Reply-To: <20120613193038.GA6312@kroah.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>, Linux PM mailing list <linux-pm@vger.kernel.org>, linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Jean Pihet <j-pihet@ti.com>, Arjan van de Ven <arjan@linux.intel.com>, Kevin Hilman <khilman@ti.com>, Arnd Bergmann <arnd@arndb.de>, Ferenc Wagner <wferi@niif.hu>, "Tomas M." <tmezzadra@gmail.com>, "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, preeti@linux.vnet.ibm.com
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Lan Tianyu <tianyu.lan@intel.com>, lenb@kernel.org, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu
 
-On Wednesday, June 13, 2012, Deepthi Dharwar wrote:
+On Wed, Jun 13, 2012 at 12:30:38PM -0700, Greg KH wrote:
+> On Mon, Jun 11, 2012 at 10:24:33AM +0800, Lan Tianyu wrote:
+> > +
+> > +			if (usb_acpi_power_manageable(hcd->self.root_hub,
+> > +					wIndex + 1))
 > 
-> From: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
+> Why +1?  If you have to do this everywhere, then do it only in the
+> function, so you can be 0 based properly.
 > 
-> Fix suspend/resume regression caused by cpuidle cleanup.
-> 
-> Commit e978aa7d7d57d04eb5f88a7507c4fb98577def77 ( cpuidle: Move
-> dev->last_residency update to driver enter routine; remove dev->last_state)
-> was  breaking suspend on laptops, as reported in the below link
-> 	- https://lkml.org/lkml/2011/11/11/164
-> 
-> This was fixed in commit 3439a8da16bcad6b0982ece938c9f8299bb53584
-> (ACPI / cpuidle: Remove acpi_idle_suspend (to fix suspend regression)
-> by removing acpi_idle_suspend flag.
-> 	- https://lkml.org/lkml/2011/11/14/74
-> 
-> But this fix did not work on all systems
-> as Suspend/resume regression was reported on Lenovo S10-3
-> recently by Dave.
-> 	- https://lkml.org/lkml/2012/5/27/115
-> It looked like with commit e978aa7d broke suspend and
-> with commit 3439a8da resume was not working with acpi_idle driver.
-> 
-> This patch fixes the regression that caused this issue
-> in the first place. acpi_idle_suspend flag is essential on
-> some x86 systems to prevent the cpus from going to deeper C-states
-> when suspend is triggered ( commit b04e7bdb984 )
-> So reverting the commit 3439a8da is essential.
-> 
-> By default, irqs are disabled in cpu_idle arch specific call
-> and re-enabled in idle state return path . As the acpi_idle_suspend
-> flag was being set during suspend, which prevented the cpus
-> going to deeper idle states, it is essential to
-> enabling the irqs in its return path too.
-> 
-> To address the suspend issue,
-> we were not re-enabling the interrupts while returning from
-> acpi_idle_enter_bm() routine if acpi_idle_suspend flag is set.
-> and this was causing suspend failure.
-> 
-> In addition to the above fix, a sanity check has also been added
-> in x86 arch specific cpu_idle call to ensure that the idle call
-> always returns with IRQs enabled.
-> 
-> This patch applies on 3.5-rc2
-> ---
-> 
-> Reported-and-Tested-by: Dav Hansen <dave@linux.vnet.ibm.com>
-> Tested-by: Preeti Murthy <preeti@linux.vnet.ibm.com>
-> Signed-off-by: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
-> Reviewed-by: Srivatsa S Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+> Also, minor coding style nit, please rewrite as:
+> 			if (usb_acpi_power_manageable(hcd->self.root_hub,
+> 						      wIndex + 1))
 
-Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
+This is an arbitrarily applied rule, and I don't follow it in the xHCI
+driver.  The code indentation should be left at the default indentation
+in the xHCI driver.  Let's keep the code style in the driver consistent,
+please.
 
-> ---
->  arch/x86/kernel/process.c     |    6 ++++++
->  drivers/acpi/processor_idle.c |   28 ++++++++++++++++++++++++++++
->  2 files changed, 34 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/x86/kernel/process.c b/arch/x86/kernel/process.c
-> index 735279e..8ab76ad 100644
-> --- a/arch/x86/kernel/process.c
-> +++ b/arch/x86/kernel/process.c
-> @@ -460,6 +460,12 @@ void cpu_idle(void)
->  				pm_idle();
-> 
->  			rcu_idle_exit();
-> +
-> +			/*
-> +			 * Sanity check to ensure that idle call returns
-> +			 * with IRQs enabled
-> +			 */
-> +			WARN_ON(irqs_disabled());
->  			start_critical_timings();
-> 
->  			/* In many cases the interrupt that ended idle
-> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-> index f3decb3..c2ffd84 100644
-> --- a/drivers/acpi/processor_idle.c
-> +++ b/drivers/acpi/processor_idle.c
-> @@ -224,6 +224,7 @@ static void lapic_timer_state_broadcast(struct acpi_processor *pr,
->  /*
->   * Suspend / resume control
->   */
-> +static int acpi_idle_suspend;
->  static u32 saved_bm_rld;
-> 
->  static void acpi_idle_bm_rld_save(void)
-> @@ -242,13 +243,21 @@ static void acpi_idle_bm_rld_restore(void)
-> 
->  int acpi_processor_suspend(struct acpi_device * device, pm_message_t state)
->  {
-> +	if (acpi_idle_suspend == 1)
-> +		return 0;
-> +
->  	acpi_idle_bm_rld_save();
-> +	acpi_idle_suspend = 1;
->  	return 0;
->  }
-> 
->  int acpi_processor_resume(struct acpi_device * device)
->  {
-> +	if (acpi_idle_suspend == 0)
-> +		return 0;
-> +
->  	acpi_idle_bm_rld_restore();
-> +	acpi_idle_suspend = 0;
->  	return 0;
->  }
-> 
-> @@ -754,6 +763,12 @@ static int acpi_idle_enter_c1(struct cpuidle_device *dev,
-> 
->  	local_irq_disable();
-> 
-> +	if (acpi_idle_suspend) {
-> +		local_irq_enable();
-> +		cpu_relax();
-> +		return -EINVAL;
-> +	}
-> +
->  	lapic_timer_state_broadcast(pr, cx, 1);
->  	kt1 = ktime_get_real();
->  	acpi_idle_do_entry(cx);
-> @@ -823,6 +838,12 @@ static int acpi_idle_enter_simple(struct cpuidle_device *dev,
-> 
->  	local_irq_disable();
-> 
-> +	if (acpi_idle_suspend) {
-> +		local_irq_enable();
-> +		cpu_relax();
-> +		return -EINVAL;
-> +	}
-> +
->  	if (cx->entry_method != ACPI_CSTATE_FFH) {
->  		current_thread_info()->status &= ~TS_POLLING;
->  		/*
-> @@ -901,6 +922,13 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
->  	if (unlikely(!pr))
->  		return -EINVAL;
-> 
-> +	if (acpi_idle_suspend) {
-> +		if (irqs_disabled())
-> +			local_irq_enable();
-> +		cpu_relax();
-> +		return -EINVAL;
-> +	}
-> +
->  	if (!cx->bm_sts_skip && acpi_idle_bm_check()) {
->  		if (drv->safe_state_index >= 0) {
->  			return drv->states[drv->safe_state_index].enter(dev,
-> 
-> Regards,
-> Deepthi
-> 
-> 
-> 
+I don't understand why people want to move the trailing arguments to
+align with the function parenthesis.  I can see that it might add to
+readability for some people, but it's just more work on both the
+developer's and maintainer's side.
 
+Checkpatch will complain about mixed tabs and spaces, so that's more
+work for me to edit my git pre-commit hook when the checkpatch error
+stops git-am.  Plus the developer has to actually pause and think about
+indentation, rather than letting their editor take care of it.
+
+I'm not even sure when you would want the alignment rule applied.  In
+all function calls with trailing arguments?  That seems really
+excessive.
+
+> Or even better yet, use a temp variable for the value returned and then
+> check that, it's clearer and easier to read, right?
+
+A temp variable would be fine until that function can just be
+refactored.  The case statements should really just be broken out into
+separate functions.
+
+Sarah Sharp
