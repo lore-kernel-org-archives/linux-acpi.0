@@ -1,130 +1,238 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: RE: [PATCH 0/4] Thermal Framework Enhancements
-Date: Wed, 13 Jun 2012 08:50:15 +0800
-Message-ID: <1339548615.1973.58.camel@rui.sh.intel.com>
-References: <1339436374-26881-1-git-send-email-durgadoss.r@intel.com>
-	 <1339487081.1973.13.camel@rui.sh.intel.com>
-	 <4D68720C2E767A4AA6A8796D42C8EB59135DE1@BGSMSX101.gar.corp.intel.com>
+Subject: Re: [RFC PATCH 3/12] thermal: set upper and lower limits when
+ binding
+Date: Wed, 13 Jun 2012 08:51:18 +0800
+Message-ID: <1339548678.1973.59.camel@rui.sh.intel.com>
+References: <1339384801.1492.156.camel@rui.sh.intel.com>
+	 <20120612095215.GA3837@besouro>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:19403 "EHLO mga01.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:27287 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752612Ab2FMAsh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 12 Jun 2012 20:48:37 -0400
-In-Reply-To: <4D68720C2E767A4AA6A8796D42C8EB59135DE1@BGSMSX101.gar.corp.intel.com>
+	id S1752400Ab2FMAtl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 Jun 2012 20:49:41 -0400
+In-Reply-To: <20120612095215.GA3837@besouro>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "R, Durgadoss" <durgadoss.r@intel.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>, "amit.kachhap@linaro.org" <amit.kachhap@linaro.org>
+To: eduardo.valentin@ti.com
+Cc: linux-pm <linux-pm@lists.linux-foundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Amit Kachhap <amit.kachhap@linaro.org>, "R, Durgadoss" <durgadoss.r@intel.com>, "Len, Brown" <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On =E4=BA=8C, 2012-06-12 at 02:59 -0600, R, Durgadoss wrote:
-> Thanks Rui for taking a Quick Look.
-> I am not replying to all your comments, because most of them look fin=
-e to me.
+On =E4=BA=8C, 2012-06-12 at 12:52 +0300, Eduardo Valentin wrote:
+> Hello Rui,
 >=20
-> [A big cut]
->=20
-> > > 	   1. Introduces the get_trend callback
-> > seems duplicate work of my patch set. :(
->=20
-> Yes I agree. I was in the middle of testing yesterday,
-> so could not change it before today.
-> I will review your 12 patches, and pull in here the needed ones.
-> So, my next patch set will have those changes, and they don=E2=80=99t=
- conflict.
->=20
+> On Mon, Jun 11, 2012 at 11:20:01AM +0800, Zhang Rui wrote:
 > >=20
-> > > 	   2. Introduces the notify_thermal_framework() API
+> > Set upper and lower limits when binding
+> > a thermal cooling device to a thermal zone device.
 > >=20
-> > > 	   3. Exposes sysfs to show/store the throttle_policy
-> > >
-> > yes, I think we need this.
+> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> > ---
+> >  drivers/acpi/thermal.c         |   34 ++++++++++++++++++++++++----=
+------
+> >  drivers/platform/x86/acerhdf.c |    2 +-
+> >  drivers/thermal/thermal_sys.c  |   20 ++++++++++++++------
+> >  include/linux/thermal.h        |    3 ++-
+> >  4 files changed, 41 insertions(+), 18 deletions(-)
 > >=20
-> > > Patch 2/4: Introduce fair_share governor
-> > > 	   This throttles the cooling_devices according to their
-> > > 	   weights (and hence the name; Suggestion are welcome :-).
-> > > 	   The weights in turn describe the effectiveness of a
-> > > 	   particular cooling device in cooling a thermal zone.
-> > >
-> >=20
-> > > Patch 3/4: Introduce step_wise governor
-> > > 	   This throttles/de-throttles the cooling devices one
-> > > 	   step at a time. This is exactly similar to the code
-> > > 	   we have in thermal_zone_device_update function. The
-> > > 	   intention is to move all 'throttling logic' related
-> > > 	   code outside thermal_sys.c and keep them separate.
-> >=20
-> > totally agree.
+> > Index: rtd3/drivers/thermal/thermal_sys.c
+> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> > --- rtd3.orig/drivers/thermal/thermal_sys.c
+> > +++ rtd3/drivers/thermal/thermal_sys.c
+> > @@ -248,7 +248,7 @@ passive_store(struct device *dev, struct
+> >  				     sizeof("Processor")))
+> >  				thermal_zone_bind_cooling_device(tz,
+> >  								 THERMAL_TRIPS_NONE,
+> > -								 cdev);
+> > +								 cdev, -1, -1);
+> >  		}
+> >  		mutex_unlock(&thermal_list_lock);
+> >  		if (!tz->passive_delay)
+> > @@ -760,7 +760,8 @@ static void thermal_zone_device_check(st
+> >   */
+> >  int thermal_zone_bind_cooling_device(struct thermal_zone_device *t=
+z,
+> >  				     int trip,
+> > -				     struct thermal_cooling_device *cdev)
+> > +				     struct thermal_cooling_device *cdev,
+> > +				     long upper, long lower)
+> >  {
+> >  	struct thermal_cooling_device_instance *dev;
+> >  	struct thermal_cooling_device_instance *pos;
+> > @@ -784,6 +785,15 @@ int thermal_zone_bind_cooling_device(str
+> >  	if (tz !=3D pos1 || cdev !=3D pos2)
+> >  		return -EINVAL;
+> > =20
+> > +	cdev->ops->get_max_state(cdev, &max_state);
+> > +
+> > +	/* lower default 0, upper default max_state */
+> > +	lower =3D lower < 0 ? 0 : lower;
+> > +	upper =3D upper < 0 ? max_state : upper;
+> > +
+> > +	if (lower > upper || upper > max_state)
+> > +		return -EINVAL;
+> > +
 >=20
-> Oh that=E2=80=99s nice. Will incorporate this change in my next patch=
- set.
-> Thank you for this.
->=20
-> > > * Add more protection and tidy up the existing ones
-> > > * Expose the weights and cooling devices through sysfs (Read-Only=
-)
-> >=20
-> > what do you mean "cooling devices"?
->=20
-> I meant for a thermal zone, we should expose:
-> one Sysfs: that will list the weights of all cooling devices associat=
-ed with this
-> other Sysfs: that will list the names of cooling devices (in the same=
- order as
-> weights)
-> This is just to let user land know of the binding
-> I should have put 'names of cooling devices'.
->=20
-so I have two questions,
-1. should kernel thermal manager handle these weights?
-2. if yes, IMO, we can add one field in thermal_instance to describe
-this weight. and then, the problem to me is that, we should easily
-introduce an attribute for each cooling device instance, say,
-/sys/class/thermal/thermal_zone0/cdev0_trip_point
-                                /cdev0_weight
-=2E..
+> From this version of the code, I assume we want to:
+> a. Allow cooling binding instances to have ranges overlapping.
 
-> >=20
-> > Yep, I think this is handled in my arbitrator patch. :p
+yep.
+
+> b. Allow a binding with only one state (lower =3D=3D upper).
 >=20
-> ok...I have not looked at it yet.
-> Will have a look and incorporate the change in next patch set.
+yep.
+
+
+> Is this the expected behavior?
 >=20
-> >=20
-> > >   (To do this, we have to loop through the thermal_tz_list and
-> > >   thermal_cdev_list inside fair_share.c. Need to see how good it =
-is
-> > >   to make this lists public)
-> >=20
-> > IMO, these governors should just update the thermal_instance, and t=
-hen
-> > invokes thermal_zone_do_update(). They should not change the coolin=
-g
-> > state directly.
-> >=20
->=20
-> Give me some time to think about this one, will come back to you :-)
->=20
-> > > * Make all _throttle methods have same signature. This way we can=
- make use
-> > >   of function pointers and make the code a bit simpler.
-> >=20
-> > what does signature mean?
->=20
-> Oh I meant they are all same 'taking similar arguments and same retur=
-n type'.
-> This way we can use an arr[function ptrs] that will be populated in e=
-ach governor's
-> init. This way inside the notify_framework method we don=E2=80=99t so=
- many case statements.
-> We could just do arr[throttle_policy](...)
->=20
-okay.
+yes. :)
 
 thanks,
 rui
+
+> >  	dev =3D
+> >  	    kzalloc(sizeof(struct thermal_cooling_device_instance), GFP_K=
+ERNEL);
+> >  	if (!dev)
+> > @@ -791,10 +801,8 @@ int thermal_zone_bind_cooling_device(str
+> >  	dev->tz =3D tz;
+> >  	dev->cdev =3D cdev;
+> >  	dev->trip =3D trip;
+> > -
+> > -	cdev->ops->get_max_state(dev, &max_state);
+> > -	dev->upper =3D max_state;
+> > -	dev->lower =3D 0;
+> > +	dev->upper =3D upper;
+> > +	dev->lower =3D lower;
+> > =20
+> >  	result =3D get_idr(&tz->idr, &tz->lock, &dev->id);
+> >  	if (result)
+> > Index: rtd3/include/linux/thermal.h
+> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> > --- rtd3.orig/include/linux/thermal.h
+> > +++ rtd3/include/linux/thermal.h
+> > @@ -143,7 +143,8 @@ struct thermal_zone_device *thermal_zone
+> >  void thermal_zone_device_unregister(struct thermal_zone_device *);
+> > =20
+> >  int thermal_zone_bind_cooling_device(struct thermal_zone_device *,=
+ int,
+> > -				     struct thermal_cooling_device *);
+> > +				     struct thermal_cooling_device *,
+> > +				     long, long);
+> >  int thermal_zone_unbind_cooling_device(struct thermal_zone_device =
+*, int,
+> >  				       struct thermal_cooling_device *);
+> >  void thermal_zone_device_update(struct thermal_zone_device *);
+> > Index: rtd3/drivers/acpi/thermal.c
+> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> > --- rtd3.orig/drivers/acpi/thermal.c
+> > +++ rtd3/drivers/acpi/thermal.c
+> > @@ -729,11 +729,9 @@ static int thermal_notify(struct thermal
+> >  	return 0;
+> >  }
+> > =20
+> > -typedef int (*cb)(struct thermal_zone_device *, int,
+> > -		  struct thermal_cooling_device *);
+> >  static int acpi_thermal_cooling_device_cb(struct thermal_zone_devi=
+ce *thermal,
+> >  					struct thermal_cooling_device *cdev,
+> > -					cb action)
+> > +					int bind)
+> >  {
+> >  	struct acpi_device *device =3D cdev->devdata;
+> >  	struct acpi_thermal *tz =3D thermal->devdata;
+> > @@ -758,7 +756,14 @@ static int acpi_thermal_cooling_device_c
+> >  			handle =3D tz->trips.passive.devices.handles[i];
+> >  			status =3D acpi_bus_get_device(handle, &dev);
+> >  			if (ACPI_SUCCESS(status) && (dev =3D=3D device)) {
+> > -				result =3D action(thermal, trip, cdev);
+> > +				if (bind)
+> > +					result =3D
+> > +						thermal_zone_bind_cooling_device(
+> > +							thermal, trip, cdev, -1, -1);
+> > +				else
+> > +					result =3D
+> > +						thermal_zone_unbind_cooling_device(
+> > +							thermal, trip, cdev);
+> >  				if (result)
+> >  					goto failed;
+> >  			}
+> > @@ -775,7 +780,13 @@ static int acpi_thermal_cooling_device_c
+> >  			handle =3D tz->trips.active[i].devices.handles[j];
+> >  			status =3D acpi_bus_get_device(handle, &dev);
+> >  			if (ACPI_SUCCESS(status) && (dev =3D=3D device)) {
+> > -				result =3D action(thermal, trip, cdev);
+> > +				if (bind)
+> > +					result =3D
+> > +						thermal_zone_bind_cooling_device(
+> > +							thermal, trip, cdev, -1, -1);
+> > +				else
+> > +					result =3D thermal_zone_unbind_cooling_device(
+> > +							thermal, trip, cdev);
+> >  				if (result)
+> >  					goto failed;
+> >  			}
+> > @@ -786,7 +797,12 @@ static int acpi_thermal_cooling_device_c
+> >  		handle =3D tz->devices.handles[i];
+> >  		status =3D acpi_bus_get_device(handle, &dev);
+> >  		if (ACPI_SUCCESS(status) && (dev =3D=3D device)) {
+> > -			result =3D action(thermal, -1, cdev);
+> > +			if (bind)
+> > +				result =3D thermal_zone_bind_cooling_device(thermal,
+> > +								-1, cdev, -1, -1);
+> > +			else
+> > +				result =3D thermal_zone_unbind_cooling_device(thermal,
+> > +								-1, cdev);
+> >  			if (result)
+> >  				goto failed;
+> >  		}
+> > @@ -800,16 +816,14 @@ static int
+> >  acpi_thermal_bind_cooling_device(struct thermal_zone_device *therm=
+al,
+> >  					struct thermal_cooling_device *cdev)
+> >  {
+> > -	return acpi_thermal_cooling_device_cb(thermal, cdev,
+> > -				thermal_zone_bind_cooling_device);
+> > +	return acpi_thermal_cooling_device_cb(thermal, cdev, 1);
+> >  }
+> > =20
+> >  static int
+> >  acpi_thermal_unbind_cooling_device(struct thermal_zone_device *the=
+rmal,
+> >  					struct thermal_cooling_device *cdev)
+> >  {
+> > -	return acpi_thermal_cooling_device_cb(thermal, cdev,
+> > -				thermal_zone_unbind_cooling_device);
+> > +	return acpi_thermal_cooling_device_cb(thermal, cdev, 0);
+> >  }
+> > =20
+> >  static const struct thermal_zone_device_ops acpi_thermal_zone_ops =
+=3D {
+> > Index: rtd3/drivers/platform/x86/acerhdf.c
+> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> > --- rtd3.orig/drivers/platform/x86/acerhdf.c
+> > +++ rtd3/drivers/platform/x86/acerhdf.c
+> > @@ -329,7 +329,7 @@ static int acerhdf_bind(struct thermal_z
+> >  	if (cdev !=3D cl_dev)
+> >  		return 0;
+> > =20
+> > -	if (thermal_zone_bind_cooling_device(thermal, 0, cdev)) {
+> > +	if (thermal_zone_bind_cooling_device(thermal, 0, cdev, -1, -1)) {
+> >  		pr_err("error binding cooling dev\n");
+> >  		return -EINVAL;
+> >  	}
+> >=20
+> >=20
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
