@@ -1,49 +1,59 @@
-From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
-Subject: Re: [PATCH 2/3] USB/ACPI: Add usb port's acpi power control in the
- xhci PORT_POWER feature request process.
-Date: Wed, 13 Jun 2012 14:35:18 -0700
-Message-ID: <20120613213518.GB5597@xanatos>
-References: <20120613193038.GA6312@kroah.com>
- <Pine.LNX.4.44L0.1206131706450.3821-100000@iolanthe.rowland.org>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH 3/3] usb : Add sysfs files to control usb port's power
+Date: Wed, 13 Jun 2012 14:46:41 -0700
+Message-ID: <20120613214641.GB9051@kroah.com>
+References: <20120613193323.GB6312@kroah.com>
+ <Pine.LNX.4.44L0.1206131711060.3821-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:50637 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752465Ab2FMVfU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 13 Jun 2012 17:35:20 -0400
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:42705 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753229Ab2FMVqp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Jun 2012 17:46:45 -0400
+Received: by pbbrp8 with SMTP id rp8so2857144pbb.19
+        for <linux-acpi@vger.kernel.org>; Wed, 13 Jun 2012 14:46:44 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.1206131706450.3821-100000@iolanthe.rowland.org>
+In-Reply-To: <Pine.LNX.4.44L0.1206131711060.3821-100000@iolanthe.rowland.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Greg KH <gregkh@linuxfoundation.org>, Lan Tianyu <tianyu.lan@intel.com>, lenb@kernel.org, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Lan Tianyu <tianyu.lan@intel.com>, lenb@kernel.org, sarah.a.sharp@linux.intel.com, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wed, Jun 13, 2012 at 05:10:43PM -0400, Alan Stern wrote:
+On Wed, Jun 13, 2012 at 05:15:08PM -0400, Alan Stern wrote:
 > On Wed, 13 Jun 2012, Greg KH wrote:
 > 
-> > > --- a/drivers/usb/host/xhci-hub.c
-> > > +++ b/drivers/usb/host/xhci-hub.c
-> > > @@ -728,6 +728,11 @@ int xhci_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
-> > >  
-> > >  			temp = xhci_readl(xhci, port_array[wIndex]);
-> > >  			xhci_dbg(xhci, "set port power, actual port %d status  = 0x%x\n", wIndex, temp);
-> > > +
-> > > +			if (usb_acpi_power_manageable(hcd->self.root_hub,
-> > > +					wIndex + 1))
+> > > +	struct device_attribute	port_control_attr;
+> > > +	struct device_attribute	port_state_attr;
+> > > +	enum port_power_policy port_power_policy;
 > > 
-> > Why +1?  If you have to do this everywhere, then do it only in the
-> > function, so you can be 0 based properly.
+> > Why do you need an attribute per port here?  Shouldn't they just be
+> > static variables?  Why duplicate them for every port?
 > 
-> This is an awkward matter.  The USB spec numbers hub ports starting
-> from 1, and so do several of the functions in usbcore, in order to
-> match the spec.  But of course, all our internal arrays are indexed
-> starting from 0.
+> If they were static, there would be no way for the store and show
+> methods to know which port they were called for.  That's because the
+> ports aren't separate kobjects; all these port attributes are bound to
+> the hub device.
+
+Ports should be a struct device if we are going to hang attributes off
+of them, otherwise userspace can get very confused.
+
+> > > +static ssize_t show_port_power_state(struct device *dev,
+> > > +	struct device_attribute *attr, char *buf)
+> > > +{
+> > > +	struct usb_device *udev = to_usb_device(dev->parent);
+> > > +	struct usb_hub_port *hub_port = container_of(attr,
+> > > +		struct usb_hub_port, port_state_attr);
 > 
-> The cleanest solution here might be to keep wIndex as an origin-0 value
-> and create an origin-1 temporary variable (like hub.c does with
-> "port1").
+> You can see it here.  The only way to get the port is by seeing where
+> the attribute is stored.
 
-Oh, is that why it's named port1?  I could never understand why. :)
+Ick, that's nasty.
 
-Sarah Sharp
+How about making a port a real device?  That should solve this problem,
+right?  And I thought I recommended doing that a month or so ago, what
+happened with that proposal?
+
+thanks,
+
+greg k-h
