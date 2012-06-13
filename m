@@ -1,36 +1,44 @@
-From: "Xiao, Hui" <hui.xiao@linux.intel.com>
-Subject: Re: [BUGFIX] ACPI, APEI, Avoid too much error reporting in runtime
-Date: Wed, 13 Jun 2012 16:03:02 +0800
-Message-ID: <4FD84936.5080006@linux.intel.com>
-References: <1339471219-4057-1-git-send-email-ying.huang@intel.com> <4FD6C310.3060507@kernel.org>
+From: Lin Ming <ming.m.lin@intel.com>
+Subject: Re: [PATCH v4 02/13] libata: bind the Linux device tree to the ACPI
+ device tree
+Date: Wed, 13 Jun 2012 16:03:23 +0800
+Message-ID: <CAF1ivSYBjw+UP3vP8RHaftjR8NJZEaHA1rtJ5ujDjkj-djHLTQ@mail.gmail.com>
+References: <1338181720-4149-1-git-send-email-ming.m.lin@intel.com>
+	<1338181720-4149-3-git-send-email-ming.m.lin@intel.com>
+	<20120528105131.67d74d45@pyramind.ukuu.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4FD6C310.3060507@kernel.org>
+In-Reply-To: <20120528105131.67d74d45@pyramind.ukuu.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Huang Ying <ying.huang@intel.com>, linux-kernel@vger.kernel.org, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, stable@vger.kernel.org
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Jeff Garzik <jgarzik@pobox.com>, David Woodhouse <David.Woodhouse@intel.com>, Aaron Lu <aaron.lu@amd.com>, Holger Macht <holger@homac.de>, Matthew Garrett <mjg@redhat.com>, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 2012/6/12 12:18, Len Brown wrote:
-> applied.
-> 
-> thanks,
-> -Len Brown, Intel Open Source Technology Center
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-Hi all,
+On Mon, May 28, 2012 at 5:51 PM, Alan Cox <alan@lxorguk.ukuu.org.uk> wr=
+ote:
+>> +static int is_pci_ata(struct device *dev)
+>> +{
+>> + =A0 =A0 struct pci_dev *pdev;
+>> +
+>> + =A0 =A0 if (!is_pci_dev(dev))
+>> + =A0 =A0 =A0 =A0 =A0 =A0 return 0;
+>> +
+>> + =A0 =A0 pdev =3D to_pci_dev(dev);
+>> +
+>> + =A0 =A0 if ((pdev->class >> 8) !=3D PCI_CLASS_STORAGE_SATA &&
+>> + =A0 =A0 =A0 =A0 (pdev->class >> 8) !=3D PCI_CLASS_STORAGE_IDE)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 return 0;
+>
+> This needs a better name. It doesn't check if a device is PCI ATA or
+> anything of the sort, it checks if its probably a device in compatibi=
+lity
+> mode. A lot of controllers will in fact report RAID class or similar =
+in
+> native mode.
 
-I've also encountered the similar bug:
-  [Firmware Bug]: APEI: Invalid bit width + offset in GAR [0x1121a5000/64/0/3/0]
-during einj test. 
+How about compat_pci_ata?
 
-Besides Ying's fix patch, I think its a regression caused by incorrect bit width + offset check condition introduced by commit v3.3-5-g15afae6. I've written a fix patch for it and will send it in a separate mail soon.
-
-Thanks,
--Hui
+>
+> Alan
