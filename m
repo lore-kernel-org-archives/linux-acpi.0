@@ -1,207 +1,133 @@
-From: Andi Kleen <andi@firstfloor.org>
-Subject: [PATCH] turbostat: Add SMI count to turbostat v2
-Date: Tue, 12 Jun 2012 14:17:31 -0700
-Message-ID: <1339535851-10305-1-git-send-email-andi@firstfloor.org>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: RE: [PATCH 0/4] Thermal Framework Enhancements
+Date: Wed, 13 Jun 2012 08:50:15 +0800
+Message-ID: <1339548615.1973.58.camel@rui.sh.intel.com>
+References: <1339436374-26881-1-git-send-email-durgadoss.r@intel.com>
+	 <1339487081.1973.13.camel@rui.sh.intel.com>
+	 <4D68720C2E767A4AA6A8796D42C8EB59135DE1@BGSMSX101.gar.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:11053 "EHLO mga03.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:19403 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753660Ab2FLVRq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 12 Jun 2012 17:17:46 -0400
+	id S1752612Ab2FMAsh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 Jun 2012 20:48:37 -0400
+In-Reply-To: <4D68720C2E767A4AA6A8796D42C8EB59135DE1@BGSMSX101.gar.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Andi Kleen <ak@linux.intel.com>
+To: "R, Durgadoss" <durgadoss.r@intel.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>, "amit.kachhap@linaro.org" <amit.kachhap@linaro.org>
 
-From: Andi Kleen <ak@linux.intel.com>
+On =E4=BA=8C, 2012-06-12 at 02:59 -0600, R, Durgadoss wrote:
+> Thanks Rui for taking a Quick Look.
+> I am not replying to all your comments, because most of them look fin=
+e to me.
+>=20
+> [A big cut]
+>=20
+> > > 	   1. Introduces the get_trend callback
+> > seems duplicate work of my patch set. :(
+>=20
+> Yes I agree. I was in the middle of testing yesterday,
+> so could not change it before today.
+> I will review your 12 patches, and pull in here the needed ones.
+> So, my next patch set will have those changes, and they don=E2=80=99t=
+ conflict.
+>=20
+> >=20
+> > > 	   2. Introduces the notify_thermal_framework() API
+> >=20
+> > > 	   3. Exposes sysfs to show/store the throttle_policy
+> > >
+> > yes, I think we need this.
+> >=20
+> > > Patch 2/4: Introduce fair_share governor
+> > > 	   This throttles the cooling_devices according to their
+> > > 	   weights (and hence the name; Suggestion are welcome :-).
+> > > 	   The weights in turn describe the effectiveness of a
+> > > 	   particular cooling device in cooling a thermal zone.
+> > >
+> >=20
+> > > Patch 3/4: Introduce step_wise governor
+> > > 	   This throttles/de-throttles the cooling devices one
+> > > 	   step at a time. This is exactly similar to the code
+> > > 	   we have in thermal_zone_device_update function. The
+> > > 	   intention is to move all 'throttling logic' related
+> > > 	   code outside thermal_sys.c and keep them separate.
+> >=20
+> > totally agree.
+>=20
+> Oh that=E2=80=99s nice. Will incorporate this change in my next patch=
+ set.
+> Thank you for this.
+>=20
+> > > * Add more protection and tidy up the existing ones
+> > > * Expose the weights and cooling devices through sysfs (Read-Only=
+)
+> >=20
+> > what do you mean "cooling devices"?
+>=20
+> I meant for a thermal zone, we should expose:
+> one Sysfs: that will list the weights of all cooling devices associat=
+ed with this
+> other Sysfs: that will list the names of cooling devices (in the same=
+ order as
+> weights)
+> This is just to let user land know of the binding
+> I should have put 'names of cooling devices'.
+>=20
+so I have two questions,
+1. should kernel thermal manager handle these weights?
+2. if yes, IMO, we can add one field in thermal_instance to describe
+this weight. and then, the problem to me is that, we should easily
+introduce an attribute for each cooling device instance, say,
+/sys/class/thermal/thermal_zone0/cdev0_trip_point
+                                /cdev0_weight
+=2E..
 
-[This version is for the turbostat v2 in -next]
+> >=20
+> > Yep, I think this is handled in my arbitrator patch. :p
+>=20
+> ok...I have not looked at it yet.
+> Will have a look and incorporate the change in next patch set.
+>=20
+> >=20
+> > >   (To do this, we have to loop through the thermal_tz_list and
+> > >   thermal_cdev_list inside fair_share.c. Need to see how good it =
+is
+> > >   to make this lists public)
+> >=20
+> > IMO, these governors should just update the thermal_instance, and t=
+hen
+> > invokes thermal_zone_do_update(). They should not change the coolin=
+g
+> > state directly.
+> >=20
+>=20
+> Give me some time to think about this one, will come back to you :-)
+>=20
+> > > * Make all _throttle methods have same signature. This way we can=
+ make use
+> > >   of function pointers and make the code a bit simpler.
+> >=20
+> > what does signature mean?
+>=20
+> Oh I meant they are all same 'taking similar arguments and same retur=
+n type'.
+> This way we can use an arr[function ptrs] that will be populated in e=
+ach governor's
+> init. This way inside the notify_framework method we don=E2=80=99t so=
+ many case statements.
+> We could just do arr[throttle_policy](...)
+>=20
+okay.
 
-When debugging timing related problems it's often useful to know
-the SMI count. Newer Intel CPUs have a MSR to read it. Since turbostat
-already has all the required infrastructure for polling MSRs I just
-added it there (even though it's strictly not power related)
-The counter is printed by default.
+thanks,
+rui
 
-Unfortunately since it's a model specific counter needs a model
-list number. I added Nehalems and Westmeres for it, and reused
-the existing Sandy Bridge model list. This will need to be later
-extended for each new CPU.
-
-I also fixed the extra MSR display which didn't line up correctly.
-
-v2: Port to turbostat2 in next. Fix extra MSR too.
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
----
- tools/power/x86/turbostat/turbostat.c |   65 +++++++++++++++++++++++++++++++--
- 1 files changed, 62 insertions(+), 3 deletions(-)
-
-diff --git a/tools/power/x86/turbostat/turbostat.c b/tools/power/x86/turbostat/turbostat.c
-index 8ee4115..9023b67 100644
---- a/tools/power/x86/turbostat/turbostat.c
-+++ b/tools/power/x86/turbostat/turbostat.c
-@@ -36,6 +36,7 @@
- #include <sched.h>
- 
- #define MSR_TSC	0x10
-+#define MSR_SMI_COUNT 0x34
- #define MSR_NEHALEM_PLATFORM_INFO	0xCE
- #define MSR_NEHALEM_TURBO_RATIO_LIMIT	0x1AD
- #define MSR_APERF	0xE8
-@@ -69,6 +70,7 @@ unsigned int show_core;
- unsigned int show_cpu;
- unsigned int show_pkg_only;
- unsigned int show_core_only;
-+unsigned int do_smi_count;
- char *output_buffer, *outp;
- 
- int aperf_mperf_unstable;
-@@ -84,6 +86,7 @@ struct thread_data {
- 	unsigned long long mperf;
- 	unsigned long long c1;	/* derived */
- 	unsigned long long extra_msr;
-+	unsigned long long smi_count;
- 	unsigned int cpu_id;
- 	unsigned int flags;
- #define CPU_IS_FIRST_THREAD_IN_CORE	0x2
-@@ -199,6 +202,8 @@ void print_header(void)
- 		outp += sprintf(outp, "   %%pc7");
- 	if (extra_msr_offset)
- 		outp += sprintf(outp, "        MSR 0x%x ", extra_msr_offset);
-+	if (do_smi_count)
-+		outp += sprintf(outp, "       SMIs");
- 
- 	outp += sprintf(outp, "\n");
- }
-@@ -216,6 +221,7 @@ int dump_counters(struct thread_data *t, struct core_data *c,
- 		fprintf(stderr, "c1: %016llX\n", t->c1);
- 		fprintf(stderr, "msr0x%x: %016llX\n",
- 			extra_msr_offset, t->extra_msr);
-+		fprintf(stderr, "smi: %llu\n", t->smi_count);
- 	}
- 
- 	if (c) {
-@@ -235,6 +241,18 @@ int dump_counters(struct thread_data *t, struct core_data *c,
- 	return 0;
- }
- 
-+static void to_column(int column)
-+{
-+	char *p = strrchr(output_buffer, '\n');
-+	int len = strlen(p ? p + 1 : output_buffer);
-+
-+	while (len < column) {
-+		*outp++ = ' ';
-+		len++;
-+	}
-+	*outp = 0;
-+}
-+
- /*
-  * column formatting convention & formats
-  * package: "pk" 2 columns %2d
-@@ -248,6 +266,7 @@ int format_counters(struct thread_data *t, struct core_data *c,
- 	struct pkg_data *p)
- {
- 	double interval_float;
-+	int column, len;
- 
- 	 /* if showing only 1st thread in core and this isn't one, bail out */
- 	if (show_core_only && !(t->flags & CPU_IS_FIRST_THREAD_IN_CORE))
-@@ -350,8 +369,19 @@ int format_counters(struct thread_data *t, struct core_data *c,
- 	if (do_snb_cstates)
- 		outp += sprintf(outp, " %6.2f", 100.0 * p->pc7/t->tsc);
- done:
--	if (extra_msr_offset)
--		outp += sprintf(outp, "  0x%016llx", t->extra_msr);
-+	column = 61;
-+	if (extra_msr_offset) {
-+		to_column(column);
-+		len = sprintf(outp, " 0x%016llx", t->extra_msr);
-+		column += len;
-+		outp += len;
-+	}
-+	if (do_smi_count) {
-+		to_column(column);
-+		len = sprintf(outp, " %6llu", t->smi_count);
-+		column += len;
-+		outp += len;
-+	}
- 	outp += sprintf(outp, "\n");
- 
- 	return 0;
-@@ -462,6 +492,8 @@ delta_thread(struct thread_data *new, struct thread_data *old,
- 	 * for "extra msr", just copy the latest w/o subtracting
- 	 */
- 	old->extra_msr = new->extra_msr;
-+
-+	old->smi_count = new->smi_count - old->smi_count;
- }
- 
- int delta_cpu(struct thread_data *t, struct core_data *c,
-@@ -508,6 +540,7 @@ int sum_counters(struct thread_data *t, struct core_data *c,
- 	average.threads.aperf += t->aperf;
- 	average.threads.mperf += t->mperf;
- 	average.threads.c1 += t->c1;
-+	average.threads.smi_count += t->smi_count;
- 
- 	/* sum per-core values only for 1st thread in core */
- 	if (!(t->flags & CPU_IS_FIRST_THREAD_IN_CORE))
-@@ -589,6 +622,12 @@ int get_counters(struct thread_data *t, struct core_data *c, struct pkg_data *p)
- 		if (get_msr(cpu, extra_msr_offset, &t->extra_msr))
- 			return -5;
- 
-+	if (do_smi_count) {
-+		if (get_msr(cpu, MSR_SMI_COUNT, &t->smi_count))
-+			return -13;
-+		t->smi_count &= 0xffffffff;
-+	}
-+
- 	/* collect core counters only for 1st thread in core */
- 	if (!(t->flags & CPU_IS_FIRST_THREAD_IN_CORE))
- 		return 0;
-@@ -1044,7 +1083,7 @@ int has_nehalem_turbo_ratio_limit(unsigned int family, unsigned int model)
- 
- int is_snb(unsigned int family, unsigned int model)
- {
--	if (!genuine_intel)
-+	if (!genuine_intel || family != 6)
- 		return 0;
- 
- 	switch (model) {
-@@ -1057,6 +1096,22 @@ int is_snb(unsigned int family, unsigned int model)
- 	return 0;
- }
- 
-+int is_nhm_wsm(unsigned int family, unsigned int model)
-+{
-+	if (!genuine_intel || family != 6)
-+		return 0;
-+
-+	switch (model) {
-+	case 26:
-+	case 30:
-+	case 46:
-+	case 37:
-+	case 44:
-+	case 47:
-+		return 1;
-+	}
-+	return 0;
-+}
- double discover_bclk(unsigned int family, unsigned int model)
- {
- 	if (is_snb(family, model))
-@@ -1140,6 +1195,10 @@ void check_cpuid()
- 	bclk = discover_bclk(family, model);
- 
- 	do_nehalem_turbo_ratio_limit = has_nehalem_turbo_ratio_limit(family, model);
-+
-+	/* Do unconditionally? Started with Nehalem, but may not be on Atoms */
-+	if (is_snb(family, model) || is_nhm_wsm(family, model))
-+		do_smi_count = 1;
- }
- 
- 
--- 
-1.7.7.6
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
