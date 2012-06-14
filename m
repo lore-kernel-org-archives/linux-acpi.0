@@ -1,103 +1,118 @@
-From: Gary Hade <garyhade@us.ibm.com>
-Subject: Re: [PATCH] ACPI, APEI: Fixup common access width firmware bug
-Date: Wed, 13 Jun 2012 18:09:31 -0700
-Message-ID: <20120614010931.GA7378@us.ibm.com>
-References: <1339490608.21507.5.camel@amber.site>
+From: "Xiao, Hui" <hui.xiao@linux.intel.com>
+Subject: Re: [RFC] ACPI, APEI: Fix incorrect bit width + offset check condition
+Date: Thu, 14 Jun 2012 14:14:30 +0800
+Message-ID: <4FD98146.9060209@linux.intel.com>
+References: <1339573184-3122-1-git-send-email-hui.xiao@linux.intel.com> <20120613104651.52ce8840@endymion.delvare> <20120613174517.GA2141@us.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e31.co.us.ibm.com ([32.97.110.149]:55421 "EHLO
-	e31.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754859Ab2FNBJn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Jun 2012 21:09:43 -0400
-Received: from /spool/local
-	by e31.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <linux-acpi@vger.kernel.org> from <garyhade@us.ibm.com>;
-	Wed, 13 Jun 2012 19:09:42 -0600
-Received: from d03relay03.boulder.ibm.com (d03relay03.boulder.ibm.com [9.17.195.228])
-	by d03dlp01.boulder.ibm.com (Postfix) with ESMTP id C675FC40002
-	for <linux-acpi@vger.kernel.org>; Thu, 14 Jun 2012 01:09:39 +0000 (WET)
-Received: from d03av04.boulder.ibm.com (d03av04.boulder.ibm.com [9.17.195.170])
-	by d03relay03.boulder.ibm.com (8.13.8/8.13.8/NCO v10.0) with ESMTP id q5E19dNs183764
-	for <linux-acpi@vger.kernel.org>; Wed, 13 Jun 2012 19:09:39 -0600
-Received: from d03av04.boulder.ibm.com (loopback [127.0.0.1])
-	by d03av04.boulder.ibm.com (8.14.4/8.13.1/NCO v10.0 AVout) with ESMTP id q5E19cLO020724
-	for <linux-acpi@vger.kernel.org>; Wed, 13 Jun 2012 19:09:39 -0600
-Content-Disposition: inline
-In-Reply-To: <1339490608.21507.5.camel@amber.site>
+Received: from mga09.intel.com ([134.134.136.24]:48635 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751006Ab2FNGOf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 14 Jun 2012 02:14:35 -0400
+In-Reply-To: <20120613174517.GA2141@us.ibm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jean Delvare <jdelvare@suse.de>
-Cc: Huang Ying <ying.huang@intel.com>, Gary Hade <garyhade@us.ibm.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, hui.xiao@linux.intel.com
+To: Gary Hade <garyhade@us.ibm.com>
+Cc: Jean Delvare <khali@linux-fr.org>, tony.luck@intel.com, ying.huang@intel.com, lenb@kernel.org, pluto@agmk.net, linux-acpi@vger.kernel.org, Chen Gong <gong.chen@linux.intel.com>
 
-On Tue, Jun 12, 2012 at 10:43:28AM +0200, Jean Delvare wrote:
-> Many firmwares have a common register definition bug where 8-bit
-> access width is specified for a 32-bit register. Ideally this should
-> be fixed in the BIOS, but earlier versions of the kernel did not
-> complain, so fix that up silently.
+On 2012/6/14 1:45, Gary Hade wrote:
+> On Wed, Jun 13, 2012 at 10:46:51AM +0200, Jean Delvare wrote:
+>> Hi Xiao,
+>>
+>> On Wed, 13 Jun 2012 15:39:44 +0800, Xiao, Hui wrote:
+>>> Fix the incorrect bit width + offset check condition in apei_check_gar()
+>>> function introduced by commit v3.3-5-g15afae6.
+>>>
+>>> The bug caused regression on EINJ error injection with errors:
+>>>
+>>> [Firmware Bug]: APEI: Invalid bit width + offset in GAR [0x1121a5000/64/0/3/0]
+>>>
+>>> on a valid address region of:
+>>>     - Register bit width: 64 bits
+>>>     - Register bit offset: 0
+>>>     - Access Size: 03 [DWord Access: 32]
+>>
+>> I don't see how this is valid, sorry. If you have a 64-bit register,
+>> you want 64-bit access, don't you?
+>>
+>> If the access code is supposed to be able to read large registers in
+>> smaller chunks and assemble them transparently to a larger value, then
+>> there is no point in having any check at all, everything is valid. If
+>> not, then the above is just as invalid as the firmware issue discussed
+>> in bug #43282.
+>>
+>>>
+>>> Signed-off-by: Xiao, Hui <hui.xiao@linux.intel.com>
+>>> Signed-off-by: Chen Gong <gong.chen@linux.intel.com>
+>>> ---
+>>>  drivers/acpi/apei/apei-base.c |    7 +++++--
+>>>  1 files changed, 5 insertions(+), 2 deletions(-)
+>>>
+>>> diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
+>>> index 5577762..95e07b2 100644
+>>> --- a/drivers/acpi/apei/apei-base.c
+>>> +++ b/drivers/acpi/apei/apei-base.c
+>>> @@ -586,9 +586,12 @@ static int apei_check_gar(struct acpi_generic_address *reg, u64 *paddr,
+>>>  	}
+>>>  	*access_bit_width = 1UL << (access_size_code + 2);
+>>>  
+>>> -	if ((bit_width + bit_offset) > *access_bit_width) {
+>>> +	/* bit_width and bit_offset must be zero when addressing a data
+>>> +	 * structure. So just check for non-zero case here */
+>>> +	if ((bit_width != 0 && *access_bit_width > bit_width) ||
+>>> +			bit_offset > *access_bit_width) {
+>>
+>> I can't make any sense of this test, sorry. And it will trigger on
+>> valid cases, starting with the most frequent case where
+>> *access_bit_width == bit_width. So, nack.
 > 
-> This closes kernel bug #43282:
-> https://bugzilla.kernel.org/show_bug.cgi?id=43282
+> I agree that the change will trigger firmware bug messages for
+> valid cases.  Here is a good example of a valid case from one
+> of our systems that confirms this.
 > 
-> Signed-off-by: Jean Delvare <jdelvare@suse.de>
-> Cc: Gary Hade <garyhade@us.ibm.com>
-> Cc: Len Brown <len.brown@intel.com>
-> Cc: stable@vger.kernel.org [3.4+]
-> ---
->  drivers/acpi/apei/apei-base.c |    5 +++++
->  1 file changed, 5 insertions(+)
+> [110h 0272   1]                       Action : 06 [Check Busy Status]
+> [111h 0273   1]                  Instruction : 01 [Read Register Value]
+> [112h 0274   1]        Flags (decoded below) : 00
+>                       Preserve Register Bits : 0
+> [113h 0275   1]                     Reserved : 00
 > 
-> --- linux-3.4.orig/drivers/acpi/apei/apei-base.c	2012-06-08 10:02:06.000000000 +0200
-> +++ linux-3.4/drivers/acpi/apei/apei-base.c	2012-06-08 10:04:16.503779775 +0200
-> @@ -586,6 +586,11 @@ static int apei_check_gar(struct acpi_ge
->  	}
->  	*access_bit_width = 1UL << (access_size_code + 2);
+> [114h 0276  12]              Register Region : [Generic Address Structure]
+> [114h 0276   1]                     Space ID : 00 [SystemMemory]
+> [115h 0277   1]                    Bit Width : 01
+> [116h 0278   1]                   Bit Offset : 1F
+> [117h 0279   1]         Encoded Access Width : 03 [DWord Access:32]
+> [118h 0280   8]                      Address : 000000007F2D7038
 > 
-> +	/* Fixup common BIOS bug */
-> +	if (bit_width == 32 && bit_offset == 0 && (*paddr & 0x03) == 0 &&
-> +	    *access_bit_width < 32)
-> +		*access_bit_width = 32;
-> +
->  	if ((bit_width + bit_offset) > *access_bit_width) {
->  		pr_warning(FW_BUG APEI_PFX
->  			   "Invalid bit width + offset in GAR [0x%llx/%u/%u/%u/%u]\n",
+> [120h 0288   8]                        Value : 0000000000000001
+> [128h 0296   8]                         Mask : 0000000000000001
+> 
+> Gary
+> 
+Hi Gary,
 
-This seems reasonable but since the "Access Size < Register Bit Width"
-condition has apparently been seen on a number of systems I have been
-wondering if this might simply be a BIOS writer's way of telling us
-not to touch some of the high bits in the register.  Reducing the
-width of the register seems like a better way, but maybe not the
-only way?
+>From your "good example of a valid case" above. I believe we might have different
+understanding of the "Bit Width" field. 
 
-Jean, What do you (and others that are listening who know more
-about this than I do) think about a change to sanity check only
-the bit offset and not complain (at least for now) about cases
-where an access using the specified access size will not address
-every bit in the register?  
+Just to make sure, do you take "Bit Width" here(1 bit) as the bit length one should 
+got for mask /*after*/ shifting bit offset(31 bit) of the access_width(32 bit) 
+one read from the register(length unknown, or should equal to access length?) ?
 
-Perhaps something like:
---- linux-3.5-rc2/drivers/acpi/apei/apei-base.c.ORIG	2012-06-08 18:40:09.000000000 -0700
-+++ linux-3.5-rc2/drivers/acpi/apei/apei-base.c	2012-06-13 16:32:49.000000000 -0700
-@@ -586,9 +586,9 @@ static int apei_check_gar(struct acpi_ge
- 	}
- 	*access_bit_width = 1UL << (access_size_code + 2);
- 
--	if ((bit_width + bit_offset) > *access_bit_width) {
-+	if (bit_offset >= *access_bit_width) {
- 		pr_warning(FW_BUG APEI_PFX
--			   "Invalid bit width + offset in GAR [0x%llx/%u/%u/%u/%u]\n",
-+			   "Invalid bit offset in GAR [0x%llx/%u/%u/%u/%u]\n",
- 			   *paddr, bit_width, bit_offset, access_size_code,
- 			   space_id);
- 		return -EINVAL;
+That's why you think:
+       bit_width + bit_offset <= *access_bit_width
+is valid.
 
-Gary
+For me I take "Bit Width" as bits of the register for access boundary,
+so I think:
+       (*access_bit_width <= bit_width) && (bit_offset < *access_bit_width)
+is valid. 
 
--- 
-Gary Hade
-System x Enablement
-IBM Linux Technology Center
-503-578-4503  IBM T/L: 775-4503
-garyhade@us.ibm.com
-http://www.ibm.com/linux/ltc
+For you above case, personally I saw you got a 1-bit register, but want to
+read 32bit from it, and want to get bit[31] by shifting 31bit and mask 0x1.
 
+Please correct me if I am wrong. Not sure which should be the case ACPI SPEC
+expected. I also have not found any specific explanation on these assumption. 
+
+Thanks,
+-Hui
