@@ -1,79 +1,126 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [RFC 1/4] cpuidle: define the enter function in the
-	driver structure
-Date: Thu, 14 Jun 2012 10:16:19 +0200
-Message-ID: <4FD99DD3.6060904@linaro.org>
-References: <1339171365-4098-1-git-send-email-daniel.lezcano@linaro.org>
-	<87r4ti49jt.fsf@sejong.aot.lge.com>
+From: Jean Delvare <jdelvare@suse.de>
+Subject: Re: [PATCH] ACPI, APEI: Fixup common access width firmware bug
+Date: Thu, 14 Jun 2012 10:35:11 +0200
+Message-ID: <1339662911.4378.22.camel@amber.site>
+References: <1339490608.21507.5.camel@amber.site>
+	 <20120614010931.GA7378@us.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <87r4ti49jt.fsf@sejong.aot.lge.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Namhyung Kim <namhyung@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linaro-dev@lists.linaro.org, linux-kernel@vger.kernel.org
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:59974 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751485Ab2FNIf3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 14 Jun 2012 04:35:29 -0400
+In-Reply-To: <20120614010931.GA7378@us.ibm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Gary Hade <garyhade@us.ibm.com>
+Cc: Huang Ying <ying.huang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, hui.xiao@linux.intel.com
 
-On 06/14/2012 09:49 AM, Namhyung Kim wrote:
-> Hi,
->=20
-> On Fri,  8 Jun 2012 18:02:42 +0200, Daniel Lezcano wrote:
->> We have the state index passed as parameter to the 'enter' function.
->> Most of the drivers assign their 'enter' functions several times in
->> the cpuidle_state structure, as we have the index, we can delegate
->> to the driver to handle their own callback array.
->>
->> That will have the benefit of removing multiple lines of code in the
->> different drivers.
->>
->> In order to smoothly modify the driver, the 'enter' function are in
->> the driver structure and in the cpuidle state structure. That will
->> let the time to modify the different drivers one by one.
->> So the 'cpuidle_enter' function checks if the 'enter' callback is
->> assigned in the driver structure and use it, otherwise it invokes
->> the 'enter' assigned to the cpuidle_state.
->>
->> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
->> ---
->>  drivers/cpuidle/cpuidle.c |    4 +++-
->>  include/linux/cpuidle.h   |    1 +
->>  2 files changed, 4 insertions(+), 1 deletions(-)
->>
->> diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
->> index d90519c..155dee7 100644
->> --- a/drivers/cpuidle/cpuidle.c
->> +++ b/drivers/cpuidle/cpuidle.c
->> @@ -46,7 +46,9 @@ static inline int cpuidle_enter(struct cpuidle_devic=
-e *dev,
->>  				struct cpuidle_driver *drv, int index)
->>  {
->>  	struct cpuidle_state *target_state =3D &drv->states[index];
->> -	return target_state->enter(dev, drv, index);
->> +
->> +	return drv->enter(dev, drv, index) ? drv->enter(dev, drv, index) :
->=20
-> Do you mean:
-> 	       drv->enter ? drv->enter(dev, drv, index) :
-> ?
->=20
-> Thanks,
-> Namhyung
+Hi Gary,
 
-Right :)
+Le mercredi 13 juin 2012 =C3=A0 18:09 -0700, Gary Hade a =C3=A9crit :
+> On Tue, Jun 12, 2012 at 10:43:28AM +0200, Jean Delvare wrote:
+> > Many firmwares have a common register definition bug where 8-bit
+> > access width is specified for a 32-bit register. Ideally this shoul=
+d
+> > be fixed in the BIOS, but earlier versions of the kernel did not
+> > complain, so fix that up silently.
+> >=20
+> > This closes kernel bug #43282:
+> > https://bugzilla.kernel.org/show_bug.cgi?id=3D43282
+> >=20
+> > Signed-off-by: Jean Delvare <jdelvare@suse.de>
+> > Cc: Gary Hade <garyhade@us.ibm.com>
+> > Cc: Len Brown <len.brown@intel.com>
+> > Cc: stable@vger.kernel.org [3.4+]
+> > ---
+> >  drivers/acpi/apei/apei-base.c |    5 +++++
+> >  1 file changed, 5 insertions(+)
+> >=20
+> > --- linux-3.4.orig/drivers/acpi/apei/apei-base.c	2012-06-08 10:02:0=
+6.000000000 +0200
+> > +++ linux-3.4/drivers/acpi/apei/apei-base.c	2012-06-08 10:04:16.503=
+779775 +0200
+> > @@ -586,6 +586,11 @@ static int apei_check_gar(struct acpi_ge
+> >  	}
+> >  	*access_bit_width =3D 1UL << (access_size_code + 2);
+> >=20
+> > +	/* Fixup common BIOS bug */
+> > +	if (bit_width =3D=3D 32 && bit_offset =3D=3D 0 && (*paddr & 0x03)=
+ =3D=3D 0 &&
+> > +	    *access_bit_width < 32)
+> > +		*access_bit_width =3D 32;
+> > +
+> >  	if ((bit_width + bit_offset) > *access_bit_width) {
+> >  		pr_warning(FW_BUG APEI_PFX
+> >  			   "Invalid bit width + offset in GAR [0x%llx/%u/%u/%u/%u]\n",
+>=20
+> This seems reasonable but since the "Access Size < Register Bit Width=
+"
+> condition has apparently been seen on a number of systems I have been
+> wondering if this might simply be a BIOS writer's way of telling us
+> not to touch some of the high bits in the register.  Reducing the
+> width of the register seems like a better way, but maybe not the
+> only way?
+
+I see it as a firmware bug, nothing else (although I am still waiting
+for Asus to reply on this.) And if it really isn't a bug, I can only
+read it as "we have a 32-bit register that can only be read 8-bit at a
+time so please issue 4 8-bit reads and build up a 32-bit value out of
+these." And certainly not as "don't touch the upper 24-bits."
+
+As I mentioned in another discussion thread, the 1-bit granularity of
+bit_width and bit_offset clearly means that these are the fields the
+vendor must use to tell us which part of a register we should touch -
+they are the "what". "Access Size" is there for the hardware constraint=
+s
+- it is the "how".
+
+> Jean, What do you (and others that are listening who know more
+> about this than I do) think about a change to sanity check only
+> the bit offset and not complain (at least for now) about cases
+> where an access using the specified access size will not address
+> every bit in the register? =20
+>=20
+> Perhaps something like:
+> --- linux-3.5-rc2/drivers/acpi/apei/apei-base.c.ORIG	2012-06-08 18:40=
+:09.000000000 -0700
+> +++ linux-3.5-rc2/drivers/acpi/apei/apei-base.c	2012-06-13 16:32:49.0=
+00000000 -0700
+> @@ -586,9 +586,9 @@ static int apei_check_gar(struct acpi_ge
+>  	}
+>  	*access_bit_width =3D 1UL << (access_size_code + 2);
+> =20
+> -	if ((bit_width + bit_offset) > *access_bit_width) {
+> +	if (bit_offset >=3D *access_bit_width) {
+>  		pr_warning(FW_BUG APEI_PFX
+> -			   "Invalid bit width + offset in GAR [0x%llx/%u/%u/%u/%u]\n",
+> +			   "Invalid bit offset in GAR [0x%llx/%u/%u/%u/%u]\n",
+>  			   *paddr, bit_width, bit_offset, access_size_code,
+>  			   space_id);
+>  		return -EINVAL;
+
+Doesn't make much sense to me, as I don't think it will catch much.
+Also, your original patch (ACPI, APEI: Fix incorrect APEI register bit
+width check and usage) was not only reporting new errors, it also
+changed the width parameter passed to ACPI read and write functions. It
+was the register width and it is now (correctly, I believe) the access
+width. So if the access width is wrong, and we don't fix it up (as my
+proposed patch does) we might have a regression on some systems. Even i=
+f
+the firmware is at fault, regressions are always bad.
+
+(But again I don't know much about ACPI so I might be completely
+wrong...)
 
 --=20
- <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software for A=
-RM SoCs
+Jean Delvare
+Suse L3
 
-Follow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
