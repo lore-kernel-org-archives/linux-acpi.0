@@ -1,57 +1,79 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [RFC] ACPI, APEI: Fix incorrect bit width + offset check
- condition
-Date: Thu, 14 Jun 2012 10:09:07 +0200
-Message-ID: <20120614100907.3241376d@endymion.delvare>
-References: <1339573184-3122-1-git-send-email-hui.xiao@linux.intel.com>
-	<20120613104651.52ce8840@endymion.delvare>
-	<20120613174517.GA2141@us.ibm.com>
-	<4FD98146.9060209@linux.intel.com>
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [RFC 1/4] cpuidle: define the enter function in the
+	driver structure
+Date: Thu, 14 Jun 2012 10:16:19 +0200
+Message-ID: <4FD99DD3.6060904@linaro.org>
+References: <1339171365-4098-1-git-send-email-daniel.lezcano@linaro.org>
+	<87r4ti49jt.fsf@sejong.aot.lge.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from zoneX.GCU-Squad.org ([194.213.125.0]:30426 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753103Ab2FNIJT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Jun 2012 04:09:19 -0400
-In-Reply-To: <4FD98146.9060209@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <87r4ti49jt.fsf@sejong.aot.lge.com>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Namhyung Kim <namhyung@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linaro-dev@lists.linaro.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Xiao, Hui" <hui.xiao@linux.intel.com>
-Cc: Gary Hade <garyhade@us.ibm.com>, tony.luck@intel.com, ying.huang@intel.com, lenb@kernel.org, pluto@agmk.net, linux-acpi@vger.kernel.org, Chen Gong <gong.chen@linux.intel.com>
 
-On Thu, 14 Jun 2012 14:14:30 +0800, Xiao, Hui wrote:
-> From your "good example of a valid case" above. I believe we might have different
-> understanding of the "Bit Width" field. 
-> 
-> Just to make sure, do you take "Bit Width" here(1 bit) as the bit length one should 
-> got for mask /*after*/ shifting bit offset(31 bit) of the access_width(32 bit) 
-> one read from the register(length unknown, or should equal to access length?) ?
-> 
-> That's why you think:
->        bit_width + bit_offset <= *access_bit_width
-> is valid.
+On 06/14/2012 09:49 AM, Namhyung Kim wrote:
+> Hi,
+>=20
+> On Fri,  8 Jun 2012 18:02:42 +0200, Daniel Lezcano wrote:
+>> We have the state index passed as parameter to the 'enter' function.
+>> Most of the drivers assign their 'enter' functions several times in
+>> the cpuidle_state structure, as we have the index, we can delegate
+>> to the driver to handle their own callback array.
+>>
+>> That will have the benefit of removing multiple lines of code in the
+>> different drivers.
+>>
+>> In order to smoothly modify the driver, the 'enter' function are in
+>> the driver structure and in the cpuidle state structure. That will
+>> let the time to modify the different drivers one by one.
+>> So the 'cpuidle_enter' function checks if the 'enter' callback is
+>> assigned in the driver structure and use it, otherwise it invokes
+>> the 'enter' assigned to the cpuidle_state.
+>>
+>> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+>> ---
+>>  drivers/cpuidle/cpuidle.c |    4 +++-
+>>  include/linux/cpuidle.h   |    1 +
+>>  2 files changed, 4 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
+>> index d90519c..155dee7 100644
+>> --- a/drivers/cpuidle/cpuidle.c
+>> +++ b/drivers/cpuidle/cpuidle.c
+>> @@ -46,7 +46,9 @@ static inline int cpuidle_enter(struct cpuidle_devic=
+e *dev,
+>>  				struct cpuidle_driver *drv, int index)
+>>  {
+>>  	struct cpuidle_state *target_state =3D &drv->states[index];
+>> -	return target_state->enter(dev, drv, index);
+>> +
+>> +	return drv->enter(dev, drv, index) ? drv->enter(dev, drv, index) :
+>=20
+> Do you mean:
+> 	       drv->enter ? drv->enter(dev, drv, index) :
+> ?
+>=20
+> Thanks,
+> Namhyung
 
-I am not Gary, but it is also how I read the specification.
+Right :)
 
-> For me I take "Bit Width" as bits of the register for access boundary,
-> so I think:
->        (*access_bit_width <= bit_width) && (bit_offset < *access_bit_width)
-> is valid. 
-> 
-> For you above case, personally I saw you got a 1-bit register, but want to
-> read 32bit from it, and want to get bit[31] by shifting 31bit and mask 0x1.
-> 
-> Please correct me if I am wrong. Not sure which should be the case ACPI SPEC
-> expected. I also have not found any specific explanation on these assumption. 
+--=20
+ <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software for A=
+RM SoCs
 
-What makes me believe Gary is right is the granularity of each field.
-bit_width and bit_offset can be set with a 1-bit granularity, while
-access_bit_width can only be 8, 16, 32 or 64. This clearly means that
-access_bit_width (and Access Size before that) is a hardware thing,
-while bit_width and bit_offset can only be software things. You've
-never seen I/O ports that can be read 3 or 5 bits at a time...
-
--- 
-Jean Delvare
+Follow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
+<http://twitter.com/#!/linaroorg> Twitter |
+<http://www.linaro.org/linaro-blog/> Blog
