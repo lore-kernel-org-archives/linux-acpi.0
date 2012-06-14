@@ -1,119 +1,115 @@
 From: Corentin Chary <corentin.chary@gmail.com>
-Subject: [PATCH 2/7] drivers-platform-x86: use acpi_video_dmi_promote_vendor()
-Date: Thu, 14 Jun 2012 13:04:30 +0200
-Message-ID: <1339671870-27624-1-git-send-email-corentin.chary@gmail.com>
-References: <CAHR064i_0vunKzB_Yg9SGrWQcPxJs2sTekWk6LuP2qf0FEqBOQ@mail.gmail.com>
+Subject: [PATCH 6/7] asus-wmi: control backlight power through WMI, not ACPI
+Date: Thu, 14 Jun 2012 13:05:12 +0200
+Message-ID: <1339671912-27715-1-git-send-email-corentin.chary@gmail.com>
+References: <1339572727-24744-7-git-send-email-corentin.chary@gmail.com>
 Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <CAHR064i_0vunKzB_Yg9SGrWQcPxJs2sTekWk6LuP2qf0FEqBOQ@mail.gmail.com>
+In-Reply-To: <1339572727-24744-7-git-send-email-corentin.chary@gmail.com>
 Sender: platform-driver-x86-owner@vger.kernel.org
 To: Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, Corentin Chary <corentin.chary@gmail.com>, Joey Lee <jlee@novell.com>, Matthew Garrett <mjg@redhat.com>, Corentin Chary <corentincj@iksaif.net>, linux-kernel@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, AceLan Kao <acelan.kao@canonical.com>, Corentin Chary <corentin.chary@gmail.com>, Corentin Chary <corentincj@iksaif.net>, Matthew Garrett <mjg@redhat.com>, acpi4asus-user@lists.sourceforge.net, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Instead of using directly acpi_video_unregister(), use
-acpi_video_dmi_promote_vendor() (and make it call
-acpi_video_unregister() if needed)
+From: AceLan Kao <acelan.kao@canonical.com>
 
+BugLink: https://bugs.launchpad.net/bugs/1000146
+
+Some h/w that can adjust screen brightness through ACPI functions, but
+can't turn on/off the backlight power correctly. So, we list those h/w in
+quirks and try to turn on/off the backlight power through WMI.
+Signed-off-by: AceLan Kao <acelan.kao@canonical.com>
 Signed-off-by: Corentin Chary <corentin.chary@gmail.com>
 ---
- drivers/platform/x86/acer-wmi.c       |   14 +++++++-------
- drivers/platform/x86/apple-gmux.c     |    2 ++
- drivers/platform/x86/samsung-laptop.c |   20 +++++++++-----------
- 3 files changed, 18 insertions(+), 18 deletions(-)
+ drivers/platform/x86/asus-wmi.c  |    5 +++++
+ drivers/platform/x86/asus-wmi.h  |    1 +
+ drivers/platform/x86/eeepc-wmi.c |   25 ++++++++++++++++++++++++-
+ 3 files changed, 30 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/platform/x86/acer-wmi.c b/drivers/platform/x86/acer-wmi.c
-index ce875dc..7057aef 100644
---- a/drivers/platform/x86/acer-wmi.c
-+++ b/drivers/platform/x86/acer-wmi.c
-@@ -2060,14 +2060,14 @@ static int __init acer_wmi_init(void)
+diff --git a/drivers/platform/x86/asus-wmi.c b/drivers/platform/x86/asus-wmi.c
+index 77aadde..7e89e04 100644
+--- a/drivers/platform/x86/asus-wmi.c
++++ b/drivers/platform/x86/asus-wmi.c
+@@ -47,6 +47,7 @@
+ #include <linux/thermal.h>
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
++#include <acpi/video.h>
  
- 	set_quirks();
+ #include "asus-wmi.h"
  
-+	if (dmi_check_system(video_vendor_dmi_table))
+@@ -1681,7 +1682,11 @@ static int asus_wmi_add(struct platform_device *pdev)
+ 	if (err)
+ 		goto fail_rfkill;
+ 
++	if (asus->driver->quirks->wmi_backlight_power)
 +		acpi_video_dmi_promote_vendor();
- 	if (acpi_video_backlight_support()) {
--		if (dmi_check_system(video_vendor_dmi_table)) {
--			acpi_video_unregister();
--		} else {
--			interface->capability &= ~ACER_CAP_BRIGHTNESS;
--			pr_info("Brightness must be controlled by "
--				"acpi video driver\n");
--		}
-+		interface->capability &= ~ACER_CAP_BRIGHTNESS;
-+		pr_info("Brightness must be controlled by acpi video driver\n");
-+	} else {
+ 	if (!acpi_video_backlight_support()) {
 +		pr_info("Disabling ACPI video driver\n");
 +		acpi_video_unregister();
- 	}
+ 		err = asus_wmi_backlight_init(asus);
+ 		if (err && err != -ENODEV)
+ 			goto fail_backlight;
+diff --git a/drivers/platform/x86/asus-wmi.h b/drivers/platform/x86/asus-wmi.h
+index d43b667..9c1da8b 100644
+--- a/drivers/platform/x86/asus-wmi.h
++++ b/drivers/platform/x86/asus-wmi.h
+@@ -39,6 +39,7 @@ struct quirk_entry {
+ 	bool hotplug_wireless;
+ 	bool scalar_panel_brightness;
+ 	bool store_backlight_power;
++	bool wmi_backlight_power;
+ 	int wapf;
+ };
  
- 	if (wmi_has_guid(WMID_GUID3)) {
-diff --git a/drivers/platform/x86/apple-gmux.c b/drivers/platform/x86/apple-gmux.c
-index 694a15a..fd61502 100644
---- a/drivers/platform/x86/apple-gmux.c
-+++ b/drivers/platform/x86/apple-gmux.c
-@@ -193,6 +193,7 @@ static int __devinit gmux_probe(struct pnp_dev *pnp,
- 	 * backlight control and supports more levels than other options.
- 	 * Disable the other backlight choices.
- 	 */
-+	acpi_video_dmi_promote_vendor();
- 	acpi_video_unregister();
- 	apple_bl_unregister();
+diff --git a/drivers/platform/x86/eeepc-wmi.c b/drivers/platform/x86/eeepc-wmi.c
+index 6567613..5838332 100644
+--- a/drivers/platform/x86/eeepc-wmi.c
++++ b/drivers/platform/x86/eeepc-wmi.c
+@@ -79,7 +79,7 @@ static const struct key_entry eeepc_wmi_keymap[] = {
+ 	{ KE_KEY, 0xe1, { KEY_F14 } }, /* Change Resolution */
+ 	{ KE_KEY, HOME_PRESS, { KEY_CONFIG } }, /* Home/Express gate key */
+ 	{ KE_KEY, 0xe8, { KEY_SCREENLOCK } },
+-	{ KE_KEY, 0xe9, { KEY_BRIGHTNESS_ZERO } },
++	{ KE_KEY, 0xe9, { KEY_DISPLAYTOGGLE } },
+ 	{ KE_KEY, 0xeb, { KEY_CAMERA_ZOOMOUT } },
+ 	{ KE_KEY, 0xec, { KEY_CAMERA_UP } },
+ 	{ KE_KEY, 0xed, { KEY_CAMERA_DOWN } },
+@@ -107,6 +107,11 @@ static struct quirk_entry quirk_asus_et2012_type3 = {
+ 	.store_backlight_power = true,
+ };
  
-@@ -213,6 +214,7 @@ static void __devexit gmux_remove(struct pnp_dev *pnp)
- 	release_region(gmux_data->iostart, gmux_data->iolen);
- 	kfree(gmux_data);
- 
-+	acpi_video_dmi_demote_vendor();
- 	acpi_video_register();
- 	apple_bl_register();
- }
-diff --git a/drivers/platform/x86/samsung-laptop.c b/drivers/platform/x86/samsung-laptop.c
-index e2a34b4..b822784 100644
---- a/drivers/platform/x86/samsung-laptop.c
-+++ b/drivers/platform/x86/samsung-laptop.c
-@@ -26,9 +26,7 @@
- #include <linux/seq_file.h>
- #include <linux/debugfs.h>
- #include <linux/ctype.h>
--#if (defined CONFIG_ACPI_VIDEO || defined CONFIG_ACPI_VIDEO_MODULE)
- #include <acpi/video.h>
--#endif
- 
- /*
-  * This driver is needed because a number of Samsung laptops do not hook
-@@ -1530,15 +1528,16 @@ static int __init samsung_init(void)
- 	samsung->quirks = quirks;
- 
- 
--#if (defined CONFIG_ACPI_VIDEO || defined CONFIG_ACPI_VIDEO_MODULE)
-+#ifdef CONFIG_ACPI
-+	if (samsung->quirks->broken_acpi_video)
-+		acpi_video_dmi_promote_vendor();
++static struct quirk_entry quirk_asus_x101ch = {
++	/* We need this when ACPI function doesn't do this well */
++	.wmi_backlight_power = true,
++};
 +
- 	/* Don't handle backlight here if the acpi video already handle it */
- 	if (acpi_video_backlight_support()) {
--		if (samsung->quirks->broken_acpi_video) {
--			pr_info("Disabling ACPI video driver\n");
--			acpi_video_unregister();
--		} else {
--			samsung->handle_backlight = false;
--		}
-+		samsung->handle_backlight = false;
-+	} else if (samsung->quirks->broken_acpi_video) {
-+		pr_info("Disabling ACPI video driver\n");
-+		acpi_video_unregister();
- 	}
- #endif
+ static struct quirk_entry *quirks;
  
-@@ -1552,8 +1551,7 @@ static int __init samsung_init(void)
- 
- #ifdef CONFIG_ACPI
- 	/* Only log that if we are really on a sabi platform */
--	if (acpi_video_backlight_support() &&
--	    !samsung->quirks->broken_acpi_video)
-+	if (acpi_video_backlight_support())
- 		pr_info("Backlight controlled by ACPI video driver\n");
- #endif
+ static void et2012_quirks(void)
+@@ -157,6 +162,24 @@ static struct dmi_system_id asus_quirks[] = {
+ 		},
+ 		.driver_data = &quirk_asus_unknown,
+ 	},
++	{
++		.callback = dmi_matched,
++		.ident = "ASUSTeK Computer INC. X101CH",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
++			DMI_MATCH(DMI_PRODUCT_NAME, "X101CH"),
++		},
++		.driver_data = &quirk_asus_x101ch,
++	},
++	{
++		.callback = dmi_matched,
++		.ident = "ASUSTeK Computer INC. 1015CX",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
++			DMI_MATCH(DMI_PRODUCT_NAME, "1015CX"),
++		},
++		.driver_data = &quirk_asus_x101ch,
++	},
+ 	{},
+ };
  
 -- 
 1.7.9.5
