@@ -1,97 +1,79 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: [PATCH] acpi : create sun sysfs file in container device
-Date: Thu, 14 Jun 2012 16:46:45 +0900
-Message-ID: <4FD996E5.7090004@jp.fujitsu.com>
+From: Namhyung Kim <namhyung@kernel.org>
+Subject: Re: [RFC 1/4] cpuidle: define the enter function in the driver structure
+Date: Thu, 14 Jun 2012 16:49:58 +0900
+Message-ID: <87r4ti49jt.fsf@sejong.aot.lge.com>
+References: <1339171365-4098-1-git-send-email-daniel.lezcano@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:55850 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753069Ab2FNHqz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Jun 2012 03:46:55 -0400
+Received: from LGEMRELSE1Q.lge.com ([156.147.1.111]:42077 "EHLO
+	LGEMRELSE1Q.lge.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753073Ab2FNHwu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Jun 2012 03:52:50 -0400
+In-Reply-To: <1339171365-4098-1-git-send-email-daniel.lezcano@linaro.org>
+	(Daniel Lezcano's message of "Fri, 8 Jun 2012 18:02:42 +0200")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: lenb@kernel.org, linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-dev@lists.linaro.org
 
-Even if container device has _SUN method, the method is ignored. So we cannot
-know slot-unique ID number of the container device. The patch creates "sun"
-file in sysfs so that we can recognize it.
+Hi,
 
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+On Fri,  8 Jun 2012 18:02:42 +0200, Daniel Lezcano wrote:
+> We have the state index passed as parameter to the 'enter' function.
+> Most of the drivers assign their 'enter' functions several times in
+> the cpuidle_state structure, as we have the index, we can delegate
+> to the driver to handle their own callback array.
+>
+> That will have the benefit of removing multiple lines of code in the
+> different drivers.
+>
+> In order to smoothly modify the driver, the 'enter' function are in
+> the driver structure and in the cpuidle state structure. That will
+> let the time to modify the different drivers one by one.
+> So the 'cpuidle_enter' function checks if the 'enter' callback is
+> assigned in the driver structure and use it, otherwise it invokes
+> the 'enter' assigned to the cpuidle_state.
+>
+> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+> ---
+>  drivers/cpuidle/cpuidle.c |    4 +++-
+>  include/linux/cpuidle.h   |    1 +
+>  2 files changed, 4 insertions(+), 1 deletions(-)
+>
+> diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
+> index d90519c..155dee7 100644
+> --- a/drivers/cpuidle/cpuidle.c
+> +++ b/drivers/cpuidle/cpuidle.c
+> @@ -46,7 +46,9 @@ static inline int cpuidle_enter(struct cpuidle_device *dev,
+>  				struct cpuidle_driver *drv, int index)
+>  {
+>  	struct cpuidle_state *target_state = &drv->states[index];
+> -	return target_state->enter(dev, drv, index);
+> +
+> +	return drv->enter(dev, drv, index) ? drv->enter(dev, drv, index) :
 
----
- drivers/acpi/container.c |   36 +++++++++++++++++++++++++++++++++---
- 1 file changed, 33 insertions(+), 3 deletions(-)
+Do you mean:
+	       drv->enter ? drv->enter(dev, drv, index) :
+?
 
-Index: linux-3.5-rc1/drivers/acpi/container.c
-===================================================================
---- linux-3.5-rc1.orig/drivers/acpi/container.c	2012-06-14 15:35:31.045500166 +0900
-+++ linux-3.5-rc1/drivers/acpi/container.c	2012-06-14 16:40:13.010405144 +0900
-@@ -32,6 +32,7 @@
- #include <linux/slab.h>
- #include <linux/types.h>
- #include <linux/acpi.h>
-+#include <linux/device.h>
- #include <acpi/acpi_bus.h>
- #include <acpi/acpi_drivers.h>
- #include <acpi/container.h>
-@@ -93,10 +94,30 @@ static int is_device_present(acpi_handle
- }
+Thanks,
+Namhyung
 
- /*******************************************************************/
-+
-+static ssize_t acpi_device_sun_show(struct device *dev,
-+				    struct device_attribute *attr, char *buf) {
-+	struct acpi_device *device = to_acpi_device(dev);
-+	acpi_status status;
-+	unsigned long long sun;
-+
-+	status = acpi_evaluate_integer(device->handle, "_SUN", NULL,  &sun);
-+	if (ACPI_FAILURE(status))
-+		return 0;
-+
-+	return sprintf(buf, "%llu\n", sun);
-+}
-+
-+static DEVICE_ATTR(sun, 0444, acpi_device_sun_show, NULL);
-+
-+/*******************************************************************/
-+
- static int acpi_container_add(struct acpi_device *device)
- {
- 	struct acpi_container *container;
--
-+	acpi_status status;
-+	acpi_handle temp;
-+	int result = 0;
 
- 	if (!device) {
- 		printk(KERN_ERR PREFIX "device is NULL\n");
-@@ -115,13 +136,22 @@ static int acpi_container_add(struct acp
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device <%s> bid <%s>\n",
- 			  acpi_device_name(device), acpi_device_bid(device)));
-
--	return 0;
-+	status = acpi_get_handle(device->handle, "_SUN", &temp);
-+	if (ACPI_SUCCESS(status))
-+		result = device_create_file(&device->dev, &dev_attr_sun);
-+
-+	return result;
- }
-
- static int acpi_container_remove(struct acpi_device *device, int type)
- {
--	acpi_status status = AE_OK;
-+	acpi_status status;
- 	struct acpi_container *pc = NULL;
-+	acpi_handle temp;
-+
-+	status = acpi_get_handle(device->handle, "_SUN", &temp);
-+	if (ACPI_SUCCESS(status))
-+		device_remove_file(&device->dev, &dev_attr_sun);
-
- 	pc = acpi_driver_data(device);
- 	kfree(pc);
-
+> +		target_state->enter(dev, drv, index);
+>  }
+>  
+>  static inline int cpuidle_enter_tk(struct cpuidle_device *dev,
+> diff --git a/include/linux/cpuidle.h b/include/linux/cpuidle.h
+> index 6c26a3d..d82e169 100644
+> --- a/include/linux/cpuidle.h
+> +++ b/include/linux/cpuidle.h
+> @@ -130,6 +130,7 @@ struct cpuidle_driver {
+>  	struct cpuidle_state	states[CPUIDLE_STATE_MAX];
+>  	int			state_count;
+>  	int			safe_state_index;
+> +	int (*enter)(struct cpuidle_device *, struct cpuidle_driver *, int);
+>  };
+>  
+>  #ifdef CONFIG_CPU_IDLE
