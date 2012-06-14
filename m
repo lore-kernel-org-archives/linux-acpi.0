@@ -1,151 +1,54 @@
-From: joeyli <jlee@suse.com>
-Subject: Re: [PATCH 2/7] drivers-platform-x86: use
- acpi_video_dmi_promote_vendor()
-Date: Thu, 14 Jun 2012 20:53:51 +0800
-Message-ID: <1339678431.9598.99.camel@linux-s257.site>
-References: <CAHR064i_0vunKzB_Yg9SGrWQcPxJs2sTekWk6LuP2qf0FEqBOQ@mail.gmail.com>
-	 <1339671870-27624-1-git-send-email-corentin.chary@gmail.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH 3/3] usb : Add sysfs files to control usb port's power
+Date: Thu, 14 Jun 2012 09:57:37 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1206140947410.1701-100000@iolanthe.rowland.org>
+References: <20120613214641.GB9051@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nat.nue.novell.com ([195.135.221.2]:55252 "EHLO
-	nat.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755930Ab2FNM6q (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Jun 2012 08:58:46 -0400
-In-Reply-To: <1339671870-27624-1-git-send-email-corentin.chary@gmail.com>
+Received: from iolanthe.rowland.org ([192.131.102.54]:33763 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755985Ab2FNN5j (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Jun 2012 09:57:39 -0400
+In-Reply-To: <20120613214641.GB9051@kroah.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Corentin Chary <corentin.chary@gmail.com>
-Cc: Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, Joey Lee <jlee@novell.com>, Matthew Garrett <mjg@redhat.com>, Corentin Chary <corentincj@iksaif.net>, linux-kernel@vger.kernel.org
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Lan Tianyu <tianyu.lan@intel.com>, lenb@kernel.org, sarah.a.sharp@linux.intel.com, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org
 
-=E6=96=BC =E5=9B=9B=EF=BC=8C2012-06-14 =E6=96=BC 13:04 +0200=EF=BC=8CCo=
-rentin Chary =E6=8F=90=E5=88=B0=EF=BC=9A
-> Instead of using directly acpi_video_unregister(), use
-> acpi_video_dmi_promote_vendor() (and make it call
-> acpi_video_unregister() if needed)
->=20
-> Signed-off-by: Corentin Chary <corentin.chary@gmail.com>
+On Wed, 13 Jun 2012, Greg KH wrote:
 
-It's good to me!
+> On Wed, Jun 13, 2012 at 05:15:08PM -0400, Alan Stern wrote:
+> > On Wed, 13 Jun 2012, Greg KH wrote:
+> > 
+> > > > +	struct device_attribute	port_control_attr;
+> > > > +	struct device_attribute	port_state_attr;
+> > > > +	enum port_power_policy port_power_policy;
+> > > 
+> > > Why do you need an attribute per port here?  Shouldn't they just be
+> > > static variables?  Why duplicate them for every port?
+> > 
+> > If they were static, there would be no way for the store and show
+> > methods to know which port they were called for.  That's because the
+> > ports aren't separate kobjects; all these port attributes are bound to
+> > the hub device.
+> 
+> Ports should be a struct device if we are going to hang attributes off
+> of them, otherwise userspace can get very confused.
 
-Acked-by: Lee, Chun-Yi <jlee@suse.com>
+Is that really appropriate?  Ports don't have their own driver, they
+can't be probed or removed, they can't be suspended or resumed, you
+can't do I/O to them, they don't have resources, they don't have 
+children...
 
+In short, they don't qualify as separate devices.  All they do have is
+a few attributes (power, ownership, and connectivity).
 
-Thanks a lot!
-Joey Lee
+> How about making a port a real device?  That should solve this problem,
+> right?  And I thought I recommended doing that a month or so ago, what
+> happened with that proposal?
 
-> ---
->  drivers/platform/x86/acer-wmi.c       |   14 +++++++-------
->  drivers/platform/x86/apple-gmux.c     |    2 ++
->  drivers/platform/x86/samsung-laptop.c |   20 +++++++++-----------
->  3 files changed, 18 insertions(+), 18 deletions(-)
->=20
-> diff --git a/drivers/platform/x86/acer-wmi.c b/drivers/platform/x86/a=
-cer-wmi.c
-> index ce875dc..7057aef 100644
-> --- a/drivers/platform/x86/acer-wmi.c
-> +++ b/drivers/platform/x86/acer-wmi.c
-> @@ -2060,14 +2060,14 @@ static int __init acer_wmi_init(void)
-> =20
->  	set_quirks();
-> =20
-> +	if (dmi_check_system(video_vendor_dmi_table))
-> +		acpi_video_dmi_promote_vendor();
->  	if (acpi_video_backlight_support()) {
-> -		if (dmi_check_system(video_vendor_dmi_table)) {
-> -			acpi_video_unregister();
-> -		} else {
-> -			interface->capability &=3D ~ACER_CAP_BRIGHTNESS;
-> -			pr_info("Brightness must be controlled by "
-> -				"acpi video driver\n");
-> -		}
-> +		interface->capability &=3D ~ACER_CAP_BRIGHTNESS;
-> +		pr_info("Brightness must be controlled by acpi video driver\n");
-> +	} else {
-> +		pr_info("Disabling ACPI video driver\n");
-> +		acpi_video_unregister();
->  	}
-> =20
->  	if (wmi_has_guid(WMID_GUID3)) {
-> diff --git a/drivers/platform/x86/apple-gmux.c b/drivers/platform/x86=
-/apple-gmux.c
-> index 694a15a..fd61502 100644
-> --- a/drivers/platform/x86/apple-gmux.c
-> +++ b/drivers/platform/x86/apple-gmux.c
-> @@ -193,6 +193,7 @@ static int __devinit gmux_probe(struct pnp_dev *p=
-np,
->  	 * backlight control and supports more levels than other options.
->  	 * Disable the other backlight choices.
->  	 */
-> +	acpi_video_dmi_promote_vendor();
->  	acpi_video_unregister();
->  	apple_bl_unregister();
-> =20
-> @@ -213,6 +214,7 @@ static void __devexit gmux_remove(struct pnp_dev =
-*pnp)
->  	release_region(gmux_data->iostart, gmux_data->iolen);
->  	kfree(gmux_data);
-> =20
-> +	acpi_video_dmi_demote_vendor();
->  	acpi_video_register();
->  	apple_bl_register();
->  }
-> diff --git a/drivers/platform/x86/samsung-laptop.c b/drivers/platform=
-/x86/samsung-laptop.c
-> index e2a34b4..b822784 100644
-> --- a/drivers/platform/x86/samsung-laptop.c
-> +++ b/drivers/platform/x86/samsung-laptop.c
-> @@ -26,9 +26,7 @@
->  #include <linux/seq_file.h>
->  #include <linux/debugfs.h>
->  #include <linux/ctype.h>
-> -#if (defined CONFIG_ACPI_VIDEO || defined CONFIG_ACPI_VIDEO_MODULE)
->  #include <acpi/video.h>
-> -#endif
-> =20
->  /*
->   * This driver is needed because a number of Samsung laptops do not =
-hook
-> @@ -1530,15 +1528,16 @@ static int __init samsung_init(void)
->  	samsung->quirks =3D quirks;
-> =20
->=20
-> -#if (defined CONFIG_ACPI_VIDEO || defined CONFIG_ACPI_VIDEO_MODULE)
-> +#ifdef CONFIG_ACPI
-> +	if (samsung->quirks->broken_acpi_video)
-> +		acpi_video_dmi_promote_vendor();
-> +
->  	/* Don't handle backlight here if the acpi video already handle it =
-*/
->  	if (acpi_video_backlight_support()) {
-> -		if (samsung->quirks->broken_acpi_video) {
-> -			pr_info("Disabling ACPI video driver\n");
-> -			acpi_video_unregister();
-> -		} else {
-> -			samsung->handle_backlight =3D false;
-> -		}
-> +		samsung->handle_backlight =3D false;
-> +	} else if (samsung->quirks->broken_acpi_video) {
-> +		pr_info("Disabling ACPI video driver\n");
-> +		acpi_video_unregister();
->  	}
->  #endif
-> =20
-> @@ -1552,8 +1551,7 @@ static int __init samsung_init(void)
-> =20
->  #ifdef CONFIG_ACPI
->  	/* Only log that if we are really on a sabi platform */
-> -	if (acpi_video_backlight_support() &&
-> -	    !samsung->quirks->broken_acpi_video)
-> +	if (acpi_video_backlight_support())
->  		pr_info("Backlight controlled by ACPI video driver\n");
->  #endif
-> =20
+I argued against it, for the reasons listed above.
 
+Alan Stern
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
