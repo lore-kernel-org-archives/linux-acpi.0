@@ -1,118 +1,209 @@
-From: "Xiao, Hui" <hui.xiao@linux.intel.com>
-Subject: Re: [RFC] ACPI, APEI: Fix incorrect bit width + offset check condition
-Date: Thu, 14 Jun 2012 14:14:30 +0800
-Message-ID: <4FD98146.9060209@linux.intel.com>
-References: <1339573184-3122-1-git-send-email-hui.xiao@linux.intel.com> <20120613104651.52ce8840@endymion.delvare> <20120613174517.GA2141@us.ibm.com>
+From: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 2/3] USB/ACPI: Add usb port's acpi power control in the
+ xhci PORT_POWER feature request process.
+Date: Thu, 14 Jun 2012 15:22:42 +0800
+Message-ID: <4FD99142.4010403@intel.com>
+References: <1339381474-17413-1-git-send-email-tianyu.lan@intel.com> <1339381474-17413-3-git-send-email-tianyu.lan@intel.com> <20120613193038.GA6312@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:48635 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751006Ab2FNGOf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 14 Jun 2012 02:14:35 -0400
-In-Reply-To: <20120613174517.GA2141@us.ibm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20120613193038.GA6312-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Gary Hade <garyhade@us.ibm.com>
-Cc: Jean Delvare <khali@linux-fr.org>, tony.luck@intel.com, ying.huang@intel.com, lenb@kernel.org, pluto@agmk.net, linux-acpi@vger.kernel.org, Chen Gong <gong.chen@linux.intel.com>
 
-On 2012/6/14 1:45, Gary Hade wrote:
-> On Wed, Jun 13, 2012 at 10:46:51AM +0200, Jean Delvare wrote:
->> Hi Xiao,
+On 2012=E5=B9=B406=E6=9C=8814=E6=97=A5 03:30, Greg KH wrote:
+> On Mon, Jun 11, 2012 at 10:24:33AM +0800, Lan Tianyu wrote:
+>> On our developping machine, bios can provide usb port's  power contr=
+ol via
+>> acpi. This patch is to provide usb port's power control way through =
+setting
+>> or clearing PORT_POWER feature requests. Add two functions usb_acpi_=
+power_manageable()
+>> and usb_acpi_set_power_state(). The first one is used to find whethe=
+r the
+>> usb port has acpi power resource and the second is to set the power =
+state.
+>> They are invoked in the xhci_hub_control() where clearing or setting=
+ PORT_POWER
+>> feature requests are processed.
 >>
->> On Wed, 13 Jun 2012 15:39:44 +0800, Xiao, Hui wrote:
->>> Fix the incorrect bit width + offset check condition in apei_check_gar()
->>> function introduced by commit v3.3-5-g15afae6.
->>>
->>> The bug caused regression on EINJ error injection with errors:
->>>
->>> [Firmware Bug]: APEI: Invalid bit width + offset in GAR [0x1121a5000/64/0/3/0]
->>>
->>> on a valid address region of:
->>>     - Register bit width: 64 bits
->>>     - Register bit offset: 0
->>>     - Access Size: 03 [DWord Access: 32]
+>> Signed-off-by: Lan Tianyu<tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>> ---
+>>   drivers/usb/core/usb-acpi.c |   28 ++++++++++++++++++++++++++++
+>>   drivers/usb/host/xhci-hub.c |   10 ++++++++++
+>>   include/linux/usb.h         |   10 ++++++++++
+>>   3 files changed, 48 insertions(+), 0 deletions(-)
 >>
->> I don't see how this is valid, sorry. If you have a 64-bit register,
->> you want 64-bit access, don't you?
+>> diff --git a/drivers/usb/core/usb-acpi.c b/drivers/usb/core/usb-acpi=
+=2Ec
+>> index 82c90d0..e95f26f 100644
+>> --- a/drivers/usb/core/usb-acpi.c
+>> +++ b/drivers/usb/core/usb-acpi.c
+>> @@ -19,6 +19,34 @@
 >>
->> If the access code is supposed to be able to read large registers in
->> smaller chunks and assemble them transparently to a larger value, then
->> there is no point in having any check at all, everything is valid. If
->> not, then the above is just as invalid as the firmware issue discussed
->> in bug #43282.
+>>   #include "usb.h"
 >>
->>>
->>> Signed-off-by: Xiao, Hui <hui.xiao@linux.intel.com>
->>> Signed-off-by: Chen Gong <gong.chen@linux.intel.com>
->>> ---
->>>  drivers/acpi/apei/apei-base.c |    7 +++++--
->>>  1 files changed, 5 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
->>> index 5577762..95e07b2 100644
->>> --- a/drivers/acpi/apei/apei-base.c
->>> +++ b/drivers/acpi/apei/apei-base.c
->>> @@ -586,9 +586,12 @@ static int apei_check_gar(struct acpi_generic_address *reg, u64 *paddr,
->>>  	}
->>>  	*access_bit_width = 1UL << (access_size_code + 2);
->>>  
->>> -	if ((bit_width + bit_offset) > *access_bit_width) {
->>> +	/* bit_width and bit_offset must be zero when addressing a data
->>> +	 * structure. So just check for non-zero case here */
->>> +	if ((bit_width != 0 && *access_bit_width > bit_width) ||
->>> +			bit_offset > *access_bit_width) {
+>> +bool usb_acpi_power_manageable(struct usb_device *hdev, int port1)
+>> +{
+>> +	acpi_handle port_handle;
+>> +
+>> +	port_handle =3D usb_get_hub_port_acpi_handle(hdev,
+>> +		port1);
+>> +	return port_handle ? acpi_bus_power_manageable(port_handle) : fals=
+e;
+>
+> Ick, I _really_ hate the ? : usage in C, please use real if statement=
+s
+> so that everyone can read and understand them easier.  You do that a =
+lot
+> here, please fix them all.
+>
+Ok. But in some places, for example
+dev_dbg(&hdev->dev, "The power of hub port %d was set to %s\n",
+		port1, enable ? "enable" : "disable");
+try to print two result. ?: is more convenient. If I use "if" statement=
+,
+that will be
+if (enable)
+	result =3D "enable";
+else
+	result =3D "disable";
+dev_dbg(&hdev->dev, "The power of hub port %d was set to %s\n",
+		port1, result);
+
+This just looks a little complex.
+
+>> +}
+>> +EXPORT_SYMBOL_GPL(usb_acpi_power_manageable);
+>> +
+>> +int usb_acpi_set_power_state(struct usb_device *hdev, int port1, bo=
+ol enable)
+>> +{
+>> +	acpi_handle port_handle;
+>> +	unsigned char state;
+>> +	int error =3D -EINVAL;
+>> +
+>> +	port_handle =3D (acpi_handle)usb_get_hub_port_acpi_handle(hdev,
+>> +		port1);
+>> +	state =3D enable ? ACPI_STATE_D0 : ACPI_STATE_D3_COLD;
+>> +	error =3D acpi_bus_set_power(port_handle, state);
+>
+> You forgot to check port_handle here.
+>
+> Why not call usb_acpi_power_manageable() to ensure that you can do th=
+is?
+
+In my code, usb_acpi_power_manageable() is invoked before=20
+usb_acpi_set_power_state().
+Do you mean I should call usb_acpi_power_manageable() in the=20
+usb_acpi_set_power_state()?
+
+>
+>> +	if (!error)
+>> +		dev_dbg(&hdev->dev, "The power of hub port %d was set to %s\n",
+>> +			port1, enable ? "enable" : "disabe");
+>
+> Why not report the error if debugging as well?
+
+Ok.
+>
+>
+>> +
+>> +	return error;
+>> +}
+>> +EXPORT_SYMBOL_GPL(usb_acpi_set_power_state);
+>> +
+>>   static int usb_acpi_check_port_connect_type(struct usb_device *hde=
+v,
+>>   	acpi_handle handle, int port1)
+>>   {
+>> diff --git a/drivers/usb/host/xhci-hub.c b/drivers/usb/host/xhci-hub=
+=2Ec
+>> index 2c55fcf..0ce48b3 100644
+>> --- a/drivers/usb/host/xhci-hub.c
+>> +++ b/drivers/usb/host/xhci-hub.c
+>> @@ -728,6 +728,11 @@ int xhci_hub_control(struct usb_hcd *hcd, u16 t=
+ypeReq, u16 wValue,
 >>
->> I can't make any sense of this test, sorry. And it will trigger on
->> valid cases, starting with the most frequent case where
->> *access_bit_width == bit_width. So, nack.
-> 
-> I agree that the change will trigger firmware bug messages for
-> valid cases.  Here is a good example of a valid case from one
-> of our systems that confirms this.
-> 
-> [110h 0272   1]                       Action : 06 [Check Busy Status]
-> [111h 0273   1]                  Instruction : 01 [Read Register Value]
-> [112h 0274   1]        Flags (decoded below) : 00
->                       Preserve Register Bits : 0
-> [113h 0275   1]                     Reserved : 00
-> 
-> [114h 0276  12]              Register Region : [Generic Address Structure]
-> [114h 0276   1]                     Space ID : 00 [SystemMemory]
-> [115h 0277   1]                    Bit Width : 01
-> [116h 0278   1]                   Bit Offset : 1F
-> [117h 0279   1]         Encoded Access Width : 03 [DWord Access:32]
-> [118h 0280   8]                      Address : 000000007F2D7038
-> 
-> [120h 0288   8]                        Value : 0000000000000001
-> [128h 0296   8]                         Mask : 0000000000000001
-> 
-> Gary
-> 
-Hi Gary,
+>>   			temp =3D xhci_readl(xhci, port_array[wIndex]);
+>>   			xhci_dbg(xhci, "set port power, actual port %d status  =3D 0x%x=
+\n", wIndex, temp);
+>> +
+>> +			if (usb_acpi_power_manageable(hcd->self.root_hub,
+>> +					wIndex + 1))
+>
+> Why +1?  If you have to do this everywhere, then do it only in the
+> function, so you can be 0 based properly.
+>
+> Also, minor coding style nit, please rewrite as:
+> 			if (usb_acpi_power_manageable(hcd->self.root_hub,
+> 						      wIndex + 1))
+> Or even better yet, use a temp variable for the value returned and th=
+en
+> check that, it's clearer and easier to read, right?
+>
+Yeah. Thanks for you suggestion. I will do it.
 
->From your "good example of a valid case" above. I believe we might have different
-understanding of the "Bit Width" field. 
+>> +				usb_acpi_set_power_state(hcd->self.root_hub,
+>> +					wIndex + 1, true);
+>
+> Same question about +1 here.
+>
+>>   			break;
+>>   		case USB_PORT_FEAT_RESET:
+>>   			temp =3D (temp | PORT_RESET);
+>> @@ -830,6 +835,11 @@ int xhci_hub_control(struct usb_hcd *hcd, u16 t=
+ypeReq, u16 wValue,
+>>   		case USB_PORT_FEAT_POWER:
+>>   			xhci_writel(xhci, temp&  ~PORT_POWER,
+>>   				port_array[wIndex]);
+>> +
+>> +			if (usb_acpi_power_manageable(hcd->self.root_hub,
+>> +					wIndex + 1))
+>> +				usb_acpi_set_power_state(hcd->self.root_hub,
+>> +					wIndex + 1, false);
+>>   			break;
+>>   		default:
+>>   			goto error;
+>> diff --git a/include/linux/usb.h b/include/linux/usb.h
+>> index feb0a04..92f8898 100644
+>> --- a/include/linux/usb.h
+>> +++ b/include/linux/usb.h
+>> @@ -599,6 +599,16 @@ extern int usb_lock_device_for_reset(struct usb=
+_device *udev,
+>>   extern int usb_reset_device(struct usb_device *dev);
+>>   extern void usb_queue_reset_device(struct usb_interface *dev);
+>>
+>> +#ifdef CONFIG_ACPI
+>> +extern int usb_acpi_set_power_state(struct usb_device *hdev, int po=
+rt,
+>> +	bool enable);
+>> +extern bool usb_acpi_power_manageable(struct usb_device *hdev, int =
+port);
+>> +#else
+>> +static inline int usb_acpi_set_power_state(struct usb_device *hdev,=
+ int port,
+>> +	bool enable) { return 0; }
+>> +static inline bool usb_acpi_power_manageable(struct usb_device *hde=
+v, int port)
+>> +	{ return 0; }
+>
+> is 0 a bool?  :)
+>
+> Please get the types right.
+So careless. Thanks for reminder.
+>
+> greg k-h
 
-Just to make sure, do you take "Bit Width" here(1 bit) as the bit length one should 
-got for mask /*after*/ shifting bit offset(31 bit) of the access_width(32 bit) 
-one read from the register(length unknown, or should equal to access length?) ?
-
-That's why you think:
-       bit_width + bit_offset <= *access_bit_width
-is valid.
-
-For me I take "Bit Width" as bits of the register for access boundary,
-so I think:
-       (*access_bit_width <= bit_width) && (bit_offset < *access_bit_width)
-is valid. 
-
-For you above case, personally I saw you got a 1-bit register, but want to
-read 32bit from it, and want to get bit[31] by shifting 31bit and mask 0x1.
-
-Please correct me if I am wrong. Not sure which should be the case ACPI SPEC
-expected. I also have not found any specific explanation on these assumption. 
-
-Thanks,
--Hui
+--=20
+Best Regards
+Tianyu Lan
+linux kernel enabling team
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
