@@ -1,69 +1,97 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: Re: [PATCH v4 02/13] libata: bind the Linux device tree to the ACPI
- device tree
-Date: Thu, 14 Jun 2012 15:43:57 +0800
-Message-ID: <CAF1ivSZTtJ651p5WgwKde8gHvJX7KcsTDXMzhej+Chka9P5ozw@mail.gmail.com>
-References: <1338181720-4149-1-git-send-email-ming.m.lin@intel.com>
-	<1338181720-4149-3-git-send-email-ming.m.lin@intel.com>
-	<20120528105131.67d74d45@pyramind.ukuu.org.uk>
-	<CAF1ivSYBjw+UP3vP8RHaftjR8NJZEaHA1rtJ5ujDjkj-djHLTQ@mail.gmail.com>
-	<20120613120050.164c3f29@pyramind.ukuu.org.uk>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: [PATCH] acpi : create sun sysfs file in container device
+Date: Thu, 14 Jun 2012 16:46:45 +0900
+Message-ID: <4FD996E5.7090004@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <20120613120050.164c3f29@pyramind.ukuu.org.uk>
-Sender: linux-ide-owner@vger.kernel.org
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Jeff Garzik <jgarzik@pobox.com>, David Woodhouse <David.Woodhouse@intel.com>, Aaron Lu <aaron.lu@amd.com>, Holger Macht <holger@homac.de>, Matthew Garrett <mjg@redhat.com>, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=ISO-2022-JP
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:55850 "EHLO
+	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753069Ab2FNHqz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Jun 2012 03:46:55 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 
-On Wed, Jun 13, 2012 at 7:00 PM, Alan Cox <alan@lxorguk.ukuu.org.uk> wr=
-ote:
-> On Wed, 13 Jun 2012 16:03:23 +0800
-> Lin Ming <ming.m.lin@intel.com> wrote:
->
->> On Mon, May 28, 2012 at 5:51 PM, Alan Cox <alan@lxorguk.ukuu.org.uk>=
- wrote:
->> >> +static int is_pci_ata(struct device *dev)
->> >> +{
->> >> + =A0 =A0 struct pci_dev *pdev;
->> >> +
->> >> + =A0 =A0 if (!is_pci_dev(dev))
->> >> + =A0 =A0 =A0 =A0 =A0 =A0 return 0;
->> >> +
->> >> + =A0 =A0 pdev =3D to_pci_dev(dev);
->> >> +
->> >> + =A0 =A0 if ((pdev->class >> 8) !=3D PCI_CLASS_STORAGE_SATA &&
->> >> + =A0 =A0 =A0 =A0 (pdev->class >> 8) !=3D PCI_CLASS_STORAGE_IDE)
->> >> + =A0 =A0 =A0 =A0 =A0 =A0 return 0;
->> >
->> > This needs a better name. It doesn't check if a device is PCI ATA =
-or
->> > anything of the sort, it checks if its probably a device in compat=
-ibility
->> > mode. A lot of controllers will in fact report RAID class or simil=
-ar in
->> > native mode.
->>
->> How about compat_pci_ata?
->
-> Sounds reasonable. I'm not btw sure the test is entirely right, but I=
-'m
-> not sure quite what you are trying to figure out from it and how ACPI
-> expects this mapping to work.
+Even if container device has _SUN method, the method is ignored. So we cannot
+know slot-unique ID number of the container device. The patch creates "sun"
+file in sysfs so that we can recognize it.
 
-It's used to figure out if the dev passed in from scsi layer is a ata d=
-evice.
+Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-scsi_sysfs_add_sdev
-device_add
-acpi_platform_notify
-ata_acpi_find_device
-is_pci_ata
+---
+ drivers/acpi/container.c |   36 +++++++++++++++++++++++++++++++++---
+ 1 file changed, 33 insertions(+), 3 deletions(-)
 
-Thanks,
-Lin Ming
+Index: linux-3.5-rc1/drivers/acpi/container.c
+===================================================================
+--- linux-3.5-rc1.orig/drivers/acpi/container.c	2012-06-14 15:35:31.045500166 +0900
++++ linux-3.5-rc1/drivers/acpi/container.c	2012-06-14 16:40:13.010405144 +0900
+@@ -32,6 +32,7 @@
+ #include <linux/slab.h>
+ #include <linux/types.h>
+ #include <linux/acpi.h>
++#include <linux/device.h>
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+ #include <acpi/container.h>
+@@ -93,10 +94,30 @@ static int is_device_present(acpi_handle
+ }
 
->
-> Alan
+ /*******************************************************************/
++
++static ssize_t acpi_device_sun_show(struct device *dev,
++				    struct device_attribute *attr, char *buf) {
++	struct acpi_device *device = to_acpi_device(dev);
++	acpi_status status;
++	unsigned long long sun;
++
++	status = acpi_evaluate_integer(device->handle, "_SUN", NULL,  &sun);
++	if (ACPI_FAILURE(status))
++		return 0;
++
++	return sprintf(buf, "%llu\n", sun);
++}
++
++static DEVICE_ATTR(sun, 0444, acpi_device_sun_show, NULL);
++
++/*******************************************************************/
++
+ static int acpi_container_add(struct acpi_device *device)
+ {
+ 	struct acpi_container *container;
+-
++	acpi_status status;
++	acpi_handle temp;
++	int result = 0;
+
+ 	if (!device) {
+ 		printk(KERN_ERR PREFIX "device is NULL\n");
+@@ -115,13 +136,22 @@ static int acpi_container_add(struct acp
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device <%s> bid <%s>\n",
+ 			  acpi_device_name(device), acpi_device_bid(device)));
+
+-	return 0;
++	status = acpi_get_handle(device->handle, "_SUN", &temp);
++	if (ACPI_SUCCESS(status))
++		result = device_create_file(&device->dev, &dev_attr_sun);
++
++	return result;
+ }
+
+ static int acpi_container_remove(struct acpi_device *device, int type)
+ {
+-	acpi_status status = AE_OK;
++	acpi_status status;
+ 	struct acpi_container *pc = NULL;
++	acpi_handle temp;
++
++	status = acpi_get_handle(device->handle, "_SUN", &temp);
++	if (ACPI_SUCCESS(status))
++		device_remove_file(&device->dev, &dev_attr_sun);
+
+ 	pc = acpi_driver_data(device);
+ 	kfree(pc);
+
