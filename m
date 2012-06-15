@@ -1,149 +1,93 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: Re: [PATCH 2/3] USB/ACPI: Add usb port's acpi power control in the
- xhci PORT_POWER feature request process.
-Date: Fri, 15 Jun 2012 15:05:28 +0800
-Message-ID: <4FDADEB8.6080609@intel.com>
-References: <1339381474-17413-1-git-send-email-tianyu.lan@intel.com> <1339381474-17413-3-git-send-email-tianyu.lan@intel.com> <20120613193038.GA6312@kroah.com> <4FD99142.4010403@intel.com> <20120614154445.GE17140@kroah.com>
+From: Karol Babioch <karol@babioch.de>
+Subject: Re: no brightness with acpi video since 3.3 [was Re: Issues with
+ the sony-platform module]
+Date: Fri, 15 Jun 2012 09:45:02 +0200
+Message-ID: <4FDAE7FE.5030706@babioch.de>
+References: <4FDA2051.3050108@babioch.de> <20120614203914.GA2645@kamineko.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:36362 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751478Ab2FOHMb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 15 Jun 2012 03:12:31 -0400
-In-Reply-To: <20120614154445.GE17140@kroah.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enigA29280C3B8F4132B89DCD48C"
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <20120614203914.GA2645@kamineko.org>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Mattia Dongili <malattia@linux.it>
+Cc: platform-driver-x86@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: lenb@kernel.org, sarah.a.sharp@linux.intel.com, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu
 
-On 2012=E5=B9=B406=E6=9C=8814=E6=97=A5 23:44, Greg KH wrote:
-> On Thu, Jun 14, 2012 at 03:22:42PM +0800, Lan Tianyu wrote:
->> On 2012=E5=B9=B406=E6=9C=8814=E6=97=A5 03:30, Greg KH wrote:
->>> On Mon, Jun 11, 2012 at 10:24:33AM +0800, Lan Tianyu wrote:
->>>> On our developping machine, bios can provide usb port's  power con=
-trol via
->>>> acpi. This patch is to provide usb port's power control way throug=
-h setting
->>>> or clearing PORT_POWER feature requests. Add two functions usb_acp=
-i_power_manageable()
->>>> and usb_acpi_set_power_state(). The first one is used to find whet=
-her the
->>>> usb port has acpi power resource and the second is to set the powe=
-r state.
->>>> They are invoked in the xhci_hub_control() where clearing or setti=
-ng PORT_POWER
->>>> feature requests are processed.
->>>>
->>>> Signed-off-by: Lan Tianyu<tianyu.lan@intel.com>
->>>> ---
->>>>   drivers/usb/core/usb-acpi.c |   28 ++++++++++++++++++++++++++++
->>>>   drivers/usb/host/xhci-hub.c |   10 ++++++++++
->>>>   include/linux/usb.h         |   10 ++++++++++
->>>>   3 files changed, 48 insertions(+), 0 deletions(-)
->>>>
->>>> diff --git a/drivers/usb/core/usb-acpi.c b/drivers/usb/core/usb-ac=
-pi.c
->>>> index 82c90d0..e95f26f 100644
->>>> --- a/drivers/usb/core/usb-acpi.c
->>>> +++ b/drivers/usb/core/usb-acpi.c
->>>> @@ -19,6 +19,34 @@
->>>>
->>>>   #include "usb.h"
->>>>
->>>> +bool usb_acpi_power_manageable(struct usb_device *hdev, int port1=
-)
->>>> +{
->>>> +	acpi_handle port_handle;
->>>> +
->>>> +	port_handle =3D usb_get_hub_port_acpi_handle(hdev,
->>>> +		port1);
->>>> +	return port_handle ? acpi_bus_power_manageable(port_handle) : fa=
-lse;
->>>
->>> Ick, I _really_ hate the ? : usage in C, please use real if stateme=
-nts
->>> so that everyone can read and understand them easier.  You do that =
-a lot
->>> here, please fix them all.
->>>
->> Ok. But in some places, for example
->> dev_dbg(&hdev->dev, "The power of hub port %d was set to %s\n",
->> 		port1, enable ? "enable" : "disable");
->> try to print two result. ?: is more convenient. If I use "if" statem=
-ent,
->> that will be
->> if (enable)
->> 	result =3D "enable";
->> else
->> 	result =3D "disable";
->> dev_dbg(&hdev->dev, "The power of hub port %d was set to %s\n",
->> 		port1, result);
->>
->> This just looks a little complex.
->
-> I understand that, which is why I didn't complain about that.  But ev=
-en
-> then, you could just change the line to:
-> 	dev_dbg(&hdev->dev, "The power of hub port %d was set to %d\n", port=
-1, enable);
-> and you would be able to tell what is going on.
->
-Ok. I get it.
->
->>>> +}
->>>> +EXPORT_SYMBOL_GPL(usb_acpi_power_manageable);
->>>> +
->>>> +int usb_acpi_set_power_state(struct usb_device *hdev, int port1, =
-bool enable)
->>>> +{
->>>> +	acpi_handle port_handle;
->>>> +	unsigned char state;
->>>> +	int error =3D -EINVAL;
->>>> +
->>>> +	port_handle =3D (acpi_handle)usb_get_hub_port_acpi_handle(hdev,
->>>> +		port1);
->>>> +	state =3D enable ? ACPI_STATE_D0 : ACPI_STATE_D3_COLD;
->>>> +	error =3D acpi_bus_set_power(port_handle, state);
->>>
->>> You forgot to check port_handle here.
->>>
->>> Why not call usb_acpi_power_manageable() to ensure that you can do =
-this?
->>
->> In my code, usb_acpi_power_manageable() is invoked before
->> usb_acpi_set_power_state().
->
-> Are you sure that all future callers will always do this?
->
->> Do you mean I should call usb_acpi_power_manageable() in the
->> usb_acpi_set_power_state()?
->
-> Maybe, if it makes sense to.  But don't fail, like you currently do, =
-if
-> someone doesn't do that, as you aren't telling the caller that they a=
-re
-> required to do so.
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enigA29280C3B8F4132B89DCD48C
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-How about to add kernel-doc to make future user notice it? On the other=
- side,
-I check the acpi_bus_set_power and if the port didn't have acpi power r=
-esource,
-it would return error and no harm.
+Hi,
 
->
-> thanks,
->
-> greg k-h
+it seems that the first version was blocked due to the attachments,
+which were quite big, so I'm resending this without any attachments this
+time. You'll find links to the files over on pastebin.mozilla.org.
 
---=20
-Best Regards
-Tianyu Lan
-linux kernel enabling team
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Am 14.06.2012 22:39, schrieb Mattia Dongili:
+> You can boot with acpi_backlight=3Dvendor and get brightness control ba=
+ck
+> but the issue with acpi_video remains.
+Unfortunately that doesn't work either . According to the dmesg output
+the key presses itself get registered by the sony_module in both cases.
+However when booting with acpi_backlight=3Dvendor I don't get any
+brightness control at all, whereas when booting without it the
+brightness indicator from Gnome 3 pops up whenever trying to change the
+brightness. But in both cases the actual brightness of the screen
+doesn't change.
+
+I've attached a complete dmesg output of both cases (dmesg.log and
+dmesg_backlight_vendor.log). Alternatively you'll find both files over
+on pastebin.mozilla.org, see [1] and [2].
+
+Maybe somewhat suspicious is the following line:
+[    0.710585] [Firmware Bug]: ACPI: No _BQC method, cannot determine
+initial brightness
+
+It can be found in the dmesg output of both cases. As already said it
+had worked in the past. However I'm not entirely sure whether it was 3.2
+or 3.3 that broke it. If it's important to know, let me know, and I'll
+recompile an old version of the kernel.
+
+> please provide your laptop's DSDT table as well.
+I've attached a disassembled version of the DSDT to this mail. However
+it is 449 KB in size, so I don't know whether it will get through . In
+case something doesn't work out, you'll find the file here [3].
+
+Thanks in advance!
+
+Best regards,
+Karol Babioch
+
+[1] http://pastebin.mozilla.org/1662565
+[2] http://pastebin.mozilla.org/1662566
+[3] http://pastebin.mozilla.org/1662564
+
+
+--------------enigA29280C3B8F4132B89DCD48C
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+
+iQIcBAEBAgAGBQJP2uf/AAoJEHSaZc1HnzIV/5sQALIeqjWMFqVIvhvyFGpqMCMd
+nkdToV7ZBX1BBF8IOLgUrHY8+CibeD2iwzlTG0EqlETyMaiYSPoIvfiOYjWC6tm/
+Woj+70BAzg4ifpN/iCuQpxho1O+gu91crXmcIjYlumbJgLuJX2g4Hdc5u9rLqCWV
+Q1tHteugHxux7OauD/7f+APiY/RuXlGW+eGK6/6Y1AF7dzgFTWIVDI0iTAm38Eza
+rLyvW+6P3m7SA2agXfH6sjE3IUfylN+AzwOMm3fyxV4/YIiP5/BBOzdiOHRKRUYM
+yuaa3eOTZfT9OfhscpaVvvP8CJv72jXNgeJUx/fgV0zsV1o9nhLS59LkdxFmAPks
+wFewBQVn7CjH+jdpMGaQQWGfvQaY1vYjSqOQ0R5WZdkpk7BC2k3nS7k+QGFT4/d0
+KL+8JB9yerjVTlIrSGZTi36IBCd4cPccJSNszR5/i3h4LiTClgAtd8Ozmgc/fbqA
+QnCshfzBy2mKr81neFf7r1BgBYgdBckTuk8bCc4Zq2h2IlD3ZvJhDxbwyNT3+7gy
+qo0WhlomLmqO4Vl+mKCJeOWhbLeyzXJAy17kuggZ41lFUWZCrgBjmc8xInk68j6M
+MOOalOYePZIR9EgrCWLzzuSpW0yM6MYXBQbi//yeGNooUkKd7hlesci/BPdNaC8+
+r/ExdF6yCfHZrQP9uH4z
+=IdOX
+-----END PGP SIGNATURE-----
+
+--------------enigA29280C3B8F4132B89DCD48C--
