@@ -1,56 +1,56 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: acpi_idle and max_cpus
-Date: Fri, 15 Jun 2012 17:28:31 +0200
-Message-ID: <4FDB549F.1020002@linaro.org>
+From: Mattia Dongili <malattia@linux.it>
+Subject: Re: no brightness with acpi video since 3.3 [was Re: Issues with the
+ sony-platform module]
+Date: Sat, 16 Jun 2012 07:37:12 +0900
+Message-ID: <20120615223711.GA31180@kamineko.org>
+References: <4FDA2051.3050108@babioch.de>
+ <20120614203914.GA2645@kamineko.org>
+ <4FDAE7FE.5030706@babioch.de>
+ <20120615113637.GA5904@kamineko.org>
+ <4FDB5202.706@babioch.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:59942 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932138Ab2FOP2c (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Jun 2012 11:28:32 -0400
-Received: by bkcji2 with SMTP id ji2so2507573bkc.19
-        for <linux-acpi@vger.kernel.org>; Fri, 15 Jun 2012 08:28:31 -0700 (PDT)
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4FDB5202.706@babioch.de>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Karol Babioch <karol@babioch.de>
+Cc: platform-driver-x86@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org
 
+On Fri, Jun 15, 2012 at 05:17:22PM +0200, Karol Babioch wrote:
+> Hi again,
+> 
+> Am 15.06.2012 13:36, schrieb Mattia Dongili:
+> > could you please test it?
+> Well, I've applied the patch (as well as the six others you submitted to
+> Matthew since the inclusion into 3.5-rc1 found here [1]), but it still
+> doesn't work. It's just the same as before. When booting without any
+> special parameters I'll get the brightness pop up when pressing the
+> appropriate fn keys.
+> 
+> With "acpi_backlight=vendor" I don't get this pop-up at all.
 
-Hi all,
+ok, let's forget about gnome popups for a moment, can you try using the
+sysfs files directly?
 
-I have a dual core Intel T9500.
+i.e.:
+$ grep .  /sys/class/backlight/sony/*
+/sys/class/backlight/sony/actual_brightness:206
+/sys/class/backlight/sony/bl_power:0
+/sys/class/backlight/sony/brightness:206
+/sys/class/backlight/sony/max_brightness:206
+grep: /sys/class/backlight/sony/power: Is a directory
+grep: /sys/class/backlight/sony/subsystem: Is a directory
+/sys/class/backlight/sony/type:platform
 
-I boot the cpu with the acpi_idle driver and intel_idle enabled in the
-config.
+$ echo 150 | sudo tee /sys/class/backlight/sony/brightness
+150
 
-The kernel is booted with maxcpus=3D1.
+Could you then include (in your mail please) the dmesg output after
+this test?
 
-After the system has boot, I put cpu1 online via sysfs.
-
-But I don't see any 'cpuidle' directory in the cpu's sysfs entry:
-
-/sys/devices/system/cpu/cpu1/cpuidle (?)
-
-When I look at the code I see the notifier is present for hotplug in
-processor_driver.c and the cpuidle intel init routine should be called
-there.
-
-I am wondering is it a bug or an expected behavior ?
-
-Thanks
-  -- Daniel
-
---=20
- <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software for=
- ARM SoCs
-
-=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks!
+-- 
+mattia
+:wq!
