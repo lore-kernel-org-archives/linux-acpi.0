@@ -1,74 +1,149 @@
-From: Gary Hade <garyhade@us.ibm.com>
-Subject: Re: [RFC] ACPI, APEI: Fix incorrect bit width + offset check
- condition
-Date: Thu, 14 Jun 2012 14:49:06 -0700
-Message-ID: <20120614214906.GA11309@us.ibm.com>
-References: <1339573184-3122-1-git-send-email-hui.xiao@linux.intel.com>
- <20120613104651.52ce8840@endymion.delvare>
- <4FD86EFF.1080004@linux.intel.com>
- <20120614095330.7d797f1d@endymion.delvare>
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: Re: [PATCH 2/3] USB/ACPI: Add usb port's acpi power control in the
+ xhci PORT_POWER feature request process.
+Date: Fri, 15 Jun 2012 15:05:28 +0800
+Message-ID: <4FDADEB8.6080609@intel.com>
+References: <1339381474-17413-1-git-send-email-tianyu.lan@intel.com> <1339381474-17413-3-git-send-email-tianyu.lan@intel.com> <20120613193038.GA6312@kroah.com> <4FD99142.4010403@intel.com> <20120614154445.GE17140@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e35.co.us.ibm.com ([32.97.110.153]:60163 "EHLO
-	e35.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751774Ab2FNVus (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Jun 2012 17:50:48 -0400
-Received: from /spool/local
-	by e35.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <linux-acpi@vger.kernel.org> from <garyhade@us.ibm.com>;
-	Thu, 14 Jun 2012 15:50:47 -0600
-Received: from d03relay04.boulder.ibm.com (d03relay04.boulder.ibm.com [9.17.195.106])
-	by d03dlp01.boulder.ibm.com (Postfix) with ESMTP id 270681FF001C
-	for <linux-acpi@vger.kernel.org>; Thu, 14 Jun 2012 21:50:08 +0000 (WET)
-Received: from d03av03.boulder.ibm.com (d03av03.boulder.ibm.com [9.17.195.169])
-	by d03relay04.boulder.ibm.com (8.13.8/8.13.8/NCO v10.0) with ESMTP id q5ELnSM2219422
-	for <linux-acpi@vger.kernel.org>; Thu, 14 Jun 2012 15:49:50 -0600
-Received: from d03av03.boulder.ibm.com (loopback [127.0.0.1])
-	by d03av03.boulder.ibm.com (8.14.4/8.13.1/NCO v10.0 AVout) with ESMTP id q5ELnC6O017343
-	for <linux-acpi@vger.kernel.org>; Thu, 14 Jun 2012 15:49:13 -0600
-Content-Disposition: inline
-In-Reply-To: <20120614095330.7d797f1d@endymion.delvare>
+Received: from mga09.intel.com ([134.134.136.24]:36362 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751478Ab2FOHMb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 15 Jun 2012 03:12:31 -0400
+In-Reply-To: <20120614154445.GE17140@kroah.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jean Delvare <khali@linux-fr.org>
-Cc: "Xiao, Hui" <hui.xiao@linux.intel.com>, garyhade@us.ibm.com, tony.luck@intel.com, ying.huang@intel.com, lenb@kernel.org, pluto@agmk.net, linux-acpi@vger.kernel.org, Chen Gong <gong.chen@linux.intel.com>
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: lenb@kernel.org, sarah.a.sharp@linux.intel.com, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu
 
-On Thu, Jun 14, 2012 at 09:53:30AM +0200, Jean Delvare wrote:
-> Hi Hui,
-> 
-> On Wed, 13 Jun 2012 18:44:15 +0800, Xiao, Hui wrote:
+On 2012=E5=B9=B406=E6=9C=8814=E6=97=A5 23:44, Greg KH wrote:
+> On Thu, Jun 14, 2012 at 03:22:42PM +0800, Lan Tianyu wrote:
+>> On 2012=E5=B9=B406=E6=9C=8814=E6=97=A5 03:30, Greg KH wrote:
+>>> On Mon, Jun 11, 2012 at 10:24:33AM +0800, Lan Tianyu wrote:
+>>>> On our developping machine, bios can provide usb port's  power con=
+trol via
+>>>> acpi. This patch is to provide usb port's power control way throug=
+h setting
+>>>> or clearing PORT_POWER feature requests. Add two functions usb_acp=
+i_power_manageable()
+>>>> and usb_acpi_set_power_state(). The first one is used to find whet=
+her the
+>>>> usb port has acpi power resource and the second is to set the powe=
+r state.
+>>>> They are invoked in the xhci_hub_control() where clearing or setti=
+ng PORT_POWER
+>>>> feature requests are processed.
+>>>>
+>>>> Signed-off-by: Lan Tianyu<tianyu.lan@intel.com>
+>>>> ---
+>>>>   drivers/usb/core/usb-acpi.c |   28 ++++++++++++++++++++++++++++
+>>>>   drivers/usb/host/xhci-hub.c |   10 ++++++++++
+>>>>   include/linux/usb.h         |   10 ++++++++++
+>>>>   3 files changed, 48 insertions(+), 0 deletions(-)
+>>>>
+>>>> diff --git a/drivers/usb/core/usb-acpi.c b/drivers/usb/core/usb-ac=
+pi.c
+>>>> index 82c90d0..e95f26f 100644
+>>>> --- a/drivers/usb/core/usb-acpi.c
+>>>> +++ b/drivers/usb/core/usb-acpi.c
+>>>> @@ -19,6 +19,34 @@
+>>>>
+>>>>   #include "usb.h"
+>>>>
+>>>> +bool usb_acpi_power_manageable(struct usb_device *hdev, int port1=
+)
+>>>> +{
+>>>> +	acpi_handle port_handle;
+>>>> +
+>>>> +	port_handle =3D usb_get_hub_port_acpi_handle(hdev,
+>>>> +		port1);
+>>>> +	return port_handle ? acpi_bus_power_manageable(port_handle) : fa=
+lse;
+>>>
+>>> Ick, I _really_ hate the ? : usage in C, please use real if stateme=
+nts
+>>> so that everyone can read and understand them easier.  You do that =
+a lot
+>>> here, please fix them all.
+>>>
+>> Ok. But in some places, for example
+>> dev_dbg(&hdev->dev, "The power of hub port %d was set to %s\n",
+>> 		port1, enable ? "enable" : "disable");
+>> try to print two result. ?: is more convenient. If I use "if" statem=
+ent,
+>> that will be
+>> if (enable)
+>> 	result =3D "enable";
+>> else
+>> 	result =3D "disable";
+>> dev_dbg(&hdev->dev, "The power of hub port %d was set to %s\n",
+>> 		port1, result);
+>>
+>> This just looks a little complex.
+>
+> I understand that, which is why I didn't complain about that.  But ev=
+en
+> then, you could just change the line to:
+> 	dev_dbg(&hdev->dev, "The power of hub port %d was set to %d\n", port=
+1, enable);
+> and you would be able to tell what is going on.
+>
+Ok. I get it.
+>
+>>>> +}
+>>>> +EXPORT_SYMBOL_GPL(usb_acpi_power_manageable);
+>>>> +
+>>>> +int usb_acpi_set_power_state(struct usb_device *hdev, int port1, =
+bool enable)
+>>>> +{
+>>>> +	acpi_handle port_handle;
+>>>> +	unsigned char state;
+>>>> +	int error =3D -EINVAL;
+>>>> +
+>>>> +	port_handle =3D (acpi_handle)usb_get_hub_port_acpi_handle(hdev,
+>>>> +		port1);
+>>>> +	state =3D enable ? ACPI_STATE_D0 : ACPI_STATE_D3_COLD;
+>>>> +	error =3D acpi_bus_set_power(port_handle, state);
+>>>
+>>> You forgot to check port_handle here.
+>>>
+>>> Why not call usb_acpi_power_manageable() to ensure that you can do =
+this?
+>>
+>> In my code, usb_acpi_power_manageable() is invoked before
+>> usb_acpi_set_power_state().
+>
+> Are you sure that all future callers will always do this?
+>
+>> Do you mean I should call usb_acpi_power_manageable() in the
+>> usb_acpi_set_power_state()?
+>
+> Maybe, if it makes sense to.  But don't fail, like you currently do, =
+if
+> someone doesn't do that, as you aren't telling the caller that they a=
+re
+> required to do so.
 
-< snip >
+How about to add kernel-doc to make future user notice it? On the other=
+ side,
+I check the acpi_bus_set_power and if the port didn't have acpi power r=
+esource,
+it would return error and no harm.
 
-> 
-> > Besides if addressing a data structure, per ACPI spec bit_width and bit_offset
-> > must be zero, the original condition will always end with error even valid 
-> > access width is given.
-> 
-> I agree that the original test did not support the data structure case.
-> OTOH after quickly reading the relevant page of the ACPI specification,
-> I do not understand how the structure size is passed, so I have no idea
-> how this case could be handled.
+>
+> thanks,
+>
+> greg k-h
 
-I wasn't able to find any references to the Generic Address
-Structure (GAS) in the APEI portion of the ACPI spec implying
-data structure access via an address contained in a GAS.  However,
-I believe it is a good idea to cover the data structure case in the
-event that the code is ever used beyond APEI where the data structure
-case could become an issue.
-
-Hui, Please check my assertion that the data structure case is
-not a factor for APEI.
-
-Thanks,
-Gary
-
--- 
-Gary Hade
-System x Enablement
-IBM Linux Technology Center
-503-578-4503  IBM T/L: 775-4503
-garyhade@us.ibm.com
-http://www.ibm.com/linux/ltc
-
+--=20
+Best Regards
+Tianyu Lan
+linux kernel enabling team
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
