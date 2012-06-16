@@ -1,16 +1,16 @@
 From: Chen Gong <gong.chen@linux.intel.com>
 Subject: [PATCH] ACPI,APEI: Fixup parameter check for ACPI5 in EINJ
-Date: Sat, 16 Jun 2012 15:10:30 +0800
-Message-ID: <1339830630-10853-1-git-send-email-gong.chen@linux.intel.com>
+Date: Sat, 16 Jun 2012 15:13:22 +0800
+Message-ID: <1339830802-10891-1-git-send-email-gong.chen@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:55485 "EHLO mga14.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:62924 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751194Ab2FPHJf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 16 Jun 2012 03:09:35 -0400
+	id S1752129Ab2FPHM1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 16 Jun 2012 03:12:27 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: lenb@kernel.org, tony.luck@inte.com, Chen Gong <gong.chen@linux.intel.com>
+Cc: lenb@kernel.org, tony.luck@intel.com, Chen Gong <gong.chen@linux.intel.com>
 
 We need the same checks for target address in the trigger
 code when using ACPI5 that we already have when using the
