@@ -1,59 +1,182 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: no brightness with acpi video since 3.3 [was Re: Issues with the
- sony-platform module]
-Date: Sat, 16 Jun 2012 22:07:06 +0900
-Message-ID: <20120616130705.GB2326@kamineko.org>
-References: <4FDA2051.3050108@babioch.de>
- <20120614203914.GA2645@kamineko.org>
- <4FDAE7FE.5030706@babioch.de>
- <20120615113637.GA5904@kamineko.org>
- <4FDB5202.706@babioch.de>
- <20120615223711.GA31180@kamineko.org>
- <4FDBC183.7050203@babioch.de>
- <20120616025223.GA5200@kamineko.org>
- <4FDC6D0A.8080505@babioch.de>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] ACPI, cpuidle: Fix suspend/resume regression caused by cpuidle cleanup.
+Date: Sat, 16 Jun 2012 15:36:56 +0200
+Message-ID: <201206161536.56761.rjw@sisk.pl>
+References: <4FD87249.6010302@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4FDC6D0A.8080505@babioch.de>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Karol Babioch <karol@babioch.de>
-Cc: platform-driver-x86@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([193.178.161.156]:45446 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756660Ab2FPNbj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 16 Jun 2012 09:31:39 -0400
+In-Reply-To: <4FD87249.6010302@linux.vnet.ibm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>, Linux PM mailing list <linux-pm@vger.kernel.org>, linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Jean Pihet <j-pihet@ti.com>, Arjan van de Ven <arjan@linux.intel.com>, Kevin Hilman <khilman@ti.com>, Arnd Bergmann <arnd@arndb.de>, Ferenc Wagner <wferi@niif.hu>, "Tomas M." <tmezzadra@gmail.com>, "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, preeti@linux.vnet.ibm.com, Len Brown <lenb@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>
 
-On Sat, Jun 16, 2012 at 01:24:58PM +0200, Karol Babioch wrote:
-> Hi,
-...
-> > Can you try applying the sony-laptop patches on 3.2, boot with
-> > acpi_backlight=vendor and see what is the state there?
-> It behaves just like 3.3. What might be interesting is 3.1. Here some
-> really strange values get returned:
+On Wednesday, June 13, 2012, Deepthi Dharwar wrote:
 > 
-> [root@vpcs nv_backlight]# cat actual_brightness brightness max_brightness
-...
+> From: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
+> 
+> Fix suspend/resume regression caused by cpuidle cleanup.
+> 
+> Commit e978aa7d7d57d04eb5f88a7507c4fb98577def77 ( cpuidle: Move
+> dev->last_residency update to driver enter routine; remove dev->last_state)
+> was  breaking suspend on laptops, as reported in the below link
+> 	- https://lkml.org/lkml/2011/11/11/164
+> 
+> This was fixed in commit 3439a8da16bcad6b0982ece938c9f8299bb53584
+> (ACPI / cpuidle: Remove acpi_idle_suspend (to fix suspend regression)
+> by removing acpi_idle_suspend flag.
+> 	- https://lkml.org/lkml/2011/11/14/74
+> 
+> But this fix did not work on all systems
+> as Suspend/resume regression was reported on Lenovo S10-3
+> recently by Dave.
+> 	- https://lkml.org/lkml/2012/5/27/115
+> It looked like with commit e978aa7d broke suspend and
+> with commit 3439a8da resume was not working with acpi_idle driver.
+> 
+> This patch fixes the regression that caused this issue
+> in the first place. acpi_idle_suspend flag is essential on
+> some x86 systems to prevent the cpus from going to deeper C-states
+> when suspend is triggered ( commit b04e7bdb984 )
+> So reverting the commit 3439a8da is essential.
+> 
+> By default, irqs are disabled in cpu_idle arch specific call
+> and re-enabled in idle state return path . As the acpi_idle_suspend
+> flag was being set during suspend, which prevented the cpus
+> going to deeper idle states, it is essential to
+> enabling the irqs in its return path too.
+> 
+> To address the suspend issue,
+> we were not re-enabling the interrupts while returning from
+> acpi_idle_enter_bm() routine if acpi_idle_suspend flag is set.
+> and this was causing suspend failure.
+> 
+> In addition to the above fix, a sanity check has also been added
+> in x86 arch specific cpu_idle call to ensure that the idle call
+> always returns with IRQs enabled.
+> 
+> This patch applies on 3.5-rc2
+> ---
+> 
+> Reported-and-Tested-by: Dav Hansen <dave@linux.vnet.ibm.com>
+> Tested-by: Preeti Murthy <preeti@linux.vnet.ibm.com>
+> Signed-off-by: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
+> Reviewed-by: Srivatsa S Bhat <srivatsa.bhat@linux.vnet.ibm.com>
 
-how about the sony-laptop stuff with 3.1+patches?
-What is the output of
-$ grep . /sys/class/backlight/*/*
-$ grep . /sys/devices/platform/sony-laptop/*
-and the kernel log after these two commands
+This appears to be an urgent regression fix.
 
-I'm trying to understand is if the patch series I sent works for
-you on the last working version of kernel (i.e. 3.1 apparently).
+Is anyone going to take it, or should I do that?
 
-...
-> I'm currently trying to reconstruct the last version that worked for me.
-> I'm quite sure that "vaio-full-3.0.4.patch" (from here [1]), worked fine
-> with the 3.1.x branch. However I've just recompiled 3.1.10 and it
-> doesn't seem to work. Anyway it worked without the
-> "acpi_backlight=vendor" parameter, so I'm not quite sure whether this is
-> of interest for you right now.
+Rafael
 
-it is actually. What did you have in the sony-laptop sysfs directories
-when booting with acpi_backlight=vendor?
 
-Thanks!
--- 
-mattia
-:wq!
+> ---
+>  arch/x86/kernel/process.c     |    6 ++++++
+>  drivers/acpi/processor_idle.c |   28 ++++++++++++++++++++++++++++
+>  2 files changed, 34 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/x86/kernel/process.c b/arch/x86/kernel/process.c
+> index 735279e..8ab76ad 100644
+> --- a/arch/x86/kernel/process.c
+> +++ b/arch/x86/kernel/process.c
+> @@ -460,6 +460,12 @@ void cpu_idle(void)
+>  				pm_idle();
+> 
+>  			rcu_idle_exit();
+> +
+> +			/*
+> +			 * Sanity check to ensure that idle call returns
+> +			 * with IRQs enabled
+> +			 */
+> +			WARN_ON(irqs_disabled());
+>  			start_critical_timings();
+> 
+>  			/* In many cases the interrupt that ended idle
+> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+> index f3decb3..c2ffd84 100644
+> --- a/drivers/acpi/processor_idle.c
+> +++ b/drivers/acpi/processor_idle.c
+> @@ -224,6 +224,7 @@ static void lapic_timer_state_broadcast(struct acpi_processor *pr,
+>  /*
+>   * Suspend / resume control
+>   */
+> +static int acpi_idle_suspend;
+>  static u32 saved_bm_rld;
+> 
+>  static void acpi_idle_bm_rld_save(void)
+> @@ -242,13 +243,21 @@ static void acpi_idle_bm_rld_restore(void)
+> 
+>  int acpi_processor_suspend(struct acpi_device * device, pm_message_t state)
+>  {
+> +	if (acpi_idle_suspend == 1)
+> +		return 0;
+> +
+>  	acpi_idle_bm_rld_save();
+> +	acpi_idle_suspend = 1;
+>  	return 0;
+>  }
+> 
+>  int acpi_processor_resume(struct acpi_device * device)
+>  {
+> +	if (acpi_idle_suspend == 0)
+> +		return 0;
+> +
+>  	acpi_idle_bm_rld_restore();
+> +	acpi_idle_suspend = 0;
+>  	return 0;
+>  }
+> 
+> @@ -754,6 +763,12 @@ static int acpi_idle_enter_c1(struct cpuidle_device *dev,
+> 
+>  	local_irq_disable();
+> 
+> +	if (acpi_idle_suspend) {
+> +		local_irq_enable();
+> +		cpu_relax();
+> +		return -EINVAL;
+> +	}
+> +
+>  	lapic_timer_state_broadcast(pr, cx, 1);
+>  	kt1 = ktime_get_real();
+>  	acpi_idle_do_entry(cx);
+> @@ -823,6 +838,12 @@ static int acpi_idle_enter_simple(struct cpuidle_device *dev,
+> 
+>  	local_irq_disable();
+> 
+> +	if (acpi_idle_suspend) {
+> +		local_irq_enable();
+> +		cpu_relax();
+> +		return -EINVAL;
+> +	}
+> +
+>  	if (cx->entry_method != ACPI_CSTATE_FFH) {
+>  		current_thread_info()->status &= ~TS_POLLING;
+>  		/*
+> @@ -901,6 +922,13 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
+>  	if (unlikely(!pr))
+>  		return -EINVAL;
+> 
+> +	if (acpi_idle_suspend) {
+> +		if (irqs_disabled())
+> +			local_irq_enable();
+> +		cpu_relax();
+> +		return -EINVAL;
+> +	}
+> +
+>  	if (!cx->bm_sts_skip && acpi_idle_bm_check()) {
+>  		if (drv->safe_state_index >= 0) {
+>  			return drv->states[drv->safe_state_index].enter(dev,
+> 
+> Regards,
+> Deepthi
+> 
+> 
+> 
+
