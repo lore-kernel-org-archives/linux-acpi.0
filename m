@@ -1,45 +1,90 @@
-From: Andy Isaacson <adi@hexapodia.org>
-Subject: Re: [ibm-acpi-devel] t420s: unhandled HKEY
-Date: Sat, 16 Jun 2012 21:51:33 -0700
-Message-ID: <20120617045133.GL11306@hexapodia.org>
-References: <20120606222804.GA6931@cloudera.com>
- <20120608080824.GS25324@hexapodia.org>
- <20120616201735.GH15543@khazad-dum.debian.net>
+From: Karol Babioch <karol@babioch.de>
+Subject: Re: no brightness with acpi video since 3.3 [was Re: Issues with
+ the sony-platform module]
+Date: Sun, 17 Jun 2012 12:50:39 +0200
+Message-ID: <4FDDB67F.7090704@babioch.de>
+References: <20120614203914.GA2645@kamineko.org> <4FDAE7FE.5030706@babioch.de> <20120615113637.GA5904@kamineko.org> <4FDB5202.706@babioch.de> <20120615223711.GA31180@kamineko.org> <4FDBC183.7050203@babioch.de> <20120616025223.GA5200@kamineko.org> <4FDC6D0A.8080505@babioch.de> <20120616130705.GB2326@kamineko.org> <4FDCCB79.9090305@babioch.de> <20120616231658.GC2326@kamineko.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enig9D33B3866B7E23836F97E603"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from straum.hexapodia.org ([207.7.131.186]:38389 "EHLO
-	straum.hexapodia.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750836Ab2FQEvd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 17 Jun 2012 00:51:33 -0400
-Content-Disposition: inline
-In-Reply-To: <20120616201735.GH15543@khazad-dum.debian.net>
+Received: from babioch.de ([176.9.120.167]:37078 "EHLO babioch.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755023Ab2FQKuq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 17 Jun 2012 06:50:46 -0400
+In-Reply-To: <20120616231658.GC2326@kamineko.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: ibm-acpi-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org
+To: Mattia Dongili <malattia@linux.it>
+Cc: platform-driver-x86@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-On Sat, Jun 16, 2012 at 05:17:35PM -0300, Henrique de Moraes Holschuh wrote:
-> Andy, as an early follow up, does it make any difference whether you
-> plug/unplug AC power directly on the notebook, or on a docking
-> station/port replicator?
-> 
-> Do you have more than one power brick with different power ratings (e.g.
-> 65W and 90W)?
-> 
-> Because AFAIK you really should get a 0x6040 every time the AC power
-> adapter state changes.
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig9D33B3866B7E23836F97E603
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-I do use two or three different PSUs, they may have different ratings.
-The one I have in front of me is 65W, and I do get 0x6040 when I plug or
-unplug it today.  The other one is at the office and I'll check on
-Monday.
+Hi,
 
-Looking through syslog, I do have a lot of pairs of "unhandled HKEY
-event 0x6040" followed immediately by "EC reports that Thermal Table has
-changed", but there are also a few Thermal Table changed without a
-preceding HKEY event.  Perhaps 90% of "Thermal Table has changed" have a
-HKEY before them.  There don't appear to be any HKEY 0x6040 without a
-"Thermal Table has changed" immediately after.
+Am 17.06.2012 01:16, schrieb Mattia Dongili:
+> I'm a bit lost at this point. Are you saying that you cannot get a
+> working backlight control with the old set-up you had?
+Yeah, I can't get it working. Tried nearly every kernel from 3.0
+onwards. Don't know what is going on here :(. Any idea what could have
+caused this?
 
--andy
+> If so what else did you change in your set up?
+Well, I'm on Arch Linux, which is a rolling release distribution. So
+there is probably a lot of stuff, which has changed during the course of
+the last two to three months :(.
+
+> Also, any chance you could try to inspect/poke the acpi_video0 or
+> sony-laptop backlight directories without loading the nouveau driver?
+Yeah, sure. In both cases the brightness won't change. Here you have
+some excerpts in the case of "acpi_backlight=3Dvendor" again:
+
+[root@vpcs ~]# grep . /sys/class/backlight/sony/*/*
+/sys/class/backlight/sony/actual_brightness:-13
+/sys/class/backlight/sony/bl_power:0
+/sys/class/backlight/sony/brightness:-13
+/sys/class/backlight/sony/max_brightness:242
+/sys/class/backlight/sony/type:platform
+
+I then echoed 100 to /sys/class/backlight/sony/brightness and dmesg
+reported the following:
+
+[   89.631235] sony_laptop: found handle 0x0137 (offset: 0x0b)
+[   89.753455] sony_laptop: __call_snc_method: [SN07:0x000000000000020b]
+[   89.753457] sony_laptop: called SN07 with 0x020b (result: 0x0000)
+
+Not sure what this means, but probably nouveau is not the culprit here.
+
+Best regards,
+Karol Babioch
+
+
+--------------enig9D33B3866B7E23836F97E603
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+
+iQIcBAEBAgAGBQJP3baCAAoJEHSaZc1HnzIVBUEP/RS+Y0RUBZ9sR4EAIcZvTIsZ
+jt9fAWSkgsbI12f/hp3jQAiLSMRlRQpf6krURVJal/e0dRAuLTHQmi36TKFsBI4m
+4EX4RFRgPo0ptsVEoxF6bR47TqN1RA7xl+f9eitCJctOhSfH0GPLisYQ7D1bFufn
+dyD5FyjcN4DicmNiaMTf89f91HfCzAlIvjX+m0Xa+ziu6EP7SKnXEy+oEFPb+0tW
+e09XZNwzg6/tjIqu7Nja6mMFKoYGVj6ajjJnp3Gcx0Yx87DozIRqk9hF8SqBCb4Z
+6I+b4qmuLKYVG7r9mPKrPg8apgm5FdwoWz8dYCs/8Oz05O1MUtmiEKNTFN2IrSP5
+YSObYbruX/5A/+RVyimydR/2LnFNi0J90AQxHGwvchD3CxrB9DgIkEZSQJq5TPjd
+w6nGyEEM7+96JSX6BMFi2jWGImvE8NjEtkjDYnLV6EHWgm/E+9HFaw786o93fYdU
+Uy+3rk9Dm4lsN89vgsqbiVyxQkKxkz1l7+66vvr1VbnGlOWAypAhIBGiGRaqB5/s
+32TFi0cYP1FZMbL0dB6sFTTGMg3xxF3JZVMAIOmH1eB3rrr8OjkTvL/NYiYb8VFV
+YqpF3U/j5ID+9jwWpsww5z/fY9PoUI3I/FouF1p5xuVj9xgnVHFkvstavE7dfJg/
+j6aFC8kY5ANBBAlHweuW
+=uD1y
+-----END PGP SIGNATURE-----
+
+--------------enig9D33B3866B7E23836F97E603--
