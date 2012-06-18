@@ -1,56 +1,68 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: Re: [PATCH v5 04/12] libata: use correct PCI devices
-Date: Mon, 18 Jun 2012 20:03:46 +0800
-Message-ID: <CAF1ivSaiVGB+TSn80QijpWJWUdkhpjuOKuu9XSTROF-kGgP_gQ@mail.gmail.com>
-References: <1340000766-129148-1-git-send-email-ming.m.lin@intel.com>
-	<1340000766-129148-5-git-send-email-ming.m.lin@intel.com>
-	<4FDF12F0.6080205@mvista.com>
+From: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
+Subject: Re: acpi_idle and max_cpus
+Date: Mon, 18 Jun 2012 17:55:30 +0530
+Message-ID: <4FDF1E3A.6010200@linux.vnet.ibm.com>
+References: <4FDB549F.1020002@linaro.org> <4FDE3B96.8030306@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:52150 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750916Ab2FRMDr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Jun 2012 08:03:47 -0400
-In-Reply-To: <4FDF12F0.6080205@mvista.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <4FDE3B96.8030306@linaro.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: Jeff Garzik <jgarzik@pobox.com>, Aaron Lu <aaron.lu@amd.com>, Holger Macht <holger@homac.de>, Matthew Garrett <mjg@redhat.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, David Woodhouse <David.Woodhouse@intel.com>, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Mon, Jun 18, 2012 at 7:37 PM, Sergei Shtylyov <sshtylyov@mvista.com>=
- wrote:
-> On 18-06-2012 10:25, Lin Ming wrote:
->
->> From: Holger Macht <holger@homac.de>
->
->
->> Commit 9a6d6a2ddabbd32c07f6a38b659e5f3db319fa5a
->
->
-> =A0 Please also specify that commit's summary in parens.
+Hi Daniel,
 
-OK.
+On 06/18/2012 01:48 AM, Daniel Lezcano wrote:
 
-Thanks,
-Lin Ming
+> On 06/15/2012 05:28 PM, Daniel Lezcano wrote:
+>>
+>> Hi all,
+>>
+>> I have a dual core Intel T9500.
+>>
+>> I boot the cpu with the acpi_idle driver and intel_idle enabled in the
+>> config.
+>>
+>> The kernel is booted with maxcpus=1.
+>>
+>> After the system has boot, I put cpu1 online via sysfs.
+>>
+>> But I don't see any 'cpuidle' directory in the cpu's sysfs entry:
+>>
+>> /sys/devices/system/cpu/cpu1/cpuidle (?)
+>>
+>> When I look at the code I see the notifier is present for hotplug in
+>> processor_driver.c and the cpuidle intel init routine should be called
+>> there.
+>>
 
->
->
->> made ata ports parent
->> devices of scsi hosts, so we need to go yet another level up to be a=
-ble
->> to use the correct PCI devices.
->
->
->> Signed-off-by: Holger Macht <holger@homac.de>
->> Signed-off-by: Lin Ming <ming.m.lin@intel.com>
->
->
-> MBR, Sergei
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Yes, we have a hotplug notifier.
+Commit 99b72508  by Thomas Renninger fixed this issue.
+
+Please let me know which kernel version you are running and what is idle
+driver registered ?
+
+>> I am wondering is it a bug or an expected behavior ?
+> 
+> Any thoughts on that ?
+> 
+> Thanks
+>   -- Daniel
+> 
+> 
+
+
+Cheers
+Deepthi
