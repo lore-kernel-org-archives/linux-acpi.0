@@ -1,64 +1,91 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: acpi_idle and max_cpus
-Date: Sun, 17 Jun 2012 22:18:30 +0200
-Message-ID: <4FDE3B96.8030306@linaro.org>
-References: <4FDB549F.1020002@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Lin Ming <ming.m.lin@intel.com>
+Subject: [PATCH v5 0/13] SATA ZPODD support
+Date: Mon, 18 Jun 2012 14:25:54 +0800
+Message-ID: <1340000766-129148-1-git-send-email-ming.m.lin@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:50790 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751271Ab2FQUSe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 17 Jun 2012 16:18:34 -0400
-Received: by eeit10 with SMTP id t10so1361681eei.19
-        for <linux-acpi@vger.kernel.org>; Sun, 17 Jun 2012 13:18:33 -0700 (PDT)
-In-Reply-To: <4FDB549F.1020002@linaro.org>
+Received: from mga11.intel.com ([192.55.52.93]:63878 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752601Ab2FRG00 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 18 Jun 2012 02:26:26 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org
+To: Jeff Garzik <jgarzik@pobox.com>, Aaron Lu <aaron.lu@amd.com>, Holger Macht <holger@homac.de>, Matthew Garrett <mjg@redhat.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, David Woodhouse <David.Woodhouse@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On 06/15/2012 05:28 PM, Daniel Lezcano wrote:
->=20
-> Hi all,
->=20
-> I have a dual core Intel T9500.
->=20
-> I boot the cpu with the acpi_idle driver and intel_idle enabled in th=
-e
-> config.
->=20
-> The kernel is booted with maxcpus=3D1.
->=20
-> After the system has boot, I put cpu1 online via sysfs.
->=20
-> But I don't see any 'cpuidle' directory in the cpu's sysfs entry:
->=20
-> /sys/devices/system/cpu/cpu1/cpuidle (?)
->=20
-> When I look at the code I see the notifier is present for hotplug in
-> processor_driver.c and the cpuidle intel init routine should be calle=
-d
-> there.
->=20
-> I am wondering is it a bug or an expected behavior ?
+Hi all,
 
-Any thoughts on that ?
+This is the v5 patches to add SATA ZPODD support, to try it:
+git pull git://git.kernel.org/pub/scm/linux/kernel/git/mlin/linux.git zpodd
 
-Thanks
-  -- Daniel
+Holger and Mathtew,
+Patch 1 to Patch 4 are the libata acpi binding patches from you.
+I removed dock related code from your original version.
+Would you help to review?
+
+v5:
+- rebase to v3.5-rc3
+- fixed crash reported at https://lkml.org/lkml/2012/2/24/2 (Aaron Lu)
+- rename is_pci_ata to compat_pci_ata (Alan Cox)
+
+v4:
+https://lkml.org/lkml/2012/5/28/11
+- Includes libata acpi binding patches from Holger Macht and Matthew Garrett.
+- tell scsi layer device supports runtime power off
+- check support for device busy class events
+
+v3:
+https://lkml.org/lkml/2012/3/28/20
+- Split the ACPI D3Cold state support patches out
+- Adds "Device Attention" bit check
+
+v2:
+https://lkml.org/lkml/2012/3/1/61
+- _PR3 indicates D3Cold support
+- move can_power_off flag to pm_subsys_data
+- allow all combinations of power resource and device
+- split patches into smaller ones to make review easy
+
+v1:
+https://lkml.org/lkml/2012/2/13/86
 
 
---=20
- <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software for=
- ARM SoCs
+Aaron Lu (4):
+      libata: tell scsi layer device supports runtime power off
+      [SCSI] sr: check support for device busy class events
+      [SCSI] sr: support zero power ODD
+      [SCSI] sr: make sure ODD is in resumed state in block ioctl
 
-=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
+Holger Macht (2):
+      [SCSI]: add wrapper to access and set scsi_bus_type in struct acpi_bus_type
+      libata: use correct PCI devices
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Lin Ming (4):
+      libata-acpi: set acpi state for SATA port
+      libata-acpi: add ata port runtime D3Cold support
+      libata-acpi: register/unregister device to/from power resource
+      libata: detect Device Attention support
+
+Matthew Garrett (2):
+      libata: bind the Linux device tree to the ACPI device tree
+      libata: migrate ACPI code over to new bindings
+
+
+ drivers/acpi/glue.c        |    4 +-
+ drivers/acpi/power.c       |    2 +
+ drivers/ata/libata-acpi.c  |  389 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++---------------------------
+ drivers/ata/libata-core.c  |    9 ++-
+ drivers/ata/libata-pmp.c   |    4 -
+ drivers/ata/libata-scsi.c  |    3 +
+ drivers/ata/libata.h       |   13 +--
+ drivers/ata/pata_acpi.c    |    4 +-
+ drivers/scsi/scsi_lib.c    |   17 ++++
+ drivers/scsi/sr.c          |  160 +++++++++++++++++++++++++++++++++++-
+ drivers/scsi/sr.h          |    3 +
+ include/linux/ata.h        |    1 +
+ include/linux/cdrom.h      |   43 ++++++++++
+ include/linux/libata.h     |    9 +--
+ include/scsi/scsi.h        |   10 +++
+ include/scsi/scsi_device.h |    2 +
+ 16 files changed, 534 insertions(+), 139 deletions(-)
+
+
