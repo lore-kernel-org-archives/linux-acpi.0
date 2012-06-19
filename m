@@ -1,175 +1,64 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [linux-pm] acpi_idle and max_cpus
-Date: Tue, 19 Jun 2012 09:18:04 +0200
-Message-ID: <4FE027AC.8010607@linaro.org>
-References: <4FDB549F.1020002@linaro.org> <4FDE3B96.8030306@linaro.org> <4FDF1E3A.6010200@linux.vnet.ibm.com> <4FDF24FE.1010108@linaro.org> <4FE02233.2060809@linux.vnet.ibm.com> <4FE0243C.4040600@linux.vnet.ibm.com>
+From: Karol Babioch <karol@babioch.de>
+Subject: Re: no brightness with acpi video since 3.3 [was Re: Issues with
+ the sony-platform module]
+Date: Tue, 19 Jun 2012 12:48:51 +0200
+Message-ID: <4FE05913.2020105@babioch.de>
+References: <20120615113637.GA5904@kamineko.org> <4FDB5202.706@babioch.de> <20120615223711.GA31180@kamineko.org> <4FDBC183.7050203@babioch.de> <20120616025223.GA5200@kamineko.org> <4FDC6D0A.8080505@babioch.de> <20120616130705.GB2326@kamineko.org> <4FDCCB79.9090305@babioch.de> <20120616231658.GC2326@kamineko.org> <4FDDB67F.7090704@babioch.de> <20120618221905.GA20324@kamineko.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enigB28568E3EC30BADD72A221F5"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:41312 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752146Ab2FSHSJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Jun 2012 03:18:09 -0400
-Received: by bkcji2 with SMTP id ji2so4767087bkc.19
-        for <linux-acpi@vger.kernel.org>; Tue, 19 Jun 2012 00:18:07 -0700 (PDT)
-In-Reply-To: <4FE0243C.4040600@linux.vnet.ibm.com>
+Received: from babioch.de ([176.9.120.167]:37083 "EHLO babioch.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752246Ab2FSKs5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Jun 2012 06:48:57 -0400
+In-Reply-To: <20120618221905.GA20324@kamineko.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Cc: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, trenn@suse.de
+To: Mattia Dongili <malattia@linux.it>
+Cc: platform-driver-x86@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-On 06/19/2012 09:03 AM, Srivatsa S. Bhat wrote:
-> On 06/19/2012 12:24 PM, Deepthi Dharwar wrote:
->=20
->> On 06/18/2012 06:24 PM, Daniel Lezcano wrote:
->>
->>> On 06/18/2012 02:25 PM, Deepthi Dharwar wrote:
->>>> Hi Daniel,
->>>>
->>>> On 06/18/2012 01:48 AM, Daniel Lezcano wrote:
->>>>
->>>>> On 06/15/2012 05:28 PM, Daniel Lezcano wrote:
->>>>>>
->>>>>> Hi all,
->>>>>>
->>>>>> I have a dual core Intel T9500.
->>>>>>
->>>>>> I boot the cpu with the acpi_idle driver and intel_idle enabled =
-in the
->>>>>> config.
->>>>>>
->>>>>> The kernel is booted with maxcpus=3D1.
->>>>>>
->>>>>> After the system has boot, I put cpu1 online via sysfs.
->>>>>>
->>>>>> But I don't see any 'cpuidle' directory in the cpu's sysfs entry=
-:
->>>>>>
->>>>>> /sys/devices/system/cpu/cpu1/cpuidle (?)
->>>>>>
->>>>>> When I look at the code I see the notifier is present for hotplu=
-g in
->>>>>> processor_driver.c and the cpuidle intel init routine should be =
-called
->>>>>> there.
->>>>>>
->>>>
->>>>
->>>> Yes, we have a hotplug notifier.
->>>> Commit 99b72508  by Thomas Renninger fixed this issue.
->>>>
->>>> Please let me know which kernel version you are running and what i=
-s idle
->>>> driver registered ?
->>>
->>> The kernel version is 3.5.0-rc1
->>> The registered driver is acpi_idle (with intel_idle if I am not wro=
-ng).
->>>
->>> Thomas's patch is in this version.
->>>
->>> Maybe I am wrong but I think the patch is not correct because:
->>>
->>> static int __cpuinit acpi_processor_add(struct acpi_device *device)
->>> {
->>>
->>>  ...
->>>
->>> #ifdef CONFIG_SMP
->>> 	if (pr->id >=3D setup_max_cpus && pr->id !=3D 0)
->>> 		return 0;
->>> #endif
->>>
->>>  ...
->>>
->>> 	per_cpu(processors, pr->id) =3D pr;
->>>
->>> ...
->>> }
->>>
->>> With max_cpus=3D1 we exit before setting up 'pr'.
->>>
->>> So the condition in:
->>>
->>> static int acpi_cpu_soft_notify(...)
->>> {
->>>
->>> 	unsigned int cpu =3D (unsigned long)hcpu;
->>> 	struct acpi_processor *pr =3D per_cpu(processors, cpu);
->>>
->>> 	if (action =3D=3D CPU_ONLINE && pr) {
->>>
->>> ...
->>> }
->>>
->>> Is always false because pr =3D=3D NULL
->>>
->>> I did the change but I don't still see the 'cpuidle' directory
->>> appearing, I suspect also pr->flags.need_hotplug_init is not correc=
-tly
->>> initialized but I did not investigate more.
->>>
->>
->>
->> Well looks like variable maxcpus holds the key here.
->>
->=20
->=20
-> Whose equivalent is setup_max_cpus inside the kernel, as Daniel menti=
-oned.
->=20
->> When I am booting the system, say with 2 out of 4 available cpus,
->> set via maxcpus variable with intel_idle or acpi_idle and onlining t=
-he
->> other 2 cpus later via sysfs, I dont see cpufreq or cpuidle dir in t=
-he
->> sysfs path.
->>
->> # cd /sys/devices/system/cpu/cpu2
->> xxx:/sys/devices/system/cpu/cpu2# ls
->> 	crash_notes  node0  online
->> xxx:/sys/devices/system/cpu/cpu2# echo 1 > online
->> xxx:/sys/devices/system/cpu/cpu2# ls
->> cache  crash_notes  node0  online  thermal_throttle  topology
->>
->> So looks like its designed that way for now.
->=20
->=20
-> I don't think so. Looks more like a bug than a design ;-)
->=20
->> So if maxcpus=3DX, X<Y where Y is no of available cpus.
->> Enabling the Y-X cpus later after the boot via sysfs is not enabling
->> cpuidle and cpufreq .
->>
->> The question is, do we want to modify this behavior ?
->>
->=20
->=20
-> Yes we do, and that's Daniel's pain point as well. I don't think ther=
-e is
-> any good reason why the cpuidle directory must _not_ be exported for =
-cpus
-> that are onlined later.
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enigB28568E3EC30BADD72A221F5
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-Yes and if I refer to the code, it is supposed to do that.
+Hi,
 
-I added Thomas in Cc.
+Am 19.06.2012 00:19, schrieb Mattia Dongili:
+> Can you also switch to the second video card (do you have one) and try
+> if brightness regulation works?
+No, unfortunately I can't. The second video card is the one integrated
+into the CPU. There is no way for me to switch to it.This is reserved
+for the more expensive Z series. So I'm forced to use the NVIDIA one.
 
-Thanks
-  -- Daniel
+Best regards,
+Karol Babioch
 
 
---=20
- <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software for=
- ARM SoCs
+--------------enigB28568E3EC30BADD72A221F5
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+iQIcBAEBAgAGBQJP4FkTAAoJEHSaZc1HnzIV8zYQAL40IzpzjOTqqSRojiA3HexY
+l+dmmITKqrj0H0vHubw7NkkrbBUWXV+CfTx8GDtXcmOjBbLNPY5DfrXHw5+Dmz00
+qswbU7iYTkaSrYcglu39l3z+dyW5RrMRzNhXoGrLqFoR6L78oJ1APFzUh6DLodkP
+wW5V8EzDx/OIOhIHkuJ/O9AsLgaVTvkWr5uwIloH8iJcO565a1R9tz2y2WvYpSPA
+c0Gb5fYEbmbBs1d7OO6HWQcgiOtXJwXNFb6ftstgoMK3L/Rei6/PuhwN/SawJTfs
+2srb+ppoEUFfyAvD4Le3n7M2i6gDmvzaKwrGsWPqXma43cxPV0tIcKPOdisrPDN9
+LQYfTZFqTKGZkH5Zqks2KFdCAp+seZYLiF1TlWAC5yU2Giq45H8d0lh6XECw2wfm
+E24e1tiZMFEw5ds3Gn2kY/0M/mag9mAIZNHdRl9OGh0mlKNdqxgV8l9q35IxX86K
+z+xc9DLKqGDmMOmr3ldMpGe2ufIOYYGLeIzfL9fJag28wZidEcytCOH7/S5p9zqp
+eCbg1evxLMR5xmHpDiO3ds588OuCLZQk8z1pS1/oBTqLNVCG9u3HTjeXM17gBDuI
+9LN5mvs5/JGLOAlQYJf4gT3EPgfrsRZpWm49dw4j00qAEMDzShVZMuE8EIg1FKpe
++eV690TkijOsvXPlUtaT
+=Ur71
+-----END PGP SIGNATURE-----
+
+--------------enigB28568E3EC30BADD72A221F5--
