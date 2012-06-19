@@ -1,60 +1,53 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
-Subject: RE: [RFC PATCH 0/12] generic thermal layer enhancement
-Date: Tue, 19 Jun 2012 11:31:21 +0000
-Message-ID: <4D68720C2E767A4AA6A8796D42C8EB591444A0@BGSMSX101.gar.corp.intel.com>
-References: <1339384751.1492.153.camel@rui.sh.intel.com>
+From: Jiang Liu <jiang.liu@huawei.com>
+Subject: [PATCH v8 11/12] ACPI: mark acpi_sfi_table_parse() as __init
+Date: Tue, 19 Jun 2012 21:15:31 +0800
+Message-ID: <1340111732-6276-12-git-send-email-jiang.liu@huawei.com>
+References: <1340111732-6276-1-git-send-email-jiang.liu@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:5379 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751561Ab2FSLbX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 Jun 2012 07:31:23 -0400
-In-Reply-To: <1339384751.1492.153.camel@rui.sh.intel.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1340111732-6276-1-git-send-email-jiang.liu@huawei.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Feng Tang <feng.tang@intel.com>, Don Dutile <ddutile@redhat.com>
+Cc: Jiang Liu <jiang.liu@huawei.com>, Yijing Wang <wangyijing@huawei.com>, Keping Chen <chenkeping@huawei.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Jiang Liu <liuj97@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>, linux-pm <linux-pm@lists.linux-foundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: Amit Kachhap <amit.kachhap@linaro.org>, eduardo <eduardo.valentin@ti.com>, "Len, Brown" <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-SGkgQWxsLA0KDQo+IFRoZSB3aG9sZSBpZGVhIGlzDQo+IDEpIG1ha2Ugc3VyZSB3ZSBoYXZlIG11
-bHRpcGxlIGNvb2xpbmcgc3RhdGVzIGZvciBib3RoIGFjdGl2ZSBjb29saW5nIGFuZA0KPiAgICBw
-YXNzaXZlIGNvb2xpbmcgZGV2aWNlcy4gKHBhdGNoIDEsMiwzKQ0KPiAyKSByZW1vdmUgcGFzc2l2
-ZSBzcGVjaWZpYyByZXF1aXJlbWVudCwgYWthLCB0YzEvdGMyLCBhbmQNCj4gICAgaW50cm9kdWNl
-IC5nZXRfdHJlbmQoKSBpbnN0ZWFkLCBmb3IgYm90aCBhY3RpdmUgYW5kIHBhc3NpdmUgY29vbGlu
-Zw0KPiAgICBhbGdvcml0aG0uIChwYXRjaCA0LDUpDQo+IDMpIGludHJvZHVjZSBuZXcgZnVuY3Rp
-b24gdGhlcm1hbF96b25lX3RyaXBfdXBkYXRlKCksIHRoaXMgY29udGFpbnMgdGhlDQo+ICAgIGNv
-ZGUgZm9yIHRoZSBnZW5lcmFsIGNvb2xpbmcgYWxnb3JpdGhtLiAocGF0Y2ggNikNCj4gNCkgcmVu
-YW1lIHNvbWUgdGhlcm1hbCBzdHJ1Y3R1cmVzLiBVc2UgdGhlcm1hbF9pbnN0YW5jZSBpbnN0ZWFk
-IG9mDQo+ICAgIHRoZXJtYWxfY29vbGluZ19kZXZpY2VfaW5zdGFuY2UsIGFzIHRoaXMgc3RydWN0
-dXJlIGlzIHVzZWQgdG8NCj4gICAgZGVzY3JpYmUgdGhlIGJlaGF2aW9yIG9mIGEgY2VydGFpbiBj
-b29saW5nIGRldmljZSBmb3IgYSBjZXJ0YWluIHRyaXANCj4gICAgcG9pbnQgaW4gYSBjZXJ0YWlu
-IHRoZXJtYWwgem9uZS4NCj4gICAgdGhlcm1hbF96b25lX2RldmljZSBoYXMgYSBsaXN0IG9mIGFs
-bCB0aGUgdGhlcm1hbCBpbnN0YW5jZXMgaW4gdGhpcw0KPiAgICB0aGVybWFsIHpvbmUgc28gdGhh
-dCBpdCBjYW4gdXBkYXRlIHRoZW0gd2hlbiB0aGUgdGVtcGVyYXR1cmUgY2hhbmdlcy4NCj4gICAg
-dGhlcm1hbF9jb29saW5nX2RldmljZSBoYXMgYSBsaXN0IG9mIGFsbCB0aGUgdGhlcm1hbCBpbnN0
-YW5jZXMgZm9yDQo+ICAgIHRoaXMgY29vbGluZyBkZXZpY2Ugc28gdGhhdCBpdCBjYW4gbWFrZSBk
-ZWNpc2lvbiB3aGljaCBjb29saW5nIHN0YXRlDQo+ICAgIHNob3VsZCBiZSBpbiB3aGVuIHRoZSB0
-ZW1wZXJhdHVyZSBjaGFuZ2VzLiAocGF0Y2ggNyw4LDksMTApDQo+IDUpIGludHJvZHVjZSBhIHNp
-bXBsZSBhcmJpdHJhdG9yLiAocGF0Y2ggMTEpDQo+ICAgIFdoZW4gdGVtcGVyYXR1cmUgY2hhbmdl
-cywgd2UgdXBkYXRlIGEgdGhlcm1hbCB6b25lIGluIHR3byBzdGFnZXMsDQo+ICAgIGEpIHRoZXJt
-YWxfem9uZV90cmlwX3BvaW50KCkgaXMgdGhlIGdlbmVyYWwgY29vbGluZyBhbGdvcml0aG0gdG8N
-Cj4gICAgICAgdXBkYXRlIHRoZSB0aGVybWFsIGluc3RhbmNlcyBpbiB0aGUgdGhlcm1hbCB6b25l
-IGRldmljZQ0KPiAgICBiKSB0aGVybWFsX3pvbmVfZG9fdXBkYXRlKCkgaXMgdGhlIGFyYml0cmF0
-b3IgZm9yIHRoZSBjb29saW5nIGRldmljZQ0KPiAgICAgICB0byBjaG9vc2UgdGhlIGRlZXBlc3Qg
-Y29vbGluZyBzdGF0ZSByZXF1aXJlZCB0byBlbnRlci4NCj4gNikgdW5pZnkgdGhlIGNvZGUgZm9y
-IGJvdGggcGFzc2l2ZSBhbmQgYWN0aXZlIGNvb2xpbmcuDQo+IA0KPiBUT0RPLCBhZGQgbG9ja2lu
-ZyBtZWNoYW5pc20uIEkga25vdyB0aGlzIGlzIGltcG9ydGFudCBidXQgYXMgdGhpcyBwYXRjaA0K
-PiBzZXQgY2hhbmdlcyB0aGUgdGhlcm1hbCBsYXllciBhIGxvdCwgSSBqdXN0IHdhbnQgdG8gbWFr
-ZSBzdXJlIEknbSBpbiB0aGUNCj4gcmlnaHQgZGlyZWN0aW9uIGJlZm9yZSBnb2luZyBvbi4NCj4g
-DQo+IEJUVywgaW4gdGhlb3J5LCB0aGV5IHNob3VsZCBtYWtlIG5vIGNoYW5nZSB0byB0aGUgYmVo
-YXZpb3Igb2YgdGhlDQo+IGN1cnJlbnQgZ2VuZXJpYyB0aGVybWFsIGxheWVyIHVzZXJzLiBCdXQg
-SSBoYXZlIGp1c3QgZG9uZSB0aGUgYnVpbGQNCj4gdGVzdC4NCg0KSSB0YWxrZWQgdG8gUnVpIGFi
-b3V0IHRoaXMgcGF0Y2ggc2V0IGFuZCBteSBvdGhlciBwYXRjaCBzZXRzLg0KUnVpIHN1Z2dlc3Rl
-ZCBtZSB0byByZWJhc2UgbXkgcGF0Y2hlcyBvbiB0b3Agb2YgaGlzIGNoYW5nZXMuDQoNClNvLCBJ
-IGhvcGUgUnVpIHdpbGwgYmUgYWJsZSB0byBjbGVhbiB1cCB0aGVzZSAxMiBwYXRjaGVzIGFuZCBz
-dWJtaXQgdGhlbQ0KKGluIGEgd2VlaydzIHRpbWUgOi0pIA0KSSB3aWxsIHJlYmFzZSBteSBwYXRj
-aGVzIG9uIHRvcCBvZiB0aGVtLg0KDQpBbHNvLCBSdWkgcHJvbWlzZWQgbWUgdGhhdCBoZSBjYW4g
-aG9zdCBhIHRyZWUgZm9yIHVzIHRvIGVhc2lseSBwaWNrIHVwIGNoYW5nZXMsIA0KTGV0IHVzIHNl
-ZSA6LSkNCg0KVGhhbmtzLA0KRHVyZ2ENCg==
+Mark function acpi_sfi_table_parse() as __init to avoid warning messages:
+WARNING: vmlinux.o(.text+0x4cd2d2): Section mismatch in reference from the
+function acpi_sfi_table_parse.clone.0() to the function
+.init.text:pci_parse_mcfg()
+
+Function acpi_sfi_table_parse() calls acpi_table_parse() and pci_parse_mcfg(),
+which are both marked as __init. And currently acpi_sfi_table_parse() is used
+by MMCONFIG to scan MCFG table at boot time only, so it's safe to mark
+acpi_sfi_table_parse() as __init.
+
+Signed-off-by: Jiang Liu <liuj97@gmail.com>
+---
+ include/linux/sfi_acpi.h |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/include/linux/sfi_acpi.h b/include/linux/sfi_acpi.h
+index c4a5a8c..631af63 100644
+--- a/include/linux/sfi_acpi.h
++++ b/include/linux/sfi_acpi.h
+@@ -66,7 +66,7 @@ extern int sfi_acpi_table_parse(char *signature, char *oem_id,
+ 				char *oem_table_id,
+ 				int (*handler)(struct acpi_table_header *));
+ 
+-static inline int acpi_sfi_table_parse(char *signature,
++static inline int __init acpi_sfi_table_parse(char *signature,
+ 				int (*handler)(struct acpi_table_header *))
+ {
+ 	if (!acpi_table_parse(signature, handler))
+@@ -83,7 +83,7 @@ static inline int sfi_acpi_table_parse(char *signature, char *oem_id,
+ 	return -1;
+ }
+ 
+-static inline int acpi_sfi_table_parse(char *signature,
++static inline int __init acpi_sfi_table_parse(char *signature,
+ 				int (*handler)(struct acpi_table_header *))
+ {
+ 	return acpi_table_parse(signature, handler);
+-- 
+1.7.1
