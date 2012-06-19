@@ -1,61 +1,73 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: no brightness with acpi video since 3.3 [was Re: Issues with
- the sony-platform module]
-Date: Tue, 19 Jun 2012 08:59:34 +0800
-Message-ID: <1340067574.1682.5.camel@rui.sh.intel.com>
-References: <4FDA2051.3050108@babioch.de>
-	 <20120614203914.GA2645@kamineko.org>
+Subject: Re: [PATCH] Thermal: undo throttling at exit of forced passive mode
+Date: Tue, 19 Jun 2012 09:14:30 +0800
+Message-ID: <1340068470.1682.9.camel@rui.sh.intel.com>
+References: <1340054964-25685-1-git-send-email-jacob.jun.pan@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <20120614203914.GA2645@kamineko.org>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Mattia Dongili <malattia@linux.it>
-Cc: Karol Babioch <karol@babioch.de>, platform-driver-x86@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:56914 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753356Ab2FSBMw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 18 Jun 2012 21:12:52 -0400
+In-Reply-To: <1340054964-25685-1-git-send-email-jacob.jun.pan@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jacob Pan <jacob.jun.pan@linux.intel.com>
+Cc: Len Brown <len.brown@intel.com>, ACPI <linux-acpi@vger.kernel.org>
 
-On =E4=BA=94, 2012-06-15 at 05:39 +0900, Mattia Dongili wrote:
-> On Thu, Jun 14, 2012 at 07:33:05PM +0200, Karol Babioch wrote:
-> > Hi,
-> >=20
-> > I'm a user of the Sony VAIO VPCS12C5E and as such have always strug=
-gled
-> > with the Linux support of my laptop basically forever. Until now I'=
-ve
-> > used the patch provided here [1], which worked quite well for some =
-time.
-> > However since kernel version 3.3 I couldn't change the brightness o=
-f my
-> > screen anymore.
+On =E4=B8=80, 2012-06-18 at 14:29 -0700, Jacob Pan wrote:
+> When a thermal zone is in forced passive mode and temperature is abov=
+e
+> passive trip point, processors are throttled to various states. Howev=
+er,
+> when user disables forced passive throttling, the processors could be
+> left in throttling state even when temperature is below passive trip
+> points.
 >=20
-> This is not an issue with the platform driver but with the acpi video
-> driver.
+> This patch fixes the issue by always undo processor throttling when u=
+ser
+> exits force passive mode. It is safe in that any subsequent thermal c=
+onditions
+> will still be handled according to trip point settings
 >=20
-so ACPI video driver is used before 3.3 and it works?
-please try this patch
-https://bugzilla.kernel.org/attachment.cgi?id=3D73576
-and boot without acpi_backlight=3Dvendor and see if it helps.
+agreed.
+
+Will re-base this patch on top of my changes.
 
 thanks,
 rui
 
-> You can boot with acpi_backlight=3Dvendor and get brightness control =
-back
-> but the issue with acpi_video remains.
+> Signed-off-by: Jacob Pan <jacob.jun.pan@linux.intel.com>
+> ---
+>  drivers/thermal/thermal_sys.c |    4 +++-
+>  1 files changed, 3 insertions(+), 1 deletions(-)
 >=20
-> ...
-> > So, I've uploaded a dmesg log when loading the module with the debu=
-g
-> > option enabled and trying to change the brightness with the fn keys=
- here
-> > [2]. Maybe this is already enough to nail the issue down. Otherwise=
- just
-> > let me know what you would like to have.
->=20
-> please provide your laptop's DSDT table as well.
->=20
-> > [1] https://code.google.com/p/vaio-f11-linux/wiki/KernelSupport
-> > [2] http://pastebin.com/GRrtp024
->=20
-> Thanks
+> diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_=
+sys.c
+> index 022bacb..ea867ff 100644
+> --- a/drivers/thermal/thermal_sys.c
+> +++ b/drivers/thermal/thermal_sys.c
+> @@ -250,10 +250,12 @@ passive_store(struct device *dev, struct device=
+_attribute *attr,
+>  		mutex_lock(&thermal_list_lock);
+>  		list_for_each_entry(cdev, &thermal_cdev_list, node) {
+>  			if (!strncmp("Processor", cdev->type,
+> -				     sizeof("Processor")))
+> +					sizeof("Processor"))) {
+>  				thermal_zone_unbind_cooling_device(tz,
+>  								   THERMAL_TRIPS_NONE,
+>  								   cdev);
+> +				cdev->ops->set_cur_state(cdev, 0);
+> +			}
+>  		}
+>  		mutex_unlock(&thermal_list_lock);
+>  		tz->passive_delay =3D 0;
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
