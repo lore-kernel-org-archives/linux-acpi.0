@@ -1,73 +1,144 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH] Thermal: undo throttling at exit of forced passive mode
-Date: Tue, 19 Jun 2012 09:14:30 +0800
-Message-ID: <1340068470.1682.9.camel@rui.sh.intel.com>
-References: <1340054964-25685-1-git-send-email-jacob.jun.pan@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Huang Ying <ying.huang@intel.com>
+Subject: [PATCH -v6 1/4] ACPI, PM, Specify lowest allowed state for device sleep state
+Date: Tue, 19 Jun 2012 13:20:46 +0800
+Message-ID: <1340083249-16266-2-git-send-email-ying.huang@intel.com>
+References: <1340083249-16266-1-git-send-email-ying.huang@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:56914 "EHLO mga02.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:34603 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753356Ab2FSBMw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 18 Jun 2012 21:12:52 -0400
-In-Reply-To: <1340054964-25685-1-git-send-email-jacob.jun.pan@linux.intel.com>
+	id S1751951Ab2FSFU4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Jun 2012 01:20:56 -0400
+In-Reply-To: <1340083249-16266-1-git-send-email-ying.huang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jacob Pan <jacob.jun.pan@linux.intel.com>
-Cc: Len Brown <len.brown@intel.com>, ACPI <linux-acpi@vger.kernel.org>
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: ming.m.lin@intel.com, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Huang Ying <ying.huang@intel.com>, Zheng Yan <zheng.z.yan@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On =E4=B8=80, 2012-06-18 at 14:29 -0700, Jacob Pan wrote:
-> When a thermal zone is in forced passive mode and temperature is abov=
-e
-> passive trip point, processors are throttled to various states. Howev=
-er,
-> when user disables forced passive throttling, the processors could be
-> left in throttling state even when temperature is below passive trip
-> points.
->=20
-> This patch fixes the issue by always undo processor throttling when u=
-ser
-> exits force passive mode. It is safe in that any subsequent thermal c=
-onditions
-> will still be handled according to trip point settings
->=20
-agreed.
+Lower device sleep state can save more power, but has more exit
+latency too.  Sometimes, to satisfy some power QoS and other
+requirement, we need to constrain the lowest device sleep state.
 
-Will re-base this patch on top of my changes.
+In this patch, a parameter to specify lowest allowed state for
+acpi_pm_device_sleep_state is added.  So that the caller can enforce
+the constraint via the parameter.
 
-thanks,
-rui
+This is needed by PCIe D3cold support, where the lowest power state
+allowed may be D3_HOT instead of default D3_COLD.
 
-> Signed-off-by: Jacob Pan <jacob.jun.pan@linux.intel.com>
-> ---
->  drivers/thermal/thermal_sys.c |    4 +++-
->  1 files changed, 3 insertions(+), 1 deletions(-)
->=20
-> diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_=
-sys.c
-> index 022bacb..ea867ff 100644
-> --- a/drivers/thermal/thermal_sys.c
-> +++ b/drivers/thermal/thermal_sys.c
-> @@ -250,10 +250,12 @@ passive_store(struct device *dev, struct device=
-_attribute *attr,
->  		mutex_lock(&thermal_list_lock);
->  		list_for_each_entry(cdev, &thermal_cdev_list, node) {
->  			if (!strncmp("Processor", cdev->type,
-> -				     sizeof("Processor")))
-> +					sizeof("Processor"))) {
->  				thermal_zone_unbind_cooling_device(tz,
->  								   THERMAL_TRIPS_NONE,
->  								   cdev);
-> +				cdev->ops->set_cur_state(cdev, 0);
-> +			}
->  		}
->  		mutex_unlock(&thermal_list_lock);
->  		tz->passive_delay =3D 0;
+Signed-off-by: Huang Ying <ying.huang@intel.com>
+Reviewed-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
+---
+ drivers/acpi/sleep.c       |   24 +++++++++++++++++++-----
+ drivers/pci/pci-acpi.c     |    3 ++-
+ drivers/pnp/pnpacpi/core.c |    4 ++--
+ include/acpi/acpi_bus.h    |    6 +++---
+ 4 files changed, 26 insertions(+), 11 deletions(-)
 
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -716,8 +716,9 @@ int acpi_suspend(u32 acpi_state)
+  *	@dev: device to examine; its driver model wakeup flags control
+  *		whether it should be able to wake up the system
+  *	@d_min_p: used to store the upper limit of allowed states range
+- *	Return value: preferred power state of the device on success, -ENODEV on
+- *		failure (ie. if there's no 'struct acpi_device' for @dev)
++ *	@d_max_in: specify the lowest allowed states
++ *	Return value: preferred power state of the device on success, -ENODEV
++ *	(ie. if there's no 'struct acpi_device' for @dev) or -EINVAL on failure
+  *
+  *	Find the lowest power (highest number) ACPI device power state that
+  *	device @dev can be in while the system is in the sleep state represented
+@@ -732,13 +733,15 @@ int acpi_suspend(u32 acpi_state)
+  *	via @wake.
+  */
+ 
+-int acpi_pm_device_sleep_state(struct device *dev, int *d_min_p)
++int acpi_pm_device_sleep_state(struct device *dev, int *d_min_p, int d_max_in)
+ {
+ 	acpi_handle handle = DEVICE_ACPI_HANDLE(dev);
+ 	struct acpi_device *adev;
+ 	char acpi_method[] = "_SxD";
+ 	unsigned long long d_min, d_max;
+ 
++	if (d_max_in < ACPI_STATE_D0 || d_max_in > ACPI_STATE_D3)
++		return -EINVAL;
+ 	if (!handle || ACPI_FAILURE(acpi_bus_get_device(handle, &adev))) {
+ 		printk(KERN_DEBUG "ACPI handle has no context!\n");
+ 		return -ENODEV;
+@@ -746,8 +749,10 @@ int acpi_pm_device_sleep_state(struct de
+ 
+ 	acpi_method[2] = '0' + acpi_target_sleep_state;
+ 	/*
+-	 * If the sleep state is S0, we will return D3, but if the device has
+-	 * _S0W, we will use the value from _S0W
++	 * If the sleep state is S0, the lowest limit from ACPI is D3,
++	 * but if the device has _S0W, we will use the value from _S0W
++	 * as the lowest limit from ACPI.  Finally, we will constrain
++	 * the lowest limit with the specified one.
+ 	 */
+ 	d_min = ACPI_STATE_D0;
+ 	d_max = ACPI_STATE_D3;
+@@ -791,8 +796,17 @@ int acpi_pm_device_sleep_state(struct de
+ 		}
+ 	}
+ 
++	if (d_max_in < d_min)
++		return -EINVAL;
+ 	if (d_min_p)
+ 		*d_min_p = d_min;
++	/* constrain d_max with specified lowest limit (max number) */
++	if (d_max > d_max_in) {
++		for (d_max = d_max_in; d_max > d_min; d_max--) {
++			if (adev->power.states[d_max].flags.valid)
++				break;
++		}
++	}
+ 	return d_max;
+ }
+ #endif /* CONFIG_PM */
+--- a/drivers/pci/pci-acpi.c
++++ b/drivers/pci/pci-acpi.c
+@@ -189,7 +189,8 @@ static pci_power_t acpi_pci_choose_state
+ {
+ 	int acpi_state;
+ 
+-	acpi_state = acpi_pm_device_sleep_state(&pdev->dev, NULL);
++	acpi_state = acpi_pm_device_sleep_state(&pdev->dev, NULL,
++						ACPI_STATE_D3);
+ 	if (acpi_state < 0)
+ 		return PCI_POWER_ERROR;
+ 
+--- a/drivers/pnp/pnpacpi/core.c
++++ b/drivers/pnp/pnpacpi/core.c
+@@ -170,8 +170,8 @@ static int pnpacpi_suspend(struct pnp_de
+ 	}
+ 
+ 	if (acpi_bus_power_manageable(handle)) {
+-		int power_state = acpi_pm_device_sleep_state(&dev->dev, NULL);
+-
++		int power_state = acpi_pm_device_sleep_state(&dev->dev, NULL,
++							     ACPI_STATE_D3);
+ 		if (power_state < 0)
+ 			power_state = (state.event == PM_EVENT_ON) ?
+ 					ACPI_STATE_D0 : ACPI_STATE_D3;
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -414,13 +414,13 @@ int acpi_enable_wakeup_device_power(stru
+ int acpi_disable_wakeup_device_power(struct acpi_device *dev);
+ 
+ #ifdef CONFIG_PM
+-int acpi_pm_device_sleep_state(struct device *, int *);
++int acpi_pm_device_sleep_state(struct device *, int *, int);
+ #else
+-static inline int acpi_pm_device_sleep_state(struct device *d, int *p)
++static inline int acpi_pm_device_sleep_state(struct device *d, int *p, int m)
+ {
+ 	if (p)
+ 		*p = ACPI_STATE_D0;
+-	return ACPI_STATE_D3;
++	return (m >= ACPI_STATE_D0 && m <= ACPI_STATE_D3) ? m : ACPI_STATE_D0;
+ }
+ #endif
+ 
