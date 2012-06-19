@@ -1,72 +1,159 @@
-From: Karol Babioch <karol@babioch.de>
-Subject: Re: no brightness with acpi video since 3.3 [was Re: Issues with
- the sony-platform module]
-Date: Tue, 19 Jun 2012 15:57:17 +0200
-Message-ID: <4FE0853D.7050503@babioch.de>
-References: <4FDA2051.3050108@babioch.de>  <20120614203914.GA2645@kamineko.org> <1340067574.1682.5.camel@rui.sh.intel.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [linux-pm] acpi_idle and max_cpus
+Date: Tue, 19 Jun 2012 17:30:29 +0200
+Message-ID: <201206191730.29452.trenn@suse.de>
+References: <4FDB549F.1020002@linaro.org> <4FE0243C.4040600@linux.vnet.ibm.com> <4FE027AC.8010607@linaro.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enigA83E46E41F28B7D921863DA4"
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <1340067574.1682.5.camel@rui.sh.intel.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Mattia Dongili <malattia@linux.it>, platform-driver-x86@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:34834 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752513Ab2FSPae (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Jun 2012 11:30:34 -0400
+In-Reply-To: <4FE027AC.8010607@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, Deepthi Dharwar <deepthi@linux.vnet.ibm.com>, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigA83E46E41F28B7D921863DA4
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+On Tuesday, June 19, 2012 09:18:04 AM Daniel Lezcano wrote:
+> On 06/19/2012 09:03 AM, Srivatsa S. Bhat wrote:
+> > On 06/19/2012 12:24 PM, Deepthi Dharwar wrote:
+> > 
+> >> On 06/18/2012 06:24 PM, Daniel Lezcano wrote:
+> >>
+> >>> On 06/18/2012 02:25 PM, Deepthi Dharwar wrote:
+> >>>> Hi Daniel,
+> >>>>
+> >>>> On 06/18/2012 01:48 AM, Daniel Lezcano wrote:
+> >>>>
+> >>>>> On 06/15/2012 05:28 PM, Daniel Lezcano wrote:
+> >>>>>>
+> >>>>>> Hi all,
+> >>>>>>
+> >>>>>> I have a dual core Intel T9500.
+> >>>>>>
+> >>>>>> I boot the cpu with the acpi_idle driver and intel_idle enabled in the
+> >>>>>> config.
+> >>>>>>
+> >>>>>> The kernel is booted with maxcpus=1.
+> >>>>>>
+> >>>>>> After the system has boot, I put cpu1 online via sysfs.
+> >>>>>>
+> >>>>>> But I don't see any 'cpuidle' directory in the cpu's sysfs entry:
+> >>>>>>
+> >>>>>> /sys/devices/system/cpu/cpu1/cpuidle (?)
+> >>>>>>
+> >>>>>> When I look at the code I see the notifier is present for hotplug in
+> >>>>>> processor_driver.c and the cpuidle intel init routine should be called
+> >>>>>> there.
+> >>>>>>
+> >>>>
+> >>>>
+> >>>> Yes, we have a hotplug notifier.
+> >>>> Commit 99b72508  by Thomas Renninger fixed this issue.
+> >>>>
+> >>>> Please let me know which kernel version you are running and what is idle
+> >>>> driver registered ?
+> >>>
+> >>> The kernel version is 3.5.0-rc1
+> >>> The registered driver is acpi_idle (with intel_idle if I am not wrong).
+> >>>
+> >>> Thomas's patch is in this version.
+> >>>
+> >>> Maybe I am wrong but I think the patch is not correct because:
+> >>>
+> >>> static int __cpuinit acpi_processor_add(struct acpi_device *device)
+> >>> {
+> >>>
+> >>>  ...
+> >>>
+> >>> #ifdef CONFIG_SMP
+> >>> 	if (pr->id >= setup_max_cpus && pr->id != 0)
+> >>> 		return 0;
+> >>> #endif
+> >>>
+> >>>  ...
+> >>>
+> >>> 	per_cpu(processors, pr->id) = pr;
+> >>>
+> >>> ...
+> >>> }
+> >>>
+> >>> With max_cpus=1 we exit before setting up 'pr'.
+> >>>
+> >>> So the condition in:
+> >>>
+> >>> static int acpi_cpu_soft_notify(...)
+> >>> {
+> >>>
+> >>> 	unsigned int cpu = (unsigned long)hcpu;
+> >>> 	struct acpi_processor *pr = per_cpu(processors, cpu);
+> >>>
+> >>> 	if (action == CPU_ONLINE && pr) {
+> >>>
+> >>> ...
+> >>> }
+> >>>
+> >>> Is always false because pr == NULL
+> >>>
+> >>> I did the change but I don't still see the 'cpuidle' directory
+> >>> appearing, I suspect also pr->flags.need_hotplug_init is not correctly
+> >>> initialized but I did not investigate more.
+> >>>
+> >>
+> >>
+> >> Well looks like variable maxcpus holds the key here.
+> >>
+> > 
+> > 
+> > Whose equivalent is setup_max_cpus inside the kernel, as Daniel mentioned.
+> > 
+> >> When I am booting the system, say with 2 out of 4 available cpus,
+> >> set via maxcpus variable with intel_idle or acpi_idle and onlining the
+> >> other 2 cpus later via sysfs, I dont see cpufreq or cpuidle dir in the
+> >> sysfs path.
+> >>
+> >> # cd /sys/devices/system/cpu/cpu2
+> >> xxx:/sys/devices/system/cpu/cpu2# ls
+> >> 	crash_notes  node0  online
+> >> xxx:/sys/devices/system/cpu/cpu2# echo 1 > online
+> >> xxx:/sys/devices/system/cpu/cpu2# ls
+> >> cache  crash_notes  node0  online  thermal_throttle  topology
+> >>
+> >> So looks like its designed that way for now.
+> > 
+> > 
+> > I don't think so. Looks more like a bug than a design ;-)
+> > 
+> >> So if maxcpus=X, X<Y where Y is no of available cpus.
+> >> Enabling the Y-X cpus later after the boot via sysfs is not enabling
+> >> cpuidle and cpufreq .
+> >>
+> >> The question is, do we want to modify this behavior ?
+> >>
+> > 
+> > 
+> > Yes we do, and that's Daniel's pain point as well. I don't think there is
+> > any good reason why the cpuidle directory must _not_ be exported for cpus
+> > that are onlined later.
+> 
+> Yes and if I refer to the code, it is supposed to do that.
+> 
+> I added Thomas in Cc.
 
-Hi,
+maxcpus=X is supposed to statically set the maximum allowed CPUs of the booted
+kernel to X.
+It's not supposed to online cores exceeding X later.
+This is similar to mem=4G, you won't be able to online memory beyond 4G later
+at runtime.
+Strange that one can online cores beyond X later at runtime, this sounds like
+a bug. But maxcpus=X is a debugging variable mostly anyway.
 
-Am 19.06.2012 02:59, schrieb Zhang Rui:
-> so ACPI video driver is used before 3.3 and it works?
-> please try this patch
-> https://bugzilla.kernel.org/attachment.cgi?id=3D73576
-> and boot without acpi_backlight=3Dvendor and see if it helps.
-First of all: Unfortunately I still can't change the brightness. But I
-couldn't reproduce a working solution with 3.3 and earlier (although it
-definitely worked with 3.0/3.1 at some point in the past), so it
-probably isn't your fault.
+The patch I sent some time ago was to fix CPU hotplug on systems where
+a real CPU got added at runtime (without maxcpus being involved).
+Not sure whether such systems got finally sold, afaik they are not.
 
-But the patch fixes another huge problem: It finally let's me boot a
-3.4 kernel with KMS enabled. Beforehand I would get a black/blank
-screen with kernels 3.4 and higher. This was some kind of a regression,
-as I've experienced this kind of issue also with 2.6.38 and earlier. The
-bug is filed here [1] and there are quite a few people affected by
-it. So, thanks a lot for that!
-
-Best regards,
-Karol Babioch
-
-[1] https://bugs.freedesktop.org/show_bug.cgi?id=3D50175
-
-
---------------enigA83E46E41F28B7D921863DA4
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
-
-iQIcBAEBAgAGBQJP4IVAAAoJEHSaZc1HnzIVgfsQAJds9OUmyNF24GgBGuIH+WiA
-W0/oQEDVBy1+NpxhVnrM7CyC4wM9EDNc0l0WHs+xFq4oaNVE1MMFMvrHhM08o1GS
-BgsD5hwC3EbjP5eCYm2qucut8ZX/TerRlKlV55bVEk1rCz762g/Z5rLJ8Md8kR52
-wDMi2wmiG2GYalaKCRKSg1J6+uoggjHpX1oZjnmewl8TalqGPOKP7jxuxO2rGG2P
-4m06XuJ+oPaYCEXmcWRjWVwmqQ0zI415GX3/IgrPvKHBXsU9fkIzuYDN8ogq/3+f
-0vn0CxVv42DQE9B5pe4xnPMRBtGUTSwphJWEkLa2vyZraUyaT9NkJ22p7E70/znL
-qoHC0nOY/W37G0fFqG9cpzivf65SJhzya5IVfVL9PZFp5A4dv1fRT29MQkILT/+d
-cACatjlDKMpvLUUMKdNyxNc1SkCEsDTh5hPpFbzBunoOejnrJiG7me1tbpqH4e3Y
-4UsWal7wNk19tk6qtTcG2uWDnhCteTJVoXppGXWC/tEkVSwff5baqUSt0lydu3dF
-800jm2tqpSXY45NoCiv2c0ODdJkXJLpscdNtLjIQcKnMtqNLjeJbMhcE6a/ow9SM
-1E2EdOtGR507nRTLlsjDX3AUO+h4gV2zwSsibkn4fiEsttSBw1uRBVu/02eLlZyq
-O8w9+IuXvf6YnkwxoLVZ
-=Nw67
------END PGP SIGNATURE-----
-
---------------enigA83E46E41F28B7D921863DA4--
+    Thomas
