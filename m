@@ -1,144 +1,136 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: [PATCH -v6 1/4] ACPI, PM, Specify lowest allowed state for device sleep state
-Date: Tue, 19 Jun 2012 13:20:46 +0800
-Message-ID: <1340083249-16266-2-git-send-email-ying.huang@intel.com>
-References: <1340083249-16266-1-git-send-email-ying.huang@intel.com>
+From: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
+Subject: Re: [linux-pm] acpi_idle and max_cpus
+Date: Tue, 19 Jun 2012 12:24:43 +0530
+Message-ID: <4FE02233.2060809@linux.vnet.ibm.com>
+References: <4FDB549F.1020002@linaro.org> <4FDE3B96.8030306@linaro.org> <4FDF1E3A.6010200@linux.vnet.ibm.com> <4FDF24FE.1010108@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:34603 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751951Ab2FSFU4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 Jun 2012 01:20:56 -0400
-In-Reply-To: <1340083249-16266-1-git-send-email-ying.huang@intel.com>
+Received: from e28smtp06.in.ibm.com ([122.248.162.6]:48608 "EHLO
+	e28smtp06.in.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751816Ab2FSGy5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Jun 2012 02:54:57 -0400
+Received: from /spool/local
+	by e28smtp06.in.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <linux-acpi@vger.kernel.org> from <deepthi@linux.vnet.ibm.com>;
+	Tue, 19 Jun 2012 12:24:53 +0530
+Received: from d28av05.in.ibm.com (d28av05.in.ibm.com [9.184.220.67])
+	by d28relay04.in.ibm.com (8.13.8/8.13.8/NCO v10.0) with ESMTP id q5J6sofu61735024
+	for <linux-acpi@vger.kernel.org>; Tue, 19 Jun 2012 12:24:51 +0530
+Received: from d28av05.in.ibm.com (loopback [127.0.0.1])
+	by d28av05.in.ibm.com (8.14.4/8.13.1/NCO v10.0 AVout) with ESMTP id q5JCPLDZ010389
+	for <linux-acpi@vger.kernel.org>; Tue, 19 Jun 2012 22:25:22 +1000
+In-Reply-To: <4FDF24FE.1010108@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: ming.m.lin@intel.com, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Huang Ying <ying.huang@intel.com>, Zheng Yan <zheng.z.yan@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org
 
-Lower device sleep state can save more power, but has more exit
-latency too.  Sometimes, to satisfy some power QoS and other
-requirement, we need to constrain the lowest device sleep state.
+On 06/18/2012 06:24 PM, Daniel Lezcano wrote:
 
-In this patch, a parameter to specify lowest allowed state for
-acpi_pm_device_sleep_state is added.  So that the caller can enforce
-the constraint via the parameter.
+> On 06/18/2012 02:25 PM, Deepthi Dharwar wrote:
+>> Hi Daniel,
+>>
+>> On 06/18/2012 01:48 AM, Daniel Lezcano wrote:
+>>
+>>> On 06/15/2012 05:28 PM, Daniel Lezcano wrote:
+>>>>
+>>>> Hi all,
+>>>>
+>>>> I have a dual core Intel T9500.
+>>>>
+>>>> I boot the cpu with the acpi_idle driver and intel_idle enabled in the
+>>>> config.
+>>>>
+>>>> The kernel is booted with maxcpus=1.
+>>>>
+>>>> After the system has boot, I put cpu1 online via sysfs.
+>>>>
+>>>> But I don't see any 'cpuidle' directory in the cpu's sysfs entry:
+>>>>
+>>>> /sys/devices/system/cpu/cpu1/cpuidle (?)
+>>>>
+>>>> When I look at the code I see the notifier is present for hotplug in
+>>>> processor_driver.c and the cpuidle intel init routine should be called
+>>>> there.
+>>>>
+>>
+>>
+>> Yes, we have a hotplug notifier.
+>> Commit 99b72508  by Thomas Renninger fixed this issue.
+>>
+>> Please let me know which kernel version you are running and what is idle
+>> driver registered ?
+> 
+> The kernel version is 3.5.0-rc1
+> The registered driver is acpi_idle (with intel_idle if I am not wrong).
+> 
+> Thomas's patch is in this version.
+> 
+> Maybe I am wrong but I think the patch is not correct because:
+> 
+> static int __cpuinit acpi_processor_add(struct acpi_device *device)
+> {
+> 
+>  ...
+> 
+> #ifdef CONFIG_SMP
+> 	if (pr->id >= setup_max_cpus && pr->id != 0)
+> 		return 0;
+> #endif
+> 
+>  ...
+> 
+> 	per_cpu(processors, pr->id) = pr;
+> 
+> ...
+> }
+> 
+> With max_cpus=1 we exit before setting up 'pr'.
+> 
+> So the condition in:
+> 
+> static int acpi_cpu_soft_notify(...)
+> {
+> 
+> 	unsigned int cpu = (unsigned long)hcpu;
+> 	struct acpi_processor *pr = per_cpu(processors, cpu);
+> 
+> 	if (action == CPU_ONLINE && pr) {
+> 
+> ...
+> }
+> 
+> Is always false because pr == NULL
+> 
+> I did the change but I don't still see the 'cpuidle' directory
+> appearing, I suspect also pr->flags.need_hotplug_init is not correctly
+> initialized but I did not investigate more.
+> 
 
-This is needed by PCIe D3cold support, where the lowest power state
-allowed may be D3_HOT instead of default D3_COLD.
 
-Signed-off-by: Huang Ying <ying.huang@intel.com>
-Reviewed-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
----
- drivers/acpi/sleep.c       |   24 +++++++++++++++++++-----
- drivers/pci/pci-acpi.c     |    3 ++-
- drivers/pnp/pnpacpi/core.c |    4 ++--
- include/acpi/acpi_bus.h    |    6 +++---
- 4 files changed, 26 insertions(+), 11 deletions(-)
+Well looks like variable maxcpus holds the key here.
 
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -716,8 +716,9 @@ int acpi_suspend(u32 acpi_state)
-  *	@dev: device to examine; its driver model wakeup flags control
-  *		whether it should be able to wake up the system
-  *	@d_min_p: used to store the upper limit of allowed states range
-- *	Return value: preferred power state of the device on success, -ENODEV on
-- *		failure (ie. if there's no 'struct acpi_device' for @dev)
-+ *	@d_max_in: specify the lowest allowed states
-+ *	Return value: preferred power state of the device on success, -ENODEV
-+ *	(ie. if there's no 'struct acpi_device' for @dev) or -EINVAL on failure
-  *
-  *	Find the lowest power (highest number) ACPI device power state that
-  *	device @dev can be in while the system is in the sleep state represented
-@@ -732,13 +733,15 @@ int acpi_suspend(u32 acpi_state)
-  *	via @wake.
-  */
- 
--int acpi_pm_device_sleep_state(struct device *dev, int *d_min_p)
-+int acpi_pm_device_sleep_state(struct device *dev, int *d_min_p, int d_max_in)
- {
- 	acpi_handle handle = DEVICE_ACPI_HANDLE(dev);
- 	struct acpi_device *adev;
- 	char acpi_method[] = "_SxD";
- 	unsigned long long d_min, d_max;
- 
-+	if (d_max_in < ACPI_STATE_D0 || d_max_in > ACPI_STATE_D3)
-+		return -EINVAL;
- 	if (!handle || ACPI_FAILURE(acpi_bus_get_device(handle, &adev))) {
- 		printk(KERN_DEBUG "ACPI handle has no context!\n");
- 		return -ENODEV;
-@@ -746,8 +749,10 @@ int acpi_pm_device_sleep_state(struct de
- 
- 	acpi_method[2] = '0' + acpi_target_sleep_state;
- 	/*
--	 * If the sleep state is S0, we will return D3, but if the device has
--	 * _S0W, we will use the value from _S0W
-+	 * If the sleep state is S0, the lowest limit from ACPI is D3,
-+	 * but if the device has _S0W, we will use the value from _S0W
-+	 * as the lowest limit from ACPI.  Finally, we will constrain
-+	 * the lowest limit with the specified one.
- 	 */
- 	d_min = ACPI_STATE_D0;
- 	d_max = ACPI_STATE_D3;
-@@ -791,8 +796,17 @@ int acpi_pm_device_sleep_state(struct de
- 		}
- 	}
- 
-+	if (d_max_in < d_min)
-+		return -EINVAL;
- 	if (d_min_p)
- 		*d_min_p = d_min;
-+	/* constrain d_max with specified lowest limit (max number) */
-+	if (d_max > d_max_in) {
-+		for (d_max = d_max_in; d_max > d_min; d_max--) {
-+			if (adev->power.states[d_max].flags.valid)
-+				break;
-+		}
-+	}
- 	return d_max;
- }
- #endif /* CONFIG_PM */
---- a/drivers/pci/pci-acpi.c
-+++ b/drivers/pci/pci-acpi.c
-@@ -189,7 +189,8 @@ static pci_power_t acpi_pci_choose_state
- {
- 	int acpi_state;
- 
--	acpi_state = acpi_pm_device_sleep_state(&pdev->dev, NULL);
-+	acpi_state = acpi_pm_device_sleep_state(&pdev->dev, NULL,
-+						ACPI_STATE_D3);
- 	if (acpi_state < 0)
- 		return PCI_POWER_ERROR;
- 
---- a/drivers/pnp/pnpacpi/core.c
-+++ b/drivers/pnp/pnpacpi/core.c
-@@ -170,8 +170,8 @@ static int pnpacpi_suspend(struct pnp_de
- 	}
- 
- 	if (acpi_bus_power_manageable(handle)) {
--		int power_state = acpi_pm_device_sleep_state(&dev->dev, NULL);
--
-+		int power_state = acpi_pm_device_sleep_state(&dev->dev, NULL,
-+							     ACPI_STATE_D3);
- 		if (power_state < 0)
- 			power_state = (state.event == PM_EVENT_ON) ?
- 					ACPI_STATE_D0 : ACPI_STATE_D3;
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -414,13 +414,13 @@ int acpi_enable_wakeup_device_power(stru
- int acpi_disable_wakeup_device_power(struct acpi_device *dev);
- 
- #ifdef CONFIG_PM
--int acpi_pm_device_sleep_state(struct device *, int *);
-+int acpi_pm_device_sleep_state(struct device *, int *, int);
- #else
--static inline int acpi_pm_device_sleep_state(struct device *d, int *p)
-+static inline int acpi_pm_device_sleep_state(struct device *d, int *p, int m)
- {
- 	if (p)
- 		*p = ACPI_STATE_D0;
--	return ACPI_STATE_D3;
-+	return (m >= ACPI_STATE_D0 && m <= ACPI_STATE_D3) ? m : ACPI_STATE_D0;
- }
- #endif
- 
+When I am booting the system, say with 2 out of 4 available cpus,
+set via maxcpus variable with intel_idle or acpi_idle and onlining the
+other 2 cpus later via sysfs, I dont see cpufreq or cpuidle dir in the
+sysfs path.
+
+# cd /sys/devices/system/cpu/cpu2
+xxx:/sys/devices/system/cpu/cpu2# ls
+	crash_notes  node0  online
+xxx:/sys/devices/system/cpu/cpu2# echo 1 > online
+xxx:/sys/devices/system/cpu/cpu2# ls
+cache  crash_notes  node0  online  thermal_throttle  topology
+
+So looks like its designed that way for now.
+So if maxcpus=X, X<Y where Y is no of available cpus.
+Enabling the Y-X cpus later after the boot via sysfs is not enabling
+cpuidle and cpufreq .
+
+The question is, do we want to modify this behavior ?
+
+Cheers,
+Deepthi
+
