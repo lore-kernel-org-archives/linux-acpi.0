@@ -1,64 +1,60 @@
-From: Karol Babioch <karol@babioch.de>
-Subject: Re: no brightness with acpi video since 3.3 [was Re: Issues with
- the sony-platform module]
-Date: Tue, 19 Jun 2012 12:48:51 +0200
-Message-ID: <4FE05913.2020105@babioch.de>
-References: <20120615113637.GA5904@kamineko.org> <4FDB5202.706@babioch.de> <20120615223711.GA31180@kamineko.org> <4FDBC183.7050203@babioch.de> <20120616025223.GA5200@kamineko.org> <4FDC6D0A.8080505@babioch.de> <20120616130705.GB2326@kamineko.org> <4FDCCB79.9090305@babioch.de> <20120616231658.GC2326@kamineko.org> <4FDDB67F.7090704@babioch.de> <20120618221905.GA20324@kamineko.org>
+From: "R, Durgadoss" <durgadoss.r@intel.com>
+Subject: RE: [RFC PATCH 0/12] generic thermal layer enhancement
+Date: Tue, 19 Jun 2012 11:31:21 +0000
+Message-ID: <4D68720C2E767A4AA6A8796D42C8EB591444A0@BGSMSX101.gar.corp.intel.com>
+References: <1339384751.1492.153.camel@rui.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enigB28568E3EC30BADD72A221F5"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from babioch.de ([176.9.120.167]:37083 "EHLO babioch.de"
+Received: from mga01.intel.com ([192.55.52.88]:5379 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752246Ab2FSKs5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 Jun 2012 06:48:57 -0400
-In-Reply-To: <20120618221905.GA20324@kamineko.org>
+	id S1751561Ab2FSLbX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Jun 2012 07:31:23 -0400
+In-Reply-To: <1339384751.1492.153.camel@rui.sh.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mattia Dongili <malattia@linux.it>
-Cc: platform-driver-x86@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+To: "Zhang, Rui" <rui.zhang@intel.com>, linux-pm <linux-pm@lists.linux-foundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: Amit Kachhap <amit.kachhap@linaro.org>, eduardo <eduardo.valentin@ti.com>, "Len, Brown" <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigB28568E3EC30BADD72A221F5
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-Am 19.06.2012 00:19, schrieb Mattia Dongili:
-> Can you also switch to the second video card (do you have one) and try
-> if brightness regulation works?
-No, unfortunately I can't. The second video card is the one integrated
-into the CPU. There is no way for me to switch to it.This is reserved
-for the more expensive Z series. So I'm forced to use the NVIDIA one.
-
-Best regards,
-Karol Babioch
-
-
---------------enigB28568E3EC30BADD72A221F5
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
-
-iQIcBAEBAgAGBQJP4FkTAAoJEHSaZc1HnzIV8zYQAL40IzpzjOTqqSRojiA3HexY
-l+dmmITKqrj0H0vHubw7NkkrbBUWXV+CfTx8GDtXcmOjBbLNPY5DfrXHw5+Dmz00
-qswbU7iYTkaSrYcglu39l3z+dyW5RrMRzNhXoGrLqFoR6L78oJ1APFzUh6DLodkP
-wW5V8EzDx/OIOhIHkuJ/O9AsLgaVTvkWr5uwIloH8iJcO565a1R9tz2y2WvYpSPA
-c0Gb5fYEbmbBs1d7OO6HWQcgiOtXJwXNFb6ftstgoMK3L/Rei6/PuhwN/SawJTfs
-2srb+ppoEUFfyAvD4Le3n7M2i6gDmvzaKwrGsWPqXma43cxPV0tIcKPOdisrPDN9
-LQYfTZFqTKGZkH5Zqks2KFdCAp+seZYLiF1TlWAC5yU2Giq45H8d0lh6XECw2wfm
-E24e1tiZMFEw5ds3Gn2kY/0M/mag9mAIZNHdRl9OGh0mlKNdqxgV8l9q35IxX86K
-z+xc9DLKqGDmMOmr3ldMpGe2ufIOYYGLeIzfL9fJag28wZidEcytCOH7/S5p9zqp
-eCbg1evxLMR5xmHpDiO3ds588OuCLZQk8z1pS1/oBTqLNVCG9u3HTjeXM17gBDuI
-9LN5mvs5/JGLOAlQYJf4gT3EPgfrsRZpWm49dw4j00qAEMDzShVZMuE8EIg1FKpe
-+eV690TkijOsvXPlUtaT
-=Ur71
------END PGP SIGNATURE-----
-
---------------enigB28568E3EC30BADD72A221F5--
+SGkgQWxsLA0KDQo+IFRoZSB3aG9sZSBpZGVhIGlzDQo+IDEpIG1ha2Ugc3VyZSB3ZSBoYXZlIG11
+bHRpcGxlIGNvb2xpbmcgc3RhdGVzIGZvciBib3RoIGFjdGl2ZSBjb29saW5nIGFuZA0KPiAgICBw
+YXNzaXZlIGNvb2xpbmcgZGV2aWNlcy4gKHBhdGNoIDEsMiwzKQ0KPiAyKSByZW1vdmUgcGFzc2l2
+ZSBzcGVjaWZpYyByZXF1aXJlbWVudCwgYWthLCB0YzEvdGMyLCBhbmQNCj4gICAgaW50cm9kdWNl
+IC5nZXRfdHJlbmQoKSBpbnN0ZWFkLCBmb3IgYm90aCBhY3RpdmUgYW5kIHBhc3NpdmUgY29vbGlu
+Zw0KPiAgICBhbGdvcml0aG0uIChwYXRjaCA0LDUpDQo+IDMpIGludHJvZHVjZSBuZXcgZnVuY3Rp
+b24gdGhlcm1hbF96b25lX3RyaXBfdXBkYXRlKCksIHRoaXMgY29udGFpbnMgdGhlDQo+ICAgIGNv
+ZGUgZm9yIHRoZSBnZW5lcmFsIGNvb2xpbmcgYWxnb3JpdGhtLiAocGF0Y2ggNikNCj4gNCkgcmVu
+YW1lIHNvbWUgdGhlcm1hbCBzdHJ1Y3R1cmVzLiBVc2UgdGhlcm1hbF9pbnN0YW5jZSBpbnN0ZWFk
+IG9mDQo+ICAgIHRoZXJtYWxfY29vbGluZ19kZXZpY2VfaW5zdGFuY2UsIGFzIHRoaXMgc3RydWN0
+dXJlIGlzIHVzZWQgdG8NCj4gICAgZGVzY3JpYmUgdGhlIGJlaGF2aW9yIG9mIGEgY2VydGFpbiBj
+b29saW5nIGRldmljZSBmb3IgYSBjZXJ0YWluIHRyaXANCj4gICAgcG9pbnQgaW4gYSBjZXJ0YWlu
+IHRoZXJtYWwgem9uZS4NCj4gICAgdGhlcm1hbF96b25lX2RldmljZSBoYXMgYSBsaXN0IG9mIGFs
+bCB0aGUgdGhlcm1hbCBpbnN0YW5jZXMgaW4gdGhpcw0KPiAgICB0aGVybWFsIHpvbmUgc28gdGhh
+dCBpdCBjYW4gdXBkYXRlIHRoZW0gd2hlbiB0aGUgdGVtcGVyYXR1cmUgY2hhbmdlcy4NCj4gICAg
+dGhlcm1hbF9jb29saW5nX2RldmljZSBoYXMgYSBsaXN0IG9mIGFsbCB0aGUgdGhlcm1hbCBpbnN0
+YW5jZXMgZm9yDQo+ICAgIHRoaXMgY29vbGluZyBkZXZpY2Ugc28gdGhhdCBpdCBjYW4gbWFrZSBk
+ZWNpc2lvbiB3aGljaCBjb29saW5nIHN0YXRlDQo+ICAgIHNob3VsZCBiZSBpbiB3aGVuIHRoZSB0
+ZW1wZXJhdHVyZSBjaGFuZ2VzLiAocGF0Y2ggNyw4LDksMTApDQo+IDUpIGludHJvZHVjZSBhIHNp
+bXBsZSBhcmJpdHJhdG9yLiAocGF0Y2ggMTEpDQo+ICAgIFdoZW4gdGVtcGVyYXR1cmUgY2hhbmdl
+cywgd2UgdXBkYXRlIGEgdGhlcm1hbCB6b25lIGluIHR3byBzdGFnZXMsDQo+ICAgIGEpIHRoZXJt
+YWxfem9uZV90cmlwX3BvaW50KCkgaXMgdGhlIGdlbmVyYWwgY29vbGluZyBhbGdvcml0aG0gdG8N
+Cj4gICAgICAgdXBkYXRlIHRoZSB0aGVybWFsIGluc3RhbmNlcyBpbiB0aGUgdGhlcm1hbCB6b25l
+IGRldmljZQ0KPiAgICBiKSB0aGVybWFsX3pvbmVfZG9fdXBkYXRlKCkgaXMgdGhlIGFyYml0cmF0
+b3IgZm9yIHRoZSBjb29saW5nIGRldmljZQ0KPiAgICAgICB0byBjaG9vc2UgdGhlIGRlZXBlc3Qg
+Y29vbGluZyBzdGF0ZSByZXF1aXJlZCB0byBlbnRlci4NCj4gNikgdW5pZnkgdGhlIGNvZGUgZm9y
+IGJvdGggcGFzc2l2ZSBhbmQgYWN0aXZlIGNvb2xpbmcuDQo+IA0KPiBUT0RPLCBhZGQgbG9ja2lu
+ZyBtZWNoYW5pc20uIEkga25vdyB0aGlzIGlzIGltcG9ydGFudCBidXQgYXMgdGhpcyBwYXRjaA0K
+PiBzZXQgY2hhbmdlcyB0aGUgdGhlcm1hbCBsYXllciBhIGxvdCwgSSBqdXN0IHdhbnQgdG8gbWFr
+ZSBzdXJlIEknbSBpbiB0aGUNCj4gcmlnaHQgZGlyZWN0aW9uIGJlZm9yZSBnb2luZyBvbi4NCj4g
+DQo+IEJUVywgaW4gdGhlb3J5LCB0aGV5IHNob3VsZCBtYWtlIG5vIGNoYW5nZSB0byB0aGUgYmVo
+YXZpb3Igb2YgdGhlDQo+IGN1cnJlbnQgZ2VuZXJpYyB0aGVybWFsIGxheWVyIHVzZXJzLiBCdXQg
+SSBoYXZlIGp1c3QgZG9uZSB0aGUgYnVpbGQNCj4gdGVzdC4NCg0KSSB0YWxrZWQgdG8gUnVpIGFi
+b3V0IHRoaXMgcGF0Y2ggc2V0IGFuZCBteSBvdGhlciBwYXRjaCBzZXRzLg0KUnVpIHN1Z2dlc3Rl
+ZCBtZSB0byByZWJhc2UgbXkgcGF0Y2hlcyBvbiB0b3Agb2YgaGlzIGNoYW5nZXMuDQoNClNvLCBJ
+IGhvcGUgUnVpIHdpbGwgYmUgYWJsZSB0byBjbGVhbiB1cCB0aGVzZSAxMiBwYXRjaGVzIGFuZCBz
+dWJtaXQgdGhlbQ0KKGluIGEgd2VlaydzIHRpbWUgOi0pIA0KSSB3aWxsIHJlYmFzZSBteSBwYXRj
+aGVzIG9uIHRvcCBvZiB0aGVtLg0KDQpBbHNvLCBSdWkgcHJvbWlzZWQgbWUgdGhhdCBoZSBjYW4g
+aG9zdCBhIHRyZWUgZm9yIHVzIHRvIGVhc2lseSBwaWNrIHVwIGNoYW5nZXMsIA0KTGV0IHVzIHNl
+ZSA6LSkNCg0KVGhhbmtzLA0KRHVyZ2ENCg==
