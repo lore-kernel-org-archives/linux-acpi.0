@@ -1,159 +1,29 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [linux-pm] acpi_idle and max_cpus
-Date: Tue, 19 Jun 2012 17:30:29 +0200
-Message-ID: <201206191730.29452.trenn@suse.de>
-References: <4FDB549F.1020002@linaro.org> <4FE0243C.4040600@linux.vnet.ibm.com> <4FE027AC.8010607@linaro.org>
+From: Dave Jones <davej@redhat.com>
+Subject: oops when BIOS presents multiple ACAD entries.
+Date: Tue, 19 Jun 2012 13:34:44 -0400
+Message-ID: <20120619173444.GH26103@redhat.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:34834 "EHLO mx2.suse.de"
+Received: from mx1.redhat.com ([209.132.183.28]:27632 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752513Ab2FSPae (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 Jun 2012 11:30:34 -0400
-In-Reply-To: <4FE027AC.8010607@linaro.org>
+	id S1752053Ab2FSRer (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Jun 2012 13:34:47 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, Deepthi Dharwar <deepthi@linux.vnet.ibm.com>, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org
+To: linux-acpi@vger.kernel.org
+Cc: Fedora Kernel Team <kernel-team@fedoraproject.org>
 
-On Tuesday, June 19, 2012 09:18:04 AM Daniel Lezcano wrote:
-> On 06/19/2012 09:03 AM, Srivatsa S. Bhat wrote:
-> > On 06/19/2012 12:24 PM, Deepthi Dharwar wrote:
-> > 
-> >> On 06/18/2012 06:24 PM, Daniel Lezcano wrote:
-> >>
-> >>> On 06/18/2012 02:25 PM, Deepthi Dharwar wrote:
-> >>>> Hi Daniel,
-> >>>>
-> >>>> On 06/18/2012 01:48 AM, Daniel Lezcano wrote:
-> >>>>
-> >>>>> On 06/15/2012 05:28 PM, Daniel Lezcano wrote:
-> >>>>>>
-> >>>>>> Hi all,
-> >>>>>>
-> >>>>>> I have a dual core Intel T9500.
-> >>>>>>
-> >>>>>> I boot the cpu with the acpi_idle driver and intel_idle enabled in the
-> >>>>>> config.
-> >>>>>>
-> >>>>>> The kernel is booted with maxcpus=1.
-> >>>>>>
-> >>>>>> After the system has boot, I put cpu1 online via sysfs.
-> >>>>>>
-> >>>>>> But I don't see any 'cpuidle' directory in the cpu's sysfs entry:
-> >>>>>>
-> >>>>>> /sys/devices/system/cpu/cpu1/cpuidle (?)
-> >>>>>>
-> >>>>>> When I look at the code I see the notifier is present for hotplug in
-> >>>>>> processor_driver.c and the cpuidle intel init routine should be called
-> >>>>>> there.
-> >>>>>>
-> >>>>
-> >>>>
-> >>>> Yes, we have a hotplug notifier.
-> >>>> Commit 99b72508  by Thomas Renninger fixed this issue.
-> >>>>
-> >>>> Please let me know which kernel version you are running and what is idle
-> >>>> driver registered ?
-> >>>
-> >>> The kernel version is 3.5.0-rc1
-> >>> The registered driver is acpi_idle (with intel_idle if I am not wrong).
-> >>>
-> >>> Thomas's patch is in this version.
-> >>>
-> >>> Maybe I am wrong but I think the patch is not correct because:
-> >>>
-> >>> static int __cpuinit acpi_processor_add(struct acpi_device *device)
-> >>> {
-> >>>
-> >>>  ...
-> >>>
-> >>> #ifdef CONFIG_SMP
-> >>> 	if (pr->id >= setup_max_cpus && pr->id != 0)
-> >>> 		return 0;
-> >>> #endif
-> >>>
-> >>>  ...
-> >>>
-> >>> 	per_cpu(processors, pr->id) = pr;
-> >>>
-> >>> ...
-> >>> }
-> >>>
-> >>> With max_cpus=1 we exit before setting up 'pr'.
-> >>>
-> >>> So the condition in:
-> >>>
-> >>> static int acpi_cpu_soft_notify(...)
-> >>> {
-> >>>
-> >>> 	unsigned int cpu = (unsigned long)hcpu;
-> >>> 	struct acpi_processor *pr = per_cpu(processors, cpu);
-> >>>
-> >>> 	if (action == CPU_ONLINE && pr) {
-> >>>
-> >>> ...
-> >>> }
-> >>>
-> >>> Is always false because pr == NULL
-> >>>
-> >>> I did the change but I don't still see the 'cpuidle' directory
-> >>> appearing, I suspect also pr->flags.need_hotplug_init is not correctly
-> >>> initialized but I did not investigate more.
-> >>>
-> >>
-> >>
-> >> Well looks like variable maxcpus holds the key here.
-> >>
-> > 
-> > 
-> > Whose equivalent is setup_max_cpus inside the kernel, as Daniel mentioned.
-> > 
-> >> When I am booting the system, say with 2 out of 4 available cpus,
-> >> set via maxcpus variable with intel_idle or acpi_idle and onlining the
-> >> other 2 cpus later via sysfs, I dont see cpufreq or cpuidle dir in the
-> >> sysfs path.
-> >>
-> >> # cd /sys/devices/system/cpu/cpu2
-> >> xxx:/sys/devices/system/cpu/cpu2# ls
-> >> 	crash_notes  node0  online
-> >> xxx:/sys/devices/system/cpu/cpu2# echo 1 > online
-> >> xxx:/sys/devices/system/cpu/cpu2# ls
-> >> cache  crash_notes  node0  online  thermal_throttle  topology
-> >>
-> >> So looks like its designed that way for now.
-> > 
-> > 
-> > I don't think so. Looks more like a bug than a design ;-)
-> > 
-> >> So if maxcpus=X, X<Y where Y is no of available cpus.
-> >> Enabling the Y-X cpus later after the boot via sysfs is not enabling
-> >> cpuidle and cpufreq .
-> >>
-> >> The question is, do we want to modify this behavior ?
-> >>
-> > 
-> > 
-> > Yes we do, and that's Daniel's pain point as well. I don't think there is
-> > any good reason why the cpuidle directory must _not_ be exported for cpus
-> > that are onlined later.
-> 
-> Yes and if I refer to the code, it is supposed to do that.
-> 
-> I added Thomas in Cc.
+We had a user report an oops at https://bugzilla.redhat.com/show_bug.cgi?id=772730
+against 3.1.6 (bug probably goes back further, afaict, this never worked).
+Every time there's a power event, he gets the oops.
 
-maxcpus=X is supposed to statically set the maximum allowed CPUs of the booted
-kernel to X.
-It's not supposed to online cores exceeding X later.
-This is similar to mem=4G, you won't be able to online memory beyond 4G later
-at runtime.
-Strange that one can online cores beyond X later at runtime, this sounds like
-a bug. But maxcpus=X is a debugging variable mostly anyway.
+Josh brought this here back in January, but the thread kind of went nowhere..
+http://marc.info/?l=linux-acpi&m=132621492819249&w=2
 
-The patch I sent some time ago was to fix CPU hotplug on systems where
-a real CPU got added at runtime (without maxcpus being involved).
-Not sure whether such systems got finally sold, afaik they are not.
+It's still a problem against 3.4.2. Any hopes for resolution here?
 
-    Thomas
+	Dave
+
+
