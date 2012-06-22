@@ -1,47 +1,43 @@
-From: Jeff Garzik <jgarzik@pobox.com>
-Subject: Re: [PATCH v5 0/13] SATA ZPODD support
-Date: Fri, 22 Jun 2012 14:41:29 -0400
-Message-ID: <4FE4BC59.20400@pobox.com>
-References: <1340000766-129148-1-git-send-email-ming.m.lin@intel.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [Bug 41722] Clevo M5X0JE hangs in ACPI init
+Date: Fri, 22 Jun 2012 13:32:18 -0600
+Message-ID: <CAErSpo5wqB2v=MH2V4DDoHfLsK4q6y2D_iXasUp+ATJCxpikkw@mail.gmail.com>
+References: <bug-41722-41252@https.bugzilla.kernel.org/> <20120622102904.12F5411F7FA@bugzilla.kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <1340000766-129148-1-git-send-email-ming.m.lin@intel.com>
-Sender: linux-ide-owner@vger.kernel.org
-To: Lin Ming <ming.m.lin@intel.com>
-Cc: Aaron Lu <aaron.lu@amd.com>, Holger Macht <holger@homac.de>, Matthew Garrett <mjg@redhat.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, David Woodhouse <David.Woodhouse@intel.com>, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:46496 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756203Ab2FVTck convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Jun 2012 15:32:40 -0400
+Received: by lbbgm6 with SMTP id gm6so4015293lbb.19
+        for <linux-acpi@vger.kernel.org>; Fri, 22 Jun 2012 12:32:38 -0700 (PDT)
+In-Reply-To: <20120622102904.12F5411F7FA@bugzilla.kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: =?ISO-8859-1?Q?Rog=E9rio_Brito?= <rbrito@ime.usp.br>
+Cc: linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Len Brown <lenb@kernel.org>, bugzilla-daemon@bugzilla.kernel.org
 
-On 06/18/2012 02:25 AM, Lin Ming wrote:
-> Hi all,
->
-> This is the v5 patches to add SATA ZPODD support, to try it:
-> git pull git://git.kernel.org/pub/scm/linux/kernel/git/mlin/linux.git zpodd
->
-> Holger and Mathtew,
-> Patch 1 to Patch 4 are the libata acpi binding patches from you.
-> I removed dock related code from your original version.
-> Would you help to review?
->
-> v5:
-> - rebase to v3.5-rc3
-> - fixed crash reported at https://lkml.org/lkml/2012/2/24/2 (Aaron Lu)
-> - rename is_pci_ata to compat_pci_ata (Alan Cox)
->
-> v4:
-> https://lkml.org/lkml/2012/5/28/11
-> - Includes libata acpi binding patches from Holger Macht and Matthew Garrett.
-> - tell scsi layer device supports runtime power off
-> - check support for device busy class events
+> https://bugzilla.kernel.org/show_bug.cgi?id=3D41722
 
-In the case of this patchset, the main worry are the crashes that were 
-introduced by the Macht/Garrett patchset.  Finally with v5 that 
-longstanding problem has been resolved, so we can move forward and get 
-this into linux-next (libata-dev.git#upstream).
+This system boots Windows fine, but hangs when Linux does an
+outb(0x142e) to enable ACPI mode.  Len suggests that this enters SMM
+mode, where the BIOS does stuff which we basically cannot debug.  Len
+did hazard a guess that MTRR config is a possible difference between
+Linux and Windows.
 
-	Jeff
+I think we can figure out the Linux MTRR config from the dmesg of a
+boot with "acpi=3Doff".  Rog=E9rio, would you mind attaching that log h=
+ere
+(it's OK if you need to apply the transparent bridge reversion patch).
 
-
-
-
+Then, since I think you do have Windows on the box, can you use a free
+trial version of AIDA64 (http://www.aida64.com/) to collect a complete
+system report and attach that as well?  With luck, we can extract the
+MTRR config under Windows from that.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
