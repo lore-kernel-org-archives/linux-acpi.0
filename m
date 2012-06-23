@@ -1,7 +1,7 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 2/21] ACPI / PM: Make acpi_bus_type use struct dev_pm_ops for PM handling
-Date: Sat, 23 Jun 2012 23:08:36 +0200
-Message-ID: <201206232308.37321.rjw@sisk.pl>
+Subject: [PATCH 1/21] ACPI / PM: Drop pm_message_t argument from device suspend callback
+Date: Sat, 23 Jun 2012 23:08:05 +0200
+Message-ID: <201206232308.05616.rjw@sisk.pl>
 References: <201206232306.06602.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
@@ -16,48 +16,136 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Make the acpi_bus_type bus type define its PM callbacks through
-a struct dev_pm_ops object rather than by using legacy PM hooks
-in struct bus_type.
+None of the drivers implementing the ACPI device suspend callback
+uses the pm_message_t argument of it, so this argument may be dropped
+entirely from that callback.  This will simplify switching the ACPI
+bus type to PM handling based on struct dev_pm_ops.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- drivers/acpi/scan.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/acpi/fan.c                  |    4 ++--
+ drivers/acpi/processor_idle.c       |    2 +-
+ drivers/acpi/scan.c                 |    2 +-
+ drivers/char/sonypi.c               |    2 +-
+ drivers/platform/x86/hp_accel.c     |    2 +-
+ drivers/platform/x86/sony-laptop.c  |    2 +-
+ drivers/platform/x86/toshiba_acpi.c |    3 +--
+ include/acpi/acpi_bus.h             |    3 +--
+ include/acpi/processor.h            |    2 +-
+ 9 files changed, 10 insertions(+), 12 deletions(-)
 
+Index: linux/include/acpi/acpi_bus.h
+===================================================================
+--- linux.orig/include/acpi/acpi_bus.h
++++ linux/include/acpi/acpi_bus.h
+@@ -117,8 +117,7 @@ struct acpi_device;
+ typedef int (*acpi_op_add) (struct acpi_device * device);
+ typedef int (*acpi_op_remove) (struct acpi_device * device, int type);
+ typedef int (*acpi_op_start) (struct acpi_device * device);
+-typedef int (*acpi_op_suspend) (struct acpi_device * device,
+-				pm_message_t state);
++typedef int (*acpi_op_suspend) (struct acpi_device * device);
+ typedef int (*acpi_op_resume) (struct acpi_device * device);
+ typedef int (*acpi_op_bind) (struct acpi_device * device);
+ typedef int (*acpi_op_unbind) (struct acpi_device * device);
+Index: linux/drivers/acpi/fan.c
+===================================================================
+--- linux.orig/drivers/acpi/fan.c
++++ linux/drivers/acpi/fan.c
+@@ -46,7 +46,7 @@ MODULE_LICENSE("GPL");
+ 
+ static int acpi_fan_add(struct acpi_device *device);
+ static int acpi_fan_remove(struct acpi_device *device, int type);
+-static int acpi_fan_suspend(struct acpi_device *device, pm_message_t state);
++static int acpi_fan_suspend(struct acpi_device *device);
+ static int acpi_fan_resume(struct acpi_device *device);
+ 
+ static const struct acpi_device_id fan_device_ids[] = {
+@@ -183,7 +183,7 @@ static int acpi_fan_remove(struct acpi_d
+ 	return 0;
+ }
+ 
+-static int acpi_fan_suspend(struct acpi_device *device, pm_message_t state)
++static int acpi_fan_suspend(struct acpi_device *device)
+ {
+ 	if (!device)
+ 		return -EINVAL;
 Index: linux/drivers/acpi/scan.c
 ===================================================================
 --- linux.orig/drivers/acpi/scan.c
 +++ linux/drivers/acpi/scan.c
-@@ -290,7 +290,7 @@ static void acpi_device_release(struct d
- 	kfree(acpi_dev);
- }
- 
--static int acpi_device_suspend(struct device *dev, pm_message_t state)
-+static int acpi_device_suspend(struct device *dev)
- {
- 	struct acpi_device *acpi_dev = to_acpi_device(dev);
+@@ -296,7 +296,7 @@ static int acpi_device_suspend(struct de
  	struct acpi_driver *acpi_drv = acpi_dev->driver;
-@@ -310,6 +310,8 @@ static int acpi_device_resume(struct dev
+ 
+ 	if (acpi_drv && acpi_drv->ops.suspend)
+-		return acpi_drv->ops.suspend(acpi_dev, state);
++		return acpi_drv->ops.suspend(acpi_dev);
  	return 0;
  }
  
-+static SIMPLE_DEV_PM_OPS(acpi_bus_pm, acpi_device_suspend, acpi_device_resume);
-+
- static int acpi_bus_match(struct device *dev, struct device_driver *drv)
+Index: linux/drivers/acpi/processor_idle.c
+===================================================================
+--- linux.orig/drivers/acpi/processor_idle.c
++++ linux/drivers/acpi/processor_idle.c
+@@ -241,7 +241,7 @@ static void acpi_idle_bm_rld_restore(voi
+ 		acpi_write_bit_register(ACPI_BITREG_BUS_MASTER_RLD, saved_bm_rld);
+ }
+ 
+-int acpi_processor_suspend(struct acpi_device * device, pm_message_t state)
++int acpi_processor_suspend(struct acpi_device * device)
  {
- 	struct acpi_device *acpi_dev = to_acpi_device(dev);
-@@ -441,12 +443,11 @@ static int acpi_device_remove(struct dev
+ 	if (acpi_idle_suspend == 1)
+ 		return 0;
+Index: linux/drivers/platform/x86/toshiba_acpi.c
+===================================================================
+--- linux.orig/drivers/platform/x86/toshiba_acpi.c
++++ linux/drivers/platform/x86/toshiba_acpi.c
+@@ -1296,8 +1296,7 @@ static void toshiba_acpi_notify(struct a
+ 	}
+ }
  
- struct bus_type acpi_bus_type = {
- 	.name		= "acpi",
--	.suspend	= acpi_device_suspend,
--	.resume		= acpi_device_resume,
- 	.match		= acpi_bus_match,
- 	.probe		= acpi_device_probe,
- 	.remove		= acpi_device_remove,
- 	.uevent		= acpi_device_uevent,
-+	.pm		= &acpi_bus_pm,
- };
+-static int toshiba_acpi_suspend(struct acpi_device *acpi_dev,
+-				pm_message_t state)
++static int toshiba_acpi_suspend(struct acpi_device *acpi_dev)
+ {
+ 	struct toshiba_acpi_dev *dev = acpi_driver_data(acpi_dev);
+ 	u32 result;
+Index: linux/drivers/platform/x86/hp_accel.c
+===================================================================
+--- linux.orig/drivers/platform/x86/hp_accel.c
++++ linux/drivers/platform/x86/hp_accel.c
+@@ -353,7 +353,7 @@ static int lis3lv02d_remove(struct acpi_
  
- static int acpi_device_register(struct acpi_device *device)
+ 
+ #ifdef CONFIG_PM
+-static int lis3lv02d_suspend(struct acpi_device *device, pm_message_t state)
++static int lis3lv02d_suspend(struct acpi_device *device)
+ {
+ 	/* make sure the device is off when we suspend */
+ 	lis3lv02d_poweroff(&lis3_dev);
+Index: linux/drivers/platform/x86/sony-laptop.c
+===================================================================
+--- linux.orig/drivers/platform/x86/sony-laptop.c
++++ linux/drivers/platform/x86/sony-laptop.c
+@@ -4243,7 +4243,7 @@ err_free_resources:
+ 	return result;
+ }
+ 
+-static int sony_pic_suspend(struct acpi_device *device, pm_message_t state)
++static int sony_pic_suspend(struct acpi_device *device)
+ {
+ 	if (sony_pic_disable(device))
+ 		return -ENXIO;
+Index: linux/include/acpi/processor.h
+===================================================================
+--- linux.orig/include/acpi/processor.h
++++ linux/include/acpi/processor.h
+@@ -334,7 +334,7 @@ int acpi_processor_cst_has_changed(struc
+ int acpi_processor_hotplug(struct acpi_processor *pr);
+ int acpi_processor_power_exit(struct acpi_processor *pr,
+ 			      struct acpi_device *device);
+-int acpi_processor_suspend(struct acpi_device * device, pm_message_t state);
++int acpi_processor_suspend(struct acpi_device * device);
+ int acpi_processor_resume(struct acpi_device * device);
+ extern struct cpuidle_driver acpi_idle_driver;
+ 
