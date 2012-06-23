@@ -1,68 +1,117 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 0/21] ACPI / PM: Switch ACPI bus type and drivers to dev_pm_ops
-Date: Sat, 23 Jun 2012 23:06:06 +0200
-Message-ID: <201206232306.06602.rjw@sisk.pl>
+Subject: [PATCH 3/21] ACPI / PM: Make acpi_bus_type use driver struct dev_pm_ops callbacks
+Date: Sat, 23 Jun 2012 23:09:42 +0200
+Message-ID: <201206232309.42554.rjw@sisk.pl>
+References: <201206232306.06602.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:36855 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([193.178.161.156]:36886 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755902Ab2FWVRF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 23 Jun 2012 17:17:05 -0400
+	id S1755963Ab2FWVRJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 23 Jun 2012 17:17:09 -0400
+In-Reply-To: <201206232306.06602.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Linux PM list <linux-pm@vger.kernel.org>
 Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, platform-driver-x86@vger.kernel.org, Eric Piel <eric.piel@tremplin-utc.net>, Mattia Dongili <malattia@linux.it>, Harald Welte <laforge@gnumonks.org>
 
-Hi all,
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-The following patchset converts the ACPI bus type and all of the ACPI drivers
-to the power management handling based on struct dev_pm_ops.  It does that in
-the following way:
+Modify acpi_bus_type so that it executes PM callbacks provided
+by drivers through their struct dev_pm_ops objects, if present,
+while still allowing the legacy ACPI PM callbacks to take precedence.
+This will make it possible to convert ACPI drivers one by one to
+handling PM through struct dev_pm_ops instead of the legacy way.
 
-(1) The (unused) pm_message_t argument is dropped from the ACPI driver suspend
-    callback throughout the tree (patch [1/21]).
+The code added by this change is temporary and will be removed
+when all of the drivers in question have been switched over to
+the PM handling based on struct dev_pm_ops.
 
-(2) A struct dev_pm_ops object is defined for the ACPI bus type (patches
-    [2-3/21]) in such a way that
-    (a) driver callbacks from struct acpi_device_ops are executed for drivers
-        that provide them,
-    (b) driver callbacks from struct dev_pm_ops are executed for drivers that
-        provide them,
-    (c) 0 is returned for the remaining drivers.
-    Only suspend/resume, freeze/thaw, poweroff/restore bus type callbacks are
-    defined, because they are sufficient for the transition (they are removed
-    later on anyway).
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/acpi/scan.c |   60 ++++++++++++++++++++++++++++++++++++++++------------
+ 1 file changed, 47 insertions(+), 13 deletions(-)
 
-(3) All ACPI drivers that use PM callbacks are converted to the PM handling
-    based on struct dev_pm_ops (patches [4-18/21]).
-
-(4) The ACPI bus type is modified not to execute driver callbacks from
-    struct acpi_device_ops any more (patch [19/21]).  This affects several
-    x86 platform drivers and the ACPI power meter driver too.
-
-(5) The driver PM callbacks in struct acpi_device_ops are removed
-    (patch [20/21]).
-
-(6) The ACPI bus type PM callbacks added in step (2) are dropped, because they
-    aren't necessary any more (the PM core will execute the driver callbacks
-    directly now).
-
-As a result, the redundant bus type level of PM handling between ACPI drivers
-and the PM core is eliminated and the ACPI drivers are now able to define
-runtime PM callbacks, proper hibernation callbacks and late/early callbacks
-for system suspend/resume.
-
-The patchset has been tested on Toshiba Portege R500 and more testing is in
-the works.  If there are no objections, I'd like to push if for 3.6 through
-the linux-pm tree.
-
-If you want to give it a go, it's available from the pm-acpi branch of the
-linux-pm tree.  Please note, however, that this branch will be rebased, because
-it is based on the linux-pm tree's linux-next branch at the moment.
-
-Thanks,
-Rafael
+Index: linux/drivers/acpi/scan.c
+===================================================================
+--- linux.orig/drivers/acpi/scan.c
++++ linux/drivers/acpi/scan.c
+@@ -290,27 +290,61 @@ static void acpi_device_release(struct d
+ 	kfree(acpi_dev);
+ }
+ 
+-static int acpi_device_suspend(struct device *dev)
++#define ACPI_DEV_PM_CALLBACK(dev, callback, legacy_cb)		\
++({								\
++	struct acpi_device *__acpi_dev = to_acpi_device(dev);	\
++	struct acpi_driver *__acpi_drv = __acpi_dev->driver;	\
++	struct device_driver *__drv = dev->driver;		\
++	int __ret;						\
++								\
++	if (__acpi_drv && __acpi_drv->ops.legacy_cb)		\
++		__ret = __acpi_drv->ops.legacy_cb(__acpi_dev);	\
++	else if (__drv && __drv->pm && __drv->pm->callback)	\
++		__ret = __drv->pm->callback(dev);		\
++	else							\
++		__ret = 0;					\
++								\
++	__ret;							\
++})
++
++static int acpi_pm_suspend(struct device *dev)
+ {
+-	struct acpi_device *acpi_dev = to_acpi_device(dev);
+-	struct acpi_driver *acpi_drv = acpi_dev->driver;
++	return ACPI_DEV_PM_CALLBACK(dev, suspend, suspend);
++}
+ 
+-	if (acpi_drv && acpi_drv->ops.suspend)
+-		return acpi_drv->ops.suspend(acpi_dev);
+-	return 0;
++static int acpi_pm_resume(struct device *dev)
++{
++	return ACPI_DEV_PM_CALLBACK(dev, resume, resume);
+ }
+ 
+-static int acpi_device_resume(struct device *dev)
++static int acpi_pm_freeze(struct device *dev)
+ {
+-	struct acpi_device *acpi_dev = to_acpi_device(dev);
+-	struct acpi_driver *acpi_drv = acpi_dev->driver;
++	return ACPI_DEV_PM_CALLBACK(dev, freeze, suspend);
++}
+ 
+-	if (acpi_drv && acpi_drv->ops.resume)
+-		return acpi_drv->ops.resume(acpi_dev);
+-	return 0;
++static int acpi_pm_thaw(struct device *dev)
++{
++	return ACPI_DEV_PM_CALLBACK(dev, thaw, resume);
++}
++
++static int acpi_pm_poweroff(struct device *dev)
++{
++	return ACPI_DEV_PM_CALLBACK(dev, poweroff, suspend);
++}
++
++static int acpi_pm_restore(struct device *dev)
++{
++	return ACPI_DEV_PM_CALLBACK(dev, restore, resume);
+ }
+ 
+-static SIMPLE_DEV_PM_OPS(acpi_bus_pm, acpi_device_suspend, acpi_device_resume);
++static const struct dev_pm_ops acpi_bus_pm = {
++	.suspend = acpi_pm_suspend,
++	.resume = acpi_pm_resume,
++	.freeze = acpi_pm_freeze,
++	.thaw = acpi_pm_thaw,
++	.poweroff = acpi_pm_poweroff,
++	.restore = acpi_pm_restore,
++};
+ 
+ static int acpi_bus_match(struct device *dev, struct device_driver *drv)
+ {
 
