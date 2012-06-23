@@ -1,7 +1,7 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 12/21] toshiba_acpi: Use struct dev_pm_ops for power management
-Date: Sat, 23 Jun 2012 23:15:39 +0200
-Message-ID: <201206232315.40150.rjw@sisk.pl>
+Subject: [PATCH 7/21] ACPI: Use struct dev_pm_ops for power management in the AC driver
+Date: Sat, 23 Jun 2012 23:12:31 +0200
+Message-ID: <201206232312.31395.rjw@sisk.pl>
 References: <201206232306.06602.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
@@ -16,61 +16,67 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Make the toshiba_acpi driver define its PM callbacks through
+Make the ACPI AC adapter driver define its PM callbacks through
 a struct dev_pm_ops object rather than by using legacy PM hooks
 in struct acpi_device_ops.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- drivers/platform/x86/toshiba_acpi.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ drivers/acpi/ac.c |   17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
 
-Index: linux/drivers/platform/x86/toshiba_acpi.c
+Index: linux/drivers/acpi/ac.c
 ===================================================================
---- linux.orig/drivers/platform/x86/toshiba_acpi.c
-+++ linux/drivers/platform/x86/toshiba_acpi.c
-@@ -1296,9 +1296,9 @@ static void toshiba_acpi_notify(struct a
- 	}
- }
+--- linux.orig/drivers/acpi/ac.c
++++ linux/drivers/acpi/ac.c
+@@ -61,7 +61,6 @@ static int acpi_ac_open_fs(struct inode
  
--static int toshiba_acpi_suspend(struct acpi_device *acpi_dev)
-+static int toshiba_acpi_suspend(struct device *device)
- {
--	struct toshiba_acpi_dev *dev = acpi_driver_data(acpi_dev);
-+	struct toshiba_acpi_dev *dev = acpi_driver_data(to_acpi_device(device));
- 	u32 result;
+ static int acpi_ac_add(struct acpi_device *device);
+ static int acpi_ac_remove(struct acpi_device *device, int type);
+-static int acpi_ac_resume(struct acpi_device *device);
+ static void acpi_ac_notify(struct acpi_device *device, u32 event);
  
- 	if (dev->hotkey_dev)
-@@ -1307,9 +1307,9 @@ static int toshiba_acpi_suspend(struct a
- 	return 0;
- }
+ static const struct acpi_device_id ac_device_ids[] = {
+@@ -70,6 +69,9 @@ static const struct acpi_device_id ac_de
+ };
+ MODULE_DEVICE_TABLE(acpi, ac_device_ids);
  
--static int toshiba_acpi_resume(struct acpi_device *acpi_dev)
-+static int toshiba_acpi_resume(struct device *device)
- {
--	struct toshiba_acpi_dev *dev = acpi_driver_data(acpi_dev);
-+	struct toshiba_acpi_dev *dev = acpi_driver_data(to_acpi_device(device));
- 	u32 result;
- 
- 	if (dev->hotkey_dev)
-@@ -1318,6 +1318,9 @@ static int toshiba_acpi_resume(struct ac
- 	return 0;
- }
- 
-+static SIMPLE_DEV_PM_OPS(toshiba_acpi_pm,
-+			 toshiba_acpi_suspend, toshiba_acpi_resume);
++static int acpi_ac_resume(struct device *dev);
++static SIMPLE_DEV_PM_OPS(acpi_ac_pm, NULL, acpi_ac_resume);
 +
- static struct acpi_driver toshiba_acpi_driver = {
- 	.name	= "Toshiba ACPI driver",
- 	.owner	= THIS_MODULE,
-@@ -1327,9 +1330,8 @@ static struct acpi_driver toshiba_acpi_d
- 		.add		= toshiba_acpi_add,
- 		.remove		= toshiba_acpi_remove,
- 		.notify		= toshiba_acpi_notify,
--		.suspend	= toshiba_acpi_suspend,
--		.resume		= toshiba_acpi_resume,
- 	},
-+	.drv.pm	= &toshiba_acpi_pm,
+ static struct acpi_driver acpi_ac_driver = {
+ 	.name = "ac",
+ 	.class = ACPI_AC_CLASS,
+@@ -78,9 +80,9 @@ static struct acpi_driver acpi_ac_driver
+ 	.ops = {
+ 		.add = acpi_ac_add,
+ 		.remove = acpi_ac_remove,
+-		.resume = acpi_ac_resume,
+ 		.notify = acpi_ac_notify,
+ 		},
++	.drv.pm = &acpi_ac_pm,
  };
  
- static int __init toshiba_acpi_init(void)
+ struct acpi_ac {
+@@ -309,13 +311,18 @@ static int acpi_ac_add(struct acpi_devic
+ 	return result;
+ }
+ 
+-static int acpi_ac_resume(struct acpi_device *device)
++static int acpi_ac_resume(struct device *dev)
+ {
+ 	struct acpi_ac *ac;
+ 	unsigned old_state;
+-	if (!device || !acpi_driver_data(device))
++
++	if (!dev)
++		return -EINVAL;
++
++	ac = acpi_driver_data(to_acpi_device(dev));
++	if (!ac)
+ 		return -EINVAL;
+-	ac = acpi_driver_data(device);
++
+ 	old_state = ac->state;
+ 	if (acpi_ac_get_state(ac))
+ 		return 0;
