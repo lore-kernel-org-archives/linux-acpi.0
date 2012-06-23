@@ -1,7 +1,7 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 16/21] toshiba_bluetooth: Use struct dev_pm_ops for power management
-Date: Sat, 23 Jun 2012 23:18:17 +0200
-Message-ID: <201206232318.18196.rjw@sisk.pl>
+Subject: [PATCH 5/21] ACPI: Use struct dev_pm_ops for power management in the thermal driver
+Date: Sat, 23 Jun 2012 23:11:15 +0200
+Message-ID: <201206232311.15849.rjw@sisk.pl>
 References: <201206232306.06602.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
@@ -16,57 +16,68 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Make the toshiba_bluetooth driver define its PM callbacks through
+Make the ACPI thermal driver define its PM callbacks through
 a struct dev_pm_ops object rather than by using legacy PM hooks
 in struct acpi_device_ops.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- drivers/platform/x86/toshiba_bluetooth.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ drivers/acpi/thermal.c |   17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
-Index: linux/drivers/platform/x86/toshiba_bluetooth.c
+Index: linux/drivers/acpi/thermal.c
 ===================================================================
---- linux.orig/drivers/platform/x86/toshiba_bluetooth.c
-+++ linux/drivers/platform/x86/toshiba_bluetooth.c
-@@ -34,7 +34,6 @@ MODULE_LICENSE("GPL");
- static int toshiba_bt_rfkill_add(struct acpi_device *device);
- static int toshiba_bt_rfkill_remove(struct acpi_device *device, int type);
- static void toshiba_bt_rfkill_notify(struct acpi_device *device, u32 event);
--static int toshiba_bt_resume(struct acpi_device *device);
+--- linux.orig/drivers/acpi/thermal.c
++++ linux/drivers/acpi/thermal.c
+@@ -98,7 +98,6 @@ MODULE_PARM_DESC(psv, "Disable or overri
  
- static const struct acpi_device_id bt_device_ids[] = {
- 	{ "TOS6205", 0},
-@@ -42,6 +41,9 @@ static const struct acpi_device_id bt_de
+ static int acpi_thermal_add(struct acpi_device *device);
+ static int acpi_thermal_remove(struct acpi_device *device, int type);
+-static int acpi_thermal_resume(struct acpi_device *device);
+ static void acpi_thermal_notify(struct acpi_device *device, u32 event);
+ 
+ static const struct acpi_device_id  thermal_device_ids[] = {
+@@ -107,6 +106,9 @@ static const struct acpi_device_id  ther
  };
- MODULE_DEVICE_TABLE(acpi, bt_device_ids);
+ MODULE_DEVICE_TABLE(acpi, thermal_device_ids);
  
-+static int toshiba_bt_resume(struct device *dev);
-+static SIMPLE_DEV_PM_OPS(toshiba_bt_pm, NULL, toshiba_bt_resume);
++static int acpi_thermal_resume(struct device *dev);
++static SIMPLE_DEV_PM_OPS(acpi_thermal_pm, NULL, acpi_thermal_resume);
 +
- static struct acpi_driver toshiba_bt_rfkill_driver = {
- 	.name =		"Toshiba BT",
- 	.class =	"Toshiba",
-@@ -50,9 +52,9 @@ static struct acpi_driver toshiba_bt_rfk
- 				.add =		toshiba_bt_rfkill_add,
- 				.remove =	toshiba_bt_rfkill_remove,
- 				.notify =	toshiba_bt_rfkill_notify,
--				.resume =	toshiba_bt_resume,
- 			},
- 	.owner = 	THIS_MODULE,
-+	.drv.pm =	&toshiba_bt_pm,
+ static struct acpi_driver acpi_thermal_driver = {
+ 	.name = "thermal",
+ 	.class = ACPI_THERMAL_CLASS,
+@@ -114,9 +116,9 @@ static struct acpi_driver acpi_thermal_d
+ 	.ops = {
+ 		.add = acpi_thermal_add,
+ 		.remove = acpi_thermal_remove,
+-		.resume = acpi_thermal_resume,
+ 		.notify = acpi_thermal_notify,
+ 		},
++	.drv.pm = &acpi_thermal_pm,
  };
  
- 
-@@ -88,9 +90,9 @@ static void toshiba_bt_rfkill_notify(str
- 	toshiba_bluetooth_enable(device->handle);
+ struct acpi_thermal_state {
+@@ -1041,16 +1043,17 @@ static int acpi_thermal_remove(struct ac
+ 	return 0;
  }
  
--static int toshiba_bt_resume(struct acpi_device *device)
-+static int toshiba_bt_resume(struct device *dev)
+-static int acpi_thermal_resume(struct acpi_device *device)
++static int acpi_thermal_resume(struct device *dev)
  {
--	return toshiba_bluetooth_enable(device->handle);
-+	return toshiba_bluetooth_enable(to_acpi_device(dev)->handle);
- }
+-	struct acpi_thermal *tz = NULL;
++	struct acpi_thermal *tz;
+ 	int i, j, power_state, result;
  
- static int toshiba_bt_rfkill_add(struct acpi_device *device)
+-
+-	if (!device || !acpi_driver_data(device))
++	if (!dev)
+ 		return -EINVAL;
+ 
+-	tz = acpi_driver_data(device);
++	tz = acpi_driver_data(to_acpi_device(dev));
++	if (!tz)
++		return -EINVAL;
+ 
+ 	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE; i++) {
+ 		if (!(&tz->trips.active[i]))
