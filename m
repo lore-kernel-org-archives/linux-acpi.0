@@ -1,7 +1,7 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 6/21] ACPI: Use struct dev_pm_ops for power management in processor driver
-Date: Sat, 23 Jun 2012 23:11:55 +0200
-Message-ID: <201206232311.55588.rjw@sisk.pl>
+Subject: [PATCH 11/21] ACPI: Use struct dev_pm_ops for power management in the SBS driver
+Date: Sat, 23 Jun 2012 23:14:51 +0200
+Message-ID: <201206232314.52169.rjw@sisk.pl>
 References: <201206232306.06602.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
@@ -16,77 +16,48 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Make the ACPI processor driver define its PM callbacks through
-a struct dev_pm_ops object rather than by using legacy PM hooks
-in struct acpi_device_ops.
+Make the ACPI Smart Battery System driver define its PM callbacks
+through a struct dev_pm_ops object rather than by using legacy PM
+hooks in struct acpi_device_ops.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- drivers/acpi/processor_driver.c |    6 ++++--
- drivers/acpi/processor_idle.c   |    4 ++--
- include/acpi/processor.h        |    4 ++--
- 3 files changed, 8 insertions(+), 6 deletions(-)
+ drivers/acpi/sbs.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-Index: linux/drivers/acpi/processor_driver.c
+Index: linux/drivers/acpi/sbs.c
 ===================================================================
---- linux.orig/drivers/acpi/processor_driver.c
-+++ linux/drivers/acpi/processor_driver.c
-@@ -93,6 +93,9 @@ static const struct acpi_device_id proce
- };
- MODULE_DEVICE_TABLE(acpi, processor_device_ids);
- 
-+static SIMPLE_DEV_PM_OPS(acpi_processor_pm,
-+			 acpi_processor_suspend, acpi_processor_resume);
-+
- static struct acpi_driver acpi_processor_driver = {
- 	.name = "processor",
- 	.class = ACPI_PROCESSOR_CLASS,
-@@ -100,10 +103,9 @@ static struct acpi_driver acpi_processor
- 	.ops = {
- 		.add = acpi_processor_add,
- 		.remove = acpi_processor_remove,
--		.suspend = acpi_processor_suspend,
--		.resume = acpi_processor_resume,
- 		.notify = acpi_processor_notify,
- 		},
-+	.drv.pm = &acpi_processor_pm,
- };
- 
- #define INSTALL_NOTIFY_HANDLER		1
-Index: linux/include/acpi/processor.h
-===================================================================
---- linux.orig/include/acpi/processor.h
-+++ linux/include/acpi/processor.h
-@@ -334,8 +334,8 @@ int acpi_processor_cst_has_changed(struc
- int acpi_processor_hotplug(struct acpi_processor *pr);
- int acpi_processor_power_exit(struct acpi_processor *pr,
- 			      struct acpi_device *device);
--int acpi_processor_suspend(struct acpi_device * device);
--int acpi_processor_resume(struct acpi_device * device);
-+int acpi_processor_suspend(struct device *dev);
-+int acpi_processor_resume(struct device *dev);
- extern struct cpuidle_driver acpi_idle_driver;
- 
- /* in processor_thermal.c */
-Index: linux/drivers/acpi/processor_idle.c
-===================================================================
---- linux.orig/drivers/acpi/processor_idle.c
-+++ linux/drivers/acpi/processor_idle.c
-@@ -241,7 +241,7 @@ static void acpi_idle_bm_rld_restore(voi
- 		acpi_write_bit_register(ACPI_BITREG_BUS_MASTER_RLD, saved_bm_rld);
+--- linux.orig/drivers/acpi/sbs.c
++++ linux/drivers/acpi/sbs.c
+@@ -988,16 +988,18 @@ static void acpi_sbs_rmdirs(void)
+ #endif
  }
  
--int acpi_processor_suspend(struct acpi_device * device)
-+int acpi_processor_suspend(struct device *dev)
+-static int acpi_sbs_resume(struct acpi_device *device)
++static int acpi_sbs_resume(struct device *dev)
  {
- 	if (acpi_idle_suspend == 1)
- 		return 0;
-@@ -251,7 +251,7 @@ int acpi_processor_suspend(struct acpi_d
+ 	struct acpi_sbs *sbs;
+-	if (!device)
++	if (!dev)
+ 		return -EINVAL;
+-	sbs = device->driver_data;
++	sbs = to_acpi_device(dev)->driver_data;
+ 	acpi_sbs_callback(sbs);
  	return 0;
  }
  
--int acpi_processor_resume(struct acpi_device * device)
-+int acpi_processor_resume(struct device *dev)
- {
- 	if (acpi_idle_suspend == 0)
- 		return 0;
++static SIMPLE_DEV_PM_OPS(acpi_sbs_pm, NULL, acpi_sbs_resume);
++
+ static struct acpi_driver acpi_sbs_driver = {
+ 	.name = "sbs",
+ 	.class = ACPI_SBS_CLASS,
+@@ -1005,8 +1007,8 @@ static struct acpi_driver acpi_sbs_drive
+ 	.ops = {
+ 		.add = acpi_sbs_add,
+ 		.remove = acpi_sbs_remove,
+-		.resume = acpi_sbs_resume,
+ 		},
++	.drv.pm = &acpi_sbs_pm,
+ };
+ 
+ static int __init acpi_sbs_init(void)
