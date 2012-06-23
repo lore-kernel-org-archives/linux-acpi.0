@@ -1,7 +1,7 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 9/21] ACPI: Use struct dev_pm_ops for power management in the button driver
-Date: Sat, 23 Jun 2012 23:13:39 +0200
-Message-ID: <201206232313.39574.rjw@sisk.pl>
+Subject: [PATCH 16/21] toshiba_bluetooth: Use struct dev_pm_ops for power management
+Date: Sat, 23 Jun 2012 23:18:17 +0200
+Message-ID: <201206232318.18196.rjw@sisk.pl>
 References: <201206232306.06602.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
@@ -16,51 +16,57 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Make the ACPI button driver define its PM callbacks through
+Make the toshiba_bluetooth driver define its PM callbacks through
 a struct dev_pm_ops object rather than by using legacy PM hooks
 in struct acpi_device_ops.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- drivers/acpi/button.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/platform/x86/toshiba_bluetooth.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-Index: linux/drivers/acpi/button.c
+Index: linux/drivers/platform/x86/toshiba_bluetooth.c
 ===================================================================
---- linux.orig/drivers/acpi/button.c
-+++ linux/drivers/acpi/button.c
-@@ -76,19 +76,21 @@ MODULE_DEVICE_TABLE(acpi, button_device_
+--- linux.orig/drivers/platform/x86/toshiba_bluetooth.c
++++ linux/drivers/platform/x86/toshiba_bluetooth.c
+@@ -34,7 +34,6 @@ MODULE_LICENSE("GPL");
+ static int toshiba_bt_rfkill_add(struct acpi_device *device);
+ static int toshiba_bt_rfkill_remove(struct acpi_device *device, int type);
+ static void toshiba_bt_rfkill_notify(struct acpi_device *device, u32 event);
+-static int toshiba_bt_resume(struct acpi_device *device);
  
- static int acpi_button_add(struct acpi_device *device);
- static int acpi_button_remove(struct acpi_device *device, int type);
--static int acpi_button_resume(struct acpi_device *device);
- static void acpi_button_notify(struct acpi_device *device, u32 event);
+ static const struct acpi_device_id bt_device_ids[] = {
+ 	{ "TOS6205", 0},
+@@ -42,6 +41,9 @@ static const struct acpi_device_id bt_de
+ };
+ MODULE_DEVICE_TABLE(acpi, bt_device_ids);
  
-+static int acpi_button_resume(struct device *dev);
-+static SIMPLE_DEV_PM_OPS(acpi_button_pm, NULL, acpi_button_resume);
++static int toshiba_bt_resume(struct device *dev);
++static SIMPLE_DEV_PM_OPS(toshiba_bt_pm, NULL, toshiba_bt_resume);
 +
- static struct acpi_driver acpi_button_driver = {
- 	.name = "button",
- 	.class = ACPI_BUTTON_CLASS,
- 	.ids = button_device_ids,
- 	.ops = {
- 		.add = acpi_button_add,
--		.resume = acpi_button_resume,
- 		.remove = acpi_button_remove,
- 		.notify = acpi_button_notify,
- 	},
-+	.drv.pm = &acpi_button_pm,
+ static struct acpi_driver toshiba_bt_rfkill_driver = {
+ 	.name =		"Toshiba BT",
+ 	.class =	"Toshiba",
+@@ -50,9 +52,9 @@ static struct acpi_driver toshiba_bt_rfk
+ 				.add =		toshiba_bt_rfkill_add,
+ 				.remove =	toshiba_bt_rfkill_remove,
+ 				.notify =	toshiba_bt_rfkill_notify,
+-				.resume =	toshiba_bt_resume,
+ 			},
+ 	.owner = 	THIS_MODULE,
++	.drv.pm =	&toshiba_bt_pm,
  };
  
- struct acpi_button {
-@@ -308,8 +310,9 @@ static void acpi_button_notify(struct ac
- 	}
+ 
+@@ -88,9 +90,9 @@ static void toshiba_bt_rfkill_notify(str
+ 	toshiba_bluetooth_enable(device->handle);
  }
  
--static int acpi_button_resume(struct acpi_device *device)
-+static int acpi_button_resume(struct device *dev)
+-static int toshiba_bt_resume(struct acpi_device *device)
++static int toshiba_bt_resume(struct device *dev)
  {
-+	struct acpi_device *device = to_acpi_device(dev);
- 	struct acpi_button *button = acpi_driver_data(device);
+-	return toshiba_bluetooth_enable(device->handle);
++	return toshiba_bluetooth_enable(to_acpi_device(dev)->handle);
+ }
  
- 	if (button->type == ACPI_BUTTON_TYPE_LID)
+ static int toshiba_bt_rfkill_add(struct acpi_device *device)
