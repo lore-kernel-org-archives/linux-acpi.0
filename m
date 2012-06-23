@@ -1,7 +1,7 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 18/21] acpi_power_meter: Use struct dev_pm_ops for power management
-Date: Sat, 23 Jun 2012 23:19:31 +0200
-Message-ID: <201206232319.31903.rjw@sisk.pl>
+Subject: [PATCH 8/21] ACPI: Use struct dev_pm_ops for power management in the battery driver
+Date: Sat, 23 Jun 2012 23:13:04 +0200
+Message-ID: <201206232313.04330.rjw@sisk.pl>
 References: <201206232306.06602.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
@@ -16,56 +16,56 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Make the ACPI power meter driver define its PM callbacks through
+Make the ACPI battery driver define its PM callbacks through
 a struct dev_pm_ops object rather than by using legacy PM hooks
 in struct acpi_device_ops.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- drivers/hwmon/acpi_power_meter.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ drivers/acpi/battery.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-Index: linux/drivers/hwmon/acpi_power_meter.c
+Index: linux/drivers/acpi/battery.c
 ===================================================================
---- linux.orig/drivers/hwmon/acpi_power_meter.c
-+++ linux/drivers/hwmon/acpi_power_meter.c
-@@ -929,20 +929,25 @@ static int acpi_power_meter_remove(struc
- 	return 0;
+--- linux.orig/drivers/acpi/battery.c
++++ linux/drivers/acpi/battery.c
+@@ -1044,17 +1044,24 @@ static int acpi_battery_remove(struct ac
  }
  
--static int acpi_power_meter_resume(struct acpi_device *device)
-+static int acpi_power_meter_resume(struct device *dev)
+ /* this is needed to learn about changes made in suspended state */
+-static int acpi_battery_resume(struct acpi_device *device)
++static int acpi_battery_resume(struct device *dev)
  {
- 	struct acpi_power_meter_resource *resource;
- 
--	if (!device || !acpi_driver_data(device))
+ 	struct acpi_battery *battery;
+-	if (!device)
++
 +	if (!dev)
 +		return -EINVAL;
 +
-+	resource = acpi_driver_data(to_acpi_device(dev));
-+	if (!resource)
++	battery = acpi_driver_data(to_acpi_device(dev));
++	if (!battery)
  		return -EINVAL;
- 
--	resource = acpi_driver_data(device);
- 	free_capabilities(resource);
- 	read_capabilities(resource);
- 
+-	battery = acpi_driver_data(device);
++
+ 	battery->update_time = 0;
+ 	acpi_battery_update(battery);
  	return 0;
  }
  
-+static SIMPLE_DEV_PM_OPS(acpi_power_meter_pm, NULL, acpi_power_meter_resume);
++static SIMPLE_DEV_PM_OPS(acpi_battery_pm, NULL, acpi_battery_resume);
 +
- static struct acpi_driver acpi_power_meter_driver = {
- 	.name = "power_meter",
- 	.class = ACPI_POWER_METER_CLASS,
-@@ -950,9 +955,9 @@ static struct acpi_driver acpi_power_met
+ static struct acpi_driver acpi_battery_driver = {
+ 	.name = "battery",
+ 	.class = ACPI_BATTERY_CLASS,
+@@ -1062,10 +1069,10 @@ static struct acpi_driver acpi_battery_d
+ 	.flags = ACPI_DRIVER_ALL_NOTIFY_EVENTS,
  	.ops = {
- 		.add = acpi_power_meter_add,
- 		.remove = acpi_power_meter_remove,
--		.resume = acpi_power_meter_resume,
- 		.notify = acpi_power_meter_notify,
+ 		.add = acpi_battery_add,
+-		.resume = acpi_battery_resume,
+ 		.remove = acpi_battery_remove,
+ 		.notify = acpi_battery_notify,
  		},
-+	.drv.pm = &acpi_power_meter_pm,
++	.drv.pm = &acpi_battery_pm,
  };
  
- /* Module init/exit routines */
+ static void __init acpi_battery_init_async(void *unused, async_cookie_t cookie)
