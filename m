@@ -1,144 +1,68 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: [PATCH -v7 1/4] ACPI, PM, Specify lowest allowed state for device sleep state
-Date: Sat, 23 Jun 2012 10:23:48 +0800
-Message-ID: <1340418231-10134-2-git-send-email-ying.huang@intel.com>
-References: <1340418231-10134-1-git-send-email-ying.huang@intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH 0/21] ACPI / PM: Switch ACPI bus type and drivers to dev_pm_ops
+Date: Sat, 23 Jun 2012 23:06:06 +0200
+Message-ID: <201206232306.06602.rjw@sisk.pl>
+Mime-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:11162 "EHLO mga01.intel.com"
+Received: from ogre.sisk.pl ([193.178.161.156]:36855 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751907Ab2FWCX5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 22 Jun 2012 22:23:57 -0400
-In-Reply-To: <1340418231-10134-1-git-send-email-ying.huang@intel.com>
+	id S1755902Ab2FWVRF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 23 Jun 2012 17:17:05 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: ming.m.lin@intel.com, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Huang Ying <ying.huang@intel.com>, Zheng Yan <zheng.z.yan@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Linux PM list <linux-pm@vger.kernel.org>
+Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, platform-driver-x86@vger.kernel.org, Eric Piel <eric.piel@tremplin-utc.net>, Mattia Dongili <malattia@linux.it>, Harald Welte <laforge@gnumonks.org>
 
-Lower device sleep state can save more power, but has more exit
-latency too.  Sometimes, to satisfy some power QoS and other
-requirement, we need to constrain the lowest device sleep state.
+Hi all,
 
-In this patch, a parameter to specify lowest allowed state for
-acpi_pm_device_sleep_state is added.  So that the caller can enforce
-the constraint via the parameter.
+The following patchset converts the ACPI bus type and all of the ACPI drivers
+to the power management handling based on struct dev_pm_ops.  It does that in
+the following way:
 
-This is needed by PCIe D3cold support, where the lowest power state
-allowed may be D3_HOT instead of default D3_COLD.
+(1) The (unused) pm_message_t argument is dropped from the ACPI driver suspend
+    callback throughout the tree (patch [1/21]).
 
-Signed-off-by: Huang Ying <ying.huang@intel.com>
-Reviewed-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
----
- drivers/acpi/sleep.c       |   24 +++++++++++++++++++-----
- drivers/pci/pci-acpi.c     |    3 ++-
- drivers/pnp/pnpacpi/core.c |    4 ++--
- include/acpi/acpi_bus.h    |    6 +++---
- 4 files changed, 26 insertions(+), 11 deletions(-)
+(2) A struct dev_pm_ops object is defined for the ACPI bus type (patches
+    [2-3/21]) in such a way that
+    (a) driver callbacks from struct acpi_device_ops are executed for drivers
+        that provide them,
+    (b) driver callbacks from struct dev_pm_ops are executed for drivers that
+        provide them,
+    (c) 0 is returned for the remaining drivers.
+    Only suspend/resume, freeze/thaw, poweroff/restore bus type callbacks are
+    defined, because they are sufficient for the transition (they are removed
+    later on anyway).
 
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -716,8 +716,9 @@ int acpi_suspend(u32 acpi_state)
-  *	@dev: device to examine; its driver model wakeup flags control
-  *		whether it should be able to wake up the system
-  *	@d_min_p: used to store the upper limit of allowed states range
-- *	Return value: preferred power state of the device on success, -ENODEV on
-- *		failure (ie. if there's no 'struct acpi_device' for @dev)
-+ *	@d_max_in: specify the lowest allowed states
-+ *	Return value: preferred power state of the device on success, -ENODEV
-+ *	(ie. if there's no 'struct acpi_device' for @dev) or -EINVAL on failure
-  *
-  *	Find the lowest power (highest number) ACPI device power state that
-  *	device @dev can be in while the system is in the sleep state represented
-@@ -732,13 +733,15 @@ int acpi_suspend(u32 acpi_state)
-  *	via @wake.
-  */
- 
--int acpi_pm_device_sleep_state(struct device *dev, int *d_min_p)
-+int acpi_pm_device_sleep_state(struct device *dev, int *d_min_p, int d_max_in)
- {
- 	acpi_handle handle = DEVICE_ACPI_HANDLE(dev);
- 	struct acpi_device *adev;
- 	char acpi_method[] = "_SxD";
- 	unsigned long long d_min, d_max;
- 
-+	if (d_max_in < ACPI_STATE_D0 || d_max_in > ACPI_STATE_D3)
-+		return -EINVAL;
- 	if (!handle || ACPI_FAILURE(acpi_bus_get_device(handle, &adev))) {
- 		printk(KERN_DEBUG "ACPI handle has no context!\n");
- 		return -ENODEV;
-@@ -746,8 +749,10 @@ int acpi_pm_device_sleep_state(struct de
- 
- 	acpi_method[2] = '0' + acpi_target_sleep_state;
- 	/*
--	 * If the sleep state is S0, we will return D3, but if the device has
--	 * _S0W, we will use the value from _S0W
-+	 * If the sleep state is S0, the lowest limit from ACPI is D3,
-+	 * but if the device has _S0W, we will use the value from _S0W
-+	 * as the lowest limit from ACPI.  Finally, we will constrain
-+	 * the lowest limit with the specified one.
- 	 */
- 	d_min = ACPI_STATE_D0;
- 	d_max = ACPI_STATE_D3;
-@@ -791,8 +796,17 @@ int acpi_pm_device_sleep_state(struct de
- 		}
- 	}
- 
-+	if (d_max_in < d_min)
-+		return -EINVAL;
- 	if (d_min_p)
- 		*d_min_p = d_min;
-+	/* constrain d_max with specified lowest limit (max number) */
-+	if (d_max > d_max_in) {
-+		for (d_max = d_max_in; d_max > d_min; d_max--) {
-+			if (adev->power.states[d_max].flags.valid)
-+				break;
-+		}
-+	}
- 	return d_max;
- }
- #endif /* CONFIG_PM */
---- a/drivers/pci/pci-acpi.c
-+++ b/drivers/pci/pci-acpi.c
-@@ -203,7 +203,8 @@ static pci_power_t acpi_pci_choose_state
- {
- 	int acpi_state;
- 
--	acpi_state = acpi_pm_device_sleep_state(&pdev->dev, NULL);
-+	acpi_state = acpi_pm_device_sleep_state(&pdev->dev, NULL,
-+						ACPI_STATE_D3);
- 	if (acpi_state < 0)
- 		return PCI_POWER_ERROR;
- 
---- a/drivers/pnp/pnpacpi/core.c
-+++ b/drivers/pnp/pnpacpi/core.c
-@@ -170,8 +170,8 @@ static int pnpacpi_suspend(struct pnp_de
- 	}
- 
- 	if (acpi_bus_power_manageable(handle)) {
--		int power_state = acpi_pm_device_sleep_state(&dev->dev, NULL);
--
-+		int power_state = acpi_pm_device_sleep_state(&dev->dev, NULL,
-+							     ACPI_STATE_D3);
- 		if (power_state < 0)
- 			power_state = (state.event == PM_EVENT_ON) ?
- 					ACPI_STATE_D0 : ACPI_STATE_D3;
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -415,13 +415,13 @@ int acpi_enable_wakeup_device_power(stru
- int acpi_disable_wakeup_device_power(struct acpi_device *dev);
- 
- #ifdef CONFIG_PM
--int acpi_pm_device_sleep_state(struct device *, int *);
-+int acpi_pm_device_sleep_state(struct device *, int *, int);
- #else
--static inline int acpi_pm_device_sleep_state(struct device *d, int *p)
-+static inline int acpi_pm_device_sleep_state(struct device *d, int *p, int m)
- {
- 	if (p)
- 		*p = ACPI_STATE_D0;
--	return ACPI_STATE_D3;
-+	return (m >= ACPI_STATE_D0 && m <= ACPI_STATE_D3) ? m : ACPI_STATE_D0;
- }
- #endif
- 
+(3) All ACPI drivers that use PM callbacks are converted to the PM handling
+    based on struct dev_pm_ops (patches [4-18/21]).
+
+(4) The ACPI bus type is modified not to execute driver callbacks from
+    struct acpi_device_ops any more (patch [19/21]).  This affects several
+    x86 platform drivers and the ACPI power meter driver too.
+
+(5) The driver PM callbacks in struct acpi_device_ops are removed
+    (patch [20/21]).
+
+(6) The ACPI bus type PM callbacks added in step (2) are dropped, because they
+    aren't necessary any more (the PM core will execute the driver callbacks
+    directly now).
+
+As a result, the redundant bus type level of PM handling between ACPI drivers
+and the PM core is eliminated and the ACPI drivers are now able to define
+runtime PM callbacks, proper hibernation callbacks and late/early callbacks
+for system suspend/resume.
+
+The patchset has been tested on Toshiba Portege R500 and more testing is in
+the works.  If there are no objections, I'd like to push if for 3.6 through
+the linux-pm tree.
+
+If you want to give it a go, it's available from the pm-acpi branch of the
+linux-pm tree.  Please note, however, that this branch will be rebased, because
+it is based on the linux-pm tree's linux-next branch at the moment.
+
+Thanks,
+Rafael
+
