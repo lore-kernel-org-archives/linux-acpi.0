@@ -1,7 +1,7 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 14/21] sony-laptop: Use struct dev_pm_ops for power management
-Date: Sat, 23 Jun 2012 23:17:01 +0200
-Message-ID: <201206232317.01620.rjw@sisk.pl>
+Subject: [PATCH 20/21] ACPI / PM: Drop legacy driver PM callbacks that are not used any more
+Date: Sat, 23 Jun 2012 23:21:04 +0200
+Message-ID: <201206232321.05039.rjw@sisk.pl>
 References: <201206232306.06602.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
@@ -16,83 +16,33 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Make the sony-laptop driver define its PM callbacks through
-a struct dev_pm_ops object rather than by using legacy PM hooks
-in struct acpi_device_ops.
+Since the legacy ACPI driver PM callbacks included into
+struct acpi_device_ops are not used any more, drop them.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- drivers/platform/x86/sony-laptop.c |   20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+ include/acpi/acpi_bus.h |    4 ----
+ 1 file changed, 4 deletions(-)
 
-Index: linux/drivers/platform/x86/sony-laptop.c
+Index: linux/include/acpi/acpi_bus.h
 ===================================================================
---- linux.orig/drivers/platform/x86/sony-laptop.c
-+++ linux/drivers/platform/x86/sony-laptop.c
-@@ -1452,7 +1452,7 @@ static void sony_nc_function_resume(void
- 				&result);
- }
- 
--static int sony_nc_resume(struct acpi_device *device)
-+static int sony_nc_resume(struct device *dev)
- {
- 	struct sony_nc_value *item;
- 	acpi_handle handle;
-@@ -1484,6 +1484,8 @@ static int sony_nc_resume(struct acpi_de
- 	return 0;
- }
- 
-+static SIMPLE_DEV_PM_OPS(sony_nc_pm, NULL, sony_nc_resume);
-+
- static void sony_nc_rfkill_cleanup(void)
- {
- 	int i;
-@@ -2728,9 +2730,9 @@ static struct acpi_driver sony_nc_driver
- 	.ops = {
- 		.add = sony_nc_add,
- 		.remove = sony_nc_remove,
--		.resume = sony_nc_resume,
- 		.notify = sony_nc_notify,
- 		},
-+	.drv.pm = &sony_nc_pm,
- };
- 
- /*********** SPIC (SNY6001) Device ***********/
-@@ -4243,19 +4245,22 @@ err_free_resources:
- 	return result;
- }
- 
--static int sony_pic_suspend(struct acpi_device *device)
-+static int sony_pic_suspend(struct device *dev)
- {
--	if (sony_pic_disable(device))
-+	if (sony_pic_disable(to_acpi_device(dev)))
- 		return -ENXIO;
- 	return 0;
- }
- 
--static int sony_pic_resume(struct acpi_device *device)
-+static int sony_pic_resume(struct device *dev)
- {
--	sony_pic_enable(device, spic_dev.cur_ioport, spic_dev.cur_irq);
-+	sony_pic_enable(to_acpi_device(dev),
-+			spic_dev.cur_ioport, spic_dev.cur_irq);
- 	return 0;
- }
- 
-+static SIMPLE_DEV_PM_OPS(sony_pic_pm, sony_pic_suspend, sony_pic_resume);
-+
- static const struct acpi_device_id sony_pic_device_ids[] = {
- 	{SONY_PIC_HID, 0},
- 	{"", 0},
-@@ -4269,9 +4274,8 @@ static struct acpi_driver sony_pic_drive
- 	.ops = {
- 		.add = sony_pic_add,
- 		.remove = sony_pic_remove,
--		.suspend = sony_pic_suspend,
--		.resume = sony_pic_resume,
- 		},
-+	.drv.pm = &sony_pic_pm,
- };
- 
- static struct dmi_system_id __initdata sonypi_dmi_table[] = {
+--- linux.orig/include/acpi/acpi_bus.h
++++ linux/include/acpi/acpi_bus.h
+@@ -117,8 +117,6 @@ struct acpi_device;
+ typedef int (*acpi_op_add) (struct acpi_device * device);
+ typedef int (*acpi_op_remove) (struct acpi_device * device, int type);
+ typedef int (*acpi_op_start) (struct acpi_device * device);
+-typedef int (*acpi_op_suspend) (struct acpi_device * device);
+-typedef int (*acpi_op_resume) (struct acpi_device * device);
+ typedef int (*acpi_op_bind) (struct acpi_device * device);
+ typedef int (*acpi_op_unbind) (struct acpi_device * device);
+ typedef void (*acpi_op_notify) (struct acpi_device * device, u32 event);
+@@ -132,8 +130,6 @@ struct acpi_device_ops {
+ 	acpi_op_add add;
+ 	acpi_op_remove remove;
+ 	acpi_op_start start;
+-	acpi_op_suspend suspend;
+-	acpi_op_resume resume;
+ 	acpi_op_bind bind;
+ 	acpi_op_unbind unbind;
+ 	acpi_op_notify notify;
