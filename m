@@ -1,58 +1,144 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: Re: [PATCH v5 0/13] SATA ZPODD support
-Date: Sat, 23 Jun 2012 09:05:58 +0800
-Message-ID: <1340413558.2672.8.camel@hp6530s>
-References: <1340000766-129148-1-git-send-email-ming.m.lin@intel.com>
-	 <4FE4BC59.20400@pobox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <4FE4BC59.20400@pobox.com>
-Sender: linux-ide-owner@vger.kernel.org
-To: Jeff Garzik <jgarzik@pobox.com>
-Cc: Aaron Lu <aaron.lu@amd.com>, Holger Macht <holger@homac.de>, Matthew Garrett <mjg@redhat.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, David Woodhouse <David.Woodhouse@intel.com>, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org
+From: Huang Ying <ying.huang@intel.com>
+Subject: [PATCH -v7 1/4] ACPI, PM, Specify lowest allowed state for device sleep state
+Date: Sat, 23 Jun 2012 10:23:48 +0800
+Message-ID: <1340418231-10134-2-git-send-email-ying.huang@intel.com>
+References: <1340418231-10134-1-git-send-email-ying.huang@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:11162 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751907Ab2FWCX5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 22 Jun 2012 22:23:57 -0400
+In-Reply-To: <1340418231-10134-1-git-send-email-ying.huang@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: ming.m.lin@intel.com, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Huang Ying <ying.huang@intel.com>, Zheng Yan <zheng.z.yan@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On Fri, 2012-06-22 at 14:41 -0400, Jeff Garzik wrote:
-> On 06/18/2012 02:25 AM, Lin Ming wrote:
-> > Hi all,
-> >
-> > This is the v5 patches to add SATA ZPODD support, to try it:
-> > git pull git://git.kernel.org/pub/scm/linux/kernel/git/mlin/linux.git zpodd
-> >
-> > Holger and Mathtew,
-> > Patch 1 to Patch 4 are the libata acpi binding patches from you.
-> > I removed dock related code from your original version.
-> > Would you help to review?
-> >
-> > v5:
-> > - rebase to v3.5-rc3
-> > - fixed crash reported at https://lkml.org/lkml/2012/2/24/2 (Aaron Lu)
-> > - rename is_pci_ata to compat_pci_ata (Alan Cox)
-> >
-> > v4:
-> > https://lkml.org/lkml/2012/5/28/11
-> > - Includes libata acpi binding patches from Holger Macht and Matthew Garrett.
-> > - tell scsi layer device supports runtime power off
-> > - check support for device busy class events
-> 
-> In the case of this patchset, the main worry are the crashes that were 
-> introduced by the Macht/Garrett patchset.  Finally with v5 that 
-> longstanding problem has been resolved, so we can move forward and get 
-> this into linux-next (libata-dev.git#upstream).
+Lower device sleep state can save more power, but has more exit
+latency too.  Sometimes, to satisfy some power QoS and other
+requirement, we need to constrain the lowest device sleep state.
 
-I'm so glad to move forward.
-I have some update suggested by Dan Williams, at
-https://lkml.org/lkml/2012/6/21/26
+In this patch, a parameter to specify lowest allowed state for
+acpi_pm_device_sleep_state is added.  So that the caller can enforce
+the constraint via the parameter.
 
-I'll send out v6 for you to apply next Monday.
+This is needed by PCIe D3cold support, where the lowest power state
+allowed may be D3_HOT instead of default D3_COLD.
 
-Thanks,
-Lin Ming
+Signed-off-by: Huang Ying <ying.huang@intel.com>
+Reviewed-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
+---
+ drivers/acpi/sleep.c       |   24 +++++++++++++++++++-----
+ drivers/pci/pci-acpi.c     |    3 ++-
+ drivers/pnp/pnpacpi/core.c |    4 ++--
+ include/acpi/acpi_bus.h    |    6 +++---
+ 4 files changed, 26 insertions(+), 11 deletions(-)
 
-> 
-> 	Jeff
-
-
-
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -716,8 +716,9 @@ int acpi_suspend(u32 acpi_state)
+  *	@dev: device to examine; its driver model wakeup flags control
+  *		whether it should be able to wake up the system
+  *	@d_min_p: used to store the upper limit of allowed states range
+- *	Return value: preferred power state of the device on success, -ENODEV on
+- *		failure (ie. if there's no 'struct acpi_device' for @dev)
++ *	@d_max_in: specify the lowest allowed states
++ *	Return value: preferred power state of the device on success, -ENODEV
++ *	(ie. if there's no 'struct acpi_device' for @dev) or -EINVAL on failure
+  *
+  *	Find the lowest power (highest number) ACPI device power state that
+  *	device @dev can be in while the system is in the sleep state represented
+@@ -732,13 +733,15 @@ int acpi_suspend(u32 acpi_state)
+  *	via @wake.
+  */
+ 
+-int acpi_pm_device_sleep_state(struct device *dev, int *d_min_p)
++int acpi_pm_device_sleep_state(struct device *dev, int *d_min_p, int d_max_in)
+ {
+ 	acpi_handle handle = DEVICE_ACPI_HANDLE(dev);
+ 	struct acpi_device *adev;
+ 	char acpi_method[] = "_SxD";
+ 	unsigned long long d_min, d_max;
+ 
++	if (d_max_in < ACPI_STATE_D0 || d_max_in > ACPI_STATE_D3)
++		return -EINVAL;
+ 	if (!handle || ACPI_FAILURE(acpi_bus_get_device(handle, &adev))) {
+ 		printk(KERN_DEBUG "ACPI handle has no context!\n");
+ 		return -ENODEV;
+@@ -746,8 +749,10 @@ int acpi_pm_device_sleep_state(struct de
+ 
+ 	acpi_method[2] = '0' + acpi_target_sleep_state;
+ 	/*
+-	 * If the sleep state is S0, we will return D3, but if the device has
+-	 * _S0W, we will use the value from _S0W
++	 * If the sleep state is S0, the lowest limit from ACPI is D3,
++	 * but if the device has _S0W, we will use the value from _S0W
++	 * as the lowest limit from ACPI.  Finally, we will constrain
++	 * the lowest limit with the specified one.
+ 	 */
+ 	d_min = ACPI_STATE_D0;
+ 	d_max = ACPI_STATE_D3;
+@@ -791,8 +796,17 @@ int acpi_pm_device_sleep_state(struct de
+ 		}
+ 	}
+ 
++	if (d_max_in < d_min)
++		return -EINVAL;
+ 	if (d_min_p)
+ 		*d_min_p = d_min;
++	/* constrain d_max with specified lowest limit (max number) */
++	if (d_max > d_max_in) {
++		for (d_max = d_max_in; d_max > d_min; d_max--) {
++			if (adev->power.states[d_max].flags.valid)
++				break;
++		}
++	}
+ 	return d_max;
+ }
+ #endif /* CONFIG_PM */
+--- a/drivers/pci/pci-acpi.c
++++ b/drivers/pci/pci-acpi.c
+@@ -203,7 +203,8 @@ static pci_power_t acpi_pci_choose_state
+ {
+ 	int acpi_state;
+ 
+-	acpi_state = acpi_pm_device_sleep_state(&pdev->dev, NULL);
++	acpi_state = acpi_pm_device_sleep_state(&pdev->dev, NULL,
++						ACPI_STATE_D3);
+ 	if (acpi_state < 0)
+ 		return PCI_POWER_ERROR;
+ 
+--- a/drivers/pnp/pnpacpi/core.c
++++ b/drivers/pnp/pnpacpi/core.c
+@@ -170,8 +170,8 @@ static int pnpacpi_suspend(struct pnp_de
+ 	}
+ 
+ 	if (acpi_bus_power_manageable(handle)) {
+-		int power_state = acpi_pm_device_sleep_state(&dev->dev, NULL);
+-
++		int power_state = acpi_pm_device_sleep_state(&dev->dev, NULL,
++							     ACPI_STATE_D3);
+ 		if (power_state < 0)
+ 			power_state = (state.event == PM_EVENT_ON) ?
+ 					ACPI_STATE_D0 : ACPI_STATE_D3;
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -415,13 +415,13 @@ int acpi_enable_wakeup_device_power(stru
+ int acpi_disable_wakeup_device_power(struct acpi_device *dev);
+ 
+ #ifdef CONFIG_PM
+-int acpi_pm_device_sleep_state(struct device *, int *);
++int acpi_pm_device_sleep_state(struct device *, int *, int);
+ #else
+-static inline int acpi_pm_device_sleep_state(struct device *d, int *p)
++static inline int acpi_pm_device_sleep_state(struct device *d, int *p, int m)
+ {
+ 	if (p)
+ 		*p = ACPI_STATE_D0;
+-	return ACPI_STATE_D3;
++	return (m >= ACPI_STATE_D0 && m <= ACPI_STATE_D3) ? m : ACPI_STATE_D0;
+ }
+ #endif
+ 
