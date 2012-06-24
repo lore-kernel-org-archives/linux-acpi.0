@@ -1,70 +1,93 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 13/21] hp_accel: Use struct dev_pm_ops for power management
-Date: Sat, 23 Jun 2012 23:16:20 +0200
-Message-ID: <201206232316.20989.rjw@sisk.pl>
+From: Vikram Dhillon <opensolarisdev@gmail.com>
+Subject: Re: [PATCH 16/21] toshiba_bluetooth: Use struct dev_pm_ops for power management
+Date: Sun, 24 Jun 2012 08:40:02 -0400
+Message-ID: <CAK7t_7Vfgqps+iavyQmXhj+CwSoBOEkCyFhTo_mXnC3stQtxDw@mail.gmail.com>
 References: <201206232306.06602.rjw@sisk.pl>
+	<201206232318.18196.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <201206232306.06602.rjw@sisk.pl>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Linux PM list <linux-pm@vger.kernel.org>
-Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, platform-driver-x86@vger.kernel.org, Eric Piel <eric.piel@tremplin-utc.net>, Mattia Dongili <malattia@linux.it>, Harald Welte <laforge@gnumonks.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201206232318.18196.rjw@sisk.pl>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, platform-driver-x86@vger.kernel.org, Eric Piel <eric.piel@tremplin-utc.net>, Mattia Dongili <malattia@linux.it>, Harald Welte <laforge@gnumonks.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+On Sat, Jun 23, 2012 at 5:18 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> From: Rafael J. Wysocki <rjw@sisk.pl>
+>
+> Make the toshiba_bluetooth driver define its PM callbacks through
+> a struct dev_pm_ops object rather than by using legacy PM hooks
+> in struct acpi_device_ops.
+>
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> ---
+> =A0drivers/platform/x86/toshiba_bluetooth.c | =A0 10 ++++++----
+> =A01 file changed, 6 insertions(+), 4 deletions(-)
+>
+> Index: linux/drivers/platform/x86/toshiba_bluetooth.c
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- linux.orig/drivers/platform/x86/toshiba_bluetooth.c
+> +++ linux/drivers/platform/x86/toshiba_bluetooth.c
+> @@ -34,7 +34,6 @@ MODULE_LICENSE("GPL");
+> =A0static int toshiba_bt_rfkill_add(struct acpi_device *device);
+> =A0static int toshiba_bt_rfkill_remove(struct acpi_device *device, in=
+t type);
+> =A0static void toshiba_bt_rfkill_notify(struct acpi_device *device, u=
+32 event);
+> -static int toshiba_bt_resume(struct acpi_device *device);
+>
+> =A0static const struct acpi_device_id bt_device_ids[] =3D {
+> =A0 =A0 =A0 =A0{ "TOS6205", 0},
+> @@ -42,6 +41,9 @@ static const struct acpi_device_id bt_de
+> =A0};
+> =A0MODULE_DEVICE_TABLE(acpi, bt_device_ids);
+>
+> +static int toshiba_bt_resume(struct device *dev);
+> +static SIMPLE_DEV_PM_OPS(toshiba_bt_pm, NULL, toshiba_bt_resume);
+> +
+> =A0static struct acpi_driver toshiba_bt_rfkill_driver =3D {
+> =A0 =A0 =A0 =A0.name =3D =A0 =A0 =A0 =A0 "Toshiba BT",
+> =A0 =A0 =A0 =A0.class =3D =A0 =A0 =A0 =A0"Toshiba",
+> @@ -50,9 +52,9 @@ static struct acpi_driver toshiba_bt_rfk
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.add =3D=
+ =A0 =A0 =A0 =A0 =A0toshiba_bt_rfkill_add,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.remov=
+e =3D =A0 =A0 =A0 toshiba_bt_rfkill_remove,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.notif=
+y =3D =A0 =A0 =A0 toshiba_bt_rfkill_notify,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .resume=
+ =3D =A0 =A0 =A0 toshiba_bt_resume,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0},
+> =A0 =A0 =A0 =A0.owner =3D =A0 =A0 =A0 =A0THIS_MODULE,
+> + =A0 =A0 =A0 .drv.pm =3D =A0 =A0 =A0 &toshiba_bt_pm,
+> =A0};
+>
+>
+> @@ -88,9 +90,9 @@ static void toshiba_bt_rfkill_notify(str
+> =A0 =A0 =A0 =A0toshiba_bluetooth_enable(device->handle);
+> =A0}
+>
+> -static int toshiba_bt_resume(struct acpi_device *device)
+> +static int toshiba_bt_resume(struct device *dev)
+> =A0{
+> - =A0 =A0 =A0 return toshiba_bluetooth_enable(device->handle);
+> + =A0 =A0 =A0 return toshiba_bluetooth_enable(to_acpi_device(dev)->ha=
+ndle);
+> =A0}
+>
+> =A0static int toshiba_bt_rfkill_add(struct acpi_device *device)
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kerne=
+l" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at =A0http://www.tux.org/lkml/
 
-Make the hp_accel driver define its PM callbacks through
-a struct dev_pm_ops object rather than by using legacy PM hooks
-in struct acpi_device_ops.
+Looks good, will look into the other struct patch (#11) tomorrow.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- drivers/platform/x86/hp_accel.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
-
-Index: linux/drivers/platform/x86/hp_accel.c
-===================================================================
---- linux.orig/drivers/platform/x86/hp_accel.c
-+++ linux/drivers/platform/x86/hp_accel.c
-@@ -353,20 +353,22 @@ static int lis3lv02d_remove(struct acpi_
- 
- 
- #ifdef CONFIG_PM
--static int lis3lv02d_suspend(struct acpi_device *device)
-+static int lis3lv02d_suspend(struct device *dev)
- {
- 	/* make sure the device is off when we suspend */
- 	lis3lv02d_poweroff(&lis3_dev);
- 	return 0;
- }
- 
--static int lis3lv02d_resume(struct acpi_device *device)
-+static int lis3lv02d_resume(struct device *dev)
- {
- 	return lis3lv02d_poweron(&lis3_dev);
- }
-+
-+static SIMPLE_DEV_PM_OPS(hp_accel_pm, lis3lv02d_suspend, lis3lv02d_resume);
-+#define HP_ACCEL_PM (&hp_accel_pm)
- #else
--#define lis3lv02d_suspend NULL
--#define lis3lv02d_resume NULL
-+#define HP_ACCEL_PM NULL
- #endif
- 
- /* For the HP MDPS aka 3D Driveguard */
-@@ -377,9 +379,8 @@ static struct acpi_driver lis3lv02d_driv
- 	.ops = {
- 		.add     = lis3lv02d_add,
- 		.remove  = lis3lv02d_remove,
--		.suspend = lis3lv02d_suspend,
--		.resume  = lis3lv02d_resume,
--	}
-+	},
-+	.drv.pm = HP_ACCEL_PM,
- };
- 
- static int __init lis3lv02d_init_module(void)
+Reviewed-by: Vikram Dhillon <opensolarisdev@gmail.com>
