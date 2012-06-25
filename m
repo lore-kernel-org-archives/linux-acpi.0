@@ -1,76 +1,58 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: [PATCH v6 01/11] [SCSI]: add wrapper to access and set scsi_bus_type in struct acpi_bus_type
-Date: Mon, 25 Jun 2012 16:13:02 +0800
-Message-ID: <1340611992-41457-2-git-send-email-ming.m.lin@intel.com>
-References: <1340611992-41457-1-git-send-email-ming.m.lin@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1340611992-41457-1-git-send-email-ming.m.lin@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jeff Garzik <jgarzik@pobox.com>, Aaron Lu <aaron.lu@amd.com>, Holger Macht <holger@homac.de>, Matthew Garrett <mjg@redhat.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, David Woodhouse <David.Woodhouse@intel.com>, Dan Williams <dan.j.williams@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org
+From: Thomas Renninger <trenn@suse.de>
+Subject: [PATCH] Fix not loading acpi-cpufreq driver regression
+Date: Mon, 25 Jun 2012 13:00:10 +0200
+Message-ID: <201206251300.10957.trenn@suse.de>
+Mime-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:54968 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755791Ab2FYLAQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 25 Jun 2012 07:00:16 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Lin Ming <ming.m.lin@intel.com>, stable@vger.kernel.org, wallak@free.fr, len.brown@intel.com, Jiri Slaby <jslaby@suse.cz>
 
-From: Holger Macht <holger@homac.de>
+ACPI processor: Only blindly return apic id 0 for real UP systems
 
-For being able to bind ata devices against acpi devices, scsi_bus_type
-needs to be set as bus in struct acpi_bus_type. So add wrapper to
-scsi_lib to accomplish that.
+This fixes a "not loading acpi-cpufreq driver" regression introduced
+by git commit d640113fe80e45ebd4a5b4 on SMP systems where the processor
+core with ACPI id zero is disabled
+(typically should be the case because of hyperthreading).
+The regression got spread through stable kernels.
+On 3.0.X it got introduced via 3.0.18.
 
-Signed-off-by: Holger Macht <holger@homac.de>
-Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+Such platforms may be rare, but do exist. This problem has been
+observed on a:
+HP Proliant BL280c G6 blade
+This patch restricts the introduced workaround to platforms
+with nr_cpu_ids <= 1.
+
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+
 ---
- drivers/scsi/scsi_lib.c |   17 +++++++++++++++++
- include/scsi/scsi.h     |   10 ++++++++++
- 2 files changed, 27 insertions(+)
+ drivers/acpi/processor_core.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/scsi/scsi_lib.c b/drivers/scsi/scsi_lib.c
-index 6dfb978..08f1e29 100644
---- a/drivers/scsi/scsi_lib.c
-+++ b/drivers/scsi/scsi_lib.c
-@@ -68,6 +68,23 @@ static struct scsi_host_sg_pool scsi_sg_pools[] = {
- 
- struct kmem_cache *scsi_sdb_cache;
- 
-+#ifdef CONFIG_ACPI
-+#include <acpi/acpi_bus.h>
-+
-+int scsi_register_acpi_bus_type(struct acpi_bus_type *bus)
-+{
-+        bus->bus = &scsi_bus_type;
-+        return register_acpi_bus_type(bus);
-+}
-+EXPORT_SYMBOL_GPL(scsi_register_acpi_bus_type);
-+
-+void scsi_unregister_acpi_bus_type(struct acpi_bus_type *bus)
-+{
-+	unregister_acpi_bus_type(bus);
-+}
-+EXPORT_SYMBOL_GPL(scsi_unregister_acpi_bus_type);
-+#endif
-+
- /*
-  * When to reinvoke queueing after a resource shortage. It's 3 msecs to
-  * not change behaviour from the previous unplug mechanism, experimentation
-diff --git a/include/scsi/scsi.h b/include/scsi/scsi.h
-index f34a5a8..4527b3a 100644
---- a/include/scsi/scsi.h
-+++ b/include/scsi/scsi.h
-@@ -214,6 +214,16 @@ scsi_command_size(const unsigned char *cmnd)
- 		scsi_varlen_cdb_length(cmnd) : COMMAND_SIZE(cmnd[0]);
- }
- 
-+#ifdef CONFIG_ACPI
-+struct acpi_bus_type;
-+
-+extern int
-+scsi_register_acpi_bus_type(struct acpi_bus_type *bus);
-+
-+extern void
-+scsi_unregister_acpi_bus_type(struct acpi_bus_type *bus);
-+#endif
-+
- /*
-  *  SCSI Architecture Model (SAM) Status codes. Taken from SAM-3 draft
-  *  T10/1561-D Revision 4 Draft dated 7th November 2002.
--- 
-1.7.10
+Index: linux-3.0-SLE11-SP2/drivers/acpi/processor_core.c
+===================================================================
+--- linux-3.0-SLE11-SP2.orig/drivers/acpi/processor_core.c
++++ linux-3.0-SLE11-SP2/drivers/acpi/processor_core.c
+@@ -201,10 +201,12 @@ int acpi_get_cpuid(acpi_handle handle, i
+ 		 *     Processor (CPU3, 0x03, 0x00000410, 0x06) {}
+ 		 * }
+ 		 *
+-		 * Ignores apic_id and always return 0 for CPU0's handle.
++		 * Ignores apic_id and always returns 0 for the processor
++		 * handle with apic id 0 if nr_cpu_ids is 1.
++		 * This should be the case if SMP tables are not found.
+ 		 * Return -1 for other CPU's handle.
+ 		 */
+-		if (acpi_id == 0)
++		if (nr_cpu_ids <= 1 && acpi_id == 0)
+ 			return acpi_id;
+ 		else
+ 			return apic_id;
