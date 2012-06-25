@@ -1,94 +1,139 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 13/21] hp_accel: Use struct dev_pm_ops for power management
-Date: Sun, 24 Jun 2012 22:14:03 +0200
-Message-ID: <201206242214.04106.rjw@sisk.pl>
-References: <201206232306.06602.rjw@sisk.pl> <201206232316.20989.rjw@sisk.pl> <4FE771F6.7000206@tremplin-utc.net>
+From: Lin Ming <ming.m.lin@intel.com>
+Subject: ACPI: Fix resource_lock dead lock in acpi_power_on_device
+Date: Mon, 25 Jun 2012 13:09:02 +0800
+Message-ID: <1340600942.3328.37.camel@minggr>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <4FE771F6.7000206@tremplin-utc.net>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: =?utf-8?q?=C3=89ric_Piel?= <eric.piel@tremplin-utc.net>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, platform-driver-x86@vger.kernel.org, Mattia Dongili <malattia@linux.it>, Harald Welte <laforge@gnumonks.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([143.182.124.37]:48192 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752595Ab2FYFJF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 25 Jun 2012 01:09:05 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb <lenb@kernel.org>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Lan, Tianyu" <tianyu.lan@intel.com>
 
-On Sunday, June 24, 2012, =C3=89ric Piel wrote:
-> On 23-06-12 23:16, Rafael J. Wysocki wrote:
-> > From: Rafael J. Wysocki <rjw@sisk.pl>
-> >
-> > Make the hp_accel driver define its PM callbacks through
-> > a struct dev_pm_ops object rather than by using legacy PM hooks
-> > in struct acpi_device_ops.
-> >
-> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> Hello,
-> Looks fine from my point of view.
->=20
-> Reviewed-by: =C3=89ric Piel <eric.piel@tremplin-utc.net>
+Commit 0090def("ACPI: Add interface to register/unregister device
+to/from power resources") used resource_lock to protect the devices list
+that relies on power resource. It caused a mutex dead lock, as below
 
-Thanks a lot!
+acpi_power_on ---> lock resource_lock
+  __acpi_power_on
+    acpi_power_on_device
+      acpi_power_get_inferred_state
+        acpi_power_get_list_state ---> lock resource_lock
 
-Rafael
+This patch adds a new mutex "devices_lock" to protect the devices list
+and calls acpi_power_on_device in acpi_power_on, instead of
+__acpi_power_on, after the resource_lock is released.
+
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+---
+ drivers/acpi/power.c |   29 ++++++++++++++++++-----------
+ 1 file changed, 18 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+index eb640874..068349e 100644
+--- a/drivers/acpi/power.c
++++ b/drivers/acpi/power.c
+@@ -103,6 +103,7 @@ struct acpi_power_resource {
+ 
+ 	/* List of devices relying on this power resource */
+ 	struct acpi_power_resource_device *devices;
++	struct mutex devices_lock;
+ };
+ 
+ static struct list_head acpi_power_resource_list;
+@@ -221,7 +222,6 @@ static void acpi_power_on_device(struct acpi_power_managed_device *device)
+ 
+ static int __acpi_power_on(struct acpi_power_resource *resource)
+ {
+-	struct acpi_power_resource_device *device_list = resource->devices;
+ 	acpi_status status = AE_OK;
+ 
+ 	status = acpi_evaluate_object(resource->device->handle, "_ON", NULL, NULL);
+@@ -234,12 +234,6 @@ static int __acpi_power_on(struct acpi_power_resource *resource)
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Power resource [%s] turned on\n",
+ 			  resource->name));
+ 
+-	while (device_list) {
+-		acpi_power_on_device(device_list->device);
+-
+-		device_list = device_list->next;
+-	}
+-
+ 	return 0;
+ }
+ 
+@@ -247,6 +241,7 @@ static int acpi_power_on(acpi_handle handle)
+ {
+ 	int result = 0;
+ 	struct acpi_power_resource *resource = NULL;
++	struct acpi_power_resource_device *device_list;
+ 
+ 	result = acpi_power_get_context(handle, &resource);
+ 	if (result)
+@@ -266,6 +261,17 @@ static int acpi_power_on(acpi_handle handle)
+ 
+ 	mutex_unlock(&resource->resource_lock);
+ 
++	mutex_lock(&resource->devices_lock);
++
++	device_list = resource->devices;
++	while (device_list) {
++		acpi_power_on_device(device_list->device);
++
++		device_list = device_list->next;
++	}
++
++	mutex_unlock(&resource->devices_lock);
++
+ 	return result;
+ }
+ 
+@@ -351,7 +357,7 @@ static void __acpi_power_resource_unregister_device(struct device *dev,
+ 	if (acpi_power_get_context(res_handle, &resource))
+ 		return;
+ 
+-	mutex_lock(&resource->resource_lock);
++	mutex_lock(&resource->devices_lock);
+ 	prev = NULL;
+ 	curr = resource->devices;
+ 	while (curr) {
+@@ -368,7 +374,7 @@ static void __acpi_power_resource_unregister_device(struct device *dev,
+ 		prev = curr;
+ 		curr = curr->next;
+ 	}
+-	mutex_unlock(&resource->resource_lock);
++	mutex_unlock(&resource->devices_lock);
+ }
+ 
+ /* Unlink dev from all power resources in _PR0 */
+@@ -410,10 +416,10 @@ static int __acpi_power_resource_register_device(
+ 
+ 	power_resource_device->device = powered_device;
+ 
+-	mutex_lock(&resource->resource_lock);
++	mutex_lock(&resource->devices_lock);
+ 	power_resource_device->next = resource->devices;
+ 	resource->devices = power_resource_device;
+-	mutex_unlock(&resource->resource_lock);
++	mutex_unlock(&resource->devices_lock);
+ 
+ 	return 0;
+ }
+@@ -717,6 +723,7 @@ static int acpi_power_add(struct acpi_device *device)
+ 
+ 	resource->device = device;
+ 	mutex_init(&resource->resource_lock);
++	mutex_init(&resource->devices_lock);
+ 	strcpy(resource->name, device->pnp.bus_id);
+ 	strcpy(acpi_device_name(device), ACPI_POWER_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_POWER_CLASS);
+-- 
+1.7.10
 
 
-> > ---
-> >   drivers/platform/x86/hp_accel.c |   15 ++++++++-------
-> >   1 file changed, 8 insertions(+), 7 deletions(-)
-> >
-> > Index: linux/drivers/platform/x86/hp_accel.c
-> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > --- linux.orig/drivers/platform/x86/hp_accel.c
-> > +++ linux/drivers/platform/x86/hp_accel.c
-> > @@ -353,20 +353,22 @@ static int lis3lv02d_remove(struct acpi_
-> >
-> >
-> >   #ifdef CONFIG_PM
-> > -static int lis3lv02d_suspend(struct acpi_device *device)
-> > +static int lis3lv02d_suspend(struct device *dev)
-> >   {
-> >   	/* make sure the device is off when we suspend */
-> >   	lis3lv02d_poweroff(&lis3_dev);
-> >   	return 0;
-> >   }
-> >
-> > -static int lis3lv02d_resume(struct acpi_device *device)
-> > +static int lis3lv02d_resume(struct device *dev)
-> >   {
-> >   	return lis3lv02d_poweron(&lis3_dev);
-> >   }
-> > +
-> > +static SIMPLE_DEV_PM_OPS(hp_accel_pm, lis3lv02d_suspend, lis3lv02d=
-_resume);
-> > +#define HP_ACCEL_PM (&hp_accel_pm)
-> >   #else
-> > -#define lis3lv02d_suspend NULL
-> > -#define lis3lv02d_resume NULL
-> > +#define HP_ACCEL_PM NULL
-> >   #endif
-> >
-> >   /* For the HP MDPS aka 3D Driveguard */
-> > @@ -377,9 +379,8 @@ static struct acpi_driver lis3lv02d_driv
-> >   	.ops =3D {
-> >   		.add     =3D lis3lv02d_add,
-> >   		.remove  =3D lis3lv02d_remove,
-> > -		.suspend =3D lis3lv02d_suspend,
-> > -		.resume  =3D lis3lv02d_resume,
-> > -	}
-> > +	},
-> > +	.drv.pm =3D HP_ACCEL_PM,
-> >   };
-> >
-> >   static int __init lis3lv02d_init_module(void)
-> >
->=20
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pm" i=
-n
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->=20
->=20
+
