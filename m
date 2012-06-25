@@ -1,53 +1,94 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH] Fix not loading acpi-cpufreq driver regression
-Date: Mon, 25 Jun 2012 13:20:47 +0200
-Message-ID: <201206251320.47590.trenn@suse.de>
-References: <201206251300.10957.trenn@suse.de>
+From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
+Subject: [PATCH] acpi, cpuidle: Register with cpuidle even if cpu is onlined
+ after boot (beyond maxcpus)
+Date: Mon, 25 Jun 2012 16:55:43 +0530
+Message-ID: <4FE84AB7.6020305@linux.vnet.ibm.com>
+References: <4FDB549F.1020002@linaro.org> <4FDE3B96.8030306@linaro.org> <4FDF1E3A.6010200@linux.vnet.ibm.com> <4FDF24FE.1010108@linaro.org> <4FE02233.2060809@linux.vnet.ibm.com> <4FE0243C.4040600@linux.vnet.ibm.com> <4FE027AC.8010607@linaro.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:56819 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755873Ab2FYLUy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 25 Jun 2012 07:20:54 -0400
-In-Reply-To: <201206251300.10957.trenn@suse.de>
+Received: from e28smtp05.in.ibm.com ([122.248.162.5]:46616 "EHLO
+	e28smtp05.in.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751863Ab2FYL0p (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Jun 2012 07:26:45 -0400
+Received: from /spool/local
+	by e28smtp05.in.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <linux-acpi@vger.kernel.org> from <srivatsa.bhat@linux.vnet.ibm.com>;
+	Mon, 25 Jun 2012 16:56:42 +0530
+In-Reply-To: <4FE027AC.8010607@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Lin Ming <ming.m.lin@intel.com>, stable@vger.kernel.org, wallak@free.fr, len.brown@intel.com, Jiri Slaby <jslaby@suse.cz>
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, trenn@suse.de, Linux PM mailing list <linux-pm@vger.kernel.org>, lenb@kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-On Monday, June 25, 2012 01:00:10 PM Thomas Renninger wrote:
-> ACPI processor: Only blindly return apic id 0 for real UP systems
-> 
-> This fixes a "not loading acpi-cpufreq driver" regression introduced
-> by git commit d640113fe80e45ebd4a5b4 on SMP systems where the processor
-> core with ACPI id zero is disabled
-> (typically should be the case because of hyperthreading).
-> The regression got spread through stable kernels.
-> On 3.0.X it got introduced via 3.0.18.
-> 
-> Such platforms may be rare, but do exist. This problem has been
-> observed on a:
-> HP Proliant BL280c G6 blade
-> This patch restricts the introduced workaround to platforms
-> with nr_cpu_ids <= 1.
 
-Wallak:
-Can you give this patch a try and double check whether things still
-work for you.
-If I understand it correctly you tried a UP compiled kernel?
-On this one I expect nr_cpu_ids to be statically set to 1 and the
-patch should be fine for you.
+Daniel Lezcano noticed that after booting with maxcpus=X, if we online the
+remaining cpus by writing: echo 1 > /sys/devices/system/cpu/cpuY/online, then
+for the newly onlined cpus, the cpuidle directory is not found under
+/sys/devices/system/cpu/cpuY.
 
-The only other candidate I can think of which needs this,
-are platforms with only 1 core available and no SMP APIC/ACPI mapping 
-table, but a
-Processor (...)
-ACPI object.
-Those should also still be covered with my patch.
+Partly, the reason for this is that acpi restricts the initialization to cpus
+within the maxcpus limit. (See commit 75cbfb9 "ACPI: Do not try to set up acpi
+processor stuff on cores exceeding maxcpus="). The maxcpus= kernel parameter is
+used to restrict the number of cpus brought up during boot. That doesn't mean
+that we should hard restrict the bring up of the remaining cpus later on. So
+teach acpi to play nice with maxcpus= parameter, and perform the initialization
+for all present cpus, but defer their startup to the point when they are
+actually onlined later.
 
-Thanks,
+But that alone won't suffice as a fix, because there is one more thing that
+the present but !online cpus lack - the need_hotplug_init flag.
+The need_hotplug_init flag is set only for physically hotplugged cpus and not
+for cpus which were already present but not brought online during boot (due to
+the maxcpus= parameter). For cpus with this flag set, during the online
+operation, acpi_cpu_soft_notify() takes care of the registration with cpuidle.
+So, in order to allow the present but !online cpus to be onlined later with
+full features (by making use of acpi_cpu_soft_notify()), set their
+need_hotplug_init flag.
 
-   Thomas
+Reported-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+---
+
+Daniel, this patch works for me. Does it work for you as well?
+
+ drivers/acpi/processor_driver.c |   16 +++++++++++-----
+ 1 files changed, 11 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index 0734086..f29d30f 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -551,11 +551,6 @@ static int __cpuinit acpi_processor_add(struct acpi_device *device)
+ 		return 0;
+ 	}
+ 
+-#ifdef CONFIG_SMP
+-	if (pr->id >= setup_max_cpus && pr->id != 0)
+-		return 0;
+-#endif
+-
+ 	BUG_ON((pr->id >= nr_cpu_ids) || (pr->id < 0));
+ 
+ 	/*
+@@ -580,6 +575,17 @@ static int __cpuinit acpi_processor_add(struct acpi_device *device)
+ 		goto err_clear_processor;
+ 	}
+ 
++#ifdef CONFIG_SMP
++	if (pr->id >= setup_max_cpus && pr->id != 0) {
++		/*
++		 * Don't start cpus beyond maxcpus now. But allow them to
++		 * to be brought online later.
++		 */
++		pr->flags.need_hotplug_init = 1;
++		return 0;
++	}
++#endif
++
+ 	/*
+ 	 * Do not start hotplugged CPUs now, but when they
+ 	 * are onlined the first time
+
+
