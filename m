@@ -1,126 +1,87 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH] acpi,
-	cpuidle: Register with cpuidle even if cpu is onlined after boot
-	(beyond maxcpus)
-Date: Mon, 25 Jun 2012 15:53:55 +0200
-Message-ID: <201206251553.55867.trenn@suse.de>
-References: <4FDB549F.1020002@linaro.org> <4FE027AC.8010607@linaro.org>
-	<4FE84AB7.6020305@linux.vnet.ibm.com>
+From: Ben Hutchings <ben@decadent.org.uk>
+Subject: Re: [PATCH] Fix not loading acpi-cpufreq driver regression
+Date: Mon, 25 Jun 2012 15:05:14 +0100
+Message-ID: <1340633114.741.92.camel@deadeye.wl.decadent.org.uk>
+References: <201206251300.10957.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <4FE84AB7.6020305@linux.vnet.ibm.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Cc: x86@kernel.org, Linux PM mailing list <linux-pm@vger.kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org
+Content-Type: multipart/signed; micalg="pgp-sha512";
+	protocol="application/pgp-signature"; boundary="=-wsHH99wP9rPfReXfHBOj"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:41966 "EHLO
+	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756922Ab2FYOF1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 25 Jun 2012 10:05:27 -0400
+In-Reply-To: <201206251300.10957.trenn@suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: linux-acpi@vger.kernel.org, Lin Ming <ming.m.lin@intel.com>, stable@vger.kernel.org, wallak@free.fr, len.brown@intel.com, Jiri Slaby <jslaby@suse.cz>
 
-On Monday, June 25, 2012 01:25:43 PM Srivatsa S. Bhat wrote:
-> 
-> Daniel Lezcano noticed that after booting with maxcpus=X, if we online the
-> remaining cpus by writing: echo 1 > /sys/devices/system/cpu/cpuY/online, then
-> for the newly onlined cpus, the cpuidle directory is not found under
-> /sys/devices/system/cpu/cpuY.
-> 
-> Partly, the reason for this is that acpi restricts the initialization to cpus
-> within the maxcpus limit. (See commit 75cbfb9 "ACPI: Do not try to set up acpi
-> processor stuff on cores exceeding maxcpus="). The maxcpus= kernel parameter is
-> used to restrict the number of cpus brought up during boot. That doesn't mean
-> that we should hard restrict the bring up of the remaining cpus later on.
 
-Sorry, but IMO it exaclty does mean that (adding more general lists for
-further comments).
+--=-wsHH99wP9rPfReXfHBOj
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-If you can online more cores than maxcpus= via sysfs, this sounds like a bug.
-Not the other way around.
+On Mon, 2012-06-25 at 13:00 +0200, Thomas Renninger wrote:
+> ACPI processor: Only blindly return apic id 0 for real UP systems
+>=20
+> This fixes a "not loading acpi-cpufreq driver" regression introduced
+> by git commit d640113fe80e45ebd4a5b4 on SMP systems where the processor
+> core with ACPI id zero is disabled
+> (typically should be the case because of hyperthreading).
+> The regression got spread through stable kernels.
+> On 3.0.X it got introduced via 3.0.18.
+>=20
+> Such platforms may be rare, but do exist. This problem has been
+> observed on a:
+> HP Proliant BL280c G6 blade
+> This patch restricts the introduced workaround to platforms
+> with nr_cpu_ids <=3D 1.
 
-Compare with Documentation/kernel-parameters.txt:
-        maxcpus=        [SMP] Maximum number of processors that an SMP kernel
-                        should make use of.  maxcpus=n : n >= 0 limits the
-                        kernel to using 'n' processors.  n=0 is a special case,
-                        it is equivalent to "nosmp", which also disables
-                        the IO APIC.
+This is not the correct way to submit a patch to stable.  See
+Documentation/stable_kernel_rules.txt.
 
-Chances that you run into more problems are high.
-It would help if it is explained why at all this would be needed.
+Also, patches to mainline should be made against mainline, not the
+distribution branch you have to hand.
 
-If there really is a valid use-case, possibly a bootcpus= param could get
-defined or above documentation is adjusted. But this would need thorough
-double checking, because I expect maxcpus=X was never intended to bring up
-more than X cores later via sysfs and I expect there are more
-places where things have to get ajusted.
+[...]
+> -                * Ignores apic_id and always return 0 for CPU0's handle.
+> +                * Ignores apic_id and always returns 0 for the processor
+> +                * handle with apic id 0 if nr_cpu_ids is 1.
+> +                * This should be the case if SMP tables are not found.
+[...]
 
-    Thomas
+Second 'apic id' should be 'acpi_id'.
 
-> So
-> teach acpi to play nice with maxcpus= parameter, and perform the initialization
-> for all present cpus, but defer their startup to the point when they are
-> actually onlined later.
-> 
-> But that alone won't suffice as a fix, because there is one more thing that
-> the present but !online cpus lack - the need_hotplug_init flag.
-> The need_hotplug_init flag is set only for physically hotplugged cpus and not
-> for cpus which were already present but not brought online during boot (due to
-> the maxcpus= parameter). For cpus with this flag set, during the online
-> operation, acpi_cpu_soft_notify() takes care of the registration with cpuidle.
-> So, in order to allow the present but !online cpus to be onlined later with
-> full features (by making use of acpi_cpu_soft_notify()), set their
-> need_hotplug_init flag.
-> 
-> Reported-by: Daniel Lezcano <daniel.lezcano@linaro.org>
-> Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
-> 
-> ---
-> 
-> Daniel, this patch works for me. Does it work for you as well?
-> 
->  drivers/acpi/processor_driver.c |   16 +++++++++++-----
->  1 files changed, 11 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-> index 0734086..f29d30f 100644
-> --- a/drivers/acpi/processor_driver.c
-> +++ b/drivers/acpi/processor_driver.c
-> @@ -551,11 +551,6 @@ static int __cpuinit acpi_processor_add(struct acpi_device *device)
->  		return 0;
->  	}
->  
-> -#ifdef CONFIG_SMP
-> -	if (pr->id >= setup_max_cpus && pr->id != 0)
-> -		return 0;
-> -#endif
-> -
->  	BUG_ON((pr->id >= nr_cpu_ids) || (pr->id < 0));
->  
->  	/*
-> @@ -580,6 +575,17 @@ static int __cpuinit acpi_processor_add(struct acpi_device *device)
->  		goto err_clear_processor;
->  	}
->  
-> +#ifdef CONFIG_SMP
-> +	if (pr->id >= setup_max_cpus && pr->id != 0) {
-> +		/*
-> +		 * Don't start cpus beyond maxcpus now. But allow them to
-> +		 * to be brought online later.
-> +		 */
-> +		pr->flags.need_hotplug_init = 1;
-> +		return 0;
-> +	}
-> +#endif
-> +
->  	/*
->  	 * Do not start hotplugged CPUs now, but when they
->  	 * are onlined the first time
-> 
-> 
-> 
+Ben.
+
+--=20
+Ben Hutchings
+Lowery's Law:
+             If it jams, force it. If it breaks, it needed replacing anyway=
+.
+
+--=-wsHH99wP9rPfReXfHBOj
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIVAwUAT+hwGue/yOyVhhEJAQqEtxAAuhYWoodWMCAlmYH1PENI3UtEF0Y3cD4n
+xWJZ+Zvz2svidB/17RGfH4QtTgZgDOTXOIpfPqtVfSRcHcSlutpTDKxX8Hfd2/ef
+mIVux3PlUtwK5ODEC73QwVstVIZLb9huDVMOz6lfM9vcS9H4iSmYqvwQ7Fn2OsF8
+CIeF8gcL5d9N+KmQqTxsTvDMB3vK0PSp9slsvCrBQFvztl+uUlvaGUEBd4OHwnhP
+PT4+PBnfooVbr16ypvhYIbVnk3VihnVmwzNpdaNNE+0IpGCyv26qZIueiZhyNTn6
+IjlIoZFr4jEsUItzbl0SwXI2N5RK+ijNx+EqdRkrKi+soGI/LAcpjbjgnIQL0mAf
+GQoznOqdxR38Eyn4eAGZWH1iqRaH7Sk47/qaTI1EtDcTsOwb+q+PyQLRk/GVYSwG
+dBxxNeMxENWZhOXT35e1k0AeEYC0vB5sDyAeRE0uLbqlesP7QVqTUjrTRNwwygKc
+rBDP6uR8vUwTjGDvOxL9Rl1valOiHDuydK8fBs85EYvQ86ZuyO651dZrdhfY6yDk
+gKAqAiTWT7iKIL21ZZVp4l0jdq+uPyQicH47T3t9u8Uk/vEoq4UeTrWKFARf47rO
+enWzWatwowo4ivnWa1bNX912yAPEJODcxE84KOSezll8Mqhc7FdF+RFftPAfpTp4
+c+xHZV38h8E=
+=Vrgl
+-----END PGP SIGNATURE-----
+
+--=-wsHH99wP9rPfReXfHBOj--
