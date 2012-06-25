@@ -2,21 +2,17 @@ From: =?utf-8?B?5pyJ5pWI5p6c5YaN5LuY5qy+?= <admin@zdit.cn>
 Subject: =?utf-8?B?MjAxMuaYpeWtozExMeWxiuW5v+S6pOS8muS5sOWutu+8jEIyQuivog==?=
 	=?utf-8?B?55uY5Lmw5a6244CBdGhvbWFzbmV0IOmHh+i0reWVhizmtbflhbM=?=
 	=?utf-8?B?5pWw5o2uLOe+pOWPkei9r+S7tu+8jOWxleS8muS5sOWutiDku4UzMDDlhYMh?=
-Date: Mon, 25 Jun 2012 21:23:08 +0000 (UTC)
-Message-ID: <20200626031821516081@zdit.cn>
+Date: Mon, 25 Jun 2012 21:24:11 +0000 (UTC)
+Message-ID: <20200626031821516081__40542.0795236298$1340659451$gmane$org@zdit.cn>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="utf-8"
 Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from [61.139.77.53] ([61.139.77.53]:1528 "HELO zdit.cn"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with SMTP
-	id S1756095Ab2FYVXD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 25 Jun 2012 17:23:03 -0400
+Return-path: <linux-kbuild-owner@vger.kernel.org>
 Date: Fri, 26 Jun 2020 03:18:13 +0800
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kbuild-owner@vger.kernel.org
 To: linuo168@linuo.net.cn, linux24@ml.ascii.co.jp, linux-acpi@vger.kernel.org, linuxfan@linux.org, linuxfever@hotmail.com, linux-kbuild@vger.kernel.org, linuxmag@ml.ascii.co.jp, linux-ok@263.net, linux-shop@163.net, linuxtech02@yahoo.com
+List-Id: linux-acpi@vger.kernel.org
 
 MjAxMuaYpeWtozExMeWxiuW5v+S6pOS8muS5sOWutu+8jOa1t+WFs+aVsOaNruaPkOWNlXBpZXJz
 54mI77yMMjAwOC0yMDEy5bm0OeWxiuW5v+S6pOS8muaVsOaNruOAgg0KDQrkuIDlhbExMOS4quWM
