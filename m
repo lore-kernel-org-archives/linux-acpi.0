@@ -1,105 +1,27 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v5 5/6] ACPI: Add _OST support for ACPI container hotplug
-Date: Mon, 25 Jun 2012 10:59:32 -0600
-Message-ID: <1340643573-28299-6-git-send-email-toshi.kani@hp.com>
-References: <1340643573-28299-1-git-send-email-toshi.kani@hp.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1340643573-28299-1-git-send-email-toshi.kani@hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: lenb@kernel.org, linux-acpi@vger.kernel.org
-Cc: bhelgaas@google.com, shuahkhan@gmail.com, liuj97@gmail.com, andi@firstfloor.org, isimatu.yasuaki@jp.fujitsu.com, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH v6 02/11] libata: bind the Linux device tree to the ACPI
+ device tree
+Date: Mon, 25 Jun 2012 12:22:01 -0700
+Message-ID: <CABE8wwsj+LOpgWE2f==n38OGJwWDoGbFk7pEsL9g3vP599KVGg@mail.gmail.com>
+References: <1340611992-41457-1-git-send-email-ming.m.lin@intel.com>
+	<1340611992-41457-3-git-send-email-ming.m.lin@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <1340611992-41457-3-git-send-email-ming.m.lin@intel.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: Lin Ming <ming.m.lin@intel.com>
+Cc: Jeff Garzik <jgarzik@pobox.com>, Aaron Lu <aaron.lu@amd.com>, Holger Macht <holger@homac.de>, Matthew Garrett <mjg@redhat.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, David Woodhouse <David.Woodhouse@intel.com>, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Changed container_notify_cb() to call ACPI _OST method when ACPI
-container hotplug operation has completed. Slightly restructured
-the code with the same logic except that the hot-add case will
-fail a request whenever device is set. This makes the error check
-to be more comprehensive.
+On Mon, Jun 25, 2012 at 1:13 AM, Lin Ming <ming.m.lin@intel.com> wrote:
+> From: Matthew Garrett <mjg@redhat.com>
+>
+> Associate the ACPI device tree and libata devices.
+> This patch uses the generic ACPI glue framework to do so.
+>
+> Signed-off-by: Matthew Garrett <mjg@redhat.com>
+> Signed-off-by: Holger Macht <holger@homac.de>
+> Signed-off-by: Lin Ming <ming.m.lin@intel.com>
 
-The function sets eject_pending bit for an eject request since it
-does not initiate hot-remove operation. This bit is checked by the
-sysfs eject handler to determine if the request is originated from
-an ACPI eject notification.
-
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
----
- drivers/acpi/container.c |   43 ++++++++++++++++++++++++++++---------------
- 1 files changed, 28 insertions(+), 15 deletions(-)
-
-diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
-index 45cd03b..1f9f7d7 100644
---- a/drivers/acpi/container.c
-+++ b/drivers/acpi/container.c
-@@ -158,9 +158,7 @@ static void container_notify_cb(acpi_handle handle, u32 type, void *context)
- 	int result;
- 	int present;
- 	acpi_status status;
--
--
--	present = is_device_present(handle);
-+	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE; /* default */
- 
- 	switch (type) {
- 	case ACPI_NOTIFY_BUS_CHECK:
-@@ -169,32 +167,47 @@ static void container_notify_cb(acpi_handle handle, u32 type, void *context)
- 		printk(KERN_WARNING "Container driver received %s event\n",
- 		       (type == ACPI_NOTIFY_BUS_CHECK) ?
- 		       "ACPI_NOTIFY_BUS_CHECK" : "ACPI_NOTIFY_DEVICE_CHECK");
-+
-+		present = is_device_present(handle);
- 		status = acpi_bus_get_device(handle, &device);
--		if (present) {
--			if (ACPI_FAILURE(status) || !device) {
--				result = container_device_add(&device, handle);
--				if (!result)
--					kobject_uevent(&device->dev.kobj,
--						       KOBJ_ONLINE);
--				else
--					printk(KERN_WARNING
--					       "Failed to add container\n");
--			}
--		} else {
-+		if (!present) {
- 			if (ACPI_SUCCESS(status)) {
- 				/* device exist and this is a remove request */
-+				device->flags.eject_pending = 1;
- 				kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
-+				return;
- 			}
-+			break;
-+		}
-+
-+		if (!ACPI_FAILURE(status) || device)
-+			break;
-+
-+		result = container_device_add(&device, handle);
-+		if (result) {
-+			printk(KERN_WARNING "Failed to add container\n");
-+			break;
- 		}
-+
-+		kobject_uevent(&device->dev.kobj, KOBJ_ONLINE);
-+		ost_code = ACPI_OST_SC_SUCCESS;
- 		break;
-+
- 	case ACPI_NOTIFY_EJECT_REQUEST:
- 		if (!acpi_bus_get_device(handle, &device) && device) {
-+			device->flags.eject_pending = 1;
- 			kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
-+			return;
- 		}
- 		break;
-+
- 	default:
--		break;
-+		/* non-hotplug event; possibly handled by other handler */
-+		return;
- 	}
-+
-+	/* Inform firmware that the hotplug operation has completed */
-+	(void) acpi_evaluate_hotplug_ost(handle, type, ost_code, NULL);
- 	return;
- }
- 
--- 
-1.7.7.6
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
