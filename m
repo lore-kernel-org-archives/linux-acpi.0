@@ -1,119 +1,23 @@
-From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: Re: [PATCH 7/8] auto bind the memory device which is hotpluged
- before the driver is loaded
-Date: Tue, 26 Jun 2012 13:06:35 -0400
-Message-ID: <20120626170635.GC21579@phenom.dumpdata.com>
-References: <4FE97DD5.6030205@cn.fujitsu.com>
- <4FE97F60.90101@cn.fujitsu.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH 0/7] platform-drivers-x86: backlight, samsung and asus
+Date: Tue, 26 Jun 2012 19:42:02 +0100
+Message-ID: <20120626184201.GF29375@srcf.ucam.org>
+References: <1339572727-24744-1-git-send-email-corentin.chary@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from acsinet15.oracle.com ([141.146.126.227]:23035 "EHLO
-	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758499Ab2FZROg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Jun 2012 13:14:36 -0400
+Received: from cavan.codon.org.uk ([93.93.128.6]:47867 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755755Ab2FZSmI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Jun 2012 14:42:08 -0400
 Content-Disposition: inline
-In-Reply-To: <4FE97F60.90101@cn.fujitsu.com>
+In-Reply-To: <1339572727-24744-1-git-send-email-corentin.chary@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Wen Congyang <wency@cn.fujitsu.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Yasuaki ISIMATU <isimatu.yasuaki@jp.fujitsu.com>
+To: Corentin Chary <corentin.chary@gmail.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
 
-On Tue, Jun 26, 2012 at 05:22:40PM +0800, Wen Congyang wrote:
-> If the memory device is hotpluged before the driver is loaded, the
-> user cannot see this device under the directory /sys/bus/acpi/devices/,
-> and the user cannot bind it by hand after the driver is loaded.
+I think I'm fine with this. Whose tree should it go through?
 
-Why not? Can the user rmmod acpi_memhotplug and modprobe it?
-
-> This patch introduces a new feature to bind such device when is driver
-
-s/when is/when the/
-> is being loaded.
-> 
-> Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
-> ---
->  drivers/acpi/acpi_memhotplug.c |   37 ++++++++++++++++++++++++++++++++++++-
->  1 files changed, 36 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-> index 148c88a..a682657 100644
-> --- a/drivers/acpi/acpi_memhotplug.c
-> +++ b/drivers/acpi/acpi_memhotplug.c
-> @@ -52,6 +52,9 @@ MODULE_LICENSE("GPL");
->  #define MEMORY_POWER_ON_STATE	1
->  #define MEMORY_POWER_OFF_STATE	2
->  
-> +static bool auto_probe;
-> +module_param(auto_probe, bool, S_IRUGO | S_IWUSR);
-> +
->  static int acpi_memory_device_add(struct acpi_device *device);
->  static int acpi_memory_device_remove(struct acpi_device *device, int type);
->  
-> @@ -515,12 +518,44 @@ acpi_memory_register_notify_handler(acpi_handle handle,
->  				    u32 level, void *ctxt, void **retv)
->  {
->  	acpi_status status;
-> -
-> +	struct acpi_memory_device *mem_device = NULL;
-> +	unsigned long long current_status;
-
-Can it just be unsigned long?
-
->  
->  	status = is_memory_device(handle);
->  	if (ACPI_FAILURE(status))
->  		return AE_OK;	/* continue */
->  
-> +	if (auto_probe) {
-> +		if (acpi_memory_get_device(handle, &mem_device))
-> +			goto install;
-> +
-> +		/* Get device present/absent information from the _STA */
-> +		status = acpi_evaluate_integer(mem_device->device->handle,
-> +					       "_STA", NULL, &current_status);
-> +		if (ACPI_FAILURE(status))
-> +			goto install;
-> +
-> +		/*
-> +		 * Check for device status. Device should be
-> +		 * present/enabled/functioning.
-> +		 */
-> +		if (!((current_status & ACPI_STA_DEVICE_PRESENT)
-> +		      && (current_status & ACPI_STA_DEVICE_ENABLED)
-> +		      && (current_status & ACPI_STA_DEVICE_FUNCTIONING)))
-
-Can you make this:
-	!(current_status & (ACPI_STA_DEVICE_PRESENT | ACPI_STA_DEVICE_ENABLED | ACPI_STA_DEVICE_FUNCTIONING))
-
-instead?
-> +			goto install;
-> +
-> +		/* We have bound this device while we register the dirver */
-
-driver.
-> +		if (mem_device->state == MEMORY_POWER_ON_STATE)
-> +			goto install;
-> +
-> +		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-> +				  "\nauto probe memory device\n"));
-> +
-> +		if (acpi_memory_enable_device(mem_device))
-> +			pr_err(PREFIX "Cannot enable memory device\n");
-
-Would it be prudent to provide more information? Like which device could
-not be enabled? And perhaps the reason why it could not be enabled?
-
-> +	}
-> +
-> +install:
->  	status = acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
->  					     acpi_memory_device_notify, NULL);
->  	/* continue */
-> -- 
-> 1.7.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
