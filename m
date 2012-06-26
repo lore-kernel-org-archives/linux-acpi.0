@@ -1,91 +1,41 @@
 From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: [PATCH 4/8] donot allow to eject the memory device if it is being
- used
-Date: Tue, 26 Jun 2012 17:20:44 +0800
-Message-ID: <4FE97EEC.6060008@cn.fujitsu.com>
+Subject: [PATCH 5/8] don't print message if request_resource() failed
+Date: Tue, 26 Jun 2012 17:21:23 +0800
+Message-ID: <4FE97F13.3000804@cn.fujitsu.com>
 References: <4FE97DD5.6030205@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:50505 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1753473Ab2FZJQT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 26 Jun 2012 05:16:19 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <4FE97DD5.6030205@cn.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: lenb@kernel.org, linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 Cc: Yasuaki ISIMATU <isimatu.yasuaki@jp.fujitsu.com>
+List-Id: linux-acpi@vger.kernel.org
 
-We eject the memory device even if it is in use. It is very dangerous,
-and it will cause the kernel panicked.
+If register_memory_resource() fails, the caller(add_memory()) will
+return -EEXIST, and add_memory() returns -EEXIST only when
+register_memory_resource() fails. The function acpi_memory_enable_device()
+doesn't treat such erro as a fetal error, and don't want this message.
+The function that calls add_memory() has printed message if add_memory()
+failed, so don't print message in register_memory_resource().
 
 Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
 ---
- drivers/acpi/acpi_memhotplug.c |   34 +++++++++++++++++++++++++++-------
- 1 files changed, 27 insertions(+), 7 deletions(-)
+ mm/memory_hotplug.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-index a325bb9..2e5d5ab 100644
---- a/drivers/acpi/acpi_memhotplug.c
-+++ b/drivers/acpi/acpi_memhotplug.c
-@@ -78,6 +78,7 @@ struct acpi_memory_info {
- 	unsigned short caching;	/* memory cache attribute */
- 	unsigned short write_protect;	/* memory read/write attribute */
- 	unsigned int enabled:1;
-+	unsigned int failed:1;
- };
- 
- struct acpi_memory_device {
-@@ -251,9 +252,19 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
- 			node = memory_add_physaddr_to_nid(info->start_addr);
- 
- 		result = add_memory(node, info->start_addr, info->length);
--		if (result)
-+
-+		/*
-+		 * If the memory block has been used by the kernel, add_memory()
-+		 * returns -EEXIST. If add_memory() returns the other error, it
-+		 * means that this memory block is not used by the kernel.
-+		 */
-+		if (result && result != -EEXIST) {
-+			info->failed = 1;
- 			continue;
--		info->enabled = 1;
-+		}
-+
-+		if (!result)
-+			info->enabled = 1;
- 		num_enabled++;
- 	}
- 	if (!num_enabled) {
-@@ -317,11 +328,20 @@ static int acpi_memory_disable_device(struct acpi_memory_device *mem_device)
- 	 * Note: Assume that this function returns zero on success
- 	 */
- 	list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
--		if (info->enabled) {
--			result = remove_memory(info->start_addr, info->length);
--			if (result)
--				return result;
--		}
-+		if (info->failed)
-+			/* The kernel does not use this memory block */
-+			continue;
-+
-+		if (!info->enabled)
-+			/*
-+			 * The kernel uses this memory block, but it may be not
-+			 * managed by us.
-+			 */
-+			return -EBUSY;
-+
-+		result = remove_memory(info->start_addr, info->length);
-+		if (result)
-+			return result;
- 		list_del(&info->list);
- 		kfree(info);
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index 0d7e3ec..2a14d35 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -74,7 +74,6 @@ static struct resource *register_memory_resource(u64 start, u64 size)
+ 	res->end = start + size - 1;
+ 	res->flags = IORESOURCE_MEM | IORESOURCE_BUSY;
+ 	if (request_resource(&iomem_resource, res) < 0) {
+-		printk("System RAM resource %pR cannot be added\n", res);
+ 		kfree(res);
+ 		res = NULL;
  	}
 -- 
 1.7.1
-
