@@ -1,153 +1,90 @@
-From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Subject: Re: [PATCH] acpi,
- cpuidle: Register with cpuidle even if cpu is onlined after boot
- (beyond maxcpus)
-Date: Tue, 26 Jun 2012 16:37:10 +0530
-Message-ID: <4FE997DE.9020107@linux.vnet.ibm.com>
-References: <4FDB549F.1020002@linaro.org> <201206251553.55867.trenn@suse.de>
-	<4FE88BDE.1050406@linux.vnet.ibm.com>	<201206261129.45591.trenn@suse.de>
-	<4FE983E0.2050802@linaro.org>	<4FE987BB.4020508@linux.vnet.ibm.com>
-	<4FE99206.8060109@linaro.org>
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Subject: Re: [PATCH 6/8] bind the memory device when the driver is being
+ loaded
+Date: Tue, 26 Jun 2012 11:53:17 -0400
+Message-ID: <20120626155317.GB21579@phenom.dumpdata.com>
+References: <4FE97DD5.6030205@cn.fujitsu.com>
+ <4FE97F34.9090209@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <4FE99206.8060109@linaro.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, x86@kernel.org, linux-kernel@vger.kernel.org, Linux PM mailing list <linux-pm@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from rcsinet15.oracle.com ([148.87.113.117]:39948 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757003Ab2FZQBQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Jun 2012 12:01:16 -0400
+Content-Disposition: inline
+In-Reply-To: <4FE97F34.9090209@cn.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Wen Congyang <wency@cn.fujitsu.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Yasuaki ISIMATU <isimatu.yasuaki@jp.fujitsu.com>
 
-On 06/26/2012 04:12 PM, Daniel Lezcano wrote:
-> On 06/26/2012 11:58 AM, Srivatsa S. Bhat wrote:
->> On 06/26/2012 03:11 PM, Daniel Lezcano wrote:
->>> On 06/26/2012 11:29 AM, Thomas Renninger wrote:
->>>> On Monday, June 25, 2012 06:03:42 PM Srivatsa S. Bhat wrote:
->>>>> On 06/25/2012 07:23 PM, Thomas Renninger wrote:
->>>>>
->>>>>> On Monday, June 25, 2012 01:25:43 PM Srivatsa S. Bhat wrote:
->>>>>>>
->>>>>>> Daniel Lezcano noticed that after booting with maxcpus=X, if we online the
->>>>>>> remaining cpus by writing: echo 1 > /sys/devices/system/cpu/cpuY/online, then
->>>>>>> for the newly onlined cpus, the cpuidle directory is not found under
->>>>>>> /sys/devices/system/cpu/cpuY.
->>>>>>>
->>>>>>> Partly, the reason for this is that acpi restricts the initialization to cpus
->>>>>>> within the maxcpus limit. (See commit 75cbfb9 "ACPI: Do not try to set up acpi
->>>>>>> processor stuff on cores exceeding maxcpus="). The maxcpus= kernel parameter is
->>>>>>> used to restrict the number of cpus brought up during boot. That doesn't mean
->>>>>>> that we should hard restrict the bring up of the remaining cpus later on.
->>>>>>
->>>>>> Sorry, but IMO it exaclty does mean that (adding more general lists for
->>>>>> further comments).
->>>>>>
->>>>>> If you can online more cores than maxcpus= via sysfs, this sounds like a bug.
->>>>>> Not the other way around.
->>>>>>
->>>>>> Compare with Documentation/kernel-parameters.txt:
->>>>>>         maxcpus=        [SMP] Maximum number of processors that an SMP kernel
->>>>>>                         should make use of.  maxcpus=n : n >= 0 limits the
->>>>>>                         kernel to using 'n' processors.  n=0 is a special case,
->>>>>>                         it is equivalent to "nosmp", which also disables
->>>>>>                         the IO APIC.
->>>>>>
->>>>>> Chances that you run into more problems are high.
->>>>>
->>>>>
->>>>> Right, I agree on that. So, IMHO, maxcpus=X doesn't mean that the kernel must and
->>>>> should forbid any new cpus from coming online, but in the interest of avoiding
->>>>> problems/complications in some obscure paths, I guess it makes sense to avoid
->>>>> onlining new cpus beyond maxcpus.
->>>>
->>>> Yep, for such reasons:
->>>>    - That nobody realizes this to be useful and makes use of it in a productive
->>>>      environment
->>>>    - If I see maxcpus=X in a bugreport's dmesg command line,
->>>>      I want to be sure that's true.
->>>>    - To enforce that things work as documented
->>>>
->>>>
->>>> Wow, after looking a bit into this I found (Documentation/cpu-hotplug.txt):
->>>>
->>>> maxcpus=n    Restrict boot time cpus to n. Say if you have 4 cpus, using
->>>>              maxcpus=2 will only boot 2. You can choose to bring the
->>>>              other cpus later online, read FAQ's for more info.
->>>>
->>>> Looks like someone already documented this (IMO broken) behavior.
->>>> I didn't find further info in the FAQs.
->>>>
->>>>> In any case, I was just trying to see why the simple removal of the setup_max_cpus
->>>>> check in acpi_processor_add() wasn't enough to expose the cpuidle directories under
->>>>> the new cpus.. and while debugging that, I came up with this patch. I don't mind
->>>>> if this doesn't get picked up.
->>>>
->>>>> Right, the usecase of why somebody would like to online new cpus beyond maxcpus
->>>>> doesn't look all that solid anyway. So I am OK with leaving the code as it is now.
->>>>
->>>> In the end this is a debug option, I expect everybody is aware of that.
->>>> Yep, let's just leave it...
->>>
->>> In this case, let's remove the intel_idle_cpu_init stuff in
->>> acpi_cpu_soft_notify, no ?
->>>
->>
->> Why? And how would that help? The intel_idle_cpu_init() call is essential if intel_idle
->> driver is being used instead of acpi idle.
+On Tue, Jun 26, 2012 at 05:21:56PM +0800, Wen Congyang wrote:
+> We introduce acpi_hotmem_initialized to avoid strange add_memory fail message.
+
+We had
+
+> The stranged add_memory fail message is printed in register_memory_resource().
+
+The strange
+
+> We have removed this message in the previous patch, so we can remove
+
+Don't say previous patch as it is unclear in the git tree which one that
+is. Instead say "remove this message in 'don't print message if request_resource() failed'
+patch.
+
+> it(it is very useful to the next patch).
+
+And ditto on the 'next patch' - it is not clear in git what is the next patch.
+
 > 
-> AFAIU, this code is not called after onlining a cpu greater than maxcpus
-> and Thomas thinks that system with cpu hotplug at runtime are not sold.
+> Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+> ---
+>  drivers/acpi/acpi_memhotplug.c |   12 ------------
+>  1 files changed, 0 insertions(+), 12 deletions(-)
 > 
-
-No, the point that Thomas is making is, if you boot with maxcpus=X, it looks
-odd if you want to online more cpus later on. And allowing that is scary
-because those code paths may not be well-tested or even designed to do that.
-
-But one thing is crystal clear about the maxcpus semantics: if you say maxcpus=X
-while booting, the kernel must not even *attempt* to initialize *anything* for
-the remaining cpus, as far as possible. For all you know, the user might have
-discovered a problem (which will cause a crash during init) and hence is setting
-maxcpus to a smaller value than available, to just be able to still have a usable
-system.
-
-> The problem I see with this code is acpi and intel-idle are tied
-> together now. I would like to break this dependency and use the notifier
-> to handle the cpu hotplug directly in intel-idle.
+> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+> index 2e5d5ab..148c88a 100644
+> --- a/drivers/acpi/acpi_memhotplug.c
+> +++ b/drivers/acpi/acpi_memhotplug.c
+> @@ -87,8 +87,6 @@ struct acpi_memory_device {
+>  	struct list_head res_list;
+>  };
+>  
+> -static int acpi_hotmem_initialized;
+> -
+>  static acpi_status
+>  acpi_memory_get_resource(struct acpi_resource *resource, void *context)
+>  {
+> @@ -463,15 +461,6 @@ static int acpi_memory_device_add(struct acpi_device *device)
+>  
+>  	printk(KERN_DEBUG "%s \n", acpi_device_name(device));
+>  
+> -	/*
+> -	 * Early boot code has recognized memory area by EFI/E820.
+> -	 * If DSDT shows these memory devices on boot, hotplug is not necessary
+> -	 * for them. So, it just returns until completion of this driver's
+> -	 * start up.
+> -	 */
+> -	if (!acpi_hotmem_initialized)
+> -		return 0;
+> -
+>  	if (!acpi_memory_check_device(mem_device)) {
+>  		/* call add_memory func */
+>  		result = acpi_memory_enable_device(mem_device);
+> @@ -578,7 +567,6 @@ static int __init acpi_memory_device_init(void)
+>  		return -ENODEV;
+>  	}
+>  
+> -	acpi_hotmem_initialized = 1;
+>  	return 0;
+>  }
+>  
+> -- 
+> 1.7.1
 > 
-
-Ok, that's a different problem, unrelated to maxcpus. And in that context, what
-you are proposing (breaking that dependency) looks good to me.
-
-> It is hard to test my patch as there is not such system and maxcpus is
-> not correctly handled here. I can use your patch to test my patch but
-> anyway ... I am just asking if that would make sense to remove this
-> portion of code instead :)
-> 
-
-> If we want to keep this code untouched, I can try my patch and maybe
-> Thomas will agreed to test it also on a cpu-online-runtime-system if he
-> has one.
-> 
-
-Again, to reiterate, we all agree that we can offline/online existing cpus
-on a running system. We can also (perhaps) do physical cpu hotplug, and
-we want to support it in Linux, if such hardware exists. What doesn't really
-make much sense is a "usecase" where you boot the kernel with maxcpus=X and
-then try to online more cpus than that. Saying no to that looks safe and is
-preferred, than trying to "handle" it, because we cannot guarantee that it
-will work in all cases anyway.
-
-But in a separate context (unrelated to maxcpus), moving the intel idle stuff
-into intel idle code (from acpi idle) looks like a sensible thing to do. But
-then, dependency between the two must be handled properly (ie., low-level acpi
-init must happen first, followed by intel idle init, for a hotplugged cpu).
-
-Regards,
-Srivatsa S. Bhat
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
