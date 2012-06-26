@@ -1,28 +1,70 @@
 From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: [PATCH 0/8] some fixes about acpi_memhotplug
-Date: Tue, 26 Jun 2012 17:16:05 +0800
-Message-ID: <4FE97DD5.6030205@cn.fujitsu.com>
+Subject: [PATCH 1/8] fix memory leak when memory device is unbound from the
+ module acpi_memhotplug
+Date: Tue, 26 Jun 2012 17:19:02 +0800
+Message-ID: <4FE97E86.60603@cn.fujitsu.com>
+References: <4FE97DD5.6030205@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cn.fujitsu.com ([222.73.24.84]:21580 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1752928Ab2FZJOi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 Jun 2012 05:14:38 -0400
+In-Reply-To: <4FE97DD5.6030205@cn.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org, linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 Cc: Yasuaki ISIMATU <isimatu.yasuaki@jp.fujitsu.com>
-List-Id: linux-acpi@vger.kernel.org
 
-Wen Congyang (8):
-  fix memory leak when memory device is unbound from the module
-    acpi_memhotplug
-  free memory device if acpi_memory_enable_device() failed
-  remove memory info from list before freeing it
-  donot allow to eject the memory device if it is being used
-  don't print message if request_resource() failed
-  bind the memory device when the driver is being loaded
-  auto bind the memory device which is hotpluged before the driver is
-    loaded
-  release memory resources if hotadd_new_pgdat() failed
+We allocate memory to store acpi_memory_info, so we should free it before
+freeing mem_device.
 
- drivers/acpi/acpi_memhotplug.c |  106 ++++++++++++++++++++++++++++++----------
- mm/memory_hotplug.c            |    3 +-
- 2 files changed, 81 insertions(+), 28 deletions(-)
+Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+---
+ drivers/acpi/acpi_memhotplug.c |   18 +++++++++++++-----
+ 1 files changed, 13 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+index d985713..f6831d1 100644
+--- a/drivers/acpi/acpi_memhotplug.c
++++ b/drivers/acpi/acpi_memhotplug.c
+@@ -399,6 +399,18 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
+ 	return;
+ }
+ 
++static void acpi_free_memory_device(struct acpi_memory_device *mem_device)
++{
++	struct acpi_memory_info *info, *n;
++
++	if (!mem_device)
++		return;
++
++	list_for_each_entry_safe(info, n, &mem_device->res_list, list)
++		kfree(info);
++	kfree(mem_device);
++}
++
+ static int acpi_memory_device_add(struct acpi_device *device)
+ {
+ 	int result;
+@@ -451,14 +463,10 @@ static int acpi_memory_device_add(struct acpi_device *device)
+ 
+ static int acpi_memory_device_remove(struct acpi_device *device, int type)
+ {
+-	struct acpi_memory_device *mem_device = NULL;
+-
+-
+ 	if (!device || !acpi_driver_data(device))
+ 		return -EINVAL;
+ 
+-	mem_device = acpi_driver_data(device);
+-	kfree(mem_device);
++	acpi_free_memory_device(acpi_driver_data(device));
+ 
+ 	return 0;
+ }
+-- 
+1.7.1
+
