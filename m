@@ -1,87 +1,77 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v6 3/6] ACPI: Add _OST support for ACPI CPU hotplug
-Date: Tue, 26 Jun 2012 14:42:51 -0600
-Message-ID: <1340743374-18535-4-git-send-email-toshi.kani@hp.com>
-References: <1340743374-18535-1-git-send-email-toshi.kani@hp.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1340743374-18535-1-git-send-email-toshi.kani@hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: lenb@kernel.org, linux-acpi@vger.kernel.org
-Cc: bhelgaas@google.com, shuahkhan@gmail.com, liuj97@gmail.com, andi@firstfloor.org, isimatu.yasuaki@jp.fujitsu.com, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>
+From: Mattia Dongili <malattia@linux.it>
+Subject: Re: [PATCH 1/7] acpi: add a way to promote/demote vendor backlight
+ drivers
+Date: Wed, 27 Jun 2012 07:19:08 +0900
+Message-ID: <20120626221907.GC26614@kamineko.org>
+References: <1339572727-24744-1-git-send-email-corentin.chary@gmail.com>
+ <1339572727-24744-2-git-send-email-corentin.chary@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ac250205.ppp.asahi-net.or.jp ([183.77.250.205]:40938 "EHLO
+	smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753512Ab2FZWTM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Jun 2012 18:19:12 -0400
+Content-Disposition: inline
+In-Reply-To: <1339572727-24744-2-git-send-email-corentin.chary@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Corentin Chary <corentin.chary@gmail.com>
+Cc: Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Changed acpi_processor_hotplug_notify() to call ACPI _OST method
-when ACPI CPU hotplug operation has completed.
+Hi Corentin,
 
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
----
- drivers/acpi/processor_driver.c |   28 ++++++++++++++++++++--------
- 1 files changed, 20 insertions(+), 8 deletions(-)
+On Wed, Jun 13, 2012 at 09:32:01AM +0200, Corentin Chary wrote:
+...
+> +/* Promote the vendor interface instead of the generic video module.
+> + * This function allow DMI blacklists to be implemented by externals
+> + * platform drivers instead of putting a big blacklist in video_detect.c
+> + * After calling this function you will probably want to call
+> + * acpi_video_unregister() to make sure the video module is not loaded
+> + */
+> +void acpi_video_dmi_promote_vendor(void)
+> +{
+> +	acpi_video_caps_check();
+> +	acpi_video_support |= ACPI_VIDEO_BACKLIGHT_DMI_VENDOR;
+> +}
+> +EXPORT_SYMBOL(acpi_video_dmi_promote_vendor);
 
-diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-index 0734086..f9fa1b2 100644
---- a/drivers/acpi/processor_driver.c
-+++ b/drivers/acpi/processor_driver.c
-@@ -701,9 +701,9 @@ static void acpi_processor_hotplug_notify(acpi_handle handle,
- {
- 	struct acpi_processor *pr;
- 	struct acpi_device *device = NULL;
-+	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE; /* default */
- 	int result;
- 
--
- 	switch (event) {
- 	case ACPI_NOTIFY_BUS_CHECK:
- 	case ACPI_NOTIFY_DEVICE_CHECK:
-@@ -715,14 +715,18 @@ static void acpi_processor_hotplug_notify(acpi_handle handle,
- 		if (!is_processor_present(handle))
- 			break;
- 
--		if (acpi_bus_get_device(handle, &device)) {
--			result = acpi_processor_device_add(handle, &device);
--			if (result)
--				printk(KERN_ERR PREFIX
--					    "Unable to add the device\n");
-+		if (!acpi_bus_get_device(handle, &device))
-+			break;
-+
-+		result = acpi_processor_device_add(handle, &device);
-+		if (result) {
-+			pr_err(PREFIX "Unable to add the device\n");
- 			break;
- 		}
-+
-+		ost_code = ACPI_OST_SC_SUCCESS;
- 		break;
-+
- 	case ACPI_NOTIFY_EJECT_REQUEST:
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 				  "received ACPI_NOTIFY_EJECT_REQUEST\n"));
-@@ -736,15 +740,23 @@ static void acpi_processor_hotplug_notify(acpi_handle handle,
- 		if (!pr) {
- 			printk(KERN_ERR PREFIX
- 				    "Driver data is NULL, dropping EJECT\n");
--			return;
-+			break;
- 		}
-+
-+		/* REVISIT: update when eject is supported */
-+		ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
- 		break;
-+
- 	default:
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 				  "Unsupported event [0x%x]\n", event));
--		break;
-+
-+		/* non-hotplug event; possibly handled by other handler */
-+		return;
- 	}
- 
-+	/* Inform firmware that the hotplug operation has completed */
-+	(void) acpi_evaluate_hotplug_ost(handle, event, ost_code, NULL);
- 	return;
- }
- 
+I think having the promote_vendor() function do the sanity check on the
+acpi_backlight parameter and the unregistering of the acpi_video device
+may make the code cleaner and more acpi_video-agnostic in the drivers.
+I.e. (untested sample code):
+
+bool acpi_video_promote_vendor(void)
+{
+	if (acpi_video_backlight_support())
+		return false;
+
+	acpi_video_support |= ACPI_VIDEO_BACKLIGHT_DMI_VENDOR;
+	pr_info("Disabling ACPI video driver\n");
+	acpi_video_unregister();
+	return true;
+}
+EXPORT_SYMBOL(acpi_video_promote_vendor);
+
+and in the drivers you do
+
+	if (my_drv->broken_acpi_video) {
+		if (acpi_video_promote_vendor())
+			do_backlight_init();
+	} else if (!acpi_video_backlight_support())
+		do_backlight_init();
+
+or something along these lines.
+If you give a boolean parameter to acpi_video_promote_vendor to force
+vendor backlight we could make the drivers' code even simpler but that
+would change the semantics of the "promotion" to something more of a
+"take-over".
+
+PS: I will need to promote backlight control in sony-laptop.ko
+eventually as well but I don't have a DMI based list but rather I should
+look at a specific handle (or say Method) presence in the SNC Device.
+I guess I'm just bothered by the function naming here but not a big
+deal. :)
 -- 
-1.7.7.6
+mattia
+:wq!
