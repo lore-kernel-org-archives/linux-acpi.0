@@ -1,27 +1,49 @@
 From: David Rientjes <rientjes@google.com>
-Subject: Re: [PATCH 6/8] bind the memory device when the driver is being
- loaded
-Date: Tue, 26 Jun 2012 21:24:34 -0700 (PDT)
-Message-ID: <alpine.DEB.2.00.1206262123550.24245@chino.kir.corp.google.com>
-References: <4FE97DD5.6030205@cn.fujitsu.com> <4FE97F34.9090209@cn.fujitsu.com>
+Subject: Re: [PATCH 8/8] release memory resources if hotadd_new_pgdat()
+ failed
+Date: Tue, 26 Jun 2012 21:29:11 -0700 (PDT)
+Message-ID: <alpine.DEB.2.00.1206262128140.24245@chino.kir.corp.google.com>
+References: <4FE97DD5.6030205@cn.fujitsu.com> <4FE97F7B.2030808@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4FE97F34.9090209@cn.fujitsu.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Wen Congyang <wency@cn.fujitsu.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Yasuaki ISIMATU <isimatu.yasuaki@jp.fujitsu.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:43353 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750734Ab2F0E3O (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Jun 2012 00:29:14 -0400
+Received: by pbbrp8 with SMTP id rp8so994662pbb.19
+        for <linux-acpi@vger.kernel.org>; Tue, 26 Jun 2012 21:29:13 -0700 (PDT)
+In-Reply-To: <4FE97F7B.2030808@cn.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>, Wen Congyang <wency@cn.fujitsu.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Yasuaki ISIMATU <isimatu.yasuaki@jp.fujitsu.com>
 
 On Tue, 26 Jun 2012, Wen Congyang wrote:
 
-> We introduce acpi_hotmem_initialized to avoid strange add_memory fail message.
-> The stranged add_memory fail message is printed in register_memory_resource().
-> We have removed this message in the previous patch, so we can remove
-> it(it is very useful to the next patch).
+> We should goto error to release memory resource if hotadd_new_pgdat() failed.
 > 
+> Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+> ---
+>  mm/memory_hotplug.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+> index 2a14d35..3796690 100644
+> --- a/mm/memory_hotplug.c
+> +++ b/mm/memory_hotplug.c
+> @@ -617,7 +617,7 @@ int __ref add_memory(int nid, u64 start, u64 size)
+>  		pgdat = hotadd_new_pgdat(nid, start);
+>  		ret = -ENOMEM;
+>  		if (!pgdat)
+> -			goto out;
+> +			goto error;
+>  		new_pgdat = 1;
+>  	}
+>  
 
-I don't think you can legitimately remove that message, see my comment in 
-the previous patch.  There are many callers to add_memory() and it seems 
-like this workaround solves most of the pain for acpi, so maybe we can 
-just live with it?
+This is a generic memory hotplug patch and doesn't rely on the rest of the 
+series, so let's cc the maintainer, Andrew Morton 
+<akpm@linux-foundation.org>.
+
+Acked-by: David Rientjes <rientjes@google.com>
