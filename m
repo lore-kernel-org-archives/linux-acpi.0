@@ -1,77 +1,78 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: [PATCH 1/7] acpi: add a way to promote/demote vendor backlight
- drivers
-Date: Wed, 27 Jun 2012 07:19:08 +0900
-Message-ID: <20120626221907.GC26614@kamineko.org>
-References: <1339572727-24744-1-git-send-email-corentin.chary@gmail.com>
- <1339572727-24744-2-git-send-email-corentin.chary@gmail.com>
+From: David Rientjes <rientjes@google.com>
+Subject: Re: [PATCH 1/8] fix memory leak when memory device is unbound from
+ the module acpi_memhotplug
+Date: Tue, 26 Jun 2012 21:10:48 -0700 (PDT)
+Message-ID: <alpine.DEB.2.00.1206262108050.24245@chino.kir.corp.google.com>
+References: <4FE97DD5.6030205@cn.fujitsu.com> <4FE97E86.60603@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ac250205.ppp.asahi-net.or.jp ([183.77.250.205]:40938 "EHLO
-	smtp.kamineko.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753512Ab2FZWTM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Jun 2012 18:19:12 -0400
-Content-Disposition: inline
-In-Reply-To: <1339572727-24744-2-git-send-email-corentin.chary@gmail.com>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:35360 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750708Ab2F0EKu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Jun 2012 00:10:50 -0400
+Received: by pbbrp8 with SMTP id rp8so977832pbb.19
+        for <linux-acpi@vger.kernel.org>; Tue, 26 Jun 2012 21:10:50 -0700 (PDT)
+In-Reply-To: <4FE97E86.60603@cn.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Corentin Chary <corentin.chary@gmail.com>
-Cc: Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Wen Congyang <wency@cn.fujitsu.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Yasuaki ISIMATU <isimatu.yasuaki@jp.fujitsu.com>
 
-Hi Corentin,
+On Tue, 26 Jun 2012, Wen Congyang wrote:
 
-On Wed, Jun 13, 2012 at 09:32:01AM +0200, Corentin Chary wrote:
-...
-> +/* Promote the vendor interface instead of the generic video module.
-> + * This function allow DMI blacklists to be implemented by externals
-> + * platform drivers instead of putting a big blacklist in video_detect.c
-> + * After calling this function you will probably want to call
-> + * acpi_video_unregister() to make sure the video module is not loaded
-> + */
-> +void acpi_video_dmi_promote_vendor(void)
+> We allocate memory to store acpi_memory_info, so we should free it before
+> freeing mem_device.
+> 
+> Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+> ---
+>  drivers/acpi/acpi_memhotplug.c |   18 +++++++++++++-----
+>  1 files changed, 13 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+> index d985713..f6831d1 100644
+> --- a/drivers/acpi/acpi_memhotplug.c
+> +++ b/drivers/acpi/acpi_memhotplug.c
+> @@ -399,6 +399,18 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
+>  	return;
+>  }
+>  
+> +static void acpi_free_memory_device(struct acpi_memory_device *mem_device)
 > +{
-> +	acpi_video_caps_check();
-> +	acpi_video_support |= ACPI_VIDEO_BACKLIGHT_DMI_VENDOR;
+
+The function that allocates struct acpi_memory_device is 
+acpi_memory_device_add(), shouldn't this be called acpi_memory_device_free()?
+
+> +	struct acpi_memory_info *info, *n;
+> +
+> +	if (!mem_device)
+> +		return;
+> +
+> +	list_for_each_entry_safe(info, n, &mem_device->res_list, list)
+> +		kfree(info);
+
+Duplicates code from acpi_memory_get_device_resources(), should be moved 
+into a seperate function.
+
+> +	kfree(mem_device);
 > +}
-> +EXPORT_SYMBOL(acpi_video_dmi_promote_vendor);
-
-I think having the promote_vendor() function do the sanity check on the
-acpi_backlight parameter and the unregistering of the acpi_video device
-may make the code cleaner and more acpi_video-agnostic in the drivers.
-I.e. (untested sample code):
-
-bool acpi_video_promote_vendor(void)
-{
-	if (acpi_video_backlight_support())
-		return false;
-
-	acpi_video_support |= ACPI_VIDEO_BACKLIGHT_DMI_VENDOR;
-	pr_info("Disabling ACPI video driver\n");
-	acpi_video_unregister();
-	return true;
-}
-EXPORT_SYMBOL(acpi_video_promote_vendor);
-
-and in the drivers you do
-
-	if (my_drv->broken_acpi_video) {
-		if (acpi_video_promote_vendor())
-			do_backlight_init();
-	} else if (!acpi_video_backlight_support())
-		do_backlight_init();
-
-or something along these lines.
-If you give a boolean parameter to acpi_video_promote_vendor to force
-vendor backlight we could make the drivers' code even simpler but that
-would change the semantics of the "promotion" to something more of a
-"take-over".
-
-PS: I will need to promote backlight control in sony-laptop.ko
-eventually as well but I don't have a DMI based list but rather I should
-look at a specific handle (or say Method) presence in the SNC Device.
-I guess I'm just bothered by the function naming here but not a big
-deal. :)
--- 
-mattia
-:wq!
+> +
+>  static int acpi_memory_device_add(struct acpi_device *device)
+>  {
+>  	int result;
+> @@ -451,14 +463,10 @@ static int acpi_memory_device_add(struct acpi_device *device)
+>  
+>  static int acpi_memory_device_remove(struct acpi_device *device, int type)
+>  {
+> -	struct acpi_memory_device *mem_device = NULL;
+> -
+> -
+>  	if (!device || !acpi_driver_data(device))
+>  		return -EINVAL;
+>  
+> -	mem_device = acpi_driver_data(device);
+> -	kfree(mem_device);
+> +	acpi_free_memory_device(acpi_driver_data(device));
+>  
+>  	return 0;
+>  }
