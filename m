@@ -1,29 +1,21 @@
 From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: [RFC PATCH 6/12] memory-hotplug : remove_memory calls __remove_pages
-Date: Wed, 27 Jun 2012 14:52:11 +0900
-Message-ID: <4FEA9F8B.30105@jp.fujitsu.com>
+Subject: [RFC PATCH 7/12] memory-hotplug : check page type in get_page_bootmem
+Date: Wed, 27 Jun 2012 14:53:17 +0900
+Message-ID: <4FEA9FCD.6020405@jp.fujitsu.com>
 References: <4FEA9C88.1070800@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-2022-JP"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:38761 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750780Ab2F0Fw3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Jun 2012 01:52:29 -0400
+Return-path: <owner-linux-mm@kvack.org>
 In-Reply-To: <4FEA9C88.1070800@jp.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: owner-linux-mm@kvack.org
 To: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org
 Cc: len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, wency@cn.fujitsu.com
+List-Id: linux-acpi@vger.kernel.org
 
-The patch adds __remove_pages() to remove_memory(). Then the range of
-phys_start_pfn argument and nr_pages argument in __remove_pagse() may
-have different zone. So zone argument is removed from __remove_pages()
-and __remove_pages() caluculates zone in each section.
-
-When CONFIG_SPARSEMEM_VMEMMAP is defined, there is no way to remove a memmap.
-So __remove_section only calls unregister_memory_section().
+There is a possibility that get_page_bootmem() is called to the same page many
+times. So when get_page_bootmem is called to the same page, the function only
+increments page->_count.
 
 CC: Len Brown <len.brown@intel.com>
 CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
@@ -35,110 +27,35 @@ CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 CC: Wen Congyang <wency@cn.fujitsu.com>
 Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
----
- arch/powerpc/platforms/pseries/hotplug-memory.c |    5 +----
- include/linux/memory_hotplug.h                  |    3 +--
- mm/memory_hotplug.c                             |   20 +++++++++++++-------
- 3 files changed, 15 insertions(+), 13 deletions(-)
-
 Index: linux-3.5-rc4/mm/memory_hotplug.c
 ===================================================================
---- linux-3.5-rc4.orig/mm/memory_hotplug.c	2012-06-27 09:07:49.124709164 +0900
-+++ linux-3.5-rc4/mm/memory_hotplug.c	2012-06-27 09:08:30.612190446 +0900
-@@ -275,11 +275,14 @@ static int __meminit __add_section(int n
- #ifdef CONFIG_SPARSEMEM_VMEMMAP
- static int __remove_section(struct zone *zone, struct mem_section *ms)
+--- linux-3.5-rc4.orig/mm/memory_hotplug.c	2012-06-26 13:56:34.371988312 +0900
++++ linux-3.5-rc4/mm/memory_hotplug.c	2012-06-26 14:03:37.564697621 +0900
+@@ -95,10 +95,17 @@ static void release_memory_resource(stru
+ static void get_page_bootmem(unsigned long info,  struct page *page,
+ 			     unsigned long type)
  {
--	/*
--	 * XXX: Freeing memmap with vmemmap is not implement yet.
--	 *      This should be removed later.
--	 */
--	return -EBUSY;
-+	int ret;
+-	page->lru.next = (struct list_head *) type;
+-	SetPagePrivate(page);
+-	set_page_private(page, info);
+-	atomic_inc(&page->_count);
++	unsigned long page_type;
 +
-+	if (!valid_section(ms))
-+		return ret;
-+
-+	ret = unregister_memory_section(ms);
-+
-+	return ret;
++	page_type = (unsigned long) page->lru.next;
++	if (type < MEMORY_HOTPLUG_MIN_BOOTMEM_TYPE ||
++	    type > MEMORY_HOTPLUG_MAX_BOOTMEM_TYPE){
++		page->lru.next = (struct list_head *) type;
++		SetPagePrivate(page);
++		set_page_private(page, info);
++		atomic_inc(&page->_count);
++	} else
++		atomic_inc(&page->_count);
  }
- #else
- static int __remove_section(struct zone *zone, struct mem_section *ms)
-@@ -346,11 +349,11 @@ EXPORT_SYMBOL_GPL(__add_pages);
-  * sure that pages are marked reserved and zones are adjust properly by
-  * calling offline_pages().
-  */
--int __remove_pages(struct zone *zone, unsigned long phys_start_pfn,
--		 unsigned long nr_pages)
-+int __remove_pages(unsigned long phys_start_pfn, unsigned long nr_pages)
- {
- 	unsigned long i, ret = 0;
- 	int sections_to_remove;
-+	struct zone *zone;
 
- 	/*
- 	 * We can only remove entire sections
-@@ -363,6 +366,7 @@ int __remove_pages(struct zone *zone, un
- 	sections_to_remove = nr_pages / PAGES_PER_SECTION;
- 	for (i = 0; i < sections_to_remove; i++) {
- 		unsigned long pfn = phys_start_pfn + i*PAGES_PER_SECTION;
-+		zone = page_zone(pfn_to_page(pfn));
- 		ret = __remove_section(zone, __pfn_to_section(pfn));
- 		if (ret)
- 			break;
-@@ -664,6 +668,8 @@ int remove_memory(int nid, u64 start, u6
- 	lock_memory_hotplug();
- 	/* remove memmap entry */
- 	firmware_map_remove(start, start + size, "System RAM");
-+
-+	__remove_pages(start >> PAGE_SHIFT, size >> PAGE_SHIFT);
- 	unlock_memory_hotplug();
- 	return 0;
+ /* reference to __meminit __free_pages_bootmem is valid
 
-Index: linux-3.5-rc4/include/linux/memory_hotplug.h
-===================================================================
---- linux-3.5-rc4.orig/include/linux/memory_hotplug.h	2012-06-27 09:06:35.616628141 +0900
-+++ linux-3.5-rc4/include/linux/memory_hotplug.h	2012-06-27 09:08:30.612190446 +0900
-@@ -89,8 +89,7 @@ extern bool is_pageblock_removable_noloc
- /* reasonably generic interface to expand the physical pages in a zone  */
- extern int __add_pages(int nid, struct zone *zone, unsigned long start_pfn,
- 	unsigned long nr_pages);
--extern int __remove_pages(struct zone *zone, unsigned long start_pfn,
--	unsigned long nr_pages);
-+extern int __remove_pages(unsigned long start_pfn, unsigned long nr_pages);
-
- #ifdef CONFIG_NUMA
- extern int memory_add_physaddr_to_nid(u64 start);
-Index: linux-3.5-rc4/arch/powerpc/platforms/pseries/hotplug-memory.c
-===================================================================
---- linux-3.5-rc4.orig/arch/powerpc/platforms/pseries/hotplug-memory.c	2012-06-27 09:08:25.737248748
-+0900
-+++ linux-3.5-rc4/arch/powerpc/platforms/pseries/hotplug-memory.c	2012-06-27 09:08:30.613190434 +0900
-@@ -76,7 +76,6 @@ unsigned long memory_block_size_bytes(vo
- static int pseries_remove_memblock(unsigned long base, unsigned int memblock_size)
- {
- 	unsigned long start, start_pfn;
--	struct zone *zone;
- 	int i, ret;
- 	int sections_to_remove;
-
-@@ -87,8 +86,6 @@ static int pseries_remove_memblock(unsig
- 		return 0;
- 	}
-
--	zone = page_zone(pfn_to_page(start_pfn));
--
- 	/*
- 	 * Remove section mappings and sysfs entries for the
- 	 * section of the memory we are removing.
-@@ -101,7 +98,7 @@ static int pseries_remove_memblock(unsig
- 	sections_to_remove = (memblock_size >> PAGE_SHIFT) / PAGES_PER_SECTION;
- 	for (i = 0; i < sections_to_remove; i++) {
- 		unsigned long pfn = start_pfn + i * PAGES_PER_SECTION;
--		ret = __remove_pages(zone, start_pfn,  PAGES_PER_SECTION);
-+		ret = __remove_pages(start_pfn,  PAGES_PER_SECTION);
- 		if (ret)
- 			return ret;
- 	}
-
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
