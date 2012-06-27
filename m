@@ -1,53 +1,37 @@
 From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: [RFC PATCH 12/12] memory-hotplug : remove sysfs file of node
-Date: Wed, 27 Jun 2012 14:59:07 +0900
-Message-ID: <4FEAA12B.6070906@jp.fujitsu.com>
-References: <4FEA9C88.1070800@jp.fujitsu.com>
+Subject: Re: [PATCH v6 5/6] ACPI: Add _OST support for ACPI container hotplug
+Date: Wed, 27 Jun 2012 15:05:52 +0900
+Message-ID: <4FEAA2C0.5060804@jp.fujitsu.com>
+References: <1340743374-18535-1-git-send-email-toshi.kani@hp.com> <1340743374-18535-6-git-send-email-toshi.kani@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-2022-JP"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:36174 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750994Ab2F0F71 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Jun 2012 01:59:27 -0400
-In-Reply-To: <4FEA9C88.1070800@jp.fujitsu.com>
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:60105 "EHLO
+	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753290Ab2F0GGO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Jun 2012 02:06:14 -0400
+In-Reply-To: <1340743374-18535-6-git-send-email-toshi.kani@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org
-Cc: len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, wency@cn.fujitsu.com
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, bhelgaas@google.com, shuahkhan@gmail.com, liuj97@gmail.com, andi@firstfloor.org, linux-kernel@vger.kernel.org
 
-The patch adds node_set_offline() and unregister_one_node() to remove_memory()
-for removing sysfs file of node.
+2012/06/27 5:42, Toshi Kani wrote:
+> Changed container_notify_cb() to call ACPI _OST method when ACPI
+> container hotplug operation has completed. Slightly restructured
+> the code with the same logic except that the hot-add case will
+> fail a request whenever device is set. This makes the error check
+> to be more comprehensive.
+> 
+> The function sets eject_pending bit for an eject request since it
+> does not initiate hot-remove operation. This bit is checked by the
+> sysfs eject handler to determine if the request is originated from
+> an ACPI eject notification.
+> 
+> Signed-off-by: Toshi Kani <toshi.kani@hp.com>
 
-CC: Len Brown <len.brown@intel.com>
-CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-CC: Paul Mackerras <paulus@samba.org>
-CC: Christoph Lameter <cl@linux.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-CC: Andrew Morton <akpm@linux-foundation.org>
-CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-CC: Wen Congyang <wency@cn.fujitsu.com>
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Thank you for updating the change log.
 
----
- mm/memory_hotplug.c |    5 +++++
- 1 file changed, 5 insertions(+)
-
-Index: linux-3.5-rc4/mm/memory_hotplug.c
-===================================================================
---- linux-3.5-rc4.orig/mm/memory_hotplug.c	2012-06-26 14:32:03.630368866 +0900
-+++ linux-3.5-rc4/mm/memory_hotplug.c	2012-06-26 14:39:58.090437374 +0900
-@@ -702,6 +702,11 @@ int remove_memory(int nid, u64 start, u6
- 	/* remove memmap entry */
- 	firmware_map_remove(start, start + size, "System RAM");
-
-+	if (!node_present_pages(nid)) {
-+		node_set_offline(nid);
-+		unregister_one_node(nid);
-+	}
-+
- 	__remove_pages(start >> PAGE_SHIFT, size >> PAGE_SHIFT);
- 	unlock_memory_hotplug();
- 	return 0;
+Reviewed-by: <isimatu.yasuaki@jp.fujitsu.com>
 
