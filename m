@@ -1,37 +1,32 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [PATCH v6 5/6] ACPI: Add _OST support for ACPI container hotplug
-Date: Wed, 27 Jun 2012 15:05:52 +0900
-Message-ID: <4FEAA2C0.5060804@jp.fujitsu.com>
-References: <1340743374-18535-1-git-send-email-toshi.kani@hp.com> <1340743374-18535-6-git-send-email-toshi.kani@hp.com>
+From: David Rientjes <rientjes@google.com>
+Subject: Re: [RFC PATCH 1/12] memory-hotplug : rename remove_memory to
+ offline_memory
+Date: Tue, 26 Jun 2012 23:10:32 -0700 (PDT)
+Message-ID: <alpine.DEB.2.00.1206262309301.32567@chino.kir.corp.google.com>
+References: <4FEA9C88.1070800@jp.fujitsu.com> <4FEA9D5C.1080508@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:60105 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753290Ab2F0GGO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Jun 2012 02:06:14 -0400
-In-Reply-To: <1340743374-18535-6-git-send-email-toshi.kani@hp.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <4FEA9D5C.1080508@jp.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, wency@cn.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, bhelgaas@google.com, shuahkhan@gmail.com, liuj97@gmail.com, andi@firstfloor.org, linux-kernel@vger.kernel.org
 
-2012/06/27 5:42, Toshi Kani wrote:
-> Changed container_notify_cb() to call ACPI _OST method when ACPI
-> container hotplug operation has completed. Slightly restructured
-> the code with the same logic except that the hot-add case will
-> fail a request whenever device is set. This makes the error check
-> to be more comprehensive.
+On Wed, 27 Jun 2012, Yasuaki Ishimatsu wrote:
+
+> remove_memory() does not remove memory but just offlines memory. The patch
+> changes name of it to offline_memory().
 > 
-> The function sets eject_pending bit for an eject request since it
-> does not initiate hot-remove operation. This bit is checked by the
-> sysfs eject handler to determine if the request is originated from
-> an ACPI eject notification.
-> 
-> Signed-off-by: Toshi Kani <toshi.kani@hp.com>
 
-Thank you for updating the change log.
+The kernel is never going to physically remove the memory itself, so I 
+don't see the big problem with calling it remove_memory().  If you're 
+going to change it to offline_memory(), which is just as good but not 
+better, then I'd suggest changing add_memory() to online_memory() for 
+completeness.
 
-Reviewed-by: <isimatu.yasuaki@jp.fujitsu.com>
-
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
