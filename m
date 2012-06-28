@@ -1,53 +1,67 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [lm-sensors] Fintek f71882fg ACPI conflict
-Date: Thu, 28 Jun 2012 02:45:49 +0100
-Message-ID: <20120628014548.GA15994@srcf.ucam.org>
-References: <4FEA4C10.2060904@googlemail.com>
- <20120627171505.GB12712@roeck-us.net>
- <4FEB90A8.8050901@googlemail.com>
+From: Wen Congyang <wency@cn.fujitsu.com>
+Subject: Re: [PATCH 4/8] donot allow to eject the memory device if it is being
+ used
+Date: Thu, 28 Jun 2012 10:01:26 +0800
+Message-ID: <4FEBBAF6.60409@cn.fujitsu.com>
+References: <4FE97DD5.6030205@cn.fujitsu.com> <4FE97EEC.6060008@cn.fujitsu.com> <alpine.DEB.2.00.1206262118070.24245@chino.kir.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:44736 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750806Ab2F1BqD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Jun 2012 21:46:03 -0400
-Content-Disposition: inline
-In-Reply-To: <4FEB90A8.8050901@googlemail.com>
+Received: from cn.fujitsu.com ([222.73.24.84]:12216 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1751985Ab2F1B5A (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 27 Jun 2012 21:57:00 -0400
+In-Reply-To: <alpine.DEB.2.00.1206262118070.24245@chino.kir.corp.google.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Michael Zintakis <michael.zintakis@googlemail.com>
-Cc: Guenter Roeck <linux@roeck-us.net>, lm-sensors@lm-sensors.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: David Rientjes <rientjes@google.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Yasuaki ISIMATU <isimatu.yasuaki@jp.fujitsu.com>
 
-On Thu, Jun 28, 2012 at 12:00:56AM +0100, Michael Zintakis wrote:
+At 06/27/2012 12:21 PM, David Rientjes Wrote:
+> On Tue, 26 Jun 2012, Wen Congyang wrote:
+> 
+>> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+>> index a325bb9..2e5d5ab 100644
+>> --- a/drivers/acpi/acpi_memhotplug.c
+>> +++ b/drivers/acpi/acpi_memhotplug.c
+>> @@ -78,6 +78,7 @@ struct acpi_memory_info {
+>>  	unsigned short caching;	/* memory cache attribute */
+>>  	unsigned short write_protect;	/* memory read/write attribute */
+>>  	unsigned int enabled:1;
+>> +	unsigned int failed:1;
+>>  };
+>>  
+>>  struct acpi_memory_device {
+>> @@ -251,9 +252,19 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
+>>  			node = memory_add_physaddr_to_nid(info->start_addr);
+>>  
+>>  		result = add_memory(node, info->start_addr, info->length);
+>> -		if (result)
+>> +
+>> +		/*
+>> +		 * If the memory block has been used by the kernel, add_memory()
+>> +		 * returns -EEXIST. If add_memory() returns the other error, it
+>> +		 * means that this memory block is not used by the kernel.
+>> +		 */
+>> +		if (result && result != -EEXIST) {
+>> +			info->failed = 1;
+>>  			continue;
+>> -		info->enabled = 1;
+>> +		}
+>> +
+>> +		if (!result)
+>> +			info->enabled = 1;
+>>  		num_enabled++;
+>>  	}
+>>  	if (!num_enabled) {
+> 
+> num_enabled should only be incremented for result == 0.
+> 
 
-> This is precisely what I stumbled upon when reading the
-> documentation about the kernel acpi parameters today and tried it
-> straight away (though, in all honesty, I didn't have a clue that it
-> is actually a bad idea until I read the article above - thanks for
-> posting!). Could any of the more knowledgeable on here explain why
-> is it such a bad idea please?
+If num_enabled is not incremented for result == -EEXIST, this device is not
+managed by this module, and it is not able to be hot removed. Another problem
+is the user will see a strange message: add_memory failed
 
-Because there's no handshaking between the firmware and the OS driver, 
-and accesses to hardware sensors are often indexed. Imagine this 
-scenario:
-
-ACPI                             lmsensors
-----                             ---------
-select temperature register
-                                 select fan speed register
-read value
-                                 read value
-
-ACPi will read the fan speed register instead of the temperature 
-register, and the value may be far too high and cause a critical 
-shutdown of the system.
-
-That's the *good* outcome. The bad outcome involves these register 
-accesses racing in a way that disables fan control or thermal trip 
-points and risks causing hardware damage. It's not safe for two 
-different codepaths to access the same hardware without having any kind 
-of locking, so if your system firmware declares that ACPI is using the 
-temperature device the hardware sensors framework will refuse to.
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Thanks
+Wen Congyang
