@@ -1,53 +1,46 @@
-From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Subject: Re: [PATCH v2] acpi: intel_idle : break dependency
-	between modules
-Date: Thu, 28 Jun 2012 17:26:48 +0530
-Message-ID: <4FEC4680.1090006@linux.vnet.ibm.com>
-References: <201206271506.29034.trenn@suse.de>
-	<1340873202-2476-1-git-send-email-daniel.lezcano@linaro.org>
-	<4FEC3EF7.5020208@linux.vnet.ibm.com> <4FEC3FAB.20706@linaro.org>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [lm-sensors] Fintek f71882fg ACPI conflict
+Date: Thu, 28 Jun 2012 14:40:35 +0200
+Message-ID: <20120628144035.36ac75a0@endymion.delvare>
+References: <4FEA4C10.2060904@googlemail.com>
+	<20120627171505.GB12712@roeck-us.net>
+	<4FEB90A8.8050901@googlemail.com>
+	<20120628014548.GA15994@srcf.ucam.org>
+	<4FEC3CDF.7050901@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <4FEC3FAB.20706@linaro.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: linaro-dev@lists.linaro.org, linux-pm@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from zoneX.GCU-Squad.org ([194.213.125.0]:4700 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753179Ab2F1Mkq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Jun 2012 08:40:46 -0400
+In-Reply-To: <4FEC3CDF.7050901@googlemail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Michael Zintakis <michael.zintakis@googlemail.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, lm-sensors@lm-sensors.org
 
-On 06/28/2012 04:57 PM, Daniel Lezcano wrote:
-> On 06/28/2012 01:24 PM, Srivatsa S. Bhat wrote:
->> On 06/28/2012 02:16 PM, Daniel Lezcano wrote:
->>> When the system is booted with some cpus offline, the idle
->>> driver is not initialized. When a cpu is set online, the
->>> acpi code call the intel idle init function. Unfortunately
->>> this code introduce a dependency between intel_idle and acpi.
->>>
->>> This patch is intended to remove this dependency by using the
->>> notifier of intel_idle. This patch has the benefit of
->>> encapsulating the intel_idle driver and remove some exported
->>> functions.
->>>
->>> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
->>
->>
->> Looks good to me.
-> 
-> Thanks for the review Srivatsa.
-> 
-> Shall I consider it as an acked-by ?
-> 
+On Thu, 28 Jun 2012 12:15:43 +0100, Michael Zintakis wrote:
+> > That's the *good* outcome. The bad outcome involves these register 
+> > accesses racing in a way that disables fan control or thermal trip 
+> > points and risks causing hardware damage. It's not safe for two 
+> > different codepaths to access the same hardware without having any kind 
+> > of locking, so if your system firmware declares that ACPI is using the 
+> > temperature device the hardware sensors framework will refuse to.
+>
+> All noted, thanks for the explanation - pretty hairy stuff! The tragic 
+> thing is, I have no way of telling ACPI to *not* use or "implement" its 
+> own fan, voltage, temperature management and let a more capable piece of 
+> software (the f71882fg driver in this case) do that job!
 
-Sure, go ahead! :-)
+This has been my very claim for several years now. My next step is to
+find someone involved in the ACPI specification that would be willing
+to discuss the problem with me and implement a solution in the next
+ACPI specification.
 
-Regards,
-Srivatsa S. Bhat
+Don't hold your breath though, it will take years before the problem
+actually gets solved for the end user - if that ever happens.
+
+-- 
+Jean Delvare
