@@ -1,7 +1,7 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH 07/12] Input: atlas_btns - convert to module_acpi_driver()
-Date: Thu, 28 Jun 2012 13:59:26 +0300
-Message-ID: <1340881171-14811-8-git-send-email-mika.westerberg@linux.intel.com>
+Subject: [PATCH 06/12] i2c-scmi: convert to module_acpi_driver()
+Date: Thu, 28 Jun 2012 13:59:25 +0300
+Message-ID: <1340881171-14811-7-git-send-email-mika.westerberg@linux.intel.com>
 References: <1340881171-14811-1-git-send-email-mika.westerberg@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1340881171-14811-1-git-send-email-mika.westerberg@linux.intel.com>
@@ -12,36 +12,33 @@ List-Id: linux-acpi@vger.kernel.org
 
 Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- drivers/input/misc/atlas_btns.c |   17 +----------------
- 1 file changed, 1 insertion(+), 16 deletions(-)
+ drivers/i2c/busses/i2c-scmi.c |   14 +-------------
+ 1 file changed, 1 insertion(+), 13 deletions(-)
 
-diff --git a/drivers/input/misc/atlas_btns.c b/drivers/input/misc/atlas_btns.c
-index 601f737..26f1313 100644
---- a/drivers/input/misc/atlas_btns.c
-+++ b/drivers/input/misc/atlas_btns.c
-@@ -151,22 +151,7 @@ static struct acpi_driver atlas_acpi_driver = {
- 		.remove	= atlas_acpi_button_remove,
+diff --git a/drivers/i2c/busses/i2c-scmi.c b/drivers/i2c/busses/i2c-scmi.c
+index 388cbdc..6aafa3d 100644
+--- a/drivers/i2c/busses/i2c-scmi.c
++++ b/drivers/i2c/busses/i2c-scmi.c
+@@ -426,19 +426,7 @@ static struct acpi_driver acpi_smbus_cmi_driver = {
+ 		.remove = acpi_smbus_cmi_remove,
  	},
  };
 -
--static int __init atlas_acpi_init(void)
+-static int __init acpi_smbus_cmi_init(void)
 -{
--	if (acpi_disabled)
--		return -ENODEV;
--
--	return acpi_bus_register_driver(&atlas_acpi_driver);
+-	return acpi_bus_register_driver(&acpi_smbus_cmi_driver);
 -}
 -
--static void __exit atlas_acpi_exit(void)
+-static void __exit acpi_smbus_cmi_exit(void)
 -{
--	acpi_bus_unregister_driver(&atlas_acpi_driver);
+-	acpi_bus_unregister_driver(&acpi_smbus_cmi_driver);
 -}
 -
--module_init(atlas_acpi_init);
--module_exit(atlas_acpi_exit);
-+module_acpi_driver(atlas_acpi_driver);
+-module_init(acpi_smbus_cmi_init);
+-module_exit(acpi_smbus_cmi_exit);
++module_acpi_driver(acpi_smbus_cmi_driver);
  
- MODULE_AUTHOR("Jaya Kumar");
  MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Crane Cai <crane.cai@amd.com>");
 -- 
 1.7.10
