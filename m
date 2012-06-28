@@ -1,68 +1,53 @@
-From: Michael Zintakis <michael.zintakis@googlemail.com>
-Subject: Re: [lm-sensors] Fintek f71882fg ACPI conflict
-Date: Thu, 28 Jun 2012 12:31:30 +0100
-Message-ID: <4FEC4092.7090104@googlemail.com>
-References: <4FEA4C10.2060904@googlemail.com> <20120627171505.GB12712@roeck-us.net> <4FEB90A8.8050901@googlemail.com> <20120628052032.GA16364@roeck-us.net>
+From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
+Subject: Re: [PATCH v2] acpi: intel_idle : break dependency
+	between modules
+Date: Thu, 28 Jun 2012 17:26:48 +0530
+Message-ID: <4FEC4680.1090006@linux.vnet.ibm.com>
+References: <201206271506.29034.trenn@suse.de>
+	<1340873202-2476-1-git-send-email-daniel.lezcano@linaro.org>
+	<4FEC3EF7.5020208@linux.vnet.ibm.com> <4FEC3FAB.20706@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:63041 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751473Ab2F1Lbp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Jun 2012 07:31:45 -0400
-Received: by lbbgm6 with SMTP id gm6so2970360lbb.19
-        for <linux-acpi@vger.kernel.org>; Thu, 28 Jun 2012 04:31:43 -0700 (PDT)
-In-Reply-To: <20120628052032.GA16364@roeck-us.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <4FEC3FAB.20706@linaro.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: linaro-dev@lists.linaro.org, linux-pm@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org
 List-Id: linux-acpi@vger.kernel.org
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: lm-sensors@lm-sensors.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-
-> Do you mean sysfs ?
->   
-Yeah, sorry. Everything under /sys/class/hwmon/...
-
-> Correct. 1 is too low, though. Default value per datasheet is 0x80.
-> Whatever it is, it should be high enough for the fans to start spinning.
->   
-That won't be enough! I did a bit of experimenting and discovered the 
-following:
-
-The minimum value for pwm on all fans necessary to keep them going is 75 
-(decimal) - below that value the fan just stops. The minimum value to 
-kick-start the fan and make it spin from standstill is 190 (also 
-decimal) - nothing below this value is sufficient to move the fan from 
-its standstill position (in my script I use the maximum value - 255 - to 
-be on the safe side).
-
-So, even if I set the pwmX_auto_point5_pwm to 75 that won't be enough to 
-kick-start the fan initially. On the other hand, if I set it to 190 that 
-would be enough, but the fan will continue to spin at this rate which is 
-very high (I may as well abandon fan/temperature management then).
-
-> The F71882FG does not have a register to set a "start spinning" pwm value,
-> so your minimum must guarantee that the fans do start to spin.
->
-> What is your setting for pwmX_enable ? It should probably be set to
-> automatic(2) so the chip can automatically control the fan speed depending
-> on the temperature.
->   
-It is indeed set to 2.
-
->> Even if I bring this value to some "idle" current, that won't help
->> much because when I first boot the system, the fans are *always*
->> still, so even if the idle state is >1, that won't help me much, so
->> there must be another - better - way than using a script to
->> "kickstart" the fans initially, surely!
+On 06/28/2012 04:57 PM, Daniel Lezcano wrote:
+> On 06/28/2012 01:24 PM, Srivatsa S. Bhat wrote:
+>> On 06/28/2012 02:16 PM, Daniel Lezcano wrote:
+>>> When the system is booted with some cpus offline, the idle
+>>> driver is not initialized. When a cpu is set online, the
+>>> acpi code call the intel idle init function. Unfortunately
+>>> this code introduce a dependency between intel_idle and acpi.
+>>>
+>>> This patch is intended to remove this dependency by using the
+>>> notifier of intel_idle. This patch has the benefit of
+>>> encapsulating the intel_idle driver and remove some exported
+>>> functions.
+>>>
+>>> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
 >>
->>     
-> Maybe fan control is not set to automatic by the BIOS ?
->   
-It is and it is why I am keeping this automatic BIOS fan management in 
-place and my script only intervenes to kick-start the fans when they are 
-still, otherwise this automatic control is doing a good job. The problem 
-is the actual kick-start (and the fact that there is no way I could 
-force ACPI to abandon the region of memory used by the driver).
+>>
+>> Looks good to me.
+> 
+> Thanks for the review Srivatsa.
+> 
+> Shall I consider it as an acked-by ?
+> 
 
+Sure, go ahead! :-)
+
+Regards,
+Srivatsa S. Bhat
