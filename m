@@ -1,75 +1,63 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH missing 2/21] fujitsu-tablet: Use struct dev_pm_ops for power management
-Date: Fri, 29 Jun 2012 00:26:10 +0200
-Message-ID: <201206290026.11041.rjw@sisk.pl>
-References: <201206232306.06602.rjw@sisk.pl>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH 07/12] Input: atlas_btns - convert to module_acpi_driver()
+Date: Thu, 28 Jun 2012 16:19:03 -0700
+Message-ID: <20120628231902.GA21687@core.coreip.homeip.net>
+References: <1340881171-14811-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1340881171-14811-8-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:45251 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751801Ab2F1WUn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 28 Jun 2012 18:20:43 -0400
-In-Reply-To: <201206232306.06602.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1340881171-14811-8-git-send-email-mika.westerberg@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, rui.zhang@intel.com, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, eric.piel@tremplin-utc.net, mjg@redhat.com, ike.pan@canonical.com, herton@canonical.com
 List-Id: linux-acpi@vger.kernel.org
-To: Linux PM list <linux-pm@vger.kernel.org>
-Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, platform-driver-x86@vger.kernel.org, Eric Piel <eric.piel@tremplin-utc.net>, Mattia Dongili <malattia@linux.it>, Harald Welte <laforge@gnumonks.org>, Robert Gerlach <khnz@gmx.de>
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+On Thu, Jun 28, 2012 at 01:59:26PM +0300, Mika Westerberg wrote:
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Make the fujitsu-tablet driver define its PM callbacks through
-a struct dev_pm_ops object rather than by using legacy PM hooks
-in struct acpi_device_ops.
+Acked-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
+Please feel free to merge with the rest of the series.
 
-Hi all,
+Thanks!
 
-Another driver overlooked during the ACPI conversion to PM handling based on
-struct dev_pm_ops, sorry about that.
+> ---
+>  drivers/input/misc/atlas_btns.c |   17 +----------------
+>  1 file changed, 1 insertion(+), 16 deletions(-)
+> 
+> diff --git a/drivers/input/misc/atlas_btns.c b/drivers/input/misc/atlas_btns.c
+> index 601f737..26f1313 100644
+> --- a/drivers/input/misc/atlas_btns.c
+> +++ b/drivers/input/misc/atlas_btns.c
+> @@ -151,22 +151,7 @@ static struct acpi_driver atlas_acpi_driver = {
+>  		.remove	= atlas_acpi_button_remove,
+>  	},
+>  };
+> -
+> -static int __init atlas_acpi_init(void)
+> -{
+> -	if (acpi_disabled)
+> -		return -ENODEV;
+> -
+> -	return acpi_bus_register_driver(&atlas_acpi_driver);
+> -}
+> -
+> -static void __exit atlas_acpi_exit(void)
+> -{
+> -	acpi_bus_unregister_driver(&atlas_acpi_driver);
+> -}
+> -
+> -module_init(atlas_acpi_init);
+> -module_exit(atlas_acpi_exit);
+> +module_acpi_driver(atlas_acpi_driver);
+>  
+>  MODULE_AUTHOR("Jaya Kumar");
+>  MODULE_LICENSE("GPL");
+> -- 
+> 1.7.10
+> 
 
-This one should go after the classmate-laptop patch I've just posted.
-
-Thanks,
-Rafael
-
----
- drivers/platform/x86/fujitsu-tablet.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
-
-Index: linux/drivers/platform/x86/fujitsu-tablet.c
-===================================================================
---- linux.orig/drivers/platform/x86/fujitsu-tablet.c
-+++ linux/drivers/platform/x86/fujitsu-tablet.c
-@@ -440,12 +440,14 @@ static int __devexit acpi_fujitsu_remove
- 	return 0;
- }
- 
--static int acpi_fujitsu_resume(struct acpi_device *adev)
-+static int acpi_fujitsu_resume(struct device *dev)
- {
- 	fujitsu_reset();
- 	return 0;
- }
- 
-+static SIMPLE_DEV_PM_OPS(acpi_fujitsu_pm, NULL, acpi_fujitsu_resume);
-+
- static struct acpi_driver acpi_fujitsu_driver = {
- 	.name  = MODULENAME,
- 	.class = "hotkey",
-@@ -453,8 +455,8 @@ static struct acpi_driver acpi_fujitsu_d
- 	.ops   = {
- 		.add    = acpi_fujitsu_add,
- 		.remove	= acpi_fujitsu_remove,
--		.resume = acpi_fujitsu_resume,
--	}
-+	},
-+	.drv.pm = &acpi_fujitsu_pm,
- };
- 
- static int __init fujitsu_module_init(void)
-
+-- 
+Dmitry
