@@ -1,7 +1,7 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH 01/12] ACPI: introduce module_acpi_driver() helper macro
-Date: Thu, 28 Jun 2012 13:59:20 +0300
-Message-ID: <1340881171-14811-2-git-send-email-mika.westerberg@linux.intel.com>
+Subject: [PATCH 03/12] ACPI/fan: convert to module_acpi_driver()
+Date: Thu, 28 Jun 2012 13:59:22 +0300
+Message-ID: <1340881171-14811-4-git-send-email-mika.westerberg@linux.intel.com>
 References: <1340881171-14811-1-git-send-email-mika.westerberg@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1340881171-14811-1-git-send-email-mika.westerberg@linux.intel.com>
@@ -10,38 +10,40 @@ To: linux-acpi@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, rui.zhang@intel.com, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, dmitry.torokhov@gmail.com, eric.piel@tremplin-utc.net, mjg@redhat.com, ike.pan@canonical.com, herton@canonical.com, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Add a helper macro module_acpi_driver() which reduces the boilerplate code
-for ACPI drivers. This is similar what is done for other busses (PCI, SPI,
-I2C etc).
-
 Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- include/acpi/acpi_bus.h |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ drivers/acpi/fan.c |   22 +---------------------
+ 1 file changed, 1 insertion(+), 21 deletions(-)
 
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 9e6e1c6..45d3249 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -376,6 +376,19 @@ int acpi_match_device_ids(struct acpi_device *device,
- int acpi_create_dir(struct acpi_device *);
- void acpi_remove_dir(struct acpi_device *);
+diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
+index 0f0356c..b142797 100644
+--- a/drivers/acpi/fan.c
++++ b/drivers/acpi/fan.c
+@@ -207,24 +207,4 @@ static int acpi_fan_resume(struct acpi_device *device)
+ 	return result;
+ }
  
-+
-+/**
-+ * module_acpi_driver(acpi_driver) - Helper macro for registering an ACPI driver
-+ * @__acpi_driver: acpi_driver struct
-+ *
-+ * Helper macro for ACPI drivers which do not do anything special in module
-+ * init/exit. This eliminates a lot of boilerplate. Each module may only
-+ * use this macro once, and calling it replaces module_init() and module_exit()
-+ */
-+#define module_acpi_driver(__acpi_driver) \
-+	module_driver(__acpi_driver, acpi_bus_register_driver, \
-+		      acpi_bus_unregister_driver)
-+
- /*
-  * Bind physical devices with ACPI devices
-  */
+-static int __init acpi_fan_init(void)
+-{
+-	int result = 0;
+-
+-	result = acpi_bus_register_driver(&acpi_fan_driver);
+-	if (result < 0)
+-		return -ENODEV;
+-
+-	return 0;
+-}
+-
+-static void __exit acpi_fan_exit(void)
+-{
+-
+-	acpi_bus_unregister_driver(&acpi_fan_driver);
+-
+-	return;
+-}
+-
+-module_init(acpi_fan_init);
+-module_exit(acpi_fan_exit);
++module_acpi_driver(acpi_fan_driver);
 -- 
 1.7.10
