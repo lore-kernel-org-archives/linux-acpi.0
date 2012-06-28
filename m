@@ -1,7 +1,7 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH 06/12] i2c-scmi: convert to module_acpi_driver()
-Date: Thu, 28 Jun 2012 13:59:25 +0300
-Message-ID: <1340881171-14811-7-git-send-email-mika.westerberg@linux.intel.com>
+Subject: [PATCH 05/12] ACPI/sbshc: convert to module_acpi_driver()
+Date: Thu, 28 Jun 2012 13:59:24 +0300
+Message-ID: <1340881171-14811-6-git-send-email-mika.westerberg@linux.intel.com>
 References: <1340881171-14811-1-git-send-email-mika.westerberg@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1340881171-14811-1-git-send-email-mika.westerberg@linux.intel.com>
@@ -12,33 +12,37 @@ List-Id: linux-acpi@vger.kernel.org
 
 Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- drivers/i2c/busses/i2c-scmi.c |   14 +-------------
- 1 file changed, 1 insertion(+), 13 deletions(-)
+ drivers/acpi/sbshc.c |   18 +-----------------
+ 1 file changed, 1 insertion(+), 17 deletions(-)
 
-diff --git a/drivers/i2c/busses/i2c-scmi.c b/drivers/i2c/busses/i2c-scmi.c
-index 388cbdc..6aafa3d 100644
---- a/drivers/i2c/busses/i2c-scmi.c
-+++ b/drivers/i2c/busses/i2c-scmi.c
-@@ -426,19 +426,7 @@ static struct acpi_driver acpi_smbus_cmi_driver = {
- 		.remove = acpi_smbus_cmi_remove,
- 	},
- };
--
--static int __init acpi_smbus_cmi_init(void)
+diff --git a/drivers/acpi/sbshc.c b/drivers/acpi/sbshc.c
+index f8d2a47..cf6129a 100644
+--- a/drivers/acpi/sbshc.c
++++ b/drivers/acpi/sbshc.c
+@@ -310,23 +310,7 @@ static int acpi_smbus_hc_remove(struct acpi_device *device, int type)
+ 	return 0;
+ }
+ 
+-static int __init acpi_smb_hc_init(void)
 -{
--	return acpi_bus_register_driver(&acpi_smbus_cmi_driver);
+-	int result;
+-
+-	result = acpi_bus_register_driver(&acpi_smb_hc_driver);
+-	if (result < 0)
+-		return -ENODEV;
+-	return 0;
 -}
 -
--static void __exit acpi_smbus_cmi_exit(void)
+-static void __exit acpi_smb_hc_exit(void)
 -{
--	acpi_bus_unregister_driver(&acpi_smbus_cmi_driver);
+-	acpi_bus_unregister_driver(&acpi_smb_hc_driver);
 -}
 -
--module_init(acpi_smbus_cmi_init);
--module_exit(acpi_smbus_cmi_exit);
-+module_acpi_driver(acpi_smbus_cmi_driver);
+-module_init(acpi_smb_hc_init);
+-module_exit(acpi_smb_hc_exit);
++module_acpi_driver(acpi_smb_hc_driver);
  
  MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Crane Cai <crane.cai@amd.com>");
+ MODULE_AUTHOR("Alexey Starikovskiy");
 -- 
 1.7.10
