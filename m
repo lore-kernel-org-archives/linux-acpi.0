@@ -1,238 +1,105 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: [PATCH V4 8/8] usb : Add usb port's power control attributes
-Date: Thu, 28 Jun 2012 15:31:42 +0800
-Message-ID: <1340868702-1894-9-git-send-email-tianyu.lan@intel.com>
-References: <1340868702-1894-1-git-send-email-tianyu.lan@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:62841 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932558Ab2F1Hj5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 28 Jun 2012 03:39:57 -0400
-In-Reply-To: <1340868702-1894-1-git-send-email-tianyu.lan@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] acpi: intel_idle : break dependency between modules
+Date: Thu, 28 Jun 2012 10:03:56 +0200
+Message-ID: <4FEC0FEC.5070304@linaro.org>
+References: <201206261301.25550.trenn@suse.de>
+	<1340788068-16422-1-git-send-email-daniel.lezcano@linaro.org>
+	<201206271506.29034.trenn@suse.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+In-Reply-To: <201206271506.29034.trenn-l3A5Bk7waGM@public.gmane.org>
+List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
+List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
+Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+To: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Cc: deepthi-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, srivatsa.bhat-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: gregkh@linuxfoundation.org, lenb@kernel.org
-Cc: linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu, sarah.a.sharp@linux.intel.com, Lan Tianyu <tianyu.lan@intel.com>
 
-This patch is to add two attributes for each usb hub ports to control port's power.
-Control port's power through setting or clearing PORT_POWER feature.
-
-control has two options. "auto", "on" and "off"
-"on" - port power must be on.
-"off" - port power must be off.
-
-state reports usb port's power state
-"on" - power on
-"off" - power off
-"error" - can't get power state
-
-Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
----
- Documentation/ABI/testing/sysfs-bus-usb |   25 +++++++
- drivers/usb/core/hub.c                  |  116 ++++++++++++++++++++++++++++++-
- 2 files changed, 140 insertions(+), 1 deletions(-)
-
-diff --git a/Documentation/ABI/testing/sysfs-bus-usb b/Documentation/ABI/testing/sysfs-bus-usb
-index 6df4e6f..abe4ea4 100644
---- a/Documentation/ABI/testing/sysfs-bus-usb
-+++ b/Documentation/ABI/testing/sysfs-bus-usb
-@@ -208,3 +208,28 @@ Description:
- 		such as ACPI. This file will read either "removable" or
- 		"fixed" if the information is available, and "unknown"
- 		otherwise.
-+
-+What:		/sys/bus/usb/devices/.../(hub interface)/portX/control
-+Date:		June 2012
-+Contact		Lan Tianyu <tianyu.lan@intel.com>
-+Description:
-+		The /sys/bus/usb/devices/.../(hub interface)/portX/control
-+		attribute allows user space to control the power policy on
-+		the usb port.
-+
-+		All ports have one of the following two values for control
-+		"on" - port power must be on.
-+		"off" - port power must be off.
-+
-+What:		/sys/bus/usb/devices/.../(hub interface)/portX/state
-+Date:		June 2012
-+Contact		Lan Tianyu <tianyu.lan@intel.com>
-+Description:
-+		The /sys/bus/usb/devices/.../(hub interface)/portX/state
-+		attribute allows user space to check hub port's power state.
-+
-+		All ports have three following states
-+		"on"	  -    port power on
-+		"off"	  -    port power off
-+		"error"	  -    can't get the hub port's power state
-+
-diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
-index 05cdc7b..f7cf93c 100644
---- a/drivers/usb/core/hub.c
-+++ b/drivers/usb/core/hub.c
-@@ -37,12 +37,18 @@
- #endif
- #endif
- 
-+enum port_power_policy {
-+	USB_PORT_POWER_ON = 0,
-+	USB_PORT_POWER_OFF,
-+};
-+
- struct usb_port {
- 	struct usb_device *udev;
- 	struct usb_device *child;
- 	struct device dev;
- 	struct dev_state *port_owner;
- 	enum usb_port_connect_type connect_type;
-+	enum port_power_policy port_power_policy;
- };
- 
- struct usb_hub {
-@@ -96,6 +102,10 @@ struct device_type usb_port_device_type = {
- 	.name =		"usb_port",
- };
- 
-+static const char on_string[] = "on";
-+static const char off_string[] = "off";
-+static const struct attribute_group *port_dev_group[];
-+
- static inline int hub_is_superspeed(struct usb_device *hdev)
- {
- 	return (hdev->descriptor.bDeviceProtocol == USB_HUB_PR_SS);
-@@ -848,7 +858,9 @@ static unsigned hub_power_on(struct usb_hub *hub, bool do_delay)
- 		dev_dbg(hub->intfdev, "trying to enable port power on "
- 				"non-switchable hub\n");
- 	for (port1 = 1; port1 <= hub->descriptor->bNbrPorts; port1++)
--		set_port_feature(hub->hdev, port1, USB_PORT_FEAT_POWER);
-+		if (hub->ports[port1 - 1]->port_power_policy
-+				== USB_PORT_POWER_ON)
-+			set_port_feature(hub->hdev, port1, USB_PORT_FEAT_POWER);
- 
- 	/* Wait at least 100 msec for power to become stable */
- 	delay = max(pgood_delay, (unsigned) 100);
-@@ -1262,6 +1274,7 @@ static int usb_hub_create_port_device(struct usb_hub *hub,
- 	hub->ports[port1 - 1] = port_dev;
- 	port_dev->udev = hub->hdev;
- 	port_dev->dev.parent = hub->intfdev;
-+	port_dev->dev.groups = port_dev_group;
- 	port_dev->dev.type = &usb_port_device_type;
- 	port_dev->dev.release = usb_port_device_release;
- 	dev_set_name(&port_dev->dev, "port%d", port1);
-@@ -2611,6 +2624,25 @@ static int port_is_power_on(struct usb_hub *hub, unsigned portstatus)
- 	return ret;
- }
- 
-+static int usb_get_hub_port_power_state(struct usb_device *hdev, int port1)
-+{
-+	struct usb_hub *hub = hdev_to_hub(hdev);
-+	struct usb_port_status data;
-+	u16 portstatus;
-+	int ret;
-+
-+	ret = get_port_status(hub->hdev, port1, &data);
-+	if (ret < 4) {
-+		dev_err(hub->intfdev,
-+			"%s failed (err = %d)\n", __func__, ret);
-+		if (ret >= 0)
-+			ret = -EIO;
-+		return ret;
-+	} else
-+		portstatus = le16_to_cpu(data.wPortStatus);
-+	return port_is_power_on(hub, portstatus);
-+}
-+
- #ifdef	CONFIG_PM
- 
- /* Check if a port is suspended(USB2.0 port) or in U3 state(USB3.0 port) */
-@@ -4552,6 +4584,88 @@ static int hub_thread(void *__unused)
- 	return 0;
- }
- 
-+static ssize_t show_port_power_state(struct device *dev,
-+	struct device_attribute *attr, char *buf)
-+{
-+	struct usb_device *udev = to_usb_device(dev->parent->parent);
-+	int port1, power_state;
-+	const char *result;
-+
-+	sscanf(dev_name(dev), "port%d", &port1);
-+	power_state = usb_get_hub_port_power_state(udev, port1);
-+	if (power_state == 1)
-+		result = on_string;
-+	else if (!power_state)
-+		result = off_string;
-+	else
-+		result = "error";
-+	return sprintf(buf, "%s\n", result);
-+}
-+static DEVICE_ATTR(state, S_IRUGO, show_port_power_state, NULL);
-+
-+static ssize_t show_port_power_control(struct device *dev,
-+	struct device_attribute *attr, char *buf)
-+{
-+	struct usb_port *hub_port = to_usb_port(dev);
-+	const char *result;
-+
-+	switch (hub_port->port_power_policy) {
-+	case USB_PORT_POWER_ON:
-+		result = on_string;
-+		break;
-+	case USB_PORT_POWER_OFF:
-+		result = off_string;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+	return sprintf(buf, "%s\n", result);
-+}
-+
-+static ssize_t
-+store_port_power_control(struct device *dev, struct device_attribute *attr,
-+		const char *buf, size_t count)
-+{
-+	struct usb_device *hdev = to_usb_device(dev->parent->parent);
-+	struct usb_port *hub_port = to_usb_port(dev);
-+	int port1, len = count;
-+	char *cp;
-+
-+	sscanf(dev_name(dev), "port%d", &port1);
-+	cp = memchr(buf, '\n', count);
-+	if (cp)
-+		len = cp - buf;
-+	if (len == sizeof on_string - 1
-+		&& strncmp(buf, on_string, len) == 0) {
-+		hub_port->port_power_policy = USB_PORT_POWER_ON;
-+		set_port_feature(hdev, port1, USB_PORT_FEAT_POWER);
-+	} else if (len == sizeof off_string - 1
-+		&& strncmp(buf, off_string, len) == 0) {
-+		hub_port->port_power_policy = USB_PORT_POWER_OFF;
-+		clear_port_feature(hdev, port1, USB_PORT_FEAT_POWER);
-+	} else
-+		return -EINVAL;
-+
-+	return count;
-+}
-+static DEVICE_ATTR(control, S_IWUSR | S_IRUGO, show_port_power_control,
-+		store_port_power_control);
-+
-+static struct attribute *port_dev_attrs[] = {
-+	&dev_attr_control.attr,
-+	&dev_attr_state.attr,
-+	NULL,
-+};
-+
-+static struct attribute_group port_dev_attr_grp = {
-+	.attrs = port_dev_attrs,
-+};
-+
-+static const struct attribute_group *port_dev_group[] = {
-+	&port_dev_attr_grp,
-+	NULL,
-+};
-+
- static const struct usb_device_id hub_id_table[] = {
-     { .match_flags = USB_DEVICE_ID_MATCH_DEV_CLASS,
-       .bDeviceClass = USB_CLASS_HUB},
--- 
-1.7.6.rc2.8.g28eb
-
+T24gMDYvMjcvMjAxMiAwMzowNiBQTSwgVGhvbWFzIFJlbm5pbmdlciB3cm90ZToKPiBIaSwKPiAK
+PiBJIGFncmVlIHRoYXQgc3VjaCBhIGRlcGVuZGVuY3kgYmV0d2VlbiAyIG1vZHVsZXMgaXMgbm90
+Cj4gbmljZS4gQnV0IHlvdXIgcGF0Y2ggd2lsbCBoYXZlIGJhZCBzaWRlLWVmZmVjdHMgKHNlZSBj
+b21tZW50cwo+IGVtYmVkZGVkIGJlbG93KS4KPiAKPiBPbiBXZWRuZXNkYXksIEp1bmUgMjcsIDIw
+MTIgMTE6MDc6NDggQU0gRGFuaWVsIExlemNhbm8gd3JvdGU6Cj4+IFdoZW4gdGhlIHN5c3RlbSBp
+cyBib290ZWQgd2l0aCBzb21lIGNwdXMgb2ZmbGluZSwgdGhlIGlkbGUKPj4gZHJpdmVyIGlzIG5v
+dCBpbml0aWFsaXplZC4gV2hlbiBhIGNwdSBpcyBzZXQgb25saW5lLCB0aGUKPj4gYWNwaSBjb2Rl
+IGNhbGwgdGhlIGludGVsIGlkbGUgaW5pdCBmdW5jdGlvbi4gVW5mb3J0dW5hdGVseQo+PiB0aGlz
+IGNvZGUgaW50cm9kdWNlIGEgZGVwZW5kZW5jeSBiZXR3ZWVuIGludGVsX2lkbGUgYW5kIGFjcGku
+Cj4+Cj4+IFRoaXMgcGF0Y2ggaXMgaW50ZW5kZWQgdG8gcmVtb3ZlIHRoaXMgZGVwZW5kZW5jeSBi
+eSB1c2luZyB0aGUKPj4gbm90aWZpZXIgb2YgaW50ZWxfaWRsZS4gSW4gb3JkZXIgdG8gbWFrZSBp
+dCB3b3JrLCB0aGUgbm90aWZpZXIKPj4gbXVzdCBiZSBpbml0aWFsaXplZCBpbiB0aGUgcmlnaHQg
+b3JkZXIsIGFjcGkgdGhlbiBpbnRlbF9pZGxlLgo+PiBUaGlzIGlzIGRvbmUgaW4gdGhlIE1ha2Vm
+aWxlLiBUaGlzIHBhdGNoIGhhcyB0aGUgYmVuZWZpdCBvZgo+PiBlbmNhcHN1bGF0aW5nIHRoZSBp
+bnRlbF9pZGxlIGRyaXZlciBhbmQgcmVtb3ZlIHNvbWUgZXhwb3J0ZWQKPj4gZnVuY3Rpb25zLgo+
+Pgo+PiBTaWduZWQtb2ZmLWJ5OiBEYW5pZWwgTGV6Y2FubyA8ZGFuaWVsLmxlemNhbm9AbGluYXJv
+Lm9yZz4KPj4gLS0tCj4+ICBkcml2ZXJzL01ha2VmaWxlICAgICAgICAgICAgICAgIHwgICAgMyAr
+Ky0KPj4gIGRyaXZlcnMvYWNwaS9wcm9jZXNzb3JfZHJpdmVyLmMgfCAgICA3IC0tLS0tLS0KPj4g
+IGRyaXZlcnMvaWRsZS9pbnRlbF9pZGxlLmMgICAgICAgfCAgIDIyICsrKysrKysrKysrKysrLS0t
+LS0tLS0KPj4gIGluY2x1ZGUvbGludXgvY3B1aWRsZS5oICAgICAgICAgfCAgICA3IC0tLS0tLS0K
+Pj4gIDQgZmlsZXMgY2hhbmdlZCwgMTYgaW5zZXJ0aW9ucygrKSwgMjMgZGVsZXRpb25zKC0pCj4+
+Cj4+IGRpZmYgLS1naXQgYS9kcml2ZXJzL01ha2VmaWxlIGIvZHJpdmVycy9NYWtlZmlsZQo+PiBp
+bmRleCAyYmEyOWZmLi5hMjQ1NGI4IDEwMDY0NAo+PiAtLS0gYS9kcml2ZXJzL01ha2VmaWxlCj4+
+ICsrKyBiL2RyaXZlcnMvTWFrZWZpbGUKPj4gQEAgLTEyLDggKzEyLDkgQEAgb2JqLSQoQ09ORklH
+X1BDSSkJCSs9IHBjaS8KPj4gIG9iai0kKENPTkZJR19QQVJJU0MpCQkrPSBwYXJpc2MvCj4+ICBv
+YmotJChDT05GSUdfUkFQSURJTykJCSs9IHJhcGlkaW8vCj4+ICBvYmoteQkJCQkrPSB2aWRlby8K
+Pj4gLW9iai15CQkJCSs9IGlkbGUvCj4+ICsjIGFjcGkgbXVzdCBjb21lIGJlZm9yZSBpZGxlIGZv
+ciBpbml0aWFsaXphdGlvbgo+PiAgb2JqLSQoQ09ORklHX0FDUEkpCQkrPSBhY3BpLwo+PiArb2Jq
+LXkJCQkJKz0gaWRsZS8KPiBUaGlzIGJyZWFrcyBpbnRlbF9pZGxlLgo+IExvYWRpbmcgb3JkZXIg
+ZGVmaW5lcyB3aGljaCBvbmUgY29tZXMgZmlyc3QgYW5kIGlzIHVzZWQ6IGludGVsX2lkbGUKPiBv
+ciBBQ1BJIHByb2Nlc3NvciBjcHVpZGxlIGRyaXZlci4KPiBXaXRoIGFib3ZlLCBvbmUgd291bGQg
+Z2V0IGFjcGlfaWRsZSBjcHVpZGxlIGRyaXZlciBpZiBib3RoIGFyZQo+IGNvbXBpbGVkIGluLCBp
+bnN0ZWFkIG9mIHRoZSBpbnRlbF9pZGxlIG9uZS4KPiAKPiBXaHkgZXhhY3RseSBpcyB0aGlzIG5l
+Y2Vzc2FyeSwgY291bGRuJ3QgaXQganVzdCB3b3JrPwoKWy4uLl0KCkkganVzdCB3YW50ZWQgdG8g
+a2VlcCBzYW1lIG9yZGVyLiBJZiBpdCBpcyBub3QgbmVjZXNzYXJ5LCBJIHdvbid0IGludmVydAp0
+aGUgY29tcGlsYXRpb24gb3JkZXIgaW4gdGhlIG5leHQgcGF0Y2guCgo+PiAtc3RhdGljIGludCBz
+ZXR1cF9icm9hZGNhc3RfY3B1aHBfbm90aWZ5KHN0cnVjdCBub3RpZmllcl9ibG9jayAqbiwKPj4g
+LQkJdW5zaWduZWQgbG9uZyBhY3Rpb24sIHZvaWQgKmhjcHUpCj4+ICtzdGF0aWMgaW50IGNwdV9o
+b3RwbHVnX25vdGlmeShzdHJ1Y3Qgbm90aWZpZXJfYmxvY2sgKm4sCj4+ICsJCQkgICAgICB1bnNp
+Z25lZCBsb25nIGFjdGlvbiwgdm9pZCAqaGNwdSkKPj4gIHsKPj4gIAlpbnQgaG90Y3B1ID0gKHVu
+c2lnbmVkIGxvbmcpaGNwdTsKPj4gKwlzdHJ1Y3QgY3B1aWRsZV9kZXZpY2UgKmRldjsKPj4gIAo+
+PiAgCXN3aXRjaCAoYWN0aW9uICYgMHhmKSB7Cj4+ICAJY2FzZSBDUFVfT05MSU5FOgo+PiAgCQlz
+bXBfY2FsbF9mdW5jdGlvbl9zaW5nbGUoaG90Y3B1LCBfX3NldHVwX2Jyb2FkY2FzdF90aW1lciwK
+Pj4gIAkJCSh2b2lkICopdHJ1ZSwgMSk7Cj4+ICsKPj4gKwkJZGV2ID0gcGVyX2NwdV9wdHIoaW50
+ZWxfaWRsZV9jcHVpZGxlX2RldmljZXMsIGhvdGNwdSk7Cj4+ICsJCWlmICghZGV2LT5yZWdpc3Rl
+cmVkKQo+PiArCQkJaW50ZWxfaWRsZV9jcHVfaW5pdChob3RjcHUpOwo+PiArCj4gQSBzbWFsbCBj
+b21tZW50IHdoeSB0aGlzIGNhbiBoYXBwZW4gYW5kIG5lZWRzIHRvIGJlIGRvbmUKPiAocmVhbCBo
+b3RwbHVnZ2VkIGNwdSBjYXNlKSBtaWdodCBoZWxwIGhlcmUgbGF0ZXIuCgpZZXMsIHRoYXQgbWFr
+ZXMgc2Vuc2UuCgpbLi4uXQoKPj4gIHN0YXRpYyB2b2lkIGF1dG9fZGVtb3Rpb25fZGlzYWJsZSh2
+b2lkICpkdW1teSkKPj4gQEAgLTQwNyw3ICs0MTQsNyBAQCBzdGF0aWMgaW50IGludGVsX2lkbGVf
+cHJvYmUodm9pZCkKPj4gIAkJbGFwaWNfdGltZXJfcmVsaWFibGVfc3RhdGVzID0gTEFQSUNfVElN
+RVJfQUxXQVlTX1JFTElBQkxFOwo+PiAgCWVsc2Ugewo+PiAgCQlvbl9lYWNoX2NwdShfX3NldHVw
+X2Jyb2FkY2FzdF90aW1lciwgKHZvaWQgKil0cnVlLCAxKTsKPj4gLQkJcmVnaXN0ZXJfY3B1X25v
+dGlmaWVyKCZzZXR1cF9icm9hZGNhc3Rfbm90aWZpZXIpOwo+PiArCQlyZWdpc3Rlcl9jcHVfbm90
+aWZpZXIoJmNwdV9ob3RwbHVnX25vdGlmaWVyKTsKPiAKPiBUaGUgbm90aWZpZXIgYWx3YXlzIGhh
+cyB0byBiZSByZWdpc3RlcmVkIG5vdywgbm90IG9ubHkgaW46Cj4gaWYgKGJvb3RfY3B1X2hhcyhY
+ODZfRkVBVFVSRV9BUkFUKSkgICAgIC8qIEFsd2F5cyBSZWxpYWJsZSBBUElDIFRpbWVyICovCj4g
+Y2FzZS4KCk9vcHMsIHJpZ2h0LgoKCj4+ICAJcHJfZGVidWcoUFJFRklYICJ2IiBJTlRFTF9JRExF
+X1ZFUlNJT04KPj4gQEAgLTQ5NCw3ICs1MDEsNyBAQCBzdGF0aWMgaW50IGludGVsX2lkbGVfY3B1
+aWRsZV9kcml2ZXJfaW5pdCh2b2lkKQo+PiAgICogYWxsb2NhdGUsIGluaXRpYWxpemUsIHJlZ2lz
+dGVyIGNwdWlkbGVfZGV2aWNlcwo+PiAgICogQGNwdTogY3B1L2NvcmUgdG8gaW5pdGlhbGl6ZQo+
+PiAgICovCj4+IC1pbnQgaW50ZWxfaWRsZV9jcHVfaW5pdChpbnQgY3B1KQo+PiArc3RhdGljIGlu
+dCBpbnRlbF9pZGxlX2NwdV9pbml0KGludCBjcHUpCj4+ICB7Cj4+ICAJaW50IGNzdGF0ZTsKPj4g
+IAlzdHJ1Y3QgY3B1aWRsZV9kZXZpY2UgKmRldjsKPj4gQEAgLTUzOSw3ICs1NDYsNiBAQCBpbnQg
+aW50ZWxfaWRsZV9jcHVfaW5pdChpbnQgY3B1KQo+PiAgCj4+ICAJcmV0dXJuIDA7Cj4+ICB9Cj4+
+IC1FWFBPUlRfU1lNQk9MX0dQTChpbnRlbF9pZGxlX2NwdV9pbml0KTsKPj4gIAo+PiAgc3RhdGlj
+IGludCBfX2luaXQgaW50ZWxfaWRsZV9pbml0KHZvaWQpCj4+ICB7Cj4+IEBAIC01ODMsNyArNTg5
+LDcgQEAgc3RhdGljIHZvaWQgX19leGl0IGludGVsX2lkbGVfZXhpdCh2b2lkKQo+PiAgCj4+ICAJ
+aWYgKGxhcGljX3RpbWVyX3JlbGlhYmxlX3N0YXRlcyAhPSBMQVBJQ19USU1FUl9BTFdBWVNfUkVM
+SUFCTEUpIHsKPj4gIAkJb25fZWFjaF9jcHUoX19zZXR1cF9icm9hZGNhc3RfdGltZXIsICh2b2lk
+ICopZmFsc2UsIDEpOwo+PiAtCQl1bnJlZ2lzdGVyX2NwdV9ub3RpZmllcigmc2V0dXBfYnJvYWRj
+YXN0X25vdGlmaWVyKTsKPj4gKwkJdW5yZWdpc3Rlcl9jcHVfbm90aWZpZXIoJmNwdV9ob3RwbHVn
+X25vdGlmaWVyKTsKPiBTYW1lLgoKClRoYW5rcyBmb3IgdGhlIHJldmlldyAhCgogIC0tIERhbmll
+bAoKLS0gCiA8aHR0cDovL3d3dy5saW5hcm8ub3JnLz4gTGluYXJvLm9yZyDilIIgT3BlbiBzb3Vy
+Y2Ugc29mdHdhcmUgZm9yIEFSTSBTb0NzCgpGb2xsb3cgTGluYXJvOiAgPGh0dHA6Ly93d3cuZmFj
+ZWJvb2suY29tL3BhZ2VzL0xpbmFybz4gRmFjZWJvb2sgfAo8aHR0cDovL3R3aXR0ZXIuY29tLyMh
+L2xpbmFyb29yZz4gVHdpdHRlciB8CjxodHRwOi8vd3d3LmxpbmFyby5vcmcvbGluYXJvLWJsb2cv
+PiBCbG9nCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
+bGluYXJvLWRldiBtYWlsaW5nIGxpc3QKbGluYXJvLWRldkBsaXN0cy5saW5hcm8ub3JnCmh0dHA6
+Ly9saXN0cy5saW5hcm8ub3JnL21haWxtYW4vbGlzdGluZm8vbGluYXJvLWRldgo=
