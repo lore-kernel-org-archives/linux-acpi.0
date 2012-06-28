@@ -1,300 +1,346 @@
-From: preeti <preeti@linux.vnet.ibm.com>
-Subject: [PATCH] Cpuidle drivers,Suspend : Fix suspend/resume hang with intel_idle
- driver
-Date: Fri, 29 Jun 2012 14:23:01 +0530
-Message-ID: <4FED6CED.2060908@linux.vnet.ibm.com>
-References: <4FEC20D2.2070501@linux.vnet.ibm.com> <201206281153.25310.rjw@sisk.pl> <4FEC84A4.1000605@linux.vnet.ibm.com> <201206282111.03992.rjw@sisk.pl> <4FED2AF2.4080900@linux.vnet.ibm.com> <4FED3CA0.3050909@linux.vnet.ibm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Durgadoss R <durgadoss.r@intel.com>
+Subject: [PATCHv6] ACPI-Thermal: Make Thermal trip points writeable
+Date: Fri, 29 Jun 2012 02:55:21 +0530
+Message-ID: <1340918721-19437-1-git-send-email-durgadoss.r@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e23smtp07.au.ibm.com ([202.81.31.140]:59361 "EHLO
-	e23smtp07.au.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751652Ab2F2Ilz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Jun 2012 04:41:55 -0400
-Received: from /spool/local
-	by e23smtp07.au.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <linux-acpi@vger.kernel.org> from <preeti@linux.vnet.ibm.com>;
-	Fri, 29 Jun 2012 08:32:36 +1000
-In-Reply-To: <4FED3CA0.3050909@linux.vnet.ibm.com>
+Received: from mga01.intel.com ([192.55.52.88]:32240 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750891Ab2F2JDg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 29 Jun 2012 05:03:36 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>, Linux PM mailing list <linux-pm@vger.kernel.org>, linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org, "Srivatsa.S.Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
+To: lenb@kernel.org, rui.zhang@intel.com
+Cc: linux-acpi@vger.kernel.org, Durgadoss R <durgadoss.r@intel.com>
 
+Some of the thermal drivers using the Generic Thermal Framework
+require (all/some) trip points to be writeable. This patch makes
+the trip point temperatures writeable on a per-trip point basis,
+and modifies the required function call in thermal.c. This patch
+also updates the Documentation to reflect the new change.
 
-From: Preeti U Murthy <preeti@linux.vnet.ibm.com>
-
-Dave Hansen reported problems with suspend/resume when used
-with intel_idle driver.More such problems were noticed.
-https://bugs.launchpad.net/ubuntu/+source/linux/+bug/674075.
-
-The reason for this could not be suspected till he reported
-resume hang issue when used with acpi idle driver on his Lenovo-S10-3
-Atom netbook.
-
-The patch-[PM / ACPI: Fix suspend/resume regression caused by cpuidle
-cleanup],fixed this issue by ensuring that acpi idle drivers prevent
-cpus from going into deeper sleep states during suspend to prevent
-resume hang on certain bios.
-http://marc.info/?l=linux-pm&m=133958534231884&w=2
-
-Commit b04e7bdb984e3b7f62fb7f44146a529f88cc7639
-(ACPI: disable lower idle C-states across suspend/resume) throws
-light on the resume hang issue on certain specific bios.
-
-Also the following lines in drivers/idle/intel_idle.c suggest intel_idle
-drivers should also ensure cpus are prevented from entering idle states
-during suspend to avoid a resume hang.
-
-/*
- * Known limitations
- * [..]
- *
- * ACPI has a .suspend hack to turn off deep c-states during suspend
- * to avoid complications with the lapic timer workaround.
- * Have not seen issues with suspend, but may need same workaround here.
- *
- */
-This patch aims at having this fix in a place common to both the idle
-drivers.
-
-Suspend is enabled only if ACPI is active on x86.Thus the setting of
-acpi_idle_suspend during suspend is moved up to ACPI specific code with
-both acpi and intel idle drivers checking if it is valid to enter deeper
-idle states.The setting of acpi_idle_suspend is done via PM_SUSPEND_PREPARE
-notifiers to avoid race conditions between processors entering idle states
-and the ongoing process of suspend.
-
-The check on acpi_idle_suspend is included in the most appropriate header
-so as to be visible to both the idle drivers irrespective of the
-different configurations.Even if ACPI is disabled intel idle drivers can
-still carry out the acpi_idle_suspend check.
-
-Reported-by: Dave Hansen <dave@linux.vnet.ibm.com>
-Reviewed-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
-Reviewed-by: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
-Signed-off-by: Preeti U Murthy <preeti@linux.vnet.ibm.com>
+Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
 ---
+v1
+* patch1/2: Code for making trip points writeable
+* patch2/2: Change the callee in thermal.c
+v2
+* Make both the changes in a single patch
+* Update Documentation/thermal/sysfs-api.txt
+v3
+* Re-submitting, on top of the latest mainline kernel
+v4
+* Added a check on the 'flag' parameter in tzd register function
+v5
+* Updated the tzd register call in other drivers
+v6
+* Fixed a invalid memory reference and removed the
+  unnecessary local variable in create_trip_x_attr functions.
+---
+ Documentation/thermal/sysfs-api.txt      |    4 +-
+ drivers/acpi/thermal.c                   |    4 +-
+ drivers/platform/x86/acerhdf.c           |    2 +-
+ drivers/platform/x86/intel_mid_thermal.c |    2 +-
+ drivers/thermal/spear_thermal.c          |    2 +-
+ drivers/thermal/thermal_sys.c            |  119 ++++++++++++++++++++---------
+ include/linux/thermal.h                  |   10 ++-
+ 7 files changed, 97 insertions(+), 46 deletions(-)
 
-The patch has been applied on the latest linux-pm/linux-next
-tree due to the confusion that was present earlier.Also
-acpi_idle_suspend has been changed to idle_suspend.Rest of the
-code structure is the same.
-
- drivers/acpi/processor_idle.c |   22 +++++-----------------
- drivers/acpi/sleep.c          |   34 ++++++++++++++++++++++++++++++++++
- drivers/idle/intel_idle.c     |    7 +++++++
- include/linux/suspend.h       |   24 ++++++++++++++++++++++++
- 4 files changed, 70 insertions(+), 17 deletions(-)
-
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index 47a8caa..d6704a7 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -41,7 +41,7 @@
- #include <linux/clockchips.h>
- #include <linux/cpuidle.h>
- #include <linux/irqflags.h>
--
-+#include <linux/suspend.h>
- /*
-  * Include the apic definitions for x86 to have the APIC timer related
-defines
-  * available also for UP (on SMP it gets magically included via
-linux/smp.h).
-@@ -221,10 +221,6 @@ static void lapic_timer_state_broadcast(struct
-acpi_processor *pr,
-
- #endif
-
--/*
-- * Suspend / resume control
-- */
--static int acpi_idle_suspend;
- static u32 saved_bm_rld;
-
- static void acpi_idle_bm_rld_save(void)
-@@ -243,21 +239,13 @@ static void acpi_idle_bm_rld_restore(void)
-
- int acpi_processor_suspend(struct acpi_device * device, pm_message_t state)
- {
--	if (acpi_idle_suspend == 1)
--		return 0;
--
- 	acpi_idle_bm_rld_save();
--	acpi_idle_suspend = 1;
- 	return 0;
+diff --git a/Documentation/thermal/sysfs-api.txt b/Documentation/thermal/sysfs-api.txt
+index 1733ab9..0c7c423 100644
+--- a/Documentation/thermal/sysfs-api.txt
++++ b/Documentation/thermal/sysfs-api.txt
+@@ -32,7 +32,8 @@ temperature) and throttle appropriate devices.
+ 
+ 1.1 thermal zone device interface
+ 1.1.1 struct thermal_zone_device *thermal_zone_device_register(char *name,
+-		int trips, void *devdata, struct thermal_zone_device_ops *ops)
++		int trips, int flag, void *devdata,
++		struct thermal_zone_device_ops *ops)
+ 
+     This interface function adds a new thermal zone device (sensor) to
+     /sys/class/thermal folder as thermal_zone[0-*]. It tries to bind all the
+@@ -40,6 +41,7 @@ temperature) and throttle appropriate devices.
+ 
+     name: the thermal zone name.
+     trips: the total number of trip points this thermal zone supports.
++    flag: Bit string: If 'n'th bit is set, then trip point 'n' is writeable.
+     devdata: device private data
+     ops: thermal zone device call-backs.
+ 	.bind: bind the thermal zone device with a thermal cooling device.
+diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+index 7dbebea..2107d1b 100644
+--- a/drivers/acpi/thermal.c
++++ b/drivers/acpi/thermal.c
+@@ -845,7 +845,7 @@ static int acpi_thermal_register_thermal_zone(struct acpi_thermal *tz)
+ 
+ 	if (tz->trips.passive.flags.valid)
+ 		tz->thermal_zone =
+-			thermal_zone_device_register("acpitz", trips, tz,
++			thermal_zone_device_register("acpitz", trips, 0, tz,
+ 						     &acpi_thermal_zone_ops,
+ 						     tz->trips.passive.tc1,
+ 						     tz->trips.passive.tc2,
+@@ -853,7 +853,7 @@ static int acpi_thermal_register_thermal_zone(struct acpi_thermal *tz)
+ 						     tz->polling_frequency*100);
+ 	else
+ 		tz->thermal_zone =
+-			thermal_zone_device_register("acpitz", trips, tz,
++			thermal_zone_device_register("acpitz", trips, 0, tz,
+ 						     &acpi_thermal_zone_ops,
+ 						     0, 0, 0,
+ 						     tz->polling_frequency*100);
+diff --git a/drivers/platform/x86/acerhdf.c b/drivers/platform/x86/acerhdf.c
+index 2fd9d36..39abb15 100644
+--- a/drivers/platform/x86/acerhdf.c
++++ b/drivers/platform/x86/acerhdf.c
+@@ -660,7 +660,7 @@ static int acerhdf_register_thermal(void)
+ 	if (IS_ERR(cl_dev))
+ 		return -EINVAL;
+ 
+-	thz_dev = thermal_zone_device_register("acerhdf", 1, NULL,
++	thz_dev = thermal_zone_device_register("acerhdf", 1, 0, NULL,
+ 					      &acerhdf_dev_ops, 0, 0, 0,
+ 					      (kernelmode) ? interval*1000 : 0);
+ 	if (IS_ERR(thz_dev))
+diff --git a/drivers/platform/x86/intel_mid_thermal.c b/drivers/platform/x86/intel_mid_thermal.c
+index 5ae9cd9..2b2c212 100644
+--- a/drivers/platform/x86/intel_mid_thermal.c
++++ b/drivers/platform/x86/intel_mid_thermal.c
+@@ -499,7 +499,7 @@ static int mid_thermal_probe(struct platform_device *pdev)
+ 			goto err;
+ 		}
+ 		pinfo->tzd[i] = thermal_zone_device_register(name[i],
+-				0, td_info, &tzd_ops, 0, 0, 0, 0);
++				0, 0, td_info, &tzd_ops, 0, 0, 0, 0);
+ 		if (IS_ERR(pinfo->tzd[i])) {
+ 			kfree(td_info);
+ 			ret = PTR_ERR(pinfo->tzd[i]);
+diff --git a/drivers/thermal/spear_thermal.c b/drivers/thermal/spear_thermal.c
+index c2e32df..69a55d4 100644
+--- a/drivers/thermal/spear_thermal.c
++++ b/drivers/thermal/spear_thermal.c
+@@ -147,7 +147,7 @@ static int spear_thermal_probe(struct platform_device *pdev)
+ 	stdev->flags = pdata->thermal_flags;
+ 	writel_relaxed(stdev->flags, stdev->thermal_base);
+ 
+-	spear_thermal = thermal_zone_device_register("spear_thermal", 0,
++	spear_thermal = thermal_zone_device_register("spear_thermal", 0, 0,
+ 				stdev, &ops, 0, 0, 0, 0);
+ 	if (IS_ERR(spear_thermal)) {
+ 		dev_err(&pdev->dev, "thermal zone device is NULL\n");
+diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
+index 022bacb..9dfa940 100644
+--- a/drivers/thermal/thermal_sys.c
++++ b/drivers/thermal/thermal_sys.c
+@@ -196,6 +196,28 @@ trip_point_type_show(struct device *dev, struct device_attribute *attr,
  }
-
- int acpi_processor_resume(struct acpi_device * device)
- {
--	if (acpi_idle_suspend == 0)
--		return 0;
--
- 	acpi_idle_bm_rld_restore();
--	acpi_idle_suspend = 0;
- 	return 0;
- }
-
-@@ -763,7 +751,7 @@ static int acpi_idle_enter_c1(struct cpuidle_device
-*dev,
-
- 	local_irq_disable();
-
--	if (acpi_idle_suspend) {
-+	if (in_suspend_path()) {
- 		local_irq_enable();
- 		cpu_relax();
- 		return -EBUSY;
-@@ -838,7 +826,7 @@ static int acpi_idle_enter_simple(struct
-cpuidle_device *dev,
-
- 	local_irq_disable();
-
--	if (acpi_idle_suspend) {
-+	if (in_suspend_path()) {
- 		local_irq_enable();
- 		cpu_relax();
- 		return -EBUSY;
-@@ -928,7 +916,7 @@ static int acpi_idle_enter_bm(struct cpuidle_device
-*dev,
- 						drv, drv->safe_state_index);
- 		} else {
- 			local_irq_disable();
--			if (!acpi_idle_suspend)
-+			if (!(in_suspend_path()))
- 				acpi_safe_halt();
- 			local_irq_enable();
- 			return -EBUSY;
-@@ -937,7 +925,7 @@ static int acpi_idle_enter_bm(struct cpuidle_device
-*dev,
-
- 	local_irq_disable();
-
--	if (acpi_idle_suspend) {
-+	if (in_suspend_path()) {
- 		local_irq_enable();
- 		cpu_relax();
- 		return -EBUSY;
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index 8856102..c052e7e 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -28,6 +28,9 @@
- #include "internal.h"
- #include "sleep.h"
-
-+/* Suspend/Resume control */
-+int idle_suspend;
+ 
+ static ssize_t
++trip_point_temp_store(struct device *dev, struct device_attribute *attr,
++		     const char *buf, size_t count)
++{
++	struct thermal_zone_device *tz = to_thermal_zone(dev);
++	int trip, ret;
++	unsigned long temperature;
 +
- u8 wake_sleep_flags = ACPI_NO_OPTIONAL_METHODS;
- static unsigned int gts, bfs;
- static int set_param_wake_flag(const char *val, struct kernel_param *kp)
-@@ -904,6 +907,36 @@ static void __init acpi_gts_bfs_check(void)
- 			"please notify linux-acpi@vger.kernel.org\n");
++	if (!tz->ops->set_trip_temp)
++		return -EPERM;
++
++	if (!sscanf(attr->attr.name, "trip_point_%d_temp", &trip))
++		return -EINVAL;
++
++	if (kstrtoul(buf, 10, &temperature))
++		return -EINVAL;
++
++	ret = tz->ops->set_trip_temp(tz, trip, temperature);
++
++	return ret ? ret : count;
++}
++
++static ssize_t
+ trip_point_temp_show(struct device *dev, struct device_attribute *attr,
+ 		     char *buf)
+ {
+@@ -283,33 +305,6 @@ static DEVICE_ATTR(temp, 0444, temp_show, NULL);
+ static DEVICE_ATTR(mode, 0644, mode_show, mode_store);
+ static DEVICE_ATTR(passive, S_IRUGO | S_IWUSR, passive_show, passive_store);
+ 
+-static struct device_attribute trip_point_attrs[] = {
+-	__ATTR(trip_point_0_type, 0444, trip_point_type_show, NULL),
+-	__ATTR(trip_point_0_temp, 0444, trip_point_temp_show, NULL),
+-	__ATTR(trip_point_1_type, 0444, trip_point_type_show, NULL),
+-	__ATTR(trip_point_1_temp, 0444, trip_point_temp_show, NULL),
+-	__ATTR(trip_point_2_type, 0444, trip_point_type_show, NULL),
+-	__ATTR(trip_point_2_temp, 0444, trip_point_temp_show, NULL),
+-	__ATTR(trip_point_3_type, 0444, trip_point_type_show, NULL),
+-	__ATTR(trip_point_3_temp, 0444, trip_point_temp_show, NULL),
+-	__ATTR(trip_point_4_type, 0444, trip_point_type_show, NULL),
+-	__ATTR(trip_point_4_temp, 0444, trip_point_temp_show, NULL),
+-	__ATTR(trip_point_5_type, 0444, trip_point_type_show, NULL),
+-	__ATTR(trip_point_5_temp, 0444, trip_point_temp_show, NULL),
+-	__ATTR(trip_point_6_type, 0444, trip_point_type_show, NULL),
+-	__ATTR(trip_point_6_temp, 0444, trip_point_temp_show, NULL),
+-	__ATTR(trip_point_7_type, 0444, trip_point_type_show, NULL),
+-	__ATTR(trip_point_7_temp, 0444, trip_point_temp_show, NULL),
+-	__ATTR(trip_point_8_type, 0444, trip_point_type_show, NULL),
+-	__ATTR(trip_point_8_temp, 0444, trip_point_temp_show, NULL),
+-	__ATTR(trip_point_9_type, 0444, trip_point_type_show, NULL),
+-	__ATTR(trip_point_9_temp, 0444, trip_point_temp_show, NULL),
+-	__ATTR(trip_point_10_type, 0444, trip_point_type_show, NULL),
+-	__ATTR(trip_point_10_temp, 0444, trip_point_temp_show, NULL),
+-	__ATTR(trip_point_11_type, 0444, trip_point_type_show, NULL),
+-	__ATTR(trip_point_11_temp, 0444, trip_point_temp_show, NULL),
+-};
+-
+ /* sys I/F for cooling device */
+ #define to_cooling_device(_dev)	\
+ 	container_of(_dev, struct thermal_cooling_device, device)
+@@ -1089,9 +1084,58 @@ leave:
+ EXPORT_SYMBOL(thermal_zone_device_update);
+ 
+ /**
++ * create_trip_type_attr - creates a trip point type attribute
++ * @tz:		the thermal zone device
++ * @indx:	index into the trip_type_attrs array
++ */
++static int create_trip_type_attr(struct thermal_zone_device *tz, int indx)
++{
++	char *attr_name = kzalloc(THERMAL_NAME_LENGTH, GFP_KERNEL);
++	if (!attr_name)
++		return -ENOMEM;
++
++	snprintf(attr_name, THERMAL_NAME_LENGTH, "trip_point_%d_type", indx);
++
++	sysfs_attr_init(&tz->trip_type_attrs[indx].attr);
++	tz->trip_type_attrs[indx].attr.name = attr_name;
++	tz->trip_type_attrs[indx].attr.mode = S_IRUGO;
++	tz->trip_type_attrs[indx].show = trip_point_type_show;
++
++	return device_create_file(&tz->device, &tz->trip_type_attrs[indx]);
++}
++
++/**
++ * create_trip_temp_attr - creates a trip point temp attribute
++ * @tz:		the thermal zone device
++ * @indx:	index into the trip_type_attrs array
++ * @writeable:	A flag: If 1, 'this' trip point is writeable; otherwise not
++ */
++static int create_trip_temp_attr(struct thermal_zone_device *tz,
++				int indx, int writeable)
++{
++	char *attr_name = kzalloc(THERMAL_NAME_LENGTH, GFP_KERNEL);
++	if (!attr_name)
++		return -ENOMEM;
++
++	snprintf(attr_name, THERMAL_NAME_LENGTH, "trip_point_%d_temp", indx);
++
++	sysfs_attr_init(&tz->trip_temp_attrs[indx].attr);
++	tz->trip_temp_attrs[indx].attr.name = attr_name;
++	tz->trip_temp_attrs[indx].attr.mode = S_IRUGO;
++	tz->trip_temp_attrs[indx].show = trip_point_temp_show;
++	if (writeable) {
++		tz->trip_temp_attrs[indx].attr.mode |= S_IWUSR;
++		tz->trip_temp_attrs[indx].store = trip_point_temp_store;
++	}
++
++	return device_create_file(&tz->device, &tz->trip_temp_attrs[indx]);
++}
++
++/**
+  * thermal_zone_device_register - register a new thermal zone device
+  * @type:	the thermal zone device type
+  * @trips:	the number of trip points the thermal zone support
++ * @flag:	a bit string indicating the writeablility of trip points
+  * @devdata:	private device data
+  * @ops:	standard thermal zone device callbacks
+  * @tc1:	thermal coefficient 1 for passive calculations
+@@ -1107,7 +1151,7 @@ EXPORT_SYMBOL(thermal_zone_device_update);
+  * section 11.1.5.1 of the ACPI specification 3.0.
+  */
+ struct thermal_zone_device *thermal_zone_device_register(char *type,
+-	int trips, void *devdata,
++	int trips, int flag, void *devdata,
+ 	const struct thermal_zone_device_ops *ops,
+ 	int tc1, int tc2, int passive_delay, int polling_delay)
+ {
+@@ -1124,6 +1168,9 @@ struct thermal_zone_device *thermal_zone_device_register(char *type,
+ 	if (trips > THERMAL_MAX_TRIPS || trips < 0)
+ 		return ERR_PTR(-EINVAL);
+ 
++	if (flag >> trips)
++		return ERR_PTR(-EINVAL);
++
+ 	if (!ops || !ops->get_temp)
+ 		return ERR_PTR(-EINVAL);
+ 
+@@ -1176,14 +1223,14 @@ struct thermal_zone_device *thermal_zone_device_register(char *type,
  	}
- }
-+/**
-+ * cpuidle_pm_callback - On some bios, resume hangs
-+ * if idle states are entered during suspend.
-+ *
-+ * acpi_idle_suspend is used by the x86 idle drivers
-+ * to decide whether to go into idle states or not.
-+ */
-+static int
-+cpuidle_pm_callback(struct notifier_block *nb,
-+			unsigned long action, void *ptr)
-+{
-+	switch (action) {
+ 
+ 	for (count = 0; count < trips; count++) {
+-		result = device_create_file(&tz->device,
+-					    &trip_point_attrs[count * 2]);
++		result = create_trip_type_attr(tz, count);
+ 		if (result)
+-			break;
+-		result = device_create_file(&tz->device,
+-					    &trip_point_attrs[count * 2 + 1]);
++			goto unregister;
++		result = create_trip_temp_attr(tz, count,
++						!!(flag & (1 << count)));
+ 		if (result)
+ 			goto unregister;
 +
-+	case PM_SUSPEND_PREPARE:
-+		if (idle_suspend == 0)
-+			idle_suspend = 1;
-+		break;
-+
-+	case PM_POST_SUSPEND:
-+		if (idle_suspend == 1)
-+			idle_suspend = 0;
-+		break;
-+
-+	default:
-+		return NOTIFY_DONE;
-+	}
-+
-+	return NOTIFY_OK;
-+}
-+
-
- int __init acpi_sleep_init(void)
- {
-@@ -932,6 +965,7 @@ int __init acpi_sleep_init(void)
-
- 	suspend_set_ops(old_suspend_ordering ?
- 		&acpi_suspend_ops_old : &acpi_suspend_ops);
-+	pm_notifier(cpuidle_pm_callback, 0);
- #endif
-
- #ifdef CONFIG_HIBERNATION
-diff --git a/drivers/idle/intel_idle.c b/drivers/idle/intel_idle.c
-index d0f59c3..10555f8 100644
---- a/drivers/idle/intel_idle.c
-+++ b/drivers/idle/intel_idle.c
-@@ -62,6 +62,7 @@
- #include <linux/notifier.h>
- #include <linux/cpu.h>
- #include <linux/module.h>
-+#include <linux/suspend.h>
- #include <asm/cpu_device_id.h>
- #include <asm/mwait.h>
- #include <asm/msr.h>
-@@ -254,6 +255,12 @@ static int intel_idle(struct cpuidle_device *dev,
-
- 	cstate = (((eax) >> MWAIT_SUBSTATE_SIZE) & MWAIT_CSTATE_MASK) + 1;
-
-+	if (in_suspend_path()) {
-+		local_irq_enable();
-+		cpu_relax();
-+		return -EBUSY;
-+	}
-+
- 	/*
- 	 * leave_mm() to avoid costly and often unnecessary wakeups
- 	 * for flushing the user TLB's associated with the active mm.
-diff --git a/include/linux/suspend.h b/include/linux/suspend.h
-index 0c808d7..8d39a1a 100644
---- a/include/linux/suspend.h
-+++ b/include/linux/suspend.h
-@@ -38,6 +38,30 @@ typedef int __bitwise suspend_state_t;
- #define PM_SUSPEND_MEM		((__force suspend_state_t) 3)
- #define PM_SUSPEND_MAX		((__force suspend_state_t) 4)
-
-+extern int idle_suspend;
-+
-+/**
-+ * in_suspend_path - X86 idle drivers make a call
-+ * to this function before entering idle states.
-+ *
-+ * Entering idle states is prevented if it is in suspend
-+ * path.
-+ */
-+#ifdef CONFIG_ACPI
-+static inline int in_suspend_path(void)
-+{
-+	if (idle_suspend == 1)
-+		return 1;
-+	else
-+		return 0;
-+}
-+#else
-+static inline int in_suspend_path(void)
-+{
-+	return 0;
-+}
-+#endif
-+
- enum suspend_stat_step {
- 	SUSPEND_FREEZE = 1,
- 	SUSPEND_PREPARE,
-
+ 		tz->ops->get_trip_type(tz, count, &trip_type);
+ 		if (trip_type == THERMAL_TRIP_PASSIVE)
+ 			passive = 1;
+@@ -1261,10 +1308,8 @@ void thermal_zone_device_unregister(struct thermal_zone_device *tz)
+ 		device_remove_file(&tz->device, &dev_attr_mode);
+ 
+ 	for (count = 0; count < tz->trips; count++) {
+-		device_remove_file(&tz->device,
+-				   &trip_point_attrs[count * 2]);
+-		device_remove_file(&tz->device,
+-				   &trip_point_attrs[count * 2 + 1]);
++		device_remove_file(&tz->device, &tz->trip_type_attrs[count]);
++		device_remove_file(&tz->device, &tz->trip_temp_attrs[count]);
+ 	}
+ 	thermal_remove_hwmon_sysfs(tz);
+ 	release_idr(&thermal_tz_idr, &thermal_idr_lock, tz->id);
+diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+index 796f1ff..825d4b0 100644
+--- a/include/linux/thermal.h
++++ b/include/linux/thermal.h
+@@ -58,6 +58,8 @@ struct thermal_zone_device_ops {
+ 		enum thermal_trip_type *);
+ 	int (*get_trip_temp) (struct thermal_zone_device *, int,
+ 			      unsigned long *);
++	int (*set_trip_temp) (struct thermal_zone_device *, int,
++			      unsigned long);
+ 	int (*get_crit_temp) (struct thermal_zone_device *, unsigned long *);
+ 	int (*notify) (struct thermal_zone_device *, int,
+ 		       enum thermal_trip_type);
+@@ -89,6 +91,8 @@ struct thermal_zone_device {
+ 	int id;
+ 	char type[THERMAL_NAME_LENGTH];
+ 	struct device device;
++	struct device_attribute trip_temp_attrs[THERMAL_MAX_TRIPS];
++	struct device_attribute trip_type_attrs[THERMAL_MAX_TRIPS];
+ 	void *devdata;
+ 	int trips;
+ 	int tc1;
+@@ -137,9 +141,9 @@ enum {
+ };
+ #define THERMAL_GENL_CMD_MAX (__THERMAL_GENL_CMD_MAX - 1)
+ 
+-struct thermal_zone_device *thermal_zone_device_register(char *, int, void *,
+-		const struct thermal_zone_device_ops *, int tc1, int tc2,
+-		int passive_freq, int polling_freq);
++struct thermal_zone_device *thermal_zone_device_register(char *, int, int,
++		void *, const struct thermal_zone_device_ops *, int tc1,
++		int tc2, int passive_freq, int polling_freq);
+ void thermal_zone_device_unregister(struct thermal_zone_device *);
+ 
+ int thermal_zone_bind_cooling_device(struct thermal_zone_device *, int,
+-- 
+1.7.0.4
 
