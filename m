@@ -1,135 +1,60 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [RFC PATCH 2/12] memory-hogplug : check memory offline in offline_pages
-Date: Thu, 28 Jun 2012 14:06:14 +0900
-Message-ID: <4FEBE646.5090801@jp.fujitsu.com>
-References: <4FEA9C88.1070800@jp.fujitsu.com> <4FEA9DB1.7010303@jp.fujitsu.com> <4FEAC916.7030506@cn.fujitsu.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: Re: [lm-sensors] Fintek f71882fg ACPI conflict
+Date: Wed, 27 Jun 2012 22:20:32 -0700
+Message-ID: <20120628052032.GA16364@roeck-us.net>
+References: <4FEA4C10.2060904@googlemail.com>
+ <20120627171505.GB12712@roeck-us.net>
+ <4FEB90A8.8050901@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:37774 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751123Ab2F1FGl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Jun 2012 01:06:41 -0400
-In-Reply-To: <4FEAC916.7030506@cn.fujitsu.com>
+Received: from mail.active-venture.com ([67.228.131.205]:49321 "EHLO
+	mail.active-venture.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750833Ab2F1FUR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Jun 2012 01:20:17 -0400
+Content-Disposition: inline
+In-Reply-To: <4FEB90A8.8050901@googlemail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Wen Congyang <wency@cn.fujitsu.com>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com
+To: Michael Zintakis <michael.zintakis@googlemail.com>
+Cc: lm-sensors@lm-sensors.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-Hi Wen,
-
-2012/06/27 17:49, Wen Congyang wrote:
-> At 06/27/2012 01:44 PM, Yasuaki Ishimatsu Wrote:
->> When offline_pages() is called to offlined memory, the function fails since
->> all memory has been offlined. In this case, the function should succeed.
->> The patch adds the check function into offline_pages().
+On Thu, Jun 28, 2012 at 12:00:56AM +0100, Michael Zintakis wrote:
+> Hello Guenter and All,
 > 
-> You miss such case: some pages are online, while some pages are offline.
-> offline_pages() will fail too in such case.
+[ .. ]
 
-You are right. But current code fails, when the function is called to offline
-memory. In this case, the function should succeed. So the patch confirms
-whether the memory was offlined or not. And if memory has already been
-offlined, offline_pages return 0.
+> One last question (though this is more specific to the f71882fg
+> driver): I have a procfs file called "pwmX_auto_pointY" (Y being
 
-Thanks,
-Yasuaki Ishimatsu
+Do you mean sysfs ?
 
+> from 1-5), which indicates the various pwm current value which is to
+> be applied for different points: 4 being when the controlling
+> temperature is low (the value of pwmX_auto_point4_temp to be
+> precise) and 1 being where the current is at its maximum - normally
+> 255.
 > 
-> Thanks
-> Wen Congyang
+> Now, what is the purpose of pwmX_auto_point5 - does this hold the
+> pwm value where the fan is in an idle state (i.e. the temperature is
+> below pwmX_auto_point4_temp)? Because on all 3 fans, I have this set
+> to 1, which, I am assuming is when the fans are stopped.
 > 
->>
->> CC: Len Brown <len.brown@intel.com>
->> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
->> CC: Paul Mackerras <paulus@samba.org>
->> CC: Christoph Lameter <cl@linux.com>
->> Cc: Minchan Kim <minchan.kim@gmail.com>
->> CC: Andrew Morton <akpm@linux-foundation.org>
->> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
->> CC: Wen Congyang <wency@cn.fujitsu.com>
->> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->>
->> ---
->>   drivers/base/memory.c  |   20 ++++++++++++++++++++
->>   include/linux/memory.h |    1 +
->>   mm/memory_hotplug.c    |    5 +++++
->>   3 files changed, 26 insertions(+)
->>
->> Index: linux-3.5-rc4/drivers/base/memory.c
->> ===================================================================
->> --- linux-3.5-rc4.orig/drivers/base/memory.c	2012-06-26 13:28:16.726211752 +0900
->> +++ linux-3.5-rc4/drivers/base/memory.c	2012-06-26 13:34:22.423639904 +0900
->> @@ -70,6 +70,26 @@ void unregister_memory_isolate_notifier(
->>   }
->>   EXPORT_SYMBOL(unregister_memory_isolate_notifier);
->>
->> +bool memory_is_offline(unsigned long start_pfn, unsigned long end_pfn)
->> +{
->> +	struct memory_block *mem;
->> +	struct mem_section *section;
->> +	unsigned long pfn, section_nr;
->> +
->> +	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
->> +		section_nr = pfn_to_section_nr(pfn);
->> +		section = __nr_to_section(section_nr);
->> +		mem = find_memory_block(section);
->> +		if (!mem)
->> +			continue;
->> +		if (mem->state == MEM_OFFLINE)
->> +			continue;
->> +		return false;
->> +	}
->> +
->> +	return true;
->> +}
->> +
->>   /*
->>    * register_memory - Setup a sysfs device for a memory block
->>    */
->> Index: linux-3.5-rc4/include/linux/memory.h
->> ===================================================================
->> --- linux-3.5-rc4.orig/include/linux/memory.h	2012-06-25 04:53:04.000000000 +0900
->> +++ linux-3.5-rc4/include/linux/memory.h	2012-06-26 13:34:22.424639891 +0900
->> @@ -120,6 +120,7 @@ extern int memory_isolate_notify(unsigne
->>   extern struct memory_block *find_memory_block_hinted(struct mem_section *,
->>   							struct memory_block *);
->>   extern struct memory_block *find_memory_block(struct mem_section *);
->> +extern bool memory_is_offline(unsigned long start_pfn, unsigned long end_pfn);
->>   #define CONFIG_MEM_BLOCK_SIZE	(PAGES_PER_SECTION<<PAGE_SHIFT)
->>   enum mem_add_context { BOOT, HOTPLUG };
->>   #endif /* CONFIG_MEMORY_HOTPLUG_SPARSE */
->> Index: linux-3.5-rc4/mm/memory_hotplug.c
->> ===================================================================
->> --- linux-3.5-rc4.orig/mm/memory_hotplug.c	2012-06-26 13:28:16.743211538 +0900
->> +++ linux-3.5-rc4/mm/memory_hotplug.c	2012-06-26 13:48:38.264940468 +0900
->> @@ -887,6 +887,11 @@ static int __ref offline_pages(unsigned
->>
->>   	lock_memory_hotplug();
->>
->> +	if (memory_is_offline(start_pfn, end_pfn)) {
->> +		ret = 0;
->> +		goto out;
->> +	}
->> +
->>   	zone = page_zone(pfn_to_page(start_pfn));
->>   	node = zone_to_nid(zone);
->>   	nr_pages = end_pfn - start_pfn;
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> Please read the FAQ at  http://www.tux.org/lkml/
->>
+Correct. 1 is too low, though. Default value per datasheet is 0x80.
+Whatever it is, it should be high enough for the fans to start spinning.
+The F71882FG does not have a register to set a "start spinning" pwm value,
+so your minimum must guarantee that the fans do start to spin.
+
+What is your setting for pwmX_enable ? It should probably be set to
+automatic(2) so the chip can automatically control the fan speed depending
+on the temperature.
+
+> Even if I bring this value to some "idle" current, that won't help
+> much because when I first boot the system, the fans are *always*
+> still, so even if the idle state is >1, that won't help me much, so
+> there must be another - better - way than using a script to
+> "kickstart" the fans initially, surely!
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
+Maybe fan control is not set to automatic by the BIOS ?
 
-
-
+Guenter
