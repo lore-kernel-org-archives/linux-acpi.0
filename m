@@ -1,17 +1,16 @@
 From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH V4 5/8] usb/acpi: add check for the connect type of usb
- port
-Date: Thu, 28 Jun 2012 10:47:04 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1206281044580.1752-100000@iolanthe.rowland.org>
-References: <1340868702-1894-6-git-send-email-tianyu.lan@intel.com>
+Subject: Re: [PATCH V4 8/8] usb : Add usb port's power control attributes
+Date: Thu, 28 Jun 2012 10:58:49 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1206281048110.1752-100000@iolanthe.rowland.org>
+References: <1340868702-1894-9-git-send-email-tianyu.lan@intel.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:50156 "HELO
+Received: from iolanthe.rowland.org ([192.131.102.54]:50165 "HELO
 	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752788Ab2F1OrF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Jun 2012 10:47:05 -0400
-In-Reply-To: <1340868702-1894-6-git-send-email-tianyu.lan@intel.com>
+	with SMTP id S1751642Ab2F1O6u (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Jun 2012 10:58:50 -0400
+In-Reply-To: <1340868702-1894-9-git-send-email-tianyu.lan@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Lan Tianyu <tianyu.lan@intel.com>
@@ -19,62 +18,66 @@ Cc: gregkh@linuxfoundation.org, lenb@kernel.org, linux-usb@vger.kernel.org, linu
 
 On Thu, 28 Jun 2012, Lan Tianyu wrote:
 
-> Change since v3: Rebase on the patch "make usb port a real device"
+> This patch is to add two attributes for each usb hub ports to control port's power.
+> Control port's power through setting or clearing PORT_POWER feature.
 > 
-> Check the connect type of usb port when getting the usb port's
-> acpi_handle and store result into connect_type in the struct
-> usb_port.
+> control has two options. "auto", "on" and "off"
+> "on" - port power must be on.
+> "off" - port power must be off.
 > 
-> Accoding to ACPI Spec 9.13. PLD indicates whether usb port is
-> user visible and _UPC indicates whether it is connectable. If
-> the port was visible and connectable, it could be freely connected
-> and disconnected with USB devices. If no visible and connectable,
-> a usb device is directly hard-wired to the port. If no visible and
-> no connectable, the port would be not used.
-> 
-> When a device was found on the port, if the connect_type was hot-plug,
-> then the device would be removable. If the connect_type was hard-wired,
-> the device would be non-removable.
+> state reports usb port's power state
+> "on" - power on
+> "off" - power off
+> "error" - can't get power state
 > 
 > Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
 
 > --- a/drivers/usb/core/hub.c
 > +++ b/drivers/usb/core/hub.c
 
-> @@ -4991,6 +4992,45 @@ struct usb_device *usb_get_hub_child(struct usb_device *hdev,
->  }
->  EXPORT_SYMBOL_GPL(usb_get_hub_child);
->  
-> +/**
-> + * usb_set_hub_port_connect_type - set hub port connect type.
-> + * @hdev: USB device belonging to the usb hub
-> + * @port1: port num of the port
-> + * @type: connect type of the port
-> + *		USB_PORT_CONNECT_TYPE_UNKNOWN
-> + *		USB_PORT_CONNECT_TYPE_HOT_PLUG
-> + *		USB_PORT_CONNECT_TYPE_HARD_WIRED
-> + *		USB_PORT_NOT_USED
+> @@ -848,7 +858,9 @@ static unsigned hub_power_on(struct usb_hub *hub, bool do_delay)
+>  		dev_dbg(hub->intfdev, "trying to enable port power on "
+>  				"non-switchable hub\n");
+>  	for (port1 = 1; port1 <= hub->descriptor->bNbrPorts; port1++)
+> -		set_port_feature(hub->hdev, port1, USB_PORT_FEAT_POWER);
+> +		if (hub->ports[port1 - 1]->port_power_policy
+> +				== USB_PORT_POWER_ON)
+> +			set_port_feature(hub->hdev, port1, USB_PORT_FEAT_POWER);
 
-These four lines aren't needed.  People can read the declaration of
-enum usb_port_connect_type easily enough.
+Since the last patch version, I realized that sometimes host controller
+drivers will turn on port power by themselves.  To be safe, you should add
 
-> +/**
-> + * usb_get_hub_port_connect_type - Get the port's connect
-> + * type
-> + * @hdev: USB device belonging to the usb hub
-> + * @port1: port num of the port
-> + *
-> + * Return connect type of the port annd if input params are
+		else
+			clear_port_feature(hub->hdev, port1, USB_PORT_FEAT_POWER);
 
-s/annd/and/
 
-> + *	invalid, return USB_PORT_CONNECT_TYPE_UNKNOWN.
-> + *		USB_PORT_CONNECT_TYPE_UNKNOWN
-> + *		USB_PORT_CONNECT_TYPE_HOT_PLUG
-> + *		USB_PORT_CONNECT_TYPE_HARD_WIRED
-> + *		USB_PORT_NOT_USED
+> +static ssize_t
+> +store_port_power_control(struct device *dev, struct device_attribute *attr,
+> +		const char *buf, size_t count)
 
-Same for these lines.
+Since you have to break the line anyway, you ought to put the function's
+name on the first line.
+
+> +{
+> +	struct usb_device *hdev = to_usb_device(dev->parent->parent);
+> +	struct usb_port *hub_port = to_usb_port(dev);
+> +	int port1, len = count;
+> +	char *cp;
+> +
+> +	sscanf(dev_name(dev), "port%d", &port1);
+> +	cp = memchr(buf, '\n', count);
+> +	if (cp)
+> +		len = cp - buf;
+> +	if (len == sizeof on_string - 1
+> +		&& strncmp(buf, on_string, len) == 0) {
+> +		hub_port->port_power_policy = USB_PORT_POWER_ON;
+> +		set_port_feature(hdev, port1, USB_PORT_FEAT_POWER);
+> +	} else if (len == sizeof off_string - 1
+> +		&& strncmp(buf, off_string, len) == 0) {
+> +		hub_port->port_power_policy = USB_PORT_POWER_OFF;
+> +		clear_port_feature(hdev, port1, USB_PORT_FEAT_POWER);
+
+You should return -EIO if set_port_feature or clear_port_feature fails.
 
 Alan Stern
 
