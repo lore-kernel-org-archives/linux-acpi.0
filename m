@@ -1,191 +1,77 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v2] acpi: intel_idle : break dependency between modules
-Date: Thu, 28 Jun 2012 21:24:09 +0200
-Message-ID: <201206282124.09857.rjw@sisk.pl>
-References: <201206271506.29034.trenn@suse.de> <1340873202-2476-1-git-send-email-daniel.lezcano@linaro.org>
+Subject: [PATCH missing/21] classmate-laptop: Use struct dev_pm_ops for power management
+Date: Fri, 29 Jun 2012 00:11:53 +0200
+Message-ID: <201206290011.53618.rjw@sisk.pl>
+References: <201206232306.06602.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-2"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:45047 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751399Ab2F1TSm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 28 Jun 2012 15:18:42 -0400
-In-Reply-To: <1340873202-2476-1-git-send-email-daniel.lezcano@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <201206232306.06602.rjw@sisk.pl>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Linux PM list <linux-pm@vger.kernel.org>
+Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, platform-driver-x86@vger.kernel.org, Eric Piel <eric.piel@tremplin-utc.net>, Mattia Dongili <malattia@linux.it>, Harald Welte <laforge@gnumonks.org>, Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>, Daniel Oliveira Nascimento <don@syst.com.br>
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>, lenb@kernel.org
-Cc: trenn@suse.de, srivatsa.bhat@linux.vnet.ibm.com, deepthi@linux.vnet.ibm.com, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-pm@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, linaro-dev@lists.linaro.org
 
-On Thursday, June 28, 2012, Daniel Lezcano wrote:
-> When the system is booted with some cpus offline, the idle
-> driver is not initialized. When a cpu is set online, the
-> acpi code call the intel idle init function. Unfortunately
-> this code introduce a dependency between intel_idle and acpi.
-> 
-> This patch is intended to remove this dependency by using the
-> notifier of intel_idle. This patch has the benefit of
-> encapsulating the intel_idle driver and remove some exported
-> functions.
-> 
-> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-This one looks good to me too.
+Make the classmate-laptop driver define its PM callbacks through
+a struct dev_pm_ops object rather than by using legacy PM hooks
+in struct acpi_device_ops.
 
-Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
 
-Len, are you going to take it?
+Hi all,
 
+I overlooked the classmate-laptop driver in the ACPI conversion to PM
+handling based on struct dev_pm_ops, so this one should go after [17/21] and
+the next patches should be renumbered.
+
+Thanks,
 Rafael
 
 
-> ---
->  drivers/acpi/processor_driver.c |    7 ------
->  drivers/idle/intel_idle.c       |   41 +++++++++++++++++++++++++-------------
->  include/linux/cpuidle.h         |    7 ------
->  3 files changed, 27 insertions(+), 28 deletions(-)
-> 
-> diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-> index 0734086..8648b29 100644
-> --- a/drivers/acpi/processor_driver.c
-> +++ b/drivers/acpi/processor_driver.c
-> @@ -427,18 +427,11 @@ static int acpi_cpu_soft_notify(struct notifier_block *nfb,
->  		 * Initialize missing things
->  		 */
->  		if (pr->flags.need_hotplug_init) {
-> -			struct cpuidle_driver *idle_driver =
-> -				cpuidle_get_driver();
-> -
->  			printk(KERN_INFO "Will online and init hotplugged "
->  			       "CPU: %d\n", pr->id);
->  			WARN(acpi_processor_start(pr), "Failed to start CPU:"
->  				" %d\n", pr->id);
->  			pr->flags.need_hotplug_init = 0;
-> -			if (idle_driver && !strcmp(idle_driver->name,
-> -						   "intel_idle")) {
-> -				intel_idle_cpu_init(pr->id);
-> -			}
->  		/* Normal CPU soft online event */
->  		} else {
->  			acpi_processor_ppc_has_changed(pr, 0);
-> diff --git a/drivers/idle/intel_idle.c b/drivers/idle/intel_idle.c
-> index d0f59c3..fe95d54 100644
-> --- a/drivers/idle/intel_idle.c
-> +++ b/drivers/idle/intel_idle.c
-> @@ -96,6 +96,7 @@ static const struct idle_cpu *icpu;
->  static struct cpuidle_device __percpu *intel_idle_cpuidle_devices;
->  static int intel_idle(struct cpuidle_device *dev,
->  			struct cpuidle_driver *drv, int index);
-> +static int intel_idle_cpu_init(int cpu);
->  
->  static struct cpuidle_state *cpuidle_state_table;
->  
-> @@ -302,22 +303,35 @@ static void __setup_broadcast_timer(void *arg)
->  	clockevents_notify(reason, &cpu);
->  }
->  
-> -static int setup_broadcast_cpuhp_notify(struct notifier_block *n,
-> -		unsigned long action, void *hcpu)
-> +static int cpu_hotplug_notify(struct notifier_block *n,
-> +			      unsigned long action, void *hcpu)
->  {
->  	int hotcpu = (unsigned long)hcpu;
-> +	struct cpuidle_device *dev;
->  
->  	switch (action & 0xf) {
->  	case CPU_ONLINE:
-> -		smp_call_function_single(hotcpu, __setup_broadcast_timer,
-> -			(void *)true, 1);
-> +
-> +		if (lapic_timer_reliable_states != LAPIC_TIMER_ALWAYS_RELIABLE)
-> +			smp_call_function_single(hotcpu, __setup_broadcast_timer,
-> +						 (void *)true, 1);
-> +
-> +		/*
-> +		 * Some systems can hotplug a cpu at runtime after
-> +		 * the kernel has booted, we have to initialize the
-> +		 * driver in this case
-> +		 */
-> +		dev = per_cpu_ptr(intel_idle_cpuidle_devices, hotcpu);
-> +		if (!dev->registered)
-> +			intel_idle_cpu_init(hotcpu);
-> +
->  		break;
->  	}
->  	return NOTIFY_OK;
->  }
->  
-> -static struct notifier_block setup_broadcast_notifier = {
-> -	.notifier_call = setup_broadcast_cpuhp_notify,
-> +static struct notifier_block cpu_hotplug_notifier = {
-> +	.notifier_call = cpu_hotplug_notify,
->  };
->  
->  static void auto_demotion_disable(void *dummy)
-> @@ -405,10 +419,10 @@ static int intel_idle_probe(void)
->  
->  	if (boot_cpu_has(X86_FEATURE_ARAT))	/* Always Reliable APIC Timer */
->  		lapic_timer_reliable_states = LAPIC_TIMER_ALWAYS_RELIABLE;
-> -	else {
-> +	else
->  		on_each_cpu(__setup_broadcast_timer, (void *)true, 1);
-> -		register_cpu_notifier(&setup_broadcast_notifier);
-> -	}
-> +
-> +	register_cpu_notifier(&cpu_hotplug_notifier);
->  
->  	pr_debug(PREFIX "v" INTEL_IDLE_VERSION
->  		" model 0x%X\n", boot_cpu_data.x86_model);
-> @@ -494,7 +508,7 @@ static int intel_idle_cpuidle_driver_init(void)
->   * allocate, initialize, register cpuidle_devices
->   * @cpu: cpu/core to initialize
->   */
-> -int intel_idle_cpu_init(int cpu)
-> +static int intel_idle_cpu_init(int cpu)
->  {
->  	int cstate;
->  	struct cpuidle_device *dev;
-> @@ -539,7 +553,6 @@ int intel_idle_cpu_init(int cpu)
->  
->  	return 0;
->  }
-> -EXPORT_SYMBOL_GPL(intel_idle_cpu_init);
->  
->  static int __init intel_idle_init(void)
->  {
-> @@ -581,10 +594,10 @@ static void __exit intel_idle_exit(void)
->  	intel_idle_cpuidle_devices_uninit();
->  	cpuidle_unregister_driver(&intel_idle_driver);
->  
-> -	if (lapic_timer_reliable_states != LAPIC_TIMER_ALWAYS_RELIABLE) {
-> +
-> +	if (lapic_timer_reliable_states != LAPIC_TIMER_ALWAYS_RELIABLE)
->  		on_each_cpu(__setup_broadcast_timer, (void *)false, 1);
-> -		unregister_cpu_notifier(&setup_broadcast_notifier);
-> -	}
-> +	unregister_cpu_notifier(&cpu_hotplug_notifier);
->  
->  	return;
->  }
-> diff --git a/include/linux/cpuidle.h b/include/linux/cpuidle.h
-> index 5ab7183..66d7e0d 100644
-> --- a/include/linux/cpuidle.h
-> +++ b/include/linux/cpuidle.h
-> @@ -213,14 +213,7 @@ struct cpuidle_governor {
->  extern int cpuidle_register_governor(struct cpuidle_governor *gov);
->  extern void cpuidle_unregister_governor(struct cpuidle_governor *gov);
->  
-> -#ifdef CONFIG_INTEL_IDLE
-> -extern int intel_idle_cpu_init(int cpu);
->  #else
-> -static inline int intel_idle_cpu_init(int cpu) { return -1; }
-> -#endif
-> -
-> -#else
-> -static inline int intel_idle_cpu_init(int cpu) { return -1; }
->  
->  static inline int cpuidle_register_governor(struct cpuidle_governor *gov)
->  {return 0;}
-> 
+---
+ drivers/platform/x86/classmate-laptop.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
+Index: linux/drivers/platform/x86/classmate-laptop.c
+===================================================================
+--- linux.orig/drivers/platform/x86/classmate-laptop.c
++++ linux/drivers/platform/x86/classmate-laptop.c
+@@ -362,15 +362,18 @@ static int cmpc_tablet_remove(struct acp
+ 	return cmpc_remove_acpi_notify_device(acpi);
+ }
+ 
+-static int cmpc_tablet_resume(struct acpi_device *acpi)
++static int cmpc_tablet_resume(struct device *dev)
+ {
+-	struct input_dev *inputdev = dev_get_drvdata(&acpi->dev);
++	struct input_dev *inputdev = dev_get_drvdata(dev);
++
+ 	unsigned long long val = 0;
+-	if (ACPI_SUCCESS(cmpc_get_tablet(acpi->handle, &val)))
++	if (ACPI_SUCCESS(cmpc_get_tablet(to_acpi_device(dev)->handle, &val)))
+ 		input_report_switch(inputdev, SW_TABLET_MODE, !val);
+ 	return 0;
+ }
+ 
++static SIMPLE_DEV_PM_OPS(cmpc_tabled_pm, NULL, cmpc_tablet_resume);
++
+ static const struct acpi_device_id cmpc_tablet_device_ids[] = {
+ 	{CMPC_TABLET_HID, 0},
+ 	{"", 0}
+@@ -384,9 +387,9 @@ static struct acpi_driver cmpc_tablet_ac
+ 	.ops = {
+ 		.add = cmpc_tablet_add,
+ 		.remove = cmpc_tablet_remove,
+-		.resume = cmpc_tablet_resume,
+ 		.notify = cmpc_tablet_handler,
+-	}
++	},
++	.drv.pm = &cmpc_tabled_pm,
+ };
+ 
+ 
