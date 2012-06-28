@@ -1,276 +1,181 @@
-From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: Re: [RFC PATCH 4/12] memory-hotplug : remove /sys/firmware/memmap/X
- sysfs
-Date: Thu, 28 Jun 2012 16:38:16 +0800
-Message-ID: <4FEC17F8.1000405@cn.fujitsu.com>
-References: <4FEA9C88.1070800@jp.fujitsu.com> <4FEA9E5F.4070205@jp.fujitsu.com> <4FEBFA8D.5040607@cn.fujitsu.com> <4FEC10CB.3060403@jp.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <4FEC10CB.3060403@jp.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: [PATCH v2] acpi: intel_idle : break dependency between
+	modules
+Date: Thu, 28 Jun 2012 10:46:42 +0200
+Message-ID: <1340873202-2476-1-git-send-email-daniel.lezcano@linaro.org>
+References: <201206271506.29034.trenn@suse.de>
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <201206271506.29034.trenn@suse.de>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: trenn@suse.de
+Cc: linaro-dev@lists.linaro.org, linux-pm@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, srivatsa.bhat@linux.vnet.ibm.com, linux-pm@lists.linux-foundation.org
 List-Id: linux-acpi@vger.kernel.org
 
-At 06/28/2012 04:07 PM, Yasuaki Ishimatsu Wrote:
-> Hi Wen,
-> 
-> 2012/06/28 15:32, Wen Congyang wrote:
->> At 06/27/2012 01:47 PM, Yasuaki Ishimatsu Wrote:
->>> When (hot)adding memory into system, /sys/firmware/memmap/X/{end,
->>> start, type}
->>> sysfs files are created. But there is no code to remove these files.
->>> The patch
->>> implements the function to remove them.
->>>
->>> Note : The code does not free firmware_map_entry since there is no
->>> way to free
->>>         memory which is allocated by bootmem.
->>>
->>> CC: Len Brown <len.brown@intel.com>
->>> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
->>> CC: Paul Mackerras <paulus@samba.org>
->>> CC: Christoph Lameter <cl@linux.com>
->>> Cc: Minchan Kim <minchan.kim@gmail.com>
->>> CC: Andrew Morton <akpm@linux-foundation.org>
->>> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
->>> CC: Wen Congyang <wency@cn.fujitsu.com>
->>> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->>>
->>> ---
->>>   drivers/firmware/memmap.c    |   71
->>> +++++++++++++++++++++++++++++++++++++++++++
->>>   include/linux/firmware-map.h |    6 +++
->>>   mm/memory_hotplug.c          |    6 +++
->>>   3 files changed, 82 insertions(+), 1 deletion(-)
->>>
->>> Index: linux-3.5-rc4/mm/memory_hotplug.c
->>> ===================================================================
->>> --- linux-3.5-rc4.orig/mm/memory_hotplug.c    2012-06-26
->>> 13:37:30.546288901 +0900
->>> +++ linux-3.5-rc4/mm/memory_hotplug.c    2012-06-26
->>> 13:44:37.069955820 +0900
->>> @@ -661,7 +661,11 @@ EXPORT_SYMBOL_GPL(add_memory);
->>>
->>>   int remove_memory(int nid, u64 start, u64 size)
->>>   {
->>> -    return -EBUSY;
->>> +    lock_memory_hotplug();
->>> +    /* remove memmap entry */
->>> +    firmware_map_remove(start, start + size, "System RAM");
->>> +    unlock_memory_hotplug();
->>> +    return 0;
->>>
->>>   }
->>>   EXPORT_SYMBOL_GPL(remove_memory);
->>> Index: linux-3.5-rc4/include/linux/firmware-map.h
->>> ===================================================================
->>> --- linux-3.5-rc4.orig/include/linux/firmware-map.h    2012-06-25
->>> 04:53:04.000000000 +0900
->>> +++ linux-3.5-rc4/include/linux/firmware-map.h    2012-06-26
->>> 13:44:37.070955807 +0900
->>> @@ -25,6 +25,7 @@
->>>
->>>   int firmware_map_add_early(u64 start, u64 end, const char *type);
->>>   int firmware_map_add_hotplug(u64 start, u64 end, const char *type);
->>> +int firmware_map_remove(u64 start, u64 end, const char *type);
->>>
->>>   #else /* CONFIG_FIRMWARE_MEMMAP */
->>>
->>> @@ -38,6 +39,11 @@ static inline int firmware_map_add_hotpl
->>>       return 0;
->>>   }
->>>
->>> +static inline int firmware_map_remove(u64 start, u64 end, const char
->>> *type)
->>> +{
->>> +    return 0;
->>> +}
->>> +
->>>   #endif /* CONFIG_FIRMWARE_MEMMAP */
->>>
->>>   #endif /* _LINUX_FIRMWARE_MAP_H */
->>> Index: linux-3.5-rc4/drivers/firmware/memmap.c
->>> ===================================================================
->>> --- linux-3.5-rc4.orig/drivers/firmware/memmap.c    2012-06-25
->>> 04:53:04.000000000 +0900
->>> +++ linux-3.5-rc4/drivers/firmware/memmap.c    2012-06-26
->>> 13:47:17.606948898 +0900
->>> @@ -123,6 +123,16 @@ static int firmware_map_add_entry(u64 st
->>>       return 0;
->>>   }
->>>
->>> +/**
->>> + * firmware_map_remove_entry() - Does the real work to remove a
->>> firmware
->>> + * memmap entry.
->>> + * @entry: removed entry.
->>> + **/
->>> +static inline void firmware_map_remove_entry(struct
->>> firmware_map_entry *entry)
->>> +{
->>> +    list_del(&entry->list);
->>> +}
->>> +
->>>   /*
->>>    * Add memmap entry on sysfs
->>>    */
->>> @@ -144,6 +154,31 @@ static int add_sysfs_fw_map_entry(struct
->>>       return 0;
->>>   }
->>>
->>> +/*
->>> + * Remove memmap entry on sysfs
->>> + */
->>> +static inline void remove_sysfs_fw_map_entry(struct
->>> firmware_map_entry *entry)
->>> +{
->>> +    kobject_del(&entry->kobj);
->>> +}
->>> +
->>> +/*
->>> + * Search memmap entry
->>> + */
->>> +
->>> +struct firmware_map_entry * __meminit
->>> +find_firmware_map_entry(u64 start, u64 end, const char *type)
->>> +{
->>> +    struct firmware_map_entry *entry;
->>> +
->>> +    list_for_each_entry(entry, &map_entries, list)
->>> +        if ((entry->start == start) && (entry->end == end) &&
->>> +            (!strcmp(entry->type, type)))
->>> +            return entry;
->>> +
->>> +    return NULL;
->>> +}
->>> +
->>>   /**
->>>    * firmware_map_add_hotplug() - Adds a firmware mapping entry when
->>> we do
->>>    * memory hotplug.
->>> @@ -196,6 +231,42 @@ int __init firmware_map_add_early(u64 st
->>>       return firmware_map_add_entry(start, end, type, entry);
->>>   }
->>>
->>> +void release_firmware_map_entry(struct firmware_map_entry *entry)
->>> +{
->>> +    /*
->>> +     * FIXME : There is no idea.
->>> +     *         How to free the entry which allocated bootmem?
->>> +     */
->>> +}
->>> +
->>> +/**
->>> + * firmware_map_remove() - remove a firmware mapping entry
->>> + * @start: Start of the memory range.
->>> + * @end:   End of the memory range (inclusive).
->>> + * @type:  Type of the memory range.
->>> + *
->>> + * removes a firmware mapping entry.
->>> + *
->>> + * Returns 0 on success, or -EINVAL if no entry.
->>> + **/
->>> +int __meminit firmware_map_remove(u64 start, u64 end, const char *type)
->>> +{
->>> +    struct firmware_map_entry *entry;
->>> +
->>> +    entry = find_firmware_map_entry(start, end, type);
->>
->> Hmm, we cannot find the entry easily, because the end can be:
->> 1. start + size
->> 2. start + size - 1
->>
->> So, We should fix this bug first.
-> 
-> This is not a bug.
-> 
-> start and size arguments of firmware_map_remove() include
-> acpi_memory_info->{start_addr, length}. And when creating a
-> firmware_map_entry,
-> the entry is created by acpi_memory_info->{start_addr, length}. So I don't
-> think that we need care your comment.
+When the system is booted with some cpus offline, the idle
+driver is not initialized. When a cpu is set online, the
+acpi code call the intel idle init function. Unfortunately
+this code introduce a dependency between intel_idle and acpi.
 
-If the memory device is hotpluged before the os starts, and the memory
-map is included in e820 map, the entry will be created by firmware_map_add_early().
+This patch is intended to remove this dependency by using the
+notifier of intel_idle. This patch has the benefit of
+encapsulating the intel_idle driver and remove some exported
+functions.
 
-The function firmware_map_add_early() is called by e820_reserve_resources():
-=====================
-	for (i = 0; i < e820_saved.nr_map; i++) {
-		struct e820entry *entry = &e820_saved.map[i];
-		firmware_map_add_early(entry->addr,
-			entry->addr + entry->size - 1,
-			e820_type_to_string(entry->type));
-	}
-=====================
+Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+---
+ drivers/acpi/processor_driver.c |    7 ------
+ drivers/idle/intel_idle.c       |   41 +++++++++++++++++++++++++-------------
+ include/linux/cpuidle.h         |    7 ------
+ 3 files changed, 27 insertions(+), 28 deletions(-)
 
-Note: the end is addr + size - 1, not addr + size.
-
-In such case, you cannot find the entry.
-
-Thanks
-Wen Congyang
-
-> 
->>
->>> +    if (!entry)
->>> +        return -EINVAL;
->>> +
->>> +    /* remove the memmap entry */
->>> +    remove_sysfs_fw_map_entry(entry);
->>> +
->>> +    firmware_map_remove_entry(entry);
->>> +
->>> +    release_firmware_map_entry(entry);
->>
->> I guess you want to free the memory in the above function. But I think
->> it is
->> not a good idea to free it here. We should free it when the
->> entry->kobj's kref
->> is decreased to 0.
-> 
-> Thanks.
-> I'll update your comment at next version.
-> 
-> Thanks,
-> Yasuaki Ishimatsu
-> 
->>
->> Thanks
->> Wen Congyang
->>
->>> +
->>> +    return 0;
->>> +}
->>> +
->>>   /*
->>>    * Sysfs functions
->>> -------------------------------------------------------------
->>>    */
->>>
->>> -- 
->>> To unsubscribe from this list: send the line "unsubscribe
->>> linux-kernel" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>> Please read the FAQ at  http://www.tux.org/lkml/
->>>
->>
->> -- 
->> To unsubscribe, send a message with 'unsubscribe linux-mm' in
->> the body to majordomo@kvack.org.  For more info on Linux MM,
->> see: http://www.linux-mm.org/ .
->> Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
->>
-> 
-> 
-> 
-> 
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index 0734086..8648b29 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -427,18 +427,11 @@ static int acpi_cpu_soft_notify(struct notifier_block *nfb,
+ 		 * Initialize missing things
+ 		 */
+ 		if (pr->flags.need_hotplug_init) {
+-			struct cpuidle_driver *idle_driver =
+-				cpuidle_get_driver();
+-
+ 			printk(KERN_INFO "Will online and init hotplugged "
+ 			       "CPU: %d\n", pr->id);
+ 			WARN(acpi_processor_start(pr), "Failed to start CPU:"
+ 				" %d\n", pr->id);
+ 			pr->flags.need_hotplug_init = 0;
+-			if (idle_driver && !strcmp(idle_driver->name,
+-						   "intel_idle")) {
+-				intel_idle_cpu_init(pr->id);
+-			}
+ 		/* Normal CPU soft online event */
+ 		} else {
+ 			acpi_processor_ppc_has_changed(pr, 0);
+diff --git a/drivers/idle/intel_idle.c b/drivers/idle/intel_idle.c
+index d0f59c3..fe95d54 100644
+--- a/drivers/idle/intel_idle.c
++++ b/drivers/idle/intel_idle.c
+@@ -96,6 +96,7 @@ static const struct idle_cpu *icpu;
+ static struct cpuidle_device __percpu *intel_idle_cpuidle_devices;
+ static int intel_idle(struct cpuidle_device *dev,
+ 			struct cpuidle_driver *drv, int index);
++static int intel_idle_cpu_init(int cpu);
+ 
+ static struct cpuidle_state *cpuidle_state_table;
+ 
+@@ -302,22 +303,35 @@ static void __setup_broadcast_timer(void *arg)
+ 	clockevents_notify(reason, &cpu);
+ }
+ 
+-static int setup_broadcast_cpuhp_notify(struct notifier_block *n,
+-		unsigned long action, void *hcpu)
++static int cpu_hotplug_notify(struct notifier_block *n,
++			      unsigned long action, void *hcpu)
+ {
+ 	int hotcpu = (unsigned long)hcpu;
++	struct cpuidle_device *dev;
+ 
+ 	switch (action & 0xf) {
+ 	case CPU_ONLINE:
+-		smp_call_function_single(hotcpu, __setup_broadcast_timer,
+-			(void *)true, 1);
++
++		if (lapic_timer_reliable_states != LAPIC_TIMER_ALWAYS_RELIABLE)
++			smp_call_function_single(hotcpu, __setup_broadcast_timer,
++						 (void *)true, 1);
++
++		/*
++		 * Some systems can hotplug a cpu at runtime after
++		 * the kernel has booted, we have to initialize the
++		 * driver in this case
++		 */
++		dev = per_cpu_ptr(intel_idle_cpuidle_devices, hotcpu);
++		if (!dev->registered)
++			intel_idle_cpu_init(hotcpu);
++
+ 		break;
+ 	}
+ 	return NOTIFY_OK;
+ }
+ 
+-static struct notifier_block setup_broadcast_notifier = {
+-	.notifier_call = setup_broadcast_cpuhp_notify,
++static struct notifier_block cpu_hotplug_notifier = {
++	.notifier_call = cpu_hotplug_notify,
+ };
+ 
+ static void auto_demotion_disable(void *dummy)
+@@ -405,10 +419,10 @@ static int intel_idle_probe(void)
+ 
+ 	if (boot_cpu_has(X86_FEATURE_ARAT))	/* Always Reliable APIC Timer */
+ 		lapic_timer_reliable_states = LAPIC_TIMER_ALWAYS_RELIABLE;
+-	else {
++	else
+ 		on_each_cpu(__setup_broadcast_timer, (void *)true, 1);
+-		register_cpu_notifier(&setup_broadcast_notifier);
+-	}
++
++	register_cpu_notifier(&cpu_hotplug_notifier);
+ 
+ 	pr_debug(PREFIX "v" INTEL_IDLE_VERSION
+ 		" model 0x%X\n", boot_cpu_data.x86_model);
+@@ -494,7 +508,7 @@ static int intel_idle_cpuidle_driver_init(void)
+  * allocate, initialize, register cpuidle_devices
+  * @cpu: cpu/core to initialize
+  */
+-int intel_idle_cpu_init(int cpu)
++static int intel_idle_cpu_init(int cpu)
+ {
+ 	int cstate;
+ 	struct cpuidle_device *dev;
+@@ -539,7 +553,6 @@ int intel_idle_cpu_init(int cpu)
+ 
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(intel_idle_cpu_init);
+ 
+ static int __init intel_idle_init(void)
+ {
+@@ -581,10 +594,10 @@ static void __exit intel_idle_exit(void)
+ 	intel_idle_cpuidle_devices_uninit();
+ 	cpuidle_unregister_driver(&intel_idle_driver);
+ 
+-	if (lapic_timer_reliable_states != LAPIC_TIMER_ALWAYS_RELIABLE) {
++
++	if (lapic_timer_reliable_states != LAPIC_TIMER_ALWAYS_RELIABLE)
+ 		on_each_cpu(__setup_broadcast_timer, (void *)false, 1);
+-		unregister_cpu_notifier(&setup_broadcast_notifier);
+-	}
++	unregister_cpu_notifier(&cpu_hotplug_notifier);
+ 
+ 	return;
+ }
+diff --git a/include/linux/cpuidle.h b/include/linux/cpuidle.h
+index 5ab7183..66d7e0d 100644
+--- a/include/linux/cpuidle.h
++++ b/include/linux/cpuidle.h
+@@ -213,14 +213,7 @@ struct cpuidle_governor {
+ extern int cpuidle_register_governor(struct cpuidle_governor *gov);
+ extern void cpuidle_unregister_governor(struct cpuidle_governor *gov);
+ 
+-#ifdef CONFIG_INTEL_IDLE
+-extern int intel_idle_cpu_init(int cpu);
+ #else
+-static inline int intel_idle_cpu_init(int cpu) { return -1; }
+-#endif
+-
+-#else
+-static inline int intel_idle_cpu_init(int cpu) { return -1; }
+ 
+ static inline int cpuidle_register_governor(struct cpuidle_governor *gov)
+ {return 0;}
+-- 
+1.7.5.4
