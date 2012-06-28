@@ -1,64 +1,75 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [RFC PATCH 2/12] memory-hogplug : check memory offline in offline_pages
-Date: Thu, 28 Jun 2012 16:01:02 +0900
-Message-ID: <4FEC012E.5030209@jp.fujitsu.com>
-References: <4FEA9C88.1070800@jp.fujitsu.com> <4FEA9DB1.7010303@jp.fujitsu.com> <alpine.DEB.2.00.1206262313440.32567@chino.kir.corp.google.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [linux-pm] [PATCH] acpi: intel_idle : break dependency between modules
+Date: Thu, 28 Jun 2012 09:34:47 +0200
+Message-ID: <201206280934.48147.trenn@suse.de>
+References: <201206261301.25550.trenn@suse.de> <1340788068-16422-1-git-send-email-daniel.lezcano@linaro.org> <4FEB31E1.2030209@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <alpine.DEB.2.00.1206262313440.32567@chino.kir.corp.google.com>
-Sender: owner-linux-mm@kvack.org
-To: David Rientjes <rientjes@google.com>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, wency@cn.fujitsu.com
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:46634 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751985Ab2F1He4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 28 Jun 2012 03:34:56 -0400
+In-Reply-To: <4FEB31E1.2030209@linux.vnet.ibm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
+Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, linaro-dev@lists.linaro.org, linux-pm@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org
 
-Hi David,
+On Wednesday, June 27, 2012 06:16:33 PM Srivatsa S. Bhat wrote:
+> On 06/27/2012 02:37 PM, Daniel Lezcano wrote:
+> > When the system is booted with some cpus offline, the idle
+> > driver is not initialized. When a cpu is set online, the
+> > acpi code call the intel idle init function. Unfortunately
+> > this code introduce a dependency between intel_idle and acpi.
+> > 
+> > This patch is intended to remove this dependency by using the
+> > notifier of intel_idle. In order to make it work, the notifier
+> > must be initialized in the right order, acpi then intel_idle.
+> > This is done in the Makefile.
+> 
+> There is a much better way of doing this. See below.
+> 
+> > This patch has the benefit of
+> > encapsulating the intel_idle driver and remove some exported
+> > functions.
+> > 
+> 
+> Nice :)
+> 
+> > Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+> > ---
+> >  drivers/Makefile                |    3 ++-
+> >  drivers/acpi/processor_driver.c |    7 -------
+> >  drivers/idle/intel_idle.c       |   22 ++++++++++++++--------
+> >  include/linux/cpuidle.h         |    7 -------
+> >  4 files changed, 16 insertions(+), 23 deletions(-)
+> > 
+> > diff --git a/drivers/Makefile b/drivers/Makefile
+> > index 2ba29ff..a2454b8 100644
+> > --- a/drivers/Makefile
+> > +++ b/drivers/Makefile
+> > @@ -12,8 +12,9 @@ obj-$(CONFIG_PCI)		+= pci/
+> >  obj-$(CONFIG_PARISC)		+= parisc/
+> >  obj-$(CONFIG_RAPIDIO)		+= rapidio/
+> >  obj-y				+= video/
+> > -obj-y				+= idle/
+> > +# acpi must come before idle for initialization
+> >  obj-$(CONFIG_ACPI)		+= acpi/
+> > +obj-y				+= idle/
+> >  obj-$(CONFIG_SFI)		+= sfi/
+> >  # PnP must come after ACPI since it will eventually need to check if acpi
+> >  # was used and do nothing if so
+> 
+> OK, so all you are trying to do here is ensure that the intel idle related
+> notifier runs _after_ the acpi related one.
+I might oversee something, if you have concerns, please point me to it.
+If it's all about keeping the order of excuting these functions:
+   acpi_processor_start(pr)
+and
+   intel_idle_cpu_init()
+There should be no need for it. Intel idle is pretty separated.
 
-2012/06/27 15:16, David Rientjes wrote:
-> On Wed, 27 Jun 2012, Yasuaki Ishimatsu wrote:
->
->> Index: linux-3.5-rc4/mm/memory_hotplug.c
->> ===================================================================
->> --- linux-3.5-rc4.orig/mm/memory_hotplug.c	2012-06-26 13:28:16.743211538 +0900
->> +++ linux-3.5-rc4/mm/memory_hotplug.c	2012-06-26 13:48:38.264940468 +0900
->> @@ -887,6 +887,11 @@ static int __ref offline_pages(unsigned
->>
->>   	lock_memory_hotplug();
->>
->> +	if (memory_is_offline(start_pfn, end_pfn)) {
->> +		ret = 0;
->> +		goto out;
->> +	}
->> +
->>   	zone = page_zone(pfn_to_page(start_pfn));
->>   	node = zone_to_nid(zone);
->>   	nr_pages = end_pfn - start_pfn;
->
-> Are there additional prerequisites for this patch?  Otherwise it changes
-> the return value of offline_memory() which will now call
-> acpi_memory_powerdown_device() in the acpi memhotplug case when disabling.
-> Is that a problem?
-
-I have understood there is a person who expects "offline_pages()" to fail
-in this case by kosaki's comment. So I'll move memory_is_offline to caller
-side.
-
-Thanks,
-Yasuaki Ishimatsu
-
->
-> --
-> To unsubscribe, send a message with 'unsubscribe linux-mm' in
-> the body to majordomo@kvack.org.  For more info on Linux MM,
-> see: http://www.linux-mm.org/ .
-> Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
->
-
-
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+  Thomas
