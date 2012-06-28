@@ -1,7 +1,7 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH 10/12] topstar-laptop: convert to module_acpi_driver()
-Date: Thu, 28 Jun 2012 13:59:29 +0300
-Message-ID: <1340881171-14811-11-git-send-email-mika.westerberg@linux.intel.com>
+Subject: [PATCH 07/12] Input: atlas_btns - convert to module_acpi_driver()
+Date: Thu, 28 Jun 2012 13:59:26 +0300
+Message-ID: <1340881171-14811-8-git-send-email-mika.westerberg@linux.intel.com>
 References: <1340881171-14811-1-git-send-email-mika.westerberg@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1340881171-14811-1-git-send-email-mika.westerberg@linux.intel.com>
@@ -12,41 +12,36 @@ List-Id: linux-acpi@vger.kernel.org
 
 Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- drivers/platform/x86/topstar-laptop.c |   22 +---------------------
- 1 file changed, 1 insertion(+), 21 deletions(-)
+ drivers/input/misc/atlas_btns.c |   17 +----------------
+ 1 file changed, 1 insertion(+), 16 deletions(-)
 
-diff --git a/drivers/platform/x86/topstar-laptop.c b/drivers/platform/x86/topstar-laptop.c
-index d528daa..d727bfe 100644
---- a/drivers/platform/x86/topstar-laptop.c
-+++ b/drivers/platform/x86/topstar-laptop.c
-@@ -186,27 +186,7 @@ static struct acpi_driver acpi_topstar_driver = {
- 		.notify = acpi_topstar_notify,
+diff --git a/drivers/input/misc/atlas_btns.c b/drivers/input/misc/atlas_btns.c
+index 601f737..26f1313 100644
+--- a/drivers/input/misc/atlas_btns.c
++++ b/drivers/input/misc/atlas_btns.c
+@@ -151,22 +151,7 @@ static struct acpi_driver atlas_acpi_driver = {
+ 		.remove	= atlas_acpi_button_remove,
  	},
  };
 -
--static int __init topstar_laptop_init(void)
+-static int __init atlas_acpi_init(void)
 -{
--	int ret;
+-	if (acpi_disabled)
+-		return -ENODEV;
 -
--	ret = acpi_bus_register_driver(&acpi_topstar_driver);
--	if (ret < 0)
--		return ret;
--
--	pr_info("ACPI extras driver loaded\n");
--
--	return 0;
+-	return acpi_bus_register_driver(&atlas_acpi_driver);
 -}
 -
--static void __exit topstar_laptop_exit(void)
+-static void __exit atlas_acpi_exit(void)
 -{
--	acpi_bus_unregister_driver(&acpi_topstar_driver);
+-	acpi_bus_unregister_driver(&atlas_acpi_driver);
 -}
 -
--module_init(topstar_laptop_init);
--module_exit(topstar_laptop_exit);
-+module_acpi_driver(acpi_topstar_driver);
+-module_init(atlas_acpi_init);
+-module_exit(atlas_acpi_exit);
++module_acpi_driver(atlas_acpi_driver);
  
- MODULE_AUTHOR("Herton Ronaldo Krzesinski");
- MODULE_DESCRIPTION("Topstar Laptop ACPI Extras driver");
+ MODULE_AUTHOR("Jaya Kumar");
+ MODULE_LICENSE("GPL");
 -- 
 1.7.10
