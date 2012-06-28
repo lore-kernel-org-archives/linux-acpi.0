@@ -1,75 +1,59 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [linux-pm] [PATCH] acpi: intel_idle : break dependency between modules
-Date: Thu, 28 Jun 2012 09:34:47 +0200
-Message-ID: <201206280934.48147.trenn@suse.de>
-References: <201206261301.25550.trenn@suse.de> <1340788068-16422-1-git-send-email-daniel.lezcano@linaro.org> <4FEB31E1.2030209@linux.vnet.ibm.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: [PATCH V4 0/8] usb: make usb port a real device and provide control of port's power to usr space
+Date: Thu, 28 Jun 2012 15:31:34 +0800
+Message-ID: <1340868702-1894-1-git-send-email-tianyu.lan@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:46634 "EHLO mx2.suse.de"
+Received: from mga11.intel.com ([192.55.52.93]:19305 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751985Ab2F1He4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 28 Jun 2012 03:34:56 -0400
-In-Reply-To: <4FEB31E1.2030209@linux.vnet.ibm.com>
+	id S1751985Ab2F1Hjj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 28 Jun 2012 03:39:39 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, linaro-dev@lists.linaro.org, linux-pm@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org
+To: gregkh@linuxfoundation.org, lenb@kernel.org
+Cc: linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu, sarah.a.sharp@linux.intel.com
 
-On Wednesday, June 27, 2012 06:16:33 PM Srivatsa S. Bhat wrote:
-> On 06/27/2012 02:37 PM, Daniel Lezcano wrote:
-> > When the system is booted with some cpus offline, the idle
-> > driver is not initialized. When a cpu is set online, the
-> > acpi code call the intel idle init function. Unfortunately
-> > this code introduce a dependency between intel_idle and acpi.
-> > 
-> > This patch is intended to remove this dependency by using the
-> > notifier of intel_idle. In order to make it work, the notifier
-> > must be initialized in the right order, acpi then intel_idle.
-> > This is done in the Makefile.
-> 
-> There is a much better way of doing this. See below.
-> 
-> > This patch has the benefit of
-> > encapsulating the intel_idle driver and remove some exported
-> > functions.
-> > 
-> 
-> Nice :)
-> 
-> > Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
-> > ---
-> >  drivers/Makefile                |    3 ++-
-> >  drivers/acpi/processor_driver.c |    7 -------
-> >  drivers/idle/intel_idle.c       |   22 ++++++++++++++--------
-> >  include/linux/cpuidle.h         |    7 -------
-> >  4 files changed, 16 insertions(+), 23 deletions(-)
-> > 
-> > diff --git a/drivers/Makefile b/drivers/Makefile
-> > index 2ba29ff..a2454b8 100644
-> > --- a/drivers/Makefile
-> > +++ b/drivers/Makefile
-> > @@ -12,8 +12,9 @@ obj-$(CONFIG_PCI)		+= pci/
-> >  obj-$(CONFIG_PARISC)		+= parisc/
-> >  obj-$(CONFIG_RAPIDIO)		+= rapidio/
-> >  obj-y				+= video/
-> > -obj-y				+= idle/
-> > +# acpi must come before idle for initialization
-> >  obj-$(CONFIG_ACPI)		+= acpi/
-> > +obj-y				+= idle/
-> >  obj-$(CONFIG_SFI)		+= sfi/
-> >  # PnP must come after ACPI since it will eventually need to check if acpi
-> >  # was used and do nothing if so
-> 
-> OK, so all you are trying to do here is ensure that the intel idle related
-> notifier runs _after_ the acpi related one.
-I might oversee something, if you have concerns, please point me to it.
-If it's all about keeping the order of excuting these functions:
-   acpi_processor_start(pr)
-and
-   intel_idle_cpu_init()
-There should be no need for it. Intel idle is pretty separated.
+This patchset merged two following patchsets and make usb port a real device.
+[PATCH V3 1/4] usb: add struct usb_hub_port to store
+[PATCH V3 2/4] usb: move struct usb_device->children
+[PATCH V3 3/4] usb/acpi: add the support of usb hub
+[PATCH V3 4/4] usb/acpi: add usb check for the connection
+[PATCH 1/3] xhci: Add clear PORT_POWER feature process in the
+[PATCH 2/3] USB/ACPI: Add usb port's acpi power control in the xhci
+[PATCH 3/3] usb : Add sysfs files to control usb port's power
 
-  Thomas
+This patchset is to provide usb port power off mechanism. Add two
+attributes "portX/control" and "portX/state" for each ports
+under the usb hub interface sysfs directory.
+
+"portX/control" has two options
+"on" - port power must be on.
+"off" - port power must be off.
+
+"portX/state" reports usb port's power state
+"on" - power on
+"off" - power off
+"error" - can't get power state
+
+[PATCH V4 1/8] usb: convert port_owners type from void * to struct
+[PATCH V4 2/8] usb: make usb port a real device
+[PATCH V4 3/8] usb: move children to struct usb_port
+[PATCH V4 4/8] usb/acpi : rebinding usb with acpi since usb port
+[PATCH V4 5/8] usb/acpi: add check for the connect type of usb port
+[PATCH V4 6/8] xhci: Add clear PORT_POWER feature process in the
+[PATCH V4 7/8] USB/ACPI: Add usb port's acpi power control in the
+[PATCH V4 8/8] usb : Add usb port's power control attributes
+
+
+ git diff --stat HEAD~8
+ Documentation/ABI/testing/sysfs-bus-usb |   25 ++++++++++++
+ drivers/staging/usbip/usbip_common.c    |    3 +-
+ drivers/usb/core/devices.c              |    7 ++--
+ drivers/usb/core/hub.c                  |  349 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++---------------------
+ drivers/usb/core/usb-acpi.c             |  202 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-----------------------
+ drivers/usb/core/usb.h                  |   25 ++++++++++--
+ drivers/usb/host/r8a66597-hcd.c         |    9 +++--
+ drivers/usb/host/xhci-hub.c             |   16 ++++++++
+ include/linux/usb.h                     |   33 +++++++++++++++-
+ 9 files changed, 562 insertions(+), 107 deletions(-)
+
+
