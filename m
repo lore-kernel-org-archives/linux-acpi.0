@@ -1,105 +1,232 @@
-From: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] acpi: intel_idle : break dependency between modules
-Date: Thu, 28 Jun 2012 10:03:56 +0200
-Message-ID: <4FEC0FEC.5070304@linaro.org>
-References: <201206261301.25550.trenn@suse.de>
-	<1340788068-16422-1-git-send-email-daniel.lezcano@linaro.org>
-	<201206271506.29034.trenn@suse.de>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [RFC PATCH 4/12] memory-hotplug : remove /sys/firmware/memmap/X
+ sysfs
+Date: Thu, 28 Jun 2012 17:07:39 +0900
+Message-ID: <4FEC10CB.3060403@jp.fujitsu.com>
+References: <4FEA9C88.1070800@jp.fujitsu.com> <4FEA9E5F.4070205@jp.fujitsu.com> <4FEBFA8D.5040607@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-In-Reply-To: <201206271506.29034.trenn-l3A5Bk7waGM@public.gmane.org>
-List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
-List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
-Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-To: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Cc: deepthi-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, srivatsa.bhat-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <4FEBFA8D.5040607@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Wen Congyang <wency@cn.fujitsu.com>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
 
-T24gMDYvMjcvMjAxMiAwMzowNiBQTSwgVGhvbWFzIFJlbm5pbmdlciB3cm90ZToKPiBIaSwKPiAK
-PiBJIGFncmVlIHRoYXQgc3VjaCBhIGRlcGVuZGVuY3kgYmV0d2VlbiAyIG1vZHVsZXMgaXMgbm90
-Cj4gbmljZS4gQnV0IHlvdXIgcGF0Y2ggd2lsbCBoYXZlIGJhZCBzaWRlLWVmZmVjdHMgKHNlZSBj
-b21tZW50cwo+IGVtYmVkZGVkIGJlbG93KS4KPiAKPiBPbiBXZWRuZXNkYXksIEp1bmUgMjcsIDIw
-MTIgMTE6MDc6NDggQU0gRGFuaWVsIExlemNhbm8gd3JvdGU6Cj4+IFdoZW4gdGhlIHN5c3RlbSBp
-cyBib290ZWQgd2l0aCBzb21lIGNwdXMgb2ZmbGluZSwgdGhlIGlkbGUKPj4gZHJpdmVyIGlzIG5v
-dCBpbml0aWFsaXplZC4gV2hlbiBhIGNwdSBpcyBzZXQgb25saW5lLCB0aGUKPj4gYWNwaSBjb2Rl
-IGNhbGwgdGhlIGludGVsIGlkbGUgaW5pdCBmdW5jdGlvbi4gVW5mb3J0dW5hdGVseQo+PiB0aGlz
-IGNvZGUgaW50cm9kdWNlIGEgZGVwZW5kZW5jeSBiZXR3ZWVuIGludGVsX2lkbGUgYW5kIGFjcGku
-Cj4+Cj4+IFRoaXMgcGF0Y2ggaXMgaW50ZW5kZWQgdG8gcmVtb3ZlIHRoaXMgZGVwZW5kZW5jeSBi
-eSB1c2luZyB0aGUKPj4gbm90aWZpZXIgb2YgaW50ZWxfaWRsZS4gSW4gb3JkZXIgdG8gbWFrZSBp
-dCB3b3JrLCB0aGUgbm90aWZpZXIKPj4gbXVzdCBiZSBpbml0aWFsaXplZCBpbiB0aGUgcmlnaHQg
-b3JkZXIsIGFjcGkgdGhlbiBpbnRlbF9pZGxlLgo+PiBUaGlzIGlzIGRvbmUgaW4gdGhlIE1ha2Vm
-aWxlLiBUaGlzIHBhdGNoIGhhcyB0aGUgYmVuZWZpdCBvZgo+PiBlbmNhcHN1bGF0aW5nIHRoZSBp
-bnRlbF9pZGxlIGRyaXZlciBhbmQgcmVtb3ZlIHNvbWUgZXhwb3J0ZWQKPj4gZnVuY3Rpb25zLgo+
-Pgo+PiBTaWduZWQtb2ZmLWJ5OiBEYW5pZWwgTGV6Y2FubyA8ZGFuaWVsLmxlemNhbm9AbGluYXJv
-Lm9yZz4KPj4gLS0tCj4+ICBkcml2ZXJzL01ha2VmaWxlICAgICAgICAgICAgICAgIHwgICAgMyAr
-Ky0KPj4gIGRyaXZlcnMvYWNwaS9wcm9jZXNzb3JfZHJpdmVyLmMgfCAgICA3IC0tLS0tLS0KPj4g
-IGRyaXZlcnMvaWRsZS9pbnRlbF9pZGxlLmMgICAgICAgfCAgIDIyICsrKysrKysrKysrKysrLS0t
-LS0tLS0KPj4gIGluY2x1ZGUvbGludXgvY3B1aWRsZS5oICAgICAgICAgfCAgICA3IC0tLS0tLS0K
-Pj4gIDQgZmlsZXMgY2hhbmdlZCwgMTYgaW5zZXJ0aW9ucygrKSwgMjMgZGVsZXRpb25zKC0pCj4+
-Cj4+IGRpZmYgLS1naXQgYS9kcml2ZXJzL01ha2VmaWxlIGIvZHJpdmVycy9NYWtlZmlsZQo+PiBp
-bmRleCAyYmEyOWZmLi5hMjQ1NGI4IDEwMDY0NAo+PiAtLS0gYS9kcml2ZXJzL01ha2VmaWxlCj4+
-ICsrKyBiL2RyaXZlcnMvTWFrZWZpbGUKPj4gQEAgLTEyLDggKzEyLDkgQEAgb2JqLSQoQ09ORklH
-X1BDSSkJCSs9IHBjaS8KPj4gIG9iai0kKENPTkZJR19QQVJJU0MpCQkrPSBwYXJpc2MvCj4+ICBv
-YmotJChDT05GSUdfUkFQSURJTykJCSs9IHJhcGlkaW8vCj4+ICBvYmoteQkJCQkrPSB2aWRlby8K
-Pj4gLW9iai15CQkJCSs9IGlkbGUvCj4+ICsjIGFjcGkgbXVzdCBjb21lIGJlZm9yZSBpZGxlIGZv
-ciBpbml0aWFsaXphdGlvbgo+PiAgb2JqLSQoQ09ORklHX0FDUEkpCQkrPSBhY3BpLwo+PiArb2Jq
-LXkJCQkJKz0gaWRsZS8KPiBUaGlzIGJyZWFrcyBpbnRlbF9pZGxlLgo+IExvYWRpbmcgb3JkZXIg
-ZGVmaW5lcyB3aGljaCBvbmUgY29tZXMgZmlyc3QgYW5kIGlzIHVzZWQ6IGludGVsX2lkbGUKPiBv
-ciBBQ1BJIHByb2Nlc3NvciBjcHVpZGxlIGRyaXZlci4KPiBXaXRoIGFib3ZlLCBvbmUgd291bGQg
-Z2V0IGFjcGlfaWRsZSBjcHVpZGxlIGRyaXZlciBpZiBib3RoIGFyZQo+IGNvbXBpbGVkIGluLCBp
-bnN0ZWFkIG9mIHRoZSBpbnRlbF9pZGxlIG9uZS4KPiAKPiBXaHkgZXhhY3RseSBpcyB0aGlzIG5l
-Y2Vzc2FyeSwgY291bGRuJ3QgaXQganVzdCB3b3JrPwoKWy4uLl0KCkkganVzdCB3YW50ZWQgdG8g
-a2VlcCBzYW1lIG9yZGVyLiBJZiBpdCBpcyBub3QgbmVjZXNzYXJ5LCBJIHdvbid0IGludmVydAp0
-aGUgY29tcGlsYXRpb24gb3JkZXIgaW4gdGhlIG5leHQgcGF0Y2guCgo+PiAtc3RhdGljIGludCBz
-ZXR1cF9icm9hZGNhc3RfY3B1aHBfbm90aWZ5KHN0cnVjdCBub3RpZmllcl9ibG9jayAqbiwKPj4g
-LQkJdW5zaWduZWQgbG9uZyBhY3Rpb24sIHZvaWQgKmhjcHUpCj4+ICtzdGF0aWMgaW50IGNwdV9o
-b3RwbHVnX25vdGlmeShzdHJ1Y3Qgbm90aWZpZXJfYmxvY2sgKm4sCj4+ICsJCQkgICAgICB1bnNp
-Z25lZCBsb25nIGFjdGlvbiwgdm9pZCAqaGNwdSkKPj4gIHsKPj4gIAlpbnQgaG90Y3B1ID0gKHVu
-c2lnbmVkIGxvbmcpaGNwdTsKPj4gKwlzdHJ1Y3QgY3B1aWRsZV9kZXZpY2UgKmRldjsKPj4gIAo+
-PiAgCXN3aXRjaCAoYWN0aW9uICYgMHhmKSB7Cj4+ICAJY2FzZSBDUFVfT05MSU5FOgo+PiAgCQlz
-bXBfY2FsbF9mdW5jdGlvbl9zaW5nbGUoaG90Y3B1LCBfX3NldHVwX2Jyb2FkY2FzdF90aW1lciwK
-Pj4gIAkJCSh2b2lkICopdHJ1ZSwgMSk7Cj4+ICsKPj4gKwkJZGV2ID0gcGVyX2NwdV9wdHIoaW50
-ZWxfaWRsZV9jcHVpZGxlX2RldmljZXMsIGhvdGNwdSk7Cj4+ICsJCWlmICghZGV2LT5yZWdpc3Rl
-cmVkKQo+PiArCQkJaW50ZWxfaWRsZV9jcHVfaW5pdChob3RjcHUpOwo+PiArCj4gQSBzbWFsbCBj
-b21tZW50IHdoeSB0aGlzIGNhbiBoYXBwZW4gYW5kIG5lZWRzIHRvIGJlIGRvbmUKPiAocmVhbCBo
-b3RwbHVnZ2VkIGNwdSBjYXNlKSBtaWdodCBoZWxwIGhlcmUgbGF0ZXIuCgpZZXMsIHRoYXQgbWFr
-ZXMgc2Vuc2UuCgpbLi4uXQoKPj4gIHN0YXRpYyB2b2lkIGF1dG9fZGVtb3Rpb25fZGlzYWJsZSh2
-b2lkICpkdW1teSkKPj4gQEAgLTQwNyw3ICs0MTQsNyBAQCBzdGF0aWMgaW50IGludGVsX2lkbGVf
-cHJvYmUodm9pZCkKPj4gIAkJbGFwaWNfdGltZXJfcmVsaWFibGVfc3RhdGVzID0gTEFQSUNfVElN
-RVJfQUxXQVlTX1JFTElBQkxFOwo+PiAgCWVsc2Ugewo+PiAgCQlvbl9lYWNoX2NwdShfX3NldHVw
-X2Jyb2FkY2FzdF90aW1lciwgKHZvaWQgKil0cnVlLCAxKTsKPj4gLQkJcmVnaXN0ZXJfY3B1X25v
-dGlmaWVyKCZzZXR1cF9icm9hZGNhc3Rfbm90aWZpZXIpOwo+PiArCQlyZWdpc3Rlcl9jcHVfbm90
-aWZpZXIoJmNwdV9ob3RwbHVnX25vdGlmaWVyKTsKPiAKPiBUaGUgbm90aWZpZXIgYWx3YXlzIGhh
-cyB0byBiZSByZWdpc3RlcmVkIG5vdywgbm90IG9ubHkgaW46Cj4gaWYgKGJvb3RfY3B1X2hhcyhY
-ODZfRkVBVFVSRV9BUkFUKSkgICAgIC8qIEFsd2F5cyBSZWxpYWJsZSBBUElDIFRpbWVyICovCj4g
-Y2FzZS4KCk9vcHMsIHJpZ2h0LgoKCj4+ICAJcHJfZGVidWcoUFJFRklYICJ2IiBJTlRFTF9JRExF
-X1ZFUlNJT04KPj4gQEAgLTQ5NCw3ICs1MDEsNyBAQCBzdGF0aWMgaW50IGludGVsX2lkbGVfY3B1
-aWRsZV9kcml2ZXJfaW5pdCh2b2lkKQo+PiAgICogYWxsb2NhdGUsIGluaXRpYWxpemUsIHJlZ2lz
-dGVyIGNwdWlkbGVfZGV2aWNlcwo+PiAgICogQGNwdTogY3B1L2NvcmUgdG8gaW5pdGlhbGl6ZQo+
-PiAgICovCj4+IC1pbnQgaW50ZWxfaWRsZV9jcHVfaW5pdChpbnQgY3B1KQo+PiArc3RhdGljIGlu
-dCBpbnRlbF9pZGxlX2NwdV9pbml0KGludCBjcHUpCj4+ICB7Cj4+ICAJaW50IGNzdGF0ZTsKPj4g
-IAlzdHJ1Y3QgY3B1aWRsZV9kZXZpY2UgKmRldjsKPj4gQEAgLTUzOSw3ICs1NDYsNiBAQCBpbnQg
-aW50ZWxfaWRsZV9jcHVfaW5pdChpbnQgY3B1KQo+PiAgCj4+ICAJcmV0dXJuIDA7Cj4+ICB9Cj4+
-IC1FWFBPUlRfU1lNQk9MX0dQTChpbnRlbF9pZGxlX2NwdV9pbml0KTsKPj4gIAo+PiAgc3RhdGlj
-IGludCBfX2luaXQgaW50ZWxfaWRsZV9pbml0KHZvaWQpCj4+ICB7Cj4+IEBAIC01ODMsNyArNTg5
-LDcgQEAgc3RhdGljIHZvaWQgX19leGl0IGludGVsX2lkbGVfZXhpdCh2b2lkKQo+PiAgCj4+ICAJ
-aWYgKGxhcGljX3RpbWVyX3JlbGlhYmxlX3N0YXRlcyAhPSBMQVBJQ19USU1FUl9BTFdBWVNfUkVM
-SUFCTEUpIHsKPj4gIAkJb25fZWFjaF9jcHUoX19zZXR1cF9icm9hZGNhc3RfdGltZXIsICh2b2lk
-ICopZmFsc2UsIDEpOwo+PiAtCQl1bnJlZ2lzdGVyX2NwdV9ub3RpZmllcigmc2V0dXBfYnJvYWRj
-YXN0X25vdGlmaWVyKTsKPj4gKwkJdW5yZWdpc3Rlcl9jcHVfbm90aWZpZXIoJmNwdV9ob3RwbHVn
-X25vdGlmaWVyKTsKPiBTYW1lLgoKClRoYW5rcyBmb3IgdGhlIHJldmlldyAhCgogIC0tIERhbmll
-bAoKLS0gCiA8aHR0cDovL3d3dy5saW5hcm8ub3JnLz4gTGluYXJvLm9yZyDilIIgT3BlbiBzb3Vy
-Y2Ugc29mdHdhcmUgZm9yIEFSTSBTb0NzCgpGb2xsb3cgTGluYXJvOiAgPGh0dHA6Ly93d3cuZmFj
-ZWJvb2suY29tL3BhZ2VzL0xpbmFybz4gRmFjZWJvb2sgfAo8aHR0cDovL3R3aXR0ZXIuY29tLyMh
-L2xpbmFyb29yZz4gVHdpdHRlciB8CjxodHRwOi8vd3d3LmxpbmFyby5vcmcvbGluYXJvLWJsb2cv
-PiBCbG9nCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
-bGluYXJvLWRldiBtYWlsaW5nIGxpc3QKbGluYXJvLWRldkBsaXN0cy5saW5hcm8ub3JnCmh0dHA6
-Ly9saXN0cy5saW5hcm8ub3JnL21haWxtYW4vbGlzdGluZm8vbGluYXJvLWRldgo=
+Hi Wen,
+
+2012/06/28 15:32, Wen Congyang wrote:
+> At 06/27/2012 01:47 PM, Yasuaki Ishimatsu Wrote:
+>> When (hot)adding memory into system, /sys/firmware/memmap/X/{end, start, type}
+>> sysfs files are created. But there is no code to remove these files. The patch
+>> implements the function to remove them.
+>>
+>> Note : The code does not free firmware_map_entry since there is no way to free
+>>         memory which is allocated by bootmem.
+>>
+>> CC: Len Brown <len.brown@intel.com>
+>> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+>> CC: Paul Mackerras <paulus@samba.org>
+>> CC: Christoph Lameter <cl@linux.com>
+>> Cc: Minchan Kim <minchan.kim@gmail.com>
+>> CC: Andrew Morton <akpm@linux-foundation.org>
+>> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+>> CC: Wen Congyang <wency@cn.fujitsu.com>
+>> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+>>
+>> ---
+>>   drivers/firmware/memmap.c    |   71 +++++++++++++++++++++++++++++++++++++++++++
+>>   include/linux/firmware-map.h |    6 +++
+>>   mm/memory_hotplug.c          |    6 +++
+>>   3 files changed, 82 insertions(+), 1 deletion(-)
+>>
+>> Index: linux-3.5-rc4/mm/memory_hotplug.c
+>> ===================================================================
+>> --- linux-3.5-rc4.orig/mm/memory_hotplug.c	2012-06-26 13:37:30.546288901 +0900
+>> +++ linux-3.5-rc4/mm/memory_hotplug.c	2012-06-26 13:44:37.069955820 +0900
+>> @@ -661,7 +661,11 @@ EXPORT_SYMBOL_GPL(add_memory);
+>>
+>>   int remove_memory(int nid, u64 start, u64 size)
+>>   {
+>> -	return -EBUSY;
+>> +	lock_memory_hotplug();
+>> +	/* remove memmap entry */
+>> +	firmware_map_remove(start, start + size, "System RAM");
+>> +	unlock_memory_hotplug();
+>> +	return 0;
+>>
+>>   }
+>>   EXPORT_SYMBOL_GPL(remove_memory);
+>> Index: linux-3.5-rc4/include/linux/firmware-map.h
+>> ===================================================================
+>> --- linux-3.5-rc4.orig/include/linux/firmware-map.h	2012-06-25 04:53:04.000000000 +0900
+>> +++ linux-3.5-rc4/include/linux/firmware-map.h	2012-06-26 13:44:37.070955807 +0900
+>> @@ -25,6 +25,7 @@
+>>
+>>   int firmware_map_add_early(u64 start, u64 end, const char *type);
+>>   int firmware_map_add_hotplug(u64 start, u64 end, const char *type);
+>> +int firmware_map_remove(u64 start, u64 end, const char *type);
+>>
+>>   #else /* CONFIG_FIRMWARE_MEMMAP */
+>>
+>> @@ -38,6 +39,11 @@ static inline int firmware_map_add_hotpl
+>>   	return 0;
+>>   }
+>>
+>> +static inline int firmware_map_remove(u64 start, u64 end, const char *type)
+>> +{
+>> +	return 0;
+>> +}
+>> +
+>>   #endif /* CONFIG_FIRMWARE_MEMMAP */
+>>
+>>   #endif /* _LINUX_FIRMWARE_MAP_H */
+>> Index: linux-3.5-rc4/drivers/firmware/memmap.c
+>> ===================================================================
+>> --- linux-3.5-rc4.orig/drivers/firmware/memmap.c	2012-06-25 04:53:04.000000000 +0900
+>> +++ linux-3.5-rc4/drivers/firmware/memmap.c	2012-06-26 13:47:17.606948898 +0900
+>> @@ -123,6 +123,16 @@ static int firmware_map_add_entry(u64 st
+>>   	return 0;
+>>   }
+>>
+>> +/**
+>> + * firmware_map_remove_entry() - Does the real work to remove a firmware
+>> + * memmap entry.
+>> + * @entry: removed entry.
+>> + **/
+>> +static inline void firmware_map_remove_entry(struct firmware_map_entry *entry)
+>> +{
+>> +	list_del(&entry->list);
+>> +}
+>> +
+>>   /*
+>>    * Add memmap entry on sysfs
+>>    */
+>> @@ -144,6 +154,31 @@ static int add_sysfs_fw_map_entry(struct
+>>   	return 0;
+>>   }
+>>
+>> +/*
+>> + * Remove memmap entry on sysfs
+>> + */
+>> +static inline void remove_sysfs_fw_map_entry(struct firmware_map_entry *entry)
+>> +{
+>> +	kobject_del(&entry->kobj);
+>> +}
+>> +
+>> +/*
+>> + * Search memmap entry
+>> + */
+>> +
+>> +struct firmware_map_entry * __meminit
+>> +find_firmware_map_entry(u64 start, u64 end, const char *type)
+>> +{
+>> +	struct firmware_map_entry *entry;
+>> +
+>> +	list_for_each_entry(entry, &map_entries, list)
+>> +		if ((entry->start == start) && (entry->end == end) &&
+>> +		    (!strcmp(entry->type, type)))
+>> +			return entry;
+>> +
+>> +	return NULL;
+>> +}
+>> +
+>>   /**
+>>    * firmware_map_add_hotplug() - Adds a firmware mapping entry when we do
+>>    * memory hotplug.
+>> @@ -196,6 +231,42 @@ int __init firmware_map_add_early(u64 st
+>>   	return firmware_map_add_entry(start, end, type, entry);
+>>   }
+>>
+>> +void release_firmware_map_entry(struct firmware_map_entry *entry)
+>> +{
+>> +	/*
+>> +	 * FIXME : There is no idea.
+>> +	 *         How to free the entry which allocated bootmem?
+>> +	 */
+>> +}
+>> +
+>> +/**
+>> + * firmware_map_remove() - remove a firmware mapping entry
+>> + * @start: Start of the memory range.
+>> + * @end:   End of the memory range (inclusive).
+>> + * @type:  Type of the memory range.
+>> + *
+>> + * removes a firmware mapping entry.
+>> + *
+>> + * Returns 0 on success, or -EINVAL if no entry.
+>> + **/
+>> +int __meminit firmware_map_remove(u64 start, u64 end, const char *type)
+>> +{
+>> +	struct firmware_map_entry *entry;
+>> +
+>> +	entry = find_firmware_map_entry(start, end, type);
+>
+> Hmm, we cannot find the entry easily, because the end can be:
+> 1. start + size
+> 2. start + size - 1
+>
+> So, We should fix this bug first.
+
+This is not a bug.
+
+start and size arguments of firmware_map_remove() include
+acpi_memory_info->{start_addr, length}. And when creating a firmware_map_entry,
+the entry is created by acpi_memory_info->{start_addr, length}. So I don't
+think that we need care your comment.
+
+>
+>> +	if (!entry)
+>> +		return -EINVAL;
+>> +
+>> +	/* remove the memmap entry */
+>> +	remove_sysfs_fw_map_entry(entry);
+>> +
+>> +	firmware_map_remove_entry(entry);
+>> +
+>> +	release_firmware_map_entry(entry);
+>
+> I guess you want to free the memory in the above function. But I think it is
+> not a good idea to free it here. We should free it when the entry->kobj's kref
+> is decreased to 0.
+
+Thanks.
+I'll update your comment at next version.
+
+Thanks,
+Yasuaki Ishimatsu
+
+>
+> Thanks
+> Wen Congyang
+>
+>> +
+>> +	return 0;
+>> +}
+>> +
+>>   /*
+>>    * Sysfs functions -------------------------------------------------------------
+>>    */
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> Please read the FAQ at  http://www.tux.org/lkml/
+>>
+>
+> --
+> To unsubscribe, send a message with 'unsubscribe linux-mm' in
+> the body to majordomo@kvack.org.  For more info on Linux MM,
+> see: http://www.linux-mm.org/ .
+> Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+>
+
+
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
