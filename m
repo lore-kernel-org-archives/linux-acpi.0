@@ -1,86 +1,93 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH] ACPI: Add ACPI CPU hot-remove support
-Date: Fri, 29 Jun 2012 08:51:19 -0600
-Message-ID: <1340981479-6521-1-git-send-email-toshi.kani@hp.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: Re: [lm-sensors] Fintek f71882fg ACPI conflict
+Date: Fri, 29 Jun 2012 09:34:29 -0700
+Message-ID: <20120629163429.GA20993@roeck-us.net>
+References: <4FEA4C10.2060904@googlemail.com>
+ <20120627171505.GB12712@roeck-us.net>
+ <4FEB90A8.8050901@googlemail.com>
+ <20120628014548.GA15994@srcf.ucam.org>
+ <4FEC3CDF.7050901@googlemail.com>
+ <20120628144035.36ac75a0@endymion.delvare>
+ <4FEC53DD.8050403@googlemail.com>
+ <20120628152754.2ab6697a@endymion.delvare>
+ <4FED3EB3.4000602@gmail.com>
+ <4FED9B58.3090102@googlemail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0015.houston.hp.com ([15.201.24.18]:11118 "EHLO
-	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755548Ab2F2OzO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Jun 2012 10:55:14 -0400
+Received: from mail.active-venture.com ([67.228.131.205]:56023 "EHLO
+	mail.active-venture.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755290Ab2F2QeN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Jun 2012 12:34:13 -0400
+Content-Disposition: inline
+In-Reply-To: <4FED9B58.3090102@googlemail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>
+To: Michael Zintakis <michael.zintakis@googlemail.com>
+Cc: Robert Hancock <hancockrwd@gmail.com>, Len Brown <lenb@kernel.org>, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org
 
-Added CPU hot-remove support through an ACPI eject notification.
-It calls acpi_bus_hot_remove_device(), which shares the same code
-path with the sysfs eject operation.  acpi_os_hotplug_execute()
-serializes hot-remove operations between ACPI hot-remove and sysfs
-eject requests.
+On Fri, Jun 29, 2012 at 01:11:04PM +0100, Michael Zintakis wrote:
+> 
+[ ... ]
+> Interesting and it sort-of confirms my "findings" from yesterday's
+> bout I've had with ACPI.
+> 
+> When I completely deactivate ACPI ("acpi=off" in the kernel command
+> line), there is obviously no more conflict errors reported, but what
+> I also discovered is that the problem I've had with the fans not
+> able to start (when they are at standstill initially) is not there
+> any more!
+> 
+> When I forcefully stop a fan by "echo 1 > pwmX" (you were right,
+> when I deactivate any sort of temperature, fan & voltage management
+> in BIOS and ACPI is OFF, the fans run at maximum speed), then select
+> "automatic" management and pass control over to the f71882fg driver,
 
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+You are giving too much credit to the driver. The driver only reads and sets
+register values, but does not perform any activities beyond that.
 
----
-This patch applies on top of the patchset below.
+> when the temperature rises enough for the fan to start spinning, but
+> not enough to push it over the "safe" minimum speed threshold, this
+> raises an alarm event (fanX_alarm gets triggered) and the f71882fg
+> driver then, completely by itself, pushes the fan to its maximum
+> speed momentarily and the fan starts spinning - exactly the
+> behaviour I was "simulating" with my bash script.
+> 
+No, the driver doesn't. The chip does that.
 
-[PATCH v6 0/6] ACPI: Add _OST support for ACPI hotplug
-http://marc.info/?l=linux-acpi&m=134074381322973&w=2
+[ ... ]
 
----
- drivers/acpi/processor_driver.c |   27 +++++++++++++++++----------
- 1 files changed, 17 insertions(+), 10 deletions(-)
+> Last couple of queries regarding the f71882fg driver:
+> 
+> What is the purpose of "pwmX_auto_channels_temp" (I have default
+> values of 4, 2 and 1 for my 3 fans), "pwmX_auto_pointY_temp_hyst"
 
-diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-index f9fa1b2..a6f6bde 100644
---- a/drivers/acpi/processor_driver.c
-+++ b/drivers/acpi/processor_driver.c
-@@ -699,8 +699,8 @@ int acpi_processor_device_add(acpi_handle handle, struct acpi_device **device)
- static void acpi_processor_hotplug_notify(acpi_handle handle,
- 					  u32 event, void *data)
- {
--	struct acpi_processor *pr;
- 	struct acpi_device *device = NULL;
-+	struct acpi_eject_event *ej_event = NULL;
- 	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE; /* default */
- 	int result;
- 
-@@ -732,20 +732,27 @@ static void acpi_processor_hotplug_notify(acpi_handle handle,
- 				  "received ACPI_NOTIFY_EJECT_REQUEST\n"));
- 
- 		if (acpi_bus_get_device(handle, &device)) {
--			printk(KERN_ERR PREFIX
--				    "Device don't exist, dropping EJECT\n");
-+			pr_err(PREFIX "Device don't exist, dropping EJECT\n");
- 			break;
- 		}
--		pr = acpi_driver_data(device);
--		if (!pr) {
--			printk(KERN_ERR PREFIX
--				    "Driver data is NULL, dropping EJECT\n");
-+		if (!acpi_driver_data(device)) {
-+			pr_err(PREFIX "Driver data is NULL, dropping EJECT\n");
- 			break;
- 		}
- 
--		/* REVISIT: update when eject is supported */
--		ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
--		break;
-+		ej_event = kmalloc(sizeof(*ej_event), GFP_KERNEL);
-+		if (!ej_event) {
-+			pr_err(PREFIX "No memory, dropping EJECT\n");
-+			break;
-+		}
-+
-+		ej_event->handle = handle;
-+		ej_event->event = ACPI_NOTIFY_EJECT_REQUEST;
-+		acpi_os_hotplug_execute(acpi_bus_hot_remove_device,
-+					(void *)ej_event);
-+
-+		/* eject is performed asynchronously */
-+		return;
- 
- 	default:
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--- 
-1.7.7.6
+pwmX_auto_channels_temp Temperature input channel. Matches temp[1-4]_input to
+the pwm channel X.
 
+> and "pwmX_interpolate"? I think the latter could be a boolean value
+
+pwmX_interpolate: Data sheet says "Set 1 will enable the interpolation of the
+fan expect table", whatever that means. My guess is that, if enabled, the chip
+does not just take the temperatures in the auto_point table and sets the
+respective pwm value, but interpolates for temperatures in between.
+
+pwmX_auto_pointY_temp_hyst is, as the name suggests, a hysteresis value.
+pwm value increases if a temperature trip point is reached (from below),
+and decreases to the previous value if the respective hysteresis point
+is reached (from above).
+
+> whether the f71882fg driver should interpolate values between the
+> temperature points in order to determine fan speed, but can't be
+> sure.
+> 
+> Also, is it possible to select which temperature reading should be
+> used when selecting the fan speed? By default, to determine fan1's
+> speed, temp1 is used and pwm1 value is then manipulated. Is it
+> possible to instruct the driver to use a different sensor reading
+> for the temperature in order to determine the speed of the fan?
+> 
+
+See above; you can use pwmX_auto_channels_temp for that purpose.
+
+Guenter
