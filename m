@@ -1,57 +1,97 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: Re: [PATCH v6 00/11] SATA ZPODD support
-Date: Fri, 29 Jun 2012 11:20:33 +0800
-Message-ID: <CAF1ivSYwRFkt4PJ=nMLO=Ux50c9WfCt8VGnuVYLp5HpfA4Cc9Q@mail.gmail.com>
-References: <1340611992-41457-1-git-send-email-ming.m.lin@intel.com>
+From: preeti <preeti@linux.vnet.ibm.com>
+Subject: Re: Cpuidle drivers,Suspend : Fix suspend/resume hang with intel_idle
+ driver
+Date: Fri, 29 Jun 2012 09:41:30 +0530
+Message-ID: <4FED2AF2.4080900@linux.vnet.ibm.com>
+References: <4FEC20D2.2070501@linux.vnet.ibm.com> <201206281153.25310.rjw@sisk.pl> <4FEC84A4.1000605@linux.vnet.ibm.com> <201206282111.03992.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <1340611992-41457-1-git-send-email-ming.m.lin@intel.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Jeff Garzik <jgarzik@pobox.com>, Aaron Lu <aaron.lu@amd.com>, Holger Macht <holger@homac.de>, Matthew Garrett <mjg@redhat.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, David Woodhouse <David.Woodhouse@intel.com>, Dan Williams <dan.j.williams@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from e28smtp09.in.ibm.com ([122.248.162.9]:39861 "EHLO
+	e28smtp09.in.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750695Ab2F2EAZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Jun 2012 00:00:25 -0400
+Received: from /spool/local
+	by e28smtp09.in.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <linux-acpi@vger.kernel.org> from <preeti@linux.vnet.ibm.com>;
+	Fri, 29 Jun 2012 09:30:23 +0530
+In-Reply-To: <201206282111.03992.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>, Linux PM mailing list <linux-pm@vger.kernel.org>, linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org, "Srivatsa.S.Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
 
-On Mon, Jun 25, 2012 at 4:13 PM, Lin Ming <ming.m.lin@intel.com> wrote:
-> Hi all,
->
-> This is the v6 patches to add SATA ZPODD support, to try it:
-> git pull git://git.kernel.org/pub/scm/linux/kernel/git/mlin/linux.git=
- zpodd
->
-> Holger and Mathtew,
-> Patch 1 to Patch 3 are the libata acpi binding patches from you.
-> I removed dock related code from your original version.
->
-> v6:
-> - rebase to v3.5-rc4
-> - merge patch 4("libata: use correct PCI devices") with patch 2 (Dan =
-Williams)
-> - makes ata_acpi_find_device mostly independent of the topology,
-> =A0gives some type safety, and drops some redundant work finding the =
-ata_port
-> =A0(Dan Williams)
+On 06/29/2012 12:41 AM, Rafael J. Wysocki wrote:
+> On Thursday, June 28, 2012, preeti wrote:
+>> On 06/28/2012 03:23 PM, Rafael J. Wysocki wrote:
+>>> On Thursday, June 28, 2012, preeti wrote:
+>>>>
+>>>> From: Preeti U Murthy <preeti@linux.vnet.ibm.com>
+> [...]
+>> cpuidle is an architecture independent part of the kernel  code.Since 
+>> this patch aims at x86 architecture in specific,I considered it
+>> inappropriate.
+>>
+>> In addition to this,suspend happens on x86 only if ACPI is configured.
+> 
+> But that is not required for intel_idle, so if it hangs with intel_idle,
+> then it is not dependent on ACPI after all.
+True intel_idle does not need ACPI to be configured,but that also means
+that the kernel will not provide you the means to suspend.There is no
+question of resume hang here at all as you cannot suspend in the first
+place.
 
-Hi Jeff,
+The issue is when ACPI is configured,and intel_idle is chosen to be the
+cpuidle driver.In this situation when the user suspends,cpus can enter
+deep sleep states as intel_idle driver does not prevent then from doing so.
+This is when resume hangs.
+> 
+>> Therefore it seemed right to put the callback in ACPI specific code
+>> which deals with ACPI sleep support.
+> 
+> I wonder if we can address this issue correctly.  That is, in a non-racy
+> way and in a better place.
+> 
+> First, I really don't think it is necessary to "suspend" cpuidle (be it
+> ACPI or any other) when device drivers' suspend routines are being
+> executed (which also is racy, because the cpuidle "suspend" may be running
+> concurrently with cpuidle on another CPU) or earlier.  We really may want
+> to disable the deeper C-states when we're about to execute
+> suspend_ops->prepare_late(), or hibernation_ops->prepare(), i.e. after
+> we've run dpm_suspend_end() successfully.
 
-Dan has reviewed the changes.
+The commit "ACPI:disable lower idle C-states across suspend/resume"
+states that device_suspend() calls ACPI suspend functions which cause
+side effects on the lower idle C-states.This means we need to disable
+entry into deeper C-states even before dpm_suspend_start(),but how much
+before?
 
-Would you like to apply these v6 patches?
+The commit answers this too.It says removing the functionality of
+entering deep C-states before suspend removed the side effects.Besides,
+the commit title says'across suspend/resume'.So I think to address the
+resume hang effectively,it is desirable to disable entry into deeper
+C-states during suspend_prepare operations.
+> 
+> So, it seems, it might be a good idea to place a cpuidle driver suspend
+> (and/or hibernation) hook at the end of dpm_suspend_end() and make ACPI
+> and intel_idle drivers implement that hook.
+> 
+Dont you think this patch is meant to fix a very ACPI specific problem?
+Which is why I think the call backs or any hook meant to fix this should
+go into ACPI specific code.
+Else it will seem irrelevant to all other architectures that implement
+suspend.
+> That would be much more deterministic than your patch I think.
+> 
+> Thanks,
+> Rafael
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pm" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Thanks,
-Lin Ming
+Regards
+Preeti
 
->
-> v5:
-> http://lkml.org/lkml/2012/6/18/62
-> - rebase to v3.5-rc3
-> - fixed crash reported at https://lkml.org/lkml/2012/2/24/2 (Aaron Lu=
-)
-> - rename is_pci_ata to compat_pci_ata (Alan Cox)
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-scsi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
