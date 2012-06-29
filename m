@@ -1,14 +1,16 @@
-From: y@domain.invalid
+From: Toshi Kani <toshi.kani@hp.com>
 Subject: [PATCH] ACPI: Add ACPI CPU hot-remove support
-Date: Fri, 29 Jun 2012 08:47:58 -0600
-Message-ID: <16070.2632544146$1340981518@news.gmane.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Date: Fri, 29 Jun 2012 08:51:19 -0600
+Message-ID: <1340981479-6521-1-git-send-email-toshi.kani@hp.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:11118 "EHLO
+	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755548Ab2F2OzO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Jun 2012 10:55:14 -0400
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org, linux-acpi@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>
-List-Id: linux-acpi@vger.kernel.org
-
-From: Toshi Kani <toshi.kani@hp.com>
 
 Added CPU hot-remove support through an ACPI eject notification.
 It calls acpi_bus_hot_remove_device(), which shares the same code
@@ -81,3 +83,4 @@ index f9fa1b2..a6f6bde 100644
  		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
 -- 
 1.7.7.6
+
