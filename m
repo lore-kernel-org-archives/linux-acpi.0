@@ -1,60 +1,91 @@
-From: Arnd Hannemann <arnd@arndnet.de>
-Subject: 3.5.0-rc4: WARNING: at kernel/irq/manage.c:1214 __free_irq+0xa0/0x1d0()
-Date: Fri, 29 Jun 2012 18:59:04 +0200
-Message-ID: <4FEDDED8.2050607@arndnet.de>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH missing/21] classmate-laptop: Use struct dev_pm_ops for power management
+Date: Fri, 29 Jun 2012 23:52:00 +0200
+Message-ID: <201206292352.01078.rjw@sisk.pl>
+References: <201206232306.06602.rjw@sisk.pl> <201206290011.53618.rjw@sisk.pl> <1340969993.24166.2.camel@Nokia-N900>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([193.178.161.156]:46722 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751109Ab2F2Vqc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 29 Jun 2012 17:46:32 -0400
+In-Reply-To: <1340969993.24166.2.camel@Nokia-N900>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thadeu Cascardo <cascardo@holoscopio.com>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, platform-driver-x86@vger.kernel.org, Eric Piel <eric.piel@tremplin-utc.net>, Mattia Dongili <malattia@linux.it>, Harald Welte <laforge@gnumonks.org>, Daniel Oliveira Nascimento <don@syst.com.br>
 
-Hi,
+On Friday, June 29, 2012, Thadeu Cascardo wrote:
+> ----- Original message -----
+> > From: Rafael J. Wysocki <rjw@sisk.pl>
+> > 
+> > Make the classmate-laptop driver define its PM callbacks through
+> > a struct dev_pm_ops object rather than by using legacy PM hooks
+> > in struct acpi_device_ops.
+> > 
+> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> > ---
+> > 
+> > Hi all,
+> > 
+> > I overlooked the classmate-laptop driver in the ACPI conversion to PM
+> > handling based on struct dev_pm_ops, so this one should go after [17/21]
+> > and the next patches should be renumbered.
+> > 
+> > Thanks,
+> > Rafael
+> > 
+> > 
+> > ---
+> >   drivers/platform/x86/classmate-laptop.c |     13 ++++++++-----
+> >   1 file changed, 8 insertions(+), 5 deletions(-)
+> > 
+> > Index: linux/drivers/platform/x86/classmate-laptop.c
+> > ===================================================================
+> > --- linux.orig/drivers/platform/x86/classmate-laptop.c
+> > +++ linux/drivers/platform/x86/classmate-laptop.c
+> > @@ -362,15 +362,18 @@ static int cmpc_tablet_remove(struct acp
+> >       return cmpc_remove_acpi_notify_device(acpi);
+> >   }
+> >   
+> > -static int cmpc_tablet_resume(struct acpi_device *acpi)
+> > +static int cmpc_tablet_resume(struct device *dev)
+> >   {
+> > -    struct input_dev *inputdev = dev_get_drvdata(&acpi->dev);
+> > +    struct input_dev *inputdev = dev_get_drvdata(dev);
+> > +
+> >       unsigned long long val = 0;
+> > -    if (ACPI_SUCCESS(cmpc_get_tablet(acpi->handle, &val)))
+> > +    if (ACPI_SUCCESS(cmpc_get_tablet(to_acpi_device(dev)->handle, &val)))
+> >           input_report_switch(inputdev, SW_TABLET_MODE, !val);
+> >       return 0;
+> >   }
+> >   
+> > +static SIMPLE_DEV_PM_OPS(cmpc_tabled_pm, NULL, cmpc_tablet_resume);
+> > +
+> >   static const struct acpi_device_id cmpc_tablet_device_ids[] = {
+> >       {CMPC_TABLET_HID, 0},
+> >       {"", 0}
+> > @@ -384,9 +387,9 @@ static struct acpi_driver cmpc_tablet_ac
+> >       .ops = {
+> >           .add = cmpc_tablet_add,
+> >           .remove = cmpc_tablet_remove,
+> > -        .resume = cmpc_tablet_resume,
+> >           .notify = cmpc_tablet_handler,
+> > -    }
+> > +    },
+> > +    .drv.pm = &cmpc_tabled_pm,
+> >   };
+> >   
+> >   
+> 
+> Aside from the typo tabled,
 
-I got below warning on suspend on my Thinkpad T510.
-Not sure where this belongs to, ACPI?
+Fixed now.
 
+> Acked-by: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
 
-[61844.171021] Suspending console(s) (use no_console_suspend to debug)
-[61844.357443] sd 0:0:0:0: [sda] Synchronizing SCSI cache
-[61844.357551] sd 0:0:0:0: [sda] Stopping disk
-[61844.610130] ACPI handle has no context!
-[61844.610162] ------------[ cut here ]------------
-[61844.610170] WARNING: at /home/arnd/Projekte/kernel/linux-2.6/kernel/irq/manage.c:1214 __free_irq+0xa0/0x1d0()
-[61844.610171] Hardware name: 4384GEG
-[61844.610171] Trying to free already-free IRQ 40
-[61844.610243] Pid: 24945, comm: kworker/u:11 Tainted: G        W    3.5.0-rc4aha+ #6
-[61844.610244] Call Trace:
-[61844.610250]  [<ffffffff8105061f>] warn_slowpath_common+0x7f/0xc0
-[61844.610252]  [<ffffffff81050716>] warn_slowpath_fmt+0x46/0x50
-[61844.610257]  [<ffffffff8103ea39>] ? default_spin_lock_flags+0x9/0x10
-[61844.610259]  [<ffffffff810dbae0>] __free_irq+0xa0/0x1d0
-[61844.610263]  [<ffffffff8162d0ce>] ? _raw_spin_lock+0xe/0x20
-[61844.610266]  [<ffffffff8107c0d0>] ? async_schedule+0x20/0x20
-[61844.610268]  [<ffffffff810dbe05>] free_irq+0x55/0xd0
-[61844.610275]  [<ffffffffa01894d8>] mei_pci_suspend+0x78/0xd0 [mei]
-[61844.610280]  [<ffffffff81348b65>] pci_pm_suspend+0x75/0x140
-[61844.610285]  [<ffffffff8140b3e0>] ? device_pm_wait_for_dev+0x30/0x30
-[61844.610286]  [<ffffffff81348af0>] ? pci_pm_freeze+0xb0/0xb0
-[61844.610289]  [<ffffffff8140b74b>] dpm_run_callback.isra.5+0x3b/0x80
-[61844.610290]  [<ffffffff8140b84e>] __device_suspend+0xbe/0x250
-[61844.610293]  [<ffffffff8140c19f>] async_suspend+0x1f/0xa0
-[61844.610295]  [<ffffffff8107c14e>] async_run_entry_fn+0x7e/0x170
-[61844.610298]  [<ffffffff8106e44a>] process_one_work+0x11a/0x480
-[61844.610300]  [<ffffffff8106f308>] ? manage_workers.isra.28+0x1e8/0x230
-[61844.610302]  [<ffffffff8106f4b5>] worker_thread+0x165/0x370
-[61844.610304]  [<ffffffff8106f350>] ? manage_workers.isra.28+0x230/0x230
-[61844.610306]  [<ffffffff810741b3>] kthread+0x93/0xa0
-[61844.610310]  [<ffffffff816366e4>] kernel_thread_helper+0x4/0x10
-[61844.610312]  [<ffffffff81074120>] ? kthread_freezable_should_stop+0x70/0x70
-[61844.610314]  [<ffffffff816366e0>] ? gs_change+0x13/0x13
-[61844.610315] ---[ end trace a264c7ac155dd162 ]---
-[61844.617731] ACPI handle has no context!
-[61844.633986] e1000e 0000:00:19.0: wake-up capability enabled by ACPI
-[61844.641689] i915 0000:00:02.0: power state changed by ACPI to D3
-[61844.944999] PM: suspend of devices complete after 775.764 msecs
-
-
-Best regards
-Arnd
+Thanks!
