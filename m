@@ -1,99 +1,25 @@
-From: Michael Zintakis <michael.zintakis@googlemail.com>
-Subject: Re: [lm-sensors] Fintek f71882fg ACPI conflict
-Date: Fri, 29 Jun 2012 13:11:04 +0100
-Message-ID: <4FED9B58.3090102@googlemail.com>
-References: <4FEA4C10.2060904@googlemail.com> <20120627171505.GB12712@roeck-us.net> <4FEB90A8.8050901@googlemail.com> <20120628014548.GA15994@srcf.ucam.org> <4FEC3CDF.7050901@googlemail.com> <20120628144035.36ac75a0@endymion.delvare> <4FEC53DD.8050403@googlemail.com> <20120628152754.2ab6697a@endymion.delvare> <4FED3EB3.4000602@gmail.com>
+From: Corentin Chary <corentin.chary@gmail.com>
+Subject: Re: [PATCH 0/7] platform-drivers-x86: backlight, samsung and asus
+Date: Fri, 29 Jun 2012 14:16:24 +0200
+Message-ID: <CAHR064irJRKWhAozM18E2KMAp0vVGP+TE1mypxJxqV0uvT7Heg@mail.gmail.com>
+References: <1339572727-24744-1-git-send-email-corentin.chary@gmail.com>
+	<20120626184201.GF29375@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:55987 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752710Ab2F2MLW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Jun 2012 08:11:22 -0400
-Received: by lbbgm6 with SMTP id gm6so4556958lbb.19
-        for <linux-acpi@vger.kernel.org>; Fri, 29 Jun 2012 05:11:20 -0700 (PDT)
-In-Reply-To: <4FED3EB3.4000602@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <20120626184201.GF29375@srcf.ucam.org>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robert Hancock <hancockrwd@gmail.com>
-Cc: Jean Delvare <khali@linux-fr.org>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, lm-sensors@lm-sensors.org
+
+On Tue, Jun 26, 2012 at 8:42 PM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
+> I think I'm fine with this. Whose tree should it go through?
+
+Yours would probably be easier,
+Thanks
 
 
-> In this case, however, where the BIOS does in fact expose an ACPI 
-> thermal zone and relies on AML code to perform fan control, etc. then 
-> it seems quite likely that it's not safe to access the same hardware 
-> monitoring controller while AML code may be doing so at the same time. 
-> The only way I can see that you could make ACPI "leave the hardware 
-> monitoring chip alone" is to either have the kernel block its accesses 
-> (quite likely breaking all fan/temperature control) or disable ACPI 
-> entirely (in this case the BIOS likely either leaves the fan control 
-> in "run at max speed always" mode or uses SMIs to gain control where 
-> needed to adjust fan speeds, which causes the same concurrent access 
-> problem).
-Interesting and it sort-of confirms my "findings" from yesterday's bout 
-I've had with ACPI.
-
-When I completely deactivate ACPI ("acpi=off" in the kernel command 
-line), there is obviously no more conflict errors reported, but what I 
-also discovered is that the problem I've had with the fans not able to 
-start (when they are at standstill initially) is not there any more!
-
-When I forcefully stop a fan by "echo 1 > pwmX" (you were right, when I 
-deactivate any sort of temperature, fan & voltage management in BIOS and 
-ACPI is OFF, the fans run at maximum speed), then select "automatic" 
-management and pass control over to the f71882fg driver, when the 
-temperature rises enough for the fan to start spinning, but not enough 
-to push it over the "safe" minimum speed threshold, this raises an alarm 
-event (fanX_alarm gets triggered) and the f71882fg driver then, 
-completely by itself, pushes the fan to its maximum speed momentarily 
-and the fan starts spinning - exactly the behaviour I was "simulating" 
-with my bash script.
-
-Obviously, the pwm value then gets decreased by the driver below the 
-"safe" minimum speed limit causing the fan to stop again and trigger the 
-alarm again, but I could easily overcome this problem by setting 
-pwmX_auto_point5_pwm to keep the fan at safe speed once it is started.
-
-When I do this, everything is running absolutely flawlessly - I've ran 
-this for 3 hours, putting various load levels on the system to see how 
-it reacts to temperature changes and the f71882fg driver does a superb 
-job without the need for my bash script!
-
-The only downside is, if one could call it that, that I have to setup 
-everything under /sys/class/hwmon/hwmonX/driver/ manually - from 
-"pwmX_auto_pointY_temp/pwm" to "fanX_full_speed" and the like, but I 
-could live with that, no problem.
-
-Now, it seems to me that ACPI is the culprit, has been all along, and I 
-need to get rid of the conflict in order to achieve that level of 
-operation - without this I am going to struggle! Turning ACPI off 
-completely is not an option for me at all - in such a case one 
-noticeable effect is that my multi-core CPU doesn't get recognised (it 
-is only recognised as a single-core) and the SMP-part of the kernel is 
-not functioning. That, clearly, is unacceptable to me.
-
-So, is there a way to make ACPI "leave my hardware monitoring chip 
-alone" without fully deactivating it? I don't care if all 
-fan/temperature control is going to "break" - I think the f71882fg chip 
-driver is perfectly capable of doing that without the "help" from ACPI. 
-So, is there any way - even with brute-force hacking of the kernel - to 
-prevent ACPI from getting anywhere near my hwmon chip (please say "yes" 
-:-) )?
-
-Last couple of queries regarding the f71882fg driver:
-
-What is the purpose of "pwmX_auto_channels_temp" (I have default values 
-of 4, 2 and 1 for my 3 fans), "pwmX_auto_pointY_temp_hyst" and 
-"pwmX_interpolate"? I think the latter could be a boolean value whether 
-the f71882fg driver should interpolate values between the temperature 
-points in order to determine fan speed, but can't be sure.
-
-Also, is it possible to select which temperature reading should be used 
-when selecting the fan speed? By default, to determine fan1's speed, 
-temp1 is used and pwm1 value is then manipulated. Is it possible to 
-instruct the driver to use a different sensor reading for the 
-temperature in order to determine the speed of the fan?
- 
-
-MZ
+-- 
+Corentin Chary
+http://xf.iksaif.net
