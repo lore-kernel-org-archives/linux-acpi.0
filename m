@@ -1,91 +1,115 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH missing/21] classmate-laptop: Use struct dev_pm_ops for power management
-Date: Fri, 29 Jun 2012 23:52:00 +0200
-Message-ID: <201206292352.01078.rjw@sisk.pl>
-References: <201206232306.06602.rjw@sisk.pl> <201206290011.53618.rjw@sisk.pl> <1340969993.24166.2.camel@Nokia-N900>
+Subject: Re: Cpuidle drivers,Suspend : Fix suspend/resume hang with intel_idle driver
+Date: Sat, 30 Jun 2012 00:07:25 +0200
+Message-ID: <201206300007.25255.rjw@sisk.pl>
+References: <4FEC20D2.2070501@linux.vnet.ibm.com> <201206282111.03992.rjw@sisk.pl> <4FED2AF2.4080900@linux.vnet.ibm.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="utf-8"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:46722 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([193.178.161.156]:46778 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751109Ab2F2Vqc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 29 Jun 2012 17:46:32 -0400
-In-Reply-To: <1340969993.24166.2.camel@Nokia-N900>
+	id S1751449Ab2F2WBz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 29 Jun 2012 18:01:55 -0400
+In-Reply-To: <4FED2AF2.4080900@linux.vnet.ibm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thadeu Cascardo <cascardo@holoscopio.com>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, platform-driver-x86@vger.kernel.org, Eric Piel <eric.piel@tremplin-utc.net>, Mattia Dongili <malattia@linux.it>, Harald Welte <laforge@gnumonks.org>, Daniel Oliveira Nascimento <don@syst.com.br>
+To: preeti <preeti@linux.vnet.ibm.com>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>, Linux PM mailing list <linux-pm@vger.kernel.org>, linux-acpi@vger.kernel.org, "Srivatsa.S.Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
 
-On Friday, June 29, 2012, Thadeu Cascardo wrote:
-> ----- Original message -----
-> > From: Rafael J. Wysocki <rjw@sisk.pl>
+On Friday, June 29, 2012, preeti wrote:
+> On 06/29/2012 12:41 AM, Rafael J. Wysocki wrote:
+> > On Thursday, June 28, 2012, preeti wrote:
+> >> On 06/28/2012 03:23 PM, Rafael J. Wysocki wrote:
+> >>> On Thursday, June 28, 2012, preeti wrote:
+> >>>>
+> >>>> From: Preeti U Murthy <preeti@linux.vnet.ibm.com>
+> > [...]
+> >> cpuidle is an architecture independent part of the kernel  code.Since 
+> >> this patch aims at x86 architecture in specific,I considered it
+> >> inappropriate.
+> >>
+> >> In addition to this,suspend happens on x86 only if ACPI is configured.
 > > 
-> > Make the classmate-laptop driver define its PM callbacks through
-> > a struct dev_pm_ops object rather than by using legacy PM hooks
-> > in struct acpi_device_ops.
-> > 
-> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> > ---
-> > 
-> > Hi all,
-> > 
-> > I overlooked the classmate-laptop driver in the ACPI conversion to PM
-> > handling based on struct dev_pm_ops, so this one should go after [17/21]
-> > and the next patches should be renumbered.
-> > 
-> > Thanks,
-> > Rafael
-> > 
-> > 
-> > ---
-> >   drivers/platform/x86/classmate-laptop.c |     13 ++++++++-----
-> >   1 file changed, 8 insertions(+), 5 deletions(-)
-> > 
-> > Index: linux/drivers/platform/x86/classmate-laptop.c
-> > ===================================================================
-> > --- linux.orig/drivers/platform/x86/classmate-laptop.c
-> > +++ linux/drivers/platform/x86/classmate-laptop.c
-> > @@ -362,15 +362,18 @@ static int cmpc_tablet_remove(struct acp
-> >       return cmpc_remove_acpi_notify_device(acpi);
-> >   }
-> >   
-> > -static int cmpc_tablet_resume(struct acpi_device *acpi)
-> > +static int cmpc_tablet_resume(struct device *dev)
-> >   {
-> > -    struct input_dev *inputdev = dev_get_drvdata(&acpi->dev);
-> > +    struct input_dev *inputdev = dev_get_drvdata(dev);
-> > +
-> >       unsigned long long val = 0;
-> > -    if (ACPI_SUCCESS(cmpc_get_tablet(acpi->handle, &val)))
-> > +    if (ACPI_SUCCESS(cmpc_get_tablet(to_acpi_device(dev)->handle, &val)))
-> >           input_report_switch(inputdev, SW_TABLET_MODE, !val);
-> >       return 0;
-> >   }
-> >   
-> > +static SIMPLE_DEV_PM_OPS(cmpc_tabled_pm, NULL, cmpc_tablet_resume);
-> > +
-> >   static const struct acpi_device_id cmpc_tablet_device_ids[] = {
-> >       {CMPC_TABLET_HID, 0},
-> >       {"", 0}
-> > @@ -384,9 +387,9 @@ static struct acpi_driver cmpc_tablet_ac
-> >       .ops = {
-> >           .add = cmpc_tablet_add,
-> >           .remove = cmpc_tablet_remove,
-> > -        .resume = cmpc_tablet_resume,
-> >           .notify = cmpc_tablet_handler,
-> > -    }
-> > +    },
-> > +    .drv.pm = &cmpc_tabled_pm,
-> >   };
-> >   
-> >   
+> > But that is not required for intel_idle, so if it hangs with intel_idle,
+> > then it is not dependent on ACPI after all.
+> True intel_idle does not need ACPI to be configured,but that also means
+> that the kernel will not provide you the means to suspend.
+
+Yes, it will.  You can hibernate without ACPI in theory.
+
+> There is no question of resume hang here at all as you cannot suspend in
+> the first place.
 > 
-> Aside from the typo tabled,
+> The issue is when ACPI is configured,and intel_idle is chosen to be the
+> cpuidle driver.In this situation when the user suspends,cpus can enter
+> deep sleep states as intel_idle driver does not prevent then from doing so.
+> This is when resume hangs.
 
-Fixed now.
+I know that.
 
-> Acked-by: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+> >> Therefore it seemed right to put the callback in ACPI specific code
+> >> which deals with ACPI sleep support.
+> > 
+> > I wonder if we can address this issue correctly.  That is, in a non-racy
+> > way and in a better place.
+> > 
+> > First, I really don't think it is necessary to "suspend" cpuidle (be it
+> > ACPI or any other) when device drivers' suspend routines are being
+> > executed (which also is racy, because the cpuidle "suspend" may be running
+> > concurrently with cpuidle on another CPU) or earlier.  We really may want
+> > to disable the deeper C-states when we're about to execute
+> > suspend_ops->prepare_late(), or hibernation_ops->prepare(), i.e. after
+> > we've run dpm_suspend_end() successfully.
+> 
+> The commit "ACPI:disable lower idle C-states across suspend/resume"
+> states that device_suspend() calls ACPI suspend functions which cause
+> side effects on the lower idle C-states.
 
-Thanks!
+I'd like to know the details, then.  Which ACPI suspend functions those are,
+in particular, because I'm not aware of any in device_suspend().
+
+Also, please note that this commit is 5 years old and some things have changed
+in the suspend code paths since that time.
+
+> This means we need to disable entry into deeper C-states even before
+> dpm_suspend_start(),
+
+This most likely is wrong.
+
+We may need to "suspend" cpuidle before calling suspend_device_irqs(),
+but then again that shouldn't be made via a notifier I think.  Why don't
+we simply make suspend_device_irqs() disable lower C-states to start with?
+
+> but how much before?
+> 
+> The commit answers this too.It says removing the functionality of
+> entering deep C-states before suspend removed the side effects.Besides,
+> the commit title says'across suspend/resume'.So I think to address the
+> resume hang effectively,it is desirable to disable entry into deeper
+> C-states during suspend_prepare operations.
+> > 
+> > So, it seems, it might be a good idea to place a cpuidle driver suspend
+> > (and/or hibernation) hook at the end of dpm_suspend_end() and make ACPI
+> > and intel_idle drivers implement that hook.
+> > 
+> Dont you think this patch is meant to fix a very ACPI specific problem?
+
+No, I don't.
+
+> Which is why I think the call backs or any hook meant to fix this should
+> go into ACPI specific code.
+> Else it will seem irrelevant to all other architectures that implement
+> suspend.
+
+I don't honestly think it is irrelevant.  The fact is that similar problems
+have not been reported on other architectures _yet_, which by no means can
+be taken as a proof that those architectures are not affected.
+
+Anyway, I think that the right way to address this is through a cpuidle driver
+callback executed from suspend_device_irqs() (and analogously for the resume
+code path) and not through some hacky-ugly ACPI changes.
+
+Thanks,
+Rafael
