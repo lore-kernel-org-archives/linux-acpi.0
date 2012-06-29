@@ -1,16 +1,12 @@
 From: y@domain.invalid
 Subject: [PATCH] ACPI: Add ACPI CPU hot-remove support
 Date: Fri, 29 Jun 2012 08:47:58 -0600
-Message-ID: <39180.6428939619$1340981500@news.gmane.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0029.austin.hp.com ([15.216.28.36]:32529 "EHLO
-	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751431Ab2F2Ovf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Jun 2012 10:51:35 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Message-ID: <16070.2632544146$1340981518@news.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: lenb@kernel.org, linux-acpi@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>
+List-Id: linux-acpi@vger.kernel.org
 
 From: Toshi Kani <toshi.kani@hp.com>
 
@@ -85,4 +81,3 @@ index f9fa1b2..a6f6bde 100644
  		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
 -- 
 1.7.7.6
-
