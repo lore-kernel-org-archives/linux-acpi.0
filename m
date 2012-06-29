@@ -1,111 +1,56 @@
-From: preeti <preeti@linux.vnet.ibm.com>
-Subject: Re: Cpuidle drivers,Suspend : Fix suspend/resume hang with intel_idle
- driver
-Date: Fri, 29 Jun 2012 10:56:56 +0530
-Message-ID: <4FED3CA0.3050909@linux.vnet.ibm.com>
-References: <4FEC20D2.2070501@linux.vnet.ibm.com> <201206281153.25310.rjw@sisk.pl> <4FEC84A4.1000605@linux.vnet.ibm.com> <201206282111.03992.rjw@sisk.pl> <4FED2AF2.4080900@linux.vnet.ibm.com>
+From: Robert Hancock <hancockrwd@gmail.com>
+Subject: Re: [lm-sensors] Fintek f71882fg ACPI conflict
+Date: Thu, 28 Jun 2012 23:35:47 -0600
+Message-ID: <4FED3EB3.4000602@gmail.com>
+References: <4FEA4C10.2060904@googlemail.com> <20120627171505.GB12712@roeck-us.net> <4FEB90A8.8050901@googlemail.com> <20120628014548.GA15994@srcf.ucam.org> <4FEC3CDF.7050901@googlemail.com> <20120628144035.36ac75a0@endymion.delvare> <4FEC53DD.8050403@googlemail.com> <20120628152754.2ab6697a@endymion.delvare>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e28smtp09.in.ibm.com ([122.248.162.9]:58202 "EHLO
-	e28smtp09.in.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750812Ab2F2FPy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Jun 2012 01:15:54 -0400
-Received: from /spool/local
-	by e28smtp09.in.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <linux-acpi@vger.kernel.org> from <preeti@linux.vnet.ibm.com>;
-	Fri, 29 Jun 2012 10:45:48 +0530
-In-Reply-To: <4FED2AF2.4080900@linux.vnet.ibm.com>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:58093 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750944Ab2F2Ffx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Jun 2012 01:35:53 -0400
+Received: by yenl2 with SMTP id l2so2420990yen.19
+        for <linux-acpi@vger.kernel.org>; Thu, 28 Jun 2012 22:35:52 -0700 (PDT)
+In-Reply-To: <20120628152754.2ab6697a@endymion.delvare>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>, Linux PM mailing list <linux-pm@vger.kernel.org>, linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org, "Srivatsa.S.Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Michael Zintakis <michael.zintakis@googlemail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, lm-sensors@lm-sensors.org
 
-On 06/29/2012 09:41 AM, preeti wrote:
-> On 06/29/2012 12:41 AM, Rafael J. Wysocki wrote:
->> On Thursday, June 28, 2012, preeti wrote:
->>> On 06/28/2012 03:23 PM, Rafael J. Wysocki wrote:
->>>> On Thursday, June 28, 2012, preeti wrote:
->>>>>
->>>>> From: Preeti U Murthy <preeti@linux.vnet.ibm.com>
->> [...]
->>> cpuidle is an architecture independent part of the kernel  code.Since 
->>> this patch aims at x86 architecture in specific,I considered it
->>> inappropriate.
->>>
->>> In addition to this,suspend happens on x86 only if ACPI is configured.
->>
->> But that is not required for intel_idle, so if it hangs with intel_idle,
->> then it is not dependent on ACPI after all.
-> True intel_idle does not need ACPI to be configured,but that also means
-> that the kernel will not provide you the means to suspend.There is no
-> question of resume hang here at all as you cannot suspend in the first
-> place.
-> 
-> The issue is when ACPI is configured,and intel_idle is chosen to be the
-> cpuidle driver.In this situation when the user suspends,cpus can enter
-> deep sleep states as intel_idle driver does not prevent then from doing so.
-> This is when resume hangs.
->>
->>> Therefore it seemed right to put the callback in ACPI specific code
->>> which deals with ACPI sleep support.
->>
->> I wonder if we can address this issue correctly.  That is, in a non-racy
->> way and in a better place.
->>
->> First, I really don't think it is necessary to "suspend" cpuidle (be it
->> ACPI or any other) when device drivers' suspend routines are being
->> executed (which also is racy, because the cpuidle "suspend" may be running
->> concurrently with cpuidle on another CPU) or earlier.  We really may want
->> to disable the deeper C-states when we're about to execute
->> suspend_ops->prepare_late(), or hibernation_ops->prepare(), i.e. after
->> we've run dpm_suspend_end() successfully.
-> 
-> The commit "ACPI:disable lower idle C-states across suspend/resume"
-> states that device_suspend() calls ACPI suspend functions which cause
-> side effects on the lower idle C-states.This means we need to disable
-> entry into deeper C-states even before dpm_suspend_start(),but how much
-> before?
-> 
-> The commit answers this too.It says removing the functionality of
-> entering deep C-states before suspend removed the side effects.Besides,
-> the commit title says'across suspend/resume'.So I think to address the
-> resume hang effectively,it is desirable to disable entry into deeper
-> C-states during suspend_prepare operations.
+On 06/28/2012 07:27 AM, Jean Delvare wrote:
+> On Thu, 28 Jun 2012 13:53:49 +0100, Michael Zintakis wrote:
+>> In the meantime, considering the specifics of my particular case and the
+>> memory regions involved (again, I think they are 0x290-0x297, a total of
+>> 8 bytes in length according to the driver, though if someone more
+>> knowledgeable in the f71882fg driver specifics know otherwise, please
+>> feel free to correct this if that assumption is wrong), would it be
+>> possible to manually hack into the ACPI code and forcefully prevent it
+>> from claiming those memory regions and not get involved in "managing"
+>> that particular device?
+>
+> Not that I know of. That would rather be a question for the ACPI
+> people, but I'm afraid the answer is that ACPI is supposed to be the
+> best thing since sliced bread and you should just let it do its stuff
+> and not ask questions :( I too would love to be able to tell ACPI to
+> let my hardware monitoring chip (and/or SMBus controller) alone.
 
-To clarify this further,since we take action upon PM_SUSPEND_PREPARE
-notification,which is called before suspend begins,we avoid race
-condition between suspend operations and disabling entry into deeper
-c-states altogether.
+The ACPI conflict gets triggered when the BIOS AML code creates an 
+operation region to access the same device that the driver is trying to 
+bind to. There apparently are some BIOSes that do this and yet don't use 
+it to actually access the hardware monitoring chip. In this case there 
+is no true conflict and the acpi_enforce_resources=lax option is safe to 
+use. Unfortunately there's really no way for the kernel to tell whether 
+or not this is the case.
 
->>
->> So, it seems, it might be a good idea to place a cpuidle driver suspend
->> (and/or hibernation) hook at the end of dpm_suspend_end() and make ACPI
->> and intel_idle drivers implement that hook.
->>
-> Dont you think this patch is meant to fix a very ACPI specific problem?
-> Which is why I think the call backs or any hook meant to fix this should
-> go into ACPI specific code.
-> Else it will seem irrelevant to all other architectures that implement
-> suspend.
->> That would be much more deterministic than your patch I think.
->>
->> Thanks,
->> Rafael
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-pm" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
-> 
-> Regards
-> Preeti
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pm" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
-
+In this case, however, where the BIOS does in fact expose an ACPI 
+thermal zone and relies on AML code to perform fan control, etc. then it 
+seems quite likely that it's not safe to access the same hardware 
+monitoring controller while AML code may be doing so at the same time. 
+The only way I can see that you could make ACPI "leave the hardware 
+monitoring chip alone" is to either have the kernel block its accesses 
+(quite likely breaking all fan/temperature control) or disable ACPI 
+entirely (in this case the BIOS likely either leaves the fan control in 
+"run at max speed always" mode or uses SMIs to gain control where needed 
+to adjust fan speeds, which causes the same concurrent access problem).
