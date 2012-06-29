@@ -1,205 +1,297 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: Re: [PATCH V4 3/8] usb: move children to struct usb_port
-Date: Fri, 29 Jun 2012 09:23:48 +0800
-Message-ID: <4FED03A4.8060105@intel.com>
-References: <Pine.LNX.4.44L0.1206281030590.1752-100000@iolanthe.rowland.org>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [RFC PATCH 4/12] memory-hotplug : remove /sys/firmware/memmap/X
+ sysfs
+Date: Fri, 29 Jun 2012 12:09:25 +0900
+Message-ID: <4FED1C65.7010902@jp.fujitsu.com>
+References: <4FEA9C88.1070800@jp.fujitsu.com> <4FEA9E5F.4070205@jp.fujitsu.com> <4FEBFA8D.5040607@cn.fujitsu.com> <4FEC10CB.3060403@jp.fujitsu.com> <4FEC17F8.1000405@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:2901 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754848Ab2F2Bbi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 28 Jun 2012 21:31:38 -0400
-In-Reply-To: <Pine.LNX.4.44L0.1206281030590.1752-100000@iolanthe.rowland.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <4FEC17F8.1000405@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Wen Congyang <wency@cn.fujitsu.com>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: gregkh@linuxfoundation.org, lenb@kernel.org, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, sarah.a.sharp@linux.intel.com
 
-hi alan:
-	Great thanks for your review.
+Hi Wen,
 
-On 2012=E5=B9=B406=E6=9C=8828=E6=97=A5 22:42, Alan Stern wrote:
-> On Thu, 28 Jun 2012, Lan Tianyu wrote:
->
->> Move child's pointer to the struct usb_port since the child device
->> is directly associated with the port. Provide usb_get_hub_child()
->> to get child's pointer and macrio macro usb_get_hub_each_child to
->> iterate all child devices on the hub.
+2012/06/28 17:38, Wen Congyang wrote:
+> At 06/28/2012 04:07 PM, Yasuaki Ishimatsu Wrote:
+>> Hi Wen,
 >>
->> Signed-off-by: Lan Tianyu<tianyu.lan@intel.com>
->
->
->> --- a/drivers/usb/core/devices.c
->> +++ b/drivers/usb/core/devices.c
->
->> @@ -589,14 +590,12 @@ static ssize_t usb_device_dump(char __user **b=
-uffer, size_t *nbytes,
->>   	free_pages((unsigned long)pages_start, 1);
+>> 2012/06/28 15:32, Wen Congyang wrote:
+>>> At 06/27/2012 01:47 PM, Yasuaki Ishimatsu Wrote:
+>>>> When (hot)adding memory into system, /sys/firmware/memmap/X/{end,
+>>>> start, type}
+>>>> sysfs files are created. But there is no code to remove these files.
+>>>> The patch
+>>>> implements the function to remove them.
+>>>>
+>>>> Note : The code does not free firmware_map_entry since there is no
+>>>> way to free
+>>>>          memory which is allocated by bootmem.
+>>>>
+>>>> CC: Len Brown <len.brown@intel.com>
+>>>> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+>>>> CC: Paul Mackerras <paulus@samba.org>
+>>>> CC: Christoph Lameter <cl@linux.com>
+>>>> Cc: Minchan Kim <minchan.kim@gmail.com>
+>>>> CC: Andrew Morton <akpm@linux-foundation.org>
+>>>> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+>>>> CC: Wen Congyang <wency@cn.fujitsu.com>
+>>>> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+>>>>
+>>>> ---
+>>>>    drivers/firmware/memmap.c    |   71
+>>>> +++++++++++++++++++++++++++++++++++++++++++
+>>>>    include/linux/firmware-map.h |    6 +++
+>>>>    mm/memory_hotplug.c          |    6 +++
+>>>>    3 files changed, 82 insertions(+), 1 deletion(-)
+>>>>
+>>>> Index: linux-3.5-rc4/mm/memory_hotplug.c
+>>>> ===================================================================
+>>>> --- linux-3.5-rc4.orig/mm/memory_hotplug.c    2012-06-26
+>>>> 13:37:30.546288901 +0900
+>>>> +++ linux-3.5-rc4/mm/memory_hotplug.c    2012-06-26
+>>>> 13:44:37.069955820 +0900
+>>>> @@ -661,7 +661,11 @@ EXPORT_SYMBOL_GPL(add_memory);
+>>>>
+>>>>    int remove_memory(int nid, u64 start, u64 size)
+>>>>    {
+>>>> -    return -EBUSY;
+>>>> +    lock_memory_hotplug();
+>>>> +    /* remove memmap entry */
+>>>> +    firmware_map_remove(start, start + size, "System RAM");
+>>>> +    unlock_memory_hotplug();
+>>>> +    return 0;
+>>>>
+>>>>    }
+>>>>    EXPORT_SYMBOL_GPL(remove_memory);
+>>>> Index: linux-3.5-rc4/include/linux/firmware-map.h
+>>>> ===================================================================
+>>>> --- linux-3.5-rc4.orig/include/linux/firmware-map.h    2012-06-25
+>>>> 04:53:04.000000000 +0900
+>>>> +++ linux-3.5-rc4/include/linux/firmware-map.h    2012-06-26
+>>>> 13:44:37.070955807 +0900
+>>>> @@ -25,6 +25,7 @@
+>>>>
+>>>>    int firmware_map_add_early(u64 start, u64 end, const char *type);
+>>>>    int firmware_map_add_hotplug(u64 start, u64 end, const char *type);
+>>>> +int firmware_map_remove(u64 start, u64 end, const char *type);
+>>>>
+>>>>    #else /* CONFIG_FIRMWARE_MEMMAP */
+>>>>
+>>>> @@ -38,6 +39,11 @@ static inline int firmware_map_add_hotpl
+>>>>        return 0;
+>>>>    }
+>>>>
+>>>> +static inline int firmware_map_remove(u64 start, u64 end, const char
+>>>> *type)
+>>>> +{
+>>>> +    return 0;
+>>>> +}
+>>>> +
+>>>>    #endif /* CONFIG_FIRMWARE_MEMMAP */
+>>>>
+>>>>    #endif /* _LINUX_FIRMWARE_MAP_H */
+>>>> Index: linux-3.5-rc4/drivers/firmware/memmap.c
+>>>> ===================================================================
+>>>> --- linux-3.5-rc4.orig/drivers/firmware/memmap.c    2012-06-25
+>>>> 04:53:04.000000000 +0900
+>>>> +++ linux-3.5-rc4/drivers/firmware/memmap.c    2012-06-26
+>>>> 13:47:17.606948898 +0900
+>>>> @@ -123,6 +123,16 @@ static int firmware_map_add_entry(u64 st
+>>>>        return 0;
+>>>>    }
+>>>>
+>>>> +/**
+>>>> + * firmware_map_remove_entry() - Does the real work to remove a
+>>>> firmware
+>>>> + * memmap entry.
+>>>> + * @entry: removed entry.
+>>>> + **/
+>>>> +static inline void firmware_map_remove_entry(struct
+>>>> firmware_map_entry *entry)
+>>>> +{
+>>>> +    list_del(&entry->list);
+>>>> +}
+>>>> +
+>>>>    /*
+>>>>     * Add memmap entry on sysfs
+>>>>     */
+>>>> @@ -144,6 +154,31 @@ static int add_sysfs_fw_map_entry(struct
+>>>>        return 0;
+>>>>    }
+>>>>
+>>>> +/*
+>>>> + * Remove memmap entry on sysfs
+>>>> + */
+>>>> +static inline void remove_sysfs_fw_map_entry(struct
+>>>> firmware_map_entry *entry)
+>>>> +{
+>>>> +    kobject_del(&entry->kobj);
+>>>> +}
+>>>> +
+>>>> +/*
+>>>> + * Search memmap entry
+>>>> + */
+>>>> +
+>>>> +struct firmware_map_entry * __meminit
+>>>> +find_firmware_map_entry(u64 start, u64 end, const char *type)
+>>>> +{
+>>>> +    struct firmware_map_entry *entry;
+>>>> +
+>>>> +    list_for_each_entry(entry, &map_entries, list)
+>>>> +        if ((entry->start == start) && (entry->end == end) &&
+>>>> +            (!strcmp(entry->type, type)))
+>>>> +            return entry;
+>>>> +
+>>>> +    return NULL;
+>>>> +}
+>>>> +
+>>>>    /**
+>>>>     * firmware_map_add_hotplug() - Adds a firmware mapping entry when
+>>>> we do
+>>>>     * memory hotplug.
+>>>> @@ -196,6 +231,42 @@ int __init firmware_map_add_early(u64 st
+>>>>        return firmware_map_add_entry(start, end, type, entry);
+>>>>    }
+>>>>
+>>>> +void release_firmware_map_entry(struct firmware_map_entry *entry)
+>>>> +{
+>>>> +    /*
+>>>> +     * FIXME : There is no idea.
+>>>> +     *         How to free the entry which allocated bootmem?
+>>>> +     */
+>>>> +}
+>>>> +
+>>>> +/**
+>>>> + * firmware_map_remove() - remove a firmware mapping entry
+>>>> + * @start: Start of the memory range.
+>>>> + * @end:   End of the memory range (inclusive).
+>>>> + * @type:  Type of the memory range.
+>>>> + *
+>>>> + * removes a firmware mapping entry.
+>>>> + *
+>>>> + * Returns 0 on success, or -EINVAL if no entry.
+>>>> + **/
+>>>> +int __meminit firmware_map_remove(u64 start, u64 end, const char *type)
+>>>> +{
+>>>> +    struct firmware_map_entry *entry;
+>>>> +
+>>>> +    entry = find_firmware_map_entry(start, end, type);
+>>>
+>>> Hmm, we cannot find the entry easily, because the end can be:
+>>> 1. start + size
+>>> 2. start + size - 1
+>>>
+>>> So, We should fix this bug first.
 >>
->>   	/* Now look at all of this device's children. */
->> -	for (chix =3D 0; chix<  usbdev->maxchild; chix++) {
->> -		struct usb_device *childdev =3D usbdev->children[chix];
->> -
->> +	usb_get_hub_each_child(usbdev, chix, childdev) {
->>   		if (childdev) {
->>   			usb_lock_device(childdev);
->>   			ret =3D usb_device_dump(buffer, nbytes, skip_bytes,
->>   					      file_offset, childdev, bus,
->> -					      level + 1, chix, ++cnt);
->> +					      level + 1, chix - 1, ++cnt);
->>   			usb_unlock_device(childdev);
+>> This is not a bug.
+>>
+>> start and size arguments of firmware_map_remove() include
+>> acpi_memory_info->{start_addr, length}. And when creating a
+>> firmware_map_entry,
+>> the entry is created by acpi_memory_info->{start_addr, length}. So I don't
+>> think that we need care your comment.
 >
-> You forget to add usb_put_dev(childdev).
-Oh. sorry. I forget to remove usb_get_dev() in the usb_get_hub_child().=
- since=20
-last our discussion,
-the increase refcount maybe not helpful. I will remove it in next versi=
-on.
+> If the memory device is hotpluged before the os starts, and the memory
+> map is included in e820 map, the entry will be created by firmware_map_add_early().
+>
+> The function firmware_map_add_early() is called by e820_reserve_resources():
+> =====================
+> 	for (i = 0; i < e820_saved.nr_map; i++) {
+> 		struct e820entry *entry = &e820_saved.map[i];
+> 		firmware_map_add_early(entry->addr,
+> 			entry->addr + entry->size - 1,
+> 			e820_type_to_string(entry->type));
+> 	}
+> =====================
+>
+> Note: the end is addr + size - 1, not addr + size.
+>
+> In such case, you cannot find the entry.
 
-http://marc.info/?l=3Dlinux-usb&m=3D133968372704178&w=3D2
+Thank you for your explanation. I understood it.
+end argument of firmware_map_add_hotplug() has always "addr + size",
+not "addr + size - 1". I think that changing argument of
+firmware_map_add_early() is high risk since the function has been used
+since early times. So, I will unify to "addr + size - 1".
+
+Thanks,
+Yasuaki Ishimatsu
+
+> Thanks
+> Wen Congyang
 >
->>   			if (ret =3D=3D -EFAULT)
->>   				return total_written;
->
->> --- a/drivers/usb/core/hub.c
->> +++ b/drivers/usb/core/hub.c
->
->> @@ -1784,11 +1783,12 @@ bool usb_device_is_owned(struct usb_device *=
-udev)
 >>
->>   static void recursively_mark_NOTATTACHED(struct usb_device *udev)
->>   {
->> +	struct usb_hub *hub =3D hdev_to_hub(udev);
->
-> This is dangerous, because at this point you don't know whether udev =
-is
-> a hub -- it might not be -- and hdev_to_hub can crash if its argument
-> isn't a hub.  Instead you should do:
->
-> 	struct usb_hub *hub;
->
-> 	if (udev->maxchild>  0)
-> 		hub =3D hdev_to_hub(udev);
->
-> Or if you prefer, add the "hdev->maxchild>  0" test into hdev_to_hub
-> itself.
->
->> @@ -1952,6 +1952,7 @@ static void hub_free_dev(struct usb_device *ud=
-ev)
->>   void usb_disconnect(struct usb_device **pdev)
->>   {
->>   	struct usb_device	*udev =3D *pdev;
->> +	struct usb_hub		*hub =3D hdev_to_hub(udev);
->
-> Same here.
->
->> @@ -4965,3 +4966,27 @@ void usb_queue_reset_device(struct usb_interf=
-ace *iface)
->>   	schedule_work(&iface->reset_ws);
->>   }
->>   EXPORT_SYMBOL_GPL(usb_queue_reset_device);
->> +
->> +/**
->> + * usb_get_hub_child - Get the pointer of child device
->> + * attached to the port which is specified by @port1.
->> + * @hdev: USB device belonging to the usb hub
->> + * @port1: port num to indicate which port the child device
->> + *	is attached to.
->> + *
->> + * USB drivers call this function to get hub's child device
->> + * pointer.
->> + *
->> + * Return NULL if input param is invalid and
->> + * child's usb_device pointer if non-NULL.
->
-> The kerneldoc should mention that this routine increments the child's
-> reference count and the caller must call usb_put_dev() when it
-> is finished using the child.
->
-> Also, I think it would be better if the function were named
-> "usb_hub_get_child".
-Ok. I will change it.
->
->> + */
->> +struct usb_device *usb_get_hub_child(struct usb_device *hdev,
->> +		int port1)
->> +{
->> +	struct usb_hub *hub =3D hdev_to_hub(hdev);
->> +
->> +	if (port1<  1 || port1>  hdev->maxchild)
->> +		return NULL;
->> +	return usb_get_dev(hub->ports[port1 - 1]->child);
->> +}
->
->> --- a/drivers/usb/host/r8a66597-hcd.c
->> +++ b/drivers/usb/host/r8a66597-hcd.c
->> @@ -2033,17 +2033,18 @@ static int r8a66597_get_frame(struct usb_hcd=
- *hcd)
->>   static void collect_usb_address_map(struct usb_device *udev, unsig=
-ned long *map)
->>   {
->>   	int chix;
->> +	struct usb_device *childdev;
+>>>
+>>>> +    if (!entry)
+>>>> +        return -EINVAL;
+>>>> +
+>>>> +    /* remove the memmap entry */
+>>>> +    remove_sysfs_fw_map_entry(entry);
+>>>> +
+>>>> +    firmware_map_remove_entry(entry);
+>>>> +
+>>>> +    release_firmware_map_entry(entry);
+>>>
+>>> I guess you want to free the memory in the above function. But I think
+>>> it is
+>>> not a good idea to free it here. We should free it when the
+>>> entry->kobj's kref
+>>> is decreased to 0.
 >>
->>   	if (udev->state =3D=3D USB_STATE_CONFIGURED&&
->>   	udev->parent&&  udev->parent->devnum>  1&&
->>   	udev->parent->descriptor.bDeviceClass =3D=3D USB_CLASS_HUB)
->>   		map[udev->devnum/32] |=3D (1<<  (udev->devnum % 32));
+>> Thanks.
+>> I'll update your comment at next version.
 >>
->> -	for (chix =3D 0; chix<  udev->maxchild; chix++) {
->> -		struct usb_device *childdev =3D udev->children[chix];
->> -
->> -		if (childdev)
->> +	usb_get_hub_each_child(udev, chix, childdev) {
->> +		if (childdev) {
->> +			usb_put_dev(childdev);
->>   			collect_usb_address_map(childdev, map);
->
-> The usb_put_dev should come _after_ the collect_usb_address_map call.
-> Otherwise you're passing a stale pointer.
->
->> --- a/include/linux/usb.h
->> +++ b/include/linux/usb.h
->
->> @@ -567,6 +565,20 @@ static inline struct usb_device *interface_to_u=
-sbdev(struct usb_interface *intf)
+>> Thanks,
+>> Yasuaki Ishimatsu
 >>
->>   extern struct usb_device *usb_get_dev(struct usb_device *dev);
->>   extern void usb_put_dev(struct usb_device *dev);
->> +extern struct usb_device *usb_get_hub_child(struct usb_device *hdev=
-,
->> +	int port1);
->> +
->> +/**
->> + * usb_get_hub_each_child - iterate over all child devices on the h=
-ub
->> + * @hdev:  USB device belonging to the usb hub
->> + * @port1: portnum associated with child device
->> + * @child: child device pointer
->> + *
->
-> Mention that the caller must call usb_put_dev() when it is finished
-> using the child.
->
-> And change the name to "usb_hub_get_each_child".
->
-> Alan Stern
+>>>
+>>> Thanks
+>>> Wen Congyang
+>>>
+>>>> +
+>>>> +    return 0;
+>>>> +}
+>>>> +
+>>>>    /*
+>>>>     * Sysfs functions
+>>>> -------------------------------------------------------------
+>>>>     */
+>>>>
+>>>> --
+>>>> To unsubscribe from this list: send the line "unsubscribe
+>>>> linux-kernel" in
+>>>> the body of a message to majordomo@vger.kernel.org
+>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>> Please read the FAQ at  http://www.tux.org/lkml/
+>>>>
+>>>
+>>> --
+>>> To unsubscribe, send a message with 'unsubscribe linux-mm' in
+>>> the body to majordomo@kvack.org.  For more info on Linux MM,
+>>> see: http://www.linux-mm.org/ .
+>>> Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+>>>
+>>
+>>
+>>
+>>
 >
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
- in
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+>
 
---=20
-Best Regards
-Tianyu Lan
-linux kernel enabling team
+
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
