@@ -1,61 +1,88 @@
-From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Subject: Re: [PATCH V5 5/8] usb/acpi: add check for the connect type of usb
- port
-Date: Fri, 29 Jun 2012 10:06:02 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1206291004060.1638-100000@iolanthe.rowland.org>
-References: <1340950799-3321-5-git-send-email-tianyu.lan@intel.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1340950799-3321-5-git-send-email-tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
+From: y@domain.invalid
+Subject: [PATCH] ACPI: Add ACPI CPU hot-remove support
+Date: Fri, 29 Jun 2012 08:47:58 -0600
+Message-ID: <39180.6428939619$1340981500@news.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g1t0029.austin.hp.com ([15.216.28.36]:32529 "EHLO
+	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751431Ab2F2Ovf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Jun 2012 10:51:35 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>
 
-On Fri, 29 Jun 2012, Lan Tianyu wrote:
+From: Toshi Kani <toshi.kani@hp.com>
 
-> Change since v4: Remove some redundant kerneldocs and fix typo.
-> 
-> Change since v3: Rebase on the patch "make usb port a real device"
-> 
-> Check the connect type of usb port when getting the usb port's
-> acpi_handle and store result into connect_type in the struct
-> usb_port.
-> 
-> Accoding to ACPI Spec 9.13. PLD indicates whether usb port is
-> user visible and _UPC indicates whether it is connectable. If
-> the port was visible and connectable, it could be freely connected
-> and disconnected with USB devices. If no visible and connectable,
-> a usb device is directly hard-wired to the port. If no visible and
-> no connectable, the port would be not used.
-> 
-> When a device was found on the port, if the connect_type was hot-plug,
-> then the device would be removable. If the connect_type was hard-wired,
-> the device would be non-removable.
-> 
-> Signed-off-by: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Added CPU hot-remove support through an ACPI eject notification.
+It calls acpi_bus_hot_remove_device(), which shares the same code
+path with the sysfs eject operation.  acpi_os_hotplug_execute()
+serializes hot-remove operations between ACPI hot-remove and sysfs
+eject requests.
 
-> +/**
-> + * usb_get_hub_port_connect_type - Get the port's connect
-> + * type
+Signed-off-by: Toshi Kani <toshi.kani@hp.com>
 
-Don't break the line like that.
+---
+This patch applies on top of the patchset below.
 
-> + * @hdev: USB device belonging to the usb hub
-> + * @port1: port num of the port
-> + *
-> + * Return connect type of the port and if input params are
-> + *	invalid, return USB_PORT_CONNECT_TYPE_UNKNOWN.
-> + */
-> +enum usb_port_connect_type
-> +usb_get_hub_port_connect_type(struct usb_device *hdev,	int port1)
+[PATCH v6 0/6] ACPI: Add _OST support for ACPI hotplug
+http://marc.info/?l=linux-acpi&m=134074381322973&w=2
 
-Tab instead of a space.
+---
+ drivers/acpi/processor_driver.c |   27 +++++++++++++++++----------
+ 1 files changed, 17 insertions(+), 10 deletions(-)
 
-Alan Stern
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index f9fa1b2..a6f6bde 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -699,8 +699,8 @@ int acpi_processor_device_add(acpi_handle handle, struct acpi_device **device)
+ static void acpi_processor_hotplug_notify(acpi_handle handle,
+ 					  u32 event, void *data)
+ {
+-	struct acpi_processor *pr;
+ 	struct acpi_device *device = NULL;
++	struct acpi_eject_event *ej_event = NULL;
+ 	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE; /* default */
+ 	int result;
+ 
+@@ -732,20 +732,27 @@ static void acpi_processor_hotplug_notify(acpi_handle handle,
+ 				  "received ACPI_NOTIFY_EJECT_REQUEST\n"));
+ 
+ 		if (acpi_bus_get_device(handle, &device)) {
+-			printk(KERN_ERR PREFIX
+-				    "Device don't exist, dropping EJECT\n");
++			pr_err(PREFIX "Device don't exist, dropping EJECT\n");
+ 			break;
+ 		}
+-		pr = acpi_driver_data(device);
+-		if (!pr) {
+-			printk(KERN_ERR PREFIX
+-				    "Driver data is NULL, dropping EJECT\n");
++		if (!acpi_driver_data(device)) {
++			pr_err(PREFIX "Driver data is NULL, dropping EJECT\n");
+ 			break;
+ 		}
+ 
+-		/* REVISIT: update when eject is supported */
+-		ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
+-		break;
++		ej_event = kmalloc(sizeof(*ej_event), GFP_KERNEL);
++		if (!ej_event) {
++			pr_err(PREFIX "No memory, dropping EJECT\n");
++			break;
++		}
++
++		ej_event->handle = handle;
++		ej_event->event = ACPI_NOTIFY_EJECT_REQUEST;
++		acpi_os_hotplug_execute(acpi_bus_hot_remove_device,
++					(void *)ej_event);
++
++		/* eject is performed asynchronously */
++		return;
+ 
+ 	default:
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-- 
+1.7.7.6
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
