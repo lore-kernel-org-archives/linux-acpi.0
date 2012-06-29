@@ -1,109 +1,99 @@
-From: Thadeu Cascardo <cascardo@holoscopio.com>
-Subject: Re: [PATCH missing/21] classmate-laptop: Use struct dev_pm_ops for
-	power management
-Date: Fri, 29 Jun 2012 08:39:53 -0300
-Message-ID: <1340969993.24166.2.camel@Nokia-N900>
-References: <201206232306.06602.rjw@sisk.pl>
-	  <201206290011.53618.rjw@sisk.pl>
-Reply-To: Thadeu Cascardo <cascardo@holoscopio.com>
+From: Michael Zintakis <michael.zintakis@googlemail.com>
+Subject: Re: [lm-sensors] Fintek f71882fg ACPI conflict
+Date: Fri, 29 Jun 2012 13:11:04 +0100
+Message-ID: <4FED9B58.3090102@googlemail.com>
+References: <4FEA4C10.2060904@googlemail.com> <20120627171505.GB12712@roeck-us.net> <4FEB90A8.8050901@googlemail.com> <20120628014548.GA15994@srcf.ucam.org> <4FEC3CDF.7050901@googlemail.com> <20120628144035.36ac75a0@endymion.delvare> <4FEC53DD.8050403@googlemail.com> <20120628152754.2ab6697a@endymion.delvare> <4FED3EB3.4000602@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from trem.minaslivre.org ([74.50.53.205]:36465 "EHLO
-	grilo.cascardo.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751258Ab2F2Lt3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Jun 2012 07:49:29 -0400
-In-Reply-To: <201206290011.53618.rjw@sisk.pl>
-Content-ID: <1340969992.24166.1.camel@Nokia-N900>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:55987 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752710Ab2F2MLW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Jun 2012 08:11:22 -0400
+Received: by lbbgm6 with SMTP id gm6so4556958lbb.19
+        for <linux-acpi@vger.kernel.org>; Fri, 29 Jun 2012 05:11:20 -0700 (PDT)
+In-Reply-To: <4FED3EB3.4000602@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux PM list <linux-pm@vger.kernel.org>
-Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, platform-driver-x86@vger.kernel.org, Eric Piel <eric.piel@tremplin-utc.net>, Mattia Dongili <malattia@linux.it>, Harald Welte <laforge@gnumonks.org>, Daniel Oliveira Nascimento <don@syst.com.br>
+To: Robert Hancock <hancockrwd@gmail.com>
+Cc: Jean Delvare <khali@linux-fr.org>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, lm-sensors@lm-sensors.org
 
------ Original message -----
-> From: Rafael J. Wysocki <rjw@sisk.pl>
->=20
-> Make the classmate-laptop driver define its PM callbacks through
-> a struct dev_pm_ops object rather than by using legacy PM hooks
-> in struct acpi_device_ops.
->=20
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> ---
->=20
-> Hi all,
->=20
-> I overlooked the classmate-laptop driver in the ACPI conversion to PM
-> handling based on struct dev_pm_ops, so this one should go after [17/=
-21]
-> and the next patches should be renumbered.
->=20
-> Thanks,
-> Rafael
->=20
->=20
-> ---
->=C2=A0  drivers/platform/x86/classmate-laptop.c |=C2=A0 =C2=A0  13 +++=
-+++++-----
->=C2=A0  1 file changed, 8 insertions(+), 5 deletions(-)
->=20
-> Index: linux/drivers/platform/x86/classmate-laptop.c
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --- linux.orig/drivers/platform/x86/classmate-laptop.c
-> +++ linux/drivers/platform/x86/classmate-laptop.c
-> @@ -362,15 +362,18 @@ static int cmpc_tablet_remove(struct acp
->=C2=A0  =C2=A0=C2=A0=C2=A0 return cmpc_remove_acpi_notify_device(acpi)=
-;
->=C2=A0  }
->=C2=A0 =20
-> -static int cmpc_tablet_resume(struct acpi_device *acpi)
-> +static int cmpc_tablet_resume(struct device *dev)
->=C2=A0  {
-> -=C2=A0=C2=A0=C2=A0 struct input_dev *inputdev =3D dev_get_drvdata(&a=
-cpi->dev);
-> +=C2=A0=C2=A0=C2=A0 struct input_dev *inputdev =3D dev_get_drvdata(de=
-v);
-> +
->=C2=A0  =C2=A0=C2=A0=C2=A0 unsigned long long val =3D 0;
-> -=C2=A0=C2=A0=C2=A0 if (ACPI_SUCCESS(cmpc_get_tablet(acpi->handle, &v=
-al)))
-> +=C2=A0=C2=A0=C2=A0 if (ACPI_SUCCESS(cmpc_get_tablet(to_acpi_device(d=
-ev)->handle, &val)))
->=C2=A0  =C2=A0=C2=A0=C2=A0 =C2=A0=C2=A0=C2=A0 input_report_switch(inpu=
-tdev, SW_TABLET_MODE, !val);
->=C2=A0  =C2=A0=C2=A0=C2=A0 return 0;
->=C2=A0  }
->=C2=A0 =20
-> +static SIMPLE_DEV_PM_OPS(cmpc_tabled_pm, NULL, cmpc_tablet_resume);
-> +
->=C2=A0  static const struct acpi_device_id cmpc_tablet_device_ids[] =3D=
- {
->=C2=A0  =C2=A0=C2=A0=C2=A0 {CMPC_TABLET_HID, 0},
->=C2=A0  =C2=A0=C2=A0=C2=A0 {"", 0}
-> @@ -384,9 +387,9 @@ static struct acpi_driver cmpc_tablet_ac
->=C2=A0  =C2=A0=C2=A0=C2=A0 .ops =3D {
->=C2=A0  =C2=A0=C2=A0=C2=A0 =C2=A0=C2=A0=C2=A0 .add =3D cmpc_tablet_add=
-,
->=C2=A0  =C2=A0=C2=A0=C2=A0 =C2=A0=C2=A0=C2=A0 .remove =3D cmpc_tablet_=
-remove,
-> -=C2=A0=C2=A0=C2=A0 =C2=A0=C2=A0=C2=A0 .resume =3D cmpc_tablet_resume=
-,
->=C2=A0  =C2=A0=C2=A0=C2=A0 =C2=A0=C2=A0=C2=A0 .notify =3D cmpc_tablet_=
-handler,
-> -=C2=A0=C2=A0=C2=A0 }
-> +=C2=A0=C2=A0=C2=A0 },
-> +=C2=A0=C2=A0=C2=A0 .drv.pm =3D &cmpc_tabled_pm,
->=C2=A0  };
->=C2=A0 =20
->=C2=A0 =20
 
-Aside from the typo tabled,
+> In this case, however, where the BIOS does in fact expose an ACPI 
+> thermal zone and relies on AML code to perform fan control, etc. then 
+> it seems quite likely that it's not safe to access the same hardware 
+> monitoring controller while AML code may be doing so at the same time. 
+> The only way I can see that you could make ACPI "leave the hardware 
+> monitoring chip alone" is to either have the kernel block its accesses 
+> (quite likely breaking all fan/temperature control) or disable ACPI 
+> entirely (in this case the BIOS likely either leaves the fan control 
+> in "run at max speed always" mode or uses SMIs to gain control where 
+> needed to adjust fan speeds, which causes the same concurrent access 
+> problem).
+Interesting and it sort-of confirms my "findings" from yesterday's bout 
+I've had with ACPI.
 
-Acked-by: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+When I completely deactivate ACPI ("acpi=off" in the kernel command 
+line), there is obviously no more conflict errors reported, but what I 
+also discovered is that the problem I've had with the fans not able to 
+start (when they are at standstill initially) is not there any more!
+
+When I forcefully stop a fan by "echo 1 > pwmX" (you were right, when I 
+deactivate any sort of temperature, fan & voltage management in BIOS and 
+ACPI is OFF, the fans run at maximum speed), then select "automatic" 
+management and pass control over to the f71882fg driver, when the 
+temperature rises enough for the fan to start spinning, but not enough 
+to push it over the "safe" minimum speed threshold, this raises an alarm 
+event (fanX_alarm gets triggered) and the f71882fg driver then, 
+completely by itself, pushes the fan to its maximum speed momentarily 
+and the fan starts spinning - exactly the behaviour I was "simulating" 
+with my bash script.
+
+Obviously, the pwm value then gets decreased by the driver below the 
+"safe" minimum speed limit causing the fan to stop again and trigger the 
+alarm again, but I could easily overcome this problem by setting 
+pwmX_auto_point5_pwm to keep the fan at safe speed once it is started.
+
+When I do this, everything is running absolutely flawlessly - I've ran 
+this for 3 hours, putting various load levels on the system to see how 
+it reacts to temperature changes and the f71882fg driver does a superb 
+job without the need for my bash script!
+
+The only downside is, if one could call it that, that I have to setup 
+everything under /sys/class/hwmon/hwmonX/driver/ manually - from 
+"pwmX_auto_pointY_temp/pwm" to "fanX_full_speed" and the like, but I 
+could live with that, no problem.
+
+Now, it seems to me that ACPI is the culprit, has been all along, and I 
+need to get rid of the conflict in order to achieve that level of 
+operation - without this I am going to struggle! Turning ACPI off 
+completely is not an option for me at all - in such a case one 
+noticeable effect is that my multi-core CPU doesn't get recognised (it 
+is only recognised as a single-core) and the SMP-part of the kernel is 
+not functioning. That, clearly, is unacceptable to me.
+
+So, is there a way to make ACPI "leave my hardware monitoring chip 
+alone" without fully deactivating it? I don't care if all 
+fan/temperature control is going to "break" - I think the f71882fg chip 
+driver is perfectly capable of doing that without the "help" from ACPI. 
+So, is there any way - even with brute-force hacking of the kernel - to 
+prevent ACPI from getting anywhere near my hwmon chip (please say "yes" 
+:-) )?
+
+Last couple of queries regarding the f71882fg driver:
+
+What is the purpose of "pwmX_auto_channels_temp" (I have default values 
+of 4, 2 and 1 for my 3 fans), "pwmX_auto_pointY_temp_hyst" and 
+"pwmX_interpolate"? I think the latter could be a boolean value whether 
+the f71882fg driver should interpolate values between the temperature 
+points in order to determine fan speed, but can't be sure.
+
+Also, is it possible to select which temperature reading should be used 
+when selecting the fan speed? By default, to determine fan1's speed, 
+temp1 is used and pwm1 value is then manipulated. Is it possible to 
+instruct the driver to use a different sensor reading for the 
+temperature in order to determine the speed of the fan?
+ 
+
+MZ
