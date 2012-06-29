@@ -1,93 +1,60 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: Re: [lm-sensors] Fintek f71882fg ACPI conflict
-Date: Fri, 29 Jun 2012 09:34:29 -0700
-Message-ID: <20120629163429.GA20993@roeck-us.net>
-References: <4FEA4C10.2060904@googlemail.com>
- <20120627171505.GB12712@roeck-us.net>
- <4FEB90A8.8050901@googlemail.com>
- <20120628014548.GA15994@srcf.ucam.org>
- <4FEC3CDF.7050901@googlemail.com>
- <20120628144035.36ac75a0@endymion.delvare>
- <4FEC53DD.8050403@googlemail.com>
- <20120628152754.2ab6697a@endymion.delvare>
- <4FED3EB3.4000602@gmail.com>
- <4FED9B58.3090102@googlemail.com>
+From: Arnd Hannemann <arnd@arndnet.de>
+Subject: 3.5.0-rc4: WARNING: at kernel/irq/manage.c:1214 __free_irq+0xa0/0x1d0()
+Date: Fri, 29 Jun 2012 18:59:04 +0200
+Message-ID: <4FEDDED8.2050607@arndnet.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.active-venture.com ([67.228.131.205]:56023 "EHLO
-	mail.active-venture.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755290Ab2F2QeN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 29 Jun 2012 12:34:13 -0400
-Content-Disposition: inline
-In-Reply-To: <4FED9B58.3090102@googlemail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Michael Zintakis <michael.zintakis@googlemail.com>
-Cc: Robert Hancock <hancockrwd@gmail.com>, Len Brown <lenb@kernel.org>, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org
 
-On Fri, Jun 29, 2012 at 01:11:04PM +0100, Michael Zintakis wrote:
-> 
-[ ... ]
-> Interesting and it sort-of confirms my "findings" from yesterday's
-> bout I've had with ACPI.
-> 
-> When I completely deactivate ACPI ("acpi=off" in the kernel command
-> line), there is obviously no more conflict errors reported, but what
-> I also discovered is that the problem I've had with the fans not
-> able to start (when they are at standstill initially) is not there
-> any more!
-> 
-> When I forcefully stop a fan by "echo 1 > pwmX" (you were right,
-> when I deactivate any sort of temperature, fan & voltage management
-> in BIOS and ACPI is OFF, the fans run at maximum speed), then select
-> "automatic" management and pass control over to the f71882fg driver,
+Hi,
 
-You are giving too much credit to the driver. The driver only reads and sets
-register values, but does not perform any activities beyond that.
+I got below warning on suspend on my Thinkpad T510.
+Not sure where this belongs to, ACPI?
 
-> when the temperature rises enough for the fan to start spinning, but
-> not enough to push it over the "safe" minimum speed threshold, this
-> raises an alarm event (fanX_alarm gets triggered) and the f71882fg
-> driver then, completely by itself, pushes the fan to its maximum
-> speed momentarily and the fan starts spinning - exactly the
-> behaviour I was "simulating" with my bash script.
-> 
-No, the driver doesn't. The chip does that.
 
-[ ... ]
+[61844.171021] Suspending console(s) (use no_console_suspend to debug)
+[61844.357443] sd 0:0:0:0: [sda] Synchronizing SCSI cache
+[61844.357551] sd 0:0:0:0: [sda] Stopping disk
+[61844.610130] ACPI handle has no context!
+[61844.610162] ------------[ cut here ]------------
+[61844.610170] WARNING: at /home/arnd/Projekte/kernel/linux-2.6/kernel/irq/manage.c:1214 __free_irq+0xa0/0x1d0()
+[61844.610171] Hardware name: 4384GEG
+[61844.610171] Trying to free already-free IRQ 40
+[61844.610243] Pid: 24945, comm: kworker/u:11 Tainted: G        W    3.5.0-rc4aha+ #6
+[61844.610244] Call Trace:
+[61844.610250]  [<ffffffff8105061f>] warn_slowpath_common+0x7f/0xc0
+[61844.610252]  [<ffffffff81050716>] warn_slowpath_fmt+0x46/0x50
+[61844.610257]  [<ffffffff8103ea39>] ? default_spin_lock_flags+0x9/0x10
+[61844.610259]  [<ffffffff810dbae0>] __free_irq+0xa0/0x1d0
+[61844.610263]  [<ffffffff8162d0ce>] ? _raw_spin_lock+0xe/0x20
+[61844.610266]  [<ffffffff8107c0d0>] ? async_schedule+0x20/0x20
+[61844.610268]  [<ffffffff810dbe05>] free_irq+0x55/0xd0
+[61844.610275]  [<ffffffffa01894d8>] mei_pci_suspend+0x78/0xd0 [mei]
+[61844.610280]  [<ffffffff81348b65>] pci_pm_suspend+0x75/0x140
+[61844.610285]  [<ffffffff8140b3e0>] ? device_pm_wait_for_dev+0x30/0x30
+[61844.610286]  [<ffffffff81348af0>] ? pci_pm_freeze+0xb0/0xb0
+[61844.610289]  [<ffffffff8140b74b>] dpm_run_callback.isra.5+0x3b/0x80
+[61844.610290]  [<ffffffff8140b84e>] __device_suspend+0xbe/0x250
+[61844.610293]  [<ffffffff8140c19f>] async_suspend+0x1f/0xa0
+[61844.610295]  [<ffffffff8107c14e>] async_run_entry_fn+0x7e/0x170
+[61844.610298]  [<ffffffff8106e44a>] process_one_work+0x11a/0x480
+[61844.610300]  [<ffffffff8106f308>] ? manage_workers.isra.28+0x1e8/0x230
+[61844.610302]  [<ffffffff8106f4b5>] worker_thread+0x165/0x370
+[61844.610304]  [<ffffffff8106f350>] ? manage_workers.isra.28+0x230/0x230
+[61844.610306]  [<ffffffff810741b3>] kthread+0x93/0xa0
+[61844.610310]  [<ffffffff816366e4>] kernel_thread_helper+0x4/0x10
+[61844.610312]  [<ffffffff81074120>] ? kthread_freezable_should_stop+0x70/0x70
+[61844.610314]  [<ffffffff816366e0>] ? gs_change+0x13/0x13
+[61844.610315] ---[ end trace a264c7ac155dd162 ]---
+[61844.617731] ACPI handle has no context!
+[61844.633986] e1000e 0000:00:19.0: wake-up capability enabled by ACPI
+[61844.641689] i915 0000:00:02.0: power state changed by ACPI to D3
+[61844.944999] PM: suspend of devices complete after 775.764 msecs
 
-> Last couple of queries regarding the f71882fg driver:
-> 
-> What is the purpose of "pwmX_auto_channels_temp" (I have default
-> values of 4, 2 and 1 for my 3 fans), "pwmX_auto_pointY_temp_hyst"
 
-pwmX_auto_channels_temp Temperature input channel. Matches temp[1-4]_input to
-the pwm channel X.
-
-> and "pwmX_interpolate"? I think the latter could be a boolean value
-
-pwmX_interpolate: Data sheet says "Set 1 will enable the interpolation of the
-fan expect table", whatever that means. My guess is that, if enabled, the chip
-does not just take the temperatures in the auto_point table and sets the
-respective pwm value, but interpolates for temperatures in between.
-
-pwmX_auto_pointY_temp_hyst is, as the name suggests, a hysteresis value.
-pwm value increases if a temperature trip point is reached (from below),
-and decreases to the previous value if the respective hysteresis point
-is reached (from above).
-
-> whether the f71882fg driver should interpolate values between the
-> temperature points in order to determine fan speed, but can't be
-> sure.
-> 
-> Also, is it possible to select which temperature reading should be
-> used when selecting the fan speed? By default, to determine fan1's
-> speed, temp1 is used and pwm1 value is then manipulated. Is it
-> possible to instruct the driver to use a different sensor reading
-> for the temperature in order to determine the speed of the fan?
-> 
-
-See above; you can use pwmX_auto_channels_temp for that purpose.
-
-Guenter
+Best regards
+Arnd
