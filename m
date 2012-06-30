@@ -1,68 +1,122 @@
-From: Len Brown <lenb@kernel.org>
-Subject: ACPI & Power Management patches for Linux 3.5-rc4
-Date: Sat, 30 Jun 2012 01:28:10 -0400
-Message-ID: <4FEE8E6A.8060402@kernel.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Cpuidle drivers,Suspend : Fix suspend/resume hang with intel_idle driver
+Date: Sat, 30 Jun 2012 15:11:34 +0200
+Message-ID: <201206301511.34269.rjw@sisk.pl>
+References: <4FEC20D2.2070501@linux.vnet.ibm.com> <4FED2AF2.4080900@linux.vnet.ibm.com> <201206300007.25255.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qa0-f46.google.com ([209.85.216.46]:45489 "EHLO
-	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750726Ab2F3F2S (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 30 Jun 2012 01:28:18 -0400
+Received: from ogre.sisk.pl ([193.178.161.156]:47279 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755112Ab2F3NGE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 30 Jun 2012 09:06:04 -0400
+In-Reply-To: <201206300007.25255.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
+To: preeti <preeti@linux.vnet.ibm.com>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>, Linux PM mailing list <linux-pm@vger.kernel.org>, linux-acpi@vger.kernel.org, "Srivatsa.S.Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
 
-Hi Linus,
+On Saturday, June 30, 2012, Rafael J. Wysocki wrote:
+> On Friday, June 29, 2012, preeti wrote:
+> > On 06/29/2012 12:41 AM, Rafael J. Wysocki wrote:
+> > > On Thursday, June 28, 2012, preeti wrote:
+> > >> On 06/28/2012 03:23 PM, Rafael J. Wysocki wrote:
+> > >>> On Thursday, June 28, 2012, preeti wrote:
+> > >>>>
+> > >>>> From: Preeti U Murthy <preeti@linux.vnet.ibm.com>
+> > > [...]
+> > >> cpuidle is an architecture independent part of the kernel  code.Since 
+> > >> this patch aims at x86 architecture in specific,I considered it
+> > >> inappropriate.
+> > >>
+> > >> In addition to this,suspend happens on x86 only if ACPI is configured.
+> > > 
+> > > But that is not required for intel_idle, so if it hangs with intel_idle,
+> > > then it is not dependent on ACPI after all.
+> > True intel_idle does not need ACPI to be configured,but that also means
+> > that the kernel will not provide you the means to suspend.
+> 
+> Yes, it will.  You can hibernate without ACPI in theory.
+> 
+> > There is no question of resume hang here at all as you cannot suspend in
+> > the first place.
+> > 
+> > The issue is when ACPI is configured,and intel_idle is chosen to be the
+> > cpuidle driver.In this situation when the user suspends,cpus can enter
+> > deep sleep states as intel_idle driver does not prevent then from doing so.
+> > This is when resume hangs.
+> 
+> I know that.
+> 
+> > >> Therefore it seemed right to put the callback in ACPI specific code
+> > >> which deals with ACPI sleep support.
+> > > 
+> > > I wonder if we can address this issue correctly.  That is, in a non-racy
+> > > way and in a better place.
+> > > 
+> > > First, I really don't think it is necessary to "suspend" cpuidle (be it
+> > > ACPI or any other) when device drivers' suspend routines are being
+> > > executed (which also is racy, because the cpuidle "suspend" may be running
+> > > concurrently with cpuidle on another CPU) or earlier.  We really may want
+> > > to disable the deeper C-states when we're about to execute
+> > > suspend_ops->prepare_late(), or hibernation_ops->prepare(), i.e. after
+> > > we've run dpm_suspend_end() successfully.
+> > 
+> > The commit "ACPI:disable lower idle C-states across suspend/resume"
+> > states that device_suspend() calls ACPI suspend functions which cause
+> > side effects on the lower idle C-states.
+> 
+> I'd like to know the details, then.  Which ACPI suspend functions those are,
+> in particular, because I'm not aware of any in device_suspend().
+> 
+> Also, please note that this commit is 5 years old and some things have changed
+> in the suspend code paths since that time.
+> 
+> > This means we need to disable entry into deeper C-states even before
+> > dpm_suspend_start(),
+> 
+> This most likely is wrong.
+> 
+> We may need to "suspend" cpuidle before calling suspend_device_irqs(),
+> but then again that shouldn't be made via a notifier I think.  Why don't
+> we simply make suspend_device_irqs() disable lower C-states to start with?
+> 
+> > but how much before?
+> > 
+> > The commit answers this too.It says removing the functionality of
+> > entering deep C-states before suspend removed the side effects.Besides,
+> > the commit title says'across suspend/resume'.So I think to address the
+> > resume hang effectively,it is desirable to disable entry into deeper
+> > C-states during suspend_prepare operations.
+> > > 
+> > > So, it seems, it might be a good idea to place a cpuidle driver suspend
+> > > (and/or hibernation) hook at the end of dpm_suspend_end() and make ACPI
+> > > and intel_idle drivers implement that hook.
+> > > 
+> > Dont you think this patch is meant to fix a very ACPI specific problem?
+> 
+> No, I don't.
+> 
+> > Which is why I think the call backs or any hook meant to fix this should
+> > go into ACPI specific code.
+> > Else it will seem irrelevant to all other architectures that implement
+> > suspend.
+> 
+> I don't honestly think it is irrelevant.  The fact is that similar problems
+> have not been reported on other architectures _yet_, which by no means can
+> be taken as a proof that those architectures are not affected.
+> 
+> Anyway, I think that the right way to address this is through a cpuidle driver
+> callback executed from suspend_device_irqs() (and analogously for the resume
+> code path) and not through some hacky-ugly ACPI changes.
 
-Please pull these ACPI & Power Management bug fixes for 3.5.
+On a second thought, that may be confusing, so I'd create a cpuidle_suspend()
+routine that would be executed right before suspend_device_irqs() by
+dpm_suspend_noirq().  I'd make that routine run a suspend callback from the
+cpuidle driver (the drivers that don't need to "suspend" would not provide that
+callback).  And analogously for resume.
 
-thanks!
-Len Brown, Intel Open Source Technology Center
-
-The following changes since commit cfaf025112d3856637ff34a767ef785ef5cf2ca9:
-
-  Linux 3.5-rc2 (2012-06-08 18:40:09 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux.git release
-
-for you to fetch changes up to 6eca954e25e8a67e48334e668b9ac7da21fcbc6f:
-
-  Merge branches 'acpi_pad-bugzilla-42981', 'apei-bugzilla-43282', 'video-bugzilla-43168', 'bugzilla-40002' and 'bugfix-misc' into release (2012-06-30 00:53:50 -0400)
-
-----------------------------------------------------------------
-
-Feng Tang (3):
-      ACPI: Make acpi_skip_timer_override cover all source_irq==0 cases
-      ACPI: Remove one board specific WARN when ignoring timer overriding
-      ACPI: Add a quirk for "AMILO PRO V2030" to ignore the timer overriding
-
-Huang Ying (1):
-      ACPI, APEI, Avoid too much error reporting in runtime
-
-Len Brown (1):
-      Merge branches 'acpi_pad-bugzilla-42981', 'apei-bugzilla-43282', 'video-bugzilla-43168', 'bugzilla-40002' and 'bugfix-misc' into release
-
-Pavel Vasilyev (1):
-      ACPI sysfs.c strlen fix
-
-Stuart Hayes (1):
-      acpi_pad: fix power_saving thread deadlock
-
-Zhang Rui (2):
-      ACPI, x86: fix Dell M6600 ACPI reboot regression via DMI
-      ACPI video: Still use ACPI backlight control if _DOS doesn't exist
-
- arch/x86/kernel/acpi/boot.c       | 27 ++++++++++++++++-----------
- arch/x86/kernel/reboot.c          |  8 ++++++++
- drivers/acpi/acpi_pad.c           |  7 ++++---
- drivers/acpi/apei/apei-base.c     | 17 +++++++++++++++--
- drivers/acpi/apei/apei-internal.h |  9 +++++++++
- drivers/acpi/apei/ghes.c          |  6 +++---
- drivers/acpi/sysfs.c              |  4 ++--
- drivers/acpi/video.c              |  2 ++
- 8 files changed, 59 insertions(+), 21 deletions(-)
+Thanks,
+Rafael
