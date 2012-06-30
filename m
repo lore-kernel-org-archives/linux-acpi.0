@@ -1,25 +1,111 @@
-From: Robert Rust <rjrbytes@gmail.com>
-Subject: ACPI support for H77 chipset
-Date: Sat, 30 Jun 2012 09:43:38 -0500
-Message-ID: <CAJK=iD1vcRKOcPemcxDBcaOYvZQJ72wVVQfT2RXWhcChf0A2=A@mail.gmail.com>
+From: Jiang Liu <liuj97@gmail.com>
+Subject: Re: [RFC PATCH 2/12] memory-hogplug : check memory offline in offline_pages
+Date: Sat, 30 Jun 2012 23:46:50 +0800
+Message-ID: <4FEF1F6A.6090705@gmail.com>
+References: <4FEA9C88.1070800@jp.fujitsu.com> <4FEA9DB1.7010303@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-2022-JP
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:41860 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754773Ab2F3Onj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 30 Jun 2012 10:43:39 -0400
-Received: by obbuo13 with SMTP id uo13so5201016obb.19
-        for <linux-acpi@vger.kernel.org>; Sat, 30 Jun 2012 07:43:38 -0700 (PDT)
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:48423 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751155Ab2F3PrI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 30 Jun 2012 11:47:08 -0400
+In-Reply-To: <4FEA9DB1.7010303@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, wency@cn.fujitsu.com
 
-Anything I can do to assist in the efforts for fixing ACPI / interrupt
-support for the H77 chipset (mentioned a few weeks ago as a problem)?
-I'm working on replacing an older MythTV system and have discovered
-that none of my cards are working with my new motherboard.
-Unfortunately I'm not a kernel coder so I can't really help with the
-coding itself unfortunately.  :(
+On 06/27/2012 01:44 PM, Yasuaki Ishimatsu wrote:
+> When offline_pages() is called to offlined memory, the function fails since
+> all memory has been offlined. In this case, the function should succeed.
+> The patch adds the check function into offline_pages().
+> 
+> CC: Len Brown <len.brown@intel.com>
+> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+> CC: Paul Mackerras <paulus@samba.org>
+> CC: Christoph Lameter <cl@linux.com>
+> Cc: Minchan Kim <minchan.kim@gmail.com>
+> CC: Andrew Morton <akpm@linux-foundation.org>
+> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+> CC: Wen Congyang <wency@cn.fujitsu.com>
+> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+> 
+> ---
+>  drivers/base/memory.c  |   20 ++++++++++++++++++++
+>  include/linux/memory.h |    1 +
+>  mm/memory_hotplug.c    |    5 +++++
+>  3 files changed, 26 insertions(+)
+> 
+> Index: linux-3.5-rc4/drivers/base/memory.c
+> ===================================================================
+> --- linux-3.5-rc4.orig/drivers/base/memory.c	2012-06-26 13:28:16.726211752 +0900
+> +++ linux-3.5-rc4/drivers/base/memory.c	2012-06-26 13:34:22.423639904 +0900
+> @@ -70,6 +70,26 @@ void unregister_memory_isolate_notifier(
+>  }
+>  EXPORT_SYMBOL(unregister_memory_isolate_notifier);
+> 
+> +bool memory_is_offline(unsigned long start_pfn, unsigned long end_pfn)
+> +{
+> +	struct memory_block *mem;
+> +	struct mem_section *section;
+> +	unsigned long pfn, section_nr;
+> +
+> +	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
+> +		section_nr = pfn_to_section_nr(pfn);
+> +		section = __nr_to_section(section_nr);
+Is it possible for __nr_to_section return NULL here?
 
--Robert
+> +		mem = find_memory_block(section);
+> +		if (!mem)
+> +			continue;
+> +		if (mem->state == MEM_OFFLINE)
+> +			continue;
+> +		return false;
+> +	}
+> +
+> +	return true;
+> +}
+Need a put_dev(&mem->dev) for the last memory block device handled before return.
+
+> +
+>  /*
+>   * register_memory - Setup a sysfs device for a memory block
+>   */
+> Index: linux-3.5-rc4/include/linux/memory.h
+> ===================================================================
+> --- linux-3.5-rc4.orig/include/linux/memory.h	2012-06-25 04:53:04.000000000 +0900
+> +++ linux-3.5-rc4/include/linux/memory.h	2012-06-26 13:34:22.424639891 +0900
+> @@ -120,6 +120,7 @@ extern int memory_isolate_notify(unsigne
+>  extern struct memory_block *find_memory_block_hinted(struct mem_section *,
+>  							struct memory_block *);
+>  extern struct memory_block *find_memory_block(struct mem_section *);
+> +extern bool memory_is_offline(unsigned long start_pfn, unsigned long end_pfn);
+>  #define CONFIG_MEM_BLOCK_SIZE	(PAGES_PER_SECTION<<PAGE_SHIFT)
+>  enum mem_add_context { BOOT, HOTPLUG };
+>  #endif /* CONFIG_MEMORY_HOTPLUG_SPARSE */
+> Index: linux-3.5-rc4/mm/memory_hotplug.c
+> ===================================================================
+> --- linux-3.5-rc4.orig/mm/memory_hotplug.c	2012-06-26 13:28:16.743211538 +0900
+> +++ linux-3.5-rc4/mm/memory_hotplug.c	2012-06-26 13:48:38.264940468 +0900
+> @@ -887,6 +887,11 @@ static int __ref offline_pages(unsigned
+> 
+>  	lock_memory_hotplug();
+> 
+> +	if (memory_is_offline(start_pfn, end_pfn)) {
+> +		ret = 0;
+> +		goto out;
+> +	}
+> +
+>  	zone = page_zone(pfn_to_page(start_pfn));
+>  	node = zone_to_nid(zone);
+>  	nr_pages = end_pfn - start_pfn;
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+
