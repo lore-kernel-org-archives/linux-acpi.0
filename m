@@ -1,93 +1,128 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH v2] acpi: intel_idle : break dependency
-	between modules
-Date: Sun, 01 Jul 2012 21:36:37 +0200
-Message-ID: <4FF0A6C5.5080509@linaro.org>
-References: <201206271506.29034.trenn@suse.de>
-	<201206282124.09857.rjw@sisk.pl> <4FED69BE.20707@linaro.org>
-	<201206300027.05175.rjw@sisk.pl>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [RFC PATCH 2/12] memory-hogplug : check memory offline in offline_pages
+Date: Mon, 2 Jul 2012 11:56:48 +0900
+Message-ID: <4FF10DF0.7000508@jp.fujitsu.com>
+References: <4FEA9C88.1070800@jp.fujitsu.com> <4FEA9DB1.7010303@jp.fujitsu.com> <4FEF2075.2050603@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <201206300027.05175.rjw@sisk.pl>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linaro-dev@lists.linaro.org, Andrew Morton <akpm@linux-foundation.org>, linux-pm@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, srivatsa.bhat@linux.vnet.ibm.com, Colin Cross <ccross@android.com>, linux-pm@lists.linux-foundation.org
+Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <4FEF2075.2050603@gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Jiang Liu <liuj97@gmail.com>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, wency@cn.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
 
-On 06/30/2012 12:27 AM, Rafael J. Wysocki wrote:
-> On Friday, June 29, 2012, Daniel Lezcano wrote:
->> On 06/28/2012 09:24 PM, Rafael J. Wysocki wrote:
->>> On Thursday, June 28, 2012, Daniel Lezcano wrote:
->>>> When the system is booted with some cpus offline, the idle
->>>> driver is not initialized. When a cpu is set online, the
->>>> acpi code call the intel idle init function. Unfortunately
->>>> this code introduce a dependency between intel_idle and acpi.
->>>>
->>>> This patch is intended to remove this dependency by using the
->>>> notifier of intel_idle. This patch has the benefit of
->>>> encapsulating the intel_idle driver and remove some exported
->>>> functions.
->>>>
->>>> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
->>>
->>> This one looks good to me too.
->>>
->>> Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
+Hi Jiang,
+
+2012/07/01 0:51, Jiang Liu wrote:
+> On 06/27/2012 01:44 PM, Yasuaki Ishimatsu wrote:
+>> When offline_pages() is called to offlined memory, the function fails since
+>> all memory has been offlined. In this case, the function should succeed.
+>> The patch adds the check function into offline_pages().
 >>
->> Thanks for the review Rafael.
+>> CC: Len Brown <len.brown@intel.com>
+>> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+>> CC: Paul Mackerras <paulus@samba.org>
+>> CC: Christoph Lameter <cl@linux.com>
+>> Cc: Minchan Kim <minchan.kim@gmail.com>
+>> CC: Andrew Morton <akpm@linux-foundation.org>
+>> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+>> CC: Wen Congyang <wency@cn.fujitsu.com>
+>> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 >>
->>> Len, are you going to take it?
+>> ---
+>>   drivers/base/memory.c  |   20 ++++++++++++++++++++
+>>   include/linux/memory.h |    1 +
+>>   mm/memory_hotplug.c    |    5 +++++
+>>   3 files changed, 26 insertions(+)
 >>
->> Rafael, Len,
+>> Index: linux-3.5-rc4/drivers/base/memory.c
+>> ===================================================================
+>> --- linux-3.5-rc4.orig/drivers/base/memory.c	2012-06-26 13:28:16.726211752 +0900
+>> +++ linux-3.5-rc4/drivers/base/memory.c	2012-06-26 13:34:22.423639904 +0900
+>> @@ -70,6 +70,26 @@ void unregister_memory_isolate_notifier(
+>>   }
+>>   EXPORT_SYMBOL(unregister_memory_isolate_notifier);
 >>
->> After the discussion [1], I put in place a tree at:
+>> +bool memory_is_offline(unsigned long start_pfn, unsigned long end_pfn)
+>> +{
+>> +	struct memory_block *mem;
+>> +	struct mem_section *section;
+>> +	unsigned long pfn, section_nr;
+>> +
+>> +	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
+>> +		section_nr = pfn_to_section_nr(pfn);
+>> +		section = __nr_to_section(section_nr);
+>> +		mem = find_memory_block(section);
+> Seems find_memory_block_hinted() is more efficient than find_memory_block() here.
+
+Thanks. I'll update it.
+
+Thanks,
+Yasuaki Ishimatsu
+
+> 
+>> +		if (!mem)
+>> +			continue;
+>> +		if (mem->state == MEM_OFFLINE)
+>> +			continue;
+>> +		return false;
+>> +	}
+>> +
+>> +	return true;
+>> +}
+>> +
+>>   /*
+>>    * register_memory - Setup a sysfs device for a memory block
+>>    */
+>> Index: linux-3.5-rc4/include/linux/memory.h
+>> ===================================================================
+>> --- linux-3.5-rc4.orig/include/linux/memory.h	2012-06-25 04:53:04.000000000 +0900
+>> +++ linux-3.5-rc4/include/linux/memory.h	2012-06-26 13:34:22.424639891 +0900
+>> @@ -120,6 +120,7 @@ extern int memory_isolate_notify(unsigne
+>>   extern struct memory_block *find_memory_block_hinted(struct mem_section *,
+>>   							struct memory_block *);
+>>   extern struct memory_block *find_memory_block(struct mem_section *);
+>> +extern bool memory_is_offline(unsigned long start_pfn, unsigned long end_pfn);
+>>   #define CONFIG_MEM_BLOCK_SIZE	(PAGES_PER_SECTION<<PAGE_SHIFT)
+>>   enum mem_add_context { BOOT, HOTPLUG };
+>>   #endif /* CONFIG_MEMORY_HOTPLUG_SPARSE */
+>> Index: linux-3.5-rc4/mm/memory_hotplug.c
+>> ===================================================================
+>> --- linux-3.5-rc4.orig/mm/memory_hotplug.c	2012-06-26 13:28:16.743211538 +0900
+>> +++ linux-3.5-rc4/mm/memory_hotplug.c	2012-06-26 13:48:38.264940468 +0900
+>> @@ -887,6 +887,11 @@ static int __ref offline_pages(unsigned
 >>
->> ssh://git.linaro.org/srv/git.linaro.org/git/people/dlezcano/cpuidle-ne=
-xt.git
->> #cpuidle-next
+>>   	lock_memory_hotplug();
 >>
->> I proposed this tree to group the cpuidle modifications and prevent th=
-e
->> last minutes conflict when Len will apply them.
+>> +	if (memory_is_offline(start_pfn, end_pfn)) {
+>> +		ret = 0;
+>> +		goto out;
+>> +	}
+>> +
+>>   	zone = page_zone(pfn_to_page(start_pfn));
+>>   	node = zone_to_nid(zone);
+>>   	nr_pages = end_pfn - start_pfn;
 >>
->> I also included the tree into linux-next for wider testing.
->=20
-> I can't speak for Len, but I'm not sure he'll like this.
-
-I sent the proposition a week ago and Len was Cc'ed. I guess he is very
-busy but the problem we are facing is there are a lot of pending
-modifications for cpuidle because of some new architecture (like the
-big.LITTLE and tegra3). Colin's patchset is one of them.
-
-> Anyway, you seem to have the same material as Len in that tree, won't t=
-here
-> be any conflicts in linux-next?
-
-At the first glance no, until he merge the patches we sent. As I already
-said the purpose is to help to consolidate the patches sent for cpuidle
-by acting as a proxy.
-
-I hope that helps.
-
-Thanks
-  -- Daniel
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+> 
+> 
+> --
+> To unsubscribe, send a message with 'unsubscribe linux-mm' in
+> the body to majordomo@kvack.org.  For more info on Linux MM,
+> see: http://www.linux-mm.org/ .
+> Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+> 
 
 
 
---=20
- <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software for A=
-RM SoCs
-
-Follow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
