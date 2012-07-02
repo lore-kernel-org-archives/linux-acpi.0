@@ -1,17 +1,17 @@
 From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [RFC PATCH 2/12] memory-hogplug : check memory offline in offline_pages
-Date: Mon, 2 Jul 2012 11:53:16 +0900
-Message-ID: <4FF10D1C.3060601@jp.fujitsu.com>
-References: <4FEA9C88.1070800@jp.fujitsu.com> <4FEA9DB1.7010303@jp.fujitsu.com> <4FEF1F6A.6090705@gmail.com>
+Subject: Re: [RFC PATCH 10/12] memory-hotplug : free memmap of sparse-vmemmap
+Date: Mon, 2 Jul 2012 12:01:19 +0900
+Message-ID: <4FF10EFF.5050803@jp.fujitsu.com>
+References: <4FEA9C88.1070800@jp.fujitsu.com> <4FEAA09F.5000907@jp.fujitsu.com> <4FEF2214.4000205@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-2022-JP"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:48849 "EHLO
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:36247 "EHLO
 	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932148Ab2GBC5T (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 1 Jul 2012 22:57:19 -0400
-In-Reply-To: <4FEF1F6A.6090705@gmail.com>
+	with ESMTP id S1754798Ab2GBDBn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 1 Jul 2012 23:01:43 -0400
+In-Reply-To: <4FEF2214.4000205@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Jiang Liu <liuj97@gmail.com>
@@ -19,13 +19,11 @@ Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.
 
 Hi Jiang,
 
-Thank you for your feedback.
-
-2012/07/01 0:46, Jiang Liu wrote:
-> On 06/27/2012 01:44 PM, Yasuaki Ishimatsu wrote:
->> When offline_pages() is called to offlined memory, the function fails since
->> all memory has been offlined. In this case, the function should succeed.
->> The patch adds the check function into offline_pages().
+2012/07/01 0:58, Jiang Liu wrote:
+> On 06/27/2012 01:56 PM, Yasuaki Ishimatsu wrote:
+>> I don't think that all pages of virtual mapping in removed memory can be
+>> freed, since page which type is MIX_SECTION_INFO is difficult to free.
+>> So, the patch only frees page which type is SECTION_INFO at first.
 >>
 >> CC: Len Brown <len.brown@intel.com>
 >> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
@@ -38,85 +36,178 @@ Thank you for your feedback.
 >> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 >>
 >> ---
->>   drivers/base/memory.c  |   20 ++++++++++++++++++++
->>   include/linux/memory.h |    1 +
->>   mm/memory_hotplug.c    |    5 +++++
->>   3 files changed, 26 insertions(+)
+>>   arch/x86/mm/init_64.c |   89 ++++++++++++++++++++++++++++++++++++++++++++++++++
+>>   include/linux/mm.h    |    2 +
+>>   mm/memory_hotplug.c   |    5 ++
+>>   mm/sparse.c           |    5 +-
+>>   4 files changed, 99 insertions(+), 2 deletions(-)
 >>
->> Index: linux-3.5-rc4/drivers/base/memory.c
+>> Index: linux-3.5-rc4/include/linux/mm.h
 >> ===================================================================
->> --- linux-3.5-rc4.orig/drivers/base/memory.c	2012-06-26 13:28:16.726211752 +0900
->> +++ linux-3.5-rc4/drivers/base/memory.c	2012-06-26 13:34:22.423639904 +0900
->> @@ -70,6 +70,26 @@ void unregister_memory_isolate_notifier(
->>   }
->>   EXPORT_SYMBOL(unregister_memory_isolate_notifier);
+>> --- linux-3.5-rc4.orig/include/linux/mm.h	2012-06-27 09:11:13.790150442 +0900
+>> +++ linux-3.5-rc4/include/linux/mm.h	2012-06-27 09:11:16.433117400 +0900
+>> @@ -1588,6 +1588,8 @@ int vmemmap_populate(struct page *start_
+>>   void vmemmap_populate_print_last(void);
+>>   void register_page_bootmem_memmap(unsigned long section_nr, struct page *map,
+>>   				  unsigned long size);
+>> +void vmemmap_kfree(struct page *memmpa, unsigned long nr_pages);
+>> +void vmemmap_free_bootmem(struct page *memmpa, unsigned long nr_pages);
 >>
->> +bool memory_is_offline(unsigned long start_pfn, unsigned long end_pfn)
->> +{
->> +	struct memory_block *mem;
->> +	struct mem_section *section;
->> +	unsigned long pfn, section_nr;
->> +
->> +	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
->> +		section_nr = pfn_to_section_nr(pfn);
->> +		section = __nr_to_section(section_nr);
-> Is it possible for __nr_to_section return NULL here?
+>>   enum mf_flags {
+>>   	MF_COUNT_INCREASED = 1 << 0,
+>> Index: linux-3.5-rc4/mm/sparse.c
+>> ===================================================================
+>> --- linux-3.5-rc4.orig/mm/sparse.c	2012-06-27 09:06:35.317631878 +0900
+>> +++ linux-3.5-rc4/mm/sparse.c	2012-06-27 09:11:16.434117388 +0900
+>> @@ -614,12 +614,13 @@ static inline struct page *kmalloc_secti
+>>   	/* This will make the necessary allocations eventually. */
+>>   	return sparse_mem_map_populate(pnum, nid);
+>>   }
+>> -static void __kfree_section_memmap(struct page *memmap, unsigned long nr_pages)
+>> +static void __kfree_section_memmap(struct page *page, unsigned long nr_pages)
+>>   {
+>> -	return; /* XXX: Not implemented yet */
+>> +	vmemmap_kfree(page, nr_pages);
+>>   }
+>>   static void free_map_bootmem(struct page *page, unsigned long nr_pages)
+>>   {
+>> +	vmemmap_free_bootmem(page, nr_pages);
+>>   }
+>>   #else
+>>   static struct page *__kmalloc_section_memmap(unsigned long nr_pages)
+>> Index: linux-3.5-rc4/arch/x86/mm/init_64.c
+>> ===================================================================
+>> --- linux-3.5-rc4.orig/arch/x86/mm/init_64.c	2012-06-27 09:11:13.791150430 +0900
+>> +++ linux-3.5-rc4/arch/x86/mm/init_64.c	2012-06-27 09:11:59.254581998 +0900
+>> @@ -978,6 +978,95 @@ vmemmap_populate(struct page *start_page
+>>   	return 0;
+>>   }
+>>
+>> +unsigned long find_and_clear_pte_page(unsigned long addr, unsigned long end,
+>> +				      struct page *page)
+> I think the third parameter should be "struct page **pp" instead of "struct page *page".
+> And "page = pte_page(*pte)" should be "*pp = pte_page(*pte)".
+> Otherwise the found page pointer can't be returned to the caller and vmemmap_kfree()
+> just sees random value in variable "page".
 
-Yes. I'll add NULL check.
-
-> 
->> +		mem = find_memory_block(section);
->> +		if (!mem)
->> +			continue;
->> +		if (mem->state == MEM_OFFLINE)
->> +			continue;
->> +		return false;
->> +	}
->> +
->> +	return true;
->> +}
-> Need a put_dev(&mem->dev) for the last memory block device handled before return.
-
-Thanks.
-I think kobject_put(&mem->dev.kobj) should be handled for all memory block
-devices found by find_memory_block(). I'll update it.
+Oh, you are right. I'll update it.
 
 Thanks,
 Yasuaki Ishimatsu
 
-> 
+>> +{
+>> +	pgd_t *pgd;
+>> +	pud_t *pud;
+>> +	pmd_t *pmd;
+>> +	pte_t *pte;
+>> +	unsigned long next;
 >> +
->>   /*
->>    * register_memory - Setup a sysfs device for a memory block
->>    */
->> Index: linux-3.5-rc4/include/linux/memory.h
->> ===================================================================
->> --- linux-3.5-rc4.orig/include/linux/memory.h	2012-06-25 04:53:04.000000000 +0900
->> +++ linux-3.5-rc4/include/linux/memory.h	2012-06-26 13:34:22.424639891 +0900
->> @@ -120,6 +120,7 @@ extern int memory_isolate_notify(unsigne
->>   extern struct memory_block *find_memory_block_hinted(struct mem_section *,
->>   							struct memory_block *);
->>   extern struct memory_block *find_memory_block(struct mem_section *);
->> +extern bool memory_is_offline(unsigned long start_pfn, unsigned long end_pfn);
->>   #define CONFIG_MEM_BLOCK_SIZE	(PAGES_PER_SECTION<<PAGE_SHIFT)
->>   enum mem_add_context { BOOT, HOTPLUG };
->>   #endif /* CONFIG_MEMORY_HOTPLUG_SPARSE */
->> Index: linux-3.5-rc4/mm/memory_hotplug.c
->> ===================================================================
->> --- linux-3.5-rc4.orig/mm/memory_hotplug.c	2012-06-26 13:28:16.743211538 +0900
->> +++ linux-3.5-rc4/mm/memory_hotplug.c	2012-06-26 13:48:38.264940468 +0900
->> @@ -887,6 +887,11 @@ static int __ref offline_pages(unsigned
->>
->>   	lock_memory_hotplug();
->>
->> +	if (memory_is_offline(start_pfn, end_pfn)) {
->> +		ret = 0;
->> +		goto out;
+>> +	page = NULL;
+>> +
+>> +	pgd = pgd_offset_k(addr);
+>> +	if (pgd_none(*pgd))
+>> +		return PAGE_SIZE;
+>> +
+>> +	pud = pud_offset(pgd, addr);
+>> +	if (pud_none(*pud))
+>> +		return PAGE_SIZE;
+>> +
+>> +	if (!cpu_has_pse) {
+>> +		next = (addr + PAGE_SIZE) & PAGE_MASK;
+>> +		pmd = pmd_offset(pud, addr);
+>> +		if (pmd_none(*pmd))
+>> +			return next;
+>> +
+>> +		pte = pte_offset_kernel(pmd, addr);
+>> +		if (pte_none(*pte))
+>> +			return next;
+>> +
+>> +		page = pte_page(*pte);
+>> +		pte_clear(&init_mm, addr, pte);
+>> +	} else {
+>> +		next = pmd_addr_end(addr, end);
+>> +
+>> +		pmd = pmd_offset(pud, addr);
+>> +		if (pmd_none(*pmd))
+>> +			return next;
+>> +
+>> +		page = pmd_page(*pmd);
+>> +		pmd_clear(pmd);
 >> +	}
 >> +
->>   	zone = page_zone(pfn_to_page(start_pfn));
->>   	node = zone_to_nid(zone);
->>   	nr_pages = end_pfn - start_pfn;
+>> +	return next;
+>> +}
+>> +
+>> +void __meminit
+>> +vmemmap_kfree(struct page *memmap, unsigned long nr_pages)
+>> +{
+>> +	unsigned long addr = (unsigned long)memmap;
+>> +	unsigned long end = (unsigned long)(memmap + nr_pages);
+>> +	unsigned long next;
+>> +	unsigned int order;
+>> +	struct page *page;
+>> +
+>> +	for (; addr < end; addr = next) {
+>> +		next = find_and_clear_pte_page(addr, end, page);
+>> +		if (!page)
+>> +			continue;
+>> +
+>> +		if (is_vmalloc_addr(page))
+>> +			vfree(page);
+>> +		else {
+>> +			order = next - addr;
+>> +			free_pages((unsigned long)page,
+>> +				   get_order(sizeof(struct page) *  order));
+>> +		}
+>> +	}
+>> +}
+>> +
+>> +void __meminit
+>> +vmemmap_free_bootmem(struct page *memmap, unsigned long nr_pages)
+>> +{
+>> +	unsigned long addr = (unsigned long)memmap;
+>> +	unsigned long end = (unsigned long)(memmap + nr_pages);
+>> +	unsigned long next;
+>> +	struct page *page;
+>> +	unsigned long magic;
+>> +
+>> +	for (; addr < end; addr = next) {
+>> +		next = find_and_clear_pte_page(addr, end, page);
+>> +		if (!page)
+>> +			continue;
+>> +
+>> +		magic = (unsigned long) page->lru.next;
+>> +		if (magic == SECTION_INFO)
+>> +			put_page_bootmem(page);
+>> +	}
+>> +}
+>> +
+>>   void __meminit
+>>   register_page_bootmem_memmap(unsigned long section_nr, struct page *start_page,
+>>   			     unsigned long size)
+>> Index: linux-3.5-rc4/mm/memory_hotplug.c
+>> ===================================================================
+>> --- linux-3.5-rc4.orig/mm/memory_hotplug.c	2012-06-27 09:11:13.789150454 +0900
+>> +++ linux-3.5-rc4/mm/memory_hotplug.c	2012-06-27 09:11:16.436117363 +0900
+>> @@ -303,6 +303,8 @@ static int __meminit __add_section(int n
+>>   #ifdef CONFIG_SPARSEMEM_VMEMMAP
+>>   static int __remove_section(struct zone *zone, struct mem_section *ms)
+>>   {
+>> +	unsigned long flags;
+>> +	struct pglist_data *pgdat = zone->zone_pgdat;
+>>   	int ret;
+>>
+>>   	if (!valid_section(ms))
+>> @@ -310,6 +312,9 @@ static int __remove_section(struct zone
+>>
+>>   	ret = unregister_memory_section(ms);
+>>
+>> +	pgdat_resize_lock(pgdat, &flags);
+>> +	sparse_remove_one_section(zone, ms);
+>> +	pgdat_resize_unlock(pgdat, &flags);
+>>   	return ret;
+>>   }
+>>   #else
 >>
 >> --
 >> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
