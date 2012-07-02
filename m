@@ -1,42 +1,90 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: linux-next : cpuidle - could you add my tree please
-Date: Mon, 2 Jul 2012 22:04:15 +0200
-Message-ID: <201207022204.15539.rjw@sisk.pl>
-References: <4FDEE98D.7010802@linaro.org> <4FDF2D58.9010006@ti.com>
-	<4FE86727.5010400@linaro.org>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: PROBLEM: NULL pointer dereference in acpi_ns_check_object_type()
+Date: Mon, 2 Jul 2012 19:59:52 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E346B0252D@ORSMSX101.amr.corp.intel.com>
+References: <4FF15FA6.5070109@gentoo.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <4FE86727.5010400@linaro.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: Kevin Hilman <khilman@ti.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Rob Lee <rob.lee@linaro.org>, Lists Linaro-dev <linaro-dev@lists.linaro.org>, Peter De Schrijver <pdeschrijver@nvidia.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Amit Kucheria <amit.kucheria@linaro.org>, linux-acpi@vger.kernel.org, linux-next@vger.kernel.org, Colin Cross <ccross@android.com>, linux-pm@lists.linux-foundation.org, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([143.182.124.37]:49017 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932078Ab2GBT7y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 2 Jul 2012 15:59:54 -0400
+In-Reply-To: <4FF15FA6.5070109@gentoo.org>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Vlastimil Babka <caster@gentoo.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi,
-
-On Monday, June 25, 2012, Daniel Lezcano wrote:
-> 
-> Hi Stephen,
-> 
-> we discussed last week to put in place a tree grouping the cpuidle
-> modifications [1]. Is it possible to add the tree ?
-> 
-> git://git.linaro.org/people/dlezcano/cpuidle-next.git #cpuidle-next
-> 
-> It contains for the moment Colin Cross's cpuidle coupled states.
-
-Do you have a stable branch in that tree, i.e. such that it is guaranteed not
-to be rebased?
-
-Rafael
+SSB3YXMgYWJsZSB0byByZXByb2R1Y2UgdGhlIHByb2JsZW0gaGVyZSB3aXRoIHlvdXIgQUNQSSB0
+YWJsZXMuDQoNCldpbGwgbG9vayBhdCB5b3VyIHBhdGNoLCBhbmQgZ2V0IGJhY2sgdG8geW91Lg0K
+DQpZb3Ugc2hvdWxkIHByb2JhYmx5IG9wZW4gYSBidWd6aWxsYSBvbiB0aGlzLg0KVGhhbmtzLA0K
+Qm9iDQoNCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBsaW51eC1hY3Bp
+LW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LWFjcGktDQo+IG93bmVyQHZnZXIu
+a2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIFZsYXN0aW1pbCBCYWJrYQ0KPiBTZW50OiBNb25kYXks
+IEp1bHkgMDIsIDIwMTIgMTo0NSBBTQ0KPiBUbzogbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmcN
+Cj4gU3ViamVjdDogUFJPQkxFTTogTlVMTCBwb2ludGVyIGRlcmVmZXJlbmNlIGluDQo+IGFjcGlf
+bnNfY2hlY2tfb2JqZWN0X3R5cGUoKQ0KPiANCj4gSGVsbG8sDQo+IA0KPiBJJ3ZlIGJlZW4gZXhw
+ZXJpZW5jaW5nIGtlcm5lbCBwYW5pYyB3aXRoIE5VTEwgcG9pbnRlciBkZXJlZmVyZW5jZSBpbg0K
+PiBhY3BpX25zX2NoZWNrX29iamVjdF90eXBlIHNpbmNlIGtlcm5lbCAzLjQgb24gYSBNYWNQcm8g
+bWFjaGluZS4NCj4gDQo+IEJ5IHJlY29tcGlsaW5nIGFzIG11Y2ggb2YgQUNQSSBhcyBwb3NzaWJs
+ZSBhcyBtb2R1bGVzLCBJIHdhcyBhYmxlIHRvDQo+IGdldCB0aGUgc3lzdGVtIHJ1bm5pbmcgYW5k
+IHBvc3Rwb25lIHRoZSBlcnJvciB1bnRpbCBkb2luZyAnbW9kcHJvYmUNCj4gYWNwaS1jcHVmcmVx
+Jywgd2hpY2ggbm93IHJlc3VsdHMgaW4gb29wcywgbm90IHBhbmljLiBUaGUgbG9nIGlzDQo+IGF0
+dGFjaGVkIGFzIGVycm9yLmxvZy4NCj4gDQo+IEJ5IGJpc2VjdGluZyBsaW51cyB0cmVlIGJldHdl
+ZW4gMy4zIGFuZCAzLjQsIEkgZm91bmQgdGhlIGd1aWx0eSBjb21taXQNCj4gNmE5OWIxYzk0ZDA1
+M2IzNDIwZWFhNGE0YmM4YjI4ODNkZDkwYTJmOQ0KPiAiQUNQSUNBOiBPYmplY3QgcmVwYWlyIGNv
+ZGU6IFN1cHBvcnQgdG8gYWRkIFBhY2thZ2Ugd3JhcHBlcnMiIFsxXQ0KPiBIb3dldmVyIHRoaXMg
+cGF0Y2ggZG9lcyBub3QgZGlyZWN0bHkgdG91Y2ggdGhlIGZ1bmN0aW9ucyBpbiB0aGUgc3RhY2sN
+Cj4gdHJhY2UuDQo+IA0KPiBOZXh0IEkgY3JlYXRlZCBhIGtkdW1wIG9mIHRoZSBvb3BzLCBhbmQg
+bG9va2VkIGFyb3VuZCB3aXRoIGdkYi4NCj4gLSBJbiBhY3BpX25zX2NoZWNrX3BhY2thZ2UoKSwg
+dGhlIG51bGwgcG9pbnRlciBpcyBpbiB0aGUgcGFyYW1ldGVyDQo+IHJldHVybl9vYmplY3RfcHRy
+LCB3aGljaCBpcyBkZXJlZmVyZW5jZWQgd2hlbiBpbml0aWFsaXppbmcgdGhlIHZhcmlhYmxlDQo+
+IHJldHVybl9vYmplY3QuDQo+IC0gVGhlIGNhbGxpbmcgZnVuY3Rpb24gYWNwaV9uc19jaGVja19w
+YWNrYWdlX2xpc3QoKSBpcyBpbiB0aGUgJ2Nhc2UNCj4gQUNQSV9QVFlQRTJfQ09VTlQ6JyBwYXJ0
+LCB0aGUgcGFzc2VkIG51bGwgcG9pbnRlciBpcyBpbiB0aGUNCj4gc3ViX2VsZW1lbnRzIHZhcmlh
+YmxlLg0KPiAtIEJlZm9yZSB0aGUgc3dpdGNoLCBzdWJfZWxlbWVudHMgaXMgaW5pdGlhbGl6ZWQg
+bGlrZSB0aGlzOg0KPiANCj4gICBzdWJfZWxlbWVudHMgPSBzdWJfcGFja2FnZS0+cGFja2FnZS5l
+bGVtZW50cw0KPiANCj4gICBpbnRlcmVzdGluZ2x5LCBpbiB0aGUgY3Jhc2hkdW1wLCBzdWJfZWxl
+bWVudHMgaXMgbnVsbCwgYnV0DQo+ICAgc3ViX3BhY2thZ2UtPnBhY2thZ2UuZWxlbWVudHMgaXMg
+bm9uLW51bGwNCj4gDQo+IEkndmUgYWRkZWQgc29tZSBwcmludGsncyBhbmQgdmVyaWZpZWQgdGhh
+dCB0aGUgY2FsbCBvZiAgc3RhdHVzID0NCj4gYWNwaV9uc19jaGVja19vYmplY3RfdHlwZShkYXRh
+LCAmc3ViX3BhY2thZ2UsDQo+IAkJCQkgICBBQ1BJX1JUWVBFX1BBQ0tBR0UsIGkpOw0KPiANCj4g
+IG1ha2VzIHN1Yl9wYWNrYWdlLT5wYWNrYWdlLmVsZW1lbnRzIGJlY29tZSBub24tbnVsbCwgYnV0
+IHN1Yl9lbGVtZW50cw0KPiB3YXMgYWxyZWFkeSBpbml0aWFsaXplZCBiZWZvcmUgdGhpcyBjYWxs
+IGFuZCByZW1haW5zIG51bGwuDQo+IA0KPiBUaGUgYWJvdmUgbGVkIG1lIHRvIGNyZWF0ZSB0aGUg
+YXR0YWNoZWQgcGF0Y2ggd2hpY2ggc2ltcGx5IG1vdmVzIHRoZQ0KPiBpbml0aWFsaXphdGlvbiBv
+ZiBzdWJfZWxlbWVudHMgYWZ0ZXIgdGhlIHN1Yl9wYWNrYWdlIGNoZWNrLiBJIHRoaW5rDQo+IGl0
+J3MgdGhpcyBjaGVjayB0aGF0IHJlc3VsdHMgaW4gdGhlIEludGVnZXIgdG8gUGFja2FnZQ0KPiBj
+b252ZXJzaW9uL3dyYXBwaW5nLg0KPiANCj4gQWZ0ZXIgdGhpcyBwYXRjaCwgdGhlIG51bGwgcG9p
+bnRlciBkZXJlZmVyZW5jZSBpcyBnb25lLCBidXQgdGhlIGRlYnVnDQo+IG91dHB1dCBvZiBBQ1BJ
+IChhY3BpLmRlYnVnX2xheWVyPTB4ZmZmZmZmZmYNCj4gYWNwaS5kZWJ1Z19sZXZlbD0weDAwMDAw
+MDA4KSBzaG93cyB0aGF0IHNvbWV0aGluZyBpcyBwcm9iYWJseSBzdGlsbA0KPiB3cm9uZzoNCj4g
+DQo+IFsgICAgMS4zNTM2NzddIG5zcmVwYWlyLTA2ODEgWzQyOTQ5NjcyODddIG5zX3dyYXBfd2l0
+aF9wYWNrYWdlICA6DQo+IFxfUFJfLkNQVTAuX1BTRDogV3JhcHBlZCBJbnRlZ2VyIHdpdGggZXhw
+ZWN0ZWQgUGFja2FnZSBvYmplY3QNCj4gWyAgICAxLjM1Mzg2OV0gbnNyZXBhaXItMDY4MSBbNDI5
+NDk2NzI4N10gbnNfd3JhcF93aXRoX3BhY2thZ2UgIDoNCj4gXF9QUl8uQ1BVMC5fUFNEOiBXcmFw
+cGVkIEludGVnZXIgd2l0aCBleHBlY3RlZCBQYWNrYWdlIG9iamVjdA0KPiBbICAgIDEuMzU0MDU5
+XSBBQ1BJIFdhcm5pbmc6IEZvciBcX1BSXy5DUFUwLl9QU0Q6IFJldHVybiBTdWItUGFja2FnZVsw
+XQ0KPiBpcyB0b28gc21hbGwgLSBmb3VuZCAxIGVsZW1lbnRzLCBleHBlY3RlZCA1ICgyMDEyMDMy
+MC9uc3ByZWRlZi05MDUpDQo+IFsgICAgMS4zNTQyNTNdIEFDUEk6IEludmFsaWQgcGFja2FnZSBh
+cmd1bWVudA0KPiBbICAgIDEuMzU0MzIyXSBBQ1BJOiBJbnZhbGlkIF9QU0QgZGF0YQ0KPiAuLi4g
+KHRoZSBzYW1lIGZvciBvdGhlciBDUFV4KQ0KPiANCj4gDQo+IEluIGNvbXBhcmlzb24sIDMuMyBr
+ZXJuZWwgd2l0aCBzYW1lIGFjcGkgZGVidWcgb3B0aW9ucyBzaG93cyBvbmx5IHN0dWZmDQo+IGxp
+a2U6DQo+IFsgICAgMS40OTQyMzhdIG5zcmVwYWlyLTA3MjggWzQyOTQ5NjcyODddIG5zX3JlcGFp
+cl9wYWNrYWdlX2xpc3Q6DQo+IFxfUFJfLkNQVTAuX1BTRDogUmVwYWlyZWQgaW5jb3JyZWN0bHkg
+Zm9ybWVkIFBhY2thZ2UNCj4gWyAgICAxLjQ5NDQ0OV0gbnNyZXBhaXItMDcyOCBbNDI5NDk2NzI4
+N10gbnNfcmVwYWlyX3BhY2thZ2VfbGlzdDoNCj4gXF9QUl8uQ1BVMi5fUFNEOiBSZXBhaXJlZCBp
+bmNvcnJlY3RseSBmb3JtZWQgUGFja2FnZQ0KPiBbICAgIDEuNDk0NjU3XSBuc3JlcGFpci0wNzI4
+IFs0Mjk0OTY3Mjg3XSBuc19yZXBhaXJfcGFja2FnZV9saXN0Og0KPiBcX1BSXy5DUFU0Ll9QU0Q6
+IFJlcGFpcmVkIGluY29ycmVjdGx5IGZvcm1lZCBQYWNrYWdlIC4uLiAodGhlIHNhbWUgZm9yDQo+
+IG90aGVyIENQVXgpDQo+IA0KPiBTaW5jZSBJIGRvbid0IGtub3cgbXVjaCBhYm91dCB0aGlzIHN1
+YnN5c3RlbSwgSSBmaWd1cmVkIHRoYXQgSSBzaG91bGQNCj4ganVzdCByZXBvcnQgbXkgZmluZGlu
+Z3MgYXQgdGhpcyBwb2ludC4gVGhlIHBhdGNoZWQgc3lzdGVtIGlzIHVzYWJsZSwNCj4gYnV0IEkg
+Z3Vlc3MgaXQncyBub3QgYSBjb21wbGV0ZSBmaXguDQo+IA0KPiBJIGFsc28gYXR0YWNoIHRoZSBv
+dXRwdXQgb2YgYWNwaWR1bXAuIEkgaG9wZSBJIGRpZG4ndCBmb3JnZXQgYW55dGhpbmcNCj4gaW1w
+b3J0YW50LCBwbGVhc2UgYXNrIGZvciBtb3JlIGluZm9ybWF0aW9uIGlmIG5lZWRlZC4NCj4gDQo+
+IFRoYW5rcywNCj4gVmxhc3RpbWlsIEJhYmthDQo+IA0KPiBbMV0NCj4gZ2l0Lmtlcm5lbC5vcmcv
+P3A9bGludXgva2VybmVsL2dpdC90b3J2YWxkcy9saW51eC0NCj4gMi42LmdpdDthPWNvbW1pdDto
+PTZhOTliMWM5NGQwNTNiMzQyMGVhYTRhNGJjOGIyODgzZGQ5MGEyZjkNCg0K
