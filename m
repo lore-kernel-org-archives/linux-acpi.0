@@ -1,227 +1,101 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [RFC PATCH 10/12] memory-hotplug : free memmap of sparse-vmemmap
-Date: Mon, 2 Jul 2012 12:01:19 +0900
-Message-ID: <4FF10EFF.5050803@jp.fujitsu.com>
-References: <4FEA9C88.1070800@jp.fujitsu.com> <4FEAA09F.5000907@jp.fujitsu.com> <4FEF2214.4000205@gmail.com>
+From: preeti <preeti@linux.vnet.ibm.com>
+Subject: Re: Cpuidle drivers,Suspend : Fix suspend/resume hang with intel_idle
+ driver
+Date: Mon, 02 Jul 2012 10:07:35 +0530
+Message-ID: <4FF1258F.7020805@linux.vnet.ibm.com>
+References: <4FEC20D2.2070501@linux.vnet.ibm.com> <4FED2AF2.4080900@linux.vnet.ibm.com> <4FED3CA0.3050909@linux.vnet.ibm.com> <201206300011.51402.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:36247 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754798Ab2GBDBn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 1 Jul 2012 23:01:43 -0400
-In-Reply-To: <4FEF2214.4000205@gmail.com>
+Received: from e23smtp06.au.ibm.com ([202.81.31.148]:35646 "EHLO
+	e23smtp06.au.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751247Ab2GBEc3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 2 Jul 2012 00:32:29 -0400
+Received: from /spool/local
+	by e23smtp06.au.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <linux-acpi@vger.kernel.org> from <preeti@linux.vnet.ibm.com>;
+	Mon, 2 Jul 2012 04:20:00 +1000
+In-Reply-To: <201206300011.51402.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <liuj97@gmail.com>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, wency@cn.fujitsu.com
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>, Linux PM mailing list <linux-pm@vger.kernel.org>, linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org, "Srivatsa.S.Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
 
-Hi Jiang,
-
-2012/07/01 0:58, Jiang Liu wrote:
-> On 06/27/2012 01:56 PM, Yasuaki Ishimatsu wrote:
->> I don't think that all pages of virtual mapping in removed memory can be
->> freed, since page which type is MIX_SECTION_INFO is difficult to free.
->> So, the patch only frees page which type is SECTION_INFO at first.
+On 06/30/2012 03:41 AM, Rafael J. Wysocki wrote:
+> On Friday, June 29, 2012, preeti wrote:
+>> On 06/29/2012 09:41 AM, preeti wrote:
+>>> On 06/29/2012 12:41 AM, Rafael J. Wysocki wrote:
+>>>> On Thursday, June 28, 2012, preeti wrote:
+>>>>> On 06/28/2012 03:23 PM, Rafael J. Wysocki wrote:
+>>>>>> On Thursday, June 28, 2012, preeti wrote:
+>>>>>>>
+>>>>>>> From: Preeti U Murthy <preeti@linux.vnet.ibm.com>
+>>>> [...]
+>>>>> cpuidle is an architecture independent part of the kernel  code.Since 
+>>>>> this patch aims at x86 architecture in specific,I considered it
+>>>>> inappropriate.
+>>>>>
+>>>>> In addition to this,suspend happens on x86 only if ACPI is configured.
+>>>>
+>>>> But that is not required for intel_idle, so if it hangs with intel_idle,
+>>>> then it is not dependent on ACPI after all.
+>>> True intel_idle does not need ACPI to be configured,but that also means
+>>> that the kernel will not provide you the means to suspend.There is no
+>>> question of resume hang here at all as you cannot suspend in the first
+>>> place.
+>>>
+>>> The issue is when ACPI is configured,and intel_idle is chosen to be the
+>>> cpuidle driver.In this situation when the user suspends,cpus can enter
+>>> deep sleep states as intel_idle driver does not prevent then from doing so.
+>>> This is when resume hangs.
+>>>>
+>>>>> Therefore it seemed right to put the callback in ACPI specific code
+>>>>> which deals with ACPI sleep support.
+>>>>
+>>>> I wonder if we can address this issue correctly.  That is, in a non-racy
+>>>> way and in a better place.
+>>>>
+>>>> First, I really don't think it is necessary to "suspend" cpuidle (be it
+>>>> ACPI or any other) when device drivers' suspend routines are being
+>>>> executed (which also is racy, because the cpuidle "suspend" may be running
+>>>> concurrently with cpuidle on another CPU) or earlier.  We really may want
+>>>> to disable the deeper C-states when we're about to execute
+>>>> suspend_ops->prepare_late(), or hibernation_ops->prepare(), i.e. after
+>>>> we've run dpm_suspend_end() successfully.
+>>>
+>>> The commit "ACPI:disable lower idle C-states across suspend/resume"
+>>> states that device_suspend() calls ACPI suspend functions which cause
+>>> side effects on the lower idle C-states.This means we need to disable
+>>> entry into deeper C-states even before dpm_suspend_start(),but how much
+>>> before?
+>>>
+>>> The commit answers this too.It says removing the functionality of
+>>> entering deep C-states before suspend removed the side effects.Besides,
+>>> the commit title says'across suspend/resume'.So I think to address the
+>>> resume hang effectively,it is desirable to disable entry into deeper
+>>> C-states during suspend_prepare operations.
 >>
->> CC: Len Brown <len.brown@intel.com>
->> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
->> CC: Paul Mackerras <paulus@samba.org>
->> CC: Christoph Lameter <cl@linux.com>
->> Cc: Minchan Kim <minchan.kim@gmail.com>
->> CC: Andrew Morton <akpm@linux-foundation.org>
->> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
->> CC: Wen Congyang <wency@cn.fujitsu.com>
->> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->>
->> ---
->>   arch/x86/mm/init_64.c |   89 ++++++++++++++++++++++++++++++++++++++++++++++++++
->>   include/linux/mm.h    |    2 +
->>   mm/memory_hotplug.c   |    5 ++
->>   mm/sparse.c           |    5 +-
->>   4 files changed, 99 insertions(+), 2 deletions(-)
->>
->> Index: linux-3.5-rc4/include/linux/mm.h
->> ===================================================================
->> --- linux-3.5-rc4.orig/include/linux/mm.h	2012-06-27 09:11:13.790150442 +0900
->> +++ linux-3.5-rc4/include/linux/mm.h	2012-06-27 09:11:16.433117400 +0900
->> @@ -1588,6 +1588,8 @@ int vmemmap_populate(struct page *start_
->>   void vmemmap_populate_print_last(void);
->>   void register_page_bootmem_memmap(unsigned long section_nr, struct page *map,
->>   				  unsigned long size);
->> +void vmemmap_kfree(struct page *memmpa, unsigned long nr_pages);
->> +void vmemmap_free_bootmem(struct page *memmpa, unsigned long nr_pages);
->>
->>   enum mf_flags {
->>   	MF_COUNT_INCREASED = 1 << 0,
->> Index: linux-3.5-rc4/mm/sparse.c
->> ===================================================================
->> --- linux-3.5-rc4.orig/mm/sparse.c	2012-06-27 09:06:35.317631878 +0900
->> +++ linux-3.5-rc4/mm/sparse.c	2012-06-27 09:11:16.434117388 +0900
->> @@ -614,12 +614,13 @@ static inline struct page *kmalloc_secti
->>   	/* This will make the necessary allocations eventually. */
->>   	return sparse_mem_map_populate(pnum, nid);
->>   }
->> -static void __kfree_section_memmap(struct page *memmap, unsigned long nr_pages)
->> +static void __kfree_section_memmap(struct page *page, unsigned long nr_pages)
->>   {
->> -	return; /* XXX: Not implemented yet */
->> +	vmemmap_kfree(page, nr_pages);
->>   }
->>   static void free_map_bootmem(struct page *page, unsigned long nr_pages)
->>   {
->> +	vmemmap_free_bootmem(page, nr_pages);
->>   }
->>   #else
->>   static struct page *__kmalloc_section_memmap(unsigned long nr_pages)
->> Index: linux-3.5-rc4/arch/x86/mm/init_64.c
->> ===================================================================
->> --- linux-3.5-rc4.orig/arch/x86/mm/init_64.c	2012-06-27 09:11:13.791150430 +0900
->> +++ linux-3.5-rc4/arch/x86/mm/init_64.c	2012-06-27 09:11:59.254581998 +0900
->> @@ -978,6 +978,95 @@ vmemmap_populate(struct page *start_page
->>   	return 0;
->>   }
->>
->> +unsigned long find_and_clear_pte_page(unsigned long addr, unsigned long end,
->> +				      struct page *page)
-> I think the third parameter should be "struct page **pp" instead of "struct page *page".
-> And "page = pte_page(*pte)" should be "*pp = pte_page(*pte)".
-> Otherwise the found page pointer can't be returned to the caller and vmemmap_kfree()
-> just sees random value in variable "page".
-
-Oh, you are right. I'll update it.
-
-Thanks,
-Yasuaki Ishimatsu
-
->> +{
->> +	pgd_t *pgd;
->> +	pud_t *pud;
->> +	pmd_t *pmd;
->> +	pte_t *pte;
->> +	unsigned long next;
->> +
->> +	page = NULL;
->> +
->> +	pgd = pgd_offset_k(addr);
->> +	if (pgd_none(*pgd))
->> +		return PAGE_SIZE;
->> +
->> +	pud = pud_offset(pgd, addr);
->> +	if (pud_none(*pud))
->> +		return PAGE_SIZE;
->> +
->> +	if (!cpu_has_pse) {
->> +		next = (addr + PAGE_SIZE) & PAGE_MASK;
->> +		pmd = pmd_offset(pud, addr);
->> +		if (pmd_none(*pmd))
->> +			return next;
->> +
->> +		pte = pte_offset_kernel(pmd, addr);
->> +		if (pte_none(*pte))
->> +			return next;
->> +
->> +		page = pte_page(*pte);
->> +		pte_clear(&init_mm, addr, pte);
->> +	} else {
->> +		next = pmd_addr_end(addr, end);
->> +
->> +		pmd = pmd_offset(pud, addr);
->> +		if (pmd_none(*pmd))
->> +			return next;
->> +
->> +		page = pmd_page(*pmd);
->> +		pmd_clear(pmd);
->> +	}
->> +
->> +	return next;
->> +}
->> +
->> +void __meminit
->> +vmemmap_kfree(struct page *memmap, unsigned long nr_pages)
->> +{
->> +	unsigned long addr = (unsigned long)memmap;
->> +	unsigned long end = (unsigned long)(memmap + nr_pages);
->> +	unsigned long next;
->> +	unsigned int order;
->> +	struct page *page;
->> +
->> +	for (; addr < end; addr = next) {
->> +		next = find_and_clear_pte_page(addr, end, page);
->> +		if (!page)
->> +			continue;
->> +
->> +		if (is_vmalloc_addr(page))
->> +			vfree(page);
->> +		else {
->> +			order = next - addr;
->> +			free_pages((unsigned long)page,
->> +				   get_order(sizeof(struct page) *  order));
->> +		}
->> +	}
->> +}
->> +
->> +void __meminit
->> +vmemmap_free_bootmem(struct page *memmap, unsigned long nr_pages)
->> +{
->> +	unsigned long addr = (unsigned long)memmap;
->> +	unsigned long end = (unsigned long)(memmap + nr_pages);
->> +	unsigned long next;
->> +	struct page *page;
->> +	unsigned long magic;
->> +
->> +	for (; addr < end; addr = next) {
->> +		next = find_and_clear_pte_page(addr, end, page);
->> +		if (!page)
->> +			continue;
->> +
->> +		magic = (unsigned long) page->lru.next;
->> +		if (magic == SECTION_INFO)
->> +			put_page_bootmem(page);
->> +	}
->> +}
->> +
->>   void __meminit
->>   register_page_bootmem_memmap(unsigned long section_nr, struct page *start_page,
->>   			     unsigned long size)
->> Index: linux-3.5-rc4/mm/memory_hotplug.c
->> ===================================================================
->> --- linux-3.5-rc4.orig/mm/memory_hotplug.c	2012-06-27 09:11:13.789150454 +0900
->> +++ linux-3.5-rc4/mm/memory_hotplug.c	2012-06-27 09:11:16.436117363 +0900
->> @@ -303,6 +303,8 @@ static int __meminit __add_section(int n
->>   #ifdef CONFIG_SPARSEMEM_VMEMMAP
->>   static int __remove_section(struct zone *zone, struct mem_section *ms)
->>   {
->> +	unsigned long flags;
->> +	struct pglist_data *pgdat = zone->zone_pgdat;
->>   	int ret;
->>
->>   	if (!valid_section(ms))
->> @@ -310,6 +312,9 @@ static int __remove_section(struct zone
->>
->>   	ret = unregister_memory_section(ms);
->>
->> +	pgdat_resize_lock(pgdat, &flags);
->> +	sparse_remove_one_section(zone, ms);
->> +	pgdat_resize_unlock(pgdat, &flags);
->>   	return ret;
->>   }
->>   #else
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
+>> To clarify this further,since we take action upon PM_SUSPEND_PREPARE
+>> notification,which is called before suspend begins,we avoid race
+>> condition between suspend operations and disabling entry into deeper
+>> c-states altogether.
 > 
+> Well, what about races between disabling deeper C-states and cpuidle?
+
+Yes.The question still remains about the cpus that have already entered
+deep C-states even before suspend routines have begun.We are not taking
+precautions to prevent them from going into idle.
+
+If the resume hang does depend on the cpus being in deep C-state,even
+after the fix with acpi_idle_suspend, there should have been a hang
+in scenarios where the cpus have already entered deep C-states before
+suspend has begun.
+
 > 
-> --
-> To unsubscribe, send a message with 'unsubscribe linux-mm' in
-> the body to majordomo@kvack.org.  For more info on Linux MM,
-> see: http://www.linux-mm.org/ .
-> Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+> Rafael
 > 
 
-
+Regards
+Preeti
 
