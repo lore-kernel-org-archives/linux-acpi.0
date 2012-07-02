@@ -1,90 +1,90 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: PROBLEM: NULL pointer dereference in acpi_ns_check_object_type()
-Date: Mon, 2 Jul 2012 19:59:52 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E346B0252D@ORSMSX101.amr.corp.intel.com>
-References: <4FF15FA6.5070109@gentoo.org>
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: linux-next : cpuidle - could you add my tree please
+Date: Tue, 03 Jul 2012 00:14:32 +0200
+Message-ID: <4FF21D48.50301@linaro.org>
+References: <4FDEE98D.7010802@linaro.org> <CACRpkdYaLweX-4YkWotuFFWoqEjOLKoNCsurCxxWNfq7QznPnw@mail.gmail.com> <4FF19947.3040608@linaro.org> <201207022149.36629.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:49017 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932078Ab2GBT7y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 2 Jul 2012 15:59:54 -0400
-In-Reply-To: <4FF15FA6.5070109@gentoo.org>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <201207022149.36629.rjw@sisk.pl>
+Sender: linux-next-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, Lists Linaro-dev <linaro-dev@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kevin Hilman <khilman@ti.com>, Peter De Schrijver <pdeschrijver@nvidia.com>, Amit Kucheria <amit.kucheria@linaro.org>, linux-next@vger.kernel.org, Colin Cross <ccross@android.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Rob Lee <rob.lee@linaro.org>, "lenb@kernel.org" <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Vlastimil Babka <caster@gentoo.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-SSB3YXMgYWJsZSB0byByZXByb2R1Y2UgdGhlIHByb2JsZW0gaGVyZSB3aXRoIHlvdXIgQUNQSSB0
-YWJsZXMuDQoNCldpbGwgbG9vayBhdCB5b3VyIHBhdGNoLCBhbmQgZ2V0IGJhY2sgdG8geW91Lg0K
-DQpZb3Ugc2hvdWxkIHByb2JhYmx5IG9wZW4gYSBidWd6aWxsYSBvbiB0aGlzLg0KVGhhbmtzLA0K
-Qm9iDQoNCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBsaW51eC1hY3Bp
-LW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LWFjcGktDQo+IG93bmVyQHZnZXIu
-a2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIFZsYXN0aW1pbCBCYWJrYQ0KPiBTZW50OiBNb25kYXks
-IEp1bHkgMDIsIDIwMTIgMTo0NSBBTQ0KPiBUbzogbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmcN
-Cj4gU3ViamVjdDogUFJPQkxFTTogTlVMTCBwb2ludGVyIGRlcmVmZXJlbmNlIGluDQo+IGFjcGlf
-bnNfY2hlY2tfb2JqZWN0X3R5cGUoKQ0KPiANCj4gSGVsbG8sDQo+IA0KPiBJJ3ZlIGJlZW4gZXhw
-ZXJpZW5jaW5nIGtlcm5lbCBwYW5pYyB3aXRoIE5VTEwgcG9pbnRlciBkZXJlZmVyZW5jZSBpbg0K
-PiBhY3BpX25zX2NoZWNrX29iamVjdF90eXBlIHNpbmNlIGtlcm5lbCAzLjQgb24gYSBNYWNQcm8g
-bWFjaGluZS4NCj4gDQo+IEJ5IHJlY29tcGlsaW5nIGFzIG11Y2ggb2YgQUNQSSBhcyBwb3NzaWJs
-ZSBhcyBtb2R1bGVzLCBJIHdhcyBhYmxlIHRvDQo+IGdldCB0aGUgc3lzdGVtIHJ1bm5pbmcgYW5k
-IHBvc3Rwb25lIHRoZSBlcnJvciB1bnRpbCBkb2luZyAnbW9kcHJvYmUNCj4gYWNwaS1jcHVmcmVx
-Jywgd2hpY2ggbm93IHJlc3VsdHMgaW4gb29wcywgbm90IHBhbmljLiBUaGUgbG9nIGlzDQo+IGF0
-dGFjaGVkIGFzIGVycm9yLmxvZy4NCj4gDQo+IEJ5IGJpc2VjdGluZyBsaW51cyB0cmVlIGJldHdl
-ZW4gMy4zIGFuZCAzLjQsIEkgZm91bmQgdGhlIGd1aWx0eSBjb21taXQNCj4gNmE5OWIxYzk0ZDA1
-M2IzNDIwZWFhNGE0YmM4YjI4ODNkZDkwYTJmOQ0KPiAiQUNQSUNBOiBPYmplY3QgcmVwYWlyIGNv
-ZGU6IFN1cHBvcnQgdG8gYWRkIFBhY2thZ2Ugd3JhcHBlcnMiIFsxXQ0KPiBIb3dldmVyIHRoaXMg
-cGF0Y2ggZG9lcyBub3QgZGlyZWN0bHkgdG91Y2ggdGhlIGZ1bmN0aW9ucyBpbiB0aGUgc3RhY2sN
-Cj4gdHJhY2UuDQo+IA0KPiBOZXh0IEkgY3JlYXRlZCBhIGtkdW1wIG9mIHRoZSBvb3BzLCBhbmQg
-bG9va2VkIGFyb3VuZCB3aXRoIGdkYi4NCj4gLSBJbiBhY3BpX25zX2NoZWNrX3BhY2thZ2UoKSwg
-dGhlIG51bGwgcG9pbnRlciBpcyBpbiB0aGUgcGFyYW1ldGVyDQo+IHJldHVybl9vYmplY3RfcHRy
-LCB3aGljaCBpcyBkZXJlZmVyZW5jZWQgd2hlbiBpbml0aWFsaXppbmcgdGhlIHZhcmlhYmxlDQo+
-IHJldHVybl9vYmplY3QuDQo+IC0gVGhlIGNhbGxpbmcgZnVuY3Rpb24gYWNwaV9uc19jaGVja19w
-YWNrYWdlX2xpc3QoKSBpcyBpbiB0aGUgJ2Nhc2UNCj4gQUNQSV9QVFlQRTJfQ09VTlQ6JyBwYXJ0
-LCB0aGUgcGFzc2VkIG51bGwgcG9pbnRlciBpcyBpbiB0aGUNCj4gc3ViX2VsZW1lbnRzIHZhcmlh
-YmxlLg0KPiAtIEJlZm9yZSB0aGUgc3dpdGNoLCBzdWJfZWxlbWVudHMgaXMgaW5pdGlhbGl6ZWQg
-bGlrZSB0aGlzOg0KPiANCj4gICBzdWJfZWxlbWVudHMgPSBzdWJfcGFja2FnZS0+cGFja2FnZS5l
-bGVtZW50cw0KPiANCj4gICBpbnRlcmVzdGluZ2x5LCBpbiB0aGUgY3Jhc2hkdW1wLCBzdWJfZWxl
-bWVudHMgaXMgbnVsbCwgYnV0DQo+ICAgc3ViX3BhY2thZ2UtPnBhY2thZ2UuZWxlbWVudHMgaXMg
-bm9uLW51bGwNCj4gDQo+IEkndmUgYWRkZWQgc29tZSBwcmludGsncyBhbmQgdmVyaWZpZWQgdGhh
-dCB0aGUgY2FsbCBvZiAgc3RhdHVzID0NCj4gYWNwaV9uc19jaGVja19vYmplY3RfdHlwZShkYXRh
-LCAmc3ViX3BhY2thZ2UsDQo+IAkJCQkgICBBQ1BJX1JUWVBFX1BBQ0tBR0UsIGkpOw0KPiANCj4g
-IG1ha2VzIHN1Yl9wYWNrYWdlLT5wYWNrYWdlLmVsZW1lbnRzIGJlY29tZSBub24tbnVsbCwgYnV0
-IHN1Yl9lbGVtZW50cw0KPiB3YXMgYWxyZWFkeSBpbml0aWFsaXplZCBiZWZvcmUgdGhpcyBjYWxs
-IGFuZCByZW1haW5zIG51bGwuDQo+IA0KPiBUaGUgYWJvdmUgbGVkIG1lIHRvIGNyZWF0ZSB0aGUg
-YXR0YWNoZWQgcGF0Y2ggd2hpY2ggc2ltcGx5IG1vdmVzIHRoZQ0KPiBpbml0aWFsaXphdGlvbiBv
-ZiBzdWJfZWxlbWVudHMgYWZ0ZXIgdGhlIHN1Yl9wYWNrYWdlIGNoZWNrLiBJIHRoaW5rDQo+IGl0
-J3MgdGhpcyBjaGVjayB0aGF0IHJlc3VsdHMgaW4gdGhlIEludGVnZXIgdG8gUGFja2FnZQ0KPiBj
-b252ZXJzaW9uL3dyYXBwaW5nLg0KPiANCj4gQWZ0ZXIgdGhpcyBwYXRjaCwgdGhlIG51bGwgcG9p
-bnRlciBkZXJlZmVyZW5jZSBpcyBnb25lLCBidXQgdGhlIGRlYnVnDQo+IG91dHB1dCBvZiBBQ1BJ
-IChhY3BpLmRlYnVnX2xheWVyPTB4ZmZmZmZmZmYNCj4gYWNwaS5kZWJ1Z19sZXZlbD0weDAwMDAw
-MDA4KSBzaG93cyB0aGF0IHNvbWV0aGluZyBpcyBwcm9iYWJseSBzdGlsbA0KPiB3cm9uZzoNCj4g
-DQo+IFsgICAgMS4zNTM2NzddIG5zcmVwYWlyLTA2ODEgWzQyOTQ5NjcyODddIG5zX3dyYXBfd2l0
-aF9wYWNrYWdlICA6DQo+IFxfUFJfLkNQVTAuX1BTRDogV3JhcHBlZCBJbnRlZ2VyIHdpdGggZXhw
-ZWN0ZWQgUGFja2FnZSBvYmplY3QNCj4gWyAgICAxLjM1Mzg2OV0gbnNyZXBhaXItMDY4MSBbNDI5
-NDk2NzI4N10gbnNfd3JhcF93aXRoX3BhY2thZ2UgIDoNCj4gXF9QUl8uQ1BVMC5fUFNEOiBXcmFw
-cGVkIEludGVnZXIgd2l0aCBleHBlY3RlZCBQYWNrYWdlIG9iamVjdA0KPiBbICAgIDEuMzU0MDU5
-XSBBQ1BJIFdhcm5pbmc6IEZvciBcX1BSXy5DUFUwLl9QU0Q6IFJldHVybiBTdWItUGFja2FnZVsw
-XQ0KPiBpcyB0b28gc21hbGwgLSBmb3VuZCAxIGVsZW1lbnRzLCBleHBlY3RlZCA1ICgyMDEyMDMy
-MC9uc3ByZWRlZi05MDUpDQo+IFsgICAgMS4zNTQyNTNdIEFDUEk6IEludmFsaWQgcGFja2FnZSBh
-cmd1bWVudA0KPiBbICAgIDEuMzU0MzIyXSBBQ1BJOiBJbnZhbGlkIF9QU0QgZGF0YQ0KPiAuLi4g
-KHRoZSBzYW1lIGZvciBvdGhlciBDUFV4KQ0KPiANCj4gDQo+IEluIGNvbXBhcmlzb24sIDMuMyBr
-ZXJuZWwgd2l0aCBzYW1lIGFjcGkgZGVidWcgb3B0aW9ucyBzaG93cyBvbmx5IHN0dWZmDQo+IGxp
-a2U6DQo+IFsgICAgMS40OTQyMzhdIG5zcmVwYWlyLTA3MjggWzQyOTQ5NjcyODddIG5zX3JlcGFp
-cl9wYWNrYWdlX2xpc3Q6DQo+IFxfUFJfLkNQVTAuX1BTRDogUmVwYWlyZWQgaW5jb3JyZWN0bHkg
-Zm9ybWVkIFBhY2thZ2UNCj4gWyAgICAxLjQ5NDQ0OV0gbnNyZXBhaXItMDcyOCBbNDI5NDk2NzI4
-N10gbnNfcmVwYWlyX3BhY2thZ2VfbGlzdDoNCj4gXF9QUl8uQ1BVMi5fUFNEOiBSZXBhaXJlZCBp
-bmNvcnJlY3RseSBmb3JtZWQgUGFja2FnZQ0KPiBbICAgIDEuNDk0NjU3XSBuc3JlcGFpci0wNzI4
-IFs0Mjk0OTY3Mjg3XSBuc19yZXBhaXJfcGFja2FnZV9saXN0Og0KPiBcX1BSXy5DUFU0Ll9QU0Q6
-IFJlcGFpcmVkIGluY29ycmVjdGx5IGZvcm1lZCBQYWNrYWdlIC4uLiAodGhlIHNhbWUgZm9yDQo+
-IG90aGVyIENQVXgpDQo+IA0KPiBTaW5jZSBJIGRvbid0IGtub3cgbXVjaCBhYm91dCB0aGlzIHN1
-YnN5c3RlbSwgSSBmaWd1cmVkIHRoYXQgSSBzaG91bGQNCj4ganVzdCByZXBvcnQgbXkgZmluZGlu
-Z3MgYXQgdGhpcyBwb2ludC4gVGhlIHBhdGNoZWQgc3lzdGVtIGlzIHVzYWJsZSwNCj4gYnV0IEkg
-Z3Vlc3MgaXQncyBub3QgYSBjb21wbGV0ZSBmaXguDQo+IA0KPiBJIGFsc28gYXR0YWNoIHRoZSBv
-dXRwdXQgb2YgYWNwaWR1bXAuIEkgaG9wZSBJIGRpZG4ndCBmb3JnZXQgYW55dGhpbmcNCj4gaW1w
-b3J0YW50LCBwbGVhc2UgYXNrIGZvciBtb3JlIGluZm9ybWF0aW9uIGlmIG5lZWRlZC4NCj4gDQo+
-IFRoYW5rcywNCj4gVmxhc3RpbWlsIEJhYmthDQo+IA0KPiBbMV0NCj4gZ2l0Lmtlcm5lbC5vcmcv
-P3A9bGludXgva2VybmVsL2dpdC90b3J2YWxkcy9saW51eC0NCj4gMi42LmdpdDthPWNvbW1pdDto
-PTZhOTliMWM5NGQwNTNiMzQyMGVhYTRhNGJjOGIyODgzZGQ5MGEyZjkNCg0K
+On 07/02/2012 09:49 PM, Rafael J. Wysocki wrote:
+> On Monday, July 02, 2012, Daniel Lezcano wrote:
+>>
+>> On 07/02/2012 11:09 AM, Linus Walleij wrote:
+>>> On Mon, Jun 25, 2012 at 3:27 PM, Daniel Lezcano
+>>> <daniel.lezcano@linaro.org> wrote:
+>>>
+>>>> we discussed last week to put in place a tree grouping the cpuidle
+>>>> modifications [1]. Is it possible to add the tree ?
+>>>>
+>>>> git://git.linaro.org/people/dlezcano/cpuidle-next.git #cpuidle-nex=
+t
+>>>
+>>> Thanks for doing this.
+>>>
+>>> Since MAINTAINERS is lacking a listed maintainer for cpuidle,
+>>> are you also going to add yourself as maintainer and list this
+>>> tree in that file, or is this a one-time exercise?
+>>
+>> I will be glad to do that if Len and Rafael agree on that.
+>=20
+> Len Brown has been a cpuidle maintainer for some time now.  Moreover,
+> he's been taking patches, but Linus refused to pull his entire tree d=
+uring the
+> last merge window (as you probably know).  I honestly don't think thi=
+s is
+> a good enough reason for replacing him as a cpuidle maintainer by for=
+ce.
+>=20
+> So, you should ask Len whether or not he's willing to pass the cpuidl=
+e
+> maintenance to someone else.
+
+No, no. You are misunderstanding what I am proposing. I don't want to
+replace Len I just want to act as a "proxy". I understand a maintainer
+can be busy and could not have enough time to take care of the subsyste=
+m
+is maintaining during a period because he's too busy for that.
+Trust me, I fully understand that :)
+
+As there are a lot of modifications of cpuidle, I am proposing to take
+the patches when they are acked-by, to create a consolidated tree,
+providing a better integration for cpuidle, a wider testing, preventing
+conflicts and facilitating Len's work if he agrees to pull from this tr=
+ee.
+
+If that makes sense to add myself to the MAINTAINER file as a
+co-maintainer (understand: send to me also the patches, so I can take
+care of them if Len does not respond), I am ok with that.
+
+It is just about helping :)
+
+> I know that Len hasn't been responsive recently, but I also know that=
+ he
+> _does_ respond to inquiries sent directly to him.
+
+Do you mean to its intel address ?
+
+Thanks
+  -- Daniel
+
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-next"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+--=20
+ <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software for=
+ ARM SoCs
+
+=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
+<http://twitter.com/#!/linaroorg> Twitter |
+<http://www.linaro.org/linaro-blog/> Blog
