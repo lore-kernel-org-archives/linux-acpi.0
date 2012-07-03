@@ -1,26 +1,27 @@
 From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: Re: [RFC PATCH v2 4/13] memory-hotplug : remove /sys/firmware/memmap/X
- sysfs
-Date: Tue, 03 Jul 2012 14:35:07 +0800
-Message-ID: <4FF2929B.7030004@cn.fujitsu.com>
-References: <4FF287C3.4030901@jp.fujitsu.com> <4FF28996.10702@jp.fujitsu.com>
+Subject: Re: [RFC PATCH v2 2/13] memory-hotplug : add physical memory hotplug
+ code to acpi_memory_device_remove
+Date: Tue, 03 Jul 2012 14:21:35 +0800
+Message-ID: <4FF28F6F.1000006@cn.fujitsu.com>
+References: <4FF287C3.4030901@jp.fujitsu.com> <4FF288FC.8030609@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-2022-JP
 Content-Transfer-Encoding: 7bit
 Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <4FF28996.10702@jp.fujitsu.com>
+In-Reply-To: <4FF288FC.8030609@jp.fujitsu.com>
 Sender: owner-linux-mm@kvack.org
 To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
 
-At 07/03/2012 01:56 PM, Yasuaki Ishimatsu Wrote:
-> When (hot)adding memory into system, /sys/firmware/memmap/X/{end, start, type}
-> sysfs files are created. But there is no code to remove these files. The patch
-> implements the function to remove them.
+At 07/03/2012 01:54 PM, Yasuaki Ishimatsu Wrote:
+> acpi_memory_device_remove() has been prepared to remove physical memory.
+> But, the function only frees acpi_memory_device currentlry.
 > 
-> Note : The code does not free firmware_map_entry since there is no way to free
->        memory which is allocated by bootmem.
+> The patch adds following functions into acpi_memory_device_remove():
+>   - offline memory
+>   - remove physical memory (only return -EBUSY)
+>   - free acpi_memory_device
 > 
 > CC: David Rientjes <rientjes@google.com>
 > CC: Jiang Liu <liuj97@gmail.com>
@@ -34,162 +35,179 @@ At 07/03/2012 01:56 PM, Yasuaki Ishimatsu Wrote:
 > Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 > 
 > ---
->  drivers/firmware/memmap.c    |   70 +++++++++++++++++++++++++++++++++++++++++++
->  include/linux/firmware-map.h |    6 +++
->  mm/memory_hotplug.c          |    6 +++
->  3 files changed, 81 insertions(+), 1 deletion(-)
+>  drivers/acpi/acpi_memhotplug.c |   26 +++++++++++++++++++++++++-
+>  drivers/base/memory.c          |   38 ++++++++++++++++++++++++++++++++++++++
+>  include/linux/memory.h         |    5 +++++
+>  include/linux/memory_hotplug.h |    1 +
+>  mm/memory_hotplug.c            |    8 ++++++++
+>  5 files changed, 77 insertions(+), 1 deletion(-)
 > 
+> Index: linux-3.5-rc4/drivers/acpi/acpi_memhotplug.c
+> ===================================================================
+> --- linux-3.5-rc4.orig/drivers/acpi/acpi_memhotplug.c	2012-07-03 14:21:49.458374960 +0900
+> +++ linux-3.5-rc4/drivers/acpi/acpi_memhotplug.c	2012-07-03 14:21:58.329264059 +0900
+> @@ -29,6 +29,7 @@
+>  #include <linux/module.h>
+>  #include <linux/init.h>
+>  #include <linux/types.h>
+> +#include <linux/memory.h>
+>  #include <linux/memory_hotplug.h>
+>  #include <linux/slab.h>
+>  #include <acpi/acpi_drivers.h>
+> @@ -452,12 +453,35 @@ static int acpi_memory_device_add(struct
+>  static int acpi_memory_device_remove(struct acpi_device *device, int type)
+>  {
+>  	struct acpi_memory_device *mem_device = NULL;
+> -
+> +	struct acpi_memory_info *info, *tmp;
+> +	int result;
+> +	int node;
+> 
+>  	if (!device || !acpi_driver_data(device))
+>  		return -EINVAL;
+> 
+>  	mem_device = acpi_driver_data(device);
+> +
+> +	node = acpi_get_node(mem_device->device->handle);
+> +
+> +	list_for_each_entry_safe(info, tmp, &mem_device->res_list, list) {
+> +		if (!info->enabled)
+> +			continue;
+> +
+> +		if (!is_memblk_offline(info->start_addr, info->length)) {
+> +			result = offline_memory(info->start_addr, info->length);
+> +			if (result)
+> +				return result;
+> +		}
+> +
+> +		result = remove_memory(node, info->start_addr, info->length);
+> +		if (result)
+> +			return result;
+> +
+> +		list_del(&info->list);
+> +		kfree(info);
+> +	}
+> +
+>  	kfree(mem_device);
+
+The caller does not care the return value, and after this function returns, the
+memory device will be unbound from this driver, so we should free all memory
+allocated for driver data.
+
+> 
+>  	return 0;
+> Index: linux-3.5-rc4/include/linux/memory_hotplug.h
+> ===================================================================
+> --- linux-3.5-rc4.orig/include/linux/memory_hotplug.h	2012-07-03 14:21:49.471374796 +0900
+> +++ linux-3.5-rc4/include/linux/memory_hotplug.h	2012-07-03 14:21:58.330264047 +0900
+> @@ -233,6 +233,7 @@ static inline int is_mem_section_removab
+>  extern int mem_online_node(int nid);
+>  extern int add_memory(int nid, u64 start, u64 size);
+>  extern int arch_add_memory(int nid, u64 start, u64 size);
+> +extern int remove_memory(int nid, u64 start, u64 size);
+>  extern int offline_memory(u64 start, u64 size);
+>  extern int sparse_add_one_section(struct zone *zone, unsigned long start_pfn,
+>  								int nr_pages);
 > Index: linux-3.5-rc4/mm/memory_hotplug.c
 > ===================================================================
-> --- linux-3.5-rc4.orig/mm/memory_hotplug.c	2012-07-03 14:22:00.190240794 +0900
-> +++ linux-3.5-rc4/mm/memory_hotplug.c	2012-07-03 14:22:03.549198802 +0900
-> @@ -661,7 +661,11 @@ EXPORT_SYMBOL_GPL(add_memory);
-> 
->  int remove_memory(int nid, u64 start, u64 size)
->  {
-> -	return -EBUSY;
-> +	lock_memory_hotplug();
-> +	/* remove memmap entry */
-> +	firmware_map_remove(start, start + size - 1, "System RAM");
-> +	unlock_memory_hotplug();
-> +	return 0;
-> 
+> --- linux-3.5-rc4.orig/mm/memory_hotplug.c	2012-07-03 14:21:49.466374860 +0900
+> +++ linux-3.5-rc4/mm/memory_hotplug.c	2012-07-03 14:21:58.332264022 +0900
+> @@ -659,6 +659,14 @@ out:
 >  }
->  EXPORT_SYMBOL_GPL(remove_memory);
-> Index: linux-3.5-rc4/include/linux/firmware-map.h
-> ===================================================================
-> --- linux-3.5-rc4.orig/include/linux/firmware-map.h	2012-07-03 14:21:45.766421116 +0900
-> +++ linux-3.5-rc4/include/linux/firmware-map.h	2012-07-03 14:22:03.550198789 +0900
-> @@ -25,6 +25,7 @@
+>  EXPORT_SYMBOL_GPL(add_memory);
 > 
->  int firmware_map_add_early(u64 start, u64 end, const char *type);
->  int firmware_map_add_hotplug(u64 start, u64 end, const char *type);
-> +int firmware_map_remove(u64 start, u64 end, const char *type);
-> 
->  #else /* CONFIG_FIRMWARE_MEMMAP */
-> 
-> @@ -38,6 +39,11 @@ static inline int firmware_map_add_hotpl
->  	return 0;
->  }
-> 
-> +static inline int firmware_map_remove(u64 start, u64 end, const char *type)
+> +int remove_memory(int nid, u64 start, u64 size)
 > +{
-> +	return 0;
-> +}
+> +	return -EBUSY;
 > +
->  #endif /* CONFIG_FIRMWARE_MEMMAP */
-> 
->  #endif /* _LINUX_FIRMWARE_MAP_H */
-> Index: linux-3.5-rc4/drivers/firmware/memmap.c
+> +}
+> +EXPORT_SYMBOL_GPL(remove_memory);
+> +
+> +
+>  #ifdef CONFIG_MEMORY_HOTREMOVE
+>  /*
+>   * A free page on the buddy free lists (not the per-cpu lists) has PageBuddy
+> Index: linux-3.5-rc4/drivers/base/memory.c
 > ===================================================================
-> --- linux-3.5-rc4.orig/drivers/firmware/memmap.c	2012-07-03 14:21:45.761421180 +0900
-> +++ linux-3.5-rc4/drivers/firmware/memmap.c	2012-07-03 14:22:03.569198549 +0900
-> @@ -79,7 +79,16 @@ static const struct sysfs_ops memmap_att
->  	.show = memmap_attr_show,
->  };
+> --- linux-3.5-rc4.orig/drivers/base/memory.c	2012-07-03 14:21:49.459374948 +0900
+> +++ linux-3.5-rc4/drivers/base/memory.c	2012-07-03 14:21:58.335263984 +0900
+> @@ -70,6 +70,44 @@ void unregister_memory_isolate_notifier(
+>  }
+>  EXPORT_SYMBOL(unregister_memory_isolate_notifier);
 > 
-> +static void release_firmware_map_entry(struct kobject *kobj)
+> +bool is_memblk_offline(unsigned long start, unsigned long size)
 > +{
-> +	/*
-> +	 * FIXME : There is no idea.
-> +	 *         How to free the entry which allocated bootmem?
-> +	 */
+> +	struct memory_block *mem = NULL;
+> +	struct mem_section *section;
+> +	unsigned long start_pfn, end_pfn;
+> +	unsigned long pfn, section_nr;
+> +
+> +	start_pfn = PFN_DOWN(start);
+> +	end_pfn = start_pfn + PFN_DOWN(start);
+> +
+> +	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
+> +		section_nr = pfn_to_section_nr(pfn);
+> +		if (!present_section_nr(section_nr));
+> +			continue;
+> +
+> +		section = __nr_to_section(section_nr);
+> +		/* same memblock? */
+> +		if (mem)
+> +			if((section_nr >= mem->start_section_nr) &&
+> +			   (section_nr <= mem->end_section_nr))
+> +				continue;
+> +
+> +		mem = find_memory_block_hinted(section, mem);
 
-I find a function free_bootmem(), but I am not sure whether it can work here.
-Another problem: how to check whether the entry uses bootmem?
+The second parameter should be NULL. Otherwise, the mem->dev.kobj will
+be put twice:
+1. we put it when mem->state is MEM_OFFLINE
+2. we put it in find_memory_block_hinted().
 
 Thanks
 Wen Congyang
 
-> +}
+> +		if (!mem)
+> +			continue;
+> +		if (mem->state == MEM_OFFLINE) {
+> +			kobject_put(&mem->dev.kobj);
+> +			continue;
+> +		}
 > +
->  static struct kobj_type memmap_ktype = {
-> +	.release	= release_firmware_map_entry,
->  	.sysfs_ops	= &memmap_attr_ops,
->  	.default_attrs	= def_attrs,
->  };
-> @@ -123,6 +132,16 @@ static int firmware_map_add_entry(u64 st
->  	return 0;
->  }
-> 
-> +/**
-> + * firmware_map_remove_entry() - Does the real work to remove a firmware
-> + * memmap entry.
-> + * @entry: removed entry.
-> + **/
-> +static inline void firmware_map_remove_entry(struct firmware_map_entry *entry)
-> +{
-> +	list_del(&entry->list);
+> +		kobject_put(&mem->dev.kobj);
+> +		return false;
+> +	}
+> +
+> +	return true;
 > +}
+> +EXPORT_SYMBOL(is_memblk_offline);
 > +
 >  /*
->   * Add memmap entry on sysfs
+>   * register_memory - Setup a sysfs device for a memory block
 >   */
-> @@ -144,6 +163,31 @@ static int add_sysfs_fw_map_entry(struct
+> Index: linux-3.5-rc4/include/linux/memory.h
+> ===================================================================
+> --- linux-3.5-rc4.orig/include/linux/memory.h	2012-07-03 14:21:45.998418215 +0900
+> +++ linux-3.5-rc4/include/linux/memory.h	2012-07-03 14:21:58.340263922 +0900
+> @@ -106,6 +106,10 @@ static inline int memory_isolate_notify(
+>  {
 >  	return 0;
 >  }
-> 
-> +/*
-> + * Remove memmap entry on sysfs
-> + */
-> +static inline void remove_sysfs_fw_map_entry(struct firmware_map_entry *entry)
+> +static inline bool is_memblk_offline(unsigned long start, unsigned long size)
 > +{
-> +	kobject_put(&entry->kobj);
+> +	return false;
 > +}
-> +
-> +/*
-> + * Search memmap entry
-> + */
-> +
-> +struct firmware_map_entry * __meminit
-> +find_firmware_map_entry(u64 start, u64 end, const char *type)
-> +{
-> +	struct firmware_map_entry *entry;
-> +
-> +	list_for_each_entry(entry, &map_entries, list)
-> +		if ((entry->start == start) && (entry->end == end) &&
-> +		    (!strcmp(entry->type, type)))
-> +			return entry;
-> +
-> +	return NULL;
-> +}
-> +
->  /**
->   * firmware_map_add_hotplug() - Adds a firmware mapping entry when we do
->   * memory hotplug.
-> @@ -196,6 +240,32 @@ int __init firmware_map_add_early(u64 st
->  	return firmware_map_add_entry(start, end, type, entry);
->  }
-> 
-> +/**
-> + * firmware_map_remove() - remove a firmware mapping entry
-> + * @start: Start of the memory range.
-> + * @end:   End of the memory range (inclusive).
-> + * @type:  Type of the memory range.
-> + *
-> + * removes a firmware mapping entry.
-> + *
-> + * Returns 0 on success, or -EINVAL if no entry.
-> + **/
-> +int __meminit firmware_map_remove(u64 start, u64 end, const char *type)
-> +{
-> +	struct firmware_map_entry *entry;
-> +
-> +	entry = find_firmware_map_entry(start, end, type);
-> +	if (!entry)
-> +		return -EINVAL;
-> +
-> +	/* remove the memmap entry */
-> +	remove_sysfs_fw_map_entry(entry);
-> +
-> +	firmware_map_remove_entry(entry);
-> +
-> +	return 0;
-> +}
-> +
->  /*
->   * Sysfs functions -------------------------------------------------------------
->   */
+>  #else
+>  extern int register_memory_notifier(struct notifier_block *nb);
+>  extern void unregister_memory_notifier(struct notifier_block *nb);
+> @@ -120,6 +124,7 @@ extern int memory_isolate_notify(unsigne
+>  extern struct memory_block *find_memory_block_hinted(struct mem_section *,
+>  							struct memory_block *);
+>  extern struct memory_block *find_memory_block(struct mem_section *);
+> +extern bool is_memblk_offline(unsigned long start, unsigned long size);
+>  #define CONFIG_MEM_BLOCK_SIZE	(PAGES_PER_SECTION<<PAGE_SHIFT)
+>  enum mem_add_context { BOOT, HOTPLUG };
+>  #endif /* CONFIG_MEMORY_HOTPLUG_SPARSE */
 > 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
