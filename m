@@ -1,90 +1,89 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: linux-next : cpuidle - could you add my tree please
-Date: Tue, 03 Jul 2012 00:14:32 +0200
-Message-ID: <4FF21D48.50301@linaro.org>
-References: <4FDEE98D.7010802@linaro.org> <CACRpkdYaLweX-4YkWotuFFWoqEjOLKoNCsurCxxWNfq7QznPnw@mail.gmail.com> <4FF19947.3040608@linaro.org> <201207022149.36629.rjw@sisk.pl>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: [RFC PATCH v2 0/13] memory-hotplug : hot-remove physical memory
+Date: Tue, 3 Jul 2012 14:48:51 +0900
+Message-ID: <4FF287C3.4030901@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <201207022149.36629.rjw@sisk.pl>
-Sender: linux-next-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, Lists Linaro-dev <linaro-dev@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kevin Hilman <khilman@ti.com>, Peter De Schrijver <pdeschrijver@nvidia.com>, Amit Kucheria <amit.kucheria@linaro.org>, linux-next@vger.kernel.org, Colin Cross <ccross@android.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Rob Lee <rob.lee@linaro.org>, "lenb@kernel.org" <lenb@kernel.org>
+Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+Sender: owner-linux-mm@kvack.org
+To: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org
+Cc: rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
 
-On 07/02/2012 09:49 PM, Rafael J. Wysocki wrote:
-> On Monday, July 02, 2012, Daniel Lezcano wrote:
->>
->> On 07/02/2012 11:09 AM, Linus Walleij wrote:
->>> On Mon, Jun 25, 2012 at 3:27 PM, Daniel Lezcano
->>> <daniel.lezcano@linaro.org> wrote:
->>>
->>>> we discussed last week to put in place a tree grouping the cpuidle
->>>> modifications [1]. Is it possible to add the tree ?
->>>>
->>>> git://git.linaro.org/people/dlezcano/cpuidle-next.git #cpuidle-nex=
-t
->>>
->>> Thanks for doing this.
->>>
->>> Since MAINTAINERS is lacking a listed maintainer for cpuidle,
->>> are you also going to add yourself as maintainer and list this
->>> tree in that file, or is this a one-time exercise?
->>
->> I will be glad to do that if Len and Rafael agree on that.
->=20
-> Len Brown has been a cpuidle maintainer for some time now.  Moreover,
-> he's been taking patches, but Linus refused to pull his entire tree d=
-uring the
-> last merge window (as you probably know).  I honestly don't think thi=
-s is
-> a good enough reason for replacing him as a cpuidle maintainer by for=
-ce.
->=20
-> So, you should ask Len whether or not he's willing to pass the cpuidl=
-e
-> maintenance to someone else.
+This patch series aims to support physical memory hot-remove.
 
-No, no. You are misunderstanding what I am proposing. I don't want to
-replace Len I just want to act as a "proxy". I understand a maintainer
-can be busy and could not have enough time to take care of the subsyste=
-m
-is maintaining during a period because he's too busy for that.
-Trust me, I fully understand that :)
+  [RFC PATCH v2 1/13] memory-hotplug : rename remove_memory to offline_memory
+  [RFC PATCH v2 2/13] memory-hotplug : add physical memory hotplug code to acpi_memory_device_remove
+  [RFC PATCH v2 3/13] memory-hotplug : unify argument of firmware_map_add_early/hotplug
+  [RFC PATCH v2 4/13] memory-hotplug : remove /sys/firmware/memmap/X sysfs
+  [RFC PATCH v2 5/13] memory-hotplug : does not release memory region in PAGES_PER_SECTION chunks
+  [RFC PATCH v2 6/13] memory-hotplug : add memory_block_release
+  [RFC PATCH v2 7/13] memory-hotplug : remove_memory calls __remove_pages
+  [RFC PATCH v2 8/13] memory-hotplug : check page type in get_page_bootmem
+  [RFC PATCH v2 9/13] memory-hotplug : move register_page_bootmem_info_node and put_page_bootmem for
+sparse-vmemmap
+  [RFC PATCH v2 10/13] memory-hotplug : implement register_page_bootmem_info_section of sparse-vmemmap
+  [RFC PATCH v2 11/13] memory-hotplug : free memmap of sparse-vmemmap
+  [RFC PATCH v2 12/13] memory-hotplug : add node_device_release
+  [RFC PATCH v2 13/13] memory-hotplug : remove sysfs file of node
 
-As there are a lot of modifications of cpuidle, I am proposing to take
-the patches when they are acked-by, to create a consolidated tree,
-providing a better integration for cpuidle, a wider testing, preventing
-conflicts and facilitating Len's work if he agrees to pull from this tr=
-ee.
+Even if you apply these patches, you cannot remove the physical memory
+completely since these patches are still under development. I want you to
+cooperate to improve the physical memory hot-remove. So please review these
+patches and give your comment/idea.
 
-If that makes sense to add myself to the MAINTAINER file as a
-co-maintainer (understand: send to me also the patches, so I can take
-care of them if Len does not respond), I am ok with that.
+The patches can free/remove following things:
 
-It is just about helping :)
+  - acpi_memory_info                          : [RFC PATCH 2/13]
+  - /sys/firmware/memmap/X/{end, start, type} : [RFC PATCH 4/13]
+  - iomem_resource                            : [RFC PATCH 5/13]
+  - mem_section and related sysfs files       : [RFC PATCH 6-11/13]
+  - node and related sysfs files              : [RFC PATCH 12-13/13]
 
-> I know that Len hasn't been responsive recently, but I also know that=
- he
-> _does_ respond to inquiries sent directly to him.
+The patches cannot do following things yet:
 
-Do you mean to its intel address ?
+  - page table of removed memory
 
-Thanks
-  -- Daniel
+If you find lack of function for physical memory hot-remove, please let me
+know.
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-next"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+change log of v2:
+ [RFC PATCH v2 2/13]
+   * check whether memory block is offline or not before calling offline_memory()
+   * check whether section is valid or not in is_memblk_offline()
+   * call kobject_put() for each memory_block in is_memblk_offline()
+
+ [RFC PATCH v2 3/13]
+   * unify the end argument of firmware_map_add_early/hotplug
+
+ [RFC PATCH v2 4/13]
+   * add release_firmware_map_entry() for freeing firmware_map_entry
+
+ [RFC PATCH v2 6/13]
+  * add release_memory_block() for freeing memory_block
+
+ [RFC PATCH v2 11/13]
+  * fix wrong arguments of free_pages()
+
+---
+ arch/powerpc/platforms/pseries/hotplug-memory.c |   16 +-
+ arch/x86/mm/init_64.c                           |  144 ++++++++++++++++++++++++
+ drivers/acpi/acpi_memhotplug.c                  |   28 ++++
+ drivers/base/memory.c                           |   53 ++++++++
+ drivers/base/node.c                             |    7 +
+ drivers/firmware/memmap.c                       |   70 +++++++++++
+ include/linux/firmware-map.h                    |    6 +
+ include/linux/memory.h                          |    5
+ include/linux/memory_hotplug.h                  |   17 --
+ include/linux/mm.h                              |    5
+ mm/memory_hotplug.c                             |   98 ++++++++++++----
+ mm/sparse.c                                     |    5
+ 12 files changed, 406 insertions(+), 48 deletions(-)
 
 
---=20
- <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software for=
- ARM SoCs
-
-=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
