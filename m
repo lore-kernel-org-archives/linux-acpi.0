@@ -1,25 +1,20 @@
 From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: [RFC PATCH v2 12/13] memory-hotplug : add node_device_release
-Date: Tue, 3 Jul 2012 15:05:15 +0900
-Message-ID: <4FF28B9B.5010409@jp.fujitsu.com>
+Subject: [RFC PATCH v2 13/13] memory-hotplug : remove sysfs file of node
+Date: Tue, 3 Jul 2012 15:06:06 +0900
+Message-ID: <4FF28BCE.7000904@jp.fujitsu.com>
 References: <4FF287C3.4030901@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-2022-JP"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <owner-linux-mm@kvack.org>
 In-Reply-To: <4FF287C3.4030901@jp.fujitsu.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: owner-linux-mm@kvack.org
 To: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org
 Cc: rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
 
-When calling unregister_node(), the function shows following message at
-device_release().
-
-Device 'node2' does not have a release() function, it is broken and must be
-fixed.
-
-So the patch implements node_device_release()
+The patch adds node_set_offline() and unregister_one_node() to remove_memory()
+for removing sysfs file of node.
 
 CC: David Rientjes <rientjes@google.com>
 CC: Jiang Liu <liuj97@gmail.com>
@@ -33,31 +28,28 @@ CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
 ---
- drivers/base/node.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/memory_hotplug.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-Index: linux-3.5-rc4/drivers/base/node.c
+Index: linux-3.5-rc4/mm/memory_hotplug.c
 ===================================================================
---- linux-3.5-rc4.orig/drivers/base/node.c	2012-07-03 14:21:44.882432167 +0900
-+++ linux-3.5-rc4/drivers/base/node.c	2012-07-03 14:22:23.296951921 +0900
-@@ -252,6 +252,12 @@ static inline void hugetlb_register_node
- static inline void hugetlb_unregister_node(struct node *node) {}
- #endif
+--- linux-3.5-rc4.orig/mm/memory_hotplug.c	2012-07-03 14:22:21.012982694 +0900
++++ linux-3.5-rc4/mm/memory_hotplug.c	2012-07-03 14:22:25.405925554 +0900
+@@ -702,6 +702,11 @@ int remove_memory(int nid, u64 start, u6
+ 	/* remove memmap entry */
+ 	firmware_map_remove(start, start + size - 1, "System RAM");
 
-+static void node_device_release(struct device *dev)
-+{
-+	struct node *node_dev = to_node(dev);
++	if (!node_present_pages(nid)) {
++		node_set_offline(nid);
++		unregister_one_node(nid);
++	}
 +
-+	memset(node_dev, 0, sizeof(struct node));
-+}
+ 	__remove_pages(start >> PAGE_SHIFT, size >> PAGE_SHIFT);
+ 	unlock_memory_hotplug();
+ 	return 0;
 
- /*
-  * register_node - Setup a sysfs device for a node.
-@@ -265,6 +271,7 @@ int register_node(struct node *node, int
-
- 	node->dev.id = num;
- 	node->dev.bus = &node_subsys;
-+	node->dev.release = node_device_release;
- 	error = device_register(&node->dev);
-
- 	if (!error){
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
