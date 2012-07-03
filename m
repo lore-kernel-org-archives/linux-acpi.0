@@ -1,30 +1,35 @@
 From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: [RFC PATCH v2 2/13] memory-hotplug : add physical memory hotplug
- code to acpi_memory_device_remove
-Date: Tue, 3 Jul 2012 14:54:04 +0900
-Message-ID: <4FF288FC.8030609@jp.fujitsu.com>
+Subject: [RFC PATCH v2 3/13] unify argument of firmware_map_add_early/hotplug
+Date: Tue, 3 Jul 2012 14:55:22 +0900
+Message-ID: <4FF2894A.7020303@jp.fujitsu.com>
 References: <4FF287C3.4030901@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-2022-JP"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:51770 "EHLO
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:51816 "EHLO
 	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753980Ab2GCFyX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Jul 2012 01:54:23 -0400
+	with ESMTP id S1752874Ab2GCFzk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Jul 2012 01:55:40 -0400
 In-Reply-To: <4FF287C3.4030901@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org
 Cc: rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com
 
-acpi_memory_device_remove() has been prepared to remove physical memory.
-But, the function only frees acpi_memory_device currentlry.
+There are two ways to create /sys/firmware/memmap/X sysfs:
 
-The patch adds following functions into acpi_memory_device_remove():
-  - offline memory
-  - remove physical memory (only return -EBUSY)
-  - free acpi_memory_device
+  - firmware_map_add_early
+    When the system starts, it is calledd from e820_reserve_resources()
+  - firmware_map_add_hotplug
+    When the memory is hot plugged, it is called from add_memory()
+
+But these functions are called without unifying value of end argument as below:
+
+  - end argument of firmware_map_add_early()   : start + size - 1
+  - end argument of firmware_map_add_hogplug() : start + size
+
+The patch unifies them to "start + size - 1".
 
 CC: David Rientjes <rientjes@google.com>
 CC: Jiang Liu <liuj97@gmail.com>
@@ -38,163 +43,20 @@ CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
 ---
- drivers/acpi/acpi_memhotplug.c |   26 +++++++++++++++++++++++++-
- drivers/base/memory.c          |   38 ++++++++++++++++++++++++++++++++++++++
- include/linux/memory.h         |    5 +++++
- include/linux/memory_hotplug.h |    1 +
- mm/memory_hotplug.c            |    8 ++++++++
- 5 files changed, 77 insertions(+), 1 deletion(-)
+ mm/memory_hotplug.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Index: linux-3.5-rc4/drivers/acpi/acpi_memhotplug.c
-===================================================================
---- linux-3.5-rc4.orig/drivers/acpi/acpi_memhotplug.c	2012-07-03 14:21:49.458374960 +0900
-+++ linux-3.5-rc4/drivers/acpi/acpi_memhotplug.c	2012-07-03 14:21:58.329264059 +0900
-@@ -29,6 +29,7 @@
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/types.h>
-+#include <linux/memory.h>
- #include <linux/memory_hotplug.h>
- #include <linux/slab.h>
- #include <acpi/acpi_drivers.h>
-@@ -452,12 +453,35 @@ static int acpi_memory_device_add(struct
- static int acpi_memory_device_remove(struct acpi_device *device, int type)
- {
- 	struct acpi_memory_device *mem_device = NULL;
--
-+	struct acpi_memory_info *info, *tmp;
-+	int result;
-+	int node;
-
- 	if (!device || !acpi_driver_data(device))
- 		return -EINVAL;
-
- 	mem_device = acpi_driver_data(device);
-+
-+	node = acpi_get_node(mem_device->device->handle);
-+
-+	list_for_each_entry_safe(info, tmp, &mem_device->res_list, list) {
-+		if (!info->enabled)
-+			continue;
-+
-+		if (!is_memblk_offline(info->start_addr, info->length)) {
-+			result = offline_memory(info->start_addr, info->length);
-+			if (result)
-+				return result;
-+		}
-+
-+		result = remove_memory(node, info->start_addr, info->length);
-+		if (result)
-+			return result;
-+
-+		list_del(&info->list);
-+		kfree(info);
-+	}
-+
- 	kfree(mem_device);
-
- 	return 0;
-Index: linux-3.5-rc4/include/linux/memory_hotplug.h
-===================================================================
---- linux-3.5-rc4.orig/include/linux/memory_hotplug.h	2012-07-03 14:21:49.471374796 +0900
-+++ linux-3.5-rc4/include/linux/memory_hotplug.h	2012-07-03 14:21:58.330264047 +0900
-@@ -233,6 +233,7 @@ static inline int is_mem_section_removab
- extern int mem_online_node(int nid);
- extern int add_memory(int nid, u64 start, u64 size);
- extern int arch_add_memory(int nid, u64 start, u64 size);
-+extern int remove_memory(int nid, u64 start, u64 size);
- extern int offline_memory(u64 start, u64 size);
- extern int sparse_add_one_section(struct zone *zone, unsigned long start_pfn,
- 								int nr_pages);
 Index: linux-3.5-rc4/mm/memory_hotplug.c
 ===================================================================
---- linux-3.5-rc4.orig/mm/memory_hotplug.c	2012-07-03 14:21:49.466374860 +0900
-+++ linux-3.5-rc4/mm/memory_hotplug.c	2012-07-03 14:21:58.332264022 +0900
-@@ -659,6 +659,14 @@ out:
- }
- EXPORT_SYMBOL_GPL(add_memory);
+--- linux-3.5-rc4.orig/mm/memory_hotplug.c	2012-07-03 14:21:58.332264022 +0900
++++ linux-3.5-rc4/mm/memory_hotplug.c	2012-07-03 14:22:00.190240794 +0900
+@@ -642,7 +642,7 @@ int __ref add_memory(int nid, u64 start,
+ 	}
 
-+int remove_memory(int nid, u64 start, u64 size)
-+{
-+	return -EBUSY;
-+
-+}
-+EXPORT_SYMBOL_GPL(remove_memory);
-+
-+
- #ifdef CONFIG_MEMORY_HOTREMOVE
- /*
-  * A free page on the buddy free lists (not the per-cpu lists) has PageBuddy
-Index: linux-3.5-rc4/drivers/base/memory.c
-===================================================================
---- linux-3.5-rc4.orig/drivers/base/memory.c	2012-07-03 14:21:49.459374948 +0900
-+++ linux-3.5-rc4/drivers/base/memory.c	2012-07-03 14:21:58.335263984 +0900
-@@ -70,6 +70,44 @@ void unregister_memory_isolate_notifier(
- }
- EXPORT_SYMBOL(unregister_memory_isolate_notifier);
+ 	/* create new memmap entry */
+-	firmware_map_add_hotplug(start, start + size, "System RAM");
++	firmware_map_add_hotplug(start, start + size - 1, "System RAM");
 
-+bool is_memblk_offline(unsigned long start, unsigned long size)
-+{
-+	struct memory_block *mem = NULL;
-+	struct mem_section *section;
-+	unsigned long start_pfn, end_pfn;
-+	unsigned long pfn, section_nr;
-+
-+	start_pfn = PFN_DOWN(start);
-+	end_pfn = start_pfn + PFN_DOWN(start);
-+
-+	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
-+		section_nr = pfn_to_section_nr(pfn);
-+		if (!present_section_nr(section_nr));
-+			continue;
-+
-+		section = __nr_to_section(section_nr);
-+		/* same memblock? */
-+		if (mem)
-+			if((section_nr >= mem->start_section_nr) &&
-+			   (section_nr <= mem->end_section_nr))
-+				continue;
-+
-+		mem = find_memory_block_hinted(section, mem);
-+		if (!mem)
-+			continue;
-+		if (mem->state == MEM_OFFLINE) {
-+			kobject_put(&mem->dev.kobj);
-+			continue;
-+		}
-+
-+		kobject_put(&mem->dev.kobj);
-+		return false;
-+	}
-+
-+	return true;
-+}
-+EXPORT_SYMBOL(is_memblk_offline);
-+
- /*
-  * register_memory - Setup a sysfs device for a memory block
-  */
-Index: linux-3.5-rc4/include/linux/memory.h
-===================================================================
---- linux-3.5-rc4.orig/include/linux/memory.h	2012-07-03 14:21:45.998418215 +0900
-+++ linux-3.5-rc4/include/linux/memory.h	2012-07-03 14:21:58.340263922 +0900
-@@ -106,6 +106,10 @@ static inline int memory_isolate_notify(
- {
- 	return 0;
- }
-+static inline bool is_memblk_offline(unsigned long start, unsigned long size)
-+{
-+	return false;
-+}
- #else
- extern int register_memory_notifier(struct notifier_block *nb);
- extern void unregister_memory_notifier(struct notifier_block *nb);
-@@ -120,6 +124,7 @@ extern int memory_isolate_notify(unsigne
- extern struct memory_block *find_memory_block_hinted(struct mem_section *,
- 							struct memory_block *);
- extern struct memory_block *find_memory_block(struct mem_section *);
-+extern bool is_memblk_offline(unsigned long start, unsigned long size);
- #define CONFIG_MEM_BLOCK_SIZE	(PAGES_PER_SECTION<<PAGE_SHIFT)
- enum mem_add_context { BOOT, HOTPLUG };
- #endif /* CONFIG_MEMORY_HOTPLUG_SPARSE */
+ 	goto out;
+
 
