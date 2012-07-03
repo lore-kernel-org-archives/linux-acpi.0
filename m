@@ -1,155 +1,104 @@
-From: Vlastimil Babka <caster@gentoo.org>
-Subject: Re: PROBLEM: NULL pointer dereference in acpi_ns_check_object_type()
-Date: Tue, 03 Jul 2012 11:15:55 +0200
-Message-ID: <4FF2B84B.1060000@gentoo.org>
-References: <4FF15FA6.5070109@gentoo.org> <94F2FBAB4432B54E8AACC7DFDE6C92E346B0252D@ORSMSX101.amr.corp.intel.com>
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: linux-next : cpuidle - could you add my tree please
+Date: Tue, 03 Jul 2012 14:56:58 +0200
+Message-ID: <4FF2EC1A.7020702@linaro.org>
+References: <4FDEE98D.7010802@linaro.org> <201207022149.36629.rjw@sisk.pl> <4FF21D48.50301@linaro.org> <201207031059.13758.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:43508 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754191Ab2GCJQA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 3 Jul 2012 05:16:00 -0400
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E346B0252D@ORSMSX101.amr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <201207031059.13758.rjw@sisk.pl>
+Sender: linux-next-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, Lists Linaro-dev <linaro-dev@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kevin Hilman <khilman@ti.com>, Peter De Schrijver <pdeschrijver@nvidia.com>, Amit Kucheria <amit.kucheria@linaro.org>, linux-next@vger.kernel.org, Colin Cross <ccross@android.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Rob Lee <rob.lee@linaro.org>, "lenb@kernel.org" <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Thomas Renninger <trenn@suse.de>, collinm@laboiteaprog.com
 
-On 07/02/2012 09:59 PM, Moore, Robert wrote:
-> I was able to reproduce the problem here with your ACPI tables.
->
-> Will look at your patch, and get back to you.
+On 07/03/2012 10:59 AM, Rafael J. Wysocki wrote:
+> On Tuesday, July 03, 2012, Daniel Lezcano wrote:
+>> On 07/02/2012 09:49 PM, Rafael J. Wysocki wrote:
+>>> On Monday, July 02, 2012, Daniel Lezcano wrote:
+>>>>
+>>>> On 07/02/2012 11:09 AM, Linus Walleij wrote:
+>>>>> On Mon, Jun 25, 2012 at 3:27 PM, Daniel Lezcano
+>>>>> <daniel.lezcano@linaro.org> wrote:
+>>>>>
+>>>>>> we discussed last week to put in place a tree grouping the cpuid=
+le
+>>>>>> modifications [1]. Is it possible to add the tree ?
+>>>>>>
+>>>>>> git://git.linaro.org/people/dlezcano/cpuidle-next.git #cpuidle-n=
+ext
+>>>>>
+>>>>> Thanks for doing this.
+>>>>>
+>>>>> Since MAINTAINERS is lacking a listed maintainer for cpuidle,
+>>>>> are you also going to add yourself as maintainer and list this
+>>>>> tree in that file, or is this a one-time exercise?
+>>>>
+>>>> I will be glad to do that if Len and Rafael agree on that.
+>>>
+>>> Len Brown has been a cpuidle maintainer for some time now.  Moreove=
+r,
+>>> he's been taking patches, but Linus refused to pull his entire tree=
+ during the
+>>> last merge window (as you probably know).  I honestly don't think t=
+his is
+>>> a good enough reason for replacing him as a cpuidle maintainer by f=
+orce.
+>>>
+>>> So, you should ask Len whether or not he's willing to pass the cpui=
+dle
+>>> maintenance to someone else.
+>>
+>> No, no. You are misunderstanding what I am proposing. I don't want t=
+o
+>> replace Len I just want to act as a "proxy". I understand a maintain=
+er
+>> can be busy and could not have enough time to take care of the subsy=
+stem
+>> is maintaining during a period because he's too busy for that.
+>> Trust me, I fully understand that :)
+>>
+>> As there are a lot of modifications of cpuidle, I am proposing to ta=
+ke
+>> the patches when they are acked-by, to create a consolidated tree,
+>> providing a better integration for cpuidle, a wider testing, prevent=
+ing
+>> conflicts and facilitating Len's work if he agrees to pull from this=
+ tree.
+>>
+>> If that makes sense to add myself to the MAINTAINER file as a
+>> co-maintainer (understand: send to me also the patches, so I can tak=
+e
+>> care of them if Len does not respond), I am ok with that.
+>>
+>> It is just about helping :)
+>=20
+> Cool. :-)
+>=20
+> So do you have a branch in the cpuidle-next.git tree that isn't going=
+ to
+> be rebased?
 
-Thanks.
+No. I am following Linus tree and adding the patches on top of it.
 
-> You should probably open a bugzilla on this.
+>>> I know that Len hasn't been responsive recently, but I also know th=
+at he
+>>> _does_ respond to inquiries sent directly to him.
+>>
+>> Do you mean to its intel address ?
+>=20
+> Yes, CCing the Len's Intel address won't hurt I think.
 
-Done: bug 44171
+Ok, I will ping him and give him the pointers to the discussion we had.
 
-https://bugzilla.kernel.org/show_bug.cgi?id=3D44171
+Thanks
+  -- Daniel
 
-> Thanks,
-> Bob
->
->
->> -----Original Message-----
->> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
->> owner@vger.kernel.org] On Behalf Of Vlastimil Babka
->> Sent: Monday, July 02, 2012 1:45 AM
->> To: linux-acpi@vger.kernel.org
->> Subject: PROBLEM: NULL pointer dereference in
->> acpi_ns_check_object_type()
->>
->> Hello,
->>
->> I've been experiencing kernel panic with NULL pointer dereference in
->> acpi_ns_check_object_type since kernel 3.4 on a MacPro machine.
->>
->> By recompiling as much of ACPI as possible as modules, I was able to
->> get the system running and postpone the error until doing 'modprobe
->> acpi-cpufreq', which now results in oops, not panic. The log is
->> attached as error.log.
->>
->> By bisecting linus tree between 3.3 and 3.4, I found the guilty comm=
-it
->> 6a99b1c94d053b3420eaa4a4bc8b2883dd90a2f9
->> "ACPICA: Object repair code: Support to add Package wrappers" [1]
->> However this patch does not directly touch the functions in the stac=
-k
->> trace.
->>
->> Next I created a kdump of the oops, and looked around with gdb.
->> - In acpi_ns_check_package(), the null pointer is in the parameter
->> return_object_ptr, which is dereferenced when initializing the varia=
-ble
->> return_object.
->> - The calling function acpi_ns_check_package_list() is in the 'case
->> ACPI_PTYPE2_COUNT:' part, the passed null pointer is in the
->> sub_elements variable.
->> - Before the switch, sub_elements is initialized like this:
->>
->>    sub_elements =3D sub_package->package.elements
->>
->>    interestingly, in the crashdump, sub_elements is null, but
->>    sub_package->package.elements is non-null
->>
->> I've added some printk's and verified that the call of  status =3D
->> acpi_ns_check_object_type(data, &sub_package,
->> 				   ACPI_RTYPE_PACKAGE, i);
->>
->>   makes sub_package->package.elements become non-null, but sub_eleme=
-nts
->> was already initialized before this call and remains null.
->>
->> The above led me to create the attached patch which simply moves the
->> initialization of sub_elements after the sub_package check. I think
->> it's this check that results in the Integer to Package
->> conversion/wrapping.
->>
->> After this patch, the null pointer dereference is gone, but the debu=
-g
->> output of ACPI (acpi.debug_layer=3D0xffffffff
->> acpi.debug_level=3D0x00000008) shows that something is probably stil=
-l
->> wrong:
->>
->> [    1.353677] nsrepair-0681 [4294967287] ns_wrap_with_package  :
->> \_PR_.CPU0._PSD: Wrapped Integer with expected Package object
->> [    1.353869] nsrepair-0681 [4294967287] ns_wrap_with_package  :
->> \_PR_.CPU0._PSD: Wrapped Integer with expected Package object
->> [    1.354059] ACPI Warning: For \_PR_.CPU0._PSD: Return Sub-Package=
-[0]
->> is too small - found 1 elements, expected 5 (20120320/nspredef-905)
->> [    1.354253] ACPI: Invalid package argument
->> [    1.354322] ACPI: Invalid _PSD data
->> ... (the same for other CPUx)
->>
->>
->> In comparison, 3.3 kernel with same acpi debug options shows only st=
-uff
->> like:
->> [    1.494238] nsrepair-0728 [4294967287] ns_repair_package_list:
->> \_PR_.CPU0._PSD: Repaired incorrectly formed Package
->> [    1.494449] nsrepair-0728 [4294967287] ns_repair_package_list:
->> \_PR_.CPU2._PSD: Repaired incorrectly formed Package
->> [    1.494657] nsrepair-0728 [4294967287] ns_repair_package_list:
->> \_PR_.CPU4._PSD: Repaired incorrectly formed Package ... (the same f=
-or
->> other CPUx)
->>
->> Since I don't know much about this subsystem, I figured that I shoul=
-d
->> just report my findings at this point. The patched system is usable,
->> but I guess it's not a complete fix.
->>
->> I also attach the output of acpidump. I hope I didn't forget anythin=
-g
->> important, please ask for more information if needed.
->>
->> Thanks,
->> Vlastimil Babka
->>
->> [1]
->> git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-
->> 2.6.git;a=3Dcommit;h=3D6a99b1c94d053b3420eaa4a4bc8b2883dd90a2f9
->
-> N=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BDr=EF=BF=BD=EF=BF=BDy=EF=
-=BF=BD=EF=BF=BD=EF=BF=BDb=EF=BF=BDX=EF=BF=BD=EF=BF=BD=C7=A7v=EF=BF=BD^=EF=
-=BF=BD)=DE=BA{.n=EF=BF=BD+=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD{=EF=BF=BD=
-i=EF=BF=BDb=EF=BF=BD{ay=EF=BF=BD=1D=CA=87=DA=99=EF=BF=BD,j=07=EF=BF=BD=EF=
-=BF=BDf=EF=BF=BD=EF=BF=BD=EF=BF=BDh=EF=BF=BD=EF=BF=BD=EF=BF=BDz=EF=BF=BD=
-=1E=EF=BF=BDw=EF=BF=BD=EF=BF=BD=EF=BF=BD=0C=EF=BF=BD=EF=BF=BD=EF=BF=BDj=
-:+v=EF=BF=BD=EF=BF=BD=EF=BF=BDw=EF=BF=BDj=EF=BF=BDm=EF=BF=BD=EF=BF=BD=EF=
-=BF=BD=EF=BF=BD=07=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BDzZ+=EF=BF=BD=EF=BF=
-=BD=DD=A2j"=EF=BF=BD=EF=BF=BD!tml=3D
->
+--=20
+ <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software for=
+ ARM SoCs
 
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
+<http://twitter.com/#!/linaroorg> Twitter |
+<http://www.linaro.org/linaro-blog/> Blog
