@@ -1,238 +1,47 @@
-From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: Re: [RFC PATCH v2 4/13] memory-hotplug : remove /sys/firmware/memmap/X
- sysfs
-Date: Wed, 04 Jul 2012 13:08:44 +0800
-Message-ID: <4FF3CFDC.50802@cn.fujitsu.com>
-References: <4FF287C3.4030901@jp.fujitsu.com> <4FF28996.10702@jp.fujitsu.com> <4FF2929B.7030004@cn.fujitsu.com> <4FF3CA65.1020300@jp.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <4FF3CA65.1020300@jp.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: [PATCH] ACPI/AC: add check the return value of power_supply_regiester()
+Date: Wed,  4 Jul 2012 13:33:43 +0800
+Message-ID: <1341380023-5713-1-git-send-email-tianyu.lan@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:47466 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933531Ab2GDFmK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 4 Jul 2012 01:42:10 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org
 
-At 07/04/2012 12:45 PM, Yasuaki Ishimatsu Wrote:
-> Hi Wen,
-> 
-> 2012/07/03 15:35, Wen Congyang wrote:
->> At 07/03/2012 01:56 PM, Yasuaki Ishimatsu Wrote:
->>> When (hot)adding memory into system, /sys/firmware/memmap/X/{end, start, type}
->>> sysfs files are created. But there is no code to remove these files. The patch
->>> implements the function to remove them.
->>>
->>> Note : The code does not free firmware_map_entry since there is no way to free
->>>         memory which is allocated by bootmem.
->>>
->>> CC: David Rientjes <rientjes@google.com>
->>> CC: Jiang Liu <liuj97@gmail.com>
->>> CC: Len Brown <len.brown@intel.com>
->>> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
->>> CC: Paul Mackerras <paulus@samba.org>
->>> CC: Christoph Lameter <cl@linux.com>
->>> Cc: Minchan Kim <minchan.kim@gmail.com>
->>> CC: Andrew Morton <akpm@linux-foundation.org>
->>> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
->>> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->>>
->>> ---
->>>   drivers/firmware/memmap.c    |   70 +++++++++++++++++++++++++++++++++++++++++++
->>>   include/linux/firmware-map.h |    6 +++
->>>   mm/memory_hotplug.c          |    6 +++
->>>   3 files changed, 81 insertions(+), 1 deletion(-)
->>>
->>> Index: linux-3.5-rc4/mm/memory_hotplug.c
->>> ===================================================================
->>> --- linux-3.5-rc4.orig/mm/memory_hotplug.c	2012-07-03 14:22:00.190240794 +0900
->>> +++ linux-3.5-rc4/mm/memory_hotplug.c	2012-07-03 14:22:03.549198802 +0900
->>> @@ -661,7 +661,11 @@ EXPORT_SYMBOL_GPL(add_memory);
->>>
->>>   int remove_memory(int nid, u64 start, u64 size)
->>>   {
->>> -	return -EBUSY;
->>> +	lock_memory_hotplug();
->>> +	/* remove memmap entry */
->>> +	firmware_map_remove(start, start + size - 1, "System RAM");
->>> +	unlock_memory_hotplug();
->>> +	return 0;
->>>
->>>   }
->>>   EXPORT_SYMBOL_GPL(remove_memory);
->>> Index: linux-3.5-rc4/include/linux/firmware-map.h
->>> ===================================================================
->>> --- linux-3.5-rc4.orig/include/linux/firmware-map.h	2012-07-03 14:21:45.766421116 +0900
->>> +++ linux-3.5-rc4/include/linux/firmware-map.h	2012-07-03 14:22:03.550198789 +0900
->>> @@ -25,6 +25,7 @@
->>>
->>>   int firmware_map_add_early(u64 start, u64 end, const char *type);
->>>   int firmware_map_add_hotplug(u64 start, u64 end, const char *type);
->>> +int firmware_map_remove(u64 start, u64 end, const char *type);
->>>
->>>   #else /* CONFIG_FIRMWARE_MEMMAP */
->>>
->>> @@ -38,6 +39,11 @@ static inline int firmware_map_add_hotpl
->>>   	return 0;
->>>   }
->>>
->>> +static inline int firmware_map_remove(u64 start, u64 end, const char *type)
->>> +{
->>> +	return 0;
->>> +}
->>> +
->>>   #endif /* CONFIG_FIRMWARE_MEMMAP */
->>>
->>>   #endif /* _LINUX_FIRMWARE_MAP_H */
->>> Index: linux-3.5-rc4/drivers/firmware/memmap.c
->>> ===================================================================
->>> --- linux-3.5-rc4.orig/drivers/firmware/memmap.c	2012-07-03 14:21:45.761421180 +0900
->>> +++ linux-3.5-rc4/drivers/firmware/memmap.c	2012-07-03 14:22:03.569198549 +0900
->>> @@ -79,7 +79,16 @@ static const struct sysfs_ops memmap_att
->>>   	.show = memmap_attr_show,
->>>   };
->>>
->>> +static void release_firmware_map_entry(struct kobject *kobj)
->>> +{
->>> +	/*
->>> +	 * FIXME : There is no idea.
->>> +	 *         How to free the entry which allocated bootmem?
->>> +	 */
->>
->> I find a function free_bootmem(), but I am not sure whether it can work here.
-> 
-> It cannot work here.
-> 
->> Another problem: how to check whether the entry uses bootmem?
-> 
-> When firmware_map_entry is allocated by kzalloc(), the page has PG_slab.
+In the ac.c, lack check return value of power_supply_register().
+This may casue that acpi driver's add() ops was called successful
+while the device may be failed to be initalized. For example, some
+ugly bios may describe two ACADs in the same dsdt. They use the same
+name which will cause the second ACAD device can no be registered.
+And then power_supply_register() failed. But acpi driver's add() ops
+is called sucessfully. The acpi device also will receive acpi notification
+and cause oops.
+	https://bugzilla.redhat.com/show_bug.cgi?id=772730
 
-This is not true. In my test, I find the page does not have PG_slab sometimes.
+Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+---
+ drivers/acpi/ac.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-Thanks
-Wen Congyang.
+diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
+index 6512b20..d1fcbc0 100644
+--- a/drivers/acpi/ac.c
++++ b/drivers/acpi/ac.c
+@@ -292,7 +292,9 @@ static int acpi_ac_add(struct acpi_device *device)
+ 	ac->charger.properties = ac_props;
+ 	ac->charger.num_properties = ARRAY_SIZE(ac_props);
+ 	ac->charger.get_property = get_ac_property;
+-	power_supply_register(&ac->device->dev, &ac->charger);
++	result = power_supply_register(&ac->device->dev, &ac->charger);
++	if (result)
++		goto end;
+ 
+ 	printk(KERN_INFO PREFIX "%s [%s] (%s)\n",
+ 	       acpi_device_name(device), acpi_device_bid(device),
+-- 
+1.7.6.rc2.8.g28eb
 
-> So we can check whether the entry was allocated by bootmem or not.
-> If the eantry was allocated by kzalloc(), we can free the entry by kfree().
-> But if the entry was allocated by bootmem, we have no way to free the entry.
-> 
-> Thanks,
-> Yasuaki Ishimatsu
-> 
->>
->> Thanks
->> Wen Congyang
->>
->>> +}
->>> +
->>>   static struct kobj_type memmap_ktype = {
->>> +	.release	= release_firmware_map_entry,
->>>   	.sysfs_ops	= &memmap_attr_ops,
->>>   	.default_attrs	= def_attrs,
->>>   };
->>> @@ -123,6 +132,16 @@ static int firmware_map_add_entry(u64 st
->>>   	return 0;
->>>   }
->>>
->>> +/**
->>> + * firmware_map_remove_entry() - Does the real work to remove a firmware
->>> + * memmap entry.
->>> + * @entry: removed entry.
->>> + **/
->>> +static inline void firmware_map_remove_entry(struct firmware_map_entry *entry)
->>> +{
->>> +	list_del(&entry->list);
->>> +}
->>> +
->>>   /*
->>>    * Add memmap entry on sysfs
->>>    */
->>> @@ -144,6 +163,31 @@ static int add_sysfs_fw_map_entry(struct
->>>   	return 0;
->>>   }
->>>
->>> +/*
->>> + * Remove memmap entry on sysfs
->>> + */
->>> +static inline void remove_sysfs_fw_map_entry(struct firmware_map_entry *entry)
->>> +{
->>> +	kobject_put(&entry->kobj);
->>> +}
->>> +
->>> +/*
->>> + * Search memmap entry
->>> + */
->>> +
->>> +struct firmware_map_entry * __meminit
->>> +find_firmware_map_entry(u64 start, u64 end, const char *type)
->>> +{
->>> +	struct firmware_map_entry *entry;
->>> +
->>> +	list_for_each_entry(entry, &map_entries, list)
->>> +		if ((entry->start == start) && (entry->end == end) &&
->>> +		    (!strcmp(entry->type, type)))
->>> +			return entry;
->>> +
->>> +	return NULL;
->>> +}
->>> +
->>>   /**
->>>    * firmware_map_add_hotplug() - Adds a firmware mapping entry when we do
->>>    * memory hotplug.
->>> @@ -196,6 +240,32 @@ int __init firmware_map_add_early(u64 st
->>>   	return firmware_map_add_entry(start, end, type, entry);
->>>   }
->>>
->>> +/**
->>> + * firmware_map_remove() - remove a firmware mapping entry
->>> + * @start: Start of the memory range.
->>> + * @end:   End of the memory range (inclusive).
->>> + * @type:  Type of the memory range.
->>> + *
->>> + * removes a firmware mapping entry.
->>> + *
->>> + * Returns 0 on success, or -EINVAL if no entry.
->>> + **/
->>> +int __meminit firmware_map_remove(u64 start, u64 end, const char *type)
->>> +{
->>> +	struct firmware_map_entry *entry;
->>> +
->>> +	entry = find_firmware_map_entry(start, end, type);
->>> +	if (!entry)
->>> +		return -EINVAL;
->>> +
->>> +	/* remove the memmap entry */
->>> +	remove_sysfs_fw_map_entry(entry);
->>> +
->>> +	firmware_map_remove_entry(entry);
->>> +
->>> +	return 0;
->>> +}
->>> +
->>>   /*
->>>    * Sysfs functions -------------------------------------------------------------
->>>    */
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>> Please read the FAQ at  http://www.tux.org/lkml/
->>>
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> Please read the FAQ at  http://www.tux.org/lkml/
->>
-> 
-> 
-> 
-> 
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
