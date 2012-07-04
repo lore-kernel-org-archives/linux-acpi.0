@@ -1,45 +1,57 @@
-From: Mel Gorman <mel@csn.ul.ie>
-Subject: Re: [RFC PATCH 2/3 V1] mm, page migrate: add MIGRATE_HOTREMOVE type
-Date: Wed, 4 Jul 2012 11:19:55 +0100
-Message-ID: <20120704101942.GM13141@csn.ul.ie>
-References: <1341386778-8002-1-git-send-email-laijs@cn.fujitsu.com>
- <1341386778-8002-3-git-send-email-laijs@cn.fujitsu.com>
+From: Ike Panhc <ike.pan@canonical.com>
+Subject: Re: [PATCH 09/12] ideapad: convert to module_acpi_driver()
+Date: Wed, 04 Jul 2012 18:29:43 +0800
+Message-ID: <4FF41B17.3030304@canonical.com>
+References: <1340881171-14811-1-git-send-email-mika.westerberg@linux.intel.com> <1340881171-14811-10-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from gir.skynet.ie ([193.1.99.77]:55597 "EHLO gir.skynet.ie"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932623Ab2GDKT7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 4 Jul 2012 06:19:59 -0400
-Content-Disposition: inline
-In-Reply-To: <1341386778-8002-3-git-send-email-laijs@cn.fujitsu.com>
+Received: from youngberry.canonical.com ([91.189.89.112]:55779 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757030Ab2GDK3z (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Jul 2012 06:29:55 -0400
+In-Reply-To: <1340881171-14811-10-git-send-email-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Chris Metcalf <cmetcalf@tilera.com>, Len Brown <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andi Kleen <andi@firstfloor.org>, Julia Lawall <julia@diku.dk>, David Howells <dhowells@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Kay Sievers <kay.sievers@vrfy.org>, Ingo Molnar <mingo@elte.hu>, Paul Gortmaker <paul.gortmaker@windriver.com>, Daniel Kiper <dkiper@net-space.pl>, Andrew Morton <akpm@linux-foundation.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Michal Hocko <mhocko@suse.cz>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>, Minchan Kim <minchan@kernel.org>, Michal Nazarewicz <mina86@mina86.com>, Marek Szyprowski <m.szyprowski@samsung.com>, Rik van Riel <riel@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, Christoph Lameter <cl@linux.com>, David Rientjes <rientjes@google.com>, linux-kernel@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, rui.zhang@intel.com, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, dmitry.torokhov@gmail.com, eric.piel@tremplin-utc.net, mjg@redhat.com, herton@canonical.com
 
-On Wed, Jul 04, 2012 at 03:26:17PM +0800, Lai Jiangshan wrote:
-> MIGRATE_HOTREMOVE is a special kind of MIGRATE_MOVABLE, but it is stable:
-> any page of the type can NOT be changed to the other type nor be moved to
-> the other free list.
+On 06/28/2012 06:59 PM, Mika Westerberg wrote:
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+
+Acked-by: Ike Panhc <ike.pan@canonical.com>
+
+> ---
+>  drivers/platform/x86/ideapad-laptop.c |   14 +-------------
+>  1 file changed, 1 insertion(+), 13 deletions(-)
 > 
-> So the pages of MIGRATE_HOTREMOVE are always movable, this ability is
-> useful for hugepages and hotremove ...etc.
-> 
-> MIGRATE_HOTREMOVE pages is the used as the first candidate when
-> we allocate movable pages.
-> 
-> 1) add small routine is_migrate_movable() for movable-like types
-> 2) add small routine is_migrate_stable() for stable types
-> 3) fix some comments
-> 4) fix get_any_page(). The get_any_page() may change
->    MIGRATE_CMA/HOTREMOVE types page to MOVABLE which may cause this page
->    to be changed to UNMOVABLE.
+> diff --git a/drivers/platform/x86/ideapad-laptop.c b/drivers/platform/x86/ideapad-laptop.c
+> index 4f20f8d..b469654 100644
+> --- a/drivers/platform/x86/ideapad-laptop.c
+> +++ b/drivers/platform/x86/ideapad-laptop.c
+> @@ -813,20 +813,8 @@ static struct acpi_driver ideapad_acpi_driver = {
+>  	.ops.notify = ideapad_acpi_notify,
+>  	.owner = THIS_MODULE,
+>  };
+> -
+> -static int __init ideapad_acpi_module_init(void)
+> -{
+> -	return acpi_bus_register_driver(&ideapad_acpi_driver);
+> -}
+> -
+> -static void __exit ideapad_acpi_module_exit(void)
+> -{
+> -	acpi_bus_unregister_driver(&ideapad_acpi_driver);
+> -}
+> +module_acpi_driver(ideapad_acpi_driver);
+>  
+>  MODULE_AUTHOR("David Woodhouse <dwmw2@infradead.org>");
+>  MODULE_DESCRIPTION("IdeaPad ACPI Extras");
+>  MODULE_LICENSE("GPL");
+> -
+> -module_init(ideapad_acpi_module_init);
+> -module_exit(ideapad_acpi_module_exit);
 > 
 
-Reuse MIGRATE_CMA. Even if the pages are on the movable lists it should
-not be a problem for memory hot-remove.
 
--- 
-Mel Gorman
-SUSE Labs
