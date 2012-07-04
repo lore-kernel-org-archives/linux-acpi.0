@@ -1,257 +1,129 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [RFC PATCH v2 4/13] memory-hotplug : remove /sys/firmware/memmap/X
- sysfs
-Date: Wed, 4 Jul 2012 14:52:30 +0900
-Message-ID: <4FF3DA1E.9060505@jp.fujitsu.com>
-References: <4FF287C3.4030901@jp.fujitsu.com> <4FF28996.10702@jp.fujitsu.com> <4FF2929B.7030004@cn.fujitsu.com> <4FF3CA65.1020300@jp.fujitsu.com> <4FF3CFDC.50802@cn.fujitsu.com>
+From: Lin-Bao Zhang <2004.zhang@gmail.com>
+Subject: why Linux kernel will update BIOS's interrupt remapping table base
+ address ? why does Linux Kernel create a new table instead of the one that
+ BIOS provided ?
+Date: Wed, 4 Jul 2012 14:55:47 +0800
+Message-ID: <CANuKePntggbPrY7=eq-+AHzqcPG4Y6UGnP+9B57Gs2xNLeCR_A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <4FF3CFDC.50802@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Wen Congyang <wency@cn.fujitsu.com>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-gh0-f174.google.com ([209.85.160.174]:61389 "EHLO
+	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750803Ab2GDGzr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 4 Jul 2012 02:55:47 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: flyboy@gmail.com, yinghai@kernel.org, suresh.b.siddha@intel.com
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi Wen,
-
-2012/07/04 14:08, Wen Congyang wrote:
-> At 07/04/2012 12:45 PM, Yasuaki Ishimatsu Wrote:
->> Hi Wen,
->>
->> 2012/07/03 15:35, Wen Congyang wrote:
->>> At 07/03/2012 01:56 PM, Yasuaki Ishimatsu Wrote:
->>>> When (hot)adding memory into system, /sys/firmware/memmap/X/{end, start, type}
->>>> sysfs files are created. But there is no code to remove these files. The patch
->>>> implements the function to remove them.
->>>>
->>>> Note : The code does not free firmware_map_entry since there is no way to free
->>>>          memory which is allocated by bootmem.
->>>>
->>>> CC: David Rientjes <rientjes@google.com>
->>>> CC: Jiang Liu <liuj97@gmail.com>
->>>> CC: Len Brown <len.brown@intel.com>
->>>> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
->>>> CC: Paul Mackerras <paulus@samba.org>
->>>> CC: Christoph Lameter <cl@linux.com>
->>>> Cc: Minchan Kim <minchan.kim@gmail.com>
->>>> CC: Andrew Morton <akpm@linux-foundation.org>
->>>> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
->>>> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->>>>
->>>> ---
->>>>    drivers/firmware/memmap.c    |   70 +++++++++++++++++++++++++++++++++++++++++++
->>>>    include/linux/firmware-map.h |    6 +++
->>>>    mm/memory_hotplug.c          |    6 +++
->>>>    3 files changed, 81 insertions(+), 1 deletion(-)
->>>>
->>>> Index: linux-3.5-rc4/mm/memory_hotplug.c
->>>> ===================================================================
->>>> --- linux-3.5-rc4.orig/mm/memory_hotplug.c	2012-07-03 14:22:00.190240794 +0900
->>>> +++ linux-3.5-rc4/mm/memory_hotplug.c	2012-07-03 14:22:03.549198802 +0900
->>>> @@ -661,7 +661,11 @@ EXPORT_SYMBOL_GPL(add_memory);
->>>>
->>>>    int remove_memory(int nid, u64 start, u64 size)
->>>>    {
->>>> -	return -EBUSY;
->>>> +	lock_memory_hotplug();
->>>> +	/* remove memmap entry */
->>>> +	firmware_map_remove(start, start + size - 1, "System RAM");
->>>> +	unlock_memory_hotplug();
->>>> +	return 0;
->>>>
->>>>    }
->>>>    EXPORT_SYMBOL_GPL(remove_memory);
->>>> Index: linux-3.5-rc4/include/linux/firmware-map.h
->>>> ===================================================================
->>>> --- linux-3.5-rc4.orig/include/linux/firmware-map.h	2012-07-03 14:21:45.766421116 +0900
->>>> +++ linux-3.5-rc4/include/linux/firmware-map.h	2012-07-03 14:22:03.550198789 +0900
->>>> @@ -25,6 +25,7 @@
->>>>
->>>>    int firmware_map_add_early(u64 start, u64 end, const char *type);
->>>>    int firmware_map_add_hotplug(u64 start, u64 end, const char *type);
->>>> +int firmware_map_remove(u64 start, u64 end, const char *type);
->>>>
->>>>    #else /* CONFIG_FIRMWARE_MEMMAP */
->>>>
->>>> @@ -38,6 +39,11 @@ static inline int firmware_map_add_hotpl
->>>>    	return 0;
->>>>    }
->>>>
->>>> +static inline int firmware_map_remove(u64 start, u64 end, const char *type)
->>>> +{
->>>> +	return 0;
->>>> +}
->>>> +
->>>>    #endif /* CONFIG_FIRMWARE_MEMMAP */
->>>>
->>>>    #endif /* _LINUX_FIRMWARE_MAP_H */
->>>> Index: linux-3.5-rc4/drivers/firmware/memmap.c
->>>> ===================================================================
->>>> --- linux-3.5-rc4.orig/drivers/firmware/memmap.c	2012-07-03 14:21:45.761421180 +0900
->>>> +++ linux-3.5-rc4/drivers/firmware/memmap.c	2012-07-03 14:22:03.569198549 +0900
->>>> @@ -79,7 +79,16 @@ static const struct sysfs_ops memmap_att
->>>>    	.show = memmap_attr_show,
->>>>    };
->>>>
->>>> +static void release_firmware_map_entry(struct kobject *kobj)
->>>> +{
->>>> +	/*
->>>> +	 * FIXME : There is no idea.
->>>> +	 *         How to free the entry which allocated bootmem?
->>>> +	 */
->>>
->>> I find a function free_bootmem(), but I am not sure whether it can work here.
->>
->> It cannot work here.
->>
->>> Another problem: how to check whether the entry uses bootmem?
->>
->> When firmware_map_entry is allocated by kzalloc(), the page has PG_slab.
-> 
-> This is not true. In my test, I find the page does not have PG_slab sometimes.
-
-I think that it depends on the allocated size. firmware_map_entry size is
-smaller than PAGE_SIZE. So the page has PG_Slab.
-
-Thanks,
-Yasuaki Ishimatsu
-
-> 
-> Thanks
-> Wen Congyang.
-> 
->> So we can check whether the entry was allocated by bootmem or not.
->> If the eantry was allocated by kzalloc(), we can free the entry by kfree().
->> But if the entry was allocated by bootmem, we have no way to free the entry.
->>
->> Thanks,
->> Yasuaki Ishimatsu
->>
->>>
->>> Thanks
->>> Wen Congyang
->>>
->>>> +}
->>>> +
->>>>    static struct kobj_type memmap_ktype = {
->>>> +	.release	= release_firmware_map_entry,
->>>>    	.sysfs_ops	= &memmap_attr_ops,
->>>>    	.default_attrs	= def_attrs,
->>>>    };
->>>> @@ -123,6 +132,16 @@ static int firmware_map_add_entry(u64 st
->>>>    	return 0;
->>>>    }
->>>>
->>>> +/**
->>>> + * firmware_map_remove_entry() - Does the real work to remove a firmware
->>>> + * memmap entry.
->>>> + * @entry: removed entry.
->>>> + **/
->>>> +static inline void firmware_map_remove_entry(struct firmware_map_entry *entry)
->>>> +{
->>>> +	list_del(&entry->list);
->>>> +}
->>>> +
->>>>    /*
->>>>     * Add memmap entry on sysfs
->>>>     */
->>>> @@ -144,6 +163,31 @@ static int add_sysfs_fw_map_entry(struct
->>>>    	return 0;
->>>>    }
->>>>
->>>> +/*
->>>> + * Remove memmap entry on sysfs
->>>> + */
->>>> +static inline void remove_sysfs_fw_map_entry(struct firmware_map_entry *entry)
->>>> +{
->>>> +	kobject_put(&entry->kobj);
->>>> +}
->>>> +
->>>> +/*
->>>> + * Search memmap entry
->>>> + */
->>>> +
->>>> +struct firmware_map_entry * __meminit
->>>> +find_firmware_map_entry(u64 start, u64 end, const char *type)
->>>> +{
->>>> +	struct firmware_map_entry *entry;
->>>> +
->>>> +	list_for_each_entry(entry, &map_entries, list)
->>>> +		if ((entry->start == start) && (entry->end == end) &&
->>>> +		    (!strcmp(entry->type, type)))
->>>> +			return entry;
->>>> +
->>>> +	return NULL;
->>>> +}
->>>> +
->>>>    /**
->>>>     * firmware_map_add_hotplug() - Adds a firmware mapping entry when we do
->>>>     * memory hotplug.
->>>> @@ -196,6 +240,32 @@ int __init firmware_map_add_early(u64 st
->>>>    	return firmware_map_add_entry(start, end, type, entry);
->>>>    }
->>>>
->>>> +/**
->>>> + * firmware_map_remove() - remove a firmware mapping entry
->>>> + * @start: Start of the memory range.
->>>> + * @end:   End of the memory range (inclusive).
->>>> + * @type:  Type of the memory range.
->>>> + *
->>>> + * removes a firmware mapping entry.
->>>> + *
->>>> + * Returns 0 on success, or -EINVAL if no entry.
->>>> + **/
->>>> +int __meminit firmware_map_remove(u64 start, u64 end, const char *type)
->>>> +{
->>>> +	struct firmware_map_entry *entry;
->>>> +
->>>> +	entry = find_firmware_map_entry(start, end, type);
->>>> +	if (!entry)
->>>> +		return -EINVAL;
->>>> +
->>>> +	/* remove the memmap entry */
->>>> +	remove_sysfs_fw_map_entry(entry);
->>>> +
->>>> +	firmware_map_remove_entry(entry);
->>>> +
->>>> +	return 0;
->>>> +}
->>>> +
->>>>    /*
->>>>     * Sysfs functions -------------------------------------------------------------
->>>>     */
->>>>
->>>> --
->>>> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
->>>> the body of a message to majordomo@vger.kernel.org
->>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>> Please read the FAQ at  http://www.tux.org/lkml/
->>>>
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>> Please read the FAQ at  http://www.tux.org/lkml/
->>>
->>
->>
->>
->>
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
+Hi all,
 
 
+my questions are :
+1, Linux kernel will create a new interrupt remapping table to replace
+BIOS' table ?
+we guys used ITP to know that BIOS' interrupt remapping table pointer
+has been changed . I am tracing related code to see how linux kernel
+creates interrupt remapping table.
 
+2, why ? why linux kernel doesn't directly use BIOS' table ?   our
+bios has enabled x2apic mode ,and also export interrupt remapping
+table
+
+3, what is the relationship between interrupt remapping table with
+"virtual wire mode B" , now , if firmware disabled "virtual wire mode
+B" , linux kernel won't panic , otherwise , linux kernel will panic .
+
+thanks for your replies .
+
+from following commit messages , I have known that BIOS should provide
+a interrupt remapping table and export to OS.
+-----------------------------------------------------------------------=
+--------
+commit fb209bd891645bb87b9618b724f0b4928e0df3de
+Author: Yinghai Lu <yinghai@kernel.org>
+Date:   Wed Dec 21 17:45:17 2011 -0800
+
+    x86, x2apic: Fallback to xapic when BIOS doesn't setup interrupt-re=
+mapping
+
+    On some of the recent Intel SNB platforms, by default bios is pre-e=
+nabling
+    x2apic mode in the cpu with out setting up interrupt-remapping.
+    This case was resulting in the kernel to panic as the cpu is alread=
+y in
+    x2apic mode but the OS was not able to enable interrupt-remapping (=
+which
+    is a pre-req for using x2apic capability).
+
+    On these platforms all the apic-ids are < 255 and the kernel can fa=
+llback to
+    xapic mode if the bios has not enabled interrupt-remapping (which i=
+s
+    mostly the case if the bios has not exported interrupt-remapping
+tables to the
+    OS).
+    -------------------------------------------------------------------=
+------------------
+
+But now , I am carefully checking apic.c code to trace how interrupt
+remapping table is enabled again by linux kernel.
+
+
+struct smp_ops smp_ops  define native_smp_prepare_cpus() functions ->
+native_smp_prepare_cpus() -> default_setup_apic_routing() ->
+enable_IR_x2apic() -> enable_IR() -> enable_intr_remapping() ->
+setup_intr_remapping() -> iommu_set_intr_remapping()
+I check iommu_set_intr_remapping() function , it seems that it indeed
+modify INTR remapping base addr.
+
+=46YI:
+This function indeed follow =93Intel VT for direct IO.pdf=94 =91s P109
+static void iommu_set_intr_remapping(struct intel_iommu *iommu, int mod=
+e)
+{
+   u64 addr;
+   u32 sts;
+   unsigned long flags;
+
+   addr =3D virt_to_phys((void *)iommu->ir_table->base);
+
+   raw_spin_lock_irqsave(&iommu->register_lock, flags);
+
+   dmar_writeq(iommu->reg + DMAR_IRTA_REG,   // #define DMAR_IRTA_REG
+0xb8 /* Interrupt remapping table addr register */
+          (addr) | IR_X2APIC_MODE(mode) | INTR_REMAP_TABLE_REG_SIZE);
+
+   /* Set interrupt-remapping table pointer */
+   iommu->gcmd |=3D DMA_GCMD_SIRTP;     //P109 in Intel VT-d for direct
+IO.pdf  from ftp://download.intel.com/technology/computing/vptech/Intel=
+(r)_VT_for_Direct_IO.pdf
+   writel(iommu->gcmd, iommu->reg + DMAR_GCMD_REG);
+
+   IOMMU_WAIT_OP(iommu, DMAR_GSTS_REG,
+            readl, (sts & DMA_GSTS_IRTPS), sts);
+   raw_spin_unlock_irqrestore(&iommu->register_lock, flags);
+
+   /*
+   * global invalidation of interrupt entry cache before enabling
+   * interrupt-remapping.
+   */
+   qi_global_iec(iommu);
+
+   raw_spin_lock_irqsave(&iommu->register_lock, flags);
+
+   /* Enable interrupt-remapping */
+   iommu->gcmd |=3D DMA_GCMD_IRE;
+   writel(iommu->gcmd, iommu->reg + DMAR_GCMD_REG);
+
+   IOMMU_WAIT_OP(iommu, DMAR_GSTS_REG,
+            readl, (sts & DMA_GSTS_IRES), sts);
+
+   raw_spin_unlock_irqrestore(&iommu->register_lock, flags);
+}
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
