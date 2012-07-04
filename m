@@ -1,267 +1,215 @@
-From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: Re: [RFC PATCH v2 4/13] memory-hotplug : remove /sys/firmware/memmap/X
- sysfs
-Date: Wed, 04 Jul 2012 18:01:40 +0800
-Message-ID: <4FF41484.3070806@cn.fujitsu.com>
-References: <4FF287C3.4030901@jp.fujitsu.com> <4FF28996.10702@jp.fujitsu.com> <4FF2929B.7030004@cn.fujitsu.com> <4FF3CA65.1020300@jp.fujitsu.com> <4FF3CFDC.50802@cn.fujitsu.com> <4FF3DA1E.9060505@jp.fujitsu.com>
+From: Mel Gorman <mel@csn.ul.ie>
+Subject: Re: [RFC PATCH 1/3 V1] mm, page_alloc: use __rmqueue_smallest when
+ borrow memory from MIGRATE_CMA
+Date: Wed, 4 Jul 2012 11:17:57 +0100
+Message-ID: <20120704101737.GL13141@csn.ul.ie>
+References: <1341386778-8002-1-git-send-email-laijs@cn.fujitsu.com>
+ <1341386778-8002-2-git-send-email-laijs@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:16276 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S932459Ab2GDJ5W (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 4 Jul 2012 05:57:22 -0400
-In-Reply-To: <4FF3DA1E.9060505@jp.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-15
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <1341386778-8002-2-git-send-email-laijs@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Lai Jiangshan <laijs@cn.fujitsu.com>
+Cc: Chris Metcalf <cmetcalf@tilera.com>, Len Brown <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andi Kleen <andi@firstfloor.org>, Julia Lawall <julia@diku.dk>, David Howells <dhowells@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Kay Sievers <kay.sievers@vrfy.org>, Ingo Molnar <mingo@elte.hu>, Paul Gortmaker <paul.gortmaker@windriver.com>, Daniel Kiper <dkiper@net-space.pl>, Andrew Morton <akpm@linux-foundation.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Michal Hocko <mhocko@suse.cz>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>, Minchan Kim <minchan@kernel.org>, Michal Nazarewicz <mina86@mina86.com>, Marek Szyprowski <m.szyprowski@samsung.com>, Rik van Riel <riel@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, Christoph Lameter <cl@linux.com>, David Rientjes <rientjes@google.com>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com
 
-At 07/04/2012 01:52 PM, Yasuaki Ishimatsu Wrote:
-> Hi Wen,
+On Wed, Jul 04, 2012 at 03:26:16PM +0800, Lai Jiangshan wrote:
+> The pages of MIGRATE_CMA can't not be changed to the other type,
+> nor be moved to the other free list. 
 > 
-> 2012/07/04 14:08, Wen Congyang wrote:
->> At 07/04/2012 12:45 PM, Yasuaki Ishimatsu Wrote:
->>> Hi Wen,
->>>
->>> 2012/07/03 15:35, Wen Congyang wrote:
->>>> At 07/03/2012 01:56 PM, Yasuaki Ishimatsu Wrote:
->>>>> When (hot)adding memory into system, /sys/firmware/memmap/X/{end, start, type}
->>>>> sysfs files are created. But there is no code to remove these files. The patch
->>>>> implements the function to remove them.
->>>>>
->>>>> Note : The code does not free firmware_map_entry since there is no way to free
->>>>>          memory which is allocated by bootmem.
->>>>>
->>>>> CC: David Rientjes <rientjes@google.com>
->>>>> CC: Jiang Liu <liuj97@gmail.com>
->>>>> CC: Len Brown <len.brown@intel.com>
->>>>> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
->>>>> CC: Paul Mackerras <paulus@samba.org>
->>>>> CC: Christoph Lameter <cl@linux.com>
->>>>> Cc: Minchan Kim <minchan.kim@gmail.com>
->>>>> CC: Andrew Morton <akpm@linux-foundation.org>
->>>>> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
->>>>> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->>>>>
->>>>> ---
->>>>>    drivers/firmware/memmap.c    |   70 +++++++++++++++++++++++++++++++++++++++++++
->>>>>    include/linux/firmware-map.h |    6 +++
->>>>>    mm/memory_hotplug.c          |    6 +++
->>>>>    3 files changed, 81 insertions(+), 1 deletion(-)
->>>>>
->>>>> Index: linux-3.5-rc4/mm/memory_hotplug.c
->>>>> ===================================================================
->>>>> --- linux-3.5-rc4.orig/mm/memory_hotplug.c	2012-07-03 14:22:00.190240794 +0900
->>>>> +++ linux-3.5-rc4/mm/memory_hotplug.c	2012-07-03 14:22:03.549198802 +0900
->>>>> @@ -661,7 +661,11 @@ EXPORT_SYMBOL_GPL(add_memory);
->>>>>
->>>>>    int remove_memory(int nid, u64 start, u64 size)
->>>>>    {
->>>>> -	return -EBUSY;
->>>>> +	lock_memory_hotplug();
->>>>> +	/* remove memmap entry */
->>>>> +	firmware_map_remove(start, start + size - 1, "System RAM");
->>>>> +	unlock_memory_hotplug();
->>>>> +	return 0;
->>>>>
->>>>>    }
->>>>>    EXPORT_SYMBOL_GPL(remove_memory);
->>>>> Index: linux-3.5-rc4/include/linux/firmware-map.h
->>>>> ===================================================================
->>>>> --- linux-3.5-rc4.orig/include/linux/firmware-map.h	2012-07-03 14:21:45.766421116 +0900
->>>>> +++ linux-3.5-rc4/include/linux/firmware-map.h	2012-07-03 14:22:03.550198789 +0900
->>>>> @@ -25,6 +25,7 @@
->>>>>
->>>>>    int firmware_map_add_early(u64 start, u64 end, const char *type);
->>>>>    int firmware_map_add_hotplug(u64 start, u64 end, const char *type);
->>>>> +int firmware_map_remove(u64 start, u64 end, const char *type);
->>>>>
->>>>>    #else /* CONFIG_FIRMWARE_MEMMAP */
->>>>>
->>>>> @@ -38,6 +39,11 @@ static inline int firmware_map_add_hotpl
->>>>>    	return 0;
->>>>>    }
->>>>>
->>>>> +static inline int firmware_map_remove(u64 start, u64 end, const char *type)
->>>>> +{
->>>>> +	return 0;
->>>>> +}
->>>>> +
->>>>>    #endif /* CONFIG_FIRMWARE_MEMMAP */
->>>>>
->>>>>    #endif /* _LINUX_FIRMWARE_MAP_H */
->>>>> Index: linux-3.5-rc4/drivers/firmware/memmap.c
->>>>> ===================================================================
->>>>> --- linux-3.5-rc4.orig/drivers/firmware/memmap.c	2012-07-03 14:21:45.761421180 +0900
->>>>> +++ linux-3.5-rc4/drivers/firmware/memmap.c	2012-07-03 14:22:03.569198549 +0900
->>>>> @@ -79,7 +79,16 @@ static const struct sysfs_ops memmap_att
->>>>>    	.show = memmap_attr_show,
->>>>>    };
->>>>>
->>>>> +static void release_firmware_map_entry(struct kobject *kobj)
->>>>> +{
->>>>> +	/*
->>>>> +	 * FIXME : There is no idea.
->>>>> +	 *         How to free the entry which allocated bootmem?
->>>>> +	 */
->>>>
->>>> I find a function free_bootmem(), but I am not sure whether it can work here.
->>>
->>> It cannot work here.
->>>
->>>> Another problem: how to check whether the entry uses bootmem?
->>>
->>> When firmware_map_entry is allocated by kzalloc(), the page has PG_slab.
->>
->> This is not true. In my test, I find the page does not have PG_slab sometimes.
+> ==>
+> So when we use __rmqueue_fallback() to borrow memory from MIGRATE_CMA,
+> one of the highest order page is borrowed and it is split.
+> But the free pages resulted by splitting can NOT
+> be moved to MIGRATE_MOVABLE.
 > 
-> I think that it depends on the allocated size. firmware_map_entry size is
-> smaller than PAGE_SIZE. So the page has PG_Slab.
-
-In my test, I add printk in the function firmware_map_add_hotplug() to display
-page's flags. And sometimes the page is not allocated by slab(I use PageSlab()
-to verify it).
-
-Thanks
-Wen Congyang
-
-> 
-> Thanks,
-> Yasuaki Ishimatsu
-> 
->>
->> Thanks
->> Wen Congyang.
->>
->>> So we can check whether the entry was allocated by bootmem or not.
->>> If the eantry was allocated by kzalloc(), we can free the entry by kfree().
->>> But if the entry was allocated by bootmem, we have no way to free the entry.
->>>
->>> Thanks,
->>> Yasuaki Ishimatsu
->>>
->>>>
->>>> Thanks
->>>> Wen Congyang
->>>>
->>>>> +}
->>>>> +
->>>>>    static struct kobj_type memmap_ktype = {
->>>>> +	.release	= release_firmware_map_entry,
->>>>>    	.sysfs_ops	= &memmap_attr_ops,
->>>>>    	.default_attrs	= def_attrs,
->>>>>    };
->>>>> @@ -123,6 +132,16 @@ static int firmware_map_add_entry(u64 st
->>>>>    	return 0;
->>>>>    }
->>>>>
->>>>> +/**
->>>>> + * firmware_map_remove_entry() - Does the real work to remove a firmware
->>>>> + * memmap entry.
->>>>> + * @entry: removed entry.
->>>>> + **/
->>>>> +static inline void firmware_map_remove_entry(struct firmware_map_entry *entry)
->>>>> +{
->>>>> +	list_del(&entry->list);
->>>>> +}
->>>>> +
->>>>>    /*
->>>>>     * Add memmap entry on sysfs
->>>>>     */
->>>>> @@ -144,6 +163,31 @@ static int add_sysfs_fw_map_entry(struct
->>>>>    	return 0;
->>>>>    }
->>>>>
->>>>> +/*
->>>>> + * Remove memmap entry on sysfs
->>>>> + */
->>>>> +static inline void remove_sysfs_fw_map_entry(struct firmware_map_entry *entry)
->>>>> +{
->>>>> +	kobject_put(&entry->kobj);
->>>>> +}
->>>>> +
->>>>> +/*
->>>>> + * Search memmap entry
->>>>> + */
->>>>> +
->>>>> +struct firmware_map_entry * __meminit
->>>>> +find_firmware_map_entry(u64 start, u64 end, const char *type)
->>>>> +{
->>>>> +	struct firmware_map_entry *entry;
->>>>> +
->>>>> +	list_for_each_entry(entry, &map_entries, list)
->>>>> +		if ((entry->start == start) && (entry->end == end) &&
->>>>> +		    (!strcmp(entry->type, type)))
->>>>> +			return entry;
->>>>> +
->>>>> +	return NULL;
->>>>> +}
->>>>> +
->>>>>    /**
->>>>>     * firmware_map_add_hotplug() - Adds a firmware mapping entry when we do
->>>>>     * memory hotplug.
->>>>> @@ -196,6 +240,32 @@ int __init firmware_map_add_early(u64 st
->>>>>    	return firmware_map_add_entry(start, end, type, entry);
->>>>>    }
->>>>>
->>>>> +/**
->>>>> + * firmware_map_remove() - remove a firmware mapping entry
->>>>> + * @start: Start of the memory range.
->>>>> + * @end:   End of the memory range (inclusive).
->>>>> + * @type:  Type of the memory range.
->>>>> + *
->>>>> + * removes a firmware mapping entry.
->>>>> + *
->>>>> + * Returns 0 on success, or -EINVAL if no entry.
->>>>> + **/
->>>>> +int __meminit firmware_map_remove(u64 start, u64 end, const char *type)
->>>>> +{
->>>>> +	struct firmware_map_entry *entry;
->>>>> +
->>>>> +	entry = find_firmware_map_entry(start, end, type);
->>>>> +	if (!entry)
->>>>> +		return -EINVAL;
->>>>> +
->>>>> +	/* remove the memmap entry */
->>>>> +	remove_sysfs_fw_map_entry(entry);
->>>>> +
->>>>> +	firmware_map_remove_entry(entry);
->>>>> +
->>>>> +	return 0;
->>>>> +}
->>>>> +
->>>>>    /*
->>>>>     * Sysfs functions -------------------------------------------------------------
->>>>>     */
->>>>>
->>>>> --
->>>>> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
->>>>> the body of a message to majordomo@vger.kernel.org
->>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>>> Please read the FAQ at  http://www.tux.org/lkml/
->>>>>
->>>>
->>>> --
->>>> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
->>>> the body of a message to majordomo@vger.kernel.org
->>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>> Please read the FAQ at  http://www.tux.org/lkml/
->>>>
->>>
->>>
->>>
->>>
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> Please read the FAQ at  http://www.tux.org/lkml/
->>
-> 
-> 
-> 
+> ==>
+> So in the next time of allocation, we NEED to borrow again,
+> another one of the highest order page is borrowed from CMA and it is split.
+> and results some other new split free pages.
 > 
 
+Then special case __rmqueue_fallback() to move pages stolen from
+MIGRATE_CMA to the MIGRATE_MOVABLE lists but do not change the pageblock
+type.
+
+> ==>
+> So when __rmqueue_fallback() borrows (highest order)memory from MIGRATE_CMA,
+> it introduces fragments at the same time and may waste tlb(only one page is used in
+> a pageblock).
+> 
+> Conclusion:
+> We should borrows the smallest order memory from MIGRATE_CMA in such case
+> 
+
+That's excessive and unnecessary special casing. Just move the
+MIGRATE_CMA pages to the MIGRATE_MOVABLE lists.
+
+> Result(good):
+> 1) use __rmqueue_smallest when borrow memory from MIGRATE_CMA
+> 2) __rmqueue_fallback() don't handle CMA, it becomes much simpler
+> Result(bad):
+> __rmqueue_smallest() can't not be inlined to avoid function call overhead.
+> 
+> Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
+> ---
+>  include/linux/mmzone.h |    1 +
+>  mm/page_alloc.c        |   63 ++++++++++++++++--------------------------------
+>  2 files changed, 22 insertions(+), 42 deletions(-)
+> 
+> diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
+> index bf3404e..979c333 100644
+> --- a/include/linux/mmzone.h
+> +++ b/include/linux/mmzone.h
+> @@ -40,6 +40,7 @@ enum {
+>  	MIGRATE_RECLAIMABLE,
+>  	MIGRATE_MOVABLE,
+>  	MIGRATE_PCPTYPES,	/* the number of types on the pcp lists */
+> +	MIGRATE_PRIME_TYPES = MIGRATE_PCPTYPES,
+
+No explanation why this new name is necessary.
+
+>  	MIGRATE_RESERVE = MIGRATE_PCPTYPES,
+>  #ifdef CONFIG_CMA
+>  	/*
+> diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+> index 476ae3e..efc327f 100644
+> --- a/mm/page_alloc.c
+> +++ b/mm/page_alloc.c
+> @@ -893,17 +893,10 @@ struct page *__rmqueue_smallest(struct zone *zone, unsigned int order,
+>   * This array describes the order lists are fallen back to when
+>   * the free lists for the desirable migrate type are depleted
+>   */
+> -static int fallbacks[MIGRATE_TYPES][4] = {
+> -	[MIGRATE_UNMOVABLE]   = { MIGRATE_RECLAIMABLE, MIGRATE_MOVABLE,     MIGRATE_RESERVE },
+> -	[MIGRATE_RECLAIMABLE] = { MIGRATE_UNMOVABLE,   MIGRATE_MOVABLE,     MIGRATE_RESERVE },
+> -#ifdef CONFIG_CMA
+> -	[MIGRATE_MOVABLE]     = { MIGRATE_CMA,         MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE, MIGRATE_RESERVE },
+> -	[MIGRATE_CMA]         = { MIGRATE_RESERVE }, /* Never used */
+> -#else
+> -	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE,   MIGRATE_RESERVE },
+> -#endif
+> -	[MIGRATE_RESERVE]     = { MIGRATE_RESERVE }, /* Never used */
+> -	[MIGRATE_ISOLATE]     = { MIGRATE_RESERVE }, /* Never used */
+> +static int fallbacks[MIGRATE_PRIME_TYPES][2] = {
+> +	[MIGRATE_UNMOVABLE]   = { MIGRATE_RECLAIMABLE, MIGRATE_MOVABLE   },
+> +	[MIGRATE_RECLAIMABLE] = { MIGRATE_UNMOVABLE,   MIGRATE_MOVABLE   },
+> +	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE },
+>  };
+>  
+
+And it's completely unclear why it was necessary to rip out the existing
+fallback lists. It reworks how fallback lists work for no clear benefit.
+
+>  /*
+> @@ -995,16 +988,15 @@ __rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
+>  	struct page *page;
+>  	int migratetype, i;
+>  
+> +	if (WARN_ON_ONCE(start_migratetype >= MIGRATE_PRIME_TYPES))
+> +		start_migratetype = MIGRATE_UNMOVABLE;
+> +
+
+This should be completely unnecessary. If this warning is hit, the
+callers are severely broken.
+
+>  	/* Find the largest possible block of pages in the other list */
+>  	for (current_order = MAX_ORDER-1; current_order >= order;
+>  						--current_order) {
+> -		for (i = 0;; i++) {
+> +		for (i = 0; i < ARRAY_SIZE(fallbacks[0]); i++) {
+>  			migratetype = fallbacks[start_migratetype][i];
+>  
+> -			/* MIGRATE_RESERVE handled later if necessary */
+> -			if (migratetype == MIGRATE_RESERVE)
+> -				break;
+> -
+>  			area = &(zone->free_area[current_order]);
+>  			if (list_empty(&area->free_list[migratetype]))
+>  				continue;
+> @@ -1018,17 +1010,10 @@ __rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
+>  			 * pages to the preferred allocation list. If falling
+>  			 * back for a reclaimable kernel allocation, be more
+>  			 * aggressive about taking ownership of free pages
+> -			 *
+> -			 * On the other hand, never change migration
+> -			 * type of MIGRATE_CMA pageblocks nor move CMA
+> -			 * pages on different free lists. We don't
+> -			 * want unmovable pages to be allocated from
+> -			 * MIGRATE_CMA areas.
+>  			 */
+> -			if (!is_migrate_cma(migratetype) &&
+> -			    (unlikely(current_order >= pageblock_order / 2) ||
+> -			     start_migratetype == MIGRATE_RECLAIMABLE ||
+> -			     page_group_by_mobility_disabled)) {
+> +			if (unlikely(current_order >= pageblock_order / 2) ||
+> +			    start_migratetype == MIGRATE_RECLAIMABLE ||
+> +			    page_group_by_mobility_disabled) {
+>  				int pages;
+>  				pages = move_freepages_block(zone, page,
+>  								start_migratetype);
+> @@ -1047,14 +1032,12 @@ __rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
+>  			rmv_page_order(page);
+>  
+>  			/* Take ownership for orders >= pageblock_order */
+> -			if (current_order >= pageblock_order &&
+> -			    !is_migrate_cma(migratetype))
+> +			if (current_order >= pageblock_order)
+>  				change_pageblock_range(page, current_order,
+>  							start_migratetype);
+>  
+>  			expand(zone, page, order, current_order, area,
+> -			       is_migrate_cma(migratetype)
+> -			     ? migratetype : start_migratetype);
+> +			       start_migratetype);
+>  
+>  			trace_mm_page_alloc_extfrag(page, order, current_order,
+>  				start_migratetype, migratetype);
+> @@ -1075,22 +1058,18 @@ static struct page *__rmqueue(struct zone *zone, unsigned int order,
+>  {
+>  	struct page *page;
+>  
+> -retry_reserve:
+>  	page = __rmqueue_smallest(zone, order, migratetype);
+>  
+> -	if (unlikely(!page) && migratetype != MIGRATE_RESERVE) {
+> +#ifdef CONFIG_CMA
+> +	if (unlikely(!page) && migratetype == MIGRATE_MOVABLE)
+> +		page = __rmqueue_smallest(zone, order, MIGRATE_CMA);
+> +#endif
+> +
+> +	if (unlikely(!page))
+>  		page = __rmqueue_fallback(zone, order, migratetype);
+>  
+> -		/*
+> -		 * Use MIGRATE_RESERVE rather than fail an allocation. goto
+> -		 * is used because __rmqueue_smallest is an inline function
+> -		 * and we want just one call site
+> -		 */
+> -		if (!page) {
+> -			migratetype = MIGRATE_RESERVE;
+> -			goto retry_reserve;
+> -		}
+> -	}
+> +	if (unlikely(!page))
+> +		page = __rmqueue_smallest(zone, order, MIGRATE_RESERVE);
+>  
+>  	trace_mm_page_alloc_zone_locked(page, order, migratetype);
+>  	return page;
+
+I didn't read this closely. It seems way more complex than necessary to
+solve the problem described in the changelog. All you should need is to
+special case that a __GFP_MOVABLE allocation using MIGRATE_CMA should
+place the unused buddies on the MIGRATE_MOVABLE lists.
+
+-- 
+Mel Gorman
+SUSE Labs
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
