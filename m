@@ -1,262 +1,229 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: [PATCH V6 5/9] usb/acpi: add check for the connect type of usb port
-Date: Wed,  4 Jul 2012 11:12:08 +0800
-Message-ID: <1341371532-5118-5-git-send-email-tianyu.lan@intel.com>
-References: <1341371532-5118-1-git-send-email-tianyu.lan@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:57011 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932855Ab2GDDUj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 3 Jul 2012 23:20:39 -0400
-In-Reply-To: <1341371532-5118-1-git-send-email-tianyu.lan@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [RFC PATCH v2 4/13] memory-hotplug : remove /sys/firmware/memmap/X
+ sysfs
+Date: Wed, 4 Jul 2012 13:45:25 +0900
+Message-ID: <4FF3CA65.1020300@jp.fujitsu.com>
+References: <4FF287C3.4030901@jp.fujitsu.com> <4FF28996.10702@jp.fujitsu.com> <4FF2929B.7030004@cn.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <4FF2929B.7030004@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Wen Congyang <wency@cn.fujitsu.com>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
-To: gregkh@linuxfoundation.org, lenb@kernel.org
-Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu, sarah.a.sharp@linux.intel.com
 
-Change since v5: Fix code and comment type error.
+Hi Wen,
 
-Change since v4: Remove some redundant kerneldocs and fix typo.
+2012/07/03 15:35, Wen Congyang wrote:
+> At 07/03/2012 01:56 PM, Yasuaki Ishimatsu Wrote:
+>> When (hot)adding memory into system, /sys/firmware/memmap/X/{end, start, type}
+>> sysfs files are created. But there is no code to remove these files. The patch
+>> implements the function to remove them.
+>>
+>> Note : The code does not free firmware_map_entry since there is no way to free
+>>         memory which is allocated by bootmem.
+>>
+>> CC: David Rientjes <rientjes@google.com>
+>> CC: Jiang Liu <liuj97@gmail.com>
+>> CC: Len Brown <len.brown@intel.com>
+>> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+>> CC: Paul Mackerras <paulus@samba.org>
+>> CC: Christoph Lameter <cl@linux.com>
+>> Cc: Minchan Kim <minchan.kim@gmail.com>
+>> CC: Andrew Morton <akpm@linux-foundation.org>
+>> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+>> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+>>
+>> ---
+>>   drivers/firmware/memmap.c    |   70 +++++++++++++++++++++++++++++++++++++++++++
+>>   include/linux/firmware-map.h |    6 +++
+>>   mm/memory_hotplug.c          |    6 +++
+>>   3 files changed, 81 insertions(+), 1 deletion(-)
+>>
+>> Index: linux-3.5-rc4/mm/memory_hotplug.c
+>> ===================================================================
+>> --- linux-3.5-rc4.orig/mm/memory_hotplug.c	2012-07-03 14:22:00.190240794 +0900
+>> +++ linux-3.5-rc4/mm/memory_hotplug.c	2012-07-03 14:22:03.549198802 +0900
+>> @@ -661,7 +661,11 @@ EXPORT_SYMBOL_GPL(add_memory);
+>>
+>>   int remove_memory(int nid, u64 start, u64 size)
+>>   {
+>> -	return -EBUSY;
+>> +	lock_memory_hotplug();
+>> +	/* remove memmap entry */
+>> +	firmware_map_remove(start, start + size - 1, "System RAM");
+>> +	unlock_memory_hotplug();
+>> +	return 0;
+>>
+>>   }
+>>   EXPORT_SYMBOL_GPL(remove_memory);
+>> Index: linux-3.5-rc4/include/linux/firmware-map.h
+>> ===================================================================
+>> --- linux-3.5-rc4.orig/include/linux/firmware-map.h	2012-07-03 14:21:45.766421116 +0900
+>> +++ linux-3.5-rc4/include/linux/firmware-map.h	2012-07-03 14:22:03.550198789 +0900
+>> @@ -25,6 +25,7 @@
+>>
+>>   int firmware_map_add_early(u64 start, u64 end, const char *type);
+>>   int firmware_map_add_hotplug(u64 start, u64 end, const char *type);
+>> +int firmware_map_remove(u64 start, u64 end, const char *type);
+>>
+>>   #else /* CONFIG_FIRMWARE_MEMMAP */
+>>
+>> @@ -38,6 +39,11 @@ static inline int firmware_map_add_hotpl
+>>   	return 0;
+>>   }
+>>
+>> +static inline int firmware_map_remove(u64 start, u64 end, const char *type)
+>> +{
+>> +	return 0;
+>> +}
+>> +
+>>   #endif /* CONFIG_FIRMWARE_MEMMAP */
+>>
+>>   #endif /* _LINUX_FIRMWARE_MAP_H */
+>> Index: linux-3.5-rc4/drivers/firmware/memmap.c
+>> ===================================================================
+>> --- linux-3.5-rc4.orig/drivers/firmware/memmap.c	2012-07-03 14:21:45.761421180 +0900
+>> +++ linux-3.5-rc4/drivers/firmware/memmap.c	2012-07-03 14:22:03.569198549 +0900
+>> @@ -79,7 +79,16 @@ static const struct sysfs_ops memmap_att
+>>   	.show = memmap_attr_show,
+>>   };
+>>
+>> +static void release_firmware_map_entry(struct kobject *kobj)
+>> +{
+>> +	/*
+>> +	 * FIXME : There is no idea.
+>> +	 *         How to free the entry which allocated bootmem?
+>> +	 */
+> 
+> I find a function free_bootmem(), but I am not sure whether it can work here.
 
-Change since v3: Rebase on the patch "make usb port a real device"
+It cannot work here.
 
-Check the connect type of usb port when getting the usb port's
-acpi_handle and store result into connect_type in the struct
-usb_port.
+> Another problem: how to check whether the entry uses bootmem?
 
-Accoding to ACPI Spec 9.13. PLD indicates whether usb port is
-user visible and _UPC indicates whether it is connectable. If
-the port was visible and connectable, it could be freely connected
-and disconnected with USB devices. If no visible and connectable,
-a usb device is directly hard-wired to the port. If no visible and
-no connectable, the port would be not used.
+When firmware_map_entry is allocated by kzalloc(), the page has PG_slab.
+So we can check whether the entry was allocated by bootmem or not.
+If the eantry was allocated by kzalloc(), we can free the entry by kfree().
+But if the entry was allocated by bootmem, we have no way to free the entry.
 
-When a device was found on the port, if the connect_type was hot-plug,
-then the device would be removable. If the connect_type was hard-wired,
-the device would be non-removable.
+Thanks,
+Yasuaki Ishimatsu
 
-Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
----
- drivers/usb/core/hub.c      |   31 ++++++++++++++++
- drivers/usb/core/usb-acpi.c |   80 ++++++++++++++++++++++++-------------------
- drivers/usb/core/usb.h      |    4 ++
- include/linux/usb.h         |    7 ++++
- 4 files changed, 87 insertions(+), 35 deletions(-)
+> 
+> Thanks
+> Wen Congyang
+> 
+>> +}
+>> +
+>>   static struct kobj_type memmap_ktype = {
+>> +	.release	= release_firmware_map_entry,
+>>   	.sysfs_ops	= &memmap_attr_ops,
+>>   	.default_attrs	= def_attrs,
+>>   };
+>> @@ -123,6 +132,16 @@ static int firmware_map_add_entry(u64 st
+>>   	return 0;
+>>   }
+>>
+>> +/**
+>> + * firmware_map_remove_entry() - Does the real work to remove a firmware
+>> + * memmap entry.
+>> + * @entry: removed entry.
+>> + **/
+>> +static inline void firmware_map_remove_entry(struct firmware_map_entry *entry)
+>> +{
+>> +	list_del(&entry->list);
+>> +}
+>> +
+>>   /*
+>>    * Add memmap entry on sysfs
+>>    */
+>> @@ -144,6 +163,31 @@ static int add_sysfs_fw_map_entry(struct
+>>   	return 0;
+>>   }
+>>
+>> +/*
+>> + * Remove memmap entry on sysfs
+>> + */
+>> +static inline void remove_sysfs_fw_map_entry(struct firmware_map_entry *entry)
+>> +{
+>> +	kobject_put(&entry->kobj);
+>> +}
+>> +
+>> +/*
+>> + * Search memmap entry
+>> + */
+>> +
+>> +struct firmware_map_entry * __meminit
+>> +find_firmware_map_entry(u64 start, u64 end, const char *type)
+>> +{
+>> +	struct firmware_map_entry *entry;
+>> +
+>> +	list_for_each_entry(entry, &map_entries, list)
+>> +		if ((entry->start == start) && (entry->end == end) &&
+>> +		    (!strcmp(entry->type, type)))
+>> +			return entry;
+>> +
+>> +	return NULL;
+>> +}
+>> +
+>>   /**
+>>    * firmware_map_add_hotplug() - Adds a firmware mapping entry when we do
+>>    * memory hotplug.
+>> @@ -196,6 +240,32 @@ int __init firmware_map_add_early(u64 st
+>>   	return firmware_map_add_entry(start, end, type, entry);
+>>   }
+>>
+>> +/**
+>> + * firmware_map_remove() - remove a firmware mapping entry
+>> + * @start: Start of the memory range.
+>> + * @end:   End of the memory range (inclusive).
+>> + * @type:  Type of the memory range.
+>> + *
+>> + * removes a firmware mapping entry.
+>> + *
+>> + * Returns 0 on success, or -EINVAL if no entry.
+>> + **/
+>> +int __meminit firmware_map_remove(u64 start, u64 end, const char *type)
+>> +{
+>> +	struct firmware_map_entry *entry;
+>> +
+>> +	entry = find_firmware_map_entry(start, end, type);
+>> +	if (!entry)
+>> +		return -EINVAL;
+>> +
+>> +	/* remove the memmap entry */
+>> +	remove_sysfs_fw_map_entry(entry);
+>> +
+>> +	firmware_map_remove_entry(entry);
+>> +
+>> +	return 0;
+>> +}
+>> +
+>>   /*
+>>    * Sysfs functions -------------------------------------------------------------
+>>    */
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> Please read the FAQ at  http://www.tux.org/lkml/
+>>
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+> 
 
-diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
-index 58b3aaf..25dfd71 100644
---- a/drivers/usb/core/hub.c
-+++ b/drivers/usb/core/hub.c
-@@ -41,6 +41,7 @@ struct usb_port {
- 	struct usb_device *child;
- 	struct device dev;
- 	struct dev_state *port_owner;
-+	enum usb_port_connect_type connect_type;
- };
- 
- struct usb_hub {
-@@ -4989,6 +4990,36 @@ struct usb_device *usb_hub_find_child(struct usb_device *hdev,
- }
- EXPORT_SYMBOL_GPL(usb_hub_find_child);
- 
-+/**
-+ * usb_set_hub_port_connect_type - set hub port connect type.
-+ * @hdev: USB device belonging to the usb hub
-+ * @port1: port num of the port
-+ * @type: connect type of the port
-+ */
-+void usb_set_hub_port_connect_type(struct usb_device *hdev, int port1,
-+	enum usb_port_connect_type type)
-+{
-+	struct usb_hub *hub = hdev_to_hub(hdev);
-+
-+	hub->ports[port1 - 1]->connect_type = type;
-+}
-+
-+/**
-+ * usb_get_hub_port_connect_type - Get the port's connect type
-+ * @hdev: USB device belonging to the usb hub
-+ * @port1: port num of the port
-+ *
-+ * Return connect type of the port and if input params are
-+ * invalid, return USB_PORT_CONNECT_TYPE_UNKNOWN.
-+ */
-+enum usb_port_connect_type
-+usb_get_hub_port_connect_type(struct usb_device *hdev, int port1)
-+{
-+	struct usb_hub *hub = hdev_to_hub(hdev);
-+
-+	return hub->ports[port1 - 1]->connect_type;
-+}
-+
- #ifdef CONFIG_ACPI
- /**
-  * usb_get_hub_port_acpi_handle - Get the usb port's acpi handle
-diff --git a/drivers/usb/core/usb-acpi.c b/drivers/usb/core/usb-acpi.c
-index 47197bf..404d86a 100644
---- a/drivers/usb/core/usb-acpi.c
-+++ b/drivers/usb/core/usb-acpi.c
-@@ -19,20 +19,29 @@
- 
- #include "usb.h"
- 
--static int usb_acpi_check_upc(struct usb_device *udev, acpi_handle handle)
-+static int usb_acpi_check_port_connect_type(struct usb_device *hdev,
-+	acpi_handle handle, int port1)
- {
- 	acpi_status status;
- 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
- 	union acpi_object *upc;
-+	struct acpi_pld pld;
- 	int ret = 0;
- 
--	status = acpi_evaluate_object(handle, "_UPC", NULL, &buffer);
--
-+	/*
-+	 * Accoding to ACPI Spec 9.13. PLD indicates whether usb port is
-+	 * user visible and _UPC indicates whether it is connectable. If
-+	 * the port was visible and connectable, it could be freely connected
-+	 * and disconnected with USB devices. If no visible and connectable,
-+	 * a usb device is directly hard-wired to the port. If no visible and
-+	 * no connectable, the port would be not used.
-+	 */
-+	status = acpi_get_physical_device_location(handle, &pld);
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
- 
-+	status = acpi_evaluate_object(handle, "_UPC", NULL, &buffer);
- 	upc = buffer.pointer;
--
- 	if (!upc || (upc->type != ACPI_TYPE_PACKAGE)
- 		|| upc->package.count != 4) {
- 		ret = -EINVAL;
-@@ -40,33 +49,20 @@ static int usb_acpi_check_upc(struct usb_device *udev, acpi_handle handle)
- 	}
- 
- 	if (upc->package.elements[0].integer.value)
--		udev->removable = USB_DEVICE_REMOVABLE;
--	else
--		udev->removable = USB_DEVICE_FIXED;
-+		if (pld.user_visible)
-+			usb_set_hub_port_connect_type(hdev, port1,
-+				USB_PORT_CONNECT_TYPE_HOT_PLUG);
-+		else
-+			usb_set_hub_port_connect_type(hdev, port1,
-+				USB_PORT_CONNECT_TYPE_HARD_WIRED);
-+	else if (!pld.user_visible)
-+		usb_set_hub_port_connect_type(hdev, port1, USB_PORT_NOT_USED);
- 
- out:
- 	kfree(upc);
- 	return ret;
- }
- 
--static int usb_acpi_check_pld(struct usb_device *udev, acpi_handle handle)
--{
--	acpi_status status;
--	struct acpi_pld pld;
--
--	status = acpi_get_physical_device_location(handle, &pld);
--
--	if (ACPI_FAILURE(status))
--		return -ENODEV;
--
--	if (pld.user_visible)
--		udev->removable = USB_DEVICE_REMOVABLE;
--	else
--		udev->removable = USB_DEVICE_FIXED;
--
--	return 0;
--}
--
- static int usb_acpi_find_device(struct device *dev, acpi_handle *handle)
- {
- 	struct usb_device *udev;
-@@ -88,8 +84,30 @@ static int usb_acpi_find_device(struct device *dev, acpi_handle *handle)
- 	 */
- 	if (is_usb_device(dev)) {
- 		udev = to_usb_device(dev);
--		if (udev->parent)
-+		if (udev->parent) {
-+			enum usb_port_connect_type type;
-+
-+			/*
-+			 * According usb port's connect type to set usb device's
-+			 * removability.
-+			 */
-+			type = usb_get_hub_port_connect_type(udev->parent,
-+				udev->portnum);
-+			switch (type) {
-+			case USB_PORT_CONNECT_TYPE_HOT_PLUG:
-+				udev->removable = USB_DEVICE_REMOVABLE;
-+				break;
-+			case USB_PORT_CONNECT_TYPE_HARD_WIRED:
-+				udev->removable = USB_DEVICE_FIXED;
-+				break;
-+			default:
-+				udev->removable = USB_DEVICE_REMOVABLE_UNKNOWN;
-+				break;
-+			}
-+
- 			return -ENODEV;
-+		}
-+
- 		/* root hub's parent is the usb hcd. */
- 		parent_handle = DEVICE_ACPI_HANDLE(dev->parent);
- 		*handle = acpi_get_child(parent_handle, udev->portnum);
-@@ -122,18 +140,10 @@ static int usb_acpi_find_device(struct device *dev, acpi_handle *handle)
- 			if (!*handle)
- 				return -ENODEV;
- 		}
-+		usb_acpi_check_port_connect_type(udev, *handle, port_num);
- 	} else
- 		return -ENODEV;
- 
--	/*
--	 * PLD will tell us whether a port is removable to the user or
--	 * not. If we don't get an answer from PLD (it's not present
--	 * or it's malformed) then try to infer it from UPC. If a
--	 * device isn't connectable then it's probably not removable.
--	 */
--	if (usb_acpi_check_pld(udev, *handle) != 0)
--		usb_acpi_check_upc(udev, *handle);
--
- 	return 0;
- }
- 
-diff --git a/drivers/usb/core/usb.h b/drivers/usb/core/usb.h
-index 4aa20f4..bbd7df4 100644
---- a/drivers/usb/core/usb.h
-+++ b/drivers/usb/core/usb.h
-@@ -168,6 +168,10 @@ extern void usb_notify_add_device(struct usb_device *udev);
- extern void usb_notify_remove_device(struct usb_device *udev);
- extern void usb_notify_add_bus(struct usb_bus *ubus);
- extern void usb_notify_remove_bus(struct usb_bus *ubus);
-+extern enum usb_port_connect_type
-+	usb_get_hub_port_connect_type(struct usb_device *hdev, int port1);
-+extern void usb_set_hub_port_connect_type(struct usb_device *hdev, int port1,
-+	enum usb_port_connect_type type);
- 
- #ifdef CONFIG_ACPI
- extern int usb_acpi_register(void);
-diff --git a/include/linux/usb.h b/include/linux/usb.h
-index df3120f..0fc5e03 100644
---- a/include/linux/usb.h
-+++ b/include/linux/usb.h
-@@ -378,6 +378,13 @@ enum usb_device_removable {
- 	USB_DEVICE_FIXED,
- };
- 
-+enum usb_port_connect_type {
-+	USB_PORT_CONNECT_TYPE_UNKNOWN = 0,
-+	USB_PORT_CONNECT_TYPE_HOT_PLUG,
-+	USB_PORT_CONNECT_TYPE_HARD_WIRED,
-+	USB_PORT_NOT_USED,
-+};
-+
- /*
-  * USB 3.0 Link Power Management (LPM) parameters.
-  *
--- 
-1.7.6.rc2.8.g28eb
 
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
