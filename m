@@ -1,41 +1,58 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: linux-next : cpuidle - could you add my tree please
-Date: Tue, 3 Jul 2012 21:33:30 +0200
-Message-ID: <201207032133.30841.rjw@sisk.pl>
-References: <4FDEE98D.7010802@linaro.org> <4FF21D48.50301@linaro.org>
-	<CACRpkdY-vmA57uXWCzG7b7JXkZi0n-HCdCK0C4wPFgv51Q_KFA@mail.gmail.com>
+From: Lin Ming <ming.m.lin@intel.com>
+Subject: [PATCH] ACPICA: Fix possible fault in return package object repair
+ code
+Date: Wed, 04 Jul 2012 10:02:32 +0800
+Message-ID: <1341367352.3978.2.camel@minggr>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <CACRpkdY-vmA57uXWCzG7b7JXkZi0n-HCdCK0C4wPFgv51Q_KFA@mail.gmail.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Kevin Hilman <khilman@ti.com>, Len.Brown@intel.com, Rob Lee <rob.lee@linaro.org>, Lists Linaro-dev <linaro-dev@lists.linaro.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Peter De Schrijver <pdeschrijver@nvidia.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Amit Kucheria <amit.kucheria@linaro.org>, linux-acpi@vger.kernel.org, linux-next@vger.kernel.org, Colin Cross <ccross@android.com>, linux-pm@lists.linux-foundation.org, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:57987 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932541Ab2GDCCe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 3 Jul 2012 22:02:34 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb <lenb@kernel.org>
+Cc: Bob Moore <robert.moore@intel.com>, Vlastimil Babka <caster@gentoo.org>, linux-acpi <linux-acpi@vger.kernel.org>
 
-On Tuesday, July 03, 2012, Linus Walleij wrote:
-> On Tue, Jul 3, 2012 at 12:14 AM, Daniel Lezcano
-> <daniel.lezcano@linaro.org> wrote:
-> 
-> > If that makes sense to add myself to the MAINTAINER file as a
-> > co-maintainer (understand: send to me also the patches, so I can take
-> > care of them if Len does not respond), I am ok with that.
-> 
-> What about a patch adding both you and Len as MAINTAINERs,
-> right now there is noone just some informal consensus and noone
-> really knows who to send patches to. Let's formalize it.
+From: Bob Moore <robert.moore@intel.com>
 
-Send them to me for now.  We'll settle the issue when Len is back.
+Fixes a problem that can occur when a lone package object is
+wrapped with an outer package object in order to conform to
+the ACPI specification. Can affect these predefined names:
+_ALR,_MLS,_PSS,_TRT,_TSS,_PRT,_HPX,_DLM,_CSD,_PSD,_TSD
 
-Thanks,
-Rafael
+https://bugzilla.kernel.org/show_bug.cgi?id=44171
+
+Reported-by: Vlastimil Babka <caster@gentoo.org>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+---
+
+Len, 
+
+This is an important bug fix.
+Could you merge it?
+
+ drivers/acpi/acpica/nspredef.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/acpi/acpica/nspredef.c b/drivers/acpi/acpica/nspredef.c
+index 23ce096..fe66260 100644
+--- a/drivers/acpi/acpica/nspredef.c
++++ b/drivers/acpi/acpica/nspredef.c
+@@ -638,7 +638,7 @@ acpi_ns_check_package(struct acpi_predefined_data *data,
+ 			/* Create the new outer package and populate it */
+ 
+ 			status =
+-			    acpi_ns_wrap_with_package(data, *elements,
++			    acpi_ns_wrap_with_package(data, return_object,
+ 						      return_object_ptr);
+ 			if (ACPI_FAILURE(status)) {
+ 				return (status);
+-- 
+1.7.2.5
+
+
+
