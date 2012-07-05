@@ -1,71 +1,217 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: linux-next : cpuidle - could you add my tree please
-Date: Thu, 05 Jul 2012 15:33:16 +0200
-Message-ID: <4FF5979C.6030802@linaro.org>
-References: <4FDEE98D.7010802@linaro.org> <20120703231948.33cca18e3cc3d6e497ab022d@canb.auug.org.au> <4FF2F2D3.4090200@linaro.org> <201207031854.51163.rjw@sisk.pl>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH v6 2/6] ACPI: Add _OST support for sysfs eject
+Date: Thu, 05 Jul 2012 08:43:37 -0600
+Message-ID: <1341499417.16730.595.camel@misato.fc.hp.com>
+References: <1340743374-18535-1-git-send-email-toshi.kani@hp.com>
+	 <1340743374-18535-3-git-send-email-toshi.kani@hp.com>
+	 <4FF57787.1010308@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <201207031854.51163.rjw@sisk.pl>
-Sender: linux-next-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, Lists Linaro-dev <linaro-dev@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kevin Hilman <khilman@ti.com>, Peter De Schrijver <pdeschrijver@nvidia.com>, Amit Kucheria <amit.kucheria@linaro.org>, linux-next@vger.kernel.org, Colin Cross <ccross@android.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Rob Lee <rob.lee@linaro.org>, "lenb@kernel.org" <lenb@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4FF57787.1010308@jp.fujitsu.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, bhelgaas@google.com, shuahkhan@gmail.com, liuj97@gmail.com, andi@firstfloor.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 07/03/2012 06:54 PM, Rafael J. Wysocki wrote:
-> On Tuesday, July 03, 2012, Daniel Lezcano wrote:
->> On 07/03/2012 03:19 PM, Stephen Rothwell wrote:
->>> Hi Daniel,
->>>
->>> On Tue, 03 Jul 2012 14:56:58 +0200 Daniel Lezcano <daniel.lezcano@l=
-inaro.org> wrote:
->>>>
->>>>> So do you have a branch in the cpuidle-next.git tree that isn't g=
-oing to
->>>>> be rebased?
->>>>
->>>> No. I am following Linus tree and adding the patches on top of it.
->>>
->>> Please don't rebase your tree more than necessary - it just makes t=
-hing
->>> hard for anyone using your tree as a base for further development a=
-nd
->>> throws away any testing you may have done.
->>
->> Ok, let me sync with Len and Rafael about the best way to do that.
->=20
-> Please create a branch in your tree for me to pull from and let me kn=
-ow
-> which one it is.  Please note that this branch must not be rebased af=
-ter I've
-> pulled from it and it's going to be included into my linux-next branc=
-h
-> automatically.
+On Thu, 2012-07-05 at 20:16 +0900, Yasuaki Ishimatsu wrote:
+> Hi Toshi,
+> 
+> 2012/06/27 5:42, Toshi Kani wrote:
+> > Changed acpi_bus_hot_remove_device() to support _OST. This function is
+> > also changed to global so that it can be called from hotplug notify
+> > handlers to perform hot-remove operation.
+> > 
+> > Changed acpi_eject_store(), which is the sysfs eject handler. It checks
+> > eject_pending to see if the request was originated from ACPI eject
+> > notification. If not, it calls _OST(0x103,84,) per Figure 6-37 in ACPI
+> > 5.0 spec.
+> > 
+> > Added eject_pending bit to acpi_device_flags. This bit is set when the
+> > kernel has received an ACPI eject notification, but does not initiate
+> > its hot-remove operation by itself.
+> > 
+> > Added struct acpi_eject_event. This structure is used to pass extended
+> > information to acpi_bus_hot_remove_device(), which has a single argument
+> > to support asynchronous call
+> > 
+> > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+> > ---
+> >   drivers/acpi/scan.c     |   57 +++++++++++++++++++++++++++++++++++++++-------
+> >   include/acpi/acpi_bus.h |    9 ++++++-
+> >   2 files changed, 56 insertions(+), 10 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> > index c8a1f3b..dbdb9fc 100644
+> > --- a/drivers/acpi/scan.c
+> > +++ b/drivers/acpi/scan.c
+> > @@ -83,19 +83,29 @@ acpi_device_modalias_show(struct device *dev, struct device_attribute *attr, cha
+> >   }
+> >   static DEVICE_ATTR(modalias, 0444, acpi_device_modalias_show, NULL);
+> >   
+> > -static void acpi_bus_hot_remove_device(void *context)
+> > +/**
+> > + * acpi_bus_hot_remove_device: hot-remove a device and its children
+> > + * @context: struct acpi_eject_event pointer (freed in this func)
+> > + *
+> > + * Hot-remove a device and its children. This function frees up the
+> > + * memory space passed by arg context, so that the caller may call
+> > + * this function asynchronously through acpi_os_hotplug_execute().
+> > + */
+> > +void acpi_bus_hot_remove_device(void *context)
+> >   {
+> > +	struct acpi_eject_event *ej_event = (struct acpi_eject_event *) context;
+> >   	struct acpi_device *device;
+> > -	acpi_handle handle = context;
+> > +	acpi_handle handle = ej_event->handle;
+> >   	struct acpi_object_list arg_list;
+> >   	union acpi_object arg;
+> >   	acpi_status status = AE_OK;
+> > +	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE; /* default */
+> >   
+> >   	if (acpi_bus_get_device(handle, &device))
+> > -		return;
+> > +		goto err_out;
+> >   
+> >   	if (!device)
+> > -		return;
+> > +		goto err_out;
+> >   
+> >   	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+> >   		"Hot-removing device %s...\n", dev_name(&device->dev)));
+> > @@ -103,7 +113,7 @@ static void acpi_bus_hot_remove_device(void *context)
+> >   	if (acpi_bus_trim(device, 1)) {
+> >   		printk(KERN_ERR PREFIX
+> >   				"Removing device failed\n");
+> > -		return;
+> > +		goto err_out;
+> >   	}
+> >   
+> >   	/* power off device */
+> > @@ -129,10 +139,20 @@ static void acpi_bus_hot_remove_device(void *context)
+> >   	 * TBD: _EJD support.
+> >   	 */
+> >   	status = acpi_evaluate_object(handle, "_EJ0", &arg_list, NULL);
+> > -	if (ACPI_FAILURE(status))
+> > -		printk(KERN_WARNING PREFIX
+> > -				"Eject device failed\n");
+> > +	if (ACPI_FAILURE(status)) {
+> > +		if (status != AE_NOT_FOUND)
+> > +			pr_warn(PREFIX "Eject device failed\n");
+> > +		goto err_out;
+> > +	}
+> > +
+> > +	kfree(context);
+> > +	return;
+> >   
+> > +err_out:
+> > +	/* Inform firmware the hot-remove operation has completed w/ error */
+> > +	(void) acpi_evaluate_hotplug_ost(handle,
+> > +				ej_event->event, ost_code, NULL);
+> > +	kfree(context);
+> >   	return;
+> >   }
+> 
+> When I read your patch named [PATCH] ACPI: Add ACPI CPU hot-remove support,
+> a question about this patch appeared.
+> 
+> The question is :
+> Why does not acpi_bus_hot_remove_device() inform firmware of
+> ACPI_OST_SC_SUCCESS, when it succeeded? Are thre any reasons?
+> 
+> If you have already discussed my question, please let me know the log.
 
-Ok that sounds good.
+Hi Yasuaki,
 
-Let me put in place the branch and rework my patches because they
-conflict with the 'disable' flag moved to the per cpu structure.
-In the meantime, I will send you the other patches which do not conflic=
-t.
+Please refer Figure 2, page 14, of the following document.  _EJ0
+substitutes _OST as it indicates to the firmware that the OS was
+successful in offlining.
 
+  DIG64 Hot-Plug & Partitioning Flow (HPPF) Specification R1.0
+  http://www.dig64.org/home/DIG64_HPPF_R1_0.pdf
 
-> I'll include it into my v3.6 push, because I have a couple of cpuidle=
- patches
-> queued up already.  We'll need to discuss the future of it after 3.6,=
- though.
+Figure 6-37 of ACPI 5.0 spec also has a similar example flow.
 
-Ok, cool.
-
-Thanks
-  -- Daniel
+Thanks,
+-Toshi
 
 
---=20
- <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software for=
- ARM SoCs
-
-=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
+> Thanks,
+> Yasuaki Ishimatsu
+> 
+> 
+> >   
+> > @@ -144,6 +164,7 @@ acpi_eject_store(struct device *d, struct device_attribute *attr,
+> >   	acpi_status status;
+> >   	acpi_object_type type = 0;
+> >   	struct acpi_device *acpi_device = to_acpi_device(d);
+> > +	struct acpi_eject_event *ej_event;
+> >   
+> >   	if ((!count) || (buf[0] != '1')) {
+> >   		return -EINVAL;
+> > @@ -160,7 +181,25 @@ acpi_eject_store(struct device *d, struct device_attribute *attr,
+> >   		goto err;
+> >   	}
+> >   
+> > -	acpi_os_hotplug_execute(acpi_bus_hot_remove_device, acpi_device->handle);
+> > +	ej_event = kmalloc(sizeof(*ej_event), GFP_KERNEL);
+> > +	if (!ej_event) {
+> > +		ret = -ENOMEM;
+> > +		goto err;
+> > +	}
+> > +
+> > +	ej_event->handle = acpi_device->handle;
+> > +	if (acpi_device->flags.eject_pending) {
+> > +		/* event originated from ACPI eject notification */
+> > +		ej_event->event = ACPI_NOTIFY_EJECT_REQUEST;
+> > +		acpi_device->flags.eject_pending = 0;
+> > +	} else {
+> > +		/* event originated from user */
+> > +		ej_event->event = ACPI_OST_EC_OSPM_EJECT;
+> > +		(void) acpi_evaluate_hotplug_ost(ej_event->handle,
+> > +			ej_event->event, ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
+> > +	}
+> > +
+> > +	acpi_os_hotplug_execute(acpi_bus_hot_remove_device, (void *)ej_event);
+> >   err:
+> >   	return ret;
+> >   }
+> > diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> > index 1d9e432..b22b774 100644
+> > --- a/include/acpi/acpi_bus.h
+> > +++ b/include/acpi/acpi_bus.h
+> > @@ -182,7 +182,8 @@ struct acpi_device_flags {
+> >   	u32 suprise_removal_ok:1;
+> >   	u32 power_manageable:1;
+> >   	u32 performance_manageable:1;
+> > -	u32 reserved:24;
+> > +	u32 eject_pending:1;
+> > +	u32 reserved:23;
+> >   };
+> >   
+> >   /* File System */
+> > @@ -334,6 +335,11 @@ struct acpi_bus_event {
+> >   	u32 data;
+> >   };
+> >   
+> > +struct acpi_eject_event {
+> > +	acpi_handle	handle;
+> > +	u32		event;
+> > +};
+> > +
+> >   extern struct kobject *acpi_kobj;
+> >   extern int acpi_bus_generate_netlink_event(const char*, const char*, u8, int);
+> >   void acpi_bus_private_data_handler(acpi_handle, void *);
+> > @@ -371,6 +377,7 @@ int acpi_bus_register_driver(struct acpi_driver *driver);
+> >   void acpi_bus_unregister_driver(struct acpi_driver *driver);
+> >   int acpi_bus_add(struct acpi_device **child, struct acpi_device *parent,
+> >   		 acpi_handle handle, int type);
+> > +void acpi_bus_hot_remove_device(void *context);
+> >   int acpi_bus_trim(struct acpi_device *start, int rmdevice);
+> >   int acpi_bus_start(struct acpi_device *device);
+> >   acpi_status acpi_bus_get_ejd(acpi_handle handle, acpi_handle * ejd);
+> > 
+> 
+> 
+> 
