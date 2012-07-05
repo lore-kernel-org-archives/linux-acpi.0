@@ -1,106 +1,203 @@
-From: Mel Gorman <mel@csn.ul.ie>
-Subject: Re: [RFC PATCH 0/3 V1] mm: add new migrate type and online_movable
- for hotplug
-Date: Thu, 5 Jul 2012 10:05:54 +0100
-Message-ID: <20120705090554.GR13141@csn.ul.ie>
-References: <1341386778-8002-1-git-send-email-laijs@cn.fujitsu.com>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [PATCH v6 2/6] ACPI: Add _OST support for sysfs eject
+Date: Thu, 5 Jul 2012 20:16:23 +0900
+Message-ID: <4FF57787.1010308@jp.fujitsu.com>
+References: <1340743374-18535-1-git-send-email-toshi.kani@hp.com> <1340743374-18535-3-git-send-email-toshi.kani@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <1341386778-8002-1-git-send-email-laijs@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Chris Metcalf <cmetcalf@tilera.com>, Len Brown <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andi Kleen <andi@firstfloor.org>, Julia Lawall <julia@diku.dk>, David Howells <dhowells@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Kay Sievers <kay.sievers@vrfy.org>, Ingo Molnar <mingo@elte.hu>, Paul Gortmaker <paul.gortmaker@windriver.com>, Daniel Kiper <dkiper@net-space.pl>, Andrew Morton <akpm@linux-foundation.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Michal Hocko <mhocko@suse.cz>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>, Minchan Kim <minchan@kernel.org>, Michal Nazarewicz <mina86@mina86.com>, Marek Szyprowski <m.szyprowski@samsung.com>, Rik van Riel <riel@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, Christoph Lameter <cl@linux.com>, David Rientjes <rientjes@google.com>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:49501 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751321Ab2GELQu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Jul 2012 07:16:50 -0400
+In-Reply-To: <1340743374-18535-3-git-send-email-toshi.kani@hp.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, bhelgaas@google.com, shuahkhan@gmail.com, liuj97@gmail.com, andi@firstfloor.org, linux-kernel@vger.kernel.org
 
-On Wed, Jul 04, 2012 at 03:26:15PM +0800, Lai Jiangshan wrote:
-> > <SNIP>
+Hi Toshi,
+
+2012/06/27 5:42, Toshi Kani wrote:
+> Changed acpi_bus_hot_remove_device() to support _OST. This function is
+> also changed to global so that it can be called from hotplug notify
+> handlers to perform hot-remove operation.
 > 
-> Different from ZONE_MOVABLE: it can be used for any given memroyblock.
+> Changed acpi_eject_store(), which is the sysfs eject handler. It checks
+> eject_pending to see if the request was originated from ACPI eject
+> notification. If not, it calls _OST(0x103,84,) per Figure 6-37 in ACPI
+> 5.0 spec.
 > 
-> Lai Jiangshan (3):
->   use __rmqueue_smallest when borrow memory from MIGRATE_CMA
->   add MIGRATE_HOTREMOVE type
->   add online_movable
+> Added eject_pending bit to acpi_device_flags. This bit is set when the
+> kernel has received an ACPI eject notification, but does not initiate
+> its hot-remove operation by itself.
 > 
->  arch/tile/mm/init.c            |    2 +-
->  drivers/acpi/acpi_memhotplug.c |    3 +-
->  drivers/base/memory.c          |   24 +++++++----
->  include/linux/memory.h         |    1 +
->  include/linux/memory_hotplug.h |    4 +-
->  include/linux/mmzone.h         |   37 +++++++++++++++++
->  include/linux/page-isolation.h |    2 +-
->  mm/compaction.c                |    6 +-
->  mm/memory-failure.c            |    8 +++-
->  mm/memory_hotplug.c            |   36 +++++++++++++---
->  mm/page_alloc.c                |   86 ++++++++++++++++-----------------------
->  mm/vmstat.c                    |    3 +
->  12 files changed, 136 insertions(+), 76 deletions(-)
+> Added struct acpi_eject_event. This structure is used to pass extended
+> information to acpi_bus_hot_remove_device(), which has a single argument
+> to support asynchronous call
+> 
+> Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+> ---
+>   drivers/acpi/scan.c     |   57 +++++++++++++++++++++++++++++++++++++++-------
+>   include/acpi/acpi_bus.h |    9 ++++++-
+>   2 files changed, 56 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index c8a1f3b..dbdb9fc 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -83,19 +83,29 @@ acpi_device_modalias_show(struct device *dev, struct device_attribute *attr, cha
+>   }
+>   static DEVICE_ATTR(modalias, 0444, acpi_device_modalias_show, NULL);
+>   
+> -static void acpi_bus_hot_remove_device(void *context)
+> +/**
+> + * acpi_bus_hot_remove_device: hot-remove a device and its children
+> + * @context: struct acpi_eject_event pointer (freed in this func)
+> + *
+> + * Hot-remove a device and its children. This function frees up the
+> + * memory space passed by arg context, so that the caller may call
+> + * this function asynchronously through acpi_os_hotplug_execute().
+> + */
+> +void acpi_bus_hot_remove_device(void *context)
+>   {
+> +	struct acpi_eject_event *ej_event = (struct acpi_eject_event *) context;
+>   	struct acpi_device *device;
+> -	acpi_handle handle = context;
+> +	acpi_handle handle = ej_event->handle;
+>   	struct acpi_object_list arg_list;
+>   	union acpi_object arg;
+>   	acpi_status status = AE_OK;
+> +	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE; /* default */
+>   
+>   	if (acpi_bus_get_device(handle, &device))
+> -		return;
+> +		goto err_out;
+>   
+>   	if (!device)
+> -		return;
+> +		goto err_out;
+>   
+>   	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+>   		"Hot-removing device %s...\n", dev_name(&device->dev)));
+> @@ -103,7 +113,7 @@ static void acpi_bus_hot_remove_device(void *context)
+>   	if (acpi_bus_trim(device, 1)) {
+>   		printk(KERN_ERR PREFIX
+>   				"Removing device failed\n");
+> -		return;
+> +		goto err_out;
+>   	}
+>   
+>   	/* power off device */
+> @@ -129,10 +139,20 @@ static void acpi_bus_hot_remove_device(void *context)
+>   	 * TBD: _EJD support.
+>   	 */
+>   	status = acpi_evaluate_object(handle, "_EJ0", &arg_list, NULL);
+> -	if (ACPI_FAILURE(status))
+> -		printk(KERN_WARNING PREFIX
+> -				"Eject device failed\n");
+> +	if (ACPI_FAILURE(status)) {
+> +		if (status != AE_NOT_FOUND)
+> +			pr_warn(PREFIX "Eject device failed\n");
+> +		goto err_out;
+> +	}
+> +
+> +	kfree(context);
+> +	return;
+>   
+> +err_out:
+> +	/* Inform firmware the hot-remove operation has completed w/ error */
+> +	(void) acpi_evaluate_hotplug_ost(handle,
+> +				ej_event->event, ost_code, NULL);
+> +	kfree(context);
+>   	return;
+>   }
+
+When I read your patch named [PATCH] ACPI: Add ACPI CPU hot-remove support,
+a question about this patch appeared.
+
+The question is :
+Why does not acpi_bus_hot_remove_device() inform firmware of
+ACPI_OST_SC_SUCCESS, when it succeeded? Are thre any reasons?
+
+If you have already discussed my question, please let me know the log.
+
+Thanks,
+Yasuaki Ishimatsu
+
+
+>   
+> @@ -144,6 +164,7 @@ acpi_eject_store(struct device *d, struct device_attribute *attr,
+>   	acpi_status status;
+>   	acpi_object_type type = 0;
+>   	struct acpi_device *acpi_device = to_acpi_device(d);
+> +	struct acpi_eject_event *ej_event;
+>   
+>   	if ((!count) || (buf[0] != '1')) {
+>   		return -EINVAL;
+> @@ -160,7 +181,25 @@ acpi_eject_store(struct device *d, struct device_attribute *attr,
+>   		goto err;
+>   	}
+>   
+> -	acpi_os_hotplug_execute(acpi_bus_hot_remove_device, acpi_device->handle);
+> +	ej_event = kmalloc(sizeof(*ej_event), GFP_KERNEL);
+> +	if (!ej_event) {
+> +		ret = -ENOMEM;
+> +		goto err;
+> +	}
+> +
+> +	ej_event->handle = acpi_device->handle;
+> +	if (acpi_device->flags.eject_pending) {
+> +		/* event originated from ACPI eject notification */
+> +		ej_event->event = ACPI_NOTIFY_EJECT_REQUEST;
+> +		acpi_device->flags.eject_pending = 0;
+> +	} else {
+> +		/* event originated from user */
+> +		ej_event->event = ACPI_OST_EC_OSPM_EJECT;
+> +		(void) acpi_evaluate_hotplug_ost(ej_event->handle,
+> +			ej_event->event, ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
+> +	}
+> +
+> +	acpi_os_hotplug_execute(acpi_bus_hot_remove_device, (void *)ej_event);
+>   err:
+>   	return ret;
+>   }
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index 1d9e432..b22b774 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -182,7 +182,8 @@ struct acpi_device_flags {
+>   	u32 suprise_removal_ok:1;
+>   	u32 power_manageable:1;
+>   	u32 performance_manageable:1;
+> -	u32 reserved:24;
+> +	u32 eject_pending:1;
+> +	u32 reserved:23;
+>   };
+>   
+>   /* File System */
+> @@ -334,6 +335,11 @@ struct acpi_bus_event {
+>   	u32 data;
+>   };
+>   
+> +struct acpi_eject_event {
+> +	acpi_handle	handle;
+> +	u32		event;
+> +};
+> +
+>   extern struct kobject *acpi_kobj;
+>   extern int acpi_bus_generate_netlink_event(const char*, const char*, u8, int);
+>   void acpi_bus_private_data_handler(acpi_handle, void *);
+> @@ -371,6 +377,7 @@ int acpi_bus_register_driver(struct acpi_driver *driver);
+>   void acpi_bus_unregister_driver(struct acpi_driver *driver);
+>   int acpi_bus_add(struct acpi_device **child, struct acpi_device *parent,
+>   		 acpi_handle handle, int type);
+> +void acpi_bus_hot_remove_device(void *context);
+>   int acpi_bus_trim(struct acpi_device *start, int rmdevice);
+>   int acpi_bus_start(struct acpi_device *device);
+>   acpi_status acpi_bus_get_ejd(acpi_handle handle, acpi_handle * ejd);
 > 
 
-I apologise for my crap review of the first patch to date. It was atrociously
-bad form and one of the reasons my review was so superficial was because I
-was aware of the problem below. It's pretty severe, we've encountered it on
-other occasions and it led me to dismiss the series quickly without adequate
-explanation or close review when I should have taken the time to explain it.
 
-The reason ZONE_MOVABLE exists is because of page reclaim. MIGRATE_CMA
-or any migrate type that is MIGRATE_CMA-like is not understood by reclaim
-currently and is not addressed by this series just from looking the diffstat
-(no changes to vmscan.c). In low memory situations, it's actually fine
-and the system appears to work well. The problem is either when the
-MIGRATE_CMA-like area is large and is either completely free or is the
-only source of pages that can be reclaimed.
 
-In these cases, MIGRATE_UNMOVABLE and MIGRATE_RECLAIMABLE allocations fail
-because their lists and fallback lists are empty. However, if it enters
-direct reclaim or wakes kswapd the watermarks are fine and reclaim does
-nothing. Depending on implementation details this causes either a loop
-or OOM.
-
-Minimally the watermark checks need to take the MIGRATE_CMA area into account
-but even then it is still fragile. If kswapd and direct reclaim are forced
-to reclaim pages, there is no guarantee they will reclaim pages that are
-usable by MIGRATE_UNMOVABLE or MIGRATE_RECLAIMABLE. To handle this you must
-either keep reclaiming pages until it works (easy to implement but disruptive
-to the system) or scan the LRU lists searching for suitable pages (higher
-CPU usage, LRU age disruption, will require the entire zone to be scanned
-in the OOM case which will be slow and subject to races and possible false
-OOMs). When these situations occur, it is very difficult to debug because it
-just looks like a hang and the exact triggering situations will be different.
-
-If the allocation then fails due to insufficient usable memory, the
-resulting OOM message will be harder to read because it'll show OOM when
-there are plenty of pages free. This can be addressed by clear accounting and
-informative messages of course but to be very clear it might be necessary
-to walk all the buddy lists to identify how many of the free pages were
-MIGRATE_CMA. You could use separate accounting of course but then you have
-accounting and memory overhead instead.
-
-In the case of CMA, this issue is less of a problem but it was discussed
-before CMA was merged. CMAs use case means that it is not likely to suffer
-severely because of the expected size of the region, how its used and how
-many slab allocations are expected on the systems it targets. It's far worse
-for memory hotplug because if the bulk of your memory is memory hotplugged,
-you may not be able to use it for metadata-intensive workloads for example
-which will result in bug reports. You could have 90% free memory and
-be unable to use any of it because you cannot increase the size of slab
-leading to odd corner cases.
-
-ZONE_MOVABLE is not great, but it handles the reclaim issues in a
-straight-forward manner, OOM is handled quickly because the whole system
-does not have to be scanned to detect the situation and the OOM messages
-are easy to read. If you want to replace it with MIGRATE_CMA or
-something MIGRATE_CMA-like, you need to take these issues into account
-or at the very least explain in detail why it is not an issue.
-
--- 
-Mel Gorman
-SUSE Labs
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
