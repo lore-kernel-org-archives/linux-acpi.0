@@ -1,187 +1,161 @@
-From: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH V7 4/9] usb/acpi : rebinding usb with acpi since usb port being made a real device
-Date: Fri,  6 Jul 2012 14:13:55 +0800
-Message-ID: <1341555240-17248-4-git-send-email-tianyu.lan@intel.com>
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: [PATCH V7 7/9] USB/ACPI: Add usb port's acpi power control in the xhci PORT_POWER feature request process.
+Date: Fri,  6 Jul 2012 14:13:58 +0800
+Message-ID: <1341555240-17248-7-git-send-email-tianyu.lan@intel.com>
 References: <1341555240-17248-1-git-send-email-tianyu.lan@intel.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1341555240-17248-1-git-send-email-tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:35723 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932139Ab2GFGW3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 6 Jul 2012 02:22:29 -0400
+In-Reply-To: <1341555240-17248-1-git-send-email-tianyu.lan@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: gregkh@linuxfoundation.org, lenb@kernel.org
+Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu, sarah.a.sharp@linux.intel.com
 
-In the ACPI DSDT table, only usb root hub and usb ports are acpi device nodes.
-Original, binding the usb ports' acpi node with the usb device attached to the
-port. The usb port is made a real device by previous patch. This patch is to
-rebind the port's acpi node with port's struct device.
+Change since v1: use variable temp to record the return value of
+usb_acpi_power_manageable().
 
-Signed-off-by: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On our developping machine, bios can provide usb port's  power control via
+acpi. This patch is to provide usb port's power control way through setting
+or clearing PORT_POWER feature requests. Add two functions usb_acpi_power_manageable()
+and usb_acpi_set_power_state(). The first one is used to find whether the
+usb port has acpi power resource and the second is to set the power state.
+They are invoked in the xhci_hub_control() where clearing or setting PORT_POWER
+feature requests are processed.
+
+Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
 ---
- drivers/usb/core/hub.c      |   18 +++++++++++
- drivers/usb/core/usb-acpi.c |   67 +++++++++++++++++++++++++++++++++---------
- drivers/usb/core/usb.h      |   12 ++++++++
- 3 files changed, 82 insertions(+), 15 deletions(-)
+ drivers/usb/core/usb-acpi.c |   62 +++++++++++++++++++++++++++++++++++++++++++
+ drivers/usb/host/xhci-hub.c |   12 ++++++++
+ include/linux/usb.h         |   10 +++++++
+ 3 files changed, 84 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
-index adbb889..58b3aaf 100644
---- a/drivers/usb/core/hub.c
-+++ b/drivers/usb/core/hub.c
-@@ -4988,3 +4988,21 @@ struct usb_device *usb_hub_find_child(struct usb_device *hdev,
- 	return hub->ports[port1 - 1]->child;
- }
- EXPORT_SYMBOL_GPL(usb_hub_find_child);
-+
-+#ifdef CONFIG_ACPI
-+/**
-+ * usb_get_hub_port_acpi_handle - Get the usb port's acpi handle
-+ * @hdev: USB device belonging to the usb hub
-+ * @port1: port num of the port
-+ *
-+ * Return port's acpi handle if successful, NULL if params are
-+ * invaild.
-+ */
-+acpi_handle usb_get_hub_port_acpi_handle(struct usb_device *hdev,
-+	int port1)
-+{
-+	struct usb_hub *hub = hdev_to_hub(hdev);
-+
-+	return DEVICE_ACPI_HANDLE(&hub->ports[port1 - 1]->dev);
-+}
-+#endif
 diff --git a/drivers/usb/core/usb-acpi.c b/drivers/usb/core/usb-acpi.c
-index 8947b20..47197bf 100644
+index 404d86a..0ef7d42 100644
 --- a/drivers/usb/core/usb-acpi.c
 +++ b/drivers/usb/core/usb-acpi.c
-@@ -70,22 +70,59 @@ static int usb_acpi_check_pld(struct usb_device *udev, acpi_handle handle)
- static int usb_acpi_find_device(struct device *dev, acpi_handle *handle)
+@@ -19,6 +19,68 @@
+ 
+ #include "usb.h"
+ 
++/**
++ * usb_acpi_power_manageable - check whether usb port has
++ * acpi power resource.
++ * @hdev: USB device belonging to the usb hub
++ * @index: port index based zero
++ *
++ * Return true if the port has acpi power resource and false if no.
++ */
++bool usb_acpi_power_manageable(struct usb_device *hdev, int index)
++{
++	acpi_handle port_handle;
++	int port1 = index + 1;
++
++	port_handle = usb_get_hub_port_acpi_handle(hdev,
++		port1);
++	if (port_handle)
++		return acpi_bus_power_manageable(port_handle);
++	else
++		return false;
++}
++EXPORT_SYMBOL_GPL(usb_acpi_power_manageable);
++
++/**
++ * usb_acpi_set_power_state - control usb port's power via acpi power
++ * resource
++ * @hdev: USB device belonging to the usb hub
++ * @index: port index based zero
++ * @enable: power state expected to be set
++ *
++ * Notice to use usb_acpi_power_manageable() to check whether the usb port
++ * has acpi power resource before invoking this function.
++ *
++ * Returns 0 on success, else negative errno.
++ */
++int usb_acpi_set_power_state(struct usb_device *hdev, int index, bool enable)
++{
++	acpi_handle port_handle;
++	unsigned char state;
++	int port1 = index + 1;
++	int error = -EINVAL;
++
++	port_handle = (acpi_handle)usb_get_hub_port_acpi_handle(hdev,
++		port1);
++	if (!port_handle)
++		return error;
++
++	if (enable)
++		state = ACPI_STATE_D0;
++	else
++		state = ACPI_STATE_D3_COLD;
++
++	error = acpi_bus_set_power(port_handle, state);
++	if (!error)
++		dev_dbg(&hdev->dev, "The power of hub port %d was set to %d\n",
++			port1, enable);
++	else
++		dev_dbg(&hdev->dev, "The power of hub port failed to be set\n");
++
++	return error;
++}
++EXPORT_SYMBOL_GPL(usb_acpi_set_power_state);
++
+ static int usb_acpi_check_port_connect_type(struct usb_device *hdev,
+ 	acpi_handle handle, int port1)
  {
- 	struct usb_device *udev;
--	struct device *parent;
- 	acpi_handle *parent_handle;
-+	int port_num;
+diff --git a/drivers/usb/host/xhci-hub.c b/drivers/usb/host/xhci-hub.c
+index 2c55fcf..b990541 100644
+--- a/drivers/usb/host/xhci-hub.c
++++ b/drivers/usb/host/xhci-hub.c
+@@ -728,6 +728,12 @@ int xhci_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
  
--	if (!is_usb_device(dev))
--		return -ENODEV;
--
--	udev = to_usb_device(dev);
--	parent = dev->parent;
--	parent_handle = DEVICE_ACPI_HANDLE(parent);
--
--	if (!parent_handle)
--		return -ENODEV;
--
--	*handle = acpi_get_child(parent_handle, udev->portnum);
--
--	if (!*handle)
-+	/*
-+	 * In the ACPI DSDT table, only usb root hub and usb ports are
-+	 * acpi device nodes. The hierarchy like following.
-+	 * Device (EHC1)
-+	 *	Device (HUBN)
-+	 *		Device (PR01)
-+	 *			Device (PR11)
-+	 *			Device (PR12)
-+	 *			Device (PR13)
-+	 *			...
-+	 * So all binding process is divided into two parts. binding
-+	 * root hub and usb ports.
-+	 */
-+	if (is_usb_device(dev)) {
-+		udev = to_usb_device(dev);
-+		if (udev->parent)
-+			return -ENODEV;
-+		/* root hub's parent is the usb hcd. */
-+		parent_handle = DEVICE_ACPI_HANDLE(dev->parent);
-+		*handle = acpi_get_child(parent_handle, udev->portnum);
-+		if (!*handle)
-+			return -ENODEV;
-+		return 0;
-+	} else if (is_usb_port(dev)) {
-+		sscanf(dev_name(dev), "port%d", &port_num);
-+		/* Get the struct usb_device point of port's hub */
-+		udev = to_usb_device(dev->parent->parent);
+ 			temp = xhci_readl(xhci, port_array[wIndex]);
+ 			xhci_dbg(xhci, "set port power, actual port %d status  = 0x%x\n", wIndex, temp);
 +
-+		/*
-+		 * The root hub ports' parent is the root hub. The non-root-hub
-+		 * ports' parent is the parent hub port which the hub is
-+		 * connected to.
-+		 */
-+		if (!udev->parent) {
-+			*handle = acpi_get_child(DEVICE_ACPI_HANDLE(&udev->dev),
-+				port_num);
-+			if (!*handle)
-+				return -ENODEV;
-+		} else {
-+			parent_handle =
-+				usb_get_hub_port_acpi_handle(udev->parent,
-+				udev->portnum);
-+			if (!parent_handle)
-+				return -ENODEV;
++			temp = usb_acpi_power_manageable(hcd->self.root_hub,
++					wIndex);
++			if (temp)
++				usb_acpi_set_power_state(hcd->self.root_hub,
++						wIndex, true);
+ 			break;
+ 		case USB_PORT_FEAT_RESET:
+ 			temp = (temp | PORT_RESET);
+@@ -830,6 +836,12 @@ int xhci_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue,
+ 		case USB_PORT_FEAT_POWER:
+ 			xhci_writel(xhci, temp & ~PORT_POWER,
+ 				port_array[wIndex]);
 +
-+			*handle = acpi_get_child(parent_handle,	port_num);
-+			if (!*handle)
-+				return -ENODEV;
-+		}
-+	} else
- 		return -ENODEV;
- 
- 	/*
-@@ -102,7 +139,7 @@ static int usb_acpi_find_device(struct device *dev, acpi_handle *handle)
- 
- static struct acpi_bus_type usb_acpi_bus = {
- 	.bus = &usb_bus_type,
--	.find_bridge = NULL,
-+	.find_bridge = usb_acpi_find_device,
- 	.find_device = usb_acpi_find_device,
- };
- 
-diff --git a/drivers/usb/core/usb.h b/drivers/usb/core/usb.h
-index 67875a8..4aa20f4 100644
---- a/drivers/usb/core/usb.h
-+++ b/drivers/usb/core/usb.h
-@@ -1,5 +1,9 @@
- #include <linux/pm.h>
++			temp = usb_acpi_power_manageable(hcd->self.root_hub,
++					wIndex);
++			if (temp)
++				usb_acpi_set_power_state(hcd->self.root_hub,
++						wIndex, false);
+ 			break;
+ 		default:
+ 			goto error;
+diff --git a/include/linux/usb.h b/include/linux/usb.h
+index 0fc5e03..4de6d7a 100644
+--- a/include/linux/usb.h
++++ b/include/linux/usb.h
+@@ -597,6 +597,16 @@ extern int usb_lock_device_for_reset(struct usb_device *udev,
+ extern int usb_reset_device(struct usb_device *dev);
+ extern void usb_queue_reset_device(struct usb_interface *dev);
  
 +#ifdef CONFIG_ACPI
-+#include <linux/acpi.h>
++extern int usb_acpi_set_power_state(struct usb_device *hdev, int index,
++	bool enable);
++extern bool usb_acpi_power_manageable(struct usb_device *hdev, int index);
++#else
++static inline int usb_acpi_set_power_state(struct usb_device *hdev, int index,
++	bool enable) { return 0; }
++static inline bool usb_acpi_power_manageable(struct usb_device *hdev, int index)
++	{ return true; }
 +#endif
-+
- struct dev_state;
  
- /* Functions local to drivers/usb/core/ */
-@@ -111,6 +115,7 @@ extern struct bus_type usb_bus_type;
- extern struct device_type usb_device_type;
- extern struct device_type usb_if_device_type;
- extern struct device_type usb_ep_device_type;
-+extern struct device_type usb_port_device_type;
- extern struct usb_device_driver usb_generic_driver;
- 
- static inline int is_usb_device(const struct device *dev)
-@@ -128,6 +133,11 @@ static inline int is_usb_endpoint(const struct device *dev)
- 	return dev->type == &usb_ep_device_type;
- }
- 
-+static inline int is_usb_port(const struct device *dev)
-+{
-+	return dev->type == &usb_port_device_type;
-+}
-+
- /* Do the same for device drivers and interface drivers. */
- 
- static inline int is_usb_device_driver(struct device_driver *drv)
-@@ -162,6 +172,8 @@ extern void usb_notify_remove_bus(struct usb_bus *ubus);
- #ifdef CONFIG_ACPI
- extern int usb_acpi_register(void);
- extern void usb_acpi_unregister(void);
-+extern acpi_handle usb_get_hub_port_acpi_handle(struct usb_device *hdev,
-+	int port1);
- #else
- static inline int usb_acpi_register(void) { return 0; };
- static inline void usb_acpi_unregister(void) { };
+ /* USB autosuspend and autoresume */
+ #ifdef CONFIG_USB_SUSPEND
 -- 
 1.7.6.rc2.8.g28eb
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
