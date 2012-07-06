@@ -1,100 +1,39 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [PATCH] ACPI: Add ACPI CPU hot-remove support
-Date: Fri, 6 Jul 2012 12:02:13 +0900
-Message-ID: <4FF65535.4060802@jp.fujitsu.com>
-References: <1340981479-6521-1-git-send-email-toshi.kani@hp.com>
+From: Dave Hansen <dave@linux.vnet.ibm.com>
+Subject: Re: [PATCH V2] Suspend,cpuidle:resume_hang fix with cpuidle
+Date: Thu, 05 Jul 2012 20:07:23 -0700
+Message-ID: <4FF6566B.8020409@linux.vnet.ibm.com>
+References: <4FEC20D2.2070501@linux.vnet.ibm.com> <4FF1336D.10808@linux.vnet.ibm.com> <4FF1329A.7000502@linux.vnet.ibm.com> <201207022143.51489.rjw@sisk.pl> <4FF65760.9050002@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:55075 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932465Ab2GFDC0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Jul 2012 23:02:26 -0400
-In-Reply-To: <1340981479-6521-1-git-send-email-toshi.kani@hp.com>
+Received: from e39.co.us.ibm.com ([32.97.110.160]:57330 "EHLO
+	e39.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933408Ab2GFDH7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Jul 2012 23:07:59 -0400
+Received: from /spool/local
+	by e39.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <linux-acpi@vger.kernel.org> from <dave@linux.vnet.ibm.com>;
+	Thu, 5 Jul 2012 21:07:59 -0600
+In-Reply-To: <4FF65760.9050002@linux.vnet.ibm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: preeti <preeti@linux.vnet.ibm.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, Linux PM mailing list <linux-pm@vger.kernel.org>, linux-acpi@vger.kernel.org, Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
 
-Hi Toshi,
-
-2012/06/29 23:51, Toshi Kani wrote:
-> Added CPU hot-remove support through an ACPI eject notification.
-> It calls acpi_bus_hot_remove_device(), which shares the same code
-> path with the sysfs eject operation.  acpi_os_hotplug_execute()
-> serializes hot-remove operations between ACPI hot-remove and sysfs
-> eject requests.
+On 07/05/2012 08:11 PM, preeti wrote:
+> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+> index 6d9ec3e..b894627 100644
+> --- a/drivers/acpi/processor_idle.c
+> +++ b/drivers/acpi/processor_idle.c
+> @@ -221,10 +221,6 @@ static void lapic_timer_state_broadcast(struct
+> acpi_processor *pr,
 > 
-> Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-
-Looks good to me.
-
-Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-
+>  #endif
 > 
-> ---
-> This patch applies on top of the patchset below.
-> 
-> [PATCH v6 0/6] ACPI: Add _OST support for ACPI hotplug
-> http://marc.info/?l=linux-acpi&m=134074381322973&w=2
-> 
-> ---
->   drivers/acpi/processor_driver.c |   27 +++++++++++++++++----------
->   1 files changed, 17 insertions(+), 10 deletions(-)
-> 
-> diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-> index f9fa1b2..a6f6bde 100644
-> --- a/drivers/acpi/processor_driver.c
-> +++ b/drivers/acpi/processor_driver.c
-> @@ -699,8 +699,8 @@ int acpi_processor_device_add(acpi_handle handle, struct acpi_device **device)
->   static void acpi_processor_hotplug_notify(acpi_handle handle,
->   					  u32 event, void *data)
->   {
-> -	struct acpi_processor *pr;
->   	struct acpi_device *device = NULL;
-> +	struct acpi_eject_event *ej_event = NULL;
->   	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE; /* default */
->   	int result;
->   
-> @@ -732,20 +732,27 @@ static void acpi_processor_hotplug_notify(acpi_handle handle,
->   				  "received ACPI_NOTIFY_EJECT_REQUEST\n"));
->   
->   		if (acpi_bus_get_device(handle, &device)) {
-> -			printk(KERN_ERR PREFIX
-> -				    "Device don't exist, dropping EJECT\n");
-> +			pr_err(PREFIX "Device don't exist, dropping EJECT\n");
->   			break;
->   		}
-> -		pr = acpi_driver_data(device);
-> -		if (!pr) {
-> -			printk(KERN_ERR PREFIX
-> -				    "Driver data is NULL, dropping EJECT\n");
-> +		if (!acpi_driver_data(device)) {
-> +			pr_err(PREFIX "Driver data is NULL, dropping EJECT\n");
->   			break;
->   		}
->   
-> -		/* REVISIT: update when eject is supported */
-> -		ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
-> -		break;
-> +		ej_event = kmalloc(sizeof(*ej_event), GFP_KERNEL);
-> +		if (!ej_event) {
-> +			pr_err(PREFIX "No memory, dropping EJECT\n");
-> +			break;
-> +		}
-> +
-> +		ej_event->handle = handle;
-> +		ej_event->event = ACPI_NOTIFY_EJECT_REQUEST;
-> +		acpi_os_hotplug_execute(acpi_bus_hot_remove_device,
-> +					(void *)ej_event);
-> +
-> +		/* eject is performed asynchronously */
-> +		return;
->   
->   	default:
->   		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-> 
+> -/*
+> - * Suspend / resume control
+> - */
 
-
+This looks line-wrapped to me.
 
