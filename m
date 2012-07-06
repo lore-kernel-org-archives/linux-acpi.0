@@ -1,20 +1,27 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
 Subject: Re: [PATCH V2] Suspend,cpuidle:resume_hang fix with cpuidle
-Date: Fri, 6 Jul 2012 19:23:29 +0200
-Message-ID: <201207061923.29748.rjw@sisk.pl>
-References: <4FEC20D2.2070501@linux.vnet.ibm.com> <4FF6566B.8020409@linux.vnet.ibm.com> <4FF696D4.4040905@linux.vnet.ibm.com>
+Date: Fri, 06 Jul 2012 22:50:00 +0530
+Message-ID: <4FF71E40.9010304@linux.vnet.ibm.com>
+References: <4FEC20D2.2070501@linux.vnet.ibm.com> <4FF1336D.10808@linux.vnet.ibm.com> <4FF1329A.7000502@linux.vnet.ibm.com> <201207022143.51489.rjw@sisk.pl> <4FF65760.9050002@linux.vnet.ibm.com> <4FF6566B.8020409@linux.vnet.ibm.com> <4FF696D4.4040905@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from e23smtp07.au.ibm.com ([202.81.31.140]:50538 "EHLO
+	e23smtp07.au.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757669Ab2GFRVb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Jul 2012 13:21:31 -0400
+Received: from /spool/local
+	by e23smtp07.au.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <linux-acpi@vger.kernel.org> from <srivatsa.bhat@linux.vnet.ibm.com>;
+	Fri, 6 Jul 2012 17:11:58 +1000
 In-Reply-To: <4FF696D4.4040905@linux.vnet.ibm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: preeti <preeti@linux.vnet.ibm.com>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>, "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, Linux PM mailing list <linux-pm@vger.kernel.org>, linux-acpi@vger.kernel.org, Deepthi Dharwar <deepthi@linux.vnet.ibm.com>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: preeti <preeti@linux.vnet.ibm.com>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux PM mailing list <linux-pm@vger.kernel.org>, linux-acpi@vger.kernel.org, Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
 
-On Friday, July 06, 2012, preeti wrote:
+On 07/06/2012 01:12 PM, preeti wrote:
 > 
 > From: Preeti U Murthy <preeti@linux.vnet.ibm.com>
 > 
@@ -65,13 +72,12 @@ On Friday, July 06, 2012, preeti wrote:
 > Reported-by: Dave Hansen <dave@linux.vnet.ibm.com>
 > Signed-off-by: Preeti U Murthy <preeti@linux.vnet.ibm.com>
 
-OK, this looks good to me.  Queuing up in the linux-next branch of the
-linux-pm.git tree.  If no problems with it are reported, I'll move it to the
-pm-cpuidle branch in a couple of days.
+Much better design. Good to avoid all those ugly flags and checks :-)
 
-Thanks,
-Rafael
+Reviewed-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
 
+Regards,
+Srivatsa S. Bhat
 
 > ---
 > 
@@ -86,18 +92,18 @@ Rafael
 > --- a/drivers/acpi/processor_idle.c
 > +++ b/drivers/acpi/processor_idle.c
 > @@ -221,10 +221,6 @@ static void lapic_timer_state_broadcast(struct acpi_processor *pr,
->  
+> 
 >  #endif
->  
+> 
 > -/*
 > - * Suspend / resume control
 > - */
 > -static int acpi_idle_suspend;
 >  static u32 saved_bm_rld;
->  
+> 
 >  static void acpi_idle_bm_rld_save(void)
 > @@ -243,21 +239,13 @@ static void acpi_idle_bm_rld_restore(void)
->  
+> 
 >  int acpi_processor_suspend(struct device *dev)
 >  {
 > -	if (acpi_idle_suspend == 1)
@@ -107,7 +113,7 @@ Rafael
 > -	acpi_idle_suspend = 1;
 >  	return 0;
 >  }
->  
+> 
 >  int acpi_processor_resume(struct device *dev)
 >  {
 > -	if (acpi_idle_suspend == 0)
@@ -117,29 +123,29 @@ Rafael
 > -	acpi_idle_suspend = 0;
 >  	return 0;
 >  }
->  
+> 
 > @@ -763,11 +751,6 @@ static int acpi_idle_enter_c1(struct cpuidle_device *dev,
->  
+> 
 >  	local_irq_disable();
->  
+> 
 > -	if (acpi_idle_suspend) {
 > -		local_irq_enable();
 > -		cpu_relax();
 > -		return -EBUSY;
 > -	}
->  
+> 
 >  	lapic_timer_state_broadcast(pr, cx, 1);
 >  	kt1 = ktime_get_real();
 > @@ -838,11 +821,6 @@ static int acpi_idle_enter_simple(struct cpuidle_device *dev,
->  
+> 
 >  	local_irq_disable();
->  
+> 
 > -	if (acpi_idle_suspend) {
 > -		local_irq_enable();
 > -		cpu_relax();
 > -		return -EBUSY;
 > -	}
->  
+> 
 >  	if (cx->entry_method != ACPI_CSTATE_FFH) {
 >  		current_thread_info()->status &= ~TS_POLLING;
 > @@ -928,8 +906,7 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
@@ -153,15 +159,15 @@ Rafael
 >  			return -EBUSY;
 >  		}
 > @@ -937,11 +914,6 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
->  
+> 
 >  	local_irq_disable();
->  
+> 
 > -	if (acpi_idle_suspend) {
 > -		local_irq_enable();
 > -		cpu_relax();
 > -		return -EBUSY;
 > -	}
->  
+> 
 >  	if (cx->entry_method != ACPI_CSTATE_FFH) {
 >  		current_thread_info()->status &= ~TS_POLLING;
 > diff --git a/drivers/base/power/main.c b/drivers/base/power/main.c
@@ -176,19 +182,19 @@ Rafael
 > +#include <linux/cpuidle.h>
 >  #include "../base.h"
 >  #include "power.h"
->  
+> 
 > @@ -467,6 +467,7 @@ static void dpm_resume_noirq(pm_message_t state)
 >  	mutex_unlock(&dpm_list_mtx);
 >  	dpm_show_time(starttime, state, "noirq");
 >  	resume_device_irqs();
 > +	cpuidle_resume();
 >  }
->  
+> 
 >  /**
 > @@ -867,6 +868,7 @@ static int dpm_suspend_noirq(pm_message_t state)
 >  	ktime_t starttime = ktime_get();
 >  	int error = 0;
->  
+> 
 > +	cpuidle_pause();
 >  	suspend_device_irqs();
 >  	mutex_lock(&dpm_list_mtx);
@@ -198,9 +204,9 @@ Rafael
 > --- a/drivers/cpuidle/cpuidle.c
 > +++ b/drivers/cpuidle/cpuidle.c
 > @@ -201,6 +201,22 @@ void cpuidle_resume_and_unlock(void)
->  
+> 
 >  EXPORT_SYMBOL_GPL(cpuidle_resume_and_unlock);
->  
+> 
 > +/* Currently used in suspend/resume path to suspend cpuidle */
 > +void cpuidle_pause(void)
 > +{
@@ -225,7 +231,7 @@ Rafael
 > --- a/include/linux/cpuidle.h
 > +++ b/include/linux/cpuidle.h
 > @@ -146,6 +146,8 @@ extern void cpuidle_unregister_device(struct cpuidle_device *dev);
->  
+> 
 >  extern void cpuidle_pause_and_lock(void);
 >  extern void cpuidle_resume_and_unlock(void);
 > +extern void cpuidle_pause(void);
@@ -235,5 +241,4 @@ Rafael
 >  extern int cpuidle_wrap_enter(struct cpuidle_device *dev,
 > 
 > 
-> 
-> 
+
