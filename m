@@ -1,71 +1,92 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH] ACPI: Add ACPI CPU hot-remove support
-Date: Fri, 06 Jul 2012 15:00:02 -0600
-Message-ID: <1341608402.16730.730.camel@misato.fc.hp.com>
-References: <1340981479-6521-1-git-send-email-toshi.kani@hp.com>
-	  <4FF711DE.1030108@gmail.com> <1341602020.16730.695.camel@misato.fc.hp.com>
-	 <4FF745F1.9030103@hp.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 2/4] cpuidle: define the enter function in
+	the driver structure
+Date: Fri, 6 Jul 2012 23:23:07 +0200
+Message-ID: <201207062323.07402.rjw@sisk.pl>
+References: <1341494608-16591-1-git-send-email-daniel.lezcano@linaro.org>
+	<201207052238.44330.rjw@sisk.pl> <4FF6C4C1.7030004@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0016.houston.hp.com ([15.201.24.19]:37811 "EHLO
-	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753561Ab2GFVDe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Jul 2012 17:03:34 -0400
-In-Reply-To: <4FF745F1.9030103@hp.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <4FF6C4C1.7030004@linaro.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: Kevin Hilman <khilman@ti.com>, linaro-dev@lists.linaro.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, Arjan van de Ven <arjan@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Khalid Aziz <khalid.aziz@hp.com>
-Cc: Jiang Liu <liuj97@gmail.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, 2012-07-06 at 14:09 -0600, Khalid Aziz wrote:
-> On 07/06/2012 01:13 PM, Toshi Kani wrote:
+On Friday, July 06, 2012, Daniel Lezcano wrote:
+> On 07/05/2012 10:38 PM, Rafael J. Wysocki wrote:
+> > On Thursday, July 05, 2012, Daniel Lezcano wrote:
+> >> We have the state index passed as parameter to the 'enter' function.
+> >> Most of the drivers assign their 'enter' functions several times in
+> >> the cpuidle_state structure, as we have the index, we can delegate
+> >> to the driver to handle their own callback array.
+> >>
+> >> That will have the benefit of removing multiple lines of code in the
+> >> different drivers.
+> > 
+> > Hmm. I suppose the cpuidle subsystem was designed the way it was for a reason.
+> > Among other things, this was to avoid recurrence in callbacks - please see
+> > acpi_idle_enter_bm() for example.
+> > 
+> > Now, if .enter() is moved to the driver structure, it will have to be an
+> > all-purpose complicated routine calling itself recursively at least in
+> > some cases.  I'm not quite convinced that would be an improvement.
+> > 
+> > On the other hand, I don't see anything wrong with setting several callback
+> > pointers to the same routine.
 > 
-> >
-> > For step 2) and 4), I am wondering if they are relevant to CPU hotplug
-> > these days.  In ACPI namespace, a processor object represents a logical
-> > processor (or a core when hyper-threading is disabled).  A physical
-> > processor (i.e. a socket) usually has multiple cores, and memory
-> > controller and bus interface are part of the socket functionality.
-> > Hence, I think step 2) and 4) belong to socket-level hot-removal
-> > operation, which can be implemented as container hot-remove when a
-> > socket is represented with a container object.
+> Deepthi sent a few months ago a patch moving the per-cpu cpuidle_state
+> to a single structure stored in the driver. The drivers were modified
+> and cleanup to take into account this modification.
 > 
-> What does it mean to eject just a core in that case? If there are seven
-> other cores in the physical processor and you get a request to eject
-> one core, what would you expect kernel to do - simply move all processes
-> and interrupts off of that core, take it out of scheduling consideration
-> and simply idle the core? If yes, how is that any different from simply
-> offlining a core? 
+> We saw some regressions like for example the 'disable' which were not
+> per cpu and has been moved to the cpuidle_state_usage (and IMHO it is a
+> workaround more than a real fix). And now we have new architectures
+> (tegra3, big.LITTLE) with different latencies per cpu. Logically we
+> should revert Deepthi's patches but from my POV, going back and forth is
+> not a good solution (also we have to undo all modifications done in the
+> different drivers).
+> 
+> The main purpose of all these cleanup patches are to move out all
+> non-data information from the cpuidle_state structure in order to add a
+> new api which could be 'cpuidle_register_cpu_latency(int cpu, struct
+> cpuidle_latencies latencies)'.
 
-Yes, offlining and eject are similar operations to a core as it alone
-cannot be removed physically.  Ejecting a core is a logical eject
-operation, which updates the status (_STA) of the object in ACPI after
-offlining.  The difference from the offlining is that the ejected core
-is no longer assigned to the partition.  Here is one example.  Say, a
-core is assigned to a guest partition as a dedicated resource (ex. 100%
-of its CPU time is bound to the partition).  Offlining this core saves
-the power-consumption, but this core is still bound to the partition.
-Ejecting the core removes it from the partition (logically), and allows
-it to be assigned to other partition as a dedicated resource with
-hot-add.
+Well, my question is: what specifically is wrong with having callback
+pointers in struct cpuidle_state in case when that structure is known
+to be common for all the CPUs in the system?
 
+Sure, there are systems in which that is not the case, but then why
+should we complicate the simplest case in order to address them?
 
-> If you are ejecting individual cores at a time, do you
-> keep track of how many you have ejected and then eject the entire physical
-> CPU along with memory and IOH associated with the socket when the last
-> core is ejected?
+> For this specific patch, the 'enter' function for all the drivers is not
+> used [1] and one of the driver is about to use a single function [2]. So
+> we have only one driver is a couple of functions for this which can be
+> replaced by an array of callbacks in the driver itself as we have the index.
+> 
+> [1] http://lists.linaro.org/pipermail/linaro-dev/2012-June/012355.html
 
-It depends on the firmware implementation, but typically the answer is
-no.  _EJ0 of a core object only removes the associated core object.  It
-will require a separate socket hot-remove request to eject the
-socket-level resources.  That is, the OS may not call _EJ0 of a socket
-object from the core hot-remove operation just because all children
-cores are removed. 
+I agree with Deepthi.
+
+> [2] http://lists.linaro.org/pipermail/linaro-dev/2012-June/012399.html
+
+And that is fine and dandy as long as the OMAP people want that.  Evidently,
+that is not wanted by everybody and if it had been, the cpuidle subsystem
+would have been designed differently.
+
+I really would like that thing to be reconsidered before we proceed with
+these changes.
 
 Thanks,
--Toshi
-
-
-
+Rafael
