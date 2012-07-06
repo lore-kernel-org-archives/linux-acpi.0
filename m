@@ -1,233 +1,241 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [PATCH v6 2/6] ACPI: Add _OST support for sysfs eject
-Date: Fri, 6 Jul 2012 08:37:48 +0900
-Message-ID: <4FF6254C.1000607@jp.fujitsu.com>
-References: <1340743374-18535-1-git-send-email-toshi.kani@hp.com>  <1340743374-18535-3-git-send-email-toshi.kani@hp.com>  <4FF57787.1010308@jp.fujitsu.com> <1341499417.16730.595.camel@misato.fc.hp.com>
+From: preeti <preeti@linux.vnet.ibm.com>
+Subject: [PATCH V2] Suspend,cpuidle:resume_hang fix with cpuidle
+Date: Fri, 06 Jul 2012 08:41:28 +0530
+Message-ID: <4FF65760.9050002@linux.vnet.ibm.com>
+References: <4FEC20D2.2070501@linux.vnet.ibm.com> <4FF1336D.10808@linux.vnet.ibm.com> <4FF1329A.7000502@linux.vnet.ibm.com> <201207022143.51489.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:36149 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751285Ab2GEXiN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Jul 2012 19:38:13 -0400
-In-Reply-To: <1341499417.16730.595.camel@misato.fc.hp.com>
+Received: from e28smtp08.in.ibm.com ([122.248.162.8]:37005 "EHLO
+	e28smtp08.in.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932454Ab2GFDAY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Jul 2012 23:00:24 -0400
+Received: from /spool/local
+	by e28smtp08.in.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <linux-acpi@vger.kernel.org> from <preeti@linux.vnet.ibm.com>;
+	Fri, 6 Jul 2012 08:30:21 +0530
+In-Reply-To: <201207022143.51489.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, bhelgaas@google.com, shuahkhan@gmail.com, liuj97@gmail.com, andi@firstfloor.org, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, Dave Hansen <dave@linux.vnet.ibm.com>, Linux PM mailing list <linux-pm@vger.kernel.org>, linux-acpi@vger.kernel.org, Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
 
-Hi Toshi,
 
-2012/07/05 23:43, Toshi Kani wrote:
-> On Thu, 2012-07-05 at 20:16 +0900, Yasuaki Ishimatsu wrote:
->> Hi Toshi,
->>
->> 2012/06/27 5:42, Toshi Kani wrote:
->>> Changed acpi_bus_hot_remove_device() to support _OST. This function is
->>> also changed to global so that it can be called from hotplug notify
->>> handlers to perform hot-remove operation.
->>>
->>> Changed acpi_eject_store(), which is the sysfs eject handler. It checks
->>> eject_pending to see if the request was originated from ACPI eject
->>> notification. If not, it calls _OST(0x103,84,) per Figure 6-37 in ACPI
->>> 5.0 spec.
->>>
->>> Added eject_pending bit to acpi_device_flags. This bit is set when the
->>> kernel has received an ACPI eject notification, but does not initiate
->>> its hot-remove operation by itself.
->>>
->>> Added struct acpi_eject_event. This structure is used to pass extended
->>> information to acpi_bus_hot_remove_device(), which has a single argument
->>> to support asynchronous call
->>>
->>> Signed-off-by: Toshi Kani <toshi.kani@hp.com>
->>> ---
->>>    drivers/acpi/scan.c     |   57 +++++++++++++++++++++++++++++++++++++++-------
->>>    include/acpi/acpi_bus.h |    9 ++++++-
->>>    2 files changed, 56 insertions(+), 10 deletions(-)
->>>
->>> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
->>> index c8a1f3b..dbdb9fc 100644
->>> --- a/drivers/acpi/scan.c
->>> +++ b/drivers/acpi/scan.c
->>> @@ -83,19 +83,29 @@ acpi_device_modalias_show(struct device *dev, struct device_attribute *attr, cha
->>>    }
->>>    static DEVICE_ATTR(modalias, 0444, acpi_device_modalias_show, NULL);
->>>
->>> -static void acpi_bus_hot_remove_device(void *context)
->>> +/**
->>> + * acpi_bus_hot_remove_device: hot-remove a device and its children
->>> + * @context: struct acpi_eject_event pointer (freed in this func)
->>> + *
->>> + * Hot-remove a device and its children. This function frees up the
->>> + * memory space passed by arg context, so that the caller may call
->>> + * this function asynchronously through acpi_os_hotplug_execute().
->>> + */
->>> +void acpi_bus_hot_remove_device(void *context)
->>>    {
->>> +	struct acpi_eject_event *ej_event = (struct acpi_eject_event *) context;
->>>    	struct acpi_device *device;
->>> -	acpi_handle handle = context;
->>> +	acpi_handle handle = ej_event->handle;
->>>    	struct acpi_object_list arg_list;
->>>    	union acpi_object arg;
->>>    	acpi_status status = AE_OK;
->>> +	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE; /* default */
->>>
->>>    	if (acpi_bus_get_device(handle, &device))
->>> -		return;
->>> +		goto err_out;
->>>
->>>    	if (!device)
->>> -		return;
->>> +		goto err_out;
->>>
->>>    	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
->>>    		"Hot-removing device %s...\n", dev_name(&device->dev)));
->>> @@ -103,7 +113,7 @@ static void acpi_bus_hot_remove_device(void *context)
->>>    	if (acpi_bus_trim(device, 1)) {
->>>    		printk(KERN_ERR PREFIX
->>>    				"Removing device failed\n");
->>> -		return;
->>> +		goto err_out;
->>>    	}
->>>
->>>    	/* power off device */
->>> @@ -129,10 +139,20 @@ static void acpi_bus_hot_remove_device(void *context)
->>>    	 * TBD: _EJD support.
->>>    	 */
->>>    	status = acpi_evaluate_object(handle, "_EJ0", &arg_list, NULL);
->>> -	if (ACPI_FAILURE(status))
->>> -		printk(KERN_WARNING PREFIX
->>> -				"Eject device failed\n");
->>> +	if (ACPI_FAILURE(status)) {
->>> +		if (status != AE_NOT_FOUND)
->>> +			pr_warn(PREFIX "Eject device failed\n");
->>> +		goto err_out;
->>> +	}
->>> +
->>> +	kfree(context);
->>> +	return;
->>>
->>> +err_out:
->>> +	/* Inform firmware the hot-remove operation has completed w/ error */
->>> +	(void) acpi_evaluate_hotplug_ost(handle,
->>> +				ej_event->event, ost_code, NULL);
->>> +	kfree(context);
->>>    	return;
->>>    }
->>
->> When I read your patch named [PATCH] ACPI: Add ACPI CPU hot-remove support,
->> a question about this patch appeared.
->>
->> The question is :
->> Why does not acpi_bus_hot_remove_device() inform firmware of
->> ACPI_OST_SC_SUCCESS, when it succeeded? Are thre any reasons?
->>
->> If you have already discussed my question, please let me know the log.
->
-> Hi Yasuaki,
->
-> Please refer Figure 2, page 14, of the following document.  _EJ0
-> substitutes _OST as it indicates to the firmware that the OS was
-> successful in offlining.
->
->    DIG64 Hot-Plug & Partitioning Flow (HPPF) Specification R1.0
->    http://www.dig64.org/home/DIG64_HPPF_R1_0.pdf
->
-> Figure 6-37 of ACPI 5.0 spec also has a similar example flow.
+From: Preeti U Murthy <preeti@linux.vnet.ibm.com>
 
-My question was solved by the document.
+On certain bios,resume hangs if cpus are allowed to enter idle states
+during suspend[1]
 
-Thanks,
-Yasuaki Ishimatsu
+This was fixed in apci idle driver[2].But intel_idle driver does not
+have this fix.Thus instead of replicating the fix in both the idle
+drivers,or in more platform specific idle drivers if needed,the
+more general cpuidle infrastructure could handle this.
 
->
-> Thanks,
-> -Toshi
->
->
->> Thanks,
->> Yasuaki Ishimatsu
->>
->>
->>>
->>> @@ -144,6 +164,7 @@ acpi_eject_store(struct device *d, struct device_attribute *attr,
->>>    	acpi_status status;
->>>    	acpi_object_type type = 0;
->>>    	struct acpi_device *acpi_device = to_acpi_device(d);
->>> +	struct acpi_eject_event *ej_event;
->>>
->>>    	if ((!count) || (buf[0] != '1')) {
->>>    		return -EINVAL;
->>> @@ -160,7 +181,25 @@ acpi_eject_store(struct device *d, struct device_attribute *attr,
->>>    		goto err;
->>>    	}
->>>
->>> -	acpi_os_hotplug_execute(acpi_bus_hot_remove_device, acpi_device->handle);
->>> +	ej_event = kmalloc(sizeof(*ej_event), GFP_KERNEL);
->>> +	if (!ej_event) {
->>> +		ret = -ENOMEM;
->>> +		goto err;
->>> +	}
->>> +
->>> +	ej_event->handle = acpi_device->handle;
->>> +	if (acpi_device->flags.eject_pending) {
->>> +		/* event originated from ACPI eject notification */
->>> +		ej_event->event = ACPI_NOTIFY_EJECT_REQUEST;
->>> +		acpi_device->flags.eject_pending = 0;
->>> +	} else {
->>> +		/* event originated from user */
->>> +		ej_event->event = ACPI_OST_EC_OSPM_EJECT;
->>> +		(void) acpi_evaluate_hotplug_ost(ej_event->handle,
->>> +			ej_event->event, ACPI_OST_SC_EJECT_IN_PROGRESS, NULL);
->>> +	}
->>> +
->>> +	acpi_os_hotplug_execute(acpi_bus_hot_remove_device, (void *)ej_event);
->>>    err:
->>>    	return ret;
->>>    }
->>> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
->>> index 1d9e432..b22b774 100644
->>> --- a/include/acpi/acpi_bus.h
->>> +++ b/include/acpi/acpi_bus.h
->>> @@ -182,7 +182,8 @@ struct acpi_device_flags {
->>>    	u32 suprise_removal_ok:1;
->>>    	u32 power_manageable:1;
->>>    	u32 performance_manageable:1;
->>> -	u32 reserved:24;
->>> +	u32 eject_pending:1;
->>> +	u32 reserved:23;
->>>    };
->>>
->>>    /* File System */
->>> @@ -334,6 +335,11 @@ struct acpi_bus_event {
->>>    	u32 data;
->>>    };
->>>
->>> +struct acpi_eject_event {
->>> +	acpi_handle	handle;
->>> +	u32		event;
->>> +};
->>> +
->>>    extern struct kobject *acpi_kobj;
->>>    extern int acpi_bus_generate_netlink_event(const char*, const char*, u8, int);
->>>    void acpi_bus_private_data_handler(acpi_handle, void *);
->>> @@ -371,6 +377,7 @@ int acpi_bus_register_driver(struct acpi_driver *driver);
->>>    void acpi_bus_unregister_driver(struct acpi_driver *driver);
->>>    int acpi_bus_add(struct acpi_device **child, struct acpi_device *parent,
->>>    		 acpi_handle handle, int type);
->>> +void acpi_bus_hot_remove_device(void *context);
->>>    int acpi_bus_trim(struct acpi_device *start, int rmdevice);
->>>    int acpi_bus_start(struct acpi_device *device);
->>>    acpi_status acpi_bus_get_ejd(acpi_handle handle, acpi_handle * ejd);
->>>
->>
->>
->>
->
->
+A suspend callback in cpuidle_driver could handle this fix.But
+a cpuidle_driver provides only basic functionalities like platform idle
+state detection capability and mechanisms to support entry and exit
+into CPU idle states.All other cpuidle functions are found in the
+cpuidle generic infrastructure for good reason that all cpuidle
+drivers,irrespective of their platforms will support these functions.
 
+One option therefore would be to register a suspend callback in cpuidle
+which handles this fix.This could be called through a PM_SUSPEND_PREPARE
+notifier.But this is too generic a notfier for a driver to handle.
+
+Also,ideally the job of cpuidle is not to handle side effects of suspend.
+It should expose the interfaces which "handle cpuidle 'during' suspend"
+or any other operation,which the subsystems call during that respective
+operation.
+
+The fix demands that during suspend,no cpus should be allowed to enter
+deep C-states.The interface cpuidle_uninstall_idle_handler() in cpuidle
+ensures that.Not just that it also kicks all the cpus which are already
+in idle out of their idle states which was being done during cpu hotplug
+through a CPU_DYING_FROZEN callbacks.
+
+Now the question arises about when during suspend should
+cpuidle_uninstall_idle_handler() be called.Since we are dealing with
+drivers it seems best to call this function during dpm_suspend().
+Delaying the call till dpm_suspend_noirq() does no harm,as long as it is
+before cpu_hotplug_begin() to avoid race conditions with cpu hotpulg
+operations.In dpm_suspend_noirq(),it would be wise to place this call
+before suspend_device_irqs() to avoid ugly interactions with the same.
+
+Analogously,during resume.
+
+References:
+1.https://bugs.launchpad.net/ubuntu/+source/linux/+bug/674075.
+2.http://marc.info/?l=linux-pm&m=133958534231884&w=2
+
+Reported-by: Dave Hansen <dave@linux.vnet.ibm.com>
+Signed-off-by: Preeti U Murthy <preeti@linux.vnet.ibm.com>
+---
+
+ drivers/acpi/processor_idle.c |   30 +-----------------------------
+ drivers/base/power/main.c     |    4 +++-
+ drivers/cpuidle/cpuidle.c     |   16 ++++++++++++++++
+ include/linux/cpuidle.h       |    2 ++
+ 4 files changed, 22 insertions(+), 30 deletions(-)
+
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index 6d9ec3e..b894627 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -221,10 +221,6 @@ static void lapic_timer_state_broadcast(struct
+acpi_processor *pr,
+
+ #endif
+
+-/*
+- * Suspend / resume control
+- */
+-static int acpi_idle_suspend;
+ static u32 saved_bm_rld;
+
+ static void acpi_idle_bm_rld_save(void)
+@@ -243,21 +239,13 @@ static void acpi_idle_bm_rld_restore(void)
+
+ int acpi_processor_suspend(struct device *dev)
+ {
+-	if (acpi_idle_suspend == 1)
+-		return 0;
+-
+ 	acpi_idle_bm_rld_save();
+-	acpi_idle_suspend = 1;
+ 	return 0;
+ }
+
+ int acpi_processor_resume(struct device *dev)
+ {
+-	if (acpi_idle_suspend == 0)
+-		return 0;
+-
+ 	acpi_idle_bm_rld_restore();
+-	acpi_idle_suspend = 0;
+ 	return 0;
+ }
+
+@@ -763,11 +751,6 @@ static int acpi_idle_enter_c1(struct cpuidle_device
+*dev,
+
+ 	local_irq_disable();
+
+-	if (acpi_idle_suspend) {
+-		local_irq_enable();
+-		cpu_relax();
+-		return -EBUSY;
+-	}
+
+ 	lapic_timer_state_broadcast(pr, cx, 1);
+ 	kt1 = ktime_get_real();
+@@ -838,11 +821,6 @@ static int acpi_idle_enter_simple(struct
+cpuidle_device *dev,
+
+ 	local_irq_disable();
+
+-	if (acpi_idle_suspend) {
+-		local_irq_enable();
+-		cpu_relax();
+-		return -EBUSY;
+-	}
+
+ 	if (cx->entry_method != ACPI_CSTATE_FFH) {
+ 		current_thread_info()->status &= ~TS_POLLING;
+@@ -928,8 +906,7 @@ static int acpi_idle_enter_bm(struct cpuidle_device
+*dev,
+ 						drv, drv->safe_state_index);
+ 		} else {
+ 			local_irq_disable();
+-			if (!acpi_idle_suspend)
+-				acpi_safe_halt();
++			acpi_safe_halt();
+ 			local_irq_enable();
+ 			return -EBUSY;
+ 		}
+@@ -937,11 +914,6 @@ static int acpi_idle_enter_bm(struct cpuidle_device
+*dev,
+
+ 	local_irq_disable();
+
+-	if (acpi_idle_suspend) {
+-		local_irq_enable();
+-		cpu_relax();
+-		return -EBUSY;
+-	}
+
+ 	if (cx->entry_method != ACPI_CSTATE_FFH) {
+ 		current_thread_info()->status &= ~TS_POLLING;
+diff --git a/drivers/base/power/main.c b/drivers/base/power/main.c
+index df5f41d..d791950 100644
+--- a/drivers/base/power/main.c
++++ b/drivers/base/power/main.c
+@@ -28,7 +28,7 @@
+ #include <linux/sched.h>
+ #include <linux/async.h>
+ #include <linux/suspend.h>
+-
++#include <linux/cpuidle.h>
+ #include "../base.h"
+ #include "power.h"
+
+@@ -467,6 +467,7 @@ static void dpm_resume_noirq(pm_message_t state)
+ 	mutex_unlock(&dpm_list_mtx);
+ 	dpm_show_time(starttime, state, "noirq");
+ 	resume_device_irqs();
++	cpuidle_resume();
+ }
+
+ /**
+@@ -867,6 +868,7 @@ static int dpm_suspend_noirq(pm_message_t state)
+ 	ktime_t starttime = ktime_get();
+ 	int error = 0;
+
++	cpuidle_pause();
+ 	suspend_device_irqs();
+ 	mutex_lock(&dpm_list_mtx);
+ 	while (!list_empty(&dpm_late_early_list)) {
+diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
+index 0132706..d6a533e 100644
+--- a/drivers/cpuidle/cpuidle.c
++++ b/drivers/cpuidle/cpuidle.c
+@@ -201,6 +201,22 @@ void cpuidle_resume_and_unlock(void)
+
+ EXPORT_SYMBOL_GPL(cpuidle_resume_and_unlock);
+
++/* Currently used in suspend/resume path to suspend cpuidle */
++void cpuidle_pause(void)
++{
++	mutex_lock(&cpuidle_lock);
++	cpuidle_uninstall_idle_handler();
++	mutex_unlock(&cpuidle_lock);
++}
++
++/* Currently used in suspend/resume path to resume cpuidle */
++void cpuidle_resume(void)
++{
++	mutex_lock(&cpuidle_lock);
++	cpuidle_install_idle_handler();
++	mutex_unlock(&cpuidle_lock);
++}
++
+ /**
+  * cpuidle_wrap_enter - performs timekeeping and irqen around enter
+function
+  * @dev: pointer to a valid cpuidle_device object
+diff --git a/include/linux/cpuidle.h b/include/linux/cpuidle.h
+index 8684a0d..d83b27e 100644
+--- a/include/linux/cpuidle.h
++++ b/include/linux/cpuidle.h
+@@ -146,6 +146,8 @@ extern void cpuidle_unregister_device(struct
+cpuidle_device *dev);
+
+ extern void cpuidle_pause_and_lock(void);
+ extern void cpuidle_resume_and_unlock(void);
++extern void cpuidle_pause(void);
++extern void cpuidle_resume(void);
+ extern int cpuidle_enable_device(struct cpuidle_device *dev);
+ extern void cpuidle_disable_device(struct cpuidle_device *dev);
+ extern int cpuidle_wrap_enter(struct cpuidle_device *dev,
 
 
