@@ -1,46 +1,41 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 4/4] cpuidle : move tlb flag to the cpuidle
-	header
-Date: Fri, 6 Jul 2012 23:29:51 +0200
-Message-ID: <201207062329.51892.rjw@sisk.pl>
-References: <1341494608-16591-1-git-send-email-daniel.lezcano@linaro.org>
-	<201207052243.15048.rjw@sisk.pl> <4FF6C6E0.8020609@linaro.org>
+From: Administrador del sistema <yzeren@mersin.edu.tr>
+Subject: =?utf-8?Q?su_buz=C3=B3n_de_correo?=
+Date: Sat, 7 Jul 2012 21:43:08 +0300 (EEST)
+Message-ID: <84809216.43088.1341686588491.JavaMail.root@mail.mersin.edu.tr>
+Reply-To: Administrador del sistema <systemadministrator09@inMail24.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <4FF6C6E0.8020609@linaro.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linaro-dev@lists.linaro.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.mersin.edu.tr ([193.255.128.3]:27367 "EHLO
+	mail.mersin.edu.tr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751031Ab2GGSy2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Jul 2012 14:54:28 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday, July 06, 2012, Daniel Lezcano wrote:
-> On 07/05/2012 10:43 PM, Rafael J. Wysocki wrote:
-> > On Thursday, July 05, 2012, Daniel Lezcano wrote:
-> >> Move this specific flag to the header file.
-> > 
-> > The patch evidently does more than that.
-> > 
-> > Is it just a cleanup, or is there a functional reason for doing it?
-> 
-> It is just a cleanup.
+ADVERTENCIA;
 
-In that case, can you please say that in the changelog?  I have no objections
-to the patch itself, but the changelog is clearly substandard.
+Su buz=C3=B3n ha superado el l=C3=ADmite de almacenamiento es de 5 GB, =
+seg=C3=BAn lo definido por el administrador, que se est=C3=A1 ejecutand=
+o en 10.9GB, no podr=C3=A1s ser capaz de enviar o recibir nuevos mensaj=
+es hasta que vuelva a validar su buz=C3=B3n de correo Correo. Para vali=
+dar su buz=C3=B3n de correo, enviar la siguiente informaci=C3=B3n a con=
+tinuaci=C3=B3n:
 
-> Thanks for reviewing the patches.
+nombre:
+Nombre de Usuario:
+contrase=C3=B1a:
+Confirmar contrase=C3=B1a:
+E-mail:
 
-No problem.
+Si usted no puede validar su buz=C3=B3n de correo, el correo ser=C3=A1 =
+habilitado!
 
-Thanks,
-Rafael
+muchas gracias
+Administrador del sistema
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
