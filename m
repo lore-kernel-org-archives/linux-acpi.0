@@ -1,169 +1,187 @@
-From: "Octavio Alvarez" <alvarezp@alvarezp.com>
-Subject: Re: Bug#680707: [3.4-rc5 -> 3.4-rc6 regression] Asus P5NSLI: lockup
- on resume from suspend
-Date: Sun, 08 Jul 2012 02:46:47 -0700
-Message-ID: <op.wg4f33nl6g6bxc@localhost.localdomain>
-References: <op.wg3en6ij6g6bxc@localhost.localdomain>
- <Pine.LNX.4.44L0.1207072208270.508-100000@netrider.rowland.org>
- <20120708025730.GE2961@burratino> <op.wg30yabp6g6bxc@localhost.localdomain>
- <20120708090432.GF4625@burratino>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
-Content-Transfer-Encoding: 8bit
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: [PATCH V8 3/8] usb/acpi : rebinding usb with acpi since usb port being made a real device
+Date: Sun,  8 Jul 2012 22:23:02 +0800
+Message-ID: <1341757387-3669-3-git-send-email-tianyu.lan@intel.com>
+References: <1341757387-3669-1-git-send-email-tianyu.lan@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from spider.alvarezp.com ([207.210.217.159]:56700 "EHLO
-	spider.alvarezp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751226Ab2GHJra (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 8 Jul 2012 05:47:30 -0400
-In-Reply-To: <20120708090432.GF4625@burratino>
+Received: from mga09.intel.com ([134.134.136.24]:1908 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751908Ab2GHOdI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 8 Jul 2012 10:33:08 -0400
+In-Reply-To: <1341757387-3669-1-git-send-email-tianyu.lan@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jonathan Nieder <jrnieder@gmail.com>, 680707@bugs.debian.org
-Cc: Bob Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org
+To: gregkh@linuxfoundation.org, lenb@kernel.org
+Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, stern@rowland.harvard.edu, sarah.a.sharp@linux.intel.com
 
-On Sun, 08 Jul 2012 02:04:32 -0700, Jonathan Nieder <jrnieder@gmail.com>  
-wrote:
+In the ACPI DSDT table, only usb root hub and usb ports are acpi device nodes.
+Original, binding the usb ports' acpi node with the usb device attached to the
+port. The usb port is made a real device by previous patch. This patch is to
+rebind the port's acpi node with port's struct device.
 
-> So presumably it's the new writes to the ACPI_BITREG_ARB_DISABLE
-> register that cause trouble.  The patch below tests that guess.
+Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+---
+ drivers/usb/core/hub.c      |   18 +++++++++++
+ drivers/usb/core/usb-acpi.c |   67 +++++++++++++++++++++++++++++++++---------
+ drivers/usb/core/usb.h      |   12 ++++++++
+ 3 files changed, 82 insertions(+), 15 deletions(-)
 
-Given the complexity of the ACPI_DEBUG logging (particularly the
-console part), I decided to give your patch a shot directly.
-
-Result: the system no longer locks up. I paste the following info
-so you can make sure I'm working with the correct commit:
-
-[Sun Jul 08 02:41:37 -0700 -- alvarezp@octavio:~/src/linux]
-$ git status
-# Not currently on any branch.
-# Changes not staged for commit:
-#   (use "git add <file>..." to update what will be committed)
-#   (use "git checkout -- <file>..." to discard changes in working  
-directory)
-#
-#	modified:   drivers/acpi/acpica/hwsleep.c
-#
-# Untracked files:
-#   (use "git add <file>..." to include in what will be committed)
-#
-#	arch/x86/tools/relocs
-no changes added to commit (use "git add" and/or "git commit -a")
-
-[Sun Jul 08 02:41:41 -0700 -- alvarezp@octavio:~/src/linux]
-$ git log HEAD^..HEAD
-commit 2feec47d4c5f80b05f1650f5a24865718978eea4
-Author: Bob Moore <robert.moore@intel.com>
-Date:   Tue Feb 14 15:00:53 2012 +0800
-
-     ACPICA: ACPI 5: Support for new FADT SleepStatus, SleepControl  
-registers
-
-     Adds sleep and wake support for systems with these registers.
-     One new file, hwxfsleep.c
-
-     Signed-off-by: Bob Moore <robert.moore@intel.com>
-     Signed-off-by: Len Brown <len.brown@intel.com>
-
-[Sun Jul 08 02:41:49 -0700 -- alvarezp@octavio:~/src/linux]
-$ git diff
-diff --git a/drivers/acpi/acpica/hwsleep.c b/drivers/acpi/acpica/hwsleep.c
-index 59a2a6b..66dd2b8 100644
---- a/drivers/acpi/acpica/hwsleep.c
-+++ b/drivers/acpi/acpica/hwsleep.c
-@@ -241,18 +241,6 @@ acpi_status acpi_hw_legacy_sleep(u8 sleep_state)
-                 return_ACPI_STATUS(status);
-         }
-
--       if (sleep_state != ACPI_STATE_S5) {
--               /*
--                * Disable BM arbitration. This feature is contained  
-within an
--                * optional register (PM2 Control), so ignore a BAD_ADDRESS
--                * exception.
--                */
--               status = acpi_write_bit_register(ACPI_BITREG_ARB_DISABLE,  
-1);
--               if (ACPI_FAILURE(status) && (status != AE_BAD_ADDRESS)) {
--                       return_ACPI_STATUS(status);
--               }
--       }
+diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
+index 99bd143..92be700 100644
+--- a/drivers/usb/core/hub.c
++++ b/drivers/usb/core/hub.c
+@@ -4988,3 +4988,21 @@ struct usb_device *usb_hub_find_child(struct usb_device *hdev,
+ 	return hub->ports[port1 - 1]->child;
+ }
+ EXPORT_SYMBOL_GPL(usb_hub_find_child);
++
++#ifdef CONFIG_ACPI
++/**
++ * usb_get_hub_port_acpi_handle - Get the usb port's acpi handle
++ * @hdev: USB device belonging to the usb hub
++ * @port1: port num of the port
++ *
++ * Return port's acpi handle if successful, NULL if params are
++ * invaild.
++ */
++acpi_handle usb_get_hub_port_acpi_handle(struct usb_device *hdev,
++	int port1)
++{
++	struct usb_hub *hub = hdev_to_hub(hdev);
++
++	return DEVICE_ACPI_HANDLE(&hub->ports[port1 - 1]->dev);
++}
++#endif
+diff --git a/drivers/usb/core/usb-acpi.c b/drivers/usb/core/usb-acpi.c
+index 8947b20..47197bf 100644
+--- a/drivers/usb/core/usb-acpi.c
++++ b/drivers/usb/core/usb-acpi.c
+@@ -70,22 +70,59 @@ static int usb_acpi_check_pld(struct usb_device *udev, acpi_handle handle)
+ static int usb_acpi_find_device(struct device *dev, acpi_handle *handle)
+ {
+ 	struct usb_device *udev;
+-	struct device *parent;
+ 	acpi_handle *parent_handle;
++	int port_num;
+ 
+-	if (!is_usb_device(dev))
+-		return -ENODEV;
 -
-         /*
-          * 1) Disable/Clear all GPEs
-          * 2) Enable all wakeup GPEs
-@@ -498,16 +486,6 @@ acpi_status acpi_hw_legacy_wake(u8 sleep_state)
-                                     [ACPI_EVENT_POWER_BUTTON].
-                                     status_register_id, ACPI_CLEAR_STATUS);
-
--       /*
--        * Enable BM arbitration. This feature is contained within an
--        * optional register (PM2 Control), so ignore a BAD_ADDRESS
--        * exception.
--        */
--       status = acpi_write_bit_register(ACPI_BITREG_ARB_DISABLE, 0);
--       if (ACPI_FAILURE(status) && (status != AE_BAD_ADDRESS)) {
--               return_ACPI_STATUS(status);
--       }
+-	udev = to_usb_device(dev);
+-	parent = dev->parent;
+-	parent_handle = DEVICE_ACPI_HANDLE(parent);
 -
-         acpi_hw_execute_SST(ACPI_SST_WORKING);
-         return_ACPI_STATUS(status);
-  }
-
-
-> Now for a complaint.  This would have been a lot easier if cleanups
-> that do not change behavior were split into separate commits --- one
-> commit per change.  That makes it easy to verify that each patch
-> correctly does what it promises with no unintended side effects.
-
-I have to back you up on this one. This patch could have been 3 easily.
-Git bisect would have done a better job.
-
-The question is: if he had dont it that way, would the kernel have
-compiled in intermediate commits?
-
-> diff --git i/drivers/acpi/acpica/hwsleep.c  
-> w/drivers/acpi/acpica/hwsleep.c
-> index 0ed85cac3231..615996a36bed 100644
-> --- i/drivers/acpi/acpica/hwsleep.c
-> +++ w/drivers/acpi/acpica/hwsleep.c
-> @@ -95,18 +95,6 @@ acpi_status acpi_hw_legacy_sleep(u8 sleep_state, u8  
-> flags)
->  		return_ACPI_STATUS(status);
->  	}
-> -	if (sleep_state != ACPI_STATE_S5) {
-> -		/*
-> -		 * Disable BM arbitration. This feature is contained within an
-> -		 * optional register (PM2 Control), so ignore a BAD_ADDRESS
-> -		 * exception.
-> -		 */
-> -		status = acpi_write_bit_register(ACPI_BITREG_ARB_DISABLE, 1);
-> -		if (ACPI_FAILURE(status) && (status != AE_BAD_ADDRESS)) {
-> -			return_ACPI_STATUS(status);
-> -		}
-> -	}
-> -
->  	/*
->  	 * 1) Disable/Clear all GPEs
->  	 * 2) Enable all wakeup GPEs
-> @@ -364,16 +352,6 @@ acpi_status acpi_hw_legacy_wake(u8 sleep_state, u8  
-> flags)
->  				    [ACPI_EVENT_POWER_BUTTON].
->  				    status_register_id, ACPI_CLEAR_STATUS);
-> -	/*
-> -	 * Enable BM arbitration. This feature is contained within an
-> -	 * optional register (PM2 Control), so ignore a BAD_ADDRESS
-> -	 * exception.
-> -	 */
-> -	status = acpi_write_bit_register(ACPI_BITREG_ARB_DISABLE, 0);
-> -	if (ACPI_FAILURE(status) && (status != AE_BAD_ADDRESS)) {
-> -		return_ACPI_STATUS(status);
-> -	}
-> -
->  	acpi_hw_execute_sleep_method(METHOD_PATHNAME__SST, ACPI_SST_WORKING);
->  	return_ACPI_STATUS(status);
->  }
-
-Thanks for the patch.
-
+-	if (!parent_handle)
+-		return -ENODEV;
+-
+-	*handle = acpi_get_child(parent_handle, udev->portnum);
+-
+-	if (!*handle)
++	/*
++	 * In the ACPI DSDT table, only usb root hub and usb ports are
++	 * acpi device nodes. The hierarchy like following.
++	 * Device (EHC1)
++	 *	Device (HUBN)
++	 *		Device (PR01)
++	 *			Device (PR11)
++	 *			Device (PR12)
++	 *			Device (PR13)
++	 *			...
++	 * So all binding process is divided into two parts. binding
++	 * root hub and usb ports.
++	 */
++	if (is_usb_device(dev)) {
++		udev = to_usb_device(dev);
++		if (udev->parent)
++			return -ENODEV;
++		/* root hub's parent is the usb hcd. */
++		parent_handle = DEVICE_ACPI_HANDLE(dev->parent);
++		*handle = acpi_get_child(parent_handle, udev->portnum);
++		if (!*handle)
++			return -ENODEV;
++		return 0;
++	} else if (is_usb_port(dev)) {
++		sscanf(dev_name(dev), "port%d", &port_num);
++		/* Get the struct usb_device point of port's hub */
++		udev = to_usb_device(dev->parent->parent);
++
++		/*
++		 * The root hub ports' parent is the root hub. The non-root-hub
++		 * ports' parent is the parent hub port which the hub is
++		 * connected to.
++		 */
++		if (!udev->parent) {
++			*handle = acpi_get_child(DEVICE_ACPI_HANDLE(&udev->dev),
++				port_num);
++			if (!*handle)
++				return -ENODEV;
++		} else {
++			parent_handle =
++				usb_get_hub_port_acpi_handle(udev->parent,
++				udev->portnum);
++			if (!parent_handle)
++				return -ENODEV;
++
++			*handle = acpi_get_child(parent_handle,	port_num);
++			if (!*handle)
++				return -ENODEV;
++		}
++	} else
+ 		return -ENODEV;
+ 
+ 	/*
+@@ -102,7 +139,7 @@ static int usb_acpi_find_device(struct device *dev, acpi_handle *handle)
+ 
+ static struct acpi_bus_type usb_acpi_bus = {
+ 	.bus = &usb_bus_type,
+-	.find_bridge = NULL,
++	.find_bridge = usb_acpi_find_device,
+ 	.find_device = usb_acpi_find_device,
+ };
+ 
+diff --git a/drivers/usb/core/usb.h b/drivers/usb/core/usb.h
+index 67875a8..4aa20f4 100644
+--- a/drivers/usb/core/usb.h
++++ b/drivers/usb/core/usb.h
+@@ -1,5 +1,9 @@
+ #include <linux/pm.h>
+ 
++#ifdef CONFIG_ACPI
++#include <linux/acpi.h>
++#endif
++
+ struct dev_state;
+ 
+ /* Functions local to drivers/usb/core/ */
+@@ -111,6 +115,7 @@ extern struct bus_type usb_bus_type;
+ extern struct device_type usb_device_type;
+ extern struct device_type usb_if_device_type;
+ extern struct device_type usb_ep_device_type;
++extern struct device_type usb_port_device_type;
+ extern struct usb_device_driver usb_generic_driver;
+ 
+ static inline int is_usb_device(const struct device *dev)
+@@ -128,6 +133,11 @@ static inline int is_usb_endpoint(const struct device *dev)
+ 	return dev->type == &usb_ep_device_type;
+ }
+ 
++static inline int is_usb_port(const struct device *dev)
++{
++	return dev->type == &usb_port_device_type;
++}
++
+ /* Do the same for device drivers and interface drivers. */
+ 
+ static inline int is_usb_device_driver(struct device_driver *drv)
+@@ -162,6 +172,8 @@ extern void usb_notify_remove_bus(struct usb_bus *ubus);
+ #ifdef CONFIG_ACPI
+ extern int usb_acpi_register(void);
+ extern void usb_acpi_unregister(void);
++extern acpi_handle usb_get_hub_port_acpi_handle(struct usb_device *hdev,
++	int port1);
+ #else
+ static inline int usb_acpi_register(void) { return 0; };
+ static inline void usb_acpi_unregister(void) { };
 -- 
-Octavio.
+1.7.6.rc2.8.g28eb
+
