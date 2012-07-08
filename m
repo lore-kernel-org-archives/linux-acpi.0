@@ -1,262 +1,110 @@
-From: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH V8 4/8] usb/acpi: add check for the connect type of usb port
-Date: Sun,  8 Jul 2012 22:23:03 +0800
-Message-ID: <1341757387-3669-4-git-send-email-tianyu.lan@intel.com>
-References: <1341757387-3669-1-git-send-email-tianyu.lan@intel.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1341757387-3669-1-git-send-email-tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
+From: Jonathan Nieder <jrnieder@gmail.com>
+Subject: [PATCH] ACPI: Leave Bus Master Arbitration enabled for suspend/resume
+Date: Sun, 8 Jul 2012 14:04:35 -0500
+Message-ID: <20120708190434.GD7328@burratino>
+References: <op.wg3en6ij6g6bxc@localhost.localdomain>
+ <Pine.LNX.4.44L0.1207072208270.508-100000@netrider.rowland.org>
+ <20120708025730.GE2961@burratino>
+ <op.wg30yabp6g6bxc@localhost.localdomain>
+ <20120708090432.GF4625@burratino>
+ <op.wg4f33nl6g6bxc@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-gh0-f174.google.com ([209.85.160.174]:39498 "EHLO
+	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751916Ab2GHTEk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 8 Jul 2012 15:04:40 -0400
+Content-Disposition: inline
+In-Reply-To: <op.wg4f33nl6g6bxc@localhost.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Octavio Alvarez <alvarezp@alvarezp.com>
+Cc: Bob Moore <robert.moore@intel.com>, Adrian Knoth <adi@drcomp.erfurt.thur.de>, Shaohua Li <shli@kernel.org>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Change since v5: Fix code and comment type error.
+This is an old suspend/resume lockup fix:
 
-Change since v4: Remove some redundant kerneldocs and fix typo.
+	commit 2780cc4660e1
+	Author: Len Brown <len.brown@intel.com>
+	Date:   Thu Dec 23 13:43:30 2004 -0500
 
-Change since v3: Rebase on the patch "make usb port a real device"
+	    [ACPI] Fix suspend/resume lockup issue
+	    by leaving Bus Master Arbitration enabled.
+	    The ACPI spec mandates it be disabled only for C3.
 
-Check the connect type of usb port when getting the usb port's
-acpi_handle and store result into connect_type in the struct
-usb_port.
+	    http://bugzilla.kernel.org/show_bug.cgi?id=3599
 
-Accoding to ACPI Spec 9.13. PLD indicates whether usb port is
-user visible and _UPC indicates whether it is connectable. If
-the port was visible and connectable, it could be freely connected
-and disconnected with USB devices. If no visible and connectable,
-a usb device is directly hard-wired to the port. If no visible and
-no connectable, the port would be not used.
+	    Signed-off-by: David Shaohua Li <shaohua.li@intel.com>
+	    Signed-off-by: Len Brown <len.brown@intel.com>
 
-When a device was found on the port, if the connect_type was hot-plug,
-then the device would be removable. If the connect_type was hard-wired,
-the device would be non-removable.
+The bug snuck back in in commit 33620c5419e8 (ACPICA: Support for
+custom ACPICA build for ACPI 5 reduced hardware, 2012-02-14),
+presumably by copy/pasting from the wrong source for the legacy case.
 
-Signed-off-by: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On affected machines, after that commit, the machine locks up hard
+on resume from suspend.  The same fix as seven years ago fixes it.
+
+Addresses <https://bugzilla.kernel.org/show_bug.cgi?id=43641>.
+
+Reported-bisected-and-tested-by: Octavio Alvarez <alvarezp@alvarezp.com>
+Reported-by: Adrian Knoth <adi@drcomp.erfurt.thur.de>
+Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
+Cc: <stable@vger.kernel.org> # 3.4
 ---
- drivers/usb/core/hub.c      |   31 ++++++++++++++++
- drivers/usb/core/usb-acpi.c |   80 ++++++++++++++++++++++++-------------------
- drivers/usb/core/usb.h      |    4 ++
- include/linux/usb.h         |    7 ++++
- 4 files changed, 87 insertions(+), 35 deletions(-)
+Octavio Alvarez wrote:
 
-diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
-index 92be700..375217f 100644
---- a/drivers/usb/core/hub.c
-+++ b/drivers/usb/core/hub.c
-@@ -41,6 +41,7 @@ struct usb_port {
- 	struct usb_device *child;
- 	struct device dev;
- 	struct dev_state *port_owner;
-+	enum usb_port_connect_type connect_type;
- };
- 
- struct usb_hub {
-@@ -4989,6 +4990,36 @@ struct usb_device *usb_hub_find_child(struct usb_device *hdev,
- }
- EXPORT_SYMBOL_GPL(usb_hub_find_child);
- 
-+/**
-+ * usb_set_hub_port_connect_type - set hub port connect type.
-+ * @hdev: USB device belonging to the usb hub
-+ * @port1: port num of the port
-+ * @type: connect type of the port
-+ */
-+void usb_set_hub_port_connect_type(struct usb_device *hdev, int port1,
-+	enum usb_port_connect_type type)
-+{
-+	struct usb_hub *hub = hdev_to_hub(hdev);
-+
-+	hub->ports[port1 - 1]->connect_type = type;
-+}
-+
-+/**
-+ * usb_get_hub_port_connect_type - Get the port's connect type
-+ * @hdev: USB device belonging to the usb hub
-+ * @port1: port num of the port
-+ *
-+ * Return connect type of the port and if input params are
-+ * invalid, return USB_PORT_CONNECT_TYPE_UNKNOWN.
-+ */
-+enum usb_port_connect_type
-+usb_get_hub_port_connect_type(struct usb_device *hdev, int port1)
-+{
-+	struct usb_hub *hub = hdev_to_hub(hdev);
-+
-+	return hub->ports[port1 - 1]->connect_type;
-+}
-+
- #ifdef CONFIG_ACPI
- /**
-  * usb_get_hub_port_acpi_handle - Get the usb port's acpi handle
-diff --git a/drivers/usb/core/usb-acpi.c b/drivers/usb/core/usb-acpi.c
-index 47197bf..404d86a 100644
---- a/drivers/usb/core/usb-acpi.c
-+++ b/drivers/usb/core/usb-acpi.c
-@@ -19,20 +19,29 @@
- 
- #include "usb.h"
- 
--static int usb_acpi_check_upc(struct usb_device *udev, acpi_handle handle)
-+static int usb_acpi_check_port_connect_type(struct usb_device *hdev,
-+	acpi_handle handle, int port1)
- {
- 	acpi_status status;
- 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
- 	union acpi_object *upc;
-+	struct acpi_pld pld;
- 	int ret = 0;
- 
--	status = acpi_evaluate_object(handle, "_UPC", NULL, &buffer);
--
-+	/*
-+	 * Accoding to ACPI Spec 9.13. PLD indicates whether usb port is
-+	 * user visible and _UPC indicates whether it is connectable. If
-+	 * the port was visible and connectable, it could be freely connected
-+	 * and disconnected with USB devices. If no visible and connectable,
-+	 * a usb device is directly hard-wired to the port. If no visible and
-+	 * no connectable, the port would be not used.
-+	 */
-+	status = acpi_get_physical_device_location(handle, &pld);
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
- 
-+	status = acpi_evaluate_object(handle, "_UPC", NULL, &buffer);
- 	upc = buffer.pointer;
--
- 	if (!upc || (upc->type != ACPI_TYPE_PACKAGE)
- 		|| upc->package.count != 4) {
- 		ret = -EINVAL;
-@@ -40,33 +49,20 @@ static int usb_acpi_check_upc(struct usb_device *udev, acpi_handle handle)
+> Given the complexity of the ACPI_DEBUG logging (particularly the
+> console part), I decided to give your patch a shot directly.
+>
+> Result: the system no longer locks up.
+
+Thanks!
+
+Here's a properly formatted patch.
+
+ drivers/acpi/acpica/hwsleep.c |   22 ----------------------
+ 1 file changed, 22 deletions(-)
+
+diff --git a/drivers/acpi/acpica/hwsleep.c b/drivers/acpi/acpica/hwsleep.c
+index 0ed85cac3231..615996a36bed 100644
+--- a/drivers/acpi/acpica/hwsleep.c
++++ b/drivers/acpi/acpica/hwsleep.c
+@@ -95,18 +95,6 @@ acpi_status acpi_hw_legacy_sleep(u8 sleep_state, u8 flags)
+ 		return_ACPI_STATUS(status);
  	}
  
- 	if (upc->package.elements[0].integer.value)
--		udev->removable = USB_DEVICE_REMOVABLE;
--	else
--		udev->removable = USB_DEVICE_FIXED;
-+		if (pld.user_visible)
-+			usb_set_hub_port_connect_type(hdev, port1,
-+				USB_PORT_CONNECT_TYPE_HOT_PLUG);
-+		else
-+			usb_set_hub_port_connect_type(hdev, port1,
-+				USB_PORT_CONNECT_TYPE_HARD_WIRED);
-+	else if (!pld.user_visible)
-+		usb_set_hub_port_connect_type(hdev, port1, USB_PORT_NOT_USED);
- 
- out:
- 	kfree(upc);
- 	return ret;
- }
- 
--static int usb_acpi_check_pld(struct usb_device *udev, acpi_handle handle)
--{
--	acpi_status status;
--	struct acpi_pld pld;
+-	if (sleep_state != ACPI_STATE_S5) {
+-		/*
+-		 * Disable BM arbitration. This feature is contained within an
+-		 * optional register (PM2 Control), so ignore a BAD_ADDRESS
+-		 * exception.
+-		 */
+-		status = acpi_write_bit_register(ACPI_BITREG_ARB_DISABLE, 1);
+-		if (ACPI_FAILURE(status) && (status != AE_BAD_ADDRESS)) {
+-			return_ACPI_STATUS(status);
+-		}
+-	}
 -
--	status = acpi_get_physical_device_location(handle, &pld);
--
--	if (ACPI_FAILURE(status))
--		return -ENODEV;
--
--	if (pld.user_visible)
--		udev->removable = USB_DEVICE_REMOVABLE;
--	else
--		udev->removable = USB_DEVICE_FIXED;
--
--	return 0;
--}
--
- static int usb_acpi_find_device(struct device *dev, acpi_handle *handle)
- {
- 	struct usb_device *udev;
-@@ -88,8 +84,30 @@ static int usb_acpi_find_device(struct device *dev, acpi_handle *handle)
- 	 */
- 	if (is_usb_device(dev)) {
- 		udev = to_usb_device(dev);
--		if (udev->parent)
-+		if (udev->parent) {
-+			enum usb_port_connect_type type;
-+
-+			/*
-+			 * According usb port's connect type to set usb device's
-+			 * removability.
-+			 */
-+			type = usb_get_hub_port_connect_type(udev->parent,
-+				udev->portnum);
-+			switch (type) {
-+			case USB_PORT_CONNECT_TYPE_HOT_PLUG:
-+				udev->removable = USB_DEVICE_REMOVABLE;
-+				break;
-+			case USB_PORT_CONNECT_TYPE_HARD_WIRED:
-+				udev->removable = USB_DEVICE_FIXED;
-+				break;
-+			default:
-+				udev->removable = USB_DEVICE_REMOVABLE_UNKNOWN;
-+				break;
-+			}
-+
- 			return -ENODEV;
-+		}
-+
- 		/* root hub's parent is the usb hcd. */
- 		parent_handle = DEVICE_ACPI_HANDLE(dev->parent);
- 		*handle = acpi_get_child(parent_handle, udev->portnum);
-@@ -122,18 +140,10 @@ static int usb_acpi_find_device(struct device *dev, acpi_handle *handle)
- 			if (!*handle)
- 				return -ENODEV;
- 		}
-+		usb_acpi_check_port_connect_type(udev, *handle, port_num);
- 	} else
- 		return -ENODEV;
+ 	/*
+ 	 * 1) Disable/Clear all GPEs
+ 	 * 2) Enable all wakeup GPEs
+@@ -364,16 +352,6 @@ acpi_status acpi_hw_legacy_wake(u8 sleep_state, u8 flags)
+ 				    [ACPI_EVENT_POWER_BUTTON].
+ 				    status_register_id, ACPI_CLEAR_STATUS);
  
 -	/*
--	 * PLD will tell us whether a port is removable to the user or
--	 * not. If we don't get an answer from PLD (it's not present
--	 * or it's malformed) then try to infer it from UPC. If a
--	 * device isn't connectable then it's probably not removable.
+-	 * Enable BM arbitration. This feature is contained within an
+-	 * optional register (PM2 Control), so ignore a BAD_ADDRESS
+-	 * exception.
 -	 */
--	if (usb_acpi_check_pld(udev, *handle) != 0)
--		usb_acpi_check_upc(udev, *handle);
+-	status = acpi_write_bit_register(ACPI_BITREG_ARB_DISABLE, 0);
+-	if (ACPI_FAILURE(status) && (status != AE_BAD_ADDRESS)) {
+-		return_ACPI_STATUS(status);
+-	}
 -
- 	return 0;
+ 	acpi_hw_execute_sleep_method(METHOD_PATHNAME__SST, ACPI_SST_WORKING);
+ 	return_ACPI_STATUS(status);
  }
- 
-diff --git a/drivers/usb/core/usb.h b/drivers/usb/core/usb.h
-index 4aa20f4..bbd7df4 100644
---- a/drivers/usb/core/usb.h
-+++ b/drivers/usb/core/usb.h
-@@ -168,6 +168,10 @@ extern void usb_notify_add_device(struct usb_device *udev);
- extern void usb_notify_remove_device(struct usb_device *udev);
- extern void usb_notify_add_bus(struct usb_bus *ubus);
- extern void usb_notify_remove_bus(struct usb_bus *ubus);
-+extern enum usb_port_connect_type
-+	usb_get_hub_port_connect_type(struct usb_device *hdev, int port1);
-+extern void usb_set_hub_port_connect_type(struct usb_device *hdev, int port1,
-+	enum usb_port_connect_type type);
- 
- #ifdef CONFIG_ACPI
- extern int usb_acpi_register(void);
-diff --git a/include/linux/usb.h b/include/linux/usb.h
-index cba3f06..65ed8b2 100644
---- a/include/linux/usb.h
-+++ b/include/linux/usb.h
-@@ -383,6 +383,13 @@ enum usb_device_removable {
- 	USB_DEVICE_FIXED,
- };
- 
-+enum usb_port_connect_type {
-+	USB_PORT_CONNECT_TYPE_UNKNOWN = 0,
-+	USB_PORT_CONNECT_TYPE_HOT_PLUG,
-+	USB_PORT_CONNECT_TYPE_HARD_WIRED,
-+	USB_PORT_NOT_USED,
-+};
-+
- /*
-  * USB 3.0 Link Power Management (LPM) parameters.
-  *
 -- 
-1.7.6.rc2.8.g28eb
+1.7.10.4
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
