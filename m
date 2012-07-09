@@ -1,200 +1,104 @@
 From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [RFC PATCH v2 4/13] memory-hotplug : remove /sys/firmware/memmap/X
- sysfs
-Date: Mon, 9 Jul 2012 17:18:35 +0900
-Message-ID: <4FFA93DB.6010403@jp.fujitsu.com>
-References: <4FF287C3.4030901@jp.fujitsu.com> <4FF28996.10702@jp.fujitsu.com> <4FF2929B.7030004@cn.fujitsu.com> <4FF3CA65.1020300@jp.fujitsu.com> <4FF3CFDC.50802@cn.fujitsu.com> <4FF3DA1E.9060505@jp.fujitsu.com> <4FF41484.3070806@cn.fujitsu.com> <4FF6A17C.6000808@jp.fujitsu.com> <4FF6ADD9.7040600@cn.fujitsu.com>
+Subject: [RFC PATCH v3 0/13] memory-hotplug : hot-remove physical memory
+Date: Mon, 9 Jul 2012 19:21:22 +0900
+Message-ID: <4FFAB0A2.8070304@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-2022-JP"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:49726 "EHLO
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:45370 "EHLO
 	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752316Ab2GIITL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jul 2012 04:19:11 -0400
-In-Reply-To: <4FF6ADD9.7040600@cn.fujitsu.com>
+	with ESMTP id S1751857Ab2GIKVq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jul 2012 06:21:46 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Wen Congyang <wency@cn.fujitsu.com>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com
+To: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org
+Cc: rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, wency@cn.fujitsu.com
 
-Hi Wen,
+This patch series aims to support physical memory hot-remove.
 
-2012/07/06 18:20, Wen Congyang wrote:
-> At 07/06/2012 04:27 PM, Yasuaki Ishimatsu Wrote:
->> Hi Wen,
->>
->> 2012/07/04 19:01, Wen Congyang wrote:
->>> At 07/04/2012 01:52 PM, Yasuaki Ishimatsu Wrote:
->>>> Hi Wen,
->>>>
->>>> 2012/07/04 14:08, Wen Congyang wrote:
->>>>> At 07/04/2012 12:45 PM, Yasuaki Ishimatsu Wrote:
->>>>>> Hi Wen,
->>>>>>
->>>>>> 2012/07/03 15:35, Wen Congyang wrote:
->>>>>>> At 07/03/2012 01:56 PM, Yasuaki Ishimatsu Wrote:
->>>>>>>> When (hot)adding memory into system, /sys/firmware/memmap/X/{end, start, type}
->>>>>>>> sysfs files are created. But there is no code to remove these files. The patch
->>>>>>>> implements the function to remove them.
->>>>>>>>
->>>>>>>> Note : The code does not free firmware_map_entry since there is no way to free
->>>>>>>>            memory which is allocated by bootmem.
->>>>>>>>
->>>>>>>> CC: David Rientjes <rientjes@google.com>
->>>>>>>> CC: Jiang Liu <liuj97@gmail.com>
->>>>>>>> CC: Len Brown <len.brown@intel.com>
->>>>>>>> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
->>>>>>>> CC: Paul Mackerras <paulus@samba.org>
->>>>>>>> CC: Christoph Lameter <cl@linux.com>
->>>>>>>> Cc: Minchan Kim <minchan.kim@gmail.com>
->>>>>>>> CC: Andrew Morton <akpm@linux-foundation.org>
->>>>>>>> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
->>>>>>>> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->>>>>>>>
->>>>>>>> ---
->>>>>>>>      drivers/firmware/memmap.c    |   70 +++++++++++++++++++++++++++++++++++++++++++
->>>>>>>>      include/linux/firmware-map.h |    6 +++
->>>>>>>>      mm/memory_hotplug.c          |    6 +++
->>>>>>>>      3 files changed, 81 insertions(+), 1 deletion(-)
->>>>>>>>
->>>>>>>> Index: linux-3.5-rc4/mm/memory_hotplug.c
->>>>>>>> ===================================================================
->>>>>>>> --- linux-3.5-rc4.orig/mm/memory_hotplug.c	2012-07-03 14:22:00.190240794 +0900
->>>>>>>> +++ linux-3.5-rc4/mm/memory_hotplug.c	2012-07-03 14:22:03.549198802 +0900
->>>>>>>> @@ -661,7 +661,11 @@ EXPORT_SYMBOL_GPL(add_memory);
->>>>>>>>
->>>>>>>>      int remove_memory(int nid, u64 start, u64 size)
->>>>>>>>      {
->>>>>>>> -	return -EBUSY;
->>>>>>>> +	lock_memory_hotplug();
->>>>>>>> +	/* remove memmap entry */
->>>>>>>> +	firmware_map_remove(start, start + size - 1, "System RAM");
->>>>>>>> +	unlock_memory_hotplug();
->>>>>>>> +	return 0;
->>>>>>>>
->>>>>>>>      }
->>>>>>>>      EXPORT_SYMBOL_GPL(remove_memory);
->>>>>>>> Index: linux-3.5-rc4/include/linux/firmware-map.h
->>>>>>>> ===================================================================
->>>>>>>> --- linux-3.5-rc4.orig/include/linux/firmware-map.h	2012-07-03 14:21:45.766421116 +0900
->>>>>>>> +++ linux-3.5-rc4/include/linux/firmware-map.h	2012-07-03 14:22:03.550198789 +0900
->>>>>>>> @@ -25,6 +25,7 @@
->>>>>>>>
->>>>>>>>      int firmware_map_add_early(u64 start, u64 end, const char *type);
->>>>>>>>      int firmware_map_add_hotplug(u64 start, u64 end, const char *type);
->>>>>>>> +int firmware_map_remove(u64 start, u64 end, const char *type);
->>>>>>>>
->>>>>>>>      #else /* CONFIG_FIRMWARE_MEMMAP */
->>>>>>>>
->>>>>>>> @@ -38,6 +39,11 @@ static inline int firmware_map_add_hotpl
->>>>>>>>      	return 0;
->>>>>>>>      }
->>>>>>>>
->>>>>>>> +static inline int firmware_map_remove(u64 start, u64 end, const char *type)
->>>>>>>> +{
->>>>>>>> +	return 0;
->>>>>>>> +}
->>>>>>>> +
->>>>>>>>      #endif /* CONFIG_FIRMWARE_MEMMAP */
->>>>>>>>
->>>>>>>>      #endif /* _LINUX_FIRMWARE_MAP_H */
->>>>>>>> Index: linux-3.5-rc4/drivers/firmware/memmap.c
->>>>>>>> ===================================================================
->>>>>>>> --- linux-3.5-rc4.orig/drivers/firmware/memmap.c	2012-07-03 14:21:45.761421180 +0900
->>>>>>>> +++ linux-3.5-rc4/drivers/firmware/memmap.c	2012-07-03 14:22:03.569198549 +0900
->>>>>>>> @@ -79,7 +79,16 @@ static const struct sysfs_ops memmap_att
->>>>>>>>      	.show = memmap_attr_show,
->>>>>>>>      };
->>>>>>>>
->>>>>>>> +static void release_firmware_map_entry(struct kobject *kobj)
->>>>>>>> +{
->>>>>>>> +	/*
->>>>>>>> +	 * FIXME : There is no idea.
->>>>>>>> +	 *         How to free the entry which allocated bootmem?
->>>>>>>> +	 */
->>>>>>>
->>>>>>> I find a function free_bootmem(), but I am not sure whether it can work here.
->>>>>>
->>>>>> It cannot work here.
->>>>>>
->>>>>>> Another problem: how to check whether the entry uses bootmem?
->>>>>>
->>>>>> When firmware_map_entry is allocated by kzalloc(), the page has PG_slab.
->>>>>
->>>>> This is not true. In my test, I find the page does not have PG_slab sometimes.
->>>>
->>>> I think that it depends on the allocated size. firmware_map_entry size is
->>>> smaller than PAGE_SIZE. So the page has PG_Slab.
->>>
->>> In my test, I add printk in the function firmware_map_add_hotplug() to display
->>> page's flags. And sometimes the page is not allocated by slab(I use PageSlab()
->>> to verify it).
->>
->> How did you check it? Could you send your debug patch?
-> 
-> When the memory is not allocated from slab, the flags is 0x10000000008000.
+  [RFC PATCH v3 1/13] memory-hotplug : rename remove_memory to offline_memory
+  [RFC PATCH v3 2/13] memory-hotplug : add physical memory hotplug code to acpi_memory_device_remove
+  [RFC PATCH v3 3/13] memory-hotplug : unify argument of firmware_map_add_early/hotplug
+  [RFC PATCH v3 4/13] memory-hotplug : remove /sys/firmware/memmap/X sysfs
+  [RFC PATCH v3 5/13] memory-hotplug : does not release memory region in PAGES_PER_SECTION chunks
+  [RFC PATCH v3 6/13] memory-hotplug : add memory_block_release
+  [RFC PATCH v3 7/13] memory-hotplug : remove_memory calls __remove_pages
+  [RFC PATCH v3 8/13] memory-hotplug : check page type in get_page_bootmem
+  [RFC PATCH v3 9/13] memory-hotplug : move register_page_bootmem_info_node and put_page_bootmem for
+sparse-vmemmap
+  [RFC PATCH v3 10/13] memory-hotplug : implement register_page_bootmem_info_section of sparse-vmemmap
+  [RFC PATCH v3 11/13] memory-hotplug : free memmap of sparse-vmemmap
+  [RFC PATCH v3 12/13] memory-hotplug : add node_device_release
+  [RFC PATCH v3 13/13] memory-hotplug : remove sysfs file of node
 
-Thank you for sending the patch.
-I think the page to not have PageSlab is a compound page. So we can check
-whether the entry is allocate from bootmem or not as follow:
+Even if you apply these patches, you cannot remove the physical memory
+completely since these patches are still under development. I want you to
+cooperate to improve the physical memory hot-remove. So please review these
+patches and give your comment/idea.
 
-static void release_firmware_map_entry(struct kobject *kobj)
-{
-	struct firmware_map_entry *entry = to_memmap_entry(kobj);
-	struct page *head_page;
+The patches can free/remove following things:
 
-	head_page = virt_to_head_page(entry);
-	if (PageSlab(head_page))
-		kfree(etnry);
-	else
-		/* the entry is allocated from bootmem */
-}
+  - acpi_memory_info                          : [RFC PATCH 2/13]
+  - /sys/firmware/memmap/X/{end, start, type} : [RFC PATCH 4/13]
+  - iomem_resource                            : [RFC PATCH 5/13]
+  - mem_section and related sysfs files       : [RFC PATCH 6-11/13]
+  - node and related sysfs files              : [RFC PATCH 12-13/13]
 
-Thanks,
-Yasuaki Ishimatsu
+The patches cannot do following things yet:
 
-> 
->  From 8dd51368d6c03edf7edc89cab17441e3741c39c7 Mon Sep 17 00:00:00 2001
-> From: Wen Congyang <wency@cn.fujitsu.com>
-> Date: Wed, 4 Jul 2012 16:05:26 +0800
-> Subject: [PATCH] debug
-> 
-> ---
->   drivers/firmware/memmap.c |    7 +++++++
->   1 files changed, 7 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/firmware/memmap.c b/drivers/firmware/memmap.c
-> index adc0710..993ba3f 100644
-> --- a/drivers/firmware/memmap.c
-> +++ b/drivers/firmware/memmap.c
-> @@ -21,6 +21,7 @@
->   #include <linux/types.h>
->   #include <linux/bootmem.h>
->   #include <linux/slab.h>
-> +#include <linux/mm.h>
->   
->   /*
->    * Data types ------------------------------------------------------------------
-> @@ -160,11 +161,17 @@ static int add_sysfs_fw_map_entry(struct firmware_map_entry *entry)
->   int __meminit firmware_map_add_hotplug(u64 start, u64 end, const char *type)
->   {
->   	struct firmware_map_entry *entry;
-> +	struct page *entry_page;
->   
->   	entry = kzalloc(sizeof(struct firmware_map_entry), GFP_ATOMIC);
->   	if (!entry)
->   		return -ENOMEM;
->   
-> +	entry_page = virt_to_page(entry);
-> +	printk(KERN_WARNING "flags: %lx\n", entry_page->flags);
-> +	if (PageSlab(entry_page)) {
-> +		printk(KERN_WARNING "page is allocated from slab\n");
-> +	}
->   	firmware_map_add_entry(start, end, type, entry);
->   	/* create the memmap entry */
->   	add_sysfs_fw_map_entry(entry);
-> 
+  - page table of removed memory
 
+If you find lack of function for physical memory hot-remove, please let me
+know.
 
+change log of v3:
+ * rebase to 3.5.0-rc6
+
+ [RFC PATCH v2 2/13]
+   * remove extra kobject_put()
+
+   * The patch was commented by Wen. Wen's comment is
+     "acpi_memory_device_remove() should ignore a return value of
+     remove_memory() since caller does not care the return value".
+     But I did not change it since I think caller should care the
+     return value. And I am trying to fix it as follow:
+
+     https://lkml.org/lkml/2012/7/5/624
+
+ [RFC PATCH v2 4/13]
+   * remove a firmware_memmap_entry allocated by kzmalloc()
+
+change log of v2:
+ [RFC PATCH v2 2/13]
+   * check whether memory block is offline or not before calling offline_memory()
+   * check whether section is valid or not in is_memblk_offline()
+   * call kobject_put() for each memory_block in is_memblk_offline()
+
+ [RFC PATCH v2 3/13]
+   * unify the end argument of firmware_map_add_early/hotplug
+
+ [RFC PATCH v2 4/13]
+   * add release_firmware_map_entry() for freeing firmware_map_entry
+
+ [RFC PATCH v2 6/13]
+  * add release_memory_block() for freeing memory_block
+
+ [RFC PATCH v2 11/13]
+  * fix wrong arguments of free_pages()
+
+---
+ arch/powerpc/platforms/pseries/hotplug-memory.c |   16 +-
+ arch/x86/mm/init_64.c                           |  144 ++++++++++++++++++++++++
+ drivers/acpi/acpi_memhotplug.c                  |   28 ++++
+ drivers/base/memory.c                           |   54 ++++++++-
+ drivers/base/node.c                             |    7 +
+ drivers/firmware/memmap.c                       |   78 ++++++++++++-
+ include/linux/firmware-map.h                    |    6 +
+ include/linux/memory.h                          |    5
+ include/linux/memory_hotplug.h                  |   17 --
+ include/linux/mm.h                              |    5
+ mm/memory_hotplug.c                             |   98 ++++++++++++----
+ mm/sparse.c                                     |    5
+ 12 files changed, 414 insertions(+), 49 deletions(-)
 
