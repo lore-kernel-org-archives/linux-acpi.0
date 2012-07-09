@@ -1,159 +1,155 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [PATCH 1/2] acpi : cpu hot-remove returns error number when cpu_down()
- fails
-Date: Mon, 9 Jul 2012 11:31:05 +0900
-Message-ID: <4FFA4269.5050808@jp.fujitsu.com>
-References: <4FF65898.3000301@jp.fujitsu.com> <4FF6B537.1030703@linux.vnet.ibm.com>
+From: Lin Ming <ming.m.lin@intel.com>
+Subject: Re: ACPI: Fix resource_lock dead lock in acpi_power_on_device
+Date: Mon, 9 Jul 2012 10:40:55 +0800
+Message-ID: <CAF1ivSafWrR46RV+pEEZk8cDhiGaFaoqathORJkD6Y-G7HxUUg@mail.gmail.com>
+References: <1340600942.3328.37.camel@minggr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:41833 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751419Ab2GICb3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 8 Jul 2012 22:31:29 -0400
-In-Reply-To: <4FF6B537.1030703@linux.vnet.ibm.com>
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:45312 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751419Ab2GICk4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 8 Jul 2012 22:40:56 -0400
+Received: by vcbf11 with SMTP id f11so7038010vcb.19
+        for <linux-acpi@vger.kernel.org>; Sun, 08 Jul 2012 19:40:55 -0700 (PDT)
+In-Reply-To: <1340600942.3328.37.camel@minggr>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, linux-kernel@vger.kernel.org
+To: lenb <lenb@kernel.org>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Lan, Tianyu" <tianyu.lan@intel.com>
 
-Hi Srivatsa,
+On Mon, Jun 25, 2012 at 1:09 PM, Lin Ming <ming.m.lin@intel.com> wrote:
+> Commit 0090def("ACPI: Add interface to register/unregister device
+> to/from power resources") used resource_lock to protect the devices list
+> that relies on power resource. It caused a mutex dead lock, as below
+>
+> acpi_power_on ---> lock resource_lock
+>   __acpi_power_on
+>     acpi_power_on_device
+>       acpi_power_get_inferred_state
+>         acpi_power_get_list_state ---> lock resource_lock
+>
+> This patch adds a new mutex "devices_lock" to protect the devices list
+> and calls acpi_power_on_device in acpi_power_on, instead of
+> __acpi_power_on, after the resource_lock is released.
 
-Thank you for your reviewing.
+Len,
 
-2012/07/06 18:51, Srivatsa S. Bhat wrote:
-> On 07/06/2012 08:46 AM, Yasuaki Ishimatsu wrote:
->> Even if cpu_down() fails, acpi_processor_remove() continues to remove the cpu.
-> 
-> Ouch!
-> 
->> But in this case, it should return error number since some process may run on
->> the cpu. If the cpu has a running process and the cpu is turned the power off,
->> the system cannot work well.
->>
->> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->>
->> ---
->>   drivers/acpi/processor_driver.c |   18 ++++++++++++------
->>   1 file changed, 12 insertions(+), 6 deletions(-)
->>
->> Index: linux-3.5-rc4/drivers/acpi/processor_driver.c
->> ===================================================================
->> --- linux-3.5-rc4.orig/drivers/acpi/processor_driver.c	2012-06-25 04:53:04.000000000 +0900
->> +++ linux-3.5-rc4/drivers/acpi/processor_driver.c	2012-07-05 21:02:58.711285382 +0900
->> @@ -610,7 +610,7 @@ err_free_pr:
->>   static int acpi_processor_remove(struct acpi_device *device, int type)
->>   {
->>   	struct acpi_processor *pr = NULL;
->> -
->> +	int ret;
->>
->>   	if (!device || !acpi_driver_data(device))
->>   		return -EINVAL;
->> @@ -621,8 +621,9 @@ static int acpi_processor_remove(struct
->>   		goto free;
->>
->>   	if (type == ACPI_BUS_REMOVAL_EJECT) {
->> -		if (acpi_processor_handle_eject(pr))
->> -			return -EINVAL;
->> +		ret = acpi_processor_handle_eject(pr);
->> +		if (ret)
->> +			return ret;
->>   	}
->>
->>   	acpi_processor_power_exit(pr, device);
->> @@ -841,12 +842,17 @@ static acpi_status acpi_processor_hotadd
->>
->>   static int acpi_processor_handle_eject(struct acpi_processor *pr)
->>   {
->> -	if (cpu_online(pr->id))
->> -		cpu_down(pr->id);
->> +	int ret;
->> +
->> +	if (cpu_online(pr->id)) {
->> +		ret = cpu_down(pr->id);
->> +		if (ret)
->> +			return ret;
->> +	}
->>
-> 
-> Strictly speaking, this is not thorough enough. What prevents someone
-> from onlining that same cpu again, at this point?
-> So, IMHO, you need to wrap the contents of this function inside a
-> get_online_cpus()/put_online_cpus() block, to prevent anyone else
-> from messing with CPU hotplug at the same time.
+What do you think of this fix?
 
-If I understand your comment by mistake, please let me know.
-If the contents is wrapped a inside get_online_cpus()/put_online_cpus() block
-as below, cpu_down() will stop since cpu_down() calls cpu_hotplug_begin() and
-cpu_hotplug_begin() waits for cpu_hotplug.refcount to become 0.
+Regards,
+Lin Ming
 
-+	get_online_cpus()
-+	if (cpu_online(pr->id)) {
-+		ret = cpu_down(pr->id);
-+		if (ret)
-+			return ret;
-+	}
-+	put_online_cpus()
-
-I think following patch can prevent it correctly. How about the patch?
-
----
- drivers/acpi/processor_driver.c |   12 ++++++++++++
- kernel/cpu.c                    |    8 +++++---
- 2 files changed, 17 insertions(+), 3 deletions(-)
-
-Index: linux-3.5-rc4/drivers/acpi/processor_driver.c
-===================================================================
---- linux-3.5-rc4.orig/drivers/acpi/processor_driver.c	2012-07-09 09:59:01.280211202 +0900
-+++ linux-3.5-rc4/drivers/acpi/processor_driver.c	2012-07-09 11:05:34.559859236 +0900
-@@ -844,14 +844,26 @@ static int acpi_processor_handle_eject(s
- {
- 	int ret;
-
-+retry:
- 	if (cpu_online(pr->id)) {
- 		ret = cpu_down(pr->id);
- 		if (ret)
- 			return ret;
- 	}
-
-+	get_online_cpus();
-+	/*
-+	 * Someone might online the cpu again at this point. So we check that
-+	 * cpu has been onlined or not. If cpu is online, we try to offline
-+	 * the cpu again.
-+	 */
-+	if (cpu_online(pr->id)) {
-+		put_online_cpus();
-+		goto retry;
-+	}
- 	arch_unregister_cpu(pr->id);
- 	acpi_unmap_lsapic(pr->id);
-+	put_online_cpus();
- 	return ret;
- }
- #else
-Index: linux-3.5-rc4/kernel/cpu.c
-===================================================================
---- linux-3.5-rc4.orig/kernel/cpu.c	2012-07-09 09:59:01.280211202 +0900
-+++ linux-3.5-rc4/kernel/cpu.c	2012-07-09 09:59:02.903190965 +0900
-@@ -343,11 +343,13 @@ static int __cpuinit _cpu_up(unsigned in
- 	unsigned long mod = tasks_frozen ? CPU_TASKS_FROZEN : 0;
- 	struct task_struct *idle;
-
--	if (cpu_online(cpu) || !cpu_present(cpu))
--		return -EINVAL;
--
- 	cpu_hotplug_begin();
-
-+	if (cpu_online(cpu) || !cpu_present(cpu)) {
-+		ret = -EINVAL;
-+		goto out;
-+	}
-+
- 	idle = idle_thread_get(cpu);
- 	if (IS_ERR(idle)) {
- 		ret = PTR_ERR(idle);
-
+>
+> Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+> ---
+>  drivers/acpi/power.c |   29 ++++++++++++++++++-----------
+>  1 file changed, 18 insertions(+), 11 deletions(-)
+>
+> diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+> index eb640874..068349e 100644
+> --- a/drivers/acpi/power.c
+> +++ b/drivers/acpi/power.c
+> @@ -103,6 +103,7 @@ struct acpi_power_resource {
+>
+>         /* List of devices relying on this power resource */
+>         struct acpi_power_resource_device *devices;
+> +       struct mutex devices_lock;
+>  };
+>
+>  static struct list_head acpi_power_resource_list;
+> @@ -221,7 +222,6 @@ static void acpi_power_on_device(struct acpi_power_managed_device *device)
+>
+>  static int __acpi_power_on(struct acpi_power_resource *resource)
+>  {
+> -       struct acpi_power_resource_device *device_list = resource->devices;
+>         acpi_status status = AE_OK;
+>
+>         status = acpi_evaluate_object(resource->device->handle, "_ON", NULL, NULL);
+> @@ -234,12 +234,6 @@ static int __acpi_power_on(struct acpi_power_resource *resource)
+>         ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Power resource [%s] turned on\n",
+>                           resource->name));
+>
+> -       while (device_list) {
+> -               acpi_power_on_device(device_list->device);
+> -
+> -               device_list = device_list->next;
+> -       }
+> -
+>         return 0;
+>  }
+>
+> @@ -247,6 +241,7 @@ static int acpi_power_on(acpi_handle handle)
+>  {
+>         int result = 0;
+>         struct acpi_power_resource *resource = NULL;
+> +       struct acpi_power_resource_device *device_list;
+>
+>         result = acpi_power_get_context(handle, &resource);
+>         if (result)
+> @@ -266,6 +261,17 @@ static int acpi_power_on(acpi_handle handle)
+>
+>         mutex_unlock(&resource->resource_lock);
+>
+> +       mutex_lock(&resource->devices_lock);
+> +
+> +       device_list = resource->devices;
+> +       while (device_list) {
+> +               acpi_power_on_device(device_list->device);
+> +
+> +               device_list = device_list->next;
+> +       }
+> +
+> +       mutex_unlock(&resource->devices_lock);
+> +
+>         return result;
+>  }
+>
+> @@ -351,7 +357,7 @@ static void __acpi_power_resource_unregister_device(struct device *dev,
+>         if (acpi_power_get_context(res_handle, &resource))
+>                 return;
+>
+> -       mutex_lock(&resource->resource_lock);
+> +       mutex_lock(&resource->devices_lock);
+>         prev = NULL;
+>         curr = resource->devices;
+>         while (curr) {
+> @@ -368,7 +374,7 @@ static void __acpi_power_resource_unregister_device(struct device *dev,
+>                 prev = curr;
+>                 curr = curr->next;
+>         }
+> -       mutex_unlock(&resource->resource_lock);
+> +       mutex_unlock(&resource->devices_lock);
+>  }
+>
+>  /* Unlink dev from all power resources in _PR0 */
+> @@ -410,10 +416,10 @@ static int __acpi_power_resource_register_device(
+>
+>         power_resource_device->device = powered_device;
+>
+> -       mutex_lock(&resource->resource_lock);
+> +       mutex_lock(&resource->devices_lock);
+>         power_resource_device->next = resource->devices;
+>         resource->devices = power_resource_device;
+> -       mutex_unlock(&resource->resource_lock);
+> +       mutex_unlock(&resource->devices_lock);
+>
+>         return 0;
+>  }
+> @@ -717,6 +723,7 @@ static int acpi_power_add(struct acpi_device *device)
+>
+>         resource->device = device;
+>         mutex_init(&resource->resource_lock);
+> +       mutex_init(&resource->devices_lock);
+>         strcpy(resource->name, device->pnp.bus_id);
+>         strcpy(acpi_device_name(device), ACPI_POWER_DEVICE_NAME);
+>         strcpy(acpi_device_class(device), ACPI_POWER_CLASS);
+> --
+> 1.7.10
+>
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
