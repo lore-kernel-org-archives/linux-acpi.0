@@ -1,31 +1,200 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: Fwd: Hid over I2C and ACPI interaction
-Date: Mon, 9 Jul 2012 10:51:30 +0300
-Message-ID: <20120709075130.GI2237@intel.com>
-References: <CAN+gG=GnMX8Gu6w9za2QrjoVrmORncFgq-+hhmHvxtOPEB=nDw@mail.gmail.com>
- <4FF52C70.9010601@intel.com>
- <1341471717.1682.125.camel@rui.sh.intel.com>
- <20120706055234.GC2237@intel.com>
- <4FFA4EFD.6090708@intel.com>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [RFC PATCH v2 4/13] memory-hotplug : remove /sys/firmware/memmap/X
+ sysfs
+Date: Mon, 9 Jul 2012 17:18:35 +0900
+Message-ID: <4FFA93DB.6010403@jp.fujitsu.com>
+References: <4FF287C3.4030901@jp.fujitsu.com> <4FF28996.10702@jp.fujitsu.com> <4FF2929B.7030004@cn.fujitsu.com> <4FF3CA65.1020300@jp.fujitsu.com> <4FF3CFDC.50802@cn.fujitsu.com> <4FF3DA1E.9060505@jp.fujitsu.com> <4FF41484.3070806@cn.fujitsu.com> <4FF6A17C.6000808@jp.fujitsu.com> <4FF6ADD9.7040600@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:12341 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751419Ab2GIHtc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 9 Jul 2012 03:49:32 -0400
-Content-Disposition: inline
-In-Reply-To: <4FFA4EFD.6090708@intel.com>
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:49726 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752316Ab2GIITL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jul 2012 04:19:11 -0400
+In-Reply-To: <4FF6ADD9.7040600@cn.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: Zhang Rui <rui.zhang@intel.com>, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, jkosina@suse.cz, chatty@enac.fr, jj_ding@emc.com.tw, bhelgaas@google.com, abelay@mit.edu
+To: Wen Congyang <wency@cn.fujitsu.com>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com
 
-On Mon, Jul 09, 2012 at 11:24:45AM +0800, Lan Tianyu wrote:
-> I think we can add new interface to get acpi specific resources. e.g
-> struct acpi_resource pnp_get_acpi_resource(...). When the pnp acpi devices
-> were initialized, put those acpi specific resources into a new resource list
-> pnpdev->acpi_resources. What pnp_get_acpi_resource does is to get specified
-> type acpi resources and return. We also need to define some acpi resource types.
+Hi Wen,
 
-Yeah, that sounds good to me.
+2012/07/06 18:20, Wen Congyang wrote:
+> At 07/06/2012 04:27 PM, Yasuaki Ishimatsu Wrote:
+>> Hi Wen,
+>>
+>> 2012/07/04 19:01, Wen Congyang wrote:
+>>> At 07/04/2012 01:52 PM, Yasuaki Ishimatsu Wrote:
+>>>> Hi Wen,
+>>>>
+>>>> 2012/07/04 14:08, Wen Congyang wrote:
+>>>>> At 07/04/2012 12:45 PM, Yasuaki Ishimatsu Wrote:
+>>>>>> Hi Wen,
+>>>>>>
+>>>>>> 2012/07/03 15:35, Wen Congyang wrote:
+>>>>>>> At 07/03/2012 01:56 PM, Yasuaki Ishimatsu Wrote:
+>>>>>>>> When (hot)adding memory into system, /sys/firmware/memmap/X/{end, start, type}
+>>>>>>>> sysfs files are created. But there is no code to remove these files. The patch
+>>>>>>>> implements the function to remove them.
+>>>>>>>>
+>>>>>>>> Note : The code does not free firmware_map_entry since there is no way to free
+>>>>>>>>            memory which is allocated by bootmem.
+>>>>>>>>
+>>>>>>>> CC: David Rientjes <rientjes@google.com>
+>>>>>>>> CC: Jiang Liu <liuj97@gmail.com>
+>>>>>>>> CC: Len Brown <len.brown@intel.com>
+>>>>>>>> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+>>>>>>>> CC: Paul Mackerras <paulus@samba.org>
+>>>>>>>> CC: Christoph Lameter <cl@linux.com>
+>>>>>>>> Cc: Minchan Kim <minchan.kim@gmail.com>
+>>>>>>>> CC: Andrew Morton <akpm@linux-foundation.org>
+>>>>>>>> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+>>>>>>>> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+>>>>>>>>
+>>>>>>>> ---
+>>>>>>>>      drivers/firmware/memmap.c    |   70 +++++++++++++++++++++++++++++++++++++++++++
+>>>>>>>>      include/linux/firmware-map.h |    6 +++
+>>>>>>>>      mm/memory_hotplug.c          |    6 +++
+>>>>>>>>      3 files changed, 81 insertions(+), 1 deletion(-)
+>>>>>>>>
+>>>>>>>> Index: linux-3.5-rc4/mm/memory_hotplug.c
+>>>>>>>> ===================================================================
+>>>>>>>> --- linux-3.5-rc4.orig/mm/memory_hotplug.c	2012-07-03 14:22:00.190240794 +0900
+>>>>>>>> +++ linux-3.5-rc4/mm/memory_hotplug.c	2012-07-03 14:22:03.549198802 +0900
+>>>>>>>> @@ -661,7 +661,11 @@ EXPORT_SYMBOL_GPL(add_memory);
+>>>>>>>>
+>>>>>>>>      int remove_memory(int nid, u64 start, u64 size)
+>>>>>>>>      {
+>>>>>>>> -	return -EBUSY;
+>>>>>>>> +	lock_memory_hotplug();
+>>>>>>>> +	/* remove memmap entry */
+>>>>>>>> +	firmware_map_remove(start, start + size - 1, "System RAM");
+>>>>>>>> +	unlock_memory_hotplug();
+>>>>>>>> +	return 0;
+>>>>>>>>
+>>>>>>>>      }
+>>>>>>>>      EXPORT_SYMBOL_GPL(remove_memory);
+>>>>>>>> Index: linux-3.5-rc4/include/linux/firmware-map.h
+>>>>>>>> ===================================================================
+>>>>>>>> --- linux-3.5-rc4.orig/include/linux/firmware-map.h	2012-07-03 14:21:45.766421116 +0900
+>>>>>>>> +++ linux-3.5-rc4/include/linux/firmware-map.h	2012-07-03 14:22:03.550198789 +0900
+>>>>>>>> @@ -25,6 +25,7 @@
+>>>>>>>>
+>>>>>>>>      int firmware_map_add_early(u64 start, u64 end, const char *type);
+>>>>>>>>      int firmware_map_add_hotplug(u64 start, u64 end, const char *type);
+>>>>>>>> +int firmware_map_remove(u64 start, u64 end, const char *type);
+>>>>>>>>
+>>>>>>>>      #else /* CONFIG_FIRMWARE_MEMMAP */
+>>>>>>>>
+>>>>>>>> @@ -38,6 +39,11 @@ static inline int firmware_map_add_hotpl
+>>>>>>>>      	return 0;
+>>>>>>>>      }
+>>>>>>>>
+>>>>>>>> +static inline int firmware_map_remove(u64 start, u64 end, const char *type)
+>>>>>>>> +{
+>>>>>>>> +	return 0;
+>>>>>>>> +}
+>>>>>>>> +
+>>>>>>>>      #endif /* CONFIG_FIRMWARE_MEMMAP */
+>>>>>>>>
+>>>>>>>>      #endif /* _LINUX_FIRMWARE_MAP_H */
+>>>>>>>> Index: linux-3.5-rc4/drivers/firmware/memmap.c
+>>>>>>>> ===================================================================
+>>>>>>>> --- linux-3.5-rc4.orig/drivers/firmware/memmap.c	2012-07-03 14:21:45.761421180 +0900
+>>>>>>>> +++ linux-3.5-rc4/drivers/firmware/memmap.c	2012-07-03 14:22:03.569198549 +0900
+>>>>>>>> @@ -79,7 +79,16 @@ static const struct sysfs_ops memmap_att
+>>>>>>>>      	.show = memmap_attr_show,
+>>>>>>>>      };
+>>>>>>>>
+>>>>>>>> +static void release_firmware_map_entry(struct kobject *kobj)
+>>>>>>>> +{
+>>>>>>>> +	/*
+>>>>>>>> +	 * FIXME : There is no idea.
+>>>>>>>> +	 *         How to free the entry which allocated bootmem?
+>>>>>>>> +	 */
+>>>>>>>
+>>>>>>> I find a function free_bootmem(), but I am not sure whether it can work here.
+>>>>>>
+>>>>>> It cannot work here.
+>>>>>>
+>>>>>>> Another problem: how to check whether the entry uses bootmem?
+>>>>>>
+>>>>>> When firmware_map_entry is allocated by kzalloc(), the page has PG_slab.
+>>>>>
+>>>>> This is not true. In my test, I find the page does not have PG_slab sometimes.
+>>>>
+>>>> I think that it depends on the allocated size. firmware_map_entry size is
+>>>> smaller than PAGE_SIZE. So the page has PG_Slab.
+>>>
+>>> In my test, I add printk in the function firmware_map_add_hotplug() to display
+>>> page's flags. And sometimes the page is not allocated by slab(I use PageSlab()
+>>> to verify it).
+>>
+>> How did you check it? Could you send your debug patch?
+> 
+> When the memory is not allocated from slab, the flags is 0x10000000008000.
+
+Thank you for sending the patch.
+I think the page to not have PageSlab is a compound page. So we can check
+whether the entry is allocate from bootmem or not as follow:
+
+static void release_firmware_map_entry(struct kobject *kobj)
+{
+	struct firmware_map_entry *entry = to_memmap_entry(kobj);
+	struct page *head_page;
+
+	head_page = virt_to_head_page(entry);
+	if (PageSlab(head_page))
+		kfree(etnry);
+	else
+		/* the entry is allocated from bootmem */
+}
+
+Thanks,
+Yasuaki Ishimatsu
+
+> 
+>  From 8dd51368d6c03edf7edc89cab17441e3741c39c7 Mon Sep 17 00:00:00 2001
+> From: Wen Congyang <wency@cn.fujitsu.com>
+> Date: Wed, 4 Jul 2012 16:05:26 +0800
+> Subject: [PATCH] debug
+> 
+> ---
+>   drivers/firmware/memmap.c |    7 +++++++
+>   1 files changed, 7 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/firmware/memmap.c b/drivers/firmware/memmap.c
+> index adc0710..993ba3f 100644
+> --- a/drivers/firmware/memmap.c
+> +++ b/drivers/firmware/memmap.c
+> @@ -21,6 +21,7 @@
+>   #include <linux/types.h>
+>   #include <linux/bootmem.h>
+>   #include <linux/slab.h>
+> +#include <linux/mm.h>
+>   
+>   /*
+>    * Data types ------------------------------------------------------------------
+> @@ -160,11 +161,17 @@ static int add_sysfs_fw_map_entry(struct firmware_map_entry *entry)
+>   int __meminit firmware_map_add_hotplug(u64 start, u64 end, const char *type)
+>   {
+>   	struct firmware_map_entry *entry;
+> +	struct page *entry_page;
+>   
+>   	entry = kzalloc(sizeof(struct firmware_map_entry), GFP_ATOMIC);
+>   	if (!entry)
+>   		return -ENOMEM;
+>   
+> +	entry_page = virt_to_page(entry);
+> +	printk(KERN_WARNING "flags: %lx\n", entry_page->flags);
+> +	if (PageSlab(entry_page)) {
+> +		printk(KERN_WARNING "page is allocated from slab\n");
+> +	}
+>   	firmware_map_add_entry(start, end, type, entry);
+>   	/* create the memmap entry */
+>   	add_sysfs_fw_map_entry(entry);
+> 
+
+
+
