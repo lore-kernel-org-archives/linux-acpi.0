@@ -1,235 +1,99 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [PATCH 1/2] acpi : cpu hot-remove returns error number when cpu_down()
- fails
-Date: Tue, 10 Jul 2012 09:13:28 +0900
-Message-ID: <4FFB73A8.4030102@jp.fujitsu.com>
-References: <4FF65898.3000301@jp.fujitsu.com> <4FF6B537.1030703@linux.vnet.ibm.com> <4FFA4269.5050808@jp.fujitsu.com> <4FFABFAC.3000708@linux.vnet.ibm.com>
+From: Lin-Bao Zhang <2004.zhang@gmail.com>
+Subject: Re: why Linux kernel will update BIOS's interrupt remapping table
+ base address ? why does Linux Kernel create a new table instead of the one
+ that BIOS provided ?
+Date: Tue, 10 Jul 2012 11:17:03 +0800
+Message-ID: <CANuKePnXeKLuf5MoBhuHS_kqVvFTYTCN=Qs1j7YLVj7wohA0Pw@mail.gmail.com>
+References: <CANuKePntggbPrY7=eq-+AHzqcPG4Y6UGnP+9B57Gs2xNLeCR_A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:60179 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755218Ab2GJANy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jul 2012 20:13:54 -0400
-In-Reply-To: <4FFABFAC.3000708@linux.vnet.ibm.com>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:47327 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751826Ab2GJDRF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Jul 2012 23:17:05 -0400
+In-Reply-To: <CANuKePntggbPrY7=eq-+AHzqcPG4Y6UGnP+9B57Gs2xNLeCR_A@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, linux-kernel@vger.kernel.org
+To: flyboy@gmail.com, yinghai@kernel.org, suresh.b.siddha@intel.com
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi Srivatsa,
+for this thing , we have known that , we can append "x2apic_phys" to
+tell linux kernel we support x2apic physical mode.
+but I found that x2apic_phys is not enough .we still found panic info
+in RHEL6.2(2.6.32) kernel,but on linux kernel-3.4.4 ,no this issue
+again.  any comment for this bug ?
 
-2012/07/09 20:25, Srivatsa S. Bhat wrote:
-> On 07/09/2012 08:01 AM, Yasuaki Ishimatsu wrote:
->> Hi Srivatsa,
->>
->> Thank you for your reviewing.
->>
->> 2012/07/06 18:51, Srivatsa S. Bhat wrote:
->>> On 07/06/2012 08:46 AM, Yasuaki Ishimatsu wrote:
->>>> Even if cpu_down() fails, acpi_processor_remove() continues to remove the cpu.
->>>
->>> Ouch!
->>>
->>>> But in this case, it should return error number since some process may run on
->>>> the cpu. If the cpu has a running process and the cpu is turned the power off,
->>>> the system cannot work well.
->>>>
->>>> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->>>>
->>>> ---
->>>>    drivers/acpi/processor_driver.c |   18 ++++++++++++------
->>>>    1 file changed, 12 insertions(+), 6 deletions(-)
->>>>
->>>> Index: linux-3.5-rc4/drivers/acpi/processor_driver.c
->>>> ===================================================================
->>>> --- linux-3.5-rc4.orig/drivers/acpi/processor_driver.c	2012-06-25 04:53:04.000000000 +0900
->>>> +++ linux-3.5-rc4/drivers/acpi/processor_driver.c	2012-07-05 21:02:58.711285382 +0900
->>>> @@ -610,7 +610,7 @@ err_free_pr:
->>>>    static int acpi_processor_remove(struct acpi_device *device, int type)
->>>>    {
->>>>    	struct acpi_processor *pr = NULL;
->>>> -
->>>> +	int ret;
->>>>
->>>>    	if (!device || !acpi_driver_data(device))
->>>>    		return -EINVAL;
->>>> @@ -621,8 +621,9 @@ static int acpi_processor_remove(struct
->>>>    		goto free;
->>>>
->>>>    	if (type == ACPI_BUS_REMOVAL_EJECT) {
->>>> -		if (acpi_processor_handle_eject(pr))
->>>> -			return -EINVAL;
->>>> +		ret = acpi_processor_handle_eject(pr);
->>>> +		if (ret)
->>>> +			return ret;
->>>>    	}
->>>>
->>>>    	acpi_processor_power_exit(pr, device);
->>>> @@ -841,12 +842,17 @@ static acpi_status acpi_processor_hotadd
->>>>
->>>>    static int acpi_processor_handle_eject(struct acpi_processor *pr)
->>>>    {
->>>> -	if (cpu_online(pr->id))
->>>> -		cpu_down(pr->id);
->>>> +	int ret;
->>>> +
->>>> +	if (cpu_online(pr->id)) {
->>>> +		ret = cpu_down(pr->id);
->>>> +		if (ret)
->>>> +			return ret;
->>>> +	}
->>>>
->>>
->>> Strictly speaking, this is not thorough enough. What prevents someone
->>> from onlining that same cpu again, at this point?
->>> So, IMHO, you need to wrap the contents of this function inside a
->>> get_online_cpus()/put_online_cpus() block, to prevent anyone else
->>> from messing with CPU hotplug at the same time.
->>
->> If I understand your comment by mistake, please let me know.
->> If the contents is wrapped a inside get_online_cpus()/put_online_cpus() block
->> as below, cpu_down() will stop since cpu_down() calls cpu_hotplug_begin() and
->> cpu_hotplug_begin() waits for cpu_hotplug.refcount to become 0.
->>
-> 
-> You are right. Sorry, I overlooked that.
-> 
->> +	get_online_cpus()
->> +	if (cpu_online(pr->id)) {
->> +		ret = cpu_down(pr->id);
->> +		if (ret)
->> +			return ret;
->> +	}
->> +	put_online_cpus()
->>
->> I think following patch can prevent it correctly. How about the patch?
->>
->> ---
->>   drivers/acpi/processor_driver.c |   12 ++++++++++++
->>   kernel/cpu.c                    |    8 +++++---
->>   2 files changed, 17 insertions(+), 3 deletions(-)
->>
->> Index: linux-3.5-rc4/drivers/acpi/processor_driver.c
->> ===================================================================
->> --- linux-3.5-rc4.orig/drivers/acpi/processor_driver.c	2012-07-09 09:59:01.280211202 +0900
->> +++ linux-3.5-rc4/drivers/acpi/processor_driver.c	2012-07-09 11:05:34.559859236 +0900
->> @@ -844,14 +844,26 @@ static int acpi_processor_handle_eject(s
->>   {
->>   	int ret;
->>
->> +retry:
->>   	if (cpu_online(pr->id)) {
->>   		ret = cpu_down(pr->id);
->>   		if (ret)
->>   			return ret;
->>   	}
->>
->> +	get_online_cpus();
->> +	/*
->> +	 * Someone might online the cpu again at this point. So we check that
->> +	 * cpu has been onlined or not. If cpu is online, we try to offline
->> +	 * the cpu again.
->> +	 */
->> +	if (cpu_online(pr->id)) {
-> 
-> How about this:
-> 	if (unlikely(cpu_online(pr->id)) {
-> since the probability of this happening is quite small...
+Initializing cgroup subsys ns
+Initializing cgroup subsys cpuacct
+Initializing cgroup subsys memory
+Initializing cgroup subsys devices
+Initializing cgroup subsys freezer
+Initializing cgroup subsys net_cls
+Initializing cgroup subsys blkio
+Initializing cgroup subsys perf_event
+CPU: Physical Processor ID: 0
+CPU: Processor Core ID: 0
+mce: CPU supports 24 MCE banks
+CPU0: Thermal monitoring enabled (TM1)
+using mwait in idle threads.
+ACPI: Core revision 20090903
+ftrace: converting mcount calls to 0f 1f 44 00 00
+ftrace: allocating 20776 entries in 82 pages
+DMAR: Host address width 40
+DMAR: DRHD base: 0x000000ace00000 flags: 0x0
+IOMMU ace00000: ver 1:0 cap c90780106f0462 ecap f0207e
+DMAR: DRHD base: 0x000000a8000000 flags: 0x1
+IOMMU a8000000: ver 1:0 cap c90780106f0462 ecap f0207e
+DMAR: RMRR base: 0x0000007f7ee000 end: 0x0000007f7effff
+DMAR: RMRR base: 0x0000007f7e7000 end: 0x0000007f7ecfff
+DMAR: RMRR base: 0x0000007f61e000 end: 0x0000007f61ffff
+DMAR: ATSR flags: 0x0
+DMAR: ATSR flags: 0x0
+IOAPIC id 10 under DRHD base 0xace00000
+IOAPIC id 8 under DRHD base 0xa8000000
+IOAPIC id 0 under DRHD base 0xa8000000
+Enabled IRQ remapping in x2apic modef
+NMI: IOCK error (debug interrupt?)
+CPU 0
+Modules linked in:
 
-Thanks. I'll update it.
-
->> +		put_online_cpus();
->> +		goto retry;
->> +	}
->>   	arch_unregister_cpu(pr->id);
->>   	acpi_unmap_lsapic(pr->id);
->> +	put_online_cpus();
->>   	return ret;
->>   }
-> 
-> This retry logic doesn't look elegant, but I don't see any better method :-(
-> 
->>   #else
->> Index: linux-3.5-rc4/kernel/cpu.c
->> ===================================================================
->> --- linux-3.5-rc4.orig/kernel/cpu.c	2012-07-09 09:59:01.280211202 +0900
->> +++ linux-3.5-rc4/kernel/cpu.c	2012-07-09 09:59:02.903190965 +0900
->> @@ -343,11 +343,13 @@ static int __cpuinit _cpu_up(unsigned in
->>   	unsigned long mod = tasks_frozen ? CPU_TASKS_FROZEN : 0;
->>   	struct task_struct *idle;
->>
->> -	if (cpu_online(cpu) || !cpu_present(cpu))
->> -		return -EINVAL;
->> -
->>   	cpu_hotplug_begin();
->>
->> +	if (cpu_online(cpu) || !cpu_present(cpu)) {
->> +		ret = -EINVAL;
->> +		goto out;
->> +	}
->> +
-> 
-> Firstly, why is this change needed?
-
-I cared the race of hot-remove cpu and _cpu_up(). If I do not change it,
-there is the following race.
-
-hot-remove cpu                         |  _cpu_up()
-------------------------------------- ------------------------------------
-call acpi_processor_handle_eject()     |
-     call cpu_down()                   |
-     call get_online_cpus()            |
-                                       | call cpu_hotplug_begin() and stop here
-     call arch_unregister_cpu()        |
-     call acpi_unmap_lsapic()          |
-     call put_online_cpus()            |
-                                       | start and continue _cpu_up()
-     return acpi_processor_remove()    |
-continue hot-remove the cpu            |
-
-So _cpu_up() can continue to itself. And hot-remove cpu can also continue
-itself. If I change it, I think the race disappears as below:
-
-hot-remove cpu                         | _cpu_up()
------------------------------------------------------------------------
-call acpi_processor_handle_eject()     |
-     call cpu_down()                   |
-     call get_online_cpus()            |
-                                       | call cpu_hotplug_begin() and stop here
-     call arch_unregister_cpu()        |
-     call acpi_unmap_lsapic()          |
-          cpu's cpu_present is set     |
-	  to false by set_cpu_present()|
-     call put_online_cpus()            |
-                                       | start _cpu_up()
-				       | check cpu_present() and return -EINVAL
-     return acpi_processor_remove()    |
-continue hot-remove the cpu            |
-
-Thus I think the change is necessary.
-
-Thanks,
-Yasuaki Ishimatsu
-
-> Secondly, if the change is indeed an improvement, then why is it
-> in _this_ patch? IMHO, in that case it should be part of a separate patch.
-> 
-> Coming back to my first point, I don't see why this hunk is needed. We
-> already take the cpu_add_remove_lock (cpu_maps_update_begin/end) before
-> checking the status of the cpu (online or present). And all hotplug
-> operations (cpu_up/cpu_down/disable|enable_nonboot_cpus) go through that
-> lock. Isn't that enough? Or am I missing something?
-> 
->>   	idle = idle_thread_get(cpu);
->>   	if (IS_ERR(idle)) {
->>   		ret = PTR_ERR(idle);
->>
->   
-> Regards,
-> Srivatsa S. Bhat
-> 
-
-
-
+Pid: 1, comm: swapper Not tainted 2.6.32-220.el6.x86_64 #1 HP ProLiant DL980 G7
+RIP: 0010:[<ffffffff8100f937>]  [<ffffffff8100f937>]
+mask_and_ack_8259A+0x57/0x110
+RSP: 0018:ffff880045603f08  EFLAGS: 00000046
+RAX: 00000000000000ff RBX: 000000000000ffff RCX: 00000000000001c0
+RDX: 0000000000000082 RSI: ffffffff81a83240 RDI: ffffffff81dd65e0
+RBP: ffff880045603f28 R08: ffff88086c42e000 R09: ffff88086c42fe30
+R10: 0000000000000001 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000082 R14: ffff88086c42fd88 R15: 0000000000015e40
+FS:  0000000000000000(0000) GS:ffff880045600000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0018 ES: 0018 CR0: 000000008005003b
+CR2: 0000000000000000 CR3: 0000000001a85000 CR4: 00000000000006f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+Process swapper (pid: 1, threadinfo ffff88086c42e000, task ffff88e7ecdc4040)
+Stack:
+ 0000000000000046 ffffffff81a83240 ffffffff81a832ac 0000000000000000
+<0> ffff880045603f58 ffffffff810dc3ca ffffffff8100c24c 0000000000000000
+<0> 0000000000000030 0000000000000000 ffff880045603f78 ffffffff8100df09
+Call Trace:
+ <IRQ>
+ [<ffffffff810dc3ca>] handle_level_irq+0x3a/0x130
+ [<ffffffff8100c24c>] ? call_softirq+0x1c/0x30
+ [<ffffffff8100df09>] handle_irq+0x49/0xa0
+ [<ffffffff814f4d0c>] do_IRQ+0x6c/0xf0
+ [<ffffffff8100ba53>] ret_from_intr+0x0/0x11
+ <EOI>
+ [<ffffffff81c303ec>] ? enable_IR_x2apic+0x18a/0x221
+ [<ffffffff81c2e189>] native_smp_prepareus+0x143/0x389
+ [<ffffffff81c1f740>] kernel_init+0x112/0x2f9
+ [<ffffffff8100c14a>] child_rip+0xa/0x20
+ [<ffffffff81c1f62e>] ? kernel_init+0x0/0x2f9
+ [<ffffffff8100c140>] ? child_rip+0x0/0x20
+Code: e8 ef f8 4d 00 49 89 c5 8b 05 16 f7 a7 00 85 c3 75 42 09 c3 89
+1d 0a f7 a7 00 41 f6 c4 08 75 6d e4 21 0f b6 05 fb f6 a7 00 e6 21 <41>
+8d 44 24 60 e6 20 4c 89 ee 48 c7 c7 e0 65 dd 81 e8 23 fa 4d
+NMI: IOCK error (debug interrupt?)
+CPU 0
+Modules linked in:
