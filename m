@@ -1,53 +1,46 @@
-From: Toshi Kani <toshi.kani@hp.com>
+From: Khalid Aziz <khalid.aziz@hp.com>
 Subject: Re: [PATCH] ACPI: Add ACPI CPU hot-remove support
-Date: Tue, 10 Jul 2012 11:36:27 -0600
-Message-ID: <1341941787.16730.798.camel@misato.fc.hp.com>
-References: <16070.2632544146$1340981518@news.gmane.org>
-	 <loom.20120710T132300-88@post.gmane.org>
+Date: Tue, 10 Jul 2012 16:56:18 -0600
+Message-ID: <1341960978.1065.12.camel@lyra>
+References: <1340981479-6521-1-git-send-email-toshi.kani@hp.com>
+	 <4FF711DE.1030108@gmail.com> <1341602020.16730.695.camel@misato.fc.hp.com>
+	 <4FF745F1.9030103@hp.com>  <1341608402.16730.730.camel@misato.fc.hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0029.austin.hp.com ([15.216.28.36]:22017 "EHLO
-	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751625Ab2GJRkE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Jul 2012 13:40:04 -0400
-In-Reply-To: <loom.20120710T132300-88@post.gmane.org>
+Received: from g6t0185.atlanta.hp.com ([15.193.32.62]:13396 "EHLO
+	g6t0185.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754703Ab2GJW4U (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Jul 2012 18:56:20 -0400
+In-Reply-To: <1341608402.16730.730.camel@misato.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: IgorMammedov <imammedo@redhat.com>
-Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: Jiang Liu <liuj97@gmail.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, 2012-07-10 at 11:29 +0000, IgorMammedov wrote:
-> <y <at> domain.invalid> writes:
+On Fri, 2012-07-06 at 15:00 -0600, Toshi Kani wrote:
+> Yes, offlining and eject are similar operations to a core as it alone
+> cannot be removed physically.  Ejecting a core is a logical eject
+> operation, which updates the status (_STA) of the object in ACPI after
+> offlining.  The difference from the offlining is that the ejected core
+> is no longer assigned to the partition.  Here is one example.  Say, a
+> core is assigned to a guest partition as a dedicated resource (ex. 100%
+> of its CPU time is bound to the partition).  Offlining this core saves
+> the power-consumption, but this core is still bound to the partition.
+> Ejecting the core removes it from the partition (logically), and allows
+> it to be assigned to other partition as a dedicated resource with
+> hot-add.
 > 
-> > 
-> > From: Toshi Kani <toshi.kani <at> hp.com>
-> > 
-> > Added CPU hot-remove support through an ACPI eject notification.
-> > It calls acpi_bus_hot_remove_device(), which shares the same code
-> > path with the sysfs eject operation.  acpi_os_hotplug_execute()
-> > serializes hot-remove operations between ACPI hot-remove and sysfs
-> > eject requests.
-> > 
-> > Signed-off-by: Toshi Kani <toshi.kani <at> hp.com>
-> > 
-> > ---
-> > This patch applies on top of the patchset below.
-> > 
-> > [PATCH v6 0/6] ACPI: Add _OST support for ACPI hotplug
-> > http://marc.info/?l=linux-acpi&m=134074381322973&w=2
-> > 
-> Hi Toshi,
-> 
-> Tested patches on RHEL6.3, ejected cpu is removed from sysfs and corresponding
-> _EJxx method is called  as expected upon receiving notify with eject request.
-> 
-> Tested-by: IgorMammedov <imammedo@redhat.com>
 
-Great! Thanks Igor for testing it!
+Ejecting a core is reasonable when eject happens from a guest. I still
+wonder what firmware would do if kernel calls eject method on a core
+when running on the native host platform. If firmware behavior is not
+well defined in this case, there might be some risk associated with
+calling eject method on core. 
 
--Toshi
+Makes sense?
 
-
+-- 
+Khalid Aziz <khalid.aziz@hp.com>
 
