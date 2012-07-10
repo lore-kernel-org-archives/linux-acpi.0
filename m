@@ -1,38 +1,82 @@
-From: Rajendra Nayak <rajendra.nayak@linaro.org>
-Subject: Re: [PATCH 2/4] cpuidle: define the enter function in the driver
- structure
-Date: Tue, 10 Jul 2012 13:59:23 +0530
-Message-ID: <4FFBE7E3.8020809@linaro.org>
-References: <1341494608-16591-1-git-send-email-daniel.lezcano@linaro.org>	<1341494608-16591-2-git-send-email-daniel.lezcano@linaro.org>	<201207052238.44330.rjw@sisk.pl> <4FF6C4C1.7030004@linaro.org>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [RFC PATCH v3 0/13] memory-hotplug : hot-remove physical memory
+Date: Tue, 10 Jul 2012 18:58:04 +0900
+Message-ID: <4FFBFCAC.4010007@jp.fujitsu.com>
+References: <4FFAB0A2.8070304@jp.fujitsu.com> <alpine.DEB.2.00.1207091015570.30060@router.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:61027 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753548Ab2GJI3a (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Jul 2012 04:29:30 -0400
-Received: by obbuo13 with SMTP id uo13so21840264obb.19
-        for <linux-acpi@vger.kernel.org>; Tue, 10 Jul 2012 01:29:29 -0700 (PDT)
-In-Reply-To: <4FF6C4C1.7030004@linaro.org>
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:47249 "EHLO
+	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751514Ab2GJJ6e (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Jul 2012 05:58:34 -0400
+In-Reply-To: <alpine.DEB.2.00.1207091015570.30060@router.home>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linaro-dev@lists.linaro.org, lenb@kernel.org
+To: Christoph Lameter <cl@linux.com>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, wency@cn.fujitsu.com
 
-Hi Daniel,
+Hi Christoph,
 
-On Friday 06 July 2012 04:28 PM, Daniel Lezcano wrote:
-> The main purpose of all these cleanup patches are to move out all
-> non-data information from the cpuidle_state structure in order to add a
-> new api which could be 'cpuidle_register_cpu_latency(int cpu, struct
-> cpuidle_latencies latencies)'.
+2012/07/10 0:18, Christoph Lameter wrote:
+>
+> On Mon, 9 Jul 2012, Yasuaki Ishimatsu wrote:
+>
+>> Even if you apply these patches, you cannot remove the physical memory
+>> completely since these patches are still under development. I want you to
+>> cooperate to improve the physical memory hot-remove. So please review these
+>> patches and give your comment/idea.
+>
+> Could you at least give a method on how you want to do physical memory
+> removal?
 
-So are there any technical difficulties in adding such an api with the
-non-data information being part of cpuidle_state? Or its just that you
-think the already duplicated non-data information (per state) is going
-to be duplicated much more (per state per cpu) in most cases.
+We plan to release a dynamic hardware partitionable system. It will be
+able to hot remove/add a system board which included memory and cpu.
+But as you know, Linux does not support memory hot-remove on x86 box.
+So I try to develop it.
 
-regards,
-Rajendra
+Current plan to hot remove system board is to use container driver.
+Thus I define the system board in ACPI DSDT table as a container device.
+It have supported hot-add a container device. And if container device
+has _EJ0 ACPI method, "eject" file to remove the container device is
+prepared as follow:
+
+# ls -l /sys/bus/acpi/devices/ACPI0004\:01/eject
+--w-------. 1 root root 4096 Jul 10 18:19 /sys/bus/acpi/devices/ACPI0004:01/eject
+
+When I hot-remove the container device, I echo 1 to the file as follow:
+
+#echo 1 > /sys/bus/acpi/devices/ACPI0004\:02/eject
+
+Then acpi_bus_trim() is called. And it calls acpi_memory_device_remove()
+for removing memory device. But the code does not do nothing.
+So I developed the continuation of the function.
+
+> You would have to remove all objects from the range you want to
+> physically remove. That is only possible under special circumstances and
+> with a limited set of objects. Even if you exclusively use ZONE_MOVEABLE
+> you still may get cases where pages are pinned for a long time.
+
+I know it. So my memory hot-remove plan is as follows:
+
+1. hot-added a system board
+    All memory which included the system board is offline.
+
+2. online the memory as removable page
+    The function has not supported yet. It is being developed by Lai as follow:
+    http://lkml.indiana.edu/hypermail/linux/kernel/1207.0/01478.html
+    If it is supported, I will be able to create movable memory.
+
+3. hot-remove the memory by container device's eject file
+
+Thanks,
+Yasuaki Ishimatsu
+
+>
+> I am not sure that these patches are useful unless we know where you are
+> going with this. If we end up with a situation where we still cannot
+> remove physical memory then this patchset is not helpful.
+
+
 
