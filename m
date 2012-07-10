@@ -1,92 +1,53 @@
-From: Jiang Liu <liuj97@gmail.com>
-Subject: Re: [RFC PATCH v3 0/13] memory-hotplug : hot-remove physical memory
-Date: Wed, 11 Jul 2012 00:50:11 +0800
-Message-ID: <4FFC5D43.7040206@gmail.com>
-References: <4FFAB0A2.8070304@jp.fujitsu.com> <alpine.DEB.2.00.1207091015570.30060@router.home> <4FFBFCAC.4010007@jp.fujitsu.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH] ACPI: Add ACPI CPU hot-remove support
+Date: Tue, 10 Jul 2012 11:36:27 -0600
+Message-ID: <1341941787.16730.798.camel@misato.fc.hp.com>
+References: <16070.2632544146$1340981518@news.gmane.org>
+	 <loom.20120710T132300-88@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-gg0-f174.google.com ([209.85.161.174]:61452 "EHLO
-	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754038Ab2GJQu1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Jul 2012 12:50:27 -0400
-In-Reply-To: <4FFBFCAC.4010007@jp.fujitsu.com>
+Received: from g1t0029.austin.hp.com ([15.216.28.36]:22017 "EHLO
+	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751625Ab2GJRkE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Jul 2012 13:40:04 -0400
+In-Reply-To: <loom.20120710T132300-88@post.gmane.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Christoph Lameter <cl@linux.com>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, rientjes@google.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, wency@cn.fujitsu.com
+To: IgorMammedov <imammedo@redhat.com>
+Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org
 
-On 07/10/2012 05:58 PM, Yasuaki Ishimatsu wrote:
-> Hi Christoph,
+On Tue, 2012-07-10 at 11:29 +0000, IgorMammedov wrote:
+> <y <at> domain.invalid> writes:
 > 
-> 2012/07/10 0:18, Christoph Lameter wrote:
->>
->> On Mon, 9 Jul 2012, Yasuaki Ishimatsu wrote:
->>
->>> Even if you apply these patches, you cannot remove the physical memory
->>> completely since these patches are still under development. I want you to
->>> cooperate to improve the physical memory hot-remove. So please review these
->>> patches and give your comment/idea.
->>
->> Could you at least give a method on how you want to do physical memory
->> removal?
+> > 
+> > From: Toshi Kani <toshi.kani <at> hp.com>
+> > 
+> > Added CPU hot-remove support through an ACPI eject notification.
+> > It calls acpi_bus_hot_remove_device(), which shares the same code
+> > path with the sysfs eject operation.  acpi_os_hotplug_execute()
+> > serializes hot-remove operations between ACPI hot-remove and sysfs
+> > eject requests.
+> > 
+> > Signed-off-by: Toshi Kani <toshi.kani <at> hp.com>
+> > 
+> > ---
+> > This patch applies on top of the patchset below.
+> > 
+> > [PATCH v6 0/6] ACPI: Add _OST support for ACPI hotplug
+> > http://marc.info/?l=linux-acpi&m=134074381322973&w=2
+> > 
+> Hi Toshi,
 > 
-> We plan to release a dynamic hardware partitionable system. It will be
-> able to hot remove/add a system board which included memory and cpu.
-> But as you know, Linux does not support memory hot-remove on x86 box.
-> So I try to develop it.
+> Tested patches on RHEL6.3, ejected cpu is removed from sysfs and corresponding
+> _EJxx method is called  as expected upon receiving notify with eject request.
 > 
-> Current plan to hot remove system board is to use container driver.
-> Thus I define the system board in ACPI DSDT table as a container device.
-> It have supported hot-add a container device. And if container device
-> has _EJ0 ACPI method, "eject" file to remove the container device is
-> prepared as follow:
-> 
-> # ls -l /sys/bus/acpi/devices/ACPI0004\:01/eject
-> --w-------. 1 root root 4096 Jul 10 18:19 /sys/bus/acpi/devices/ACPI0004:01/eject
-> 
-> When I hot-remove the container device, I echo 1 to the file as follow:
-> 
-> #echo 1 > /sys/bus/acpi/devices/ACPI0004\:02/eject
-> 
-> Then acpi_bus_trim() is called. And it calls acpi_memory_device_remove()
-> for removing memory device. But the code does not do nothing.
-> So I developed the continuation of the function.
-> 
->> You would have to remove all objects from the range you want to
->> physically remove. That is only possible under special circumstances and
->> with a limited set of objects. Even if you exclusively use ZONE_MOVEABLE
->> you still may get cases where pages are pinned for a long time.
-> 
-> I know it. So my memory hot-remove plan is as follows:
-> 
-> 1. hot-added a system board
->    All memory which included the system board is offline.
-> 
-> 2. online the memory as removable page
->    The function has not supported yet. It is being developed by Lai as follow:
->    http://lkml.indiana.edu/hypermail/linux/kernel/1207.0/01478.html
->    If it is supported, I will be able to create movable memory.
-> 
-> 3. hot-remove the memory by container device's eject file
-We have implemented a prototype to do physical node (mem + CPU + IOH) hotplug
-for Itanium and is now porting it to x86. But with currently solution, memory
-hotplug functionality may cause 10-20% performance decrease because we concentrate
-all DMA/Normal memory to the first NUMA node, and all other NUMA nodes only
-hosts ZONE_MOVABLE. We are working on solution to minimize the performance
-drop now.
+> Tested-by: IgorMammedov <imammedo@redhat.com>
 
-> 
-> Thanks,
-> Yasuaki Ishimatsu
-> 
->>
->> I am not sure that these patches are useful unless we know where you are
->> going with this. If we end up with a situation where we still cannot
->> remove physical memory then this patchset is not helpful.
-> 
-> 
-> 
+Great! Thanks Igor for testing it!
+
+-Toshi
+
 
 
