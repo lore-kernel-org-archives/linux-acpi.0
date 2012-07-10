@@ -1,157 +1,224 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: [PATCH v2 3/3] acpi : acpi_bus_trim() stops removing devices when
- failing to remove the device
-Date: Tue, 10 Jul 2012 15:10:49 +0900
-Message-ID: <4FFBC769.9080506@jp.fujitsu.com>
-References: <4FFBC66B.7030606@jp.fujitsu.com>
+From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
+Subject: Re: [PATCH 1/2] acpi : cpu hot-remove returns error number when cpu_down()
+ fails
+Date: Tue, 10 Jul 2012 12:21:24 +0530
+Message-ID: <4FFBD0EC.5060300@linux.vnet.ibm.com>
+References: <4FF65898.3000301@jp.fujitsu.com> <4FF6B537.1030703@linux.vnet.ibm.com> <4FFA4269.5050808@jp.fujitsu.com> <4FFABFAC.3000708@linux.vnet.ibm.com> <4FFB73A8.4030102@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Type: text/plain; charset=ISO-2022-JP
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:52060 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752347Ab2GJGK7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Jul 2012 02:10:59 -0400
-In-Reply-To: <4FFBC66B.7030606@jp.fujitsu.com>
+Received: from e23smtp05.au.ibm.com ([202.81.31.147]:59419 "EHLO
+	e23smtp05.au.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753094Ab2GJGwb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Jul 2012 02:52:31 -0400
+Received: from /spool/local
+	by e23smtp05.au.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <linux-acpi@vger.kernel.org> from <srivatsa.bhat@linux.vnet.ibm.com>;
+	Tue, 10 Jul 2012 06:46:25 +1000
+In-Reply-To: <4FFB73A8.4030102@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, srivatsa.bhat@linux.vnet.ibm.com, toshi.kani@hp.com
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, linux-kernel@vger.kernel.org
 
-acpi_bus_trim() stops removing devices, when acpi_bus_remove() return error
-number. But acpi_bus_remove() cannot return error number correctly.
-acpi_bus_remove() only return -EINVAL, when dev argument is NULL. Thus even if
-device cannot be removed correctly, acpi_bus_trim() ignores and continues to
-remove devices. acpi_bus_hot_remove_device() uses acpi_bus_trim() for removing
-devices. Therefore acpi_bus_hot_remove_device() can send "_EJ0" to firmware,
-even if the device is running on the system. In this case, the system cannot
-work well. So acpi_bus_trim() should check whether device was removed or not
-correctly. The patch adds error check into some functions to remove the device.
+On 07/10/2012 05:43 AM, Yasuaki Ishimatsu wrote:
+> Hi Srivatsa,
+> 
+> 2012/07/09 20:25, Srivatsa S. Bhat wrote:
+>> On 07/09/2012 08:01 AM, Yasuaki Ishimatsu wrote:
+>>> Hi Srivatsa,
+>>>
+>>> Thank you for your reviewing.
+>>>
+>>> 2012/07/06 18:51, Srivatsa S. Bhat wrote:
+>>>> On 07/06/2012 08:46 AM, Yasuaki Ishimatsu wrote:
+>>>>> Even if cpu_down() fails, acpi_processor_remove() continues to remove the cpu.
+>>>>
+>>>> Ouch!
+>>>>
+>>>>> But in this case, it should return error number since some process may run on
+>>>>> the cpu. If the cpu has a running process and the cpu is turned the power off,
+>>>>> the system cannot work well.
+>>>>>
+>>>>> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+>>>>>
+>>>>> ---
+>>>>>    drivers/acpi/processor_driver.c |   18 ++++++++++++------
+>>>>>    1 file changed, 12 insertions(+), 6 deletions(-)
+>>>>>
+>>>>> Index: linux-3.5-rc4/drivers/acpi/processor_driver.c
+>>>>> ===================================================================
+>>>>> --- linux-3.5-rc4.orig/drivers/acpi/processor_driver.c	2012-06-25 04:53:04.000000000 +0900
+>>>>> +++ linux-3.5-rc4/drivers/acpi/processor_driver.c	2012-07-05 21:02:58.711285382 +0900
+>>>>> @@ -610,7 +610,7 @@ err_free_pr:
+>>>>>    static int acpi_processor_remove(struct acpi_device *device, int type)
+>>>>>    {
+>>>>>    	struct acpi_processor *pr = NULL;
+>>>>> -
+>>>>> +	int ret;
+>>>>>
+>>>>>    	if (!device || !acpi_driver_data(device))
+>>>>>    		return -EINVAL;
+>>>>> @@ -621,8 +621,9 @@ static int acpi_processor_remove(struct
+>>>>>    		goto free;
+>>>>>
+>>>>>    	if (type == ACPI_BUS_REMOVAL_EJECT) {
+>>>>> -		if (acpi_processor_handle_eject(pr))
+>>>>> -			return -EINVAL;
+>>>>> +		ret = acpi_processor_handle_eject(pr);
+>>>>> +		if (ret)
+>>>>> +			return ret;
+>>>>>    	}
+>>>>>
+>>>>>    	acpi_processor_power_exit(pr, device);
+>>>>> @@ -841,12 +842,17 @@ static acpi_status acpi_processor_hotadd
+>>>>>
+>>>>>    static int acpi_processor_handle_eject(struct acpi_processor *pr)
+>>>>>    {
+>>>>> -	if (cpu_online(pr->id))
+>>>>> -		cpu_down(pr->id);
+>>>>> +	int ret;
+>>>>> +
+>>>>> +	if (cpu_online(pr->id)) {
+>>>>> +		ret = cpu_down(pr->id);
+>>>>> +		if (ret)
+>>>>> +			return ret;
+>>>>> +	}
+>>>>>
+>>>>
+>>>> Strictly speaking, this is not thorough enough. What prevents someone
+>>>> from onlining that same cpu again, at this point?
+>>>> So, IMHO, you need to wrap the contents of this function inside a
+>>>> get_online_cpus()/put_online_cpus() block, to prevent anyone else
+>>>> from messing with CPU hotplug at the same time.
+>>>
+>>> If I understand your comment by mistake, please let me know.
+>>> If the contents is wrapped a inside get_online_cpus()/put_online_cpus() block
+>>> as below, cpu_down() will stop since cpu_down() calls cpu_hotplug_begin() and
+>>> cpu_hotplug_begin() waits for cpu_hotplug.refcount to become 0.
+>>>
+>>
+>> You are right. Sorry, I overlooked that.
+>>
+>>> +	get_online_cpus()
+>>> +	if (cpu_online(pr->id)) {
+>>> +		ret = cpu_down(pr->id);
+>>> +		if (ret)
+>>> +			return ret;
+>>> +	}
+>>> +	put_online_cpus()
+>>>
+>>> I think following patch can prevent it correctly. How about the patch?
+>>>
+>>> ---
+>>>   drivers/acpi/processor_driver.c |   12 ++++++++++++
+>>>   kernel/cpu.c                    |    8 +++++---
+>>>   2 files changed, 17 insertions(+), 3 deletions(-)
+>>>
+>>> Index: linux-3.5-rc4/drivers/acpi/processor_driver.c
+>>> ===================================================================
+>>> --- linux-3.5-rc4.orig/drivers/acpi/processor_driver.c	2012-07-09 09:59:01.280211202 +0900
+>>> +++ linux-3.5-rc4/drivers/acpi/processor_driver.c	2012-07-09 11:05:34.559859236 +0900
+>>> @@ -844,14 +844,26 @@ static int acpi_processor_handle_eject(s
+>>>   {
+>>>   	int ret;
+>>>
+>>> +retry:
+>>>   	if (cpu_online(pr->id)) {
+>>>   		ret = cpu_down(pr->id);
+>>>   		if (ret)
+>>>   			return ret;
+>>>   	}
+>>>
+>>> +	get_online_cpus();
+>>> +	/*
+>>> +	 * Someone might online the cpu again at this point. So we check that
+>>> +	 * cpu has been onlined or not. If cpu is online, we try to offline
+>>> +	 * the cpu again.
+>>> +	 */
+>>> +	if (cpu_online(pr->id)) {
+>>
+>> How about this:
+>> 	if (unlikely(cpu_online(pr->id)) {
+>> since the probability of this happening is quite small...
+> 
+> Thanks. I'll update it.
+> 
+>>> +		put_online_cpus();
+>>> +		goto retry;
+>>> +	}
+>>>   	arch_unregister_cpu(pr->id);
+>>>   	acpi_unmap_lsapic(pr->id);
+>>> +	put_online_cpus();
+>>>   	return ret;
+>>>   }
+>>
+>> This retry logic doesn't look elegant, but I don't see any better method :-(
+>>
+>>>   #else
+>>> Index: linux-3.5-rc4/kernel/cpu.c
+>>> ===================================================================
+>>> --- linux-3.5-rc4.orig/kernel/cpu.c	2012-07-09 09:59:01.280211202 +0900
+>>> +++ linux-3.5-rc4/kernel/cpu.c	2012-07-09 09:59:02.903190965 +0900
+>>> @@ -343,11 +343,13 @@ static int __cpuinit _cpu_up(unsigned in
+>>>   	unsigned long mod = tasks_frozen ? CPU_TASKS_FROZEN : 0;
+>>>   	struct task_struct *idle;
+>>>
+>>> -	if (cpu_online(cpu) || !cpu_present(cpu))
+>>> -		return -EINVAL;
+>>> -
+>>>   	cpu_hotplug_begin();
+>>>
+>>> +	if (cpu_online(cpu) || !cpu_present(cpu)) {
+>>> +		ret = -EINVAL;
+>>> +		goto out;
+>>> +	}
+>>> +
+>>
+>> Firstly, why is this change needed?
+> 
+> I cared the race of hot-remove cpu and _cpu_up(). If I do not change it,
+> there is the following race.
+> 
+> hot-remove cpu                         |  _cpu_up()
+> ------------------------------------- ------------------------------------
+> call acpi_processor_handle_eject()     |
+>      call cpu_down()                   |
+>      call get_online_cpus()            |
+>                                        | call cpu_hotplug_begin() and stop here
+>      call arch_unregister_cpu()        |
+>      call acpi_unmap_lsapic()          |
+>      call put_online_cpus()            |
+>                                        | start and continue _cpu_up()
+>      return acpi_processor_remove()    |
+> continue hot-remove the cpu            |
+> 
+> So _cpu_up() can continue to itself. And hot-remove cpu can also continue
+> itself. If I change it, I think the race disappears as below:
+> 
+> hot-remove cpu                         | _cpu_up()
+> -----------------------------------------------------------------------
+> call acpi_processor_handle_eject()     |
+>      call cpu_down()                   |
+>      call get_online_cpus()            |
+>                                        | call cpu_hotplug_begin() and stop here
+>      call arch_unregister_cpu()        |
+>      call acpi_unmap_lsapic()          |
+>           cpu's cpu_present is set     |
+> 	  to false by set_cpu_present()|
+>      call put_online_cpus()            |
+>                                        | start _cpu_up()
+> 				       | check cpu_present() and return -EINVAL
+>      return acpi_processor_remove()    |
+> continue hot-remove the cpu            |
+> 
+> Thus I think the change is necessary.
+> 
 
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Thanks for the detailed explanation. I had missed this race condition.
+Now I see why all the changes in your patch are needed. 
 
----
- drivers/acpi/scan.c    |   15 ++++++++++++---
- drivers/base/dd.c      |   22 +++++++++++++++++-----
- include/linux/device.h |    2 +-
- 3 files changed, 30 insertions(+), 9 deletions(-)
-
-Index: linux-3.5-rc4/drivers/acpi/scan.c
-===================================================================
---- linux-3.5-rc4.orig/drivers/acpi/scan.c	2012-07-05 21:14:39.196187725 +0900
-+++ linux-3.5-rc4/drivers/acpi/scan.c	2012-07-05 21:15:06.077851657 +0900
-@@ -425,12 +425,17 @@ static int acpi_device_remove(struct dev
- {
- 	struct acpi_device *acpi_dev = to_acpi_device(dev);
- 	struct acpi_driver *acpi_drv = acpi_dev->driver;
-+	int ret;
-
- 	if (acpi_drv) {
- 		if (acpi_drv->ops.notify)
- 			acpi_device_remove_notify_handler(acpi_dev);
--		if (acpi_drv->ops.remove)
--			acpi_drv->ops.remove(acpi_dev, acpi_dev->removal_type);
-+		if (acpi_drv->ops.remove) {
-+			ret = acpi_drv->ops.remove(acpi_dev,
-+						   acpi_dev->removal_type);
-+			if (ret)
-+				return ret;
-+		}
- 	}
- 	acpi_dev->driver = NULL;
- 	acpi_dev->driver_data = NULL;
-@@ -1208,11 +1213,15 @@ static int acpi_device_set_context(struc
-
- static int acpi_bus_remove(struct acpi_device *dev, int rmdevice)
- {
-+	int ret;
-+
- 	if (!dev)
- 		return -EINVAL;
-
- 	dev->removal_type = ACPI_BUS_REMOVAL_EJECT;
--	device_release_driver(&dev->dev);
-+	ret = device_release_driver(&dev->dev);
-+	if (ret)
-+		return ret;
-
- 	if (!rmdevice)
- 		return 0;
-Index: linux-3.5-rc4/drivers/base/dd.c
-===================================================================
---- linux-3.5-rc4.orig/drivers/base/dd.c	2012-07-05 21:14:39.192187776 +0900
-+++ linux-3.5-rc4/drivers/base/dd.c	2012-07-05 21:15:06.079851633 +0900
-@@ -464,9 +464,10 @@ EXPORT_SYMBOL_GPL(driver_attach);
-  * __device_release_driver() must be called with @dev lock held.
-  * When called for a USB interface, @dev->parent lock must be held as well.
-  */
--static void __device_release_driver(struct device *dev)
-+static int __device_release_driver(struct device *dev)
- {
- 	struct device_driver *drv;
-+	int ret;
-
- 	drv = dev->driver;
- 	if (drv) {
-@@ -482,9 +483,11 @@ static void __device_release_driver(stru
- 		pm_runtime_put_sync(dev);
-
- 		if (dev->bus && dev->bus->remove)
--			dev->bus->remove(dev);
-+			ret = dev->bus->remove(dev);
- 		else if (drv->remove)
--			drv->remove(dev);
-+			ret = drv->remove(dev);
-+		if (ret)
-+			goto rollback;
- 		devres_release_all(dev);
- 		dev->driver = NULL;
- 		klist_remove(&dev->p->knode_driver);
-@@ -494,6 +497,12 @@ static void __device_release_driver(stru
- 						     dev);
-
- 	}
-+
-+	return ret;
-+
-+rollback:
-+	driver_sysfs_add(dev);
-+	return ret;
- }
-
- /**
-@@ -503,16 +512,19 @@ static void __device_release_driver(stru
-  * Manually detach device from driver.
-  * When called for a USB interface, @dev->parent lock must be held.
-  */
--void device_release_driver(struct device *dev)
-+int device_release_driver(struct device *dev)
- {
-+	int ret;
- 	/*
- 	 * If anyone calls device_release_driver() recursively from
- 	 * within their ->remove callback for the same device, they
- 	 * will deadlock right here.
- 	 */
- 	device_lock(dev);
--	__device_release_driver(dev);
-+	ret = __device_release_driver(dev);
- 	device_unlock(dev);
-+
-+	return ret;
- }
- EXPORT_SYMBOL_GPL(device_release_driver);
-
-Index: linux-3.5-rc4/include/linux/device.h
-===================================================================
---- linux-3.5-rc4.orig/include/linux/device.h	2012-07-05 21:14:39.202187649 +0900
-+++ linux-3.5-rc4/include/linux/device.h	2012-07-05 21:15:06.095851431 +0900
-@@ -827,7 +827,7 @@ static inline void *dev_get_platdata(con
-  * for information on use.
-  */
- extern int __must_check device_bind_driver(struct device *dev);
--extern void device_release_driver(struct device *dev);
-+extern int device_release_driver(struct device *dev);
- extern int  __must_check device_attach(struct device *dev);
- extern int __must_check driver_attach(struct device_driver *drv);
- extern int __must_check device_reprobe(struct device *dev);
+Regards,
+Srivatsa S. Bhat
 
