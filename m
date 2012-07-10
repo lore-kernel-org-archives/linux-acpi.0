@@ -1,27 +1,29 @@
 From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Subject: Re: [PATCH 1/2] acpi : cpu hot-remove returns error number when cpu_down()
  fails
-Date: Tue, 10 Jul 2012 13:57:18 +0900
-Message-ID: <4FFBB62E.9010707@jp.fujitsu.com>
-References: <4FF65898.3000301@jp.fujitsu.com>  <4FF6B537.1030703@linux.vnet.ibm.com> <4FFA4269.5050808@jp.fujitsu.com>  <4FFABFAC.3000708@linux.vnet.ibm.com> <1341868544.16730.780.camel@misato.fc.hp.com>
+Date: Tue, 10 Jul 2012 14:14:40 +0900
+Message-ID: <4FFBBA40.2010803@jp.fujitsu.com>
+References: <4FF65898.3000301@jp.fujitsu.com> <4FF6B537.1030703@linux.vnet.ibm.com> <4FFA4269.5050808@jp.fujitsu.com> <4FFABFAC.3000708@linux.vnet.ibm.com> <4FFB73A8.4030102@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset="ISO-2022-JP"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:60640 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751698Ab2GJE5m (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Jul 2012 00:57:42 -0400
-In-Reply-To: <1341868544.16730.780.camel@misato.fc.hp.com>
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:34414 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752425Ab2GJFPF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Jul 2012 01:15:05 -0400
+In-Reply-To: <4FFB73A8.4030102@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, linux-acpi@vger.kernel.org, lenb@kernel.org, linux-kernel@vger.kernel.org
+To: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, linux-kernel@vger.kernel.org
 
-Hi Toshi,
+Hi Srivatsa,
 
-2012/07/10 6:15, Toshi Kani wrote:
-> On Mon, 2012-07-09 at 16:55 +0530, Srivatsa S. Bhat wrote:
+2012/07/10 9:13, Yasuaki Ishimatsu wrote:
+> Hi Srivatsa,
+> 
+> 2012/07/09 20:25, Srivatsa S. Bhat wrote:
 >> On 07/09/2012 08:01 AM, Yasuaki Ishimatsu wrote:
 >>> Hi Srivatsa,
 >>>
@@ -40,38 +42,38 @@ Hi Toshi,
 >>>>> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 >>>>>
 >>>>> ---
->>>>>    drivers/acpi/processor_driver.c |   18 ++++++++++++------
->>>>>    1 file changed, 12 insertions(+), 6 deletions(-)
+>>>>>     drivers/acpi/processor_driver.c |   18 ++++++++++++------
+>>>>>     1 file changed, 12 insertions(+), 6 deletions(-)
 >>>>>
 >>>>> Index: linux-3.5-rc4/drivers/acpi/processor_driver.c
 >>>>> ===================================================================
 >>>>> --- linux-3.5-rc4.orig/drivers/acpi/processor_driver.c	2012-06-25 04:53:04.000000000 +0900
 >>>>> +++ linux-3.5-rc4/drivers/acpi/processor_driver.c	2012-07-05 21:02:58.711285382 +0900
 >>>>> @@ -610,7 +610,7 @@ err_free_pr:
->>>>>    static int acpi_processor_remove(struct acpi_device *device, int type)
->>>>>    {
->>>>>    	struct acpi_processor *pr = NULL;
+>>>>>     static int acpi_processor_remove(struct acpi_device *device, int type)
+>>>>>     {
+>>>>>     	struct acpi_processor *pr = NULL;
 >>>>> -
 >>>>> +	int ret;
 >>>>>
->>>>>    	if (!device || !acpi_driver_data(device))
->>>>>    		return -EINVAL;
+>>>>>     	if (!device || !acpi_driver_data(device))
+>>>>>     		return -EINVAL;
 >>>>> @@ -621,8 +621,9 @@ static int acpi_processor_remove(struct
->>>>>    		goto free;
+>>>>>     		goto free;
 >>>>>
->>>>>    	if (type == ACPI_BUS_REMOVAL_EJECT) {
+>>>>>     	if (type == ACPI_BUS_REMOVAL_EJECT) {
 >>>>> -		if (acpi_processor_handle_eject(pr))
 >>>>> -			return -EINVAL;
 >>>>> +		ret = acpi_processor_handle_eject(pr);
 >>>>> +		if (ret)
 >>>>> +			return ret;
->>>>>    	}
+>>>>>     	}
 >>>>>
->>>>>    	acpi_processor_power_exit(pr, device);
+>>>>>     	acpi_processor_power_exit(pr, device);
 >>>>> @@ -841,12 +842,17 @@ static acpi_status acpi_processor_hotadd
 >>>>>
->>>>>    static int acpi_processor_handle_eject(struct acpi_processor *pr)
->>>>>    {
+>>>>>     static int acpi_processor_handle_eject(struct acpi_processor *pr)
+>>>>>     {
 >>>>> -	if (cpu_online(pr->id))
 >>>>> -		cpu_down(pr->id);
 >>>>> +	int ret;
@@ -108,24 +110,24 @@ Hi Toshi,
 >>> I think following patch can prevent it correctly. How about the patch?
 >>>
 >>> ---
->>>   drivers/acpi/processor_driver.c |   12 ++++++++++++
->>>   kernel/cpu.c                    |    8 +++++---
->>>   2 files changed, 17 insertions(+), 3 deletions(-)
+>>>    drivers/acpi/processor_driver.c |   12 ++++++++++++
+>>>    kernel/cpu.c                    |    8 +++++---
+>>>    2 files changed, 17 insertions(+), 3 deletions(-)
 >>>
 >>> Index: linux-3.5-rc4/drivers/acpi/processor_driver.c
 >>> ===================================================================
 >>> --- linux-3.5-rc4.orig/drivers/acpi/processor_driver.c	2012-07-09 09:59:01.280211202 +0900
 >>> +++ linux-3.5-rc4/drivers/acpi/processor_driver.c	2012-07-09 11:05:34.559859236 +0900
 >>> @@ -844,14 +844,26 @@ static int acpi_processor_handle_eject(s
->>>   {
->>>   	int ret;
+>>>    {
+>>>    	int ret;
 >>>
 >>> +retry:
->>>   	if (cpu_online(pr->id)) {
->>>   		ret = cpu_down(pr->id);
->>>   		if (ret)
->>>   			return ret;
->>>   	}
+>>>    	if (cpu_online(pr->id)) {
+>>>    		ret = cpu_down(pr->id);
+>>>    		if (ret)
+>>>    			return ret;
+>>>    	}
 >>>
 >>> +	get_online_cpus();
 >>> +	/*
@@ -138,70 +140,115 @@ Hi Toshi,
 >> How about this:
 >> 	if (unlikely(cpu_online(pr->id)) {
 >> since the probability of this happening is quite small...
->>
+> 
+> Thanks. I'll update it.
+> 
 >>> +		put_online_cpus();
 >>> +		goto retry;
 >>> +	}
->>>   	arch_unregister_cpu(pr->id);
->>>   	acpi_unmap_lsapic(pr->id);
+>>>    	arch_unregister_cpu(pr->id);
+>>>    	acpi_unmap_lsapic(pr->id);
 >>> +	put_online_cpus();
->>>   	return ret;
->>>   }
+>>>    	return ret;
+>>>    }
 >>
 >> This retry logic doesn't look elegant, but I don't see any better method :-(
->
-> Another possible option is to fail the request instead of retrying it.
+>>
+>>>    #else
+>>> Index: linux-3.5-rc4/kernel/cpu.c
+>>> ===================================================================
+>>> --- linux-3.5-rc4.orig/kernel/cpu.c	2012-07-09 09:59:01.280211202 +0900
+>>> +++ linux-3.5-rc4/kernel/cpu.c	2012-07-09 09:59:02.903190965 +0900
+>>> @@ -343,11 +343,13 @@ static int __cpuinit _cpu_up(unsigned in
+>>>    	unsigned long mod = tasks_frozen ? CPU_TASKS_FROZEN : 0;
+>>>    	struct task_struct *idle;
+>>>
+>>> -	if (cpu_online(cpu) || !cpu_present(cpu))
+>>> -		return -EINVAL;
+>>> -
+>>>    	cpu_hotplug_begin();
+>>>
+>>> +	if (cpu_online(cpu) || !cpu_present(cpu)) {
+>>> +		ret = -EINVAL;
+>>> +		goto out;
+>>> +	}
+>>> +
+>>
+>> Firstly, why is this change needed?
+> 
+> I cared the race of hot-remove cpu and _cpu_up(). If I do not change it,
+> there is the following race.
+> 
+> hot-remove cpu                         |  _cpu_up()
+> ------------------------------------- ------------------------------------
+> call acpi_processor_handle_eject()     |
+>       call cpu_down()                   |
+>       call get_online_cpus()            |
+>                                         | call cpu_hotplug_begin() and stop here
+>       call arch_unregister_cpu()        |
+>       call acpi_unmap_lsapic()          |
+>       call put_online_cpus()            |
+>                                         | start and continue _cpu_up()
+>       return acpi_processor_remove()    |
+> continue hot-remove the cpu            |
+> 
+> So _cpu_up() can continue to itself. And hot-remove cpu can also continue
+> itself. If I change it, I think the race disappears as below:
+> 
+> hot-remove cpu                         | _cpu_up()
+> -----------------------------------------------------------------------
+> call acpi_processor_handle_eject()     |
+>       call cpu_down()                   |
+>       call get_online_cpus()            |
+>                                         | call cpu_hotplug_begin() and stop here
+>       call arch_unregister_cpu()        |
+>       call acpi_unmap_lsapic()          |
+>            cpu's cpu_present is set     |
+> 	  to false by set_cpu_present()|
+>       call put_online_cpus()            |
+>                                         | start _cpu_up()
+> 				       | check cpu_present() and return -EINVAL
+>       return acpi_processor_remove()    |
+> continue hot-remove the cpu            |
+> 
+> Thus I think the change is necessary.
+> 
+> Thanks,
+> Yasuaki Ishimatsu
+> 
+>> Secondly, if the change is indeed an improvement, then why is it
+>> in _this_ patch? IMHO, in that case it should be part of a separate patch.
 
-Good idea!! I'll update it.
-
->
-> It would be quite challenging to allow on-lining and off-lining
-> operations to run concurrently.  In fact, even if we close this window,
-> there is yet another window right after the new put_online_cpus() call.
-
-I think if we close the window, another window does not open.
-acpi_unmap_lsapic() sets cpu_present mask to false before new put_online_cpus()
-is called. So even if _cpu_up() is called, the function returns -EINAVL by
-following added code.
-
-@@ -343,11 +343,13 @@ static int __cpuinit _cpu_up(unsigned in
-  	unsigned long mod = tasks_frozen ? CPU_TASKS_FROZEN : 0;
-  	struct task_struct *idle;
-
--	if (cpu_online(cpu) || !cpu_present(cpu))
--		return -EINVAL;
--
-  	cpu_hotplug_begin();
-
-+	if (cpu_online(cpu) || !cpu_present(cpu)) {
-+		ret = -EINVAL;
-+		goto out;
-+	}
-+
+I forget to answer the question.
+As I answered in the above your first question, the fix is related to
+acpi_processor_handle_eject(). So the fix should be in the patch.
 
 Thanks,
 Yasuaki Ishimatsu
 
-> This CPU may become online before calling _EJ0 in the case of
-> hot-remove.
->
-> This goes beyond the scope of this patch, but IMHO, we should serialize
-> in the request level.  That is, a new on-lining request should not be
-> allowed to proceed until the current request is complete.  This scheme
-> only allows a single operation at a time per OS instance, but I do not
-> think it is a big issue.
->
-> Serializing in the request level is also important when supporting
-> container hot-remove, which can remove multiple children objects under a
-> parent container object.  For instance, a Node hot-remove may also
-> remove multiple processors underneath of it.  This kind of the
-> operations has to make sure that all children objects are remained
-> off-line until it ejects the parent object.
->
-> Thanks,
-> -Toshi
->
->
+>>
+>> Coming back to my first point, I don't see why this hunk is needed. We
+>> already take the cpu_add_remove_lock (cpu_maps_update_begin/end) before
+>> checking the status of the cpu (online or present). And all hotplug
+>> operations (cpu_up/cpu_down/disable|enable_nonboot_cpus) go through that
+>> lock. Isn't that enough? Or am I missing something?
+>>
+>>>    	idle = idle_thread_get(cpu);
+>>>    	if (IS_ERR(idle)) {
+>>>    		ret = PTR_ERR(idle);
+>>>
+>>    
+>> Regards,
+>> Srivatsa S. Bhat
+>>
+> 
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
 
 
