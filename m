@@ -1,94 +1,37 @@
 From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: [PATCH 6/7 v2] auto bind the memory device which is hotpluged before
- the driver is loaded
-Date: Wed, 11 Jul 2012 15:50:17 +0800
-Message-ID: <4FFD3039.1090305@cn.fujitsu.com>
+Subject: [PATCH 7/7 v2] release memory resources if hotadd_new_pgdat() failed
+Date: Wed, 11 Jul 2012 15:50:47 +0800
+Message-ID: <4FFD3057.2050308@cn.fujitsu.com>
 References: <4FFD2F1E.10006@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:5680 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1752719Ab2GKHpp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 11 Jul 2012 03:45:45 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <4FFD2F1E.10006@cn.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: lenb@kernel.org, linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 Cc: Yasuaki ISIMATU <isimatu.yasuaki@jp.fujitsu.com>, David Rientjes <rientjes@google.com>, Andrew Morton <akpm@linux-foundation.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+List-Id: linux-acpi@vger.kernel.org
 
-If the memory device is hotpluged before the driver is loaded, the
-user cannot see this device under the directory /sys/bus/acpi/devices/,
-and the user cannot bind it by hand after the driver is loaded.
-This patch introduces a new feature to bind such device when the driver
-is being loaded.
+We should goto error to release memory resource if hotadd_new_pgdat() failed.
 
 Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
 ---
- drivers/acpi/acpi_memhotplug.c |   37 ++++++++++++++++++++++++++++++++++++-
- 1 files changed, 36 insertions(+), 1 deletions(-)
+ mm/memory_hotplug.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-index 3765375..0010720 100644
---- a/drivers/acpi/acpi_memhotplug.c
-+++ b/drivers/acpi/acpi_memhotplug.c
-@@ -52,6 +52,9 @@ MODULE_LICENSE("GPL");
- #define MEMORY_POWER_ON_STATE	1
- #define MEMORY_POWER_OFF_STATE	2
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index 0d7e3ec..427bb29 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -618,7 +618,7 @@ int __ref add_memory(int nid, u64 start, u64 size)
+ 		pgdat = hotadd_new_pgdat(nid, start);
+ 		ret = -ENOMEM;
+ 		if (!pgdat)
+-			goto out;
++			goto error;
+ 		new_pgdat = 1;
+ 	}
  
-+static bool auto_probe;
-+module_param(auto_probe, bool, S_IRUGO | S_IWUSR);
-+
- static int acpi_memory_device_add(struct acpi_device *device);
- static int acpi_memory_device_remove(struct acpi_device *device, int type);
- 
-@@ -522,12 +525,44 @@ acpi_memory_register_notify_handler(acpi_handle handle,
- 				    u32 level, void *ctxt, void **retv)
- {
- 	acpi_status status;
--
-+	struct acpi_memory_device *mem_device = NULL;
-+	unsigned long long current_status;
- 
- 	status = is_memory_device(handle);
- 	if (ACPI_FAILURE(status))
- 		return AE_OK;	/* continue */
- 
-+	if (auto_probe) {
-+		/* Get device present/absent information from the _STA */
-+		status = acpi_evaluate_integer(handle, "_STA", NULL,
-+					       &current_status);
-+		if (ACPI_FAILURE(status))
-+			goto install;
-+
-+		/*
-+		 * Check for device status. Device should be
-+		 * present/enabled/functioning.
-+		 */
-+		if (!(current_status &
-+		      (ACPI_STA_DEVICE_PRESENT | ACPI_STA_DEVICE_ENABLED |
-+		       ACPI_STA_DEVICE_FUNCTIONING)))
-+			goto install;
-+
-+		if (acpi_memory_get_device(handle, &mem_device))
-+			goto install;
-+
-+		/* We have bound this device while we register the driver */
-+		if (mem_device->state == MEMORY_POWER_ON_STATE)
-+			goto install;
-+
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+				  "\nauto probe memory device\n"));
-+
-+		if (acpi_memory_enable_device(mem_device))
-+			pr_err(PREFIX "Cannot enable memory device\n");
-+	}
-+
-+install:
- 	status = acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
- 					     acpi_memory_device_notify, NULL);
- 	/* continue */
 -- 
 1.7.1
-
