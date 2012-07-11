@@ -1,46 +1,50 @@
-From: Ian Malone <ibmalone@gmail.com>
-Subject: 3.4/3.5 kernels not booting in intel 945/950 chipset
-Date: Wed, 11 Jul 2012 17:26:24 +0100
-Message-ID: <CAL3-7MoQVLyKBxdfDFK5OT5nNR6Djmtm4S4OkJBhUZszxmH-GQ@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [GIT PULL] Power management fix for 3.5-rc7
+Date: Wed, 11 Jul 2012 19:43:19 +0200
+Message-ID: <201207111943.19405.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:33513 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758190Ab2GKQ0Z (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Jul 2012 12:26:25 -0400
-Received: by qcro28 with SMTP id o28so905300qcr.19
-        for <linux-acpi@vger.kernel.org>; Wed, 11 Jul 2012 09:26:24 -0700 (PDT)
+Received: from ogre.sisk.pl ([193.178.161.156]:35765 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755957Ab2GKRho (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 11 Jul 2012 13:37:44 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, Len Brown <lenb@kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Jonathan Nieder <jrnieder@gmail.com>
 
-Hi,
+Hi Linus,
 
-I'm using Fedora 17 and have the following bug:
-https://bugzilla.redhat.com/show_bug.cgi?id=834318 where 3.4 and 3.5
-series kernels run into a kernel panic during boot which appears to be
-related to ACPI, on a Sony VGN-C2M/W Vaio
-http://www.sony.co.uk/support/en/product/VGN-C2M_W/specifications
-(Intel 945/950 chipset, core 2 duo).
+Please pull one power management fix for 3.5-rc7 on top of commit
+bd0a521e88aa7a06ae7aabaed7ae196ed4ad867a:
 
-acpidump is attached to the Fedora bug:
-https://bugzilla.redhat.com/attachment.cgi?id=593488
+  Linux 3.5-rc6
 
-As are screenshots of the startup messages:
-https://bugzilla.redhat.com/attachment.cgi?id=593486
-https://bugzilla.redhat.com/attachment.cgi?id=593487
+with commit hash dc332fdf9f373a87b1e2f423b5b004b2a3c37e1a
 
-Passing acpi=off allows the machine to boot. Another reporter has
-found what might be the same problem on a Mac Pro. I've tried Fedora's
-3.4.0 and 3.5.0-rc6 packaged kernels (as in bug entry) as well as a
-number of 3.4.x updates.
+  ACPI / PM: Leave Bus Master Arbitration enabled for suspend/resume
 
-Does anyone have any suggestions for things to try or any more
-information I could collect?
+from the git repository at:
 
-Thanks for your time,
-Ian
--- 
-imalone
-http://ibmalone.blogspot.co.uk
+  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm-for-3.5-rc7
+
+It removes some old code known to cause problems to happen that was
+re-introduced by mistake during the 3.4 merge window.  Since this code causes
+systems to crash and the fix is -stable material, I'm regarding it as serious
+enough.  It technically belongs to ACPI, but since it affects suspend/resume
+I hope Len won't mind me pushing it.
+
+Thanks!
+
+
+ drivers/acpi/acpica/hwsleep.c | 22 ----------------------
+ 1 file changed, 22 deletions(-)
+
+---------------
+
+Jonathan Nieder (1):
+      ACPI / PM: Leave Bus Master Arbitration enabled for suspend/resume
+
