@@ -1,144 +1,228 @@
 From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: Re: [RFC PATCH v3 0/13] memory-hotplug : hot-remove physical memory
-Date: Wed, 11 Jul 2012 10:24:38 +0800
-Message-ID: <4FFCE3E6.709@cn.fujitsu.com>
-References: <4FFAB0A2.8070304@jp.fujitsu.com> <4FFCDC6A.9070704@cn.fujitsu.com>
+Subject: Re: [RFC PATCH v3 11/13] memory-hotplug : free memmap of sparse-vmemmap
+Date: Wed, 11 Jul 2012 13:06:29 +0800
+Message-ID: <4FFD09D5.8010605@cn.fujitsu.com>
+References: <4FFAB0A2.8070304@jp.fujitsu.com> <4FFAB37F.1060105@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-2022-JP
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:25396 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1752084Ab2GKC4V (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 10 Jul 2012 22:56:21 -0400
-In-Reply-To: <4FFCDC6A.9070704@cn.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4FFAB37F.1060105@jp.fujitsu.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com
+List-Id: linux-acpi@vger.kernel.org
 
-At 07/11/2012 09:52 AM, Wen Congyang Wrote:
-> At 07/09/2012 06:21 PM, Yasuaki Ishimatsu Wrote:
->> This patch series aims to support physical memory hot-remove.
->>
->>   [RFC PATCH v3 1/13] memory-hotplug : rename remove_memory to offline_memory
->>   [RFC PATCH v3 2/13] memory-hotplug : add physical memory hotplug code to acpi_memory_device_remove
->>   [RFC PATCH v3 3/13] memory-hotplug : unify argument of firmware_map_add_early/hotplug
->>   [RFC PATCH v3 4/13] memory-hotplug : remove /sys/firmware/memmap/X sysfs
->>   [RFC PATCH v3 5/13] memory-hotplug : does not release memory region in PAGES_PER_SECTION chunks
->>   [RFC PATCH v3 6/13] memory-hotplug : add memory_block_release
->>   [RFC PATCH v3 7/13] memory-hotplug : remove_memory calls __remove_pages
->>   [RFC PATCH v3 8/13] memory-hotplug : check page type in get_page_bootmem
->>   [RFC PATCH v3 9/13] memory-hotplug : move register_page_bootmem_info_node and put_page_bootmem for
->> sparse-vmemmap
->>   [RFC PATCH v3 10/13] memory-hotplug : implement register_page_bootmem_info_section of sparse-vmemmap
->>   [RFC PATCH v3 11/13] memory-hotplug : free memmap of sparse-vmemmap
->>   [RFC PATCH v3 12/13] memory-hotplug : add node_device_release
->>   [RFC PATCH v3 13/13] memory-hotplug : remove sysfs file of node
->>
->> Even if you apply these patches, you cannot remove the physical memory
->> completely since these patches are still under development. I want you to
->> cooperate to improve the physical memory hot-remove. So please review these
->> patches and give your comment/idea.
->>
->> The patches can free/remove following things:
->>
->>   - acpi_memory_info                          : [RFC PATCH 2/13]
->>   - /sys/firmware/memmap/X/{end, start, type} : [RFC PATCH 4/13]
->>   - iomem_resource                            : [RFC PATCH 5/13]
->>   - mem_section and related sysfs files       : [RFC PATCH 6-11/13]
->>   - node and related sysfs files              : [RFC PATCH 12-13/13]
->>
->> The patches cannot do following things yet:
->>
->>   - page table of removed memory
->>
->> If you find lack of function for physical memory hot-remove, please let me
->> know.
->>
->> change log of v3:
->>  * rebase to 3.5.0-rc6
->>
->>  [RFC PATCH v2 2/13]
->>    * remove extra kobject_put()
->>
->>    * The patch was commented by Wen. Wen's comment is
->>      "acpi_memory_device_remove() should ignore a return value of
->>      remove_memory() since caller does not care the return value".
->>      But I did not change it since I think caller should care the
->>      return value. And I am trying to fix it as follow:
->>
->>      https://lkml.org/lkml/2012/7/5/624
+At 07/09/2012 06:33 PM, Yasuaki Ishimatsu Wrote:
+> I don't think that all pages of virtual mapping in removed memory can be
+> freed, since page which type is MIX_SECTION_INFO is difficult to free.
+> So, the patch only frees page which type is SECTION_INFO at first.
 > 
-> acpi_memory_device_remove() will be called not only when we write
-> 1 to /sys/bus/acpi/devices/PNP0C80:XX/eject. When we unbind it
-> from the driver or remove the module acpi_memhotplug, this function
-> will be called too.
+> CC: David Rientjes <rientjes@google.com>
+> CC: Jiang Liu <liuj97@gmail.com>
+> CC: Len Brown <len.brown@intel.com>
+> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+> CC: Paul Mackerras <paulus@samba.org>
+> CC: Christoph Lameter <cl@linux.com>
+> Cc: Minchan Kim <minchan.kim@gmail.com>
+> CC: Andrew Morton <akpm@linux-foundation.org>
+> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+> CC: Wen Congyang <wency@cn.fujitsu.com>
+> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 > 
-> I will check whether your patch can work for these two cases.
+> ---
+>  arch/x86/mm/init_64.c |   91 ++++++++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/mm.h    |    2 +
+>  mm/memory_hotplug.c   |    5 ++
+>  mm/sparse.c           |    5 +-
+>  4 files changed, 101 insertions(+), 2 deletions(-)
+> 
+> Index: linux-3.5-rc4/include/linux/mm.h
+> ===================================================================
+> --- linux-3.5-rc4.orig/include/linux/mm.h	2012-07-03 14:22:18.530011567 +0900
+> +++ linux-3.5-rc4/include/linux/mm.h	2012-07-03 14:22:20.999983872 +0900
+> @@ -1588,6 +1588,8 @@ int vmemmap_populate(struct page *start_
+>  void vmemmap_populate_print_last(void);
+>  void register_page_bootmem_memmap(unsigned long section_nr, struct page *map,
+>  				  unsigned long size);
+> +void vmemmap_kfree(struct page *memmpa, unsigned long nr_pages);
+> +void vmemmap_free_bootmem(struct page *memmpa, unsigned long nr_pages);
+> 
+>  enum mf_flags {
+>  	MF_COUNT_INCREASED = 1 << 0,
+> Index: linux-3.5-rc4/mm/sparse.c
+> ===================================================================
+> --- linux-3.5-rc4.orig/mm/sparse.c	2012-07-03 14:21:45.071429805 +0900
+> +++ linux-3.5-rc4/mm/sparse.c	2012-07-03 14:22:21.000983767 +0900
+> @@ -614,12 +614,13 @@ static inline struct page *kmalloc_secti
+>  	/* This will make the necessary allocations eventually. */
+>  	return sparse_mem_map_populate(pnum, nid);
+>  }
+> -static void __kfree_section_memmap(struct page *memmap, unsigned long nr_pages)
+> +static void __kfree_section_memmap(struct page *page, unsigned long nr_pages)
+>  {
+> -	return; /* XXX: Not implemented yet */
+> +	vmemmap_kfree(page, nr_pages);
 
-I have checked it, and I think your patch can not work for these 2 cases.
+Hmm, I think you try to free the memory allocated in kmalloc_section_memmap().
 
-When we unbind the device from the driver(write device name to
-/sys/bus/acpi/drivers/acpi_memhotplug/unbind), driver_unbind()
-will be called. This function does not care the return value.
+>  }
+>  static void free_map_bootmem(struct page *page, unsigned long nr_pages)
+>  {
+> +	vmemmap_free_bootmem(page, nr_pages);
+>  }
 
-When we remove the module acpi_memhotplug, acpi_memory_device_exit()
-will be called. This function does not care the return value too.
+Hmm, which function is the memory you try to free allocated in?
 
-I don't know whether there are some other cases that acpi_memory_device_remove()
-will be called.
+>  #else
+>  static struct page *__kmalloc_section_memmap(unsigned long nr_pages)
+> Index: linux-3.5-rc4/arch/x86/mm/init_64.c
+> ===================================================================
+> --- linux-3.5-rc4.orig/arch/x86/mm/init_64.c	2012-07-03 14:22:18.538011465 +0900
+> +++ linux-3.5-rc4/arch/x86/mm/init_64.c	2012-07-03 14:22:21.007983103 +0900
+> @@ -978,6 +978,97 @@ vmemmap_populate(struct page *start_page
+>  	return 0;
+>  }
+> 
+> +unsigned long find_and_clear_pte_page(unsigned long addr, unsigned long end,
+> +				      struct page **pp)
+> +{
+> +	pgd_t *pgd;
+> +	pud_t *pud;
+> +	pmd_t *pmd;
+> +	pte_t *pte;
+> +	unsigned long next;
+> +
+> +	*pp = NULL;
+> +
+> +	pgd = pgd_offset_k(addr);
+> +	if (pgd_none(*pgd))
+> +		return (addr + PAGE_SIZE) & PAGE_MASK;
+
+Hmm, why not goto next pgd?
+
+> +
+> +	pud = pud_offset(pgd, addr);
+> +	if (pud_none(*pud))
+> +		return (addr + PAGE_SIZE) & PAGE_MASK;
+> +
+> +	if (!cpu_has_pse) {
+> +		next = (addr + PAGE_SIZE) & PAGE_MASK;
+> +		pmd = pmd_offset(pud, addr);
+> +		if (pmd_none(*pmd))
+> +			return next;
+> +
+> +		pte = pte_offset_kernel(pmd, addr);
+> +		if (pte_none(*pte))
+> +			return next;
+> +
+> +		*pp = pte_page(*pte);
+> +		pte_clear(&init_mm, addr, pte);
+
+I think you should flush tlb here.
+
+> +	} else {
+> +		next = pmd_addr_end(addr, end);
+> +
+> +		pmd = pmd_offset(pud, addr);
+> +		if (pmd_none(*pmd))
+> +			return next;
+> +
+> +		*pp = pmd_page(*pmd);
+> +		pmd_clear(pmd);
+> +	}
+> +
+> +	return next;
+> +}
+> +
+> +void __meminit
+> +vmemmap_kfree(struct page *memmap, unsigned long nr_pages)
+> +{
+> +	unsigned long addr = (unsigned long)memmap;
+> +	unsigned long end = (unsigned long)(memmap + nr_pages);
+> +	unsigned long next;
+> +	unsigned int order;
+> +	struct page *page;
+> +
+> +	for (; addr < end; addr = next) {
+> +		page = NULL;
+> +		next = find_and_clear_pte_page(addr, end, &page);
+> +		if (!page)
+> +			continue;
+> +
+> +		if (is_vmalloc_addr(page_address(page)))
+> +			vfree(page_address(page));
+
+Hmm, the memory is allocated in vmemmap_alloc_block(), and the address
+can not be vmalloc address.
+
+> +		else {
+> +			order = next - addr;
+> +			free_pages((unsigned long)page_address(page),
+> +				   get_order(order));
+
+OOPS. I think we cannot free pages here.
+
+sizeof(struct page) is less than PAGE_SIZE. We store more than one struct
+page in the same page. If you free it here while the other struct page
+is in use, it is very dangerous.
+
+> +		}
+> +	}
+> +}
+> +
+> +void __meminit
+> +vmemmap_free_bootmem(struct page *memmap, unsigned long nr_pages)
+> +{
+> +	unsigned long addr = (unsigned long)memmap;
+> +	unsigned long end = (unsigned long)(memmap + nr_pages);
+> +	unsigned long next;
+> +	struct page *page;
+> +	unsigned long magic;
+> +
+> +	for (; addr < end; addr = next) {
+> +		page = NULL;
+> +		next = find_and_clear_pte_page(addr, end, &page);
+> +		if (!page)
+> +			continue;
+> +
+> +		magic = (unsigned long) page->lru.next;
+> +		if (magic == SECTION_INFO)
+> +			put_page_bootmem(page);
+> +	}
+> +}
+> +
+>  void __meminit
+>  register_page_bootmem_memmap(unsigned long section_nr, struct page *start_page,
+>  			     unsigned long size)
+> Index: linux-3.5-rc4/mm/memory_hotplug.c
+> ===================================================================
+> --- linux-3.5-rc4.orig/mm/memory_hotplug.c	2012-07-03 14:22:18.522011667 +0900
+> +++ linux-3.5-rc4/mm/memory_hotplug.c	2012-07-03 14:22:21.012982694 +0900
+> @@ -303,6 +303,8 @@ static int __meminit __add_section(int n
+>  #ifdef CONFIG_SPARSEMEM_VMEMMAP
+
+I think this line can be removed now.
 
 Thanks
 Wen Congyang
 
-
+>  static int __remove_section(struct zone *zone, struct mem_section *ms)
+>  {
+> +	unsigned long flags;
+> +	struct pglist_data *pgdat = zone->zone_pgdat;
+>  	int ret;
 > 
-> Thanks
-> Wen Congyang
+>  	if (!valid_section(ms))
+> @@ -310,6 +312,9 @@ static int __remove_section(struct zone
 > 
->>
->>  [RFC PATCH v2 4/13]
->>    * remove a firmware_memmap_entry allocated by kzmalloc()
->>
->> change log of v2:
->>  [RFC PATCH v2 2/13]
->>    * check whether memory block is offline or not before calling offline_memory()
->>    * check whether section is valid or not in is_memblk_offline()
->>    * call kobject_put() for each memory_block in is_memblk_offline()
->>
->>  [RFC PATCH v2 3/13]
->>    * unify the end argument of firmware_map_add_early/hotplug
->>
->>  [RFC PATCH v2 4/13]
->>    * add release_firmware_map_entry() for freeing firmware_map_entry
->>
->>  [RFC PATCH v2 6/13]
->>   * add release_memory_block() for freeing memory_block
->>
->>  [RFC PATCH v2 11/13]
->>   * fix wrong arguments of free_pages()
->>
->> ---
->>  arch/powerpc/platforms/pseries/hotplug-memory.c |   16 +-
->>  arch/x86/mm/init_64.c                           |  144 ++++++++++++++++++++++++
->>  drivers/acpi/acpi_memhotplug.c                  |   28 ++++
->>  drivers/base/memory.c                           |   54 ++++++++-
->>  drivers/base/node.c                             |    7 +
->>  drivers/firmware/memmap.c                       |   78 ++++++++++++-
->>  include/linux/firmware-map.h                    |    6 +
->>  include/linux/memory.h                          |    5
->>  include/linux/memory_hotplug.h                  |   17 --
->>  include/linux/mm.h                              |    5
->>  mm/memory_hotplug.c                             |   98 ++++++++++++----
->>  mm/sparse.c                                     |    5
->>  12 files changed, 414 insertions(+), 49 deletions(-)
->>
->>
+>  	ret = unregister_memory_section(ms);
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +	pgdat_resize_lock(pgdat, &flags);
+> +	sparse_remove_one_section(zone, ms);
+> +	pgdat_resize_unlock(pgdat, &flags);
+>  	return ret;
+>  }
+>  #else
 > 
-
+> 
