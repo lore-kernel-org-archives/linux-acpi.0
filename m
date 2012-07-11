@@ -1,53 +1,45 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH] ACPI: Add ACPI CPU hot-remove support
-Date: Tue, 10 Jul 2012 17:30:26 -0600
-Message-ID: <1341963026.16730.828.camel@misato.fc.hp.com>
-References: <1340981479-6521-1-git-send-email-toshi.kani@hp.com>
-	 <4FF711DE.1030108@gmail.com> <1341602020.16730.695.camel@misato.fc.hp.com>
-	 <4FF745F1.9030103@hp.com>  <1341608402.16730.730.camel@misato.fc.hp.com>
-	 <1341960978.1065.12.camel@lyra>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH] ACPI / PCI: Make _SxD/_SxW check follow ACPI 4.0a spec
+Date: Tue, 10 Jul 2012 17:08:50 -0700
+Message-ID: <20120711000850.GD18128@kroah.com>
+References: <201204292244.16467.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1341960978.1065.12.camel@lyra>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Khalid Aziz <khalid.aziz@hp.com>
-Cc: Jiang Liu <liuj97@gmail.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:37799 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756551Ab2GKAIx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Jul 2012 20:08:53 -0400
+Received: by pbbrp8 with SMTP id rp8so1047443pbb.19
+        for <linux-acpi@vger.kernel.org>; Tue, 10 Jul 2012 17:08:53 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <201204292244.16467.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, linux-pci@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, "Oleksij Rempel (fishor)" <bug-track@fisher-privat.net>, LKML <linux-kernel@vger.kernel.org>
 
-On Tue, 2012-07-10 at 16:56 -0600, Khalid Aziz wrote:
-> On Fri, 2012-07-06 at 15:00 -0600, Toshi Kani wrote:
-> > Yes, offlining and eject are similar operations to a core as it alone
-> > cannot be removed physically.  Ejecting a core is a logical eject
-> > operation, which updates the status (_STA) of the object in ACPI after
-> > offlining.  The difference from the offlining is that the ejected core
-> > is no longer assigned to the partition.  Here is one example.  Say, a
-> > core is assigned to a guest partition as a dedicated resource (ex. 100%
-> > of its CPU time is bound to the partition).  Offlining this core saves
-> > the power-consumption, but this core is still bound to the partition.
-> > Ejecting the core removes it from the partition (logically), and allows
-> > it to be assigned to other partition as a dedicated resource with
-> > hot-add.
-> > 
+On Sun, Apr 29, 2012 at 10:44:16PM +0200, Rafael J. Wysocki wrote:
+> From: Oleksij Rempel <bug-track@fisher-privat.net>
 > 
-> Ejecting a core is reasonable when eject happens from a guest. I still
-> wonder what firmware would do if kernel calls eject method on a core
-> when running on the native host platform. If firmware behavior is not
-> well defined in this case, there might be some risk associated with
-> calling eject method on core. 
+> This patch makes _SxD/_SxW check follow the ACPI 4.0a specification
+> more closely and fixes suspend bug found on ASUS Zenbook UX31E.
 > 
-> Makes sense?
+> Some OEM use _SxD fileds do blacklist brocken Dx states.
+> If _SxD/_SxW return values are check before suspend as appropriate,
+> some nasty suspend/resume issues may be avoided.
+> 
+> References: https://bugzilla.kernel.org/show_bug.cgi?id=42728
+> Signed-off-by: Oleksij Rempel <bug-track@fisher-privat.net>
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> ---
+> 
+> Bjorn, Len,
+> 
+> This is -stable material and therefore v3.4 as well, IMO.  Please let me
+> know if one of you can take it or whether you want me to handle it all the
+> way to Linus.
 
-No, that's not the case.  The firmware only implements _EJ0 when it
-supports the behavior on the environment.  It is true for both native
-and virtual platforms.  Note that the presence of a CPU is abstracted
-with _STA in ACPI, so it does not matter to the kernel if an eject is a
-physical or logical operation.
+What ever hapened to this patch?
 
-For example, HP Superdome 2 implements _EJ0 on the native platform to
-support capacity-on-demand and RAS features (which are supported by
-HP-UX).  _EJ0 is still a logical eject operation in this case.
-
-Thanks,
--Toshi
+greg k-h
