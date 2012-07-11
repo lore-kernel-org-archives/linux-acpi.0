@@ -1,37 +1,45 @@
-From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: [PATCH 7/7 v2] release memory resources if hotadd_new_pgdat() failed
-Date: Wed, 11 Jul 2012 15:50:47 +0800
-Message-ID: <4FFD3057.2050308@cn.fujitsu.com>
-References: <4FFD2F1E.10006@cn.fujitsu.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] ACPI / PCI: Make _SxD/_SxW check follow ACPI 4.0a spec
+Date: Wed, 11 Jul 2012 11:07:56 +0200
+Message-ID: <201207111107.56500.rjw@sisk.pl>
+References: <201204292244.16467.rjw@sisk.pl> <20120711000850.GD18128@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4FFD2F1E.10006@cn.fujitsu.com>
+In-Reply-To: <20120711000850.GD18128@kroah.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: lenb@kernel.org, linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: Yasuaki ISIMATU <isimatu.yasuaki@jp.fujitsu.com>, David Rientjes <rientjes@google.com>, Andrew Morton <akpm@linux-foundation.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, linux-pci@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, "Oleksij Rempel (fishor)" <bug-track@fisher-privat.net>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-We should goto error to release memory resource if hotadd_new_pgdat() failed.
+On Wednesday, July 11, 2012, Greg KH wrote:
+> On Sun, Apr 29, 2012 at 10:44:16PM +0200, Rafael J. Wysocki wrote:
+> > From: Oleksij Rempel <bug-track@fisher-privat.net>
+> > 
+> > This patch makes _SxD/_SxW check follow the ACPI 4.0a specification
+> > more closely and fixes suspend bug found on ASUS Zenbook UX31E.
+> > 
+> > Some OEM use _SxD fileds do blacklist brocken Dx states.
+> > If _SxD/_SxW return values are check before suspend as appropriate,
+> > some nasty suspend/resume issues may be avoided.
+> > 
+> > References: https://bugzilla.kernel.org/show_bug.cgi?id=42728
+> > Signed-off-by: Oleksij Rempel <bug-track@fisher-privat.net>
+> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> > ---
+> > 
+> > Bjorn, Len,
+> > 
+> > This is -stable material and therefore v3.4 as well, IMO.  Please let me
+> > know if one of you can take it or whether you want me to handle it all the
+> > way to Linus.
+> 
+> What ever hapened to this patch?
 
-Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
----
- mm/memory_hotplug.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+It was split and partially merged.  As far as the other part is concerned,
+the jury is still out.
 
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index 0d7e3ec..427bb29 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -618,7 +618,7 @@ int __ref add_memory(int nid, u64 start, u64 size)
- 		pgdat = hotadd_new_pgdat(nid, start);
- 		ret = -ENOMEM;
- 		if (!pgdat)
--			goto out;
-+			goto error;
- 		new_pgdat = 1;
- 	}
- 
--- 
-1.7.1
+Thanks,
+Rafael
