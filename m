@@ -1,95 +1,65 @@
 From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: [PATCH 4/7 v2] don't allow to eject the memory device if it is being
- used
-Date: Wed, 11 Jul 2012 15:49:26 +0800
-Message-ID: <4FFD3006.3020502@cn.fujitsu.com>
+Subject: [PATCH 5/7 v2] bind the memory device when the driver is being loaded
+Date: Wed, 11 Jul 2012 15:49:51 +0800
+Message-ID: <4FFD301F.4060409@cn.fujitsu.com>
 References: <4FFD2F1E.10006@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:23895 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1752719Ab2GKHpD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 11 Jul 2012 03:45:03 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <4FFD2F1E.10006@cn.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: lenb@kernel.org, linux-acpi@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 Cc: Yasuaki ISIMATU <isimatu.yasuaki@jp.fujitsu.com>, David Rientjes <rientjes@google.com>, Andrew Morton <akpm@linux-foundation.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+List-Id: linux-acpi@vger.kernel.org
 
-We eject the memory device even if it is in use. It is very dangerous,
-and it will cause the kernel panicked.
+We had introduced acpi_hotmem_initialized to avoid strange add_memory fail
+message. But the memory device may not be used by the kernel, and the
+device should be bound when the driver is being loaded. Remove
+acpi_hotmem_initialized to allow that the device can be bound when the
+driver is being loaded.
 
 Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
 ---
- drivers/acpi/acpi_memhotplug.c |   38 +++++++++++++++++++++++++++++++-------
- 1 files changed, 31 insertions(+), 7 deletions(-)
+ drivers/acpi/acpi_memhotplug.c |   12 ------------
+ 1 files changed, 0 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-index 1f6196a..1597348 100644
+index 1597348..3765375 100644
 --- a/drivers/acpi/acpi_memhotplug.c
 +++ b/drivers/acpi/acpi_memhotplug.c
-@@ -78,6 +78,7 @@ struct acpi_memory_info {
- 	unsigned short caching;	/* memory cache attribute */
- 	unsigned short write_protect;	/* memory read/write attribute */
- 	unsigned int enabled:1;
-+	unsigned int failed:1;
+@@ -87,8 +87,6 @@ struct acpi_memory_device {
+ 	struct list_head res_list;
  };
  
- struct acpi_memory_device {
-@@ -257,9 +258,23 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
- 			node = memory_add_physaddr_to_nid(info->start_addr);
+-static int acpi_hotmem_initialized;
+-
+ static acpi_status
+ acpi_memory_get_resource(struct acpi_resource *resource, void *context)
+ {
+@@ -470,15 +468,6 @@ static int acpi_memory_device_add(struct acpi_device *device)
  
- 		result = add_memory(node, info->start_addr, info->length);
--		if (result)
-+
-+		/*
-+		 * If the memory block has been used by the kernel, add_memory()
-+		 * returns -EEXIST. If add_memory() returns the other error, it
-+		 * means that this memory block is not used by the kernel.
-+		 */
-+		if (result && result != -EEXIST) {
-+			info->failed = 1;
- 			continue;
--		info->enabled = 1;
-+		}
-+
-+		if (!result)
-+			info->enabled = 1;
-+		/*
-+		 * Add num_enable even if add_memory() returns -EEXIST, so the
-+		 * device is bound to this driver.
-+		 */
- 		num_enabled++;
+ 	printk(KERN_DEBUG "%s \n", acpi_device_name(device));
+ 
+-	/*
+-	 * Early boot code has recognized memory area by EFI/E820.
+-	 * If DSDT shows these memory devices on boot, hotplug is not necessary
+-	 * for them. So, it just returns until completion of this driver's
+-	 * start up.
+-	 */
+-	if (!acpi_hotmem_initialized)
+-		return 0;
+-
+ 	if (!acpi_memory_check_device(mem_device)) {
+ 		/* call add_memory func */
+ 		result = acpi_memory_enable_device(mem_device);
+@@ -585,7 +574,6 @@ static int __init acpi_memory_device_init(void)
+ 		return -ENODEV;
  	}
- 	if (!num_enabled) {
-@@ -323,11 +338,20 @@ static int acpi_memory_disable_device(struct acpi_memory_device *mem_device)
- 	 * Note: Assume that this function returns zero on success
- 	 */
- 	list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
--		if (info->enabled) {
--			result = remove_memory(info->start_addr, info->length);
--			if (result)
--				return result;
--		}
-+		if (info->failed)
-+			/* The kernel does not use this memory block */
-+			continue;
-+
-+		if (!info->enabled)
-+			/*
-+			 * The kernel uses this memory block, but it may be not
-+			 * managed by us.
-+			 */
-+			return -EBUSY;
-+
-+		result = remove_memory(info->start_addr, info->length);
-+		if (result)
-+			return result;
- 		list_del(&info->list);
- 		kfree(info);
- 	}
+ 
+-	acpi_hotmem_initialized = 1;
+ 	return 0;
+ }
+ 
 -- 
 1.7.1
-
