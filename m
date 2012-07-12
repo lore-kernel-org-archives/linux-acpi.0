@@ -1,73 +1,75 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] olpc-xo15-sci: Use struct dev_pm_ops for power management
-Date: Thu, 12 Jul 2012 12:29:24 +0200
-Message-ID: <201207121229.24872.rjw@sisk.pl>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: [PATCH v3 1/3] acpi : cpu hot-remove returns error when cpu_down()
+ fails
+Date: Thu, 12 Jul 2012 20:22:02 +0900
+Message-ID: <4FFEB35A.6030500@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset="ISO-2022-JP"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:37321 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752578Ab2GLKXt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 12 Jul 2012 06:23:49 -0400
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:45566 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751495Ab2GLLWR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Jul 2012 07:22:17 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Drake <dsd@laptop.org>
-Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Len Brown <lenb@kernel.org>, "H. Peter Anvin" <hpa@linux.intel.com>, Randy Dunlap <rdunlap@xenotime.net>, Stephen Rothwell <sfr@canb.auug.org.au>
+To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, srivatsa.bhat@linux.vnet.ibm.com, toshi.kani@hp.com
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Even if cpu_down() fails, acpi_processor_remove() continues to remove the cpu.
+But in this case, it should return error number since some process may run on
+the cpu. If the cpu has a running process and the cpu is turned the power off,
+the system may not work well.
 
-Make the OLPC XO15 SCI driver define its resume callback through
-a struct dev_pm_ops object rather than by using a legacy PM hook
-in struct acpi_device_ops.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
-
-This patch was missing from my patchset converting ACPI do the PM handling
-based on struct dev_pm_ops.
-
-If there are no objections, I'll add it to the pm-acpi branch of the
-linux-pm.git tree so that it goes in along with the other changes in that
-area.
-
-Thanks,
-Rafael
+Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
 ---
- arch/x86/platform/olpc/olpc-xo15-sci.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/acpi/processor_driver.c |   18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
-Index: linux/arch/x86/platform/olpc/olpc-xo15-sci.c
+Index: linux-3.5-rc4/drivers/acpi/processor_driver.c
 ===================================================================
---- linux.orig/arch/x86/platform/olpc/olpc-xo15-sci.c
-+++ linux/arch/x86/platform/olpc/olpc-xo15-sci.c
-@@ -203,7 +203,7 @@ static int xo15_sci_remove(struct acpi_d
- 	return 0;
- }
- 
--static int xo15_sci_resume(struct acpi_device *device)
-+static int xo15_sci_resume(struct device *dev)
+--- linux-3.5-rc4.orig/drivers/acpi/processor_driver.c	2012-06-25 04:53:04.000000000 +0900
++++ linux-3.5-rc4/drivers/acpi/processor_driver.c	2012-07-05 21:02:58.711285382 +0900
+@@ -610,7 +610,7 @@ err_free_pr:
+ static int acpi_processor_remove(struct acpi_device *device, int type)
  {
- 	/* Enable all EC events */
- 	olpc_ec_mask_write(EC_SCI_SRC_ALL);
-@@ -215,6 +215,8 @@ static int xo15_sci_resume(struct acpi_d
- 	return 0;
- }
- 
-+static SIMPLE_DEV_PM_OPS(xo15_sci_pm, NULL, xo15_sci_resume);
+ 	struct acpi_processor *pr = NULL;
+-
++	int ret;
+
+ 	if (!device || !acpi_driver_data(device))
+ 		return -EINVAL;
+@@ -621,8 +621,9 @@ static int acpi_processor_remove(struct
+ 		goto free;
+
+ 	if (type == ACPI_BUS_REMOVAL_EJECT) {
+-		if (acpi_processor_handle_eject(pr))
+-			return -EINVAL;
++		ret = acpi_processor_handle_eject(pr);
++		if (ret)
++			return ret;
+ 	}
+
+ 	acpi_processor_power_exit(pr, device);
+@@ -841,12 +842,17 @@ static acpi_status acpi_processor_hotadd
+
+ static int acpi_processor_handle_eject(struct acpi_processor *pr)
+ {
+-	if (cpu_online(pr->id))
+-		cpu_down(pr->id);
++	int ret;
 +
- static const struct acpi_device_id xo15_sci_device_ids[] = {
- 	{"XO15EC", 0},
- 	{"", 0},
-@@ -227,8 +229,8 @@ static struct acpi_driver xo15_sci_drv =
- 	.ops = {
- 		.add = xo15_sci_add,
- 		.remove = xo15_sci_remove,
--		.resume = xo15_sci_resume,
- 	},
-+	.drv.pm = &xo15_sci_pm,
- };
- 
- static int __init xo15_sci_init(void)
++	if (cpu_online(pr->id)) {
++		ret = cpu_down(pr->id);
++		if (ret)
++			return ret;
++	}
+
+ 	arch_unregister_cpu(pr->id);
+ 	acpi_unmap_lsapic(pr->id);
+-	return (0);
++	return ret;
+ }
+ #else
+ static acpi_status acpi_processor_hotadd_init(struct acpi_processor *pr)
+
