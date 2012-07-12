@@ -1,135 +1,31 @@
-From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Subject: Re: [PATCH v3 2/3 RESEND] acpi : prevent cpu from becoming online
-Date: Thu, 12 Jul 2012 18:11:47 +0530
-Message-ID: <4FFEC60B.7040800@linux.vnet.ibm.com>
-References: <4FFEB35A.6030500@jp.fujitsu.com> <4FFEB4BA.8010800@jp.fujitsu.com> <4FFEB7BA.6050505@jp.fujitsu.com>
+From: Dave Hansen <dave@linux.vnet.ibm.com>
+Subject: Re: [RFC PATCH v3 3/13] memory-hotplug : unify argument of firmware_map_add_early/hotplug
+Date: Thu, 12 Jul 2012 06:40:30 -0700
+Message-ID: <4FFED3CE.7030108@linux.vnet.ibm.com>
+References: <4FFAB0A2.8070304@jp.fujitsu.com> <4FFAB17F.2090209@jp.fujitsu.com> <4FFD9C08.2070502@linux.vnet.ibm.com> <4FFE5816.6070102@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-2022-JP
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e28smtp01.in.ibm.com ([122.248.162.1]:34404 "EHLO
-	e28smtp01.in.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752506Ab2GLMnI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Jul 2012 08:43:08 -0400
+Received: from e4.ny.us.ibm.com ([32.97.182.144]:52576 "EHLO e4.ny.us.ibm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932338Ab2GLNlP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 12 Jul 2012 09:41:15 -0400
 Received: from /spool/local
-	by e28smtp01.in.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <linux-acpi@vger.kernel.org> from <srivatsa.bhat@linux.vnet.ibm.com>;
-	Thu, 12 Jul 2012 18:13:06 +0530
-In-Reply-To: <4FFEB7BA.6050505@jp.fujitsu.com>
+	by e4.ny.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <linux-acpi@vger.kernel.org> from <dave@linux.vnet.ibm.com>;
+	Thu, 12 Jul 2012 09:41:14 -0400
+In-Reply-To: <4FFE5816.6070102@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, toshi.kani@hp.com
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, wency@cn.fujitsu.com
 
-On 07/12/2012 05:10 PM, Yasuaki Ishimatsu wrote:
-> Even if acpi_processor_handle_eject() offlines cpu, there is a chance
-> to online the cpu after that. So the patch closes the window by using
-> get/put_online_cpus().
-> 
-> Why does the patch change _cpu_up() logic?
-> 
-> The patch cares the race of hot-remove cpu and _cpu_up(). If the patch
-> does not change it, there is the following race.
-> 
-> hot-remove cpu                         |  _cpu_up()
-> ------------------------------------- ------------------------------------
-> call acpi_processor_handle_eject()     |
->      call cpu_down()                   |
->      call get_online_cpus()            |
->                                        | call cpu_hotplug_begin() and stop here
->      call arch_unregister_cpu()        |
->      call acpi_unmap_lsapic()          |
->      call put_online_cpus()            |
->                                        | start and continue _cpu_up()
->      return acpi_processor_remove()    |
-> continue hot-remove the cpu            |
-> 
-> So _cpu_up() can continue to itself. And hot-remove cpu can also continue
-> itself. If the patch changes _cpu_up() logic, the race disappears as below:
-> 
-> hot-remove cpu                         | _cpu_up()
-> -----------------------------------------------------------------------
-> call acpi_processor_handle_eject()     |
->      call cpu_down()                   |
->      call get_online_cpus()            |
->                                        | call cpu_hotplug_begin() and stop here
->      call arch_unregister_cpu()        |
->      call acpi_unmap_lsapic()          |
->           cpu's cpu_present is set     |
->           to false by set_cpu_present()|
->      call put_online_cpus()            |
->                                        | start _cpu_up()
->                                        | check cpu_present() and return -EINVAL
->      return acpi_processor_remove()    |
-> continue hot-remove the cpu            |
-> 
-> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->
+On 07/11/2012 09:52 PM, Yasuaki Ishimatsu wrote:
+> Does the following patch include your comment? If O.K., I will separate
+> the patch from the series and send it for bug fix.
 
-Please consider fixing the grammar issue below (since it is a user-visible
-print statement). Other than that, everything looks fine.
-
-Reviewed-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
- 
-> ---
->  drivers/acpi/processor_driver.c |   14 ++++++++++++++
->  kernel/cpu.c                    |    8 +++++---
->  2 files changed, 19 insertions(+), 3 deletions(-)
-> 
-> Index: linux-3.5-rc6/drivers/acpi/processor_driver.c
-> ===================================================================
-> --- linux-3.5-rc6.orig/drivers/acpi/processor_driver.c	2012-07-12 20:34:29.438289841 +0900
-> +++ linux-3.5-rc6/drivers/acpi/processor_driver.c	2012-07-12 20:39:29.190542257 +0900
-> @@ -850,8 +850,22 @@ static int acpi_processor_handle_eject(s
->  			return ret;
->  	}
-> 
-> +	get_online_cpus();
-> +	/*
-> +	 * The cpu might become online again at this point. So we check whether
-> +	 * the cpu has been onlined or not. If the cpu became online, it means
-> +	 * that someone wants to use the cpu. So acpi_processor_handle_eject()
-> +	 * returns -EAGAIN.
-> +	 */
-> +	if (unlikely(cpu_online(pr->id))) {
-> +		put_online_cpus();
-> +		printk(KERN_WARNING "Failed to remove CPU %d, "
-> +		       "since someone onlines the cpu\n" , pr->id);
-
-How about:
-"Failed to remove CPU %d, because some other task brought the CPU back online\n"
-
-Regards,
-Srivatsa S. Bhat
-
-> +		return -EAGAIN;
-> +	}
->  	arch_unregister_cpu(pr->id);
->  	acpi_unmap_lsapic(pr->id);
-> +	put_online_cpus();
->  	return ret;
->  }
->  #else
-> Index: linux-3.5-rc6/kernel/cpu.c
-> ===================================================================
-> --- linux-3.5-rc6.orig/kernel/cpu.c	2012-07-12 20:34:29.438289841 +0900
-> +++ linux-3.5-rc6/kernel/cpu.c	2012-07-12 20:34:35.040219535 +0900
-> @@ -343,11 +343,13 @@ static int __cpuinit _cpu_up(unsigned in
->  	unsigned long mod = tasks_frozen ? CPU_TASKS_FROZEN : 0;
->  	struct task_struct *idle;
-> 
-> -	if (cpu_online(cpu) || !cpu_present(cpu))
-> -		return -EINVAL;
-> -
->  	cpu_hotplug_begin();
-> 
-> +	if (cpu_online(cpu) || !cpu_present(cpu)) {
-> +		ret =  -EINVAL;
-> +		goto out;
-> +	}
-> +
->  	idle = idle_thread_get(cpu);
->  	if (IS_ERR(idle)) {
->  		ret = PTR_ERR(idle);
-> 
+Looks sane to me.  It does now mean that the calling conventions for
+some of the other firmware_map*() functions are different, but I think
+that's OK since they're only used internally to memmap.c.
 
