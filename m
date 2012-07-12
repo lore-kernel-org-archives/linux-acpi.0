@@ -1,71 +1,59 @@
 From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: [PATCH 3/5] acpi : remove usage from acpi_processor_cx structure
-Date: Thu, 12 Jul 2012 23:03:44 +0200
-Message-ID: <1342127026-1526-3-git-send-email-daniel.lezcano@linaro.org>
-References: <1342127026-1526-1-git-send-email-daniel.lezcano@linaro.org>
+Subject: [PATCH 1/5] acpi : remove latency_ticks from acpi_processor_cx structure
+Date: Thu, 12 Jul 2012 23:03:42 +0200
+Message-ID: <1342127026-1526-1-git-send-email-daniel.lezcano@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mail-we0-f174.google.com ([74.125.82.174]:36883 "EHLO
 	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932948Ab2GLVDy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Jul 2012 17:03:54 -0400
-Received: by mail-we0-f174.google.com with SMTP id x8so2012381wey.19
-        for <linux-acpi@vger.kernel.org>; Thu, 12 Jul 2012 14:03:53 -0700 (PDT)
-In-Reply-To: <1342127026-1526-1-git-send-email-daniel.lezcano@linaro.org>
+	with ESMTP id S933478Ab2GLVDv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Jul 2012 17:03:51 -0400
+Received: by weyx8 with SMTP id x8so2012381wey.19
+        for <linux-acpi@vger.kernel.org>; Thu, 12 Jul 2012 14:03:50 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: rjw@sisk.pl, lenb@kernel.org
 Cc: linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Remove the usage field as it is not used.
+Remove the latency_ticks field as it is not used.
 
 Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
 ---
- drivers/acpi/processor_idle.c |    5 -----
+ drivers/acpi/processor_idle.c |    2 --
  include/acpi/processor.h      |    1 -
- 2 files changed, 0 insertions(+), 6 deletions(-)
+ 2 files changed, 0 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index 9808e60..d044588 100644
+index f3decb3..da92c65 100644
 --- a/drivers/acpi/processor_idle.c
 +++ b/drivers/acpi/processor_idle.c
-@@ -761,7 +761,6 @@ static int acpi_idle_enter_c1(struct cpuidle_device *dev,
- 	dev->last_residency = (int)idle_time;
+@@ -586,7 +586,6 @@ static void acpi_processor_power_verify_c3(struct acpi_processor *pr,
+ 	 */
+ 	cx->valid = 1;
  
- 	local_irq_enable();
--	cx->usage++;
- 	lapic_timer_state_broadcast(pr, cx, 0);
+-	cx->latency_ticks = cx->latency;
+ 	/*
+ 	 * On older chipsets, BM_RLD needs to be set
+ 	 * in order for Bus Master activity to wake the
+@@ -619,7 +618,6 @@ static int acpi_processor_power_verify(struct acpi_processor *pr)
+ 			if (!cx->address)
+ 				break;
+ 			cx->valid = 1; 
+-			cx->latency_ticks = cx->latency; /* Normalize latency */
+ 			break;
  
- 	return index;
-@@ -863,8 +862,6 @@ static int acpi_idle_enter_simple(struct cpuidle_device *dev,
- 	if (cx->entry_method != ACPI_CSTATE_FFH)
- 		current_thread_info()->status |= TS_POLLING;
- 
--	cx->usage++;
--
- 	lapic_timer_state_broadcast(pr, cx, 0);
- 	cx->time += idle_time;
- 	return index;
-@@ -983,8 +980,6 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
- 	if (cx->entry_method != ACPI_CSTATE_FFH)
- 		current_thread_info()->status |= TS_POLLING;
- 
--	cx->usage++;
--
- 	lapic_timer_state_broadcast(pr, cx, 0);
- 	cx->time += idle_time;
- 	return index;
+ 		case ACPI_STATE_C3:
 diff --git a/include/acpi/processor.h b/include/acpi/processor.h
-index d09c94f..0957457 100644
+index 9d65047..a70cbcc 100644
 --- a/include/acpi/processor.h
 +++ b/include/acpi/processor.h
 @@ -59,7 +59,6 @@ struct acpi_processor_cx {
  	u8 entry_method;
+ 	u8 index;
  	u32 latency;
+-	u32 latency_ticks;
  	u32 power;
--	u32 usage;
+ 	u32 usage;
  	u64 time;
- 	u8 bm_sts_skip;
- 	char desc[ACPI_CX_DESC_LEN];
 -- 
 1.7.5.4
 
