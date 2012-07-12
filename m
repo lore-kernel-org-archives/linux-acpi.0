@@ -1,101 +1,111 @@
-From: Ben Hutchings <ben@decadent.org.uk>
-Subject: Re: [PATCH] ACPI / PCI: Make _SxD/_SxW check follow ACPI 4.0a spec
-Date: Thu, 12 Jul 2012 05:30:45 +0100
-Message-ID: <1342067445.25597.353.camel@deadeye.wl.decadent.org.uk>
-References: <201204292244.16467.rjw@sisk.pl>
-	 <201207111107.56500.rjw@sisk.pl> <20120711135333.GA19410@kroah.com>
-	 <201207112104.49173.rjw@sisk.pl>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [RFC PATCH v3 3/13] memory-hotplug : unify argument of firmware_map_add_early/hotplug
+Date: Thu, 12 Jul 2012 13:52:38 +0900
+Message-ID: <4FFE5816.6070102@jp.fujitsu.com>
+References: <4FFAB0A2.8070304@jp.fujitsu.com> <4FFAB17F.2090209@jp.fujitsu.com> <4FFD9C08.2070502@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha512";
-	protocol="application/pgp-signature"; boundary="=-aAqBNxXpbUMQCzstgQQq"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201207112104.49173.rjw@sisk.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Greg KH <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, linux-pci@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, "Oleksij Rempel (fishor)" <bug-track@fisher-privat.net>, LKML <linux-kernel@vger.kernel.org>, stable@vger.kernel.org
+Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:50041 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752324Ab2GLExJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Jul 2012 00:53:09 -0400
+In-Reply-To: <4FFD9C08.2070502@linux.vnet.ibm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dave Hansen <dave@linux.vnet.ibm.com>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, wency@cn.fujitsu.com
 
+Hi Dave,
 
---=-aAqBNxXpbUMQCzstgQQq
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+2012/07/12 0:30, Dave Hansen wrote:
+> On 07/09/2012 03:25 AM, Yasuaki Ishimatsu wrote:
+>> @@ -642,7 +642,7 @@ int __ref add_memory(int nid, u64 start,
+>>   	}
+>>
+>>   	/* create new memmap entry */
+>> -	firmware_map_add_hotplug(start, start + size, "System RAM");
+>> +	firmware_map_add_hotplug(start, start + size - 1, "System RAM");
+> 
+> I know the firmware_map_*() calls use inclusive end addresses
+> internally, but do we really need to expose them?  Both of the callers
+> you mentioned do:
+> 
+> 	firmware_map_add_hotplug(start, start + size - 1, "System RAM");
+> 
+> or
+> 
+>                  firmware_map_add_early(entry->addr,
+>                          entry->addr + entry->size - 1,
+>                          e820_type_to_string(entry->type));
+> 
+> So it seems a _bit_ silly to keep all of the callers doing this size-1
+> thing.  I also noted that the new caller that you added does the same
+> thing.  Could we just change the external calling convention to be
+> exclusive?
 
-On Wed, 2012-07-11 at 21:04 +0200, Rafael J. Wysocki wrote:
-> On Wednesday, July 11, 2012, Greg KH wrote:
-> > On Wed, Jul 11, 2012 at 11:07:56AM +0200, Rafael J. Wysocki wrote:
-> > > On Wednesday, July 11, 2012, Greg KH wrote:
-> > > > On Sun, Apr 29, 2012 at 10:44:16PM +0200, Rafael J. Wysocki wrote:
-> > > > > From: Oleksij Rempel <bug-track@fisher-privat.net>
-> > > > >=20
-> > > > > This patch makes _SxD/_SxW check follow the ACPI 4.0a specificati=
-on
-> > > > > more closely and fixes suspend bug found on ASUS Zenbook UX31E.
-> > > > >=20
-> > > > > Some OEM use _SxD fileds do blacklist brocken Dx states.
-> > > > > If _SxD/_SxW return values are check before suspend as appropriat=
-e,
-> > > > > some nasty suspend/resume issues may be avoided.
-> > > > >=20
-> > > > > References: https://bugzilla.kernel.org/show_bug.cgi?id=3D42728
-> > > > > Signed-off-by: Oleksij Rempel <bug-track@fisher-privat.net>
-> > > > > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> > > > > ---
-> > > > >=20
-> > > > > Bjorn, Len,
-> > > > >=20
-> > > > > This is -stable material and therefore v3.4 as well, IMO.  Please=
- let me
-> > > > > know if one of you can take it or whether you want me to handle i=
-t all the
-> > > > > way to Linus.
-> > > >=20
-> > > > What ever hapened to this patch?
-> > >=20
-> > > It was split and partially merged.  As far as the other part is conce=
-rned,
-> > > the jury is still out.
-> >=20
-> > Ok, I'll wait for someone to ask for it to be added to the stable tree
-> > before I do anything.
->=20
-> In fact, it should have been marked as -stable material, so please add:
->=20
-> commit dbe9a2edd17d843d80faf2b99f20a691c1853418
-> Author: Rafael J. Wysocki <rjw@sisk.pl>
-> Date:   Tue May 29 21:21:07 2012 +0200
->=20
->     ACPI / PM: Make acpi_pm_device_sleep_state() follow the specification
+Thank you for your comment.
 
-Queued up for 3.2.y.
+Does the following patch include your comment? If O.K., I will separate
+the patch from the series and send it for bug fix.
 
-Ben.
+---
+ arch/x86/kernel/e820.c    |    2 +-
+ drivers/firmware/memmap.c |    8 ++++----
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
---=20
-Ben Hutchings
-The generation of random numbers is too important to be left to chance.
-                                                            - Robert Coveyo=
-u
+Index: linux-next/arch/x86/kernel/e820.c
+===================================================================
+--- linux-next.orig/arch/x86/kernel/e820.c	2012-07-02 09:50:23.000000000 +0900
++++ linux-next/arch/x86/kernel/e820.c	2012-07-12 13:30:45.942318179 +0900
+@@ -944,7 +944,7 @@
+ 	for (i = 0; i < e820_saved.nr_map; i++) {
+ 		struct e820entry *entry = &e820_saved.map[i];
+ 		firmware_map_add_early(entry->addr,
+-			entry->addr + entry->size - 1,
++			entry->addr + entry->size,
+ 			e820_type_to_string(entry->type));
+ 	}
+ }
+Index: linux-next/drivers/firmware/memmap.c
+===================================================================
+--- linux-next.orig/drivers/firmware/memmap.c	2012-07-02 09:50:26.000000000 +0900
++++ linux-next/drivers/firmware/memmap.c	2012-07-12 13:40:53.823318481 +0900
+@@ -98,7 +98,7 @@
+ /**
+  * firmware_map_add_entry() - Does the real work to add a firmware memmap entry.
+  * @start: Start of the memory range.
+- * @end:   End of the memory range (inclusive).
++ * @end:   End of the memory range.
+  * @type:  Type of the memory range.
+  * @entry: Pre-allocated (either kmalloc() or bootmem allocator), uninitialised
+  *         entry.
+@@ -113,7 +113,7 @@
+ 	BUG_ON(start > end);
 
---=-aAqBNxXpbUMQCzstgQQq
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
+ 	entry->start = start;
+-	entry->end = end;
++	entry->end = end - 1;
+ 	entry->type = type;
+ 	INIT_LIST_HEAD(&entry->list);
+ 	kobject_init(&entry->kobj, &memmap_ktype);
+@@ -148,7 +148,7 @@
+  * firmware_map_add_hotplug() - Adds a firmware mapping entry when we do
+  * memory hotplug.
+  * @start: Start of the memory range.
+- * @end:   End of the memory range (inclusive).
++ * @end:   End of the memory range.
+  * @type:  Type of the memory range.
+  *
+  * Adds a firmware mapping entry. This function is for memory hotplug, it is
+@@ -175,7 +175,7 @@
+ /**
+  * firmware_map_add_early() - Adds a firmware mapping entry.
+  * @start: Start of the memory range.
+- * @end:   End of the memory range (inclusive).
++ * @end:   End of the memory range.
+  * @type:  Type of the memory range.
+  *
+  * Adds a firmware mapping entry. This function uses the bootmem allocator
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIVAwUAT/5S9ee/yOyVhhEJAQpZgg//WQ25sCA13c/wGirL+KJmK9IoUjmwwOkp
-TWLvFkqbt+sLGvDwc1MAki6mrzv5VTiDE+ETbNmwvQ8FLN6naSSeHkbJFZvorQ4j
-bGSBig+gglfWeaOGkW1UdE5METuEYCrjB7ImwIGS2r2VDB2dzCR4+3fqy4u0jYZd
-nxodr4fGco3Q5Du8lsCZ2zg9AeehXG+f2bjdkBvxDDpHMKBEC6CHQtuLsUKgQV18
-wiovxVVT45DLv0qEeY7UTN1vJAkxce21EqEI1NXBP4pVTXg3gAIz/vye8e6EAu0x
-MRrHJ25/w0vgB8lDby9MiUX4eJlpNhtBTSQE+NhZv0OKCJjbmj68OKqHQt8UtvnH
-+8QB4+R52nBGTrcEBTHqA6lU1x9B4rmlkCJdJMN/Ws1/GfBPmqrKpg2DSbzEJP1G
-SnyO0tEwMHAn7sSEUZ+dv1aWp/8gyc+7NN6cnEa2gohLTMvKtGPf3LMleYmHrghX
-22HLPBUHwOvme8MLd/OIISkG9QLlPNSM8YhO9gONSmAFBjKgUiVaj6l8m3954lfa
-TyuwKT/hHVBlpYoq+AHnt/hTIsvJP9nlcYxvG9C4niTf3BhSS0Rf1q8k0y1oY1gX
-9NzI1M9UpDt43KtOjWtOVbfRLMQKJmWn9H1y+dAB5szUw9JZ6Mw5yeVRnTz4E3W4
-TfZFSGUXcPo=
-=W/Qq
------END PGP SIGNATURE-----
-
---=-aAqBNxXpbUMQCzstgQQq--
