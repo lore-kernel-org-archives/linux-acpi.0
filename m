@@ -1,99 +1,72 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH 1/5] acpi : remove latency_ticks from acpi_processor_cx
- structure
-Date: Thu, 12 Jul 2012 22:47:48 +0200
-Message-ID: <4FFF37F4.3060002@linaro.org>
-References: <1342107003-9811-1-git-send-email-daniel.lezcano@linaro.org> <201207122234.12851.rjw@sisk.pl>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] Fix not loading acpi-cpufreq driver regression
+Date: Thu, 12 Jul 2012 22:55:56 +0200
+Message-ID: <201207122255.56952.rjw@sisk.pl>
+References: <201207111943.19405.rjw@sisk.pl> <201207121057.31791.trenn@suse.de> <201207121103.07832.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:44281 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756254Ab2GLUrx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Jul 2012 16:47:53 -0400
-Received: by eekb15 with SMTP id b15so766666eek.19
-        for <linux-acpi@vger.kernel.org>; Thu, 12 Jul 2012 13:47:51 -0700 (PDT)
-In-Reply-To: <201207122234.12851.rjw@sisk.pl>
+Received: from ogre.sisk.pl ([193.178.161.156]:38221 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932094Ab2GLUuY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 12 Jul 2012 16:50:24 -0400
+In-Reply-To: <201207121103.07832.trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+To: Thomas Renninger <trenn@suse.de>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Linux PM list <linux-pm@vger.kernel.org>, Len Brown <lenb@kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-On 07/12/2012 10:34 PM, Rafael J. Wysocki wrote:
-> On Thursday, July 12, 2012, Daniel Lezcano wrote:
->> Remove the latency_ticks field as it is not used.
->>
->> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
->=20
-> Thanks for the patches, but can you please repost them to
-> linux-pm@vger.kernel.org so that they are included into the kernel.or=
-g
-> Patchwork?  They will be much easier to review and handle then.
->=20
-> And please CC linux-acpi@vger.kernel.org for all ACPI-related patches=
- in the
-> future.
+On Thursday, July 12, 2012, Thomas Renninger wrote:
+> Commit d640113fe80e45ebd4a5b420b introduced a regression on SMP
+> systems where the processor core with ACPI id zero is disabled
+> (typically should be the case because of hyperthreading).
+> The regression got spread through stable kernels.
+> On 3.0.X it got introduced via 3.0.18.
+> 
+> Such platforms may be rare, but do exist.
+> Look out for a disabled processor with acpi_id 0 in dmesg:
+> ACPI: LAPIC (acpi_id[0x00] lapic_id[0x10] disabled)
+> 
+> This problem has been observed on a:
+> HP Proliant BL280c G6 blade
+> 
+> This patch restricts the introduced workaround to platforms
+> with nr_cpu_ids <= 1.
+> 
+> Signed-off-by: Thomas Renninger <trenn@suse.de>
+> CC: stable@vger.kernel.org
 
-Yes, sure. Sorry for that.
+Applied to the pm-cpufreq branch of the linux-pm.git tree.
 
-Thanks
-  -- Daniel
-
->> ---
->>  drivers/acpi/processor_idle.c |    2 --
->>  include/acpi/processor.h      |    1 -
->>  2 files changed, 0 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_=
-idle.c
->> index b894627..9ef007d 100644
->> --- a/drivers/acpi/processor_idle.c
->> +++ b/drivers/acpi/processor_idle.c
->> @@ -583,7 +583,6 @@ static void acpi_processor_power_verify_c3(struc=
-t acpi_processor *pr,
->>  	 */
->>  	cx->valid =3D 1;
->> =20
->> -	cx->latency_ticks =3D cx->latency;
->>  	/*
->>  	 * On older chipsets, BM_RLD needs to be set
->>  	 * in order for Bus Master activity to wake the
->> @@ -616,7 +615,6 @@ static int acpi_processor_power_verify(struct ac=
-pi_processor *pr)
->>  			if (!cx->address)
->>  				break;
->>  			cx->valid =3D 1;=20
->> -			cx->latency_ticks =3D cx->latency; /* Normalize latency */
->>  			break;
->> =20
->>  		case ACPI_STATE_C3:
->> diff --git a/include/acpi/processor.h b/include/acpi/processor.h
->> index ac3bff6..19423c3 100644
->> --- a/include/acpi/processor.h
->> +++ b/include/acpi/processor.h
->> @@ -59,7 +59,6 @@ struct acpi_processor_cx {
->>  	u8 entry_method;
->>  	u8 index;
->>  	u32 latency;
->> -	u32 latency_ticks;
->>  	u32 power;
->>  	u32 usage;
->>  	u64 time;
->>
->=20
+Thanks,
+Rafael
 
 
---=20
- <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software for=
- ARM SoCs
+> ---
+>  drivers/acpi/processor_core.c |    6 ++++--
+>  1 files changed, 4 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+> index c850de4..eff7222 100644
+> --- a/drivers/acpi/processor_core.c
+> +++ b/drivers/acpi/processor_core.c
+> @@ -189,10 +189,12 @@ int acpi_get_cpuid(acpi_handle handle, int type, u32 acpi_id)
+>  		 *     Processor (CPU3, 0x03, 0x00000410, 0x06) {}
+>  		 * }
+>  		 *
+> -		 * Ignores apic_id and always return 0 for CPU0's handle.
+> +		 * Ignores apic_id and always returns 0 for the processor
+> +		 * handle with acpi id 0 if nr_cpu_ids is 1.
+> +		 * This should be the case if SMP tables are not found.
+>  		 * Return -1 for other CPU's handle.
+>  		 */
+> -		if (acpi_id == 0)
+> +		if (nr_cpu_ids <= 1 && acpi_id == 0)
+>  			return acpi_id;
+>  		else
+>  			return apic_id;
+> 
+> 
 
-=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
