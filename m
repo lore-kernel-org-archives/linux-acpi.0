@@ -1,139 +1,100 @@
 From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [PATCH v3 2/3 RESEND] acpi : prevent cpu from becoming online
-Date: Fri, 13 Jul 2012 15:24:57 +0900
-Message-ID: <4FFFBF39.10202@jp.fujitsu.com>
-References: <4FFEB35A.6030500@jp.fujitsu.com> <4FFEB4BA.8010800@jp.fujitsu.com> <4FFEB7BA.6050505@jp.fujitsu.com> <4FFEC60B.7040800@linux.vnet.ibm.com>
+Subject: Re: [PATCH v3 1/3] acpi : cpu hot-remove returns error when cpu_down()
+ fails
+Date: Fri, 13 Jul 2012 15:26:43 +0900
+Message-ID: <4FFFBFA3.8040203@jp.fujitsu.com>
+References: <4FFEB35A.6030500@jp.fujitsu.com> <1342111687.8472.16.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4FFEC60B.7040800@linux.vnet.ibm.com>
+In-Reply-To: <1342111687.8472.16.camel@misato.fc.hp.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, toshi.kani@hp.com
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, srivatsa.bhat@linux.vnet.ibm.com
 List-Id: linux-acpi@vger.kernel.org
 
-2012/07/12 21:41, Srivatsa S. Bhat wrote:
-> On 07/12/2012 05:10 PM, Yasuaki Ishimatsu wrote:
->> Even if acpi_processor_handle_eject() offlines cpu, there is a chance
->> to online the cpu after that. So the patch closes the window by using
->> get/put_online_cpus().
->>
->> Why does the patch change _cpu_up() logic?
->>
->> The patch cares the race of hot-remove cpu and _cpu_up(). If the patch
->> does not change it, there is the following race.
->>
->> hot-remove cpu                         |  _cpu_up()
->> ------------------------------------- ------------------------------------
->> call acpi_processor_handle_eject()     |
->>       call cpu_down()                   |
->>       call get_online_cpus()            |
->>                                         | call cpu_hotplug_begin() and stop here
->>       call arch_unregister_cpu()        |
->>       call acpi_unmap_lsapic()          |
->>       call put_online_cpus()            |
->>                                         | start and continue _cpu_up()
->>       return acpi_processor_remove()    |
->> continue hot-remove the cpu            |
->>
->> So _cpu_up() can continue to itself. And hot-remove cpu can also continue
->> itself. If the patch changes _cpu_up() logic, the race disappears as below:
->>
->> hot-remove cpu                         | _cpu_up()
->> -----------------------------------------------------------------------
->> call acpi_processor_handle_eject()     |
->>       call cpu_down()                   |
->>       call get_online_cpus()            |
->>                                         | call cpu_hotplug_begin() and stop here
->>       call arch_unregister_cpu()        |
->>       call acpi_unmap_lsapic()          |
->>            cpu's cpu_present is set     |
->>            to false by set_cpu_present()|
->>       call put_online_cpus()            |
->>                                         | start _cpu_up()
->>                                         | check cpu_present() and return -EINVAL
->>       return acpi_processor_remove()    |
->> continue hot-remove the cpu            |
+Hi Toshi,
+
+2012/07/13 1:48, Toshi Kani wrote:
+> On Thu, 2012-07-12 at 20:22 +0900, Yasuaki Ishimatsu wrote:
+>> Even if cpu_down() fails, acpi_processor_remove() continues to remove the cpu.
+>> But in this case, it should return error number since some process may run on
+>> the cpu. If the cpu has a running process and the cpu is turned the power off,
+>> the system may not work well.
 >>
 >> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 >>
-> 
-> Please consider fixing the grammar issue below (since it is a user-visible
-> print statement). Other than that, everything looks fine.
-> 
-> Reviewed-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
->   
 >> ---
->>   drivers/acpi/processor_driver.c |   14 ++++++++++++++
->>   kernel/cpu.c                    |    8 +++++---
->>   2 files changed, 19 insertions(+), 3 deletions(-)
+>>   drivers/acpi/processor_driver.c |   18 ++++++++++++------
+>>   1 file changed, 12 insertions(+), 6 deletions(-)
 >>
->> Index: linux-3.5-rc6/drivers/acpi/processor_driver.c
+>> Index: linux-3.5-rc4/drivers/acpi/processor_driver.c
 >> ===================================================================
->> --- linux-3.5-rc6.orig/drivers/acpi/processor_driver.c	2012-07-12 20:34:29.438289841 +0900
->> +++ linux-3.5-rc6/drivers/acpi/processor_driver.c	2012-07-12 20:39:29.190542257 +0900
->> @@ -850,8 +850,22 @@ static int acpi_processor_handle_eject(s
->>   			return ret;
+>> --- linux-3.5-rc4.orig/drivers/acpi/processor_driver.c	2012-06-25 04:53:04.000000000 +0900
+>> +++ linux-3.5-rc4/drivers/acpi/processor_driver.c	2012-07-05 21:02:58.711285382 +0900
+>> @@ -610,7 +610,7 @@ err_free_pr:
+>>   static int acpi_processor_remove(struct acpi_device *device, int type)
+>>   {
+>>   	struct acpi_processor *pr = NULL;
+>> -
+>> +	int ret;
+>>
+>>   	if (!device || !acpi_driver_data(device))
+>>   		return -EINVAL;
+>> @@ -621,8 +621,9 @@ static int acpi_processor_remove(struct
+>>   		goto free;
+>>
+>>   	if (type == ACPI_BUS_REMOVAL_EJECT) {
+>> -		if (acpi_processor_handle_eject(pr))
+>> -			return -EINVAL;
+>> +		ret = acpi_processor_handle_eject(pr);
+>> +		if (ret)
+>> +			return ret;
 >>   	}
 >>
->> +	get_online_cpus();
->> +	/*
->> +	 * The cpu might become online again at this point. So we check whether
->> +	 * the cpu has been onlined or not. If the cpu became online, it means
->> +	 * that someone wants to use the cpu. So acpi_processor_handle_eject()
->> +	 * returns -EAGAIN.
->> +	 */
->> +	if (unlikely(cpu_online(pr->id))) {
->> +		put_online_cpus();
->> +		printk(KERN_WARNING "Failed to remove CPU %d, "
->> +		       "since someone onlines the cpu\n" , pr->id);
-> 
-> How about:
-> "Failed to remove CPU %d, because some other task brought the CPU back online\n"
+>>   	acpi_processor_power_exit(pr, device);
+>> @@ -841,12 +842,17 @@ static acpi_status acpi_processor_hotadd
+>>
+>>   static int acpi_processor_handle_eject(struct acpi_processor *pr)
+>>   {
+>> -	if (cpu_online(pr->id))
+>> -		cpu_down(pr->id);
+>> +	int ret;
+>> +
+>> +	if (cpu_online(pr->id)) {
+>> +		ret = cpu_down(pr->id);
+>> +		if (ret)
+>> +			return ret;
+>> +	}
+>>
+>>   	arch_unregister_cpu(pr->id);
+>>   	acpi_unmap_lsapic(pr->id);
+>> -	return (0);
+>> +	return ret;
+>
+> ret is uninitialized when !cpu_online().
 
-Looks good to me. I'll update it.
+Oops! I'll update it.
 
 Thanks,
 Yasuaki Ishimatsu
 
-> 
-> Regards,
-> Srivatsa S. Bhat
-> 
->> +		return -EAGAIN;
->> +	}
->>   	arch_unregister_cpu(pr->id);
->>   	acpi_unmap_lsapic(pr->id);
->> +	put_online_cpus();
->>   	return ret;
+> Thanks,
+> -Toshi
+>
 >>   }
 >>   #else
->> Index: linux-3.5-rc6/kernel/cpu.c
->> ===================================================================
->> --- linux-3.5-rc6.orig/kernel/cpu.c	2012-07-12 20:34:29.438289841 +0900
->> +++ linux-3.5-rc6/kernel/cpu.c	2012-07-12 20:34:35.040219535 +0900
->> @@ -343,11 +343,13 @@ static int __cpuinit _cpu_up(unsigned in
->>   	unsigned long mod = tasks_frozen ? CPU_TASKS_FROZEN : 0;
->>   	struct task_struct *idle;
+>>   static acpi_status acpi_processor_hotadd_init(struct acpi_processor *pr)
 >>
->> -	if (cpu_online(cpu) || !cpu_present(cpu))
->> -		return -EINVAL;
->> -
->>   	cpu_hotplug_begin();
->>
->> +	if (cpu_online(cpu) || !cpu_present(cpu)) {
->> +		ret =  -EINVAL;
->> +		goto out;
->> +	}
->> +
->>   	idle = idle_thread_get(cpu);
->>   	if (IS_ERR(idle)) {
->>   		ret = PTR_ERR(idle);
->>
-> 
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+>
