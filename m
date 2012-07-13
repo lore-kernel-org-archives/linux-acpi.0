@@ -1,109 +1,48 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH 4/5] acpi : remove power from acpi_processor_cx structure
-Date: Fri, 13 Jul 2012 14:23:01 +0200
-Message-ID: <50001325.8010500@linaro.org>
-References: <1342127026-1526-1-git-send-email-daniel.lezcano@linaro.org> <1342127026-1526-4-git-send-email-daniel.lezcano@linaro.org> <20120713001701.GB13574@phenom.dumpdata.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH] ACPI button: remove hotkey suspend acpi proc event
+Date: Fri, 13 Jul 2012 11:12:48 -0300
+Message-ID: <20120713141248.GE7877@khazad-dum.debian.net>
+References: <1342160002-13427-1-git-send-email-acelan.kao@canonical.com>
+ <20120713064801.GA4910@srcf.ucam.org>
+ <CAMz9Wg9gJvABAbtZNZSuywq=GgK4KaufB8ph405SmErLpO1y4g@mail.gmail.com>
+ <20120713071355.GA5516@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:48987 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932501Ab2GMMXG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Jul 2012 08:23:06 -0400
-Received: by bkwj10 with SMTP id j10so3046542bkw.19
-        for <linux-acpi@vger.kernel.org>; Fri, 13 Jul 2012 05:23:04 -0700 (PDT)
-In-Reply-To: <20120713001701.GB13574@phenom.dumpdata.com>
+Received: from out3-smtp.messagingengine.com ([66.111.4.27]:54560 "EHLO
+	out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751838Ab2GMOMw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 13 Jul 2012 10:12:52 -0400
+Content-Disposition: inline
+In-Reply-To: <20120713071355.GA5516@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: rjw@sisk.pl, lenb@kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: AceLan Kao <acelan.kao@canonical.com>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-On 07/13/2012 02:17 AM, Konrad Rzeszutek Wilk wrote:
-> On Thu, Jul 12, 2012 at 11:03:45PM +0200, Daniel Lezcano wrote:
->> Remove the power field as it is not used.
->>
-> It looks to be used in drivers/xen/xen-acpi-processor.c.
->=20
-> I could emulate some value and stick it in there.. but I am
-> more curious - what is the intent of this value?
+On Fri, 13 Jul 2012, Matthew Garrett wrote:
+> On Fri, Jul 13, 2012 at 03:07:38PM +0800, AceLan Kao wrote:
+> > There are many different events to inform the system concurrently,
+> > evdev is just one of them.
+> > I'm not sure which one trigger the system to suspend while pressing
+> > the suspend hotkey, but
+> > the following suspends are triggered by acpi proc event.
+> 
+> I'm fine with killing the procfs interface (it's deprecated anyway, I 
+> think?) but I'm a little worried about this only handling one case. Is 
+> userspace guaranteed to ignore any further events that were delivered 
+> over the input layer.
 
-At the first glance, this value is the power consumption of the
-specified state. I am not sure all acpi returns a correct value.
+No.  Some firmware (thinkpads) even used to latch state and refuse to
+reissue sleep buttom events for a while...
 
-I can imagine the power should be copied to the cpuidle_state structure
-to the power field where it is used by the governor to choose the bette=
-r
-C-state. As it is not specified, cpuidle will assume the C-State N
-consumes less than the C-State N-1.
+Is there any reason why we cannot do the same?  Entering S3/S4 is a
+really good time to flush the contents of any input device and acpi
+[userspace] event queues at first glance...
 
-If we want to add the power consumption we should also set the
-'power_specified' flag for the driver, but that could change the
-behavior of the cpuidle driver.
-
-Anyway, IMO, this field is useless for this structure and should be
-specified later, if that makes sense, directly in the cpuidle_state
-structure like the other drivers do.
-
-If nobody complains, I will remove the field also from Xen and resend
-this patch.
-
-Thanks
-  -- Daniel
-
->> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
->> ---
->>  drivers/acpi/processor_idle.c |    2 --
->>  include/acpi/processor.h      |    1 -
->>  2 files changed, 0 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_=
-idle.c
->> index d044588..99ba58f 100644
->> --- a/drivers/acpi/processor_idle.c
->> +++ b/drivers/acpi/processor_idle.c
->> @@ -485,8 +485,6 @@ static int acpi_processor_get_power_info_cst(str=
-uct acpi_processor *pr)
->>  		if (obj->type !=3D ACPI_TYPE_INTEGER)
->>  			continue;
->> =20
->> -		cx.power =3D obj->integer.value;
->> -
->>  		current_count++;
->>  		memcpy(&(pr->power.states[current_count]), &cx, sizeof(cx));
->> =20
->> diff --git a/include/acpi/processor.h b/include/acpi/processor.h
->> index 0957457..87bb9d7 100644
->> --- a/include/acpi/processor.h
->> +++ b/include/acpi/processor.h
->> @@ -58,7 +58,6 @@ struct acpi_processor_cx {
->>  	u32 address;
->>  	u8 entry_method;
->>  	u32 latency;
->> -	u32 power;
->>  	u64 time;
->>  	u8 bm_sts_skip;
->>  	char desc[ACPI_CX_DESC_LEN];
->> --=20
->> 1.7.5.4
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi=
-" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
---=20
- <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software for=
- ARM SoCs
-
-=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
