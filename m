@@ -1,102 +1,29 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [PATCH v3 1/3] acpi : cpu hot-remove returns error when cpu_down()
- fails
-Date: Fri, 13 Jul 2012 15:29:12 +0900
-Message-ID: <4FFFC038.5070106@jp.fujitsu.com>
-References: <4FFEB35A.6030500@jp.fujitsu.com> <4FFEC3E7.1030606@linux.vnet.ibm.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH] ACPI button: remove hotkey suspend acpi proc event
+Date: Fri, 13 Jul 2012 07:48:01 +0100
+Message-ID: <20120713064801.GA4910@srcf.ucam.org>
+References: <1342160002-13427-1-git-send-email-acelan.kao@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:49064 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751929Ab2GMG33 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Jul 2012 02:29:29 -0400
-In-Reply-To: <4FFEC3E7.1030606@linux.vnet.ibm.com>
+Received: from cavan.codon.org.uk ([93.93.128.6]:46422 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752440Ab2GMGsH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Jul 2012 02:48:07 -0400
+Content-Disposition: inline
+In-Reply-To: <1342160002-13427-1-git-send-email-acelan.kao@canonical.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, toshi.kani@hp.com
+To: AceLan Kao <acelan.kao@canonical.com>
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-Hi Srivatsa,
+On Fri, Jul 13, 2012 at 02:13:22PM +0800, AceLan Kao wrote:
 
-2012/07/12 21:32, Srivatsa S. Bhat wrote:
-> On 07/12/2012 04:52 PM, Yasuaki Ishimatsu wrote:
->> Even if cpu_down() fails, acpi_processor_remove() continues to remove the cpu.
->> But in this case, it should return error number since some process may run on
->> the cpu. If the cpu has a running process and the cpu is turned the power off,
->> the system may not work well.
->>
->> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->>
-> 
-> Reviewed-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+> I think it's safe not to generate the proc event while pressing the
+> suspend hotkey, since "/proc/acpi/event" is deprecated. And system can
+> enter S3 correctly without it.
 
-Thank you for reviewing.
+Why does this happen via /proc, but not via evdev?
 
-Thanks,
-Yasuaki Ishimatsu
-
-> Regards,
-> Srivatsa S. Bhat
-> 
->> ---
->>   drivers/acpi/processor_driver.c |   18 ++++++++++++------
->>   1 file changed, 12 insertions(+), 6 deletions(-)
->>
->> Index: linux-3.5-rc4/drivers/acpi/processor_driver.c
->> ===================================================================
->> --- linux-3.5-rc4.orig/drivers/acpi/processor_driver.c	2012-06-25 04:53:04.000000000 +0900
->> +++ linux-3.5-rc4/drivers/acpi/processor_driver.c	2012-07-05 21:02:58.711285382 +0900
->> @@ -610,7 +610,7 @@ err_free_pr:
->>   static int acpi_processor_remove(struct acpi_device *device, int type)
->>   {
->>   	struct acpi_processor *pr = NULL;
->> -
->> +	int ret;
->>
->>   	if (!device || !acpi_driver_data(device))
->>   		return -EINVAL;
->> @@ -621,8 +621,9 @@ static int acpi_processor_remove(struct
->>   		goto free;
->>
->>   	if (type == ACPI_BUS_REMOVAL_EJECT) {
->> -		if (acpi_processor_handle_eject(pr))
->> -			return -EINVAL;
->> +		ret = acpi_processor_handle_eject(pr);
->> +		if (ret)
->> +			return ret;
->>   	}
->>
->>   	acpi_processor_power_exit(pr, device);
->> @@ -841,12 +842,17 @@ static acpi_status acpi_processor_hotadd
->>
->>   static int acpi_processor_handle_eject(struct acpi_processor *pr)
->>   {
->> -	if (cpu_online(pr->id))
->> -		cpu_down(pr->id);
->> +	int ret;
->> +
->> +	if (cpu_online(pr->id)) {
->> +		ret = cpu_down(pr->id);
->> +		if (ret)
->> +			return ret;
->> +	}
->>
->>   	arch_unregister_cpu(pr->id);
->>   	acpi_unmap_lsapic(pr->id);
->> -	return (0);
->> +	return ret;
->>   }
->>   #else
->>   static acpi_status acpi_processor_hotadd_init(struct acpi_processor *pr)
->>
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
-
-
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
