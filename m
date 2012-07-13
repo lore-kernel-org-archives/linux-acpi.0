@@ -1,61 +1,53 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 2/5] acpi : remove index from acpi_processor_cx structure
-Date: Fri, 13 Jul 2012 20:13:05 +0200
-Message-ID: <201207132013.05738.rjw@sisk.pl>
-References: <1342127026-1526-1-git-send-email-daniel.lezcano@linaro.org> <201207122344.27157.rjw@sisk.pl> <4FFF4835.9030806@linaro.org>
+Subject: Re: [PATCH 4/5] acpi : remove power from acpi_processor_cx structure
+Date: Fri, 13 Jul 2012 20:14:10 +0200
+Message-ID: <201207132014.10279.rjw@sisk.pl>
+References: <1342127026-1526-1-git-send-email-daniel.lezcano@linaro.org> <20120713001701.GB13574@phenom.dumpdata.com> <50001325.8010500@linaro.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:40071 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([193.178.161.156]:40079 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932757Ab2GMSH3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 13 Jul 2012 14:07:29 -0400
-In-Reply-To: <4FFF4835.9030806@linaro.org>
+	id S932504Ab2GMSIe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 13 Jul 2012 14:08:34 -0400
+In-Reply-To: <50001325.8010500@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: lenb@kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, lenb@kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Thursday, July 12, 2012, Daniel Lezcano wrote:
-> On 07/12/2012 11:44 PM, Rafael J. Wysocki wrote:
-> > On Thursday, July 12, 2012, Daniel Lezcano wrote:
-> >> Remove the index field. It could be given without adding extra
-> >> information in the cx structure.
+On Friday, July 13, 2012, Daniel Lezcano wrote:
+> On 07/13/2012 02:17 AM, Konrad Rzeszutek Wilk wrote:
+> > On Thu, Jul 12, 2012 at 11:03:45PM +0200, Daniel Lezcano wrote:
+> >> Remove the power field as it is not used.
 > >>
-> >> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+> > It looks to be used in drivers/xen/xen-acpi-processor.c.
 > > 
-> > I'm not sure about this one.
-> > 
-> > The code seems to be more straightforward without it, actually.
-> > 
-> > Why exactly do you need to remove the field?
+> > I could emulate some value and stick it in there.. but I am
+> > more curious - what is the intent of this value?
 > 
-> Actually, I am trying to cleaning up the different structure in the acpi
-> and clearly separate what is for cpuidle and what is for acpi.
+> At the first glance, this value is the power consumption of the
+> specified state. I am not sure all acpi returns a correct value.
 > 
-> I noticed there are some duplicated informations like the index and what
-> is described in the cx state.
+> I can imagine the power should be copied to the cpuidle_state structure
+> to the power field where it is used by the governor to choose the better
+> C-state. As it is not specified, cpuidle will assume the C-State N
+> consumes less than the C-State N-1.
 > 
-> I am trying to consolidate the code of the cpuidle drivers across the
-> different platform and I have to admit the processor_idle is the most
-> complicated as the cpuidle code is spreaded across different files
-> (processor_driver.c, processor.h, arch/x86/kernel/acpi/cstate.c, etc
-> ...). So these small patches are to litlle by little separate these two
-> subsystems (acpi and cpuidle) and have everything related to cpuidle
-> into the processor_idle file.
+> If we want to add the power consumption we should also set the
+> 'power_specified' flag for the driver, but that could change the
+> behavior of the cpuidle driver.
 > 
-> For this patch, it is right it seems to introduce more complexity but
-> the objective is to consolidate the code. I hope by cleaning the
-> different structures we will gain in readability.
+> Anyway, IMO, this field is useless for this structure and should be
+> specified later, if that makes sense, directly in the cpuidle_state
+> structure like the other drivers do.
+> 
+> If nobody complains, I will remove the field also from Xen and resend
+> this patch.
 
-OK, I'm generally fine with that, but I'd prefer to defer this kind of
-changes to 3.7 so as to avoid rushing them in.
-
-Removing unused fields is entirely fine at this point, I don't see how
-someone may see that objectionable, but let's just avoid playing with fields
-that are used for now.
+Please do.
 
 Thanks,
 Rafael
