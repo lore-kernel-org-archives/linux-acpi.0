@@ -1,48 +1,88 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH] ACPI button: remove hotkey suspend acpi proc event
-Date: Fri, 13 Jul 2012 11:12:48 -0300
-Message-ID: <20120713141248.GE7877@khazad-dum.debian.net>
-References: <1342160002-13427-1-git-send-email-acelan.kao@canonical.com>
- <20120713064801.GA4910@srcf.ucam.org>
- <CAMz9Wg9gJvABAbtZNZSuywq=GgK4KaufB8ph405SmErLpO1y4g@mail.gmail.com>
- <20120713071355.GA5516@srcf.ucam.org>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH v4 1/3] acpi : cpu hot-remove returns error when
+ cpu_down() fails
+Date: Fri, 13 Jul 2012 09:20:58 -0600
+Message-ID: <1342192858.19100.15.camel@misato.fc.hp.com>
+References: <4FFFE0DA.3050806@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out3-smtp.messagingengine.com ([66.111.4.27]:54560 "EHLO
-	out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751838Ab2GMOMw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 13 Jul 2012 10:12:52 -0400
-Content-Disposition: inline
-In-Reply-To: <20120713071355.GA5516@srcf.ucam.org>
+Received: from g6t0185.atlanta.hp.com ([15.193.32.62]:33964 "EHLO
+	g6t0185.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756469Ab2GMPZc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Jul 2012 11:25:32 -0400
+In-Reply-To: <4FFFE0DA.3050806@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: AceLan Kao <acelan.kao@canonical.com>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: srivatsa.bhat@linux.vnet.ibm.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, 13 Jul 2012, Matthew Garrett wrote:
-> On Fri, Jul 13, 2012 at 03:07:38PM +0800, AceLan Kao wrote:
-> > There are many different events to inform the system concurrently,
-> > evdev is just one of them.
-> > I'm not sure which one trigger the system to suspend while pressing
-> > the suspend hotkey, but
-> > the following suspends are triggered by acpi proc event.
+On Fri, 2012-07-13 at 17:48 +0900, Yasuaki Ishimatsu wrote:
+> Even if cpu_down() fails, acpi_processor_remove() continues to remove the cpu.
+> But in this case, it should return error number since some process may run on
+> the cpu. If the cpu has a running process and the cpu is turned the power off,
+> the system may not work well.
 > 
-> I'm fine with killing the procfs interface (it's deprecated anyway, I 
-> think?) but I'm a little worried about this only handling one case. Is 
-> userspace guaranteed to ignore any further events that were delivered 
-> over the input layer.
+> Reviewed-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-No.  Some firmware (thinkpads) even used to latch state and refuse to
-reissue sleep buttom events for a while...
+Thanks for the update.  It looks good.
 
-Is there any reason why we cannot do the same?  Entering S3/S4 is a
-really good time to flush the contents of any input device and acpi
-[userspace] event queues at first glance...
+Reviewed-by: Toshi Kani <toshi.kani@hp.com>
 
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+
+> 
+> ---
+>  drivers/acpi/processor_driver.c |   18 ++++++++++++------
+>  1 file changed, 12 insertions(+), 6 deletions(-)
+> 
+> Index: linux-3.5-rc6/drivers/acpi/processor_driver.c
+> ===================================================================
+> --- linux-3.5-rc6.orig/drivers/acpi/processor_driver.c	2012-07-08 09:23:56.000000000 +0900
+> +++ linux-3.5-rc6/drivers/acpi/processor_driver.c	2012-07-13 15:11:06.135541317 +0900
+> @@ -610,7 +610,7 @@ err_free_pr:
+>  static int acpi_processor_remove(struct acpi_device *device, int type)
+>  {
+>  	struct acpi_processor *pr = NULL;
+> -
+> +	int ret;
+> 
+>  	if (!device || !acpi_driver_data(device))
+>  		return -EINVAL;
+> @@ -621,8 +621,9 @@ static int acpi_processor_remove(struct
+>  		goto free;
+> 
+>  	if (type == ACPI_BUS_REMOVAL_EJECT) {
+> -		if (acpi_processor_handle_eject(pr))
+> -			return -EINVAL;
+> +		ret = acpi_processor_handle_eject(pr);
+> +		if (ret)
+> +			return ret;
+>  	}
+> 
+>  	acpi_processor_power_exit(pr, device);
+> @@ -841,12 +842,17 @@ static acpi_status acpi_processor_hotadd
+> 
+>  static int acpi_processor_handle_eject(struct acpi_processor *pr)
+>  {
+> -	if (cpu_online(pr->id))
+> -		cpu_down(pr->id);
+> +	int ret = 0;
+> +
+> +	if (cpu_online(pr->id)) {
+> +		ret = cpu_down(pr->id);
+> +		if (ret)
+> +			return ret;
+> +	}
+> 
+>  	arch_unregister_cpu(pr->id);
+>  	acpi_unmap_lsapic(pr->id);
+> -	return (0);
+> +	return ret;
+>  }
+>  #else
+>  static acpi_status acpi_processor_hotadd_init(struct acpi_processor *pr)
+> 
+
+
