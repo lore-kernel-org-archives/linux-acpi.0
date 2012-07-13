@@ -1,7 +1,7 @@
 From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Subject: Re: [RFC PATCH v3 3/13] memory-hotplug : unify argument of firmware_map_add_early/hotplug
-Date: Fri, 13 Jul 2012 13:34:04 +0900
-Message-ID: <4FFFA53C.8090707@jp.fujitsu.com>
+Date: Fri, 13 Jul 2012 14:11:51 +0900
+Message-ID: <4FFFAE17.7070400@jp.fujitsu.com>
 References: <4FFAB0A2.8070304@jp.fujitsu.com> <4FFAB17F.2090209@jp.fujitsu.com> <4FFD9C08.2070502@linux.vnet.ibm.com> <4FFE5816.6070102@jp.fujitsu.com> <4FFED3CE.7030108@linux.vnet.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-2022-JP"
@@ -24,8 +24,7 @@ Hi Dave,
 > some of the other firmware_map*() functions are different, but I think
 > that's OK since they're only used internally to memmap.c.
 
-Thank you for reviewing my patch.
-I'll send the patch.
+Can I add "Reviewed-by: Dave Hansen" to the patch?
 
 Thanks,
 Yasuaki Ishimatsu
