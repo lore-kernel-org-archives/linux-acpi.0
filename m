@@ -1,67 +1,224 @@
-From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: Re: [PATCH 4/5] acpi : remove power from acpi_processor_cx structure
-Date: Thu, 12 Jul 2012 20:17:01 -0400
-Message-ID: <20120713001701.GB13574@phenom.dumpdata.com>
-References: <1342127026-1526-1-git-send-email-daniel.lezcano@linaro.org>
- <1342127026-1526-4-git-send-email-daniel.lezcano@linaro.org>
+From: Wen Congyang <wency@cn.fujitsu.com>
+Subject: Re: [RFC PATCH v3 2/13] memory-hotplug : add physical memory hotplug
+ code to acpi_memory_device_remove
+Date: Fri, 13 Jul 2012 11:26:55 +0800
+Message-ID: <4FFF957F.2080504@cn.fujitsu.com>
+References: <4FFAB0A2.8070304@jp.fujitsu.com> <4FFAB148.9000803@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-2022-JP
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from acsinet15.oracle.com ([141.146.126.227]:30613 "EHLO
-	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751230Ab2GMAZg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Jul 2012 20:25:36 -0400
-Content-Disposition: inline
-In-Reply-To: <1342127026-1526-4-git-send-email-daniel.lezcano@linaro.org>
+Received: from cn.fujitsu.com ([222.73.24.84]:39829 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1752538Ab2GMDWU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 12 Jul 2012 23:22:20 -0400
+In-Reply-To: <4FFAB148.9000803@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: rjw@sisk.pl, lenb@kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com
 
-On Thu, Jul 12, 2012 at 11:03:45PM +0200, Daniel Lezcano wrote:
-> Remove the power field as it is not used.
+At 07/09/2012 06:24 PM, Yasuaki Ishimatsu Wrote:
+> acpi_memory_device_remove() has been prepared to remove physical memory.
+> But, the function only frees acpi_memory_device currentlry.
 > 
-It looks to be used in drivers/xen/xen-acpi-processor.c.
-
-I could emulate some value and stick it in there.. but I am
-more curious - what is the intent of this value?
-
-
-> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+> The patch adds following functions into acpi_memory_device_remove():
+>   - offline memory
+>   - remove physical memory (only return -EBUSY)
+>   - free acpi_memory_device
+> 
+> CC: David Rientjes <rientjes@google.com>
+> CC: Jiang Liu <liuj97@gmail.com>
+> CC: Len Brown <len.brown@intel.com>
+> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+> CC: Paul Mackerras <paulus@samba.org>
+> CC: Christoph Lameter <cl@linux.com>
+> Cc: Minchan Kim <minchan.kim@gmail.com>
+> CC: Andrew Morton <akpm@linux-foundation.org>
+> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+> CC: Wen Congyang <wency@cn.fujitsu.com>
+> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+> 
 > ---
->  drivers/acpi/processor_idle.c |    2 --
->  include/acpi/processor.h      |    1 -
->  2 files changed, 0 insertions(+), 3 deletions(-)
+>  drivers/acpi/acpi_memhotplug.c |   26 +++++++++++++++++++++++++-
+>  drivers/base/memory.c          |   39 +++++++++++++++++++++++++++++++++++++++
+>  include/linux/memory.h         |    5 +++++
+>  include/linux/memory_hotplug.h |    1 +
+>  mm/memory_hotplug.c            |    8 ++++++++
+>  5 files changed, 78 insertions(+), 1 deletion(-)
 > 
-> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-> index d044588..99ba58f 100644
-> --- a/drivers/acpi/processor_idle.c
-> +++ b/drivers/acpi/processor_idle.c
-> @@ -485,8 +485,6 @@ static int acpi_processor_get_power_info_cst(struct acpi_processor *pr)
->  		if (obj->type != ACPI_TYPE_INTEGER)
->  			continue;
->  
-> -		cx.power = obj->integer.value;
+> Index: linux-3.5-rc6/drivers/acpi/acpi_memhotplug.c
+> ===================================================================
+> --- linux-3.5-rc6.orig/drivers/acpi/acpi_memhotplug.c	2012-07-09 18:08:29.946888653 +0900
+> +++ linux-3.5-rc6/drivers/acpi/acpi_memhotplug.c	2012-07-09 18:08:43.470719531 +0900
+> @@ -29,6 +29,7 @@
+>  #include <linux/module.h>
+>  #include <linux/init.h>
+>  #include <linux/types.h>
+> +#include <linux/memory.h>
+>  #include <linux/memory_hotplug.h>
+>  #include <linux/slab.h>
+>  #include <acpi/acpi_drivers.h>
+> @@ -452,12 +453,35 @@ static int acpi_memory_device_add(struct
+>  static int acpi_memory_device_remove(struct acpi_device *device, int type)
+>  {
+>  	struct acpi_memory_device *mem_device = NULL;
 > -
->  		current_count++;
->  		memcpy(&(pr->power.states[current_count]), &cx, sizeof(cx));
->  
-> diff --git a/include/acpi/processor.h b/include/acpi/processor.h
-> index 0957457..87bb9d7 100644
-> --- a/include/acpi/processor.h
-> +++ b/include/acpi/processor.h
-> @@ -58,7 +58,6 @@ struct acpi_processor_cx {
->  	u32 address;
->  	u8 entry_method;
->  	u32 latency;
-> -	u32 power;
->  	u64 time;
->  	u8 bm_sts_skip;
->  	char desc[ACPI_CX_DESC_LEN];
-> -- 
-> 1.7.5.4
+> +	struct acpi_memory_info *info, *tmp;
+> +	int result;
+> +	int node;
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  	if (!device || !acpi_driver_data(device))
+>  		return -EINVAL;
+> 
+>  	mem_device = acpi_driver_data(device);
+> +
+> +	node = acpi_get_node(mem_device->device->handle);
+> +
+> +	list_for_each_entry_safe(info, tmp, &mem_device->res_list, list) {
+> +		if (!info->enabled)
+> +			continue;
+> +
+> +		if (!is_memblk_offline(info->start_addr, info->length)) {
+> +			result = offline_memory(info->start_addr, info->length);
+> +			if (result)
+> +				return result;
+> +		}
+> +
+> +		result = remove_memory(node, info->start_addr, info->length);
+> +		if (result)
+> +			return result;
+> +
+> +		list_del(&info->list);
+> +		kfree(info);
+> +	}
+> +
+>  	kfree(mem_device);
+> 
+>  	return 0;
+> Index: linux-3.5-rc6/include/linux/memory_hotplug.h
+> ===================================================================
+> --- linux-3.5-rc6.orig/include/linux/memory_hotplug.h	2012-07-09 18:08:29.955888542 +0900
+> +++ linux-3.5-rc6/include/linux/memory_hotplug.h	2012-07-09 18:08:43.471719518 +0900
+> @@ -233,6 +233,7 @@ static inline int is_mem_section_removab
+>  extern int mem_online_node(int nid);
+>  extern int add_memory(int nid, u64 start, u64 size);
+>  extern int arch_add_memory(int nid, u64 start, u64 size);
+> +extern int remove_memory(int nid, u64 start, u64 size);
+
+
+Here should be:
+#ifdef CONFIG_MEMORY_HOTREMOVE
+extern int remove_memory(int nid, u64 start, u64 size);
+#else
+static int inline remove_memory(int nid, u64 start, u64 size)
+{
+	return -EBUSY;
+}
+#endif
+
+>  extern int offline_memory(u64 start, u64 size);
+>  extern int sparse_add_one_section(struct zone *zone, unsigned long start_pfn,
+>  								int nr_pages);
+> Index: linux-3.5-rc6/mm/memory_hotplug.c
+> ===================================================================
+> --- linux-3.5-rc6.orig/mm/memory_hotplug.c	2012-07-09 18:08:29.953888567 +0900
+> +++ linux-3.5-rc6/mm/memory_hotplug.c	2012-07-09 18:08:43.476719455 +0900
+> @@ -659,6 +659,14 @@ out:
+>  }
+>  EXPORT_SYMBOL_GPL(add_memory);
+> 
+> +int remove_memory(int nid, u64 start, u64 size)
+> +{
+> +	return -EBUSY;
+> +
+> +}
+> +EXPORT_SYMBOL_GPL(remove_memory);
+
+We only need to implement this function when CONFIG_MEMORY_HOTREMOVE
+is defined here.
+
+Thanks
+Wen Congyang
+
+> +
+> +
+>  #ifdef CONFIG_MEMORY_HOTREMOVE
+>  /*
+>   * A free page on the buddy free lists (not the per-cpu lists) has PageBuddy
+> Index: linux-3.5-rc6/drivers/base/memory.c
+> ===================================================================
+> --- linux-3.5-rc6.orig/drivers/base/memory.c	2012-07-09 18:08:29.947888640 +0900
+> +++ linux-3.5-rc6/drivers/base/memory.c	2012-07-09 18:10:54.880076739 +0900
+> @@ -70,6 +70,45 @@ void unregister_memory_isolate_notifier(
+>  }
+>  EXPORT_SYMBOL(unregister_memory_isolate_notifier);
+> 
+> +bool is_memblk_offline(unsigned long start, unsigned long size)
+> +{
+> +	struct memory_block *mem = NULL;
+> +	struct mem_section *section;
+> +	unsigned long start_pfn, end_pfn;
+> +	unsigned long pfn, section_nr;
+> +
+> +	start_pfn = PFN_DOWN(start);
+> +	end_pfn = start_pfn + PFN_DOWN(start);
+> +
+> +	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
+> +		section_nr = pfn_to_section_nr(pfn);
+> +		if (!present_section_nr(section_nr));
+> +			continue;
+> +
+> +		section = __nr_to_section(section_nr);
+> +		/* same memblock? */
+> +		if (mem)
+> +			if((section_nr >= mem->start_section_nr) &&
+> +			   (section_nr <= mem->end_section_nr))
+> +				continue;
+> +
+> +		mem = find_memory_block_hinted(section, mem);
+> +		if (!mem)
+> +			continue;
+> +		if (mem->state == MEM_OFFLINE)
+> +			continue;
+> +
+> +		kobject_put(&mem->dev.kobj);
+> +		return false;
+> +	}
+> +
+> +	if (mem)
+> +		kobject_put(&mem->dev.kobj);
+> +
+> +	return true;
+> +}
+> +EXPORT_SYMBOL(is_memblk_offline);
+> +
+>  /*
+>   * register_memory - Setup a sysfs device for a memory block
+>   */
+> Index: linux-3.5-rc6/include/linux/memory.h
+> ===================================================================
+> --- linux-3.5-rc6.orig/include/linux/memory.h	2012-07-08 09:23:56.000000000 +0900
+> +++ linux-3.5-rc6/include/linux/memory.h	2012-07-09 18:08:43.484719355 +0900
+> @@ -106,6 +106,10 @@ static inline int memory_isolate_notify(
+>  {
+>  	return 0;
+>  }
+> +static inline bool is_memblk_offline(unsigned long start, unsigned long size)
+> +{
+> +	return false;
+> +}
+>  #else
+>  extern int register_memory_notifier(struct notifier_block *nb);
+>  extern void unregister_memory_notifier(struct notifier_block *nb);
+> @@ -120,6 +124,7 @@ extern int memory_isolate_notify(unsigne
+>  extern struct memory_block *find_memory_block_hinted(struct mem_section *,
+>  							struct memory_block *);
+>  extern struct memory_block *find_memory_block(struct mem_section *);
+> +extern bool is_memblk_offline(unsigned long start, unsigned long size);
+>  #define CONFIG_MEM_BLOCK_SIZE	(PAGES_PER_SECTION<<PAGE_SHIFT)
+>  enum mem_add_context { BOOT, HOTPLUG };
+>  #endif /* CONFIG_MEMORY_HOTPLUG_SPARSE */
+> 
+> 
+
