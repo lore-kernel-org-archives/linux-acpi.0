@@ -1,76 +1,116 @@
 From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: [PATCH v4 1/3] acpi : cpu hot-remove returns error when cpu_down()
- fails
-Date: Fri, 13 Jul 2012 17:48:26 +0900
-Message-ID: <4FFFE0DA.3050806@jp.fujitsu.com>
+Subject: [PATCH v4 2/3] acpi : prevent cpu from becoming online
+Date: Fri, 13 Jul 2012 17:51:14 +0900
+Message-ID: <4FFFE182.2090601@jp.fujitsu.com>
+References: <4FFFE0DA.3050806@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-2022-JP"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:39356 "EHLO
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:38055 "EHLO
 	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753565Ab2GMIs6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Jul 2012 04:48:58 -0400
+	with ESMTP id S1751357Ab2GMIv1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Jul 2012 04:51:27 -0400
+In-Reply-To: <4FFFE0DA.3050806@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: srivatsa.bhat@linux.vnet.ibm.com, toshi.kani@hp.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Even if cpu_down() fails, acpi_processor_remove() continues to remove the cpu.
-But in this case, it should return error number since some process may run on
-the cpu. If the cpu has a running process and the cpu is turned the power off,
-the system may not work well.
+Even if acpi_processor_handle_eject() offlines cpu, there is a chance
+to online the cpu after that. So the patch closes the window by using
+get/put_online_cpus().
+
+Why does the patch change _cpu_up() logic?
+
+The patch cares the race of hot-remove cpu and _cpu_up(). If the patch
+does not change it, there is the following race.
+
+hot-remove cpu                         |  _cpu_up()
+------------------------------------- ------------------------------------
+call acpi_processor_handle_eject()     |
+     call cpu_down()                   |
+     call get_online_cpus()            |
+                                       | call cpu_hotplug_begin() and stop here
+     call arch_unregister_cpu()        |
+     call acpi_unmap_lsapic()          |
+     call put_online_cpus()            |
+                                       | start and continue _cpu_up()
+     return acpi_processor_remove()    |
+continue hot-remove the cpu            |
+
+So _cpu_up() can continue to itself. And hot-remove cpu can also continue
+itself. If the patch changes _cpu_up() logic, the race disappears as below:
+
+hot-remove cpu                         | _cpu_up()
+-----------------------------------------------------------------------
+call acpi_processor_handle_eject()     |
+     call cpu_down()                   |
+     call get_online_cpus()            |
+                                       | call cpu_hotplug_begin() and stop here
+     call arch_unregister_cpu()        |
+     call acpi_unmap_lsapic()          |
+          cpu's cpu_present is set     |
+          to false by set_cpu_present()|
+     call put_online_cpus()            |
+                                       | start _cpu_up()
+                                       | check cpu_present() and return -EINVAL
+     return acpi_processor_remove()    |
+continue hot-remove the cpu            |
 
 Reviewed-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
 Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
 ---
- drivers/acpi/processor_driver.c |   18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+ drivers/acpi/processor_driver.c |   14 ++++++++++++++
+ kernel/cpu.c                    |    8 +++++---
+ 2 files changed, 19 insertions(+), 3 deletions(-)
 
 Index: linux-3.5-rc6/drivers/acpi/processor_driver.c
 ===================================================================
---- linux-3.5-rc6.orig/drivers/acpi/processor_driver.c	2012-07-08 09:23:56.000000000 +0900
-+++ linux-3.5-rc6/drivers/acpi/processor_driver.c	2012-07-13 15:11:06.135541317 +0900
-@@ -610,7 +610,7 @@ err_free_pr:
- static int acpi_processor_remove(struct acpi_device *device, int type)
- {
- 	struct acpi_processor *pr = NULL;
--
-+	int ret;
-
- 	if (!device || !acpi_driver_data(device))
- 		return -EINVAL;
-@@ -621,8 +621,9 @@ static int acpi_processor_remove(struct
- 		goto free;
-
- 	if (type == ACPI_BUS_REMOVAL_EJECT) {
--		if (acpi_processor_handle_eject(pr))
--			return -EINVAL;
-+		ret = acpi_processor_handle_eject(pr);
-+		if (ret)
-+			return ret;
+--- linux-3.5-rc6.orig/drivers/acpi/processor_driver.c	2012-07-13 17:31:37.799130100 +0900
++++ linux-3.5-rc6/drivers/acpi/processor_driver.c	2012-07-13 17:39:47.727006338 +0900
+@@ -850,8 +850,22 @@ static int acpi_processor_handle_eject(s
+ 			return ret;
  	}
 
- 	acpi_processor_power_exit(pr, device);
-@@ -841,12 +842,17 @@ static acpi_status acpi_processor_hotadd
-
- static int acpi_processor_handle_eject(struct acpi_processor *pr)
- {
--	if (cpu_online(pr->id))
--		cpu_down(pr->id);
-+	int ret = 0;
-+
-+	if (cpu_online(pr->id)) {
-+		ret = cpu_down(pr->id);
-+		if (ret)
-+			return ret;
++	get_online_cpus();
++	/*
++	 * The cpu might become online again at this point. So we check whether
++	 * the cpu has been onlined or not. If the cpu became online, it means
++	 * that someone wants to use the cpu. So acpi_processor_handle_eject()
++	 * returns -EAGAIN.
++	 */
++	if (unlikely(cpu_online(pr->id))) {
++		put_online_cpus();
++		pr_warn("Failed to remove CPU %d, ", pr->id);
++		pr_warn("because other task brought the CPU back online\n");
++		return -EAGAIN;
 +	}
-
  	arch_unregister_cpu(pr->id);
  	acpi_unmap_lsapic(pr->id);
--	return (0);
-+	return ret;
++	put_online_cpus();
+ 	return ret;
  }
  #else
- static acpi_status acpi_processor_hotadd_init(struct acpi_processor *pr)
+Index: linux-3.5-rc6/kernel/cpu.c
+===================================================================
+--- linux-3.5-rc6.orig/kernel/cpu.c	2012-07-13 17:31:37.800130087 +0900
++++ linux-3.5-rc6/kernel/cpu.c	2012-07-13 17:31:39.661106874 +0900
+@@ -343,11 +343,13 @@ static int __cpuinit _cpu_up(unsigned in
+ 	unsigned long mod = tasks_frozen ? CPU_TASKS_FROZEN : 0;
+ 	struct task_struct *idle;
+
+-	if (cpu_online(cpu) || !cpu_present(cpu))
+-		return -EINVAL;
+-
+ 	cpu_hotplug_begin();
+
++	if (cpu_online(cpu) || !cpu_present(cpu)) {
++		ret = -EINVAL;
++		goto out;
++	}
++
+ 	idle = idle_thread_get(cpu);
+ 	if (IS_ERR(idle)) {
+ 		ret = PTR_ERR(idle);
 
