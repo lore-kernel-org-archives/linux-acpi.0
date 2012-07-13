@@ -1,17 +1,17 @@
 From: Wen Congyang <wency@cn.fujitsu.com>
 Subject: Re: [RFC PATCH v3 2/13] memory-hotplug : add physical memory hotplug
  code to acpi_memory_device_remove
-Date: Fri, 13 Jul 2012 11:26:55 +0800
-Message-ID: <4FFF957F.2080504@cn.fujitsu.com>
+Date: Fri, 13 Jul 2012 11:35:13 +0800
+Message-ID: <4FFF9771.5080307@cn.fujitsu.com>
 References: <4FFAB0A2.8070304@jp.fujitsu.com> <4FFAB148.9000803@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-2022-JP
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:39829 "EHLO song.cn.fujitsu.com"
+Received: from cn.fujitsu.com ([222.73.24.84]:31497 "EHLO song.cn.fujitsu.com"
 	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1752538Ab2GMDWU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 12 Jul 2012 23:22:20 -0400
+	id S1754698Ab2GMDaq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 12 Jul 2012 23:30:46 -0400
 In-Reply-To: <4FFAB148.9000803@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -86,6 +86,14 @@ At 07/09/2012 06:24 PM, Yasuaki Ishimatsu Wrote:
 > +		}
 > +
 > +		result = remove_memory(node, info->start_addr, info->length);
+
+The user may online the memory between offline_memory() and remove_memory().
+So I think we should lock memory hotplug before check the memory's status
+and release it after remove_memory().
+
+Thanks
+Wen Congyang
+
 > +		if (result)
 > +			return result;
 > +
@@ -105,18 +113,6 @@ At 07/09/2012 06:24 PM, Yasuaki Ishimatsu Wrote:
 >  extern int add_memory(int nid, u64 start, u64 size);
 >  extern int arch_add_memory(int nid, u64 start, u64 size);
 > +extern int remove_memory(int nid, u64 start, u64 size);
-
-
-Here should be:
-#ifdef CONFIG_MEMORY_HOTREMOVE
-extern int remove_memory(int nid, u64 start, u64 size);
-#else
-static int inline remove_memory(int nid, u64 start, u64 size)
-{
-	return -EBUSY;
-}
-#endif
-
 >  extern int offline_memory(u64 start, u64 size);
 >  extern int sparse_add_one_section(struct zone *zone, unsigned long start_pfn,
 >  								int nr_pages);
@@ -134,13 +130,6 @@ static int inline remove_memory(int nid, u64 start, u64 size)
 > +
 > +}
 > +EXPORT_SYMBOL_GPL(remove_memory);
-
-We only need to implement this function when CONFIG_MEMORY_HOTREMOVE
-is defined here.
-
-Thanks
-Wen Congyang
-
 > +
 > +
 >  #ifdef CONFIG_MEMORY_HOTREMOVE
