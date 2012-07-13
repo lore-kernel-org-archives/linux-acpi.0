@@ -1,45 +1,49 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [RFC PATCH v3 3/13] memory-hotplug : unify argument of firmware_map_add_early/hotplug
-Date: Fri, 13 Jul 2012 14:11:51 +0900
-Message-ID: <4FFFAE17.7070400@jp.fujitsu.com>
-References: <4FFAB0A2.8070304@jp.fujitsu.com> <4FFAB17F.2090209@jp.fujitsu.com> <4FFD9C08.2070502@linux.vnet.ibm.com> <4FFE5816.6070102@jp.fujitsu.com> <4FFED3CE.7030108@linux.vnet.ibm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <4FFED3CE.7030108@linux.vnet.ibm.com>
-Sender: owner-linux-mm@kvack.org
-To: Dave Hansen <dave@linux.vnet.ibm.com>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, wency@cn.fujitsu.com
+From: AceLan Kao <acelan.kao@canonical.com>
+Subject: [PATCH] ACPI button: remove hotkey suspend acpi proc event
+Date: Fri, 13 Jul 2012 14:13:22 +0800
+Message-ID: <1342160002-13427-1-git-send-email-acelan.kao@canonical.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:44128 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030267Ab2GMGN2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 13 Jul 2012 02:13:28 -0400
+Received: by pbbrp8 with SMTP id rp8so4969671pbb.19
+        for <linux-acpi@vger.kernel.org>; Thu, 12 Jul 2012 23:13:27 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-Hi Dave,
+If user press the suspend hotkey many times quickly, system will keep
+entering S3 after wake up as many times as user pressed.
+We do not expect the system enter S3 again after wake up, even if we
+press the hotkey many times.
 
-2012/07/12 22:40, Dave Hansen wrote:
-> On 07/11/2012 09:52 PM, Yasuaki Ishimatsu wrote:
->> Does the following patch include your comment? If O.K., I will separate
->> the patch from the series and send it for bug fix.
-> 
-> Looks sane to me.  It does now mean that the calling conventions for
-> some of the other firmware_map*() functions are different, but I think
-> that's OK since they're only used internally to memmap.c.
+This issue comes from the acpi proc event will queue the events that
+didn't process yet, and then report the events one by one when available,
+so that system will enter S3 after wake up.
 
-Can I add "Reviewed-by: Dave Hansen" to the patch?
+I think it's safe not to generate the proc event while pressing the
+suspend hotkey, since "/proc/acpi/event" is deprecated. And system can
+enter S3 correctly without it.
 
-Thanks,
-Yasuaki Ishimatsu
+Signed-off-by: AceLan Kao <acelan.kao@canonical.com>
+---
+ drivers/acpi/button.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index d27d072..e35bd92 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -298,8 +298,6 @@ static void acpi_button_notify(struct acpi_device *device, u32 event)
+ 
+ 			pm_wakeup_event(&device->dev, 0);
+ 		}
+-
+-		acpi_bus_generate_proc_event(device, event, ++button->pushed);
+ 		break;
+ 	default:
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-- 
+1.7.9.5
 
-
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
