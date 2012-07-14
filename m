@@ -1,42 +1,25 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [GIT PULL] cpufreq fix for 3.5-rc7
-Date: Sat, 14 Jul 2012 15:06:18 +0200
-Message-ID: <201207141506.18345.rjw@sisk.pl>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] ACPI, APEI: Fixup common access width firmware bug
+Date: Sat, 14 Jul 2012 11:02:03 -0400
+Message-ID: <500189EB.4070701@kernel.org>
+References: <1339490608.21507.5.camel@amber.site>  <20120614010931.GA7378@us.ibm.com> <1339662911.4378.22.camel@amber.site>  <20120614170752.GB1999@us.ibm.com> <1339760434.4288.20.camel@amber.site>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Thomas Renninger <trenn@suse.de>, Len Brown <lenb@kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:56605 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750790Ab2GNPCJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 14 Jul 2012 11:02:09 -0400
+Received: by qcro28 with SMTP id o28so2658361qcr.19
+        for <linux-acpi@vger.kernel.org>; Sat, 14 Jul 2012 08:02:08 -0700 (PDT)
+In-Reply-To: <1339760434.4288.20.camel@amber.site>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jean Delvare <jdelvare@suse.de>
+Cc: Gary Hade <garyhade@us.ibm.com>, Huang Ying <ying.huang@intel.com>, linux-acpi@vger.kernel.org, hui.xiao@linux.intel.com
 
-Hi Linus,
+applied for 3.6
 
-Please pull one cpufreq fix for 3.5-rc7 on top of commit
-bd0a521e88aa7a06ae7aabaed7ae196ed4ad867a:
-
-  Linux 3.5-rc6
-
-with commit hash c4686c71a9183f76e3ef59098da5c098748672f6
-
-  cpufreq / ACPI: Fix not loading acpi-cpufreq driver regression
-
-from the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git cpufreq-for-3.5-rc7
-
-It fixes a regression that prevents the ACPI cpufreq driver from loading
-on some systems where it previously worked without any problems.
-
-Thanks!
-
-
- drivers/acpi/processor_core.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
----------------
-
-Thomas Renninger (1):
-      cpufreq / ACPI: Fix not loading acpi-cpufreq driver regression
+thanks,
+Len Brown, Intel Open Source Technology Center
