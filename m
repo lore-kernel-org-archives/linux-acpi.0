@@ -1,45 +1,28 @@
-From: Len Brown <lenb@kernel.org>
-Subject: [GIT PULL] ACPI patch for Linux-3.5-rc6
-Date: Sat, 14 Jul 2012 13:46:05 -0400
-Message-ID: <5001B05D.7070408@kernel.org>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [GIT PULL] ACPI patch for Linux-3.5-rc6
+Date: Sat, 14 Jul 2012 11:56:22 -0700
+Message-ID: <CA+55aFxmhDxZgsPy+23h0joBx4==-0jBQBoAqBbrmVOaBbSFjQ@mail.gmail.com>
+References: <5001B05D.7070408@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:40163 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750932Ab2GNRqK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 14 Jul 2012 13:46:10 -0400
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:49467 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750771Ab2GNS4o (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 14 Jul 2012 14:56:44 -0400
+In-Reply-To: <5001B05D.7070408@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
+To: Len Brown <lenb@kernel.org>
 Cc: linux-acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 
-Hi Linus,
+On Sat, Jul 14, 2012 at 10:46 AM, Len Brown <lenb@kernel.org> wrote:
+>
+> Please pull this ACPI patch.
+>
+>   git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux.git
 
-Please pull this ACPI patch.
+There's nothing there. Did you mean some particular tag or branch?
+There seems to be branches named "release" and "next" there.
 
-thanks!
-
-Len Brown, Intel Open Source Technology Center
-
-
-The following changes since commit fdb1335a82ef1ef9442ac9377796e4e7a69d1ae4:
-
-  Merge tag 'md-3.5-fixes' of git://neil.brown.name/md (2012-07-13 17:59:33 -0700)
-
-are available in the git repository at:
-
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux.git 
-
-for you to fetch changes up to 46befd6b38d802dfc5998e7d7938854578b45d9d:
-
-  ACPICA: Fix possible fault in return package object repair code (2012-07-14 11:38:41 -0400)
-
-----------------------------------------------------------------
-Bob Moore (1):
-      ACPICA: Fix possible fault in return package object repair code
-
- drivers/acpi/acpica/nspredef.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+              Linus
