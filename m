@@ -1,61 +1,84 @@
-From: AceLan Kao <acelan.kao@canonical.com>
-Subject: Re: [PATCH] ACPI button: remove hotkey suspend acpi proc event
-Date: Mon, 16 Jul 2012 10:27:57 +0800
-Message-ID: <CAMz9Wg-0Fzz8aeEqYpPRmVqDuFSTtOv=k7m6k1O0r7YB88zRuQ@mail.gmail.com>
-References: <1342160002-13427-1-git-send-email-acelan.kao@canonical.com>
-	<20120713064801.GA4910@srcf.ucam.org>
-	<CAMz9Wg9gJvABAbtZNZSuywq=GgK4KaufB8ph405SmErLpO1y4g@mail.gmail.com>
-	<20120713071355.GA5516@srcf.ucam.org>
-	<20120713141248.GE7877@khazad-dum.debian.net>
+From: "Pandarathil, Vijaymohan R" <vijaymohan.pandarathil@hp.com>
+Subject: RE: [PATCH] ACPI: Add ACPI CPU hot-remove support
+Date: Mon, 16 Jul 2012 04:53:59 +0000
+Message-ID: <EC847C0FC42FF046B94E60B168774B1731633B47@G9W0337.americas.hpqcorp.net>
+References: <1340981479-6521-1-git-send-email-toshi.kani@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:58998 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751996Ab2GPC16 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Jul 2012 22:27:58 -0400
-Received: by pbbrp8 with SMTP id rp8so9253937pbb.19
-        for <linux-acpi@vger.kernel.org>; Sun, 15 Jul 2012 19:27:57 -0700 (PDT)
-In-Reply-To: <20120713141248.GE7877@khazad-dum.debian.net>
+Received: from g1t0028.austin.hp.com ([15.216.28.35]:39464 "EHLO
+	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750784Ab2GPEzv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Jul 2012 00:55:51 -0400
+In-Reply-To: <1340981479-6521-1-git-send-email-toshi.kani@hp.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: "Kani, Toshimitsu" <toshi.kani@hp.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-2012/7/13 Henrique de Moraes Holschuh <hmh@hmh.eng.br>:
-> On Fri, 13 Jul 2012, Matthew Garrett wrote:
->> On Fri, Jul 13, 2012 at 03:07:38PM +0800, AceLan Kao wrote:
->> > There are many different events to inform the system concurrently,
->> > evdev is just one of them.
->> > I'm not sure which one trigger the system to suspend while pressing
->> > the suspend hotkey, but
->> > the following suspends are triggered by acpi proc event.
->>
->> I'm fine with killing the procfs interface (it's deprecated anyway, I
->> think?) but I'm a little worried about this only handling one case. Is
->> userspace guaranteed to ignore any further events that were delivered
->> over the input layer.
->
-> No.  Some firmware (thinkpads) even used to latch state and refuse to
-> reissue sleep buttom events for a while...
->
-> Is there any reason why we cannot do the same?  Entering S3/S4 is a
-> really good time to flush the contents of any input device and acpi
-> [userspace] event queues at first glance...
-thinkpads use its own thinkpad_acpi driver to handle this, it will submit
-events to proc acpi event by itself through acpi_bus_generate_proc_event().
-
-And BTW, I found a ThinkPad X220 and do the test, it won't enter S3 multiple
-times if I press the suspend keys many times. And I try to remove thinkpad_acpi
-module and stop the acpid and press the button again, the system enter S3
-correctly, too. So, it won't damage this function from removing proc acpi event.
-
-So, I didn't get the point why we can just remove the event, we don't rely on it
-to enter S3 now, and to take into account that it's deprecated since
-2007(fb804714),
-I don't think we should do more workaround for this.
-
--- 
-Chia-Lin Kao(AceLan)
-http://blog.acelan.idv.tw/
-E-Mail: acelan.kaoATcanonical.com (s/AT/@/)
+SGkgVG9zaGksDQoNCkRpZCBzb21lIGJhc2ljIEtWTSBndWVzdCBjcHUgaG90cGx1ZyB0ZXN0aW5n
+IG9mIHRoaXMgcGF0Y2ggb3ZlciB5b3VyIE9TVCBwYXRjaHNldCBhbG9uZyB3aXRoIGZpeGVzIGlu
+IHFlbXUta3ZtIGZvciBndWVzdCBjcHUgaG90cGx1Zy4gDQoNClZpamF5DQoNCnZpcnNoICMgdmNw
+dWNvdW50IHZtYjkxZzENCm1heGltdW0gICAgICBjb25maWcgICAgICAgICA0DQptYXhpbXVtICAg
+ICAgbGl2ZSAgICAgICAgICAgNA0KY3VycmVudCAgICAgIGNvbmZpZyAgICAgICAgIDQNCmN1cnJl
+bnQgICAgICBsaXZlICAgICAgICAgICA0DQoNCnZpcnNoICMgc2V0dmNwdXMgdm1iOTFnMSAzDQoN
+CnZpcnNoICMgdmNwdWNvdW50IHZtYjkxZzENCm1heGltdW0gICAgICBjb25maWcgICAgICAgICA0
+DQptYXhpbXVtICAgICAgbGl2ZSAgICAgICAgICAgNA0KY3VycmVudCAgICAgIGNvbmZpZyAgICAg
+ICAgIDQNCmN1cnJlbnQgICAgICBsaXZlICAgICAgICAgICAzDQoNCnZpcnNoICMgc2V0dmNwdXMg
+dm1iOTFnMSA0DQoNCnZpcnNoICMgdmNwdWNvdW50IHZtYjkxZzENCm1heGltdW0gICAgICBjb25m
+aWcgICAgICAgICA0DQptYXhpbXVtICAgICAgbGl2ZSAgICAgICAgICAgNA0KY3VycmVudCAgICAg
+IGNvbmZpZyAgICAgICAgIDQNCmN1cnJlbnQgICAgICBsaXZlICAgICAgICAgICA0DQoNCnZpcnNo
+ICMgIHNldHZjcHVzIHZtYjkxZzEgMg0KDQp2aXJzaCAjIHZjcHVjb3VudCB2bWI5MWcxDQptYXhp
+bXVtICAgICAgY29uZmlnICAgICAgICAgNA0KbWF4aW11bSAgICAgIGxpdmUgICAgICAgICAgIDQN
+CmN1cnJlbnQgICAgICBjb25maWcgICAgICAgICA0DQpjdXJyZW50ICAgICAgbGl2ZSAgICAgICAg
+ICAgMg0KDQpUaGUgZ3Vlc3QgY3B1IGNvdW50cyAoYXMgc2hvd24gYnkgbHNjcHUgaW4gdGhlIGd1
+ZXN0KSBhbHNvIGNoYW5nZXMuDQoNCg0KVGVzdGVkLWJ5OiBWaWpheSBNb2hhbiBQYW5kYXJhdGhp
+bDx2aWpheW1vaGFuLnBhbmRhcmF0aGlsQGhwLmNvbT4NCg0KDQotLS0tLU9yaWdpbmFsIE1lc3Nh
+Z2UtLS0tLQ0KRnJvbTogS2FuaSwgVG9zaGltaXRzdSANClNlbnQ6IEZyaWRheSwgSnVuZSAyOSwg
+MjAxMiA3OjUxIEFNDQpUbzogbGVuYkBrZXJuZWwub3JnOyBsaW51eC1hY3BpQHZnZXIua2VybmVs
+Lm9yZw0KQ2M6IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc7IEthbmksIFRvc2hpbWl0c3UN
+ClN1YmplY3Q6IFtQQVRDSF0gQUNQSTogQWRkIEFDUEkgQ1BVIGhvdC1yZW1vdmUgc3VwcG9ydA0K
+DQpBZGRlZCBDUFUgaG90LXJlbW92ZSBzdXBwb3J0IHRocm91Z2ggYW4gQUNQSSBlamVjdCBub3Rp
+ZmljYXRpb24uDQpJdCBjYWxscyBhY3BpX2J1c19ob3RfcmVtb3ZlX2RldmljZSgpLCB3aGljaCBz
+aGFyZXMgdGhlIHNhbWUgY29kZQ0KcGF0aCB3aXRoIHRoZSBzeXNmcyBlamVjdCBvcGVyYXRpb24u
+ICBhY3BpX29zX2hvdHBsdWdfZXhlY3V0ZSgpDQpzZXJpYWxpemVzIGhvdC1yZW1vdmUgb3BlcmF0
+aW9ucyBiZXR3ZWVuIEFDUEkgaG90LXJlbW92ZSBhbmQgc3lzZnMNCmVqZWN0IHJlcXVlc3RzLg0K
+DQpTaWduZWQtb2ZmLWJ5OiBUb3NoaSBLYW5pIDx0b3NoaS5rYW5pQGhwLmNvbT4NCg0KLS0tDQpU
+aGlzIHBhdGNoIGFwcGxpZXMgb24gdG9wIG9mIHRoZSBwYXRjaHNldCBiZWxvdy4NCg0KW1BBVENI
+IHY2IDAvNl0gQUNQSTogQWRkIF9PU1Qgc3VwcG9ydCBmb3IgQUNQSSBob3RwbHVnDQpodHRwOi8v
+bWFyYy5pbmZvLz9sPWxpbnV4LWFjcGkmbT0xMzQwNzQzODEzMjI5NzMmdz0yDQoNCi0tLQ0KIGRy
+aXZlcnMvYWNwaS9wcm9jZXNzb3JfZHJpdmVyLmMgfCAgIDI3ICsrKysrKysrKysrKysrKysrLS0t
+LS0tLS0tLQ0KIDEgZmlsZXMgY2hhbmdlZCwgMTcgaW5zZXJ0aW9ucygrKSwgMTAgZGVsZXRpb25z
+KC0pDQoNCmRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvcHJvY2Vzc29yX2RyaXZlci5jIGIvZHJp
+dmVycy9hY3BpL3Byb2Nlc3Nvcl9kcml2ZXIuYw0KaW5kZXggZjlmYTFiMi4uYTZmNmJkZSAxMDA2
+NDQNCi0tLSBhL2RyaXZlcnMvYWNwaS9wcm9jZXNzb3JfZHJpdmVyLmMNCisrKyBiL2RyaXZlcnMv
+YWNwaS9wcm9jZXNzb3JfZHJpdmVyLmMNCkBAIC02OTksOCArNjk5LDggQEAgaW50IGFjcGlfcHJv
+Y2Vzc29yX2RldmljZV9hZGQoYWNwaV9oYW5kbGUgaGFuZGxlLCBzdHJ1Y3QgYWNwaV9kZXZpY2Ug
+KipkZXZpY2UpDQogc3RhdGljIHZvaWQgYWNwaV9wcm9jZXNzb3JfaG90cGx1Z19ub3RpZnkoYWNw
+aV9oYW5kbGUgaGFuZGxlLA0KIAkJCQkJICB1MzIgZXZlbnQsIHZvaWQgKmRhdGEpDQogew0KLQlz
+dHJ1Y3QgYWNwaV9wcm9jZXNzb3IgKnByOw0KIAlzdHJ1Y3QgYWNwaV9kZXZpY2UgKmRldmljZSA9
+IE5VTEw7DQorCXN0cnVjdCBhY3BpX2VqZWN0X2V2ZW50ICplal9ldmVudCA9IE5VTEw7DQogCXUz
+MiBvc3RfY29kZSA9IEFDUElfT1NUX1NDX05PTl9TUEVDSUZJQ19GQUlMVVJFOyAvKiBkZWZhdWx0
+ICovDQogCWludCByZXN1bHQ7DQogDQpAQCAtNzMyLDIwICs3MzIsMjcgQEAgc3RhdGljIHZvaWQg
+YWNwaV9wcm9jZXNzb3JfaG90cGx1Z19ub3RpZnkoYWNwaV9oYW5kbGUgaGFuZGxlLA0KIAkJCQkg
+ICJyZWNlaXZlZCBBQ1BJX05PVElGWV9FSkVDVF9SRVFVRVNUXG4iKSk7DQogDQogCQlpZiAoYWNw
+aV9idXNfZ2V0X2RldmljZShoYW5kbGUsICZkZXZpY2UpKSB7DQotCQkJcHJpbnRrKEtFUk5fRVJS
+IFBSRUZJWA0KLQkJCQkgICAgIkRldmljZSBkb24ndCBleGlzdCwgZHJvcHBpbmcgRUpFQ1RcbiIp
+Ow0KKwkJCXByX2VycihQUkVGSVggIkRldmljZSBkb24ndCBleGlzdCwgZHJvcHBpbmcgRUpFQ1Rc
+biIpOw0KIAkJCWJyZWFrOw0KIAkJfQ0KLQkJcHIgPSBhY3BpX2RyaXZlcl9kYXRhKGRldmljZSk7
+DQotCQlpZiAoIXByKSB7DQotCQkJcHJpbnRrKEtFUk5fRVJSIFBSRUZJWA0KLQkJCQkgICAgIkRy
+aXZlciBkYXRhIGlzIE5VTEwsIGRyb3BwaW5nIEVKRUNUXG4iKTsNCisJCWlmICghYWNwaV9kcml2
+ZXJfZGF0YShkZXZpY2UpKSB7DQorCQkJcHJfZXJyKFBSRUZJWCAiRHJpdmVyIGRhdGEgaXMgTlVM
+TCwgZHJvcHBpbmcgRUpFQ1RcbiIpOw0KIAkJCWJyZWFrOw0KIAkJfQ0KIA0KLQkJLyogUkVWSVNJ
+VDogdXBkYXRlIHdoZW4gZWplY3QgaXMgc3VwcG9ydGVkICovDQotCQlvc3RfY29kZSA9IEFDUElf
+T1NUX1NDX0VKRUNUX05PVF9TVVBQT1JURUQ7DQotCQlicmVhazsNCisJCWVqX2V2ZW50ID0ga21h
+bGxvYyhzaXplb2YoKmVqX2V2ZW50KSwgR0ZQX0tFUk5FTCk7DQorCQlpZiAoIWVqX2V2ZW50KSB7
+DQorCQkJcHJfZXJyKFBSRUZJWCAiTm8gbWVtb3J5LCBkcm9wcGluZyBFSkVDVFxuIik7DQorCQkJ
+YnJlYWs7DQorCQl9DQorDQorCQllal9ldmVudC0+aGFuZGxlID0gaGFuZGxlOw0KKwkJZWpfZXZl
+bnQtPmV2ZW50ID0gQUNQSV9OT1RJRllfRUpFQ1RfUkVRVUVTVDsNCisJCWFjcGlfb3NfaG90cGx1
+Z19leGVjdXRlKGFjcGlfYnVzX2hvdF9yZW1vdmVfZGV2aWNlLA0KKwkJCQkJKHZvaWQgKillal9l
+dmVudCk7DQorDQorCQkvKiBlamVjdCBpcyBwZXJmb3JtZWQgYXN5bmNocm9ub3VzbHkgKi8NCisJ
+CXJldHVybjsNCiANCiAJZGVmYXVsdDoNCiAJCUFDUElfREVCVUdfUFJJTlQoKEFDUElfREJfSU5G
+TywNCi0tIA0KMS43LjcuNg0KDQo=
