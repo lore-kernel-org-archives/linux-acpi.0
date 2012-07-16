@@ -1,56 +1,86 @@
-From: Lin Ming <ming.m.lin@intel.com>
-Subject: [PATCH] acpi: run _OSC after ACPI_FULL_INITIALIZATION
-Date: Mon, 16 Jul 2012 16:30:21 +0800
-Message-ID: <1342427421.3628.216.camel@minggr>
+From: Prarit Bhargava <prarit@redhat.com>
+Subject: Re: [PATCH v6 0/6] ACPI: Add _OST support for ACPI hotplug
+Date: Mon, 16 Jul 2012 08:52:07 -0400
+Message-ID: <50040E77.9060400@redhat.com>
+References: <1340743374-18535-1-git-send-email-toshi.kani@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:14656 "EHLO mga01.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:51569 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752195Ab2GPIaX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 16 Jul 2012 04:30:23 -0400
+	id S1753117Ab2GPMwV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 16 Jul 2012 08:52:21 -0400
+In-Reply-To: <1340743374-18535-1-git-send-email-toshi.kani@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb <lenb@kernel.org>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+To: "Kani, Toshimitsu" <toshi.kani@hp.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "bhelgaas@google.com" <bhelgaas@google.com>, "shuahkhan@gmail.com" <shuahkhan@gmail.com>, "liuj97@gmail.com" <liuj97@gmail.com>, "andi@firstfloor.org" <andi@firstfloor.org>, "isimatu.yasuaki@jp.fujitsu.com" <isimatu.yasuaki@jp.fujitsu.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-_OSC method may exist in module level code,
-so it must be called after ACPI_FULL_INITIALIZATION
+On 01/-10/-28163 02:59 PM, Kani, Toshimitsu wrote:
+>  * This version updates to use pr_<level> over printk to accommodate
+>    checkpatch update since this patchset was accepted in -next.
+> 
+> This patchset supports ACPI OSPM Status Indication (_OST) method for
+> ACPI CPU/memory/container hotplug operations and sysfs eject. After
+> an ACPI hotplug operation has completed, OSPM calls _OST to indicate
+> the result of the operation to the platform. If a platform does not
+> support _OST, this patchset has no effect on the platform.
+> 
+> This _OST support is enabled when all relevant ACPI hotplug operations,
+> such as CPU, memory and container hotplug, are enabled. This assures
+> consistent behavior among the hotplug operations with regarding the
+> _OST support.
+> 
+> Some platforms may require the OS to support _OST in order to support
+> ACPI hotplug operations. For example, if a platform has the management
+> console where user can request a hotplug operation from, this _OST
+> support would be required for the management console to show the result
+> of the hotplug request to user.
+> 
+> The _OST definition can be found in section 6.3.5 of ACPI 5.0 spec.
+> The HPPF spec below also describes hotplug flows with _OST.
+> 
+>   DIG64 Hot-Plug & Partitioning Flow (HPPF) Specification R1.0
+>   http://www.dig64.org/home/DIG64_HPPF_R1_0.pdf
+> 
+> The changes have been tested with simulated _OST methods.
+> 
+> v6:
+>  - Updated to use pr_<level> over printk.
+> 
+> v5:
+>  - Updated change log in patch 5/6.
+> 
+> v4:
+>  - Removed CONFIG_ACPI_HOTPLUG_OST option.
+> 
+> v3:
+>  - Added more descriptions to the change logs.
+> 
+> v2:
+>  - Added CONFIG_ACPI_HOTPLUG_OST option.
+>  - Added _OST support for container hotplug and sysfs eject.
+>  - Reordered patchset to enable _OST support bit of _OSC in the
+>    last patch.
+> 
+> ---
+> Toshi Kani (6):
+>  ACPI: Add an interface to evaluate _OST
+>  ACPI: Add _OST support for sysfs eject
+>  ACPI: Add _OST support for ACPI CPU hotplug
+>  ACPI: Add _OST support for ACPI memory hotplug
+>  ACPI: Add _OST support for ACPI container hotplug
+>  ACPI: Set hotplug _OST support bit to _OSC
 
-Signed-off-by: Lin Ming <ming.m.lin@intel.com>
----
- drivers/acpi/bus.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+I have a few systems on which I can do some _OST CPU and Memory hotplug.  These
+systems are newer Intel systems in which ACPI events can be triggered via
+switches to add CPUs.
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index adceafd..3532d52 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -980,8 +980,6 @@ static int __init acpi_bus_init(void)
- 	status = acpi_ec_ecdt_probe();
- 	/* Ignore result. Not having an ECDT is not fatal. */
- 
--	acpi_bus_osc_support();
--
- 	status = acpi_initialize_objects(ACPI_FULL_INITIALIZATION);
- 	if (ACPI_FAILURE(status)) {
- 		printk(KERN_ERR PREFIX "Unable to initialize ACPI objects\n");
-@@ -989,6 +987,12 @@ static int __init acpi_bus_init(void)
- 	}
- 
- 	/*
-+	 * _OSC method may exist in module level code,
-+	 * so it must be run after ACPI_FULL_INITIALIZATION
-+	 */
-+	acpi_bus_osc_support();
-+
-+	/*
- 	 * _PDC control method may load dynamic SSDT tables,
- 	 * and we need to install the table handler before that.
- 	 */
--- 
-1.7.10
+I tested this patchset with CPU _add_ and haven't seen any issues.
 
+So...
 
+Tested-by: Prarit Bhargava <prarit@redhat.com>
 
+P.
