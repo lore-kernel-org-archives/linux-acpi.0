@@ -1,86 +1,150 @@
-From: Prarit Bhargava <prarit@redhat.com>
-Subject: Re: [PATCH v6 0/6] ACPI: Add _OST support for ACPI hotplug
-Date: Mon, 16 Jul 2012 08:52:07 -0400
-Message-ID: <50040E77.9060400@redhat.com>
-References: <1340743374-18535-1-git-send-email-toshi.kani@hp.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: RE: [PATCH] ACPI: Add ACPI CPU hot-remove support
+Date: Mon, 16 Jul 2012 08:48:11 -0600
+Message-ID: <1342450091.3010.1.camel@misato.fc.hp.com>
+References: <1340981479-6521-1-git-send-email-toshi.kani@hp.com>
+	 <EC847C0FC42FF046B94E60B168774B1731633B47@G9W0337.americas.hpqcorp.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:51569 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753117Ab2GPMwV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 16 Jul 2012 08:52:21 -0400
-In-Reply-To: <1340743374-18535-1-git-send-email-toshi.kani@hp.com>
+Received: from g4t0017.houston.hp.com ([15.201.24.20]:16326 "EHLO
+	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750932Ab2GPOwv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Jul 2012 10:52:51 -0400
+In-Reply-To: <EC847C0FC42FF046B94E60B168774B1731633B47@G9W0337.americas.hpqcorp.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Kani, Toshimitsu" <toshi.kani@hp.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "bhelgaas@google.com" <bhelgaas@google.com>, "shuahkhan@gmail.com" <shuahkhan@gmail.com>, "liuj97@gmail.com" <liuj97@gmail.com>, "andi@firstfloor.org" <andi@firstfloor.org>, "isimatu.yasuaki@jp.fujitsu.com" <isimatu.yasuaki@jp.fujitsu.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: "Pandarathil, Vijaymohan R" <vijaymohan.pandarathil@hp.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On 01/-10/-28163 02:59 PM, Kani, Toshimitsu wrote:
->  * This version updates to use pr_<level> over printk to accommodate
->    checkpatch update since this patchset was accepted in -next.
+On Mon, 2012-07-16 at 04:53 +0000, Pandarathil, Vijaymohan R wrote:
+> Hi Toshi,
 > 
-> This patchset supports ACPI OSPM Status Indication (_OST) method for
-> ACPI CPU/memory/container hotplug operations and sysfs eject. After
-> an ACPI hotplug operation has completed, OSPM calls _OST to indicate
-> the result of the operation to the platform. If a platform does not
-> support _OST, this patchset has no effect on the platform.
+> Did some basic KVM guest cpu hotplug testing of this patch over your OST patchset along with fixes in qemu-kvm for guest cpu hotplug. 
 > 
-> This _OST support is enabled when all relevant ACPI hotplug operations,
-> such as CPU, memory and container hotplug, are enabled. This assures
-> consistent behavior among the hotplug operations with regarding the
-> _OST support.
+> Vijay
 > 
-> Some platforms may require the OS to support _OST in order to support
-> ACPI hotplug operations. For example, if a platform has the management
-> console where user can request a hotplug operation from, this _OST
-> support would be required for the management console to show the result
-> of the hotplug request to user.
+> virsh # vcpucount vmb91g1
+> maximum      config         4
+> maximum      live           4
+> current      config         4
+> current      live           4
 > 
-> The _OST definition can be found in section 6.3.5 of ACPI 5.0 spec.
-> The HPPF spec below also describes hotplug flows with _OST.
+> virsh # setvcpus vmb91g1 3
 > 
->   DIG64 Hot-Plug & Partitioning Flow (HPPF) Specification R1.0
->   http://www.dig64.org/home/DIG64_HPPF_R1_0.pdf
+> virsh # vcpucount vmb91g1
+> maximum      config         4
+> maximum      live           4
+> current      config         4
+> current      live           3
 > 
-> The changes have been tested with simulated _OST methods.
+> virsh # setvcpus vmb91g1 4
 > 
-> v6:
->  - Updated to use pr_<level> over printk.
+> virsh # vcpucount vmb91g1
+> maximum      config         4
+> maximum      live           4
+> current      config         4
+> current      live           4
 > 
-> v5:
->  - Updated change log in patch 5/6.
+> virsh #  setvcpus vmb91g1 2
 > 
-> v4:
->  - Removed CONFIG_ACPI_HOTPLUG_OST option.
+> virsh # vcpucount vmb91g1
+> maximum      config         4
+> maximum      live           4
+> current      config         4
+> current      live           2
 > 
-> v3:
->  - Added more descriptions to the change logs.
+> The guest cpu counts (as shown by lscpu in the guest) also changes.
 > 
-> v2:
->  - Added CONFIG_ACPI_HOTPLUG_OST option.
->  - Added _OST support for container hotplug and sysfs eject.
->  - Reordered patchset to enable _OST support bit of _OSC in the
->    last patch.
+> 
+> Tested-by: Vijay Mohan Pandarathil<vijaymohan.pandarathil@hp.com>
+
+Hi Vijay,
+
+Great!  Thanks for the testing!
+
+-Toshi
+
+
+
+> 
+> 
+> -----Original Message-----
+> From: Kani, Toshimitsu 
+> Sent: Friday, June 29, 2012 7:51 AM
+> To: lenb@kernel.org; linux-acpi@vger.kernel.org
+> Cc: linux-kernel@vger.kernel.org; Kani, Toshimitsu
+> Subject: [PATCH] ACPI: Add ACPI CPU hot-remove support
+> 
+> Added CPU hot-remove support through an ACPI eject notification.
+> It calls acpi_bus_hot_remove_device(), which shares the same code
+> path with the sysfs eject operation.  acpi_os_hotplug_execute()
+> serializes hot-remove operations between ACPI hot-remove and sysfs
+> eject requests.
+> 
+> Signed-off-by: Toshi Kani <toshi.kani@hp.com>
 > 
 > ---
-> Toshi Kani (6):
->  ACPI: Add an interface to evaluate _OST
->  ACPI: Add _OST support for sysfs eject
->  ACPI: Add _OST support for ACPI CPU hotplug
->  ACPI: Add _OST support for ACPI memory hotplug
->  ACPI: Add _OST support for ACPI container hotplug
->  ACPI: Set hotplug _OST support bit to _OSC
+> This patch applies on top of the patchset below.
+> 
+> [PATCH v6 0/6] ACPI: Add _OST support for ACPI hotplug
+> http://marc.info/?l=linux-acpi&m=134074381322973&w=2
+> 
+> ---
+>  drivers/acpi/processor_driver.c |   27 +++++++++++++++++----------
+>  1 files changed, 17 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+> index f9fa1b2..a6f6bde 100644
+> --- a/drivers/acpi/processor_driver.c
+> +++ b/drivers/acpi/processor_driver.c
+> @@ -699,8 +699,8 @@ int acpi_processor_device_add(acpi_handle handle, struct acpi_device **device)
+>  static void acpi_processor_hotplug_notify(acpi_handle handle,
+>  					  u32 event, void *data)
+>  {
+> -	struct acpi_processor *pr;
+>  	struct acpi_device *device = NULL;
+> +	struct acpi_eject_event *ej_event = NULL;
+>  	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE; /* default */
+>  	int result;
+>  
+> @@ -732,20 +732,27 @@ static void acpi_processor_hotplug_notify(acpi_handle handle,
+>  				  "received ACPI_NOTIFY_EJECT_REQUEST\n"));
+>  
+>  		if (acpi_bus_get_device(handle, &device)) {
+> -			printk(KERN_ERR PREFIX
+> -				    "Device don't exist, dropping EJECT\n");
+> +			pr_err(PREFIX "Device don't exist, dropping EJECT\n");
+>  			break;
+>  		}
+> -		pr = acpi_driver_data(device);
+> -		if (!pr) {
+> -			printk(KERN_ERR PREFIX
+> -				    "Driver data is NULL, dropping EJECT\n");
+> +		if (!acpi_driver_data(device)) {
+> +			pr_err(PREFIX "Driver data is NULL, dropping EJECT\n");
+>  			break;
+>  		}
+>  
+> -		/* REVISIT: update when eject is supported */
+> -		ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
+> -		break;
+> +		ej_event = kmalloc(sizeof(*ej_event), GFP_KERNEL);
+> +		if (!ej_event) {
+> +			pr_err(PREFIX "No memory, dropping EJECT\n");
+> +			break;
+> +		}
+> +
+> +		ej_event->handle = handle;
+> +		ej_event->event = ACPI_NOTIFY_EJECT_REQUEST;
+> +		acpi_os_hotplug_execute(acpi_bus_hot_remove_device,
+> +					(void *)ej_event);
+> +
+> +		/* eject is performed asynchronously */
+> +		return;
+>  
+>  	default:
+>  		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
 
-I have a few systems on which I can do some _OST CPU and Memory hotplug.  These
-systems are newer Intel systems in which ACPI events can be triggered via
-switches to add CPUs.
 
-I tested this patchset with CPU _add_ and haven't seen any issues.
-
-So...
-
-Tested-by: Prarit Bhargava <prarit@redhat.com>
-
-P.
