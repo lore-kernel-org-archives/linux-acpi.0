@@ -1,31 +1,56 @@
-From: Corentin Chary <corentin.chary@gmail.com>
-Subject: Re: [PATCH 0/7] platform-drivers-x86: backlight, samsung and asus
-Date: Mon, 16 Jul 2012 07:45:37 +0200
-Message-ID: <CAHR064hi0gV7LUJbFa7O6d1MdzL9Oaab9F70o0-n3Be4ty9yOA@mail.gmail.com>
-References: <1339572727-24744-1-git-send-email-corentin.chary@gmail.com>
-	<20120626184201.GF29375@srcf.ucam.org>
-	<CAHR064irJRKWhAozM18E2KMAp0vVGP+TE1mypxJxqV0uvT7Heg@mail.gmail.com>
+From: Lin Ming <ming.m.lin@intel.com>
+Subject: [PATCH] acpi: run _OSC after ACPI_FULL_INITIALIZATION
+Date: Mon, 16 Jul 2012 16:30:21 +0800
+Message-ID: <1342427421.3628.216.camel@minggr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <CAHR064irJRKWhAozM18E2KMAp0vVGP+TE1mypxJxqV0uvT7Heg@mail.gmail.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:14656 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752195Ab2GPIaX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 16 Jul 2012 04:30:23 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb <lenb@kernel.org>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-On Fri, Jun 29, 2012 at 2:16 PM, Corentin Chary
-<corentin.chary@gmail.com> wrote:
-> On Tue, Jun 26, 2012 at 8:42 PM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
->> I think I'm fine with this. Whose tree should it go through?
->
-> Yours would probably be easier,
-> Thanks
+_OSC method may exist in module level code,
+so it must be called after ACPI_FULL_INITIALIZATION
 
-Hi Matthew,
-Any news on this series ?
-Thanks.
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+---
+ drivers/acpi/bus.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index adceafd..3532d52 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -980,8 +980,6 @@ static int __init acpi_bus_init(void)
+ 	status = acpi_ec_ecdt_probe();
+ 	/* Ignore result. Not having an ECDT is not fatal. */
+ 
+-	acpi_bus_osc_support();
+-
+ 	status = acpi_initialize_objects(ACPI_FULL_INITIALIZATION);
+ 	if (ACPI_FAILURE(status)) {
+ 		printk(KERN_ERR PREFIX "Unable to initialize ACPI objects\n");
+@@ -989,6 +987,12 @@ static int __init acpi_bus_init(void)
+ 	}
+ 
+ 	/*
++	 * _OSC method may exist in module level code,
++	 * so it must be run after ACPI_FULL_INITIALIZATION
++	 */
++	acpi_bus_osc_support();
++
++	/*
+ 	 * _PDC control method may load dynamic SSDT tables,
+ 	 * and we need to install the table handler before that.
+ 	 */
 -- 
-Corentin Chary
-http://xf.iksaif.net
+1.7.10
+
+
+
