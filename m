@@ -1,26 +1,22 @@
 From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Subject: Re: [RFC PATCH v3 2/13] memory-hotplug : add physical memory hotplug
  code to acpi_memory_device_remove
-Date: Tue, 17 Jul 2012 10:10:41 +0900
-Message-ID: <5004BB91.6040803@jp.fujitsu.com>
-References: <4FFAB0A2.8070304@jp.fujitsu.com> <4FFAB148.9000803@jp.fujitsu.com> <4FFFFB38.7060806@cn.fujitsu.com>
+Date: Tue, 17 Jul 2012 10:44:59 +0900
+Message-ID: <5004C39B.1060204@jp.fujitsu.com>
+References: <4FFAB0A2.8070304@jp.fujitsu.com> <4FFAB148.9000803@jp.fujitsu.com> <4FFF9771.5080307@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-2022-JP"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:44111 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752628Ab2GQBLL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Jul 2012 21:11:11 -0400
-In-Reply-To: <4FFFFB38.7060806@cn.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <4FFF9771.5080307@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
 To: Wen Congyang <wency@cn.fujitsu.com>
 Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com
+List-Id: linux-acpi@vger.kernel.org
 
 Hi Wen,
 
-2012/07/13 19:40, Wen Congyang wrote:
+2012/07/13 12:35, Wen Congyang wrote:
 > At 07/09/2012 06:24 PM, Yasuaki Ishimatsu Wrote:
 >> acpi_memory_device_remove() has been prepared to remove physical memory.
 >> But, the function only frees acpi_memory_device currentlry.
@@ -77,19 +73,6 @@ Hi Wen,
 >>   	mem_device = acpi_driver_data(device);
 >> +
 >> +	node = acpi_get_node(mem_device->device->handle);
-> 
-> acpi_get_node() may return -1, and you should call memory_add_physaddr_to_nid()
-> to get the node id.
-
-O.K. I'll update it.
-
-Thanks,
-Yasuaki Ishimatsu
-
-> 
-> Thanks
-> Wen Congyang
-> 
 >> +
 >> +	list_for_each_entry_safe(info, tmp, &mem_device->res_list, list) {
 >> +		if (!info->enabled)
@@ -102,6 +85,23 @@ Yasuaki Ishimatsu
 >> +		}
 >> +
 >> +		result = remove_memory(node, info->start_addr, info->length);
+> 
+> The user may online the memory between offline_memory() and remove_memory().
+> So I think we should lock memory hotplug before check the memory's status
+> and release it after remove_memory().
+
+How about get "mem_block->state_mutex" of removed memory? When offlining
+memory, we need to change "memory_block->state" into "MEM_OFFLINE".
+In this case, we get mem_block->state_mutex. So I think the mutex lock
+is beneficial.
+
+Thanks,
+Yasuaki Ishimatsu
+
+> 
+> Thanks
+> Wen Congyang
+> 
 >> +		if (result)
 >> +			return result;
 >> +
@@ -228,3 +228,8 @@ Yasuaki Ishimatsu
 
 
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
