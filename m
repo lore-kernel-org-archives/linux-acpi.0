@@ -1,18 +1,18 @@
 From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Subject: Re: [RFC PATCH v3 2/13] memory-hotplug : add physical memory hotplug
  code to acpi_memory_device_remove
-Date: Tue, 17 Jul 2012 09:46:32 +0900
-Message-ID: <5004B5E8.6060602@jp.fujitsu.com>
-References: <4FFAB0A2.8070304@jp.fujitsu.com> <4FFAB148.9000803@jp.fujitsu.com> <4FFF957F.2080504@cn.fujitsu.com>
+Date: Tue, 17 Jul 2012 10:10:41 +0900
+Message-ID: <5004BB91.6040803@jp.fujitsu.com>
+References: <4FFAB0A2.8070304@jp.fujitsu.com> <4FFAB148.9000803@jp.fujitsu.com> <4FFFFB38.7060806@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-2022-JP"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:51351 "EHLO
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:44111 "EHLO
 	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752133Ab2GQArI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Jul 2012 20:47:08 -0400
-In-Reply-To: <4FFF957F.2080504@cn.fujitsu.com>
+	with ESMTP id S1752628Ab2GQBLL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Jul 2012 21:11:11 -0400
+In-Reply-To: <4FFFFB38.7060806@cn.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Wen Congyang <wency@cn.fujitsu.com>
@@ -20,7 +20,7 @@ Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.
 
 Hi Wen,
 
-2012/07/13 12:26, Wen Congyang wrote:
+2012/07/13 19:40, Wen Congyang wrote:
 > At 07/09/2012 06:24 PM, Yasuaki Ishimatsu Wrote:
 >> acpi_memory_device_remove() has been prepared to remove physical memory.
 >> But, the function only frees acpi_memory_device currentlry.
@@ -77,6 +77,19 @@ Hi Wen,
 >>   	mem_device = acpi_driver_data(device);
 >> +
 >> +	node = acpi_get_node(mem_device->device->handle);
+> 
+> acpi_get_node() may return -1, and you should call memory_add_physaddr_to_nid()
+> to get the node id.
+
+O.K. I'll update it.
+
+Thanks,
+Yasuaki Ishimatsu
+
+> 
+> Thanks
+> Wen Congyang
+> 
 >> +
 >> +	list_for_each_entry_safe(info, tmp, &mem_device->res_list, list) {
 >> +		if (!info->enabled)
@@ -108,25 +121,6 @@ Hi Wen,
 >>   extern int add_memory(int nid, u64 start, u64 size);
 >>   extern int arch_add_memory(int nid, u64 start, u64 size);
 >> +extern int remove_memory(int nid, u64 start, u64 size);
-> 
-> 
-> Here should be:
-> #ifdef CONFIG_MEMORY_HOTREMOVE
-> extern int remove_memory(int nid, u64 start, u64 size);
-> #else
-> static int inline remove_memory(int nid, u64 start, u64 size)
-> {
-> 	return -EBUSY;
-> }
-> #endif
-
-O.K. I'll update it.
-
-Thanks,
-Yasuaki Ishimatsu
-
-
-> 
 >>   extern int offline_memory(u64 start, u64 size);
 >>   extern int sparse_add_one_section(struct zone *zone, unsigned long start_pfn,
 >>   								int nr_pages);
@@ -144,13 +138,6 @@ Yasuaki Ishimatsu
 >> +
 >> +}
 >> +EXPORT_SYMBOL_GPL(remove_memory);
-> 
-> We only need to implement this function when CONFIG_MEMORY_HOTREMOVE
-> is defined here.
-> 
-> Thanks
-> Wen Congyang
-> 
 >> +
 >> +
 >>   #ifdef CONFIG_MEMORY_HOTREMOVE
@@ -238,6 +225,6 @@ Yasuaki Ishimatsu
 > see: http://www.linux-mm.org/ .
 > Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
 > 
-e
+
 
 
