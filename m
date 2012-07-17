@@ -1,373 +1,196 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [RFC PATCH v3 2/13] memory-hotplug : add physical memory hotplug
- code to acpi_memory_device_remove
-Date: Tue, 17 Jul 2012 14:19:30 +0900
-Message-ID: <5004F5E2.603@jp.fujitsu.com>
-References: <4FFAB0A2.8070304@jp.fujitsu.com> <4FFAB148.9000803@jp.fujitsu.com> <4FFF9771.5080307@cn.fujitsu.com> <5004C39B.1060204@jp.fujitsu.com> <5004C5E2.1050906@jp.fujitsu.com> <5004CEB7.4090400@cn.fujitsu.com> <5004D745.3060303@jp.fujitsu.com> <5004DCC2.4030905@cn.fujitsu.com> <5004EF68.5050708@jp.fujitsu.com> <5004F570.80508@cn.fujitsu.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 2/5] acpi : remove index from acpi_processor_cx structure
+Date: Tue, 17 Jul 2012 22:32:41 +0200
+Message-ID: <201207172232.41412.rjw@sisk.pl>
+References: <1342127026-1526-1-git-send-email-daniel.lezcano@linaro.org> <1342127026-1526-2-git-send-email-daniel.lezcano@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:38414 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751007Ab2GQFUV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Jul 2012 01:20:21 -0400
-In-Reply-To: <5004F570.80508@cn.fujitsu.com>
+Received: from ogre.sisk.pl ([193.178.161.156]:44966 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756621Ab2GQU1I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Jul 2012 16:27:08 -0400
+In-Reply-To: <1342127026-1526-2-git-send-email-daniel.lezcano@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Wen Congyang <wency@cn.fujitsu.com>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: lenb@kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi Wen,
-
-2012/07/17 14:17, Wen Congyang wrote:
-> At 07/17/2012 12:51 PM, Yasuaki Ishimatsu Wrote:
->> Hi Wen,
->>
->> 2012/07/17 12:32, Wen Congyang wrote:
->>> At 07/17/2012 11:08 AM, Yasuaki Ishimatsu Wrote:
->>>> Hi Wen,
->>>>
->>>> 2012/07/17 11:32, Wen Congyang wrote:
->>>>> At 07/17/2012 09:54 AM, Yasuaki Ishimatsu Wrote:
->>>>>> Hi Wen,
->>>>>>
->>>>>> 2012/07/17 10:44, Yasuaki Ishimatsu wrote:
->>>>>>> Hi Wen,
->>>>>>>
->>>>>>> 2012/07/13 12:35, Wen Congyang wrote:
->>>>>>>> At 07/09/2012 06:24 PM, Yasuaki Ishimatsu Wrote:
->>>>>>>>> acpi_memory_device_remove() has been prepared to remove physical memory.
->>>>>>>>> But, the function only frees acpi_memory_device currentlry.
->>>>>>>>>
->>>>>>>>> The patch adds following functions into acpi_memory_device_remove():
->>>>>>>>>        - offline memory
->>>>>>>>>        - remove physical memory (only return -EBUSY)
->>>>>>>>>        - free acpi_memory_device
->>>>>>>>>
->>>>>>>>> CC: David Rientjes <rientjes@google.com>
->>>>>>>>> CC: Jiang Liu <liuj97@gmail.com>
->>>>>>>>> CC: Len Brown <len.brown@intel.com>
->>>>>>>>> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
->>>>>>>>> CC: Paul Mackerras <paulus@samba.org>
->>>>>>>>> CC: Christoph Lameter <cl@linux.com>
->>>>>>>>> Cc: Minchan Kim <minchan.kim@gmail.com>
->>>>>>>>> CC: Andrew Morton <akpm@linux-foundation.org>
->>>>>>>>> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
->>>>>>>>> CC: Wen Congyang <wency@cn.fujitsu.com>
->>>>>>>>> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->>>>>>>>>
->>>>>>>>> ---
->>>>>>>>>       drivers/acpi/acpi_memhotplug.c |   26 +++++++++++++++++++++++++-
->>>>>>>>>       drivers/base/memory.c          |   39 +++++++++++++++++++++++++++++++++++++++
->>>>>>>>>       include/linux/memory.h         |    5 +++++
->>>>>>>>>       include/linux/memory_hotplug.h |    1 +
->>>>>>>>>       mm/memory_hotplug.c            |    8 ++++++++
->>>>>>>>>       5 files changed, 78 insertions(+), 1 deletion(-)
->>>>>>>>>
->>>>>>>>> Index: linux-3.5-rc6/drivers/acpi/acpi_memhotplug.c
->>>>>>>>> ===================================================================
->>>>>>>>> --- linux-3.5-rc6.orig/drivers/acpi/acpi_memhotplug.c	2012-07-09 18:08:29.946888653 +0900
->>>>>>>>> +++ linux-3.5-rc6/drivers/acpi/acpi_memhotplug.c	2012-07-09 18:08:43.470719531 +0900
->>>>>>>>> @@ -29,6 +29,7 @@
->>>>>>>>>       #include <linux/module.h>
->>>>>>>>>       #include <linux/init.h>
->>>>>>>>>       #include <linux/types.h>
->>>>>>>>> +#include <linux/memory.h>
->>>>>>>>>       #include <linux/memory_hotplug.h>
->>>>>>>>>       #include <linux/slab.h>
->>>>>>>>>       #include <acpi/acpi_drivers.h>
->>>>>>>>> @@ -452,12 +453,35 @@ static int acpi_memory_device_add(struct
->>>>>>>>>       static int acpi_memory_device_remove(struct acpi_device *device, int type)
->>>>>>>>>       {
->>>>>>>>>       	struct acpi_memory_device *mem_device = NULL;
->>>>>>>>> -
->>>>>>>>> +	struct acpi_memory_info *info, *tmp;
->>>>>>>>> +	int result;
->>>>>>>>> +	int node;
->>>>>>>>>
->>>>>>>>>       	if (!device || !acpi_driver_data(device))
->>>>>>>>>       		return -EINVAL;
->>>>>>>>>
->>>>>>>>>       	mem_device = acpi_driver_data(device);
->>>>>>>>> +
->>>>>>>>> +	node = acpi_get_node(mem_device->device->handle);
->>>>>>>>> +
->>>>>>>>> +	list_for_each_entry_safe(info, tmp, &mem_device->res_list, list) {
->>>>>>>>> +		if (!info->enabled)
->>>>>>>>> +			continue;
->>>>>>>>> +
->>>>>>>>> +		if (!is_memblk_offline(info->start_addr, info->length)) {
->>>>>>>>> +			result = offline_memory(info->start_addr, info->length);
->>>>>>>>> +			if (result)
->>>>>>>>> +				return result;
->>>>>>>>> +		}
->>>>>>>>> +
->>>>>>>>> +		result = remove_memory(node, info->start_addr, info->length);
->>>>>>>>
->>>>>>>> The user may online the memory between offline_memory() and remove_memory().
->>>>>>>> So I think we should lock memory hotplug before check the memory's status
->>>>>>>> and release it after remove_memory().
->>>>>>>
->>>>>>> How about get "mem_block->state_mutex" of removed memory? When offlining
->>>>>>> memory, we need to change "memory_block->state" into "MEM_OFFLINE".
->>>>>>> In this case, we get mem_block->state_mutex. So I think the mutex lock
->>>>>>> is beneficial.
->>>>>>
->>>>>> It is not good idea since remove_memory frees mem_block structure...
->>>>>> Do you have any ideas?
->>>>>
->>>>> Hmm, split offline_memory() to 2 functions: offline_pages() and __offline_pages()
->>>>>
->>>>> offline_pages()
->>>>> 	lock_memory_hotplug();
->>>>> 	__offline_pages();
->>>>> 	unlock_memory_hotplug();
->>>>>
->>>>> and implement remove_memory() like this:
->>>>> remove_memory()
->>>>> 	lock_memory_hotplug()
->>>>> 	if (!is_memblk_offline()) {
->>>>> 		__offline_pages();
->>>>> 	}
->>>>> 	// cleanup
->>>>> 	unlock_memory_hotplug();
->>>>>
->>>>> What about this?
->>>>
->>>> I also thought about it once. But a problem remains. Current offilne_pages()
->>>> cannot realize the memory has been removed by remove_memory(). So even if
->>>> protecting the race by lock_memory_hotplug(), offline_pages() can offline
->>>> the removed memory. offline_pages() should have the means to know the memory
->>>> was removed. But I don't have good idea.
->>>
->>> We can not online/offline part of memory block, so what about this?
->>
->> It seems you do not understand my concern.
->> When memory_remove() and offline_pages() run to same memory simultaneously,
->> offline_pages runs to removed memory.
->>
->> memory_remove()              | offline_pages()
->> -----------------------------------------------------------
->> lock_memory_hotplug()        |
->>                               | wait at lock_memory_hotplug()
->> remove memory                |
->> unlock_memory_hotplug()      |
->>                               | wake up and start offline_pages()
->> 			     | offline page
->> 			     | => but the memory has already removed
->> 			     |    by memory_remove()
->>
->> In this case, offline_page() may access removed memory.
+On Thursday, July 12, 2012, Daniel Lezcano wrote:
+> Remove the index field. It could be given without adding extra
+> information in the cx structure.
 > 
-> Yes, in this case, the kernel may panic.
-> 
-> I think we can call pfn_present() in online_pages()/offline_pages()
-> to check whether the memory is removed.
+> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
 
-Thank you for good idea. I'll add it.
+Applied to the 'pm-cpuidle' branch of the linux-pm.git tree.
 
 Thanks,
-Yasuaki Ishimatsu
+Rafael
 
-> Thanks
-> Wen Congyang
+
+> ---
+>  arch/x86/kernel/acpi/cstate.c |   18 +++++++++---------
+>  drivers/acpi/processor_idle.c |   15 +++++++--------
+>  include/acpi/processor.h      |   11 +++++------
+>  3 files changed, 21 insertions(+), 23 deletions(-)
 > 
->>
->> Thanks,
->> Yasuaki Ishimatsu
->>
->>>
->>> remove_memory()
->>> 	lock_memory_hotplug()
->>> 	for each memory block:
->>> 		if (!is_memblk_offline()) {
->>> 			__offline_pages();
->>> 		}
->>> 	// cleanup
->>> 	unlock_memory_hotplug();
->>>
->>> Thanks
->>> Wen Congyang
->>>>
->>>> Thanks,
->>>> Yasuaki Ishimatsu
->>>>
->>>>>
->>>>> Thanks
->>>>> Wen Congyang
->>>>>>
->>>>>> Thanks,
->>>>>> Yasuaki Ishimatsu
->>>>>>
->>>>>>> Thanks,
->>>>>>> Yasuaki Ishimatsu
->>>>>>>
->>>>>>>>
->>>>>>>> Thanks
->>>>>>>> Wen Congyang
->>>>>>>>
->>>>>>>>> +		if (result)
->>>>>>>>> +			return result;
->>>>>>>>> +
->>>>>>>>> +		list_del(&info->list);
->>>>>>>>> +		kfree(info);
->>>>>>>>> +	}
->>>>>>>>> +
->>>>>>>>>       	kfree(mem_device);
->>>>>>>>>
->>>>>>>>>       	return 0;
->>>>>>>>> Index: linux-3.5-rc6/include/linux/memory_hotplug.h
->>>>>>>>> ===================================================================
->>>>>>>>> --- linux-3.5-rc6.orig/include/linux/memory_hotplug.h	2012-07-09 18:08:29.955888542 +0900
->>>>>>>>> +++ linux-3.5-rc6/include/linux/memory_hotplug.h	2012-07-09 18:08:43.471719518 +0900
->>>>>>>>> @@ -233,6 +233,7 @@ static inline int is_mem_section_removab
->>>>>>>>>       extern int mem_online_node(int nid);
->>>>>>>>>       extern int add_memory(int nid, u64 start, u64 size);
->>>>>>>>>       extern int arch_add_memory(int nid, u64 start, u64 size);
->>>>>>>>> +extern int remove_memory(int nid, u64 start, u64 size);
->>>>>>>>>       extern int offline_memory(u64 start, u64 size);
->>>>>>>>>       extern int sparse_add_one_section(struct zone *zone, unsigned long start_pfn,
->>>>>>>>>       								int nr_pages);
->>>>>>>>> Index: linux-3.5-rc6/mm/memory_hotplug.c
->>>>>>>>> ===================================================================
->>>>>>>>> --- linux-3.5-rc6.orig/mm/memory_hotplug.c	2012-07-09 18:08:29.953888567 +0900
->>>>>>>>> +++ linux-3.5-rc6/mm/memory_hotplug.c	2012-07-09 18:08:43.476719455 +0900
->>>>>>>>> @@ -659,6 +659,14 @@ out:
->>>>>>>>>       }
->>>>>>>>>       EXPORT_SYMBOL_GPL(add_memory);
->>>>>>>>>
->>>>>>>>> +int remove_memory(int nid, u64 start, u64 size)
->>>>>>>>> +{
->>>>>>>>> +	return -EBUSY;
->>>>>>>>> +
->>>>>>>>> +}
->>>>>>>>> +EXPORT_SYMBOL_GPL(remove_memory);
->>>>>>>>> +
->>>>>>>>> +
->>>>>>>>>       #ifdef CONFIG_MEMORY_HOTREMOVE
->>>>>>>>>       /*
->>>>>>>>>        * A free page on the buddy free lists (not the per-cpu lists) has PageBuddy
->>>>>>>>> Index: linux-3.5-rc6/drivers/base/memory.c
->>>>>>>>> ===================================================================
->>>>>>>>> --- linux-3.5-rc6.orig/drivers/base/memory.c	2012-07-09 18:08:29.947888640 +0900
->>>>>>>>> +++ linux-3.5-rc6/drivers/base/memory.c	2012-07-09 18:10:54.880076739 +0900
->>>>>>>>> @@ -70,6 +70,45 @@ void unregister_memory_isolate_notifier(
->>>>>>>>>       }
->>>>>>>>>       EXPORT_SYMBOL(unregister_memory_isolate_notifier);
->>>>>>>>>
->>>>>>>>> +bool is_memblk_offline(unsigned long start, unsigned long size)
->>>>>>>>> +{
->>>>>>>>> +	struct memory_block *mem = NULL;
->>>>>>>>> +	struct mem_section *section;
->>>>>>>>> +	unsigned long start_pfn, end_pfn;
->>>>>>>>> +	unsigned long pfn, section_nr;
->>>>>>>>> +
->>>>>>>>> +	start_pfn = PFN_DOWN(start);
->>>>>>>>> +	end_pfn = start_pfn + PFN_DOWN(start);
->>>>>>>>> +
->>>>>>>>> +	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
->>>>>>>>> +		section_nr = pfn_to_section_nr(pfn);
->>>>>>>>> +		if (!present_section_nr(section_nr));
->>>>>>>>> +			continue;
->>>>>>>>> +
->>>>>>>>> +		section = __nr_to_section(section_nr);
->>>>>>>>> +		/* same memblock? */
->>>>>>>>> +		if (mem)
->>>>>>>>> +			if((section_nr >= mem->start_section_nr) &&
->>>>>>>>> +			   (section_nr <= mem->end_section_nr))
->>>>>>>>> +				continue;
->>>>>>>>> +
->>>>>>>>> +		mem = find_memory_block_hinted(section, mem);
->>>>>>>>> +		if (!mem)
->>>>>>>>> +			continue;
->>>>>>>>> +		if (mem->state == MEM_OFFLINE)
->>>>>>>>> +			continue;
->>>>>>>>> +
->>>>>>>>> +		kobject_put(&mem->dev.kobj);
->>>>>>>>> +		return false;
->>>>>>>>> +	}
->>>>>>>>> +
->>>>>>>>> +	if (mem)
->>>>>>>>> +		kobject_put(&mem->dev.kobj);
->>>>>>>>> +
->>>>>>>>> +	return true;
->>>>>>>>> +}
->>>>>>>>> +EXPORT_SYMBOL(is_memblk_offline);
->>>>>>>>> +
->>>>>>>>>       /*
->>>>>>>>>        * register_memory - Setup a sysfs device for a memory block
->>>>>>>>>        */
->>>>>>>>> Index: linux-3.5-rc6/include/linux/memory.h
->>>>>>>>> ===================================================================
->>>>>>>>> --- linux-3.5-rc6.orig/include/linux/memory.h	2012-07-08 09:23:56.000000000 +0900
->>>>>>>>> +++ linux-3.5-rc6/include/linux/memory.h	2012-07-09 18:08:43.484719355 +0900
->>>>>>>>> @@ -106,6 +106,10 @@ static inline int memory_isolate_notify(
->>>>>>>>>       {
->>>>>>>>>       	return 0;
->>>>>>>>>       }
->>>>>>>>> +static inline bool is_memblk_offline(unsigned long start, unsigned long size)
->>>>>>>>> +{
->>>>>>>>> +	return false;
->>>>>>>>> +}
->>>>>>>>>       #else
->>>>>>>>>       extern int register_memory_notifier(struct notifier_block *nb);
->>>>>>>>>       extern void unregister_memory_notifier(struct notifier_block *nb);
->>>>>>>>> @@ -120,6 +124,7 @@ extern int memory_isolate_notify(unsigne
->>>>>>>>>       extern struct memory_block *find_memory_block_hinted(struct mem_section *,
->>>>>>>>>       							struct memory_block *);
->>>>>>>>>       extern struct memory_block *find_memory_block(struct mem_section *);
->>>>>>>>> +extern bool is_memblk_offline(unsigned long start, unsigned long size);
->>>>>>>>>       #define CONFIG_MEM_BLOCK_SIZE	(PAGES_PER_SECTION<<PAGE_SHIFT)
->>>>>>>>>       enum mem_add_context { BOOT, HOTPLUG };
->>>>>>>>>       #endif /* CONFIG_MEMORY_HOTPLUG_SPARSE */
->>>>>>>>>
->>>>>>>>>
->>>>>>>>
->>>>>>>> --
->>>>>>>> To unsubscribe, send a message with 'unsubscribe linux-mm' in
->>>>>>>> the body to majordomo@kvack.org.  For more info on Linux MM,
->>>>>>>> see: http://www.linux-mm.org/ .
->>>>>>>> Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
->>>>>>>>
->>>>>>>
->>>>>>>
->>>>>>>
->>>>>>> --
->>>>>>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->>>>>>> the body of a message to majordomo@vger.kernel.org
->>>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>>>>>
->>>>>>
->>>>>>
->>>>>>
->>>>>> --
->>>>>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->>>>>> the body of a message to majordomo@vger.kernel.org
->>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>>>>
->>>>>
->>>>
->>>>
->>>>
->>>>
->>>
->>> --
->>> To unsubscribe, send a message with 'unsubscribe linux-mm' in
->>> the body to majordomo@kvack.org.  For more info on Linux MM,
->>> see: http://www.linux-mm.org/ .
->>> Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
->>>
->>
->>
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> Please read the FAQ at  http://www.tux.org/lkml/
->>
+> diff --git a/arch/x86/kernel/acpi/cstate.c b/arch/x86/kernel/acpi/cstate.c
+> index d2b7f27..faa7f50 100644
+> --- a/arch/x86/kernel/acpi/cstate.c
+> +++ b/arch/x86/kernel/acpi/cstate.c
+> @@ -112,8 +112,8 @@ out:
+>  	return retval;
+>  }
+>  
+> -int acpi_processor_ffh_cstate_probe(unsigned int cpu,
+> -		struct acpi_processor_cx *cx, struct acpi_power_register *reg)
+> +int acpi_processor_ffh_cstate_probe(unsigned int cpu, struct acpi_processor_cx *cx,
+> +				    int index, struct acpi_power_register *reg)
+>  {
+>  	struct cstate_entry *percpu_entry;
+>  	struct cpuinfo_x86 *c = &cpu_data(cpu);
+> @@ -126,16 +126,16 @@ int acpi_processor_ffh_cstate_probe(unsigned int cpu,
+>  		return -1;
+>  
+>  	percpu_entry = per_cpu_ptr(cpu_cstate_entry, cpu);
+> -	percpu_entry->states[cx->index].eax = 0;
+> -	percpu_entry->states[cx->index].ecx = 0;
+> +	percpu_entry->states[index].eax = 0;
+> +	percpu_entry->states[index].ecx = 0;
+>  
+>  	/* Make sure we are running on right CPU */
+>  
+>  	retval = work_on_cpu(cpu, acpi_processor_ffh_cstate_probe_cpu, cx);
+>  	if (retval == 0) {
+>  		/* Use the hint in CST */
+> -		percpu_entry->states[cx->index].eax = cx->address;
+> -		percpu_entry->states[cx->index].ecx = MWAIT_ECX_INTERRUPT_BREAK;
+> +		percpu_entry->states[index].eax = cx->address;
+> +		percpu_entry->states[index].ecx = MWAIT_ECX_INTERRUPT_BREAK;
+>  	}
+>  
+>  	/*
+> @@ -173,14 +173,14 @@ void mwait_idle_with_hints(unsigned long ax, unsigned long cx)
+>  	}
+>  }
+>  
+> -void acpi_processor_ffh_cstate_enter(struct acpi_processor_cx *cx)
+> +void acpi_processor_ffh_cstate_enter(int index)
+>  {
+>  	unsigned int cpu = smp_processor_id();
+>  	struct cstate_entry *percpu_entry;
+>  
+>  	percpu_entry = per_cpu_ptr(cpu_cstate_entry, cpu);
+> -	mwait_idle_with_hints(percpu_entry->states[cx->index].eax,
+> -	                      percpu_entry->states[cx->index].ecx);
+> +	mwait_idle_with_hints(percpu_entry->states[index].eax,
+> +	                      percpu_entry->states[index].ecx);
+>  }
+>  EXPORT_SYMBOL_GPL(acpi_processor_ffh_cstate_enter);
+>  
+> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+> index da92c65..9808e60 100644
+> --- a/drivers/acpi/processor_idle.c
+> +++ b/drivers/acpi/processor_idle.c
+> @@ -433,12 +433,11 @@ static int acpi_processor_get_power_info_cst(struct acpi_processor *pr)
+>  			current_count++;
+>  
+>  		cx.address = reg->address;
+> -		cx.index = current_count + 1;
+>  
+>  		cx.entry_method = ACPI_CSTATE_SYSTEMIO;
+>  		if (reg->space_id == ACPI_ADR_SPACE_FIXED_HARDWARE) {
+> -			if (acpi_processor_ffh_cstate_probe
+> -					(pr->id, &cx, reg) == 0) {
+> +			if (acpi_processor_ffh_cstate_probe(
+> +				    pr->id, &cx, current_count + 1, reg) == 0) {
+>  				cx.entry_method = ACPI_CSTATE_FFH;
+>  			} else if (cx.type == ACPI_STATE_C1) {
+>  				/*
+> @@ -707,13 +706,13 @@ static int acpi_idle_bm_check(void)
+>   *
+>   * Caller disables interrupt before call and enables interrupt after return.
+>   */
+> -static inline void acpi_idle_do_entry(struct acpi_processor_cx *cx)
+> +static inline void acpi_idle_do_entry(struct acpi_processor_cx *cx, int index)
+>  {
+>  	/* Don't trace irqs off for idle */
+>  	stop_critical_timings();
+>  	if (cx->entry_method == ACPI_CSTATE_FFH) {
+>  		/* Call into architectural FFH based C-state */
+> -		acpi_processor_ffh_cstate_enter(cx);
+> +		acpi_processor_ffh_cstate_enter(index);
+>  	} else if (cx->entry_method == ACPI_CSTATE_HALT) {
+>  		acpi_safe_halt();
+>  	} else {
+> @@ -754,7 +753,7 @@ static int acpi_idle_enter_c1(struct cpuidle_device *dev,
+>  
+>  	lapic_timer_state_broadcast(pr, cx, 1);
+>  	kt1 = ktime_get_real();
+> -	acpi_idle_do_entry(cx);
+> +	acpi_idle_do_entry(cx, index);
+>  	kt2 = ktime_get_real();
+>  	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
+>  
+> @@ -848,7 +847,7 @@ static int acpi_idle_enter_simple(struct cpuidle_device *dev,
+>  	kt1 = ktime_get_real();
+>  	/* Tell the scheduler that we are going deep-idle: */
+>  	sched_clock_idle_sleep_event();
+> -	acpi_idle_do_entry(cx);
+> +	acpi_idle_do_entry(cx, index);
+>  	kt2 = ktime_get_real();
+>  	idle_time_ns = ktime_to_ns(ktime_sub(kt2, kt1));
+>  	idle_time = idle_time_ns;
+> @@ -960,7 +959,7 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
+>  		ACPI_FLUSH_CPU_CACHE();
+>  	}
+>  
+> -	acpi_idle_do_entry(cx);
+> +	acpi_idle_do_entry(cx, index);
+>  
+>  	/* Re-enable bus master arbitration */
+>  	if (pr->flags.bm_check && pr->flags.bm_control) {
+> diff --git a/include/acpi/processor.h b/include/acpi/processor.h
+> index a70cbcc..d09c94f 100644
+> --- a/include/acpi/processor.h
+> +++ b/include/acpi/processor.h
+> @@ -57,7 +57,6 @@ struct acpi_processor_cx {
+>  	u8 type;
+>  	u32 address;
+>  	u8 entry_method;
+> -	u8 index;
+>  	u32 latency;
+>  	u32 power;
+>  	u32 usage;
+> @@ -249,8 +248,9 @@ void acpi_processor_power_init_bm_check(struct acpi_processor_flags *flags,
+>  					unsigned int cpu);
+>  int acpi_processor_ffh_cstate_probe(unsigned int cpu,
+>  				    struct acpi_processor_cx *cx,
+> +				    int index,
+>  				    struct acpi_power_register *reg);
+> -void acpi_processor_ffh_cstate_enter(struct acpi_processor_cx *cstate);
+> +void acpi_processor_ffh_cstate_enter(int index);
+>  #else
+>  static inline void acpi_processor_power_init_bm_check(struct
+>  						      acpi_processor_flags
+> @@ -261,13 +261,12 @@ static inline void acpi_processor_power_init_bm_check(struct
+>  }
+>  static inline int acpi_processor_ffh_cstate_probe(unsigned int cpu,
+>  						  struct acpi_processor_cx *cx,
+> -						  struct acpi_power_register
+> -						  *reg)
+> +						  int index,
+> +						  struct acpi_power_register *reg)
+>  {
+>  	return -1;
+>  }
+> -static inline void acpi_processor_ffh_cstate_enter(struct acpi_processor_cx
+> -						   *cstate)
+> +static inline void acpi_processor_ffh_cstate_enter(int index)
+>  {
+>  	return;
+>  }
 > 
-
-
 
