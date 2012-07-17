@@ -1,26 +1,25 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 2/5] acpi : remove index from acpi_processor_cx structure
-Date: Tue, 17 Jul 2012 22:32:41 +0200
-Message-ID: <201207172232.41412.rjw@sisk.pl>
-References: <1342127026-1526-1-git-send-email-daniel.lezcano@linaro.org> <1342127026-1526-2-git-send-email-daniel.lezcano@linaro.org>
+Subject: Re: [PATCH 1/5] acpi : remove latency_ticks from acpi_processor_cx structure
+Date: Tue, 17 Jul 2012 22:32:59 +0200
+Message-ID: <201207172232.59977.rjw@sisk.pl>
+References: <1342127026-1526-1-git-send-email-daniel.lezcano@linaro.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:44966 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([193.178.161.156]:44973 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756621Ab2GQU1I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 17 Jul 2012 16:27:08 -0400
-In-Reply-To: <1342127026-1526-2-git-send-email-daniel.lezcano@linaro.org>
+	id S1754813Ab2GQU1X (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 17 Jul 2012 16:27:23 -0400
+In-Reply-To: <1342127026-1526-1-git-send-email-daniel.lezcano@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Daniel Lezcano <daniel.lezcano@linaro.org>
 Cc: lenb@kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
 
 On Thursday, July 12, 2012, Daniel Lezcano wrote:
-> Remove the index field. It could be given without adding extra
-> information in the cx structure.
+> Remove the latency_ticks field as it is not used.
 > 
 > Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
 
@@ -31,166 +30,41 @@ Rafael
 
 
 > ---
->  arch/x86/kernel/acpi/cstate.c |   18 +++++++++---------
->  drivers/acpi/processor_idle.c |   15 +++++++--------
->  include/acpi/processor.h      |   11 +++++------
->  3 files changed, 21 insertions(+), 23 deletions(-)
+>  drivers/acpi/processor_idle.c |    2 --
+>  include/acpi/processor.h      |    1 -
+>  2 files changed, 0 insertions(+), 3 deletions(-)
 > 
-> diff --git a/arch/x86/kernel/acpi/cstate.c b/arch/x86/kernel/acpi/cstate.c
-> index d2b7f27..faa7f50 100644
-> --- a/arch/x86/kernel/acpi/cstate.c
-> +++ b/arch/x86/kernel/acpi/cstate.c
-> @@ -112,8 +112,8 @@ out:
->  	return retval;
->  }
->  
-> -int acpi_processor_ffh_cstate_probe(unsigned int cpu,
-> -		struct acpi_processor_cx *cx, struct acpi_power_register *reg)
-> +int acpi_processor_ffh_cstate_probe(unsigned int cpu, struct acpi_processor_cx *cx,
-> +				    int index, struct acpi_power_register *reg)
->  {
->  	struct cstate_entry *percpu_entry;
->  	struct cpuinfo_x86 *c = &cpu_data(cpu);
-> @@ -126,16 +126,16 @@ int acpi_processor_ffh_cstate_probe(unsigned int cpu,
->  		return -1;
->  
->  	percpu_entry = per_cpu_ptr(cpu_cstate_entry, cpu);
-> -	percpu_entry->states[cx->index].eax = 0;
-> -	percpu_entry->states[cx->index].ecx = 0;
-> +	percpu_entry->states[index].eax = 0;
-> +	percpu_entry->states[index].ecx = 0;
->  
->  	/* Make sure we are running on right CPU */
->  
->  	retval = work_on_cpu(cpu, acpi_processor_ffh_cstate_probe_cpu, cx);
->  	if (retval == 0) {
->  		/* Use the hint in CST */
-> -		percpu_entry->states[cx->index].eax = cx->address;
-> -		percpu_entry->states[cx->index].ecx = MWAIT_ECX_INTERRUPT_BREAK;
-> +		percpu_entry->states[index].eax = cx->address;
-> +		percpu_entry->states[index].ecx = MWAIT_ECX_INTERRUPT_BREAK;
->  	}
->  
->  	/*
-> @@ -173,14 +173,14 @@ void mwait_idle_with_hints(unsigned long ax, unsigned long cx)
->  	}
->  }
->  
-> -void acpi_processor_ffh_cstate_enter(struct acpi_processor_cx *cx)
-> +void acpi_processor_ffh_cstate_enter(int index)
->  {
->  	unsigned int cpu = smp_processor_id();
->  	struct cstate_entry *percpu_entry;
->  
->  	percpu_entry = per_cpu_ptr(cpu_cstate_entry, cpu);
-> -	mwait_idle_with_hints(percpu_entry->states[cx->index].eax,
-> -	                      percpu_entry->states[cx->index].ecx);
-> +	mwait_idle_with_hints(percpu_entry->states[index].eax,
-> +	                      percpu_entry->states[index].ecx);
->  }
->  EXPORT_SYMBOL_GPL(acpi_processor_ffh_cstate_enter);
->  
 > diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-> index da92c65..9808e60 100644
+> index f3decb3..da92c65 100644
 > --- a/drivers/acpi/processor_idle.c
 > +++ b/drivers/acpi/processor_idle.c
-> @@ -433,12 +433,11 @@ static int acpi_processor_get_power_info_cst(struct acpi_processor *pr)
->  			current_count++;
+> @@ -586,7 +586,6 @@ static void acpi_processor_power_verify_c3(struct acpi_processor *pr,
+>  	 */
+>  	cx->valid = 1;
 >  
->  		cx.address = reg->address;
-> -		cx.index = current_count + 1;
+> -	cx->latency_ticks = cx->latency;
+>  	/*
+>  	 * On older chipsets, BM_RLD needs to be set
+>  	 * in order for Bus Master activity to wake the
+> @@ -619,7 +618,6 @@ static int acpi_processor_power_verify(struct acpi_processor *pr)
+>  			if (!cx->address)
+>  				break;
+>  			cx->valid = 1; 
+> -			cx->latency_ticks = cx->latency; /* Normalize latency */
+>  			break;
 >  
->  		cx.entry_method = ACPI_CSTATE_SYSTEMIO;
->  		if (reg->space_id == ACPI_ADR_SPACE_FIXED_HARDWARE) {
-> -			if (acpi_processor_ffh_cstate_probe
-> -					(pr->id, &cx, reg) == 0) {
-> +			if (acpi_processor_ffh_cstate_probe(
-> +				    pr->id, &cx, current_count + 1, reg) == 0) {
->  				cx.entry_method = ACPI_CSTATE_FFH;
->  			} else if (cx.type == ACPI_STATE_C1) {
->  				/*
-> @@ -707,13 +706,13 @@ static int acpi_idle_bm_check(void)
->   *
->   * Caller disables interrupt before call and enables interrupt after return.
->   */
-> -static inline void acpi_idle_do_entry(struct acpi_processor_cx *cx)
-> +static inline void acpi_idle_do_entry(struct acpi_processor_cx *cx, int index)
->  {
->  	/* Don't trace irqs off for idle */
->  	stop_critical_timings();
->  	if (cx->entry_method == ACPI_CSTATE_FFH) {
->  		/* Call into architectural FFH based C-state */
-> -		acpi_processor_ffh_cstate_enter(cx);
-> +		acpi_processor_ffh_cstate_enter(index);
->  	} else if (cx->entry_method == ACPI_CSTATE_HALT) {
->  		acpi_safe_halt();
->  	} else {
-> @@ -754,7 +753,7 @@ static int acpi_idle_enter_c1(struct cpuidle_device *dev,
->  
->  	lapic_timer_state_broadcast(pr, cx, 1);
->  	kt1 = ktime_get_real();
-> -	acpi_idle_do_entry(cx);
-> +	acpi_idle_do_entry(cx, index);
->  	kt2 = ktime_get_real();
->  	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
->  
-> @@ -848,7 +847,7 @@ static int acpi_idle_enter_simple(struct cpuidle_device *dev,
->  	kt1 = ktime_get_real();
->  	/* Tell the scheduler that we are going deep-idle: */
->  	sched_clock_idle_sleep_event();
-> -	acpi_idle_do_entry(cx);
-> +	acpi_idle_do_entry(cx, index);
->  	kt2 = ktime_get_real();
->  	idle_time_ns = ktime_to_ns(ktime_sub(kt2, kt1));
->  	idle_time = idle_time_ns;
-> @@ -960,7 +959,7 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
->  		ACPI_FLUSH_CPU_CACHE();
->  	}
->  
-> -	acpi_idle_do_entry(cx);
-> +	acpi_idle_do_entry(cx, index);
->  
->  	/* Re-enable bus master arbitration */
->  	if (pr->flags.bm_check && pr->flags.bm_control) {
+>  		case ACPI_STATE_C3:
 > diff --git a/include/acpi/processor.h b/include/acpi/processor.h
-> index a70cbcc..d09c94f 100644
+> index 9d65047..a70cbcc 100644
 > --- a/include/acpi/processor.h
 > +++ b/include/acpi/processor.h
-> @@ -57,7 +57,6 @@ struct acpi_processor_cx {
->  	u8 type;
->  	u32 address;
+> @@ -59,7 +59,6 @@ struct acpi_processor_cx {
 >  	u8 entry_method;
-> -	u8 index;
+>  	u8 index;
 >  	u32 latency;
+> -	u32 latency_ticks;
 >  	u32 power;
 >  	u32 usage;
-> @@ -249,8 +248,9 @@ void acpi_processor_power_init_bm_check(struct acpi_processor_flags *flags,
->  					unsigned int cpu);
->  int acpi_processor_ffh_cstate_probe(unsigned int cpu,
->  				    struct acpi_processor_cx *cx,
-> +				    int index,
->  				    struct acpi_power_register *reg);
-> -void acpi_processor_ffh_cstate_enter(struct acpi_processor_cx *cstate);
-> +void acpi_processor_ffh_cstate_enter(int index);
->  #else
->  static inline void acpi_processor_power_init_bm_check(struct
->  						      acpi_processor_flags
-> @@ -261,13 +261,12 @@ static inline void acpi_processor_power_init_bm_check(struct
->  }
->  static inline int acpi_processor_ffh_cstate_probe(unsigned int cpu,
->  						  struct acpi_processor_cx *cx,
-> -						  struct acpi_power_register
-> -						  *reg)
-> +						  int index,
-> +						  struct acpi_power_register *reg)
->  {
->  	return -1;
->  }
-> -static inline void acpi_processor_ffh_cstate_enter(struct acpi_processor_cx
-> -						   *cstate)
-> +static inline void acpi_processor_ffh_cstate_enter(int index)
->  {
->  	return;
->  }
+>  	u64 time;
 > 
 
