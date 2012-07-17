@@ -1,22 +1,26 @@
 From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Subject: Re: [RFC PATCH v3 4/13] memory-hotplug : remove /sys/firmware/memmap/X
  sysfs
-Date: Tue, 17 Jul 2012 09:28:28 +0900
-Message-ID: <5004B1AC.9090409@jp.fujitsu.com>
-References: <4FFAB0A2.8070304@jp.fujitsu.com> <4FFAB1BA.9040801@jp.fujitsu.com> <4FFFE621.8030302@cn.fujitsu.com>
+Date: Tue, 17 Jul 2012 09:30:11 +0900
+Message-ID: <5004B213.8010304@jp.fujitsu.com>
+References: <4FFAB0A2.8070304@jp.fujitsu.com> <4FFAB1BA.9040801@jp.fujitsu.com> <50037D3A.4090309@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-2022-JP"
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <4FFFE621.8030302@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:54111 "EHLO
+	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751804Ab2GQAac (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Jul 2012 20:30:32 -0400
+In-Reply-To: <50037D3A.4090309@cn.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Wen Congyang <wency@cn.fujitsu.com>
 Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com
-List-Id: linux-acpi@vger.kernel.org
 
 Hi Wen,
 
-2012/07/13 18:10, Wen Congyang wrote:
+2012/07/16 11:32, Wen Congyang wrote:
 > At 07/09/2012 06:26 PM, Yasuaki Ishimatsu Wrote:
 >> When (hot)adding memory into system, /sys/firmware/memmap/X/{end, start, type}
 >> sysfs files are created. But there is no code to remove these files. The patch
@@ -55,19 +59,6 @@ Hi Wen,
 >> +	lock_memory_hotplug();
 >> +	/* remove memmap entry */
 >> +	firmware_map_remove(start, start + size - 1, "System RAM");
-> 
-> firmware_map_remove() is in meminit section, so remove_memory() should be in
-> ref section.
-
-I'll add it.
-
-Thanks,
-Yasuaki Ishimatsu
-
-> 
-> Thanks
-> Wen Congyang
-> 
 >> +	unlock_memory_hotplug();
 >> +	return 0;
 >>
@@ -207,6 +198,19 @@ Yasuaki Ishimatsu
 >> +	remove_sysfs_fw_map_entry(entry);
 >> +
 >> +	firmware_map_remove_entry(entry);
+> 
+> You should call firmware_map_remove_entry() before remove_sysfs_fw_map_entry(),
+> otherwise it will cause kernel panicked(entry may be freed in remove_sysfs_fw_map_entry()).
+
+You are right. I'll update it.
+
+Thanks,
+Yasuaki Ishimatsu
+
+> 
+> Thanks
+> Wen Congyang
+> 
 >> +
 >> +	return 0;
 >> +}
@@ -234,8 +238,3 @@ Yasuaki Ishimatsu
 
 
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
