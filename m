@@ -1,66 +1,38 @@
-From: Alex Hung <alex.hung@canonical.com>
-Subject: Re: [PATCH] ACPI: battery: fix battery->alarm is updated when it
- is not supported
-Date: Thu, 19 Jul 2012 00:16:46 +0800
-Message-ID: <5006E16E.9070202@canonical.com>
-References: <1337515556-5232-1-git-send-email-alex.hung@canonical.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:58848 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753562Ab2GRQQx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Jul 2012 12:16:53 -0400
-In-Reply-To: <1337515556-5232-1-git-send-email-alex.hung@canonical.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: [PATCH 0/4] ACPI: hotplug messages improvement
+Date: Wed, 18 Jul 2012 14:40:23 -0600
+Message-ID: <1342644027-19559-1-git-send-email-toshi.kani@hp.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: lenb@kernel.org, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, liuj97@gmail.com, srivatsa.bhat@linux.vnet.ibm.com, prarit@redhat.com, imammedo@redhat.com, vijaymohan.pandarathil@hp.com, Toshi Kani <toshi.kani@hp.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Hung <alex.hung@canonical.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
 
-Hi,
+This patchset improves logging messages for ACPI CPU, Memory, and
+Container hotplug notify handlers.  The patchset introduces a set of
+new macro interfaces, acpi_pr_<level>(), and updates the notify
+handlers to use them.  acpi_pr_<level>() appends "ACPI" prefix and
+ACPI object path to the messages.  This improves diagnostics in
+hotplug operations since it identifies an object that caused an
+issue in a log file.
 
-I haven't received any feedback for the patch. I am wondering whether I 
-can improve the patch or the extra check is not needed.
+---
+This patchset applies on top of the patch below.
 
-Any suggestion is the most appreciated.
+[PATCH] ACPI: Add ACPI CPU hot-remove support
+http://marc.info/?l=linux-acpi&m=134098193327362&w=2
 
-Best Regards,
-Alex Hung
+---
+Toshi Kani (4):
+ ACPI: Add acpi_pr_<level>() interfaces
+ ACPI: Update CPU hotplug messages
+ ACPI: Update Memory hotplug messages
+ ACPI: Update Container hotplug messages
 
-On 05/20/2012 08:05 PM, Alex Hung wrote:
-> battery alarm is checked whether BIOS supports it before past to BIOS;
-> however, the value is updatd without being checked. This causes alarm return
-> an incorrect value that never represents an actual state BIOS is in.
->
-> Signed-off-by: Alex Hung <alex.hung@canonical.com>
-> ---
->   drivers/acpi/battery.c |    6 ++++--
->   1 files changed, 4 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-> index 86933ca..14548e8 100644
-> --- a/drivers/acpi/battery.c
-> +++ b/drivers/acpi/battery.c
-> @@ -535,7 +535,8 @@ static ssize_t acpi_battery_alarm_store(struct device *dev,
->   {
->   	unsigned long x;
->   	struct acpi_battery *battery = to_acpi_battery(dev_get_drvdata(dev));
-> -	if (sscanf(buf, "%ld\n", &x) == 1)
-> +	if (sscanf(buf, "%ld\n", &x) == 1 &&
-> +		test_bit(ACPI_BATTERY_ALARM_PRESENT, &battery->flags))
->   		battery->alarm = x/1000;
->   	if (acpi_battery_present(battery))
->   		acpi_battery_set_alarm(battery);
-> @@ -805,7 +806,8 @@ static ssize_t acpi_battery_write_alarm(struct file *file,
->   		goto end;
->   	}
->   	alarm_string[count] = '\0';
-> -	battery->alarm = simple_strtol(alarm_string, NULL, 0);
-> +	if (test_bit(ACPI_BATTERY_ALARM_PRESENT, &battery->flags))
-> +		battery->alarm = simple_strtol(alarm_string, NULL, 0);
->   	result = acpi_battery_set_alarm(battery);
->         end:
->   	if (!result)
->
-
+---
+ drivers/acpi/acpi_memhotplug.c  |   24 ++++++++++++------------
+ drivers/acpi/container.c        |    6 +++---
+ drivers/acpi/processor_driver.c |   36 +++++++++++++++++++++---------------
+ drivers/acpi/utils.c            |   32 ++++++++++++++++++++++++++++++++
+ include/acpi/acpi_bus.h         |   18 ++++++++++++++++++
+ 5 files changed, 86 insertions(+), 30 deletions(-)
