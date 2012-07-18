@@ -1,92 +1,83 @@
 From: Toshi Kani <toshi.kani@hp.com>
 Subject: Re: [PATCH 1/4] ACPI: Add acpi_pr_<level>() interfaces
-Date: Wed, 18 Jul 2012 16:08:13 -0600
-Message-ID: <1342649293.3010.49.camel@misato.fc.hp.com>
+Date: Wed, 18 Jul 2012 16:11:07 -0600
+Message-ID: <1342649467.3010.50.camel@misato.fc.hp.com>
 References: <1342644027-19559-1-git-send-email-toshi.kani@hp.com>
 	 <1342644027-19559-2-git-send-email-toshi.kani@hp.com>
-	 <1342646502.2215.2.camel@joe2Laptop>
-	 <1342647682.3010.38.camel@misato.fc.hp.com>
-	 <1342648452.2215.12.camel@joe2Laptop>
+	 <1342646876.2215.6.camel@joe2Laptop>
+	 <1342647716.3010.40.camel@misato.fc.hp.com>
+	 <1342649174.2215.19.camel@joe2Laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0014.houston.hp.com ([15.201.24.17]:18717 "EHLO
-	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752043Ab2GRWM4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Jul 2012 18:12:56 -0400
-In-Reply-To: <1342648452.2215.12.camel@joe2Laptop>
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:9682 "EHLO
+	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751592Ab2GRWPu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Jul 2012 18:15:50 -0400
+In-Reply-To: <1342649174.2215.19.camel@joe2Laptop>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Joe Perches <joe@perches.com>, ming.m.lin@intel.com
+To: Joe Perches <joe@perches.com>
 Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, liuj97@gmail.com, srivatsa.bhat@linux.vnet.ibm.com, prarit@redhat.com, imammedo@redhat.com, vijaymohan.pandarathil@hp.com
 
-On Wed, 2012-07-18 at 14:54 -0700, Joe Perches wrote:
+On Wed, 2012-07-18 at 15:06 -0700, Joe Perches wrote:
 > On Wed, 2012-07-18 at 15:41 -0600, Toshi Kani wrote:
-> > On Wed, 2012-07-18 at 14:21 -0700, Joe Perches wrote:
+> > On Wed, 2012-07-18 at 14:27 -0700, Joe Perches wrote:
 > > > On Wed, 2012-07-18 at 14:40 -0600, Toshi Kani wrote:
 > > > > This patch introduces acpi_pr_<level>(), where <level> is a message
 > > > > level such as err/warn/info, to support improved logging messages
-> > > > for ACPI, esp. in hotplug operations.  acpi_pr_<level>() appends
-> > > > "ACPI" prefix and ACPI object path to the messages.  This improves
-> > > > diagnostics in hotplug operations since it identifies an object that
-> > > > caused an issue in a log file.
-> []
-> > > I'd be tempted to instead make the calls more like
-> > > other <subsystem>_<level> uses and rename these to
-> > > acpi_<level> and change the existing acpi_info to
-> > > another name.
-> []
-> > I agree with you.  Unfortunately, the ACPI CA (ACPI FW interpreter)
-> > already uses them for its internal-use as follows, so I needed to come
-> > up with some other name...  Hence, acpi_pr_<level>.
+> > > > for ACPI, esp. in hotplug operations.
+> > > 
+> > > One more note:
+> > > 
+> > > > diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+> > > []
+> > > > @@ -454,3 +454,35 @@ acpi_evaluate_hotplug_ost(acpi_handle handle, u32 source_event,
+> > > []
+> > > > +void
+> > > > +acpi_printk(const char *level, acpi_handle handle, const char *fmt, ...)
+> > > []
+> > > > +	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER};
+> > > []
+> > > > +	ret = acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
+> > > []
+> > > > +	kfree(buffer.pointer);
+> > > 
+> > > There's a failure mode here because buffer.pointer
+> > > isn't guaranteed to be initialized or set to NULL.
 > > 
-> > /*
-> >  * Error reporting. Callers module and line number are inserted by AE_INFO,
-> >  * the plist contains a set of parens to allow variable-length lists.
-> >  * These macros are used for both the debug and non-debug versions of the code.
-> >  */
-> > #define ACPI_INFO(plist)                acpi_info plist
-> > #define ACPI_WARNING(plist)             acpi_warning plist
-> > #define ACPI_EXCEPTION(plist)           acpi_exception plist
-> > #define ACPI_ERROR(plist)               acpi_error plist
-> > #define ACPI_DEBUG_OBJECT(obj,l,i)      acpi_ex_do_debug_object(obj,l,i)
+> > Hi Joe,
+> > 
+> > Yes, I thought that check was necessary as well.  However, to my
+> > surprise, such check caused the following warning message from
+> > patchcheck.pl.  So, I deleted the check...
 > 
-> I wouldn't have a problem renaming a few of those to
-> something like:
+> checkpatch ain't very bright.
 > 
-> #define ACPI_INFO(plist)	acpi_old_info plist
-> #define ACPI_WARNING(plist)	acpi_old_warning plist
-> #define ACPI_ERROR(plist)	acpi_old_error plist
+> Because buffer is an automatic not a static,
+> buffer.pointer needs to be set to NULL.
 > 
-> The acpi folk might though.
+> 	struct acpi_buffer buffer = {
+> 		.length = ACPI_ALLOCATE_BUFFER,
+> 		.pointer = NULL,
+> 	};
+> 
+> then the kfree is fine.
 
 Hi Joe,
 
-ACPI CA is being developed by Intel as OS-neutral code, and is used by
-multiple OSes including Linux.  So, I am not sure how easy to make such
-changes.  I am copying to Lin Ming.
+Very good point!  I will update with the change.
 
 
-> > > Other than that, seems fine to me.
-> > Great!  Can I consider it as Ack? :)
-> 
-> Fix the kfree first.
-
-Please see my other email.  Do you think the check should be added
-despite of the warning message?
-
-
-> I rarely ack stuff as other people generally have to
-> pick up the changes and I think acks are overrated.
-
-That's fair enough.
-
-Thanks!
+Thanks,
 -Toshi
 
 
-> cheers, Joe
 > 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
