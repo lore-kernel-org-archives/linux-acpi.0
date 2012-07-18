@@ -1,47 +1,66 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [RFC] ACPI, APEI: Fix incorrect bit width + offset check
- condition
-Date: Wed, 18 Jul 2012 16:28:46 +0200
-Message-ID: <20120718162846.25a64bf0@endymion.delvare>
-References: <1339573184-3122-1-git-send-email-hui.xiao@linux.intel.com>
-	<20120613104651.52ce8840@endymion.delvare>
-	<20120613174517.GA2141@us.ibm.com>
-	<4FD98146.9060209@linux.intel.com>
-	<20120614100907.3241376d@endymion.delvare>
-	<500672A0.10808@linux.intel.com>
+From: Alex Hung <alex.hung@canonical.com>
+Subject: Re: [PATCH] ACPI: battery: fix battery->alarm is updated when it
+ is not supported
+Date: Thu, 19 Jul 2012 00:16:46 +0800
+Message-ID: <5006E16E.9070202@canonical.com>
+References: <1337515556-5232-1-git-send-email-alex.hung@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from zoneX.GCU-Squad.org ([194.213.125.0]:26585 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753179Ab2GRO3N (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Jul 2012 10:29:13 -0400
-In-Reply-To: <500672A0.10808@linux.intel.com>
+Received: from youngberry.canonical.com ([91.189.89.112]:58848 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753562Ab2GRQQx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Jul 2012 12:16:53 -0400
+In-Reply-To: <1337515556-5232-1-git-send-email-alex.hung@canonical.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Chen Gong <gong.chen@linux.intel.com>
-Cc: "Xiao, Hui" <hui.xiao@linux.intel.com>, Gary Hade <garyhade@us.ibm.com>, tony.luck@intel.com, ying.huang@intel.com, lenb@kernel.org, pluto@agmk.net, linux-acpi@vger.kernel.org
+To: Alex Hung <alex.hung@canonical.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org
 
-On Wed, 18 Jul 2012 16:24:00 +0800, Chen Gong wrote:
-> > On Thu, 14 Jun 2012 14:14:30 +0800, Xiao, Hui wrote:
-> Now we have a final decision for this issue? Anyway, we need a patch to
-> fix our BIOS issue.
-> 
-> Jean or Gary, if OK, would you please cook one patch to fix this issue?
+Hi,
 
-Ying's patch adding resource allocation time checks is already in:
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=commit;h=34ddeb035d704eafdcdb3cbc781894300136c3c4
-This addresses the log message flood issue.
+I haven't received any feedback for the patch. I am wondering whether I 
+can improve the patch or the extra check is not needed.
 
-My own patch with one BIOS bug fixup was accepted by Len Brown and
-should go into kernel 3.6:
-https://bugzilla.kernel.org/show_bug.cgi?id=43282#c25
-(Not sure which tree this is.)
+Any suggestion is the most appreciated.
 
-So, as far as I am concerned, the functional issue is solved. From a
-performance perspective I think we could drop the run-time checks as
-they are now redundant.
+Best Regards,
+Alex Hung
 
--- 
-Jean Delvare
+On 05/20/2012 08:05 PM, Alex Hung wrote:
+> battery alarm is checked whether BIOS supports it before past to BIOS;
+> however, the value is updatd without being checked. This causes alarm return
+> an incorrect value that never represents an actual state BIOS is in.
+>
+> Signed-off-by: Alex Hung <alex.hung@canonical.com>
+> ---
+>   drivers/acpi/battery.c |    6 ++++--
+>   1 files changed, 4 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+> index 86933ca..14548e8 100644
+> --- a/drivers/acpi/battery.c
+> +++ b/drivers/acpi/battery.c
+> @@ -535,7 +535,8 @@ static ssize_t acpi_battery_alarm_store(struct device *dev,
+>   {
+>   	unsigned long x;
+>   	struct acpi_battery *battery = to_acpi_battery(dev_get_drvdata(dev));
+> -	if (sscanf(buf, "%ld\n", &x) == 1)
+> +	if (sscanf(buf, "%ld\n", &x) == 1 &&
+> +		test_bit(ACPI_BATTERY_ALARM_PRESENT, &battery->flags))
+>   		battery->alarm = x/1000;
+>   	if (acpi_battery_present(battery))
+>   		acpi_battery_set_alarm(battery);
+> @@ -805,7 +806,8 @@ static ssize_t acpi_battery_write_alarm(struct file *file,
+>   		goto end;
+>   	}
+>   	alarm_string[count] = '\0';
+> -	battery->alarm = simple_strtol(alarm_string, NULL, 0);
+> +	if (test_bit(ACPI_BATTERY_ALARM_PRESENT, &battery->flags))
+> +		battery->alarm = simple_strtol(alarm_string, NULL, 0);
+>   	result = acpi_battery_set_alarm(battery);
+>         end:
+>   	if (!result)
+>
+
