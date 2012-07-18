@@ -1,75 +1,127 @@
-From: Chen Gong <gong.chen@linux.intel.com>
-Subject: Re: [RFC] ACPI, APEI: Fix incorrect bit width + offset check condition
-Date: Wed, 18 Jul 2012 16:24:00 +0800
-Message-ID: <500672A0.10808@linux.intel.com>
-References: <1339573184-3122-1-git-send-email-hui.xiao@linux.intel.com> <20120613104651.52ce8840@endymion.delvare> <20120613174517.GA2141@us.ibm.com> <4FD98146.9060209@linux.intel.com> <20120614100907.3241376d@endymion.delvare>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: [RFC PATCH v4 0/13] memory-hotplug : hot-remove physical memory
+Date: Wed, 18 Jul 2012 19:01:24 +0900
+Message-ID: <50068974.1070409@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:52656 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753053Ab2GRIYE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 18 Jul 2012 04:24:04 -0400
-In-Reply-To: <20120614100907.3241376d@endymion.delvare>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+Sender: owner-linux-mm@kvack.org
+To: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org
+Cc: rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, wency@cn.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
-To: Jean Delvare <khali@linux-fr.org>
-Cc: "Xiao, Hui" <hui.xiao@linux.intel.com>, Gary Hade <garyhade@us.ibm.com>, tony.luck@intel.com, ying.huang@intel.com, lenb@kernel.org, pluto@agmk.net, linux-acpi@vger.kernel.org
 
-=E4=BA=8E 2012/6/14 16:09, Jean Delvare =E5=86=99=E9=81=93:
-> On Thu, 14 Jun 2012 14:14:30 +0800, Xiao, Hui wrote:
->>  From your "good example of a valid case" above. I believe we might =
-have different
->> understanding of the "Bit Width" field.
->>
->> Just to make sure, do you take "Bit Width" here(1 bit) as the bit le=
-ngth one should
->> got for mask /*after*/ shifting bit offset(31 bit) of the access_wid=
-th(32 bit)
->> one read from the register(length unknown, or should equal to access=
- length?) ?
->>
->> That's why you think:
->>         bit_width + bit_offset <=3D *access_bit_width
->> is valid.
->
-> I am not Gary, but it is also how I read the specification.
->
->> For me I take "Bit Width" as bits of the register for access boundar=
-y,
->> so I think:
->>         (*access_bit_width <=3D bit_width) && (bit_offset < *access_=
-bit_width)
->> is valid.
->>
->> For you above case, personally I saw you got a 1-bit register, but w=
-ant to
->> read 32bit from it, and want to get bit[31] by shifting 31bit and ma=
-sk 0x1.
->>
->> Please correct me if I am wrong. Not sure which should be the case A=
-CPI SPEC
->> expected. I also have not found any specific explanation on these as=
-sumption.
->
-> What makes me believe Gary is right is the granularity of each field.
-> bit_width and bit_offset can be set with a 1-bit granularity, while
-> access_bit_width can only be 8, 16, 32 or 64. This clearly means that
-> access_bit_width (and Access Size before that) is a hardware thing,
-> while bit_width and bit_offset can only be software things. You've
-> never seen I/O ports that can be read 3 or 5 bits at a time...
->
+This patch series aims to support physical memory hot-remove.
 
-Hi,
+  [RFC PATCH v4 1/13] memory-hotplug : rename remove_memory to offline_memory
+  [RFC PATCH v4 2/13] memory-hotplug : add physical memory hotplug code to acpi_memory_device_remove
+  [RFC PATCH v4 3/13] memory-hotplug : check whether memory is present or not
+  [RFC PATCH v4 4/13] memory-hotplug : remove /sys/firmware/memmap/X sysfs
+  [RFC PATCH v4 5/13] memory-hotplug : does not release memory region in PAGES_PER_SECTION chunks
+  [RFC PATCH v4 6/13] memory-hotplug : add memory_block_release
+  [RFC PATCH v4 7/13] memory-hotplug : remove_memory calls __remove_pages
+  [RFC PATCH v4 8/13] memory-hotplug : check page type in get_page_bootmem
+  [RFC PATCH v4 9/13] memory-hotplug : move register_page_bootmem_info_node and put_page_bootmem for
+sparse-vmemmap4
+  [RFC PATCH v4 10/13] memory-hotplug : implement register_page_bootmem_info_section of sparse-vmemmap
+  [RFC PATCH v4 11/13] memory-hotplug : free memmap of sparse-vmemmap
+  [RFC PATCH v4 12/13] memory-hotplug : add node_device_release
+  [RFC PATCH v4 13/13] memory-hotplug : remove sysfs file of node
 
-Now we have a final decision for this issue? Anyway, we need a patch to
-fix our BIOS issue.
+Even if you apply these patches, you cannot remove the physical memory
+completely since these patches are still under development. But other
+components can be removed. I want you to cooperate to improve the
+physical memory hot-remove. So please review these patches and give
+your comment/idea.
 
-Jean or Gary, if OK, would you please cook one patch to fix this issue?
+The patches can free/remove following things:
+
+  - acpi_memory_info                          : [RFC PATCH 2/13]
+  - /sys/firmware/memmap/X/{end, start, type} : [RFC PATCH 4/13]
+  - iomem_resource                            : [RFC PATCH 5/13]
+  - mem_section and related sysfs files       : [RFC PATCH 6-11/13]
+  - node and related sysfs files              : [RFC PATCH 12-13/13]
+
+The patches cannot do following things yet:
+
+  - page table of removed memory
+
+If you find lack of function for physical memory hot-remove, please let me
+know.
+
+change log of v4:
+ * remove "memory-hotplug : unify argument of firmware_map_add_early/hotplug"
+   from the patch series, since the patch is a bugfix. It is being disccussed
+   on other thread. But for testing the patch series, the patch is needed.
+   So I added the patch as [PATCH 0/13].
+
+ [RFC PATCH v4 2/13]
+   * check memory is online or not at remove_memory()
+   * add memory_add_physaddr_to_nid() to acpi_memory_device_remove() for
+     getting node id
+ 
+ [RFC PATCH v4 3/13]
+   * create new patch : check memory is online or not at online_pages()
+
+ [RFC PATCH v4 4/13]
+   * add __ref section to remove_memory()
+   * call firmware_map_remove_entry() before remove_sysfs_fw_map_entry()
+
+ [RFC PATCH v4 11/13]
+   * rewrite register_page_bootmem_memmap() for removing page used as PT/PMD
+
+change log of v3:
+ * rebase to 3.5.0-rc6
+
+ [RFC PATCH v2 2/13]
+   * remove extra kobject_put()
+
+   * The patch was commented by Wen. Wen's comment is
+     "acpi_memory_device_remove() should ignore a return value of
+     remove_memory() since caller does not care the return value".
+     But I did not change it since I think caller should care the
+     return value. And I am trying to fix it as follow:
+
+     https://lkml.org/lkml/2012/7/5/624
+
+ [RFC PATCH v2 4/13]
+   * remove a firmware_memmap_entry allocated by kzmalloc()
+
+change log of v2:
+ [RFC PATCH v2 2/13]
+   * check whether memory block is offline or not before calling offline_memory()
+   * check whether section is valid or not in is_memblk_offline()
+   * call kobject_put() for each memory_block in is_memblk_offline()
+
+ [RFC PATCH v2 3/13]
+   * unify the end argument of firmware_map_add_early/hotplug
+
+ [RFC PATCH v2 4/13]
+   * add release_firmware_map_entry() for freeing firmware_map_entry
+
+ [RFC PATCH v2 6/13]
+  * add release_memory_block() for freeing memory_block
+
+ [RFC PATCH v2 11/13]
+  * fix wrong arguments of free_pages()
+
+---
+ arch/powerpc/platforms/pseries/hotplug-memory.c |   16 +-
+ arch/x86/mm/init_64.c                           |  144 ++++++++++++++++++++++++
+ drivers/acpi/acpi_memhotplug.c                  |   28 ++++
+ drivers/base/memory.c                           |   54 ++++++++-
+ drivers/base/node.c                             |    7 +
+ drivers/firmware/memmap.c                       |   78 ++++++++++++-
+ include/linux/firmware-map.h                    |    6 +
+ include/linux/memory.h                          |    5 
+ include/linux/memory_hotplug.h                  |   17 --
+ include/linux/mm.h                              |    5 
+ mm/memory_hotplug.c                             |   98 ++++++++++++----
+ mm/sparse.c                                     |    5 
+ 12 files changed, 414 insertions(+), 49 deletions(-)
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
