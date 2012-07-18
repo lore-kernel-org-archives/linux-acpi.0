@@ -1,119 +1,71 @@
-From: Shuah Khan <shuah.khan@hp.com>
+From: Toshi Kani <toshi.kani@hp.com>
 Subject: Re: [PATCH 1/4] ACPI: Add acpi_pr_<level>() interfaces
-Date: Wed, 18 Jul 2012 17:18:02 -0600
-Message-ID: <1342653482.5138.56.camel@lorien2>
+Date: Wed, 18 Jul 2012 17:32:29 -0600
+Message-ID: <1342654349.3010.83.camel@misato.fc.hp.com>
 References: <1342644027-19559-1-git-send-email-toshi.kani@hp.com>
 	 <1342644027-19559-2-git-send-email-toshi.kani@hp.com>
 	 <1342648771.5138.37.camel@lorien2>
 	 <1342650386.3010.55.camel@misato.fc.hp.com>
-	 <1342651257.5138.44.camel@lorien2>
-	 <1342651966.3010.66.camel@misato.fc.hp.com>
-Reply-To: shuah.khan@hp.com
+	 <1342651781.2215.27.camel@joe2Laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0026.austin.hp.com ([15.216.28.33]:26875 "EHLO
-	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752222Ab2GRXSH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Jul 2012 19:18:07 -0400
-In-Reply-To: <1342651966.3010.66.camel@misato.fc.hp.com>
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:29911 "EHLO
+	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750847Ab2GRXhM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Jul 2012 19:37:12 -0400
+In-Reply-To: <1342651781.2215.27.camel@joe2Laptop>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, liuj97@gmail.com, srivatsa.bhat@linux.vnet.ibm.com, prarit@redhat.com, imammedo@redhat.com, vijaymohan.pandarathil@hp.com, shuahkhan@gmail.com
+To: Joe Perches <joe@perches.com>
+Cc: shuah.khan@hp.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, liuj97@gmail.com, srivatsa.bhat@linux.vnet.ibm.com, prarit@redhat.com, imammedo@redhat.com, vijaymohan.pandarathil@hp.com, shuahkhan@gmail.com
 
-On Wed, 2012-07-18 at 16:52 -0600, Toshi Kani wrote:
-> On Wed, 2012-07-18 at 16:40 -0600, Shuah Khan wrote:
-> > On Wed, 2012-07-18 at 16:26 -0600, Toshi Kani wrote:
-> > > On Wed, 2012-07-18 at 15:59 -0600, Shuah Khan wrote:
-> > > > On Wed, 2012-07-18 at 14:40 -0600, Toshi Kani wrote:
-> > > > > This patch introduces acpi_pr_<level>(), where <level> is a message
-> > > > > level such as err/warn/info, to support improved logging messages
-> > > > > for ACPI, esp. in hotplug operations.  acpi_pr_<level>() appends
-> > > > > "ACPI" prefix and ACPI object path to the messages.  This improves
-> > > > > diagnostics in hotplug operations since it identifies an object that
-> > > > > caused an issue in a log file.
-> > > > > 
-> > > > > acpi_pr_<level>() takes acpi_handle as an argument, which is passed
-> > > > > to ACPI hotplug notify handlers from the ACPI CA.  Therefore, it is
-> > > > > always available unlike other kernel objects, such as device.
-> > > > > 
-> > > > > For example, the statement below
-> > > > >   acpi_pr_err(handle, "Device don't exist, dropping EJECT\n");
-> > > > > logs an error message like this:
-> > > > >   ACPI: \_SB_.SCK4.CPU4: Device don't exist, dropping EJECT
-> > > > > 
-> > > > > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-> > > > > ---
-> > > > >  drivers/acpi/utils.c    |   32 ++++++++++++++++++++++++++++++++
-> > > > >  include/acpi/acpi_bus.h |   18 ++++++++++++++++++
-> > > > >  2 files changed, 50 insertions(+), 0 deletions(-)
-> > > > > 
-> > > > > diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-> > > > > index 3e87c9c..4097266 100644
-> > > > > --- a/drivers/acpi/utils.c
-> > > > > +++ b/drivers/acpi/utils.c
-> > > > > @@ -454,3 +454,35 @@ acpi_evaluate_hotplug_ost(acpi_handle handle, u32 source_event,
-> > > > >  #endif
-> > > > >  }
-> > > > >  EXPORT_SYMBOL(acpi_evaluate_hotplug_ost);
-> > > > > +
-> > > > > +/**
-> > > > > + * acpi_printk: Print messages with ACPI prefix and object path
-> > > > > + *
-> > > > > + * This function is intended to be called through acpi_pr_<level> macros.
-> > > > > + */
-> > > > > +void
-> > > > > +acpi_printk(const char *level, acpi_handle handle, const char *fmt, ...)
-> > > > > +{
-> > > > > +	struct va_format vaf;
-> > > > > +	va_list args;
-> > > > > +	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER};
-> > > > > +	char *path;
-> > > > > +	acpi_status ret;
-> > > > > +
-> > > > > +	va_start(args, fmt);
-> > > > > +
-> > > > > +	vaf.fmt = fmt;
-> > > > > +	vaf.va = &args;
-> > > > > +
-> > > > > +	ret = acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
-> > > > 
-> > > > One big problem I see with this approach is now each acpi_printk() will
-> > > > result in a call to acpi_get_name() which will invoke several ACPI
-> > > > calls, including a call to acpi_ut_initialize_buffer() which allocates
-> > > > buffer. Is this really warranted? What is the performance impact of this
-> > > > change?
+On Wed, 2012-07-18 at 15:49 -0700, Joe Perches wrote:
+> On Wed, 2012-07-18 at 16:26 -0600, Toshi Kani wrote:
+> > On Wed, 2012-07-18 at 15:59 -0600, Shuah Khan wrote:
+> > > On Wed, 2012-07-18 at 14:40 -0600, Toshi Kani wrote:
+> > > > This patch introduces acpi_pr_<level>(), where <level> is a message
+> > > > level such as err/warn/info, to support improved logging messages
+> > > > for ACPI, esp. in hotplug operations.
+> []
+> > > > diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+> []
+> > > > @@ -454,3 +454,35 @@ acpi_evaluate_hotplug_ost(acpi_handle handle, u32 source_event,
+> []
+> > > > +	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER};
+> []
+> > > > +	ret = acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
 > > > 
-> > > Hi Shuah,
-> > > 
-> > > This interface is intended to be used by acpi_pr_<level>(), which is
-> > > used for error, warning, debugging, etc.  It is not intended to be used
-> > > in any performance path.
-> > > 
-> > 
-> > How does one enable this interface to see errors, warns, debugging? Is
-> > there a special mode kernel needs to run in? I am trying to understand
-> > what you mean by "not intended to be used in any performance path". Does
-> > one build a special kernel similar to CONFIG_VM_DEBUG (just happen to
-> > the one I could think off) ?
+> > > One big problem I see with this approach is now each acpi_printk() will
+> > > result in a call to acpi_get_name() which will invoke several ACPI
+> > > calls, including a call to acpi_ut_initialize_buffer() which allocates
+> > > buffer. Is this really warranted? What is the performance impact of this
+> > > change?
+> []
+> > This interface is intended to be used by acpi_pr_<level>(), which is
+> > used for error, warning, debugging, etc.  It is not intended to be used
+> > in any performance path.
 > 
-> acpi_pr_<level>() calls printk() with a corresponding message level,
-> such as KERN_ERR, KERN_WARNING and KERN_DEBUG, which is by definition
-> used for error, warning and debugging messages.  Let me know if the
-> change log was not clear about this.  Anyway, I think one should not use
-> a printk() in performance path in the first place...
+> While it's not performance critical, perhaps the buffer
+> alloc/free could be avoided by using stack. Something like:
+> 
+> 	char name[ACPI_PATH_SEGMENT_LENGTH * max_segments ? ];
+> 	struct acpi_buffer buffer = {
+> 		.length = ACPI_PATH_SEGMENT_LENGTH,
+> 		.buffer = name,
+> 	};
+> 
 
-KERN_ERR, KERN_WARNING, and KERN_DEBUG are used at run-time. What
-happens when these new interfaces start getting used widely during
-run-time. In the case of a serious error, shouldn't the kernel do the
-minimum to print the message out and not call several acpi routines?
-This type of feature definitely makes sense for debug, but not for other
-cases KERN_ERR, KERN_WARNING case.
+Hi Joe,
 
-My concern is all the extra work that is done whenever one of these
-interfaces is called. Can we limit this to special debug cases only.
+I thought about using stack initially, but I too was not sure how big
+the buffer size should be, and was a bit afraid of causing kernel stack
+overflow potentially.  Since it is mainly used for error paths in ACPI
+hotplug handlers, I do not think alloc/free can lead any performance
+impact.
 
--- Shuah
+Thanks,
+-Toshi
+
 
