@@ -1,107 +1,47 @@
-From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: Re: [PATCH v4 3/13] memory-hotplug : check whether memory is present
- or not
-Date: Wed, 18 Jul 2012 18:56:44 +0800
-Message-ID: <5006966C.3000807@cn.fujitsu.com>
-References: <50068974.1070409@jp.fujitsu.com> <50068AE9.3050804@jp.fujitsu.com>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [RFC] ACPI, APEI: Fix incorrect bit width + offset check
+ condition
+Date: Wed, 18 Jul 2012 16:28:46 +0200
+Message-ID: <20120718162846.25a64bf0@endymion.delvare>
+References: <1339573184-3122-1-git-send-email-hui.xiao@linux.intel.com>
+	<20120613104651.52ce8840@endymion.delvare>
+	<20120613174517.GA2141@us.ibm.com>
+	<4FD98146.9060209@linux.intel.com>
+	<20120614100907.3241376d@endymion.delvare>
+	<500672A0.10808@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <50068AE9.3050804@jp.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from zoneX.GCU-Squad.org ([194.213.125.0]:26585 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753179Ab2GRO3N (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Jul 2012 10:29:13 -0400
+In-Reply-To: <500672A0.10808@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Chen Gong <gong.chen@linux.intel.com>
+Cc: "Xiao, Hui" <hui.xiao@linux.intel.com>, Gary Hade <garyhade@us.ibm.com>, tony.luck@intel.com, ying.huang@intel.com, lenb@kernel.org, pluto@agmk.net, linux-acpi@vger.kernel.org
 
-At 07/18/2012 06:07 PM, Yasuaki Ishimatsu Wrote:
-> If system supports memory hot-remove, online_pages() may online removed pages.
-> So online_pages() need to check whether onlining pages are present or not.
+On Wed, 18 Jul 2012 16:24:00 +0800, Chen Gong wrote:
+> > On Thu, 14 Jun 2012 14:14:30 +0800, Xiao, Hui wrote:
+> Now we have a final decision for this issue? Anyway, we need a patch to
+> fix our BIOS issue.
 > 
-> CC: David Rientjes <rientjes@google.com>
-> CC: Jiang Liu <liuj97@gmail.com>
-> CC: Len Brown <len.brown@intel.com>
-> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-> CC: Paul Mackerras <paulus@samba.org> 
-> CC: Christoph Lameter <cl@linux.com>
-> Cc: Minchan Kim <minchan.kim@gmail.com>
-> CC: Andrew Morton <akpm@linux-foundation.org>
-> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com> 
-> CC: Wen Congyang <wency@cn.fujitsu.com>
-> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> 
-> ---
->  include/linux/mmzone.h |   21 +++++++++++++++++++++
->  mm/memory_hotplug.c    |   13 +++++++++++++
->  2 files changed, 34 insertions(+)
-> 
-> Index: linux-3.5-rc6/include/linux/mmzone.h
-> ===================================================================
-> --- linux-3.5-rc6.orig/include/linux/mmzone.h	2012-07-08 09:23:56.000000000 +0900
-> +++ linux-3.5-rc6/include/linux/mmzone.h	2012-07-17 16:10:21.588186145 +0900
-> @@ -1168,6 +1168,27 @@ void sparse_init(void);
->  #define sparse_index_init(_sec, _nid)  do {} while (0)
->  #endif /* CONFIG_SPARSEMEM */
->  
-> +#ifdef CONFIG_SPARSEMEM
-> +static inline int pfns_present(unsigned long pfn, unsigned long nr_pages)
-> +{
-> +	int i;
-> +	for (i = 0; i < nr_pages; i++) {
-> +		if (pfn_present(pfn + 1))
-> +			continue;
-> +		else {
-> +			unlock_memory_hotplug();
-> +			return -EINVAL;
-> +		}
-> +	}
-> +	return 0;
-> +}
-> +#else
-> +static inline int pfns_present(unsigned long pfn, unsigned long nr_pages)
-> +{
-> +	return 0;
-> +}
-> +#endif /* CONFIG_SPARSEMEM*/
-> +
->  #ifdef CONFIG_NODES_SPAN_OTHER_NODES
->  bool early_pfn_in_nid(unsigned long pfn, int nid);
->  #else
-> Index: linux-3.5-rc6/mm/memory_hotplug.c
-> ===================================================================
-> --- linux-3.5-rc6.orig/mm/memory_hotplug.c	2012-07-17 14:26:40.000000000 +0900
-> +++ linux-3.5-rc6/mm/memory_hotplug.c	2012-07-17 16:09:50.070580170 +0900
-> @@ -467,6 +467,19 @@ int __ref online_pages(unsigned long pfn
->  	struct memory_notify arg;
->  
->  	lock_memory_hotplug();
-> +	/*
-> + 	 * If system supports memory hot-remove, the memory may have been
-> + 	 * removed. So we check whether the memory has been removed or not.
-> + 	 *
-> + 	 * Note: When CONFIG_SPARSEMEM is defined, pfns_present() become
-> + 	 *       effective. If CONFIG_SPARSEMEM is not defined, pfns_present()
-> + 	 *       always returns 0.
-> + 	 */
+> Jean or Gary, if OK, would you please cook one patch to fix this issue?
 
-There is one space before tab in the comment.
+Ying's patch adding resource allocation time checks is already in:
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=commit;h=34ddeb035d704eafdcdb3cbc781894300136c3c4
+This addresses the log message flood issue.
 
-Thanks
-Wen Congyang
+My own patch with one BIOS bug fixup was accepted by Len Brown and
+should go into kernel 3.6:
+https://bugzilla.kernel.org/show_bug.cgi?id=43282#c25
+(Not sure which tree this is.)
 
-> +	ret = pfns_present(pfn, nr_pages);
-> +	if (ret) {
-> +		unlock_memory_hotplug();
-> +		return ret;
-> +	}
->  	arg.start_pfn = pfn;
->  	arg.nr_pages = nr_pages;
->  	arg.status_change_nid = -1;
-> 
-> 
+So, as far as I am concerned, the functional issue is solved. From a
+performance perspective I think we could drop the run-time checks as
+they are now redundant.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+-- 
+Jean Delvare
