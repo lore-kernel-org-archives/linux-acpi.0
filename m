@@ -1,17 +1,17 @@
 From: Joe Perches <joe@perches.com>
 Subject: Re: [PATCH 1/4] ACPI: Add acpi_pr_<level>() interfaces
-Date: Wed, 18 Jul 2012 14:21:42 -0700
-Message-ID: <1342646502.2215.2.camel@joe2Laptop>
+Date: Wed, 18 Jul 2012 14:27:56 -0700
+Message-ID: <1342646876.2215.6.camel@joe2Laptop>
 References: <1342644027-19559-1-git-send-email-toshi.kani@hp.com>
 	 <1342644027-19559-2-git-send-email-toshi.kani@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from perches-mx.perches.com ([206.117.179.246]:38763 "EHLO
+Received: from perches-mx.perches.com ([206.117.179.246]:46833 "EHLO
 	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753514Ab2GRVVo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 18 Jul 2012 17:21:44 -0400
+	id S1753394Ab2GRV16 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 18 Jul 2012 17:27:58 -0400
 In-Reply-To: <1342644027-19559-2-git-send-email-toshi.kani@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -21,23 +21,24 @@ Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, b
 On Wed, 2012-07-18 at 14:40 -0600, Toshi Kani wrote:
 > This patch introduces acpi_pr_<level>(), where <level> is a message
 > level such as err/warn/info, to support improved logging messages
-> for ACPI, esp. in hotplug operations.  acpi_pr_<level>() appends
-> "ACPI" prefix and ACPI object path to the messages.  This improves
-> diagnostics in hotplug operations since it identifies an object that
-> caused an issue in a log file.
-> 
-> acpi_pr_<level>() takes acpi_handle as an argument, which is passed
-> to ACPI hotplug notify handlers from the ACPI CA.  Therefore, it is
-> always available unlike other kernel objects, such as device.
+> for ACPI, esp. in hotplug operations.
 
-Hi Toshi.
+One more note:
 
-I'd be tempted to instead make the calls more like
-other <subsystem>_<level> uses and rename these to
-acpi_<level> and change the existing acpi_info to
-another name.
+> diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+[]
+> @@ -454,3 +454,35 @@ acpi_evaluate_hotplug_ost(acpi_handle handle, u32 source_event,
+[]
+> +void
+> +acpi_printk(const char *level, acpi_handle handle, const char *fmt, ...)
+[]
+> +	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER};
+[]
+> +	ret = acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
+[]
+> +	kfree(buffer.pointer);
 
-Other than that, seems fine to me.
+There's a failure mode here because buffer.pointer
+isn't guaranteed to be initialized or set to NULL.
 
-cheers, Joe
 
