@@ -1,116 +1,58 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH 1/4] ACPI: Add acpi_pr_<level>() interfaces
-Date: Thu, 19 Jul 2012 11:28:17 -0600
-Message-ID: <1342718897.3010.188.camel@misato.fc.hp.com>
-References: <1342644027-19559-1-git-send-email-toshi.kani@hp.com>
-	 <1342644027-19559-2-git-send-email-toshi.kani@hp.com>
-	 <1342648771.5138.37.camel@lorien2>
-	 <1342650386.3010.55.camel@misato.fc.hp.com>
-	 <1342651257.5138.44.camel@lorien2>
-	 <1342651966.3010.66.camel@misato.fc.hp.com>
-	 <1342653482.5138.56.camel@lorien2>
-	 <1342658296.3010.136.camel@misato.fc.hp.com>
-	 <1342714515.3100.27.camel@lorien2>
+From: =?ISO-8859-1?Q?Malte_Schr=F6der?= <maltesch@gmx.de>
+Subject: Re: PCI ACPI/IRQ-routing broken on H77 chipset + Ivy Bridge (kernel
+ 3.5-rc7 and earlier)
+Date: Thu, 19 Jul 2012 20:14:35 +0200
+Message-ID: <50084E8B.3070508@gmx.de>
+References: <5002BC55.3050107@gmx.de> <201207152225.49154.rjw@sisk.pl> <CAErSpo6Ka6XBakVZH7ge-==XY86FrOHP_dqGoa+zAFNgnnnFTA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1342714515.3100.27.camel@lorien2>
-Sender: linux-kernel-owner@vger.kernel.org
-To: shuah.khan@hp.com
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, liuj97@gmail.com, srivatsa.bhat@linux.vnet.ibm.com, prarit@redhat.com, imammedo@redhat.com, vijaymohan.pandarathil@hp.com, shuahkhan@gmail.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAErSpo6Ka6XBakVZH7ge-==XY86FrOHP_dqGoa+zAFNgnnnFTA@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Galen Seitz <galens@seitzassoc.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2012-07-19 at 10:15 -0600, Shuah Khan wrote:
-> On Wed, 2012-07-18 at 18:38 -0600, Toshi Kani wrote:
-> 
-> > 
-> > This interface is defined in acpi/acpi_bus.h, which is intended for ACPI
-> > drivers which make many ACPI calls to proceed when they are called at
-> > run-time today.  This interface does not change that, and I believe
-> > acpi_get_name() is much faster compared to ACPI method calls these ACPI
-> > drivers make in their normal code path.  The extra work to call
-> > acpi_get_name() is simply a noise in this case (if you try to measure),
-> > and the use of this interface is limited in error paths of such ACPI
-> > drivers.
-> 
-> I understand the scope of the usage of this new interface. I don't think
-> I am able to explain the problem I see with this interface as it gets
-> used more and more from acpi drivers. Let me try another way.
-> 
-> If understand the this patch set, if and when acpi drivers that
-> currently use pr_* interfaces switch to using acpi_pr_*, the execution
-> path goes from a what printk() does to the following:
-> 
-> acpi_pr_*
-> - setup static buffer
-> - calls acpi_get_name()
-> - acpi_get_name() calls acpi_ut_validate_buffer() and then calls
->   acpi_ns_handle_to_pathname()
-> - acpi_ns_handle_to_pathname() calls acpi_ns_validate_handle() followed
->   by acpi_ns_get_pathname_length() and so on.
-> 
-> I think this should give you a good idea of my concern. I think
-> acpi_pr_* full functionality should be enabled under special cases such
-> as some acpi_debug level setting or some other way, and not for default
-> case. I propose the following:
-> 
-> Make acpi_pr_* versions execute the full path to do acpi_get_name()
-> conditionally and not as a default case.
-> 
-> To illustrate my point further, I currently see the following ACPI
-> messages in my dmesg buffer on my laptop. I haven't taken the time to
-> evaluate how many of them originate from acpi drivers, however I would
-> not want to see all of these becoming acpi_pr_* versions that do more
-> than what pr_* does today. I hope this explains my concern clearly.
+On 16.07.2012 18:14, Bjorn Helgaas wrote:
 
-I agree that there are many ACPI messages at boot, and I understand that
-you concerned with them, but that is a different issue.  It requires a
-different project to address them.  Changing my patchset won't make any
-difference.
-
-The issue I am trying to solve is well summarized in Bjorn's comment in
-my earlier patch as follows: 
-=== <quote> ===
->                result = acpi_processor_device_add(handle, &device);
->                if (result) {
->                        printk(KERN_ERR PREFIX "Unable to add the
-device\n");
-
-You didn't add this problem, but since you're touching the code, I'll
-point it out.  This message will look to the user like:
-
-    ACPI: Unable to add the device
-
-which is useless.  The user has no idea what device we're talking
-about or why we can't add it, so he can't *do* anything with the
-message.
-=== </quote> ===
-
-This is very true.  And this issue is even worse when support teams need
-to solve such customer issue from log files.  The current error messages
-in ACPI hotplug handlers do not provide any information to identify a
-device that cause an issue.
-
-To address this issue, the ACPI drivers have to obtain an ACPI object
-path information in their error handling code with acpi_get_name().
-
-A possible alternative to acpi_pr_<level>() is to create a driver's
-local printk function, just like acpi_print_osc_error().  However, I do
-not think we should create such local functions in all ACPI drivers.
-
-Performance is not an issue since the use of the interfaces is limited
-to the error paths.  The boot messages you concerned with do not need to
-any more extra-info to append ACPI device path, and therefore no need to
-use acpi_pr_<level>().  dev_<level>() may be a good example of how this
-type of interfaces is used in error paths today.
+> [CC +tglx]
+>=20
+> On Sun, Jul 15, 2012 at 2:25 PM, Rafael J. Wysocki <rjw@sisk.pl> wrot=
+e:
+>> CC-ing linux-pci and Bjorn.
+>>
+>> On Sunday, July 15, 2012, Malte Schr=F6der wrote:
+>>> Hello,
+>>> this is yet another try to get someone to look at this ;)
+>>>
+>>> I can't get PCI-devices to work on my DH77KC mainboard. I tested th=
+is
+>>> using an AVM B1 ISDN card, a Fritz!PCI card and an old 3Com 905c NI=
+C.
+>>> I attached some dumps in case it helps. The CPU is a Core i7 3770.
+>>>
+>>> PCI hardware is detected by the kernel, but it gives IRQ errors. Us=
+ing
+>>> irqpoll allows the PCI card to somewhat work, but it is unreliable.
+>>>
+>>> There are some reports in Intel's support forums that also report
+>>> PCI-problems with this mainboard, but Intel doesn't seem to be
+>>> interested. So I hope this is something that is fixable on the kern=
+el side.
+>>>
+>>> If there is more information needed, please let me know.
+>>>
 
 
-Thanks,
--Toshi
+I was pointed to https://bugzilla.kernel.org/show_bug.cgi?id=3D43238.
+I tried the modifications to the DSDT that where proposed there and
+voil=E0, the 3c905c started to work :)
+So it seems Intel messed up their ACPI-stuff really bad for this
+mainboard. I plan to do more testing during the weekend.
 
-
-
-
-
-  
+--=20
+Gru=DF
+Malte Schr=F6der
+---------------------------------------------------------------------
+MalteSch@gmx.de
