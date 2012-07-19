@@ -1,58 +1,94 @@
-From: =?ISO-8859-1?Q?Malte_Schr=F6der?= <maltesch@gmx.de>
-Subject: Re: PCI ACPI/IRQ-routing broken on H77 chipset + Ivy Bridge (kernel
- 3.5-rc7 and earlier)
-Date: Thu, 19 Jul 2012 20:14:35 +0200
-Message-ID: <50084E8B.3070508@gmx.de>
-References: <5002BC55.3050107@gmx.de> <201207152225.49154.rjw@sisk.pl> <CAErSpo6Ka6XBakVZH7ge-==XY86FrOHP_dqGoa+zAFNgnnnFTA@mail.gmail.com>
+From: Shuah Khan <shuah.khan@hp.com>
+Subject: Re: [PATCH 1/4] ACPI: Add acpi_pr_<level>() interfaces
+Date: Thu, 19 Jul 2012 13:25:50 -0600
+Message-ID: <1342725950.5599.7.camel@lorien2>
+References: <1342644027-19559-1-git-send-email-toshi.kani@hp.com>
+	 <1342644027-19559-2-git-send-email-toshi.kani@hp.com>
+	 <1342648771.5138.37.camel@lorien2>
+	 <1342650386.3010.55.camel@misato.fc.hp.com>
+	 <1342651257.5138.44.camel@lorien2>
+	 <1342651966.3010.66.camel@misato.fc.hp.com>
+	 <1342653482.5138.56.camel@lorien2>
+	 <1342658296.3010.136.camel@misato.fc.hp.com>
+	 <1342714515.3100.27.camel@lorien2>
+	 <1342718897.3010.188.camel@misato.fc.hp.com>
+Reply-To: shuah.khan@hp.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAErSpo6Ka6XBakVZH7ge-==XY86FrOHP_dqGoa+zAFNgnnnFTA@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Galen Seitz <galens@seitzassoc.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t0014.houston.hp.com ([15.201.24.17]:37881 "EHLO
+	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750917Ab2GSTZ4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Jul 2012 15:25:56 -0400
+In-Reply-To: <1342718897.3010.188.camel@misato.fc.hp.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, liuj97@gmail.com, srivatsa.bhat@linux.vnet.ibm.com, prarit@redhat.com, imammedo@redhat.com, vijaymohan.pandarathil@hp.com, shuahkhan@gmail.com
 
-On 16.07.2012 18:14, Bjorn Helgaas wrote:
+On Thu, 2012-07-19 at 11:28 -0600, Toshi Kani wrote:
+> On Thu, 2012-07-19 at 10:15 -0600, Shuah Khan wrote:
+> > On Wed, 2012-07-18 at 18:38 -0600, Toshi Kani wrote:
+> > 
+> > > 
+> > > This interface is defined in acpi/acpi_bus.h, which is intended for ACPI
+> > > drivers which make many ACPI calls to proceed when they are called at
+> > > run-time today.  This interface does not change that, and I believe
+> > > acpi_get_name() is much faster compared to ACPI method calls these ACPI
+> > > drivers make in their normal code path.  The extra work to call
+> > > acpi_get_name() is simply a noise in this case (if you try to measure),
+> > > and the use of this interface is limited in error paths of such ACPI
+> > > drivers.
+> > 
+> > I understand the scope of the usage of this new interface. I don't think
+> > I am able to explain the problem I see with this interface as it gets
+> > used more and more from acpi drivers. Let me try another way.
+> > 
+> > If understand the this patch set, if and when acpi drivers that
+> > currently use pr_* interfaces switch to using acpi_pr_*, the execution
+> > path goes from a what printk() does to the following:
+> > 
+> > acpi_pr_*
+> > - setup static buffer
+> > - calls acpi_get_name()
+> > - acpi_get_name() calls acpi_ut_validate_buffer() and then calls
+> >   acpi_ns_handle_to_pathname()
+> > - acpi_ns_handle_to_pathname() calls acpi_ns_validate_handle() followed
+> >   by acpi_ns_get_pathname_length() and so on.
+> > 
+> > I think this should give you a good idea of my concern. I think
+> > acpi_pr_* full functionality should be enabled under special cases such
+> > as some acpi_debug level setting or some other way, and not for default
+> > case. I propose the following:
+> > 
+> > Make acpi_pr_* versions execute the full path to do acpi_get_name()
+> > conditionally and not as a default case.
+> > 
+> > To illustrate my point further, I currently see the following ACPI
+> > messages in my dmesg buffer on my laptop. I haven't taken the time to
+> > evaluate how many of them originate from acpi drivers, however I would
+> > not want to see all of these becoming acpi_pr_* versions that do more
+> > than what pr_* does today. I hope this explains my concern clearly.
+> 
+> I agree that there are many ACPI messages at boot, and I understand that
+> you concerned with them, but that is a different issue.  It requires a
+> different project to address them.  Changing my patchset won't make any
+> difference.
 
-> [CC +tglx]
->=20
-> On Sun, Jul 15, 2012 at 2:25 PM, Rafael J. Wysocki <rjw@sisk.pl> wrot=
-e:
->> CC-ing linux-pci and Bjorn.
->>
->> On Sunday, July 15, 2012, Malte Schr=F6der wrote:
->>> Hello,
->>> this is yet another try to get someone to look at this ;)
->>>
->>> I can't get PCI-devices to work on my DH77KC mainboard. I tested th=
-is
->>> using an AVM B1 ISDN card, a Fritz!PCI card and an old 3Com 905c NI=
-C.
->>> I attached some dumps in case it helps. The CPU is a Core i7 3770.
->>>
->>> PCI hardware is detected by the kernel, but it gives IRQ errors. Us=
-ing
->>> irqpoll allows the PCI card to somewhat work, but it is unreliable.
->>>
->>> There are some reports in Intel's support forums that also report
->>> PCI-problems with this mainboard, but Intel doesn't seem to be
->>> interested. So I hope this is something that is fixable on the kern=
-el side.
->>>
->>> If there is more information needed, please let me know.
->>>
+On the contrary, your patch set could make the existing problems worse
+by introducing lot of complexity (makes the execution path very long for
+each and every one these messages) in the path that prints messages. As
+more and more acpi code paths start using the new interfaces, it will
+keep getting worse.
+
+I am not questioning the usefulness of the additional information, I am
+questioning the complexity your patch set adds. The added complexity
+isn't desirable.
+
+The design in this patch set needs refinement so it doesn't add to the
+execution path.
+
+-- Shuah
 
 
-I was pointed to https://bugzilla.kernel.org/show_bug.cgi?id=3D43238.
-I tried the modifications to the DSDT that where proposed there and
-voil=E0, the 3c905c started to work :)
-So it seems Intel messed up their ACPI-stuff really bad for this
-mainboard. I plan to do more testing during the weekend.
-
---=20
-Gru=DF
-Malte Schr=F6der
----------------------------------------------------------------------
-MalteSch@gmx.de
