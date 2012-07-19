@@ -1,254 +1,75 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: [RESEND RFC PATCH v4 11/13] memory-hotplug : free memmap of sparse-vmemmap
-Date: Thu, 19 Jul 2012 15:17:11 +0900
-Message-ID: <5007A667.3030307@jp.fujitsu.com>
-References: <50068974.1070409@jp.fujitsu.com> <50068D09.1050704@jp.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <50068D09.1050704@jp.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org
-Cc: rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, wency@cn.fujitsu.com
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [PATCH 00/16] Thermal: generic thermal layer enhancement
+Date: Thu, 19 Jul 2012 14:31:04 +0800
+Message-ID: <1342679480-5336-1-git-send-email-rui.zhang@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([143.182.124.37]:61928 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751415Ab2GSGbf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 19 Jul 2012 02:31:35 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, R Durgadoss <durgadoss.r@intel.com>, Eduardo Valentin <eduardo.valentin@intel.com>, Amit Kachhap <amit.kachhap@linaro.org>, Wei Ni <wni@nvidia.com>, Zhang Rui <rui.zhang@intel.com>
 
-All pages of virtual mapping in removed memory cannot be freed, since some pages
-used as PGD/PUD includes not only removed memory but also other memory. So the
-patch checks whether page can be freed or not.
+Hi, all,
 
-How to check whether page can be freed or not?
- 1. When removing memory, the page structs of the revmoved memory are filled
-    with 0FD.
- 2. All page structs are filled with 0xFD on PT/PMD, PT/PMD can be cleared.
-    In this case, the page used as PT/PMD can be freed.
+these are the patches that I want to push to linux-next.
 
-Applying patch, __remove_section() of CONFIG_SPARSEMEM_VMEMMAP is integrated
-into one. So __remove_section() of CONFIG_SPARSEMEM_VMEMMAP is deleted.
+it contains two patches from Durga, one patch for documentation update,
+and 13 patches to fix the problems discussed in
+http://marc.info/?l=linux-acpi&m=133836783425764&w=2
 
-CC: David Rientjes <rientjes@google.com>
-CC: Jiang Liu <liuj97@gmail.com>
-CC: Len Brown <len.brown@intel.com>
-CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-CC: Paul Mackerras <paulus@samba.org> 
-CC: Christoph Lameter <cl@linux.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-CC: Andrew Morton <akpm@linux-foundation.org>
-CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com> 
-CC: Wen Congyang <wency@cn.fujitsu.com>
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+please kindly review.
 
----
- arch/x86/mm/init_64.c |  121 ++++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/mm.h    |    2 
- mm/memory_hotplug.c   |   17 -------
- mm/sparse.c           |    5 +-
- 4 files changed, 128 insertions(+), 17 deletions(-)
+1) patch 1, 2, introduce the writeable trip point,
+   and introduce hysterisis information for each trip point.
+2) patch 3 is a Documentation update.
+3) patch 4, 5, 6, introduce the multiple cooling states support
+   for both active and passive trip points.
+4) patch 7, 8, remove passive specific requirement, aka, tc1/tc2, and
+   introduce .get_trend() instead, for both active and passive cooling
+   algorithm.
+5) patch 9 introduces new function thermal_zone_trip_update(),
+   which contains the code for general cooling algorithm.
+6) patch 10, 11, 12, 13 rename some thermal structures to make them more accurate.
+7) patch 14 introduces a simple cooling state arbitrator.
+8) patch 15 unifies the code for both passive and active cooling.
+9) patch 16 converts an internal list to plist, which is more efficient.
 
-Index: linux-3.5-rc6/include/linux/mm.h
-===================================================================
---- linux-3.5-rc6.orig/include/linux/mm.h	2012-07-19 15:07:48.836986796 +0900
-+++ linux-3.5-rc6/include/linux/mm.h	2012-07-19 15:07:59.101858469 +0900
-@@ -1588,6 +1588,8 @@ int vmemmap_populate(struct page *start_
- void vmemmap_populate_print_last(void);
- void register_page_bootmem_memmap(unsigned long section_nr, struct page *map,
- 				  unsigned long size);
-+void vmemmap_kfree(struct page *memmpa, unsigned long nr_pages);
-+void vmemmap_free_bootmem(struct page *memmpa, unsigned long nr_pages);
- 
- enum mf_flags {
- 	MF_COUNT_INCREASED = 1 << 0,
-Index: linux-3.5-rc6/mm/sparse.c
-===================================================================
---- linux-3.5-rc6.orig/mm/sparse.c	2012-07-19 11:57:09.065797011 +0900
-+++ linux-3.5-rc6/mm/sparse.c	2012-07-19 15:07:59.114858306 +0900
-@@ -614,12 +614,13 @@ static inline struct page *kmalloc_secti
- 	/* This will make the necessary allocations eventually. */
- 	return sparse_mem_map_populate(pnum, nid);
- }
--static void __kfree_section_memmap(struct page *memmap, unsigned long nr_pages)
-+static void __kfree_section_memmap(struct page *page, unsigned long nr_pages)
- {
--	return; /* XXX: Not implemented yet */
-+	vmemmap_kfree(page, nr_pages);
- }
- static void free_map_bootmem(struct page *page, unsigned long nr_pages)
- {
-+	vmemmap_free_bootmem(page, nr_pages);
- }
- #else
- static struct page *__kmalloc_section_memmap(unsigned long nr_pages)
-Index: linux-3.5-rc6/arch/x86/mm/init_64.c
-===================================================================
---- linux-3.5-rc6.orig/arch/x86/mm/init_64.c	2012-07-19 15:07:48.898986022 +0900
-+++ linux-3.5-rc6/arch/x86/mm/init_64.c	2012-07-19 15:14:05.870273270 +0900
-@@ -978,6 +978,127 @@ vmemmap_populate(struct page *start_page
- 	return 0;
- }
- 
-+#define PAGE_INUSE 0xFD
-+
-+unsigned long find_and_clear_pte_page(unsigned long addr, unsigned long end,
-+			    struct page **pp, int *page_size)
-+{
-+	pgd_t *pgd;
-+	pud_t *pud;
-+	pmd_t *pmd;
-+	pte_t *pte;
-+	void *page_addr;
-+	unsigned long next;
-+
-+	*pp = NULL;
-+
-+	pgd = pgd_offset_k(addr);
-+	if (pgd_none(*pgd))
-+		return pgd_addr_end(addr, end);
-+
-+	pud = pud_offset(pgd, addr);
-+	if (pud_none(*pud))
-+		return pud_addr_end(addr, end);
-+
-+	if (!cpu_has_pse) {
-+		next = (addr + PAGE_SIZE) & PAGE_MASK;
-+		pmd = pmd_offset(pud, addr);
-+		if (pmd_none(*pmd))
-+			return next;
-+
-+		pte = pte_offset_kernel(pmd, addr);
-+		if (pte_none(*pte))
-+			return next;
-+
-+		*page_size = PAGE_SIZE;
-+		*pp = pte_page(*pte);
-+	} else {
-+		next = pmd_addr_end(addr, end);
-+
-+		pmd = pmd_offset(pud, addr);
-+		if (pmd_none(*pmd))
-+			return next;
-+
-+		*page_size = PMD_SIZE;
-+		*pp = pmd_page(*pmd);
-+	}
-+
-+	/*
-+	 * Removed page structs are filled with 0xFD.
-+	 */
-+	memset((void *)addr, PAGE_INUSE, next - addr);
-+
-+	page_addr = page_address(*pp);
-+
-+	/*
-+	 * Check the page is filled with 0xFD or not.
-+	 * memchr_inv() returns the address. In this case, we cannot
-+	 * clear PTE/PUD entry, since the page is used by other.
-+	 * So we cannot also free the page.
-+	 *
-+	 * memchr_inv() returns NULL. In this case, we can clear
-+	 * PTE/PUD entry, since the page is not used by other.
-+	 * So we can also free the page.
-+	 */
-+	if (memchr_inv(page_addr, PAGE_INUSE, *page_size)) {
-+		*pp = NULL;
-+		return next;
-+	}
-+
-+	if (!cpu_has_pse)
-+		pte_clear(&init_mm, addr, pte);
-+	else
-+		pmd_clear(pmd);
-+
-+	return next;
-+}
-+
-+void vmemmap_kfree(struct page *memmap, unsigned long nr_pages)
-+{
-+	unsigned long addr = (unsigned long)memmap;
-+	unsigned long end = (unsigned long)(memmap + nr_pages);
-+	unsigned long next;
-+	struct page *page;
-+	int page_size;
-+
-+	for (; addr < end; addr = next) {
-+		page = NULL;
-+		page_size = 0;
-+		next = find_and_clear_pte_page(addr, end, &page, &page_size);
-+		if (!page)
-+			continue;
-+
-+		free_pages((unsigned long)page_address(page),
-+			    get_order(page_size));
-+		__flush_tlb_one((unsigned long)page_address(page));
-+	}
-+
-+}
-+
-+void vmemmap_free_bootmem(struct page *memmap, unsigned long nr_pages)
-+{
-+	unsigned long addr = (unsigned long)memmap;
-+	unsigned long end = (unsigned long)(memmap + nr_pages);
-+	unsigned long next;
-+	struct page *page;
-+	int page_size;
-+	unsigned long magic;
-+
-+	for (; addr < end; addr = next) {
-+		page = NULL;
-+		page_size = 0;
-+		next = find_and_clear_pte_page(addr, end, &page, &page_size);
-+		if (!page)
-+			continue;
-+
-+		magic = (unsigned long) page->lru.next;
-+		if (magic == SECTION_INFO)
-+			put_page_bootmem(page);
-+		flush_tlb_kernel_range(addr, end);
-+	}
-+
-+}
-+
- void register_page_bootmem_memmap(unsigned long section_nr,
- 				  struct page *start_page, unsigned long size)
- {
-Index: linux-3.5-rc6/mm/memory_hotplug.c
-===================================================================
---- linux-3.5-rc6.orig/mm/memory_hotplug.c	2012-07-19 15:07:48.815987060 +0900
-+++ linux-3.5-rc6/mm/memory_hotplug.c	2012-07-19 15:12:27.536502452 +0900
-@@ -300,19 +300,6 @@ static int __meminit __add_section(int n
- 	return register_new_memory(nid, __pfn_to_section(phys_start_pfn));
- }
- 
--#ifdef CONFIG_SPARSEMEM_VMEMMAP
--static int __remove_section(struct zone *zone, struct mem_section *ms)
--{
--	int ret = -EINVAL;
--
--	if (!valid_section(ms))
--		return ret;
--
--	ret = unregister_memory_section(ms);
--
--	return ret;
--}
--#else
- static int __remove_section(struct zone *zone, struct mem_section *ms)
- {
- 	unsigned long flags;
-@@ -329,9 +316,9 @@ static int __remove_section(struct zone 
- 	pgdat_resize_lock(pgdat, &flags);
- 	sparse_remove_one_section(zone, ms);
- 	pgdat_resize_unlock(pgdat, &flags);
--	return 0;
-+
-+	return ret;
- }
--#endif
- 
- /*
-  * Reasonably generic function for adding memory.  It is
+Any comments are welcome.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+thanks,
+rui
+
+---------------------------------------------------------------------------
+Durgadoss R (2):
+      Thermal: Make Thermal trip points writeable
+      Thermal: Add Hysteresis attributes
+
+Zhang Rui (14):
+      Thermal: Documentation update
+      Thermal: Introduce multiple cooling states support
+      Thermal: Introduce cooling states range support
+      Thermal: set upper and lower limits
+      Thermal: Introduce .get_trend() callback.
+      Thermal: Remove tc1/tc2 in generic thermal layer.
+      Thermal: Introduce thermal_zone_trip_update()
+      Thermal: rename structure thermal_cooling_device_instance to thermal_instance
+      Thermal: Rename thermal_zone_device.cooling_devices to thermal_zone_device.instances
+      Thermal: Rename thermal_instance.node to thermal_instance.tz_node.
+      Thermal: List thermal_instance in thermal_cooling_device.
+      Thermal: Introduce simple arbitrator for setting device cooling state
+      Thermal: Unify the code for both active and passive cooling
+      Thermal: use plist instead of list
+
+---------------------------------------------------------------------------
+ Documentation/thermal/sysfs-api.txt      |   36 +-
+ drivers/acpi/thermal.c                   |   99 ++++--
+ drivers/platform/x86/acerhdf.c           |    6 +-
+ drivers/platform/x86/intel_mid_thermal.c |    2 +-
+ drivers/thermal/spear_thermal.c          |    4 +-
+ drivers/thermal/thermal_sys.c            |  543 +++++++++++++++++++++---------
+ include/linux/thermal.h                  |   43 ++-
+ 7 files changed, 521 insertions(+), 212 deletions(-)
+
