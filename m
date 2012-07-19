@@ -1,253 +1,126 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 06/16] Thermal: set upper and lower limits
-Date: Thu, 19 Jul 2012 22:55:43 +0200
-Message-ID: <201207192255.43570.rjw@sisk.pl>
-References: <1342679480-5336-1-git-send-email-rui.zhang@intel.com> <1342679480-5336-7-git-send-email-rui.zhang@intel.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH 1/4] ACPI: Add acpi_pr_<level>() interfaces
+Date: Thu, 19 Jul 2012 14:51:33 -0600
+Message-ID: <1342731093.3010.245.camel@misato.fc.hp.com>
+References: <1342644027-19559-1-git-send-email-toshi.kani@hp.com>
+	 <1342644027-19559-2-git-send-email-toshi.kani@hp.com>
+	 <1342648771.5138.37.camel@lorien2>
+	 <1342650386.3010.55.camel@misato.fc.hp.com>
+	 <1342651257.5138.44.camel@lorien2>
+	 <1342651966.3010.66.camel@misato.fc.hp.com>
+	 <1342653482.5138.56.camel@lorien2>
+	 <1342658296.3010.136.camel@misato.fc.hp.com>
+	 <1342714515.3100.27.camel@lorien2>
+	 <1342718897.3010.188.camel@misato.fc.hp.com>
+	 <1342725950.5599.7.camel@lorien2>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-2"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:48635 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751898Ab2GSUuY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 19 Jul 2012 16:50:24 -0400
-In-Reply-To: <1342679480-5336-7-git-send-email-rui.zhang@intel.com>
+Received: from g1t0026.austin.hp.com ([15.216.28.33]:42290 "EHLO
+	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751596Ab2GSU4R (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Jul 2012 16:56:17 -0400
+In-Reply-To: <1342725950.5599.7.camel@lorien2>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>, Amit Kachhap <amit.kachhap@linaro.org>
-Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, R Durgadoss <durgadoss.r@intel.com>, Wei Ni <wni@nvidia.com>
+To: shuah.khan@hp.com
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, liuj97@gmail.com, srivatsa.bhat@linux.vnet.ibm.com, prarit@redhat.com, imammedo@redhat.com, vijaymohan.pandarathil@hp.com, shuahkhan@gmail.com
 
-On Thursday, July 19, 2012, Zhang Rui wrote:
-> set upper and lower limits when binding
-> a thermal cooling device to a thermal zone device.
+On Thu, 2012-07-19 at 13:25 -0600, Shuah Khan wrote:
+> On Thu, 2012-07-19 at 11:28 -0600, Toshi Kani wrote:
+> > On Thu, 2012-07-19 at 10:15 -0600, Shuah Khan wrote:
+> > > On Wed, 2012-07-18 at 18:38 -0600, Toshi Kani wrote:
+> > > 
+> > > > 
+> > > > This interface is defined in acpi/acpi_bus.h, which is intended for ACPI
+> > > > drivers which make many ACPI calls to proceed when they are called at
+> > > > run-time today.  This interface does not change that, and I believe
+> > > > acpi_get_name() is much faster compared to ACPI method calls these ACPI
+> > > > drivers make in their normal code path.  The extra work to call
+> > > > acpi_get_name() is simply a noise in this case (if you try to measure),
+> > > > and the use of this interface is limited in error paths of such ACPI
+> > > > drivers.
+> > > 
+> > > I understand the scope of the usage of this new interface. I don't think
+> > > I am able to explain the problem I see with this interface as it gets
+> > > used more and more from acpi drivers. Let me try another way.
+> > > 
+> > > If understand the this patch set, if and when acpi drivers that
+> > > currently use pr_* interfaces switch to using acpi_pr_*, the execution
+> > > path goes from a what printk() does to the following:
+> > > 
+> > > acpi_pr_*
+> > > - setup static buffer
+> > > - calls acpi_get_name()
+> > > - acpi_get_name() calls acpi_ut_validate_buffer() and then calls
+> > >   acpi_ns_handle_to_pathname()
+> > > - acpi_ns_handle_to_pathname() calls acpi_ns_validate_handle() followed
+> > >   by acpi_ns_get_pathname_length() and so on.
+> > > 
+> > > I think this should give you a good idea of my concern. I think
+> > > acpi_pr_* full functionality should be enabled under special cases such
+> > > as some acpi_debug level setting or some other way, and not for default
+> > > case. I propose the following:
+> > > 
+> > > Make acpi_pr_* versions execute the full path to do acpi_get_name()
+> > > conditionally and not as a default case.
+> > > 
+> > > To illustrate my point further, I currently see the following ACPI
+> > > messages in my dmesg buffer on my laptop. I haven't taken the time to
+> > > evaluate how many of them originate from acpi drivers, however I would
+> > > not want to see all of these becoming acpi_pr_* versions that do more
+> > > than what pr_* does today. I hope this explains my concern clearly.
+> > 
+> > I agree that there are many ACPI messages at boot, and I understand that
+> > you concerned with them, but that is a different issue.  It requires a
+> > different project to address them.  Changing my patchset won't make any
+> > difference.
 > 
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> ---
->  Documentation/thermal/sysfs-api.txt |    6 ++++-
->  drivers/acpi/thermal.c              |   49 ++++++++++++++++++++++-------------
->  drivers/platform/x86/acerhdf.c      |    2 +-
->  drivers/thermal/thermal_sys.c       |   20 +++++++++-----
->  include/linux/thermal.h             |    3 ++-
->  5 files changed, 53 insertions(+), 27 deletions(-)
+> On the contrary, your patch set could make the existing problems worse
+> by introducing lot of complexity (makes the execution path very long for
+> each and every one these messages) in the path that prints messages. As
+> more and more acpi code paths start using the new interfaces, it will
+> keep getting worse.
 > 
-> diff --git a/Documentation/thermal/sysfs-api.txt b/Documentation/thermal/sysfs-api.txt
-> index b7b3609..f169821 100644
-> --- a/Documentation/thermal/sysfs-api.txt
-> +++ b/Documentation/thermal/sysfs-api.txt
-> @@ -84,7 +84,7 @@ temperature) and throttle appropriate devices.
->  
->  1.3 interface for binding a thermal zone device with a thermal cooling device
->  1.3.1 int thermal_zone_bind_cooling_device(struct thermal_zone_device *tz,
-> -		int trip, struct thermal_cooling_device *cdev);
-> +	int trip, struct thermal_cooling_device *cdev, long upper, long lower);
->  
->      This interface function bind a thermal cooling device to the certain trip
->      point of a thermal zone device.
-> @@ -93,6 +93,10 @@ temperature) and throttle appropriate devices.
->      cdev: thermal cooling device
->      trip: indicates which trip point the cooling devices is associated with
->  	  in this thermal zone.
-> +    upper:the Maximum cooling state for this trip point.
-> +          -1 means no upper limit, and the cooling device can be in max_state.
-> +    lower:the Minimum cooling state can be used for this trip point.
-> +          -1 means no lower limit, and the cooling device can be in cooling state 0.
+> I am not questioning the usefulness of the additional information, I am
+> questioning the complexity your patch set adds. The added complexity
+> isn't desirable.
 
-If we have to use -1 (or all ones for unsigned long), I'd suggest to define a
-constant called CS_NO_LIMIT or something like that and use it instead of the
-plain numbers.
+That's good.  In the last email, you suggested to make the interface
+debug-only, and make it non-default case.  This totally defeats the
+purpose, which is why I explained it.  When someone reported an issue,
+we do not want to tell him that he will need to reproduce it again with
+debug kernel/option.  I am glad to know that you understand this point.
 
-And perhaps change the name of the above to
-thermal_zone_bind_cooling_device_limits() and define
-thermal_zone_bind_cooling_device() as a static inline that will not take the
-extra two arguments and make it call thermal_zone_bind_cooling_device_limits()
-with the CS_NO_LIMIT values in there.
+> The design in this patch set needs refinement so it doesn't add to the
+> execution path.
 
->  1.3.2 int thermal_zone_unbind_cooling_device(struct thermal_zone_device *tz,
->  		int trip, struct thermal_cooling_device *cdev);
-> diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-> index 8275e7b..a7c97f5 100644
-> --- a/drivers/acpi/thermal.c
-> +++ b/drivers/acpi/thermal.c
-> @@ -727,11 +727,9 @@ static int thermal_notify(struct thermal_zone_device *thermal, int trip,
->  	return 0;
->  }
->  
-> -typedef int (*cb)(struct thermal_zone_device *, int,
-> -		  struct thermal_cooling_device *);
->  static int acpi_thermal_cooling_device_cb(struct thermal_zone_device *thermal,
->  					struct thermal_cooling_device *cdev,
-> -					cb action)
-> +					int bind)
+I am not sure why you are so much concerned about the complexity.
+Frankly, acpi_get_name() is one of the simplest and lightest interfaces
+in the ACPI CA.  It does not execute AML at all.  The slowness or
+complexity of ACPI comes when it executes AML due to the way ACPI is
+defined.  acpi_get_name() simply builds a path info and copies it to an
+allocated buffer.
 
-Should 'bind' be a bool?
+One possible optimization is, like Joe suggested, to avoid a buffer
+allocation.  I prefer not to use stack space as I explained to Joe.  We
+could statically allocate per-CPU buffer for this, but I do not think it
+is worth doing it.  After all, such optimization makes the code
+complicated, and does not make any difference in performance.  At
+run-time, ACPI is only used when GPE occurs (or accessed from sysfs),
+which is infrequent event and has nothing to compare with the
+performance paths like syscall and I/Os.  And acpi_pr_<level>() is used
+in the error paths of such infrequent events.
 
->  {
->  	struct acpi_device *device = cdev->devdata;
->  	struct acpi_thermal *tz = thermal->devdata;
-> @@ -755,11 +753,18 @@ static int acpi_thermal_cooling_device_cb(struct thermal_zone_device *thermal,
->  		    i++) {
->  			handle = tz->trips.passive.devices.handles[i];
->  			status = acpi_bus_get_device(handle, &dev);
-> -			if (ACPI_SUCCESS(status) && (dev == device)) {
-> -				result = action(thermal, trip, cdev);
-> -				if (result)
-> -					goto failed;
-> -			}
-> +			if (ACPI_FAILURE(status) || dev != device)
-> +				continue;
-> +			if (bind)
-> +				result =
-> +					thermal_zone_bind_cooling_device
-> +					(thermal, trip, cdev, -1, -1);
-> +			else
-> +				result =
-> +					thermal_zone_unbind_cooling_device
-> +					(thermal, trip, cdev);
-> +			if (result)
-> +				goto failed;
->  		}
->  	}
->  
-> @@ -772,11 +777,16 @@ static int acpi_thermal_cooling_device_cb(struct thermal_zone_device *thermal,
->  		    j++) {
->  			handle = tz->trips.active[i].devices.handles[j];
->  			status = acpi_bus_get_device(handle, &dev);
-> -			if (ACPI_SUCCESS(status) && (dev == device)) {
-> -				result = action(thermal, trip, cdev);
-> -				if (result)
-> -					goto failed;
-> -			}
-> +			if (ACPI_FAILURE(status) || dev != device)
-> +				continue;
-> +			if (bind)
-> +				result = thermal_zone_bind_cooling_device
-> +					(thermal, trip, cdev, -1, -1);
-> +			else
-> +				result = thermal_zone_unbind_cooling_device
-> +					(thermal, trip, cdev);
-> +			if (result)
-> +				goto failed;
->  		}
->  	}
->  
-> @@ -784,7 +794,12 @@ static int acpi_thermal_cooling_device_cb(struct thermal_zone_device *thermal,
->  		handle = tz->devices.handles[i];
->  		status = acpi_bus_get_device(handle, &dev);
->  		if (ACPI_SUCCESS(status) && (dev == device)) {
-> -			result = action(thermal, -1, cdev);
-> +			if (bind)
-> +				result = thermal_zone_bind_cooling_device
-> +						(thermal, -1, cdev, -1, -1);
-> +			else
-> +				result = thermal_zone_unbind_cooling_device
-> +						(thermal, -1, cdev);
->  			if (result)
->  				goto failed;
->  		}
-> @@ -798,16 +813,14 @@ static int
->  acpi_thermal_bind_cooling_device(struct thermal_zone_device *thermal,
->  					struct thermal_cooling_device *cdev)
->  {
-> -	return acpi_thermal_cooling_device_cb(thermal, cdev,
-> -				thermal_zone_bind_cooling_device);
-> +	return acpi_thermal_cooling_device_cb(thermal, cdev, 1);
->  }
->  
->  static int
->  acpi_thermal_unbind_cooling_device(struct thermal_zone_device *thermal,
->  					struct thermal_cooling_device *cdev)
->  {
-> -	return acpi_thermal_cooling_device_cb(thermal, cdev,
-> -				thermal_zone_unbind_cooling_device);
-> +	return acpi_thermal_cooling_device_cb(thermal, cdev, 0);
->  }
->  
->  static const struct thermal_zone_device_ops acpi_thermal_zone_ops = {
-> diff --git a/drivers/platform/x86/acerhdf.c b/drivers/platform/x86/acerhdf.c
-> index 39abb15..278aa0e 100644
-> --- a/drivers/platform/x86/acerhdf.c
-> +++ b/drivers/platform/x86/acerhdf.c
-> @@ -329,7 +329,7 @@ static int acerhdf_bind(struct thermal_zone_device *thermal,
->  	if (cdev != cl_dev)
->  		return 0;
->  
-> -	if (thermal_zone_bind_cooling_device(thermal, 0, cdev)) {
-> +	if (thermal_zone_bind_cooling_device(thermal, 0, cdev, -1, -1)) {
->  		pr_err("error binding cooling dev\n");
->  		return -EINVAL;
->  	}
-> diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
-> index 4267a49..db35300 100644
-> --- a/drivers/thermal/thermal_sys.c
-> +++ b/drivers/thermal/thermal_sys.c
-> @@ -316,7 +316,7 @@ passive_store(struct device *dev, struct device_attribute *attr,
->  				     sizeof("Processor")))
->  				thermal_zone_bind_cooling_device(tz,
->  								 THERMAL_TRIPS_NONE,
-> -								 cdev);
-> +								 cdev, -1, -1);
->  		}
->  		mutex_unlock(&thermal_list_lock);
->  		if (!tz->passive_delay)
-> @@ -801,7 +801,8 @@ static void thermal_zone_device_check(struct work_struct *work)
->   */
->  int thermal_zone_bind_cooling_device(struct thermal_zone_device *tz,
->  				     int trip,
-> -				     struct thermal_cooling_device *cdev)
-> +				     struct thermal_cooling_device *cdev,
-> +				     long upper, long lower)
-
-upper and lower were unsigned long in the previous patch.  Can we please
-use the same data type for them everywhere?
-
->  {
->  	struct thermal_cooling_device_instance *dev;
->  	struct thermal_cooling_device_instance *pos;
-> @@ -825,6 +826,15 @@ int thermal_zone_bind_cooling_device(struct thermal_zone_device *tz,
->  	if (tz != pos1 || cdev != pos2)
->  		return -EINVAL;
->  
-> +	cdev->ops->get_max_state(cdev, &max_state);
-> +
-> +	/* lower default 0, upper default max_state */
-> +	lower = lower < 0 ? 0 : lower;
-> +	upper = upper < 0 ? max_state : upper;
-> +
-> +	if (lower > upper || upper > max_state)
-> +		return -EINVAL;
-> +
->  	dev =
->  	    kzalloc(sizeof(struct thermal_cooling_device_instance), GFP_KERNEL);
->  	if (!dev)
-> @@ -832,10 +842,8 @@ int thermal_zone_bind_cooling_device(struct thermal_zone_device *tz,
->  	dev->tz = tz;
->  	dev->cdev = cdev;
->  	dev->trip = trip;
-> -
-> -	cdev->ops->get_max_state(dev, &max_state);
-> -	dev->upper = max_state;
-> -	dev->lower = 0;
-> +	dev->upper = upper;
-> +	dev->lower = lower;
->  
->  	result = get_idr(&tz->idr, &tz->lock, &dev->id);
->  	if (result)
-> diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-> index cfc8d90..b355c62 100644
-> --- a/include/linux/thermal.h
-> +++ b/include/linux/thermal.h
-> @@ -157,7 +157,8 @@ struct thermal_zone_device *thermal_zone_device_register(char *, int, int,
->  void thermal_zone_device_unregister(struct thermal_zone_device *);
->  
->  int thermal_zone_bind_cooling_device(struct thermal_zone_device *, int,
-> -				     struct thermal_cooling_device *);
-> +				     struct thermal_cooling_device *,
-> +				     long, long);
->  int thermal_zone_unbind_cooling_device(struct thermal_zone_device *, int,
->  				       struct thermal_cooling_device *);
->  void thermal_zone_device_update(struct thermal_zone_device *);
-> 
+If your concern is actually a performance bottleneck in acpi_get_name()
+you found in the code, you should report it to the ACPI CA team.
 
 Thanks,
-Rafael
+-Toshi
+
+> -- Shuah
+> 
+> 
+
+
