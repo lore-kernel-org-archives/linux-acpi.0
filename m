@@ -1,295 +1,139 @@
-From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: Re: [RFC PATCH v4 11/13] memory-hotplug : free memmap of sparse-vmemmap
-Date: Thu, 19 Jul 2012 18:01:48 +0800
-Message-ID: <5007DB0C.6080106@cn.fujitsu.com>
-References: <50068974.1070409@jp.fujitsu.com> <50068D09.1050704@jp.fujitsu.com> <5007D722.1030807@cn.fujitsu.com>
+From: "R, Durgadoss" <durgadoss.r@intel.com>
+Subject: RE: [PATCH 01/16] Thermal: Make Thermal trip points writeable
+Date: Thu, 19 Jul 2012 10:35:59 +0000
+Message-ID: <4D68720C2E767A4AA6A8796D42C8EB591666FA@BGSMSX101.gar.corp.intel.com>
+References: <1342679480-5336-1-git-send-email-rui.zhang@intel.com>
+ <1342679480-5336-2-git-send-email-rui.zhang@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <5007D722.1030807@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:28987 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751722Ab2GSKgF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Jul 2012 06:36:05 -0400
+In-Reply-To: <1342679480-5336-2-git-send-email-rui.zhang@intel.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zhang, Rui" <rui.zhang@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, Eduardo Valentin <eduardo.valentin@intel.com>, Amit Kachhap <amit.kachhap@linaro.org>, Wei Ni <wni@nvidia.com>
 
-At 07/19/2012 05:45 PM, Wen Congyang Wrote:
-> At 07/18/2012 06:16 PM, Yasuaki Ishimatsu Wrote:
->> All pages of virtual mapping in removed memory cannot be freed, since some pages
->> used as PGD/PUD includes not only removed memory but also other memory. So the
->> patch checks whether page can be freed or not.
->>
->> How to check whether page can be freed or not?
->>  1. When removing memory, the page structs of the revmoved memory are filled
->>     with 0FD.
->>  2. All page structs are filled with 0xFD on PT/PMD, PT/PMD can be cleared.
->>     In this case, the page used as PT/PMD can be freed.
->>
->> Applying patch, __remove_section() of CONFIG_SPARSEMEM_VMEMMAP is integrated
->> into one. So __remove_section() of CONFIG_SPARSEMEM_VMEMMAP is deleted.
->>
->> CC: David Rientjes <rientjes@google.com>
->> CC: Jiang Liu <liuj97@gmail.com>
->> CC: Len Brown <len.brown@intel.com>
->> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
->> CC: Paul Mackerras <paulus@samba.org> 
->> CC: Christoph Lameter <cl@linux.com>
->> Cc: Minchan Kim <minchan.kim@gmail.com>
->> CC: Andrew Morton <akpm@linux-foundation.org>
->> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com> 
->> CC: Wen Congyang <wency@cn.fujitsu.com>
->> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->>
->> ---
->>  arch/x86/mm/init_64.c |  121 ++++++++++++++++++++++++++++++++++++++++++++++++++
->>  include/linux/mm.h    |    2 
->>  mm/memory_hotplug.c   |   19 -------
->>  mm/sparse.c           |    5 +-
->>  4 files changed, 128 insertions(+), 19 deletions(-)
->>
->> Index: linux-3.5-rc6/include/linux/mm.h
->> ===================================================================
->> --- linux-3.5-rc6.orig/include/linux/mm.h	2012-07-18 18:01:28.000000000 +0900
->> +++ linux-3.5-rc6/include/linux/mm.h	2012-07-18 18:03:05.551168773 +0900
->> @@ -1588,6 +1588,8 @@ int vmemmap_populate(struct page *start_
->>  void vmemmap_populate_print_last(void);
->>  void register_page_bootmem_memmap(unsigned long section_nr, struct page *map,
->>  				  unsigned long size);
->> +void vmemmap_kfree(struct page *memmpa, unsigned long nr_pages);
->> +void vmemmap_free_bootmem(struct page *memmpa, unsigned long nr_pages);
->>  
->>  enum mf_flags {
->>  	MF_COUNT_INCREASED = 1 << 0,
->> Index: linux-3.5-rc6/mm/sparse.c
->> ===================================================================
->> --- linux-3.5-rc6.orig/mm/sparse.c	2012-07-18 17:59:25.000000000 +0900
->> +++ linux-3.5-rc6/mm/sparse.c	2012-07-18 18:03:05.553168749 +0900
->> @@ -614,12 +614,13 @@ static inline struct page *kmalloc_secti
->>  	/* This will make the necessary allocations eventually. */
->>  	return sparse_mem_map_populate(pnum, nid);
->>  }
->> -static void __kfree_section_memmap(struct page *memmap, unsigned long nr_pages)
->> +static void __kfree_section_memmap(struct page *page, unsigned long nr_pages)
->>  {
->> -	return; /* XXX: Not implemented yet */
->> +	vmemmap_kfree(page, nr_pages);
->>  }
->>  static void free_map_bootmem(struct page *page, unsigned long nr_pages)
->>  {
->> +	vmemmap_free_bootmem(page, nr_pages);
->>  }
->>  #else
->>  static struct page *__kmalloc_section_memmap(unsigned long nr_pages)
->> Index: linux-3.5-rc6/arch/x86/mm/init_64.c
->> ===================================================================
->> --- linux-3.5-rc6.orig/arch/x86/mm/init_64.c	2012-07-18 18:01:28.000000000 +0900
->> +++ linux-3.5-rc6/arch/x86/mm/init_64.c	2012-07-18 18:03:05.564168611 +0900
->> @@ -978,6 +978,127 @@ vmemmap_populate(struct page *start_page
->>  	return 0;
->>  }
->>  
->> +#define PAGE_INUSE 0xFD
->> +
->> +unsigned long find_and_clear_pte_page(unsigned long addr, unsigned long end,
->> +			    struct page **pp, int *page_size)
->> +{
->> +	pgd_t *pgd;
->> +	pud_t *pud;
->> +	pmd_t *pmd;
->> +	pte_t *pte;
->> +	void *page_addr;
->> +	unsigned long next;
->> +
->> +	*pp = NULL;
->> +
->> +	pgd = pgd_offset_k(addr);
->> +	if (pgd_none(*pgd))
->> +		return pgd_addr_end(addr, end);
->> +
->> +	pud = pud_offset(pgd, addr);
->> +	if (pud_none(*pud))
->> +		return pud_addr_end(addr,end);
->> +
->> +	if (!cpu_has_pse) {
->> +		next = (addr + PAGE_SIZE) & PAGE_MASK;
->> +		pmd = pmd_offset(pud, addr);
->> +		if (pmd_none(*pmd))
->> +			return next;
->> +
->> +		pte = pte_offset_kernel(pmd, addr);
->> +		if (pte_none(*pte))
->> +			return next;
->> +
->> +		*page_size = PAGE_SIZE;
->> +		*pp = pte_page(*pte);
->> +	} else {
->> +		next = pmd_addr_end(addr, end);
->> +
->> +		pmd = pmd_offset(pud, addr);
->> +		if (pmd_none(*pmd))
->> +			return next;
->> +
->> +		*page_size = PMD_SIZE;
->> +		*pp = pmd_page(*pmd);
->> +	}
->> +
->> +	/*
->> +	 * Removed page structs are filled with 0xFD.
->> +	 */
->> +	memset((void *)addr, PAGE_INUSE, next - addr);
->> +
->> +	page_addr = page_address(*pp);
->> +
->> +	/*
->> +	 * Check the page is filled with 0xFD or not.
->> +	 * memchr_inv() returns the address. In this case, we cannot
->> +	 * clear PTE/PUD entry, since the page is used by other.
->> +	 * So we cannot also free the page.
->> +	 *
->> +	 * memchr_inv() returns NULL. In this case, we can clear
->> +	 * PTE/PUD entry, since the page is not used by other.
->> +	 * So we can also free the page.
->> +	 */
->> +	if (memchr_inv(page_addr, PAGE_INUSE, *page_size)) {
->> +		*pp = NULL;
->> +		return next;
->> +	}
->> +
->> +	if (!cpu_has_pse)
->> +		pte_clear(&init_mm, addr, pte);
->> +	else
->> +		pmd_clear(pmd);
->> +
->> +	return next;
->> +}
->> +
->> +void vmemmap_kfree(struct page *memmap, unsigned long nr_pages)
->> +{
->> +	unsigned long addr = (unsigned long)memmap;
->> +	unsigned long end = (unsigned long)(memmap + nr_pages);
->> +	unsigned long next;
->> +	struct page *page;
->> +	int page_size;
->> +
->> +	for (; addr < end; addr = next) {
->> +		page = NULL;
->> +		page_size = 0;
->> +		next = find_and_clear_pte_page(addr, end, &page, &page_size);
->> +		if (!page)
->> +			continue;
->> +
->> +		free_pages((unsigned long)page_address(page),
->> +			    get_order(page_size));
->> +		__flush_tlb_one((unsigned long)page_address(page));
+Hi Rui,
+
+
+> -----Original Message-----
+> From: Zhang, Rui
+> Sent: Thursday, July 19, 2012 12:01 PM
+> To: linux-acpi@vger.kernel.org; linux-pm@vger.kernel.org
+> Cc: Rafael J. Wysocki; Matthew Garrett; Len Brown; R, Durgadoss; Eduardo
+> Valentin; Amit Kachhap; Wei Ni; Zhang, Rui
+> Subject: [PATCH 01/16] Thermal: Make Thermal trip points writeable
 > 
-> I think you want to free the memory to store struct page.
-> So why you free page_address(page)?
+> From: Durgadoss R <dugardoss.r@intel.com>
 
-I understand it now. page is for the memory to store struct page.
-
-You clear page table's entry for the addr, not page_address(page).
-And the entry for page_address(page) is still valid now.
-So I think you want this:
-__flush_tlb_one(addr);
-
-Thanks
-Wen Congyang
+[cut.]
 
 > 
-> Thanks
-> Wen Congyang
+>  static ssize_t
+> +trip_point_temp_store(struct device *dev, struct device_attribute *attr,
+> +		     const char *buf, size_t count)
+> +{
+> +	struct thermal_zone_device *tz = to_thermal_zone(dev);
+> +	int trip, ret;
+> +	unsigned long temperature;
+> +
+> +	if (!tz->ops->set_trip_temp)
+> +		return -EPERM;
+> +
+> +	if (!sscanf(attr->attr.name, "trip_point_%d_temp", &trip))
+> +		return -EINVAL;
+> +
+> +	if (kstrtoul(buf, 10, &temperature))
+> +		return -EINVAL;
+> +
+> +	ret = tz->ops->set_trip_temp(tz, trip, temperature);
+> +
+> +	return ret ? ret : count;
+> +}
+> +
+> +static ssize_t
+>  trip_point_temp_show(struct device *dev, struct device_attribute *attr,
+>  		     char *buf)
+>  {
+> @@ -283,33 +305,6 @@ static DEVICE_ATTR(temp, 0444, temp_show, NULL);
+>  static DEVICE_ATTR(mode, 0644, mode_show, mode_store);
+>  static DEVICE_ATTR(passive, S_IRUGO | S_IWUSR, passive_show,
+> passive_store);
 > 
->> +	}
->> +
->> +}
->> +
->> +void vmemmap_free_bootmem(struct page *memmap, unsigned long nr_pages)
->> +{
->> +	unsigned long addr = (unsigned long)memmap;
->> +	unsigned long end = (unsigned long)(memmap + nr_pages);
->> +	unsigned long next;
->> +	struct page *page;
->> +	int page_size;
->> +	unsigned long magic;
->> +
->> +	for (; addr < end; addr = next) {
->> +		page = NULL;
->> +		page_size = 0;
->> +		next = find_and_clear_pte_page(addr, end, &page, &page_size);
->> +		if (!page)
->> +			continue;
->> +
->> +		magic = (unsigned long) page->lru.next;
->> +		if (magic == SECTION_INFO)
->> +			put_page_bootmem(page);
->> +		flush_tlb_kernel_range(addr, end);
->> +	}
->> +
->> +}
->> +
->>  void register_page_bootmem_memmap(unsigned long section_nr,
->>  				  struct page *start_page, unsigned long size)
->>  {
->> Index: linux-3.5-rc6/mm/memory_hotplug.c
->> ===================================================================
->> --- linux-3.5-rc6.orig/mm/memory_hotplug.c	2012-07-18 18:01:28.000000000 +0900
->> +++ linux-3.5-rc6/mm/memory_hotplug.c	2012-07-18 18:25:11.036597977 +0900
->> @@ -300,7 +300,6 @@ static int __meminit __add_section(int n
->>  	return register_new_memory(nid, __pfn_to_section(phys_start_pfn));
->>  }
->>  
->> -#ifdef CONFIG_SPARSEMEM_VMEMMAP
->>  static int __remove_section(struct zone *zone, struct mem_section *ms)
->>  {
->>  	int ret = -EINVAL;
->> @@ -309,29 +308,15 @@ static int __remove_section(struct zone 
->>  		return ret;
->>  
->>  	ret = unregister_memory_section(ms);
->> -
->> -	return ret;
->> -}
->> -#else
->> -static int __remove_section(struct zone *zone, struct mem_section *ms)
->> -{
->> -	unsigned long flags;
->> -	struct pglist_data *pgdat = zone->zone_pgdat;
->> -	int ret = -EINVAL;
->> -
->> -	if (!valid_section(ms))
->> -		return ret;
->> -
->> -	ret = unregister_memory_section(ms);
->>  	if (ret)
->>  		return ret;
->>  
->>  	pgdat_resize_lock(pgdat, &flags);
->>  	sparse_remove_one_section(zone, ms);
->>  	pgdat_resize_unlock(pgdat, &flags);
->> -	return 0;
->> +
->> +	return ret;
->>  }
->> -#endif
->>  
->>  /*
->>   * Reasonably generic function for adding memory.  It is
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> Please read the FAQ at  http://www.tux.org/lkml/
->>
+> -static struct device_attribute trip_point_attrs[] = {
+> -	__ATTR(trip_point_0_type, 0444, trip_point_type_show, NULL),
+> -	__ATTR(trip_point_0_temp, 0444, trip_point_temp_show, NULL),
+> -	__ATTR(trip_point_1_type, 0444, trip_point_type_show, NULL),
+> -	__ATTR(trip_point_1_temp, 0444, trip_point_temp_show, NULL),
+> -	__ATTR(trip_point_2_type, 0444, trip_point_type_show, NULL),
+> -	__ATTR(trip_point_2_temp, 0444, trip_point_temp_show, NULL),
+> -	__ATTR(trip_point_3_type, 0444, trip_point_type_show, NULL),
+> -	__ATTR(trip_point_3_temp, 0444, trip_point_temp_show, NULL),
+> -	__ATTR(trip_point_4_type, 0444, trip_point_type_show, NULL),
+> -	__ATTR(trip_point_4_temp, 0444, trip_point_temp_show, NULL),
+> -	__ATTR(trip_point_5_type, 0444, trip_point_type_show, NULL),
+> -	__ATTR(trip_point_5_temp, 0444, trip_point_temp_show, NULL),
+> -	__ATTR(trip_point_6_type, 0444, trip_point_type_show, NULL),
+> -	__ATTR(trip_point_6_temp, 0444, trip_point_temp_show, NULL),
+> -	__ATTR(trip_point_7_type, 0444, trip_point_type_show, NULL),
+> -	__ATTR(trip_point_7_temp, 0444, trip_point_temp_show, NULL),
+> -	__ATTR(trip_point_8_type, 0444, trip_point_type_show, NULL),
+> -	__ATTR(trip_point_8_temp, 0444, trip_point_temp_show, NULL),
+> -	__ATTR(trip_point_9_type, 0444, trip_point_type_show, NULL),
+> -	__ATTR(trip_point_9_temp, 0444, trip_point_temp_show, NULL),
+> -	__ATTR(trip_point_10_type, 0444, trip_point_type_show, NULL),
+> -	__ATTR(trip_point_10_temp, 0444, trip_point_temp_show, NULL),
+> -	__ATTR(trip_point_11_type, 0444, trip_point_type_show, NULL),
+> -	__ATTR(trip_point_11_temp, 0444, trip_point_temp_show, NULL),
+> -};
+> -
+>  /* sys I/F for cooling device */
+>  #define to_cooling_device(_dev)	\
+>  	container_of(_dev, struct thermal_cooling_device, device)
+> @@ -1089,9 +1084,83 @@ void thermal_zone_device_update(struct
+> thermal_zone_device *tz)
+>  EXPORT_SYMBOL(thermal_zone_device_update);
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+>  /**
+> + * create_trip_attrs - create attributes for trip points
+> + * @tz:		the thermal zone device
+> + * @flag:	Writeable trip point bitmap.
+> + */
+> +static int create_trip_attrs(struct thermal_zone_device *tz, int flag)
+> +{
+> +	int indx;
+> +	int writeable;
+> +
+> +	tz->trip_type_attrs =
+> +		kzalloc(sizeof(struct thermal_attr) * tz->trips, GFP_KERNEL);
+> +	if (!tz->trip_type_attrs)
+> +		return -ENOMEM;
+> +
+> +	tz->trip_temp_attrs =
+> +		kzalloc(sizeof(struct thermal_attr) * tz->trips, GFP_KERNEL);
+> +	if (!tz->trip_temp_attrs) {
+> +		kfree(tz->trip_type_attrs);
+> +		return -ENOMEM;
+> +	}
+> +
+> +	for (indx = 0; indx < tz->trips; indx++) {
+> +
+> +		/* create trip type attribute */
+> +		snprintf(tz->trip_type_attrs[indx].name,
+> THERMAL_NAME_LENGTH,
+> +			 "trip_point_%d_type", indx);
+> +
+> +		sysfs_attr_init(&tz->trip_type_attrs[count].attr.attr);
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Shouldn't the 'count' be 'indx' ?
+
+> +		tz->trip_type_attrs[indx].attr.attr.name =
+
+Thanks,
+Durga
