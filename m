@@ -1,94 +1,68 @@
-From: Shuah Khan <shuah.khan@hp.com>
-Subject: Re: [PATCH 1/4] ACPI: Add acpi_pr_<level>() interfaces
-Date: Thu, 19 Jul 2012 13:25:50 -0600
-Message-ID: <1342725950.5599.7.camel@lorien2>
-References: <1342644027-19559-1-git-send-email-toshi.kani@hp.com>
-	 <1342644027-19559-2-git-send-email-toshi.kani@hp.com>
-	 <1342648771.5138.37.camel@lorien2>
-	 <1342650386.3010.55.camel@misato.fc.hp.com>
-	 <1342651257.5138.44.camel@lorien2>
-	 <1342651966.3010.66.camel@misato.fc.hp.com>
-	 <1342653482.5138.56.camel@lorien2>
-	 <1342658296.3010.136.camel@misato.fc.hp.com>
-	 <1342714515.3100.27.camel@lorien2>
-	 <1342718897.3010.188.camel@misato.fc.hp.com>
-Reply-To: shuah.khan@hp.com
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 01/16] Thermal: Make Thermal trip points writeable
+Date: Thu, 19 Jul 2012 21:38:11 +0200
+Message-ID: <201207192138.12181.rjw@sisk.pl>
+References: <1342679480-5336-1-git-send-email-rui.zhang@intel.com> <1342679480-5336-2-git-send-email-rui.zhang@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0014.houston.hp.com ([15.201.24.17]:37881 "EHLO
-	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750917Ab2GSTZ4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Jul 2012 15:25:56 -0400
-In-Reply-To: <1342718897.3010.188.camel@misato.fc.hp.com>
+Received: from ogre.sisk.pl ([193.178.161.156]:48552 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750917Ab2GSTcc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 19 Jul 2012 15:32:32 -0400
+In-Reply-To: <1342679480-5336-2-git-send-email-rui.zhang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, liuj97@gmail.com, srivatsa.bhat@linux.vnet.ibm.com, prarit@redhat.com, imammedo@redhat.com, vijaymohan.pandarathil@hp.com, shuahkhan@gmail.com
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, R Durgadoss <durgadoss.r@intel.com>, Eduardo Valentin <eduardo.valentin@intel.com>, Amit Kachhap <amit.kachhap@linaro.org>, Wei Ni <wni@nvidia.com>
 
-On Thu, 2012-07-19 at 11:28 -0600, Toshi Kani wrote:
-> On Thu, 2012-07-19 at 10:15 -0600, Shuah Khan wrote:
-> > On Wed, 2012-07-18 at 18:38 -0600, Toshi Kani wrote:
-> > 
-> > > 
-> > > This interface is defined in acpi/acpi_bus.h, which is intended for ACPI
-> > > drivers which make many ACPI calls to proceed when they are called at
-> > > run-time today.  This interface does not change that, and I believe
-> > > acpi_get_name() is much faster compared to ACPI method calls these ACPI
-> > > drivers make in their normal code path.  The extra work to call
-> > > acpi_get_name() is simply a noise in this case (if you try to measure),
-> > > and the use of this interface is limited in error paths of such ACPI
-> > > drivers.
-> > 
-> > I understand the scope of the usage of this new interface. I don't think
-> > I am able to explain the problem I see with this interface as it gets
-> > used more and more from acpi drivers. Let me try another way.
-> > 
-> > If understand the this patch set, if and when acpi drivers that
-> > currently use pr_* interfaces switch to using acpi_pr_*, the execution
-> > path goes from a what printk() does to the following:
-> > 
-> > acpi_pr_*
-> > - setup static buffer
-> > - calls acpi_get_name()
-> > - acpi_get_name() calls acpi_ut_validate_buffer() and then calls
-> >   acpi_ns_handle_to_pathname()
-> > - acpi_ns_handle_to_pathname() calls acpi_ns_validate_handle() followed
-> >   by acpi_ns_get_pathname_length() and so on.
-> > 
-> > I think this should give you a good idea of my concern. I think
-> > acpi_pr_* full functionality should be enabled under special cases such
-> > as some acpi_debug level setting or some other way, and not for default
-> > case. I propose the following:
-> > 
-> > Make acpi_pr_* versions execute the full path to do acpi_get_name()
-> > conditionally and not as a default case.
-> > 
-> > To illustrate my point further, I currently see the following ACPI
-> > messages in my dmesg buffer on my laptop. I haven't taken the time to
-> > evaluate how many of them originate from acpi drivers, however I would
-> > not want to see all of these becoming acpi_pr_* versions that do more
-> > than what pr_* does today. I hope this explains my concern clearly.
+On Thursday, July 19, 2012, Zhang Rui wrote:
+> From: Durgadoss R <dugardoss.r@intel.com>
 > 
-> I agree that there are many ACPI messages at boot, and I understand that
-> you concerned with them, but that is a different issue.  It requires a
-> different project to address them.  Changing my patchset won't make any
-> difference.
+> Some of the thermal drivers using the Generic Thermal Framework
+> require (all/some) trip points to be writeable. This patch makes
+> the trip point temperatures writeable on a per-trip point basis,
+> and modifies the required function call in thermal.c. This patch
+> also updates the Documentation to reflect the new change.
+> 
+> Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> ---
+>  Documentation/thermal/sysfs-api.txt      |    4 +-
+>  drivers/acpi/thermal.c                   |    4 +-
+>  drivers/platform/x86/acerhdf.c           |    2 +-
+>  drivers/platform/x86/intel_mid_thermal.c |    2 +-
+>  drivers/thermal/spear_thermal.c          |    2 +-
+>  drivers/thermal/thermal_sys.c            |  147 +++++++++++++++++++++---------
+>  include/linux/thermal.h                  |   15 ++-
+>  7 files changed, 125 insertions(+), 51 deletions(-)
+> 
+> diff --git a/Documentation/thermal/sysfs-api.txt b/Documentation/thermal/sysfs-api.txt
+> index 1733ab9..0c7c423 100644
+> --- a/Documentation/thermal/sysfs-api.txt
+> +++ b/Documentation/thermal/sysfs-api.txt
+> @@ -32,7 +32,8 @@ temperature) and throttle appropriate devices.
+>  
+>  1.1 thermal zone device interface
+>  1.1.1 struct thermal_zone_device *thermal_zone_device_register(char *name,
+> -		int trips, void *devdata, struct thermal_zone_device_ops *ops)
+> +		int trips, int flag, void *devdata,
+> +		struct thermal_zone_device_ops *ops)
+>  
+>      This interface function adds a new thermal zone device (sensor) to
+>      /sys/class/thermal folder as thermal_zone[0-*]. It tries to bind all the
+> @@ -40,6 +41,7 @@ temperature) and throttle appropriate devices.
+>  
+>      name: the thermal zone name.
+>      trips: the total number of trip points this thermal zone supports.
+> +    flag: Bit string: If 'n'th bit is set, then trip point 'n' is writeable.
+>      devdata: device private data
+>      ops: thermal zone device call-backs.
+>  	.bind: bind the thermal zone device with a thermal cooling device.
 
-On the contrary, your patch set could make the existing problems worse
-by introducing lot of complexity (makes the execution path very long for
-each and every one these messages) in the path that prints messages. As
-more and more acpi code paths start using the new interfaces, it will
-keep getting worse.
+I wonder.  What is the maximum number of trip points currently passed to this
+function in one call?
 
-I am not questioning the usefulness of the additional information, I am
-questioning the complexity your patch set adds. The added complexity
-isn't desirable.
-
-The design in this patch set needs refinement so it doesn't add to the
-execution path.
-
--- Shuah
-
-
+Rafael
