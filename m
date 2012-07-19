@@ -1,151 +1,275 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH 1/4] ACPI: Add acpi_pr_<level>() interfaces
-Date: Thu, 19 Jul 2012 05:35:41 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E346B2FD73@ORSMSX101.amr.corp.intel.com>
-References: <1342644027-19559-1-git-send-email-toshi.kani@hp.com>
-	 <1342644027-19559-2-git-send-email-toshi.kani@hp.com>
-	 <1342646502.2215.2.camel@joe2Laptop>
-	 <1342647682.3010.38.camel@misato.fc.hp.com>
-	 <1342648452.2215.12.camel@joe2Laptop>
- <1342649293.3010.49.camel@misato.fc.hp.com>
+From: Wen Congyang <wency@cn.fujitsu.com>
+Subject: Re: [RFC PATCH v4 11/13] memory-hotplug : free memmap of sparse-vmemmap
+Date: Thu, 19 Jul 2012 13:58:47 +0800
+Message-ID: <5007A217.2060500@cn.fujitsu.com>
+References: <50068974.1070409@jp.fujitsu.com> <50068D09.1050704@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-2022-JP
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:38556 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751761Ab2GSFfr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Jul 2012 01:35:47 -0400
-In-Reply-To: <1342649293.3010.49.camel@misato.fc.hp.com>
-Content-Language: en-US
+Received: from cn.fujitsu.com ([222.73.24.84]:62440 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1751855Ab2GSFyJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 19 Jul 2012 01:54:09 -0400
+In-Reply-To: <50068D09.1050704@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>, Joe Perches <joe@perches.com>, "Lin, Ming M" <ming.m.lin@intel.com>, "Tang, Feng" <feng.tang@intel.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "bhelgaas@google.com" <bhelgaas@google.com>, "isimatu.yasuaki@jp.fujitsu.com" <isimatu.yasuaki@jp.fujitsu.com>, "liuj97@gmail.com" <liuj97@gmail.com>, "srivatsa.bhat@linux.vnet.ibm.com" <srivatsa.bhat@linux.vnet.ibm.com>, "prarit@redhat.com" <prarit@redhat.com>, "imammedo@redhat.com" <imammedo@redhat.com>, "vijaymohan.pandarathil@hp.com" <vijaymohan.pandarathil@hp.com>
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com
 
->> I wouldn't have a problem renaming a few of those to
->> something like:
->>
->> #define ACPI_INFO(plist)	acpi_old_info plist
->> #define ACPI_WARNING(plist)	acpi_old_warning plist
->> #define ACPI_ERROR(plist)	acpi_old_error plist
->>
->> The acpi folk might though.
->
->Hi Joe,
->
->ACPI CA is being developed by Intel as OS-neutral code, and is used by
->multiple OSes including Linux.  So, I am not sure how easy to make such
->changes.  I am copying to Lin Ming.
+At 07/18/2012 06:16 PM, Yasuaki Ishimatsu Wrote:
+> All pages of virtual mapping in removed memory cannot be freed, since some pages
+> used as PGD/PUD includes not only removed memory but also other memory. So the
+> patch checks whether page can be freed or not.
+> 
+> How to check whether page can be freed or not?
+>  1. When removing memory, the page structs of the revmoved memory are filled
+>     with 0FD.
+>  2. All page structs are filled with 0xFD on PT/PMD, PT/PMD can be cleared.
+>     In this case, the page used as PT/PMD can be freed.
+> 
+> Applying patch, __remove_section() of CONFIG_SPARSEMEM_VMEMMAP is integrated
+> into one. So __remove_section() of CONFIG_SPARSEMEM_VMEMMAP is deleted.
+> 
+> CC: David Rientjes <rientjes@google.com>
+> CC: Jiang Liu <liuj97@gmail.com>
+> CC: Len Brown <len.brown@intel.com>
+> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+> CC: Paul Mackerras <paulus@samba.org> 
+> CC: Christoph Lameter <cl@linux.com>
+> Cc: Minchan Kim <minchan.kim@gmail.com>
+> CC: Andrew Morton <akpm@linux-foundation.org>
+> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com> 
+> CC: Wen Congyang <wency@cn.fujitsu.com>
+> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+> 
+> ---
+>  arch/x86/mm/init_64.c |  121 ++++++++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/mm.h    |    2 
+>  mm/memory_hotplug.c   |   19 -------
+>  mm/sparse.c           |    5 +-
+>  4 files changed, 128 insertions(+), 19 deletions(-)
+> 
+> Index: linux-3.5-rc6/include/linux/mm.h
+> ===================================================================
+> --- linux-3.5-rc6.orig/include/linux/mm.h	2012-07-18 18:01:28.000000000 +0900
+> +++ linux-3.5-rc6/include/linux/mm.h	2012-07-18 18:03:05.551168773 +0900
+> @@ -1588,6 +1588,8 @@ int vmemmap_populate(struct page *start_
+>  void vmemmap_populate_print_last(void);
+>  void register_page_bootmem_memmap(unsigned long section_nr, struct page *map,
+>  				  unsigned long size);
+> +void vmemmap_kfree(struct page *memmpa, unsigned long nr_pages);
+> +void vmemmap_free_bootmem(struct page *memmpa, unsigned long nr_pages);
+>  
+>  enum mf_flags {
+>  	MF_COUNT_INCREASED = 1 << 0,
+> Index: linux-3.5-rc6/mm/sparse.c
+> ===================================================================
+> --- linux-3.5-rc6.orig/mm/sparse.c	2012-07-18 17:59:25.000000000 +0900
+> +++ linux-3.5-rc6/mm/sparse.c	2012-07-18 18:03:05.553168749 +0900
+> @@ -614,12 +614,13 @@ static inline struct page *kmalloc_secti
+>  	/* This will make the necessary allocations eventually. */
+>  	return sparse_mem_map_populate(pnum, nid);
+>  }
+> -static void __kfree_section_memmap(struct page *memmap, unsigned long nr_pages)
+> +static void __kfree_section_memmap(struct page *page, unsigned long nr_pages)
+>  {
+> -	return; /* XXX: Not implemented yet */
+> +	vmemmap_kfree(page, nr_pages);
+>  }
+>  static void free_map_bootmem(struct page *page, unsigned long nr_pages)
+>  {
+> +	vmemmap_free_bootmem(page, nr_pages);
+>  }
+>  #else
+>  static struct page *__kmalloc_section_memmap(unsigned long nr_pages)
+> Index: linux-3.5-rc6/arch/x86/mm/init_64.c
+> ===================================================================
+> --- linux-3.5-rc6.orig/arch/x86/mm/init_64.c	2012-07-18 18:01:28.000000000 +0900
+> +++ linux-3.5-rc6/arch/x86/mm/init_64.c	2012-07-18 18:03:05.564168611 +0900
+> @@ -978,6 +978,127 @@ vmemmap_populate(struct page *start_page
+>  	return 0;
+>  }
+>  
+> +#define PAGE_INUSE 0xFD
+> +
+> +unsigned long find_and_clear_pte_page(unsigned long addr, unsigned long end,
+> +			    struct page **pp, int *page_size)
+> +{
+> +	pgd_t *pgd;
+> +	pud_t *pud;
+> +	pmd_t *pmd;
+> +	pte_t *pte;
+> +	void *page_addr;
+> +	unsigned long next;
+> +
+> +	*pp = NULL;
+> +
+> +	pgd = pgd_offset_k(addr);
+> +	if (pgd_none(*pgd))
+> +		return pgd_addr_end(addr, end);
+> +
+> +	pud = pud_offset(pgd, addr);
+> +	if (pud_none(*pud))
+> +		return pud_addr_end(addr,end);
+> +
+> +	if (!cpu_has_pse) {
+> +		next = (addr + PAGE_SIZE) & PAGE_MASK;
+> +		pmd = pmd_offset(pud, addr);
+> +		if (pmd_none(*pmd))
+> +			return next;
+> +
+> +		pte = pte_offset_kernel(pmd, addr);
+> +		if (pte_none(*pte))
+> +			return next;
+> +
+> +		*page_size = PAGE_SIZE;
+> +		*pp = pte_page(*pte);
+> +	} else {
+> +		next = pmd_addr_end(addr, end);
+> +
+> +		pmd = pmd_offset(pud, addr);
+> +		if (pmd_none(*pmd))
+> +			return next;
+> +
+> +		*page_size = PMD_SIZE;
+> +		*pp = pmd_page(*pmd);
+> +	}
+> +
+> +	/*
+> +	 * Removed page structs are filled with 0xFD.
+> +	 */
+> +	memset((void *)addr, PAGE_INUSE, next - addr);
+> +
+> +	page_addr = page_address(*pp);
+> +
+> +	/*
+> +	 * Check the page is filled with 0xFD or not.
+> +	 * memchr_inv() returns the address. In this case, we cannot
+> +	 * clear PTE/PUD entry, since the page is used by other.
+> +	 * So we cannot also free the page.
+> +	 *
+> +	 * memchr_inv() returns NULL. In this case, we can clear
+> +	 * PTE/PUD entry, since the page is not used by other.
+> +	 * So we can also free the page.
+> +	 */
+> +	if (memchr_inv(page_addr, PAGE_INUSE, *page_size)) {
+> +		*pp = NULL;
+> +		return next;
+> +	}
+> +
+> +	if (!cpu_has_pse)
+> +		pte_clear(&init_mm, addr, pte);
+> +	else
+> +		pmd_clear(pmd);
+> +
+> +	return next;
+> +}
+> +
+> +void vmemmap_kfree(struct page *memmap, unsigned long nr_pages)
+> +{
+> +	unsigned long addr = (unsigned long)memmap;
+> +	unsigned long end = (unsigned long)(memmap + nr_pages);
+> +	unsigned long next;
+> +	struct page *page;
+> +	int page_size;
+> +
+> +	for (; addr < end; addr = next) {
+> +		page = NULL;
+> +		page_size = 0;
+> +		next = find_and_clear_pte_page(addr, end, &page, &page_size);
+> +		if (!page)
+> +			continue;
+> +
+> +		free_pages((unsigned long)page_address(page),
+> +			    get_order(page_size));
+> +		__flush_tlb_one((unsigned long)page_address(page));
+> +	}
+> +
+> +}
+> +
+> +void vmemmap_free_bootmem(struct page *memmap, unsigned long nr_pages)
+> +{
+> +	unsigned long addr = (unsigned long)memmap;
+> +	unsigned long end = (unsigned long)(memmap + nr_pages);
+> +	unsigned long next;
+> +	struct page *page;
+> +	int page_size;
+> +	unsigned long magic;
+> +
+> +	for (; addr < end; addr = next) {
+> +		page = NULL;
+> +		page_size = 0;
+> +		next = find_and_clear_pte_page(addr, end, &page, &page_size);
+> +		if (!page)
+> +			continue;
+> +
+> +		magic = (unsigned long) page->lru.next;
+> +		if (magic == SECTION_INFO)
+> +			put_page_bootmem(page);
+> +		flush_tlb_kernel_range(addr, end);
+> +	}
+> +
+> +}
+> +
+>  void register_page_bootmem_memmap(unsigned long section_nr,
+>  				  struct page *start_page, unsigned long size)
+>  {
+> Index: linux-3.5-rc6/mm/memory_hotplug.c
+> ===================================================================
+> --- linux-3.5-rc6.orig/mm/memory_hotplug.c	2012-07-18 18:01:28.000000000 +0900
+> +++ linux-3.5-rc6/mm/memory_hotplug.c	2012-07-18 18:25:11.036597977 +0900
+> @@ -300,7 +300,6 @@ static int __meminit __add_section(int n
+>  	return register_new_memory(nid, __pfn_to_section(phys_start_pfn));
+>  }
+>  
+> -#ifdef CONFIG_SPARSEMEM_VMEMMAP
+>  static int __remove_section(struct zone *zone, struct mem_section *ms)
+>  {
+>  	int ret = -EINVAL;
+> @@ -309,29 +308,15 @@ static int __remove_section(struct zone 
+>  		return ret;
+>  
+>  	ret = unregister_memory_section(ms);
+> -
+> -	return ret;
+> -}
+> -#else
+> -static int __remove_section(struct zone *zone, struct mem_section *ms)
+> -{
+> -	unsigned long flags;
+> -	struct pglist_data *pgdat = zone->zone_pgdat;
 
+This two line should not be removed. Otherwise, we can not build the kernel.
 
-Please don't even consider doing something like this. As we continue to develop and maintain the ACPICA code, these kinds of OS-specific divergences from the base ACPICA code cause us all kinds of grief, including the accidental creation of new bugs as it becomes more and more difficult to integrate the base ACPICA code back into Linux.
+Thanks
+Wen Congyang
 
-In fact, we have a major project this year (and probably far into next year) to continue to minimize (i.e., fix) this type of Linux/ACPICA divergence -- of which many have crept in over the years that ACPICA has been present in the Linux kernel.
+> -	int ret = -EINVAL;
+> -
+> -	if (!valid_section(ms))
+> -		return ret;
+> -
+> -	ret = unregister_memory_section(ms);
+>  	if (ret)
+>  		return ret;
+>  
+>  	pgdat_resize_lock(pgdat, &flags);
+>  	sparse_remove_one_section(zone, ms);
+>  	pgdat_resize_unlock(pgdat, &flags);
+> -	return 0;
+> +
+> +	return ret;
+>  }
+> -#endif
+>  
+>  /*
+>   * Reasonably generic function for adding memory.  It is
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+> 
 
-Bob
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
->-----Original Message-----
->From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
->owner@vger.kernel.org] On Behalf Of Toshi Kani
->Sent: Wednesday, July 18, 2012 3:08 PM
->To: Joe Perches; Lin, Ming M
->Cc: lenb@kernel.org; linux-acpi@vger.kernel.org; linux-
->kernel@vger.kernel.org; bhelgaas@google.com;
->isimatu.yasuaki@jp.fujitsu.com; liuj97@gmail.com;
->srivatsa.bhat@linux.vnet.ibm.com; prarit@redhat.com; imammedo@redhat.com;
->vijaymohan.pandarathil@hp.com
->Subject: Re: [PATCH 1/4] ACPI: Add acpi_pr_<level>() interfaces
->
->On Wed, 2012-07-18 at 14:54 -0700, Joe Perches wrote:
->> On Wed, 2012-07-18 at 15:41 -0600, Toshi Kani wrote:
->> > On Wed, 2012-07-18 at 14:21 -0700, Joe Perches wrote:
->> > > On Wed, 2012-07-18 at 14:40 -0600, Toshi Kani wrote:
->> > > > This patch introduces acpi_pr_<level>(), where <level> is a message
->> > > > level such as err/warn/info, to support improved logging messages
->> > > > for ACPI, esp. in hotplug operations.  acpi_pr_<level>() appends
->> > > > "ACPI" prefix and ACPI object path to the messages.  This improves
->> > > > diagnostics in hotplug operations since it identifies an object
->that
->> > > > caused an issue in a log file.
->> []
->> > > I'd be tempted to instead make the calls more like
->> > > other <subsystem>_<level> uses and rename these to
->> > > acpi_<level> and change the existing acpi_info to
->> > > another name.
->> []
->> > I agree with you.  Unfortunately, the ACPI CA (ACPI FW interpreter)
->> > already uses them for its internal-use as follows, so I needed to come
->> > up with some other name...  Hence, acpi_pr_<level>.
->> >
->> > /*
->> >  * Error reporting. Callers module and line number are inserted by
->AE_INFO,
->> >  * the plist contains a set of parens to allow variable-length lists.
->> >  * These macros are used for both the debug and non-debug versions of
->the code.
->> >  */
->> > #define ACPI_INFO(plist)                acpi_info plist
->> > #define ACPI_WARNING(plist)             acpi_warning plist
->> > #define ACPI_EXCEPTION(plist)           acpi_exception plist
->> > #define ACPI_ERROR(plist)               acpi_error plist
->> > #define ACPI_DEBUG_OBJECT(obj,l,i)
->acpi_ex_do_debug_object(obj,l,i)
->>
->> I wouldn't have a problem renaming a few of those to
->> something like:
->>
->> #define ACPI_INFO(plist)	acpi_old_info plist
->> #define ACPI_WARNING(plist)	acpi_old_warning plist
->> #define ACPI_ERROR(plist)	acpi_old_error plist
->>
->> The acpi folk might though.
->
->Hi Joe,
->
->ACPI CA is being developed by Intel as OS-neutral code, and is used by
->multiple OSes including Linux.  So, I am not sure how easy to make such
->changes.  I am copying to Lin Ming.
->
->
->> > > Other than that, seems fine to me.
->> > Great!  Can I consider it as Ack? :)
->>
->> Fix the kfree first.
->
->Please see my other email.  Do you think the check should be added
->despite of the warning message?
->
->
->> I rarely ack stuff as other people generally have to
->> pick up the changes and I think acks are overrated.
->
->That's fair enough.
->
->Thanks!
->-Toshi
->
->
->> cheers, Joe
->>
->
->
->--
->To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
