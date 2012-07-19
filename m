@@ -1,149 +1,37 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH 1/4] ACPI: Add acpi_pr_<level>() interfaces
-Date: Wed, 18 Jul 2012 18:38:16 -0600
-Message-ID: <1342658296.3010.136.camel@misato.fc.hp.com>
-References: <1342644027-19559-1-git-send-email-toshi.kani@hp.com>
-	 <1342644027-19559-2-git-send-email-toshi.kani@hp.com>
-	 <1342648771.5138.37.camel@lorien2>
-	 <1342650386.3010.55.camel@misato.fc.hp.com>
-	 <1342651257.5138.44.camel@lorien2>
-	 <1342651966.3010.66.camel@misato.fc.hp.com>
-	 <1342653482.5138.56.camel@lorien2>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: PM: Summary of changes for v3.6
+Date: Thu, 19 Jul 2012 00:48:50 -0400
+Message-ID: <500791B2.9010601@kernel.org>
+References: <201207162246.03660.rjw@sisk.pl> <87mx2zcq62.fsf@ti.com> <201207172252.06093.rjw@sisk.pl> <CAMbhsRQHMu-zzkhJxYLvszQ2+=OVEJwKrCTbGCjpYGtnP-tttg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0017.houston.hp.com ([15.201.24.20]:38698 "EHLO
-	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751031Ab2GSAm7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Jul 2012 20:42:59 -0400
-In-Reply-To: <1342653482.5138.56.camel@lorien2>
+Received: from mail-qa0-f53.google.com ([209.85.216.53]:63582 "EHLO
+	mail-qa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751322Ab2GSEsz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Jul 2012 00:48:55 -0400
+In-Reply-To: <CAMbhsRQHMu-zzkhJxYLvszQ2+=OVEJwKrCTbGCjpYGtnP-tttg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: shuah.khan@hp.com
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, liuj97@gmail.com, srivatsa.bhat@linux.vnet.ibm.com, prarit@redhat.com, imammedo@redhat.com, vijaymohan.pandarathil@hp.com, shuahkhan@gmail.com
-
-On Wed, 2012-07-18 at 17:18 -0600, Shuah Khan wrote:
-> On Wed, 2012-07-18 at 16:52 -0600, Toshi Kani wrote:
-> > On Wed, 2012-07-18 at 16:40 -0600, Shuah Khan wrote:
-> > > On Wed, 2012-07-18 at 16:26 -0600, Toshi Kani wrote:
-> > > > On Wed, 2012-07-18 at 15:59 -0600, Shuah Khan wrote:
-> > > > > On Wed, 2012-07-18 at 14:40 -0600, Toshi Kani wrote:
-> > > > > > This patch introduces acpi_pr_<level>(), where <level> is a message
-> > > > > > level such as err/warn/info, to support improved logging messages
-> > > > > > for ACPI, esp. in hotplug operations.  acpi_pr_<level>() appends
-> > > > > > "ACPI" prefix and ACPI object path to the messages.  This improves
-> > > > > > diagnostics in hotplug operations since it identifies an object that
-> > > > > > caused an issue in a log file.
-> > > > > > 
-> > > > > > acpi_pr_<level>() takes acpi_handle as an argument, which is passed
-> > > > > > to ACPI hotplug notify handlers from the ACPI CA.  Therefore, it is
-> > > > > > always available unlike other kernel objects, such as device.
-> > > > > > 
-> > > > > > For example, the statement below
-> > > > > >   acpi_pr_err(handle, "Device don't exist, dropping EJECT\n");
-> > > > > > logs an error message like this:
-> > > > > >   ACPI: \_SB_.SCK4.CPU4: Device don't exist, dropping EJECT
-> > > > > > 
-> > > > > > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-> > > > > > ---
-> > > > > >  drivers/acpi/utils.c    |   32 ++++++++++++++++++++++++++++++++
-> > > > > >  include/acpi/acpi_bus.h |   18 ++++++++++++++++++
-> > > > > >  2 files changed, 50 insertions(+), 0 deletions(-)
-> > > > > > 
-> > > > > > diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-> > > > > > index 3e87c9c..4097266 100644
-> > > > > > --- a/drivers/acpi/utils.c
-> > > > > > +++ b/drivers/acpi/utils.c
-> > > > > > @@ -454,3 +454,35 @@ acpi_evaluate_hotplug_ost(acpi_handle handle, u32 source_event,
-> > > > > >  #endif
-> > > > > >  }
-> > > > > >  EXPORT_SYMBOL(acpi_evaluate_hotplug_ost);
-> > > > > > +
-> > > > > > +/**
-> > > > > > + * acpi_printk: Print messages with ACPI prefix and object path
-> > > > > > + *
-> > > > > > + * This function is intended to be called through acpi_pr_<level> macros.
-> > > > > > + */
-> > > > > > +void
-> > > > > > +acpi_printk(const char *level, acpi_handle handle, const char *fmt, ...)
-> > > > > > +{
-> > > > > > +	struct va_format vaf;
-> > > > > > +	va_list args;
-> > > > > > +	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER};
-> > > > > > +	char *path;
-> > > > > > +	acpi_status ret;
-> > > > > > +
-> > > > > > +	va_start(args, fmt);
-> > > > > > +
-> > > > > > +	vaf.fmt = fmt;
-> > > > > > +	vaf.va = &args;
-> > > > > > +
-> > > > > > +	ret = acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
-> > > > > 
-> > > > > One big problem I see with this approach is now each acpi_printk() will
-> > > > > result in a call to acpi_get_name() which will invoke several ACPI
-> > > > > calls, including a call to acpi_ut_initialize_buffer() which allocates
-> > > > > buffer. Is this really warranted? What is the performance impact of this
-> > > > > change?
-> > > > 
-> > > > Hi Shuah,
-> > > > 
-> > > > This interface is intended to be used by acpi_pr_<level>(), which is
-> > > > used for error, warning, debugging, etc.  It is not intended to be used
-> > > > in any performance path.
-> > > > 
-> > > 
-> > > How does one enable this interface to see errors, warns, debugging? Is
-> > > there a special mode kernel needs to run in? I am trying to understand
-> > > what you mean by "not intended to be used in any performance path". Does
-> > > one build a special kernel similar to CONFIG_VM_DEBUG (just happen to
-> > > the one I could think off) ?
-> > 
-> > acpi_pr_<level>() calls printk() with a corresponding message level,
-> > such as KERN_ERR, KERN_WARNING and KERN_DEBUG, which is by definition
-> > used for error, warning and debugging messages.  Let me know if the
-> > change log was not clear about this.  Anyway, I think one should not use
-> > a printk() in performance path in the first place...
-> 
-> KERN_ERR, KERN_WARNING, and KERN_DEBUG are used at run-time. What
-> happens when these new interfaces start getting used widely during
-> run-time. In the case of a serious error, shouldn't the kernel do the
-> minimum to print the message out and not call several acpi routines?
-
-acpi_pr_<level>() does not replace pr_<level>().  When the kernel needs
-the minimum to print the message out, it can continue to use the regular
-pr_<level>() interface.
-
-> This type of feature definitely makes sense for debug, but not for other
-> cases KERN_ERR, KERN_WARNING case.
-
-Can you elaborate why you think this interface does not make sense for
-KERN_ERR and KERN_WARNING?  As described in the change log, we need to
-know which object caused an error in order to diagnose an issue.  This
-is a critical piece of the information to start analyzing.
-
-Without this interface, error paths in the hotplug handlers would have
-to call acpi_get_name() by itself in order to log the same information.
-This is much more complicated and is not saving any time.
-
-> My concern is all the extra work that is done whenever one of these
-> interfaces is called. Can we limit this to special debug cases only.
-
-This interface is defined in acpi/acpi_bus.h, which is intended for ACPI
-drivers which make many ACPI calls to proceed when they are called at
-run-time today.  This interface does not change that, and I believe
-acpi_get_name() is much faster compared to ACPI method calls these ACPI
-drivers make in their normal code path.  The extra work to call
-acpi_get_name() is simply a noise in this case (if you try to measure),
-and the use of this interface is limited in error paths of such ACPI
-drivers.
-
-Thanks,
--Toshi
+To: Colin Cross <ccross@android.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Kevin Hilman <khilman@ti.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>
 
 
-> -- Shuah
-> 
+> The disappeared from Len's tree for a little while after the 3.5 merge
+> window, which is why they started appearing other places.  Now that
+> they have returned to Len's tree, hopefully to stay, they should be
+> considered the official version.
+
+Yes, they are staged for 3.6 in my tree.
+
+The intent was to push them for 3.5, but some unrelated patches
+exploded and stopped that push.  I then had to re-merge my tree
+to push only the bug-fixes to 3.5, which is why the feature
+patches went away for a bit.
+
+thanks,
+-Len
+
 
 
