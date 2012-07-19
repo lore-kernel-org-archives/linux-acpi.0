@@ -1,7 +1,7 @@
-From: Joe Perches <joe@perches.com>
+From: Toshi Kani <toshi.kani@hp.com>
 Subject: Re: [PATCH 1/4] ACPI: Add acpi_pr_<level>() interfaces
-Date: Thu, 19 Jul 2012 09:34:47 -0700
-Message-ID: <1342715687.1988.16.camel@joe2Laptop>
+Date: Thu, 19 Jul 2012 11:28:17 -0600
+Message-ID: <1342718897.3010.188.camel@misato.fc.hp.com>
 References: <1342644027-19559-1-git-send-email-toshi.kani@hp.com>
 	 <1342644027-19559-2-git-send-email-toshi.kani@hp.com>
 	 <1342648771.5138.37.camel@lorien2>
@@ -14,16 +14,12 @@ References: <1342644027-19559-1-git-send-email-toshi.kani@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from perches-mx.perches.com ([206.117.179.246]:59675 "EHLO
-	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751300Ab2GSQes (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 19 Jul 2012 12:34:48 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1342714515.3100.27.camel@lorien2>
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: shuah.khan@hp.com
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, liuj97@gmail.com, srivatsa.bhat@linux.vnet.ibm.com, prarit@redhat.com, imammedo@redhat.com, vijaymohan.pandarathil@hp.com, shuahkhan@gmail.com
 List-Id: linux-acpi@vger.kernel.org
-To: shuah.khan@hp.com, "Moore, Robert" <robert.moore@intel.com>
-Cc: Toshi Kani <toshi.kani@hp.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, liuj97@gmail.com, srivatsa.bhat@linux.vnet.ibm.com, prarit@redhat.com, imammedo@redhat.com, vijaymohan.pandarathil@hp.com, shuahkhan@gmail.com
 
 On Thu, 2012-07-19 at 10:15 -0600, Shuah Khan wrote:
 > On Wed, 2012-07-18 at 18:38 -0600, Toshi Kani wrote:
@@ -61,29 +57,60 @@ On Thu, 2012-07-19 at 10:15 -0600, Shuah Khan wrote:
 > 
 > Make acpi_pr_* versions execute the full path to do acpi_get_name()
 > conditionally and not as a default case.
-
-or maybe cache one or two.
-
+> 
 > To illustrate my point further, I currently see the following ACPI
 > messages in my dmesg buffer on my laptop. I haven't taken the time to
 > evaluate how many of them originate from acpi drivers, however I would
 > not want to see all of these becoming acpi_pr_* versions that do more
 > than what pr_* does today. I hope this explains my concern clearly.
-> 
-> [    0.000000] ACPI: RSDP 00000000000fc600 00024 (v02 HPQOEM)
-> [    0.000000] ACPI: XSDT 00000000bb7fe120 00084 (v01 HPQOEM SLIC-MPC
-> 0000000F      01000013)
 
-[120+ lines of ACPI stuff]
+I agree that there are many ACPI messages at boot, and I understand that
+you concerned with them, but that is a different issue.  It requires a
+different project to address them.  Changing my patchset won't make any
+difference.
 
-> [    0.739844] ACPI: ACPI bus type pnp unregistered
+The issue I am trying to solve is well summarized in Bjorn's comment in
+my earlier patch as follows: 
+=== <quote> ===
+>                result = acpi_processor_device_add(handle, &device);
+>                if (result) {
+>                        printk(KERN_ERR PREFIX "Unable to add the
+device\n");
 
-I think ACPI is the noisiest subsystem.
+You didn't add this problem, but since you're touching the code, I'll
+point it out.  This message will look to the user like:
 
-I'd rather see this logging made quieter by conversion to
-KERN_DEBUG or another selective mechanism.
+    ACPI: Unable to add the device
 
-There just aren't many ACPI_INFO calls around and that why
-I thought it reasonable to convert the macro to call a
-different named function.
+which is useless.  The user has no idea what device we're talking
+about or why we can't add it, so he can't *do* anything with the
+message.
+=== </quote> ===
 
+This is very true.  And this issue is even worse when support teams need
+to solve such customer issue from log files.  The current error messages
+in ACPI hotplug handlers do not provide any information to identify a
+device that cause an issue.
+
+To address this issue, the ACPI drivers have to obtain an ACPI object
+path information in their error handling code with acpi_get_name().
+
+A possible alternative to acpi_pr_<level>() is to create a driver's
+local printk function, just like acpi_print_osc_error().  However, I do
+not think we should create such local functions in all ACPI drivers.
+
+Performance is not an issue since the use of the interfaces is limited
+to the error paths.  The boot messages you concerned with do not need to
+any more extra-info to append ACPI device path, and therefore no need to
+use acpi_pr_<level>().  dev_<level>() may be a good example of how this
+type of interfaces is used in error paths today.
+
+
+Thanks,
+-Toshi
+
+
+
+
+
+  
