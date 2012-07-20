@@ -1,256 +1,195 @@
-From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: Re: [RFC PATCH 6/8] memory-hotplug: introduce new function arch_remove_memory()
-Date: Fri, 20 Jul 2012 16:38:41 +0800
-Message-ID: <50091911.7080303@cn.fujitsu.com>
-References: <5009038A.4090001@cn.fujitsu.com> <500904D6.3030109@cn.fujitsu.com> <5009151F.3060903@jp.fujitsu.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 07/16] Thermal: Introduce .get_trend() callback.
+Date: Fri, 20 Jul 2012 11:53:41 +0200
+Message-ID: <201207201153.41668.rjw@sisk.pl>
+References: <1342679480-5336-1-git-send-email-rui.zhang@intel.com> <1342679480-5336-8-git-send-email-rui.zhang@intel.com> <20120719150915.069ccf91@chromoly>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:39836 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1751892Ab2GTIeG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 20 Jul 2012 04:34:06 -0400
-In-Reply-To: <5009151F.3060903@jp.fujitsu.com>
+Received: from ogre.sisk.pl ([193.178.161.156]:49403 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751227Ab2GTJsD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 20 Jul 2012 05:48:03 -0400
+In-Reply-To: <20120719150915.069ccf91@chromoly>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, linux-s390@vger.kernel.org, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, cmetcalf@tilera.com
+To: Jacob Pan <jacob.jun.pan@linux.intel.com>, Amit Kachhap <amit.kachhap@linaro.org>
+Cc: Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, R Durgadoss <durgadoss.r@intel.com>, Wei Ni <wni@nvidia.com>
 
-At 07/20/2012 04:21 PM, Yasuaki Ishimatsu Wrote:
-> 2012/07/20 16:12, Wen Congyang wrote:
->> We don't call __add_pages() directly in the function add_memory()
->> because some other architecture related thins needs to be done
->> before or after calling __add_pages(). So we should not call
->> __remove_pages() directly in the function remove_memory.
->> Introduce new function arch_remove_memory() to revert the things done
->> in arch_add_memory().
->>
->> Note: the function for x86_64 will be implemented later. And I don't
->> know how to implement it for s390.
+On Friday, July 20, 2012, Jacob Pan wrote:
+> On Thu, 19 Jul 2012 14:31:11 +0800
+> Zhang Rui <rui.zhang@intel.com> wrote:
 > 
-> I think you need cc to other arch ML for reviewing the patch.
+> > tc1 and tc2 are used by OSPM to anticipate the temperature trends.
+> > But they are ACPI platform specific concepts.
+> > 
+> > Introduce .get_trend() as a more general solution.
+> > 
+> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> > ---
+> >  drivers/acpi/thermal.c        |   30 ++++++++++++++++++++++++++++++
+> >  drivers/thermal/thermal_sys.c |   19 +++++++++++++++++--
+> >  include/linux/thermal.h       |    9 +++++++++
+> >  3 files changed, 56 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+> > index a7c97f5..b345646 100644
+> > --- a/drivers/acpi/thermal.c
+> > +++ b/drivers/acpi/thermal.c
+> > @@ -704,6 +704,35 @@ static int thermal_get_crit_temp(struct
+> > thermal_zone_device *thermal, return -EINVAL;
+> >  }
+> >  
+> > +static int thermal_get_trend(struct thermal_zone_device *thermal,
+> > +				int trip, enum thermal_trend *trend)
+> > +{
+> > +	struct acpi_thermal *tz = thermal->devdata;
+> > +	enum thermal_trip_type type;
+> > +	unsigned long trip_temp;
+> > +	int i;
+> > +
+> > +	if (thermal_get_trip_type(thermal, trip, &type))
+> > +		return -EINVAL;
+> > +
+> > +	/* Only PASSIVE trip points need TREND */
+> > +	if (type != THERMAL_TRIP_PASSIVE)
+> > +		return -EINVAL;
+> > +
+> > +	/*
+> > +	 * tz->temperature has already been updated by generic
+> > thermal layer,
+> > +	 * before this callback being invoked
+> > +	 */
+> > +	i = (tz->trips.passive.tc1 * (tz->temperature -
+> > tz->last_temperature))
+> > +		+ (tz->trips.passive.tc2
+> > +		* (tz->temperature - tz->trips.passive.temperature));
+> > +
+> > +	*trend = i > 0 ? THERMAL_TREND_RAISING :
+> > +		(i < 0 ? THERMAL_TREND_DROPPING :
+> > THERMAL_TREND_STABLE);
+> > +	return 0;
+> > +}
+> > +
+> > +
+> >  static int thermal_notify(struct thermal_zone_device *thermal, int
+> > trip, enum thermal_trip_type trip_type)
+> >  {
+> > @@ -832,6 +861,7 @@ static const struct thermal_zone_device_ops
+> > acpi_thermal_zone_ops = { .get_trip_type = thermal_get_trip_type,
+> >  	.get_trip_temp = thermal_get_trip_temp,
+> >  	.get_crit_temp = thermal_get_crit_temp,
+> > +	.get_trend = thermal_get_trend,
+> >  	.notify = thermal_notify,
+> >  };
+> >  
+> > diff --git a/drivers/thermal/thermal_sys.c
+> > b/drivers/thermal/thermal_sys.c index db35300..29b6dba 100644
+> > --- a/drivers/thermal/thermal_sys.c
+> > +++ b/drivers/thermal/thermal_sys.c
+> > @@ -698,6 +698,18 @@ thermal_remove_hwmon_sysfs(struct
+> > thermal_zone_device *tz) }
+> >  #endif
+> >  
+> > +static void thermal_get_trend(struct thermal_zone_device *tz,
+> > +		int trip, enum thermal_trend *trend)
+> > +{
+> > +	if (tz->ops->get_trend)
+> > +		if (!tz->ops->get_trend(tz, trip, trend))
+> > +			return;
+> > +
+> > +	*trend = tz->temperature >= tz->last_temperature ?
+> > +		 THERMAL_TREND_RAISING : THERMAL_TREND_DROPPING;
+> I think you are mixing things a little here. ACPI passive cooling
+> formula generates a performance trend to guide thermal management,
+> which is not a simple temperature trend.
+> 
+> In case of no .get_trend() present, caller can easily figure out
+> temperature trend explicitly instead of getting uninformed information.
 
-I forgot to do it.
+thermal_zone_device_passive() (below) is the caller and I don't think it
+can really do that.
 
-> 
-> 
->> CC: David Rientjes <rientjes@google.com>
->> CC: Jiang Liu <liuj97@gmail.com>
->> CC: Len Brown <len.brown@intel.com>
->> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
->> CC: Paul Mackerras <paulus@samba.org>
->> CC: Christoph Lameter <cl@linux.com>
->> Cc: Minchan Kim <minchan.kim@gmail.com>
->> CC: Andrew Morton <akpm@linux-foundation.org>
->> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
->> CC: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->> Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
->> ---
->>   arch/ia64/mm/init.c            |   16 ++++++++++++++++
->>   arch/powerpc/mm/mem.c          |   14 ++++++++++++++
->>   arch/s390/mm/init.c            |    8 ++++++++
->>   arch/sh/mm/init.c              |   15 +++++++++++++++
->>   arch/tile/mm/init.c            |    8 ++++++++
->>   arch/x86/mm/init_32.c          |   10 ++++++++++
->>   arch/x86/mm/init_64.c          |    7 +++++++
->>   include/linux/memory_hotplug.h |    1 +
->>   mm/memory_hotplug.c            |    2 +-
->>   9 files changed, 80 insertions(+), 1 deletions(-)
->>
->> diff --git a/arch/ia64/mm/init.c b/arch/ia64/mm/init.c
->> index 0eab454..1e345ed 100644
->> --- a/arch/ia64/mm/init.c
->> +++ b/arch/ia64/mm/init.c
->> @@ -688,6 +688,22 @@ int arch_add_memory(int nid, u64 start, u64 size)
->>
->>       return ret;
->>   }
->> +
->> +#ifdef CONFIG_MEMORY_HOTREMOVE
->> +int arch_remove_memory(u64 start, u64 size)
->> +{
->> +    unsigned long start_pfn = start >> PAGE_SHIFT;
->> +    unsigned long nr_pages = size >> PAGE_SHIFT;
->> +    int ret;
->> +
->> +    ret = __remove_pages(start_pfn, nr_pages);
->> +    if (ret)
->> +        pr_warn("%s: Problem encountered in __remove_pages() as"
->> +            " ret=%d\n", __func__,  ret);
->> +
->> +    return ret;
->> +}
->> +#endif
->>   #endif
->>
->>   /*
->> diff --git a/arch/powerpc/mm/mem.c b/arch/powerpc/mm/mem.c
->> index baaafde..249cef4 100644
->> --- a/arch/powerpc/mm/mem.c
->> +++ b/arch/powerpc/mm/mem.c
->> @@ -133,6 +133,20 @@ int arch_add_memory(int nid, u64 start, u64 size)
->>
->>       return __add_pages(nid, zone, start_pfn, nr_pages);
->>   }
->> +
->> +#ifdef CONFIG_MEMORY_HOTREMOVE
->> +int arch_remove_memory(u64 start, u64 size)
->> +{
->> +    unsigned long start_pfn = start >> PAGE_SHIFT;
->> +    unsigned long nr_pages = size >> PAGE_SHIFT;
->> +
->> +    start = (unsigned long)__va(start);
->> +    if (remove_section_mapping(start, start + size))
->> +        return -EINVAL;
->> +
->> +    return __remove_pages(start_pfn, nr_pages);
->> +}
->> +#endif
->>   #endif /* CONFIG_MEMORY_HOTPLUG */
->>
->>   /*
->> diff --git a/arch/s390/mm/init.c b/arch/s390/mm/init.c
->> index 2bea060..3de0d5b 100644
->> --- a/arch/s390/mm/init.c
->> +++ b/arch/s390/mm/init.c
->> @@ -259,4 +259,12 @@ int arch_add_memory(int nid, u64 start, u64 size)
->>           vmem_remove_mapping(start, size);
->>       return rc;
->>   }
->> +
->> +#ifdef CONFIG_MEMORY_HOTREMOVE
->> +int arch_remove_memory(u64 start, u64 size)
->> +{
->> +    /* TODO */
->> +    return -EBUSY;
->> +}
->> +#endif
->>   #endif /* CONFIG_MEMORY_HOTPLUG */
->> diff --git a/arch/sh/mm/init.c b/arch/sh/mm/init.c
->> index 82cc576..fc84491 100644
->> --- a/arch/sh/mm/init.c
->> +++ b/arch/sh/mm/init.c
->> @@ -558,4 +558,19 @@ int memory_add_physaddr_to_nid(u64 addr)
->>   EXPORT_SYMBOL_GPL(memory_add_physaddr_to_nid);
->>   #endif
->>
->> +#ifdef CONFIG_MEMORY_HOTREMOVE
->> +int arch_remove_memory(u64 start, u64 size)
->> +{
->> +    unsigned long start_pfn = start >> PAGE_SHIFT;
->> +    unsigned long nr_pages = size >> PAGE_SHIFT;
->> +    int ret;
->> +
->> +    ret = __remove_pages(start_pfn, nr_pages);
->> +    if (unlikely(ret))
->> +        pr_warn("%s: Failed, __remove_pages() == %d\n", __func__,
->> +            ret);
->> +
->> +    return ret;
->> +}
->> +#endif
->>   #endif /* CONFIG_MEMORY_HOTPLUG */
->> diff --git a/arch/tile/mm/init.c b/arch/tile/mm/init.c
->> index 630dd2c..bdd8a99 100644
->> --- a/arch/tile/mm/init.c
->> +++ b/arch/tile/mm/init.c
->> @@ -947,6 +947,14 @@ int remove_memory(u64 start, u64 size)
->>   {
->>       return -EINVAL;
->>   }
->> +
->> +#ifdef CONFIG_MEMORY_HOTREMOVE
->> +int arch_remove_memory(u64 start, u64 size)
->> +{
->> +    /* TODO */
->> +    return -EBUSY;
->> +}
->> +#endif
->>   #endif
->>
->>   struct kmem_cache *pgd_cache;
->> diff --git a/arch/x86/mm/init_32.c b/arch/x86/mm/init_32.c
->> index 575d86f..a690153 100644
->> --- a/arch/x86/mm/init_32.c
->> +++ b/arch/x86/mm/init_32.c
->> @@ -842,6 +842,16 @@ int arch_add_memory(int nid, u64 start, u64 size)
->>
->>       return __add_pages(nid, zone, start_pfn, nr_pages);
->>   }
->> +
->> +#ifdef CONFIG_MEMORY_HOTREMOVE
->> +int arch_remove_memory(unsigned long start, unsigned long size)
->> +{
->> +    unsigned long start_pfn = start >> PAGE_SHIFT;
->> +    unsigned long nr_pages = size >> PAGE_SHIFT;
->> +
->> +    return __remove_pages(start_pfn, nr_pages);
->> +}
->> +#endif
->>   #endif
->>
->>   /*
->> diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
->> index 9e635b3..78b94bc 100644
->> --- a/arch/x86/mm/init_64.c
->> +++ b/arch/x86/mm/init_64.c
->> @@ -675,6 +675,13 @@ int arch_add_memory(int nid, u64 start, u64 size)
->>   }
->>   EXPORT_SYMBOL_GPL(arch_add_memory);
->>
->> +#ifdef CONFIG_MEMORY_HOTREMOVE
->> +int arch_remove_memory(unsigned long start, unsigned long size)
->> +{
->> +    /* TODO */
->> +    return -EBUSY;
->> +}
->> +#endif
-> 
-> Why does not the function call __remove_pages()?
+That said, since thermal_zone_device_passive() seems to me the only caller of
+thermal_get_trend(), it might be better to move the code to that function
+directly.
 
-arch_remove_memory() should clear the page table after remove pages here.
-I implement this function in patch 8.
+Thanks,
+Rafael
 
-Thanks
-Wen Congyang
 
+> > +	return;
+> > +}
+> > +
+> >  static void thermal_zone_device_set_polling(struct
+> > thermal_zone_device *tz, int delay)
+> >  {
+> > @@ -732,6 +744,8 @@ static void thermal_zone_device_passive(struct
+> > thermal_zone_device *tz, if (temp >= trip_temp) {
+> >  		tz->passive = true;
+> >  
+> > +		thermal_get_trend(tz, trip, (enum thermal_trend
+> > *)&trend); +
+> >  		trend = (tz->tc1 * (temp - tz->last_temperature)) +
+> >  			(tz->tc2 * (temp - trip_temp));
+> >  
+> > @@ -1090,6 +1104,9 @@ void thermal_zone_device_update(struct
+> > thermal_zone_device *tz) goto leave;
+> >  	}
+> >  
+> > +	tz->last_temperature = tz->temperature;
+> > +	tz->temperature = temp;
+> > +
+> >  	for (count = 0; count < tz->trips; count++) {
+> >  		tz->ops->get_trip_type(tz, count, &trip_type);
+> >  		tz->ops->get_trip_temp(tz, count, &trip_temp);
+> > @@ -1149,8 +1166,6 @@ void thermal_zone_device_update(struct
+> > thermal_zone_device *tz) thermal_zone_device_passive(tz, temp,
+> > tz->forced_passive, THERMAL_TRIPS_NONE);
+> >  
+> > -	tz->last_temperature = temp;
+> > -
+> >  leave:
+> >  	if (tz->passive)
+> >  		thermal_zone_device_set_polling(tz,
+> > tz->passive_delay); diff --git a/include/linux/thermal.h
+> > b/include/linux/thermal.h index b355c62..ab656d6 100644
+> > --- a/include/linux/thermal.h
+> > +++ b/include/linux/thermal.h
+> > @@ -44,6 +44,12 @@ enum thermal_trip_type {
+> >  	THERMAL_TRIP_CRITICAL,
+> >  };
+> >  
+> > +enum thermal_trend {
+> > +	THERMAL_TREND_STABLE, /* temperature is stable */
+> > +	THERMAL_TREND_RAISING, /* temperature is raising */
+> > +	THERMAL_TREND_DROPPING, /* temperature is dropping */
+> > +};
+> > +
+> >  struct thermal_zone_device_ops {
+> >  	int (*bind) (struct thermal_zone_device *,
+> >  		     struct thermal_cooling_device *);
+> > @@ -65,6 +71,8 @@ struct thermal_zone_device_ops {
+> >  	int (*set_trip_hyst) (struct thermal_zone_device *, int,
+> >  			      unsigned long);
+> >  	int (*get_crit_temp) (struct thermal_zone_device *, unsigned
+> > long *);
+> > +	int (*get_trend) (struct thermal_zone_device *, int,
+> > +			  enum thermal_trend *);
+> >  	int (*notify) (struct thermal_zone_device *, int,
+> >  		       enum thermal_trip_type);
+> >  };
+> > @@ -109,6 +117,7 @@ struct thermal_zone_device {
+> >  	int tc2;
+> >  	int passive_delay;
+> >  	int polling_delay;
+> > +	int temperature;
+> >  	int last_temperature;
+> >  	bool passive;
+> >  	unsigned int forced_passive;
 > 
-> Thanks,
-> Yasuaki ishimatsu
-> 
->>   #endif /* CONFIG_MEMORY_HOTPLUG */
->>
->>   static struct kcore_list kcore_vsyscall;
->> diff --git a/include/linux/memory_hotplug.h
->> b/include/linux/memory_hotplug.h
->> index 2ba0a1a..8639799 100644
->> --- a/include/linux/memory_hotplug.h
->> +++ b/include/linux/memory_hotplug.h
->> @@ -84,6 +84,7 @@ extern void __online_page_free(struct page *page);
->>
->>   #ifdef CONFIG_MEMORY_HOTREMOVE
->>   extern bool is_pageblock_removable_nolock(struct page *page);
->> +extern int arch_remove_memory(unsigned long start, unsigned long size);
->>   #endif /* CONFIG_MEMORY_HOTREMOVE */
->>
->>   /* reasonably generic interface to expand the physical pages in a
->> zone  */
->> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
->> index dccdf71..cc2c8b9 100644
->> --- a/mm/memory_hotplug.c
->> +++ b/mm/memory_hotplug.c
->> @@ -1055,7 +1055,7 @@ int __ref remove_memory(int nid, u64 start, u64
->> size)
->>           unregister_one_node(nid);
->>       }
->>
->> -    __remove_pages(start >> PAGE_SHIFT, size >> PAGE_SHIFT);
->> +    arch_remove_memory(start, size);
->>   out:
->>       unlock_memory_hotplug();
->>       return ret;
->>
 > 
 > 
 > 
