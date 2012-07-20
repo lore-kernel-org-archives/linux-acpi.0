@@ -1,14 +1,14 @@
 From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [RFC PATCH 2/8] memory-hotplug: offline memory only when it is
- onlined
-Date: Fri, 20 Jul 2012 16:46:40 +0900
-Message-ID: <50090CE0.3040409@jp.fujitsu.com>
-References: <5009038A.4090001@cn.fujitsu.com> <5009044B.7050203@cn.fujitsu.com>
+Subject: Re: [RFC PATCH 3/8] memory-hotplug: call remove_memory() to cleanup
+ when removing memory device
+Date: Fri, 20 Jul 2012 16:49:56 +0900
+Message-ID: <50090DA4.8040908@jp.fujitsu.com>
+References: <5009038A.4090001@cn.fujitsu.com> <5009046C.106@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <5009044B.7050203@cn.fujitsu.com>
+In-Reply-To: <5009046C.106@cn.fujitsu.com>
 Sender: owner-linux-mm@kvack.org
 To: Wen Congyang <wency@cn.fujitsu.com>
 Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com
@@ -17,8 +17,14 @@ List-Id: linux-acpi@vger.kernel.org
 Hi Wen,
 
 2012/07/20 16:10, Wen Congyang wrote:
-> offline_memory() will fail if the memory is not onlined. So check
-> whether the memory is onlined before calling offline_memory().
+> We should remove the following things when removing the memory device:
+> 1. memmap and related sysfs files
+> 2. iomem_resource
+> 3. mem_section and related sysfs files
+> 4. node and related sysfs files
+>
+> The function remove_memory() can do this. So call it after the memory device
+> is offlined.
 >
 > CC: David Rientjes <rientjes@google.com>
 > CC: Jiang Liu <liuj97@gmail.com>
@@ -39,27 +45,32 @@ Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Thanks,
 Yasuaki Ishimatsu
 
->   drivers/acpi/acpi_memhotplug.c |   10 +++++++---
->   1 files changed, 7 insertions(+), 3 deletions(-)
+
+>   drivers/acpi/acpi_memhotplug.c |    7 ++++++-
+>   1 files changed, 6 insertions(+), 1 deletions(-)
 >
 > diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-> index db8de39..712e767 100644
+> index 712e767..58e4e63 100644
 > --- a/drivers/acpi/acpi_memhotplug.c
 > +++ b/drivers/acpi/acpi_memhotplug.c
-> @@ -323,9 +323,13 @@ static int acpi_memory_disable_device(struct acpi_memory_device *mem_device)
->   	 */
->   	list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
->   		if (info->enabled) {
-> -			result = offline_memory(info->start_addr, info->length);
-> -			if (result)
-> -				return result;
-> +			if (!is_memblk_offline(info->start_addr,
-> +					       info->length)) {
-> +				result = offline_memory(info->start_addr,
-> +							info->length);
-> +				if (result)
-> +					return result;
-> +			}
+> @@ -315,7 +315,7 @@ static int acpi_memory_disable_device(struct acpi_memory_device *mem_device)
+>   {
+>   	int result;
+>   	struct acpi_memory_info *info, *n;
+> -
+> +	int node = mem_device->nid;
+>
+>   	/*
+>   	 * Ask the VM to offline this memory range.
+> @@ -330,6 +330,11 @@ static int acpi_memory_disable_device(struct acpi_memory_device *mem_device)
+>   				if (result)
+>   					return result;
+>   			}
+> +
+> +			result = remove_memory(node, info->start_addr,
+> +					       info->length);
+> +			if (result)
+> +				return result;
 >   		}
 >   		list_del(&info->list);
 >   		kfree(info);
