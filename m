@@ -1,49 +1,56 @@
-From: "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/2] init: Introduce early initrd files through uncompressed
- cpio passing
-Date: Sat, 21 Jul 2012 08:21:26 -0700
-Message-ID: <500AC8F6.4010802@zytor.com>
-References: <1342607764-66747-1-git-send-email-trenn@suse.de> <1342607764-66747-2-git-send-email-trenn@suse.de>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: [PATCH] acpi: fix pwr_btn_event_pending build error
+Date: Sat, 21 Jul 2012 14:41:56 -0700
+Message-ID: <20120721214156.GA2515@linux.vnet.ibm.com>
+Reply-To: paulmck@linux.vnet.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <initramfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1342607764-66747-2-git-send-email-trenn-l3A5Bk7waGM@public.gmane.org>
-Sender: initramfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, initramfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, Fenghua Yu <fenghua.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from e35.co.us.ibm.com ([32.97.110.153]:38823 "EHLO
+	e35.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751606Ab2GUVmA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 21 Jul 2012 17:42:00 -0400
+Received: from /spool/local
+	by e35.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <linux-acpi@vger.kernel.org> from <paulmck@linux.vnet.ibm.com>;
+	Sat, 21 Jul 2012 15:42:00 -0600
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 07/18/2012 03:36 AM, Thomas Renninger wrote:
-> cpio parsing code comes from  H. Peter Anvin.
-> The CONFIG_EARLY_INITRD feature is architecture independent, but
-> for now only enabled/called for X86.
-> The problem is that initrd_start must be valid, but there is no
-> architecture independent reserve_initrd() call in init/main.c or
-> similiar.
-> + * Add here new callback functions and the path relevant files show up in an
-> + * uncompressed cpio
-> + */
-> +static __initdata struct initrd_early_data initrd_early_callbacks[] =
-> +{
-> +	{
-> +		.namesp = NULL,
-> +	}
-> +};
-> +
+Hello!
 
-I don't like your callback interface at all.  In fact, it is actively 
-broken, because it assumes that all early users are runnable at the same 
-time, which is trivially shown false -- the microcode work that Fenghua 
-Yu is working on needs access to its early data much, much earlier than 
-your ACPI code.
+A recent build for KVM on x86 resulted in the following build error:
 
-So big NAK on this change.  Instead we should stick to the imperative 
-interface that I had in my original code (call the search function with 
-a filename and let it return a pointer if found.)
+drivers/acpi/sleep.c:60:13: warning: =E2=80=98pwr_btn_event_pending=E2=80=
+=99 defined but not
++used [-Wunused-variable]
 
-	-hpa
+This patch silences this error.
 
--- 
-H. Peter Anvin, Intel Open Source Technology Center
-I work for Intel.  I don't speak on their behalf.
+Signed-off-by: Paul E. McKenney <paul.mckenney@linaro.org>
+
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index 8856102..18347aa 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -57,7 +57,9 @@ MODULE_PARM_DESC(gts, "Enable evaluation of _GTS on s=
+uspend.");
+ MODULE_PARM_DESC(bfs, "Enable evaluation of _BFS on resume".);
+=20
+ static u8 sleep_states[ACPI_S_STATE_COUNT];
++#ifdef CONFIG_ACPI_SLEEP
+ static bool pwr_btn_event_pending;
++#endif /* #ifdef CONFIG_ACPI_SLEEP */
+=20
+ static void acpi_sleep_tts_switch(u32 acpi_state)
+ {
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
