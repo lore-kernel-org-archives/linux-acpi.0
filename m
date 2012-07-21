@@ -1,53 +1,49 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v2 4/4] ACPI: Update Container hotplug messages
-Date: Fri, 20 Jul 2012 10:54:16 -0600
-Message-ID: <1342803256-17514-5-git-send-email-toshi.kani@hp.com>
-References: <1342803256-17514-1-git-send-email-toshi.kani@hp.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1342803256-17514-1-git-send-email-toshi.kani@hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: lenb@kernel.org, linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, joe@perches.com, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, liuj97@gmail.com, srivatsa.bhat@linux.vnet.ibm.com, prarit@redhat.com, imammedo@redhat.com, vijaymohan.pandarathil@hp.com, Toshi Kani <toshi.kani@hp.com>
+From: "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 1/2] init: Introduce early initrd files through uncompressed
+ cpio passing
+Date: Sat, 21 Jul 2012 08:21:26 -0700
+Message-ID: <500AC8F6.4010802@zytor.com>
+References: <1342607764-66747-1-git-send-email-trenn@suse.de> <1342607764-66747-2-git-send-email-trenn@suse.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <initramfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1342607764-66747-2-git-send-email-trenn-l3A5Bk7waGM@public.gmane.org>
+Sender: initramfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, initramfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, Fenghua Yu <fenghua.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Updated Container hotplug log messages with acpi_pr_<level>()
-and pr_<level>().
+On 07/18/2012 03:36 AM, Thomas Renninger wrote:
+> cpio parsing code comes from  H. Peter Anvin.
+> The CONFIG_EARLY_INITRD feature is architecture independent, but
+> for now only enabled/called for X86.
+> The problem is that initrd_start must be valid, but there is no
+> architecture independent reserve_initrd() call in init/main.c or
+> similiar.
+> + * Add here new callback functions and the path relevant files show up in an
+> + * uncompressed cpio
+> + */
+> +static __initdata struct initrd_early_data initrd_early_callbacks[] =
+> +{
+> +	{
+> +		.namesp = NULL,
+> +	}
+> +};
+> +
 
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
----
- drivers/acpi/container.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+I don't like your callback interface at all.  In fact, it is actively 
+broken, because it assumes that all early users are runnable at the same 
+time, which is trivially shown false -- the microcode work that Fenghua 
+Yu is working on needs access to its early data much, much earlier than 
+your ACPI code.
 
-diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
-index 01a986d..643e962 100644
---- a/drivers/acpi/container.c
-+++ b/drivers/acpi/container.c
-@@ -99,7 +99,7 @@ static int acpi_container_add(struct acpi_device *device)
- 
- 
- 	if (!device) {
--		printk(KERN_ERR PREFIX "device is NULL\n");
-+		pr_err(PREFIX "device is NULL\n");
- 		return -EINVAL;
- 	}
- 
-@@ -164,7 +164,7 @@ static void container_notify_cb(acpi_handle handle, u32 type, void *context)
- 	case ACPI_NOTIFY_BUS_CHECK:
- 		/* Fall through */
- 	case ACPI_NOTIFY_DEVICE_CHECK:
--		printk(KERN_WARNING "Container driver received %s event\n",
-+		pr_warn("Container driver received %s event\n",
- 		       (type == ACPI_NOTIFY_BUS_CHECK) ?
- 		       "ACPI_NOTIFY_BUS_CHECK" : "ACPI_NOTIFY_DEVICE_CHECK");
- 
-@@ -185,7 +185,7 @@ static void container_notify_cb(acpi_handle handle, u32 type, void *context)
- 
- 		result = container_device_add(&device, handle);
- 		if (result) {
--			pr_warn("Failed to add container\n");
-+			acpi_pr_warn(handle, "Failed to add container\n");
- 			break;
- 		}
- 
+So big NAK on this change.  Instead we should stick to the imperative 
+interface that I had in my original code (call the search function with 
+a filename and let it return a pointer if found.)
+
+	-hpa
+
 -- 
-1.7.7.6
+H. Peter Anvin, Intel Open Source Technology Center
+I work for Intel.  I don't speak on their behalf.
