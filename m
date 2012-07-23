@@ -1,35 +1,110 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH 0/7] platform-drivers-x86: backlight, samsung and asus
-Date: Mon, 23 Jul 2012 14:35:20 +0100
-Message-ID: <20120723133520.GB21838@srcf.ucam.org>
-References: <1339572727-24744-1-git-send-email-corentin.chary@gmail.com>
- <20120626184201.GF29375@srcf.ucam.org>
- <CAHR064irJRKWhAozM18E2KMAp0vVGP+TE1mypxJxqV0uvT7Heg@mail.gmail.com>
- <CAHR064hi0gV7LUJbFa7O6d1MdzL9Oaab9F70o0-n3Be4ty9yOA@mail.gmail.com>
+From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: [PATCH 1/2] init: Introduce early initrd files through uncompressed cpio passing
+Date: Mon, 23 Jul 2012 16:40:34 +0200
+Message-ID: <201207231640.35023.trenn@suse.de>
+References: <1342607764-66747-1-git-send-email-trenn@suse.de> <1342607764-66747-2-git-send-email-trenn@suse.de> <500AC8F6.4010802@zytor.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAHR064hi0gV7LUJbFa7O6d1MdzL9Oaab9F70o0-n3Be4ty9yOA@mail.gmail.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Corentin Chary <corentin.chary@gmail.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <initramfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <500AC8F6.4010802-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>
+Sender: initramfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, initramfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, Fenghua Yu <fenghua.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jul 16, 2012 at 07:45:37AM +0200, Corentin Chary wrote:
-> On Fri, Jun 29, 2012 at 2:16 PM, Corentin Chary
-> <corentin.chary@gmail.com> wrote:
-> > On Tue, Jun 26, 2012 at 8:42 PM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
-> >> I think I'm fine with this. Whose tree should it go through?
-> >
-> > Yours would probably be easier,
-> > Thanks
+On Saturday, July 21, 2012 05:21:26 PM H. Peter Anvin wrote:
+> On 07/18/2012 03:36 AM, Thomas Renninger wrote:
+> > cpio parsing code comes from  H. Peter Anvin.
+> > The CONFIG_EARLY_INITRD feature is architecture independent, but
+> > for now only enabled/called for X86.
+> > The problem is that initrd_start must be valid, but there is no
+> > architecture independent reserve_initrd() call in init/main.c or
+> > similiar.
+> > + * Add here new callback functions and the path relevant files show up in an
+> > + * uncompressed cpio
+> > + */
+> > +static __initdata struct initrd_early_data initrd_early_callbacks[] =
+> > +{
+> > +	{
+> > +		.namesp = NULL,
+> > +	}
+> > +};
+> > +
 > 
-> Hi Matthew,
-> Any news on this series ?
-> Thanks.
+> I don't like your callback interface at all.  In fact, it is actively 
+> broken, because it assumes that all early users are runnable at the same 
+> time,
+That's wrong.
+If you have a closer look at the "ACPI table override" solution, it's
+splitted up:
+The callback collects all initrd provided tables:
+    __init acpi_initrd_table_override() and __init acpi_initrd_finalize()
+the actual usage of the files can happen any time later on when
+the ACPICA subsystems grabs another table.
 
-I'll merge these for 3.6.
+This is the most flexible solution and I cannot see why others
+cannot do the same.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+> which is trivially shown false -- the microcode work that Fenghua 
+> Yu is working on needs access to its early data much, much earlier than 
+> your ACPI code.
+This is another problem and I expect I call:
+early_initrd_find_cpio_data()
+early enough for Fenghua's needs.
+If not, how early exactly is this needed?
+
+I hook in shortly after initrd_start gets valid.
+This is necessary so that early_initrd_find_cpio_data can make
+use of the arch independent initrd_start variable and the whole
+feature is kept arch independent:
+
+@@ -941,6 +941,8 @@ void __init setup_arch(char **cmdline_p)
+ 
+        reserve_initrd();
+ 
++       early_initrd_find_cpio_data((void *)initrd_start, initrd_end - initrd_start);
++
+
+I have heard about a possible use case on ARM for this (pass device tree
+via initrd). I will ask...
+
+> So big NAK on this change.  Instead we should stick to the imperative 
+> interface that I had in my original code (call the search function with 
+> a filename and let it return a pointer if found.)
+This does not work with what I like to achive with APCI table overriding:
+Pass an arbitrary amount of firmware files.
+It could work with pre-defining the files, but that is not nice:
+.../acpi0.aml
+..
+.../acpi9.aml
+
+Another advantage:
+If (just an example) CPU microcode files get passed via "early initrd",
+the same path could be provided than needed by request_fw().
+For Intel CPU microcode that would be:
+/lib/firmware/intel-ucode
+and files are split up there into family-model-stepping as done
+already by microcode_intel.c
+This would allow (with my approach):
+   1) One can build a CPU family-model-stepping independent,
+      generic initrd putting in all available Intel CPU microcodes.
+   2) The path in cpio accessed via "uncompressed early initrd"
+      can be the same as in the later unpacked rootfs accessed
+      by initrd userspace tools.
+      No need to add them twice, to the compressed and uncompressed
+      cpio if the files should be available as "early initrd" data
+      *and* in initramfs.      
+      So above CPU microcode files could be used via "early initrd"
+      mechanism to flash the boot CPU. And the same file(s) can be used
+      later in unpacked intramfs via request_fw() to flash other, later
+      brought up CPUs.
+   3) ...
+
+
+-> I'd prefer to go with this more flexible callback approach, instead
+of spreading initrd_findcpio(..) calls all over the kernel when this gets
+used more often.
+
+   Thomas
