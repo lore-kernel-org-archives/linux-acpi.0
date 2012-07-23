@@ -1,37 +1,35 @@
 From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [PATCH] ACPI button: remove hotkey suspend acpi proc event
-Date: Mon, 23 Jul 2012 14:34:52 +0100
-Message-ID: <20120723133452.GA21838@srcf.ucam.org>
-References: <1342160002-13427-1-git-send-email-acelan.kao@canonical.com>
- <20120713064801.GA4910@srcf.ucam.org>
- <CAMz9Wg9gJvABAbtZNZSuywq=GgK4KaufB8ph405SmErLpO1y4g@mail.gmail.com>
- <20120713071355.GA5516@srcf.ucam.org>
- <20120713141248.GE7877@khazad-dum.debian.net>
- <CAMz9Wg-0Fzz8aeEqYpPRmVqDuFSTtOv=k7m6k1O0r7YB88zRuQ@mail.gmail.com>
+Subject: Re: [PATCH 0/7] platform-drivers-x86: backlight, samsung and asus
+Date: Mon, 23 Jul 2012 14:35:20 +0100
+Message-ID: <20120723133520.GB21838@srcf.ucam.org>
+References: <1339572727-24744-1-git-send-email-corentin.chary@gmail.com>
+ <20120626184201.GF29375@srcf.ucam.org>
+ <CAHR064irJRKWhAozM18E2KMAp0vVGP+TE1mypxJxqV0uvT7Heg@mail.gmail.com>
+ <CAHR064hi0gV7LUJbFa7O6d1MdzL9Oaab9F70o0-n3Be4ty9yOA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cavan.codon.org.uk ([93.93.128.6]:57767 "EHLO
-	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751325Ab2GWNe5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Jul 2012 09:34:57 -0400
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAMz9Wg-0Fzz8aeEqYpPRmVqDuFSTtOv=k7m6k1O0r7YB88zRuQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <CAHR064hi0gV7LUJbFa7O6d1MdzL9Oaab9F70o0-n3Be4ty9yOA@mail.gmail.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Corentin Chary <corentin.chary@gmail.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: AceLan Kao <acelan.kao@canonical.com>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-On Mon, Jul 16, 2012 at 10:27:57AM +0800, AceLan Kao wrote:
+On Mon, Jul 16, 2012 at 07:45:37AM +0200, Corentin Chary wrote:
+> On Fri, Jun 29, 2012 at 2:16 PM, Corentin Chary
+> <corentin.chary@gmail.com> wrote:
+> > On Tue, Jun 26, 2012 at 8:42 PM, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
+> >> I think I'm fine with this. Whose tree should it go through?
+> >
+> > Yours would probably be easier,
+> > Thanks
+> 
+> Hi Matthew,
+> Any news on this series ?
+> Thanks.
 
-> So, I didn't get the point why we can just remove the event, we don't rely on it
-> to enter S3 now, and to take into account that it's deprecated since
-> 2007(fb804714),
-> I don't think we should do more workaround for this.
-
-I've no objection to removing the event, I just want to know why we 
-don't also need a solution in the evdev path. Why is this not a problem 
-there?
+I'll merge these for 3.6.
 
 -- 
 Matthew Garrett | mjg59@srcf.ucam.org
