@@ -1,103 +1,104 @@
-From: Paul Menzel <paulepanter@users.sourceforge.net>
-Subject: Two power buttons recognized: PWRF and PWRB
-Date: Mon, 23 Jul 2012 10:32:07 +0200
-Message-ID: <1343032327.5104.13.camel@mattotaupa>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: RE: [PATCH 03/16] Thermal: Documentation update
+Date: Mon, 23 Jul 2012 16:36:07 +0800
+Message-ID: <1343032567.1682.329.camel@rui.sh.intel.com>
+References: <1342679480-5336-1-git-send-email-rui.zhang@intel.com>
+	 <1342679480-5336-4-git-send-email-rui.zhang@intel.com>
+	 <4D68720C2E767A4AA6A8796D42C8EB5916675C@BGSMSX101.gar.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-JW6zsRhnUaFYE02w/sAj"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.gw90.de ([188.40.100.199]:37745 "EHLO mail.gw90.de"
+Received: from mga01.intel.com ([192.55.52.88]:39679 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754024Ab2GWIcY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 23 Jul 2012 04:32:24 -0400
-Received: from g225173020.adsl.alicedsl.de ([92.225.173.20] helo=[192.168.178.25])
-	by mail.gw90.de with esmtpsa (TLS1.0:RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.69)
-	(envelope-from <paulepanter@users.sourceforge.net>)
-	id 1StE3x-0007Ua-Py
-	for linux-acpi@vger.kernel.org; Mon, 23 Jul 2012 08:32:21 +0000
+	id S1754081Ab2GWIet (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 23 Jul 2012 04:34:49 -0400
+In-Reply-To: <4D68720C2E767A4AA6A8796D42C8EB5916675C@BGSMSX101.gar.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "R, Durgadoss" <durgadoss.r@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, Eduardo Valentin <eduardo.valentin@intel.com>, Amit Kachhap <amit.kachhap@linaro.org>, Wei Ni <wni@nvidia.com>
+
+Hi, Durga,
+
+thanks for review. :)
+
+On =E5=9B=9B, 2012-07-19 at 04:51 -0600, R, Durgadoss wrote:
+> Hi Rui,
+>=20
+> No major comments. Just some spell checks.
+>=20
+> > -----Original Message-----
+> > From: Zhang, Rui
+> > Sent: Thursday, July 19, 2012 12:01 PM
+> > To: linux-acpi@vger.kernel.org; linux-pm@vger.kernel.org
+> > Cc: Rafael J. Wysocki; Matthew Garrett; Len Brown; R, Durgadoss; Ed=
+uardo
+> > Valentin; Amit Kachhap; Wei Ni; Zhang, Rui
+> > Subject: [PATCH 03/16] Thermal: Documentation update
+> >=20
+> > With commit 6503e5df08008b9a47022b5e9ebba658c8fa69af,
+> > the value of /sys/class/thermal/thermal_zoneX/mode has been changed
+> > from user/kernel to enabled/disabled.
+> > Update the documentation so that users won't be confused.
+> >=20
+> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> > ---
+> >  Documentation/thermal/sysfs-api.txt |   20 ++++++++++----------
+> >  drivers/acpi/thermal.c              |    6 ++----
+> >  2 files changed, 12 insertions(+), 14 deletions(-)
+> >=20
+> > diff --git a/Documentation/thermal/sysfs-api.txt
+> > b/Documentation/thermal/sysfs-api.txt
+> > index 3c8c2f8..b7b3609 100644
+> > --- a/Documentation/thermal/sysfs-api.txt
+> > +++ b/Documentation/thermal/sysfs-api.txt
+> > @@ -47,11 +47,11 @@ temperature) and throttle appropriate devices.
+> >  	.bind: bind the thermal zone device with a thermal cooling device=
+=2E
+> >  	.unbind: unbind the thermal zone device with a thermal cooling de=
+vice.
+> >  	.get_temp: get the current temperature of the thermal zone.
+> > -	.get_mode: get the current mode (user/kernel) of the thermal zone=
+=2E
+> > -	    - "kernel" means thermal management is done in kernel.
+> > -	    - "user" will prevent kernel thermal driver actions upon trip=
+ points
+> > +	.get_mode: get the current mode (enabled/disabled) of the thermal
+> > zone.
+> > +	    - "enabled" means the kernel thermal management is enabled.
+> > +	    - "disable" will prevent kernel thermal driver actions upon t=
+rip points
+>=20
+> /s/disable/disabled
+>=20
+fixed.
+
+thanks,
+rui
+> >  	      so that user applications can take charge of thermal manage=
+ment.
+> > -	.set_mode: set the mode (user/kernel) of the thermal zone.
+> > +	.set_mode: set the mode (enabled/disabled) of the thermal zone.
+> >  	.get_trip_type: get the type of certain trip point.
+> >  	.get_trip_temp: get the temperature above which the certain trip =
+point
+> >  			will be fired.
+> > @@ -170,14 +170,14 @@ temp
+> >  	RO, Required
+> >=20
+> >  mode
+> > -	One of the predefined values in [kernel, user].
+> > +	One of the predefined values in [enabled, disableed].
+>=20
+> /s/disableed/disabled
+>=20
+> Thanks,
+> Durga
 
 
---=-JW6zsRhnUaFYE02w/sAj
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-Dear Linux folks,
-
-
-due to another problem [1] I noticed that X recognizes two power
-buttons.
-
-        $ xinput
-        =E2=8E=A1 Virtual core pointer                    	id=3D2	[master p=
-ointer  (3)]
-        =E2=8E=9C   =E2=86=B3 Virtual core XTEST pointer              	id=
-=3D4	[slave  pointer  (2)]
-        =E2=8E=9C   =E2=86=B3 HID 1241:1122                           	id=
-=3D8	[slave  pointer  (2)]
-        =E2=8E=A3 Virtual core keyboard                   	id=3D3	[master k=
-eyboard (2)]
-            =E2=86=B3 Virtual core XTEST keyboard             	id=3D5	[slav=
-e  keyboard (3)]
-            =E2=86=B3 Power Button                            	id=3D6	[slav=
-e  keyboard (3)]
-            =E2=86=B3 Power Button                            	id=3D7	[slav=
-e  keyboard (3)]
-            =E2=86=B3 Logitech Logitech USB Keyboard          	id=3D9	[slav=
-e  keyboard (3)]
-            =E2=86=B3 Logitech Logitech USB Keyboard          	id=3D10	[sla=
-ve  keyboard (3)]
-
-This is due to Linux setting up two of these buttons.
-
-        $ dmesg | grep -i "power button"
-        [   16.785490] input: Power Button as /devices/LNXSYSTM:00/device:0=
-0/PNP0C0C:00/input/input3
-        [   16.785496] ACPI: Power Button [PWRB]
-        [   16.785696] input: Power Button as /devices/LNXSYSTM:00/LNXPWRBN=
-:00/input/input4
-        [   16.785699] ACPI: Power Button [PWRF]
-
-I am not sure if this is an input or ACPI problem and if it is a problem
-at all. Pressing the power button does generate the correct events =E2=80=
-=93 I
-think. At least the system shuts down or suspends just fine. It just
-seems weird that two of these buttons are set up.
-
-This seems to be a common =E2=80=9Cproblem=E2=80=9D as this happens with fo=
-r example
-ASUS M2A-VM [2] and ASRock A780FullHD.
-
-Searching the WWW I did not find a lot of information. Just an article
-in the Gentoo Wiki suggesting that only one button should be recognized
-[3]. Though I emphasize again that the power button works fine!
-
-
-Thanks,
-
-Paul
-
-
-[1] https://bugs.freedesktop.org/show_bug.cgi?id=3D52046#c5
-[2] https://bugzilla.kernel.org/show_bug.cgi?id=3D42587#c11
-[3] http://en.gentoo-wiki.com/wiki/ACPI/Fix_common_problems#Power_and.2For_=
-Sleep_Buttons_Don.27t_Work
-
---=-JW6zsRhnUaFYE02w/sAj
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iEYEABECAAYFAlANDAcACgkQPX1aK2wOHVh/GACdHdclfNlUU6WY3dGqiYdrF2mj
-SxgAn0waaCj+AV4kYpyqRJT+ZELEeKIL
-=Ok02
------END PGP SIGNATURE-----
-
---=-JW6zsRhnUaFYE02w/sAj--
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
