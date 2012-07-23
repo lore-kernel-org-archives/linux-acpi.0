@@ -1,110 +1,49 @@
-From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: [PATCH 1/2] init: Introduce early initrd files through uncompressed cpio passing
-Date: Mon, 23 Jul 2012 16:40:34 +0200
-Message-ID: <201207231640.35023.trenn@suse.de>
-References: <1342607764-66747-1-git-send-email-trenn@suse.de> <1342607764-66747-2-git-send-email-trenn@suse.de> <500AC8F6.4010802@zytor.com>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH] ACPI button: remove hotkey suspend acpi proc event
+Date: Mon, 23 Jul 2012 11:44:52 -0300
+Message-ID: <20120723144452.GA3467@khazad-dum.debian.net>
+References: <1342160002-13427-1-git-send-email-acelan.kao@canonical.com>
+ <20120713064801.GA4910@srcf.ucam.org>
+ <CAMz9Wg9gJvABAbtZNZSuywq=GgK4KaufB8ph405SmErLpO1y4g@mail.gmail.com>
+ <20120713071355.GA5516@srcf.ucam.org>
+ <20120713141248.GE7877@khazad-dum.debian.net>
+ <CAMz9Wg-0Fzz8aeEqYpPRmVqDuFSTtOv=k7m6k1O0r7YB88zRuQ@mail.gmail.com>
+ <20120723133452.GA21838@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <initramfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <500AC8F6.4010802-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>
-Sender: initramfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, initramfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, Fenghua Yu <fenghua.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out3-smtp.messagingengine.com ([66.111.4.27]:39302 "EHLO
+	out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753294Ab2GWOo4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 23 Jul 2012 10:44:56 -0400
+Content-Disposition: inline
+In-Reply-To: <20120723133452.GA21838@srcf.ucam.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: AceLan Kao <acelan.kao@canonical.com>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-On Saturday, July 21, 2012 05:21:26 PM H. Peter Anvin wrote:
-> On 07/18/2012 03:36 AM, Thomas Renninger wrote:
-> > cpio parsing code comes from  H. Peter Anvin.
-> > The CONFIG_EARLY_INITRD feature is architecture independent, but
-> > for now only enabled/called for X86.
-> > The problem is that initrd_start must be valid, but there is no
-> > architecture independent reserve_initrd() call in init/main.c or
-> > similiar.
-> > + * Add here new callback functions and the path relevant files show up in an
-> > + * uncompressed cpio
-> > + */
-> > +static __initdata struct initrd_early_data initrd_early_callbacks[] =
-> > +{
-> > +	{
-> > +		.namesp = NULL,
-> > +	}
-> > +};
-> > +
+On Mon, 23 Jul 2012, Matthew Garrett wrote:
+> On Mon, Jul 16, 2012 at 10:27:57AM +0800, AceLan Kao wrote:
+> > So, I didn't get the point why we can just remove the event, we don't rely on it
+> > to enter S3 now, and to take into account that it's deprecated since
+> > 2007(fb804714),
+> > I don't think we should do more workaround for this.
 > 
-> I don't like your callback interface at all.  In fact, it is actively 
-> broken, because it assumes that all early users are runnable at the same 
-> time,
-That's wrong.
-If you have a closer look at the "ACPI table override" solution, it's
-splitted up:
-The callback collects all initrd provided tables:
-    __init acpi_initrd_table_override() and __init acpi_initrd_finalize()
-the actual usage of the files can happen any time later on when
-the ACPICA subsystems grabs another table.
+> I've no objection to removing the event, I just want to know why we 
+> don't also need a solution in the evdev path. Why is this not a problem 
+> there?
 
-This is the most flexible solution and I cannot see why others
-cannot do the same.
+Indeed.
 
-> which is trivially shown false -- the microcode work that Fenghua 
-> Yu is working on needs access to its early data much, much earlier than 
-> your ACPI code.
-This is another problem and I expect I call:
-early_initrd_find_cpio_data()
-early enough for Fenghua's needs.
-If not, how early exactly is this needed?
+And if it is related _directly_ to thinkpad-acpi, please state so.  Because
+thinkpad-acpi does have legacy compatibility crap that can issue duplicated
+events (same event over different paths: evdev, acpi procfs, acpi netlink)
+but it is supposed to never do that unless actively configured to do so.
 
-I hook in shortly after initrd_start gets valid.
-This is necessary so that early_initrd_find_cpio_data can make
-use of the arch independent initrd_start variable and the whole
-feature is kept arch independent:
-
-@@ -941,6 +941,8 @@ void __init setup_arch(char **cmdline_p)
- 
-        reserve_initrd();
- 
-+       early_initrd_find_cpio_data((void *)initrd_start, initrd_end - initrd_start);
-+
-
-I have heard about a possible use case on ARM for this (pass device tree
-via initrd). I will ask...
-
-> So big NAK on this change.  Instead we should stick to the imperative 
-> interface that I had in my original code (call the search function with 
-> a filename and let it return a pointer if found.)
-This does not work with what I like to achive with APCI table overriding:
-Pass an arbitrary amount of firmware files.
-It could work with pre-defining the files, but that is not nice:
-.../acpi0.aml
-..
-.../acpi9.aml
-
-Another advantage:
-If (just an example) CPU microcode files get passed via "early initrd",
-the same path could be provided than needed by request_fw().
-For Intel CPU microcode that would be:
-/lib/firmware/intel-ucode
-and files are split up there into family-model-stepping as done
-already by microcode_intel.c
-This would allow (with my approach):
-   1) One can build a CPU family-model-stepping independent,
-      generic initrd putting in all available Intel CPU microcodes.
-   2) The path in cpio accessed via "uncompressed early initrd"
-      can be the same as in the later unpacked rootfs accessed
-      by initrd userspace tools.
-      No need to add them twice, to the compressed and uncompressed
-      cpio if the files should be available as "early initrd" data
-      *and* in initramfs.      
-      So above CPU microcode files could be used via "early initrd"
-      mechanism to flash the boot CPU. And the same file(s) can be used
-      later in unpacked intramfs via request_fw() to flash other, later
-      brought up CPUs.
-   3) ...
-
-
--> I'd prefer to go with this more flexible callback approach, instead
-of spreading initrd_findcpio(..) calls all over the kernel when this gets
-used more often.
-
-   Thomas
+-- 
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
