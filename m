@@ -1,46 +1,79 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 01/16] Thermal: Make Thermal trip points writeable
-Date: Mon, 23 Jul 2012 12:25:29 +0200
-Message-ID: <201207231225.29376.rjw@sisk.pl>
-References: <1342679480-5336-1-git-send-email-rui.zhang@intel.com> <201207192227.13357.rjw@sisk.pl> <1343031745.1682.328.camel@rui.sh.intel.com>
+From: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
+Subject: Re: [RFC PATCH] memory-hotplug: Add memblock_state notifier
+Date: Mon, 23 Jul 2012 13:06:10 +0200
+Message-ID: <20120723110610.GB18801@dhcp-192-168-178-175.profitbricks.localdomain>
+References: <1342783088-29970-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
+ <500D1474.9070708@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:52405 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751924Ab2GWKTo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Jul 2012 06:19:44 -0400
-In-Reply-To: <1343031745.1682.328.camel@rui.sh.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <500D1474.9070708@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Wen Congyang <wency@cn.fujitsu.com>
+Cc: isimatu.yasuaki@jp.fujitsu.com, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, R Durgadoss <durgadoss.r@intel.com>, Eduardo Valentin <eduardo.valentin@intel.com>, Amit Kachhap <amit.kachhap@linaro.org>, Wei Ni <wni@nvidia.com>
 
-On Monday, July 23, 2012, Zhang Rui wrote:
-> On =E5=9B=9B, 2012-07-19 at 22:27 +0200, Rafael J. Wysocki wrote:
-> > On Thursday, July 19, 2012, Zhang Rui wrote:
-> > > From: Durgadoss R <dugardoss.r@intel.com>
-[...]
-> > >  	if (trips > THERMAL_MAX_TRIPS || trips < 0)
-> > >  		return ERR_PTR(-EINVAL);
-> > > =20
-> > > +	if (flag >> trips)
-> > > +		return ERR_PTR(-EINVAL);
-> >=20
-> > I'm not sure if this check is necessary.  Does it actually matter i=
-s someone
-> > passes ones in the unused bit positions?
-> >=20
-> I do not think we can trust this value if the caller even wants to se=
-t
-> writable mask for a non-exist trip point.
+Hi,
 
-OK, so perhaps we can merge the two conditionals into one?
+On Mon, Jul 23, 2012 at 05:08:04PM +0800, Wen Congyang wrote:
+> > +static int memblock_state_notifier_nb(struct notifier_block *nb, unsigned long
+> > +		val, void *v)
+> > +{
+> > +	struct memory_notify *arg = (struct memory_notify *)v;
+> > +	struct memory_block *mem = NULL;
+> > +	struct mem_section *ms;
+> > +	unsigned long section_nr;
+> > +
+> > +	section_nr = pfn_to_section_nr(arg->start_pfn);
+> > +	ms = __nr_to_section(section_nr);
+> > +	mem = find_memory_block(ms);
+> > +	if (!mem)
+> > +		goto out;
+> 
+> we may offline more than one memory block.
+>
+thanks, you are right.
 
-Rafael
+> > +
+> > +	switch (val) {
+> > +	case MEM_GOING_OFFLINE:
+> > +	case MEM_OFFLINE:
+> > +	case MEM_GOING_ONLINE:
+> > +	case MEM_ONLINE:
+> > +	case MEM_CANCEL_ONLINE:
+> > +	case MEM_CANCEL_OFFLINE:
+> > +		mem->state = val;
+> 
+> mem->state is protected by the lock mem->state_mutex, so if you want to
+> update the state, you must lock mem->state_mutex. But you cannot lock it
+> here, because it may cause deadlock:
+> 
+> acpi_memhotplug                           sysfs interface
+> ===============================================================================
+>                                           memory_block_change_state()
+>                                               lock mem->state_mutex
+>                                               memory_block_action()
+> offline_pages()
+>     lock_memory_hotplug()
+>                                                   offline_memory()
+>                                                       lock_memory_hotplug() // block
+>     memory_notify()
+>         memblock_state_notifier_nb()
+> ===============================================================================
+
+good point. Maybe if memory_hotplug_lock and state_mutex locks are acquired in
+the same order in the 2 code paths, this could be avoided.
+
+> I'm writing another patch to fix it.
+
+ok, I 'll test.
+thanks,
+
+- Vasilis
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
