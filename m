@@ -1,53 +1,153 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [PATCH 1/2] init: Introduce early initrd files through uncompressed
- cpio passing
-Date: Mon, 23 Jul 2012 08:09:16 -0700
-Message-ID: <500D691C.7010203@zytor.com>
-References: <1342607764-66747-1-git-send-email-trenn@suse.de> <1342607764-66747-2-git-send-email-trenn@suse.de> <500AC8F6.4010802@zytor.com> <201207231640.35023.trenn@suse.de>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] acpi: fix pwr_btn_event_pending build error
+Date: Mon, 23 Jul 2012 20:58:41 +0200
+Message-ID: <201207232058.41398.rjw@sisk.pl>
+References: <20120721214156.GA2515@linux.vnet.ibm.com> <201207221940.51764.rjw@sisk.pl> <20120722202843.GQ2435@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from terminus.zytor.com ([198.137.202.10]:59691 "EHLO mail.zytor.com"
+Received: from ogre.sisk.pl ([193.178.161.156]:52996 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753660Ab2GWPJ3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 23 Jul 2012 11:09:29 -0400
-In-Reply-To: <201207231640.35023.trenn@suse.de>
+	id S1754494Ab2GWSw4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Jul 2012 14:52:56 -0400
+In-Reply-To: <20120722202843.GQ2435@linux.vnet.ibm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, initramfs@vger.kernel.org, bigeasy@linutronix.de, Fenghua Yu <fenghua.yu@intel.com>
+To: paulmck@linux.vnet.ibm.com
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 07/23/2012 07:40 AM, Thomas Renninger wrote:
-> This is another problem and I expect I call:
-> early_initrd_find_cpio_data()
-> early enough for Fenghua's needs.
-> If not, how early exactly is this needed?
+On Sunday, July 22, 2012, Paul E. McKenney wrote:
+> On Sun, Jul 22, 2012 at 07:40:51PM +0200, Rafael J. Wysocki wrote:
+> > On Sunday, July 22, 2012, Paul E. McKenney wrote:
+> > > On Sun, Jul 22, 2012 at 03:08:40AM +0300, Kirill A. Shutemov wrot=
+e:
+> > > > On Sat, Jul 21, 2012 at 04:37:14PM -0700, Paul E. McKenney wrot=
+e:
+> > > > > On Sun, Jul 22, 2012 at 12:52:43AM +0300, Kirill A. Shutemov =
+wrote:
+> > > > > > On Sat, Jul 21, 2012 at 02:41:56PM -0700, Paul E. McKenney =
+wrote:
+> > > > > > > Hello!
+> > > > > > >=20
+> > > > > > > A recent build for KVM on x86 resulted in the following b=
+uild error:
+> > > > > > >=20
+> > > > > > > drivers/acpi/sleep.c:60:13: warning: =E2=80=98pwr_btn_eve=
+nt_pending=E2=80=99 defined but not
+> > > > > > > +used [-Wunused-variable]
+> > > > > > >=20
+> > > > > > > This patch silences this error.
+> > > > > > >=20
+> > > > > > > Signed-off-by: Paul E. McKenney <paul.mckenney@linaro.org=
+>
+> > > > > > >=20
+> > > > > > > diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+> > > > > > > index 8856102..18347aa 100644
+> > > > > > > --- a/drivers/acpi/sleep.c
+> > > > > > > +++ b/drivers/acpi/sleep.c
+> > > > > > > @@ -57,7 +57,9 @@ MODULE_PARM_DESC(gts, "Enable evaluatio=
+n of _GTS on suspend.");
+> > > > > > >  MODULE_PARM_DESC(bfs, "Enable evaluation of _BFS on resu=
+me".);
+> > > > > > > =20
+> > > > > > >  static u8 sleep_states[ACPI_S_STATE_COUNT];
+> > > > > > > +#ifdef CONFIG_ACPI_SLEEP
+> > > > > > >  static bool pwr_btn_event_pending;
+> > > > > > > +#endif /* #ifdef CONFIG_ACPI_SLEEP */
+> > > > > >=20
+> > > > > > __maybe_unused ?
+> > > > >=20
+> > > > > Are the compiler and linker smart enough to get rid of the st=
+orage in
+> > > > > case it really isn't used?  (Not that the storage for a bool =
+is worth
+> > > > > worrying about, but...)
+> > > >=20
+> > > > GCC with optimization enabled will get rid of the storage even =
+without
+> > > > __maybe_unused.
+> > >=20
+> > > OK, that should allow me to get rid of a few ifdefs, then!  For t=
+his one,
+> > > please see below.
+> > >=20
+> > > 							Thanx, Paul
+> > >=20
+> > > -----------------------------------------------------------------=
+-------
+> > >=20
+> > > acpi: fix pwr_btn_event_pending build error
+> > >=20
+> > > A recent build for KVM on x86 resulted in the following build err=
+or:
+> > >=20
+> > > drivers/acpi/sleep.c:60:13: warning: =E2=80=98pwr_btn_event_pendi=
+ng=E2=80=99 defined but not
+> > > +used [-Wunused-variable]
+> > >=20
+> > > This patch silences this error.
+> > >=20
+> > > Signed-off-by: Paul E. McKenney <paul.mckenney@linaro.org>
+> >=20
+> > Well, I prefer the one below.
+>=20
+> Works for me!
 
-We're calling that from arch-specific code before even turning paging 
-on.  This has a couple of consequences:
+Cool. :-)
 
-1. ALL STATIC POINTERS ARE FORBIDDEN.  Period.  The code must be able to 
-be executed from a nonstandard linear address, and any static pointer 
-(like a function pointer) breaks that.
+I'll resend it just in case there was some confusion somewhere.
 
-2. Any ideas of doing everything at the same time, or uniform 
-architecture, is clearly out the window... we're just barely capable of 
-using C at this point at all.
-
-Now, you definitely do have a valid point about being able to iterate 
-over multiple files with a common prefix.  We could do that with either 
-a callback (where the callback is passed in as an argument), but I think 
-it might be nicer to do that as an iterator interface... let me ketch on 
-this.
-
-> If (just an example) CPU microcode files get passed via "early initrd",
-> the same path could be provided than needed by request_fw().
-
-This will all be obsolete.  request_fw is available way, way, way too late.
+Thanks,
+Rafael
 
 
--- 
-H. Peter Anvin, Intel Open Source Technology Center
-I work for Intel.  I don't speak on their behalf.
+> > ---
+> > From: Rafael J. Wysocki <rjw@sisk.pl>
+> > Subject: ACPI / PM: Fix build warning in sleep.c for CONFIG_ACPI_SL=
+EEP unset
+> >=20
+> > If CONFIG_ACPI_SLEEP is unset, the compiler complains that
+> > pwr_btn_event_pending is defined but not used.  To silence the
+> > warning, move the definition of pwr_btn_event_pending under an
+> > apprporiate #ifdef.
+> >=20
+> > Reported-by: Paul E. McKenney <paul.mckenney@linaro.org>
+> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> > ---
+> >  drivers/acpi/sleep.c |    2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >=20
+> > Index: linux/drivers/acpi/sleep.c
+> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> > --- linux.orig/drivers/acpi/sleep.c
+> > +++ linux/drivers/acpi/sleep.c
+> > @@ -57,7 +57,6 @@ MODULE_PARM_DESC(gts, "Enable evaluation
+> >  MODULE_PARM_DESC(bfs, "Enable evaluation of _BFS on resume".);
+> > =20
+> >  static u8 sleep_states[ACPI_S_STATE_COUNT];
+> > -static bool pwr_btn_event_pending;
+> > =20
+> >  static void acpi_sleep_tts_switch(u32 acpi_state)
+> >  {
+> > @@ -110,6 +109,7 @@ static int acpi_sleep_prepare(u32 acpi_s
+> > =20
+> >  #ifdef CONFIG_ACPI_SLEEP
+> >  static u32 acpi_target_sleep_state =3D ACPI_STATE_S0;
+> > +static bool pwr_btn_event_pending;
+> > =20
+> >  /*
+> >   * The ACPI specification wants us to save NVS memory regions duri=
+ng hibernation
+> >=20
+>=20
+>=20
+>=20
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
