@@ -1,149 +1,90 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [PATCH] acpi: fix pwr_btn_event_pending build error
-Date: Sun, 22 Jul 2012 13:28:44 -0700
-Message-ID: <20120722202843.GQ2435@linux.vnet.ibm.com>
-References: <20120721214156.GA2515@linux.vnet.ibm.com>
- <20120722000838.GA15798@shutemov.name>
- <20120722041038.GN2435@linux.vnet.ibm.com>
- <201207221940.51764.rjw@sisk.pl>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH 01/16] Thermal: Make Thermal trip points writeable
+Date: Mon, 23 Jul 2012 16:11:43 +0800
+Message-ID: <1343031103.1682.321.camel@rui.sh.intel.com>
+References: <1342679480-5336-1-git-send-email-rui.zhang@intel.com>
+	 <1342679480-5336-2-git-send-email-rui.zhang@intel.com>
+	 <201207192138.12181.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e35.co.us.ibm.com ([32.97.110.153]:54319 "EHLO
-	e35.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752429Ab2GVU33 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 22 Jul 2012 16:29:29 -0400
-Received: from /spool/local
-	by e35.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <linux-acpi@vger.kernel.org> from <paulmck@linux.vnet.ibm.com>;
-	Sun, 22 Jul 2012 14:29:28 -0600
-Content-Disposition: inline
-In-Reply-To: <201207221940.51764.rjw@sisk.pl>
+Received: from mga14.intel.com ([143.182.124.37]:1218 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752485Ab2GWIK0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 23 Jul 2012 04:10:26 -0400
+In-Reply-To: <201207192138.12181.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, R Durgadoss <durgadoss.r@intel.com>, Eduardo Valentin <eduardo.valentin@intel.com>, Amit Kachhap <amit.kachhap@linaro.org>, Wei Ni <wni@nvidia.com>
 
-On Sun, Jul 22, 2012 at 07:40:51PM +0200, Rafael J. Wysocki wrote:
-> On Sunday, July 22, 2012, Paul E. McKenney wrote:
-> > On Sun, Jul 22, 2012 at 03:08:40AM +0300, Kirill A. Shutemov wrote:
-> > > On Sat, Jul 21, 2012 at 04:37:14PM -0700, Paul E. McKenney wrote:
-> > > > On Sun, Jul 22, 2012 at 12:52:43AM +0300, Kirill A. Shutemov wr=
-ote:
-> > > > > On Sat, Jul 21, 2012 at 02:41:56PM -0700, Paul E. McKenney wr=
-ote:
-> > > > > > Hello!
-> > > > > >=20
-> > > > > > A recent build for KVM on x86 resulted in the following bui=
-ld error:
-> > > > > >=20
-> > > > > > drivers/acpi/sleep.c:60:13: warning: =E2=80=98pwr_btn_event=
-_pending=E2=80=99 defined but not
-> > > > > > +used [-Wunused-variable]
-> > > > > >=20
-> > > > > > This patch silences this error.
-> > > > > >=20
-> > > > > > Signed-off-by: Paul E. McKenney <paul.mckenney@linaro.org>
-> > > > > >=20
-> > > > > > diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-> > > > > > index 8856102..18347aa 100644
-> > > > > > --- a/drivers/acpi/sleep.c
-> > > > > > +++ b/drivers/acpi/sleep.c
-> > > > > > @@ -57,7 +57,9 @@ MODULE_PARM_DESC(gts, "Enable evaluation =
-of _GTS on suspend.");
-> > > > > >  MODULE_PARM_DESC(bfs, "Enable evaluation of _BFS on resume=
-".);
-> > > > > > =20
-> > > > > >  static u8 sleep_states[ACPI_S_STATE_COUNT];
-> > > > > > +#ifdef CONFIG_ACPI_SLEEP
-> > > > > >  static bool pwr_btn_event_pending;
-> > > > > > +#endif /* #ifdef CONFIG_ACPI_SLEEP */
-> > > > >=20
-> > > > > __maybe_unused ?
-> > > >=20
-> > > > Are the compiler and linker smart enough to get rid of the stor=
-age in
-> > > > case it really isn't used?  (Not that the storage for a bool is=
- worth
-> > > > worrying about, but...)
-> > >=20
-> > > GCC with optimization enabled will get rid of the storage even wi=
-thout
-> > > __maybe_unused.
-> >=20
-> > OK, that should allow me to get rid of a few ifdefs, then!  For thi=
-s one,
-> > please see below.
-> >=20
-> > 							Thanx, Paul
-> >=20
-> > -------------------------------------------------------------------=
------
-> >=20
-> > acpi: fix pwr_btn_event_pending build error
-> >=20
-> > A recent build for KVM on x86 resulted in the following build error=
-:
-> >=20
-> > drivers/acpi/sleep.c:60:13: warning: =E2=80=98pwr_btn_event_pending=
-=E2=80=99 defined but not
-> > +used [-Wunused-variable]
-> >=20
-> > This patch silences this error.
-> >=20
-> > Signed-off-by: Paul E. McKenney <paul.mckenney@linaro.org>
->=20
-> Well, I prefer the one below.
+Hi, Rafael,
 
-Works for me!
+thanks for reviewing this patch set.
 
-							Thanx, Paul
+On =E5=9B=9B, 2012-07-19 at 21:38 +0200, Rafael J. Wysocki wrote:
+> On Thursday, July 19, 2012, Zhang Rui wrote:
+> > From: Durgadoss R <dugardoss.r@intel.com>
+> >=20
+> > Some of the thermal drivers using the Generic Thermal Framework
+> > require (all/some) trip points to be writeable. This patch makes
+> > the trip point temperatures writeable on a per-trip point basis,
+> > and modifies the required function call in thermal.c. This patch
+> > also updates the Documentation to reflect the new change.
+> >=20
+> > Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
+> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> > ---
+> >  Documentation/thermal/sysfs-api.txt      |    4 +-
+> >  drivers/acpi/thermal.c                   |    4 +-
+> >  drivers/platform/x86/acerhdf.c           |    2 +-
+> >  drivers/platform/x86/intel_mid_thermal.c |    2 +-
+> >  drivers/thermal/spear_thermal.c          |    2 +-
+> >  drivers/thermal/thermal_sys.c            |  147 ++++++++++++++++++=
++++---------
+> >  include/linux/thermal.h                  |   15 ++-
+> >  7 files changed, 125 insertions(+), 51 deletions(-)
+> >=20
+> > diff --git a/Documentation/thermal/sysfs-api.txt b/Documentation/th=
+ermal/sysfs-api.txt
+> > index 1733ab9..0c7c423 100644
+> > --- a/Documentation/thermal/sysfs-api.txt
+> > +++ b/Documentation/thermal/sysfs-api.txt
+> > @@ -32,7 +32,8 @@ temperature) and throttle appropriate devices.
+> > =20
+> >  1.1 thermal zone device interface
+> >  1.1.1 struct thermal_zone_device *thermal_zone_device_register(cha=
+r *name,
+> > -		int trips, void *devdata, struct thermal_zone_device_ops *ops)
+> > +		int trips, int flag, void *devdata,
+> > +		struct thermal_zone_device_ops *ops)
+> > =20
+> >      This interface function adds a new thermal zone device (sensor=
+) to
+> >      /sys/class/thermal folder as thermal_zone[0-*]. It tries to bi=
+nd all the
+> > @@ -40,6 +41,7 @@ temperature) and throttle appropriate devices.
+> > =20
+> >      name: the thermal zone name.
+> >      trips: the total number of trip points this thermal zone suppo=
+rts.
+> > +    flag: Bit string: If 'n'th bit is set, then trip point 'n' is =
+writeable.
+> >      devdata: device private data
+> >      ops: thermal zone device call-backs.
+> >  	.bind: bind the thermal zone device with a thermal cooling device=
+=2E
+>=20
+> I wonder.  What is the maximum number of trip points currently passed=
+ to this
+> function in one call?
+>=20
+in include/linux/thermal.h
+#define THERMAL_MAX_TRIPS 12
 
-> Thanks,
-> Rafael
->=20
-> ---
-> From: Rafael J. Wysocki <rjw@sisk.pl>
-> Subject: ACPI / PM: Fix build warning in sleep.c for CONFIG_ACPI_SLEE=
-P unset
->=20
-> If CONFIG_ACPI_SLEEP is unset, the compiler complains that
-> pwr_btn_event_pending is defined but not used.  To silence the
-> warning, move the definition of pwr_btn_event_pending under an
-> apprporiate #ifdef.
->=20
-> Reported-by: Paul E. McKenney <paul.mckenney@linaro.org>
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> ---
->  drivers/acpi/sleep.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->=20
-> Index: linux/drivers/acpi/sleep.c
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --- linux.orig/drivers/acpi/sleep.c
-> +++ linux/drivers/acpi/sleep.c
-> @@ -57,7 +57,6 @@ MODULE_PARM_DESC(gts, "Enable evaluation
->  MODULE_PARM_DESC(bfs, "Enable evaluation of _BFS on resume".);
-> =20
->  static u8 sleep_states[ACPI_S_STATE_COUNT];
-> -static bool pwr_btn_event_pending;
-> =20
->  static void acpi_sleep_tts_switch(u32 acpi_state)
->  {
-> @@ -110,6 +109,7 @@ static int acpi_sleep_prepare(u32 acpi_s
-> =20
->  #ifdef CONFIG_ACPI_SLEEP
->  static u32 acpi_target_sleep_state =3D ACPI_STATE_S0;
-> +static bool pwr_btn_event_pending;
-> =20
->  /*
->   * The ACPI specification wants us to save NVS memory regions during=
- hibernation
->=20
+thanks,
+rui
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
