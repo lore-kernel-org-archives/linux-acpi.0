@@ -1,297 +1,79 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH 16/16] Thermal: use plist instead of list
-Date: Tue, 24 Jul 2012 10:13:29 +0800
-Message-ID: <1343096009.1682.365.camel@rui.sh.intel.com>
-References: <1342679480-5336-1-git-send-email-rui.zhang@intel.com>
-	 <1342679480-5336-17-git-send-email-rui.zhang@intel.com>
-	 <201207192345.20753.rjw@sisk.pl>
+From: AceLan Kao <acelan.kao@canonical.com>
+Subject: Re: [PATCH] ACPI button: remove hotkey suspend acpi proc event
+Date: Tue, 24 Jul 2012 10:52:45 +0800
+Message-ID: <CAMz9Wg_AFzP4k7N8_+2zJiDC2t9Q-vTRzsi-aMia6rYKBr6Rqw@mail.gmail.com>
+References: <1342160002-13427-1-git-send-email-acelan.kao@canonical.com>
+	<20120713064801.GA4910@srcf.ucam.org>
+	<CAMz9Wg9gJvABAbtZNZSuywq=GgK4KaufB8ph405SmErLpO1y4g@mail.gmail.com>
+	<20120713071355.GA5516@srcf.ucam.org>
+	<20120713141248.GE7877@khazad-dum.debian.net>
+	<CAMz9Wg-0Fzz8aeEqYpPRmVqDuFSTtOv=k7m6k1O0r7YB88zRuQ@mail.gmail.com>
+	<20120723133452.GA21838@srcf.ucam.org>
+	<20120723144452.GA3467@khazad-dum.debian.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:35489 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752735Ab2GXCMN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 23 Jul 2012 22:12:13 -0400
-In-Reply-To: <201207192345.20753.rjw@sisk.pl>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:59002 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753125Ab2GXCwq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Jul 2012 22:52:46 -0400
+Received: by pbbrp8 with SMTP id rp8so11892263pbb.19
+        for <linux-acpi@vger.kernel.org>; Mon, 23 Jul 2012 19:52:46 -0700 (PDT)
+In-Reply-To: <20120723144452.GA3467@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Amit Kachhap <amit.kachhap@linaro.org>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, R Durgadoss <durgadoss.r@intel.com>, Wei Ni <wni@nvidia.com>, eduardo <eduardo.valentin@ti.com>
+To: linux-acpi@vger.kernel.org
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>
 
-On =E5=9B=9B, 2012-07-19 at 23:45 +0200, Rafael J. Wysocki wrote:
-> On Thursday, July 19, 2012, Zhang Rui wrote:
-> > so that the thermal manager can easily find out
-> > the deepest cooling state request for a cooling device.
-> >=20
-> > cdev->lock is also introduced in this patch to protect this plist.
-> >=20
-> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
->=20
-> I'm not sure if this is actually better than without the plist.
->=20
-> The plist manipulations in thermal_zone_trip_update() look like they
-> can add quite some overhead in some situations.
->=20
-> Do you have any quantitative justification for this change?
->=20
-No.
-I made this change based on Eduardo's suggestion.
-currently, as there are not too many nodes in the list, I don't think w=
-e
-can get any measurable benefit for now.
+Hi,
 
-Eduardo, I guess you must have more to say on this. :p
+2012/7/23 Henrique de Moraes Holschuh <hmh@hmh.eng.br>:
+> On Mon, 23 Jul 2012, Matthew Garrett wrote:
+>> On Mon, Jul 16, 2012 at 10:27:57AM +0800, AceLan Kao wrote:
+>> > So, I didn't get the point why we can just remove the event, we don't rely on it
+>> > to enter S3 now, and to take into account that it's deprecated since
+>> > 2007(fb804714),
+>> > I don't think we should do more workaround for this.
+>>
+>> I've no objection to removing the event, I just want to know why we
+>> don't also need a solution in the evdev path. Why is this not a problem
+>> there?
+Actually, it will enter S3 at most 2 times through evdev path.
+The keyevents will be emitted at once while pressing the hotkey,
+the GUI(gnome-power-manager under gnome, for instance) will do the reaction.
+So, I think GUI will just ignore the following sleep events.
+And it will enter another S3 after doing input_dev_release_keys() in
+drivers/input/input.c +2174 during resuming if the key is not thought
+to be released.
 
-thanks,
-rui
+The big difference between evdev and proc acpi event is that
+proc acpi event won't send out the next event until the current one is done.
+We can observe its behavior by "acpi_listen"
+It sends out the next event after the system wakeup, so that the
+system will enter S3 again.
+I didn't dig into the code where it queues the events, I just observed it.
 
-> Rafael
->=20
->=20
-> > ---
-> >  drivers/thermal/thermal_sys.c |   84 ++++++++++++++++++++++++++---=
-------------
-> >  include/linux/thermal.h       |    4 +-
-> >  2 files changed, 57 insertions(+), 31 deletions(-)
-> >=20
-> > diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/therma=
-l_sys.c
-> > index a40dda1..9f56250 100644
-> > --- a/drivers/thermal/thermal_sys.c
-> > +++ b/drivers/thermal/thermal_sys.c
-> > @@ -54,11 +54,10 @@ struct thermal_instance {
-> >  	int trip;
-> >  	unsigned long upper;	/* Highest cooling state for this trip point=
- */
-> >  	unsigned long lower;	/* Lowest cooling state for this trip point =
-*/
-> > -	unsigned long target;	/* expected cooling state */
-> >  	char attr_name[THERMAL_NAME_LENGTH];
-> >  	struct device_attribute attr;
-> >  	struct list_head tz_node; /* node in tz->instances */
-> > -	struct list_head cdev_node; /* node in cdev->instances */
-> > +	struct plist_node cdev_node; /* node in cdev->instances */
-> >  };
-> > =20
-> >  static DEFINE_IDR(thermal_tz_idr);
-> > @@ -787,7 +786,7 @@ int thermal_zone_bind_cooling_device(struct the=
-rmal_zone_device *tz,
-> >  	dev->trip =3D trip;
-> >  	dev->upper =3D upper;
-> >  	dev->lower =3D lower;
-> > -	dev->target =3D -1;
-> > +	plist_node_init(&dev->cdev_node, -1);
-> > =20
-> >  	result =3D get_idr(&tz->idr, &tz->lock, &dev->id);
-> >  	if (result)
-> > @@ -809,6 +808,7 @@ int thermal_zone_bind_cooling_device(struct the=
-rmal_zone_device *tz,
-> >  		goto remove_symbol_link;
-> > =20
-> >  	mutex_lock(&tz->lock);
-> > +	mutex_lock(&cdev->lock);
-> >  	list_for_each_entry(pos, &tz->instances, tz_node)
-> >  	    if (pos->tz =3D=3D tz && pos->trip =3D=3D trip && pos->cdev =3D=
-=3D cdev) {
-> >  		result =3D -EEXIST;
-> > @@ -816,8 +816,9 @@ int thermal_zone_bind_cooling_device(struct the=
-rmal_zone_device *tz,
-> >  	}
-> >  	if (!result) {
-> >  		list_add_tail(&dev->tz_node, &tz->instances);
-> > -		list_add_tail(&dev->cdev_node, &cdev->instances);
-> > +		plist_add(&dev->cdev_node, &cdev->instances);
-> >  	}
-> > +	mutex_unlock(&cdev->lock);
-> >  	mutex_unlock(&tz->lock);
-> > =20
-> >  	if (!result)
-> > @@ -850,14 +851,17 @@ int thermal_zone_unbind_cooling_device(struct=
- thermal_zone_device *tz,
-> >  	struct thermal_instance *pos, *next;
-> > =20
-> >  	mutex_lock(&tz->lock);
-> > +	mutex_lock(&cdev->lock);
-> >  	list_for_each_entry_safe(pos, next, &tz->instances, tz_node) {
-> >  		if (pos->tz =3D=3D tz && pos->trip =3D=3D trip && pos->cdev =3D=3D=
- cdev) {
-> >  			list_del(&pos->tz_node);
-> > -			list_del(&pos->cdev_node);
-> > +			plist_del(&pos->cdev_node, &pos->cdev->instances);
-> > +			mutex_unlock(&cdev->lock);
-> >  			mutex_unlock(&tz->lock);
-> >  			goto unbind;
-> >  		}
-> >  	}
-> > +	mutex_unlock(&cdev->lock);
-> >  	mutex_unlock(&tz->lock);
-> > =20
-> >  	return -ENODEV;
-> > @@ -923,7 +927,8 @@ thermal_cooling_device_register(char *type, voi=
-d *devdata,
-> >  	}
-> > =20
-> >  	strcpy(cdev->type, type);
-> > -	INIT_LIST_HEAD(&cdev->instances);
-> > +	plist_head_init(&cdev->instances);
-> > +	mutex_init(&cdev->lock);
-> >  	cdev->ops =3D ops;
-> >  	cdev->updated =3D 1;
-> >  	cdev->device.class =3D &thermal_class;
-> > @@ -1019,26 +1024,21 @@ EXPORT_SYMBOL(thermal_cooling_device_unregi=
-ster);
-> > =20
-> >  static void thermal_zone_do_update(struct thermal_zone_device *tz)
-> >  {
-> > -	struct thermal_instance *instance1, *instance2;
-> > +	struct thermal_instance *instance;
-> > +	struct plist_node *node;
-> >  	struct thermal_cooling_device *cdev;
-> > -	int target;
-> > =20
-> > -	list_for_each_entry(instance1, &tz->instances, tz_node) {
-> > -		cdev =3D instance1->cdev;
-> > +	list_for_each_entry(instance, &tz->instances, tz_node) {
-> > +		cdev =3D instance->cdev;
-> > =20
-> >  		/* cooling device has already been updated*/
-> >  		if (cdev->updated)
-> >  			continue;
-> > =20
-> > -		target =3D 0;
-> > -		/* Make sure cdev enters the deepest cooling state */
-> > -		list_for_each_entry(instance2, &cdev->instances, cdev_node) {
-> > -			if (instance2->target =3D=3D -1)
-> > -				continue;
-> > -			if (instance2->target > target)
-> > -				target =3D instance2->target;
-> > -		}
-> > -		cdev->ops->set_cur_state(cdev, target);
-> > +		/* Deepest cooling state required */
-> > +		node =3D plist_last(&cdev->instances);
-> > +
-> > +		cdev->ops->set_cur_state(cdev, node->prio < 0 ? 0 : node->prio);
-> >  		cdev->updated =3D 1;
-> >  	}
-> >  }
-> > @@ -1064,7 +1064,7 @@ static void thermal_zone_trip_update(struct t=
-hermal_zone_device *tz,
-> >  {
-> >  	struct thermal_instance *instance;
-> >  	struct thermal_cooling_device *cdev =3D NULL;
-> > -	unsigned long cur_state, max_state;
-> > +	unsigned long cur_state, max_state, target_state;
-> >  	long trip_temp;
-> >  	enum thermal_trip_type trip_type;
-> >  	enum thermal_trend trend;
-> > @@ -1088,21 +1088,29 @@ static void thermal_zone_trip_update(struct=
- thermal_zone_device *tz,
-> > =20
-> >  			cdev->ops->get_cur_state(cdev, &cur_state);
-> >  			cdev->ops->get_max_state(cdev, &max_state);
-> > -
-> > +			target_state =3D cur_state;
-> >  			if (trend =3D=3D THERMAL_TREND_RAISING) {
-> > -				cur_state =3D cur_state < instance->upper ?
-> > +				target_state =3D cur_state < instance->upper ?
-> >  					    (cur_state + 1) : instance->upper;
-> >  			} else if (trend =3D=3D THERMAL_TREND_DROPPING) {
-> > -				cur_state =3D cur_state > instance->lower ?
-> > +				target_state =3D cur_state > instance->lower ?
-> >  				    (cur_state - 1) : instance->lower;
-> >  			}
-> > =20
-> > +			if (target_state =3D=3D cur_state)
-> > +				continue;
-> > +
-> >  			/* activate a passive thermal instance */
-> >  			if (trip_type =3D=3D THERMAL_TRIP_PASSIVE &&
-> > -			    instance->target =3D=3D -1)
-> > +			    instance->cdev_node.prio =3D=3D -1)
-> >  				tz->passive++;
-> > =20
-> > -			instance->target =3D cur_state;
-> > +			mutex_lock(&cdev->lock);
-> > +			plist_del(&instance->cdev_node, &cdev->instances);
-> > +			plist_node_init(&instance->cdev_node, target_state);
-> > +			plist_add(&instance->cdev_node, &cdev->instances);
-> > +			mutex_unlock(&cdev->lock);
-> > +
-> >  			cdev->updated =3D 0; /* cooling device needs update */
-> >  		}
-> >  	} else {	/* below trip */
-> > @@ -1111,20 +1119,36 @@ static void thermal_zone_trip_update(struct=
- thermal_zone_device *tz,
-> >  				continue;
-> > =20
-> >  			/* Do not use the deacitve thermal instance */
-> > -			if (instance->target =3D=3D -1)
-> > +			if (instance->cdev_node.prio =3D=3D -1)
-> >  				continue;
-> >  			cdev =3D instance->cdev;
-> >  			cdev->ops->get_cur_state(cdev, &cur_state);
-> > =20
-> > -			cur_state =3D cur_state > instance->lower ?
-> > +			target_state =3D cur_state > instance->lower ?
-> >  				    (cur_state - 1) : -1;
-> > =20
-> > +			if (target_state =3D=3D cur_state)
-> > +				continue;
-> > +
-> >  			/* deactivate a passive thermal instance */
-> >  			if (trip_type =3D=3D THERMAL_TRIP_PASSIVE &&
-> > -			    cur_state =3D=3D -1)
-> > +			    target_state =3D=3D -1)
-> >  				tz->passive--;
-> > -			instance->target =3D cur_state;
-> > -			cdev->updated =3D 0; /* cooling device needs update */
-> > +
-> > +			mutex_lock(&cdev->lock);
-> > +			plist_del(&instance->cdev_node, &cdev->instances);
-> > +			plist_node_init(&instance->cdev_node, target_state);
-> > +			plist_add(&instance->cdev_node, &cdev->instances);
-> > +			mutex_unlock(&cdev->lock);
-> > +
-> > +			/*
-> > +			 * cooling device needs update.
-> > +			 * But if the target_state is -1, it means that
-> > +			 * the cooling device is already in cooling state 0,
-> > +			 * thus we do not need update
-> > +			 */
-> > +			if (target_state !=3D -1)
-> > +				cdev->updated =3D 0;
-> >  		}
-> >  	}
-> > =20
-> > diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-> > index f725eb9..376a59e 100644
-> > --- a/include/linux/thermal.h
-> > +++ b/include/linux/thermal.h
-> > @@ -28,6 +28,7 @@
-> >  #include <linux/idr.h>
-> >  #include <linux/device.h>
-> >  #include <linux/workqueue.h>
-> > +#include <linux/plist.h>
-> > =20
-> >  struct thermal_zone_device;
-> >  struct thermal_cooling_device;
-> > @@ -93,7 +94,8 @@ struct thermal_cooling_device {
-> >  	void *devdata;
-> >  	const struct thermal_cooling_device_ops *ops;
-> >  	int updated; /* 1 if the cooling device does not need update */
-> > -	struct list_head instances;
-> > +	struct mutex lock;
-> > +	struct plist_head instances;
-> >  	struct list_head node;
-> >  };
-> > =20
-> >=20
->=20
+>
+> Indeed.
+>
+> And if it is related _directly_ to thinkpad-acpi, please state so.  Because
+> thinkpad-acpi does have legacy compatibility crap that can issue duplicated
+> events (same event over different paths: evdev, acpi procfs, acpi netlink)
+> but it is supposed to never do that unless actively configured to do so.
+This patch do nothing to thinkpad-acpi, and I have already verified
+that it won't
+damage the current behavior of thinkpad-acpi driver.
+
+>
+> --
+>   "One disk to rule them all, One disk to find them. One disk to bring
+>   them all and in the darkness grind them. In the Land of Redmond
+>   where the shadows lie." -- The Silicon Valley Tarot
+>   Henrique Holschuh
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+-- 
+Chia-Lin Kao(AceLan)
+http://blog.acelan.idv.tw/
+E-Mail: acelan.kaoATcanonical.com (s/AT/@/)
