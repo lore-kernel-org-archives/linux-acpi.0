@@ -1,146 +1,33 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH 11/16] Thermal: Rename
- thermal_zone_device.cooling_devices to thermal_zone_device.instances
-Date: Tue, 24 Jul 2012 09:48:14 +0800
-Message-ID: <1343094494.1682.355.camel@rui.sh.intel.com>
+Subject: Re: [PATCH 13/16] Thermal: List thermal_instance in
+ thermal_cooling_device.
+Date: Tue, 24 Jul 2012 09:48:48 +0800
+Message-ID: <1343094528.1682.356.camel@rui.sh.intel.com>
 References: <1342679480-5336-1-git-send-email-rui.zhang@intel.com>
-	 <1342679480-5336-12-git-send-email-rui.zhang@intel.com>
-	 <201207192322.20598.rjw@sisk.pl>
+	 <1342679480-5336-14-git-send-email-rui.zhang@intel.com>
+	 <201207192325.08764.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:37722 "EHLO mga03.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:7574 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755213Ab2GXBq4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 23 Jul 2012 21:46:56 -0400
-In-Reply-To: <201207192322.20598.rjw@sisk.pl>
+	id S1755127Ab2GXBra (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 23 Jul 2012 21:47:30 -0400
+In-Reply-To: <201207192325.08764.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Amit Kachhap <amit.kachhap@linaro.org>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, R Durgadoss <durgadoss.r@intel.com>, Wei Ni <wni@nvidia.com>
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, R Durgadoss <durgadoss.r@intel.com>, Eduardo Valentin <eduardo.valentin@ti.com>, Amit Kachhap <amit.kachhap@linaro.org>, Wei Ni <wni@nvidia.com>
 
-On =E5=9B=9B, 2012-07-19 at 23:22 +0200, Rafael J. Wysocki wrote:
+On =E5=9B=9B, 2012-07-19 at 23:25 +0200, Rafael J. Wysocki wrote:
 > On Thursday, July 19, 2012, Zhang Rui wrote:
-> > thermal_zone_device.cooling_devices is not accurate
-> > as this is a list for thermal instances, rather than cooling device=
-s.
-> >=20
-> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> > ---
-> >  drivers/thermal/thermal_sys.c |   18 +++++++++---------
-> >  include/linux/thermal.h       |    4 ++--
-> >  2 files changed, 11 insertions(+), 11 deletions(-)
-> >=20
-> > diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/therma=
-l_sys.c
-> > index 867fced..1836039 100644
-> > --- a/drivers/thermal/thermal_sys.c
-> > +++ b/drivers/thermal/thermal_sys.c
-> > @@ -745,7 +745,7 @@ static void thermal_zone_device_passive(struct =
-thermal_zone_device *tz,
-> > =20
-> >  		/* Heating up? */
-> >  		if (trend > 0) {
-> > -			list_for_each_entry(instance, &tz->cooling_devices,
-> > +			list_for_each_entry(instance, &tz->instances,
-> >  					    node) {
-> >  				if (instance->trip !=3D trip)
-> >  					continue;
-> > @@ -756,7 +756,7 @@ static void thermal_zone_device_passive(struct =
-thermal_zone_device *tz,
-> >  					cdev->ops->set_cur_state(cdev, state);
-> >  			}
-> >  		} else if (trend < 0) { /* Cooling off? */
-> > -			list_for_each_entry(instance, &tz->cooling_devices,
-> > +			list_for_each_entry(instance, &tz->instances,
-> >  					    node) {
-> >  				if (instance->trip !=3D trip)
-> >  					continue;
-> > @@ -777,7 +777,7 @@ static void thermal_zone_device_passive(struct =
-thermal_zone_device *tz,
-> >  	 * and avoid thrashing around the passive trip point.  Note that =
-we
-> >  	 * assume symmetry.
-> >  	 */
-> > -	list_for_each_entry(instance, &tz->cooling_devices, node) {
-> > +	list_for_each_entry(instance, &tz->instances, node) {
-> >  		if (instance->trip !=3D trip)
-> >  			continue;
-> >  		cdev =3D instance->cdev;
-> > @@ -873,13 +873,13 @@ int thermal_zone_bind_cooling_device(struct t=
-hermal_zone_device *tz,
-> >  		goto remove_symbol_link;
-> > =20
-> >  	mutex_lock(&tz->lock);
-> > -	list_for_each_entry(pos, &tz->cooling_devices, node)
-> > +	list_for_each_entry(pos, &tz->instances, node)
-> >  	    if (pos->tz =3D=3D tz && pos->trip =3D=3D trip && pos->cdev =3D=
-=3D cdev) {
-> >  		result =3D -EEXIST;
-> >  		break;
-> >  	}
-> >  	if (!result)
-> > -		list_add_tail(&dev->node, &tz->cooling_devices);
-> > +		list_add_tail(&dev->node, &tz->instances);
-> >  	mutex_unlock(&tz->lock);
-> > =20
-> >  	if (!result)
-> > @@ -912,7 +912,7 @@ int thermal_zone_unbind_cooling_device(struct t=
-hermal_zone_device *tz,
-> >  	struct thermal_instance *pos, *next;
-> > =20
-> >  	mutex_lock(&tz->lock);
-> > -	list_for_each_entry_safe(pos, next, &tz->cooling_devices, node) {
-> > +	list_for_each_entry_safe(pos, next, &tz->instances, node) {
-> >  		if (pos->tz =3D=3D tz && pos->trip =3D=3D trip && pos->cdev =3D=3D=
- cdev) {
-> >  			list_del(&pos->node);
-> >  			mutex_unlock(&tz->lock);
-> > @@ -1106,7 +1106,7 @@ static void thermal_zone_trip_update(struct t=
-hermal_zone_device *tz,
-> >  	if (temp >=3D trip_temp) {
-> >  		thermal_get_trend(tz, trip, &trend);
-> > =20
-> > -		list_for_each_entry(instance, &tz->cooling_devices, node) {
-> > +		list_for_each_entry(instance, &tz->instances, node) {
-> >  			if (instance->trip !=3D trip)
-> >  				continue;
-> > =20
-> > @@ -1125,7 +1125,7 @@ static void thermal_zone_trip_update(struct t=
-hermal_zone_device *tz,
-> >  			cdev->ops->set_cur_state(cdev, cur_state);
-> >  		}
-> >  	} else {	/* below trip */
-> > -		list_for_each_entry(instance, &tz->cooling_devices, node) {
-> > +		list_for_each_entry(instance, &tz->instances, node) {
-> >  			if (instance->trip !=3D trip)
-> >  				continue;
-> > =20
-> > @@ -1359,7 +1359,7 @@ struct thermal_zone_device *thermal_zone_devi=
-ce_register(char *type,
-> >  	if (!tz)
-> >  		return ERR_PTR(-ENOMEM);
-> > =20
-> > -	INIT_LIST_HEAD(&tz->cooling_devices);
-> > +	INIT_LIST_HEAD(&tz->instances);
-> >  	idr_init(&tz->idr);
-> >  	mutex_init(&tz->lock);
-> >  	result =3D get_idr(&thermal_tz_idr, &thermal_idr_lock, &tz->id);
-> > diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-> > index 44d7fc3..a15b83c 100644
-> > --- a/include/linux/thermal.h
-> > +++ b/include/linux/thermal.h
-> > @@ -120,9 +120,9 @@ struct thermal_zone_device {
-> >  	bool passive;
-> >  	unsigned int forced_passive;
-> >  	const struct thermal_zone_device_ops *ops;
-> > -	struct list_head cooling_devices;
-> > +	struct list_head instances;
+> > so that cooling device can know the cooling state requirement
+> > of all the thermal instances.
 >=20
-> What about calling that 'thermal_instances'?  As is, it isn't really =
-obvious
-> the instances of what exactly they are.
+> The changelog looks odd in this form.  Please start the sentence in a=
+ sensible
+> way.
 >=20
 agreed.
 
