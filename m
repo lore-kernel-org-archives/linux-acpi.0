@@ -1,95 +1,80 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 09/16] Thermal: Introduce thermal_zone_trip_update()
-Date: Tue, 24 Jul 2012 11:27:42 +0200
-Message-ID: <201207241127.43086.rjw@sisk.pl>
-References: <1342679480-5336-1-git-send-email-rui.zhang@intel.com> <201207192319.28882.rjw@sisk.pl> <1343094471.1682.354.camel@rui.sh.intel.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH 1/4] ACPI: Add acpi_pr_<level>() interfaces
+Date: Tue, 24 Jul 2012 09:55:34 -0600
+Message-ID: <1343145334.3010.334.camel@misato.fc.hp.com>
+References: <1342644027-19559-1-git-send-email-toshi.kani@hp.com>
+	 <1342644027-19559-2-git-send-email-toshi.kani@hp.com>
+	 <1342648771.5138.37.camel@lorien2>
+	 <1342650386.3010.55.camel@misato.fc.hp.com>
+	 <1342651257.5138.44.camel@lorien2>
+	 <1342651966.3010.66.camel@misato.fc.hp.com>
+	 <1342653482.5138.56.camel@lorien2>
+	 <1342658296.3010.136.camel@misato.fc.hp.com>
+	 <1342714515.3100.27.camel@lorien2>
+	 <1342718897.3010.188.camel@misato.fc.hp.com>
+	 <1342725950.5599.7.camel@lorien2>
+	 <1342731093.3010.245.camel@misato.fc.hp.com>
+	 <1342737168.6809.40.camel@lorien2>
+	 <1342741437.3010.275.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:53883 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752566Ab2GXJV5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Jul 2012 05:21:57 -0400
-In-Reply-To: <1343094471.1682.354.camel@rui.sh.intel.com>
+Received: from g4t0014.houston.hp.com ([15.201.24.17]:12819 "EHLO
+	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753771Ab2GXQAX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Jul 2012 12:00:23 -0400
+In-Reply-To: <1342741437.3010.275.camel@misato.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Amit Kachhap <amit.kachhap@linaro.org>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, R Durgadoss <durgadoss.r@intel.com>, Wei Ni <wni@nvidia.com>
+To: shuah.khan@hp.com
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, liuj97@gmail.com, srivatsa.bhat@linux.vnet.ibm.com, prarit@redhat.com, imammedo@redhat.com, vijaymohan.pandarathil@hp.com, shuahkhan@gmail.com
 
-On Tuesday, July 24, 2012, Zhang Rui wrote:
-> On =E5=9B=9B, 2012-07-19 at 23:19 +0200, Rafael J. Wysocki wrote:
-> > On Thursday, July 19, 2012, Zhang Rui wrote:
-> > > This function is used to update the cooling state of
-> > > all the cooling devices that are binded to an active trip point.
-> >=20
-> > s/binded/bound/
-> >=20
-> got it.
->=20
-> > > This will be used for passive cooling as well, in the future patc=
-hes.
-> > > as both active and passive cooling can share the same algorithm,
-> > > which is
-> > >=20
-> > > 1. if the temperature is higher than a trip point,
-> > >    a. if the trend is THERMAL_TREND_RAISING, use higher cooling
-> > >       state for this trip point
-> > >    b. if the trend is THERMAL_TREND_DROPPING, use lower cooling
-> > >       state for this trip point
-> > >=20
-> > > 2. if the temperature is lower than a trip point, use lower
-> > >    cooling state for this trip point.
-> > >=20
-> > > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> > > ---
-> > >  drivers/acpi/thermal.c        |    7 +++-
-> > >  drivers/thermal/thermal_sys.c |   91 +++++++++++++++++++++++++++=
-++------------
-> > >  2 files changed, 71 insertions(+), 27 deletions(-)
-> > >=20
-> > > diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-> > > index 73e335f..14c4879 100644
-> > > --- a/drivers/acpi/thermal.c
-> > > +++ b/drivers/acpi/thermal.c
-> > > @@ -715,7 +715,12 @@ static int thermal_get_trend(struct thermal_=
-zone_device *thermal,
-> > >  	if (thermal_get_trip_type(thermal, trip, &type))
-> > >  		return -EINVAL;
-> > > =20
-> > > -	/* Only PASSIVE trip points need TREND */
-> > > +	if (type =3D=3D THERMAL_TRIP_ACTIVE) {
-> > > +		/* aggressive active cooling */
-> > > +		*trend =3D THERMAL_TREND_RAISING;
-> > > +		return 0;
-> >=20
-> > Please move that into thermal_zone_trip_update() directly, unless y=
-ou
-> > need it elsewhere.
-> >=20
-> IMO, I can say that ACPI thermal wants aggressive active cooling, as =
-it
-> will never spin down the fan when the temperature is higher than the
-> trip point.
+On Thu, 2012-07-19 at 17:43 -0600, Toshi Kani wrote:
+> On Thu, 2012-07-19 at 16:32 -0600, Shuah Khan wrote:
+> > On Thu, 2012-07-19 at 14:51 -0600, Toshi Kani wrote:
+> > 
+> > > If your concern is actually a performance bottleneck in acpi_get_name()
+> > > you found in the code, you should report it to the ACPI CA team.
+> > 
+> > I have tried my best to get you to understand the problems in bigger
+> > picture your patch set can exacerbate. Looking to somebody else to fix
+> > the problems doesn't help. It doesn't look like we can come to an
+> > agreement here, we just have to agree to disagree.
+> 
+> I am not asking someone to fix it.  I tried my best to explain that
+> acpi_get_name() does not lead any performance issue when it is called in
+> the error paths of ACPI drivers, and why we have to call it to obtain an
+> object path info for error analysis.  If you still believe there is a
+> performance issue in calling acpi_get_name() under this context, please
+> help us understand where the performance bottleneck is in the code.  (I
+> hope you just concerned it because it has "acpi_" prefix...) I will then
+> work on the issue with the ACPI CA team.
 
-I meant the code organization, not the functionality. :-)
+I have measured acpi_pr_<level>() to make sure my statement is correct.
+Here are the results:
 
-Since thermal_get_trend() is static, it is not used outside of this fil=
-e,
-so you can move the "if (type =3D=3D THERMAL_TRIP_ACTIVE)" conditional =
-from it
-directly into the caller (unless there are more callers, which I'm not =
-sure
-about without reading the whole code again).
+Avg. acpi_get_name()		 587 ns
+Avg. printk()			3420 ns
+Avg. kfree()			 238 ns
+Avg. acpi_get_time()+kfree()	 825 ns
 
-That would make the code cleaner, because right now the condition is
-hidden in thermal_get_trend() and it may not be clear to the reader of
-thermal_zone_trip_update() that it is actually checked.
+The results indicate that acpi_pr_<level>() has 20% increase of the time
+compared to the regular printk(), which is less than 1 us.  I believe
+the results endorse my statement, and may not cause any performance
+issue to the error paths of the ACPI drivers.
 
-Thanks,
-Rafael
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-Toshi
+
+
+> Thanks,
+> -Toshi
+> 
+> 
+> 
+> > caio,
+> > -- Shuah
+> > 
+> 
+
+
