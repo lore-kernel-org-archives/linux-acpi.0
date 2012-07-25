@@ -1,270 +1,182 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH RESEND 06/16] Thermal: set upper and lower limits
-Date: Wed, 25 Jul 2012 22:14:42 +0200
-Message-ID: <201207252214.43030.rjw@sisk.pl>
-References: <1343182273-32096-1-git-send-email-rui.zhang@intel.com> <1343182273-32096-7-git-send-email-rui.zhang@intel.com>
+Subject: Re: [PATCH RESEND 07/16] Thermal: Introduce .get_trend() callback.
+Date: Wed, 25 Jul 2012 22:19:55 +0200
+Message-ID: <201207252219.55650.rjw@sisk.pl>
+References: <1343182273-32096-1-git-send-email-rui.zhang@intel.com> <1343182273-32096-8-git-send-email-rui.zhang@intel.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:57093 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([193.178.161.156]:57106 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752154Ab2GYUI5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Jul 2012 16:08:57 -0400
-In-Reply-To: <1343182273-32096-7-git-send-email-rui.zhang@intel.com>
+	id S1751285Ab2GYUOJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 25 Jul 2012 16:14:09 -0400
+In-Reply-To: <1343182273-32096-8-git-send-email-rui.zhang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Zhang Rui <rui.zhang@intel.com>
 Cc: Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, R Durgadoss <durgadoss.r@intel.com>, Eduardo Valentin <eduardo.valentin@ti.com>, Amit Kachhap <amit.kachhap@linaro.org>, Wei Ni <wni@nvidia.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 
 On Wednesday, July 25, 2012, Zhang Rui wrote:
-> set upper and lower limits when binding
-> a thermal cooling device to a thermal zone device.
+> tc1 and tc2 are used by OSPM to anticipate the temperature trends.
+> But they are ACPI platform specific concepts.
+> 
+> Introduce .get_trend() as a more general solution.
 > 
 > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 > ---
->  Documentation/thermal/sysfs-api.txt |    9 +++++-
->  drivers/acpi/thermal.c              |   53 +++++++++++++++++++++++------------
->  drivers/platform/x86/acerhdf.c      |    3 +-
->  drivers/thermal/thermal_sys.c       |   23 ++++++++++-----
->  include/linux/thermal.h             |    5 +++-
->  5 files changed, 65 insertions(+), 28 deletions(-)
+>  drivers/acpi/thermal.c        |   33 +++++++++++++++++++++++++++++++++
+>  drivers/thermal/thermal_sys.c |   22 ++++++++++++++++++++--
+>  include/linux/thermal.h       |    9 +++++++++
+>  3 files changed, 62 insertions(+), 2 deletions(-)
 > 
-> diff --git a/Documentation/thermal/sysfs-api.txt b/Documentation/thermal/sysfs-api.txt
-> index c087dbc..ca1a1a3 100644
-> --- a/Documentation/thermal/sysfs-api.txt
-> +++ b/Documentation/thermal/sysfs-api.txt
-> @@ -84,7 +84,8 @@ temperature) and throttle appropriate devices.
->  
->  1.3 interface for binding a thermal zone device with a thermal cooling device
->  1.3.1 int thermal_zone_bind_cooling_device(struct thermal_zone_device *tz,
-> -		int trip, struct thermal_cooling_device *cdev);
-> +	int trip, struct thermal_cooling_device *cdev,
-> +	unsigned long upper, unsigned long lower);
->  
->      This interface function bind a thermal cooling device to the certain trip
->      point of a thermal zone device.
-> @@ -93,6 +94,12 @@ temperature) and throttle appropriate devices.
->      cdev: thermal cooling device
->      trip: indicates which trip point the cooling devices is associated with
->  	  in this thermal zone.
-> +    upper:the Maximum cooling state for this trip point.
-> +          THERMAL_NO_LIMIT means no upper limit,
-> +	  and the cooling device can be in max_state.
-> +    lower:the Minimum cooling state can be used for this trip point.
-> +          THERMAL_NO_LIMIT means no lower limit,
-> +	  and the cooling device can be in cooling state 0.
->  
->  1.3.2 int thermal_zone_unbind_cooling_device(struct thermal_zone_device *tz,
->  		int trip, struct thermal_cooling_device *cdev);
 > diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-> index 8275e7b..0154eac 100644
+> index 0154eac..01c92fd 100644
 > --- a/drivers/acpi/thermal.c
 > +++ b/drivers/acpi/thermal.c
-> @@ -727,11 +727,9 @@ static int thermal_notify(struct thermal_zone_device *thermal, int trip,
->  	return 0;
->  }
->  
-> -typedef int (*cb)(struct thermal_zone_device *, int,
-> -		  struct thermal_cooling_device *);
->  static int acpi_thermal_cooling_device_cb(struct thermal_zone_device *thermal,
->  					struct thermal_cooling_device *cdev,
-> -					cb action)
-> +					bool bind)
->  {
->  	struct acpi_device *device = cdev->devdata;
->  	struct acpi_thermal *tz = thermal->devdata;
-> @@ -755,11 +753,19 @@ static int acpi_thermal_cooling_device_cb(struct thermal_zone_device *thermal,
->  		    i++) {
->  			handle = tz->trips.passive.devices.handles[i];
->  			status = acpi_bus_get_device(handle, &dev);
-> -			if (ACPI_SUCCESS(status) && (dev == device)) {
-> -				result = action(thermal, trip, cdev);
-> -				if (result)
-> -					goto failed;
-> -			}
-> +			if (ACPI_FAILURE(status) || dev != device)
-> +				continue;
-> +			if (bind)
-> +				result =
-> +					thermal_zone_bind_cooling_device
-> +					(thermal, trip, cdev,
-> +					 THERMAL_NO_LIMIT, THERMAL_NO_LIMIT);
-> +			else
-> +				result =
-> +					thermal_zone_unbind_cooling_device
-> +					(thermal, trip, cdev);
-> +			if (result)
-> +				goto failed;
->  		}
->  	}
->  
-> @@ -772,11 +778,17 @@ static int acpi_thermal_cooling_device_cb(struct thermal_zone_device *thermal,
->  		    j++) {
->  			handle = tz->trips.active[i].devices.handles[j];
->  			status = acpi_bus_get_device(handle, &dev);
-> -			if (ACPI_SUCCESS(status) && (dev == device)) {
-> -				result = action(thermal, trip, cdev);
-> -				if (result)
-> -					goto failed;
-> -			}
-> +			if (ACPI_FAILURE(status) || dev != device)
-> +				continue;
-> +			if (bind)
-> +				result = thermal_zone_bind_cooling_device
-> +					(thermal, trip, cdev,
-> +					 THERMAL_NO_LIMIT, THERMAL_NO_LIMIT);
-> +			else
-> +				result = thermal_zone_unbind_cooling_device
-> +					(thermal, trip, cdev);
-> +			if (result)
-> +				goto failed;
->  		}
->  	}
->  
-> @@ -784,7 +796,14 @@ static int acpi_thermal_cooling_device_cb(struct thermal_zone_device *thermal,
->  		handle = tz->devices.handles[i];
->  		status = acpi_bus_get_device(handle, &dev);
->  		if (ACPI_SUCCESS(status) && (dev == device)) {
-> -			result = action(thermal, -1, cdev);
-> +			if (bind)
-> +				result = thermal_zone_bind_cooling_device
-> +						(thermal, -1, cdev,
-> +						 THERMAL_NO_LIMIT,
-> +						 THERMAL_NO_LIMIT);
-> +			else
-> +				result = thermal_zone_unbind_cooling_device
-> +						(thermal, -1, cdev);
->  			if (result)
->  				goto failed;
->  		}
-> @@ -798,16 +817,14 @@ static int
->  acpi_thermal_bind_cooling_device(struct thermal_zone_device *thermal,
->  					struct thermal_cooling_device *cdev)
->  {
-> -	return acpi_thermal_cooling_device_cb(thermal, cdev,
-> -				thermal_zone_bind_cooling_device);
-> +	return acpi_thermal_cooling_device_cb(thermal, cdev, 1);
-
-That should be
-
-+	return acpi_thermal_cooling_device_cb(thermal, cdev, true);
-
-I suppose.
-
->  }
->  
->  static int
->  acpi_thermal_unbind_cooling_device(struct thermal_zone_device *thermal,
->  					struct thermal_cooling_device *cdev)
->  {
-> -	return acpi_thermal_cooling_device_cb(thermal, cdev,
-> -				thermal_zone_unbind_cooling_device);
-> +	return acpi_thermal_cooling_device_cb(thermal, cdev, 0);
-
-And that should be
-
-+	return acpi_thermal_cooling_device_cb(thermal, cdev, false);
-
->  }
->  
->  static const struct thermal_zone_device_ops acpi_thermal_zone_ops = {
-> diff --git a/drivers/platform/x86/acerhdf.c b/drivers/platform/x86/acerhdf.c
-> index 39abb15..a207466 100644
-> --- a/drivers/platform/x86/acerhdf.c
-> +++ b/drivers/platform/x86/acerhdf.c
-> @@ -329,7 +329,8 @@ static int acerhdf_bind(struct thermal_zone_device *thermal,
->  	if (cdev != cl_dev)
->  		return 0;
->  
-> -	if (thermal_zone_bind_cooling_device(thermal, 0, cdev)) {
-> +	if (thermal_zone_bind_cooling_device(thermal, 0, cdev,
-> +			THERMAL_NO_LIMIT, THERMAL_NO_LIMIT)) {
->  		pr_err("error binding cooling dev\n");
+> @@ -704,6 +704,38 @@ static int thermal_get_crit_temp(struct thermal_zone_device *thermal,
 >  		return -EINVAL;
->  	}
-> diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
-> index 008e2eb..62b4279 100644
-> --- a/drivers/thermal/thermal_sys.c
-> +++ b/drivers/thermal/thermal_sys.c
-> @@ -315,8 +315,9 @@ passive_store(struct device *dev, struct device_attribute *attr,
->  			if (!strncmp("Processor", cdev->type,
->  				     sizeof("Processor")))
->  				thermal_zone_bind_cooling_device(tz,
-> -								 THERMAL_TRIPS_NONE,
-> -								 cdev);
-> +						THERMAL_TRIPS_NONE, cdev,
-> +						THERMAL_NO_LIMIT,
-> +						THERMAL_NO_LIMIT);
->  		}
->  		mutex_unlock(&thermal_list_lock);
->  		if (!tz->passive_delay)
-> @@ -801,7 +802,8 @@ static void thermal_zone_device_check(struct work_struct *work)
->   */
->  int thermal_zone_bind_cooling_device(struct thermal_zone_device *tz,
->  				     int trip,
-> -				     struct thermal_cooling_device *cdev)
-> +				     struct thermal_cooling_device *cdev,
-> +				     unsigned long upper, unsigned long lower)
->  {
->  	struct thermal_cooling_device_instance *dev;
->  	struct thermal_cooling_device_instance *pos;
-> @@ -825,6 +827,15 @@ int thermal_zone_bind_cooling_device(struct thermal_zone_device *tz,
->  	if (tz != pos1 || cdev != pos2)
->  		return -EINVAL;
+>  }
 >  
-> +	cdev->ops->get_max_state(cdev, &max_state);
+> +static int thermal_get_trend(struct thermal_zone_device *thermal,
+> +				int trip, enum thermal_trend *trend)
+> +{
+> +	struct acpi_thermal *tz = thermal->devdata;
+> +	enum thermal_trip_type type;
+> +	int i;
 > +
-> +	/* lower default 0, upper default max_state */
-> +	lower = lower == THERMAL_NO_LIMIT ? 0 : lower;
-> +	upper = upper == THERMAL_NO_LIMIT ? max_state : upper;
-> +
-> +	if (lower > upper || upper > max_state)
+> +	if (thermal_get_trip_type(thermal, trip, &type))
 > +		return -EINVAL;
 > +
->  	dev =
->  	    kzalloc(sizeof(struct thermal_cooling_device_instance), GFP_KERNEL);
->  	if (!dev)
-> @@ -832,10 +843,8 @@ int thermal_zone_bind_cooling_device(struct thermal_zone_device *tz,
->  	dev->tz = tz;
->  	dev->cdev = cdev;
->  	dev->trip = trip;
-> -
-> -	cdev->ops->get_max_state(cdev, &max_state);
-> -	dev->upper = max_state;
-> -	dev->lower = 0;
-> +	dev->upper = upper;
-> +	dev->lower = lower;
->  
->  	result = get_idr(&tz->idr, &tz->lock, &dev->id);
->  	if (result)
-> diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-> index cfc8d90..a43b12c 100644
-> --- a/include/linux/thermal.h
-> +++ b/include/linux/thermal.h
-> @@ -75,6 +75,8 @@ struct thermal_cooling_device_ops {
->  	int (*set_cur_state) (struct thermal_cooling_device *, unsigned long);
+> +	/* Only PASSIVE trip points need TREND */
+> +	if (type != THERMAL_TRIP_PASSIVE)
+> +		return -EINVAL;
+> +
+> +	/*
+> +	 * tz->temperature has already been updated by generic thermal layer,
+> +	 * before this callback being invoked
+> +	 */
+> +	i = (tz->trips.passive.tc1 * (tz->temperature - tz->last_temperature))
+> +		+ (tz->trips.passive.tc2
+> +		* (tz->temperature - tz->trips.passive.temperature));
+> +
+> +	if (i > 0)
+> +		*trend = THERMAL_TREND_RAISING;
+> +	else if (i < 0)
+> +		*trend = THERMAL_TREND_DROPPING;
+> +	else
+> +		*trend = THERMAL_TREND_STABLE;
+> +	return 0;
+> +}
+> +
+> +
+>  static int thermal_notify(struct thermal_zone_device *thermal, int trip,
+>  			   enum thermal_trip_type trip_type)
+>  {
+> @@ -836,6 +868,7 @@ static const struct thermal_zone_device_ops acpi_thermal_zone_ops = {
+>  	.get_trip_type = thermal_get_trip_type,
+>  	.get_trip_temp = thermal_get_trip_temp,
+>  	.get_crit_temp = thermal_get_crit_temp,
+> +	.get_trend = thermal_get_trend,
+>  	.notify = thermal_notify,
 >  };
 >  
-> +#define THERMAL_NO_LIMIT -1UL /* no upper/lower limit requirement */
-> +
->  #define THERMAL_TRIPS_NONE -1
->  #define THERMAL_MAX_TRIPS 12
->  #define THERMAL_NAME_LENGTH 20
-> @@ -157,7 +159,8 @@ struct thermal_zone_device *thermal_zone_device_register(char *, int, int,
->  void thermal_zone_device_unregister(struct thermal_zone_device *);
+> diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
+> index 62b4279..d406524 100644
+> --- a/drivers/thermal/thermal_sys.c
+> +++ b/drivers/thermal/thermal_sys.c
+> @@ -699,6 +699,21 @@ thermal_remove_hwmon_sysfs(struct thermal_zone_device *tz)
+>  }
+>  #endif
 >  
->  int thermal_zone_bind_cooling_device(struct thermal_zone_device *, int,
-> -				     struct thermal_cooling_device *);
-> +				     struct thermal_cooling_device *,
-> +				     unsigned long, unsigned long);
->  int thermal_zone_unbind_cooling_device(struct thermal_zone_device *, int,
->  				       struct thermal_cooling_device *);
->  void thermal_zone_device_update(struct thermal_zone_device *);
-> 
+> +static void thermal_get_trend(struct thermal_zone_device *tz,
+> +		int trip, enum thermal_trend *trend)
+> +{
+> +	if (tz->ops->get_trend && !tz->ops->get_trend(tz, trip, trend))
+> +			return;
+> +
+> +	if (tz->temperature > tz->last_temperature)
+> +		*trend = THERMAL_TREND_RAISING;
+> +	else if (tz->temperature < tz->last_temperature)
+> +		*trend = THERMAL_TREND_DROPPING;
+> +	else
+> +		*trend = THERMAL_TREND_STABLE;
+> +	return;
+> +}
+> +
 
-Looks good apart from the above nits (arguably minor).
+As I said in the review of the previous version of this patch series, I think
+that the code from the function above should go directly into
+thermal_zone_device_passive().  The ugly pointer manipulations would be
+avoidable in that case and the code would be cleaner overall in my opinion.
+
+>  static void thermal_zone_device_set_polling(struct thermal_zone_device *tz,
+>  					    int delay)
+>  {
+> @@ -733,6 +748,8 @@ static void thermal_zone_device_passive(struct thermal_zone_device *tz,
+>  	if (temp >= trip_temp) {
+>  		tz->passive = true;
+>  
+> +		thermal_get_trend(tz, trip, (enum thermal_trend *)&trend);
+> +
+>  		trend = (tz->tc1 * (temp - tz->last_temperature)) +
+>  			(tz->tc2 * (temp - trip_temp));
+>  
+> @@ -1091,6 +1108,9 @@ void thermal_zone_device_update(struct thermal_zone_device *tz)
+>  		goto leave;
+>  	}
+>  
+> +	tz->last_temperature = tz->temperature;
+> +	tz->temperature = temp;
+> +
+>  	for (count = 0; count < tz->trips; count++) {
+>  		tz->ops->get_trip_type(tz, count, &trip_type);
+>  		tz->ops->get_trip_temp(tz, count, &trip_temp);
+> @@ -1150,8 +1170,6 @@ void thermal_zone_device_update(struct thermal_zone_device *tz)
+>  		thermal_zone_device_passive(tz, temp, tz->forced_passive,
+>  					    THERMAL_TRIPS_NONE);
+>  
+> -	tz->last_temperature = temp;
+> -
+>  leave:
+>  	if (tz->passive)
+>  		thermal_zone_device_set_polling(tz, tz->passive_delay);
+> diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+> index a43b12c..a01e3e6 100644
+> --- a/include/linux/thermal.h
+> +++ b/include/linux/thermal.h
+> @@ -44,6 +44,12 @@ enum thermal_trip_type {
+>  	THERMAL_TRIP_CRITICAL,
+>  };
+>  
+> +enum thermal_trend {
+> +	THERMAL_TREND_STABLE, /* temperature is stable */
+> +	THERMAL_TREND_RAISING, /* temperature is raising */
+> +	THERMAL_TREND_DROPPING, /* temperature is dropping */
+> +};
+> +
+>  struct thermal_zone_device_ops {
+>  	int (*bind) (struct thermal_zone_device *,
+>  		     struct thermal_cooling_device *);
+> @@ -65,6 +71,8 @@ struct thermal_zone_device_ops {
+>  	int (*set_trip_hyst) (struct thermal_zone_device *, int,
+>  			      unsigned long);
+>  	int (*get_crit_temp) (struct thermal_zone_device *, unsigned long *);
+> +	int (*get_trend) (struct thermal_zone_device *, int,
+> +			  enum thermal_trend *);
+>  	int (*notify) (struct thermal_zone_device *, int,
+>  		       enum thermal_trip_type);
+>  };
+> @@ -111,6 +119,7 @@ struct thermal_zone_device {
+>  	int tc2;
+>  	int passive_delay;
+>  	int polling_delay;
+> +	int temperature;
+>  	int last_temperature;
+>  	bool passive;
+>  	unsigned int forced_passive;
+> 
 
 Thanks,
 Rafael
