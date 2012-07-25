@@ -1,179 +1,114 @@
-From: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: [PATCH 4/5][RFC] cpuidle : use per cpuidle device cpu states
-Date: Wed, 25 Jul 2012 12:46:01 +0200
-Message-ID: <1343213162-8064-5-git-send-email-daniel.lezcano@linaro.org>
-References: <1343213162-8064-1-git-send-email-daniel.lezcano@linaro.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 09/16] Thermal: Introduce thermal_zone_trip_update()
+Date: Wed, 25 Jul 2012 13:07:56 +0200
+Message-ID: <201207251307.57165.rjw@sisk.pl>
+References: <1342679480-5336-1-git-send-email-rui.zhang@intel.com> <201207241127.43086.rjw@sisk.pl> <1343180282.1682.392.camel@rui.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-In-Reply-To: <1343213162-8064-1-git-send-email-daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
-List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
-Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+Content-Type: Text/Plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([193.178.161.156]:55907 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756360Ab2GYLCL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Jul 2012 07:02:11 -0400
+In-Reply-To: <1343180282.1682.392.camel@rui.sh.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Amit Kachhap <amit.kachhap@linaro.org>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, R Durgadoss <durgadoss.r@intel.com>, Wei Ni <wni@nvidia.com>
 
-We have the cpuidle states pointer stored in the cpuidle device
-structure. This patch use this pointer instead of the driver's one.
+On Wednesday, July 25, 2012, Zhang Rui wrote:
+> On =E4=BA=8C, 2012-07-24 at 11:27 +0200, Rafael J. Wysocki wrote:
+> > On Tuesday, July 24, 2012, Zhang Rui wrote:
+> > > On =E5=9B=9B, 2012-07-19 at 23:19 +0200, Rafael J. Wysocki wrote:
+> > > > On Thursday, July 19, 2012, Zhang Rui wrote:
+> > > > > This function is used to update the cooling state of
+> > > > > all the cooling devices that are binded to an active trip poi=
+nt.
+> > > >=20
+> > > > s/binded/bound/
+> > > >=20
+> > > got it.
+> > >=20
+> > > > > This will be used for passive cooling as well, in the future =
+patches.
+> > > > > as both active and passive cooling can share the same algorit=
+hm,
+> > > > > which is
+> > > > >=20
+> > > > > 1. if the temperature is higher than a trip point,
+> > > > >    a. if the trend is THERMAL_TREND_RAISING, use higher cooli=
+ng
+> > > > >       state for this trip point
+> > > > >    b. if the trend is THERMAL_TREND_DROPPING, use lower cooli=
+ng
+> > > > >       state for this trip point
+> > > > >=20
+> > > > > 2. if the temperature is lower than a trip point, use lower
+> > > > >    cooling state for this trip point.
+> > > > >=20
+> > > > > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> > > > > ---
+> > > > >  drivers/acpi/thermal.c        |    7 +++-
+> > > > >  drivers/thermal/thermal_sys.c |   91 +++++++++++++++++++++++=
+++++++------------
+> > > > >  2 files changed, 71 insertions(+), 27 deletions(-)
+> > > > >=20
+> > > > > diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+> > > > > index 73e335f..14c4879 100644
+> > > > > --- a/drivers/acpi/thermal.c
+> > > > > +++ b/drivers/acpi/thermal.c
+> > > > > @@ -715,7 +715,12 @@ static int thermal_get_trend(struct ther=
+mal_zone_device *thermal,
+> > > > >  	if (thermal_get_trip_type(thermal, trip, &type))
+> > > > >  		return -EINVAL;
+> > > > > =20
+> > > > > -	/* Only PASSIVE trip points need TREND */
+> > > > > +	if (type =3D=3D THERMAL_TRIP_ACTIVE) {
+> > > > > +		/* aggressive active cooling */
+> > > > > +		*trend =3D THERMAL_TREND_RAISING;
+> > > > > +		return 0;
+> > > >=20
+> > > > Please move that into thermal_zone_trip_update() directly, unle=
+ss you
+> > > > need it elsewhere.
+> > > >=20
+> > > IMO, I can say that ACPI thermal wants aggressive active cooling,=
+ as it
+> > > will never spin down the fan when the temperature is higher than =
+the
+> > > trip point.
+> >=20
+> > I meant the code organization, not the functionality. :-)
+> >=20
+> sure.
+>=20
+> > Since thermal_get_trend() is static, it is not used outside of this=
+ file,
+> > so you can move the "if (type =3D=3D THERMAL_TRIP_ACTIVE)" conditio=
+nal from it
+> > directly into the caller (unless there are more callers, which I'm =
+not sure
+> > about without reading the whole code again).
+> >=20
+> sorry I still do not get it.
+> the generic thermal layer is the caller of this callback.
 
-Signed-off-by: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
----
- drivers/cpuidle/cpuidle.c          |    6 +++---
- drivers/cpuidle/governors/ladder.c |   18 +++++++++---------
- drivers/cpuidle/governors/menu.c   |    8 ++++----
- drivers/cpuidle/sysfs.c            |    3 +--
- 4 files changed, 17 insertions(+), 18 deletions(-)
+I'm not talking about the callback, but of the static function with the
+same name you've introduced into drivers/thermal/thermal_sys.c in the
+previous patch. :-)
 
-diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
-index 42b1a8a..199878a 100644
---- a/drivers/cpuidle/cpuidle.c
-+++ b/drivers/cpuidle/cpuidle.c
-@@ -45,7 +45,7 @@ static int __cpuidle_register_device(struct cpuidle_device *dev);
- static inline int cpuidle_enter(struct cpuidle_device *dev,
- 				struct cpuidle_driver *drv, int index)
- {
--	struct cpuidle_state *target_state = &drv->states[index];
-+	struct cpuidle_state *target_state = &dev->states[index];
- 	return target_state->enter(dev, drv, index);
- }
- 
-@@ -77,7 +77,7 @@ int cpuidle_play_dead(void)
- 
- 	/* Find lowest-power state that supports long-term idle */
- 	for (i = CPUIDLE_DRIVER_STATE_START; i < drv->state_count; i++) {
--		struct cpuidle_state *s = &drv->states[i];
-+		struct cpuidle_state *s = &dev->states[i];
- 
- 		if (s->power_usage < power_usage && s->enter_dead) {
- 			power_usage = s->power_usage;
-@@ -86,7 +86,7 @@ int cpuidle_play_dead(void)
- 	}
- 
- 	if (dead_state != -1)
--		return drv->states[dead_state].enter_dead(dev, dead_state);
-+		return dev->states[dead_state].enter_dead(dev, dead_state);
- 
- 	return -ENODEV;
- }
-diff --git a/drivers/cpuidle/governors/ladder.c b/drivers/cpuidle/governors/ladder.c
-index b6a09ea..b50cae3 100644
---- a/drivers/cpuidle/governors/ladder.c
-+++ b/drivers/cpuidle/governors/ladder.c
-@@ -79,17 +79,17 @@ static int ladder_select_state(struct cpuidle_driver *drv,
- 
- 	last_state = &ldev->states[last_idx];
- 
--	if (drv->states[last_idx].flags & CPUIDLE_FLAG_TIME_VALID) {
-+	if (dev->states[last_idx].flags & CPUIDLE_FLAG_TIME_VALID) {
- 		last_residency = cpuidle_get_last_residency(dev) - \
--					 drv->states[last_idx].exit_latency;
-+					 dev->states[last_idx].exit_latency;
- 	}
- 	else
- 		last_residency = last_state->threshold.promotion_time + 1;
- 
- 	/* consider promotion */
--	if (last_idx < drv->state_count - 1 &&
-+	if (last_idx < dev->state_count - 1 &&
- 	    last_residency > last_state->threshold.promotion_time &&
--	    drv->states[last_idx + 1].exit_latency <= latency_req) {
-+	    dev->states[last_idx + 1].exit_latency <= latency_req) {
- 		last_state->stats.promotion_count++;
- 		last_state->stats.demotion_count = 0;
- 		if (last_state->stats.promotion_count >= last_state->threshold.promotion_count) {
-@@ -100,11 +100,11 @@ static int ladder_select_state(struct cpuidle_driver *drv,
- 
- 	/* consider demotion */
- 	if (last_idx > CPUIDLE_DRIVER_STATE_START &&
--	    drv->states[last_idx].exit_latency > latency_req) {
-+	    dev->states[last_idx].exit_latency > latency_req) {
- 		int i;
- 
- 		for (i = last_idx - 1; i > CPUIDLE_DRIVER_STATE_START; i--) {
--			if (drv->states[i].exit_latency <= latency_req)
-+			if (dev->states[i].exit_latency <= latency_req)
- 				break;
- 		}
- 		ladder_do_selection(ldev, last_idx, i);
-@@ -140,8 +140,8 @@ static int ladder_enable_device(struct cpuidle_driver *drv,
- 
- 	ldev->last_state_idx = CPUIDLE_DRIVER_STATE_START;
- 
--	for (i = 0; i < drv->state_count; i++) {
--		state = &drv->states[i];
-+	for (i = 0; i < dev->state_count; i++) {
-+		state = &dev->states[i];
- 		lstate = &ldev->states[i];
- 
- 		lstate->stats.promotion_count = 0;
-@@ -150,7 +150,7 @@ static int ladder_enable_device(struct cpuidle_driver *drv,
- 		lstate->threshold.promotion_count = PROMOTION_COUNT;
- 		lstate->threshold.demotion_count = DEMOTION_COUNT;
- 
--		if (i < drv->state_count - 1)
-+		if (i < dev->state_count - 1)
- 			lstate->threshold.promotion_time = state->exit_latency;
- 		if (i > 0)
- 			lstate->threshold.demotion_time = state->exit_latency;
-diff --git a/drivers/cpuidle/governors/menu.c b/drivers/cpuidle/governors/menu.c
-index 5b1f2c3..3a9a9bd 100644
---- a/drivers/cpuidle/governors/menu.c
-+++ b/drivers/cpuidle/governors/menu.c
-@@ -281,7 +281,7 @@ static int menu_select(struct cpuidle_driver *drv, struct cpuidle_device *dev)
- 	 * unless the timer is happening really really soon.
- 	 */
- 	if (data->expected_us > 5 &&
--	    !drv->states[CPUIDLE_DRIVER_STATE_START].disabled &&
-+	    !dev->states[CPUIDLE_DRIVER_STATE_START].disabled &&
- 		dev->states_usage[CPUIDLE_DRIVER_STATE_START].disable == 0)
- 		data->last_state_idx = CPUIDLE_DRIVER_STATE_START;
- 
-@@ -289,8 +289,8 @@ static int menu_select(struct cpuidle_driver *drv, struct cpuidle_device *dev)
- 	 * Find the idle state with the lowest power while satisfying
- 	 * our constraints.
- 	 */
--	for (i = CPUIDLE_DRIVER_STATE_START; i < drv->state_count; i++) {
--		struct cpuidle_state *s = &drv->states[i];
-+	for (i = CPUIDLE_DRIVER_STATE_START; i < dev->state_count; i++) {
-+		struct cpuidle_state *s = &dev->states[i];
- 		struct cpuidle_state_usage *su = &dev->states_usage[i];
- 
- 		if (s->disabled || su->disable)
-@@ -338,7 +338,7 @@ static void menu_update(struct cpuidle_driver *drv, struct cpuidle_device *dev)
- 	struct menu_device *data = &__get_cpu_var(menu_devices);
- 	int last_idx = data->last_state_idx;
- 	unsigned int last_idle_us = cpuidle_get_last_residency(dev);
--	struct cpuidle_state *target = &drv->states[last_idx];
-+	struct cpuidle_state *target = &dev->states[last_idx];
- 	unsigned int measured_us;
- 	u64 new_factor;
- 
-diff --git a/drivers/cpuidle/sysfs.c b/drivers/cpuidle/sysfs.c
-index 5f809e3..6b20929 100644
---- a/drivers/cpuidle/sysfs.c
-+++ b/drivers/cpuidle/sysfs.c
-@@ -363,14 +363,13 @@ int cpuidle_add_state_sysfs(struct cpuidle_device *device)
- {
- 	int i, ret = -ENOMEM;
- 	struct cpuidle_state_kobj *kobj;
--	struct cpuidle_driver *drv = cpuidle_get_driver();
- 
- 	/* state statistics */
- 	for (i = 0; i < device->state_count; i++) {
- 		kobj = kzalloc(sizeof(struct cpuidle_state_kobj), GFP_KERNEL);
- 		if (!kobj)
- 			goto error_state;
--		kobj->state = &drv->states[i];
-+		kobj->state = &device->states[i];
- 		kobj->state_usage = &device->states_usage[i];
- 		init_completion(&kobj->kobj_unregister);
- 
--- 
-1.7.5.4
+The only caller of this function seems to be thermal_zone_device_passiv=
+e()
+and my point is that it would be better to simply put the code from tha=
+t
+function into thermal_zone_device_passive() directly, unless there are
+more callers added by the subsequent patches, which I'm not sure about.
+
+Thanks,
+Rafael
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
