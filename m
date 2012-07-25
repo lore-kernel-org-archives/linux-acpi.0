@@ -1,24 +1,20 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH RESEND 02/16] Thermal: Add Hysteresis attributes
-Date: Tue, 24 Jul 2012 23:19:54 -0400
-Message-ID: <500F65DA.7090208@kernel.org>
-References: <1343182273-32096-1-git-send-email-rui.zhang@intel.com> <1343182273-32096-3-git-send-email-rui.zhang@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Subject: ACPI & Power Management Patches for Linux-3.6-merge - part 1
+Date: Tue, 24 Jul 2012 23:40:56 -0400
+Message-ID: <1343187708-19532-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:50105 "EHLO
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:46154 "EHLO
 	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756139Ab2GYDT6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Jul 2012 23:19:58 -0400
-In-Reply-To: <1343182273-32096-3-git-send-email-rui.zhang@intel.com>
+	with ESMTP id S1756211Ab2GYDmB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Jul 2012 23:42:01 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg@redhat.com>, R Durgadoss <durgadoss.r@intel.com>, Eduardo Valentin <eduardo.valentin@ti.com>, Amit Kachhap <amit.kachhap@linaro.org>, Wei Ni <wni@nvidia.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org
+Cc: linux-kernel@vger.kernel.org
 
-Applied.
+Here is my initial queue of patches for Linux 3.6.
+Please let me know if you see troubles with any of them.
 
-Thanks for the refresh.
+thanks,
+Len Brown, Intel Open Source Technology Center
 
--Len Brown, Intel Open Source Technology Center
