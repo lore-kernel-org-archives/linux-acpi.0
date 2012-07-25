@@ -1,46 +1,118 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH v2 1/4] ACPI: Add acpi_pr_<level>() interfaces
-Date: Wed, 25 Jul 2012 11:11:49 -0700
-Message-ID: <1343239909.7045.2.camel@joe2Laptop>
-References: <1342803256-17514-1-git-send-email-toshi.kani@hp.com>
-	 <1342803256-17514-2-git-send-email-toshi.kani@hp.com>
-	 <1343200017.30161.3.camel@joe2Laptop>
-	 <1343238829.3010.394.camel@misato.fc.hp.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH] acpi : create sun sysfs file in container device
+Date: Wed, 25 Jul 2012 12:24:34 -0600
+Message-ID: <1343240674.3010.411.camel@misato.fc.hp.com>
+References: <500F6739.8090506@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from perches-mx.perches.com ([206.117.179.246]:58122 "EHLO
-	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752333Ab2GYSLu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Jul 2012 14:11:50 -0400
-In-Reply-To: <1343238829.3010.394.camel@misato.fc.hp.com>
+Received: from g6t0187.atlanta.hp.com ([15.193.32.64]:6196 "EHLO
+	g6t0187.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751325Ab2GYS3Y (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Jul 2012 14:29:24 -0400
+In-Reply-To: <500F6739.8090506@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, liuj97@gmail.com, srivatsa.bhat@linux.vnet.ibm.com, prarit@redhat.com, imammedo@redhat.com, vijaymohan.pandarathil@hp.com
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, 2012-07-25 at 11:53 -0600, Toshi Kani wrote:
-> On Wed, 2012-07-25 at 00:06 -0700, Joe Perches wrote:
-> > On Fri, 2012-07-20 at 10:54 -0600, Toshi Kani wrote:
-> > > This patch introduces acpi_pr_<level>(), where <level> is a message
-> > > level such as err/warn/info, to support improved logging messages
-> > > for ACPI, esp. in hotplug operations.  acpi_pr_<level>() appends
-> > > "ACPI" prefix and ACPI object path to the messages.  This improves
-> > > diagnostics in hotplug operations since it identifies an object that
-> > > caused an issue in a log file.
+Yasuaki Ishimatsu wrote:
+> There is no comment on the patch about a month. But I want to merge the patch
+> into linux-3.6. So I resend it. 
 > 
-> Hi Joe,
+> ---
+> Even if container device has _SUN method, the method is ignored. So we cannot
+> know slot-unique ID number of the container device. The patch creates "sun"
+> file in sysfs so that we can recognize it.
 > 
-> Thanks for reviewing!
-> 
-> > trivia:
-> 
-> Did you mean to say something more on this?  Just checking...
+> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-No.  I just intended to note that the comments that followed
-weren't particularly important nor should it really stop the
-patch from being applied if you didn't want to update it.
+Hi Yasuaki,
 
-cheers, Joe
+The patch works fine on my setup.  However, it may be better to
+implement this feature in acpi_device_setup_files(), so that we can
+generally support it for any ACPI objects with _SUN.  We might also be
+able to put sun value into acpi_device_pnp since it is a static value.
+This way, we don't have to call _SUN at every sysfs access, and it could
+be useful for debugging as well.
+
+Thanks,
+-Toshi
+
+> ---
+>  drivers/acpi/container.c |   36 +++++++++++++++++++++++++++++++++---
+>  1 file changed, 33 insertions(+), 3 deletions(-)
+> 
+> Index: linux-3.5-rc1/drivers/acpi/container.c
+> ===================================================================
+> --- linux-3.5-rc1.orig/drivers/acpi/container.c	2012-06-14 15:35:31.045500166 +0900
+> +++ linux-3.5-rc1/drivers/acpi/container.c	2012-06-14 16:40:13.010405144 +0900
+> @@ -32,6 +32,7 @@
+>  #include <linux/slab.h>
+>  #include <linux/types.h>
+>  #include <linux/acpi.h>
+> +#include <linux/device.h>
+>  #include <acpi/acpi_bus.h>
+>  #include <acpi/acpi_drivers.h>
+>  #include <acpi/container.h>
+> @@ -93,10 +94,30 @@ static int is_device_present(acpi_handle
+>  }
+> 
+>  /*******************************************************************/
+> +
+> +static ssize_t acpi_device_sun_show(struct device *dev,
+> +				    struct device_attribute *attr, char *buf) {
+> +	struct acpi_device *device = to_acpi_device(dev);
+> +	acpi_status status;
+> +	unsigned long long sun;
+> +
+> +	status = acpi_evaluate_integer(device->handle, "_SUN", NULL,  &sun);
+> +	if (ACPI_FAILURE(status))
+> +		return 0;
+> +
+> +	return sprintf(buf, "%llu\n", sun);
+> +}
+> +
+> +static DEVICE_ATTR(sun, 0444, acpi_device_sun_show, NULL);
+> +
+> +/*******************************************************************/
+> +
+>  static int acpi_container_add(struct acpi_device *device)
+>  {
+>  	struct acpi_container *container;
+> -
+> +	acpi_status status;
+> +	acpi_handle temp;
+> +	int result = 0;
+> 
+>  	if (!device) {
+>  		printk(KERN_ERR PREFIX "device is NULL\n");
+> @@ -115,13 +136,22 @@ static int acpi_container_add(struct acp
+>  	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device <%s> bid <%s>\n",
+>  			  acpi_device_name(device), acpi_device_bid(device)));
+> 
+> -	return 0;
+> +	status = acpi_get_handle(device->handle, "_SUN", &temp);
+> +	if (ACPI_SUCCESS(status))
+> +		result = device_create_file(&device->dev, &dev_attr_sun);
+> +
+> +	return result;
+>  }
+> 
+>  static int acpi_container_remove(struct acpi_device *device, int type)
+>  {
+> -	acpi_status status = AE_OK;
+> +	acpi_status status;
+>  	struct acpi_container *pc = NULL;
+> +	acpi_handle temp;
+> +
+> +	status = acpi_get_handle(device->handle, "_SUN", &temp);
+> +	if (ACPI_SUCCESS(status))
+> +		device_remove_file(&device->dev, &dev_attr_sun);
+> 
+>  	pc = acpi_driver_data(device);
+>  	kfree(pc);
+> 
+
 
