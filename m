@@ -1,8 +1,7 @@
 From: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: [PATCH 3/5][RFC] cpuidle : add a pointer for cpuidle_state in the
-	cpuidle_device
-Date: Wed, 25 Jul 2012 12:46:00 +0200
-Message-ID: <1343213162-8064-4-git-send-email-daniel.lezcano@linaro.org>
+Subject: [PATCH 1/5] acpi : move the acpi_idle_driver variable declaration
+Date: Wed, 25 Jul 2012 12:45:58 +0200
+Message-ID: <1343213162-8064-2-git-send-email-daniel.lezcano@linaro.org>
 References: <1343213162-8064-1-git-send-email-daniel.lezcano@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,39 +20,40 @@ Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
 To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This patch adds a pointer to the cpuidle_state array in the cpuidle_device
-structure. When the cpuidle_device is initialized, the pointer is assigned
-from the driver's cpuidle states array.
+This variable is only used in the in processor_driver.c.
+This patch reduces the scope of the variable by moving it
+to this file.
 
 Signed-off-by: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 ---
- drivers/cpuidle/cpuidle.c |    1 +
- include/linux/cpuidle.h   |    1 +
- 2 files changed, 2 insertions(+), 0 deletions(-)
+ drivers/acpi/processor_driver.c |    2 +-
+ include/acpi/processor.h        |    1 -
+ 2 files changed, 1 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
-index d6a533e..42b1a8a 100644
---- a/drivers/cpuidle/cpuidle.c
-+++ b/drivers/cpuidle/cpuidle.c
-@@ -305,6 +305,7 @@ int cpuidle_enable_device(struct cpuidle_device *dev)
- 		return -EIO;
- 	if (!dev->state_count)
- 		dev->state_count = drv->state_count;
-+	dev->states = drv->states;
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index 7048b97..017b39d 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -113,7 +113,7 @@ static struct acpi_driver acpi_processor_driver = {
  
- 	if (dev->registered == 0) {
- 		ret = __cpuidle_register_device(dev);
-diff --git a/include/linux/cpuidle.h b/include/linux/cpuidle.h
-index 89dcd30..40a04a1 100644
---- a/include/linux/cpuidle.h
-+++ b/include/linux/cpuidle.h
-@@ -95,6 +95,7 @@ struct cpuidle_device {
+ DEFINE_PER_CPU(struct acpi_processor *, processors);
+ EXPORT_PER_CPU_SYMBOL(processors);
+-
++extern struct cpuidle_driver acpi_idle_driver;
+ struct acpi_processor_errata errata __read_mostly;
  
- 	int			last_residency;
- 	int			state_count;
-+	struct cpuidle_state    *states;
- 	struct cpuidle_state_usage	states_usage[CPUIDLE_STATE_MAX];
- 	struct cpuidle_state_kobj *kobjs[CPUIDLE_STATE_MAX];
+ /* --------------------------------------------------------------------------
+diff --git a/include/acpi/processor.h b/include/acpi/processor.h
+index db427fa..8b2c39a 100644
+--- a/include/acpi/processor.h
++++ b/include/acpi/processor.h
+@@ -332,7 +332,6 @@ int acpi_processor_power_exit(struct acpi_processor *pr,
+ 			      struct acpi_device *device);
+ int acpi_processor_suspend(struct device *dev);
+ int acpi_processor_resume(struct device *dev);
+-extern struct cpuidle_driver acpi_idle_driver;
  
+ /* in processor_thermal.c */
+ int acpi_processor_get_limit_info(struct acpi_processor *pr);
 -- 
 1.7.5.4
