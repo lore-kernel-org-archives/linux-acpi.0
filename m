@@ -1,42 +1,48 @@
-From: Amit Kachhap <amit.kachhap@linaro.org>
-Subject: Re: [linux-pm] ACPI & Power Management Patches for Linux-3.6-merge -
- part 1
-Date: Wed, 25 Jul 2012 12:17:09 +0530
-Message-ID: <CAK44p218dhQxSt_B-Suup0VeJs2YJjH=+80+f3rEaXoiFgvwwg@mail.gmail.com>
-References: <1343187708-19532-1-git-send-email-lenb@kernel.org>
+From: Joe Perches <joe@perches.com>
+Subject: Re: [PATCH v2 1/4] ACPI: Add acpi_pr_<level>() interfaces
+Date: Wed, 25 Jul 2012 00:06:57 -0700
+Message-ID: <1343200017.30161.3.camel@joe2Laptop>
+References: <1342803256-17514-1-git-send-email-toshi.kani@hp.com>
+	 <1342803256-17514-2-git-send-email-toshi.kani@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:50408 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750911Ab2GYGrL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Jul 2012 02:47:11 -0400
-Received: by lahd3 with SMTP id d3so296666lah.19
-        for <linux-acpi@vger.kernel.org>; Tue, 24 Jul 2012 23:47:09 -0700 (PDT)
-In-Reply-To: <1343187708-19532-1-git-send-email-lenb@kernel.org>
+Received: from perches-mx.perches.com ([206.117.179.246]:51430 "EHLO
+	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751858Ab2GYHG6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 25 Jul 2012 03:06:58 -0400
+In-Reply-To: <1342803256-17514-2-git-send-email-toshi.kani@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, liuj97@gmail.com, srivatsa.bhat@linux.vnet.ibm.com, prarit@redhat.com, imammedo@redhat.com, vijaymohan.pandarathil@hp.com
 
-On 25 July 2012 09:10, Len Brown <lenb@kernel.org> wrote:
-> Here is my initial queue of patches for Linux 3.6.
-> Please let me know if you see troubles with any of them.
+On Fri, 2012-07-20 at 10:54 -0600, Toshi Kani wrote:
+> This patch introduces acpi_pr_<level>(), where <level> is a message
+> level such as err/warn/info, to support improved logging messages
+> for ACPI, esp. in hotplug operations.  acpi_pr_<level>() appends
+> "ACPI" prefix and ACPI object path to the messages.  This improves
+> diagnostics in hotplug operations since it identifies an object that
+> caused an issue in a log file.
 
-Hi Len,
+trivia:
 
-I cannot see my patches (V5)
-http://www.spinics.net/lists/linux-pm/msg27866.html in your list. V4
-version was part of your pull request for the last merge window. Also
-because of Durgadoss's "Thermal trip points writeable" patch present
-in this list one small rework is needed. I will update it and resend
-it shortly.
+> diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+[]
+> @@ -454,3 +454,37 @@ acpi_evaluate_hotplug_ost(acpi_handle handle, u32 source_event,
+[]
+> +	char *path;
 
-Thanks,
-Amit Daniel
+const ?
 
->
-> thanks,
-> Len Brown, Intel Open Source Technology Center
->
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+[]
+> @@ -85,6 +85,26 @@ struct acpi_pld {
+[]
+> +#define acpi_pr_debug(handle, fmt, ...)				\
+> +	acpi_printk(KERN_DEBUG, handle, fmt, ##__VA_ARGS__)
+
+Might be nicer if this somehow had a dynamic debug
+mechanism too.
+
