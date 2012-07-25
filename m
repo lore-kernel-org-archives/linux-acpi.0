@@ -1,68 +1,42 @@
-From: "Pandarathil, Vijaymohan R" <vijaymohan.pandarathil@hp.com>
-Subject: RE: [PATCH v2 0/4] ACPI: hotplug messages improvement
-Date: Wed, 25 Jul 2012 06:15:40 +0000
-Message-ID: <EC847C0FC42FF046B94E60B168774B173164314F@G9W0337.americas.hpqcorp.net>
-References: <1342803256-17514-1-git-send-email-toshi.kani@hp.com>
+From: Amit Kachhap <amit.kachhap@linaro.org>
+Subject: Re: [linux-pm] ACPI & Power Management Patches for Linux-3.6-merge -
+ part 1
+Date: Wed, 25 Jul 2012 12:17:09 +0530
+Message-ID: <CAK44p218dhQxSt_B-Suup0VeJs2YJjH=+80+f3rEaXoiFgvwwg@mail.gmail.com>
+References: <1343187708-19532-1-git-send-email-lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0016.houston.hp.com ([15.201.24.19]:45651 "EHLO
-	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932736Ab2GYGSS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Jul 2012 02:18:18 -0400
-In-Reply-To: <1342803256-17514-1-git-send-email-toshi.kani@hp.com>
-Content-Language: en-US
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:50408 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750911Ab2GYGrL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 25 Jul 2012 02:47:11 -0400
+Received: by lahd3 with SMTP id d3so296666lah.19
+        for <linux-acpi@vger.kernel.org>; Tue, 24 Jul 2012 23:47:09 -0700 (PDT)
+In-Reply-To: <1343187708-19532-1-git-send-email-lenb@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Kani, Toshimitsu" <toshi.kani@hp.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "joe@perches.com" <joe@perches.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "isimatu.yasuaki@jp.fujitsu.com" <isimatu.yasuaki@jp.fujitsu.com>, "liuj97@gmail.com" <liuj97@gmail.com>, "srivatsa.bhat@linux.vnet.ibm.com" <srivatsa.bhat@linux.vnet.ibm.com>, "prarit@redhat.com" <prarit@redhat.com>, "imammedo@redhat.com" <imammedo@redhat.com>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org
 
-Hi Toshi,
+On 25 July 2012 09:10, Len Brown <lenb@kernel.org> wrote:
+> Here is my initial queue of patches for Linux 3.6.
+> Please let me know if you see troubles with any of them.
 
-Tested your patches on a KVM setup. Since all your acpi_pr* macros are in the error path, I didn't see an easy way to trigger them. Instead added an acpi_pr_err() message in the success path and tested out vcpu addition/deletion sequence. No regressions seen in the functional tests and the ACPI err message comes out on the console and message buffer with a valid ACPI device path.
+Hi Len,
 
-Vijay
+I cannot see my patches (V5)
+http://www.spinics.net/lists/linux-pm/msg27866.html in your list. V4
+version was part of your pull request for the last merge window. Also
+because of Durgadoss's "Thermal trip points writeable" patch present
+in this list one small rework is needed. I will update it and resend
+it shortly.
 
-Tested-by: Vijay Mohan Pandarathil<vijaymohan.pandarathil@hp.com>
+Thanks,
+Amit Daniel
 
-
------Original Message-----
-From: Kani, Toshimitsu 
-Sent: Friday, July 20, 2012 9:54 AM
-To: lenb@kernel.org; linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org; joe@perches.com; bhelgaas@google.com; isimatu.yasuaki@jp.fujitsu.com; liuj97@gmail.com; srivatsa.bhat@linux.vnet.ibm.com; prarit@redhat.com; imammedo@redhat.com; Pandarathil, Vijaymohan R; Kani, Toshimitsu
-Subject: [PATCH v2 0/4] ACPI: hotplug messages improvement
-
-This patchset improves logging messages for ACPI CPU, Memory, and
-Container hotplug notify handlers.  The patchset introduces a set of
-new macro interfaces, acpi_pr_<level>(), and updates the notify
-handlers to use them.  acpi_pr_<level>() appends "ACPI" prefix and
-ACPI object path to the messages.  This improves diagnostics in
-hotplug operations since it identifies an object that caused an
-issue in a log file.
-
-v2:
- - Set buffer.pointer to NULL in acpi_printk().
- - Added acpi_pr_debug().
-
----
-This patchset applies on top of the patch below.
-
-[PATCH] ACPI: Add ACPI CPU hot-remove support
-http://marc.info/?l=linux-acpi&m=134098193327362&w=2
-
----
-Toshi Kani (4):
- ACPI: Add acpi_pr_<level>() interfaces
- ACPI: Update CPU hotplug messages
- ACPI: Update Memory hotplug messages
- ACPI: Update Container hotplug messages
-
----
- drivers/acpi/acpi_memhotplug.c  |   24 ++++++++++++------------
- drivers/acpi/container.c        |    6 +++---
- drivers/acpi/processor_driver.c |   36 +++++++++++++++++++++---------------
- drivers/acpi/utils.c            |   34 ++++++++++++++++++++++++++++++++++
- include/acpi/acpi_bus.h         |   20 ++++++++++++++++++++
- 5 files changed, 90 insertions(+), 30 deletions(-)
+>
+> thanks,
+> Len Brown, Intel Open Source Technology Center
+>
