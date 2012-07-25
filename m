@@ -1,7 +1,7 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v3 4/4] ACPI: Update Container hotplug messages
-Date: Wed, 25 Jul 2012 17:12:58 -0600
-Message-ID: <1343257978-7085-5-git-send-email-toshi.kani@hp.com>
+Subject: [PATCH v3 1/4] ACPI: Add acpi_pr_<level>() interfaces
+Date: Wed, 25 Jul 2012 17:12:55 -0600
+Message-ID: <1343257978-7085-2-git-send-email-toshi.kani@hp.com>
 References: <1343257978-7085-1-git-send-email-toshi.kani@hp.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1343257978-7085-1-git-send-email-toshi.kani@hp.com>
@@ -10,44 +10,126 @@ To: lenb@kernel.org, linux-acpi@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org, joe@perches.com, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, liuj97@gmail.com, srivatsa.bhat@linux.vnet.ibm.com, prarit@redhat.com, imammedo@redhat.com, vijaymohan.pandarathil@hp.com, Toshi Kani <toshi.kani@hp.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Updated Container hotplug log messages with acpi_pr_<level>()
-and pr_<level>().
+This patch introduces acpi_pr_<level>(), where <level> is a kernel
+message level such as err/warn/info, to support improved logging
+messages for ACPI, esp. in hotplug operations.  acpi_pr_<level>()
+appends "ACPI" prefix and ACPI object path to the messages.  This
+improves diagnostics in hotplug operations since it identifies an
+object that caused an issue in a log file.
+
+acpi_pr_<level>() takes acpi_handle as an argument, which is passed
+to ACPI hotplug notify handlers from the ACPICA.  Therefore, it is
+always available unlike other kernel objects, such as device.
+
+For example, the statement below
+  acpi_pr_err(handle, "Device don't exist, dropping EJECT\n");
+logs an error message like this at KERN_ERR.
+  ACPI: \_SB_.SCK4.CPU4: Device don't exist, dropping EJECT
+
+ACPI drivers can use acpi_pr_<level>() when they need to identify
+a target ACPI object in their messages, such as error messages.
+The usage model is similar to dev_<level>().  acpi_pr_<level>() can
+be used when device is not created/valid, which may be the case for
+ACPI hotplug handlers.  ACPI drivers can continue to use dev_<level>()
+when device is valid.
+
+ACPI drivers also continue to use pr_<level>() when ACPI device
+path does not have to be appended to the messages, such as boot-up
+messages.
+
+Note: ACPI_[WARNING|INFO|ERROR]() are intended for the ACPICA and
+are not associated with the kernel message level.
 
 Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+Tested-by: Vijay Mohan Pandarathil <vijaymohan.pandarathil@hp.com>
 ---
- drivers/acpi/container.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/acpi/utils.c    |   34 ++++++++++++++++++++++++++++++++++
+ include/acpi/acpi_bus.h |   31 +++++++++++++++++++++++++++++++
+ 2 files changed, 65 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
-index 01a986d..643e962 100644
---- a/drivers/acpi/container.c
-+++ b/drivers/acpi/container.c
-@@ -99,7 +99,7 @@ static int acpi_container_add(struct acpi_device *device)
+diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+index 3e87c9c..ec0c6f9 100644
+--- a/drivers/acpi/utils.c
++++ b/drivers/acpi/utils.c
+@@ -454,3 +454,37 @@ acpi_evaluate_hotplug_ost(acpi_handle handle, u32 source_event,
+ #endif
+ }
+ EXPORT_SYMBOL(acpi_evaluate_hotplug_ost);
++
++/**
++ * acpi_printk: Print messages with ACPI prefix and object path
++ *
++ * This function is intended to be called through acpi_pr_<level> macros.
++ */
++void
++acpi_printk(const char *level, acpi_handle handle, const char *fmt, ...)
++{
++	struct va_format vaf;
++	va_list args;
++	struct acpi_buffer buffer = {
++		.length = ACPI_ALLOCATE_BUFFER,
++		.pointer = NULL
++	};
++	const char *path;
++	acpi_status ret;
++
++	va_start(args, fmt);
++	vaf.fmt = fmt;
++	vaf.va = &args;
++
++	ret = acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
++	if (ret == AE_OK)
++		path = buffer.pointer;
++	else
++		path = "<n/a>";
++
++	printk("%sACPI: %s: %pV", level, path, &vaf);
++
++	va_end(args);
++	kfree(buffer.pointer);
++}
++EXPORT_SYMBOL(acpi_printk);
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index bde976e..1c855b8 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -85,6 +85,37 @@ struct acpi_pld {
  
+ acpi_status
+ acpi_get_physical_device_location(acpi_handle handle, struct acpi_pld *pld);
++
++void acpi_printk(const char *level, acpi_handle handle, const char *fmt, ...);
++
++#define acpi_pr_emerg(handle, fmt, ...)				\
++	acpi_printk(KERN_EMERG, handle, fmt, ##__VA_ARGS__)
++#define acpi_pr_alert(handle, fmt, ...)				\
++	acpi_printk(KERN_ALERT, handle, fmt, ##__VA_ARGS__)
++#define acpi_pr_crit(handle, fmt, ...)				\
++	acpi_printk(KERN_CRIT, handle, fmt, ##__VA_ARGS__)
++#define acpi_pr_err(handle, fmt, ...)				\
++	acpi_printk(KERN_ERR, handle, fmt, ##__VA_ARGS__)
++#define acpi_pr_warn(handle, fmt, ...)				\
++	acpi_printk(KERN_WARNING, handle, fmt, ##__VA_ARGS__)
++#define acpi_pr_notice(handle, fmt, ...)			\
++	acpi_printk(KERN_NOTICE, handle, fmt, ##__VA_ARGS__)
++#define acpi_pr_info(handle, fmt, ...)				\
++	acpi_printk(KERN_INFO, handle, fmt, ##__VA_ARGS__)
++
++/* REVISIT: Need to support CONFIG_DYNAMIC_DEBUG */
++#if defined(DEBUG) || defined(CONFIG_DYNAMIC_DEBUG)
++#define acpi_pr_debug(handle, fmt, ...)					\
++	acpi_printk(KERN_DEBUG, handle, fmt, ##__VA_ARGS__)
++#else
++#define acpi_pr_debug(handle, fmt, ...)					\
++({									\
++	if (0)								\
++		acpi_printk(KERN_DEBUG, handle, fmt, ##__VA_ARGS__);	\
++	0;								\
++})
++#endif
++
+ #ifdef CONFIG_ACPI
  
- 	if (!device) {
--		printk(KERN_ERR PREFIX "device is NULL\n");
-+		pr_err(PREFIX "device is NULL\n");
- 		return -EINVAL;
- 	}
- 
-@@ -164,7 +164,7 @@ static void container_notify_cb(acpi_handle handle, u32 type, void *context)
- 	case ACPI_NOTIFY_BUS_CHECK:
- 		/* Fall through */
- 	case ACPI_NOTIFY_DEVICE_CHECK:
--		printk(KERN_WARNING "Container driver received %s event\n",
-+		pr_warn("Container driver received %s event\n",
- 		       (type == ACPI_NOTIFY_BUS_CHECK) ?
- 		       "ACPI_NOTIFY_BUS_CHECK" : "ACPI_NOTIFY_DEVICE_CHECK");
- 
-@@ -185,7 +185,7 @@ static void container_notify_cb(acpi_handle handle, u32 type, void *context)
- 
- 		result = container_device_add(&device, handle);
- 		if (result) {
--			pr_warn("Failed to add container\n");
-+			acpi_pr_warn(handle, "Failed to add container\n");
- 			break;
- 		}
- 
+ #include <linux/proc_fs.h>
 -- 
 1.7.7.6
