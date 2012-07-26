@@ -1,54 +1,25 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH v3 1/4] ACPI: Add acpi_pr_<level>() interfaces
-Date: Thu, 26 Jul 2012 14:57:34 -0700
-Message-ID: <1343339854.17538.50.camel@joe2Laptop>
-References: <1343257978-7085-1-git-send-email-toshi.kani@hp.com>
-	 <1343257978-7085-2-git-send-email-toshi.kani@hp.com>
-	 <CAErSpo4=HDaWTusKf+tRU6aXmj-mC1i7CswnDzDLZii21i9NaQ@mail.gmail.com>
-	 <1343336330.3010.496.camel@misato.fc.hp.com>
-	 <20120726213730.GA2149@google.com> <1343338982.17538.45.camel@joe2Laptop>
-	 <CAErSpo4cPuFLmp=b2JUUP-nDdtsFmJFda0az-9z9fEnys23L6w@mail.gmail.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [Resend][PATCH] ACPI / PM: Fix build warning in sleep.c for CONFIG_ACPI_SLEEP
+ unset
+Date: Thu, 26 Jul 2012 19:28:13 -0400
+Message-ID: <5011D28D.4060600@kernel.org>
+References: <20120721214156.GA2515@linux.vnet.ibm.com> <201207221940.51764.rjw@sisk.pl> <20120722202843.GQ2435@linux.vnet.ibm.com> <201207232101.02472.rjw@sisk.pl> <20120723192910.GD2491@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from perches-mx.perches.com ([206.117.179.246]:35884 "EHLO
-	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751489Ab2GZV5f (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 26 Jul 2012 17:57:35 -0400
-In-Reply-To: <CAErSpo4cPuFLmp=b2JUUP-nDdtsFmJFda0az-9z9fEnys23L6w@mail.gmail.com>
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:48910 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753148Ab2GZX2T (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Jul 2012 19:28:19 -0400
+In-Reply-To: <20120723192910.GD2491@linux.vnet.ibm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Toshi Kani <toshi.kani@hp.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, liuj97@gmail.com, srivatsa.bhat@linux.vnet.ibm.com, prarit@redhat.com, imammedo@redhat.com, vijaymohan.pandarathil@hp.com
+To: paulmck@linux.vnet.ibm.com
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "Kirill A. Shutemov" <kirill@shutemov.name>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Linux PM list <linux-pm@vger.kernel.org>
 
-On Thu, 2012-07-26 at 15:50 -0600, Bjorn Helgaas wrote:
-> On Thu, Jul 26, 2012 at 3:43 PM, Joe Perches <joe@perches.com> wrote:
-> > On Thu, 2012-07-26 at 15:37 -0600, Bjorn Helgaas wrote:
-> >>     PNP0C01:00: new device for \_SB_.PCI0.ISA_.MBIO
-> >>
-> >> I fiddled with this a while ago; it would look something like this:
-> > []
-> >> +static noinline_for_stack
-> >> +char *acpi_name_string(char *buf, char *end, acpi_handle handle,
-> >> +                    struct printf_spec spec, const char *fmt)
-[]
-> Yes.  I'm hesitant about this approach in general, because I don't
-> think printing the ACPI path is something we should be doing often.
-> It's not like a struct resource or a MAC address, where there are
-> dozens or hundreds of users.  I really think we should only print ACPI
-> paths in one or two places, so adding a %p extension would waste a
-> letter and encourage the wrong behavior.
+Applied.
 
-I don't much care for adding ACPI specific calls to vsprintf
-as acpi is supposed to be OS generic anyway.
-
-I don't think there's anything wrong with Toshi's approach.
-Anyone that looks for speed in a logging message is looking
-for an oddly fitting thing.  Tracing sure, but logging?
-
-I also don't see anything wrong with renaming it to just
-acpi_<level>, but that's a different discussion.
-
-cheers, Joe
+thanks,
+Len Brown, Intel Open Source Technology Center
 
