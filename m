@@ -1,41 +1,312 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH RESEND 04/16] Thermal: Introduce multiple cooling states
- support
-Date: Thu, 26 Jul 2012 10:33:02 +0800
-Message-ID: <1343269982.1682.407.camel@rui.sh.intel.com>
-References: <1343182273-32096-1-git-send-email-rui.zhang@intel.com>
-	 <1343182273-32096-5-git-send-email-rui.zhang@intel.com>
-	 <201207252206.16897.rjw@sisk.pl>
+From: Len Brown <lenb@kernel.org>
+Subject: ACPI & Power Management Patches for Linux-3.6-merge
+Date: Thu, 26 Jul 2012 00:25:48 -0400
+Message-ID: <5010C6CC.9060109@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:46039 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751924Ab2GZCcO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Jul 2012 22:32:14 -0400
-In-Reply-To: <201207252206.16897.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, R Durgadoss <durgadoss.r@intel.com>, Eduardo Valentin <eduardo.valentin@ti.com>, Amit Kachhap <amit.kachhap@linaro.org>, Wei Ni <wni@nvidia.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 
-On =E4=B8=89, 2012-07-25 at 22:06 +0200, Rafael J. Wysocki wrote:
-> On Wednesday, July 25, 2012, Zhang Rui wrote:
-> > This is because general active cooling devices, like fans,
-> > may have multiple speeds, which can be mapped to different cooling =
-states.
-> >=20
-> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
->=20
-> Reviewed-by: Rafael J. Wysocki <rjw@sisk.pl>
->=20
-again, thanks for reviewing this patch set, Rafael!
+Hi Linus,
 
--rui
+Please pull these ACPI & Power Management patches.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+re-write of the turbostat tool.
+	lower overhead was necessary for measuring very large system
+	when they are very idle.
+
+IVB support in intel_idle
+	It's what I run on my IVB, others should be able to also:-)
+
+ACPICA core update
+	We have found some bugs due to divergence between Linux
+	and the upstream ACPICA base.  Most of these patches
+	are to reduce that divergence to reduce the risk
+	of future bugs.
+
+Some cpuidle updates, mostly for non-Intel
+	more will be coming, as they depend on this part.
+
+Some thermal management changes needed by non-ACPI systems.
+
+Some _OST (OS Status Indication) updates for hot ACPI hot-plug.
+
+thanks!
+Len Brown, Intel Open Source Technology Center
+
+The following changes since commit 28a33cbc24e4256c143dce96c7d93bf423229f92:
+
+  Linux 3.5 (2012-07-21 13:58:29 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux.git release
+
+for you to fetch changes up to ec033d0a02901551346b9f43f8ff9bad51378891:
+
+  Merge branches 'acpi_pad', 'acpica', 'apei-bugzilla-43282', 'battery', 'cpuidle-coupled', 'cpuidle-tweaks', 'intel_idle-ivb', 'ost', 'red-hat-bz-772730', 'thermal', 'thermal-spear' and 'turbostat-v2' into release (2012-07-26 00:03:58 -0400)
+
+----------------------------------------------------------------
+
+Bob Moore (24):
+      ACPICA: Object dump routines: Use common function for string output
+      ACPICA: Lint fixes for acpi_write, no functional changes
+      ACPICA: Add support for multiple notify handlers
+      ACPICA: Update to version 20120420
+      ACPICA: Disassembler: Add support for Operation Region externals
+      ACPICA: ACPI 5/iASL: Add support for PCC keyword
+      ACPICA: iASL: Improved pathname support
+      ACPICA: Add FADT error message for GAS BitWidth overflow
+      ACPICA: Update to version 20120518
+      ACPICA: Disassembler: Emit descriptions for ACPI predefined names
+      ACPICA: Utilities: conditionally compile backslash removal function
+      ACPICA: Update comments; no functional change
+      ACPICA: Add support for implicit notify on multiple devices
+      ACPICA: Update to version 20120620
+      ACPICA: Split exception code utilities to a new file, utexcep.c
+      ACPICA: Add new interfaces for BIOS(firmware) errors and warnings
+      ACPICA: Table manager: deploy new firmware error/warning interfaces
+      ACPICA: Fix some comment fields
+      ACPICA: Add PCC address space to space ID decode function
+      ACPICA: Split file: tbxface.c -> tbxfload.c
+      ACPICA: Add new ACPI table load/unload external interfaces
+      ACPICA: Update header files copyrights to 2012
+      ACPICA: AcpiSrc: Fix some translation issues for Linux conversion
+      ACPICA: Update to version 20120711
+
+Colin Cross (4):
+      cpuidle: refactor out cpuidle_enter_state
+      cpuidle: fix error handling in __cpuidle_register_device
+      cpuidle: add support for states that affect multiple cpus
+      cpuidle: coupled: add parallel barrier function
+
+Durgadoss R (2):
+      Thermal: Make Thermal trip points writeable
+      Thermal: Add Hysteresis attributes
+
+Jean Delvare (1):
+      ACPI, APEI: Fixup common access width firmware bug
+
+Jesper Juhl (1):
+      ACPICA: AML Parser: Fix two possible memory leaks in error path
+
+Lan Tianyu (1):
+      ACPI/AC: prevent OOPS on some boxes due to missing check power_supply_register() return value check
+
+Len Brown (7):
+      intel_idle: initial IVB support
+      ACPI: remove acpi_pad MAINTAINERS entry
+      ACPI: acpi_pad: rename "power_saving" thread to "acpi_pad" thread
+      ACPI: acpi_pad: tune round_robin_time
+      tools/power: turbostat v2 - re-write for efficiency
+      tools/power: turbostat: fix large c1% issue
+      Merge branches 'acpi_pad', 'acpica', 'apei-bugzilla-43282', 'battery', 'cpuidle-coupled', 'cpuidle-tweaks', 'intel_idle-ivb', 'ost', 'red-hat-bz-772730', 'thermal', 'thermal-spear' and 'turbostat-v2' into release
+
+Lin Ming (1):
+      ACPICA: Remove argument of acpi_os_wait_events_complete
+
+Sergey Senozhatsky (1):
+      cpuidle: remove unused hrtimer_peek_ahead_timers() call
+
+Srivatsa S. Bhat (1):
+      cpuidle: add checks to avoid NULL pointer dereference
+
+Toshi Kani (6):
+      ACPI: Add an interface to evaluate _OST
+      ACPI: Add _OST support for sysfs eject
+      ACPI: Add _OST support for ACPI CPU hotplug
+      ACPI: Add _OST support for ACPI memory hotplug
+      ACPI: Add _OST support for ACPI container hotplug
+      ACPI: Set hotplug _OST support bit to _OSC
+
+Viresh Kumar (1):
+      drivers/thermal/spear_thermal.c: add Device Tree probing capability
+
+Zhang Rui (1):
+      Thermal: Documentation update
+
+srinivas pandruvada (1):
+      ACPI Battery: Added capacity
+
+ .../devicetree/bindings/thermal/spear-thermal.txt  |   14 +
+ Documentation/thermal/sysfs-api.txt                |   30 +-
+ MAINTAINERS                                        |    7 -
+ drivers/acpi/ac.c                                  |    4 +-
+ drivers/acpi/acpi_memhotplug.c                     |   43 +-
+ drivers/acpi/acpi_pad.c                            |    4 +-
+ drivers/acpi/acpica/Makefile                       |    2 +
+ drivers/acpi/acpica/acevents.h                     |    2 +-
+ drivers/acpi/acpica/acglobal.h                     |   19 +-
+ drivers/acpi/acpica/aclocal.h                      |   43 +-
+ drivers/acpi/acpica/acmacros.h                     |    6 +-
+ drivers/acpi/acpica/acobject.h                     |   15 +-
+ drivers/acpi/acpica/acpredef.h                     |    8 +-
+ drivers/acpi/acpica/acstruct.h                     |    2 +-
+ drivers/acpi/acpica/acutils.h                      |    2 +
+ drivers/acpi/acpica/amlcode.h                      |    4 +-
+ drivers/acpi/acpica/amlresrc.h                     |    4 +-
+ drivers/acpi/acpica/dsargs.c                       |    2 +-
+ drivers/acpi/acpica/dscontrol.c                    |    4 +-
+ drivers/acpi/acpica/dsfield.c                      |  103 +-
+ drivers/acpi/acpica/dsinit.c                       |    4 +-
+ drivers/acpi/acpica/dsmethod.c                     |    6 +-
+ drivers/acpi/acpica/dsmthdat.c                     |   32 +-
+ drivers/acpi/acpica/dsobject.c                     |   14 +-
+ drivers/acpi/acpica/dsopcode.c                     |   12 +-
+ drivers/acpi/acpica/dsutils.c                      |    6 +-
+ drivers/acpi/acpica/dswscope.c                     |    4 +-
+ drivers/acpi/acpica/dswstate.c                     |   20 +-
+ drivers/acpi/acpica/evevent.c                      |    2 +-
+ drivers/acpi/acpica/evglock.c                      |    4 +-
+ drivers/acpi/acpica/evgpe.c                        |   22 +-
+ drivers/acpi/acpica/evgpeblk.c                     |    2 +-
+ drivers/acpi/acpica/evgpeutil.c                    |   22 +-
+ drivers/acpi/acpica/evmisc.c                       |  191 +--
+ drivers/acpi/acpica/evregion.c                     |   24 +-
+ drivers/acpi/acpica/evrgnini.c                     |   28 +-
+ drivers/acpi/acpica/evsci.c                        |    4 +-
+ drivers/acpi/acpica/evxface.c                      |  474 +++----
+ drivers/acpi/acpica/evxfevnt.c                     |    8 +-
+ drivers/acpi/acpica/evxfgpe.c                      |  112 +-
+ drivers/acpi/acpica/evxfregn.c                     |   18 +-
+ drivers/acpi/acpica/exconfig.c                     |    8 +-
+ drivers/acpi/acpica/exconvrt.c                     |   10 +-
+ drivers/acpi/acpica/excreate.c                     |    2 +-
+ drivers/acpi/acpica/exdebug.c                      |    4 +-
+ drivers/acpi/acpica/exdump.c                       |   51 +-
+ drivers/acpi/acpica/exfldio.c                      |   14 +-
+ drivers/acpi/acpica/exmisc.c                       |   26 +-
+ drivers/acpi/acpica/exmutex.c                      |    6 +-
+ drivers/acpi/acpica/exprep.c                       |    6 +-
+ drivers/acpi/acpica/exregion.c                     |   38 +-
+ drivers/acpi/acpica/exresolv.c                     |    4 +-
+ drivers/acpi/acpica/exresop.c                      |   10 +-
+ drivers/acpi/acpica/exstore.c                      |    6 +-
+ drivers/acpi/acpica/exstorob.c                     |    2 +-
+ drivers/acpi/acpica/exsystem.c                     |    8 +-
+ drivers/acpi/acpica/exutils.c                      |   10 +-
+ drivers/acpi/acpica/hwacpi.c                       |    2 +-
+ drivers/acpi/acpica/hwesleep.c                     |   15 +-
+ drivers/acpi/acpica/hwregs.c                       |   22 +-
+ drivers/acpi/acpica/hwsleep.c                      |    6 +-
+ drivers/acpi/acpica/hwtimer.c                      |    4 +-
+ drivers/acpi/acpica/hwvalid.c                      |    4 +-
+ drivers/acpi/acpica/hwxface.c                      |   12 +-
+ drivers/acpi/acpica/hwxfsleep.c                    |    6 +-
+ drivers/acpi/acpica/nsaccess.c                     |    8 +-
+ drivers/acpi/acpica/nsalloc.c                      |   10 +-
+ drivers/acpi/acpica/nsdump.c                       |   18 +-
+ drivers/acpi/acpica/nsdumpdv.c                     |    6 +-
+ drivers/acpi/acpica/nseval.c                       |   10 +-
+ drivers/acpi/acpica/nsinit.c                       |    6 +-
+ drivers/acpi/acpica/nsload.c                       |    4 +-
+ drivers/acpi/acpica/nsnames.c                      |   10 +-
+ drivers/acpi/acpica/nsobject.c                     |   28 +-
+ drivers/acpi/acpica/nspredef.c                     |   38 +-
+ drivers/acpi/acpica/nsrepair.c                     |   14 +-
+ drivers/acpi/acpica/nsrepair2.c                    |   26 +-
+ drivers/acpi/acpica/nssearch.c                     |   12 +-
+ drivers/acpi/acpica/nsutils.c                      |   26 +-
+ drivers/acpi/acpica/nswalk.c                       |    8 +-
+ drivers/acpi/acpica/nsxfeval.c                     |   26 +-
+ drivers/acpi/acpica/nsxfname.c                     |   16 +-
+ drivers/acpi/acpica/nsxfobj.c                      |    8 +-
+ drivers/acpi/acpica/psargs.c                       |    6 +-
+ drivers/acpi/acpica/psloop.c                       |   16 +-
+ drivers/acpi/acpica/psopcode.c                     |    4 +-
+ drivers/acpi/acpica/psparse.c                      |    6 +-
+ drivers/acpi/acpica/psscope.c                      |    6 +-
+ drivers/acpi/acpica/pstree.c                       |   14 +-
+ drivers/acpi/acpica/psutils.c                      |    8 +-
+ drivers/acpi/acpica/psxface.c                      |   16 +-
+ drivers/acpi/acpica/rsaddr.c                       |   14 +-
+ drivers/acpi/acpica/rscalc.c                       |    2 +-
+ drivers/acpi/acpica/rscreate.c                     |    6 +-
+ drivers/acpi/acpica/rsdump.c                       |   10 +-
+ drivers/acpi/acpica/rslist.c                       |    2 +-
+ drivers/acpi/acpica/rsmisc.c                       |   22 +-
+ drivers/acpi/acpica/rsutils.c                      |   44 +-
+ drivers/acpi/acpica/rsxface.c                      |   14 +-
+ drivers/acpi/acpica/tbfadt.c                       |  144 ++-
+ drivers/acpi/acpica/tbfind.c                       |    2 +-
+ drivers/acpi/acpica/tbinstal.c                     |   23 +-
+ drivers/acpi/acpica/tbutils.c                      |   58 +-
+ drivers/acpi/acpica/tbxface.c                      |  225 +---
+ drivers/acpi/acpica/tbxfload.c                     |  389 ++++++
+ drivers/acpi/acpica/tbxfroot.c                     |   12 +-
+ drivers/acpi/acpica/utaddress.c                    |   10 +-
+ drivers/acpi/acpica/utalloc.c                      |   20 +-
+ drivers/acpi/acpica/utcopy.c                       |    2 +-
+ drivers/acpi/acpica/utdebug.c                      |   32 +-
+ drivers/acpi/acpica/utdecode.c                     |   70 +-
+ drivers/acpi/acpica/utdelete.c                     |   38 +-
+ drivers/acpi/acpica/uteval.c                       |    6 +-
+ drivers/acpi/acpica/utexcep.c                      |  153 +++
+ drivers/acpi/acpica/utglobal.c                     |   11 +-
+ drivers/acpi/acpica/utids.c                        |    2 +-
+ drivers/acpi/acpica/utlock.c                       |    6 +-
+ drivers/acpi/acpica/utmath.c                       |    4 +-
+ drivers/acpi/acpica/utmisc.c                       |  104 +-
+ drivers/acpi/acpica/utmutex.c                      |    8 +-
+ drivers/acpi/acpica/utobject.c                     |   14 +-
+ drivers/acpi/acpica/utosi.c                        |    2 +-
+ drivers/acpi/acpica/utresrc.c                      |   34 +-
+ drivers/acpi/acpica/utstate.c                      |   16 +-
+ drivers/acpi/acpica/utxface.c                      |   18 +-
+ drivers/acpi/acpica/utxferror.c                    |   90 +-
+ drivers/acpi/acpica/utxfmutex.c                    |   14 +-
+ drivers/acpi/apei/apei-base.c                      |    5 +
+ drivers/acpi/battery.c                             |    9 +
+ drivers/acpi/bus.c                                 |    4 +
+ drivers/acpi/container.c                           |   43 +-
+ drivers/acpi/osl.c                                 |    4 +-
+ drivers/acpi/processor_driver.c                    |   28 +-
+ drivers/acpi/processor_idle.c                      |   12 +-
+ drivers/acpi/scan.c                                |   58 +-
+ drivers/acpi/sleep.c                               |    2 +-
+ drivers/acpi/thermal.c                             |   10 +-
+ drivers/acpi/utils.c                               |   42 +
+ drivers/cpuidle/Kconfig                            |    3 +
+ drivers/cpuidle/Makefile                           |    1 +
+ drivers/cpuidle/coupled.c                          |  715 +++++++++++
+ drivers/cpuidle/cpuidle.c                          |   85 +-
+ drivers/cpuidle/cpuidle.h                          |   32 +
+ drivers/idle/intel_idle.c                          |   37 +
+ drivers/platform/x86/acerhdf.c                     |    2 +-
+ drivers/platform/x86/intel_mid_thermal.c           |    2 +-
+ drivers/thermal/Kconfig                            |    1 +
+ drivers/thermal/spear_thermal.c                    |   28 +-
+ drivers/thermal/thermal_sys.c                      |  223 +++-
+ include/acpi/acexcep.h                             |    7 +-
+ include/acpi/acnames.h                             |    2 +-
+ include/acpi/acoutput.h                            |    6 +-
+ include/acpi/acpi.h                                |    2 +-
+ include/acpi/acpi_bus.h                            |   12 +-
+ include/acpi/acpiosxf.h                            |    4 +-
+ include/acpi/acpixf.h                              |   25 +-
+ include/acpi/acrestyp.h                            |    6 +-
+ include/acpi/actbl.h                               |   10 +-
+ include/acpi/actbl1.h                              |   10 +-
+ include/acpi/actbl2.h                              |   10 +-
+ include/acpi/actbl3.h                              |    2 +-
+ include/acpi/actypes.h                             |   13 +-
+ include/acpi/platform/acenv.h                      |    2 +-
+ include/acpi/platform/acgcc.h                      |    2 +-
+ include/acpi/platform/aclinux.h                    |    2 +-
+ include/linux/acpi.h                               |   40 +-
+ include/linux/cpuidle.h                            |   11 +
+ include/linux/platform_data/spear_thermal.h        |   26 -
+ include/linux/thermal.h                            |   20 +-
+ tools/power/x86/turbostat/Makefile                 |    1 +
+ tools/power/x86/turbostat/turbostat.8              |   77 +-
+ tools/power/x86/turbostat/turbostat.c              | 1333 ++++++++++++--------
+ 172 files changed, 4203 insertions(+), 2340 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/thermal/spear-thermal.txt
+ create mode 100644 drivers/acpi/acpica/tbxfload.c
+ create mode 100644 drivers/acpi/acpica/utexcep.c
+ create mode 100644 drivers/cpuidle/coupled.c
+ delete mode 100644 include/linux/platform_data/spear_thermal.h
