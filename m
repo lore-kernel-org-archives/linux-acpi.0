@@ -1,41 +1,35 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 3/5][RFC] cpuidle : add a pointer for cpuidle_state in the
-	cpuidle_device
-Date: Thu, 26 Jul 2012 17:35:42 +0200
-Message-ID: <CAMQu2gx-A_W5O57OUFqPqQHh6ZH456TVM+qpJOxmnFmOXMuwEg@mail.gmail.com>
-References: <1343213162-8064-1-git-send-email-daniel.lezcano@linaro.org>
-	<1343213162-8064-4-git-send-email-daniel.lezcano@linaro.org>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 4/5][RFC] cpuidle : use per cpuidle device cpu states
+Date: Thu, 26 Jul 2012 17:41:52 +0200
+Message-ID: <CAMQu2gxPmjf1k3wj+JNxkEuFavgtd9nG+eWAgiWMUZZkGV25kA@mail.gmail.com>
+References: <1343213162-8064-1-git-send-email-daniel.lezcano@linaro.org> <1343213162-8064-5-git-send-email-daniel.lezcano@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-In-Reply-To: <1343213162-8064-4-git-send-email-daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
-List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
-Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-To: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from na3sys009aog138.obsmtp.com ([74.125.149.19]:50784 "EHLO
+	na3sys009aog138.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751104Ab2GZPmV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 26 Jul 2012 11:42:21 -0400
+Received: by yhr47 with SMTP id 47so2576771yhr.14
+        for <linux-acpi@vger.kernel.org>; Thu, 26 Jul 2012 08:42:12 -0700 (PDT)
+In-Reply-To: <1343213162-8064-5-git-send-email-daniel.lezcano@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linaro-dev@lists.linaro.org
 
 On Wed, Jul 25, 2012 at 12:46 PM, Daniel Lezcano
-<daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> wrote:
+<daniel.lezcano@linaro.org> wrote:
+> We have the cpuidle states pointer stored in the cpuidle device
+> structure. This patch use this pointer instead of the driver's one.
 >
-> This patch adds a pointer to the cpuidle_state array in the cpuidle_device
-> structure. When the cpuidle_device is initialized, the pointer is assigned
-> from the driver's cpuidle states array.
->
-> Signed-off-by: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
 > ---
-Would be good to also mention the intention behind this change
-in the change-log. The next patch make it clear but for this change
-too, it should be added.
+Sorry for another comment on change log. Would be give a reference
+about the commit which removed the feature(was present before), and
+also some examples like say big.LITTLE, Tegra arch which needs the
+per CPU latency tables.
 
-Feel free to add my ack if you need one.
-
-Acked-by: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+Regards
+Santosh
