@@ -1,153 +1,103 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH V4 11/13] Thermal: Introduce simple arbitrator for setting device cooling state
-Date: Thu, 26 Jul 2012 16:41:21 +0800
-Message-ID: <1343292083-2047-12-git-send-email-rui.zhang@intel.com>
+Subject: [PATCH V4 13/13] Thermal: Introduce locking for cdev.thermal_instances list.
+Date: Thu, 26 Jul 2012 16:41:23 +0800
+Message-ID: <1343292083-2047-14-git-send-email-rui.zhang@intel.com>
 References: <1343292083-2047-1-git-send-email-rui.zhang@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga02.intel.com ([134.134.136.20]:39947 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751724Ab2GZImB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 26 Jul 2012 04:42:01 -0400
+	id S1751724Ab2GZImF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 26 Jul 2012 04:42:05 -0400
 In-Reply-To: <1343292083-2047-1-git-send-email-rui.zhang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, R Durgadoss <durgadoss.r@intel.com>, Eduardo Valentin <eduardo.valentin@ti.com>, Amit Kachhap <amit.kachhap@linaro.org>, Wei Ni <wni@nvidia.com>, Zhang Rui <rui.zhang@intel.com>
 Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 
-This fixes the problem that a cooling device may be referenced by
-by multiple trip points in multiple thermal zones.
+we need to go over all the thermal_instance list of a cooling device
+to decide which cooling state to put the cooling device to.
 
-With this patch, we have two stages for updating a thermal zone,
-1. check if a thermal_instance needs to be updated or not
-2. update the cooling device, based on the target cooling state
-   of all its instances.
+But at this time, as a cooling device may be referenced in multiple
+thermal zones, we need to lock the list first in case
+another thermal zone is updating this cooling device.
 
-Note that, currently, the cooling device is set to the deepest
-cooling state required.
-
-Reviewed-by: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- drivers/thermal/thermal_sys.c |   44 ++++++++++++++++++++++++++++++++++++++---
+ drivers/thermal/thermal_sys.c |    8 ++++++++
  include/linux/thermal.h       |    1 +
- 2 files changed, 42 insertions(+), 3 deletions(-)
+ 2 files changed, 9 insertions(+)
 
 diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
-index 9906717..027b8e2 100644
+index 7f3a891..356a59d 100644
 --- a/drivers/thermal/thermal_sys.c
 +++ b/drivers/thermal/thermal_sys.c
-@@ -41,6 +41,7 @@ MODULE_AUTHOR("Zhang Rui");
- MODULE_DESCRIPTION("Generic thermal management sysfs support");
- MODULE_LICENSE("GPL");
+@@ -799,6 +799,7 @@ int thermal_zone_bind_cooling_device(struct thermal_zone_device *tz,
+ 		goto remove_symbol_link;
  
-+#define THERMAL_NO_TARGET -1UL
- /*
-  * This structure is used to describe the behavior of
-  * a certain cooling device on a certain trip point
-@@ -54,6 +55,7 @@ struct thermal_instance {
- 	int trip;
- 	unsigned long upper;	/* Highest cooling state for this trip point */
- 	unsigned long lower;	/* Lowest cooling state for this trip point */
-+	unsigned long target;	/* expected cooling state */
- 	char attr_name[THERMAL_NAME_LENGTH];
- 	struct device_attribute attr;
- 	struct list_head tz_node; /* node in tz->thermal_instances */
-@@ -853,6 +855,7 @@ int thermal_zone_bind_cooling_device(struct thermal_zone_device *tz,
- 	dev->trip = trip;
- 	dev->upper = upper;
- 	dev->lower = lower;
-+	dev->target = THERMAL_NO_TARGET;
+ 	mutex_lock(&tz->lock);
++	mutex_lock(&cdev->lock);
+ 	list_for_each_entry(pos, &tz->thermal_instances, tz_node)
+ 	    if (pos->tz == tz && pos->trip == trip && pos->cdev == cdev) {
+ 		result = -EEXIST;
+@@ -808,6 +809,7 @@ int thermal_zone_bind_cooling_device(struct thermal_zone_device *tz,
+ 		list_add_tail(&dev->tz_node, &tz->thermal_instances);
+ 		list_add_tail(&dev->cdev_node, &cdev->thermal_instances);
+ 	}
++	mutex_unlock(&cdev->lock);
+ 	mutex_unlock(&tz->lock);
  
- 	result = get_idr(&tz->idr, &tz->lock, &dev->id);
- 	if (result)
-@@ -990,6 +993,7 @@ thermal_cooling_device_register(char *type, void *devdata,
+ 	if (!result)
+@@ -840,14 +842,17 @@ int thermal_zone_unbind_cooling_device(struct thermal_zone_device *tz,
+ 	struct thermal_instance *pos, *next;
+ 
+ 	mutex_lock(&tz->lock);
++	mutex_lock(&cdev->lock);
+ 	list_for_each_entry_safe(pos, next, &tz->thermal_instances, tz_node) {
+ 		if (pos->tz == tz && pos->trip == trip && pos->cdev == cdev) {
+ 			list_del(&pos->tz_node);
+ 			list_del(&pos->cdev_node);
++			mutex_unlock(&cdev->lock);
+ 			mutex_unlock(&tz->lock);
+ 			goto unbind;
+ 		}
+ 	}
++	mutex_unlock(&cdev->lock);
+ 	mutex_unlock(&tz->lock);
+ 
+ 	return -ENODEV;
+@@ -913,6 +918,7 @@ thermal_cooling_device_register(char *type, void *devdata,
+ 	}
+ 
  	strcpy(cdev->type, type);
++	mutex_init(&cdev->lock);
  	INIT_LIST_HEAD(&cdev->thermal_instances);
  	cdev->ops = ops;
-+	cdev->updated = true;
- 	cdev->device.class = &thermal_class;
- 	cdev->devdata = devdata;
- 	dev_set_name(&cdev->device, "cooling_device%d", cdev->id);
-@@ -1081,6 +1085,34 @@ void thermal_cooling_device_unregister(struct
+ 	cdev->updated = true;
+@@ -1016,6 +1022,7 @@ static void thermal_cdev_do_update(struct thermal_cooling_device *cdev)
+ 	if (cdev->updated)
+ 		return;
+ 
++	mutex_lock(&cdev->lock);
+ 	/* Make sure cdev enters the deepest cooling state */
+ 	list_for_each_entry(instance, &cdev->thermal_instances, cdev_node) {
+ 		if (instance->target == THERMAL_NO_TARGET)
+@@ -1023,6 +1030,7 @@ static void thermal_cdev_do_update(struct thermal_cooling_device *cdev)
+ 		if (instance->target > target)
+ 			target = instance->target;
+ 	}
++	mutex_unlock(&cdev->lock);
+ 	cdev->ops->set_cur_state(cdev, target);
+ 	cdev->updated = true;
  }
- EXPORT_SYMBOL(thermal_cooling_device_unregister);
- 
-+static void thermal_cdev_do_update(struct thermal_cooling_device *cdev)
-+{
-+	struct thermal_instance *instance;
-+	unsigned long target = 0;
-+
-+	/* cooling device is updated*/
-+	if (cdev->updated)
-+		return;
-+
-+	/* Make sure cdev enters the deepest cooling state */
-+	list_for_each_entry(instance, &cdev->thermal_instances, cdev_node) {
-+		if (instance->target == THERMAL_NO_TARGET)
-+			continue;
-+		if (instance->target > target)
-+			target = instance->target;
-+	}
-+	cdev->ops->set_cur_state(cdev, target);
-+	cdev->updated = true;
-+}
-+
-+static void thermal_zone_do_update(struct thermal_zone_device *tz)
-+{
-+	struct thermal_instance *instance;
-+
-+	list_for_each_entry(instance, &tz->thermal_instances, tz_node)
-+		thermal_cdev_do_update(instance->cdev);
-+}
-+
- /*
-  * Cooling algorithm for active trip points
-  *
-@@ -1138,19 +1170,24 @@ static void thermal_zone_trip_update(struct thermal_zone_device *tz,
- 				cur_state = cur_state > instance->lower ?
- 				    (cur_state - 1) : instance->lower;
- 			}
--			cdev->ops->set_cur_state(cdev, cur_state);
-+			instance->target = cur_state;
-+			cdev->updated = false; /* cooling device needs update */
- 		}
- 	} else {	/* below trip */
- 		list_for_each_entry(instance, &tz->thermal_instances, tz_node) {
- 			if (instance->trip != trip)
- 				continue;
- 
-+			/* Do not use the inactive thermal instance */
-+			if (instance->target == THERMAL_NO_TARGET)
-+				continue;
- 			cdev = instance->cdev;
- 			cdev->ops->get_cur_state(cdev, &cur_state);
- 
- 			cur_state = cur_state > instance->lower ?
--				    (cur_state - 1) : instance->lower;
--			cdev->ops->set_cur_state(cdev, cur_state);
-+				    (cur_state - 1) : THERMAL_NO_TARGET;
-+			instance->target = cur_state;
-+			cdev->updated = false; /* cooling device needs update */
- 		}
- 	}
- 
-@@ -1211,6 +1248,7 @@ void thermal_zone_device_update(struct thermal_zone_device *tz)
- 		}
- 	}
- 
-+	thermal_zone_do_update(tz);
- 	if (tz->forced_passive)
- 		thermal_zone_device_passive(tz, temp, tz->forced_passive,
- 					    THERMAL_TRIPS_NONE);
 diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-index bcf3384..3e66214 100644
+index 06fd04d..d02d06d 100644
 --- a/include/linux/thermal.h
 +++ b/include/linux/thermal.h
-@@ -94,6 +94,7 @@ struct thermal_cooling_device {
- 	struct device device;
+@@ -95,6 +95,7 @@ struct thermal_cooling_device {
  	void *devdata;
  	const struct thermal_cooling_device_ops *ops;
-+	bool updated; /* true if the cooling device does not need update */
+ 	bool updated; /* true if the cooling device does not need update */
++	struct mutex lock; /* protect thermal_instances list */
  	struct list_head thermal_instances;
  	struct list_head node;
  };
