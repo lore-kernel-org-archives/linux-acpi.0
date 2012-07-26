@@ -1,113 +1,203 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH V4 13/13] Thermal: Introduce locking for cdev.thermal_instances list.
-Date: Thu, 26 Jul 2012 22:13:57 +0200
-Message-ID: <201207262213.57347.rjw@sisk.pl>
-References: <1343292083-2047-1-git-send-email-rui.zhang@intel.com> <1343292083-2047-14-git-send-email-rui.zhang@intel.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH v3 1/4] ACPI: Add acpi_pr_<level>() interfaces
+Date: Thu, 26 Jul 2012 14:58:50 -0600
+Message-ID: <1343336330.3010.496.camel@misato.fc.hp.com>
+References: <1343257978-7085-1-git-send-email-toshi.kani@hp.com>
+	 <1343257978-7085-2-git-send-email-toshi.kani@hp.com>
+	 <CAErSpo4=HDaWTusKf+tRU6aXmj-mC1i7CswnDzDLZii21i9NaQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-2"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:59048 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752209Ab2GZUIK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 26 Jul 2012 16:08:10 -0400
-In-Reply-To: <1343292083-2047-14-git-send-email-rui.zhang@intel.com>
+Received: from g1t0028.austin.hp.com ([15.216.28.35]:41830 "EHLO
+	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752642Ab2GZVDm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Jul 2012 17:03:42 -0400
+In-Reply-To: <CAErSpo4=HDaWTusKf+tRU6aXmj-mC1i7CswnDzDLZii21i9NaQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, R Durgadoss <durgadoss.r@intel.com>, Eduardo Valentin <eduardo.valentin@ti.com>, Amit Kachhap <amit.kachhap@linaro.org>, Wei Ni <wni@nvidia.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, joe@perches.com, isimatu.yasuaki@jp.fujitsu.com, liuj97@gmail.com, srivatsa.bhat@linux.vnet.ibm.com, prarit@redhat.com, imammedo@redhat.com, vijaymohan.pandarathil@hp.com
 
-On Thursday, July 26, 2012, Zhang Rui wrote:
-> we need to go over all the thermal_instance list of a cooling device
-> to decide which cooling state to put the cooling device to.
+On Thu, 2012-07-26 at 13:22 -0600, Bjorn Helgaas wrote:
+> On Wed, Jul 25, 2012 at 5:12 PM, Toshi Kani <toshi.kani@hp.com> wrote:
+> > This patch introduces acpi_pr_<level>(), where <level> is a kernel
+> > message level such as err/warn/info, to support improved logging
+> > messages for ACPI, esp. in hotplug operations.  acpi_pr_<level>()
+> > appends "ACPI" prefix and ACPI object path to the messages.  This
+> > improves diagnostics in hotplug operations since it identifies an
+> > object that caused an issue in a log file.
+> >
+> > acpi_pr_<level>() takes acpi_handle as an argument, which is passed
+> > to ACPI hotplug notify handlers from the ACPICA.  Therefore, it is
+> > always available unlike other kernel objects, such as device.
+> >
+> > For example, the statement below
+> >   acpi_pr_err(handle, "Device don't exist, dropping EJECT\n");
+> > logs an error message like this at KERN_ERR.
+> >   ACPI: \_SB_.SCK4.CPU4: Device don't exist, dropping EJECT
+> >
+> > ACPI drivers can use acpi_pr_<level>() when they need to identify
+> > a target ACPI object in their messages, such as error messages.
 > 
-> But at this time, as a cooling device may be referenced in multiple
-> thermal zones, we need to lock the list first in case
-> another thermal zone is updating this cooling device.
-> 
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> It's definitely an improvement to have *something* that identifies a
+> device in these messages.  But the ACPI namespace path is not really
+> intended to be user-consumable, so I don't think we should expose it
+> indiscriminately.  I think we should be using the ACPI device name
+> ("PNP0C02:00") whenever possible.  Given the device name, we can get
+> the path from the sysfs "path" file.
 
-Reviewed-by: Rafael J. Wysocki <rjw@sisk.pl>
+Hi Bjorn,
 
-> ---
->  drivers/thermal/thermal_sys.c |    8 ++++++++
->  include/linux/thermal.h       |    1 +
->  2 files changed, 9 insertions(+)
+Thanks for reviewing!  Yes, ACPI device path is not good for regular
+users to analyze from the info.  I also agree with you that device name
+is a better choice when users always diagnose issues by themselves right
+after they performed an operation.  However, there are also cases that
+users ask someone to diagnose an issue remotely from the log files, and
+hotplug operations are performed automatically.  In such cases, using
+ACPI device name alone is problematic for hotplug operations since a
+device name comes with an instance number that continues to change with
+hot-add/remove operations.  Here is one example scenario.  Let's say,
+user has automatic load-balancer or power-saving that can trigger
+hundreds of CPU hotplug operations per a day.  This user then found that
+there were multiple hotplug errors logged in the past few days, and
+asked an IT guy to look at the error messages.  When this user found the
+issue, all device names are gone from sysfs after repeated hotplug
+operations.  This IT guy would have no idea if those errors were
+happening on a particular device or not from the error messages since
+their instance numbers continue to change.
+
+> > The usage model is similar to dev_<level>().  acpi_pr_<level>() can
+> > be used when device is not created/valid, which may be the case for
+> > ACPI hotplug handlers.  ACPI drivers can continue to use dev_<level>()
+> > when device is valid.
 > 
-> diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
-> index 7f3a891..356a59d 100644
-> --- a/drivers/thermal/thermal_sys.c
-> +++ b/drivers/thermal/thermal_sys.c
-> @@ -799,6 +799,7 @@ int thermal_zone_bind_cooling_device(struct thermal_zone_device *tz,
->  		goto remove_symbol_link;
->  
->  	mutex_lock(&tz->lock);
-> +	mutex_lock(&cdev->lock);
->  	list_for_each_entry(pos, &tz->thermal_instances, tz_node)
->  	    if (pos->tz == tz && pos->trip == trip && pos->cdev == cdev) {
->  		result = -EEXIST;
-> @@ -808,6 +809,7 @@ int thermal_zone_bind_cooling_device(struct thermal_zone_device *tz,
->  		list_add_tail(&dev->tz_node, &tz->thermal_instances);
->  		list_add_tail(&dev->cdev_node, &cdev->thermal_instances);
->  	}
-> +	mutex_unlock(&cdev->lock);
->  	mutex_unlock(&tz->lock);
->  
->  	if (!result)
-> @@ -840,14 +842,17 @@ int thermal_zone_unbind_cooling_device(struct thermal_zone_device *tz,
->  	struct thermal_instance *pos, *next;
->  
->  	mutex_lock(&tz->lock);
-> +	mutex_lock(&cdev->lock);
->  	list_for_each_entry_safe(pos, next, &tz->thermal_instances, tz_node) {
->  		if (pos->tz == tz && pos->trip == trip && pos->cdev == cdev) {
->  			list_del(&pos->tz_node);
->  			list_del(&pos->cdev_node);
-> +			mutex_unlock(&cdev->lock);
->  			mutex_unlock(&tz->lock);
->  			goto unbind;
->  		}
->  	}
-> +	mutex_unlock(&cdev->lock);
->  	mutex_unlock(&tz->lock);
->  
->  	return -ENODEV;
-> @@ -913,6 +918,7 @@ thermal_cooling_device_register(char *type, void *devdata,
->  	}
->  
->  	strcpy(cdev->type, type);
-> +	mutex_init(&cdev->lock);
->  	INIT_LIST_HEAD(&cdev->thermal_instances);
->  	cdev->ops = ops;
->  	cdev->updated = true;
-> @@ -1016,6 +1022,7 @@ static void thermal_cdev_do_update(struct thermal_cooling_device *cdev)
->  	if (cdev->updated)
->  		return;
->  
-> +	mutex_lock(&cdev->lock);
->  	/* Make sure cdev enters the deepest cooling state */
->  	list_for_each_entry(instance, &cdev->thermal_instances, cdev_node) {
->  		if (instance->target == THERMAL_NO_TARGET)
-> @@ -1023,6 +1030,7 @@ static void thermal_cdev_do_update(struct thermal_cooling_device *cdev)
->  		if (instance->target > target)
->  			target = instance->target;
->  	}
-> +	mutex_unlock(&cdev->lock);
->  	cdev->ops->set_cur_state(cdev, target);
->  	cdev->updated = true;
->  }
-> diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-> index 06fd04d..d02d06d 100644
-> --- a/include/linux/thermal.h
-> +++ b/include/linux/thermal.h
-> @@ -95,6 +95,7 @@ struct thermal_cooling_device {
->  	void *devdata;
->  	const struct thermal_cooling_device_ops *ops;
->  	bool updated; /* true if the cooling device does not need update */
-> +	struct mutex lock; /* protect thermal_instances list */
->  	struct list_head thermal_instances;
->  	struct list_head node;
->  };
-> 
+> I'd argue that ACPI driver code should never be called unless the
+> device is valid, so drivers should *always* be able to use
+> dev_<level>.  Obviously, ACPI hotplug is currently screwed up (it's
+> mostly handled in drivers rather than in the ACPI core), so in some of
+> those hotplug paths in the drivers, we may not have a device yet.  But
+> those cases should be minimal.
+
+I think it makes sense for ACPI hotplug notify handlers to use
+acpi_pr_<level>() for their error messages since ACPI device names are
+static on the platform.  This info greatly helps in the scenario I
+described above.  In the outside of the hotplug notify handlers, I agree
+with you that dev_<level>() should be used.
+
+> Another possible approach to this is to add a %p extension rather than
+> adding acpi_printk().  Then you could do, e.g., 'printk("%pA ...\n",
+> handle)', and printk could interpolate the namespace path.  But I
+> really think there should be very few places where we need the path,
+> so I'm not sure it's worth it.
+
+Address of handle is not very helpful either when someone needs to
+analyze from log files.
+
+Thanks,
+-Toshi
+
+
+> > ACPI drivers also continue to use pr_<level>() when ACPI device
+> > path does not have to be appended to the messages, such as boot-up
+> > messages.
+> >
+> > Note: ACPI_[WARNING|INFO|ERROR]() are intended for the ACPICA and
+> > are not associated with the kernel message level.
+> >
+> > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+> > Tested-by: Vijay Mohan Pandarathil <vijaymohan.pandarathil@hp.com>
+> > ---
+> >  drivers/acpi/utils.c    |   34 ++++++++++++++++++++++++++++++++++
+> >  include/acpi/acpi_bus.h |   31 +++++++++++++++++++++++++++++++
+> >  2 files changed, 65 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+> > index 3e87c9c..ec0c6f9 100644
+> > --- a/drivers/acpi/utils.c
+> > +++ b/drivers/acpi/utils.c
+> > @@ -454,3 +454,37 @@ acpi_evaluate_hotplug_ost(acpi_handle handle, u32 source_event,
+> >  #endif
+> >  }
+> >  EXPORT_SYMBOL(acpi_evaluate_hotplug_ost);
+> > +
+> > +/**
+> > + * acpi_printk: Print messages with ACPI prefix and object path
+> > + *
+> > + * This function is intended to be called through acpi_pr_<level> macros.
+> > + */
+> > +void
+> > +acpi_printk(const char *level, acpi_handle handle, const char *fmt, ...)
+> > +{
+> > +       struct va_format vaf;
+> > +       va_list args;
+> > +       struct acpi_buffer buffer = {
+> > +               .length = ACPI_ALLOCATE_BUFFER,
+> > +               .pointer = NULL
+> > +       };
+> > +       const char *path;
+> > +       acpi_status ret;
+> > +
+> > +       va_start(args, fmt);
+> > +       vaf.fmt = fmt;
+> > +       vaf.va = &args;
+> > +
+> > +       ret = acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
+> > +       if (ret == AE_OK)
+> > +               path = buffer.pointer;
+> > +       else
+> > +               path = "<n/a>";
+> > +
+> > +       printk("%sACPI: %s: %pV", level, path, &vaf);
+> > +
+> > +       va_end(args);
+> > +       kfree(buffer.pointer);
+> > +}
+> > +EXPORT_SYMBOL(acpi_printk);
+> > diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> > index bde976e..1c855b8 100644
+> > --- a/include/acpi/acpi_bus.h
+> > +++ b/include/acpi/acpi_bus.h
+> > @@ -85,6 +85,37 @@ struct acpi_pld {
+> >
+> >  acpi_status
+> >  acpi_get_physical_device_location(acpi_handle handle, struct acpi_pld *pld);
+> > +
+> > +void acpi_printk(const char *level, acpi_handle handle, const char *fmt, ...);
+> > +
+> > +#define acpi_pr_emerg(handle, fmt, ...)                                \
+> > +       acpi_printk(KERN_EMERG, handle, fmt, ##__VA_ARGS__)
+> > +#define acpi_pr_alert(handle, fmt, ...)                                \
+> > +       acpi_printk(KERN_ALERT, handle, fmt, ##__VA_ARGS__)
+> > +#define acpi_pr_crit(handle, fmt, ...)                         \
+> > +       acpi_printk(KERN_CRIT, handle, fmt, ##__VA_ARGS__)
+> > +#define acpi_pr_err(handle, fmt, ...)                          \
+> > +       acpi_printk(KERN_ERR, handle, fmt, ##__VA_ARGS__)
+> > +#define acpi_pr_warn(handle, fmt, ...)                         \
+> > +       acpi_printk(KERN_WARNING, handle, fmt, ##__VA_ARGS__)
+> > +#define acpi_pr_notice(handle, fmt, ...)                       \
+> > +       acpi_printk(KERN_NOTICE, handle, fmt, ##__VA_ARGS__)
+> > +#define acpi_pr_info(handle, fmt, ...)                         \
+> > +       acpi_printk(KERN_INFO, handle, fmt, ##__VA_ARGS__)
+> > +
+> > +/* REVISIT: Need to support CONFIG_DYNAMIC_DEBUG */
+> > +#if defined(DEBUG) || defined(CONFIG_DYNAMIC_DEBUG)
+> > +#define acpi_pr_debug(handle, fmt, ...)                                        \
+> > +       acpi_printk(KERN_DEBUG, handle, fmt, ##__VA_ARGS__)
+> > +#else
+> > +#define acpi_pr_debug(handle, fmt, ...)                                        \
+> > +({                                                                     \
+> > +       if (0)                                                          \
+> > +               acpi_printk(KERN_DEBUG, handle, fmt, ##__VA_ARGS__);    \
+> > +       0;                                                              \
+> > +})
+> > +#endif
+> > +
+> >  #ifdef CONFIG_ACPI
+> >
+> >  #include <linux/proc_fs.h>
+> > --
+> > 1.7.7.6
+> >
+
 
