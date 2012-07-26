@@ -1,106 +1,89 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH V4 13/13] Thermal: Introduce locking for cdev.thermal_instances list.
-Date: Thu, 26 Jul 2012 16:41:23 +0800
-Message-ID: <1343292083-2047-14-git-send-email-rui.zhang@intel.com>
-References: <1343292083-2047-1-git-send-email-rui.zhang@intel.com>
+From: Luca Tettamanti <kronos.it@gmail.com>
+Subject: Re: [PATCH] drm/radeon: add new AMD ACPI header and update relevant
+ code
+Date: Thu, 26 Jul 2012 14:58:38 +0200
+Message-ID: <20120726125838.GA28853@growl>
+References: <1343237889-5220-1-git-send-email-alexdeucher@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:39947 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751724Ab2GZImF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 26 Jul 2012 04:42:05 -0400
-In-Reply-To: <1343292083-2047-1-git-send-email-rui.zhang@intel.com>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:56304 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751960Ab2GZM6q (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Jul 2012 08:58:46 -0400
+Received: by weyx8 with SMTP id x8so1315590wey.19
+        for <linux-acpi@vger.kernel.org>; Thu, 26 Jul 2012 05:58:45 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1343237889-5220-1-git-send-email-alexdeucher@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, R Durgadoss <durgadoss.r@intel.com>, Eduardo Valentin <eduardo.valentin@ti.com>, Amit Kachhap <amit.kachhap@linaro.org>, Wei Ni <wni@nvidia.com>, Zhang Rui <rui.zhang@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+To: alexdeucher@gmail.com
+Cc: airlied@gmail.com, dri-devel@lists.freedesktop.org, Alex Deucher <alexander.deucher@amd.com>, Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org
 
-we need to go over all the thermal_instance list of a cooling device
-to decide which cooling state to put the cooling device to.
+On Wed, Jul 25, 2012 at 01:38:09PM -0400, alexdeucher@gmail.com wrote:
+> From: Alex Deucher <alexander.deucher@amd.com>
+> 
+> Add a new header that defines the AMD ACPI interface used
+> for laptops, PowerXpress, and chipset specific functionality
+> and update the current code to use it.
 
-But at this time, as a cooling device may be referenced in multiple
-thermal zones, we need to lock the list first in case
-another thermal zone is updating this cooling device.
+Great! Now my DSDT makes sense ;)
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- drivers/thermal/thermal_sys.c |    8 ++++++++
- include/linux/thermal.h       |    1 +
- 2 files changed, 9 insertions(+)
+> Todo:
+> - properly verify the ACPI interfaces
+> - hook up and handle ACPI notifications
 
-diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
-index 7f3a891..356a59d 100644
---- a/drivers/thermal/thermal_sys.c
-+++ b/drivers/thermal/thermal_sys.c
-@@ -799,6 +799,7 @@ int thermal_zone_bind_cooling_device(struct thermal_zone_device *tz,
- 		goto remove_symbol_link;
- 
- 	mutex_lock(&tz->lock);
-+	mutex_lock(&cdev->lock);
- 	list_for_each_entry(pos, &tz->thermal_instances, tz_node)
- 	    if (pos->tz == tz && pos->trip == trip && pos->cdev == cdev) {
- 		result = -EEXIST;
-@@ -808,6 +809,7 @@ int thermal_zone_bind_cooling_device(struct thermal_zone_device *tz,
- 		list_add_tail(&dev->tz_node, &tz->thermal_instances);
- 		list_add_tail(&dev->cdev_node, &cdev->thermal_instances);
- 	}
-+	mutex_unlock(&cdev->lock);
- 	mutex_unlock(&tz->lock);
- 
- 	if (!result)
-@@ -840,14 +842,17 @@ int thermal_zone_unbind_cooling_device(struct thermal_zone_device *tz,
- 	struct thermal_instance *pos, *next;
- 
- 	mutex_lock(&tz->lock);
-+	mutex_lock(&cdev->lock);
- 	list_for_each_entry_safe(pos, next, &tz->thermal_instances, tz_node) {
- 		if (pos->tz == tz && pos->trip == trip && pos->cdev == cdev) {
- 			list_del(&pos->tz_node);
- 			list_del(&pos->cdev_node);
-+			mutex_unlock(&cdev->lock);
- 			mutex_unlock(&tz->lock);
- 			goto unbind;
- 		}
- 	}
-+	mutex_unlock(&cdev->lock);
- 	mutex_unlock(&tz->lock);
- 
- 	return -ENODEV;
-@@ -913,6 +918,7 @@ thermal_cooling_device_register(char *type, void *devdata,
- 	}
- 
- 	strcpy(cdev->type, type);
-+	mutex_init(&cdev->lock);
- 	INIT_LIST_HEAD(&cdev->thermal_instances);
- 	cdev->ops = ops;
- 	cdev->updated = true;
-@@ -1016,6 +1022,7 @@ static void thermal_cdev_do_update(struct thermal_cooling_device *cdev)
- 	if (cdev->updated)
- 		return;
- 
-+	mutex_lock(&cdev->lock);
- 	/* Make sure cdev enters the deepest cooling state */
- 	list_for_each_entry(instance, &cdev->thermal_instances, cdev_node) {
- 		if (instance->target == THERMAL_NO_TARGET)
-@@ -1023,6 +1030,7 @@ static void thermal_cdev_do_update(struct thermal_cooling_device *cdev)
- 		if (instance->target > target)
- 			target = instance->target;
- 	}
-+	mutex_unlock(&cdev->lock);
- 	cdev->ops->set_cur_state(cdev, target);
- 	cdev->updated = true;
- }
-diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-index 06fd04d..d02d06d 100644
---- a/include/linux/thermal.h
-+++ b/include/linux/thermal.h
-@@ -95,6 +95,7 @@ struct thermal_cooling_device {
- 	void *devdata;
- 	const struct thermal_cooling_device_ops *ops;
- 	bool updated; /* true if the cooling device does not need update */
-+	struct mutex lock; /* protect thermal_instances list */
- 	struct list_head thermal_instances;
- 	struct list_head node;
- };
--- 
-1.7.9.5
+I see a problem here, I've hacked up a standalone test module, but:
 
+> +#define ATIF_FUNCTION_GET_SYSTEM_PARAMETERS                        0x1
+[...]
+> + * flags
+> + * bits 1:0:
+> + * 0 - Notify(VGA, 0x81) is not used for notification
+> + * 1 - Notify(VGA, 0x81) is used for notification
+
+My system has this bit set, and the brightness control method does send
+the notification.
+My module register itself with register_acpi_notifier and gets 2
+notifications, one with ACPI_VIDEO_NOTIFY_PROBE (0x81) and the other
+with ACPI_VIDEO_NOTIFY_INC_BRIGHTNESS (or DEC, depending on what I
+press).
+
+The standard acpi "video" module, however, in response to
+ACPI_VIDEO_NOTIFY_PROBE generates a key press sending
+KEY_SWITCHVIDEOMODE.
+
+This greatly confuses KDE which messes up my dual screen configuration;
+I guess that the spurious KEY_SWITCHVIDEOMODE may be problematic also
+with other DEs...
+
+In more detail what happens is the following:
+- I press the brightness hotkey, firmware generates a notification on
+  the relevant device (_SB.PCI0.PEG0.VGA.LCD)
+- ACPI video module gets the ACPI_VIDEO_NOTIFY_{DEC,INC}_BRIGHTNESS
+  notification and tries to adjust the brightness with
+  acpi_video_device_lcd_set_level, which in turns calls _BCM
+- _BCM sets the relevant bits in the AMD-specific structure and does a
+  Notify (VGA, 0x81)
+- again ACPI video module gets the nodification (in this case
+  ACPI_VIDEO_NOTIFY_PROBE), re-enumerated and send KEY_SWITCHVIDEOMODE
+- KDE seems this and muck with the screen configuration :(
+- meanwhile the brightness notification is propagated, the hypothetical
+  radeon driver does its magic to adjust the screen.
+
+My first idea would be to make ACPI_VIDEO_NOTIFY_PROBE also call to the
+acpi notifier chain, and allow the handlers to veto the key press (like
+it's done for ACPI_VIDEO_NOTIFY_SWITCH).
+
+Zhang Rui what do you think about this?
+
+The other missing bit is how to actually change the brightness... Alex,
+do you know what registers to poke?
+
+My card is a:
+
+01:00.0 VGA compatible controller [0300]: Advanced Micro Devices [AMD] nee ATI Thames XT/GL [Radeon HD 600M Series] [1002:6840]
+
+on a Toshiba L855.
+
+Luca
