@@ -1,67 +1,51 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH v3 4/4] ACPI: Update Container hotplug messages
-Date: Thu, 26 Jul 2012 13:23:41 -0600
-Message-ID: <CAErSpo4Xqn9b21w1s0BLPwUJ4SeBPQjQOJ=Ar14iQKF1ZWnyHQ@mail.gmail.com>
-References: <1343257978-7085-1-git-send-email-toshi.kani@hp.com> <1343257978-7085-5-git-send-email-toshi.kani@hp.com>
+From: Luca Tettamanti <kronos.it@gmail.com>
+Subject: Re: [PATCH] drm/radeon: add new AMD ACPI header and update relevant
+	code
+Date: Thu, 26 Jul 2012 21:33:46 +0200
+Message-ID: <20120726193346.GA11288@growl>
+References: <1343237889-5220-1-git-send-email-alexdeucher@gmail.com>
+	<20120726125838.GA28853@growl>
+	<CADnq5_Nr8S+kzdKVq9=VL9BVK+4eFeX0egs-rkiv882MAm3bow@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1343257978-7085-5-git-send-email-toshi.kani@hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, joe@perches.com, isimatu.yasuaki@jp.fujitsu.com, liuj97@gmail.com, srivatsa.bhat@linux.vnet.ibm.com, prarit@redhat.com, imammedo@redhat.com, vijaymohan.pandarathil@hp.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <CADnq5_Nr8S+kzdKVq9=VL9BVK+4eFeX0egs-rkiv882MAm3bow@mail.gmail.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+	<mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+	<mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Sender: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
+Errors-To: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
+To: Alex Deucher <alexdeucher@gmail.com>
+Cc: Alex Deucher <alexander.deucher@amd.com>, linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, dri-devel@lists.freedesktop.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jul 25, 2012 at 5:12 PM, Toshi Kani <toshi.kani@hp.com> wrote:
-> Updated Container hotplug log messages with acpi_pr_<level>()
-> and pr_<level>().
->
-> Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-> ---
->  drivers/acpi/container.c |    6 +++---
->  1 files changed, 3 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
-> index 01a986d..643e962 100644
-> --- a/drivers/acpi/container.c
-> +++ b/drivers/acpi/container.c
-> @@ -99,7 +99,7 @@ static int acpi_container_add(struct acpi_device *device)
->
->
->         if (!device) {
-> -               printk(KERN_ERR PREFIX "device is NULL\n");
-> +               pr_err(PREFIX "device is NULL\n");
->                 return -EINVAL;
->         }
+On Thu, Jul 26, 2012 at 11:35:25AM -0400, Alex Deucher wrote:
+> On Thu, Jul 26, 2012 at 8:58 AM, Luca Tettamanti <kronos.it@gmail.com> wrote:
+> > The other missing bit is how to actually change the brightness... Alex,
+> > do you know what registers to poke?
+> 
+> You need to check if the GPU controls the backlight or the system
+> does.  I think the attached patches should point you in the right
+> direction.
 
-This whole "if (!device)" check and the printk should be deleted.  If
-the ACPI core calls .add() with a null acpi_device pointer, it's a
-core bug, and it's better to take the oops and get the backtrace.
+Yep :)
 
->
-> @@ -164,7 +164,7 @@ static void container_notify_cb(acpi_handle handle, u32 type, void *context)
->         case ACPI_NOTIFY_BUS_CHECK:
->                 /* Fall through */
->         case ACPI_NOTIFY_DEVICE_CHECK:
-> -               printk(KERN_WARNING "Container driver received %s event\n",
-> +               pr_warn("Container driver received %s event\n",
->                        (type == ACPI_NOTIFY_BUS_CHECK) ?
->                        "ACPI_NOTIFY_BUS_CHECK" : "ACPI_NOTIFY_DEVICE_CHECK");
+0050:  ATOM_FIRMWARE_CAPABILITY_ACCESS usFirmwareCapability :
+  0050:  (union) ATOM_FIRMWARE_CAPABILITY sbfAccess          :
+    USHORT GPUControlsBL:1                              = 0x0001     (1)
 
-This message looks dubious.  Receiving this event should be a normal
-occurrence, so the message might be useful for debugging, but doesn't
-seem like a KERN_WARNING event for the user.
+The panel is using the INTERNAL_UNIPHY encoder, and I see the
+UNIPHYTransmitterControl command table.
 
->
-> @@ -185,7 +185,7 @@ static void container_notify_cb(acpi_handle handle, u32 type, void *context)
->
->                 result = container_device_add(&device, handle);
->                 if (result) {
-> -                       pr_warn("Failed to add container\n");
-> +                       acpi_pr_warn(handle, "Failed to add container\n");
->                         break;
->                 }
->
-> --
-> 1.7.7.6
->
+Interaction with video.ko is still a bit messy...
+
+Do you already have code for handling the notifications? I'll work on it
+in the weekend otherwise ;)
+
+Luca
