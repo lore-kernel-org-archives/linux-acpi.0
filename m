@@ -1,63 +1,168 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
+From: Toshi Kani <toshi.kani@hp.com>
 Subject: Re: [PATCH v3 1/4] ACPI: Add acpi_pr_<level>() interfaces
-Date: Thu, 26 Jul 2012 15:50:18 -0600
-Message-ID: <CAErSpo4cPuFLmp=b2JUUP-nDdtsFmJFda0az-9z9fEnys23L6w@mail.gmail.com>
+Date: Thu, 26 Jul 2012 15:50:11 -0600
+Message-ID: <1343339411.3010.507.camel@misato.fc.hp.com>
 References: <1343257978-7085-1-git-send-email-toshi.kani@hp.com>
- <1343257978-7085-2-git-send-email-toshi.kani@hp.com> <CAErSpo4=HDaWTusKf+tRU6aXmj-mC1i7CswnDzDLZii21i9NaQ@mail.gmail.com>
- <1343336330.3010.496.camel@misato.fc.hp.com> <20120726213730.GA2149@google.com>
- <1343338982.17538.45.camel@joe2Laptop>
+	 <1343257978-7085-2-git-send-email-toshi.kani@hp.com>
+	 <CAErSpo4=HDaWTusKf+tRU6aXmj-mC1i7CswnDzDLZii21i9NaQ@mail.gmail.com>
+	 <1343336330.3010.496.camel@misato.fc.hp.com>
+	 <20120726213730.GA2149@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:49918 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752566Ab2GZVuk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Jul 2012 17:50:40 -0400
-Received: by ghrr11 with SMTP id r11so2551062ghr.19
-        for <linux-acpi@vger.kernel.org>; Thu, 26 Jul 2012 14:50:39 -0700 (PDT)
-In-Reply-To: <1343338982.17538.45.camel@joe2Laptop>
+Received: from g4t0016.houston.hp.com ([15.201.24.19]:46298 "EHLO
+	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752032Ab2GZVzD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Jul 2012 17:55:03 -0400
+In-Reply-To: <20120726213730.GA2149@google.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Joe Perches <joe@perches.com>
-Cc: Toshi Kani <toshi.kani@hp.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, liuj97@gmail.com, srivatsa.bhat@linux.vnet.ibm.com, prarit@redhat.com, imammedo@redhat.com, vijaymohan.pandarathil@hp.com
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, joe@perches.com, isimatu.yasuaki@jp.fujitsu.com, liuj97@gmail.com, srivatsa.bhat@linux.vnet.ibm.com, prarit@redhat.com, imammedo@redhat.com, vijaymohan.pandarathil@hp.com
 
-On Thu, Jul 26, 2012 at 3:43 PM, Joe Perches <joe@perches.com> wrote:
-> On Thu, 2012-07-26 at 15:37 -0600, Bjorn Helgaas wrote:
->>     PNP0C01:00: new device for \_SB_.PCI0.ISA_.MBIO
->>
->> I fiddled with this a while ago; it would look something like this:
-> []
->> +static noinline_for_stack
->> +char *acpi_name_string(char *buf, char *end, acpi_handle handle,
->> +                    struct printf_spec spec, const char *fmt)
->> +{
->> +     acpi_status status;
->> +     struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
->> +     u32 type = ACPI_SINGLE_NAME;
->> +     char *p = buf;
->> +
->> +     if (fmt[0] == 'A')
->> +             type = ACPI_FULL_PATHNAME;
->
-> maybe if (fmt[1] == 'f')
->
->> @@ -982,6 +1007,9 @@ char *pointer(const char *fmt, char *buf, char *end, void *ptr,
->>       }
->>
->>       switch (*fmt) {
->> +     case 'A':
->> +     case 'a':
->> +             return acpi_name_string(buf, end, ptr, spec, fmt);
->
-> There are only so many letters, it might be better to
-> just use 'a' and another 'f' after that if necessary
-> for "full".
->
-> And of course that should be #ifdef'd too
+On Thu, 2012-07-26 at 15:37 -0600, Bjorn Helgaas wrote:
+> On Thu, Jul 26, 2012 at 02:58:50PM -0600, Toshi Kani wrote:
+> > On Thu, 2012-07-26 at 13:22 -0600, Bjorn Helgaas wrote:
+> > > On Wed, Jul 25, 2012 at 5:12 PM, Toshi Kani <toshi.kani@hp.com> wrote:
+> > > > This patch introduces acpi_pr_<level>(), where <level> is a kernel
+> > > > message level such as err/warn/info, to support improved logging
+> > > > messages for ACPI, esp. in hotplug operations.  acpi_pr_<level>()
+> > > > appends "ACPI" prefix and ACPI object path to the messages.  This
+> > > > improves diagnostics in hotplug operations since it identifies an
+> > > > object that caused an issue in a log file.
+> > > >
+> > > > acpi_pr_<level>() takes acpi_handle as an argument, which is passed
+> > > > to ACPI hotplug notify handlers from the ACPICA.  Therefore, it is
+> > > > always available unlike other kernel objects, such as device.
+> > > >
+> > > > For example, the statement below
+> > > >   acpi_pr_err(handle, "Device don't exist, dropping EJECT\n");
+> > > > logs an error message like this at KERN_ERR.
+> > > >   ACPI: \_SB_.SCK4.CPU4: Device don't exist, dropping EJECT
+> > > >
+> > > > ACPI drivers can use acpi_pr_<level>() when they need to identify
+> > > > a target ACPI object in their messages, such as error messages.
+> > > 
+> > > It's definitely an improvement to have *something* that identifies a
+> > > device in these messages.  But the ACPI namespace path is not really
+> > > intended to be user-consumable, so I don't think we should expose it
+> > > indiscriminately.  I think we should be using the ACPI device name
+> > > ("PNP0C02:00") whenever possible.  Given the device name, we can get
+> > > the path from the sysfs "path" file.
+> > 
+> > Hi Bjorn,
+> > 
+> > Thanks for reviewing!  Yes, ACPI device path is not good for regular
+> > users to analyze from the info.  I also agree with you that device name
+> > is a better choice when users always diagnose issues by themselves right
+> > after they performed an operation.  However, there are also cases that
+> > users ask someone to diagnose an issue remotely from the log files, and
+> > hotplug operations are performed automatically.  In such cases, using
+> > ACPI device name alone is problematic for hotplug operations since a
+> > device name comes with an instance number that continues to change with
+> > hot-add/remove operations.  Here is one example scenario.  Let's say,
+> > user has automatic load-balancer or power-saving that can trigger
+> > hundreds of CPU hotplug operations per a day.  This user then found that
+> > there were multiple hotplug errors logged in the past few days, and
+> > asked an IT guy to look at the error messages.  When this user found the
+> > issue, all device names are gone from sysfs after repeated hotplug
+> > operations.  This IT guy would have no idea if those errors were
+> > happening on a particular device or not from the error messages since
+> > their instance numbers continue to change.
+> 
+> I agree that it's useful to be able to debug from the dmesg log
+> without having to ask a user to collect stuff from /sys.  But rather
+> than including the namespace path in every message, I think it'd be
+> better to do one dev_info() in the hotplug notify event handler and
+> include the path there.  Subsequent messages can just use dev_info()
+> without the namespace info.
 
-Yes.  I'm hesitant about this approach in general, because I don't
-think printing the ACPI path is something we should be doing often.
-It's not like a struct resource or a MAC address, where there are
-dozens or hundreds of users.  I really think we should only print ACPI
-paths in one or two places, so adding a %p extension would waste a
-letter and encourage the wrong behavior.
+Hi Bjorn,
+
+I agree.  For now, I will keep the use of acpi_pr_<level>() within the
+hotplug notify handler functions.  I will change any subsequent
+functions to use dev_<level>().  This way, we have only one use of
+acpi_pr_<level>() in an operation.  I will also clarify this in the
+change log.
+
+> > > Another possible approach to this is to add a %p extension rather than
+> > > adding acpi_printk().  Then you could do, e.g., 'printk("%pA ...\n",
+> > > handle)', and printk could interpolate the namespace path.  But I
+> > > really think there should be very few places where we need the path,
+> > > so I'm not sure it's worth it.
+> > 
+> > Address of handle is not very helpful either when someone needs to
+> > analyze from log files.
+> 
+> Sorry, I should have made this clearer.  The %pA would expand to the ACPI
+> namespace path, so a "dev_info(dev, "new device for %pA\n", dev->handle)"
+> would produce output like this:
+> 
+>     PNP0C01:00: new device for \_SB_.PCI0.ISA_.MBIO
+> 
+> I fiddled with this a while ago; it would look something like this:
+
+I see.  That sounds good idea.  I agree that we can use it when device
+is valid.  Since it's late to make such changes, I will consider making
+such changes for 3.7. 
+
+Thanks,
+-Toshi
+
+
+> diff --git a/lib/vsprintf.c b/lib/vsprintf.c
+> index c3f36d41..201dcdb 100644
+> --- a/lib/vsprintf.c
+> +++ b/lib/vsprintf.c
+> @@ -551,6 +551,29 @@ char *symbol_string(char *buf, char *end, void *ptr,
+>  #endif
+>  }
+>  
+> +#ifdef CONFIG_ACPI
+> +#include <acpi/acpi.h>
+> +
+> +static noinline_for_stack
+> +char *acpi_name_string(char *buf, char *end, acpi_handle handle,
+> +		       struct printf_spec spec, const char *fmt)
+> +{
+> +	acpi_status status;
+> +	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+> +	u32 type = ACPI_SINGLE_NAME;
+> +	char *p = buf;
+> +
+> +	if (fmt[0] == 'A')
+> +		type = ACPI_FULL_PATHNAME;
+> +
+> +	status = acpi_get_name(handle, type, &buffer);
+> +	if (ACPI_SUCCESS(status))
+> +		p = string(buf, end, buffer.pointer, spec);
+> +	kfree(buffer.pointer);
+> +	return p;
+> +}
+> +#endif
+> +
+>  static noinline_for_stack
+>  char *resource_string(char *buf, char *end, struct resource *res,
+>  		      struct printf_spec spec, const char *fmt)
+> @@ -921,6 +944,8 @@ int kptr_restrict __read_mostly;
+>   *
+>   * Right now we handle:
+>   *
+> + * - 'A' For full ACPI namespace names
+> + * - 'a' For single segment ACPI namespace names
+>   * - 'F' For symbolic function descriptor pointers with offset
+>   * - 'f' For simple symbolic function names without offset
+>   * - 'S' For symbolic direct pointers with offset
+> @@ -982,6 +1007,9 @@ char *pointer(const char *fmt, char *buf, char *end, void *ptr,
+>  	}
+>  
+>  	switch (*fmt) {
+> +	case 'A':
+> +	case 'a':
+> +		return acpi_name_string(buf, end, ptr, spec, fmt);
+>  	case 'F':
+>  	case 'f':
+>  		ptr = dereference_function_descriptor(ptr);
+
+
