@@ -1,81 +1,116 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH V4 10/13] Thermal: List thermal_instance in thermal_cooling_device.
-Date: Thu, 26 Jul 2012 16:41:20 +0800
-Message-ID: <1343292083-2047-11-git-send-email-rui.zhang@intel.com>
+Subject: [PATCH V4 09/13] Thermal: Rename thermal_instance.node to thermal_instance.tz_node.
+Date: Thu, 26 Jul 2012 16:41:19 +0800
+Message-ID: <1343292083-2047-10-git-send-email-rui.zhang@intel.com>
 References: <1343292083-2047-1-git-send-email-rui.zhang@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga02.intel.com ([134.134.136.20]:39947 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751724Ab2GZIl7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 26 Jul 2012 04:41:59 -0400
+	id S1751724Ab2GZIl5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 26 Jul 2012 04:41:57 -0400
 In-Reply-To: <1343292083-2047-1-git-send-email-rui.zhang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, R Durgadoss <durgadoss.r@intel.com>, Eduardo Valentin <eduardo.valentin@ti.com>, Amit Kachhap <amit.kachhap@linaro.org>, Wei Ni <wni@nvidia.com>, Zhang Rui <rui.zhang@intel.com>
 Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 
-List thermal_instance in thermal_cooling_device so that
-cooling device can know the cooling state requirement
-of all the thermal instances.
+thermal_instance should be referenced by both thermal zone devices
+and thermal cooling devices.
+
+Rename thermal_instance.node to thermal_instance.tz_node in this patch
+and thermal_instanace.cdev_node will be introduced in next patch.
 
 Reviewed-by: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- drivers/thermal/thermal_sys.c |    7 ++++++-
- include/linux/thermal.h       |    1 +
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ drivers/thermal/thermal_sys.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
-index b2a2d48..9906717 100644
+index 112227e..b2a2d48 100644
 --- a/drivers/thermal/thermal_sys.c
 +++ b/drivers/thermal/thermal_sys.c
-@@ -57,6 +57,7 @@ struct thermal_instance {
+@@ -56,7 +56,7 @@ struct thermal_instance {
+ 	unsigned long lower;	/* Lowest cooling state for this trip point */
  	char attr_name[THERMAL_NAME_LENGTH];
  	struct device_attribute attr;
- 	struct list_head tz_node; /* node in tz->thermal_instances */
-+	struct list_head cdev_node; /* node in cdev->thermal_instances */
+-	struct list_head node;
++	struct list_head tz_node; /* node in tz->thermal_instances */
  };
  
  static DEFINE_IDR(thermal_tz_idr);
-@@ -878,8 +879,10 @@ int thermal_zone_bind_cooling_device(struct thermal_zone_device *tz,
+@@ -746,7 +746,7 @@ static void thermal_zone_device_passive(struct thermal_zone_device *tz,
+ 		/* Heating up? */
+ 		if (trend == THERMAL_TREND_RAISING) {
+ 			list_for_each_entry(instance, &tz->thermal_instances,
+-					    node) {
++					    tz_node) {
+ 				if (instance->trip != trip)
+ 					continue;
+ 				cdev = instance->cdev;
+@@ -757,7 +757,7 @@ static void thermal_zone_device_passive(struct thermal_zone_device *tz,
+ 			}
+ 		} else if (trend == THERMAL_TREND_DROPPING) { /* Cooling off? */
+ 			list_for_each_entry(instance, &tz->thermal_instances,
+-					    node) {
++					    tz_node) {
+ 				if (instance->trip != trip)
+ 					continue;
+ 				cdev = instance->cdev;
+@@ -777,7 +777,7 @@ static void thermal_zone_device_passive(struct thermal_zone_device *tz,
+ 	 * and avoid thrashing around the passive trip point.  Note that we
+ 	 * assume symmetry.
+ 	 */
+-	list_for_each_entry(instance, &tz->thermal_instances, node) {
++	list_for_each_entry(instance, &tz->thermal_instances, tz_node) {
+ 		if (instance->trip != trip)
+ 			continue;
+ 		cdev = instance->cdev;
+@@ -873,13 +873,13 @@ int thermal_zone_bind_cooling_device(struct thermal_zone_device *tz,
+ 		goto remove_symbol_link;
+ 
+ 	mutex_lock(&tz->lock);
+-	list_for_each_entry(pos, &tz->thermal_instances, node)
++	list_for_each_entry(pos, &tz->thermal_instances, tz_node)
+ 	    if (pos->tz == tz && pos->trip == trip && pos->cdev == cdev) {
  		result = -EEXIST;
  		break;
  	}
--	if (!result)
-+	if (!result) {
- 		list_add_tail(&dev->tz_node, &tz->thermal_instances);
-+		list_add_tail(&dev->cdev_node, &cdev->thermal_instances);
-+	}
+ 	if (!result)
+-		list_add_tail(&dev->node, &tz->thermal_instances);
++		list_add_tail(&dev->tz_node, &tz->thermal_instances);
  	mutex_unlock(&tz->lock);
  
  	if (!result)
-@@ -915,6 +918,7 @@ int thermal_zone_unbind_cooling_device(struct thermal_zone_device *tz,
- 	list_for_each_entry_safe(pos, next, &tz->thermal_instances, tz_node) {
+@@ -912,9 +912,9 @@ int thermal_zone_unbind_cooling_device(struct thermal_zone_device *tz,
+ 	struct thermal_instance *pos, *next;
+ 
+ 	mutex_lock(&tz->lock);
+-	list_for_each_entry_safe(pos, next, &tz->thermal_instances, node) {
++	list_for_each_entry_safe(pos, next, &tz->thermal_instances, tz_node) {
  		if (pos->tz == tz && pos->trip == trip && pos->cdev == cdev) {
- 			list_del(&pos->tz_node);
-+			list_del(&pos->cdev_node);
+-			list_del(&pos->node);
++			list_del(&pos->tz_node);
  			mutex_unlock(&tz->lock);
  			goto unbind;
  		}
-@@ -984,6 +988,7 @@ thermal_cooling_device_register(char *type, void *devdata,
+@@ -1117,7 +1117,7 @@ static void thermal_zone_trip_update(struct thermal_zone_device *tz,
  	}
  
- 	strcpy(cdev->type, type);
-+	INIT_LIST_HEAD(&cdev->thermal_instances);
- 	cdev->ops = ops;
- 	cdev->device.class = &thermal_class;
- 	cdev->devdata = devdata;
-diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-index b11db1e..bcf3384 100644
---- a/include/linux/thermal.h
-+++ b/include/linux/thermal.h
-@@ -94,6 +94,7 @@ struct thermal_cooling_device {
- 	struct device device;
- 	void *devdata;
- 	const struct thermal_cooling_device_ops *ops;
-+	struct list_head thermal_instances;
- 	struct list_head node;
- };
+ 	if (temp >= trip_temp) {
+-		list_for_each_entry(instance, &tz->thermal_instances, node) {
++		list_for_each_entry(instance, &tz->thermal_instances, tz_node) {
+ 			if (instance->trip != trip)
+ 				continue;
+ 
+@@ -1136,7 +1136,7 @@ static void thermal_zone_trip_update(struct thermal_zone_device *tz,
+ 			cdev->ops->set_cur_state(cdev, cur_state);
+ 		}
+ 	} else {	/* below trip */
+-		list_for_each_entry(instance, &tz->thermal_instances, node) {
++		list_for_each_entry(instance, &tz->thermal_instances, tz_node) {
+ 			if (instance->trip != trip)
+ 				continue;
  
 -- 
 1.7.9.5
