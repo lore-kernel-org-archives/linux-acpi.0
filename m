@@ -1,104 +1,86 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH 1/5] acpi : move the acpi_idle_driver variable declaration
-Date: Fri, 27 Jul 2012 10:14:43 +0200
-Message-ID: <50124DF3.40605@linaro.org>
-References: <1343213162-8064-1-git-send-email-daniel.lezcano@linaro.org> <1343213162-8064-2-git-send-email-daniel.lezcano@linaro.org> <50122B4C.3030509@linux.vnet.ibm.com>
+From: Luca Tettamanti <kronos.it@gmail.com>
+Subject: Re: [PATCH] drm/radeon: add new AMD ACPI header and update relevant
+	code
+Date: Fri, 27 Jul 2012 11:02:50 +0200
+Message-ID: <20120727090250.GA12716@growl>
+References: <1343237889-5220-1-git-send-email-alexdeucher@gmail.com>
+	<20120726125838.GA28853@growl>
+	<1343357441.8142.18.camel@linux-s257.site>
+	<CADnq5_Mz5cjyYZ=1gjq+iaGtizhckKBL23gLaNJQFAPXHGF4TQ@mail.gmail.com>
+	<1343364410.8142.42.camel@linux-s257.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:39072 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752176Ab2G0IOr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Jul 2012 04:14:47 -0400
-Received: by eeil10 with SMTP id l10so573686eei.19
-        for <linux-acpi@vger.kernel.org>; Fri, 27 Jul 2012 01:14:46 -0700 (PDT)
-In-Reply-To: <50122B4C.3030509@linux.vnet.ibm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <1343364410.8142.42.camel@linux-s257.site>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+	<mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+	<mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Sender: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
+Errors-To: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
+To: joeyli <jlee@suse.com>
+Cc: linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org, Alex Deucher <alexander.deucher@amd.com>, Zhang Rui <rui.zhang@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
-Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linaro-dev@lists.linaro.org
 
-On 07/27/2012 07:46 AM, Deepthi Dharwar wrote:
-> Hi Daniel,
->=20
->=20
-> On 07/25/2012 04:15 PM, Daniel Lezcano wrote:
->=20
->> This variable is only used in the in processor_driver.c.
->> This patch reduces the scope of the variable by moving it
->> to this file.
->>
->=20
->=20
-> This is true after applying your second patch .
-> Maybe you can check the sequencing of patches in the series.
-> As a thumb rule one should be able to build the kernel
-> by applying each and every patch in the series .
-
-Thanks Deepthi. I think I already git bisect tested the patchset.
-This patch does not break the build, the variable is defined in the
-processor_driver.c file.
-
-
-
-> There would be a build break after applying this one as
-> acpi_idle_driver is still used in processor_idle.c by applying
-> just this patch.
->=20
-> Cheers,
-> Deepthi
->=20
-> =20
->> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
->> ---
->>  drivers/acpi/processor_driver.c |    2 +-
->>  include/acpi/processor.h        |    1 -
->>  2 files changed, 1 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processo=
-r_driver.c
->> index 7048b97..017b39d 100644
->> --- a/drivers/acpi/processor_driver.c
->> +++ b/drivers/acpi/processor_driver.c
->> @@ -113,7 +113,7 @@ static struct acpi_driver acpi_processor_driver =
-=3D {
->>
->>  DEFINE_PER_CPU(struct acpi_processor *, processors);
->>  EXPORT_PER_CPU_SYMBOL(processors);
->> -
->> +extern struct cpuidle_driver acpi_idle_driver;
->>  struct acpi_processor_errata errata __read_mostly;
->>
->>  /* ----------------------------------------------------------------=
-----------
->> diff --git a/include/acpi/processor.h b/include/acpi/processor.h
->> index db427fa..8b2c39a 100644
->> --- a/include/acpi/processor.h
->> +++ b/include/acpi/processor.h
->> @@ -332,7 +332,6 @@ int acpi_processor_power_exit(struct acpi_proces=
-sor *pr,
->>  			      struct acpi_device *device);
->>  int acpi_processor_suspend(struct device *dev);
->>  int acpi_processor_resume(struct device *dev);
->> -extern struct cpuidle_driver acpi_idle_driver;
->>
->>  /* in processor_thermal.c */
->>  int acpi_processor_get_limit_info(struct acpi_processor *pr);
->=20
->=20
-
-
---=20
- <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software for=
- ARM SoCs
-
-=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gRnJpLCBKdWwgMjcsIDIwMTIgYXQgMTI6NDY6NTBQTSArMDgwMCwgam9leWxpIHdyb3RlOgo+
+IOaWvCDlm5vvvIwyMDEyLTA3LTI2IOaWvCAyMzozMSAtMDQwMO+8jEFsZXggRGV1Y2hlciDmj5Dl
+iLDvvJoKPiA+IE9uIFRodSwgSnVsIDI2LCAyMDEyIGF0IDEwOjUwIFBNLCBqb2V5bGkgPGpsZWVA
+c3VzZS5jb20+IHdyb3RlOgo+ID4gPiDmlrwg5Zub77yMMjAxMi0wNy0yNiDmlrwgMTQ6NTggKzAy
+MDDvvIxMdWNhIFRldHRhbWFudGkg5o+Q5Yiw77yaCj4gPiA+PiAtIGFnYWluIEFDUEkgdmlkZW8g
+bW9kdWxlIGdldHMgdGhlIG5vZGlmaWNhdGlvbiAoaW4gdGhpcyBjYXNlCj4gPiA+PiAgIEFDUElf
+VklERU9fTk9USUZZX1BST0JFKSwgcmUtZW51bWVyYXRlZCBhbmQgc2VuZCBLRVlfU1dJVENIVklE
+RU9NT0RFCj4gPiA+PiAtIEtERSBzZWVtcyB0aGlzIGFuZCBtdWNrIHdpdGggdGhlIHNjcmVlbiBj
+b25maWd1cmF0aW9uIDooCj4gPiA+PiAtIG1lYW53aGlsZSB0aGUgYnJpZ2h0bmVzcyBub3RpZmlj
+YXRpb24gaXMgcHJvcGFnYXRlZCwgdGhlCj4gPiA+PiBoeXBvdGhldGljYWwKPiA+ID4+ICAgcmFk
+ZW9uIGRyaXZlciBkb2VzIGl0cyBtYWdpYyB0byBhZGp1c3QgdGhlIHNjcmVlbi4KPiA+ID4+Cj4g
+PiA+PiBNeSBmaXJzdCBpZGVhIHdvdWxkIGJlIHRvIG1ha2UgQUNQSV9WSURFT19OT1RJRllfUFJP
+QkUgYWxzbyBjYWxsIHRvCj4gPiA+PiB0aGUKPiA+ID4+IGFjcGkgbm90aWZpZXIgY2hhaW4sIGFu
+ZCBhbGxvdyB0aGUgaGFuZGxlcnMgdG8gdmV0byB0aGUga2V5IHByZXNzCj4gPiA+PiAobGlrZQo+
+ID4gPj4gaXQncyBkb25lIGZvciBBQ1BJX1ZJREVPX05PVElGWV9TV0lUQ0gpLgo+ID4gPgo+ID4g
+PiBJIHdlbGNvbWUgdGhpcyBhcHByb2FjaCEKPiA+ID4KPiA+ID4gT24gc29tZSBBVEkgbWFjaGlu
+ZSdzIERTRFQgYWxzbyBpc3N1ZSBBQ1BJX1ZJREVPX05PVElGWV9QUk9CRSB3aGVuCj4gPiA+IEFD
+LXBvd2VyIHVucGx1ZywgYmVjYXVzZSBCSU9TIHdhbnQgdG8gbm9kaWZ5IHZpZGVvIGRyaXZlciBk
+byBzb21lIHBvd2VyCj4gPiA+IHNhdmluZyBzdHVmZi4KPiA+ID4gSXQgY2F1c2VzIEtFWV9TV0lU
+Q0hWSURFT01PREUgaXNzdWVkIGJ5IGFjcGkvdmlkZW8gZHJpdmVyIHdoZW4gQUMtcG93ZXIKPiA+
+ID4gdW5wbHVnLgo+ID4gPgo+ID4gPiBBdCBsZWFzdCBhY3BpL3ZpZGVvIGRyaXZlciBuZWVkIHRv
+IGtub3cgdGhpcyAweDgxIGV2ZW50IGlzIGZpbGVkIGJ5IEJJT1MKPiA+ID4gdG8gcmFkZW9uLWFj
+cGkgZm9yIG5vdGlmeSBidXQgbm90IGRvIHZpZGVvIG1vZGUgc3dpdGNoLiBUaGF0IG1lYW5zIHRo
+ZQo+ID4gPiByYWRlb24gZHJtIG5lZWQgdGFrZSB0aGUgdmlkZW8gc3dpdGNoIHJlc3BvbnNpYmls
+aXR5Lgo+ID4gCj4gPiBQcm9iYWJseSB3ZSdkIGp1c3Qgd2FudCB0aGUgcmFkZW9uIGFjcGkgaGFu
+ZGxlciB0byBqdXN0IGZvcndhcmQgdGhlCj4gPiBldmVudHMgdG8gdXNlcnNwYWNlIHNvIHRoYXQg
+dGhlIHVzZXIgY2FuIGNob29zZSB3aGF0IHRvIGRvIHdpdGggaXQKPiA+ICh4cmFuZHIgY29tbWFu
+ZCwgZXRjLiksIG90aGVyd2lzZSB3ZSdsbCBuZWVkIHRvIGRlZmluZSBwb2xpY3kgaW4gdGhlCj4g
+PiBkcml2ZXIuCj4gCj4gQW55IGtlcm5lbCBtb2R1bGUgY2FuIGlzc3VlIEtFWV9TV0lUQ0hWSURF
+T01PREUgdG8gdXNlciBzcGFjZSwgdGhlbgo+IGdub21lLXNldHRpbmdzLWRhZW1vbihvbiBHbm9t
+ZSkgYW5kICBrcmFuZHIob24gS0RFKSB3aWxsIGNhbGwgeHJhbmRyCj4gbGlicmFyeSB0byBzd2l0
+Y2ggdmlkZW8gbW9kZS4KCkV4YWNseSwgYW5kIGlmIHdlIGhhdmUgcGVuZGluZyBzeXN0ZW0gYmlv
+cyByZXF1ZXN0cyB0aGVuIHRoZSBldmVudCBpcwpub3QgYSByZWFsIEFDUElfVklERU9fTk9USUZZ
+X1BST0JFIGFuZCAoSU1ITykgaXQgc2hvdWxkIG5vdCBiZSBmb3J3YXJkZWQKdG8gdGhlIHVzZXJz
+cGFjZSBhcyBzdWNoLgpUaGUgInZhbmlsbGEiIEFDUElfVklERU9fTk9USUZZX1BST0JFIGlzIGFs
+cmVhZHkgZm9yd2FyZWQgdG8gdXNlcnNwYWNlLgoKPiBUaGUgMHg4MSBBQ1BJIGV2ZW50IGZvciBh
+Y3BpL3ZpZGVvIGRyaXZlciBpcyBBQ1BJX1ZJREVPX05PVElGWV9QUk9CRSwKPiBtZWFucyBuZWVk
+IGlzc3VlIEtFWV9TV0lUQ0hWSURFT01PREUuIEJ1dCwgMHg4MSBmb3IgcmFkZW9uIGlzIGEgZ2Vu
+ZXJhbAo+IG5vdGlmaWNhdGlvbiBldmVudC4KPiBJIGRpZG4ndCBzZWUgcHJvYmUgc3RhdGUgaW4g
+R0VUX1NZU1RFTV9CSU9TX1JFUVVFU1RTLCBob3cgY2FuIHdlCj4gZGlzdGluZ3Vpc2ggdGhpcyAw
+eDgxIGlzIGEgQUNQSV9WSURFT19OT1RJRllfUFJPQkUgb3IgYSBBVEkgZ2VuZXJhbAo+IG5vdGlm
+aWNhdGlvbiBldmVudD8KCisjZGVmaW5lIEFUSUZfRlVOQ1RJT05fR0VUX1NZU1RFTV9CSU9TX1JF
+UVVFU1RTICAgICAgICAgICAgICAgICAgICAgMHgyCisvKiBBUkcwOiBBVElGX0ZVTkNUSU9OX0dF
+VF9TWVNURU1fQklPU19SRVFVRVNUUworICogQVJHMTogbm9uZQorICogT1VUUFVUOgorICogV09S
+RCAgLSBzdHJ1Y3R1cmUgc2l6ZSBpbiBieXRlcyAoaW5jbHVkZXMgc2l6ZSBmaWVsZCkKKyAqIERX
+T1JEIC0gcGVuZGluZyBzYmlvcyByZXF1ZXN0cworICogQllURSAgLSBwYW5lbCBleHBhbnNpb24g
+bW9kZQorICogQllURSAgLSB0aGVybWFsIHN0YXRlOiB0YXJnZXQgZ2Z4IGNvbnRyb2xsZXIKKyAq
+IEJZVEUgIC0gdGhlcm1hbCBzdGF0ZTogc3RhdGUgaWQgKDA6IGV4aXQgc3RhdGUsIG5vbi0wOiBz
+dGF0ZSkKKyAqIEJZVEUgIC0gZm9yY2VkIHBvd2VyIHN0YXRlOiB0YXJnZXQgZ2Z4IGNvbnRyb2xs
+ZXIKKyAqIEJZVEUgIC0gZm9yY2VkIHBvd2VyIHN0YXRlOiBzdGF0ZSBpZAorICogQllURSAgLSBz
+eXN0ZW0gcG93ZXIgc291cmNlCisgKiBCWVRFICAtIHBhbmVsIGJhY2tsaWdodCBsZXZlbCAoMC0y
+NTUpCgpJIGd1ZXNzIHRoYXQgaWYgInBlbmRpbmcgc2Jpb3MgcmVxdWVzdHMiID09IDAgdGhlbiB0
+aGUgZXZlbnQgaXMgdGhlCmdlbmVyYWwgcHVycG9zZSBvbmUsIGFuZCBpcyBub3QgaGFuZGxlZCBi
+eSByYWRlb24gZHJpdmVyLgoKTHVjYQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVl
+ZGVza3RvcC5vcmcKaHR0cDovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZv
+L2RyaS1kZXZlbAo=
