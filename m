@@ -1,71 +1,41 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [RFC PATCH v5 19/19] memory-hotplug: remove sysfs file of node
-Date: Fri, 27 Jul 2012 19:45:02 +0900
-Message-ID: <5012712E.9000005@jp.fujitsu.com>
-References: <50126B83.3050201@cn.fujitsu.com> <50126F21.803@cn.fujitsu.com>
+From: Peter De Schrijver <pdeschrijver@nvidia.com>
+Subject: Re: [PATCH 0/5][RFC] Use per cpuidle_device states
+Date: Fri, 27 Jul 2012 14:28:45 +0300
+Message-ID: <20120727112845.GI12034@tbergstrom-lnx.Nvidia.com>
+References: <1343213162-8064-1-git-send-email-daniel.lezcano@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <50126F21.803@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Wen Congyang <wency@cn.fujitsu.com>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hqemgate04.nvidia.com ([216.228.121.35]:4150 "EHLO
+	hqemgate04.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751082Ab2G0L2w (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Jul 2012 07:28:52 -0400
+Content-Disposition: inline
+In-Reply-To: <1343213162-8064-1-git-send-email-daniel.lezcano@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>
 
-Hi Wen,
+On Wed, Jul 25, 2012 at 12:45:57PM +0200, Daniel Lezcano wrote:
+> Since commit 46bcfad7a819bd17ac4e831b04405152d59784ab,
+>         cpuidle: Single/Global registration of idle states
+> 
+> we have a single registration for the cpuidle states which makes
+> sense. But now two new architectures are coming: tegra3 and big.LITTLE.
+> 
+> These architectures have different cpus with different caracteristics
+> for power saving. High load => powerfull processors, idle => small processors.
+> 
+> That implies different cpu latencies.
+> 
+> This patchset present a simple way to keep the current behavior as introduced
+> by Deepthi without breaking the drivers and add the possibility to specify a
+> per cpu states.
+> 
 
-2012/07/27 19:36, Wen Congyang wrote:
-> From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->
-> The patch adds node_set_offline() and unregister_one_node() to remove_memory()
-> for removing sysfs file of node.
->
-> CC: David Rientjes <rientjes@google.com>
-> CC: Jiang Liu <liuj97@gmail.com>
-> CC: Len Brown <len.brown@intel.com>
-> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-> CC: Paul Mackerras <paulus@samba.org>
-> CC: Christoph Lameter <cl@linux.com>
-> Cc: Minchan Kim <minchan.kim@gmail.com>
-> CC: Andrew Morton <akpm@linux-foundation.org>
-> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-> CC: Wen Congyang <wency@cn.fujitsu.com>
-> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> ---
->   mm/memory_hotplug.c |    5 +++++
->   1 files changed, 5 insertions(+), 0 deletions(-)
->
-> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-> index 5ac035f..5681968 100644
-> --- a/mm/memory_hotplug.c
-> +++ b/mm/memory_hotplug.c
-> @@ -1267,6 +1267,11 @@ int __ref remove_memory(int nid, u64 start, u64 size)
->   	/* remove memmap entry */
->   	firmware_map_remove(start, start + size, "System RAM");
->
-> +	if (!node_present_pages(nid)) {
+Looks good! I will do some tests with this next week.
 
-Applying [PATCH v5 17/19], pgdat->node_spanned_pages can become 0 when
-all memory of the pgdat is removed. When pgdat->node_spanned_pages is 0,
-it means the pgdat has no memory. So I think node_spanned_pages() is
-better.
+Cheers,
 
-Thanks,
-Yasuaki Ishimatsu
-
-> +		node_set_offline(nid);
-> +		unregister_one_node(nid);
-> +	}
-> +
->   	arch_remove_memory(start, size);
->   out:
->   	unlock_memory_hotplug();
->
-
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Peter.
