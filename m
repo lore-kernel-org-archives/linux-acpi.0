@@ -1,39 +1,102 @@
-From: Tony Luck <tony.luck@intel.com>
-Subject: Re: [RFC PATCH v5 05/19] memory-hotplug: check whether memory is
- present or not
-Date: Fri, 27 Jul 2012 13:17:20 -0700
-Message-ID: <CA+8MBbL+G=xqkWU4xGF3_Ra7KoeoHuzL6QYcRiKqtVZoOBfLdQ@mail.gmail.com>
-References: <50126B83.3050201@cn.fujitsu.com>
-	<50126D44.7070608@cn.fujitsu.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH v2] create sun sysfs file
+Date: Fri, 27 Jul 2012 16:25:31 -0600
+Message-ID: <1343427931.3010.582.camel@misato.fc.hp.com>
+References: <5012051A.4050706@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <50126D44.7070608@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Wen Congyang <wency@cn.fujitsu.com>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, Yasuaki ISIMATU <isimatu.yasuaki@jp.fujitsu.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5012051A.4050706@jp.fujitsu.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jul 27, 2012 at 3:28 AM, Wen Congyang <wency@cn.fujitsu.com> wrote:
-> +static inline int pfns_present(unsigned long pfn, unsigned long nr_pages)
-> +{
-> +       int i;
-> +       for (i = 0; i < nr_pages; i++) {
-> +               if (pfn_present(pfn + 1))
+On Fri, 2012-07-27 at 12:03 +0900, Yasuaki Ishimatsu wrote:
+> Even if a device has _SUN method, there is no way to know the slot unique-ID.
+> Thus the patch creates "sun" file in sysfs so that we can recognize it.
 
-Typo? I think you meant "pfn + i"
+Hi Yasuaki,
 
-> +                       continue;
-> +               else
-> +                       return -EINVAL;
-> +       }
-> +       return 0;
+Thanks for the update.  This version looks good to me.
+Did you forget to add your Signed-off?
+
+
+> Index: linux-3.5/include/acpi/acpi_bus.h
+> ===================================================================
+> --- linux-3.5.orig/include/acpi/acpi_bus.h	2012-07-22 05:58:29.000000000 +0900
+> +++ linux-3.5/include/acpi/acpi_bus.h	2012-07-27 10:05:13.860598455 +0900
+> @@ -209,6 +209,7 @@ struct acpi_device_pnp {
+>  	struct list_head ids;		/* _HID and _CIDs */
+>  	acpi_device_name device_name;	/* Driver-determined */
+>  	acpi_device_class device_class;	/*        "          */
+> +	unsigned long sun;		/* _SUN */
+>  };
+>  
+>  #define acpi_device_bid(d)	((d)->pnp.bus_id)
+> Index: linux-3.5/drivers/acpi/scan.c
+> ===================================================================
+> --- linux-3.5.orig/drivers/acpi/scan.c	2012-07-22 05:58:29.000000000 +0900
+> +++ linux-3.5/drivers/acpi/scan.c	2012-07-27 10:17:55.670550879 +0900
+> @@ -192,10 +192,21 @@ end:
+>  }
+>  static DEVICE_ATTR(path, 0444, acpi_device_path_show, NULL);
+>  
+> +static ssize_t
+> +acpi_device_sun_show(struct device *dev, struct device_attribute *attr, char *buf) {
+> +	struct acpi_device *acpi_dev = to_acpi_device(dev);
+> +	int result;
+> +
+> +	result = sprintf(buf, "%lu\n", acpi_dev->pnp.sun);
+> +	return result;
 > +}
+> +static DEVICE_ATTR(sun, 0444, acpi_device_sun_show, NULL);
+> +
+>  static int acpi_device_setup_files(struct acpi_device *dev)
+>  {
+>  	acpi_status status;
+>  	acpi_handle temp;
+> +	unsigned long long sun;
+>  	int result = 0;
+>  
+>  	/*
+> @@ -217,6 +228,14 @@ static int acpi_device_setup_files(struc
+>  			goto end;
+>  	}
+>  
+> +	status = acpi_evaluate_integer(dev->handle, "_SUN", NULL, &sun);
+> +	if (ACPI_SUCCESS(status)) {
+> +		dev->pnp.sun = (unsigned long)sun;
+> +		result = device_create_file(&dev->dev, &dev_attr_sun);
+> +		if (result)
+> +			goto end;
+> +	}
+> +
 
--Tony
+I'd suggest we add the else condition below to invalidate the field when
+_SUN does not exist.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+	else {
+		dev->pnp.sun = (unsigned long)-1;
+	}
+
+
+Thanks,
+-Toshi
+
+>          /*
+>           * If device has _EJ0, 'eject' file is created that is used to trigger
+>           * hot-removal function from userland.
+> @@ -241,6 +260,10 @@ static void acpi_device_remove_files(str
+>  	if (ACPI_SUCCESS(status))
+>  		device_remove_file(&dev->dev, &dev_attr_eject);
+>  
+> +	status = acpi_get_handle(dev->handle, "_SUN", &temp);
+> +	if (ACPI_SUCCESS(status))
+> +		device_remove_file(&dev->dev, &dev_attr_sun);
+> +
+>  	device_remove_file(&dev->dev, &dev_attr_modalias);
+>  	device_remove_file(&dev->dev, &dev_attr_hid);
+>  	if (dev->handle)
+> 
