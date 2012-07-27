@@ -1,85 +1,35 @@
-From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: Re: [RFC PATCH v4 12/13] memory-hotplug : add node_device_release
-Date: Fri, 27 Jul 2012 14:17:19 +0800
-Message-ID: <5012326F.80702@cn.fujitsu.com>
-References: <50068974.1070409@jp.fujitsu.com> <50068D41.9090109@jp.fujitsu.com>
+From: Ingo Molnar <mingo@kernel.org>
+Subject: Re: [PATCH 0/2] ACPI: remove _GTS/_BFS support
+Date: Fri, 27 Jul 2012 10:08:32 +0200
+Message-ID: <20120727080832.GA4233@gmail.com>
+References: <1343349289-31179-1-git-send-email-lenb@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <50068D41.9090109@jp.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:53863 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752201Ab2G0IIh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Jul 2012 04:08:37 -0400
+Received: by wgbdr13 with SMTP id dr13so2570730wgb.1
+        for <linux-acpi@vger.kernel.org>; Fri, 27 Jul 2012 01:08:35 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1343349289-31179-1-git-send-email-lenb@kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, x86@kernel.org
 
-At 07/18/2012 06:17 PM, Yasuaki Ishimatsu Wrote:
-> When calling unregister_node(), the function shows following message at
-> device_release().
-> 
-> Device 'node2' does not have a release() function, it is broken and must be
-> fixed.
-> 
-> So the patch implements node_device_release()
-> 
-> CC: David Rientjes <rientjes@google.com>
-> CC: Jiang Liu <liuj97@gmail.com>
-> CC: Len Brown <len.brown@intel.com>
-> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-> CC: Paul Mackerras <paulus@samba.org> 
-> CC: Christoph Lameter <cl@linux.com>
-> Cc: Minchan Kim <minchan.kim@gmail.com>
-> CC: Andrew Morton <akpm@linux-foundation.org>
-> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com> 
-> CC: Wen Congyang <wency@cn.fujitsu.com>
-> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> 
-> ---
->  drivers/base/node.c |    7 +++++++
->  1 file changed, 7 insertions(+)
-> 
-> Index: linux-3.5-rc6/drivers/base/node.c
-> ===================================================================
-> --- linux-3.5-rc6.orig/drivers/base/node.c	2012-07-18 18:24:29.191121066 +0900
-> +++ linux-3.5-rc6/drivers/base/node.c	2012-07-18 18:25:47.111146983 +0900
-> @@ -252,6 +252,12 @@ static inline void hugetlb_register_node
->  static inline void hugetlb_unregister_node(struct node *node) {}
->  #endif
->  
-> +static void node_device_release(struct device *dev)
-> +{
-> +	struct node *node_dev = to_node(dev);
-> +
-> +	memset(node_dev, 0, sizeof(struct node));
 
-This line is wrong. node_dev->work_struct may be queued in workqueue.
-So, it is very dangerous to clear node_dev->work_struct here.
-In my test, it will cause kernel panicked.
+* Len Brown <lenb@kernel.org> wrote:
 
-Thanks
-Wen Congyang
-> +}
->  
->  /*
->   * register_node - Setup a sysfs device for a node.
-> @@ -265,6 +271,7 @@ int register_node(struct node *node, int
->  
->  	node->dev.id = num;
->  	node->dev.bus = &node_subsys;
-> +	node->dev.release = node_device_release;
->  	error = device_register(&node->dev);
->  
->  	if (!error){
+> Here's a pair of patches to remove  _GTS/_BFS support --
+> something that we've wanted to do for a while.
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
+> Justification is in the commit log of 2/2.
+> Let me know if you se any troubles with the pair.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Acked-by: Ingo Molnar <mingo@kernel.org>
+
+Thanks,
+
+	Ingo
