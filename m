@@ -1,86 +1,85 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH v3 4/4] ACPI: Update Container hotplug messages
-Date: Thu, 26 Jul 2012 20:52:42 -0600
-Message-ID: <1343357562.3010.533.camel@misato.fc.hp.com>
-References: <1343257978-7085-1-git-send-email-toshi.kani@hp.com>
-	 <1343257978-7085-5-git-send-email-toshi.kani@hp.com>
-	 <CAErSpo4Xqn9b21w1s0BLPwUJ4SeBPQjQOJ=Ar14iQKF1ZWnyHQ@mail.gmail.com>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: [PATCH v2] create sun sysfs file
+Date: Fri, 27 Jul 2012 12:03:54 +0900
+Message-ID: <5012051A.4050706@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-2022-JP"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0027.austin.hp.com ([15.216.28.34]:13240 "EHLO
-	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752774Ab2G0C5d (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Jul 2012 22:57:33 -0400
-In-Reply-To: <CAErSpo4Xqn9b21w1s0BLPwUJ4SeBPQjQOJ=Ar14iQKF1ZWnyHQ@mail.gmail.com>
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:41256 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752314Ab2G0DEP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Jul 2012 23:04:15 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, joe@perches.com, isimatu.yasuaki@jp.fujitsu.com, liuj97@gmail.com, srivatsa.bhat@linux.vnet.ibm.com, prarit@redhat.com, imammedo@redhat.com, vijaymohan.pandarathil@hp.com
+To: lenb@kernel.org, linux-acpi@vger.kernel.org
+Cc: toshi.kani@hp.com, linux-kernel@vger.kernel.org
 
-On Thu, 2012-07-26 at 13:23 -0600, Bjorn Helgaas wrote:
-> On Wed, Jul 25, 2012 at 5:12 PM, Toshi Kani <toshi.kani@hp.com> wrote:
-> > Updated Container hotplug log messages with acpi_pr_<level>()
-> > and pr_<level>().
-> >
-> > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-> > ---
-> >  drivers/acpi/container.c |    6 +++---
-> >  1 files changed, 3 insertions(+), 3 deletions(-)
-> >
-> > diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
-> > index 01a986d..643e962 100644
-> > --- a/drivers/acpi/container.c
-> > +++ b/drivers/acpi/container.c
-> > @@ -99,7 +99,7 @@ static int acpi_container_add(struct acpi_device *device)
-> >
-> >
-> >         if (!device) {
-> > -               printk(KERN_ERR PREFIX "device is NULL\n");
-> > +               pr_err(PREFIX "device is NULL\n");
-> >                 return -EINVAL;
-> >         }
-> 
-> This whole "if (!device)" check and the printk should be deleted.  If
-> the ACPI core calls .add() with a null acpi_device pointer, it's a
-> core bug, and it's better to take the oops and get the backtrace.
+Even if a device has _SUN method, there is no way to know the slot unique-ID.
+Thus the patch creates "sun" file in sysfs so that we can recognize it.
 
-Agreed. Delete the check.
-
-> >
-> > @@ -164,7 +164,7 @@ static void container_notify_cb(acpi_handle handle, u32 type, void *context)
-> >         case ACPI_NOTIFY_BUS_CHECK:
-> >                 /* Fall through */
-> >         case ACPI_NOTIFY_DEVICE_CHECK:
-> > -               printk(KERN_WARNING "Container driver received %s event\n",
-> > +               pr_warn("Container driver received %s event\n",
-> >                        (type == ACPI_NOTIFY_BUS_CHECK) ?
-> >                        "ACPI_NOTIFY_BUS_CHECK" : "ACPI_NOTIFY_DEVICE_CHECK");
-> 
-> This message looks dubious.  Receiving this event should be a normal
-> occurrence, so the message might be useful for debugging, but doesn't
-> seem like a KERN_WARNING event for the user.
-
-Changed to pr_debug() for now.
-
-
-Thanks!
--Toshi
-
-
-> >
-> > @@ -185,7 +185,7 @@ static void container_notify_cb(acpi_handle handle, u32 type, void *context)
-> >
-> >                 result = container_device_add(&device, handle);
-> >                 if (result) {
-> > -                       pr_warn("Failed to add container\n");
-> > +                       acpi_pr_warn(handle, "Failed to add container\n");
-> >                         break;
-> >                 }
-> >
-> > --
-> > 1.7.7.6
-> >
-
+Index: linux-3.5/include/acpi/acpi_bus.h
+===================================================================
+--- linux-3.5.orig/include/acpi/acpi_bus.h	2012-07-22 05:58:29.000000000 +0900
++++ linux-3.5/include/acpi/acpi_bus.h	2012-07-27 10:05:13.860598455 +0900
+@@ -209,6 +209,7 @@ struct acpi_device_pnp {
+ 	struct list_head ids;		/* _HID and _CIDs */
+ 	acpi_device_name device_name;	/* Driver-determined */
+ 	acpi_device_class device_class;	/*        "          */
++	unsigned long sun;		/* _SUN */
+ };
+ 
+ #define acpi_device_bid(d)	((d)->pnp.bus_id)
+Index: linux-3.5/drivers/acpi/scan.c
+===================================================================
+--- linux-3.5.orig/drivers/acpi/scan.c	2012-07-22 05:58:29.000000000 +0900
++++ linux-3.5/drivers/acpi/scan.c	2012-07-27 10:17:55.670550879 +0900
+@@ -192,10 +192,21 @@ end:
+ }
+ static DEVICE_ATTR(path, 0444, acpi_device_path_show, NULL);
+ 
++static ssize_t
++acpi_device_sun_show(struct device *dev, struct device_attribute *attr, char *buf) {
++	struct acpi_device *acpi_dev = to_acpi_device(dev);
++	int result;
++
++	result = sprintf(buf, "%lu\n", acpi_dev->pnp.sun);
++	return result;
++}
++static DEVICE_ATTR(sun, 0444, acpi_device_sun_show, NULL);
++
+ static int acpi_device_setup_files(struct acpi_device *dev)
+ {
+ 	acpi_status status;
+ 	acpi_handle temp;
++	unsigned long long sun;
+ 	int result = 0;
+ 
+ 	/*
+@@ -217,6 +228,14 @@ static int acpi_device_setup_files(struc
+ 			goto end;
+ 	}
+ 
++	status = acpi_evaluate_integer(dev->handle, "_SUN", NULL, &sun);
++	if (ACPI_SUCCESS(status)) {
++		dev->pnp.sun = (unsigned long)sun;
++		result = device_create_file(&dev->dev, &dev_attr_sun);
++		if (result)
++			goto end;
++	}
++
+         /*
+          * If device has _EJ0, 'eject' file is created that is used to trigger
+          * hot-removal function from userland.
+@@ -241,6 +260,10 @@ static void acpi_device_remove_files(str
+ 	if (ACPI_SUCCESS(status))
+ 		device_remove_file(&dev->dev, &dev_attr_eject);
+ 
++	status = acpi_get_handle(dev->handle, "_SUN", &temp);
++	if (ACPI_SUCCESS(status))
++		device_remove_file(&dev->dev, &dev_attr_sun);
++
+ 	device_remove_file(&dev->dev, &dev_attr_modalias);
+ 	device_remove_file(&dev->dev, &dev_attr_hid);
+ 	if (dev->handle)
 
