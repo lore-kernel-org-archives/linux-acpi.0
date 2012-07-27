@@ -1,112 +1,85 @@
-From: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
-Subject: Re: [PATCH 5/5][RFC] cpuidle : add cpuidle_register_states function
-Date: Fri, 27 Jul 2012 11:24:38 +0530
-Message-ID: <50122D1E.5040207@linux.vnet.ibm.com>
-References: <1343213162-8064-1-git-send-email-daniel.lezcano@linaro.org> <1343213162-8064-6-git-send-email-daniel.lezcano@linaro.org>
+From: Wen Congyang <wency@cn.fujitsu.com>
+Subject: Re: [RFC PATCH v4 12/13] memory-hotplug : add node_device_release
+Date: Fri, 27 Jul 2012 14:17:19 +0800
+Message-ID: <5012326F.80702@cn.fujitsu.com>
+References: <50068974.1070409@jp.fujitsu.com> <50068D41.9090109@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-2022-JP
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e23smtp07.au.ibm.com ([202.81.31.140]:45939 "EHLO
-	e23smtp07.au.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751528Ab2G0Fyq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Jul 2012 01:54:46 -0400
-Received: from /spool/local
-	by e23smtp07.au.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <linux-acpi@vger.kernel.org> from <deepthi@linux.vnet.ibm.com>;
-	Fri, 27 Jul 2012 15:54:26 +1000
-In-Reply-To: <1343213162-8064-6-git-send-email-daniel.lezcano@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <50068D41.9090109@jp.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linaro-dev@lists.linaro.org
 
-On 07/25/2012 04:16 PM, Daniel Lezcano wrote:
-
-> The tegra3 and big.LITTLE architecture have different cpu latencies.
-> This API allows to specify a different cpu latency for a specific cpu.
+At 07/18/2012 06:17 PM, Yasuaki Ishimatsu Wrote:
+> When calling unregister_node(), the function shows following message at
+> device_release().
 > 
-> With the previous patches, we use the per cpuidle device states pointer,
-> this function overrides this pointer.
+> Device 'node2' does not have a release() function, it is broken and must be
+> fixed.
 > 
-
-
-May be add some more explanation and pointers to previous discussions,
-as stated on the cover in the patch series.
-
-
-> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
-
-
-Acked-by: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
-
+> So the patch implements node_device_release()
+> 
+> CC: David Rientjes <rientjes@google.com>
+> CC: Jiang Liu <liuj97@gmail.com>
+> CC: Len Brown <len.brown@intel.com>
+> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+> CC: Paul Mackerras <paulus@samba.org> 
+> CC: Christoph Lameter <cl@linux.com>
+> Cc: Minchan Kim <minchan.kim@gmail.com>
+> CC: Andrew Morton <akpm@linux-foundation.org>
+> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com> 
+> CC: Wen Congyang <wency@cn.fujitsu.com>
+> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+> 
 > ---
->  drivers/cpuidle/cpuidle.c |   17 +++++++++++++++++
->  include/linux/cpuidle.h   |   10 +++++++---
->  2 files changed, 24 insertions(+), 3 deletions(-)
+>  drivers/base/node.c |    7 +++++++
+>  1 file changed, 7 insertions(+)
 > 
-> diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
-> index 199878a..3b21b68 100644
-> --- a/drivers/cpuidle/cpuidle.c
-> +++ b/drivers/cpuidle/cpuidle.c
-> @@ -456,6 +456,23 @@ void cpuidle_unregister_device(struct cpuidle_device *dev)
-> 
->  EXPORT_SYMBOL_GPL(cpuidle_unregister_device);
-> 
-> +int cpuidle_register_states(struct cpuidle_device *dev,
-> +			    struct cpuidle_state *states,
-> +			    int state_count)
+> Index: linux-3.5-rc6/drivers/base/node.c
+> ===================================================================
+> --- linux-3.5-rc6.orig/drivers/base/node.c	2012-07-18 18:24:29.191121066 +0900
+> +++ linux-3.5-rc6/drivers/base/node.c	2012-07-18 18:25:47.111146983 +0900
+> @@ -252,6 +252,12 @@ static inline void hugetlb_register_node
+>  static inline void hugetlb_unregister_node(struct node *node) {}
+>  #endif
+>  
+> +static void node_device_release(struct device *dev)
 > +{
-> +	if (!dev || !states)
-> +		return -EINVAL;
+> +	struct node *node_dev = to_node(dev);
 > +
-> +	if (state_count <= 0)
-> +		return -EINVAL;
-> +
-> +	dev->states = states;
-> +	dev->state_count = state_count;
-> +
-> +	return 0;
+> +	memset(node_dev, 0, sizeof(struct node));
+
+This line is wrong. node_dev->work_struct may be queued in workqueue.
+So, it is very dangerous to clear node_dev->work_struct here.
+In my test, it will cause kernel panicked.
+
+Thanks
+Wen Congyang
 > +}
-> +EXPORT_SYMBOL_GPL(cpuidle_register_state);
-> +
->  #ifdef CONFIG_SMP
+>  
+>  /*
+>   * register_node - Setup a sysfs device for a node.
+> @@ -265,6 +271,7 @@ int register_node(struct node *node, int
+>  
+>  	node->dev.id = num;
+>  	node->dev.bus = &node_subsys;
+> +	node->dev.release = node_device_release;
+>  	error = device_register(&node->dev);
+>  
+>  	if (!error){
 > 
->  static void smp_callback(void *v)
-> diff --git a/include/linux/cpuidle.h b/include/linux/cpuidle.h
-> index 40a04a1..425200d 100644
-> --- a/include/linux/cpuidle.h
-> +++ b/include/linux/cpuidle.h
-> @@ -144,7 +144,9 @@ extern void cpuidle_driver_unref(void);
->  extern void cpuidle_unregister_driver(struct cpuidle_driver *drv);
->  extern int cpuidle_register_device(struct cpuidle_device *dev);
->  extern void cpuidle_unregister_device(struct cpuidle_device *dev);
-> -
-> +extern int cpuidle_register_states(struct cpuidle_device *dev,
-> +				   struct cpuidle_state *states,
-> +				   int state_count);
->  extern void cpuidle_pause_and_lock(void);
->  extern void cpuidle_resume_and_unlock(void);
->  extern void cpuidle_pause(void);
-> @@ -156,7 +158,6 @@ extern int cpuidle_wrap_enter(struct cpuidle_device *dev,
->  				int (*enter)(struct cpuidle_device *dev,
->  					struct cpuidle_driver *drv, int index));
->  extern int cpuidle_play_dead(void);
-> -
->  #else
->  static inline void disable_cpuidle(void) { }
->  static inline int cpuidle_idle_call(void) { return -ENODEV; }
-> @@ -169,7 +170,10 @@ static inline void cpuidle_unregister_driver(struct cpuidle_driver *drv) { }
->  static inline int cpuidle_register_device(struct cpuidle_device *dev)
->  {return -ENODEV; }
->  static inline void cpuidle_unregister_device(struct cpuidle_device *dev) { }
-> -
-> +static inline  int cpuidle_register_states(struct cpuidle_device *dev,
-> +					   struct cpuidle_state *states,
-> +					   int state_count)
-> +{ return -ENODEV; }
->  static inline void cpuidle_pause_and_lock(void) { }
->  static inline void cpuidle_resume_and_unlock(void) { }
->  static inline void cpuidle_pause(void) { }
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+> 
 
-
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
