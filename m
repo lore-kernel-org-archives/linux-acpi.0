@@ -1,69 +1,99 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH v3 1/4] ACPI: Add acpi_pr_<level>() interfaces
-Date: Thu, 26 Jul 2012 21:32:10 -0600
-Message-ID: <1343359930.3010.542.camel@misato.fc.hp.com>
-References: <1343257978-7085-1-git-send-email-toshi.kani@hp.com>
-	 <1343257978-7085-2-git-send-email-toshi.kani@hp.com>
-	 <CAErSpo4=HDaWTusKf+tRU6aXmj-mC1i7CswnDzDLZii21i9NaQ@mail.gmail.com>
-	 <1343336330.3010.496.camel@misato.fc.hp.com>
-	 <20120726213730.GA2149@google.com> <1343338982.17538.45.camel@joe2Laptop>
-	 <CAErSpo4cPuFLmp=b2JUUP-nDdtsFmJFda0az-9z9fEnys23L6w@mail.gmail.com>
-	 <1343339854.17538.50.camel@joe2Laptop>
+From: joeyli <jlee@suse.com>
+Subject: Re: [PATCH] drm/radeon: add new AMD ACPI header and update
+ relevant code
+Date: Fri, 27 Jul 2012 12:46:50 +0800
+Message-ID: <1343364410.8142.42.camel@linux-s257.site>
+References: <1343237889-5220-1-git-send-email-alexdeucher@gmail.com>
+	 <20120726125838.GA28853@growl> <1343357441.8142.18.camel@linux-s257.site>
+	 <CADnq5_Mz5cjyYZ=1gjq+iaGtizhckKBL23gLaNJQFAPXHGF4TQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0028.austin.hp.com ([15.216.28.35]:34792 "EHLO
-	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752963Ab2G0DhB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Jul 2012 23:37:01 -0400
-In-Reply-To: <1343339854.17538.50.camel@joe2Laptop>
+Received: from smtp.nue.novell.com ([195.135.221.5]:34462 "EHLO
+	smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753373Ab2G0Et3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Jul 2012 00:49:29 -0400
+In-Reply-To: <CADnq5_Mz5cjyYZ=1gjq+iaGtizhckKBL23gLaNJQFAPXHGF4TQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Joe Perches <joe@perches.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, liuj97@gmail.com, srivatsa.bhat@linux.vnet.ibm.com, prarit@redhat.com, imammedo@redhat.com, vijaymohan.pandarathil@hp.com
+To: Alex Deucher <alexdeucher@gmail.com>
+Cc: Luca Tettamanti <kronos.it@gmail.com>, airlied@gmail.com, dri-devel@lists.freedesktop.org, Alex Deucher <alexander.deucher@amd.com>, Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org
 
-On Thu, 2012-07-26 at 14:57 -0700, Joe Perches wrote:
-> On Thu, 2012-07-26 at 15:50 -0600, Bjorn Helgaas wrote:
-> > On Thu, Jul 26, 2012 at 3:43 PM, Joe Perches <joe@perches.com> wrote:
-> > > On Thu, 2012-07-26 at 15:37 -0600, Bjorn Helgaas wrote:
-> > >>     PNP0C01:00: new device for \_SB_.PCI0.ISA_.MBIO
-> > >>
-> > >> I fiddled with this a while ago; it would look something like this:
-> > > []
-> > >> +static noinline_for_stack
-> > >> +char *acpi_name_string(char *buf, char *end, acpi_handle handle,
-> > >> +                    struct printf_spec spec, const char *fmt)
-> []
-> > Yes.  I'm hesitant about this approach in general, because I don't
-> > think printing the ACPI path is something we should be doing often.
-> > It's not like a struct resource or a MAC address, where there are
-> > dozens or hundreds of users.  I really think we should only print ACPI
-> > paths in one or two places, so adding a %p extension would waste a
-> > letter and encourage the wrong behavior.
-> 
-> I don't much care for adding ACPI specific calls to vsprintf
-> as acpi is supposed to be OS generic anyway.
-> 
-> I don't think there's anything wrong with Toshi's approach.
-> Anyone that looks for speed in a logging message is looking
-> for an oddly fitting thing.  Tracing sure, but logging?
+=E6=96=BC =E5=9B=9B=EF=BC=8C2012-07-26 =E6=96=BC 23:31 -0400=EF=BC=8CAl=
+ex Deucher =E6=8F=90=E5=88=B0=EF=BC=9A
+> On Thu, Jul 26, 2012 at 10:50 PM, joeyli <jlee@suse.com> wrote:
+> > =E6=96=BC =E5=9B=9B=EF=BC=8C2012-07-26 =E6=96=BC 14:58 +0200=EF=BC=8C=
+Luca Tettamanti =E6=8F=90=E5=88=B0=EF=BC=9A
+> >> - again ACPI video module gets the nodification (in this case
+> >>   ACPI_VIDEO_NOTIFY_PROBE), re-enumerated and send KEY_SWITCHVIDEO=
+MODE
+> >> - KDE seems this and muck with the screen configuration :(
+> >> - meanwhile the brightness notification is propagated, the
+> >> hypothetical
+> >>   radeon driver does its magic to adjust the screen.
+> >>
+> >> My first idea would be to make ACPI_VIDEO_NOTIFY_PROBE also call t=
+o
+> >> the
+> >> acpi notifier chain, and allow the handlers to veto the key press
+> >> (like
+> >> it's done for ACPI_VIDEO_NOTIFY_SWITCH).
+> >
+> > I welcome this approach!
+> >
+> > On some ATI machine's DSDT also issue ACPI_VIDEO_NOTIFY_PROBE when
+> > AC-power unplug, because BIOS want to nodify video driver do some p=
+ower
+> > saving stuff.
+> > It causes KEY_SWITCHVIDEOMODE issued by acpi/video driver when AC-p=
+ower
+> > unplug.
+> >
+> > At least acpi/video driver need to know this 0x81 event is filed by=
+ BIOS
+> > to radeon-acpi for notify but not do video mode switch. That means =
+the
+> > radeon drm need take the video switch responsibility.
+>=20
+> Probably we'd just want the radeon acpi handler to just forward the
+> events to userspace so that the user can choose what to do with it
+> (xrandr command, etc.), otherwise we'll need to define policy in the
+> driver.
+>=20
+> Alex
+>=20
 
-Fully agreed!  One cannot use printk in performance path.
-
-Thanks,
--Toshi
-
-
-> I also don't see anything wrong with renaming it to just
-> acpi_<level>, but that's a different discussion.
-> 
-> cheers, Joe
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+Any kernel module can issue KEY_SWITCHVIDEOMODE to user space, then
+gnome-settings-daemon(on Gnome) and  krandr(on KDE) will call xrandr
+library to switch video mode.
 
 
+The 0x81 ACPI event for acpi/video driver is ACPI_VIDEO_NOTIFY_PROBE,
+means need issue KEY_SWITCHVIDEOMODE. But, 0x81 for radeon is a general
+notification event.
+I didn't see probe state in GET_SYSTEM_BIOS_REQUESTS, how can we
+distinguish this 0x81 is a ACPI_VIDEO_NOTIFY_PROBE or a ATI general
+notification event?
+
++ * flags
++ * bits 1:0:
++ * 0 - Notify(VGA, 0x81) is not used for notification
++ * 1 - Notify(VGA, 0x81) is used for notification
+
+Per the above flags, when we detect bit set to 1, means 0x81 used for r=
+adeon-acpi
+to be a general notification event. My question is: what's the event nu=
+mber for
+ACPI_VIDEO_NOTIFY_PROBE on this AMD/ATI machine when 0x81 not available=
+ for acpi/video?
+
+
+Thanks a lot!
+Joey Lee
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
