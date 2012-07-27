@@ -1,59 +1,54 @@
-From: joeyli <jlee@suse.com>
-Subject: Re: [PATCH] drm/radeon: add new AMD ACPI header and update
- relevant code
-Date: Fri, 27 Jul 2012 10:50:41 +0800
-Message-ID: <1343357441.8142.18.camel@linux-s257.site>
+From: Alex Deucher <alexdeucher@gmail.com>
+Subject: Re: [PATCH] drm/radeon: add new AMD ACPI header and update relevant
+	code
+Date: Thu, 26 Jul 2012 23:31:05 -0400
+Message-ID: <CADnq5_Mz5cjyYZ=1gjq+iaGtizhckKBL23gLaNJQFAPXHGF4TQ@mail.gmail.com>
 References: <1343237889-5220-1-git-send-email-alexdeucher@gmail.com>
-	 <20120726125838.GA28853@growl>
+	<20120726125838.GA28853@growl>
+	<1343357441.8142.18.camel@linux-s257.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.nue.novell.com ([195.135.221.5]:54455 "EHLO
-	smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753282Ab2G0DNW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Jul 2012 23:13:22 -0400
-In-Reply-To: <20120726125838.GA28853@growl>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="big5"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org>
+In-Reply-To: <1343357441.8142.18.camel@linux-s257.site>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+	<mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+	<mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Sender: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
+Errors-To: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
+To: joeyli <jlee@suse.com>
+Cc: dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, Alex Deucher <alexander.deucher@amd.com>, Zhang Rui <rui.zhang@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Luca Tettamanti <kronos.it@gmail.com>
-Cc: alexdeucher@gmail.com, airlied@gmail.com, dri-devel@lists.freedesktop.org, Alex Deucher <alexander.deucher@amd.com>, Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org
 
-=E6=96=BC =E5=9B=9B=EF=BC=8C2012-07-26 =E6=96=BC 14:58 +0200=EF=BC=8CLu=
-ca Tettamanti =E6=8F=90=E5=88=B0=EF=BC=9A
-> - again ACPI video module gets the nodification (in this case
->   ACPI_VIDEO_NOTIFY_PROBE), re-enumerated and send KEY_SWITCHVIDEOMOD=
-E
-> - KDE seems this and muck with the screen configuration :(
-> - meanwhile the brightness notification is propagated, the
-> hypothetical
->   radeon driver does its magic to adjust the screen.
->=20
-> My first idea would be to make ACPI_VIDEO_NOTIFY_PROBE also call to
-> the
-> acpi notifier chain, and allow the handlers to veto the key press
-> (like
-> it's done for ACPI_VIDEO_NOTIFY_SWITCH).=20
-
-I welcome this approach!
-
-On some ATI machine's DSDT also issue ACPI_VIDEO_NOTIFY_PROBE when
-AC-power unplug, because BIOS want to nodify video driver do some power
-saving stuff.
-It causes KEY_SWITCHVIDEOMODE issued by acpi/video driver when AC-power
-unplug.
-
-At least acpi/video driver need to know this 0x81 event is filed by BIO=
-S
-to radeon-acpi for notify but not do video mode switch. That means the
-radeon drm need take the video switch responsibility.
-
-
-Thanks a lot!
-Joey Lee
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gVGh1LCBKdWwgMjYsIDIwMTIgYXQgMTA6NTAgUE0sIGpvZXlsaSA8amxlZUBzdXNlLmNvbT4g
+d3JvdGU6Cj4gqfMgpXyhQTIwMTItMDctMjYgqfMgMTQ6NTggKzAyMDChQUx1Y2EgVGV0dGFtYW50
+aSC0o6jsoUcKPj4gLSBhZ2FpbiBBQ1BJIHZpZGVvIG1vZHVsZSBnZXRzIHRoZSBub2RpZmljYXRp
+b24gKGluIHRoaXMgY2FzZQo+PiAgIEFDUElfVklERU9fTk9USUZZX1BST0JFKSwgcmUtZW51bWVy
+YXRlZCBhbmQgc2VuZCBLRVlfU1dJVENIVklERU9NT0RFCj4+IC0gS0RFIHNlZW1zIHRoaXMgYW5k
+IG11Y2sgd2l0aCB0aGUgc2NyZWVuIGNvbmZpZ3VyYXRpb24gOigKPj4gLSBtZWFud2hpbGUgdGhl
+IGJyaWdodG5lc3Mgbm90aWZpY2F0aW9uIGlzIHByb3BhZ2F0ZWQsIHRoZQo+PiBoeXBvdGhldGlj
+YWwKPj4gICByYWRlb24gZHJpdmVyIGRvZXMgaXRzIG1hZ2ljIHRvIGFkanVzdCB0aGUgc2NyZWVu
+Lgo+Pgo+PiBNeSBmaXJzdCBpZGVhIHdvdWxkIGJlIHRvIG1ha2UgQUNQSV9WSURFT19OT1RJRllf
+UFJPQkUgYWxzbyBjYWxsIHRvCj4+IHRoZQo+PiBhY3BpIG5vdGlmaWVyIGNoYWluLCBhbmQgYWxs
+b3cgdGhlIGhhbmRsZXJzIHRvIHZldG8gdGhlIGtleSBwcmVzcwo+PiAobGlrZQo+PiBpdCdzIGRv
+bmUgZm9yIEFDUElfVklERU9fTk9USUZZX1NXSVRDSCkuCj4KPiBJIHdlbGNvbWUgdGhpcyBhcHBy
+b2FjaCEKPgo+IE9uIHNvbWUgQVRJIG1hY2hpbmUncyBEU0RUIGFsc28gaXNzdWUgQUNQSV9WSURF
+T19OT1RJRllfUFJPQkUgd2hlbgo+IEFDLXBvd2VyIHVucGx1ZywgYmVjYXVzZSBCSU9TIHdhbnQg
+dG8gbm9kaWZ5IHZpZGVvIGRyaXZlciBkbyBzb21lIHBvd2VyCj4gc2F2aW5nIHN0dWZmLgo+IEl0
+IGNhdXNlcyBLRVlfU1dJVENIVklERU9NT0RFIGlzc3VlZCBieSBhY3BpL3ZpZGVvIGRyaXZlciB3
+aGVuIEFDLXBvd2VyCj4gdW5wbHVnLgo+Cj4gQXQgbGVhc3QgYWNwaS92aWRlbyBkcml2ZXIgbmVl
+ZCB0byBrbm93IHRoaXMgMHg4MSBldmVudCBpcyBmaWxlZCBieSBCSU9TCj4gdG8gcmFkZW9uLWFj
+cGkgZm9yIG5vdGlmeSBidXQgbm90IGRvIHZpZGVvIG1vZGUgc3dpdGNoLiBUaGF0IG1lYW5zIHRo
+ZQo+IHJhZGVvbiBkcm0gbmVlZCB0YWtlIHRoZSB2aWRlbyBzd2l0Y2ggcmVzcG9uc2liaWxpdHku
+CgpQcm9iYWJseSB3ZSdkIGp1c3Qgd2FudCB0aGUgcmFkZW9uIGFjcGkgaGFuZGxlciB0byBqdXN0
+IGZvcndhcmQgdGhlCmV2ZW50cyB0byB1c2Vyc3BhY2Ugc28gdGhhdCB0aGUgdXNlciBjYW4gY2hv
+b3NlIHdoYXQgdG8gZG8gd2l0aCBpdAooeHJhbmRyIGNvbW1hbmQsIGV0Yy4pLCBvdGhlcndpc2Ug
+d2UnbGwgbmVlZCB0byBkZWZpbmUgcG9saWN5IGluIHRoZQpkcml2ZXIuCgpBbGV4Cgo+Cj4KPiBU
+aGFua3MgYSBsb3QhCj4gSm9leSBMZWUKPgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5m
+cmVlZGVza3RvcC5vcmcKaHR0cDovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3Rp
+bmZvL2RyaS1kZXZlbAo=
