@@ -1,138 +1,59 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v4 1/4] ACPI: Add acpi_pr_<level>() interfaces
-Date: Thu, 26 Jul 2012 21:05:41 -0600
-Message-ID: <1343358344-31517-2-git-send-email-toshi.kani@hp.com>
-References: <1343358344-31517-1-git-send-email-toshi.kani@hp.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1343358344-31517-1-git-send-email-toshi.kani@hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: lenb@kernel.org, linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, joe@perches.com, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, liuj97@gmail.com, srivatsa.bhat@linux.vnet.ibm.com, prarit@redhat.com, imammedo@redhat.com, vijaymohan.pandarathil@hp.com, Toshi Kani <toshi.kani@hp.com>
+From: joeyli <jlee@suse.com>
+Subject: Re: [PATCH] drm/radeon: add new AMD ACPI header and update
+ relevant code
+Date: Fri, 27 Jul 2012 10:50:41 +0800
+Message-ID: <1343357441.8142.18.camel@linux-s257.site>
+References: <1343237889-5220-1-git-send-email-alexdeucher@gmail.com>
+	 <20120726125838.GA28853@growl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.nue.novell.com ([195.135.221.5]:54455 "EHLO
+	smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753282Ab2G0DNW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Jul 2012 23:13:22 -0400
+In-Reply-To: <20120726125838.GA28853@growl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Luca Tettamanti <kronos.it@gmail.com>
+Cc: alexdeucher@gmail.com, airlied@gmail.com, dri-devel@lists.freedesktop.org, Alex Deucher <alexander.deucher@amd.com>, Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org
 
-This patch introduces acpi_pr_<level>(), where <level> is a kernel
-message level such as err/warn/info, to support improved logging
-messages for ACPI, esp. in hotplug operations.  acpi_pr_<level>()
-appends "ACPI" prefix and ACPI object path to the messages.  This
-improves diagnostics in hotplug operations since it identifies an
-object that caused an issue in a log file.
+=E6=96=BC =E5=9B=9B=EF=BC=8C2012-07-26 =E6=96=BC 14:58 +0200=EF=BC=8CLu=
+ca Tettamanti =E6=8F=90=E5=88=B0=EF=BC=9A
+> - again ACPI video module gets the nodification (in this case
+>   ACPI_VIDEO_NOTIFY_PROBE), re-enumerated and send KEY_SWITCHVIDEOMOD=
+E
+> - KDE seems this and muck with the screen configuration :(
+> - meanwhile the brightness notification is propagated, the
+> hypothetical
+>   radeon driver does its magic to adjust the screen.
+>=20
+> My first idea would be to make ACPI_VIDEO_NOTIFY_PROBE also call to
+> the
+> acpi notifier chain, and allow the handlers to veto the key press
+> (like
+> it's done for ACPI_VIDEO_NOTIFY_SWITCH).=20
 
-acpi_pr_<level>() takes acpi_handle as an argument, which is passed
-to ACPI hotplug notify handlers from the ACPICA.  Therefore, it is
-always available unlike other kernel objects, such as device.
+I welcome this approach!
 
-For example, the statement below
-  acpi_pr_err(handle, "Device don't exist, dropping EJECT\n");
-logs an error message like this at KERN_ERR.
-  ACPI: \_SB_.SCK4.CPU4: Device don't exist, dropping EJECT
+On some ATI machine's DSDT also issue ACPI_VIDEO_NOTIFY_PROBE when
+AC-power unplug, because BIOS want to nodify video driver do some power
+saving stuff.
+It causes KEY_SWITCHVIDEOMODE issued by acpi/video driver when AC-power
+unplug.
 
-ACPI drivers can use acpi_pr_<level>() when they need to identify
-a target ACPI object path in their messages, such as error messages.
-The usage model is similar to dev_<level>().  acpi_pr_<level>() can
-be used when device is not created/valid, which may be the case for
-ACPI hotplug handlers.  ACPI object path is also consistent on the
-platform.  Device name changes over hotplug operations.
+At least acpi/video driver need to know this 0x81 event is filed by BIO=
+S
+to radeon-acpi for notify but not do video mode switch. That means the
+radeon drm need take the video switch responsibility.
 
-ACPI drivers should use dev_<level>() when device is valid and
-acpi_pr_<level>() is already used by the caller in its error path.
-Device name provides more user friendly information.
 
-ACPI drivers also continue to use pr_<level>() when messages do not
-need to specify device information, such as boot-up messages.
+Thanks a lot!
+Joey Lee
 
-Note: ACPI_[WARNING|INFO|ERROR]() are intended for the ACPICA and
-are not associated with the kernel message level.
-
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-Tested-by: Vijay Mohan Pandarathil <vijaymohan.pandarathil@hp.com>
----
- drivers/acpi/utils.c    |   34 ++++++++++++++++++++++++++++++++++
- include/acpi/acpi_bus.h |   31 +++++++++++++++++++++++++++++++
- 2 files changed, 65 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-index 3e87c9c..ec0c6f9 100644
---- a/drivers/acpi/utils.c
-+++ b/drivers/acpi/utils.c
-@@ -454,3 +454,37 @@ acpi_evaluate_hotplug_ost(acpi_handle handle, u32 source_event,
- #endif
- }
- EXPORT_SYMBOL(acpi_evaluate_hotplug_ost);
-+
-+/**
-+ * acpi_printk: Print messages with ACPI prefix and object path
-+ *
-+ * This function is intended to be called through acpi_pr_<level> macros.
-+ */
-+void
-+acpi_printk(const char *level, acpi_handle handle, const char *fmt, ...)
-+{
-+	struct va_format vaf;
-+	va_list args;
-+	struct acpi_buffer buffer = {
-+		.length = ACPI_ALLOCATE_BUFFER,
-+		.pointer = NULL
-+	};
-+	const char *path;
-+	acpi_status ret;
-+
-+	va_start(args, fmt);
-+	vaf.fmt = fmt;
-+	vaf.va = &args;
-+
-+	ret = acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
-+	if (ret == AE_OK)
-+		path = buffer.pointer;
-+	else
-+		path = "<n/a>";
-+
-+	printk("%sACPI: %s: %pV", level, path, &vaf);
-+
-+	va_end(args);
-+	kfree(buffer.pointer);
-+}
-+EXPORT_SYMBOL(acpi_printk);
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index bde976e..1c855b8 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -85,6 +85,37 @@ struct acpi_pld {
- 
- acpi_status
- acpi_get_physical_device_location(acpi_handle handle, struct acpi_pld *pld);
-+
-+void acpi_printk(const char *level, acpi_handle handle, const char *fmt, ...);
-+
-+#define acpi_pr_emerg(handle, fmt, ...)				\
-+	acpi_printk(KERN_EMERG, handle, fmt, ##__VA_ARGS__)
-+#define acpi_pr_alert(handle, fmt, ...)				\
-+	acpi_printk(KERN_ALERT, handle, fmt, ##__VA_ARGS__)
-+#define acpi_pr_crit(handle, fmt, ...)				\
-+	acpi_printk(KERN_CRIT, handle, fmt, ##__VA_ARGS__)
-+#define acpi_pr_err(handle, fmt, ...)				\
-+	acpi_printk(KERN_ERR, handle, fmt, ##__VA_ARGS__)
-+#define acpi_pr_warn(handle, fmt, ...)				\
-+	acpi_printk(KERN_WARNING, handle, fmt, ##__VA_ARGS__)
-+#define acpi_pr_notice(handle, fmt, ...)			\
-+	acpi_printk(KERN_NOTICE, handle, fmt, ##__VA_ARGS__)
-+#define acpi_pr_info(handle, fmt, ...)				\
-+	acpi_printk(KERN_INFO, handle, fmt, ##__VA_ARGS__)
-+
-+/* REVISIT: Need to support CONFIG_DYNAMIC_DEBUG */
-+#if defined(DEBUG) || defined(CONFIG_DYNAMIC_DEBUG)
-+#define acpi_pr_debug(handle, fmt, ...)					\
-+	acpi_printk(KERN_DEBUG, handle, fmt, ##__VA_ARGS__)
-+#else
-+#define acpi_pr_debug(handle, fmt, ...)					\
-+({									\
-+	if (0)								\
-+		acpi_printk(KERN_DEBUG, handle, fmt, ##__VA_ARGS__);	\
-+	0;								\
-+})
-+#endif
-+
- #ifdef CONFIG_ACPI
- 
- #include <linux/proc_fs.h>
--- 
-1.7.7.6
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
