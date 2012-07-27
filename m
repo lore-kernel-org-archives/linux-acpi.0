@@ -1,86 +1,164 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
-Subject: Re: [PATCH] drm/radeon: add new AMD ACPI header and update relevant
-	code
-Date: Fri, 27 Jul 2012 11:02:50 +0200
-Message-ID: <20120727090250.GA12716@growl>
-References: <1343237889-5220-1-git-send-email-alexdeucher@gmail.com>
-	<20120726125838.GA28853@growl>
-	<1343357441.8142.18.camel@linux-s257.site>
-	<CADnq5_Mz5cjyYZ=1gjq+iaGtizhckKBL23gLaNJQFAPXHGF4TQ@mail.gmail.com>
-	<1343364410.8142.42.camel@linux-s257.site>
+From: Wen Congyang <wency@cn.fujitsu.com>
+Subject: [RFC PATCH v5 00/19] memory-hotplug: hot-remove physical memory
+Date: Fri, 27 Jul 2012 18:20:51 +0800
+Message-ID: <50126B83.3050201@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <1343364410.8142.42.camel@linux-s257.site>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
-	<mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
-	<mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Sender: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
-Errors-To: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
-To: joeyli <jlee@suse.com>
-Cc: linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org, Alex Deucher <alexander.deucher@amd.com>, Zhang Rui <rui.zhang@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+Sender: owner-linux-mm@kvack.org
+To: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com
+Cc: rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, Yasuaki ISIMATU <isimatu.yasuaki@jp.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
 
-T24gRnJpLCBKdWwgMjcsIDIwMTIgYXQgMTI6NDY6NTBQTSArMDgwMCwgam9leWxpIHdyb3RlOgo+
-IOaWvCDlm5vvvIwyMDEyLTA3LTI2IOaWvCAyMzozMSAtMDQwMO+8jEFsZXggRGV1Y2hlciDmj5Dl
-iLDvvJoKPiA+IE9uIFRodSwgSnVsIDI2LCAyMDEyIGF0IDEwOjUwIFBNLCBqb2V5bGkgPGpsZWVA
-c3VzZS5jb20+IHdyb3RlOgo+ID4gPiDmlrwg5Zub77yMMjAxMi0wNy0yNiDmlrwgMTQ6NTggKzAy
-MDDvvIxMdWNhIFRldHRhbWFudGkg5o+Q5Yiw77yaCj4gPiA+PiAtIGFnYWluIEFDUEkgdmlkZW8g
-bW9kdWxlIGdldHMgdGhlIG5vZGlmaWNhdGlvbiAoaW4gdGhpcyBjYXNlCj4gPiA+PiAgIEFDUElf
-VklERU9fTk9USUZZX1BST0JFKSwgcmUtZW51bWVyYXRlZCBhbmQgc2VuZCBLRVlfU1dJVENIVklE
-RU9NT0RFCj4gPiA+PiAtIEtERSBzZWVtcyB0aGlzIGFuZCBtdWNrIHdpdGggdGhlIHNjcmVlbiBj
-b25maWd1cmF0aW9uIDooCj4gPiA+PiAtIG1lYW53aGlsZSB0aGUgYnJpZ2h0bmVzcyBub3RpZmlj
-YXRpb24gaXMgcHJvcGFnYXRlZCwgdGhlCj4gPiA+PiBoeXBvdGhldGljYWwKPiA+ID4+ICAgcmFk
-ZW9uIGRyaXZlciBkb2VzIGl0cyBtYWdpYyB0byBhZGp1c3QgdGhlIHNjcmVlbi4KPiA+ID4+Cj4g
-PiA+PiBNeSBmaXJzdCBpZGVhIHdvdWxkIGJlIHRvIG1ha2UgQUNQSV9WSURFT19OT1RJRllfUFJP
-QkUgYWxzbyBjYWxsIHRvCj4gPiA+PiB0aGUKPiA+ID4+IGFjcGkgbm90aWZpZXIgY2hhaW4sIGFu
-ZCBhbGxvdyB0aGUgaGFuZGxlcnMgdG8gdmV0byB0aGUga2V5IHByZXNzCj4gPiA+PiAobGlrZQo+
-ID4gPj4gaXQncyBkb25lIGZvciBBQ1BJX1ZJREVPX05PVElGWV9TV0lUQ0gpLgo+ID4gPgo+ID4g
-PiBJIHdlbGNvbWUgdGhpcyBhcHByb2FjaCEKPiA+ID4KPiA+ID4gT24gc29tZSBBVEkgbWFjaGlu
-ZSdzIERTRFQgYWxzbyBpc3N1ZSBBQ1BJX1ZJREVPX05PVElGWV9QUk9CRSB3aGVuCj4gPiA+IEFD
-LXBvd2VyIHVucGx1ZywgYmVjYXVzZSBCSU9TIHdhbnQgdG8gbm9kaWZ5IHZpZGVvIGRyaXZlciBk
-byBzb21lIHBvd2VyCj4gPiA+IHNhdmluZyBzdHVmZi4KPiA+ID4gSXQgY2F1c2VzIEtFWV9TV0lU
-Q0hWSURFT01PREUgaXNzdWVkIGJ5IGFjcGkvdmlkZW8gZHJpdmVyIHdoZW4gQUMtcG93ZXIKPiA+
-ID4gdW5wbHVnLgo+ID4gPgo+ID4gPiBBdCBsZWFzdCBhY3BpL3ZpZGVvIGRyaXZlciBuZWVkIHRv
-IGtub3cgdGhpcyAweDgxIGV2ZW50IGlzIGZpbGVkIGJ5IEJJT1MKPiA+ID4gdG8gcmFkZW9uLWFj
-cGkgZm9yIG5vdGlmeSBidXQgbm90IGRvIHZpZGVvIG1vZGUgc3dpdGNoLiBUaGF0IG1lYW5zIHRo
-ZQo+ID4gPiByYWRlb24gZHJtIG5lZWQgdGFrZSB0aGUgdmlkZW8gc3dpdGNoIHJlc3BvbnNpYmls
-aXR5Lgo+ID4gCj4gPiBQcm9iYWJseSB3ZSdkIGp1c3Qgd2FudCB0aGUgcmFkZW9uIGFjcGkgaGFu
-ZGxlciB0byBqdXN0IGZvcndhcmQgdGhlCj4gPiBldmVudHMgdG8gdXNlcnNwYWNlIHNvIHRoYXQg
-dGhlIHVzZXIgY2FuIGNob29zZSB3aGF0IHRvIGRvIHdpdGggaXQKPiA+ICh4cmFuZHIgY29tbWFu
-ZCwgZXRjLiksIG90aGVyd2lzZSB3ZSdsbCBuZWVkIHRvIGRlZmluZSBwb2xpY3kgaW4gdGhlCj4g
-PiBkcml2ZXIuCj4gCj4gQW55IGtlcm5lbCBtb2R1bGUgY2FuIGlzc3VlIEtFWV9TV0lUQ0hWSURF
-T01PREUgdG8gdXNlciBzcGFjZSwgdGhlbgo+IGdub21lLXNldHRpbmdzLWRhZW1vbihvbiBHbm9t
-ZSkgYW5kICBrcmFuZHIob24gS0RFKSB3aWxsIGNhbGwgeHJhbmRyCj4gbGlicmFyeSB0byBzd2l0
-Y2ggdmlkZW8gbW9kZS4KCkV4YWNseSwgYW5kIGlmIHdlIGhhdmUgcGVuZGluZyBzeXN0ZW0gYmlv
-cyByZXF1ZXN0cyB0aGVuIHRoZSBldmVudCBpcwpub3QgYSByZWFsIEFDUElfVklERU9fTk9USUZZ
-X1BST0JFIGFuZCAoSU1ITykgaXQgc2hvdWxkIG5vdCBiZSBmb3J3YXJkZWQKdG8gdGhlIHVzZXJz
-cGFjZSBhcyBzdWNoLgpUaGUgInZhbmlsbGEiIEFDUElfVklERU9fTk9USUZZX1BST0JFIGlzIGFs
-cmVhZHkgZm9yd2FyZWQgdG8gdXNlcnNwYWNlLgoKPiBUaGUgMHg4MSBBQ1BJIGV2ZW50IGZvciBh
-Y3BpL3ZpZGVvIGRyaXZlciBpcyBBQ1BJX1ZJREVPX05PVElGWV9QUk9CRSwKPiBtZWFucyBuZWVk
-IGlzc3VlIEtFWV9TV0lUQ0hWSURFT01PREUuIEJ1dCwgMHg4MSBmb3IgcmFkZW9uIGlzIGEgZ2Vu
-ZXJhbAo+IG5vdGlmaWNhdGlvbiBldmVudC4KPiBJIGRpZG4ndCBzZWUgcHJvYmUgc3RhdGUgaW4g
-R0VUX1NZU1RFTV9CSU9TX1JFUVVFU1RTLCBob3cgY2FuIHdlCj4gZGlzdGluZ3Vpc2ggdGhpcyAw
-eDgxIGlzIGEgQUNQSV9WSURFT19OT1RJRllfUFJPQkUgb3IgYSBBVEkgZ2VuZXJhbAo+IG5vdGlm
-aWNhdGlvbiBldmVudD8KCisjZGVmaW5lIEFUSUZfRlVOQ1RJT05fR0VUX1NZU1RFTV9CSU9TX1JF
-UVVFU1RTICAgICAgICAgICAgICAgICAgICAgMHgyCisvKiBBUkcwOiBBVElGX0ZVTkNUSU9OX0dF
-VF9TWVNURU1fQklPU19SRVFVRVNUUworICogQVJHMTogbm9uZQorICogT1VUUFVUOgorICogV09S
-RCAgLSBzdHJ1Y3R1cmUgc2l6ZSBpbiBieXRlcyAoaW5jbHVkZXMgc2l6ZSBmaWVsZCkKKyAqIERX
-T1JEIC0gcGVuZGluZyBzYmlvcyByZXF1ZXN0cworICogQllURSAgLSBwYW5lbCBleHBhbnNpb24g
-bW9kZQorICogQllURSAgLSB0aGVybWFsIHN0YXRlOiB0YXJnZXQgZ2Z4IGNvbnRyb2xsZXIKKyAq
-IEJZVEUgIC0gdGhlcm1hbCBzdGF0ZTogc3RhdGUgaWQgKDA6IGV4aXQgc3RhdGUsIG5vbi0wOiBz
-dGF0ZSkKKyAqIEJZVEUgIC0gZm9yY2VkIHBvd2VyIHN0YXRlOiB0YXJnZXQgZ2Z4IGNvbnRyb2xs
-ZXIKKyAqIEJZVEUgIC0gZm9yY2VkIHBvd2VyIHN0YXRlOiBzdGF0ZSBpZAorICogQllURSAgLSBz
-eXN0ZW0gcG93ZXIgc291cmNlCisgKiBCWVRFICAtIHBhbmVsIGJhY2tsaWdodCBsZXZlbCAoMC0y
-NTUpCgpJIGd1ZXNzIHRoYXQgaWYgInBlbmRpbmcgc2Jpb3MgcmVxdWVzdHMiID09IDAgdGhlbiB0
-aGUgZXZlbnQgaXMgdGhlCmdlbmVyYWwgcHVycG9zZSBvbmUsIGFuZCBpcyBub3QgaGFuZGxlZCBi
-eSByYWRlb24gZHJpdmVyLgoKTHVjYQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVl
-ZGVza3RvcC5vcmcKaHR0cDovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZv
-L2RyaS1kZXZlbAo=
+This patch series aims to support physical memory hot-remove.
+
+The patches can free/remove following things:
+
+  - acpi_memory_info                          : [RFC PATCH 4/19]
+  - /sys/firmware/memmap/X/{end, start, type} : [RFC PATCH 8/19]
+  - iomem_resource                            : [RFC PATCH 9/19]
+  - mem_section and related sysfs files       : [RFC PATCH 10-11, 13-16/19]
+  - page table of removed memory              : [RFC PATCH 12/19]
+  - node and related sysfs files              : [RFC PATCH 18-19/19]
+
+If you find lack of function for physical memory hot-remove, please let me
+know.
+
+change log of v5:
+ * merge the patchset to clear page table and the patchset to hot remove
+   memory(from ishimatsu) to one big patchset.
+
+ [RFC PATCH v5 1/19]
+   * rename remove_memory() to offline_memory()/offline_pages()
+
+ [RFC PATCH v5 2/19]
+   * new patch: implement offline_memory(). This function offlines pages,
+     update memory block's state, and notify the userspace that the memory
+     block's state is changed.
+
+ [RFC PATCH v5 4/19]
+   * offline and remove memory in acpi_memory_disable_device() too.
+
+ [RFC PATCH v5 17/19]
+   * new patch: add a new function __remove_zone() to revert the things done
+     in the function __add_zone().
+
+ [RFC PATCH v5 18/19]
+   * flush work befor reseting node device.
+
+change log of v4:
+ * remove "memory-hotplug : unify argument of firmware_map_add_early/hotplug"
+   from the patch series, since the patch is a bugfix. It is being disccussed
+   on other thread. But for testing the patch series, the patch is needed.
+   So I added the patch as [PATCH 0/13].
+
+ [RFC PATCH v4 2/13]
+   * check memory is online or not at remove_memory()
+   * add memory_add_physaddr_to_nid() to acpi_memory_device_remove() for
+     getting node id
+ 
+ [RFC PATCH v4 3/13]
+   * create new patch : check memory is online or not at online_pages()
+
+ [RFC PATCH v4 4/13]
+   * add __ref section to remove_memory()
+   * call firmware_map_remove_entry() before remove_sysfs_fw_map_entry()
+
+ [RFC PATCH v4 11/13]
+   * rewrite register_page_bootmem_memmap() for removing page used as PT/PMD
+
+change log of v3:
+ * rebase to 3.5.0-rc6
+
+ [RFC PATCH v2 2/13]
+   * remove extra kobject_put()
+
+   * The patch was commented by Wen. Wen's comment is
+     "acpi_memory_device_remove() should ignore a return value of
+     remove_memory() since caller does not care the return value".
+     But I did not change it since I think caller should care the
+     return value. And I am trying to fix it as follow:
+
+     https://lkml.org/lkml/2012/7/5/624
+
+ [RFC PATCH v2 4/13]
+   * remove a firmware_memmap_entry allocated by kzmalloc()
+
+change log of v2:
+ [RFC PATCH v2 2/13]
+   * check whether memory block is offline or not before calling offline_memory()
+   * check whether section is valid or not in is_memblk_offline()
+   * call kobject_put() for each memory_block in is_memblk_offline()
+
+ [RFC PATCH v2 3/13]
+   * unify the end argument of firmware_map_add_early/hotplug
+
+ [RFC PATCH v2 4/13]
+   * add release_firmware_map_entry() for freeing firmware_map_entry
+
+ [RFC PATCH v2 6/13]
+  * add release_memory_block() for freeing memory_block
+
+ [RFC PATCH v2 11/13]
+  * fix wrong arguments of free_pages()
+
+
+Wen Congyang (5):
+  memory-hotplug: implement offline_memory()
+  memory-hotplug: store the node id in acpi_memory_device
+  memory-hotplug: export the function acpi_bus_remove()
+  memory-hotplug: call acpi_bus_remove() to remove memory device
+  memory-hotplug: introduce new function arch_remove_memory()
+
+Yasuaki Ishimatsu (14):
+  memory-hotplug: rename remove_memory() to
+    offline_memory()/offline_pages()
+  memory-hotplug: offline and remove memory when removing the memory
+    device
+  memory-hotplug: check whether memory is present or not
+  memory-hotplug: remove /sys/firmware/memmap/X sysfs
+  memory-hotplug: does not release memory region in PAGES_PER_SECTION
+    chunks
+  memory-hotplug: add memory_block_release
+  memory-hotplug: remove_memory calls __remove_pages
+  memory-hotplug: check page type in get_page_bootmem
+  memory-hotplug: move register_page_bootmem_info_node and
+    put_page_bootmem for sparse-vmemmap
+  memory-hotplug: implement register_page_bootmem_info_section of
+    sparse-vmemmap
+  memory-hotplug: free memmap of sparse-vmemmap
+  memory_hotplug: clear zone when the memory is removed
+  memory-hotplug: add node_device_release
+  memory-hotplug: remove sysfs file of node
+
+ arch/ia64/mm/init.c                             |   16 +
+ arch/powerpc/mm/mem.c                           |   14 +
+ arch/powerpc/platforms/pseries/hotplug-memory.c |   16 +-
+ arch/s390/mm/init.c                             |    8 +
+ arch/sh/mm/init.c                               |   15 +
+ arch/tile/mm/init.c                             |    8 +
+ arch/x86/include/asm/pgtable_types.h            |    1 +
+ arch/x86/mm/init_32.c                           |   10 +
+ arch/x86/mm/init_64.c                           |  333 ++++++++++++++++++++++
+ arch/x86/mm/pageattr.c                          |   47 ++--
+ drivers/acpi/acpi_memhotplug.c                  |   51 +++-
+ drivers/acpi/scan.c                             |    3 +-
+ drivers/base/memory.c                           |   90 ++++++-
+ drivers/base/node.c                             |    8 +
+ drivers/firmware/memmap.c                       |   78 +++++-
+ include/acpi/acpi_bus.h                         |    1 +
+ include/linux/firmware-map.h                    |    6 +
+ include/linux/memory.h                          |    5 +
+ include/linux/memory_hotplug.h                  |   25 +-
+ include/linux/mm.h                              |    5 +-
+ include/linux/mmzone.h                          |   19 ++
+ mm/memory_hotplug.c                             |  337 +++++++++++++++++++++--
+ mm/sparse.c                                     |    5 +-
+ 23 files changed, 1010 insertions(+), 91 deletions(-)
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
