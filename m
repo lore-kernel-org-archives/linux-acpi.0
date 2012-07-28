@@ -1,102 +1,129 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH v2] create sun sysfs file
-Date: Fri, 27 Jul 2012 16:25:31 -0600
-Message-ID: <1343427931.3010.582.camel@misato.fc.hp.com>
-References: <5012051A.4050706@jp.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5012051A.4050706@jp.fujitsu.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Jiang Liu <liuj97@gmail.com>
+Subject: [RFC PATCH 0/3] ACPI based system device hotplug framework
+Date: Sat, 28 Jul 2012 19:42:49 +0800
+Message-ID: <1343475772-21345-1-git-send-email-jiang.liu@huawei.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>, Tony Luck <tony.luch@intel.com>, Bob Moore <robert.moore@intel.com>, Huang Ying <ying.huang@intel.com>, Yinghai Lu <yinghai@kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>
+Cc: Jiang Liu <liuj97@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>, Hanjun Guo <guohanjun@huawei.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2012-07-27 at 12:03 +0900, Yasuaki Ishimatsu wrote:
-> Even if a device has _SUN method, there is no way to know the slot unique-ID.
-> Thus the patch creates "sun" file in sysfs so that we can recognize it.
+From: Jiang Liu <liuj97@gmail.com>
 
-Hi Yasuaki,
+The patchset is based on v3.5-rc6 and you may pull them from:
+git://github.com/jiangliu/linux.git acpihp
 
-Thanks for the update.  This version looks good to me.
-Did you forget to add your Signed-off?
+Modern high-end server may support advanced hotplug features for system
+devices, including physical processor, memory board, IO extension board
+and/or computer node. The ACPI specifications have provided standard
+interfaces between firmware and OS to support device hotplug at runtime.
+This patch series provide an ACPI based hotplug framework to support system
+device hotplug at runtime, which will replace current existing ACPI device
+driver based CPU/memory/CONTAINER hotplug mechanism.
 
+The new ACPI based hotplug framework is modelled after PCI hotplug
+architecture and target to achieve following goals:
+1) Provide a mechanism to detect hotplug slots by checking ACPI _EJ0 method,
+ACPI PRCT (platform RAS capabilities table) and other platform specific
+mechanisms.
 
-> Index: linux-3.5/include/acpi/acpi_bus.h
-> ===================================================================
-> --- linux-3.5.orig/include/acpi/acpi_bus.h	2012-07-22 05:58:29.000000000 +0900
-> +++ linux-3.5/include/acpi/acpi_bus.h	2012-07-27 10:05:13.860598455 +0900
-> @@ -209,6 +209,7 @@ struct acpi_device_pnp {
->  	struct list_head ids;		/* _HID and _CIDs */
->  	acpi_device_name device_name;	/* Driver-determined */
->  	acpi_device_class device_class;	/*        "          */
-> +	unsigned long sun;		/* _SUN */
->  };
->  
->  #define acpi_device_bid(d)	((d)->pnp.bus_id)
-> Index: linux-3.5/drivers/acpi/scan.c
-> ===================================================================
-> --- linux-3.5.orig/drivers/acpi/scan.c	2012-07-22 05:58:29.000000000 +0900
-> +++ linux-3.5/drivers/acpi/scan.c	2012-07-27 10:17:55.670550879 +0900
-> @@ -192,10 +192,21 @@ end:
->  }
->  static DEVICE_ATTR(path, 0444, acpi_device_path_show, NULL);
->  
-> +static ssize_t
-> +acpi_device_sun_show(struct device *dev, struct device_attribute *attr, char *buf) {
-> +	struct acpi_device *acpi_dev = to_acpi_device(dev);
-> +	int result;
-> +
-> +	result = sprintf(buf, "%lu\n", acpi_dev->pnp.sun);
-> +	return result;
-> +}
-> +static DEVICE_ATTR(sun, 0444, acpi_device_sun_show, NULL);
-> +
->  static int acpi_device_setup_files(struct acpi_device *dev)
->  {
->  	acpi_status status;
->  	acpi_handle temp;
-> +	unsigned long long sun;
->  	int result = 0;
->  
->  	/*
-> @@ -217,6 +228,14 @@ static int acpi_device_setup_files(struc
->  			goto end;
->  	}
->  
-> +	status = acpi_evaluate_integer(dev->handle, "_SUN", NULL, &sun);
-> +	if (ACPI_SUCCESS(status)) {
-> +		dev->pnp.sun = (unsigned long)sun;
-> +		result = device_create_file(&dev->dev, &dev_attr_sun);
-> +		if (result)
-> +			goto end;
-> +	}
-> +
+2) Unify the way to enumerate ACPI based hotplug slots. All hotplug slots
+will be enumerated by the enumeration driver, instead of by ACPI device
+drivers.
 
-I'd suggest we add the else condition below to invalidate the field when
-_SUN does not exist.
+3) Dynamically create/destroy ACPI hotplug slots. For example, new ACPI
+hotplug slots may be created when hot-adding a computer node if the node
+contains some memory hotplug slots.
 
-	else {
-		dev->pnp.sun = (unsigned long)-1;
-	}
+4) Unify the way to handle ACPI hotplug events. All ACPI hotplug events
+for system devices will be handled by a generic ACPI hotplug driver,
+instead of handled by ACPI device drivers.
 
+5) Solve dependencies among hotplug slots. You need first to remove the
+memory device before removing a physical processor if a hotpluggable memory
+device is connected to a hotpluggable physical processor.
 
-Thanks,
--Toshi
+6) Provide better error handling and recover.
 
->          /*
->           * If device has _EJ0, 'eject' file is created that is used to trigger
->           * hot-removal function from userland.
-> @@ -241,6 +260,10 @@ static void acpi_device_remove_files(str
->  	if (ACPI_SUCCESS(status))
->  		device_remove_file(&dev->dev, &dev_attr_eject);
->  
-> +	status = acpi_get_handle(dev->handle, "_SUN", &temp);
-> +	if (ACPI_SUCCESS(status))
-> +		device_remove_file(&dev->dev, &dev_attr_sun);
-> +
->  	device_remove_file(&dev->dev, &dev_attr_modalias);
->  	device_remove_file(&dev->dev, &dev_attr_hid);
->  	if (dev->handle)
-> 
+7) Provide interface to cancel ongoing hotplug operations. It may take a
+very long time to remove a memory device, so provide interface to cancel
+the operation.
+
+8) Support new RAS features, such as socket/memory migration.
+
+9) Provide better user interfaces to the hotplug functionalities.
+
+The new hotplug framework includes four logical components.
+
+The first is an ACPI hotplug slot enumerator, which enumerates ACPI hotplug
+slots on load and provides callbacks to manage those hotplug slots. An ACPI
+hotplug slot is an abstraction of receptacles, where a group of system
+devices could be connected to.
+
+The second is a device class for ACPI hotplug slots, named acpihp_slot_class.
+All ACPI hotplug slot devices will be associated with acpihp_slot_class.
+
+The third is a platform independent class driver for ACPI hotplug slots,
+which registers itself onto acpihp_slot_class and manages all ACPI hotplug
+slots in system. This hotplug driver handles ACPI hotplug events, processes
+user requests and manages slot state machine accoring to user requests.
+
+The fourth is a series of ACPI device drivers, for CPU, memory, PCI host
+bridge, IOAPIC and ACPI CONTAINER. These ACPI device drivers provide device
+specific callbacks for the hotplug driver to add/remove system devices at
+runtime.
+
+This patch set implements the first and second parts, which enumerates
+hotplug slots and creates sysfs entries for each slot as below.
+
+linux-drf:/sys/devices/LNXSYSTM:00/acpihp # ll
+drwxr-xr-x 4 root root 0 Jul 28 16:00 NODE00
+drwxr-xr-x 3 root root 0 Jul 28 16:00 NODE01
+drwxr-xr-x 3 root root 0 Jul 28 16:00 NODE02
+
+linux-drf:/sys/devices/LNXSYSTM:00/acpihp/NODE00 # ll
+drwxr-xr-x 3 root root     0 Jul 28 16:00 IOX01
+-r--r--r-- 1 root root 65536 Jul 28 16:01 capabilities
+lrwxrwxrwx 1 root root     0 Jul 28 16:00 device -> ../../../LNXSYSTM:00
+-r--r--r-- 1 root root 65536 Jul 28 16:01 object
+drwxr-xr-x 2 root root     0 Jul 28 16:01 power
+-r--r--r-- 1 root root 65536 Jul 28 16:01 state
+-r--r--r-- 1 root root 65536 Jul 28 16:01 status
+lrwxrwxrwx 1 root root     0 Jul 28 16:00 subsystem -> ../../../../class/acpihp
+-r--r--r-- 1 root root 65536 Jul 28 16:01 type
+-rw-r--r-- 1 root root 65536 Jul 28 16:01 uevent
+
+linux-drf:/sys/bus/acpi/acpihp # ls
+NODE00  NODE00.IOX01  NODE01  NODE02
+
+linux-drf:/sys/bus/acpi/acpihp # ll
+lrwxrwxrwx 1 root root 0 Jul 28 16:03 NODE00 ->
+		../../../devices/LNXSYSTM:00/acpihp/NODE00
+lrwxrwxrwx 1 root root 0 Jul 28 16:03 NODE00.IOX01 ->
+		../../../devices/LNXSYSTM:00/acpihp/NODE00/IOX01
+lrwxrwxrwx 1 root root 0 Jul 28 16:03 NODE01 ->
+		../../../devices/LNXSYSTM:00/acpihp/NODE01
+lrwxrwxrwx 1 root root 0 Jul 28 16:03 NODE02 ->
+		../../../devices/LNXSYSTM:00/acpihp/NODE02
+
+Jiang Liu (3):
+  ACPIHP: introduce a framework for ACPI based system device hotplug
+  ACPIHP: ACPI system device hotplug slot enumerator
+  ACPIHP: detect ACPI hotplug slots by checking ACPI _EJ0 method
+
+ drivers/acpi/Kconfig                 |   33 ++
+ drivers/acpi/Makefile                |    2 +
+ drivers/acpi/hotplug/Makefile        |   10 +
+ drivers/acpi/hotplug/core.c          |  590 ++++++++++++++++++++++++++++++++++
+ drivers/acpi/hotplug/slot_enum.c     |  469 +++++++++++++++++++++++++++
+ drivers/acpi/hotplug/slot_enum_ej0.c |  113 +++++++
+ include/acpi/acpi_hotplug.h          |  191 +++++++++++
+ 7 files changed, 1408 insertions(+)
+ create mode 100644 drivers/acpi/hotplug/Makefile
+ create mode 100644 drivers/acpi/hotplug/core.c
+ create mode 100644 drivers/acpi/hotplug/slot_enum.c
+ create mode 100644 drivers/acpi/hotplug/slot_enum_ej0.c
+ create mode 100644 include/acpi/acpi_hotplug.h
+
+-- 
+1.7.9.5
