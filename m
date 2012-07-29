@@ -1,104 +1,62 @@
-From: Witold Szczeponik <Witold.Szczeponik@gmx.net>
-Subject: [PATCH V3 3/3] PNP: Handle IORESOURCE_BITS in resource allocation
-Date: Sun, 29 Jul 2012 20:49:51 +0200
-Message-ID: <501585CF.2070307@gmx.net>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH V3 0/3] PNP: Allow PNP resources to be disabled (interface)
+Date: Sun, 29 Jul 2012 21:22:28 +0200
+Message-ID: <201207292122.28249.rjw@sisk.pl>
 References: <50158321.4030007@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:47875 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753375Ab2G2Sty (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 29 Jul 2012 14:49:54 -0400
+Received: from ogre.sisk.pl ([193.178.161.156]:33794 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753330Ab2G2TQj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Jul 2012 15:16:39 -0400
 In-Reply-To: <50158321.4030007@gmx.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: bhelgaas@google.com, lenb@kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Witold Szczeponik <Witold.Szczeponik@gmx.net>
+Cc: bhelgaas@google.com, lenb@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-The patch copies the flags masked by IORESOURCE_BITS from a resource's 
-template.  This is necessary because the resource settings require proper
-IORESOURCE_BITS which are not known during the definition of these resources 
-using the "/sys/bus/pnp/*/*/resources" interface.  (In fact, they should not 
-be set by the user as the resource templates define the proper settings.)
+Hi,
 
-If the patch is not applied, the resource flags are not initialized properly 
-and obscure messages in the kernel log have been seen ("invalid flags").  
+On Sunday, July 29, 2012, Witold Szczeponik wrote:
+> Hello everybody, 
+> 
+> this simple patch series continues the work begun in commit 
+> 18fd470a48396c8795ba7256c5973e92ffa25cb3 where ACPI PNP resource templates 
+> with empty/disabled resources are handled.  
+> 
+> The aim of this patch series is to allow to set resources as "disabled" using 
+> the "/sys/bus/pnp/devices/*/resources" interface.  Such "disabled" resources 
+> are needed by some vintage IBM ThinkPads like the 600E where some devices need 
+> to have their IRQs disabled in order to support all the devices the 600E has. 
+> 
+> To better understand the motivation, let's look at an excerpt from the 600E's 
+> DSDT:
+> 
+>     Name (PLPT, ResourceTemplate ()
+>     {
+>         StartDependentFnNoPri ()
+>         {
+>             IO (Decode16, 0x03BC, 0x03BC, 0x01, 0x04)
+>             IRQNoFlags () {7}
+>         }
+>         /* Some entries deleted */
+>         StartDependentFnNoPri ()
+>         {
+>             IO (Decode16, 0x03BC, 0x03BC, 0x01, 0x04)
+>             IRQNoFlags () {}
+>         }
+>         EndDependentFn ()
+>     })
+> 
+> As one can see, the IRQ line for the last option is empty/disabled.  Also, both 
+> options share the same priority, meaning they are equal alternatives.  In order 
+> to be able to use the IRQ 7 for some other device, it is necessary to select 
+> the second option, which can be done with the patch series applied.
 
-The patch is applied against Linux 3.5.x.
+Do I understand correctly that you want to disable those things through
+sysfs?
 
-
-Signed-off-by: Witold Szczeponik <Witold.Szczeponik@gmx.net>
-Reviewed-by: Bjorn Helgaas <bhelgaas@google.com>
-
-
-Index: linux/drivers/pnp/manager.c
-===================================================================
---- linux.orig/drivers/pnp/manager.c
-+++ linux/drivers/pnp/manager.c
-@@ -18,11 +18,27 @@
- 
- DEFINE_MUTEX(pnp_res_mutex);
- 
-+static struct resource *pnp_find_resource(struct pnp_dev *dev,
-+					  unsigned char rule,
-+					  unsigned long type,
-+					  unsigned int bar)
-+{
-+	struct resource *res = pnp_get_resource(dev, type, bar);
-+
-+	/* when the resource already exists, set its resource bits from rule */
-+	if (res) {
-+		res->flags &= ~IORESOURCE_BITS;
-+		res->flags |= rule & IORESOURCE_BITS;
-+	}
-+
-+	return res;
-+}
-+
- static int pnp_assign_port(struct pnp_dev *dev, struct pnp_port *rule, int idx)
- {
- 	struct resource *res, local_res;
- 
--	res = pnp_get_resource(dev, IORESOURCE_IO, idx);
-+	res = pnp_find_resource(dev, rule->flags, IORESOURCE_IO, idx);
- 	if (res) {
- 		pnp_dbg(&dev->dev, "  io %d already set to %#llx-%#llx "
- 			"flags %#lx\n", idx, (unsigned long long) res->start,
-@@ -65,7 +81,7 @@ static int pnp_assign_mem(struct pnp_dev
- {
- 	struct resource *res, local_res;
- 
--	res = pnp_get_resource(dev, IORESOURCE_MEM, idx);
-+	res = pnp_find_resource(dev, rule->flags, IORESOURCE_MEM, idx);
- 	if (res) {
- 		pnp_dbg(&dev->dev, "  mem %d already set to %#llx-%#llx "
- 			"flags %#lx\n", idx, (unsigned long long) res->start,
-@@ -78,6 +94,7 @@ static int pnp_assign_mem(struct pnp_dev
- 	res->start = 0;
- 	res->end = 0;
- 
-+	/* ??? rule->flags restricted to 8 bits, all tests bogus ??? */
- 	if (!(rule->flags & IORESOURCE_MEM_WRITEABLE))
- 		res->flags |= IORESOURCE_READONLY;
- 	if (rule->flags & IORESOURCE_MEM_CACHEABLE)
-@@ -123,7 +140,7 @@ static int pnp_assign_irq(struct pnp_dev
- 		5, 10, 11, 12, 9, 14, 15, 7, 3, 4, 13, 0, 1, 6, 8, 2
- 	};
- 
--	res = pnp_get_resource(dev, IORESOURCE_IRQ, idx);
-+	res = pnp_find_resource(dev, rule->flags, IORESOURCE_IRQ, idx);
- 	if (res) {
- 		pnp_dbg(&dev->dev, "  irq %d already set to %d flags %#lx\n",
- 			idx, (int) res->start, res->flags);
-@@ -182,7 +199,7 @@ static int pnp_assign_dma(struct pnp_dev
- 		1, 3, 5, 6, 7, 0, 2, 4
- 	};
- 
--	res = pnp_get_resource(dev, IORESOURCE_DMA, idx);
-+	res = pnp_find_resource(dev, rule->flags, IORESOURCE_DMA, idx);
- 	if (res) {
- 		pnp_dbg(&dev->dev, "  dma %d already set to %d flags %#lx\n",
- 			idx, (int) res->start, res->flags);
-
+Rafael
