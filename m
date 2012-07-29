@@ -1,42 +1,84 @@
-From: Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Subject: Re: Fwd: Brightness on HP EliteBook 8460p
-Date: Sat, 28 Jul 2012 16:47:31 +0200
-Message-ID: <7304456.Po7HTnWu9F@pali>
-References: <4F2E8FE40200002300007D85@novprvlin0050.provo.novell.com> <1631921.mapqS8Vd5c@pali> <1332303391.10557.391.camel@linux-s257.site>
+From: Witold Szczeponik <Witold.Szczeponik@gmx.net>
+Subject: [PATCH V3 0/3] PNP: Allow PNP resources to be disabled (interface)
+Date: Sun, 29 Jul 2012 20:38:25 +0200
+Message-ID: <50158321.4030007@gmx.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="nextPart1482509.WUzRrmJDWT"; micalg="pgp-sha1"; protocol="application/pgp-signature"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <1332303391.10557.391.camel@linux-s257.site>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: joeyli <jlee@suse.com>
-Cc: dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, Artur Flinta <aflinta@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mailout-de.gmx.net ([213.165.64.23]:40789 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753352Ab2G2Sic (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 29 Jul 2012 14:38:32 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: bhelgaas@google.com, lenb@kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+
+Hello everybody, 
+
+this simple patch series continues the work begun in commit 
+18fd470a48396c8795ba7256c5973e92ffa25cb3 where ACPI PNP resource templates 
+with empty/disabled resources are handled.  
+
+The aim of this patch series is to allow to set resources as "disabled" using 
+the "/sys/bus/pnp/devices/*/resources" interface.  Such "disabled" resources 
+are needed by some vintage IBM ThinkPads like the 600E where some devices need 
+to have their IRQs disabled in order to support all the devices the 600E has. 
+
+To better understand the motivation, let's look at an excerpt from the 600E's 
+DSDT:
+
+    Name (PLPT, ResourceTemplate ()
+    {
+        StartDependentFnNoPri ()
+        {
+            IO (Decode16, 0x03BC, 0x03BC, 0x01, 0x04)
+            IRQNoFlags () {7}
+        }
+        /* Some entries deleted */
+        StartDependentFnNoPri ()
+        {
+            IO (Decode16, 0x03BC, 0x03BC, 0x01, 0x04)
+            IRQNoFlags () {}
+        }
+        EndDependentFn ()
+    })
+
+As one can see, the IRQ line for the last option is empty/disabled.  Also, both 
+options share the same priority, meaning they are equal alternatives.  In order 
+to be able to use the IRQ 7 for some other device, it is necessary to select 
+the second option, which can be done with the patch series applied.
+
+To this end, some preparatory work is done, simplifying the code, and fixing a
+potential issue when explicitely assigning resources. 
+
+Here is a brief description of these patches. 
+
+[1/3] - Factor out common some code
+[2/3] - Perform the actual setting
+[3/3] - Handle IORESOURCE_BITS in resource allocation
+
+The patches are applied against Linux 3.5.x. 
+
+Comments are, as always, welcome.  If the patches should be sent to someone
+else, please let me know. 
 
 
---nextPart1482509.WUzRrmJDWT
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="utf-8"
+--- Witold
 
-Hello, I have some good news. Radeon patches from this post
-http://lists.freedesktop.org/archives/dri-devel/2012-July/025535.html
-export brightness file /sys/class/backlight/radeon_bl/brightness
-And finally with these patches I'm able to change brightness on my Elit=
-eBook.
 
---=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
---nextPart1482509.WUzRrmJDWT
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part.
+Changes from previous versions:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+V3 -> V2: Added Bjorn Helgaas as "Reviewed by"
+          No changes in the code itself
+          Based on Linux 3.5.x
 
-iEYEABECAAYFAlAT+4MACgkQi/DJPQPkQ1KKbwCfa7B8A2P51OAqr0l4CuC6hru9
-NVwAoK8lFICJD+twNllKBJRYn24TRAoz
-=KWvO
------END PGP SIGNATURE-----
+V1 -> V2: Split [V1 2/3] into [V2 2/3] and [V2 3/3]
+          Removed [V1 3/3], will be submitted separately
+          Wrote more comments in response to the previous version
+          Sent to a broader audience
+          (https://lkml.org/lkml/2012/4/11/442)
 
---nextPart1482509.WUzRrmJDWT--
+V1:       Initial version 
+          (https://lkml.org/lkml/2012/3/20/358)
