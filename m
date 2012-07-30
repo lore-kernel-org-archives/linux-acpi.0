@@ -1,31 +1,107 @@
-From: richard -rw- weinberger <richard.weinberger@gmail.com>
-Subject: Re: [PATCH] ACPI: replace strlen("string") with sizeof("string") -1
-Date: Mon, 30 Jul 2012 16:41:48 +0200
-Message-ID: <CAFLxGvz=cYJQhCi99trBN8=hGA9XmY8Z7weNmnASYTqAbr0PEw@mail.gmail.com>
-References: <Pine.LNX.4.44L0.1206301023540.29029-100000@netrider.rowland.org>
-	<5011F15A.3060007@kernel.org>
-	<1343658373.15432.18.camel@zakaz.uk.xensource.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH v3] create sun sysfs file
+Date: Mon, 30 Jul 2012 09:18:03 -0600
+Message-ID: <1343661483.3010.584.camel@misato.fc.hp.com>
+References: <5015DC4B.2000802@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:32853 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754684Ab2G3Olu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Jul 2012 10:41:50 -0400
-In-Reply-To: <1343658373.15432.18.camel@zakaz.uk.xensource.com>
+Received: from g1t0028.austin.hp.com ([15.216.28.35]:46246 "EHLO
+	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754656Ab2G3PW6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Jul 2012 11:22:58 -0400
+In-Reply-To: <5015DC4B.2000802@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ian Campbell <ijc@hellion.org.uk>
-Cc: Len Brown <lenb@kernel.org>, Alan Stern <stern@rowland.harvard.edu>, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, Pavel Vasilyev <pavel@pavlinux.ru>, linux-kernel@vger.kernel.org, Len Brown <len.brown@intel.com>
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, Jul 30, 2012 at 4:26 PM, Ian Campbell <ijc@hellion.org.uk> wrote:
-> I thought gcc optimised strlen("string literal") into a compile time
-> constant too. It does in a little userspace test I just wrote, but I
-> didn't look at its behaviour with the kernel's strlen.
+On Mon, 2012-07-30 at 09:58 +0900, Yasuaki Ishimatsu wrote:
+> Even if a device has _SUN method, there is no way to know the slot unique-ID.
+> Thus the patch creates "sun" file in sysfs so that we can recognize it.
+> 
+> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-It depends whether you use the built-in strlen() or not.
-AFAIK the kernel does not use the built-in variant.
+Hi Yasuaki,
 
--- 
-Thanks,
-//richard
+Thanks for the quick update.  Looks good.
+
+Reviewed-by: Toshi Kani <toshi.kani@hp.com>
+
+-Toshi
+
+> ---
+>  drivers/acpi/scan.c     |   25 +++++++++++++++++++++++++
+>  include/acpi/acpi_bus.h |    1 +
+>  2 files changed, 26 insertions(+)
+> 
+> Index: linux-3.5/include/acpi/acpi_bus.h
+> ===================================================================
+> --- linux-3.5.orig/include/acpi/acpi_bus.h	2012-07-27 10:20:22.722553439 +0900
+> +++ linux-3.5/include/acpi/acpi_bus.h	2012-07-27 10:20:25.741555954 +0900
+> @@ -209,6 +209,7 @@ struct acpi_device_pnp {
+>  	struct list_head ids;		/* _HID and _CIDs */
+>  	acpi_device_name device_name;	/* Driver-determined */
+>  	acpi_device_class device_class;	/*        "          */
+> +	unsigned long sun;		/* _SUN */
+>  };
+>  
+>  #define acpi_device_bid(d)	((d)->pnp.bus_id)
+> Index: linux-3.5/drivers/acpi/scan.c
+> ===================================================================
+> --- linux-3.5.orig/drivers/acpi/scan.c	2012-07-27 10:20:22.721522499 +0900
+> +++ linux-3.5/drivers/acpi/scan.c	2012-07-30 09:52:32.581887304 +0900
+> @@ -192,10 +192,21 @@ end:
+>  }
+>  static DEVICE_ATTR(path, 0444, acpi_device_path_show, NULL);
+>  
+> +static ssize_t
+> +acpi_device_sun_show(struct device *dev, struct device_attribute *attr, char *buf) {
+> +	struct acpi_device *acpi_dev = to_acpi_device(dev);
+> +	int result;
+> +
+> +	result = sprintf(buf, "%lu\n", acpi_dev->pnp.sun);
+> +	return result;
+> +}
+> +static DEVICE_ATTR(sun, 0444, acpi_device_sun_show, NULL);
+> +
+>  static int acpi_device_setup_files(struct acpi_device *dev)
+>  {
+>  	acpi_status status;
+>  	acpi_handle temp;
+> +	unsigned long long sun;
+>  	int result = 0;
+>  
+>  	/*
+> @@ -217,6 +228,16 @@ static int acpi_device_setup_files(struc
+>  			goto end;
+>  	}
+>  
+> +	status = acpi_evaluate_integer(dev->handle, "_SUN", NULL, &sun);
+> +	if (ACPI_SUCCESS(status)) {
+> +		dev->pnp.sun = (unsigned long)sun;
+> +		result = device_create_file(&dev->dev, &dev_attr_sun);
+> +		if (result)
+> +			goto end;
+> +	} else {
+> +		dev->pnp.sun = (unsigned long)-1;
+> +	}
+> +
+>          /*
+>           * If device has _EJ0, 'eject' file is created that is used to trigger
+>           * hot-removal function from userland.
+> @@ -241,6 +262,10 @@ static void acpi_device_remove_files(str
+>  	if (ACPI_SUCCESS(status))
+>  		device_remove_file(&dev->dev, &dev_attr_eject);
+>  
+> +	status = acpi_get_handle(dev->handle, "_SUN", &temp);
+> +	if (ACPI_SUCCESS(status))
+> +		device_remove_file(&dev->dev, &dev_attr_sun);
+> +
+>  	device_remove_file(&dev->dev, &dev_attr_modalias);
+>  	device_remove_file(&dev->dev, &dev_attr_hid);
+>  	if (dev->handle)
+> 
+
+
