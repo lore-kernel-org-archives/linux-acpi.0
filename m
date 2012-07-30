@@ -1,52 +1,120 @@
-From: Witold Szczeponik <Witold.Szczeponik@gmx.net>
-Subject: Re: [PATCH V3 0/3] PNP: Allow PNP resources to be disabled (interface)
-Date: Sun, 29 Jul 2012 21:31:53 +0200
-Message-ID: <50158FA9.7080700@gmx.net>
-References: <50158321.4030007@gmx.net> <201207292122.28249.rjw@sisk.pl>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [PATCH v2] create sun sysfs file
+Date: Mon, 30 Jul 2012 09:51:18 +0900
+Message-ID: <5015DA86.2020306@jp.fujitsu.com>
+References: <5012051A.4050706@jp.fujitsu.com> <1343427931.3010.582.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:51311 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753359Ab2G2Tb4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 29 Jul 2012 15:31:56 -0400
-In-Reply-To: <201207292122.28249.rjw@sisk.pl>
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:39462 "EHLO
+	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753747Ab2G3Avh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 29 Jul 2012 20:51:37 -0400
+In-Reply-To: <1343427931.3010.582.camel@misato.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: bhelgaas@google.com, lenb@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 29/07/12 21:22, Rafael J. Wysocki wrote:
+Hi Toshi,
 
-> Hi,
-> 
+2012/07/28 7:25, Toshi Kani wrote:
+> On Fri, 2012-07-27 at 12:03 +0900, Yasuaki Ishimatsu wrote:
+>> Even if a device has _SUN method, there is no way to know the slot unique-ID.
+>> Thus the patch creates "sun" file in sysfs so that we can recognize it.
+>
+> Hi Yasuaki,
+>
+> Thanks for the update.  This version looks good to me.
+> Did you forget to add your Signed-off?
+>
+>
+>> Index: linux-3.5/include/acpi/acpi_bus.h
+>> ===================================================================
+>> --- linux-3.5.orig/include/acpi/acpi_bus.h	2012-07-22 05:58:29.000000000 +0900
+>> +++ linux-3.5/include/acpi/acpi_bus.h	2012-07-27 10:05:13.860598455 +0900
+>> @@ -209,6 +209,7 @@ struct acpi_device_pnp {
+>>   	struct list_head ids;		/* _HID and _CIDs */
+>>   	acpi_device_name device_name;	/* Driver-determined */
+>>   	acpi_device_class device_class;	/*        "          */
+>> +	unsigned long sun;		/* _SUN */
+>>   };
+>>
+>>   #define acpi_device_bid(d)	((d)->pnp.bus_id)
+>> Index: linux-3.5/drivers/acpi/scan.c
+>> ===================================================================
+>> --- linux-3.5.orig/drivers/acpi/scan.c	2012-07-22 05:58:29.000000000 +0900
+>> +++ linux-3.5/drivers/acpi/scan.c	2012-07-27 10:17:55.670550879 +0900
+>> @@ -192,10 +192,21 @@ end:
+>>   }
+>>   static DEVICE_ATTR(path, 0444, acpi_device_path_show, NULL);
+>>
+>> +static ssize_t
+>> +acpi_device_sun_show(struct device *dev, struct device_attribute *attr, char *buf) {
+>> +	struct acpi_device *acpi_dev = to_acpi_device(dev);
+>> +	int result;
+>> +
+>> +	result = sprintf(buf, "%lu\n", acpi_dev->pnp.sun);
+>> +	return result;
+>> +}
+>> +static DEVICE_ATTR(sun, 0444, acpi_device_sun_show, NULL);
+>> +
+>>   static int acpi_device_setup_files(struct acpi_device *dev)
+>>   {
+>>   	acpi_status status;
+>>   	acpi_handle temp;
+>> +	unsigned long long sun;
+>>   	int result = 0;
+>>
+>>   	/*
+>> @@ -217,6 +228,14 @@ static int acpi_device_setup_files(struc
+>>   			goto end;
+>>   	}
+>>
+>> +	status = acpi_evaluate_integer(dev->handle, "_SUN", NULL, &sun);
+>> +	if (ACPI_SUCCESS(status)) {
+>> +		dev->pnp.sun = (unsigned long)sun;
+>> +		result = device_create_file(&dev->dev, &dev_attr_sun);
+>> +		if (result)
+>> +			goto end;
+>> +	}
+>> +
+>
 
-[... long snip ...]
+> I'd suggest we add the else condition below to invalidate the field when
+> _SUN does not exist.
+>
+> 	else {
+> 		dev->pnp.sun = (unsigned long)-1;
+> 	}
+>
 
-> 
-> Do I understand correctly that you want to disable those things through
-> sysfs?
-> 
-> Rafael
-> 
+I'll update it soon.
 
-Hi Rafael, 
+Thanks,
+Yasuaki Ishimatsu
+  
+>
+> Thanks,
+> -Toshi
+>
+>>           /*
+>>            * If device has _EJ0, 'eject' file is created that is used to trigger
+>>            * hot-removal function from userland.
+>> @@ -241,6 +260,10 @@ static void acpi_device_remove_files(str
+>>   	if (ACPI_SUCCESS(status))
+>>   		device_remove_file(&dev->dev, &dev_attr_eject);
+>>
+>> +	status = acpi_get_handle(dev->handle, "_SUN", &temp);
+>> +	if (ACPI_SUCCESS(status))
+>> +		device_remove_file(&dev->dev, &dev_attr_sun);
+>> +
+>>   	device_remove_file(&dev->dev, &dev_attr_modalias);
+>>   	device_remove_file(&dev->dev, &dev_attr_hid);
+>>   	if (dev->handle)
+>>
+>
+>
 
-the aim is to select a PNP ACPI option where resources can be disabled
-(or are not needed).  E.g., the parallel port of the 600E can be used
-with and without IRQ lines.  The means to allow for this is to use the
-sysfs interface to select disabled resources (just like any other 
-resource value).  In https://lkml.org/lkml/2011/7/3/41, I used the 
-following example:
 
-  echo disable > /sys/bus/pnp/devices/$device/resources
-  echo clear > /sys/bus/pnp/devices/$device/resources
-  echo set irq disabled > /sys/bus/pnp/devices/$device/resources
-  echo fill > /sys/bus/pnp/devices/$device/resources
-  echo activate > /sys/bus/pnp/devices/$device/resources
-
-The third line is made possible by the patch series.  All other
-lines are already implemented. 
-
---- Witold
