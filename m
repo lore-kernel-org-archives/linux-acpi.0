@@ -1,36 +1,28 @@
-From: Toshi Kani <toshi.kani@hp.com>
+From: Jiang Liu <liuj97@gmail.com>
 Subject: Re: [PATCH v3] create sun sysfs file
-Date: Mon, 30 Jul 2012 09:18:03 -0600
-Message-ID: <1343661483.3010.584.camel@misato.fc.hp.com>
+Date: Mon, 30 Jul 2012 23:33:13 +0800
+Message-ID: <5016A939.9050600@gmail.com>
 References: <5015DC4B.2000802@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-2022-JP
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0028.austin.hp.com ([15.216.28.35]:46246 "EHLO
-	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754656Ab2G3PW6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Jul 2012 11:22:58 -0400
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:53536 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753798Ab2G3PdU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Jul 2012 11:33:20 -0400
 In-Reply-To: <5015DC4B.2000802@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: lenb@kernel.org, toshi.kani@hp.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, 2012-07-30 at 09:58 +0900, Yasuaki Ishimatsu wrote:
+On 07/30/2012 08:58 AM, Yasuaki Ishimatsu wrote:
 > Even if a device has _SUN method, there is no way to know the slot unique-ID.
 > Thus the patch creates "sun" file in sysfs so that we can recognize it.
 > 
 > Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-
-Hi Yasuaki,
-
-Thanks for the quick update.  Looks good.
-
-Reviewed-by: Toshi Kani <toshi.kani@hp.com>
-
--Toshi
-
+> 
 > ---
 >  drivers/acpi/scan.c     |   25 +++++++++++++++++++++++++
 >  include/acpi/acpi_bus.h |    1 +
@@ -58,11 +50,16 @@ Reviewed-by: Toshi Kani <toshi.kani@hp.com>
 >  
 > +static ssize_t
 > +acpi_device_sun_show(struct device *dev, struct device_attribute *attr, char *buf) {
+The above line is more than 80 characters.
+
 > +	struct acpi_device *acpi_dev = to_acpi_device(dev);
 > +	int result;
 > +
 > +	result = sprintf(buf, "%lu\n", acpi_dev->pnp.sun);
 > +	return result;
+How about just
+return sprintf(buf, "%lu\n", acpi_dev->pnp.sun);
+
 > +}
 > +static DEVICE_ATTR(sun, 0444, acpi_device_sun_show, NULL);
 > +
@@ -103,5 +100,10 @@ Reviewed-by: Toshi Kani <toshi.kani@hp.com>
 >  	device_remove_file(&dev->dev, &dev_attr_hid);
 >  	if (dev->handle)
 > 
-
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+> 
 
