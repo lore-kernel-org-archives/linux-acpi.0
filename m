@@ -1,83 +1,47 @@
-From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: Re: [RFC PATCH v5 19/19] memory-hotplug: remove sysfs file of node
-Date: Mon, 30 Jul 2012 11:47:51 +0800
-Message-ID: <501603E7.1060200@cn.fujitsu.com>
-References: <50126B83.3050201@cn.fujitsu.com> <50126F21.803@cn.fujitsu.com> <5012712E.9000005@jp.fujitsu.com>
+From: Artur Flinta <aflinta@gmail.com>
+Subject: Re: Fwd: Brightness on HP EliteBook 8460p
+Date: Mon, 30 Jul 2012 10:17:40 +0200
+Message-ID: <CAEPe-GKnpbzpka7y=ufukt9EUwWu95my51dGV1K41PBrmjPcRw@mail.gmail.com>
+References: <4F2E8FE40200002300007D85@novprvlin0050.provo.novell.com>
+	<1631921.mapqS8Vd5c@pali>
+	<1332303391.10557.391.camel@linux-s257.site>
+	<7304456.Po7HTnWu9F@pali>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <5012712E.9000005@jp.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:56166 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752274Ab2G3IRl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Jul 2012 04:17:41 -0400
+In-Reply-To: <7304456.Po7HTnWu9F@pali>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>
+Cc: joeyli <jlee@suse.com>, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org
 
-At 07/27/2012 06:45 PM, Yasuaki Ishimatsu Wrote:
-> Hi Wen,
-> 
-> 2012/07/27 19:36, Wen Congyang wrote:
->> From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->>
->> The patch adds node_set_offline() and unregister_one_node() to
->> remove_memory()
->> for removing sysfs file of node.
->>
->> CC: David Rientjes <rientjes@google.com>
->> CC: Jiang Liu <liuj97@gmail.com>
->> CC: Len Brown <len.brown@intel.com>
->> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
->> CC: Paul Mackerras <paulus@samba.org>
->> CC: Christoph Lameter <cl@linux.com>
->> Cc: Minchan Kim <minchan.kim@gmail.com>
->> CC: Andrew Morton <akpm@linux-foundation.org>
->> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
->> CC: Wen Congyang <wency@cn.fujitsu.com>
->> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->> ---
->>   mm/memory_hotplug.c |    5 +++++
->>   1 files changed, 5 insertions(+), 0 deletions(-)
->>
->> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
->> index 5ac035f..5681968 100644
->> --- a/mm/memory_hotplug.c
->> +++ b/mm/memory_hotplug.c
->> @@ -1267,6 +1267,11 @@ int __ref remove_memory(int nid, u64 start, u64
->> size)
->>       /* remove memmap entry */
->>       firmware_map_remove(start, start + size, "System RAM");
->>
->> +    if (!node_present_pages(nid)) {
-> 
-> Applying [PATCH v5 17/19], pgdat->node_spanned_pages can become 0 when
-> all memory of the pgdat is removed. When pgdat->node_spanned_pages is 0,
-> it means the pgdat has no memory. So I think node_spanned_pages() is
-> better.
+On Sat, Jul 28, 2012 at 4:47 PM, Pali Roh=C3=A1r <pali.rohar@gmail.com>=
+ wrote:
+> Hello, I have some good news. Radeon patches from this post
+> http://lists.freedesktop.org/archives/dri-devel/2012-July/025535.html
+> export brightness file /sys/class/backlight/radeon_bl/brightness
+> And finally with these patches I'm able to change brightness on my El=
+iteBook.
 
-Hmm, if the node contains cpu, and the cpu is onlined, can we offline
-this node?
+Wow, it's great news :) I was reading yesterday info about ACPI
+patches from AMD on Phronix and thinking will it help or no, and now I
+have an answer :)
 
-Thanks
-Wen Congyang
+Regards
+Artur
 
-> 
-> Thanks,
-> Yasuaki Ishimatsu
-> 
->> +        node_set_offline(nid);
->> +        unregister_one_node(nid);
->> +    }
->> +
->>       arch_remove_memory(start, size);
->>   out:
->>       unlock_memory_hotplug();
->>
-> 
-> 
-> 
 
+
+--=20
+Ka=C5=BCdy problem ma swoje rozwi=C4=85zanie, zatem
+je=C5=BCeli nie ma rozwi=C4=85zania to nie ma problemu.
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
