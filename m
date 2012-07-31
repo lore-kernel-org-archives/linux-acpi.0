@@ -1,25 +1,46 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH] ACPI / PCI: Do not try to acquire _OSC control if that
- is hopeless
-Date: Mon, 30 Jul 2012 21:15:39 -0400
-Message-ID: <501731BB.6020705@kernel.org>
-References: <201207302240.32480.rjw@sisk.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+From: Feng Tang <feng.tang@intel.com>
+Subject: [PATCH v2] ACPI processor: Fix a typo error in commit 99b725084
+Date: Tue, 31 Jul 2012 12:44:43 +0800
+Message-ID: <1343709883-16801-1-git-send-email-feng.tang@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:64579 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752014Ab2GaBPm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Jul 2012 21:15:42 -0400
-In-Reply-To: <201207302240.32480.rjw@sisk.pl>
+Received: from mga09.intel.com ([134.134.136.24]:51338 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751282Ab2GaEtl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 31 Jul 2012 00:49:41 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Matthew Garrett <mjg@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+To: len.brown@intel.com, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, paulmck@linux.vnet.ibm.com, Feng Tang <feng.tang@intel.com>, Thomas Renninger <trenn@suse.de>, Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
 
-Applied.
+In commit 99b725084 "ACPI processor hotplug: Delay acpi_processor_start()
+call for hotplugged cores", acpi_processor_hotplug(pr) was wrongly replaced
+by acpi_processor_cst_has_changed() inside the acpi_cpu_soft_notify(). This
+patch will restore it back, which also fixes a tick_broadcast_mask regression:
+	https://lkml.org/lkml/2012/7/30/169
 
-thanks,
--Len Brown, Intel Open Source Technology Center
+[Resend to ACPI mail list and Cc stable kernel]
+
+Signed-off-by: Feng Tang <feng.tang@intel.com>
+Cc: Thomas Renninger <trenn@suse.de>
+Cc: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
+Cc: <stable@vger.kernel.org> # 3.3+
+---
+ drivers/acpi/processor_driver.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index ff8e04f..bfc31cb 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -437,7 +437,7 @@ static int acpi_cpu_soft_notify(struct notifier_block *nfb,
+ 		/* Normal CPU soft online event */
+ 		} else {
+ 			acpi_processor_ppc_has_changed(pr, 0);
+-			acpi_processor_cst_has_changed(pr);
++			acpi_processor_hotplug(pr);
+ 			acpi_processor_reevaluate_tstate(pr, action);
+ 			acpi_processor_tstate_has_changed(pr);
+ 		}
+-- 
+1.7.1
 
