@@ -1,48 +1,54 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
-Subject: Re: Fwd: Brightness on HP EliteBook 8460p
-Date: Tue, 31 Jul 2012 12:29:43 +0200
-Message-ID: <CAKPcRGq+nRdttN=fj0E6jU+53+m7s0oJaB_kaZhV3=-9Dm199A@mail.gmail.com>
-References: <4F2E8FE40200002300007D85@novprvlin0050.provo.novell.com>
-	<1631921.mapqS8Vd5c@pali>
-	<1332303391.10557.391.camel@linux-s257.site>
-	<7304456.Po7HTnWu9F@pali>
+From: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Subject: Re: [RFC PATCH v5 16/19] memory-hotplug: free memmap of
+ sparse-vmemmap
+Date: Tue, 31 Jul 2012 14:22:51 +0200
+Message-ID: <20120731142251.5b2cae37@thinkpad>
+References: <50126B83.3050201@cn.fujitsu.com>
+	<50126EBE.1020006@cn.fujitsu.com>
+Reply-To: gerald.schaefer@de.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <7304456.Po7HTnWu9F@pali>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>
-Cc: joeyli <jlee@suse.com>, linux-acpi@vger.kernel.org, Artur Flinta <aflinta@gmail.com>, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <50126EBE.1020006@cn.fujitsu.com>
+Sender: linux-ia64-owner@vger.kernel.org
+To: Wen Congyang <wency@cn.fujitsu.com>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, Yasuaki ISIMATU <isimatu.yasuaki@jp.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Jul 28, 2012 at 4:47 PM, Pali Roh=C3=A1r <pali.rohar@gmail.com>=
- wrote:
-> Hello, I have some good news. Radeon patches from this post
-> http://lists.freedesktop.org/archives/dri-devel/2012-July/025535.html
-> export brightness file /sys/class/backlight/radeon_bl/brightness
-> And finally with these patches I'm able to change brightness on my El=
-iteBook.
+On Fri, 27 Jul 2012 18:34:38 +0800
+Wen Congyang <wency@cn.fujitsu.com> wrote:
 
-Nice, in your older mail I read:
+> From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+> 
+> All pages of virtual mapping in removed memory cannot be freed, since
+> some pages used as PGD/PUD includes not only removed memory but also
+> other memory. So the patch checks whether page can be freed or not.
+> 
+> How to check whether page can be freed or not?
+>  1. When removing memory, the page structs of the revmoved memory are
+> filled with 0FD.
+>  2. All page structs are filled with 0xFD on PT/PMD, PT/PMD can be
+> cleared. In this case, the page used as PT/PMD can be freed.
+> 
+> Applying patch, __remove_section() of CONFIG_SPARSEMEM_VMEMMAP is
+> integrated into one. So __remove_section() of
+> CONFIG_SPARSEMEM_VMEMMAP is deleted.
 
-> The PEGP.DGFX acpi device was binding to
-> acpi/video driver, the above ASL code emit a 0xD0 bus event to
-> video.c but cann't process it. Even we add a new bus event in
-> video.c and generate a acpi event, there still need another acpi
-> driver should take care it.
+There should also be generic or dummy versions of the functions
+vmemmap_free_bootmem(), vmemmap_kfree() and
+register_page_bootmem_memmap(). It doesn't compile on other
+archtitectures than x86 as it is now:
 
-That event (0xd0) is probably a custom event announced through ATIF.
-I'm working on the code to deal with it, the latest patches are here:
+mm/built-in.o: In function `sparse_remove_one_section':
+(.text+0x49fa6): undefined reference to `vmemmap_free_bootmem'
+mm/built-in.o: In function `sparse_remove_one_section':
+(.text+0x49fcc): undefined reference to `vmemmap_kfree'
+mm/built-in.o: In function `register_page_bootmem_info_node':
+(.text+0x57c06): undefined reference to `register_page_bootmem_memmap'
+mm/built-in.o: In function `sparse_add_one_section':
+(.meminit.text+0x2506): undefined reference to `vmemmap_kfree'
+mm/built-in.o: In function `sparse_add_one_section':
+(.meminit.text+0x2528): undefined reference to `vmemmap_kfree'
+make: *** [vmlinux] Error 1
 
-http://lists.freedesktop.org/archives/dri-devel/2012-July/025646.html
-
-You first need this one with the ACPI header:
-http://lists.freedesktop.org/archives/dri-devel/2012-July/025517.html
-
-and the other 3 that you've already tested. With my patches on top you
-should be able to change the brightness using the hotkeys.
-
-I'd be grateful if you could test them :-)
-
-Luca
