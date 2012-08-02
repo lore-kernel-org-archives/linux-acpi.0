@@ -1,244 +1,70 @@
-From: Feng Tang <feng.tang@intel.com>
-Subject: [PATCH v3 1/2] ACPI: Replace acpi_get_table_with_size() with acpi_get_table()
-Date: Thu,  2 Aug 2012 13:23:23 +0800
-Message-ID: <1343885003-26490-1-git-send-email-feng.tang@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:42292 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751698Ab2HBF20 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 2 Aug 2012 01:28:26 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: Re: [RFC PATCH 1/3] ACPIHP: introduce a framework for ACPI based
+ system device hotplug
+Date: Thu, 02 Aug 2012 15:07:06 +0800
+Message-ID: <501A271A.5030808@cn.fujitsu.com>
+References: <1343475772-21345-1-git-send-email-jiang.liu@huawei.com> <1343475772-21345-2-git-send-email-jiang.liu@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1343475772-21345-2-git-send-email-jiang.liu@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jiang Liu <liuj97@gmail.com>
+Cc: Len Brown <lenb@kernel.org>, Tony Luck <tony.luch@intel.com>, Bob Moore <robert.moore@intel.com>, Huang Ying <ying.huang@intel.com>, Yinghai Lu <yinghai@kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, Bjorn Helgaas <bhelgaas@google.com>, Hanjun Guo <guohanjun@huawei.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Gaohuai Han <hangaohuai@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
-To: len.brown@intel.com, linux-acpi@vger.kernel.org, yinghai@kernel.org, ddutile@redhat.com
-Cc: linux-kernel@vger.kernel.org, robert.moore@intel.com, agordeev@redhat.com, suresh.b.siddha@intel.com, Feng Tang <feng.tang@intel.com>
 
-This is a preparation for removing the acpi_get_table_with_size(), as this
-function could be well covered by acpi_get_table(), and there is no need
-to have both of them to exist.
+Hi,
 
-v2: As reminded by Yinghai, apply the replacment to drivers/iommu/amd_iommu_init.c
-which is a new user of the acpi_get_table_with_size().
+A little problem here. :)
 
-v3: Remove a not-needed cast found by Don Dutile.
+On 07/28/2012 07:42 PM, Jiang Liu wrote:
+> +int acpihp_register_slot(struct acpihp_slot *slot)
+> +{
+> +	int ret;
+> +	char *name;
+> +	size_t off;
+> +
+> +	if (!slot || !slot->slot_ops)
+> +		return -EINVAL;
+> +
+> +	/* Hook top level hotplug slots under ACPI root device */
+> +	if (slot->parent)
+> +		slot->dev.parent =3D &slot->parent->dev;
+> +	else
+> +		slot->dev.parent =3D &acpi_root->dev;
+> +
+> +	ret =3D device_add(&slot->dev);
+> +	if (!ret) {
+> +		slot->flags |=3D ACPIHP_SLOT_FLAG_REGISTERED;
+> +		name =3D kmalloc(PAGE_SIZE, GFP_KERNEL);
+> +		if (name) {
+> +			off =3D acpihp_generate_link_name(slot, name, 0);
+> +			name[off - 1] =3D '\0';
+> +			sysfs_create_link(&acpihp_slot_kset->kobj,
+> +					  &slot->dev.kobj, name);
 
-Signed-off-by: Feng Tang <feng.tang@intel.com>
----
- arch/x86/kernel/apic/es7000_32.c |    7 +++----
- drivers/acpi/tables.c            |   21 +++++++++------------
- drivers/iommu/amd_iommu_init.c   |   10 ++++------
- drivers/iommu/dmar.c             |   13 ++++++-------
- 4 files changed, 22 insertions(+), 29 deletions(-)
+I got a compiler warning here:
+  CC      drivers/acpi/hotplug/core.o
+drivers/acpi/hotplug/core.c: In function =91acpihp_register_slot=92:
+drivers/acpi/hotplug/core.c:199: warning: ignoring return value of =91s=
+ysfs_create_link=92, declared with attribute warn_unused_result
 
-diff --git a/arch/x86/kernel/apic/es7000_32.c b/arch/x86/kernel/apic/es7000_32.c
-index 0874799..ae30b39 100644
---- a/arch/x86/kernel/apic/es7000_32.c
-+++ b/arch/x86/kernel/apic/es7000_32.c
-@@ -242,19 +242,18 @@ static int __init find_unisys_acpi_oem_table(unsigned long *oem_addr)
- {
- 	struct acpi_table_header *header = NULL;
- 	struct es7000_oem_table *table;
--	acpi_size tbl_size;
- 	acpi_status ret;
- 	int i = 0;
- 
- 	for (;;) {
--		ret = acpi_get_table_with_size("OEM1", i++, &header, &tbl_size);
-+		ret = acpi_get_table("OEM1", i++, &header);
- 		if (!ACPI_SUCCESS(ret))
- 			return -1;
- 
- 		if (!memcmp((char *) &header->oem_id, "UNISYS", 6))
- 			break;
- 
--		early_acpi_os_unmap_memory(header, tbl_size);
-+		early_acpi_os_unmap_memory(header, header->length);
- 	}
- 
- 	table = (void *)header;
-@@ -262,7 +261,7 @@ static int __init find_unisys_acpi_oem_table(unsigned long *oem_addr)
- 	oem_addrX	= table->OEMTableAddr;
- 	oem_size	= table->OEMTableSize;
- 
--	early_acpi_os_unmap_memory(header, tbl_size);
-+	early_acpi_os_unmap_memory(header, header->length);
- 
- 	*oem_addr	= (unsigned long)__acpi_map_table(oem_addrX, oem_size);
- 
-diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-index f336bca..5b8b7e0 100644
---- a/drivers/acpi/tables.c
-+++ b/drivers/acpi/tables.c
-@@ -211,7 +211,6 @@ acpi_table_parse_entries(char *id,
- 	struct acpi_subtable_header *entry;
- 	unsigned int count = 0;
- 	unsigned long table_end;
--	acpi_size tbl_size;
- 
- 	if (acpi_disabled)
- 		return -ENODEV;
-@@ -220,9 +219,9 @@ acpi_table_parse_entries(char *id,
- 		return -EINVAL;
- 
- 	if (strncmp(id, ACPI_SIG_MADT, 4) == 0)
--		acpi_get_table_with_size(id, acpi_apic_instance, &table_header, &tbl_size);
-+		acpi_get_table(id, acpi_apic_instance, &table_header);
- 	else
--		acpi_get_table_with_size(id, 0, &table_header, &tbl_size);
-+		acpi_get_table(id, 0, &table_header);
- 
- 	if (!table_header) {
- 		printk(KERN_WARNING PREFIX "%4.4s not present\n", id);
-@@ -241,7 +240,7 @@ acpi_table_parse_entries(char *id,
- 		if (entry->type == entry_id
- 		    && (!max_entries || count++ < max_entries))
- 			if (handler(entry, table_end)) {
--				early_acpi_os_unmap_memory((char *)table_header, tbl_size);
-+				early_acpi_os_unmap_memory((char *)table_header, table_header->length);
- 				return -EINVAL;
- 			}
- 
-@@ -253,7 +252,7 @@ acpi_table_parse_entries(char *id,
- 		       "%i found\n", id, entry_id, count - max_entries, count);
- 	}
- 
--	early_acpi_os_unmap_memory((char *)table_header, tbl_size);
-+	early_acpi_os_unmap_memory((char *)table_header, table_header->length);
- 	return count;
- }
- 
-@@ -278,7 +277,6 @@ acpi_table_parse_madt(enum acpi_madt_type id,
- int __init acpi_table_parse(char *id, acpi_table_handler handler)
- {
- 	struct acpi_table_header *table = NULL;
--	acpi_size tbl_size;
- 
- 	if (acpi_disabled)
- 		return -ENODEV;
-@@ -287,13 +285,13 @@ int __init acpi_table_parse(char *id, acpi_table_handler handler)
- 		return -EINVAL;
- 
- 	if (strncmp(id, ACPI_SIG_MADT, 4) == 0)
--		acpi_get_table_with_size(id, acpi_apic_instance, &table, &tbl_size);
-+		acpi_get_table(id, acpi_apic_instance, &table);
- 	else
--		acpi_get_table_with_size(id, 0, &table, &tbl_size);
-+		acpi_get_table(id, 0, &table);
- 
- 	if (table) {
- 		handler(table);
--		early_acpi_os_unmap_memory(table, tbl_size);
-+		early_acpi_os_unmap_memory(table, table->length);
- 		return 0;
- 	} else
- 		return 1;
-@@ -307,9 +305,8 @@ int __init acpi_table_parse(char *id, acpi_table_handler handler)
- static void __init check_multiple_madt(void)
- {
- 	struct acpi_table_header *table = NULL;
--	acpi_size tbl_size;
- 
--	acpi_get_table_with_size(ACPI_SIG_MADT, 2, &table, &tbl_size);
-+	acpi_get_table(ACPI_SIG_MADT, 2, &table);
- 	if (table) {
- 		printk(KERN_WARNING PREFIX
- 		       "BIOS bug: multiple APIC/MADT found,"
-@@ -318,7 +315,7 @@ static void __init check_multiple_madt(void)
- 		       "If \"acpi_apic_instance=%d\" works better, "
- 		       "notify linux-acpi@vger.kernel.org\n",
- 		       acpi_apic_instance ? 0 : 2);
--		early_acpi_os_unmap_memory(table, tbl_size);
-+		early_acpi_os_unmap_memory(table, table->length);
- 
- 	} else
- 		acpi_apic_instance = 0;
-diff --git a/drivers/iommu/amd_iommu_init.c b/drivers/iommu/amd_iommu_init.c
-index 500e7f1..6b19f42 100644
---- a/drivers/iommu/amd_iommu_init.c
-+++ b/drivers/iommu/amd_iommu_init.c
-@@ -1525,14 +1525,13 @@ static void __init free_on_init_error(void)
- static int __init early_amd_iommu_init(void)
- {
- 	struct acpi_table_header *ivrs_base;
--	acpi_size ivrs_size;
- 	acpi_status status;
- 	int i, ret = 0;
- 
- 	if (!amd_iommu_detected)
- 		return -ENODEV;
- 
--	status = acpi_get_table_with_size("IVRS", 0, &ivrs_base, &ivrs_size);
-+	status = acpi_get_table("IVRS", 0, &ivrs_base);
- 	if (status == AE_NOT_FOUND)
- 		return -ENODEV;
- 	else if (ACPI_FAILURE(status)) {
-@@ -1614,7 +1613,7 @@ static int __init early_amd_iommu_init(void)
- 
- out:
- 	/* Don't leak any ACPI memory */
--	early_acpi_os_unmap_memory((char __iomem *)ivrs_base, ivrs_size);
-+	early_acpi_os_unmap_memory((char __iomem *)ivrs_base, ivrs_base->length);
- 	ivrs_base = NULL;
- 
- 	return ret;
-@@ -1638,10 +1637,9 @@ out:
- static bool detect_ivrs(void)
- {
- 	struct acpi_table_header *ivrs_base;
--	acpi_size ivrs_size;
- 	acpi_status status;
- 
--	status = acpi_get_table_with_size("IVRS", 0, &ivrs_base, &ivrs_size);
-+	status = acpi_get_table("IVRS", 0, &ivrs_base);
- 	if (status == AE_NOT_FOUND)
- 		return false;
- 	else if (ACPI_FAILURE(status)) {
-@@ -1650,7 +1648,7 @@ static bool detect_ivrs(void)
- 		return false;
- 	}
- 
--	early_acpi_os_unmap_memory((char __iomem *)ivrs_base, ivrs_size);
-+	early_acpi_os_unmap_memory((char __iomem *)ivrs_base, ivrs_base->length);
- 
- 	return true;
- }
-diff --git a/drivers/iommu/dmar.c b/drivers/iommu/dmar.c
-index 86e2f4a..1a22758 100644
---- a/drivers/iommu/dmar.c
-+++ b/drivers/iommu/dmar.c
-@@ -48,7 +48,6 @@
- LIST_HEAD(dmar_drhd_units);
- 
- struct acpi_table_header * __initdata dmar_tbl;
--static acpi_size dmar_tbl_size;
- 
- static void __init dmar_register_drhd_unit(struct dmar_drhd_unit *drhd)
- {
-@@ -285,10 +284,7 @@ static int __init dmar_table_detect(void)
- 	acpi_status status = AE_OK;
- 
- 	/* if we could find DMAR table, then there are DMAR devices */
--	status = acpi_get_table_with_size(ACPI_SIG_DMAR, 0,
--				(struct acpi_table_header **)&dmar_tbl,
--				&dmar_tbl_size);
--
-+	status = acpi_get_table(ACPI_SIG_DMAR, 0, &dmar_tbl);
- 	if (ACPI_SUCCESS(status) && !dmar_tbl) {
- 		pr_warn("Unable to map DMAR\n");
- 		status = AE_NOT_FOUND;
-@@ -558,8 +554,11 @@ int __init detect_intel_iommu(void)
- 			x86_init.iommu.iommu_init = intel_iommu_init;
- #endif
- 	}
--	early_acpi_os_unmap_memory(dmar_tbl, dmar_tbl_size);
--	dmar_tbl = NULL;
-+
-+	if (dmar_tbl) {
-+		early_acpi_os_unmap_memory(dmar_tbl, dmar_tbl->length);
-+		dmar_tbl = NULL;
-+	}
- 
- 	return ret ? 1 : -ENODEV;
- }
--- 
-1.7.1
+Seems that we need to check the sysfs_create_link()'s return value here=
+, and if it fails,=20
+shall we at least give a warning message here ?
 
+Thanks. :)
+
+
+> +			kfree(name);
+> +		}
+> +	}
+> +
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(acpihp_register_slot);
+
+--=20
+Best Regards,
+Tang chen
