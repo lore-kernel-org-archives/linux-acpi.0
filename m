@@ -1,45 +1,62 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+From: Witold Szczeponik <Witold.Szczeponik@gmx.net>
 Subject: Re: [PATCH V3 0/3] PNP: Allow PNP resources to be disabled (interface)
-Date: Thu, 2 Aug 2012 22:09:15 +0200
-Message-ID: <201208022209.16015.rjw@sisk.pl>
-References: <50158321.4030007@gmx.net> <50158FA9.7080700@gmx.net> <20120730082820.GA32745@liondog.tnic>
+Date: Thu, 02 Aug 2012 22:20:30 +0200
+Message-ID: <501AE10E.6080606@gmx.net>
+References: <50158321.4030007@gmx.net> <50158FA9.7080700@gmx.net> <20120730082820.GA32745@liondog.tnic> <201208022209.16015.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:40000 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751569Ab2HBUDZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 2 Aug 2012 16:03:25 -0400
-In-Reply-To: <20120730082820.GA32745@liondog.tnic>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201208022209.16015.rjw@sisk.pl>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Borislav Petkov <bp@alien8.de>, bhelgaas@google.com, lenb@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: Witold Szczeponik <Witold.Szczeponik@gmx.net>, bhelgaas@google.com, lenb@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Monday, July 30, 2012, Borislav Petkov wrote:
-> On Sun, Jul 29, 2012 at 09:31:53PM +0200, Witold Szczeponik wrote:
-> > the aim is to select a PNP ACPI option where resources can be disabled
-> > (or are not needed).  E.g., the parallel port of the 600E can be used
-> > with and without IRQ lines.  The means to allow for this is to use the
-> > sysfs interface to select disabled resources (just like any other 
-> > resource value).  In https://lkml.org/lkml/2011/7/3/41, I used the 
-> > following example:
-> > 
-> >   echo disable > /sys/bus/pnp/devices/$device/resources
-> >   echo clear > /sys/bus/pnp/devices/$device/resources
-> >   echo set irq disabled > /sys/bus/pnp/devices/$device/resources
-> >   echo fill > /sys/bus/pnp/devices/$device/resources
-> >   echo activate > /sys/bus/pnp/devices/$device/resources
-> > 
-> > The third line is made possible by the patch series.  All other
-> > lines are already implemented.
+On 02/08/12 22:09, Rafael J. Wysocki wrote:
+> On Monday, July 30, 2012, Borislav Petkov wrote:
+>> On Sun, Jul 29, 2012 at 09:31:53PM +0200, Witold Szczeponik wrote:
+>>> the aim is to select a PNP ACPI option where resources can be disabled
+>>> (or are not needed).  E.g., the parallel port of the 600E can be used
+>>> with and without IRQ lines.  The means to allow for this is to use the
+>>> sysfs interface to select disabled resources (just like any other 
+>>> resource value).  In https://lkml.org/lkml/2011/7/3/41, I used the 
+>>> following example:
+>>>
+>>>   echo disable > /sys/bus/pnp/devices/$device/resources
+>>>   echo clear > /sys/bus/pnp/devices/$device/resources
+>>>   echo set irq disabled > /sys/bus/pnp/devices/$device/resources
+>>>   echo fill > /sys/bus/pnp/devices/$device/resources
+>>>   echo activate > /sys/bus/pnp/devices/$device/resources
+>>>
+>>> The third line is made possible by the patch series.  All other
+>>> lines are already implemented.
+>>
+>> Shouldn't this be rather "disable_irq" or something which is a single
+>> word and thus would simplify parsing a lot?
 > 
-> Shouldn't this be rather "disable_irq" or something which is a single
-> word and thus would simplify parsing a lot?
+> Or just "irq", which isn't going to be confused with anything else it seems.
+> 
+> Thanks,
+> Rafael
+> 
 
-Or just "irq", which isn't going to be confused with anything else it seems.
+Hi Rafael, 
 
-Thanks,
-Rafael
+the code in "drivers/pnp/interface.c" implements a (non-trivial) interface
+which accepts the keywords "disable", "activate", "fill", "auto", "clear",
+and "get" as simple, one word commands.  The remaining "set" command is
+more complex, for it determines which resource is to be set ("io", "mem",
+"irq", "dma", and "bus"), followed by the actual value(s) of this resource
+(e.g., "0x0200-0x021f", or "7"). 
+
+The patch series allows to use the term "disabled" or "<none>" as a 
+resource value (c.f. my example above) when needed (c.f. my motivation for
+the patch series). 
+
+We could, of course, change the parser in "interface.c", but this would 
+change the ABI, I am afraid.  Something that I'd rather not do... 
+
+I hope, this makes the scope of the patch series clear(er).  
+
+--- Witold
