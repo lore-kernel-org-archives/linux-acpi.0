@@ -1,81 +1,92 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
+From: Witold Szczeponik <Witold.Szczeponik@gmx.net>
 Subject: Re: [PATCH V3 0/3] PNP: Allow PNP resources to be disabled (interface)
-Date: Thu, 2 Aug 2012 23:40:16 +0200
-Message-ID: <201208022340.16948.rjw@sisk.pl>
-References: <50158321.4030007@gmx.net> <201208022209.16015.rjw@sisk.pl> <501AE10E.6080606@gmx.net>
+Date: Thu, 02 Aug 2012 23:57:06 +0200
+Message-ID: <501AF7B2.50601@gmx.net>
+References: <50158321.4030007@gmx.net> <201208022209.16015.rjw@sisk.pl> <501AE10E.6080606@gmx.net> <201208022340.16948.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:40088 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752720Ab2HBVe0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 2 Aug 2012 17:34:26 -0400
-In-Reply-To: <501AE10E.6080606@gmx.net>
+Received: from mailout-de.gmx.net ([213.165.64.22]:46021 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752689Ab2HBV5R (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Aug 2012 17:57:17 -0400
+In-Reply-To: <201208022340.16948.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Witold Szczeponik <Witold.Szczeponik@gmx.net>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: Borislav Petkov <bp@alien8.de>, bhelgaas@google.com, lenb@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Thursday, August 02, 2012, Witold Szczeponik wrote:
-> On 02/08/12 22:09, Rafael J. Wysocki wrote:
-> > On Monday, July 30, 2012, Borislav Petkov wrote:
-> >> On Sun, Jul 29, 2012 at 09:31:53PM +0200, Witold Szczeponik wrote:
-> >>> the aim is to select a PNP ACPI option where resources can be disabled
-> >>> (or are not needed).  E.g., the parallel port of the 600E can be used
-> >>> with and without IRQ lines.  The means to allow for this is to use the
-> >>> sysfs interface to select disabled resources (just like any other 
-> >>> resource value).  In https://lkml.org/lkml/2011/7/3/41, I used the 
-> >>> following example:
-> >>>
-> >>>   echo disable > /sys/bus/pnp/devices/$device/resources
-> >>>   echo clear > /sys/bus/pnp/devices/$device/resources
-> >>>   echo set irq disabled > /sys/bus/pnp/devices/$device/resources
-> >>>   echo fill > /sys/bus/pnp/devices/$device/resources
-> >>>   echo activate > /sys/bus/pnp/devices/$device/resources
-> >>>
-> >>> The third line is made possible by the patch series.  All other
-> >>> lines are already implemented.
-> >>
-> >> Shouldn't this be rather "disable_irq" or something which is a single
-> >> word and thus would simplify parsing a lot?
-> > 
-> > Or just "irq", which isn't going to be confused with anything else it seems.
-> > 
-> > Thanks,
-> > Rafael
-> > 
+On 02/08/12 23:40, Rafael J. Wysocki wrote:
+
+> On Thursday, August 02, 2012, Witold Szczeponik wrote:
+>> On 02/08/12 22:09, Rafael J. Wysocki wrote:
+>>> On Monday, July 30, 2012, Borislav Petkov wrote:
+>>>> On Sun, Jul 29, 2012 at 09:31:53PM +0200, Witold Szczeponik wrote:
+
+[... snip ...]
+
+>>>>
+>>>> Shouldn't this be rather "disable_irq" or something which is a single
+>>>> word and thus would simplify parsing a lot?
+>>>
+>>> Or just "irq", which isn't going to be confused with anything else it seems.
+>>>
+>>> Thanks,
+>>> Rafael
+>>>
+>>
+>> Hi Rafael, 
+>>
+>> the code in "drivers/pnp/interface.c" implements a (non-trivial) interface
+>> which accepts the keywords "disable", "activate", "fill", "auto", "clear",
+>> and "get" as simple, one word commands.  The remaining "set" command is
+>> more complex, for it determines which resource is to be set ("io", "mem",
+>> "irq", "dma", and "bus"), followed by the actual value(s) of this resource
+>> (e.g., "0x0200-0x021f", or "7"). 
+>>
+>> The patch series allows to use the term "disabled" or "<none>" as a 
+>> resource value (c.f. my example above) when needed (c.f. my motivation for
+>> the patch series). 
+>>
+>> We could, of course, change the parser in "interface.c", but this would 
+>> change the ABI, I am afraid.  Something that I'd rather not do... 
 > 
-> Hi Rafael, 
+> Still, you _are_ doing that by extending the ABI, aren't you?
+
+As the special value "disabled" is available as of these patches, one could
+consider this an extension.  I agree. 
+
 > 
-> the code in "drivers/pnp/interface.c" implements a (non-trivial) interface
-> which accepts the keywords "disable", "activate", "fill", "auto", "clear",
-> and "get" as simple, one word commands.  The remaining "set" command is
-> more complex, for it determines which resource is to be set ("io", "mem",
-> "irq", "dma", and "bus"), followed by the actual value(s) of this resource
-> (e.g., "0x0200-0x021f", or "7"). 
+>> I hope, this makes the scope of the patch series clear(er).
 > 
-> The patch series allows to use the term "disabled" or "<none>" as a 
-> resource value (c.f. my example above) when needed (c.f. my motivation for
-> the patch series). 
+> Yes, it does, thanks.
 > 
-> We could, of course, change the parser in "interface.c", but this would 
-> change the ABI, I am afraid.  Something that I'd rather not do... 
+> My opinion is that the whole interface is wrong and should be changed.  How to
+> do that is a different matter that would require some consideration.  Perhaps
+> the least painful way would be to add a new, hopefully better, interface along
+> with the old one and then deprecate the latter at one point.
 
-Still, you _are_ doing that by extending the ABI, aren't you?
+Personally, I too think that the PNP ABI in sysfs has its rough edges.  However, 
+as with the deprecation of any existing ABI, this would require a new ABI first, 
+then some time where the old and new ABI live in co-existence, and then to remove 
+the currently available ABI. 
 
-> I hope, this makes the scope of the patch series clear(er).
+> 
+> Now, since I don't like the existing interface, I'd prefer it not to be
+> extended.
 
-Yes, it does, thanks.
+The current ABI does not allow for the kernel to run on my hardware: this is 
+a/the problem.  The proposed extension fixes the problem.  
 
-My opinion is that the whole interface is wrong and should be changed.  How to
-do that is a different matter that would require some consideration.  Perhaps
-the least painful way would be to add a new, hopefully better, interface along
-with the old one and then deprecate the latter at one point.
+While I agree with your first statement, for the time being I do not see a 
+better solution other than to extend the ABI. 
 
-Now, since I don't like the existing interface, I'd prefer it not to be
-extended.
+At this point I am repeating my "call for comments" to the community. :-) 
 
-Thanks,
-Rafael
+--- Witold
+
+> 
+> Thanks,
+> Rafael
+> 
