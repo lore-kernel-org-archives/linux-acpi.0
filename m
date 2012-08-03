@@ -1,26 +1,77 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH 2/2] ACPI: Only count valid srat memory structures
-Date: Fri, 03 Aug 2012 00:24:46 -0400
-Message-ID: <501B528E.7050806@kernel.org>
-References: <1343749269-41678-1-git-send-email-trenn@suse.de> <1343749269-41678-2-git-send-email-trenn@suse.de>
+Subject: [GIT PULL] ACPI & Power Management Patches for Linux-3.6-rc1
+Date: Fri, 03 Aug 2012 00:53:21 -0400
+Message-ID: <501B5941.4070200@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qa0-f53.google.com ([209.85.216.53]:39764 "EHLO
-	mail-qa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750750Ab2HCEYt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Aug 2012 00:24:49 -0400
-Received: by qaas11 with SMTP id s11so1855676qaa.19
-        for <linux-acpi@vger.kernel.org>; Thu, 02 Aug 2012 21:24:48 -0700 (PDT)
-In-Reply-To: <1343749269-41678-2-git-send-email-trenn@suse.de>
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:63475 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750794Ab2HCExZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Aug 2012 00:53:25 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: linux-acpi@vger.kernel.org, rjw@sisk.pl, Per Jessen <per@opensuse.org>, Andi Kleen <andi@firstfloor.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 
-1 & 2 Applied.
+Hi Linus,
 
-thanks,
+Please pull these ACPI & Power Management patches.
+
+A 3.3 sleep regression fixed, numa bugfix, plus some minor cleanups.
+
+thanks!
 Len Brown, Intel Open Source Technology Center
 
+The following changes since commit 0d7614f09c1ebdbaa1599a5aba7593f147bf96ee:
+
+  Linux 3.6-rc1 (2012-08-02 16:38:10 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux.git release
+
+for you to fetch changes up to 9d0b01a1bbb7a4ad23000240b67bca33c4235fcf:
+
+  Merge branches 'delete-gts-bfs', 'misc', 'novell-bugzilla-757888-numa' and 'osc-pcie' into base (2012-08-03 00:31:23 -0400)
+
+----------------------------------------------------------------
+
+Feng Tang (1):
+      ACPI processor: Fix tick_broadcast_mask online/offline regression
+
+Len Brown (4):
+      ACPI: replace strlen("string") with sizeof("string") -1
+      ACPI/x86: revert 'x86, acpi: Call acpi_enter_sleep_state via an asmlinkage C function from assembler'
+      ACPI: delete _GTS/_BFS support
+      Merge branches 'delete-gts-bfs', 'misc', 'novell-bugzilla-757888-numa' and 'osc-pcie' into base
+
+Rafael J. Wysocki (2):
+      ACPI / PM: Fix build warning in sleep.c for CONFIG_ACPI_SLEEP unset
+      ACPI / PCI: Do not try to acquire _OSC control if that is hopeless
+
+Thomas Renninger (2):
+      ACPI: Untangle a return statement for better readability
+      ACPI: Only count valid srat memory structures
+
+ arch/ia64/kernel/acpi.c          |  5 +--
+ arch/x86/kernel/acpi/sleep.c     |  4 ---
+ arch/x86/kernel/acpi/sleep.h     |  2 --
+ arch/x86/kernel/acpi/wakeup_32.S |  4 ++-
+ arch/x86/kernel/acpi/wakeup_64.S |  4 ++-
+ arch/x86/mm/srat.c               | 15 ++++----
+ drivers/acpi/acpica/achware.h    | 12 +++----
+ drivers/acpi/acpica/hwesleep.c   | 19 ++--------
+ drivers/acpi/acpica/hwsleep.c    | 20 ++---------
+ drivers/acpi/acpica/hwxfsleep.c  | 22 ++++++------
+ drivers/acpi/numa.c              | 12 ++++---
+ drivers/acpi/pci_root.c          | 11 ++++--
+ drivers/acpi/processor_driver.c  |  2 +-
+ drivers/acpi/sleep.c             | 75 ++++++----------------------------------
+ drivers/acpi/sysfs.c             |  4 +--
+ include/acpi/acpixf.h            |  4 +--
+ include/acpi/actypes.h           |  2 +-
+ include/linux/acpi.h             |  2 +-
+ 18 files changed, 73 insertions(+), 146 deletions(-)
+[lenb@x980 lenb (next)]$ 
