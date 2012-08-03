@@ -1,77 +1,24 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [GIT PULL] ACPI & Power Management Patches for Linux-3.6-rc1
-Date: Fri, 03 Aug 2012 00:53:21 -0400
-Message-ID: <501B5941.4070200@kernel.org>
+Subject: Re: [PATCH v3 1/2] ACPI: Replace acpi_get_table_with_size() with
+ acpi_get_table()
+Date: Fri, 03 Aug 2012 01:03:23 -0400
+Message-ID: <501B5B9B.2030002@kernel.org>
+References: <1343885003-26490-1-git-send-email-feng.tang@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:63475 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750794Ab2HCExZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Aug 2012 00:53:25 -0400
+Received: from mail-qa0-f53.google.com ([209.85.216.53]:49114 "EHLO
+	mail-qa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750750Ab2HCFD1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Aug 2012 01:03:27 -0400
+In-Reply-To: <1343885003-26490-1-git-send-email-feng.tang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
+To: Feng Tang <feng.tang@intel.com>
+Cc: len.brown@intel.com, linux-acpi@vger.kernel.org, yinghai@kernel.org, ddutile@redhat.com, linux-kernel@vger.kernel.org, robert.moore@intel.com, agordeev@redhat.com, suresh.b.siddha@intel.com
 
-Hi Linus,
+applied for linux-next and 3.7
 
-Please pull these ACPI & Power Management patches.
-
-A 3.3 sleep regression fixed, numa bugfix, plus some minor cleanups.
-
-thanks!
+thanks,
 Len Brown, Intel Open Source Technology Center
-
-The following changes since commit 0d7614f09c1ebdbaa1599a5aba7593f147bf96ee:
-
-  Linux 3.6-rc1 (2012-08-02 16:38:10 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux.git release
-
-for you to fetch changes up to 9d0b01a1bbb7a4ad23000240b67bca33c4235fcf:
-
-  Merge branches 'delete-gts-bfs', 'misc', 'novell-bugzilla-757888-numa' and 'osc-pcie' into base (2012-08-03 00:31:23 -0400)
-
-----------------------------------------------------------------
-
-Feng Tang (1):
-      ACPI processor: Fix tick_broadcast_mask online/offline regression
-
-Len Brown (4):
-      ACPI: replace strlen("string") with sizeof("string") -1
-      ACPI/x86: revert 'x86, acpi: Call acpi_enter_sleep_state via an asmlinkage C function from assembler'
-      ACPI: delete _GTS/_BFS support
-      Merge branches 'delete-gts-bfs', 'misc', 'novell-bugzilla-757888-numa' and 'osc-pcie' into base
-
-Rafael J. Wysocki (2):
-      ACPI / PM: Fix build warning in sleep.c for CONFIG_ACPI_SLEEP unset
-      ACPI / PCI: Do not try to acquire _OSC control if that is hopeless
-
-Thomas Renninger (2):
-      ACPI: Untangle a return statement for better readability
-      ACPI: Only count valid srat memory structures
-
- arch/ia64/kernel/acpi.c          |  5 +--
- arch/x86/kernel/acpi/sleep.c     |  4 ---
- arch/x86/kernel/acpi/sleep.h     |  2 --
- arch/x86/kernel/acpi/wakeup_32.S |  4 ++-
- arch/x86/kernel/acpi/wakeup_64.S |  4 ++-
- arch/x86/mm/srat.c               | 15 ++++----
- drivers/acpi/acpica/achware.h    | 12 +++----
- drivers/acpi/acpica/hwesleep.c   | 19 ++--------
- drivers/acpi/acpica/hwsleep.c    | 20 ++---------
- drivers/acpi/acpica/hwxfsleep.c  | 22 ++++++------
- drivers/acpi/numa.c              | 12 ++++---
- drivers/acpi/pci_root.c          | 11 ++++--
- drivers/acpi/processor_driver.c  |  2 +-
- drivers/acpi/sleep.c             | 75 ++++++----------------------------------
- drivers/acpi/sysfs.c             |  4 +--
- include/acpi/acpixf.h            |  4 +--
- include/acpi/actypes.h           |  2 +-
- include/linux/acpi.h             |  2 +-
- 18 files changed, 73 insertions(+), 146 deletions(-)
-[lenb@x980 lenb (next)]$ 
