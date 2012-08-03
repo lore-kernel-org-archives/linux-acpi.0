@@ -1,92 +1,76 @@
-From: Witold Szczeponik <Witold.Szczeponik@gmx.net>
-Subject: Re: [PATCH V3 0/3] PNP: Allow PNP resources to be disabled (interface)
-Date: Thu, 02 Aug 2012 23:57:06 +0200
-Message-ID: <501AF7B2.50601@gmx.net>
-References: <50158321.4030007@gmx.net> <201208022209.16015.rjw@sisk.pl> <501AE10E.6080606@gmx.net> <201208022340.16948.rjw@sisk.pl>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH/RFC] drm/radeon: ACPI: veto the keypress on ATIF events
+Date: Fri, 03 Aug 2012 09:40:35 +0800
+Message-ID: <1343958035.1682.558.camel@rui.sh.intel.com>
+References: <20120729130644.GA12378@growl>
+	 <CADnq5_OdKXsiVnFbkBNB2ue4df6tGaZ7bVMP+TvetFcy0faKog@mail.gmail.com>
+	 <20120730202449.GA5600@growl>
+	 <CADnq5_NP9Rw8DhmS+Q5G1PaUqcHQtVA6KoCGH5MME6DEd-Lw7Q@mail.gmail.com>
+	 <CAKPcRGpL6JBx5MnWk6fFVOYCPQGeeDC-ytOwA+J+gEEZS+4SuA@mail.gmail.com>
+	 <CADnq5_NN8OcmyKDemO=Mv0as-02sYEHxxbn2G4XtSmpzEsnR0w@mail.gmail.com>
+	 <20120731200520.GA5425@growl>
+	 <CADnq5_Meh0nW90PZ=kAJdK=WjZKTdr7+5vN=vza+PzyJnEWKAA@mail.gmail.com>
+	 <20120801134900.GA7909@growl> <1343868330.1682.502.camel@rui.sh.intel.com>
+	 <20120802134612.GA30802@growl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:46021 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752689Ab2HBV5R (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Aug 2012 17:57:17 -0400
-In-Reply-To: <201208022340.16948.rjw@sisk.pl>
+Received: from mga11.intel.com ([192.55.52.93]:10030 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750813Ab2HCBjW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 2 Aug 2012 21:39:22 -0400
+In-Reply-To: <20120802134612.GA30802@growl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Borislav Petkov <bp@alien8.de>, bhelgaas@google.com, lenb@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Luca Tettamanti <kronos.it@gmail.com>
+Cc: Alex Deucher <alexdeucher@gmail.com>, airlied@gmail.com, dri-devel@lists.freedesktop.org, Alex Deucher <alexander.deucher@amd.com>, joeyli <jlee@suse.com>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-On 02/08/12 23:40, Rafael J. Wysocki wrote:
+On =E5=9B=9B, 2012-08-02 at 15:46 +0200, Luca Tettamanti wrote:
+> On Thu, Aug 02, 2012 at 08:45:30AM +0800, Zhang Rui wrote:
+> > On =E4=B8=89, 2012-08-01 at 15:49 +0200, Luca Tettamanti wrote:
+> > > AMD ACPI interface may overload the standard event
+> > > ACPI_VIDEO_NOTIFY_PROBE (0x81) to signal AMD-specific events. In =
+such
+> > > cases we don't want to send the keypress (KEY_SWITCHVIDEOMODE) to=
+ the
+> > > userspace because the user did not press the mode switch key (the
+> > > spurious keypress confuses the DE which usually changes the
+> > > display configuration and messes up a dual-screen setup).
+> > > This patch gives the radeon driver the chance to examine the even=
+t and
+> > > block the keypress if the event is an "AMD event".
+> > >=20
+> > > Signed-off-by: Luca Tettamanti <kronos.it@gmail.com>
+> > > ---
+> > > Any comment from ACPI front?
+> > >=20
+> > it looks good to me.
+> > But I'm wondering if we can use the following code for ACPI part, w=
+hich
+> > looks cleaner.
+> > I know this may change the behavior of other events, but in theory,=
+ we
+> > should not send any input event if we know something wrong in kerne=
+l.
+> >=20
+> > what do you think?
+>=20
+> I like it, it's cleaner.
+> I've split the patch in two pieces (one for video, the other for
+> radeon) and adopted your suggestion.
+>=20
+Great.
+Acked-by: Zhang Rui <rui.zhang@intel.com>
 
-> On Thursday, August 02, 2012, Witold Szczeponik wrote:
->> On 02/08/12 22:09, Rafael J. Wysocki wrote:
->>> On Monday, July 30, 2012, Borislav Petkov wrote:
->>>> On Sun, Jul 29, 2012 at 09:31:53PM +0200, Witold Szczeponik wrote:
+hmm, who should take these two patches?
+and which tree the second patch is based on?
 
-[... snip ...]
+thanks,
+rui
 
->>>>
->>>> Shouldn't this be rather "disable_irq" or something which is a single
->>>> word and thus would simplify parsing a lot?
->>>
->>> Or just "irq", which isn't going to be confused with anything else it seems.
->>>
->>> Thanks,
->>> Rafael
->>>
->>
->> Hi Rafael, 
->>
->> the code in "drivers/pnp/interface.c" implements a (non-trivial) interface
->> which accepts the keywords "disable", "activate", "fill", "auto", "clear",
->> and "get" as simple, one word commands.  The remaining "set" command is
->> more complex, for it determines which resource is to be set ("io", "mem",
->> "irq", "dma", and "bus"), followed by the actual value(s) of this resource
->> (e.g., "0x0200-0x021f", or "7"). 
->>
->> The patch series allows to use the term "disabled" or "<none>" as a 
->> resource value (c.f. my example above) when needed (c.f. my motivation for
->> the patch series). 
->>
->> We could, of course, change the parser in "interface.c", but this would 
->> change the ABI, I am afraid.  Something that I'd rather not do... 
-> 
-> Still, you _are_ doing that by extending the ABI, aren't you?
-
-As the special value "disabled" is available as of these patches, one could
-consider this an extension.  I agree. 
-
-> 
->> I hope, this makes the scope of the patch series clear(er).
-> 
-> Yes, it does, thanks.
-> 
-> My opinion is that the whole interface is wrong and should be changed.  How to
-> do that is a different matter that would require some consideration.  Perhaps
-> the least painful way would be to add a new, hopefully better, interface along
-> with the old one and then deprecate the latter at one point.
-
-Personally, I too think that the PNP ABI in sysfs has its rough edges.  However, 
-as with the deprecation of any existing ABI, this would require a new ABI first, 
-then some time where the old and new ABI live in co-existence, and then to remove 
-the currently available ABI. 
-
-> 
-> Now, since I don't like the existing interface, I'd prefer it not to be
-> extended.
-
-The current ABI does not allow for the kernel to run on my hardware: this is 
-a/the problem.  The proposed extension fixes the problem.  
-
-While I agree with your first statement, for the time being I do not see a 
-better solution other than to extend the ABI. 
-
-At this point I am repeating my "call for comments" to the community. :-) 
-
---- Witold
-
-> 
-> Thanks,
-> Rafael
-> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
