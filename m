@@ -1,599 +1,172 @@
-From: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Subject: Re: [RFC PATCH 2/3] ACPIHP: ACPI system device hotplug slot
- enumerator
-Date: Fri, 3 Aug 2012 15:10:17 +0900
-Message-ID: <20120803151017.38a2190b.izumi.taku@jp.fujitsu.com>
-References: <1343475772-21345-1-git-send-email-jiang.liu@huawei.com>
-	<1343475772-21345-3-git-send-email-jiang.liu@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1343475772-21345-3-git-send-email-jiang.liu@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jiang Liu <liuj97@gmail.com>
-Cc: Len Brown <lenb@kernel.org>, Tony Luck <tony.luch@intel.com>, Bob Moore <robert.moore@intel.com>, Huang Ying <ying.huang@intel.com>, Yinghai Lu <yinghai@kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, Bjorn Helgaas <bhelgaas@google.com>, Hanjun Guo <guohanjun@huawei.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Gaohuai Han <hangaohuai@huawei.com>
+From: wency@cn.fujitsu.com
+Subject: [RFC PATCH V6 00/19] memory-hotplug: hot-remove physical memory
+Date: Fri, 3 Aug 2012 15:49:02 +0800
+Message-ID: <1343980161-14254-1-git-send-email-wency@cn.fujitsu.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cn.fujitsu.com ([222.73.24.84]:31138 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1750843Ab2HCHoU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 3 Aug 2012 03:44:20 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com
+Cc: rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, Wen Congyang <wency@cn.fujitsu.com>
 
-On Sat, 28 Jul 2012 19:42:51 +0800
-Jiang Liu <liuj97@gmail.com> wrote:
+From: Wen Congyang <wency@cn.fujitsu.com>
 
-> The first is an ACPI hotplug slot enumerator, which enumerates ACPI hotplug
-> slots on load and provides callbacks to manage those hotplug slots.
-> An ACPI hotplug slot is an abstraction of receptacles, where a group of
-> system devices could be connected to. This patch implements the skeleton for
-> ACPI system device hotplug slot enumerator. On loading, the driver scans the
-> whole ACPI namespace for hotplug slots and creates a device node for each
-> hotplug slots. Every slot is associated with a device class named
-> acpihp_slot_class and will be managed by ACPI hotplug drivers.
-> 
-> The hotplug enumerator will create following sysfs entries for hotplug slots:
-> 
-> linux-drf:/sys/devices/LNXSYSTM:00/acpihp # ll
-> drwxr-xr-x 4 root root 0 Jul 28 16:00 NODE00
-> drwxr-xr-x 3 root root 0 Jul 28 16:00 NODE01
-> drwxr-xr-x 3 root root 0 Jul 28 16:00 NODE02
-> 
-> linux-drf:/sys/devices/LNXSYSTM:00/acpihp/NODE00 # ll
-> drwxr-xr-x 3 root root     0 Jul 28 16:00 IOX01
-> -r--r--r-- 1 root root 65536 Jul 28 16:01 capabilities
-> lrwxrwxrwx 1 root root     0 Jul 28 16:00 device -> ../../../LNXSYSTM:00
-> -r--r--r-- 1 root root 65536 Jul 28 16:01 object
-> drwxr-xr-x 2 root root     0 Jul 28 16:01 power
-> -r--r--r-- 1 root root 65536 Jul 28 16:01 state
-> -r--r--r-- 1 root root 65536 Jul 28 16:01 status
-> lrwxrwxrwx 1 root root     0 Jul 28 16:00 subsystem -> ../../../../class/acpihp
-> -r--r--r-- 1 root root 65536 Jul 28 16:01 type
-> -rw-r--r-- 1 root root 65536 Jul 28 16:01 uevent
-> 
-> linux-drf:/sys/bus/acpi/acpihp # ls
-> NODE00  NODE00.IOX01  NODE01  NODE02
-> 
-> linux-drf:/sys/bus/acpi/acpihp # ll
-> lrwxrwxrwx 1 root root 0 Jul 28 16:03 NODE00 ->
-> 		../../../devices/LNXSYSTM:00/acpihp/NODE00
-> lrwxrwxrwx 1 root root 0 Jul 28 16:03 NODE00.IOX01 ->
-> 		../../../devices/LNXSYSTM:00/acpihp/NODE00/IOX01
-> lrwxrwxrwx 1 root root 0 Jul 28 16:03 NODE01 ->
-> 		../../../devices/LNXSYSTM:00/acpihp/NODE01
-> lrwxrwxrwx 1 root root 0 Jul 28 16:03 NODE02 ->
-> 		../../../devices/LNXSYSTM:00/acpihp/NODE02
-> 
-> Signed-off-by: Jiang Liu <liuj97@gmail.com>
-> Signed-off-by: Gaohuai Han <hangaohuai@huawei.com>
-> ---
->  drivers/acpi/Kconfig             |   11 +
->  drivers/acpi/hotplug/Makefile    |    3 +
->  drivers/acpi/hotplug/slot_enum.c |  466 ++++++++++++++++++++++++++++++++++++++
->  3 files changed, 480 insertions(+)
->  create mode 100644 drivers/acpi/hotplug/slot_enum.c
-> 
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index e457d31..711e18e 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -333,6 +333,17 @@ menuconfig ACPI_HOTPLUG
->  	  If your hardware and firmware do not support adding or removing
->  	  of system devices at runtime, you need not to enable this option.
->  
-> +config ACPI_HOTPLUG_ENUM
-> +	tristate "ACPI Hotplug Slot Enumerator"
-> +	depends on ACPI_HOTPLUG
-> +	default y
-> +	help
-> +	  This driver enumerates ACPI hotplug slots for ACPI based system
-> +	  device hotplug.
-> +
-> +	  To compile this driver as a module, choose M here:
-> +	  the module will be called acpihp_enum.
-> +
->  config ACPI_CONTAINER
->  	tristate "Container and Module Devices (EXPERIMENTAL)"
->  	depends on EXPERIMENTAL
-> diff --git a/drivers/acpi/hotplug/Makefile b/drivers/acpi/hotplug/Makefile
-> index 5e7790f..41c0da9 100644
-> --- a/drivers/acpi/hotplug/Makefile
-> +++ b/drivers/acpi/hotplug/Makefile
-> @@ -4,3 +4,6 @@
->  
->  obj-$(CONFIG_ACPI_HOTPLUG)			+= acpihp.o
->  acpihp-y					= core.o
-> +
-> +obj-$(CONFIG_ACPI_HOTPLUG_ENUM)			+= acpihp_enum.o
-> +acpihp_enum-y					= slot_enum.o
-> diff --git a/drivers/acpi/hotplug/slot_enum.c b/drivers/acpi/hotplug/slot_enum.c
-> new file mode 100644
-> index 0000000..80396a3
-> --- /dev/null
-> +++ b/drivers/acpi/hotplug/slot_enum.c
-> @@ -0,0 +1,466 @@
-> +/*
-> + * Copyright (C) 2011 Huawei Tech. Co., Ltd.
-> + * Copyright (C) 2011 Jiang Liu <jiang.liu@huawei.com>
-> + * Copyright (C) 2011 Gaohuai Han <hangaohuai@huawei.com>
-> + *
-> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-> + *
-> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> + */
-> +
-> +#include <linux/init.h>
-> +#include <linux/kernel.h>
-> +#include <linux/module.h>
-> +#include <linux/acpi.h>
-> +#include <acpi/acpi.h>
-> +#include <acpi/acpi_hotplug.h>
-> +
-> +static LIST_HEAD(slot_list);
-> +static LIST_HEAD(slot_id_list);
-> +
-> +struct acpihp_slot_id {
-> +	struct list_head node;
-> +	unsigned long instance_id;
-> +	enum acpihp_slot_type type;
-> +};
-> +
-> +static struct acpihp_slot_ops *slot_ops_curr;
-> +
-> +/*
-> + * Array of platform specific enumeration methods.
-> + * Entries in the array should be sorted by descending priority order.
-> + */
-> +static struct acpihp_slot_ops *slot_ops_array[] = {
-> +	NULL
-> +};
-> +
-> +static void acpihp_enum_cleanup_slots(void);
-> +
-> +static int __init acpihp_get_parent_slot(struct acpihp_slot *slot)
-> +{
-> +	acpi_handle handle, root_handle;
-> +	struct acpihp_slot *tmp;
-> +
-> +	slot->parent = NULL;
-> +	handle = slot->handle;
-> +	if (ACPI_FAILURE(acpi_get_handle(NULL, ACPI_NS_ROOT_PATH,
-> +			 &root_handle))) {
-> +		ACPIHP_WARN("fails to get ACPI root device.\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	do {
-> +		if (ACPI_FAILURE(acpi_get_parent(handle, &handle))) {
-> +			ACPIHP_DEBUG("fails to get parent device handle.\n");
-> +			return -ENODEV;
-> +		}
-> +		list_for_each_entry(tmp, &slot_list, slot_list)
-> +			if (tmp->handle == handle) {
-> +				slot->parent = tmp;
-> +				return 0;
-> +			}
-> +	} while (handle != root_handle);
-> +
-> +	return 0;
-> +}
-> +
-> +static int __init acpihp_get_slot_state(struct acpihp_slot *slot)
-> +{
-> +	unsigned long long sta;
-> +
-> +	/* An hotplug slot must implement _STA method. */
-> +	if (ACPI_FAILURE(acpi_evaluate_integer(slot->handle, METHOD_NAME__STA,
-> +					       NULL, &sta))) {
-> +		ACPIHP_DEBUG("fails to execute _STA method.\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (!(sta & ACPI_STA_DEVICE_PRESENT))
-> +		slot->state = ACPIHP_SLOT_STATE_ABSENT;
-> +	else if ((sta & ACPI_STA_DEVICE_ENABLED) ||
-> +		 (sta & ACPI_STA_DEVICE_FUNCTIONING))
-> +		slot->state = ACPIHP_SLOT_STATE_POWERED;
-> +	else
-> +		slot->state = ACPIHP_SLOT_STATE_PRESENT;
-> +
-> +	return 0;
-> +}
-> +
-> +static int __init acpihp_enum_create_slot(acpi_handle handle)
-> +{
-> +	struct acpihp_slot *slot;
-> +
-> +	slot = acpihp_create_slot(handle, "TEMP");
-> +	if (!slot) {
-> +		ACPIHP_DEBUG("fails to allocate memory for hotplug slot.\n");
-> +		return -ENOMEM;
-> +	}
-> +
-> +	slot->slot_ops = slot_ops_curr;
-> +
-> +	if (acpihp_get_parent_slot(slot))
-> +		goto out;
-> +	if (acpihp_get_slot_state(slot))
-> +		goto out;
-> +	if (ACPI_FAILURE(acpihp_slot_get_capabilities(slot,
-> +						      &slot->capabilities))) {
-> +		ACPIHP_DEBUG("fails to get slot capabilities.\n");
-> +		goto out;
-> +	}
-> +	if (ACPI_FAILURE(acpihp_mark_slot(handle, slot))) {
-> +		ACPIHP_DEBUG("fails to attach slot to ACPI device object.\n");
-> +		goto out;
-> +	}
-> +
-> +	list_add_tail(&slot->slot_list, &slot_list);
-> +
-> +	return 0;
-> +out:
-> +	acpihp_slot_put(slot);
-> +	return -EINVAL;
-> +}
-> +
-> +/*
-> + * Scan hotplug slots for ACPI based system device hotplug.
-> + * We only care about processor, memory, PCI host bridge and CONTAINER.
-> + */
-> +static acpi_status __init acpihp_enum_scan_slot(acpi_handle handle, u32 lvl,
-> +						void *context, void **rv)
-> +{
-> +	enum acpihp_dev_type type;
-> +
-> +	if (acpihp_dev_get_type(handle, &type) ||
-> +	    type == ACPIHP_DEV_TYPE_UNKNOWN)
-> +		return AE_OK;
-> +
-> +	if (ACPI_SUCCESS(slot_ops_curr->check(handle)))
-> +		acpihp_enum_create_slot(handle);
-> +
-> +	/*
-> +	 * Don't scan hotplug slots under PCI host bridges, they should be
-> +	 * handled by acpiphp or pciehp drivers.
-> +	 */
-> +	if (type == ACPIHP_DEV_TYPE_HOST_BRIDGE)
-> +		return AE_CTRL_DEPTH;
-> +
-> +	return AE_OK;
-> +}
-> +
-> +/*
-> + * Get types of child devices connected to this slot.
-> + * We only care about CPU, memory, PCI host bridge and CONTAINER here.
-> + * Values used here must be in consistence with acpihp_enum_get_slot_type().
-> + */
-> +static acpi_status __init
-> +acpihp_enum_get_dev_type(acpi_handle handle, u32 lvl, void *context, void **rv)
-> +{
-> +	acpi_status status = AE_OK;
-> +	enum acpihp_dev_type type;
-> +	u32 *tp = (u32 *)rv;
-> +
-> +	if (!acpihp_dev_get_type(handle, &type)) {
-> +		switch (type) {
-> +		case ACPIHP_DEV_TYPE_CPU:
-> +			*tp |= 0x0001;
-> +			status = AE_CTRL_DEPTH;
-> +			break;
-> +		case ACPIHP_DEV_TYPE_MEM:
-> +			*tp |= 0x0002;
-> +			status = AE_CTRL_DEPTH;
-> +			break;
-> +		case ACPIHP_DEV_TYPE_HOST_BRIDGE:
-> +			*tp |= 0x0004;
-> +			status = AE_CTRL_DEPTH;
-> +			break;
-> +		case ACPIHP_DEV_TYPE_CONTAINER:
-> +			*tp |= 0x0008;
-> +			break;
-> +		default:
-> +			break;
-> +		}
-> +	}
-> +
-> +	return status;
-> +}
-> +
-> +/*
-> + * Guess type of a hotplug slot according to child devices connecting to it.
-> + */
-> +static enum acpihp_slot_type __init acpihp_enum_get_slot_type(u32 dev_types)
-> +{
-> +	BUG_ON(dev_types > 15);
-> +
-> +	switch (dev_types) {
-> +	case 0:
-> +		/* Generic CONTAINER */
-> +		return ACPIHP_SLOT_TYPE_COMMON;
-> +	case 1:
-> +		/* Physical processor with logical CPUs */
-> +		return ACPIHP_SLOT_TYPE_CPU;
-> +	case 2:
-> +		/* Memory board/box with memory devices */
-> +		return ACPIHP_SLOT_TYPE_MEM;
-> +	case 3:
-> +		/* Physical processor with CPUs and memory controllers */
-> +		return ACPIHP_SLOT_TYPE_CPU;
-> +	case 4:
-> +		/* IO eXtension board/box with IO host bridges */
-> +		return ACPIHP_SLOT_TYPE_IOX;
-> +	case 7:
-> +		/* Physical processor with CPUs, IO host bridges and MCs. */
-> +		return ACPIHP_SLOT_TYPE_CPU;
+This patch series aims to support physical memory hot-remove.
 
+The patches can free/remove following things:
 
-   Why is this case ACPIHP_SLOT_TYPE_CPU? 
-   I think this case is ACPIHP_SLOT_TYPE_COMMON or else.
-   By the way how about simplifying slot type category?
-   Do we need to differentiate case7, 8, 9, 11 and 15?
-	 
-   Best regards,
-   Taku Izumi
+  - acpi_memory_info                          : [RFC PATCH 4/19]
+  - /sys/firmware/memmap/X/{end, start, type} : [RFC PATCH 8/19]
+  - iomem_resource                            : [RFC PATCH 9/19]
+  - mem_section and related sysfs files       : [RFC PATCH 10-11, 13-16/19]
+  - page table of removed memory              : [RFC PATCH 12/19]
+  - node and related sysfs files              : [RFC PATCH 18-19/19]
 
+If you find lack of function for physical memory hot-remove, please let me
+know.
 
-> +	case 8:
-> +		/* Generic CONTAINER */
-> +		return ACPIHP_SLOT_TYPE_COMMON;
-> +	case 9:
-> +		/* System board with physical processors */
-> +		return ACPIHP_SLOT_TYPE_SYSTEM_BOARD;
-> +	case 11:
-> +		/* System board with physical processors and memory */
-> +		return ACPIHP_SLOT_TYPE_SYSTEM_BOARD;
-> +	case 15:
-> +		/* Node with processor, memory and IO host bridge */
-> +		return ACPIHP_SLOT_TYPE_NODE;
-> +	default:
-> +		return ACPIHP_SLOT_TYPE_UNKNOWN;
-> +	}
-> +}
-> +
-> +/*
-> + * Guess type of a hotplug slot according to the device type of the
-> + * corresponding ACPI object itself.
-> + */
-> +static enum acpihp_slot_type __init
-> +acpihp_enum_check_slot_self(struct acpihp_slot *slot)
-> +{
-> +	enum acpihp_dev_type type;
-> +
-> +	if (acpihp_dev_get_type(slot->handle, &type))
-> +		return ACPIHP_SLOT_TYPE_UNKNOWN;
-> +
-> +	switch (type) {
-> +	case ACPIHP_DEV_TYPE_CPU:
-> +		/* Logical CPU used in virtualization environment */
-> +		return ACPIHP_SLOT_TYPE_CPU;
-> +	case ACPIHP_DEV_TYPE_MEM:
-> +		/* Memory board with single memory device */
-> +		return ACPIHP_SLOT_TYPE_MEM;
-> +	case ACPIHP_DEV_TYPE_HOST_BRIDGE:
-> +		/* IO eXtension board/box with single IO host bridge */
-> +		return ACPIHP_SLOT_TYPE_IOX;
-> +	default:
-> +		return ACPIHP_SLOT_TYPE_UNKNOWN;
-> +	}
-> +}
-> +
-> +static int __init acpihp_enum_generate_slot_name(struct acpihp_slot *slot)
-> +{
-> +	int found = 0;
-> +	struct list_head *list;
-> +	struct acpihp_slot_id *slot_id;
-> +	unsigned long long uid;
-> +
-> +	/* Respect firmware settings if _UID return an integer. */
-> +	if (ACPI_SUCCESS(acpi_evaluate_integer(slot->handle, METHOD_NAME__UID,
-> +					       NULL, &uid)))
-> +		goto set_name;
-> +
-> +	if (slot->parent)
-> +		list = &slot->parent->slot_id_list;
-> +	else
-> +		list = &slot_id_list;
-> +
-> +	list_for_each_entry(slot_id, list, node)
-> +		if (slot_id->type == slot->type) {
-> +			found = 1;
-> +			break;
-> +		}
-> +	if (!found) {
-> +		slot_id = kzalloc(sizeof(struct acpihp_slot_id), GFP_KERNEL);
-> +		if (!slot_id) {
-> +			ACPIHP_DEBUG("fails to allocate slot instance ID.\n");
-> +			return -ENOMEM;
-> +		}
-> +		slot_id->type = slot->type;
-> +		list_add_tail(&slot_id->node, list);
-> +	}
-> +
-> +	uid = slot_id->instance_id++;
-> +
-> +set_name:
-> +	snprintf(slot->name, sizeof(slot->name) - 1, "%s%02llx",
-> +		 acpihp_get_slot_type_name(slot->type), uid);
-> +	dev_set_name(&slot->dev, "%s", slot->name);
-> +
-> +	return 0;
-> +}
-> +
-> +/*
-> + * Generate a meaningful name for the slot according to devices connecting
-> + * to this slot
-> + */
-> +static int __init acpihp_enum_rename_slot(struct acpihp_slot *slot)
-> +{
-> +	u32 child_types = 0;
-> +
-> +	slot->type = acpihp_enum_check_slot_self(slot);
-> +	if (slot->type == ACPIHP_SLOT_TYPE_UNKNOWN) {
-> +		acpi_walk_namespace(ACPI_TYPE_DEVICE, slot->handle,
-> +				ACPI_UINT32_MAX, acpihp_enum_get_dev_type,
-> +				NULL, NULL, (void **)&child_types);
-> +		acpi_walk_namespace(ACPI_TYPE_PROCESSOR, slot->handle,
-> +				ACPI_UINT32_MAX, acpihp_enum_get_dev_type,
-> +				NULL, NULL, (void **)&child_types);
-> +		slot->type = acpihp_enum_get_slot_type(child_types);
-> +	}
-> +
-> +	if (acpihp_enum_generate_slot_name(slot))
-> +		return -EINVAL;
-> +
-> +	return 0;
-> +}
-> +
-> +static void __init acpihp_enum_rename_and_register_slots(void)
-> +{
-> +	struct acpihp_slot *slot;
-> +
-> +	list_for_each_entry(slot, &slot_list, slot_list) {
-> +		/* generate a meaningful name for this slot */
-> +		if (acpihp_enum_rename_slot(slot))
-> +			continue;
-> +
-> +		if (acpihp_register_slot(slot))
-> +			ACPIHP_DEBUG("fails to register slot %s.\n",
-> +				     slot->name);
-> +	}
-> +}
-> +
-> +static int __init acpihp_enum_generate_slots(void)
-> +{
-> +	acpi_status status;
-> +
-> +	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
-> +				     ACPI_UINT32_MAX, acpihp_enum_scan_slot,
-> +				     NULL, NULL, NULL);
-> +	if (!ACPI_SUCCESS(status))
-> +		goto out_err;
-> +
-> +	status = acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
-> +				     ACPI_UINT32_MAX, acpihp_enum_scan_slot,
-> +				     NULL, NULL, NULL);
-> +	if (!ACPI_SUCCESS(status))
-> +		goto out_err;
-> +
-> +	acpihp_enum_rename_and_register_slots();
-> +
-> +	return 0;
-> +
-> +out_err:
-> +	ACPIHP_DEBUG("fails to scan hotplug slots.\n");
-> +	acpihp_enum_cleanup_slots();
-> +
-> +	return -ENOTSUPP;
-> +}
-> +
-> +static void acpihp_enum_unregister_slots(void)
-> +{
-> +	struct acpihp_slot *slot, *tmp;
-> +	struct acpihp_slot_id *slot_id, *slot_id_safe;
-> +
-> +	list_for_each_entry_safe(slot, tmp, &slot_list, slot_list) {
-> +		acpihp_unregister_slot(slot);
-> +		list_del_init(&slot->slot_list);
-> +		acpihp_unmark_slot(slot->handle);
-> +		list_for_each_entry_safe(slot_id, slot_id_safe,
-> +					 &slot->slot_id_list, node) {
-> +			list_del(&slot_id->node);
-> +			kfree(slot_id);
-> +		}
-> +		acpihp_slot_put(slot);
-> +	}
-> +}
-> +
-> +static void acpihp_enum_cleanup_slots(void)
-> +{
-> +	struct acpihp_slot_id *slot_id, *tmp;
-> +
-> +	acpihp_enum_unregister_slots();
-> +	list_for_each_entry_safe(slot_id, tmp, &slot_id_list, node) {
-> +		list_del(&slot_id->node);
-> +		kfree(slot_id);
-> +	}
-> +}
-> +
-> +static int __init acpihp_enum_init(void)
-> +{
-> +	int i;
-> +	int retval;
-> +
-> +	/* probe for suitable enumerator. */
-> +	for (i = 0; slot_ops_array[i]; i++)
-> +		if (ACPI_SUCCESS(slot_ops_array[i]->init())) {
-> +			slot_ops_curr = slot_ops_array[i];
-> +			break;
-> +		}
-> +	if (slot_ops_curr == NULL) {
-> +		ACPIHP_DEBUG("no ACPI hotplug slot found.\n");
-> +		return -ENXIO;
-> +	}
-> +
-> +	retval = acpihp_register_class();
-> +	if (retval != 0) {
-> +		ACPIHP_DEBUG("fails to register ACPI hotplug slot class.\n");
-> +		goto out_fini;
-> +	}
-> +
-> +	retval = acpihp_enum_generate_slots();
-> +	if (retval != 0) {
-> +		ACPIHP_DEBUG("fails to enumerate ACPI hotplug slots.\n");
-> +		goto out_unregister_class;
-> +	}
-> +
-> +	/* Back out if no ACPI hotplug slot  found. */
-> +	if (list_empty(&slot_list)) {
-> +		ACPIHP_DEBUG("no ACPI hotplug slot found.\n");
-> +		retval = -ENODEV;
-> +		goto out_unregister_class;
-> +	}
-> +
-> +	return 0;
-> +
-> +out_unregister_class:
-> +	acpihp_unregister_class();
-> +out_fini:
-> +	slot_ops_curr->fini();
-> +	ACPIHP_DEBUG("fails to initialize hotplug slot enumerator.\n");
-> +
-> +	return retval;
-> +}
-> +
-> +static void __exit acpihp_enum_exit(void)
-> +{
-> +	acpihp_enum_cleanup_slots();
-> +	acpihp_unregister_class();
-> +	slot_ops_curr->fini();
-> +}
-> +
-> +module_init(acpihp_enum_init);
-> +module_exit(acpihp_enum_exit);
-> +
-> +MODULE_LICENSE("GPL v2");
-> +MODULE_AUTHOR("Jiang Liu <jiang.liu@huawei.com>");
-> +MODULE_AUTHOR("Gaohuai Han <hangaohuai@huawei.com>");
-> -- 
-> 1.7.9.5
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
+change log of v6:
+ [RFC PATCH v5 12/19]
+   * fix building error on other archtitectures than x86
 
+ [RFC PATCH v5 15-16/19]
+   * fix building error on other archtitectures than x86
 
--- 
-Taku Izumi <izumi.taku@jp.fujitsu.com>
+change log of v5:
+ * merge the patchset to clear page table and the patchset to hot remove
+   memory(from ishimatsu) to one big patchset.
+
+ [RFC PATCH v5 1/19]
+   * rename remove_memory() to offline_memory()/offline_pages()
+
+ [RFC PATCH v5 2/19]
+   * new patch: implement offline_memory(). This function offlines pages,
+     update memory block's state, and notify the userspace that the memory
+     block's state is changed.
+
+ [RFC PATCH v5 4/19]
+   * offline and remove memory in acpi_memory_disable_device() too.
+
+ [RFC PATCH v5 17/19]
+   * new patch: add a new function __remove_zone() to revert the things done
+     in the function __add_zone().
+
+ [RFC PATCH v5 18/19]
+   * flush work befor reseting node device.
+
+change log of v4:
+ * remove "memory-hotplug : unify argument of firmware_map_add_early/hotplug"
+   from the patch series, since the patch is a bugfix. It is being disccussed
+   on other thread. But for testing the patch series, the patch is needed.
+   So I added the patch as [PATCH 0/13].
+
+ [RFC PATCH v4 2/13]
+   * check memory is online or not at remove_memory()
+   * add memory_add_physaddr_to_nid() to acpi_memory_device_remove() for
+     getting node id
+ 
+ [RFC PATCH v4 3/13]
+   * create new patch : check memory is online or not at online_pages()
+
+ [RFC PATCH v4 4/13]
+   * add __ref section to remove_memory()
+   * call firmware_map_remove_entry() before remove_sysfs_fw_map_entry()
+
+ [RFC PATCH v4 11/13]
+   * rewrite register_page_bootmem_memmap() for removing page used as PT/PMD
+
+change log of v3:
+ * rebase to 3.5.0-rc6
+
+ [RFC PATCH v2 2/13]
+   * remove extra kobject_put()
+
+   * The patch was commented by Wen. Wen's comment is
+     "acpi_memory_device_remove() should ignore a return value of
+     remove_memory() since caller does not care the return value".
+     But I did not change it since I think caller should care the
+     return value. And I am trying to fix it as follow:
+
+     https://lkml.org/lkml/2012/7/5/624
+
+ [RFC PATCH v2 4/13]
+   * remove a firmware_memmap_entry allocated by kzmalloc()
+
+change log of v2:
+ [RFC PATCH v2 2/13]
+   * check whether memory block is offline or not before calling offline_memory()
+   * check whether section is valid or not in is_memblk_offline()
+   * call kobject_put() for each memory_block in is_memblk_offline()
+
+ [RFC PATCH v2 3/13]
+   * unify the end argument of firmware_map_add_early/hotplug
+
+ [RFC PATCH v2 4/13]
+   * add release_firmware_map_entry() for freeing firmware_map_entry
+
+ [RFC PATCH v2 6/13]
+  * add release_memory_block() for freeing memory_block
+
+ [RFC PATCH v2 11/13]
+  * fix wrong arguments of free_pages()
+
+Wen Congyang (6):
+  memory-hotplug: implement offline_memory()
+  memory-hotplug: store the node id in acpi_memory_device
+  memory-hotplug: export the function acpi_bus_remove()
+  memory-hotplug: call acpi_bus_remove() to remove memory device
+  memory-hotplug: introduce new function arch_remove_memory()
+  memory-hotplug: free memmap of sparse-vmemmap
+
+Yasuaki Ishimatsu (13):
+  memory-hotplug: rename remove_memory() to
+    offline_memory()/offline_pages()
+  memory-hotplug: offline and remove memory when removing the memory
+    device
+  memory-hotplug: check whether memory is present or not
+  memory-hotplug: remove /sys/firmware/memmap/X sysfs
+  memory-hotplug: does not release memory region in PAGES_PER_SECTION
+    chunks
+  memory-hotplug: add memory_block_release
+  memory-hotplug: remove_memory calls __remove_pages
+  memory-hotplug: check page type in get_page_bootmem
+  memory-hotplug: move register_page_bootmem_info_node and
+    put_page_bootmem for sparse-vmemmap
+  memory-hotplug: implement register_page_bootmem_info_section of
+    sparse-vmemmap
+  memory_hotplug: clear zone when the memory is removed
+  memory-hotplug: add node_device_release
+  memory-hotplug: remove sysfs file of node
+
+ arch/ia64/mm/discontig.c                        |   14 +
+ arch/ia64/mm/init.c                             |   16 +
+ arch/powerpc/mm/init_64.c                       |   14 +
+ arch/powerpc/mm/mem.c                           |   14 +
+ arch/powerpc/platforms/pseries/hotplug-memory.c |   16 +-
+ arch/s390/mm/init.c                             |   12 +
+ arch/s390/mm/vmem.c                             |   14 +
+ arch/sh/mm/init.c                               |   15 +
+ arch/sparc/mm/init_64.c                         |   14 +
+ arch/tile/mm/init.c                             |    8 +
+ arch/x86/include/asm/pgtable_types.h            |    1 +
+ arch/x86/mm/init_32.c                           |   10 +
+ arch/x86/mm/init_64.c                           |  331 ++++++++++++++++++++++
+ arch/x86/mm/pageattr.c                          |   47 ++--
+ drivers/acpi/acpi_memhotplug.c                  |   51 +++-
+ drivers/acpi/scan.c                             |    3 +-
+ drivers/base/memory.c                           |   90 ++++++-
+ drivers/base/node.c                             |    8 +
+ drivers/firmware/memmap.c                       |   78 +++++-
+ include/acpi/acpi_bus.h                         |    1 +
+ include/linux/firmware-map.h                    |    6 +
+ include/linux/memory.h                          |    5 +
+ include/linux/memory_hotplug.h                  |   25 +-
+ include/linux/mm.h                              |    5 +-
+ include/linux/mmzone.h                          |   19 ++
+ mm/memory_hotplug.c                             |  337 +++++++++++++++++++++--
+ mm/sparse.c                                     |    5 +-
+ 27 files changed, 1068 insertions(+), 91 deletions(-)
+
