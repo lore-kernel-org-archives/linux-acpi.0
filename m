@@ -1,205 +1,247 @@
 From: Jiang Liu <jiang.liu@huawei.com>
-Subject: [RFC PATCH v2 03/16] ACPIHP: detect ACPI hotplug slots by checking  ACPI _EJ0 method
-Date: Sat, 4 Aug 2012 20:13:50 +0800
-Message-ID: <1344082443-4608-4-git-send-email-jiang.liu@huawei.com>
+Subject: [RFC PATCH v2 11/16] ACPIHP: analyse dependences among ACPI system  device hotplug slots
+Date: Sat, 4 Aug 2012 20:13:58 +0800
+Message-ID: <1344082443-4608-12-git-send-email-jiang.liu@huawei.com>
 References: <1344082443-4608-1-git-send-email-jiang.liu@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1344082443-4608-1-git-send-email-jiang.liu@huawei.com>
-Sender: linux-pci-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Yinghai Lu <yinghai@kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, Tang Chen <tangchen@cn.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>
-Cc: Jiang Liu <jiang.liu@huawei.com>, Tony Luck <tony.luck@intel.com>, Huang Ying <ying.huang@intel.com>, Bob Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Gaohuai Han <hangaohuai@huawei.com>, Jiang Liu <liuj97@gmail.com>
+Cc: Jiang Liu <jiang.liu@huawei.com>, Tony Luck <tony.luck@intel.com>, Huang Ying <ying.huang@intel.com>, Bob Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Jiang Liu <liuj97@gmail.com>, Hanjun Guo <guohanjun@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
 
 From: Jiang Liu <jiang.liu@huawei.com>
 
-This patch implements a default mechanism to detect and manage ACPI system
-device hotplug slots based on standard ACPI interfaces.
-1) Detech hotplug slot by checking existence of _EJ0 and _STA methods.
-2) Power off a slot by excuting _EJ0 method.
+Some ACPI hotplug slots may have dependencies on other ACPI hotplug slots.
+For example, if a hotpluggable memory board is connected to a hotpluggble
+physical processor, the physical processor must be powered on before
+powering the memory board on.
 
-It's the default hotplug slot enumerating mechanism, platform specifc drivers
-may provide advanced implementation to override the default implementation.
+We could get dependency relationships by analyze ACPI namespace topology
+and evaluate ACPI _EDL method. So this patch implements several functions
+to analyze dependencies among ACPI hotplug slots.
 
-Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Signed-off-by: Gaohuai Han <hangaohuai@huawei.com>
 Signed-off-by: Jiang Liu <liuj97@gmail.com>
+Signed-off-by: Hanjun Guo <guohanjun@huawei.com>
 ---
- drivers/acpi/Kconfig                 |   10 +++
- drivers/acpi/hotplug/Makefile        |    1 +
- drivers/acpi/hotplug/slot_enum.c     |    3 +
- drivers/acpi/hotplug/slot_enum_ej0.c |  113 ++++++++++++++++++++++++++++++++++
- 4 files changed, 127 insertions(+)
- create mode 100644 drivers/acpi/hotplug/slot_enum_ej0.c
+ drivers/acpi/hotplug/Makefile     |    1 +
+ drivers/acpi/hotplug/acpihp_drv.h |   14 ++++
+ drivers/acpi/hotplug/dependency.c |  167 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 182 insertions(+)
+ create mode 100644 drivers/acpi/hotplug/dependency.c
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 711e18e..c9f7918 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -344,6 +344,16 @@ config ACPI_HOTPLUG_ENUM
- 	  To compile this driver as a module, choose M here:
- 	  the module will be called acpihp_enum.
- 
-+config ACPI_HOTPLUG_ENUM_EJ0
-+	bool "Detecting ACPI Hotplug Slot by Checking _EJ0 Method"
-+	depends on ACPI_HOTPLUG_ENUM
-+	default y
-+	help
-+	  Enable detecting ACPI hotplug slots by checking ACPI _EJ0 method
-+	  under ACPI device objects.
-+
-+	  It's the default method to detect ACPI hotplug slots.
-+
- config ACPI_CONTAINER
- 	tristate "Container and Module Devices (EXPERIMENTAL)"
- 	depends on EXPERIMENTAL
 diff --git a/drivers/acpi/hotplug/Makefile b/drivers/acpi/hotplug/Makefile
-index 41c0da9..23dfa93 100644
+index d69832f..8477c71 100644
 --- a/drivers/acpi/hotplug/Makefile
 +++ b/drivers/acpi/hotplug/Makefile
-@@ -7,3 +7,4 @@ acpihp-y					= core.o
+@@ -11,3 +11,4 @@ acpihp_enum-y					+= slot_enum_ej0.o
  
- obj-$(CONFIG_ACPI_HOTPLUG_ENUM)			+= acpihp_enum.o
- acpihp_enum-y					= slot_enum.o
-+acpihp_enum-y					+= slot_enum_ej0.o
-diff --git a/drivers/acpi/hotplug/slot_enum.c b/drivers/acpi/hotplug/slot_enum.c
-index 80396a3..a251ecf 100644
---- a/drivers/acpi/hotplug/slot_enum.c
-+++ b/drivers/acpi/hotplug/slot_enum.c
-@@ -40,11 +40,14 @@ struct acpihp_slot_id {
- 
- static struct acpihp_slot_ops *slot_ops_curr;
- 
-+extern struct acpihp_slot_ops acpihp_enum_ej0;
-+
- /*
-  * Array of platform specific enumeration methods.
-  * Entries in the array should be sorted by descending priority order.
-  */
- static struct acpihp_slot_ops *slot_ops_array[] = {
-+	&acpihp_enum_ej0,
- 	NULL
+ obj-$(CONFIG_ACPI_HOTPLUG_DRIVER)		+= acpihp_drv.o
+ acpihp_drv-y					= drv_main.o
++acpihp_drv-y					+= dependency.o
+diff --git a/drivers/acpi/hotplug/acpihp_drv.h b/drivers/acpi/hotplug/acpihp_drv.h
+index 18330f7..c4ff91c 100644
+--- a/drivers/acpi/hotplug/acpihp_drv.h
++++ b/drivers/acpi/hotplug/acpihp_drv.h
+@@ -53,10 +53,24 @@ struct acpihp_slot_drv {
+ 	struct acpihp_cancel_context	cancel_ctx;
  };
  
-diff --git a/drivers/acpi/hotplug/slot_enum_ej0.c b/drivers/acpi/hotplug/slot_enum_ej0.c
++struct acpihp_slot_dependency {
++	struct list_head		node;
++	struct acpihp_slot		*slot;
++	u32				opcodes;
++};
++
+ void acpihp_drv_get_data(struct acpihp_slot *slot,
+ 			 struct acpihp_slot_drv **data);
+ int acpihp_drv_enumerate_devices(struct acpihp_slot *slot);
+ void acpihp_drv_update_slot_state(struct acpihp_slot *slot);
+ int acpihp_drv_update_slot_status(struct acpihp_slot *slot);
+ 
++int acpihp_drv_add_slot_to_dependency_list(struct acpihp_slot *slot,
++					   struct list_head *slot_list);
++void acpihp_drv_destroy_dependency_list(struct list_head *slot_list);
++int acpihp_drv_filter_dependency_list(struct list_head *old_head,
++		struct list_head *new_head, u32 opcode);
++int acpihp_drv_generate_dependency_list(struct acpihp_slot *slot,
++		struct list_head *slot_list, enum acpihp_drv_cmd cmd);
++
+ #endif	/* __ACPIHP_DRV_H__ */
+diff --git a/drivers/acpi/hotplug/dependency.c b/drivers/acpi/hotplug/dependency.c
 new file mode 100644
-index 0000000..2788860
+index 0000000..d2d7dbb
 --- /dev/null
-+++ b/drivers/acpi/hotplug/slot_enum_ej0.c
-@@ -0,0 +1,113 @@
++++ b/drivers/acpi/hotplug/dependency.c
+@@ -0,0 +1,167 @@
 +/*
 + * Copyright (C) 2011 Huawei Tech. Co., Ltd.
-+ * Copyright (C) 2011 Gaohuai Han <hangaohuai@huawei.com>
 + * Copyright (C) 2011 Jiang Liu <jiang.liu@huawei.com>
++ * Copyright (C) 2011 Hanjun Guo <guohanjun@huawei.com>
 + *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 + *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or (at
-+ *  your option) any later version.
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
 + *
-+ *  This program is distributed in the hope that it will be useful, but
-+ *  WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ *  General Public License for more details.
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
 + *
-+ *  You should have received a copy of the GNU General Public License along
-+ *  with this program.
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 + *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 + */
 +
++#include <linux/kernel.h>
++#include <linux/types.h>
++#include <linux/list.h>
++#include <linux/mutex.h>
 +#include <linux/acpi.h>
-+#include <acpi/acpi.h>
 +#include <acpi/acpi_hotplug.h>
++#include "acpihp_drv.h"
 +
-+static acpi_status acpihp_enum_ej0_init(void)
++/* Insert a slot into the dependency list at the head */
++int acpihp_drv_add_slot_to_dependency_list(struct acpihp_slot *slot,
++					   struct list_head *slot_list)
 +{
-+	return AE_OK;
++	struct acpihp_slot_dependency *dep;
++
++	list_for_each_entry(dep, slot_list, node)
++		if (dep->slot == slot)
++			return 0;
++
++	dep = kzalloc(sizeof(*dep), GFP_KERNEL);
++	if (!dep) {
++		ACPIHP_DEBUG("fails to allocate memory for %s.\n", slot->name);
++		return -ENOMEM;
++	}
++	dep->slot = slot;
++	list_add(&dep->node, slot_list);
++
++	return 0;
 +}
 +
-+static void acpihp_enum_ej0_fini(void)
++static int acpihp_drv_get_online_dependency(struct acpihp_slot *slot,
++					    struct list_head *slot_list)
 +{
++	int ret = 0;
++	struct acpihp_slot *temp;
++
++	for (temp = slot; temp && ret == 0; temp = temp->parent)
++		ret = acpihp_drv_add_slot_to_dependency_list(temp, slot_list);
++
++	return ret;
 +}
 +
-+static acpi_status acpihp_enum_ej0_check(acpi_handle handle)
++static int acpihp_drv_for_each_edl(struct acpihp_slot *slot, void *argp,
++	int(*cb)(struct device *dev, void *argp))
 +{
-+	acpi_handle tmp;
-+
-+	/* Assume a device object with _EJ0 and _STA has a hotplug slot. */
-+	if (ACPI_FAILURE(acpi_get_handle(handle, "_EJ0", &tmp)))
-+		return AE_ERROR;
-+	if (ACPI_FAILURE(acpi_get_handle(handle, METHOD_NAME__STA, &tmp)))
-+		return AE_ERROR;
-+
-+	return AE_OK;
++	/* TODO */
++	return 0;
 +}
 +
-+static acpi_status
-+acpihp_enum_ej0_get_capabilities(acpi_handle handle, u32 *capability)
++static int acpihp_drv_add_offline_dependency(struct device *dev, void *argp)
 +{
-+	/*
-+	 * Assume device objects with _EJ0 are capable of:
-+	 * ONLINE, OFFLINE, POWEROFF, HOTPLUG
-+	 */
-+	*capability = ACPIHP_SLOT_CAP_ONLINE | ACPIHP_SLOT_CAP_OFFLINE |
-+		      ACPIHP_SLOT_CAP_POWEROFF | ACPIHP_SLOT_CAP_HOTPLUG;
++	int ret;
++	struct acpihp_slot *slot;
++	struct list_head *list = argp;
 +
-+	return AE_OK;
++	slot = container_of(dev, struct acpihp_slot, dev);
++	ret = acpihp_drv_add_slot_to_dependency_list(slot, list);
++	if (!ret)
++		ret = device_for_each_child(&slot->dev, argp,
++				&acpihp_drv_add_offline_dependency);
++	if (!ret)
++		ret = acpihp_drv_for_each_edl(slot, argp,
++				&acpihp_drv_add_offline_dependency);
++
++	return ret;
 +}
 +
-+static acpi_status acpihp_enum_ej0_poweron(acpi_handle handle)
++static int acpihp_drv_get_offline_dependency(struct acpihp_slot *slot,
++					     struct list_head *slot_list)
 +{
-+	return AE_SUPPORT;
++	return acpihp_drv_add_offline_dependency(&slot->dev, slot_list);
 +}
 +
-+static acpi_status acpihp_enum_ej0_poweroff(acpi_handle handle)
++int acpihp_drv_generate_dependency_list(struct acpihp_slot *slot,
++		struct list_head *slot_list, enum acpihp_drv_cmd cmd)
 +{
-+	acpi_status status;
-+	unsigned long long sta;
-+	union acpi_object arg;
-+	struct acpi_object_list arg_list;
++	int retval;
 +
-+	if (!handle)
-+		return AE_BAD_PARAMETER;
++	switch (cmd) {
++	case ACPIHP_DRV_CMD_POWERON:
++	/* fall through */
++	case ACPIHP_DRV_CMD_CONNECT:
++	/* fall through */
++	case ACPIHP_DRV_CMD_CONFIGURE:
++		retval = acpihp_drv_get_online_dependency(slot, slot_list);
++		break;
 +
-+	arg_list.count = 1;
-+	arg_list.pointer = &arg;
-+	arg.type = ACPI_TYPE_INTEGER;
-+	arg.integer.value = 1;
-+	status = acpi_evaluate_object(handle, "_EJ0", &arg_list, NULL);
-+	if (ACPI_FAILURE(status)) {
-+		ACPIHP_WARN("fails to power off object %p.\n", handle);
-+		return status;
++	case ACPIHP_DRV_CMD_POWEROFF:
++	/* fall through */
++	case ACPIHP_DRV_CMD_DISCONNECT:
++	/* fall through */
++	case ACPIHP_DRV_CMD_UNCONFIGURE:
++		retval = acpihp_drv_get_offline_dependency(slot, slot_list);
++		break;
++
++	default:
++		retval = -EINVAL;
++		break;
 +	}
 +
-+	status = acpi_evaluate_integer(handle, METHOD_NAME__STA, NULL, &sta);
-+	if (ACPI_FAILURE(status)) {
-+		ACPIHP_WARN("fails to evaluate _STA method of object %p\n",
-+			    handle);
-+		return status;
-+	}
-+
-+	if (sta & (ACPI_STA_DEVICE_FUNCTIONING | ACPI_STA_DEVICE_ENABLED)) {
-+		ACPIHP_WARN("object %p is still active after executing _EJ0.\n",
-+			    handle);
-+		return AE_ERROR;
-+	}
-+
-+	return AE_OK;
++	return retval;
 +}
 +
-+struct acpihp_slot_ops acpihp_enum_ej0 = {
-+	.init = acpihp_enum_ej0_init,
-+	.fini = acpihp_enum_ej0_fini,
-+	.check = acpihp_enum_ej0_check,
-+	.get_capabilities = acpihp_enum_ej0_get_capabilities,
-+	.poweron = acpihp_enum_ej0_poweron,
-+	.poweroff = acpihp_enum_ej0_poweroff,
-+	.owner = THIS_MODULE,
-+	.desc = "ACPI _EJ0 Based Hotplug Slot Enumerator"
-+};
++/*
++ * Generate a new list with slots from the old list which need to
++ * execute a specific operation.
++ */
++int acpihp_drv_filter_dependency_list(struct list_head *old_head,
++		struct list_head *new_head, u32 opcode)
++{
++	struct acpihp_slot_dependency *old_dep, *new_dep;
++
++	/* Initialize new list to empty */
++	INIT_LIST_HEAD(new_head);
++
++	list_for_each_entry(old_dep, old_head, node) {
++		/* Skip if the specified operation is not needed. */
++		if (!(old_dep->opcodes & opcode))
++			continue;
++
++		new_dep = kzalloc(sizeof(*new_dep), GFP_KERNEL);
++		if (!new_dep) {
++			ACPIHP_DEBUG("fails to filter depend list.\n");
++			acpihp_drv_destroy_dependency_list(new_head);
++			return -ENOMEM;
++		}
++
++		new_dep->slot = old_dep->slot;
++		new_dep->opcodes = old_dep->opcodes;
++		list_add_tail(&new_dep->node, new_head);
++	}
++
++	return 0;
++}
++
++void acpihp_drv_destroy_dependency_list(struct list_head *slot_list)
++{
++	struct acpihp_slot_dependency *asd, *temp;
++
++	list_for_each_entry_safe(asd, temp, slot_list, node) {
++		list_del(&asd->node);
++		kfree(asd);
++	}
++}
 -- 
 1.7.9.5
