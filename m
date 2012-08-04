@@ -1,224 +1,205 @@
 From: Jiang Liu <jiang.liu@huawei.com>
-Subject: [RFC PATCH v2 06/16] ACPIHP: group devices connecting to a hotplug  slot according to device types
-Date: Sat, 4 Aug 2012 20:13:53 +0800
-Message-ID: <1344082443-4608-7-git-send-email-jiang.liu@huawei.com>
+Subject: [RFC PATCH v2 03/16] ACPIHP: detect ACPI hotplug slots by checking  ACPI _EJ0 method
+Date: Sat, 4 Aug 2012 20:13:50 +0800
+Message-ID: <1344082443-4608-4-git-send-email-jiang.liu@huawei.com>
 References: <1344082443-4608-1-git-send-email-jiang.liu@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1344082443-4608-1-git-send-email-jiang.liu@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
 To: Yinghai Lu <yinghai@kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, Tang Chen <tangchen@cn.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>
-Cc: Jiang Liu <jiang.liu@huawei.com>, Tony Luck <tony.luck@intel.com>, Huang Ying <ying.huang@intel.com>, Bob Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Hanjun Guo <guohanjun@huawei.com>, Jiang Liu <liuj97@gmail.com>
+Cc: Jiang Liu <jiang.liu@huawei.com>, Tony Luck <tony.luck@intel.com>, Huang Ying <ying.huang@intel.com>, Bob Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Gaohuai Han <hangaohuai@huawei.com>, Jiang Liu <liuj97@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
 From: Jiang Liu <jiang.liu@huawei.com>
 
-ACPI devices connecting to an ACPI hotplug slot are divided into groups
-according to device types. Those devices will be configured/unconfigured
-in order of device types when hot-adding/hot-removing system devices.
+This patch implements a default mechanism to detect and manage ACPI system
+device hotplug slots based on standard ACPI interfaces.
+1) Detech hotplug slot by checking existence of _EJ0 and _STA methods.
+2) Power off a slot by excuting _EJ0 method.
 
-For example, when hot-adding a computer node with CPUs, memory, PCI host
-bridges, IOAPICs, the order optimized for performance should be:
-memory -> CPU -> IOAPIC -> PCI host bridge.
+It's the default hotplug slot enumerating mechanism, platform specifc drivers
+may provide advanced implementation to override the default implementation.
 
-Signed-off-by: Hanjun Guo <guohanjun@huawei.com>
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+Signed-off-by: Gaohuai Han <hangaohuai@huawei.com>
 Signed-off-by: Jiang Liu <liuj97@gmail.com>
 ---
- drivers/acpi/hotplug/core.c |  113 +++++++++++++++++++++++++++++++++++++++++++
- include/acpi/acpi_hotplug.h |   27 +++++++++++
- 2 files changed, 140 insertions(+)
+ drivers/acpi/Kconfig                 |   10 +++
+ drivers/acpi/hotplug/Makefile        |    1 +
+ drivers/acpi/hotplug/slot_enum.c     |    3 +
+ drivers/acpi/hotplug/slot_enum_ej0.c |  113 ++++++++++++++++++++++++++++++++++
+ 4 files changed, 127 insertions(+)
+ create mode 100644 drivers/acpi/hotplug/slot_enum_ej0.c
 
-diff --git a/drivers/acpi/hotplug/core.c b/drivers/acpi/hotplug/core.c
-index 6fac499..14b3d61 100644
---- a/drivers/acpi/hotplug/core.c
-+++ b/drivers/acpi/hotplug/core.c
-@@ -115,6 +115,23 @@ static char *acpihp_dev_ioapic_ids[] = {
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 711e18e..c9f7918 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -344,6 +344,16 @@ config ACPI_HOTPLUG_ENUM
+ 	  To compile this driver as a module, choose M here:
+ 	  the module will be called acpihp_enum.
+ 
++config ACPI_HOTPLUG_ENUM_EJ0
++	bool "Detecting ACPI Hotplug Slot by Checking _EJ0 Method"
++	depends on ACPI_HOTPLUG_ENUM
++	default y
++	help
++	  Enable detecting ACPI hotplug slots by checking ACPI _EJ0 method
++	  under ACPI device objects.
++
++	  It's the default method to detect ACPI hotplug slots.
++
+ config ACPI_CONTAINER
+ 	tristate "Container and Module Devices (EXPERIMENTAL)"
+ 	depends on EXPERIMENTAL
+diff --git a/drivers/acpi/hotplug/Makefile b/drivers/acpi/hotplug/Makefile
+index 41c0da9..23dfa93 100644
+--- a/drivers/acpi/hotplug/Makefile
++++ b/drivers/acpi/hotplug/Makefile
+@@ -7,3 +7,4 @@ acpihp-y					= core.o
+ 
+ obj-$(CONFIG_ACPI_HOTPLUG_ENUM)			+= acpihp_enum.o
+ acpihp_enum-y					= slot_enum.o
++acpihp_enum-y					+= slot_enum_ej0.o
+diff --git a/drivers/acpi/hotplug/slot_enum.c b/drivers/acpi/hotplug/slot_enum.c
+index 80396a3..a251ecf 100644
+--- a/drivers/acpi/hotplug/slot_enum.c
++++ b/drivers/acpi/hotplug/slot_enum.c
+@@ -40,11 +40,14 @@ struct acpihp_slot_id {
+ 
+ static struct acpihp_slot_ops *slot_ops_curr;
+ 
++extern struct acpihp_slot_ops acpihp_enum_ej0;
++
+ /*
+  * Array of platform specific enumeration methods.
+  * Entries in the array should be sorted by descending priority order.
+  */
+ static struct acpihp_slot_ops *slot_ops_array[] = {
++	&acpihp_enum_ej0,
  	NULL
  };
  
-+static void acpihp_dev_node_get(struct klist_node *lp)
-+{
-+	struct acpihp_dev_node *dp;
+diff --git a/drivers/acpi/hotplug/slot_enum_ej0.c b/drivers/acpi/hotplug/slot_enum_ej0.c
+new file mode 100644
+index 0000000..2788860
+--- /dev/null
++++ b/drivers/acpi/hotplug/slot_enum_ej0.c
+@@ -0,0 +1,113 @@
++/*
++ * Copyright (C) 2011 Huawei Tech. Co., Ltd.
++ * Copyright (C) 2011 Gaohuai Han <hangaohuai@huawei.com>
++ * Copyright (C) 2011 Jiang Liu <jiang.liu@huawei.com>
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or (at
++ *  your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful, but
++ *  WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ *  General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License along
++ *  with this program.
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ */
 +
-+	dp = container_of(lp, struct acpihp_dev_node, node);
-+	get_device(dp->dev);
++#include <linux/acpi.h>
++#include <acpi/acpi.h>
++#include <acpi/acpi_hotplug.h>
++
++static acpi_status acpihp_enum_ej0_init(void)
++{
++	return AE_OK;
 +}
 +
-+static void acpihp_dev_node_put(struct klist_node *lp)
++static void acpihp_enum_ej0_fini(void)
 +{
-+	struct acpihp_dev_node *dp;
-+
-+	dp = container_of(lp, struct acpihp_dev_node, node);
-+	put_device(dp->dev);
-+	kfree(dp);
 +}
 +
- static void acpihp_slot_release(struct device *dev)
- {
- 	struct acpihp_slot *slot = to_acpihp_slot(dev);
-@@ -134,6 +151,7 @@ static void acpihp_slot_release(struct device *dev)
- 
- struct acpihp_slot *acpihp_create_slot(acpi_handle handle, char *name)
- {
-+	int i;
- 	struct acpihp_slot *slot;
- 
- 	if (name == NULL) {
-@@ -154,6 +172,9 @@ struct acpihp_slot *acpihp_create_slot(acpi_handle handle, char *name)
- 	INIT_LIST_HEAD(&slot->slot_list);
- 	INIT_LIST_HEAD(&slot->drvdata_list);
- 	INIT_LIST_HEAD(&slot->slot_id_list);
-+	for (i = ACPIHP_DEV_TYPE_UNKNOWN; i < ACPIHP_DEV_TYPE_MAX; i++)
-+		klist_init(&slot->dev_lists[i],
-+			   &acpihp_dev_node_get, &acpihp_dev_node_put);
- 	strncpy(slot->name, name, sizeof(slot->name) - 1);
- 	mutex_init(&slot->slot_mutex);
- 
-@@ -433,6 +454,98 @@ acpi_status acpihp_slot_poweroff(struct acpihp_slot *slot)
- }
- EXPORT_SYMBOL_GPL(acpihp_slot_poweroff);
- 
-+/* Insert a device onto a hotplug slot's device klist. */
-+int acpihp_slot_add_device(struct acpihp_slot *slot, enum acpihp_dev_type type,
-+			   enum acpihp_dev_state state, struct device *dev)
++static acpi_status acpihp_enum_ej0_check(acpi_handle handle)
 +{
-+	struct acpihp_dev_node *np;
++	acpi_handle tmp;
 +
-+	if (type < ACPIHP_DEV_TYPE_UNKNOWN || type >= ACPIHP_DEV_TYPE_MAX) {
-+		ACPIHP_DEBUG("device type %d is invalid.\n", type);
-+		return -EINVAL;
-+	} else if (slot == NULL) {
-+		ACPIHP_DEBUG("invalid parameter, slot is NULL.\n");
-+		return -EINVAL;
-+	} else if (dev == NULL) {
-+		ACPIHP_DEBUG("invalid parameter, dev is NULL.\n");
-+		return -EINVAL;
-+	}
++	/* Assume a device object with _EJ0 and _STA has a hotplug slot. */
++	if (ACPI_FAILURE(acpi_get_handle(handle, "_EJ0", &tmp)))
++		return AE_ERROR;
++	if (ACPI_FAILURE(acpi_get_handle(handle, METHOD_NAME__STA, &tmp)))
++		return AE_ERROR;
 +
-+	np = kzalloc(sizeof(*np), GFP_KERNEL);
-+	if (np == NULL)
-+		return -ENOMEM;
-+
-+	np->dev = dev;
-+	np->state = state;
-+	mutex_init(&np->lock);
-+	klist_add_tail(&np->node, &slot->dev_lists[type]);
-+	ACPIHP_DEBUG("add device %s to slot %s.\n",
-+		     dev_name(dev), slot->name);
-+
-+	return 0;
++	return AE_OK;
 +}
-+EXPORT_SYMBOL_GPL(acpihp_slot_add_device);
 +
-+/* Remove a device from a hotplug slot's device klist. */
-+int acpihp_slot_remove_device(struct acpihp_slot *slot,
-+			      enum acpihp_dev_type type, struct device *dev)
++static acpi_status
++acpihp_enum_ej0_get_capabilities(acpi_handle handle, u32 *capability)
 +{
-+	int ret = -ENOENT;
-+	struct klist_iter iter;
-+	struct klist_node *ip;
-+	struct acpihp_dev_node *np;
++	/*
++	 * Assume device objects with _EJ0 are capable of:
++	 * ONLINE, OFFLINE, POWEROFF, HOTPLUG
++	 */
++	*capability = ACPIHP_SLOT_CAP_ONLINE | ACPIHP_SLOT_CAP_OFFLINE |
++		      ACPIHP_SLOT_CAP_POWEROFF | ACPIHP_SLOT_CAP_HOTPLUG;
 +
-+	if (type < ACPIHP_DEV_TYPE_UNKNOWN || type >= ACPIHP_DEV_TYPE_MAX) {
-+		ACPIHP_DEBUG("device type %d is invalid.\n", type);
-+		return -EINVAL;
-+	} else if (slot == NULL) {
-+		ACPIHP_DEBUG("invalid parameter, slot is NULL.\n");
-+		return -EINVAL;
-+	} else if (dev == NULL) {
-+		ACPIHP_DEBUG("invalid parameter, dev is NULL.\n");
-+		return -EINVAL;
-+	}
-+
-+	klist_iter_init(&slot->dev_lists[type], &iter);
-+	while ((ip = klist_next(&iter)) != NULL) {
-+		np = container_of(ip, struct acpihp_dev_node, node);
-+		if (np->dev == dev) {
-+			ACPIHP_DEBUG("remove device %s from slot %s.\n",
-+				     dev_name(dev), slot->name);
-+			klist_del(&np->node);
-+			ret = 0;
-+			break;
-+		}
-+	}
-+	klist_iter_exit(&iter);
-+
-+	return ret;
++	return AE_OK;
 +}
-+EXPORT_SYMBOL_GPL(acpihp_slot_remove_device);
 +
-+/* Remove all devices from the klist */
-+int acpihp_remove_device_list(struct klist *dev_list)
++static acpi_status acpihp_enum_ej0_poweron(acpi_handle handle)
 +{
-+	struct klist_iter iter;
-+	struct klist_node *ip;
-+	struct acpihp_dev_node *np;
-+
-+	if (dev_list == NULL) {
-+		ACPIHP_DEBUG("invalid parameter, dev_list is NULL.\n");
-+		return -EINVAL;
-+	}
-+
-+	klist_iter_init(dev_list, &iter);
-+	while ((ip = klist_next(&iter)) != NULL) {
-+		np = container_of(ip, struct acpihp_dev_node, node);
-+		klist_del(&np->node);
-+	}
-+	klist_iter_exit(&iter);
-+
-+	return 0;
++	return AE_SUPPORT;
 +}
-+EXPORT_SYMBOL_GPL(acpihp_remove_device_list);
 +
- /* SYSFS interfaces */
- static ssize_t acpihp_slot_object_show(struct device *d,
- 		struct device_attribute *attr, char *buf)
-diff --git a/include/acpi/acpi_hotplug.h b/include/acpi/acpi_hotplug.h
-index b81d934..cd8dd99 100644
---- a/include/acpi/acpi_hotplug.h
-+++ b/include/acpi/acpi_hotplug.h
-@@ -48,6 +48,24 @@ enum acpihp_dev_type {
- 	ACPIHP_DEV_TYPE_MAX
- };
- 
-+enum acpihp_dev_state {
-+	DEVICE_STATE_UNKOWN = 0x00,
-+	DEVICE_STATE_CONNECTED,
-+	DEVICE_STATE_PRE_CONFIGURE,
-+	DEVICE_STATE_CONFIGURED,
-+	DEVICE_STATE_PRE_RELEASE,
-+	DEVICE_STATE_RELEASED,
-+	DEVICE_STATE_PRE_UNCONFIGURE,
-+	DEVICE_STATE_MAX
++static acpi_status acpihp_enum_ej0_poweroff(acpi_handle handle)
++{
++	acpi_status status;
++	unsigned long long sta;
++	union acpi_object arg;
++	struct acpi_object_list arg_list;
++
++	if (!handle)
++		return AE_BAD_PARAMETER;
++
++	arg_list.count = 1;
++	arg_list.pointer = &arg;
++	arg.type = ACPI_TYPE_INTEGER;
++	arg.integer.value = 1;
++	status = acpi_evaluate_object(handle, "_EJ0", &arg_list, NULL);
++	if (ACPI_FAILURE(status)) {
++		ACPIHP_WARN("fails to power off object %p.\n", handle);
++		return status;
++	}
++
++	status = acpi_evaluate_integer(handle, METHOD_NAME__STA, NULL, &sta);
++	if (ACPI_FAILURE(status)) {
++		ACPIHP_WARN("fails to evaluate _STA method of object %p\n",
++			    handle);
++		return status;
++	}
++
++	if (sta & (ACPI_STA_DEVICE_FUNCTIONING | ACPI_STA_DEVICE_ENABLED)) {
++		ACPIHP_WARN("object %p is still active after executing _EJ0.\n",
++			    handle);
++		return AE_ERROR;
++	}
++
++	return AE_OK;
++}
++
++struct acpihp_slot_ops acpihp_enum_ej0 = {
++	.init = acpihp_enum_ej0_init,
++	.fini = acpihp_enum_ej0_fini,
++	.check = acpihp_enum_ej0_check,
++	.get_capabilities = acpihp_enum_ej0_get_capabilities,
++	.poweron = acpihp_enum_ej0_poweron,
++	.poweroff = acpihp_enum_ej0_poweroff,
++	.owner = THIS_MODULE,
++	.desc = "ACPI _EJ0 Based Hotplug Slot Enumerator"
 +};
-+
-+struct acpihp_dev_node {
-+	struct device		*dev;
-+	enum acpihp_dev_state	state;
-+	struct mutex		lock;
-+	struct klist_node	node;
-+};
-+
- /*
-  * ACPI hotplug slot is an abstraction of receptacles where a group of
-  * system devices could be attached, just like PCI slot in PCI hotplug.
-@@ -190,6 +208,15 @@ typedef acpi_status (*acpihp_walk_device_cb)(struct acpi_device *acpi_device,
- extern int acpihp_walk_devices(acpi_handle handle, acpihp_walk_device_cb cb,
- 			       void *argp);
- 
-+extern int acpihp_slot_add_device(struct acpihp_slot *slot,
-+				  enum acpihp_dev_type type,
-+				  enum acpihp_dev_state state,
-+				  struct device *dev);
-+extern int acpihp_slot_remove_device(struct acpihp_slot *slot,
-+				     enum acpihp_dev_type type,
-+				     struct device *dev);
-+extern int acpihp_remove_device_list(struct klist *dev_list);
-+
- extern int acpihp_debug;
- 
- #define ACPIHP_DEBUG(fmt, ...) \
 -- 
 1.7.9.5
