@@ -1,158 +1,79 @@
-From: Jiang Liu <jiang.liu@huawei.com>
-Subject: [RFC PATCH v2 08/16] ACPIHP: provide interfaces to associate driver  specific data to hotplug slots
-Date: Sat, 4 Aug 2012 20:13:55 +0800
-Message-ID: <1344082443-4608-9-git-send-email-jiang.liu@huawei.com>
-References: <1344082443-4608-1-git-send-email-jiang.liu@huawei.com>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [RFC PATCH 2/3] ACPIHP: ACPI system device hotplug slot enumerator
+Date: Sat, 4 Aug 2012 13:14:27 -0700
+Message-ID: <CAE9FiQU=HmRCy0nxLgi7oqnjbaW4DJ2ct1EE2pVP+=rac2D+wQ@mail.gmail.com>
+References: <1343475772-21345-1-git-send-email-jiang.liu@huawei.com>
+	<1343475772-21345-3-git-send-email-jiang.liu@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1344082443-4608-1-git-send-email-jiang.liu@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, Tang Chen <tangchen@cn.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>
-Cc: Jiang Liu <jiang.liu@huawei.com>, Tony Luck <tony.luck@intel.com>, Huang Ying <ying.huang@intel.com>, Bob Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Jiang Liu <liuj97@gmail.com>, Gaohuai Han <hangaohuai@huawei.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:62521 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752604Ab2HDUO2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 4 Aug 2012 16:14:28 -0400
+In-Reply-To: <1343475772-21345-3-git-send-email-jiang.liu@huawei.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jiang Liu <liuj97@gmail.com>
+Cc: Len Brown <lenb@kernel.org>, Tony Luck <tony.luch@intel.com>, Bob Moore <robert.moore@intel.com>, Huang Ying <ying.huang@intel.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, Bjorn Helgaas <bhelgaas@google.com>, Hanjun Guo <guohanjun@huawei.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Gaohuai Han <hangaohuai@huawei.com>
 
-From: Jiang Liu <jiang.liu@huawei.com>
+On Sat, Jul 28, 2012 at 4:42 AM, Jiang Liu <liuj97@gmail.com> wrote:
+> The first is an ACPI hotplug slot enumerator, which enumerates ACPI hotplug
+> slots on load and provides callbacks to manage those hotplug slots.
+> An ACPI hotplug slot is an abstraction of receptacles, where a group of
+> system devices could be connected to. This patch implements the skeleton for
+> ACPI system device hotplug slot enumerator. On loading, the driver scans the
+> whole ACPI namespace for hotplug slots and creates a device node for each
+> hotplug slots. Every slot is associated with a device class named
+> acpihp_slot_class and will be managed by ACPI hotplug drivers.
 
-This patch provides interfaces to attach/detach/get class driver specific data
-to/from ACPI hotplug slots.
+I was thinking:
+   We can have module in ACPI DSDT, and every module is coresponding
+to SystemModule.
+   so it will be
+	\_SB.NOD1
+		CPU0
+		CPU1
+		CPU2
+		CPU3
+		MEM0
+		MEM1
+		MEM2
+		MEM3
+		PCI0
+		PCI1
+		PCI2
+		PCI3
+		NTFY
+		STAT
+		STOP
+    NTFY will be something like:
+	Notify(\_SB.NOD1.CPU0,....)
+	Notify(\_SB.NOD1.CPU1,....)
+	Notify(\_SB.NOD1.CPU2,....)
+	Notify(\_SB.NOD1.CPU3,....)
 
-Signed-off-by: Jiang Liu <liuj97@gmail.com>
-Signed-off-by: Gaohuai Han <hangaohuai@huawei.com>
----
- drivers/acpi/hotplug/core.c |   88 +++++++++++++++++++++++++++++++++++++++++++
- include/acpi/acpi_hotplug.h |    8 ++++
- 2 files changed, 96 insertions(+)
+	Notify(\_SB.NOD1.MEM0,....)
+	Notify(\_SB.NOD1.MEM1,....)
+	Notify(\_SB.NOD1.MEM2,....)
+	Notify(\_SB.NOD1.MEM3,....)
 
-diff --git a/drivers/acpi/hotplug/core.c b/drivers/acpi/hotplug/core.c
-index 14b3d61..5e78867 100644
---- a/drivers/acpi/hotplug/core.c
-+++ b/drivers/acpi/hotplug/core.c
-@@ -34,11 +34,18 @@
- #include <acpi/acpi_bus.h>
- #include <acpi/acpi_hotplug.h>
- 
-+struct acpihp_drv_data {
-+	struct list_head		node;
-+	struct class_interface		*key;
-+	void				*data;
-+};
-+
- #define to_acpihp_slot(d) container_of(d, struct acpihp_slot, dev)
- 
- extern struct acpi_device *acpi_root;
- 
- static DEFINE_MUTEX(acpihp_mutex);
-+static DEFINE_MUTEX(acpihp_drvdata_mutex);
- static int acpihp_class_count;
- static struct kset *acpihp_slot_kset;
- 
-@@ -407,6 +414,87 @@ char *acpihp_get_slot_type_name(enum acpihp_slot_type type)
- }
- EXPORT_SYMBOL_GPL(acpihp_get_slot_type_name);
- 
-+int acpihp_slot_attach_drv_data(struct acpihp_slot *slot,
-+				struct class_interface *drv, void *data)
-+{
-+	struct acpihp_drv_data *dp, *cp;
-+
-+	if (slot == NULL || drv == NULL) {
-+		ACPIHP_DEBUG("invalid parameters.\n");
-+		return -EINVAL;
-+	}
-+
-+	dp = kzalloc(sizeof(*dp), GFP_KERNEL);
-+	if (dp == NULL)
-+		return -ENOMEM;
-+
-+	INIT_LIST_HEAD(&dp->node);
-+	dp->key = drv;
-+	dp->data = data;
-+
-+	mutex_lock(&acpihp_drvdata_mutex);
-+	list_for_each_entry(cp, &slot->drvdata_list, node)
-+		if (cp->key == drv) {
-+			mutex_unlock(&acpihp_drvdata_mutex);
-+			kfree(dp);
-+			return -EEXIST;
-+		}
-+	list_add(&dp->node, &slot->drvdata_list);
-+	mutex_unlock(&acpihp_drvdata_mutex);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(acpihp_slot_attach_drv_data);
-+
-+int acpihp_slot_detach_drv_data(struct acpihp_slot *slot,
-+				struct class_interface *drv, void **data)
-+{
-+	struct acpihp_drv_data *cp;
-+
-+	if (slot == NULL || drv == NULL || data == NULL) {
-+		ACPIHP_DEBUG("invalid parameters.\n");
-+		return -EINVAL;
-+	}
-+
-+	mutex_lock(&acpihp_drvdata_mutex);
-+	list_for_each_entry(cp, &slot->drvdata_list, node)
-+		if (cp->key == drv) {
-+			list_del(&cp->node);
-+			*data = cp->data;
-+			mutex_unlock(&acpihp_drvdata_mutex);
-+			kfree(cp);
-+			return 0;
-+		}
-+	mutex_unlock(&acpihp_drvdata_mutex);
-+
-+	return -ENOENT;
-+}
-+EXPORT_SYMBOL_GPL(acpihp_slot_detach_drv_data);
-+
-+int acpihp_slot_get_drv_data(struct acpihp_slot *slot,
-+			     struct class_interface *drv, void **data)
-+{
-+	int ret = -ENOENT;
-+	struct acpihp_drv_data *cp;
-+
-+	if (slot == NULL || drv == NULL || data == NULL) {
-+		ACPIHP_DEBUG("invalid parameters.\n");
-+		return -EINVAL;
-+	}
-+
-+	mutex_lock(&acpihp_drvdata_mutex);
-+	list_for_each_entry(cp, &slot->drvdata_list, node)
-+		if (cp->key == drv) {
-+			*data = cp->data;
-+			ret = 0;
-+			break;
-+		}
-+	mutex_unlock(&acpihp_drvdata_mutex);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(acpihp_slot_get_drv_data);
-+
- /*
-  * slot_ops should be valid during the life cycle of a slot, so no protection.
-  */
-diff --git a/include/acpi/acpi_hotplug.h b/include/acpi/acpi_hotplug.h
-index 2589ccb..1d43079 100644
---- a/include/acpi/acpi_hotplug.h
-+++ b/include/acpi/acpi_hotplug.h
-@@ -256,6 +256,14 @@ extern acpi_status acpihp_slot_get_capabilities(struct acpihp_slot *slot,
- extern acpi_status acpihp_slot_poweron(struct acpihp_slot *slot);
- extern acpi_status acpihp_slot_poweroff(struct acpihp_slot *slot);
- 
-+/* Help routines to assoicate driver data with hotplug slot devices. */
-+extern int acpihp_slot_attach_drv_data(struct acpihp_slot *slot,
-+			struct class_interface *drv, void *data);
-+extern int acpihp_slot_detach_drv_data(struct acpihp_slot *slot,
-+			struct class_interface *drv, void **data);
-+extern int acpihp_slot_get_drv_data(struct acpihp_slot *slot,
-+			struct class_interface *drv, void **data);
-+
- /*
-  * Add devices for ACPI objects connecting to an ACPI hotplug slot,
-  * and don't cross the hotplug slot boundary.
--- 
-1.7.9.5
+	Notify(\_SB.NOD1.PCI0,....)
+	Notify(\_SB.NOD1.PCI1,....)
+	Notify(\_SB.NOD1.PCI2,....)
+	Notify(\_SB.NOD1.PCI3,....)
+
+   and will link GPE button for SystemModule to call NTFY.
+
+   STAT could be 32bit integer for final turn off the power.
+	every CPU, MEM, PCI will own one bit, it will clear that bit in this own
+	_EJ0.
+	Every _EJ0 will double check if all are cleared, then it call extra STOP
+	to power off the whole SystemModule.
+
+if OS already have seperated handler for those type objects (CPU, MEM,
+PCI),  we may not need to change to much to os.
+
+Thanks
+
+Yinghai
