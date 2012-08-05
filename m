@@ -1,92 +1,66 @@
-From: Jiang Liu <jiang.liu@huawei.com>
-Subject: Re: [RFC PATCH 2/3] ACPIHP: ACPI system device hotplug slot enumerator
-Date: Sun, 5 Aug 2012 17:36:45 +0800
-Message-ID: <501E3EAD.9090905@huawei.com>
-References: <1343475772-21345-1-git-send-email-jiang.liu@huawei.com> <1343475772-21345-3-git-send-email-jiang.liu@huawei.com> <CAE9FiQU=HmRCy0nxLgi7oqnjbaW4DJ2ct1EE2pVP+=rac2D+wQ@mail.gmail.com>
+From: "WEBMAIL UPGRADE" <info@clear.net>
+Subject: Dear Subscriber
+Date: Sun, 5 Aug 2012 19:38:21 -0400
+Message-ID: <464a60c13feb5231b3b07e34255e81c4.squirrel@emailmg.ipage.com>
+Reply-To: cservice@kimo.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAE9FiQU=HmRCy0nxLgi7oqnjbaW4DJ2ct1EE2pVP+=rac2D+wQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Jiang Liu <liuj97@gmail.com>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luch@intel.com>, Bob Moore <robert.moore@intel.com>, Huang Ying <ying.huang@intel.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Bjorn Helgaas <bhelgaas@google.com>, Hanjun Guo <guohanjun@huawei.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Gaohuai Han <hangaohuai@huawei.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from bosmailout20.eigbox.net ([66.96.185.20]:37996 "EHLO
+	bosmailout20.eigbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755304Ab2HFA27 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 5 Aug 2012 20:28:59 -0400
+Received: from bosmailscan11.eigbox.net ([10.20.15.11])
+	by bosmailout20.eigbox.net with esmtp (Exim)
+	id 1SyAPw-0002lJ-36
+	for linux-acpi@vger.kernel.org; Sun, 05 Aug 2012 19:39:28 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 2012-8-5 4:14, Yinghai Lu wrote:
-> On Sat, Jul 28, 2012 at 4:42 AM, Jiang Liu <liuj97@gmail.com> wrote:
->> The first is an ACPI hotplug slot enumerator, which enumerates ACPI hotplug
->> slots on load and provides callbacks to manage those hotplug slots.
->> An ACPI hotplug slot is an abstraction of receptacles, where a group of
->> system devices could be connected to. This patch implements the skeleton for
->> ACPI system device hotplug slot enumerator. On loading, the driver scans the
->> whole ACPI namespace for hotplug slots and creates a device node for each
->> hotplug slots. Every slot is associated with a device class named
->> acpihp_slot_class and will be managed by ACPI hotplug drivers.
-> 
-> I was thinking:
->    We can have module in ACPI DSDT, and every module is coresponding
-> to SystemModule.
->    so it will be
-> 	\_SB.NOD1
-> 		CPU0
-> 		CPU1
-> 		CPU2
-> 		CPU3
-> 		MEM0
-> 		MEM1
-> 		MEM2
-> 		MEM3
-> 		PCI0
-> 		PCI1
-> 		PCI2
-> 		PCI3
-> 		NTFY
-> 		STAT
-> 		STOP
->     NTFY will be something like:
-> 	Notify(\_SB.NOD1.CPU0,....)
-> 	Notify(\_SB.NOD1.CPU1,....)
-> 	Notify(\_SB.NOD1.CPU2,....)
-> 	Notify(\_SB.NOD1.CPU3,....)
-> 
-> 	Notify(\_SB.NOD1.MEM0,....)
-> 	Notify(\_SB.NOD1.MEM1,....)
-> 	Notify(\_SB.NOD1.MEM2,....)
-> 	Notify(\_SB.NOD1.MEM3,....)
-> 
-> 	Notify(\_SB.NOD1.PCI0,....)
-> 	Notify(\_SB.NOD1.PCI1,....)
-> 	Notify(\_SB.NOD1.PCI2,....)
-> 	Notify(\_SB.NOD1.PCI3,....)
-> 
->    and will link GPE button for SystemModule to call NTFY.
-> 
->    STAT could be 32bit integer for final turn off the power.
-> 	every CPU, MEM, PCI will own one bit, it will clear that bit in this own
-> 	_EJ0.
-> 	Every _EJ0 will double check if all are cleared, then it call extra STOP
-> 	to power off the whole SystemModule.
-> 
-> if OS already have seperated handler for those type objects (CPU, MEM,
-> PCI),  we may not need to change to much to os.
+Dear Subscriber,
 
-Hi Yinghai,
-	Thanks for your comments.
-	It's one of the major concerns that we may need to make too many changes
-to existing code, and even break backward compatibilities:(
+We are contacting you to remind you that our Account Review Team identi=
+fied
+some unusual activity in your Webmail Account. As a result,access to yo=
+ur
+account has been limited in accordance with the Webmail Online Use
+Agreement. Your account access will remain limited until this issue has=
+ been
+resolved. We shall be deleting old email accounts which are no longer a=
+ctive
+to create more space for new accounts users. We have also investigated =
+a
+system wide security audit to improve and enhance our current security.=
+ You
+are therefore required to provide the information below;
 
-	There are two possible ways to support hotplug in ACPI BIOS:
-	1) send hotplug notifications to each sub-component of an FRU/module.
-	2) send hotplug notifications to the FRU itself. 
+=B0 Email Address        (**********)
+=B0 User Name              (**********)
+=B0 Password                (**********)
+=B0 Confirm Password    (**********)
+=B0 Date Of Birth            (**********)
 
-	We have had discussions with BIOS team and chose to adopt the second 
-solution because:
-	1) It's more convenient for user to operate on FRUs instead of sub-components.
-	2) BIOS will be simpler because it only need to track status of FRU itself
-	instead	of sub-components.
-	3) It will be much more complex to do error recover if OS/BIOS cooperate on
-	sub-component granularity.
-	Any suggestions here?
-	Regards!
-	Gerry
+*IMPORTANCE*
+
+=46ailure to do this will immediately render your account deactivated f=
+rom our
+database and service will not be interrupted as important messages may =
+as
+well be lost due to your declining to re-confirm your account details t=
+o
+us.It is also pertinent; you understand that our primary concern is for=
+ our
+customers, and for the security of their files and data.
+
+Thanks
+Webmail Technical Support Team
+=A9 2012 All Right Reserved.
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
