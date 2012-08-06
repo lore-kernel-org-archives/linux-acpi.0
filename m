@@ -1,66 +1,40 @@
-From: "WEBMAIL UPGRADE" <info@clear.net>
-Subject: Dear Subscriber
-Date: Sun, 5 Aug 2012 19:38:21 -0400
-Message-ID: <464a60c13feb5231b3b07e34255e81c4.squirrel@emailmg.ipage.com>
-Reply-To: cservice@kimo.com
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [linux-pm] [PATCH] ACPI: replace strlen("string") with
+ sizeof("string") -1
+Date: Mon, 6 Aug 2012 12:21:14 +0200
+Message-ID: <20120806102114.GA31404@elf.ucw.cz>
+References: <Pine.LNX.4.44L0.1206301023540.29029-100000@netrider.rowland.org>
+ <5011F15A.3060007@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bosmailout20.eigbox.net ([66.96.185.20]:37996 "EHLO
-	bosmailout20.eigbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755304Ab2HFA27 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 5 Aug 2012 20:28:59 -0400
-Received: from bosmailscan11.eigbox.net ([10.20.15.11])
-	by bosmailout20.eigbox.net with esmtp (Exim)
-	id 1SyAPw-0002lJ-36
-	for linux-acpi@vger.kernel.org; Sun, 05 Aug 2012 19:39:28 -0400
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:36292 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751316Ab2HFKVR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Aug 2012 06:21:17 -0400
+Content-Disposition: inline
+In-Reply-To: <5011F15A.3060007@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, Len Brown <len.brown@intel.com>, Pavel Vasilyev <pavel@pavlinux.ru>
 
-Dear Subscriber,
+On Thu 2012-07-26 21:39:38, Len Brown wrote:
+> ...both give the number of chars in the string
+> without the '\0', as strncmp() wants,
+> but sizeof() is compile-time.
 
-We are contacting you to remind you that our Account Review Team identi=
-fied
-some unusual activity in your Webmail Account. As a result,access to yo=
-ur
-account has been limited in accordance with the Webmail Online Use
-Agreement. Your account access will remain limited until this issue has=
- been
-resolved. We shall be deleting old email accounts which are no longer a=
-ctive
-to create more space for new accounts users. We have also investigated =
-a
-system wide security audit to improve and enhance our current security.=
- You
-are therefore required to provide the information below;
+What about introducing something like streq() to do this
+automatically? This is ugly....
 
-=B0 Email Address        (**********)
-=B0 User Name              (**********)
-=B0 Password                (**********)
-=B0 Confirm Password    (**********)
-=B0 Date Of Birth            (**********)
+#define streq(a, b) ... if (_buildin_constant(b)) ...
 
-*IMPORTANCE*
+?
 
-=46ailure to do this will immediately render your account deactivated f=
-rom our
-database and service will not be interrupted as important messages may =
-as
-well be lost due to your declining to re-confirm your account details t=
-o
-us.It is also pertinent; you understand that our primary concern is for=
- our
-customers, and for the security of their files and data.
+> -	if (!strncmp(val, "enable", strlen("enable"))) {
+> +	if (!strncmp(val, "enable", sizeof("enable") - 1)) {
 
-Thanks
-Webmail Technical Support Team
-=A9 2012 All Right Reserved.
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+								Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
