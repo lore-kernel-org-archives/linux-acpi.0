@@ -1,80 +1,68 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH v2] irq_remap: disable IRQ remapping if any IOAPIC lacks
- an IOMMU
-Date: Tue, 7 Aug 2012 15:04:33 -0700
-Message-ID: <CAE9FiQVEsPisVUKeG0aejKzvS+Csp5Ca2KEQyy6ZJW-MR-VFUA@mail.gmail.com>
-References: <20120807210408.GK1917@8bytes.org>
-	<1344375573-16716-1-git-send-email-seth.forshee@canonical.com>
+From: Pavel Vasilyev <pavel@pavlinux.ru>
+Subject: Re: [linux-pm] [PATCH] ACPI: replace strlen("string") with sizeof("string")
+ -1
+Date: Wed, 08 Aug 2012 03:23:30 +0400
+Message-ID: <5021A372.8030409@pavlinux.ru>
+References: <Pine.LNX.4.44L0.1208071322070.2400-100000@iolanthe.rowland.org>
+Reply-To: pavel@pavlinux.ru
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:47935 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753965Ab2HGWEe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Aug 2012 18:04:34 -0400
-In-Reply-To: <1344375573-16716-1-git-send-email-seth.forshee@canonical.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.44L0.1208071322070.2400-100000@iolanthe.rowland.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Pavel Machek <pavel@ucw.cz>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, Len Brown <len.brown@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Seth Forshee <seth.forshee@canonical.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org, Joerg Roedel <joro@8bytes.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@kernel.org>, Joerg Roedel <joerg.roedel@amd.com>, Suresh Siddha <suresh.b.siddha@intel.com>
 
-On Tue, Aug 7, 2012 at 2:39 PM, Seth Forshee <seth.forshee@canonical.com> wrote:
-> The ACPI tables in the Macbook Air 5,1 define a single IOAPIC with id 2,
-> but the only remapping unit described in the DMAR table matches id 0.
-> Interrupt remapping fails as a result, and the kernel panics with the
-> message "timer doesn't work through Interrupt-remapped IO-APIC."
+07.08.2012 21:24, Alan Stern =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
+> On Tue, 7 Aug 2012, Pavel Vasilyev wrote:
 >
-> To fix this, check each IOAPIC for a corresponding IOMMU. If an IOMMU is
-> not found, do not allow IRQ remapping to be enabled.
+>> 06.08.2012 23:59, Alan Stern =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
+>>> On Mon, 6 Aug 2012, Pavel Vasilyev wrote:
+>>>
+>>>>>> http://www.gossamer-threads.com/lists/engine?do=3Dpost_attachmen=
+t;postatt_id=3D41157;list=3Dlinux
+>>>>>
+>>>>> Interestingly, many (all?) of the changes in that patch are wrong
+>>>>> because they don't try to match the terminating '\0'.  As a resul=
+t,
+>>>>> they will match against extensions of the target string as well a=
+s the
+>>>>> target string itself.
+>>>>>
+>>>>
+>>>> strNcmp compare N bytes - http://lxr.linux.no/#linux+v3.5/lib/stri=
+ng.c#L270
+>>>> memcmp compare N bytes  - http://lxr.linux.no/#linux+v3.5/lib/stri=
+ng.c#L651
+>>>
+>>> Yes.  So if s contains "abcde" then
+>>>
+>>> 	memcmp(s, "abc", 3) and strncmp(s, "abc", 3) will both return 0, a=
+nd
+>>> 	memcmp(s, "abc", 4) and strncmp(s, "abc", 4) will both return 1.
+>>
+>> No matter what is contained in *s, "abcde" or "abcxxx",
+>> are important first N bytes. The second example, you see,
+>> a little bit stupid, and devoid of logic. :)
 >
-> v2: Move check to parse_ioapics_under_ir(), raise log level to KERN_ERR,
->     and add FW_BUG to the log message
+> Maybe yes, maybe no.  It all depends on what you want.
 >
-> Acked-by: Suresh Siddha <suresh.b.siddha@intel.com>
-> Signed-off-by: Seth Forshee <seth.forshee@canonical.com>
-> ---
->  drivers/iommu/intel_irq_remapping.c |   11 +++++++++++
->  1 file changed, 11 insertions(+)
->
-> diff --git a/drivers/iommu/intel_irq_remapping.c b/drivers/iommu/intel_irq_remapping.c
-> index e0b18f3..84e5dc3 100644
-> --- a/drivers/iommu/intel_irq_remapping.c
-> +++ b/drivers/iommu/intel_irq_remapping.c
-> @@ -736,6 +736,7 @@ int __init parse_ioapics_under_ir(void)
->  {
->         struct dmar_drhd_unit *drhd;
->         int ir_supported = 0;
-> +       int ioapic_idx;
->
->         for_each_drhd_unit(drhd) {
->                 struct intel_iommu *iommu = drhd->iommu;
-> @@ -754,6 +755,16 @@ int __init parse_ioapics_under_ir(void)
->                 return -1;
->         }
->
+> For example, if you're looking for "on" or "off", what should you do
+> when the user writes "onoff"?  You could accept it as meaning the sam=
+e
+> as "on", but if you were being careful then you would want to reject =
+it
+> as a meaningless value.
 
-need to add
 
-            if (ir_supported)
+The users should't be allowed to think!
+There is "on" - the size of 2 bytes, or "off" - 3 bytes,
+other variations - user error.
 
-> +       for (ioapic_idx = 0; ioapic_idx < nr_ioapics; ioapic_idx++) {
-> +               int ioapic_id = mpc_ioapic_id(ioapic_idx);
-> +               if (!map_ioapic_to_ir(ioapic_id)) {
-> +                       pr_err(FW_BUG "ioapic %d has no mapping iommu, "
-> +                              "interrupt remapping will be disabled\n",
-> +                              ioapic_id);
-> +                       return -1;
-> +               }
-> +       }
-> +
+We do not create a kernel with artificial intelligence? ;)
 
-otherwise may false warning.
-
->         return ir_supported;
->  }
-
-also could remove the ir_ioapic_num == nr_ioapics checking.
-
-Thanks
-
-Yinghai
+--=20
+                                                          Pavel.
