@@ -1,33 +1,45 @@
 From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Subject: Re: [PATCH v3] create sun sysfs file
-Date: Tue, 7 Aug 2012 09:00:03 +0900
-Message-ID: <50205A83.2050509@jp.fujitsu.com>
-References: <5015DC4B.2000802@jp.fujitsu.com> <5016A939.9050600@gmail.com>
+Date: Tue, 7 Aug 2012 09:01:34 +0900
+Message-ID: <50205ADE.5080203@jp.fujitsu.com>
+References: <5015DC4B.2000802@jp.fujitsu.com> <1343661483.3010.584.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:51633 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756938Ab2HGAAS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Aug 2012 20:00:18 -0400
-In-Reply-To: <5016A939.9050600@gmail.com>
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:43644 "EHLO
+	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756412Ab2HGABq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Aug 2012 20:01:46 -0400
+In-Reply-To: <1343661483.3010.584.camel@misato.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <liuj97@gmail.com>
-Cc: lenb@kernel.org, toshi.kani@hp.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi Jiang,
+Hi Toshi,
 
-Sorry for late reply.  I could not work by private reason.
-
-2012/07/31 0:33, Jiang Liu wrote:
-> On 07/30/2012 08:58 AM, Yasuaki Ishimatsu wrote:
+2012/07/31 0:18, Toshi Kani wrote:
+> On Mon, 2012-07-30 at 09:58 +0900, Yasuaki Ishimatsu wrote:
 >> Even if a device has _SUN method, there is no way to know the slot unique-ID.
 >> Thus the patch creates "sun" file in sysfs so that we can recognize it.
 >>
 >> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->>
+>
+> Hi Yasuaki,
+>
+> Thanks for the quick update.  Looks good.
+>
+> Reviewed-by: Toshi Kani <toshi.kani@hp.com>
+
+Thanks you for reviewing my patch.
+
+Thanks,
+Yasuaki Ishimatsu
+
+>
+> -Toshi
+>
 >> ---
 >>   drivers/acpi/scan.c     |   25 +++++++++++++++++++++++++
 >>   include/acpi/acpi_bus.h |    1 +
@@ -43,7 +55,7 @@ Sorry for late reply.  I could not work by private reason.
 >>   	acpi_device_class device_class;	/*        "          */
 >> +	unsigned long sun;		/* _SUN */
 >>   };
->>   
+>>
 >>   #define acpi_device_bid(d)	((d)->pnp.bus_id)
 >> Index: linux-3.5/drivers/acpi/scan.c
 >> ===================================================================
@@ -52,28 +64,14 @@ Sorry for late reply.  I could not work by private reason.
 >> @@ -192,10 +192,21 @@ end:
 >>   }
 >>   static DEVICE_ATTR(path, 0444, acpi_device_path_show, NULL);
->>   
+>>
 >> +static ssize_t
 >> +acpi_device_sun_show(struct device *dev, struct device_attribute *attr, char *buf) {
-> The above line is more than 80 characters.
-
-I'll update it soon.
-
-> 
 >> +	struct acpi_device *acpi_dev = to_acpi_device(dev);
 >> +	int result;
 >> +
 >> +	result = sprintf(buf, "%lu\n", acpi_dev->pnp.sun);
 >> +	return result;
-> How about just
-> return sprintf(buf, "%lu\n", acpi_dev->pnp.sun);
-
-I'll update it soon.
-
-Thanks,
-Yasuaki Ishimatsu
-
-> 
 >> +}
 >> +static DEVICE_ATTR(sun, 0444, acpi_device_sun_show, NULL);
 >> +
@@ -83,12 +81,12 @@ Yasuaki Ishimatsu
 >>   	acpi_handle temp;
 >> +	unsigned long long sun;
 >>   	int result = 0;
->>   
+>>
 >>   	/*
 >> @@ -217,6 +228,16 @@ static int acpi_device_setup_files(struc
 >>   			goto end;
 >>   	}
->>   
+>>
 >> +	status = acpi_evaluate_integer(dev->handle, "_SUN", NULL, &sun);
 >> +	if (ACPI_SUCCESS(status)) {
 >> +		dev->pnp.sun = (unsigned long)sun;
@@ -105,7 +103,7 @@ Yasuaki Ishimatsu
 >> @@ -241,6 +262,10 @@ static void acpi_device_remove_files(str
 >>   	if (ACPI_SUCCESS(status))
 >>   		device_remove_file(&dev->dev, &dev_attr_eject);
->>   
+>>
 >> +	status = acpi_get_handle(dev->handle, "_SUN", &temp);
 >> +	if (ACPI_SUCCESS(status))
 >> +		device_remove_file(&dev->dev, &dev_attr_sun);
@@ -114,12 +112,7 @@ Yasuaki Ishimatsu
 >>   	device_remove_file(&dev->dev, &dev_attr_hid);
 >>   	if (dev->handle)
 >>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> Please read the FAQ at  http://www.tux.org/lkml/
->>
-> 
+>
+>
 
 
