@@ -1,94 +1,58 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: [PATCH v4] create sun sysfs file
-Date: Tue, 7 Aug 2012 09:36:11 +0900
-Message-ID: <502062FB.7030502@jp.fujitsu.com>
+From: Pavel Vasilyev <pavel@pavlinux.ru>
+Subject: Re: [linux-pm] [PATCH] ACPI: replace strlen("string") with sizeof("string")
+ -1
+Date: Tue, 07 Aug 2012 05:07:06 +0400
+Message-ID: <50206A3A.8020706@pavlinux.ru>
+References: <Pine.LNX.4.44L0.1208061556010.1649-100000@iolanthe.rowland.org>
+Reply-To: pavel@pavlinux.ru
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:35614 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756424Ab2HGAgZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Aug 2012 20:36:25 -0400
+Received: from imp01.mtu.ru ([62.5.255.10]:46791 "EHLO imp01.mtu.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756315Ab2HGBHe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 6 Aug 2012 21:07:34 -0400
+In-Reply-To: <Pine.LNX.4.44L0.1208061556010.1649-100000@iolanthe.rowland.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, toshi.kani@hp.com, liuj97@gmail.com
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Pavel Machek <pavel@ucw.cz>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, Len Brown <len.brown@intel.com>
 
-Even if a device has _SUN method, there is no way to know the slot unique-ID.
-Thus the patch creates "sun" file in sysfs so that we can recognize it.
+06.08.2012 23:59, Alan Stern =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
+> On Mon, 6 Aug 2012, Pavel Vasilyev wrote:
+>
+>>>> http://www.gossamer-threads.com/lists/engine?do=3Dpost_attachment;=
+postatt_id=3D41157;list=3Dlinux
+>>>
+>>> Interestingly, many (all?) of the changes in that patch are wrong
+>>> because they don't try to match the terminating '\0'.  As a result,
+>>> they will match against extensions of the target string as well as =
+the
+>>> target string itself.
+>>>
+>>
+>> strNcmp compare N bytes - http://lxr.linux.no/#linux+v3.5/lib/string=
+=2Ec#L270
+>> memcmp compare N bytes  - http://lxr.linux.no/#linux+v3.5/lib/string=
+=2Ec#L651
+>
+> Yes.  So if s contains "abcde" then
+>
+> 	memcmp(s, "abc", 3) and strncmp(s, "abc", 3) will both return 0, and
+> 	memcmp(s, "abc", 4) and strncmp(s, "abc", 4) will both return 1.
 
-Reviewed-by: Toshi Kani <toshi.kani@hp.com>
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+No matter what is contained in *s, "abcde" or "abcxxx",
+are important first N bytes. The second example, you see,
+a little bit stupid, and devoid of logic. :)
 
----
- drivers/acpi/scan.c     |   24 ++++++++++++++++++++++++
- include/acpi/acpi_bus.h |    1 +
- 2 files changed, 25 insertions(+)
 
-Index: linux-3.5/include/acpi/acpi_bus.h
-===================================================================
---- linux-3.5.orig/include/acpi/acpi_bus.h	2012-07-30 10:06:49.722171575 +0900
-+++ linux-3.5/include/acpi/acpi_bus.h	2012-08-07 08:57:45.678204360 +0900
-@@ -209,6 +209,7 @@ struct acpi_device_pnp {
- 	struct list_head ids;		/* _HID and _CIDs */
- 	acpi_device_name device_name;	/* Driver-determined */
- 	acpi_device_class device_class;	/*        "          */
-+	unsigned long sun;		/* _SUN */
- };
- 
- #define acpi_device_bid(d)	((d)->pnp.bus_id)
-Index: linux-3.5/drivers/acpi/scan.c
-===================================================================
---- linux-3.5.orig/drivers/acpi/scan.c	2012-07-30 10:06:49.713171688 +0900
-+++ linux-3.5/drivers/acpi/scan.c	2012-08-07 09:01:38.196203659 +0900
-@@ -192,10 +192,20 @@ end:
- }
- static DEVICE_ATTR(path, 0444, acpi_device_path_show, NULL);
- 
-+static ssize_t
-+acpi_device_sun_show(struct device *dev, struct device_attribute *attr,
-+		     char *buf) {
-+	struct acpi_device *acpi_dev = to_acpi_device(dev);
-+
-+	return sprintf(buf, "%lu\n", acpi_dev->pnp.sun);
-+}
-+static DEVICE_ATTR(sun, 0444, acpi_device_sun_show, NULL);
-+
- static int acpi_device_setup_files(struct acpi_device *dev)
- {
- 	acpi_status status;
- 	acpi_handle temp;
-+	unsigned long long sun;
- 	int result = 0;
- 
- 	/*
-@@ -217,6 +227,16 @@ static int acpi_device_setup_files(struc
- 			goto end;
- 	}
- 
-+	status = acpi_evaluate_integer(dev->handle, "_SUN", NULL, &sun);
-+	if (ACPI_SUCCESS(status)) {
-+		dev->pnp.sun = (unsigned long)sun;
-+		result = device_create_file(&dev->dev, &dev_attr_sun);
-+		if (result)
-+			goto end;
-+	} else {
-+		dev->pnp.sun = (unsigned long)-1;
-+	}
-+
-         /*
-          * If device has _EJ0, 'eject' file is created that is used to trigger
-          * hot-removal function from userland.
-@@ -241,6 +261,10 @@ static void acpi_device_remove_files(str
- 	if (ACPI_SUCCESS(status))
- 		device_remove_file(&dev->dev, &dev_attr_eject);
- 
-+	status = acpi_get_handle(dev->handle, "_SUN", &temp);
-+	if (ACPI_SUCCESS(status))
-+		device_remove_file(&dev->dev, &dev_attr_sun);
-+
- 	device_remove_file(&dev->dev, &dev_attr_modalias);
- 	device_remove_file(&dev->dev, &dev_attr_hid);
- 	if (dev->handle)
+--=20
 
+                                                          Pavel.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
