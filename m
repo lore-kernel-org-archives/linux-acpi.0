@@ -1,75 +1,39 @@
-From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: Re: [RFC PATCH V6 13/19] memory-hotplug: check page type in get_page_bootmem
-Date: Tue, 07 Aug 2012 13:31:53 +0800
-Message-ID: <5020A849.4050209@cn.fujitsu.com>
-References: <1343980161-14254-1-git-send-email-wency@cn.fujitsu.com> <1343980161-14254-14-git-send-email-wency@cn.fujitsu.com>
+From: Bernd Petrovitsch <bernd@petrovitsch.priv.at>
+Subject: Re: [PATCH] ACPI: replace strlen("string") with
+ sizeof("string") -1
+Date: Tue, 07 Aug 2012 15:19:47 +0200
+Message-ID: <1344345590.3975.1.camel@thorin>
+References: <50201156.30704@pavlinux.ru>
+	<Pine.LNX.4.44L0.1208061556010.1649-100000@iolanthe.rowland.org>
+	<5A9BC72FD5CEC94EA024CED8E31D701A2FD84FC0@wdscexmb03.sc.wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1343980161-14254-14-git-send-email-wency@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: isimatu.yasuaki@jp.fujitsu.com
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <5A9BC72FD5CEC94EA024CED8E31D701A2FD84FC0@wdscexmb03.sc.wdc.com>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Daniel Taylor <Daniel.Taylor@wdc.com>
+Cc: Len Brown <len.brown@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Pavel Vasilyev <pavel@pavlinux.ru>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
 
-At 08/03/2012 03:49 PM, wency@cn.fujitsu.com Wrote:
-> From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> 
-> There is a possibility that get_page_bootmem() is called to the same page many
-> times. So when get_page_bootmem is called to the same page, the function only
-> increments page->_count.
-> 
-> CC: David Rientjes <rientjes@google.com>
-> CC: Jiang Liu <liuj97@gmail.com>
-> CC: Len Brown <len.brown@intel.com>
-> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-> CC: Paul Mackerras <paulus@samba.org>
-> CC: Christoph Lameter <cl@linux.com>
-> Cc: Minchan Kim <minchan.kim@gmail.com>
-> CC: Andrew Morton <akpm@linux-foundation.org>
-> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-> CC: Wen Congyang <wency@cn.fujitsu.com>
-> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> ---
->  mm/memory_hotplug.c |   15 +++++++++++----
->  1 files changed, 11 insertions(+), 4 deletions(-)
-> 
-> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-> index 5f9f8c7..710e593 100644
-> --- a/mm/memory_hotplug.c
-> +++ b/mm/memory_hotplug.c
-> @@ -95,10 +95,17 @@ static void release_memory_resource(struct resource *res)
->  static void get_page_bootmem(unsigned long info,  struct page *page,
->  			     unsigned long type)
->  {
-> -	page->lru.next = (struct list_head *) type;
-> -	SetPagePrivate(page);
-> -	set_page_private(page, info);
-> -	atomic_inc(&page->_count);
-> +	unsigned long page_type;
-> +
-> +	page_type = (unsigned long) page->lru.next;
-> +	if (type < MEMORY_HOTPLUG_MIN_BOOTMEM_TYPE ||
-> +	    type > MEMORY_HOTPLUG_MAX_BOOTMEM_TYPE){
+On Mon, 2012-08-06 at 22:57 +0000, Daniel Taylor wrote:
+> Silly question:  when did sizeof("string") get changed to be anything
+> other than the size of the pointer ("string" is, after all, an array
+> of characters)? 
 
-I think it should be page_type not type here.
+It is since K&R times that way.
+If you do not know the difference between a pointer and an array (and
+these are vastly different), go learn something new about C.
 
-Thanks
-Wen Congyang
-
-> +		page->lru.next = (struct list_head *) type;
-> +		SetPagePrivate(page);
-> +		set_page_private(page, info);
-> +		atomic_inc(&page->_count);
-> +	} else
-> +		atomic_inc(&page->_count);
->  }
->  
->  /* reference to __meminit __free_pages_bootmem is valid
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+	Bernd
+-- 
+Bernd Petrovitsch                  Email : bernd@petrovitsch.priv.at
+                     LUGA : http://www.luga.at
