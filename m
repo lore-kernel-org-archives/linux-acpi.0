@@ -1,68 +1,241 @@
-From: Pavel Vasilyev <pavel@pavlinux.ru>
-Subject: Re: [linux-pm] [PATCH] ACPI: replace strlen("string") with sizeof("string")
- -1
-Date: Wed, 08 Aug 2012 03:23:30 +0400
-Message-ID: <5021A372.8030409@pavlinux.ru>
-References: <Pine.LNX.4.44L0.1208071322070.2400-100000@iolanthe.rowland.org>
-Reply-To: pavel@pavlinux.ru
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [RFC PATCH v2 00/16] ACPI based system device hotplug framework
+Date: Tue, 07 Aug 2012 17:38:15 -0600
+Message-ID: <1344382695.3010.770.camel@misato.fc.hp.com>
+References: <1344082443-4608-1-git-send-email-jiang.liu@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.1208071322070.2400-100000@iolanthe.rowland.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Pavel Machek <pavel@ucw.cz>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, Len Brown <len.brown@intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g1t0028.austin.hp.com ([15.216.28.35]:37798 "EHLO
+	g1t0028.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757742Ab2HGXnV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Aug 2012 19:43:21 -0400
+In-Reply-To: <1344082443-4608-1-git-send-email-jiang.liu@huawei.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jiang Liu <jiang.liu@huawei.com>
+Cc: Yinghai Lu <yinghai@kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, Tang Chen <tangchen@cn.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <liuj97@gmail.com>, Tony Luck <tony.luck@intel.com>, Huang Ying <ying.huang@intel.com>, Bob Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 
-07.08.2012 21:24, Alan Stern =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
-> On Tue, 7 Aug 2012, Pavel Vasilyev wrote:
+On Sat, 2012-08-04 at 20:13 +0800, Jiang Liu wrote:
+> From: Jiang Liu <liuj97@gmail.com>
+> 
+> The patchset is based on v3.5-rc6 and you may pull them from:
+> git://github.com/jiangliu/linux.git acpihp
+> 
+> Modern high-end server may support advanced hotplug features for system
+> devices, including physical processor, memory board, IO extension board
+> and/or computer node. The ACPI specifications have provided standard
+> interfaces between firmware and OS to support device hotplug at runtime.
+> This patch series provide an ACPI based hotplug framework to support system
+> device hotplug at runtime, which will replace current existing ACPI device
+> driver based CPU/memory/CONTAINER hotplug mechanism.
+> 
+> The new ACPI based hotplug framework is modelled after PCI hotplug
+> architecture and target to achieve following goals:
+
+Hi Jiang,
+
+It is nice to see such infrastructure work!  I have some high-level
+questions / comments below.  So far, I have only looked at part of the
+changes briefly, so please correct me if I missed something.
+
+> 1) Provide a mechanism to detect hotplug slots by checking ACPI _EJ0 method,
+> ACPI PRCT (platform RAS capabilities table) and other platform specific
+> mechanisms.
+
+Does this mean that hot-plug device must support both hot-add &
+hot-delete operations?  Some platforms may choose to only support
+hot-add operations to increase the resource on-line (since it requires
+less effort and Windows does not support hot-remove, either).
+
+> 2) Unify the way to enumerate ACPI based hotplug slots. All hotplug slots
+> will be enumerated by the enumeration driver, instead of by ACPI device
+> drivers.
+
+It is nice to see redundant ACPI namespace walks removed from the ACPI
+drivers.  But why do you need to add a new enumerator to create the
+acpihp_slot tree, in addition to the current acpi_device tree?  I'd
+prefer hotplug features to be generally integrated into the current ACPI
+core code and data structures, instead of adding a new layer on top of
+it.
+
+Also, acpihp_dev_get_type() in core.c relies on PNP IDs that is embedded
+in the file.  This does not seem very flexible / extendable.  One should
+be able to add a handler for a new or vendor-specific PNP ID without
+changing the core code.  struct acpi_driver allows such extension today.
+
+> 3) Dynamically create/destroy ACPI hotplug slots. For example, new ACPI
+> hotplug slots may be created when hot-adding a computer node if the node
+> contains some memory hotplug slots.
+
+This is good, but it is necessary because you added the slots...
+
+> 4) Unify the way to handle ACPI hotplug events. All ACPI hotplug events
+> for system devices will be handled by a generic ACPI hotplug driver,
+> instead of handled by ACPI device drivers.
+
+It seems that acpihp_drv_slot_add() registers an ACPI notify handler
+through .add_dev interface.  Does it mean that a device must be marked
+as present prior to hot-add operation..?
+
+> 5) Solve dependencies among hotplug slots. You need first to remove the
+> memory device before removing a physical processor if a hotpluggable memory
+> device is connected to a hotpluggable physical processor.
+
+This is nice, but in your example, I'd expect that a container object
+(as a node or socket) is used to generally represent such dependency
+with topology.  Such container object contains processor and memory
+devices.  When user needs to eject the whole, i.e. both processor and
+memory, an eject request can be sent to the container object.
+
+> 6) Provide better error handling and recover.
+> 
+> 7) Provide interface to cancel ongoing hotplug operations. It may take a
+> very long time to remove a memory device, so provide interface to cancel
+> the operation.
 >
->> 06.08.2012 23:59, Alan Stern =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
->>> On Mon, 6 Aug 2012, Pavel Vasilyev wrote:
->>>
->>>>>> http://www.gossamer-threads.com/lists/engine?do=3Dpost_attachmen=
-t;postatt_id=3D41157;list=3Dlinux
->>>>>
->>>>> Interestingly, many (all?) of the changes in that patch are wrong
->>>>> because they don't try to match the terminating '\0'.  As a resul=
-t,
->>>>> they will match against extensions of the target string as well a=
-s the
->>>>> target string itself.
->>>>>
->>>>
->>>> strNcmp compare N bytes - http://lxr.linux.no/#linux+v3.5/lib/stri=
-ng.c#L270
->>>> memcmp compare N bytes  - http://lxr.linux.no/#linux+v3.5/lib/stri=
-ng.c#L651
->>>
->>> Yes.  So if s contains "abcde" then
->>>
->>> 	memcmp(s, "abc", 3) and strncmp(s, "abc", 3) will both return 0, a=
-nd
->>> 	memcmp(s, "abc", 4) and strncmp(s, "abc", 4) will both return 1.
->>
->> No matter what is contained in *s, "abcde" or "abcxxx",
->> are important first N bytes. The second example, you see,
->> a little bit stupid, and devoid of logic. :)
->
-> Maybe yes, maybe no.  It all depends on what you want.
->
-> For example, if you're looking for "on" or "off", what should you do
-> when the user writes "onoff"?  You could accept it as meaning the sam=
-e
-> as "on", but if you were being careful then you would want to reject =
-it
-> as a meaningless value.
+> 8) Support new RAS features, such as socket/memory migration.
+> 
+> 9) Provide better user interfaces to the hotplug functionalities.
+
+I have not looked at the code yet, but these goals sound great.
 
 
-The users should't be allowed to think!
-There is "on" - the size of 2 bytes, or "off" - 3 bytes,
-other variations - user error.
+Thanks,
+-Toshi
 
-We do not create a kernel with artificial intelligence? ;)
 
---=20
-                                                          Pavel.
+> The new hotplug framework includes four logical components.
+> 
+> The first is an ACPI hotplug slot enumerator, which enumerates ACPI hotplug
+> slots on load and provides callbacks to manage those hotplug slots. An ACPI
+> hotplug slot is an abstraction of receptacles, where a group of system
+> devices could be connected to.
+> 
+> The second is a device class for ACPI hotplug slots, named acpihp_slot_class.
+> All ACPI hotplug slot devices will be associated with acpihp_slot_class.
+> 
+> The third is a platform independent class driver for ACPI hotplug slots,
+> which registers itself onto acpihp_slot_class and manages all ACPI hotplug
+> slots in system. This hotplug driver handles ACPI hotplug events, processes
+> user requests and manages slot state machine accoring to user requests.
+> 
+> The fourth is a series of ACPI device drivers, for CPU, memory, PCI host
+> bridge, IOAPIC and ACPI CONTAINER. These ACPI device drivers provide device
+> specific callbacks for the hotplug driver to add/remove system devices at
+> runtime.
+> 
+> This patch set implements the first and second parts, which enumerates
+> hotplug slots and creates sysfs entries for each slot as below.
+> 
+> linux-drf:/sys/devices/LNXSYSTM:00/acpihp # ll
+> drwxr-xr-x 4 root root 0 Jul 28 16:00 NODE00
+> drwxr-xr-x 3 root root 0 Jul 28 16:00 NODE01
+> drwxr-xr-x 3 root root 0 Jul 28 16:00 NODE02
+> 
+> linux-drf:/sys/devices/LNXSYSTM:00/acpihp/NODE00 # ll
+> drwxr-xr-x 3 root root     0 Jul 28 16:00 IOX01
+> -r--r--r-- 1 root root 65536 Jul 28 16:01 capabilities
+> lrwxrwxrwx 1 root root     0 Jul 28 16:00 device -> ../../../LNXSYSTM:00
+> -r--r--r-- 1 root root 65536 Jul 28 16:01 object
+> drwxr-xr-x 2 root root     0 Jul 28 16:01 power
+> -r--r--r-- 1 root root 65536 Jul 28 16:01 state
+> -r--r--r-- 1 root root 65536 Jul 28 16:01 status
+> lrwxrwxrwx 1 root root     0 Jul 28 16:00 subsystem -> ../../../../class/acpihp
+> -r--r--r-- 1 root root 65536 Jul 28 16:01 type
+> -rw-r--r-- 1 root root 65536 Jul 28 16:01 uevent
+> 
+> linux-drf:/sys/bus/acpi/acpihp # ls
+> NODE00  NODE00.IOX01  NODE01  NODE02
+> 
+> linux-drf:/sys/bus/acpi/acpihp # ll
+> lrwxrwxrwx 1 root root 0 Jul 28 16:03 NODE00 ->
+> 		../../../devices/LNXSYSTM:00/acpihp/NODE00
+> lrwxrwxrwx 1 root root 0 Jul 28 16:03 NODE00.IOX01 ->
+> 		../../../devices/LNXSYSTM:00/acpihp/NODE00/IOX01
+> lrwxrwxrwx 1 root root 0 Jul 28 16:03 NODE01 ->
+> 		../../../devices/LNXSYSTM:00/acpihp/NODE01
+> lrwxrwxrwx 1 root root 0 Jul 28 16:03 NODE02 ->
+> 		../../../devices/LNXSYSTM:00/acpihp/NODE02
+> 
+> V1->V2 changes:
+> 1) implement the ACPI hotplug driver
+> 2) enhance ACPI container driver to support new hotplug framework
+> TODO:
+> 1) handle ACPI hotplug events in ACPI hotplug driver
+> 2) handle dependencies among slots by evaluating ACPI _EDL
+> 3) enhance ACPI processor, memory and PCI root drivers to support new
+>    hotplug framework
+> 4) develop an ACPI driver for IOAPIC
+> 5) thorough tests:)
+> 
+> Jiang Liu (16):
+>   ACPIHP: introduce a framework for ACPI based system device hotplug
+>   ACPIHP: ACPI system device hotplug slot enumerator
+>   ACPIHP: detect ACPI hotplug slots by checking ACPI _EJ0 method
+>   ACPI: introduce interfaces to manage ACPI device reference count
+>   ACPIHP: scan and walk ACPI devices connecting to an ACPI hotplug slot
+>   ACPIHP: group devices connecting to a hotplug slot according to
+>     device types
+>   ACPIHP: add callbacks into acpi_device_ops to support new hotplug
+>     framework
+>   ACPIHP: provide interfaces to associate driver specific data to
+>     hotplug slots
+>   ACPIHP: implement utility functions to support system device hotplug
+>   ACPIHP: system device hotplug driver skeleton
+>   ACPIHP: analyse dependences among ACPI system device hotplug slots
+>   ACPIHP: cancel inprogress ACPI system device hotplug operations
+>   ACPIHP: configure/unconfigure system devices connecting to a hotplug
+>     slot
+>   ACPIHP: implement the state machine for ACPI hotplug slots
+>   ACPIHP: implement ACPI hotplug sysfs interfaces
+>   ACPIHP: enhance ACPI container driver to support new hotplug
+>     framework
+> 
+>  drivers/acpi/Kconfig                   |   45 ++
+>  drivers/acpi/Makefile                  |    2 +
+>  drivers/acpi/bus.c                     |   22 +-
+>  drivers/acpi/container.c               |  201 ++------
+>  drivers/acpi/hotplug/Makefile          |   18 +
+>  drivers/acpi/hotplug/acpihp_drv.h      |  107 ++++
+>  drivers/acpi/hotplug/cancel.c          |  171 +++++++
+>  drivers/acpi/hotplug/configure.c       |  349 +++++++++++++
+>  drivers/acpi/hotplug/core.c            |  874 ++++++++++++++++++++++++++++++++
+>  drivers/acpi/hotplug/dependency.c      |  167 ++++++
+>  drivers/acpi/hotplug/device.c          |  193 +++++++
+>  drivers/acpi/hotplug/drv_main.c        |  337 ++++++++++++
+>  drivers/acpi/hotplug/slot_enum.c       |  469 +++++++++++++++++
+>  drivers/acpi/hotplug/slot_enum_ej0.c   |  113 +++++
+>  drivers/acpi/hotplug/state_machine.c   |  633 +++++++++++++++++++++++
+>  drivers/acpi/hotplug/sysfs.c           |  246 +++++++++
+>  drivers/acpi/internal.h                |    5 +
+>  drivers/acpi/scan.c                    |   17 +-
+>  drivers/gpu/drm/i915/intel_opregion.c  |    2 +
+>  drivers/gpu/drm/nouveau/nouveau_acpi.c |    1 +
+>  drivers/pci/hotplug/acpiphp_glue.c     |    9 +-
+>  drivers/pci/hotplug/acpiphp_ibm.c      |    5 +-
+>  drivers/pci/hotplug/sgi_hotplug.c      |    6 +-
+>  drivers/platform/x86/thinkpad_acpi.c   |    2 +
+>  drivers/pnp/pnpacpi/core.c             |   23 +-
+>  include/acpi/acpi_bus.h                |   21 +-
+>  include/acpi/acpi_hotplug.h            |  315 ++++++++++++
+>  include/acpi/container.h               |   12 -
+>  28 files changed, 4161 insertions(+), 204 deletions(-)
+>  create mode 100644 drivers/acpi/hotplug/Makefile
+>  create mode 100644 drivers/acpi/hotplug/acpihp_drv.h
+>  create mode 100644 drivers/acpi/hotplug/cancel.c
+>  create mode 100644 drivers/acpi/hotplug/configure.c
+>  create mode 100644 drivers/acpi/hotplug/core.c
+>  create mode 100644 drivers/acpi/hotplug/dependency.c
+>  create mode 100644 drivers/acpi/hotplug/device.c
+>  create mode 100644 drivers/acpi/hotplug/drv_main.c
+>  create mode 100644 drivers/acpi/hotplug/slot_enum.c
+>  create mode 100644 drivers/acpi/hotplug/slot_enum_ej0.c
+>  create mode 100644 drivers/acpi/hotplug/state_machine.c
+>  create mode 100644 drivers/acpi/hotplug/sysfs.c
+>  create mode 100644 include/acpi/acpi_hotplug.h
+>  delete mode 100644 include/acpi/container.h
+> 
+
+
