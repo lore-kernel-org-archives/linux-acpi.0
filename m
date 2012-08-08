@@ -1,51 +1,50 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 3/3] tpm_tis / PM: Fix unused function warning for CONFIG_PM_SLEEP
-Date: Wed, 8 Aug 2012 23:22:22 +0200
-Message-ID: <201208082322.22314.rjw@sisk.pl>
-References: <201208082308.15466.rjw@sisk.pl>
+From: Seth Forshee <seth.forshee@canonical.com>
+Subject: Re: [PATCH v3] irq_remap: disable IRQ remapping if any IOAPIC lacks
+ an IOMMU
+Date: Wed, 8 Aug 2012 16:33:46 -0500
+Message-ID: <20120808213346.GD25294@thinkpad-t410>
+References: <CAE9FiQVEsPisVUKeG0aejKzvS+Csp5Ca2KEQyy6ZJW-MR-VFUA@mail.gmail.com>
+ <1344432423-26495-1-git-send-email-seth.forshee@canonical.com>
+ <CAE9FiQXv7oZX=ANOEBFm7gHP2Ktvkatn+fcrjq99Pu36k-xPWA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:49499 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753001Ab2HHVQ3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 8 Aug 2012 17:16:29 -0400
-In-Reply-To: <201208082308.15466.rjw@sisk.pl>
+Received: from youngberry.canonical.com ([91.189.89.112]:35457 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753177Ab2HHVd5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Aug 2012 17:33:57 -0400
+Content-Disposition: inline
+In-Reply-To: <CAE9FiQXv7oZX=ANOEBFm7gHP2Ktvkatn+fcrjq99Pu36k-xPWA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, Len Brown <lenb@kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg@redhat.com>, platform-driver-x86@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org, Joerg Roedel <joro@8bytes.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@kernel.org>, Joerg Roedel <joerg.roedel@amd.com>, Suresh Siddha <suresh.b.siddha@intel.com>
 
+On Wed, Aug 08, 2012 at 10:57:06AM -0700, Yinghai Lu wrote:
+> On Wed, Aug 8, 2012 at 6:27 AM, Seth Forshee <seth.forshee@canonical.com> wrote:
+> > The ACPI tables in the Macbook Air 5,1 define a single IOAPIC with id 2,
+> > but the only remapping unit described in the DMAR table matches id 0.
+> > Interrupt remapping fails as a result, and the kernel panics with the
+> > message "timer doesn't work through Interrupt-remapped IO-APIC."
+> >
+> > To fix this, check each IOAPIC for a corresponding IOMMU. If an IOMMU is
+> > not found, do not allow IRQ remapping to be enabled.
+> >
+> > v2: Move check to parse_ioapics_under_ir(), raise log level to KERN_ERR,
+> >     and add FW_BUG to the log message
+> > v3: Skip check if IOMMU doesn't support interrupt remapping and remove
+> >     existing check that the IOMMU count equals the IOAPIC count
+> >
+> 
+> Acked-by: Yinghai Lu <yinghai@kernel.org>
 
-According to a compiler warning, the tpm_tis_resume() function is not
-used for CONFIG_PM_SLEEP unset, so add a #ifdef to prevent it from
-being built in that case.
+Thanks!
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- drivers/char/tpm/tpm_tis.c |    2 ++
- 1 file changed, 2 insertions(+)
+I'm not sure whose tree this goes through, but it occurred to me that it
+might be good to get this fixed in the stable kernels as well. Whoever
+applies the patch might consider adding a Cc for stable, otherwise I can
+submit it after it hits Linus's tree.
 
-Index: linux/drivers/char/tpm/tpm_tis.c
-===================================================================
---- linux.orig/drivers/char/tpm/tpm_tis.c
-+++ linux/drivers/char/tpm/tpm_tis.c
-@@ -807,6 +807,7 @@ module_param_string(hid, tpm_pnp_tbl[TIS
- MODULE_PARM_DESC(hid, "Set additional specific HID for this driver to probe");
- #endif
- 
-+#ifdef CONFIG_PM_SLEEP
- static int tpm_tis_resume(struct device *dev)
- {
- 	struct tpm_chip *chip = dev_get_drvdata(dev);
-@@ -816,6 +817,7 @@ static int tpm_tis_resume(struct device
- 
- 	return tpm_pm_resume(dev);
- }
-+#endif
- 
- static SIMPLE_DEV_PM_OPS(tpm_tis_pm, tpm_pm_suspend, tpm_tis_resume);
- 
+Thanks,
+Seth
 
