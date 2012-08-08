@@ -1,298 +1,71 @@
-From: "Valentin, Eduardo" <eduardo.valentin@ti.com>
-Subject: Re: [PATCH RESEND 06/16] Thermal: set upper and lower limits
-Date: Wed, 8 Aug 2012 15:50:17 +0300
-Message-ID: <CAGF5oy9mi2QZQVVnVjb_uoBAh4NXOCQS11nQSivoJum-CvJV0w@mail.gmail.com>
-References: <1343182273-32096-1-git-send-email-rui.zhang@intel.com>
-	<1343182273-32096-7-git-send-email-rui.zhang@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:38941 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753563Ab2HHMuY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Aug 2012 08:50:24 -0400
-Received: by obbwc20 with SMTP id wc20so1112536obb.3
-        for <linux-acpi@vger.kernel.org>; Wed, 08 Aug 2012 05:50:17 -0700 (PDT)
-In-Reply-To: <1343182273-32096-7-git-send-email-rui.zhang@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Seth Forshee <seth.forshee@canonical.com>
+Subject: [PATCH v3] irq_remap: disable IRQ remapping if any IOAPIC lacks an IOMMU
+Date: Wed,  8 Aug 2012 08:27:03 -0500
+Message-ID: <1344432423-26495-1-git-send-email-seth.forshee@canonical.com>
+References: <CAE9FiQVEsPisVUKeG0aejKzvS+Csp5Ca2KEQyy6ZJW-MR-VFUA@mail.gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAE9FiQVEsPisVUKeG0aejKzvS+Csp5Ca2KEQyy6ZJW-MR-VFUA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org
+Cc: Joerg Roedel <joro@8bytes.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@kernel.org>, Joerg Roedel <joerg.roedel@amd.com>, Suresh Siddha <suresh.b.siddha@intel.com>, Yinghai Lu <yinghai@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, R Durgadoss <durgadoss.r@intel.com>, Amit Kachhap <amit.kachhap@linaro.org>, Wei Ni <wni@nvidia.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 
-Hello Rui,
+The ACPI tables in the Macbook Air 5,1 define a single IOAPIC with id 2,
+but the only remapping unit described in the DMAR table matches id 0.
+Interrupt remapping fails as a result, and the kernel panics with the
+message "timer doesn't work through Interrupt-remapped IO-APIC."
 
+To fix this, check each IOAPIC for a corresponding IOMMU. If an IOMMU is
+not found, do not allow IRQ remapping to be enabled.
 
-On Wed, Jul 25, 2012 at 5:11 AM, Zhang Rui <rui.zhang@intel.com> wrote:
-> set upper and lower limits when binding
-> a thermal cooling device to a thermal zone device.
->
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> ---
->  Documentation/thermal/sysfs-api.txt |    9 +++++-
->  drivers/acpi/thermal.c              |   53 +++++++++++++++++++++++------------
->  drivers/platform/x86/acerhdf.c      |    3 +-
->  drivers/thermal/thermal_sys.c       |   23 ++++++++++-----
->  include/linux/thermal.h             |    5 +++-
+v2: Move check to parse_ioapics_under_ir(), raise log level to KERN_ERR,
+    and add FW_BUG to the log message
+v3: Skip check if IOMMU doesn't support interrupt remapping and remove
+    existing check that the IOMMU count equals the IOAPIC count
 
-Could you please update omap-thermal-common.c
-(drivers/staging/omap-thermal/omap-thermal-common.c) as well?
-otherwise I will get a compilation problem:
+Acked-by: Suresh Siddha <suresh.b.siddha@intel.com>
+Signed-off-by: Seth Forshee <seth.forshee@canonical.com>
+---
+ drivers/iommu/intel_irq_remapping.c |   18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-drivers/staging/omap-thermal/omap-thermal-common.c: In function
-'omap_thermal_bind':
-drivers/staging/omap-thermal/omap-thermal-common.c:123: error: too few
-arguments to function 'thermal_zone_bind_cooling_device'
-make[3]: *** [drivers/staging/omap-thermal/omap-thermal-common.o] Error 1
-make[3]: *** Waiting for unfinished jobs....
-
-FYR:
-
---- a/drivers/staging/omap-thermal/omap-thermal-common.c
-+++ b/drivers/staging/omap-thermal/omap-thermal-common.c
-@@ -120,7 +120,9 @@ static int omap_thermal_bind(struct
-thermal_zone_device *thermal,
-
-        /* TODO: bind with min and max states */
-        /* Simple thing, two trips, one passive another critical */
--       return thermal_zone_bind_cooling_device(thermal, 0, cdev);
-+       return thermal_zone_bind_cooling_device(thermal, 0, cdev,
-+                                               THERMAL_NO_LIMIT,
-+                                               THERMAL_NO_LIMIT);
+diff --git a/drivers/iommu/intel_irq_remapping.c b/drivers/iommu/intel_irq_remapping.c
+index e0b18f3..af8904d 100644
+--- a/drivers/iommu/intel_irq_remapping.c
++++ b/drivers/iommu/intel_irq_remapping.c
+@@ -736,6 +736,7 @@ int __init parse_ioapics_under_ir(void)
+ {
+ 	struct dmar_drhd_unit *drhd;
+ 	int ir_supported = 0;
++	int ioapic_idx;
+ 
+ 	for_each_drhd_unit(drhd) {
+ 		struct intel_iommu *iommu = drhd->iommu;
+@@ -748,13 +749,20 @@ int __init parse_ioapics_under_ir(void)
+ 		}
+ 	}
+ 
+-	if (ir_supported && ir_ioapic_num != nr_ioapics) {
+-		printk(KERN_WARNING
+-		       "Not all IO-APIC's listed under remapping hardware\n");
+-		return -1;
++	if (!ir_supported)
++		return 0;
++
++	for (ioapic_idx = 0; ioapic_idx < nr_ioapics; ioapic_idx++) {
++		int ioapic_id = mpc_ioapic_id(ioapic_idx);
++		if (!map_ioapic_to_ir(ioapic_id)) {
++			pr_err(FW_BUG "ioapic %d has no mapping iommu, "
++			       "interrupt remapping will be disabled\n",
++			       ioapic_id);
++			return -1;
++		}
+ 	}
+ 
+-	return ir_supported;
++	return 1;
  }
-
- /* Unbind callback functions for thermal zone */
-
-
-Cheers,
-
-
->  5 files changed, 65 insertions(+), 28 deletions(-)
->
-> diff --git a/Documentation/thermal/sysfs-api.txt b/Documentation/thermal/sysfs-api.txt
-> index c087dbc..ca1a1a3 100644
-> --- a/Documentation/thermal/sysfs-api.txt
-> +++ b/Documentation/thermal/sysfs-api.txt
-> @@ -84,7 +84,8 @@ temperature) and throttle appropriate devices.
->
->  1.3 interface for binding a thermal zone device with a thermal cooling device
->  1.3.1 int thermal_zone_bind_cooling_device(struct thermal_zone_device *tz,
-> -               int trip, struct thermal_cooling_device *cdev);
-> +       int trip, struct thermal_cooling_device *cdev,
-> +       unsigned long upper, unsigned long lower);
->
->      This interface function bind a thermal cooling device to the certain trip
->      point of a thermal zone device.
-> @@ -93,6 +94,12 @@ temperature) and throttle appropriate devices.
->      cdev: thermal cooling device
->      trip: indicates which trip point the cooling devices is associated with
->           in this thermal zone.
-> +    upper:the Maximum cooling state for this trip point.
-> +          THERMAL_NO_LIMIT means no upper limit,
-> +         and the cooling device can be in max_state.
-> +    lower:the Minimum cooling state can be used for this trip point.
-> +          THERMAL_NO_LIMIT means no lower limit,
-> +         and the cooling device can be in cooling state 0.
->
->  1.3.2 int thermal_zone_unbind_cooling_device(struct thermal_zone_device *tz,
->                 int trip, struct thermal_cooling_device *cdev);
-> diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-> index 8275e7b..0154eac 100644
-> --- a/drivers/acpi/thermal.c
-> +++ b/drivers/acpi/thermal.c
-> @@ -727,11 +727,9 @@ static int thermal_notify(struct thermal_zone_device *thermal, int trip,
->         return 0;
->  }
->
-> -typedef int (*cb)(struct thermal_zone_device *, int,
-> -                 struct thermal_cooling_device *);
->  static int acpi_thermal_cooling_device_cb(struct thermal_zone_device *thermal,
->                                         struct thermal_cooling_device *cdev,
-> -                                       cb action)
-> +                                       bool bind)
->  {
->         struct acpi_device *device = cdev->devdata;
->         struct acpi_thermal *tz = thermal->devdata;
-> @@ -755,11 +753,19 @@ static int acpi_thermal_cooling_device_cb(struct thermal_zone_device *thermal,
->                     i++) {
->                         handle = tz->trips.passive.devices.handles[i];
->                         status = acpi_bus_get_device(handle, &dev);
-> -                       if (ACPI_SUCCESS(status) && (dev == device)) {
-> -                               result = action(thermal, trip, cdev);
-> -                               if (result)
-> -                                       goto failed;
-> -                       }
-> +                       if (ACPI_FAILURE(status) || dev != device)
-> +                               continue;
-> +                       if (bind)
-> +                               result =
-> +                                       thermal_zone_bind_cooling_device
-> +                                       (thermal, trip, cdev,
-> +                                        THERMAL_NO_LIMIT, THERMAL_NO_LIMIT);
-> +                       else
-> +                               result =
-> +                                       thermal_zone_unbind_cooling_device
-> +                                       (thermal, trip, cdev);
-> +                       if (result)
-> +                               goto failed;
->                 }
->         }
->
-> @@ -772,11 +778,17 @@ static int acpi_thermal_cooling_device_cb(struct thermal_zone_device *thermal,
->                     j++) {
->                         handle = tz->trips.active[i].devices.handles[j];
->                         status = acpi_bus_get_device(handle, &dev);
-> -                       if (ACPI_SUCCESS(status) && (dev == device)) {
-> -                               result = action(thermal, trip, cdev);
-> -                               if (result)
-> -                                       goto failed;
-> -                       }
-> +                       if (ACPI_FAILURE(status) || dev != device)
-> +                               continue;
-> +                       if (bind)
-> +                               result = thermal_zone_bind_cooling_device
-> +                                       (thermal, trip, cdev,
-> +                                        THERMAL_NO_LIMIT, THERMAL_NO_LIMIT);
-> +                       else
-> +                               result = thermal_zone_unbind_cooling_device
-> +                                       (thermal, trip, cdev);
-> +                       if (result)
-> +                               goto failed;
->                 }
->         }
->
-> @@ -784,7 +796,14 @@ static int acpi_thermal_cooling_device_cb(struct thermal_zone_device *thermal,
->                 handle = tz->devices.handles[i];
->                 status = acpi_bus_get_device(handle, &dev);
->                 if (ACPI_SUCCESS(status) && (dev == device)) {
-> -                       result = action(thermal, -1, cdev);
-> +                       if (bind)
-> +                               result = thermal_zone_bind_cooling_device
-> +                                               (thermal, -1, cdev,
-> +                                                THERMAL_NO_LIMIT,
-> +                                                THERMAL_NO_LIMIT);
-> +                       else
-> +                               result = thermal_zone_unbind_cooling_device
-> +                                               (thermal, -1, cdev);
->                         if (result)
->                                 goto failed;
->                 }
-> @@ -798,16 +817,14 @@ static int
->  acpi_thermal_bind_cooling_device(struct thermal_zone_device *thermal,
->                                         struct thermal_cooling_device *cdev)
->  {
-> -       return acpi_thermal_cooling_device_cb(thermal, cdev,
-> -                               thermal_zone_bind_cooling_device);
-> +       return acpi_thermal_cooling_device_cb(thermal, cdev, 1);
->  }
->
->  static int
->  acpi_thermal_unbind_cooling_device(struct thermal_zone_device *thermal,
->                                         struct thermal_cooling_device *cdev)
->  {
-> -       return acpi_thermal_cooling_device_cb(thermal, cdev,
-> -                               thermal_zone_unbind_cooling_device);
-> +       return acpi_thermal_cooling_device_cb(thermal, cdev, 0);
->  }
->
->  static const struct thermal_zone_device_ops acpi_thermal_zone_ops = {
-> diff --git a/drivers/platform/x86/acerhdf.c b/drivers/platform/x86/acerhdf.c
-> index 39abb15..a207466 100644
-> --- a/drivers/platform/x86/acerhdf.c
-> +++ b/drivers/platform/x86/acerhdf.c
-> @@ -329,7 +329,8 @@ static int acerhdf_bind(struct thermal_zone_device *thermal,
->         if (cdev != cl_dev)
->                 return 0;
->
-> -       if (thermal_zone_bind_cooling_device(thermal, 0, cdev)) {
-> +       if (thermal_zone_bind_cooling_device(thermal, 0, cdev,
-> +                       THERMAL_NO_LIMIT, THERMAL_NO_LIMIT)) {
->                 pr_err("error binding cooling dev\n");
->                 return -EINVAL;
->         }
-> diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
-> index 008e2eb..62b4279 100644
-> --- a/drivers/thermal/thermal_sys.c
-> +++ b/drivers/thermal/thermal_sys.c
-> @@ -315,8 +315,9 @@ passive_store(struct device *dev, struct device_attribute *attr,
->                         if (!strncmp("Processor", cdev->type,
->                                      sizeof("Processor")))
->                                 thermal_zone_bind_cooling_device(tz,
-> -                                                                THERMAL_TRIPS_NONE,
-> -                                                                cdev);
-> +                                               THERMAL_TRIPS_NONE, cdev,
-> +                                               THERMAL_NO_LIMIT,
-> +                                               THERMAL_NO_LIMIT);
->                 }
->                 mutex_unlock(&thermal_list_lock);
->                 if (!tz->passive_delay)
-> @@ -801,7 +802,8 @@ static void thermal_zone_device_check(struct work_struct *work)
->   */
->  int thermal_zone_bind_cooling_device(struct thermal_zone_device *tz,
->                                      int trip,
-> -                                    struct thermal_cooling_device *cdev)
-> +                                    struct thermal_cooling_device *cdev,
-> +                                    unsigned long upper, unsigned long lower)
->  {
->         struct thermal_cooling_device_instance *dev;
->         struct thermal_cooling_device_instance *pos;
-> @@ -825,6 +827,15 @@ int thermal_zone_bind_cooling_device(struct thermal_zone_device *tz,
->         if (tz != pos1 || cdev != pos2)
->                 return -EINVAL;
->
-> +       cdev->ops->get_max_state(cdev, &max_state);
-> +
-> +       /* lower default 0, upper default max_state */
-> +       lower = lower == THERMAL_NO_LIMIT ? 0 : lower;
-> +       upper = upper == THERMAL_NO_LIMIT ? max_state : upper;
-> +
-> +       if (lower > upper || upper > max_state)
-> +               return -EINVAL;
-> +
->         dev =
->             kzalloc(sizeof(struct thermal_cooling_device_instance), GFP_KERNEL);
->         if (!dev)
-> @@ -832,10 +843,8 @@ int thermal_zone_bind_cooling_device(struct thermal_zone_device *tz,
->         dev->tz = tz;
->         dev->cdev = cdev;
->         dev->trip = trip;
-> -
-> -       cdev->ops->get_max_state(cdev, &max_state);
-> -       dev->upper = max_state;
-> -       dev->lower = 0;
-> +       dev->upper = upper;
-> +       dev->lower = lower;
->
->         result = get_idr(&tz->idr, &tz->lock, &dev->id);
->         if (result)
-> diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-> index cfc8d90..a43b12c 100644
-> --- a/include/linux/thermal.h
-> +++ b/include/linux/thermal.h
-> @@ -75,6 +75,8 @@ struct thermal_cooling_device_ops {
->         int (*set_cur_state) (struct thermal_cooling_device *, unsigned long);
->  };
->
-> +#define THERMAL_NO_LIMIT -1UL /* no upper/lower limit requirement */
-> +
->  #define THERMAL_TRIPS_NONE -1
->  #define THERMAL_MAX_TRIPS 12
->  #define THERMAL_NAME_LENGTH 20
-> @@ -157,7 +159,8 @@ struct thermal_zone_device *thermal_zone_device_register(char *, int, int,
->  void thermal_zone_device_unregister(struct thermal_zone_device *);
->
->  int thermal_zone_bind_cooling_device(struct thermal_zone_device *, int,
-> -                                    struct thermal_cooling_device *);
-> +                                    struct thermal_cooling_device *,
-> +                                    unsigned long, unsigned long);
->  int thermal_zone_unbind_cooling_device(struct thermal_zone_device *, int,
->                                        struct thermal_cooling_device *);
->  void thermal_zone_device_update(struct thermal_zone_device *);
-> --
-> 1.7.9.5
->
-
-
-
+ 
+ int __init ir_dev_scope_init(void)
 -- 
-
-Eduardo Valentin
+1.7.9.5
