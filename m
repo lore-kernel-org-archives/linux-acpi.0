@@ -1,42 +1,32 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [RFC PATCH v2 00/16] ACPI based system device hotplug framework
-Date: Wed, 8 Aug 2012 09:27:07 -0700
-Message-ID: <CAErSpo7S0zuU=tSJVzxk8cPjop0B+JKJjkM46sFCirJCX9KQ2g@mail.gmail.com>
-References: <1344082443-4608-1-git-send-email-jiang.liu@huawei.com>
- <1344382695.3010.770.camel@misato.fc.hp.com> <50228968.3070904@gmail.com>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH v3] irq_remap: disable IRQ remapping if any IOAPIC lacks
+ an IOMMU
+Date: Wed, 8 Aug 2012 10:57:06 -0700
+Message-ID: <CAE9FiQXv7oZX=ANOEBFm7gHP2Ktvkatn+fcrjq99Pu36k-xPWA@mail.gmail.com>
+References: <CAE9FiQVEsPisVUKeG0aejKzvS+Csp5Ca2KEQyy6ZJW-MR-VFUA@mail.gmail.com>
+	<1344432423-26495-1-git-send-email-seth.forshee@canonical.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <50228968.3070904@gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jiang Liu <liuj97@gmail.com>
-Cc: Toshi Kani <toshi.kani@hp.com>, Jiang Liu <jiang.liu@huawei.com>, Yinghai Lu <yinghai@kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, Tang Chen <tangchen@cn.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Tony Luck <tony.luck@intel.com>, Huang Ying <ying.huang@intel.com>, Bob Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1344432423-26495-1-git-send-email-seth.forshee@canonical.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Seth Forshee <seth.forshee@canonical.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org, Joerg Roedel <joro@8bytes.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@kernel.org>, Joerg Roedel <joerg.roedel@amd.com>, Suresh Siddha <suresh.b.siddha@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Aug 8, 2012 at 8:44 AM, Jiang Liu <liuj97@gmail.com> wrote:
-> On 08/08/2012 07:38 AM, Toshi Kani wrote:
-
->> It is nice to see redundant ACPI namespace walks removed from the ACPI
->> drivers.  But why do you need to add a new enumerator to create the
->> acpihp_slot tree, in addition to the current acpi_device tree?  I'd
->> prefer hotplug features to be generally integrated into the current ACPI
->> core code and data structures, instead of adding a new layer on top of
->> it.
-> The idea comes from PCI hotplug framework, which has an concepts of PCI
-> hotplug slot and PCI device. For system device hotplug, we could follow
-> the same model as PCI by abstracting control points as slots. By introducing
-> of hotplug slot, we could:
+On Wed, Aug 8, 2012 at 6:27 AM, Seth Forshee <seth.forshee@canonical.com> wrote:
+> The ACPI tables in the Macbook Air 5,1 define a single IOAPIC with id 2,
+> but the only remapping unit described in the DMAR table matches id 0.
+> Interrupt remapping fails as a result, and the kernel panics with the
+> message "timer doesn't work through Interrupt-remapped IO-APIC."
 >
-> 1) Report all hotplug slots and slot's capabilities to user, no matter whether
-> there are devices connecting to a slot. If we integrate hotplug functionality
-> into current ACPI device tree, the slot (or device) is only visible when the
-> connected devices are enabled.
+> To fix this, check each IOAPIC for a corresponding IOMMU. If an IOMMU is
+> not found, do not allow IRQ remapping to be enabled.
+>
+> v2: Move check to parse_ioapics_under_ir(), raise log level to KERN_ERR,
+>     and add FW_BUG to the log message
+> v3: Skip check if IOMMU doesn't support interrupt remapping and remove
+>     existing check that the IOMMU count equals the IOAPIC count
+>
 
-In PCI, the idea of a slot is a pretty explicit -- you can look at the
-capabilities of a bridge device and see whether it supports hot-add of
-a device below it.  Is it the same way in ACPI?  My impression is that
-it is not: there will be a parent ACPI device under which a new device
-can be added, but you might not be able to tell by looking at the
-parent device that hot-add is possible.  I thought the platform could
-just give us a Notify event on the parent, asking us to rescan the
-namespace below it and potentially discover new devices.
+Acked-by: Yinghai Lu <yinghai@kernel.org>
