@@ -1,71 +1,189 @@
-From: Seth Forshee <seth.forshee@canonical.com>
-Subject: [PATCH v3] irq_remap: disable IRQ remapping if any IOAPIC lacks an IOMMU
-Date: Wed,  8 Aug 2012 08:27:03 -0500
-Message-ID: <1344432423-26495-1-git-send-email-seth.forshee@canonical.com>
-References: <CAE9FiQVEsPisVUKeG0aejKzvS+Csp5Ca2KEQyy6ZJW-MR-VFUA@mail.gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAE9FiQVEsPisVUKeG0aejKzvS+Csp5Ca2KEQyy6ZJW-MR-VFUA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org
-Cc: Joerg Roedel <joro@8bytes.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@kernel.org>, Joerg Roedel <joerg.roedel@amd.com>, Suresh Siddha <suresh.b.siddha@intel.com>, Yinghai Lu <yinghai@kernel.org>
+From: "Valentin, Eduardo" <eduardo.valentin@ti.com>
+Subject: Re: [PATCH V4 04/13] Thermal: Introduce .get_trend() callback.
+Date: Wed, 8 Aug 2012 16:44:59 +0300
+Message-ID: <CAGF5oy94bpC3hE-4R9kw+Sq9tO1BcZP+h6VDLpP1Rk-bZJr+yA@mail.gmail.com>
+References: <1343292083-2047-1-git-send-email-rui.zhang@intel.com>
+	<1343292083-2047-5-git-send-email-rui.zhang@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from na3sys009aog127.obsmtp.com ([74.125.149.107]:53727 "EHLO
+	na3sys009aog127.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751980Ab2HHNpC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Aug 2012 09:45:02 -0400
+Received: by obbun3 with SMTP id un3so2267033obb.27
+        for <linux-acpi@vger.kernel.org>; Wed, 08 Aug 2012 06:45:00 -0700 (PDT)
+In-Reply-To: <1343292083-2047-5-git-send-email-rui.zhang@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, R Durgadoss <durgadoss.r@intel.com>, Amit Kachhap <amit.kachhap@linaro.org>, Wei Ni <wni@nvidia.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 
-The ACPI tables in the Macbook Air 5,1 define a single IOAPIC with id 2,
-but the only remapping unit described in the DMAR table matches id 0.
-Interrupt remapping fails as a result, and the kernel panics with the
-message "timer doesn't work through Interrupt-remapped IO-APIC."
+Hello,
 
-To fix this, check each IOAPIC for a corresponding IOMMU. If an IOMMU is
-not found, do not allow IRQ remapping to be enabled.
+On Thu, Jul 26, 2012 at 11:41 AM, Zhang Rui <rui.zhang@intel.com> wrote:
+> According to ACPI spec, tc1 and tc2 are used by OSPM
+> to anticipate the temperature trends.
+> We introduced the same concept to the generic thermal layer
+> for passive cooling, but now it seems that these values
+> are hard to be used on other platforms.
+>
+> So We introduce .get_trend() as a more general solution.
+>
+> For the platform thermal drivers that have their own way to
+> anticipate the temperature trends, they should provide
+> their own .get_trend() callback.
+> Or else, we will calculate the temperature trends by simply
+> comparing the current temperature and the cached previous
+> temperature reading.
+>
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 
-v2: Move check to parse_ioapics_under_ir(), raise log level to KERN_ERR,
-    and add FW_BUG to the log message
-v3: Skip check if IOMMU doesn't support interrupt remapping and remove
-    existing check that the IOMMU count equals the IOAPIC count
+Looks good to me.
 
-Acked-by: Suresh Siddha <suresh.b.siddha@intel.com>
-Signed-off-by: Seth Forshee <seth.forshee@canonical.com>
----
- drivers/iommu/intel_irq_remapping.c |   18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+Reviewed-by: Eduardo Valentin <eduardo.valentin@ti.com>
 
-diff --git a/drivers/iommu/intel_irq_remapping.c b/drivers/iommu/intel_irq_remapping.c
-index e0b18f3..af8904d 100644
---- a/drivers/iommu/intel_irq_remapping.c
-+++ b/drivers/iommu/intel_irq_remapping.c
-@@ -736,6 +736,7 @@ int __init parse_ioapics_under_ir(void)
- {
- 	struct dmar_drhd_unit *drhd;
- 	int ir_supported = 0;
-+	int ioapic_idx;
- 
- 	for_each_drhd_unit(drhd) {
- 		struct intel_iommu *iommu = drhd->iommu;
-@@ -748,13 +749,20 @@ int __init parse_ioapics_under_ir(void)
- 		}
- 	}
- 
--	if (ir_supported && ir_ioapic_num != nr_ioapics) {
--		printk(KERN_WARNING
--		       "Not all IO-APIC's listed under remapping hardware\n");
--		return -1;
-+	if (!ir_supported)
-+		return 0;
-+
-+	for (ioapic_idx = 0; ioapic_idx < nr_ioapics; ioapic_idx++) {
-+		int ioapic_id = mpc_ioapic_id(ioapic_idx);
-+		if (!map_ioapic_to_ir(ioapic_id)) {
-+			pr_err(FW_BUG "ioapic %d has no mapping iommu, "
-+			       "interrupt remapping will be disabled\n",
-+			       ioapic_id);
-+			return -1;
-+		}
- 	}
- 
--	return ir_supported;
-+	return 1;
- }
- 
- int __init ir_dev_scope_init(void)
+> ---
+>  drivers/acpi/thermal.c        |   33 +++++++++++++++++++++++++++++++++
+>  drivers/thermal/thermal_sys.c |   19 +++++++++++++++++--
+>  include/linux/thermal.h       |    9 +++++++++
+>  3 files changed, 59 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+> index b48ec3e..0c49e42 100644
+> --- a/drivers/acpi/thermal.c
+> +++ b/drivers/acpi/thermal.c
+> @@ -704,6 +704,38 @@ static int thermal_get_crit_temp(struct thermal_zone_device *thermal,
+>                 return -EINVAL;
+>  }
+>
+> +static int thermal_get_trend(struct thermal_zone_device *thermal,
+> +                               int trip, enum thermal_trend *trend)
+> +{
+> +       struct acpi_thermal *tz = thermal->devdata;
+> +       enum thermal_trip_type type;
+> +       int i;
+> +
+> +       if (thermal_get_trip_type(thermal, trip, &type))
+> +               return -EINVAL;
+> +
+> +       /* Only PASSIVE trip points need TREND */
+> +       if (type != THERMAL_TRIP_PASSIVE)
+> +               return -EINVAL;
+> +
+> +       /*
+> +        * tz->temperature has already been updated by generic thermal layer,
+> +        * before this callback being invoked
+> +        */
+> +       i = (tz->trips.passive.tc1 * (tz->temperature - tz->last_temperature))
+> +               + (tz->trips.passive.tc2
+> +               * (tz->temperature - tz->trips.passive.temperature));
+> +
+> +       if (i > 0)
+> +               *trend = THERMAL_TREND_RAISING;
+> +       else if (i < 0)
+> +               *trend = THERMAL_TREND_DROPPING;
+> +       else
+> +               *trend = THERMAL_TREND_STABLE;
+> +       return 0;
+> +}
+> +
+> +
+>  static int thermal_notify(struct thermal_zone_device *thermal, int trip,
+>                            enum thermal_trip_type trip_type)
+>  {
+> @@ -836,6 +868,7 @@ static const struct thermal_zone_device_ops acpi_thermal_zone_ops = {
+>         .get_trip_type = thermal_get_trip_type,
+>         .get_trip_temp = thermal_get_trip_temp,
+>         .get_crit_temp = thermal_get_crit_temp,
+> +       .get_trend = thermal_get_trend,
+>         .notify = thermal_notify,
+>  };
+>
+> diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
+> index 62b4279..68c93d4 100644
+> --- a/drivers/thermal/thermal_sys.c
+> +++ b/drivers/thermal/thermal_sys.c
+> @@ -723,6 +723,20 @@ static void thermal_zone_device_passive(struct thermal_zone_device *tz,
+>         struct thermal_cooling_device *cdev;
+>         long state, max_state;
+>
+> +       if (!tz->ops->get_trend ||
+> +           tz->ops->get_trend(tz, trip, (enum thermal_trend *)&trend)) {
+> +               /*
+> +                * compare the current temperature and previous temperature
+> +                * to get the thermal trend, if no special requirement
+> +                */
+> +               if (tz->temperature > tz->last_temperature)
+> +                       trend = THERMAL_TREND_RAISING;
+> +               else if (tz->temperature < tz->last_temperature)
+> +                       trend = THERMAL_TREND_DROPPING;
+> +               else
+> +                       trend = THERMAL_TREND_STABLE;
+> +       }
+> +
+>         /*
+>          * Above Trip?
+>          * -----------
+> @@ -1091,6 +1105,9 @@ void thermal_zone_device_update(struct thermal_zone_device *tz)
+>                 goto leave;
+>         }
+>
+> +       tz->last_temperature = tz->temperature;
+> +       tz->temperature = temp;
+> +
+>         for (count = 0; count < tz->trips; count++) {
+>                 tz->ops->get_trip_type(tz, count, &trip_type);
+>                 tz->ops->get_trip_temp(tz, count, &trip_temp);
+> @@ -1150,8 +1167,6 @@ void thermal_zone_device_update(struct thermal_zone_device *tz)
+>                 thermal_zone_device_passive(tz, temp, tz->forced_passive,
+>                                             THERMAL_TRIPS_NONE);
+>
+> -       tz->last_temperature = temp;
+> -
+>  leave:
+>         if (tz->passive)
+>                 thermal_zone_device_set_polling(tz, tz->passive_delay);
+> diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+> index a43b12c..a01e3e6 100644
+> --- a/include/linux/thermal.h
+> +++ b/include/linux/thermal.h
+> @@ -44,6 +44,12 @@ enum thermal_trip_type {
+>         THERMAL_TRIP_CRITICAL,
+>  };
+>
+> +enum thermal_trend {
+> +       THERMAL_TREND_STABLE, /* temperature is stable */
+> +       THERMAL_TREND_RAISING, /* temperature is raising */
+> +       THERMAL_TREND_DROPPING, /* temperature is dropping */
+> +};
+> +
+>  struct thermal_zone_device_ops {
+>         int (*bind) (struct thermal_zone_device *,
+>                      struct thermal_cooling_device *);
+> @@ -65,6 +71,8 @@ struct thermal_zone_device_ops {
+>         int (*set_trip_hyst) (struct thermal_zone_device *, int,
+>                               unsigned long);
+>         int (*get_crit_temp) (struct thermal_zone_device *, unsigned long *);
+> +       int (*get_trend) (struct thermal_zone_device *, int,
+> +                         enum thermal_trend *);
+>         int (*notify) (struct thermal_zone_device *, int,
+>                        enum thermal_trip_type);
+>  };
+> @@ -111,6 +119,7 @@ struct thermal_zone_device {
+>         int tc2;
+>         int passive_delay;
+>         int polling_delay;
+> +       int temperature;
+>         int last_temperature;
+>         bool passive;
+>         unsigned int forced_passive;
+> --
+> 1.7.9.5
+>
+
+
+
 -- 
-1.7.9.5
+
+Eduardo Valentin
