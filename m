@@ -1,540 +1,377 @@
-From: Jiang Liu <jiang.liu@huawei.com>
-Subject: Re: [RFC PATCH v2 10/16] ACPIHP: system device hotplug driver skeleton
-Date: Thu, 9 Aug 2012 15:40:40 +0800
-Message-ID: <50236978.70208@huawei.com>
-References: <1344082443-4608-1-git-send-email-jiang.liu@huawei.com> <1344082443-4608-11-git-send-email-jiang.liu@huawei.com> <502362E3.8010901@cn.fujitsu.com>
+From: "Valentin, Eduardo" <eduardo.valentin@ti.com>
+Subject: Re: [PATCH V4 05/13] Thermal: Remove tc1/tc2 in generic thermal layer.
+Date: Thu, 9 Aug 2012 11:05:50 +0300
+Message-ID: <CAGF5oy-bYdxT-x2y=teraXincivSJbRi4qxegAZSsFXXF2mX8Q@mail.gmail.com>
+References: <1343292083-2047-1-git-send-email-rui.zhang@intel.com>
+	<1343292083-2047-6-git-send-email-rui.zhang@intel.com>
+	<CAGF5oy9DMdCFL41dGD8CBq_+VT_dTtsTrVjdTphmmxFdNr2j9g@mail.gmail.com>
+	<1344473874.1682.644.camel@rui.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <502362E3.8010901@cn.fujitsu.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Yinghai Lu <yinghai@kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Tony Luck <tony.luck@intel.com>, Huang Ying <ying.huang@intel.com>, Bob Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Jiang Liu <liuj97@gmail.com>, Hanjun Guo <guohanjun@huawei.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:48030 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755366Ab2HIIGI convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 9 Aug 2012 04:06:08 -0400
+Received: by obqv19 with SMTP id v19so684288obq.16
+        for <linux-acpi@vger.kernel.org>; Thu, 09 Aug 2012 01:05:50 -0700 (PDT)
+In-Reply-To: <1344473874.1682.644.camel@rui.sh.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, R Durgadoss <durgadoss.r@intel.com>, Amit Kachhap <amit.kachhap@linaro.org>, Wei Ni <wni@nvidia.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 
-Hi Tang,
-	Thanks for testing.
-	Currently there's a limitation that you need to insert acpihp_enum driver first.
-Will fix this issue in next version.
-	Regards!
-	Gerry
+Hello,
 
-On 2012-8-9 15:12, Tang Chen wrote:
-> Hi Liu~
-> 
-> I compiled this driver as a module, acpihp_drv. And when I loaded this module, it
-> gave the following error message:
-> 
-> # modprobe acpihp_drv
-> (the command hangs up, no return after 10 min)
-> 
-> #dmesg
-> ......
-> [  126.643350] BUG: unable to handle kernel NULL pointer dereference at 0000000000000078
-> [  126.644007] IP: [<ffffffff814c0cd3>] mutex_lock+0x19/0x37
-> [  126.644007] PGD 105277a067 PUD 104f823067 PMD 0 
-> [  126.644007] Oops: 0002 [#1] SMP 
-> [  126.644007] Modules linked in: acpihp_drv(+) ebtable_nat ebtables ipt_MASQUERADE iptable_nat nf_nat iptable_mangle bridge stp llc sunrpc cpufreq_ondemand acpi_cpufreq freq_table mperf ip6t_REJECT nf_conntrack_ipv6 nf_defrag_ipv6 ip6table_filter ip6_tables ipv6 vhost_net macvtap macvlan tun uinput iTCO_wdt iTCO_vendor_support coretemp kvm_intel kvm crc32c_intel microcode lpc_ich mfd_core pcspkr i2c_i801 i2c_core ioatdma e1000e acpi_memhotplug i7core_edac edac_core igb dca mptsas mptscsih mptbase scsi_transport_sas
-> [  126.644007] CPU 10 
-> [  126.644007] Pid: 2821, comm: modprobe Tainted: G       A     3.6.0-rc1+ #6 FUJITSU-SV PRIMEQUEST 1800E/SB
-> [  126.644007] RIP: 0010:[<ffffffff814c0cd3>]  [<ffffffff814c0cd3>] mutex_lock+0x19/0x37
-> [  126.644007] RSP: 0018:ffff8810589a9de8  EFLAGS: 00010246
-> [  126.644007] RAX: 0000000000000000 RBX: 0000000000000078 RCX: 0000000000000000
-> [  126.644007] RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000078
-> [  126.644007] RBP: ffff8810589a9e08 R08: 0000000000000000 R09: ffff8810589a9d88
-> [  126.644007] R10: 00000000000013e5 R11: 00000000000013e5 R12: ffffffffa01460d0
-> [  126.644007] R13: 0000000000000000 R14: ffffffffa014732b R15: 00000000000000bf
-> [  126.644007] FS:  00007fecb1802700(0000) GS:ffff88105e640000(0000) knlGS:0000000000000000
-> [  126.644007] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> [  126.644007] CR2: 0000000000000078 CR3: 0000001052772000 CR4: 00000000000007e0
-> [  126.644007] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-> [  126.644007] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-> [  126.644007] Process modprobe (pid: 2821, threadinfo ffff8810589a8000, task ffff8810592f8000)
-> [  126.644007] Stack:
-> [  126.644007]  ffff8810589a9e08 ffffffff810be37f ffffffffa0146220 ffffffff81a7b390
-> [  126.644007]  ffff8810589a9e58 ffffffff81317eb3 ffff8810589a9e48 0000000000000000
-> [  126.644007]  ffffffff81a342c0 ffffffff81a342e0 0000000000000000 ffffffffa0146220
-> [  126.644007] Call Trace:
-> [  126.644007]  [<ffffffff810be37f>] ? tracepoint_module_notify+0xd9/0x14a
-> [  126.644007]  [<ffffffff81317eb3>] class_interface_register+0x4a/0xbc
-> [  126.644007]  [<ffffffffa00b8000>] ? 0xffffffffa00b7fff
-> [  126.644007]  [<ffffffffa00b8010>] acpihp_drv_init+0x10/0x12 [acpihp_drv]
-> [  126.644007]  [<ffffffff8100207f>] do_one_initcall+0x7f/0x139
-> [  126.644007]  [<ffffffff81093414>] sys_init_module+0x12d3/0x14e3
-> [  126.644007]  [<ffffffff81264b0d>] ? ddebug_dyndbg_boot_param_cb+0x45/0x45
-> [  126.644007]  [<ffffffff814c9469>] system_call_fastpath+0x16/0x1b
-> [  126.644007] Code: 48 8b 04 25 80 c6 00 00 48 89 43 18 31 c0 5b 5b c9 c3 55 48 89 e5 53 48 83 ec 18 66 66 66 66 90 48 89 fb e8 5a 0c 00 00 48 89 df <f0> ff 0f 79 05 e8 06 ff ff ff 65 48 8b 04 25 80 c6 00 00 48 89 
-> [  126.644007] RIP  [<ffffffff814c0cd3>] mutex_lock+0x19/0x37
-> [  126.644007]  RSP <ffff8810589a9de8>
-> [  126.644007] CR2: 0000000000000078
-> [  129.981335] ---[ end trace da17e9c9de8dd560 ]---
-> [  139.085895] nr_pdflush_threads exported in /proc is scheduled for removal
-> [  139.167394] sysctl: The scan_unevictable_pages sysctl/node-interface has been disabled for lack of a legitimate use case.  If you have one, please send an email to linux-mm@kvack.org.
-> 
-> Looks like it dereferenced a NULL pointer here.
-> May be it was my mistake that I didn't configure the environment correctly.
-> Would you please give me some advice ?
-> 
-> Thanks. :)
-> 
-> 
-> On 08/04/2012 08:13 PM, Jiang Liu wrote:
->> From: Jiang Liu <jiang.liu@huawei.com>
+On Thu, Aug 9, 2012 at 3:57 AM, Zhang Rui <rui.zhang@intel.com> wrote:
+> On =E4=B8=89, 2012-08-08 at 17:06 +0300, Valentin, Eduardo wrote:
+>> Hello Rui,
 >>
->> This patch implements a skeleton for ACPI based system device hotplug driver.
->> This device class driver will be bound to and manage ACPI hotplug slots.
+>> On Thu, Jul 26, 2012 at 11:41 AM, Zhang Rui <rui.zhang@intel.com> wr=
+ote:
+>> > Remove tc1/tc2 in generic thermal layer.
+>> > .get_trend() callback starts to take effect from this patch.
+>> >
+>> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 >>
->> This is the default hotplug driver for ACPI based system device hotplug.
+>> I believe you have to refresh this patch. At least it is not applyin=
+g
+>> on 3.6-rc1. With minor changes I could check it though.
 >>
->> Signed-off-by: Jiang Liu <liuj97@gmail.com>
->> Signed-off-by: Hanjun Guo <guohanjun@huawei.com>
->> ---
->>  drivers/acpi/Kconfig              |   12 ++
->>  drivers/acpi/hotplug/Makefile     |    3 +
->>  drivers/acpi/hotplug/acpihp_drv.h |   62 +++++++
->>  drivers/acpi/hotplug/drv_main.c   |  331 +++++++++++++++++++++++++++++++++++++
->>  4 files changed, 408 insertions(+)
->>  create mode 100644 drivers/acpi/hotplug/acpihp_drv.h
->>  create mode 100644 drivers/acpi/hotplug/drv_main.c
+>> > ---
+>> >  drivers/acpi/thermal.c                   |    5 +----
+>> >  drivers/platform/x86/acerhdf.c           |    2 +-
+>> >  drivers/platform/x86/intel_mid_thermal.c |    2 +-
+>> >  drivers/thermal/spear_thermal.c          |    2 +-
+>> >  drivers/thermal/thermal_sys.c            |   24 ++++++-----------=
+-------
+>> >  include/linux/thermal.h                  |    5 +----
 >>
->> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
->> index c9f7918..89047a3 100644
->> --- a/drivers/acpi/Kconfig
->> +++ b/drivers/acpi/Kconfig
->> @@ -354,6 +354,18 @@ config ACPI_HOTPLUG_ENUM_EJ0
->>  
->>  	  It's the default method to detect ACPI hotplug slots.
->>  
->> +config ACPI_HOTPLUG_DRIVER
->> +	tristate "ACPI Based System Device Hotplug Driver"
->> +	depends on ACPI_HOTPLUG
->> +	default y
->> +	help
->> +	  This driver enables ACPI based system device hotplug, including
->> +	  physical processor, memory device, IO host bridge and computer
->> +	  node etc.
->> +
->> +	  To compile this driver as a module, choose M here:
->> +	  the module will be called acpihp_drv.
->> +
->>  config ACPI_CONTAINER
->>  	tristate "Container and Module Devices (EXPERIMENTAL)"
->>  	depends on EXPERIMENTAL
->> diff --git a/drivers/acpi/hotplug/Makefile b/drivers/acpi/hotplug/Makefile
->> index 25fac24..d69832f 100644
->> --- a/drivers/acpi/hotplug/Makefile
->> +++ b/drivers/acpi/hotplug/Makefile
->> @@ -8,3 +8,6 @@ acpihp-y					= core.o device.o
->>  obj-$(CONFIG_ACPI_HOTPLUG_ENUM)			+= acpihp_enum.o
->>  acpihp_enum-y					= slot_enum.o
->>  acpihp_enum-y					+= slot_enum_ej0.o
->> +
->> +obj-$(CONFIG_ACPI_HOTPLUG_DRIVER)		+= acpihp_drv.o
->> +acpihp_drv-y					= drv_main.o
->> diff --git a/drivers/acpi/hotplug/acpihp_drv.h b/drivers/acpi/hotplug/acpihp_drv.h
->> new file mode 100644
->> index 0000000..18330f7
->> --- /dev/null
->> +++ b/drivers/acpi/hotplug/acpihp_drv.h
->> @@ -0,0 +1,62 @@
->> +/*
->> + * Copyright (C) 2011 Huawei Tech. Co., Ltd.
->> + * Copyright (C) 2011 Jiang Liu <jiang.liu@huawei.com>
->> + * Copyright (C) 2011 Hanjun Guo <guohanjun@huawei.com>
->> + *
->> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License as published by
->> + * the Free Software Foundation; either version 2 of the License, or
->> + * (at your option) any later version.
->> + *
->> + * This program is distributed in the hope that it will be useful,
->> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
->> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->> + * GNU General Public License for more details.
->> + *
->> + * You should have received a copy of the GNU General Public License
->> + * along with this program; if not, write to the Free Software
->> + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
->> + *
->> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
->> + */
->> +
->> +#ifndef	__ACPIHP_DRV_H__
->> +#define	__ACPIHP_DRV_H__
->> +
->> +/* Commands to change state of a hotplug slot */
->> +enum acpihp_drv_cmd {
->> +	ACPIHP_DRV_CMD_NOOP = 0,
->> +	ACPIHP_DRV_CMD_POWERON = 0x1,
->> +	ACPIHP_DRV_CMD_CONNECT = 0x2,
->> +	ACPIHP_DRV_CMD_CONFIGURE = 0x4,
->> +	ACPIHP_DRV_CMD_UNCONFIGURE = 0x8,
->> +	ACPIHP_DRV_CMD_DISCONNECT = 0x10,
->> +	ACPIHP_DRV_CMD_POWEROFF = 0x20,
->> +	ACPIHP_DRV_CMD_CANCEL = 0x40,
->> +	ACPIHP_DRV_CMD_MAX
->> +};
->> +
->> +/* Hotplug operations may be triggered by firmware or OS */
->> +enum acpihp_dev_event {
->> +	ACPIHP_DRV_EVENT_FROM_FW,
->> +	ACPIHP_DRV_EVENT_FROM_OS
->> +};
->> +
->> +struct acpihp_slot_drv {
->> +	enum acpihp_dev_event	event_flag;
->> +	struct mutex		op_mutex; /* Prevent concurrent hotplugs. */
->> +	struct list_head	depend_list; /* Dependency relationship */
->> +	atomic_t		cancel_status;
->> +	atomic_t		cancel_flag;
->> +	struct acpihp_cancel_context	cancel_ctx;
->> +};
->> +
->> +void acpihp_drv_get_data(struct acpihp_slot *slot,
->> +			 struct acpihp_slot_drv **data);
->> +int acpihp_drv_enumerate_devices(struct acpihp_slot *slot);
->> +void acpihp_drv_update_slot_state(struct acpihp_slot *slot);
->> +int acpihp_drv_update_slot_status(struct acpihp_slot *slot);
->> +
->> +#endif	/* __ACPIHP_DRV_H__ */
->> diff --git a/drivers/acpi/hotplug/drv_main.c b/drivers/acpi/hotplug/drv_main.c
->> new file mode 100644
->> index 0000000..538772d
->> --- /dev/null
->> +++ b/drivers/acpi/hotplug/drv_main.c
->> @@ -0,0 +1,331 @@
->> +/*
->> + * Copyright (C) 2011 Huawei Tech. Co., Ltd.
->> + * Copyright (C) 2011 Jiang Liu <jiang.liu@huawei.com>
->> + * Copyright (C) 2011 Hanjun Guo <guohanjun@huawei.com>
->> + *
->> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License as published by
->> + * the Free Software Foundation; either version 2 of the License, or
->> + * (at your option) any later version.
->> + *
->> + * This program is distributed in the hope that it will be useful,
->> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
->> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->> + * GNU General Public License for more details.
->> + *
->> + * You should have received a copy of the GNU General Public License
->> + * along with this program; if not, write to the Free Software
->> + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
->> + *
->> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
->> + */
->> +
->> +#include <linux/kernel.h>
->> +#include <linux/errno.h>
->> +#include <linux/types.h>
->> +#include <linux/list.h>
->> +#include <linux/mutex.h>
->> +#include <linux/kthread.h>
->> +#include <linux/delay.h>
->> +#include <linux/acpi.h>
->> +#include <acpi/acpi_hotplug.h>
->> +#include "acpihp_drv.h"
->> +
->> +static struct class_interface acpihp_drv_interface;
->> +
->> +void acpihp_drv_get_data(struct acpihp_slot *slot,
->> +			 struct acpihp_slot_drv **data)
->> +{
->> +	*data = NULL;
->> +	acpihp_slot_get_drv_data(slot, &acpihp_drv_interface, (void **)data);
->> +}
->> +
->> +/* Update slot state according to state of devices connecting to it. */
->> +void acpihp_drv_update_slot_state(struct acpihp_slot *slot)
->> +{
->> +	enum acpihp_dev_type type;
->> +	enum acpihp_slot_state state;
->> +	struct klist_iter iter;
->> +	struct klist_node *ip;
->> +	struct acpihp_dev_node *dp;
->> +	bool connected = false;
->> +	bool configured = false;
->> +
->> +	if (!acpihp_slot_present(slot)) {
->> +		state = ACPIHP_SLOT_STATE_ABSENT;
->> +		goto out;
->> +	} else if (!acpihp_slot_powered(slot)) {
->> +		state = ACPIHP_SLOT_STATE_PRESENT;
->> +		goto out;
->> +	}
->> +
->> +	for (type = ACPIHP_DEV_TYPE_UNKNOWN;
->> +	     type < ACPIHP_DEV_TYPE_MAX && !configured;
->> +	     type++) {
->> +		klist_iter_init(&slot->dev_lists[type], &iter);
->> +		while ((ip = klist_next(&iter)) != NULL) {
->> +			connected = true;
->> +			dp = container_of(ip, struct acpihp_dev_node, node);
->> +			if (dp->state == DEVICE_STATE_CONFIGURED) {
->> +				configured = true;
->> +				break;
->> +			}
->> +		}
->> +		klist_iter_exit(&iter);
->> +	}
->> +
->> +	if (configured)
->> +		state = ACPIHP_SLOT_STATE_CONFIGURED;
->> +	else if (connected)
->> +		state = ACPIHP_SLOT_STATE_CONNECTED;
->> +	else
->> +		state = ACPIHP_SLOT_STATE_POWERED;
->> +
->> +out:
->> +	acpihp_slot_change_state(slot, state);
->> +}
->> +
->> +/* Update slot state according to status of devices connecting to it. */
->> +int acpihp_drv_update_slot_status(struct acpihp_slot *slot)
->> +{
->> +	int ret = 0;
->> +	enum acpihp_dev_type type;
->> +	struct klist_iter iter;
->> +	struct klist_node *ip;
->> +	struct acpihp_dev_node *np;
->> +	struct acpi_device *dev;
->> +	struct acpihp_dev_info *info;
->> +
->> +	if (!slot)
->> +		return -EINVAL;
->> +
->> +	info = kzalloc(sizeof(*info), GFP_KERNEL);
->> +	if (!info)
->> +		return -ENOMEM;
->> +
->> +	for (type = ACPIHP_DEV_TYPE_MEM; type <= ACPIHP_DEV_TYPE_HOST_BRIDGE;
->> +	     type++) {
->> +		klist_iter_init(&slot->dev_lists[type], &iter);
->> +		while ((ip = klist_next(&iter)) != NULL) {
->> +			np = container_of(ip, struct acpihp_dev_node, node);
->> +			dev = container_of(np->dev, struct acpi_device, dev);
->> +			ret = acpihp_dev_get_info(dev, info);
->> +			if (ret) {
->> +				ACPIHP_DEBUG("fails to get info about %s.\n",
->> +					     dev_name(&dev->dev));
->> +				goto out;
->> +			}
->> +
->> +			if (info->status & ACPIHP_DEV_STATUS_FAULT)
->> +				acpihp_slot_set_flag(slot,
->> +						ACPIHP_SLOT_FLAG_FAULT);
->> +			if (info->status & ACPIHP_DEV_STATUS_IRREMOVABLE)
->> +				acpihp_slot_set_flag(slot,
->> +						ACPIHP_SLOT_FLAG_IRREMOVABLE);
->> +		}
->> +	}
->> +
->> +out:
->> +	kfree(info);
->> +
->> +	return ret;
->> +}
->> +EXPORT_SYMBOL(acpihp_drv_update_slot_status);
->> +
->> +/* Add ACPI device to hotplug slot's device list */
->> +static acpi_status acpihp_drv_enum_device(struct acpi_device *dev, void *argp)
->> +{
->> +	int ret = -ENOMEM;
->> +	acpi_status rv = AE_OK;
->> +	enum acpihp_dev_type type;
->> +	enum acpihp_dev_state state;
->> +	struct acpihp_dev_info *info;
->> +	struct acpihp_slot *slot = (struct acpihp_slot *)argp;
->> +
->> +	if (acpihp_dev_get_type(dev->handle, &type)) {
->> +		ACPIHP_DEBUG("fails to get device type of %s.\n",
->> +			     dev_name(&dev->dev));
->> +		return AE_ERROR;
->> +	} else if (type == ACPIHP_DEV_TYPE_MAX) {
->> +		/*
->> +		 * Some ACPI objects for IO devices, such as PCI/IDE etc, only
->> +		 * implement _ADR instead of _HID/_CID, skip them.
->> +		 */
->> +		return AE_CTRL_DEPTH;
->> +	}
->> +
->> +	info = kzalloc(sizeof(*info), GFP_KERNEL);
->> +	if (info)
->> +		ret = acpihp_dev_get_info(dev, info);
->> +
->> +	if (!ret) {
->> +		if (info->status & ACPIHP_DEV_STATUS_STARTED)
->> +			state = DEVICE_STATE_CONFIGURED;
->> +		else
->> +			state = DEVICE_STATE_CONNECTED;
->> +
->> +		if (info->status & ACPIHP_DEV_STATUS_IRREMOVABLE)
->> +			acpihp_slot_set_flag(slot,
->> +					     ACPIHP_SLOT_FLAG_IRREMOVABLE);
->> +		if (info->status & ACPIHP_DEV_STATUS_FAULT)
->> +			acpihp_slot_set_flag(slot, ACPIHP_SLOT_FLAG_FAULT);
->> +
->> +		if (acpihp_slot_add_device(slot, type, state, &dev->dev)) {
->> +			ACPIHP_DEBUG("fails to add %s to slot %s.\n",
->> +				     dev_name(&dev->dev), slot->name);
->> +			rv = AE_ERROR;
->> +		}
->> +	} else {
->> +		ACPIHP_DEBUG("fails to query device info of %s.\n",
->> +			     dev_name(&dev->dev));
->> +	}
->> +
->> +	kfree(info);
->> +
->> +	return rv;
->> +}
->> +
->> +/*
->> + * Enumerator all devices connecting to a slot and add them onto slot's
->> + * device lists.
->> + */
->> +int acpihp_drv_enumerate_devices(struct acpihp_slot *slot)
->> +{
->> +	return acpihp_walk_devices(slot->handle, acpihp_drv_enum_device, slot);
->> +}
->> +
->> +static void acpihp_drv_remove_devices(struct acpihp_slot *slot)
->> +{
->> +	enum acpihp_dev_type type;
->> +
->> +	for (type = ACPIHP_DEV_TYPE_UNKNOWN; type < ACPIHP_DEV_TYPE_MAX; type++)
->> +		acpihp_remove_device_list(&slot->dev_lists[type]);
->> +}
->> +
->> +/* Callback function for ACPI system event notification. */
->> +static void acpihp_drv_event_handler(acpi_handle handle, u32 event,
->> +				     void *context)
->> +{
->> +	/* TODO: handle ACPI hotplug events */
->> +}
->> +
->> +static acpi_status acpihp_drv_install_handler(struct acpihp_slot *slot)
->> +{
->> +	acpi_status status;
->> +
->> +	status = acpi_install_notify_handler(slot->handle, ACPI_SYSTEM_NOTIFY,
->> +					     acpihp_drv_event_handler, slot);
->> +	ACPIHP_DEBUG("%s to install event handler for %s.\n",
->> +		     ACPI_SUCCESS(status) ? "succeeds" : "fails", slot->name);
->> +
->> +	return status;
->> +}
->> +
->> +static void acpihp_drv_uninstall_handler(struct acpihp_slot *slot)
->> +{
->> +	acpi_status status;
->> +
->> +	status = acpi_remove_notify_handler(slot->handle, ACPI_SYSTEM_NOTIFY,
->> +					    acpihp_drv_event_handler);
->> +	ACPIHP_DEBUG("%s to uninstall event handler for %s.\n",
->> +		ACPI_SUCCESS(status) ? "succeeds" : "fails", slot->name);
->> +}
->> +
->> +static int acpihp_drv_slot_add(struct device *dev, struct class_interface *intf)
->> +{
->> +	struct acpihp_slot_drv *drv_data;
->> +	struct acpihp_slot *slot = container_of(dev, struct acpihp_slot, dev);
->> +
->> +	/*
->> +	 * Try to hold a reference to the slot_ops structure to prevent
->> +	 * the platform specific enumerator driver from unloading.
->> +	 */
->> +	if (!slot->slot_ops || !try_module_get(slot->slot_ops->owner)) {
->> +		ACPIHP_DEBUG("fails to get reference to slot_ops for %s.\n",
->> +			     slot->name);
->> +		return -EINVAL;
->> +	}
->> +
->> +	/* install ACPI event notification handler for slot */
->> +	if (ACPI_FAILURE(acpihp_drv_install_handler(slot))) {
->> +		ACPIHP_DEBUG("fails to install event handler for %s.\n",
->> +			     slot->name);
->> +		module_put(slot->slot_ops->owner);
->> +		return -EBUSY;
->> +	}
->> +
->> +	/* Enumerate all devices if slot is already powered. */
->> +	if (!acpihp_slot_powered(slot))
->> +		ACPIHP_DEBUG("slot %s is powered off.\n", slot->name);
->> +	else if (acpihp_drv_enumerate_devices(slot))
->> +		acpihp_slot_set_flag(slot, ACPIHP_SLOT_FLAG_IRREMOVABLE);
->> +
->> +	acpihp_drv_update_slot_state(slot);
->> +
->> +	drv_data = kzalloc(sizeof(*drv_data), GFP_KERNEL);
->> +	if (drv_data) {
->> +		drv_data->event_flag = ACPIHP_DRV_EVENT_FROM_FW;
->> +		mutex_init(&drv_data->op_mutex);
->> +		INIT_LIST_HEAD(&drv_data->depend_list);
->> +	}
->> +	if (drv_data == NULL ||
->> +	    acpihp_slot_attach_drv_data(slot, intf, (void *)drv_data)) {
->> +		ACPIHP_DEBUG("fails to attach driver data for %s.\n",
->> +			     slot->name);
->> +		acpihp_drv_remove_devices(slot);
->> +		module_put(slot->slot_ops->owner);
->> +		kfree(drv_data);
->> +		return -ENOMEM;
->> +	}
->> +
->> +	ACPIHP_INFO("found hotplug slot %s.\n", slot->full_path);
->> +
->> +	return 0;
->> +}
->> +
->> +static void acpihp_drv_intf_remove(struct device *dev,
->> +				  struct class_interface *intf)
->> +{
->> +	struct acpihp_slot_drv *drv_data = NULL;
->> +	struct acpihp_slot *slot =
->> +			container_of(dev, struct acpihp_slot, dev);
->> +
->> +	ACPIHP_INFO("remove hotplug slot %s.\n", slot->full_path);
->> +
->> +	acpihp_drv_uninstall_handler(slot);
->> +	acpihp_drv_remove_devices(slot);
->> +	acpihp_slot_detach_drv_data(slot, intf, (void **)&drv_data);
->> +	if (drv_data != NULL)
->> +		kfree(drv_data);
->> +
->> +	module_put(slot->slot_ops->owner);
->> +}
->> +
->> +/*
->> + * register a class driver onto the acpihp_slot_class to manage all system
->> + * device hotplug slots.
->> + */
->> +static struct class_interface acpihp_drv_interface = {
->> +	.class		= &acpihp_slot_class,
->> +	.add_dev	= acpihp_drv_slot_add,
->> +	.remove_dev	= acpihp_drv_intf_remove,
->> +};
->> +
->> +static int __init acpihp_drv_init(void)
->> +{
->> +	return class_interface_register(&acpihp_drv_interface);
->> +}
->> +
->> +static void __exit acpihp_drv_exit(void)
->> +{
->> +	class_interface_unregister(&acpihp_drv_interface);
->> +}
->> +
->> +module_init(acpihp_drv_init);
->> +module_exit(acpihp_drv_exit);
->> +
->> +MODULE_LICENSE("GPL v2");
->> +MODULE_AUTHOR("Jiang Liu <jiang.liu@huawei.com>");
->> +MODULE_AUTHOR("Hanjun Guo <guohanjun@huawei.com>");
-> 
+>> Again, simple thing here is that it would be good if you include in
+>> your patch the change on omap-thermal-common.c:
+>> drivers/staging/omap-thermal/omap-thermal-common.c: In function
+>> 'omap_thermal_expose_sensor':
+>> drivers/staging/omap-thermal/omap-thermal-common.c:251: error: too
+>> many arguments to function 'thermal_zone_device_register'
+>> make[3]: *** [drivers/staging/omap-thermal/omap-thermal-common.o] Er=
+ror 1
+>> make[2]: *** [drivers/staging/omap-thermal] Error 2
+>> make[1]: *** [drivers/staging] Error 2
+>> make[1]: *** Waiting for unfinished jobs....
+>>
+>> And looks like you missed the psy_register_thermal (power_supply_cor=
+e.c):
+>>
+>> drivers/power/power_supply_core.c: In function 'psy_register_thermal=
+':
+>> drivers/power/power_supply_core.c:204: error: too many arguments to
+>> function 'thermal_zone_device_register'
+>> make[2]: *** [drivers/power/power_supply_core.o] Error 1
+>> make[1]: *** [drivers/power] Error 2
+>> make[1]: *** Waiting for unfinished jobs....
+>> make: *** [drivers] Error 2
+>> make: *** Waiting for unfinished jobs....
+>>
+>>
+>> FYR:
+>> diff --git a/drivers/power/power_supply_core.c
+>> b/drivers/power/power_supply_core.c
+>> index 08cc8a3..2436f13 100644
+>> --- a/drivers/power/power_supply_core.c
+>> +++ b/drivers/power/power_supply_core.c
+>> @@ -201,7 +201,7 @@ static int psy_register_thermal(struct power_sup=
+ply *psy)
+>>         for (i =3D 0; i < psy->num_properties; i++) {
+>>                 if (psy->properties[i] =3D=3D POWER_SUPPLY_PROP_TEMP=
+) {
+>>                         psy->tzd =3D thermal_zone_device_register(ps=
+y->name, 0, 0,
+>> -                                       psy, &psy_tzd_ops, 0, 0, 0, =
+0);
+>> +                                       psy, &psy_tzd_ops, 0, 0);
+>>                         if (IS_ERR(psy->tzd))
+>>                                 return PTR_ERR(psy->tzd);
+>>                         break;
+>
+> I have fixed this one in my git tree.
+>
+>> diff --git a/drivers/staging/omap-thermal/omap-thermal-common.c
+>> b/drivers/staging/omap-thermal/omap-thermal-common.c
+>> index c1f00c6..b4cd6cc 100644
+>> --- a/drivers/staging/omap-thermal/omap-thermal-common.c
+>> +++ b/drivers/staging/omap-thermal/omap-thermal-common.c
+>> @@ -248,7 +248,7 @@ int omap_thermal_expose_sensor(struct omap_bandg=
+ap
+>> *bg_ptr, int id,
+>>         /* Create thermal zone */
+>>         data->omap_thermal =3D thermal_zone_device_register(domain,
+>>                                 OMAP_TRIP_NUMBER, 0, data, &omap_the=
+rmal_ops,
+>> -                               0, FAST_TEMP_MONITORING_RATE, 0, 0);
+>> +                               0, FAST_TEMP_MONITORING_RATE);
+> hmm, FAST_TEMP_MONITORING_RATE is the polling frequency and you put i=
+t
+> in the wrong place in your original code, right?
+
+Yeah, you are right. That was a bug.
+
+>
+>>         if (IS_ERR_OR_NULL(data->omap_thermal)) {
+>>                 dev_err(bg_ptr->dev, "thermal zone device is NULL\n"=
+);
+>>                 return PTR_ERR(data->omap_thermal);
+>>
+> I missed this one. :)
+> I'll fixed it in my tree.
+>
+> thanks,
+> rui
+>> Apart from the compilation issues and the needed patch refresh, I am
+>> good with the patch. And thanks for pushing this forward.
+>>
+>> >  6 files changed, 11 insertions(+), 29 deletions(-)
+>> >
+>> > diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+>> > index 0c49e42..0c755d2 100644
+>> > --- a/drivers/acpi/thermal.c
+>> > +++ b/drivers/acpi/thermal.c
+>> > @@ -895,15 +895,12 @@ static int acpi_thermal_register_thermal_zon=
+e(struct acpi_thermal *tz)
+>> >                 tz->thermal_zone =3D
+>> >                         thermal_zone_device_register("acpitz", tri=
+ps, 0, tz,
+>> >                                                      &acpi_thermal=
+_zone_ops,
+>> > -                                                    tz->trips.pas=
+sive.tc1,
+>> > -                                                    tz->trips.pas=
+sive.tc2,
+>> >                                                      tz->trips.pas=
+sive.tsp*100,
+>> >                                                      tz->polling_f=
+requency*100);
+>> >         else
+>> >                 tz->thermal_zone =3D
+>> >                         thermal_zone_device_register("acpitz", tri=
+ps, 0, tz,
+>> > -                                                    &acpi_thermal=
+_zone_ops,
+>> > -                                                    0, 0, 0,
+>> > +                                                    &acpi_thermal=
+_zone_ops, 0,
+>> >                                                      tz->polling_f=
+requency*100);
+>> >         if (IS_ERR(tz->thermal_zone))
+>> >                 return -ENODEV;
+>> > diff --git a/drivers/platform/x86/acerhdf.c b/drivers/platform/x86=
+/acerhdf.c
+>> > index a207466..84c5688 100644
+>> > --- a/drivers/platform/x86/acerhdf.c
+>> > +++ b/drivers/platform/x86/acerhdf.c
+>> > @@ -662,7 +662,7 @@ static int acerhdf_register_thermal(void)
+>> >                 return -EINVAL;
+>> >
+>> >         thz_dev =3D thermal_zone_device_register("acerhdf", 1, 0, =
+NULL,
+>> > -                                             &acerhdf_dev_ops, 0,=
+ 0, 0,
+>> > +                                             &acerhdf_dev_ops, 0,
+>> >                                               (kernelmode) ? inter=
+val*1000 : 0);
+>> >         if (IS_ERR(thz_dev))
+>> >                 return -EINVAL;
+>> > diff --git a/drivers/platform/x86/intel_mid_thermal.c b/drivers/pl=
+atform/x86/intel_mid_thermal.c
+>> > index 2b2c212..6e309dd 100644
+>> > --- a/drivers/platform/x86/intel_mid_thermal.c
+>> > +++ b/drivers/platform/x86/intel_mid_thermal.c
+>> > @@ -499,7 +499,7 @@ static int mid_thermal_probe(struct platform_d=
+evice *pdev)
+>> >                         goto err;
+>> >                 }
+>> >                 pinfo->tzd[i] =3D thermal_zone_device_register(nam=
+e[i],
+>> > -                               0, 0, td_info, &tzd_ops, 0, 0, 0, =
+0);
+>> > +                               0, 0, td_info, &tzd_ops, 0, 0);
+>> >                 if (IS_ERR(pinfo->tzd[i])) {
+>> >                         kfree(td_info);
+>> >                         ret =3D PTR_ERR(pinfo->tzd[i]);
+>> > diff --git a/drivers/thermal/spear_thermal.c b/drivers/thermal/spe=
+ar_thermal.c
+>> > index 69a55d4..b55840a 100644
+>> > --- a/drivers/thermal/spear_thermal.c
+>> > +++ b/drivers/thermal/spear_thermal.c
+>> > @@ -148,7 +148,7 @@ static int spear_thermal_probe(struct platform=
+_device *pdev)
+>> >         writel_relaxed(stdev->flags, stdev->thermal_base);
+>> >
+>> >         spear_thermal =3D thermal_zone_device_register("spear_ther=
+mal", 0, 0,
+>> > -                               stdev, &ops, 0, 0, 0, 0);
+>> > +                               stdev, &ops, 0, 0);
+>> >         if (IS_ERR(spear_thermal)) {
+>> >                 dev_err(&pdev->dev, "thermal zone device is NULL\n=
+");
+>> >                 ret =3D PTR_ERR(spear_thermal);
+>> > diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/therm=
+al_sys.c
+>> > index 68c93d4..a70ed4c 100644
+>> > --- a/drivers/thermal/thermal_sys.c
+>> > +++ b/drivers/thermal/thermal_sys.c
+>> > @@ -335,9 +335,6 @@ passive_store(struct device *dev, struct devic=
+e_attribute *attr,
+>> >                 tz->passive_delay =3D 0;
+>> >         }
+>> >
+>> > -       tz->tc1 =3D 1;
+>> > -       tz->tc2 =3D 1;
+>> > -
+>> >         tz->forced_passive =3D state;
+>> >
+>> >         thermal_zone_device_update(tz);
+>> > @@ -718,13 +715,12 @@ static void thermal_zone_device_set_polling(=
+struct thermal_zone_device *tz,
+>> >  static void thermal_zone_device_passive(struct thermal_zone_devic=
+e *tz,
+>> >                                         int temp, int trip_temp, i=
+nt trip)
+>> >  {
+>> > -       int trend =3D 0;
+>> > +       enum thermal_trend trend;
+>> >         struct thermal_cooling_device_instance *instance;
+>> >         struct thermal_cooling_device *cdev;
+>> >         long state, max_state;
+>> >
+>> > -       if (!tz->ops->get_trend ||
+>> > -           tz->ops->get_trend(tz, trip, (enum thermal_trend *)&tr=
+end)) {
+>> > +       if (!tz->ops->get_trend || tz->ops->get_trend(tz, trip, &t=
+rend)) {
+>> >                 /*
+>> >                  * compare the current temperature and previous te=
+mperature
+>> >                  * to get the thermal trend, if no special require=
+ment
+>> > @@ -747,11 +743,8 @@ static void thermal_zone_device_passive(struc=
+t thermal_zone_device *tz,
+>> >         if (temp >=3D trip_temp) {
+>> >                 tz->passive =3D true;
+>> >
+>> > -               trend =3D (tz->tc1 * (temp - tz->last_temperature)=
+) +
+>> > -                       (tz->tc2 * (temp - trip_temp));
+>> > -
+>> >                 /* Heating up? */
+>> > -               if (trend > 0) {
+>> > +               if (trend =3D=3D THERMAL_TREND_RAISING) {
+>> >                         list_for_each_entry(instance, &tz->cooling=
+_devices,
+>> >                                             node) {
+>> >                                 if (instance->trip !=3D trip)
+>> > @@ -762,7 +755,7 @@ static void thermal_zone_device_passive(struct=
+ thermal_zone_device *tz,
+>> >                                 if (state++ < max_state)
+>> >                                         cdev->ops->set_cur_state(c=
+dev, state);
+>> >                         }
+>> > -               } else if (trend < 0) { /* Cooling off? */
+>> > +               } else if (trend =3D=3D THERMAL_TREND_DROPPING) { =
+/* Cooling off? */
+>> >                         list_for_each_entry(instance, &tz->cooling=
+_devices,
+>> >                                             node) {
+>> >                                 if (instance->trip !=3D trip)
+>> > @@ -1288,8 +1281,6 @@ static void remove_trip_attrs(struct thermal=
+_zone_device *tz)
+>> >   * @mask:      a bit string indicating the writeablility of trip =
+points
+>> >   * @devdata:   private device data
+>> >   * @ops:       standard thermal zone device callbacks
+>> > - * @tc1:       thermal coefficient 1 for passive calculations
+>> > - * @tc2:       thermal coefficient 2 for passive calculations
+>> >   * @passive_delay: number of milliseconds to wait between polls w=
+hen
+>> >   *                performing passive cooling
+>> >   * @polling_delay: number of milliseconds to wait between polls w=
+hen checking
+>> > @@ -1297,13 +1288,12 @@ static void remove_trip_attrs(struct therm=
+al_zone_device *tz)
+>> >   *                driven systems)
+>> >   *
+>> >   * thermal_zone_device_unregister() must be called when the devic=
+e is no
+>> > - * longer needed. The passive cooling formula uses tc1 and tc2 as=
+ described in
+>> > - * section 11.1.5.1 of the ACPI specification 3.0.
+>> > + * longer needed. The passive cooling depends on the .get_trend()=
+ return value.
+>> >   */
+>> >  struct thermal_zone_device *thermal_zone_device_register(char *ty=
+pe,
+>> >         int trips, int mask, void *devdata,
+>> >         const struct thermal_zone_device_ops *ops,
+>> > -       int tc1, int tc2, int passive_delay, int polling_delay)
+>> > +       int passive_delay, int polling_delay)
+>> >  {
+>> >         struct thermal_zone_device *tz;
+>> >         struct thermal_cooling_device *pos;
+>> > @@ -1339,8 +1329,6 @@ struct thermal_zone_device *thermal_zone_dev=
+ice_register(char *type,
+>> >         tz->device.class =3D &thermal_class;
+>> >         tz->devdata =3D devdata;
+>> >         tz->trips =3D trips;
+>> > -       tz->tc1 =3D tc1;
+>> > -       tz->tc2 =3D tc2;
+>> >         tz->passive_delay =3D passive_delay;
+>> >         tz->polling_delay =3D polling_delay;
+>> >
+>> > diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+>> > index a01e3e6..d18dcf6 100644
+>> > --- a/include/linux/thermal.h
+>> > +++ b/include/linux/thermal.h
+>> > @@ -115,8 +115,6 @@ struct thermal_zone_device {
+>> >         struct thermal_attr *trip_hyst_attrs;
+>> >         void *devdata;
+>> >         int trips;
+>> > -       int tc1;
+>> > -       int tc2;
+>> >         int passive_delay;
+>> >         int polling_delay;
+>> >         int temperature;
+>> > @@ -163,8 +161,7 @@ enum {
+>> >  #define THERMAL_GENL_CMD_MAX (__THERMAL_GENL_CMD_MAX - 1)
+>> >
+>> >  struct thermal_zone_device *thermal_zone_device_register(char *, =
+int, int,
+>> > -               void *, const struct thermal_zone_device_ops *, in=
+t tc1,
+>> > -               int tc2, int passive_freq, int polling_freq);
+>> > +               void *, const struct thermal_zone_device_ops *, in=
+t, int);
+>> >  void thermal_zone_device_unregister(struct thermal_zone_device *)=
+;
+>> >
+>> >  int thermal_zone_bind_cooling_device(struct thermal_zone_device *=
+, int,
+>> > --
+>> > 1.7.9.5
+>> >
+>>
+>>
+>>
+>
+>
+
+
+
+--=20
+
+Eduardo Valentin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
