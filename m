@@ -1,77 +1,163 @@
 From: Durgadoss R <durgadoss.r@intel.com>
-Subject: [PATCH 00/13] Thermal Framework Enhancements
-Date: Thu,  9 Aug 2012 18:15:52 +0530
-Message-ID: <1344516365-7230-1-git-send-email-durgadoss.r@intel.com>
+Subject: [PATCH 01/13] Thermal: Refactor thermal.h file
+Date: Thu,  9 Aug 2012 18:15:53 +0530
+Message-ID: <1344516365-7230-2-git-send-email-durgadoss.r@intel.com>
+References: <1344516365-7230-1-git-send-email-durgadoss.r@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga02.intel.com ([134.134.136.20]:14321 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932262Ab2HIMqJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 9 Aug 2012 08:46:09 -0400
+	id S932422Ab2HIMqM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 9 Aug 2012 08:46:12 -0400
+In-Reply-To: <1344516365-7230-1-git-send-email-durgadoss.r@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org, rui.zhang@intel.com, rjw@sisk.pl, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 Cc: eduardo.valentin@ti.com, amit.kachhap@linaro.org, wni@nvidia.com, Durgadoss R <durgadoss.r@intel.com>
 
-This patch series attempts to enhance the thermal framework
-by adding some simple governors/throttling algorithms.
+This file rearranges the code in thermal.h file,
+in the following order, so that it is easy to
+read/maintain.
+1. All #defines
+2. All enums
+3. All fops structures
+4. All device structures
+5. All function declarations
 
-These patches are based on Rui's tree here: (branch - thermal)
-git://git.kernel.org/pub/scm/linux/kernel/git/rzhang/linux.git
+Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
+---
+ include/linux/thermal.h |   78 ++++++++++++++++++++++++++---------------------
+ 1 file changed, 43 insertions(+), 35 deletions(-)
 
-Patch 1: Refactor thermal.h so that it is easy to read/maintain
-Patch 2: Move data structures that need to be visible to thermal.h
-Patch 3: Adds some APIs to thermal_sys.c
-Patch 4: Adds required platform layer information to thermal.h
-Patch 5: Adds code to thermal_sys, that can retrieve platform data
-         (if provided) for a thermal zone
-Patch 6: Creates a policy sysfs attribute (RO, for now)
-Patch 7: Modifies the bind/unbind logic based on the platform data
-	 With this modification, the bind/unbind can work with or
-	 without platform data
-Patch 8: Introduces a fair_share governor. This throttles the
-	 cooling_devices according to their weights. The weights
-	 in turn describe the effectiveness of a particular
-	 cooling device in cooling a thermal zone.
-Patch 9: Introduce step_wise governor
-	 This throttles/de-throttles the cooling devices one
-	 step at a time. This is exactly similar to the code
-	 we have in thermal_zone_device_update function. The
-	 intention is to move all 'throttling logic' related
-	 code outside thermal_sys.c and keep them separate.
-Patch 10: Removes all throttling code outside thermal_sys.c
-Patch 11: Adds a notification API so that thermal sensor drivers
-	  can notify the framework of any thermal events.
-Patch 12: Adds documentation to Documentation/thermal/sysfs-api.txt
-Patch 13: Shows some sample code on how to provide platform level
-	  thermal data. This patch is not for merge.
-
-Durgadoss R (13):
-  Thermal: Refactor thermal.h file
-  Thermal: Move thermal_instance to thermal.h
-  Thermal: Add get trend, get instance API's to thermal_sys
-  Thermal: Add platform level information to thermal.h
-  Thermal: Obtain platform data for thermal zone
-  Thermal: Add a policy sysfs attribute
-  Thermal: Update binding logic based on platform data
-  Thermal: Introduce fair_share thermal governor
-  Thermal: Introduce a step_wise thermal governor
-  Thermal: Remove throttling logic out of thermal_sys.c
-  Thermal: Add a notification API
-  Thermal: Add documentation for platform layer data
-  Thermal: Platform layer changes to provide thermal data
-
- Documentation/thermal/sysfs-api.txt |   30 ++
- arch/x86/platform/mrst/mrst.c       |   42 +++
- drivers/thermal/Kconfig             |   12 +
- drivers/thermal/Makefile            |    4 +-
- drivers/thermal/fair_share.c        |  128 +++++++
- drivers/thermal/step_wise.c         |  204 +++++++++++
- drivers/thermal/thermal_sys.c       |  673 +++++++++++++++++++++--------------
- include/linux/thermal.h             |  167 +++++++--
- 8 files changed, 963 insertions(+), 297 deletions(-)
- create mode 100644 drivers/thermal/fair_share.c
- create mode 100644 drivers/thermal/step_wise.c
-
+diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+index 91b3481..8611e3e 100644
+--- a/include/linux/thermal.h
++++ b/include/linux/thermal.h
+@@ -29,6 +29,23 @@
+ #include <linux/device.h>
+ #include <linux/workqueue.h>
+ 
++#define THERMAL_TRIPS_NONE	-1
++#define THERMAL_MAX_TRIPS	12
++#define THERMAL_NAME_LENGTH	20
++
++/* No upper/lower limit requirement */
++#define THERMAL_NO_LIMIT	-1UL
++
++/* Unit conversion macros */
++#define KELVIN_TO_CELSIUS(t)	(long)(((long)t-2732 >= 0) ?	\
++				((long)t-2732+5)/10 : ((long)t-2732-5)/10)
++#define CELSIUS_TO_KELVIN(t)	((t)*10+2732)
++
++/* Adding event notification support elements */
++#define THERMAL_GENL_FAMILY_NAME                "thermal_event"
++#define THERMAL_GENL_VERSION                    0x01
++#define THERMAL_GENL_MCAST_GROUP_NAME           "thermal_mc_group"
++
+ struct thermal_zone_device;
+ struct thermal_cooling_device;
+ 
+@@ -50,6 +67,30 @@ enum thermal_trend {
+ 	THERMAL_TREND_DROPPING, /* temperature is dropping */
+ };
+ 
++/* Events supported by Thermal Netlink */
++enum events {
++	THERMAL_AUX0,
++	THERMAL_AUX1,
++	THERMAL_CRITICAL,
++	THERMAL_DEV_FAULT,
++};
++
++/* attributes of thermal_genl_family */
++enum {
++	THERMAL_GENL_ATTR_UNSPEC,
++	THERMAL_GENL_ATTR_EVENT,
++	__THERMAL_GENL_ATTR_MAX,
++};
++#define THERMAL_GENL_ATTR_MAX (__THERMAL_GENL_ATTR_MAX - 1)
++
++/* commands supported by the thermal_genl_family */
++enum {
++	THERMAL_GENL_CMD_UNSPEC,
++	THERMAL_GENL_CMD_EVENT,
++	__THERMAL_GENL_CMD_MAX,
++};
++#define THERMAL_GENL_CMD_MAX (__THERMAL_GENL_CMD_MAX - 1)
++
+ struct thermal_zone_device_ops {
+ 	int (*bind) (struct thermal_zone_device *,
+ 		     struct thermal_cooling_device *);
+@@ -83,11 +124,6 @@ struct thermal_cooling_device_ops {
+ 	int (*set_cur_state) (struct thermal_cooling_device *, unsigned long);
+ };
+ 
+-#define THERMAL_NO_LIMIT -1UL /* no upper/lower limit requirement */
+-
+-#define THERMAL_TRIPS_NONE -1
+-#define THERMAL_MAX_TRIPS 12
+-#define THERMAL_NAME_LENGTH 20
+ struct thermal_cooling_device {
+ 	int id;
+ 	char type[THERMAL_NAME_LENGTH];
+@@ -100,10 +136,6 @@ struct thermal_cooling_device {
+ 	struct list_head node;
+ };
+ 
+-#define KELVIN_TO_CELSIUS(t)	(long)(((long)t-2732 >= 0) ?	\
+-				((long)t-2732+5)/10 : ((long)t-2732-5)/10)
+-#define CELSIUS_TO_KELVIN(t)	((t)*10+2732)
+-
+ struct thermal_attr {
+ 	struct device_attribute attr;
+ 	char name[THERMAL_NAME_LENGTH];
+@@ -131,38 +163,13 @@ struct thermal_zone_device {
+ 	struct list_head node;
+ 	struct delayed_work poll_queue;
+ };
+-/* Adding event notification support elements */
+-#define THERMAL_GENL_FAMILY_NAME                "thermal_event"
+-#define THERMAL_GENL_VERSION                    0x01
+-#define THERMAL_GENL_MCAST_GROUP_NAME           "thermal_mc_group"
+-
+-enum events {
+-	THERMAL_AUX0,
+-	THERMAL_AUX1,
+-	THERMAL_CRITICAL,
+-	THERMAL_DEV_FAULT,
+-};
+ 
+ struct thermal_genl_event {
+ 	u32 orig;
+ 	enum events event;
+ };
+-/* attributes of thermal_genl_family */
+-enum {
+-	THERMAL_GENL_ATTR_UNSPEC,
+-	THERMAL_GENL_ATTR_EVENT,
+-	__THERMAL_GENL_ATTR_MAX,
+-};
+-#define THERMAL_GENL_ATTR_MAX (__THERMAL_GENL_ATTR_MAX - 1)
+-
+-/* commands supported by the thermal_genl_family */
+-enum {
+-	THERMAL_GENL_CMD_UNSPEC,
+-	THERMAL_GENL_CMD_EVENT,
+-	__THERMAL_GENL_CMD_MAX,
+-};
+-#define THERMAL_GENL_CMD_MAX (__THERMAL_GENL_CMD_MAX - 1)
+ 
++/* Function declarations */
+ struct thermal_zone_device *thermal_zone_device_register(const char *, int, int,
+ 		void *, const struct thermal_zone_device_ops *, int, int);
+ void thermal_zone_device_unregister(struct thermal_zone_device *);
+@@ -173,6 +180,7 @@ int thermal_zone_bind_cooling_device(struct thermal_zone_device *, int,
+ int thermal_zone_unbind_cooling_device(struct thermal_zone_device *, int,
+ 				       struct thermal_cooling_device *);
+ void thermal_zone_device_update(struct thermal_zone_device *);
++
+ struct thermal_cooling_device *thermal_cooling_device_register(char *, void *,
+ 		const struct thermal_cooling_device_ops *);
+ void thermal_cooling_device_unregister(struct thermal_cooling_device *);
 -- 
 1.7.9.5
 
