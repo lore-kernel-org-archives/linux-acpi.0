@@ -1,121 +1,114 @@
 From: Durgadoss R <durgadoss.r@intel.com>
-Subject: [PATCH 04/13] Thermal: Add platform level information to thermal.h
-Date: Thu,  9 Aug 2012 18:15:56 +0530
-Message-ID: <1344516365-7230-5-git-send-email-durgadoss.r@intel.com>
+Subject: [PATCH 03/13] Thermal: Add get trend, get instance API's to thermal_sys
+Date: Thu,  9 Aug 2012 18:15:55 +0530
+Message-ID: <1344516365-7230-4-git-send-email-durgadoss.r@intel.com>
 References: <1344516365-7230-1-git-send-email-durgadoss.r@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga02.intel.com ([134.134.136.20]:14321 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932467Ab2HIMqX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 9 Aug 2012 08:46:23 -0400
+	id S932467Ab2HIMqU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 9 Aug 2012 08:46:20 -0400
 In-Reply-To: <1344516365-7230-1-git-send-email-durgadoss.r@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org, rui.zhang@intel.com, rjw@sisk.pl, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 Cc: eduardo.valentin@ti.com, amit.kachhap@linaro.org, wni@nvidia.com, Durgadoss R <durgadoss.r@intel.com>
 
-This patch creates a structure to hold a thermal zone's
-platform level info, and also defines an extern function to
-retrieve zone parameters from thermal_sys.c.
+This patch adds the following API's to thermal_sys.c, that
+can be used by other Thermal drivers.
+ * get_tz_trend: obtain the trend of the given thermal zone
+ * get_cdev_by_name: obtain cdev pointer given its name
+ * get_thermal_instance: obtain the instance corresponding
+   to the given tz, cdev and the trip point.
 
 Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
 ---
- drivers/thermal/thermal_sys.c |    3 +++
- include/linux/thermal.h       |   43 +++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 46 insertions(+)
+ drivers/thermal/thermal_sys.c |   59 +++++++++++++++++++++++++++++++++++++++++
+ include/linux/thermal.h       |    5 ++++
+ 2 files changed, 64 insertions(+)
 
 diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
-index 998c16e..f043cd6 100644
+index a0e20f9..998c16e 100644
 --- a/drivers/thermal/thermal_sys.c
 +++ b/drivers/thermal/thermal_sys.c
-@@ -49,6 +49,9 @@ static LIST_HEAD(thermal_tz_list);
- static LIST_HEAD(thermal_cdev_list);
- static DEFINE_MUTEX(thermal_list_lock);
+@@ -80,6 +80,65 @@ static void release_idr(struct idr *idr, struct mutex *lock, int id)
+ 		mutex_unlock(lock);
+ }
  
-+int (*get_platform_thermal_params)(struct thermal_zone_device *);
-+EXPORT_SYMBOL(get_platform_thermal_params);
++int get_tz_trend(struct thermal_zone_device *tz, int trip)
++{
++	enum thermal_trend trend;
 +
- static int get_idr(struct idr *idr, struct mutex *lock, int *id)
- {
- 	int err;
++	if (!tz->ops->get_trend || tz->ops->get_trend(tz, trip, &trend)) {
++		if (tz->temperature > tz->last_temperature)
++			trend = THERMAL_TREND_RAISING;
++		else if (tz->temperature < tz->last_temperature)
++			trend = THERMAL_TREND_DROPPING;
++		else
++			trend = THERMAL_TREND_STABLE;
++	}
++
++	return trend;
++}
++EXPORT_SYMBOL(get_tz_trend);
++
++struct thermal_cooling_device *get_cdev_by_name(const char *name)
++{
++	struct thermal_cooling_device *pos;
++	struct thermal_cooling_device *target_cdev = NULL;
++
++	mutex_lock(&thermal_list_lock);
++
++	list_for_each_entry(pos, &thermal_cdev_list, node) {
++		if (!strcmp(pos->type, name)) {
++			target_cdev = pos;
++			break;
++		}
++	}
++	mutex_unlock(&thermal_list_lock);
++
++	return target_cdev;
++}
++EXPORT_SYMBOL(get_cdev_by_name);
++
++struct thermal_instance *get_thermal_instance(struct thermal_zone_device *tz,
++			struct thermal_cooling_device *cdev, int trip)
++{
++	struct thermal_instance *pos = NULL;
++	struct thermal_instance *target_instance = NULL;
++
++	mutex_lock(&tz->lock);
++	mutex_lock(&cdev->lock);
++
++	list_for_each_entry(pos, &tz->thermal_instances, tz_node) {
++		if (pos->tz == tz && pos->trip == trip && pos->cdev == cdev) {
++			target_instance = pos;
++			break;
++		}
++	}
++
++	mutex_unlock(&cdev->lock);
++	mutex_unlock(&tz->lock);
++
++	return target_instance;
++}
++EXPORT_SYMBOL(get_thermal_instance);
++
+ /* sys I/F for thermal zone */
+ 
+ #define to_thermal_zone(_dev) \
 diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-index 757a007..f9ce1e2 100644
+index f25df23..757a007 100644
 --- a/include/linux/thermal.h
 +++ b/include/linux/thermal.h
-@@ -33,6 +33,8 @@
- #define THERMAL_MAX_TRIPS	12
- #define THERMAL_NAME_LENGTH	20
+@@ -208,6 +208,11 @@ struct thermal_cooling_device *thermal_cooling_device_register(char *, void *,
+ 		const struct thermal_cooling_device_ops *);
+ void thermal_cooling_device_unregister(struct thermal_cooling_device *);
  
-+#define MAX_COOLING_DEVS	THERMAL_MAX_TRIPS
-+
- /* Initial state of a cooling device during binding */
- #define THERMAL_NO_TARGET	-1UL
- 
-@@ -49,6 +51,11 @@
- #define THERMAL_GENL_VERSION                    0x01
- #define THERMAL_GENL_MCAST_GROUP_NAME           "thermal_mc_group"
- 
-+/* Thermal policies */
-+#define THERMAL_USER_SPACE	0
-+#define THERMAL_FAIR_SHARE	1
-+#define	THERMAL_STEP_WISE	2
-+
- struct thermal_zone_device;
- struct thermal_cooling_device;
- 
-@@ -165,6 +172,7 @@ struct thermal_zone_device {
- 	struct mutex lock; /* protect thermal_instances list */
- 	struct list_head node;
- 	struct delayed_work poll_queue;
-+	struct thermal_zone_params *tzp;
- };
- 
- /*
-@@ -187,6 +195,31 @@ struct thermal_instance {
- 	struct list_head cdev_node; /* node in cdev->thermal_instances */
- };
- 
-+/* Platform level parameters associated with a thermal zone */
-+struct thermal_zone_params {
-+	char *thermal_zone_name;
-+	int throttle_policy;
-+
-+	/* Number of cooling devices associated with this thermal zone */
-+	int num_cdevs;
-+	char *cdevs_name[MAX_COOLING_DEVS];
-+
-+	/*
-+	 * This is a measure of 'how effectively these devices can
-+	 * cool 'this' thermal zone. The shall be determined by platform
-+	 * characterization. This is on a 'percentage' scale.
-+	 * See Documentation/thermal/sysfs-api.txt for more information.
-+	 */
-+	int weights[MAX_COOLING_DEVS];
-+
-+	/*
-+	 * This is a bit mask that gives the binding relation between this
-+	 * thermal zone and cdev, for a particular trip point.
-+	 * See Documentation/thermal/sysfs-api.txt for more information.
-+	 */
-+	int trip_mask[MAX_COOLING_DEVS];
-+};
-+
- struct thermal_genl_event {
- 	u32 orig;
- 	enum events event;
-@@ -213,6 +246,16 @@ struct thermal_cooling_device *get_cdev_by_name(const char *);
- struct thermal_instance *get_thermal_instance(struct thermal_zone_device *,
- 		struct thermal_cooling_device *, int);
- 
-+/*
-+ * The platform layer shall define a 'function' that provides the
-+ * parameters for all thermal zones in the platform. This pointer
-+ * should point to that 'function'.
-+ *
-+ * In thermal_zone_device_register() we update the parameters
-+ * for the particular thermal zone.
-+ */
-+extern int (*get_platform_thermal_params)(struct thermal_zone_device *);
++int get_tz_trend(struct thermal_zone_device *, int);
++struct thermal_cooling_device *get_cdev_by_name(const char *);
++struct thermal_instance *get_thermal_instance(struct thermal_zone_device *,
++		struct thermal_cooling_device *, int);
 +
  #ifdef CONFIG_NET
  extern int thermal_generate_netlink_event(u32 orig, enum events event);
