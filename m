@@ -1,267 +1,116 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH RESEND 15/16] Thermal: Unify the code for both active
- and passive cooling
-Date: Thu, 09 Aug 2012 16:32:54 +0800
-Message-ID: <1344501174.1682.693.camel@rui.sh.intel.com>
-References: <1343182273-32096-1-git-send-email-rui.zhang@intel.com>
-	 <1343182273-32096-16-git-send-email-rui.zhang@intel.com>
-	 <CAGF5oy8K=5UL6a7nxSMtVO0McecuhPwoCn2x9kr1O_XEoANO-g@mail.gmail.com>
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: Re: [RFC PATCH v2 10/16] ACPIHP: system device hotplug driver skeleton
+Date: Thu, 09 Aug 2012 16:41:36 +0800
+Message-ID: <502377C0.70401@cn.fujitsu.com>
+References: <1344082443-4608-1-git-send-email-jiang.liu@huawei.com> <1344082443-4608-11-git-send-email-jiang.liu@huawei.com> <502362E3.8010901@cn.fujitsu.com> <50236978.70208@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:59950 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756302Ab2HIIbq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 9 Aug 2012 04:31:46 -0400
-In-Reply-To: <CAGF5oy8K=5UL6a7nxSMtVO0McecuhPwoCn2x9kr1O_XEoANO-g@mail.gmail.com>
+Received: from cn.fujitsu.com ([222.73.24.84]:55352 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1755832Ab2HIIjj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 9 Aug 2012 04:39:39 -0400
+In-Reply-To: <50236978.70208@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Valentin, Eduardo" <eduardo.valentin@ti.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, R Durgadoss <durgadoss.r@intel.com>, Amit Kachhap <amit.kachhap@linaro.org>, Wei Ni <wni@nvidia.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+To: Jiang Liu <jiang.liu@huawei.com>
+Cc: Yinghai Lu <yinghai@kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Tony Luck <tony.luck@intel.com>, Huang Ying <ying.huang@intel.com>, Bob Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Jiang Liu <liuj97@gmail.com>, Hanjun Guo <guohanjun@huawei.com>
 
-On =E5=9B=9B, 2012-08-09 at 11:26 +0300, Valentin, Eduardo wrote:
-> Hello,
->=20
->=20
->=20
-> On Wed, Jul 25, 2012 at 5:11 AM, Zhang Rui <rui.zhang@intel.com> wrot=
-e:
-> > Remove thermal_zone_device_passive(). And use
-> > thermal_zone_trip_update() and thermal_zone_do_update()
-> > for both active and passive cooling.
->=20
-> I believe you need to refresh this patch on top of your new changes o=
-n
-> this series. It is not applying cleanly due to changes done in
-> previous patches.
->=20
-hmm,
+Hi Liu ~
 
-probably you are testing patches from different version.
-does the problem still exist in Patch set V4?
+On 08/09/2012 03:40 PM, Jiang Liu wrote:
+> Hi Tang,
+> 	Thanks for testing.
+> 	Currently there's a limitation that you need to insert acpihp_enum driver first.
 
-thanks,
-rui
+Sorry, I didn't make it clear. I did load acpihp_enum module first, and then load acpihp_drv.
 
-> >
-> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> > ---
-> >  drivers/thermal/thermal_sys.c |   97 ++++++++++-------------------=
-------------
-> >  include/linux/thermal.h       |    2 +-
-> >  2 files changed, 24 insertions(+), 75 deletions(-)
-> >
-> > diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/therma=
-l_sys.c
-> > index ee10df5..23a5c86 100644
-> > --- a/drivers/thermal/thermal_sys.c
-> > +++ b/drivers/thermal/thermal_sys.c
-> > @@ -730,73 +730,6 @@ static void thermal_zone_device_set_polling(st=
-ruct thermal_zone_device *tz,
-> >                                       msecs_to_jiffies(delay));
-> >  }
-> >
-> > -static void thermal_zone_device_passive(struct thermal_zone_device=
- *tz,
-> > -                                       int temp, int trip_temp, in=
-t trip)
-> > -{
-> > -       enum thermal_trend trend;
-> > -       struct thermal_instance *instance;
-> > -       struct thermal_cooling_device *cdev;
-> > -       long state, max_state;
-> > -
-> > -       /*
-> > -        * Above Trip?
-> > -        * -----------
-> > -        * Calculate the thermal trend (using the passive cooling e=
-quation)
-> > -        * and modify the performance limit for all passive cooling=
- devices
-> > -        * accordingly.  Note that we assume symmetry.
-> > -        */
-> > -       if (temp >=3D trip_temp) {
-> > -               tz->passive =3D true;
-> > -
-> > -               thermal_get_trend(tz, trip, &trend);
-> > -
-> > -               /* Heating up? */
-> > -               if (trend =3D=3D THERMAL_TREND_RAISING) {
-> > -                       list_for_each_entry(instance, &tz->thermal_=
-instances,
-> > -                                           tz_node) {
-> > -                               if (instance->trip !=3D trip)
-> > -                                       continue;
-> > -                               cdev =3D instance->cdev;
-> > -                               cdev->ops->get_cur_state(cdev, &sta=
-te);
-> > -                               cdev->ops->get_max_state(cdev, &max=
-_state);
-> > -                               if (state++ < max_state)
-> > -                                       cdev->ops->set_cur_state(cd=
-ev, state);
-> > -                       }
-> > -               } else if (trend =3D=3D THERMAL_TREND_DROPPING) { /=
-* Cooling off? */
-> > -                       list_for_each_entry(instance, &tz->thermal_=
-instances,
-> > -                                           tz_node) {
-> > -                               if (instance->trip !=3D trip)
-> > -                                       continue;
-> > -                               cdev =3D instance->cdev;
-> > -                               cdev->ops->get_cur_state(cdev, &sta=
-te);
-> > -                               cdev->ops->get_max_state(cdev, &max=
-_state);
-> > -                               if (state > 0)
-> > -                                       cdev->ops->set_cur_state(cd=
-ev, --state);
-> > -                       }
-> > -               }
-> > -               return;
-> > -       }
-> > -
-> > -       /*
-> > -        * Below Trip?
-> > -        * -----------
-> > -        * Implement passive cooling hysteresis to slowly increase =
-performance
-> > -        * and avoid thrashing around the passive trip point.  Note=
- that we
-> > -        * assume symmetry.
-> > -        */
-> > -       list_for_each_entry(instance, &tz->thermal_instances, tz_no=
-de) {
-> > -               if (instance->trip !=3D trip)
-> > -                       continue;
-> > -               cdev =3D instance->cdev;
-> > -               cdev->ops->get_cur_state(cdev, &state);
-> > -               cdev->ops->get_max_state(cdev, &max_state);
-> > -               if (state > 0)
-> > -                       cdev->ops->set_cur_state(cdev, --state);
-> > -               if (state =3D=3D 0)
-> > -                       tz->passive =3D false;
-> > -       }
-> > -}
-> > -
-> >  static void thermal_zone_device_check(struct work_struct *work)
-> >  {
-> >         struct thermal_zone_device *tz =3D container_of(work, struc=
-t
-> > @@ -1118,7 +1051,7 @@ static void thermal_zone_do_update(struct the=
-rmal_zone_device *tz)
-> >  }
-> >
-> >  /*
-> > - * Cooling algorithm for active trip points
-> > + * Cooling algorithm for both active and passive cooling
-> >   *
-> >   * 1. if the temperature is higher than a trip point,
-> >   *    a. if the trend is THERMAL_TREND_RAISING, use higher cooling
-> > @@ -1140,9 +1073,16 @@ static void thermal_zone_trip_update(struct =
-thermal_zone_device *tz,
-> >         struct thermal_cooling_device *cdev =3D NULL;
-> >         unsigned long cur_state, max_state;
-> >         long trip_temp;
-> > +       enum thermal_trip_type trip_type;
-> >         enum thermal_trend trend;
-> >
-> > -       tz->ops->get_trip_temp(tz, trip, &trip_temp);
-> > +       if (trip =3D=3D THERMAL_TRIPS_NONE) {
-> > +               trip_temp =3D tz->forced_passive;
-> > +               trip_type =3D THERMAL_TRIPS_NONE;
-> > +       } else {
-> > +               tz->ops->get_trip_temp(tz, trip, &trip_temp);
-> > +               tz->ops->get_trip_type(tz, trip, &trip_type);
-> > +       }
-> >
-> >         if (temp >=3D trip_temp) {
-> >                 thermal_get_trend(tz, trip, &trend);
-> > @@ -1163,6 +1103,12 @@ static void thermal_zone_trip_update(struct =
-thermal_zone_device *tz,
-> >                                 cur_state =3D cur_state > instance-=
->lower ?
-> >                                     (cur_state - 1) : instance->low=
-er;
-> >                         }
-> > +
-> > +                       /* activate a passive thermal instance */
-> > +                       if (trip_type =3D=3D THERMAL_TRIP_PASSIVE &=
-&
-> > +                           instance->target =3D=3D THERMAL_NO_TARG=
-ET)
-> > +                               tz->passive++;
-> > +
-> >                         instance->target =3D cur_state;
-> >                         cdev->updated =3D false; /* cooling device =
-needs update */
-> >                 }
-> > @@ -1179,6 +1125,11 @@ static void thermal_zone_trip_update(struct =
-thermal_zone_device *tz,
-> >
-> >                         cur_state =3D cur_state > instance->lower ?
-> >                                     (cur_state - 1) : THERMAL_NO_TA=
-RGET;
-> > +
-> > +                       /* deactivate a passive thermal instance */
-> > +                       if (trip_type =3D=3D THERMAL_TRIP_PASSIVE &=
-&
-> > +                           cur_state =3D=3D THERMAL_NO_TARGET)
-> > +                               tz->passive--;
-> >                         instance->target =3D cur_state;
-> >                         cdev->updated =3D false; /* cooling device =
-needs update */
-> >                 }
-> > @@ -1235,16 +1186,14 @@ void thermal_zone_device_update(struct ther=
-mal_zone_device *tz)
-> >                         break;
-> >                 case THERMAL_TRIP_PASSIVE:
-> >                         if (temp >=3D trip_temp || tz->passive)
-> > -                               thermal_zone_device_passive(tz, tem=
-p,
-> > -                                                           trip_te=
-mp, count);
-> > +                               thermal_zone_trip_update(tz, count,=
- temp);
-> >                         break;
-> >                 }
-> >         }
-> >
-> > -       thermal_zone_do_update(tz);
-> >         if (tz->forced_passive)
-> > -               thermal_zone_device_passive(tz, temp, tz->forced_pa=
-ssive,
-> > -                                           THERMAL_TRIPS_NONE);
-> > +               thermal_zone_trip_update(tz, THERMAL_TRIPS_NONE, te=
-mp);
-> > +       thermal_zone_do_update(tz);
-> >
-> >  leave:
-> >         if (tz->passive)
-> > diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-> > index 3e66214..06fd04d 100644
-> > --- a/include/linux/thermal.h
-> > +++ b/include/linux/thermal.h
-> > @@ -121,7 +121,7 @@ struct thermal_zone_device {
-> >         int polling_delay;
-> >         int temperature;
-> >         int last_temperature;
-> > -       bool passive;
-> > +       int passive;
-> >         unsigned int forced_passive;
-> >         const struct thermal_zone_device_ops *ops;
-> >         struct list_head thermal_instances;
-> > --
-> > 1.7.9.5
-> >
->=20
->=20
->=20
+And I just tried it some more times. It just hung up, but dmesg had no output.
+Like this:
 
+# modprobe acpihp_enum
+(OK, and sysfs interfaces have been created)
+# modprobe acpihp_drv
+(hang up)
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+# dmesg
+(nothing)
+
+The "modprobe acpihp_drv" process's call trace shows that it hung at the following function:
+#0  0x00000032836aab80 in __nanosleep_nocancel () from /lib64/libc.so.6
+#1  0x00000032836deb64 in usleep () from /lib64/libc.so.6
+......
+
+I have tried several times and I cannot reproduce the situation I just said.
+Maybe my box has something different with yours. And I'll try to find out why.
+
+Thanks for your advice. :)
+
+> Will fix this issue in next version.
+> 	Regards!
+> 	Gerry
+> 
+> On 2012-8-9 15:12, Tang Chen wrote:
+>> Hi Liu~
+>>
+>> I compiled this driver as a module, acpihp_drv. And when I loaded this module, it
+>> gave the following error message:
+>>
+>> # modprobe acpihp_drv
+>> (the command hangs up, no return after 10 min)
+>>
+>> #dmesg
+>> ......
+>> [  126.643350] BUG: unable to handle kernel NULL pointer dereference at 0000000000000078
+>> [  126.644007] IP: [<ffffffff814c0cd3>] mutex_lock+0x19/0x37
+>> [  126.644007] PGD 105277a067 PUD 104f823067 PMD 0 
+>> [  126.644007] Oops: 0002 [#1] SMP 
+>> [  126.644007] Modules linked in: acpihp_drv(+) ebtable_nat ebtables ipt_MASQUERADE iptable_nat nf_nat iptable_mangle bridge stp llc sunrpc cpufreq_ondemand acpi_cpufreq freq_table mperf ip6t_REJECT nf_conntrack_ipv6 nf_defrag_ipv6 ip6table_filter ip6_tables ipv6 vhost_net macvtap macvlan tun uinput iTCO_wdt iTCO_vendor_support coretemp kvm_intel kvm crc32c_intel microcode lpc_ich mfd_core pcspkr i2c_i801 i2c_core ioatdma e1000e acpi_memhotplug i7core_edac edac_core igb dca mptsas mptscsih mptbase scsi_transport_sas
+>> [  126.644007] CPU 10 
+>> [  126.644007] Pid: 2821, comm: modprobe Tainted: G       A     3.6.0-rc1+ #6 FUJITSU-SV PRIMEQUEST 1800E/SB
+>> [  126.644007] RIP: 0010:[<ffffffff814c0cd3>]  [<ffffffff814c0cd3>] mutex_lock+0x19/0x37
+>> [  126.644007] RSP: 0018:ffff8810589a9de8  EFLAGS: 00010246
+>> [  126.644007] RAX: 0000000000000000 RBX: 0000000000000078 RCX: 0000000000000000
+>> [  126.644007] RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000078
+>> [  126.644007] RBP: ffff8810589a9e08 R08: 0000000000000000 R09: ffff8810589a9d88
+>> [  126.644007] R10: 00000000000013e5 R11: 00000000000013e5 R12: ffffffffa01460d0
+>> [  126.644007] R13: 0000000000000000 R14: ffffffffa014732b R15: 00000000000000bf
+>> [  126.644007] FS:  00007fecb1802700(0000) GS:ffff88105e640000(0000) knlGS:0000000000000000
+>> [  126.644007] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+>> [  126.644007] CR2: 0000000000000078 CR3: 0000001052772000 CR4: 00000000000007e0
+>> [  126.644007] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+>> [  126.644007] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+>> [  126.644007] Process modprobe (pid: 2821, threadinfo ffff8810589a8000, task ffff8810592f8000)
+>> [  126.644007] Stack:
+>> [  126.644007]  ffff8810589a9e08 ffffffff810be37f ffffffffa0146220 ffffffff81a7b390
+>> [  126.644007]  ffff8810589a9e58 ffffffff81317eb3 ffff8810589a9e48 0000000000000000
+>> [  126.644007]  ffffffff81a342c0 ffffffff81a342e0 0000000000000000 ffffffffa0146220
+>> [  126.644007] Call Trace:
+>> [  126.644007]  [<ffffffff810be37f>] ? tracepoint_module_notify+0xd9/0x14a
+>> [  126.644007]  [<ffffffff81317eb3>] class_interface_register+0x4a/0xbc
+>> [  126.644007]  [<ffffffffa00b8000>] ? 0xffffffffa00b7fff
+>> [  126.644007]  [<ffffffffa00b8010>] acpihp_drv_init+0x10/0x12 [acpihp_drv]
+>> [  126.644007]  [<ffffffff8100207f>] do_one_initcall+0x7f/0x139
+>> [  126.644007]  [<ffffffff81093414>] sys_init_module+0x12d3/0x14e3
+>> [  126.644007]  [<ffffffff81264b0d>] ? ddebug_dyndbg_boot_param_cb+0x45/0x45
+>> [  126.644007]  [<ffffffff814c9469>] system_call_fastpath+0x16/0x1b
+>> [  126.644007] Code: 48 8b 04 25 80 c6 00 00 48 89 43 18 31 c0 5b 5b c9 c3 55 48 89 e5 53 48 83 ec 18 66 66 66 66 90 48 89 fb e8 5a 0c 00 00 48 89 df <f0> ff 0f 79 05 e8 06 ff ff ff 65 48 8b 04 25 80 c6 00 00 48 89 
+>> [  126.644007] RIP  [<ffffffff814c0cd3>] mutex_lock+0x19/0x37
+>> [  126.644007]  RSP <ffff8810589a9de8>
+>> [  126.644007] CR2: 0000000000000078
+>> [  129.981335] ---[ end trace da17e9c9de8dd560 ]---
+>> [  139.085895] nr_pdflush_threads exported in /proc is scheduled for removal
+>> [  139.167394] sysctl: The scan_unevictable_pages sysctl/node-interface has been disabled for lack of a legitimate use case.  If you have one, please send an email to linux-mm@kvack.org.
+>>
+>> Looks like it dereferenced a NULL pointer here.
+>> May be it was my mistake that I didn't configure the environment correctly.
+>> Would you please give me some advice ?
+>>
+>> Thanks. :)
+>>
+>>
+
+-- 
+Best Regards,
+Tang chen
