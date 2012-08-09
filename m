@@ -1,119 +1,77 @@
-From: Jiang Liu <jiang.liu@huawei.com>
-Subject: Re: [RFC PATCH v2 10/16] ACPIHP: system device hotplug driver skeleton
-Date: Thu, 9 Aug 2012 17:36:22 +0800
-Message-ID: <50238496.1000504@huawei.com>
-References: <1344082443-4608-1-git-send-email-jiang.liu@huawei.com> <1344082443-4608-11-git-send-email-jiang.liu@huawei.com> <502362E3.8010901@cn.fujitsu.com> <50236978.70208@huawei.com> <502377C0.70401@cn.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Durgadoss R <durgadoss.r@intel.com>
+Subject: [PATCH 00/13] Thermal Framework Enhancements
+Date: Thu,  9 Aug 2012 18:15:52 +0530
+Message-ID: <1344516365-7230-1-git-send-email-durgadoss.r@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([119.145.14.64]:40385 "EHLO
-	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751000Ab2HIJiY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Aug 2012 05:38:24 -0400
-In-Reply-To: <502377C0.70401@cn.fujitsu.com>
+Received: from mga02.intel.com ([134.134.136.20]:14321 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932262Ab2HIMqJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 9 Aug 2012 08:46:09 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Yinghai Lu <yinghai@kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Tony Luck <tony.luck@intel.com>, Huang Ying <ying.huang@intel.com>, Bob Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Jiang Liu <liuj97@gmail.com>, Hanjun Guo <guohanjun@huawei.com>
+To: lenb@kernel.org, rui.zhang@intel.com, rjw@sisk.pl, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+Cc: eduardo.valentin@ti.com, amit.kachhap@linaro.org, wni@nvidia.com, Durgadoss R <durgadoss.r@intel.com>
 
-On 2012-8-9 16:41, Tang Chen wrote:
-> Hi Liu ~
-> 
-> On 08/09/2012 03:40 PM, Jiang Liu wrote:
->> Hi Tang,
->> 	Thanks for testing.
->> 	Currently there's a limitation that you need to insert acpihp_enum driver first.
-> 
-> Sorry, I didn't make it clear. I did load acpihp_enum module first, and then load acpihp_drv.
-> 
-> And I just tried it some more times. It just hung up, but dmesg had no output.
-> Like this:
-> 
-> # modprobe acpihp_enum
-> (OK, and sysfs interfaces have been created)
-> # modprobe acpihp_drv
-> (hang up)
-> 
-> # dmesg
-> (nothing)
-> 
-> The "modprobe acpihp_drv" process's call trace shows that it hung at the following function:
-> #0  0x00000032836aab80 in __nanosleep_nocancel () from /lib64/libc.so.6
-> #1  0x00000032836deb64 in usleep () from /lib64/libc.so.6
-> ......
-> 
-> I have tried several times and I cannot reproduce the situation I just said.
-You can reproduce it by loading acpihp_drv without acpihp_enum driver, I guess.
-The acpihp_drv module_init() should call acpihp_register_class() to initialize the core.
+This patch series attempts to enhance the thermal framework
+by adding some simple governors/throttling algorithms.
 
-> Maybe my box has something different with yours. And I'll try to find out why.
-> 
-> Thanks for your advice. :)
-> 
->> Will fix this issue in next version.
->> 	Regards!
->> 	Gerry
->>
->> On 2012-8-9 15:12, Tang Chen wrote:
->>> Hi Liu~
->>>
->>> I compiled this driver as a module, acpihp_drv. And when I loaded this module, it
->>> gave the following error message:
->>>
->>> # modprobe acpihp_drv
->>> (the command hangs up, no return after 10 min)
->>>
->>> #dmesg
->>> ......
->>> [  126.643350] BUG: unable to handle kernel NULL pointer dereference at 0000000000000078
->>> [  126.644007] IP: [<ffffffff814c0cd3>] mutex_lock+0x19/0x37
->>> [  126.644007] PGD 105277a067 PUD 104f823067 PMD 0 
->>> [  126.644007] Oops: 0002 [#1] SMP 
->>> [  126.644007] Modules linked in: acpihp_drv(+) ebtable_nat ebtables ipt_MASQUERADE iptable_nat nf_nat iptable_mangle bridge stp llc sunrpc cpufreq_ondemand acpi_cpufreq freq_table mperf ip6t_REJECT nf_conntrack_ipv6 nf_defrag_ipv6 ip6table_filter ip6_tables ipv6 vhost_net macvtap macvlan tun uinput iTCO_wdt iTCO_vendor_support coretemp kvm_intel kvm crc32c_intel microcode lpc_ich mfd_core pcspkr i2c_i801 i2c_core ioatdma e1000e acpi_memhotplug i7core_edac edac_core igb dca mptsas mptscsih mptbase scsi_transport_sas
->>> [  126.644007] CPU 10 
->>> [  126.644007] Pid: 2821, comm: modprobe Tainted: G       A     3.6.0-rc1+ #6 FUJITSU-SV PRIMEQUEST 1800E/SB
->>> [  126.644007] RIP: 0010:[<ffffffff814c0cd3>]  [<ffffffff814c0cd3>] mutex_lock+0x19/0x37
->>> [  126.644007] RSP: 0018:ffff8810589a9de8  EFLAGS: 00010246
->>> [  126.644007] RAX: 0000000000000000 RBX: 0000000000000078 RCX: 0000000000000000
->>> [  126.644007] RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000078
->>> [  126.644007] RBP: ffff8810589a9e08 R08: 0000000000000000 R09: ffff8810589a9d88
->>> [  126.644007] R10: 00000000000013e5 R11: 00000000000013e5 R12: ffffffffa01460d0
->>> [  126.644007] R13: 0000000000000000 R14: ffffffffa014732b R15: 00000000000000bf
->>> [  126.644007] FS:  00007fecb1802700(0000) GS:ffff88105e640000(0000) knlGS:0000000000000000
->>> [  126.644007] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
->>> [  126.644007] CR2: 0000000000000078 CR3: 0000001052772000 CR4: 00000000000007e0
->>> [  126.644007] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
->>> [  126.644007] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
->>> [  126.644007] Process modprobe (pid: 2821, threadinfo ffff8810589a8000, task ffff8810592f8000)
->>> [  126.644007] Stack:
->>> [  126.644007]  ffff8810589a9e08 ffffffff810be37f ffffffffa0146220 ffffffff81a7b390
->>> [  126.644007]  ffff8810589a9e58 ffffffff81317eb3 ffff8810589a9e48 0000000000000000
->>> [  126.644007]  ffffffff81a342c0 ffffffff81a342e0 0000000000000000 ffffffffa0146220
->>> [  126.644007] Call Trace:
->>> [  126.644007]  [<ffffffff810be37f>] ? tracepoint_module_notify+0xd9/0x14a
->>> [  126.644007]  [<ffffffff81317eb3>] class_interface_register+0x4a/0xbc
->>> [  126.644007]  [<ffffffffa00b8000>] ? 0xffffffffa00b7fff
->>> [  126.644007]  [<ffffffffa00b8010>] acpihp_drv_init+0x10/0x12 [acpihp_drv]
->>> [  126.644007]  [<ffffffff8100207f>] do_one_initcall+0x7f/0x139
->>> [  126.644007]  [<ffffffff81093414>] sys_init_module+0x12d3/0x14e3
->>> [  126.644007]  [<ffffffff81264b0d>] ? ddebug_dyndbg_boot_param_cb+0x45/0x45
->>> [  126.644007]  [<ffffffff814c9469>] system_call_fastpath+0x16/0x1b
->>> [  126.644007] Code: 48 8b 04 25 80 c6 00 00 48 89 43 18 31 c0 5b 5b c9 c3 55 48 89 e5 53 48 83 ec 18 66 66 66 66 90 48 89 fb e8 5a 0c 00 00 48 89 df <f0> ff 0f 79 05 e8 06 ff ff ff 65 48 8b 04 25 80 c6 00 00 48 89 
->>> [  126.644007] RIP  [<ffffffff814c0cd3>] mutex_lock+0x19/0x37
->>> [  126.644007]  RSP <ffff8810589a9de8>
->>> [  126.644007] CR2: 0000000000000078
->>> [  129.981335] ---[ end trace da17e9c9de8dd560 ]---
->>> [  139.085895] nr_pdflush_threads exported in /proc is scheduled for removal
->>> [  139.167394] sysctl: The scan_unevictable_pages sysctl/node-interface has been disabled for lack of a legitimate use case.  If you have one, please send an email to linux-mm@kvack.org.
->>>
->>> Looks like it dereferenced a NULL pointer here.
->>> May be it was my mistake that I didn't configure the environment correctly.
->>> Would you please give me some advice ?
->>>
->>> Thanks. :)
->>>
->>>
-> 
+These patches are based on Rui's tree here: (branch - thermal)
+git://git.kernel.org/pub/scm/linux/kernel/git/rzhang/linux.git
 
+Patch 1: Refactor thermal.h so that it is easy to read/maintain
+Patch 2: Move data structures that need to be visible to thermal.h
+Patch 3: Adds some APIs to thermal_sys.c
+Patch 4: Adds required platform layer information to thermal.h
+Patch 5: Adds code to thermal_sys, that can retrieve platform data
+         (if provided) for a thermal zone
+Patch 6: Creates a policy sysfs attribute (RO, for now)
+Patch 7: Modifies the bind/unbind logic based on the platform data
+	 With this modification, the bind/unbind can work with or
+	 without platform data
+Patch 8: Introduces a fair_share governor. This throttles the
+	 cooling_devices according to their weights. The weights
+	 in turn describe the effectiveness of a particular
+	 cooling device in cooling a thermal zone.
+Patch 9: Introduce step_wise governor
+	 This throttles/de-throttles the cooling devices one
+	 step at a time. This is exactly similar to the code
+	 we have in thermal_zone_device_update function. The
+	 intention is to move all 'throttling logic' related
+	 code outside thermal_sys.c and keep them separate.
+Patch 10: Removes all throttling code outside thermal_sys.c
+Patch 11: Adds a notification API so that thermal sensor drivers
+	  can notify the framework of any thermal events.
+Patch 12: Adds documentation to Documentation/thermal/sysfs-api.txt
+Patch 13: Shows some sample code on how to provide platform level
+	  thermal data. This patch is not for merge.
+
+Durgadoss R (13):
+  Thermal: Refactor thermal.h file
+  Thermal: Move thermal_instance to thermal.h
+  Thermal: Add get trend, get instance API's to thermal_sys
+  Thermal: Add platform level information to thermal.h
+  Thermal: Obtain platform data for thermal zone
+  Thermal: Add a policy sysfs attribute
+  Thermal: Update binding logic based on platform data
+  Thermal: Introduce fair_share thermal governor
+  Thermal: Introduce a step_wise thermal governor
+  Thermal: Remove throttling logic out of thermal_sys.c
+  Thermal: Add a notification API
+  Thermal: Add documentation for platform layer data
+  Thermal: Platform layer changes to provide thermal data
+
+ Documentation/thermal/sysfs-api.txt |   30 ++
+ arch/x86/platform/mrst/mrst.c       |   42 +++
+ drivers/thermal/Kconfig             |   12 +
+ drivers/thermal/Makefile            |    4 +-
+ drivers/thermal/fair_share.c        |  128 +++++++
+ drivers/thermal/step_wise.c         |  204 +++++++++++
+ drivers/thermal/thermal_sys.c       |  673 +++++++++++++++++++++--------------
+ include/linux/thermal.h             |  167 +++++++--
+ 8 files changed, 963 insertions(+), 297 deletions(-)
+ create mode 100644 drivers/thermal/fair_share.c
+ create mode 100644 drivers/thermal/step_wise.c
+
+-- 
+1.7.9.5
 
