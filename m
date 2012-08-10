@@ -1,42 +1,74 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH 0/7][RESEND] acpi, pci: hostbridge hotplug support
-Date: Fri, 10 Aug 2012 09:41:00 -0700
-Message-ID: <CAE9FiQUZ+EHDGfAVU4wkYepT-97UVAkUNsKds4QVRJv=eNUTdQ@mail.gmail.com>
-References: <20120810150955.e4ab3c7f.izumi.taku@jp.fujitsu.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH 5/5][RFC] cpuidle : add cpuidle_register_states function
+Date: Fri, 10 Aug 2012 18:17:36 +0100
+Message-ID: <20120810171736.GA12151@e102568-lin.cambridge.arm.com>
+References: <1343213162-8064-1-git-send-email-daniel.lezcano@linaro.org>
+ <1343213162-8064-6-git-send-email-daniel.lezcano@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:44141 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752770Ab2HJQlA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Aug 2012 12:41:00 -0400
-In-Reply-To: <20120810150955.e4ab3c7f.izumi.taku@jp.fujitsu.com>
+Received: from service87.mimecast.com ([91.220.42.44]:59231 "EHLO
+	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752421Ab2HJRRl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Aug 2012 13:17:41 -0400
+In-Reply-To: <1343213162-8064-6-git-send-email-daniel.lezcano@linaro.org>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Cc: linux-pci@vger.kernel.org, bhelgaas@google.com, linux-acpi@vger.kernel.org, kaneshige.kenji@jp.fujitsu.com, jiang.liu@huawei.com
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>
 
-On Thu, Aug 9, 2012 at 11:09 PM, Taku Izumi <izumi.taku@jp.fujitsu.com> wrote:
->  Hi all,
->
->
->  I'd like to merge hostbridge hotplug feature.
->  I looked at Yinghai's branch and found that this branch contains
->  many work and can be split into some parts.
->  I believe it is good to merge step by step.
->
->  My idea is splitting into the following 4 parts:
->    1. basic hostbirdge hotplug work
->    2. acpiphp work
->    3. /sysfs interface work (logical hotplug?)
->    4. cleanup
->
->  This patchset is 1st step based on the following Yinghai's branch:
+Hi Daniel,
 
-Hi,
+thanks for this patchset.
 
-Are you going to attend PCI mini-summit 8/28? We should discuss there.
+On Wed, Jul 25, 2012 at 11:46:02AM +0100, Daniel Lezcano wrote:
+> The tegra3 and big.LITTLE architecture have different cpu latencies.
+> This API allows to specify a different cpu latency for a specific cpu.
+> 
+> With the previous patches, we use the per cpuidle device states pointer,
+> this function overrides this pointer.
+> 
+> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+> ---
+>  drivers/cpuidle/cpuidle.c |   17 +++++++++++++++++
+>  include/linux/cpuidle.h   |   10 +++++++---
+>  2 files changed, 24 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
+> index 199878a..3b21b68 100644
+> --- a/drivers/cpuidle/cpuidle.c
+> +++ b/drivers/cpuidle/cpuidle.c
+> @@ -456,6 +456,23 @@ void cpuidle_unregister_device(struct cpuidle_device *dev)
+>  
+>  EXPORT_SYMBOL_GPL(cpuidle_unregister_device);
+>  
+> +int cpuidle_register_states(struct cpuidle_device *dev,
+> +			    struct cpuidle_state *states,
+> +			    int state_count)
+> +{
+> +	if (!dev || !states)
+> +		return -EINVAL;
+> +
+> +	if (state_count <= 0)
+> +		return -EINVAL;
+> +
+> +	dev->states = states;
+> +	dev->state_count = state_count;
 
-Thanks
+Is this function supposed to be called after cpuidle_device registration ?
+I think so since at registration time the dev->states pointers are all
+initialized to point to the driver state array, which is global and not
+really what we want.
 
-Yinghai
+Unless this function is called on the cpu that requires swapping the state
+pointer, I think it is unsafe to register a different state pointer
+without a minimal level of locking (or disabling idle and renabling idle)
+since the update of dev->states and dev->state_count is not atomic.
+Maybe it is implicit but it should be documented somehow to define
+cpuidle_register_states(...) proper usage.
+
+Thanks,
+Lorenzo
+
