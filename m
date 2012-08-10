@@ -1,45 +1,20 @@
-From: Joerg Roedel <joerg.roedel@amd.com>
-Subject: Re: [PATCH v3] irq_remap: disable IRQ remapping if any IOAPIC lacks
- an IOMMU
-Date: Fri, 10 Aug 2012 11:32:50 +0200
-Message-ID: <20120810093250.GT1996@amd.com>
-References: <CAE9FiQVEsPisVUKeG0aejKzvS+Csp5Ca2KEQyy6ZJW-MR-VFUA@mail.gmail.com>
- <1344432423-26495-1-git-send-email-seth.forshee@canonical.com>
+From: Shang Yu <yusunn@gmail.com>
+Subject: acpi_bind_one
+Date: Fri, 10 Aug 2012 17:36:38 +0800
+Message-ID: <CAHHgPeNi9qwo499jjBHv+P6s6uGp-9uc_5ZJUTJEfzLNX7vMHg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from co1ehsobe005.messaging.microsoft.com ([216.32.180.188]:10738
-	"EHLO co1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757952Ab2HJJc7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 10 Aug 2012 05:32:59 -0400
-Content-Disposition: inline
-In-Reply-To: <1344432423-26495-1-git-send-email-seth.forshee@canonical.com>
+Received: from mail-gg0-f174.google.com ([209.85.161.174]:41250 "EHLO
+	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758271Ab2HJJgi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Aug 2012 05:36:38 -0400
+Received: by ggdk6 with SMTP id k6so1387229ggd.19
+        for <linux-acpi@vger.kernel.org>; Fri, 10 Aug 2012 02:36:38 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Seth Forshee <seth.forshee@canonical.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org, Joerg Roedel <joro@8bytes.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Len Brown <lenb@kernel.org>, Suresh Siddha <suresh.b.siddha@intel.com>, Yinghai Lu <yinghai@kernel.org>
+To: linux-acpi@vger.kernel.org
 
-On Wed, Aug 08, 2012 at 08:27:03AM -0500, Seth Forshee wrote:
-> The ACPI tables in the Macbook Air 5,1 define a single IOAPIC with id 2,
-> but the only remapping unit described in the DMAR table matches id 0.
-> Interrupt remapping fails as a result, and the kernel panics with the
-> message "timer doesn't work through Interrupt-remapped IO-APIC."
-> 
-> To fix this, check each IOAPIC for a corresponding IOMMU. If an IOMMU is
-> not found, do not allow IRQ remapping to be enabled.
-> 
-> v2: Move check to parse_ioapics_under_ir(), raise log level to KERN_ERR,
->     and add FW_BUG to the log message
-> v3: Skip check if IOMMU doesn't support interrupt remapping and remove
->     existing check that the IOMMU count equals the IOAPIC count
-> 
-> Acked-by: Suresh Siddha <suresh.b.siddha@intel.com>
-> Signed-off-by: Seth Forshee <seth.forshee@canonical.com>
-> ---
->  drivers/iommu/intel_irq_remapping.c |   18 +++++++++++++-----
->  1 file changed, 13 insertions(+), 5 deletions(-)
-
-Applied to iommu/fixes, thanks.
-
-
+Hi,
+In function acpi_bind_one, are dev and acpi_dev->dev the same object ?
+Many thanks!!!
