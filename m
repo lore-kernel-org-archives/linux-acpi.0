@@ -1,74 +1,89 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH 5/5][RFC] cpuidle : add cpuidle_register_states function
-Date: Fri, 10 Aug 2012 18:17:36 +0100
-Message-ID: <20120810171736.GA12151@e102568-lin.cambridge.arm.com>
-References: <1343213162-8064-1-git-send-email-daniel.lezcano@linaro.org>
- <1343213162-8064-6-git-send-email-daniel.lezcano@linaro.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [GIT PULL] Power management fixes for 3.6-rc2
+Date: Fri, 10 Aug 2012 22:42:55 +0200
+Message-ID: <201208102242.56112.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from service87.mimecast.com ([91.220.42.44]:59231 "EHLO
-	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752421Ab2HJRRl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Aug 2012 13:17:41 -0400
-In-Reply-To: <1343213162-8064-6-git-send-email-daniel.lezcano@linaro.org>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Sameer Nanda <snanda@chromium.org>, Julia Lawall <Julia.Lawall@lip6.fr>, NeilBrown <neilb@suse.de>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg@redhat.com>, platform-driver-x86@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>
 
-Hi Daniel,
+Hi Linus,
 
-thanks for this patchset.
+Please pull from the git repository at
 
-On Wed, Jul 25, 2012 at 11:46:02AM +0100, Daniel Lezcano wrote:
-> The tegra3 and big.LITTLE architecture have different cpu latencies.
-> This API allows to specify a different cpu latency for a specific cpu.
-> 
-> With the previous patches, we use the per cpuidle device states pointer,
-> this function overrides this pointer.
-> 
-> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
-> ---
->  drivers/cpuidle/cpuidle.c |   17 +++++++++++++++++
->  include/linux/cpuidle.h   |   10 +++++++---
->  2 files changed, 24 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
-> index 199878a..3b21b68 100644
-> --- a/drivers/cpuidle/cpuidle.c
-> +++ b/drivers/cpuidle/cpuidle.c
-> @@ -456,6 +456,23 @@ void cpuidle_unregister_device(struct cpuidle_device *dev)
->  
->  EXPORT_SYMBOL_GPL(cpuidle_unregister_device);
->  
-> +int cpuidle_register_states(struct cpuidle_device *dev,
-> +			    struct cpuidle_state *states,
-> +			    int state_count)
-> +{
-> +	if (!dev || !states)
-> +		return -EINVAL;
-> +
-> +	if (state_count <= 0)
-> +		return -EINVAL;
-> +
-> +	dev->states = states;
-> +	dev->state_count = state_count;
+  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm-for-3.6-rc2
 
-Is this function supposed to be called after cpuidle_device registration ?
-I think so since at registration time the dev->states pointers are all
-initialized to point to the driver state array, which is global and not
-really what we want.
+to receive power management fixes for v3.6-rc2 with top-most commit
+07368d32f1a67e797def08cf2ee3ea1647b204b6
 
-Unless this function is called on the cpu that requires swapping the state
-pointer, I think it is unsafe to register a different state pointer
-without a minimal level of locking (or disabling idle and renabling idle)
-since the update of dev->states and dev->state_count is not atomic.
-Maybe it is implicit but it should be documented somehow to define
-cpuidle_register_states(...) proper usage.
+  tpm_tis / PM: Fix unused function warning for CONFIG_PM_SLEEP
 
-Thanks,
-Lorenzo
+on top of commit 0d7614f09c1ebdbaa1599a5aba7593f147bf96ee
 
+  Linux 3.6-rc1
+
+Included are:
+
+* Fix for two recent regressions in the generic PM domains framework.
+
+* Revert of a commit that introduced a resume regression and is conceptually
+  incorrect in my opinion.
+
+* Fix for a return value in pcc-cpufreq.c from Julia Lawall.
+
+* RTC wakeup signaling fix from Neil Brown.
+
+* Suppression of compiler warnings for CONFIG_PM_SLEEP unset in ACPI,
+  platform/x86 and TPM drivers.
+
+Thanks!
+
+
+ drivers/acpi/ac.c                        |  4 ++++
+ drivers/acpi/battery.c                   |  2 ++
+ drivers/acpi/button.c                    |  4 ++++
+ drivers/acpi/fan.c                       |  4 ++++
+ drivers/acpi/power.c                     |  4 ++++
+ drivers/acpi/sbs.c                       |  2 ++
+ drivers/acpi/thermal.c                   |  4 ++++
+ drivers/base/power/clock_ops.c           |  3 +--
+ drivers/base/power/common.c              |  4 +---
+ drivers/char/tpm/tpm_tis.c               |  2 ++
+ drivers/cpufreq/pcc-cpufreq.c            |  1 +
+ drivers/platform/x86/classmate-laptop.c  |  4 ++++
+ drivers/platform/x86/fujitsu-tablet.c    |  2 ++
+ drivers/platform/x86/hdaps.c             |  2 ++
+ drivers/platform/x86/hp_accel.c          |  2 +-
+ drivers/platform/x86/msi-laptop.c        |  4 ++++
+ drivers/platform/x86/panasonic-laptop.c  |  4 ++++
+ drivers/platform/x86/sony-laptop.c       | 12 +++++++++++-
+ drivers/platform/x86/thinkpad_acpi.c     |  2 ++
+ drivers/platform/x86/toshiba_acpi.c      |  2 ++
+ drivers/platform/x86/toshiba_bluetooth.c |  4 ++++
+ drivers/platform/x86/xo15-ebook.c        |  2 ++
+ drivers/rtc/interface.c                  |  2 ++
+ drivers/rtc/rtc-cmos.c                   |  1 -
+ include/linux/sched.h                    |  8 --------
+ kernel/power/suspend.c                   |  3 ---
+ kernel/watchdog.c                        | 21 ++-------------------
+ 27 files changed, 71 insertions(+), 38 deletions(-)
+
+---------------
+
+Julia Lawall (1):
+      drivers/cpufreq/pcc-cpufreq.c: fix error return code
+
+NeilBrown (1):
+      RTC: Avoid races between RTC alarm wakeup and suspend.
+
+Rafael J. Wysocki (5):
+      PM: Make dev_pm_get_subsys_data() always return 0 on success
+      Revert "NMI watchdog: fix for lockup detector breakage on resume"
+      ACPI / PM: Fix unused function warnings for CONFIG_PM_SLEEP
+      platform / x86 / PM: Fix unused function warnings for CONFIG_PM_SLEEP
+      tpm_tis / PM: Fix unused function warning for CONFIG_PM_SLEEP
