@@ -1,8 +1,8 @@
 From: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Subject: [PATCH 3/7][RESEND] ACPI, PCI: Use normal list for struct
- acpi_pci_driver
-Date: Fri, 10 Aug 2012 15:12:58 +0900
-Message-ID: <20120810151258.63828afb.izumi.taku@jp.fujitsu.com>
+Subject: [PATCH 4/7][RESEND] ACPI, PCI: Notify acpi_pci_drivers when
+ hot-plugging PCI root bridges
+Date: Fri, 10 Aug 2012 15:13:44 +0900
+Message-ID: <20120810151344.23304526.izumi.taku@jp.fujitsu.com>
 References: <20120810150955.e4ab3c7f.izumi.taku@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -16,71 +16,48 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Jiang Liu <jiang.liu@huawei.com>
 
-    ACPI, PCI: Use normal list for struct acpi_pci_driver
+    ACPI, PCI: Notify acpi_pci_drivers when hot-plugging PCI root bridges
     
-    Use normal list for struct acpi_pci_driver to simplify code.
+    When hot-plugging PCI root bridge, acpi_pci_drivers' add()/remove()
+    methods should be invoked to notify registered drivers.
+    
+    -v2: Move add calling to acpi_pci_root_start by Yinghai
     
     Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
     Signed-off-by: Yinghai Lu <yinghai@kernel.org>
     Signed-off-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
 
 ---
- drivers/acpi/pci_root.c |   16 +++-------------
- include/linux/acpi.h    |    2 +-
- 2 files changed, 4 insertions(+), 14 deletions(-)
+ drivers/acpi/pci_root.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
 Index: Bjorn-next-0808/drivers/acpi/pci_root.c
 ===================================================================
 --- Bjorn-next-0808.orig/drivers/acpi/pci_root.c
 +++ Bjorn-next-0808/drivers/acpi/pci_root.c
-@@ -72,8 +72,8 @@ static struct acpi_driver acpi_pci_root_
- };
- 
- static LIST_HEAD(acpi_pci_roots);
-+static LIST_HEAD(acpi_pci_drivers);
- 
--static struct acpi_pci_driver *sub_driver;
- static DEFINE_MUTEX(osc_lock);
- 
- int acpi_pci_register_driver(struct acpi_pci_driver *driver)
-@@ -81,10 +81,7 @@ int acpi_pci_register_driver(struct acpi
- 	int n = 0;
- 	struct acpi_pci_root *root;
- 
--	struct acpi_pci_driver **pptr = &sub_driver;
--	while (*pptr)
--		pptr = &(*pptr)->next;
--	*pptr = driver;
-+	list_add_tail(&driver->node, &acpi_pci_drivers);
- 
- 	if (!driver->add)
- 		return 0;
-@@ -103,14 +100,7 @@ void acpi_pci_unregister_driver(struct a
+@@ -626,14 +626,25 @@ end:
+ static int acpi_pci_root_start(struct acpi_device *device)
  {
- 	struct acpi_pci_root *root;
+ 	struct acpi_pci_root *root = acpi_driver_data(device);
++	struct acpi_pci_driver *driver;
++
++	list_for_each_entry(driver, &acpi_pci_drivers, node)
++		if (driver->add)
++			driver->add(device->handle);
  
--	struct acpi_pci_driver **pptr = &sub_driver;
--	while (*pptr) {
--		if (*pptr == driver)
--			break;
--		pptr = &(*pptr)->next;
--	}
--	BUG_ON(!*pptr);
--	*pptr = (*pptr)->next;
-+	list_del(&driver->node);
+ 	pci_bus_add_devices(root->bus);
++
+ 	return 0;
+ }
  
- 	if (!driver->remove)
- 		return;
-Index: Bjorn-next-0808/include/linux/acpi.h
-===================================================================
---- Bjorn-next-0808.orig/include/linux/acpi.h
-+++ Bjorn-next-0808/include/linux/acpi.h
-@@ -138,7 +138,7 @@ void acpi_penalize_isa_irq(int irq, int 
- void acpi_pci_irq_disable (struct pci_dev *dev);
+ static int acpi_pci_root_remove(struct acpi_device *device, int type)
+ {
+ 	struct acpi_pci_root *root = acpi_driver_data(device);
++	struct acpi_pci_driver *driver;
++
++	list_for_each_entry(driver, &acpi_pci_drivers, node)
++		if (driver->remove)
++			driver->remove(root->device->handle);
  
- struct acpi_pci_driver {
--	struct acpi_pci_driver *next;
-+	struct list_head node;
- 	int (*add)(acpi_handle handle);
- 	void (*remove)(acpi_handle handle);
- };
+ 	device_set_run_wake(root->bus->bridge, false);
+ 	pci_acpi_remove_bus_pm_notifier(device);
