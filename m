@@ -1,87 +1,43 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [RFC PATCH v2 10/16] ACPIHP: system device hotplug driver skeleton
-Date: Fri, 10 Aug 2012 12:39:52 +0800
-Message-ID: <50249098.1030704@cn.fujitsu.com>
-References: <1344082443-4608-1-git-send-email-jiang.liu@huawei.com> <1344082443-4608-11-git-send-email-jiang.liu@huawei.com> <502362E3.8010901@cn.fujitsu.com> <50236978.70208@huawei.com> <502377C0.70401@cn.fujitsu.com> <50238496.1000504@huawei.com>
+From: Taku Izumi <izumi.taku@jp.fujitsu.com>
+Subject: [PATCH 0/7][RESEND] acpi, pci: hostbridge hotplug support
+Date: Fri, 10 Aug 2012 15:09:55 +0900
+Message-ID: <20120810150955.e4ab3c7f.izumi.taku@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:16871 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1751792Ab2HJEhv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 10 Aug 2012 00:37:51 -0400
-In-Reply-To: <50238496.1000504@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: linux-pci@vger.kernel.org, bhelgaas@google.com, linux-acpi@vger.kernel.org
+Cc: kaneshige.kenji@jp.fujitsu.com, yinghai@kernel.org, jiang.liu@huawei.com
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@huawei.com>
-Cc: Yinghai Lu <yinghai@kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Tony Luck <tony.luck@intel.com>, Huang Ying <ying.huang@intel.com>, Bob Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Jiang Liu <liuj97@gmail.com>, Hanjun Guo <guohanjun@huawei.com>
 
+ Hi all,
 
+ 
+ I'd like to merge hostbridge hotplug feature.
+ I looked at Yinghai's branch and found that this branch contains 
+ many work and can be split into some parts. 
+ I believe it is good to merge step by step.
 
-On 08/09/2012 05:36 PM, Jiang Liu wrote:
->> And I just tried it some more times. It just hung up, but dmesg had no output.
->> Like this:
->>
->> # modprobe acpihp_enum
->> (OK, and sysfs interfaces have been created)
->> # modprobe acpihp_drv
->> (hang up)
->>
->> # dmesg
->> (nothing)
->>
->> The "modprobe acpihp_drv" process's call trace shows that it hung at the following function:
->> #0  0x00000032836aab80 in __nanosleep_nocancel () from /lib64/libc.so.6
->> #1  0x00000032836deb64 in usleep () from /lib64/libc.so.6
->> ......
->>
->> I have tried several times and I cannot reproduce the situation I just said.
-> You can reproduce it by loading acpihp_drv without acpihp_enum driver, I guess.
-> The acpihp_drv module_init() should call acpihp_register_class() to initialize the core.
-> 
-Hi~
+ My idea is splitting into the following 4 parts:
+   1. basic hostbirdge hotplug work
+   2. acpiphp work
+   3. /sysfs interface work (logical hotplug?)
+   4. cleanup
 
-True. Thanks for your comments. :)
-Since I'm new in PCI related area, if you don't mind, would you please give me some more advice about the following problem ?
-Thanks. :)
+ This patchset is 1st step based on the following Yinghai's branch:
 
-"modprobe acpihp_drv" command failed, but acpihp_drv was loaded successfully, and always in use.
-It cannot be removed. Is it a problem ?
+git://git.kernel.org/pub/scm/linux/kernel/git/yinghai/linux-yinghai.git
+for-pci-root-bus-hotplug
 
-[root@DP tangchen]# lsmod | grep acpi
-acpi_cpufreq            9542  0 
-freq_table              5030  2 cpufreq_ondemand,acpi_cpufreq
-mperf                   1391  1 acpi_cpufreq
-acpi_memhotplug         4414  0 
-
-[root@DP tangchen]# modprobe acpihp_drv
-Killed								(NOTE: The NULL pointer problem happened here.)
-
-[root@DP tangchen]# echo $?
-137
-
-[root@DP tangchen]# lsmod | grep acpi
-acpihp_drv             24925  1 				(NOTE: Here, the module is loaded.)
-acpi_cpufreq            9542  0 
-freq_table              5030  2 cpufreq_ondemand,acpi_cpufreq
-mperf                   1391  1 acpi_cpufreq
-acpi_memhotplug         4414  0 
-
-[root@DP tangchen]# rmmod acpihp_drv
-ERROR: Module acpihp_drv is in use
-
-
-The core.c file has been compiled into kernel because of my configuration "CONFIG_ACPI_HOTPLUG=y".
-As my colleague said, in this case, there is no dependency between acpihp_enum and acpihp_drv.
-So I think, do we need to compile core.c into acpihp_enum module, or simply check if acpihp_enum 
-has been loaded in acpihp_drv_init() ?
-I am not sure if it is a good idea to move acpihp_slot_class definition and all related API to 
-acpihp_enum module.
-
-Thanks again for your comments and patient. :)
-
+  * [PATCH 1/7][RESEND] x86, PCI: Fix non acpi path pci_sysdata leaking with release_fn
+  * [PATCH 2/7][RESEND] PCI: Correctly clean up pci root buses in function pci_remove_bus()
+  * [PATCH 3/7][RESEND] ACPI, PCI: Use normal list for struct acpi_pci_driver
+  * [PATCH 4/7][RESEND] ACPI, PCI: Notify acpi_pci_drivers when hot-plugging PCI root bridges
+  * [PATCH 5/7][RESEND] ACPI, PCI: Protect global lists in drivers/acpi/pci_root.c
+  * [PATCH 6/7][RESEND] ACPI, PCI: add hostbridge removal function
+  * [PATCH 7/7][RESEND] ACPI, PCI: add resoruce-assign code for devices under hot-added hostbridge
 
 -- 
-Best Regards,
-Tang chen
+Best regards,
+Taku Izumi <izumi.taku@jp.fujitsu.com>
