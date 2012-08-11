@@ -1,89 +1,129 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [GIT PULL] Power management fixes for 3.6-rc2
-Date: Fri, 10 Aug 2012 22:42:55 +0200
-Message-ID: <201208102242.56112.rjw@sisk.pl>
+From: Athlion <athlion@gmail.com>
+Subject: Re: Kernel stops at "PM: Preparing system for mem sleep", never makes
+ it to "Freezing user space processes ... "
+Date: Sat, 11 Aug 2012 18:18:46 +0300
+Message-ID: <CACfp432=M5XkqRXpKfzstvQo59tytHGoV1_r15DtV3ZhYvGwoA@mail.gmail.com>
+References: <CACfp4335KJQ8Zjj0TJNj65Va9K-t_iEHLEGEi8QuWyQj5dVT0g@mail.gmail.com>
+ <201208090033.52380.rjw@sisk.pl> <CACfp433snentBjXMaoLLnemD82-xRCZge9aCCRd1Ao=7yhG=RQ@mail.gmail.com>
+ <201208091141.58586.rjw@sisk.pl> <CACfp431RNXmp_453ZU999bQzdBgiU20FEehvLH+DxnZbALAc3A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Sameer Nanda <snanda@chromium.org>, Julia Lawall <Julia.Lawall@lip6.fr>, NeilBrown <neilb@suse.de>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Matthew Garrett <mjg@redhat.com>, platform-driver-x86@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:56720 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751656Ab2HKPTI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 11 Aug 2012 11:19:08 -0400
+In-Reply-To: <CACfp431RNXmp_453ZU999bQzdBgiU20FEehvLH+DxnZbALAc3A@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-pm@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-Hi Linus,
+Ok, this thing happened again! Whatsmore, this happened on pm-suspend
+while on [core].
 
-Please pull from the git repository at
+The kernel output this:
+Aug 11 17:59:16 localhost logger: LID closed
+Aug 11 17:59:16 localhost kernel: [32512.391116] EXT4-fs (sda1):
+re-mounted. Opts: discard,barrier=0,commit=0
+Aug 11 17:59:17 localhost kernel: [32512.520905] wlan0:
+deauthenticating from 00:13:33:a1:23:46 by local choice (reason=3)
+Aug 11 17:59:17 localhost kernel: [32512.530786] cfg80211: Calling
+CRDA to update world regulatory domain
+Aug 11 17:59:17 localhost NetworkManager[794]: <info> (wlan0): now unmanaged
+Aug 11 17:59:17 localhost NetworkManager[794]: <info> (wlan0): device
+state change: activated -> unmanaged (reason 'removed') [100 10 36]
+Aug 11 17:59:17 localhost NetworkManager[794]: <info> (wlan0):
+deactivating device (reason 'removed') [36]
+Aug 11 17:59:17 localhost dhcpcd[12635]: received SIGTERM, stopping
+Aug 11 17:59:17 localhost dhcpcd[12635]: wlan0: removing interface
+Aug 11 17:59:17 localhost dhcpcd[12635]: wlan0: del_route: No such device
+Aug 11 17:59:17 localhost dhcpcd[12635]: del_address: No such device
+Aug 11 17:59:17 localhost kernel: [32512.607181] ehci_hcd
+0000:00:1d.0: remove, state 1
+Aug 11 17:59:17 localhost kernel: [32512.607212] usb usb2: USB
+disconnect, device number 1
+Aug 11 17:59:17 localhost kernel: [32512.607214] usb 2-1: USB
+disconnect, device number 2
+Aug 11 17:59:17 localhost kernel: [32512.612488] ehci_hcd
+0000:00:1d.0: USB bus 2 deregistered
+Aug 11 17:59:17 localhost kernel: [32512.612528] ehci_hcd
+0000:00:1a.0: remove, state 1
+Aug 11 17:59:17 localhost kernel: [32512.612533] usb usb1: USB
+disconnect, device number 1
+Aug 11 17:59:17 localhost kernel: [32512.612534] usb 1-1: USB
+disconnect, device number 2
+Aug 11 17:59:17 localhost kernel: [32512.617226] ehci_hcd
+0000:00:1a.0: USB bus 1 deregistered
+Aug 11 17:59:17 localhost NetworkManager[794]: <info> (wlan0):
+canceled DHCP transaction, DHCP client pid 12635
+Aug 11 17:59:17 localhost NetworkManager[794]: <warn> (44) failed to
+find interface name for index
+Aug 11 17:59:17 localhost NetworkManager[794]:
+nm_system_iface_flush_routes: assertion `iface != NULL' failed
+Aug 11 17:59:17 localhost NetworkManager[794]: <warn> (44) failed to
+find interface name for index
+Aug 11 17:59:17 localhost NetworkManager[794]: <info> (wlan0): cleaning up...
+Aug 11 17:59:17 localhost NetworkManager[794]: <warn> (44) failed to
+find interface name for index
+Aug 11 17:59:17 localhost NetworkManager[794]:
+(nm-system.c:685):nm_system_iface_get_flags: runtime check failed:
+(iface != NULL)
+Aug 11 17:59:17 localhost NetworkManager[794]: <error>
+[1344697157.261251] [nm-system.c:687] nm_system_iface_get_flags():
+(unknown): failed to get interface link object
+Aug 11 17:59:17 localhost dbus[406]: [system] Activating service
+name='org.freedesktop.nm_dispatcher' (using servicehelper)
+Aug 11 17:59:17 localhost NetworkManager[794]: <info> radio killswitch
+/sys/devices/pci0000:00/0000:00:1c.1/0000:03:00.0/ieee80211/phy33/rfkill41
+disappeared
+Aug 11 17:59:17 localhost NetworkManager[794]: <warn> (pid 12635)
+unhandled DHCP event for interface wlan0
+Aug 11 17:59:17 localhost dbus[406]: [system] Successfully activated
+service 'org.freedesktop.nm_dispatcher'
+Aug 11 17:59:17 localhost kernel: [32512.842664] PM: Syncing
+filesystems ... done.
+Aug 11 17:59:17 localhost kernel: [32512.844894] PM: Preparing system
+for mem sleep
+Aug 11 17:59:17 localhost NetworkManager[794]: <warn> error requesting
+auth for org.freedesktop.NetworkManager.wifi.share.protected: (3)
+GDBus.Error:org.freedesktop.DBus.Error.NameHasNoOwner:
+GDBus.Error:org.freedesktop.DBus.Error.NameHasNoOwner: Could not get
+UID of name ':1.154': no such name
+Aug 11 17:59:17 localhost NetworkManager[794]: <warn> error requesting
+auth for org.freedesktop.NetworkManager.wifi.share.open: (3)
+GDBus.Error:org.freedesktop.DBus.Error.NameHasNoOwner:
+GDBus.Error:org.freedesktop.DBus.Error.NameHasNoOwner: Could not get
+UID of name ':1.154': no such name
+Aug 11 14:59:56 localhost rtkit-daemon[1885]: Successfully made thread
+13922 of process 13922 (/usr/bin/pulseaudio) owned by '1000' high
+priority at nice level -11.
+Aug 11 14:59:56 localhost rtkit-daemon[1885]: Supervising 1 threads of
+1 processes of 1 users.
+Aug 11 17:59:56 localhost pulseaudio[13922]: [pulseaudio] pid.c: Stale
+PID file, overwriting.
+Aug 11 17:59:56 localhost dbus[406]: [system] Activating service
+name='org.bluez' (using servicehelper)
+Aug 11 17:59:56 localhost dbus[406]: [system] Activated service
+'org.bluez' failed: Launch helper exited with unknown return code 1
+Aug 11 17:59:56 localhost pulseaudio[13922]: [pulseaudio]
+bluetooth-util.c: org.bluez.Manager.ListAdapters() failed:
+org.freedesktop.DBus.Error.Spawn.ChildExited: Launch helper exited
+with unknown return code 1
+Aug 11 14:59:57 localhost rtkit-daemon[1885]: Successfully made thread
+13987 of process 13987 (/usr/bin/pulseaudio) owned by '1000' high
+priority at nice level -11.
+Aug 11 14:59:57 localhost rtkit-daemon[1885]: Supervising 2 threads of
+2 processes of 1 users.
+Aug 11 17:59:57 localhost pulseaudio[13987]: [pulseaudio] pid.c:
+Daemon already running.
+Aug 11 18:01:01 localhost /USR/SBIN/CROND[14152]: (root) CMD
+(run-parts /etc/cron.hourly)
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm-for-3.6-rc2
-
-to receive power management fixes for v3.6-rc2 with top-most commit
-07368d32f1a67e797def08cf2ee3ea1647b204b6
-
-  tpm_tis / PM: Fix unused function warning for CONFIG_PM_SLEEP
-
-on top of commit 0d7614f09c1ebdbaa1599a5aba7593f147bf96ee
-
-  Linux 3.6-rc1
-
-Included are:
-
-* Fix for two recent regressions in the generic PM domains framework.
-
-* Revert of a commit that introduced a resume regression and is conceptually
-  incorrect in my opinion.
-
-* Fix for a return value in pcc-cpufreq.c from Julia Lawall.
-
-* RTC wakeup signaling fix from Neil Brown.
-
-* Suppression of compiler warnings for CONFIG_PM_SLEEP unset in ACPI,
-  platform/x86 and TPM drivers.
-
-Thanks!
-
-
- drivers/acpi/ac.c                        |  4 ++++
- drivers/acpi/battery.c                   |  2 ++
- drivers/acpi/button.c                    |  4 ++++
- drivers/acpi/fan.c                       |  4 ++++
- drivers/acpi/power.c                     |  4 ++++
- drivers/acpi/sbs.c                       |  2 ++
- drivers/acpi/thermal.c                   |  4 ++++
- drivers/base/power/clock_ops.c           |  3 +--
- drivers/base/power/common.c              |  4 +---
- drivers/char/tpm/tpm_tis.c               |  2 ++
- drivers/cpufreq/pcc-cpufreq.c            |  1 +
- drivers/platform/x86/classmate-laptop.c  |  4 ++++
- drivers/platform/x86/fujitsu-tablet.c    |  2 ++
- drivers/platform/x86/hdaps.c             |  2 ++
- drivers/platform/x86/hp_accel.c          |  2 +-
- drivers/platform/x86/msi-laptop.c        |  4 ++++
- drivers/platform/x86/panasonic-laptop.c  |  4 ++++
- drivers/platform/x86/sony-laptop.c       | 12 +++++++++++-
- drivers/platform/x86/thinkpad_acpi.c     |  2 ++
- drivers/platform/x86/toshiba_acpi.c      |  2 ++
- drivers/platform/x86/toshiba_bluetooth.c |  4 ++++
- drivers/platform/x86/xo15-ebook.c        |  2 ++
- drivers/rtc/interface.c                  |  2 ++
- drivers/rtc/rtc-cmos.c                   |  1 -
- include/linux/sched.h                    |  8 --------
- kernel/power/suspend.c                   |  3 ---
- kernel/watchdog.c                        | 21 ++-------------------
- 27 files changed, 71 insertions(+), 38 deletions(-)
-
----------------
-
-Julia Lawall (1):
-      drivers/cpufreq/pcc-cpufreq.c: fix error return code
-
-NeilBrown (1):
-      RTC: Avoid races between RTC alarm wakeup and suspend.
-
-Rafael J. Wysocki (5):
-      PM: Make dev_pm_get_subsys_data() always return 0 on success
-      Revert "NMI watchdog: fix for lockup detector breakage on resume"
-      ACPI / PM: Fix unused function warnings for CONFIG_PM_SLEEP
-      platform / x86 / PM: Fix unused function warnings for CONFIG_PM_SLEEP
-      tpm_tis / PM: Fix unused function warning for CONFIG_PM_SLEEP
+and then nothing more. Whatsmore, X crashed and no more ACPI events
+got registered.
+I am really clueless regarding this and have nowhere to look. One hint
+would be that after I killed and restarted my X server at 12 hours of
+uptime, the problem re-surfaced at about 33 hours uptime, so it might
+be something with X but I don't really know how this could affect the
+kernel....
