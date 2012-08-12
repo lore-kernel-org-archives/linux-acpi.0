@@ -1,28 +1,40 @@
-From: "uxj" <root@07770500.com>
-Subject: =?utf-8?B?5Lia5Yqh5ZKo6K+i?=
-Date: Sat, 11 Aug 2012 10:09:20 +0800
-Message-ID: <BA4C4A21E8A41AE4B4DE3A05DE697311@wtjijqbe>
+From: Athlion <athlion@gmail.com>
+Subject: Re: Kernel stops at "PM: Preparing system for mem sleep", never makes
+ it to "Freezing user space processes ... "
+Date: Sun, 12 Aug 2012 14:01:23 +0300
+Message-ID: <CACfp433X1KwvDu+5ytVVOk6K4pc2vzKxMgEZaCsNwLz0o+Mj9Q@mail.gmail.com>
+References: <CACfp4335KJQ8Zjj0TJNj65Va9K-t_iEHLEGEi8QuWyQj5dVT0g@mail.gmail.com>
+ <CACfp431RNXmp_453ZU999bQzdBgiU20FEehvLH+DxnZbALAc3A@mail.gmail.com>
+ <CACfp432=M5XkqRXpKfzstvQo59tytHGoV1_r15DtV3ZhYvGwoA@mail.gmail.com> <201208120008.47633.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.mycommail.com ([81.29.100.10]:1214 "EHLO mycommail.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750889Ab2HLFwa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 12 Aug 2012 01:52:30 -0400
+Received: from mail-gg0-f174.google.com ([209.85.161.174]:41698 "EHLO
+	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750991Ab2HLLBo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 12 Aug 2012 07:01:44 -0400
+In-Reply-To: <201208120008.47633.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: 89539ab@sina.com, zwy1387355@qq.com, cabvvt5323@yahoo.com.cn, cctqmba@126.com, linux-acpi@vger.kernel.org, nicexiaolong@126.com
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-pm@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-5oKo5aW977ybIOaIkeWFrOWPuOS4gOebtOS7juS6i+WbveWGheWVhuS4mui0uOaYk+S4muWKoe+8
-jOWSjOWbveWGheWkmuS4quWfjuW4gueahOWkmuS4quWFrOWPuOacieWPkS3npajkuJrliqHmnaXl
-voDvvIzlj6/luK7mgqjku6Mg5Yqe5LiA5Lqb6ZyA6KaB55qE56Wo5o2u44CC5YWs5Y+45Li76KaB
-5Lul5aKe5YC8Leeoji3npajkuLrkuLvvvIzlkITnsbvlm73lnLAt56iOLeelqOWmguWVhuWTgemU
-gC3llK7vvIzlt6XkuJrnlJ/kuqfvvIzphZLlupfppJDppa7vvIzov5DovpPnrYnjgILlkITpobnn
-pajpg73mmK/lhazlj7jlvIDlh7rnmoTmraPop4Tnpajlj6/liLDlvZPlnLAg56iOLeWKoeWxgOaf
-peivgeOAguWmgumcgOWPr+ivou+8mzEzNjQwMjM0NjE1IFFROzE0MTY2NjE2NzMu5Lia5Yqh57uP
-55CGO+WImOmVh+W5sw0K
+On Sun, Aug 12, 2012 at 1:08 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> This seems to be the last kernel message you've got.
+>
+> It looks like there's a problem with a power management notifier within
+> the kernel.  Perhaps a race condition, since it is not reproducible 100%
+> of the time.
+>
+> Does it happen if you don't use the lid to trigger suspend?
+>
+> Rafael
 
+No, it does not.
 
+If I don't use the lid, the suspend succeeds 100% of the time (at
+least, I have achieved over 4 days of uptime by using the
+logout/suspend button of xfce, I never could stand not closing the lid
+for more...)
 
+What I don't know exactly is how to begin tracking this problem down.
