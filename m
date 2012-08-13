@@ -1,98 +1,65 @@
-From: Athlion <athlion@gmail.com>
-Subject: Re: Kernel stops at "PM: Preparing system for mem sleep", never makes
- it to "Freezing user space processes ... "
-Date: Mon, 13 Aug 2012 10:27:30 +0300
-Message-ID: <CACfp431tm0KK380uxaamnGy_riRuU6EHeHLDFDWeoyQgfdXuzA@mail.gmail.com>
-References: <CACfp4335KJQ8Zjj0TJNj65Va9K-t_iEHLEGEi8QuWyQj5dVT0g@mail.gmail.com>
- <CACfp433X1KwvDu+5ytVVOk6K4pc2vzKxMgEZaCsNwLz0o+Mj9Q@mail.gmail.com>
- <CACfp431Zj33YtSZJ5rDHACOuHRePKHX7CPYZRCdDxLS27sC=pg@mail.gmail.com>
- <201208122303.53318.rjw@sisk.pl> <CACfp431yG1_WzdAQFL2aB52Trw68a-HTCe0q8izcomj5B9i0ZA@mail.gmail.com>
+From: "R, Durgadoss" <durgadoss.r@intel.com>
+Subject: RE: [PATCH 11/13] Thermal: Add a notification API
+Date: Mon, 13 Aug 2012 07:46:20 +0000
+Message-ID: <4D68720C2E767A4AA6A8796D42C8EB5919A440@BGSMSX101.gar.corp.intel.com>
+References: <1344516365-7230-1-git-send-email-durgadoss.r@intel.com>
+	 <1344516365-7230-12-git-send-email-durgadoss.r@intel.com>
+ <1344841364.1682.796.camel@rui.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:63842 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751702Ab2HMH1v (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Aug 2012 03:27:51 -0400
-In-Reply-To: <CACfp431yG1_WzdAQFL2aB52Trw68a-HTCe0q8izcomj5B9i0ZA@mail.gmail.com>
+Received: from mga01.intel.com ([192.55.52.88]:59195 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751738Ab2HMHqY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 13 Aug 2012 03:46:24 -0400
+In-Reply-To: <1344841364.1682.796.camel@rui.sh.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-pm@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+To: "Zhang, Rui" <rui.zhang@intel.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>, "amit.kachhap@linaro.org" <amit.kachhap@linaro.org>, "wni@nvidia.com" <wni@nvidia.com>
 
-And this is the dmesg with pci=nocrs acpi_osi=Linux
-
-https://dl.dropbox.com/u/63420/dmesg2.txt
-
-On Mon, Aug 13, 2012 at 10:13 AM, Athlion <athlion@gmail.com> wrote:
-> Thanks,
->
-> Here is my dmesg from a clean boot:
->
-> https://dl.dropbox.com/u/63420/dmesg.txt
->
-> Now that I scanned it more thoroughly I found these:
->
-> [    0.363136] [Firmware Bug]: ACPI: BIOS _OSI(Linux) query ignored
-> and
-> [    0.387856] PCI: Using host bridge windows from ACPI; if necessary,
-> use "pci=nocrs" and report a bug
->
-> my /proc/cmdline is:
-> BOOT_IMAGE=/boot/vmlinuz-linux
-> root=UUID=44cf687d-4827-4765-8758-98d44a745d07 ro quiet
-> resume=/dev/sda2
->
-> maybe they indicate a lurking problem?
->
-> (in parallel, I will try booting with pci=nocrs and report back)
->
-> And there are other people having this issue, some from way back, as
-> can be seen here
-> https://bbs.archlinux.org/viewtopic.php?id=144381
-> (Don't be fooled by the linux 3.4.x reference in the title, it happens
-> with older kernels, too)
->
-> Some of them have found the "solution" to be "never close the lid" but
-> this is unacceptable, for me.
->
-> Again, thanks!
->
-> On Mon, Aug 13, 2012 at 12:03 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
->> On Sunday, August 12, 2012, Athlion wrote:
->>> On Sun, Aug 12, 2012 at 2:01 PM, Athlion <athlion@gmail.com> wrote:
->>> > On Sun, Aug 12, 2012 at 1:08 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
->>> >> This seems to be the last kernel message you've got.
->>> >>
->>> >> It looks like there's a problem with a power management notifier within
->>> >> the kernel.  Perhaps a race condition, since it is not reproducible 100%
->>> >> of the time.
->>> >>
->>> >> Does it happen if you don't use the lid to trigger suspend?
->>> >>
->>> >> Rafael
->>> >
->>> > No, it does not.
->>> >
->>> > If I don't use the lid, the suspend succeeds 100% of the time (at
->>> > least, I have achieved over 4 days of uptime by using the
->>> > logout/suspend button of xfce, I never could stand not closing the lid
->>> > for more...)
->>> >
->>> > What I don't know exactly is how to begin tracking this problem down.
->>>
->>> Furthermore, the suspend actually *happens* if I initiate a shutdown
->>> or reboot procedure, right after the point where the system says
->>> killing all processes. On resume, the shutdown/reboot resumes
->>> normally.
->>
->> There seems to be an input event handling race condition with system suspend
->> on your machine.  I wonder if it's related to the specific system configuration,
->> though, because no one else has reported anything like this before.
->>
->> I'm not sure what to do to debug this further at the moment.
->>
->> Please attach dmesg output from a clean boot.
->>
->> Thanks,
->> Rafael
+SGkgUnVpLA0KDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogWmhhbmcs
+IFJ1aQ0KPiBTZW50OiBNb25kYXksIEF1Z3VzdCAxMywgMjAxMiAxMjozMyBQTQ0KPiBUbzogUiwg
+RHVyZ2Fkb3NzDQo+IENjOiBsZW5iQGtlcm5lbC5vcmc7IHJqd0BzaXNrLnBsOyBsaW51eC1hY3Bp
+QHZnZXIua2VybmVsLm9yZzsgbGludXgtDQo+IHBtQHZnZXIua2VybmVsLm9yZzsgZWR1YXJkby52
+YWxlbnRpbkB0aS5jb207IGFtaXQua2FjaGhhcEBsaW5hcm8ub3JnOw0KPiB3bmlAbnZpZGlhLmNv
+bQ0KPiBTdWJqZWN0OiBSZTogW1BBVENIIDExLzEzXSBUaGVybWFsOiBBZGQgYSBub3RpZmljYXRp
+b24gQVBJDQo+IA0KPiBPbiDlm5ssIDIwMTItMDgtMDkgYXQgMTg6MTYgKzA1MzAsIER1cmdhZG9z
+cyBSIHdyb3RlOg0KPiA+IFRoaXMgcGF0Y2ggYWRkcyBhIG5vdGlmaWNhdGlvbiBBUEkgd2hpY2gg
+dGhlIHNlbnNvciBkcml2ZXJzJw0KPiA+IGNhbiB1c2UgdG8gbm90aWZ5IHRoZSBmcmFtZXdvcmsu
+IFRoZSBmcmFtZXdvcmsgdGhlbiB0YWtlcw0KPiA+IGNhcmUgb2YgdGhlIHRocm90dGxpbmcgYWNj
+b3JkaW5nIHRvIHRoZSBjb25maWd1cmVkIHBvbGljeS4NCj4gPg0KPiA+IFNpZ25lZC1vZmYtYnk6
+IER1cmdhZG9zcyBSIDxkdXJnYWRvc3MuckBpbnRlbC5jb20+DQo+ID4gLS0tDQo+ID4gIGRyaXZl
+cnMvdGhlcm1hbC90aGVybWFsX3N5cy5jIHwgICAxOCArKysrKysrKysrKysrKysrKysNCj4gPiAg
+aW5jbHVkZS9saW51eC90aGVybWFsLmggICAgICAgfCAgICAxICsNCj4gPiAgMiBmaWxlcyBjaGFu
+Z2VkLCAxOSBpbnNlcnRpb25zKCspDQo+ID4NCj4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy90aGVy
+bWFsL3RoZXJtYWxfc3lzLmMgYi9kcml2ZXJzL3RoZXJtYWwvdGhlcm1hbF9zeXMuYw0KPiA+IGlu
+ZGV4IDE5M2QwNzEuLjY5MzFkODEgMTAwNjQ0DQo+ID4gLS0tIGEvZHJpdmVycy90aGVybWFsL3Ro
+ZXJtYWxfc3lzLmMNCj4gPiArKysgYi9kcml2ZXJzL3RoZXJtYWwvdGhlcm1hbF9zeXMuYw0KPiA+
+IEBAIC0xMzA5LDYgKzEzMDksMjQgQEAgdm9pZCB0aGVybWFsX2Nvb2xpbmdfZGV2aWNlX3VucmVn
+aXN0ZXIoc3RydWN0DQo+IHRoZXJtYWxfY29vbGluZ19kZXZpY2UgKmNkZXYpDQo+ID4gIH0NCj4g
+PiAgRVhQT1JUX1NZTUJPTCh0aGVybWFsX2Nvb2xpbmdfZGV2aWNlX3VucmVnaXN0ZXIpOw0KPiA+
+DQo+ID4gKy8qKg0KPiA+ICsgKiBub3RpZnlfdGhlcm1hbF9mcmFtZXdvcmsgLSBTZW5zb3IgZHJp
+dmVycyB1c2UgdGhpcyBBUEkgdG8gbm90aWZ5DQo+IGZyYW1ld29yaw0KPiA+ICsgKiBAdHo6CQl0
+aGVybWFsIHpvbmUgZGV2aWNlDQo+ID4gKyAqIEB0cmlwOglpbmRpY2F0ZXMgd2hpY2ggdHJpcCBw
+b2ludCBoYXMgYmVlbiBjcm9zc2VkDQo+ID4gKyAqDQo+ID4gKyAqIFRoaXMgZnVuY3Rpb24gaGFu
+ZGxlcyB0aGUgdHJpcCBldmVudHMgZnJvbSBzZW5zb3IgZHJpdmVycy4gSXQgc3RhcnRzDQo+ID4g
+KyAqIHRocm90dGxpbmcgdGhlIGNvb2xpbmcgZGV2aWNlcyBhY2NvcmRpbmcgdG8gdGhlIHBvbGlj
+eSBjb25maWd1cmVkLg0KPiA+ICsgKiBGb3IgQ1JJVElDQUwgYW5kIEhPVCB0cmlwIHBvaW50cywg
+dGhpcyBub3RpZmllcyB0aGUgcmVzcGVjdGl2ZSBkcml2ZXJzLA0KPiA+ICsgKiBhbmQgZG9lcyBh
+Y3R1YWwgdGhyb3R0bGluZyBmb3Igb3RoZXIgdHJpcCBwb2ludHMgaS5lIEFDVElWRSBhbmQgUEFT
+U0lWRS4NCj4gPiArICogVGhlIHRocm90dGxpbmcgcG9saWN5IGlzIGJhc2VkIG9uIHRoZSBjb25m
+aWd1cmVkIHBsYXRmb3JtIGRhdGE7IGlmIG5vDQo+ID4gKyAqIHBsYXRmb3JtIGRhdGEgaXMgcHJv
+dmlkZWQsIHRoaXMgdXNlcyB0aGUgc3RlcF93aXNlIHRocm90dGxpbmcgcG9saWN5Lg0KPiA+ICsg
+Ki8NCj4gPiArdm9pZCBub3RpZnlfdGhlcm1hbF9mcmFtZXdvcmsoc3RydWN0IHRoZXJtYWxfem9u
+ZV9kZXZpY2UgKnR6LCBpbnQgdHJpcCkNCj4gPiArew0KPiA+ICsJaGFuZGxlX3RoZXJtYWxfdHJp
+cCh0eiwgdHJpcCk7DQo+ID4gK30NCj4gPiArRVhQT1JUX1NZTUJPTChub3RpZnlfdGhlcm1hbF9m
+cmFtZXdvcmspOw0KPiA+ICsNCj4gd2h5IHRoZXJtYWxfem9uZV9kZXZpY2VfdXBkYXRlKCkgY2Fu
+IG5vdCB3b3JrIGhlcmU/DQoNCkl0IGNhbiB3b3JrLiBCdXQgdGhlcm1hbF96b25lX2RldmljZV91
+cGRhdGUoKSBnb2VzIG92ZXIgdGhlDQpsaXN0IG9mIGFsbCB0cmlwIHBvaW50cyB3aGVyZWFzIGhl
+cmUgd2Uga25vdyAndHJpcCcgaXMgdGhlIHRyaXAgcG9pbnQNCnRoYXQgd2UgaGF2ZSB0byBoYW5k
+bGUgbm93LiBTbywgd2h5IGRvIHdlIG5lZWQgdG8gaXRlcmF0ZSBvdmVyIGFsbCB0cmlwDQpwb2lu
+dHMgYWdhaW4gPw0KVGhhdOKAmXMgd2h5IGl0IGlzIGltcGxlbWVudGVkIHRoaXMgd2F5Lg0KDQpU
+aGFua3MsDQpEdXJnYQ0K
