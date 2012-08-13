@@ -1,50 +1,131 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
-Subject: RE: [PATCH 10/13] Thermal: Remove throttling logic out of
- thermal_sys.c
-Date: Mon, 13 Aug 2012 08:04:03 +0000
-Message-ID: <4D68720C2E767A4AA6A8796D42C8EB5919A46B@BGSMSX101.gar.corp.intel.com>
-References: <1344516365-7230-1-git-send-email-durgadoss.r@intel.com>
-	 <1344516365-7230-11-git-send-email-durgadoss.r@intel.com>
- <1344841200.1682.794.camel@rui.sh.intel.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH] ACPI: Add ACPI CPU hot-remove support
+Date: Mon, 13 Aug 2012 09:21:22 -0600
+Message-ID: <1344871282.3010.988.camel@misato.fc.hp.com>
+References: <1340981479-6521-1-git-send-email-toshi.kani@hp.com>
+	 <4FF711DE.1030108@gmail.com>	<1341602020.16730.695.camel@misato.fc.hp.com>
+	 <4FF745F1.9030103@hp.com>	<1341608402.16730.730.camel@misato.fc.hp.com>
+	 <CAOEr4mpL952Z2iPuhfad+jhxUpOdHPRenEVmTUkU9LC8kKR29w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:23693 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751777Ab2HMIEH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 13 Aug 2012 04:04:07 -0400
-In-Reply-To: <1344841200.1682.794.camel@rui.sh.intel.com>
-Content-Language: en-US
+Received: from g1t0029.austin.hp.com ([15.216.28.36]:28394 "EHLO
+	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751276Ab2HMP0b (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Aug 2012 11:26:31 -0400
+In-Reply-To: <CAOEr4mpL952Z2iPuhfad+jhxUpOdHPRenEVmTUkU9LC8kKR29w@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>, "amit.kachhap@linaro.org" <amit.kachhap@linaro.org>, "wni@nvidia.com" <wni@nvidia.com>
+To: Jiang Liu <liuj97@gmail.com>
+Cc: lenb@kernel.org, khalid.aziz@hp.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-SGkgUnVpLA0KDQpbY3V0Ll0NCj4gPiArc3RhdGljIHZvaWQgbm90aWZ5X3VzZXJfc3BhY2Uoc3Ry
-dWN0IHRoZXJtYWxfem9uZV9kZXZpY2UgKnR6LCBpbnQgdHJpcCkNCj4gPiArew0KPiA+ICsJbXV0
-ZXhfbG9jaygmdHotPmxvY2spOw0KPiA+ICsNCj4gPiArCWtvYmplY3RfdWV2ZW50KCZ0ei0+ZGV2
-aWNlLmtvYmosIEtPQkpfQ0hBTkdFKTsNCj4gPiArDQo+ID4gKwltdXRleF91bmxvY2soJnR6LT5s
-b2NrKTsNCj4gPiArfQ0KPiA+ICsNCj4gPiArc3RhdGljIHZvaWQgaGFuZGxlX25vbl9jcml0aWNh
-bF90cmlwcyhzdHJ1Y3QgdGhlcm1hbF96b25lX2RldmljZSAqdHosDQo+ID4gKwkJCWludCB0cmlw
-LCBlbnVtIHRoZXJtYWxfdHJpcF90eXBlIHRyaXBfdHlwZSkNCj4gPiArew0KPiA+ICsJaW50IHRo
-cm90dGxlX3BvbGljeSA9IFRIRVJNQUxfU1RFUF9XSVNFOw0KPiA+ICsNCj4gPiArCWlmICh0ei0+
-dHpwKQ0KPiA+ICsJCXRocm90dGxlX3BvbGljeSA9IHR6LT50enAtPnRocm90dGxlX3BvbGljeTsN
-Cj4gPiArDQo+ID4gKwlzd2l0Y2ggKHRocm90dGxlX3BvbGljeSkgew0KPiA+ICsJY2FzZSBUSEVS
-TUFMX0ZBSVJfU0hBUkU6DQo+ID4gKwkJZmFpcl9zaGFyZV90aHJvdHRsZSh0eiwgdHJpcCk7DQo+
-ID4gKwkJYnJlYWs7DQo+ID4gKwljYXNlIFRIRVJNQUxfU1RFUF9XSVNFOg0KPiA+ICsJCXN0ZXBf
-d2lzZV90aHJvdHRsZSh0eiwgdHJpcCk7DQo+ID4gKwkJYnJlYWs7DQo+ID4gKwljYXNlIFRIRVJN
-QUxfVVNFUl9TUEFDRToNCj4gPiArCQlub3RpZnlfdXNlcl9zcGFjZSh0eiwgdHJpcCk7DQo+ID4g
-KwkJYnJlYWs7DQo+ID4gKwl9DQo+IA0KPiB0aGlzIGlzIGEgbGl0dGxlIGRpZmZlcmVudCBmcm9t
-IHdoYXQgSSB0aG91Z2h0Lg0KPiBJTU8sIGVhY2ggcG9saWN5IHNob3VsZCByZWdpc3RlciBpdHMg
-cG9pbnRlciB0byB0aGUgdGhlcm1hbCBmcmFtZXdvcmsuDQo+IGFuZCB0ei0+dHpwIHBvaW50cyB0
-byB0aGUgcG9pbnRlciBvZiB0aGUgcG9saWN5IHVzaW5nLg0KPiBhbmQgdGhlbiwgaW4gaGFuZGxl
-X25vbl9jcml0aWNhbF90cmlwcygpLCB0aGUgY29kZSB3b3VsZCBiZSBsaWtlIHRoaXM6DQo+IGlm
-KHR6LT50enApDQo+IAl0ei0+dHpwLT50aHJvdHRsZSh0eiwgdHJpcCk7DQo+IA0KPiBCdXQgdGhp
-cyBpcyBhbHNvIG9rYXkgZm9yIG5vdywgYmVjYXVzZSB3ZSBoYXZlIG9ubHkgb25lIGNhbGxiYWNr
-IGZvcg0KPiBlYWNoIHBvbGljeS4NCg0KSSBjb21wbGV0ZWx5IGFncmVlIHdpdGggeW91IGhlcmUu
-IFdoZW4gSSB3YXMgZG9pbmcgbXkgaW5pdGlhbCBkZXZlbG9wbWVudCwNCkkgZm91bmQgdGhhdCBz
-b21lIHBvbGljaWVzIG5lZWQgdHdvIGFyZ3VtZW50cy8gc29tZSBuZWVkIHRocmVlIGV0Yy4uDQpU
-aGF04oCZcyB3aHkgY291bGQgbm90IGRvIGEgZnVuY3Rpb24gcG9pbnRlciBpbXBsZW1lbnRhdGlv
-bi4NCg0KV2lsbCB0cnkgdG8gZml4IGl0IHVwIGluIHRoZSBuZXh0IHZlcnNpb24gb2YgdGhlIHBh
-dGNoZXMuDQoNClRoYW5rIHlvdSwNCkR1cmdhDQo=
+Hi Gerry, Khalid,
+
+On Mon, 2012-07-09 at 02:40 +0000, Jiang Liu wrote:
+> Hi Khalid,
+>  It depends on it's running on physical or virtualizaiton host. If
+> it's a native OS running on physical platforms, we have real platforms
+> to support physical processor, memory board, IOH(PCIe host bridge) and
+> node (including mem/cpu/IOH) hotplug, but we haven't really seen a
+> platform supporting CPU(core) hotplug yet.
+> I think CPU(core) hotplug is for virtualization, where each physical
+> core is presented as a virtual processor to guest OS. So to
+> dynamically reconfigure guest OS capabilties, we need to support CPU
+> hotplug.
+
+Agreed.  We need to enable CPU hot-add/remove features for
+visualization, such as KVM.
+ 
+>  Actually we are working on a project to enhance ACPI based physical
+> device hotplug, which aims to unify the way to support physical
+> processor(ACPI Container), memory board(ACPI Memory Device), PCI root
+> bridge(ACPI PCI Host bridge) and node (ACPI Container) hotplug.
+
+Cool.
+
+>  Toshi, seems there's ongoing effort from both you, Yinghai, Yasuaki
+> Ishimatsu and us to enable ACPI based physical device hotplug. It
+> would be great if we could cooperate on this area.
+
+Absolutely!  It will be great for us to collaborate in this area. 
+
+
+Gerry, Khalid, please let me know if you have any further comments on
+this patch.
+
+Thanks,
+-Toshi
+
+
+
+>  Thanks!
+>  Gerry
+> 
+> 
+>  
+> On Sat, Jul 7, 2012 at 5:00 AM, Toshi Kani <toshi.kani@hp.com> wrote:
+> On Fri, 2012-07-06 at 14:09 -0600, Khalid Aziz wrote:
+> > On 07/06/2012 01:13 PM, Toshi Kani wrote:
+> >
+> > >
+> > > For step 2) and 4), I am wondering if they are relevant to CPU
+> hotplug 
+> > > these days.  In ACPI namespace, a processor object represents a
+> logical
+> > > processor (or a core when hyper-threading is disabled).  A
+> physical
+> > > processor (i.e. a socket) usually has multiple cores, and memory
+> > > controller and bus interface are part of the socket functionality.
+> > > Hence, I think step 2) and 4) belong to socket-level hot-removal
+> > > operation, which can be implemented as container hot-remove when a
+> > > socket is represented with a container object.
+> >
+> > What does it mean to eject just a core in that case? If there are
+> seven
+> > other cores in the physical processor and you get a request to eject
+> > one core, what would you expect kernel to do - simply move all
+> processes
+> > and interrupts off of that core, take it out of scheduling
+> consideration
+> > and simply idle the core? If yes, how is that any different from
+> simply
+> > offlining a core?
+>         
+>         
+> Yes, offlining and eject are similar operations to a core as it alone
+> cannot be removed physically.  Ejecting a core is a logical eject
+> operation, which updates the status (_STA) of the object in ACPI after
+> offlining.  The difference from the offlining is that the ejected core
+> is no longer assigned to the partition.  Here is one example.  Say, a
+> core is assigned to a guest partition as a dedicated resource (ex.100%
+> of its CPU time is bound to the partition).  Offlining this core saves
+> the power-consumption, but this core is still bound to the partition.
+> Ejecting the core removes it from the partition (logically), and
+> allows it to be assigned to other partition as a dedicated resource
+> with hot-add.
+>         
+>         
+> > If you are ejecting individual cores at a time, do you
+> > keep track of how many you have ejected and then eject the entire
+> physical
+> > CPU along with memory and IOH associated with the socket when the
+> last
+> > core is ejected?
+>         
+>         
+> It depends on the firmware implementation, but typically the answer is
+> no.  _EJ0 of a core object only removes the associated core object. It
+> will require a separate socket hot-remove request to eject the
+> socket-level resources.  That is, the OS may not call _EJ0 of a socket
+> object from the core hot-remove operation just because all children
+> cores are removed.
+>         
+> Thanks,
+> -Toshi
+>         
+>         
+>         
+> 
+
+
