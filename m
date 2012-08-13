@@ -1,57 +1,84 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Kernel stops at "PM: Preparing system for mem sleep", never makes it to "Freezing user space processes ... "
-Date: Sun, 12 Aug 2012 23:03:53 +0200
-Message-ID: <201208122303.53318.rjw@sisk.pl>
-References: <CACfp4335KJQ8Zjj0TJNj65Va9K-t_iEHLEGEi8QuWyQj5dVT0g@mail.gmail.com> <CACfp433X1KwvDu+5ytVVOk6K4pc2vzKxMgEZaCsNwLz0o+Mj9Q@mail.gmail.com> <CACfp431Zj33YtSZJ5rDHACOuHRePKHX7CPYZRCdDxLS27sC=pg@mail.gmail.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH 04/13] Thermal: Add platform level information to
+ thermal.h
+Date: Mon, 13 Aug 2012 14:27:49 +0800
+Message-ID: <1344839269.1682.778.camel@rui.sh.intel.com>
+References: <1344516365-7230-1-git-send-email-durgadoss.r@intel.com>
+	 <1344516365-7230-5-git-send-email-durgadoss.r@intel.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:34787 "EHLO ogre.sisk.pl"
+Received: from mga11.intel.com ([192.55.52.93]:51129 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751570Ab2HLU55 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 12 Aug 2012 16:57:57 -0400
-In-Reply-To: <CACfp431Zj33YtSZJ5rDHACOuHRePKHX7CPYZRCdDxLS27sC=pg@mail.gmail.com>
+	id S1751219Ab2HMG0m (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 13 Aug 2012 02:26:42 -0400
+In-Reply-To: <1344516365-7230-5-git-send-email-durgadoss.r@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Athlion <athlion@gmail.com>
-Cc: linux-pm@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+To: Durgadoss R <durgadoss.r@intel.com>
+Cc: lenb@kernel.org, rjw@sisk.pl, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, eduardo.valentin@ti.com, amit.kachhap@linaro.org, wni@nvidia.com
 
-On Sunday, August 12, 2012, Athlion wrote:
-> On Sun, Aug 12, 2012 at 2:01 PM, Athlion <athlion@gmail.com> wrote:
-> > On Sun, Aug 12, 2012 at 1:08 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> >> This seems to be the last kernel message you've got.
-> >>
-> >> It looks like there's a problem with a power management notifier within
-> >> the kernel.  Perhaps a race condition, since it is not reproducible 100%
-> >> of the time.
-> >>
-> >> Does it happen if you don't use the lid to trigger suspend?
-> >>
-> >> Rafael
-> >
-> > No, it does not.
-> >
-> > If I don't use the lid, the suspend succeeds 100% of the time (at
-> > least, I have achieved over 4 days of uptime by using the
-> > logout/suspend button of xfce, I never could stand not closing the lid
-> > for more...)
-> >
-> > What I don't know exactly is how to begin tracking this problem down.
-> 
-> Furthermore, the suspend actually *happens* if I initiate a shutdown
-> or reboot procedure, right after the point where the system says
-> killing all processes. On resume, the shutdown/reboot resumes
-> normally.
+On =E5=9B=9B, 2012-08-09 at 18:15 +0530, Durgadoss R wrote:
+> This patch creates a structure to hold a thermal zone's
+> platform level info, and also defines an extern function to
+> retrieve zone parameters from thermal_sys.c.
+>=20
+> Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
+> ---
+>  drivers/thermal/thermal_sys.c |    3 +++
+>  include/linux/thermal.h       |   43 +++++++++++++++++++++++++++++++=
+++++++++++
+>  2 files changed, 46 insertions(+)
+>=20
+> diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_=
+sys.c
+> index 998c16e..f043cd6 100644
+> --- a/drivers/thermal/thermal_sys.c
+> +++ b/drivers/thermal/thermal_sys.c
+> @@ -49,6 +49,9 @@ static LIST_HEAD(thermal_tz_list);
+>  static LIST_HEAD(thermal_cdev_list);
+>  static DEFINE_MUTEX(thermal_list_lock);
+> =20
+> +int (*get_platform_thermal_params)(struct thermal_zone_device *);
+> +EXPORT_SYMBOL(get_platform_thermal_params);
+> +
+>  static int get_idr(struct idr *idr, struct mutex *lock, int *id)
+>  {
+>  	int err;
+> diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+> index 757a007..f9ce1e2 100644
+> --- a/include/linux/thermal.h
+> +++ b/include/linux/thermal.h
+> @@ -33,6 +33,8 @@
+>  #define THERMAL_MAX_TRIPS	12
+>  #define THERMAL_NAME_LENGTH	20
+> =20
+> +#define MAX_COOLING_DEVS	THERMAL_MAX_TRIPS
+> +
+why MAX_COOLING_DEVS equals THERMAL_MAX_TRIPS?
+if this is an arbitrary number, please use the number instead, or else
+this would be confusing.
 
-There seems to be an input event handling race condition with system suspend
-on your machine.  I wonder if it's related to the specific system configuration,
-though, because no one else has reported anything like this before.
+>  /* Initial state of a cooling device during binding */
+>  #define THERMAL_NO_TARGET	-1UL
+> =20
+> @@ -49,6 +51,11 @@
+>  #define THERMAL_GENL_VERSION                    0x01
+>  #define THERMAL_GENL_MCAST_GROUP_NAME           "thermal_mc_group"
+> =20
+> +/* Thermal policies */
+> +#define THERMAL_USER_SPACE	0
+> +#define THERMAL_FAIR_SHARE	1
+> +#define	THERMAL_STEP_WISE	2
 
-I'm not sure what to do to debug this further at the moment.
+coding style.
 
-Please attach dmesg output from a clean boot.
+thanks,
+rui
 
-Thanks,
-Rafael
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
