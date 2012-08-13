@@ -1,131 +1,103 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH] ACPI: Add ACPI CPU hot-remove support
-Date: Mon, 13 Aug 2012 09:21:22 -0600
-Message-ID: <1344871282.3010.988.camel@misato.fc.hp.com>
-References: <1340981479-6521-1-git-send-email-toshi.kani@hp.com>
-	 <4FF711DE.1030108@gmail.com>	<1341602020.16730.695.camel@misato.fc.hp.com>
-	 <4FF745F1.9030103@hp.com>	<1341608402.16730.730.camel@misato.fc.hp.com>
-	 <CAOEr4mpL952Z2iPuhfad+jhxUpOdHPRenEVmTUkU9LC8kKR29w@mail.gmail.com>
+From: "R, Durgadoss" <durgadoss.r@intel.com>
+Subject: RE: [PATCH 07/13] Thermal: Update binding logic based on platform
+ data
+Date: Mon, 13 Aug 2012 15:41:05 +0000
+Message-ID: <4D68720C2E767A4AA6A8796D42C8EB5919A6E0@BGSMSX101.gar.corp.intel.com>
+References: <1344516365-7230-1-git-send-email-durgadoss.r@intel.com>
+	 <1344516365-7230-8-git-send-email-durgadoss.r@intel.com>
+ <1344840062.1682.786.camel@rui.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0029.austin.hp.com ([15.216.28.36]:28394 "EHLO
-	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751276Ab2HMP0b (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Aug 2012 11:26:31 -0400
-In-Reply-To: <CAOEr4mpL952Z2iPuhfad+jhxUpOdHPRenEVmTUkU9LC8kKR29w@mail.gmail.com>
+Received: from mga03.intel.com ([143.182.124.21]:55705 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751377Ab2HMPmB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 13 Aug 2012 11:42:01 -0400
+In-Reply-To: <1344840062.1682.786.camel@rui.sh.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <liuj97@gmail.com>
-Cc: lenb@kernel.org, khalid.aziz@hp.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Zhang, Rui" <rui.zhang@intel.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>, "amit.kachhap@linaro.org" <amit.kachhap@linaro.org>, "wni@nvidia.com" <wni@nvidia.com>
 
-Hi Gerry, Khalid,
-
-On Mon, 2012-07-09 at 02:40 +0000, Jiang Liu wrote:
-> Hi Khalid,
->  It depends on it's running on physical or virtualizaiton host. If
-> it's a native OS running on physical platforms, we have real platforms
-> to support physical processor, memory board, IOH(PCIe host bridge) and
-> node (including mem/cpu/IOH) hotplug, but we haven't really seen a
-> platform supporting CPU(core) hotplug yet.
-> I think CPU(core) hotplug is for virtualization, where each physical
-> core is presented as a virtual processor to guest OS. So to
-> dynamically reconfigure guest OS capabilties, we need to support CPU
-> hotplug.
-
-Agreed.  We need to enable CPU hot-add/remove features for
-visualization, such as KVM.
- 
->  Actually we are working on a project to enhance ACPI based physical
-> device hotplug, which aims to unify the way to support physical
-> processor(ACPI Container), memory board(ACPI Memory Device), PCI root
-> bridge(ACPI PCI Host bridge) and node (ACPI Container) hotplug.
-
-Cool.
-
->  Toshi, seems there's ongoing effort from both you, Yinghai, Yasuaki
-> Ishimatsu and us to enable ACPI based physical device hotplug. It
-> would be great if we could cooperate on this area.
-
-Absolutely!  It will be great for us to collaborate in this area. 
-
-
-Gerry, Khalid, please let me know if you have any further comments on
-this patch.
-
-Thanks,
--Toshi
-
-
-
->  Thanks!
->  Gerry
-> 
-> 
->  
-> On Sat, Jul 7, 2012 at 5:00 AM, Toshi Kani <toshi.kani@hp.com> wrote:
-> On Fri, 2012-07-06 at 14:09 -0600, Khalid Aziz wrote:
-> > On 07/06/2012 01:13 PM, Toshi Kani wrote:
-> >
-> > >
-> > > For step 2) and 4), I am wondering if they are relevant to CPU
-> hotplug 
-> > > these days.  In ACPI namespace, a processor object represents a
-> logical
-> > > processor (or a core when hyper-threading is disabled).  A
-> physical
-> > > processor (i.e. a socket) usually has multiple cores, and memory
-> > > controller and bus interface are part of the socket functionality.
-> > > Hence, I think step 2) and 4) belong to socket-level hot-removal
-> > > operation, which can be implemented as container hot-remove when a
-> > > socket is represented with a container object.
-> >
-> > What does it mean to eject just a core in that case? If there are
-> seven
-> > other cores in the physical processor and you get a request to eject
-> > one core, what would you expect kernel to do - simply move all
-> processes
-> > and interrupts off of that core, take it out of scheduling
-> consideration
-> > and simply idle the core? If yes, how is that any different from
-> simply
-> > offlining a core?
->         
->         
-> Yes, offlining and eject are similar operations to a core as it alone
-> cannot be removed physically.  Ejecting a core is a logical eject
-> operation, which updates the status (_STA) of the object in ACPI after
-> offlining.  The difference from the offlining is that the ejected core
-> is no longer assigned to the partition.  Here is one example.  Say, a
-> core is assigned to a guest partition as a dedicated resource (ex.100%
-> of its CPU time is bound to the partition).  Offlining this core saves
-> the power-consumption, but this core is still bound to the partition.
-> Ejecting the core removes it from the partition (logically), and
-> allows it to be assigned to other partition as a dedicated resource
-> with hot-add.
->         
->         
-> > If you are ejecting individual cores at a time, do you
-> > keep track of how many you have ejected and then eject the entire
-> physical
-> > CPU along with memory and IOH associated with the socket when the
-> last
-> > core is ejected?
->         
->         
-> It depends on the firmware implementation, but typically the answer is
-> no.  _EJ0 of a core object only removes the associated core object. It
-> will require a separate socket hot-remove request to eject the
-> socket-level resources.  That is, the OS may not call _EJ0 of a socket
-> object from the core hot-remove operation just because all children
-> cores are removed.
->         
-> Thanks,
-> -Toshi
->         
->         
->         
-> 
-
-
+SGkgUnVpLA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFpoYW5nLCBS
+dWkNCj4gU2VudDogTW9uZGF5LCBBdWd1c3QgMTMsIDIwMTIgMTI6MTEgUE0NCj4gVG86IFIsIER1
+cmdhZG9zcw0KPiBDYzogbGVuYkBrZXJuZWwub3JnOyByandAc2lzay5wbDsgbGludXgtYWNwaUB2
+Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LQ0KPiBwbUB2Z2VyLmtlcm5lbC5vcmc7IGVkdWFyZG8udmFs
+ZW50aW5AdGkuY29tOyBhbWl0LmthY2hoYXBAbGluYXJvLm9yZzsNCj4gd25pQG52aWRpYS5jb20N
+Cj4gU3ViamVjdDogUmU6IFtQQVRDSCAwNy8xM10gVGhlcm1hbDogVXBkYXRlIGJpbmRpbmcgbG9n
+aWMgYmFzZWQgb24gcGxhdGZvcm0gZGF0YQ0KPiANCj4gT24g5ZubLCAyMDEyLTA4LTA5IGF0IDE4
+OjE1ICswNTMwLCBEdXJnYWRvc3MgUiB3cm90ZToNCj4gPiBUaGlzIHBhdGNoIHVwZGF0ZXMgdGhl
+IGJpbmRpbmcgbG9naWMgaW4gdGhlcm1hbF9zeXMuYw0KPiA+IEl0IHVzZXMgdGhlIHBsYXRmb3Jt
+IGxheWVyIGRhdGEgdG8gYmluZCBhIHRoZXJtYWwgem9uZQ0KPiA+IHRvIGEgY2RldiBmb3IgYSBw
+YXJ0aWN1bGFyIHRyaXAgcG9pbnQuDQo+ID4NCj4gPiAgKiBJZiB3ZSBkbyBub3QgaGF2ZSBwbGF0
+Zm9ybSBkYXRhIGFuZCBkbyBub3QgaGF2ZQ0KPiA+ICAgIC5iaW5kIGRlZmluZWQsIGRvIG5vdCBi
+aW5kLg0KPiA+ICAqIElmIHdlIGRvIG5vdCBoYXZlIHBsYXRmb3JtIGRhdGEgYnV0IC5iaW5kIGlz
+DQo+ID4gICAgZGVmaW5lZCwgdGhlbiB1c2UgdHotPm9wcy0+YmluZC4NCj4gPiAgKiBJZiB3ZSBo
+YXZlIHBsYXRmb3JtIGRhdGEsIHVzZSBpdCB0byBjcmVhdGUgYmluZGluZy4NCj4gPg0KPiA+IFRo
+ZSBzYW1lIGxvZ2ljIHNlcXVlbmNlIGlzIGZvbGxvd2VkIGZvciB1bmJpbmQgYWxzby4NCj4gPg0K
+PiA+IFNpZ25lZC1vZmYtYnk6IER1cmdhZG9zcyBSIDxkdXJnYWRvc3MuckBpbnRlbC5jb20+DQo+
+ID4gLS0tDQo+ID4gIGRyaXZlcnMvdGhlcm1hbC90aGVybWFsX3N5cy5jIHwgIDE3MA0KPiArKysr
+KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrLS0tLS0tLQ0KPiA+ICAxIGZpbGUgY2hhbmdl
+ZCwgMTQ0IGluc2VydGlvbnMoKyksIDI2IGRlbGV0aW9ucygtKQ0KPiA+DQo+ID4gZGlmZiAtLWdp
+dCBhL2RyaXZlcnMvdGhlcm1hbC90aGVybWFsX3N5cy5jIGIvZHJpdmVycy90aGVybWFsL3RoZXJt
+YWxfc3lzLmMNCj4gPiBpbmRleCAxOTVlNTI5Li43NDhiMTJmIDEwMDY0NA0KPiA+IC0tLSBhL2Ry
+aXZlcnMvdGhlcm1hbC90aGVybWFsX3N5cy5jDQo+ID4gKysrIGIvZHJpdmVycy90aGVybWFsL3Ro
+ZXJtYWxfc3lzLmMNCj4gPiBAQCAtMTU4LDYgKzE1OCwxMDcgQEAgc3RhdGljIHZvaWQgcmV0cmll
+dmVfem9uZV9wYXJhbXMoc3RydWN0DQo+IHRoZXJtYWxfem9uZV9kZXZpY2UgKnR6KQ0KPiA+ICAJ
+fQ0KPiA+ICB9DQo+ID4NCj4gPiArc3RhdGljIHZvaWQgcHJpbnRfYmluZF9lcnJfbXNnKHN0cnVj
+dCB0aGVybWFsX3pvbmVfZGV2aWNlICp0eiwNCj4gPiArCQkJc3RydWN0IHRoZXJtYWxfY29vbGlu
+Z19kZXZpY2UgKmNkZXYsIGludCByZXQpDQo+ID4gK3sNCj4gPiArCWRldl9lcnIoJnR6LT5kZXZp
+Y2UsICJiaW5kaW5nIHpvbmUgJXMgd2l0aCBjZGV2ICVzIGZhaWxlZDolZFxuIiwNCj4gPiArCQkJ
+CXR6LT50eXBlLCBjZGV2LT50eXBlLCByZXQpOw0KPiA+ICt9DQo+ID4gKw0KPiA+ICtzdGF0aWMg
+dm9pZCBfX2JpbmQoc3RydWN0IHRoZXJtYWxfem9uZV9kZXZpY2UgKnR6LCBpbnQgbWFzaywNCj4g
+PiArCQkJc3RydWN0IHRoZXJtYWxfY29vbGluZ19kZXZpY2UgKmNkZXYpDQo+ID4gK3sNCj4gPiAr
+CWludCBpLCByZXQ7DQo+ID4gKw0KPiA+ICsJZm9yIChpID0gMDsgaSA8IHR6LT50cmlwczsgaSsr
+KSB7DQo+ID4gKwkJaWYgKG1hc2sgJiAoMSA8PCBpKSkgew0KPiA+ICsJCQlyZXQgPSB0aGVybWFs
+X3pvbmVfYmluZF9jb29saW5nX2RldmljZSh0eiwgaSwgY2RldiwNCj4gPiArCQkJCQlUSEVSTUFM
+X05PX0xJTUlULA0KPiBUSEVSTUFMX05PX0xJTUlUKTsNCj4gPiArCQkJaWYgKHJldCkNCj4gPiAr
+CQkJCXByaW50X2JpbmRfZXJyX21zZyh0eiwgY2RldiwgcmV0KTsNCj4gPiArCQl9DQo+ID4gKwl9
+DQo+ID4gK30NCj4gPiArDQo+ID4gK3N0YXRpYyB2b2lkIF9fdW5iaW5kKHN0cnVjdCB0aGVybWFs
+X3pvbmVfZGV2aWNlICp0eiwgaW50IG1hc2ssDQo+ID4gKwkJCXN0cnVjdCB0aGVybWFsX2Nvb2xp
+bmdfZGV2aWNlICpjZGV2KQ0KPiA+ICt7DQo+ID4gKwlpbnQgaTsNCj4gPiArDQo+ID4gKwlmb3Ig
+KGkgPSAwOyBpIDwgdHotPnRyaXBzOyBpKyspDQo+ID4gKwkJaWYgKG1hc2sgJiAoMSA8PCBpKSkN
+Cj4gPiArCQkJdGhlcm1hbF96b25lX3VuYmluZF9jb29saW5nX2RldmljZSh0eiwgaSwgY2Rldik7
+DQo+ID4gK30NCj4gPiArDQo+ID4gK3N0YXRpYyB2b2lkIHVwZGF0ZV9iaW5kX2luZm8oc3RydWN0
+IHRoZXJtYWxfY29vbGluZ19kZXZpY2UgKmNkZXYpDQo+ID4gK3sNCj4gPiArCWludCBpLCByZXQ7
+DQo+ID4gKwlzdHJ1Y3QgdGhlcm1hbF96b25lX3BhcmFtcyAqdHpwOw0KPiA+ICsJc3RydWN0IHRo
+ZXJtYWxfem9uZV9kZXZpY2UgKnBvcyA9IE5VTEw7DQo+ID4gKw0KPiA+ICsJbXV0ZXhfbG9jaygm
+dGhlcm1hbF9saXN0X2xvY2spOw0KPiA+ICsNCj4gPiArCWxpc3RfZm9yX2VhY2hfZW50cnkocG9z
+LCAmdGhlcm1hbF90el9saXN0LCBub2RlKSB7DQo+ID4gKwkJaWYgKCFwb3MtPnR6cCAmJiAhcG9z
+LT5vcHMtPmJpbmQpDQo+ID4gKwkJCWNvbnRpbnVlOw0KPiA+ICsNCj4gPiArCQlpZiAoIXBvcy0+
+dHpwICYmIHBvcy0+b3BzLT5iaW5kKSB7DQo+ID4gKwkJCXJldCA9IHBvcy0+b3BzLT5iaW5kKHBv
+cywgY2Rldik7DQo+ID4gKwkJCWlmIChyZXQpDQo+ID4gKwkJCQlwcmludF9iaW5kX2Vycl9tc2co
+cG9zLCBjZGV2LCByZXQpOw0KPiA+ICsJCX0NCj4gPiArDQo+ID4gKwkJdHpwID0gcG9zLT50enA7
+DQo+ID4gKwkJZm9yIChpID0gMDsgaSA8IHR6cC0+bnVtX2NkZXZzOyBpKyspIHsNCj4gPiArCQkJ
+aWYgKCFzdHJjbXAodHpwLT5jZGV2c19uYW1lW2ldLCBjZGV2LT50eXBlKSkgew0KPiA+ICsJCQkJ
+X19iaW5kKHBvcywgdHpwLT50cmlwX21hc2tbaV0sIGNkZXYpOw0KPiA+ICsJCQkJYnJlYWs7DQo+
+ID4gKwkJCX0NCj4gPiArCQl9DQo+ID4gKwl9DQo+ID4gKwltdXRleF91bmxvY2soJnRoZXJtYWxf
+bGlzdF9sb2NrKTsNCj4gPiArfQ0KPiANCj4gSSBzdGlsbCBkbyBub3QgdW5kZXJzdGFuZCB3aHkg
+d2UgbmVlZCB0aGlzIGtpbmQgb2YgYmluZC4NCj4gU2F5LCB0aGUgcGxhdGZvcm0gdGhlcm1hbCBk
+cml2ZXIga25vd3MgdGhlIHBsYXRmb3JtIGRhdGEsIGkuZS4gaXQga25vd3MNCj4gd2hpY2ggY29v
+bGluZyBkZXZpY2VzIHNob3VsZCBiZSBib3VuZCB0byB3aGljaCB0cmlwIHBvaW50cy4NCj4gd2h5
+IHdlIGNhbiBub3QgbW92ZSB0aGlzIGtpbmQgb2YgbG9naWMgdG8gdGhlIC5iaW5kKCkgY2FsbGJh
+Y2ssIG9mZmVyZWQNCj4gYnkgdGhlIHBsYXRmb3JtIHRoZXJtYWwgZHJpdmVyPw0KPiBzYXksIGlu
+IC5iaW5kKCkgY2FsbGJhY2ssDQo+IHRoZSBwbGF0Zm9ybSB0aGVybWFsIGRyaXZlciBoYXMgdGhl
+IHBvaW50ZXIgb2YgdGhlIHBsYXRmb3JtIGRhdGEsIHJpZ2h0Pw0KPiB0aGUgLmNkZXYgcGFyYW1l
+dGVyIGNhbiBiZSB1c2VkIHRvIGZpbmQgdGhlIGNvb2xpbmcgZGV2aWNlIG5hbWUsDQo+IGFuZCB3
+ZSBjYW4gbWFrZSB0aGUgY29tcGFyaXNvbiB0aGVyZS4gaW5zdGVhZCBvZiBpbnRyb2R1Y2luZyBu
+ZXcgYmluZGluZw0KPiBmdW5jdGlvbnMgaW4gdGhlIGdlbmVyaWMgdGhlcm1hbCBsYXllci4NCg0K
+Rm9yIG9uY2UsIEkgZ290IGxpdHRsZSBjb25mdXNlZCBiZXR3ZWVuIHRoZSBnZW5lcmljIHBsYXRm
+b3JtIHRoZXJtYWwgc2Vuc29yDQpkcml2ZXJzICh0aGUgY2hpcCBkcml2ZXJzKSBhbmQgdGhlIHBs
+YXRmb3JtIGxldmVsIGRyaXZlciAobm90IHNwZWNpZmljIGZvciBjaGlwLA0KYnV0IGZvciBhIHBs
+YXRmb3JtKS4gU28sIHllcyB3ZSBjYW4gcHV0IHRoaXMgaW4gdGhlIHBsYXRmb3JtIGxldmVsIGRy
+aXZlci4NCg0KT24gdGhlIG90aGVyIGhhbmQsIEkgYmVsaWV2ZSB3ZSB3aWxsIGhhdmUgbW9yZSBh
+bmQgbW9yZSBwbGF0Zm9ybSB0aGVybWFsDQpkcml2ZXJzLCBhcyBuZXcgZGV2aWNlcyBhcnJpdmUu
+IEFuZCBpbiBlYWNoIG9mIHRoZSBkcml2ZXJzLCB3ZSBhcmUgZ29pbmcgdG8NCmRvIHRoZSAnbG9v
+cGluZywgZmluZGluZyBjZGV2IGFuZCB0aGVuIGJpbmRpbmcnIHBhcnQuIEkgd2FzIHdvbmRlcmlu
+ZyB3b3VsZG4ndA0KaXQgYmUgYmV0dGVyIHRvIG1vdmUgdGhlIGNvbW1vbiBjb2RlIHRvIHRoZSBm
+cmFtZXdvcmssIHNvIHRoYXQgdGhlIHNhbWUNCmNvZGUgZG9lcyBub3QgZ2V0IGR1cGxpY2F0ZWQs
+IG92ZXIgc2V2ZXJhbCBwbGFjZXMuDQoNClNvLCBwbGVhc2UgZ2l2ZSBhIHNlY29uZCB0aG91Z2h0
+IG9uIHRoaXMgYW5kIGxldCBtZSBrbm93IHlvdXIgb3Bpbmlvbi4NCg0KVGhhbmtzLA0KRHVyZ2EN
+Cg==
