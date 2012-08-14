@@ -1,103 +1,101 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
-Subject: RE: [PATCH 07/13] Thermal: Update binding logic based on platform
- data
-Date: Mon, 13 Aug 2012 15:41:05 +0000
-Message-ID: <4D68720C2E767A4AA6A8796D42C8EB5919A6E0@BGSMSX101.gar.corp.intel.com>
-References: <1344516365-7230-1-git-send-email-durgadoss.r@intel.com>
-	 <1344516365-7230-8-git-send-email-durgadoss.r@intel.com>
- <1344840062.1682.786.camel@rui.sh.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Feng Tang <feng.tang@intel.com>
+Subject: [PATCH] lpc_ich: Fix a 3.5 kernel regression for iTCO_wdt driver
+Date: Tue, 14 Aug 2012 23:56:12 +0800
+Message-ID: <1344959772-23018-1-git-send-email-feng.tang@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:55705 "EHLO mga03.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:41399 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751377Ab2HMPmB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 13 Aug 2012 11:42:01 -0400
-In-Reply-To: <1344840062.1682.786.camel@rui.sh.intel.com>
-Content-Language: en-US
+	id S1755540Ab2HNQBi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 14 Aug 2012 12:01:38 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>, "amit.kachhap@linaro.org" <amit.kachhap@linaro.org>, "wni@nvidia.com" <wni@nvidia.com>
+To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Feng Tang <feng.tang@intel.com>, Aaron Sierra <asierra@xes-inc.com>, Wim Van Sebroeck <wim@iguana.be>, Len Brown <len.brown@intel.com>, Bob Moore <robert.moore@intel.com>
 
-SGkgUnVpLA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFpoYW5nLCBS
-dWkNCj4gU2VudDogTW9uZGF5LCBBdWd1c3QgMTMsIDIwMTIgMTI6MTEgUE0NCj4gVG86IFIsIER1
-cmdhZG9zcw0KPiBDYzogbGVuYkBrZXJuZWwub3JnOyByandAc2lzay5wbDsgbGludXgtYWNwaUB2
-Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LQ0KPiBwbUB2Z2VyLmtlcm5lbC5vcmc7IGVkdWFyZG8udmFs
-ZW50aW5AdGkuY29tOyBhbWl0LmthY2hoYXBAbGluYXJvLm9yZzsNCj4gd25pQG52aWRpYS5jb20N
-Cj4gU3ViamVjdDogUmU6IFtQQVRDSCAwNy8xM10gVGhlcm1hbDogVXBkYXRlIGJpbmRpbmcgbG9n
-aWMgYmFzZWQgb24gcGxhdGZvcm0gZGF0YQ0KPiANCj4gT24g5ZubLCAyMDEyLTA4LTA5IGF0IDE4
-OjE1ICswNTMwLCBEdXJnYWRvc3MgUiB3cm90ZToNCj4gPiBUaGlzIHBhdGNoIHVwZGF0ZXMgdGhl
-IGJpbmRpbmcgbG9naWMgaW4gdGhlcm1hbF9zeXMuYw0KPiA+IEl0IHVzZXMgdGhlIHBsYXRmb3Jt
-IGxheWVyIGRhdGEgdG8gYmluZCBhIHRoZXJtYWwgem9uZQ0KPiA+IHRvIGEgY2RldiBmb3IgYSBw
-YXJ0aWN1bGFyIHRyaXAgcG9pbnQuDQo+ID4NCj4gPiAgKiBJZiB3ZSBkbyBub3QgaGF2ZSBwbGF0
-Zm9ybSBkYXRhIGFuZCBkbyBub3QgaGF2ZQ0KPiA+ICAgIC5iaW5kIGRlZmluZWQsIGRvIG5vdCBi
-aW5kLg0KPiA+ICAqIElmIHdlIGRvIG5vdCBoYXZlIHBsYXRmb3JtIGRhdGEgYnV0IC5iaW5kIGlz
-DQo+ID4gICAgZGVmaW5lZCwgdGhlbiB1c2UgdHotPm9wcy0+YmluZC4NCj4gPiAgKiBJZiB3ZSBo
-YXZlIHBsYXRmb3JtIGRhdGEsIHVzZSBpdCB0byBjcmVhdGUgYmluZGluZy4NCj4gPg0KPiA+IFRo
-ZSBzYW1lIGxvZ2ljIHNlcXVlbmNlIGlzIGZvbGxvd2VkIGZvciB1bmJpbmQgYWxzby4NCj4gPg0K
-PiA+IFNpZ25lZC1vZmYtYnk6IER1cmdhZG9zcyBSIDxkdXJnYWRvc3MuckBpbnRlbC5jb20+DQo+
-ID4gLS0tDQo+ID4gIGRyaXZlcnMvdGhlcm1hbC90aGVybWFsX3N5cy5jIHwgIDE3MA0KPiArKysr
-KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrLS0tLS0tLQ0KPiA+ICAxIGZpbGUgY2hhbmdl
-ZCwgMTQ0IGluc2VydGlvbnMoKyksIDI2IGRlbGV0aW9ucygtKQ0KPiA+DQo+ID4gZGlmZiAtLWdp
-dCBhL2RyaXZlcnMvdGhlcm1hbC90aGVybWFsX3N5cy5jIGIvZHJpdmVycy90aGVybWFsL3RoZXJt
-YWxfc3lzLmMNCj4gPiBpbmRleCAxOTVlNTI5Li43NDhiMTJmIDEwMDY0NA0KPiA+IC0tLSBhL2Ry
-aXZlcnMvdGhlcm1hbC90aGVybWFsX3N5cy5jDQo+ID4gKysrIGIvZHJpdmVycy90aGVybWFsL3Ro
-ZXJtYWxfc3lzLmMNCj4gPiBAQCAtMTU4LDYgKzE1OCwxMDcgQEAgc3RhdGljIHZvaWQgcmV0cmll
-dmVfem9uZV9wYXJhbXMoc3RydWN0DQo+IHRoZXJtYWxfem9uZV9kZXZpY2UgKnR6KQ0KPiA+ICAJ
-fQ0KPiA+ICB9DQo+ID4NCj4gPiArc3RhdGljIHZvaWQgcHJpbnRfYmluZF9lcnJfbXNnKHN0cnVj
-dCB0aGVybWFsX3pvbmVfZGV2aWNlICp0eiwNCj4gPiArCQkJc3RydWN0IHRoZXJtYWxfY29vbGlu
-Z19kZXZpY2UgKmNkZXYsIGludCByZXQpDQo+ID4gK3sNCj4gPiArCWRldl9lcnIoJnR6LT5kZXZp
-Y2UsICJiaW5kaW5nIHpvbmUgJXMgd2l0aCBjZGV2ICVzIGZhaWxlZDolZFxuIiwNCj4gPiArCQkJ
-CXR6LT50eXBlLCBjZGV2LT50eXBlLCByZXQpOw0KPiA+ICt9DQo+ID4gKw0KPiA+ICtzdGF0aWMg
-dm9pZCBfX2JpbmQoc3RydWN0IHRoZXJtYWxfem9uZV9kZXZpY2UgKnR6LCBpbnQgbWFzaywNCj4g
-PiArCQkJc3RydWN0IHRoZXJtYWxfY29vbGluZ19kZXZpY2UgKmNkZXYpDQo+ID4gK3sNCj4gPiAr
-CWludCBpLCByZXQ7DQo+ID4gKw0KPiA+ICsJZm9yIChpID0gMDsgaSA8IHR6LT50cmlwczsgaSsr
-KSB7DQo+ID4gKwkJaWYgKG1hc2sgJiAoMSA8PCBpKSkgew0KPiA+ICsJCQlyZXQgPSB0aGVybWFs
-X3pvbmVfYmluZF9jb29saW5nX2RldmljZSh0eiwgaSwgY2RldiwNCj4gPiArCQkJCQlUSEVSTUFM
-X05PX0xJTUlULA0KPiBUSEVSTUFMX05PX0xJTUlUKTsNCj4gPiArCQkJaWYgKHJldCkNCj4gPiAr
-CQkJCXByaW50X2JpbmRfZXJyX21zZyh0eiwgY2RldiwgcmV0KTsNCj4gPiArCQl9DQo+ID4gKwl9
-DQo+ID4gK30NCj4gPiArDQo+ID4gK3N0YXRpYyB2b2lkIF9fdW5iaW5kKHN0cnVjdCB0aGVybWFs
-X3pvbmVfZGV2aWNlICp0eiwgaW50IG1hc2ssDQo+ID4gKwkJCXN0cnVjdCB0aGVybWFsX2Nvb2xp
-bmdfZGV2aWNlICpjZGV2KQ0KPiA+ICt7DQo+ID4gKwlpbnQgaTsNCj4gPiArDQo+ID4gKwlmb3Ig
-KGkgPSAwOyBpIDwgdHotPnRyaXBzOyBpKyspDQo+ID4gKwkJaWYgKG1hc2sgJiAoMSA8PCBpKSkN
-Cj4gPiArCQkJdGhlcm1hbF96b25lX3VuYmluZF9jb29saW5nX2RldmljZSh0eiwgaSwgY2Rldik7
-DQo+ID4gK30NCj4gPiArDQo+ID4gK3N0YXRpYyB2b2lkIHVwZGF0ZV9iaW5kX2luZm8oc3RydWN0
-IHRoZXJtYWxfY29vbGluZ19kZXZpY2UgKmNkZXYpDQo+ID4gK3sNCj4gPiArCWludCBpLCByZXQ7
-DQo+ID4gKwlzdHJ1Y3QgdGhlcm1hbF96b25lX3BhcmFtcyAqdHpwOw0KPiA+ICsJc3RydWN0IHRo
-ZXJtYWxfem9uZV9kZXZpY2UgKnBvcyA9IE5VTEw7DQo+ID4gKw0KPiA+ICsJbXV0ZXhfbG9jaygm
-dGhlcm1hbF9saXN0X2xvY2spOw0KPiA+ICsNCj4gPiArCWxpc3RfZm9yX2VhY2hfZW50cnkocG9z
-LCAmdGhlcm1hbF90el9saXN0LCBub2RlKSB7DQo+ID4gKwkJaWYgKCFwb3MtPnR6cCAmJiAhcG9z
-LT5vcHMtPmJpbmQpDQo+ID4gKwkJCWNvbnRpbnVlOw0KPiA+ICsNCj4gPiArCQlpZiAoIXBvcy0+
-dHpwICYmIHBvcy0+b3BzLT5iaW5kKSB7DQo+ID4gKwkJCXJldCA9IHBvcy0+b3BzLT5iaW5kKHBv
-cywgY2Rldik7DQo+ID4gKwkJCWlmIChyZXQpDQo+ID4gKwkJCQlwcmludF9iaW5kX2Vycl9tc2co
-cG9zLCBjZGV2LCByZXQpOw0KPiA+ICsJCX0NCj4gPiArDQo+ID4gKwkJdHpwID0gcG9zLT50enA7
-DQo+ID4gKwkJZm9yIChpID0gMDsgaSA8IHR6cC0+bnVtX2NkZXZzOyBpKyspIHsNCj4gPiArCQkJ
-aWYgKCFzdHJjbXAodHpwLT5jZGV2c19uYW1lW2ldLCBjZGV2LT50eXBlKSkgew0KPiA+ICsJCQkJ
-X19iaW5kKHBvcywgdHpwLT50cmlwX21hc2tbaV0sIGNkZXYpOw0KPiA+ICsJCQkJYnJlYWs7DQo+
-ID4gKwkJCX0NCj4gPiArCQl9DQo+ID4gKwl9DQo+ID4gKwltdXRleF91bmxvY2soJnRoZXJtYWxf
-bGlzdF9sb2NrKTsNCj4gPiArfQ0KPiANCj4gSSBzdGlsbCBkbyBub3QgdW5kZXJzdGFuZCB3aHkg
-d2UgbmVlZCB0aGlzIGtpbmQgb2YgYmluZC4NCj4gU2F5LCB0aGUgcGxhdGZvcm0gdGhlcm1hbCBk
-cml2ZXIga25vd3MgdGhlIHBsYXRmb3JtIGRhdGEsIGkuZS4gaXQga25vd3MNCj4gd2hpY2ggY29v
-bGluZyBkZXZpY2VzIHNob3VsZCBiZSBib3VuZCB0byB3aGljaCB0cmlwIHBvaW50cy4NCj4gd2h5
-IHdlIGNhbiBub3QgbW92ZSB0aGlzIGtpbmQgb2YgbG9naWMgdG8gdGhlIC5iaW5kKCkgY2FsbGJh
-Y2ssIG9mZmVyZWQNCj4gYnkgdGhlIHBsYXRmb3JtIHRoZXJtYWwgZHJpdmVyPw0KPiBzYXksIGlu
-IC5iaW5kKCkgY2FsbGJhY2ssDQo+IHRoZSBwbGF0Zm9ybSB0aGVybWFsIGRyaXZlciBoYXMgdGhl
-IHBvaW50ZXIgb2YgdGhlIHBsYXRmb3JtIGRhdGEsIHJpZ2h0Pw0KPiB0aGUgLmNkZXYgcGFyYW1l
-dGVyIGNhbiBiZSB1c2VkIHRvIGZpbmQgdGhlIGNvb2xpbmcgZGV2aWNlIG5hbWUsDQo+IGFuZCB3
-ZSBjYW4gbWFrZSB0aGUgY29tcGFyaXNvbiB0aGVyZS4gaW5zdGVhZCBvZiBpbnRyb2R1Y2luZyBu
-ZXcgYmluZGluZw0KPiBmdW5jdGlvbnMgaW4gdGhlIGdlbmVyaWMgdGhlcm1hbCBsYXllci4NCg0K
-Rm9yIG9uY2UsIEkgZ290IGxpdHRsZSBjb25mdXNlZCBiZXR3ZWVuIHRoZSBnZW5lcmljIHBsYXRm
-b3JtIHRoZXJtYWwgc2Vuc29yDQpkcml2ZXJzICh0aGUgY2hpcCBkcml2ZXJzKSBhbmQgdGhlIHBs
-YXRmb3JtIGxldmVsIGRyaXZlciAobm90IHNwZWNpZmljIGZvciBjaGlwLA0KYnV0IGZvciBhIHBs
-YXRmb3JtKS4gU28sIHllcyB3ZSBjYW4gcHV0IHRoaXMgaW4gdGhlIHBsYXRmb3JtIGxldmVsIGRy
-aXZlci4NCg0KT24gdGhlIG90aGVyIGhhbmQsIEkgYmVsaWV2ZSB3ZSB3aWxsIGhhdmUgbW9yZSBh
-bmQgbW9yZSBwbGF0Zm9ybSB0aGVybWFsDQpkcml2ZXJzLCBhcyBuZXcgZGV2aWNlcyBhcnJpdmUu
-IEFuZCBpbiBlYWNoIG9mIHRoZSBkcml2ZXJzLCB3ZSBhcmUgZ29pbmcgdG8NCmRvIHRoZSAnbG9v
-cGluZywgZmluZGluZyBjZGV2IGFuZCB0aGVuIGJpbmRpbmcnIHBhcnQuIEkgd2FzIHdvbmRlcmlu
-ZyB3b3VsZG4ndA0KaXQgYmUgYmV0dGVyIHRvIG1vdmUgdGhlIGNvbW1vbiBjb2RlIHRvIHRoZSBm
-cmFtZXdvcmssIHNvIHRoYXQgdGhlIHNhbWUNCmNvZGUgZG9lcyBub3QgZ2V0IGR1cGxpY2F0ZWQs
-IG92ZXIgc2V2ZXJhbCBwbGFjZXMuDQoNClNvLCBwbGVhc2UgZ2l2ZSBhIHNlY29uZCB0aG91Z2h0
-IG9uIHRoaXMgYW5kIGxldCBtZSBrbm93IHlvdXIgb3Bpbmlvbi4NCg0KVGhhbmtzLA0KRHVyZ2EN
-Cg==
+There are many reports (including 2 of my machines) that iTCO_wdt watchdog
+driver fails to be initialized in 3.5 kernel with error message like:
+
+[    5.265175] ACPI Warning: 0x00001060-0x0000107f SystemIO conflicts with Region \_SB_.PCI0.LPCB.TCOI 1 (20120320/utaddress-251)
+[    5.265192] ACPI: If an ACPI driver is available for this device, you should use it instead of the native driver
+[    5.265206] lpc_ich: Resource conflict(s) found affecting iTCO_wdt
+
+The root cause the iTCO_wdt driver in 3.4 probes the HW IO resource from
+LPC's PCI config space, while in 3.5 kernel it relies on lpc_ich driver
+for the probe, which adds a new acpi_check_resource_conflict() check, and
+give up the probe if there is any conflict with ACPI.
+
+Fix it by removing all the checks for iTCO_wdt to keep the same behavior as
+3.4 kernel.
+https://bugzilla.kernel.org/show_bug.cgi?id=44991
+
+Actually the same check could be removed for the gpio-ich in lpc_ich.c,
+but I'm not sure if it will cause problems.
+
+Signed-off-by: Feng Tang <feng.tang@intel.com>
+Cc: Aaron Sierra <asierra@xes-inc.com>
+Cc: Wim Van Sebroeck <wim@iguana.be>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Bob Moore <robert.moore@intel.com>
+---
+ drivers/mfd/lpc_ich.c |   20 +-------------------
+ 1 files changed, 1 insertions(+), 19 deletions(-)
+
+diff --git a/drivers/mfd/lpc_ich.c b/drivers/mfd/lpc_ich.c
+index 027cc8f..a05fdfc 100644
+--- a/drivers/mfd/lpc_ich.c
++++ b/drivers/mfd/lpc_ich.c
+@@ -765,7 +765,6 @@ static int __devinit lpc_ich_init_wdt(struct pci_dev *dev,
+ 	u32 base_addr_cfg;
+ 	u32 base_addr;
+ 	int ret;
+-	bool acpi_conflict = false;
+ 	struct resource *res;
+ 
+ 	/* Setup power management base register */
+@@ -780,20 +779,11 @@ static int __devinit lpc_ich_init_wdt(struct pci_dev *dev,
+ 	res = wdt_io_res(ICH_RES_IO_TCO);
+ 	res->start = base_addr + ACPIBASE_TCO_OFF;
+ 	res->end = base_addr + ACPIBASE_TCO_END;
+-	ret = acpi_check_resource_conflict(res);
+-	if (ret) {
+-		acpi_conflict = true;
+-		goto wdt_done;
+-	}
+ 
+ 	res = wdt_io_res(ICH_RES_IO_SMI);
+ 	res->start = base_addr + ACPIBASE_SMI_OFF;
+ 	res->end = base_addr + ACPIBASE_SMI_END;
+-	ret = acpi_check_resource_conflict(res);
+-	if (ret) {
+-		acpi_conflict = true;
+-		goto wdt_done;
+-	}
++
+ 	lpc_ich_enable_acpi_space(dev);
+ 
+ 	/*
+@@ -813,11 +803,6 @@ static int __devinit lpc_ich_init_wdt(struct pci_dev *dev,
+ 		res = wdt_mem_res(ICH_RES_MEM_GCS);
+ 		res->start = base_addr + ACPIBASE_GCS_OFF;
+ 		res->end = base_addr + ACPIBASE_GCS_END;
+-		ret = acpi_check_resource_conflict(res);
+-		if (ret) {
+-			acpi_conflict = true;
+-			goto wdt_done;
+-		}
+ 	}
+ 
+ 	lpc_ich_finalize_cell(&lpc_ich_cells[LPC_WDT], id);
+@@ -825,9 +810,6 @@ static int __devinit lpc_ich_init_wdt(struct pci_dev *dev,
+ 				1, NULL, 0);
+ 
+ wdt_done:
+-	if (acpi_conflict)
+-		pr_warn("Resource conflict(s) found affecting %s\n",
+-				lpc_ich_cells[LPC_WDT].name);
+ 	return ret;
+ }
+ 
+-- 
+1.7.1
+
