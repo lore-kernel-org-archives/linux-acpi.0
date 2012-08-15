@@ -1,50 +1,61 @@
 From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [Resend][PATCH] PCI / PM: Fix messages printed by acpi_pci_set_power_state()
-Date: Wed, 15 Aug 2012 13:17:43 -0600
-Message-ID: <CAErSpo4EHK5SEiAquguFV9sZa2-+q2jrF64JeBZqKBjaULNsRQ@mail.gmail.com>
-References: <201208042327.33132.rjw@sisk.pl>
+Subject: Re: [PATCH] PCI / ACPI: Do not request control of ASPM if the BIOS
+ has disabled it
+Date: Wed, 15 Aug 2012 13:47:23 -0600
+Message-ID: <CAErSpo4LQsWH7eX=3YNSGUdZjNyMQeyoZPrx2ZUto3gWLYSWEQ@mail.gmail.com>
+References: <201205242245.45888.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <201208042327.33132.rjw@sisk.pl>
+In-Reply-To: <201205242245.45888.rjw@sisk.pl>
 Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, linux-pci@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>
+Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, Wei Kong <wkong@novell.com>, Jean Delvare <jdelvare@suse.com>, Matthew Garrett <mjg59@srcf.ucam.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Aug 4, 2012 at 3:27 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+On Thu, May 24, 2012 at 2:45 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> From: Rafael J. Wysocki <rjw@sisk.pl>
 >
-> If a PCI device is put into D3_cold by acpi_bus_set_power(),
-> the message printed by acpi_pci_set_power_state() says that its
-> power state has been changed to D4, which doesn't make sense.
-> In turn, if the device is put into D3_hot, the message simply
-> says "D3" without specifying the variant of the D3 state.
+> We want to report that the kernel supports ASPM to the BIOS even if
+> the BIOS signals us that it doesn't.  So, we need the flags to include
+> (OSC_ACTIVE_STATE_PWR_SUPPORT | OSC_CLOCK_PWR_CAPABILITY_SUPPORT)
+> before calling acpi_pci_osc_support(root, flags) in
+> acpi_pci_root_add() (unless there's a command line telling us that
+> ASPM is not to be supported).
 >
-> Fix this by using the pci_power_name() macro for printing the state
-> name instead of building it from the numeric value corresponding to
-> the given state directly.
+> However, knowing that the BIOS doesn't support ASPM, we shouldn't
+> request the control of it, so we should remove
+> (OSC_ACTIVE_STATE_PWR_SUPPORT | OSC_CLOCK_PWR_CAPABILITY_SUPPORT)
+> from the flags before calling acpi_pci_osc_control_set() in those
+> cases.  Failing to do so causes the evaluation of _OSC for the PCI
+> root bridge to return error codes on some systems where it should
+> work correctly.
 >
+> Reported-and-tested-by: Wei Kong <wkong@novell.com>
 > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> ---
+>
+> -stable material, I think.
 
-Applied to my for-linus branch, since this fixes a minor issue
-introduced with the runtime D3cold support we merged for 3.6.  Thanks!
+Len, since you've applied recent patches in this area, can you take
+care of this, too?
 
 > ---
->  drivers/pci/pci-acpi.c |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+>  drivers/acpi/pci_root.c |    4 ++++
+>  1 file changed, 4 insertions(+)
 >
-> Index: linux/drivers/pci/pci-acpi.c
+> Index: linux/drivers/acpi/pci_root.c
 > ===================================================================
-> --- linux.orig/drivers/pci/pci-acpi.c
-> +++ linux/drivers/pci/pci-acpi.c
-> @@ -266,8 +266,8 @@ static int acpi_pci_set_power_state(stru
->         }
+> --- linux.orig/drivers/acpi/pci_root.c
+> +++ linux/drivers/acpi/pci_root.c
+> @@ -574,6 +574,10 @@ static int __devinit acpi_pci_root_add(s
+>         if (flags != base_flags)
+>                 acpi_pci_osc_support(root, flags);
 >
->         if (!error)
-> -               dev_printk(KERN_INFO, &dev->dev,
-> -                               "power state changed by ACPI to D%d\n", state);
-> +               dev_info(&dev->dev, "power state changed by ACPI to %s\n",
-> +                        pci_power_name(state));
->
->         return error;
->  }
+> +       if (!pcie_aspm_enabled())
+> +               flags &= ~(OSC_ACTIVE_STATE_PWR_SUPPORT |
+> +                       OSC_CLOCK_PWR_CAPABILITY_SUPPORT);
+> +
+>         if (!pcie_ports_disabled
+>             && (flags & ACPI_PCIE_REQ_SUPPORT) == ACPI_PCIE_REQ_SUPPORT) {
+>                 flags = OSC_PCI_EXPRESS_CAP_STRUCTURE_CONTROL
