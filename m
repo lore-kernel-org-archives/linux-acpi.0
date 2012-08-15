@@ -1,80 +1,50 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
-Subject: RE: [PATCH 07/13] Thermal: Update binding logic based on platform
- data
-Date: Wed, 15 Aug 2012 09:17:04 +0000
-Message-ID: <4D68720C2E767A4AA6A8796D42C8EB591A2B97@BGSMSX101.gar.corp.intel.com>
-References: <1344516365-7230-1-git-send-email-durgadoss.r@intel.com>
-	 <1344516365-7230-8-git-send-email-durgadoss.r@intel.com>
-	 <1344840062.1682.786.camel@rui.sh.intel.com>
-	 <4D68720C2E767A4AA6A8796D42C8EB5919A6E0@BGSMSX101.gar.corp.intel.com>
- <1345013619.1682.826.camel@rui.sh.intel.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [Resend][PATCH] PCI / PM: Fix messages printed by acpi_pci_set_power_state()
+Date: Wed, 15 Aug 2012 13:17:43 -0600
+Message-ID: <CAErSpo4EHK5SEiAquguFV9sZa2-+q2jrF64JeBZqKBjaULNsRQ@mail.gmail.com>
+References: <201208042327.33132.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:34823 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751815Ab2HOJRI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Aug 2012 05:17:08 -0400
-In-Reply-To: <1345013619.1682.826.camel@rui.sh.intel.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <201208042327.33132.rjw@sisk.pl>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, linux-pci@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>, "amit.kachhap@linaro.org" <amit.kachhap@linaro.org>, "wni@nvidia.com" <wni@nvidia.com>
 
-SGkgUnVpLA0KDQo+ID4gPiA+ICtzdGF0aWMgdm9pZCB1cGRhdGVfYmluZF9pbmZvKHN0cnVjdCB0
-aGVybWFsX2Nvb2xpbmdfZGV2aWNlICpjZGV2KQ0KPiA+ID4gPiArew0KPiA+ID4gPiArCWludCBp
-LCByZXQ7DQo+ID4gPiA+ICsJc3RydWN0IHRoZXJtYWxfem9uZV9wYXJhbXMgKnR6cDsNCj4gPiA+
-ID4gKwlzdHJ1Y3QgdGhlcm1hbF96b25lX2RldmljZSAqcG9zID0gTlVMTDsNCj4gPiA+ID4gKw0K
-PiA+ID4gPiArCW11dGV4X2xvY2soJnRoZXJtYWxfbGlzdF9sb2NrKTsNCj4gPiA+ID4gKw0KPiA+
-ID4gPiArCWxpc3RfZm9yX2VhY2hfZW50cnkocG9zLCAmdGhlcm1hbF90el9saXN0LCBub2RlKSB7
-DQo+ID4gPiA+ICsJCWlmICghcG9zLT50enAgJiYgIXBvcy0+b3BzLT5iaW5kKQ0KPiA+ID4gPiAr
-CQkJY29udGludWU7DQo+ID4gPiA+ICsNCj4gPiA+ID4gKwkJaWYgKCFwb3MtPnR6cCAmJiBwb3Mt
-Pm9wcy0+YmluZCkgew0KPiA+ID4gPiArCQkJcmV0ID0gcG9zLT5vcHMtPmJpbmQocG9zLCBjZGV2
-KTsNCj4gPiA+ID4gKwkJCWlmIChyZXQpDQo+ID4gPiA+ICsJCQkJcHJpbnRfYmluZF9lcnJfbXNn
-KHBvcywgY2RldiwgcmV0KTsNCj4gPiA+ID4gKwkJfQ0KPiA+ID4gPiArDQo+ID4gPiA+ICsJCXR6
-cCA9IHBvcy0+dHpwOw0KPiA+ID4gPiArCQlmb3IgKGkgPSAwOyBpIDwgdHpwLT5udW1fY2RldnM7
-IGkrKykgew0KPiA+ID4gPiArCQkJaWYgKCFzdHJjbXAodHpwLT5jZGV2c19uYW1lW2ldLCBjZGV2
-LT50eXBlKSkgew0KPiA+ID4gPiArCQkJCV9fYmluZChwb3MsIHR6cC0+dHJpcF9tYXNrW2ldLCBj
-ZGV2KTsNCj4gPiA+ID4gKwkJCQlicmVhazsNCj4gPiA+ID4gKwkJCX0NCj4gPiA+ID4gKwkJfQ0K
-PiA+ID4gPiArCX0NCj4gPiA+ID4gKwltdXRleF91bmxvY2soJnRoZXJtYWxfbGlzdF9sb2NrKTsN
-Cj4gPiA+ID4gK30NCj4gPiA+DQo+ID4gPiBJIHN0aWxsIGRvIG5vdCB1bmRlcnN0YW5kIHdoeSB3
-ZSBuZWVkIHRoaXMga2luZCBvZiBiaW5kLg0KPiA+ID4gU2F5LCB0aGUgcGxhdGZvcm0gdGhlcm1h
-bCBkcml2ZXIga25vd3MgdGhlIHBsYXRmb3JtIGRhdGEsIGkuZS4gaXQga25vd3MNCj4gPiA+IHdo
-aWNoIGNvb2xpbmcgZGV2aWNlcyBzaG91bGQgYmUgYm91bmQgdG8gd2hpY2ggdHJpcCBwb2ludHMu
-DQo+ID4gPiB3aHkgd2UgY2FuIG5vdCBtb3ZlIHRoaXMga2luZCBvZiBsb2dpYyB0byB0aGUgLmJp
-bmQoKSBjYWxsYmFjaywgb2ZmZXJlZA0KPiA+ID4gYnkgdGhlIHBsYXRmb3JtIHRoZXJtYWwgZHJp
-dmVyPw0KPiA+ID4gc2F5LCBpbiAuYmluZCgpIGNhbGxiYWNrLA0KPiA+ID4gdGhlIHBsYXRmb3Jt
-IHRoZXJtYWwgZHJpdmVyIGhhcyB0aGUgcG9pbnRlciBvZiB0aGUgcGxhdGZvcm0gZGF0YSwgcmln
-aHQ/DQo+ID4gPiB0aGUgLmNkZXYgcGFyYW1ldGVyIGNhbiBiZSB1c2VkIHRvIGZpbmQgdGhlIGNv
-b2xpbmcgZGV2aWNlIG5hbWUsDQo+ID4gPiBhbmQgd2UgY2FuIG1ha2UgdGhlIGNvbXBhcmlzb24g
-dGhlcmUuIGluc3RlYWQgb2YgaW50cm9kdWNpbmcgbmV3IGJpbmRpbmcNCj4gPiA+IGZ1bmN0aW9u
-cyBpbiB0aGUgZ2VuZXJpYyB0aGVybWFsIGxheWVyLg0KPiA+DQo+ID4gRm9yIG9uY2UsIEkgZ290
-IGxpdHRsZSBjb25mdXNlZCBiZXR3ZWVuIHRoZSBnZW5lcmljIHBsYXRmb3JtIHRoZXJtYWwgc2Vu
-c29yDQo+ID4gZHJpdmVycyAodGhlIGNoaXAgZHJpdmVycykgYW5kIHRoZSBwbGF0Zm9ybSBsZXZl
-bCBkcml2ZXIgKG5vdCBzcGVjaWZpYyBmb3IgY2hpcCwNCj4gPiBidXQgZm9yIGEgcGxhdGZvcm0p
-LiBTbywgeWVzIHdlIGNhbiBwdXQgdGhpcyBpbiB0aGUgcGxhdGZvcm0gbGV2ZWwgZHJpdmVyLg0K
-PiA+DQo+IEhtbSwNCj4gSSdtIG5vdCBjbGVhciBhYm91dCB0aGUgZGlmZmVyZW5jZSBiZXR3ZWVu
-IHRoZXNlIHR3byBkcml2ZXJzLg0KPiB3aGF0IGlzIHN1cHBvc2VkIHRvIGJlIGRvbmUgaW4gdGhl
-IHBsYXRmb3JtIHRoZXJtYWwgc2Vuc29yIGRyaXZlcnMgYW5kDQo+IHdoYXQgaXMgc3VwcG9zZWQg
-dG8gYmUgZG9uZSBpbiB0aGUgcGxhdGZvcm0gbGV2ZWwgZHJpdmVyPw0KDQpBIHNlbnNvciBkcml2
-ZXIgY2FuIGJlIGEgZ2VuZXJpYyBjaGlwIGRyaXZlciBsaWtlIGVtYzE0MDMgKHRoaXMgaXMgdGhl
-IG9uZQ0KdGhhdCBJIGhhdmUgd29ya2VkIG9uLi4pIG9yIGNvcmV0ZW1wICh0aGUgQ1BVIERUUyBk
-cml2ZXIgZm9yIHg4NikuIFRoZXkgc2l0DQppbiBkaWZmZXJlbnQgc3ViIHN5c3RlbXMgKHRoZXNl
-IHR3byBpbiBod21vbikuIFdlIG1pZ2h0IG5vdCBiZSBhbGxvd2VkIHRvDQphZGQgYW55IHRoZXJt
-YWwgZnJhbWV3b3JrIHNwZWNpZmljIGNvZGUgaW4gdGhlc2UgZHJpdmVycy4gVGhlIHNhbWUgZHJp
-dmVyDQp3b3JrcyBvbiBhbGwgcGxhdGZvcm1zLg0KDQpBIHBsYXRmb3JtIGxldmVsIHRoZXJtYWwg
-ZHJpdmVyIGtub3dzIGluZm9ybWF0aW9uIGFib3V0IHRoZSB0aGVybWFsIHNlbnNvcnMsDQphbmQg
-dGhlaXIgem9uZXMgb24gdGhlIHBsYXRmb3JtOyBhbmQgaXMgc3BlY2lmaWMgdG8gdGhlIHBsYXRm
-b3JtLg0KRm9yIHg4NiwgdGhpcyB3aWxsIGJlIGluIGRyaXZlcnMveDg2L3BsYXRmb3JtLyB3aGVy
-ZWFzIG1pZ2h0IGJlIGluIHNvbWUgb3RoZXINCnBsYWNlIGZvciBvdGhlciBhcmNoaXRlY3R1cmVz
-LiBBbiBleGFtcGxlIGlzIGludGVsX21pZF90aGVybWFsLmMgd2hpY2ggc2l0cw0KaW4gZHJpdmVy
-cy94ODYvcGxhdGZvcm0uIFdlIGNhbiBhZGQgb3VyIHRoZXJtYWwgZnJhbWV3b3JrIHNwZWNpZmlj
-IGNvZGUNCnRvIHRoaXMgZHJpdmVyLg0KDQo+IA0KPiBBdCBsZWFzdCBmb3Igbm93LCBhbGwgdGhl
-IHRoZXJtYWwgZHJpdmVycyBhcmUgYm90aCB0aGVybWFsIHNlbnNvciBkcml2ZXINCj4gYW5kIHBs
-YXRmb3JtIGxldmVsIGRyaXZlciwgcmlnaHQ/DQogDQpOb3QgYWxsIHRoZSB0aW1lcywgYWx0aG91
-Z2ggdGhlcmUgYXJlIHNvbWUgaW5zdGFuY2VzIHdoZXJlIGJvdGggYXJlIHNhbWUuDQpXZSB1c2Ug
-Y29yZXRlbXAuYyBhbmQgaW50ZWxfbWlkX3RoZXJtYWwuYyAod2hpY2ggYXJlIGRpZmZlcmVudCks
-IGZvciB0aGUNCng4NiBtaWQgcGxhdGZvcm1zLg0KDQpJIGhvcGUgdGhpcyBleHBsYW5hdGlvbiBo
-ZWxwcyB5b3UuLg0KDQpUaGFua3MsDQpEdXJnYQ0K
+On Sat, Aug 4, 2012 at 3:27 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+>
+> If a PCI device is put into D3_cold by acpi_bus_set_power(),
+> the message printed by acpi_pci_set_power_state() says that its
+> power state has been changed to D4, which doesn't make sense.
+> In turn, if the device is put into D3_hot, the message simply
+> says "D3" without specifying the variant of the D3 state.
+>
+> Fix this by using the pci_power_name() macro for printing the state
+> name instead of building it from the numeric value corresponding to
+> the given state directly.
+>
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+
+Applied to my for-linus branch, since this fixes a minor issue
+introduced with the runtime D3cold support we merged for 3.6.  Thanks!
+
+> ---
+>  drivers/pci/pci-acpi.c |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> Index: linux/drivers/pci/pci-acpi.c
+> ===================================================================
+> --- linux.orig/drivers/pci/pci-acpi.c
+> +++ linux/drivers/pci/pci-acpi.c
+> @@ -266,8 +266,8 @@ static int acpi_pci_set_power_state(stru
+>         }
+>
+>         if (!error)
+> -               dev_printk(KERN_INFO, &dev->dev,
+> -                               "power state changed by ACPI to D%d\n", state);
+> +               dev_info(&dev->dev, "power state changed by ACPI to %s\n",
+> +                        pci_power_name(state));
+>
+>         return error;
+>  }
