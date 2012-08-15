@@ -1,188 +1,80 @@
-From: Zhang Rui <rui.zhang@intel.com>
+From: "R, Durgadoss" <durgadoss.r@intel.com>
 Subject: RE: [PATCH 07/13] Thermal: Update binding logic based on platform
  data
-Date: Wed, 15 Aug 2012 14:53:39 +0800
-Message-ID: <1345013619.1682.826.camel@rui.sh.intel.com>
+Date: Wed, 15 Aug 2012 09:17:04 +0000
+Message-ID: <4D68720C2E767A4AA6A8796D42C8EB591A2B97@BGSMSX101.gar.corp.intel.com>
 References: <1344516365-7230-1-git-send-email-durgadoss.r@intel.com>
 	 <1344516365-7230-8-git-send-email-durgadoss.r@intel.com>
 	 <1344840062.1682.786.camel@rui.sh.intel.com>
 	 <4D68720C2E767A4AA6A8796D42C8EB5919A6E0@BGSMSX101.gar.corp.intel.com>
+ <1345013619.1682.826.camel@rui.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:1446 "EHLO mga14.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:34823 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751341Ab2HOGxA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Aug 2012 02:53:00 -0400
-In-Reply-To: <4D68720C2E767A4AA6A8796D42C8EB5919A6E0@BGSMSX101.gar.corp.intel.com>
+	id S1751815Ab2HOJRI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Aug 2012 05:17:08 -0400
+In-Reply-To: <1345013619.1682.826.camel@rui.sh.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "R, Durgadoss" <durgadoss.r@intel.com>
+To: "Zhang, Rui" <rui.zhang@intel.com>
 Cc: "lenb@kernel.org" <lenb@kernel.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>, "amit.kachhap@linaro.org" <amit.kachhap@linaro.org>, "wni@nvidia.com" <wni@nvidia.com>
 
-On =E4=B8=80, 2012-08-13 at 09:41 -0600, R, Durgadoss wrote:
-> Hi Rui,
->=20
-> > -----Original Message-----
-> > From: Zhang, Rui
-> > Sent: Monday, August 13, 2012 12:11 PM
-> > To: R, Durgadoss
-> > Cc: lenb@kernel.org; rjw@sisk.pl; linux-acpi@vger.kernel.org; linux=
--
-> > pm@vger.kernel.org; eduardo.valentin@ti.com; amit.kachhap@linaro.or=
-g;
-> > wni@nvidia.com
-> > Subject: Re: [PATCH 07/13] Thermal: Update binding logic based on p=
-latform data
-> >=20
-> > On =E5=9B=9B, 2012-08-09 at 18:15 +0530, Durgadoss R wrote:
-> > > This patch updates the binding logic in thermal_sys.c
-> > > It uses the platform layer data to bind a thermal zone
-> > > to a cdev for a particular trip point.
-> > >
-> > >  * If we do not have platform data and do not have
-> > >    .bind defined, do not bind.
-> > >  * If we do not have platform data but .bind is
-> > >    defined, then use tz->ops->bind.
-> > >  * If we have platform data, use it to create binding.
-> > >
-> > > The same logic sequence is followed for unbind also.
-> > >
-> > > Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
-> > > ---
-> > >  drivers/thermal/thermal_sys.c |  170
-> > ++++++++++++++++++++++++++++++++++-------
-> > >  1 file changed, 144 insertions(+), 26 deletions(-)
-> > >
-> > > diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/ther=
-mal_sys.c
-> > > index 195e529..748b12f 100644
-> > > --- a/drivers/thermal/thermal_sys.c
-> > > +++ b/drivers/thermal/thermal_sys.c
-> > > @@ -158,6 +158,107 @@ static void retrieve_zone_params(struct
-> > thermal_zone_device *tz)
-> > >  	}
-> > >  }
-> > >
-> > > +static void print_bind_err_msg(struct thermal_zone_device *tz,
-> > > +			struct thermal_cooling_device *cdev, int ret)
-> > > +{
-> > > +	dev_err(&tz->device, "binding zone %s with cdev %s failed:%d\n"=
-,
-> > > +				tz->type, cdev->type, ret);
-> > > +}
-> > > +
-> > > +static void __bind(struct thermal_zone_device *tz, int mask,
-> > > +			struct thermal_cooling_device *cdev)
-> > > +{
-> > > +	int i, ret;
-> > > +
-> > > +	for (i =3D 0; i < tz->trips; i++) {
-> > > +		if (mask & (1 << i)) {
-> > > +			ret =3D thermal_zone_bind_cooling_device(tz, i, cdev,
-> > > +					THERMAL_NO_LIMIT,
-> > THERMAL_NO_LIMIT);
-> > > +			if (ret)
-> > > +				print_bind_err_msg(tz, cdev, ret);
-> > > +		}
-> > > +	}
-> > > +}
-> > > +
-> > > +static void __unbind(struct thermal_zone_device *tz, int mask,
-> > > +			struct thermal_cooling_device *cdev)
-> > > +{
-> > > +	int i;
-> > > +
-> > > +	for (i =3D 0; i < tz->trips; i++)
-> > > +		if (mask & (1 << i))
-> > > +			thermal_zone_unbind_cooling_device(tz, i, cdev);
-> > > +}
-> > > +
-> > > +static void update_bind_info(struct thermal_cooling_device *cdev=
-)
-> > > +{
-> > > +	int i, ret;
-> > > +	struct thermal_zone_params *tzp;
-> > > +	struct thermal_zone_device *pos =3D NULL;
-> > > +
-> > > +	mutex_lock(&thermal_list_lock);
-> > > +
-> > > +	list_for_each_entry(pos, &thermal_tz_list, node) {
-> > > +		if (!pos->tzp && !pos->ops->bind)
-> > > +			continue;
-> > > +
-> > > +		if (!pos->tzp && pos->ops->bind) {
-> > > +			ret =3D pos->ops->bind(pos, cdev);
-> > > +			if (ret)
-> > > +				print_bind_err_msg(pos, cdev, ret);
-> > > +		}
-> > > +
-> > > +		tzp =3D pos->tzp;
-> > > +		for (i =3D 0; i < tzp->num_cdevs; i++) {
-> > > +			if (!strcmp(tzp->cdevs_name[i], cdev->type)) {
-> > > +				__bind(pos, tzp->trip_mask[i], cdev);
-> > > +				break;
-> > > +			}
-> > > +		}
-> > > +	}
-> > > +	mutex_unlock(&thermal_list_lock);
-> > > +}
-> >=20
-> > I still do not understand why we need this kind of bind.
-> > Say, the platform thermal driver knows the platform data, i.e. it k=
-nows
-> > which cooling devices should be bound to which trip points.
-> > why we can not move this kind of logic to the .bind() callback, off=
-ered
-> > by the platform thermal driver?
-> > say, in .bind() callback,
-> > the platform thermal driver has the pointer of the platform data, r=
-ight?
-> > the .cdev parameter can be used to find the cooling device name,
-> > and we can make the comparison there. instead of introducing new bi=
-nding
-> > functions in the generic thermal layer.
->=20
-> For once, I got little confused between the generic platform thermal =
-sensor
-> drivers (the chip drivers) and the platform level driver (not specifi=
-c for chip,
-> but for a platform). So, yes we can put this in the platform level dr=
-iver.
->=20
-Hmm,
-I'm not clear about the difference between these two drivers.
-what is supposed to be done in the platform thermal sensor drivers and
-what is supposed to be done in the platform level driver?
-
-At least for now, all the thermal drivers are both thermal sensor drive=
-r
-and platform level driver, right?
-
-thanks,
-rui
-> On the other hand, I believe we will have more and more platform ther=
-mal
-> drivers, as new devices arrive. And in each of the drivers, we are go=
-ing to
-> do the 'looping, finding cdev and then binding' part. I was wondering=
- wouldn't
-> it be better to move the common code to the framework, so that the sa=
-me
-> code does not get duplicated, over several places.
->=20
->=20
->=20
-> So, please give a second thought on this and let me know your opinion=
-=2E
-
-> Thanks,
-> Durga
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SGkgUnVpLA0KDQo+ID4gPiA+ICtzdGF0aWMgdm9pZCB1cGRhdGVfYmluZF9pbmZvKHN0cnVjdCB0
+aGVybWFsX2Nvb2xpbmdfZGV2aWNlICpjZGV2KQ0KPiA+ID4gPiArew0KPiA+ID4gPiArCWludCBp
+LCByZXQ7DQo+ID4gPiA+ICsJc3RydWN0IHRoZXJtYWxfem9uZV9wYXJhbXMgKnR6cDsNCj4gPiA+
+ID4gKwlzdHJ1Y3QgdGhlcm1hbF96b25lX2RldmljZSAqcG9zID0gTlVMTDsNCj4gPiA+ID4gKw0K
+PiA+ID4gPiArCW11dGV4X2xvY2soJnRoZXJtYWxfbGlzdF9sb2NrKTsNCj4gPiA+ID4gKw0KPiA+
+ID4gPiArCWxpc3RfZm9yX2VhY2hfZW50cnkocG9zLCAmdGhlcm1hbF90el9saXN0LCBub2RlKSB7
+DQo+ID4gPiA+ICsJCWlmICghcG9zLT50enAgJiYgIXBvcy0+b3BzLT5iaW5kKQ0KPiA+ID4gPiAr
+CQkJY29udGludWU7DQo+ID4gPiA+ICsNCj4gPiA+ID4gKwkJaWYgKCFwb3MtPnR6cCAmJiBwb3Mt
+Pm9wcy0+YmluZCkgew0KPiA+ID4gPiArCQkJcmV0ID0gcG9zLT5vcHMtPmJpbmQocG9zLCBjZGV2
+KTsNCj4gPiA+ID4gKwkJCWlmIChyZXQpDQo+ID4gPiA+ICsJCQkJcHJpbnRfYmluZF9lcnJfbXNn
+KHBvcywgY2RldiwgcmV0KTsNCj4gPiA+ID4gKwkJfQ0KPiA+ID4gPiArDQo+ID4gPiA+ICsJCXR6
+cCA9IHBvcy0+dHpwOw0KPiA+ID4gPiArCQlmb3IgKGkgPSAwOyBpIDwgdHpwLT5udW1fY2RldnM7
+IGkrKykgew0KPiA+ID4gPiArCQkJaWYgKCFzdHJjbXAodHpwLT5jZGV2c19uYW1lW2ldLCBjZGV2
+LT50eXBlKSkgew0KPiA+ID4gPiArCQkJCV9fYmluZChwb3MsIHR6cC0+dHJpcF9tYXNrW2ldLCBj
+ZGV2KTsNCj4gPiA+ID4gKwkJCQlicmVhazsNCj4gPiA+ID4gKwkJCX0NCj4gPiA+ID4gKwkJfQ0K
+PiA+ID4gPiArCX0NCj4gPiA+ID4gKwltdXRleF91bmxvY2soJnRoZXJtYWxfbGlzdF9sb2NrKTsN
+Cj4gPiA+ID4gK30NCj4gPiA+DQo+ID4gPiBJIHN0aWxsIGRvIG5vdCB1bmRlcnN0YW5kIHdoeSB3
+ZSBuZWVkIHRoaXMga2luZCBvZiBiaW5kLg0KPiA+ID4gU2F5LCB0aGUgcGxhdGZvcm0gdGhlcm1h
+bCBkcml2ZXIga25vd3MgdGhlIHBsYXRmb3JtIGRhdGEsIGkuZS4gaXQga25vd3MNCj4gPiA+IHdo
+aWNoIGNvb2xpbmcgZGV2aWNlcyBzaG91bGQgYmUgYm91bmQgdG8gd2hpY2ggdHJpcCBwb2ludHMu
+DQo+ID4gPiB3aHkgd2UgY2FuIG5vdCBtb3ZlIHRoaXMga2luZCBvZiBsb2dpYyB0byB0aGUgLmJp
+bmQoKSBjYWxsYmFjaywgb2ZmZXJlZA0KPiA+ID4gYnkgdGhlIHBsYXRmb3JtIHRoZXJtYWwgZHJp
+dmVyPw0KPiA+ID4gc2F5LCBpbiAuYmluZCgpIGNhbGxiYWNrLA0KPiA+ID4gdGhlIHBsYXRmb3Jt
+IHRoZXJtYWwgZHJpdmVyIGhhcyB0aGUgcG9pbnRlciBvZiB0aGUgcGxhdGZvcm0gZGF0YSwgcmln
+aHQ/DQo+ID4gPiB0aGUgLmNkZXYgcGFyYW1ldGVyIGNhbiBiZSB1c2VkIHRvIGZpbmQgdGhlIGNv
+b2xpbmcgZGV2aWNlIG5hbWUsDQo+ID4gPiBhbmQgd2UgY2FuIG1ha2UgdGhlIGNvbXBhcmlzb24g
+dGhlcmUuIGluc3RlYWQgb2YgaW50cm9kdWNpbmcgbmV3IGJpbmRpbmcNCj4gPiA+IGZ1bmN0aW9u
+cyBpbiB0aGUgZ2VuZXJpYyB0aGVybWFsIGxheWVyLg0KPiA+DQo+ID4gRm9yIG9uY2UsIEkgZ290
+IGxpdHRsZSBjb25mdXNlZCBiZXR3ZWVuIHRoZSBnZW5lcmljIHBsYXRmb3JtIHRoZXJtYWwgc2Vu
+c29yDQo+ID4gZHJpdmVycyAodGhlIGNoaXAgZHJpdmVycykgYW5kIHRoZSBwbGF0Zm9ybSBsZXZl
+bCBkcml2ZXIgKG5vdCBzcGVjaWZpYyBmb3IgY2hpcCwNCj4gPiBidXQgZm9yIGEgcGxhdGZvcm0p
+LiBTbywgeWVzIHdlIGNhbiBwdXQgdGhpcyBpbiB0aGUgcGxhdGZvcm0gbGV2ZWwgZHJpdmVyLg0K
+PiA+DQo+IEhtbSwNCj4gSSdtIG5vdCBjbGVhciBhYm91dCB0aGUgZGlmZmVyZW5jZSBiZXR3ZWVu
+IHRoZXNlIHR3byBkcml2ZXJzLg0KPiB3aGF0IGlzIHN1cHBvc2VkIHRvIGJlIGRvbmUgaW4gdGhl
+IHBsYXRmb3JtIHRoZXJtYWwgc2Vuc29yIGRyaXZlcnMgYW5kDQo+IHdoYXQgaXMgc3VwcG9zZWQg
+dG8gYmUgZG9uZSBpbiB0aGUgcGxhdGZvcm0gbGV2ZWwgZHJpdmVyPw0KDQpBIHNlbnNvciBkcml2
+ZXIgY2FuIGJlIGEgZ2VuZXJpYyBjaGlwIGRyaXZlciBsaWtlIGVtYzE0MDMgKHRoaXMgaXMgdGhl
+IG9uZQ0KdGhhdCBJIGhhdmUgd29ya2VkIG9uLi4pIG9yIGNvcmV0ZW1wICh0aGUgQ1BVIERUUyBk
+cml2ZXIgZm9yIHg4NikuIFRoZXkgc2l0DQppbiBkaWZmZXJlbnQgc3ViIHN5c3RlbXMgKHRoZXNl
+IHR3byBpbiBod21vbikuIFdlIG1pZ2h0IG5vdCBiZSBhbGxvd2VkIHRvDQphZGQgYW55IHRoZXJt
+YWwgZnJhbWV3b3JrIHNwZWNpZmljIGNvZGUgaW4gdGhlc2UgZHJpdmVycy4gVGhlIHNhbWUgZHJp
+dmVyDQp3b3JrcyBvbiBhbGwgcGxhdGZvcm1zLg0KDQpBIHBsYXRmb3JtIGxldmVsIHRoZXJtYWwg
+ZHJpdmVyIGtub3dzIGluZm9ybWF0aW9uIGFib3V0IHRoZSB0aGVybWFsIHNlbnNvcnMsDQphbmQg
+dGhlaXIgem9uZXMgb24gdGhlIHBsYXRmb3JtOyBhbmQgaXMgc3BlY2lmaWMgdG8gdGhlIHBsYXRm
+b3JtLg0KRm9yIHg4NiwgdGhpcyB3aWxsIGJlIGluIGRyaXZlcnMveDg2L3BsYXRmb3JtLyB3aGVy
+ZWFzIG1pZ2h0IGJlIGluIHNvbWUgb3RoZXINCnBsYWNlIGZvciBvdGhlciBhcmNoaXRlY3R1cmVz
+LiBBbiBleGFtcGxlIGlzIGludGVsX21pZF90aGVybWFsLmMgd2hpY2ggc2l0cw0KaW4gZHJpdmVy
+cy94ODYvcGxhdGZvcm0uIFdlIGNhbiBhZGQgb3VyIHRoZXJtYWwgZnJhbWV3b3JrIHNwZWNpZmlj
+IGNvZGUNCnRvIHRoaXMgZHJpdmVyLg0KDQo+IA0KPiBBdCBsZWFzdCBmb3Igbm93LCBhbGwgdGhl
+IHRoZXJtYWwgZHJpdmVycyBhcmUgYm90aCB0aGVybWFsIHNlbnNvciBkcml2ZXINCj4gYW5kIHBs
+YXRmb3JtIGxldmVsIGRyaXZlciwgcmlnaHQ/DQogDQpOb3QgYWxsIHRoZSB0aW1lcywgYWx0aG91
+Z2ggdGhlcmUgYXJlIHNvbWUgaW5zdGFuY2VzIHdoZXJlIGJvdGggYXJlIHNhbWUuDQpXZSB1c2Ug
+Y29yZXRlbXAuYyBhbmQgaW50ZWxfbWlkX3RoZXJtYWwuYyAod2hpY2ggYXJlIGRpZmZlcmVudCks
+IGZvciB0aGUNCng4NiBtaWQgcGxhdGZvcm1zLg0KDQpJIGhvcGUgdGhpcyBleHBsYW5hdGlvbiBo
+ZWxwcyB5b3UuLg0KDQpUaGFua3MsDQpEdXJnYQ0K
