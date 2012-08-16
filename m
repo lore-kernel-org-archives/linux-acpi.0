@@ -1,106 +1,123 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
-Subject: RE: [PATCH 07/13] Thermal: Update binding logic based on platform
- data
-Date: Thu, 16 Aug 2012 03:31:55 +0000
-Message-ID: <4D68720C2E767A4AA6A8796D42C8EB591A4FB1@BGSMSX101.gar.corp.intel.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH 02/13] Thermal: Move thermal_instance to thermal.h
+Date: Thu, 16 Aug 2012 14:14:27 +0800
+Message-ID: <1345097667.1682.855.camel@rui.sh.intel.com>
 References: <1344516365-7230-1-git-send-email-durgadoss.r@intel.com>
-	 <1344516365-7230-8-git-send-email-durgadoss.r@intel.com>
-	 <1344840062.1682.786.camel@rui.sh.intel.com>
-	 <4D68720C2E767A4AA6A8796D42C8EB5919A6E0@BGSMSX101.gar.corp.intel.com>
-	 <1345013619.1682.826.camel@rui.sh.intel.com>
-	 <4D68720C2E767A4AA6A8796D42C8EB591A2B97@BGSMSX101.gar.corp.intel.com>
- <1345087808.1682.833.camel@rui.sh.intel.com>
+	 <1344516365-7230-3-git-send-email-durgadoss.r@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:42846 "EHLO mga11.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:63448 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751686Ab2HPDcT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Aug 2012 23:32:19 -0400
-In-Reply-To: <1345087808.1682.833.camel@rui.sh.intel.com>
-Content-Language: en-US
+	id S1753346Ab2HPGNX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 16 Aug 2012 02:13:23 -0400
+In-Reply-To: <1344516365-7230-3-git-send-email-durgadoss.r@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>, "amit.kachhap@linaro.org" <amit.kachhap@linaro.org>, "wni@nvidia.com" <wni@nvidia.com>
+To: Durgadoss R <durgadoss.r@intel.com>
+Cc: lenb@kernel.org, rjw@sisk.pl, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, eduardo.valentin@ti.com, amit.kachhap@linaro.org, wni@nvidia.com
 
-SGkgUnVpLA0KDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogWmhhbmcs
-IFJ1aQ0KPiBTZW50OiBUaHVyc2RheSwgQXVndXN0IDE2LCAyMDEyIDk6MDAgQU0NCj4gVG86IFIs
-IER1cmdhZG9zcw0KPiBDYzogbGVuYkBrZXJuZWwub3JnOyByandAc2lzay5wbDsgbGludXgtYWNw
-aUB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LQ0KPiBwbUB2Z2VyLmtlcm5lbC5vcmc7IGVkdWFyZG8u
-dmFsZW50aW5AdGkuY29tOyBhbWl0LmthY2hoYXBAbGluYXJvLm9yZzsNCj4gd25pQG52aWRpYS5j
-b20NCj4gU3ViamVjdDogUkU6IFtQQVRDSCAwNy8xM10gVGhlcm1hbDogVXBkYXRlIGJpbmRpbmcg
-bG9naWMgYmFzZWQgb24gcGxhdGZvcm0NCj4gZGF0YQ0KPiANCj4gT24g5LiJLCAyMDEyLTA4LTE1
-IGF0IDAzOjE3IC0wNjAwLCBSLCBEdXJnYWRvc3Mgd3JvdGU6DQo+ID4gSGkgUnVpLA0KPiA+DQo+
-ID4gPiA+ID4gPiArc3RhdGljIHZvaWQgdXBkYXRlX2JpbmRfaW5mbyhzdHJ1Y3QgdGhlcm1hbF9j
-b29saW5nX2RldmljZQ0KPiAqY2RldikNCj4gPiA+ID4gPiA+ICt7DQo+ID4gPiA+ID4gPiArCWlu
-dCBpLCByZXQ7DQo+ID4gPiA+ID4gPiArCXN0cnVjdCB0aGVybWFsX3pvbmVfcGFyYW1zICp0enA7
-DQo+ID4gPiA+ID4gPiArCXN0cnVjdCB0aGVybWFsX3pvbmVfZGV2aWNlICpwb3MgPSBOVUxMOw0K
-PiA+ID4gPiA+ID4gKw0KPiA+ID4gPiA+ID4gKwltdXRleF9sb2NrKCZ0aGVybWFsX2xpc3RfbG9j
-ayk7DQo+ID4gPiA+ID4gPiArDQo+ID4gPiA+ID4gPiArCWxpc3RfZm9yX2VhY2hfZW50cnkocG9z
-LCAmdGhlcm1hbF90el9saXN0LCBub2RlKSB7DQo+ID4gPiA+ID4gPiArCQlpZiAoIXBvcy0+dHpw
-ICYmICFwb3MtPm9wcy0+YmluZCkNCj4gPiA+ID4gPiA+ICsJCQljb250aW51ZTsNCj4gPiA+ID4g
-PiA+ICsNCj4gPiA+ID4gPiA+ICsJCWlmICghcG9zLT50enAgJiYgcG9zLT5vcHMtPmJpbmQpIHsN
-Cj4gPiA+ID4gPiA+ICsJCQlyZXQgPSBwb3MtPm9wcy0+YmluZChwb3MsIGNkZXYpOw0KPiA+ID4g
-PiA+ID4gKwkJCWlmIChyZXQpDQo+ID4gPiA+ID4gPiArCQkJCXByaW50X2JpbmRfZXJyX21zZyhw
-b3MsIGNkZXYsIHJldCk7DQo+ID4gPiA+ID4gPiArCQl9DQo+ID4gPiA+ID4gPiArDQo+ID4gPiA+
-ID4gPiArCQl0enAgPSBwb3MtPnR6cDsNCj4gPiA+ID4gPiA+ICsJCWZvciAoaSA9IDA7IGkgPCB0
-enAtPm51bV9jZGV2czsgaSsrKSB7DQo+ID4gPiA+ID4gPiArCQkJaWYgKCFzdHJjbXAodHpwLT5j
-ZGV2c19uYW1lW2ldLCBjZGV2LT50eXBlKSkNCj4gew0KPiA+ID4gPiA+ID4gKwkJCQlfX2JpbmQo
-cG9zLCB0enAtPnRyaXBfbWFza1tpXSwgY2Rldik7DQo+ID4gPiA+ID4gPiArCQkJCWJyZWFrOw0K
-PiA+ID4gPiA+ID4gKwkJCX0NCj4gPiA+ID4gPiA+ICsJCX0NCj4gPiA+ID4gPiA+ICsJfQ0KPiA+
-ID4gPiA+ID4gKwltdXRleF91bmxvY2soJnRoZXJtYWxfbGlzdF9sb2NrKTsNCj4gPiA+ID4gPiA+
-ICt9DQo+ID4gPiA+ID4NCj4gPiA+ID4gPiBJIHN0aWxsIGRvIG5vdCB1bmRlcnN0YW5kIHdoeSB3
-ZSBuZWVkIHRoaXMga2luZCBvZiBiaW5kLg0KPiA+ID4gPiA+IFNheSwgdGhlIHBsYXRmb3JtIHRo
-ZXJtYWwgZHJpdmVyIGtub3dzIHRoZSBwbGF0Zm9ybSBkYXRhLCBpLmUuIGl0DQo+IGtub3dzDQo+
-ID4gPiA+ID4gd2hpY2ggY29vbGluZyBkZXZpY2VzIHNob3VsZCBiZSBib3VuZCB0byB3aGljaCB0
-cmlwIHBvaW50cy4NCj4gPiA+ID4gPiB3aHkgd2UgY2FuIG5vdCBtb3ZlIHRoaXMga2luZCBvZiBs
-b2dpYyB0byB0aGUgLmJpbmQoKSBjYWxsYmFjaywgb2ZmZXJlZA0KPiA+ID4gPiA+IGJ5IHRoZSBw
-bGF0Zm9ybSB0aGVybWFsIGRyaXZlcj8NCj4gPiA+ID4gPiBzYXksIGluIC5iaW5kKCkgY2FsbGJh
-Y2ssDQo+ID4gPiA+ID4gdGhlIHBsYXRmb3JtIHRoZXJtYWwgZHJpdmVyIGhhcyB0aGUgcG9pbnRl
-ciBvZiB0aGUgcGxhdGZvcm0gZGF0YSwNCj4gcmlnaHQ/DQo+ID4gPiA+ID4gdGhlIC5jZGV2IHBh
-cmFtZXRlciBjYW4gYmUgdXNlZCB0byBmaW5kIHRoZSBjb29saW5nIGRldmljZSBuYW1lLA0KPiA+
-ID4gPiA+IGFuZCB3ZSBjYW4gbWFrZSB0aGUgY29tcGFyaXNvbiB0aGVyZS4gaW5zdGVhZCBvZiBp
-bnRyb2R1Y2luZyBuZXcNCj4gYmluZGluZw0KPiA+ID4gPiA+IGZ1bmN0aW9ucyBpbiB0aGUgZ2Vu
-ZXJpYyB0aGVybWFsIGxheWVyLg0KPiA+ID4gPg0KPiA+ID4gPiBGb3Igb25jZSwgSSBnb3QgbGl0
-dGxlIGNvbmZ1c2VkIGJldHdlZW4gdGhlIGdlbmVyaWMgcGxhdGZvcm0gdGhlcm1hbA0KPiBzZW5z
-b3INCj4gPiA+ID4gZHJpdmVycyAodGhlIGNoaXAgZHJpdmVycykgYW5kIHRoZSBwbGF0Zm9ybSBs
-ZXZlbCBkcml2ZXIgKG5vdCBzcGVjaWZpYyBmb3INCj4gY2hpcCwNCj4gPiA+ID4gYnV0IGZvciBh
-IHBsYXRmb3JtKS4gU28sIHllcyB3ZSBjYW4gcHV0IHRoaXMgaW4gdGhlIHBsYXRmb3JtIGxldmVs
-IGRyaXZlci4NCj4gPiA+ID4NCj4gPiA+IEhtbSwNCj4gPiA+IEknbSBub3QgY2xlYXIgYWJvdXQg
-dGhlIGRpZmZlcmVuY2UgYmV0d2VlbiB0aGVzZSB0d28gZHJpdmVycy4NCj4gPiA+IHdoYXQgaXMg
-c3VwcG9zZWQgdG8gYmUgZG9uZSBpbiB0aGUgcGxhdGZvcm0gdGhlcm1hbCBzZW5zb3IgZHJpdmVy
-cyBhbmQNCj4gPiA+IHdoYXQgaXMgc3VwcG9zZWQgdG8gYmUgZG9uZSBpbiB0aGUgcGxhdGZvcm0g
-bGV2ZWwgZHJpdmVyPw0KPiA+DQo+ID4gQSBzZW5zb3IgZHJpdmVyIGNhbiBiZSBhIGdlbmVyaWMg
-Y2hpcCBkcml2ZXIgbGlrZSBlbWMxNDAzICh0aGlzIGlzIHRoZSBvbmUNCj4gPiB0aGF0IEkgaGF2
-ZSB3b3JrZWQgb24uLikgb3IgY29yZXRlbXAgKHRoZSBDUFUgRFRTIGRyaXZlciBmb3IgeDg2KS4g
-VGhleSBzaXQNCj4gPiBpbiBkaWZmZXJlbnQgc3ViIHN5c3RlbXMgKHRoZXNlIHR3byBpbiBod21v
-bikuIFdlIG1pZ2h0IG5vdCBiZSBhbGxvd2VkDQo+IHRvDQo+ID4gYWRkIGFueSB0aGVybWFsIGZy
-YW1ld29yayBzcGVjaWZpYyBjb2RlIGluIHRoZXNlIGRyaXZlcnMuIFRoZSBzYW1lIGRyaXZlcg0K
-PiA+IHdvcmtzIG9uIGFsbCBwbGF0Zm9ybXMuDQo+IA0KPiBkb2VzIHRoZSBzZW5zb3Iga25vdyBh
-bnl0aGluZyBhYm91dCB0aGUgInBvbGljeSI/DQo+IFNheSwgZG9lcyBpdCBoYXZlIGFueSB0cmlw
-IHBvaW50cz8gZG9lcyBpdCBrbm93IHdoaWNoIGRldmljZSBjYW4gYmUNCj4gdGhyb3R0bGVkIHRv
-IGNvb2wgaXRzZWxmPw0KPiBJIHRoaW5rIHRoZSBhbnN3ZXIgaXMgIm5vIiwgcmlnaHQ/DQoNClll
-cy4gWW91IGFyZSByaWdodCA6LSkNClRoZSBhbnN3ZXIgaXMgJ05vJy4NCg0KPiA+DQo+ID4gQSBw
-bGF0Zm9ybSBsZXZlbCB0aGVybWFsIGRyaXZlciBrbm93cyBpbmZvcm1hdGlvbiBhYm91dCB0aGUg
-dGhlcm1hbA0KPiBzZW5zb3JzLA0KPiA+IGFuZCB0aGVpciB6b25lcyBvbiB0aGUgcGxhdGZvcm07
-IGFuZCBpcyBzcGVjaWZpYyB0byB0aGUgcGxhdGZvcm0uDQo+ID4gRm9yIHg4NiwgdGhpcyB3aWxs
-IGJlIGluIGRyaXZlcnMveDg2L3BsYXRmb3JtLyB3aGVyZWFzIG1pZ2h0IGJlIGluIHNvbWUNCj4g
-b3RoZXINCj4gPiBwbGFjZSBmb3Igb3RoZXIgYXJjaGl0ZWN0dXJlcy4gQW4gZXhhbXBsZSBpcyBp
-bnRlbF9taWRfdGhlcm1hbC5jIHdoaWNoIHNpdHMNCj4gPiBpbiBkcml2ZXJzL3g4Ni9wbGF0Zm9y
-bS4gV2UgY2FuIGFkZCBvdXIgdGhlcm1hbCBmcmFtZXdvcmsgc3BlY2lmaWMgY29kZQ0KPiA+IHRv
-IHRoaXMgZHJpdmVyLg0KPiA+DQo+IGJ1dCBJIHRoaW5rIGludGVsX21pZGVfdGhlcm1hbCBkcml2
-ZXIgaXMgYWxzbyBhIHBsYXRmb3JtIHRoZXJtYWwgc2Vuc29yDQo+IGRyaXZlciBhdCB0aGUgc2Ft
-ZSB0aW1lLg0KDQpZZXMgdG9kYXkgaXQgaXMgYm90aC4uDQoNCj4gPiA+DQo+ID4gPiBBdCBsZWFz
-dCBmb3Igbm93LCBhbGwgdGhlIHRoZXJtYWwgZHJpdmVycyBhcmUgYm90aCB0aGVybWFsIHNlbnNv
-ciBkcml2ZXINCj4gPiA+IGFuZCBwbGF0Zm9ybSBsZXZlbCBkcml2ZXIsIHJpZ2h0Pw0KPiA+DQo+
-ID4gTm90IGFsbCB0aGUgdGltZXMsIGFsdGhvdWdoIHRoZXJlIGFyZSBzb21lIGluc3RhbmNlcyB3
-aGVyZSBib3RoIGFyZSBzYW1lLg0KPiA+IFdlIHVzZSBjb3JldGVtcC5jIGFuZCBpbnRlbF9taWRf
-dGhlcm1hbC5jICh3aGljaCBhcmUgZGlmZmVyZW50KSwgZm9yIHRoZQ0KPiA+IHg4NiBtaWQgcGxh
-dGZvcm1zLg0KPiA+DQo+IHNvIHlvdSB3YW50IHRvIHVzZSBjb3JldGVtcC5jIGFzIGEgdGVtcGVy
-YXR1cmUgc2Vuc29yLCBhbmQgdGhlbiBiaW5kDQo+IHlvdXIgb3duIGNvb2xpbmcgZGV2aWNlcyB0
-byBpdCBpbiB5b3VyIHBsYXRmb3JtIGxldmVsIHRoZXJtYWwgZHJpdmVyPw0KDQpZZXMsIGNvcmV0
-ZW1wIGlzIG9uZSBmaW5lIGV4YW1wbGUuDQpBdCBsZWFzdCBJIHdvdWxkIGxpa2UgdG8gZ2V0IHRo
-ZSBzYW1lIHRoaW5nIGRvbmUgZm9yIGVtYzE0MDMuYw0KKGFuZCBmZXcgaHdtb24gZHJpdmVycyku
-Lg0KDQpUaGFua3MsDQpEdXJnYQ0K
+On =E5=9B=9B, 2012-08-09 at 18:15 +0530, Durgadoss R wrote:
+> This patch moves the thermal_instance structure
+> to thermal.h so that thermal management files
+> (other than thermal_sys.c) can also access it.
+>=20
+> Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
+> ---
+>  drivers/thermal/thermal_sys.c |   21 ---------------------
+>  include/linux/thermal.h       |   23 +++++++++++++++++++++++
+>  2 files changed, 23 insertions(+), 21 deletions(-)
+>=20
+> diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_=
+sys.c
+> index 5be8728..a0e20f9 100644
+> --- a/drivers/thermal/thermal_sys.c
+> +++ b/drivers/thermal/thermal_sys.c
+> @@ -41,27 +41,6 @@ MODULE_AUTHOR("Zhang Rui");
+>  MODULE_DESCRIPTION("Generic thermal management sysfs support");
+>  MODULE_LICENSE("GPL");
+> =20
+> -#define THERMAL_NO_TARGET -1UL
+> -/*
+> - * This structure is used to describe the behavior of
+> - * a certain cooling device on a certain trip point
+> - * in a certain thermal zone
+> - */
+> -struct thermal_instance {
+> -	int id;
+> -	char name[THERMAL_NAME_LENGTH];
+> -	struct thermal_zone_device *tz;
+> -	struct thermal_cooling_device *cdev;
+> -	int trip;
+> -	unsigned long upper;	/* Highest cooling state for this trip point *=
+/
+> -	unsigned long lower;	/* Lowest cooling state for this trip point */
+> -	unsigned long target;	/* expected cooling state */
+> -	char attr_name[THERMAL_NAME_LENGTH];
+> -	struct device_attribute attr;
+> -	struct list_head tz_node; /* node in tz->thermal_instances */
+> -	struct list_head cdev_node; /* node in cdev->thermal_instances */
+> -};
+> -
+>  static DEFINE_IDR(thermal_tz_idr);
+>  static DEFINE_IDR(thermal_cdev_idr);
+>  static DEFINE_MUTEX(thermal_idr_lock);
+> diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+> index 8611e3e..f25df23 100644
+> --- a/include/linux/thermal.h
+> +++ b/include/linux/thermal.h
+> @@ -33,6 +33,9 @@
+>  #define THERMAL_MAX_TRIPS	12
+>  #define THERMAL_NAME_LENGTH	20
+> =20
+> +/* Initial state of a cooling device during binding */
+> +#define THERMAL_NO_TARGET	-1UL
+> +
+>  /* No upper/lower limit requirement */
+>  #define THERMAL_NO_LIMIT	-1UL
+> =20
+> @@ -164,6 +167,26 @@ struct thermal_zone_device {
+>  	struct delayed_work poll_queue;
+>  };
+> =20
+> +/*
+> + * This structure is used to describe the behavior of
+> + * a certain cooling device on a certain trip point
+> + * in a certain thermal zone
+> + */
+> +struct thermal_instance {
+> +	int id;
+> +	char name[THERMAL_NAME_LENGTH];
+> +	struct thermal_zone_device *tz;
+> +	struct thermal_cooling_device *cdev;
+> +	int trip;
+> +	unsigned long upper;	/* Highest cooling state for this trip point *=
+/
+> +	unsigned long lower;	/* Lowest cooling state for this trip point */
+> +	unsigned long target;	/* expected cooling state */
+> +	char attr_name[THERMAL_NAME_LENGTH];
+> +	struct device_attribute attr;
+> +	struct list_head tz_node; /* node in tz->thermal_instances */
+> +	struct list_head cdev_node; /* node in cdev->thermal_instances */
+> +};
+> +
+
+as this structure is used internally only, I'm thinking if we can renam=
+e
+drivers/thermal/thermal_sys.c to drivers/thermal/thermal_core.c,
+and introduce drivers/thermal/thermal_core.h for these internal stuff.
+what do you think?
+
+thanks,
+rui
+>  struct thermal_genl_event {
+>  	u32 orig;
+>  	enum events event;
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
