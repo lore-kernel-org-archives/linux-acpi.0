@@ -1,143 +1,100 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH 04/13] Thermal: Add platform level information to
- thermal.h
-Date: Thu, 16 Aug 2012 14:16:30 +0800
-Message-ID: <1345097790.1682.856.camel@rui.sh.intel.com>
+From: "R, Durgadoss" <durgadoss.r@intel.com>
+Subject: RE: [PATCH 02/13] Thermal: Move thermal_instance to thermal.h
+Date: Thu, 16 Aug 2012 06:19:47 +0000
+Message-ID: <4D68720C2E767A4AA6A8796D42C8EB591A5104@BGSMSX101.gar.corp.intel.com>
 References: <1344516365-7230-1-git-send-email-durgadoss.r@intel.com>
-	 <1344516365-7230-5-git-send-email-durgadoss.r@intel.com>
+	 <1344516365-7230-3-git-send-email-durgadoss.r@intel.com>
+ <1345097667.1682.855.camel@rui.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:27280 "EHLO mga11.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:52336 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753347Ab2HPGP0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 16 Aug 2012 02:15:26 -0400
-In-Reply-To: <1344516365-7230-5-git-send-email-durgadoss.r@intel.com>
+	id S1753346Ab2HPGTw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 16 Aug 2012 02:19:52 -0400
+In-Reply-To: <1345097667.1682.855.camel@rui.sh.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Durgadoss R <durgadoss.r@intel.com>
-Cc: lenb@kernel.org, rjw@sisk.pl, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, eduardo.valentin@ti.com, amit.kachhap@linaro.org, wni@nvidia.com
+To: "Zhang, Rui" <rui.zhang@intel.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>, "amit.kachhap@linaro.org" <amit.kachhap@linaro.org>, "wni@nvidia.com" <wni@nvidia.com>
 
-On =E5=9B=9B, 2012-08-09 at 18:15 +0530, Durgadoss R wrote:
-> This patch creates a structure to hold a thermal zone's
-> platform level info, and also defines an extern function to
-> retrieve zone parameters from thermal_sys.c.
->=20
-> Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
-> ---
->  drivers/thermal/thermal_sys.c |    3 +++
->  include/linux/thermal.h       |   43 +++++++++++++++++++++++++++++++=
-++++++++++
->  2 files changed, 46 insertions(+)
->=20
-> diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_=
-sys.c
-> index 998c16e..f043cd6 100644
-> --- a/drivers/thermal/thermal_sys.c
-> +++ b/drivers/thermal/thermal_sys.c
-> @@ -49,6 +49,9 @@ static LIST_HEAD(thermal_tz_list);
->  static LIST_HEAD(thermal_cdev_list);
->  static DEFINE_MUTEX(thermal_list_lock);
-> =20
-> +int (*get_platform_thermal_params)(struct thermal_zone_device *);
-> +EXPORT_SYMBOL(get_platform_thermal_params);
-> +
->  static int get_idr(struct idr *idr, struct mutex *lock, int *id)
->  {
->  	int err;
-> diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-> index 757a007..f9ce1e2 100644
-> --- a/include/linux/thermal.h
-> +++ b/include/linux/thermal.h
-> @@ -33,6 +33,8 @@
->  #define THERMAL_MAX_TRIPS	12
->  #define THERMAL_NAME_LENGTH	20
-> =20
-> +#define MAX_COOLING_DEVS	THERMAL_MAX_TRIPS
-> +
->  /* Initial state of a cooling device during binding */
->  #define THERMAL_NO_TARGET	-1UL
-> =20
-> @@ -49,6 +51,11 @@
->  #define THERMAL_GENL_VERSION                    0x01
->  #define THERMAL_GENL_MCAST_GROUP_NAME           "thermal_mc_group"
-> =20
-> +/* Thermal policies */
-> +#define THERMAL_USER_SPACE	0
-> +#define THERMAL_FAIR_SHARE	1
-> +#define	THERMAL_STEP_WISE	2
-> +
-I'd prefer using enum here, for thermal policies.
-
->  struct thermal_zone_device;
->  struct thermal_cooling_device;
-> =20
-> @@ -165,6 +172,7 @@ struct thermal_zone_device {
->  	struct mutex lock; /* protect thermal_instances list */
->  	struct list_head node;
->  	struct delayed_work poll_queue;
-> +	struct thermal_zone_params *tzp;
->  };
-> =20
->  /*
-> @@ -187,6 +195,31 @@ struct thermal_instance {
->  	struct list_head cdev_node; /* node in cdev->thermal_instances */
->  };
-> =20
-> +/* Platform level parameters associated with a thermal zone */
-> +struct thermal_zone_params {
-> +	char *thermal_zone_name;
-> +	int throttle_policy;
-> +
-> +	/* Number of cooling devices associated with this thermal zone */
-> +	int num_cdevs;
-> +	char *cdevs_name[MAX_COOLING_DEVS];
-> +
-> +	/*
-> +	 * This is a measure of 'how effectively these devices can
-> +	 * cool 'this' thermal zone. The shall be determined by platform
-> +	 * characterization. This is on a 'percentage' scale.
-> +	 * See Documentation/thermal/sysfs-api.txt for more information.
-> +	 */
-> +	int weights[MAX_COOLING_DEVS];
-> +
-> +	/*
-> +	 * This is a bit mask that gives the binding relation between this
-> +	 * thermal zone and cdev, for a particular trip point.
-> +	 * See Documentation/thermal/sysfs-api.txt for more information.
-> +	 */
-> +	int trip_mask[MAX_COOLING_DEVS];
-> +};
-> +
->  struct thermal_genl_event {
->  	u32 orig;
->  	enum events event;
-> @@ -213,6 +246,16 @@ struct thermal_cooling_device *get_cdev_by_name(=
-const char *);
->  struct thermal_instance *get_thermal_instance(struct thermal_zone_de=
-vice *,
->  		struct thermal_cooling_device *, int);
-> =20
-> +/*
-> + * The platform layer shall define a 'function' that provides the
-> + * parameters for all thermal zones in the platform. This pointer
-> + * should point to that 'function'.
-> + *
-> + * In thermal_zone_device_register() we update the parameters
-> + * for the particular thermal zone.
-> + */
-> +extern int (*get_platform_thermal_params)(struct thermal_zone_device=
- *);
-> +
->  #ifdef CONFIG_NET
->  extern int thermal_generate_netlink_event(u32 orig, enum events even=
-t);
->  #else
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SGkgUnVpLA0KDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogWmhhbmcs
+IFJ1aQ0KPiBTZW50OiBUaHVyc2RheSwgQXVndXN0IDE2LCAyMDEyIDExOjQ0IEFNDQo+IFRvOiBS
+LCBEdXJnYWRvc3MNCj4gQ2M6IGxlbmJAa2VybmVsLm9yZzsgcmp3QHNpc2sucGw7IGxpbnV4LWFj
+cGlAdmdlci5rZXJuZWwub3JnOyBsaW51eC0NCj4gcG1Admdlci5rZXJuZWwub3JnOyBlZHVhcmRv
+LnZhbGVudGluQHRpLmNvbTsgYW1pdC5rYWNoaGFwQGxpbmFyby5vcmc7DQo+IHduaUBudmlkaWEu
+Y29tDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggMDIvMTNdIFRoZXJtYWw6IE1vdmUgdGhlcm1hbF9p
+bnN0YW5jZSB0byB0aGVybWFsLmgNCj4gDQo+IE9uIOWbmywgMjAxMi0wOC0wOSBhdCAxODoxNSAr
+MDUzMCwgRHVyZ2Fkb3NzIFIgd3JvdGU6DQo+ID4gVGhpcyBwYXRjaCBtb3ZlcyB0aGUgdGhlcm1h
+bF9pbnN0YW5jZSBzdHJ1Y3R1cmUNCj4gPiB0byB0aGVybWFsLmggc28gdGhhdCB0aGVybWFsIG1h
+bmFnZW1lbnQgZmlsZXMNCj4gPiAob3RoZXIgdGhhbiB0aGVybWFsX3N5cy5jKSBjYW4gYWxzbyBh
+Y2Nlc3MgaXQuDQo+ID4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBEdXJnYWRvc3MgUiA8ZHVyZ2Fkb3Nz
+LnJAaW50ZWwuY29tPg0KPiA+IC0tLQ0KPiA+ICBkcml2ZXJzL3RoZXJtYWwvdGhlcm1hbF9zeXMu
+YyB8ICAgMjEgLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQo+ID4gIGluY2x1ZGUvbGludXgvdGhlcm1h
+bC5oICAgICAgIHwgICAyMyArKysrKysrKysrKysrKysrKysrKysrKw0KPiA+ICAyIGZpbGVzIGNo
+YW5nZWQsIDIzIGluc2VydGlvbnMoKyksIDIxIGRlbGV0aW9ucygtKQ0KPiA+DQo+ID4gZGlmZiAt
+LWdpdCBhL2RyaXZlcnMvdGhlcm1hbC90aGVybWFsX3N5cy5jIGIvZHJpdmVycy90aGVybWFsL3Ro
+ZXJtYWxfc3lzLmMNCj4gPiBpbmRleCA1YmU4NzI4Li5hMGUyMGY5IDEwMDY0NA0KPiA+IC0tLSBh
+L2RyaXZlcnMvdGhlcm1hbC90aGVybWFsX3N5cy5jDQo+ID4gKysrIGIvZHJpdmVycy90aGVybWFs
+L3RoZXJtYWxfc3lzLmMNCj4gPiBAQCAtNDEsMjcgKzQxLDYgQEAgTU9EVUxFX0FVVEhPUigiWmhh
+bmcgUnVpIik7DQo+ID4gIE1PRFVMRV9ERVNDUklQVElPTigiR2VuZXJpYyB0aGVybWFsIG1hbmFn
+ZW1lbnQgc3lzZnMgc3VwcG9ydCIpOw0KPiA+ICBNT0RVTEVfTElDRU5TRSgiR1BMIik7DQo+ID4N
+Cj4gPiAtI2RlZmluZSBUSEVSTUFMX05PX1RBUkdFVCAtMVVMDQo+ID4gLS8qDQo+ID4gLSAqIFRo
+aXMgc3RydWN0dXJlIGlzIHVzZWQgdG8gZGVzY3JpYmUgdGhlIGJlaGF2aW9yIG9mDQo+ID4gLSAq
+IGEgY2VydGFpbiBjb29saW5nIGRldmljZSBvbiBhIGNlcnRhaW4gdHJpcCBwb2ludA0KPiA+IC0g
+KiBpbiBhIGNlcnRhaW4gdGhlcm1hbCB6b25lDQo+ID4gLSAqLw0KPiA+IC1zdHJ1Y3QgdGhlcm1h
+bF9pbnN0YW5jZSB7DQo+ID4gLQlpbnQgaWQ7DQo+ID4gLQljaGFyIG5hbWVbVEhFUk1BTF9OQU1F
+X0xFTkdUSF07DQo+ID4gLQlzdHJ1Y3QgdGhlcm1hbF96b25lX2RldmljZSAqdHo7DQo+ID4gLQlz
+dHJ1Y3QgdGhlcm1hbF9jb29saW5nX2RldmljZSAqY2RldjsNCj4gPiAtCWludCB0cmlwOw0KPiA+
+IC0JdW5zaWduZWQgbG9uZyB1cHBlcjsJLyogSGlnaGVzdCBjb29saW5nIHN0YXRlIGZvciB0aGlz
+IHRyaXAgcG9pbnQgKi8NCj4gPiAtCXVuc2lnbmVkIGxvbmcgbG93ZXI7CS8qIExvd2VzdCBjb29s
+aW5nIHN0YXRlIGZvciB0aGlzIHRyaXAgcG9pbnQgKi8NCj4gPiAtCXVuc2lnbmVkIGxvbmcgdGFy
+Z2V0OwkvKiBleHBlY3RlZCBjb29saW5nIHN0YXRlICovDQo+ID4gLQljaGFyIGF0dHJfbmFtZVtU
+SEVSTUFMX05BTUVfTEVOR1RIXTsNCj4gPiAtCXN0cnVjdCBkZXZpY2VfYXR0cmlidXRlIGF0dHI7
+DQo+ID4gLQlzdHJ1Y3QgbGlzdF9oZWFkIHR6X25vZGU7IC8qIG5vZGUgaW4gdHotPnRoZXJtYWxf
+aW5zdGFuY2VzICovDQo+ID4gLQlzdHJ1Y3QgbGlzdF9oZWFkIGNkZXZfbm9kZTsgLyogbm9kZSBp
+biBjZGV2LT50aGVybWFsX2luc3RhbmNlcyAqLw0KPiA+IC19Ow0KPiA+IC0NCj4gPiAgc3RhdGlj
+IERFRklORV9JRFIodGhlcm1hbF90el9pZHIpOw0KPiA+ICBzdGF0aWMgREVGSU5FX0lEUih0aGVy
+bWFsX2NkZXZfaWRyKTsNCj4gPiAgc3RhdGljIERFRklORV9NVVRFWCh0aGVybWFsX2lkcl9sb2Nr
+KTsNCj4gPiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51eC90aGVybWFsLmggYi9pbmNsdWRlL2xp
+bnV4L3RoZXJtYWwuaA0KPiA+IGluZGV4IDg2MTFlM2UuLmYyNWRmMjMgMTAwNjQ0DQo+ID4gLS0t
+IGEvaW5jbHVkZS9saW51eC90aGVybWFsLmgNCj4gPiArKysgYi9pbmNsdWRlL2xpbnV4L3RoZXJt
+YWwuaA0KPiA+IEBAIC0zMyw2ICszMyw5IEBADQo+ID4gICNkZWZpbmUgVEhFUk1BTF9NQVhfVFJJ
+UFMJMTINCj4gPiAgI2RlZmluZSBUSEVSTUFMX05BTUVfTEVOR1RICTIwDQo+ID4NCj4gPiArLyog
+SW5pdGlhbCBzdGF0ZSBvZiBhIGNvb2xpbmcgZGV2aWNlIGR1cmluZyBiaW5kaW5nICovDQo+ID4g
+KyNkZWZpbmUgVEhFUk1BTF9OT19UQVJHRVQJLTFVTA0KPiA+ICsNCj4gPiAgLyogTm8gdXBwZXIv
+bG93ZXIgbGltaXQgcmVxdWlyZW1lbnQgKi8NCj4gPiAgI2RlZmluZSBUSEVSTUFMX05PX0xJTUlU
+CS0xVUwNCj4gPg0KPiA+IEBAIC0xNjQsNiArMTY3LDI2IEBAIHN0cnVjdCB0aGVybWFsX3pvbmVf
+ZGV2aWNlIHsNCj4gPiAgCXN0cnVjdCBkZWxheWVkX3dvcmsgcG9sbF9xdWV1ZTsNCj4gPiAgfTsN
+Cj4gPg0KPiA+ICsvKg0KPiA+ICsgKiBUaGlzIHN0cnVjdHVyZSBpcyB1c2VkIHRvIGRlc2NyaWJl
+IHRoZSBiZWhhdmlvciBvZg0KPiA+ICsgKiBhIGNlcnRhaW4gY29vbGluZyBkZXZpY2Ugb24gYSBj
+ZXJ0YWluIHRyaXAgcG9pbnQNCj4gPiArICogaW4gYSBjZXJ0YWluIHRoZXJtYWwgem9uZQ0KPiA+
+ICsgKi8NCj4gPiArc3RydWN0IHRoZXJtYWxfaW5zdGFuY2Ugew0KPiA+ICsJaW50IGlkOw0KPiA+
+ICsJY2hhciBuYW1lW1RIRVJNQUxfTkFNRV9MRU5HVEhdOw0KPiA+ICsJc3RydWN0IHRoZXJtYWxf
+em9uZV9kZXZpY2UgKnR6Ow0KPiA+ICsJc3RydWN0IHRoZXJtYWxfY29vbGluZ19kZXZpY2UgKmNk
+ZXY7DQo+ID4gKwlpbnQgdHJpcDsNCj4gPiArCXVuc2lnbmVkIGxvbmcgdXBwZXI7CS8qIEhpZ2hl
+c3QgY29vbGluZyBzdGF0ZSBmb3IgdGhpcyB0cmlwIHBvaW50ICovDQo+ID4gKwl1bnNpZ25lZCBs
+b25nIGxvd2VyOwkvKiBMb3dlc3QgY29vbGluZyBzdGF0ZSBmb3IgdGhpcyB0cmlwIHBvaW50ICov
+DQo+ID4gKwl1bnNpZ25lZCBsb25nIHRhcmdldDsJLyogZXhwZWN0ZWQgY29vbGluZyBzdGF0ZSAq
+Lw0KPiA+ICsJY2hhciBhdHRyX25hbWVbVEhFUk1BTF9OQU1FX0xFTkdUSF07DQo+ID4gKwlzdHJ1
+Y3QgZGV2aWNlX2F0dHJpYnV0ZSBhdHRyOw0KPiA+ICsJc3RydWN0IGxpc3RfaGVhZCB0el9ub2Rl
+OyAvKiBub2RlIGluIHR6LT50aGVybWFsX2luc3RhbmNlcyAqLw0KPiA+ICsJc3RydWN0IGxpc3Rf
+aGVhZCBjZGV2X25vZGU7IC8qIG5vZGUgaW4gY2Rldi0+dGhlcm1hbF9pbnN0YW5jZXMgKi8NCj4g
+PiArfTsNCj4gPiArDQo+IA0KPiBhcyB0aGlzIHN0cnVjdHVyZSBpcyB1c2VkIGludGVybmFsbHkg
+b25seSwgSSdtIHRoaW5raW5nIGlmIHdlIGNhbiByZW5hbWUNCj4gZHJpdmVycy90aGVybWFsL3Ro
+ZXJtYWxfc3lzLmMgdG8gZHJpdmVycy90aGVybWFsL3RoZXJtYWxfY29yZS5jLA0KPiBhbmQgaW50
+cm9kdWNlIGRyaXZlcnMvdGhlcm1hbC90aGVybWFsX2NvcmUuaCBmb3IgdGhlc2UgaW50ZXJuYWwg
+c3R1ZmYuDQo+IHdoYXQgZG8geW91IHRoaW5rPw0KDQpZZXMgYWdyZWUgd2l0aCB5b3UuDQpBbHNv
+LCB3ZSBjYW4ga2VlcCB0aGUgc3lzZnMgdGhpbmdzIGluIHRoZXJtYWxfc3lzLmMgDQphbmQgcmVz
+dCBvZiB0aGUgdGhpbmdzIGluIHRoZXJtYWxfY29yZS5jLCBhbmQgaGF2ZSBhIHRoZXJtYWxfY29y
+ZS5oIGFsc28uDQooVGhpcyBpcyBob3cgdGhlIHBvd2VyIHN1cHBseSBzdWJzeXN0ZW0gZG9lcyBp
+dCkNCg0KSSB3aWxsIGluY2x1ZGUgdGhpcyBjbGVhbiB1cCwgYXMgcGFydCBvZiB2MiwgaWYgeW91
+IGFyZSBPayB3aXRoIHRoaXMuDQoNCk90aGVyIHRoaW5nczsNCiBJIHdhcyB0aGlua2luZyBpcyAn
+cmVtb3ZhbCBvZiBuZXRsaW5rIHRoaW5ncycgZnJvbQ0KdGhlcm1hbF9zeXMuYw0KDQpSZW1vdmlu
+ZyB0aGUgaHdtb24gcmVsYXRlZCBjb2RlICh0aGUgdGhlcm1hbCBzdWJzeXN0ZW0gaGFzIGdyb3du
+DQpxdWl0ZSBhIGJpdCBhbmQgcHJvdmlkZXMgbW9yZSB0aGVybWFsIGZ1bmN0aW9uYWxpdGllcyB0
+aGFuIEh3bW9uKQ0KU28sIHdoeSBkbyB3ZSBuZWVkIENPTkZJR19IV01PTiBpbnNpZGUgdGhlcm1h
+bCBzdWJzeXN0ZW0gPw0KSWYgYWxsIG9mIHVzIGFncmVlLCBJIGFtIE9rIHRvIHJlbW92ZSB0aGlz
+IGFsc28uDQoNClRoYW5rcywNCkR1cmdhDQo=
