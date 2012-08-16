@@ -1,139 +1,106 @@
-From: Zhang Rui <rui.zhang@intel.com>
+From: "R, Durgadoss" <durgadoss.r@intel.com>
 Subject: RE: [PATCH 07/13] Thermal: Update binding logic based on platform
  data
-Date: Thu, 16 Aug 2012 11:30:08 +0800
-Message-ID: <1345087808.1682.833.camel@rui.sh.intel.com>
+Date: Thu, 16 Aug 2012 03:31:55 +0000
+Message-ID: <4D68720C2E767A4AA6A8796D42C8EB591A4FB1@BGSMSX101.gar.corp.intel.com>
 References: <1344516365-7230-1-git-send-email-durgadoss.r@intel.com>
 	 <1344516365-7230-8-git-send-email-durgadoss.r@intel.com>
 	 <1344840062.1682.786.camel@rui.sh.intel.com>
 	 <4D68720C2E767A4AA6A8796D42C8EB5919A6E0@BGSMSX101.gar.corp.intel.com>
 	 <1345013619.1682.826.camel@rui.sh.intel.com>
 	 <4D68720C2E767A4AA6A8796D42C8EB591A2B97@BGSMSX101.gar.corp.intel.com>
+ <1345087808.1682.833.camel@rui.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:5335 "EHLO mga14.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:42846 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751686Ab2HPD3E (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Aug 2012 23:29:04 -0400
-In-Reply-To: <4D68720C2E767A4AA6A8796D42C8EB591A2B97@BGSMSX101.gar.corp.intel.com>
+	id S1751686Ab2HPDcT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Aug 2012 23:32:19 -0400
+In-Reply-To: <1345087808.1682.833.camel@rui.sh.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "R, Durgadoss" <durgadoss.r@intel.com>
+To: "Zhang, Rui" <rui.zhang@intel.com>
 Cc: "lenb@kernel.org" <lenb@kernel.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>, "amit.kachhap@linaro.org" <amit.kachhap@linaro.org>, "wni@nvidia.com" <wni@nvidia.com>
 
-On =E4=B8=89, 2012-08-15 at 03:17 -0600, R, Durgadoss wrote:
-> Hi Rui,
->=20
-> > > > > +static void update_bind_info(struct thermal_cooling_device *=
-cdev)
-> > > > > +{
-> > > > > +	int i, ret;
-> > > > > +	struct thermal_zone_params *tzp;
-> > > > > +	struct thermal_zone_device *pos =3D NULL;
-> > > > > +
-> > > > > +	mutex_lock(&thermal_list_lock);
-> > > > > +
-> > > > > +	list_for_each_entry(pos, &thermal_tz_list, node) {
-> > > > > +		if (!pos->tzp && !pos->ops->bind)
-> > > > > +			continue;
-> > > > > +
-> > > > > +		if (!pos->tzp && pos->ops->bind) {
-> > > > > +			ret =3D pos->ops->bind(pos, cdev);
-> > > > > +			if (ret)
-> > > > > +				print_bind_err_msg(pos, cdev, ret);
-> > > > > +		}
-> > > > > +
-> > > > > +		tzp =3D pos->tzp;
-> > > > > +		for (i =3D 0; i < tzp->num_cdevs; i++) {
-> > > > > +			if (!strcmp(tzp->cdevs_name[i], cdev->type)) {
-> > > > > +				__bind(pos, tzp->trip_mask[i], cdev);
-> > > > > +				break;
-> > > > > +			}
-> > > > > +		}
-> > > > > +	}
-> > > > > +	mutex_unlock(&thermal_list_lock);
-> > > > > +}
-> > > >
-> > > > I still do not understand why we need this kind of bind.
-> > > > Say, the platform thermal driver knows the platform data, i.e. =
-it knows
-> > > > which cooling devices should be bound to which trip points.
-> > > > why we can not move this kind of logic to the .bind() callback,=
- offered
-> > > > by the platform thermal driver?
-> > > > say, in .bind() callback,
-> > > > the platform thermal driver has the pointer of the platform dat=
-a, right?
-> > > > the .cdev parameter can be used to find the cooling device name=
-,
-> > > > and we can make the comparison there. instead of introducing ne=
-w binding
-> > > > functions in the generic thermal layer.
-> > >
-> > > For once, I got little confused between the generic platform ther=
-mal sensor
-> > > drivers (the chip drivers) and the platform level driver (not spe=
-cific for chip,
-> > > but for a platform). So, yes we can put this in the platform leve=
-l driver.
-> > >
-> > Hmm,
-> > I'm not clear about the difference between these two drivers.
-> > what is supposed to be done in the platform thermal sensor drivers =
-and
-> > what is supposed to be done in the platform level driver?
->=20
-> A sensor driver can be a generic chip driver like emc1403 (this is th=
-e one
-> that I have worked on..) or coretemp (the CPU DTS driver for x86). Th=
-ey sit
-> in different sub systems (these two in hwmon). We might not be allowe=
-d to
-> add any thermal framework specific code in these drivers. The same dr=
-iver
-> works on all platforms.
-
-does the sensor know anything about the "policy"?
-Say, does it have any trip points? does it know which device can be
-throttled to cool itself?
-I think the answer is "no", right?
-
->=20
-> A platform level thermal driver knows information about the thermal s=
-ensors,
-> and their zones on the platform; and is specific to the platform.
-> For x86, this will be in drivers/x86/platform/ whereas might be in so=
-me other
-> place for other architectures. An example is intel_mid_thermal.c whic=
-h sits
-> in drivers/x86/platform. We can add our thermal framework specific co=
-de
-> to this driver.
->=20
-but I think intel_mide_thermal driver is also a platform thermal sensor
-driver at the same time.
-
-> >=20
-> > At least for now, all the thermal drivers are both thermal sensor d=
-river
-> > and platform level driver, right?
-> =20
-> Not all the times, although there are some instances where both are s=
-ame.
-> We use coretemp.c and intel_mid_thermal.c (which are different), for =
-the
-> x86 mid platforms.
->=20
-so you want to use coretemp.c as a temperature sensor, and then bind
-your own cooling devices to it in your platform level thermal driver?
-
-thanks,
-rui
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SGkgUnVpLA0KDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogWmhhbmcs
+IFJ1aQ0KPiBTZW50OiBUaHVyc2RheSwgQXVndXN0IDE2LCAyMDEyIDk6MDAgQU0NCj4gVG86IFIs
+IER1cmdhZG9zcw0KPiBDYzogbGVuYkBrZXJuZWwub3JnOyByandAc2lzay5wbDsgbGludXgtYWNw
+aUB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LQ0KPiBwbUB2Z2VyLmtlcm5lbC5vcmc7IGVkdWFyZG8u
+dmFsZW50aW5AdGkuY29tOyBhbWl0LmthY2hoYXBAbGluYXJvLm9yZzsNCj4gd25pQG52aWRpYS5j
+b20NCj4gU3ViamVjdDogUkU6IFtQQVRDSCAwNy8xM10gVGhlcm1hbDogVXBkYXRlIGJpbmRpbmcg
+bG9naWMgYmFzZWQgb24gcGxhdGZvcm0NCj4gZGF0YQ0KPiANCj4gT24g5LiJLCAyMDEyLTA4LTE1
+IGF0IDAzOjE3IC0wNjAwLCBSLCBEdXJnYWRvc3Mgd3JvdGU6DQo+ID4gSGkgUnVpLA0KPiA+DQo+
+ID4gPiA+ID4gPiArc3RhdGljIHZvaWQgdXBkYXRlX2JpbmRfaW5mbyhzdHJ1Y3QgdGhlcm1hbF9j
+b29saW5nX2RldmljZQ0KPiAqY2RldikNCj4gPiA+ID4gPiA+ICt7DQo+ID4gPiA+ID4gPiArCWlu
+dCBpLCByZXQ7DQo+ID4gPiA+ID4gPiArCXN0cnVjdCB0aGVybWFsX3pvbmVfcGFyYW1zICp0enA7
+DQo+ID4gPiA+ID4gPiArCXN0cnVjdCB0aGVybWFsX3pvbmVfZGV2aWNlICpwb3MgPSBOVUxMOw0K
+PiA+ID4gPiA+ID4gKw0KPiA+ID4gPiA+ID4gKwltdXRleF9sb2NrKCZ0aGVybWFsX2xpc3RfbG9j
+ayk7DQo+ID4gPiA+ID4gPiArDQo+ID4gPiA+ID4gPiArCWxpc3RfZm9yX2VhY2hfZW50cnkocG9z
+LCAmdGhlcm1hbF90el9saXN0LCBub2RlKSB7DQo+ID4gPiA+ID4gPiArCQlpZiAoIXBvcy0+dHpw
+ICYmICFwb3MtPm9wcy0+YmluZCkNCj4gPiA+ID4gPiA+ICsJCQljb250aW51ZTsNCj4gPiA+ID4g
+PiA+ICsNCj4gPiA+ID4gPiA+ICsJCWlmICghcG9zLT50enAgJiYgcG9zLT5vcHMtPmJpbmQpIHsN
+Cj4gPiA+ID4gPiA+ICsJCQlyZXQgPSBwb3MtPm9wcy0+YmluZChwb3MsIGNkZXYpOw0KPiA+ID4g
+PiA+ID4gKwkJCWlmIChyZXQpDQo+ID4gPiA+ID4gPiArCQkJCXByaW50X2JpbmRfZXJyX21zZyhw
+b3MsIGNkZXYsIHJldCk7DQo+ID4gPiA+ID4gPiArCQl9DQo+ID4gPiA+ID4gPiArDQo+ID4gPiA+
+ID4gPiArCQl0enAgPSBwb3MtPnR6cDsNCj4gPiA+ID4gPiA+ICsJCWZvciAoaSA9IDA7IGkgPCB0
+enAtPm51bV9jZGV2czsgaSsrKSB7DQo+ID4gPiA+ID4gPiArCQkJaWYgKCFzdHJjbXAodHpwLT5j
+ZGV2c19uYW1lW2ldLCBjZGV2LT50eXBlKSkNCj4gew0KPiA+ID4gPiA+ID4gKwkJCQlfX2JpbmQo
+cG9zLCB0enAtPnRyaXBfbWFza1tpXSwgY2Rldik7DQo+ID4gPiA+ID4gPiArCQkJCWJyZWFrOw0K
+PiA+ID4gPiA+ID4gKwkJCX0NCj4gPiA+ID4gPiA+ICsJCX0NCj4gPiA+ID4gPiA+ICsJfQ0KPiA+
+ID4gPiA+ID4gKwltdXRleF91bmxvY2soJnRoZXJtYWxfbGlzdF9sb2NrKTsNCj4gPiA+ID4gPiA+
+ICt9DQo+ID4gPiA+ID4NCj4gPiA+ID4gPiBJIHN0aWxsIGRvIG5vdCB1bmRlcnN0YW5kIHdoeSB3
+ZSBuZWVkIHRoaXMga2luZCBvZiBiaW5kLg0KPiA+ID4gPiA+IFNheSwgdGhlIHBsYXRmb3JtIHRo
+ZXJtYWwgZHJpdmVyIGtub3dzIHRoZSBwbGF0Zm9ybSBkYXRhLCBpLmUuIGl0DQo+IGtub3dzDQo+
+ID4gPiA+ID4gd2hpY2ggY29vbGluZyBkZXZpY2VzIHNob3VsZCBiZSBib3VuZCB0byB3aGljaCB0
+cmlwIHBvaW50cy4NCj4gPiA+ID4gPiB3aHkgd2UgY2FuIG5vdCBtb3ZlIHRoaXMga2luZCBvZiBs
+b2dpYyB0byB0aGUgLmJpbmQoKSBjYWxsYmFjaywgb2ZmZXJlZA0KPiA+ID4gPiA+IGJ5IHRoZSBw
+bGF0Zm9ybSB0aGVybWFsIGRyaXZlcj8NCj4gPiA+ID4gPiBzYXksIGluIC5iaW5kKCkgY2FsbGJh
+Y2ssDQo+ID4gPiA+ID4gdGhlIHBsYXRmb3JtIHRoZXJtYWwgZHJpdmVyIGhhcyB0aGUgcG9pbnRl
+ciBvZiB0aGUgcGxhdGZvcm0gZGF0YSwNCj4gcmlnaHQ/DQo+ID4gPiA+ID4gdGhlIC5jZGV2IHBh
+cmFtZXRlciBjYW4gYmUgdXNlZCB0byBmaW5kIHRoZSBjb29saW5nIGRldmljZSBuYW1lLA0KPiA+
+ID4gPiA+IGFuZCB3ZSBjYW4gbWFrZSB0aGUgY29tcGFyaXNvbiB0aGVyZS4gaW5zdGVhZCBvZiBp
+bnRyb2R1Y2luZyBuZXcNCj4gYmluZGluZw0KPiA+ID4gPiA+IGZ1bmN0aW9ucyBpbiB0aGUgZ2Vu
+ZXJpYyB0aGVybWFsIGxheWVyLg0KPiA+ID4gPg0KPiA+ID4gPiBGb3Igb25jZSwgSSBnb3QgbGl0
+dGxlIGNvbmZ1c2VkIGJldHdlZW4gdGhlIGdlbmVyaWMgcGxhdGZvcm0gdGhlcm1hbA0KPiBzZW5z
+b3INCj4gPiA+ID4gZHJpdmVycyAodGhlIGNoaXAgZHJpdmVycykgYW5kIHRoZSBwbGF0Zm9ybSBs
+ZXZlbCBkcml2ZXIgKG5vdCBzcGVjaWZpYyBmb3INCj4gY2hpcCwNCj4gPiA+ID4gYnV0IGZvciBh
+IHBsYXRmb3JtKS4gU28sIHllcyB3ZSBjYW4gcHV0IHRoaXMgaW4gdGhlIHBsYXRmb3JtIGxldmVs
+IGRyaXZlci4NCj4gPiA+ID4NCj4gPiA+IEhtbSwNCj4gPiA+IEknbSBub3QgY2xlYXIgYWJvdXQg
+dGhlIGRpZmZlcmVuY2UgYmV0d2VlbiB0aGVzZSB0d28gZHJpdmVycy4NCj4gPiA+IHdoYXQgaXMg
+c3VwcG9zZWQgdG8gYmUgZG9uZSBpbiB0aGUgcGxhdGZvcm0gdGhlcm1hbCBzZW5zb3IgZHJpdmVy
+cyBhbmQNCj4gPiA+IHdoYXQgaXMgc3VwcG9zZWQgdG8gYmUgZG9uZSBpbiB0aGUgcGxhdGZvcm0g
+bGV2ZWwgZHJpdmVyPw0KPiA+DQo+ID4gQSBzZW5zb3IgZHJpdmVyIGNhbiBiZSBhIGdlbmVyaWMg
+Y2hpcCBkcml2ZXIgbGlrZSBlbWMxNDAzICh0aGlzIGlzIHRoZSBvbmUNCj4gPiB0aGF0IEkgaGF2
+ZSB3b3JrZWQgb24uLikgb3IgY29yZXRlbXAgKHRoZSBDUFUgRFRTIGRyaXZlciBmb3IgeDg2KS4g
+VGhleSBzaXQNCj4gPiBpbiBkaWZmZXJlbnQgc3ViIHN5c3RlbXMgKHRoZXNlIHR3byBpbiBod21v
+bikuIFdlIG1pZ2h0IG5vdCBiZSBhbGxvd2VkDQo+IHRvDQo+ID4gYWRkIGFueSB0aGVybWFsIGZy
+YW1ld29yayBzcGVjaWZpYyBjb2RlIGluIHRoZXNlIGRyaXZlcnMuIFRoZSBzYW1lIGRyaXZlcg0K
+PiA+IHdvcmtzIG9uIGFsbCBwbGF0Zm9ybXMuDQo+IA0KPiBkb2VzIHRoZSBzZW5zb3Iga25vdyBh
+bnl0aGluZyBhYm91dCB0aGUgInBvbGljeSI/DQo+IFNheSwgZG9lcyBpdCBoYXZlIGFueSB0cmlw
+IHBvaW50cz8gZG9lcyBpdCBrbm93IHdoaWNoIGRldmljZSBjYW4gYmUNCj4gdGhyb3R0bGVkIHRv
+IGNvb2wgaXRzZWxmPw0KPiBJIHRoaW5rIHRoZSBhbnN3ZXIgaXMgIm5vIiwgcmlnaHQ/DQoNClll
+cy4gWW91IGFyZSByaWdodCA6LSkNClRoZSBhbnN3ZXIgaXMgJ05vJy4NCg0KPiA+DQo+ID4gQSBw
+bGF0Zm9ybSBsZXZlbCB0aGVybWFsIGRyaXZlciBrbm93cyBpbmZvcm1hdGlvbiBhYm91dCB0aGUg
+dGhlcm1hbA0KPiBzZW5zb3JzLA0KPiA+IGFuZCB0aGVpciB6b25lcyBvbiB0aGUgcGxhdGZvcm07
+IGFuZCBpcyBzcGVjaWZpYyB0byB0aGUgcGxhdGZvcm0uDQo+ID4gRm9yIHg4NiwgdGhpcyB3aWxs
+IGJlIGluIGRyaXZlcnMveDg2L3BsYXRmb3JtLyB3aGVyZWFzIG1pZ2h0IGJlIGluIHNvbWUNCj4g
+b3RoZXINCj4gPiBwbGFjZSBmb3Igb3RoZXIgYXJjaGl0ZWN0dXJlcy4gQW4gZXhhbXBsZSBpcyBp
+bnRlbF9taWRfdGhlcm1hbC5jIHdoaWNoIHNpdHMNCj4gPiBpbiBkcml2ZXJzL3g4Ni9wbGF0Zm9y
+bS4gV2UgY2FuIGFkZCBvdXIgdGhlcm1hbCBmcmFtZXdvcmsgc3BlY2lmaWMgY29kZQ0KPiA+IHRv
+IHRoaXMgZHJpdmVyLg0KPiA+DQo+IGJ1dCBJIHRoaW5rIGludGVsX21pZGVfdGhlcm1hbCBkcml2
+ZXIgaXMgYWxzbyBhIHBsYXRmb3JtIHRoZXJtYWwgc2Vuc29yDQo+IGRyaXZlciBhdCB0aGUgc2Ft
+ZSB0aW1lLg0KDQpZZXMgdG9kYXkgaXQgaXMgYm90aC4uDQoNCj4gPiA+DQo+ID4gPiBBdCBsZWFz
+dCBmb3Igbm93LCBhbGwgdGhlIHRoZXJtYWwgZHJpdmVycyBhcmUgYm90aCB0aGVybWFsIHNlbnNv
+ciBkcml2ZXINCj4gPiA+IGFuZCBwbGF0Zm9ybSBsZXZlbCBkcml2ZXIsIHJpZ2h0Pw0KPiA+DQo+
+ID4gTm90IGFsbCB0aGUgdGltZXMsIGFsdGhvdWdoIHRoZXJlIGFyZSBzb21lIGluc3RhbmNlcyB3
+aGVyZSBib3RoIGFyZSBzYW1lLg0KPiA+IFdlIHVzZSBjb3JldGVtcC5jIGFuZCBpbnRlbF9taWRf
+dGhlcm1hbC5jICh3aGljaCBhcmUgZGlmZmVyZW50KSwgZm9yIHRoZQ0KPiA+IHg4NiBtaWQgcGxh
+dGZvcm1zLg0KPiA+DQo+IHNvIHlvdSB3YW50IHRvIHVzZSBjb3JldGVtcC5jIGFzIGEgdGVtcGVy
+YXR1cmUgc2Vuc29yLCBhbmQgdGhlbiBiaW5kDQo+IHlvdXIgb3duIGNvb2xpbmcgZGV2aWNlcyB0
+byBpdCBpbiB5b3VyIHBsYXRmb3JtIGxldmVsIHRoZXJtYWwgZHJpdmVyPw0KDQpZZXMsIGNvcmV0
+ZW1wIGlzIG9uZSBmaW5lIGV4YW1wbGUuDQpBdCBsZWFzdCBJIHdvdWxkIGxpa2UgdG8gZ2V0IHRo
+ZSBzYW1lIHRoaW5nIGRvbmUgZm9yIGVtYzE0MDMuYw0KKGFuZCBmZXcgaHdtb24gZHJpdmVycyku
+Lg0KDQpUaGFua3MsDQpEdXJnYQ0K
