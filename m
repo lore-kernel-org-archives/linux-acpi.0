@@ -1,201 +1,407 @@
-From: Thomas Abraham <thomas.abraham@linaro.org>
-Subject: Re: [PATCH v6 5/6] ARM: exynos: add thermal sensor driver platform
- data support
-Date: Fri, 17 Aug 2012 09:25:24 +0530
-Message-ID: <CAJuYYwQiEHgmn8iJfuENDTAhVQof8M29WHGYePE3a_x3eAZt2Q@mail.gmail.com>
-References: <1345117305-8299-1-git-send-email-amit.kachhap@linaro.org>
-	<1345117305-8299-6-git-send-email-amit.kachhap@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:64461 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030602Ab2HQDz0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 16 Aug 2012 23:55:26 -0400
-Received: by lagy9 with SMTP id y9so1872482lag.19
-        for <linux-acpi@vger.kernel.org>; Thu, 16 Aug 2012 20:55:25 -0700 (PDT)
-In-Reply-To: <1345117305-8299-6-git-send-email-amit.kachhap@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH V2] ACPI: Allow acpi binding with usb3.0 hub
+Date: Fri, 17 Aug 2012 14:44:09 +0800
+Message-ID: <1345185849-3041-1-git-send-email-tianyu.lan@intel.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Amit Daniel Kachhap <amit.kachhap@linaro.org>
-Cc: linux-pm@lists.linux-foundation.org, Andrew Morton <akpm@linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, SangWook Ju <sw.ju@samsung.com>, Durgadoss <durgadoss.r@intel.com>, Jean Delvare <khali@linux-fr.org>, jonghwa lee <jonghwa3.lee@samsung.com>, Kyungmin Park <kmpark@infradead.org>, Kukjin Kim <kgene.kim@samsung.com>
 
-On 16 August 2012 17:11, Amit Daniel Kachhap <amit.kachhap@linaro.org> wrote:
-> Add necessary default platform data support needed for TMU driver.  The
-> supplied dt/non-dt values are tested for origen exynos4210 and smdk exynos5250
-> platforms and only compile tested for exynos4412.
->
-> Signed-off-by: Amit Daniel Kachhap <amit.kachhap@linaro.org>
-> Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
-> Cc: SangWook Ju <sw.ju@samsung.com>
-> Cc: Durgadoss <durgadoss.r@intel.com>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: Jean Delvare <khali@linux-fr.org>
-> Cc: jonghwa lee <jonghwa3.lee@samsung.com>
-> Cc: Kyungmin Park <kmpark@infradead.org>
-> Cc: Kukjin Kim <kgene.kim@samsung.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> Signed-off-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
-> ---
->  drivers/thermal/exynos_thermal.c |  111 +++++++++++++++++++++++++++++++++++++-
->  1 files changed, 110 insertions(+), 1 deletions(-)
+usb port's position and connectability can't be identified on some boards
+via usb hub's register. ACPI _UPC and _PLD can help to resolve such issue
+and so it is necessary to bind usb with acpi. This patch is to allow acpi
+binding with usb3.0 hub.
 
-Reviewed-by: Thomas Abraham <thomas.abraham@linaro.org>
+Current acpi only can bind one struct device to one acpi device node.
+This can not work with usb3.0 hub. Because the usb3.0 hub has two logical
+devices. Each works for usb2.0 and usb3.0 devices. In the liux usb subsystem,
+those two logical hubs are treated as two seperate devices that have two struct
+devices. But in the ACPI DSDT, these two logical hubs share one acpi device
+node. So there is a requirement to bind multi struct devices to one acpi
+node. This patch is to resolve such problem.
 
-Few minor comments inline below.
+Following is the acpi device nodes' description under xhci hcd.
+Device (XHC)
+            Device (RHUB)
+                Device (HSP1)
+                Device (HSP2)
+                Device (HSP3)
+                Device (HSP4)
+                Device (SSP1)
+                Device (SSP2)
+                Device (SSP3)
+                Device (SSP4)
 
->
-> diff --git a/drivers/thermal/exynos_thermal.c b/drivers/thermal/exynos_thermal.c
-> index e79cdc9..03a99e4 100644
-> --- a/drivers/thermal/exynos_thermal.c
-> +++ b/drivers/thermal/exynos_thermal.c
-> @@ -723,14 +723,121 @@ static irqreturn_t exynos_tmu_irq(int irq, void *id)
->  static struct thermal_sensor_conf exynos_sensor_conf = {
->         .name                   = "exynos-therm",
->         .read_temperature       = (int (*)(void *))exynos_tmu_read,
-> +};
-> +
-> +#if defined(CONFIG_CPU_EXYNOS4210)
-> +static struct exynos_tmu_platform_data const exynos4210_default_tmu_data = {
-> +       .threshold = 80,
-> +       .trigger_levels[0] = 5,
-> +       .trigger_levels[1] = 20,
-> +       .trigger_levels[2] = 30,
-> +       .trigger_level0_en = 1,
-> +       .trigger_level1_en = 1,
-> +       .trigger_level2_en = 1,
-> +       .trigger_level3_en = 0,
-> +       .gain = 15,
-> +       .reference_voltage = 7,
-> +       .cal_type = TYPE_ONE_POINT_TRIMMING,
-> +       .freq_tab[0] = {
-> +               .freq_clip_max = 800 * 1000,
-> +               .temp_level = 85,
-> +       },
-> +       .freq_tab[1] = {
-> +               .freq_clip_max = 200 * 1000,
-> +               .temp_level = 100,
-> +       },
-> +       .freq_tab_count = 2,
-> +       .type = SOC_ARCH_EXYNOS4210,
-> +};
-> +#define EXYNOS4210_TMU_DRV_DATA (&exynos4210_default_tmu_data)
-> +#else
-> +#define EXYNOS4210_TMU_DRV_DATA (NULL)
-> +#endif
-> +
-> +#if defined(CONFIG_SOC_EXYNOS5250) || defined(CONFIG_SOC_EXYNOS4412)
-> +static struct exynos_tmu_platform_data const exynos_default_tmu_data = {
-> +       .trigger_levels[0] = 85,
-> +       .trigger_levels[1] = 103,
-> +       .trigger_levels[2] = 110,
-> +       .trigger_level0_en = 1,
-> +       .trigger_level1_en = 1,
-> +       .trigger_level2_en = 1,
-> +       .trigger_level3_en = 0,
-> +       .gain = 8,
-> +       .reference_voltage = 16,
-> +       .noise_cancel_mode = 4,
-> +       .cal_type = TYPE_ONE_POINT_TRIMMING,
-> +       .efuse_value = 55,
-> +       .freq_tab[0] = {
-> +               .freq_clip_max = 800 * 1000,
-> +               .temp_level = 85,
-> +       },
-> +       .freq_tab[1] = {
-> +               .freq_clip_max = 200 * 1000,
-> +               .temp_level = 103,
-> +       },
-> +       .freq_tab_count = 2,
-> +       .type = SOC_ARCH_EXYNOS,
-> +};
-> +#define EXYNOS_TMU_DRV_DATA (&exynos_default_tmu_data)
-> +#else
-> +#define EXYNOS_TMU_DRV_DATA (NULL)
-> +#endif
-> +
-> +#ifdef CONFIG_OF
-> +static const struct of_device_id exynos_tmu_match[] = {
-> +       {
-> +               .compatible = "samsung,exynos4210-tmu",
-> +               .data = (void *)EXYNOS4210_TMU_DRV_DATA,
-> +       },
-> +       {
+Topology in the linux
+	device XHC
+	   usb2.0 logical hub    usb3.0 logical hub
+		HSP1			SSP1
+		HSP2			SSP2
+		HSP3			SSP3
+		HSP4			SSP4
 
-This can be  }, {
+This patch also modifies the output of /proc/acpi/wakeup. One acpi node
+can be associated with multi devices. Just like following.
 
-> +               .compatible = "samsung,exynos5250-tmu",
-> +               .data = (void *)EXYNOS_TMU_DRV_DATA,
-> +       },
-> +       {},
-> +};
-> +MODULE_DEVICE_TABLE(of, exynos_tmu_match);
-> +#else
-> +#define  exynos_tmu_match NULL
-> +#endif
-> +
-> +static struct platform_device_id exynos_tmu_driver_ids[] = {
-> +       {
-> +               .name           = "exynos4210-tmu",
-> +               .driver_data    = (kernel_ulong_t)EXYNOS4210_TMU_DRV_DATA,
-> +       },
-> +       {
-> +               .name           = "exynos5250-tmu",
-> +               .driver_data    = (kernel_ulong_t)EXYNOS_TMU_DRV_DATA,
-> +       },
+XHC		S4	*enabled	pci:0000:00:14.0
+RHUB	S0	disabled	usb:usb1
+			disabled	usb:usb2
 
-Since Exynos5250 platforms are dt based, the above entry could be left out.
+Signed-off-by: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+v2: Add lock to protect physical_node related data in bind() and unbind().
+Add an example here of the syntax change to the contents of /proc/acpi/wakeup. Replace
+link file name physical_node0 with physical_node when physical_node_id is 0.
+---
+ drivers/acpi/glue.c        |  135 ++++++++++++++++++++++++++++----------------
+ drivers/acpi/proc.c        |   57 ++++++++++++-------
+ drivers/acpi/scan.c        |    2 +
+ drivers/pnp/pnpacpi/core.c |    7 +--
+ include/acpi/acpi_bus.h    |   15 ++++-
+ 5 files changed, 139 insertions(+), 77 deletions(-)
 
-> +       { },
-> +};
-> +MODULE_DEVICE_TABLE(platform, exynos4_tmu_driver_ids);
-> +
-> +static inline struct  exynos_tmu_platform_data *exynos_get_driver_data(
-> +                       struct platform_device *pdev)
-> +{
-> +#ifdef CONFIG_OF
-> +       if (pdev->dev.of_node) {
-> +               const struct of_device_id *match;
-> +               match = of_match_node(exynos_tmu_match, pdev->dev.of_node);
-> +               if (!match)
-> +                       return NULL;
-> +               return (struct exynos_tmu_platform_data *) match->data;
-> +       }
-> +#endif
-> +       return (struct exynos_tmu_platform_data *)
-> +                       platform_get_device_id(pdev)->driver_data;
->  }
-> -;
->  static int __devinit exynos_tmu_probe(struct platform_device *pdev)
->  {
->         struct exynos_tmu_data *data;
->         struct exynos_tmu_platform_data *pdata = pdev->dev.platform_data;
->         int ret, i;
->
-> +       if (!pdata)
-> +               pdata = exynos_get_driver_data(pdev);
-> +
->         if (!pdata) {
->                 dev_err(&pdev->dev, "No platform init data supplied.\n");
->                 return -ENODEV;
-> @@ -899,9 +1006,11 @@ static struct platform_driver exynos_tmu_driver = {
->                 .name   = "exynos-tmu",
->                 .owner  = THIS_MODULE,
->                 .pm     = EXYNOS_TMU_PM,
-> +               .of_match_table = exynos_tmu_match,
->         },
->         .probe = exynos_tmu_probe,
->         .remove = __devexit_p(exynos_tmu_remove),
-> +       .id_table = exynos_tmu_driver_ids,
->  };
->
->  module_platform_driver(exynos_tmu_driver);
-> --
-> 1.7.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
+index 243ee85..d1a2d74 100644
+--- a/drivers/acpi/glue.c
++++ b/drivers/acpi/glue.c
+@@ -25,6 +25,8 @@
+ static LIST_HEAD(bus_type_list);
+ static DECLARE_RWSEM(bus_type_sem);
+ 
++#define PHYSICAL_NODE_STRING "physical_node"
++
+ int register_acpi_bus_type(struct acpi_bus_type *type)
+ {
+ 	if (acpi_disabled)
+@@ -124,84 +126,119 @@ acpi_handle acpi_get_child(acpi_handle parent, u64 address)
+ 
+ EXPORT_SYMBOL(acpi_get_child);
+ 
+-/* Link ACPI devices with physical devices */
+-static void acpi_glue_data_handler(acpi_handle handle,
+-				   void *context)
+-{
+-	/* we provide an empty handler */
+-}
+-
+-/* Note: a success call will increase reference count by one */
+-struct device *acpi_get_physical_device(acpi_handle handle)
+-{
+-	acpi_status status;
+-	struct device *dev;
+-
+-	status = acpi_get_data(handle, acpi_glue_data_handler, (void **)&dev);
+-	if (ACPI_SUCCESS(status))
+-		return get_device(dev);
+-	return NULL;
+-}
+-
+-EXPORT_SYMBOL(acpi_get_physical_device);
+-
+ static int acpi_bind_one(struct device *dev, acpi_handle handle)
+ {
+ 	struct acpi_device *acpi_dev;
+ 	acpi_status status;
++	struct acpi_device_physical_node *physical_node;
++	char physical_node_name[sizeof(PHYSICAL_NODE_STRING) + 2];
++	int retval = -EINVAL;
+ 
+ 	if (dev->archdata.acpi_handle) {
+ 		dev_warn(dev, "Drivers changed 'acpi_handle'\n");
+ 		return -EINVAL;
+ 	}
++
+ 	get_device(dev);
+-	status = acpi_attach_data(handle, acpi_glue_data_handler, dev);
+-	if (ACPI_FAILURE(status)) {
+-		put_device(dev);
+-		return -EINVAL;
++	status = acpi_bus_get_device(handle, &acpi_dev);
++	if (ACPI_FAILURE(status))
++		goto err;
++
++	physical_node = kzalloc(sizeof(struct acpi_device_physical_node),
++		GFP_KERNEL);
++	if (!physical_node) {
++		retval = -ENOMEM;
++		goto err;
+ 	}
+-	dev->archdata.acpi_handle = handle;
+ 
+-	status = acpi_bus_get_device(handle, &acpi_dev);
+-	if (!ACPI_FAILURE(status)) {
+-		int ret;
+-
+-		ret = sysfs_create_link(&dev->kobj, &acpi_dev->dev.kobj,
+-				"firmware_node");
+-		ret = sysfs_create_link(&acpi_dev->dev.kobj, &dev->kobj,
+-				"physical_node");
+-		if (acpi_dev->wakeup.flags.valid)
+-			device_set_wakeup_capable(dev, true);
++	mutex_lock(&acpi_dev->physical_node_lock);
++	/* allocate physical node id according to physical_node_id_bitmap */
++	physical_node->node_id =
++		find_first_zero_bit(acpi_dev->physical_node_id_bitmap,
++		ACPI_MAX_PHYSICAL_NODE);
++	if (physical_node->node_id >= ACPI_MAX_PHYSICAL_NODE) {
++		retval = -ENOSPC;
++		mutex_unlock(&acpi_dev->physical_node_lock);
++		goto err;
+ 	}
+ 
++	set_bit(physical_node->node_id, acpi_dev->physical_node_id_bitmap);
++	physical_node->dev = dev;
++	list_add_tail(&physical_node->node, &acpi_dev->physical_node_list);
++	acpi_dev->physical_node_count++;
++	mutex_unlock(&acpi_dev->physical_node_lock);
++
++	dev->archdata.acpi_handle = handle;
++
++	if (!physical_node->node_id)
++		strcpy(physical_node_name, PHYSICAL_NODE_STRING);
++	else
++		sprintf(physical_node_name,
++			"physical_node%d", physical_node->node_id);
++	retval = sysfs_create_link(&acpi_dev->dev.kobj, &dev->kobj,
++			physical_node_name);
++	retval = sysfs_create_link(&dev->kobj, &acpi_dev->dev.kobj,
++		"firmware_node");
++
++	if (acpi_dev->wakeup.flags.valid)
++		device_set_wakeup_capable(dev, true);
++
+ 	return 0;
++
++ err:
++	put_device(dev);
++	return retval;
+ }
+ 
+ static int acpi_unbind_one(struct device *dev)
+ {
++	struct acpi_device_physical_node *entry;
++	struct acpi_device *acpi_dev;
++	acpi_status status;
++	struct list_head *node, *next;
++
+ 	if (!dev->archdata.acpi_handle)
+ 		return 0;
+-	if (dev == acpi_get_physical_device(dev->archdata.acpi_handle)) {
+-		struct acpi_device *acpi_dev;
+ 
+-		/* acpi_get_physical_device increase refcnt by one */
+-		put_device(dev);
++	status = acpi_bus_get_device(dev->archdata.acpi_handle,
++		&acpi_dev);
++	if (ACPI_FAILURE(status))
++		goto err;
+ 
+-		if (!acpi_bus_get_device(dev->archdata.acpi_handle,
+-					&acpi_dev)) {
+-			sysfs_remove_link(&dev->kobj, "firmware_node");
+-			sysfs_remove_link(&acpi_dev->dev.kobj, "physical_node");
+-		}
++	mutex_lock(&acpi_dev->physical_node_lock);
++	list_for_each_safe(node, next, &acpi_dev->physical_node_list) {
++		char physical_node_name[sizeof(PHYSICAL_NODE_STRING) + 2];
++
++		entry = list_entry(node, struct acpi_device_physical_node,
++			node);
++		if (entry->dev != dev)
++			continue;
++
++		list_del(node);
++		clear_bit(entry->node_id, acpi_dev->physical_node_id_bitmap);
+ 
+-		acpi_detach_data(dev->archdata.acpi_handle,
+-				 acpi_glue_data_handler);
++		acpi_dev->physical_node_count--;
++
++		if (!entry->node_id)
++			strcpy(physical_node_name, PHYSICAL_NODE_STRING);
++		else
++			sprintf(physical_node_name,
++				"physical_node%d", entry->node_id);
++
++		sysfs_remove_link(&acpi_dev->dev.kobj, physical_node_name);
++		sysfs_remove_link(&dev->kobj, "firmware_node");
+ 		dev->archdata.acpi_handle = NULL;
+ 		/* acpi_bind_one increase refcnt by one */
+ 		put_device(dev);
+-	} else {
+-		dev_err(dev, "Oops, 'acpi_handle' corrupt\n");
++		kfree(entry);
+ 	}
++	mutex_unlock(&acpi_dev->physical_node_lock);
++
+ 	return 0;
++
++err:
++	dev_err(dev, "Oops, 'acpi_handle' corrupt\n");
++	return -EINVAL;
+ }
+ 
+ static int acpi_platform_notify(struct device *dev)
+diff --git a/drivers/acpi/proc.c b/drivers/acpi/proc.c
+index 251c7b62..e4c242f 100644
+--- a/drivers/acpi/proc.c
++++ b/drivers/acpi/proc.c
+@@ -302,26 +302,41 @@ acpi_system_wakeup_device_seq_show(struct seq_file *seq, void *offset)
+ 	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+ 		struct acpi_device *dev =
+ 		    container_of(node, struct acpi_device, wakeup_list);
+-		struct device *ldev;
++		struct acpi_device_physical_node *entry;
+ 
+ 		if (!dev->wakeup.flags.valid)
+ 			continue;
+ 
+-		ldev = acpi_get_physical_device(dev->handle);
+-		seq_printf(seq, "%s\t  S%d\t%c%-8s  ",
++		seq_printf(seq, "%s\t  S%d\t",
+ 			   dev->pnp.bus_id,
+-			   (u32) dev->wakeup.sleep_state,
+-			   dev->wakeup.flags.run_wake ? '*' : ' ',
+-			   (device_may_wakeup(&dev->dev)
+-			     || (ldev && device_may_wakeup(ldev))) ?
+-			       "enabled" : "disabled");
+-		if (ldev)
+-			seq_printf(seq, "%s:%s",
+-				   ldev->bus ? ldev->bus->name : "no-bus",
+-				   dev_name(ldev));
+-		seq_printf(seq, "\n");
+-		put_device(ldev);
+-
++			   (u32) dev->wakeup.sleep_state);
++
++		if (!dev->physical_node_count)
++			seq_printf(seq, "%c%-8s\n",
++				dev->wakeup.flags.run_wake ?
++				'*' : ' ', "disabled");
++		else {
++			struct device *ldev;
++			list_for_each_entry(entry, &dev->physical_node_list,
++					node) {
++				ldev = get_device(entry->dev);
++				if (!ldev)
++					continue;
++
++				if (&entry->node !=
++						dev->physical_node_list.next)
++					seq_printf(seq, "\t\t");
++
++				seq_printf(seq, "%c%-8s  %s:%s\n",
++					dev->wakeup.flags.run_wake ? '*' : ' ',
++					(device_may_wakeup(&dev->dev) ||
++					(ldev && device_may_wakeup(ldev))) ?
++					"enabled" : "disabled",
++					ldev->bus ? ldev->bus->name :
++					"no-bus", dev_name(ldev));
++				put_device(ldev);
++			}
++		}
+ 	}
+ 	mutex_unlock(&acpi_device_lock);
+ 	return 0;
+@@ -329,12 +344,14 @@ acpi_system_wakeup_device_seq_show(struct seq_file *seq, void *offset)
+ 
+ static void physical_device_enable_wakeup(struct acpi_device *adev)
+ {
+-	struct device *dev = acpi_get_physical_device(adev->handle);
++	struct acpi_device_physical_node *entry;
+ 
+-	if (dev && device_can_wakeup(dev)) {
+-		bool enable = !device_may_wakeup(dev);
+-		device_set_wakeup_enable(dev, enable);
+-	}
++	list_for_each_entry(entry,
++		&adev->physical_node_list, node)
++		if (entry->dev && device_can_wakeup(entry->dev)) {
++			bool enable = !device_may_wakeup(entry->dev);
++			device_set_wakeup_enable(entry->dev, enable);
++		}
+ }
+ 
+ static ssize_t
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index d1ecca2..d730a93 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -481,6 +481,8 @@ static int acpi_device_register(struct acpi_device *device)
+ 	INIT_LIST_HEAD(&device->children);
+ 	INIT_LIST_HEAD(&device->node);
+ 	INIT_LIST_HEAD(&device->wakeup_list);
++	INIT_LIST_HEAD(&device->physical_node_list);
++	mutex_init(&device->physical_node_lock);
+ 
+ 	new_bus_id = kzalloc(sizeof(struct acpi_device_bus_id), GFP_KERNEL);
+ 	if (!new_bus_id) {
+diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
+index 507a8e2..26b5d4b 100644
+--- a/drivers/pnp/pnpacpi/core.c
++++ b/drivers/pnp/pnpacpi/core.c
+@@ -321,14 +321,9 @@ static int __init acpi_pnp_match(struct device *dev, void *_pnp)
+ {
+ 	struct acpi_device *acpi = to_acpi_device(dev);
+ 	struct pnp_dev *pnp = _pnp;
+-	struct device *physical_device;
+-
+-	physical_device = acpi_get_physical_device(acpi->handle);
+-	if (physical_device)
+-		put_device(physical_device);
+ 
+ 	/* true means it matched */
+-	return !physical_device
++	return !acpi->physical_node_count
+ 	    && compare_pnp_id(pnp->id, acpi_device_hid(acpi));
+ }
+ 
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index bde976e..453596d 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -282,8 +282,16 @@ struct acpi_device_wakeup {
+ 	int prepare_count;
+ };
+ 
+-/* Device */
++struct acpi_device_physical_node {
++	u8 node_id;
++	struct list_head node;
++	struct device *dev;
++};
+ 
++/* set maximum of physical nodes to 32 for expansibility */
++#define ACPI_MAX_PHYSICAL_NODE	32
++
++/* Device */
+ struct acpi_device {
+ 	int device_type;
+ 	acpi_handle handle;		/* no handle for fixed hardware */
+@@ -304,6 +312,10 @@ struct acpi_device {
+ 	struct device dev;
+ 	struct acpi_bus_ops bus_ops;	/* workaround for different code path for hotplug */
+ 	enum acpi_bus_removal_type removal_type;	/* indicate for different removal type */
++	u8 physical_node_count;
++	struct list_head physical_node_list;
++	struct mutex physical_node_lock;
++	DECLARE_BITMAP(physical_node_id_bitmap, ACPI_MAX_PHYSICAL_NODE);
+ };
+ 
+ static inline void *acpi_driver_data(struct acpi_device *d)
+@@ -394,7 +406,6 @@ struct acpi_bus_type {
+ };
+ int register_acpi_bus_type(struct acpi_bus_type *);
+ int unregister_acpi_bus_type(struct acpi_bus_type *);
+-struct device *acpi_get_physical_device(acpi_handle);
+ 
+ struct acpi_pci_root {
+ 	struct list_head node;
+-- 
+1.7.9.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
