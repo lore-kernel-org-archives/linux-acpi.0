@@ -1,34 +1,34 @@
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: Re: [PATCH V4 08/13] Thermal: Rename
- thermal_zone_device.cooling_devices
-Date: Mon, 20 Aug 2012 18:47:24 +0300
-Message-ID: <20120820154724.GG9833@besouro>
+Subject: Re: [PATCH V4 07/13] Thermal: rename structure
+ thermal_cooling_device_instance to thermal_instance
+Date: Mon, 20 Aug 2012 18:47:38 +0300
+Message-ID: <20120820154738.GH9833@besouro>
 References: <1343292083-2047-1-git-send-email-rui.zhang@intel.com>
- <1343292083-2047-9-git-send-email-rui.zhang@intel.com>
+ <1343292083-2047-8-git-send-email-rui.zhang@intel.com>
 Reply-To: eduardo.valentin@ti.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from na3sys009aog127.obsmtp.com ([74.125.149.107]:47308 "EHLO
-	na3sys009aog127.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753915Ab2HTPrc (ORCPT
+Received: from na3sys009aog137.obsmtp.com ([74.125.149.18]:49703 "EHLO
+	na3sys009aog137.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752846Ab2HTPrq (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 20 Aug 2012 11:47:32 -0400
-Received: by wgbds11 with SMTP id ds11so5399525wgb.31
-        for <linux-acpi@vger.kernel.org>; Mon, 20 Aug 2012 08:47:29 -0700 (PDT)
+	Mon, 20 Aug 2012 11:47:46 -0400
+Received: by wibhq4 with SMTP id hq4so3381907wib.6
+        for <linux-acpi@vger.kernel.org>; Mon, 20 Aug 2012 08:47:43 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <1343292083-2047-9-git-send-email-rui.zhang@intel.com>
+In-Reply-To: <1343292083-2047-8-git-send-email-rui.zhang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Zhang Rui <rui.zhang@intel.com>
 Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, R Durgadoss <durgadoss.r@intel.com>, Eduardo Valentin <eduardo.valentin@ti.com>, Amit Kachhap <amit.kachhap@linaro.org>, Wei Ni <wni@nvidia.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 
-On Thu, Jul 26, 2012 at 04:41:18PM +0800, Zhang Rui wrote:
-> Rename thermal_zone_device.cooling_devices
-> to thermal_zone_device.thermal_instances
+On Thu, Jul 26, 2012 at 04:41:17PM +0800, Zhang Rui wrote:
+> This struct is used to describe the behavior for a thermal
+> cooling device on a certain trip point for a certain thremal zone.
 > 
-> thermal_zone_device.cooling_devices is not accurate
-> as this is a list for thermal instances, rather than cooling devices.
+> thermal_cooling_device_instance is not accurate, as a cooling device
+> can be used for more than one trip point in one thermal zone device.
 > 
 > Reviewed-by: Rafael J. Wysocki <rjw@sisk.pl>
 > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
@@ -37,108 +37,81 @@ Reviewed-by: Eduardo Valentin <eduardo.valentin@ti.com>
 
 > ---
 >  drivers/thermal/thermal_sys.c |   18 +++++++++---------
->  include/linux/thermal.h       |    4 ++--
->  2 files changed, 11 insertions(+), 11 deletions(-)
+>  1 file changed, 9 insertions(+), 9 deletions(-)
 > 
 > diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
-> index 3d931c8..112227e 100644
+> index f3156c1..3d931c8 100644
 > --- a/drivers/thermal/thermal_sys.c
 > +++ b/drivers/thermal/thermal_sys.c
-> @@ -745,7 +745,7 @@ static void thermal_zone_device_passive(struct thermal_zone_device *tz,
+> @@ -46,7 +46,7 @@ MODULE_LICENSE("GPL");
+>   * a certain cooling device on a certain trip point
+>   * in a certain thermal zone
+>   */
+> -struct thermal_cooling_device_instance {
+> +struct thermal_instance {
+>  	int id;
+>  	char name[THERMAL_NAME_LENGTH];
+>  	struct thermal_zone_device *tz;
+> @@ -430,10 +430,10 @@ static ssize_t
+>  thermal_cooling_device_trip_point_show(struct device *dev,
+>  				       struct device_attribute *attr, char *buf)
+>  {
+> -	struct thermal_cooling_device_instance *instance;
+> +	struct thermal_instance *instance;
 >  
->  		/* Heating up? */
->  		if (trend == THERMAL_TREND_RAISING) {
-> -			list_for_each_entry(instance, &tz->cooling_devices,
-> +			list_for_each_entry(instance, &tz->thermal_instances,
->  					    node) {
->  				if (instance->trip != trip)
->  					continue;
-> @@ -756,7 +756,7 @@ static void thermal_zone_device_passive(struct thermal_zone_device *tz,
->  					cdev->ops->set_cur_state(cdev, state);
->  			}
->  		} else if (trend == THERMAL_TREND_DROPPING) { /* Cooling off? */
-> -			list_for_each_entry(instance, &tz->cooling_devices,
-> +			list_for_each_entry(instance, &tz->thermal_instances,
->  					    node) {
->  				if (instance->trip != trip)
->  					continue;
-> @@ -777,7 +777,7 @@ static void thermal_zone_device_passive(struct thermal_zone_device *tz,
->  	 * and avoid thrashing around the passive trip point.  Note that we
->  	 * assume symmetry.
->  	 */
-> -	list_for_each_entry(instance, &tz->cooling_devices, node) {
-> +	list_for_each_entry(instance, &tz->thermal_instances, node) {
->  		if (instance->trip != trip)
->  			continue;
->  		cdev = instance->cdev;
-> @@ -873,13 +873,13 @@ int thermal_zone_bind_cooling_device(struct thermal_zone_device *tz,
->  		goto remove_symbol_link;
+>  	instance =
+> -	    container_of(attr, struct thermal_cooling_device_instance, attr);
+> +	    container_of(attr, struct thermal_instance, attr);
+>  
+>  	if (instance->trip == THERMAL_TRIPS_NONE)
+>  		return sprintf(buf, "-1\n");
+> @@ -716,7 +716,7 @@ static void thermal_zone_device_passive(struct thermal_zone_device *tz,
+>  					int temp, int trip_temp, int trip)
+>  {
+>  	enum thermal_trend trend;
+> -	struct thermal_cooling_device_instance *instance;
+> +	struct thermal_instance *instance;
+>  	struct thermal_cooling_device *cdev;
+>  	long state, max_state;
+>  
+> @@ -812,8 +812,8 @@ int thermal_zone_bind_cooling_device(struct thermal_zone_device *tz,
+>  				     struct thermal_cooling_device *cdev,
+>  				     unsigned long upper, unsigned long lower)
+>  {
+> -	struct thermal_cooling_device_instance *dev;
+> -	struct thermal_cooling_device_instance *pos;
+> +	struct thermal_instance *dev;
+> +	struct thermal_instance *pos;
+>  	struct thermal_zone_device *pos1;
+>  	struct thermal_cooling_device *pos2;
+>  	unsigned long max_state;
+> @@ -844,7 +844,7 @@ int thermal_zone_bind_cooling_device(struct thermal_zone_device *tz,
+>  		return -EINVAL;
+>  
+>  	dev =
+> -	    kzalloc(sizeof(struct thermal_cooling_device_instance), GFP_KERNEL);
+> +	    kzalloc(sizeof(struct thermal_instance), GFP_KERNEL);
+>  	if (!dev)
+>  		return -ENOMEM;
+>  	dev->tz = tz;
+> @@ -909,7 +909,7 @@ int thermal_zone_unbind_cooling_device(struct thermal_zone_device *tz,
+>  				       int trip,
+>  				       struct thermal_cooling_device *cdev)
+>  {
+> -	struct thermal_cooling_device_instance *pos, *next;
+> +	struct thermal_instance *pos, *next;
 >  
 >  	mutex_lock(&tz->lock);
-> -	list_for_each_entry(pos, &tz->cooling_devices, node)
-> +	list_for_each_entry(pos, &tz->thermal_instances, node)
->  	    if (pos->tz == tz && pos->trip == trip && pos->cdev == cdev) {
->  		result = -EEXIST;
->  		break;
->  	}
->  	if (!result)
-> -		list_add_tail(&dev->node, &tz->cooling_devices);
-> +		list_add_tail(&dev->node, &tz->thermal_instances);
->  	mutex_unlock(&tz->lock);
->  
->  	if (!result)
-> @@ -912,7 +912,7 @@ int thermal_zone_unbind_cooling_device(struct thermal_zone_device *tz,
->  	struct thermal_instance *pos, *next;
->  
->  	mutex_lock(&tz->lock);
-> -	list_for_each_entry_safe(pos, next, &tz->cooling_devices, node) {
-> +	list_for_each_entry_safe(pos, next, &tz->thermal_instances, node) {
->  		if (pos->tz == tz && pos->trip == trip && pos->cdev == cdev) {
->  			list_del(&pos->node);
->  			mutex_unlock(&tz->lock);
-> @@ -1117,7 +1117,7 @@ static void thermal_zone_trip_update(struct thermal_zone_device *tz,
->  	}
->  
->  	if (temp >= trip_temp) {
-> -		list_for_each_entry(instance, &tz->cooling_devices, node) {
-> +		list_for_each_entry(instance, &tz->thermal_instances, node) {
->  			if (instance->trip != trip)
->  				continue;
->  
-> @@ -1136,7 +1136,7 @@ static void thermal_zone_trip_update(struct thermal_zone_device *tz,
->  			cdev->ops->set_cur_state(cdev, cur_state);
->  		}
->  	} else {	/* below trip */
-> -		list_for_each_entry(instance, &tz->cooling_devices, node) {
-> +		list_for_each_entry(instance, &tz->thermal_instances, node) {
->  			if (instance->trip != trip)
->  				continue;
->  
-> @@ -1365,7 +1365,7 @@ struct thermal_zone_device *thermal_zone_device_register(char *type,
->  	if (!tz)
->  		return ERR_PTR(-ENOMEM);
->  
-> -	INIT_LIST_HEAD(&tz->cooling_devices);
-> +	INIT_LIST_HEAD(&tz->thermal_instances);
->  	idr_init(&tz->idr);
->  	mutex_init(&tz->lock);
->  	result = get_idr(&thermal_tz_idr, &thermal_idr_lock, &tz->id);
-> diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-> index d18dcf6..b11db1e 100644
-> --- a/include/linux/thermal.h
-> +++ b/include/linux/thermal.h
-> @@ -122,9 +122,9 @@ struct thermal_zone_device {
->  	bool passive;
->  	unsigned int forced_passive;
->  	const struct thermal_zone_device_ops *ops;
-> -	struct list_head cooling_devices;
-> +	struct list_head thermal_instances;
->  	struct idr idr;
-> -	struct mutex lock;	/* protect cooling devices list */
-> +	struct mutex lock; /* protect thermal_instances list */
->  	struct list_head node;
->  	struct delayed_work poll_queue;
->  };
+>  	list_for_each_entry_safe(pos, next, &tz->cooling_devices, node) {
+> @@ -1095,7 +1095,7 @@ EXPORT_SYMBOL(thermal_cooling_device_unregister);
+>  static void thermal_zone_trip_update(struct thermal_zone_device *tz,
+>  				     int trip, long temp)
+>  {
+> -	struct thermal_cooling_device_instance *instance;
+> +	struct thermal_instance *instance;
+>  	struct thermal_cooling_device *cdev = NULL;
+>  	unsigned long cur_state, max_state;
+>  	long trip_temp;
 > -- 
 > 1.7.9.5
 > 
