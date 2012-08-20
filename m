@@ -1,263 +1,129 @@
-From: alexdeucher@gmail.com
-Subject: [PATCH 4/4] drm/radeon: split ATRM support out from the ATPX handler (v3)
-Date: Mon, 20 Aug 2012 11:19:53 -0400
-Message-ID: <1345475993-23853-4-git-send-email-alexdeucher@gmail.com>
-References: <20120817170313.GA11909@srcf.ucam.org>
- <1345475993-23853-1-git-send-email-alexdeucher@gmail.com>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Subject: Re: [PATCH V4 13/13] Thermal: Introduce locking for
+ cdev.thermal_instances list.
+Date: Mon, 20 Aug 2012 18:45:18 +0300
+Message-ID: <20120820154518.GB9833@besouro>
+References: <1343292083-2047-1-git-send-email-rui.zhang@intel.com>
+ <1343292083-2047-14-git-send-email-rui.zhang@intel.com>
+Reply-To: eduardo.valentin@ti.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qa0-f53.google.com ([209.85.216.53]:57409 "EHLO
-	mail-qa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757024Ab2HTPUW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Aug 2012 11:20:22 -0400
-In-Reply-To: <1345475993-23853-1-git-send-email-alexdeucher@gmail.com>
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:57127 "EHLO
+	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751410Ab2HTPp1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 20 Aug 2012 11:45:27 -0400
+Received: by weyx8 with SMTP id x8so3969962wey.19
+        for <linux-acpi@vger.kernel.org>; Mon, 20 Aug 2012 08:45:25 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1343292083-2047-14-git-send-email-rui.zhang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: airlied@gmail.com, dri-devel@lists.freedesktop.org, equinox@diac24.net
-Cc: linux-acpi@vger.kernel.org, Alex Deucher <alexander.deucher@amd.com>, stable@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, R Durgadoss <durgadoss.r@intel.com>, Eduardo Valentin <eduardo.valentin@ti.com>, Amit Kachhap <amit.kachhap@linaro.org>, Wei Ni <wni@nvidia.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 
-From: Alex Deucher <alexander.deucher@amd.com>
+Hello Rui,
 
-There are systems that use ATRM, but not ATPX.
+On Thu, Jul 26, 2012 at 04:41:23PM +0800, Zhang Rui wrote:
+> we need to go over all the thermal_instance list of a cooling device
+> to decide which cooling state to put the cooling device to.
+> 
+> But at this time, as a cooling device may be referenced in multiple
+> thermal zones, we need to lock the list first in case
+> another thermal zone is updating this cooling device.
+> 
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 
-Fixes:
-https://bugs.freedesktop.org/show_bug.cgi?id=41265
+Reviewed-by: Eduardo Valentin <eduardo.valentin@ti.com>
 
-V2: fix #ifdefs as per Greg's comments
-V3: fix it harder
+A minor comment bellow.
 
-Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
-Cc: stable@vger.kernel.org
----
- drivers/gpu/drm/radeon/radeon.h              |   15 -----
- drivers/gpu/drm/radeon/radeon_atpx_handler.c |   56 +------------------
- drivers/gpu/drm/radeon/radeon_bios.c         |   80 ++++++++++++++++++++++++-
- 3 files changed, 77 insertions(+), 74 deletions(-)
+> ---
+>  drivers/thermal/thermal_sys.c |    8 ++++++++
+>  include/linux/thermal.h       |    1 +
+>  2 files changed, 9 insertions(+)
+> 
+> diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
+> index 7f3a891..356a59d 100644
+> --- a/drivers/thermal/thermal_sys.c
+> +++ b/drivers/thermal/thermal_sys.c
+> @@ -799,6 +799,7 @@ int thermal_zone_bind_cooling_device(struct thermal_zone_device *tz,
+>  		goto remove_symbol_link;
+>  
+>  	mutex_lock(&tz->lock);
+> +	mutex_lock(&cdev->lock);
 
-diff --git a/drivers/gpu/drm/radeon/radeon.h b/drivers/gpu/drm/radeon/radeon.h
-index 9930419..59a1531 100644
---- a/drivers/gpu/drm/radeon/radeon.h
-+++ b/drivers/gpu/drm/radeon/radeon.h
-@@ -142,21 +142,6 @@ struct radeon_device;
- /*
-  * BIOS.
-  */
--#define ATRM_BIOS_PAGE 4096
--
--#if defined(CONFIG_VGA_SWITCHEROO)
--bool radeon_atrm_supported(struct pci_dev *pdev);
--int radeon_atrm_get_bios_chunk(uint8_t *bios, int offset, int len);
--#else
--static inline bool radeon_atrm_supported(struct pci_dev *pdev)
--{
--	return false;
--}
--
--static inline int radeon_atrm_get_bios_chunk(uint8_t *bios, int offset, int len){
--	return -EINVAL;
--}
--#endif
- bool radeon_get_bios(struct radeon_device *rdev);
- 
- /*
-diff --git a/drivers/gpu/drm/radeon/radeon_atpx_handler.c b/drivers/gpu/drm/radeon/radeon_atpx_handler.c
-index 98724fc..2a2cf0b 100644
---- a/drivers/gpu/drm/radeon/radeon_atpx_handler.c
-+++ b/drivers/gpu/drm/radeon/radeon_atpx_handler.c
-@@ -30,57 +30,8 @@ static struct radeon_atpx_priv {
- 	/* handle for device - and atpx */
- 	acpi_handle dhandle;
- 	acpi_handle atpx_handle;
--	acpi_handle atrm_handle;
- } radeon_atpx_priv;
- 
--/* retrieve the ROM in 4k blocks */
--static int radeon_atrm_call(acpi_handle atrm_handle, uint8_t *bios,
--			    int offset, int len)
--{
--	acpi_status status;
--	union acpi_object atrm_arg_elements[2], *obj;
--	struct acpi_object_list atrm_arg;
--	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL};
--
--	atrm_arg.count = 2;
--	atrm_arg.pointer = &atrm_arg_elements[0];
--
--	atrm_arg_elements[0].type = ACPI_TYPE_INTEGER;
--	atrm_arg_elements[0].integer.value = offset;
--
--	atrm_arg_elements[1].type = ACPI_TYPE_INTEGER;
--	atrm_arg_elements[1].integer.value = len;
--
--	status = acpi_evaluate_object(atrm_handle, NULL, &atrm_arg, &buffer);
--	if (ACPI_FAILURE(status)) {
--		printk("failed to evaluate ATRM got %s\n", acpi_format_exception(status));
--		return -ENODEV;
--	}
--
--	obj = (union acpi_object *)buffer.pointer;
--	memcpy(bios+offset, obj->buffer.pointer, obj->buffer.length);
--	len = obj->buffer.length;
--	kfree(buffer.pointer);
--	return len;
--}
--
--bool radeon_atrm_supported(struct pci_dev *pdev)
--{
--	/* get the discrete ROM only via ATRM */
--	if (!radeon_atpx_priv.atpx_detected)
--		return false;
--
--	if (radeon_atpx_priv.dhandle == DEVICE_ACPI_HANDLE(&pdev->dev))
--		return false;
--	return true;
--}
--
--
--int radeon_atrm_get_bios_chunk(uint8_t *bios, int offset, int len)
--{
--	return radeon_atrm_call(radeon_atpx_priv.atrm_handle, bios, offset, len);
--}
--
- static int radeon_atpx_get_version(acpi_handle handle)
- {
- 	acpi_status status;
-@@ -198,7 +149,7 @@ static int radeon_atpx_power_state(enum vga_switcheroo_client_id id,
- 
- static bool radeon_atpx_pci_probe_handle(struct pci_dev *pdev)
- {
--	acpi_handle dhandle, atpx_handle, atrm_handle;
-+	acpi_handle dhandle, atpx_handle;
- 	acpi_status status;
- 
- 	dhandle = DEVICE_ACPI_HANDLE(&pdev->dev);
-@@ -209,13 +160,8 @@ static bool radeon_atpx_pci_probe_handle(struct pci_dev *pdev)
- 	if (ACPI_FAILURE(status))
- 		return false;
- 
--	status = acpi_get_handle(dhandle, "ATRM", &atrm_handle);
--	if (ACPI_FAILURE(status))
--		return false;
--
- 	radeon_atpx_priv.dhandle = dhandle;
- 	radeon_atpx_priv.atpx_handle = atpx_handle;
--	radeon_atpx_priv.atrm_handle = atrm_handle;
- 	return true;
- }
- 
-diff --git a/drivers/gpu/drm/radeon/radeon_bios.c b/drivers/gpu/drm/radeon/radeon_bios.c
-index ab0b2f7..d306cc8 100644
---- a/drivers/gpu/drm/radeon/radeon_bios.c
-+++ b/drivers/gpu/drm/radeon/radeon_bios.c
-@@ -99,16 +99,81 @@ static bool radeon_read_bios(struct radeon_device *rdev)
- 	return true;
- }
- 
-+#ifdef CONFIG_ACPI
- /* ATRM is used to get the BIOS on the discrete cards in
-  * dual-gpu systems.
-  */
-+/* retrieve the ROM in 4k blocks */
-+#define ATRM_BIOS_PAGE 4096
-+/**
-+ * radeon_atrm_call - fetch a chunk of the vbios
-+ *
-+ * @atrm_handle: acpi ATRM handle
-+ * @bios: vbios image pointer
-+ * @offset: offset of vbios image data to fetch
-+ * @len: length of vbios image data to fetch
-+ *
-+ * Executes ATRM to fetch a chunk of the discrete
-+ * vbios image on PX systems (all asics).
-+ * Returns the length of the buffer fetched.
-+ */
-+static int radeon_atrm_call(acpi_handle atrm_handle, uint8_t *bios,
-+			    int offset, int len)
-+{
-+	acpi_status status;
-+	union acpi_object atrm_arg_elements[2], *obj;
-+	struct acpi_object_list atrm_arg;
-+	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL};
-+
-+	atrm_arg.count = 2;
-+	atrm_arg.pointer = &atrm_arg_elements[0];
-+
-+	atrm_arg_elements[0].type = ACPI_TYPE_INTEGER;
-+	atrm_arg_elements[0].integer.value = offset;
-+
-+	atrm_arg_elements[1].type = ACPI_TYPE_INTEGER;
-+	atrm_arg_elements[1].integer.value = len;
-+
-+	status = acpi_evaluate_object(atrm_handle, NULL, &atrm_arg, &buffer);
-+	if (ACPI_FAILURE(status)) {
-+		printk("failed to evaluate ATRM got %s\n", acpi_format_exception(status));
-+		return -ENODEV;
-+	}
-+
-+	obj = (union acpi_object *)buffer.pointer;
-+	memcpy(bios+offset, obj->buffer.pointer, obj->buffer.length);
-+	len = obj->buffer.length;
-+	kfree(buffer.pointer);
-+	return len;
-+}
-+
- static bool radeon_atrm_get_bios(struct radeon_device *rdev)
- {
- 	int ret;
- 	int size = 256 * 1024;
- 	int i;
-+	struct pci_dev *pdev = NULL;
-+	acpi_handle dhandle, atrm_handle;
-+	acpi_status status;
-+	bool found = false;
- 
--	if (!radeon_atrm_supported(rdev->pdev))
-+	/* ATRM is for the discrete card only */
-+	if (rdev->flags & RADEON_IS_IGP)
-+		return false;
-+
-+	while ((pdev = pci_get_class(PCI_CLASS_DISPLAY_VGA << 8, pdev)) != NULL) {
-+		dhandle = DEVICE_ACPI_HANDLE(&pdev->dev);
-+		if (!dhandle)
-+			continue;
-+
-+		status = acpi_get_handle(dhandle, "ATRM", &atrm_handle);
-+		if (!ACPI_FAILURE(status)) {
-+			found = true;
-+			break;
-+		}
-+	}
-+
-+	if (!found)
- 		return false;
- 
- 	rdev->bios = kmalloc(size, GFP_KERNEL);
-@@ -118,9 +183,10 @@ static bool radeon_atrm_get_bios(struct radeon_device *rdev)
- 	}
- 
- 	for (i = 0; i < size / ATRM_BIOS_PAGE; i++) {
--		ret = radeon_atrm_get_bios_chunk(rdev->bios,
--						 (i * ATRM_BIOS_PAGE),
--						 ATRM_BIOS_PAGE);
-+		ret = radeon_atrm_call(atrm_handle,
-+				       rdev->bios,
-+				       (i * ATRM_BIOS_PAGE),
-+				       ATRM_BIOS_PAGE);
- 		if (ret < ATRM_BIOS_PAGE)
- 			break;
- 	}
-@@ -131,6 +197,12 @@ static bool radeon_atrm_get_bios(struct radeon_device *rdev)
- 	}
- 	return true;
- }
-+#else
-+static inline bool radeon_atrm_get_bios(struct radeon_device *rdev)
-+{
-+	return false;
-+}
-+#endif
- 
- static bool ni_read_disabled_bios(struct radeon_device *rdev)
- {
--- 
-1.7.7.5
+Why do you need to lock while going through the tz thermal_instances?
 
+>  	list_for_each_entry(pos, &tz->thermal_instances, tz_node)
+>  	    if (pos->tz == tz && pos->trip == trip && pos->cdev == cdev) {
+>  		result = -EEXIST;
+> @@ -808,6 +809,7 @@ int thermal_zone_bind_cooling_device(struct thermal_zone_device *tz,
+>  		list_add_tail(&dev->tz_node, &tz->thermal_instances);
+>  		list_add_tail(&dev->cdev_node, &cdev->thermal_instances);
+
+Locking the above operation should be enough, no?
+
+>  	}
+> +	mutex_unlock(&cdev->lock);
+>  	mutex_unlock(&tz->lock);
+>  
+>  	if (!result)
+> @@ -840,14 +842,17 @@ int thermal_zone_unbind_cooling_device(struct thermal_zone_device *tz,
+>  	struct thermal_instance *pos, *next;
+>  
+>  	mutex_lock(&tz->lock);
+> +	mutex_lock(&cdev->lock);
+>  	list_for_each_entry_safe(pos, next, &tz->thermal_instances, tz_node) {
+>  		if (pos->tz == tz && pos->trip == trip && pos->cdev == cdev) {
+>  			list_del(&pos->tz_node);
+>  			list_del(&pos->cdev_node);
+> +			mutex_unlock(&cdev->lock);
+>  			mutex_unlock(&tz->lock);
+>  			goto unbind;
+>  		}
+>  	}
+> +	mutex_unlock(&cdev->lock);
+>  	mutex_unlock(&tz->lock);
+>  
+>  	return -ENODEV;
+> @@ -913,6 +918,7 @@ thermal_cooling_device_register(char *type, void *devdata,
+>  	}
+>  
+>  	strcpy(cdev->type, type);
+> +	mutex_init(&cdev->lock);
+>  	INIT_LIST_HEAD(&cdev->thermal_instances);
+>  	cdev->ops = ops;
+>  	cdev->updated = true;
+> @@ -1016,6 +1022,7 @@ static void thermal_cdev_do_update(struct thermal_cooling_device *cdev)
+>  	if (cdev->updated)
+>  		return;
+>  
+> +	mutex_lock(&cdev->lock);
+>  	/* Make sure cdev enters the deepest cooling state */
+>  	list_for_each_entry(instance, &cdev->thermal_instances, cdev_node) {
+>  		if (instance->target == THERMAL_NO_TARGET)
+> @@ -1023,6 +1030,7 @@ static void thermal_cdev_do_update(struct thermal_cooling_device *cdev)
+>  		if (instance->target > target)
+>  			target = instance->target;
+>  	}
+> +	mutex_unlock(&cdev->lock);
+>  	cdev->ops->set_cur_state(cdev, target);
+>  	cdev->updated = true;
+>  }
+> diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+> index 06fd04d..d02d06d 100644
+> --- a/include/linux/thermal.h
+> +++ b/include/linux/thermal.h
+> @@ -95,6 +95,7 @@ struct thermal_cooling_device {
+>  	void *devdata;
+>  	const struct thermal_cooling_device_ops *ops;
+>  	bool updated; /* true if the cooling device does not need update */
+> +	struct mutex lock; /* protect thermal_instances list */
+>  	struct list_head thermal_instances;
+>  	struct list_head node;
+>  };
+> -- 
+> 1.7.9.5
+> 
