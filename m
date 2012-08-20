@@ -1,20 +1,20 @@
 From: Eduardo Valentin <eduardo.valentin@ti.com>
 Subject: Re: [PATCH V4 06/13] Thermal: Introduce thermal_zone_trip_update()
-Date: Mon, 20 Aug 2012 18:47:56 +0300
-Message-ID: <20120820154756.GI9833@besouro>
+Date: Mon, 20 Aug 2012 18:48:49 +0300
+Message-ID: <20120820154849.GJ9833@besouro>
 References: <1343292083-2047-1-git-send-email-rui.zhang@intel.com>
  <1343292083-2047-7-git-send-email-rui.zhang@intel.com>
 Reply-To: eduardo.valentin@ti.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:48780 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757230Ab2HTPsD (ORCPT
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:56737 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753196Ab2HTPs5 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 20 Aug 2012 11:48:03 -0400
-Received: by weyu3 with SMTP id u3so4894361wey.35
-        for <linux-acpi@vger.kernel.org>; Mon, 20 Aug 2012 08:48:01 -0700 (PDT)
+	Mon, 20 Aug 2012 11:48:57 -0400
+Received: by wgbdr1 with SMTP id dr1so4552773wgb.0
+        for <linux-acpi@vger.kernel.org>; Mon, 20 Aug 2012 08:48:55 -0700 (PDT)
 Content-Disposition: inline
 In-Reply-To: <1343292083-2047-7-git-send-email-rui.zhang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
