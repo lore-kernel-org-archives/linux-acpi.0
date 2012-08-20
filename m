@@ -1,208 +1,199 @@
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: Re: [PATCH 01/13] Thermal: Refactor thermal.h file
-Date: Mon, 20 Aug 2012 20:53:14 +0300
-Message-ID: <20120820175314.GO9833@besouro>
+Subject: Re: [PATCH 07/13] Thermal: Update binding logic based on platform
+ data
+Date: Mon, 20 Aug 2012 21:11:17 +0300
+Message-ID: <20120820181117.GP9833@besouro>
 References: <1344516365-7230-1-git-send-email-durgadoss.r@intel.com>
- <1344516365-7230-2-git-send-email-durgadoss.r@intel.com>
- <20120820155817.GN9833@besouro>
- <4D68720C2E767A4AA6A8796D42C8EB591AA430@BGSMSX101.gar.corp.intel.com>
+ <1344516365-7230-8-git-send-email-durgadoss.r@intel.com>
+ <1344840062.1682.786.camel@rui.sh.intel.com>
+ <4D68720C2E767A4AA6A8796D42C8EB5919A6E0@BGSMSX101.gar.corp.intel.com>
+ <1345013619.1682.826.camel@rui.sh.intel.com>
+ <4D68720C2E767A4AA6A8796D42C8EB591A2B97@BGSMSX101.gar.corp.intel.com>
+ <1345087808.1682.833.camel@rui.sh.intel.com>
+ <4D68720C2E767A4AA6A8796D42C8EB591A4FB1@BGSMSX101.gar.corp.intel.com>
 Reply-To: eduardo.valentin@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:32991 "EHLO
-	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751237Ab2HTRxW (ORCPT
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:44691 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751296Ab2HTSL0 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 20 Aug 2012 13:53:22 -0400
-Received: by wgbez12 with SMTP id ez12so5282250wgb.6
-        for <linux-acpi@vger.kernel.org>; Mon, 20 Aug 2012 10:53:20 -0700 (PDT)
+	Mon, 20 Aug 2012 14:11:26 -0400
+Received: by weyu54 with SMTP id u54so4707423wey.31
+        for <linux-acpi@vger.kernel.org>; Mon, 20 Aug 2012 11:11:24 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <4D68720C2E767A4AA6A8796D42C8EB591AA430@BGSMSX101.gar.corp.intel.com>
+In-Reply-To: <4D68720C2E767A4AA6A8796D42C8EB591A4FB1@BGSMSX101.gar.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "R, Durgadoss" <durgadoss.r@intel.com>
-Cc: "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>, "lenb@kernel.org" <lenb@kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, "rjw@sisk.pl" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "amit.kachhap@linaro.org" <amit.kachhap@linaro.org>, "wni@nvidia.com" <wni@nvidia.com>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>, "amit.kachhap@linaro.org" <amit.kachhap@linaro.org>, "wni@nvidia.com" <wni@nvidia.com>
 
 Hello,
 
-On Mon, Aug 20, 2012 at 04:42:12PM +0000, R, Durgadoss wrote:
-> Hi Eduardo,
-> 
+On Thu, Aug 16, 2012 at 03:31:55AM +0000, R, Durgadoss wrote:
+> Hi Rui,
+>=20
+>=20
 > > -----Original Message-----
-> > From: Eduardo Valentin [mailto:eduardo.valentin@ti.com]
-> > Sent: Monday, August 20, 2012 9:28 PM
+> > From: Zhang, Rui
+> > Sent: Thursday, August 16, 2012 9:00 AM
 > > To: R, Durgadoss
-> > Cc: lenb@kernel.org; Zhang, Rui; rjw@sisk.pl; linux-acpi@vger.kernel.org;
-> > linux-pm@vger.kernel.org; eduardo.valentin@ti.com;
-> > amit.kachhap@linaro.org; wni@nvidia.com
-> > Subject: Re: [PATCH 01/13] Thermal: Refactor thermal.h file
-> > 
-> > Hello Durga,
-> > 
-> > On Thu, Aug 09, 2012 at 06:15:53PM +0530, Durgadoss R wrote:
-> > > This file rearranges the code in thermal.h file,
-> > 
-> > I suppose you meant 'this patch'?
-> 
-> Oh yes. v2 on the way, will fix it there.
+> > Cc: lenb@kernel.org; rjw@sisk.pl; linux-acpi@vger.kernel.org; linux=
+-
+> > pm@vger.kernel.org; eduardo.valentin@ti.com; amit.kachhap@linaro.or=
+g;
+> > wni@nvidia.com
+> > Subject: RE: [PATCH 07/13] Thermal: Update binding logic based on p=
+latform
+> > data
+> >=20
+> > On =E4=B8=89, 2012-08-15 at 03:17 -0600, R, Durgadoss wrote:
+> > > Hi Rui,
+> > >
+> > > > > > > +static void update_bind_info(struct thermal_cooling_devi=
+ce
+> > *cdev)
+> > > > > > > +{
+> > > > > > > +	int i, ret;
+> > > > > > > +	struct thermal_zone_params *tzp;
+> > > > > > > +	struct thermal_zone_device *pos =3D NULL;
+> > > > > > > +
+> > > > > > > +	mutex_lock(&thermal_list_lock);
+> > > > > > > +
+> > > > > > > +	list_for_each_entry(pos, &thermal_tz_list, node) {
+> > > > > > > +		if (!pos->tzp && !pos->ops->bind)
+> > > > > > > +			continue;
+> > > > > > > +
+> > > > > > > +		if (!pos->tzp && pos->ops->bind) {
+> > > > > > > +			ret =3D pos->ops->bind(pos, cdev);
+> > > > > > > +			if (ret)
+> > > > > > > +				print_bind_err_msg(pos, cdev, ret);
+> > > > > > > +		}
+> > > > > > > +
+> > > > > > > +		tzp =3D pos->tzp;
+> > > > > > > +		for (i =3D 0; i < tzp->num_cdevs; i++) {
+> > > > > > > +			if (!strcmp(tzp->cdevs_name[i], cdev->type))
+> > {
+> > > > > > > +				__bind(pos, tzp->trip_mask[i], cdev);
+> > > > > > > +				break;
+> > > > > > > +			}
+> > > > > > > +		}
+> > > > > > > +	}
+> > > > > > > +	mutex_unlock(&thermal_list_lock);
+> > > > > > > +}
+> > > > > >
+> > > > > > I still do not understand why we need this kind of bind.
+> > > > > > Say, the platform thermal driver knows the platform data, i=
+=2Ee. it
+> > knows
+> > > > > > which cooling devices should be bound to which trip points.
+> > > > > > why we can not move this kind of logic to the .bind() callb=
+ack, offered
+> > > > > > by the platform thermal driver?
+> > > > > > say, in .bind() callback,
+> > > > > > the platform thermal driver has the pointer of the platform=
+ data,
+> > right?
+> > > > > > the .cdev parameter can be used to find the cooling device =
+name,
+> > > > > > and we can make the comparison there. instead of introducin=
+g new
+> > binding
+> > > > > > functions in the generic thermal layer.
+> > > > >
+> > > > > For once, I got little confused between the generic platform =
+thermal
+> > sensor
+> > > > > drivers (the chip drivers) and the platform level driver (not=
+ specific for
+> > chip,
+> > > > > but for a platform). So, yes we can put this in the platform =
+level driver.
+> > > > >
+> > > > Hmm,
+> > > > I'm not clear about the difference between these two drivers.
+> > > > what is supposed to be done in the platform thermal sensor driv=
+ers and
+> > > > what is supposed to be done in the platform level driver?
+> > >
+> > > A sensor driver can be a generic chip driver like emc1403 (this i=
+s the one
+> > > that I have worked on..) or coretemp (the CPU DTS driver for x86)=
+=2E They sit
+> > > in different sub systems (these two in hwmon). We might not be al=
+lowed
+> > to
+> > > add any thermal framework specific code in these drivers. The sam=
+e driver
+> > > works on all platforms.
+> >=20
+> > does the sensor know anything about the "policy"?
+> > Say, does it have any trip points? does it know which device can be
+> > throttled to cool itself?
+> > I think the answer is "no", right?
+>=20
+> Yes. You are right :-)
+> The answer is 'No'.
+>=20
+> > >
+> > > A platform level thermal driver knows information about the therm=
+al
+> > sensors,
+> > > and their zones on the platform; and is specific to the platform.
+> > > For x86, this will be in drivers/x86/platform/ whereas might be i=
+n some
+> > other
+> > > place for other architectures. An example is intel_mid_thermal.c =
+which sits
+> > > in drivers/x86/platform. We can add our thermal framework specifi=
+c code
+> > > to this driver.
+> > >
+> > but I think intel_mide_thermal driver is also a platform thermal se=
+nsor
+> > driver at the same time.
+>=20
+> Yes today it is both..
 
-Oh.. Ok. I will go through V1 anyway, just in case.
+So, what is the conclusion from above? I think we need to have a call h=
+ere as
+it will drive how driver code is going to look like. So far, the way I =
+am
+designing the OMAP thermal support is that the temp sensor drivers woul=
+d
+know about how to cool the zones, at SoC level. But the cooling of a pl=
+atform/end-product
+level would require another driver, which would require knowledge of av=
+ailability
+of sensors and cooling devices, in order to define the board policy.
 
-> 
-> > 
-> > > in the following order, so that it is easy to
-> > > read/maintain.
-> > > 1. All #defines
-> > > 2. All enums
-> > > 3. All fops structures
-> > > 4. All device structures
-> > > 5. All function declarations
-> > 
-> > Cool!
-> > 
+>=20
+> > > >
+> > > > At least for now, all the thermal drivers are both thermal sens=
+or driver
+> > > > and platform level driver, right?
 > > >
-> > > Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
-> > > ---
-> > >  include/linux/thermal.h |   78 ++++++++++++++++++++++++++-------------
-> > --------
-> > >  1 file changed, 43 insertions(+), 35 deletions(-)
+> > > Not all the times, although there are some instances where both a=
+re same.
+> > > We use coretemp.c and intel_mid_thermal.c (which are different), =
+for the
+> > > x86 mid platforms.
 > > >
-> > > diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-> > > index 91b3481..8611e3e 100644
-> > > --- a/include/linux/thermal.h
-> > > +++ b/include/linux/thermal.h
-> > > @@ -29,6 +29,23 @@
-> > >  #include <linux/device.h>
-> > >  #include <linux/workqueue.h>
-> > >
-> > > +#define THERMAL_TRIPS_NONE	-1
-> > > +#define THERMAL_MAX_TRIPS	12
-> > > +#define THERMAL_NAME_LENGTH	20
-> > > +
-> > > +/* No upper/lower limit requirement */
-> > > +#define THERMAL_NO_LIMIT	-1UL
-> > > +
-> > > +/* Unit conversion macros */
-> > > +#define KELVIN_TO_CELSIUS(t)	(long)(((long)t-2732 >= 0) ?	\
-> > > +				((long)t-2732+5)/10 : ((long)t-2732-5)/10)
-> > > +#define CELSIUS_TO_KELVIN(t)	((t)*10+2732)
-> > > +
-> > > +/* Adding event notification support elements */
-> > > +#define THERMAL_GENL_FAMILY_NAME                "thermal_event"
-> > > +#define THERMAL_GENL_VERSION                    0x01
-> > > +#define THERMAL_GENL_MCAST_GROUP_NAME
-> > "thermal_mc_group"
-> > > +
-> > >  struct thermal_zone_device;
-> > >  struct thermal_cooling_device;
-> > >
-> > > @@ -50,6 +67,30 @@ enum thermal_trend {
-> > >  	THERMAL_TREND_DROPPING, /* temperature is dropping */
-> > >  };
-> > >
-> > > +/* Events supported by Thermal Netlink */
-> > > +enum events {
-> > > +	THERMAL_AUX0,
-> > > +	THERMAL_AUX1,
-> > > +	THERMAL_CRITICAL,
-> > > +	THERMAL_DEV_FAULT,
-> > > +};
-> > > +
-> > > +/* attributes of thermal_genl_family */
-> > > +enum {
-> > > +	THERMAL_GENL_ATTR_UNSPEC,
-> > > +	THERMAL_GENL_ATTR_EVENT,
-> > > +	__THERMAL_GENL_ATTR_MAX,
-> > > +};
-> > > +#define THERMAL_GENL_ATTR_MAX (__THERMAL_GENL_ATTR_MAX -
-> > 1)
-> > > +
-> > > +/* commands supported by the thermal_genl_family */
-> > > +enum {
-> > > +	THERMAL_GENL_CMD_UNSPEC,
-> > > +	THERMAL_GENL_CMD_EVENT,
-> > > +	__THERMAL_GENL_CMD_MAX,
-> > > +};
-> > > +#define THERMAL_GENL_CMD_MAX (__THERMAL_GENL_CMD_MAX - 1)
-> > > +
-> > >  struct thermal_zone_device_ops {
-> > >  	int (*bind) (struct thermal_zone_device *,
-> > >  		     struct thermal_cooling_device *);
-> > > @@ -83,11 +124,6 @@ struct thermal_cooling_device_ops {
-> > >  	int (*set_cur_state) (struct thermal_cooling_device *, unsigned
-> > long);
-> > >  };
-> > >
-> > > -#define THERMAL_NO_LIMIT -1UL /* no upper/lower limit requirement
-> > */
-> > > -
-> > > -#define THERMAL_TRIPS_NONE -1
-> > > -#define THERMAL_MAX_TRIPS 12
-> > > -#define THERMAL_NAME_LENGTH 20
-> > >  struct thermal_cooling_device {
-> > >  	int id;
-> > >  	char type[THERMAL_NAME_LENGTH];
-> > > @@ -100,10 +136,6 @@ struct thermal_cooling_device {
-> > >  	struct list_head node;
-> > >  };
-> > >
-> > > -#define KELVIN_TO_CELSIUS(t)	(long)(((long)t-2732 >= 0) ?	\
-> > > -				((long)t-2732+5)/10 : ((long)t-2732-5)/10)
-> > > -#define CELSIUS_TO_KELVIN(t)	((t)*10+2732)
-> > > -
-> > >  struct thermal_attr {
-> > >  	struct device_attribute attr;
-> > >  	char name[THERMAL_NAME_LENGTH];
-> > > @@ -131,38 +163,13 @@ struct thermal_zone_device {
-> > >  	struct list_head node;
-> > >  	struct delayed_work poll_queue;
-> > >  };
-> > > -/* Adding event notification support elements */
-> > > -#define THERMAL_GENL_FAMILY_NAME                "thermal_event"
-> > > -#define THERMAL_GENL_VERSION                    0x01
-> > > -#define THERMAL_GENL_MCAST_GROUP_NAME
-> > "thermal_mc_group"
-> > > -
-> > > -enum events {
-> > > -	THERMAL_AUX0,
-> > > -	THERMAL_AUX1,
-> > > -	THERMAL_CRITICAL,
-> > > -	THERMAL_DEV_FAULT,
-> > > -};
-> > >
-> > >  struct thermal_genl_event {
-> > >  	u32 orig;
-> > >  	enum events event;
-> > >  };
-> > > -/* attributes of thermal_genl_family */
-> > > -enum {
-> > > -	THERMAL_GENL_ATTR_UNSPEC,
-> > > -	THERMAL_GENL_ATTR_EVENT,
-> > > -	__THERMAL_GENL_ATTR_MAX,
-> > > -};
-> > > -#define THERMAL_GENL_ATTR_MAX (__THERMAL_GENL_ATTR_MAX - 1)
-> > > -
-> > > -/* commands supported by the thermal_genl_family */
-> > > -enum {
-> > > -	THERMAL_GENL_CMD_UNSPEC,
-> > > -	THERMAL_GENL_CMD_EVENT,
-> > > -	__THERMAL_GENL_CMD_MAX,
-> > > -};
-> > > -#define THERMAL_GENL_CMD_MAX (__THERMAL_GENL_CMD_MAX - 1)
-> > >
-> > > +/* Function declarations */
-> > 
-> > for the functions exposed in this header,
-> > should we also provide function nops when CONFIG_THERMAL is not set?
-> > 
-> 
-> Theoretically agree with you.
-> We will not enable thermal_sys.c if CONFIG_THERMAL is not set;
-> and hence no driver should be using these API's in this case.
-> So, I think it is better to throw errors rather than the driver assuming
-> Thermal management will be done.
-> Would prefer to leave it this way..
-> 
+> > so you want to use coretemp.c as a temperature sensor, and then bin=
+d
+> > your own cooling devices to it in your platform level thermal drive=
+r?
+>=20
+> Yes, coretemp is one fine example.
+> At least I would like to get the same thing done for emc1403.c
+> (and few hwmon drivers)..
+>=20
 > Thanks,
 > Durga
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
