@@ -1,122 +1,58 @@
 From: alexdeucher@gmail.com
-Subject: [PATCH 1/4] drm/radeon: implement ACPI VFCT vbios fetch (v3)
-Date: Mon, 20 Aug 2012 11:19:50 -0400
-Message-ID: <1345475993-23853-1-git-send-email-alexdeucher@gmail.com>
+Subject: [PATCH 3/4] drm/radeon: convert radeon vfct code to use acpi_get_table_with_size
+Date: Mon, 20 Aug 2012 11:19:52 -0400
+Message-ID: <1345475993-23853-3-git-send-email-alexdeucher@gmail.com>
 References: <20120817170313.GA11909@srcf.ucam.org>
+ <1345475993-23853-1-git-send-email-alexdeucher@gmail.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qa0-f46.google.com ([209.85.216.46]:40091 "EHLO
-	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757005Ab2HTPUS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Aug 2012 11:20:18 -0400
-In-Reply-To: <20120817170313.GA11909@srcf.ucam.org>
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:63516 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757022Ab2HTPUU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Aug 2012 11:20:20 -0400
+In-Reply-To: <1345475993-23853-1-git-send-email-alexdeucher@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: airlied@gmail.com, dri-devel@lists.freedesktop.org, equinox@diac24.net
 Cc: linux-acpi@vger.kernel.org, Alex Deucher <alexander.deucher@amd.com>, stable@vger.kernel.org
 
-From: David Lamparter <equinox@diac24.net>
+From: Alex Deucher <alexander.deucher@amd.com>
 
-This is required for pure UEFI systems.  The vbios is stored
-in ACPI rather than at the legacy vga location.
-
-Fixes:
-https://bugs.freedesktop.org/show_bug.cgi?id=26891
-
-V2: fix #ifdefs as per Greg's comments
-V3: fix it harder
+Allows us to verify the table size.
 
 Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
-Reviewed-by: Jerome Glisse <jglisse@redhat.com>
 Cc: stable@vger.kernel.org
 ---
- drivers/gpu/drm/radeon/radeon_bios.c |   60 ++++++++++++++++++++++++++++++++++
- 1 files changed, 60 insertions(+), 0 deletions(-)
+ drivers/gpu/drm/radeon/radeon_bios.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/gpu/drm/radeon/radeon_bios.c b/drivers/gpu/drm/radeon/radeon_bios.c
-index 501f488..a32232f 100644
+index a32232f..ab0b2f7 100644
 --- a/drivers/gpu/drm/radeon/radeon_bios.c
 +++ b/drivers/gpu/drm/radeon/radeon_bios.c
-@@ -32,6 +32,7 @@
- 
- #include <linux/vga_switcheroo.h>
- #include <linux/slab.h>
-+#include <linux/acpi.h>
- /*
-  * BIOS.
-  */
-@@ -476,6 +477,63 @@ static bool radeon_read_disabled_bios(struct radeon_device *rdev)
- 		return legacy_read_disabled_bios(rdev);
- }
- 
-+#ifdef CONFIG_ACPI
-+static bool radeon_acpi_vfct_bios(struct radeon_device *rdev)
-+{
-+	bool ret = false;
-+	struct acpi_table_header *hdr;
-+	/* acpi_get_table_with_size is not exported :( */
-+	acpi_size tbl_size = 0x7fffffff;
-+	UEFI_ACPI_VFCT *vfct;
-+	GOP_VBIOS_CONTENT *vbios;
-+	VFCT_IMAGE_HEADER *vhdr;
-+
-+	if (!ACPI_SUCCESS(acpi_get_table("VFCT", 1, &hdr)))
-+		return false;
-+	if (tbl_size < sizeof(UEFI_ACPI_VFCT)) {
-+		DRM_ERROR("ACPI VFCT table present but broken (too short #1)\n");
-+		goto out_unmap;
-+	}
-+
-+	vfct = (UEFI_ACPI_VFCT *)hdr;
-+	if (vfct->VBIOSImageOffset + sizeof(VFCT_IMAGE_HEADER) > tbl_size) {
-+		DRM_ERROR("ACPI VFCT table present but broken (too short #2)\n");
-+		goto out_unmap;
-+	}
-+
-+	vbios = (GOP_VBIOS_CONTENT *)((char *)hdr + vfct->VBIOSImageOffset);
-+	vhdr = &vbios->VbiosHeader;
-+	DRM_INFO("ACPI VFCT contains a BIOS for %02x:%02x.%d %04x:%04x, size %d\n",
-+			vhdr->PCIBus, vhdr->PCIDevice, vhdr->PCIFunction,
-+			vhdr->VendorID, vhdr->DeviceID, vhdr->ImageLength);
-+
-+	if (vhdr->PCIBus != rdev->pdev->bus->number ||
-+	    vhdr->PCIDevice != PCI_SLOT(rdev->pdev->devfn) ||
-+	    vhdr->PCIFunction != PCI_FUNC(rdev->pdev->devfn) ||
-+	    vhdr->VendorID != rdev->pdev->vendor ||
-+	    vhdr->DeviceID != rdev->pdev->device) {
-+		DRM_INFO("ACPI VFCT table is not for this card\n");
-+		goto out_unmap;
-+	};
-+
-+	if (vfct->VBIOSImageOffset + sizeof(VFCT_IMAGE_HEADER) + vhdr->ImageLength > tbl_size) {
-+		DRM_ERROR("ACPI VFCT image truncated\n");
-+		goto out_unmap;
-+	}
-+
-+	rdev->bios = kmemdup(&vbios->VbiosContent, vhdr->ImageLength, GFP_KERNEL);
-+	ret = !!rdev->bios;
-+
-+out_unmap:
-+	/* uh, no idea what to do here... */
-+	return ret;
-+}
-+#else
-+static inline bool radeon_acpi_vfct_bios(struct radeon_device *rdev)
-+{
-+	return false;
-+}
-+#endif
- 
- bool radeon_get_bios(struct radeon_device *rdev)
+@@ -482,13 +482,12 @@ static bool radeon_acpi_vfct_bios(struct radeon_device *rdev)
  {
-@@ -484,6 +542,8 @@ bool radeon_get_bios(struct radeon_device *rdev)
+ 	bool ret = false;
+ 	struct acpi_table_header *hdr;
+-	/* acpi_get_table_with_size is not exported :( */
+-	acpi_size tbl_size = 0x7fffffff;
++	acpi_size tbl_size;
+ 	UEFI_ACPI_VFCT *vfct;
+ 	GOP_VBIOS_CONTENT *vbios;
+ 	VFCT_IMAGE_HEADER *vhdr;
  
- 	r = radeon_atrm_get_bios(rdev);
- 	if (r == false)
-+		r = radeon_acpi_vfct_bios(rdev);
-+	if (r == false)
- 		r = igp_read_bios_from_vram(rdev);
- 	if (r == false)
- 		r = radeon_read_bios(rdev);
+-	if (!ACPI_SUCCESS(acpi_get_table("VFCT", 1, &hdr)))
++	if (!ACPI_SUCCESS(acpi_get_table_with_size("VFCT", 1, &hdr, &tbl_size)))
+ 		return false;
+ 	if (tbl_size < sizeof(UEFI_ACPI_VFCT)) {
+ 		DRM_ERROR("ACPI VFCT table present but broken (too short #1)\n");
+@@ -525,7 +524,6 @@ static bool radeon_acpi_vfct_bios(struct radeon_device *rdev)
+ 	ret = !!rdev->bios;
+ 
+ out_unmap:
+-	/* uh, no idea what to do here... */
+ 	return ret;
+ }
+ #else
 -- 
 1.7.7.5
 
