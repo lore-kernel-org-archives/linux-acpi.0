@@ -1,153 +1,143 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: RE: [PATCH 13/13] Thermal: Platform layer changes to provide
- thermal data
-Date: Tue, 21 Aug 2012 14:52:34 +0800
-Message-ID: <1345531954.1682.965.camel@rui.sh.intel.com>
-References: <1344516365-7230-1-git-send-email-durgadoss.r@intel.com>
-	 <1344516365-7230-14-git-send-email-durgadoss.r@intel.com>
-	 <20120821053950.GC9833@besouro>
-	 <4D68720C2E767A4AA6A8796D42C8EB591AA82F@BGSMSX101.gar.corp.intel.com>
-	 <1345528555.1682.958.camel@rui.sh.intel.com>
-	 <4D68720C2E767A4AA6A8796D42C8EB591AA8AD@BGSMSX101.gar.corp.intel.com>
+From: joeyli <jlee@suse.com>
+Subject: Re: [PATCH 1/3] drivers-platform-x86: remove useless #ifdef
+ CONFIG_ACPI_VIDEO
+Date: Tue, 21 Aug 2012 15:46:35 +0800
+Message-ID: <1345535195.26857.46.camel@linux-s257.site>
+References: <1345496512-11780-1-git-send-email-corentin.chary@gmail.com>
+	 <1345496512-11780-2-git-send-email-corentin.chary@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:52012 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751775Ab2HUGvd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 21 Aug 2012 02:51:33 -0400
-In-Reply-To: <4D68720C2E767A4AA6A8796D42C8EB591AA8AD@BGSMSX101.gar.corp.intel.com>
+Received: from smtp.nue.novell.com ([195.135.221.5]:35895 "EHLO
+	smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751917Ab2HUHud (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Aug 2012 03:50:33 -0400
+In-Reply-To: <1345496512-11780-2-git-send-email-corentin.chary@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "R, Durgadoss" <durgadoss.r@intel.com>
-Cc: "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>, "lenb@kernel.org" <lenb@kernel.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "amit.kachhap@linaro.org" <amit.kachhap@linaro.org>, "wni@nvidia.com" <wni@nvidia.com>
+To: Corentin Chary <corentin.chary@gmail.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, Joey Lee <jlee@novell.com>, Matthew Garrett <mjg@redhat.com>, linux-kernel@vger.kernel.org, acpi4asus-user@lists.sourceforge.net
 
-On =E4=BA=8C, 2012-08-21 at 00:41 -0600, R, Durgadoss wrote:
-> Hi Rui,
+=E6=96=BC =E4=B8=80=EF=BC=8C2012-08-20 =E6=96=BC 23:01 +0200=EF=BC=8CCo=
+rentin Chary =E6=8F=90=E5=88=B0=EF=BC=9A
+> Signed-off-by: Corentin Chary <corentin.chary@gmail.com>
+> ---
+>  drivers/platform/x86/acer-wmi.c       |    2 --
+>  drivers/platform/x86/apple-gmux.c     |    4 ----
+>  drivers/platform/x86/asus-wmi.c       |    4 ----
+>  drivers/platform/x86/samsung-laptop.c |    4 ----
+>  4 files changed, 14 deletions(-)
 >=20
-> > > > -----Original Message-----
-> > > > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
-> > > > owner@vger.kernel.org] On Behalf Of Eduardo Valentin
-> > > > Sent: Tuesday, August 21, 2012 11:10 AM
-> > > > To: R, Durgadoss
-> > > > Cc: lenb@kernel.org; Zhang, Rui; rjw@sisk.pl; linux-acpi@vger.k=
-ernel.org;
-> > > > linux-pm@vger.kernel.org; eduardo.valentin@ti.com;
-> > > > amit.kachhap@linaro.org; wni@nvidia.com
-> > > > Subject: Re: [PATCH 13/13] Thermal: Platform layer changes to p=
-rovide
-> > > > thermal data
-> > > >
-> > > > Hello,
-> > > >
-> > > > On Thu, Aug 09, 2012 at 06:16:05PM +0530, Durgadoss R wrote:
-> > > > > This patch shows how can we add platform specific thermal dat=
-a
-> > > > > required by the thermal framework. This is just an example
-> > > > > patch, and _not_ for merge.
-> > > > >
-> > > > > Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
-> > > > > ---
-> > > > >  arch/x86/platform/mrst/mrst.c |   42
-> > > > +++++++++++++++++++++++++++++++++++++++++
-> > > > >  1 file changed, 42 insertions(+)
-> > > > >
-> > > > > diff --git a/arch/x86/platform/mrst/mrst.c
-> > > > b/arch/x86/platform/mrst/mrst.c
-> > > > > index fd41a92..0440db5 100644
-> > > > > --- a/arch/x86/platform/mrst/mrst.c
-> > > > > +++ b/arch/x86/platform/mrst/mrst.c
-> > > > > @@ -30,6 +30,7 @@
-> > > > >  #include <linux/mfd/intel_msic.h>
-> > > > >  #include <linux/gpio.h>
-> > > > >  #include <linux/i2c/tc35876x.h>
-> > > > > +#include <linux/thermal.h>
-> > > > >
-> > > > >  #include <asm/setup.h>
-> > > > >  #include <asm/mpspec_def.h>
-> > > > > @@ -78,6 +79,30 @@ struct sfi_rtc_table_entry
-> > > > sfi_mrtc_array[SFI_MRTC_MAX];
-> > > > >  EXPORT_SYMBOL_GPL(sfi_mrtc_array);
-> > > > >  int sfi_mrtc_num;
-> > > > >
-> > > > > +#define MRST_THERMAL_ZONES	3
-> > > > > +struct thermal_zone_params tzp[MRST_THERMAL_ZONES] =3D {
-> > > > > +	{ .thermal_zone_name =3D "CPU",
-> > > > > +	.throttle_policy =3D THERMAL_FAIR_SHARE,
-> > > > > +	.num_cdevs =3D 2,
-> > > > > +	.cdevs_name =3D {"CPU", "Battery"},
-> > > > > +	.trip_mask =3D {0x0F, 0x08},
-> > > > > +	.weights =3D {80, 20}, },
-> > > > > +
-> > > > > +	{ .thermal_zone_name =3D "Battery",
-> > > > > +	.throttle_policy =3D THERMAL_FAIR_SHARE,
-> > > > > +	.num_cdevs =3D 1,
-> > > > > +	.cdevs_name =3D {"Battery"},
-> > > > > +	.trip_mask =3D {0x0F},
-> > > > > +	.weights =3D {100}, },
-> > > > > +
-> > > > > +	{ .thermal_zone_name =3D "Skin",
-> > > > > +	.throttle_policy =3D THERMAL_FAIR_SHARE,
-> > > > > +	.num_cdevs =3D 2,
-> > > > > +	.cdevs_name =3D {"Display", "Battery"},
-> > > > > +	.trip_mask =3D {0x0F, 0x0F},
-> > > > > +	.weights =3D {50, 50}, }
-> > > >
-> > > > Please consider the comment I sent on your data definition and =
-also the
-> > > > comment I made on this patch on your RFC series.
-> > >
-> > > Yes.. I don't know why/how I missed it.
-> > > Also, saw the same comment on one of the other patches also.
-> > >
-> > > Will surely fix this thing in v2.
-> > >
-> > > BTW, any suggestion for the 'name' of that structure ? :-)
-> >=20
-> > hmmm,
-> > do we still have thermal_zone_platforms in patch v2?
-> > I do not think we need this if we only bind devices via .bind()
-> > callback.
->=20
-> We can bind devices via .bind call back, and that will take some load
-> off the framework code. But even then, we would need this structure
-> right ?
-why?
-I'd prefer introduce something like this,
-struct thermal_bind_params {
-	int trip;
-	unsigned long upper;
-	unsinged long lower;
-	int weight;
-	int sample_period;
-}
+> diff --git a/drivers/platform/x86/acer-wmi.c b/drivers/platform/x86/a=
+cer-wmi.c
+> index 3782e1c..934d861 100644
+> --- a/drivers/platform/x86/acer-wmi.c
+> +++ b/drivers/platform/x86/acer-wmi.c
+> @@ -2196,10 +2196,8 @@ static int __init acer_wmi_init(void)
+>  		interface->capability &=3D ~ACER_CAP_BRIGHTNESS;
+>  		pr_info("Brightness must be controlled by acpi video driver\n");
+>  	} else {
+> -#ifdef CONFIG_ACPI_VIDEO
+>  		pr_info("Disabling ACPI video driver\n");
+>  		acpi_video_unregister();
+> -#endif
+>  	}
+> =20
 
-and use thermal_zone_bind_cooling_device(tz, cdev, thermal_bind_params)=
-,
-throttle_policy should be set when invoking
-thermal_zone_device_register.
+Yes, we need this patch otherwise the acpi/video will not unregister if
+acpi/video build to module. It will cause regression on v3.6 kernel for
+some machines backlight control need use 'acpi_backlight=3Dvendor'.
 
-is there any information in thermal_zone_params can not be convert to
-thermal_bind_params?
+Acked-by: Lee, Chun-Yi <jlee@suse.com>
 
-thanks,
-rui
 
->  Say, when we obtain platform data from a thermal driver, it
-> should know 'what format the platform data is' ..correct ?
->=20
-> I theoretically agree with you that individual platform drivers can
-> have data in their own format, but that will be a heavy loss on
-> standardization.
->=20
-> So,
-> I will remove the extra bind code I added to framework, and
-> (keep it the old way it was) but still prefer to have the structure
-> put in thermal.h.
->=20
-> Thanks,
-> Durga
+Thanks a lot!
+Joey Lee
+
+>  	if (wmi_has_guid(WMID_GUID3)) {
+> diff --git a/drivers/platform/x86/apple-gmux.c b/drivers/platform/x86=
+/apple-gmux.c
+> index dfb1a92..dca31ce 100644
+> --- a/drivers/platform/x86/apple-gmux.c
+> +++ b/drivers/platform/x86/apple-gmux.c
+> @@ -505,9 +505,7 @@ static int __devinit gmux_probe(struct pnp_dev *p=
+np,
+>  	 * Disable the other backlight choices.
+>  	 */
+>  	acpi_video_dmi_promote_vendor();
+> -#if defined (CONFIG_ACPI_VIDEO) || defined (CONFIG_ACPI_VIDEO_MODULE=
+)
+>  	acpi_video_unregister();
+> -#endif
+>  	apple_bl_unregister();
+> =20
+>  	gmux_data->power_state =3D VGA_SWITCHEROO_ON;
+> @@ -593,9 +591,7 @@ static void __devexit gmux_remove(struct pnp_dev =
+*pnp)
+>  	kfree(gmux_data);
+> =20
+>  	acpi_video_dmi_demote_vendor();
+> -#if defined (CONFIG_ACPI_VIDEO) || defined (CONFIG_ACPI_VIDEO_MODULE=
+)
+>  	acpi_video_register();
+> -#endif
+>  	apple_bl_register();
+>  }
+> =20
+> diff --git a/drivers/platform/x86/asus-wmi.c b/drivers/platform/x86/a=
+sus-wmi.c
+> index 6a91a0c..912ec7d 100644
+> --- a/drivers/platform/x86/asus-wmi.c
+> +++ b/drivers/platform/x86/asus-wmi.c
+> @@ -47,9 +47,7 @@
+>  #include <linux/thermal.h>
+>  #include <acpi/acpi_bus.h>
+>  #include <acpi/acpi_drivers.h>
+> -#ifdef CONFIG_ACPI_VIDEO
+>  #include <acpi/video.h>
+> -#endif
+> =20
+>  #include "asus-wmi.h"
+> =20
+> @@ -1780,10 +1778,8 @@ static int asus_wmi_add(struct platform_device=
+ *pdev)
+>  	if (asus->driver->quirks->wmi_backlight_power)
+>  		acpi_video_dmi_promote_vendor();
+>  	if (!acpi_video_backlight_support()) {
+> -#ifdef CONFIG_ACPI_VIDEO
+>  		pr_info("Disabling ACPI video driver\n");
+>  		acpi_video_unregister();
+> -#endif
+>  		err =3D asus_wmi_backlight_init(asus);
+>  		if (err && err !=3D -ENODEV)
+>  			goto fail_backlight;
+> diff --git a/drivers/platform/x86/samsung-laptop.c b/drivers/platform=
+/x86/samsung-laptop.c
+> index c1ca7bc..dd90d15 100644
+> --- a/drivers/platform/x86/samsung-laptop.c
+> +++ b/drivers/platform/x86/samsung-laptop.c
+> @@ -26,9 +26,7 @@
+>  #include <linux/seq_file.h>
+>  #include <linux/debugfs.h>
+>  #include <linux/ctype.h>
+> -#ifdef CONFIG_ACPI_VIDEO
+>  #include <acpi/video.h>
+> -#endif
+> =20
+>  /*
+>   * This driver is needed because a number of Samsung laptops do not =
+hook
+> @@ -1558,9 +1556,7 @@ static int __init samsung_init(void)
+>  		samsung->handle_backlight =3D false;
+>  	} else if (samsung->quirks->broken_acpi_video) {
+>  		pr_info("Disabling ACPI video driver\n");
+> -#ifdef CONFIG_ACPI_VIDEO
+>  		acpi_video_unregister();
+> -#endif
+>  	}
+>  #endif
+> =20
 
 
 --
