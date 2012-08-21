@@ -1,89 +1,157 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
+From: Zhang Rui <rui.zhang@intel.com>
 Subject: RE: [PATCH 13/13] Thermal: Platform layer changes to provide
  thermal data
-Date: Tue, 21 Aug 2012 06:41:55 +0000
-Message-ID: <4D68720C2E767A4AA6A8796D42C8EB591AA8AD@BGSMSX101.gar.corp.intel.com>
+Date: Tue, 21 Aug 2012 14:52:34 +0800
+Message-ID: <1345531954.1682.965.camel@rui.sh.intel.com>
 References: <1344516365-7230-1-git-send-email-durgadoss.r@intel.com>
 	 <1344516365-7230-14-git-send-email-durgadoss.r@intel.com>
 	 <20120821053950.GC9833@besouro>
 	 <4D68720C2E767A4AA6A8796D42C8EB591AA82F@BGSMSX101.gar.corp.intel.com>
- <1345528555.1682.958.camel@rui.sh.intel.com>
+	 <1345528555.1682.958.camel@rui.sh.intel.com>
+	 <4D68720C2E767A4AA6A8796D42C8EB591AA8AD@BGSMSX101.gar.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:20569 "EHLO mga11.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:52012 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752878Ab2HUGmL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 21 Aug 2012 02:42:11 -0400
-In-Reply-To: <1345528555.1682.958.camel@rui.sh.intel.com>
-Content-Language: en-US
+	id S1751775Ab2HUGvd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 21 Aug 2012 02:51:33 -0400
+In-Reply-To: <4D68720C2E767A4AA6A8796D42C8EB591AA8AD@BGSMSX101.gar.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>
+To: "R, Durgadoss" <durgadoss.r@intel.com>
 Cc: "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>, "lenb@kernel.org" <lenb@kernel.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "amit.kachhap@linaro.org" <amit.kachhap@linaro.org>, "wni@nvidia.com" <wni@nvidia.com>
 
-SGkgUnVpLA0KDQo+ID4gPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+ID4gRnJvbTog
-bGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1hY3BpLQ0KPiA+
-ID4gb3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgRWR1YXJkbyBWYWxlbnRpbg0K
-PiA+ID4gU2VudDogVHVlc2RheSwgQXVndXN0IDIxLCAyMDEyIDExOjEwIEFNDQo+ID4gPiBUbzog
-UiwgRHVyZ2Fkb3NzDQo+ID4gPiBDYzogbGVuYkBrZXJuZWwub3JnOyBaaGFuZywgUnVpOyByandA
-c2lzay5wbDsgbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc7DQo+ID4gPiBsaW51eC1wbUB2Z2Vy
-Lmtlcm5lbC5vcmc7IGVkdWFyZG8udmFsZW50aW5AdGkuY29tOw0KPiA+ID4gYW1pdC5rYWNoaGFw
-QGxpbmFyby5vcmc7IHduaUBudmlkaWEuY29tDQo+ID4gPiBTdWJqZWN0OiBSZTogW1BBVENIIDEz
-LzEzXSBUaGVybWFsOiBQbGF0Zm9ybSBsYXllciBjaGFuZ2VzIHRvIHByb3ZpZGUNCj4gPiA+IHRo
-ZXJtYWwgZGF0YQ0KPiA+ID4NCj4gPiA+IEhlbGxvLA0KPiA+ID4NCj4gPiA+IE9uIFRodSwgQXVn
-IDA5LCAyMDEyIGF0IDA2OjE2OjA1UE0gKzA1MzAsIER1cmdhZG9zcyBSIHdyb3RlOg0KPiA+ID4g
-PiBUaGlzIHBhdGNoIHNob3dzIGhvdyBjYW4gd2UgYWRkIHBsYXRmb3JtIHNwZWNpZmljIHRoZXJt
-YWwgZGF0YQ0KPiA+ID4gPiByZXF1aXJlZCBieSB0aGUgdGhlcm1hbCBmcmFtZXdvcmsuIFRoaXMg
-aXMganVzdCBhbiBleGFtcGxlDQo+ID4gPiA+IHBhdGNoLCBhbmQgX25vdF8gZm9yIG1lcmdlLg0K
-PiA+ID4gPg0KPiA+ID4gPiBTaWduZWQtb2ZmLWJ5OiBEdXJnYWRvc3MgUiA8ZHVyZ2Fkb3NzLnJA
-aW50ZWwuY29tPg0KPiA+ID4gPiAtLS0NCj4gPiA+ID4gIGFyY2gveDg2L3BsYXRmb3JtL21yc3Qv
-bXJzdC5jIHwgICA0Mg0KPiA+ID4gKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-KysrKysNCj4gPiA+ID4gIDEgZmlsZSBjaGFuZ2VkLCA0MiBpbnNlcnRpb25zKCspDQo+ID4gPiA+
-DQo+ID4gPiA+IGRpZmYgLS1naXQgYS9hcmNoL3g4Ni9wbGF0Zm9ybS9tcnN0L21yc3QuYw0KPiA+
-ID4gYi9hcmNoL3g4Ni9wbGF0Zm9ybS9tcnN0L21yc3QuYw0KPiA+ID4gPiBpbmRleCBmZDQxYTky
-Li4wNDQwZGI1IDEwMDY0NA0KPiA+ID4gPiAtLS0gYS9hcmNoL3g4Ni9wbGF0Zm9ybS9tcnN0L21y
-c3QuYw0KPiA+ID4gPiArKysgYi9hcmNoL3g4Ni9wbGF0Zm9ybS9tcnN0L21yc3QuYw0KPiA+ID4g
-PiBAQCAtMzAsNiArMzAsNyBAQA0KPiA+ID4gPiAgI2luY2x1ZGUgPGxpbnV4L21mZC9pbnRlbF9t
-c2ljLmg+DQo+ID4gPiA+ICAjaW5jbHVkZSA8bGludXgvZ3Bpby5oPg0KPiA+ID4gPiAgI2luY2x1
-ZGUgPGxpbnV4L2kyYy90YzM1ODc2eC5oPg0KPiA+ID4gPiArI2luY2x1ZGUgPGxpbnV4L3RoZXJt
-YWwuaD4NCj4gPiA+ID4NCj4gPiA+ID4gICNpbmNsdWRlIDxhc20vc2V0dXAuaD4NCj4gPiA+ID4g
-ICNpbmNsdWRlIDxhc20vbXBzcGVjX2RlZi5oPg0KPiA+ID4gPiBAQCAtNzgsNiArNzksMzAgQEAg
-c3RydWN0IHNmaV9ydGNfdGFibGVfZW50cnkNCj4gPiA+IHNmaV9tcnRjX2FycmF5W1NGSV9NUlRD
-X01BWF07DQo+ID4gPiA+ICBFWFBPUlRfU1lNQk9MX0dQTChzZmlfbXJ0Y19hcnJheSk7DQo+ID4g
-PiA+ICBpbnQgc2ZpX21ydGNfbnVtOw0KPiA+ID4gPg0KPiA+ID4gPiArI2RlZmluZSBNUlNUX1RI
-RVJNQUxfWk9ORVMJMw0KPiA+ID4gPiArc3RydWN0IHRoZXJtYWxfem9uZV9wYXJhbXMgdHpwW01S
-U1RfVEhFUk1BTF9aT05FU10gPSB7DQo+ID4gPiA+ICsJeyAudGhlcm1hbF96b25lX25hbWUgPSAi
-Q1BVIiwNCj4gPiA+ID4gKwkudGhyb3R0bGVfcG9saWN5ID0gVEhFUk1BTF9GQUlSX1NIQVJFLA0K
-PiA+ID4gPiArCS5udW1fY2RldnMgPSAyLA0KPiA+ID4gPiArCS5jZGV2c19uYW1lID0geyJDUFUi
-LCAiQmF0dGVyeSJ9LA0KPiA+ID4gPiArCS50cmlwX21hc2sgPSB7MHgwRiwgMHgwOH0sDQo+ID4g
-PiA+ICsJLndlaWdodHMgPSB7ODAsIDIwfSwgfSwNCj4gPiA+ID4gKw0KPiA+ID4gPiArCXsgLnRo
-ZXJtYWxfem9uZV9uYW1lID0gIkJhdHRlcnkiLA0KPiA+ID4gPiArCS50aHJvdHRsZV9wb2xpY3kg
-PSBUSEVSTUFMX0ZBSVJfU0hBUkUsDQo+ID4gPiA+ICsJLm51bV9jZGV2cyA9IDEsDQo+ID4gPiA+
-ICsJLmNkZXZzX25hbWUgPSB7IkJhdHRlcnkifSwNCj4gPiA+ID4gKwkudHJpcF9tYXNrID0gezB4
-MEZ9LA0KPiA+ID4gPiArCS53ZWlnaHRzID0gezEwMH0sIH0sDQo+ID4gPiA+ICsNCj4gPiA+ID4g
-Kwl7IC50aGVybWFsX3pvbmVfbmFtZSA9ICJTa2luIiwNCj4gPiA+ID4gKwkudGhyb3R0bGVfcG9s
-aWN5ID0gVEhFUk1BTF9GQUlSX1NIQVJFLA0KPiA+ID4gPiArCS5udW1fY2RldnMgPSAyLA0KPiA+
-ID4gPiArCS5jZGV2c19uYW1lID0geyJEaXNwbGF5IiwgIkJhdHRlcnkifSwNCj4gPiA+ID4gKwku
-dHJpcF9tYXNrID0gezB4MEYsIDB4MEZ9LA0KPiA+ID4gPiArCS53ZWlnaHRzID0gezUwLCA1MH0s
-IH0NCj4gPiA+DQo+ID4gPiBQbGVhc2UgY29uc2lkZXIgdGhlIGNvbW1lbnQgSSBzZW50IG9uIHlv
-dXIgZGF0YSBkZWZpbml0aW9uIGFuZCBhbHNvIHRoZQ0KPiA+ID4gY29tbWVudCBJIG1hZGUgb24g
-dGhpcyBwYXRjaCBvbiB5b3VyIFJGQyBzZXJpZXMuDQo+ID4NCj4gPiBZZXMuLiBJIGRvbid0IGtu
-b3cgd2h5L2hvdyBJIG1pc3NlZCBpdC4NCj4gPiBBbHNvLCBzYXcgdGhlIHNhbWUgY29tbWVudCBv
-biBvbmUgb2YgdGhlIG90aGVyIHBhdGNoZXMgYWxzby4NCj4gPg0KPiA+IFdpbGwgc3VyZWx5IGZp
-eCB0aGlzIHRoaW5nIGluIHYyLg0KPiA+DQo+ID4gQlRXLCBhbnkgc3VnZ2VzdGlvbiBmb3IgdGhl
-ICduYW1lJyBvZiB0aGF0IHN0cnVjdHVyZSA/IDotKQ0KPiANCj4gaG1tbSwNCj4gZG8gd2Ugc3Rp
-bGwgaGF2ZSB0aGVybWFsX3pvbmVfcGxhdGZvcm1zIGluIHBhdGNoIHYyPw0KPiBJIGRvIG5vdCB0
-aGluayB3ZSBuZWVkIHRoaXMgaWYgd2Ugb25seSBiaW5kIGRldmljZXMgdmlhIC5iaW5kKCkNCj4g
-Y2FsbGJhY2suDQoNCldlIGNhbiBiaW5kIGRldmljZXMgdmlhIC5iaW5kIGNhbGwgYmFjaywgYW5k
-IHRoYXQgd2lsbCB0YWtlIHNvbWUgbG9hZA0Kb2ZmIHRoZSBmcmFtZXdvcmsgY29kZS4gQnV0IGV2
-ZW4gdGhlbiwgd2Ugd291bGQgbmVlZCB0aGlzIHN0cnVjdHVyZQ0KcmlnaHQgPyBTYXksIHdoZW4g
-d2Ugb2J0YWluIHBsYXRmb3JtIGRhdGEgZnJvbSBhIHRoZXJtYWwgZHJpdmVyLCBpdA0Kc2hvdWxk
-IGtub3cgJ3doYXQgZm9ybWF0IHRoZSBwbGF0Zm9ybSBkYXRhIGlzJyAuLmNvcnJlY3QgPw0KDQpJ
-IHRoZW9yZXRpY2FsbHkgYWdyZWUgd2l0aCB5b3UgdGhhdCBpbmRpdmlkdWFsIHBsYXRmb3JtIGRy
-aXZlcnMgY2FuDQpoYXZlIGRhdGEgaW4gdGhlaXIgb3duIGZvcm1hdCwgYnV0IHRoYXQgd2lsbCBi
-ZSBhIGhlYXZ5IGxvc3Mgb24NCnN0YW5kYXJkaXphdGlvbi4NCg0KU28sDQpJIHdpbGwgcmVtb3Zl
-IHRoZSBleHRyYSBiaW5kIGNvZGUgSSBhZGRlZCB0byBmcmFtZXdvcmssIGFuZA0KKGtlZXAgaXQg
-dGhlIG9sZCB3YXkgaXQgd2FzKSBidXQgc3RpbGwgcHJlZmVyIHRvIGhhdmUgdGhlIHN0cnVjdHVy
-ZQ0KcHV0IGluIHRoZXJtYWwuaC4NCg0KVGhhbmtzLA0KRHVyZ2ENCg==
+On =E4=BA=8C, 2012-08-21 at 00:41 -0600, R, Durgadoss wrote:
+> Hi Rui,
+>=20
+> > > > -----Original Message-----
+> > > > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+> > > > owner@vger.kernel.org] On Behalf Of Eduardo Valentin
+> > > > Sent: Tuesday, August 21, 2012 11:10 AM
+> > > > To: R, Durgadoss
+> > > > Cc: lenb@kernel.org; Zhang, Rui; rjw@sisk.pl; linux-acpi@vger.k=
+ernel.org;
+> > > > linux-pm@vger.kernel.org; eduardo.valentin@ti.com;
+> > > > amit.kachhap@linaro.org; wni@nvidia.com
+> > > > Subject: Re: [PATCH 13/13] Thermal: Platform layer changes to p=
+rovide
+> > > > thermal data
+> > > >
+> > > > Hello,
+> > > >
+> > > > On Thu, Aug 09, 2012 at 06:16:05PM +0530, Durgadoss R wrote:
+> > > > > This patch shows how can we add platform specific thermal dat=
+a
+> > > > > required by the thermal framework. This is just an example
+> > > > > patch, and _not_ for merge.
+> > > > >
+> > > > > Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
+> > > > > ---
+> > > > >  arch/x86/platform/mrst/mrst.c |   42
+> > > > +++++++++++++++++++++++++++++++++++++++++
+> > > > >  1 file changed, 42 insertions(+)
+> > > > >
+> > > > > diff --git a/arch/x86/platform/mrst/mrst.c
+> > > > b/arch/x86/platform/mrst/mrst.c
+> > > > > index fd41a92..0440db5 100644
+> > > > > --- a/arch/x86/platform/mrst/mrst.c
+> > > > > +++ b/arch/x86/platform/mrst/mrst.c
+> > > > > @@ -30,6 +30,7 @@
+> > > > >  #include <linux/mfd/intel_msic.h>
+> > > > >  #include <linux/gpio.h>
+> > > > >  #include <linux/i2c/tc35876x.h>
+> > > > > +#include <linux/thermal.h>
+> > > > >
+> > > > >  #include <asm/setup.h>
+> > > > >  #include <asm/mpspec_def.h>
+> > > > > @@ -78,6 +79,30 @@ struct sfi_rtc_table_entry
+> > > > sfi_mrtc_array[SFI_MRTC_MAX];
+> > > > >  EXPORT_SYMBOL_GPL(sfi_mrtc_array);
+> > > > >  int sfi_mrtc_num;
+> > > > >
+> > > > > +#define MRST_THERMAL_ZONES	3
+> > > > > +struct thermal_zone_params tzp[MRST_THERMAL_ZONES] =3D {
+> > > > > +	{ .thermal_zone_name =3D "CPU",
+> > > > > +	.throttle_policy =3D THERMAL_FAIR_SHARE,
+> > > > > +	.num_cdevs =3D 2,
+> > > > > +	.cdevs_name =3D {"CPU", "Battery"},
+> > > > > +	.trip_mask =3D {0x0F, 0x08},
+> > > > > +	.weights =3D {80, 20}, },
+> > > > > +
+> > > > > +	{ .thermal_zone_name =3D "Battery",
+> > > > > +	.throttle_policy =3D THERMAL_FAIR_SHARE,
+> > > > > +	.num_cdevs =3D 1,
+> > > > > +	.cdevs_name =3D {"Battery"},
+> > > > > +	.trip_mask =3D {0x0F},
+> > > > > +	.weights =3D {100}, },
+> > > > > +
+> > > > > +	{ .thermal_zone_name =3D "Skin",
+> > > > > +	.throttle_policy =3D THERMAL_FAIR_SHARE,
+> > > > > +	.num_cdevs =3D 2,
+> > > > > +	.cdevs_name =3D {"Display", "Battery"},
+> > > > > +	.trip_mask =3D {0x0F, 0x0F},
+> > > > > +	.weights =3D {50, 50}, }
+> > > >
+> > > > Please consider the comment I sent on your data definition and =
+also the
+> > > > comment I made on this patch on your RFC series.
+> > >
+> > > Yes.. I don't know why/how I missed it.
+> > > Also, saw the same comment on one of the other patches also.
+> > >
+> > > Will surely fix this thing in v2.
+> > >
+> > > BTW, any suggestion for the 'name' of that structure ? :-)
+> >=20
+> > hmmm,
+> > do we still have thermal_zone_platforms in patch v2?
+> > I do not think we need this if we only bind devices via .bind()
+> > callback.
+>=20
+> We can bind devices via .bind call back, and that will take some load
+> off the framework code. But even then, we would need this structure
+> right ?
+why?
+I'd prefer introduce something like this,
+struct thermal_bind_params {
+	int trip;
+	unsigned long upper;
+	unsinged long lower;
+	int weight;
+	int sample_period;
+}
+
+and use thermal_zone_bind_cooling_device(tz, cdev, thermal_bind_params)=
+,
+throttle_policy should be set when invoking
+thermal_zone_device_register.
+
+is there any information in thermal_zone_params can not be convert to
+thermal_bind_params?
+
+thanks,
+rui
+
+>  Say, when we obtain platform data from a thermal driver, it
+> should know 'what format the platform data is' ..correct ?
+>=20
+> I theoretically agree with you that individual platform drivers can
+> have data in their own format, but that will be a heavy loss on
+> standardization.
+>=20
+> So,
+> I will remove the extra bind code I added to framework, and
+> (keep it the old way it was) but still prefer to have the structure
+> put in thermal.h.
+>=20
+> Thanks,
+> Durga
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
