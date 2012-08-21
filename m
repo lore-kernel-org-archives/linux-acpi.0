@@ -1,175 +1,125 @@
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: Re: [PATCH V4 13/13] Thermal: Introduce locking for
- cdev.thermal_instances list.
-Date: Tue, 21 Aug 2012 08:01:21 +0300
-Message-ID: <20120821050121.GT9833@besouro>
+Subject: Re: [PATCH V4 00/13] Thermal: generic thermal layer enhancement
+Date: Tue, 21 Aug 2012 08:10:19 +0300
+Message-ID: <20120821051018.GU9833@besouro>
 References: <1343292083-2047-1-git-send-email-rui.zhang@intel.com>
- <1343292083-2047-14-git-send-email-rui.zhang@intel.com>
- <20120820154518.GB9833@besouro>
- <1345510407.1682.930.camel@rui.sh.intel.com>
+ <20120820155336.GM9833@besouro>
 Reply-To: eduardo.valentin@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from na3sys009aog132.obsmtp.com ([74.125.149.250]:36734 "EHLO
-	na3sys009aog132.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750902Ab2HUFBb (ORCPT
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:53813 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752575Ab2HUFK2 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 21 Aug 2012 01:01:31 -0400
-Received: by weyu54 with SMTP id u54so5546443wey.17
-        for <linux-acpi@vger.kernel.org>; Mon, 20 Aug 2012 22:01:27 -0700 (PDT)
+	Tue, 21 Aug 2012 01:10:28 -0400
+Received: by wgbfm10 with SMTP id fm10so4102586wgb.1
+        for <linux-acpi@vger.kernel.org>; Mon, 20 Aug 2012 22:10:25 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <1345510407.1682.930.camel@rui.sh.intel.com>
+In-Reply-To: <20120820155336.GM9833@besouro>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: eduardo.valentin@ti.com, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, R Durgadoss <durgadoss.r@intel.com>, Amit Kachhap <amit.kachhap@linaro.org>, Wei Ni <wni@nvidia.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+To: Eduardo Valentin <eduardo.valentin@ti.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, R Durgadoss <durgadoss.r@intel.com>, Amit Kachhap <amit.kachhap@linaro.org>, Wei Ni <wni@nvidia.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 
-Hello,
+Hello Rui,
 
-On Tue, Aug 21, 2012 at 08:53:27AM +0800, Zhang Rui wrote:
-> On =E4=B8=80, 2012-08-20 at 18:45 +0300, Eduardo Valentin wrote:
-> > Hello Rui,
-> >=20
-> > On Thu, Jul 26, 2012 at 04:41:23PM +0800, Zhang Rui wrote:
-> > > we need to go over all the thermal_instance list of a cooling dev=
-ice
-> > > to decide which cooling state to put the cooling device to.
-> > >=20
-> > > But at this time, as a cooling device may be referenced in multip=
-le
-> > > thermal zones, we need to lock the list first in case
-> > > another thermal zone is updating this cooling device.
-> > >=20
-> > > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> >=20
-> > Reviewed-by: Eduardo Valentin <eduardo.valentin@ti.com>
-> >=20
-> > A minor comment bellow.
-> >=20
-> > > ---
-> > >  drivers/thermal/thermal_sys.c |    8 ++++++++
-> > >  include/linux/thermal.h       |    1 +
-> > >  2 files changed, 9 insertions(+)
-> > >=20
-> > > diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/ther=
-mal_sys.c
-> > > index 7f3a891..356a59d 100644
-> > > --- a/drivers/thermal/thermal_sys.c
-> > > +++ b/drivers/thermal/thermal_sys.c
-> > > @@ -799,6 +799,7 @@ int thermal_zone_bind_cooling_device(struct t=
-hermal_zone_device *tz,
-> > >  		goto remove_symbol_link;
-> > > =20
-> > >  	mutex_lock(&tz->lock);
-> > > +	mutex_lock(&cdev->lock);
-> >=20
-> > Why do you need to lock while going through the tz thermal_instance=
-s?
-> >=20
-> > >  	list_for_each_entry(pos, &tz->thermal_instances, tz_node)
-> > >  	    if (pos->tz =3D=3D tz && pos->trip =3D=3D trip && pos->cdev=
- =3D=3D cdev) {
-> > >  		result =3D -EEXIST;
-> > > @@ -808,6 +809,7 @@ int thermal_zone_bind_cooling_device(struct t=
-hermal_zone_device *tz,
-> > >  		list_add_tail(&dev->tz_node, &tz->thermal_instances);
-> > >  		list_add_tail(&dev->cdev_node, &cdev->thermal_instances);
-> >=20
-> > Locking the above operation should be enough, no?
-> >=20
-> we need to add this thermal_instance to the cooling device
-> thermal_instance list.
-> say, what if another thermal zone that references this cooling device=
- is
-> being unregistered at the same time?
+On Mon, Aug 20, 2012 at 06:53:36PM +0300, Eduardo Valentin wrote:
+> Hello Rui,
+> 
+> On Thu, Jul 26, 2012 at 04:41:10PM +0800, Zhang Rui wrote:
+> > 
+> > Hi, all,
+> > 
+> > This is the patch set for linux-next.
+> 
+> The patch series looks good to me. The only issue is that, as now the omap-thermal
+> driver is under staging directory, you might want to update the series to cover it as
+> well (patches 03 and 05). I can provide you patches if you wish, but I'd recommend to
+> write atomic patches so that we always keep the tree in one piece.
+> 
+> Let me know what you think.
 
-Well yes, that part I got it. But do you need to lock the cdev->lock
-while doing the search under tz->thermal_instances?
+Here is the differential diff on omap-thermal-common.c, on top of this series, which pretty much same diff
+compared to your branch. First hunk is on patch 03/13. Second one on patch 05/13. Feel free to include
+those on your patches.
 
-I believe you need to lock it only while adding it to cdev->thermal_ins=
-tances.
-That would cover the situation you are talking about.
+diff --git a/drivers/staging/omap-thermal/omap-thermal-common.c b/drivers/staging/omap-thermal/omap-thermal-common.c
+index 0675a5e..b4cd6cc 100644
+--- a/drivers/staging/omap-thermal/omap-thermal-common.c
++++ b/drivers/staging/omap-thermal/omap-thermal-common.c
+@@ -120,7 +120,9 @@ static int omap_thermal_bind(struct thermal_zone_device *thermal,
+ 
+        /* TODO: bind with min and max states */
+        /* Simple thing, two trips, one passive another critical */
+-       return thermal_zone_bind_cooling_device(thermal, 0, cdev);
++       return thermal_zone_bind_cooling_device(thermal, 0, cdev,
++                                               THERMAL_NO_LIMIT,
++                                               THERMAL_NO_LIMIT);
+ }
+ 
+ /* Unbind callback functions for thermal zone */
+@@ -246,7 +248,7 @@ int omap_thermal_expose_sensor(struct omap_bandgap *bg_ptr, int id,
+        /* Create thermal zone */
+        data->omap_thermal = thermal_zone_device_register(domain,
+                                OMAP_TRIP_NUMBER, 0, data, &omap_thermal_ops,
+-                               0, FAST_TEMP_MONITORING_RATE, 0, 0);
++                               0, FAST_TEMP_MONITORING_RATE);
+        if (IS_ERR_OR_NULL(data->omap_thermal)) {
+                dev_err(bg_ptr->dev, "thermal zone device is NULL\n");
+                return PTR_ERR(data->omap_thermal);
 
->=20
-> thanks,
-> rui
->=20
-> > >  	}
-> > > +	mutex_unlock(&cdev->lock);
-> > >  	mutex_unlock(&tz->lock);
-> > > =20
-> > >  	if (!result)
-> > > @@ -840,14 +842,17 @@ int thermal_zone_unbind_cooling_device(stru=
-ct thermal_zone_device *tz,
-> > >  	struct thermal_instance *pos, *next;
-> > > =20
-> > >  	mutex_lock(&tz->lock);
-> > > +	mutex_lock(&cdev->lock);
-> > >  	list_for_each_entry_safe(pos, next, &tz->thermal_instances, tz_=
-node) {
-> > >  		if (pos->tz =3D=3D tz && pos->trip =3D=3D trip && pos->cdev =3D=
-=3D cdev) {
-> > >  			list_del(&pos->tz_node);
-> > >  			list_del(&pos->cdev_node);
-> > > +			mutex_unlock(&cdev->lock);
-> > >  			mutex_unlock(&tz->lock);
-> > >  			goto unbind;
-> > >  		}
-> > >  	}
-> > > +	mutex_unlock(&cdev->lock);
-> > >  	mutex_unlock(&tz->lock);
-> > > =20
-> > >  	return -ENODEV;
-> > > @@ -913,6 +918,7 @@ thermal_cooling_device_register(char *type, v=
-oid *devdata,
-> > >  	}
-> > > =20
-> > >  	strcpy(cdev->type, type);
-> > > +	mutex_init(&cdev->lock);
-> > >  	INIT_LIST_HEAD(&cdev->thermal_instances);
-> > >  	cdev->ops =3D ops;
-> > >  	cdev->updated =3D true;
-> > > @@ -1016,6 +1022,7 @@ static void thermal_cdev_do_update(struct t=
-hermal_cooling_device *cdev)
-> > >  	if (cdev->updated)
-> > >  		return;
-> > > =20
-> > > +	mutex_lock(&cdev->lock);
-> > >  	/* Make sure cdev enters the deepest cooling state */
-> > >  	list_for_each_entry(instance, &cdev->thermal_instances, cdev_no=
-de) {
-> > >  		if (instance->target =3D=3D THERMAL_NO_TARGET)
-> > > @@ -1023,6 +1030,7 @@ static void thermal_cdev_do_update(struct t=
-hermal_cooling_device *cdev)
-> > >  		if (instance->target > target)
-> > >  			target =3D instance->target;
-> > >  	}
-> > > +	mutex_unlock(&cdev->lock);
-> > >  	cdev->ops->set_cur_state(cdev, target);
-> > >  	cdev->updated =3D true;
-> > >  }
-> > > diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-> > > index 06fd04d..d02d06d 100644
-> > > --- a/include/linux/thermal.h
-> > > +++ b/include/linux/thermal.h
-> > > @@ -95,6 +95,7 @@ struct thermal_cooling_device {
-> > >  	void *devdata;
-> > >  	const struct thermal_cooling_device_ops *ops;
-> > >  	bool updated; /* true if the cooling device does not need updat=
-e */
-> > > +	struct mutex lock; /* protect thermal_instances list */
-> > >  	struct list_head thermal_instances;
-> > >  	struct list_head node;
-> > >  };
-> > > --=20
-> > > 1.7.9.5
-> > >=20
->=20
->=20
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+> 
+> > 
+> > the changes includes:
+> > 
+> > V4:
+> > - dropped three patches which have been already picked by Len.
+> > - re-organize some piece of code based on Rafael's comments
+> > - improve some changelog
+> > 
+> > V3: http://marc.info/?l=linux-acpi&m=134318254518940&w=2
+> > - fixing a build error.
+> > - making a couple of changes based on Rafael's comments
+> > - removing the plist patch for now as I do not have validate data to show how much benefit it brings.
+> > 
+> > V2: http://marc.info/?l=linux-acpi&m=134267975014396&w=2
+> > - a couple of changes based on Eduardo and Amit's comments.
+> > - convert an internal list to plist to be more efficiency.
+> > 
+> > V1: http://marc.info/?l=linux-acpi&m=133938485224765&w=2
+> > - 12 RFC patches to fix the problems discussed in http://marc.info/?l=linux-acpi&m=133836783425764&w=2
+> > 
+> > please kindly review.
+> > 
+> > Any comments are welcome.
+> > 
+> > thanks,
+> > rui
+> > 
+> > ---------------------------------------------------------------------------
+> > Zhang Rui (13):
+> >       Thermal: Introduce multiple cooling states support
+> >       Thermal: Introduce cooling states range support
+> >       Thermal: set upper and lower limits
+> >       Thermal: Introduce .get_trend() callback.
+> >       Thermal: Remove tc1/tc2 in generic thermal layer.
+> >       Thermal: Introduce thermal_zone_trip_update()
+> >       Thermal: rename structure thermal_cooling_device_instance to thermal_instance
+> >       Thermal: Rename thermal_zone_device.cooling_devices to thermal_zone_device.instances
+> >       Thermal: Rename thermal_instance.node to thermal_instance.tz_node.
+> >       Thermal: List thermal_instance in thermal_cooling_device.
+> >       Thermal: Introduce simple arbitrator for setting device cooling state
+> >       Thermal: Unify the code for both active and passive cooling
+> >       Thermal: Introduce locking for cdev.thermal_instances
+> > ---------------------------------------------------------------------------
+> >  Documentation/thermal/sysfs-api.txt      |    9 +-
+> >  drivers/acpi/thermal.c                   |   98 +++++++---
+> >  drivers/platform/x86/acerhdf.c           |    5 +-
+> >  drivers/platform/x86/intel_mid_thermal.c |    2 +-
+> >  drivers/thermal/spear_thermal.c          |    2 +-
+> >  drivers/thermal/thermal_sys.c            |  308 +++++++++++++++++++-----------
+> >  include/linux/thermal.h                  |   28 ++-
+> >  7 files changed, 300 insertions(+), 152 deletions(-)
+> > ---------------------------------------------------------------------------
