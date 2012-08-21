@@ -1,144 +1,332 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: Re: [PATCH 04/13] Thermal: Add platform level information to
- thermal.h
-Date: Tue, 21 Aug 2012 00:11:46 +0300
-Message-ID: <20120820211146.GS9833@besouro>
-References: <1344516365-7230-1-git-send-email-durgadoss.r@intel.com>
- <1344516365-7230-5-git-send-email-durgadoss.r@intel.com>
-Reply-To: eduardo.valentin@ti.com
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH V4 05/13] Thermal: Remove tc1/tc2 in generic thermal
+ layer.
+Date: Tue, 21 Aug 2012 08:49:42 +0800
+Message-ID: <1345510182.1682.927.camel@rui.sh.intel.com>
+References: <1343292083-2047-1-git-send-email-rui.zhang@intel.com>
+	 <1343292083-2047-6-git-send-email-rui.zhang@intel.com>
+	 <CAGF5oy9DMdCFL41dGD8CBq_+VT_dTtsTrVjdTphmmxFdNr2j9g@mail.gmail.com>
+	 <1344473874.1682.644.camel@rui.sh.intel.com>
+	 <CAGF5oy9By=A6az=n7-AfPX_57HLzj3J0YXbFenKQXMvG2HcmYQ@mail.gmail.com>
+	 <20120820121842.GA9833@besouro>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:38945 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754967Ab2HTVLy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 20 Aug 2012 17:11:54 -0400
-Received: by wibhq4 with SMTP id hq4so3425523wib.8
-        for <linux-acpi@vger.kernel.org>; Mon, 20 Aug 2012 14:11:52 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <1344516365-7230-5-git-send-email-durgadoss.r@intel.com>
+Received: from mga11.intel.com ([192.55.52.93]:33808 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752744Ab2HUAsm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 20 Aug 2012 20:48:42 -0400
+In-Reply-To: <20120820121842.GA9833@besouro>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Durgadoss R <durgadoss.r@intel.com>
-Cc: lenb@kernel.org, rui.zhang@intel.com, rjw@sisk.pl, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, eduardo.valentin@ti.com, amit.kachhap@linaro.org, wni@nvidia.com
+To: eduardo.valentin@ti.com
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, R Durgadoss <durgadoss.r@intel.com>, Amit Kachhap <amit.kachhap@linaro.org>, Wei Ni <wni@nvidia.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 
-On Thu, Aug 09, 2012 at 06:15:56PM +0530, Durgadoss R wrote:
-> This patch creates a structure to hold a thermal zone's
-> platform level info, and also defines an extern function to
-> retrieve zone parameters from thermal_sys.c.
-> 
-> Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
-> ---
->  drivers/thermal/thermal_sys.c |    3 +++
->  include/linux/thermal.h       |   43 +++++++++++++++++++++++++++++++++++++++++
->  2 files changed, 46 insertions(+)
-> 
-> diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
-> index 998c16e..f043cd6 100644
-> --- a/drivers/thermal/thermal_sys.c
-> +++ b/drivers/thermal/thermal_sys.c
-> @@ -49,6 +49,9 @@ static LIST_HEAD(thermal_tz_list);
->  static LIST_HEAD(thermal_cdev_list);
->  static DEFINE_MUTEX(thermal_list_lock);
->  
-> +int (*get_platform_thermal_params)(struct thermal_zone_device *);
-> +EXPORT_SYMBOL(get_platform_thermal_params);
-> +
->  static int get_idr(struct idr *idr, struct mutex *lock, int *id)
->  {
->  	int err;
-> diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-> index 757a007..f9ce1e2 100644
-> --- a/include/linux/thermal.h
-> +++ b/include/linux/thermal.h
-> @@ -33,6 +33,8 @@
->  #define THERMAL_MAX_TRIPS	12
->  #define THERMAL_NAME_LENGTH	20
->  
-> +#define MAX_COOLING_DEVS	THERMAL_MAX_TRIPS
-> +
->  /* Initial state of a cooling device during binding */
->  #define THERMAL_NO_TARGET	-1UL
->  
-> @@ -49,6 +51,11 @@
->  #define THERMAL_GENL_VERSION                    0x01
->  #define THERMAL_GENL_MCAST_GROUP_NAME           "thermal_mc_group"
->  
-> +/* Thermal policies */
-> +#define THERMAL_USER_SPACE	0
-> +#define THERMAL_FAIR_SHARE	1
-> +#define	THERMAL_STEP_WISE	2
-> +
->  struct thermal_zone_device;
->  struct thermal_cooling_device;
->  
-> @@ -165,6 +172,7 @@ struct thermal_zone_device {
->  	struct mutex lock; /* protect thermal_instances list */
->  	struct list_head node;
->  	struct delayed_work poll_queue;
-> +	struct thermal_zone_params *tzp;
->  };
->  
->  /*
-> @@ -187,6 +195,31 @@ struct thermal_instance {
->  	struct list_head cdev_node; /* node in cdev->thermal_instances */
->  };
->  
-> +/* Platform level parameters associated with a thermal zone */
-> +struct thermal_zone_params {
-> +	char *thermal_zone_name;
+On =E4=B8=80, 2012-08-20 at 15:18 +0300, Eduardo Valentin wrote:
+> Hello,
+>=20
+> On Thu, Aug 09, 2012 at 06:10:04PM +0300, Valentin, Eduardo wrote:
+> >=20
+> > (resending the mail so that it reaches the mailing lists)
+> >=20
+> > Nice, I checked your tree and this patch is fine for me. Next time =
+you
+> > send it out, you may want to add my reviewed-by:
+>=20
+> Except that in your tree it is still introducing compilation issues u=
+nder omap-thermal-common.c
+>=20
+why, I think I have fixed that already.
+would you please send an incremental patch so that I can apply it?
 
-I suppose this will be plat data definition right? does it make sense to make the above a const?
+thanks,
+rui
+> >=20
+> > Reviewed-by: Eduardo Valentin <eduardo.valentin@ti.com>
+>=20
+> So, apart from the above comment, this patch is still fine for me.
+>=20
+> >=20
+> >=20
+> > >
+> > > thanks,
+> > > rui
+> > > > Apart from the compilation issues and the needed patch refresh,=
+ I am
+> > > > good with the patch. And thanks for pushing this forward.
+> > > >
+> > > > >  6 files changed, 11 insertions(+), 29 deletions(-)
+> > > > >
+> > > > > diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+> > > > > index 0c49e42..0c755d2 100644
+> > > > > --- a/drivers/acpi/thermal.c
+> > > > > +++ b/drivers/acpi/thermal.c
+> > > > > @@ -895,15 +895,12 @@ static int
+> > > > > acpi_thermal_register_thermal_zone(struct acpi_thermal *tz)
+> > > > >                 tz->thermal_zone =3D
+> > > > >                         thermal_zone_device_register("acpitz"=
+, trips,
+> > > > > 0, tz,
+> > > > >
+> > > > > &acpi_thermal_zone_ops,
+> > > > > -
+> > > > > tz->trips.passive.tc1,
+> > > > > -
+> > > > > tz->trips.passive.tc2,
+> > > > >
+> > > > > tz->trips.passive.tsp*100,
+> > > > >
+> > > > > tz->polling_frequency*100);
+> > > > >         else
+> > > > >                 tz->thermal_zone =3D
+> > > > >                         thermal_zone_device_register("acpitz"=
+, trips,
+> > > > > 0, tz,
+> > > > > -
+> > > > > &acpi_thermal_zone_ops,
+> > > > > -                                                    0, 0, 0,
+> > > > > +
+> > > > > &acpi_thermal_zone_ops, 0,
+> > > > >
+> > > > > tz->polling_frequency*100);
+> > > > >         if (IS_ERR(tz->thermal_zone))
+> > > > >                 return -ENODEV;
+> > > > > diff --git a/drivers/platform/x86/acerhdf.c
+> > > > > b/drivers/platform/x86/acerhdf.c
+> > > > > index a207466..84c5688 100644
+> > > > > --- a/drivers/platform/x86/acerhdf.c
+> > > > > +++ b/drivers/platform/x86/acerhdf.c
+> > > > > @@ -662,7 +662,7 @@ static int acerhdf_register_thermal(void)
+> > > > >                 return -EINVAL;
+> > > > >
+> > > > >         thz_dev =3D thermal_zone_device_register("acerhdf", 1=
+, 0, NULL,
+> > > > > -                                             &acerhdf_dev_op=
+s, 0, 0,
+> > > > > 0,
+> > > > > +                                             &acerhdf_dev_op=
+s, 0,
+> > > > >                                               (kernelmode) ?
+> > > > > interval*1000 : 0);
+> > > > >         if (IS_ERR(thz_dev))
+> > > > >                 return -EINVAL;
+> > > > > diff --git a/drivers/platform/x86/intel_mid_thermal.c
+> > > > > b/drivers/platform/x86/intel_mid_thermal.c
+> > > > > index 2b2c212..6e309dd 100644
+> > > > > --- a/drivers/platform/x86/intel_mid_thermal.c
+> > > > > +++ b/drivers/platform/x86/intel_mid_thermal.c
+> > > > > @@ -499,7 +499,7 @@ static int mid_thermal_probe(struct
+> > > > > platform_device *pdev)
+> > > > >                         goto err;
+> > > > >                 }
+> > > > >                 pinfo->tzd[i] =3D thermal_zone_device_registe=
+r(name[i],
+> > > > > -                               0, 0, td_info, &tzd_ops, 0, 0=
+, 0, 0);
+> > > > > +                               0, 0, td_info, &tzd_ops, 0, 0=
+);
+> > > > >                 if (IS_ERR(pinfo->tzd[i])) {
+> > > > >                         kfree(td_info);
+> > > > >                         ret =3D PTR_ERR(pinfo->tzd[i]);
+> > > > > diff --git a/drivers/thermal/spear_thermal.c
+> > > > > b/drivers/thermal/spear_thermal.c
+> > > > > index 69a55d4..b55840a 100644
+> > > > > --- a/drivers/thermal/spear_thermal.c
+> > > > > +++ b/drivers/thermal/spear_thermal.c
+> > > > > @@ -148,7 +148,7 @@ static int spear_thermal_probe(struct
+> > > > > platform_device *pdev)
+> > > > >         writel_relaxed(stdev->flags, stdev->thermal_base);
+> > > > >
+> > > > >         spear_thermal =3D thermal_zone_device_register("spear=
+_thermal",
+> > > > > 0, 0,
+> > > > > -                               stdev, &ops, 0, 0, 0, 0);
+> > > > > +                               stdev, &ops, 0, 0);
+> > > > >         if (IS_ERR(spear_thermal)) {
+> > > > >                 dev_err(&pdev->dev, "thermal zone device is N=
+ULL\n");
+> > > > >                 ret =3D PTR_ERR(spear_thermal);
+> > > > > diff --git a/drivers/thermal/thermal_sys.c
+> > > > > b/drivers/thermal/thermal_sys.c
+> > > > > index 68c93d4..a70ed4c 100644
+> > > > > --- a/drivers/thermal/thermal_sys.c
+> > > > > +++ b/drivers/thermal/thermal_sys.c
+> > > > > @@ -335,9 +335,6 @@ passive_store(struct device *dev, struct
+> > > > > device_attribute *attr,
+> > > > >                 tz->passive_delay =3D 0;
+> > > > >         }
+> > > > >
+> > > > > -       tz->tc1 =3D 1;
+> > > > > -       tz->tc2 =3D 1;
+> > > > > -
+> > > > >         tz->forced_passive =3D state;
+> > > > >
+> > > > >         thermal_zone_device_update(tz);
+> > > > > @@ -718,13 +715,12 @@ static void
+> > > > > thermal_zone_device_set_polling(struct thermal_zone_device *t=
+z,
+> > > > >  static void thermal_zone_device_passive(struct thermal_zone_=
+device
+> > > > > *tz,
+> > > > >                                         int temp, int trip_te=
+mp, int
+> > > > > trip)
+> > > > >  {
+> > > > > -       int trend =3D 0;
+> > > > > +       enum thermal_trend trend;
+> > > > >         struct thermal_cooling_device_instance *instance;
+> > > > >         struct thermal_cooling_device *cdev;
+> > > > >         long state, max_state;
+> > > > >
+> > > > > -       if (!tz->ops->get_trend ||
+> > > > > -           tz->ops->get_trend(tz, trip, (enum thermal_trend
+> > > > > *)&trend)) {
+> > > > > +       if (!tz->ops->get_trend || tz->ops->get_trend(tz, tri=
+p,
+> > > > > &trend)) {
+> > > > >                 /*
+> > > > >                  * compare the current temperature and previo=
+us
+> > > > > temperature
+> > > > >                  * to get the thermal trend, if no special re=
+quirement
+> > > > > @@ -747,11 +743,8 @@ static void thermal_zone_device_passive(=
+struct
+> > > > > thermal_zone_device *tz,
+> > > > >         if (temp >=3D trip_temp) {
+> > > > >                 tz->passive =3D true;
+> > > > >
+> > > > > -               trend =3D (tz->tc1 * (temp - tz->last_tempera=
+ture)) +
+> > > > > -                       (tz->tc2 * (temp - trip_temp));
+> > > > > -
+> > > > >                 /* Heating up? */
+> > > > > -               if (trend > 0) {
+> > > > > +               if (trend =3D=3D THERMAL_TREND_RAISING) {
+> > > > >                         list_for_each_entry(instance,
+> > > > > &tz->cooling_devices,
+> > > > >                                             node) {
+> > > > >                                 if (instance->trip !=3D trip)
+> > > > > @@ -762,7 +755,7 @@ static void thermal_zone_device_passive(s=
+truct
+> > > > > thermal_zone_device *tz,
+> > > > >                                 if (state++ < max_state)
+> > > > >                                         cdev->ops->set_cur_st=
+ate(cdev,
+> > > > > state);
+> > > > >                         }
+> > > > > -               } else if (trend < 0) { /* Cooling off? */
+> > > > > +               } else if (trend =3D=3D THERMAL_TREND_DROPPIN=
+G) { /*
+> > > > > Cooling off? */
+> > > > >                         list_for_each_entry(instance,
+> > > > > &tz->cooling_devices,
+> > > > >                                             node) {
+> > > > >                                 if (instance->trip !=3D trip)
+> > > > > @@ -1288,8 +1281,6 @@ static void remove_trip_attrs(struct
+> > > > > thermal_zone_device *tz)
+> > > > >   * @mask:      a bit string indicating the writeablility of =
+trip
+> > > > > points
+> > > > >   * @devdata:   private device data
+> > > > >   * @ops:       standard thermal zone device callbacks
+> > > > > - * @tc1:       thermal coefficient 1 for passive calculation=
+s
+> > > > > - * @tc2:       thermal coefficient 2 for passive calculation=
+s
+> > > > >   * @passive_delay: number of milliseconds to wait between po=
+lls when
+> > > > >   *                performing passive cooling
+> > > > >   * @polling_delay: number of milliseconds to wait between po=
+lls when
+> > > > > checking
+> > > > > @@ -1297,13 +1288,12 @@ static void remove_trip_attrs(struct
+> > > > > thermal_zone_device *tz)
+> > > > >   *                driven systems)
+> > > > >   *
+> > > > >   * thermal_zone_device_unregister() must be called when the =
+device is
+> > > > > no
+> > > > > - * longer needed. The passive cooling formula uses tc1 and t=
+c2 as
+> > > > > described in
+> > > > > - * section 11.1.5.1 of the ACPI specification 3.0.
+> > > > > + * longer needed. The passive cooling depends on the .get_tr=
+end()
+> > > > > return value.
+> > > > >   */
+> > > > >  struct thermal_zone_device *thermal_zone_device_register(cha=
+r *type,
+> > > > >         int trips, int mask, void *devdata,
+> > > > >         const struct thermal_zone_device_ops *ops,
+> > > > > -       int tc1, int tc2, int passive_delay, int polling_dela=
+y)
+> > > > > +       int passive_delay, int polling_delay)
+> > > > >  {
+> > > > >         struct thermal_zone_device *tz;
+> > > > >         struct thermal_cooling_device *pos;
+> > > > > @@ -1339,8 +1329,6 @@ struct thermal_zone_device
+> > > > > *thermal_zone_device_register(char *type,
+> > > > >         tz->device.class =3D &thermal_class;
+> > > > >         tz->devdata =3D devdata;
+> > > > >         tz->trips =3D trips;
+> > > > > -       tz->tc1 =3D tc1;
+> > > > > -       tz->tc2 =3D tc2;
+> > > > >         tz->passive_delay =3D passive_delay;
+> > > > >         tz->polling_delay =3D polling_delay;
+> > > > >
+> > > > > diff --git a/include/linux/thermal.h b/include/linux/thermal.=
+h
+> > > > > index a01e3e6..d18dcf6 100644
+> > > > > --- a/include/linux/thermal.h
+> > > > > +++ b/include/linux/thermal.h
+> > > > > @@ -115,8 +115,6 @@ struct thermal_zone_device {
+> > > > >         struct thermal_attr *trip_hyst_attrs;
+> > > > >         void *devdata;
+> > > > >         int trips;
+> > > > > -       int tc1;
+> > > > > -       int tc2;
+> > > > >         int passive_delay;
+> > > > >         int polling_delay;
+> > > > >         int temperature;
+> > > > > @@ -163,8 +161,7 @@ enum {
+> > > > >  #define THERMAL_GENL_CMD_MAX (__THERMAL_GENL_CMD_MAX - 1)
+> > > > >
+> > > > >  struct thermal_zone_device *thermal_zone_device_register(cha=
+r *, int,
+> > > > > int,
+> > > > > -               void *, const struct thermal_zone_device_ops =
+*, int
+> > > > > tc1,
+> > > > > -               int tc2, int passive_freq, int polling_freq);
+> > > > > +               void *, const struct thermal_zone_device_ops =
+*, int,
+> > > > > int);
+> > > > >  void thermal_zone_device_unregister(struct thermal_zone_devi=
+ce *);
+> > > > >
+> > > > >  int thermal_zone_bind_cooling_device(struct thermal_zone_dev=
+ice *,
+> > > > > int,
+> > > > > --
+> > > > > 1.7.9.5
+> > > > >
+> > > >
+> > > >
+> > > >
+> > >
+> > >
+> >=20
+> >=20
+> >=20
+> > --
+> >=20
+> > Eduardo Valentin
 
-> +	int throttle_policy;
-> +
-> +	/* Number of cooling devices associated with this thermal zone */
-> +	int num_cdevs;
-> +	char *cdevs_name[MAX_COOLING_DEVS];
 
-dito
-
-> +
-> +	/*
-> +	 * This is a measure of 'how effectively these devices can
-> +	 * cool 'this' thermal zone. The shall be determined by platform
-> +	 * characterization. This is on a 'percentage' scale.
-> +	 * See Documentation/thermal/sysfs-api.txt for more information.
-> +	 */
-> +	int weights[MAX_COOLING_DEVS];
-> +
-> +	/*
-> +	 * This is a bit mask that gives the binding relation between this
-> +	 * thermal zone and cdev, for a particular trip point.
-> +	 * See Documentation/thermal/sysfs-api.txt for more information.
-> +	 */
-> +	int trip_mask[MAX_COOLING_DEVS];
-
-just a matter of taste, but how about defining a struct with cdev_name, weight, trip_max, and then declaring an array in thermal_zone_params?
-
-> +};
-> +
->  struct thermal_genl_event {
->  	u32 orig;
->  	enum events event;
-> @@ -213,6 +246,16 @@ struct thermal_cooling_device *get_cdev_by_name(const char *);
->  struct thermal_instance *get_thermal_instance(struct thermal_zone_device *,
->  		struct thermal_cooling_device *, int);
->  
-> +/*
-> + * The platform layer shall define a 'function' that provides the
-> + * parameters for all thermal zones in the platform. This pointer
-> + * should point to that 'function'.
-> + *
-> + * In thermal_zone_device_register() we update the parameters
-> + * for the particular thermal zone.
-> + */
-> +extern int (*get_platform_thermal_params)(struct thermal_zone_device *);
-> +
->  #ifdef CONFIG_NET
->  extern int thermal_generate_netlink_event(u32 orig, enum events event);
->  #else
-> -- 
-> 1.7.9.5
-> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
