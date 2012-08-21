@@ -1,305 +1,95 @@
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: Re: [PATCH 09/13] Thermal: Introduce a step_wise thermal governor
-Date: Tue, 21 Aug 2012 08:35:05 +0300
-Message-ID: <20120821053505.GZ9833@besouro>
+Subject: Re: [PATCH 10/13] Thermal: Remove throttling logic out of
+ thermal_sys.c
+Date: Tue, 21 Aug 2012 08:36:58 +0300
+Message-ID: <20120821053658.GA9833@besouro>
 References: <1344516365-7230-1-git-send-email-durgadoss.r@intel.com>
- <1344516365-7230-10-git-send-email-durgadoss.r@intel.com>
+ <1344516365-7230-11-git-send-email-durgadoss.r@intel.com>
+ <1344841200.1682.794.camel@rui.sh.intel.com>
+ <4D68720C2E767A4AA6A8796D42C8EB5919A46B@BGSMSX101.gar.corp.intel.com>
 Reply-To: eduardo.valentin@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:59550 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752357Ab2HUFfb (ORCPT
+Received: from na3sys009aog137.obsmtp.com ([74.125.149.18]:33505 "EHLO
+	na3sys009aog137.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752143Ab2HUFhI (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 21 Aug 2012 01:35:31 -0400
-Received: by weyx43 with SMTP id x43so4626043wey.2
-        for <linux-acpi@vger.kernel.org>; Mon, 20 Aug 2012 22:35:27 -0700 (PDT)
+	Tue, 21 Aug 2012 01:37:08 -0400
+Received: by wgbfm10 with SMTP id fm10so7682925wgb.34
+        for <linux-acpi@vger.kernel.org>; Mon, 20 Aug 2012 22:37:04 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <1344516365-7230-10-git-send-email-durgadoss.r@intel.com>
+In-Reply-To: <4D68720C2E767A4AA6A8796D42C8EB5919A46B@BGSMSX101.gar.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Durgadoss R <durgadoss.r@intel.com>
-Cc: lenb@kernel.org, rui.zhang@intel.com, rjw@sisk.pl, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, eduardo.valentin@ti.com, amit.kachhap@linaro.org, wni@nvidia.com
+To: "R, Durgadoss" <durgadoss.r@intel.com>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>, "amit.kachhap@linaro.org" <amit.kachhap@linaro.org>, "wni@nvidia.com" <wni@nvidia.com>
 
 Hello,
 
-On Thu, Aug 09, 2012 at 06:16:01PM +0530, Durgadoss R wrote:
-> This patch adds a simple step_wise governor to the
-> generic thermal layer. This algorithm throttles the
-> cooling devices in a linear fashion. If the 'trend'
-> is heating, it throttles by one step. And if the
-> thermal trend is cooling it de-throttles by one step.
-> 
-> This actually moves the throttling logic from thermal_sys.c
-> and puts inside step_wise.c, without any change.
-> 
-> Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
-> ---
->  drivers/thermal/Kconfig     |    6 ++
->  drivers/thermal/Makefile    |    1 +
->  drivers/thermal/step_wise.c |  204 +++++++++++++++++++++++++++++++++++++++++++
->  include/linux/thermal.h     |    9 ++
->  4 files changed, 220 insertions(+)
->  create mode 100644 drivers/thermal/step_wise.c
-> 
-> diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
-> index f5110c0..0401cdf 100644
-> --- a/drivers/thermal/Kconfig
-> +++ b/drivers/thermal/Kconfig
-> @@ -33,3 +33,9 @@ config FAIR_SHARE
->  	depends on THERMAL
->  	help
->  	  Enable this to manage platform thermals using fair-share governor.
-> +
-> +config STEP_WISE
-> +	bool "Step_wise thermal governor"
-> +	depends on THERMAL
-> +	help
-> +	  Enable this to manage platform thermals using a simple linear
-> diff --git a/drivers/thermal/Makefile b/drivers/thermal/Makefile
-> index 4ffe1a8..c2c0ce0 100644
-> --- a/drivers/thermal/Makefile
-> +++ b/drivers/thermal/Makefile
-> @@ -5,3 +5,4 @@
->  obj-$(CONFIG_THERMAL)		+= thermal_sys.o
->  obj-$(CONFIG_SPEAR_THERMAL)		+= spear_thermal.o
->  obj-$(CONFIG_FAIR_SHARE)		+= fair_share.o
-> +obj-$(CONFIG_STEP_WISE)			+= step_wise.o
-> diff --git a/drivers/thermal/step_wise.c b/drivers/thermal/step_wise.c
-> new file mode 100644
-> index 0000000..0456b38
-> --- /dev/null
-> +++ b/drivers/thermal/step_wise.c
-> @@ -0,0 +1,204 @@
-> +/*
-> + *  step_wise.c - A step-by-step Thermal throttling governor
-> + *
-> + *  Copyright (C) 2012 Intel Corp
-> + *  Copyright (C) 2012 Durgadoss R <durgadoss.r@intel.com>
-> + *
-> + *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> + *
-> + *  This program is free software; you can redistribute it and/or modify
-> + *  it under the terms of the GNU General Public License as published by
-> + *  the Free Software Foundation; version 2 of the License.
-> + *
-> + *  This program is distributed in the hope that it will be useful, but
-> + *  WITHOUT ANY WARRANTY; without even the implied warranty of
-> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + *  General Public License for more details.
-> + *
-> + *  You should have received a copy of the GNU General Public License along
-> + *  with this program; if not, write to the Free Software Foundation, Inc.,
-> + *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
-> + *
-> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> + */
-> +
-> +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-> +
-> +#include <linux/module.h>
-> +#include <linux/thermal.h>
-> +
-> +/*
-> + * If the temperature is higher than a trip point,
-> + *    a. if the trend is THERMAL_TREND_RAISING, use higher cooling
-> + *       state for this trip point
-> + *    b. if the trend is THERMAL_TREND_DROPPING, use lower cooling
-> + *       state for this trip point
-> + */
-> +static unsigned long get_target_state(struct thermal_instance *instance,
-> +					enum thermal_trend trend)
-> +{
-> +	struct thermal_cooling_device *cdev = instance->cdev;
-> +	unsigned long cur_state;
-> +
-> +	cdev->ops->get_cur_state(cdev, &cur_state);
-> +
-> +	if (trend == THERMAL_TREND_RAISING) {
-> +		cur_state = cur_state < instance->upper ?
-> +			    (cur_state + 1) : instance->upper;
-> +	} else if (trend == THERMAL_TREND_DROPPING) {
-> +		cur_state = cur_state > instance->lower ?
-> +			    (cur_state - 1) : instance->lower;
-> +	}
-> +
-> +	return cur_state;
-> +}
-> +
-> +static void update_passive_instance(struct thermal_zone_device *tz,
-> +				enum thermal_trip_type type, int value)
-> +{
-> +	/*
-> +	 * If value is +1, activate a passive instance.
-> +	 * If value is -1, deactivate a passive instance.
-> +	 */
-> +	if (type == THERMAL_TRIP_PASSIVE || type == THERMAL_TRIPS_NONE)
-> +		tz->passive += value;
-> +}
-> +
-> +static void update_instance_for_throttle(struct thermal_zone_device *tz,
-> +				int trip, enum thermal_trip_type trip_type,
-> +				enum thermal_trend trend)
-> +{
-> +	struct thermal_instance *instance;
-> +
-> +	list_for_each_entry(instance, &tz->thermal_instances, tz_node) {
-> +		if (instance->trip != trip)
-> +			continue;
-> +
-> +		instance->target = get_target_state(instance, trend);
-> +
-> +		/* Activate a passive thermal instance */
-> +		if (instance->target == THERMAL_NO_TARGET)
-> +			update_passive_instance(tz, trip_type, 1);
-> +
-> +		instance->cdev->updated = false; /* cdev needs update */
-> +	}
-> +}
-> +
-> +static void update_instance_for_dethrottle(struct thermal_zone_device *tz,
-> +				int trip, enum thermal_trip_type trip_type)
-> +{
-> +	struct thermal_instance *instance;
-> +	struct thermal_cooling_device *cdev;
-> +	unsigned long cur_state;
-> +
-> +	list_for_each_entry(instance, &tz->thermal_instances, tz_node) {
-> +		if (instance->trip != trip ||
-> +			instance->target == THERMAL_NO_TARGET)
-> +			continue;
-> +
-> +		cdev = instance->cdev;
-> +		cdev->ops->get_cur_state(cdev, &cur_state);
-> +
-> +		instance->target = cur_state > instance->lower ?
-> +			    (cur_state - 1) : THERMAL_NO_TARGET;
-> +
-> +		/* Deactivate a passive thermal instance */
-> +		if (instance->target == THERMAL_NO_TARGET)
-> +			update_passive_instance(tz, trip_type, -1);
-> +
-> +		cdev->updated = false; /* cdev needs update */
-> +	}
-> +}
-> +
-> +static void thermal_zone_trip_update(struct thermal_zone_device *tz, int trip)
-> +{
-> +	long trip_temp;
-> +	enum thermal_trip_type trip_type;
-> +	enum thermal_trend trend;
-> +
-> +	if (trip == THERMAL_TRIPS_NONE) {
-> +		trip_temp = tz->forced_passive;
-> +		trip_type = THERMAL_TRIPS_NONE;
-> +	} else {
-> +		tz->ops->get_trip_temp(tz, trip, &trip_temp);
-> +		tz->ops->get_trip_type(tz, trip, &trip_type);
-> +	}
-> +
-> +	trend = get_tz_trend(tz, trip);
-> +
-> +	mutex_lock(&tz->lock);
-> +
-> +	if (tz->temperature >= trip_temp)
-> +		update_instance_for_throttle(tz, trip, trip_type, trend);
-> +	else
-> +		update_instance_for_dethrottle(tz, trip, trip_type);
-> +
-> +	mutex_unlock(&tz->lock);
-> +}
-> +
-> +/**
-> + * thermal_cdev_update - Updates the throttle state for the given cdev
-> + * @cdev - cooling device, for which the throttle state is to be set
-> + *
-> + * This function loops through all the instances for the given cdev,
-> + * to find out the maximum throttle state; and sets the cur_state of
-> + * the cdev to that value.
-> + */
-> +static void thermal_cdev_update(struct thermal_cooling_device *cdev)
-> +{
-> +	struct thermal_instance *instance;
-> +	unsigned long target = 0;
-> +
-> +	/* cdev is already updated */
-> +	if (cdev->updated)
-> +		return;
-> +
-> +	mutex_lock(&cdev->lock);
-> +
-> +	/* Make sure cdev enters the deepest cooling state */
-> +	list_for_each_entry(instance, &cdev->thermal_instances, cdev_node) {
-> +		if (instance->target == THERMAL_NO_TARGET)
-> +			continue;
-> +		if (instance->target > target)
-> +			target = instance->target;
-> +	}
-> +
-> +	mutex_unlock(&cdev->lock);
-> +
-> +	cdev->ops->set_cur_state(cdev, target);
-> +	cdev->updated = true;
-> +}
+On Mon, Aug 13, 2012 at 08:04:03AM +0000, R, Durgadoss wrote:
+> Hi Rui,
+>=20
+> [cut.]
+> > > +static void notify_user_space(struct thermal_zone_device *tz, in=
+t trip)
+> > > +{
+> > > +	mutex_lock(&tz->lock);
+> > > +
+> > > +	kobject_uevent(&tz->device.kobj, KOBJ_CHANGE);
+> > > +
+> > > +	mutex_unlock(&tz->lock);
+> > > +}
+> > > +
+> > > +static void handle_non_critical_trips(struct thermal_zone_device=
+ *tz,
+> > > +			int trip, enum thermal_trip_type trip_type)
+> > > +{
+> > > +	int throttle_policy =3D THERMAL_STEP_WISE;
+> > > +
+> > > +	if (tz->tzp)
+> > > +		throttle_policy =3D tz->tzp->throttle_policy;
+> > > +
+> > > +	switch (throttle_policy) {
+> > > +	case THERMAL_FAIR_SHARE:
+> > > +		fair_share_throttle(tz, trip);
+> > > +		break;
+> > > +	case THERMAL_STEP_WISE:
+> > > +		step_wise_throttle(tz, trip);
+> > > +		break;
+> > > +	case THERMAL_USER_SPACE:
+> > > +		notify_user_space(tz, trip);
+> > > +		break;
+> > > +	}
+> >=20
+> > this is a little different from what I thought.
+> > IMO, each policy should register its pointer to the thermal framewo=
+rk.
+> > and tz->tzp points to the pointer of the policy using.
+> > and then, in handle_non_critical_trips(), the code would be like th=
+is:
+> > if(tz->tzp)
+> > 	tz->tzp->throttle(tz, trip);
+> >=20
+> > But this is also okay for now, because we have only one callback fo=
+r
+> > each policy.
+>=20
+> I completely agree with you here. When I was doing my initial develop=
+ment,
+> I found that some policies need two arguments/ some need three etc..
+> That=E2=80=99s why could not do a function pointer implementation.
+>=20
+> Will try to fix it up in the next version of the patches.
 
-We start to spread arbitrators. I believe we should revisit this and reuse what is currently
-available. Or, in case not usable, refactor is so that it can be reused.
+Cool! I'd also prefer to use the ->ops type of design, if possible.
 
-> +
-> +/**
-> + * step_wise_throttle - throttles devices asscciated with the given zone
-> + * @tz - thermal_zone_device
-> + * @trip - the trip point
-> + * @trip_type - type of the trip point
-> + *
-> + * Throttling Logic: This uses the trend of the thermal zone to throttle.
-> + * If the thermal zone is 'heating up' this throttles all the cooling
-> + * devices associated with the zone and its particular trip point, by one
-> + * step. If the zone is 'cooling down' it brings back the performance of
-> + * the devices by one step.
-> + */
-> +void step_wise_throttle(struct thermal_zone_device *tz, int trip)
-> +{
-> +	struct thermal_instance *instance;
-> +
-> +	thermal_zone_trip_update(tz, trip);
-> +
-> +	if (tz->forced_passive)
-> +		thermal_zone_trip_update(tz, THERMAL_TRIPS_NONE);
-> +
-> +	mutex_lock(&tz->lock);
-> +
-> +	list_for_each_entry(instance, &tz->thermal_instances, tz_node)
-> +		thermal_cdev_update(instance->cdev);
-> +
-> +	mutex_unlock(&tz->lock);
-> +}
-> +EXPORT_SYMBOL(step_wise_throttle);
-> +
-> +MODULE_AUTHOR("Durgadoss R");
-> +MODULE_DESCRIPTION("A step-by-step thermal throttling governor");
-> +MODULE_LICENSE("GPL");
-> diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-> index 4e2dc2c..60d2743 100644
-> --- a/include/linux/thermal.h
-> +++ b/include/linux/thermal.h
-> @@ -266,6 +266,15 @@ static inline void fair_share_throttle(struct thermal_zone_device *tz, int trip)
->  }
->  #endif
->  
-> +#ifdef CONFIG_STEP_WISE
-> +extern void step_wise_throttle(struct thermal_zone_device *tz, int trip);
-> +#else
-> +static inline void step_wise_throttle(struct thermal_zone_device *tz, int trip)
-> +{
-> +	return;
-> +}
-> +#endif
-> +
->  #ifdef CONFIG_NET
->  extern int thermal_generate_netlink_event(u32 orig, enum events event);
->  #else
-> -- 
-> 1.7.9.5
-> 
+>=20
+> Thank you,
+> Durga
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
