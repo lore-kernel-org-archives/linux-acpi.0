@@ -1,101 +1,75 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
-Subject: RE: [PATCH 13/13] Thermal: Platform layer changes to provide
- thermal data
-Date: Tue, 21 Aug 2012 09:28:59 +0000
-Message-ID: <4D68720C2E767A4AA6A8796D42C8EB591AAB2A@BGSMSX101.gar.corp.intel.com>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Subject: Re: [PATCH 08/13] Thermal: Introduce fair_share thermal governor
+Date: Tue, 21 Aug 2012 17:16:03 +0300
+Message-ID: <20120821141508.GA5030@besouro>
 References: <1344516365-7230-1-git-send-email-durgadoss.r@intel.com>
-	 <1344516365-7230-14-git-send-email-durgadoss.r@intel.com>
-	 <20120821053950.GC9833@besouro>
-	 <4D68720C2E767A4AA6A8796D42C8EB591AA82F@BGSMSX101.gar.corp.intel.com>
-	 <1345528555.1682.958.camel@rui.sh.intel.com>
-	 <4D68720C2E767A4AA6A8796D42C8EB591AA8AD@BGSMSX101.gar.corp.intel.com>
- <1345531954.1682.965.camel@rui.sh.intel.com>
+ <1344516365-7230-9-git-send-email-durgadoss.r@intel.com>
+ <20120821053313.GY9833@besouro>
+ <4D68720C2E767A4AA6A8796D42C8EB591AA858@BGSMSX101.gar.corp.intel.com>
+Reply-To: eduardo.valentin@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:59570 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753858Ab2HUJ3E (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 21 Aug 2012 05:29:04 -0400
-In-Reply-To: <1345531954.1682.965.camel@rui.sh.intel.com>
-Content-Language: en-US
+Received: from na3sys009aog138.obsmtp.com ([74.125.149.19]:57914 "EHLO
+	na3sys009aog138.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752047Ab2HUOQU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 21 Aug 2012 10:16:20 -0400
+Received: by obhx4 with SMTP id x4so13086150obh.0
+        for <linux-acpi@vger.kernel.org>; Tue, 21 Aug 2012 07:16:19 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <4D68720C2E767A4AA6A8796D42C8EB591AA858@BGSMSX101.gar.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>, "lenb@kernel.org" <lenb@kernel.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "amit.kachhap@linaro.org" <amit.kachhap@linaro.org>, "wni@nvidia.com" <wni@nvidia.com>
+To: "R, Durgadoss" <durgadoss.r@intel.com>
+Cc: "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>, "lenb@kernel.org" <lenb@kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, "rjw@sisk.pl" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "amit.kachhap@linaro.org" <amit.kachhap@linaro.org>, "wni@nvidia.com" <wni@nvidia.com>
 
-SGkgUnVpLA0KDQo+IA0KPiBPbiDkuowsIDIwMTItMDgtMjEgYXQgMDA6NDEgLTA2MDAsIFIsIER1
-cmdhZG9zcyB3cm90ZToNCj4gPiBIaSBSdWksDQo+ID4NCj4gPiA+ID4gPiAtLS0tLU9yaWdpbmFs
-IE1lc3NhZ2UtLS0tLQ0KPiA+ID4gPiA+IEZyb206IGxpbnV4LWFjcGktb3duZXJAdmdlci5rZXJu
-ZWwub3JnIFttYWlsdG86bGludXgtYWNwaS0NCj4gPiA+ID4gPiBvd25lckB2Z2VyLmtlcm5lbC5v
-cmddIE9uIEJlaGFsZiBPZiBFZHVhcmRvIFZhbGVudGluDQo+ID4gPiA+ID4gU2VudDogVHVlc2Rh
-eSwgQXVndXN0IDIxLCAyMDEyIDExOjEwIEFNDQo+ID4gPiA+ID4gVG86IFIsIER1cmdhZG9zcw0K
-PiA+ID4gPiA+IENjOiBsZW5iQGtlcm5lbC5vcmc7IFpoYW5nLCBSdWk7IHJqd0BzaXNrLnBsOyBs
-aW51eC0NCj4gYWNwaUB2Z2VyLmtlcm5lbC5vcmc7DQo+ID4gPiA+ID4gbGludXgtcG1Admdlci5r
-ZXJuZWwub3JnOyBlZHVhcmRvLnZhbGVudGluQHRpLmNvbTsNCj4gPiA+ID4gPiBhbWl0LmthY2ho
-YXBAbGluYXJvLm9yZzsgd25pQG52aWRpYS5jb20NCj4gPiA+ID4gPiBTdWJqZWN0OiBSZTogW1BB
-VENIIDEzLzEzXSBUaGVybWFsOiBQbGF0Zm9ybSBsYXllciBjaGFuZ2VzIHRvDQo+IHByb3ZpZGUN
-Cj4gPiA+ID4gPiB0aGVybWFsIGRhdGENCj4gPiA+ID4gPg0KPiA+ID4gPiA+IEhlbGxvLA0KPiA+
-ID4gPiA+DQo+ID4gPiA+ID4gT24gVGh1LCBBdWcgMDksIDIwMTIgYXQgMDY6MTY6MDVQTSArMDUz
-MCwgRHVyZ2Fkb3NzIFIgd3JvdGU6DQo+ID4gPiA+ID4gPiBUaGlzIHBhdGNoIHNob3dzIGhvdyBj
-YW4gd2UgYWRkIHBsYXRmb3JtIHNwZWNpZmljIHRoZXJtYWwgZGF0YQ0KPiA+ID4gPiA+ID4gcmVx
-dWlyZWQgYnkgdGhlIHRoZXJtYWwgZnJhbWV3b3JrLiBUaGlzIGlzIGp1c3QgYW4gZXhhbXBsZQ0K
-PiA+ID4gPiA+ID4gcGF0Y2gsIGFuZCBfbm90XyBmb3IgbWVyZ2UuDQo+ID4gPiA+ID4gPg0KPiA+
-ID4gPiA+ID4gU2lnbmVkLW9mZi1ieTogRHVyZ2Fkb3NzIFIgPGR1cmdhZG9zcy5yQGludGVsLmNv
-bT4NCj4gPiA+ID4gPiA+IC0tLQ0KPiA+ID4gPiA+ID4gIGFyY2gveDg2L3BsYXRmb3JtL21yc3Qv
-bXJzdC5jIHwgICA0Mg0KPiA+ID4gPiA+ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrDQo+ID4gPiA+ID4gPiAgMSBmaWxlIGNoYW5nZWQsIDQyIGluc2VydGlvbnMoKykN
-Cj4gPiA+ID4gPiA+DQo+ID4gPiA+ID4gPiBkaWZmIC0tZ2l0IGEvYXJjaC94ODYvcGxhdGZvcm0v
-bXJzdC9tcnN0LmMNCj4gPiA+ID4gPiBiL2FyY2gveDg2L3BsYXRmb3JtL21yc3QvbXJzdC5jDQo+
-ID4gPiA+ID4gPiBpbmRleCBmZDQxYTkyLi4wNDQwZGI1IDEwMDY0NA0KPiA+ID4gPiA+ID4gLS0t
-IGEvYXJjaC94ODYvcGxhdGZvcm0vbXJzdC9tcnN0LmMNCj4gPiA+ID4gPiA+ICsrKyBiL2FyY2gv
-eDg2L3BsYXRmb3JtL21yc3QvbXJzdC5jDQo+ID4gPiA+ID4gPiBAQCAtMzAsNiArMzAsNyBAQA0K
-PiA+ID4gPiA+ID4gICNpbmNsdWRlIDxsaW51eC9tZmQvaW50ZWxfbXNpYy5oPg0KPiA+ID4gPiA+
-ID4gICNpbmNsdWRlIDxsaW51eC9ncGlvLmg+DQo+ID4gPiA+ID4gPiAgI2luY2x1ZGUgPGxpbnV4
-L2kyYy90YzM1ODc2eC5oPg0KPiA+ID4gPiA+ID4gKyNpbmNsdWRlIDxsaW51eC90aGVybWFsLmg+
-DQo+ID4gPiA+ID4gPg0KPiA+ID4gPiA+ID4gICNpbmNsdWRlIDxhc20vc2V0dXAuaD4NCj4gPiA+
-ID4gPiA+ICAjaW5jbHVkZSA8YXNtL21wc3BlY19kZWYuaD4NCj4gPiA+ID4gPiA+IEBAIC03OCw2
-ICs3OSwzMCBAQCBzdHJ1Y3Qgc2ZpX3J0Y190YWJsZV9lbnRyeQ0KPiA+ID4gPiA+IHNmaV9tcnRj
-X2FycmF5W1NGSV9NUlRDX01BWF07DQo+ID4gPiA+ID4gPiAgRVhQT1JUX1NZTUJPTF9HUEwoc2Zp
-X21ydGNfYXJyYXkpOw0KPiA+ID4gPiA+ID4gIGludCBzZmlfbXJ0Y19udW07DQo+ID4gPiA+ID4g
-Pg0KPiA+ID4gPiA+ID4gKyNkZWZpbmUgTVJTVF9USEVSTUFMX1pPTkVTCTMNCj4gPiA+ID4gPiA+
-ICtzdHJ1Y3QgdGhlcm1hbF96b25lX3BhcmFtcyB0enBbTVJTVF9USEVSTUFMX1pPTkVTXSA9IHsN
-Cj4gPiA+ID4gPiA+ICsJeyAudGhlcm1hbF96b25lX25hbWUgPSAiQ1BVIiwNCj4gPiA+ID4gPiA+
-ICsJLnRocm90dGxlX3BvbGljeSA9IFRIRVJNQUxfRkFJUl9TSEFSRSwNCj4gPiA+ID4gPiA+ICsJ
-Lm51bV9jZGV2cyA9IDIsDQo+ID4gPiA+ID4gPiArCS5jZGV2c19uYW1lID0geyJDUFUiLCAiQmF0
-dGVyeSJ9LA0KPiA+ID4gPiA+ID4gKwkudHJpcF9tYXNrID0gezB4MEYsIDB4MDh9LA0KPiA+ID4g
-PiA+ID4gKwkud2VpZ2h0cyA9IHs4MCwgMjB9LCB9LA0KPiA+ID4gPiA+ID4gKw0KPiA+ID4gPiA+
-ID4gKwl7IC50aGVybWFsX3pvbmVfbmFtZSA9ICJCYXR0ZXJ5IiwNCj4gPiA+ID4gPiA+ICsJLnRo
-cm90dGxlX3BvbGljeSA9IFRIRVJNQUxfRkFJUl9TSEFSRSwNCj4gPiA+ID4gPiA+ICsJLm51bV9j
-ZGV2cyA9IDEsDQo+ID4gPiA+ID4gPiArCS5jZGV2c19uYW1lID0geyJCYXR0ZXJ5In0sDQo+ID4g
-PiA+ID4gPiArCS50cmlwX21hc2sgPSB7MHgwRn0sDQo+ID4gPiA+ID4gPiArCS53ZWlnaHRzID0g
-ezEwMH0sIH0sDQo+ID4gPiA+ID4gPiArDQo+ID4gPiA+ID4gPiArCXsgLnRoZXJtYWxfem9uZV9u
-YW1lID0gIlNraW4iLA0KPiA+ID4gPiA+ID4gKwkudGhyb3R0bGVfcG9saWN5ID0gVEhFUk1BTF9G
-QUlSX1NIQVJFLA0KPiA+ID4gPiA+ID4gKwkubnVtX2NkZXZzID0gMiwNCj4gPiA+ID4gPiA+ICsJ
-LmNkZXZzX25hbWUgPSB7IkRpc3BsYXkiLCAiQmF0dGVyeSJ9LA0KPiA+ID4gPiA+ID4gKwkudHJp
-cF9tYXNrID0gezB4MEYsIDB4MEZ9LA0KPiA+ID4gPiA+ID4gKwkud2VpZ2h0cyA9IHs1MCwgNTB9
-LCB9DQo+ID4gPiA+ID4NCj4gPiA+ID4gPiBQbGVhc2UgY29uc2lkZXIgdGhlIGNvbW1lbnQgSSBz
-ZW50IG9uIHlvdXIgZGF0YSBkZWZpbml0aW9uIGFuZCBhbHNvDQo+IHRoZQ0KPiA+ID4gPiA+IGNv
-bW1lbnQgSSBtYWRlIG9uIHRoaXMgcGF0Y2ggb24geW91ciBSRkMgc2VyaWVzLg0KPiA+ID4gPg0K
-PiA+ID4gPiBZZXMuLiBJIGRvbid0IGtub3cgd2h5L2hvdyBJIG1pc3NlZCBpdC4NCj4gPiA+ID4g
-QWxzbywgc2F3IHRoZSBzYW1lIGNvbW1lbnQgb24gb25lIG9mIHRoZSBvdGhlciBwYXRjaGVzIGFs
-c28uDQo+ID4gPiA+DQo+ID4gPiA+IFdpbGwgc3VyZWx5IGZpeCB0aGlzIHRoaW5nIGluIHYyLg0K
-PiA+ID4gPg0KPiA+ID4gPiBCVFcsIGFueSBzdWdnZXN0aW9uIGZvciB0aGUgJ25hbWUnIG9mIHRo
-YXQgc3RydWN0dXJlID8gOi0pDQo+ID4gPg0KPiA+ID4gaG1tbSwNCj4gPiA+IGRvIHdlIHN0aWxs
-IGhhdmUgdGhlcm1hbF96b25lX3BsYXRmb3JtcyBpbiBwYXRjaCB2Mj8NCj4gPiA+IEkgZG8gbm90
-IHRoaW5rIHdlIG5lZWQgdGhpcyBpZiB3ZSBvbmx5IGJpbmQgZGV2aWNlcyB2aWEgLmJpbmQoKQ0K
-PiA+ID4gY2FsbGJhY2suDQo+ID4NCj4gPiBXZSBjYW4gYmluZCBkZXZpY2VzIHZpYSAuYmluZCBj
-YWxsIGJhY2ssIGFuZCB0aGF0IHdpbGwgdGFrZSBzb21lIGxvYWQNCj4gPiBvZmYgdGhlIGZyYW1l
-d29yayBjb2RlLiBCdXQgZXZlbiB0aGVuLCB3ZSB3b3VsZCBuZWVkIHRoaXMgc3RydWN0dXJlDQo+
-ID4gcmlnaHQgPw0KPiB3aHk/DQo+IEknZCBwcmVmZXIgaW50cm9kdWNlIHNvbWV0aGluZyBsaWtl
-IHRoaXMsDQo+IHN0cnVjdCB0aGVybWFsX2JpbmRfcGFyYW1zIHsNCj4gCWludCB0cmlwOw0KPiAJ
-dW5zaWduZWQgbG9uZyB1cHBlcjsNCj4gCXVuc2luZ2VkIGxvbmcgbG93ZXI7DQo+IAlpbnQgd2Vp
-Z2h0Ow0KPiAJaW50IHNhbXBsZV9wZXJpb2Q7DQo+IH0NCg0KWWVzLCB0aGlzIGNhbiB3b3JrIHdp
-dGggbGl0dGxlIGJpdCBjaGFuZ2UgbGlrZSBiZWxvdzoNCg0Kc3RydWN0IHRoZXJtYWxfem9uZV9w
-YXJhbXMgew0KCWNvbnN0IGNoYXIgKnpvbmVfbmFtZTsNCglpbnQgbnVtX2NkZXZzOw0KCXN0cnVj
-dCB0aGVybWFsX2JpbmRfcGFyYW1zW251bV9jZGV2c107DQp9OyANCg0KV2hlcmUgc3RydWN0IHRo
-ZXJtYWxfYmluZF9wYXJhbXMgd2lsbCBiZSBsaWtlIHRoaXM6DQoJew0KCS5jZGV2X25hbWUgPSAi
-Q1BVIg0KCS50cmlwX21hc2sgPSAweDBGDQoJLndlaWdodCA9IDcwDQoJLmxvd2VyID0gMg0KCS51
-cHBlciA9IDQNCgkuc2FtcGxlX3BlcmlvZCA9IDEwMDAgKDEgbXMpDQoJfTsNCg0KTGV0IG1lIGtu
-b3cgd2hhdCB5b3UgdGhpbmsuDQoNClRoYW5rcywNCkR1cmdhDQo=
+hello,
+
+On Tue, Aug 21, 2012 at 05:59:00AM +0000, R, Durgadoss wrote:
+> Hi Eduardo,
+> 
+> > > +static long get_target_state(struct thermal_zone_device *tz,
+> > > +		struct thermal_cooling_device *cdev, int weight, int level)
+> > > +{
+> > > +	unsigned long max_state;
+> > > +
+> > > +	cdev->ops->get_max_state(cdev, &max_state);
+> > > +
+> > > +	return (long)(weight * level * max_state) / (100 * tz->trips);
+> > > +}
+> > > +
+> > > +static void thermal_cdev_update(struct thermal_cooling_device *cdev)
+> > > +{
+> > > +	struct thermal_instance *instance;
+> > > +	unsigned long target = 0;
+> > > +
+> > > +	mutex_lock(&cdev->lock);
+> > > +
+> > > +	/* Make sure cdev enters the deepest cooling state */
+> > > +	list_for_each_entry(instance, &cdev->thermal_instances,
+> > cdev_node) {
+> > > +		if (instance->target > target)
+> > > +			target = instance->target;
+> > > +	}
+> > > +
+> > > +	mutex_unlock(&cdev->lock);
+> > > +
+> > > +	cdev->ops->set_cur_state(cdev, target);
+> > > +}
+> > 
+> > I believe Rui has already provided an arbitrator, can we reuse it here as well?
+> 
+> I thought about this. I was of the opinion a governor can choose to do arbitration
+> in its own specific way. For example, The fair_share does not check 'cdev->updated'
+> value whenever it tries to update the state of a cooling device.
+
+I see. the arbitration starts to get more and more complex. not to talk about constraints
+coming from performance domain and not thermal.
+
+I'd still try to find a central point for doing the arbitration, this way we grow the code
+in a scalable way...
+
+> 
+> Thanks,
+> Durga
