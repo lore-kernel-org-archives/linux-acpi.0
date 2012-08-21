@@ -1,61 +1,89 @@
 From: "R, Durgadoss" <durgadoss.r@intel.com>
-Subject: RE: [PATCH 08/13] Thermal: Introduce fair_share thermal governor
-Date: Tue, 21 Aug 2012 05:59:00 +0000
-Message-ID: <4D68720C2E767A4AA6A8796D42C8EB591AA858@BGSMSX101.gar.corp.intel.com>
+Subject: RE: [PATCH 13/13] Thermal: Platform layer changes to provide
+ thermal data
+Date: Tue, 21 Aug 2012 06:41:55 +0000
+Message-ID: <4D68720C2E767A4AA6A8796D42C8EB591AA8AD@BGSMSX101.gar.corp.intel.com>
 References: <1344516365-7230-1-git-send-email-durgadoss.r@intel.com>
- <1344516365-7230-9-git-send-email-durgadoss.r@intel.com>
- <20120821053313.GY9833@besouro>
+	 <1344516365-7230-14-git-send-email-durgadoss.r@intel.com>
+	 <20120821053950.GC9833@besouro>
+	 <4D68720C2E767A4AA6A8796D42C8EB591AA82F@BGSMSX101.gar.corp.intel.com>
+ <1345528555.1682.958.camel@rui.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:57480 "EHLO mga11.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:20569 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752300Ab2HUF71 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Aug 2012 01:59:27 -0400
-In-Reply-To: <20120821053313.GY9833@besouro>
+	id S1752878Ab2HUGmL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 21 Aug 2012 02:42:11 -0400
+In-Reply-To: <1345528555.1682.958.camel@rui.sh.intel.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, "rjw@sisk.pl" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "amit.kachhap@linaro.org" <amit.kachhap@linaro.org>, "wni@nvidia.com" <wni@nvidia.com>
+To: "Zhang, Rui" <rui.zhang@intel.com>
+Cc: "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>, "lenb@kernel.org" <lenb@kernel.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "amit.kachhap@linaro.org" <amit.kachhap@linaro.org>, "wni@nvidia.com" <wni@nvidia.com>
 
-Hi Eduardo,
-
-> > +static long get_target_state(struct thermal_zone_device *tz,
-> > +		struct thermal_cooling_device *cdev, int weight, int level)
-> > +{
-> > +	unsigned long max_state;
-> > +
-> > +	cdev->ops->get_max_state(cdev, &max_state);
-> > +
-> > +	return (long)(weight * level * max_state) / (100 * tz->trips);
-> > +}
-> > +
-> > +static void thermal_cdev_update(struct thermal_cooling_device *cdev)
-> > +{
-> > +	struct thermal_instance *instance;
-> > +	unsigned long target = 0;
-> > +
-> > +	mutex_lock(&cdev->lock);
-> > +
-> > +	/* Make sure cdev enters the deepest cooling state */
-> > +	list_for_each_entry(instance, &cdev->thermal_instances,
-> cdev_node) {
-> > +		if (instance->target > target)
-> > +			target = instance->target;
-> > +	}
-> > +
-> > +	mutex_unlock(&cdev->lock);
-> > +
-> > +	cdev->ops->set_cur_state(cdev, target);
-> > +}
-> 
-> I believe Rui has already provided an arbitrator, can we reuse it here as well?
-
-I thought about this. I was of the opinion a governor can choose to do arbitration
-in its own specific way. For example, The fair_share does not check 'cdev->updated'
-value whenever it tries to update the state of a cooling device.
-
-Thanks,
-Durga
+SGkgUnVpLA0KDQo+ID4gPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+ID4gRnJvbTog
+bGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1hY3BpLQ0KPiA+
+ID4gb3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgRWR1YXJkbyBWYWxlbnRpbg0K
+PiA+ID4gU2VudDogVHVlc2RheSwgQXVndXN0IDIxLCAyMDEyIDExOjEwIEFNDQo+ID4gPiBUbzog
+UiwgRHVyZ2Fkb3NzDQo+ID4gPiBDYzogbGVuYkBrZXJuZWwub3JnOyBaaGFuZywgUnVpOyByandA
+c2lzay5wbDsgbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc7DQo+ID4gPiBsaW51eC1wbUB2Z2Vy
+Lmtlcm5lbC5vcmc7IGVkdWFyZG8udmFsZW50aW5AdGkuY29tOw0KPiA+ID4gYW1pdC5rYWNoaGFw
+QGxpbmFyby5vcmc7IHduaUBudmlkaWEuY29tDQo+ID4gPiBTdWJqZWN0OiBSZTogW1BBVENIIDEz
+LzEzXSBUaGVybWFsOiBQbGF0Zm9ybSBsYXllciBjaGFuZ2VzIHRvIHByb3ZpZGUNCj4gPiA+IHRo
+ZXJtYWwgZGF0YQ0KPiA+ID4NCj4gPiA+IEhlbGxvLA0KPiA+ID4NCj4gPiA+IE9uIFRodSwgQXVn
+IDA5LCAyMDEyIGF0IDA2OjE2OjA1UE0gKzA1MzAsIER1cmdhZG9zcyBSIHdyb3RlOg0KPiA+ID4g
+PiBUaGlzIHBhdGNoIHNob3dzIGhvdyBjYW4gd2UgYWRkIHBsYXRmb3JtIHNwZWNpZmljIHRoZXJt
+YWwgZGF0YQ0KPiA+ID4gPiByZXF1aXJlZCBieSB0aGUgdGhlcm1hbCBmcmFtZXdvcmsuIFRoaXMg
+aXMganVzdCBhbiBleGFtcGxlDQo+ID4gPiA+IHBhdGNoLCBhbmQgX25vdF8gZm9yIG1lcmdlLg0K
+PiA+ID4gPg0KPiA+ID4gPiBTaWduZWQtb2ZmLWJ5OiBEdXJnYWRvc3MgUiA8ZHVyZ2Fkb3NzLnJA
+aW50ZWwuY29tPg0KPiA+ID4gPiAtLS0NCj4gPiA+ID4gIGFyY2gveDg2L3BsYXRmb3JtL21yc3Qv
+bXJzdC5jIHwgICA0Mg0KPiA+ID4gKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
+KysrKysNCj4gPiA+ID4gIDEgZmlsZSBjaGFuZ2VkLCA0MiBpbnNlcnRpb25zKCspDQo+ID4gPiA+
+DQo+ID4gPiA+IGRpZmYgLS1naXQgYS9hcmNoL3g4Ni9wbGF0Zm9ybS9tcnN0L21yc3QuYw0KPiA+
+ID4gYi9hcmNoL3g4Ni9wbGF0Zm9ybS9tcnN0L21yc3QuYw0KPiA+ID4gPiBpbmRleCBmZDQxYTky
+Li4wNDQwZGI1IDEwMDY0NA0KPiA+ID4gPiAtLS0gYS9hcmNoL3g4Ni9wbGF0Zm9ybS9tcnN0L21y
+c3QuYw0KPiA+ID4gPiArKysgYi9hcmNoL3g4Ni9wbGF0Zm9ybS9tcnN0L21yc3QuYw0KPiA+ID4g
+PiBAQCAtMzAsNiArMzAsNyBAQA0KPiA+ID4gPiAgI2luY2x1ZGUgPGxpbnV4L21mZC9pbnRlbF9t
+c2ljLmg+DQo+ID4gPiA+ICAjaW5jbHVkZSA8bGludXgvZ3Bpby5oPg0KPiA+ID4gPiAgI2luY2x1
+ZGUgPGxpbnV4L2kyYy90YzM1ODc2eC5oPg0KPiA+ID4gPiArI2luY2x1ZGUgPGxpbnV4L3RoZXJt
+YWwuaD4NCj4gPiA+ID4NCj4gPiA+ID4gICNpbmNsdWRlIDxhc20vc2V0dXAuaD4NCj4gPiA+ID4g
+ICNpbmNsdWRlIDxhc20vbXBzcGVjX2RlZi5oPg0KPiA+ID4gPiBAQCAtNzgsNiArNzksMzAgQEAg
+c3RydWN0IHNmaV9ydGNfdGFibGVfZW50cnkNCj4gPiA+IHNmaV9tcnRjX2FycmF5W1NGSV9NUlRD
+X01BWF07DQo+ID4gPiA+ICBFWFBPUlRfU1lNQk9MX0dQTChzZmlfbXJ0Y19hcnJheSk7DQo+ID4g
+PiA+ICBpbnQgc2ZpX21ydGNfbnVtOw0KPiA+ID4gPg0KPiA+ID4gPiArI2RlZmluZSBNUlNUX1RI
+RVJNQUxfWk9ORVMJMw0KPiA+ID4gPiArc3RydWN0IHRoZXJtYWxfem9uZV9wYXJhbXMgdHpwW01S
+U1RfVEhFUk1BTF9aT05FU10gPSB7DQo+ID4gPiA+ICsJeyAudGhlcm1hbF96b25lX25hbWUgPSAi
+Q1BVIiwNCj4gPiA+ID4gKwkudGhyb3R0bGVfcG9saWN5ID0gVEhFUk1BTF9GQUlSX1NIQVJFLA0K
+PiA+ID4gPiArCS5udW1fY2RldnMgPSAyLA0KPiA+ID4gPiArCS5jZGV2c19uYW1lID0geyJDUFUi
+LCAiQmF0dGVyeSJ9LA0KPiA+ID4gPiArCS50cmlwX21hc2sgPSB7MHgwRiwgMHgwOH0sDQo+ID4g
+PiA+ICsJLndlaWdodHMgPSB7ODAsIDIwfSwgfSwNCj4gPiA+ID4gKw0KPiA+ID4gPiArCXsgLnRo
+ZXJtYWxfem9uZV9uYW1lID0gIkJhdHRlcnkiLA0KPiA+ID4gPiArCS50aHJvdHRsZV9wb2xpY3kg
+PSBUSEVSTUFMX0ZBSVJfU0hBUkUsDQo+ID4gPiA+ICsJLm51bV9jZGV2cyA9IDEsDQo+ID4gPiA+
+ICsJLmNkZXZzX25hbWUgPSB7IkJhdHRlcnkifSwNCj4gPiA+ID4gKwkudHJpcF9tYXNrID0gezB4
+MEZ9LA0KPiA+ID4gPiArCS53ZWlnaHRzID0gezEwMH0sIH0sDQo+ID4gPiA+ICsNCj4gPiA+ID4g
+Kwl7IC50aGVybWFsX3pvbmVfbmFtZSA9ICJTa2luIiwNCj4gPiA+ID4gKwkudGhyb3R0bGVfcG9s
+aWN5ID0gVEhFUk1BTF9GQUlSX1NIQVJFLA0KPiA+ID4gPiArCS5udW1fY2RldnMgPSAyLA0KPiA+
+ID4gPiArCS5jZGV2c19uYW1lID0geyJEaXNwbGF5IiwgIkJhdHRlcnkifSwNCj4gPiA+ID4gKwku
+dHJpcF9tYXNrID0gezB4MEYsIDB4MEZ9LA0KPiA+ID4gPiArCS53ZWlnaHRzID0gezUwLCA1MH0s
+IH0NCj4gPiA+DQo+ID4gPiBQbGVhc2UgY29uc2lkZXIgdGhlIGNvbW1lbnQgSSBzZW50IG9uIHlv
+dXIgZGF0YSBkZWZpbml0aW9uIGFuZCBhbHNvIHRoZQ0KPiA+ID4gY29tbWVudCBJIG1hZGUgb24g
+dGhpcyBwYXRjaCBvbiB5b3VyIFJGQyBzZXJpZXMuDQo+ID4NCj4gPiBZZXMuLiBJIGRvbid0IGtu
+b3cgd2h5L2hvdyBJIG1pc3NlZCBpdC4NCj4gPiBBbHNvLCBzYXcgdGhlIHNhbWUgY29tbWVudCBv
+biBvbmUgb2YgdGhlIG90aGVyIHBhdGNoZXMgYWxzby4NCj4gPg0KPiA+IFdpbGwgc3VyZWx5IGZp
+eCB0aGlzIHRoaW5nIGluIHYyLg0KPiA+DQo+ID4gQlRXLCBhbnkgc3VnZ2VzdGlvbiBmb3IgdGhl
+ICduYW1lJyBvZiB0aGF0IHN0cnVjdHVyZSA/IDotKQ0KPiANCj4gaG1tbSwNCj4gZG8gd2Ugc3Rp
+bGwgaGF2ZSB0aGVybWFsX3pvbmVfcGxhdGZvcm1zIGluIHBhdGNoIHYyPw0KPiBJIGRvIG5vdCB0
+aGluayB3ZSBuZWVkIHRoaXMgaWYgd2Ugb25seSBiaW5kIGRldmljZXMgdmlhIC5iaW5kKCkNCj4g
+Y2FsbGJhY2suDQoNCldlIGNhbiBiaW5kIGRldmljZXMgdmlhIC5iaW5kIGNhbGwgYmFjaywgYW5k
+IHRoYXQgd2lsbCB0YWtlIHNvbWUgbG9hZA0Kb2ZmIHRoZSBmcmFtZXdvcmsgY29kZS4gQnV0IGV2
+ZW4gdGhlbiwgd2Ugd291bGQgbmVlZCB0aGlzIHN0cnVjdHVyZQ0KcmlnaHQgPyBTYXksIHdoZW4g
+d2Ugb2J0YWluIHBsYXRmb3JtIGRhdGEgZnJvbSBhIHRoZXJtYWwgZHJpdmVyLCBpdA0Kc2hvdWxk
+IGtub3cgJ3doYXQgZm9ybWF0IHRoZSBwbGF0Zm9ybSBkYXRhIGlzJyAuLmNvcnJlY3QgPw0KDQpJ
+IHRoZW9yZXRpY2FsbHkgYWdyZWUgd2l0aCB5b3UgdGhhdCBpbmRpdmlkdWFsIHBsYXRmb3JtIGRy
+aXZlcnMgY2FuDQpoYXZlIGRhdGEgaW4gdGhlaXIgb3duIGZvcm1hdCwgYnV0IHRoYXQgd2lsbCBi
+ZSBhIGhlYXZ5IGxvc3Mgb24NCnN0YW5kYXJkaXphdGlvbi4NCg0KU28sDQpJIHdpbGwgcmVtb3Zl
+IHRoZSBleHRyYSBiaW5kIGNvZGUgSSBhZGRlZCB0byBmcmFtZXdvcmssIGFuZA0KKGtlZXAgaXQg
+dGhlIG9sZCB3YXkgaXQgd2FzKSBidXQgc3RpbGwgcHJlZmVyIHRvIGhhdmUgdGhlIHN0cnVjdHVy
+ZQ0KcHV0IGluIHRoZXJtYWwuaC4NCg0KVGhhbmtzLA0KRHVyZ2ENCg==
