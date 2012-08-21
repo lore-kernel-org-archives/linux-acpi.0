@@ -1,95 +1,84 @@
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: Re: [PATCH 10/13] Thermal: Remove throttling logic out of
- thermal_sys.c
-Date: Tue, 21 Aug 2012 08:36:58 +0300
-Message-ID: <20120821053658.GA9833@besouro>
+Subject: Re: [PATCH 12/13] Thermal: Add documentation for platform layer data
+Date: Tue, 21 Aug 2012 08:38:50 +0300
+Message-ID: <20120821053849.GB9833@besouro>
 References: <1344516365-7230-1-git-send-email-durgadoss.r@intel.com>
- <1344516365-7230-11-git-send-email-durgadoss.r@intel.com>
- <1344841200.1682.794.camel@rui.sh.intel.com>
- <4D68720C2E767A4AA6A8796D42C8EB5919A46B@BGSMSX101.gar.corp.intel.com>
+ <1344516365-7230-13-git-send-email-durgadoss.r@intel.com>
 Reply-To: eduardo.valentin@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from na3sys009aog137.obsmtp.com ([74.125.149.18]:33505 "EHLO
-	na3sys009aog137.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752143Ab2HUFhI (ORCPT
+Received: from na3sys009aog134.obsmtp.com ([74.125.149.83]:57433 "EHLO
+	na3sys009aog134.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752143Ab2HUFi6 (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 21 Aug 2012 01:37:08 -0400
-Received: by wgbfm10 with SMTP id fm10so7682925wgb.34
-        for <linux-acpi@vger.kernel.org>; Mon, 20 Aug 2012 22:37:04 -0700 (PDT)
+	Tue, 21 Aug 2012 01:38:58 -0400
+Received: by weyt11 with SMTP id t11so4604162wey.11
+        for <linux-acpi@vger.kernel.org>; Mon, 20 Aug 2012 22:38:55 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <4D68720C2E767A4AA6A8796D42C8EB5919A46B@BGSMSX101.gar.corp.intel.com>
+In-Reply-To: <1344516365-7230-13-git-send-email-durgadoss.r@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "R, Durgadoss" <durgadoss.r@intel.com>
-Cc: "Zhang, Rui" <rui.zhang@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>, "amit.kachhap@linaro.org" <amit.kachhap@linaro.org>, "wni@nvidia.com" <wni@nvidia.com>
+To: Durgadoss R <durgadoss.r@intel.com>
+Cc: lenb@kernel.org, rui.zhang@intel.com, rjw@sisk.pl, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, eduardo.valentin@ti.com, amit.kachhap@linaro.org, wni@nvidia.com
 
-Hello,
+hello,
 
-On Mon, Aug 13, 2012 at 08:04:03AM +0000, R, Durgadoss wrote:
-> Hi Rui,
->=20
-> [cut.]
-> > > +static void notify_user_space(struct thermal_zone_device *tz, in=
-t trip)
-> > > +{
-> > > +	mutex_lock(&tz->lock);
-> > > +
-> > > +	kobject_uevent(&tz->device.kobj, KOBJ_CHANGE);
-> > > +
-> > > +	mutex_unlock(&tz->lock);
-> > > +}
-> > > +
-> > > +static void handle_non_critical_trips(struct thermal_zone_device=
- *tz,
-> > > +			int trip, enum thermal_trip_type trip_type)
-> > > +{
-> > > +	int throttle_policy =3D THERMAL_STEP_WISE;
-> > > +
-> > > +	if (tz->tzp)
-> > > +		throttle_policy =3D tz->tzp->throttle_policy;
-> > > +
-> > > +	switch (throttle_policy) {
-> > > +	case THERMAL_FAIR_SHARE:
-> > > +		fair_share_throttle(tz, trip);
-> > > +		break;
-> > > +	case THERMAL_STEP_WISE:
-> > > +		step_wise_throttle(tz, trip);
-> > > +		break;
-> > > +	case THERMAL_USER_SPACE:
-> > > +		notify_user_space(tz, trip);
-> > > +		break;
-> > > +	}
-> >=20
-> > this is a little different from what I thought.
-> > IMO, each policy should register its pointer to the thermal framewo=
-rk.
-> > and tz->tzp points to the pointer of the policy using.
-> > and then, in handle_non_critical_trips(), the code would be like th=
-is:
-> > if(tz->tzp)
-> > 	tz->tzp->throttle(tz, trip);
-> >=20
-> > But this is also okay for now, because we have only one callback fo=
-r
-> > each policy.
->=20
-> I completely agree with you here. When I was doing my initial develop=
-ment,
-> I found that some policies need two arguments/ some need three etc..
-> That=E2=80=99s why could not do a function pointer implementation.
->=20
-> Will try to fix it up in the next version of the patches.
+On Thu, Aug 09, 2012 at 06:16:04PM +0530, Durgadoss R wrote:
+> This patch adds documentation for the structure
+> thermal_zone_params, and also shows an example of
+> how to populate them.
 
-Cool! I'd also prefer to use the ->ops type of design, if possible.
+Just a reminder, I believe you should also expose some documentation about
+the new functions exported in this series.
 
->=20
-> Thank you,
-> Durga
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
+> ---
+>  Documentation/thermal/sysfs-api.txt |   30 ++++++++++++++++++++++++++++++
+>  1 file changed, 30 insertions(+)
+> 
+> diff --git a/Documentation/thermal/sysfs-api.txt b/Documentation/thermal/sysfs-api.txt
+> index ca1a1a3..669720c 100644
+> --- a/Documentation/thermal/sysfs-api.txt
+> +++ b/Documentation/thermal/sysfs-api.txt
+> @@ -112,6 +112,36 @@ temperature) and throttle appropriate devices.
+>      trip: indicates which trip point the cooling devices is associated with
+>  	  in this thermal zone.
+>  
+> +1.4 Thermal Zone Parameters
+> +1.4.1 struct thermal_zone_params
+> +    This structure defines the platform level parameters for a thermal zone.
+> +    This data, for each thermal zone should come from the platform layer.
+> +    This is an optional feature where some platforms can choose not to
+> +    provide this data.
+> +1.4.2 struct thermal_zone_params attributes
+> +    .thermal_zone_name: Name of the thermal zone, for which these parameters
+> +			are being defined.
+> +    .num_cdevs: Number of cooling devices associated with this
+> +			  thermal zone.
+> +    .cdevs_name: Names of the cooling devices associated with this
+> +			   thermal zone.
+> +    .weights: This parameter defines the 'influence' of a particular cooling
+> +	      device on this thermal zone, on a percentage scale. The sum of
+> +	      all these weights cannot exceed 100. The order of values in
+> +	      this array should match with that of the cdevs_name.
+> +    .trip_mask: This is a bit mask that gives the binding relation between
+> +		this thermal zone and cdev, for a particular trip point.
+> +		If nth bit is set, then the cdev and thermal zone are bound
+> +		for trip point n.
+> +1.4.3 An example thermal_zone_params structure
+> +	struct thermal_zone_params tzp = {
+> +                .thermal_zone_name = "CPU",
+> +                .num_cdevs = 2,
+> +                .cdevs_name = {"CPU", "Memory"},
+> +                .weights = {70, 30},
+> +		.trip_mask = {0x0F, 0x08},
+> +        };
+> +
+>  2. sysfs attributes structure
+>  
+>  RO	read only value
+> -- 
+> 1.7.9.5
+> 
