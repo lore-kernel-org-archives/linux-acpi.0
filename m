@@ -1,125 +1,112 @@
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: Re: [PATCH V4 00/13] Thermal: generic thermal layer enhancement
-Date: Tue, 21 Aug 2012 08:10:19 +0300
-Message-ID: <20120821051018.GU9833@besouro>
-References: <1343292083-2047-1-git-send-email-rui.zhang@intel.com>
- <20120820155336.GM9833@besouro>
+Subject: Re: [PATCH 11/13] Thermal: Add a notification API
+Date: Tue, 21 Aug 2012 08:17:57 +0300
+Message-ID: <20120821051757.GV9833@besouro>
+References: <1344516365-7230-1-git-send-email-durgadoss.r@intel.com>
+ <1344516365-7230-12-git-send-email-durgadoss.r@intel.com>
+ <1344841364.1682.796.camel@rui.sh.intel.com>
+ <4D68720C2E767A4AA6A8796D42C8EB5919A440@BGSMSX101.gar.corp.intel.com>
 Reply-To: eduardo.valentin@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:53813 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752575Ab2HUFK2 (ORCPT
+Received: from na3sys009aog129.obsmtp.com ([74.125.149.142]:59080 "EHLO
+	na3sys009aog129.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752011Ab2HUFSI (ORCPT
 	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 21 Aug 2012 01:10:28 -0400
-Received: by wgbfm10 with SMTP id fm10so4102586wgb.1
-        for <linux-acpi@vger.kernel.org>; Mon, 20 Aug 2012 22:10:25 -0700 (PDT)
+	Tue, 21 Aug 2012 01:18:08 -0400
+Received: by wicr5 with SMTP id r5so4521929wic.7
+        for <linux-acpi@vger.kernel.org>; Mon, 20 Aug 2012 22:18:05 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20120820155336.GM9833@besouro>
+In-Reply-To: <4D68720C2E767A4AA6A8796D42C8EB5919A440@BGSMSX101.gar.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Eduardo Valentin <eduardo.valentin@ti.com>
-Cc: Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, R Durgadoss <durgadoss.r@intel.com>, Amit Kachhap <amit.kachhap@linaro.org>, Wei Ni <wni@nvidia.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+To: "R, Durgadoss" <durgadoss.r@intel.com>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>, "amit.kachhap@linaro.org" <amit.kachhap@linaro.org>, "wni@nvidia.com" <wni@nvidia.com>
 
-Hello Rui,
+Hello,
 
-On Mon, Aug 20, 2012 at 06:53:36PM +0300, Eduardo Valentin wrote:
-> Hello Rui,
-> 
-> On Thu, Jul 26, 2012 at 04:41:10PM +0800, Zhang Rui wrote:
-> > 
-> > Hi, all,
-> > 
-> > This is the patch set for linux-next.
-> 
-> The patch series looks good to me. The only issue is that, as now the omap-thermal
-> driver is under staging directory, you might want to update the series to cover it as
-> well (patches 03 and 05). I can provide you patches if you wish, but I'd recommend to
-> write atomic patches so that we always keep the tree in one piece.
-> 
-> Let me know what you think.
+On Mon, Aug 13, 2012 at 07:46:20AM +0000, R, Durgadoss wrote:
+> Hi Rui,
+>=20
+>=20
+> > -----Original Message-----
+> > From: Zhang, Rui
+> > Sent: Monday, August 13, 2012 12:33 PM
+> > To: R, Durgadoss
+> > Cc: lenb@kernel.org; rjw@sisk.pl; linux-acpi@vger.kernel.org; linux=
+-
+> > pm@vger.kernel.org; eduardo.valentin@ti.com; amit.kachhap@linaro.or=
+g;
+> > wni@nvidia.com
+> > Subject: Re: [PATCH 11/13] Thermal: Add a notification API
+> >=20
+> > On =E5=9B=9B, 2012-08-09 at 18:16 +0530, Durgadoss R wrote:
+> > > This patch adds a notification API which the sensor drivers'
+> > > can use to notify the framework. The framework then takes
+> > > care of the throttling according to the configured policy.
+> > >
+> > > Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
+> > > ---
+> > >  drivers/thermal/thermal_sys.c |   18 ++++++++++++++++++
+> > >  include/linux/thermal.h       |    1 +
+> > >  2 files changed, 19 insertions(+)
+> > >
+> > > diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/ther=
+mal_sys.c
+> > > index 193d071..6931d81 100644
+> > > --- a/drivers/thermal/thermal_sys.c
+> > > +++ b/drivers/thermal/thermal_sys.c
+> > > @@ -1309,6 +1309,24 @@ void thermal_cooling_device_unregister(str=
+uct
+> > thermal_cooling_device *cdev)
+> > >  }
+> > >  EXPORT_SYMBOL(thermal_cooling_device_unregister);
+> > >
+> > > +/**
+> > > + * notify_thermal_framework - Sensor drivers use this API to not=
+ify
+> > framework
+> > > + * @tz:		thermal zone device
+> > > + * @trip:	indicates which trip point has been crossed
+> > > + *
+> > > + * This function handles the trip events from sensor drivers. It=
+ starts
+> > > + * throttling the cooling devices according to the policy config=
+ured.
+> > > + * For CRITICAL and HOT trip points, this notifies the respectiv=
+e drivers,
+> > > + * and does actual throttling for other trip points i.e ACTIVE a=
+nd PASSIVE.
+> > > + * The throttling policy is based on the configured platform dat=
+a; if no
+> > > + * platform data is provided, this uses the step_wise throttling=
+ policy.
+> > > + */
+> > > +void notify_thermal_framework(struct thermal_zone_device *tz, in=
+t trip)
+> > > +{
+> > > +	handle_thermal_trip(tz, trip);
+> > > +}
+> > > +EXPORT_SYMBOL(notify_thermal_framework);
+> > > +
+> > why thermal_zone_device_update() can not work here?
+>=20
+> It can work. But thermal_zone_device_update() goes over the
+> list of all trip points whereas here we know 'trip' is the trip point
+> that we have to handle now. So, why do we need to iterate over all tr=
+ip
+> points again ?
+> That=E2=80=99s why it is implemented this way.
 
-Here is the differential diff on omap-thermal-common.c, on top of this series, which pretty much same diff
-compared to your branch. First hunk is on patch 03/13. Second one on patch 05/13. Feel free to include
-those on your patches.
+I see. But there is no example of usage of this API on this series?
 
-diff --git a/drivers/staging/omap-thermal/omap-thermal-common.c b/drivers/staging/omap-thermal/omap-thermal-common.c
-index 0675a5e..b4cd6cc 100644
---- a/drivers/staging/omap-thermal/omap-thermal-common.c
-+++ b/drivers/staging/omap-thermal/omap-thermal-common.c
-@@ -120,7 +120,9 @@ static int omap_thermal_bind(struct thermal_zone_device *thermal,
- 
-        /* TODO: bind with min and max states */
-        /* Simple thing, two trips, one passive another critical */
--       return thermal_zone_bind_cooling_device(thermal, 0, cdev);
-+       return thermal_zone_bind_cooling_device(thermal, 0, cdev,
-+                                               THERMAL_NO_LIMIT,
-+                                               THERMAL_NO_LIMIT);
- }
- 
- /* Unbind callback functions for thermal zone */
-@@ -246,7 +248,7 @@ int omap_thermal_expose_sensor(struct omap_bandgap *bg_ptr, int id,
-        /* Create thermal zone */
-        data->omap_thermal = thermal_zone_device_register(domain,
-                                OMAP_TRIP_NUMBER, 0, data, &omap_thermal_ops,
--                               0, FAST_TEMP_MONITORING_RATE, 0, 0);
-+                               0, FAST_TEMP_MONITORING_RATE);
-        if (IS_ERR_OR_NULL(data->omap_thermal)) {
-                dev_err(bg_ptr->dev, "thermal zone device is NULL\n");
-                return PTR_ERR(data->omap_thermal);
-
-
-> 
-> > 
-> > the changes includes:
-> > 
-> > V4:
-> > - dropped three patches which have been already picked by Len.
-> > - re-organize some piece of code based on Rafael's comments
-> > - improve some changelog
-> > 
-> > V3: http://marc.info/?l=linux-acpi&m=134318254518940&w=2
-> > - fixing a build error.
-> > - making a couple of changes based on Rafael's comments
-> > - removing the plist patch for now as I do not have validate data to show how much benefit it brings.
-> > 
-> > V2: http://marc.info/?l=linux-acpi&m=134267975014396&w=2
-> > - a couple of changes based on Eduardo and Amit's comments.
-> > - convert an internal list to plist to be more efficiency.
-> > 
-> > V1: http://marc.info/?l=linux-acpi&m=133938485224765&w=2
-> > - 12 RFC patches to fix the problems discussed in http://marc.info/?l=linux-acpi&m=133836783425764&w=2
-> > 
-> > please kindly review.
-> > 
-> > Any comments are welcome.
-> > 
-> > thanks,
-> > rui
-> > 
-> > ---------------------------------------------------------------------------
-> > Zhang Rui (13):
-> >       Thermal: Introduce multiple cooling states support
-> >       Thermal: Introduce cooling states range support
-> >       Thermal: set upper and lower limits
-> >       Thermal: Introduce .get_trend() callback.
-> >       Thermal: Remove tc1/tc2 in generic thermal layer.
-> >       Thermal: Introduce thermal_zone_trip_update()
-> >       Thermal: rename structure thermal_cooling_device_instance to thermal_instance
-> >       Thermal: Rename thermal_zone_device.cooling_devices to thermal_zone_device.instances
-> >       Thermal: Rename thermal_instance.node to thermal_instance.tz_node.
-> >       Thermal: List thermal_instance in thermal_cooling_device.
-> >       Thermal: Introduce simple arbitrator for setting device cooling state
-> >       Thermal: Unify the code for both active and passive cooling
-> >       Thermal: Introduce locking for cdev.thermal_instances
-> > ---------------------------------------------------------------------------
-> >  Documentation/thermal/sysfs-api.txt      |    9 +-
-> >  drivers/acpi/thermal.c                   |   98 +++++++---
-> >  drivers/platform/x86/acerhdf.c           |    5 +-
-> >  drivers/platform/x86/intel_mid_thermal.c |    2 +-
-> >  drivers/thermal/spear_thermal.c          |    2 +-
-> >  drivers/thermal/thermal_sys.c            |  308 +++++++++++++++++++-----------
-> >  include/linux/thermal.h                  |   28 ++-
-> >  7 files changed, 300 insertions(+), 152 deletions(-)
-> > ---------------------------------------------------------------------------
+>=20
+> Thanks,
+> Durga
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
