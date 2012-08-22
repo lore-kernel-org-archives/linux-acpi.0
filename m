@@ -1,116 +1,110 @@
-From: Feng Tang <feng.tang@intel.com>
-Subject: [PATCH V2 1/2] ACPI: Use ACPICA native way to decode the PLD buffer
-Date: Wed, 22 Aug 2012 16:35:23 +0800
-Message-ID: <20120822163523.2b0199bb@feng-i7>
-References: <1345616676-30915-1-git-send-email-feng.tang@intel.com>
+From: Wim Van Sebroeck <wim@iguana.be>
+Subject: Re: [PATCH] lpc_ich: Fix a 3.5 kernel regression for iTCO_wdt driver
+Date: Wed, 22 Aug 2012 21:55:12 +0200
+Message-ID: <20120822195512.GI27604@spo001.leaseweb.com>
+References: <1344959772-23018-1-git-send-email-feng.tang@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:16141 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751750Ab2HVIkw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Aug 2012 04:40:52 -0400
-In-Reply-To: <1345616676-30915-1-git-send-email-feng.tang@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1344959772-23018-1-git-send-email-feng.tang@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Len Brown <len.brown@intel.com>, Feng Tang <feng.tang@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Aaron Sierra <asierra@xes-inc.com>, Bob Moore <robert.moore@intel.com>, Samuel Ortiz <sameo@linux.intel.com>, Guenter Roeck <linux@roeck-us.net>
 List-Id: linux-acpi@vger.kernel.org
-To: len.brown@intel.com, linux-acpi@vger.kernel.org
-Cc: mjg@redhat.com, tianyu.lan@intel.com, gregkh@linuxfoundation.org, Bob Moore <robert.moore@intel.com>
 
->From 5304644dc5fde58289e7665ab135c74b3e302ba1 Mon Sep 17 00:00:00 2001
-From: Feng Tang <feng.tang@intel.com>
-Date: Tue, 21 Aug 2012 09:56:58 +0800
-Subject: [PATCH V2 1/2] ACPI: Use ACPICA native way to decode the PLD buffer
+Hi All,
 
-This patch is on top of the ACPICA 20120816 release, which implemented
-a native way to decode PLD buffer, so use it instead of leting upper
-level users do the decoding.
+Cc-ing Samuel and Guenter also.
 
-v2: Modify the check for PLD buffer length to reject buffers whose
-length < 16
+> There are many reports (including 2 of my machines) that iTCO_wdt watchdog
+> driver fails to be initialized in 3.5 kernel with error message like:
+> 
+> [    5.265175] ACPI Warning: 0x00001060-0x0000107f SystemIO conflicts with Region \_SB_.PCI0.LPCB.TCOI 1 (20120320/utaddress-251)
+> [    5.265192] ACPI: If an ACPI driver is available for this device, you should use it instead of the native driver
+> [    5.265206] lpc_ich: Resource conflict(s) found affecting iTCO_wdt
+> 
+> The root cause the iTCO_wdt driver in 3.4 probes the HW IO resource from
+> LPC's PCI config space, while in 3.5 kernel it relies on lpc_ich driver
+> for the probe, which adds a new acpi_check_resource_conflict() check, and
+> give up the probe if there is any conflict with ACPI.
+> 
+> Fix it by removing all the checks for iTCO_wdt to keep the same behavior as
+> 3.4 kernel.
+> https://bugzilla.kernel.org/show_bug.cgi?id=44991
+> 
+> Actually the same check could be removed for the gpio-ich in lpc_ich.c,
+> but I'm not sure if it will cause problems.
+> 
+> Signed-off-by: Feng Tang <feng.tang@intel.com>
+> Cc: Aaron Sierra <asierra@xes-inc.com>
+> Cc: Wim Van Sebroeck <wim@iguana.be>
+> Cc: Len Brown <len.brown@intel.com>
+> Cc: Bob Moore <robert.moore@intel.com>
+> ---
+>  drivers/mfd/lpc_ich.c |   20 +-------------------
+>  1 files changed, 1 insertions(+), 19 deletions(-)
+> 
+> diff --git a/drivers/mfd/lpc_ich.c b/drivers/mfd/lpc_ich.c
+> index 027cc8f..a05fdfc 100644
+> --- a/drivers/mfd/lpc_ich.c
+> +++ b/drivers/mfd/lpc_ich.c
+> @@ -765,7 +765,6 @@ static int __devinit lpc_ich_init_wdt(struct pci_dev *dev,
+>  	u32 base_addr_cfg;
+>  	u32 base_addr;
+>  	int ret;
+> -	bool acpi_conflict = false;
+>  	struct resource *res;
+>  
+>  	/* Setup power management base register */
+> @@ -780,20 +779,11 @@ static int __devinit lpc_ich_init_wdt(struct pci_dev *dev,
+>  	res = wdt_io_res(ICH_RES_IO_TCO);
+>  	res->start = base_addr + ACPIBASE_TCO_OFF;
+>  	res->end = base_addr + ACPIBASE_TCO_END;
+> -	ret = acpi_check_resource_conflict(res);
+> -	if (ret) {
+> -		acpi_conflict = true;
+> -		goto wdt_done;
+> -	}
+>  
+>  	res = wdt_io_res(ICH_RES_IO_SMI);
+>  	res->start = base_addr + ACPIBASE_SMI_OFF;
+>  	res->end = base_addr + ACPIBASE_SMI_END;
+> -	ret = acpi_check_resource_conflict(res);
+> -	if (ret) {
+> -		acpi_conflict = true;
+> -		goto wdt_done;
+> -	}
+> +
+>  	lpc_ich_enable_acpi_space(dev);
+>  
+>  	/*
+> @@ -813,11 +803,6 @@ static int __devinit lpc_ich_init_wdt(struct pci_dev *dev,
+>  		res = wdt_mem_res(ICH_RES_MEM_GCS);
+>  		res->start = base_addr + ACPIBASE_GCS_OFF;
+>  		res->end = base_addr + ACPIBASE_GCS_END;
+> -		ret = acpi_check_resource_conflict(res);
+> -		if (ret) {
+> -			acpi_conflict = true;
+> -			goto wdt_done;
+> -		}
+>  	}
+>  
+>  	lpc_ich_finalize_cell(&lpc_ich_cells[LPC_WDT], id);
+> @@ -825,9 +810,6 @@ static int __devinit lpc_ich_init_wdt(struct pci_dev *dev,
+>  				1, NULL, 0);
+>  
+>  wdt_done:
+> -	if (acpi_conflict)
+> -		pr_warn("Resource conflict(s) found affecting %s\n",
+> -				lpc_ich_cells[LPC_WDT].name);
+>  	return ret;
+>  }
+>  
 
-Signed-off-by: Feng Tang <feng.tang@intel.com>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
----
- drivers/acpi/utils.c    |   11 +++++++----
- include/acpi/acpi_bus.h |   31 +------------------------------
- 2 files changed, 8 insertions(+), 34 deletions(-)
+Hi Len,
 
-diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-index 3e87c9c..462f7e3 100644
---- a/drivers/acpi/utils.c
-+++ b/drivers/acpi/utils.c
-@@ -384,7 +384,7 @@ acpi_evaluate_reference(acpi_handle handle,
- EXPORT_SYMBOL(acpi_evaluate_reference);
- 
- acpi_status
--acpi_get_physical_device_location(acpi_handle handle, struct acpi_pld *pld)
-+acpi_get_physical_device_location(acpi_handle handle, struct acpi_pld_info **pld)
- {
- 	acpi_status status;
- 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-@@ -400,13 +400,16 @@ acpi_get_physical_device_location(acpi_handle handle, struct acpi_pld *pld)
- 	if (!output || output->type != ACPI_TYPE_PACKAGE
- 	    || !output->package.count
- 	    || output->package.elements[0].type != ACPI_TYPE_BUFFER
--	    || output->package.elements[0].buffer.length > sizeof(*pld)) {
-+	    || output->package.elements[0].buffer.length < ACPI_PLD_REV1_BUFFER_SIZE) {
- 		status = AE_TYPE;
- 		goto out;
- 	}
- 
--	memcpy(pld, output->package.elements[0].buffer.pointer,
--	       output->package.elements[0].buffer.length);
-+	status = acpi_decode_pld_buffer(
-+			output->package.elements[0].buffer.pointer,
-+			output->package.elements[0].buffer.length,
-+			pld);
-+
- out:
- 	kfree(buffer.pointer);
- 	return status;
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index bde976e..0c1fcd4 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -54,37 +54,8 @@ acpi_status
- acpi_evaluate_hotplug_ost(acpi_handle handle, u32 source_event,
- 			u32 status_code, struct acpi_buffer *status_buf);
- 
--struct acpi_pld {
--	unsigned int revision:7; /* 0 */
--	unsigned int ignore_colour:1; /* 7 */
--	unsigned int colour:24; /* 8 */
--	unsigned int width:16; /* 32 */
--	unsigned int height:16; /* 48 */
--	unsigned int user_visible:1; /* 64 */
--	unsigned int dock:1; /* 65 */
--	unsigned int lid:1; /* 66 */
--	unsigned int panel:3; /* 67 */
--	unsigned int vertical_pos:2; /* 70 */
--	unsigned int horizontal_pos:2; /* 72 */
--	unsigned int shape:4; /* 74 */
--	unsigned int group_orientation:1; /* 78 */
--	unsigned int group_token:8; /* 79 */
--	unsigned int group_position:8; /* 87 */
--	unsigned int bay:1; /* 95 */
--	unsigned int ejectable:1; /* 96 */
--	unsigned int ospm_eject_required:1; /* 97 */
--	unsigned int cabinet_number:8; /* 98 */
--	unsigned int card_cage_number:8; /* 106 */
--	unsigned int reference:1; /* 114 */
--	unsigned int rotation:4; /* 115 */
--	unsigned int order:5; /* 119 */
--	unsigned int reserved:4; /* 124 */
--	unsigned int vertical_offset:16; /* 128 */
--	unsigned int horizontal_offset:16; /* 144 */
--} __attribute__((__packed__));
--
- acpi_status
--acpi_get_physical_device_location(acpi_handle handle, struct acpi_pld *pld);
-+acpi_get_physical_device_location(acpi_handle handle, struct acpi_pld_info **pld);
- #ifdef CONFIG_ACPI
- 
- #include <linux/proc_fs.h>
--- 
-1.7.1
+Any idea why the acpi_check_resource_conflict() check gives a conflict?
+
+Thanks in advance,
+Wim.
