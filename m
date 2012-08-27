@@ -1,203 +1,94 @@
 From: Durgadoss R <durgadoss.r@intel.com>
-Subject: [PATCHv2 09/14] Thermal: Introduce fair_share thermal governor
-Date: Mon, 27 Aug 2012 09:58:21 +0530
-Message-ID: <1346041706-29642-10-git-send-email-durgadoss.r@intel.com>
+Subject: [PATCHv2 13/14] Thermal: Add documentation for platform layer data
+Date: Mon, 27 Aug 2012 09:58:25 +0530
+Message-ID: <1346041706-29642-14-git-send-email-durgadoss.r@intel.com>
 References: <1346041706-29642-1-git-send-email-durgadoss.r@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga09.intel.com ([134.134.136.24]:4000 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751600Ab2H0E3W (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 27 Aug 2012 00:29:22 -0400
+	id S1750771Ab2H0E3a (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 27 Aug 2012 00:29:30 -0400
 In-Reply-To: <1346041706-29642-1-git-send-email-durgadoss.r@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org, rui.zhang@intel.com
 Cc: linux-acpi@vger.kernel.org, eduardo.valentin@ti.com, Durgadoss R <durgadoss.r@intel.com>
 
-This patch introduces a simple 'weight' based
-governor named fair_share governor. Whenever the
-thermal framework gets notified of the trip point
-violation, this governor (if configured), throttles
-the cooling devices associated with a thermal zone.
-
-This mapping between a thermal zone and a cooling device
-and the effectiveness of cooling are provided in the
-platform layer.
+This patch adds documentation for thermal_bind_params
+and thermal_zone_params structures. Also, adds details
+on EXPORT_SYMBOL APIs.
 
 Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
 ---
- drivers/thermal/Kconfig      |    6 +++
- drivers/thermal/Makefile     |    3 +-
- drivers/thermal/fair_share.c |  113 ++++++++++++++++++++++++++++++++++++++++++
- include/linux/thermal.h      |    9 ++++
- 4 files changed, 130 insertions(+), 1 deletion(-)
- create mode 100644 drivers/thermal/fair_share.c
+ Documentation/thermal/sysfs-api.txt |   51 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 51 insertions(+)
 
-diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
-index 3ab2bd5..f5110c0 100644
---- a/drivers/thermal/Kconfig
-+++ b/drivers/thermal/Kconfig
-@@ -27,3 +27,9 @@ config SPEAR_THERMAL
- 	help
- 	  Enable this to plug the SPEAr thermal sensor driver into the Linux
- 	  thermal framework
-+
-+config FAIR_SHARE
-+	bool "Fair-share thermal governor"
-+	depends on THERMAL
-+	help
-+	  Enable this to manage platform thermals using fair-share governor.
-diff --git a/drivers/thermal/Makefile b/drivers/thermal/Makefile
-index a9fff0b..4ffe1a8 100644
---- a/drivers/thermal/Makefile
-+++ b/drivers/thermal/Makefile
-@@ -3,4 +3,5 @@
- #
+diff --git a/Documentation/thermal/sysfs-api.txt b/Documentation/thermal/sysfs-api.txt
+index ca1a1a3..650f41b 100644
+--- a/Documentation/thermal/sysfs-api.txt
++++ b/Documentation/thermal/sysfs-api.txt
+@@ -112,6 +112,30 @@ temperature) and throttle appropriate devices.
+     trip: indicates which trip point the cooling devices is associated with
+ 	  in this thermal zone.
  
- obj-$(CONFIG_THERMAL)		+= thermal_sys.o
--obj-$(CONFIG_SPEAR_THERMAL)		+= spear_thermal.o
-\ No newline at end of file
-+obj-$(CONFIG_SPEAR_THERMAL)		+= spear_thermal.o
-+obj-$(CONFIG_FAIR_SHARE)		+= fair_share.o
-diff --git a/drivers/thermal/fair_share.c b/drivers/thermal/fair_share.c
-new file mode 100644
-index 0000000..a57e40d
---- /dev/null
-+++ b/drivers/thermal/fair_share.c
-@@ -0,0 +1,113 @@
-+/*
-+ *  fair_share.c - A simple weight based Thermal governor
-+ *
-+ *  Copyright (C) 2012 Intel Corp
-+ *  Copyright (C) 2012 Durgadoss R <durgadoss.r@intel.com>
-+ *
-+ *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; version 2 of the License.
-+ *
-+ *  This program is distributed in the hope that it will be useful, but
-+ *  WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ *  General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License along
-+ *  with this program; if not, write to the Free Software Foundation, Inc.,
-+ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
-+ *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ */
++1.4 Thermal Zone Parameters
++1.4.1 struct thermal_bind_params
++    This structure defines the following parameters that are used to bind
++    a zone with a cooling device for a particular trip point.
++    .cdev: The cooling device pointer
++    .weight: The 'influence' of a particular cooling device on this zone.
++             This is on a percentage scale. The sum of all these weights
++             (for a particular zone) cannot exceed 100.
++    .trip_mask:This is a bit mask that gives the binding relation between
++               this thermal zone and cdev, for a particular trip point.
++               If nth bit is set, then the cdev and thermal zone are bound
++               for trip point n.
++1.4.2 struct thermal_zone_params
++    This structure defines the platform level parameters for a thermal zone.
++    This data, for each thermal zone should come from the platform layer.
++    This is an optional feature where some platforms can choose not to
++    provide this data.
++    .throttle_policy: One of the throttling policies from enum
++                      thermal_throttle_policy
++    .zone_name: Name of the thermal zone, for which these parameters
++		are being defined.
++    .num_tbps: Number of thermal_bind_params entries for this zone
++    .tbp: thermal_bind_params entries
 +
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
-+#include <linux/module.h>
-+#include <linux/thermal.h>
-+
-+#include "thermal_core.h"
-+
-+/**
-+ * get_trip_level: - obtains the current trip level for a zone
-+ * @tz:		thermal zone device
-+ */
-+static int get_trip_level(struct thermal_zone_device *tz)
-+{
-+	int count = 0;
-+	unsigned long trip_temp;
-+
-+	if (tz->trips == 0 || !tz->ops->get_trip_temp)
-+		return 0;
-+
-+	for (count = 0; count < tz->trips; count++) {
-+		tz->ops->get_trip_temp(tz, count, &trip_temp);
-+		if (tz->temperature < trip_temp)
-+			break;
-+	}
-+	return count;
-+}
-+
-+static long get_target_state(struct thermal_zone_device *tz,
-+		struct thermal_cooling_device *cdev, int weight, int level)
-+{
-+	unsigned long max_state;
-+
-+	cdev->ops->get_max_state(cdev, &max_state);
-+
-+	return (long)(weight * level * max_state) / (100 * tz->trips);
-+}
-+
-+/**
-+ * fair_share_throttle - throttles devices asscciated with the given zone
-+ * @tz - thermal_zone_device
-+ *
-+ * Throttling Logic: This uses three parameters to calculate the new
-+ * throttle state of the cooling devices associated with the given zone.
-+ *
-+ * Parameters used for Throttling:
-+ * P1. max_state: Maximum throttle state exposed by the cooling device.
-+ * P2. weight[i]/100:
-+ *	How 'effective' the 'i'th device is, in cooling the given zone.
-+ * P3. cur_trip_level/max_no_of_trips:
-+ *	This describes the extent to which the devices should be throttled.
-+ *	We do not want to throttle too much when we trip a lower temperature,
-+ *	whereas the throttling is at full swing if we trip critical levels.
-+ *	(Heavily assumes the trip points are in ascending order)
-+ * new_state of cooling device = P3 * P2 * P1
-+ */
-+void fair_share_throttle(struct thermal_zone_device *tz, int trip)
-+{
-+	struct thermal_zone_params *tzp;
-+	struct thermal_cooling_device *cdev;
-+	struct thermal_instance *instance;
-+	int i;
-+	int cur_trip_level = get_trip_level(tz);
-+
-+	if (!tz->tzp || !tz->tzp->tbp)
-+		return;
-+
-+	tzp = tz->tzp;
-+
-+	for (i = 0; i < tzp->num_tbps; i++) {
-+		if (!tzp->tbp[i].cdev)
-+			continue;
-+
-+		cdev = tzp->tbp[i].cdev;
-+		instance = get_thermal_instance(tz, cdev, trip);
-+		if (!instance)
-+			continue;
-+
-+		instance->target = get_target_state(tz, cdev,
-+					tzp->tbp[i].weight, cur_trip_level);
-+
-+		instance->cdev->updated = false;
-+		thermal_cdev_update(cdev);
-+	}
-+}
-+EXPORT_SYMBOL(fair_share_throttle);
-+
-+MODULE_AUTHOR("Durgadoss R");
-+MODULE_DESCRIPTION("A simple weight based thermal throttling governor");
-+MODULE_LICENSE("GPL");
-diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-index 591f350..472beed 100644
---- a/include/linux/thermal.h
-+++ b/include/linux/thermal.h
-@@ -237,6 +237,15 @@ void thermal_cdev_update(struct thermal_cooling_device *);
-  */
- extern int (*get_platform_thermal_params)(struct thermal_zone_device *);
+ 2. sysfs attributes structure
  
-+#ifdef CONFIG_FAIR_SHARE
-+extern void fair_share_throttle(struct thermal_zone_device *tz, int trip);
-+#else
-+static inline void fair_share_throttle(struct thermal_zone_device *tz, int trip)
-+{
-+	return;
-+}
-+#endif
+ RO	read only value
+@@ -305,3 +329,30 @@ to a thermal_zone_device when it registers itself with the framework. The
+ event will be one of:{THERMAL_AUX0, THERMAL_AUX1, THERMAL_CRITICAL,
+ THERMAL_DEV_FAULT}. Notification can be sent when the current temperature
+ crosses any of the configured thresholds.
 +
- #ifdef CONFIG_NET
- extern int thermal_generate_netlink_event(u32 orig, enum events event);
- #else
++5. Export Symbol APIs:
++
++5.1: get_tz_trend:
++This function returns the trend of a thermal zone, i.e the rate of change
++of temperature of the thermal zone. Ideally, the thermal sensor drivers
++are supposed to implement the callback. If they don't, the thermal
++framework calculated the trend by comparing the previous and the current
++temperature values.
++
++5.2:get_thermal_instance:
++This function returns the thermal_instance corresponding to a given
++{thermal_zone, cooling_device, trip_point} combination. Returns NULL
++if such an instance does not exist.
++
++5.3:notify_thermal_framework:
++This function handles the trip events from sensor drivers. It starts
++throttling the cooling devices according to the policy configured.
++For CRITICAL and HOT trip points, this notifies the respective drivers,
++and does actual throttling for other trip points i.e ACTIVE and PASSIVE.
++The throttling policy is based on the configured platform data; if no
++platform data is provided, this uses the step_wise throttling policy.
++
++5.4:thermal_cdev_update:
++This function serves as an arbitrator to set the state of a cooling
++device. It sets the cooling device to the deepest cooling state if
++possible.
 -- 
 1.7.9.5
 
