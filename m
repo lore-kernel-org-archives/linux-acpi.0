@@ -1,94 +1,106 @@
 From: Durgadoss R <durgadoss.r@intel.com>
-Subject: [PATCHv2 13/14] Thermal: Add documentation for platform layer data
-Date: Mon, 27 Aug 2012 09:58:25 +0530
-Message-ID: <1346041706-29642-14-git-send-email-durgadoss.r@intel.com>
+Subject: [PATCHv2 14/14] Thermal: Platform layer changes to provide thermal data
+Date: Mon, 27 Aug 2012 09:58:26 +0530
+Message-ID: <1346041706-29642-15-git-send-email-durgadoss.r@intel.com>
 References: <1346041706-29642-1-git-send-email-durgadoss.r@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga09.intel.com ([134.134.136.24]:4000 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750771Ab2H0E3a (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 27 Aug 2012 00:29:30 -0400
+	id S1750771Ab2H0E3c (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 27 Aug 2012 00:29:32 -0400
 In-Reply-To: <1346041706-29642-1-git-send-email-durgadoss.r@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org, rui.zhang@intel.com
 Cc: linux-acpi@vger.kernel.org, eduardo.valentin@ti.com, Durgadoss R <durgadoss.r@intel.com>
 
-This patch adds documentation for thermal_bind_params
-and thermal_zone_params structures. Also, adds details
-on EXPORT_SYMBOL APIs.
+This patch shows how can we add platform specific thermal data
+required by the thermal framework. This is just an example
+patch, and _not_ for merge.
 
 Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
 ---
- Documentation/thermal/sysfs-api.txt |   51 +++++++++++++++++++++++++++++++++++
- 1 file changed, 51 insertions(+)
+ arch/x86/platform/mrst/mrst.c |   49 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 49 insertions(+)
 
-diff --git a/Documentation/thermal/sysfs-api.txt b/Documentation/thermal/sysfs-api.txt
-index ca1a1a3..650f41b 100644
---- a/Documentation/thermal/sysfs-api.txt
-+++ b/Documentation/thermal/sysfs-api.txt
-@@ -112,6 +112,30 @@ temperature) and throttle appropriate devices.
-     trip: indicates which trip point the cooling devices is associated with
- 	  in this thermal zone.
+diff --git a/arch/x86/platform/mrst/mrst.c b/arch/x86/platform/mrst/mrst.c
+index fd41a92..91587bf 100644
+--- a/arch/x86/platform/mrst/mrst.c
++++ b/arch/x86/platform/mrst/mrst.c
+@@ -30,6 +30,7 @@
+ #include <linux/mfd/intel_msic.h>
+ #include <linux/gpio.h>
+ #include <linux/i2c/tc35876x.h>
++#include <linux/thermal.h>
  
-+1.4 Thermal Zone Parameters
-+1.4.1 struct thermal_bind_params
-+    This structure defines the following parameters that are used to bind
-+    a zone with a cooling device for a particular trip point.
-+    .cdev: The cooling device pointer
-+    .weight: The 'influence' of a particular cooling device on this zone.
-+             This is on a percentage scale. The sum of all these weights
-+             (for a particular zone) cannot exceed 100.
-+    .trip_mask:This is a bit mask that gives the binding relation between
-+               this thermal zone and cdev, for a particular trip point.
-+               If nth bit is set, then the cdev and thermal zone are bound
-+               for trip point n.
-+1.4.2 struct thermal_zone_params
-+    This structure defines the platform level parameters for a thermal zone.
-+    This data, for each thermal zone should come from the platform layer.
-+    This is an optional feature where some platforms can choose not to
-+    provide this data.
-+    .throttle_policy: One of the throttling policies from enum
-+                      thermal_throttle_policy
-+    .zone_name: Name of the thermal zone, for which these parameters
-+		are being defined.
-+    .num_tbps: Number of thermal_bind_params entries for this zone
-+    .tbp: thermal_bind_params entries
-+
- 2. sysfs attributes structure
+ #include <asm/setup.h>
+ #include <asm/mpspec_def.h>
+@@ -78,6 +79,37 @@ struct sfi_rtc_table_entry sfi_mrtc_array[SFI_MRTC_MAX];
+ EXPORT_SYMBOL_GPL(sfi_mrtc_array);
+ int sfi_mrtc_num;
  
- RO	read only value
-@@ -305,3 +329,30 @@ to a thermal_zone_device when it registers itself with the framework. The
- event will be one of:{THERMAL_AUX0, THERMAL_AUX1, THERMAL_CRITICAL,
- THERMAL_DEV_FAULT}. Notification can be sent when the current temperature
- crosses any of the configured thresholds.
++static int thermal_match(struct thermal_zone_device *tz,
++			struct thermal_cooling_device *cdev)
++{
++	if (!strcmp(tz->type, "CPU")) {
++		if (!strcmp(cdev->type, "CPU") ||
++			!strcmp(cdev->type, "Battery"))
++			return 0;
++	}
++	return 1;
++}
 +
-+5. Export Symbol APIs:
++static struct thermal_bind_params tz_cpu_params[2] = {
++	{.cdev = NULL,
++	.weight = 80,
++	.trip_mask = 0x0F,
++	.match = thermal_match, },
 +
-+5.1: get_tz_trend:
-+This function returns the trend of a thermal zone, i.e the rate of change
-+of temperature of the thermal zone. Ideally, the thermal sensor drivers
-+are supposed to implement the callback. If they don't, the thermal
-+framework calculated the trend by comparing the previous and the current
-+temperature values.
++	{ .cdev = NULL,
++	.weight = 80,
++	.trip_mask = 0x0F,
++	.match = thermal_match, },
++	};
 +
-+5.2:get_thermal_instance:
-+This function returns the thermal_instance corresponding to a given
-+{thermal_zone, cooling_device, trip_point} combination. Returns NULL
-+if such an instance does not exist.
++#define MRST_THERMAL_ZONES      1
++struct thermal_zone_params tzp[MRST_THERMAL_ZONES] = {
++	{ .zone_name = "CPU",
++	.throttle_policy = THERMAL_FAIR_SHARE,
++	.num_tbps = 2,
++	.tbp = tz_cpu_params, }
++};
 +
-+5.3:notify_thermal_framework:
-+This function handles the trip events from sensor drivers. It starts
-+throttling the cooling devices according to the policy configured.
-+For CRITICAL and HOT trip points, this notifies the respective drivers,
-+and does actual throttling for other trip points i.e ACTIVE and PASSIVE.
-+The throttling policy is based on the configured platform data; if no
-+platform data is provided, this uses the step_wise throttling policy.
+ static void mrst_power_off(void)
+ {
+ }
+@@ -983,10 +1015,27 @@ static int __init sfi_parse_devs(struct sfi_table_header *table)
+ 	return 0;
+ }
+ 
++static int mrst_get_thermal_params(struct thermal_zone_device *tz)
++{
++	int i;
 +
-+5.4:thermal_cdev_update:
-+This function serves as an arbitrator to set the state of a cooling
-+device. It sets the cooling device to the deepest cooling state if
-+possible.
++	for (i = 0; i < MRST_THERMAL_ZONES; i++) {
++		if (!strcmp(tzp[i].thermal_zone_name, tz->type)) {
++			tz->tzp = &tzp[i];
++			return 0;
++		}
++	}
++	return -ENODEV;
++}
++
+ static int __init mrst_platform_init(void)
+ {
+ 	sfi_table_parse(SFI_SIG_GPIO, NULL, NULL, sfi_parse_gpio);
+ 	sfi_table_parse(SFI_SIG_DEVS, NULL, NULL, sfi_parse_devs);
++
++	/* Set platform thermal data pointer */
++	get_platform_thermal_params = mrst_get_thermal_params;
++
+ 	return 0;
+ }
+ arch_initcall(mrst_platform_init);
 -- 
 1.7.9.5
 
