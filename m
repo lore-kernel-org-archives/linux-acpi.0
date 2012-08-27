@@ -1,41 +1,123 @@
-From: Athlion <athlion@gmail.com>
-Subject: Re: Kernel stops at "PM: Preparing system for mem sleep", never makes
- it to "Freezing user space processes ... "
-Date: Mon, 27 Aug 2012 10:59:34 +0300
-Message-ID: <CACfp4339RS2BvbdN1RC+V05FWxFW+=1xjGnk0fivQgW98vJqNg@mail.gmail.com>
-References: <CACfp4335KJQ8Zjj0TJNj65Va9K-t_iEHLEGEi8QuWyQj5dVT0g@mail.gmail.com>
- <CACfp4313iKrhYQCjvObPnALUN+fV=jD-EkVZiXCnVGVoAcpKVw@mail.gmail.com>
- <CACfp431n1og++vMinpJxFU79FmoqGKpvn0CA3v8cuZ1xM-EEYg@mail.gmail.com> <201208270928.05619.rjw@sisk.pl>
+From: "Zhang, Rui" <rui.zhang@intel.com>
+Subject: RE: [PATCHv2 03/14] Thermal: Add get trend, get instance API's to
+ thermal_sys
+Date: Mon, 27 Aug 2012 08:11:59 +0000
+Message-ID: <744357E9AAD1214791ACBA4B0B9092632100DE@SHSMSX101.ccr.corp.intel.com>
+References: <1346041706-29642-1-git-send-email-durgadoss.r@intel.com>
+ <1346041706-29642-4-git-send-email-durgadoss.r@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:64138 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752785Ab2H0H7z (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Aug 2012 03:59:55 -0400
-In-Reply-To: <201208270928.05619.rjw@sisk.pl>
+Received: from mga02.intel.com ([134.134.136.20]:53937 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752898Ab2H0IMD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Aug 2012 04:12:03 -0400
+In-Reply-To: <1346041706-29642-4-git-send-email-durgadoss.r@intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-pm@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+To: "R, Durgadoss" <durgadoss.r@intel.com>, "lenb@kernel.org" <lenb@kernel.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>
 
-On Mon, Aug 27, 2012 at 10:28 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Saturday, August 25, 2012, Athlion wrote:
->> I have managed to track where the kernel stops and generate sort of a backtrace.
->> The result is this (line numbers against linux-3.4.9)
->>
->> drivers/tty/vt/vt_ioctl.c:133: wait_event_interruptible
->> drivers/tty/vt/vt_ioctl.c:1426: vt_waitactive
->> kernel/power/console.c:19: vt_move_to_console
->> kernel/power/suspend.c:98: pm_prepare_console
->> suspend_prepare called
->>
->> Execution stops at wait_event_interruptible. Any ideas why this might be?
->
-> Not at the moment, but this is an important data point.
->
-> Thanks a lot for tracing this down!
->
-> Rafael
 
-Feel free to ask of anything supplementary you might need!
+
+> -----Original Message-----
+> From: R, Durgadoss
+> Sent: Monday, August 27, 2012 7:28 AM
+> To: lenb@kernel.org; Zhang, Rui
+> Cc: linux-acpi@vger.kernel.org; eduardo.valentin@ti.com; R, Durgadoss
+> Subject: [PATCHv2 03/14] Thermal: Add get trend, get instance API's to
+> thermal_sys
+> Importance: High
+> 
+> This patch adds the following API's to thermal_sys.c, that can be used
+> by other Thermal drivers.
+>  * get_tz_trend: obtain the trend of the given thermal zone
+>  * get_thermal_instance: obtain the instance corresponding
+>    to the given tz, cdev and the trip point.
+> 
+> Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
+> ---
+>  drivers/thermal/thermal_sys.c |   40
+> ++++++++++++++++++++++++++++++++++++++++
+>  include/linux/thermal.h       |    4 ++++
+>  2 files changed, 44 insertions(+)
+> 
+> diff --git a/drivers/thermal/thermal_sys.c
+> b/drivers/thermal/thermal_sys.c index 0e71b00..5e141b5 100644
+> --- a/drivers/thermal/thermal_sys.c
+> +++ b/drivers/thermal/thermal_sys.c
+> @@ -82,6 +82,46 @@ static void release_idr(struct idr *idr, struct
+> mutex *lock, int id)
+>  		mutex_unlock(lock);
+>  }
+> 
+> +int get_tz_trend(struct thermal_zone_device *tz, int trip) {
+> +	enum thermal_trend trend;
+> +
+> +	if (!tz->ops->get_trend || tz->ops->get_trend(tz, trip, &trend))
+> {
+> +		if (tz->temperature > tz->last_temperature)
+> +			trend = THERMAL_TREND_RAISING;
+> +		else if (tz->temperature < tz->last_temperature)
+> +			trend = THERMAL_TREND_DROPPING;
+> +		else
+> +			trend = THERMAL_TREND_STABLE;
+> +	}
+> +
+> +	return trend;
+> +}
+> +EXPORT_SYMBOL(get_tz_trend);
+> +
+> +struct thermal_instance *get_thermal_instance(struct
+> thermal_zone_device *tz,
+> +			struct thermal_cooling_device *cdev, int trip) {
+> +	struct thermal_instance *pos = NULL;
+> +	struct thermal_instance *target_instance = NULL;
+> +
+> +	mutex_lock(&tz->lock);
+> +	mutex_lock(&cdev->lock);
+> +
+> +	list_for_each_entry(pos, &tz->thermal_instances, tz_node) {
+> +		if (pos->tz == tz && pos->trip == trip && pos->cdev == cdev)
+> {
+> +			target_instance = pos;
+> +			break;
+> +		}
+> +	}
+> +
+> +	mutex_unlock(&cdev->lock);
+> +	mutex_unlock(&tz->lock);
+> +
+> +	return target_instance;
+> +}
+> +EXPORT_SYMBOL(get_thermal_instance);
+> +
+>  /* sys I/F for thermal zone */
+> 
+>  #define to_thermal_zone(_dev) \
+> diff --git a/include/linux/thermal.h b/include/linux/thermal.h index
+> 8611e3e..32af124 100644
+> --- a/include/linux/thermal.h
+> +++ b/include/linux/thermal.h
+> @@ -185,6 +185,10 @@ struct thermal_cooling_device
+> *thermal_cooling_device_register(char *, void *,
+>  		const struct thermal_cooling_device_ops *);  void
+> thermal_cooling_device_unregister(struct thermal_cooling_device *);
+> 
+> +int get_tz_trend(struct thermal_zone_device *, int); struct
+
+Coding style.
+
+Thanks,
+rui
+> +thermal_instance *get_thermal_instance(struct thermal_zone_device *,
+> +		struct thermal_cooling_device *, int);
+> +
+>  #ifdef CONFIG_NET
+>  extern int thermal_generate_netlink_event(u32 orig, enum events event);
+> #else
+> --
+> 1.7.9.5
+
