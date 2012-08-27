@@ -1,97 +1,67 @@
 From: Durgadoss R <durgadoss.r@intel.com>
-Subject: [PATCHv2 03/14] Thermal: Add get trend, get instance API's to thermal_sys
-Date: Mon, 27 Aug 2012 09:58:15 +0530
-Message-ID: <1346041706-29642-4-git-send-email-durgadoss.r@intel.com>
+Subject: [PATCHv2 05/14] Thermal: Obtain platform data for thermal zone
+Date: Mon, 27 Aug 2012 09:58:17 +0530
+Message-ID: <1346041706-29642-6-git-send-email-durgadoss.r@intel.com>
 References: <1346041706-29642-1-git-send-email-durgadoss.r@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga09.intel.com ([134.134.136.24]:4000 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751775Ab2H0E3K (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 27 Aug 2012 00:29:10 -0400
+	id S1751775Ab2H0E3O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 27 Aug 2012 00:29:14 -0400
 In-Reply-To: <1346041706-29642-1-git-send-email-durgadoss.r@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org, rui.zhang@intel.com
 Cc: linux-acpi@vger.kernel.org, eduardo.valentin@ti.com, Durgadoss R <durgadoss.r@intel.com>
 
-This patch adds the following API's to thermal_sys.c, that
-can be used by other Thermal drivers.
- * get_tz_trend: obtain the trend of the given thermal zone
- * get_thermal_instance: obtain the instance corresponding
-   to the given tz, cdev and the trip point.
+This patch retrieves the platform level data for
+a zone during its registration. It is not an error
+to not have any platform data.
 
 Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
 ---
- drivers/thermal/thermal_sys.c |   40 ++++++++++++++++++++++++++++++++++++++++
- include/linux/thermal.h       |    4 ++++
- 2 files changed, 44 insertions(+)
+ drivers/thermal/thermal_sys.c |   21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
 diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
-index 0e71b00..5e141b5 100644
+index 92a187c..6adda39 100644
 --- a/drivers/thermal/thermal_sys.c
 +++ b/drivers/thermal/thermal_sys.c
-@@ -82,6 +82,46 @@ static void release_idr(struct idr *idr, struct mutex *lock, int id)
- 		mutex_unlock(lock);
+@@ -1339,6 +1339,22 @@ static void remove_trip_attrs(struct thermal_zone_device *tz)
+ 	kfree(tz->trip_hyst_attrs);
  }
  
-+int get_tz_trend(struct thermal_zone_device *tz, int trip)
++static int retrieve_zone_params(struct thermal_zone_device *tz)
 +{
-+	enum thermal_trend trend;
++	int ret;
 +
-+	if (!tz->ops->get_trend || tz->ops->get_trend(tz, trip, &trend)) {
-+		if (tz->temperature > tz->last_temperature)
-+			trend = THERMAL_TREND_RAISING;
-+		else if (tz->temperature < tz->last_temperature)
-+			trend = THERMAL_TREND_DROPPING;
-+		else
-+			trend = THERMAL_TREND_STABLE;
-+	}
++	/* Check whether the platform data pointer is defined */
++	if (!get_platform_thermal_params)
++		return 0;
 +
-+	return trend;
++	/* It is not an error to not have any platform data */
++	ret = get_platform_thermal_params(tz);
++	if (ret)
++		tz->tzp = NULL;
++
++	return 0;
 +}
-+EXPORT_SYMBOL(get_tz_trend);
 +
-+struct thermal_instance *get_thermal_instance(struct thermal_zone_device *tz,
-+			struct thermal_cooling_device *cdev, int trip)
-+{
-+	struct thermal_instance *pos = NULL;
-+	struct thermal_instance *target_instance = NULL;
-+
-+	mutex_lock(&tz->lock);
-+	mutex_lock(&cdev->lock);
-+
-+	list_for_each_entry(pos, &tz->thermal_instances, tz_node) {
-+		if (pos->tz == tz && pos->trip == trip && pos->cdev == cdev) {
-+			target_instance = pos;
-+			break;
-+		}
-+	}
-+
-+	mutex_unlock(&cdev->lock);
-+	mutex_unlock(&tz->lock);
-+
-+	return target_instance;
-+}
-+EXPORT_SYMBOL(get_thermal_instance);
-+
- /* sys I/F for thermal zone */
+ /**
+  * thermal_zone_device_register - register a new thermal zone device
+  * @type:	the thermal zone device type
+@@ -1443,6 +1459,11 @@ struct thermal_zone_device *thermal_zone_device_register(const char *type,
+ 	if (result)
+ 		goto unregister;
  
- #define to_thermal_zone(_dev) \
-diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-index 8611e3e..32af124 100644
---- a/include/linux/thermal.h
-+++ b/include/linux/thermal.h
-@@ -185,6 +185,10 @@ struct thermal_cooling_device *thermal_cooling_device_register(char *, void *,
- 		const struct thermal_cooling_device_ops *);
- void thermal_cooling_device_unregister(struct thermal_cooling_device *);
- 
-+int get_tz_trend(struct thermal_zone_device *, int);
-+struct thermal_instance *get_thermal_instance(struct thermal_zone_device *,
-+		struct thermal_cooling_device *, int);
++	/* Retrieve platform level parameters for this zone */
++	result = retrieve_zone_params(tz);
++	if (result)
++		goto unregister;
 +
- #ifdef CONFIG_NET
- extern int thermal_generate_netlink_event(u32 orig, enum events event);
- #else
+ 	mutex_lock(&thermal_list_lock);
+ 	list_add_tail(&tz->node, &thermal_tz_list);
+ 	if (ops->bind)
 -- 
 1.7.9.5
 
