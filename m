@@ -1,163 +1,128 @@
 From: Durgadoss R <durgadoss.r@intel.com>
-Subject: [PATCHv2 01/14] Thermal: Refactor thermal.h file
-Date: Mon, 27 Aug 2012 09:58:13 +0530
-Message-ID: <1346041706-29642-2-git-send-email-durgadoss.r@intel.com>
+Subject: [PATCHv2 02/14] Thermal: Move thermal_instance to thermal_core.h
+Date: Mon, 27 Aug 2012 09:58:14 +0530
+Message-ID: <1346041706-29642-3-git-send-email-durgadoss.r@intel.com>
 References: <1346041706-29642-1-git-send-email-durgadoss.r@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:12444 "EHLO mga09.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:22698 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751775Ab2H0E3H (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 27 Aug 2012 00:29:07 -0400
+	id S1751780Ab2H0E3I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 27 Aug 2012 00:29:08 -0400
 In-Reply-To: <1346041706-29642-1-git-send-email-durgadoss.r@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org, rui.zhang@intel.com
 Cc: linux-acpi@vger.kernel.org, eduardo.valentin@ti.com, Durgadoss R <durgadoss.r@intel.com>
 
-This patch rearranges the code in thermal.h file,
-in the following order, so that it is easy to
-read/maintain.
-1. All #defines
-2. All enums
-3. All fops structures
-4. All device structures
-5. All function declarations
+This patch creates a thermal_core.h file which can contain
+all defines used by the core thermal framework files. For
+now, move the thermal_instance structure to thermal_core.h
+This structure is used by files under drivers/thermal/.
 
 Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
 ---
- include/linux/thermal.h |   78 ++++++++++++++++++++++++++---------------------
- 1 file changed, 43 insertions(+), 35 deletions(-)
+ drivers/thermal/thermal_core.h |   53 ++++++++++++++++++++++++++++++++++++++++
+ drivers/thermal/thermal_sys.c  |   23 ++---------------
+ 2 files changed, 55 insertions(+), 21 deletions(-)
+ create mode 100644 drivers/thermal/thermal_core.h
 
-diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-index 91b3481..8611e3e 100644
---- a/include/linux/thermal.h
-+++ b/include/linux/thermal.h
-@@ -29,6 +29,23 @@
- #include <linux/device.h>
- #include <linux/workqueue.h>
- 
-+#define THERMAL_TRIPS_NONE	-1
-+#define THERMAL_MAX_TRIPS	12
-+#define THERMAL_NAME_LENGTH	20
+diff --git a/drivers/thermal/thermal_core.h b/drivers/thermal/thermal_core.h
+new file mode 100644
+index 0000000..0d3205a
+--- /dev/null
++++ b/drivers/thermal/thermal_core.h
+@@ -0,0 +1,53 @@
++/*
++ *  thermal_core.h
++ *
++ *  Copyright (C) 2012  Intel Corp
++ *  Author: Durgadoss R <durgadoss.r@intel.com>
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; version 2 of the License.
++ *
++ *  This program is distributed in the hope that it will be useful, but
++ *  WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ *  General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License along
++ *  with this program; if not, write to the Free Software Foundation, Inc.,
++ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ */
 +
-+/* No upper/lower limit requirement */
-+#define THERMAL_NO_LIMIT	-1UL
++#ifndef __THERMAL_CORE_H__
++#define __THERMAL_CORE_H__
 +
-+/* Unit conversion macros */
-+#define KELVIN_TO_CELSIUS(t)	(long)(((long)t-2732 >= 0) ?	\
-+				((long)t-2732+5)/10 : ((long)t-2732-5)/10)
-+#define CELSIUS_TO_KELVIN(t)	((t)*10+2732)
++#include <linux/device.h>
++#include <linux/thermal.h>
 +
-+/* Adding event notification support elements */
-+#define THERMAL_GENL_FAMILY_NAME                "thermal_event"
-+#define THERMAL_GENL_VERSION                    0x01
-+#define THERMAL_GENL_MCAST_GROUP_NAME           "thermal_mc_group"
++/* Initial state of a cooling device during binding */
++#define THERMAL_NO_TARGET -1UL
 +
- struct thermal_zone_device;
- struct thermal_cooling_device;
- 
-@@ -50,6 +67,30 @@ enum thermal_trend {
- 	THERMAL_TREND_DROPPING, /* temperature is dropping */
- };
- 
-+/* Events supported by Thermal Netlink */
-+enum events {
-+	THERMAL_AUX0,
-+	THERMAL_AUX1,
-+	THERMAL_CRITICAL,
-+	THERMAL_DEV_FAULT,
++/*
++ * This structure is used to describe the behavior of
++ * a certain cooling device on a certain trip point
++ * in a certain thermal zone
++ */
++struct thermal_instance {
++	int id;
++	char name[THERMAL_NAME_LENGTH];
++	struct thermal_zone_device *tz;
++	struct thermal_cooling_device *cdev;
++	int trip;
++	unsigned long upper;	/* Highest cooling state for this trip point */
++	unsigned long lower;	/* Lowest cooling state for this trip point */
++	unsigned long target;	/* expected cooling state */
++	char attr_name[THERMAL_NAME_LENGTH];
++	struct device_attribute attr;
++	struct list_head tz_node; /* node in tz->thermal_instances */
++	struct list_head cdev_node; /* node in cdev->thermal_instances */
 +};
 +
-+/* attributes of thermal_genl_family */
-+enum {
-+	THERMAL_GENL_ATTR_UNSPEC,
-+	THERMAL_GENL_ATTR_EVENT,
-+	__THERMAL_GENL_ATTR_MAX,
-+};
-+#define THERMAL_GENL_ATTR_MAX (__THERMAL_GENL_ATTR_MAX - 1)
++#endif /* __THERMAL_CORE_H__ */
+diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
+index 5be8728..0e71b00 100644
+--- a/drivers/thermal/thermal_sys.c
++++ b/drivers/thermal/thermal_sys.c
+@@ -37,31 +37,12 @@
+ #include <net/netlink.h>
+ #include <net/genetlink.h>
+ 
++#include "thermal_core.h"
 +
-+/* commands supported by the thermal_genl_family */
-+enum {
-+	THERMAL_GENL_CMD_UNSPEC,
-+	THERMAL_GENL_CMD_EVENT,
-+	__THERMAL_GENL_CMD_MAX,
-+};
-+#define THERMAL_GENL_CMD_MAX (__THERMAL_GENL_CMD_MAX - 1)
-+
- struct thermal_zone_device_ops {
- 	int (*bind) (struct thermal_zone_device *,
- 		     struct thermal_cooling_device *);
-@@ -83,11 +124,6 @@ struct thermal_cooling_device_ops {
- 	int (*set_cur_state) (struct thermal_cooling_device *, unsigned long);
- };
+ MODULE_AUTHOR("Zhang Rui");
+ MODULE_DESCRIPTION("Generic thermal management sysfs support");
+ MODULE_LICENSE("GPL");
  
--#define THERMAL_NO_LIMIT -1UL /* no upper/lower limit requirement */
--
--#define THERMAL_TRIPS_NONE -1
--#define THERMAL_MAX_TRIPS 12
--#define THERMAL_NAME_LENGTH 20
- struct thermal_cooling_device {
- 	int id;
- 	char type[THERMAL_NAME_LENGTH];
-@@ -100,10 +136,6 @@ struct thermal_cooling_device {
- 	struct list_head node;
- };
- 
--#define KELVIN_TO_CELSIUS(t)	(long)(((long)t-2732 >= 0) ?	\
--				((long)t-2732+5)/10 : ((long)t-2732-5)/10)
--#define CELSIUS_TO_KELVIN(t)	((t)*10+2732)
--
- struct thermal_attr {
- 	struct device_attribute attr;
- 	char name[THERMAL_NAME_LENGTH];
-@@ -131,38 +163,13 @@ struct thermal_zone_device {
- 	struct list_head node;
- 	struct delayed_work poll_queue;
- };
--/* Adding event notification support elements */
--#define THERMAL_GENL_FAMILY_NAME                "thermal_event"
--#define THERMAL_GENL_VERSION                    0x01
--#define THERMAL_GENL_MCAST_GROUP_NAME           "thermal_mc_group"
--
--enum events {
--	THERMAL_AUX0,
--	THERMAL_AUX1,
--	THERMAL_CRITICAL,
--	THERMAL_DEV_FAULT,
+-#define THERMAL_NO_TARGET -1UL
+-/*
+- * This structure is used to describe the behavior of
+- * a certain cooling device on a certain trip point
+- * in a certain thermal zone
+- */
+-struct thermal_instance {
+-	int id;
+-	char name[THERMAL_NAME_LENGTH];
+-	struct thermal_zone_device *tz;
+-	struct thermal_cooling_device *cdev;
+-	int trip;
+-	unsigned long upper;	/* Highest cooling state for this trip point */
+-	unsigned long lower;	/* Lowest cooling state for this trip point */
+-	unsigned long target;	/* expected cooling state */
+-	char attr_name[THERMAL_NAME_LENGTH];
+-	struct device_attribute attr;
+-	struct list_head tz_node; /* node in tz->thermal_instances */
+-	struct list_head cdev_node; /* node in cdev->thermal_instances */
 -};
- 
- struct thermal_genl_event {
- 	u32 orig;
- 	enum events event;
- };
--/* attributes of thermal_genl_family */
--enum {
--	THERMAL_GENL_ATTR_UNSPEC,
--	THERMAL_GENL_ATTR_EVENT,
--	__THERMAL_GENL_ATTR_MAX,
--};
--#define THERMAL_GENL_ATTR_MAX (__THERMAL_GENL_ATTR_MAX - 1)
 -
--/* commands supported by the thermal_genl_family */
--enum {
--	THERMAL_GENL_CMD_UNSPEC,
--	THERMAL_GENL_CMD_EVENT,
--	__THERMAL_GENL_CMD_MAX,
--};
--#define THERMAL_GENL_CMD_MAX (__THERMAL_GENL_CMD_MAX - 1)
- 
-+/* Function declarations */
- struct thermal_zone_device *thermal_zone_device_register(const char *, int, int,
- 		void *, const struct thermal_zone_device_ops *, int, int);
- void thermal_zone_device_unregister(struct thermal_zone_device *);
-@@ -173,6 +180,7 @@ int thermal_zone_bind_cooling_device(struct thermal_zone_device *, int,
- int thermal_zone_unbind_cooling_device(struct thermal_zone_device *, int,
- 				       struct thermal_cooling_device *);
- void thermal_zone_device_update(struct thermal_zone_device *);
-+
- struct thermal_cooling_device *thermal_cooling_device_register(char *, void *,
- 		const struct thermal_cooling_device_ops *);
- void thermal_cooling_device_unregister(struct thermal_cooling_device *);
+ static DEFINE_IDR(thermal_tz_idr);
+ static DEFINE_IDR(thermal_cdev_idr);
+ static DEFINE_MUTEX(thermal_idr_lock);
 -- 
 1.7.9.5
 
