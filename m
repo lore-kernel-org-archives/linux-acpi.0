@@ -1,85 +1,39 @@
-From: "Zhang, Rui" <rui.zhang@intel.com>
-Subject: RE: [PATCHv2 06/14] Thermal: Add a policy sysfs attribute
-Date: Mon, 27 Aug 2012 10:44:43 +0000
-Message-ID: <744357E9AAD1214791ACBA4B0B909263210328@SHSMSX101.ccr.corp.intel.com>
-References: <1346041706-29642-1-git-send-email-durgadoss.r@intel.com>
- <1346041706-29642-7-git-send-email-durgadoss.r@intel.com>
- <744357E9AAD1214791ACBA4B0B909263210161@SHSMSX101.ccr.corp.intel.com>
- <4D68720C2E767A4AA6A8796D42C8EB591AD524@BGSMSX101.gar.corp.intel.com>
- <744357E9AAD1214791ACBA4B0B909263210229@SHSMSX101.ccr.corp.intel.com>
- <4D68720C2E767A4AA6A8796D42C8EB591AD64E@BGSMSX101.gar.corp.intel.com>
+From: Andrew Cooks <acooks-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: DMA Remapping and Marvell 88SE9172, 88SE9128 SATA controllers
+Date: Tue, 28 Aug 2012 00:05:59 +0800
+Message-ID: <CAJtEV7aGSvRvyevveysWkDn18Oz3n3qF6EpPtgvwC4dsJU41HA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:44019 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752596Ab2H0Koq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Aug 2012 06:44:46 -0400
-In-Reply-To: <4D68720C2E767A4AA6A8796D42C8EB591AD64E@BGSMSX101.gar.corp.intel.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Cc: jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, pawel.zaq-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: "R, Durgadoss" <durgadoss.r@intel.com>, "lenb@kernel.org" <lenb@kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>
 
+There's a problem relating to DMA Remapping which affects systems with
+Marvell SATA controllers. It was first reported on 2012-01-28 on
+bugzilla.kernel.org[1] and is best described by Don Dutile: "...the
+lspci dump in the bugzilla report doesn't show a device w/BDF=0b:00.1;
+so, if the SATA device (which is 0b:00.0) is spitting out 0b:00.1 as
+the source of any of its DMA packets, the IOMMU will fault on it,
+since 0b:00.1 didn't request DMA mappings (0b:00.0 did)."[2]
 
+Is this kind of problem caused by a missing/incorrect entry in an ACPI
+table? Is it feasible to introduce a fake device for the missing
+function using a pci quirk?
 
-> -----Original Message-----
-> From: R, Durgadoss
-> Sent: Monday, August 27, 2012 1:24 PM
-> To: Zhang, Rui; lenb@kernel.org
-> Cc: linux-acpi@vger.kernel.org; eduardo.valentin@ti.com
-> Subject: RE: [PATCHv2 06/14] Thermal: Add a policy sysfs attribute
-> Importance: High
-> 
-> > > > >  #define to_cooling_device(_dev)	\
-> > > > > @@ -1349,10 +1371,16 @@ static int retrieve_zone_params(struct
-> > > > > thermal_zone_device *tz)
-> > > > >
-> > > > >  	/* It is not an error to not have any platform data */
-> > > > >  	ret = get_platform_thermal_params(tz);
-> > > > > -	if (ret)
-> > > > > +	if (ret) {
-> > > > >  		tz->tzp = NULL;
-> > > > > +		return 0;
-> > > > > +	}
-> > > > >
-> > > > > -	return 0;
-> > > > > +	ret = device_create_file(&tz->device,
-> &dev_attr_throttle_policy);
-> > > > > +	if (ret)
-> > > > > +		dev_err(&tz->device, "creating policy attr
-> failed:%d\n",
-> > > > > ret);
-> > > > > +
-> > > > > +	return ret;
-> > > > >  }
-> > > >
-> > > > What does this mean?
-> > > > We will not create "policy" attributes if there is no
-> > > thermal_zone_params?
-> > >
-> > > Yes, that's what I thought initially. Because if there is no
-> > > 'throttle_policy'
-> > > we assume that it is (by default) step_wise.
-> > >
-> > > But, if we make tz_params be provided through tzd_register function
-> > > call, it makes sense for this to be a mandatory attribute, showing
-> > > 'step_wise"
-> > > if there is no thermal_zone_params.
-> > >
-> >
-> > IMO, every thermal zone should have a policy. And they can be changed
-> > anytime if user wants to.
-> 
-> Agree with you on the first part. Not sure if we want this to be
-> writable.
-> 
-Say, what if a user space application is loaded and want to take control of the thermal management from kernel?
-It should set the policy to "userspace" to stop the kernel actions first.
+Thanks,
 
-BTW, just like the cpufreq governors, they can be changed any time.
+ac.
 
-> Thanks,
-> Durga
+1. https://bugzilla.kernel.org/show_bug.cgi?id=42679
+2. https://lists.linux-foundation.org/pipermail/iommu/2012-January/003552.html
