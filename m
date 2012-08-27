@@ -1,137 +1,138 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: [PATCH RESEND] ACPI: Fix resource_lock dead lock in acpi_power_on_device
-Date: Mon, 27 Aug 2012 13:59:03 +0800
-Message-ID: <1346047143-3096-1-git-send-email-aaron.lu@intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Kernel stops at "PM: Preparing system for mem sleep", never makes it to "Freezing user space processes ... "
+Date: Mon, 27 Aug 2012 09:28:05 +0200
+Message-ID: <201208270928.05619.rjw@sisk.pl>
+References: <CACfp4335KJQ8Zjj0TJNj65Va9K-t_iEHLEGEi8QuWyQj5dVT0g@mail.gmail.com> <CACfp4313iKrhYQCjvObPnALUN+fV=jD-EkVZiXCnVGVoAcpKVw@mail.gmail.com> <CACfp431n1og++vMinpJxFU79FmoqGKpvn0CA3v8cuZ1xM-EEYg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:55822 "EHLO mga11.intel.com"
+Received: from ogre.sisk.pl ([193.178.161.156]:34272 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752120Ab2H0F7m (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 27 Aug 2012 01:59:42 -0400
+	id S1752386Ab2H0HWB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 27 Aug 2012 03:22:01 -0400
+In-Reply-To: <CACfp431n1og++vMinpJxFU79FmoqGKpvn0CA3v8cuZ1xM-EEYg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Leb Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Lin Ming <minggr@gmail.com>, Aaron Lu <aaron.lwe@gmail.com>, Aaron Lu <aaron.lu@intel.com>, Lin Ming <ming.m.lin@intel.com>
+To: Athlion <athlion@gmail.com>
+Cc: linux-pm@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-From: Lin Ming <ming.m.lin@intel.com>
+On Saturday, August 25, 2012, Athlion wrote:
+> I have managed to track where the kernel stops and generate sort of a backtrace.
+> The result is this (line numbers against linux-3.4.9)
+> 
+> drivers/tty/vt/vt_ioctl.c:133: wait_event_interruptible
+> drivers/tty/vt/vt_ioctl.c:1426: vt_waitactive
+> kernel/power/console.c:19: vt_move_to_console
+> kernel/power/suspend.c:98: pm_prepare_console
+> suspend_prepare called
+> 
+> Execution stops at wait_event_interruptible. Any ideas why this might be?
 
-Commit 0090def("ACPI: Add interface to register/unregister device
-to/from power resources") used resource_lock to protect the devices list
-that relies on power resource. It caused a mutex dead lock, as below
+Not at the moment, but this is an important data point.
 
-acpi_power_on ---> lock resource_lock
-  __acpi_power_on
-    acpi_power_on_device
-      acpi_power_get_inferred_state
-        acpi_power_get_list_state ---> lock resource_lock
+Thanks a lot for tracing this down!
 
-This patch adds a new mutex "devices_lock" to protect the devices list
-and calls acpi_power_on_device in acpi_power_on, instead of
-__acpi_power_on, after the resource_lock is released.
+Rafael
 
-Signed-off-by: Lin Ming <ming.m.lin@intel.com>
-Signed-off-by: Aaron Lu <aaron.lu@intel.com>
----
-Originally sent by Lin Ming:
-http://marc.info/?l=linux-acpi&m=134060115701726&w=2
 
- drivers/acpi/power.c | 26 +++++++++++++++-----------
- 1 file changed, 15 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-index fc18034..c66b569 100644
---- a/drivers/acpi/power.c
-+++ b/drivers/acpi/power.c
-@@ -107,6 +107,7 @@ struct acpi_power_resource {
- 
- 	/* List of devices relying on this power resource */
- 	struct acpi_power_resource_device *devices;
-+	struct mutex devices_lock;
- };
- 
- static struct list_head acpi_power_resource_list;
-@@ -225,7 +226,6 @@ static void acpi_power_on_device(struct acpi_power_managed_device *device)
- 
- static int __acpi_power_on(struct acpi_power_resource *resource)
- {
--	struct acpi_power_resource_device *device_list = resource->devices;
- 	acpi_status status = AE_OK;
- 
- 	status = acpi_evaluate_object(resource->device->handle, "_ON", NULL, NULL);
-@@ -238,12 +238,6 @@ static int __acpi_power_on(struct acpi_power_resource *resource)
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Power resource [%s] turned on\n",
- 			  resource->name));
- 
--	while (device_list) {
--		acpi_power_on_device(device_list->device);
--
--		device_list = device_list->next;
--	}
--
- 	return 0;
- }
- 
-@@ -251,6 +245,7 @@ static int acpi_power_on(acpi_handle handle)
- {
- 	int result = 0;
- 	struct acpi_power_resource *resource = NULL;
-+	struct acpi_power_resource_device *device_list = resource->devices;
- 
- 	result = acpi_power_get_context(handle, &resource);
- 	if (result)
-@@ -270,6 +265,14 @@ static int acpi_power_on(acpi_handle handle)
- 
- 	mutex_unlock(&resource->resource_lock);
- 
-+	mutex_lock(&resource->devices_lock);
-+	while (device_list) {
-+		acpi_power_on_device(device_list->device);
-+
-+		device_list = device_list->next;
-+	}
-+	mutex_unlock(&resource->devices_lock);
-+
- 	return result;
- }
- 
-@@ -355,7 +358,7 @@ static void __acpi_power_resource_unregister_device(struct device *dev,
- 	if (acpi_power_get_context(res_handle, &resource))
- 		return;
- 
--	mutex_lock(&resource->resource_lock);
-+	mutex_lock(&resource->devices_lock);
- 	prev = NULL;
- 	curr = resource->devices;
- 	while (curr) {
-@@ -372,7 +375,7 @@ static void __acpi_power_resource_unregister_device(struct device *dev,
- 		prev = curr;
- 		curr = curr->next;
- 	}
--	mutex_unlock(&resource->resource_lock);
-+	mutex_unlock(&resource->devices_lock);
- }
- 
- /* Unlink dev from all power resources in _PR0 */
-@@ -414,10 +417,10 @@ static int __acpi_power_resource_register_device(
- 
- 	power_resource_device->device = powered_device;
- 
--	mutex_lock(&resource->resource_lock);
-+	mutex_lock(&resource->devices_lock);
- 	power_resource_device->next = resource->devices;
- 	resource->devices = power_resource_device;
--	mutex_unlock(&resource->resource_lock);
-+	mutex_unlock(&resource->devices_lock);
- 
- 	return 0;
- }
-@@ -721,6 +724,7 @@ static int acpi_power_add(struct acpi_device *device)
- 
- 	resource->device = device;
- 	mutex_init(&resource->resource_lock);
-+	mutex_init(&resource->devices_lock);
- 	strcpy(resource->name, device->pnp.bus_id);
- 	strcpy(acpi_device_name(device), ACPI_POWER_DEVICE_NAME);
- 	strcpy(acpi_device_class(device), ACPI_POWER_CLASS);
--- 
-1.7.12.21.g871e293
+> On Thu, Aug 16, 2012 at 6:01 PM, Athlion <athlion@gmail.com> wrote:
+> > Some new information, if that is helpful at all.
+> >
+> > I have managed to circumvent the problem (I am not at 68 hours uptime
+> > with proper suspend/resume by closing the lid) by killing the X server
+> > every now and then (every 10-12 hours). Anyway, this afternoon, my
+> > battery was drained and the system hibernated. On resume I saw this:
+> >
+> > Aug 16 17:45:55 localhost kernel: [28755.912618] Uhhuh. NMI received
+> > for unknown reason 3d on CPU 0.
+> > Aug 16 17:45:55 localhost kernel: [28755.912622] Do you have a strange
+> > power saving mode enabled?
+> > Aug 16 17:45:55 localhost kernel: [28755.912623] Dazed and confused,
+> > but trying to continue
+> >
+> > Is this maybe related to my problem?
+> >
+> > Thanks!
+> >
+> > On Mon, Aug 13, 2012 at 10:27 AM, Athlion <athlion@gmail.com> wrote:
+> >> And this is the dmesg with pci=nocrs acpi_osi=Linux
+> >>
+> >> https://dl.dropbox.com/u/63420/dmesg2.txt
+> >>
+> >> On Mon, Aug 13, 2012 at 10:13 AM, Athlion <athlion@gmail.com> wrote:
+> >>> Thanks,
+> >>>
+> >>> Here is my dmesg from a clean boot:
+> >>>
+> >>> https://dl.dropbox.com/u/63420/dmesg.txt
+> >>>
+> >>> Now that I scanned it more thoroughly I found these:
+> >>>
+> >>> [    0.363136] [Firmware Bug]: ACPI: BIOS _OSI(Linux) query ignored
+> >>> and
+> >>> [    0.387856] PCI: Using host bridge windows from ACPI; if necessary,
+> >>> use "pci=nocrs" and report a bug
+> >>>
+> >>> my /proc/cmdline is:
+> >>> BOOT_IMAGE=/boot/vmlinuz-linux
+> >>> root=UUID=44cf687d-4827-4765-8758-98d44a745d07 ro quiet
+> >>> resume=/dev/sda2
+> >>>
+> >>> maybe they indicate a lurking problem?
+> >>>
+> >>> (in parallel, I will try booting with pci=nocrs and report back)
+> >>>
+> >>> And there are other people having this issue, some from way back, as
+> >>> can be seen here
+> >>> https://bbs.archlinux.org/viewtopic.php?id=144381
+> >>> (Don't be fooled by the linux 3.4.x reference in the title, it happens
+> >>> with older kernels, too)
+> >>>
+> >>> Some of them have found the "solution" to be "never close the lid" but
+> >>> this is unacceptable, for me.
+> >>>
+> >>> Again, thanks!
+> >>>
+> >>> On Mon, Aug 13, 2012 at 12:03 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> >>>> On Sunday, August 12, 2012, Athlion wrote:
+> >>>>> On Sun, Aug 12, 2012 at 2:01 PM, Athlion <athlion@gmail.com> wrote:
+> >>>>> > On Sun, Aug 12, 2012 at 1:08 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> >>>>> >> This seems to be the last kernel message you've got.
+> >>>>> >>
+> >>>>> >> It looks like there's a problem with a power management notifier within
+> >>>>> >> the kernel.  Perhaps a race condition, since it is not reproducible 100%
+> >>>>> >> of the time.
+> >>>>> >>
+> >>>>> >> Does it happen if you don't use the lid to trigger suspend?
+> >>>>> >>
+> >>>>> >> Rafael
+> >>>>> >
+> >>>>> > No, it does not.
+> >>>>> >
+> >>>>> > If I don't use the lid, the suspend succeeds 100% of the time (at
+> >>>>> > least, I have achieved over 4 days of uptime by using the
+> >>>>> > logout/suspend button of xfce, I never could stand not closing the lid
+> >>>>> > for more...)
+> >>>>> >
+> >>>>> > What I don't know exactly is how to begin tracking this problem down.
+> >>>>>
+> >>>>> Furthermore, the suspend actually *happens* if I initiate a shutdown
+> >>>>> or reboot procedure, right after the point where the system says
+> >>>>> killing all processes. On resume, the shutdown/reboot resumes
+> >>>>> normally.
+> >>>>
+> >>>> There seems to be an input event handling race condition with system suspend
+> >>>> on your machine.  I wonder if it's related to the specific system configuration,
+> >>>> though, because no one else has reported anything like this before.
+> >>>>
+> >>>> I'm not sure what to do to debug this further at the moment.
+> >>>>
+> >>>> Please attach dmesg output from a clean boot.
+> >>>>
+> >>>> Thanks,
+> >>>> Rafael
+> 
+> 
 
