@@ -1,144 +1,120 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: [PATCH RESEND v2] ACPI: Fix resource_lock dead lock in acpi_power_on_device
-Date: Mon, 27 Aug 2012 17:10:16 +0800
-Message-ID: <1346058616-3453-1-git-send-email-aaron.lu@intel.com>
+From: "Zhang, Rui" <rui.zhang@intel.com>
+Subject: RE: [PATCHv2 03/14] Thermal: Add get trend, get instance API's to
+ thermal_sys
+Date: Mon, 27 Aug 2012 09:19:09 +0000
+Message-ID: <744357E9AAD1214791ACBA4B0B9092632101ED@SHSMSX101.ccr.corp.intel.com>
+References: <1346041706-29642-1-git-send-email-durgadoss.r@intel.com>
+ <1346041706-29642-4-git-send-email-durgadoss.r@intel.com>
+ <744357E9AAD1214791ACBA4B0B9092632100DE@SHSMSX101.ccr.corp.intel.com>
+ <4D68720C2E767A4AA6A8796D42C8EB591AD4CC@BGSMSX101.gar.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:21144 "EHLO mga09.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:40562 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753240Ab2H0JKt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 27 Aug 2012 05:10:49 -0400
+	id S1753469Ab2H0JTN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Aug 2012 05:19:13 -0400
+In-Reply-To: <4D68720C2E767A4AA6A8796D42C8EB591AD4CC@BGSMSX101.gar.corp.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>, Aaron Lu <aaron.lu@intel.com>, Lin Ming <ming.m.lin@intel.com>
+To: "R, Durgadoss" <durgadoss.r@intel.com>, "lenb@kernel.org" <lenb@kernel.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>
 
-From: Lin Ming <ming.m.lin@intel.com>
 
-Commit 0090def("ACPI: Add interface to register/unregister device
-to/from power resources") used resource_lock to protect the devices list
-that relies on power resource. It caused a mutex dead lock, as below
 
-acpi_power_on ---> lock resource_lock
-  __acpi_power_on
-    acpi_power_on_device
-      acpi_power_get_inferred_state
-        acpi_power_get_list_state ---> lock resource_lock
+> -----Original Message-----
+> From: R, Durgadoss
+> Sent: Monday, August 27, 2012 11:47 AM
+> To: Zhang, Rui; lenb@kernel.org
+> Cc: linux-acpi@vger.kernel.org; eduardo.valentin@ti.com
+> Subject: RE: [PATCHv2 03/14] Thermal: Add get trend, get instance API's
+> to thermal_sys
+> Importance: High
+> 
+> Hi Rui,
+> 
+> > >
+> > > +int get_tz_trend(struct thermal_zone_device *tz, int trip) {
+> > > +	enum thermal_trend trend;
+> > > +
+> > > +	if (!tz->ops->get_trend || tz->ops->get_trend(tz, trip, &trend))
+> > > {
+> > > +		if (tz->temperature > tz->last_temperature)
+> > > +			trend = THERMAL_TREND_RAISING;
+> > > +		else if (tz->temperature < tz->last_temperature)
+> > > +			trend = THERMAL_TREND_DROPPING;
+> > > +		else
+> > > +			trend = THERMAL_TREND_STABLE;
+> > > +	}
+> > > +
+> > > +	return trend;
+> > > +}
+> > > +EXPORT_SYMBOL(get_tz_trend);
+> > > +
+> > > +struct thermal_instance *get_thermal_instance(struct
+> > > thermal_zone_device *tz,
+> > > +			struct thermal_cooling_device *cdev, int trip) {
+> > > +	struct thermal_instance *pos = NULL;
+> > > +	struct thermal_instance *target_instance = NULL;
+> > > +
+> > > +	mutex_lock(&tz->lock);
+> > > +	mutex_lock(&cdev->lock);
+> > > +
+> > > +	list_for_each_entry(pos, &tz->thermal_instances, tz_node) {
+> > > +		if (pos->tz == tz && pos->trip == trip && pos->cdev == cdev)
+> > > {
+> > > +			target_instance = pos;
+> > > +			break;
+> > > +		}
+> > > +	}
+> > > +
+> > > +	mutex_unlock(&cdev->lock);
+> > > +	mutex_unlock(&tz->lock);
+> > > +
+> > > +	return target_instance;
+> > > +}
+> > > +EXPORT_SYMBOL(get_thermal_instance);
+> > > +
+> > >  /* sys I/F for thermal zone */
+> > >
+> > >  #define to_thermal_zone(_dev) \
+> > > diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+> index
+> > > 8611e3e..32af124 100644
+> > > --- a/include/linux/thermal.h
+> > > +++ b/include/linux/thermal.h
+> > > @@ -185,6 +185,10 @@ struct thermal_cooling_device
+> > > *thermal_cooling_device_register(char *, void *,
+> > >  		const struct thermal_cooling_device_ops *);  void
+> > > thermal_cooling_device_unregister(struct thermal_cooling_device *);
+> > >
+> > > +int get_tz_trend(struct thermal_zone_device *, int); struct
+> >
+> > Coding style.
+> 
+> Not sure what you meant here. Checkpatch did not complain either.
+> 
+you should start a new line before "struct".
 
-This patch adds a new mutex "devices_lock" to protect the devices list
-and calls acpi_power_on_device in acpi_power_on, instead of
-__acpi_power_on, after the resource_lock is released.
+Thanks,
+rui
 
-Signed-off-by: Lin Ming <ming.m.lin@intel.com>
-Signed-off-by: Aaron Lu <aaron.lu@intel.com>
----
-v2:
-Fixed a stupid bug when rebasing, device_list should be got only after
-resource is initialized.
-
-Originally sent by Lin Ming:
-http://marc.info/?l=linux-acpi&m=134060115701726&w=2
-
- drivers/acpi/power.c | 29 ++++++++++++++++++-----------
- 1 file changed, 18 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-index fc18034..d0702d6 100644
---- a/drivers/acpi/power.c
-+++ b/drivers/acpi/power.c
-@@ -107,6 +107,7 @@ struct acpi_power_resource {
- 
- 	/* List of devices relying on this power resource */
- 	struct acpi_power_resource_device *devices;
-+	struct mutex devices_lock;
- };
- 
- static struct list_head acpi_power_resource_list;
-@@ -225,7 +226,6 @@ static void acpi_power_on_device(struct acpi_power_managed_device *device)
- 
- static int __acpi_power_on(struct acpi_power_resource *resource)
- {
--	struct acpi_power_resource_device *device_list = resource->devices;
- 	acpi_status status = AE_OK;
- 
- 	status = acpi_evaluate_object(resource->device->handle, "_ON", NULL, NULL);
-@@ -238,12 +238,6 @@ static int __acpi_power_on(struct acpi_power_resource *resource)
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Power resource [%s] turned on\n",
- 			  resource->name));
- 
--	while (device_list) {
--		acpi_power_on_device(device_list->device);
--
--		device_list = device_list->next;
--	}
--
- 	return 0;
- }
- 
-@@ -251,6 +245,7 @@ static int acpi_power_on(acpi_handle handle)
- {
- 	int result = 0;
- 	struct acpi_power_resource *resource = NULL;
-+	struct acpi_power_resource_device *device_list;
- 
- 	result = acpi_power_get_context(handle, &resource);
- 	if (result)
-@@ -270,6 +265,17 @@ static int acpi_power_on(acpi_handle handle)
- 
- 	mutex_unlock(&resource->resource_lock);
- 
-+	mutex_lock(&resource->devices_lock);
-+
-+	device_list = resource->devices;
-+	while (device_list) {
-+		acpi_power_on_device(device_list->device);
-+
-+		device_list = device_list->next;
-+	}
-+
-+	mutex_unlock(&resource->devices_lock);
-+
- 	return result;
- }
- 
-@@ -355,7 +361,7 @@ static void __acpi_power_resource_unregister_device(struct device *dev,
- 	if (acpi_power_get_context(res_handle, &resource))
- 		return;
- 
--	mutex_lock(&resource->resource_lock);
-+	mutex_lock(&resource->devices_lock);
- 	prev = NULL;
- 	curr = resource->devices;
- 	while (curr) {
-@@ -372,7 +378,7 @@ static void __acpi_power_resource_unregister_device(struct device *dev,
- 		prev = curr;
- 		curr = curr->next;
- 	}
--	mutex_unlock(&resource->resource_lock);
-+	mutex_unlock(&resource->devices_lock);
- }
- 
- /* Unlink dev from all power resources in _PR0 */
-@@ -414,10 +420,10 @@ static int __acpi_power_resource_register_device(
- 
- 	power_resource_device->device = powered_device;
- 
--	mutex_lock(&resource->resource_lock);
-+	mutex_lock(&resource->devices_lock);
- 	power_resource_device->next = resource->devices;
- 	resource->devices = power_resource_device;
--	mutex_unlock(&resource->resource_lock);
-+	mutex_unlock(&resource->devices_lock);
- 
- 	return 0;
- }
-@@ -721,6 +727,7 @@ static int acpi_power_add(struct acpi_device *device)
- 
- 	resource->device = device;
- 	mutex_init(&resource->resource_lock);
-+	mutex_init(&resource->devices_lock);
- 	strcpy(resource->name, device->pnp.bus_id);
- 	strcpy(acpi_device_name(device), ACPI_POWER_DEVICE_NAME);
- 	strcpy(acpi_device_class(device), ACPI_POWER_CLASS);
--- 
-1.7.12.21.g871e293
+> Thanks,
+> Durga
+> 
+> >
+> > Thanks,
+> > rui
+> > > +thermal_instance *get_thermal_instance(struct thermal_zone_device
+> *,
+> > > +		struct thermal_cooling_device *, int);
+> > > +
+> > >  #ifdef CONFIG_NET
+> > >  extern int thermal_generate_netlink_event(u32 orig, enum events
+> > event);
+> > > #else
+> > > --
+> > > 1.7.9.5
 
