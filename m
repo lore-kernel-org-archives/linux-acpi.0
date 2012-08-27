@@ -1,106 +1,137 @@
-From: Durgadoss R <durgadoss.r@intel.com>
-Subject: [PATCHv2 14/14] Thermal: Platform layer changes to provide thermal data
-Date: Mon, 27 Aug 2012 09:58:26 +0530
-Message-ID: <1346041706-29642-15-git-send-email-durgadoss.r@intel.com>
-References: <1346041706-29642-1-git-send-email-durgadoss.r@intel.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: [PATCH RESEND] ACPI: Fix resource_lock dead lock in acpi_power_on_device
+Date: Mon, 27 Aug 2012 13:59:03 +0800
+Message-ID: <1346047143-3096-1-git-send-email-aaron.lu@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:4000 "EHLO mga09.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:55822 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750771Ab2H0E3c (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 27 Aug 2012 00:29:32 -0400
-In-Reply-To: <1346041706-29642-1-git-send-email-durgadoss.r@intel.com>
+	id S1752120Ab2H0F7m (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 27 Aug 2012 01:59:42 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, rui.zhang@intel.com
-Cc: linux-acpi@vger.kernel.org, eduardo.valentin@ti.com, Durgadoss R <durgadoss.r@intel.com>
+To: Leb Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Lin Ming <minggr@gmail.com>, Aaron Lu <aaron.lwe@gmail.com>, Aaron Lu <aaron.lu@intel.com>, Lin Ming <ming.m.lin@intel.com>
 
-This patch shows how can we add platform specific thermal data
-required by the thermal framework. This is just an example
-patch, and _not_ for merge.
+From: Lin Ming <ming.m.lin@intel.com>
 
-Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
+Commit 0090def("ACPI: Add interface to register/unregister device
+to/from power resources") used resource_lock to protect the devices list
+that relies on power resource. It caused a mutex dead lock, as below
+
+acpi_power_on ---> lock resource_lock
+  __acpi_power_on
+    acpi_power_on_device
+      acpi_power_get_inferred_state
+        acpi_power_get_list_state ---> lock resource_lock
+
+This patch adds a new mutex "devices_lock" to protect the devices list
+and calls acpi_power_on_device in acpi_power_on, instead of
+__acpi_power_on, after the resource_lock is released.
+
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+Signed-off-by: Aaron Lu <aaron.lu@intel.com>
 ---
- arch/x86/platform/mrst/mrst.c |   49 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 49 insertions(+)
+Originally sent by Lin Ming:
+http://marc.info/?l=linux-acpi&m=134060115701726&w=2
 
-diff --git a/arch/x86/platform/mrst/mrst.c b/arch/x86/platform/mrst/mrst.c
-index fd41a92..91587bf 100644
---- a/arch/x86/platform/mrst/mrst.c
-+++ b/arch/x86/platform/mrst/mrst.c
-@@ -30,6 +30,7 @@
- #include <linux/mfd/intel_msic.h>
- #include <linux/gpio.h>
- #include <linux/i2c/tc35876x.h>
-+#include <linux/thermal.h>
+ drivers/acpi/power.c | 26 +++++++++++++++-----------
+ 1 file changed, 15 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+index fc18034..c66b569 100644
+--- a/drivers/acpi/power.c
++++ b/drivers/acpi/power.c
+@@ -107,6 +107,7 @@ struct acpi_power_resource {
  
- #include <asm/setup.h>
- #include <asm/mpspec_def.h>
-@@ -78,6 +79,37 @@ struct sfi_rtc_table_entry sfi_mrtc_array[SFI_MRTC_MAX];
- EXPORT_SYMBOL_GPL(sfi_mrtc_array);
- int sfi_mrtc_num;
+ 	/* List of devices relying on this power resource */
+ 	struct acpi_power_resource_device *devices;
++	struct mutex devices_lock;
+ };
  
-+static int thermal_match(struct thermal_zone_device *tz,
-+			struct thermal_cooling_device *cdev)
-+{
-+	if (!strcmp(tz->type, "CPU")) {
-+		if (!strcmp(cdev->type, "CPU") ||
-+			!strcmp(cdev->type, "Battery"))
-+			return 0;
-+	}
-+	return 1;
-+}
-+
-+static struct thermal_bind_params tz_cpu_params[2] = {
-+	{.cdev = NULL,
-+	.weight = 80,
-+	.trip_mask = 0x0F,
-+	.match = thermal_match, },
-+
-+	{ .cdev = NULL,
-+	.weight = 80,
-+	.trip_mask = 0x0F,
-+	.match = thermal_match, },
-+	};
-+
-+#define MRST_THERMAL_ZONES      1
-+struct thermal_zone_params tzp[MRST_THERMAL_ZONES] = {
-+	{ .zone_name = "CPU",
-+	.throttle_policy = THERMAL_FAIR_SHARE,
-+	.num_tbps = 2,
-+	.tbp = tz_cpu_params, }
-+};
-+
- static void mrst_power_off(void)
+ static struct list_head acpi_power_resource_list;
+@@ -225,7 +226,6 @@ static void acpi_power_on_device(struct acpi_power_managed_device *device)
+ 
+ static int __acpi_power_on(struct acpi_power_resource *resource)
  {
- }
-@@ -983,10 +1015,27 @@ static int __init sfi_parse_devs(struct sfi_table_header *table)
+-	struct acpi_power_resource_device *device_list = resource->devices;
+ 	acpi_status status = AE_OK;
+ 
+ 	status = acpi_evaluate_object(resource->device->handle, "_ON", NULL, NULL);
+@@ -238,12 +238,6 @@ static int __acpi_power_on(struct acpi_power_resource *resource)
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Power resource [%s] turned on\n",
+ 			  resource->name));
+ 
+-	while (device_list) {
+-		acpi_power_on_device(device_list->device);
+-
+-		device_list = device_list->next;
+-	}
+-
  	return 0;
  }
  
-+static int mrst_get_thermal_params(struct thermal_zone_device *tz)
-+{
-+	int i;
-+
-+	for (i = 0; i < MRST_THERMAL_ZONES; i++) {
-+		if (!strcmp(tzp[i].thermal_zone_name, tz->type)) {
-+			tz->tzp = &tzp[i];
-+			return 0;
-+		}
-+	}
-+	return -ENODEV;
-+}
-+
- static int __init mrst_platform_init(void)
+@@ -251,6 +245,7 @@ static int acpi_power_on(acpi_handle handle)
  {
- 	sfi_table_parse(SFI_SIG_GPIO, NULL, NULL, sfi_parse_gpio);
- 	sfi_table_parse(SFI_SIG_DEVS, NULL, NULL, sfi_parse_devs);
+ 	int result = 0;
+ 	struct acpi_power_resource *resource = NULL;
++	struct acpi_power_resource_device *device_list = resource->devices;
+ 
+ 	result = acpi_power_get_context(handle, &resource);
+ 	if (result)
+@@ -270,6 +265,14 @@ static int acpi_power_on(acpi_handle handle)
+ 
+ 	mutex_unlock(&resource->resource_lock);
+ 
++	mutex_lock(&resource->devices_lock);
++	while (device_list) {
++		acpi_power_on_device(device_list->device);
 +
-+	/* Set platform thermal data pointer */
-+	get_platform_thermal_params = mrst_get_thermal_params;
++		device_list = device_list->next;
++	}
++	mutex_unlock(&resource->devices_lock);
 +
+ 	return result;
+ }
+ 
+@@ -355,7 +358,7 @@ static void __acpi_power_resource_unregister_device(struct device *dev,
+ 	if (acpi_power_get_context(res_handle, &resource))
+ 		return;
+ 
+-	mutex_lock(&resource->resource_lock);
++	mutex_lock(&resource->devices_lock);
+ 	prev = NULL;
+ 	curr = resource->devices;
+ 	while (curr) {
+@@ -372,7 +375,7 @@ static void __acpi_power_resource_unregister_device(struct device *dev,
+ 		prev = curr;
+ 		curr = curr->next;
+ 	}
+-	mutex_unlock(&resource->resource_lock);
++	mutex_unlock(&resource->devices_lock);
+ }
+ 
+ /* Unlink dev from all power resources in _PR0 */
+@@ -414,10 +417,10 @@ static int __acpi_power_resource_register_device(
+ 
+ 	power_resource_device->device = powered_device;
+ 
+-	mutex_lock(&resource->resource_lock);
++	mutex_lock(&resource->devices_lock);
+ 	power_resource_device->next = resource->devices;
+ 	resource->devices = power_resource_device;
+-	mutex_unlock(&resource->resource_lock);
++	mutex_unlock(&resource->devices_lock);
+ 
  	return 0;
  }
- arch_initcall(mrst_platform_init);
+@@ -721,6 +724,7 @@ static int acpi_power_add(struct acpi_device *device)
+ 
+ 	resource->device = device;
+ 	mutex_init(&resource->resource_lock);
++	mutex_init(&resource->devices_lock);
+ 	strcpy(resource->name, device->pnp.bus_id);
+ 	strcpy(acpi_device_name(device), ACPI_POWER_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_POWER_CLASS);
 -- 
-1.7.9.5
+1.7.12.21.g871e293
 
