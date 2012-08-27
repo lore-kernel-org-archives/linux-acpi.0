@@ -1,87 +1,144 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
-Subject: RE: [PATCHv2 06/14] Thermal: Add a policy sysfs attribute
-Date: Mon, 27 Aug 2012 09:02:13 +0000
-Message-ID: <4D68720C2E767A4AA6A8796D42C8EB591AD524@BGSMSX101.gar.corp.intel.com>
-References: <1346041706-29642-1-git-send-email-durgadoss.r@intel.com>
- <1346041706-29642-7-git-send-email-durgadoss.r@intel.com>
- <744357E9AAD1214791ACBA4B0B909263210161@SHSMSX101.ccr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: [PATCH RESEND v2] ACPI: Fix resource_lock dead lock in acpi_power_on_device
+Date: Mon, 27 Aug 2012 17:10:16 +0800
+Message-ID: <1346058616-3453-1-git-send-email-aaron.lu@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:51276 "EHLO mga03.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:21144 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751312Ab2H0JCS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Aug 2012 05:02:18 -0400
-In-Reply-To: <744357E9AAD1214791ACBA4B0B909263210161@SHSMSX101.ccr.corp.intel.com>
-Content-Language: en-US
+	id S1753240Ab2H0JKt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 27 Aug 2012 05:10:49 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>, "lenb@kernel.org" <lenb@kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>, Aaron Lu <aaron.lu@intel.com>, Lin Ming <ming.m.lin@intel.com>
 
-Hi Rui,
+From: Lin Ming <ming.m.lin@intel.com>
 
-> > +static ssize_t
-> > +policy_show(struct device *dev, struct device_attribute *devattr, char
-> > +*buf) {
-> > +	struct thermal_zone_device *tz = to_thermal_zone(dev);
-> > +	struct thermal_zone_params *tzp = tz->tzp;
-> > +
-> > +	if (!tzp)
-> > +		return sprintf(buf, "step_wise(default)\n");
-> > +
-> > +	switch (tzp->throttle_policy) {
-> > +	case THERMAL_FAIR_SHARE:
-> > +		return sprintf(buf, "fair_share\n");
-> > +	case THERMAL_STEP_WISE:
-> > +		return sprintf(buf, "step_wise\n");
-> > +	case THERMAL_USER_SPACE:
-> > +		return sprintf(buf, "user_space\n");
-> > +	default:
-> > +		return sprintf(buf, "unknown\n");
-> > +	}
-> > +}
-> > +
-> >  static DEVICE_ATTR(type, 0444, type_show, NULL);  static
-> > DEVICE_ATTR(temp, 0444, temp_show, NULL);  static DEVICE_ATTR(mode,
-> > 0644, mode_show, mode_store);  static DEVICE_ATTR(passive, S_IRUGO |
-> > S_IWUSR, passive_show, passive_store);
-> > +static DEVICE_ATTR(throttle_policy, S_IRUGO, policy_show, NULL);
-> >
-> >  /* sys I/F for cooling device */
-> >  #define to_cooling_device(_dev)	\
-> > @@ -1349,10 +1371,16 @@ static int retrieve_zone_params(struct
-> > thermal_zone_device *tz)
-> >
-> >  	/* It is not an error to not have any platform data */
-> >  	ret = get_platform_thermal_params(tz);
-> > -	if (ret)
-> > +	if (ret) {
-> >  		tz->tzp = NULL;
-> > +		return 0;
-> > +	}
-> >
-> > -	return 0;
-> > +	ret = device_create_file(&tz->device, &dev_attr_throttle_policy);
-> > +	if (ret)
-> > +		dev_err(&tz->device, "creating policy attr failed:%d\n",
-> > ret);
-> > +
-> > +	return ret;
-> >  }
-> 
-> What does this mean?
-> We will not create "policy" attributes if there is no thermal_zone_params?
+Commit 0090def("ACPI: Add interface to register/unregister device
+to/from power resources") used resource_lock to protect the devices list
+that relies on power resource. It caused a mutex dead lock, as below
 
-Yes, that's what I thought initially. Because if there is no 'throttle_policy'
-we assume that it is (by default) step_wise.
+acpi_power_on ---> lock resource_lock
+  __acpi_power_on
+    acpi_power_on_device
+      acpi_power_get_inferred_state
+        acpi_power_get_list_state ---> lock resource_lock
 
-But, if we make tz_params be provided through tzd_register function call,
-it makes sense for this to be a mandatory attribute, showing 'step_wise"
-if there is no thermal_zone_params.
+This patch adds a new mutex "devices_lock" to protect the devices list
+and calls acpi_power_on_device in acpi_power_on, instead of
+__acpi_power_on, after the resource_lock is released.
 
-This needs a clean fix, will make it in v3.
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+---
+v2:
+Fixed a stupid bug when rebasing, device_list should be got only after
+resource is initialized.
 
-Thanks,
-Durga
+Originally sent by Lin Ming:
+http://marc.info/?l=linux-acpi&m=134060115701726&w=2
+
+ drivers/acpi/power.c | 29 ++++++++++++++++++-----------
+ 1 file changed, 18 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+index fc18034..d0702d6 100644
+--- a/drivers/acpi/power.c
++++ b/drivers/acpi/power.c
+@@ -107,6 +107,7 @@ struct acpi_power_resource {
+ 
+ 	/* List of devices relying on this power resource */
+ 	struct acpi_power_resource_device *devices;
++	struct mutex devices_lock;
+ };
+ 
+ static struct list_head acpi_power_resource_list;
+@@ -225,7 +226,6 @@ static void acpi_power_on_device(struct acpi_power_managed_device *device)
+ 
+ static int __acpi_power_on(struct acpi_power_resource *resource)
+ {
+-	struct acpi_power_resource_device *device_list = resource->devices;
+ 	acpi_status status = AE_OK;
+ 
+ 	status = acpi_evaluate_object(resource->device->handle, "_ON", NULL, NULL);
+@@ -238,12 +238,6 @@ static int __acpi_power_on(struct acpi_power_resource *resource)
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Power resource [%s] turned on\n",
+ 			  resource->name));
+ 
+-	while (device_list) {
+-		acpi_power_on_device(device_list->device);
+-
+-		device_list = device_list->next;
+-	}
+-
+ 	return 0;
+ }
+ 
+@@ -251,6 +245,7 @@ static int acpi_power_on(acpi_handle handle)
+ {
+ 	int result = 0;
+ 	struct acpi_power_resource *resource = NULL;
++	struct acpi_power_resource_device *device_list;
+ 
+ 	result = acpi_power_get_context(handle, &resource);
+ 	if (result)
+@@ -270,6 +265,17 @@ static int acpi_power_on(acpi_handle handle)
+ 
+ 	mutex_unlock(&resource->resource_lock);
+ 
++	mutex_lock(&resource->devices_lock);
++
++	device_list = resource->devices;
++	while (device_list) {
++		acpi_power_on_device(device_list->device);
++
++		device_list = device_list->next;
++	}
++
++	mutex_unlock(&resource->devices_lock);
++
+ 	return result;
+ }
+ 
+@@ -355,7 +361,7 @@ static void __acpi_power_resource_unregister_device(struct device *dev,
+ 	if (acpi_power_get_context(res_handle, &resource))
+ 		return;
+ 
+-	mutex_lock(&resource->resource_lock);
++	mutex_lock(&resource->devices_lock);
+ 	prev = NULL;
+ 	curr = resource->devices;
+ 	while (curr) {
+@@ -372,7 +378,7 @@ static void __acpi_power_resource_unregister_device(struct device *dev,
+ 		prev = curr;
+ 		curr = curr->next;
+ 	}
+-	mutex_unlock(&resource->resource_lock);
++	mutex_unlock(&resource->devices_lock);
+ }
+ 
+ /* Unlink dev from all power resources in _PR0 */
+@@ -414,10 +420,10 @@ static int __acpi_power_resource_register_device(
+ 
+ 	power_resource_device->device = powered_device;
+ 
+-	mutex_lock(&resource->resource_lock);
++	mutex_lock(&resource->devices_lock);
+ 	power_resource_device->next = resource->devices;
+ 	resource->devices = power_resource_device;
+-	mutex_unlock(&resource->resource_lock);
++	mutex_unlock(&resource->devices_lock);
+ 
+ 	return 0;
+ }
+@@ -721,6 +727,7 @@ static int acpi_power_add(struct acpi_device *device)
+ 
+ 	resource->device = device;
+ 	mutex_init(&resource->resource_lock);
++	mutex_init(&resource->devices_lock);
+ 	strcpy(resource->name, device->pnp.bus_id);
+ 	strcpy(acpi_device_name(device), ACPI_POWER_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_POWER_CLASS);
+-- 
+1.7.12.21.g871e293
+
