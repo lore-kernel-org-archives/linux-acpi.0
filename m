@@ -1,67 +1,84 @@
 From: Durgadoss R <durgadoss.r@intel.com>
-Subject: [PATCHv2 05/14] Thermal: Obtain platform data for thermal zone
-Date: Mon, 27 Aug 2012 09:58:17 +0530
-Message-ID: <1346041706-29642-6-git-send-email-durgadoss.r@intel.com>
+Subject: [PATCHv2 06/14] Thermal: Add a policy sysfs attribute
+Date: Mon, 27 Aug 2012 09:58:18 +0530
+Message-ID: <1346041706-29642-7-git-send-email-durgadoss.r@intel.com>
 References: <1346041706-29642-1-git-send-email-durgadoss.r@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga09.intel.com ([134.134.136.24]:4000 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751775Ab2H0E3O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 27 Aug 2012 00:29:14 -0400
+	id S1751775Ab2H0E3Q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 27 Aug 2012 00:29:16 -0400
 In-Reply-To: <1346041706-29642-1-git-send-email-durgadoss.r@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org, rui.zhang@intel.com
 Cc: linux-acpi@vger.kernel.org, eduardo.valentin@ti.com, Durgadoss R <durgadoss.r@intel.com>
 
-This patch retrieves the platform level data for
-a zone during its registration. It is not an error
-to not have any platform data.
+This patch adds a policy sysfs attribute to a thermal zone.
+This attribute will give us the throttling policy used
+for the zone. This is a RO attribute.
 
 Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
 ---
- drivers/thermal/thermal_sys.c |   21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+ drivers/thermal/thermal_sys.c |   32 ++++++++++++++++++++++++++++++--
+ 1 file changed, 30 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
-index 92a187c..6adda39 100644
+index 6adda39..8aa4200a6 100644
 --- a/drivers/thermal/thermal_sys.c
 +++ b/drivers/thermal/thermal_sys.c
-@@ -1339,6 +1339,22 @@ static void remove_trip_attrs(struct thermal_zone_device *tz)
- 	kfree(tz->trip_hyst_attrs);
+@@ -378,10 +378,32 @@ passive_show(struct device *dev, struct device_attribute *attr,
+ 	return sprintf(buf, "%d\n", tz->forced_passive);
  }
  
-+static int retrieve_zone_params(struct thermal_zone_device *tz)
++static ssize_t
++policy_show(struct device *dev, struct device_attribute *devattr, char *buf)
 +{
-+	int ret;
++	struct thermal_zone_device *tz = to_thermal_zone(dev);
++	struct thermal_zone_params *tzp = tz->tzp;
 +
-+	/* Check whether the platform data pointer is defined */
-+	if (!get_platform_thermal_params)
-+		return 0;
++	if (!tzp)
++		return sprintf(buf, "step_wise(default)\n");
 +
-+	/* It is not an error to not have any platform data */
-+	ret = get_platform_thermal_params(tz);
-+	if (ret)
-+		tz->tzp = NULL;
-+
-+	return 0;
++	switch (tzp->throttle_policy) {
++	case THERMAL_FAIR_SHARE:
++		return sprintf(buf, "fair_share\n");
++	case THERMAL_STEP_WISE:
++		return sprintf(buf, "step_wise\n");
++	case THERMAL_USER_SPACE:
++		return sprintf(buf, "user_space\n");
++	default:
++		return sprintf(buf, "unknown\n");
++	}
 +}
 +
- /**
-  * thermal_zone_device_register - register a new thermal zone device
-  * @type:	the thermal zone device type
-@@ -1443,6 +1459,11 @@ struct thermal_zone_device *thermal_zone_device_register(const char *type,
- 	if (result)
- 		goto unregister;
+ static DEVICE_ATTR(type, 0444, type_show, NULL);
+ static DEVICE_ATTR(temp, 0444, temp_show, NULL);
+ static DEVICE_ATTR(mode, 0644, mode_show, mode_store);
+ static DEVICE_ATTR(passive, S_IRUGO | S_IWUSR, passive_show, passive_store);
++static DEVICE_ATTR(throttle_policy, S_IRUGO, policy_show, NULL);
  
-+	/* Retrieve platform level parameters for this zone */
-+	result = retrieve_zone_params(tz);
-+	if (result)
-+		goto unregister;
+ /* sys I/F for cooling device */
+ #define to_cooling_device(_dev)	\
+@@ -1349,10 +1371,16 @@ static int retrieve_zone_params(struct thermal_zone_device *tz)
+ 
+ 	/* It is not an error to not have any platform data */
+ 	ret = get_platform_thermal_params(tz);
+-	if (ret)
++	if (ret) {
+ 		tz->tzp = NULL;
++		return 0;
++	}
+ 
+-	return 0;
++	ret = device_create_file(&tz->device, &dev_attr_throttle_policy);
++	if (ret)
++		dev_err(&tz->device, "creating policy attr failed:%d\n", ret);
 +
- 	mutex_lock(&thermal_list_lock);
- 	list_add_tail(&tz->node, &thermal_tz_list);
- 	if (ops->bind)
++	return ret;
+ }
+ 
+ /**
 -- 
 1.7.9.5
 
