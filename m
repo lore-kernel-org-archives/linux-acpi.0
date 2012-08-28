@@ -1,104 +1,256 @@
-From: AceLan Kao <acelan.kao@canonical.com>
-Subject: Re: [PATCH] ACPI button: remove hotkey suspend acpi proc event
-Date: Tue, 28 Aug 2012 14:36:33 +0800
-Message-ID: <CAMz9Wg_8cVopGsPOhjRGuHRvX7ZSu4cqnMEOYoQrMJBU9Wtv_Q@mail.gmail.com>
-References: <1342160002-13427-1-git-send-email-acelan.kao@canonical.com>
-	<20120713064801.GA4910@srcf.ucam.org>
-	<CAMz9Wg9gJvABAbtZNZSuywq=GgK4KaufB8ph405SmErLpO1y4g@mail.gmail.com>
-	<20120713071355.GA5516@srcf.ucam.org>
-	<20120713141248.GE7877@khazad-dum.debian.net>
-	<CAMz9Wg-0Fzz8aeEqYpPRmVqDuFSTtOv=k7m6k1O0r7YB88zRuQ@mail.gmail.com>
-	<20120723133452.GA21838@srcf.ucam.org>
-	<20120723144452.GA3467@khazad-dum.debian.net>
-	<CAMz9Wg_AFzP4k7N8_+2zJiDC2t9Q-vTRzsi-aMia6rYKBr6Rqw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:64696 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752151Ab2H1Ggf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Aug 2012 02:36:35 -0400
-Received: by wibhr14 with SMTP id hr14so4323171wib.1
-        for <linux-acpi@vger.kernel.org>; Mon, 27 Aug 2012 23:36:33 -0700 (PDT)
-In-Reply-To: <CAMz9Wg_AFzP4k7N8_+2zJiDC2t9Q-vTRzsi-aMia6rYKBr6Rqw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: [PATCH] libata: pm: differentiate system and runtime pm for ata port
+Date: Tue, 28 Aug 2012 16:49:51 +0800
+Message-ID: <1346143791-2995-1-git-send-email-aaron.lu@intel.com>
+Return-path: <linux-ide-owner@vger.kernel.org>
+Sender: linux-ide-owner@vger.kernel.org
+To: Jeff Garzik <jgarzik@pobox.com>
+Cc: linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>, Jeff Wu <jeff.wu@amd.com>, Aaron Lu <aaron.lu@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <lenb@kernel.org>
 
-Hi,
+For sata port, only runtime pm needs to be taken care of;
+For IDE port, only system pm needs to be taken care of.
+Currently, we use PMSG_SUSPEND for both system suspend and runtime
+suspend and PMSG_ON for both system resume and runtime resume.
 
-Do we have any conclusion about this patch?
+Change this by using PMSG_AUTO_SUSPEND for runtime suspend and
+PMSG_AUTO_RESUME for runtime resume.
 
-Taking account of the proc acpi event is deprecated, it should be okay
-to remove it.
-I also verified this patch works well with ThinkPad X220, and once if
-there is a problem,
-then we should come out another fix for it, instead of preventing this
-patch from being merged,
-since we face an re-entering S3 issue now.
-Thanks.
+The ata_acpi_set_state is modified accordingly. And the sata case and
+pata case is seperated for easy understanding.
 
-Best regards,
-AceLan Kao.
+Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+---
+ drivers/ata/libata-acpi.c | 83 ++++++++++++++++++++++++++++++++---------------
+ drivers/ata/libata-core.c | 22 +++++++++----
+ drivers/ata/libata-eh.c   |  9 ++---
+ 3 files changed, 78 insertions(+), 36 deletions(-)
 
-2012/7/24 AceLan Kao <acelan.kao@canonical.com>:
-> Hi,
->
-> 2012/7/23 Henrique de Moraes Holschuh <hmh@hmh.eng.br>:
->> On Mon, 23 Jul 2012, Matthew Garrett wrote:
->>> On Mon, Jul 16, 2012 at 10:27:57AM +0800, AceLan Kao wrote:
->>> > So, I didn't get the point why we can just remove the event, we don't rely on it
->>> > to enter S3 now, and to take into account that it's deprecated since
->>> > 2007(fb804714),
->>> > I don't think we should do more workaround for this.
->>>
->>> I've no objection to removing the event, I just want to know why we
->>> don't also need a solution in the evdev path. Why is this not a problem
->>> there?
-> Actually, it will enter S3 at most 2 times through evdev path.
-> The keyevents will be emitted at once while pressing the hotkey,
-> the GUI(gnome-power-manager under gnome, for instance) will do the reaction.
-> So, I think GUI will just ignore the following sleep events.
-> And it will enter another S3 after doing input_dev_release_keys() in
-> drivers/input/input.c +2174 during resuming if the key is not thought
-> to be released.
->
-> The big difference between evdev and proc acpi event is that
-> proc acpi event won't send out the next event until the current one is done.
-> We can observe its behavior by "acpi_listen"
-> It sends out the next event after the system wakeup, so that the
-> system will enter S3 again.
-> I didn't dig into the code where it queues the events, I just observed it.
->
->>
->> Indeed.
->>
->> And if it is related _directly_ to thinkpad-acpi, please state so.  Because
->> thinkpad-acpi does have legacy compatibility crap that can issue duplicated
->> events (same event over different paths: evdev, acpi procfs, acpi netlink)
->> but it is supposed to never do that unless actively configured to do so.
-> This patch do nothing to thinkpad-acpi, and I have already verified
-> that it won't
-> damage the current behavior of thinkpad-acpi driver.
->
->>
->> --
->>   "One disk to rule them all, One disk to find them. One disk to bring
->>   them all and in the darkness grind them. In the Land of Redmond
->>   where the shadows lie." -- The Silicon Valley Tarot
->>   Henrique Holschuh
->
->
->
-> --
-> Chia-Lin Kao(AceLan)
-> http://blog.acelan.idv.tw/
-> E-Mail: acelan.kaoATcanonical.com (s/AT/@/)
-
-
-
+diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c
+index fd9ecf7..b67b565 100644
+--- a/drivers/ata/libata-acpi.c
++++ b/drivers/ata/libata-acpi.c
+@@ -832,50 +832,81 @@ void ata_acpi_on_resume(struct ata_port *ap)
+ 	}
+ }
+ 
+-/**
+- * ata_acpi_set_state - set the port power state
+- * @ap: target ATA port
+- * @state: state, on/off
+- *
+- * This function executes the _PS0/_PS3 ACPI method to set the power state.
+- * ACPI spec requires _PS0 when IDE power on and _PS3 when power off
+- */
+-void ata_acpi_set_state(struct ata_port *ap, pm_message_t state)
++static void sata_acpi_set_state(struct ata_port *ap, pm_message_t state)
+ {
+-	struct ata_device *dev;
+-	acpi_handle handle;
+ 	int acpi_state;
++	acpi_handle handle;
++	struct ata_device *dev;
+ 
+-	/* channel first and then drives for power on and vica versa
+-	   for power off */
+-	handle = ata_ap_acpi_handle(ap);
+-	if (handle && state.event == PM_EVENT_ON)
+-		acpi_bus_set_power(handle, ACPI_STATE_D0);
++	if (!PMSG_IS_AUTO(state))
++		return;
+ 
+ 	ata_for_each_dev(dev, &ap->link, ENABLED) {
+ 		handle = ata_dev_acpi_handle(dev);
+ 		if (!handle)
+ 			continue;
+ 
+-		if (state.event != PM_EVENT_ON) {
++		if (state.event == PM_EVENT_AUTO_SUSPEND) {
+ 			acpi_state = acpi_pm_device_sleep_state(
+ 				&dev->sdev->sdev_gendev, NULL, ACPI_STATE_D3);
+ 			if (acpi_state > 0)
+ 				acpi_bus_set_power(handle, acpi_state);
+-			/* TBD: need to check if it's runtime pm request */
+-			acpi_pm_device_run_wake(
+-				&dev->sdev->sdev_gendev, true);
++			acpi_pm_device_run_wake(&dev->sdev->sdev_gendev, true);
+ 		} else {
+-			/* Ditto */
+-			acpi_pm_device_run_wake(
+-				&dev->sdev->sdev_gendev, false);
++			acpi_pm_device_run_wake(&dev->sdev->sdev_gendev, false);
+ 			acpi_bus_set_power(handle, ACPI_STATE_D0);
+ 		}
+ 	}
++}
++
++/**
++ * pata_acpi_set_state - set the port power state
++ * @ap: target ATA port
++ * @state: state, on/off
++ *
++ * This function executes the _PS0/_PS3 ACPI method to set the power state.
++ * ACPI spec requires _PS0 when IDE power on and _PS3 when power off
++ */
++static void pata_acpi_set_state(struct ata_port *ap, pm_message_t state)
++{
++	struct ata_device *dev;
++
++	if (!ata_ap_acpi_handle(ap))
++		return;
++
++	/*
++	 * Channel first and then drives for power on and
++	 * vica versa for power off
++	 */
++	if (state.event == PM_EVENT_ON)
++		acpi_bus_set_power(ata_ap_acpi_handle(ap), ACPI_STATE_D0);
++
++	ata_for_each_dev(dev, &ap->link, ENABLED) {
++		if (ata_dev_acpi_handle(dev))
++			acpi_bus_set_power(ata_dev_acpi_handle(dev),
++					state.event == PM_EVENT_ON ?
++					ACPI_STATE_D0 : ACPI_STATE_D3);
++
++	}
+ 
+-	handle = ata_ap_acpi_handle(ap);
+-	if (handle && state.event != PM_EVENT_ON)
+-		acpi_bus_set_power(handle, ACPI_STATE_D3);
++	if (state.event != PM_EVENT_ON)
++		acpi_bus_set_power(ata_ap_acpi_handle(ap), ACPI_STATE_D3);
++}
++
++/**
++ * ata_acpi_set_state - set the port power state
++ * @ap: target ATA port
++ * @state: state, on/off
++ *
++ * Depends on whether the port is a PATA port or a SATA port,
++ * this function calls into different functions.
++ */
++void ata_acpi_set_state(struct ata_port *ap, pm_message_t state)
++{
++	if (ap->flags & ATA_FLAG_ACPI_SATA)
++		sata_acpi_set_state(ap, state);
++	else
++		pata_acpi_set_state(ap, state);
+ }
+ 
+ /**
+diff --git a/drivers/ata/libata-core.c b/drivers/ata/libata-core.c
+index 8e1039c..8fdc8e3 100644
+--- a/drivers/ata/libata-core.c
++++ b/drivers/ata/libata-core.c
+@@ -5309,7 +5309,7 @@ static int ata_port_suspend_common(struct device *dev, pm_message_t mesg)
+ 	 *
+ 	 * http://thread.gmane.org/gmane.linux.ide/46764
+ 	 */
+-	if (mesg.event == PM_EVENT_SUSPEND)
++	if (mesg.event & PM_EVENT_SUSPEND)
+ 		ehi_flags |= ATA_EHI_NO_AUTOPSY | ATA_EHI_NO_RECOVERY;
+ 
+ 	rc = ata_port_request_pm(ap, mesg, 0, ehi_flags, 1);
+@@ -5324,6 +5324,11 @@ static int ata_port_suspend(struct device *dev)
+ 	return ata_port_suspend_common(dev, PMSG_SUSPEND);
+ }
+ 
++static int ata_port_runtime_suspend(struct device *dev)
++{
++	return ata_port_suspend_common(dev, PMSG_AUTO_SUSPEND);
++}
++
+ static int ata_port_do_freeze(struct device *dev)
+ {
+ 	if (pm_runtime_suspended(dev))
+@@ -5340,12 +5345,12 @@ static int ata_port_poweroff(struct device *dev)
+ 	return ata_port_suspend_common(dev, PMSG_HIBERNATE);
+ }
+ 
+-static int ata_port_resume_common(struct device *dev)
++static int ata_port_resume_common(struct device *dev, pm_message_t mesg)
+ {
+ 	struct ata_port *ap = to_ata_port(dev);
+ 	int rc;
+ 
+-	rc = ata_port_request_pm(ap, PMSG_ON, ATA_EH_RESET,
++	rc = ata_port_request_pm(ap, mesg, ATA_EH_RESET,
+ 		ATA_EHI_NO_AUTOPSY | ATA_EHI_QUIET, 1);
+ 	return rc;
+ }
+@@ -5354,7 +5359,7 @@ static int ata_port_resume(struct device *dev)
+ {
+ 	int rc;
+ 
+-	rc = ata_port_resume_common(dev);
++	rc = ata_port_resume_common(dev, PMSG_ON);
+ 	if (!rc) {
+ 		pm_runtime_disable(dev);
+ 		pm_runtime_set_active(dev);
+@@ -5364,6 +5369,11 @@ static int ata_port_resume(struct device *dev)
+ 	return rc;
+ }
+ 
++static int ata_port_runtime_resume(struct device *dev)
++{
++	return ata_port_resume_common(dev, PMSG_AUTO_RESUME);
++}
++
+ static int ata_port_runtime_idle(struct device *dev)
+ {
+ 	return pm_runtime_suspend(dev);
+@@ -5377,8 +5387,8 @@ static const struct dev_pm_ops ata_port_pm_ops = {
+ 	.poweroff = ata_port_poweroff,
+ 	.restore = ata_port_resume,
+ 
+-	.runtime_suspend = ata_port_suspend,
+-	.runtime_resume = ata_port_resume_common,
++	.runtime_suspend = ata_port_runtime_suspend,
++	.runtime_resume = ata_port_runtime_resume,
+ 	.runtime_idle = ata_port_runtime_idle,
+ };
+ 
+diff --git a/drivers/ata/libata-eh.c b/drivers/ata/libata-eh.c
+index 7d4535e..f3eced6 100644
+--- a/drivers/ata/libata-eh.c
++++ b/drivers/ata/libata-eh.c
+@@ -4021,7 +4021,7 @@ static void ata_eh_handle_port_suspend(struct ata_port *ap)
+ 	/* are we suspending? */
+ 	spin_lock_irqsave(ap->lock, flags);
+ 	if (!(ap->pflags & ATA_PFLAG_PM_PENDING) ||
+-	    ap->pm_mesg.event == PM_EVENT_ON) {
++	    !(ap->pm_mesg.event & PM_EVENT_SUSPEND)) {
+ 		spin_unlock_irqrestore(ap->lock, flags);
+ 		return;
+ 	}
+@@ -4040,7 +4040,7 @@ static void ata_eh_handle_port_suspend(struct ata_port *ap)
+ 	if (ap->ops->port_suspend)
+ 		rc = ap->ops->port_suspend(ap, ap->pm_mesg);
+ 
+-	ata_acpi_set_state(ap, PMSG_SUSPEND);
++	ata_acpi_set_state(ap, ap->pm_mesg);
+  out:
+ 	/* report result */
+ 	spin_lock_irqsave(ap->lock, flags);
+@@ -4080,7 +4080,8 @@ static void ata_eh_handle_port_resume(struct ata_port *ap)
+ 	/* are we resuming? */
+ 	spin_lock_irqsave(ap->lock, flags);
+ 	if (!(ap->pflags & ATA_PFLAG_PM_PENDING) ||
+-	    ap->pm_mesg.event != PM_EVENT_ON) {
++	    (ap->pm_mesg.event != PM_EVENT_ON &&
++	     ap->pm_mesg.event != PM_EVENT_AUTO_RESUME)) {
+ 		spin_unlock_irqrestore(ap->lock, flags);
+ 		return;
+ 	}
+@@ -4099,7 +4100,7 @@ static void ata_eh_handle_port_resume(struct ata_port *ap)
+ 		ata_for_each_dev(dev, link, ALL)
+ 			ata_ering_clear(&dev->ering);
+ 
+-	ata_acpi_set_state(ap, PMSG_ON);
++	ata_acpi_set_state(ap, ap->pm_mesg);
+ 
+ 	if (ap->ops->port_resume)
+ 		rc = ap->ops->port_resume(ap);
 -- 
-Chia-Lin Kao(AceLan)
-http://blog.acelan.idv.tw/
-E-Mail: acelan.kaoATcanonical.com (s/AT/@/)
+1.7.11.5
+
