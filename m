@@ -1,7 +1,7 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v5 4/5] ACPI: Update Container hotplug error messages
-Date: Tue, 28 Aug 2012 13:03:00 -0600
-Message-ID: <1346180581-12641-5-git-send-email-toshi.kani@hp.com>
+Subject: [PATCH v5 3/5] ACPI: Update Memory hotplug error messages
+Date: Tue, 28 Aug 2012 13:02:59 -0600
+Message-ID: <1346180581-12641-4-git-send-email-toshi.kani@hp.com>
 References: <1346180581-12641-1-git-send-email-toshi.kani@hp.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1346180581-12641-1-git-send-email-toshi.kani@hp.com>
@@ -10,49 +10,122 @@ To: lenb@kernel.org, linux-acpi@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org, joe@perches.com, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, vijaymohan.pandarathil@hp.com, shaohua.li@intel.com, Toshi Kani <toshi.kani@hp.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Updated Container hotplug error messages with acpi_pr_<level>()
-and pr_<level>().  Removed an unnecessary check to device pointer
-in acpi_container_add().
+Updated Memory hotplug error messages with acpi_pr_<level>(),
+dev_<level>() and pr_<level>().
 
 Signed-off-by: Toshi Kani <toshi.kani@hp.com>
 ---
- drivers/acpi/container.c |   10 ++--------
- 1 files changed, 2 insertions(+), 8 deletions(-)
+ drivers/acpi/acpi_memhotplug.c |   25 +++++++++++++------------
+ 1 files changed, 13 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
-index 1f9f7d7..519c1d6 100644
---- a/drivers/acpi/container.c
-+++ b/drivers/acpi/container.c
-@@ -97,12 +97,6 @@ static int acpi_container_add(struct acpi_device *device)
- {
- 	struct acpi_container *container;
+diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+index 24c807f..183fa3d 100644
+--- a/drivers/acpi/acpi_memhotplug.c
++++ b/drivers/acpi/acpi_memhotplug.c
+@@ -170,7 +170,7 @@ acpi_memory_get_device(acpi_handle handle,
+ 	/* Get the parent device */
+ 	result = acpi_bus_get_device(phandle, &pdevice);
+ 	if (result) {
+-		printk(KERN_WARNING PREFIX "Cannot get acpi bus device");
++		acpi_pr_warn(phandle, "Cannot get acpi bus device\n");
+ 		return -EINVAL;
+ 	}
  
--
--	if (!device) {
--		printk(KERN_ERR PREFIX "device is NULL\n");
--		return -EINVAL;
--	}
--
- 	container = kzalloc(sizeof(struct acpi_container), GFP_KERNEL);
- 	if (!container)
- 		return -ENOMEM;
-@@ -164,7 +158,7 @@ static void container_notify_cb(acpi_handle handle, u32 type, void *context)
- 	case ACPI_NOTIFY_BUS_CHECK:
- 		/* Fall through */
- 	case ACPI_NOTIFY_DEVICE_CHECK:
--		printk(KERN_WARNING "Container driver received %s event\n",
-+		pr_debug("Container driver received %s event\n",
- 		       (type == ACPI_NOTIFY_BUS_CHECK) ?
- 		       "ACPI_NOTIFY_BUS_CHECK" : "ACPI_NOTIFY_DEVICE_CHECK");
+@@ -180,14 +180,14 @@ acpi_memory_get_device(acpi_handle handle,
+ 	 */
+ 	result = acpi_bus_add(&device, pdevice, handle, ACPI_BUS_TYPE_DEVICE);
+ 	if (result) {
+-		printk(KERN_WARNING PREFIX "Cannot add acpi bus");
++		acpi_pr_warn(handle, "Cannot add acpi bus\n");
+ 		return -EINVAL;
+ 	}
  
-@@ -185,7 +179,7 @@ static void container_notify_cb(acpi_handle handle, u32 type, void *context)
+       end:
+ 	*mem_device = acpi_driver_data(device);
+ 	if (!(*mem_device)) {
+-		printk(KERN_ERR "\n driver data not found");
++		dev_err(&device->dev, "driver data not found\n");
+ 		return -ENODEV;
+ 	}
  
- 		result = container_device_add(&device, handle);
- 		if (result) {
--			printk(KERN_WARNING "Failed to add container\n");
-+			acpi_pr_warn(handle, "Failed to add container\n");
+@@ -224,7 +224,8 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
+ 	/* Get the range from the _CRS */
+ 	result = acpi_memory_get_device_resources(mem_device);
+ 	if (result) {
+-		printk(KERN_ERR PREFIX "get_device_resources failed\n");
++		dev_err(&mem_device->device->dev,
++			"get_device_resources failed\n");
+ 		mem_device->state = MEMORY_INVALID_STATE;
+ 		return result;
+ 	}
+@@ -257,7 +258,7 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
+ 		num_enabled++;
+ 	}
+ 	if (!num_enabled) {
+-		printk(KERN_ERR PREFIX "add_memory failed\n");
++		dev_err(&mem_device->device->dev, "add_memory failed\n");
+ 		mem_device->state = MEMORY_INVALID_STATE;
+ 		return -EINVAL;
+ 	}
+@@ -353,7 +354,7 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
+ 			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 					  "\nReceived DEVICE CHECK notification for device\n"));
+ 		if (acpi_memory_get_device(handle, &mem_device)) {
+-			printk(KERN_ERR PREFIX "Cannot find driver data\n");
++			acpi_pr_err(handle, "Cannot find driver data\n");
  			break;
  		}
  
+@@ -361,7 +362,7 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
+ 			break;
+ 
+ 		if (acpi_memory_enable_device(mem_device)) {
+-			printk(KERN_ERR PREFIX "Cannot enable memory device\n");
++			acpi_pr_err(handle, "Cannot enable memory device\n");
+ 			break;
+ 		}
+ 
+@@ -373,12 +374,12 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
+ 				  "\nReceived EJECT REQUEST notification for device\n"));
+ 
+ 		if (acpi_bus_get_device(handle, &device)) {
+-			printk(KERN_ERR PREFIX "Device doesn't exist\n");
++			acpi_pr_err(handle, "Device doesn't exist\n");
+ 			break;
+ 		}
+ 		mem_device = acpi_driver_data(device);
+ 		if (!mem_device) {
+-			printk(KERN_ERR PREFIX "Driver Data is NULL\n");
++			acpi_pr_err(handle, "Driver Data is NULL\n");
+ 			break;
+ 		}
+ 
+@@ -389,7 +390,7 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
+ 		 *      with generic sysfs driver
+ 		 */
+ 		if (acpi_memory_disable_device(mem_device)) {
+-			printk(KERN_ERR PREFIX "Disable memory device\n");
++			acpi_pr_err(handle, "Failed to remove memory device\n");
+ 			/*
+ 			 * If _EJ0 was called but failed, _OST is not
+ 			 * necessary.
+@@ -449,7 +450,7 @@ static int acpi_memory_device_add(struct acpi_device *device)
+ 	/* Set the device state */
+ 	mem_device->state = MEMORY_POWER_ON_STATE;
+ 
+-	printk(KERN_DEBUG "%s \n", acpi_device_name(device));
++	pr_debug("%s\n", acpi_device_name(device));
+ 
+ 	/*
+ 	 * Early boot code has recognized memory area by EFI/E820.
+@@ -464,7 +465,7 @@ static int acpi_memory_device_add(struct acpi_device *device)
+ 		/* call add_memory func */
+ 		result = acpi_memory_enable_device(mem_device);
+ 		if (result)
+-			printk(KERN_ERR PREFIX
++			dev_err(&device->dev,
+ 				"Error in acpi_memory_enable_device\n");
+ 	}
+ 	return result;
 -- 
 1.7.7.6
