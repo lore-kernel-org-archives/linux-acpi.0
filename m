@@ -1,131 +1,63 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v5 3/5] ACPI: Update Memory hotplug error messages
-Date: Tue, 28 Aug 2012 13:02:59 -0600
-Message-ID: <1346180581-12641-4-git-send-email-toshi.kani@hp.com>
-References: <1346180581-12641-1-git-send-email-toshi.kani@hp.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1346180581-12641-1-git-send-email-toshi.kani@hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: lenb@kernel.org, linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, joe@perches.com, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, vijaymohan.pandarathil@hp.com, shaohua.li@intel.com, Toshi Kani <toshi.kani@hp.com>
+From: Aaron Lu <aaron.lwe@gmail.com>
+Subject: Re: [PATCH] ACPI: power: Use KERN_DEBUG when no power resources are
+ found
+Date: Wed, 29 Aug 2012 10:01:36 +0800
+Message-ID: <20120829020134.GA1761@aaronlu.sh.intel.com>
+References: <1344564353-493-1-git-send-email-aaron.lu@amd.com>
+ <20120823132646.GD18279@aftab.osrc.amd.com>
+ <1345847781.32359.15.camel@joe2Laptop>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:44694 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752280Ab2H2CCH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Aug 2012 22:02:07 -0400
+Content-Disposition: inline
+In-Reply-To: <1345847781.32359.15.camel@joe2Laptop>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Joe Perches <joe@perches.com>
+Cc: Borislav Petkov <bp@amd64.org>, Lin Ming <minggr@gmail.com>, Len Brown <lenb@kernel.org>, Aaron Lu <aaron.lu@amd.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Updated Memory hotplug error messages with acpi_pr_<level>(),
-dev_<level>() and pr_<level>().
+On Fri, Aug 24, 2012 at 03:36:21PM -0700, Joe Perches wrote:
+> On Thu, 2012-08-23 at 15:26 +0200, Borislav Petkov wrote:
+> > On Fri, Aug 10, 2012 at 10:05:53AM +0800, Aaron Lu wrote:
+> > > commit a606dac368eed5696fb38e16b1394f1d049c09e9 adds support to link
+> > > devices which have _PRx, if a device does not have _PRx, a warning
+> > > message will be printed.
+> > > 
+> > > This commit is for ZPODD on Intel's platform, on AMD's platform, there
+> > > is no _PRx to support ZPODD, we use _PSx.
+> > > 
+> > > So instead of printing a useless warning message on AMD's platform,
+> > > changing the print level to DEBUG to suppress this message.
+> []
+> > > diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+> []
+> > > @@ -460,7 +460,7 @@ int acpi_power_resource_register_device(struct device *dev, acpi_handle handle)
+> > >  	return ret;
+> > >  
+> > >  no_power_resource:
+> > > -	printk(KERN_WARNING PREFIX "Invalid Power Resource to register!");
+> > > +	printk(KERN_DEBUG PREFIX "Invalid Power Resource to register!");
+> 
+> Perhaps add something like:
+> 	if (boot_cpu_data.x86_vendor != X86_VENDOR_AMD)
+> 		printk(etc...)
+> instead?
 
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
----
- drivers/acpi/acpi_memhotplug.c |   25 +++++++++++++------------
- 1 files changed, 13 insertions(+), 12 deletions(-)
+Sorry for not describing this problem clear, this would also occur on
+Intel platforms as long as that device we are calling this register
+function on does not have any power resource attached to it.
 
-diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-index 24c807f..183fa3d 100644
---- a/drivers/acpi/acpi_memhotplug.c
-+++ b/drivers/acpi/acpi_memhotplug.c
-@@ -170,7 +170,7 @@ acpi_memory_get_device(acpi_handle handle,
- 	/* Get the parent device */
- 	result = acpi_bus_get_device(phandle, &pdevice);
- 	if (result) {
--		printk(KERN_WARNING PREFIX "Cannot get acpi bus device");
-+		acpi_pr_warn(phandle, "Cannot get acpi bus device\n");
- 		return -EINVAL;
- 	}
- 
-@@ -180,14 +180,14 @@ acpi_memory_get_device(acpi_handle handle,
- 	 */
- 	result = acpi_bus_add(&device, pdevice, handle, ACPI_BUS_TYPE_DEVICE);
- 	if (result) {
--		printk(KERN_WARNING PREFIX "Cannot add acpi bus");
-+		acpi_pr_warn(handle, "Cannot add acpi bus\n");
- 		return -EINVAL;
- 	}
- 
-       end:
- 	*mem_device = acpi_driver_data(device);
- 	if (!(*mem_device)) {
--		printk(KERN_ERR "\n driver data not found");
-+		dev_err(&device->dev, "driver data not found\n");
- 		return -ENODEV;
- 	}
- 
-@@ -224,7 +224,8 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
- 	/* Get the range from the _CRS */
- 	result = acpi_memory_get_device_resources(mem_device);
- 	if (result) {
--		printk(KERN_ERR PREFIX "get_device_resources failed\n");
-+		dev_err(&mem_device->device->dev,
-+			"get_device_resources failed\n");
- 		mem_device->state = MEMORY_INVALID_STATE;
- 		return result;
- 	}
-@@ -257,7 +258,7 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
- 		num_enabled++;
- 	}
- 	if (!num_enabled) {
--		printk(KERN_ERR PREFIX "add_memory failed\n");
-+		dev_err(&mem_device->device->dev, "add_memory failed\n");
- 		mem_device->state = MEMORY_INVALID_STATE;
- 		return -EINVAL;
- 	}
-@@ -353,7 +354,7 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
- 			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 					  "\nReceived DEVICE CHECK notification for device\n"));
- 		if (acpi_memory_get_device(handle, &mem_device)) {
--			printk(KERN_ERR PREFIX "Cannot find driver data\n");
-+			acpi_pr_err(handle, "Cannot find driver data\n");
- 			break;
- 		}
- 
-@@ -361,7 +362,7 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
- 			break;
- 
- 		if (acpi_memory_enable_device(mem_device)) {
--			printk(KERN_ERR PREFIX "Cannot enable memory device\n");
-+			acpi_pr_err(handle, "Cannot enable memory device\n");
- 			break;
- 		}
- 
-@@ -373,12 +374,12 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
- 				  "\nReceived EJECT REQUEST notification for device\n"));
- 
- 		if (acpi_bus_get_device(handle, &device)) {
--			printk(KERN_ERR PREFIX "Device doesn't exist\n");
-+			acpi_pr_err(handle, "Device doesn't exist\n");
- 			break;
- 		}
- 		mem_device = acpi_driver_data(device);
- 		if (!mem_device) {
--			printk(KERN_ERR PREFIX "Driver Data is NULL\n");
-+			acpi_pr_err(handle, "Driver Data is NULL\n");
- 			break;
- 		}
- 
-@@ -389,7 +390,7 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
- 		 *      with generic sysfs driver
- 		 */
- 		if (acpi_memory_disable_device(mem_device)) {
--			printk(KERN_ERR PREFIX "Disable memory device\n");
-+			acpi_pr_err(handle, "Failed to remove memory device\n");
- 			/*
- 			 * If _EJ0 was called but failed, _OST is not
- 			 * necessary.
-@@ -449,7 +450,7 @@ static int acpi_memory_device_add(struct acpi_device *device)
- 	/* Set the device state */
- 	mem_device->state = MEMORY_POWER_ON_STATE;
- 
--	printk(KERN_DEBUG "%s \n", acpi_device_name(device));
-+	pr_debug("%s\n", acpi_device_name(device));
- 
- 	/*
- 	 * Early boot code has recognized memory area by EFI/E820.
-@@ -464,7 +465,7 @@ static int acpi_memory_device_add(struct acpi_device *device)
- 		/* call add_memory func */
- 		result = acpi_memory_enable_device(mem_device);
- 		if (result)
--			printk(KERN_ERR PREFIX
-+			dev_err(&device->dev,
- 				"Error in acpi_memory_enable_device\n");
- 	}
- 	return result;
--- 
-1.7.7.6
+So the problem is actually, does the acpi_power_resource_register_device
+function expect such input devices that they do not have any power
+resource attached? If yes, then it shouldn't complain with a warning
+message; if no, then we should probably check these conditions before
+making such a call.
+
+Looking at the function itself, I think it expects such devices so a
+warning message here is not appropriate.
+
+-Aaron
