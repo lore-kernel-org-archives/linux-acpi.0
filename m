@@ -1,45 +1,34 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: [PATCH 3/4] scsi: pm: add may_power_off flag
-Date: Thu, 30 Aug 2012 14:40:17 +0800
-Message-ID: <1346308818-27039-4-git-send-email-aaron.lu@intel.com>
-References: <1346308818-27039-1-git-send-email-aaron.lu@intel.com>
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <1346308818-27039-1-git-send-email-aaron.lu@intel.com>
-Sender: linux-ide-owner@vger.kernel.org
-To: Jeff Garzik <jgarzik@pobox.com>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
-Cc: linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>, Aaron Lu <aaron.lu@intel.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Early cpio decoder and ACPI table override via initrd making use of it
+Date: Thu, 30 Aug 2012 11:29:15 +0200
+Message-ID: <1346318957-5831-1-git-send-email-trenn@suse.de>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:44928 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750897Ab2H3J30 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 30 Aug 2012 05:29:26 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: hpa@zytor.com
+Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, robert.moore@intel.com, ming.m.lin@intel.com, initramfs@vger.kernel.org, bigeasy@linutronix.de, vojcek@tlen.pl, eric.piel@tremplin-utc.net, linux-acpi@vger.kernel.org, yinghai@kernel.org
 
-Add a new flag may_power_off for scsi device, it gives the user a chance
-to control when the device is runtime suspended, can we remove its power
-if possible.
+This is based on the early cpio decoder from hpa.
+The first patch is exactly the patch (41750d31fc9599fd81763e685) from git repo:
+kernel/git/hpa/linux-earlyinitramfs. Ony the Makefile was slightly
+adjusted to latest Linus kernel (3.6.0-rc3).
 
-I'm planning using this flag for sr and sd.
+Because of the special requirements hpa mentioned, I gave up the cleaner
+callback approach. It may make sense to revive it if there are potential
+more users and let the very early code call the cpio decoder directly and
+let others use the callback interface I had made up.
 
-For sr, if user set 0 to may_power_off, we will disable runtime suspend
-for ODD, since runtime suspend for ODD is wholly for zero power ODD, if
-we can't power off the ODD, there is no meaning to do runtime PM on it.
+Anyway, it would be great to see these two patches showing up in a
+mainline branch and linux-next asap, so that they can slip in with the next
+(3.7) merge window.
 
-For sd, if user set 0 to may_power_off, we will not power off the device
-when it is runtime suspended.
+Working on ACPI features or debugging ACPI problems is a nightmare on Linux
+currently. ACPI table overrding via initrd makes working on such problems
+a lot easier.
 
-Signed-off-by: Aaron Lu <aaron.lu@intel.com>
----
- include/scsi/scsi_device.h | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/include/scsi/scsi_device.h b/include/scsi/scsi_device.h
-index 9895f69..ad7cb68 100644
---- a/include/scsi/scsi_device.h
-+++ b/include/scsi/scsi_device.h
-@@ -156,6 +156,7 @@ struct scsi_device {
- 	unsigned is_visible:1;	/* is the device visible in sysfs */
- 	unsigned can_power_off:1; /* Device supports runtime power off */
- 	unsigned wce_default_on:1;	/* Cache is ON by default */
-+	unsigned may_power_off:1;	/* power off is allowed by user */
- 
- 	DECLARE_BITMAP(supported_events, SDEV_EVT_MAXBITS); /* supported events */
- 	struct list_head event_list;	/* asserted events */
--- 
-1.7.11.5
+   Thomas
 
