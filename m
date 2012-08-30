@@ -1,89 +1,88 @@
-From: Jiang Liu <liuj97@gmail.com>
-Subject: Re: [PATCH 2/7][RESEND] PCI: Correctly clean up pci root buses in
- function pci_remove_bus()
-Date: Thu, 30 Aug 2012 23:43:35 +0800
-Message-ID: <503F8A27.2040005@gmail.com>
-References: <20120810150955.e4ab3c7f.izumi.taku@jp.fujitsu.com> <20120810151227.cc02c783.izumi.taku@jp.fujitsu.com> <CAErSpo6ukOVgCNgrYJ7nZFH_4dwQKwqZhS1w6oSiR9LtNy8Maw@mail.gmail.com>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH 0/7][RESEND] acpi, pci: hostbridge hotplug support
+Date: Thu, 30 Aug 2012 08:48:51 -0700
+Message-ID: <CAE9FiQV4M8cAZ71Pxvm8gAXzVuEz_4Yb3akpk7w9JwBH052_rQ@mail.gmail.com>
+References: <20120810150955.e4ab3c7f.izumi.taku@jp.fujitsu.com>
+	<CAErSpo5eqyuK_yKshHbDyK5LBBG9cCn1MpmHbqpvVYe6x7AxFg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAErSpo6ukOVgCNgrYJ7nZFH_4dwQKwqZhS1w6oSiR9LtNy8Maw@mail.gmail.com>
+In-Reply-To: <CAErSpo5eqyuK_yKshHbDyK5LBBG9cCn1MpmHbqpvVYe6x7AxFg@mail.gmail.com>
 Sender: linux-pci-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, kaneshige.kenji@jp.fujitsu.com, yinghai@kernel.org, jiang.liu@huawei.com
+Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, kaneshige.kenji@jp.fujitsu.com, jiang.liu@huawei.com
 List-Id: linux-acpi@vger.kernel.org
 
-On 08/17/2012 01:11 AM, Bjorn Helgaas wrote:
-> On Thu, Aug 9, 2012 at 11:12 PM, Taku Izumi <izumi.taku@jp.fujitsu.com> wrote:
->> From: Jiang Liu <jiang.liu@huawei.com>
+On Wed, Aug 29, 2012 at 11:23 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+> On Thu, Aug 9, 2012 at 11:09 PM, Taku Izumi <izumi.taku@jp.fujitsu.com> wrote:
+>>  Hi all,
 >>
->>     Correctly clean up pci root buses in function pci_remove_bus()
 >>
->>     The function pci_create_root_bus() allocates the pci bus structure,
->>     registers the bus device and creates the legacy files for a pci root
->>     bus, but returns without setting the is_added flag. The is_added flag
->>     for a pci root bus will be set by function pci_scan_child_bus().
->>     If a pci root bus is destroyed before calling pci_scan_child_bus(),
->>     the is_added flag will not be set.
-> 
-> What's the scenario where this happens?  Most of the
-> pci_scan_child_bus() calls look like this:
-> 
->     bus = pci_create_root_bus();
->     pci_scan_child_bus(bus);
-> 
-> In those cases, there's no opportunity to destroy the root bus before
-> calling pci_scan_child_bus().
-> 
-> I don't like to add additional tests as you're doing here because it's
-> telling us that we have more special cases to think about.  Apparently
-> bus->is_added is telling us that we've created legacy files and
-> registered the bus device.  EXCEPT for root buses.  Why is it
-> different for root buses?  Why don't we set root_bus->is_added at the
-> same time we create the legacy files and register the root bus's
-> device?
-Hi Bjorn,
-	Previously this patch was used to cover error recovery path in
-our new ACPI based hotplug framework. Now thing has changed a lot and
-it can't be cleanly applied to pci-next branch, so please ignore it:)
-I will resubmit it if needed in future.
-	--Gerry
+>>  I'd like to merge hostbridge hotplug feature.
+>>  I looked at Yinghai's branch and found that this branch contains
+>>  many work and can be split into some parts.
+>>  I believe it is good to merge step by step.
+>>
+>>  My idea is splitting into the following 4 parts:
+>>    1. basic hostbirdge hotplug work
+>>    2. acpiphp work
+>>    3. /sysfs interface work (logical hotplug?)
+>>    4. cleanup
+>>
+>>  This patchset is 1st step based on the following Yinghai's branch:
+>>
+>> git://git.kernel.org/pub/scm/linux/kernel/git/yinghai/linux-yinghai.git
+>> for-pci-root-bus-hotplug
+>>
+>>   * [PATCH 1/7][RESEND] x86, PCI: Fix non acpi path pci_sysdata leaking with release_fn
+>>   * [PATCH 2/7][RESEND] PCI: Correctly clean up pci root buses in function pci_remove_bus()
+>>   * [PATCH 3/7][RESEND] ACPI, PCI: Use normal list for struct acpi_pci_driver
+>>   * [PATCH 4/7][RESEND] ACPI, PCI: Notify acpi_pci_drivers when hot-plugging PCI root bridges
+>>   * [PATCH 5/7][RESEND] ACPI, PCI: Protect global lists in drivers/acpi/pci_root.c
+>>   * [PATCH 6/7][RESEND] ACPI, PCI: add hostbridge removal function
+>>   * [PATCH 7/7][RESEND] ACPI, PCI: add resoruce-assign code for devices under hot-added hostbridge
+>
+> I looked at merging these tonight.  But I noticed there are still a
+> few unanswered questions I asked earlier.
+>
+> 1) For patch [1/7], I pointed out that there is currently no way to
+> remove a non-ACPI host bridge, which means the fact that we don't free
+> the pci_sysdata is not really a leak.  If you want to add the
+> release_fn so that you can add support for removing and adding these
+> non-ACPI host bridges in the future, I do not understand that.  It
+> just doesn't make sense to me to try to support hotplug for those
+> bridges.
 
-> 
->>     So teach function pci_remove_bus()
->>     to detect such a case and correctly clean up pci root buses.
->>
->>     Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
->>     Signed-off-by: Yinghai Lu <yinghai@kernel.org>
->>     Signed-off-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
->> ---
->>  drivers/pci/remove.c |    9 ++++-----
->>  1 file changed, 4 insertions(+), 5 deletions(-)
->>
->> Index: Bjorn-next-0808/drivers/pci/remove.c
->> ===================================================================
->> --- Bjorn-next-0808.orig/drivers/pci/remove.c
->> +++ Bjorn-next-0808/drivers/pci/remove.c
->> @@ -70,11 +70,10 @@ void pci_remove_bus(struct pci_bus *pci_
->>         list_del(&pci_bus->node);
->>         pci_bus_release_busn_res(pci_bus);
->>         up_write(&pci_bus_sem);
->> -       if (!pci_bus->is_added)
->> -               return;
->> -
->> -       pci_remove_legacy_files(pci_bus);
->> -       device_unregister(&pci_bus->dev);
->> +       if (pci_bus->is_added || pci_is_root_bus(pci_bus)) {
->> +               pci_remove_legacy_files(pci_bus);
->> +               device_unregister(&pci_bus->dev);
->> +       }
->>  }
->>  EXPORT_SYMBOL(pci_remove_bus);
->>
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+for Intel Nehalem and westmere -ex system, there will be root bus from
+0xf8 to 0xff for cpus.
+and BIOS does not put the in ACPI, but __pci_mmcfg_init will set the
+pcibios_last_bus.
+so those but get probed via pcibios_fixup_peer_bridges.
+
+I hope I could use /sys to remove non-acpi root bus.
+
+As for merging, I suggest following sequence:
+1. fw resource allocate per bus.
+
+http://git.kernel.org/?p=linux/kernel/git/yinghai/linux-yinghai.git;a=patch;h=3b0a9d26e1838b7ddd2b2273ee38ff4ea3bcc89e
+
+http://git.kernel.org/?p=linux/kernel/git/yinghai/linux-yinghai.git;a=commitdiff;h=bb6436eb378c2b86478d3d6dfae3b032288ce68a
+
+http://git.kernel.org/?p=linux/kernel/git/yinghai/linux-yinghai.git;a=commitdiff;h=48e4eb57f72cba194486ed8b264148820a4165ec
+
+http://git.kernel.org/?p=linux/kernel/git/yinghai/linux-yinghai.git;a=commitdiff;h=f01ef104f823ec8fbe0eb0313d1677ef596eeb74
+
+2. separate out pci host bridge hotplug add support from acpiphp
+
+http://git.kernel.org/?p=linux/kernel/git/yinghai/linux-yinghai.git;a=commitdiff;h=f00a5bdd7f0460eef573e2ef8f2a96a408300c75
+
+3. add pci host bridge remove support
+http://git.kernel.org/?p=linux/kernel/git/yinghai/linux-yinghai.git;a=commitdiff;h=eb46eaf0369464e4fab003f8721dc80423b34ee1
+...
+
+will rebase
+busn_alloc and root bus branch and send whole patchset for review.
+
+Thanks
+
+Yinghai
