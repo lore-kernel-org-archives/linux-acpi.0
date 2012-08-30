@@ -1,113 +1,68 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [PATCH v4] create sun sysfs file
-Date: Thu, 30 Aug 2012 10:34:03 +0900
-Message-ID: <503EC30B.2070900@jp.fujitsu.com>
-References: <502062FB.7030502@jp.fujitsu.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH 0/7][RESEND] acpi, pci: hostbridge hotplug support
+Date: Wed, 29 Aug 2012 23:23:49 -0700
+Message-ID: <CAErSpo5eqyuK_yKshHbDyK5LBBG9cCn1MpmHbqpvVYe6x7AxFg@mail.gmail.com>
+References: <20120810150955.e4ab3c7f.izumi.taku@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:40045 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753846Ab2H3Ben (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Aug 2012 21:34:43 -0400
-In-Reply-To: <502062FB.7030502@jp.fujitsu.com>
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:58937 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750819Ab2H3GYL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 30 Aug 2012 02:24:11 -0400
+Received: by lagy9 with SMTP id y9so1316998lag.19
+        for <linux-acpi@vger.kernel.org>; Wed, 29 Aug 2012 23:24:10 -0700 (PDT)
+In-Reply-To: <20120810150955.e4ab3c7f.izumi.taku@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: toshi.kani@hp.com, liuj97@gmail.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Taku Izumi <izumi.taku@jp.fujitsu.com>
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, kaneshige.kenji@jp.fujitsu.com, yinghai@kernel.org, jiang.liu@huawei.com
 
-Hi Len,
+On Thu, Aug 9, 2012 at 11:09 PM, Taku Izumi <izumi.taku@jp.fujitsu.com> wrote:
+>  Hi all,
+>
+>
+>  I'd like to merge hostbridge hotplug feature.
+>  I looked at Yinghai's branch and found that this branch contains
+>  many work and can be split into some parts.
+>  I believe it is good to merge step by step.
+>
+>  My idea is splitting into the following 4 parts:
+>    1. basic hostbirdge hotplug work
+>    2. acpiphp work
+>    3. /sysfs interface work (logical hotplug?)
+>    4. cleanup
+>
+>  This patchset is 1st step based on the following Yinghai's branch:
+>
+> git://git.kernel.org/pub/scm/linux/kernel/git/yinghai/linux-yinghai.git
+> for-pci-root-bus-hotplug
+>
+>   * [PATCH 1/7][RESEND] x86, PCI: Fix non acpi path pci_sysdata leaking with release_fn
+>   * [PATCH 2/7][RESEND] PCI: Correctly clean up pci root buses in function pci_remove_bus()
+>   * [PATCH 3/7][RESEND] ACPI, PCI: Use normal list for struct acpi_pci_driver
+>   * [PATCH 4/7][RESEND] ACPI, PCI: Notify acpi_pci_drivers when hot-plugging PCI root bridges
+>   * [PATCH 5/7][RESEND] ACPI, PCI: Protect global lists in drivers/acpi/pci_root.c
+>   * [PATCH 6/7][RESEND] ACPI, PCI: add hostbridge removal function
+>   * [PATCH 7/7][RESEND] ACPI, PCI: add resoruce-assign code for devices under hot-added hostbridge
 
-Three weeks passed after I post the patch.
-All comments have already been applied to it. And I think there is no
-comments about it. So I want you to merge it into your tree.
+I looked at merging these tonight.  But I noticed there are still a
+few unanswered questions I asked earlier.
 
-Thanks,
-Yasuaki Ishimatsu
+1) For patch [1/7], I pointed out that there is currently no way to
+remove a non-ACPI host bridge, which means the fact that we don't free
+the pci_sysdata is not really a leak.  If you want to add the
+release_fn so that you can add support for removing and adding these
+non-ACPI host bridges in the future, I do not understand that.  It
+just doesn't make sense to me to try to support hotplug for those
+bridges.
 
-2012/08/07 9:36, Yasuaki Ishimatsu wrote:
-> Even if a device has _SUN method, there is no way to know the slot unique-ID.
-> Thus the patch creates "sun" file in sysfs so that we can recognize it.
-> 
-> Reviewed-by: Toshi Kani <toshi.kani@hp.com>
-> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> 
-> ---
->   drivers/acpi/scan.c     |   24 ++++++++++++++++++++++++
->   include/acpi/acpi_bus.h |    1 +
->   2 files changed, 25 insertions(+)
-> 
-> Index: linux-3.5/include/acpi/acpi_bus.h
-> ===================================================================
-> --- linux-3.5.orig/include/acpi/acpi_bus.h	2012-07-30 10:06:49.722171575 +0900
-> +++ linux-3.5/include/acpi/acpi_bus.h	2012-08-07 08:57:45.678204360 +0900
-> @@ -209,6 +209,7 @@ struct acpi_device_pnp {
->   	struct list_head ids;		/* _HID and _CIDs */
->   	acpi_device_name device_name;	/* Driver-determined */
->   	acpi_device_class device_class;	/*        "          */
-> +	unsigned long sun;		/* _SUN */
->   };
->   
->   #define acpi_device_bid(d)	((d)->pnp.bus_id)
-> Index: linux-3.5/drivers/acpi/scan.c
-> ===================================================================
-> --- linux-3.5.orig/drivers/acpi/scan.c	2012-07-30 10:06:49.713171688 +0900
-> +++ linux-3.5/drivers/acpi/scan.c	2012-08-07 09:01:38.196203659 +0900
-> @@ -192,10 +192,20 @@ end:
->   }
->   static DEVICE_ATTR(path, 0444, acpi_device_path_show, NULL);
->   
-> +static ssize_t
-> +acpi_device_sun_show(struct device *dev, struct device_attribute *attr,
-> +		     char *buf) {
-> +	struct acpi_device *acpi_dev = to_acpi_device(dev);
-> +
-> +	return sprintf(buf, "%lu\n", acpi_dev->pnp.sun);
-> +}
-> +static DEVICE_ATTR(sun, 0444, acpi_device_sun_show, NULL);
-> +
->   static int acpi_device_setup_files(struct acpi_device *dev)
->   {
->   	acpi_status status;
->   	acpi_handle temp;
-> +	unsigned long long sun;
->   	int result = 0;
->   
->   	/*
-> @@ -217,6 +227,16 @@ static int acpi_device_setup_files(struc
->   			goto end;
->   	}
->   
-> +	status = acpi_evaluate_integer(dev->handle, "_SUN", NULL, &sun);
-> +	if (ACPI_SUCCESS(status)) {
-> +		dev->pnp.sun = (unsigned long)sun;
-> +		result = device_create_file(&dev->dev, &dev_attr_sun);
-> +		if (result)
-> +			goto end;
-> +	} else {
-> +		dev->pnp.sun = (unsigned long)-1;
-> +	}
-> +
->           /*
->            * If device has _EJ0, 'eject' file is created that is used to trigger
->            * hot-removal function from userland.
-> @@ -241,6 +261,10 @@ static void acpi_device_remove_files(str
->   	if (ACPI_SUCCESS(status))
->   		device_remove_file(&dev->dev, &dev_attr_eject);
->   
-> +	status = acpi_get_handle(dev->handle, "_SUN", &temp);
-> +	if (ACPI_SUCCESS(status))
-> +		device_remove_file(&dev->dev, &dev_attr_sun);
-> +
->   	device_remove_file(&dev->dev, &dev_attr_modalias);
->   	device_remove_file(&dev->dev, &dev_attr_hid);
->   	if (dev->handle)
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+2) For patch [2/7], I'm still curious about the scenario where this
+patch makes a difference (see my previous response for details).
 
+3) Patch [5/7], adds mutual exclusion to two different lists, using
+two different mechanisms (mutex and RCU).  It would be easier for
+people to review if this were done in two separate patches.
 
+Bjorn
