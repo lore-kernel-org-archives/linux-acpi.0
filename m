@@ -1,63 +1,113 @@
-From: Aaron Lu <aaron.lwe@gmail.com>
-Subject: Re: [PATCH] ACPI: power: Use KERN_DEBUG when no power resources are
- found
-Date: Wed, 29 Aug 2012 10:01:36 +0800
-Message-ID: <20120829020134.GA1761@aaronlu.sh.intel.com>
-References: <1344564353-493-1-git-send-email-aaron.lu@amd.com>
- <20120823132646.GD18279@aftab.osrc.amd.com>
- <1345847781.32359.15.camel@joe2Laptop>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [PATCH v4] create sun sysfs file
+Date: Thu, 30 Aug 2012 10:34:03 +0900
+Message-ID: <503EC30B.2070900@jp.fujitsu.com>
+References: <502062FB.7030502@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:44694 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752280Ab2H2CCH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Aug 2012 22:02:07 -0400
-Content-Disposition: inline
-In-Reply-To: <1345847781.32359.15.camel@joe2Laptop>
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:40045 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753846Ab2H3Ben (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Aug 2012 21:34:43 -0400
+In-Reply-To: <502062FB.7030502@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Joe Perches <joe@perches.com>
-Cc: Borislav Petkov <bp@amd64.org>, Lin Ming <minggr@gmail.com>, Len Brown <lenb@kernel.org>, Aaron Lu <aaron.lu@amd.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: toshi.kani@hp.com, liuj97@gmail.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, Aug 24, 2012 at 03:36:21PM -0700, Joe Perches wrote:
-> On Thu, 2012-08-23 at 15:26 +0200, Borislav Petkov wrote:
-> > On Fri, Aug 10, 2012 at 10:05:53AM +0800, Aaron Lu wrote:
-> > > commit a606dac368eed5696fb38e16b1394f1d049c09e9 adds support to link
-> > > devices which have _PRx, if a device does not have _PRx, a warning
-> > > message will be printed.
-> > > 
-> > > This commit is for ZPODD on Intel's platform, on AMD's platform, there
-> > > is no _PRx to support ZPODD, we use _PSx.
-> > > 
-> > > So instead of printing a useless warning message on AMD's platform,
-> > > changing the print level to DEBUG to suppress this message.
-> []
-> > > diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-> []
-> > > @@ -460,7 +460,7 @@ int acpi_power_resource_register_device(struct device *dev, acpi_handle handle)
-> > >  	return ret;
-> > >  
-> > >  no_power_resource:
-> > > -	printk(KERN_WARNING PREFIX "Invalid Power Resource to register!");
-> > > +	printk(KERN_DEBUG PREFIX "Invalid Power Resource to register!");
+Hi Len,
+
+Three weeks passed after I post the patch.
+All comments have already been applied to it. And I think there is no
+comments about it. So I want you to merge it into your tree.
+
+Thanks,
+Yasuaki Ishimatsu
+
+2012/08/07 9:36, Yasuaki Ishimatsu wrote:
+> Even if a device has _SUN method, there is no way to know the slot unique-ID.
+> Thus the patch creates "sun" file in sysfs so that we can recognize it.
 > 
-> Perhaps add something like:
-> 	if (boot_cpu_data.x86_vendor != X86_VENDOR_AMD)
-> 		printk(etc...)
-> instead?
+> Reviewed-by: Toshi Kani <toshi.kani@hp.com>
+> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+> 
+> ---
+>   drivers/acpi/scan.c     |   24 ++++++++++++++++++++++++
+>   include/acpi/acpi_bus.h |    1 +
+>   2 files changed, 25 insertions(+)
+> 
+> Index: linux-3.5/include/acpi/acpi_bus.h
+> ===================================================================
+> --- linux-3.5.orig/include/acpi/acpi_bus.h	2012-07-30 10:06:49.722171575 +0900
+> +++ linux-3.5/include/acpi/acpi_bus.h	2012-08-07 08:57:45.678204360 +0900
+> @@ -209,6 +209,7 @@ struct acpi_device_pnp {
+>   	struct list_head ids;		/* _HID and _CIDs */
+>   	acpi_device_name device_name;	/* Driver-determined */
+>   	acpi_device_class device_class;	/*        "          */
+> +	unsigned long sun;		/* _SUN */
+>   };
+>   
+>   #define acpi_device_bid(d)	((d)->pnp.bus_id)
+> Index: linux-3.5/drivers/acpi/scan.c
+> ===================================================================
+> --- linux-3.5.orig/drivers/acpi/scan.c	2012-07-30 10:06:49.713171688 +0900
+> +++ linux-3.5/drivers/acpi/scan.c	2012-08-07 09:01:38.196203659 +0900
+> @@ -192,10 +192,20 @@ end:
+>   }
+>   static DEVICE_ATTR(path, 0444, acpi_device_path_show, NULL);
+>   
+> +static ssize_t
+> +acpi_device_sun_show(struct device *dev, struct device_attribute *attr,
+> +		     char *buf) {
+> +	struct acpi_device *acpi_dev = to_acpi_device(dev);
+> +
+> +	return sprintf(buf, "%lu\n", acpi_dev->pnp.sun);
+> +}
+> +static DEVICE_ATTR(sun, 0444, acpi_device_sun_show, NULL);
+> +
+>   static int acpi_device_setup_files(struct acpi_device *dev)
+>   {
+>   	acpi_status status;
+>   	acpi_handle temp;
+> +	unsigned long long sun;
+>   	int result = 0;
+>   
+>   	/*
+> @@ -217,6 +227,16 @@ static int acpi_device_setup_files(struc
+>   			goto end;
+>   	}
+>   
+> +	status = acpi_evaluate_integer(dev->handle, "_SUN", NULL, &sun);
+> +	if (ACPI_SUCCESS(status)) {
+> +		dev->pnp.sun = (unsigned long)sun;
+> +		result = device_create_file(&dev->dev, &dev_attr_sun);
+> +		if (result)
+> +			goto end;
+> +	} else {
+> +		dev->pnp.sun = (unsigned long)-1;
+> +	}
+> +
+>           /*
+>            * If device has _EJ0, 'eject' file is created that is used to trigger
+>            * hot-removal function from userland.
+> @@ -241,6 +261,10 @@ static void acpi_device_remove_files(str
+>   	if (ACPI_SUCCESS(status))
+>   		device_remove_file(&dev->dev, &dev_attr_eject);
+>   
+> +	status = acpi_get_handle(dev->handle, "_SUN", &temp);
+> +	if (ACPI_SUCCESS(status))
+> +		device_remove_file(&dev->dev, &dev_attr_sun);
+> +
+>   	device_remove_file(&dev->dev, &dev_attr_modalias);
+>   	device_remove_file(&dev->dev, &dev_attr_hid);
+>   	if (dev->handle)
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Sorry for not describing this problem clear, this would also occur on
-Intel platforms as long as that device we are calling this register
-function on does not have any power resource attached to it.
 
-So the problem is actually, does the acpi_power_resource_register_device
-function expect such input devices that they do not have any power
-resource attached? If yes, then it shouldn't complain with a warning
-message; if no, then we should probably check these conditions before
-making such a call.
-
-Looking at the function itself, I think it expects such devices so a
-warning message here is not appropriate.
-
--Aaron
