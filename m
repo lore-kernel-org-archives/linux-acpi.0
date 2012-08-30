@@ -1,59 +1,136 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: [RFC PATCH 0/5] ACPI: Refactor system notify handling
-Date: Thu, 30 Aug 2012 14:16:01 -0600
-Message-ID: <1346357766-14030-1-git-send-email-toshi.kani@hp.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0027.austin.hp.com ([15.216.28.34]:43381 "EHLO
-	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751221Ab2H3UVt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Aug 2012 16:21:49 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [RFC PATCH 5/5] ACPI: Update container to use .sys_notify
+Date: Thu, 30 Aug 2012 14:16:06 -0600
+Message-ID: <1346357766-14030-6-git-send-email-toshi.kani@hp.com>
+References: <1346357766-14030-1-git-send-email-toshi.kani@hp.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1346357766-14030-1-git-send-email-toshi.kani@hp.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, bhelgaas@google.com, liuj97@gmail.com, isimatu.yasuaki@jp.fujitsu.com, Toshi Kani <toshi.kani@hp.com>
+List-Id: linux-acpi@vger.kernel.org
 
-This patchset updates the ACPI system-level (ex. hotplug)
-notify handling with a new .sys_notify interface.  It provides
-the following changes:
+Changed the ACPI container driver to use .sys_notify.  Removed
+ACPI namespace walks and their call-back function that register
+and unregister the hotplug handler to all container objects
+through acpi_[install|remove]_notify_handler().
 
-- Allow ACPI drivers to register their system (hotplug) notify
-  handlers to a new .sys_notify interface in their acpi_driver
-  table.  This removes redundant ACPI namespace walks from ACPI
-  drivers for faster booting.  The global notify handler
-  acpi_bus_notify() is called for all system-level ACPI device
-  notification, which then calls an appropriate driver's handler
-  if any.  ACPI drivers no longer need to register or unregister
-  driver's handlers to each device object in ACPI namespace.
+Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+---
+ drivers/acpi/container.c |   66 ++-------------------------------------------
+ 1 files changed, 3 insertions(+), 63 deletions(-)
+
+diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
+index 1f9f7d7..d4e8b71 100644
+--- a/drivers/acpi/container.c
++++ b/drivers/acpi/container.c
+@@ -53,6 +53,7 @@ MODULE_LICENSE("GPL");
  
-- Support dynamic ACPI namespace with LoadTable & Unload opcode
-  without any changes in ACPI drivers.  There is no need to 
-  register / unregister handlers to ACPI device objects that may
-  be loaded to / unloaded from ACPI namespace.
-
-- Allow ACPI drivers to use a common hotplug handler when it is
-  implemented.  It removes functional conflict between driver's
-  notify handler and the global notify handler acpi_bus_notify().
-  acpi_bus_notify() only calls an appropriate notify handler if
-  any.
-
-Note that the changes maintain the backward compatibility of ACPI
-drivers.  Any ACPI driver registered its hotplug handler through
-the existing interfaces, such as acpi_install_notify_handler() and
-register_acpi_bus_notifier(), will continue to work as before.
-
----
-Toshi Kani (5):
- ACPI: Add acpi_lookup_driver() function
- ACPI: Support system notify handler via .sys_notify
- ACPI: Update processor_driver to use .sys_notify
- ACPI: Update acpi_memhotplug to use .sys_notify
- ACPI: Update container to use .sys_notify
-
----
- drivers/acpi/acpi_memhotplug.c  |   93 +-------------------------------------
- drivers/acpi/bus.c              |   48 +++++++++++++++-----
- drivers/acpi/container.c        |   66 +--------------------------
- drivers/acpi/processor_driver.c |   82 +++-------------------------------
- drivers/acpi/scan.c             |   65 +++++++++++++++++++++++++++
- include/acpi/acpi_bus.h         |    4 ++
- 6 files changed, 117 insertions(+), 241 deletions(-)
+ static int acpi_container_add(struct acpi_device *device);
+ static int acpi_container_remove(struct acpi_device *device, int type);
++static void container_notify(acpi_handle handle, u32 type, void *context);
+ 
+ static const struct acpi_device_id container_device_ids[] = {
+ 	{"ACPI0004", 0},
+@@ -69,6 +70,7 @@ static struct acpi_driver acpi_container_driver = {
+ 	.ops = {
+ 		.add = acpi_container_add,
+ 		.remove = acpi_container_remove,
++		.sys_notify = container_notify,
+ 		},
+ };
+ 
+@@ -152,7 +154,7 @@ static int container_device_add(struct acpi_device **device, acpi_handle handle)
+ 	return result;
+ }
+ 
+-static void container_notify_cb(acpi_handle handle, u32 type, void *context)
++static void container_notify(acpi_handle handle, u32 type, void *context)
+ {
+ 	struct acpi_device *device = NULL;
+ 	int result;
+@@ -211,82 +213,20 @@ static void container_notify_cb(acpi_handle handle, u32 type, void *context)
+ 	return;
+ }
+ 
+-static acpi_status
+-container_walk_namespace_cb(acpi_handle handle,
+-			    u32 lvl, void *context, void **rv)
+-{
+-	char *hid = NULL;
+-	struct acpi_device_info *info;
+-	acpi_status status;
+-	int *action = context;
+-
+-	status = acpi_get_object_info(handle, &info);
+-	if (ACPI_FAILURE(status)) {
+-		return AE_OK;
+-	}
+-
+-	if (info->valid & ACPI_VALID_HID)
+-		hid = info->hardware_id.string;
+-
+-	if (hid == NULL) {
+-		goto end;
+-	}
+-
+-	if (strcmp(hid, "ACPI0004") && strcmp(hid, "PNP0A05") &&
+-	    strcmp(hid, "PNP0A06")) {
+-		goto end;
+-	}
+-
+-	switch (*action) {
+-	case INSTALL_NOTIFY_HANDLER:
+-		acpi_install_notify_handler(handle,
+-					    ACPI_SYSTEM_NOTIFY,
+-					    container_notify_cb, NULL);
+-		break;
+-	case UNINSTALL_NOTIFY_HANDLER:
+-		acpi_remove_notify_handler(handle,
+-					   ACPI_SYSTEM_NOTIFY,
+-					   container_notify_cb);
+-		break;
+-	default:
+-		break;
+-	}
+-
+-      end:
+-	kfree(info);
+-
+-	return AE_OK;
+-}
+-
+ static int __init acpi_container_init(void)
+ {
+ 	int result = 0;
+-	int action = INSTALL_NOTIFY_HANDLER;
+ 
+ 	result = acpi_bus_register_driver(&acpi_container_driver);
+ 	if (result < 0) {
+ 		return (result);
+ 	}
+ 
+-	/* register notify handler to every container device */
+-	acpi_walk_namespace(ACPI_TYPE_DEVICE,
+-			    ACPI_ROOT_OBJECT,
+-			    ACPI_UINT32_MAX,
+-			    container_walk_namespace_cb, NULL, &action, NULL);
+-
+ 	return (0);
+ }
+ 
+ static void __exit acpi_container_exit(void)
+ {
+-	int action = UNINSTALL_NOTIFY_HANDLER;
+-
+-
+-	acpi_walk_namespace(ACPI_TYPE_DEVICE,
+-			    ACPI_ROOT_OBJECT,
+-			    ACPI_UINT32_MAX,
+-			    container_walk_namespace_cb, NULL, &action, NULL);
+-
+ 	acpi_bus_unregister_driver(&acpi_container_driver);
+ 
+ 	return;
+-- 
+1.7.7.6
