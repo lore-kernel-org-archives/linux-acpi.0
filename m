@@ -1,102 +1,55 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH 5/5][RFC] cpuidle : add cpuidle_register_states function
-Date: Fri, 31 Aug 2012 23:21:14 +0200
-Message-ID: <50412ACA.6080500@linaro.org>
-References: <1343213162-8064-1-git-send-email-daniel.lezcano@linaro.org> <1343213162-8064-6-git-send-email-daniel.lezcano@linaro.org> <20120810171736.GA12151@e102568-lin.cambridge.arm.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [RFC v8 PATCH 13/20] memory-hotplug: check page type in
+ get_page_bootmem
+Date: Fri, 31 Aug 2012 14:30:32 -0700
+Message-ID: <20120831143032.1343e99a.akpm@linux-foundation.org>
+References: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com>
+	<1346148027-24468-14-git-send-email-wency@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:45504 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752509Ab2HaVVQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Aug 2012 17:21:16 -0400
-Received: by pbbrr13 with SMTP id rr13so5454386pbb.19
-        for <linux-acpi@vger.kernel.org>; Fri, 31 Aug 2012 14:21:16 -0700 (PDT)
-In-Reply-To: <20120810171736.GA12151@e102568-lin.cambridge.arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <1346148027-24468-14-git-send-email-wency@cn.fujitsu.com>
+Sender: linux-ia64-owner@vger.kernel.org
+To: wency@cn.fujitsu.com
+Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>
 
-On 08/10/2012 07:17 PM, Lorenzo Pieralisi wrote:
-> Hi Daniel,
->=20
-> thanks for this patchset.
->=20
-> On Wed, Jul 25, 2012 at 11:46:02AM +0100, Daniel Lezcano wrote:
->> The tegra3 and big.LITTLE architecture have different cpu latencies.
->> This API allows to specify a different cpu latency for a specific cp=
-u.
->>
->> With the previous patches, we use the per cpuidle device states poin=
-ter,
->> this function overrides this pointer.
->>
->> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
->> ---
->>  drivers/cpuidle/cpuidle.c |   17 +++++++++++++++++
->>  include/linux/cpuidle.h   |   10 +++++++---
->>  2 files changed, 24 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
->> index 199878a..3b21b68 100644
->> --- a/drivers/cpuidle/cpuidle.c
->> +++ b/drivers/cpuidle/cpuidle.c
->> @@ -456,6 +456,23 @@ void cpuidle_unregister_device(struct cpuidle_d=
-evice *dev)
->> =20
->>  EXPORT_SYMBOL_GPL(cpuidle_unregister_device);
->> =20
->> +int cpuidle_register_states(struct cpuidle_device *dev,
->> +			    struct cpuidle_state *states,
->> +			    int state_count)
->> +{
->> +	if (!dev || !states)
->> +		return -EINVAL;
->> +
->> +	if (state_count <=3D 0)
->> +		return -EINVAL;
->> +
->> +	dev->states =3D states;
->> +	dev->state_count =3D state_count;
->=20
-> Is this function supposed to be called after cpuidle_device registrat=
-ion ?
-> I think so since at registration time the dev->states pointers are al=
-l
-> initialized to point to the driver state array, which is global and n=
-ot
-> really what we want.
->=20
-> Unless this function is called on the cpu that requires swapping the =
-state
-> pointer, I think it is unsafe to register a different state pointer
-> without a minimal level of locking (or disabling idle and renabling i=
-dle)
-> since the update of dev->states and dev->state_count is not atomic.
-> Maybe it is implicit but it should be documented somehow to define
-> cpuidle_register_states(...) proper usage.
+On Tue, 28 Aug 2012 18:00:20 +0800
+wency@cn.fujitsu.com wrote:
 
-Hi Lorenzo,
+> From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+> 
+> There is a possibility that get_page_bootmem() is called to the same page many
+> times. So when get_page_bootmem is called to the same page, the function only
+> increments page->_count.
 
-Yes, you are right. I will add the cpuidle lock.
+I really don't understand this explanation, even after having looked at
+the code.  Can you please have another attempt at the changelog?
 
-Thanks !
+> --- a/mm/memory_hotplug.c
+> +++ b/mm/memory_hotplug.c
+> @@ -95,10 +95,17 @@ static void release_memory_resource(struct resource *res)
+>  static void get_page_bootmem(unsigned long info,  struct page *page,
+>  			     unsigned long type)
+>  {
+> -	page->lru.next = (struct list_head *) type;
+> -	SetPagePrivate(page);
+> -	set_page_private(page, info);
+> -	atomic_inc(&page->_count);
+> +	unsigned long page_type;
+> +
+> +	page_type = (unsigned long) page->lru.next;
+> +	if (page_type < MEMORY_HOTPLUG_MIN_BOOTMEM_TYPE ||
+> +	    page_type > MEMORY_HOTPLUG_MAX_BOOTMEM_TYPE){
+> +		page->lru.next = (struct list_head *) type;
+> +		SetPagePrivate(page);
+> +		set_page_private(page, info);
+> +		atomic_inc(&page->_count);
+> +	} else
+> +		atomic_inc(&page->_count);
+>  }
 
-  -- Daniel
+And a code comment which explains what is going on would be good.  As
+is always the case ;)
 
-
---=20
- <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software for=
- ARM SoCs
-
-=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
