@@ -1,131 +1,65 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [RFC PATCH 1/5] ACPI: Add acpi_lookup_driver() function
-Date: Thu, 30 Aug 2012 22:42:37 -0700
-Message-ID: <CAErSpo4nKzwFb6UfM068fqzW6J5ysKsP2cnngMnTA9GQaTmeXw@mail.gmail.com>
-References: <1346357766-14030-1-git-send-email-toshi.kani@hp.com> <1346357766-14030-2-git-send-email-toshi.kani@hp.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:47752 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751250Ab2HaFm7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 31 Aug 2012 01:42:59 -0400
-Received: by lagy9 with SMTP id y9so2046682lag.19
-        for <linux-acpi@vger.kernel.org>; Thu, 30 Aug 2012 22:42:58 -0700 (PDT)
-In-Reply-To: <1346357766-14030-2-git-send-email-toshi.kani@hp.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: [PATCH v5 0/7] ZPODD patches
+Date: Fri, 31 Aug 2012 17:42:28 +0800
+Message-ID: <1346406155-4768-1-git-send-email-aaron.lu@intel.com>
+Return-path: <linux-scsi-owner@vger.kernel.org>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>, James Bottomley <James.Bottomley@HansenPartnership.com>, Jeff Garzik <jgarzik@pobox.com>
+Cc: linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>, Aaron Lu <aaron.lu@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, liuj97@gmail.com, isimatu.yasuaki@jp.fujitsu.com
 
-On Thu, Aug 30, 2012 at 1:16 PM, Toshi Kani <toshi.kani@hp.com> wrote:
-> Added acpi_lookup_driver(), which looks up an associated driver
-> for the notified ACPI device object by walking through the list
-> of ACPI drivers.
->
-> Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-> ---
->  drivers/acpi/scan.c     |   65 +++++++++++++++++++++++++++++++++++++++++++++++
->  include/acpi/acpi_bus.h |    2 +
->  2 files changed, 67 insertions(+), 0 deletions(-)
->
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index d1ecca2..d0e0d18 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -1630,3 +1630,68 @@ int __init acpi_scan_init(void)
->
->         return result;
->  }
-> +
-> +static int acpi_match_driver(struct device_driver *drv, void *data)
-> +{
-> +       struct acpi_driver *driver = to_acpi_driver(drv);
-> +       struct acpi_device *device = (struct acpi_device *) data;
-> +       int ret;
-> +
-> +       ret = acpi_match_device_ids(device, driver->ids);
-> +       if (!ret)
-> +               device->driver = driver;
-> +
-> +       return !ret;
-> +}
-> +
-> +/**
-> + * acpi_lookup_driver: Look up a driver for the notified ACPI device
-> + * @handle: ACPI handle of the notified device object
-> + * @event: Notify event
-> + *
-> + * Look up an associated driver for the notified ACPI device object
-> + * by walking through the list of ACPI drivers.
-> + */
-> +struct acpi_driver *acpi_lookup_driver(acpi_handle handle, u32 event)
-> +{
-> +       struct acpi_device *device;
-> +       struct acpi_driver *driver = NULL;
-> +       unsigned long long sta;
-> +       int type;
-> +       int ret;
-> +
-> +       /* allocate a temporary device object */
-> +       device = kzalloc(sizeof(struct acpi_device), GFP_KERNEL);
-> +       if (!device) {
-> +               pr_err(PREFIX "No memory to allocate a tmp device\n");
-> +               return NULL;
-> +       }
-> +
-> +       ret = acpi_bus_type_and_status(handle, &type, &sta);
-> +       if (ret) {
-> +               pr_err(PREFIX "Failed to get type of device\n");
-> +               goto out;
-> +       }
-> +
-> +       /* setup this temporary device object */
-> +       INIT_LIST_HEAD(&device->pnp.ids);
-> +       device->device_type = type;
-> +       device->handle = handle;
-> +       device->parent = acpi_bus_get_parent(handle);
-> +       device->dev.bus = &acpi_bus_type;
-> +       device->driver = NULL;
-> +       STRUCT_TO_INT(device->status) = sta;
-> +       device->status.present = 1;
-> +
-> +       /* set HID to this device object */
-> +       acpi_device_set_id(device);
-> +
-> +       /* lookup a matching driver */
-> +       (void) bus_for_each_drv(device->dev.bus, NULL,
-> +                                       device, acpi_match_driver);
-> +       driver = device->driver;
+v5:
+Add may_power_off flag to scsi device.
+Alan Stern suggested that I should not mess runtime suspend with
+runtime power off, but the current zpodd implementation made it not
+easy to seperate. So I re-wrote the zpodd implementation, the end
+result is, normal ODD can also enter runtime suspended state, but
+their power won't be removed.
 
-This path is used when we receive a Notify to a device and a matching
-driver has been registered, but the driver is not bound to the device.
- For example, it may be a newly-added device where we haven't bound a
-driver to it yet.
+v4:
+Rebase on top of Linus' tree, due to this, the problem of a missing
+flag in v3 is gone;
+Add a new function scsi_autopm_put_device_autosuspend to first mark
+last busy for the device and then put autosuspend it as suggested by
+Oliver Neukum.
+Typo fix as pointed by Sergei Shtylyov.
+Check can_power_off flag before any runtime pm operations in sr.
 
-Is there anything that prevents us from unloading the driver between
-here (the point where we capture the "struct acpi_driver *") and the
-point where we call "driver->ops.sys_notify"?
+v3:
+Rebase on top of scsi-misc tree;
+Add the sr related patches previously in Jeff's libata tree;
+Re-organize the sr patches.
+A problem for now: for patch
+scsi: sr: support zero power ODD(ZPODD)
+I can't set a flag in libata-acpi.c since a related function is
+missing in scsi-misc tree. Will fix this when 3.6-rc1 released.
 
-> +
-> +out:
-> +       kfree(device);
-> +       return driver;
-> +}
-> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-> index bde976e..a773b46 100644
-> --- a/include/acpi/acpi_bus.h
-> +++ b/include/acpi/acpi_bus.h
-> @@ -345,6 +345,8 @@ extern int unregister_acpi_notifier(struct notifier_block *);
->
->  extern int register_acpi_bus_notifier(struct notifier_block *nb);
->  extern void unregister_acpi_bus_notifier(struct notifier_block *nb);
-> +extern struct acpi_driver *acpi_lookup_driver(acpi_handle handle, u32 event);
-> +
->  /*
->   * External Functions
->   */
-> --
-> 1.7.7.6
->
+v2:
+Bug fix for v1;
+Use scsi_autopm_* in sr driver instead of pm_runtime_*;
+
+v1:
+Here are some patches to make ZPODD easier to use for end users and
+a fix for using ZPODD with system suspend.
+
+
+Aaron Lu (7):
+  scsi: sr: support runtime pm for ODD
+  block: genhd: export disk_(un)block_events
+  scsi: sr: block events checking when suspended for zpodd
+  libata: acpi: set can_power_off for both ODD and HD
+  scsi: pm: add may_power_off flag
+  scsi: sr: use may_power_off
+  libata: acpi: respect may_power_off flag
+
+ block/genhd.c              |  2 ++
+ drivers/ata/libata-acpi.c  | 35 +++++++++++++------
+ drivers/scsi/scsi_sysfs.c  | 10 +++---
+ drivers/scsi/sr.c          | 85 ++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/scsi/sr.h          |  1 +
+ include/scsi/scsi_device.h |  2 ++
+ 6 files changed, 120 insertions(+), 15 deletions(-)
+
+-- 
+1.7.11.5
+
