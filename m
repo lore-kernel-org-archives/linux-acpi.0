@@ -1,145 +1,66 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [RFC PATCH 1/5] ACPI: Add acpi_lookup_driver() function
-Date: Fri, 31 Aug 2012 10:24:12 -0600
-Message-ID: <1346430252.4732.163.camel@misato.fc.hp.com>
-References: <1346357766-14030-1-git-send-email-toshi.kani@hp.com>
-	 <1346357766-14030-2-git-send-email-toshi.kani@hp.com>
-	 <CAErSpo4nKzwFb6UfM068fqzW6J5ysKsP2cnngMnTA9GQaTmeXw@mail.gmail.com>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH 0/7][RESEND] acpi, pci: hostbridge hotplug support
+Date: Fri, 31 Aug 2012 09:44:20 -0700
+Message-ID: <CAE9FiQWtv05guh+oDzAn8CNBr+G8+Wycir7XhAcrgezY5E13Cw@mail.gmail.com>
+References: <20120810150955.e4ab3c7f.izumi.taku@jp.fujitsu.com>
+	<CAErSpo5eqyuK_yKshHbDyK5LBBG9cCn1MpmHbqpvVYe6x7AxFg@mail.gmail.com>
+	<CAE9FiQV4M8cAZ71Pxvm8gAXzVuEz_4Yb3akpk7w9JwBH052_rQ@mail.gmail.com>
+	<CAErSpo5ZRapkienpn4ZNWyeC_vfzzxVhmUzViQd0XtAf5ghz2Q@mail.gmail.com>
+	<50400D6E.1050108@huawei.com>
+	<CAErSpo6A_rR=5OREu-OC=ykC_qjeGi7jZOybcurUZBThskp-YA@mail.gmail.com>
+	<5040494E.8080501@huawei.com>
+	<CAErSpo692O3z44b=q3qTjg-Pf4V4F=c-5H5Z_uVsDoQv+ASejQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0014.houston.hp.com ([15.201.24.17]:46270 "EHLO
-	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753666Ab2HaQ3l (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Aug 2012 12:29:41 -0400
-In-Reply-To: <CAErSpo4nKzwFb6UfM068fqzW6J5ysKsP2cnngMnTA9GQaTmeXw@mail.gmail.com>
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:48857 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754203Ab2HaQoV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Aug 2012 12:44:21 -0400
+In-Reply-To: <CAErSpo692O3z44b=q3qTjg-Pf4V4F=c-5H5Z_uVsDoQv+ASejQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, liuj97@gmail.com, isimatu.yasuaki@jp.fujitsu.com
+Cc: Jiang Liu <jiang.liu@huawei.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, kaneshige.kenji@jp.fujitsu.com
 
-On Thu, 2012-08-30 at 22:42 -0700, Bjorn Helgaas wrote:
-> On Thu, Aug 30, 2012 at 1:16 PM, Toshi Kani <toshi.kani@hp.com> wrote:
-> > Added acpi_lookup_driver(), which looks up an associated driver
-> > for the notified ACPI device object by walking through the list
-> > of ACPI drivers.
-> >
-> > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-> > ---
-> >  drivers/acpi/scan.c     |   65 +++++++++++++++++++++++++++++++++++++++++++++++
-> >  include/acpi/acpi_bus.h |    2 +
-> >  2 files changed, 67 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> > index d1ecca2..d0e0d18 100644
-> > --- a/drivers/acpi/scan.c
-> > +++ b/drivers/acpi/scan.c
-> > @@ -1630,3 +1630,68 @@ int __init acpi_scan_init(void)
-> >
-> >         return result;
-> >  }
-> > +
-> > +static int acpi_match_driver(struct device_driver *drv, void *data)
-> > +{
-> > +       struct acpi_driver *driver = to_acpi_driver(drv);
-> > +       struct acpi_device *device = (struct acpi_device *) data;
-> > +       int ret;
-> > +
-> > +       ret = acpi_match_device_ids(device, driver->ids);
-> > +       if (!ret)
-> > +               device->driver = driver;
-> > +
-> > +       return !ret;
-> > +}
-> > +
-> > +/**
-> > + * acpi_lookup_driver: Look up a driver for the notified ACPI device
-> > + * @handle: ACPI handle of the notified device object
-> > + * @event: Notify event
-> > + *
-> > + * Look up an associated driver for the notified ACPI device object
-> > + * by walking through the list of ACPI drivers.
-> > + */
-> > +struct acpi_driver *acpi_lookup_driver(acpi_handle handle, u32 event)
-> > +{
-> > +       struct acpi_device *device;
-> > +       struct acpi_driver *driver = NULL;
-> > +       unsigned long long sta;
-> > +       int type;
-> > +       int ret;
-> > +
-> > +       /* allocate a temporary device object */
-> > +       device = kzalloc(sizeof(struct acpi_device), GFP_KERNEL);
-> > +       if (!device) {
-> > +               pr_err(PREFIX "No memory to allocate a tmp device\n");
-> > +               return NULL;
-> > +       }
-> > +
-> > +       ret = acpi_bus_type_and_status(handle, &type, &sta);
-> > +       if (ret) {
-> > +               pr_err(PREFIX "Failed to get type of device\n");
-> > +               goto out;
-> > +       }
-> > +
-> > +       /* setup this temporary device object */
-> > +       INIT_LIST_HEAD(&device->pnp.ids);
-> > +       device->device_type = type;
-> > +       device->handle = handle;
-> > +       device->parent = acpi_bus_get_parent(handle);
-> > +       device->dev.bus = &acpi_bus_type;
-> > +       device->driver = NULL;
-> > +       STRUCT_TO_INT(device->status) = sta;
-> > +       device->status.present = 1;
-> > +
-> > +       /* set HID to this device object */
-> > +       acpi_device_set_id(device);
-> > +
-> > +       /* lookup a matching driver */
-> > +       (void) bus_for_each_drv(device->dev.bus, NULL,
-> > +                                       device, acpi_match_driver);
-> > +       driver = device->driver;
-> 
-> This path is used when we receive a Notify to a device and a matching
-> driver has been registered, but the driver is not bound to the device.
->  For example, it may be a newly-added device where we haven't bound a
-> driver to it yet.
-> 
-> Is there anything that prevents us from unloading the driver between
-> here (the point where we capture the "struct acpi_driver *") and the
-> point where we call "driver->ops.sys_notify"?
+On Thu, Aug 30, 2012 at 10:42 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+>
+> That's true.  I think we should blindly probe for devices only when
+> (1) the system does not have ACPI or (2) the DMI BIOS date is older
+> than some date, e.g., 1 Jan 2013.  For new systems with ACPI, we
+> should only look at the host bridges described in ACPI.
 
-Hi Bjorn,
+if those buses do not get scanned, then it should be enough.
 
-That's a very good question.  I will look into how we protect a driver
-from unloading when we try to attach & probe a driver in the
-acpi_add_single_object() path, and see if we can use a similar way to
-protect it here as well.
+how about just removing pcibios_last_bus probing code?
 
-Thanks,
--Toshi
+diff --git a/arch/x86/pci/mmconfig-shared.c b/arch/x86/pci/mmconfig-shared.c
+index 937bcec..3f3c460 100644
+--- a/arch/x86/pci/mmconfig-shared.c
++++ b/arch/x86/pci/mmconfig-shared.c
+@@ -616,16 +616,6 @@ static void __init __pci_mmcfg_init(int early)
+        if (list_empty(&pci_mmcfg_list))
+                return;
+
+-       if (pcibios_last_bus < 0) {
+-               const struct pci_mmcfg_region *cfg;
+-
+-               list_for_each_entry(cfg, &pci_mmcfg_list, list) {
+-                       if (cfg->segment)
+-                               break;
+-                       pcibios_last_bus = cfg->end_bus;
+-               }
+-       }
+-
+        if (pci_mmcfg_arch_init())
+                pci_probe = (pci_probe & ~PCI_PROBE_MASK) | PCI_PROBE_MMCONF;
+        else {
 
 
-> > +
-> > +out:
-> > +       kfree(device);
-> > +       return driver;
-> > +}
-> > diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-> > index bde976e..a773b46 100644
-> > --- a/include/acpi/acpi_bus.h
-> > +++ b/include/acpi/acpi_bus.h
-> > @@ -345,6 +345,8 @@ extern int unregister_acpi_notifier(struct notifier_block *);
-> >
-> >  extern int register_acpi_bus_notifier(struct notifier_block *nb);
-> >  extern void unregister_acpi_bus_notifier(struct notifier_block *nb);
-> > +extern struct acpi_driver *acpi_lookup_driver(acpi_handle handle, u32 event);
-> > +
-> >  /*
-> >   * External Functions
-> >   */
-> > --
-> > 1.7.7.6
-> >
+also Nehalem *EX* and Westmere *EX* does not support EDAC.
 
+so if the user with Nehalem/Westmere Desktop version, want to use to
+EDAC, they could just append
+pci=last_bus=255 to get those buses scanned.
 
+Yinghai
