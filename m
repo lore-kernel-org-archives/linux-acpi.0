@@ -1,48 +1,102 @@
-From: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 0/5][RFC] Use per cpuidle_device states
-Date: Fri, 31 Aug 2012 23:19:15 +0200
-Message-ID: <50412A53.1070109@linaro.org>
-References: <1343213162-8064-1-git-send-email-daniel.lezcano@linaro.org>
-	<20120727112845.GI12034@tbergstrom-lnx.Nvidia.com>
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [PATCH 5/5][RFC] cpuidle : add cpuidle_register_states function
+Date: Fri, 31 Aug 2012 23:21:14 +0200
+Message-ID: <50412ACA.6080500@linaro.org>
+References: <1343213162-8064-1-git-send-email-daniel.lezcano@linaro.org> <1343213162-8064-6-git-send-email-daniel.lezcano@linaro.org> <20120810171736.GA12151@e102568-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-In-Reply-To: <20120727112845.GI12034-Rysk9IDjsxmJz7etNGeUX8VPkgjIgRvpAL8bYrjMMd8@public.gmane.org>
-List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
-List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
-Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-To: Peter De Schrijver <pdeschrijver-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org" <linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, "linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:45504 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752509Ab2HaVVQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Aug 2012 17:21:16 -0400
+Received: by pbbrr13 with SMTP id rr13so5454386pbb.19
+        for <linux-acpi@vger.kernel.org>; Fri, 31 Aug 2012 14:21:16 -0700 (PDT)
+In-Reply-To: <20120810171736.GA12151@e102568-lin.cambridge.arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>
 
-T24gMDcvMjcvMjAxMiAwMToyOCBQTSwgUGV0ZXIgRGUgU2NocmlqdmVyIHdyb3RlOgo+IE9uIFdl
-ZCwgSnVsIDI1LCAyMDEyIGF0IDEyOjQ1OjU3UE0gKzAyMDAsIERhbmllbCBMZXpjYW5vIHdyb3Rl
-Ogo+PiBTaW5jZSBjb21taXQgNDZiY2ZhZDdhODE5YmQxN2FjNGU4MzFiMDQ0MDUxNTJkNTk3ODRh
-YiwKPj4gICAgICAgICBjcHVpZGxlOiBTaW5nbGUvR2xvYmFsIHJlZ2lzdHJhdGlvbiBvZiBpZGxl
-IHN0YXRlcwo+Pgo+PiB3ZSBoYXZlIGEgc2luZ2xlIHJlZ2lzdHJhdGlvbiBmb3IgdGhlIGNwdWlk
-bGUgc3RhdGVzIHdoaWNoIG1ha2VzCj4+IHNlbnNlLiBCdXQgbm93IHR3byBuZXcgYXJjaGl0ZWN0
-dXJlcyBhcmUgY29taW5nOiB0ZWdyYTMgYW5kIGJpZy5MSVRUTEUuCj4+Cj4+IFRoZXNlIGFyY2hp
-dGVjdHVyZXMgaGF2ZSBkaWZmZXJlbnQgY3B1cyB3aXRoIGRpZmZlcmVudCBjYXJhY3RlcmlzdGlj
-cwo+PiBmb3IgcG93ZXIgc2F2aW5nLiBIaWdoIGxvYWQgPT4gcG93ZXJmdWxsIHByb2Nlc3NvcnMs
-IGlkbGUgPT4gc21hbGwgcHJvY2Vzc29ycy4KPj4KPj4gVGhhdCBpbXBsaWVzIGRpZmZlcmVudCBj
-cHUgbGF0ZW5jaWVzLgo+Pgo+PiBUaGlzIHBhdGNoc2V0IHByZXNlbnQgYSBzaW1wbGUgd2F5IHRv
-IGtlZXAgdGhlIGN1cnJlbnQgYmVoYXZpb3IgYXMgaW50cm9kdWNlZAo+PiBieSBEZWVwdGhpIHdp
-dGhvdXQgYnJlYWtpbmcgdGhlIGRyaXZlcnMgYW5kIGFkZCB0aGUgcG9zc2liaWxpdHkgdG8gc3Bl
-Y2lmeSBhCj4+IHBlciBjcHUgc3RhdGVzLgo+Pgo+IExvb2tzIGdvb2QhIEkgd2lsbCBkbyBzb21l
-IHRlc3RzIHdpdGggdGhpcyBuZXh0IHdlZWsuCgpIaSBQZXRlciwKCnNoYWxsIEkgY29uc2lkZXIg
-YWRkaW5nIHlvdXIgYWNrZWQtYnkgPwoKRGlkIHlvdSBoYXZlIHRpbWUgdG8gdGVzdCB0aGUgcGF0
-Y2hzZXQgPwoKVGhhbmtzCi0tIERhbmllbAoKLS0gCiA8aHR0cDovL3d3dy5saW5hcm8ub3JnLz4g
-TGluYXJvLm9yZyDilIIgT3BlbiBzb3VyY2Ugc29mdHdhcmUgZm9yIEFSTSBTb0NzCgpGb2xsb3cg
-TGluYXJvOiAgPGh0dHA6Ly93d3cuZmFjZWJvb2suY29tL3BhZ2VzL0xpbmFybz4gRmFjZWJvb2sg
-fAo8aHR0cDovL3R3aXR0ZXIuY29tLyMhL2xpbmFyb29yZz4gVHdpdHRlciB8CjxodHRwOi8vd3d3
-LmxpbmFyby5vcmcvbGluYXJvLWJsb2cvPiBCbG9nCgoKCl9fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fCmxpbmFyby1kZXYgbWFpbGluZyBsaXN0CmxpbmFyby1k
-ZXZAbGlzdHMubGluYXJvLm9yZwpodHRwOi8vbGlzdHMubGluYXJvLm9yZy9tYWlsbWFuL2xpc3Rp
-bmZvL2xpbmFyby1kZXYK
+On 08/10/2012 07:17 PM, Lorenzo Pieralisi wrote:
+> Hi Daniel,
+>=20
+> thanks for this patchset.
+>=20
+> On Wed, Jul 25, 2012 at 11:46:02AM +0100, Daniel Lezcano wrote:
+>> The tegra3 and big.LITTLE architecture have different cpu latencies.
+>> This API allows to specify a different cpu latency for a specific cp=
+u.
+>>
+>> With the previous patches, we use the per cpuidle device states poin=
+ter,
+>> this function overrides this pointer.
+>>
+>> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+>> ---
+>>  drivers/cpuidle/cpuidle.c |   17 +++++++++++++++++
+>>  include/linux/cpuidle.h   |   10 +++++++---
+>>  2 files changed, 24 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
+>> index 199878a..3b21b68 100644
+>> --- a/drivers/cpuidle/cpuidle.c
+>> +++ b/drivers/cpuidle/cpuidle.c
+>> @@ -456,6 +456,23 @@ void cpuidle_unregister_device(struct cpuidle_d=
+evice *dev)
+>> =20
+>>  EXPORT_SYMBOL_GPL(cpuidle_unregister_device);
+>> =20
+>> +int cpuidle_register_states(struct cpuidle_device *dev,
+>> +			    struct cpuidle_state *states,
+>> +			    int state_count)
+>> +{
+>> +	if (!dev || !states)
+>> +		return -EINVAL;
+>> +
+>> +	if (state_count <=3D 0)
+>> +		return -EINVAL;
+>> +
+>> +	dev->states =3D states;
+>> +	dev->state_count =3D state_count;
+>=20
+> Is this function supposed to be called after cpuidle_device registrat=
+ion ?
+> I think so since at registration time the dev->states pointers are al=
+l
+> initialized to point to the driver state array, which is global and n=
+ot
+> really what we want.
+>=20
+> Unless this function is called on the cpu that requires swapping the =
+state
+> pointer, I think it is unsafe to register a different state pointer
+> without a minimal level of locking (or disabling idle and renabling i=
+dle)
+> since the update of dev->states and dev->state_count is not atomic.
+> Maybe it is implicit but it should be documented somehow to define
+> cpuidle_register_states(...) proper usage.
+
+Hi Lorenzo,
+
+Yes, you are right. I will add the cpuidle lock.
+
+Thanks !
+
+  -- Daniel
+
+
+--=20
+ <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software for=
+ ARM SoCs
+
+=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
+<http://twitter.com/#!/linaroorg> Twitter |
+<http://www.linaro.org/linaro-blog/> Blog
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
