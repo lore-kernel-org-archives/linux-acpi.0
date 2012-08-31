@@ -1,66 +1,38 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH 0/7][RESEND] acpi, pci: hostbridge hotplug support
-Date: Fri, 31 Aug 2012 09:44:20 -0700
-Message-ID: <CAE9FiQWtv05guh+oDzAn8CNBr+G8+Wycir7XhAcrgezY5E13Cw@mail.gmail.com>
-References: <20120810150955.e4ab3c7f.izumi.taku@jp.fujitsu.com>
-	<CAErSpo5eqyuK_yKshHbDyK5LBBG9cCn1MpmHbqpvVYe6x7AxFg@mail.gmail.com>
-	<CAE9FiQV4M8cAZ71Pxvm8gAXzVuEz_4Yb3akpk7w9JwBH052_rQ@mail.gmail.com>
-	<CAErSpo5ZRapkienpn4ZNWyeC_vfzzxVhmUzViQd0XtAf5ghz2Q@mail.gmail.com>
-	<50400D6E.1050108@huawei.com>
-	<CAErSpo6A_rR=5OREu-OC=ykC_qjeGi7jZOybcurUZBThskp-YA@mail.gmail.com>
-	<5040494E.8080501@huawei.com>
-	<CAErSpo692O3z44b=q3qTjg-Pf4V4F=c-5H5Z_uVsDoQv+ASejQ@mail.gmail.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH v5 0/7] ZPODD patches
+Date: Fri, 31 Aug 2012 13:10:59 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1208311308060.1328-100000@iolanthe.rowland.org>
+References: <20120831154306.GA1427@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:48857 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754203Ab2HaQoV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Aug 2012 12:44:21 -0400
-In-Reply-To: <CAErSpo692O3z44b=q3qTjg-Pf4V4F=c-5H5Z_uVsDoQv+ASejQ@mail.gmail.com>
+Received: from iolanthe.rowland.org ([192.131.102.54]:33018 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754365Ab2HaRLA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Aug 2012 13:11:00 -0400
+In-Reply-To: <20120831154306.GA1427@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Jiang Liu <jiang.liu@huawei.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, kaneshige.kenji@jp.fujitsu.com
+To: Aaron Lu <aaron.lwe@gmail.com>
+Cc: Aaron Lu <aaron.lu@intel.com>, James Bottomley <James.Bottomley@HansenPartnership.com>, Jeff Garzik <jgarzik@pobox.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Thu, Aug 30, 2012 at 10:42 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
->
-> That's true.  I think we should blindly probe for devices only when
-> (1) the system does not have ACPI or (2) the DMI BIOS date is older
-> than some date, e.g., 1 Jan 2013.  For new systems with ACPI, we
-> should only look at the host bridges described in ACPI.
+On Fri, 31 Aug 2012, Aaron Lu wrote:
 
-if those buses do not get scanned, then it should be enough.
+> > In patch 5/7, your implementation of may_power_off is written in such a
+> > way that if the drive is already powered off when userspace clears the
+> > flag, the drive is not automatically powered back on.  Maybe this is
+> > what you want?
+> 
+> No, actually I didn't consider this.
+> 
+> What about I do this when may_power_off is set to 0:
+> In its store function, if the device is runtime suspended(which means it
+> is in powered off state since may_power_off was 1 before this store call)
+> I'll set the flag to 0 and then runtime resume this device.
 
-how about just removing pcibios_last_bus probing code?
+You might also want to runtime resume the device if may_power_off is
+changed from 0 to 1.  Then it will power down when it suspends again
+instead of just remaining powered up.
 
-diff --git a/arch/x86/pci/mmconfig-shared.c b/arch/x86/pci/mmconfig-shared.c
-index 937bcec..3f3c460 100644
---- a/arch/x86/pci/mmconfig-shared.c
-+++ b/arch/x86/pci/mmconfig-shared.c
-@@ -616,16 +616,6 @@ static void __init __pci_mmcfg_init(int early)
-        if (list_empty(&pci_mmcfg_list))
-                return;
+Alan Stern
 
--       if (pcibios_last_bus < 0) {
--               const struct pci_mmcfg_region *cfg;
--
--               list_for_each_entry(cfg, &pci_mmcfg_list, list) {
--                       if (cfg->segment)
--                               break;
--                       pcibios_last_bus = cfg->end_bus;
--               }
--       }
--
-        if (pci_mmcfg_arch_init())
-                pci_probe = (pci_probe & ~PCI_PROBE_MASK) | PCI_PROBE_MMCONF;
-        else {
-
-
-also Nehalem *EX* and Westmere *EX* does not support EDAC.
-
-so if the user with Nehalem/Westmere Desktop version, want to use to
-EDAC, they could just append
-pci=last_bus=255 to get those buses scanned.
-
-Yinghai
