@@ -1,171 +1,48 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [RFC v8 PATCH 08/20] memory-hotplug: remove
- /sys/firmware/memmap/X sysfs
-Date: Fri, 31 Aug 2012 14:06:23 -0700
-Message-ID: <20120831140623.8d13bd2c.akpm@linux-foundation.org>
-References: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com>
-	<1346148027-24468-9-git-send-email-wency@cn.fujitsu.com>
+From: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 0/5][RFC] Use per cpuidle_device states
+Date: Fri, 31 Aug 2012 23:19:15 +0200
+Message-ID: <50412A53.1070109@linaro.org>
+References: <1343213162-8064-1-git-send-email-daniel.lezcano@linaro.org>
+	<20120727112845.GI12034@tbergstrom-lnx.Nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <1346148027-24468-9-git-send-email-wency@cn.fujitsu.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: wency@cn.fujitsu.com
-Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+In-Reply-To: <20120727112845.GI12034-Rysk9IDjsxmJz7etNGeUX8VPkgjIgRvpAL8bYrjMMd8@public.gmane.org>
+List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
+List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
+Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+To: Peter De Schrijver <pdeschrijver-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org" <linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, "linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 28 Aug 2012 18:00:15 +0800
-wency@cn.fujitsu.com wrote:
-
-> From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> 
-> When (hot)adding memory into system, /sys/firmware/memmap/X/{end, start, type}
-> sysfs files are created. But there is no code to remove these files. The patch
-> implements the function to remove them.
-> 
-> Note : The code does not free firmware_map_entry since there is no way to free
->        memory which is allocated by bootmem.
-> 
-> ....
->
-> +#define to_memmap_entry(obj) container_of(obj, struct firmware_map_entry, kobj)
-
-It would be better to implement this as an inlined C function.  That
-has improved type safety and improved readability.
-
-> +static void release_firmware_map_entry(struct kobject *kobj)
-> +{
-> +	struct firmware_map_entry *entry = to_memmap_entry(kobj);
-> +	struct page *page;
-> +
-> +	page = virt_to_page(entry);
-> +	if (PageSlab(page) || PageCompound(page))
-
-That PageCompound() test looks rather odd.  Why is this done?
-
-> +		kfree(entry);
-> +
-> +	/* There is no way to free memory allocated from bootmem*/
-> +}
-
-This function is a bit ugly - poking around in page flags to determine
-whether or not the memory came from bootmem.  It would be cleaner to
-use a separate boolean.  Although I guess we can live with it as you
-have it here.
-
->  static struct kobj_type memmap_ktype = {
-> +	.release	= release_firmware_map_entry,
->  	.sysfs_ops	= &memmap_attr_ops,
->  	.default_attrs	= def_attrs,
->  };
-> @@ -123,6 +139,16 @@ static int firmware_map_add_entry(u64 start, u64 end,
->  	return 0;
->  }
->  
-> +/**
-> + * firmware_map_remove_entry() - Does the real work to remove a firmware
-> + * memmap entry.
-> + * @entry: removed entry.
-> + **/
-> +static inline void firmware_map_remove_entry(struct firmware_map_entry *entry)
-> +{
-> +	list_del(&entry->list);
-> +}
-
-Is there no locking  to protect that list?
-
->  /*
->   * Add memmap entry on sysfs
->   */
-> @@ -144,6 +170,31 @@ static int add_sysfs_fw_map_entry(struct firmware_map_entry *entry)
->  	return 0;
->  }
->  
-> +/*
-> + * Remove memmap entry on sysfs
-> + */
-> +static inline void remove_sysfs_fw_map_entry(struct firmware_map_entry *entry)
-> +{
-> +	kobject_put(&entry->kobj);
-> +}
-> +
-> +/*
-> + * Search memmap entry
-> + */
-> +
-> +struct firmware_map_entry * __meminit
-> +find_firmware_map_entry(u64 start, u64 end, const char *type)
-
-A better name would be firmware_map_find_entry().  To retain the (good)
-convention that symbols exported from here all start with
-"firmware_map_".
-
-> +{
-> +	struct firmware_map_entry *entry;
-> +
-> +	list_for_each_entry(entry, &map_entries, list)
-> +		if ((entry->start == start) && (entry->end == end) &&
-> +		    (!strcmp(entry->type, type)))
-> +			return entry;
-> +
-> +	return NULL;
-> +}
-> +
->  /**
->   * firmware_map_add_hotplug() - Adds a firmware mapping entry when we do
->   * memory hotplug.
-> @@ -196,6 +247,32 @@ int __init firmware_map_add_early(u64 start, u64 end, const char *type)
->  	return firmware_map_add_entry(start, end, type, entry);
->  }
->  
-> +/**
-> + * firmware_map_remove() - remove a firmware mapping entry
-> + * @start: Start of the memory range.
-> + * @end:   End of the memory range.
-> + * @type:  Type of the memory range.
-> + *
-> + * removes a firmware mapping entry.
-> + *
-> + * Returns 0 on success, or -EINVAL if no entry.
-> + **/
-> +int __meminit firmware_map_remove(u64 start, u64 end, const char *type)
-> +{
-> +	struct firmware_map_entry *entry;
-> +
-> +	entry = find_firmware_map_entry(start, end - 1, type);
-> +	if (!entry)
-> +		return -EINVAL;
-> +
-> +	firmware_map_remove_entry(entry);
-> +
-> +	/* remove the memmap entry */
-> +	remove_sysfs_fw_map_entry(entry);
-> +
-> +	return 0;
-> +}
-
-Again, the lack of locking looks bad.
-
-> ...
->
-> --- a/mm/memory_hotplug.c
-> +++ b/mm/memory_hotplug.c
-> @@ -1052,9 +1052,9 @@ int offline_memory(u64 start, u64 size)
->  	return 0;
->  }
->  
-> -int remove_memory(int nid, u64 start, u64 size)
-> +int __ref remove_memory(int nid, u64 start, u64 size)
-
-Why was __ref added?
-
->  {
-> -	int ret = -EBUSY;
-> +	int ret = 0;
->  	lock_memory_hotplug();
->  	/*
->  	 * The memory might become online by other task, even if you offine it.
->
-> ...
->
+T24gMDcvMjcvMjAxMiAwMToyOCBQTSwgUGV0ZXIgRGUgU2NocmlqdmVyIHdyb3RlOgo+IE9uIFdl
+ZCwgSnVsIDI1LCAyMDEyIGF0IDEyOjQ1OjU3UE0gKzAyMDAsIERhbmllbCBMZXpjYW5vIHdyb3Rl
+Ogo+PiBTaW5jZSBjb21taXQgNDZiY2ZhZDdhODE5YmQxN2FjNGU4MzFiMDQ0MDUxNTJkNTk3ODRh
+YiwKPj4gICAgICAgICBjcHVpZGxlOiBTaW5nbGUvR2xvYmFsIHJlZ2lzdHJhdGlvbiBvZiBpZGxl
+IHN0YXRlcwo+Pgo+PiB3ZSBoYXZlIGEgc2luZ2xlIHJlZ2lzdHJhdGlvbiBmb3IgdGhlIGNwdWlk
+bGUgc3RhdGVzIHdoaWNoIG1ha2VzCj4+IHNlbnNlLiBCdXQgbm93IHR3byBuZXcgYXJjaGl0ZWN0
+dXJlcyBhcmUgY29taW5nOiB0ZWdyYTMgYW5kIGJpZy5MSVRUTEUuCj4+Cj4+IFRoZXNlIGFyY2hp
+dGVjdHVyZXMgaGF2ZSBkaWZmZXJlbnQgY3B1cyB3aXRoIGRpZmZlcmVudCBjYXJhY3RlcmlzdGlj
+cwo+PiBmb3IgcG93ZXIgc2F2aW5nLiBIaWdoIGxvYWQgPT4gcG93ZXJmdWxsIHByb2Nlc3NvcnMs
+IGlkbGUgPT4gc21hbGwgcHJvY2Vzc29ycy4KPj4KPj4gVGhhdCBpbXBsaWVzIGRpZmZlcmVudCBj
+cHUgbGF0ZW5jaWVzLgo+Pgo+PiBUaGlzIHBhdGNoc2V0IHByZXNlbnQgYSBzaW1wbGUgd2F5IHRv
+IGtlZXAgdGhlIGN1cnJlbnQgYmVoYXZpb3IgYXMgaW50cm9kdWNlZAo+PiBieSBEZWVwdGhpIHdp
+dGhvdXQgYnJlYWtpbmcgdGhlIGRyaXZlcnMgYW5kIGFkZCB0aGUgcG9zc2liaWxpdHkgdG8gc3Bl
+Y2lmeSBhCj4+IHBlciBjcHUgc3RhdGVzLgo+Pgo+IExvb2tzIGdvb2QhIEkgd2lsbCBkbyBzb21l
+IHRlc3RzIHdpdGggdGhpcyBuZXh0IHdlZWsuCgpIaSBQZXRlciwKCnNoYWxsIEkgY29uc2lkZXIg
+YWRkaW5nIHlvdXIgYWNrZWQtYnkgPwoKRGlkIHlvdSBoYXZlIHRpbWUgdG8gdGVzdCB0aGUgcGF0
+Y2hzZXQgPwoKVGhhbmtzCi0tIERhbmllbAoKLS0gCiA8aHR0cDovL3d3dy5saW5hcm8ub3JnLz4g
+TGluYXJvLm9yZyDilIIgT3BlbiBzb3VyY2Ugc29mdHdhcmUgZm9yIEFSTSBTb0NzCgpGb2xsb3cg
+TGluYXJvOiAgPGh0dHA6Ly93d3cuZmFjZWJvb2suY29tL3BhZ2VzL0xpbmFybz4gRmFjZWJvb2sg
+fAo8aHR0cDovL3R3aXR0ZXIuY29tLyMhL2xpbmFyb29yZz4gVHdpdHRlciB8CjxodHRwOi8vd3d3
+LmxpbmFyby5vcmcvbGluYXJvLWJsb2cvPiBCbG9nCgoKCl9fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fCmxpbmFyby1kZXYgbWFpbGluZyBsaXN0CmxpbmFyby1k
+ZXZAbGlzdHMubGluYXJvLm9yZwpodHRwOi8vbGlzdHMubGluYXJvLm9yZy9tYWlsbWFuL2xpc3Rp
+bmZvL2xpbmFyby1kZXYK
