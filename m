@@ -1,76 +1,77 @@
 From: Durgadoss R <durgadoss.r@intel.com>
-Subject: [PATCHv3 04/15] Thermal: Add platform level information to thermal.h
-Date: Sat,  1 Sep 2012 17:21:25 +0530
-Message-ID: <1346500296-25200-5-git-send-email-durgadoss.r@intel.com>
-References: <1346500296-25200-1-git-send-email-durgadoss.r@intel.com>
+Subject: [PATCHv3 00/15] Thermal_Framework_Enhancements
+Date: Sat,  1 Sep 2012 17:21:21 +0530
+Message-ID: <1346500296-25200-1-git-send-email-durgadoss.r@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga14.intel.com ([143.182.124.37]:45763 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755527Ab2IALwb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 1 Sep 2012 07:52:31 -0400
-In-Reply-To: <1346500296-25200-1-git-send-email-durgadoss.r@intel.com>
+	id S1755527Ab2IALwX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 1 Sep 2012 07:52:23 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org, rui.zhang@intel.com
 Cc: linux-acpi@vger.kernel.org, eduardo.valentin@ti.com, Durgadoss R <durgadoss.r@intel.com>
 
-This patch adds platform level information to thermal.h
-by introducing two structures to hold:
- * bind parameters for a thermal zone,
- * zone level platform parameters
+This patch series is a v3 of the series submitted here:
+http://www.spinics.net/lists/linux-acpi/msg37375.html
 
-Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
----
- include/linux/thermal.h |   29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
+These patches are based on Rui's tree here: (branch - thermal)
+git://git.kernel.org/pub/scm/linux/kernel/git/rzhang/linux.git
 
-diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-index 32af124..4caa32e 100644
---- a/include/linux/thermal.h
-+++ b/include/linux/thermal.h
-@@ -157,6 +157,7 @@ struct thermal_zone_device {
- 	int passive;
- 	unsigned int forced_passive;
- 	const struct thermal_zone_device_ops *ops;
-+	const struct thermal_zone_params *tzp;
- 	struct list_head thermal_instances;
- 	struct idr idr;
- 	struct mutex lock; /* protect thermal_instances list */
-@@ -164,6 +165,34 @@ struct thermal_zone_device {
- 	struct delayed_work poll_queue;
- };
- 
-+/* Structure that holds binding parameters for a zone */
-+struct thermal_bind_params {
-+	struct thermal_cooling_device *cdev;
-+
-+	/*
-+	 * This is a measure of 'how effectively these devices can
-+	 * cool 'this' thermal zone. The shall be determined by platform
-+	 * characterization. This is on a 'percentage' scale.
-+	 * See Documentation/thermal/sysfs-api.txt for more information.
-+	 */
-+	int weight;
-+
-+	/*
-+	 * This is a bit mask that gives the binding relation between this
-+	 * thermal zone and cdev, for a particular trip point.
-+	 * See Documentation/thermal/sysfs-api.txt for more information.
-+	 */
-+	int trip_mask;
-+	int (*match) (struct thermal_zone_device *tz,
-+			struct thermal_cooling_device *cdev);
-+};
-+
-+/* Structure to define Thermal Zone parameters */
-+struct thermal_zone_params {
-+	int num_tbps;	/* Number of tbp entries */
-+	struct thermal_bind_params *tbp;
-+};
-+
- struct thermal_genl_event {
- 	u32 orig;
- 	enum events event;
+Changes since v2:
+ * Made thermal_zone_params as argument to tzd_register()
+ * Introduced Thermal governor register/unregister APIs
+ * Added 'write' permission for policy sysfs attribute
+ * Added function pointer based implemention for thermal
+   governors.
+ * Added a 'dummy' user space governor in thermal_sys.c
+ * Renamed 'do_binding' and 'update_bind_info' functions as
+   'bind_tz' and 'bind_cdev' respectively
+ * Updated Documentation for all the changes
+Changes since v1:
+ * Created thermal_core.h
+ * Removed get_cdev_by_name API, as it is no longer needed
+ * Introduced thermal_bind_params inside thermal_zone_params
+ * Use a single arbitrator by making thermal_cdev_update global
+ * Added more documentation on EXPORT_SYMBOL APIs in thermal_sys.c
+ * Various minor fixes based on comments from Rui and Eduardo.
+
+Durgadoss R (15):
+  Thermal: Refactor thermal.h file
+  Thermal: Move thermal_instance to thermal_core.h
+  Thermal: Add get trend, get instance API's to thermal_sys
+  Thermal: Add platform level information to thermal.h
+  Thermal: Pass zone parameters as argument to tzd_register
+  Thermal: Add thermal governor registration APIs
+  Thermal: Add a policy sysfs attribute
+  Thermal: Update binding logic based on platform data
+  Thermal: Make thermal_cdev_update as a global function
+  Thermal: Introduce fair_share thermal governor
+  Thermal: Introduce a step_wise thermal governor
+  Thermal: Register a governor for user space
+  Thermal: Remove throttling logic out of thermal_sys.c
+  Thermal: Add a notification API
+  Thermal: Add documentation for platform layer data
+
+ Documentation/thermal/sysfs-api.txt                |   64 ++
+ drivers/acpi/thermal.c                             |    6 +-
+ drivers/platform/x86/acerhdf.c                     |    2 +-
+ drivers/platform/x86/intel_mid_thermal.c           |    2 +-
+ drivers/power/power_supply_core.c                  |    2 +-
+ drivers/staging/omap-thermal/omap-thermal-common.c |    2 +-
+ drivers/thermal/Kconfig                            |   12 +
+ drivers/thermal/Makefile                           |    4 +-
+ drivers/thermal/fair_share.c                       |  133 ++++
+ drivers/thermal/spear_thermal.c                    |    2 +-
+ drivers/thermal/step_wise.c                        |  194 ++++++
+ drivers/thermal/thermal_core.h                     |   53 ++
+ drivers/thermal/thermal_sys.c                      |  715 +++++++++++++-------
+ include/linux/thermal.h                            |  130 +++-
+ 14 files changed, 1031 insertions(+), 290 deletions(-)
+ create mode 100644 drivers/thermal/fair_share.c
+ create mode 100644 drivers/thermal/step_wise.c
+ create mode 100644 drivers/thermal/thermal_core.h
+
 -- 
 1.7.9.5
 
