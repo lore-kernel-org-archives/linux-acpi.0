@@ -1,78 +1,76 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH part4 08/11] PCI, ACPI: Add alloc_acpi_hp_work()
-Date: Sun,  2 Sep 2012 14:54:18 -0700
-Message-ID: <1346622861-30865-9-git-send-email-yinghai@kernel.org>
+Subject: [PATCH part4 03/11] PCI: Add pci_stop_and_remove_bus()
+Date: Sun,  2 Sep 2012 14:54:13 -0700
+Message-ID: <1346622861-30865-4-git-send-email-yinghai@kernel.org>
 References: <1346622861-30865-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from acsinet15.oracle.com ([141.146.126.227]:20039 "EHLO
-	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756102Ab2IBVyn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Sep 2012 17:54:43 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1346622861-30865-1-git-send-email-yinghai@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, x86 <x86@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Len Brown <lenb@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-Will use it with acpiphp and pci_root_hp events handling
+It supports both pci root bus and pci bus under pci bridge.
+
+-v2: clear pci_bridge's subordinate.
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
 ---
- drivers/acpi/osl.c      |   21 +++++++++++++++++++++
- include/acpi/acpiosxf.h |    9 +++++++++
- 2 files changed, 30 insertions(+), 0 deletions(-)
+ drivers/pci/remove.c |   32 ++++++++++++++++++++++++++++++++
+ include/linux/pci.h  |    1 +
+ 2 files changed, 33 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 9eaf708..0719fa7 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -1592,3 +1592,24 @@ void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state,
- {
- 	__acpi_os_prepare_sleep = func;
+diff --git a/drivers/pci/remove.c b/drivers/pci/remove.c
+index b9f553b..94407d4 100644
+--- a/drivers/pci/remove.c
++++ b/drivers/pci/remove.c
+@@ -136,3 +136,35 @@ void pci_stop_and_remove_behind_bridge(struct pci_dev *dev)
+ 	if (dev->subordinate)
+ 		pci_remove_bus_devices(dev->subordinate);
  }
 +
-+void alloc_acpi_hp_work(acpi_handle handle, u32 type, void *context,
-+			void (*func)(struct work_struct *work))
++static void pci_stop_host_bridge(struct pci_host_bridge *bridge)
 +{
-+	struct acpi_hp_work *hp_work;
-+	int ret;
-+
-+	hp_work = kmalloc(sizeof(*hp_work), GFP_KERNEL);
-+	if (!hp_work)
-+		return;
-+
-+	hp_work->handle = handle;
-+	hp_work->type = type;
-+	hp_work->context = context;
-+
-+	INIT_WORK(&hp_work->work, func);
-+	ret = queue_work(kacpi_hotplug_wq, &hp_work->work);
-+	if (!ret)
-+		kfree(hp_work);
++	device_unregister(&bridge->dev);
 +}
-+EXPORT_SYMBOL(alloc_acpi_hp_work);
-diff --git a/include/acpi/acpiosxf.h b/include/acpi/acpiosxf.h
-index 0650f5f..6ff92ea 100644
---- a/include/acpi/acpiosxf.h
-+++ b/include/acpi/acpiosxf.h
-@@ -196,6 +196,15 @@ void acpi_os_fixed_event_count(u32 fixed_event_number);
-  */
- extern struct workqueue_struct *kacpi_hotplug_wq;
- 
-+struct acpi_hp_work {
-+	struct work_struct work;
-+	acpi_handle handle;
-+	u32 type;
-+	void *context;
-+};
-+void alloc_acpi_hp_work(acpi_handle handle, u32 type, void *context,
-+			void (*func)(struct work_struct *work));
++/*
++ * it will support pci root bus too, in that case we need
++ *  stop and remove host bridge
++ */
++void pci_stop_and_remove_bus(struct pci_bus *bus)
++{
++	struct pci_host_bridge *host_bridge = NULL;
++	struct pci_dev *pci_bridge = NULL;
 +
- acpi_thread_id acpi_os_get_thread_id(void);
- 
- acpi_status
++	pci_stop_bus_devices(bus);
++
++	if (pci_is_root_bus(bus)) {
++		host_bridge = to_pci_host_bridge(bus->bridge);
++		pci_stop_host_bridge(host_bridge);
++	} else
++		pci_bridge = bus->self;
++
++	pci_remove_bus_devices(bus);
++
++	pci_remove_bus(bus);
++
++	if (host_bridge)
++		host_bridge->bus = NULL;
++
++	if (pci_bridge)
++		pci_bridge->subordinate = NULL;
++}
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index 4446448..8b2c722 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -738,6 +738,7 @@ extern void pci_remove_bus(struct pci_bus *b);
+ extern void pci_stop_and_remove_bus_device(struct pci_dev *dev);
+ void pci_stop_bus_devices(struct pci_bus *bus);
+ void pci_stop_and_remove_behind_bridge(struct pci_dev *dev);
++void pci_stop_and_remove_bus(struct pci_bus *bus);
+ void pci_setup_cardbus(struct pci_bus *bus);
+ extern void pci_sort_breadthfirst(void);
+ #define dev_is_pci(d) ((d)->bus == &pci_bus_type)
 -- 
 1.7.7
-
