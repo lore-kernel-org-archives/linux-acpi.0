@@ -1,35 +1,37 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH part1 3/4] PCI: Add root bus children dev's res to fail list
-Date: Sun,  2 Sep 2012 14:47:37 -0700
-Message-ID: <1346622458-30595-4-git-send-email-yinghai@kernel.org>
-References: <1346622458-30595-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1346622458-30595-1-git-send-email-yinghai@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Subject: [PATCH part2 0/6] PCI, x86: pci root bus hotplug support - part2
+Date: Sun,  2 Sep 2012 14:50:47 -0700
+Message-ID: <1346622653-30741-1-git-send-email-yinghai@kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from acsinet15.oracle.com ([141.146.126.227]:19610 "EHLO
+	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755127Ab2IBVvC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Sep 2012 17:51:02 -0400
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, x86 <x86@kernel.org>
 Cc: Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
-List-Id: linux-acpi@vger.kernel.org
 
-We can stop according to try number now and do not need to use root_bus checking
-as stop sign anymore.
+Refactor x86 pci pcibios_allocate related function to take bus as parameter.
 
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
----
- drivers/pci/setup-bus.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+So later could use it for root bus add case.
 
-diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
-index fb50613..f0e959c 100644
---- a/drivers/pci/setup-bus.c
-+++ b/drivers/pci/setup-bus.c
-@@ -283,7 +283,7 @@ static void assign_requested_resources_sorted(struct list_head *head,
- 		idx = res - &dev_res->dev->resource[0];
- 		if (resource_size(res) &&
- 		    pci_assign_resource(dev_res->dev, idx)) {
--			if (fail_head && !pci_is_root_bus(dev_res->dev->bus)) {
-+			if (fail_head) {
- 				/*
- 				 * if the failed res is for ROM BAR, and it will
- 				 * be enabled later, don't add it to the list
+could get from
+        git://git.kernel.org/pub/scm/linux/kernel/git/yinghai/linux-yinghai.git for-pci-root-bus-hotplug-part2
+
+Yinghai Lu (6):
+  x86, PCI: Separate pcibios_allocate_bridge_resources()
+  x86, PCI: Separate pcibios_allocate_dev_resources()
+  x86, PCI: Let pcibios_allocate_bus_resources() take bus instead
+  x86, PCI: Separate rom resource claim out
+  PCI, x86: Add pcibios_fw_addr_done
+  PCI: Claim hw/fw allocated resources in hot add path.
+
+ arch/x86/pci/i386.c |  192 ++++++++++++++++++++++++++++++++++-----------------
+ drivers/pci/bus.c   |    2 +
+ include/linux/pci.h |    1 +
+ 3 files changed, 131 insertions(+), 64 deletions(-)
+
 -- 
 1.7.7
+
