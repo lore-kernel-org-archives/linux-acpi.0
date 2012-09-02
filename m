@@ -1,7 +1,7 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH part5 1/7] ACPI, PCI: Use normal list for struct acpi_pci_driver
-Date: Sun,  2 Sep 2012 14:55:59 -0700
-Message-ID: <1346622965-30937-2-git-send-email-yinghai@kernel.org>
+Subject: [PATCH part5 7/7] ACPI, PCI: Skip extra pci_enable_bridges for non hot-add root
+Date: Sun,  2 Sep 2012 14:56:05 -0700
+Message-ID: <1346622965-30937-8-git-send-email-yinghai@kernel.org>
 References: <1346622965-30937-1-git-send-email-yinghai@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1346622965-30937-1-git-send-email-yinghai@kernel.org>
@@ -10,71 +10,55 @@ To: Bjorn Helgaas <bhelgaas@google.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>,
 Cc: Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Jiang Liu <jiang.liu@huawei.com>
+Pre-installed will be handled later, need to skip the one only for hot-added
+roots.
 
-Use normal list for struct acpi_pci_driver to simplify code.
+Otherwise will get anonying failing message about can not reserve, irq ...
 
-Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 ---
- drivers/acpi/pci_root.c |   16 +++-------------
- include/linux/acpi.h    |    2 +-
- 2 files changed, 4 insertions(+), 14 deletions(-)
+ drivers/acpi/pci_root.c    |    3 ++-
+ drivers/acpi/pci_root_hp.c |    1 +
+ include/acpi/acpi_bus.h    |    1 +
+ 3 files changed, 4 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index 12791fd..2aec08d 100644
+index 80adbbb..576fe9a 100644
 --- a/drivers/acpi/pci_root.c
 +++ b/drivers/acpi/pci_root.c
-@@ -72,8 +72,8 @@ static struct acpi_driver acpi_pci_root_driver = {
+@@ -647,7 +647,8 @@ static int acpi_pci_root_start(struct acpi_device *device)
+ 			driver->add(device->handle);
+ 
+ 	/* need to after hot-added ioapic is registered */
+-	pci_enable_bridges(root->bus);
++	if (root->hot_added)
++		pci_enable_bridges(root->bus);
+ 
+ 	pci_bus_add_devices(root->bus);
+ 	mutex_unlock(&acpi_pci_root_lock);
+diff --git a/drivers/acpi/pci_root_hp.c b/drivers/acpi/pci_root_hp.c
+index d2ace81..2800fb4 100644
+--- a/drivers/acpi/pci_root_hp.c
++++ b/drivers/acpi/pci_root_hp.c
+@@ -86,6 +86,7 @@ static void acpi_root_configure_bridge(acpi_handle handle)
+ 
+ 	pcibios_resource_survey_bus(root->bus);
+ 	pci_assign_unassigned_bus_resources(root->bus);
++	root->hot_added = true;
+ }
+ 
+ static void handle_root_bridge_insertion(acpi_handle handle)
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index bde976e..47de196 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -406,6 +406,7 @@ struct acpi_pci_root {
+ 
+ 	u32 osc_support_set;	/* _OSC state of support bits */
+ 	u32 osc_control_set;	/* _OSC state of control bits */
++	bool hot_added;
+ 	phys_addr_t mcfg_addr;
  };
  
- static LIST_HEAD(acpi_pci_roots);
-+static LIST_HEAD(acpi_pci_drivers);
- 
--static struct acpi_pci_driver *sub_driver;
- static DEFINE_MUTEX(osc_lock);
- 
- int acpi_pci_register_driver(struct acpi_pci_driver *driver)
-@@ -81,10 +81,7 @@ int acpi_pci_register_driver(struct acpi_pci_driver *driver)
- 	int n = 0;
- 	struct acpi_pci_root *root;
- 
--	struct acpi_pci_driver **pptr = &sub_driver;
--	while (*pptr)
--		pptr = &(*pptr)->next;
--	*pptr = driver;
-+	list_add_tail(&driver->node, &acpi_pci_drivers);
- 
- 	if (!driver->add)
- 		return 0;
-@@ -103,14 +100,7 @@ void acpi_pci_unregister_driver(struct acpi_pci_driver *driver)
- {
- 	struct acpi_pci_root *root;
- 
--	struct acpi_pci_driver **pptr = &sub_driver;
--	while (*pptr) {
--		if (*pptr == driver)
--			break;
--		pptr = &(*pptr)->next;
--	}
--	BUG_ON(!*pptr);
--	*pptr = (*pptr)->next;
-+	list_del(&driver->node);
- 
- 	if (!driver->remove)
- 		return;
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 3ad510b..a54cf8e 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -138,7 +138,7 @@ void acpi_penalize_isa_irq(int irq, int active);
- void acpi_pci_irq_disable (struct pci_dev *dev);
- 
- struct acpi_pci_driver {
--	struct acpi_pci_driver *next;
-+	struct list_head node;
- 	int (*add)(acpi_handle handle);
- 	void (*remove)(acpi_handle handle);
- };
 -- 
 1.7.7
