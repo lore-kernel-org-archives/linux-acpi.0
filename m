@@ -1,7 +1,7 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH part3 04/11] PCI: Use __pci_bus_size_bridges() directly in pci_assign_unassigned_bus_resources()
-Date: Sun,  2 Sep 2012 14:52:14 -0700
-Message-ID: <1346622741-30799-5-git-send-email-yinghai@kernel.org>
+Subject: [PATCH part3 10/11] PCI: Rescan bus or bridge using callback method too
+Date: Sun,  2 Sep 2012 14:52:20 -0700
+Message-ID: <1346622741-30799-11-git-send-email-yinghai@kernel.org>
 References: <1346622741-30799-1-git-send-email-yinghai@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1346622741-30799-1-git-send-email-yinghai@kernel.org>
@@ -10,37 +10,93 @@ To: Bjorn Helgaas <bhelgaas@google.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>,
 Cc: Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Now __pci_bus_size_bridges() will not include self bridge.
-So we don't need to have our own version in
- pci_assign_unassigned_bus_resources anymore.
+Just like removal.
+
+Because We could add new bus under the bridges...
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 ---
- drivers/pci/setup-bus.c |    8 +-------
- 1 files changed, 1 insertions(+), 7 deletions(-)
+ drivers/pci/pci-sysfs.c |   43 +++++++++++++++++++++++++++++++------------
+ 1 files changed, 31 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
-index 70d6292..054d54b 100644
---- a/drivers/pci/setup-bus.c
-+++ b/drivers/pci/setup-bus.c
-@@ -1519,17 +1519,11 @@ EXPORT_SYMBOL_GPL(pci_assign_unassigned_bridge_resources);
+diff --git a/drivers/pci/pci-sysfs.c b/drivers/pci/pci-sysfs.c
+index 60cb06b..7ebc764 100644
+--- a/drivers/pci/pci-sysfs.c
++++ b/drivers/pci/pci-sysfs.c
+@@ -327,21 +327,31 @@ dev_rescan_store(struct device *dev, struct device_attribute *attr,
+ 	return count;
+ }
  
- void pci_assign_unassigned_bus_resources(struct pci_bus *bus)
++static void bridge_rescan_callback(struct device *dev)
++{
++	struct pci_dev *pdev = to_pci_dev(dev);
++
++	mutex_lock(&pci_remove_rescan_mutex);
++	pci_rescan_bus_bridge_resize(pdev);
++	mutex_unlock(&pci_remove_rescan_mutex);
++}
++
+ static ssize_t
+ dev_bridge_rescan_store(struct device *dev, struct device_attribute *attr,
+ 		 const char *buf, size_t count)
  {
--	struct pci_dev *dev;
- 	LIST_HEAD(add_list); /* list of resources that
- 					want additional resources */
++	int ret = 0;
+ 	unsigned long val;
+-	struct pci_dev *pdev = to_pci_dev(dev);
  
- 	down_read(&pci_bus_sem);
--	list_for_each_entry(dev, &bus->devices, bus_list)
--		if (dev->hdr_type == PCI_HEADER_TYPE_BRIDGE ||
--		    dev->hdr_type == PCI_HEADER_TYPE_CARDBUS)
--			if (dev->subordinate)
--				__pci_bus_size_bridges(dev->subordinate,
--						 &add_list, true);
-+	__pci_bus_size_bridges(bus, &add_list, false);
- 	up_read(&pci_bus_sem);
- 	__pci_bus_assign_resources(bus, &add_list, NULL);
- 	BUG_ON(!list_empty(&add_list));
+ 	if (kstrtoul(buf, 0, &val) < 0)
+ 		return -EINVAL;
+ 
+-	if (val) {
+-		mutex_lock(&pci_remove_rescan_mutex);
+-		pci_rescan_bus_bridge_resize(pdev);
+-		mutex_unlock(&pci_remove_rescan_mutex);
+-	}
++	if (val)
++		ret = device_schedule_callback(dev, bridge_rescan_callback);
++
++	if (ret)
++		count = ret;
++
+ 	return count;
+ }
+ 
+@@ -377,21 +387,30 @@ remove_store(struct device *dev, struct device_attribute *dummy,
+ 	return count;
+ }
+ 
++static void bus_rescan_callback(struct device *dev)
++{
++	struct pci_bus *bus = to_pci_bus(dev);
++
++	mutex_lock(&pci_remove_rescan_mutex);
++	pci_rescan_bus(bus);
++	mutex_unlock(&pci_remove_rescan_mutex);
++}
+ static ssize_t
+ dev_bus_rescan_store(struct device *dev, struct device_attribute *attr,
+ 		 const char *buf, size_t count)
+ {
++	int ret = 0;
+ 	unsigned long val;
+-	struct pci_bus *bus = to_pci_bus(dev);
+ 
+ 	if (strict_strtoul(buf, 0, &val) < 0)
+ 		return -EINVAL;
+ 
+-	if (val) {
+-		mutex_lock(&pci_remove_rescan_mutex);
+-		pci_rescan_bus(bus);
+-		mutex_unlock(&pci_remove_rescan_mutex);
+-	}
++	if (val)
++		ret = device_schedule_callback(dev, bus_rescan_callback);
++
++	if (ret)
++		count = ret;
++
+ 	return count;
+ }
+ 
 -- 
 1.7.7
