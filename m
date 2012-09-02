@@ -1,7 +1,7 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH part1 4/4] PCI: Split out stop_bus_device and remove_bus_dev again.
-Date: Sun,  2 Sep 2012 14:47:38 -0700
-Message-ID: <1346622458-30595-5-git-send-email-yinghai@kernel.org>
+Subject: [PATCH part1 3/4] PCI: Add root bus children dev's res to fail list
+Date: Sun,  2 Sep 2012 14:47:37 -0700
+Message-ID: <1346622458-30595-4-git-send-email-yinghai@kernel.org>
 References: <1346622458-30595-1-git-send-email-yinghai@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1346622458-30595-1-git-send-email-yinghai@kernel.org>
@@ -10,131 +10,26 @@ To: Bjorn Helgaas <bhelgaas@google.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>,
 Cc: Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-So add back some functions that are needed for pci root bus hotplug support.
+We can stop according to try number now and do not need to use root_bus checking
+as stop sign anymore.
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 ---
- drivers/pci/remove.c |   77 +++++++++++++++++++++++++++++++++++++++----------
- include/linux/pci.h  |    2 +
- 2 files changed, 63 insertions(+), 16 deletions(-)
+ drivers/pci/setup-bus.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/pci/remove.c b/drivers/pci/remove.c
-index 4f9ca91..aaae16e 100644
---- a/drivers/pci/remove.c
-+++ b/drivers/pci/remove.c
-@@ -56,25 +56,13 @@ void pci_remove_bus(struct pci_bus *bus)
- }
- EXPORT_SYMBOL(pci_remove_bus);
- 
--/**
-- * pci_stop_and_remove_bus_device - remove a PCI device and any children
-- * @dev: the device to remove
-- *
-- * Remove a PCI device from the device lists, informing the drivers
-- * that the device has been removed.  We also remove any subordinate
-- * buses and children in a depth-first manner.
-- *
-- * For each device we remove, delete the device structure from the
-- * device lists, remove the /proc entry, and notify userspace
-- * (/sbin/hotplug).
-- */
--void pci_stop_and_remove_bus_device(struct pci_dev *dev)
-+static void pci_stop_bus_device(struct pci_dev *dev)
- {
- 	struct pci_bus *bus = dev->subordinate;
- 	struct pci_dev *child, *tmp;
- 
- 	/*
--	 * Removing an SR-IOV PF device removes all the associated VFs,
-+	 * Stopping an SR-IOV PF device removes all the associated VFs,
- 	 * which will update the bus->devices list and confuse the
- 	 * iterator.  Therefore, iterate in reverse so we remove the VFs
- 	 * first, then the PF.
-@@ -82,13 +70,70 @@ void pci_stop_and_remove_bus_device(struct pci_dev *dev)
- 	if (bus) {
- 		list_for_each_entry_safe_reverse(child, tmp,
- 						 &bus->devices, bus_list)
--			pci_stop_and_remove_bus_device(child);
-+			pci_stop_bus_device(child);
-+	}
-+
-+	pci_stop_dev(dev);
-+}
-+
-+static void pci_remove_bus_device(struct pci_dev *dev)
-+{
-+	struct pci_bus *bus = dev->subordinate;
-+	struct pci_dev *child, *tmp;
-+
-+	if (bus) {
-+		list_for_each_entry_safe(child, tmp,
-+					 &bus->devices, bus_list)
-+			pci_remove_bus_device(child);
- 
- 		pci_remove_bus(bus);
- 		dev->subordinate = NULL;
- 	}
- 
--	pci_stop_dev(dev);
- 	pci_destroy_dev(dev);
- }
-+
-+/**
-+ * pci_stop_and_remove_bus_device - remove a PCI device and any children
-+ * @dev: the device to remove
-+ *
-+ * Remove a PCI device from the device lists, informing the drivers
-+ * that the device has been removed.  We also remove any subordinate
-+ * buses and children in a depth-first manner.
-+ *
-+ * For each device we remove, delete the device structure from the
-+ * device lists, remove the /proc entry, and notify userspace
-+ * (/sbin/hotplug).
-+ */
-+void pci_stop_and_remove_bus_device(struct pci_dev *dev)
-+{
-+	pci_stop_bus_device(dev);
-+	pci_remove_bus_device(dev);
-+}
- EXPORT_SYMBOL(pci_stop_and_remove_bus_device);
-+
-+void pci_stop_bus_devices(struct pci_bus *bus)
-+{
-+	struct pci_dev *child, *tmp;
-+
-+	list_for_each_entry_safe_reverse(child, tmp,
-+					 &bus->devices, bus_list)
-+		pci_stop_bus_device(child);
-+}
-+
-+static void pci_remove_bus_devices(struct pci_bus *bus)
-+{
-+	struct pci_dev *child, *tmp;
-+
-+	list_for_each_entry_safe(child, tmp,
-+				 &bus->devices, bus_list)
-+		pci_remove_bus_device(child);
-+}
-+
-+void pci_stop_and_remove_behind_bridge(struct pci_dev *dev)
-+{
-+	pci_stop_bus_device(dev);
-+
-+	if (dev->subordinate)
-+		pci_remove_bus_devices(dev->subordinate);
-+}
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index 0d87189..1b460e1 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -734,6 +734,8 @@ extern struct pci_dev *pci_dev_get(struct pci_dev *dev);
- extern void pci_dev_put(struct pci_dev *dev);
- extern void pci_remove_bus(struct pci_bus *b);
- extern void pci_stop_and_remove_bus_device(struct pci_dev *dev);
-+void pci_stop_bus_devices(struct pci_bus *bus);
-+void pci_stop_and_remove_behind_bridge(struct pci_dev *dev);
- void pci_setup_cardbus(struct pci_bus *bus);
- extern void pci_sort_breadthfirst(void);
- #define dev_is_pci(d) ((d)->bus == &pci_bus_type)
+diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
+index fb50613..f0e959c 100644
+--- a/drivers/pci/setup-bus.c
++++ b/drivers/pci/setup-bus.c
+@@ -283,7 +283,7 @@ static void assign_requested_resources_sorted(struct list_head *head,
+ 		idx = res - &dev_res->dev->resource[0];
+ 		if (resource_size(res) &&
+ 		    pci_assign_resource(dev_res->dev, idx)) {
+-			if (fail_head && !pci_is_root_bus(dev_res->dev->bus)) {
++			if (fail_head) {
+ 				/*
+ 				 * if the failed res is for ROM BAR, and it will
+ 				 * be enabled later, don't add it to the list
 -- 
 1.7.7
