@@ -1,48 +1,74 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH part1 1/4] PCI, pciehp: Turn on link again after power off the slot
-Date: Sun,  2 Sep 2012 14:47:35 -0700
-Message-ID: <1346622458-30595-2-git-send-email-yinghai@kernel.org>
+Subject: [PATCH part1 2/4] PCI, acpiphp: Add is_hotplug_bridge detection
+Date: Sun,  2 Sep 2012 14:47:36 -0700
+Message-ID: <1346622458-30595-3-git-send-email-yinghai@kernel.org>
 References: <1346622458-30595-1-git-send-email-yinghai@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1346622458-30595-1-git-send-email-yinghai@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, x86 <x86@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, stable@vger.kernel.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-During debugging hotplug surpise support, found slot status reg does not report
-present status anymore after removing the card. That present bit
-does not get cleared even that card is removed. So no interrupt is generated
-later after reinsert the card.
+When system support hotplug bridge with children hotplug slots, we need to make sure
+that parent bridge get preallocated resource so later when device is plugged into
+children slot, those children devices will get resource allocated.
 
-That problem is caused by commit:
-| commit 2debd9289997fc5d1c0043b41201a8b40d5e11d0
-|
-|    PCI: pciehp: Disable/enable link during slot power off/on
+We do not meet this problem, because for pcie hotplug card, when acpiphp is used,
+pci_scan_bridge will set that for us when detect hotplug bit in slot cap.
 
-Try turn on link after power off.
-With the fix present bit will report correctly, also still avoid the aer
-during the power off.
-
+Reported-and-tested-by: Jason Baron <jbaron@redhat.com>
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Cc: stable@vger.kernel.org
+Acked-by: Jason Baron <jbaron@redhat.com>
 ---
- drivers/pci/hotplug/pciehp_hpc.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ drivers/pci/hotplug/acpiphp_glue.c |   27 ++++++++++++++++++++++++++-
+ 1 files changed, 26 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/pci/hotplug/pciehp_hpc.c b/drivers/pci/hotplug/pciehp_hpc.c
-index 13b2eaf..7cee8db 100644
---- a/drivers/pci/hotplug/pciehp_hpc.c
-+++ b/drivers/pci/hotplug/pciehp_hpc.c
-@@ -631,6 +631,8 @@ int pciehp_power_off_slot(struct slot * slot)
- 	slot_cmd = POWER_OFF;
- 	cmd_mask = PCI_EXP_SLTCTL_PCC;
- 	retval = pcie_write_cmd(ctrl, slot_cmd, cmd_mask);
-+	/* need to enable link again for present bit report */
-+	pciehp_link_enable(ctrl);
- 	if (retval) {
- 		ctrl_err(ctrl, "Write command failed!\n");
- 		return retval;
+diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+index 7be4ca5..085eec7 100644
+--- a/drivers/pci/hotplug/acpiphp_glue.c
++++ b/drivers/pci/hotplug/acpiphp_glue.c
+@@ -783,6 +783,29 @@ static void acpiphp_set_acpi_region(struct acpiphp_slot *slot)
+ 	}
+ }
+ 
++static void check_hotplug_bridge(struct acpiphp_slot *slot, struct pci_dev *dev)
++{
++	struct acpiphp_func *func;
++
++	if (!dev->subordinate)
++		return;
++
++	/* quirk, or pcie could set it already */
++	if (dev->is_hotplug_bridge)
++		return;
++
++	if (PCI_SLOT(dev->devfn) != slot->device)
++		return;
++
++	list_for_each_entry(func, &slot->funcs, sibling) {
++		if (PCI_FUNC(dev->devfn) == func->function) {
++			/* check if this bridge has ejectable slots */
++			if ((detect_ejectable_slots(func->handle) > 0))
++				dev->is_hotplug_bridge = 1;
++			break;
++		}
++	}
++}
+ /**
+  * enable_device - enable, configure a slot
+  * @slot: slot to be enabled
+@@ -817,8 +840,10 @@ static int __ref enable_device(struct acpiphp_slot *slot)
+ 			if (dev->hdr_type == PCI_HEADER_TYPE_BRIDGE ||
+ 			    dev->hdr_type == PCI_HEADER_TYPE_CARDBUS) {
+ 				max = pci_scan_bridge(bus, dev, max, pass);
+-				if (pass && dev->subordinate)
++				if (pass && dev->subordinate) {
++					check_hotplug_bridge(slot, dev);
+ 					pci_bus_size_bridges(dev->subordinate);
++				}
+ 			}
+ 		}
+ 	}
 -- 
 1.7.7
