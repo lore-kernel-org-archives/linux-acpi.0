@@ -1,15 +1,15 @@
 From: Davidlohr Bueso <dave@gnu.org>
-Subject: [PATCH 4/5] platform: x86: remove acpi_bus_generate_proc_event
-Date: Mon, 03 Sep 2012 02:03:31 +0200
-Message-ID: <1346630611.3170.32.camel@offbook>
+Subject: [PATCH 2/5] sonypi: remove acpi_bus_generate_proc_event
+Date: Mon, 03 Sep 2012 02:03:24 +0200
+Message-ID: <1346630604.3170.30.camel@offbook>
 Reply-To: dave@gnu.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Matthew Garrett <mjg@redhat.com>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Corentin Chary <corentincj@iksaif.net>, Harald Welte <laforge@gnumonks.org>, Mattia Dongili <malattia@linux.it>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>
-Cc: platform-driver-x86@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, acpi4asus-user@lists.sourceforge.net
+To: Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mattia Dongili <malattia@linux.it>, Arnd Bergmann <arnd@arndb.de>
+Cc: platform-driver-x86@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
 Calling this function no longer makes sense as /proc/acpi/event
@@ -17,122 +17,24 @@ is being removed.
 
 Signed-off-by: Davidlohr Bueso <dave@gnu.org>
 ---
- drivers/platform/x86/asus-laptop.c      |    1 -
- drivers/platform/x86/eeepc-laptop.c     |    1 -
- drivers/platform/x86/fujitsu-laptop.c   |    4 ----
- drivers/platform/x86/panasonic-laptop.c |    2 --
- drivers/platform/x86/sony-laptop.c      |    3 ---
- drivers/platform/x86/thinkpad_acpi.c    |   11 -----------
- 6 files changed, 0 insertions(+), 22 deletions(-)
+ drivers/char/sonypi.c |    5 -----
+ 1 files changed, 0 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/platform/x86/asus-laptop.c b/drivers/platform/x86/asus-laptop.c
-index e38f91b..6c4e31d 100644
---- a/drivers/platform/x86/asus-laptop.c
-+++ b/drivers/platform/x86/asus-laptop.c
-@@ -1514,7 +1514,6 @@ static void asus_acpi_notify(struct acpi_device *device, u32 event)
+diff --git a/drivers/char/sonypi.c b/drivers/char/sonypi.c
+index f877805..4543473 100644
+--- a/drivers/char/sonypi.c
++++ b/drivers/char/sonypi.c
+@@ -876,11 +876,6 @@ found:
+ 	if (useinput)
+ 		sonypi_report_input_event(event);
  
- 	/* TODO Find a better way to handle events count. */
- 	count = asus->event_count[event % 128]++;
--	acpi_bus_generate_proc_event(asus->device, event, count);
- 	acpi_bus_generate_netlink_event(asus->device->pnp.device_class,
- 					dev_name(&asus->device->dev), event,
- 					count);
-diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-index dab91b4..8a94d4d 100644
---- a/drivers/platform/x86/eeepc-laptop.c
-+++ b/drivers/platform/x86/eeepc-laptop.c
-@@ -1267,7 +1267,6 @@ static void eeepc_acpi_notify(struct acpi_device *device, u32 event)
- 	if (event > ACPI_MAX_SYS_NOTIFY)
- 		return;
- 	count = eeepc->event_count[event % 128]++;
--	acpi_bus_generate_proc_event(device, event, count);
- 	acpi_bus_generate_netlink_event(device->pnp.device_class,
- 					dev_name(&device->dev), event,
- 					count);
-diff --git a/drivers/platform/x86/fujitsu-laptop.c b/drivers/platform/x86/fujitsu-laptop.c
-index c4c1a54..2fac1c5 100644
---- a/drivers/platform/x86/fujitsu-laptop.c
-+++ b/drivers/platform/x86/fujitsu-laptop.c
-@@ -773,8 +773,6 @@ static void acpi_fujitsu_notify(struct acpi_device *device, u32 event)
- 				else
- 					set_lcd_level(newb);
- 			}
--			acpi_bus_generate_proc_event(fujitsu->dev,
--				ACPI_VIDEO_NOTIFY_INC_BRIGHTNESS, 0);
- 			keycode = KEY_BRIGHTNESSUP;
- 		} else if (oldb > newb) {
- 			if (disable_brightness_adjust != 1) {
-@@ -783,8 +781,6 @@ static void acpi_fujitsu_notify(struct acpi_device *device, u32 event)
- 				else
- 					set_lcd_level(newb);
- 			}
--			acpi_bus_generate_proc_event(fujitsu->dev,
--				ACPI_VIDEO_NOTIFY_DEC_BRIGHTNESS, 0);
- 			keycode = KEY_BRIGHTNESSDOWN;
- 		}
- 		break;
-diff --git a/drivers/platform/x86/panasonic-laptop.c b/drivers/platform/x86/panasonic-laptop.c
-index 8e8caa7..a140e7f 100644
---- a/drivers/platform/x86/panasonic-laptop.c
-+++ b/drivers/platform/x86/panasonic-laptop.c
-@@ -465,8 +465,6 @@ static void acpi_pcc_generate_keyinput(struct pcc_acpi *pcc)
- 		return;
- 	}
- 
--	acpi_bus_generate_proc_event(pcc->device, HKEY_NOTIFY, result);
+-#ifdef CONFIG_ACPI
+-	if (sonypi_acpi_device)
+-		acpi_bus_generate_proc_event(sonypi_acpi_device, 1, event);
+-#endif
 -
- 	if (!sparse_keymap_report_event(hotk_input_dev,
- 					result & 0xf, result & 0x80, false))
- 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
-index daaddec..5bfcfbc 100644
---- a/drivers/platform/x86/sony-laptop.c
-+++ b/drivers/platform/x86/sony-laptop.c
-@@ -1269,8 +1269,6 @@ static void sony_nc_notify(struct acpi_device *device, u32 event)
- 		sony_laptop_report_input_event(real_ev);
- 	}
- 
--	acpi_bus_generate_proc_event(sony_nc_acpi_device, ev_type, real_ev);
--
- 	acpi_bus_generate_netlink_event(sony_nc_acpi_device->pnp.device_class,
- 			dev_name(&sony_nc_acpi_device->dev), ev_type, real_ev);
- }
-@@ -4100,7 +4098,6 @@ static irqreturn_t sony_pic_irq(int irq, void *dev_id)
- 
- found:
- 	sony_laptop_report_input_event(device_event);
--	acpi_bus_generate_proc_event(dev->acpi_dev, 1, device_event);
- 	sonypi_compat_report_event(device_event);
- 	return IRQ_HANDLED;
- }
-diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index 80e3779..fb105fa 100644
---- a/drivers/platform/x86/thinkpad_acpi.c
-+++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -2286,10 +2286,6 @@ static struct tp_acpi_drv_struct ibm_hotkey_acpidriver;
- static void tpacpi_hotkey_send_key(unsigned int scancode)
- {
- 	tpacpi_input_send_key_masked(scancode);
--	if (hotkey_report_mode < 2) {
--		acpi_bus_generate_proc_event(ibm_hotkey_acpidriver.device,
--				0x80, TP_HKEY_EV_HOTKEY_BASE + scancode);
--	}
- }
- 
- static void hotkey_read_nvram(struct tp_nvram_state *n, const u32 m)
-@@ -3742,13 +3738,6 @@ static void hotkey_notify(struct ibm_struct *ibm, u32 event)
- 				  "event happened to %s\n", TPACPI_MAIL);
- 		}
- 
--		/* Legacy events */
--		if (!ignore_acpi_ev &&
--		    (send_acpi_ev || hotkey_report_mode < 2)) {
--			acpi_bus_generate_proc_event(ibm->acpi->device,
--						     event, hkey);
--		}
--
- 		/* netlink events */
- 		if (!ignore_acpi_ev && send_acpi_ev) {
- 			acpi_bus_generate_netlink_event(
+ 	kfifo_in_locked(&sonypi_device.fifo, (unsigned char *)&event,
+ 			sizeof(event), &sonypi_device.fifo_lock);
+ 	kill_fasync(&sonypi_device.fifo_async, SIGIO, POLL_IN);
 -- 
 1.7.4.1
