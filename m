@@ -1,59 +1,58 @@
-From: Jonathan Woithe <jwoithe@just42.net>
-Subject: Re: [PATCH 4/5] platform: x86: remove acpi_bus_generate_proc_event
-Date: Mon, 3 Sep 2012 09:53:36 +0930
-Message-ID: <20120903002336.GD25170@marvin.atrad.com.au>
-References: <1346630611.3170.32.camel@offbook>
+From: Wen Congyang <wency@cn.fujitsu.com>
+Subject: Re: [RFC v8 PATCH 04/20] memory-hotplug: offline and remove memory
+ when removing the memory device
+Date: Mon, 03 Sep 2012 09:30:51 +0800
+Message-ID: <5044084B.3050705@cn.fujitsu.com>
+References: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com>	<1346148027-24468-5-git-send-email-wency@cn.fujitsu.com> <20120831135514.2a2dc0d4.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from server.atrad.com.au ([150.101.241.2]:59454 "EHLO
-	server.atrad.com.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755134Ab2ICAal (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Sep 2012 20:30:41 -0400
-Content-Disposition: inline
-In-Reply-To: <1346630611.3170.32.camel@offbook>
+Received: from cn.fujitsu.com ([222.73.24.84]:64149 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1755452Ab2ICBZT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 2 Sep 2012 21:25:19 -0400
+In-Reply-To: <20120831135514.2a2dc0d4.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Davidlohr Bueso <dave@gnu.org>
-Cc: platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, mjg@redhat.com
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com
 
-On Mon, Sep 03, 2012 at 02:03:31AM +0200, Davidlohr Bueso wrote:
-> Calling this function no longer makes sense as /proc/acpi/event
-> is being removed.
+At 09/01/2012 04:55 AM, Andrew Morton Wrote:
+> On Tue, 28 Aug 2012 18:00:11 +0800
+> wency@cn.fujitsu.com wrote:
 > 
-> Signed-off-by: Davidlohr Bueso <dave@gnu.org>
-> :
->  drivers/platform/x86/fujitsu-laptop.c   |    4 ----
-> :
-> diff --git a/drivers/platform/x86/fujitsu-laptop.c b/drivers/platform/x86/fujitsu-laptop.c
-> index c4c1a54..2fac1c5 100644
-> --- a/drivers/platform/x86/fujitsu-laptop.c
-> +++ b/drivers/platform/x86/fujitsu-laptop.c
-> @@ -773,8 +773,6 @@ static void acpi_fujitsu_notify(struct acpi_device *device, u32 event)
->  				else
->  					set_lcd_level(newb);
->  			}
-> -			acpi_bus_generate_proc_event(fujitsu->dev,
-> -				ACPI_VIDEO_NOTIFY_INC_BRIGHTNESS, 0);
->  			keycode = KEY_BRIGHTNESSUP;
->  		} else if (oldb > newb) {
->  			if (disable_brightness_adjust != 1) {
-> @@ -783,8 +781,6 @@ static void acpi_fujitsu_notify(struct acpi_device *device, u32 event)
->  				else
->  					set_lcd_level(newb);
->  			}
-> -			acpi_bus_generate_proc_event(fujitsu->dev,
-> -				ACPI_VIDEO_NOTIFY_DEC_BRIGHTNESS, 0);
->  			keycode = KEY_BRIGHTNESSDOWN;
->  		}
->  		break;
+>> +int remove_memory(int nid, u64 start, u64 size)
+>> +{
+>> +	int ret = -EBUSY;
+>> +	lock_memory_hotplug();
+>> +	/*
+>> +	 * The memory might become online by other task, even if you offine it.
+>> +	 * So we check whether the cpu has been onlined or not.
+> 
+> I think you meant "memory", not "cpu".
 
-Presumedly the intention here is for these events to be delivered via the
-input layer after the removal of /proc/acpi/event (as is done later in the
-above function).
+Yes. I will fix it.
 
-If that's the case, then:
-  Acked-by: Jonathan Woithe <jwoithe@just42.net>
+Thanks
+Wen Congyang
 
-Regards
-  jonathan
+> 
+> Actually, "check whether any part of this memory range has been
+> onlined" would be better.  If that is accurate ;)
+> 
+>> +	 */
+>> +	if (!is_memblk_offline(start, size)) {
+>> +		pr_warn("memory removing [mem %#010llx-%#010llx] failed, "
+>> +			"because the memmory range is online\n",
+>> +			start, start + size);
+>> +		ret = -EAGAIN;
+>> +	}
+>> +
+>> +	unlock_memory_hotplug();
+>> +	return ret;
+>> +
+>> +}
+>> +EXPORT_SYMBOL_GPL(remove_memory);
+> 
+
