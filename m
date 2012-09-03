@@ -1,7 +1,7 @@
 From: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Subject: [PATCH v2 4/6] ACPI, PCI: add acpi_pci_roots protection
-Date: Mon, 3 Sep 2012 17:06:02 +0900
-Message-ID: <20120903170602.375b00cc.izumi.taku@jp.fujitsu.com>
+Subject: [PATCH v2 5/6] ACPI, PCI: add hostbridge removal function
+Date: Mon, 3 Sep 2012 17:06:36 +0900
+Message-ID: <20120903170636.f1749ab0.izumi.taku@jp.fujitsu.com>
 References: <20120903165831.29aed72c.izumi.taku@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -13,154 +13,102 @@ To: Taku Izumi <izumi.taku@jp.fujitsu.com>
 Cc: linux-pci@vger.kernel.org, bhelgaas@google.com, linux-acpi@vger.kernel.org, kaneshige.kenji@jp.fujitsu.com, yinghai@kernel.org, jiang.liu@huawei.com
 List-Id: linux-acpi@vger.kernel.org
 
-Use mutex and RCU to protect global acpi_pci_roots list against
-PCI host bridge hotplug operations.
 
-RCU is used to avoid possible deadlock in function acpi_pci_find_root()
-and acpi_get_pci_rootbridge_handle(). A possible call graph:
-acpi_pci_register_driver()
-	mutex_lock(&acpi_pci_root_lock)
-		driver->add(root)
-			......
-				acpi_pci_find_root()
+Currently there's no PCI-related clean-up code
+in acpi_pci_root_remove() function.
+This patch introduces function for hostbridge removal.
 
-Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
 ---
- drivers/acpi/pci_root.c |   50 +++++++++++++++++++++++++++++++-----------------
- 1 file changed, 33 insertions(+), 17 deletions(-)
+ drivers/acpi/pci_bind.c     |    7 +++++++
+ drivers/acpi/pci_root.c     |    6 ++++++
+ drivers/pci/remove.c        |   14 ++++++++++++++
+ include/acpi/acpi_drivers.h |    1 +
+ include/linux/pci.h         |    1 +
+ 5 files changed, 29 insertions(+)
 
+Index: Bjorn-next-0903/drivers/pci/remove.c
+===================================================================
+--- Bjorn-next-0903.orig/drivers/pci/remove.c
++++ Bjorn-next-0903/drivers/pci/remove.c
+@@ -92,3 +92,17 @@ void pci_stop_and_remove_bus_device(stru
+ 	pci_destroy_dev(dev);
+ }
+ EXPORT_SYMBOL(pci_stop_and_remove_bus_device);
++
++void pci_remove_host_bridge(struct pci_host_bridge *bridge)
++{
++	struct pci_bus *root = bridge->bus;
++	struct pci_dev *dev, *tmp;
++
++	list_for_each_entry_safe_reverse(dev, tmp, &root->devices, bus_list)
++		pci_stop_and_remove_bus_device(dev);
++
++	pci_remove_bus(root);
++
++	device_unregister(&bridge->dev);
++}
++EXPORT_SYMBOL(pci_remove_host_bridge);
 Index: Bjorn-next-0903/drivers/acpi/pci_root.c
 ===================================================================
 --- Bjorn-next-0903.orig/drivers/acpi/pci_root.c
 +++ Bjorn-next-0903/drivers/acpi/pci_root.c
-@@ -28,6 +28,7 @@
- #include <linux/init.h>
- #include <linux/types.h>
- #include <linux/mutex.h>
-+#include <linux/rculist.h>
- #include <linux/pm.h>
- #include <linux/pm_runtime.h>
- #include <linux/pci.h>
-@@ -86,7 +87,7 @@ int acpi_pci_register_driver(struct acpi
- 	mutex_lock(&acpi_pci_root_lock);
- 	list_add_tail(&driver->node, &acpi_pci_drivers);
- 	if (driver->add)
--		list_for_each_entry(root, &acpi_pci_roots, node) {
-+		list_for_each_entry_rcu(root, &acpi_pci_roots, node) {
- 			driver->add(root->device->handle);
- 			n++;
- 		}
-@@ -103,7 +104,7 @@ void acpi_pci_unregister_driver(struct a
- 	mutex_lock(&acpi_pci_root_lock);
- 	list_del(&driver->node);
- 	if (driver->remove)
--		list_for_each_entry(root, &acpi_pci_roots, node)
-+		list_for_each_entry_rcu(root, &acpi_pci_roots, node)
- 			driver->remove(root->device->handle);
- 	mutex_unlock(&acpi_pci_root_lock);
- }
-@@ -112,14 +113,19 @@ EXPORT_SYMBOL(acpi_pci_unregister_driver
- acpi_handle acpi_get_pci_rootbridge_handle(unsigned int seg, unsigned int bus)
+@@ -655,6 +655,7 @@ static int acpi_pci_root_remove(struct a
  {
- 	struct acpi_pci_root *root;
-+	struct acpi_handle *handle = NULL;
- 	
--	list_for_each_entry(root, &acpi_pci_roots, node)
-+	rcu_read_lock();
-+	list_for_each_entry_rcu(root, &acpi_pci_roots, node)
- 		if ((root->segment == (u16) seg) &&
--		    (root->secondary.start == (u16) bus))
--			return root->device->handle;
--	return NULL;		
--}
-+		    (root->secondary.start == (u16) bus)) {
-+			handle = root->device->handle;
-+			break;
-+		}
-+	rcu_read_unlock();
+ 	struct acpi_pci_root *root = acpi_driver_data(device);
+ 	struct acpi_pci_driver *driver;
++	struct pci_host_bridge *bridge = to_pci_host_bridge(root->bus->bridge);
  
-+	return handle;
-+}
- EXPORT_SYMBOL_GPL(acpi_get_pci_rootbridge_handle);
- 
- /**
-@@ -266,10 +272,14 @@ struct acpi_pci_root *acpi_pci_find_root
- {
- 	struct acpi_pci_root *root;
- 
--	list_for_each_entry(root, &acpi_pci_roots, node) {
--		if (root->device->handle == handle)
-+	rcu_read_lock();
-+	list_for_each_entry_rcu(root, &acpi_pci_roots, node)
-+		if (root->device->handle == handle) {
-+			rcu_read_unlock();
- 			return root;
--	}
-+		}
-+	rcu_read_unlock();
-+
- 	return NULL;
- }
- EXPORT_SYMBOL_GPL(acpi_pci_find_root);
-@@ -506,8 +516,9 @@ static int __devinit acpi_pci_root_add(s
- 	 * TBD: Need PCI interface for enumeration/configuration of roots.
- 	 */
- 
--	/* TBD: Locking */
--	list_add_tail(&root->node, &acpi_pci_roots);
-+	mutex_lock(&acpi_pci_root_lock);
-+	list_add_tail_rcu(&root->node, &acpi_pci_roots);
-+	mutex_unlock(&acpi_pci_root_lock);
- 
- 	printk(KERN_INFO PREFIX "%s [%s] (domain %04x %pR)\n",
- 	       acpi_device_name(device), acpi_device_bid(device),
-@@ -526,7 +537,7 @@ static int __devinit acpi_pci_root_add(s
- 			    "Bus %04x:%02x not present in PCI namespace\n",
- 			    root->segment, (unsigned int)root->secondary.start);
- 		result = -ENODEV;
--		goto end;
-+		goto out_del_root;
- 	}
- 
- 	/*
-@@ -536,7 +547,7 @@ static int __devinit acpi_pci_root_add(s
- 	 */
- 	result = acpi_pci_bind_root(device);
- 	if (result)
--		goto end;
-+		goto out_del_root;
- 
- 	/*
- 	 * PCI Routing Table
-@@ -614,9 +625,12 @@ static int __devinit acpi_pci_root_add(s
- 
- 	return 0;
- 
-+out_del_root:
-+	mutex_lock(&acpi_pci_root_lock);
-+	list_del_rcu(&root->node);
-+	mutex_unlock(&acpi_pci_root_lock);
-+	synchronize_rcu();
- end:
--	if (!list_empty(&root->node))
--		list_del(&root->node);
- 	kfree(root);
- 	return result;
- }
-@@ -646,11 +660,13 @@ static int acpi_pci_root_remove(struct a
+ 	mutex_lock(&acpi_pci_root_lock);
  	list_for_each_entry(driver, &acpi_pci_drivers, node)
- 		if (driver->remove)
- 			driver->remove(root->device->handle);
--	mutex_unlock(&acpi_pci_root_lock);
- 
+@@ -664,6 +665,11 @@ static int acpi_pci_root_remove(struct a
  	device_set_run_wake(root->bus->bridge, false);
  	pci_acpi_remove_bus_pm_notifier(device);
  
-+	list_del_rcu(&root->node);
-+	mutex_unlock(&acpi_pci_root_lock);
-+	synchronize_rcu();
- 	kfree(root);
++	acpi_pci_irq_del_prt(root->bus);
++	acpi_pci_unbind_root(device);
++
++	pci_remove_host_bridge(bridge);
++
+ 	list_del_rcu(&root->node);
+ 	mutex_unlock(&acpi_pci_root_lock);
+ 	synchronize_rcu();
+Index: Bjorn-next-0903/include/linux/pci.h
+===================================================================
+--- Bjorn-next-0903.orig/include/linux/pci.h
++++ Bjorn-next-0903/include/linux/pci.h
+@@ -734,6 +734,7 @@ extern struct pci_dev *pci_dev_get(struc
+ extern void pci_dev_put(struct pci_dev *dev);
+ extern void pci_remove_bus(struct pci_bus *b);
+ extern void pci_stop_and_remove_bus_device(struct pci_dev *dev);
++extern void pci_remove_host_bridge(struct pci_host_bridge *bridge);
+ void pci_setup_cardbus(struct pci_bus *bus);
+ extern void pci_sort_breadthfirst(void);
+ #define dev_is_pci(d) ((d)->bus == &pci_bus_type)
+Index: Bjorn-next-0903/drivers/acpi/pci_bind.c
+===================================================================
+--- Bjorn-next-0903.orig/drivers/acpi/pci_bind.c
++++ Bjorn-next-0903/drivers/acpi/pci_bind.c
+@@ -118,3 +118,10 @@ int acpi_pci_bind_root(struct acpi_devic
+ 
  	return 0;
  }
++
++void  acpi_pci_unbind_root(struct acpi_device *device)
++{
++	device->ops.bind = NULL;
++	device->ops.unbind = NULL;
++}
++
+Index: Bjorn-next-0903/include/acpi/acpi_drivers.h
+===================================================================
+--- Bjorn-next-0903.orig/include/acpi/acpi_drivers.h
++++ Bjorn-next-0903/include/acpi/acpi_drivers.h
+@@ -101,6 +101,7 @@ struct pci_bus;
+ 
+ struct pci_dev *acpi_get_pci_dev(acpi_handle);
+ int acpi_pci_bind_root(struct acpi_device *device);
++void acpi_pci_unbind_root(struct acpi_device *device);
+ 
+ /* Arch-defined function to add a bus to the system */
+ 
