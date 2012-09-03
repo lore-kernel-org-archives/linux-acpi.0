@@ -1,113 +1,89 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH v2 6/6] ACPI, PCI: add resoruce-assign code for devices
- under hot-added hostbridge
-Date: Mon, 3 Sep 2012 13:27:11 -0700
-Message-ID: <CAE9FiQVXtTf3+jpbYzHk3D3VVm-bXEB9EcgkBwkEtYR-SRiKHA@mail.gmail.com>
-References: <20120903165831.29aed72c.izumi.taku@jp.fujitsu.com>
-	<20120903170705.4e6dbc2c.izumi.taku@jp.fujitsu.com>
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [PATCH 5/5][RFC] cpuidle : add cpuidle_register_states function
+Date: Mon, 03 Sep 2012 22:50:49 +0200
+Message-ID: <50451829.1010304@linaro.org>
+References: <1343213162-8064-1-git-send-email-daniel.lezcano@linaro.org> <1343213162-8064-6-git-send-email-daniel.lezcano@linaro.org> <20120903132245.GK3589@tbergstrom-lnx.Nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20120903170705.4e6dbc2c.izumi.taku@jp.fujitsu.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Cc: linux-pci@vger.kernel.org, bhelgaas@google.com, linux-acpi@vger.kernel.org, kaneshige.kenji@jp.fujitsu.com, jiang.liu@huawei.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:55706 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753422Ab2ICUvJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Sep 2012 16:51:09 -0400
+Received: by eaac11 with SMTP id c11so1730694eaa.19
+        for <linux-acpi@vger.kernel.org>; Mon, 03 Sep 2012 13:51:07 -0700 (PDT)
+In-Reply-To: <20120903132245.GK3589@tbergstrom-lnx.Nvidia.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Peter De Schrijver <pdeschrijver@nvidia.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>
 
-On Mon, Sep 3, 2012 at 1:07 AM, Taku Izumi <izumi.taku@jp.fujitsu.com> wrote:
->
-> Devices under hot-added hostbridge have no chance to assign resources
-> and to configure them, so this patch adds such code for hot-added
-> hostbridges at acpi_pci_root_start().
->
-> Signed-off-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
-> ---
->  drivers/acpi/pci_root.c |   17 +++++++++++++++++
->  include/acpi/acpi_bus.h |    1 +
->  2 files changed, 18 insertions(+)
->
-> Index: Bjorn-next-0903/drivers/acpi/pci_root.c
-> ===================================================================
-> --- Bjorn-next-0903.orig/drivers/acpi/pci_root.c
-> +++ Bjorn-next-0903/drivers/acpi/pci_root.c
-> @@ -39,6 +39,7 @@
->  #include <acpi/acpi_bus.h>
->  #include <acpi/acpi_drivers.h>
->  #include <acpi/apei.h>
-> +#include <linux/pci_hotplug.h>
->
->  #define PREFIX "ACPI: "
->
-> @@ -461,6 +462,9 @@ static int __devinit acpi_pci_root_add(s
->         if (!root)
->                 return -ENOMEM;
->
-> +       if (system_state != SYSTEM_BOOTING)
-> +               root->hot_added = true;
-> +
->         segment = 0;
->         status = acpi_evaluate_integer(device->handle, METHOD_NAME__SEG, NULL,
->                                        &segment);
-> @@ -639,6 +643,7 @@ static int acpi_pci_root_start(struct ac
->  {
->         struct acpi_pci_root *root = acpi_driver_data(device);
->         struct acpi_pci_driver *driver;
-> +       struct pci_dev *pdev;
->
->         mutex_lock(&acpi_pci_root_lock);
->         list_for_each_entry(driver, &acpi_pci_drivers, node)
-> @@ -646,6 +651,18 @@ static int acpi_pci_root_start(struct ac
->                         driver->add(device->handle);
->         mutex_unlock(&acpi_pci_root_lock);
->
-> +       /*
-> +        * Devices under hot-added hostbridge have no chance to assign
-> +        * resources and to configure them, so do that here
-> +        */
-> +       if (root->hot_added) {
-> +               pci_bus_size_bridges(root->bus);
-> +               pci_bus_assign_resources(root->bus);
-> +               list_for_each_entry(pdev, &root->bus->devices, bus_list)
-> +                       pci_configure_slot(pdev);
-> +               pci_enable_bridges(root->bus);
-> +       }
-> +
->         pci_bus_add_devices(root->bus);
+On 09/03/2012 03:22 PM, Peter De Schrijver wrote:
+> On Wed, Jul 25, 2012 at 12:46:02PM +0200, Daniel Lezcano wrote:
+>> The tegra3 and big.LITTLE architecture have different cpu latencies.
+>> This API allows to specify a different cpu latency for a specific cp=
+u.
+>>
+>> With the previous patches, we use the per cpuidle device states poin=
+ter,
+>> this function overrides this pointer.
+>>
+>> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+>> ---
+>>  drivers/cpuidle/cpuidle.c |   17 +++++++++++++++++
+>>  include/linux/cpuidle.h   |   10 +++++++---
+>>  2 files changed, 24 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
+>> index 199878a..3b21b68 100644
+>> --- a/drivers/cpuidle/cpuidle.c
+>> +++ b/drivers/cpuidle/cpuidle.c
+>> @@ -456,6 +456,23 @@ void cpuidle_unregister_device(struct cpuidle_d=
+evice *dev)
+>> =20
+>>  EXPORT_SYMBOL_GPL(cpuidle_unregister_device);
+>> =20
+>> +int cpuidle_register_states(struct cpuidle_device *dev,
+>> +			    struct cpuidle_state *states,
+>> +			    int state_count)
+>> +{
+>> +	if (!dev || !states)
+>> +		return -EINVAL;
+>> +
+>> +	if (state_count <=3D 0)
+>> +		return -EINVAL;
+>> +
+>> +	dev->states =3D states;
+>> +	dev->state_count =3D state_count;
+>> +
+>> +	return 0;
+>> +}
+>> +EXPORT_SYMBOL_GPL(cpuidle_register_state);
+>> +
+>>  #ifdef CONFIG_SMP
+>> =20
+>=20
+> Looks good... apart from the fact that the function definition says
+> cpuidle_register_stateS and the exported symbol is cpuidle_register_s=
+tate...
 
-after looking at your simplified version in patch5 and patch6
-found that you do not understand my patchset correctly.
 
-in my patchset there is change on:
-acpi_pci_root_add
-acpi_pci_root_start
-acpi_pci_root_remove
+Ok, fixed. Thanks !
 
-and
-handle_root_bridge_insertion/acpi_root_configure_bridge
-handle_root_bridge_removal
+  -- Daniel
 
-for hot add path:
-handle_root_bridge_insertion will call
-      acpi_pci_root_add: it will scan the root bus and find all pci device
-      acpi_root_configure_bridge: it will survey fw set pci resource,
-and assigned unsigned resource
-      acpi_pci_root_start: it will start acpi_pci driver for ioapic
-controller and dmar iommu
-                                    then call pci_bus_add_devices to
-load other pci device drivers.
 
-for hot remove path:
-      acpi_pci_root_remove: will call pci_stop_bus_devices() to stop
-drivers for all normal pci devices.
-                                        then stop acpi_pci driver for
-dmar and ioapic driver
-                                        then call
-pci_stop_and_remove_bus to remove the root bus.
+--=20
+ <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software for=
+ ARM SoCs
 
-the point is : keep the driver of ioapic and dmar  driver loading
-before normal pci drivers, and later
-stop driver for dmar/iommu, after unloading pci drivers.
+=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
+<http://twitter.com/#!/linaroorg> Twitter |
+<http://www.linaro.org/linaro-blog/> Blog
 
-Thanks
-
-Yinghai
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
