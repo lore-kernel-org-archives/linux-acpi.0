@@ -1,58 +1,86 @@
-From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: Re: [RFC v8 PATCH 04/20] memory-hotplug: offline and remove memory
- when removing the memory device
-Date: Mon, 03 Sep 2012 09:30:51 +0800
-Message-ID: <5044084B.3050705@cn.fujitsu.com>
-References: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com>	<1346148027-24468-5-git-send-email-wency@cn.fujitsu.com> <20120831135514.2a2dc0d4.akpm@linux-foundation.org>
+From: Taku Izumi <izumi.taku@jp.fujitsu.com>
+Subject: Re: [PATCH 0/7][RESEND] acpi, pci: hostbridge hotplug support
+Date: Mon, 3 Sep 2012 11:28:45 +0900
+Message-ID: <20120903112845.0c583e70.izumi.taku@jp.fujitsu.com>
+References: <20120810150955.e4ab3c7f.izumi.taku@jp.fujitsu.com>
+	<CAErSpo5eqyuK_yKshHbDyK5LBBG9cCn1MpmHbqpvVYe6x7AxFg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:64149 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1755452Ab2ICBZT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 2 Sep 2012 21:25:19 -0400
-In-Reply-To: <20120831135514.2a2dc0d4.akpm@linux-foundation.org>
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:51654 "EHLO
+	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755799Ab2ICC2a (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Sep 2012 22:28:30 -0400
+In-Reply-To: <CAErSpo5eqyuK_yKshHbDyK5LBBG9cCn1MpmHbqpvVYe6x7AxFg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, kaneshige.kenji@jp.fujitsu.com, yinghai@kernel.org, jiang.liu@huawei.com
 
-At 09/01/2012 04:55 AM, Andrew Morton Wrote:
-> On Tue, 28 Aug 2012 18:00:11 +0800
-> wency@cn.fujitsu.com wrote:
-> 
->> +int remove_memory(int nid, u64 start, u64 size)
->> +{
->> +	int ret = -EBUSY;
->> +	lock_memory_hotplug();
->> +	/*
->> +	 * The memory might become online by other task, even if you offine it.
->> +	 * So we check whether the cpu has been onlined or not.
-> 
-> I think you meant "memory", not "cpu".
+Hi Bjorn,
 
-Yes. I will fix it.
+  Sorry for late response. 
+  I've returned to Japan. It was nice to see you.
 
-Thanks
-Wen Congyang
+On Wed, 29 Aug 2012 23:23:49 -0700
+Bjorn Helgaas <bhelgaas@google.com> wrote:
 
+> On Thu, Aug 9, 2012 at 11:09 PM, Taku Izumi <izumi.taku@jp.fujitsu.com> wrote:
+> >  Hi all,
+> >
+> >
+> >  I'd like to merge hostbridge hotplug feature.
+> >  I looked at Yinghai's branch and found that this branch contains
+> >  many work and can be split into some parts.
+> >  I believe it is good to merge step by step.
+> >
+> >  My idea is splitting into the following 4 parts:
+> >    1. basic hostbirdge hotplug work
+> >    2. acpiphp work
+> >    3. /sysfs interface work (logical hotplug?)
+> >    4. cleanup
+> >
+> >  This patchset is 1st step based on the following Yinghai's branch:
+> >
+> > git://git.kernel.org/pub/scm/linux/kernel/git/yinghai/linux-yinghai.git
+> > for-pci-root-bus-hotplug
+> >
+> >   * [PATCH 1/7][RESEND] x86, PCI: Fix non acpi path pci_sysdata leaking with release_fn
+> >   * [PATCH 2/7][RESEND] PCI: Correctly clean up pci root buses in function pci_remove_bus()
+> >   * [PATCH 3/7][RESEND] ACPI, PCI: Use normal list for struct acpi_pci_driver
+> >   * [PATCH 4/7][RESEND] ACPI, PCI: Notify acpi_pci_drivers when hot-plugging PCI root bridges
+> >   * [PATCH 5/7][RESEND] ACPI, PCI: Protect global lists in drivers/acpi/pci_root.c
+> >   * [PATCH 6/7][RESEND] ACPI, PCI: add hostbridge removal function
+> >   * [PATCH 7/7][RESEND] ACPI, PCI: add resoruce-assign code for devices under hot-added hostbridge
 > 
-> Actually, "check whether any part of this memory range has been
-> onlined" would be better.  If that is accurate ;)
+> I looked at merging these tonight.  But I noticed there are still a
+> few unanswered questions I asked earlier.
 > 
->> +	 */
->> +	if (!is_memblk_offline(start, size)) {
->> +		pr_warn("memory removing [mem %#010llx-%#010llx] failed, "
->> +			"because the memmory range is online\n",
->> +			start, start + size);
->> +		ret = -EAGAIN;
->> +	}
->> +
->> +	unlock_memory_hotplug();
->> +	return ret;
->> +
->> +}
->> +EXPORT_SYMBOL_GPL(remove_memory);
+> 1) For patch [1/7], I pointed out that there is currently no way to
+> remove a non-ACPI host bridge, which means the fact that we don't free
+> the pci_sysdata is not really a leak.  If you want to add the
+> release_fn so that you can add support for removing and adding these
+> non-ACPI host bridges in the future, I do not understand that.  It
+> just doesn't make sense to me to try to support hotplug for those
+> bridges.
+
+  I see. I plan on ACPI-based host bridge hotplug, so I omit this patch now.
+
+> 2) For patch [2/7], I'm still curious about the scenario where this
+> patch makes a difference (see my previous response for details).
+
+  I'll omit this patch too according to Jian's comment.
+
+> 3) Patch [5/7], adds mutual exclusion to two different lists, using
+> two different mechanisms (mutex and RCU).  It would be easier for
+> people to review if this were done in two separate patches.
 > 
+  OK. I'll sprit into 2 patches.
+
+  And I'll resend new version one soon.
+
+-- 
+Best regards,
+Taku Izumi <izumi.taku@jp.fujitsu.com>
 
