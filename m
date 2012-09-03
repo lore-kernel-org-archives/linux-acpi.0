@@ -1,63 +1,113 @@
-From: Peter De Schrijver <pdeschrijver@nvidia.com>
-Subject: Re: [PATCH 0/5][RFC] Use per cpuidle_device states
-Date: Mon, 3 Sep 2012 18:36:57 +0300
-Message-ID: <20120903153657.GM3589@tbergstrom-lnx.Nvidia.com>
-References: <1343213162-8064-1-git-send-email-daniel.lezcano@linaro.org>
- <20120727112845.GI12034@tbergstrom-lnx.Nvidia.com>
- <50412A53.1070109@linaro.org>
- <20120903110511.GJ3589@tbergstrom-lnx.Nvidia.com>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH v2 6/6] ACPI, PCI: add resoruce-assign code for devices
+ under hot-added hostbridge
+Date: Mon, 3 Sep 2012 13:27:11 -0700
+Message-ID: <CAE9FiQVXtTf3+jpbYzHk3D3VVm-bXEB9EcgkBwkEtYR-SRiKHA@mail.gmail.com>
+References: <20120903165831.29aed72c.izumi.taku@jp.fujitsu.com>
+	<20120903170705.4e6dbc2c.izumi.taku@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hqemgate04.nvidia.com ([216.228.121.35]:5185 "EHLO
-	hqemgate04.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932260Ab2ICPhI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Sep 2012 11:37:08 -0400
-Content-Disposition: inline
-In-Reply-To: <20120903110511.GJ3589@tbergstrom-lnx.Nvidia.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20120903170705.4e6dbc2c.izumi.taku@jp.fujitsu.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Taku Izumi <izumi.taku@jp.fujitsu.com>
+Cc: linux-pci@vger.kernel.org, bhelgaas@google.com, linux-acpi@vger.kernel.org, kaneshige.kenji@jp.fujitsu.com, jiang.liu@huawei.com
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 
-On Mon, Sep 03, 2012 at 01:05:11PM +0200, Peter De Schrijver wrote:
-> On Fri, Aug 31, 2012 at 11:19:15PM +0200, Daniel Lezcano wrote:
-> > On 07/27/2012 01:28 PM, Peter De Schrijver wrote:
-> > > On Wed, Jul 25, 2012 at 12:45:57PM +0200, Daniel Lezcano wrote:
-> > >> Since commit 46bcfad7a819bd17ac4e831b04405152d59784ab,
-> > >>         cpuidle: Single/Global registration of idle states
-> > >>
-> > >> we have a single registration for the cpuidle states which makes
-> > >> sense. But now two new architectures are coming: tegra3 and big.LITTLE.
-> > >>
-> > >> These architectures have different cpus with different caracteristics
-> > >> for power saving. High load => powerfull processors, idle => small processors.
-> > >>
-> > >> That implies different cpu latencies.
-> > >>
-> > >> This patchset present a simple way to keep the current behavior as introduced
-> > >> by Deepthi without breaking the drivers and add the possibility to specify a
-> > >> per cpu states.
-> > >>
-> > > Looks good! I will do some tests with this next week.
-> > 
-> > Hi Peter,
-> > 
-> > shall I consider adding your acked-by ?
-> > 
-> 
-> You can. I don't see any problem with the code as such (besides the race).
-> 
-> > Did you have time to test the patchset ?
-> > 
-> 
-> I haven't had time no :( I was on holiday most of august and had some other
-> things to take care of last week :(. Working on it now.
-> 
+On Mon, Sep 3, 2012 at 1:07 AM, Taku Izumi <izumi.taku@jp.fujitsu.com> wrote:
+>
+> Devices under hot-added hostbridge have no chance to assign resources
+> and to configure them, so this patch adds such code for hot-added
+> hostbridges at acpi_pci_root_start().
+>
+> Signed-off-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
+> ---
+>  drivers/acpi/pci_root.c |   17 +++++++++++++++++
+>  include/acpi/acpi_bus.h |    1 +
+>  2 files changed, 18 insertions(+)
+>
+> Index: Bjorn-next-0903/drivers/acpi/pci_root.c
+> ===================================================================
+> --- Bjorn-next-0903.orig/drivers/acpi/pci_root.c
+> +++ Bjorn-next-0903/drivers/acpi/pci_root.c
+> @@ -39,6 +39,7 @@
+>  #include <acpi/acpi_bus.h>
+>  #include <acpi/acpi_drivers.h>
+>  #include <acpi/apei.h>
+> +#include <linux/pci_hotplug.h>
+>
+>  #define PREFIX "ACPI: "
+>
+> @@ -461,6 +462,9 @@ static int __devinit acpi_pci_root_add(s
+>         if (!root)
+>                 return -ENOMEM;
+>
+> +       if (system_state != SYSTEM_BOOTING)
+> +               root->hot_added = true;
+> +
+>         segment = 0;
+>         status = acpi_evaluate_integer(device->handle, METHOD_NAME__SEG, NULL,
+>                                        &segment);
+> @@ -639,6 +643,7 @@ static int acpi_pci_root_start(struct ac
+>  {
+>         struct acpi_pci_root *root = acpi_driver_data(device);
+>         struct acpi_pci_driver *driver;
+> +       struct pci_dev *pdev;
+>
+>         mutex_lock(&acpi_pci_root_lock);
+>         list_for_each_entry(driver, &acpi_pci_drivers, node)
+> @@ -646,6 +651,18 @@ static int acpi_pci_root_start(struct ac
+>                         driver->add(device->handle);
+>         mutex_unlock(&acpi_pci_root_lock);
+>
+> +       /*
+> +        * Devices under hot-added hostbridge have no chance to assign
+> +        * resources and to configure them, so do that here
+> +        */
+> +       if (root->hot_added) {
+> +               pci_bus_size_bridges(root->bus);
+> +               pci_bus_assign_resources(root->bus);
+> +               list_for_each_entry(pdev, &root->bus->devices, bus_list)
+> +                       pci_configure_slot(pdev);
+> +               pci_enable_bridges(root->bus);
+> +       }
+> +
+>         pci_bus_add_devices(root->bus);
 
-I did some preliminary testing, besides the issues I posted earlier. It looks
-all good here.
+after looking at your simplified version in patch5 and patch6
+found that you do not understand my patchset correctly.
 
-Cheers,
+in my patchset there is change on:
+acpi_pci_root_add
+acpi_pci_root_start
+acpi_pci_root_remove
 
-Peter.
+and
+handle_root_bridge_insertion/acpi_root_configure_bridge
+handle_root_bridge_removal
+
+for hot add path:
+handle_root_bridge_insertion will call
+      acpi_pci_root_add: it will scan the root bus and find all pci device
+      acpi_root_configure_bridge: it will survey fw set pci resource,
+and assigned unsigned resource
+      acpi_pci_root_start: it will start acpi_pci driver for ioapic
+controller and dmar iommu
+                                    then call pci_bus_add_devices to
+load other pci device drivers.
+
+for hot remove path:
+      acpi_pci_root_remove: will call pci_stop_bus_devices() to stop
+drivers for all normal pci devices.
+                                        then stop acpi_pci driver for
+dmar and ioapic driver
+                                        then call
+pci_stop_and_remove_bus to remove the root bus.
+
+the point is : keep the driver of ioapic and dmar  driver loading
+before normal pci drivers, and later
+stop driver for dmar/iommu, after unloading pci drivers.
+
+Thanks
+
+Yinghai
