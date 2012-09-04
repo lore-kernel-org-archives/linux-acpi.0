@@ -1,87 +1,75 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [RFC v8 PATCH 13/20] memory-hotplug: check page type in get_page_bootmem
-Date: Tue, 4 Sep 2012 18:54:30 +0900
-Message-ID: <5045CFD6.9040408@jp.fujitsu.com>
-References: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com>	<1346148027-24468-14-git-send-email-wency@cn.fujitsu.com> <20120831143032.1343e99a.akpm@linux-foundation.org> <50457983.1050304@cn.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <50457983.1050304@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com
+From: Aaron Lu <aaron.lwe@gmail.com>
+Subject: [PATCH v6 0/7] ZPODD patches
+Date: Tue,  4 Sep 2012 22:24:33 +0800
+Message-ID: <1346768680-7287-1-git-send-email-aaron.lwe@gmail.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:62706 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757157Ab2IDOZE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Sep 2012 10:25:04 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>, James Bottomley <James.Bottomley@HansenPartnership.com>, Jeff Garzik <jgarzik@pobox.com>
+Cc: linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>, Aaron Lu <aaron.lwe@gmail.com>
 
-Hi Wen,
+v6:
+When user changes may_power_off flag through sysfs entry and if device
+is already runtime suspended, resume resume it so that it can respect
+this flag next time it is runtime suspended as suggested by Alan Stern.
+Call scsi_autopm_get/put_device once in sr_check_events as suggested by
+Alan Stern.
 
-2012/09/04 12:46, Wen Congyang wrote:
-> Hi, isimatu-san
->
-> At 09/01/2012 05:30 AM, Andrew Morton Wrote:
->> On Tue, 28 Aug 2012 18:00:20 +0800
->> wency@cn.fujitsu.com wrote:
->>
->>> From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->>>
->>> There is a possibility that get_page_bootmem() is called to the same page many
->>> times. So when get_page_bootmem is called to the same page, the function only
->>> increments page->_count.
->>
->> I really don't understand this explanation, even after having looked at
->> the code.  Can you please have another attempt at the changelog?
->
-> What is the problem that you want to fix? The function get_page_bootmem()
-> may be called to the same page more than once, but I don't find any problem
-> about current implementation.
+v5:
+Add may_power_off flag to scsi device.
+Alan Stern suggested that I should not mess runtime suspend with
+runtime power off, but the current zpodd implementation made it not
+easy to seperate. So I re-wrote the zpodd implementation, the end
+result is, normal ODD can also enter runtime suspended state, but
+their power won't be removed.
 
-The patch is just optimization. The patch does not fix a problems.
-As you know, the function may be called many times for the same page.
-I think if a page is sets to page_type and Page Private flag and page->private,
-the page need not be set the same things again. So we check page_type when
-get_page_bootmem() is called. And if the page has been set to them, the page
-is only incremented page->_count.
+v4:
+Rebase on top of Linus' tree, due to this, the problem of a missing
+flag in v3 is gone;
+Add a new function scsi_autopm_put_device_autosuspend to first mark
+last busy for the device and then put autosuspend it as suggested by
+Oliver Neukum.
+Typo fix as pointed by Sergei Shtylyov.
+Check can_power_off flag before any runtime pm operations in sr.
 
-Thanks,
-Yasuaki Ishimatsu
+v3:
+Rebase on top of scsi-misc tree;
+Add the sr related patches previously in Jeff's libata tree;
+Re-organize the sr patches.
+A problem for now: for patch
+scsi: sr: support zero power ODD(ZPODD)
+I can't set a flag in libata-acpi.c since a related function is
+missing in scsi-misc tree. Will fix this when 3.6-rc1 released.
 
->
-> Thanks
-> Wen Congyang
->
->>
->>> --- a/mm/memory_hotplug.c
->>> +++ b/mm/memory_hotplug.c
->>> @@ -95,10 +95,17 @@ static void release_memory_resource(struct resource *res)
->>>   static void get_page_bootmem(unsigned long info,  struct page *page,
->>>   			     unsigned long type)
->>>   {
->>> -	page->lru.next = (struct list_head *) type;
->>> -	SetPagePrivate(page);
->>> -	set_page_private(page, info);
->>> -	atomic_inc(&page->_count);
->>> +	unsigned long page_type;
->>> +
->>> +	page_type = (unsigned long) page->lru.next;
->>> +	if (page_type < MEMORY_HOTPLUG_MIN_BOOTMEM_TYPE ||
->>> +	    page_type > MEMORY_HOTPLUG_MAX_BOOTMEM_TYPE){
->>> +		page->lru.next = (struct list_head *) type;
->>> +		SetPagePrivate(page);
->>> +		set_page_private(page, info);
->>> +		atomic_inc(&page->_count);
->>> +	} else
->>> +		atomic_inc(&page->_count);
->>>   }
->>
->> And a code comment which explains what is going on would be good.  As
->> is always the case ;)
->>
->>
->
+v2:
+Bug fix for v1;
+Use scsi_autopm_* in sr driver instead of pm_runtime_*;
 
+v1:
+Here are some patches to make ZPODD easier to use for end users and
+a fix for using ZPODD with system suspend.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Aaron Lu (7):
+  scsi: sr: support runtime pm for ODD
+  block: genhd: export disk_(un)block_events
+  scsi: sr: block events checking when suspended for zpodd
+  libata: acpi: set can_power_off for both ODD and HD
+  scsi: pm: add may_power_off flag
+  scsi: sr: use may_power_off
+  libata: acpi: respect may_power_off flag
+
+ block/genhd.c              |  2 ++
+ drivers/ata/libata-acpi.c  | 35 ++++++++++++------
+ drivers/scsi/scsi_sysfs.c  | 37 ++++++++++++++++++-
+ drivers/scsi/sr.c          | 89 ++++++++++++++++++++++++++++++++++++++++++++--
+ drivers/scsi/sr.h          |  1 +
+ include/scsi/scsi_device.h |  2 ++
+ 6 files changed, 152 insertions(+), 14 deletions(-)
+
+-- 
+1.7.11.3
+
