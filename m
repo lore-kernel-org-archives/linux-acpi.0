@@ -1,49 +1,38 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [RFC v8 PATCH 08/20] memory-hotplug: remove
- /sys/firmware/memmap/X sysfs
-Date: Tue, 4 Sep 2012 16:16:34 -0700
-Message-ID: <20120904161634.f1f9f693.akpm@linux-foundation.org>
-References: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com>
-	<1346148027-24468-9-git-send-email-wency@cn.fujitsu.com>
-	<20120831140623.8d13bd2c.akpm@linux-foundation.org>
-	<5044454E.7070909@cn.fujitsu.com>
+From: Josh Triplett <josh@joshtriplett.org>
+Subject: Re: [PATCHv2 0/4] Fix ACPI BGRT support for images located in EFI
+ boot services memory
+Date: Tue, 4 Sep 2012 16:28:44 -0700
+Message-ID: <20120904232843.GA11855@jtriplet-mobl1>
+References: <cover.1346792566.git.josh@joshtriplett.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54902 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932839Ab2IDXQg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Sep 2012 19:16:36 -0400
-In-Reply-To: <5044454E.7070909@cn.fujitsu.com>
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:35202 "EHLO
+	relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751154Ab2IDX2v (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Sep 2012 19:28:51 -0400
+Content-Disposition: inline
+In-Reply-To: <cover.1346792566.git.josh@joshtriplett.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Wen Congyang <wency@cn.fujitsu.com>
-Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, Christoph Lameter <cl@linux-foundation.org>
+To: linux-kernel@vger.kernel.org
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, Matt Fleming <matt.fleming@intel.com>, Olof Johansson <olof@lixom.net>, Matthew Garrett <mjg@redhat.com>, David Howells <dhowells@redhat.com>, Rusty Russell <rusty@rustcorp.com.au>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Pawel Moll <pawel.moll@arm.com>, linux-acpi@vger.kernel.org
 
-On Mon, 03 Sep 2012 13:51:10 +0800
-Wen Congyang <wency@cn.fujitsu.com> wrote:
+On Tue, Sep 04, 2012 at 02:21:19PM -0700, Josh Triplett wrote:
+> v2: Made the new internal function efi_unmap_memmap static.  Incorporated
+>     feedback from H. Peter Anvin and Matt Fleming: added stubs for
+>     x86-specific EFI functions called from init/main.c to eliminate the
+>     corresponding ifdefs in start_kernel; deferred
+>     efi_free_boot_services even later, to just before free_initmem.
 
-> >> +static void release_firmware_map_entry(struct kobject *kobj)
-> >> +{
-> >> +	struct firmware_map_entry *entry = to_memmap_entry(kobj);
-> >> +	struct page *page;
-> >> +
-> >> +	page = virt_to_page(entry);
-> >> +	if (PageSlab(page) || PageCompound(page))
-> > 
-> > That PageCompound() test looks rather odd.  Why is this done?
-> 
-> Liu Jiang and Christoph Lameter discussed how to find slab page
-> in this mail:
-> https://lkml.org/lkml/2012/7/6/333.
+Argh, looks like I missed something important in testing: a WARN from
+check_early_ioremap_leak.  Looks like moving the reclamation of the EFI
+memory map that late makes check_early_ioremap_leak figure that it won't
+get reclaimed at all.
 
-Well, please add a code comment to release_firmware_map_entry() which
-fully explains these things.
+As far as I can tell, ioremap won't work that early; EFI really does
+need to use early_ioremap.  Since at the moment we don't seem to have
+any other drivers that need to access boot services memory, any
+objection to moving efi_free_boot_services back to just after ACPI?
 
-I see that Christoph and I agree: "It would be cleaner if memory
-hotplug had an indicator which allocation mechanism was used and would
-use the corresponding free action".  You didn't respond to this
-suggestion when he made it, nor when I made it.  What are your thoughts
-on this?
-
+- Josh Triplett
