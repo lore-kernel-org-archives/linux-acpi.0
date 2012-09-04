@@ -1,88 +1,54 @@
-From: Oliver Neukum <oneukum@suse.de>
-Subject: Re: [PATCH v6 1/7] scsi: sr: support runtime pm for ODD
-Date: Tue, 04 Sep 2012 20:47:15 +0200
-Message-ID: <11638307.8MbrDPKO6y@linux-lqwf.site>
-References: <Pine.LNX.4.44L0.1209041350490.1605-100000@iolanthe.rowland.org>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH v2 2/6] ACPI, PCI: Notify acpi_pci_drivers when
+ hot-plugging PCI root bridges
+Date: Tue, 4 Sep 2012 12:12:19 -0700
+Message-ID: <CAE9FiQVJ0JRCgZsh+iSB8VC4TqJDcetPyno36L8=UW-UQUK4vQ@mail.gmail.com>
+References: <20120903165831.29aed72c.izumi.taku@jp.fujitsu.com>
+	<20120903170442.c406455c.izumi.taku@jp.fujitsu.com>
+	<4A338DB2991D2A44B9A44B8718AECF650A4A2DCD@G01JPEXMBYT03>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.1209041350490.1605-100000@iolanthe.rowland.org>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Aaron Lu <aaron.lwe@gmail.com>, James Bottomley <James.Bottomley@hansenpartnership.com>, Jeff Garzik <jgarzik@pobox.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <4A338DB2991D2A44B9A44B8718AECF650A4A2DCD@G01JPEXMBYT03>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Kaneshige, Kenji" <kaneshige.kenji@jp.fujitsu.com>
+Cc: "Izumi, Taku" <izumi.taku@jp.fujitsu.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "bhelgaas@google.com" <bhelgaas@google.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday 04 September 2012 13:59:38 Alan Stern wrote:
-> On Tue, 4 Sep 2012, Oliver Neukum wrote:
-> 
-> > On Tuesday 04 September 2012 22:24:34 Aaron Lu wrote:
-> > > From: Aaron Lu <aaron.lu@intel.com>
-> > > 
-> > > The ODD will be placed into suspend state when:
-> > > 1 For tray type ODD, no media inside and door closed;
-> > > 2 For slot type ODD, no media inside;
-> > > And together with ACPI, when we suspend the ODD's parent(the port it
-> > > attached to), we will omit the power altogether to reduce power
-> > > consumption(done in libata-acpi.c).
-> > 
-> > Well, this is quite a layering violation. You encode that specific requirement
-> > in the generic sr_suspend()
-> 
-> What requirement are you talking about?  The "no media and door closed" 
-> thing?  How is that a layering violation?  Are you suggesting this
+On Tue, Sep 4, 2012 at 12:58 AM, Kaneshige, Kenji
+<kaneshige.kenji@jp.fujitsu.com> wrote:
+>>   -v2: Move add calling to acpi_pci_root_start by Yinghai
+>>  static int acpi_pci_root_start(struct acpi_device *device)
+>>  {
+>>       struct acpi_pci_root *root = acpi_driver_data(device);
+>> +     struct acpi_pci_driver *driver;
+>> +
+>> +     list_for_each_entry(driver, &acpi_pci_drivers, node)
+>> +             if (driver->add)
+>> +                     driver->add(device->handle);
+>>
+>
+> I think this (invoke .add callback for each acpi pci driver) should be done
+> after pci_bus_add_devices().
 
-There is no reason this requirement should apply to any other drive than the
-device this is aimed at. It comes from the ability of this specific combination
-to detect medium changes.
+We need to load ioapic driver and dmar driver before normal pci drivers.
 
-> should go into the CD layer instead?
+>
+> It seems ACPI pci drivers run *after* pci_bus_add_devices() at the boot time
+> (because no acpi pci drivers is loaded at that time). On the other hand, it
+> seems that ACPI pci drivers run *before* pci_bus_add_devices() at the hotadd
+> time. Those should be the same.
 
-No. It needs to be specific to a certain hardware. It needs to be a callback.
- 
-> > > @@ -985,8 +985,10 @@ static void ata_acpi_wake_dev(acpi_handle handle, u32 event, void *context)
-> > >  	struct ata_device *ata_dev = context;
-> > >  
-> > >  	if (event == ACPI_NOTIFY_DEVICE_WAKE && ata_dev &&
-> > > -			pm_runtime_suspended(&ata_dev->sdev->sdev_gendev))
-> > > -		scsi_autopm_get_device(ata_dev->sdev);
-> > > +			pm_runtime_suspended(&ata_dev->sdev->sdev_gendev)) {
-> > > +		ata_dev->sdev->wakeup_by_user = 1;
-> > 
-> > That flag is badly named. Something like "insert_event_during_suspend"
-> > would be better.
-> 
-> What happens on non-ACPI systems when a new disc is inserted into a
-> suspended ODD?  How does the drive let the computer know that an insert
-> event has occurred?
+for boot time, sequence : normal pci driver still get loaded after
+ioapic and dmar drivers.
+otherwise those driver will have problem to get irq and iommu work correctly.
+and if ioapic and dmar are static, and they will get initialized
+around pci device get scanned and pci_bus_add_devices get called
+already.
+but that time normal devices driver does not get registered yet. those
+pci drivers will get loaded (should be bounded)
+for pci devices when those driver get registered.
 
-Good question. Again either the kernel polls the drive or there a mechanism
-specific to the hardware.
- 
-> > > +	if (cd->cdi.mask & CDC_CLOSE_TRAY)
-> > > +		/* no media for caddy/slot type ODD */
-> > > +		suspend = scsi_sense_valid(&sshdr) && sshdr.asc == 0x3a;
-> > > +	else
-> > > +		/* no media and door closed for tray type ODD */
-> > > +		suspend = scsi_sense_valid(&sshdr) && sshdr.asc == 0x3a &&
-> > > +			sshdr.ascq == 0x01;
-> > 
-> > That requirement is valid for a specific type of disk. You cannot put it
-> > into generic sd_suspend().
-> 
-> You mean sr_suspend().  What's not generic about it?
+Thanks
 
-Yes. We may encounter drives which cannot register a medium change while
-suspended, but can be safely suspended while their door is locked.
-
-> >  And even so I don't see why you wouldn't
-> > want to suspend for example a drive with an inserted but unopened disk.
-> 
-> I assume that Aaron wanted to handle the easiest case first.  Adding 
-> suspend/resume handling to the open/close routines can be done later.
-
-Sure, but this patch blocks that in contrast to just not implementing it.
-
-	Regards
-		Oliver
-
+Yinghai
