@@ -1,50 +1,70 @@
-From: "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/2] lib: Add early cpio decoder
-Date: Tue, 04 Sep 2012 10:00:09 -0700
-Message-ID: <50463399.70506@zytor.com>
-References: <1346318957-5831-1-git-send-email-trenn@suse.de> <1346318957-5831-2-git-send-email-trenn@suse.de>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH v6 1/7] scsi: sr: support runtime pm for ODD
+Date: Tue, 4 Sep 2012 13:59:38 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1209041350490.1605-100000@iolanthe.rowland.org>
+References: <1519541.IZ88lAq0Bj@linux-lqwf.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <initramfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1346318957-5831-2-git-send-email-trenn-l3A5Bk7waGM@public.gmane.org>
-Sender: initramfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Fenghua Yu <fenghua.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, initramfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, vojcek-wYtBgQxc//8@public.gmane.org, eric.piel-VkQ1JFuSMpfAbQlEx87xDw@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yinghai-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, "H. Peter Anvin" <hpa-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <1519541.IZ88lAq0Bj@linux-lqwf.site>
+Sender: linux-ide-owner@vger.kernel.org
+To: Oliver Neukum <oneukum@suse.de>
+Cc: Aaron Lu <aaron.lwe@gmail.com>, James Bottomley <James.Bottomley@hansenpartnership.com>, Jeff Garzik <jgarzik@pobox.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 08/30/2012 02:29 AM, Thomas Renninger wrote:
-> From: "H. Peter Anvin" <hpa-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
->
-> Add a simple cpio decoder without library dependencies for the purpose
-> of extracting components from the initramfs blob for early kernel
-> uses.  Intended consumers so far are microcode and ACPI override.
->
-> Signed-off-by: H. Peter Anvin <hpa-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-> CC: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-> Link: http://lkml.kernel.org/r/201203261651.29640.trenn-l3A5Bk7waGM@public.gmane.org
-> Signed-off-by: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+On Tue, 4 Sep 2012, Oliver Neukum wrote:
 
-I was trying to figure out if there is a way to do what you want 
-(support for multiple files) without the problems of the callback 
-interface.  I think it is actually fairly straightforward; we need a 
-prefix iterator (so you can give it a string like "kernel/acpi/" rather 
-than a full filename) and it needs to be able to accept a "last" pointer 
-so it can resume scanning at the point it last left off.  That should be 
-a pretty trivial change.
+> On Tuesday 04 September 2012 22:24:34 Aaron Lu wrote:
+> > From: Aaron Lu <aaron.lu@intel.com>
+> > 
+> > The ODD will be placed into suspend state when:
+> > 1 For tray type ODD, no media inside and door closed;
+> > 2 For slot type ODD, no media inside;
+> > And together with ACPI, when we suspend the ODD's parent(the port it
+> > attached to), we will omit the power altogether to reduce power
+> > consumption(done in libata-acpi.c).
+> 
+> Well, this is quite a layering violation. You encode that specific requirement
+> in the generic sr_suspend()
 
-The other thing we presumably want to do -- and this is generic -- is to 
-be able to handle multiple sources for the initramfs; at the very least 
-there is built in vs provided from the boot loader.  I had originally 
-intended to just handle that by calling the earlycpio function once per 
-block, but the "last left off" bit makes that a little harder.  Need to 
-think about that a little bit.
+What requirement are you talking about?  The "no media and door closed" 
+thing?  How is that a layering violation?  Are you suggesting this 
+should go into the CD layer instead?
 
-I am guessing that this may not need to be something we need from the 
-very beginning, or am I wrong?
+> > @@ -985,8 +985,10 @@ static void ata_acpi_wake_dev(acpi_handle handle, u32 event, void *context)
+> >  	struct ata_device *ata_dev = context;
+> >  
+> >  	if (event == ACPI_NOTIFY_DEVICE_WAKE && ata_dev &&
+> > -			pm_runtime_suspended(&ata_dev->sdev->sdev_gendev))
+> > -		scsi_autopm_get_device(ata_dev->sdev);
+> > +			pm_runtime_suspended(&ata_dev->sdev->sdev_gendev)) {
+> > +		ata_dev->sdev->wakeup_by_user = 1;
+> 
+> That flag is badly named. Something like "insert_event_during_suspend"
+> would be better.
 
-	-hpa
+What happens on non-ACPI systems when a new disc is inserted into a
+suspended ODD?  How does the drive let the computer know that an insert
+event has occurred?
 
--- 
-H. Peter Anvin, Intel Open Source Technology Center
-I work for Intel.  I don't speak on their behalf.
+> > +	if (cd->cdi.mask & CDC_CLOSE_TRAY)
+> > +		/* no media for caddy/slot type ODD */
+> > +		suspend = scsi_sense_valid(&sshdr) && sshdr.asc == 0x3a;
+> > +	else
+> > +		/* no media and door closed for tray type ODD */
+> > +		suspend = scsi_sense_valid(&sshdr) && sshdr.asc == 0x3a &&
+> > +			sshdr.ascq == 0x01;
+> 
+> That requirement is valid for a specific type of disk. You cannot put it
+> into generic sd_suspend().
+
+You mean sr_suspend().  What's not generic about it?
+
+>  And even so I don't see why you wouldn't
+> want to suspend for example a drive with an inserted but unopened disk.
+
+I assume that Aaron wanted to handle the easiest case first.  Adding 
+suspend/resume handling to the open/close routines can be done later.
+
+Alan Stern
+
