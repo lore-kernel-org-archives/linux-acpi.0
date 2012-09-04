@@ -1,43 +1,61 @@
-From: Yinghai Lu <yinghai@kernel.org>
+From: Toshi Kani <toshi.kani@hp.com>
 Subject: Re: [PATCH] ACPI: Enable SCI_EMULATE to manually simulate physical
  hotplug testing.
-Date: Tue, 4 Sep 2012 14:46:19 -0700
-Message-ID: <CAE9FiQVT-0zmE9jyyoWmzM5dd-XAXmHgT+vGqSUKgE2yuPOOvg@mail.gmail.com>
+Date: Tue, 04 Sep 2012 15:54:21 -0600
+Message-ID: <1346795661.4732.229.camel@misato.fc.hp.com>
 References: <1346707623-31476-1-git-send-email-yinghai@kernel.org>
-	<1346776024.4732.196.camel@misato.fc.hp.com>
-	<CAE9FiQXN1kDwSPTH5UWvDPbrtqGgcEKR4dWwYrP57H4aSA-UMA@mail.gmail.com>
-	<1346794495.4732.221.camel@misato.fc.hp.com>
+	 <1346776024.4732.196.camel@misato.fc.hp.com>
+	 <CAE9FiQXN1kDwSPTH5UWvDPbrtqGgcEKR4dWwYrP57H4aSA-UMA@mail.gmail.com>
+	 <1346794495.4732.221.camel@misato.fc.hp.com>
+	 <CAE9FiQVT-0zmE9jyyoWmzM5dd-XAXmHgT+vGqSUKgE2yuPOOvg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:38563 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757779Ab2IDVqT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Sep 2012 17:46:19 -0400
-In-Reply-To: <1346794495.4732.221.camel@misato.fc.hp.com>
+Received: from g6t0187.atlanta.hp.com ([15.193.32.64]:42324 "EHLO
+	g6t0187.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757696Ab2IDV7y (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Sep 2012 17:59:54 -0400
+In-Reply-To: <CAE9FiQVT-0zmE9jyyoWmzM5dd-XAXmHgT+vGqSUKgE2yuPOOvg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
+To: Yinghai Lu <yinghai@kernel.org>
 Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Ashok Raj <ashok.raj@intel.com>
 
-On Tue, Sep 4, 2012 at 2:34 PM, Toshi Kani <toshi.kani@hp.com> wrote:
-> On Tue, 2012-09-04 at 12:17 -0700, Yinghai Lu wrote:
->  - If a full path is specified in acpi_name, it ignores the arg hsb
-> ("\_SB").
->  - If a relative path is specified in acpi_name, it appends the arg hsb.
->
-> So, the code looks good to me; assuming that is the intent.
->
-> However, the error message below will show up like "\_SB.\_SB.PCIB" when
-> a full path is specified.
+On Tue, 2012-09-04 at 14:46 -0700, Yinghai Lu wrote:
+> On Tue, Sep 4, 2012 at 2:34 PM, Toshi Kani <toshi.kani@hp.com> wrote:
+> > On Tue, 2012-09-04 at 12:17 -0700, Yinghai Lu wrote:
+> >  - If a full path is specified in acpi_name, it ignores the arg hsb
+> > ("\_SB").
+> >  - If a relative path is specified in acpi_name, it appends the arg hsb.
+> >
+> > So, the code looks good to me; assuming that is the intent.
+> >
+> > However, the error message below will show up like "\_SB.\_SB.PCIB" when
+> > a full path is specified.
+> 
+> I always use
+> echo "\_SB.PCIB 3" > /sys/kernel/debug/acpi/sci_notify
+> 
+> and it works.
+> 
+> so assume that function can accept \_SB.PCIB and PCIB both.
 
-I always use
-echo "\_SB.PCIB 3" > /sys/kernel/debug/acpi/sci_notify
+I agree.  And that's what I tried to say.
 
-and it works.
 
-so assume that function can accept \_SB.PCIB and PCIB both.
+The error message below will be confusing when a (invalid) full path
+name is specified, though.
 
-Thanks
+>> +     if (ACPI_FAILURE(status) || ACPI_FAILURE(status1)) {
+>> +             pr_err(PREFIX
+>> +     "acpi getting handle to <\\_SB.%s> failed inside notify_client
+\n",
+>> +                     acpi_name);
+>> +             return;
+>> +     }
 
-Yinghai
+
+Thanks,
+-Toshi
+
