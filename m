@@ -1,61 +1,49 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH] ACPI: Enable SCI_EMULATE to manually simulate physical
- hotplug testing.
-Date: Tue, 04 Sep 2012 15:54:21 -0600
-Message-ID: <1346795661.4732.229.camel@misato.fc.hp.com>
-References: <1346707623-31476-1-git-send-email-yinghai@kernel.org>
-	 <1346776024.4732.196.camel@misato.fc.hp.com>
-	 <CAE9FiQXN1kDwSPTH5UWvDPbrtqGgcEKR4dWwYrP57H4aSA-UMA@mail.gmail.com>
-	 <1346794495.4732.221.camel@misato.fc.hp.com>
-	 <CAE9FiQVT-0zmE9jyyoWmzM5dd-XAXmHgT+vGqSUKgE2yuPOOvg@mail.gmail.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [RFC v8 PATCH 08/20] memory-hotplug: remove
+ /sys/firmware/memmap/X sysfs
+Date: Tue, 4 Sep 2012 16:16:34 -0700
+Message-ID: <20120904161634.f1f9f693.akpm@linux-foundation.org>
+References: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com>
+	<1346148027-24468-9-git-send-email-wency@cn.fujitsu.com>
+	<20120831140623.8d13bd2c.akpm@linux-foundation.org>
+	<5044454E.7070909@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g6t0187.atlanta.hp.com ([15.193.32.64]:42324 "EHLO
-	g6t0187.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757696Ab2IDV7y (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Sep 2012 17:59:54 -0400
-In-Reply-To: <CAE9FiQVT-0zmE9jyyoWmzM5dd-XAXmHgT+vGqSUKgE2yuPOOvg@mail.gmail.com>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54902 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932839Ab2IDXQg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Sep 2012 19:16:36 -0400
+In-Reply-To: <5044454E.7070909@cn.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Ashok Raj <ashok.raj@intel.com>
+To: Wen Congyang <wency@cn.fujitsu.com>
+Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, Christoph Lameter <cl@linux-foundation.org>
 
-On Tue, 2012-09-04 at 14:46 -0700, Yinghai Lu wrote:
-> On Tue, Sep 4, 2012 at 2:34 PM, Toshi Kani <toshi.kani@hp.com> wrote:
-> > On Tue, 2012-09-04 at 12:17 -0700, Yinghai Lu wrote:
-> >  - If a full path is specified in acpi_name, it ignores the arg hsb
-> > ("\_SB").
-> >  - If a relative path is specified in acpi_name, it appends the arg hsb.
-> >
-> > So, the code looks good to me; assuming that is the intent.
-> >
-> > However, the error message below will show up like "\_SB.\_SB.PCIB" when
-> > a full path is specified.
+On Mon, 03 Sep 2012 13:51:10 +0800
+Wen Congyang <wency@cn.fujitsu.com> wrote:
+
+> >> +static void release_firmware_map_entry(struct kobject *kobj)
+> >> +{
+> >> +	struct firmware_map_entry *entry = to_memmap_entry(kobj);
+> >> +	struct page *page;
+> >> +
+> >> +	page = virt_to_page(entry);
+> >> +	if (PageSlab(page) || PageCompound(page))
+> > 
+> > That PageCompound() test looks rather odd.  Why is this done?
 > 
-> I always use
-> echo "\_SB.PCIB 3" > /sys/kernel/debug/acpi/sci_notify
-> 
-> and it works.
-> 
-> so assume that function can accept \_SB.PCIB and PCIB both.
+> Liu Jiang and Christoph Lameter discussed how to find slab page
+> in this mail:
+> https://lkml.org/lkml/2012/7/6/333.
 
-I agree.  And that's what I tried to say.
+Well, please add a code comment to release_firmware_map_entry() which
+fully explains these things.
 
-
-The error message below will be confusing when a (invalid) full path
-name is specified, though.
-
->> +     if (ACPI_FAILURE(status) || ACPI_FAILURE(status1)) {
->> +             pr_err(PREFIX
->> +     "acpi getting handle to <\\_SB.%s> failed inside notify_client
-\n",
->> +                     acpi_name);
->> +             return;
->> +     }
-
-
-Thanks,
--Toshi
+I see that Christoph and I agree: "It would be cleaner if memory
+hotplug had an indicator which allocation mechanism was used and would
+use the corresponding free action".  You didn't respond to this
+suggestion when he made it, nor when I made it.  What are your thoughts
+on this?
 
