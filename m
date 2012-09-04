@@ -1,228 +1,70 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH] ACPI:  Enable SCI_EMULATE to manually simulate physical hotplug testing.
-Date: Mon,  3 Sep 2012 14:27:03 -0700
-Message-ID: <1346707623-31476-1-git-send-email-yinghai@kernel.org>
+From: Wen Congyang <wency@cn.fujitsu.com>
+Subject: Re: [RFC v8 PATCH 13/20] memory-hotplug: check page type in get_page_bootmem
+Date: Tue, 04 Sep 2012 11:46:11 +0800
+Message-ID: <50457983.1050304@cn.fujitsu.com>
+References: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com>	<1346148027-24468-14-git-send-email-wency@cn.fujitsu.com> <20120831143032.1343e99a.akpm@linux-foundation.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from acsinet15.oracle.com ([141.146.126.227]:49444 "EHLO
-	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753601Ab2ICV1R (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Sep 2012 17:27:17 -0400
+Received: from cn.fujitsu.com ([222.73.24.84]:44118 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1756633Ab2IDDon (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 3 Sep 2012 23:44:43 -0400
+In-Reply-To: <20120831143032.1343e99a.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Ashok Raj <ashok.raj@intel.com>, Yinghai Lu <yinghai@kernel.org>
+To: Andrew Morton <akpm@linux-foundation.org>, isimatu.yasuaki@jp.fujitsu.com
+Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com
 
-From: Ashok Raj <ashok.raj@intel.com>
+Hi, isimatu-san
 
-Emulate an ACPI SCI interrupt to emulate a hot-plug event. Useful
-for testing ACPI based hot-plug on systems that don't have the
-necessary firmware support.
+At 09/01/2012 05:30 AM, Andrew Morton Wrote:
+> On Tue, 28 Aug 2012 18:00:20 +0800
+> wency@cn.fujitsu.com wrote:
+> 
+>> From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+>>
+>> There is a possibility that get_page_bootmem() is called to the same page many
+>> times. So when get_page_bootmem is called to the same page, the function only
+>> increments page->_count.
+> 
+> I really don't understand this explanation, even after having looked at
+> the code.  Can you please have another attempt at the changelog?
 
-Enable CONFIG_ACPI_SCI_EMULATE on kernel compile.
+What is the problem that you want to fix? The function get_page_bootmem()
+may be called to the same page more than once, but I don't find any problem
+about current implementation.
 
-Now you will notice /sys/kernel/debug/acpi/sci_notify when new kernel is
-booted.
+Thanks
+Wen Congyang
 
-echo "\_SB.PCIB 1" > /sys/kernel/debug/acpi/sci_notify to trigger a hot-add
-of root bus that is corresponding to PCIB.
+> 
+>> --- a/mm/memory_hotplug.c
+>> +++ b/mm/memory_hotplug.c
+>> @@ -95,10 +95,17 @@ static void release_memory_resource(struct resource *res)
+>>  static void get_page_bootmem(unsigned long info,  struct page *page,
+>>  			     unsigned long type)
+>>  {
+>> -	page->lru.next = (struct list_head *) type;
+>> -	SetPagePrivate(page);
+>> -	set_page_private(page, info);
+>> -	atomic_inc(&page->_count);
+>> +	unsigned long page_type;
+>> +
+>> +	page_type = (unsigned long) page->lru.next;
+>> +	if (page_type < MEMORY_HOTPLUG_MIN_BOOTMEM_TYPE ||
+>> +	    page_type > MEMORY_HOTPLUG_MAX_BOOTMEM_TYPE){
+>> +		page->lru.next = (struct list_head *) type;
+>> +		SetPagePrivate(page);
+>> +		set_page_private(page, info);
+>> +		atomic_inc(&page->_count);
+>> +	} else
+>> +		atomic_inc(&page->_count);
+>>  }
+> 
+> And a code comment which explains what is going on would be good.  As
+> is always the case ;)
+> 
+> 
 
-echo "\_SB.PCIB 3" > /sys/kernel/debug/acpi/sci_notify to trigger a hot-remove
-of root bus that is corresponding to PCIB.
-
--v2: Update to current upstream, and remove not related stuff.
--v3: According to Len's request, update it to use debugfs.  - Yinghai Lu
-
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
-
-===================================================================
----
- drivers/acpi/Kconfig   |   10 +++
- drivers/acpi/Makefile  |    1 
- drivers/acpi/sci_emu.c |  145 +++++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 156 insertions(+)
-
-Index: linux-2.6/drivers/acpi/Kconfig
-===================================================================
---- linux-2.6.orig/drivers/acpi/Kconfig
-+++ linux-2.6/drivers/acpi/Kconfig
-@@ -272,6 +272,16 @@ config ACPI_BLACKLIST_YEAR
- 	  Enter 0 to disable this mechanism and allow ACPI to
- 	  run by default no matter what the year.  (default)
- 
-+config ACPI_SCI_EMULATE
-+        bool "ACPI SCI Event Emulation Support"
-+        depends on DEBUG_FS
-+	default n
-+	help
-+	  This will enable your system to emulate sci hotplug event
-+	  notification through proc file system. For example user needs to
-+	  echo "XXX 0" > /sys/kernel/debug/acpi/sci_notify (where, XXX is
-+	  a target ACPI device object name present under \_SB scope).
-+
- config ACPI_DEBUG
- 	bool "Debug Statements"
- 	default n
-Index: linux-2.6/drivers/acpi/sci_emu.c
-===================================================================
---- /dev/null
-+++ linux-2.6/drivers/acpi/sci_emu.c
-@@ -0,0 +1,145 @@
-+/*
-+ *  Code to emulate SCI interrupt for Hotplug node insertion/removal
-+ */
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/uaccess.h>
-+#include <linux/debugfs.h>
-+#include <acpi/acpi_drivers.h>
-+
-+#include "internal.h"
-+
-+#include "acpica/accommon.h"
-+#include "acpica/acnamesp.h"
-+#include "acpica/acevents.h"
-+
-+#define _COMPONENT		ACPI_SYSTEM_COMPONENT
-+ACPI_MODULE_NAME("sci_emu");
-+MODULE_LICENSE("GPL");
-+
-+static struct dentry *sci_notify_dentry;
-+
-+static void sci_notify_client(char *acpi_name, u32 event)
-+{
-+	struct acpi_namespace_node *node;
-+	acpi_status status, status1;
-+	acpi_handle hlsb, hsb;
-+	union acpi_operand_object *obj_desc;
-+
-+	status = acpi_get_handle(NULL, "\\_SB", &hsb);
-+	status1 = acpi_get_handle(hsb, acpi_name, &hlsb);
-+	if (ACPI_FAILURE(status) || ACPI_FAILURE(status1)) {
-+		pr_err(PREFIX
-+	"acpi getting handle to <\\_SB.%s> failed inside notify_client\n",
-+			acpi_name);
-+		return;
-+	}
-+
-+	status = acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
-+	if (ACPI_FAILURE(status)) {
-+		pr_err(PREFIX "Acquiring acpi namespace mutext failed\n");
-+		return;
-+	}
-+
-+	node = acpi_ns_validate_handle(hlsb);
-+	if (!node) {
-+		acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
-+		pr_err(PREFIX "Mapping handle to node failed\n");
-+		return;
-+	}
-+
-+	/*
-+	 * Check for internal object and make sure there is a handler
-+	 * registered for this object
-+	 */
-+	obj_desc = acpi_ns_get_attached_object(node);
-+	if (obj_desc) {
-+		if (obj_desc->common_notify.notify_list[0]) {
-+			/*
-+			 * Release the lock and queue the item for later
-+			 * exectuion
-+			 */
-+			acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
-+			status = acpi_ev_queue_notify_request(node, event);
-+			if (ACPI_FAILURE(status))
-+				pr_err(PREFIX "acpi_ev_queue_notify_request failed\n");
-+			else
-+				pr_info(PREFIX "Notify event is queued\n");
-+			return;
-+		}
-+	} else {
-+		pr_info(PREFIX "Notify handler not registered for this device\n");
-+	}
-+
-+	acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
-+	return;
-+}
-+
-+static ssize_t sci_notify_write(struct file *file, const char __user *user_buf,
-+				 size_t count, loff_t *ppos)
-+{
-+	u32 event;
-+	char *name1 = NULL;
-+	char *name2 = NULL;
-+	const char *delim = " ";
-+	char *temp_buf = NULL;
-+	char *temp_buf_addr = NULL;
-+
-+	temp_buf = kmalloc(count+1, GFP_ATOMIC);
-+	if (!temp_buf) {
-+		pr_warn(PREFIX "sci_notify_wire: Memory allocation failed\n");
-+		return count;
-+	}
-+	temp_buf[count] = '\0';
-+	temp_buf_addr = temp_buf;
-+	if (copy_from_user(temp_buf, user_buf, count))
-+		goto out;
-+
-+	name1 = strsep(&temp_buf, delim);
-+	name2 = strsep(&temp_buf, delim);
-+
-+	if (name1 && name2) {
-+		ssize_t ret;
-+		unsigned long val;
-+
-+		ret = kstrtoul(name2, 10, &val);
-+		if (ret) {
-+			pr_warn(PREFIX "unknown event\n");
-+			goto out;
-+		}
-+
-+		event = (u32)val;
-+	} else {
-+		pr_warn(PREFIX "unknown device\n");
-+		goto out;
-+	}
-+
-+	pr_info(PREFIX "ACPI device name is <%s>, event code is <%d>\n",
-+		name1, event);
-+
-+	sci_notify_client(name1, event);
-+
-+out:
-+	kfree(temp_buf_addr);
-+	return count;
-+}
-+
-+static const struct file_operations sci_notify_fops = {
-+	.write = sci_notify_write,
-+};
-+
-+static int __init acpi_sci_notify_init(void)
-+{
-+	if (acpi_debugfs_dir == NULL)
-+		return -ENOENT;
-+
-+	sci_notify_dentry = debugfs_create_file("sci_notify", S_IWUSR,
-+				acpi_debugfs_dir, NULL, &sci_notify_fops);
-+	if (sci_notify_dentry == NULL)
-+		return -ENODEV;
-+
-+	return 0;
-+}
-+
-+device_initcall(acpi_sci_notify_init);
-Index: linux-2.6/drivers/acpi/Makefile
-===================================================================
---- linux-2.6.orig/drivers/acpi/Makefile
-+++ linux-2.6/drivers/acpi/Makefile
-@@ -31,6 +31,7 @@ acpi-$(CONFIG_ACPI_SLEEP)	+= proc.o
- # ACPI Bus and Device Drivers
- #
- acpi-y				+= bus.o glue.o
-+acpi-$(CONFIG_ACPI_SCI_EMULATE)	+= sci_emu.o
- acpi-y				+= scan.o
- acpi-y				+= processor_core.o
- acpi-y				+= ec.o
