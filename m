@@ -1,47 +1,104 @@
-From: Matt Fleming <matt.fleming@intel.com>
-Subject: Re: [PATCH 0/3] Fix ACPI BGRT support for images located in EFI
- boot services memory
-Date: Tue, 04 Sep 2012 15:27:20 +0100
-Message-ID: <1346768840.4244.52.camel@mfleming-mobl1.ger.corp.intel.com>
-References: <cover.1346361959.git.josh@joshtriplett.org>
+From: Oliver Neukum <oneukum@suse.de>
+Subject: Re: [PATCH v6 1/7] scsi: sr: support runtime pm for ODD
+Date: Tue, 04 Sep 2012 17:57:35 +0200
+Message-ID: <1519541.IZ88lAq0Bj@linux-lqwf.site>
+References: <1346768680-7287-1-git-send-email-aaron.lwe@gmail.com> <1346768680-7287-2-git-send-email-aaron.lwe@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.89]:43650 "EHLO
-	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757207Ab2IDO1b (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Sep 2012 10:27:31 -0400
-Received: by pbbrr13 with SMTP id rr13so9562795pbb.19
-        for <linux-acpi@vger.kernel.org>; Tue, 04 Sep 2012 07:27:30 -0700 (PDT)
-In-Reply-To: <cover.1346361959.git.josh@joshtriplett.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <1346768680-7287-2-git-send-email-aaron.lwe@gmail.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: Aaron Lu <aaron.lwe@gmail.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>, James Bottomley <James.Bottomley@hansenpartnership.com>, Jeff Garzik <jgarzik@pobox.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Josh Triplett <josh@joshtriplett.org>
-Cc: linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, Olof Johansson <olof@lixom.net>, Matthew Garrett <mjg@redhat.com>, David Howells <dhowells@redhat.com>, Rusty Russell <rusty@rustcorp.com.au>, Jim Cromie <jim.cromie@gmail.com>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Pawel Moll <pawel.moll@arm.com>, linux-acpi@vger.kernel.org, linux-efi <linux-efi@vger.kernel.org>
 
-On Thu, 2012-08-30 at 14:28 -0700, Josh Triplett wrote:
-> The ACPI BGRT lets the OS access the BIOS logo image and its position on the
-> screen at boot time, allowing it to maintain that image on the screen until
-> ready to display something else, making boot more seamless.  This series fixes
-> support for accessing the boot logo image via the BGRT when the BIOS stores it
-> in EFI boot services memory, as recommended by the ACPI 5.0 spec.  Linux needs
-> to copy the image out of boot services memory before reclaiming boot services
-> memory.
+On Tuesday 04 September 2012 22:24:34 Aaron Lu wrote:
+> From: Aaron Lu <aaron.lu@intel.com>
 > 
-> The first patch refactors EFI initialization to defer freeing boot services
-> memory until later in the boot process, after we have ACPI available.  The
-> second patch adds a helper function to look up existing EFI boot services
-> mappings, to avoid re-mapping them.  The third patch moves BGRT initialization
-> to before the reclamation of boot services memory, copies the logo at that
-> point, and reworks the existing BGRT driver to use that existing copy.
+> The ODD will be placed into suspend state when:
+> 1 For tray type ODD, no media inside and door closed;
+> 2 For slot type ODD, no media inside;
+> And together with ACPI, when we suspend the ODD's parent(the port it
+> attached to), we will omit the power altogether to reduce power
+> consumption(done in libata-acpi.c).
 
-Since we always end up doing a copy anyway, is there no way we could
-just copy the boot logo *without* deferring freeing the boot services
-code, e.g. move the copy before we do SetVirtualAddressMap()? I wouldn't
-be surprised if some implementations got really cranky if we accessed
-boot services data after we installed a new virtual memory map.
+Well, this is quite a layering violation. You encode that specific requirement
+in the generic sr_suspend()
 
-Besides, if we can avoid moving the efi_free_boot_services() call we can
-avoid littering init/main.c with more #ifdef CONFIG_X86 blocks.
+> The ODD can be resumed either by user or by software.
+> 
+> For user to resume the suspended ODD:
+> 1 For tray type ODD, press the eject button;
+> 2 For slot type ODD, insert a disc;
+> Once such events happened, an ACPI notification will be sent and in our
+> handler, we will resume the ODD(again in libata-acpi.c).
+> This kind of resume requires platform and device support and is
+> reflected by the can_power_off flag.
+> 
+> For software to resume the suspended ODD, we did this in ODD's
+> open/release and check_event function.
+> 
+> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+> ---
+>  drivers/ata/libata-acpi.c  |  6 ++--
+>  drivers/scsi/sr.c          | 76 ++++++++++++++++++++++++++++++++++++++++++++--
+>  include/scsi/scsi_device.h |  1 +
+>  3 files changed, 79 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c
+> index 902b5a4..64ba43d 100644
+> --- a/drivers/ata/libata-acpi.c
+> +++ b/drivers/ata/libata-acpi.c
+> @@ -985,8 +985,10 @@ static void ata_acpi_wake_dev(acpi_handle handle, u32 event, void *context)
+>  	struct ata_device *ata_dev = context;
+>  
+>  	if (event == ACPI_NOTIFY_DEVICE_WAKE && ata_dev &&
+> -			pm_runtime_suspended(&ata_dev->sdev->sdev_gendev))
+> -		scsi_autopm_get_device(ata_dev->sdev);
+> +			pm_runtime_suspended(&ata_dev->sdev->sdev_gendev)) {
+> +		ata_dev->sdev->wakeup_by_user = 1;
+
+That flag is badly named. Something like "insert_event_during_suspend"
+would be better.
+
+[..]
+> +static int sr_suspend(struct device *dev, pm_message_t msg)
+> +{
+> +	int suspend;
+> +	struct scsi_sense_hdr sshdr;
+> +	struct scsi_cd *cd = dev_get_drvdata(dev);
+> +
+> +	/* no action for system pm */
+> +	if (!PMSG_IS_AUTO(msg))
+> +		return 0;
+> +
+> +	/*
+> +	 * ODD can be runtime suspended when:
+> +	 * tray type: no media inside and tray closed
+> +	 * slot type: no media inside
+> +	 */
+> +	scsi_test_unit_ready(cd->device, SR_TIMEOUT, MAX_RETRIES, &sshdr);
+> +
+> +	if (cd->cdi.mask & CDC_CLOSE_TRAY)
+> +		/* no media for caddy/slot type ODD */
+> +		suspend = scsi_sense_valid(&sshdr) && sshdr.asc == 0x3a;
+> +	else
+> +		/* no media and door closed for tray type ODD */
+> +		suspend = scsi_sense_valid(&sshdr) && sshdr.asc == 0x3a &&
+> +			sshdr.ascq == 0x01;
+
+That requirement is valid for a specific type of disk. You cannot put it
+into generic sd_suspend(). And even so I don't see why you wouldn't
+want to suspend for example a drive with an inserted but unopened disk.
+
+> +
+> +	if (!suspend)
+> +		return -EBUSY;
+> +
+> +	return 0;
+> +}
+
+	Regards
+		Oliver
 
