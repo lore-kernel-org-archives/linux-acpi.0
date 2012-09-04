@@ -1,49 +1,88 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [PATCH 0/3] Fix ACPI BGRT support for images located in EFI boot
- services memory
-Date: Tue, 04 Sep 2012 11:10:54 -0700
-Message-ID: <5046442E.7020207@zytor.com>
-References: <cover.1346361959.git.josh@joshtriplett.org> <1346768840.4244.52.camel@mfleming-mobl1.ger.corp.intel.com> <20120904175952.GA4103@jtriplet-mobl1>
+From: Oliver Neukum <oneukum@suse.de>
+Subject: Re: [PATCH v6 1/7] scsi: sr: support runtime pm for ODD
+Date: Tue, 04 Sep 2012 20:47:15 +0200
+Message-ID: <11638307.8MbrDPKO6y@linux-lqwf.site>
+References: <Pine.LNX.4.44L0.1209041350490.1605-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from terminus.zytor.com ([198.137.202.10]:47583 "EHLO mail.zytor.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757444Ab2IDSL1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 4 Sep 2012 14:11:27 -0400
-In-Reply-To: <20120904175952.GA4103@jtriplet-mobl1>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.44L0.1209041350490.1605-100000@iolanthe.rowland.org>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Aaron Lu <aaron.lwe@gmail.com>, James Bottomley <James.Bottomley@hansenpartnership.com>, Jeff Garzik <jgarzik@pobox.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Josh Triplett <josh@joshtriplett.org>
-Cc: Matt Fleming <matt.fleming@intel.com>, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, Olof Johansson <olof@lixom.net>, Matthew Garrett <mjg@redhat.com>, David Howells <dhowells@redhat.com>, Rusty Russell <rusty@rustcorp.com.au>, Jim Cromie <jim.cromie@gmail.com>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Pawel Moll <pawel.moll@arm.com>, linux-acpi@vger.kernel.org, linux-efi <linux-efi@vger.kernel.org>
 
-On 09/04/2012 10:59 AM, Josh Triplett wrote:
->
-> Unfortunately not.  We need enough of ACPI available to go read the
-> BGRT to know what to copy, so we need to defer freeing boot services
-> code until after we initialize ACPI (and thus everything ACPI needs,
-> which includes EFI since ACPI looks for root tables there).
->
->> I wouldn't be surprised if some implementations got really cranky if
->> we accessed boot services data after we installed a new virtual memory
->> map.
->
-> Note that I've carefully accessed the boot services data *through* the
-> new virtual memory map, which should work fine.
->
+On Tuesday 04 September 2012 13:59:38 Alan Stern wrote:
+> On Tue, 4 Sep 2012, Oliver Neukum wrote:
+> 
+> > On Tuesday 04 September 2012 22:24:34 Aaron Lu wrote:
+> > > From: Aaron Lu <aaron.lu@intel.com>
+> > > 
+> > > The ODD will be placed into suspend state when:
+> > > 1 For tray type ODD, no media inside and door closed;
+> > > 2 For slot type ODD, no media inside;
+> > > And together with ACPI, when we suspend the ODD's parent(the port it
+> > > attached to), we will omit the power altogether to reduce power
+> > > consumption(done in libata-acpi.c).
+> > 
+> > Well, this is quite a layering violation. You encode that specific requirement
+> > in the generic sr_suspend()
+> 
+> What requirement are you talking about?  The "no media and door closed" 
+> thing?  How is that a layering violation?  Are you suggesting this
 
-There are some platforms which have bugs in this area, so there are 
-other reasons to defer freeing up boot memory until as late in the boot 
-process as we can possibly get away with.
+There is no reason this requirement should apply to any other drive than the
+device this is aimed at. It comes from the ability of this specific combination
+to detect medium changes.
 
-free_initmem() is presuambly the place that makes most sense.  This is 
-EFI-specific but not x86-specific, let's not commingle those concepts, 
-please...
+> should go into the CD layer instead?
 
-	-hpa
+No. It needs to be specific to a certain hardware. It needs to be a callback.
+ 
+> > > @@ -985,8 +985,10 @@ static void ata_acpi_wake_dev(acpi_handle handle, u32 event, void *context)
+> > >  	struct ata_device *ata_dev = context;
+> > >  
+> > >  	if (event == ACPI_NOTIFY_DEVICE_WAKE && ata_dev &&
+> > > -			pm_runtime_suspended(&ata_dev->sdev->sdev_gendev))
+> > > -		scsi_autopm_get_device(ata_dev->sdev);
+> > > +			pm_runtime_suspended(&ata_dev->sdev->sdev_gendev)) {
+> > > +		ata_dev->sdev->wakeup_by_user = 1;
+> > 
+> > That flag is badly named. Something like "insert_event_during_suspend"
+> > would be better.
+> 
+> What happens on non-ACPI systems when a new disc is inserted into a
+> suspended ODD?  How does the drive let the computer know that an insert
+> event has occurred?
 
--- 
-H. Peter Anvin, Intel Open Source Technology Center
-I work for Intel.  I don't speak on their behalf.
+Good question. Again either the kernel polls the drive or there a mechanism
+specific to the hardware.
+ 
+> > > +	if (cd->cdi.mask & CDC_CLOSE_TRAY)
+> > > +		/* no media for caddy/slot type ODD */
+> > > +		suspend = scsi_sense_valid(&sshdr) && sshdr.asc == 0x3a;
+> > > +	else
+> > > +		/* no media and door closed for tray type ODD */
+> > > +		suspend = scsi_sense_valid(&sshdr) && sshdr.asc == 0x3a &&
+> > > +			sshdr.ascq == 0x01;
+> > 
+> > That requirement is valid for a specific type of disk. You cannot put it
+> > into generic sd_suspend().
+> 
+> You mean sr_suspend().  What's not generic about it?
+
+Yes. We may encounter drives which cannot register a medium change while
+suspended, but can be safely suspended while their door is locked.
+
+> >  And even so I don't see why you wouldn't
+> > want to suspend for example a drive with an inserted but unopened disk.
+> 
+> I assume that Aaron wanted to handle the easiest case first.  Adding 
+> suspend/resume handling to the open/close routines can be done later.
+
+Sure, but this patch blocks that in contrast to just not implementing it.
+
+	Regards
+		Oliver
 
