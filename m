@@ -1,60 +1,55 @@
-From: "Kaneshige, Kenji" <kaneshige.kenji@jp.fujitsu.com>
-Subject: RE: [PATCH v2 2/6] ACPI, PCI: Notify acpi_pci_drivers when
- hot-plugging PCI root bridges
-Date: Wed, 5 Sep 2012 08:55:09 +0000
-Message-ID: <4A338DB2991D2A44B9A44B8718AECF650A4A4817@G01JPEXMBYT03>
-References: <20120903165831.29aed72c.izumi.taku@jp.fujitsu.com>
-	<20120903170442.c406455c.izumi.taku@jp.fujitsu.com>
-	<4A338DB2991D2A44B9A44B8718AECF650A4A2DCD@G01JPEXMBYT03>
-	<CAE9FiQVJ0JRCgZsh+iSB8VC4TqJDcetPyno36L8=UW-UQUK4vQ@mail.gmail.com>
-	<4A338DB2991D2A44B9A44B8718AECF650A4A4240@G01JPEXMBYT03>
- <CAE9FiQUbfTivsyYJe0cr-Dng2+3wEXMM7TX+RgxNC+mGBok6Kw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-2022-jp"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAE9FiQUbfTivsyYJe0cr-Dng2+3wEXMM7TX+RgxNC+mGBok6Kw@mail.gmail.com>
-Content-Language: ja-JP
-Sender: linux-pci-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: "Izumi, Taku" <izumi.taku@jp.fujitsu.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "bhelgaas@google.com" <bhelgaas@google.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>
+From: wency@cn.fujitsu.com
+Subject: [RFC v9 PATCH 07/21] memory-hotplug: call acpi_bus_remove() to remove memory device
+Date: Wed, 5 Sep 2012 17:25:41 +0800
+Message-ID: <1346837155-534-8-git-send-email-wency@cn.fujitsu.com>
+References: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com>
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
+Cc: rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, Wen Congyang <wency@cn.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
 
-> -----Original Message-----
-> From: yhlu.kernel@gmail.com [mailto:yhlu.kernel@gmail.com] On Behalf Of
-> Yinghai Lu
-> Sent: Wednesday, September 05, 2012 2:02 PM
-> To: Kaneshige, Kenji/金重 憲治
-> Cc: Izumi, Taku/泉 拓; linux-pci@vger.kernel.org; bhelgaas@google.com;
-> linux-acpi@vger.kernel.org; jiang.liu@huawei.com
-> Subject: Re: [PATCH v2 2/6] ACPI, PCI: Notify acpi_pci_drivers when
-> hot-plugging PCI root bridges
-> 
-> On Tue, Sep 4, 2012 at 9:32 PM, Kaneshige, Kenji
-> <kaneshige.kenji@jp.fujitsu.com> wrote:
-> >
-> > Ok, my understanding of your comment is that IOAPIC and DMAR drivers are
-> implemented
-> > as ACPI PCI driver (or you have a plan to implement IOAPIC and DMAR drivers
-> as ACPI
-> > PCI driver), and those drivers need to be loaded before PCI device drivers.
-> Is my
-> > understanding correct?
-> 
-> yes.
-> 
-> for ioapic:
-> http://git.kernel.org/?p=linux/kernel/git/yinghai/linux-yinghai.git;a=
-> shortlog;h=refs/heads/for-x86-irq
-> 
-> for iommu:
-> http://git.kernel.org/?p=linux/kernel/git/yinghai/linux-yinghai.git;a=
-> shortlog;h=refs/heads/for-iommu
-> 
+From: Wen Congyang <wency@cn.fujitsu.com>
 
-Thank you for answering.
-Though I've not looked at those trees yet, the idea, which utilize ACPI pci
-driver to load ioapic and dmar driver, looks good to me.
+The memory device has been ejected and powoffed, so we can call
+acpi_bus_remove() to remove the memory device from acpi bus.
 
-Regards,
-Kenji Kaneshige
+CC: David Rientjes <rientjes@google.com>
+CC: Jiang Liu <liuj97@gmail.com>
+CC: Len Brown <len.brown@intel.com>
+CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+CC: Paul Mackerras <paulus@samba.org>
+CC: Christoph Lameter <cl@linux.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+CC: Andrew Morton <akpm@linux-foundation.org>
+CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+CC: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+---
+ drivers/acpi/acpi_memhotplug.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+index 9d47458..b152767 100644
+--- a/drivers/acpi/acpi_memhotplug.c
++++ b/drivers/acpi/acpi_memhotplug.c
+@@ -425,8 +425,9 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
+ 		}
+ 
+ 		/*
+-		 * TBD: Invoke acpi_bus_remove to cleanup data structures
++		 * Invoke acpi_bus_remove() to remove memory device
+ 		 */
++		acpi_bus_remove(device, 1);
+ 
+ 		/* _EJ0 succeeded; _OST is not necessary */
+ 		return;
+-- 
+1.7.1
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
