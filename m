@@ -1,64 +1,66 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] cpufreq: ondemand: update frequency when limits are relaxed
-Date: Thu, 6 Sep 2012 23:40:33 +0200
-Message-ID: <201209062340.33610.rjw@sisk.pl>
-References: <F22FC3EF73EF0942A7CD99A3AC5E4E1F380AF6B7BF@HQMAIL04.nvidia.com>
+Subject: Re: [PATCH] acpi: bus: handle power manageable but no _PSC/_PRx case
+Date: Thu, 6 Sep 2012 23:45:09 +0200
+Message-ID: <201209062345.09840.rjw@sisk.pl>
+References: <1346053126-7646-1-git-send-email-aaron.lu@intel.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
-Return-path: <cpufreq-owner@vger.kernel.org>
-In-Reply-To: <F22FC3EF73EF0942A7CD99A3AC5E4E1F380AF6B7BF@HQMAIL04.nvidia.com>
-Sender: cpufreq-owner@vger.kernel.org
-To: Michal Pecio <mpecio@nvidia.com>, Thomas Renninger <trenn@suse.de>
-Cc: "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([193.178.161.156]:40684 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933115Ab2IFViu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 6 Sep 2012 17:38:50 -0400
+In-Reply-To: <1346053126-7646-1-git-send-email-aaron.lu@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>
 
-On Friday, August 31, 2012, Michal Pecio wrote:
-> From: Michal Pecio <mpecio@nvidia.com>
+On Monday, August 27, 2012, Aaron Lu wrote:
+> Currently, when we are trying to get the power state of an acpi device,
+> we will do the following:
+> If device is not power manageable, init its power state as its parent or
+> if it does not have a parent, init as D0;
+> If device is power manageable, evaluate _PSC and then refine with
+> acpi_power_get_inferred_state.
 > 
-> Reevaluate CPU load and update frequency immediately whenever limits 
-> are changed. Currently ondemand doesn't do so when limits are relaxed,
-> wasting power on CPUs with relatively low sampling rate.
-> Also, update the prev_cpu_* variables on frequency transitions. Their
-> old values aren't valid anymore because the governor assumes constant
-> frequency during entire sampling period.
+> But there exist some devices with _PSx defined, but no _PSC or _PRx.
+> It is power manageable, but the above method to get power state does
+> not cover this case and its power state will be UNKNOWN(255).
 > 
-> Signed-off-by: Michal Pecio <mpecio@nvidia.com>
+> So change the check of power manageable to whether _PSC and _PRx
+> defined.
+> 
+> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
 
-Well, this makes sense to me.
+Applied to the linux-next branch of the linux-pm.git tree.
 
-Thomas, what do you think?
+I think it should go to -stable too and therefore it would be good to have
+it in v3.6, so I'd like to push it to Linus for -rc5, if Len has no objections.
 
+Thanks,
 Rafael
 
 
 > ---
+>  drivers/acpi/bus.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
 > 
-> diff --git a/drivers/cpufreq/cpufreq_ondemand.c b/drivers/cpufreq/cpufreq_ondemand.c
-> index 1aaf7af..8cee63e 100644
-> --- a/drivers/cpufreq/cpufreq_ondemand.c
-> +++ b/drivers/cpufreq/cpufreq_ondemand.c
-> @@ -754,12 +754,7 @@ static int cpufreq_governor_dbs(struct cpufreq_policy *policy,
+> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> index 9628652..b564e6d 100644
+> --- a/drivers/acpi/bus.c
+> +++ b/drivers/acpi/bus.c
+> @@ -207,7 +207,8 @@ static int __acpi_bus_get_power(struct acpi_device *device, int *state)
+>  	if (!device || !state)
+>  		return -EINVAL;
 >  
->  	case CPUFREQ_GOV_LIMITS:
->  		mutex_lock(&this_dbs_info->timer_mutex);
-> -		if (policy->max < this_dbs_info->cur_policy->cur)
-> -			__cpufreq_driver_target(this_dbs_info->cur_policy,
-> -				policy->max, CPUFREQ_RELATION_H);
-> -		else if (policy->min > this_dbs_info->cur_policy->cur)
-> -			__cpufreq_driver_target(this_dbs_info->cur_policy,
-> -				policy->min, CPUFREQ_RELATION_L);
-> +		dbs_check_cpu(this_dbs_info);
->  		mutex_unlock(&this_dbs_info->timer_mutex);
->  		break;
->  	}
-> -----------------------------------------------------------------------------------
-> This email message is for the sole use of the intended recipient(s) and may contain
-> confidential information.  Any unauthorized review, use, disclosure or distribution
-> is prohibited.  If you are not the intended recipient, please contact the sender by
-> reply email and destroy all copies of the original message.
-> -----------------------------------------------------------------------------------
-> 
+> -	if (!device->flags.power_manageable) {
+> +	if (!device->power.flags.explicit_get &&
+> +			!device->power.flags.power_resources) {
+>  		/* TBD: Non-recursive algorithm for walking up hierarchy. */
+>  		*state = device->parent ?
+>  			device->parent->power.state : ACPI_STATE_D0;
 > 
 
