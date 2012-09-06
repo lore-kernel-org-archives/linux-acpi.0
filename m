@@ -1,44 +1,46 @@
 From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH v6 5/7] scsi: pm: add may_power_off flag
-Date: Thu, 6 Sep 2012 09:52:01 +0800
-Message-ID: <20120906015200.GA1866@mint-spring.sh.intel.com>
+Subject: Re: [PATCH v6 1/7] scsi: sr: support runtime pm for ODD
+Date: Thu, 6 Sep 2012 13:17:33 +0800
+Message-ID: <20120906051732.GA1706@mint-spring.sh.intel.com>
 References: <1346768680-7287-1-git-send-email-aaron.lwe@gmail.com>
- <1346768680-7287-6-git-send-email-aaron.lwe@gmail.com>
- <1539628.e0bNDi5Td8@linux-lqwf.site>
+ <1346768680-7287-2-git-send-email-aaron.lwe@gmail.com>
+ <1519541.IZ88lAq0Bj@linux-lqwf.site>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:10034 "EHLO mga09.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:57621 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752875Ab2IFBwF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 5 Sep 2012 21:52:05 -0400
+	id S1751968Ab2IFFRs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 6 Sep 2012 01:17:48 -0400
 Content-Disposition: inline
-In-Reply-To: <1539628.e0bNDi5Td8@linux-lqwf.site>
+In-Reply-To: <1519541.IZ88lAq0Bj@linux-lqwf.site>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Oliver Neukum <oneukum@suse.de>
 Cc: Aaron Lu <aaron.lwe@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, James Bottomley <James.Bottomley@hansenpartnership.com>, Jeff Garzik <jgarzik@pobox.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tue, Sep 04, 2012 at 06:01:22PM +0200, Oliver Neukum wrote:
-> On Tuesday 04 September 2012 22:24:38 Aaron Lu wrote:
-> > From: Aaron Lu <aaron.lu@intel.com>
-> > 
-> > Add a new flag may_power_off for scsi device, it gives the user a chance
-> > to control when the device is runtime suspended, can we remove its power
-> > if possible.
-> > 
-> > And if the device can be powered off(reflected by can_power_off flag,
-> > determined by individual driver), create a sysfs entry named
-> > may_power_off to let user control the flag.
+On Tue, Sep 04, 2012 at 05:57:35PM +0200, Oliver Neukum wrote:
+> > diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c
+> > index 902b5a4..64ba43d 100644
+> > --- a/drivers/ata/libata-acpi.c
+> > +++ b/drivers/ata/libata-acpi.c
+> > @@ -985,8 +985,10 @@ static void ata_acpi_wake_dev(acpi_handle handle, u32 event, void *context)
+> >  	struct ata_device *ata_dev = context;
+> >  
+> >  	if (event == ACPI_NOTIFY_DEVICE_WAKE && ata_dev &&
+> > -			pm_runtime_suspended(&ata_dev->sdev->sdev_gendev))
+> > -		scsi_autopm_get_device(ata_dev->sdev);
+> > +			pm_runtime_suspended(&ata_dev->sdev->sdev_gendev)) {
+> > +		ata_dev->sdev->wakeup_by_user = 1;
 > 
-> Do we really need yet another interface to user space?
+> That flag is badly named. Something like "insert_event_during_suspend"
+> would be better.
 
-We do not have a way to let user decide when device is runtime
-suspended, can we remove its power, so I added this flag. PCI subsystem
-has a similar flag named d3cold_allowed.
+The reason I added the flag is to let sr knows that when the device
+gets resumed, please eject its tray since user just pressed the eject
+button when it is in powered off state.
 
-This flag can disable the power off of ZPODD capable devices, or put a
-rotational disk into powered off if user so choose.
+If wakeup_by_user is badly named, what about need_eject? I don't think
+insert_event_during_suspend reflects what happened here.
 
-Thanks,
-Aaron
+-Aaron
