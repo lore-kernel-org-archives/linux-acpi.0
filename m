@@ -1,52 +1,84 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH v6 1/7] scsi: sr: support runtime pm for ODD
-Date: Thu, 6 Sep 2012 14:50:32 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1209061437050.1182-100000@iolanthe.rowland.org>
-References: <1670507.4ddqykZP6b@linux-lqwf.site>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: CONFIG_NO_HZ + CONFIG_CPU_IDLE freeze the system (Was Re: [PATCH] acpi : remove power from acpi_processor_cx structure)
+Date: Thu, 6 Sep 2012 22:04:11 +0200
+Message-ID: <201209062204.11288.rjw@sisk.pl>
+References: <1343164349-28550-1-git-send-email-daniel.lezcano@linaro.org> <50485698.1070905@linaro.org> <50486B58.7000901@linaro.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:58839 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1759443Ab2IFSue (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Sep 2012 14:50:34 -0400
-In-Reply-To: <1670507.4ddqykZP6b@linux-lqwf.site>
+Received: from ogre.sisk.pl ([193.178.161.156]:40388 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756723Ab2IFT5y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 6 Sep 2012 15:57:54 -0400
+In-Reply-To: <50486B58.7000901@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Oliver Neukum <oliver@neukum.org>
-Cc: Aaron Lu <aaron.lwe@gmail.com>, James Bottomley <James.Bottomley@hansenpartnership.com>, Jeff Garzik <jgarzik@pobox.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: xen-devel@lists.xensource.com, linaro-dev@lists.linaro.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org, Frederic Weisbecker <fweisbec@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Thu, 6 Sep 2012, Oliver Neukum wrote:
-
-> > > > But in the long run that wouldn't be a good solution.  What I'd really 
-> > > > like is a way to do the status polling without having it reset the 
-> > > > idle timer.
-> > > > 
-> > > > Oliver, what do you think?  Would that be a good solution?
-> > > 
-> > > Well, we could introduce a flag into the requests for the polls.
-> > > But best would be to simply declare a device immediately idle
-> > > as soon as we learn that it has no medium. No special casing
-> > > would be needed.
-> > 
-> > We could do that, but what about idle drives that do have media?
+On Thursday, September 06, 2012, Daniel Lezcano wrote:
+> On 09/06/2012 09:54 AM, Daniel Lezcano wrote:
+> > On 09/05/2012 03:41 PM, Rafael J. Wysocki wrote:
+> >> On Saturday, September 01, 2012, Rafael J. Wysocki wrote:
+> >>> On Friday, August 31, 2012, Daniel Lezcano wrote:
+> >>>> On 07/24/2012 11:06 PM, Konrad Rzeszutek Wilk wrote:
+> >>>>> On Tue, Jul 24, 2012 at 11:12:29PM +0200, Daniel Lezcano wrote:
+> >>>>>> Remove the power field as it is not used.
+> >>>>>>
+> >>>>>> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+> >>>>>> Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+> >>>>> Acked.
+> >>>> Hi Rafael,
+> >>>>
+> >>>> I did not see this patch going in. Is it possible to merge it ?
+> >>> I think so.  I'll take care of it when I get back from LinuxCon/Plumbers Conf.
+> >>> (early next week).
+> >> Applied to the linux-next branch of the linux-pm.git tree as v3.7 material.
+> > Thanks Rafael.
+> >
+> >> Are there any other patches you want me to consider for v3.7?
+> > Yes please, I have the per cpu latencies ready to be submitted but I
+> > want to do extra testing before. Unfortunately, the linux-pm-next hangs
+> > at boot time on my intel dual core (not related to the patchset).
+> >
+> > I am git bisecting right now.
 > 
-> Then we do have a problem. To handle this optimally we'd have to make
-> a difference between the first time a new medium is noticed and later
-> polls.
+> I found the culprit. This is not related to the linux-pm tree but with
+> net-next.
+> The following patch introduced the issue.
+> 
+> commit 6bdb7fe31046ac50b47e83c35cd6c6b6160a475d
+> Author: Amerigo Wang <amwang@redhat.com>
+> Date:   Fri Aug 10 01:24:50 2012 +0000
+> 
+>     netpoll: re-enable irq in poll_napi()
+>    
+>     napi->poll() needs IRQ enabled, so we have to re-enable IRQ before
+>     calling it.
+>    
+>     Cc: David Miller <davem@davemloft.net>
+>     Signed-off-by: Cong Wang <amwang@redhat.com>
+>     Signed-off-by: David S. Miller <davem@davemloft.net>
+> 
+> AFAICS, it has been fixed by commit
+> 072a9c48600409d72aeb0d5b29fbb75861a06631 which is not yet in linux-pm-next.
 
-That's right.  It shouldn't be too difficult to accomplish.
+If it is present in the current Linus' tree, you can just pull this one
+and merge linux-pm-next into it.  It should merge without conflicts.
 
-One case to watch out for is a ZPODD with no media and an open door.  
-We should put the drive into runtime suspend immediately, but continue
-polling and leave the power on.  The runtime suspend after each poll
-will to see if the door is shut; when it is then polling can be turned
-off and power removed.
+> I fall into this issue because NETCONSOLE is set, disabling it allowed
+> me to go further.
+> 
+> Unfortunately I am facing to some random freeze on the system which
+> seems to be related to CONFIG_NO_HZ=y and CONFIG_CPU_IDLE=y.
+> 
+> Disabling one of them, make the freezes to disappear.
+> 
+> Is it a known issue ?
 
-This leads to a question: How should the sr device tell its parent 
-whether or not to turn off the power?  Aaron's current patches simply 
-rely on the device being runtime suspended, but that won't work with 
-this scheme.  Do we need a "ready_to_power_down" flag?
+Well, there are systems having problems with this configuration, but they
+should be exceptional.  What system is that?
 
-Alan Stern
-
+Rafael
