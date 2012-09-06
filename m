@@ -1,72 +1,69 @@
-From: =?GB2312?B?YW5keXd1MTA2vai5+g==?= <wujianguo106@gmail.com>
-Subject: Re: [RFC v9 PATCH 20/21] memory-hotplug: clear hwpoisoned flag when
- onlining pages
-Date: Thu, 6 Sep 2012 15:27:55 +0800
-Message-ID: <CA+quRcZtQCmFa4=1fq1iainQROy3NgtAXjLFF9cixs6KVXoMDA@mail.gmail.com>
-References: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com>
-	<1346837155-534-21-git-send-email-wency@cn.fujitsu.com>
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [PATCH] acpi : remove power from acpi_processor_cx structure
+Date: Thu, 06 Sep 2012 09:54:00 +0200
+Message-ID: <50485698.1070905@linaro.org>
+References: <1343164349-28550-1-git-send-email-daniel.lezcano@linaro.org> <50410811.70500@linaro.org> <201209010754.58999.rjw@sisk.pl> <201209051541.58909.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <1346837155-534-21-git-send-email-wency@cn.fujitsu.com>
-Sender: linux-sh-owner@vger.kernel.org
-To: wency@cn.fujitsu.com
-Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:59671 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753358Ab2IFHyF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Sep 2012 03:54:05 -0400
+Received: by bkwj10 with SMTP id j10so642700bkw.19
+        for <linux-acpi@vger.kernel.org>; Thu, 06 Sep 2012 00:54:04 -0700 (PDT)
+In-Reply-To: <201209051541.58909.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, xen-devel@lists.xensource.com, linaro-dev@lists.linaro.org, linux-pm@vger.kernel.org, patches@linaro.org, linux-acpi@vger.kernel.org, lenb@kernel.org
 
-2012/9/5 <wency@cn.fujitsu.com>
->
-> From: Wen Congyang <wency@cn.fujitsu.com>
->
-> hwpoisoned may set when we offline a page by the sysfs interface
-> /sys/devices/system/memory/soft_offline_page or
-> /sys/devices/system/memory/hard_offline_page. If we don't clear
-> this flag when onlining pages, this page can't be freed, and will
-> not in free list. So we can't offline these pages again. So we
-> should clear this flag when onlining pages.
->
-> CC: David Rientjes <rientjes@google.com>
-> CC: Jiang Liu <liuj97@gmail.com>
-> CC: Len Brown <len.brown@intel.com>
-> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-> CC: Paul Mackerras <paulus@samba.org>
-> CC: Christoph Lameter <cl@linux.com>
-> Cc: Minchan Kim <minchan.kim@gmail.com>
-> CC: Andrew Morton <akpm@linux-foundation.org>
-> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-> CC: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
-> ---
->  mm/memory_hotplug.c |    5 +++++
->  1 files changed, 5 insertions(+), 0 deletions(-)
->
-> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-> index 270c249..140c080 100644
-> --- a/mm/memory_hotplug.c
-> +++ b/mm/memory_hotplug.c
-> @@ -661,6 +661,11 @@ EXPORT_SYMBOL_GPL(__online_page_increment_counters);
->
->  void __online_page_free(struct page *page)
->  {
-> +#ifdef CONFIG_MEMORY_FAILURE
-> +       /* The page may be marked HWPoisoned by soft/hard offline page */
-> +       ClearPageHWPoison(page);
+On 09/05/2012 03:41 PM, Rafael J. Wysocki wrote:
+> On Saturday, September 01, 2012, Rafael J. Wysocki wrote:
+>> On Friday, August 31, 2012, Daniel Lezcano wrote:
+>>> On 07/24/2012 11:06 PM, Konrad Rzeszutek Wilk wrote:
+>>>> On Tue, Jul 24, 2012 at 11:12:29PM +0200, Daniel Lezcano wrote:
+>>>>> Remove the power field as it is not used.
+>>>>>
+>>>>> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+>>>>> Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+>>>> Acked.
+>>>
+>>> Hi Rafael,
+>>>
+>>> I did not see this patch going in. Is it possible to merge it ?
+>>
+>> I think so.  I'll take care of it when I get back from LinuxCon/Plum=
+bers Conf.
+>> (early next week).
+>=20
+> Applied to the linux-next branch of the linux-pm.git tree as v3.7 mat=
+erial.
 
-Hi Congyang,
-I think you should decrease mce_bad_pages counter her
-atomic_long_sub(1, &mce_bad_pages);
+Thanks Rafael.
 
->
-> +#endif
-> +
->         ClearPageReserved(page);
->         init_page_count(page);
->         __free_page(page);
-> --
-> 1.7.1
->
-> --
-> To unsubscribe, send a message with 'unsubscribe linux-mm' in
-> the body to majordomo@kvack.org.  For more info on Linux MM,
-> see: http://www.linux-mm.org/ .
-> Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+> Are there any other patches you want me to consider for v3.7?
+
+Yes please, I have the per cpu latencies ready to be submitted but I
+want to do extra testing before. Unfortunately, the linux-pm-next hangs
+at boot time on my intel dual core (not related to the patchset).
+
+I am git bisecting right now.
+
+Thanks
+  -- Daniel
+
+--=20
+ <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software for=
+ ARM SoCs
+
+=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
+<http://twitter.com/#!/linaroorg> Twitter |
+<http://www.linaro.org/linaro-blog/> Blog
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
