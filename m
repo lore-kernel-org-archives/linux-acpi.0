@@ -1,144 +1,60 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v2 2/4] ACPI: Update processor_driver to use .sys_notify
-Date: Thu,  6 Sep 2012 17:40:26 -0600
-Message-ID: <1346974828-12500-3-git-send-email-toshi.kani@hp.com>
-References: <1346974828-12500-1-git-send-email-toshi.kani@hp.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1346974828-12500-1-git-send-email-toshi.kani@hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, lenb@kernel.org
-Cc: linux-kernel@vger.kernel.org, bhelgaas@google.com, liuj97@gmail.com, isimatu.yasuaki@jp.fujitsu.com, Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [RFC PATCH 1/5] ACPI: Add acpi_lookup_driver() function
+Date: Thu, 06 Sep 2012 17:52:42 -0600
+Message-ID: <1346975562.4732.256.camel@misato.fc.hp.com>
+References: <1346357766-14030-1-git-send-email-toshi.kani@hp.com>
+	 <1346357766-14030-2-git-send-email-toshi.kani@hp.com>
+	 <CAErSpo4nKzwFb6UfM068fqzW6J5ysKsP2cnngMnTA9GQaTmeXw@mail.gmail.com>
+	 <1346430252.4732.163.camel@misato.fc.hp.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t0017.houston.hp.com ([15.201.24.20]:21337 "EHLO
+	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755234Ab2IFX6Q (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Sep 2012 19:58:16 -0400
+In-Reply-To: <1346430252.4732.163.camel@misato.fc.hp.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, liuj97@gmail.com, isimatu.yasuaki@jp.fujitsu.com
 
-Changed the ACPI processor driver to use .sys_notify.  Removed
-ACPI namespace walks and their call-back function that register
-and unregister the hotplug handler to all processor objects
-through acpi_[install|remove]_notify_handler().
+(snip)
+ :
+> > > +
+> > > +       /* set HID to this device object */
+> > > +       acpi_device_set_id(device);
+> > > +
+> > > +       /* lookup a matching driver */
+> > > +       (void) bus_for_each_drv(device->dev.bus, NULL,
+> > > +                                       device, acpi_match_driver);
+> > > +       driver = device->driver;
+> > 
+> > This path is used when we receive a Notify to a device and a matching
+> > driver has been registered, but the driver is not bound to the device.
+> >  For example, it may be a newly-added device where we haven't bound a
+> > driver to it yet.
+> > 
+> > Is there anything that prevents us from unloading the driver between
+> > here (the point where we capture the "struct acpi_driver *") and the
+> > point where we call "driver->ops.sys_notify"?
+> 
+> Hi Bjorn,
+> 
+> That's a very good question.  I will look into how we protect a driver
+> from unloading when we try to attach & probe a driver in the
+> acpi_add_single_object() path, and see if we can use a similar way to
+> protect it here as well.
 
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
----
- drivers/acpi/processor_driver.c |   82 +++-----------------------------------
- 1 files changed, 7 insertions(+), 75 deletions(-)
+I have protected this path in version 2, which I just sent out.  It
+calls .sys_notify() directly from bus_for_each_drv(), which protects the
+driver entry by increasing its reference count while the callback
+function is being called.
 
-diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-index bfc31cb..a0f6123 100644
---- a/drivers/acpi/processor_driver.c
-+++ b/drivers/acpi/processor_driver.c
-@@ -85,6 +85,10 @@ static void acpi_processor_notify(struct acpi_device *device, u32 event);
- static acpi_status acpi_processor_hotadd_init(struct acpi_processor *pr);
- static int acpi_processor_handle_eject(struct acpi_processor *pr);
- static int acpi_processor_start(struct acpi_processor *pr);
-+#ifdef CONFIG_ACPI_HOTPLUG_CPU
-+static void acpi_processor_hotplug_notify(acpi_handle handle, u32 event,
-+		void *data);
-+#endif
+Thanks,
+-Toshi
  
- static const struct acpi_device_id processor_device_ids[] = {
- 	{ACPI_PROCESSOR_OBJECT_HID, 0},
-@@ -104,6 +108,9 @@ static struct acpi_driver acpi_processor_driver = {
- 		.add = acpi_processor_add,
- 		.remove = acpi_processor_remove,
- 		.notify = acpi_processor_notify,
-+#ifdef CONFIG_ACPI_HOTPLUG_CPU
-+		.sys_notify = acpi_processor_hotplug_notify,
-+#endif
- 		},
- 	.drv.pm = &acpi_processor_pm,
- };
-@@ -755,67 +762,6 @@ static void acpi_processor_hotplug_notify(acpi_handle handle,
- 	return;
- }
- 
--static acpi_status is_processor_device(acpi_handle handle)
--{
--	struct acpi_device_info *info;
--	char *hid;
--	acpi_status status;
--
--	status = acpi_get_object_info(handle, &info);
--	if (ACPI_FAILURE(status))
--		return status;
--
--	if (info->type == ACPI_TYPE_PROCESSOR) {
--		kfree(info);
--		return AE_OK;	/* found a processor object */
--	}
--
--	if (!(info->valid & ACPI_VALID_HID)) {
--		kfree(info);
--		return AE_ERROR;
--	}
--
--	hid = info->hardware_id.string;
--	if ((hid == NULL) || strcmp(hid, ACPI_PROCESSOR_DEVICE_HID)) {
--		kfree(info);
--		return AE_ERROR;
--	}
--
--	kfree(info);
--	return AE_OK;	/* found a processor device object */
--}
--
--static acpi_status
--processor_walk_namespace_cb(acpi_handle handle,
--			    u32 lvl, void *context, void **rv)
--{
--	acpi_status status;
--	int *action = context;
--
--	status = is_processor_device(handle);
--	if (ACPI_FAILURE(status))
--		return AE_OK;	/* not a processor; continue to walk */
--
--	switch (*action) {
--	case INSTALL_NOTIFY_HANDLER:
--		acpi_install_notify_handler(handle,
--					    ACPI_SYSTEM_NOTIFY,
--					    acpi_processor_hotplug_notify,
--					    NULL);
--		break;
--	case UNINSTALL_NOTIFY_HANDLER:
--		acpi_remove_notify_handler(handle,
--					   ACPI_SYSTEM_NOTIFY,
--					   acpi_processor_hotplug_notify);
--		break;
--	default:
--		break;
--	}
--
--	/* found a processor; skip walking underneath */
--	return AE_CTRL_DEPTH;
--}
--
- static acpi_status acpi_processor_hotadd_init(struct acpi_processor *pr)
- {
- 	acpi_handle handle = pr->handle;
-@@ -869,26 +815,12 @@ static int acpi_processor_handle_eject(struct acpi_processor *pr)
- static
- void acpi_processor_install_hotplug_notify(void)
- {
--#ifdef CONFIG_ACPI_HOTPLUG_CPU
--	int action = INSTALL_NOTIFY_HANDLER;
--	acpi_walk_namespace(ACPI_TYPE_ANY,
--			    ACPI_ROOT_OBJECT,
--			    ACPI_UINT32_MAX,
--			    processor_walk_namespace_cb, NULL, &action, NULL);
--#endif
- 	register_hotcpu_notifier(&acpi_cpu_notifier);
- }
- 
- static
- void acpi_processor_uninstall_hotplug_notify(void)
- {
--#ifdef CONFIG_ACPI_HOTPLUG_CPU
--	int action = UNINSTALL_NOTIFY_HANDLER;
--	acpi_walk_namespace(ACPI_TYPE_ANY,
--			    ACPI_ROOT_OBJECT,
--			    ACPI_UINT32_MAX,
--			    processor_walk_namespace_cb, NULL, &action, NULL);
--#endif
- 	unregister_hotcpu_notifier(&acpi_cpu_notifier);
- }
- 
--- 
-1.7.7.6
+
+
+
