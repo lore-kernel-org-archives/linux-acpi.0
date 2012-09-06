@@ -1,56 +1,54 @@
-From: "Jan Beulich" <JBeulich@suse.com>
-Subject: [PATCH] GHES: correct page protection flags in
- ghes_ioremap_pfn_...()
-Date: Fri, 07 Sep 2012 07:40:31 +0100
-Message-ID: <5049B2FF02000078000998F3@nat28.tlf.novell.com>
+From: "Mr.Tan Wong" <subaru04@m6.gyao.ne.jp>
+Subject: Congratulations: You Have Won.
+Date: Fri, 07 Sep 2012 05:40:44 +0900
+Message-ID: <20120906204044.0000264B.0685__2916.84391345388$1347001157$gmane$org@m6.gyao.ne.jp>
+Reply-To: <mrtanwng71@kimo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nat28.tlf.novell.com ([130.57.49.28]:55434 "EHLO
-	nat28.tlf.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751343Ab2IGGjh convert rfc822-to-8bit (ORCPT
-	<rfc822;groupwise-linux-acpi@vger.kernel.org:4:1>);
-	Fri, 7 Sep 2012 02:39:37 -0400
-Content-Disposition: inline
+Received: from ms-fb01.so-net.ne.jp ([202.238.84.141]:20474 "EHLO
+	ms-fb01.so-net.ne.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756213Ab2IGG7E (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Sep 2012 02:59:04 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: ying.huang@intel.com, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, linux-acpi@vger.kernel.org
+To: info@winners.com
 
-At least for Xen Dom0 it is very relevant to set the _PAGE_IO bit when
-ioremap-ing (non-RAM) areas, as that flag suppresses the PFN -> MFN
-translation otherwise done in PV guests. (The offending commit was
-81e88fdc432a1552401d6e91a984dcccce72b8dc.)
+Congratulations: You Have Won
 
-Signed-off-by: Jan Beulich <jbeulich@suse.com>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+The MICROSOFT EMAIL PROMO TEAM is glad to announce that
+after a successful completion of the PROMO DRAWS held
+on the 1st September 2012 your e-mail address,attached
+to winning numbers: (11) (80) (12)(96) (09) (43) won in
+the Tenth lottery category.
 
----
- drivers/acpi/apei/ghes.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+You have therefore been approved to claim a total sum
+of? 450,000,00 Pounds Sterling in cash credited to REF
+NO:MICRO-L/2009-END10.
 
---- 3.6-rc4/drivers/acpi/apei/ghes.c
-+++ 3.6-rc4-ghes-ioremap-prot/drivers/acpi/apei/ghes.c
-@@ -206,7 +206,7 @@ static void __iomem *ghes_ioremap_pfn_nm
- 
- 	vaddr = (unsigned long)GHES_IOREMAP_NMI_PAGE(ghes_ioremap_area->addr);
- 	ioremap_page_range(vaddr, vaddr + PAGE_SIZE,
--			   pfn << PAGE_SHIFT, PAGE_KERNEL);
-+			   pfn << PAGE_SHIFT, PAGE_KERNEL_IO);
- 
- 	return (void __iomem *)vaddr;
- }
-@@ -217,7 +217,7 @@ static void __iomem *ghes_ioremap_pfn_ir
- 
- 	vaddr = (unsigned long)GHES_IOREMAP_IRQ_PAGE(ghes_ioremap_area->addr);
- 	ioremap_page_range(vaddr, vaddr + PAGE_SIZE,
--			   pfn << PAGE_SHIFT, PAGE_KERNEL);
-+			   pfn << PAGE_SHIFT, PAGE_KERNEL_IO);
- 
- 	return (void __iomem *)vaddr;
- }
+All participants were selected through our Microsoft
+computer ballot system drawn from 167,000 Names, as
+part of our International "E-MAIL" Promotion Program
+for our prominent MS-WORD users all over the world and
+for the continuous use of the Internet. You are advised
+to contact the claims-processor with the details below
+via his e-mail address :
 
+NAME:  Mr. Harris Conklin
+EMAIL: mrharrisconklin1@yahoo.com.hk
+
+PLEASE NOTE YOU ARE TO SEND THE FOLLOWING INFORMATION
+TO CLAIM YOUR PRIZE:
+
+1.Full Name:.......
+2.Address:.......
+3.Phone:.......
+4.Country:.......
+5.Sex/Gender:.......
+
+
+YOURS SINCERELY,
+Mr. Harris Conklin.
 
 
