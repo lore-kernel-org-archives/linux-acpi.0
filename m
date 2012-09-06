@@ -1,89 +1,84 @@
-From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: Re: [RFC v9 PATCH 20/21] memory-hotplug: clear hwpoisoned flag when
- onlining pages
-Date: Thu, 06 Sep 2012 16:41:57 +0800
-Message-ID: <504861D5.201@cn.fujitsu.com>
-References: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com>	<1346837155-534-21-git-send-email-wency@cn.fujitsu.com> <CA+quRcZtQCmFa4=1fq1iainQROy3NgtAXjLFF9cixs6KVXoMDA@mail.gmail.com>
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: CONFIG_NO_HZ + CONFIG_CPU_IDLE freeze the system (Was Re: [PATCH]
+ acpi : remove power from acpi_processor_cx structure)
+Date: Thu, 06 Sep 2012 11:22:32 +0200
+Message-ID: <50486B58.7000901@linaro.org>
+References: <1343164349-28550-1-git-send-email-daniel.lezcano@linaro.org> <50410811.70500@linaro.org> <201209010754.58999.rjw@sisk.pl> <201209051541.58909.rjw@sisk.pl> <50485698.1070905@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <CA+quRcZtQCmFa4=1fq1iainQROy3NgtAXjLFF9cixs6KVXoMDA@mail.gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: =?UTF-8?B?YW5keXd1MTA25bu65Zu9?= <wujianguo106@gmail.com>
-Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:41036 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757123Ab2IFJWh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Sep 2012 05:22:37 -0400
+Received: by bkwj10 with SMTP id j10so689794bkw.19
+        for <linux-acpi@vger.kernel.org>; Thu, 06 Sep 2012 02:22:35 -0700 (PDT)
+In-Reply-To: <50485698.1070905@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: xen-devel@lists.xensource.com, linaro-dev@lists.linaro.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org, Frederic Weisbecker <fweisbec@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-At 09/06/2012 03:27 PM, andywu106=E5=BB=BA=E5=9B=BD Wrote:
-> 2012/9/5 <wency@cn.fujitsu.com>
->>
->> From: Wen Congyang <wency@cn.fujitsu.com>
->>
->> hwpoisoned may set when we offline a page by the sysfs interface
->> /sys/devices/system/memory/soft=5Foffline=5Fpage or
->> /sys/devices/system/memory/hard=5Foffline=5Fpage. If we don't clear
->> this flag when onlining pages, this page can't be freed, and will
->> not in free list. So we can't offline these pages again. So we
->> should clear this flag when onlining pages.
->>
->> CC: David Rientjes <rientjes@google.com>
->> CC: Jiang Liu <liuj97@gmail.com>
->> CC: Len Brown <len.brown@intel.com>
->> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
->> CC: Paul Mackerras <paulus@samba.org>
->> CC: Christoph Lameter <cl@linux.com>
->> Cc: Minchan Kim <minchan.kim@gmail.com>
->> CC: Andrew Morton <akpm@linux-foundation.org>
->> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
->> CC: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->> Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
->> ---
->>  mm/memory=5Fhotplug.c |    5 +++++
->>  1 files changed, 5 insertions(+), 0 deletions(-)
->>
->> diff --git a/mm/memory=5Fhotplug.c b/mm/memory=5Fhotplug.c
->> index 270c249..140c080 100644
->> --- a/mm/memory=5Fhotplug.c
->> +++ b/mm/memory=5Fhotplug.c
->> @@ -661,6 +661,11 @@ EXPORT=5FSYMBOL=5FGPL(=5F=5Fonline=5Fpage=5Fincreme=
-nt=5Fcounters);
->>
->>  void =5F=5Fonline=5Fpage=5Ffree(struct page *page)
->>  {
->> +#ifdef CONFIG=5FMEMORY=5FFAILURE
->> +       /* The page may be marked HWPoisoned by soft/hard offline page */
->> +       ClearPageHWPoison(page);
->=20
-> Hi Congyang,
-> I think you should decrease mce=5Fbad=5Fpages counter her
-> atomic=5Flong=5Fsub(1, &mce=5Fbad=5Fpages);
+On 09/06/2012 09:54 AM, Daniel Lezcano wrote:
+> On 09/05/2012 03:41 PM, Rafael J. Wysocki wrote:
+>> On Saturday, September 01, 2012, Rafael J. Wysocki wrote:
+>>> On Friday, August 31, 2012, Daniel Lezcano wrote:
+>>>> On 07/24/2012 11:06 PM, Konrad Rzeszutek Wilk wrote:
+>>>>> On Tue, Jul 24, 2012 at 11:12:29PM +0200, Daniel Lezcano wrote:
+>>>>>> Remove the power field as it is not used.
+>>>>>>
+>>>>>> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+>>>>>> Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+>>>>> Acked.
+>>>> Hi Rafael,
+>>>>
+>>>> I did not see this patch going in. Is it possible to merge it ?
+>>> I think so.  I'll take care of it when I get back from LinuxCon/Plumbers Conf.
+>>> (early next week).
+>> Applied to the linux-next branch of the linux-pm.git tree as v3.7 material.
+> Thanks Rafael.
+>
+>> Are there any other patches you want me to consider for v3.7?
+> Yes please, I have the per cpu latencies ready to be submitted but I
+> want to do extra testing before. Unfortunately, the linux-pm-next hangs
+> at boot time on my intel dual core (not related to the patchset).
+>
+> I am git bisecting right now.
 
-Yes, thanks for pointing it out.
+I found the culprit. This is not related to the linux-pm tree but with
+net-next.
+The following patch introduced the issue.
 
-Thanks
-Wen Congyang
+commit 6bdb7fe31046ac50b47e83c35cd6c6b6160a475d
+Author: Amerigo Wang <amwang@redhat.com>
+Date:   Fri Aug 10 01:24:50 2012 +0000
 
->=20
->>
->> +#endif
->> +
->>         ClearPageReserved(page);
->>         init=5Fpage=5Fcount(page);
->>         =5F=5Ffree=5Fpage(page);
->> --
->> 1.7.1
->>
->> --
->> To unsubscribe, send a message with 'unsubscribe linux-mm' in
->> the body to majordomo@kvack.org.  For more info on Linux MM,
->> see: http://www.linux-mm.org/ .
->> Don't email: <a href=3Dmailto:"dont@kvack.org"> email@kvack.org </a>
->=20
+    netpoll: re-enable irq in poll_napi()
+   
+    napi->poll() needs IRQ enabled, so we have to re-enable IRQ before
+    calling it.
+   
+    Cc: David Miller <davem@davemloft.net>
+    Signed-off-by: Cong Wang <amwang@redhat.com>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
 
-=
+AFAICS, it has been fixed by commit
+072a9c48600409d72aeb0d5b29fbb75861a06631 which is not yet in linux-pm-next.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+I fall into this issue because NETCONSOLE is set, disabling it allowed
+me to go further.
+
+Unfortunately I am facing to some random freeze on the system which
+seems to be related to CONFIG_NO_HZ=y and CONFIG_CPU_IDLE=y.
+
+Disabling one of them, make the freezes to disappear.
+
+Is it a known issue ?
+
+Thanks in advance
+  -- Daniel
+
+
+
+
