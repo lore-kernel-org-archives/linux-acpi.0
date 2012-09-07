@@ -1,136 +1,56 @@
-From: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Subject: Re: [PATCH v2 6/6] ACPI, PCI: add resoruce-assign code for devices
- under hot-added hostbridge
-Date: Fri, 7 Sep 2012 18:31:20 +0900
-Message-ID: <20120907183120.558e7a62.izumi.taku@jp.fujitsu.com>
-References: <20120903165831.29aed72c.izumi.taku@jp.fujitsu.com>
-	<20120903170705.4e6dbc2c.izumi.taku@jp.fujitsu.com>
-	<CAE9FiQVXtTf3+jpbYzHk3D3VVm-bXEB9EcgkBwkEtYR-SRiKHA@mail.gmail.com>
-	<20120907182612.92efef7d.izumi.taku@jp.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20120907182612.92efef7d.izumi.taku@jp.fujitsu.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Cc: Yinghai Lu <yinghai@kernel.org>, linux-pci@vger.kernel.org, bhelgaas@google.com, linux-acpi@vger.kernel.org, kaneshige.kenji@jp.fujitsu.com, jiang.liu@huawei.com
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: [PATCH 0/6] cpuidle : per cpu latencies
+Date: Fri,  7 Sep 2012 12:19:26 +0200
+Message-ID: <1347013172-12465-1-git-send-email-daniel.lezcano@linaro.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:46113 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752949Ab2IGKTi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Sep 2012 06:19:38 -0400
+Received: by bkwj10 with SMTP id j10so1284302bkw.19
+        for <linux-acpi@vger.kernel.org>; Fri, 07 Sep 2012 03:19:37 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rjw@sisk.pl, lenb@kernel.org
+Cc: linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, patches@linaro.org, linaro-dev@lists.linaro.org, pdeschrijver@nvidia.com, lorenzo.pieralisi@arm.com
 
+Since commit 46bcfad7a819bd17ac4e831b04405152d59784ab,
+        cpuidle: Single/Global registration of idle states
 
-Currently there's no PCI-related clean-up code
-in acpi_pci_root_remove() function.
-This patch introduces function for hostbridge removal,
-and brings back pci_stop_bus_devices() function.
+we have a single registration for the cpuidle states which makes
+sense. But now two new architectures are coming: tegra3 and big.LITTLE.
 
-Signed-off-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
----
- drivers/acpi/pci_bind.c     |    7 +++++++
- drivers/acpi/pci_root.c     |    7 +++++++
- drivers/pci/remove.c        |   27 +++++++++++++++++++++++++++
- include/acpi/acpi_drivers.h |    1 +
- include/linux/pci.h         |    2 ++
- 5 files changed, 44 insertions(+)
+These architectures have different cpus with different caracteristics
+for power saving. High load => powerfull processors, idle => small processors.
 
-Index: Bjorn-next-0903/drivers/pci/remove.c
-===================================================================
---- Bjorn-next-0903.orig/drivers/pci/remove.c
-+++ Bjorn-next-0903/drivers/pci/remove.c
-@@ -92,3 +92,30 @@ void pci_stop_and_remove_bus_device(stru
- 	pci_destroy_dev(dev);
- }
- EXPORT_SYMBOL(pci_stop_and_remove_bus_device);
-+
-+void pci_stop_bus_devices(struct pci_bus *bus)
-+{
-+	struct pci_dev *dev, *tmp;
-+
-+	list_for_each_entry_safe_reverse(dev, tmp, &bus->devices, bus_list) {
-+		if (dev->subordinate)
-+			pci_stop_bus_devices(dev->subordinate);
-+		pci_stop_dev(dev);
-+	}
-+
-+}
-+EXPORT_SYMBOL(pci_stop_bus_devices);
-+
-+void pci_remove_host_bridge(struct pci_host_bridge *bridge)
-+{
-+	struct pci_bus *root = bridge->bus;
-+	struct pci_dev *dev, *tmp;
-+
-+	list_for_each_entry_safe_reverse(dev, tmp, &root->devices, bus_list)
-+		pci_stop_and_remove_bus_device(dev);
-+
-+	pci_remove_bus(root);
-+
-+	device_unregister(&bridge->dev);
-+}
-+EXPORT_SYMBOL(pci_remove_host_bridge);
-Index: Bjorn-next-0903/drivers/acpi/pci_root.c
-===================================================================
---- Bjorn-next-0903.orig/drivers/acpi/pci_root.c
-+++ Bjorn-next-0903/drivers/acpi/pci_root.c
-@@ -655,8 +655,10 @@ static int acpi_pci_root_remove(struct a
- {
- 	struct acpi_pci_root *root = acpi_driver_data(device);
- 	struct acpi_pci_driver *driver;
-+	struct pci_host_bridge *bridge = to_pci_host_bridge(root->bus->bridge);
- 
- 	mutex_lock(&acpi_pci_root_lock);
-+	pci_stop_bus_devices(root->bus);
- 	list_for_each_entry(driver, &acpi_pci_drivers, node)
- 		if (driver->remove)
- 			driver->remove(root->device->handle);
-@@ -664,6 +666,11 @@ static int acpi_pci_root_remove(struct a
- 	device_set_run_wake(root->bus->bridge, false);
- 	pci_acpi_remove_bus_pm_notifier(device);
- 
-+	acpi_pci_irq_del_prt(root->bus);
-+	acpi_pci_unbind_root(device);
-+
-+	pci_remove_host_bridge(bridge);
-+
- 	list_del_rcu(&root->node);
- 	mutex_unlock(&acpi_pci_root_lock);
- 	synchronize_rcu();
-Index: Bjorn-next-0903/include/linux/pci.h
-===================================================================
---- Bjorn-next-0903.orig/include/linux/pci.h
-+++ Bjorn-next-0903/include/linux/pci.h
-@@ -734,6 +734,8 @@ extern struct pci_dev *pci_dev_get(struc
- extern void pci_dev_put(struct pci_dev *dev);
- extern void pci_remove_bus(struct pci_bus *b);
- extern void pci_stop_and_remove_bus_device(struct pci_dev *dev);
-+extern void pci_stop_bus_devices(struct pci_bus *bus);
-+extern void pci_remove_host_bridge(struct pci_host_bridge *bridge);
- void pci_setup_cardbus(struct pci_bus *bus);
- extern void pci_sort_breadthfirst(void);
- #define dev_is_pci(d) ((d)->bus == &pci_bus_type)
-Index: Bjorn-next-0903/drivers/acpi/pci_bind.c
-===================================================================
---- Bjorn-next-0903.orig/drivers/acpi/pci_bind.c
-+++ Bjorn-next-0903/drivers/acpi/pci_bind.c
-@@ -118,3 +118,10 @@ int acpi_pci_bind_root(struct acpi_devic
- 
- 	return 0;
- }
-+
-+void  acpi_pci_unbind_root(struct acpi_device *device)
-+{
-+	device->ops.bind = NULL;
-+	device->ops.unbind = NULL;
-+}
-+
-Index: Bjorn-next-0903/include/acpi/acpi_drivers.h
-===================================================================
---- Bjorn-next-0903.orig/include/acpi/acpi_drivers.h
-+++ Bjorn-next-0903/include/acpi/acpi_drivers.h
-@@ -101,6 +101,7 @@ struct pci_bus;
- 
- struct pci_dev *acpi_get_pci_dev(acpi_handle);
- int acpi_pci_bind_root(struct acpi_device *device);
-+void acpi_pci_unbind_root(struct acpi_device *device);
- 
- /* Arch-defined function to add a bus to the system */
- 
+That implies different cpu latencies.
+
+This patchset keeps the current behavior as introduced by Deepthi without
+breaking the drivers and add the possibility to specify a per cpu states.
+
+ * Tested on intel core 2 duo T9500
+ * Tested on vexpress by Lorenzo Pieralsi
+ * Tested on tegra3 by Peter De Schrijver
+
+Daniel Lezcano (6):
+  acpi : move the acpi_idle_driver variable declaration
+  acpi : move cpuidle_device field out of the acpi_processor_power
+    structure
+  acpi : remove pointless cpuidle device state_count init
+  cpuidle : add a pointer for cpuidle_state in the cpuidle_device
+  cpuidle : use per cpuidle device cpu states
+  cpuidle : add cpuidle_register_states function
+
+ drivers/acpi/processor_driver.c    |    2 +-
+ drivers/acpi/processor_idle.c      |   27 +++++++++++++++-------
+ drivers/cpuidle/cpuidle.c          |   42 ++++++++++++++++++++++++++++-------
+ drivers/cpuidle/governors/ladder.c |   22 +++++++++---------
+ drivers/cpuidle/governors/menu.c   |    8 +++---
+ drivers/cpuidle/sysfs.c            |    3 +-
+ include/acpi/processor.h           |    3 --
+ include/linux/cpuidle.h            |   11 ++++++--
+ 8 files changed, 76 insertions(+), 42 deletions(-)
+
+-- 
+1.7.5.4
+
