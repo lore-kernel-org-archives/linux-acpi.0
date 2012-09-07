@@ -1,127 +1,67 @@
-From: Corentin Chary <corentin.chary@gmail.com>
-Subject: Re: [PATCH 1/3] drivers-platform-x86: remove useless #ifdef CONFIG_ACPI_VIDEO
-Date: Fri, 7 Sep 2012 21:37:28 +0100
-Message-ID: <CAHR064ge_itmJvdAzeLwXgA6v_zifMya+-QjC9B0-i32riPauA@mail.gmail.com>
-References: <1345496512-11780-1-git-send-email-corentin.chary@gmail.com>
-	<1345496512-11780-2-git-send-email-corentin.chary@gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] cpufreq: ondemand: update frequency when limits are relaxed
+Date: Fri, 7 Sep 2012 22:48:55 +0200
+Message-ID: <201209072248.55384.rjw@sisk.pl>
+References: <F22FC3EF73EF0942A7CD99A3AC5E4E1F380AF6B7BF@HQMAIL04.nvidia.com> <201209062340.33610.rjw@sisk.pl> <201209071013.56871.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:53349 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753291Ab2IGUh3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Sep 2012 16:37:29 -0400
-In-Reply-To: <1345496512-11780-2-git-send-email-corentin.chary@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <cpufreq-owner@vger.kernel.org>
+In-Reply-To: <201209071013.56871.trenn@suse.de>
+Sender: cpufreq-owner@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: Michal Pecio <mpecio@nvidia.com>, "cpufreq@vger.kernel.org" <cpufreq@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, Corentin Chary <corentin.chary@gmail.com>, Joey Lee <jlee@novell.com>, Matthew Garrett <mjg@redhat.com>, linux-kernel@vger.kernel.org, acpi4asus-user@lists.sourceforge.net
 
-On Mon, Aug 20, 2012 at 10:01 PM, Corentin Chary
-<corentin.chary@gmail.com> wrote:
-> Signed-off-by: Corentin Chary <corentin.chary@gmail.com>
-> ---
->  drivers/platform/x86/acer-wmi.c       |    2 --
->  drivers/platform/x86/apple-gmux.c     |    4 ----
->  drivers/platform/x86/asus-wmi.c       |    4 ----
->  drivers/platform/x86/samsung-laptop.c |    4 ----
->  4 files changed, 14 deletions(-)
->
-> diff --git a/drivers/platform/x86/acer-wmi.c b/drivers/platform/x86/acer-wmi.c
-> index 3782e1c..934d861 100644
-> --- a/drivers/platform/x86/acer-wmi.c
-> +++ b/drivers/platform/x86/acer-wmi.c
-> @@ -2196,10 +2196,8 @@ static int __init acer_wmi_init(void)
->                 interface->capability &= ~ACER_CAP_BRIGHTNESS;
->                 pr_info("Brightness must be controlled by acpi video driver\n");
->         } else {
-> -#ifdef CONFIG_ACPI_VIDEO
->                 pr_info("Disabling ACPI video driver\n");
->                 acpi_video_unregister();
-> -#endif
->         }
->
->         if (wmi_has_guid(WMID_GUID3)) {
-> diff --git a/drivers/platform/x86/apple-gmux.c b/drivers/platform/x86/apple-gmux.c
-> index dfb1a92..dca31ce 100644
-> --- a/drivers/platform/x86/apple-gmux.c
-> +++ b/drivers/platform/x86/apple-gmux.c
-> @@ -505,9 +505,7 @@ static int __devinit gmux_probe(struct pnp_dev *pnp,
->          * Disable the other backlight choices.
->          */
->         acpi_video_dmi_promote_vendor();
-> -#if defined (CONFIG_ACPI_VIDEO) || defined (CONFIG_ACPI_VIDEO_MODULE)
->         acpi_video_unregister();
-> -#endif
->         apple_bl_unregister();
->
->         gmux_data->power_state = VGA_SWITCHEROO_ON;
-> @@ -593,9 +591,7 @@ static void __devexit gmux_remove(struct pnp_dev *pnp)
->         kfree(gmux_data);
->
->         acpi_video_dmi_demote_vendor();
-> -#if defined (CONFIG_ACPI_VIDEO) || defined (CONFIG_ACPI_VIDEO_MODULE)
->         acpi_video_register();
-> -#endif
->         apple_bl_register();
->  }
->
-> diff --git a/drivers/platform/x86/asus-wmi.c b/drivers/platform/x86/asus-wmi.c
-> index 6a91a0c..912ec7d 100644
-> --- a/drivers/platform/x86/asus-wmi.c
-> +++ b/drivers/platform/x86/asus-wmi.c
-> @@ -47,9 +47,7 @@
->  #include <linux/thermal.h>
->  #include <acpi/acpi_bus.h>
->  #include <acpi/acpi_drivers.h>
-> -#ifdef CONFIG_ACPI_VIDEO
->  #include <acpi/video.h>
-> -#endif
->
->  #include "asus-wmi.h"
->
-> @@ -1780,10 +1778,8 @@ static int asus_wmi_add(struct platform_device *pdev)
->         if (asus->driver->quirks->wmi_backlight_power)
->                 acpi_video_dmi_promote_vendor();
->         if (!acpi_video_backlight_support()) {
-> -#ifdef CONFIG_ACPI_VIDEO
->                 pr_info("Disabling ACPI video driver\n");
->                 acpi_video_unregister();
-> -#endif
->                 err = asus_wmi_backlight_init(asus);
->                 if (err && err != -ENODEV)
->                         goto fail_backlight;
-> diff --git a/drivers/platform/x86/samsung-laptop.c b/drivers/platform/x86/samsung-laptop.c
-> index c1ca7bc..dd90d15 100644
-> --- a/drivers/platform/x86/samsung-laptop.c
-> +++ b/drivers/platform/x86/samsung-laptop.c
-> @@ -26,9 +26,7 @@
->  #include <linux/seq_file.h>
->  #include <linux/debugfs.h>
->  #include <linux/ctype.h>
-> -#ifdef CONFIG_ACPI_VIDEO
->  #include <acpi/video.h>
-> -#endif
->
->  /*
->   * This driver is needed because a number of Samsung laptops do not hook
-> @@ -1558,9 +1556,7 @@ static int __init samsung_init(void)
->                 samsung->handle_backlight = false;
->         } else if (samsung->quirks->broken_acpi_video) {
->                 pr_info("Disabling ACPI video driver\n");
-> -#ifdef CONFIG_ACPI_VIDEO
->                 acpi_video_unregister();
-> -#endif
->         }
->  #endif
->
-> --
-> 1.7.9.5
->
+On Friday, September 07, 2012, Thomas Renninger wrote:
+> On Thursday, September 06, 2012 11:40:33 PM Rafael J. Wysocki wrote:
+> > On Friday, August 31, 2012, Michal Pecio wrote:
+> > > From: Michal Pecio <mpecio@nvidia.com>
+> > > 
+> > > Reevaluate CPU load and update frequency immediately whenever limits 
+> > > are changed. Currently ondemand doesn't do so when limits are relaxed,
+> > > wasting power on CPUs with relatively low sampling rate.
+> > > Also, update the prev_cpu_* variables on frequency transitions. Their
+> > > old values aren't valid anymore because the governor assumes constant
+> > > frequency during entire sampling period.
+> > > 
+> > > Signed-off-by: Michal Pecio <mpecio@nvidia.com>
+> > 
+> > Well, this makes sense to me.
+> > 
+> > Thomas, what do you think?
+> Looks fine to me as well.
+> But the same should be done in the conservative driver as well then.
+> Could you  send another, separate patch doing the same in 
+> cpufreq_conservative.c.
 
-Any news on that ? This should really be merged before the end of rcs.
-Thanks,
+Do you mean something like the appended patch?
 
--- 
-Corentin Chary
-http://xf.iksaif.net
+Rafael
+
+
+---
+ drivers/cpufreq/cpufreq_conservative.c |    9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
+
+Index: linux/drivers/cpufreq/cpufreq_conservative.c
+===================================================================
+--- linux.orig/drivers/cpufreq/cpufreq_conservative.c
++++ linux/drivers/cpufreq/cpufreq_conservative.c
+@@ -576,14 +576,7 @@ static int cpufreq_governor_dbs(struct c
+ 
+ 	case CPUFREQ_GOV_LIMITS:
+ 		mutex_lock(&this_dbs_info->timer_mutex);
+-		if (policy->max < this_dbs_info->cur_policy->cur)
+-			__cpufreq_driver_target(
+-					this_dbs_info->cur_policy,
+-					policy->max, CPUFREQ_RELATION_H);
+-		else if (policy->min > this_dbs_info->cur_policy->cur)
+-			__cpufreq_driver_target(
+-					this_dbs_info->cur_policy,
+-					policy->min, CPUFREQ_RELATION_L);
++		dbs_check_cpu(this_dbs_info);
+ 		mutex_unlock(&this_dbs_info->timer_mutex);
+ 
+ 		break;
