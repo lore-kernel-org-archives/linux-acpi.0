@@ -1,31 +1,69 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH] acpi: bus: handle power manageable but no _PSC/_PRx case
-Date: Fri, 07 Sep 2012 22:32:25 +0800
-Message-ID: <504A0579.3000109@intel.com>
-References: <1346053126-7646-1-git-send-email-aaron.lu@intel.com> <201209062353.34517.rjw@sisk.pl> <20120907003513.GA1419@mint-spring.sh.intel.com> <201209071346.01900.rjw@sisk.pl>
+From: Huang Ying <ying.huang@intel.com>
+Subject: Re: [PATCH] GHES: correct page protection flags in
+ ghes_ioremap_pfn_...()
+Date: Fri, 07 Sep 2012 22:39:34 +0800
+Message-ID: <1347028774.4804.2.camel@yhuang-mobile.sh.intel.com>
+References: <5049B2FF02000078000998F3@nat28.tlf.novell.com>
+	 <1347001356.4673.3.camel@yhuang-mobile.sh.intel.com>
+	 <5049BA9B0200007800099923@nat28.tlf.novell.com>
+	 <1347007578.28607.13.camel@yhuang-dev>
+	 <5049D1B00200007800099A6F@nat28.tlf.novell.com>
+	 <1347008133.28607.15.camel@yhuang-dev>
+	 <5049D44C0200007800099A94@nat28.tlf.novell.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:17140 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:51476 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932400Ab2IGOcn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 7 Sep 2012 10:32:43 -0400
-In-Reply-To: <201209071346.01900.rjw@sisk.pl>
+	id S1753290Ab2IGOkS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 7 Sep 2012 10:40:18 -0400
+In-Reply-To: <5049D44C0200007800099A94@nat28.tlf.novell.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>
+To: Jan Beulich <JBeulich@suse.com>
+Cc: Len Brown <lenb@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, linux-acpi@vger.kernel.org
 
-On 09/07/2012 07:46 PM, Rafael J. Wysocki wrote:
->> Yes, on a test system, when I try to put a device into D3 cold and ACPI
->> will complain that I can't due to its parent is in a even lower power
->> state UNKNOWN(255), this parent device is power manageable but has no
->> _PSC and _PRx defined.
->
-> Perhaps we can force _PS0 for such devices to start with, so that we know
-> for sure that the initial state is D0?
+On Fri, 2012-09-07 at 10:02 +0100, Jan Beulich wrote:
+> >>> On 07.09.12 at 10:55, Huang Ying <ying.huang@intel.com> wrote:
+> > On Fri, 2012-09-07 at 09:51 +0100, Jan Beulich wrote:
+> >> >>> On 07.09.12 at 10:46, Huang Ying <ying.huang@intel.com> wrote:
+> >> > On Fri, 2012-09-07 at 08:12 +0100, Jan Beulich wrote:
+> >> >> >>> On 07.09.12 at 09:02, Huang Ying <ying.huang@intel.com> wrote:
+> >> >> > On Fri, 2012-09-07 at 07:40 +0100, Jan Beulich wrote:
+> >> >> >> At least for Xen Dom0 it is very relevant to set the _PAGE_IO bit when
+> >> >> >> ioremap-ing (non-RAM) areas, as that flag suppresses the PFN -> MFN
+> >> >> >> translation otherwise done in PV guests. (The offending commit was
+> >> >> >> 81e88fdc432a1552401d6e91a984dcccce72b8dc.)
+> >> >> > 
+> >> >> > If my understanding were correct, ghes_ioremap_pfn_nmi normally only map
+> >> >> > RAM.
+> >> >> 
+> >> >> But not RAM in the sense of what is seen as usable memory in the
+> >> >> E820 map. What you're mapping here is reserved memory, and that
+> >> >> is (from the perspective of the kernel and Xen) non-RAM. The fact
+> >> >> that it is RAM from a machine perspective is manifested by the
+> >> >> mapping not needing to be done UC or alike.
+> >> > 
+> >> > I think the key is to keep these memory range map consistent between
+> >> > each other.  BIOS may map these memory cached.  ACPI may mapped them as
+> >> > cached (see acpi_os_ioremap) too.
+> >> 
+> >> But that aspect is orthogonal to the patch here - all we need
+> >> done for Xen is the proper setting of _PAGE_IO; cachability
+> >> is being dealt with independently (and correctly I think).
+> > 
+> > Sorry, don't know much about Xen.  Just think we should keep mapping
+> > consistent about whether cached in native environment.
+> 
+> Of course. And nothing changes with the patch in that regard.
 
-Sounds good, I'll update the patch, thanks for the advice.
+Yes.  So I have no objection to the patch.
 
--Aaron
+Reviewed-by: Huang Ying <ying.huang@intel.com>
+
+Best Regards,
+Huang Ying
+
+
+
