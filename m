@@ -1,66 +1,79 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 2/6] acpi : move cpuidle_device field out of the acpi_processor_power structure
-Date: Sat, 8 Sep 2012 00:06:11 +0200
-Message-ID: <201209080006.11888.rjw@sisk.pl>
-References: <1347013172-12465-1-git-send-email-daniel.lezcano@linaro.org> <201209072340.33932.rjw@sisk.pl> <201209072354.28800.rjw@sisk.pl>
+Subject: Re: [PATCH 0/6] cpuidle : per cpu latencies
+Date: Sat, 8 Sep 2012 00:17:17 +0200
+Message-ID: <201209080017.17418.rjw@sisk.pl>
+References: <1347013172-12465-1-git-send-email-daniel.lezcano@linaro.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:42971 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([193.178.161.156]:42989 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751309Ab2IGV7x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 7 Sep 2012 17:59:53 -0400
-In-Reply-To: <201209072354.28800.rjw@sisk.pl>
+	id S1751250Ab2IGWK6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 7 Sep 2012 18:10:58 -0400
+In-Reply-To: <1347013172-12465-1-git-send-email-daniel.lezcano@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Daniel Lezcano <daniel.lezcano@linaro.org>
 Cc: lenb@kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, patches@linaro.org, linaro-dev@lists.linaro.org, pdeschrijver@nvidia.com, lorenzo.pieralisi@arm.com
 
-On Friday, September 07, 2012, Rafael J. Wysocki wrote:
-> On Friday, September 07, 2012, Rafael J. Wysocki wrote:
-> > On Friday, September 07, 2012, Daniel Lezcano wrote:
-> > > Currently we have the cpuidle_device field in the acpi_processor_power structure.
-> > > This adds a dependency in processor.h for cpuidle.h.
-> > > 
-> > > In order to be consistent with the rest of the drivers and for the per cpu states
-> > > coming right after this patch, this one move out of the acpi_processor_power
-> > > structure the cpuidle_device field.
-> > > 
-> > > Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
-> > > Acked-by: Peter De Schrijver <pdeschrijver@nvidia.com>
-> > > Tested-by: Peter De Schrijver <pdeschrijver@nvidia.com>
-> > > ---
-> > >  drivers/acpi/processor_idle.c |   25 ++++++++++++++++++-------
-> > >  include/acpi/processor.h      |    2 --
-> > >  2 files changed, 18 insertions(+), 9 deletions(-)
-> > > 
-> > > diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-> > > index de89624..084b1d2 100644
-> > > --- a/drivers/acpi/processor_idle.c
-> > > +++ b/drivers/acpi/processor_idle.c
-> > > @@ -79,6 +79,8 @@ module_param(bm_check_disable, uint, 0000);
-> > >  static unsigned int latency_factor __read_mostly = 2;
-> > >  module_param(latency_factor, uint, 0644);
-> > >  
-> > > +static DEFINE_PER_CPU(struct cpuidle_device, acpi_cpuidle_device);
-> > > +
-> > 
-> > Well.  Why are you moving that thing into the percpu memory?  It doesn't
-> > have to be per-CPU and storing it there just wastes the room.
+On Friday, September 07, 2012, Daniel Lezcano wrote:
+> Since commit 46bcfad7a819bd17ac4e831b04405152d59784ab,
+>         cpuidle: Single/Global registration of idle states
 > 
-> Sorry, it is per-CPU already, scratch that.
+> we have a single registration for the cpuidle states which makes
+> sense. But now two new architectures are coming: tegra3 and big.LITTLE.
+> 
+> These architectures have different cpus with different caracteristics
+> for power saving. High load => powerfull processors, idle => small processors.
+> 
+> That implies different cpu latencies.
+> 
+> This patchset keeps the current behavior as introduced by Deepthi without
+> breaking the drivers and add the possibility to specify a per cpu states.
+> 
+>  * Tested on intel core 2 duo T9500
+>  * Tested on vexpress by Lorenzo Pieralsi
+>  * Tested on tegra3 by Peter De Schrijver
+> 
+> Daniel Lezcano (6):
+>   acpi : move the acpi_idle_driver variable declaration
+>   acpi : move cpuidle_device field out of the acpi_processor_power
+>     structure
+>   acpi : remove pointless cpuidle device state_count init
 
-Well, no, it isn't.  So I was right originally (boy, that code _is_ confusing).
+I've posted comments about patches [1-3/6] already.  In short, I don't like
+[1/6], [2/6] would require some more work IMO and I'm not sure about the
+validity of the observation that [3/6] is based on.
 
-So originally you had per-CPU pointers called 'processors' that each pointed
-to a struct acpi_processor object created by acpi_processor_add() in slab
-memory.  Your patch doesn't touch those pointers, so they are still there.
+Yes, I agree that the ACPI processor driver as a whole might be cleaner
+and it probably would be good to spend some time on cleaning it up, but
+not necessarily in a hurry.
 
-In addition to them it creates a number of static per-CPU objects that
-previously were stored in those struct acpi_processor object mentioned above.
-These things need not be stored in percpu memory.
+Unfortunately, I also don't agree with the approach used by the remaining
+patches, which is to try to use a separate array of states for each
+individual CPU core.  This way we end up with quite some duplicated data
+if the CPU cores in question actually happen to be identical.
+
+What about using a separate cpuidle driver for every kind of different CPUs in
+the system (e.g. one driver for "big" CPUs and the other for "little" ones)?
+
+Have you considered this approach already?
+
+>   cpuidle : add a pointer for cpuidle_state in the cpuidle_device
+>   cpuidle : use per cpuidle device cpu states
+>   cpuidle : add cpuidle_register_states function
+> 
+>  drivers/acpi/processor_driver.c    |    2 +-
+>  drivers/acpi/processor_idle.c      |   27 +++++++++++++++-------
+>  drivers/cpuidle/cpuidle.c          |   42 ++++++++++++++++++++++++++++-------
+>  drivers/cpuidle/governors/ladder.c |   22 +++++++++---------
+>  drivers/cpuidle/governors/menu.c   |    8 +++---
+>  drivers/cpuidle/sysfs.c            |    3 +-
+>  include/acpi/processor.h           |    3 --
+>  include/linux/cpuidle.h            |   11 ++++++--
+>  8 files changed, 76 insertions(+), 42 deletions(-)
 
 Thanks,
 Rafael
