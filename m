@@ -1,69 +1,53 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: Re: [PATCH] GHES: correct page protection flags in
- ghes_ioremap_pfn_...()
-Date: Fri, 07 Sep 2012 22:39:34 +0800
-Message-ID: <1347028774.4804.2.camel@yhuang-mobile.sh.intel.com>
-References: <5049B2FF02000078000998F3@nat28.tlf.novell.com>
-	 <1347001356.4673.3.camel@yhuang-mobile.sh.intel.com>
-	 <5049BA9B0200007800099923@nat28.tlf.novell.com>
-	 <1347007578.28607.13.camel@yhuang-dev>
-	 <5049D1B00200007800099A6F@nat28.tlf.novell.com>
-	 <1347008133.28607.15.camel@yhuang-dev>
-	 <5049D44C0200007800099A94@nat28.tlf.novell.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v6 1/7] scsi: sr: support runtime pm for ODD
+Date: Fri, 07 Sep 2012 22:53:02 +0800
+Message-ID: <504A0A4E.9040801@intel.com>
+References: <Pine.LNX.4.44L0.1209061103530.1363-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:51476 "EHLO mga01.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:35053 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753290Ab2IGOkS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 7 Sep 2012 10:40:18 -0400
-In-Reply-To: <5049D44C0200007800099A94@nat28.tlf.novell.com>
+	id S1760649Ab2IGOxG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 7 Sep 2012 10:53:06 -0400
+In-Reply-To: <Pine.LNX.4.44L0.1209061103530.1363-100000@iolanthe.rowland.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jan Beulich <JBeulich@suse.com>
-Cc: Len Brown <lenb@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, linux-acpi@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Aaron Lu <aaron.lwe@gmail.com>, Oliver Neukum <oneukum@suse.de>, James Bottomley <James.Bottomley@hansenpartnership.com>, Jeff Garzik <jgarzik@pobox.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Fri, 2012-09-07 at 10:02 +0100, Jan Beulich wrote:
-> >>> On 07.09.12 at 10:55, Huang Ying <ying.huang@intel.com> wrote:
-> > On Fri, 2012-09-07 at 09:51 +0100, Jan Beulich wrote:
-> >> >>> On 07.09.12 at 10:46, Huang Ying <ying.huang@intel.com> wrote:
-> >> > On Fri, 2012-09-07 at 08:12 +0100, Jan Beulich wrote:
-> >> >> >>> On 07.09.12 at 09:02, Huang Ying <ying.huang@intel.com> wrote:
-> >> >> > On Fri, 2012-09-07 at 07:40 +0100, Jan Beulich wrote:
-> >> >> >> At least for Xen Dom0 it is very relevant to set the _PAGE_IO bit when
-> >> >> >> ioremap-ing (non-RAM) areas, as that flag suppresses the PFN -> MFN
-> >> >> >> translation otherwise done in PV guests. (The offending commit was
-> >> >> >> 81e88fdc432a1552401d6e91a984dcccce72b8dc.)
-> >> >> > 
-> >> >> > If my understanding were correct, ghes_ioremap_pfn_nmi normally only map
-> >> >> > RAM.
-> >> >> 
-> >> >> But not RAM in the sense of what is seen as usable memory in the
-> >> >> E820 map. What you're mapping here is reserved memory, and that
-> >> >> is (from the perspective of the kernel and Xen) non-RAM. The fact
-> >> >> that it is RAM from a machine perspective is manifested by the
-> >> >> mapping not needing to be done UC or alike.
-> >> > 
-> >> > I think the key is to keep these memory range map consistent between
-> >> > each other.  BIOS may map these memory cached.  ACPI may mapped them as
-> >> > cached (see acpi_os_ioremap) too.
-> >> 
-> >> But that aspect is orthogonal to the patch here - all we need
-> >> done for Xen is the proper setting of _PAGE_IO; cachability
-> >> is being dealt with independently (and correctly I think).
-> > 
-> > Sorry, don't know much about Xen.  Just think we should keep mapping
-> > consistent about whether cached in native environment.
-> 
-> Of course. And nothing changes with the patch in that regard.
+On 09/06/2012 11:06 PM, Alan Stern wrote:
+> On Thu, 6 Sep 2012, Aaron Lu wrote:
+>
+>>> That's why we have an autosuspend delay.  Although for some reason the
+>>> SCSI subsystem doesn't use it currently...  We need to add a call to
+>>> pm_runtime_use_autosuspend() in scsi_sysfs_add_sdev().  Likewise, the
+>>> pm_schedule_suspend() call in scsi_runtime_idle() should be changed to
+>>> pm_runtime_autosuspend().  And there should be calls to
+>>> pm_runtime_set_autosuspend_delay() in the sd and sr drivers.
+>>
+>> I tried to use autosuspend when preparing the patch, but the fact that
+>> the devices will be polled every 2 seconds make it impossible to enter
+>> suspend state if the autosuspend delay is larger than that.
+>
+> You can always increase the polling interval.
+> But in the long run that wouldn't be a good solution.
 
-Yes.  So I have no objection to the patch.
+Agree.
 
-Reviewed-by: Huang Ying <ying.huang@intel.com>
+> What I'd really like is a way to do the status polling without having
+> it reset the idle timer.
 
-Best Regards,
-Huang Ying
+I like this, I'll try to see if this can be done.
 
+If we idle the device immediately, we would suspend/resume the ODD every
+2 seconds, which may not be a good idea.
 
+And we can't increate the polling interval that much, like to the level
+of minutes, and if we can't put the device into suspend state long
+enough, it may not worth the effort.
 
+What do you think?
+
+-Aaron
