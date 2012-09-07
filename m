@@ -1,62 +1,76 @@
-From: Amit Kucheria <amit.kucheria@linaro.org>
-Subject: Re: [PATCH 0/6] cpuidle : per cpu latencies
-Date: Fri, 7 Sep 2012 16:34:30 +0530
-Message-ID: <CAP245DXTdw4MxcHOS2EUgvaQv6RnH0NWvks3RhE8ORR1Zx7qbw@mail.gmail.com>
-References: <1347013172-12465-1-git-send-email-daniel.lezcano@linaro.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] acpi: bus: handle power manageable but no _PSC/_PRx case
+Date: Fri, 7 Sep 2012 13:46:01 +0200
+Message-ID: <201209071346.01900.rjw@sisk.pl>
+References: <1346053126-7646-1-git-send-email-aaron.lu@intel.com> <201209062353.34517.rjw@sisk.pl> <20120907003513.GA1419@mint-spring.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:46400 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753222Ab2IGLEb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Sep 2012 07:04:31 -0400
-Received: by vbbff1 with SMTP id ff1so3039740vbb.19
-        for <linux-acpi@vger.kernel.org>; Fri, 07 Sep 2012 04:04:30 -0700 (PDT)
-In-Reply-To: <1347013172-12465-1-git-send-email-daniel.lezcano@linaro.org>
+Received: from ogre.sisk.pl ([193.178.161.156]:41780 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752138Ab2IGLjo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 7 Sep 2012 07:39:44 -0400
+In-Reply-To: <20120907003513.GA1419@mint-spring.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: rjw@sisk.pl, lenb@kernel.org, linaro-dev@lists.linaro.org, patches@linaro.org, pdeschrijver@nvidia.com, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>
 
-On Fri, Sep 7, 2012 at 3:49 PM, Daniel Lezcano
-<daniel.lezcano@linaro.org> wrote:
-> Since commit 46bcfad7a819bd17ac4e831b04405152d59784ab,
->         cpuidle: Single/Global registration of idle states
->
-> we have a single registration for the cpuidle states which makes
-> sense. But now two new architectures are coming: tegra3 and big.LITTLE.
->
-> These architectures have different cpus with different caracteristics
-> for power saving. High load => powerfull processors, idle => small processors.
->
-> That implies different cpu latencies.
->
-> This patchset keeps the current behavior as introduced by Deepthi without
-> breaking the drivers and add the possibility to specify a per cpu states.
->
->  * Tested on intel core 2 duo T9500
->  * Tested on vexpress by Lorenzo Pieralsi
->  * Tested on tegra3 by Peter De Schrijver
->
-> Daniel Lezcano (6):
->   acpi : move the acpi_idle_driver variable declaration
->   acpi : move cpuidle_device field out of the acpi_processor_power
->     structure
->   acpi : remove pointless cpuidle device state_count init
->   cpuidle : add a pointer for cpuidle_state in the cpuidle_device
->   cpuidle : use per cpuidle device cpu states
->   cpuidle : add cpuidle_register_states function
->
->  drivers/acpi/processor_driver.c    |    2 +-
->  drivers/acpi/processor_idle.c      |   27 +++++++++++++++-------
->  drivers/cpuidle/cpuidle.c          |   42 ++++++++++++++++++++++++++++-------
->  drivers/cpuidle/governors/ladder.c |   22 +++++++++---------
->  drivers/cpuidle/governors/menu.c   |    8 +++---
->  drivers/cpuidle/sysfs.c            |    3 +-
->  include/acpi/processor.h           |    3 --
->  include/linux/cpuidle.h            |   11 ++++++--
->  8 files changed, 76 insertions(+), 42 deletions(-)
+On Friday, September 07, 2012, Aaron Lu wrote:
+> On Thu, Sep 06, 2012 at 11:53:34PM +0200, Rafael J. Wysocki wrote:
+> > On Thursday, September 06, 2012, Rafael J. Wysocki wrote:
+> > > On Monday, August 27, 2012, Aaron Lu wrote:
+> > > > Currently, when we are trying to get the power state of an acpi device,
+> > > > we will do the following:
+> > > > If device is not power manageable, init its power state as its parent or
+> > > > if it does not have a parent, init as D0;
+> > > > If device is power manageable, evaluate _PSC and then refine with
+> > > > acpi_power_get_inferred_state.
+> > > > 
+> > > > But there exist some devices with _PSx defined, but no _PSC or _PRx.
+> > > > It is power manageable, but the above method to get power state does
+> > > > not cover this case and its power state will be UNKNOWN(255).
+> > > > 
+> > > > So change the check of power manageable to whether _PSC and _PRx
+> > > > defined.
+> > > > 
+> > > > Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+> > > 
+> > > Applied to the linux-next branch of the linux-pm.git tree.
+> > > 
+> > > I think it should go to -stable too and therefore it would be good to have
+> > > it in v3.6, so I'd like to push it to Linus for -rc5, if Len has no objections.
+> > 
+> > On a second thought, perhaps the initial power state of those devices
+> > _should_ be "unknown", hmm?
+> > 
+> > After all, we don't know what power state the device is in.
+> 
+> Agree here but I think this is a safe assumption that on initial system
+> boot, all devices should be at D0. We have already assumed this fact if
+> the device is not power manageable and has no parent.
 
-Feel free to add my Reviewed-by for this series.
+That is mandated by the spec, though.
 
-/Amit
+> And this patch just changed the condition to not judging if power
+> manageable but if it has _PSC or _PRx, since we will use that to know
+> the device's power state, so I think using _PSC or _PRx as the
+> condition check is more precise.
+
+It is not clear if we can assume anything about the initial power states
+of devices having _PSx defined if they cannot be determined through
+_PSC or power resources.
+
+> > Is there any practical user-visible problem this causes to happen?
+> 
+> Yes, on a test system, when I try to put a device into D3 cold and ACPI
+> will complain that I can't due to its parent is in a even lower power
+> state UNKNOWN(255), this parent device is power manageable but has no
+> _PSC and _PRx defined.
+
+Perhaps we can force _PS0 for such devices to start with, so that we know
+for sure that the initial state is D0?
+
+Rafael
