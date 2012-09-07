@@ -1,62 +1,121 @@
-From: "Jan Beulich" <JBeulich@suse.com>
-Subject: Re: [PATCH] GHES: correct page protection flags in
- ghes_ioremap_pfn_...()
-Date: Fri, 07 Sep 2012 10:02:36 +0100
-Message-ID: <5049D44C0200007800099A94@nat28.tlf.novell.com>
-References: <5049B2FF02000078000998F3@nat28.tlf.novell.com>
- <1347001356.4673.3.camel@yhuang-mobile.sh.intel.com>
- <5049BA9B0200007800099923@nat28.tlf.novell.com>
- <1347007578.28607.13.camel@yhuang-dev>
- <5049D1B00200007800099A6F@nat28.tlf.novell.com>
- <1347008133.28607.15.camel@yhuang-dev>
+From: Taku Izumi <izumi.taku@jp.fujitsu.com>
+Subject: Re: [PATCH v2 6/6] ACPI, PCI: add resoruce-assign code for devices
+ under hot-added hostbridge
+Date: Fri, 7 Sep 2012 18:26:12 +0900
+Message-ID: <20120907182612.92efef7d.izumi.taku@jp.fujitsu.com>
+References: <20120903165831.29aed72c.izumi.taku@jp.fujitsu.com>
+	<20120903170705.4e6dbc2c.izumi.taku@jp.fujitsu.com>
+	<CAE9FiQVXtTf3+jpbYzHk3D3VVm-bXEB9EcgkBwkEtYR-SRiKHA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nat28.tlf.novell.com ([130.57.49.28]:42469 "EHLO
-	nat28.tlf.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753240Ab2IGJBn convert rfc822-to-8bit (ORCPT
-	<rfc822;groupwise-linux-acpi@vger.kernel.org:4:1>);
-	Fri, 7 Sep 2012 05:01:43 -0400
-In-Reply-To: <1347008133.28607.15.camel@yhuang-dev>
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAE9FiQVXtTf3+jpbYzHk3D3VVm-bXEB9EcgkBwkEtYR-SRiKHA@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: linux-pci@vger.kernel.org, bhelgaas@google.com, linux-acpi@vger.kernel.org, kaneshige.kenji@jp.fujitsu.com, jiang.liu@huawei.com
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, linux-acpi@vger.kernel.org
 
->>> On 07.09.12 at 10:55, Huang Ying <ying.huang@intel.com> wrote:
-> On Fri, 2012-09-07 at 09:51 +0100, Jan Beulich wrote:
->> >>> On 07.09.12 at 10:46, Huang Ying <ying.huang@intel.com> wrote:
->> > On Fri, 2012-09-07 at 08:12 +0100, Jan Beulich wrote:
->> >> >>> On 07.09.12 at 09:02, Huang Ying <ying.huang@intel.com> wrote:
->> >> > On Fri, 2012-09-07 at 07:40 +0100, Jan Beulich wrote:
->> >> >> At least for Xen Dom0 it is very relevant to set the _PAGE_IO bit when
->> >> >> ioremap-ing (non-RAM) areas, as that flag suppresses the PFN -> MFN
->> >> >> translation otherwise done in PV guests. (The offending commit was
->> >> >> 81e88fdc432a1552401d6e91a984dcccce72b8dc.)
->> >> > 
->> >> > If my understanding were correct, ghes_ioremap_pfn_nmi normally only map
->> >> > RAM.
->> >> 
->> >> But not RAM in the sense of what is seen as usable memory in the
->> >> E820 map. What you're mapping here is reserved memory, and that
->> >> is (from the perspective of the kernel and Xen) non-RAM. The fact
->> >> that it is RAM from a machine perspective is manifested by the
->> >> mapping not needing to be done UC or alike.
->> > 
->> > I think the key is to keep these memory range map consistent between
->> > each other.  BIOS may map these memory cached.  ACPI may mapped them as
->> > cached (see acpi_os_ioremap) too.
->> 
->> But that aspect is orthogonal to the patch here - all we need
->> done for Xen is the proper setting of _PAGE_IO; cachability
->> is being dealt with independently (and correctly I think).
+On Mon, 3 Sep 2012 13:27:11 -0700
+Yinghai Lu <yinghai@kernel.org> wrote:
+
+> On Mon, Sep 3, 2012 at 1:07 AM, Taku Izumi <izumi.taku@jp.fujitsu.com> wrote:
+> >
+> > Devices under hot-added hostbridge have no chance to assign resources
+> > and to configure them, so this patch adds such code for hot-added
+> > hostbridges at acpi_pci_root_start().
+> >
+> > Signed-off-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
+> > ---
+> >  drivers/acpi/pci_root.c |   17 +++++++++++++++++
+> >  include/acpi/acpi_bus.h |    1 +
+> >  2 files changed, 18 insertions(+)
+> >
+> > Index: Bjorn-next-0903/drivers/acpi/pci_root.c
+> > ===================================================================
+> > --- Bjorn-next-0903.orig/drivers/acpi/pci_root.c
+> > +++ Bjorn-next-0903/drivers/acpi/pci_root.c
+> > @@ -39,6 +39,7 @@
+> >  #include <acpi/acpi_bus.h>
+> >  #include <acpi/acpi_drivers.h>
+> >  #include <acpi/apei.h>
+> > +#include <linux/pci_hotplug.h>
+> >
+> >  #define PREFIX "ACPI: "
+> >
+> > @@ -461,6 +462,9 @@ static int __devinit acpi_pci_root_add(s
+> >         if (!root)
+> >                 return -ENOMEM;
+> >
+> > +       if (system_state != SYSTEM_BOOTING)
+> > +               root->hot_added = true;
+> > +
+> >         segment = 0;
+> >         status = acpi_evaluate_integer(device->handle, METHOD_NAME__SEG, NULL,
+> >                                        &segment);
+> > @@ -639,6 +643,7 @@ static int acpi_pci_root_start(struct ac
+> >  {
+> >         struct acpi_pci_root *root = acpi_driver_data(device);
+> >         struct acpi_pci_driver *driver;
+> > +       struct pci_dev *pdev;
+> >
+> >         mutex_lock(&acpi_pci_root_lock);
+> >         list_for_each_entry(driver, &acpi_pci_drivers, node)
+> > @@ -646,6 +651,18 @@ static int acpi_pci_root_start(struct ac
+> >                         driver->add(device->handle);
+> >         mutex_unlock(&acpi_pci_root_lock);
+> >
+> > +       /*
+> > +        * Devices under hot-added hostbridge have no chance to assign
+> > +        * resources and to configure them, so do that here
+> > +        */
+> > +       if (root->hot_added) {
+> > +               pci_bus_size_bridges(root->bus);
+> > +               pci_bus_assign_resources(root->bus);
+> > +               list_for_each_entry(pdev, &root->bus->devices, bus_list)
+> > +                       pci_configure_slot(pdev);
+> > +               pci_enable_bridges(root->bus);
+> > +       }
+> > +
+> >         pci_bus_add_devices(root->bus);
 > 
-> Sorry, don't know much about Xen.  Just think we should keep mapping
-> consistent about whether cached in native environment.
+> after looking at your simplified version in patch5 and patch6
+> found that you do not understand my patchset correctly.
+> 
+> in my patchset there is change on:
+> acpi_pci_root_add
+> acpi_pci_root_start
+> acpi_pci_root_remove
+> 
+> and
+> handle_root_bridge_insertion/acpi_root_configure_bridge
+> handle_root_bridge_removal
+> 
+> for hot add path:
+> handle_root_bridge_insertion will call
+>       acpi_pci_root_add: it will scan the root bus and find all pci device
+>       acpi_root_configure_bridge: it will survey fw set pci resource,
+> and assigned unsigned resource
+>       acpi_pci_root_start: it will start acpi_pci driver for ioapic
+> controller and dmar iommu
+>                                     then call pci_bus_add_devices to
+> load other pci device drivers.
+> 
+> for hot remove path:
+>       acpi_pci_root_remove: will call pci_stop_bus_devices() to stop
+> drivers for all normal pci devices.
+>                                         then stop acpi_pci driver for
+> dmar and ioapic driver
+>                                         then call
+> pci_stop_and_remove_bus to remove the root bus.
+> 
+> the point is : keep the driver of ioapic and dmar  driver loading
+> before normal pci drivers, and later
+> stop driver for dmar/iommu, after unloading pci drivers.
 
-Of course. And nothing changes with the patch in that regard.
+ Sorry for too late response.
+ I failed at rebasing. I'll resend this patch.
+ Could you please review these again?
 
-Jan
-
+Best regards,
+Taku Izumi <izumi.taku@jp.fujitsu.com>
