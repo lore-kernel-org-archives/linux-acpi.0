@@ -1,7 +1,7 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH RESEND 04/12] ACPI/hed: convert to module_acpi_driver()
-Date: Fri,  7 Sep 2012 10:31:41 +0300
-Message-ID: <1347003109-26887-5-git-send-email-mika.westerberg@linux.intel.com>
+Subject: [PATCH RESEND 06/12] i2c-scmi: convert to module_acpi_driver()
+Date: Fri,  7 Sep 2012 10:31:43 +0300
+Message-ID: <1347003109-26887-7-git-send-email-mika.westerberg@linux.intel.com>
 References: <1347003109-26887-1-git-send-email-mika.westerberg@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1347003109-26887-1-git-send-email-mika.westerberg@linux.intel.com>
@@ -11,40 +11,35 @@ Cc: rui.zhang@intel.com, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutr
 List-Id: linux-acpi@vger.kernel.org
 
 Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Acked-by: Jean Delvare <khali@linux-fr.org>
 ---
- drivers/acpi/hed.c |   20 +-------------------
- 1 file changed, 1 insertion(+), 19 deletions(-)
+ drivers/i2c/busses/i2c-scmi.c |   14 +-------------
+ 1 file changed, 1 insertion(+), 13 deletions(-)
 
-diff --git a/drivers/acpi/hed.c b/drivers/acpi/hed.c
-index d0c1967..20a0f2c 100644
---- a/drivers/acpi/hed.c
-+++ b/drivers/acpi/hed.c
-@@ -86,25 +86,7 @@ static struct acpi_driver acpi_hed_driver = {
- 		.notify = acpi_hed_notify,
+diff --git a/drivers/i2c/busses/i2c-scmi.c b/drivers/i2c/busses/i2c-scmi.c
+index 388cbdc..6aafa3d 100644
+--- a/drivers/i2c/busses/i2c-scmi.c
++++ b/drivers/i2c/busses/i2c-scmi.c
+@@ -426,19 +426,7 @@ static struct acpi_driver acpi_smbus_cmi_driver = {
+ 		.remove = acpi_smbus_cmi_remove,
  	},
  };
 -
--static int __init acpi_hed_init(void)
+-static int __init acpi_smbus_cmi_init(void)
 -{
--	if (acpi_disabled)
--		return -ENODEV;
--
--	if (acpi_bus_register_driver(&acpi_hed_driver) < 0)
--		return -ENODEV;
--
--	return 0;
+-	return acpi_bus_register_driver(&acpi_smbus_cmi_driver);
 -}
 -
--static void __exit acpi_hed_exit(void)
+-static void __exit acpi_smbus_cmi_exit(void)
 -{
--	acpi_bus_unregister_driver(&acpi_hed_driver);
+-	acpi_bus_unregister_driver(&acpi_smbus_cmi_driver);
 -}
 -
--module_init(acpi_hed_init);
--module_exit(acpi_hed_exit);
-+module_acpi_driver(acpi_hed_driver);
+-module_init(acpi_smbus_cmi_init);
+-module_exit(acpi_smbus_cmi_exit);
++module_acpi_driver(acpi_smbus_cmi_driver);
  
- ACPI_MODULE_NAME("hed");
- MODULE_AUTHOR("Huang Ying");
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Crane Cai <crane.cai@amd.com>");
 -- 
 1.7.10.4
