@@ -1,172 +1,138 @@
-From: Lance Ortiz <lance.ortiz@hp.com>
-Subject: [PATCH] ACPI: Add new sysfs interface to export device description
-Date: Fri,  7 Sep 2012 10:28:16 -0600
-Message-ID: <1347035296-8882-1-git-send-email-lance.ortiz@hp.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rob@landley.net, lenb@kernel.org
-Cc: linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Lance Ortiz <lance.ortiz@hp.com>
+From: John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: CONFIG_NO_HZ + CONFIG_CPU_IDLE freeze the system (Was Re: [PATCH]
+	acpi : remove power from acpi_processor_cx structure)
+Date: Fri, 07 Sep 2012 10:22:59 -0700
+Message-ID: <504A2D73.3010702@linaro.org>
+References: <1343164349-28550-1-git-send-email-daniel.lezcano@linaro.org>
+	<201209062204.11288.rjw@sisk.pl> <50490920.9070204@linaro.org>
+	<201209062318.42874.rjw@sisk.pl> <504A02BD.4000805@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+In-Reply-To: <504A02BD.4000805-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
+List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
+Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+To: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: prarit-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, xen-devel-GuqFBffKawuULHF6PoxzQEEOCMrvLtNR@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, Peter Zijlstra <a.p.zijlstra-/NLkJaSkS4VmR6Xm/wNWPw@public.gmane.org>, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Frederic Weisbecker <fweisbec-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Konrad Rzeszutek Wilk <konrad.wilk-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Add support to export the device description obtained from the ACPI _STR
-method, if one exists for a device, to user-space via a sysfs interface.
-This new interface provides a standard and platform neutral way for users
-to obtain the description text stored in the ACPI _STR method.  If no
-_STR method exists for the device, no sysfs 'description' file will be
-created.  The 'description' file will be located in the /sys/devices/
-directory using the device's path.
+On 09/07/2012 07:20 AM, Daniel Lezcano wrote:
+> On 09/06/2012 11:18 PM, Rafael J. Wysocki wrote:
+>> On Thursday, September 06, 2012, Daniel Lezcano wrote:
+>>> On 09/06/2012 10:04 PM, Rafael J. Wysocki wrote:
+>>>> On Thursday, September 06, 2012, Daniel Lezcano wrote:
+>>>>> On 09/06/2012 09:54 AM, Daniel Lezcano wrote:
+>>>>> I fall into this issue because NETCONSOLE is set, disabling it allowed
+>>>>> me to go further.
+>>>>>
+>>>>> Unfortunately I am facing to some random freeze on the system which
+>>>>> seems to be related to CONFIG_NO_HZ=y and CONFIG_CPU_IDLE=y.
+>>>>>
+>>>>> Disabling one of them, make the freezes to disappear.
+>>>>>
+>>>>> Is it a known issue ?
+>>>> Well, there are systems having problems with this configuration, but they
+>>>> should be exceptional.  What system is that?
+>>> It is a laptop T61p with a Core 2 Duo T9500. Nothing exceptional I
+>>> believe. Maybe someone got the same issue ?
+>> Is it a regression for you?
+> Yes, I think so. The issue appears between v3.5 and v3.6-rc1.
+>
+> It is not easy to reproduce but after taking some time to dig, it seems
+> to appear with this commit:
+>
+> 1e75fa8be9fb61e1af46b5b3b176347a4c958ca1 is the first bad commit
+> commit 1e75fa8be9fb61e1af46b5b3b176347a4c958ca1
+> Author: John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> Date:   Fri Jul 13 01:21:53 2012 -0400
+>
+>      time: Condense timekeeper.xtime into xtime_sec
+>
+>      The timekeeper struct has a xtime_nsec, which keeps the
+>      sub-nanosecond remainder.  This ends up being somewhat
+>      duplicative of the timekeeper.xtime.tv_nsec value, and we
+>      have to do extra work to keep them apart, copying the full
+>      nsec portion out and back in over and over.
+>
+>      This patch simplifies some of the logic by taking the timekeeper
+>      xtime value and splitting it into timekeeper.xtime_sec and
+>      reuses the timekeeper.xtime_nsec for the sub-second portion
+>      (stored in higher res shifted nanoseconds).
+>
+>      This simplifies some of the accumulation logic. And will
+>      allow for more accurate timekeeping once the vsyscall code
+>      is updated to use the shifted nanosecond remainder.
+>
+>      Signed-off-by: John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+>      Reviewed-by: Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+>      Cc: Peter Zijlstra <a.p.zijlstra-/NLkJaSkS4VmR6Xm/wNWPw@public.gmane.org>
+>      Cc: Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>      Cc: Prarit Bhargava <prarit-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>      Link:
+> http://lkml.kernel.org/r/1342156917-25092-5-git-send-email-john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
+>      Signed-off-by: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+>
+> :040000 040000 4d6541ac1f6075d7adee1eef494b31a0cbda0934
+> dc5708bc738af695f092bf822809b13a1da104b6 M	kernel
+>
+> How to reproduce: with a laptop T61p, with a Core 2 Duo. I boot the
+> kernel in busybox and wait some minutes before writing something in the
+> console. At this moment, nothing appears to the console but the
+> characters are echo'ed several seconds later (could be 1, 5, or 10 secs
+> or more).
+>
+> That happens when CONFIG_CPU_IDLE and CONFIG_NO_HZ are set. Disabling
+> one of them, the issue does not appear.
 
-/sys/device/<bus>/<bridge path>/<device path>.../firmware_node/description
+Thanks for bisecting this down and the heads up!
 
-Example:
+Right off I can't see what might be causing this.  Bunch of questions:
 
-/sys/devices/pci0000:00/0000:00.07.0/0000:0e:00.0/firmware_node/description
+Is this a 32 or 64 bit kernel?
 
-It can also be located using the ACPI device path, for example:
+By your description above, it sounds like the system is still 
+functioning, but there's just a high latency for key-input. Is that right?
 
-/sys/devices/LNXSYSTM:00/device:00/ACPI0004:00/PNP0A08:00/device:13/device:15/description
-/sys/devices/LNXSYSTM:00/device:00/ACPI0004:00/ACPI0004:01/ACPI0007:02/description
+Are other things on the system happening slowly?
 
-Execute the 'cat' command on the 'description' file to obtain the
-description string for that device.
+Does generating interrupts by hitting/holding down the ctrl key make the 
+system respond faster?
 
-This patch also includes documentation describing how the new sysfs
-interface works
+Is there any dmesg output near when it occurs?
 
-Signed-off-by: Lance Ortiz <lance.ortiz@hp.com>
----
- .../ABI/testing/sysfs-devices-firmware_node        |   17 ++++++
- drivers/acpi/scan.c                                |   58 +++++++++++++++++++-
- include/acpi/acpi_bus.h                            |    1 +
- 3 files changed, 74 insertions(+), 2 deletions(-)
- create mode 100644 Documentation/ABI/testing/sysfs-devices-firmware_node
+If you don't wait that minute after boot before typing anything, does it 
+still trigger later? (or is it tied to early boot?)
 
-diff --git a/Documentation/ABI/testing/sysfs-devices-firmware_node b/Documentation/ABI/testing/sysfs-devices-firmware_node
-new file mode 100644
-index 0000000..46badc9
---- /dev/null
-+++ b/Documentation/ABI/testing/sysfs-devices-firmware_node
-@@ -0,0 +1,17 @@
-+What:		/sys/devices/.../firmware_node/
-+Date:		September 2012
-+Contact:	<>
-+Description:
-+		The /sys/devices/.../firmware_node directory contains attributes
-+		allowing the user space to check and modify some firmware
-+		related properties of given device.
-+
-+What:		/sys/devices/.../firmware_node/description
-+Date:		September 2012
-+Contact:	Lance Ortiz <lance.ortiz@hp.com>
-+Description:
-+		The /sys/devices/.../firmware/description attribute contains a string
-+		that describes the device as provided by the _STR method in the ACPI
-+		namespace.  This attribute is read-only.  If the device does not have
-+		an _STR method associated with it in the ACPI namespace, this
-+		attribute is not present.
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index c8a1f3b..c9c91e1 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -10,6 +10,7 @@
- #include <linux/signal.h>
- #include <linux/kthread.h>
- #include <linux/dmi.h>
-+#include <linux/nls.h>
- 
- #include <acpi/acpi_drivers.h>
- 
-@@ -192,8 +193,38 @@ end:
- }
- static DEVICE_ATTR(path, 0444, acpi_device_path_show, NULL);
- 
-+/* sysfs file that shows description text from the ACPI _STR method */
-+static ssize_t description_show(struct device *dev,
-+				struct device_attribute *attr,
-+				char *buf) {
-+	struct acpi_device *acpi_dev = to_acpi_device(dev);
-+	int result;
-+
-+	if (acpi_dev->pnp.str_obj == NULL) {
-+		result = sprintf(buf, "No Description\n");
-+		goto end;
-+	}
-+
-+	/*
-+	 * The _STR object contains a Unicode identifier for a device.
-+	 * We need to convert to utf-8 so it can be displayed.
-+	 */
-+	result = utf16s_to_utf8s(
-+		(wchar_t *)acpi_dev->pnp.str_obj->buffer.pointer,
-+		acpi_dev->pnp.str_obj->buffer.length,
-+		UTF16_LITTLE_ENDIAN, buf,
-+		PAGE_SIZE);
-+
-+	buf[result++] = '\n';
-+
-+end:
-+	return result;
-+}
-+static DEVICE_ATTR(description, 0444, description_show, NULL);
-+
- static int acpi_device_setup_files(struct acpi_device *dev)
- {
-+	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER, NULL};
- 	acpi_status status;
- 	acpi_handle temp;
- 	int result = 0;
-@@ -217,6 +248,21 @@ static int acpi_device_setup_files(struct acpi_device *dev)
- 			goto end;
- 	}
- 
-+	/*
-+	 * If device has _STR, 'description' file is created
-+	 */
-+	status = acpi_get_handle(dev->handle, "_STR", &temp);
-+	if (ACPI_SUCCESS(status)) {
-+		status = acpi_evaluate_object(dev->handle, "_STR",
-+					NULL, &buffer);
-+		if (ACPI_FAILURE(status))
-+			buffer.pointer = NULL;
-+		dev->pnp.str_obj = buffer.pointer;
-+		result = device_create_file(&dev->dev, &dev_attr_description);
-+		if (result)
-+			goto end;
-+	}
-+
-         /*
-          * If device has _EJ0, 'eject' file is created that is used to trigger
-          * hot-removal function from userland.
-@@ -234,8 +280,16 @@ static void acpi_device_remove_files(struct acpi_device *dev)
- 	acpi_handle temp;
- 
- 	/*
--	 * If device has _EJ0, 'eject' file is created that is used to trigger
--	 * hot-removal function from userland.
-+	 * If device has _STR, remove 'description' file
-+	 */
-+	status = acpi_get_handle(dev->handle, "_STR", &temp);
-+	if (ACPI_SUCCESS(status)) {
-+		if (dev->pnp.str_obj != NULL)
-+			kfree(dev->pnp.str_obj);
-+		device_remove_file(&dev->dev, &dev_attr_description);
-+	}
-+	/*
-+	 * If device has _EJ0, remove 'eject' file.
- 	 */
- 	status = acpi_get_handle(dev->handle, "_EJ0", &temp);
- 	if (ACPI_SUCCESS(status))
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 9e6e1c6..12172d5 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -209,6 +209,7 @@ struct acpi_device_pnp {
- 	struct list_head ids;		/* _HID and _CIDs */
- 	acpi_device_name device_name;	/* Driver-determined */
- 	acpi_device_class device_class;	/*        "          */
-+	union acpi_object *str_obj;	/* unicode string for _STR method */
- };
- 
- #define acpi_device_bid(d)	((d)->pnp.bus_id)
--- 
-1.7.7.6
+On a whim, does the patch below avoid the problem?
+
+thanks
+-john
+
+diff --git a/kernel/time/timekeeping.c b/kernel/time/timekeeping.c
+index 34e5eac..2fa0e52 100644
+--- a/kernel/time/timekeeping.c
++++ b/kernel/time/timekeeping.c
+@@ -1179,6 +1179,7 @@ static void update_wall_time(void)
+  	timekeeping_adjust(tk, offset);
+  
+  
++#if 0
+  	/*
+  	* Store only full nanoseconds into xtime_nsec after rounding
+  	* it up and add the remainder to the error difference.
+@@ -1192,6 +1193,7 @@ static void update_wall_time(void)
+  	tk->xtime_nsec -= remainder;
+  	tk->xtime_nsec += 1ULL << tk->shift;
+  	tk->ntp_error += remainder << tk->ntp_error_shift;
++#endif
+  
+  	/*
+  	 * Finally, make sure that after the rounding
