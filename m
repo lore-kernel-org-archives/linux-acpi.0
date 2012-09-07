@@ -1,65 +1,127 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] acpi: bus: handle power manageable but no _PSC/_PRx case
-Date: Fri, 7 Sep 2012 20:32:55 +0200
-Message-ID: <201209072032.55469.rjw@sisk.pl>
-References: <1346053126-7646-1-git-send-email-aaron.lu@intel.com> <201209071346.01900.rjw@sisk.pl> <504A0579.3000109@intel.com>
+From: Corentin Chary <corentin.chary@gmail.com>
+Subject: Re: [PATCH 1/3] drivers-platform-x86: remove useless #ifdef CONFIG_ACPI_VIDEO
+Date: Fri, 7 Sep 2012 21:37:28 +0100
+Message-ID: <CAHR064ge_itmJvdAzeLwXgA6v_zifMya+-QjC9B0-i32riPauA@mail.gmail.com>
+References: <1345496512-11780-1-git-send-email-corentin.chary@gmail.com>
+	<1345496512-11780-2-git-send-email-corentin.chary@gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:42570 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752530Ab2IGS0g (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 7 Sep 2012 14:26:36 -0400
-In-Reply-To: <504A0579.3000109@intel.com>
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:53349 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753291Ab2IGUh3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Sep 2012 16:37:29 -0400
+In-Reply-To: <1345496512-11780-2-git-send-email-corentin.chary@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, Corentin Chary <corentin.chary@gmail.com>, Joey Lee <jlee@novell.com>, Matthew Garrett <mjg@redhat.com>, linux-kernel@vger.kernel.org, acpi4asus-user@lists.sourceforge.net
 
-On Friday, September 07, 2012, Aaron Lu wrote:
-> On 09/07/2012 07:46 PM, Rafael J. Wysocki wrote:
-> >> Yes, on a test system, when I try to put a device into D3 cold and ACPI
-> >> will complain that I can't due to its parent is in a even lower power
-> >> state UNKNOWN(255), this parent device is power manageable but has no
-> >> _PSC and _PRx defined.
-> >
-> > Perhaps we can force _PS0 for such devices to start with, so that we know
-> > for sure that the initial state is D0?
-> 
-> Sounds good, I'll update the patch, thanks for the advice.
+On Mon, Aug 20, 2012 at 10:01 PM, Corentin Chary
+<corentin.chary@gmail.com> wrote:
+> Signed-off-by: Corentin Chary <corentin.chary@gmail.com>
+> ---
+>  drivers/platform/x86/acer-wmi.c       |    2 --
+>  drivers/platform/x86/apple-gmux.c     |    4 ----
+>  drivers/platform/x86/asus-wmi.c       |    4 ----
+>  drivers/platform/x86/samsung-laptop.c |    4 ----
+>  4 files changed, 14 deletions(-)
+>
+> diff --git a/drivers/platform/x86/acer-wmi.c b/drivers/platform/x86/acer-wmi.c
+> index 3782e1c..934d861 100644
+> --- a/drivers/platform/x86/acer-wmi.c
+> +++ b/drivers/platform/x86/acer-wmi.c
+> @@ -2196,10 +2196,8 @@ static int __init acer_wmi_init(void)
+>                 interface->capability &= ~ACER_CAP_BRIGHTNESS;
+>                 pr_info("Brightness must be controlled by acpi video driver\n");
+>         } else {
+> -#ifdef CONFIG_ACPI_VIDEO
+>                 pr_info("Disabling ACPI video driver\n");
+>                 acpi_video_unregister();
+> -#endif
+>         }
+>
+>         if (wmi_has_guid(WMID_GUID3)) {
+> diff --git a/drivers/platform/x86/apple-gmux.c b/drivers/platform/x86/apple-gmux.c
+> index dfb1a92..dca31ce 100644
+> --- a/drivers/platform/x86/apple-gmux.c
+> +++ b/drivers/platform/x86/apple-gmux.c
+> @@ -505,9 +505,7 @@ static int __devinit gmux_probe(struct pnp_dev *pnp,
+>          * Disable the other backlight choices.
+>          */
+>         acpi_video_dmi_promote_vendor();
+> -#if defined (CONFIG_ACPI_VIDEO) || defined (CONFIG_ACPI_VIDEO_MODULE)
+>         acpi_video_unregister();
+> -#endif
+>         apple_bl_unregister();
+>
+>         gmux_data->power_state = VGA_SWITCHEROO_ON;
+> @@ -593,9 +591,7 @@ static void __devexit gmux_remove(struct pnp_dev *pnp)
+>         kfree(gmux_data);
+>
+>         acpi_video_dmi_demote_vendor();
+> -#if defined (CONFIG_ACPI_VIDEO) || defined (CONFIG_ACPI_VIDEO_MODULE)
+>         acpi_video_register();
+> -#endif
+>         apple_bl_register();
+>  }
+>
+> diff --git a/drivers/platform/x86/asus-wmi.c b/drivers/platform/x86/asus-wmi.c
+> index 6a91a0c..912ec7d 100644
+> --- a/drivers/platform/x86/asus-wmi.c
+> +++ b/drivers/platform/x86/asus-wmi.c
+> @@ -47,9 +47,7 @@
+>  #include <linux/thermal.h>
+>  #include <acpi/acpi_bus.h>
+>  #include <acpi/acpi_drivers.h>
+> -#ifdef CONFIG_ACPI_VIDEO
+>  #include <acpi/video.h>
+> -#endif
+>
+>  #include "asus-wmi.h"
+>
+> @@ -1780,10 +1778,8 @@ static int asus_wmi_add(struct platform_device *pdev)
+>         if (asus->driver->quirks->wmi_backlight_power)
+>                 acpi_video_dmi_promote_vendor();
+>         if (!acpi_video_backlight_support()) {
+> -#ifdef CONFIG_ACPI_VIDEO
+>                 pr_info("Disabling ACPI video driver\n");
+>                 acpi_video_unregister();
+> -#endif
+>                 err = asus_wmi_backlight_init(asus);
+>                 if (err && err != -ENODEV)
+>                         goto fail_backlight;
+> diff --git a/drivers/platform/x86/samsung-laptop.c b/drivers/platform/x86/samsung-laptop.c
+> index c1ca7bc..dd90d15 100644
+> --- a/drivers/platform/x86/samsung-laptop.c
+> +++ b/drivers/platform/x86/samsung-laptop.c
+> @@ -26,9 +26,7 @@
+>  #include <linux/seq_file.h>
+>  #include <linux/debugfs.h>
+>  #include <linux/ctype.h>
+> -#ifdef CONFIG_ACPI_VIDEO
+>  #include <acpi/video.h>
+> -#endif
+>
+>  /*
+>   * This driver is needed because a number of Samsung laptops do not hook
+> @@ -1558,9 +1556,7 @@ static int __init samsung_init(void)
+>                 samsung->handle_backlight = false;
+>         } else if (samsung->quirks->broken_acpi_video) {
+>                 pr_info("Disabling ACPI video driver\n");
+> -#ifdef CONFIG_ACPI_VIDEO
+>                 acpi_video_unregister();
+> -#endif
+>         }
+>  #endif
+>
+> --
+> 1.7.9.5
+>
 
-Actually, I suppose we can do something like the appended patch instead.
+Any news on that ? This should really be merged before the end of rcs.
+Thanks,
 
-I wonder if it works around the particular problem you're seeing?
-
-Rafael
-
-
----
- drivers/acpi/bus.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
-
-Index: linux/drivers/acpi/bus.c
-===================================================================
---- linux.orig/drivers/acpi/bus.c
-+++ linux/drivers/acpi/bus.c
-@@ -229,7 +229,16 @@ static int __acpi_bus_get_power(struct a
- 		result = psc;
- 	}
- 	/* The test below covers ACPI_STATE_UNKNOWN too. */
--	if (result <= ACPI_STATE_D2) {
-+	if (result == ACPI_STATE_D0) {
-+		/*
-+		 * If we were unsure about the device parent's power state up to
-+		 * this point, the fact that the device is in D0 implies that
-+		 * the parent has to be in D0 too.
-+		 */
-+		if (device->parent
-+		    && device->parent->power.state == ACPI_STATE_UNKNOWN)
-+			device->parent->power.state = ACPI_STATE_D0;
-+	} else if (result <= ACPI_STATE_D2) {
- 	  ; /* Do nothing. */
- 	} else if (device->power.flags.power_resources) {
- 		int error = acpi_power_get_inferred_state(device, &result);
+-- 
+Corentin Chary
+http://xf.iksaif.net
