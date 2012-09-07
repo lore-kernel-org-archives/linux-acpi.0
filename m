@@ -1,35 +1,172 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH v6 1/7] scsi: sr: support runtime pm for ODD
-Date: Fri, 7 Sep 2012 11:41:11 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1209071138370.1674-100000@iolanthe.rowland.org>
-References: <504A0A4E.9040801@intel.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:43332 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750980Ab2IGPlM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Sep 2012 11:41:12 -0400
-In-Reply-To: <504A0A4E.9040801@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Lance Ortiz <lance.ortiz@hp.com>
+Subject: [PATCH] ACPI: Add new sysfs interface to export device description
+Date: Fri,  7 Sep 2012 10:28:16 -0600
+Message-ID: <1347035296-8882-1-git-send-email-lance.ortiz@hp.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: rob@landley.net, lenb@kernel.org
+Cc: linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Lance Ortiz <lance.ortiz@hp.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Aaron Lu <aaron.lwe@gmail.com>, Oliver Neukum <oneukum@suse.de>, James Bottomley <James.Bottomley@hansenpartnership.com>, Jeff Garzik <jgarzik@pobox.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Fri, 7 Sep 2012, Aaron Lu wrote:
+Add support to export the device description obtained from the ACPI _STR
+method, if one exists for a device, to user-space via a sysfs interface.
+This new interface provides a standard and platform neutral way for users
+to obtain the description text stored in the ACPI _STR method.  If no
+_STR method exists for the device, no sysfs 'description' file will be
+created.  The 'description' file will be located in the /sys/devices/
+directory using the device's path.
 
-> > What I'd really like is a way to do the status polling without having
-> > it reset the idle timer.
-> 
-> I like this, I'll try to see if this can be done.
-> 
-> If we idle the device immediately, we would suspend/resume the ODD every
-> 2 seconds, which may not be a good idea.
+/sys/device/<bus>/<bridge path>/<device path>.../firmware_node/description
 
-It may be okay.  This depends on how long it takes to suspend and
-resume the drive and its parents.  If it takes no more than a few
-hundred ms then there shouldn't be any problem.  Especially if the 
-polling interval is increased to something like 5 seconds.
+Example:
 
-Alan Stern
+/sys/devices/pci0000:00/0000:00.07.0/0000:0e:00.0/firmware_node/description
 
+It can also be located using the ACPI device path, for example:
+
+/sys/devices/LNXSYSTM:00/device:00/ACPI0004:00/PNP0A08:00/device:13/device:15/description
+/sys/devices/LNXSYSTM:00/device:00/ACPI0004:00/ACPI0004:01/ACPI0007:02/description
+
+Execute the 'cat' command on the 'description' file to obtain the
+description string for that device.
+
+This patch also includes documentation describing how the new sysfs
+interface works
+
+Signed-off-by: Lance Ortiz <lance.ortiz@hp.com>
+---
+ .../ABI/testing/sysfs-devices-firmware_node        |   17 ++++++
+ drivers/acpi/scan.c                                |   58 +++++++++++++++++++-
+ include/acpi/acpi_bus.h                            |    1 +
+ 3 files changed, 74 insertions(+), 2 deletions(-)
+ create mode 100644 Documentation/ABI/testing/sysfs-devices-firmware_node
+
+diff --git a/Documentation/ABI/testing/sysfs-devices-firmware_node b/Documentation/ABI/testing/sysfs-devices-firmware_node
+new file mode 100644
+index 0000000..46badc9
+--- /dev/null
++++ b/Documentation/ABI/testing/sysfs-devices-firmware_node
+@@ -0,0 +1,17 @@
++What:		/sys/devices/.../firmware_node/
++Date:		September 2012
++Contact:	<>
++Description:
++		The /sys/devices/.../firmware_node directory contains attributes
++		allowing the user space to check and modify some firmware
++		related properties of given device.
++
++What:		/sys/devices/.../firmware_node/description
++Date:		September 2012
++Contact:	Lance Ortiz <lance.ortiz@hp.com>
++Description:
++		The /sys/devices/.../firmware/description attribute contains a string
++		that describes the device as provided by the _STR method in the ACPI
++		namespace.  This attribute is read-only.  If the device does not have
++		an _STR method associated with it in the ACPI namespace, this
++		attribute is not present.
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index c8a1f3b..c9c91e1 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -10,6 +10,7 @@
+ #include <linux/signal.h>
+ #include <linux/kthread.h>
+ #include <linux/dmi.h>
++#include <linux/nls.h>
+ 
+ #include <acpi/acpi_drivers.h>
+ 
+@@ -192,8 +193,38 @@ end:
+ }
+ static DEVICE_ATTR(path, 0444, acpi_device_path_show, NULL);
+ 
++/* sysfs file that shows description text from the ACPI _STR method */
++static ssize_t description_show(struct device *dev,
++				struct device_attribute *attr,
++				char *buf) {
++	struct acpi_device *acpi_dev = to_acpi_device(dev);
++	int result;
++
++	if (acpi_dev->pnp.str_obj == NULL) {
++		result = sprintf(buf, "No Description\n");
++		goto end;
++	}
++
++	/*
++	 * The _STR object contains a Unicode identifier for a device.
++	 * We need to convert to utf-8 so it can be displayed.
++	 */
++	result = utf16s_to_utf8s(
++		(wchar_t *)acpi_dev->pnp.str_obj->buffer.pointer,
++		acpi_dev->pnp.str_obj->buffer.length,
++		UTF16_LITTLE_ENDIAN, buf,
++		PAGE_SIZE);
++
++	buf[result++] = '\n';
++
++end:
++	return result;
++}
++static DEVICE_ATTR(description, 0444, description_show, NULL);
++
+ static int acpi_device_setup_files(struct acpi_device *dev)
+ {
++	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER, NULL};
+ 	acpi_status status;
+ 	acpi_handle temp;
+ 	int result = 0;
+@@ -217,6 +248,21 @@ static int acpi_device_setup_files(struct acpi_device *dev)
+ 			goto end;
+ 	}
+ 
++	/*
++	 * If device has _STR, 'description' file is created
++	 */
++	status = acpi_get_handle(dev->handle, "_STR", &temp);
++	if (ACPI_SUCCESS(status)) {
++		status = acpi_evaluate_object(dev->handle, "_STR",
++					NULL, &buffer);
++		if (ACPI_FAILURE(status))
++			buffer.pointer = NULL;
++		dev->pnp.str_obj = buffer.pointer;
++		result = device_create_file(&dev->dev, &dev_attr_description);
++		if (result)
++			goto end;
++	}
++
+         /*
+          * If device has _EJ0, 'eject' file is created that is used to trigger
+          * hot-removal function from userland.
+@@ -234,8 +280,16 @@ static void acpi_device_remove_files(struct acpi_device *dev)
+ 	acpi_handle temp;
+ 
+ 	/*
+-	 * If device has _EJ0, 'eject' file is created that is used to trigger
+-	 * hot-removal function from userland.
++	 * If device has _STR, remove 'description' file
++	 */
++	status = acpi_get_handle(dev->handle, "_STR", &temp);
++	if (ACPI_SUCCESS(status)) {
++		if (dev->pnp.str_obj != NULL)
++			kfree(dev->pnp.str_obj);
++		device_remove_file(&dev->dev, &dev_attr_description);
++	}
++	/*
++	 * If device has _EJ0, remove 'eject' file.
+ 	 */
+ 	status = acpi_get_handle(dev->handle, "_EJ0", &temp);
+ 	if (ACPI_SUCCESS(status))
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 9e6e1c6..12172d5 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -209,6 +209,7 @@ struct acpi_device_pnp {
+ 	struct list_head ids;		/* _HID and _CIDs */
+ 	acpi_device_name device_name;	/* Driver-determined */
+ 	acpi_device_class device_class;	/*        "          */
++	union acpi_object *str_obj;	/* unicode string for _STR method */
+ };
+ 
+ #define acpi_device_bid(d)	((d)->pnp.bus_id)
+-- 
+1.7.7.6
