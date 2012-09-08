@@ -1,79 +1,68 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 0/6] cpuidle : per cpu latencies
-Date: Sat, 8 Sep 2012 00:17:17 +0200
-Message-ID: <201209080017.17418.rjw@sisk.pl>
-References: <1347013172-12465-1-git-send-email-daniel.lezcano@linaro.org>
+From: Josh Triplett <josh@joshtriplett.org>
+Subject: [PATCHv3 0/4] Fix ACPI BGRT support for images located in EFI boot
+ services memory
+Date: Sat, 8 Sep 2012 15:06:41 -0700
+Message-ID: <cover.1347141698.git.josh@joshtriplett.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:42989 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751250Ab2IGWK6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 7 Sep 2012 18:10:58 -0400
-In-Reply-To: <1347013172-12465-1-git-send-email-daniel.lezcano@linaro.org>
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:38128 "EHLO
+	relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753701Ab2IHWGu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 8 Sep 2012 18:06:50 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: lenb@kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, patches@linaro.org, linaro-dev@lists.linaro.org, pdeschrijver@nvidia.com, lorenzo.pieralisi@arm.com
+To: linux-kernel@vger.kernel.org
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, Matt Fleming <matt.fleming@intel.com>, Olof Johansson <olof@lixom.net>, Matthew Garrett <mjg@redhat.com>, David Howells <dhowells@redhat.com>, Rusty Russell <rusty@rustcorp.com.au>, Peter Zijlstra <a.p.zijlstra@chello.nl>, linux-acpi@vger.kernel.org
 
-On Friday, September 07, 2012, Daniel Lezcano wrote:
-> Since commit 46bcfad7a819bd17ac4e831b04405152d59784ab,
->         cpuidle: Single/Global registration of idle states
-> 
-> we have a single registration for the cpuidle states which makes
-> sense. But now two new architectures are coming: tegra3 and big.LITTLE.
-> 
-> These architectures have different cpus with different caracteristics
-> for power saving. High load => powerfull processors, idle => small processors.
-> 
-> That implies different cpu latencies.
-> 
-> This patchset keeps the current behavior as introduced by Deepthi without
-> breaking the drivers and add the possibility to specify a per cpu states.
-> 
->  * Tested on intel core 2 duo T9500
->  * Tested on vexpress by Lorenzo Pieralsi
->  * Tested on tegra3 by Peter De Schrijver
-> 
-> Daniel Lezcano (6):
->   acpi : move the acpi_idle_driver variable declaration
->   acpi : move cpuidle_device field out of the acpi_processor_power
->     structure
->   acpi : remove pointless cpuidle device state_count init
+The ACPI BGRT lets the OS access the BIOS logo image and its position on the
+screen at boot time, allowing it to maintain that image on the screen until
+ready to display something else, making boot more seamless.  This series fixes
+support for accessing the boot logo image via the BGRT when the BIOS stores it
+in EFI boot services memory, as recommended by the ACPI 5.0 spec.  Linux needs
+to copy the image out of boot services memory before reclaiming boot services
+memory.
 
-I've posted comments about patches [1-3/6] already.  In short, I don't like
-[1/6], [2/6] would require some more work IMO and I'm not sure about the
-validity of the observation that [3/6] is based on.
+The first patch cleans up the existing x86-specific efi_enter_virtual_mode
+function to have a stub version on non-x86 platforms, to eliminate an ifdef in
+init/main.c.   The second patch refactors EFI initialization to defer freeing
+boot services memory until much later in the boot process, and in particular
+until after we have ACPI available.  The third patch adds a helper function to
+look up existing EFI boot services mappings, to avoid re-mapping them.  The
+fourth patch moves BGRT initialization to before the reclamation of boot
+services memory, copies the logo at that point, and reworks the existing BGRT
+driver to use that existing copy.
 
-Yes, I agree that the ACPI processor driver as a whole might be cleaner
-and it probably would be good to spend some time on cleaning it up, but
-not necessarily in a hurry.
+v2: Made the new internal function efi_unmap_memmap static.  Incorporated
+    feedback from H. Peter Anvin and Matt Fleming: added stubs for
+    x86-specific EFI functions called from init/main.c to eliminate the
+    corresponding ifdefs in start_kernel; deferred
+    efi_free_boot_services even later, to just before free_initmem.
 
-Unfortunately, I also don't agree with the approach used by the remaining
-patches, which is to try to use a separate array of states for each
-individual CPU core.  This way we end up with quite some duplicated data
-if the CPU cores in question actually happen to be identical.
+v3: Moved efi_free_boot_services back to right after EFI initialization, to
+    avoid a WARN from check_early_ioremap_leak about not calling
+    early_iounmap soon enough.
 
-What about using a separate cpuidle driver for every kind of different CPUs in
-the system (e.g. one driver for "big" CPUs and the other for "little" ones)?
+Josh Triplett (4):
+  efi: Add a stub for efi_enter_virtual_mode on non-x86
+  efi: Defer freeing boot services memory until after ACPI init
+  efi: Add a function to look up existing IO memory mappings
+  efi: Fix the ACPI BGRT driver for images located in EFI boot services
+    memory
 
-Have you considered this approach already?
+ arch/x86/platform/efi/Makefile   |    1 +
+ arch/x86/platform/efi/efi-bgrt.c |   76 ++++++++++++++++++++++++++++++++++++++
+ arch/x86/platform/efi/efi.c      |   65 +++++++++++++++++++++++++-------
+ drivers/acpi/Kconfig             |    4 +-
+ drivers/acpi/bgrt.c              |   76 +++++---------------------------------
+ include/linux/efi-bgrt.h         |   21 +++++++++++
+ include/linux/efi.h              |    9 +++++
+ init/main.c                      |    7 +++-
+ 8 files changed, 175 insertions(+), 84 deletions(-)
+ create mode 100644 arch/x86/platform/efi/efi-bgrt.c
+ create mode 100644 include/linux/efi-bgrt.h
 
->   cpuidle : add a pointer for cpuidle_state in the cpuidle_device
->   cpuidle : use per cpuidle device cpu states
->   cpuidle : add cpuidle_register_states function
-> 
->  drivers/acpi/processor_driver.c    |    2 +-
->  drivers/acpi/processor_idle.c      |   27 +++++++++++++++-------
->  drivers/cpuidle/cpuidle.c          |   42 ++++++++++++++++++++++++++++-------
->  drivers/cpuidle/governors/ladder.c |   22 +++++++++---------
->  drivers/cpuidle/governors/menu.c   |    8 +++---
->  drivers/cpuidle/sysfs.c            |    3 +-
->  include/acpi/processor.h           |    3 --
->  include/linux/cpuidle.h            |   11 ++++++--
->  8 files changed, 76 insertions(+), 42 deletions(-)
+-- 
+1.7.10.4
 
-Thanks,
-Rafael
