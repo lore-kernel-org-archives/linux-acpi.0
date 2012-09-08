@@ -1,8 +1,7 @@
 From: Josh Triplett <josh@joshtriplett.org>
-Subject: [PATCHv3 2/4] efi: Defer freeing boot services memory until after
- ACPI init
-Date: Sat, 8 Sep 2012 15:06:56 -0700
-Message-ID: <575b74a90571493561bf7bcf6fc0bdc12779fe35.1347141698.git.josh@joshtriplett.org>
+Subject: [PATCHv3 1/4] efi: Add a stub for efi_enter_virtual_mode on non-x86
+Date: Sat, 8 Sep 2012 15:06:49 -0700
+Message-ID: <993c7f2ee7d53cc480280653a7df500db0882342.1347141698.git.josh@joshtriplett.org>
 References: <cover.1347141698.git.josh@joshtriplett.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -14,118 +13,44 @@ To: linux-kernel@vger.kernel.org
 Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, Matt Fleming <matt.fleming@intel.com>, Olof Johansson <olof@lixom.net>, Matthew Garrett <mjg@redhat.com>, David Howells <dhowells@redhat.com>, Rusty Russell <rusty@rustcorp.com.au>, Jim Cromie <jim.cromie@gmail.com>, Peter Zijlstra <a.p.zijlstra@chello.nl>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Some new ACPI 5.0 tables reference resources stored in boot services
-memory, so keep that memory around until we have ACPI and can extract
-data from it.
+This eliminates an ifdef in init/main.c.
 
 Signed-off-by: Josh Triplett <josh@joshtriplett.org>
 ---
- arch/x86/platform/efi/efi.c |   31 ++++++++++++++++++-------------
- include/linux/efi.h         |    2 ++
- init/main.c                 |    3 +++
- 3 files changed, 23 insertions(+), 13 deletions(-)
+ include/linux/efi.h |    4 ++++
+ init/main.c         |    2 --
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/arch/x86/platform/efi/efi.c b/arch/x86/platform/efi/efi.c
-index 92660eda..ab2cfe8 100644
---- a/arch/x86/platform/efi/efi.c
-+++ b/arch/x86/platform/efi/efi.c
-@@ -419,10 +419,21 @@ void __init efi_reserve_boot_services(void)
- 	}
- }
- 
--static void __init efi_free_boot_services(void)
-+static void __init efi_unmap_memmap(void)
-+{
-+	if (memmap.map) {
-+		early_iounmap(memmap.map, memmap.nr_map * memmap.desc_size);
-+		memmap.map = NULL;
-+	}
-+}
-+
-+void __init efi_free_boot_services(void)
- {
- 	void *p;
- 
-+	if (!efi_native)
-+		return;
-+
- 	for (p = memmap.map; p < memmap.map_end; p += memmap.desc_size) {
- 		efi_memory_desc_t *md = p;
- 		unsigned long long start = md->phys_addr;
-@@ -438,6 +449,8 @@ static void __init efi_free_boot_services(void)
- 
- 		free_bootmem_late(start, size);
- 	}
-+
-+	efi_unmap_memmap();
- }
- 
- static int __init efi_systab_init(void *phys)
-@@ -787,8 +800,10 @@ void __init efi_enter_virtual_mode(void)
- 	 * non-native EFI
- 	 */
- 
--	if (!efi_native)
--		goto out;
-+	if (!efi_native) {
-+		efi_unmap_memmap();
-+		return;
-+	}
- 
- 	/* Merge contiguous regions of the same type and attribute */
- 	for (p = memmap.map; p < memmap.map_end; p += memmap.desc_size) {
-@@ -878,13 +893,6 @@ void __init efi_enter_virtual_mode(void)
- 	}
- 
- 	/*
--	 * Thankfully, it does seem that no runtime services other than
--	 * SetVirtualAddressMap() will touch boot services code, so we can
--	 * get rid of it all at this point
--	 */
--	efi_free_boot_services();
--
--	/*
- 	 * Now that EFI is in virtual mode, update the function
- 	 * pointers in the runtime service table to the new virtual addresses.
- 	 *
-@@ -906,9 +914,6 @@ void __init efi_enter_virtual_mode(void)
- 	if (__supported_pte_mask & _PAGE_NX)
- 		runtime_code_page_mkexec();
- 
--out:
--	early_iounmap(memmap.map, memmap.nr_map * memmap.desc_size);
--	memmap.map = NULL;
- 	kfree(new_memmap);
- }
- 
 diff --git a/include/linux/efi.h b/include/linux/efi.h
-index 52fbedf..3c72c27 100644
+index ec45ccd..52fbedf 100644
 --- a/include/linux/efi.h
 +++ b/include/linux/efi.h
-@@ -497,8 +497,10 @@ extern void efi_memmap_walk (efi_freemem_callback_t callback, void *arg);
+@@ -495,7 +495,11 @@ extern void *efi_get_pal_addr (void);
+ extern void efi_map_pal_code (void);
+ extern void efi_memmap_walk (efi_freemem_callback_t callback, void *arg);
  extern void efi_gettimeofday (struct timespec *ts);
- #ifdef CONFIG_X86
++#ifdef CONFIG_X86
  extern void efi_enter_virtual_mode (void);	/* switch EFI to virtual mode, if possible */
-+extern void efi_free_boot_services(void);
- #else
- static void efi_enter_virtual_mode(void) {}
-+static void efi_free_boot_services(void) {}
- #endif
++#else
++static void efi_enter_virtual_mode(void) {}
++#endif
  extern u64 efi_get_iobase (void);
  extern u32 efi_mem_type (unsigned long phys_addr);
+ extern u64 efi_mem_attributes (unsigned long phys_addr);
 diff --git a/init/main.c b/init/main.c
-index ebb1ba5..78e5491 100644
+index b286730..ebb1ba5 100644
 --- a/init/main.c
 +++ b/init/main.c
-@@ -629,6 +629,9 @@ asmlinkage void __init start_kernel(void)
- 	acpi_early_init(); /* before LAPIC and SMP init */
- 	sfi_init_late();
- 
-+	if (efi_enabled)
-+		efi_free_boot_services();
-+
- 	ftrace_init();
- 
- 	/* Do the rest non-__init'ed, we're now alive */
+@@ -602,10 +602,8 @@ asmlinkage void __init start_kernel(void)
+ 	calibrate_delay();
+ 	pidmap_init();
+ 	anon_vma_init();
+-#ifdef CONFIG_X86
+ 	if (efi_enabled)
+ 		efi_enter_virtual_mode();
+-#endif
+ 	thread_info_cache_init();
+ 	cred_init();
+ 	fork_init(totalram_pages);
 -- 
 1.7.10.4
