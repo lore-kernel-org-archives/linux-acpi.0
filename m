@@ -1,108 +1,414 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCHv3 12/15] Thermal: Register a governor for user space
-Date: Mon, 10 Sep 2012 16:37:40 +0800
-Message-ID: <1347266260.1682.1080.camel@rui.sh.intel.com>
+Subject: Re: [PATCHv3 13/15] Thermal: Remove throttling logic out of
+ thermal_sys.c
+Date: Mon, 10 Sep 2012 16:44:17 +0800
+Message-ID: <1347266657.1682.1086.camel@rui.sh.intel.com>
 References: <1346500296-25200-1-git-send-email-durgadoss.r@intel.com>
-	 <1346500296-25200-13-git-send-email-durgadoss.r@intel.com>
+	 <1346500296-25200-14-git-send-email-durgadoss.r@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:54524 "EHLO mga09.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:61829 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750900Ab2IJIgy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 10 Sep 2012 04:36:54 -0400
-In-Reply-To: <1346500296-25200-13-git-send-email-durgadoss.r@intel.com>
+	id S1751801Ab2IJIn1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 10 Sep 2012 04:43:27 -0400
+In-Reply-To: <1346500296-25200-14-git-send-email-durgadoss.r@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Durgadoss R <durgadoss.r@intel.com>
 Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, eduardo.valentin@ti.com
 
 On =E5=85=AD, 2012-09-01 at 17:21 +0530, Durgadoss R wrote:
-> This patch registers a governor which will let the
-> user land manage the platform thermals. Whenever a
-> trip happens, this governor just notifies the user
-> space using kobj_uevent().
+> This patch removes the throttling logic out of
+> thermal_sys.c; also refactors the code into smaller
+> functions so that are easy to read/maintain.
+>  * Seperates the handling of critical and non-critical trips
+>  * Re-arranges the set_polling and device_check methods, so
+>    that all related functions are arranged in one place.
+>  * Removes the 'do_update' and 'trip_update' method, as part
+>    of moving the throttling logic out of thermal_sys.c
 >=20
-Hmm, we can make this governor configurable, not the step_wise (which i=
-s
-used as the default governor), right?
+> Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
+> ---
+>  drivers/thermal/thermal_sys.c |  313 +++++++++++++++----------------=
+----------
+>  1 file changed, 112 insertions(+), 201 deletions(-)
+>=20
+> diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_=
+sys.c
+> index 93672aa..086c1c9 100644
+> --- a/drivers/thermal/thermal_sys.c
+> +++ b/drivers/thermal/thermal_sys.c
+> @@ -315,6 +315,118 @@ exit:
+>  	mutex_unlock(&thermal_list_lock);
+>  }
+> =20
+> +static void thermal_zone_device_set_polling(struct thermal_zone_devi=
+ce *tz,
+> +					    int delay)
+> +{
+> +	cancel_delayed_work(&(tz->poll_queue));
+> +
+> +	if (!delay)
+> +		return;
+> +
+> +	if (delay > 1000)
+> +		queue_delayed_work(system_freezable_wq, &(tz->poll_queue),
+> +				      round_jiffies(msecs_to_jiffies(delay)));
+> +	else
+> +		queue_delayed_work(system_freezable_wq, &(tz->poll_queue),
+> +				      msecs_to_jiffies(delay));
+> +}
+> +
+> +static void monitor_thermal_zone(struct thermal_zone_device *tz)
+> +{
+> +	mutex_lock(&tz->lock);
+> +
+> +	if (tz->passive)
+> +		thermal_zone_device_set_polling(tz, tz->passive_delay);
+> +	else if (tz->polling_delay)
+> +		thermal_zone_device_set_polling(tz, tz->polling_delay);
+> +	else
+> +		thermal_zone_device_set_polling(tz, 0);
+> +
+> +	mutex_unlock(&tz->lock);
+> +}
+> +
+> +static void handle_non_critical_trips(struct thermal_zone_device *tz=
+,
+> +			int trip, enum thermal_trip_type trip_type)
+> +{
+> +	tz->governor->throttle(tz, trip);
+> +}
+here is the problem, we must make sure every registered thermal zone
+have a governor when it is running, right?
+
+then the default governor must always be built in.
+We can have a Kconfig option for step_wise, but we should not make it
+configurable by users.
+or we can use prompt to get the default governor at build time. say
+
+choice
+        prompt "Default thermal governor"
+        default THERMAL_DEFAULT_GOV_STEP_WISE
+        help
+          This option sets which thermal governor shall be loaded at
+          startup.
+
+config THERMAL_DEFAULT_GOV_STEP_WISE
+        bool "step-wise"
+        select THERMAL_GOV_STEP_WISE
+        help
+          Use the thermal governor 'step-wise' as default.blabla
+
 
 thanks,
 rui
 
-> Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
-> ---
->  drivers/thermal/thermal_sys.c |   18 ++++++++++++++++++
->  include/linux/thermal.h       |    2 ++
->  2 files changed, 20 insertions(+)
->=20
-> diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_=
-sys.c
-> index 936b025..93672aa 100644
-> --- a/drivers/thermal/thermal_sys.c
-> +++ b/drivers/thermal/thermal_sys.c
-> @@ -130,6 +130,15 @@ exit:
->  }
->  EXPORT_SYMBOL_GPL(thermal_unregister_governor);
-> =20
-> +static int notify_user_space(struct thermal_zone_device *tz, int tri=
-p)
-> +{
-> +	mutex_lock(&tz->lock);
-> +	kobject_uevent(&tz->device.kobj, KOBJ_CHANGE);
-> +	mutex_unlock(&tz->lock);
 > +
-> +	return 0;
+> +static void handle_critical_trips(struct thermal_zone_device *tz,
+> +				int trip, enum thermal_trip_type trip_type)
+> +{
+> +	long trip_temp;
+> +
+> +	tz->ops->get_trip_temp(tz, trip, &trip_temp);
+> +
+> +	/* If we have not crossed the trip_temp, we do not care. */
+> +	if (tz->temperature < trip_temp)
+> +		return;
+> +
+> +	if (tz->ops->notify)
+> +		tz->ops->notify(tz, trip, trip_type);
+> +
+> +	if (trip_type =3D=3D THERMAL_TRIP_CRITICAL) {
+> +		pr_emerg("Critical temperature reached(%d C),shutting down\n",
+> +			 tz->temperature / 1000);
+> +		orderly_poweroff(true);
+> +	}
 > +}
 > +
->  static int get_idr(struct idr *idr, struct mutex *lock, int *id)
->  {
->  	int err;
-> @@ -1860,6 +1869,12 @@ static inline int genetlink_init(void) { retur=
-n 0; }
->  static inline void genetlink_exit(void) {}
->  #endif /* !CONFIG_NET */
-> =20
-> +struct thermal_governor thermal_gov_user_space =3D {
-> +	.name		=3D USER_SPACE_THERMAL_GOVERNOR,
-> +	.throttle	=3D notify_user_space,
-> +	.owner		=3D THIS_MODULE,
-> +};
+> +static void handle_thermal_trip(struct thermal_zone_device *tz, int =
+trip)
+> +{
+> +	enum thermal_trip_type type;
 > +
->  static int __init thermal_init(void)
->  {
->  	int result =3D 0;
-> @@ -1871,6 +1886,8 @@ static int __init thermal_init(void)
->  		mutex_destroy(&thermal_idr_lock);
->  		mutex_destroy(&thermal_list_lock);
->  	}
-> +	/* Register a governor to notify user space */
-> +	thermal_register_governor(&thermal_gov_user_space);
->  	result =3D genetlink_init();
->  	return result;
+> +	tz->ops->get_trip_type(tz, trip, &type);
+> +
+> +	if (type =3D=3D THERMAL_TRIP_CRITICAL || type =3D=3D THERMAL_TRIP_H=
+OT)
+> +		handle_critical_trips(tz, trip, type);
+> +	else
+> +		handle_non_critical_trips(tz, trip, type);
+> +	/*
+> +	 * Alright, we handled this trip successfully.
+> +	 * So, start monitoring again.
+> +	 */
+> +	monitor_thermal_zone(tz);
+> +}
+> +
+> +static void update_temperature(struct thermal_zone_device *tz)
+> +{
+> +	long temp;
+> +	int ret;
+> +
+> +	mutex_lock(&tz->lock);
+> +
+> +	ret =3D tz->ops->get_temp(tz, &temp);
+> +	if (ret) {
+> +		pr_warn("failed to read out thermal zone %d\n", tz->id);
+> +		return;
+> +	}
+> +
+> +	tz->last_temperature =3D tz->temperature;
+> +	tz->temperature =3D temp;
+> +
+> +	mutex_unlock(&tz->lock);
+> +}
+> +
+> +void thermal_zone_device_update(struct thermal_zone_device *tz)
+> +{
+> +	int count;
+> +
+> +	update_temperature(tz);
+> +
+> +	for (count =3D 0; count < tz->trips; count++)
+> +		handle_thermal_trip(tz, count);
+> +}
+> +EXPORT_SYMBOL(thermal_zone_device_update);
+> +
+> +static void thermal_zone_device_check(struct work_struct *work)
+> +{
+> +	struct thermal_zone_device *tz =3D container_of(work, struct
+> +						      thermal_zone_device,
+> +						      poll_queue.work);
+> +	thermal_zone_device_update(tz);
+> +}
+> +
+>  /* sys I/F for thermal zone */
+> =20
+>  #define to_thermal_zone(_dev) \
+> @@ -936,30 +1048,6 @@ thermal_remove_hwmon_sysfs(struct thermal_zone_=
+device *tz)
 >  }
-> @@ -1882,6 +1899,7 @@ static void __exit thermal_exit(void)
->  	idr_destroy(&thermal_cdev_idr);
->  	mutex_destroy(&thermal_idr_lock);
->  	mutex_destroy(&thermal_list_lock);
-> +	thermal_unregister_governor(&thermal_gov_user_space);
->  	genetlink_exit();
+>  #endif
+> =20
+> -static void thermal_zone_device_set_polling(struct thermal_zone_devi=
+ce *tz,
+> -					    int delay)
+> -{
+> -	cancel_delayed_work(&(tz->poll_queue));
+> -
+> -	if (!delay)
+> -		return;
+> -
+> -	if (delay > 1000)
+> -		queue_delayed_work(system_freezable_wq, &(tz->poll_queue),
+> -				      round_jiffies(msecs_to_jiffies(delay)));
+> -	else
+> -		queue_delayed_work(system_freezable_wq, &(tz->poll_queue),
+> -				      msecs_to_jiffies(delay));
+> -}
+> -
+> -static void thermal_zone_device_check(struct work_struct *work)
+> -{
+> -	struct thermal_zone_device *tz =3D container_of(work, struct
+> -						      thermal_zone_device,
+> -						      poll_queue.work);
+> -	thermal_zone_device_update(tz);
+> -}
+> -
+>  /**
+>   * thermal_zone_bind_cooling_device - bind a cooling device to a the=
+rmal zone
+>   * @tz:		thermal zone device
+> @@ -1283,183 +1371,6 @@ void thermal_cdev_update(struct thermal_cooli=
+ng_device *cdev)
 >  }
+>  EXPORT_SYMBOL(thermal_cdev_update);
 > =20
-> diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-> index 2bd9158..aa903dd 100644
-> --- a/include/linux/thermal.h
-> +++ b/include/linux/thermal.h
-> @@ -48,6 +48,8 @@
-> =20
->  /* Default Thermal Governor: Does Linear Throttling */
->  #define DEFAULT_THERMAL_GOVERNOR	"step_wise"
-> +/* User space Thermal governor */
-> +#define USER_SPACE_THERMAL_GOVERNOR	"user_space"
-> =20
->  struct thermal_zone_device;
->  struct thermal_cooling_device;
+> -static void thermal_zone_do_update(struct thermal_zone_device *tz)
+> -{
+> -	struct thermal_instance *instance;
+> -
+> -	list_for_each_entry(instance, &tz->thermal_instances, tz_node)
+> -		thermal_cdev_update(instance->cdev);
+> -}
+> -
+> -/*
+> - * Cooling algorithm for both active and passive cooling
+> - *
+> - * 1. if the temperature is higher than a trip point,
+> - *    a. if the trend is THERMAL_TREND_RAISING, use higher cooling
+> - *       state for this trip point
+> - *    b. if the trend is THERMAL_TREND_DROPPING, use lower cooling
+> - *       state for this trip point
+> - *
+> - * 2. if the temperature is lower than a trip point, use lower
+> - *    cooling state for this trip point
+> - *
+> - * Note that this behaves the same as the previous passive cooling
+> - * algorithm.
+> - */
+> -
+> -static void thermal_zone_trip_update(struct thermal_zone_device *tz,
+> -				     int trip, long temp)
+> -{
+> -	struct thermal_instance *instance;
+> -	struct thermal_cooling_device *cdev =3D NULL;
+> -	unsigned long cur_state, max_state;
+> -	long trip_temp;
+> -	enum thermal_trip_type trip_type;
+> -	enum thermal_trend trend;
+> -
+> -	if (trip =3D=3D THERMAL_TRIPS_NONE) {
+> -		trip_temp =3D tz->forced_passive;
+> -		trip_type =3D THERMAL_TRIPS_NONE;
+> -	} else {
+> -		tz->ops->get_trip_temp(tz, trip, &trip_temp);
+> -		tz->ops->get_trip_type(tz, trip, &trip_type);
+> -	}
+> -
+> -	if (!tz->ops->get_trend || tz->ops->get_trend(tz, trip, &trend)) {
+> -		/*
+> -		 * compare the current temperature and previous temperature
+> -		 * to get the thermal trend, if no special requirement
+> -		 */
+> -		if (tz->temperature > tz->last_temperature)
+> -			trend =3D THERMAL_TREND_RAISING;
+> -		else if (tz->temperature < tz->last_temperature)
+> -			trend =3D THERMAL_TREND_DROPPING;
+> -		else
+> -			trend =3D THERMAL_TREND_STABLE;
+> -	}
+> -
+> -	if (temp >=3D trip_temp) {
+> -		list_for_each_entry(instance, &tz->thermal_instances, tz_node) {
+> -			if (instance->trip !=3D trip)
+> -				continue;
+> -
+> -			cdev =3D instance->cdev;
+> -
+> -			cdev->ops->get_cur_state(cdev, &cur_state);
+> -			cdev->ops->get_max_state(cdev, &max_state);
+> -
+> -			if (trend =3D=3D THERMAL_TREND_RAISING) {
+> -				cur_state =3D cur_state < instance->upper ?
+> -					    (cur_state + 1) : instance->upper;
+> -			} else if (trend =3D=3D THERMAL_TREND_DROPPING) {
+> -				cur_state =3D cur_state > instance->lower ?
+> -				    (cur_state - 1) : instance->lower;
+> -			}
+> -
+> -			/* activate a passive thermal instance */
+> -			if ((trip_type =3D=3D THERMAL_TRIP_PASSIVE ||
+> -			     trip_type =3D=3D THERMAL_TRIPS_NONE) &&
+> -			     instance->target =3D=3D THERMAL_NO_TARGET)
+> -				tz->passive++;
+> -
+> -			instance->target =3D cur_state;
+> -			cdev->updated =3D false; /* cooling device needs update */
+> -		}
+> -	} else {	/* below trip */
+> -		list_for_each_entry(instance, &tz->thermal_instances, tz_node) {
+> -			if (instance->trip !=3D trip)
+> -				continue;
+> -
+> -			/* Do not use the inactive thermal instance */
+> -			if (instance->target =3D=3D THERMAL_NO_TARGET)
+> -				continue;
+> -			cdev =3D instance->cdev;
+> -			cdev->ops->get_cur_state(cdev, &cur_state);
+> -
+> -			cur_state =3D cur_state > instance->lower ?
+> -				    (cur_state - 1) : THERMAL_NO_TARGET;
+> -
+> -			/* deactivate a passive thermal instance */
+> -			if ((trip_type =3D=3D THERMAL_TRIP_PASSIVE ||
+> -			     trip_type =3D=3D THERMAL_TRIPS_NONE) &&
+> -			     cur_state =3D=3D THERMAL_NO_TARGET)
+> -				tz->passive--;
+> -			instance->target =3D cur_state;
+> -			cdev->updated =3D false; /* cooling device needs update */
+> -		}
+> -	}
+> -
+> -	return;
+> -}
+> -/**
+> - * thermal_zone_device_update - force an update of a thermal zone's =
+state
+> - * @ttz:	the thermal zone to update
+> - */
+> -
+> -void thermal_zone_device_update(struct thermal_zone_device *tz)
+> -{
+> -	int count, ret =3D 0;
+> -	long temp, trip_temp;
+> -	enum thermal_trip_type trip_type;
+> -
+> -	mutex_lock(&tz->lock);
+> -
+> -	if (tz->ops->get_temp(tz, &temp)) {
+> -		/* get_temp failed - retry it later */
+> -		pr_warn("failed to read out thermal zone %d\n", tz->id);
+> -		goto leave;
+> -	}
+> -
+> -	tz->last_temperature =3D tz->temperature;
+> -	tz->temperature =3D temp;
+> -
+> -	for (count =3D 0; count < tz->trips; count++) {
+> -		tz->ops->get_trip_type(tz, count, &trip_type);
+> -		tz->ops->get_trip_temp(tz, count, &trip_temp);
+> -
+> -		switch (trip_type) {
+> -		case THERMAL_TRIP_CRITICAL:
+> -			if (temp >=3D trip_temp) {
+> -				if (tz->ops->notify)
+> -					ret =3D tz->ops->notify(tz, count,
+> -							      trip_type);
+> -				if (!ret) {
+> -					pr_emerg("Critical temperature reached (%ld C), shutting down\n=
+",
+> -						 temp/1000);
+> -					orderly_poweroff(true);
+> -				}
+> -			}
+> -			break;
+> -		case THERMAL_TRIP_HOT:
+> -			if (temp >=3D trip_temp)
+> -				if (tz->ops->notify)
+> -					tz->ops->notify(tz, count, trip_type);
+> -			break;
+> -		case THERMAL_TRIP_ACTIVE:
+> -			thermal_zone_trip_update(tz, count, temp);
+> -			break;
+> -		case THERMAL_TRIP_PASSIVE:
+> -			if (temp >=3D trip_temp || tz->passive)
+> -				thermal_zone_trip_update(tz, count, temp);
+> -			break;
+> -		}
+> -	}
+> -
+> -	if (tz->forced_passive)
+> -		thermal_zone_trip_update(tz, THERMAL_TRIPS_NONE, temp);
+> -	thermal_zone_do_update(tz);
+> -
+> -leave:
+> -	if (tz->passive)
+> -		thermal_zone_device_set_polling(tz, tz->passive_delay);
+> -	else if (tz->polling_delay)
+> -		thermal_zone_device_set_polling(tz, tz->polling_delay);
+> -	else
+> -		thermal_zone_device_set_polling(tz, 0);
+> -	mutex_unlock(&tz->lock);
+> -}
+> -EXPORT_SYMBOL(thermal_zone_device_update);
+> -
+>  /**
+>   * create_trip_attrs - create attributes for trip points
+>   * @tz:		the thermal zone device
 
 
 --
