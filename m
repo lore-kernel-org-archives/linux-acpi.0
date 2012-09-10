@@ -1,41 +1,67 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: ACPI conflicts
-Date: Mon, 10 Sep 2012 09:21:50 +0800
-Message-ID: <1347240110.1682.1047.camel@rui.sh.intel.com>
-References: <504D2D39.5090709@googlemail.com>
-		 <1347238787.1682.1045.camel@rui.sh.intel.com>
-		 <504D3CFC.2080805@googlemail.com>
-	 <1347239756.1682.1046.camel@rui.sh.intel.com>
-	 <504D3FB4.2020100@googlemail.com>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [RFC v8 PATCH 00/20] memory-hotplug: hot-remove physical memory
+Date: Mon, 10 Sep 2012 10:46:37 +0900
+Message-ID: <504D467D.2080201@jp.fujitsu.com>
+References: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com> <20120831134956.fec0f681.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:36497 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756029Ab2IJBU7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 9 Sep 2012 21:20:59 -0400
-In-Reply-To: <504D3FB4.2020100@googlemail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20120831134956.fec0f681.akpm@linux-foundation.org>
+Sender: owner-linux-mm@kvack.org
+To: wency@cn.fujitsu.com
+Cc: Andrew Morton <akpm@linux-foundation.org>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
-To: Mr Dash Four <mr.dash.four@googlemail.com>
-Cc: linux-acpi@vger.kernel.org
 
-On =E4=B8=80, 2012-09-10 at 02:17 +0100, Mr Dash Four wrote:
-> > then how about clearing CONFIG_LPC_ICH?
-> Good catch! I also have CONFIG_LPC_SCH, should I clear that too?
->=20
-No, I don't think so.
+Hi Wen,
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2012/09/01 5:49, Andrew Morton wrote:
+> On Tue, 28 Aug 2012 18:00:07 +0800
+> wency@cn.fujitsu.com wrote:
+>
+>> This patch series aims to support physical memory hot-remove.
+>
+> Have you had much review and testing feedback yet?
+>
+>> The patches can free/remove the following things:
+>>
+>>    - acpi_memory_info                          : [RFC PATCH 4/19]
+>>    - /sys/firmware/memmap/X/{end, start, type} : [RFC PATCH 8/19]
+>>    - iomem_resource                            : [RFC PATCH 9/19]
+>>    - mem_section and related sysfs files       : [RFC PATCH 10-11, 13-16/19]
+>>    - page table of removed memory              : [RFC PATCH 12/19]
+>>    - node and related sysfs files              : [RFC PATCH 18-19/19]
+>>
+>> If you find lack of function for physical memory hot-remove, please let me
+>> know.
+>
+
+> I doubt if many people have hardware which permits physical memory
+> removal?  How would you suggest that people with regular hardware can
+> test these chagnes?
+
+How do you test the patch? As Andrew says, for hot-removing memory,
+we need a particular hardware. I think so too. So many people may want
+to know how to test the patch.
+If we apply following patch to kvm guest, can we hot-remove memory on
+kvm guest?
+
+http://lists.gnu.org/archive/html/qemu-devel/2012-07/msg01389.html
+
+Thanks,
+Yasuaki Ishimatsu
+
+>
+>> Known problems:
+>> 1. memory can't be offlined when CONFIG_MEMCG is selected.
+>
+> That's quite a problem!  Do you have a description of why this is the
+> case, and a plan for fixing it?
+>
 
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
