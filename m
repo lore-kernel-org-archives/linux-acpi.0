@@ -1,223 +1,288 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
-Subject: RE: [PATCHv3 13/15] Thermal: Remove throttling logic out of
- thermal_sys.c
-Date: Mon, 10 Sep 2012 08:56:40 +0000
-Message-ID: <4D68720C2E767A4AA6A8796D42C8EB591B54AA@BGSMSX101.gar.corp.intel.com>
-References: <1346500296-25200-1-git-send-email-durgadoss.r@intel.com>
-	 <1346500296-25200-14-git-send-email-durgadoss.r@intel.com>
- <1347266657.1682.1086.camel@rui.sh.intel.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v6 1/7] scsi: sr: support runtime pm for ODD
+Date: Mon, 10 Sep 2012 17:16:22 +0800
+Message-ID: <504DAFE6.50507@intel.com>
+References: <Pine.LNX.4.44L0.1209061437050.1182-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:56380 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752202Ab2IJI4p (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 10 Sep 2012 04:56:45 -0400
-In-Reply-To: <1347266657.1682.1086.camel@rui.sh.intel.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.44L0.1209061437050.1182-100000@iolanthe.rowland.org>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>, Oliver Neukum <oliver@neukum.org>
+Cc: Aaron Lu <aaron.lwe@gmail.com>, James Bottomley <James.Bottomley@hansenpartnership.com>, Jeff Garzik <jgarzik@pobox.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>
 
-SGkgUnVpLA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFpoYW5nLCBS
-dWkNCj4gU2VudDogTW9uZGF5LCBTZXB0ZW1iZXIgMTAsIDIwMTIgMjoxNCBQTQ0KPiBUbzogUiwg
-RHVyZ2Fkb3NzDQo+IENjOiBsZW5iQGtlcm5lbC5vcmc7IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwu
-b3JnOyBlZHVhcmRvLnZhbGVudGluQHRpLmNvbQ0KPiBTdWJqZWN0OiBSZTogW1BBVENIdjMgMTMv
-MTVdIFRoZXJtYWw6IFJlbW92ZSB0aHJvdHRsaW5nIGxvZ2ljIG91dCBvZg0KPiB0aGVybWFsX3N5
-cy5jDQpbY3V0Ll0NCg0KPiA+ICsNCj4gPiArc3RhdGljIHZvaWQgaGFuZGxlX25vbl9jcml0aWNh
-bF90cmlwcyhzdHJ1Y3QgdGhlcm1hbF96b25lX2RldmljZSAqdHosDQo+ID4gKwkJCWludCB0cmlw
-LCBlbnVtIHRoZXJtYWxfdHJpcF90eXBlIHRyaXBfdHlwZSkNCj4gPiArew0KPiA+ICsJdHotPmdv
-dmVybm9yLT50aHJvdHRsZSh0eiwgdHJpcCk7DQo+ID4gK30NCj4gaGVyZSBpcyB0aGUgcHJvYmxl
-bSwgd2UgbXVzdCBtYWtlIHN1cmUgZXZlcnkgcmVnaXN0ZXJlZCB0aGVybWFsIHpvbmUNCj4gaGF2
-ZSBhIGdvdmVybm9yIHdoZW4gaXQgaXMgcnVubmluZywgcmlnaHQ/DQoNClllcywgYWdyZWUgd2l0
-aCB5b3UuIEhhZCBzb21lIHRob3VnaHRzIGhlcmUsIGJ1dCB3YW50ZWQgdG8gZ2V0IHlvdXIgb3Bp
-bmlvbg0KYmVmb3JlIEkgaW1wbGVtZW50ZWQgdGhlbS4NCg0KMS4gV2UgY2FuIG1ha2UgdGhlIGRl
-ZmF1bHQgZ292ZXJub3IgYXMgJ3VzZXIgc3BhY2UnLCBhbmQgbWFrZSBpdCBsb2FkIGluc2lkZQ0K
-dGhlcm1hbF9zeXMuYyAoc28gdGhhdCBldmVyeSB6b25lIHdpbGwgYWx3YXlzIGhhdmUgYSBkZWZh
-dWx0IGdvdmVybm9yKQ0KDQoyLiBBbGwgb3RoZXIgZ292ZXJub3JzLCB0aGF0IGFyZSBpbXBsZW1l
-bnRlZCBpbiBhIHNlcGFyYXRlIC5jIGZpbGUgY2FuIGJlDQpvcHRpb25hbCBpLmUuIGxlZnQgdG8g
-dGhlIHVzZXIgdG8gc2VsZWN0L2Rlc2VsZWN0Lg0KDQpJTU8sIHRoaXMgd2lsbCBtYWtlIG91ciBp
-bXBsZW1lbnRhdGlvbiBlYXNpZXIgYW5kIGNsZWFuZXIuDQpXaGF0IGRvIHlvdSB0aGluayA/DQoN
-ClRoYW5rcywNCkR1cmdhDQoNCj4gDQo+IHRoZW4gdGhlIGRlZmF1bHQgZ292ZXJub3IgbXVzdCBh
-bHdheXMgYmUgYnVpbHQgaW4uDQo+IFdlIGNhbiBoYXZlIGEgS2NvbmZpZyBvcHRpb24gZm9yIHN0
-ZXBfd2lzZSwgYnV0IHdlIHNob3VsZCBub3QgbWFrZSBpdA0KPiBjb25maWd1cmFibGUgYnkgdXNl
-cnMuDQo+IG9yIHdlIGNhbiB1c2UgcHJvbXB0IHRvIGdldCB0aGUgZGVmYXVsdCBnb3Zlcm5vciBh
-dCBidWlsZCB0aW1lLiBzYXkNCj4gDQo+IGNob2ljZQ0KPiAgICAgICAgIHByb21wdCAiRGVmYXVs
-dCB0aGVybWFsIGdvdmVybm9yIg0KPiAgICAgICAgIGRlZmF1bHQgVEhFUk1BTF9ERUZBVUxUX0dP
-Vl9TVEVQX1dJU0UNCj4gICAgICAgICBoZWxwDQo+ICAgICAgICAgICBUaGlzIG9wdGlvbiBzZXRz
-IHdoaWNoIHRoZXJtYWwgZ292ZXJub3Igc2hhbGwgYmUgbG9hZGVkIGF0DQo+ICAgICAgICAgICBz
-dGFydHVwLg0KPiANCj4gY29uZmlnIFRIRVJNQUxfREVGQVVMVF9HT1ZfU1RFUF9XSVNFDQo+ICAg
-ICAgICAgYm9vbCAic3RlcC13aXNlIg0KPiAgICAgICAgIHNlbGVjdCBUSEVSTUFMX0dPVl9TVEVQ
-X1dJU0UNCj4gICAgICAgICBoZWxwDQo+ICAgICAgICAgICBVc2UgdGhlIHRoZXJtYWwgZ292ZXJu
-b3IgJ3N0ZXAtd2lzZScgYXMgZGVmYXVsdC5ibGFibGENCj4gDQo+IA0KPiB0aGFua3MsDQo+IHJ1
-aQ0KPiANCj4gPiArDQo+ID4gK3N0YXRpYyB2b2lkIGhhbmRsZV9jcml0aWNhbF90cmlwcyhzdHJ1
-Y3QgdGhlcm1hbF96b25lX2RldmljZSAqdHosDQo+ID4gKwkJCQlpbnQgdHJpcCwgZW51bSB0aGVy
-bWFsX3RyaXBfdHlwZSB0cmlwX3R5cGUpDQo+ID4gK3sNCj4gPiArCWxvbmcgdHJpcF90ZW1wOw0K
-PiA+ICsNCj4gPiArCXR6LT5vcHMtPmdldF90cmlwX3RlbXAodHosIHRyaXAsICZ0cmlwX3RlbXAp
-Ow0KPiA+ICsNCj4gPiArCS8qIElmIHdlIGhhdmUgbm90IGNyb3NzZWQgdGhlIHRyaXBfdGVtcCwg
-d2UgZG8gbm90IGNhcmUuICovDQo+ID4gKwlpZiAodHotPnRlbXBlcmF0dXJlIDwgdHJpcF90ZW1w
-KQ0KPiA+ICsJCXJldHVybjsNCj4gPiArDQo+ID4gKwlpZiAodHotPm9wcy0+bm90aWZ5KQ0KPiA+
-ICsJCXR6LT5vcHMtPm5vdGlmeSh0eiwgdHJpcCwgdHJpcF90eXBlKTsNCj4gPiArDQo+ID4gKwlp
-ZiAodHJpcF90eXBlID09IFRIRVJNQUxfVFJJUF9DUklUSUNBTCkgew0KPiA+ICsJCXByX2VtZXJn
-KCJDcml0aWNhbCB0ZW1wZXJhdHVyZSByZWFjaGVkKCVkIEMpLHNodXR0aW5nDQo+IGRvd25cbiIs
-DQo+ID4gKwkJCSB0ei0+dGVtcGVyYXR1cmUgLyAxMDAwKTsNCj4gPiArCQlvcmRlcmx5X3Bvd2Vy
-b2ZmKHRydWUpOw0KPiA+ICsJfQ0KPiA+ICt9DQo+ID4gKw0KPiA+ICtzdGF0aWMgdm9pZCBoYW5k
-bGVfdGhlcm1hbF90cmlwKHN0cnVjdCB0aGVybWFsX3pvbmVfZGV2aWNlICp0eiwgaW50IHRyaXAp
-DQo+ID4gK3sNCj4gPiArCWVudW0gdGhlcm1hbF90cmlwX3R5cGUgdHlwZTsNCj4gPiArDQo+ID4g
-Kwl0ei0+b3BzLT5nZXRfdHJpcF90eXBlKHR6LCB0cmlwLCAmdHlwZSk7DQo+ID4gKw0KPiA+ICsJ
-aWYgKHR5cGUgPT0gVEhFUk1BTF9UUklQX0NSSVRJQ0FMIHx8IHR5cGUgPT0NCj4gVEhFUk1BTF9U
-UklQX0hPVCkNCj4gPiArCQloYW5kbGVfY3JpdGljYWxfdHJpcHModHosIHRyaXAsIHR5cGUpOw0K
-PiA+ICsJZWxzZQ0KPiA+ICsJCWhhbmRsZV9ub25fY3JpdGljYWxfdHJpcHModHosIHRyaXAsIHR5
-cGUpOw0KPiA+ICsJLyoNCj4gPiArCSAqIEFscmlnaHQsIHdlIGhhbmRsZWQgdGhpcyB0cmlwIHN1
-Y2Nlc3NmdWxseS4NCj4gPiArCSAqIFNvLCBzdGFydCBtb25pdG9yaW5nIGFnYWluLg0KPiA+ICsJ
-ICovDQo+ID4gKwltb25pdG9yX3RoZXJtYWxfem9uZSh0eik7DQo+ID4gK30NCj4gPiArDQo+ID4g
-K3N0YXRpYyB2b2lkIHVwZGF0ZV90ZW1wZXJhdHVyZShzdHJ1Y3QgdGhlcm1hbF96b25lX2Rldmlj
-ZSAqdHopDQo+ID4gK3sNCj4gPiArCWxvbmcgdGVtcDsNCj4gPiArCWludCByZXQ7DQo+ID4gKw0K
-PiA+ICsJbXV0ZXhfbG9jaygmdHotPmxvY2spOw0KPiA+ICsNCj4gPiArCXJldCA9IHR6LT5vcHMt
-PmdldF90ZW1wKHR6LCAmdGVtcCk7DQo+ID4gKwlpZiAocmV0KSB7DQo+ID4gKwkJcHJfd2Fybigi
-ZmFpbGVkIHRvIHJlYWQgb3V0IHRoZXJtYWwgem9uZSAlZFxuIiwgdHotPmlkKTsNCj4gPiArCQly
-ZXR1cm47DQo+ID4gKwl9DQo+ID4gKw0KPiA+ICsJdHotPmxhc3RfdGVtcGVyYXR1cmUgPSB0ei0+
-dGVtcGVyYXR1cmU7DQo+ID4gKwl0ei0+dGVtcGVyYXR1cmUgPSB0ZW1wOw0KPiA+ICsNCj4gPiAr
-CW11dGV4X3VubG9jaygmdHotPmxvY2spOw0KPiA+ICt9DQo+ID4gKw0KPiA+ICt2b2lkIHRoZXJt
-YWxfem9uZV9kZXZpY2VfdXBkYXRlKHN0cnVjdCB0aGVybWFsX3pvbmVfZGV2aWNlICp0eikNCj4g
-PiArew0KPiA+ICsJaW50IGNvdW50Ow0KPiA+ICsNCj4gPiArCXVwZGF0ZV90ZW1wZXJhdHVyZSh0
-eik7DQo+ID4gKw0KPiA+ICsJZm9yIChjb3VudCA9IDA7IGNvdW50IDwgdHotPnRyaXBzOyBjb3Vu
-dCsrKQ0KPiA+ICsJCWhhbmRsZV90aGVybWFsX3RyaXAodHosIGNvdW50KTsNCj4gPiArfQ0KPiA+
-ICtFWFBPUlRfU1lNQk9MKHRoZXJtYWxfem9uZV9kZXZpY2VfdXBkYXRlKTsNCj4gPiArDQo+ID4g
-K3N0YXRpYyB2b2lkIHRoZXJtYWxfem9uZV9kZXZpY2VfY2hlY2soc3RydWN0IHdvcmtfc3RydWN0
-ICp3b3JrKQ0KPiA+ICt7DQo+ID4gKwlzdHJ1Y3QgdGhlcm1hbF96b25lX2RldmljZSAqdHogPSBj
-b250YWluZXJfb2Yod29yaywgc3RydWN0DQo+ID4gKwkJCQkJCSAgICAgIHRoZXJtYWxfem9uZV9k
-ZXZpY2UsDQo+ID4gKwkJCQkJCSAgICAgIHBvbGxfcXVldWUud29yayk7DQo+ID4gKwl0aGVybWFs
-X3pvbmVfZGV2aWNlX3VwZGF0ZSh0eik7DQo+ID4gK30NCj4gPiArDQo+ID4gIC8qIHN5cyBJL0Yg
-Zm9yIHRoZXJtYWwgem9uZSAqLw0KPiA+DQo+ID4gICNkZWZpbmUgdG9fdGhlcm1hbF96b25lKF9k
-ZXYpIFwNCj4gPiBAQCAtOTM2LDMwICsxMDQ4LDYgQEAgdGhlcm1hbF9yZW1vdmVfaHdtb25fc3lz
-ZnMoc3RydWN0DQo+IHRoZXJtYWxfem9uZV9kZXZpY2UgKnR6KQ0KPiA+ICB9DQo+ID4gICNlbmRp
-Zg0KPiA+DQo+ID4gLXN0YXRpYyB2b2lkIHRoZXJtYWxfem9uZV9kZXZpY2Vfc2V0X3BvbGxpbmco
-c3RydWN0IHRoZXJtYWxfem9uZV9kZXZpY2UNCj4gKnR6LA0KPiA+IC0JCQkJCSAgICBpbnQgZGVs
-YXkpDQo+ID4gLXsNCj4gPiAtCWNhbmNlbF9kZWxheWVkX3dvcmsoJih0ei0+cG9sbF9xdWV1ZSkp
-Ow0KPiA+IC0NCj4gPiAtCWlmICghZGVsYXkpDQo+ID4gLQkJcmV0dXJuOw0KPiA+IC0NCj4gPiAt
-CWlmIChkZWxheSA+IDEwMDApDQo+ID4gLQkJcXVldWVfZGVsYXllZF93b3JrKHN5c3RlbV9mcmVl
-emFibGVfd3EsICYodHotDQo+ID5wb2xsX3F1ZXVlKSwNCj4gPiAtCQkJCSAgICAgIHJvdW5kX2pp
-ZmZpZXMobXNlY3NfdG9famlmZmllcyhkZWxheSkpKTsNCj4gPiAtCWVsc2UNCj4gPiAtCQlxdWV1
-ZV9kZWxheWVkX3dvcmsoc3lzdGVtX2ZyZWV6YWJsZV93cSwgJih0ei0NCj4gPnBvbGxfcXVldWUp
-LA0KPiA+IC0JCQkJICAgICAgbXNlY3NfdG9famlmZmllcyhkZWxheSkpOw0KPiA+IC19DQo+ID4g
-LQ0KPiA+IC1zdGF0aWMgdm9pZCB0aGVybWFsX3pvbmVfZGV2aWNlX2NoZWNrKHN0cnVjdCB3b3Jr
-X3N0cnVjdCAqd29yaykNCj4gPiAtew0KPiA+IC0Jc3RydWN0IHRoZXJtYWxfem9uZV9kZXZpY2Ug
-KnR6ID0gY29udGFpbmVyX29mKHdvcmssIHN0cnVjdA0KPiA+IC0JCQkJCQkgICAgICB0aGVybWFs
-X3pvbmVfZGV2aWNlLA0KPiA+IC0JCQkJCQkgICAgICBwb2xsX3F1ZXVlLndvcmspOw0KPiA+IC0J
-dGhlcm1hbF96b25lX2RldmljZV91cGRhdGUodHopOw0KPiA+IC19DQo+ID4gLQ0KPiA+ICAvKioN
-Cj4gPiAgICogdGhlcm1hbF96b25lX2JpbmRfY29vbGluZ19kZXZpY2UgLSBiaW5kIGEgY29vbGlu
-ZyBkZXZpY2UgdG8gYSB0aGVybWFsDQo+IHpvbmUNCj4gPiAgICogQHR6OgkJdGhlcm1hbCB6b25l
-IGRldmljZQ0KPiA+IEBAIC0xMjgzLDE4MyArMTM3MSw2IEBAIHZvaWQgdGhlcm1hbF9jZGV2X3Vw
-ZGF0ZShzdHJ1Y3QNCj4gdGhlcm1hbF9jb29saW5nX2RldmljZSAqY2RldikNCj4gPiAgfQ0KPiA+
-ICBFWFBPUlRfU1lNQk9MKHRoZXJtYWxfY2Rldl91cGRhdGUpOw0KPiA+DQo+ID4gLXN0YXRpYyB2
-b2lkIHRoZXJtYWxfem9uZV9kb191cGRhdGUoc3RydWN0IHRoZXJtYWxfem9uZV9kZXZpY2UgKnR6
-KQ0KPiA+IC17DQo+ID4gLQlzdHJ1Y3QgdGhlcm1hbF9pbnN0YW5jZSAqaW5zdGFuY2U7DQo+ID4g
-LQ0KPiA+IC0JbGlzdF9mb3JfZWFjaF9lbnRyeShpbnN0YW5jZSwgJnR6LT50aGVybWFsX2luc3Rh
-bmNlcywgdHpfbm9kZSkNCj4gPiAtCQl0aGVybWFsX2NkZXZfdXBkYXRlKGluc3RhbmNlLT5jZGV2
-KTsNCj4gPiAtfQ0KPiA+IC0NCj4gPiAtLyoNCj4gPiAtICogQ29vbGluZyBhbGdvcml0aG0gZm9y
-IGJvdGggYWN0aXZlIGFuZCBwYXNzaXZlIGNvb2xpbmcNCj4gPiAtICoNCj4gPiAtICogMS4gaWYg
-dGhlIHRlbXBlcmF0dXJlIGlzIGhpZ2hlciB0aGFuIGEgdHJpcCBwb2ludCwNCj4gPiAtICogICAg
-YS4gaWYgdGhlIHRyZW5kIGlzIFRIRVJNQUxfVFJFTkRfUkFJU0lORywgdXNlIGhpZ2hlciBjb29s
-aW5nDQo+ID4gLSAqICAgICAgIHN0YXRlIGZvciB0aGlzIHRyaXAgcG9pbnQNCj4gPiAtICogICAg
-Yi4gaWYgdGhlIHRyZW5kIGlzIFRIRVJNQUxfVFJFTkRfRFJPUFBJTkcsIHVzZSBsb3dlciBjb29s
-aW5nDQo+ID4gLSAqICAgICAgIHN0YXRlIGZvciB0aGlzIHRyaXAgcG9pbnQNCj4gPiAtICoNCj4g
-PiAtICogMi4gaWYgdGhlIHRlbXBlcmF0dXJlIGlzIGxvd2VyIHRoYW4gYSB0cmlwIHBvaW50LCB1
-c2UgbG93ZXINCj4gPiAtICogICAgY29vbGluZyBzdGF0ZSBmb3IgdGhpcyB0cmlwIHBvaW50DQo+
-ID4gLSAqDQo+ID4gLSAqIE5vdGUgdGhhdCB0aGlzIGJlaGF2ZXMgdGhlIHNhbWUgYXMgdGhlIHBy
-ZXZpb3VzIHBhc3NpdmUgY29vbGluZw0KPiA+IC0gKiBhbGdvcml0aG0uDQo+ID4gLSAqLw0KPiA+
-IC0NCj4gPiAtc3RhdGljIHZvaWQgdGhlcm1hbF96b25lX3RyaXBfdXBkYXRlKHN0cnVjdCB0aGVy
-bWFsX3pvbmVfZGV2aWNlICp0eiwNCj4gPiAtCQkJCSAgICAgaW50IHRyaXAsIGxvbmcgdGVtcCkN
-Cj4gPiAtew0KPiA+IC0Jc3RydWN0IHRoZXJtYWxfaW5zdGFuY2UgKmluc3RhbmNlOw0KPiA+IC0J
-c3RydWN0IHRoZXJtYWxfY29vbGluZ19kZXZpY2UgKmNkZXYgPSBOVUxMOw0KPiA+IC0JdW5zaWdu
-ZWQgbG9uZyBjdXJfc3RhdGUsIG1heF9zdGF0ZTsNCj4gPiAtCWxvbmcgdHJpcF90ZW1wOw0KPiA+
-IC0JZW51bSB0aGVybWFsX3RyaXBfdHlwZSB0cmlwX3R5cGU7DQo+ID4gLQllbnVtIHRoZXJtYWxf
-dHJlbmQgdHJlbmQ7DQo+ID4gLQ0KPiA+IC0JaWYgKHRyaXAgPT0gVEhFUk1BTF9UUklQU19OT05F
-KSB7DQo+ID4gLQkJdHJpcF90ZW1wID0gdHotPmZvcmNlZF9wYXNzaXZlOw0KPiA+IC0JCXRyaXBf
-dHlwZSA9IFRIRVJNQUxfVFJJUFNfTk9ORTsNCj4gPiAtCX0gZWxzZSB7DQo+ID4gLQkJdHotPm9w
-cy0+Z2V0X3RyaXBfdGVtcCh0eiwgdHJpcCwgJnRyaXBfdGVtcCk7DQo+ID4gLQkJdHotPm9wcy0+
-Z2V0X3RyaXBfdHlwZSh0eiwgdHJpcCwgJnRyaXBfdHlwZSk7DQo+ID4gLQl9DQo+ID4gLQ0KPiA+
-IC0JaWYgKCF0ei0+b3BzLT5nZXRfdHJlbmQgfHwgdHotPm9wcy0+Z2V0X3RyZW5kKHR6LCB0cmlw
-LCAmdHJlbmQpKSB7DQo+ID4gLQkJLyoNCj4gPiAtCQkgKiBjb21wYXJlIHRoZSBjdXJyZW50IHRl
-bXBlcmF0dXJlIGFuZCBwcmV2aW91cw0KPiB0ZW1wZXJhdHVyZQ0KPiA+IC0JCSAqIHRvIGdldCB0
-aGUgdGhlcm1hbCB0cmVuZCwgaWYgbm8gc3BlY2lhbCByZXF1aXJlbWVudA0KPiA+IC0JCSAqLw0K
-PiA+IC0JCWlmICh0ei0+dGVtcGVyYXR1cmUgPiB0ei0+bGFzdF90ZW1wZXJhdHVyZSkNCj4gPiAt
-CQkJdHJlbmQgPSBUSEVSTUFMX1RSRU5EX1JBSVNJTkc7DQo+ID4gLQkJZWxzZSBpZiAodHotPnRl
-bXBlcmF0dXJlIDwgdHotPmxhc3RfdGVtcGVyYXR1cmUpDQo+ID4gLQkJCXRyZW5kID0gVEhFUk1B
-TF9UUkVORF9EUk9QUElORzsNCj4gPiAtCQllbHNlDQo+ID4gLQkJCXRyZW5kID0gVEhFUk1BTF9U
-UkVORF9TVEFCTEU7DQo+ID4gLQl9DQo+ID4gLQ0KPiA+IC0JaWYgKHRlbXAgPj0gdHJpcF90ZW1w
-KSB7DQo+ID4gLQkJbGlzdF9mb3JfZWFjaF9lbnRyeShpbnN0YW5jZSwgJnR6LT50aGVybWFsX2lu
-c3RhbmNlcywNCj4gdHpfbm9kZSkgew0KPiA+IC0JCQlpZiAoaW5zdGFuY2UtPnRyaXAgIT0gdHJp
-cCkNCj4gPiAtCQkJCWNvbnRpbnVlOw0KPiA+IC0NCj4gPiAtCQkJY2RldiA9IGluc3RhbmNlLT5j
-ZGV2Ow0KPiA+IC0NCj4gPiAtCQkJY2Rldi0+b3BzLT5nZXRfY3VyX3N0YXRlKGNkZXYsICZjdXJf
-c3RhdGUpOw0KPiA+IC0JCQljZGV2LT5vcHMtPmdldF9tYXhfc3RhdGUoY2RldiwgJm1heF9zdGF0
-ZSk7DQo+ID4gLQ0KPiA+IC0JCQlpZiAodHJlbmQgPT0gVEhFUk1BTF9UUkVORF9SQUlTSU5HKSB7
-DQo+ID4gLQkJCQljdXJfc3RhdGUgPSBjdXJfc3RhdGUgPCBpbnN0YW5jZS0+dXBwZXIgPw0KPiA+
-IC0JCQkJCSAgICAoY3VyX3N0YXRlICsgMSkgOiBpbnN0YW5jZS0+dXBwZXI7DQo+ID4gLQkJCX0g
-ZWxzZSBpZiAodHJlbmQgPT0gVEhFUk1BTF9UUkVORF9EUk9QUElORykgew0KPiA+IC0JCQkJY3Vy
-X3N0YXRlID0gY3VyX3N0YXRlID4gaW5zdGFuY2UtPmxvd2VyID8NCj4gPiAtCQkJCSAgICAoY3Vy
-X3N0YXRlIC0gMSkgOiBpbnN0YW5jZS0+bG93ZXI7DQo+ID4gLQkJCX0NCj4gPiAtDQo+ID4gLQkJ
-CS8qIGFjdGl2YXRlIGEgcGFzc2l2ZSB0aGVybWFsIGluc3RhbmNlICovDQo+ID4gLQkJCWlmICgo
-dHJpcF90eXBlID09IFRIRVJNQUxfVFJJUF9QQVNTSVZFIHx8DQo+ID4gLQkJCSAgICAgdHJpcF90
-eXBlID09IFRIRVJNQUxfVFJJUFNfTk9ORSkgJiYNCj4gPiAtCQkJICAgICBpbnN0YW5jZS0+dGFy
-Z2V0ID09IFRIRVJNQUxfTk9fVEFSR0VUKQ0KPiA+IC0JCQkJdHotPnBhc3NpdmUrKzsNCj4gPiAt
-DQo+ID4gLQkJCWluc3RhbmNlLT50YXJnZXQgPSBjdXJfc3RhdGU7DQo+ID4gLQkJCWNkZXYtPnVw
-ZGF0ZWQgPSBmYWxzZTsgLyogY29vbGluZyBkZXZpY2UgbmVlZHMNCj4gdXBkYXRlICovDQo+ID4g
-LQkJfQ0KPiA+IC0JfSBlbHNlIHsJLyogYmVsb3cgdHJpcCAqLw0KPiA+IC0JCWxpc3RfZm9yX2Vh
-Y2hfZW50cnkoaW5zdGFuY2UsICZ0ei0+dGhlcm1hbF9pbnN0YW5jZXMsDQo+IHR6X25vZGUpIHsN
-Cj4gPiAtCQkJaWYgKGluc3RhbmNlLT50cmlwICE9IHRyaXApDQo+ID4gLQkJCQljb250aW51ZTsN
-Cj4gPiAtDQo+ID4gLQkJCS8qIERvIG5vdCB1c2UgdGhlIGluYWN0aXZlIHRoZXJtYWwgaW5zdGFu
-Y2UgKi8NCj4gPiAtCQkJaWYgKGluc3RhbmNlLT50YXJnZXQgPT0gVEhFUk1BTF9OT19UQVJHRVQp
-DQo+ID4gLQkJCQljb250aW51ZTsNCj4gPiAtCQkJY2RldiA9IGluc3RhbmNlLT5jZGV2Ow0KPiA+
-IC0JCQljZGV2LT5vcHMtPmdldF9jdXJfc3RhdGUoY2RldiwgJmN1cl9zdGF0ZSk7DQo+ID4gLQ0K
-PiA+IC0JCQljdXJfc3RhdGUgPSBjdXJfc3RhdGUgPiBpbnN0YW5jZS0+bG93ZXIgPw0KPiA+IC0J
-CQkJICAgIChjdXJfc3RhdGUgLSAxKSA6IFRIRVJNQUxfTk9fVEFSR0VUOw0KPiA+IC0NCj4gPiAt
-CQkJLyogZGVhY3RpdmF0ZSBhIHBhc3NpdmUgdGhlcm1hbCBpbnN0YW5jZSAqLw0KPiA+IC0JCQlp
-ZiAoKHRyaXBfdHlwZSA9PSBUSEVSTUFMX1RSSVBfUEFTU0lWRSB8fA0KPiA+IC0JCQkgICAgIHRy
-aXBfdHlwZSA9PSBUSEVSTUFMX1RSSVBTX05PTkUpICYmDQo+ID4gLQkJCSAgICAgY3VyX3N0YXRl
-ID09IFRIRVJNQUxfTk9fVEFSR0VUKQ0KPiA+IC0JCQkJdHotPnBhc3NpdmUtLTsNCj4gPiAtCQkJ
-aW5zdGFuY2UtPnRhcmdldCA9IGN1cl9zdGF0ZTsNCj4gPiAtCQkJY2Rldi0+dXBkYXRlZCA9IGZh
-bHNlOyAvKiBjb29saW5nIGRldmljZSBuZWVkcw0KPiB1cGRhdGUgKi8NCj4gPiAtCQl9DQo+ID4g
-LQl9DQo+ID4gLQ0KPiA+IC0JcmV0dXJuOw0KPiA+IC19DQo+ID4gLS8qKg0KPiA+IC0gKiB0aGVy
-bWFsX3pvbmVfZGV2aWNlX3VwZGF0ZSAtIGZvcmNlIGFuIHVwZGF0ZSBvZiBhIHRoZXJtYWwgem9u
-ZSdzDQo+IHN0YXRlDQo+ID4gLSAqIEB0dHo6CXRoZSB0aGVybWFsIHpvbmUgdG8gdXBkYXRlDQo+
-ID4gLSAqLw0KPiA+IC0NCj4gPiAtdm9pZCB0aGVybWFsX3pvbmVfZGV2aWNlX3VwZGF0ZShzdHJ1
-Y3QgdGhlcm1hbF96b25lX2RldmljZSAqdHopDQo+ID4gLXsNCj4gPiAtCWludCBjb3VudCwgcmV0
-ID0gMDsNCj4gPiAtCWxvbmcgdGVtcCwgdHJpcF90ZW1wOw0KPiA+IC0JZW51bSB0aGVybWFsX3Ry
-aXBfdHlwZSB0cmlwX3R5cGU7DQo+ID4gLQ0KPiA+IC0JbXV0ZXhfbG9jaygmdHotPmxvY2spOw0K
-PiA+IC0NCj4gPiAtCWlmICh0ei0+b3BzLT5nZXRfdGVtcCh0eiwgJnRlbXApKSB7DQo+ID4gLQkJ
-LyogZ2V0X3RlbXAgZmFpbGVkIC0gcmV0cnkgaXQgbGF0ZXIgKi8NCj4gPiAtCQlwcl93YXJuKCJm
-YWlsZWQgdG8gcmVhZCBvdXQgdGhlcm1hbCB6b25lICVkXG4iLCB0ei0+aWQpOw0KPiA+IC0JCWdv
-dG8gbGVhdmU7DQo+ID4gLQl9DQo+ID4gLQ0KPiA+IC0JdHotPmxhc3RfdGVtcGVyYXR1cmUgPSB0
-ei0+dGVtcGVyYXR1cmU7DQo+ID4gLQl0ei0+dGVtcGVyYXR1cmUgPSB0ZW1wOw0KPiA+IC0NCj4g
-PiAtCWZvciAoY291bnQgPSAwOyBjb3VudCA8IHR6LT50cmlwczsgY291bnQrKykgew0KPiA+IC0J
-CXR6LT5vcHMtPmdldF90cmlwX3R5cGUodHosIGNvdW50LCAmdHJpcF90eXBlKTsNCj4gPiAtCQl0
-ei0+b3BzLT5nZXRfdHJpcF90ZW1wKHR6LCBjb3VudCwgJnRyaXBfdGVtcCk7DQo+ID4gLQ0KPiA+
-IC0JCXN3aXRjaCAodHJpcF90eXBlKSB7DQo+ID4gLQkJY2FzZSBUSEVSTUFMX1RSSVBfQ1JJVElD
-QUw6DQo+ID4gLQkJCWlmICh0ZW1wID49IHRyaXBfdGVtcCkgew0KPiA+IC0JCQkJaWYgKHR6LT5v
-cHMtPm5vdGlmeSkNCj4gPiAtCQkJCQlyZXQgPSB0ei0+b3BzLT5ub3RpZnkodHosIGNvdW50LA0K
-PiA+IC0JCQkJCQkJICAgICAgdHJpcF90eXBlKTsNCj4gPiAtCQkJCWlmICghcmV0KSB7DQo+ID4g
-LQkJCQkJcHJfZW1lcmcoIkNyaXRpY2FsIHRlbXBlcmF0dXJlDQo+IHJlYWNoZWQgKCVsZCBDKSwg
-c2h1dHRpbmcgZG93blxuIiwNCj4gPiAtCQkJCQkJIHRlbXAvMTAwMCk7DQo+ID4gLQkJCQkJb3Jk
-ZXJseV9wb3dlcm9mZih0cnVlKTsNCj4gPiAtCQkJCX0NCj4gPiAtCQkJfQ0KPiA+IC0JCQlicmVh
-azsNCj4gPiAtCQljYXNlIFRIRVJNQUxfVFJJUF9IT1Q6DQo+ID4gLQkJCWlmICh0ZW1wID49IHRy
-aXBfdGVtcCkNCj4gPiAtCQkJCWlmICh0ei0+b3BzLT5ub3RpZnkpDQo+ID4gLQkJCQkJdHotPm9w
-cy0+bm90aWZ5KHR6LCBjb3VudCwgdHJpcF90eXBlKTsNCj4gPiAtCQkJYnJlYWs7DQo+ID4gLQkJ
-Y2FzZSBUSEVSTUFMX1RSSVBfQUNUSVZFOg0KPiA+IC0JCQl0aGVybWFsX3pvbmVfdHJpcF91cGRh
-dGUodHosIGNvdW50LCB0ZW1wKTsNCj4gPiAtCQkJYnJlYWs7DQo+ID4gLQkJY2FzZSBUSEVSTUFM
-X1RSSVBfUEFTU0lWRToNCj4gPiAtCQkJaWYgKHRlbXAgPj0gdHJpcF90ZW1wIHx8IHR6LT5wYXNz
-aXZlKQ0KPiA+IC0JCQkJdGhlcm1hbF96b25lX3RyaXBfdXBkYXRlKHR6LCBjb3VudCwgdGVtcCk7
-DQo+ID4gLQkJCWJyZWFrOw0KPiA+IC0JCX0NCj4gPiAtCX0NCj4gPiAtDQo+ID4gLQlpZiAodHot
-PmZvcmNlZF9wYXNzaXZlKQ0KPiA+IC0JCXRoZXJtYWxfem9uZV90cmlwX3VwZGF0ZSh0eiwgVEhF
-Uk1BTF9UUklQU19OT05FLA0KPiB0ZW1wKTsNCj4gPiAtCXRoZXJtYWxfem9uZV9kb191cGRhdGUo
-dHopOw0KPiA+IC0NCj4gPiAtbGVhdmU6DQo+ID4gLQlpZiAodHotPnBhc3NpdmUpDQo+ID4gLQkJ
-dGhlcm1hbF96b25lX2RldmljZV9zZXRfcG9sbGluZyh0eiwgdHotPnBhc3NpdmVfZGVsYXkpOw0K
-PiA+IC0JZWxzZSBpZiAodHotPnBvbGxpbmdfZGVsYXkpDQo+ID4gLQkJdGhlcm1hbF96b25lX2Rl
-dmljZV9zZXRfcG9sbGluZyh0eiwgdHotPnBvbGxpbmdfZGVsYXkpOw0KPiA+IC0JZWxzZQ0KPiA+
-IC0JCXRoZXJtYWxfem9uZV9kZXZpY2Vfc2V0X3BvbGxpbmcodHosIDApOw0KPiA+IC0JbXV0ZXhf
-dW5sb2NrKCZ0ei0+bG9jayk7DQo+ID4gLX0NCj4gPiAtRVhQT1JUX1NZTUJPTCh0aGVybWFsX3pv
-bmVfZGV2aWNlX3VwZGF0ZSk7DQo+ID4gLQ0KPiA+ICAvKioNCj4gPiAgICogY3JlYXRlX3RyaXBf
-YXR0cnMgLSBjcmVhdGUgYXR0cmlidXRlcyBmb3IgdHJpcCBwb2ludHMNCj4gPiAgICogQHR6OgkJ
-dGhlIHRoZXJtYWwgem9uZSBkZXZpY2UNCj4gDQoNCg==
+On 09/07/2012 02:50 AM, Alan Stern wrote:
+> On Thu, 6 Sep 2012, Oliver Neukum wrote:
+> 
+>>>>> But in the long run that wouldn't be a good solution.  What I'd really 
+>>>>> like is a way to do the status polling without having it reset the 
+>>>>> idle timer.
+>>>>>
+>>>>> Oliver, what do you think?  Would that be a good solution?
+>>>>
+>>>> Well, we could introduce a flag into the requests for the polls.
+>>>> But best would be to simply declare a device immediately idle
+>>>> as soon as we learn that it has no medium. No special casing
+>>>> would be needed.
+>>>
+>>> We could do that, but what about idle drives that do have media?
+>>
+>> Then we do have a problem. To handle this optimally we'd have to make
+>> a difference between the first time a new medium is noticed and later
+>> polls.
+> 
+> That's right.  It shouldn't be too difficult to accomplish.
+> 
+> One case to watch out for is a ZPODD with no media and an open door.  
+> We should put the drive into runtime suspend immediately, but continue
+> polling and leave the power on.  The runtime suspend after each poll
+> will to see if the door is shut; when it is then polling can be turned
+> off and power removed.
+> 
+> This leads to a question: How should the sr device tell its parent 
+> whether or not to turn off the power?  Aaron's current patches simply 
+> rely on the device being runtime suspended, but that won't work with 
+> this scheme.  Do we need a "ready_to_power_down" flag?
+
+
+Thanks for the suggestions, I've tried to use these ideas and please
+take a look to see if below code did the job.
+
+Note that I didn't call disk_block_events in sr_suspend, as there is a
+race that I didn't know how to resolve:
+
+sr_suspend				sr_check_events
+  disk_block_events			  scsi_autopm_get_device
+    wait for all delayed		    wait for suspend finish
+    events checking work
+    to finish
+
+So it's possible when sr_suspend is executing, sr_check_events is also
+executing and disk_block_events will wait for sr_check_events to finish
+while sr_check_events waits for this device's suspend routine finish
+before the scsi_autopm_get_device can proceed.
+
+I used a flag called powered_off, if it is set, the sr_check_events will
+simply return.
+
+diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c
+index 902b5a4..f91c922 100644
+--- a/drivers/ata/libata-acpi.c
++++ b/drivers/ata/libata-acpi.c
+@@ -869,9 +869,14 @@ void ata_acpi_set_state(struct ata_port *ap, pm_message_t state)
+ 
+ 		if (state.event != PM_EVENT_ON) {
+ 			acpi_state = acpi_pm_device_sleep_state(
+-				&dev->sdev->sdev_gendev, NULL, ACPI_STATE_D3);
+-			if (acpi_state > 0)
++					&dev->sdev->sdev_gendev, NULL,
++					dev->sdev->ready_to_power_off ?
++					ACPI_STATE_D3 : ACPI_STATE_D0);
++			if (acpi_state > 0) {
+ 				acpi_bus_set_power(handle, acpi_state);
++				if (acpi_state == ACPI_STATE_D3)
++					dev->sdev->powered_off = 1;
++			}
+ 			/* TBD: need to check if it's runtime pm request */
+ 			acpi_pm_device_run_wake(
+ 				&dev->sdev->sdev_gendev, true);
+@@ -880,6 +885,7 @@ void ata_acpi_set_state(struct ata_port *ap, pm_message_t state)
+ 			acpi_pm_device_run_wake(
+ 				&dev->sdev->sdev_gendev, false);
+ 			acpi_bus_set_power(handle, ACPI_STATE_D0);
++			dev->sdev->powered_off = 0;
+ 		}
+ 	}
+ 
+@@ -985,8 +991,10 @@ static void ata_acpi_wake_dev(acpi_handle handle, u32 event, void *context)
+ 	struct ata_device *ata_dev = context;
+ 
+ 	if (event == ACPI_NOTIFY_DEVICE_WAKE && ata_dev &&
+-			pm_runtime_suspended(&ata_dev->sdev->sdev_gendev))
+-		scsi_autopm_get_device(ata_dev->sdev);
++			pm_runtime_suspended(&ata_dev->sdev->sdev_gendev)) {
++		ata_dev->sdev->need_eject = 1;
++		pm_runtime_resume(&ata_dev->sdev->sdev_gendev);
++	}
+ }
+ 
+ static void ata_acpi_add_pm_notifier(struct ata_device *dev)
+diff --git a/drivers/scsi/sr.c b/drivers/scsi/sr.c
+index 5fc97d2..890cee2 100644
+--- a/drivers/scsi/sr.c
++++ b/drivers/scsi/sr.c
+@@ -45,6 +45,7 @@
+ #include <linux/blkdev.h>
+ #include <linux/mutex.h>
+ #include <linux/slab.h>
++#include <linux/pm_runtime.h>
+ #include <asm/uaccess.h>
+ 
+ #include <scsi/scsi.h>
+@@ -79,6 +80,8 @@ static DEFINE_MUTEX(sr_mutex);
+ static int sr_probe(struct device *);
+ static int sr_remove(struct device *);
+ static int sr_done(struct scsi_cmnd *);
++static int sr_suspend(struct device *, pm_message_t msg);
++static int sr_resume(struct device *);
+ 
+ static struct scsi_driver sr_template = {
+ 	.owner			= THIS_MODULE,
+@@ -86,6 +89,8 @@ static struct scsi_driver sr_template = {
+ 		.name   	= "sr",
+ 		.probe		= sr_probe,
+ 		.remove		= sr_remove,
++		.suspend	= sr_suspend,
++		.resume		= sr_resume,
+ 	},
+ 	.done			= sr_done,
+ };
+@@ -146,8 +151,12 @@ static inline struct scsi_cd *scsi_cd_get(struct gendisk *disk)
+ 	kref_get(&cd->kref);
+ 	if (scsi_device_get(cd->device))
+ 		goto out_put;
++	if (scsi_autopm_get_device(cd->device))
++		goto out_pm;
+ 	goto out;
+ 
++ out_pm:
++	scsi_device_put(cd->device);
+  out_put:
+ 	kref_put(&cd->kref, sr_kref_release);
+ 	cd = NULL;
+@@ -163,9 +172,38 @@ static void scsi_cd_put(struct scsi_cd *cd)
+ 	mutex_lock(&sr_ref_mutex);
+ 	kref_put(&cd->kref, sr_kref_release);
+ 	scsi_device_put(sdev);
++	scsi_autopm_put_device(sdev);
+ 	mutex_unlock(&sr_ref_mutex);
+ }
+ 
++static int sr_suspend(struct device *dev, pm_message_t msg)
++{
++	return 0;
++}
++
++static int sr_resume(struct device *dev)
++{
++	struct scsi_cd *cd;
++	struct scsi_sense_hdr sshdr;
++
++	cd = dev_get_drvdata(dev);
++
++	if (!cd->device->powered_off)
++		return 0;
++
++	/* get the disk ready */
++	scsi_test_unit_ready(cd->device, SR_TIMEOUT, MAX_RETRIES, &sshdr);
++
++	/* if user wakes up the ODD, eject the tray */
++	if (cd->device->need_eject) {
++		cd->device->need_eject = 0;
++		if (!(cd->cdi.mask & CDC_CLOSE_TRAY))
++			sr_tray_move(&cd->cdi, 1);
++	}
++
++	return 0;
++}
++
+ static unsigned int sr_get_events(struct scsi_device *sdev)
+ {
+ 	u8 buf[8];
+@@ -211,7 +249,7 @@ static unsigned int sr_check_events(struct cdrom_device_info *cdi,
+ 				    unsigned int clearing, int slot)
+ {
+ 	struct scsi_cd *cd = cdi->handle;
+-	bool last_present;
++	bool last_present = cd->media_present;
+ 	struct scsi_sense_hdr sshdr;
+ 	unsigned int events;
+ 	int ret;
+@@ -220,6 +258,11 @@ static unsigned int sr_check_events(struct cdrom_device_info *cdi,
+ 	if (CDSL_CURRENT != slot)
+ 		return 0;
+ 
++	if (cd->device->powered_off)
++		return 0;
++
++	scsi_autopm_get_device(cd->device);
++
+ 	events = sr_get_events(cd->device);
+ 	cd->get_event_changed |= events & DISK_EVENT_MEDIA_CHANGE;
+ 
+@@ -246,10 +289,9 @@ static unsigned int sr_check_events(struct cdrom_device_info *cdi,
+ 	}
+ 
+ 	if (!(clearing & DISK_EVENT_MEDIA_CHANGE))
+-		return events;
++		goto out;
+ do_tur:
+ 	/* let's see whether the media is there with TUR */
+-	last_present = cd->media_present;
+ 	ret = scsi_test_unit_ready(cd->device, SR_TIMEOUT, MAX_RETRIES, &sshdr);
+ 
+ 	/*
+@@ -269,8 +311,19 @@ do_tur:
+ 		cd->tur_changed = true;
+ 	}
+ 
++	/* See if we can power off this ZPODD device */
++	if (cd->device->can_power_off) {
++		if (cd->cdi.mask & CDC_CLOSE_TRAY)
++			/* no media for caddy/slot type ODD */
++			cd->device->ready_to_power_off = !cd->media_present;
++		else
++			/* no media and door closed for tray type ODD */
++			cd->device->ready_to_power_off = !cd->media_present &&
++							 sshdr.ascq == 0x01;
++	}
++
+ 	if (cd->ignore_get_event)
+-		return events;
++		goto out;
+ 
+ 	/* check whether GET_EVENT is reporting spurious MEDIA_CHANGE */
+ 	if (!cd->tur_changed) {
+@@ -287,6 +340,12 @@ do_tur:
+ 	cd->tur_changed = false;
+ 	cd->get_event_changed = false;
+ 
++out:
++	if (cd->media_present && !last_present)
++		pm_runtime_put_noidle(&cd->device->sdev_gendev);
++	else
++		scsi_autopm_put_device(cd->device);
++
+ 	return events;
+ }
+ 
+@@ -715,9 +774,14 @@ static int sr_probe(struct device *dev)
+ 	dev_set_drvdata(dev, cd);
+ 	disk->flags |= GENHD_FL_REMOVABLE;
+ 	add_disk(disk);
++	disk_events_set_poll_msecs(disk, 5000);
+ 
+ 	sdev_printk(KERN_DEBUG, sdev,
+ 		    "Attached scsi CD-ROM %s\n", cd->cdi.name);
++
++	/* enable runtime pm */
++	scsi_autopm_put_device(cd->device);
++
+ 	return 0;
+ 
+ fail_put:
+@@ -965,6 +1029,9 @@ static int sr_remove(struct device *dev)
+ {
+ 	struct scsi_cd *cd = dev_get_drvdata(dev);
+ 
++	/* disable runtime pm */
++	scsi_autopm_get_device(cd->device);
++
+ 	blk_queue_prep_rq(cd->device->request_queue, scsi_prep_fn);
+ 	del_gendisk(cd->disk);
+ 
+
+Thanks,
+Aaron
