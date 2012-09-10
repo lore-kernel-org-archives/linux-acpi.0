@@ -1,418 +1,223 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCHv3 13/15] Thermal: Remove throttling logic out of
+From: "R, Durgadoss" <durgadoss.r@intel.com>
+Subject: RE: [PATCHv3 13/15] Thermal: Remove throttling logic out of
  thermal_sys.c
-Date: Mon, 10 Sep 2012 16:44:17 +0800
-Message-ID: <1347266657.1682.1086.camel@rui.sh.intel.com>
+Date: Mon, 10 Sep 2012 08:56:40 +0000
+Message-ID: <4D68720C2E767A4AA6A8796D42C8EB591B54AA@BGSMSX101.gar.corp.intel.com>
 References: <1346500296-25200-1-git-send-email-durgadoss.r@intel.com>
 	 <1346500296-25200-14-git-send-email-durgadoss.r@intel.com>
+ <1347266657.1682.1086.camel@rui.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:61829 "EHLO mga09.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:56380 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751801Ab2IJIn1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 10 Sep 2012 04:43:27 -0400
-In-Reply-To: <1346500296-25200-14-git-send-email-durgadoss.r@intel.com>
+	id S1752202Ab2IJI4p (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 10 Sep 2012 04:56:45 -0400
+In-Reply-To: <1347266657.1682.1086.camel@rui.sh.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Durgadoss R <durgadoss.r@intel.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, eduardo.valentin@ti.com
+To: "Zhang, Rui" <rui.zhang@intel.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>
 
-On =E5=85=AD, 2012-09-01 at 17:21 +0530, Durgadoss R wrote:
-> This patch removes the throttling logic out of
-> thermal_sys.c; also refactors the code into smaller
-> functions so that are easy to read/maintain.
->  * Seperates the handling of critical and non-critical trips
->  * Re-arranges the set_polling and device_check methods, so
->    that all related functions are arranged in one place.
->  * Removes the 'do_update' and 'trip_update' method, as part
->    of moving the throttling logic out of thermal_sys.c
->=20
-> Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
-> ---
->  drivers/thermal/thermal_sys.c |  313 +++++++++++++++----------------=
-----------
->  1 file changed, 112 insertions(+), 201 deletions(-)
->=20
-> diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_=
-sys.c
-> index 93672aa..086c1c9 100644
-> --- a/drivers/thermal/thermal_sys.c
-> +++ b/drivers/thermal/thermal_sys.c
-> @@ -315,6 +315,118 @@ exit:
->  	mutex_unlock(&thermal_list_lock);
->  }
-> =20
-> +static void thermal_zone_device_set_polling(struct thermal_zone_devi=
-ce *tz,
-> +					    int delay)
-> +{
-> +	cancel_delayed_work(&(tz->poll_queue));
-> +
-> +	if (!delay)
-> +		return;
-> +
-> +	if (delay > 1000)
-> +		queue_delayed_work(system_freezable_wq, &(tz->poll_queue),
-> +				      round_jiffies(msecs_to_jiffies(delay)));
-> +	else
-> +		queue_delayed_work(system_freezable_wq, &(tz->poll_queue),
-> +				      msecs_to_jiffies(delay));
-> +}
-> +
-> +static void monitor_thermal_zone(struct thermal_zone_device *tz)
-> +{
-> +	mutex_lock(&tz->lock);
-> +
-> +	if (tz->passive)
-> +		thermal_zone_device_set_polling(tz, tz->passive_delay);
-> +	else if (tz->polling_delay)
-> +		thermal_zone_device_set_polling(tz, tz->polling_delay);
-> +	else
-> +		thermal_zone_device_set_polling(tz, 0);
-> +
-> +	mutex_unlock(&tz->lock);
-> +}
-> +
-> +static void handle_non_critical_trips(struct thermal_zone_device *tz=
-,
-> +			int trip, enum thermal_trip_type trip_type)
-> +{
-> +	tz->governor->throttle(tz, trip);
-> +}
-here is the problem, we must make sure every registered thermal zone
-have a governor when it is running, right?
-
-then the default governor must always be built in.
-We can have a Kconfig option for step_wise, but we should not make it
-configurable by users.
-or we can use prompt to get the default governor at build time. say
-
-choice
-        prompt "Default thermal governor"
-        default THERMAL_DEFAULT_GOV_STEP_WISE
-        help
-          This option sets which thermal governor shall be loaded at
-          startup.
-
-config THERMAL_DEFAULT_GOV_STEP_WISE
-        bool "step-wise"
-        select THERMAL_GOV_STEP_WISE
-        help
-          Use the thermal governor 'step-wise' as default.blabla
-
-
-thanks,
-rui
-
-> +
-> +static void handle_critical_trips(struct thermal_zone_device *tz,
-> +				int trip, enum thermal_trip_type trip_type)
-> +{
-> +	long trip_temp;
-> +
-> +	tz->ops->get_trip_temp(tz, trip, &trip_temp);
-> +
-> +	/* If we have not crossed the trip_temp, we do not care. */
-> +	if (tz->temperature < trip_temp)
-> +		return;
-> +
-> +	if (tz->ops->notify)
-> +		tz->ops->notify(tz, trip, trip_type);
-> +
-> +	if (trip_type =3D=3D THERMAL_TRIP_CRITICAL) {
-> +		pr_emerg("Critical temperature reached(%d C),shutting down\n",
-> +			 tz->temperature / 1000);
-> +		orderly_poweroff(true);
-> +	}
-> +}
-> +
-> +static void handle_thermal_trip(struct thermal_zone_device *tz, int =
-trip)
-> +{
-> +	enum thermal_trip_type type;
-> +
-> +	tz->ops->get_trip_type(tz, trip, &type);
-> +
-> +	if (type =3D=3D THERMAL_TRIP_CRITICAL || type =3D=3D THERMAL_TRIP_H=
-OT)
-> +		handle_critical_trips(tz, trip, type);
-> +	else
-> +		handle_non_critical_trips(tz, trip, type);
-> +	/*
-> +	 * Alright, we handled this trip successfully.
-> +	 * So, start monitoring again.
-> +	 */
-> +	monitor_thermal_zone(tz);
-> +}
-> +
-> +static void update_temperature(struct thermal_zone_device *tz)
-> +{
-> +	long temp;
-> +	int ret;
-> +
-> +	mutex_lock(&tz->lock);
-> +
-> +	ret =3D tz->ops->get_temp(tz, &temp);
-> +	if (ret) {
-> +		pr_warn("failed to read out thermal zone %d\n", tz->id);
-> +		return;
-> +	}
-> +
-> +	tz->last_temperature =3D tz->temperature;
-> +	tz->temperature =3D temp;
-> +
-> +	mutex_unlock(&tz->lock);
-> +}
-> +
-> +void thermal_zone_device_update(struct thermal_zone_device *tz)
-> +{
-> +	int count;
-> +
-> +	update_temperature(tz);
-> +
-> +	for (count =3D 0; count < tz->trips; count++)
-> +		handle_thermal_trip(tz, count);
-> +}
-> +EXPORT_SYMBOL(thermal_zone_device_update);
-> +
-> +static void thermal_zone_device_check(struct work_struct *work)
-> +{
-> +	struct thermal_zone_device *tz =3D container_of(work, struct
-> +						      thermal_zone_device,
-> +						      poll_queue.work);
-> +	thermal_zone_device_update(tz);
-> +}
-> +
->  /* sys I/F for thermal zone */
-> =20
->  #define to_thermal_zone(_dev) \
-> @@ -936,30 +1048,6 @@ thermal_remove_hwmon_sysfs(struct thermal_zone_=
-device *tz)
->  }
->  #endif
-> =20
-> -static void thermal_zone_device_set_polling(struct thermal_zone_devi=
-ce *tz,
-> -					    int delay)
-> -{
-> -	cancel_delayed_work(&(tz->poll_queue));
-> -
-> -	if (!delay)
-> -		return;
-> -
-> -	if (delay > 1000)
-> -		queue_delayed_work(system_freezable_wq, &(tz->poll_queue),
-> -				      round_jiffies(msecs_to_jiffies(delay)));
-> -	else
-> -		queue_delayed_work(system_freezable_wq, &(tz->poll_queue),
-> -				      msecs_to_jiffies(delay));
-> -}
-> -
-> -static void thermal_zone_device_check(struct work_struct *work)
-> -{
-> -	struct thermal_zone_device *tz =3D container_of(work, struct
-> -						      thermal_zone_device,
-> -						      poll_queue.work);
-> -	thermal_zone_device_update(tz);
-> -}
-> -
->  /**
->   * thermal_zone_bind_cooling_device - bind a cooling device to a the=
-rmal zone
->   * @tz:		thermal zone device
-> @@ -1283,183 +1371,6 @@ void thermal_cdev_update(struct thermal_cooli=
-ng_device *cdev)
->  }
->  EXPORT_SYMBOL(thermal_cdev_update);
-> =20
-> -static void thermal_zone_do_update(struct thermal_zone_device *tz)
-> -{
-> -	struct thermal_instance *instance;
-> -
-> -	list_for_each_entry(instance, &tz->thermal_instances, tz_node)
-> -		thermal_cdev_update(instance->cdev);
-> -}
-> -
-> -/*
-> - * Cooling algorithm for both active and passive cooling
-> - *
-> - * 1. if the temperature is higher than a trip point,
-> - *    a. if the trend is THERMAL_TREND_RAISING, use higher cooling
-> - *       state for this trip point
-> - *    b. if the trend is THERMAL_TREND_DROPPING, use lower cooling
-> - *       state for this trip point
-> - *
-> - * 2. if the temperature is lower than a trip point, use lower
-> - *    cooling state for this trip point
-> - *
-> - * Note that this behaves the same as the previous passive cooling
-> - * algorithm.
-> - */
-> -
-> -static void thermal_zone_trip_update(struct thermal_zone_device *tz,
-> -				     int trip, long temp)
-> -{
-> -	struct thermal_instance *instance;
-> -	struct thermal_cooling_device *cdev =3D NULL;
-> -	unsigned long cur_state, max_state;
-> -	long trip_temp;
-> -	enum thermal_trip_type trip_type;
-> -	enum thermal_trend trend;
-> -
-> -	if (trip =3D=3D THERMAL_TRIPS_NONE) {
-> -		trip_temp =3D tz->forced_passive;
-> -		trip_type =3D THERMAL_TRIPS_NONE;
-> -	} else {
-> -		tz->ops->get_trip_temp(tz, trip, &trip_temp);
-> -		tz->ops->get_trip_type(tz, trip, &trip_type);
-> -	}
-> -
-> -	if (!tz->ops->get_trend || tz->ops->get_trend(tz, trip, &trend)) {
-> -		/*
-> -		 * compare the current temperature and previous temperature
-> -		 * to get the thermal trend, if no special requirement
-> -		 */
-> -		if (tz->temperature > tz->last_temperature)
-> -			trend =3D THERMAL_TREND_RAISING;
-> -		else if (tz->temperature < tz->last_temperature)
-> -			trend =3D THERMAL_TREND_DROPPING;
-> -		else
-> -			trend =3D THERMAL_TREND_STABLE;
-> -	}
-> -
-> -	if (temp >=3D trip_temp) {
-> -		list_for_each_entry(instance, &tz->thermal_instances, tz_node) {
-> -			if (instance->trip !=3D trip)
-> -				continue;
-> -
-> -			cdev =3D instance->cdev;
-> -
-> -			cdev->ops->get_cur_state(cdev, &cur_state);
-> -			cdev->ops->get_max_state(cdev, &max_state);
-> -
-> -			if (trend =3D=3D THERMAL_TREND_RAISING) {
-> -				cur_state =3D cur_state < instance->upper ?
-> -					    (cur_state + 1) : instance->upper;
-> -			} else if (trend =3D=3D THERMAL_TREND_DROPPING) {
-> -				cur_state =3D cur_state > instance->lower ?
-> -				    (cur_state - 1) : instance->lower;
-> -			}
-> -
-> -			/* activate a passive thermal instance */
-> -			if ((trip_type =3D=3D THERMAL_TRIP_PASSIVE ||
-> -			     trip_type =3D=3D THERMAL_TRIPS_NONE) &&
-> -			     instance->target =3D=3D THERMAL_NO_TARGET)
-> -				tz->passive++;
-> -
-> -			instance->target =3D cur_state;
-> -			cdev->updated =3D false; /* cooling device needs update */
-> -		}
-> -	} else {	/* below trip */
-> -		list_for_each_entry(instance, &tz->thermal_instances, tz_node) {
-> -			if (instance->trip !=3D trip)
-> -				continue;
-> -
-> -			/* Do not use the inactive thermal instance */
-> -			if (instance->target =3D=3D THERMAL_NO_TARGET)
-> -				continue;
-> -			cdev =3D instance->cdev;
-> -			cdev->ops->get_cur_state(cdev, &cur_state);
-> -
-> -			cur_state =3D cur_state > instance->lower ?
-> -				    (cur_state - 1) : THERMAL_NO_TARGET;
-> -
-> -			/* deactivate a passive thermal instance */
-> -			if ((trip_type =3D=3D THERMAL_TRIP_PASSIVE ||
-> -			     trip_type =3D=3D THERMAL_TRIPS_NONE) &&
-> -			     cur_state =3D=3D THERMAL_NO_TARGET)
-> -				tz->passive--;
-> -			instance->target =3D cur_state;
-> -			cdev->updated =3D false; /* cooling device needs update */
-> -		}
-> -	}
-> -
-> -	return;
-> -}
-> -/**
-> - * thermal_zone_device_update - force an update of a thermal zone's =
-state
-> - * @ttz:	the thermal zone to update
-> - */
-> -
-> -void thermal_zone_device_update(struct thermal_zone_device *tz)
-> -{
-> -	int count, ret =3D 0;
-> -	long temp, trip_temp;
-> -	enum thermal_trip_type trip_type;
-> -
-> -	mutex_lock(&tz->lock);
-> -
-> -	if (tz->ops->get_temp(tz, &temp)) {
-> -		/* get_temp failed - retry it later */
-> -		pr_warn("failed to read out thermal zone %d\n", tz->id);
-> -		goto leave;
-> -	}
-> -
-> -	tz->last_temperature =3D tz->temperature;
-> -	tz->temperature =3D temp;
-> -
-> -	for (count =3D 0; count < tz->trips; count++) {
-> -		tz->ops->get_trip_type(tz, count, &trip_type);
-> -		tz->ops->get_trip_temp(tz, count, &trip_temp);
-> -
-> -		switch (trip_type) {
-> -		case THERMAL_TRIP_CRITICAL:
-> -			if (temp >=3D trip_temp) {
-> -				if (tz->ops->notify)
-> -					ret =3D tz->ops->notify(tz, count,
-> -							      trip_type);
-> -				if (!ret) {
-> -					pr_emerg("Critical temperature reached (%ld C), shutting down\n=
-",
-> -						 temp/1000);
-> -					orderly_poweroff(true);
-> -				}
-> -			}
-> -			break;
-> -		case THERMAL_TRIP_HOT:
-> -			if (temp >=3D trip_temp)
-> -				if (tz->ops->notify)
-> -					tz->ops->notify(tz, count, trip_type);
-> -			break;
-> -		case THERMAL_TRIP_ACTIVE:
-> -			thermal_zone_trip_update(tz, count, temp);
-> -			break;
-> -		case THERMAL_TRIP_PASSIVE:
-> -			if (temp >=3D trip_temp || tz->passive)
-> -				thermal_zone_trip_update(tz, count, temp);
-> -			break;
-> -		}
-> -	}
-> -
-> -	if (tz->forced_passive)
-> -		thermal_zone_trip_update(tz, THERMAL_TRIPS_NONE, temp);
-> -	thermal_zone_do_update(tz);
-> -
-> -leave:
-> -	if (tz->passive)
-> -		thermal_zone_device_set_polling(tz, tz->passive_delay);
-> -	else if (tz->polling_delay)
-> -		thermal_zone_device_set_polling(tz, tz->polling_delay);
-> -	else
-> -		thermal_zone_device_set_polling(tz, 0);
-> -	mutex_unlock(&tz->lock);
-> -}
-> -EXPORT_SYMBOL(thermal_zone_device_update);
-> -
->  /**
->   * create_trip_attrs - create attributes for trip points
->   * @tz:		the thermal zone device
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SGkgUnVpLA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFpoYW5nLCBS
+dWkNCj4gU2VudDogTW9uZGF5LCBTZXB0ZW1iZXIgMTAsIDIwMTIgMjoxNCBQTQ0KPiBUbzogUiwg
+RHVyZ2Fkb3NzDQo+IENjOiBsZW5iQGtlcm5lbC5vcmc7IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwu
+b3JnOyBlZHVhcmRvLnZhbGVudGluQHRpLmNvbQ0KPiBTdWJqZWN0OiBSZTogW1BBVENIdjMgMTMv
+MTVdIFRoZXJtYWw6IFJlbW92ZSB0aHJvdHRsaW5nIGxvZ2ljIG91dCBvZg0KPiB0aGVybWFsX3N5
+cy5jDQpbY3V0Ll0NCg0KPiA+ICsNCj4gPiArc3RhdGljIHZvaWQgaGFuZGxlX25vbl9jcml0aWNh
+bF90cmlwcyhzdHJ1Y3QgdGhlcm1hbF96b25lX2RldmljZSAqdHosDQo+ID4gKwkJCWludCB0cmlw
+LCBlbnVtIHRoZXJtYWxfdHJpcF90eXBlIHRyaXBfdHlwZSkNCj4gPiArew0KPiA+ICsJdHotPmdv
+dmVybm9yLT50aHJvdHRsZSh0eiwgdHJpcCk7DQo+ID4gK30NCj4gaGVyZSBpcyB0aGUgcHJvYmxl
+bSwgd2UgbXVzdCBtYWtlIHN1cmUgZXZlcnkgcmVnaXN0ZXJlZCB0aGVybWFsIHpvbmUNCj4gaGF2
+ZSBhIGdvdmVybm9yIHdoZW4gaXQgaXMgcnVubmluZywgcmlnaHQ/DQoNClllcywgYWdyZWUgd2l0
+aCB5b3UuIEhhZCBzb21lIHRob3VnaHRzIGhlcmUsIGJ1dCB3YW50ZWQgdG8gZ2V0IHlvdXIgb3Bp
+bmlvbg0KYmVmb3JlIEkgaW1wbGVtZW50ZWQgdGhlbS4NCg0KMS4gV2UgY2FuIG1ha2UgdGhlIGRl
+ZmF1bHQgZ292ZXJub3IgYXMgJ3VzZXIgc3BhY2UnLCBhbmQgbWFrZSBpdCBsb2FkIGluc2lkZQ0K
+dGhlcm1hbF9zeXMuYyAoc28gdGhhdCBldmVyeSB6b25lIHdpbGwgYWx3YXlzIGhhdmUgYSBkZWZh
+dWx0IGdvdmVybm9yKQ0KDQoyLiBBbGwgb3RoZXIgZ292ZXJub3JzLCB0aGF0IGFyZSBpbXBsZW1l
+bnRlZCBpbiBhIHNlcGFyYXRlIC5jIGZpbGUgY2FuIGJlDQpvcHRpb25hbCBpLmUuIGxlZnQgdG8g
+dGhlIHVzZXIgdG8gc2VsZWN0L2Rlc2VsZWN0Lg0KDQpJTU8sIHRoaXMgd2lsbCBtYWtlIG91ciBp
+bXBsZW1lbnRhdGlvbiBlYXNpZXIgYW5kIGNsZWFuZXIuDQpXaGF0IGRvIHlvdSB0aGluayA/DQoN
+ClRoYW5rcywNCkR1cmdhDQoNCj4gDQo+IHRoZW4gdGhlIGRlZmF1bHQgZ292ZXJub3IgbXVzdCBh
+bHdheXMgYmUgYnVpbHQgaW4uDQo+IFdlIGNhbiBoYXZlIGEgS2NvbmZpZyBvcHRpb24gZm9yIHN0
+ZXBfd2lzZSwgYnV0IHdlIHNob3VsZCBub3QgbWFrZSBpdA0KPiBjb25maWd1cmFibGUgYnkgdXNl
+cnMuDQo+IG9yIHdlIGNhbiB1c2UgcHJvbXB0IHRvIGdldCB0aGUgZGVmYXVsdCBnb3Zlcm5vciBh
+dCBidWlsZCB0aW1lLiBzYXkNCj4gDQo+IGNob2ljZQ0KPiAgICAgICAgIHByb21wdCAiRGVmYXVs
+dCB0aGVybWFsIGdvdmVybm9yIg0KPiAgICAgICAgIGRlZmF1bHQgVEhFUk1BTF9ERUZBVUxUX0dP
+Vl9TVEVQX1dJU0UNCj4gICAgICAgICBoZWxwDQo+ICAgICAgICAgICBUaGlzIG9wdGlvbiBzZXRz
+IHdoaWNoIHRoZXJtYWwgZ292ZXJub3Igc2hhbGwgYmUgbG9hZGVkIGF0DQo+ICAgICAgICAgICBz
+dGFydHVwLg0KPiANCj4gY29uZmlnIFRIRVJNQUxfREVGQVVMVF9HT1ZfU1RFUF9XSVNFDQo+ICAg
+ICAgICAgYm9vbCAic3RlcC13aXNlIg0KPiAgICAgICAgIHNlbGVjdCBUSEVSTUFMX0dPVl9TVEVQ
+X1dJU0UNCj4gICAgICAgICBoZWxwDQo+ICAgICAgICAgICBVc2UgdGhlIHRoZXJtYWwgZ292ZXJu
+b3IgJ3N0ZXAtd2lzZScgYXMgZGVmYXVsdC5ibGFibGENCj4gDQo+IA0KPiB0aGFua3MsDQo+IHJ1
+aQ0KPiANCj4gPiArDQo+ID4gK3N0YXRpYyB2b2lkIGhhbmRsZV9jcml0aWNhbF90cmlwcyhzdHJ1
+Y3QgdGhlcm1hbF96b25lX2RldmljZSAqdHosDQo+ID4gKwkJCQlpbnQgdHJpcCwgZW51bSB0aGVy
+bWFsX3RyaXBfdHlwZSB0cmlwX3R5cGUpDQo+ID4gK3sNCj4gPiArCWxvbmcgdHJpcF90ZW1wOw0K
+PiA+ICsNCj4gPiArCXR6LT5vcHMtPmdldF90cmlwX3RlbXAodHosIHRyaXAsICZ0cmlwX3RlbXAp
+Ow0KPiA+ICsNCj4gPiArCS8qIElmIHdlIGhhdmUgbm90IGNyb3NzZWQgdGhlIHRyaXBfdGVtcCwg
+d2UgZG8gbm90IGNhcmUuICovDQo+ID4gKwlpZiAodHotPnRlbXBlcmF0dXJlIDwgdHJpcF90ZW1w
+KQ0KPiA+ICsJCXJldHVybjsNCj4gPiArDQo+ID4gKwlpZiAodHotPm9wcy0+bm90aWZ5KQ0KPiA+
+ICsJCXR6LT5vcHMtPm5vdGlmeSh0eiwgdHJpcCwgdHJpcF90eXBlKTsNCj4gPiArDQo+ID4gKwlp
+ZiAodHJpcF90eXBlID09IFRIRVJNQUxfVFJJUF9DUklUSUNBTCkgew0KPiA+ICsJCXByX2VtZXJn
+KCJDcml0aWNhbCB0ZW1wZXJhdHVyZSByZWFjaGVkKCVkIEMpLHNodXR0aW5nDQo+IGRvd25cbiIs
+DQo+ID4gKwkJCSB0ei0+dGVtcGVyYXR1cmUgLyAxMDAwKTsNCj4gPiArCQlvcmRlcmx5X3Bvd2Vy
+b2ZmKHRydWUpOw0KPiA+ICsJfQ0KPiA+ICt9DQo+ID4gKw0KPiA+ICtzdGF0aWMgdm9pZCBoYW5k
+bGVfdGhlcm1hbF90cmlwKHN0cnVjdCB0aGVybWFsX3pvbmVfZGV2aWNlICp0eiwgaW50IHRyaXAp
+DQo+ID4gK3sNCj4gPiArCWVudW0gdGhlcm1hbF90cmlwX3R5cGUgdHlwZTsNCj4gPiArDQo+ID4g
+Kwl0ei0+b3BzLT5nZXRfdHJpcF90eXBlKHR6LCB0cmlwLCAmdHlwZSk7DQo+ID4gKw0KPiA+ICsJ
+aWYgKHR5cGUgPT0gVEhFUk1BTF9UUklQX0NSSVRJQ0FMIHx8IHR5cGUgPT0NCj4gVEhFUk1BTF9U
+UklQX0hPVCkNCj4gPiArCQloYW5kbGVfY3JpdGljYWxfdHJpcHModHosIHRyaXAsIHR5cGUpOw0K
+PiA+ICsJZWxzZQ0KPiA+ICsJCWhhbmRsZV9ub25fY3JpdGljYWxfdHJpcHModHosIHRyaXAsIHR5
+cGUpOw0KPiA+ICsJLyoNCj4gPiArCSAqIEFscmlnaHQsIHdlIGhhbmRsZWQgdGhpcyB0cmlwIHN1
+Y2Nlc3NmdWxseS4NCj4gPiArCSAqIFNvLCBzdGFydCBtb25pdG9yaW5nIGFnYWluLg0KPiA+ICsJ
+ICovDQo+ID4gKwltb25pdG9yX3RoZXJtYWxfem9uZSh0eik7DQo+ID4gK30NCj4gPiArDQo+ID4g
+K3N0YXRpYyB2b2lkIHVwZGF0ZV90ZW1wZXJhdHVyZShzdHJ1Y3QgdGhlcm1hbF96b25lX2Rldmlj
+ZSAqdHopDQo+ID4gK3sNCj4gPiArCWxvbmcgdGVtcDsNCj4gPiArCWludCByZXQ7DQo+ID4gKw0K
+PiA+ICsJbXV0ZXhfbG9jaygmdHotPmxvY2spOw0KPiA+ICsNCj4gPiArCXJldCA9IHR6LT5vcHMt
+PmdldF90ZW1wKHR6LCAmdGVtcCk7DQo+ID4gKwlpZiAocmV0KSB7DQo+ID4gKwkJcHJfd2Fybigi
+ZmFpbGVkIHRvIHJlYWQgb3V0IHRoZXJtYWwgem9uZSAlZFxuIiwgdHotPmlkKTsNCj4gPiArCQly
+ZXR1cm47DQo+ID4gKwl9DQo+ID4gKw0KPiA+ICsJdHotPmxhc3RfdGVtcGVyYXR1cmUgPSB0ei0+
+dGVtcGVyYXR1cmU7DQo+ID4gKwl0ei0+dGVtcGVyYXR1cmUgPSB0ZW1wOw0KPiA+ICsNCj4gPiAr
+CW11dGV4X3VubG9jaygmdHotPmxvY2spOw0KPiA+ICt9DQo+ID4gKw0KPiA+ICt2b2lkIHRoZXJt
+YWxfem9uZV9kZXZpY2VfdXBkYXRlKHN0cnVjdCB0aGVybWFsX3pvbmVfZGV2aWNlICp0eikNCj4g
+PiArew0KPiA+ICsJaW50IGNvdW50Ow0KPiA+ICsNCj4gPiArCXVwZGF0ZV90ZW1wZXJhdHVyZSh0
+eik7DQo+ID4gKw0KPiA+ICsJZm9yIChjb3VudCA9IDA7IGNvdW50IDwgdHotPnRyaXBzOyBjb3Vu
+dCsrKQ0KPiA+ICsJCWhhbmRsZV90aGVybWFsX3RyaXAodHosIGNvdW50KTsNCj4gPiArfQ0KPiA+
+ICtFWFBPUlRfU1lNQk9MKHRoZXJtYWxfem9uZV9kZXZpY2VfdXBkYXRlKTsNCj4gPiArDQo+ID4g
+K3N0YXRpYyB2b2lkIHRoZXJtYWxfem9uZV9kZXZpY2VfY2hlY2soc3RydWN0IHdvcmtfc3RydWN0
+ICp3b3JrKQ0KPiA+ICt7DQo+ID4gKwlzdHJ1Y3QgdGhlcm1hbF96b25lX2RldmljZSAqdHogPSBj
+b250YWluZXJfb2Yod29yaywgc3RydWN0DQo+ID4gKwkJCQkJCSAgICAgIHRoZXJtYWxfem9uZV9k
+ZXZpY2UsDQo+ID4gKwkJCQkJCSAgICAgIHBvbGxfcXVldWUud29yayk7DQo+ID4gKwl0aGVybWFs
+X3pvbmVfZGV2aWNlX3VwZGF0ZSh0eik7DQo+ID4gK30NCj4gPiArDQo+ID4gIC8qIHN5cyBJL0Yg
+Zm9yIHRoZXJtYWwgem9uZSAqLw0KPiA+DQo+ID4gICNkZWZpbmUgdG9fdGhlcm1hbF96b25lKF9k
+ZXYpIFwNCj4gPiBAQCAtOTM2LDMwICsxMDQ4LDYgQEAgdGhlcm1hbF9yZW1vdmVfaHdtb25fc3lz
+ZnMoc3RydWN0DQo+IHRoZXJtYWxfem9uZV9kZXZpY2UgKnR6KQ0KPiA+ICB9DQo+ID4gICNlbmRp
+Zg0KPiA+DQo+ID4gLXN0YXRpYyB2b2lkIHRoZXJtYWxfem9uZV9kZXZpY2Vfc2V0X3BvbGxpbmco
+c3RydWN0IHRoZXJtYWxfem9uZV9kZXZpY2UNCj4gKnR6LA0KPiA+IC0JCQkJCSAgICBpbnQgZGVs
+YXkpDQo+ID4gLXsNCj4gPiAtCWNhbmNlbF9kZWxheWVkX3dvcmsoJih0ei0+cG9sbF9xdWV1ZSkp
+Ow0KPiA+IC0NCj4gPiAtCWlmICghZGVsYXkpDQo+ID4gLQkJcmV0dXJuOw0KPiA+IC0NCj4gPiAt
+CWlmIChkZWxheSA+IDEwMDApDQo+ID4gLQkJcXVldWVfZGVsYXllZF93b3JrKHN5c3RlbV9mcmVl
+emFibGVfd3EsICYodHotDQo+ID5wb2xsX3F1ZXVlKSwNCj4gPiAtCQkJCSAgICAgIHJvdW5kX2pp
+ZmZpZXMobXNlY3NfdG9famlmZmllcyhkZWxheSkpKTsNCj4gPiAtCWVsc2UNCj4gPiAtCQlxdWV1
+ZV9kZWxheWVkX3dvcmsoc3lzdGVtX2ZyZWV6YWJsZV93cSwgJih0ei0NCj4gPnBvbGxfcXVldWUp
+LA0KPiA+IC0JCQkJICAgICAgbXNlY3NfdG9famlmZmllcyhkZWxheSkpOw0KPiA+IC19DQo+ID4g
+LQ0KPiA+IC1zdGF0aWMgdm9pZCB0aGVybWFsX3pvbmVfZGV2aWNlX2NoZWNrKHN0cnVjdCB3b3Jr
+X3N0cnVjdCAqd29yaykNCj4gPiAtew0KPiA+IC0Jc3RydWN0IHRoZXJtYWxfem9uZV9kZXZpY2Ug
+KnR6ID0gY29udGFpbmVyX29mKHdvcmssIHN0cnVjdA0KPiA+IC0JCQkJCQkgICAgICB0aGVybWFs
+X3pvbmVfZGV2aWNlLA0KPiA+IC0JCQkJCQkgICAgICBwb2xsX3F1ZXVlLndvcmspOw0KPiA+IC0J
+dGhlcm1hbF96b25lX2RldmljZV91cGRhdGUodHopOw0KPiA+IC19DQo+ID4gLQ0KPiA+ICAvKioN
+Cj4gPiAgICogdGhlcm1hbF96b25lX2JpbmRfY29vbGluZ19kZXZpY2UgLSBiaW5kIGEgY29vbGlu
+ZyBkZXZpY2UgdG8gYSB0aGVybWFsDQo+IHpvbmUNCj4gPiAgICogQHR6OgkJdGhlcm1hbCB6b25l
+IGRldmljZQ0KPiA+IEBAIC0xMjgzLDE4MyArMTM3MSw2IEBAIHZvaWQgdGhlcm1hbF9jZGV2X3Vw
+ZGF0ZShzdHJ1Y3QNCj4gdGhlcm1hbF9jb29saW5nX2RldmljZSAqY2RldikNCj4gPiAgfQ0KPiA+
+ICBFWFBPUlRfU1lNQk9MKHRoZXJtYWxfY2Rldl91cGRhdGUpOw0KPiA+DQo+ID4gLXN0YXRpYyB2
+b2lkIHRoZXJtYWxfem9uZV9kb191cGRhdGUoc3RydWN0IHRoZXJtYWxfem9uZV9kZXZpY2UgKnR6
+KQ0KPiA+IC17DQo+ID4gLQlzdHJ1Y3QgdGhlcm1hbF9pbnN0YW5jZSAqaW5zdGFuY2U7DQo+ID4g
+LQ0KPiA+IC0JbGlzdF9mb3JfZWFjaF9lbnRyeShpbnN0YW5jZSwgJnR6LT50aGVybWFsX2luc3Rh
+bmNlcywgdHpfbm9kZSkNCj4gPiAtCQl0aGVybWFsX2NkZXZfdXBkYXRlKGluc3RhbmNlLT5jZGV2
+KTsNCj4gPiAtfQ0KPiA+IC0NCj4gPiAtLyoNCj4gPiAtICogQ29vbGluZyBhbGdvcml0aG0gZm9y
+IGJvdGggYWN0aXZlIGFuZCBwYXNzaXZlIGNvb2xpbmcNCj4gPiAtICoNCj4gPiAtICogMS4gaWYg
+dGhlIHRlbXBlcmF0dXJlIGlzIGhpZ2hlciB0aGFuIGEgdHJpcCBwb2ludCwNCj4gPiAtICogICAg
+YS4gaWYgdGhlIHRyZW5kIGlzIFRIRVJNQUxfVFJFTkRfUkFJU0lORywgdXNlIGhpZ2hlciBjb29s
+aW5nDQo+ID4gLSAqICAgICAgIHN0YXRlIGZvciB0aGlzIHRyaXAgcG9pbnQNCj4gPiAtICogICAg
+Yi4gaWYgdGhlIHRyZW5kIGlzIFRIRVJNQUxfVFJFTkRfRFJPUFBJTkcsIHVzZSBsb3dlciBjb29s
+aW5nDQo+ID4gLSAqICAgICAgIHN0YXRlIGZvciB0aGlzIHRyaXAgcG9pbnQNCj4gPiAtICoNCj4g
+PiAtICogMi4gaWYgdGhlIHRlbXBlcmF0dXJlIGlzIGxvd2VyIHRoYW4gYSB0cmlwIHBvaW50LCB1
+c2UgbG93ZXINCj4gPiAtICogICAgY29vbGluZyBzdGF0ZSBmb3IgdGhpcyB0cmlwIHBvaW50DQo+
+ID4gLSAqDQo+ID4gLSAqIE5vdGUgdGhhdCB0aGlzIGJlaGF2ZXMgdGhlIHNhbWUgYXMgdGhlIHBy
+ZXZpb3VzIHBhc3NpdmUgY29vbGluZw0KPiA+IC0gKiBhbGdvcml0aG0uDQo+ID4gLSAqLw0KPiA+
+IC0NCj4gPiAtc3RhdGljIHZvaWQgdGhlcm1hbF96b25lX3RyaXBfdXBkYXRlKHN0cnVjdCB0aGVy
+bWFsX3pvbmVfZGV2aWNlICp0eiwNCj4gPiAtCQkJCSAgICAgaW50IHRyaXAsIGxvbmcgdGVtcCkN
+Cj4gPiAtew0KPiA+IC0Jc3RydWN0IHRoZXJtYWxfaW5zdGFuY2UgKmluc3RhbmNlOw0KPiA+IC0J
+c3RydWN0IHRoZXJtYWxfY29vbGluZ19kZXZpY2UgKmNkZXYgPSBOVUxMOw0KPiA+IC0JdW5zaWdu
+ZWQgbG9uZyBjdXJfc3RhdGUsIG1heF9zdGF0ZTsNCj4gPiAtCWxvbmcgdHJpcF90ZW1wOw0KPiA+
+IC0JZW51bSB0aGVybWFsX3RyaXBfdHlwZSB0cmlwX3R5cGU7DQo+ID4gLQllbnVtIHRoZXJtYWxf
+dHJlbmQgdHJlbmQ7DQo+ID4gLQ0KPiA+IC0JaWYgKHRyaXAgPT0gVEhFUk1BTF9UUklQU19OT05F
+KSB7DQo+ID4gLQkJdHJpcF90ZW1wID0gdHotPmZvcmNlZF9wYXNzaXZlOw0KPiA+IC0JCXRyaXBf
+dHlwZSA9IFRIRVJNQUxfVFJJUFNfTk9ORTsNCj4gPiAtCX0gZWxzZSB7DQo+ID4gLQkJdHotPm9w
+cy0+Z2V0X3RyaXBfdGVtcCh0eiwgdHJpcCwgJnRyaXBfdGVtcCk7DQo+ID4gLQkJdHotPm9wcy0+
+Z2V0X3RyaXBfdHlwZSh0eiwgdHJpcCwgJnRyaXBfdHlwZSk7DQo+ID4gLQl9DQo+ID4gLQ0KPiA+
+IC0JaWYgKCF0ei0+b3BzLT5nZXRfdHJlbmQgfHwgdHotPm9wcy0+Z2V0X3RyZW5kKHR6LCB0cmlw
+LCAmdHJlbmQpKSB7DQo+ID4gLQkJLyoNCj4gPiAtCQkgKiBjb21wYXJlIHRoZSBjdXJyZW50IHRl
+bXBlcmF0dXJlIGFuZCBwcmV2aW91cw0KPiB0ZW1wZXJhdHVyZQ0KPiA+IC0JCSAqIHRvIGdldCB0
+aGUgdGhlcm1hbCB0cmVuZCwgaWYgbm8gc3BlY2lhbCByZXF1aXJlbWVudA0KPiA+IC0JCSAqLw0K
+PiA+IC0JCWlmICh0ei0+dGVtcGVyYXR1cmUgPiB0ei0+bGFzdF90ZW1wZXJhdHVyZSkNCj4gPiAt
+CQkJdHJlbmQgPSBUSEVSTUFMX1RSRU5EX1JBSVNJTkc7DQo+ID4gLQkJZWxzZSBpZiAodHotPnRl
+bXBlcmF0dXJlIDwgdHotPmxhc3RfdGVtcGVyYXR1cmUpDQo+ID4gLQkJCXRyZW5kID0gVEhFUk1B
+TF9UUkVORF9EUk9QUElORzsNCj4gPiAtCQllbHNlDQo+ID4gLQkJCXRyZW5kID0gVEhFUk1BTF9U
+UkVORF9TVEFCTEU7DQo+ID4gLQl9DQo+ID4gLQ0KPiA+IC0JaWYgKHRlbXAgPj0gdHJpcF90ZW1w
+KSB7DQo+ID4gLQkJbGlzdF9mb3JfZWFjaF9lbnRyeShpbnN0YW5jZSwgJnR6LT50aGVybWFsX2lu
+c3RhbmNlcywNCj4gdHpfbm9kZSkgew0KPiA+IC0JCQlpZiAoaW5zdGFuY2UtPnRyaXAgIT0gdHJp
+cCkNCj4gPiAtCQkJCWNvbnRpbnVlOw0KPiA+IC0NCj4gPiAtCQkJY2RldiA9IGluc3RhbmNlLT5j
+ZGV2Ow0KPiA+IC0NCj4gPiAtCQkJY2Rldi0+b3BzLT5nZXRfY3VyX3N0YXRlKGNkZXYsICZjdXJf
+c3RhdGUpOw0KPiA+IC0JCQljZGV2LT5vcHMtPmdldF9tYXhfc3RhdGUoY2RldiwgJm1heF9zdGF0
+ZSk7DQo+ID4gLQ0KPiA+IC0JCQlpZiAodHJlbmQgPT0gVEhFUk1BTF9UUkVORF9SQUlTSU5HKSB7
+DQo+ID4gLQkJCQljdXJfc3RhdGUgPSBjdXJfc3RhdGUgPCBpbnN0YW5jZS0+dXBwZXIgPw0KPiA+
+IC0JCQkJCSAgICAoY3VyX3N0YXRlICsgMSkgOiBpbnN0YW5jZS0+dXBwZXI7DQo+ID4gLQkJCX0g
+ZWxzZSBpZiAodHJlbmQgPT0gVEhFUk1BTF9UUkVORF9EUk9QUElORykgew0KPiA+IC0JCQkJY3Vy
+X3N0YXRlID0gY3VyX3N0YXRlID4gaW5zdGFuY2UtPmxvd2VyID8NCj4gPiAtCQkJCSAgICAoY3Vy
+X3N0YXRlIC0gMSkgOiBpbnN0YW5jZS0+bG93ZXI7DQo+ID4gLQkJCX0NCj4gPiAtDQo+ID4gLQkJ
+CS8qIGFjdGl2YXRlIGEgcGFzc2l2ZSB0aGVybWFsIGluc3RhbmNlICovDQo+ID4gLQkJCWlmICgo
+dHJpcF90eXBlID09IFRIRVJNQUxfVFJJUF9QQVNTSVZFIHx8DQo+ID4gLQkJCSAgICAgdHJpcF90
+eXBlID09IFRIRVJNQUxfVFJJUFNfTk9ORSkgJiYNCj4gPiAtCQkJICAgICBpbnN0YW5jZS0+dGFy
+Z2V0ID09IFRIRVJNQUxfTk9fVEFSR0VUKQ0KPiA+IC0JCQkJdHotPnBhc3NpdmUrKzsNCj4gPiAt
+DQo+ID4gLQkJCWluc3RhbmNlLT50YXJnZXQgPSBjdXJfc3RhdGU7DQo+ID4gLQkJCWNkZXYtPnVw
+ZGF0ZWQgPSBmYWxzZTsgLyogY29vbGluZyBkZXZpY2UgbmVlZHMNCj4gdXBkYXRlICovDQo+ID4g
+LQkJfQ0KPiA+IC0JfSBlbHNlIHsJLyogYmVsb3cgdHJpcCAqLw0KPiA+IC0JCWxpc3RfZm9yX2Vh
+Y2hfZW50cnkoaW5zdGFuY2UsICZ0ei0+dGhlcm1hbF9pbnN0YW5jZXMsDQo+IHR6X25vZGUpIHsN
+Cj4gPiAtCQkJaWYgKGluc3RhbmNlLT50cmlwICE9IHRyaXApDQo+ID4gLQkJCQljb250aW51ZTsN
+Cj4gPiAtDQo+ID4gLQkJCS8qIERvIG5vdCB1c2UgdGhlIGluYWN0aXZlIHRoZXJtYWwgaW5zdGFu
+Y2UgKi8NCj4gPiAtCQkJaWYgKGluc3RhbmNlLT50YXJnZXQgPT0gVEhFUk1BTF9OT19UQVJHRVQp
+DQo+ID4gLQkJCQljb250aW51ZTsNCj4gPiAtCQkJY2RldiA9IGluc3RhbmNlLT5jZGV2Ow0KPiA+
+IC0JCQljZGV2LT5vcHMtPmdldF9jdXJfc3RhdGUoY2RldiwgJmN1cl9zdGF0ZSk7DQo+ID4gLQ0K
+PiA+IC0JCQljdXJfc3RhdGUgPSBjdXJfc3RhdGUgPiBpbnN0YW5jZS0+bG93ZXIgPw0KPiA+IC0J
+CQkJICAgIChjdXJfc3RhdGUgLSAxKSA6IFRIRVJNQUxfTk9fVEFSR0VUOw0KPiA+IC0NCj4gPiAt
+CQkJLyogZGVhY3RpdmF0ZSBhIHBhc3NpdmUgdGhlcm1hbCBpbnN0YW5jZSAqLw0KPiA+IC0JCQlp
+ZiAoKHRyaXBfdHlwZSA9PSBUSEVSTUFMX1RSSVBfUEFTU0lWRSB8fA0KPiA+IC0JCQkgICAgIHRy
+aXBfdHlwZSA9PSBUSEVSTUFMX1RSSVBTX05PTkUpICYmDQo+ID4gLQkJCSAgICAgY3VyX3N0YXRl
+ID09IFRIRVJNQUxfTk9fVEFSR0VUKQ0KPiA+IC0JCQkJdHotPnBhc3NpdmUtLTsNCj4gPiAtCQkJ
+aW5zdGFuY2UtPnRhcmdldCA9IGN1cl9zdGF0ZTsNCj4gPiAtCQkJY2Rldi0+dXBkYXRlZCA9IGZh
+bHNlOyAvKiBjb29saW5nIGRldmljZSBuZWVkcw0KPiB1cGRhdGUgKi8NCj4gPiAtCQl9DQo+ID4g
+LQl9DQo+ID4gLQ0KPiA+IC0JcmV0dXJuOw0KPiA+IC19DQo+ID4gLS8qKg0KPiA+IC0gKiB0aGVy
+bWFsX3pvbmVfZGV2aWNlX3VwZGF0ZSAtIGZvcmNlIGFuIHVwZGF0ZSBvZiBhIHRoZXJtYWwgem9u
+ZSdzDQo+IHN0YXRlDQo+ID4gLSAqIEB0dHo6CXRoZSB0aGVybWFsIHpvbmUgdG8gdXBkYXRlDQo+
+ID4gLSAqLw0KPiA+IC0NCj4gPiAtdm9pZCB0aGVybWFsX3pvbmVfZGV2aWNlX3VwZGF0ZShzdHJ1
+Y3QgdGhlcm1hbF96b25lX2RldmljZSAqdHopDQo+ID4gLXsNCj4gPiAtCWludCBjb3VudCwgcmV0
+ID0gMDsNCj4gPiAtCWxvbmcgdGVtcCwgdHJpcF90ZW1wOw0KPiA+IC0JZW51bSB0aGVybWFsX3Ry
+aXBfdHlwZSB0cmlwX3R5cGU7DQo+ID4gLQ0KPiA+IC0JbXV0ZXhfbG9jaygmdHotPmxvY2spOw0K
+PiA+IC0NCj4gPiAtCWlmICh0ei0+b3BzLT5nZXRfdGVtcCh0eiwgJnRlbXApKSB7DQo+ID4gLQkJ
+LyogZ2V0X3RlbXAgZmFpbGVkIC0gcmV0cnkgaXQgbGF0ZXIgKi8NCj4gPiAtCQlwcl93YXJuKCJm
+YWlsZWQgdG8gcmVhZCBvdXQgdGhlcm1hbCB6b25lICVkXG4iLCB0ei0+aWQpOw0KPiA+IC0JCWdv
+dG8gbGVhdmU7DQo+ID4gLQl9DQo+ID4gLQ0KPiA+IC0JdHotPmxhc3RfdGVtcGVyYXR1cmUgPSB0
+ei0+dGVtcGVyYXR1cmU7DQo+ID4gLQl0ei0+dGVtcGVyYXR1cmUgPSB0ZW1wOw0KPiA+IC0NCj4g
+PiAtCWZvciAoY291bnQgPSAwOyBjb3VudCA8IHR6LT50cmlwczsgY291bnQrKykgew0KPiA+IC0J
+CXR6LT5vcHMtPmdldF90cmlwX3R5cGUodHosIGNvdW50LCAmdHJpcF90eXBlKTsNCj4gPiAtCQl0
+ei0+b3BzLT5nZXRfdHJpcF90ZW1wKHR6LCBjb3VudCwgJnRyaXBfdGVtcCk7DQo+ID4gLQ0KPiA+
+IC0JCXN3aXRjaCAodHJpcF90eXBlKSB7DQo+ID4gLQkJY2FzZSBUSEVSTUFMX1RSSVBfQ1JJVElD
+QUw6DQo+ID4gLQkJCWlmICh0ZW1wID49IHRyaXBfdGVtcCkgew0KPiA+IC0JCQkJaWYgKHR6LT5v
+cHMtPm5vdGlmeSkNCj4gPiAtCQkJCQlyZXQgPSB0ei0+b3BzLT5ub3RpZnkodHosIGNvdW50LA0K
+PiA+IC0JCQkJCQkJICAgICAgdHJpcF90eXBlKTsNCj4gPiAtCQkJCWlmICghcmV0KSB7DQo+ID4g
+LQkJCQkJcHJfZW1lcmcoIkNyaXRpY2FsIHRlbXBlcmF0dXJlDQo+IHJlYWNoZWQgKCVsZCBDKSwg
+c2h1dHRpbmcgZG93blxuIiwNCj4gPiAtCQkJCQkJIHRlbXAvMTAwMCk7DQo+ID4gLQkJCQkJb3Jk
+ZXJseV9wb3dlcm9mZih0cnVlKTsNCj4gPiAtCQkJCX0NCj4gPiAtCQkJfQ0KPiA+IC0JCQlicmVh
+azsNCj4gPiAtCQljYXNlIFRIRVJNQUxfVFJJUF9IT1Q6DQo+ID4gLQkJCWlmICh0ZW1wID49IHRy
+aXBfdGVtcCkNCj4gPiAtCQkJCWlmICh0ei0+b3BzLT5ub3RpZnkpDQo+ID4gLQkJCQkJdHotPm9w
+cy0+bm90aWZ5KHR6LCBjb3VudCwgdHJpcF90eXBlKTsNCj4gPiAtCQkJYnJlYWs7DQo+ID4gLQkJ
+Y2FzZSBUSEVSTUFMX1RSSVBfQUNUSVZFOg0KPiA+IC0JCQl0aGVybWFsX3pvbmVfdHJpcF91cGRh
+dGUodHosIGNvdW50LCB0ZW1wKTsNCj4gPiAtCQkJYnJlYWs7DQo+ID4gLQkJY2FzZSBUSEVSTUFM
+X1RSSVBfUEFTU0lWRToNCj4gPiAtCQkJaWYgKHRlbXAgPj0gdHJpcF90ZW1wIHx8IHR6LT5wYXNz
+aXZlKQ0KPiA+IC0JCQkJdGhlcm1hbF96b25lX3RyaXBfdXBkYXRlKHR6LCBjb3VudCwgdGVtcCk7
+DQo+ID4gLQkJCWJyZWFrOw0KPiA+IC0JCX0NCj4gPiAtCX0NCj4gPiAtDQo+ID4gLQlpZiAodHot
+PmZvcmNlZF9wYXNzaXZlKQ0KPiA+IC0JCXRoZXJtYWxfem9uZV90cmlwX3VwZGF0ZSh0eiwgVEhF
+Uk1BTF9UUklQU19OT05FLA0KPiB0ZW1wKTsNCj4gPiAtCXRoZXJtYWxfem9uZV9kb191cGRhdGUo
+dHopOw0KPiA+IC0NCj4gPiAtbGVhdmU6DQo+ID4gLQlpZiAodHotPnBhc3NpdmUpDQo+ID4gLQkJ
+dGhlcm1hbF96b25lX2RldmljZV9zZXRfcG9sbGluZyh0eiwgdHotPnBhc3NpdmVfZGVsYXkpOw0K
+PiA+IC0JZWxzZSBpZiAodHotPnBvbGxpbmdfZGVsYXkpDQo+ID4gLQkJdGhlcm1hbF96b25lX2Rl
+dmljZV9zZXRfcG9sbGluZyh0eiwgdHotPnBvbGxpbmdfZGVsYXkpOw0KPiA+IC0JZWxzZQ0KPiA+
+IC0JCXRoZXJtYWxfem9uZV9kZXZpY2Vfc2V0X3BvbGxpbmcodHosIDApOw0KPiA+IC0JbXV0ZXhf
+dW5sb2NrKCZ0ei0+bG9jayk7DQo+ID4gLX0NCj4gPiAtRVhQT1JUX1NZTUJPTCh0aGVybWFsX3pv
+bmVfZGV2aWNlX3VwZGF0ZSk7DQo+ID4gLQ0KPiA+ICAvKioNCj4gPiAgICogY3JlYXRlX3RyaXBf
+YXR0cnMgLSBjcmVhdGUgYXR0cmlidXRlcyBmb3IgdHJpcCBwb2ludHMNCj4gPiAgICogQHR6OgkJ
+dGhlIHRoZXJtYWwgem9uZSBkZXZpY2UNCj4gDQoNCg==
