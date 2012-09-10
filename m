@@ -1,138 +1,101 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: CONFIG_NO_HZ + CONFIG_CPU_IDLE freeze the system (Was Re: [PATCH]
- acpi : remove power from acpi_processor_cx structure)
-Date: Mon, 10 Sep 2012 21:45:07 +0200
-Message-ID: <504E4343.5070004@linaro.org>
-References: <1343164349-28550-1-git-send-email-daniel.lezcano@linaro.org> <201209062204.11288.rjw@sisk.pl> <50490920.9070204@linaro.org> <201209062318.42874.rjw@sisk.pl> <504A02BD.4000805@linaro.org> <504A2D73.3010702@linaro.org> <504A68A0.7010907@linaro.org> <504E1FE5.6090502@linaro.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH RESEND] thermal: add generic cpufreq cooling
+	implementation
+Date: Mon, 10 Sep 2012 22:23:52 +0200
+Message-ID: <201209102223.53094.rjw@sisk.pl>
+References: <1347258341.1682.1062.camel@rui.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <504E1FE5.6090502@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: John Stultz <john.stultz@linaro.org>
-Cc: prarit@redhat.com, xen-devel@lists.xensource.com, linaro-dev@lists.linaro.org, Peter Zijlstra <a.p.zijlstra@chello.nl>, linux-pm@vger.kernel.org, Frederic Weisbecker <fweisbec@gmail.com>, richardcochran@gmail.com, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, mingo@kernel.org, lenb@kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <1347258341.1682.1062.camel@rui.sh.intel.com>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: linux-pm@lists.linux-foundation.org
+Cc: linux-samsung-soc@vger.kernel.org, Kyungmin Park <kmpark@infradead.org>, SangWook Ju <sw.ju@samsung.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, Jean Delvare <khali@linux-fr.org>, Andrew Morton <akpm@linux-foundation.org>, Guenter Roeck <guenter.roeck@ericsson.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 09/10/2012 07:14 PM, John Stultz wrote:
-> On 09/07/2012 02:35 PM, Daniel Lezcano wrote:
->> On 09/07/2012 07:22 PM, John Stultz wrote:
->>> On 09/07/2012 07:20 AM, Daniel Lezcano wrote:
->>>> On 09/06/2012 11:18 PM, Rafael J. Wysocki wrote:
->>>>> On Thursday, September 06, 2012, Daniel Lezcano wrote:
->>>>>> On 09/06/2012 10:04 PM, Rafael J. Wysocki wrote:
->>>>>>> On Thursday, September 06, 2012, Daniel Lezcano wrote:
->>>>>>>> On 09/06/2012 09:54 AM, Daniel Lezcano wrote:
->>>>>>>> I fall into this issue because NETCONSOLE is set, disabling it
->>>>>>>> allowed
->>>>>>>> me to go further.
->>>>>>>>
->>>>>>>> Unfortunately I am facing to some random freeze on the system
->>>>>>>> which
->>>>>>>> seems to be related to CONFIG_NO_HZ=3Dy and CONFIG_CPU_IDLE=3D=
-y.
->>>>>>>>
->>>>>>>> Disabling one of them, make the freezes to disappear.
->>>>>>>>
->>>>>>>> Is it a known issue ?
->>>>>>> Well, there are systems having problems with this configuration=
-,
->>>>>>> but they
->>>>>>> should be exceptional. What system is that?
->>>>>> It is a laptop T61p with a Core 2 Duo T9500. Nothing exceptional=
- I
->>>>>> believe. Maybe someone got the same issue ?
->>>>> Is it a regression for you?
->>>> Yes, I think so. The issue appears between v3.5 and v3.6-rc1.
->>>>
->>>> It is not easy to reproduce but after taking some time to dig, it
->>>> seems
->>>> to appear with this commit:
->>>>
->>>> 1e75fa8be9fb61e1af46b5b3b176347a4c958ca1 is the first bad commit
->>>> commit 1e75fa8be9fb61e1af46b5b3b176347a4c958ca1
->>>> Author: John Stultz <john.stultz@linaro.org>
->>>> Date: Fri Jul 13 01:21:53 2012 -0400
->>>>
->>>> time: Condense timekeeper.xtime into xtime_sec
->>>>
->>>> The timekeeper struct has a xtime_nsec, which keeps the
->>>> sub-nanosecond remainder. This ends up being somewhat
->>>> duplicative of the timekeeper.xtime.tv_nsec value, and we
->>>> have to do extra work to keep them apart, copying the full
->>>> nsec portion out and back in over and over.
->>>>
->>>> This patch simplifies some of the logic by taking the timekeeper
->>>> xtime value and splitting it into timekeeper.xtime_sec and
->>>> reuses the timekeeper.xtime_nsec for the sub-second portion
->>>> (stored in higher res shifted nanoseconds).
->>>>
->>>> This simplifies some of the accumulation logic. And will
->>>> allow for more accurate timekeeping once the vsyscall code
->>>> is updated to use the shifted nanosecond remainder.
->>>>
->>>> Signed-off-by: John Stultz <john.stultz@linaro.org>
->>>> Reviewed-by: Ingo Molnar <mingo@kernel.org>
->>>> Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
->>>> Cc: Richard Cochran <richardcochran@gmail.com>
->>>> Cc: Prarit Bhargava <prarit@redhat.com>
->>>> Link:
->>>> http://lkml.kernel.org/r/1342156917-25092-5-git-send-email-john.st=
-ultz@linaro.org
->>>>
->>>>
->>>> Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
->>>>
->>>> :040000 040000 4d6541ac1f6075d7adee1eef494b31a0cbda0934
->>>> dc5708bc738af695f092bf822809b13a1da104b6 M kernel
->>>>
->>>> How to reproduce: with a laptop T61p, with a Core 2 Duo. I boot th=
-e
->>>> kernel in busybox and wait some minutes before writing something i=
-n
->>>> the
->>>> console. At this moment, nothing appears to the console but the
->>>> characters are echo'ed several seconds later (could be 1, 5, or 10
->>>> secs
->>>> or more).
->>>>
->>>> That happens when CONFIG_CPU_IDLE and CONFIG_NO_HZ are set. Disabl=
-ing
->>>> one of them, the issue does not appear.
->>> Thanks for bisecting this down and the heads up!
->>>
->>> Right off I can't see what might be causing this. Bunch of question=
-s:
->>>
->>> Is this a 32 or 64 bit kernel?
->> It is a 32 bit kernel.
->
-> Thanks for your answers! Has this has been seen on 3.6-rc4+ kernels?
-> There were a few casting fixes that landed in 3.6-rc4 that would
-> affect 32bit systems.
+On Monday, September 10, 2012, Zhang Rui wrote:
+> Refreshed to remove the notifier mechanism as we do not have a real user of it.
+> if there is no problem, I'll apply the whole patch set to thermal next tree.
+> 
+> From: Amit Daniel Kachhap <amit.kachhap@linaro.org>
+> Date: Thu, 16 Aug 2012 17:11:40 +0530
+> 
+> This patchset introduces a new generic cooling device based on cpufreq
+> that can be used on non-ACPI platforms.  As a proof of concept, we have
+> drivers for the following platforms using this mechanism now:
+> 
+>  * Samsung Exynos (Exynos4 and Exynos5) in the current patchset.
+>  * Freescale i.MX (git://git.linaro.org/people/amitdanielk/linux.git imx6q_thermal)
+> 
+> There is a small change in cpufreq cooling registration APIs, so a minor
+> change is needed for Freescale platforms.
+> 
+> Brief Description:
+> 
+> 1) The generic cooling devices code is placed inside driver/thermal/*
+>    as placing inside acpi folder will need un-necessary enabling of acpi
+>    code.  This code is architecture independent.
+> 
+> 2) This patchset adds generic cpu cooling low level implementation
+>    through frequency clipping.  In future, other cpu related cooling
+>    devices may be added here.  An ACPI version of this already exists
+>    (drivers/acpi/processor_thermal.c) .But this will be useful for
+>    platforms like ARM using the generic thermal interface along with the
+>    generic cpu cooling devices.  The cooling device registration API's
+>    return cooling device pointers which can be easily binded with the
+>    thermal zone trip points.  The important APIs exposed are,
+> 
+>    a) struct thermal_cooling_device *cpufreq_cooling_register(
+>         struct cpumask *clip_cpus)
+>    b) void cpufreq_cooling_unregister(struct thermal_cooling_device *cdev)
+> 
+> 3) Samsung exynos platform thermal implementation is done using the
+>    generic cpu cooling APIs and the new trip type.  The temperature sensor
+>    driver present in the hwmon folder(registered as hwmon driver) is moved
+>    to thermal folder and registered as a thermal driver.
+> 
+> A simple data/control flow diagrams is shown below,
+> 
+> Core Linux thermal <----->  Exynos thermal interface <----- Temperature Sensor
+>           |                             |
+>          \|/                            |
+>   Cpufreq cooling device <---------------
+> 
+> TODO:
+> *Will send the DT enablement patches later after the driver is merged.
+> 
+> This patch:
+> 
+> Add support for generic cpu thermal cooling low level implementations
+> using frequency scaling up/down based on the registration parameters.
+> Different cpu related cooling devices can be registered by the user and
+> the binding of these cooling devices to the corresponding trip points can
+> be easily done as the registration APIs return the cooling device pointer.
+> The user of these APIs are responsible for passing clipping frequency .
+> The drivers can also register to recieve notification about any cooling
+> action called.
+> 
+> Cc: Guenter Roeck <guenter.roeck@ericsson.com>
+> Cc: SangWook Ju <sw.ju@samsung.com>
+> Cc: Durgadoss <durgadoss.r@intel.com>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: Jean Delvare <khali@linux-fr.org>
+> Cc: Kyungmin Park <kmpark@infradead.org>
+> Cc: Kukjin Kim <kgene.kim@samsung.com>
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> Signed-off-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
 
-Ok, I have to check that. Unfortunately not before Wednesday.
+Can you please resend the patch inline (i.e. not as an attachment)?
 
->
-> In the meantime, I'll try to reproduce on my T61. If you could send m=
-e
-> your .config, I'd appreciate it.
-
-http://pastebin.com/qSxqfdDK
-
-The header of the config file shows for a v3.5-rc7 because it is the
-result of the git-bisect. If you keep this config file for the latest
-kernel that should reproduce the problem.
-
-Let me know if you were able to reproduce the problem.
-
-Thanks
--- Daniel
-
---=20
- <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software for=
- ARM SoCs
-
-=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
+Rafael
