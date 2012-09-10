@@ -1,30 +1,42 @@
-From: "DR.NED OKOH" <emailinfo@ok.net>
-Subject: NICE DAY
-Date: Mon, 10 Sep 2012 03:29:03 -0700
-Message-ID: <SERVERgpYfRo3wO5blw00007683__22296.5757050135$1347273947$gmane$org@offline.co.il>
-Reply-To: mail.info187@ok.net
+From: Oliver Neukum <oliver@neukum.org>
+Subject: Re: [PATCH v6 1/7] scsi: sr: support runtime pm for ODD
+Date: Mon, 10 Sep 2012 12:45:51 +0200
+Message-ID: <4663685.bsC7gzLV6E@linux-lqwf.site>
+References: <Pine.LNX.4.44L0.1209061437050.1182-100000@iolanthe.rowland.org> <504DAFE6.50507@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; CHARSET=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mxout11.netvision.net.il ([194.90.6.39]:46117 "EHLO
-	mxout11.netvision.net.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756475Ab2IJKph (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Sep 2012 06:45:37 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <504DAFE6.50507@intel.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Aaron Lu <aaron.lwe@gmail.com>, James Bottomley <James.Bottomley@hansenpartnership.com>, Jeff Garzik <jgarzik@pobox.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Good day my dear,
-I am writing to acknowledged you that this is the second time we are notifying you about your payment worth of US$16.5m USD,with foreign Remittance payment department office which is due to be released into your Account As we begin the first fiscal payment of the year 2012.Please send the information below as needed for your fund release to you OK.
+On Monday 10 September 2012 17:16:22 Aaron Lu wrote:
 
-1)Your Full Name__________________________ _____________
-2)Your Address_______________________ ______________________________
-3)Your Age___________________________ _______________________
-4)Your Direct Telephone Number________________________ ________________
-5)Fax Number________________________ _________________
-6)Occupation____________________ __________________________
+> +static int sr_resume(struct device *dev)
+> +{
+> +	struct scsi_cd *cd;
+> +	struct scsi_sense_hdr sshdr;
+> +
+> +	cd = dev_get_drvdata(dev);
+> +
+> +	if (!cd->device->powered_off)
+> +		return 0;
+> +
+> +	/* get the disk ready */
+> +	scsi_test_unit_ready(cd->device, SR_TIMEOUT, MAX_RETRIES, &sshdr);
+> +
+> +	/* if user wakes up the ODD, eject the tray */
+> +	if (cd->device->need_eject) {
+> +		cd->device->need_eject = 0;
+> +		if (!(cd->cdi.mask & CDC_CLOSE_TRAY))
+> +			sr_tray_move(&cd->cdi, 1);
 
-We sincerely apologies for our late contact with you, We are committed to serve you better OK and you have been advice to get back to me immediately for more details OK.
+1. Even if the door is locked?
+2. sr_tray_move allocates memory with GFP_KERNEL. This smells of a deadlock.
 
-Yours in service
-Dr.Ned Okoh
+	Regards
+		Oliver
+
