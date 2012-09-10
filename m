@@ -1,58 +1,45 @@
-From: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
-Subject: Re: [RFC v8 PATCH 00/20] memory-hotplug: hot-remove physical memory
-Date: Mon, 10 Sep 2012 15:52:13 +0200
-Message-ID: <20120910135213.GA1550@dhcp-192-168-178-175.profitbricks.localdomain>
-References: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com>
- <20120831134956.fec0f681.akpm@linux-foundation.org>
- <504D467D.2080201@jp.fujitsu.com>
- <504D4A08.7090602@cn.fujitsu.com>
+From: Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: DMA Remapping and Marvell 88SE9172, 88SE9128 SATA controllers
+Date: Mon, 10 Sep 2012 08:25:49 -0600
+Message-ID: <1347287149.24938.11.camel@ul30vt.home>
+References: <CAJtEV7aGSvRvyevveysWkDn18Oz3n3qF6EpPtgvwC4dsJU41HA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-sh-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <504D4A08.7090602@cn.fujitsu.com>
-Sender: linux-sh-owner@vger.kernel.org
-To: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Andrew Morton <akpm@linux-foundation.org>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <CAJtEV7aGSvRvyevveysWkDn18Oz3n3qF6EpPtgvwC4dsJU41HA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Andrew Cooks <acooks-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: pawel.zaq-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-
-On Mon, Sep 10, 2012 at 10:01:44AM +0800, Wen Congyang wrote:
-> At 09/10/2012 09:46 AM, Yasuaki Ishimatsu Wrote:
-> > Hi Wen,
-> > 
-> > 2012/09/01 5:49, Andrew Morton wrote:
-> >> On Tue, 28 Aug 2012 18:00:07 +0800
-> >> wency@cn.fujitsu.com wrote:
-> >>
-> >>> This patch series aims to support physical memory hot-remove.
-> >>
-> >> I doubt if many people have hardware which permits physical memory
-> >> removal?  How would you suggest that people with regular hardware can
-> >> test these chagnes?
-> > 
-> > How do you test the patch? As Andrew says, for hot-removing memory,
-> > we need a particular hardware. I think so too. So many people may want
-> > to know how to test the patch.
-> > If we apply following patch to kvm guest, can we hot-remove memory on
-> > kvm guest?
-> > 
-> > http://lists.gnu.org/archive/html/qemu-devel/2012-07/msg01389.html
+On Tue, 2012-08-28 at 00:05 +0800, Andrew Cooks wrote:
+> There's a problem relating to DMA Remapping which affects systems with
+> Marvell SATA controllers. It was first reported on 2012-01-28 on
+> bugzilla.kernel.org[1] and is best described by Don Dutile: "...the
+> lspci dump in the bugzilla report doesn't show a device w/BDF=0b:00.1;
+> so, if the SATA device (which is 0b:00.0) is spitting out 0b:00.1 as
+> the source of any of its DMA packets, the IOMMU will fault on it,
+> since 0b:00.1 didn't request DMA mappings (0b:00.0 did)."[2]
 > 
-> Yes, if we apply this patchset, we can test hot-remove memory on kvm guest.
-> But that patchset doesn't implement _PS3, so there is some restriction.
+> Is this kind of problem caused by a missing/incorrect entry in an ACPI
+> table? Is it feasible to introduce a fake device for the missing
+> function using a pci quirk?
 
-the following repos contain the patchset above, plus 2 more patches that add
-PS3 support to the dimm devices in qemu/seabios:
+We've added pci_get_dma_source() to help with such devices, but it's
+only used by the IOMMU grouping code and requires a struct pci_dev for
+the actual DMA source.  I think for this device we're going to need to
+run a quirk when we scan it that creates a fake device, add it to
+pci_get_dma_source(), then make use of it in the dma mapping path.  I
+think the only other alternative would be to disable hardware IOMMUs
+when this device is found in the system.  Thanks,
 
-https://github.com/vliaskov/seabios/commits/memhp-v2
-https://github.com/vliaskov/qemu-kvm/commits/memhp-v2
-
-I have not posted the PS3 patches yet in the qemu list, but will post them
-soon for v3 of the memory hotplug series. If you have issues testing, let me
-know.
-
-thanks,
-
-- Vasilis
+Alex
