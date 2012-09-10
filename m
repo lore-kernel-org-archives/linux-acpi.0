@@ -1,23 +1,40 @@
-From: Mr Dash Four <mr.dash.four@googlemail.com>
+From: Zhang Rui <rui.zhang@intel.com>
 Subject: Re: ACPI conflicts
-Date: Mon, 10 Sep 2012 02:06:04 +0100
-Message-ID: <504D3CFC.2080805@googlemail.com>
-References: <504D2D39.5090709@googlemail.com> <1347238787.1682.1045.camel@rui.sh.intel.com>
+Date: Mon, 10 Sep 2012 09:15:56 +0800
+Message-ID: <1347239756.1682.1046.camel@rui.sh.intel.com>
+References: <504D2D39.5090709@googlemail.com>
+	 <1347238787.1682.1045.camel@rui.sh.intel.com>
+	 <504D3CFC.2080805@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:60216 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755907Ab2IJBGI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 9 Sep 2012 21:06:08 -0400
-Received: by wibhr14 with SMTP id hr14so1510103wib.1
-        for <linux-acpi@vger.kernel.org>; Sun, 09 Sep 2012 18:06:07 -0700 (PDT)
-In-Reply-To: <1347238787.1682.1045.camel@rui.sh.intel.com>
+Received: from mga14.intel.com ([143.182.124.37]:51393 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755851Ab2IJBPW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 9 Sep 2012 21:15:22 -0400
+In-Reply-To: <504D3CFC.2080805@googlemail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Mr Dash Four <mr.dash.four@googlemail.com>
+Cc: linux-acpi@vger.kernel.org
 
-> does clearing CONFIG_GPIO_ICH help?
-I don't have that option in my .config (I am on v3.5 of the kernel), so I presume it is not used.
+On =E4=B8=80, 2012-09-10 at 02:06 +0100, Mr Dash Four wrote:
+> > does clearing CONFIG_GPIO_ICH help?
+> I don't have that option in my .config (I am on v3.5 of the kernel), =
+so I presume it is not used.
+>=20
+then how about clearing CONFIG_LPC_ICH?
 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
