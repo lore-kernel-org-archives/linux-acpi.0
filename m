@@ -1,45 +1,44 @@
-From: John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: CONFIG_NO_HZ + CONFIG_CPU_IDLE freeze the system (Was Re: [PATCH]
-	acpi : remove power from acpi_processor_cx structure)
-Date: Tue, 11 Sep 2012 10:26:05 -0700
-Message-ID: <504F742D.6000701@linaro.org>
-References: <1343164349-28550-1-git-send-email-daniel.lezcano@linaro.org>
-	<201209062204.11288.rjw@sisk.pl> <50490920.9070204@linaro.org>
-	<201209062318.42874.rjw@sisk.pl> <504A02BD.4000805@linaro.org>
-	<504A2D73.3010702@linaro.org> <504A68A0.7010907@linaro.org>
-	<504E1FE5.6090502@linaro.org> <504E4343.5070004@linaro.org>
-	<504E8372.20904@linaro.org> <504EE124.3010401@linaro.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 1/6] acpi : move the acpi_idle_driver variable declaration
+Date: Tue, 11 Sep 2012 22:28:47 +0200
+Message-ID: <201209112228.48198.rjw@sisk.pl>
+References: <1347013172-12465-1-git-send-email-daniel.lezcano@linaro.org> <201209072319.33742.rjw@sisk.pl> <504F1D19.1030702@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-In-Reply-To: <504EE124.3010401-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
-List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
-Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-To: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: prarit-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, xen-devel-GuqFBffKawuULHF6PoxzQEEOCMrvLtNR@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, Peter Zijlstra <a.p.zijlstra-/NLkJaSkS4VmR6Xm/wNWPw@public.gmane.org>, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Frederic Weisbecker <fweisbec-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Konrad Rzeszutek Wilk <konrad.wilk-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([193.178.161.156]:48099 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750891Ab2IKUW1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 11 Sep 2012 16:22:27 -0400
+In-Reply-To: <504F1D19.1030702@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: lenb@kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, patches@linaro.org, linaro-dev@lists.linaro.org, pdeschrijver@nvidia.com, lorenzo.pieralisi@arm.com
 
-On 09/10/2012 11:58 PM, Daniel Lezcano wrote:
->> Would you mind testing the following patch? It seems to resolve the
->> issue, but I've not yet run it through my test suite to make sure it
->> didn't break anything else.
-> No problem, I will try it this evening.
->
-> Is this problem related to all 32bits arch ?
-I believe so. Although it didn't appear in my 32bit testing w/ kvm, but 
-I suspect that is due to my distro userland setting lots of timers so 
-that we don't hit those multi-second idle times, which could overflow 
-32bit nanoseconds, or maybe some other kvm quirk.
+On Tuesday, September 11, 2012, Daniel Lezcano wrote:
+> On 09/07/2012 11:19 PM, Rafael J. Wysocki wrote:
+> > On Friday, September 07, 2012, Daniel Lezcano wrote:
+> >> This variable is only used in the in processor_driver.c.
+> >> This patch reduces the scope of the variable by moving it
+> >> to this file.
+> > 
+> > Well, the changelog is wrong (because the scope of the variable is
+> > not reduced by moving it out of the header) and I don't see the point.
+> 
+> Yes, you are right.
+> 
+> > Is there any _real_ problem with that definition in processor.h?
+> 
+> It is not a real problem. There is no issue fixed by this patch.
+> It is just reorganizing the code little by little. The intent is to
+> group what is related to cpuidle to the C files here processor_driver.c.
 
-Anyway, let me know if your testing goes well.
+However, it is not recommended to put "extern something" type of declarations
+into *.c files.  All of them should go into headers (although not necessarily
+in include/linux for that matter).
 
-Thanks so much again for noticing and bisecting this down.
--john
+Thanks,
+Rafael
