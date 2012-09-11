@@ -1,64 +1,512 @@
 From: "R, Durgadoss" <durgadoss.r@intel.com>
-Subject: RE: [PATCHv3 13/15] Thermal: Remove throttling logic out of
- thermal_sys.c
-Date: Tue, 11 Sep 2012 03:39:15 +0000
-Message-ID: <4D68720C2E767A4AA6A8796D42C8EB591B6E08@BGSMSX101.gar.corp.intel.com>
-References: <1346500296-25200-1-git-send-email-durgadoss.r@intel.com>
-	 <1346500296-25200-14-git-send-email-durgadoss.r@intel.com>
-	 <1347266657.1682.1086.camel@rui.sh.intel.com>
-	 <4D68720C2E767A4AA6A8796D42C8EB591B54AA@BGSMSX101.gar.corp.intel.com>
-	 <1347323058.1682.1093.camel@rui.sh.intel.com>
-	 <4D68720C2E767A4AA6A8796D42C8EB591B6D84@BGSMSX101.gar.corp.intel.com>
- <1347333651.1682.1143.camel@rui.sh.intel.com>
+Subject: CONFIG_THERMAL_HWMON in thermal_sys.c
+Date: Tue, 11 Sep 2012 05:07:29 +0000
+Message-ID: <4D68720C2E767A4AA6A8796D42C8EB591B6F8F@BGSMSX101.gar.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:56485 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751748Ab2IKDje (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 10 Sep 2012 23:39:34 -0400
-In-Reply-To: <1347333651.1682.1143.camel@rui.sh.intel.com>
+Content-Type: multipart/mixed; boundary="===============5839877007958540778=="
+Return-path: <lm-sensors-bounces@lm-sensors.org>
 Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.lm-sensors.org/mailman/options/lm-sensors>,
+	<mailto:lm-sensors-request@lm-sensors.org?subject=unsubscribe>
+List-Archive: <http://lists.lm-sensors.org/pipermail/lm-sensors/>
+List-Post: <mailto:lm-sensors@lm-sensors.org>
+List-Help: <mailto:lm-sensors-request@lm-sensors.org?subject=help>
+List-Subscribe: <http://lists.lm-sensors.org/mailman/listinfo/lm-sensors>,
+	<mailto:lm-sensors-request@lm-sensors.org?subject=subscribe>
+Sender: lm-sensors-bounces@lm-sensors.org
+Errors-To: lm-sensors-bounces@lm-sensors.org
+To: "Guenter Roeck (guenter.roeck@ericsson.com)" <guenter.roeck@ericsson.com>, "Guenter Roeck (linux@roeck-us.net)" <linux@roeck-us.net>, "Jean Delvare
+	(khali@linux-fr.org)" <khali@linux-fr.org>, "Zhang, Rui" <rui.zhang@intel.com>, "lenb@kernel.org" <lenb@kernel.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lm-sensors (lm-sensors@lm-sensors.org)" <lm-sensors@lm-sensors.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>
 
-SGkgUnVpLA0KDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogWmhhbmcs
-IFJ1aQ0KPiBTZW50OiBUdWVzZGF5LCBTZXB0ZW1iZXIgMTEsIDIwMTIgODo1MSBBTQ0KPiBUbzog
-UiwgRHVyZ2Fkb3NzDQo+IENjOiBsZW5iQGtlcm5lbC5vcmc7IGxpbnV4LWFjcGlAdmdlci5rZXJu
-ZWwub3JnOyBlZHVhcmRvLnZhbGVudGluQHRpLmNvbQ0KPiBTdWJqZWN0OiBSRTogW1BBVENIdjMg
-MTMvMTVdIFRoZXJtYWw6IFJlbW92ZSB0aHJvdHRsaW5nIGxvZ2ljIG91dCBvZg0KPiB0aGVybWFs
-X3N5cy5jDQo+IA0KPiBPbiDkuIAsIDIwMTItMDktMTAgYXQgMjE6MDUgLTA2MDAsIFIsIER1cmdh
-ZG9zcyB3cm90ZToNCj4gPiBIaSBSdWksDQo+ID4NCj4gPiA+IE9uIOS4gCwgMjAxMi0wOS0xMCBh
-dCAwMjo1NiAtMDYwMCwgUiwgRHVyZ2Fkb3NzIHdyb3RlOg0KPiA+ID4gPiBIaSBSdWksDQo+ID4g
-PiA+DQo+ID4gPiA+ID4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPiA+ID4gPiBGcm9t
-OiBaaGFuZywgUnVpDQo+ID4gPiA+ID4gU2VudDogTW9uZGF5LCBTZXB0ZW1iZXIgMTAsIDIwMTIg
-MjoxNCBQTQ0KPiA+ID4gPiA+IFRvOiBSLCBEdXJnYWRvc3MNCj4gPiA+ID4gPiBDYzogbGVuYkBr
-ZXJuZWwub3JnOyBsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZzsNCj4gPiA+IGVkdWFyZG8udmFs
-ZW50aW5AdGkuY29tDQo+ID4gPiA+ID4gU3ViamVjdDogUmU6IFtQQVRDSHYzIDEzLzE1XSBUaGVy
-bWFsOiBSZW1vdmUgdGhyb3R0bGluZyBsb2dpYyBvdXQgb2YNCj4gPiA+ID4gPiB0aGVybWFsX3N5
-cy5jDQo+ID4gPiA+IFtjdXQuXQ0KPiA+ID4gPg0KPiA+ID4gPiA+ID4gKw0KPiA+ID4gPiA+ID4g
-K3N0YXRpYyB2b2lkIGhhbmRsZV9ub25fY3JpdGljYWxfdHJpcHMoc3RydWN0IHRoZXJtYWxfem9u
-ZV9kZXZpY2UNCj4gKnR6LA0KPiA+ID4gPiA+ID4gKwkJCWludCB0cmlwLCBlbnVtIHRoZXJtYWxf
-dHJpcF90eXBlIHRyaXBfdHlwZSkNCj4gPiA+ID4gPiA+ICt7DQo+ID4gPiA+ID4gPiArCXR6LT5n
-b3Zlcm5vci0+dGhyb3R0bGUodHosIHRyaXApOw0KPiA+ID4gPiA+ID4gK30NCj4gPiA+ID4gPiBo
-ZXJlIGlzIHRoZSBwcm9ibGVtLCB3ZSBtdXN0IG1ha2Ugc3VyZSBldmVyeSByZWdpc3RlcmVkIHRo
-ZXJtYWwNCj4gem9uZQ0KPiA+ID4gPiA+IGhhdmUgYSBnb3Zlcm5vciB3aGVuIGl0IGlzIHJ1bm5p
-bmcsIHJpZ2h0Pw0KPiA+ID4gPg0KPiA+ID4gPiBZZXMsIGFncmVlIHdpdGggeW91LiBIYWQgc29t
-ZSB0aG91Z2h0cyBoZXJlLCBidXQgd2FudGVkIHRvIGdldCB5b3VyDQo+ID4gPiBvcGluaW9uDQo+
-ID4gPiA+IGJlZm9yZSBJIGltcGxlbWVudGVkIHRoZW0uDQo+ID4gPiA+DQo+ID4gPiA+IDEuIFdl
-IGNhbiBtYWtlIHRoZSBkZWZhdWx0IGdvdmVybm9yIGFzICd1c2VyIHNwYWNlJywgYW5kIG1ha2Ug
-aXQgbG9hZA0KPiA+ID4gaW5zaWRlDQo+ID4gPiA+IHRoZXJtYWxfc3lzLmMgKHNvIHRoYXQgZXZl
-cnkgem9uZSB3aWxsIGFsd2F5cyBoYXZlIGEgZGVmYXVsdCBnb3Zlcm5vcikNCj4gPiA+ID4NCj4g
-PiA+IE5vLCB0aGUgZGVmYXVsdCBnb3Zlcm5vciBzaG91bGQgYmUgc3RlcCB3aXNlIHNvIHRoYXQg
-aXQgYmVoYXZlcyB0aGUgc2FtZQ0KPiA+ID4gYXMgYmVmb3JlLiBpZiB3ZSB1c2UgdXNlcnNwYWNl
-IGFzIGRlZmF1bHQgZ292ZXJub3IsIG1vc3Qgb2YgdGhlIHRoZXJtYWwNCj4gPiA+IGRyaXZlciB3
-aWxsIHN0b3Agd29ya2luZyB3aXRoIHRoaXMgcGF0Y2ggc2V0Lg0KPiA+DQo+ID4geWVzLCBJIHVu
-ZGVyc3RhbmQuIFNoYWxsIG1ha2Ugc3RlcF93aXNlIGRlZmF1bHQsIGFuZCBhbHdheXMgbG9hZGVk
-Lg0KPiA+DQo+IHdlIGNhbiBhbHdheXMgbWFrZSBzdGVwLXdpc2UgZGVmYXVsdCwgb3Igd2UgY2Fu
-IGFzayB1c2VycyB0byBzZWxlY3Qgb25lDQo+IGFzIGRlZmF1bHQgYW5kIGxvYWQgaXQuDQoNCldp
-bGwgYWx3YXlzIHN0ZXBfd2lzZSBkZWZhdWx0LiBUaGF0IHdpbGwgZXhhY3RseSBtaW1pYyB0aGUg
-b2xkIGJlaGF2aW9yLg0Kd2lsbCBhbHNvIGNyZWF0ZSBhIG5ldyBmaWxlIGZvciB1c2VyIHNwYWNl
-IGdvdmVybm9yLg0KDQpUaGFua3MsDQpEdXJnYQ0K
+--===============5839877007958540778==
+Content-Language: en-US
+Content-Type: multipart/alternative;
+	boundary="_000_4D68720C2E767A4AA6A8796D42C8EB591B6F8FBGSMSX101garcorpi_"
+
+--_000_4D68720C2E767A4AA6A8796D42C8EB591B6F8FBGSMSX101garcorpi_
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
+Hi Jean/Guenter,
+
+In thermal_sys.c we have a CONFIG_THERMAL_HWMON.
+If enabled, this creates sysfs nodes for thermal zones inside
+hwmon. Do we need this functionality inside thermal_sys.c ?
+Or is it Ok to remove this ?
+
+I wanted to know your opinion before submitting a patch.
+
+Thanks,
+Durga
+
+--_000_4D68720C2E767A4AA6A8796D42C8EB591B6F8FBGSMSX101garcorpi_
+Content-Type: text/html; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
+<html xmlns:v=3D"urn:schemas-microsoft-com:vml" xmlns:o=3D"urn:schemas-micr=
+osoft-com:office:office" xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
+xmlns:m=3D"http://schemas.microsoft.com/office/2004/12/omml" xmlns=3D"http:=
+//www.w3.org/TR/REC-html40">
+<head>
+<meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3Dus-ascii"=
+>
+<meta name=3D"ProgId" content=3D"Word.Document">
+<meta name=3D"Generator" content=3D"Microsoft Word 14">
+<meta name=3D"Originator" content=3D"Microsoft Word 14">
+<link rel=3D"File-List" href=3D"cid:filelist.xml@01CD9009.7139C810"><!--[if=
+ gte mso 9]><xml>
+<o:OfficeDocumentSettings>
+<o:AllowPNG/>
+<o:DoNotRelyOnCSS/>
+</o:OfficeDocumentSettings>
+</xml><![endif]--><!--[if gte mso 9]><xml>
+<w:WordDocument>
+<w:SpellingState>Clean</w:SpellingState>
+<w:TrackMoves/>
+<w:TrackFormatting/>
+<w:EnvelopeVis/>
+<w:PunctuationKerning/>
+<w:ValidateAgainstSchemas/>
+<w:SaveIfXMLInvalid>false</w:SaveIfXMLInvalid>
+<w:IgnoreMixedContent>false</w:IgnoreMixedContent>
+<w:AlwaysShowPlaceholderText>false</w:AlwaysShowPlaceholderText>
+<w:DoNotPromoteQF/>
+<w:LidThemeOther>EN-US</w:LidThemeOther>
+<w:LidThemeAsian>X-NONE</w:LidThemeAsian>
+<w:LidThemeComplexScript>X-NONE</w:LidThemeComplexScript>
+<w:Compatibility>
+<w:BreakWrappedTables/>
+<w:SnapToGridInCell/>
+<w:WrapTextWithPunct/>
+<w:UseAsianBreakRules/>
+<w:DontGrowAutofit/>
+<w:SplitPgBreakAndParaMark/>
+<w:EnableOpenTypeKerning/>
+<w:DontFlipMirrorIndents/>
+<w:OverrideTableStyleHps/>
+</w:Compatibility>
+<m:mathPr>
+<m:mathFont m:val=3D"Cambria Math"/>
+<m:brkBin m:val=3D"before"/>
+<m:brkBinSub m:val=3D"&#45;-"/>
+<m:smallFrac m:val=3D"off"/>
+<m:dispDef/>
+<m:lMargin m:val=3D"0"/>
+<m:rMargin m:val=3D"0"/>
+<m:defJc m:val=3D"centerGroup"/>
+<m:wrapIndent m:val=3D"1440"/>
+<m:intLim m:val=3D"subSup"/>
+<m:naryLim m:val=3D"undOvr"/>
+</m:mathPr></w:WordDocument>
+</xml><![endif]--><!--[if gte mso 9]><xml>
+<w:LatentStyles DefLockedState=3D"false" DefUnhideWhenUsed=3D"true" DefSemi=
+Hidden=3D"true" DefQFormat=3D"false" DefPriority=3D"99" LatentStyleCount=3D=
+"267">
+<w:LsdException Locked=3D"false" Priority=3D"0" SemiHidden=3D"false" Unhide=
+WhenUsed=3D"false" QFormat=3D"true" Name=3D"Normal"/>
+<w:LsdException Locked=3D"false" Priority=3D"9" SemiHidden=3D"false" Unhide=
+WhenUsed=3D"false" QFormat=3D"true" Name=3D"heading 1"/>
+<w:LsdException Locked=3D"false" Priority=3D"9" QFormat=3D"true" Name=3D"he=
+ading 2"/>
+<w:LsdException Locked=3D"false" Priority=3D"9" QFormat=3D"true" Name=3D"he=
+ading 3"/>
+<w:LsdException Locked=3D"false" Priority=3D"9" QFormat=3D"true" Name=3D"he=
+ading 4"/>
+<w:LsdException Locked=3D"false" Priority=3D"9" QFormat=3D"true" Name=3D"he=
+ading 5"/>
+<w:LsdException Locked=3D"false" Priority=3D"9" QFormat=3D"true" Name=3D"he=
+ading 6"/>
+<w:LsdException Locked=3D"false" Priority=3D"9" QFormat=3D"true" Name=3D"he=
+ading 7"/>
+<w:LsdException Locked=3D"false" Priority=3D"9" QFormat=3D"true" Name=3D"he=
+ading 8"/>
+<w:LsdException Locked=3D"false" Priority=3D"9" QFormat=3D"true" Name=3D"he=
+ading 9"/>
+<w:LsdException Locked=3D"false" Priority=3D"39" Name=3D"toc 1"/>
+<w:LsdException Locked=3D"false" Priority=3D"39" Name=3D"toc 2"/>
+<w:LsdException Locked=3D"false" Priority=3D"39" Name=3D"toc 3"/>
+<w:LsdException Locked=3D"false" Priority=3D"39" Name=3D"toc 4"/>
+<w:LsdException Locked=3D"false" Priority=3D"39" Name=3D"toc 5"/>
+<w:LsdException Locked=3D"false" Priority=3D"39" Name=3D"toc 6"/>
+<w:LsdException Locked=3D"false" Priority=3D"39" Name=3D"toc 7"/>
+<w:LsdException Locked=3D"false" Priority=3D"39" Name=3D"toc 8"/>
+<w:LsdException Locked=3D"false" Priority=3D"39" Name=3D"toc 9"/>
+<w:LsdException Locked=3D"false" Priority=3D"35" QFormat=3D"true" Name=3D"c=
+aption"/>
+<w:LsdException Locked=3D"false" Priority=3D"10" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" QFormat=3D"true" Name=3D"Title"/>
+<w:LsdException Locked=3D"false" Priority=3D"1" Name=3D"Default Paragraph F=
+ont"/>
+<w:LsdException Locked=3D"false" Priority=3D"11" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" QFormat=3D"true" Name=3D"Subtitle"/>
+<w:LsdException Locked=3D"false" Priority=3D"22" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" QFormat=3D"true" Name=3D"Strong"/>
+<w:LsdException Locked=3D"false" Priority=3D"20" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" QFormat=3D"true" Name=3D"Emphasis"/>
+<w:LsdException Locked=3D"false" Priority=3D"59" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Table Grid"/>
+<w:LsdException Locked=3D"false" UnhideWhenUsed=3D"false" Name=3D"Placehold=
+er Text"/>
+<w:LsdException Locked=3D"false" Priority=3D"1" SemiHidden=3D"false" Unhide=
+WhenUsed=3D"false" QFormat=3D"true" Name=3D"No Spacing"/>
+<w:LsdException Locked=3D"false" Priority=3D"60" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Light Shading"/>
+<w:LsdException Locked=3D"false" Priority=3D"61" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Light List"/>
+<w:LsdException Locked=3D"false" Priority=3D"62" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Light Grid"/>
+<w:LsdException Locked=3D"false" Priority=3D"63" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium Shading 1"/>
+<w:LsdException Locked=3D"false" Priority=3D"64" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium Shading 2"/>
+<w:LsdException Locked=3D"false" Priority=3D"65" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium List 1"/>
+<w:LsdException Locked=3D"false" Priority=3D"66" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium List 2"/>
+<w:LsdException Locked=3D"false" Priority=3D"67" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium Grid 1"/>
+<w:LsdException Locked=3D"false" Priority=3D"68" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium Grid 2"/>
+<w:LsdException Locked=3D"false" Priority=3D"69" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium Grid 3"/>
+<w:LsdException Locked=3D"false" Priority=3D"70" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Dark List"/>
+<w:LsdException Locked=3D"false" Priority=3D"71" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Colorful Shading"/>
+<w:LsdException Locked=3D"false" Priority=3D"72" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Colorful List"/>
+<w:LsdException Locked=3D"false" Priority=3D"73" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Colorful Grid"/>
+<w:LsdException Locked=3D"false" Priority=3D"60" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Light Shading Accent 1"/>
+<w:LsdException Locked=3D"false" Priority=3D"61" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Light List Accent 1"/>
+<w:LsdException Locked=3D"false" Priority=3D"62" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Light Grid Accent 1"/>
+<w:LsdException Locked=3D"false" Priority=3D"63" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium Shading 1 Accent 1"/>
+<w:LsdException Locked=3D"false" Priority=3D"64" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium Shading 2 Accent 1"/>
+<w:LsdException Locked=3D"false" Priority=3D"65" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium List 1 Accent 1"/>
+<w:LsdException Locked=3D"false" UnhideWhenUsed=3D"false" Name=3D"Revision"=
+/>
+<w:LsdException Locked=3D"false" Priority=3D"34" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" QFormat=3D"true" Name=3D"List Paragraph"/>
+<w:LsdException Locked=3D"false" Priority=3D"29" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" QFormat=3D"true" Name=3D"Quote"/>
+<w:LsdException Locked=3D"false" Priority=3D"30" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" QFormat=3D"true" Name=3D"Intense Quote"/>
+<w:LsdException Locked=3D"false" Priority=3D"66" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium List 2 Accent 1"/>
+<w:LsdException Locked=3D"false" Priority=3D"67" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium Grid 1 Accent 1"/>
+<w:LsdException Locked=3D"false" Priority=3D"68" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium Grid 2 Accent 1"/>
+<w:LsdException Locked=3D"false" Priority=3D"69" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium Grid 3 Accent 1"/>
+<w:LsdException Locked=3D"false" Priority=3D"70" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Dark List Accent 1"/>
+<w:LsdException Locked=3D"false" Priority=3D"71" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Colorful Shading Accent 1"/>
+<w:LsdException Locked=3D"false" Priority=3D"72" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Colorful List Accent 1"/>
+<w:LsdException Locked=3D"false" Priority=3D"73" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Colorful Grid Accent 1"/>
+<w:LsdException Locked=3D"false" Priority=3D"60" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Light Shading Accent 2"/>
+<w:LsdException Locked=3D"false" Priority=3D"61" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Light List Accent 2"/>
+<w:LsdException Locked=3D"false" Priority=3D"62" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Light Grid Accent 2"/>
+<w:LsdException Locked=3D"false" Priority=3D"63" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium Shading 1 Accent 2"/>
+<w:LsdException Locked=3D"false" Priority=3D"64" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium Shading 2 Accent 2"/>
+<w:LsdException Locked=3D"false" Priority=3D"65" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium List 1 Accent 2"/>
+<w:LsdException Locked=3D"false" Priority=3D"66" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium List 2 Accent 2"/>
+<w:LsdException Locked=3D"false" Priority=3D"67" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium Grid 1 Accent 2"/>
+<w:LsdException Locked=3D"false" Priority=3D"68" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium Grid 2 Accent 2"/>
+<w:LsdException Locked=3D"false" Priority=3D"69" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium Grid 3 Accent 2"/>
+<w:LsdException Locked=3D"false" Priority=3D"70" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Dark List Accent 2"/>
+<w:LsdException Locked=3D"false" Priority=3D"71" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Colorful Shading Accent 2"/>
+<w:LsdException Locked=3D"false" Priority=3D"72" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Colorful List Accent 2"/>
+<w:LsdException Locked=3D"false" Priority=3D"73" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Colorful Grid Accent 2"/>
+<w:LsdException Locked=3D"false" Priority=3D"60" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Light Shading Accent 3"/>
+<w:LsdException Locked=3D"false" Priority=3D"61" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Light List Accent 3"/>
+<w:LsdException Locked=3D"false" Priority=3D"62" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Light Grid Accent 3"/>
+<w:LsdException Locked=3D"false" Priority=3D"63" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium Shading 1 Accent 3"/>
+<w:LsdException Locked=3D"false" Priority=3D"64" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium Shading 2 Accent 3"/>
+<w:LsdException Locked=3D"false" Priority=3D"65" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium List 1 Accent 3"/>
+<w:LsdException Locked=3D"false" Priority=3D"66" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium List 2 Accent 3"/>
+<w:LsdException Locked=3D"false" Priority=3D"67" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium Grid 1 Accent 3"/>
+<w:LsdException Locked=3D"false" Priority=3D"68" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium Grid 2 Accent 3"/>
+<w:LsdException Locked=3D"false" Priority=3D"69" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium Grid 3 Accent 3"/>
+<w:LsdException Locked=3D"false" Priority=3D"70" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Dark List Accent 3"/>
+<w:LsdException Locked=3D"false" Priority=3D"71" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Colorful Shading Accent 3"/>
+<w:LsdException Locked=3D"false" Priority=3D"72" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Colorful List Accent 3"/>
+<w:LsdException Locked=3D"false" Priority=3D"73" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Colorful Grid Accent 3"/>
+<w:LsdException Locked=3D"false" Priority=3D"60" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Light Shading Accent 4"/>
+<w:LsdException Locked=3D"false" Priority=3D"61" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Light List Accent 4"/>
+<w:LsdException Locked=3D"false" Priority=3D"62" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Light Grid Accent 4"/>
+<w:LsdException Locked=3D"false" Priority=3D"63" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium Shading 1 Accent 4"/>
+<w:LsdException Locked=3D"false" Priority=3D"64" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium Shading 2 Accent 4"/>
+<w:LsdException Locked=3D"false" Priority=3D"65" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium List 1 Accent 4"/>
+<w:LsdException Locked=3D"false" Priority=3D"66" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium List 2 Accent 4"/>
+<w:LsdException Locked=3D"false" Priority=3D"67" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium Grid 1 Accent 4"/>
+<w:LsdException Locked=3D"false" Priority=3D"68" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium Grid 2 Accent 4"/>
+<w:LsdException Locked=3D"false" Priority=3D"69" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium Grid 3 Accent 4"/>
+<w:LsdException Locked=3D"false" Priority=3D"70" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Dark List Accent 4"/>
+<w:LsdException Locked=3D"false" Priority=3D"71" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Colorful Shading Accent 4"/>
+<w:LsdException Locked=3D"false" Priority=3D"72" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Colorful List Accent 4"/>
+<w:LsdException Locked=3D"false" Priority=3D"73" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Colorful Grid Accent 4"/>
+<w:LsdException Locked=3D"false" Priority=3D"60" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Light Shading Accent 5"/>
+<w:LsdException Locked=3D"false" Priority=3D"61" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Light List Accent 5"/>
+<w:LsdException Locked=3D"false" Priority=3D"62" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Light Grid Accent 5"/>
+<w:LsdException Locked=3D"false" Priority=3D"63" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium Shading 1 Accent 5"/>
+<w:LsdException Locked=3D"false" Priority=3D"64" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium Shading 2 Accent 5"/>
+<w:LsdException Locked=3D"false" Priority=3D"65" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium List 1 Accent 5"/>
+<w:LsdException Locked=3D"false" Priority=3D"66" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium List 2 Accent 5"/>
+<w:LsdException Locked=3D"false" Priority=3D"67" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium Grid 1 Accent 5"/>
+<w:LsdException Locked=3D"false" Priority=3D"68" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium Grid 2 Accent 5"/>
+<w:LsdException Locked=3D"false" Priority=3D"69" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium Grid 3 Accent 5"/>
+<w:LsdException Locked=3D"false" Priority=3D"70" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Dark List Accent 5"/>
+<w:LsdException Locked=3D"false" Priority=3D"71" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Colorful Shading Accent 5"/>
+<w:LsdException Locked=3D"false" Priority=3D"72" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Colorful List Accent 5"/>
+<w:LsdException Locked=3D"false" Priority=3D"73" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Colorful Grid Accent 5"/>
+<w:LsdException Locked=3D"false" Priority=3D"60" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Light Shading Accent 6"/>
+<w:LsdException Locked=3D"false" Priority=3D"61" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Light List Accent 6"/>
+<w:LsdException Locked=3D"false" Priority=3D"62" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Light Grid Accent 6"/>
+<w:LsdException Locked=3D"false" Priority=3D"63" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium Shading 1 Accent 6"/>
+<w:LsdException Locked=3D"false" Priority=3D"64" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium Shading 2 Accent 6"/>
+<w:LsdException Locked=3D"false" Priority=3D"65" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium List 1 Accent 6"/>
+<w:LsdException Locked=3D"false" Priority=3D"66" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium List 2 Accent 6"/>
+<w:LsdException Locked=3D"false" Priority=3D"67" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium Grid 1 Accent 6"/>
+<w:LsdException Locked=3D"false" Priority=3D"68" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium Grid 2 Accent 6"/>
+<w:LsdException Locked=3D"false" Priority=3D"69" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Medium Grid 3 Accent 6"/>
+<w:LsdException Locked=3D"false" Priority=3D"70" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Dark List Accent 6"/>
+<w:LsdException Locked=3D"false" Priority=3D"71" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Colorful Shading Accent 6"/>
+<w:LsdException Locked=3D"false" Priority=3D"72" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Colorful List Accent 6"/>
+<w:LsdException Locked=3D"false" Priority=3D"73" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" Name=3D"Colorful Grid Accent 6"/>
+<w:LsdException Locked=3D"false" Priority=3D"19" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" QFormat=3D"true" Name=3D"Subtle Emphasis"/>
+<w:LsdException Locked=3D"false" Priority=3D"21" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" QFormat=3D"true" Name=3D"Intense Emphasis"/>
+<w:LsdException Locked=3D"false" Priority=3D"31" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" QFormat=3D"true" Name=3D"Subtle Reference"/>
+<w:LsdException Locked=3D"false" Priority=3D"32" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" QFormat=3D"true" Name=3D"Intense Reference"/>
+<w:LsdException Locked=3D"false" Priority=3D"33" SemiHidden=3D"false" Unhid=
+eWhenUsed=3D"false" QFormat=3D"true" Name=3D"Book Title"/>
+<w:LsdException Locked=3D"false" Priority=3D"37" Name=3D"Bibliography"/>
+<w:LsdException Locked=3D"false" Priority=3D"39" QFormat=3D"true" Name=3D"T=
+OC Heading"/>
+</w:LatentStyles>
+</xml><![endif]--><style><!--
+/* Font Definitions */
+@font-face
+	{font-family:Calibri;
+	panose-1:2 15 5 2 2 2 4 3 2 4;
+	mso-font-alt:"Century Gothic";
+	mso-font-charset:0;
+	mso-generic-font-family:swiss;
+	mso-font-pitch:variable;
+	mso-font-signature:-520092929 1073786111 9 0 415 0;}
+/* Style Definitions */
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{mso-style-unhide:no;
+	mso-style-qformat:yes;
+	mso-style-parent:"";
+	margin:0in;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";
+	mso-ascii-font-family:Calibri;
+	mso-fareast-font-family:Calibri;
+	mso-hansi-font-family:Calibri;
+	mso-bidi-font-family:"Times New Roman";}
+a:link, span.MsoHyperlink
+	{mso-style-noshow:yes;
+	mso-style-priority:99;
+	color:blue;
+	text-decoration:underline;
+	text-underline:single;}
+a:visited, span.MsoHyperlinkFollowed
+	{mso-style-noshow:yes;
+	mso-style-priority:99;
+	color:purple;
+	text-decoration:underline;
+	text-underline:single;}
+span.EmailStyle17
+	{mso-style-type:personal-compose;
+	mso-style-noshow:yes;
+	mso-style-unhide:no;
+	mso-ansi-font-size:11.0pt;
+	mso-bidi-font-size:11.0pt;
+	font-family:"Calibri","sans-serif";
+	mso-ascii-font-family:Calibri;
+	mso-fareast-font-family:Calibri;
+	mso-hansi-font-family:Calibri;
+	mso-bidi-font-family:"Times New Roman";
+	color:windowtext;}
+span.SpellE
+	{mso-style-name:"";
+	mso-spl-e:yes;}
+.MsoChpDefault
+	{mso-style-type:export-only;
+	mso-default-props:yes;
+	font-family:"Calibri","sans-serif";
+	mso-ascii-font-family:Calibri;
+	mso-fareast-font-family:Calibri;
+	mso-hansi-font-family:Calibri;
+	mso-bidi-font-family:"Times New Roman";}
+@page WordSection1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.0in 1.0in 1.0in;
+	mso-header-margin:.5in;
+	mso-footer-margin:.5in;
+	mso-paper-source:0;}
+div.WordSection1
+	{page:WordSection1;}
+--></style><!--[if gte mso 10]><style>/* Style Definitions */
+table.MsoNormalTable
+	{mso-style-name:"Table Normal";
+	mso-tstyle-rowband-size:0;
+	mso-tstyle-colband-size:0;
+	mso-style-noshow:yes;
+	mso-style-priority:99;
+	mso-style-parent:"";
+	mso-padding-alt:0in 5.4pt 0in 5.4pt;
+	mso-para-margin:0in;
+	mso-para-margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";
+	mso-ascii-font-family:Calibri;
+	mso-hansi-font-family:Calibri;
+	mso-bidi-font-family:"Times New Roman";}
+</style><![endif]--><!--[if gte mso 9]><xml>
+<o:shapedefaults v:ext=3D"edit" spidmax=3D"1026" />
+</xml><![endif]--><!--[if gte mso 9]><xml>
+<o:shapelayout v:ext=3D"edit">
+<o:idmap v:ext=3D"edit" data=3D"1" />
+</o:shapelayout></xml><![endif]-->
+</head>
+<body lang=3D"EN-US" link=3D"blue" vlink=3D"purple" style=3D"tab-interval:.=
+5in">
+<div class=3D"WordSection1">
+<p class=3D"MsoNormal"><font size=3D"2" face=3D"Calibri"><span style=3D"fon=
+t-size:11.0pt">Hi Jean/Guenter,<o:p></o:p></span></font></p>
+<p class=3D"MsoNormal"><font size=3D"2" face=3D"Calibri"><span style=3D"fon=
+t-size:11.0pt"><o:p>&nbsp;</o:p></span></font></p>
+<p class=3D"MsoNormal"><font size=3D"2" face=3D"Calibri"><span style=3D"fon=
+t-size:11.0pt">In
+<span class=3D"SpellE">thermal_sys.c</span> we have a CONFIG_THERMAL_HWMON.=
+<o:p></o:p></span></font></p>
+<p class=3D"MsoNormal"><font size=3D"2" face=3D"Calibri"><span style=3D"fon=
+t-size:11.0pt">If enabled, this creates sysfs nodes for thermal zones insid=
+e<o:p></o:p></span></font></p>
+<p class=3D"MsoNormal"><span class=3D"SpellE"><font size=3D"2" face=3D"Cali=
+bri"><span style=3D"font-size:11.0pt">hwmon</span></font></span>. Do we nee=
+d this functionality inside
+<span class=3D"SpellE">thermal_sys.c</span> ?<o:p></o:p></p>
+<p class=3D"MsoNormal"><font size=3D"2" face=3D"Calibri"><span style=3D"fon=
+t-size:11.0pt">Or is it Ok to remove this ?<o:p></o:p></span></font></p>
+<p class=3D"MsoNormal"><font size=3D"2" face=3D"Calibri"><span style=3D"fon=
+t-size:11.0pt"><o:p>&nbsp;</o:p></span></font></p>
+<p class=3D"MsoNormal"><font size=3D"2" face=3D"Calibri"><span style=3D"fon=
+t-size:11.0pt">I wanted to know your opinion before submitting a patch.<o:p=
+></o:p></span></font></p>
+<p class=3D"MsoNormal"><font size=3D"2" face=3D"Calibri"><span style=3D"fon=
+t-size:11.0pt"><o:p>&nbsp;</o:p></span></font></p>
+<p class=3D"MsoNormal"><font size=3D"2" face=3D"Calibri"><span style=3D"fon=
+t-size:11.0pt">Thanks,<o:p></o:p></span></font></p>
+<p class=3D"MsoNormal"><font size=3D"2" face=3D"Calibri"><span style=3D"fon=
+t-size:11.0pt">Durga
+<o:p></o:p></span></font></p>
+</div>
+</body>
+</html>
+
+--_000_4D68720C2E767A4AA6A8796D42C8EB591B6F8FBGSMSX101garcorpi_--
+
+
+--===============5839877007958540778==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============5839877007958540778==--
