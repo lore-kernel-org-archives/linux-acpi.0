@@ -1,144 +1,64 @@
-From: Zhang Rui <rui.zhang@intel.com>
+From: "R, Durgadoss" <durgadoss.r@intel.com>
 Subject: RE: [PATCHv3 13/15] Thermal: Remove throttling logic out of
  thermal_sys.c
-Date: Tue, 11 Sep 2012 11:20:51 +0800
-Message-ID: <1347333651.1682.1143.camel@rui.sh.intel.com>
+Date: Tue, 11 Sep 2012 03:39:15 +0000
+Message-ID: <4D68720C2E767A4AA6A8796D42C8EB591B6E08@BGSMSX101.gar.corp.intel.com>
 References: <1346500296-25200-1-git-send-email-durgadoss.r@intel.com>
 	 <1346500296-25200-14-git-send-email-durgadoss.r@intel.com>
 	 <1347266657.1682.1086.camel@rui.sh.intel.com>
 	 <4D68720C2E767A4AA6A8796D42C8EB591B54AA@BGSMSX101.gar.corp.intel.com>
 	 <1347323058.1682.1093.camel@rui.sh.intel.com>
 	 <4D68720C2E767A4AA6A8796D42C8EB591B6D84@BGSMSX101.gar.corp.intel.com>
+ <1347333651.1682.1143.camel@rui.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:28305 "EHLO mga03.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:56485 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755171Ab2IKDUC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 10 Sep 2012 23:20:02 -0400
-In-Reply-To: <4D68720C2E767A4AA6A8796D42C8EB591B6D84@BGSMSX101.gar.corp.intel.com>
+	id S1751748Ab2IKDje (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 10 Sep 2012 23:39:34 -0400
+In-Reply-To: <1347333651.1682.1143.camel@rui.sh.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "R, Durgadoss" <durgadoss.r@intel.com>
+To: "Zhang, Rui" <rui.zhang@intel.com>
 Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>
 
-On =E4=B8=80, 2012-09-10 at 21:05 -0600, R, Durgadoss wrote:
-> Hi Rui,
->=20
-> > On =E4=B8=80, 2012-09-10 at 02:56 -0600, R, Durgadoss wrote:
-> > > Hi Rui,
-> > >
-> > > > -----Original Message-----
-> > > > From: Zhang, Rui
-> > > > Sent: Monday, September 10, 2012 2:14 PM
-> > > > To: R, Durgadoss
-> > > > Cc: lenb@kernel.org; linux-acpi@vger.kernel.org;
-> > eduardo.valentin@ti.com
-> > > > Subject: Re: [PATCHv3 13/15] Thermal: Remove throttling logic o=
-ut of
-> > > > thermal_sys.c
-> > > [cut.]
-> > >
-> > > > > +
-> > > > > +static void handle_non_critical_trips(struct thermal_zone_de=
-vice *tz,
-> > > > > +			int trip, enum thermal_trip_type trip_type)
-> > > > > +{
-> > > > > +	tz->governor->throttle(tz, trip);
-> > > > > +}
-> > > > here is the problem, we must make sure every registered thermal=
- zone
-> > > > have a governor when it is running, right?
-> > >
-> > > Yes, agree with you. Had some thoughts here, but wanted to get yo=
-ur
-> > opinion
-> > > before I implemented them.
-> > >
-> > > 1. We can make the default governor as 'user space', and make it =
-load
-> > inside
-> > > thermal_sys.c (so that every zone will always have a default gove=
-rnor)
-> > >
-> > No, the default governor should be step wise so that it behaves the=
- same
-> > as before. if we use userspace as default governor, most of the the=
-rmal
-> > driver will stop working with this patch set.
->=20
-> yes, I understand. Shall make step_wise default, and always loaded.
->=20
-we can always make step-wise default, or we can ask users to select one
-as default and load it.
-
-> For user space, should we move it to a new .c file, and make it like
-> other governors or can we keep it as it is ?
->=20
-a new .c file for userspace governor.
-
-> Thanks,
-> Durga
->=20
-> >=20
-> > IMO, we should make all of the governors configurable, but at least=
- one
-> > of them must be selected as the default governor, that's why we nee=
-d
-> > something below.
-> >=20
-> > choice
-> >         prompt "Default thermal governor"
-> >         default THERMAL_DEFAULT_GOV_STEP_WISE
-> >         help
-> >           This option sets which thermal governor shall be loaded a=
-t
-> >           startup.
-> >=20
-> > thanks,
-> > rui
-> >=20
-> > > 2. All other governors, that are implemented in a separate .c fil=
-e can be
-> > > optional i.e. left to the user to select/deselect.
-> > >
-> > > IMO, this will make our implementation easier and cleaner.
-> > > What do you think ?
-> > >
-> > > Thanks,
-> > > Durga
-> > >
-> > > >
-> > > > then the default governor must always be built in.
-> > > > We can have a Kconfig option for step_wise, but we should not m=
-ake it
-> > > > configurable by users.
-> > > > or we can use prompt to get the default governor at build time.=
- say
-> > > >
-> > > > choice
-> > > >         prompt "Default thermal governor"
-> > > >         default THERMAL_DEFAULT_GOV_STEP_WISE
-> > > >         help
-> > > >           This option sets which thermal governor shall be load=
-ed at
-> > > >           startup.
-> > > >
-> > > > config THERMAL_DEFAULT_GOV_STEP_WISE
-> > > >         bool "step-wise"
-> > > >         select THERMAL_GOV_STEP_WISE
-> > > >         help
-> > > >           Use the thermal governor 'step-wise' as default.blabl=
-a
-> > > >
-> > > >
-> > > > thanks,
-> > > > rui
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SGkgUnVpLA0KDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogWmhhbmcs
+IFJ1aQ0KPiBTZW50OiBUdWVzZGF5LCBTZXB0ZW1iZXIgMTEsIDIwMTIgODo1MSBBTQ0KPiBUbzog
+UiwgRHVyZ2Fkb3NzDQo+IENjOiBsZW5iQGtlcm5lbC5vcmc7IGxpbnV4LWFjcGlAdmdlci5rZXJu
+ZWwub3JnOyBlZHVhcmRvLnZhbGVudGluQHRpLmNvbQ0KPiBTdWJqZWN0OiBSRTogW1BBVENIdjMg
+MTMvMTVdIFRoZXJtYWw6IFJlbW92ZSB0aHJvdHRsaW5nIGxvZ2ljIG91dCBvZg0KPiB0aGVybWFs
+X3N5cy5jDQo+IA0KPiBPbiDkuIAsIDIwMTItMDktMTAgYXQgMjE6MDUgLTA2MDAsIFIsIER1cmdh
+ZG9zcyB3cm90ZToNCj4gPiBIaSBSdWksDQo+ID4NCj4gPiA+IE9uIOS4gCwgMjAxMi0wOS0xMCBh
+dCAwMjo1NiAtMDYwMCwgUiwgRHVyZ2Fkb3NzIHdyb3RlOg0KPiA+ID4gPiBIaSBSdWksDQo+ID4g
+PiA+DQo+ID4gPiA+ID4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPiA+ID4gPiBGcm9t
+OiBaaGFuZywgUnVpDQo+ID4gPiA+ID4gU2VudDogTW9uZGF5LCBTZXB0ZW1iZXIgMTAsIDIwMTIg
+MjoxNCBQTQ0KPiA+ID4gPiA+IFRvOiBSLCBEdXJnYWRvc3MNCj4gPiA+ID4gPiBDYzogbGVuYkBr
+ZXJuZWwub3JnOyBsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZzsNCj4gPiA+IGVkdWFyZG8udmFs
+ZW50aW5AdGkuY29tDQo+ID4gPiA+ID4gU3ViamVjdDogUmU6IFtQQVRDSHYzIDEzLzE1XSBUaGVy
+bWFsOiBSZW1vdmUgdGhyb3R0bGluZyBsb2dpYyBvdXQgb2YNCj4gPiA+ID4gPiB0aGVybWFsX3N5
+cy5jDQo+ID4gPiA+IFtjdXQuXQ0KPiA+ID4gPg0KPiA+ID4gPiA+ID4gKw0KPiA+ID4gPiA+ID4g
+K3N0YXRpYyB2b2lkIGhhbmRsZV9ub25fY3JpdGljYWxfdHJpcHMoc3RydWN0IHRoZXJtYWxfem9u
+ZV9kZXZpY2UNCj4gKnR6LA0KPiA+ID4gPiA+ID4gKwkJCWludCB0cmlwLCBlbnVtIHRoZXJtYWxf
+dHJpcF90eXBlIHRyaXBfdHlwZSkNCj4gPiA+ID4gPiA+ICt7DQo+ID4gPiA+ID4gPiArCXR6LT5n
+b3Zlcm5vci0+dGhyb3R0bGUodHosIHRyaXApOw0KPiA+ID4gPiA+ID4gK30NCj4gPiA+ID4gPiBo
+ZXJlIGlzIHRoZSBwcm9ibGVtLCB3ZSBtdXN0IG1ha2Ugc3VyZSBldmVyeSByZWdpc3RlcmVkIHRo
+ZXJtYWwNCj4gem9uZQ0KPiA+ID4gPiA+IGhhdmUgYSBnb3Zlcm5vciB3aGVuIGl0IGlzIHJ1bm5p
+bmcsIHJpZ2h0Pw0KPiA+ID4gPg0KPiA+ID4gPiBZZXMsIGFncmVlIHdpdGggeW91LiBIYWQgc29t
+ZSB0aG91Z2h0cyBoZXJlLCBidXQgd2FudGVkIHRvIGdldCB5b3VyDQo+ID4gPiBvcGluaW9uDQo+
+ID4gPiA+IGJlZm9yZSBJIGltcGxlbWVudGVkIHRoZW0uDQo+ID4gPiA+DQo+ID4gPiA+IDEuIFdl
+IGNhbiBtYWtlIHRoZSBkZWZhdWx0IGdvdmVybm9yIGFzICd1c2VyIHNwYWNlJywgYW5kIG1ha2Ug
+aXQgbG9hZA0KPiA+ID4gaW5zaWRlDQo+ID4gPiA+IHRoZXJtYWxfc3lzLmMgKHNvIHRoYXQgZXZl
+cnkgem9uZSB3aWxsIGFsd2F5cyBoYXZlIGEgZGVmYXVsdCBnb3Zlcm5vcikNCj4gPiA+ID4NCj4g
+PiA+IE5vLCB0aGUgZGVmYXVsdCBnb3Zlcm5vciBzaG91bGQgYmUgc3RlcCB3aXNlIHNvIHRoYXQg
+aXQgYmVoYXZlcyB0aGUgc2FtZQ0KPiA+ID4gYXMgYmVmb3JlLiBpZiB3ZSB1c2UgdXNlcnNwYWNl
+IGFzIGRlZmF1bHQgZ292ZXJub3IsIG1vc3Qgb2YgdGhlIHRoZXJtYWwNCj4gPiA+IGRyaXZlciB3
+aWxsIHN0b3Agd29ya2luZyB3aXRoIHRoaXMgcGF0Y2ggc2V0Lg0KPiA+DQo+ID4geWVzLCBJIHVu
+ZGVyc3RhbmQuIFNoYWxsIG1ha2Ugc3RlcF93aXNlIGRlZmF1bHQsIGFuZCBhbHdheXMgbG9hZGVk
+Lg0KPiA+DQo+IHdlIGNhbiBhbHdheXMgbWFrZSBzdGVwLXdpc2UgZGVmYXVsdCwgb3Igd2UgY2Fu
+IGFzayB1c2VycyB0byBzZWxlY3Qgb25lDQo+IGFzIGRlZmF1bHQgYW5kIGxvYWQgaXQuDQoNCldp
+bGwgYWx3YXlzIHN0ZXBfd2lzZSBkZWZhdWx0LiBUaGF0IHdpbGwgZXhhY3RseSBtaW1pYyB0aGUg
+b2xkIGJlaGF2aW9yLg0Kd2lsbCBhbHNvIGNyZWF0ZSBhIG5ldyBmaWxlIGZvciB1c2VyIHNwYWNl
+IGdvdmVybm9yLg0KDQpUaGFua3MsDQpEdXJnYQ0K
