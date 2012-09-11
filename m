@@ -1,53 +1,171 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH] ACPI / PM: Infer parent power state from child if unknown
-Date: Tue, 11 Sep 2012 13:33:07 +0800
-Message-ID: <20120911053305.GA2130@mint-spring.sh.intel.com>
-References: <1346053126-7646-1-git-send-email-aaron.lu@intel.com>
- <201209072032.55469.rjw@sisk.pl>
- <20120910003805.GA1590@mint-spring.sh.intel.com>
- <201209102150.22738.rjw@sisk.pl>
+From: Wen Congyang <wency@cn.fujitsu.com>
+Subject: Re: [RFC v8 PATCH 00/20] memory-hotplug: hot-remove physical memory
+Date: Tue, 11 Sep 2012 13:39:46 +0800
+Message-ID: <504ECEA2.4010805@cn.fujitsu.com>
+References: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com>	<20120831134956.fec0f681.akpm@linux-foundation.org>	<504D467D.2080201@jp.fujitsu.com>	<504D4A08.7090602@cn.fujitsu.com>	<20120910135213.GA1550@dhcp-192-168-178-175.profitbricks.localdomain>	<CAAV+Mu7YWRWnxt78F4ZDMrrUsWB=n-_qkYOcQT7WQ2HwP89Obw@mail.gmail.com>	<20120911012345.GD14205@bbox> <CAAV+Mu4hb0qbW2Ry6w5FAGUM06puDH0v_H-jr584-G9CzJqSGw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201209102150.22738.rjw@sisk.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <CAAV+Mu4hb0qbW2Ry6w5FAGUM06puDH0v_H-jr584-G9CzJqSGw@mail.gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Jerry <uulinux@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, kosaki.motohiro@jp.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Sep 10, 2012 at 09:50:22PM +0200, Rafael J. Wysocki wrote:
->  drivers/acpi/bus.c |   11 ++++++++++-
->  1 file changed, 10 insertions(+), 1 deletion(-)
+At 09/11/2012 01:18 PM, Jerry Wrote:
+> Hi Kim,
 > 
-> Index: linux/drivers/acpi/bus.c
-> ===================================================================
-> --- linux.orig/drivers/acpi/bus.c
-> +++ linux/drivers/acpi/bus.c
-> @@ -228,7 +228,16 @@ static int __acpi_bus_get_power(struct a
->  		result = psc;
->  	}
->  	/* The test below covers ACPI_STATE_UNKNOWN too. */
-> -	if (result <= ACPI_STATE_D2) {
-> +	if (result == ACPI_STATE_D0) {
+> Thank you for your kindness. Let me clarify this:
+> 
+> On ARM architecture, there are 32 bits physical addresses space. However,
+> the addresses space is divided into 8 banks normally. Each bank
+> disabled/enabled by a chip selector signal. In my platform, bank0 connects
+> a DDR chip, and bank1 also connects another DDR chip. And each DDR chip
+> whose capability is 512MB is integrated into the main board. So, it could
+> not be removed by hand. We can disable/enable each bank by peripheral
+> device controller registers.
+> 
+> When system enter suspend state, if all the pages allocated could be
+> migrated to one bank, there are no valid data in the another bank. In this
+> time, I could disable the free bank. It isn't necessary to provided power
+> to this chip in the suspend state. When system resume, I just need to
+> enable it again.
+> 
+> Hi Wen,
+> 
+> I am sorry for that I doesn't know the "_PSx support" means. Maybe I
+> needn't it.
 
-Oops, I just realized that the check here is too early if device does
-not have _PSC but _PRx, its parent will miss the chance to get power
-state updated :-)
+Hmm, arm doesn't support ACPI, so please ignore it.
 
-Sorry for not spotting this earlier.
+Thanks
+Wen Congyang
 
--Aaron
+> 
+> Thanks,
+> Jerry
+> 
+> 2012/9/11 Minchan Kim <minchan@kernel.org>
+> 
+>> Hi Jerry,
+>>
+>> On Tue, Sep 11, 2012 at 08:27:40AM +0800, Jerry wrote:
+>>> Hi Wen,
+>>>
+>>> I have been arranged a job related memory hotplug on ARM architecture.
+>>> Maybe I know some new issues about memory hotplug on ARM architecture. I
+>>> just enabled it on ARM, and it works well in my Android tablet now.
+>>> However, I have not send out my patches. The real reason is that I don't
+>>> know how to do it. Maybe I need to read
+>> "Documentation/SubmittingPatches".
+>>>
+>>> Hi Andrew,
+>>> This is my first time to send you a e-mail. I am so nervous about if I
+>> have
+>>> some mistakes or not.
+>>
+>> Don't be afraid.
+>> If you might make a mistake, it's very natural to newbie.
+>> I am sure anyone doesn't blame you. :)
+>> If you have a good patch, please send out.
+>>
+>>>
+>>> Some peoples maybe think memory hotplug need to be supported by special
+>>> hardware. Maybe it means memory physical hotplug. Some times, we just
+>> need
+>>> to use memory logical hotplug, doesn't remove the memory in physical. It
+>> is
+>>> also usefully for power saving in my platform. Because I doesn't want
+>>> the offline memory is in *self-refresh* state.
+>>
+>> Just out of curiosity.
+>> What's the your scenario and gain?
+>> AFAIK, there were some effort about it in embedded side but gain isn't
+>> rather big
+>> IIRC.
+>>
+>>>
+>>> Any comments are appreciated.
+>>>
+>>> Thanks,
+>>> Jerry
+>>>
+>>> 2012/9/10 Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
+>>>
+>>>> Hi,
+>>>>
+>>>> On Mon, Sep 10, 2012 at 10:01:44AM +0800, Wen Congyang wrote:
+>>>>> At 09/10/2012 09:46 AM, Yasuaki Ishimatsu Wrote:
+>>>>>> Hi Wen,
+>>>>>>
+>>>>>> 2012/09/01 5:49, Andrew Morton wrote:
+>>>>>>> On Tue, 28 Aug 2012 18:00:07 +0800
+>>>>>>> wency@cn.fujitsu.com wrote:
+>>>>>>>
+>>>>>>>> This patch series aims to support physical memory hot-remove.
+>>>>>>>
+>>>>>>> I doubt if many people have hardware which permits physical memory
+>>>>>>> removal?  How would you suggest that people with regular hardware
+>> can
+>>>>>>> test these chagnes?
+>>>>>>
+>>>>>> How do you test the patch? As Andrew says, for hot-removing memory,
+>>>>>> we need a particular hardware. I think so too. So many people may
+>> want
+>>>>>> to know how to test the patch.
+>>>>>> If we apply following patch to kvm guest, can we hot-remove memory
+>> on
+>>>>>> kvm guest?
+>>>>>>
+>>>>>> http://lists.gnu.org/archive/html/qemu-devel/2012-07/msg01389.html
+>>>>>
+>>>>> Yes, if we apply this patchset, we can test hot-remove memory on kvm
+>>>> guest.
+>>>>> But that patchset doesn't implement _PS3, so there is some
+>> restriction.
+>>>>
+>>>> the following repos contain the patchset above, plus 2 more patches
+>> that
+>>>> add
+>>>> PS3 support to the dimm devices in qemu/seabios:
+>>>>
+>>>> https://github.com/vliaskov/seabios/commits/memhp-v2
+>>>> https://github.com/vliaskov/qemu-kvm/commits/memhp-v2
+>>>>
+>>>> I have not posted the PS3 patches yet in the qemu list, but will post
+>> them
+>>>> soon for v3 of the memory hotplug series. If you have issues testing,
+>> let
+>>>> me
+>>>> know.
+>>>>
+>>>> thanks,
+>>>>
+>>>> - Vasilis
+>>>>
+>>>> --
+>>>> To unsubscribe, send a message with 'unsubscribe linux-mm' in
+>>>> the body to majordomo@kvack.org.  For more info on Linux MM,
+>>>> see: http://www.linux-mm.org/ .
+>>>> Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+>>>>
+>>>
+>>>
+>>>
+>>> --
+>>> I love linux!!!
+>>
+>> --
+>> Kind regards,
+>> Minchan Kim
+>>
+> 
+> 
+> 
 
-> +		/*
-> +		 * If we were unsure about the device parent's power state up to
-> +		 * this point, the fact that the device is in D0 implies that
-> +		 * the parent has to be in D0 too.
-> +		 */
-> +		if (device->parent
-> +		    && device->parent->power.state == ACPI_STATE_UNKNOWN)
-> +			device->parent->power.state = ACPI_STATE_D0;
-> +	} else if (result <= ACPI_STATE_D2) {
->  	  ; /* Do nothing. */
->  	} else if (device->power.flags.power_resources) {
->  		int error = acpi_power_get_inferred_state(device, &result);
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
