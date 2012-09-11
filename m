@@ -1,107 +1,76 @@
-From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: Re: [RFC v9 PATCH 05/21] memory-hotplug: check whether memory is
- present or not
-Date: Tue, 11 Sep 2012 10:15:26 +0800
-Message-ID: <504E9EBE.1040403@cn.fujitsu.com>
-References: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com> <1346837155-534-6-git-send-email-wency@cn.fujitsu.com>
+From: "R, Durgadoss" <durgadoss.r@intel.com>
+Subject: RE: [PATCHv3 13/15] Thermal: Remove throttling logic out of
+ thermal_sys.c
+Date: Tue, 11 Sep 2012 03:05:59 +0000
+Message-ID: <4D68720C2E767A4AA6A8796D42C8EB591B6D84@BGSMSX101.gar.corp.intel.com>
+References: <1346500296-25200-1-git-send-email-durgadoss.r@intel.com>
+	 <1346500296-25200-14-git-send-email-durgadoss.r@intel.com>
+	 <1347266657.1682.1086.camel@rui.sh.intel.com>
+	 <4D68720C2E767A4AA6A8796D42C8EB591B54AA@BGSMSX101.gar.corp.intel.com>
+ <1347323058.1682.1093.camel@rui.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1346837155-534-6-git-send-email-wency@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: isimatu.yasuaki@jp.fujitsu.com
-Cc: wency@cn.fujitsu.com, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:42874 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754704Ab2IKDGC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 10 Sep 2012 23:06:02 -0400
+In-Reply-To: <1347323058.1682.1093.camel@rui.sh.intel.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zhang, Rui" <rui.zhang@intel.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>
 
-Hi, ishimatsu
-
-At 09/05/2012 05:25 PM, wency@cn.fujitsu.com Wrote:
-> From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> 
-> If system supports memory hot-remove, online_pages() may online removed pages.
-> So online_pages() need to check whether onlining pages are present or not.
-
-Because we use memory_block_change_state() to hotremoving memory, I think
-this patch can be removed. What do you think?
-
-Thanks
-Wen Congyang
-
-> 
-> CC: David Rientjes <rientjes@google.com>
-> CC: Jiang Liu <liuj97@gmail.com>
-> CC: Len Brown <len.brown@intel.com>
-> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-> CC: Paul Mackerras <paulus@samba.org>
-> CC: Christoph Lameter <cl@linux.com>
-> Cc: Minchan Kim <minchan.kim@gmail.com>
-> CC: Andrew Morton <akpm@linux-foundation.org>
-> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-> CC: Wen Congyang <wency@cn.fujitsu.com>
-> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> ---
->  include/linux/mmzone.h |   19 +++++++++++++++++++
->  mm/memory_hotplug.c    |   13 +++++++++++++
->  2 files changed, 32 insertions(+), 0 deletions(-)
-> 
-> diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
-> index 2daa54f..ac3ae30 100644
-> --- a/include/linux/mmzone.h
-> +++ b/include/linux/mmzone.h
-> @@ -1180,6 +1180,25 @@ void sparse_init(void);
->  #define sparse_index_init(_sec, _nid)  do {} while (0)
->  #endif /* CONFIG_SPARSEMEM */
->  
-> +#ifdef CONFIG_SPARSEMEM
-> +static inline int pfns_present(unsigned long pfn, unsigned long nr_pages)
-> +{
-> +	int i;
-> +	for (i = 0; i < nr_pages; i++) {
-> +		if (pfn_present(pfn + i))
-> +			continue;
-> +		else
-> +			return -EINVAL;
-> +	}
-> +	return 0;
-> +}
-> +#else
-> +static inline int pfns_present(unsigned long pfn, unsigned long nr_pages)
-> +{
-> +	return 0;
-> +}
-> +#endif /* CONFIG_SPARSEMEM*/
-> +
->  #ifdef CONFIG_NODES_SPAN_OTHER_NODES
->  bool early_pfn_in_nid(unsigned long pfn, int nid);
->  #else
-> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-> index 49f7747..299747d 100644
-> --- a/mm/memory_hotplug.c
-> +++ b/mm/memory_hotplug.c
-> @@ -467,6 +467,19 @@ int __ref online_pages(unsigned long pfn, unsigned long nr_pages)
->  	struct memory_notify arg;
->  
->  	lock_memory_hotplug();
-> +	/*
-> +	 * If system supports memory hot-remove, the memory may have been
-> +	 * removed. So we check whether the memory has been removed or not.
-> +	 *
-> +	 * Note: When CONFIG_SPARSEMEM is defined, pfns_present() become
-> +	 *       effective. If CONFIG_SPARSEMEM is not defined, pfns_present()
-> +	 *       always returns 0.
-> +	 */
-> +	ret = pfns_present(pfn, nr_pages);
-> +	if (ret) {
-> +		unlock_memory_hotplug();
-> +		return ret;
-> +	}
->  	arg.start_pfn = pfn;
->  	arg.nr_pages = nr_pages;
->  	arg.status_change_nid = -1;
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+SGkgUnVpLA0KDQo+IE9uIOS4gCwgMjAxMi0wOS0xMCBhdCAwMjo1NiAtMDYwMCwgUiwgRHVyZ2Fk
+b3NzIHdyb3RlOg0KPiA+IEhpIFJ1aSwNCj4gPg0KPiA+ID4gLS0tLS1PcmlnaW5hbCBNZXNzYWdl
+LS0tLS0NCj4gPiA+IEZyb206IFpoYW5nLCBSdWkNCj4gPiA+IFNlbnQ6IE1vbmRheSwgU2VwdGVt
+YmVyIDEwLCAyMDEyIDI6MTQgUE0NCj4gPiA+IFRvOiBSLCBEdXJnYWRvc3MNCj4gPiA+IENjOiBs
+ZW5iQGtlcm5lbC5vcmc7IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnOw0KPiBlZHVhcmRvLnZh
+bGVudGluQHRpLmNvbQ0KPiA+ID4gU3ViamVjdDogUmU6IFtQQVRDSHYzIDEzLzE1XSBUaGVybWFs
+OiBSZW1vdmUgdGhyb3R0bGluZyBsb2dpYyBvdXQgb2YNCj4gPiA+IHRoZXJtYWxfc3lzLmMNCj4g
+PiBbY3V0Ll0NCj4gPg0KPiA+ID4gPiArDQo+ID4gPiA+ICtzdGF0aWMgdm9pZCBoYW5kbGVfbm9u
+X2NyaXRpY2FsX3RyaXBzKHN0cnVjdCB0aGVybWFsX3pvbmVfZGV2aWNlICp0eiwNCj4gPiA+ID4g
+KwkJCWludCB0cmlwLCBlbnVtIHRoZXJtYWxfdHJpcF90eXBlIHRyaXBfdHlwZSkNCj4gPiA+ID4g
+K3sNCj4gPiA+ID4gKwl0ei0+Z292ZXJub3ItPnRocm90dGxlKHR6LCB0cmlwKTsNCj4gPiA+ID4g
+K30NCj4gPiA+IGhlcmUgaXMgdGhlIHByb2JsZW0sIHdlIG11c3QgbWFrZSBzdXJlIGV2ZXJ5IHJl
+Z2lzdGVyZWQgdGhlcm1hbCB6b25lDQo+ID4gPiBoYXZlIGEgZ292ZXJub3Igd2hlbiBpdCBpcyBy
+dW5uaW5nLCByaWdodD8NCj4gPg0KPiA+IFllcywgYWdyZWUgd2l0aCB5b3UuIEhhZCBzb21lIHRo
+b3VnaHRzIGhlcmUsIGJ1dCB3YW50ZWQgdG8gZ2V0IHlvdXINCj4gb3Bpbmlvbg0KPiA+IGJlZm9y
+ZSBJIGltcGxlbWVudGVkIHRoZW0uDQo+ID4NCj4gPiAxLiBXZSBjYW4gbWFrZSB0aGUgZGVmYXVs
+dCBnb3Zlcm5vciBhcyAndXNlciBzcGFjZScsIGFuZCBtYWtlIGl0IGxvYWQNCj4gaW5zaWRlDQo+
+ID4gdGhlcm1hbF9zeXMuYyAoc28gdGhhdCBldmVyeSB6b25lIHdpbGwgYWx3YXlzIGhhdmUgYSBk
+ZWZhdWx0IGdvdmVybm9yKQ0KPiA+DQo+IE5vLCB0aGUgZGVmYXVsdCBnb3Zlcm5vciBzaG91bGQg
+YmUgc3RlcCB3aXNlIHNvIHRoYXQgaXQgYmVoYXZlcyB0aGUgc2FtZQ0KPiBhcyBiZWZvcmUuIGlm
+IHdlIHVzZSB1c2Vyc3BhY2UgYXMgZGVmYXVsdCBnb3Zlcm5vciwgbW9zdCBvZiB0aGUgdGhlcm1h
+bA0KPiBkcml2ZXIgd2lsbCBzdG9wIHdvcmtpbmcgd2l0aCB0aGlzIHBhdGNoIHNldC4NCg0KeWVz
+LCBJIHVuZGVyc3RhbmQuIFNoYWxsIG1ha2Ugc3RlcF93aXNlIGRlZmF1bHQsIGFuZCBhbHdheXMg
+bG9hZGVkLg0KDQpGb3IgdXNlciBzcGFjZSwgc2hvdWxkIHdlIG1vdmUgaXQgdG8gYSBuZXcgLmMg
+ZmlsZSwgYW5kIG1ha2UgaXQgbGlrZQ0Kb3RoZXIgZ292ZXJub3JzIG9yIGNhbiB3ZSBrZWVwIGl0
+IGFzIGl0IGlzID8NCg0KVGhhbmtzLA0KRHVyZ2ENCg0KPiANCj4gSU1PLCB3ZSBzaG91bGQgbWFr
+ZSBhbGwgb2YgdGhlIGdvdmVybm9ycyBjb25maWd1cmFibGUsIGJ1dCBhdCBsZWFzdCBvbmUNCj4g
+b2YgdGhlbSBtdXN0IGJlIHNlbGVjdGVkIGFzIHRoZSBkZWZhdWx0IGdvdmVybm9yLCB0aGF0J3Mg
+d2h5IHdlIG5lZWQNCj4gc29tZXRoaW5nIGJlbG93Lg0KPiANCj4gY2hvaWNlDQo+ICAgICAgICAg
+cHJvbXB0ICJEZWZhdWx0IHRoZXJtYWwgZ292ZXJub3IiDQo+ICAgICAgICAgZGVmYXVsdCBUSEVS
+TUFMX0RFRkFVTFRfR09WX1NURVBfV0lTRQ0KPiAgICAgICAgIGhlbHANCj4gICAgICAgICAgIFRo
+aXMgb3B0aW9uIHNldHMgd2hpY2ggdGhlcm1hbCBnb3Zlcm5vciBzaGFsbCBiZSBsb2FkZWQgYXQN
+Cj4gICAgICAgICAgIHN0YXJ0dXAuDQo+IA0KPiB0aGFua3MsDQo+IHJ1aQ0KPiANCj4gPiAyLiBB
+bGwgb3RoZXIgZ292ZXJub3JzLCB0aGF0IGFyZSBpbXBsZW1lbnRlZCBpbiBhIHNlcGFyYXRlIC5j
+IGZpbGUgY2FuIGJlDQo+ID4gb3B0aW9uYWwgaS5lLiBsZWZ0IHRvIHRoZSB1c2VyIHRvIHNlbGVj
+dC9kZXNlbGVjdC4NCj4gPg0KPiA+IElNTywgdGhpcyB3aWxsIG1ha2Ugb3VyIGltcGxlbWVudGF0
+aW9uIGVhc2llciBhbmQgY2xlYW5lci4NCj4gPiBXaGF0IGRvIHlvdSB0aGluayA/DQo+ID4NCj4g
+PiBUaGFua3MsDQo+ID4gRHVyZ2ENCj4gPg0KPiA+ID4NCj4gPiA+IHRoZW4gdGhlIGRlZmF1bHQg
+Z292ZXJub3IgbXVzdCBhbHdheXMgYmUgYnVpbHQgaW4uDQo+ID4gPiBXZSBjYW4gaGF2ZSBhIEtj
+b25maWcgb3B0aW9uIGZvciBzdGVwX3dpc2UsIGJ1dCB3ZSBzaG91bGQgbm90IG1ha2UgaXQNCj4g
+PiA+IGNvbmZpZ3VyYWJsZSBieSB1c2Vycy4NCj4gPiA+IG9yIHdlIGNhbiB1c2UgcHJvbXB0IHRv
+IGdldCB0aGUgZGVmYXVsdCBnb3Zlcm5vciBhdCBidWlsZCB0aW1lLiBzYXkNCj4gPiA+DQo+ID4g
+PiBjaG9pY2UNCj4gPiA+ICAgICAgICAgcHJvbXB0ICJEZWZhdWx0IHRoZXJtYWwgZ292ZXJub3Ii
+DQo+ID4gPiAgICAgICAgIGRlZmF1bHQgVEhFUk1BTF9ERUZBVUxUX0dPVl9TVEVQX1dJU0UNCj4g
+PiA+ICAgICAgICAgaGVscA0KPiA+ID4gICAgICAgICAgIFRoaXMgb3B0aW9uIHNldHMgd2hpY2gg
+dGhlcm1hbCBnb3Zlcm5vciBzaGFsbCBiZSBsb2FkZWQgYXQNCj4gPiA+ICAgICAgICAgICBzdGFy
+dHVwLg0KPiA+ID4NCj4gPiA+IGNvbmZpZyBUSEVSTUFMX0RFRkFVTFRfR09WX1NURVBfV0lTRQ0K
+PiA+ID4gICAgICAgICBib29sICJzdGVwLXdpc2UiDQo+ID4gPiAgICAgICAgIHNlbGVjdCBUSEVS
+TUFMX0dPVl9TVEVQX1dJU0UNCj4gPiA+ICAgICAgICAgaGVscA0KPiA+ID4gICAgICAgICAgIFVz
+ZSB0aGUgdGhlcm1hbCBnb3Zlcm5vciAnc3RlcC13aXNlJyBhcyBkZWZhdWx0LmJsYWJsYQ0KPiA+
+ID4NCj4gPiA+DQo+ID4gPiB0aGFua3MsDQo+ID4gPiBydWkNCg==
