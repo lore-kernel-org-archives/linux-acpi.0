@@ -1,119 +1,240 @@
 From: Feng Tang <feng.tang@intel.com>
-Subject: [PATCH 3/5] ACPI: EC: Add more debug info and trivial code cleanup
-Date: Tue, 11 Sep 2012 21:10:20 +0800
-Message-ID: <1347369022-10176-3-git-send-email-feng.tang@intel.com>
+Subject: [PATCH 2/5] ACPI: EC: Cleanup the member name for spinlock/mutex in struct acpi_ec
+Date: Tue, 11 Sep 2012 21:10:19 +0800
+Message-ID: <1347369022-10176-2-git-send-email-feng.tang@intel.com>
 References: <1347369022-10176-1-git-send-email-feng.tang@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:36475 "EHLO mga09.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:34072 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752899Ab2IKNQX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 11 Sep 2012 09:16:23 -0400
+	id S1751278Ab2IKNQV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 11 Sep 2012 09:16:21 -0400
 In-Reply-To: <1347369022-10176-1-git-send-email-feng.tang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
 Cc: Alexey Starikovskiy <astarikovskiy@suse.de>, Thomas Renninger <trenn@suse.de>, Bob Moore <robert.moore@intel.com>, Feng Tang <feng.tang@intel.com>
 
-Add more debug info for EC transaction debugging, like the interrupt
-status register value, the detail info of a EC transaction.
+Current member names for mutex/spinlock are a little confusing.
+
+Change the
+{
+	struct mutex lock;
+	spinlock_t curr_lock;
+}
+to
+{
+	struct mutex mutex;
+	spinlock_t lock;
+}
+
+So that the code is cleaner and easier to read.
 
 Signed-off-by: Feng Tang <feng.tang@intel.com>
 ---
- drivers/acpi/ec.c |   37 +++++++++++++++++++++----------------
- 1 files changed, 21 insertions(+), 16 deletions(-)
+ drivers/acpi/ec.c       |   52 +++++++++++++++++++++++-----------------------
+ drivers/acpi/internal.h |    4 +-
+ 2 files changed, 28 insertions(+), 28 deletions(-)
 
 diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 4efd97f..5fc6a55 100644
+index 615264c..4efd97f 100644
 --- a/drivers/acpi/ec.c
 +++ b/drivers/acpi/ec.c
-@@ -175,30 +175,32 @@ static void start_transaction(struct acpi_ec *ec)
+@@ -158,10 +158,10 @@ static int ec_transaction_done(struct acpi_ec *ec)
+ {
+ 	unsigned long flags;
+ 	int ret = 0;
+-	spin_lock_irqsave(&ec->curr_lock, flags);
++	spin_lock_irqsave(&ec->lock, flags);
+ 	if (!ec->curr || ec->curr->done)
+ 		ret = 1;
+-	spin_unlock_irqrestore(&ec->curr_lock, flags);
++	spin_unlock_irqrestore(&ec->lock, flags);
+ 	return ret;
+ }
+ 
+@@ -175,7 +175,7 @@ static void start_transaction(struct acpi_ec *ec)
  static void advance_transaction(struct acpi_ec *ec, u8 status)
  {
  	unsigned long flags;
-+	struct transaction *t = ec->curr;
-+
- 	spin_lock_irqsave(&ec->lock, flags);
--	if (!ec->curr)
-+	if (!t)
+-	spin_lock_irqsave(&ec->curr_lock, flags);
++	spin_lock_irqsave(&ec->lock, flags);
+ 	if (!ec->curr)
  		goto unlock;
--	if (ec->curr->wlen > ec->curr->wi) {
-+	if (t->wlen > t->wi) {
- 		if ((status & ACPI_EC_FLAG_IBF) == 0)
- 			acpi_ec_write_data(ec,
--				ec->curr->wdata[ec->curr->wi++]);
-+				t->wdata[t->wi++]);
- 		else
- 			goto err;
--	} else if (ec->curr->rlen > ec->curr->ri) {
-+	} else if (t->rlen > t->ri) {
- 		if ((status & ACPI_EC_FLAG_OBF) == 1) {
--			ec->curr->rdata[ec->curr->ri++] = acpi_ec_read_data(ec);
--			if (ec->curr->rlen == ec->curr->ri)
--				ec->curr->done = true;
-+			t->rdata[t->ri++] = acpi_ec_read_data(ec);
-+			if (t->rlen == t->ri)
-+				t->done = true;
- 		} else
- 			goto err;
--	} else if (ec->curr->wlen == ec->curr->wi &&
-+	} else if (t->wlen == t->wi &&
- 		   (status & ACPI_EC_FLAG_IBF) == 0)
--		ec->curr->done = true;
-+		t->done = true;
- 	goto unlock;
- err:
- 	/* false interrupt, state didn't change */
+ 	if (ec->curr->wlen > ec->curr->wi) {
+@@ -200,7 +200,7 @@ err:
  	if (in_interrupt())
--		++ec->curr->irq_count;
-+		++t->irq_count;
+ 		++ec->curr->irq_count;
  unlock:
- 	spin_unlock_irqrestore(&ec->lock, flags);
+-	spin_unlock_irqrestore(&ec->curr_lock, flags);
++	spin_unlock_irqrestore(&ec->lock, flags);
  }
-@@ -310,7 +312,8 @@ static int acpi_ec_transaction(struct acpi_ec *ec, struct transaction *t)
- 		status = -ETIME;
- 		goto end;
+ 
+ static int acpi_ec_sync_query(struct acpi_ec *ec);
+@@ -238,9 +238,9 @@ static int ec_poll(struct acpi_ec *ec)
+ 		if (acpi_ec_read_status(ec) & ACPI_EC_FLAG_IBF)
+ 			break;
+ 		pr_debug(PREFIX "controller reset, restart transaction\n");
+-		spin_lock_irqsave(&ec->curr_lock, flags);
++		spin_lock_irqsave(&ec->lock, flags);
+ 		start_transaction(ec);
+-		spin_unlock_irqrestore(&ec->curr_lock, flags);
++		spin_unlock_irqrestore(&ec->lock, flags);
  	}
--	pr_debug(PREFIX "transaction start\n");
-+	pr_debug(PREFIX "transaction start (cmd=0x%02x, addr=0x%02x)\n",
-+			t->command, t->wdata ? t->wdata[0] : 0);
- 	/* disable GPE during transaction if storm is detected */
- 	if (test_bit(EC_FLAGS_GPE_STORM, &ec->flags)) {
- 		/* It has to be disabled, so that it doesn't trigger. */
-@@ -326,8 +329,9 @@ static int acpi_ec_transaction(struct acpi_ec *ec, struct transaction *t)
- 		/* It is safe to enable the GPE outside of the transaction. */
- 		acpi_enable_gpe(NULL, ec->gpe);
- 	} else if (t->irq_count > ec_storm_threshold) {
--		pr_info(PREFIX "GPE storm detected, "
--			"transactions will use polling mode\n");
-+		pr_info(PREFIX "GPE storm detected(%d GPEs), "
-+			"transactions will use polling mode\n",
-+			t->irq_count);
- 		set_bit(EC_FLAGS_GPE_STORM, &ec->flags);
+ 	return -ETIME;
+ }
+@@ -253,17 +253,17 @@ static int acpi_ec_transaction_unlocked(struct acpi_ec *ec,
+ 	if (EC_FLAGS_MSI)
+ 		udelay(ACPI_EC_MSI_UDELAY);
+ 	/* start transaction */
+-	spin_lock_irqsave(&ec->curr_lock, tmp);
++	spin_lock_irqsave(&ec->lock, tmp);
+ 	/* following two actions should be kept atomic */
+ 	ec->curr = t;
+ 	start_transaction(ec);
+ 	if (ec->curr->command == ACPI_EC_COMMAND_QUERY)
+ 		clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
+-	spin_unlock_irqrestore(&ec->curr_lock, tmp);
++	spin_unlock_irqrestore(&ec->lock, tmp);
+ 	ret = ec_poll(ec);
+-	spin_lock_irqsave(&ec->curr_lock, tmp);
++	spin_lock_irqsave(&ec->lock, tmp);
+ 	ec->curr = NULL;
+-	spin_unlock_irqrestore(&ec->curr_lock, tmp);
++	spin_unlock_irqrestore(&ec->lock, tmp);
+ 	return ret;
+ }
+ 
+@@ -292,7 +292,7 @@ static int acpi_ec_transaction(struct acpi_ec *ec, struct transaction *t)
+ 		return -EINVAL;
+ 	if (t->rdata)
+ 		memset(t->rdata, 0, t->rlen);
+-	mutex_lock(&ec->lock);
++	mutex_lock(&ec->mutex);
+ 	if (test_bit(EC_FLAGS_BLOCKED, &ec->flags)) {
+ 		status = -EINVAL;
+ 		goto unlock;
+@@ -335,7 +335,7 @@ end:
+ 	if (ec->global_lock)
+ 		acpi_release_global_lock(glk);
+ unlock:
+-	mutex_unlock(&ec->lock);
++	mutex_unlock(&ec->mutex);
+ 	return status;
+ }
+ 
+@@ -468,10 +468,10 @@ void acpi_ec_block_transactions(void)
+ 	if (!ec)
+ 		return;
+ 
+-	mutex_lock(&ec->lock);
++	mutex_lock(&ec->mutex);
+ 	/* Prevent transactions from being carried out */
+ 	set_bit(EC_FLAGS_BLOCKED, &ec->flags);
+-	mutex_unlock(&ec->lock);
++	mutex_unlock(&ec->mutex);
+ }
+ 
+ void acpi_ec_unblock_transactions(void)
+@@ -481,10 +481,10 @@ void acpi_ec_unblock_transactions(void)
+ 	if (!ec)
+ 		return;
+ 
+-	mutex_lock(&ec->lock);
++	mutex_lock(&ec->mutex);
+ 	/* Allow transactions to be carried out again */
+ 	clear_bit(EC_FLAGS_BLOCKED, &ec->flags);
+-	mutex_unlock(&ec->lock);
++	mutex_unlock(&ec->mutex);
+ }
+ 
+ void acpi_ec_unblock_transactions_early(void)
+@@ -536,9 +536,9 @@ int acpi_ec_add_query_handler(struct acpi_ec *ec, u8 query_bit,
+ 	handler->handle = handle;
+ 	handler->func = func;
+ 	handler->data = data;
+-	mutex_lock(&ec->lock);
++	mutex_lock(&ec->mutex);
+ 	list_add(&handler->node, &ec->list);
+-	mutex_unlock(&ec->lock);
++	mutex_unlock(&ec->mutex);
+ 	return 0;
+ }
+ 
+@@ -547,14 +547,14 @@ EXPORT_SYMBOL_GPL(acpi_ec_add_query_handler);
+ void acpi_ec_remove_query_handler(struct acpi_ec *ec, u8 query_bit)
+ {
+ 	struct acpi_ec_query_handler *handler, *tmp;
+-	mutex_lock(&ec->lock);
++	mutex_lock(&ec->mutex);
+ 	list_for_each_entry_safe(handler, tmp, &ec->list, node) {
+ 		if (query_bit == handler->query_bit) {
+ 			list_del(&handler->node);
+ 			kfree(handler);
+ 		}
  	}
- 	pr_debug(PREFIX "transaction end\n");
-@@ -403,7 +407,7 @@ int ec_burst_disable(void)
+-	mutex_unlock(&ec->lock);
++	mutex_unlock(&ec->mutex);
+ }
  
- EXPORT_SYMBOL(ec_burst_disable);
+ EXPORT_SYMBOL_GPL(acpi_ec_remove_query_handler);
+@@ -601,9 +601,9 @@ static void acpi_ec_gpe_query(void *ec_cxt)
+ 	struct acpi_ec *ec = ec_cxt;
+ 	if (!ec)
+ 		return;
+-	mutex_lock(&ec->lock);
++	mutex_lock(&ec->mutex);
+ 	acpi_ec_sync_query(ec);
+-	mutex_unlock(&ec->lock);
++	mutex_unlock(&ec->mutex);
+ }
  
--int ec_read(u8 addr, u8 * val)
-+int ec_read(u8 addr, u8 *val)
- {
- 	int err;
- 	u8 temp_data;
-@@ -622,10 +626,11 @@ static u32 acpi_ec_gpe_handler(acpi_handle gpe_device,
- 	u32 gpe_number, void *data)
- {
- 	struct acpi_ec *ec = data;
-+	u8 status = acpi_ec_read_status(ec);
+ static int ec_check_sci(struct acpi_ec *ec, u8 state)
+@@ -691,10 +691,10 @@ static struct acpi_ec *make_acpi_ec(void)
+ 	if (!ec)
+ 		return NULL;
+ 	ec->flags = 1 << EC_FLAGS_QUERY_PENDING;
+-	mutex_init(&ec->lock);
++	mutex_init(&ec->mutex);
+ 	init_waitqueue_head(&ec->wait);
+ 	INIT_LIST_HEAD(&ec->list);
+-	spin_lock_init(&ec->curr_lock);
++	spin_lock_init(&ec->lock);
+ 	return ec;
+ }
  
--	pr_debug(PREFIX "~~~> interrupt\n");
-+	pr_debug(PREFIX "~~~> interrupt, status:0x%02x\n", status);
+@@ -853,12 +853,12 @@ static int acpi_ec_remove(struct acpi_device *device, int type)
  
--	advance_transaction(ec, acpi_ec_read_status(ec));
-+	advance_transaction(ec, status);
- 	if (ec_transaction_done(ec) &&
- 	    (acpi_ec_read_status(ec) & ACPI_EC_FLAG_IBF) == 0) {
- 		wake_up(&ec->wait);
+ 	ec = acpi_driver_data(device);
+ 	ec_remove_handlers(ec);
+-	mutex_lock(&ec->lock);
++	mutex_lock(&ec->mutex);
+ 	list_for_each_entry_safe(handler, tmp, &ec->list, node) {
+ 		list_del(&handler->node);
+ 		kfree(handler);
+ 	}
+-	mutex_unlock(&ec->lock);
++	mutex_unlock(&ec->mutex);
+ 	release_region(ec->data_addr, 1);
+ 	release_region(ec->command_addr, 1);
+ 	device->driver_data = NULL;
+diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+index ca75b9c..509dcaa 100644
+--- a/drivers/acpi/internal.h
++++ b/drivers/acpi/internal.h
+@@ -58,11 +58,11 @@ struct acpi_ec {
+ 	unsigned long data_addr;
+ 	unsigned long global_lock;
+ 	unsigned long flags;
+-	struct mutex lock;
++	struct mutex mutex;
+ 	wait_queue_head_t wait;
+ 	struct list_head list;
+ 	struct transaction *curr;
+-	spinlock_t curr_lock;
++	spinlock_t lock;
+ };
+ 
+ extern struct acpi_ec *first_ec;
 -- 
 1.7.1
 
