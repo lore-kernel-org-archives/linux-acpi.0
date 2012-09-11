@@ -1,512 +1,340 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
-Subject: CONFIG_THERMAL_HWMON in thermal_sys.c
-Date: Tue, 11 Sep 2012 05:07:29 +0000
-Message-ID: <4D68720C2E767A4AA6A8796D42C8EB591B6F8F@BGSMSX101.gar.corp.intel.com>
+From: Jerry <uulinux@gmail.com>
+Subject: Re: [RFC v8 PATCH 00/20] memory-hotplug: hot-remove physical memory
+Date: Tue, 11 Sep 2012 13:18:24 +0800
+Message-ID: <CAAV+Mu4hb0qbW2Ry6w5FAGUM06puDH0v_H-jr584-G9CzJqSGw@mail.gmail.com>
+References: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com>
+	<20120831134956.fec0f681.akpm@linux-foundation.org>
+	<504D467D.2080201@jp.fujitsu.com>
+	<504D4A08.7090602@cn.fujitsu.com>
+	<20120910135213.GA1550@dhcp-192-168-178-175.profitbricks.localdomain>
+	<CAAV+Mu7YWRWnxt78F4ZDMrrUsWB=n-_qkYOcQT7WQ2HwP89Obw@mail.gmail.com>
+	<20120911012345.GD14205@bbox>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============5839877007958540778=="
-Return-path: <lm-sensors-bounces@lm-sensors.org>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.lm-sensors.org/mailman/options/lm-sensors>,
-	<mailto:lm-sensors-request@lm-sensors.org?subject=unsubscribe>
-List-Archive: <http://lists.lm-sensors.org/pipermail/lm-sensors/>
-List-Post: <mailto:lm-sensors@lm-sensors.org>
-List-Help: <mailto:lm-sensors-request@lm-sensors.org?subject=help>
-List-Subscribe: <http://lists.lm-sensors.org/mailman/listinfo/lm-sensors>,
-	<mailto:lm-sensors-request@lm-sensors.org?subject=subscribe>
-Sender: lm-sensors-bounces@lm-sensors.org
-Errors-To: lm-sensors-bounces@lm-sensors.org
-To: "Guenter Roeck (guenter.roeck@ericsson.com)" <guenter.roeck@ericsson.com>, "Guenter Roeck (linux@roeck-us.net)" <linux@roeck-us.net>, "Jean Delvare
-	(khali@linux-fr.org)" <khali@linux-fr.org>, "Zhang, Rui" <rui.zhang@intel.com>, "lenb@kernel.org" <lenb@kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lm-sensors (lm-sensors@lm-sensors.org)" <lm-sensors@lm-sensors.org>
+Content-Type: multipart/alternative; boundary=e89a8fb201e2126a2004c9663479
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20120911012345.GD14205@bbox>
+Sender: owner-linux-mm@kvack.org
+To: Minchan Kim <minchan@kernel.org>, Wen Congyang <wency@cn.fujitsu.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, kosaki.motohiro@jp.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
 
---===============5839877007958540778==
-Content-Language: en-US
-Content-Type: multipart/alternative;
-	boundary="_000_4D68720C2E767A4AA6A8796D42C8EB591B6F8FBGSMSX101garcorpi_"
+--e89a8fb201e2126a2004c9663479
+Content-Type: text/plain; charset=ISO-8859-1
 
---_000_4D68720C2E767A4AA6A8796D42C8EB591B6F8FBGSMSX101garcorpi_
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Hi Kim,
 
-Hi Jean/Guenter,
+Thank you for your kindness. Let me clarify this:
 
-In thermal_sys.c we have a CONFIG_THERMAL_HWMON.
-If enabled, this creates sysfs nodes for thermal zones inside
-hwmon. Do we need this functionality inside thermal_sys.c ?
-Or is it Ok to remove this ?
+On ARM architecture, there are 32 bits physical addresses space. However,
+the addresses space is divided into 8 banks normally. Each bank
+disabled/enabled by a chip selector signal. In my platform, bank0 connects
+a DDR chip, and bank1 also connects another DDR chip. And each DDR chip
+whose capability is 512MB is integrated into the main board. So, it could
+not be removed by hand. We can disable/enable each bank by peripheral
+device controller registers.
 
-I wanted to know your opinion before submitting a patch.
+When system enter suspend state, if all the pages allocated could be
+migrated to one bank, there are no valid data in the another bank. In this
+time, I could disable the free bank. It isn't necessary to provided power
+to this chip in the suspend state. When system resume, I just need to
+enable it again.
+
+Hi Wen,
+
+I am sorry for that I doesn't know the "_PSx support" means. Maybe I
+needn't it.
 
 Thanks,
-Durga
+Jerry
 
---_000_4D68720C2E767A4AA6A8796D42C8EB591B6F8FBGSMSX101garcorpi_
-Content-Type: text/html; charset="us-ascii"
+2012/9/11 Minchan Kim <minchan@kernel.org>
+
+> Hi Jerry,
+>
+> On Tue, Sep 11, 2012 at 08:27:40AM +0800, Jerry wrote:
+> > Hi Wen,
+> >
+> > I have been arranged a job related memory hotplug on ARM architecture.
+> > Maybe I know some new issues about memory hotplug on ARM architecture. I
+> > just enabled it on ARM, and it works well in my Android tablet now.
+> > However, I have not send out my patches. The real reason is that I don't
+> > know how to do it. Maybe I need to read
+> "Documentation/SubmittingPatches".
+> >
+> > Hi Andrew,
+> > This is my first time to send you a e-mail. I am so nervous about if I
+> have
+> > some mistakes or not.
+>
+> Don't be afraid.
+> If you might make a mistake, it's very natural to newbie.
+> I am sure anyone doesn't blame you. :)
+> If you have a good patch, please send out.
+>
+> >
+> > Some peoples maybe think memory hotplug need to be supported by special
+> > hardware. Maybe it means memory physical hotplug. Some times, we just
+> need
+> > to use memory logical hotplug, doesn't remove the memory in physical. It
+> is
+> > also usefully for power saving in my platform. Because I doesn't want
+> > the offline memory is in *self-refresh* state.
+>
+> Just out of curiosity.
+> What's the your scenario and gain?
+> AFAIK, there were some effort about it in embedded side but gain isn't
+> rather big
+> IIRC.
+>
+> >
+> > Any comments are appreciated.
+> >
+> > Thanks,
+> > Jerry
+> >
+> > 2012/9/10 Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
+> >
+> > > Hi,
+> > >
+> > > On Mon, Sep 10, 2012 at 10:01:44AM +0800, Wen Congyang wrote:
+> > > > At 09/10/2012 09:46 AM, Yasuaki Ishimatsu Wrote:
+> > > > > Hi Wen,
+> > > > >
+> > > > > 2012/09/01 5:49, Andrew Morton wrote:
+> > > > >> On Tue, 28 Aug 2012 18:00:07 +0800
+> > > > >> wency@cn.fujitsu.com wrote:
+> > > > >>
+> > > > >>> This patch series aims to support physical memory hot-remove.
+> > > > >>
+> > > > >> I doubt if many people have hardware which permits physical memory
+> > > > >> removal?  How would you suggest that people with regular hardware
+> can
+> > > > >> test these chagnes?
+> > > > >
+> > > > > How do you test the patch? As Andrew says, for hot-removing memory,
+> > > > > we need a particular hardware. I think so too. So many people may
+> want
+> > > > > to know how to test the patch.
+> > > > > If we apply following patch to kvm guest, can we hot-remove memory
+> on
+> > > > > kvm guest?
+> > > > >
+> > > > > http://lists.gnu.org/archive/html/qemu-devel/2012-07/msg01389.html
+> > > >
+> > > > Yes, if we apply this patchset, we can test hot-remove memory on kvm
+> > > guest.
+> > > > But that patchset doesn't implement _PS3, so there is some
+> restriction.
+> > >
+> > > the following repos contain the patchset above, plus 2 more patches
+> that
+> > > add
+> > > PS3 support to the dimm devices in qemu/seabios:
+> > >
+> > > https://github.com/vliaskov/seabios/commits/memhp-v2
+> > > https://github.com/vliaskov/qemu-kvm/commits/memhp-v2
+> > >
+> > > I have not posted the PS3 patches yet in the qemu list, but will post
+> them
+> > > soon for v3 of the memory hotplug series. If you have issues testing,
+> let
+> > > me
+> > > know.
+> > >
+> > > thanks,
+> > >
+> > > - Vasilis
+> > >
+> > > --
+> > > To unsubscribe, send a message with 'unsubscribe linux-mm' in
+> > > the body to majordomo@kvack.org.  For more info on Linux MM,
+> > > see: http://www.linux-mm.org/ .
+> > > Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+> > >
+> >
+> >
+> >
+> > --
+> > I love linux!!!
+>
+> --
+> Kind regards,
+> Minchan Kim
+>
+
+
+
+-- 
+I love linux!!!
+
+--e89a8fb201e2126a2004c9663479
+Content-Type: text/html; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-<html xmlns:v=3D"urn:schemas-microsoft-com:vml" xmlns:o=3D"urn:schemas-micr=
-osoft-com:office:office" xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
-xmlns:m=3D"http://schemas.microsoft.com/office/2004/12/omml" xmlns=3D"http:=
-//www.w3.org/TR/REC-html40">
-<head>
-<meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3Dus-ascii"=
+Hi Kim,<div><br></div><div><div>Thank you for your kindness. Let me clarify=
+ this:</div><div><br></div><div>On ARM architecture, there are 32 bits phys=
+ical addresses space. However, the addresses space is divided into 8 banks =
+normally. Each bank disabled/enabled by a chip selector signal. In my platf=
+orm, bank0 connects a DDR chip, and bank1 also connects another DDR chip. A=
+nd each DDR chip whose capability is 512MB is integrated into the main boar=
+d. So, it could not be removed by hand. We can disable/enable each bank by =
+peripheral device controller registers.</div>
+<div><br></div><div>When system enter suspend state, if all the pages alloc=
+ated could be migrated to one bank, there are no valid data in the another =
+bank. In this time, I could disable the free bank. It isn&#39;t necessary t=
+o provided power to this chip in the suspend state. When system resume, I j=
+ust need to enable it again.</div>
+</div><div><br></div><div>Hi Wen,</div><div><br></div><div>I am sorry for t=
+hat I doesn&#39;t know the &quot;<span style=3D"background-color:rgb(255,25=
+5,255);color:rgb(34,34,34);font-family:arial,sans-serif;font-size:14px">_PS=
+x support</span>&quot; means. Maybe I needn&#39;t it.</div>
+<div><br></div><div>Thanks,</div><div>Jerry=A0<br><br><div class=3D"gmail_q=
+uote">2012/9/11 Minchan Kim <span dir=3D"ltr">&lt;<a href=3D"mailto:minchan=
+@kernel.org" target=3D"_blank">minchan@kernel.org</a>&gt;</span><br><blockq=
+uote class=3D"gmail_quote" style=3D"margin:0 0 0 .8ex;border-left:1px #ccc =
+solid;padding-left:1ex">
+Hi Jerry,<br>
+<div class=3D"im"><br>
+On Tue, Sep 11, 2012 at 08:27:40AM +0800, Jerry wrote:<br>
+&gt; Hi Wen,<br>
+&gt;<br>
+&gt; I have been arranged a job related memory hotplug on ARM architecture.=
+<br>
+&gt; Maybe I know some new issues about memory hotplug on ARM architecture.=
+ I<br>
+&gt; just enabled it on ARM, and it works well in my Android tablet now.<br=
 >
-<meta name=3D"ProgId" content=3D"Word.Document">
-<meta name=3D"Generator" content=3D"Microsoft Word 14">
-<meta name=3D"Originator" content=3D"Microsoft Word 14">
-<link rel=3D"File-List" href=3D"cid:filelist.xml@01CD9009.7139C810"><!--[if=
- gte mso 9]><xml>
-<o:OfficeDocumentSettings>
-<o:AllowPNG/>
-<o:DoNotRelyOnCSS/>
-</o:OfficeDocumentSettings>
-</xml><![endif]--><!--[if gte mso 9]><xml>
-<w:WordDocument>
-<w:SpellingState>Clean</w:SpellingState>
-<w:TrackMoves/>
-<w:TrackFormatting/>
-<w:EnvelopeVis/>
-<w:PunctuationKerning/>
-<w:ValidateAgainstSchemas/>
-<w:SaveIfXMLInvalid>false</w:SaveIfXMLInvalid>
-<w:IgnoreMixedContent>false</w:IgnoreMixedContent>
-<w:AlwaysShowPlaceholderText>false</w:AlwaysShowPlaceholderText>
-<w:DoNotPromoteQF/>
-<w:LidThemeOther>EN-US</w:LidThemeOther>
-<w:LidThemeAsian>X-NONE</w:LidThemeAsian>
-<w:LidThemeComplexScript>X-NONE</w:LidThemeComplexScript>
-<w:Compatibility>
-<w:BreakWrappedTables/>
-<w:SnapToGridInCell/>
-<w:WrapTextWithPunct/>
-<w:UseAsianBreakRules/>
-<w:DontGrowAutofit/>
-<w:SplitPgBreakAndParaMark/>
-<w:EnableOpenTypeKerning/>
-<w:DontFlipMirrorIndents/>
-<w:OverrideTableStyleHps/>
-</w:Compatibility>
-<m:mathPr>
-<m:mathFont m:val=3D"Cambria Math"/>
-<m:brkBin m:val=3D"before"/>
-<m:brkBinSub m:val=3D"&#45;-"/>
-<m:smallFrac m:val=3D"off"/>
-<m:dispDef/>
-<m:lMargin m:val=3D"0"/>
-<m:rMargin m:val=3D"0"/>
-<m:defJc m:val=3D"centerGroup"/>
-<m:wrapIndent m:val=3D"1440"/>
-<m:intLim m:val=3D"subSup"/>
-<m:naryLim m:val=3D"undOvr"/>
-</m:mathPr></w:WordDocument>
-</xml><![endif]--><!--[if gte mso 9]><xml>
-<w:LatentStyles DefLockedState=3D"false" DefUnhideWhenUsed=3D"true" DefSemi=
-Hidden=3D"true" DefQFormat=3D"false" DefPriority=3D"99" LatentStyleCount=3D=
-"267">
-<w:LsdException Locked=3D"false" Priority=3D"0" SemiHidden=3D"false" Unhide=
-WhenUsed=3D"false" QFormat=3D"true" Name=3D"Normal"/>
-<w:LsdException Locked=3D"false" Priority=3D"9" SemiHidden=3D"false" Unhide=
-WhenUsed=3D"false" QFormat=3D"true" Name=3D"heading 1"/>
-<w:LsdException Locked=3D"false" Priority=3D"9" QFormat=3D"true" Name=3D"he=
-ading 2"/>
-<w:LsdException Locked=3D"false" Priority=3D"9" QFormat=3D"true" Name=3D"he=
-ading 3"/>
-<w:LsdException Locked=3D"false" Priority=3D"9" QFormat=3D"true" Name=3D"he=
-ading 4"/>
-<w:LsdException Locked=3D"false" Priority=3D"9" QFormat=3D"true" Name=3D"he=
-ading 5"/>
-<w:LsdException Locked=3D"false" Priority=3D"9" QFormat=3D"true" Name=3D"he=
-ading 6"/>
-<w:LsdException Locked=3D"false" Priority=3D"9" QFormat=3D"true" Name=3D"he=
-ading 7"/>
-<w:LsdException Locked=3D"false" Priority=3D"9" QFormat=3D"true" Name=3D"he=
-ading 8"/>
-<w:LsdException Locked=3D"false" Priority=3D"9" QFormat=3D"true" Name=3D"he=
-ading 9"/>
-<w:LsdException Locked=3D"false" Priority=3D"39" Name=3D"toc 1"/>
-<w:LsdException Locked=3D"false" Priority=3D"39" Name=3D"toc 2"/>
-<w:LsdException Locked=3D"false" Priority=3D"39" Name=3D"toc 3"/>
-<w:LsdException Locked=3D"false" Priority=3D"39" Name=3D"toc 4"/>
-<w:LsdException Locked=3D"false" Priority=3D"39" Name=3D"toc 5"/>
-<w:LsdException Locked=3D"false" Priority=3D"39" Name=3D"toc 6"/>
-<w:LsdException Locked=3D"false" Priority=3D"39" Name=3D"toc 7"/>
-<w:LsdException Locked=3D"false" Priority=3D"39" Name=3D"toc 8"/>
-<w:LsdException Locked=3D"false" Priority=3D"39" Name=3D"toc 9"/>
-<w:LsdException Locked=3D"false" Priority=3D"35" QFormat=3D"true" Name=3D"c=
-aption"/>
-<w:LsdException Locked=3D"false" Priority=3D"10" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" QFormat=3D"true" Name=3D"Title"/>
-<w:LsdException Locked=3D"false" Priority=3D"1" Name=3D"Default Paragraph F=
-ont"/>
-<w:LsdException Locked=3D"false" Priority=3D"11" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" QFormat=3D"true" Name=3D"Subtitle"/>
-<w:LsdException Locked=3D"false" Priority=3D"22" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" QFormat=3D"true" Name=3D"Strong"/>
-<w:LsdException Locked=3D"false" Priority=3D"20" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" QFormat=3D"true" Name=3D"Emphasis"/>
-<w:LsdException Locked=3D"false" Priority=3D"59" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Table Grid"/>
-<w:LsdException Locked=3D"false" UnhideWhenUsed=3D"false" Name=3D"Placehold=
-er Text"/>
-<w:LsdException Locked=3D"false" Priority=3D"1" SemiHidden=3D"false" Unhide=
-WhenUsed=3D"false" QFormat=3D"true" Name=3D"No Spacing"/>
-<w:LsdException Locked=3D"false" Priority=3D"60" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Light Shading"/>
-<w:LsdException Locked=3D"false" Priority=3D"61" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Light List"/>
-<w:LsdException Locked=3D"false" Priority=3D"62" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Light Grid"/>
-<w:LsdException Locked=3D"false" Priority=3D"63" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium Shading 1"/>
-<w:LsdException Locked=3D"false" Priority=3D"64" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium Shading 2"/>
-<w:LsdException Locked=3D"false" Priority=3D"65" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium List 1"/>
-<w:LsdException Locked=3D"false" Priority=3D"66" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium List 2"/>
-<w:LsdException Locked=3D"false" Priority=3D"67" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium Grid 1"/>
-<w:LsdException Locked=3D"false" Priority=3D"68" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium Grid 2"/>
-<w:LsdException Locked=3D"false" Priority=3D"69" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium Grid 3"/>
-<w:LsdException Locked=3D"false" Priority=3D"70" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Dark List"/>
-<w:LsdException Locked=3D"false" Priority=3D"71" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Colorful Shading"/>
-<w:LsdException Locked=3D"false" Priority=3D"72" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Colorful List"/>
-<w:LsdException Locked=3D"false" Priority=3D"73" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Colorful Grid"/>
-<w:LsdException Locked=3D"false" Priority=3D"60" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Light Shading Accent 1"/>
-<w:LsdException Locked=3D"false" Priority=3D"61" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Light List Accent 1"/>
-<w:LsdException Locked=3D"false" Priority=3D"62" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Light Grid Accent 1"/>
-<w:LsdException Locked=3D"false" Priority=3D"63" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium Shading 1 Accent 1"/>
-<w:LsdException Locked=3D"false" Priority=3D"64" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium Shading 2 Accent 1"/>
-<w:LsdException Locked=3D"false" Priority=3D"65" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium List 1 Accent 1"/>
-<w:LsdException Locked=3D"false" UnhideWhenUsed=3D"false" Name=3D"Revision"=
-/>
-<w:LsdException Locked=3D"false" Priority=3D"34" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" QFormat=3D"true" Name=3D"List Paragraph"/>
-<w:LsdException Locked=3D"false" Priority=3D"29" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" QFormat=3D"true" Name=3D"Quote"/>
-<w:LsdException Locked=3D"false" Priority=3D"30" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" QFormat=3D"true" Name=3D"Intense Quote"/>
-<w:LsdException Locked=3D"false" Priority=3D"66" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium List 2 Accent 1"/>
-<w:LsdException Locked=3D"false" Priority=3D"67" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium Grid 1 Accent 1"/>
-<w:LsdException Locked=3D"false" Priority=3D"68" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium Grid 2 Accent 1"/>
-<w:LsdException Locked=3D"false" Priority=3D"69" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium Grid 3 Accent 1"/>
-<w:LsdException Locked=3D"false" Priority=3D"70" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Dark List Accent 1"/>
-<w:LsdException Locked=3D"false" Priority=3D"71" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Colorful Shading Accent 1"/>
-<w:LsdException Locked=3D"false" Priority=3D"72" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Colorful List Accent 1"/>
-<w:LsdException Locked=3D"false" Priority=3D"73" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Colorful Grid Accent 1"/>
-<w:LsdException Locked=3D"false" Priority=3D"60" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Light Shading Accent 2"/>
-<w:LsdException Locked=3D"false" Priority=3D"61" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Light List Accent 2"/>
-<w:LsdException Locked=3D"false" Priority=3D"62" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Light Grid Accent 2"/>
-<w:LsdException Locked=3D"false" Priority=3D"63" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium Shading 1 Accent 2"/>
-<w:LsdException Locked=3D"false" Priority=3D"64" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium Shading 2 Accent 2"/>
-<w:LsdException Locked=3D"false" Priority=3D"65" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium List 1 Accent 2"/>
-<w:LsdException Locked=3D"false" Priority=3D"66" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium List 2 Accent 2"/>
-<w:LsdException Locked=3D"false" Priority=3D"67" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium Grid 1 Accent 2"/>
-<w:LsdException Locked=3D"false" Priority=3D"68" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium Grid 2 Accent 2"/>
-<w:LsdException Locked=3D"false" Priority=3D"69" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium Grid 3 Accent 2"/>
-<w:LsdException Locked=3D"false" Priority=3D"70" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Dark List Accent 2"/>
-<w:LsdException Locked=3D"false" Priority=3D"71" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Colorful Shading Accent 2"/>
-<w:LsdException Locked=3D"false" Priority=3D"72" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Colorful List Accent 2"/>
-<w:LsdException Locked=3D"false" Priority=3D"73" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Colorful Grid Accent 2"/>
-<w:LsdException Locked=3D"false" Priority=3D"60" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Light Shading Accent 3"/>
-<w:LsdException Locked=3D"false" Priority=3D"61" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Light List Accent 3"/>
-<w:LsdException Locked=3D"false" Priority=3D"62" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Light Grid Accent 3"/>
-<w:LsdException Locked=3D"false" Priority=3D"63" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium Shading 1 Accent 3"/>
-<w:LsdException Locked=3D"false" Priority=3D"64" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium Shading 2 Accent 3"/>
-<w:LsdException Locked=3D"false" Priority=3D"65" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium List 1 Accent 3"/>
-<w:LsdException Locked=3D"false" Priority=3D"66" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium List 2 Accent 3"/>
-<w:LsdException Locked=3D"false" Priority=3D"67" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium Grid 1 Accent 3"/>
-<w:LsdException Locked=3D"false" Priority=3D"68" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium Grid 2 Accent 3"/>
-<w:LsdException Locked=3D"false" Priority=3D"69" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium Grid 3 Accent 3"/>
-<w:LsdException Locked=3D"false" Priority=3D"70" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Dark List Accent 3"/>
-<w:LsdException Locked=3D"false" Priority=3D"71" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Colorful Shading Accent 3"/>
-<w:LsdException Locked=3D"false" Priority=3D"72" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Colorful List Accent 3"/>
-<w:LsdException Locked=3D"false" Priority=3D"73" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Colorful Grid Accent 3"/>
-<w:LsdException Locked=3D"false" Priority=3D"60" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Light Shading Accent 4"/>
-<w:LsdException Locked=3D"false" Priority=3D"61" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Light List Accent 4"/>
-<w:LsdException Locked=3D"false" Priority=3D"62" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Light Grid Accent 4"/>
-<w:LsdException Locked=3D"false" Priority=3D"63" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium Shading 1 Accent 4"/>
-<w:LsdException Locked=3D"false" Priority=3D"64" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium Shading 2 Accent 4"/>
-<w:LsdException Locked=3D"false" Priority=3D"65" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium List 1 Accent 4"/>
-<w:LsdException Locked=3D"false" Priority=3D"66" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium List 2 Accent 4"/>
-<w:LsdException Locked=3D"false" Priority=3D"67" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium Grid 1 Accent 4"/>
-<w:LsdException Locked=3D"false" Priority=3D"68" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium Grid 2 Accent 4"/>
-<w:LsdException Locked=3D"false" Priority=3D"69" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium Grid 3 Accent 4"/>
-<w:LsdException Locked=3D"false" Priority=3D"70" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Dark List Accent 4"/>
-<w:LsdException Locked=3D"false" Priority=3D"71" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Colorful Shading Accent 4"/>
-<w:LsdException Locked=3D"false" Priority=3D"72" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Colorful List Accent 4"/>
-<w:LsdException Locked=3D"false" Priority=3D"73" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Colorful Grid Accent 4"/>
-<w:LsdException Locked=3D"false" Priority=3D"60" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Light Shading Accent 5"/>
-<w:LsdException Locked=3D"false" Priority=3D"61" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Light List Accent 5"/>
-<w:LsdException Locked=3D"false" Priority=3D"62" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Light Grid Accent 5"/>
-<w:LsdException Locked=3D"false" Priority=3D"63" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium Shading 1 Accent 5"/>
-<w:LsdException Locked=3D"false" Priority=3D"64" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium Shading 2 Accent 5"/>
-<w:LsdException Locked=3D"false" Priority=3D"65" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium List 1 Accent 5"/>
-<w:LsdException Locked=3D"false" Priority=3D"66" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium List 2 Accent 5"/>
-<w:LsdException Locked=3D"false" Priority=3D"67" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium Grid 1 Accent 5"/>
-<w:LsdException Locked=3D"false" Priority=3D"68" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium Grid 2 Accent 5"/>
-<w:LsdException Locked=3D"false" Priority=3D"69" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium Grid 3 Accent 5"/>
-<w:LsdException Locked=3D"false" Priority=3D"70" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Dark List Accent 5"/>
-<w:LsdException Locked=3D"false" Priority=3D"71" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Colorful Shading Accent 5"/>
-<w:LsdException Locked=3D"false" Priority=3D"72" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Colorful List Accent 5"/>
-<w:LsdException Locked=3D"false" Priority=3D"73" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Colorful Grid Accent 5"/>
-<w:LsdException Locked=3D"false" Priority=3D"60" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Light Shading Accent 6"/>
-<w:LsdException Locked=3D"false" Priority=3D"61" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Light List Accent 6"/>
-<w:LsdException Locked=3D"false" Priority=3D"62" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Light Grid Accent 6"/>
-<w:LsdException Locked=3D"false" Priority=3D"63" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium Shading 1 Accent 6"/>
-<w:LsdException Locked=3D"false" Priority=3D"64" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium Shading 2 Accent 6"/>
-<w:LsdException Locked=3D"false" Priority=3D"65" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium List 1 Accent 6"/>
-<w:LsdException Locked=3D"false" Priority=3D"66" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium List 2 Accent 6"/>
-<w:LsdException Locked=3D"false" Priority=3D"67" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium Grid 1 Accent 6"/>
-<w:LsdException Locked=3D"false" Priority=3D"68" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium Grid 2 Accent 6"/>
-<w:LsdException Locked=3D"false" Priority=3D"69" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Medium Grid 3 Accent 6"/>
-<w:LsdException Locked=3D"false" Priority=3D"70" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Dark List Accent 6"/>
-<w:LsdException Locked=3D"false" Priority=3D"71" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Colorful Shading Accent 6"/>
-<w:LsdException Locked=3D"false" Priority=3D"72" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Colorful List Accent 6"/>
-<w:LsdException Locked=3D"false" Priority=3D"73" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" Name=3D"Colorful Grid Accent 6"/>
-<w:LsdException Locked=3D"false" Priority=3D"19" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" QFormat=3D"true" Name=3D"Subtle Emphasis"/>
-<w:LsdException Locked=3D"false" Priority=3D"21" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" QFormat=3D"true" Name=3D"Intense Emphasis"/>
-<w:LsdException Locked=3D"false" Priority=3D"31" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" QFormat=3D"true" Name=3D"Subtle Reference"/>
-<w:LsdException Locked=3D"false" Priority=3D"32" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" QFormat=3D"true" Name=3D"Intense Reference"/>
-<w:LsdException Locked=3D"false" Priority=3D"33" SemiHidden=3D"false" Unhid=
-eWhenUsed=3D"false" QFormat=3D"true" Name=3D"Book Title"/>
-<w:LsdException Locked=3D"false" Priority=3D"37" Name=3D"Bibliography"/>
-<w:LsdException Locked=3D"false" Priority=3D"39" QFormat=3D"true" Name=3D"T=
-OC Heading"/>
-</w:LatentStyles>
-</xml><![endif]--><style><!--
-/* Font Definitions */
-@font-face
-	{font-family:Calibri;
-	panose-1:2 15 5 2 2 2 4 3 2 4;
-	mso-font-alt:"Century Gothic";
-	mso-font-charset:0;
-	mso-generic-font-family:swiss;
-	mso-font-pitch:variable;
-	mso-font-signature:-520092929 1073786111 9 0 415 0;}
-/* Style Definitions */
-p.MsoNormal, li.MsoNormal, div.MsoNormal
-	{mso-style-unhide:no;
-	mso-style-qformat:yes;
-	mso-style-parent:"";
-	margin:0in;
-	margin-bottom:.0001pt;
-	mso-pagination:widow-orphan;
-	font-size:11.0pt;
-	font-family:"Calibri","sans-serif";
-	mso-ascii-font-family:Calibri;
-	mso-fareast-font-family:Calibri;
-	mso-hansi-font-family:Calibri;
-	mso-bidi-font-family:"Times New Roman";}
-a:link, span.MsoHyperlink
-	{mso-style-noshow:yes;
-	mso-style-priority:99;
-	color:blue;
-	text-decoration:underline;
-	text-underline:single;}
-a:visited, span.MsoHyperlinkFollowed
-	{mso-style-noshow:yes;
-	mso-style-priority:99;
-	color:purple;
-	text-decoration:underline;
-	text-underline:single;}
-span.EmailStyle17
-	{mso-style-type:personal-compose;
-	mso-style-noshow:yes;
-	mso-style-unhide:no;
-	mso-ansi-font-size:11.0pt;
-	mso-bidi-font-size:11.0pt;
-	font-family:"Calibri","sans-serif";
-	mso-ascii-font-family:Calibri;
-	mso-fareast-font-family:Calibri;
-	mso-hansi-font-family:Calibri;
-	mso-bidi-font-family:"Times New Roman";
-	color:windowtext;}
-span.SpellE
-	{mso-style-name:"";
-	mso-spl-e:yes;}
-.MsoChpDefault
-	{mso-style-type:export-only;
-	mso-default-props:yes;
-	font-family:"Calibri","sans-serif";
-	mso-ascii-font-family:Calibri;
-	mso-fareast-font-family:Calibri;
-	mso-hansi-font-family:Calibri;
-	mso-bidi-font-family:"Times New Roman";}
-@page WordSection1
-	{size:8.5in 11.0in;
-	margin:1.0in 1.0in 1.0in 1.0in;
-	mso-header-margin:.5in;
-	mso-footer-margin:.5in;
-	mso-paper-source:0;}
-div.WordSection1
-	{page:WordSection1;}
---></style><!--[if gte mso 10]><style>/* Style Definitions */
-table.MsoNormalTable
-	{mso-style-name:"Table Normal";
-	mso-tstyle-rowband-size:0;
-	mso-tstyle-colband-size:0;
-	mso-style-noshow:yes;
-	mso-style-priority:99;
-	mso-style-parent:"";
-	mso-padding-alt:0in 5.4pt 0in 5.4pt;
-	mso-para-margin:0in;
-	mso-para-margin-bottom:.0001pt;
-	mso-pagination:widow-orphan;
-	font-size:11.0pt;
-	font-family:"Calibri","sans-serif";
-	mso-ascii-font-family:Calibri;
-	mso-hansi-font-family:Calibri;
-	mso-bidi-font-family:"Times New Roman";}
-</style><![endif]--><!--[if gte mso 9]><xml>
-<o:shapedefaults v:ext=3D"edit" spidmax=3D"1026" />
-</xml><![endif]--><!--[if gte mso 9]><xml>
-<o:shapelayout v:ext=3D"edit">
-<o:idmap v:ext=3D"edit" data=3D"1" />
-</o:shapelayout></xml><![endif]-->
-</head>
-<body lang=3D"EN-US" link=3D"blue" vlink=3D"purple" style=3D"tab-interval:.=
-5in">
-<div class=3D"WordSection1">
-<p class=3D"MsoNormal"><font size=3D"2" face=3D"Calibri"><span style=3D"fon=
-t-size:11.0pt">Hi Jean/Guenter,<o:p></o:p></span></font></p>
-<p class=3D"MsoNormal"><font size=3D"2" face=3D"Calibri"><span style=3D"fon=
-t-size:11.0pt"><o:p>&nbsp;</o:p></span></font></p>
-<p class=3D"MsoNormal"><font size=3D"2" face=3D"Calibri"><span style=3D"fon=
-t-size:11.0pt">In
-<span class=3D"SpellE">thermal_sys.c</span> we have a CONFIG_THERMAL_HWMON.=
-<o:p></o:p></span></font></p>
-<p class=3D"MsoNormal"><font size=3D"2" face=3D"Calibri"><span style=3D"fon=
-t-size:11.0pt">If enabled, this creates sysfs nodes for thermal zones insid=
-e<o:p></o:p></span></font></p>
-<p class=3D"MsoNormal"><span class=3D"SpellE"><font size=3D"2" face=3D"Cali=
-bri"><span style=3D"font-size:11.0pt">hwmon</span></font></span>. Do we nee=
-d this functionality inside
-<span class=3D"SpellE">thermal_sys.c</span> ?<o:p></o:p></p>
-<p class=3D"MsoNormal"><font size=3D"2" face=3D"Calibri"><span style=3D"fon=
-t-size:11.0pt">Or is it Ok to remove this ?<o:p></o:p></span></font></p>
-<p class=3D"MsoNormal"><font size=3D"2" face=3D"Calibri"><span style=3D"fon=
-t-size:11.0pt"><o:p>&nbsp;</o:p></span></font></p>
-<p class=3D"MsoNormal"><font size=3D"2" face=3D"Calibri"><span style=3D"fon=
-t-size:11.0pt">I wanted to know your opinion before submitting a patch.<o:p=
-></o:p></span></font></p>
-<p class=3D"MsoNormal"><font size=3D"2" face=3D"Calibri"><span style=3D"fon=
-t-size:11.0pt"><o:p>&nbsp;</o:p></span></font></p>
-<p class=3D"MsoNormal"><font size=3D"2" face=3D"Calibri"><span style=3D"fon=
-t-size:11.0pt">Thanks,<o:p></o:p></span></font></p>
-<p class=3D"MsoNormal"><font size=3D"2" face=3D"Calibri"><span style=3D"fon=
-t-size:11.0pt">Durga
-<o:p></o:p></span></font></p>
+&gt; However, I have not send out my patches. The real reason is that I don=
+&#39;t<br>
+&gt; know how to do it. Maybe I need to read &quot;Documentation/Submitting=
+Patches&quot;.<br>
+&gt;<br>
+&gt; Hi Andrew,<br>
+&gt; This is my first time to send you a e-mail. I am so nervous about if I=
+ have<br>
+&gt; some mistakes or not.<br>
+<br>
+</div>Don&#39;t be afraid.<br>
+If you might make a mistake, it&#39;s very natural to newbie.<br>
+I am sure anyone doesn&#39;t blame you. :)<br>
+If you have a good patch, please send out.<br>
+<div class=3D"im"><br>
+&gt;<br>
+&gt; Some peoples maybe think memory hotplug need to be supported by specia=
+l<br>
+&gt; hardware. Maybe it means memory physical hotplug. Some times, we just =
+need<br>
+&gt; to use memory logical hotplug, doesn&#39;t remove the memory in physic=
+al. It is<br>
+&gt; also usefully for power saving in my platform. Because I doesn&#39;t w=
+ant<br>
+</div>&gt; the offline memory is in *self-refresh* state.<br>
+<br>
+Just out of curiosity.<br>
+What&#39;s the your scenario and gain?<br>
+AFAIK, there were some effort about it in embedded side but gain isn&#39;t =
+rather big<br>
+IIRC.<br>
+<div class=3D"HOEnZb"><div class=3D"h5"><br>
+&gt;<br>
+&gt; Any comments are appreciated.<br>
+&gt;<br>
+&gt; Thanks,<br>
+&gt; Jerry<br>
+&gt;<br>
+&gt; 2012/9/10 Vasilis Liaskovitis &lt;<a href=3D"mailto:vasilis.liaskoviti=
+s@profitbricks.com">vasilis.liaskovitis@profitbricks.com</a>&gt;<br>
+&gt;<br>
+&gt; &gt; Hi,<br>
+&gt; &gt;<br>
+&gt; &gt; On Mon, Sep 10, 2012 at 10:01:44AM +0800, Wen Congyang wrote:<br>
+&gt; &gt; &gt; At 09/10/2012 09:46 AM, Yasuaki Ishimatsu Wrote:<br>
+&gt; &gt; &gt; &gt; Hi Wen,<br>
+&gt; &gt; &gt; &gt;<br>
+&gt; &gt; &gt; &gt; 2012/09/01 5:49, Andrew Morton wrote:<br>
+&gt; &gt; &gt; &gt;&gt; On Tue, 28 Aug 2012 18:00:07 +0800<br>
+&gt; &gt; &gt; &gt;&gt; <a href=3D"mailto:wency@cn.fujitsu.com">wency@cn.fu=
+jitsu.com</a> wrote:<br>
+&gt; &gt; &gt; &gt;&gt;<br>
+&gt; &gt; &gt; &gt;&gt;&gt; This patch series aims to support physical memo=
+ry hot-remove.<br>
+&gt; &gt; &gt; &gt;&gt;<br>
+&gt; &gt; &gt; &gt;&gt; I doubt if many people have hardware which permits =
+physical memory<br>
+&gt; &gt; &gt; &gt;&gt; removal? =A0How would you suggest that people with =
+regular hardware can<br>
+&gt; &gt; &gt; &gt;&gt; test these chagnes?<br>
+&gt; &gt; &gt; &gt;<br>
+&gt; &gt; &gt; &gt; How do you test the patch? As Andrew says, for hot-remo=
+ving memory,<br>
+&gt; &gt; &gt; &gt; we need a particular hardware. I think so too. So many =
+people may want<br>
+&gt; &gt; &gt; &gt; to know how to test the patch.<br>
+&gt; &gt; &gt; &gt; If we apply following patch to kvm guest, can we hot-re=
+move memory on<br>
+&gt; &gt; &gt; &gt; kvm guest?<br>
+&gt; &gt; &gt; &gt;<br>
+&gt; &gt; &gt; &gt; <a href=3D"http://lists.gnu.org/archive/html/qemu-devel=
+/2012-07/msg01389.html" target=3D"_blank">http://lists.gnu.org/archive/html=
+/qemu-devel/2012-07/msg01389.html</a><br>
+&gt; &gt; &gt;<br>
+&gt; &gt; &gt; Yes, if we apply this patchset, we can test hot-remove memor=
+y on kvm<br>
+&gt; &gt; guest.<br>
+&gt; &gt; &gt; But that patchset doesn&#39;t implement _PS3, so there is so=
+me restriction.<br>
+&gt; &gt;<br>
+&gt; &gt; the following repos contain the patchset above, plus 2 more patch=
+es that<br>
+&gt; &gt; add<br>
+&gt; &gt; PS3 support to the dimm devices in qemu/seabios:<br>
+&gt; &gt;<br>
+&gt; &gt; <a href=3D"https://github.com/vliaskov/seabios/commits/memhp-v2" =
+target=3D"_blank">https://github.com/vliaskov/seabios/commits/memhp-v2</a><=
+br>
+&gt; &gt; <a href=3D"https://github.com/vliaskov/qemu-kvm/commits/memhp-v2"=
+ target=3D"_blank">https://github.com/vliaskov/qemu-kvm/commits/memhp-v2</a=
+><br>
+&gt; &gt;<br>
+&gt; &gt; I have not posted the PS3 patches yet in the qemu list, but will =
+post them<br>
+&gt; &gt; soon for v3 of the memory hotplug series. If you have issues test=
+ing, let<br>
+&gt; &gt; me<br>
+&gt; &gt; know.<br>
+&gt; &gt;<br>
+&gt; &gt; thanks,<br>
+&gt; &gt;<br>
+&gt; &gt; - Vasilis<br>
+&gt; &gt;<br>
+&gt; &gt; --<br>
+&gt; &gt; To unsubscribe, send a message with &#39;unsubscribe linux-mm&#39=
+; in<br>
+&gt; &gt; the body to <a href=3D"mailto:majordomo@kvack.org">majordomo@kvac=
+k.org</a>. =A0For more info on Linux MM,<br>
+&gt; &gt; see: <a href=3D"http://www.linux-mm.org/" target=3D"_blank">http:=
+//www.linux-mm.org/</a> .<br>
+&gt; &gt; Don&#39;t email: &lt;a href=3Dmailto:&quot;<a href=3D"mailto:dont=
+@kvack.org">dont@kvack.org</a>&quot;&gt; <a href=3D"mailto:email@kvack.org"=
+>email@kvack.org</a> &lt;/a&gt;<br>
+&gt; &gt;<br>
+&gt;<br>
+&gt;<br>
+&gt;<br>
+&gt; --<br>
+&gt; I love linux!!!<br>
+<br>
+</div></div><span class=3D"HOEnZb"><font color=3D"#888888">--<br>
+Kind regards,<br>
+Minchan Kim<br>
+</font></span></blockquote></div><br><br clear=3D"all"><div><br></div>-- <b=
+r>I love linux!!!<br>
 </div>
-</body>
-</html>
 
---_000_4D68720C2E767A4AA6A8796D42C8EB591B6F8FBGSMSX101garcorpi_--
+--e89a8fb201e2126a2004c9663479--
 
-
---===============5839877007958540778==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============5839877007958540778==--
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
