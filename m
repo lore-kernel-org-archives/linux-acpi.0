@@ -1,54 +1,53 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: Re: CONFIG_THERMAL_HWMON in thermal_sys.c
-Date: Mon, 10 Sep 2012 22:30:14 -0700
-Message-ID: <20120911053014.GA558@roeck-us.net>
-References: <4D68720C2E767A4AA6A8796D42C8EB591B6F8F@BGSMSX101.gar.corp.intel.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH] ACPI / PM: Infer parent power state from child if unknown
+Date: Tue, 11 Sep 2012 13:33:07 +0800
+Message-ID: <20120911053305.GA2130@mint-spring.sh.intel.com>
+References: <1346053126-7646-1-git-send-email-aaron.lu@intel.com>
+ <201209072032.55469.rjw@sisk.pl>
+ <20120910003805.GA1590@mint-spring.sh.intel.com>
+ <201209102150.22738.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.active-venture.com ([67.228.131.205]:64820 "EHLO
-	mail.active-venture.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751313Ab2IKFaN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Sep 2012 01:30:13 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <4D68720C2E767A4AA6A8796D42C8EB591B6F8F@BGSMSX101.gar.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <201209102150.22738.rjw@sisk.pl>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "R, Durgadoss" <durgadoss.r@intel.com>
-Cc: "Guenter Roeck (guenter.roeck@ericsson.com)" <guenter.roeck@ericsson.com>, "Jean Delvare (khali@linux-fr.org)" <khali@linux-fr.org>, "Zhang, Rui" <rui.zhang@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "lm-sensors (lm-sensors@lm-sensors.org)" <lm-sensors@lm-sensors.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Tue, Sep 11, 2012 at 05:07:29AM +0000, R, Durgadoss wrote:
-> Hi Jean/Guenter,
+On Mon, Sep 10, 2012 at 09:50:22PM +0200, Rafael J. Wysocki wrote:
+>  drivers/acpi/bus.c |   11 ++++++++++-
+>  1 file changed, 10 insertions(+), 1 deletion(-)
 > 
-> In thermal_sys.c we have a CONFIG_THERMAL_HWMON.
-> If enabled, this creates sysfs nodes for thermal zones inside
-> hwmon. Do we need this functionality inside thermal_sys.c ?
-> Or is it Ok to remove this ?
-> 
-> I wanted to know your opinion before submitting a patch.
-> 
-Hi Durga,
+> Index: linux/drivers/acpi/bus.c
+> ===================================================================
+> --- linux.orig/drivers/acpi/bus.c
+> +++ linux/drivers/acpi/bus.c
+> @@ -228,7 +228,16 @@ static int __acpi_bus_get_power(struct a
+>  		result = psc;
+>  	}
+>  	/* The test below covers ACPI_STATE_UNKNOWN too. */
+> -	if (result <= ACPI_STATE_D2) {
+> +	if (result == ACPI_STATE_D0) {
 
-question is really what would replace it. From the plumbers conference,
-I understand the idea was that drivers would have to register to both hwmon
-and the thermal subsystem. Is that going to happen ?
+Oops, I just realized that the check here is too early if device does
+not have _PSC but _PRx, its parent will miss the chance to get power
+state updated :-)
 
-Second question is why you want to remove it in the first place. It only
-matters for drivers which _do_ register with both hwmon and thermal - in
-other words, none today. This case could be handled with a new thermal API,
-which would specifically exclude hwmon registration.
+Sorry for not spotting this earlier.
 
-My concern at this point with the thermal plans is that you might end up
-duplicating a bunch of temperature sensor drivers in the thermal subsystem.
-And if drivers are to support both subsystems, you would end up duplicating
-a lot of common code in drivers which support both the thermal subsystem
-and hwmon.
+-Aaron
 
-I personally don't think that is a good idea, and would prefer a more unified
-approach where it would be possible to register a hwmon temperature sensor driver
-with the thermal subsystem. Since that would be quite limited in scope, it might
-not be too difficult to define an API for it which should both simplify hwmon
-temperature sensor drivers and provide an interface to the thermal subsystem.
-
-Thanks,
-Guenter
+> +		/*
+> +		 * If we were unsure about the device parent's power state up to
+> +		 * this point, the fact that the device is in D0 implies that
+> +		 * the parent has to be in D0 too.
+> +		 */
+> +		if (device->parent
+> +		    && device->parent->power.state == ACPI_STATE_UNKNOWN)
+> +			device->parent->power.state = ACPI_STATE_D0;
+> +	} else if (result <= ACPI_STATE_D2) {
+>  	  ; /* Do nothing. */
+>  	} else if (device->power.flags.power_resources) {
+>  		int error = acpi_power_get_inferred_state(device, &result);
