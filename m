@@ -1,90 +1,95 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH v6 1/7] scsi: sr: support runtime pm for ODD
-Date: Tue, 11 Sep 2012 19:11:08 +0800
-Message-ID: <20120911111107.GA20361@mint-spring.sh.intel.com>
-References: <Pine.LNX.4.44L0.1209061437050.1182-100000@iolanthe.rowland.org>
- <3578472.dQIepChrCX@linux-lqwf.site>
- <20120911092410.GA1704@mint-spring.sh.intel.com>
- <1545884.X9DCxzsAFq@linux-lqwf.site>
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [PATCH 1/6] acpi : move the acpi_idle_driver variable declaration
+Date: Tue, 11 Sep 2012 13:14:33 +0200
+Message-ID: <504F1D19.1030702@linaro.org>
+References: <1347013172-12465-1-git-send-email-daniel.lezcano@linaro.org> <1347013172-12465-2-git-send-email-daniel.lezcano@linaro.org> <201209072319.33742.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:13939 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757783Ab2IKLLR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 11 Sep 2012 07:11:17 -0400
-Content-Disposition: inline
-In-Reply-To: <1545884.X9DCxzsAFq@linux-lqwf.site>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:42551 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758737Ab2IKLOh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Sep 2012 07:14:37 -0400
+Received: by eaac11 with SMTP id c11so194039eaa.19
+        for <linux-acpi@vger.kernel.org>; Tue, 11 Sep 2012 04:14:36 -0700 (PDT)
+In-Reply-To: <201209072319.33742.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Oliver Neukum <oliver@neukum.org>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Aaron Lu <aaron.lwe@gmail.com>, James Bottomley <James.Bottomley@hansenpartnership.com>, Jeff Garzik <jgarzik@pobox.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: lenb@kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, patches@linaro.org, linaro-dev@lists.linaro.org, pdeschrijver@nvidia.com, lorenzo.pieralisi@arm.com
 
-On Tue, Sep 11, 2012 at 11:30:35AM +0200, Oliver Neukum wrote:
-> On Tuesday 11 September 2012 17:24:13 Aaron Lu wrote:
-> > On Tue, Sep 11, 2012 at 10:55:44AM +0200, Oliver Neukum wrote:
-> > > On Tuesday 11 September 2012 14:44:30 Aaron Lu wrote:
-> > > > On Mon, Sep 10, 2012 at 12:45:51PM +0200, Oliver Neukum wrote:
-> > > > > On Monday 10 September 2012 17:16:22 Aaron Lu wrote:
-> > > > > 
-> > > > > > +static int sr_resume(struct device *dev)
-> > > > > > +{
-> > > > > > +       struct scsi_cd *cd;
-> > > > > > +       struct scsi_sense_hdr sshdr;
-> > > > > > +
-> > > > > > +       cd = dev_get_drvdata(dev);
-> > > > > > +
-> > > > > > +       if (!cd->device->powered_off)
-> > > > > > +               return 0;
-> > > > > > +
-> > > > > > +       /* get the disk ready */
-> > > > > > +       scsi_test_unit_ready(cd->device, SR_TIMEOUT, MAX_RETRIES, &sshdr);
-> > > > > > +
-> > > > > > +       /* if user wakes up the ODD, eject the tray */
-> > > > > > +       if (cd->device->need_eject) {
-> > > > > > +               cd->device->need_eject = 0;
-> > > > > > +               if (!(cd->cdi.mask & CDC_CLOSE_TRAY))
-> > > > > > +                       sr_tray_move(&cd->cdi, 1);
-> > > > > 
-> > > > > 1. Even if the door is locked?
-> > > > 
-> > > > This piece of code of sr_resume is intended for ZPODD devices, for
-> > > > normal devices it will simply return as the powered_off flag will never
-> > > > be set for them.
-> > > > 
-> > > > And for ZPODD devices, the door shouldn't be in locked state here since
-> > > > for it to enter power off state, "no medium inside" has to be satisfied
-> > > 
-> > > This is true only if the device is autosuspended. But sr_resume()
-> > > will also be called if the whole system was suspended.
-> > 
-> > You mean when system resumes, right?
-> 
-> Yes, but because the whole system had been suspended.
-> In that case you can have a locked door.
+On 09/07/2012 11:19 PM, Rafael J. Wysocki wrote:
+> On Friday, September 07, 2012, Daniel Lezcano wrote:
+>> This variable is only used in the in processor_driver.c.
+>> This patch reduces the scope of the variable by moving it
+>> to this file.
+>=20
+> Well, the changelog is wrong (because the scope of the variable is
+> not reduced by moving it out of the header) and I don't see the point=
+=2E
 
-By locked, do you mean the door is closed or the door is locked by the
-sr_lock_door function with param lock set to 1?
+Yes, you are right.
 
-> 
-> > > What happens if the user presses the door button on the drive
-> > > while the system was suspended?
-> > 
-> > The drive does not have the capability to wake up the system from S3, so
-> > nothing happens.
-> 
-> You are assuming that the system is resumed because the door button is pressed.
+> Is there any _real_ problem with that definition in processor.h?
 
-No, as I said, pressing the eject button can't wake up a suspended
-system. The whole idea of ZPODD is to put the ODD into powered off state
-while the system is at S0.
+It is not a real problem. There is no issue fixed by this patch.
+It is just reorganizing the code little by little. The intent is to
+group what is related to cpuidle to the C files here processor_driver.c=
+=2E
 
-> That need not be the case. What happens if the door button is pressed while
-> the system is resuming?
 
-In that case, if the hardware logic is ready, an ACPI event will fire
-and the device will be runtime resumed; if the hardware logic is not
-ready yet due to the system is resuming, nothing happens.
+>> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+>> Acked-by: Peter De Schrijver <pdeschrijver@nvidia.com>
+>> Tested-by: Peter De Schrijver <pdeschrijver@nvidia.com>
+>> ---
+>>  drivers/acpi/processor_driver.c |    2 +-
+>>  include/acpi/processor.h        |    1 -
+>>  2 files changed, 1 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processo=
+r_driver.c
+>> index bfc31cb..e1f6330 100644
+>> --- a/drivers/acpi/processor_driver.c
+>> +++ b/drivers/acpi/processor_driver.c
+>> @@ -113,7 +113,7 @@ static struct acpi_driver acpi_processor_driver =
+=3D {
+>> =20
+>>  DEFINE_PER_CPU(struct acpi_processor *, processors);
+>>  EXPORT_PER_CPU_SYMBOL(processors);
+>> -
+>> +extern struct cpuidle_driver acpi_idle_driver;
+>>  struct acpi_processor_errata errata __read_mostly;
+>> =20
+>>  /* ----------------------------------------------------------------=
+----------
+>> diff --git a/include/acpi/processor.h b/include/acpi/processor.h
+>> index db427fa..8b2c39a 100644
+>> --- a/include/acpi/processor.h
+>> +++ b/include/acpi/processor.h
+>> @@ -332,7 +332,6 @@ int acpi_processor_power_exit(struct acpi_proces=
+sor *pr,
+>>  			      struct acpi_device *device);
+>>  int acpi_processor_suspend(struct device *dev);
+>>  int acpi_processor_resume(struct device *dev);
+>> -extern struct cpuidle_driver acpi_idle_driver;
+>> =20
+>>  /* in processor_thermal.c */
+>>  int acpi_processor_get_limit_info(struct acpi_processor *pr);
+>>
+>=20
 
-Thanks,
-Aaron
+
+--=20
+ <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software for=
+ ARM SoCs
+
+=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
+<http://twitter.com/#!/linaroorg> Twitter |
+<http://www.linaro.org/linaro-blog/> Blog
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
