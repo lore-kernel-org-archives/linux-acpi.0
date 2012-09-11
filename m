@@ -1,65 +1,90 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: CONFIG_THERMAL_HWMON in thermal_sys.c
-Date: Tue, 11 Sep 2012 11:49:21 +0200
-Message-ID: <20120911114921.2e39e28c@endymion.delvare>
-References: <4D68720C2E767A4AA6A8796D42C8EB591B6F8F@BGSMSX101.gar.corp.intel.com>
-	<20120911091204.24fd1510@endymion.delvare>
-	<4D68720C2E767A4AA6A8796D42C8EB591B7261@BGSMSX101.gar.corp.intel.com>
-	<20120911110335.68009452@endymion.delvare>
-	<4D68720C2E767A4AA6A8796D42C8EB591B72C6@BGSMSX101.gar.corp.intel.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v6 1/7] scsi: sr: support runtime pm for ODD
+Date: Tue, 11 Sep 2012 19:11:08 +0800
+Message-ID: <20120911111107.GA20361@mint-spring.sh.intel.com>
+References: <Pine.LNX.4.44L0.1209061437050.1182-100000@iolanthe.rowland.org>
+ <3578472.dQIepChrCX@linux-lqwf.site>
+ <20120911092410.GA1704@mint-spring.sh.intel.com>
+ <1545884.X9DCxzsAFq@linux-lqwf.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from zoneX.GCU-Squad.org ([194.213.125.0]:30553 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758005Ab2IKJtc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Sep 2012 05:49:32 -0400
-In-Reply-To: <4D68720C2E767A4AA6A8796D42C8EB591B72C6@BGSMSX101.gar.corp.intel.com>
+Received: from mga02.intel.com ([134.134.136.20]:13939 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757783Ab2IKLLR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 11 Sep 2012 07:11:17 -0400
+Content-Disposition: inline
+In-Reply-To: <1545884.X9DCxzsAFq@linux-lqwf.site>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "R, Durgadoss" <durgadoss.r@intel.com>
-Cc: Guenter Roeck <linux@roeck-us.net>, "Zhang, Rui" <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org
+To: Oliver Neukum <oliver@neukum.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Aaron Lu <aaron.lwe@gmail.com>, James Bottomley <James.Bottomley@hansenpartnership.com>, Jeff Garzik <jgarzik@pobox.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tue, 11 Sep 2012 09:24:27 +0000, R, Durgadoss wrote:
-> I have not tried anything with libsensors until now..so it will take
-> some time for me. If you can wait, I can happily submit the required
-> patches :-)
+On Tue, Sep 11, 2012 at 11:30:35AM +0200, Oliver Neukum wrote:
+> On Tuesday 11 September 2012 17:24:13 Aaron Lu wrote:
+> > On Tue, Sep 11, 2012 at 10:55:44AM +0200, Oliver Neukum wrote:
+> > > On Tuesday 11 September 2012 14:44:30 Aaron Lu wrote:
+> > > > On Mon, Sep 10, 2012 at 12:45:51PM +0200, Oliver Neukum wrote:
+> > > > > On Monday 10 September 2012 17:16:22 Aaron Lu wrote:
+> > > > > 
+> > > > > > +static int sr_resume(struct device *dev)
+> > > > > > +{
+> > > > > > +       struct scsi_cd *cd;
+> > > > > > +       struct scsi_sense_hdr sshdr;
+> > > > > > +
+> > > > > > +       cd = dev_get_drvdata(dev);
+> > > > > > +
+> > > > > > +       if (!cd->device->powered_off)
+> > > > > > +               return 0;
+> > > > > > +
+> > > > > > +       /* get the disk ready */
+> > > > > > +       scsi_test_unit_ready(cd->device, SR_TIMEOUT, MAX_RETRIES, &sshdr);
+> > > > > > +
+> > > > > > +       /* if user wakes up the ODD, eject the tray */
+> > > > > > +       if (cd->device->need_eject) {
+> > > > > > +               cd->device->need_eject = 0;
+> > > > > > +               if (!(cd->cdi.mask & CDC_CLOSE_TRAY))
+> > > > > > +                       sr_tray_move(&cd->cdi, 1);
+> > > > > 
+> > > > > 1. Even if the door is locked?
+> > > > 
+> > > > This piece of code of sr_resume is intended for ZPODD devices, for
+> > > > normal devices it will simply return as the powered_off flag will never
+> > > > be set for them.
+> > > > 
+> > > > And for ZPODD devices, the door shouldn't be in locked state here since
+> > > > for it to enter power off state, "no medium inside" has to be satisfied
+> > > 
+> > > This is true only if the device is autosuspended. But sr_resume()
+> > > will also be called if the whole system was suspended.
+> > 
+> > You mean when system resumes, right?
 > 
-> But, we are changing the thermal framework quite a bit these days.
-> In some time, things should become saner. Until then, we will not
-> remove this #define and keep it as it is. Once that happens, we can
-> take care of removing this #defined code and also patching
-> libsensors.
+> Yes, but because the whole system had been suspended.
+> In that case you can have a locked door.
+
+By locked, do you mean the door is closed or the door is locked by the
+sr_lock_door function with param lock set to 1?
+
 > 
-> We can do this now also. I know, we are changing things on
-> the thermal side (sysfs attribute names etc..).  If we patch 
-> libsensors now, then we might have to re-visit again, soon.
-> That's why, I would like to defer this until things settle down on the
-> Thermal side.
+> > > What happens if the user presses the door button on the drive
+> > > while the system was suspended?
+> > 
+> > The drive does not have the capability to wake up the system from S3, so
+> > nothing happens.
 > 
-> Let me know what you think.
+> You are assuming that the system is resumed because the door button is pressed.
 
-I agree, let's wait for the interface to stabilize, there's no point in
-updating libsensors publicly now if the interface is going to change in
-a near future.
+No, as I said, pressing the eject button can't wake up a suspended
+system. The whole idea of ZPODD is to put the ODD into powered off state
+while the system is at S0.
 
-That being said you may also want to anticipate a bit in private, to
-make sure that the interface as it exists today is enough for
-libsensors.
+> That need not be the case. What happens if the door button is pressed while
+> the system is resuming?
 
-> > Note: if the same device can now be registered as both hwmon and
-> > thermal, we will have to find a way to detect that to avoid duplicate
-> > entries in libsensors.
->  
-> The hwmon sysfs has a 'name' field. We can pass the same string as the
-> first argument of the thermal_zone_device_register() call. This will
-> show up as 'type' attribute under /sys/class/thermal/thermal_zoneX.
-> So, from user space, we can compare these interfaces and thus avoid
-> the duplicates.
+In that case, if the hardware logic is ready, an ACPI event will fire
+and the device will be runtime resumed; if the hardware logic is not
+ready yet due to the system is resuming, nothing happens.
 
-This is a start, yes. However the name isn't necessarily unique, so
-more tricks may be needed.
-
--- 
-Jean Delvare
+Thanks,
+Aaron
