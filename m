@@ -1,76 +1,144 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
+From: Zhang Rui <rui.zhang@intel.com>
 Subject: RE: [PATCHv3 13/15] Thermal: Remove throttling logic out of
  thermal_sys.c
-Date: Tue, 11 Sep 2012 03:05:59 +0000
-Message-ID: <4D68720C2E767A4AA6A8796D42C8EB591B6D84@BGSMSX101.gar.corp.intel.com>
+Date: Tue, 11 Sep 2012 11:20:51 +0800
+Message-ID: <1347333651.1682.1143.camel@rui.sh.intel.com>
 References: <1346500296-25200-1-git-send-email-durgadoss.r@intel.com>
 	 <1346500296-25200-14-git-send-email-durgadoss.r@intel.com>
 	 <1347266657.1682.1086.camel@rui.sh.intel.com>
 	 <4D68720C2E767A4AA6A8796D42C8EB591B54AA@BGSMSX101.gar.corp.intel.com>
- <1347323058.1682.1093.camel@rui.sh.intel.com>
+	 <1347323058.1682.1093.camel@rui.sh.intel.com>
+	 <4D68720C2E767A4AA6A8796D42C8EB591B6D84@BGSMSX101.gar.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:42874 "EHLO mga11.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:28305 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754704Ab2IKDGC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 10 Sep 2012 23:06:02 -0400
-In-Reply-To: <1347323058.1682.1093.camel@rui.sh.intel.com>
-Content-Language: en-US
+	id S1755171Ab2IKDUC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 10 Sep 2012 23:20:02 -0400
+In-Reply-To: <4D68720C2E767A4AA6A8796D42C8EB591B6D84@BGSMSX101.gar.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>
+To: "R, Durgadoss" <durgadoss.r@intel.com>
 Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>
 
-SGkgUnVpLA0KDQo+IE9uIOS4gCwgMjAxMi0wOS0xMCBhdCAwMjo1NiAtMDYwMCwgUiwgRHVyZ2Fk
-b3NzIHdyb3RlOg0KPiA+IEhpIFJ1aSwNCj4gPg0KPiA+ID4gLS0tLS1PcmlnaW5hbCBNZXNzYWdl
-LS0tLS0NCj4gPiA+IEZyb206IFpoYW5nLCBSdWkNCj4gPiA+IFNlbnQ6IE1vbmRheSwgU2VwdGVt
-YmVyIDEwLCAyMDEyIDI6MTQgUE0NCj4gPiA+IFRvOiBSLCBEdXJnYWRvc3MNCj4gPiA+IENjOiBs
-ZW5iQGtlcm5lbC5vcmc7IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnOw0KPiBlZHVhcmRvLnZh
-bGVudGluQHRpLmNvbQ0KPiA+ID4gU3ViamVjdDogUmU6IFtQQVRDSHYzIDEzLzE1XSBUaGVybWFs
-OiBSZW1vdmUgdGhyb3R0bGluZyBsb2dpYyBvdXQgb2YNCj4gPiA+IHRoZXJtYWxfc3lzLmMNCj4g
-PiBbY3V0Ll0NCj4gPg0KPiA+ID4gPiArDQo+ID4gPiA+ICtzdGF0aWMgdm9pZCBoYW5kbGVfbm9u
-X2NyaXRpY2FsX3RyaXBzKHN0cnVjdCB0aGVybWFsX3pvbmVfZGV2aWNlICp0eiwNCj4gPiA+ID4g
-KwkJCWludCB0cmlwLCBlbnVtIHRoZXJtYWxfdHJpcF90eXBlIHRyaXBfdHlwZSkNCj4gPiA+ID4g
-K3sNCj4gPiA+ID4gKwl0ei0+Z292ZXJub3ItPnRocm90dGxlKHR6LCB0cmlwKTsNCj4gPiA+ID4g
-K30NCj4gPiA+IGhlcmUgaXMgdGhlIHByb2JsZW0sIHdlIG11c3QgbWFrZSBzdXJlIGV2ZXJ5IHJl
-Z2lzdGVyZWQgdGhlcm1hbCB6b25lDQo+ID4gPiBoYXZlIGEgZ292ZXJub3Igd2hlbiBpdCBpcyBy
-dW5uaW5nLCByaWdodD8NCj4gPg0KPiA+IFllcywgYWdyZWUgd2l0aCB5b3UuIEhhZCBzb21lIHRo
-b3VnaHRzIGhlcmUsIGJ1dCB3YW50ZWQgdG8gZ2V0IHlvdXINCj4gb3Bpbmlvbg0KPiA+IGJlZm9y
-ZSBJIGltcGxlbWVudGVkIHRoZW0uDQo+ID4NCj4gPiAxLiBXZSBjYW4gbWFrZSB0aGUgZGVmYXVs
-dCBnb3Zlcm5vciBhcyAndXNlciBzcGFjZScsIGFuZCBtYWtlIGl0IGxvYWQNCj4gaW5zaWRlDQo+
-ID4gdGhlcm1hbF9zeXMuYyAoc28gdGhhdCBldmVyeSB6b25lIHdpbGwgYWx3YXlzIGhhdmUgYSBk
-ZWZhdWx0IGdvdmVybm9yKQ0KPiA+DQo+IE5vLCB0aGUgZGVmYXVsdCBnb3Zlcm5vciBzaG91bGQg
-YmUgc3RlcCB3aXNlIHNvIHRoYXQgaXQgYmVoYXZlcyB0aGUgc2FtZQ0KPiBhcyBiZWZvcmUuIGlm
-IHdlIHVzZSB1c2Vyc3BhY2UgYXMgZGVmYXVsdCBnb3Zlcm5vciwgbW9zdCBvZiB0aGUgdGhlcm1h
-bA0KPiBkcml2ZXIgd2lsbCBzdG9wIHdvcmtpbmcgd2l0aCB0aGlzIHBhdGNoIHNldC4NCg0KeWVz
-LCBJIHVuZGVyc3RhbmQuIFNoYWxsIG1ha2Ugc3RlcF93aXNlIGRlZmF1bHQsIGFuZCBhbHdheXMg
-bG9hZGVkLg0KDQpGb3IgdXNlciBzcGFjZSwgc2hvdWxkIHdlIG1vdmUgaXQgdG8gYSBuZXcgLmMg
-ZmlsZSwgYW5kIG1ha2UgaXQgbGlrZQ0Kb3RoZXIgZ292ZXJub3JzIG9yIGNhbiB3ZSBrZWVwIGl0
-IGFzIGl0IGlzID8NCg0KVGhhbmtzLA0KRHVyZ2ENCg0KPiANCj4gSU1PLCB3ZSBzaG91bGQgbWFr
-ZSBhbGwgb2YgdGhlIGdvdmVybm9ycyBjb25maWd1cmFibGUsIGJ1dCBhdCBsZWFzdCBvbmUNCj4g
-b2YgdGhlbSBtdXN0IGJlIHNlbGVjdGVkIGFzIHRoZSBkZWZhdWx0IGdvdmVybm9yLCB0aGF0J3Mg
-d2h5IHdlIG5lZWQNCj4gc29tZXRoaW5nIGJlbG93Lg0KPiANCj4gY2hvaWNlDQo+ICAgICAgICAg
-cHJvbXB0ICJEZWZhdWx0IHRoZXJtYWwgZ292ZXJub3IiDQo+ICAgICAgICAgZGVmYXVsdCBUSEVS
-TUFMX0RFRkFVTFRfR09WX1NURVBfV0lTRQ0KPiAgICAgICAgIGhlbHANCj4gICAgICAgICAgIFRo
-aXMgb3B0aW9uIHNldHMgd2hpY2ggdGhlcm1hbCBnb3Zlcm5vciBzaGFsbCBiZSBsb2FkZWQgYXQN
-Cj4gICAgICAgICAgIHN0YXJ0dXAuDQo+IA0KPiB0aGFua3MsDQo+IHJ1aQ0KPiANCj4gPiAyLiBB
-bGwgb3RoZXIgZ292ZXJub3JzLCB0aGF0IGFyZSBpbXBsZW1lbnRlZCBpbiBhIHNlcGFyYXRlIC5j
-IGZpbGUgY2FuIGJlDQo+ID4gb3B0aW9uYWwgaS5lLiBsZWZ0IHRvIHRoZSB1c2VyIHRvIHNlbGVj
-dC9kZXNlbGVjdC4NCj4gPg0KPiA+IElNTywgdGhpcyB3aWxsIG1ha2Ugb3VyIGltcGxlbWVudGF0
-aW9uIGVhc2llciBhbmQgY2xlYW5lci4NCj4gPiBXaGF0IGRvIHlvdSB0aGluayA/DQo+ID4NCj4g
-PiBUaGFua3MsDQo+ID4gRHVyZ2ENCj4gPg0KPiA+ID4NCj4gPiA+IHRoZW4gdGhlIGRlZmF1bHQg
-Z292ZXJub3IgbXVzdCBhbHdheXMgYmUgYnVpbHQgaW4uDQo+ID4gPiBXZSBjYW4gaGF2ZSBhIEtj
-b25maWcgb3B0aW9uIGZvciBzdGVwX3dpc2UsIGJ1dCB3ZSBzaG91bGQgbm90IG1ha2UgaXQNCj4g
-PiA+IGNvbmZpZ3VyYWJsZSBieSB1c2Vycy4NCj4gPiA+IG9yIHdlIGNhbiB1c2UgcHJvbXB0IHRv
-IGdldCB0aGUgZGVmYXVsdCBnb3Zlcm5vciBhdCBidWlsZCB0aW1lLiBzYXkNCj4gPiA+DQo+ID4g
-PiBjaG9pY2UNCj4gPiA+ICAgICAgICAgcHJvbXB0ICJEZWZhdWx0IHRoZXJtYWwgZ292ZXJub3Ii
-DQo+ID4gPiAgICAgICAgIGRlZmF1bHQgVEhFUk1BTF9ERUZBVUxUX0dPVl9TVEVQX1dJU0UNCj4g
-PiA+ICAgICAgICAgaGVscA0KPiA+ID4gICAgICAgICAgIFRoaXMgb3B0aW9uIHNldHMgd2hpY2gg
-dGhlcm1hbCBnb3Zlcm5vciBzaGFsbCBiZSBsb2FkZWQgYXQNCj4gPiA+ICAgICAgICAgICBzdGFy
-dHVwLg0KPiA+ID4NCj4gPiA+IGNvbmZpZyBUSEVSTUFMX0RFRkFVTFRfR09WX1NURVBfV0lTRQ0K
-PiA+ID4gICAgICAgICBib29sICJzdGVwLXdpc2UiDQo+ID4gPiAgICAgICAgIHNlbGVjdCBUSEVS
-TUFMX0dPVl9TVEVQX1dJU0UNCj4gPiA+ICAgICAgICAgaGVscA0KPiA+ID4gICAgICAgICAgIFVz
-ZSB0aGUgdGhlcm1hbCBnb3Zlcm5vciAnc3RlcC13aXNlJyBhcyBkZWZhdWx0LmJsYWJsYQ0KPiA+
-ID4NCj4gPiA+DQo+ID4gPiB0aGFua3MsDQo+ID4gPiBydWkNCg==
+On =E4=B8=80, 2012-09-10 at 21:05 -0600, R, Durgadoss wrote:
+> Hi Rui,
+>=20
+> > On =E4=B8=80, 2012-09-10 at 02:56 -0600, R, Durgadoss wrote:
+> > > Hi Rui,
+> > >
+> > > > -----Original Message-----
+> > > > From: Zhang, Rui
+> > > > Sent: Monday, September 10, 2012 2:14 PM
+> > > > To: R, Durgadoss
+> > > > Cc: lenb@kernel.org; linux-acpi@vger.kernel.org;
+> > eduardo.valentin@ti.com
+> > > > Subject: Re: [PATCHv3 13/15] Thermal: Remove throttling logic o=
+ut of
+> > > > thermal_sys.c
+> > > [cut.]
+> > >
+> > > > > +
+> > > > > +static void handle_non_critical_trips(struct thermal_zone_de=
+vice *tz,
+> > > > > +			int trip, enum thermal_trip_type trip_type)
+> > > > > +{
+> > > > > +	tz->governor->throttle(tz, trip);
+> > > > > +}
+> > > > here is the problem, we must make sure every registered thermal=
+ zone
+> > > > have a governor when it is running, right?
+> > >
+> > > Yes, agree with you. Had some thoughts here, but wanted to get yo=
+ur
+> > opinion
+> > > before I implemented them.
+> > >
+> > > 1. We can make the default governor as 'user space', and make it =
+load
+> > inside
+> > > thermal_sys.c (so that every zone will always have a default gove=
+rnor)
+> > >
+> > No, the default governor should be step wise so that it behaves the=
+ same
+> > as before. if we use userspace as default governor, most of the the=
+rmal
+> > driver will stop working with this patch set.
+>=20
+> yes, I understand. Shall make step_wise default, and always loaded.
+>=20
+we can always make step-wise default, or we can ask users to select one
+as default and load it.
+
+> For user space, should we move it to a new .c file, and make it like
+> other governors or can we keep it as it is ?
+>=20
+a new .c file for userspace governor.
+
+> Thanks,
+> Durga
+>=20
+> >=20
+> > IMO, we should make all of the governors configurable, but at least=
+ one
+> > of them must be selected as the default governor, that's why we nee=
+d
+> > something below.
+> >=20
+> > choice
+> >         prompt "Default thermal governor"
+> >         default THERMAL_DEFAULT_GOV_STEP_WISE
+> >         help
+> >           This option sets which thermal governor shall be loaded a=
+t
+> >           startup.
+> >=20
+> > thanks,
+> > rui
+> >=20
+> > > 2. All other governors, that are implemented in a separate .c fil=
+e can be
+> > > optional i.e. left to the user to select/deselect.
+> > >
+> > > IMO, this will make our implementation easier and cleaner.
+> > > What do you think ?
+> > >
+> > > Thanks,
+> > > Durga
+> > >
+> > > >
+> > > > then the default governor must always be built in.
+> > > > We can have a Kconfig option for step_wise, but we should not m=
+ake it
+> > > > configurable by users.
+> > > > or we can use prompt to get the default governor at build time.=
+ say
+> > > >
+> > > > choice
+> > > >         prompt "Default thermal governor"
+> > > >         default THERMAL_DEFAULT_GOV_STEP_WISE
+> > > >         help
+> > > >           This option sets which thermal governor shall be load=
+ed at
+> > > >           startup.
+> > > >
+> > > > config THERMAL_DEFAULT_GOV_STEP_WISE
+> > > >         bool "step-wise"
+> > > >         select THERMAL_GOV_STEP_WISE
+> > > >         help
+> > > >           Use the thermal governor 'step-wise' as default.blabl=
+a
+> > > >
+> > > >
+> > > > thanks,
+> > > > rui
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
