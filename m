@@ -1,68 +1,74 @@
-From: James Bottomley <James.Bottomley@HansenPartnership.com>
-Subject: Re: [PATCH 1/2] scsi: sd: set ready_to_power_off for scsi disk
-Date: Fri, 14 Sep 2012 11:26:29 +0100
-Message-ID: <1347618389.2450.5.camel@dabdike.int.hansenpartnership.com>
-References: <1347522049-1836-1-git-send-email-aaron.lu@intel.com>
-	  <1347522049-1836-2-git-send-email-aaron.lu@intel.com>
-	  <1347524092.2720.1.camel@dabdike.int.hansenpartnership.com>
-	  <50519801.6080502@intel.com>
-	  <1347525466.2720.10.camel@dabdike.int.hansenpartnership.com>
-	  <50519E08.10800@intel.com>
-	  <1347526590.2720.15.camel@dabdike.int.hansenpartnership.com>
-	  <5051A25F.7040704@intel.com>
-	  <1347528404.2720.28.camel@dabdike.int.hansenpartnership.com>
-	  <20120914052041.GA5177@mint-spring.sh.intel.com>
-	 <1347610640.2794.11.camel@dabdike.int.hansenpartnership.com>
-	 <5052EF5F.3000103@intel.com>
+From: Matt Fleming <matt.fleming@intel.com>
+Subject: Re: [PATCHv3 0/4] Fix ACPI BGRT support for images located in EFI
+ boot services memory
+Date: Wed, 12 Sep 2012 16:27:11 +0100
+Message-ID: <1347463631.24512.5.camel@mfleming-mobl1.ger.corp.intel.com>
+References: <cover.1347141698.git.josh@joshtriplett.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bedivere.hansenpartnership.com ([66.63.167.143]:58047 "EHLO
-	bedivere.hansenpartnership.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753868Ab2INK0e (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 14 Sep 2012 06:26:34 -0400
-In-Reply-To: <5052EF5F.3000103@intel.com>
+Received: from mga05.intel.com ([192.55.52.89]:58990 "EHLO
+	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752329Ab2INMqj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Sep 2012 08:46:39 -0400
+Received: by weyx8 with SMTP id x8so2366989wey.19
+        for <linux-acpi@vger.kernel.org>; Fri, 14 Sep 2012 05:46:36 -0700 (PDT)
+In-Reply-To: <cover.1347141698.git.josh@joshtriplett.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Jeff Garzik <jgarzik@pobox.com>, Aaron Lu <aaron.lwe@gmail.com>, Jack Wang <jack_wang@usish.com>, Shane Huang <shane.huang@amd.com>, Oliver Neukum <oliver@neukum.org>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Josh Triplett <josh@joshtriplett.org>
+Cc: linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Len Brown <lenb@kernel.org>, Olof Johansson <olof@lixom.net>, Matthew Garrett <mjg@redhat.com>, David Howells <dhowells@redhat.com>, Rusty Russell <rusty@rustcorp.com.au>, Peter Zijlstra <a.p.zijlstra@chello.nl>, linux-acpi@vger.kernel.org
 
-On Fri, 2012-09-14 at 16:48 +0800, Aaron Lu wrote:
-> On 09/14/2012 04:17 PM, James Bottomley wrote:
-> >> Just read the SPC-4 spec, in section 5.12.3, it has words like this:
-> >>
-> >> Logical units that contain cache memory shall write all cached data to
-> >> the medium for the logical unit(e.g., as a logical unit would do in
-> >> response to a SYNCHRONIZE CACHE command as described SBC-3) prior to
-> >> entering into any power condition that prevents accessing the
-> >> media(e.g., before a hard drive stops its spindle motor during a change
-> >> to the standby power condition).
-> >>
-> >> So this looks like cache needs to be synced before the device enter
-> >> standby/stopped power condition. Or do I miss somthing?
-> > 
-> > Um, no it says the device shall do the sync on its own (as though it
-> > received a sync cache).  That section says the device shall be
-> > responsible for cache management in the power states.
+On Sat, 2012-09-08 at 15:06 -0700, Josh Triplett wrote:
+> The ACPI BGRT lets the OS access the BIOS logo image and its position on the
+> screen at boot time, allowing it to maintain that image on the screen until
+> ready to display something else, making boot more seamless.  This series fixes
+> support for accessing the boot logo image via the BGRT when the BIOS stores it
+> in EFI boot services memory, as recommended by the ACPI 5.0 spec.  Linux needs
+> to copy the image out of boot services memory before reclaiming boot services
+> memory.
 > 
-> Oh, I thought it was the host software's responsibility, thanks for the
-> explanation.
+> The first patch cleans up the existing x86-specific efi_enter_virtual_mode
+> function to have a stub version on non-x86 platforms, to eliminate an ifdef in
+> init/main.c.   The second patch refactors EFI initialization to defer freeing
+> boot services memory until much later in the boot process, and in particular
+> until after we have ACPI available.  The third patch adds a helper function to
+> look up existing EFI boot services mappings, to avoid re-mapping them.  The
+> fourth patch moves BGRT initialization to before the reclamation of boot
+> services memory, copies the logo at that point, and reworks the existing BGRT
+> driver to use that existing copy.
 > 
-> So if we program the device to let it enter standby/stopped power
-> condition with the start_stop_unit command, do we need to sync the
-> cache?
+> v2: Made the new internal function efi_unmap_memmap static.  Incorporated
+>     feedback from H. Peter Anvin and Matt Fleming: added stubs for
+>     x86-specific EFI functions called from init/main.c to eliminate the
+>     corresponding ifdefs in start_kernel; deferred
+>     efi_free_boot_services even later, to just before free_initmem.
+> 
+> v3: Moved efi_free_boot_services back to right after EFI initialization, to
+>     avoid a WARN from check_early_ioremap_leak about not calling
+>     early_iounmap soon enough.
+> 
+> Josh Triplett (4):
+>   efi: Add a stub for efi_enter_virtual_mode on non-x86
+>   efi: Defer freeing boot services memory until after ACPI init
+>   efi: Add a function to look up existing IO memory mappings
+>   efi: Fix the ACPI BGRT driver for images located in EFI boot services
+>     memory
+> 
+>  arch/x86/platform/efi/Makefile   |    1 +
+>  arch/x86/platform/efi/efi-bgrt.c |   76 ++++++++++++++++++++++++++++++++++++++
+>  arch/x86/platform/efi/efi.c      |   65 +++++++++++++++++++++++++-------
+>  drivers/acpi/Kconfig             |    4 +-
+>  drivers/acpi/bgrt.c              |   76 +++++---------------------------------
+>  include/linux/efi-bgrt.h         |   21 +++++++++++
+>  include/linux/efi.h              |    9 +++++
+>  init/main.c                      |    7 +++-
+>  8 files changed, 175 insertions(+), 84 deletions(-)
+>  create mode 100644 arch/x86/platform/efi/efi-bgrt.c
+>  create mode 100644 include/linux/efi-bgrt.h
 
-No, that's what the spec says.  The device must manage the cache in both
-the forced (start stop unit) and timed (power control mode page) cases.
+Looks good to me.
 
-The reason is the spec doesn't define what idle and standby actually
-mean (just that they're "lower" power states).  So the device
-implementers get to choose if they stop the platter or power off the
-motor.  The spec just means that if they do anything that causes danger
-to data in the cache, they have to deal with it themselves.
-
-James
-
+Acked-by: Matt Fleming <matt.fleming@intel.com>
 
