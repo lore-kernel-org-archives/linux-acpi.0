@@ -1,78 +1,224 @@
-From: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
-Subject: Re: [RFC v8 PATCH 00/20] memory-hotplug: hot-remove physical memory
-Date: Wed, 12 Sep 2012 19:18:14 +0200
-Message-ID: <20120912171814.GB5253@dhcp-192-168-178-175.profitbricks.localdomain>
-References: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com>
- <20120831134956.fec0f681.akpm@linux-foundation.org>
- <504D467D.2080201@jp.fujitsu.com>
- <504D4A08.7090602@cn.fujitsu.com>
- <20120910135213.GA1550@dhcp-192-168-178-175.profitbricks.localdomain>
- <50501B9C.7000200@cn.fujitsu.com>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: MSR Len Brown Sept 12, 2012
+Date: Wed, 12 Sep 2012 17:28:07 +0000
+Message-ID: <1A7043D5F58CCB44A599DFD55ED4C94828CD99A4@FMSMSX108.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-ia64-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <50501B9C.7000200@cn.fujitsu.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Andrew Morton <akpm@linux-foundation.org>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com
+Content-Type: multipart/mixed;
+	boundary="_002_1A7043D5F58CCB44A599DFD55ED4C94828CD99A4FMSMSX108amrcor_"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:28912 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752734Ab2ILR2M (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Sep 2012 13:28:12 -0400
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Schlobohm, Bruce" <bruce.schlobohm@intel.com>
+Cc: SSD-OTC ALL <ssd-otc.all@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi,
+--_002_1A7043D5F58CCB44A599DFD55ED4C94828CD99A4FMSMSX108amrcor_
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, Sep 12, 2012 at 01:20:28PM +0800, Wen Congyang wrote:
-> > 
-> > On Mon, Sep 10, 2012 at 10:01:44AM +0800, Wen Congyang wrote:
-> >> At 09/10/2012 09:46 AM, Yasuaki Ishimatsu Wrote:
-> >>> How do you test the patch? As Andrew says, for hot-removing memory,
-> >>> we need a particular hardware. I think so too. So many people may want
-> >>> to know how to test the patch.
-> >>> If we apply following patch to kvm guest, can we hot-remove memory on
-> >>> kvm guest?
-> >>>
-> >>> http://lists.gnu.org/archive/html/qemu-devel/2012-07/msg01389.html
-> >>
-> >> Yes, if we apply this patchset, we can test hot-remove memory on kvm guest.
-> >> But that patchset doesn't implement _PS3, so there is some restriction.
-> > 
-> > the following repos contain the patchset above, plus 2 more patches that add
-> > PS3 support to the dimm devices in qemu/seabios:
-> > 
-> > https://github.com/vliaskov/seabios/commits/memhp-v2
-> > https://github.com/vliaskov/qemu-kvm/commits/memhp-v2
-> > 
-> > I have not posted the PS3 patches yet in the qemu list, but will post them
-> > soon for v3 of the memory hotplug series. If you have issues testing, let me
-> > know.
-> 
-> Hmm, seabios doesn't support ACPI table SLIT. We can specify node it for dimm
-> device, so I think we should support SLIT in seabios. Otherwise we may meet
-> the following kernel messages:
-> [  325.016769] init_memory_mapping: [mem 0x40000000-0x5fffffff]
-> [  325.018060]  [mem 0x40000000-0x5fffffff] page 2M
-> [  325.019168] [ffffea0001000000-ffffea00011fffff] potential offnode page_structs
-> [  325.024172] [ffffea0001200000-ffffea00013fffff] potential offnode page_structs
-> [  325.028596]  [ffffea0001400000-ffffea00017fffff] PMD -> [ffff880035000000-ffff8800353fffff] on node 1
-> [  325.031775] [ffffea0001600000-ffffea00017fffff] potential offnode page_structs
-> 
-> Do you have plan to do it?
-thanks for testing.
+> Presented "ACPI 5.0 in Linux" at Linux Plumber's Conference:
 
-commit 5294828 from https://github.com/vliaskov/seabios/commits/memhp-v2
-implements a SLIT table for the given numa nodes.
+http://www.linuxplumbersconf.org/2012/wp-content/uploads/2012/09/LPC2012-AC=
+PI5.pdf
 
-However I am not sure the SLIT is the problem. The kernel builds a default
-numa_distance table in arch/x86/mm/numa.c: numa_alloc_distance(). If the BIOS
-doesn't present a SLIT, this should take effect (numactl --hardware should
-report this table)
+There was some hallway discussion about ACPI for ARM, but none in
+the forum.  Notably, Grant Likely, the Linaro developer responsible
+for ACPI/ARM, was stuck in the UK.
 
-Do you have more details on how to reproduce the warning? e.g. how many dimms
-are present in the system? Does this happen on the first dimm hot-plugged?
-Are all SRAT entries parsed correctly at boot-time or do you see any other
-warnings at boot-time?
+OTC has a reactive stance on ACPI/ARM.  We maintain Linux/ACPI,
+and will thus accept patches from the Linux community if they want Linux to
+support ACPI/ARM.  As yet, we've received no such patches or RFCs.
 
-I 'll investigate a bit more and report back.
+I do see a lot of activity from Linaro on cpuidle, and very high
+interest in thermals and cpufreq.
 
-thanks,
+> Participated in Linux Kernel Summit, LPC, took some photos:
 
-- Vasilis
+https://picasaweb.google.com/106626681355613318425/2012SanDiego
+
+Linus valued Rafael's regression tracking summary e-mail.
+Rafael doesn't do this anymore.  Volunteers are burnt out on it
+and SuSE no longer pays Rafael to do it.
+
+Linus doesn't use bugzilla because it is poor for initial sightings.
+More information is usually needed before an issue can be worked.
+Further, many submitters produce low signal/noise and an intelligent
+maintainer must work with them to get the needed info.
+
+Unfortunately, the community tends to translate this into
+"Linus thinks bugzilla is bad, so we should ignore it."
+
+Google stated that their useful testing is done with
+"internal applications", and that "available benchmarks
+tend to be out of date"
+
+Fengguang's automated build & test setup is well regarded.
+
+cpuidle BOF had Scheduler people (PeterZ) stating that
+the Scheduler should do the idle prediction logic
+and it makes no sense to duplicate it in cpuidle governor.
+This is a very promising prospect.
+
+My raw KS and LPC notes are attached, for those interested.
+
+> 2-week vacation at Philmont Scout Ranch in New Mexico:
+
+https://picasaweb.google.com/BSA157/Philmont2012#5784140983380897058
+
+All survived.  Only one minor physical injury (I broke a toe).
+
+
+--_002_1A7043D5F58CCB44A599DFD55ED4C94828CD99A4FMSMSX108amrcor_
+Content-Type: application/rtf; name="KS2012-SanDiego.rtf"
+Content-Description: KS2012-SanDiego.rtf
+Content-Disposition: attachment; filename="KS2012-SanDiego.rtf"; size=7976;
+	creation-date="Wed, 12 Sep 2012 17:25:07 GMT";
+	modification-date="Wed, 12 Sep 2012 17:24:00 GMT"
+Content-Transfer-Encoding: base64
+
+TGludXggS2VybmVsIFN1bW1pdApBdWd1c3QgMjcsIDIwMTIKU2FuIERpZWdvLCBDQQoKClJhZmFl
+bCAtIHJlZ3Jlc3Npb24gdHJhY2tpbmcKd2UgbWlzcyB0aGUgcmVncmVzc2lvbiBzdW1tYXJpZXMK
+YW1vdW50IG9mIHdvcmsgdG8gdHJhY2sgcmVncmVzc2lvbnMgaXMgZ3Jvd2luZyAmIG5vYm9keSBp
+cyBkb2luZyBpdAoKYWdyZWVkOiB3ZSBhbGwgd2FudCByZWdyZXNzaW9ucyBhY3RpdmVseSB0cmFj
+a2VkCnF1ZXN0aW9uczogd2hhdCB0b29scwoKbGludXM6IGRpZG4ndCBsaWtlIGJ6IGIvYyBsb3cg
+cy9uIGluIHRoZSByZXBvcnRzCgluZWVkIGludGVsbGlnZW5jZSB0byB0dXJuIHRoZSBub2lzZSBp
+bnRvIHVzZWZ1bCBpbmZvCgpMaW51czoKCWJ6IGlzIHBvb3IgZm9yIGluaXRpYWwgc2lnaHRpbmcK
+CQliL2MgbmVlZCB0byBmaW5kIG91dCBhYm91dCBpdCBtb3JlIGJlZm9yZSBmaWxpbmcKCglMaW51
+cyBvbiBmaWxpbmcgYnVnczoKCWNjOiBsa21sIG9uIGFsbCBmaWxpbmdzCgpwcmV2aW91cyB2b2x1
+bnRlZXJzIGFyZSBidXJudCBvdXQgb24gcmVncmVzc2lvbiB0cmFja2luZywgbmVlZCBuZXcgdm9s
+dW50ZWVycwoKLS0tCkhQQQppMzg2IG5vdCB1c2VkIGZvciByZWFsLCBhbmQgc29ydCBvZiBhIHBh
+aW4gdG8gbWFpbnRhaW4KaTQ4NiBicm9rZW4gZm9yIGEgeWVhciB3L28gYW55Ym9keSBub3RpY2lu
+ZwoKY21weGNobmcgaXMgNDg2IG9ubHksIGFuZCBpcyB1c2VkIGJ5IGRlZmF1bHQgZ2NjCnBlb3Bs
+ZSBzdGlsbCB1c2luZyBvbGQgdG9vbC1jaGFpbnMKCWNvbXBsYWluIHdoZW4gc29tZXRoaW5nIHRy
+aWdnZXJzIGEgYnVnIGluIG9sZCB0b29sY2hhaW4KCkxpbnVzOiB5b3UgY2FuIGNoYW5nZSB0aGUg
+QUJJIGlmIG5vYm9keSBub3RpY2VzCgpMaW51czogZmVhdHVyZS1yZW1vdmFsLnR4dCBmaWxlIGlz
+IGEgbWVzcwoJaGFzIG5vIG1lYW5pbmcKCnJlcXVpcmUgdXBzdHJlYW0gY29tcGlsZXIgJiBiaW51
+dGlscz8KTGludXM6IHB1dCBpdCBpbiB0aGUgTWFrZWZpbGUsIG5vdCBpbiBhbiB1bnJlYWQgZG9j
+dW1lbnRhdGlvbiBmaWxlLgoKLS0tLQpkYXZlagoJdHJpbml0eSBzeXNjYWxsCglzeXN0ZW0gY2Fs
+bCBmdXp6aW5nCglkbWVzZyBzcGFtIHZpYSBwcmludGsKCk1lbCBHb3JtYW4KCW1tdGVzdAoJcmVj
+b3JkIGJlbmNobWFyayByZXN1bHRzIGFuZCByZWZlcmVuY2UgYmVuY2htYXJrIGNvbmZpZ3VyYXRp
+b24KCWluIGNvbW1pdCBsb2cgb2YgcGF0Y2hlcyB0aGF0IHRvdWNoIHBlcmZvcm1hbmNlLgoKR29v
+Z2xlOiBtb3N0IHJlZ3Jlc3Npb25zIGZvdW5kIHVzaW5nICJpbmVybmFsIGFwcHMiCgliZW5jaG1h
+cmtzIHNlZW0gdG8gYmUgb3V0IG9mIGRhdGUKClRyb25kIC0gaGFzIGFuIGFnZ3JlZ2F0b3IgZm9y
+IE5GUyB0cmFja2luZwoKa2VybmVsb29wcyAob3IgaXRzIHN1Y2Nlc3Nvcikgd2lsbCBjb21lIGJh
+Y2sgc29vbgoKV3UgRmVuZ2d1YW5nCglhdXRvbWF0ZWQgYnVpbGQgJiBib290IHRlc3RpbmcKCglL
+Vk0gZm9yIGJvb3QgdGVzdGluZwoJUUVNVSBhbHNvCgoJYm9vdCB0ZXN0IDMwLDAwMCBrZXJuZWxz
+L2RheQoKCXNlbmQgbWUgdGVzdCBzY3JpcHRzCglzZW5kIG1lIGluaXRyZCBpbWFnZXMKCXRlc3Qg
+bXkga2VybmVsIGltYWdlcwoKcmVjdXJyaW5nIHRoZW1lCglob3cgYmVzdCB0byBkZWxldGUgY29k
+ZSBmb3Igb2xkIGhhcmR3YXJlPwoJc3RhZ2luZyBpcyBhIDItd2F5IHN0cmVldAoKdG9kbzogdHJ5
+IGt0ZXN0CnRvZG86IHRyeSBrdGVzdCBwYXRjaGNoZWNrCgo8bHVuY2g+CkRhdmVKCglLY29uZmln
+IGhlbHAgaXMgd29ydGhsZXNzCgkJY29tcGxpY2F0ZXMgZGlzdG8ncyBqb2Igb2YgY2hvb3Npbmcg
+Y29uZmlnCgoJCXBsZWFzZSByZW1vdmUgQ09ORklHX0VYUEVSSU1FTlRBTAoKCQlsb2NhbCBtb2Rj
+b25maWcKCQltZXJnZWNvbmZpZyB0b29sCgoJRmVkb3JhIHZzIHN0YWJsZQoJCXJhd2hpZGUgaXMg
+Y29uc3RhbnRseSB1cGRhdGUKCQl0dW1ibGV3ZWVkCgoJMy41IGlzIGEgYmlnIGlzc3VlIC0gZnJh
+bWVidWZmZXIgcmFjZS9ibGFjay1zY3JlZW4KCglub3Qgbm90aWNlZCBpbiByYXdoaWRlIC0tIG9u
+bHkgZW5kLXVzZXJzIG9uIHJlYWwgcmVsZWFzZS4KCmxvY2tkZXAvc2xhYmRlYnVnCglGZWRvcmEg
+ZW5hYmxlcyBhZ3Jlc3NpdmVseSwgYW5kIHNlZW0gdG8gaGl0IHRoZW0KCXN1cnByaXNlZCBub3Qg
+Zm91bmQgaW4gLW5leHQuCgppZGVhbDoKCWJ1aWxkIHNlcml2Y2Ugc28gdGhhdCB1c2VycyBjYW4g
+Z2V0IHBrZyB3LyBwYXRjaCBpbmNsdWRlZAoJbWpnOiBzaWduZWQga2VybmVscyBuZWVkZWQgaW4g
+ZnV0dXJlCgkJc2VuZGluZyBwYXRjaCB0byB1c2VyIHdpbGwgbm8gbG9uZ2VyIGZseQoKUGF1bCBN
+Y0tlbm55CglSQ1UKCmtleS1zaWduaW5nCgpUcm9udCBNLgoJU2NhbGluZyB0aGUgTWFpbnRhaW5l
+ciByb2xlCgpOb3RhYmxlIE1pc3Npbmc6CglBbGFuIENveCwgSW5nbyBNb2xuYXIsIERhdmUgTWls
+bGVyCgpMaW51czogbmV2ZXIgcmViYXNlLCBhdCBhbnkgcG9pbnQKCWNyb3NzIHRyZWUgZGVwZW5k
+ZW5jaWVzCgluZWVkcyB0byBiZSBvbiBicmFuY2ggYWxvbmUgc28gQk9USCBzdWItc3lzdGVtcyBj
+YW4gcHVsbAoJb3IgZXZlbiBsaW51cyBjYW4gcHVsbAoJRG9lcyBub3QgbGlrZSB0byBzZWUgZS1t
+YWlsICJpIGhhdmUgYW5vdGhlciBicmFuY2ggd2FpdGluZyIKCgltZXJnZToKCQlkb24ndCBhcHBs
+eSBzYW1lIHBhdGNoIHRvIGJvdGggdHJlZXMKCQlpbnN0ZWFkIGNvbW1pdCBvbmNlIGFuZCBwdWxs
+IHNhbWUgcGF0Y2ggaW50byBib3RoIHRyZWVzCgoKCkphc29uIFdlc3NlbAoJbW9kdWxlIGNhbGxl
+ZCBwYW5pYwoKCSJzb21lIGFtb3VudCBvZiBtZW1vcnkiCgkyME1CIGtlcm5lbCBtZW1vcnkgaXMg
+Y29uc2lkZXJlZCBleHBlbnNpdmUKCglrZXhlYyB0YWtlcyAxNk1CIHJhbSB0byBlbmFibGUgdGhl
+IHN3aXRjaG92ZXIKCglMaW51czogaXQgaXNuJ3QgdGhhdCBoYXJkIHRvIGRvIGl0IGJ5IGhhbmQK
+CQlJZiB0aGVyZSBpcyBhbiBPT1BTLCBpdCBpcyByZWxhdGl2ZWx5IGVhc3kuCgkJVGhlIGhhcmQg
+b25lcyBoYXZlIG5vIE9PUFMsIG9yIGNvcnJ1cHQgb29wcy4KCglrYWxsc3ltb29wcyAtLSBjb3N0
+cyAzMDBrLCBkZWVtZWQgb2theQoKU3RldmUKCWZ0cmFjZSB2cyBwZXJmCglib3RoIGhhdmUgb3du
+IHJpbmctYnVmZmVyIHNjaGVtZQoKCkpvaG4gU3R1bHR6Cgl1cHN0cmVhbWluZyBhbmRyb2lkCgln
+b2luZyB0aHJvdWdoIHN0YWdpbmcKCklvbiAoZ3JhcGhpY3MpCnN5bmMgZnJhbWV3b3JrCmludGVh
+Y3RpZSBjcHVmcmVxIGdvdgp3YWtldXBfc291cmNlIGRyaXZlciBlbmFibGVtZW50CmZpcV9kZWJ1
+Z2dlci9rZGIgaW50ZWdyYXRpb24Kd2lyZWxlc3MvbmV0d29ya2luZyBjaGFuZ2VzCglicm9hZGNv
+bSBkcml2ZXIsIGluIHBhcnRpY3VsYXIKCnNtYWxsZXI6Cm1tYwpibHVldG9vdGgKRVRNL0VUQiB1
+cGRhdGVzCm5ldGZpbHRlcgphbmRyb2lkX2JhdHRlcnkKa2V5cmVzZXQgZHJpdmVyL3NzeXJxIGlu
+dGVncmF0aW9uCgpsb3dtZW1vcnlraWxsZXIvdm1ldmVudHMvCmFzaG1lbS92b2xhdGlsZSByYW5n
+ZXMKYW5kcm9pZCBnYWdldCBkcml2ZXIvQ0NHCmJpbmRlcgpsb2dnZXIKdGltZWQgR1BJTwoKdnMu
+IDMuMyAtIDI5MCBwYXRjaGVzIGluIGNvbW1vbiB0cmVlCgp0b2RheSBhYm91dCAzMDAgcGF0Y2hl
+cwoKPT09PT09PT09PT09PT09PT09PT09PT09PT0KVHVlc2RheSA5LzI4LzIwMTIgLSBNZW1jZmcg
+JiBNTSBtaW5pLXN1bW1pdApZaW5nIC0gR29vZ2xlCgpMYXJyeSBCYXNzZWwgLSBRdWFsY29tbQpQ
+QVNSCgpNZW1vcnkgUG93ZXIgTWFuYWdlbWVudAoKTFNGIC0gbm8gcmVwb3J0LW91dAoKbWVtY2cg
+LSBtZW1vcnkgY29udHJvbCBncm91cAoKU0xBQgoJKFNMVUIgZW1iZWRkZWQsIHNvIDJuZCB0byBT
+TEFCKQoKc3RhY2sgcGFnZXMKCnBhZ2UgdGFibGVzCgljYW4gYmUgZWFzaWx5IGNvbnN1bWVkCgpN
+ZWwgLSB3aGF0IGFyZSByb2FkYmxvY2tzIHRvIG1lcmdpbmc/CgozLiBzY2FsYWJpbGl0eSBvbiA0
+LXNvY2tldCBzeXN0ZW1zCgotLS0KZGVudHJ5IGNhY2hlIHNocmlua2VyCmtlcm5lbCBtZW1vcnkg
+YWNjb3VudGluZyBlZmZvcnRzCi0tLQpNZWwgLSBwZXJmb3JtYW5jZQoJY2dyb3VwIHBlcmZvcm1h
+bmNlIGltcGFjdHMsIGV2ZW4gd2hlbiBub3QgaW4gdXNlCgptbXRlc3QgcGZ0IChwYWdlIGZhdWx0
+IHRlc3QpCglwcm9maWxlLCAxNSUgb3ZlcmhlYWQgb2YgKHVudXNlZCkgY2dyb3VwcwoKCXdvcmsg
+J2luIGNhc2UgYSBwcm9jZXNzIG1vdmVkIHRvIGEgY2dyb3VwJwoKQ2hyaXN0b3BoIC09IDQ1IGxi
+cwpKaXJpIC0gQVBNIC0gbGVuIHRvIHNlbmQgc2VuZCBjcHVpZGxlIHBhdGNoCgpBbmRpCgkyTUIg
+cGFnZSBvcHRpbWl6YXRpb25zCgotLS0KUENJIG1pbmktc3VtbWl0CkJqb3JuCllpbmdoYWkKQmVu
+Ck15cm9uClN0ZXBoZW4gSC4KRGF2aWQgV29vZGhvdXNlCgotLS0tLQpiaWcuTElUVExFIEExNS5B
+NwpDQ0kgLSBDb2hlcmVudCBDbHVzdGVyIEludGVjb25uZWN0Cgp0b2RvOiBQQUlSIC0gUG93ZXIg
+QXdhcmUgSW50ZXJydXB0IFJvdXRpbmcKCW5lZWQgdG8gcHJvdG90eXBlICYgbWVhc3VyZQoKQVJN
+IGNwdWlkbGUgY2x1c3RlciBtYW5hZ2VtZW50IHByZXNlbnRhdGlvbgoKCVdGSQoJY2x1c3RlciBz
+aHV0ZG93bgoKCW5vIGNvcmUgdnMgcGFja2FnZSBjLXN0YXRlIHRhYmxlcwoKCWRhbmllbCAtIGhl
+dGVyb2dlbm91cyBjbHVzdGVyIHRhYmxlcwoKCkFSTToKZXhwbGljaXQgY2FjaGUgZmx1c2gKVGlt
+ZXIgYnJvYWRjYXN0IG1hc2ssIElSUSBhZmZpbml0eSBhbmQgbmV4dCBldmVudCBwZWFrCgpQb3dl
+ciBkb21haW5zIHZzIHNjaGVkbGVyIGFmZmluaXR5IGRvbWFpbnMgLSBzYW1lPwoKdG9wb2xvZ3lf
+Y29yZV9jcHVtYXNrCgpjbGFyaWZpY2F0aW9ucwoJQUNQSSBub3QsIHJlYWxseSBIVwoJY29yZSBj
+LXN0YXRlIHZzIHBhY2thZ2UgYy1zdGF0ZXMKCXNjYWxhYmlsaXR5IC0gcGVyIGNwdQoKMXN0IGNv
+cmUgdG8gZW50ZXIgYzMKbGFzdCBjb3JlIHRvIGVudGVyIGMzIGRvZXNuJ3QgY2hlY2sgdGltZXIg
+Zm9yIDFzdCBjb3JlCglhbmQgdGh1cyBoZSBtYXkgZ2V0IGRlbGF5ZWQKCmNvbGluIGNyb3NzCgl3
+YW50cyB0byBzZWUgbnVtYmVycyBvbiBuZXh0IGV2ZW50IHN0dWZmCgo/ZXhwbG9kZSBjb3JlIGMt
+c3RhdGVzIGludG8gYy1zdGF0ZSB0YWJsZQoJKGFuZCBwcmV2ZW50IHBrZyBzdGF0ZT8pCgpSaWsg
+dmFuIFJpZWwgLSBjcHVpZGxlIEJPRgoJbmVlZCBTVyBkZW1vdGlvbiAmIHVuZGVtb3Rpb24gKGlt
+cGxlbWVudCB3LyB0aW1lZCBNV0FJVCkKUGV0ZXJaCglzY2hlZHVsZXIgbXVzdCBkbyBpZGxlIGVz
+dGltYXRpb24gYW55d2F5CgljcHVpZGxlIHNob3VsZCBnZXQgdGhhdCBpbmZvIGZyb20gc2NoZWR1
+bGVyCgplbGVuYToKCWdldCB0aWNrZXRzIGZyb20gcXVhbGNvbW0gJiBpbnRlbCBib290aHMKCXRv
+bmlnaHQgaXMgYm9hdAoKTGF1cmVudCBQaW5jaGFydAoJTGludXggZGlzcGxheQoKZ3JhcGhpY3M6
+CglmcmFtZSBidWZmZXIKCVJHQgp2aWRlbzoKCWR5bmFtaWMgY29udGVudCB3LyBjb25zdHJhaW50
+cwoJY29tcHJlc3NlZCBjb250ZW50CgphY3BpX3BhZAoJdG9wb2xvZ3kgYXdhcmUgdnMgcG93ZXJj
+bGFtcCBvbiBSb21sZXkKCglydW4gb24gODBwIHdlc3RtZXJlIHdoZXJlIHBvd2VyY2xhbXAgaXMg
+c3RydWdnbGluZy4KClRlZCBUc28KCUtWTSBhcyBhICJkZXZlbG9wbWVudCB0b29sIgoKLS0tClNh
+cmFoIFNoYXJwClBvcnQgUG93ZXItb2ZmCglubyBob3QgcGx1ZyBub3RpZmljYXRpb24KVGlhbnl1
+LUxhbiAtIHBhdGNoIGF1dGhvcgoJTHlueC1Qb2ludCBMYXVuY2gKCQlROiBpcyBwb3dlciBzYXZp
+bmdzIHdvcnRoIHRoZSBubyBjb25uZWN0IGV2ZW50cz8KCnN1c3BlbmRlZCBkZXZpY2VzIGNhbiBz
+dGlsbCBkcmF3IDIuNW1BCgkyLjVtQSAqIDVWID0gMTIuNW1XCgpBQ1BJIFZpc2libGUgdnMgbm90
+IHZpc2libGUKQUNQSSBjb25uZWN0YWJsZSB2cyBub3QgY29ubmVjdGFibGUKCW5vIGRldmljZSB3
+aWxsIGV2ZXIgYmUgY29ubmVjdGVkIHRvIHRoZSBwb3J0CgphdWRpYW5jZSBnZW5lcmFsIGRpc2Jl
+bGllZiB0aGF0IFVTQiBwb3dlciBpcyBzaWduaWZpY2FudAotLS0KUmFtZXNoIEFnYXJhd2FsIChm
+b3IgUi4gRHVyZ2Fkb3NzKQoJIlJldmlzaXRpbmcgdGhlIExpbnV4IFRoZXJtYWwgRnJhbWV3b3Jr
+IgoKcGF0Y2h3b3JrLmtlcm5lbC5vcmcgaXMgYmFjayBvbiBsaW5lIQoKbmV0bGluayBiZWluZyBy
+ZXBsYWNlZCBieSB1ZXZlbnQKCmZlZWRiYWNrOiBjb29saW5nIGRldmljZSBzdGF0dXMgZXZlbnQK
+CXJlZmxlY3RlZCBpbiBVST8KCnRjMSwgdGMyIHJlcGxhY2VkIGJ5ICdnZXRfdHJlbmQnIFJBSVNJ
+TkcsIERST1BQSU5HLCBTVEFCTEUKCnRocm90dGxpbmcgcG9saWN5CgpzdGF0ZSA9IGNvbnRyaWJ1
+dGlvbi8xMDAsIGN1cl90cmlwX2xldmVsL3RvdGFsX3RyaXBzICogbWF4IHRocm90dGxlIHN0YXRl
+CgpQbGF0Zm9ybSBEYXRhCglwYXRjaHdvcmsua2VybmVsLm9yZy9wYXRjaC8xMzAwNDQxCgovc3lz
+L2NsYXNzL3RoZXJtYWwKCWRvZXMgbm90IGhhdmUgYWxsIGNvb2xpbmcgZGV2cwoJZG9lcyBub3Qg
+aGF2ZSBhbGwgc2Vuc29yIGRyaXZlcnMKCQllZy4gY29yZXRlbXAuYwoKCWNwdWZyZXEgY29vbGlu
+ZyBkZXZpY2UKClRJOiBod21vbiB2cyB0aGVybWFsPwoJaHdtb24gaXMgcmVwb3J0aW5nIGZyYW1l
+d29yayBvbmx5CgkJbm8gY29vbGluZyBkZXZpY2VzCgkJbm8gYXNzb2NpYXRpb24gYnQgc2Vuc29y
+cy9jb29saW5nCglvcmlnaW5hbGx5IHNlbnNvcnMgY291bGQgcmVnaXN0ZXIgdy8gYm90aAoKQUNQ
+SSA1LjAgcHJlc2VudGF0aW9uCglNUFNUIHZzIFNMSVQKCUNQUEMgdnMgR3JhcGhpY3MKCglNUFNU
+CglJQk0gUGFuZGEgTWVtcm95IHJlZ2lvbnMgcHJvdG90eXBlCgllbmFibGUgUEFTUgoJUkZDCglJ
+Qk06IFNyaXZhdHNhIFMuIEJoYXQKCVN0IEVyaWNzb24gcGF0Y2ggdG9vCgp2YWliYWhhdi5iZWRp
+YUB0aS5jb20KCnJlZ3VsYXRvciBhcGkKT01BUDogUFJDTSAtIFBvd2VyIFJlc2V0IGFuZCBDbG9j
+ayBNYW5hZ2VtZW50CgpTTElUCglBbmRpOiBQWE0gY2Fubm90IGRlc2NyaWJlIGJyaWNrbGFuZAoK
+SmVzc2UgQnJhbmRlYnVyZwoJbnNlYyBncmFudWxhcml0eQoJTGF0ZW5jeQoJSml0dGVyCgoJTkFQ
+SQoJSFBDL0ZTSS9DbG91ZCAtIHdhbnQgbG93IGVuZC9lbmQgbGF0ZW5jeQoKCXNwYXJrZWQgZGV2
+ZWxvcG1lbnQgdXNlci1zcGFjZSBzdGFja3MKCjUuNSB1c2VjIGZvciBSWCArIFRYIHJlcGx5Cgpu
+ZXRwZXJmCgl1ZHBfcnIgdGVzdAoJdGNwX3JyIHRlc3QKCgltaW4gIT0gbWF4IC0tIGhpZ2ggaml0
+dGVyCgpydC1rZXJuZWwgbm90IG1lYXN1cmVkCgpDaHJpc3RvcGggTDogcHJlZmVycyBSRE1BIC0t
+IDcwMCBuc2VjCgpMb3cgTGF0ZW5jeSBTb2NrZXRzIChMTFMpIFByb29mIG9mIENvbmNlcHQgaW1w
+bGVtZW50ZWQKCWtlcm5lbCBwb2xscyBpbiBhcHAgY29udGV4dCBpbnN0ZWFkIG9mIHNsZWVwaW5n
+CgkyIHVzZWMgc2F2ZWQgd2l0aCBSWCBwb2xsaW5nCglhdm9pZHMgY29udGV4dCBzd2l0Y2gKCi0t
+LQpGcmkgOC8zMS8xMgoKY3B1aWRsZSBtYWludGVuYW5jZQoJQVJNIHRyZWUKLS0tLQpGYWlyIFNo
+YXJlIHRoZXJtYWwgZ292ZXJub3IgLSBzaW1wbGlzdGljIGV4YW1wbGUKCQlvdGhlciBnb3Zlcm5v
+cnMgYXJlIHBvc3NpYmxlCgp3aGVuIGNvbnN0cmFpbnRzIGNvbmZsaWN0LCBhcmJpdHJhdGlvbi9w
+cmlvcml0aXphdGlvbiBuZWNlc3NhcnkKCmhvdCBzcG90ID0gdGhlcm1hbCB6b25lCm11bHRpcGxl
+IHNlbnNvcnMgcGVyIHpvbmUKCWVnLiBvbiBjcHUgYW5kIG1lbW9yeSB3aGVuIGludGVncmF0ZWQK
+CgpIV01PTgoJdGhlcm1hbC0+aHdtb24gZG91YmxlIHJlZ2lzdHJhdGlvbiwgd2lsbCBkcm9wIGl0
+Cgljb3JldGVtcAoKYW1pdApnZW5lcmljIGNwdWZyZXEgdGhlcm1hbCBjb29saW5nIGRldmljZQoJ
+YW1pdCBrYWNjaGFwCglwaW5nIGZyb20gYW1pdCBrdWNoZXJpYQoJaW4gYWtwbSB0cmVlCgo=
+
+--_002_1A7043D5F58CCB44A599DFD55ED4C94828CD99A4FMSMSX108amrcor_--
