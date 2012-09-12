@@ -1,55 +1,74 @@
-From: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: CONFIG_NO_HZ + CONFIG_CPU_IDLE freeze the system (Was Re: [PATCH]
-	acpi : remove power from acpi_processor_cx structure)
-Date: Tue, 11 Sep 2012 23:27:53 +0200
-Message-ID: <504FACD9.4020108@linaro.org>
-References: <1343164349-28550-1-git-send-email-daniel.lezcano@linaro.org>
-	<201209062204.11288.rjw@sisk.pl> <50490920.9070204@linaro.org>
-	<201209062318.42874.rjw@sisk.pl> <504A02BD.4000805@linaro.org>
-	<504A2D73.3010702@linaro.org> <504A68A0.7010907@linaro.org>
-	<504E1FE5.6090502@linaro.org> <504E4343.5070004@linaro.org>
-	<504E8372.20904@linaro.org>
+From: Wen Congyang <wency@cn.fujitsu.com>
+Subject: Re: [RFC v8 PATCH 00/20] memory-hotplug: hot-remove physical memory
+Date: Wed, 12 Sep 2012 13:20:28 +0800
+Message-ID: <50501B9C.7000200@cn.fujitsu.com>
+References: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com> <20120831134956.fec0f681.akpm@linux-foundation.org> <504D467D.2080201@jp.fujitsu.com> <504D4A08.7090602@cn.fujitsu.com> <20120910135213.GA1550@dhcp-192-168-178-175.profitbricks.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-In-Reply-To: <504E8372.20904-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
-List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
-Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-To: John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: prarit-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, xen-devel-GuqFBffKawuULHF6PoxzQEEOCMrvLtNR@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, Peter Zijlstra <a.p.zijlstra-/NLkJaSkS4VmR6Xm/wNWPw@public.gmane.org>, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Frederic Weisbecker <fweisbec-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Konrad Rzeszutek Wilk <konrad.wilk-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <20120910135213.GA1550@dhcp-192-168-178-175.profitbricks.localdomain>
+Sender: linux-ia64-owner@vger.kernel.org
+To: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Andrew Morton <akpm@linux-foundation.org>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
 
-T24gMDkvMTEvMjAxMiAwMjoxOCBBTSwgSm9obiBTdHVsdHogd3JvdGU6Cj4gT24gMDkvMTAvMjAx
-MiAxMjo0NSBQTSwgRGFuaWVsIExlemNhbm8gd3JvdGU6Cj4+IE9uIDA5LzEwLzIwMTIgMDc6MTQg
-UE0sIEpvaG4gU3R1bHR6IHdyb3RlOgo+Pj4gSW4gdGhlIG1lYW50aW1lLCBJJ2xsIHRyeSB0byBy
-ZXByb2R1Y2Ugb24gbXkgVDYxLiBJZiB5b3UgY291bGQgc2VuZCBtZQo+Pj4geW91ciAuY29uZmln
-LCBJJ2QgYXBwcmVjaWF0ZSBpdC4KPj4gaHR0cDovL3Bhc3RlYmluLmNvbS9xU3hxZmRESwo+Pgo+
-PiBUaGUgaGVhZGVyIG9mIHRoZSBjb25maWcgZmlsZSBzaG93cyBmb3IgYSB2My41LXJjNyBiZWNh
-dXNlIGl0IGlzIHRoZQo+PiByZXN1bHQgb2YgdGhlIGdpdC1iaXNlY3QuIElmIHlvdSBrZWVwIHRo
-aXMgY29uZmlnIGZpbGUgZm9yIHRoZSBsYXRlc3QKPj4ga2VybmVsIHRoYXQgc2hvdWxkIHJlcHJv
-ZHVjZSB0aGUgcHJvYmxlbS4KPj4KPj4gTGV0IG1lIGtub3cgaWYgeW91IHdlcmUgYWJsZSB0byBy
-ZXByb2R1Y2UgdGhlIHByb2JsZW0uCj4gR3JlYXQhIFdpdGggdGhpcyBJIHdhcyBhYmxlIHRvIHF1
-aWNrbHkgcmVwcm9kdWNlIHRoZSBwcm9ibGVtIGFuZCBJIHRoaW5rCj4gSSBoYXZlIGEgZml4Lgo+
-IAo+IFdvdWxkIHlvdSBtaW5kIHRlc3RpbmcgdGhlIGZvbGxvd2luZyBwYXRjaD8gSXQgc2VlbXMg
-dG8gcmVzb2x2ZSB0aGUKPiBpc3N1ZSwgYnV0IEkndmUgbm90IHlldCBydW4gaXQgdGhyb3VnaCBt
-eSB0ZXN0IHN1aXRlIHRvIG1ha2Ugc3VyZSBpdAo+IGRpZG4ndCBicmVhayBhbnl0aGluZyBlbHNl
-Lgo+IAo+IElmIGJvdGggeW91ciBhbmQgbXkgdGVzdGluZyBjb21lcyBiYWNrIG9rLCBJJ2xsIHN1
-Ym1pdCBpdCB0byBUaG9tYXMuCgpTb3VuZHMgbGlrZSB0aGlzIHNvbHZlcyB0aGUgcHJvYmxlbS4g
-V2l0aG91dCBlbm91Z2ggYmFja2dyb3VuZCBvbiB0aW1lcnMKaW4gZ2VuZXJhbCwgSSBkb24ndCBo
-YXZlIGFuIG9waW5pb24gYWJvdXQgdGhlIHBhdGNoIGl0c2VsZiBidXQgSSBjYW4KY29uZmlybSB0
-aGUgaXNzdWUgaXMgbm8gbG9uZ2VyIG9jY3VycmluZy4KClRoYW5rcwogIC0tIERhbmllbAoKLS0g
-CiA8aHR0cDovL3d3dy5saW5hcm8ub3JnLz4gTGluYXJvLm9yZyDilIIgT3BlbiBzb3VyY2Ugc29m
-dHdhcmUgZm9yIEFSTSBTb0NzCgpGb2xsb3cgTGluYXJvOiAgPGh0dHA6Ly93d3cuZmFjZWJvb2su
-Y29tL3BhZ2VzL0xpbmFybz4gRmFjZWJvb2sgfAo8aHR0cDovL3R3aXR0ZXIuY29tLyMhL2xpbmFy
-b29yZz4gVHdpdHRlciB8CjxodHRwOi8vd3d3LmxpbmFyby5vcmcvbGluYXJvLWJsb2cvPiBCbG9n
-CgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGluYXJv
-LWRldiBtYWlsaW5nIGxpc3QKbGluYXJvLWRldkBsaXN0cy5saW5hcm8ub3JnCmh0dHA6Ly9saXN0
-cy5saW5hcm8ub3JnL21haWxtYW4vbGlzdGluZm8vbGluYXJvLWRldgo=
+At 09/10/2012 09:52 PM, Vasilis Liaskovitis Wrote:
+> Hi,
+> 
+> On Mon, Sep 10, 2012 at 10:01:44AM +0800, Wen Congyang wrote:
+>> At 09/10/2012 09:46 AM, Yasuaki Ishimatsu Wrote:
+>>> Hi Wen,
+>>>
+>>> 2012/09/01 5:49, Andrew Morton wrote:
+>>>> On Tue, 28 Aug 2012 18:00:07 +0800
+>>>> wency@cn.fujitsu.com wrote:
+>>>>
+>>>>> This patch series aims to support physical memory hot-remove.
+>>>>
+>>>> I doubt if many people have hardware which permits physical memory
+>>>> removal?  How would you suggest that people with regular hardware can
+>>>> test these chagnes?
+>>>
+>>> How do you test the patch? As Andrew says, for hot-removing memory,
+>>> we need a particular hardware. I think so too. So many people may want
+>>> to know how to test the patch.
+>>> If we apply following patch to kvm guest, can we hot-remove memory on
+>>> kvm guest?
+>>>
+>>> http://lists.gnu.org/archive/html/qemu-devel/2012-07/msg01389.html
+>>
+>> Yes, if we apply this patchset, we can test hot-remove memory on kvm guest.
+>> But that patchset doesn't implement _PS3, so there is some restriction.
+> 
+> the following repos contain the patchset above, plus 2 more patches that add
+> PS3 support to the dimm devices in qemu/seabios:
+> 
+> https://github.com/vliaskov/seabios/commits/memhp-v2
+> https://github.com/vliaskov/qemu-kvm/commits/memhp-v2
+> 
+> I have not posted the PS3 patches yet in the qemu list, but will post them
+> soon for v3 of the memory hotplug series. If you have issues testing, let me
+> know.
+
+Hmm, seabios doesn't support ACPI table SLIT. We can specify node it for dimm
+device, so I think we should support SLIT in seabios. Otherwise we may meet
+the following kernel messages:
+[  325.016769] init_memory_mapping: [mem 0x40000000-0x5fffffff]
+[  325.018060]  [mem 0x40000000-0x5fffffff] page 2M
+[  325.019168] [ffffea0001000000-ffffea00011fffff] potential offnode page_structs
+[  325.024172] [ffffea0001200000-ffffea00013fffff] potential offnode page_structs
+[  325.028596]  [ffffea0001400000-ffffea00017fffff] PMD -> [ffff880035000000-ffff8800353fffff] on node 1
+[  325.031775] [ffffea0001600000-ffffea00017fffff] potential offnode page_structs
+
+Do you have plan to do it?
+
+Thanks
+Wen Congyang
+
+> 
+> thanks,
+> 
+> - Vasilis
+> 
+
