@@ -1,91 +1,61 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH 1/2] scsi: sd: set ready_to_power_off for scsi disk
-Date: Thu, 13 Sep 2012 12:24:46 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1209131213450.21932-100000@netrider.rowland.org>
-References: <1791163.r67kWVIx1R@linux-lqwf.site>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH v2 4/6] ACPI, PCI: add acpi_pci_roots protection
+Date: Thu, 13 Sep 2012 12:09:31 -0700
+Message-ID: <CAE9FiQVHgLGCmU2GTPkRKO8qRrWDwXOXNXoOf0OxvjWJBPLWMA@mail.gmail.com>
+References: <20120903165831.29aed72c.izumi.taku@jp.fujitsu.com>
+	<20120903170602.375b00cc.izumi.taku@jp.fujitsu.com>
+	<CAErSpo54LO_mow3dNSJ2-Aj4xBs=Zrk9fiAuFzZKdh9=YKyWuA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <1791163.r67kWVIx1R@linux-lqwf.site>
-Sender: linux-ide-owner@vger.kernel.org
-To: Oliver Neukum <oneukum@suse.de>
-Cc: James Bottomley <James.Bottomley@hansenpartnership.com>, Aaron Lu <aaron.lu@intel.com>, Jeff Garzik <jgarzik@pobox.com>, Aaron Lu <aaron.lwe@gmail.com>, Jack Wang <jack_wang@usish.com>, Shane Huang <shane.huang@amd.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:59585 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752142Ab2IMTJd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Sep 2012 15:09:33 -0400
+In-Reply-To: <CAErSpo54LO_mow3dNSJ2-Aj4xBs=Zrk9fiAuFzZKdh9=YKyWuA@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, kaneshige.kenji@jp.fujitsu.com, jiang.liu@huawei.com
 
-On Thu, 13 Sep 2012, Oliver Neukum wrote:
+On Wed, Sep 12, 2012 at 4:40 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+> On Mon, Sep 3, 2012 at 2:06 AM, Taku Izumi <izumi.taku@jp.fujitsu.com> wrote:
+>> Use mutex and RCU to protect global acpi_pci_roots list against
+>> PCI host bridge hotplug operations.
+>>
+>> RCU is used to avoid possible deadlock in function acpi_pci_find_root()
+>> and acpi_get_pci_rootbridge_handle(). A possible call graph:
+>> acpi_pci_register_driver()
+>>         mutex_lock(&acpi_pci_root_lock)
+>>                 driver->add(root)
+>>                         ......
+>>                                 acpi_pci_find_root()
+>
+> Where does this path occur?  I didn't see in in the current tree
+> (where the only users of acpi_pci_register_driver() are for
+> acpi_pci_slot_driver and acpi_pci_hp_driver).  Maybe it's in Yinghai's
+> work, which adds more acpi_pci_register_driver() users.
+>
+> RCU seems unnecessarily complicated for this list, but I haven't gone
+> through Yinghai's work yet, so I don't know what it requires.
+>
+> In acpi_pci_root_start() and acpi_pci_root_remove(), we have the
+> struct acpi_pci_root, which has all sorts of information that would be
+> useful to the .add() and .remove() methods of sub-drivers.  It seems
+> sort of stupid that we only pass the acpi_handle to the sub-drivers,
+> forcing them to use hacks like acpi_pci_find_root() to look up the
+> information we just threw away.  Can we just fix the .add() and
+> .remove() interfaces to pass something more useful so we avoid the
+> need for this deadlock path?
 
-> > > > Well, I don't like the way the interaction of the patches is going.
-> > > > You're the one proposing powering down the device outside of the
-> > > > standards defined transitions, so you need to be responsible for the
-> > > > actions that necessitates, including synchronizing the cache.  The specs
-> > > > (SPC-4) say that cache management is explicitly unnecessary for the
-> > > > standard SCSI power states (Active, Idle, Standby and Stopped), so
-> > > > someone at some point is going to read that and remove the unnecessary
-> > > > cache sync in the code.  When that happens, you'll start getting data
-> > > > loss.
-> > > 
-> > > The cache is handled identically in sd_suspend() and sd_shutdown().
-> > > In fact sd_shutdown() will skip handling it if the device has already been
-> > > suspended, so the assumption is built into the code and has been so
-> > > for a long time.
-> > > 
-> > > Though it wouldn't hurt to add a comment that says that the system going
-> > > to S3 or S4 will cut power to a lot of disk so that the cache needs to be synced
-> > > even if the spec says we need not. Runtime PM doesn't much alter the
-> > > situation.
-> > 
-> > I think you're confusing two things.  Sleep states (S3 and S4) aren't
-> > spec'd in SCSI, so we have to take care of everything (including the
-> > cache before power off) because they're done invisibly to the disk.  The
-> 
-> Yes, but this confusion is necessary. The driver core is supposed to
-> be generic and knows strictly speaking only suspended and active.
-> It is a driver's job to do what needs to be done and translate this
-> into the appropriate device states.
+new added acpi_pci_driver for ioapic, and iommu does not call
+acpi_pci_find_root().
 
-Currently the sd driver's suspend routine is not very sophisticated.  
-It needs to become smarter about the differences between system
-suspend, runtime suspend, and power off.
+after split out pci_root_hp.c from acpiphp_glue.c, there will be
+acpi_root_configure_bridge in pci_root_hp.c. that one could be
+converted to
+passing device instead of handle.
 
-> > same tends to go for link power management, which was previously our
-> > only form of runtime PM, but which doesn't actually affect the disk at
-> > all and, of course, ACPI power off of devices (ZPDD).
-> 
-> The latter however does cut power to the drive. So the driver should do
-> what it does when other operations that affect power are done.
-> 
-> > Disk runtime power states are defined in the standard and so we rely on
-> > the standard taking care of the cache.  I suspect the most efficient use
-> > may be via the power management mode page, which does everything
-> > automatically on timers (you just get to set the timer interval, plus
-> > some transports *may* require an initialising command which we already
-> > have some provision for) than doing it all ourselves from block.
-> 
-> Well, yes, but we need support modes of power management that cut off
-> power to the disk in any case, so what does it matter if we also do it for
-> runtime PM?
-> 
-> Are you concerned about layering?
+Thanks
 
-It sounds like James is partly concerned about efficiency.  If Lin
-Ming's patches are merged then we will be doing runtime suspend
-relatively often, not just when the device file is closed.  The
-sd_suspend routine should know when SYNCHRONIZE CACHE is needed and
-when it can be skipped.
-
->From what I gather of this discussion, we can avoid flushing the cache 
-during (1) a runtime suspend provided (2) the drive isn't going to be 
-powered down.  If either (1) or (2) doesn't hold then the cache needs 
-to be synchronized.
-
-The problem with relying on the internal timers and the power
-management mode page is that the transitions take place automatically
-and the host system doesn't know about them.  We _want_ to know about
-them so that the higher layers of the device tree can go to low power
-when the disk does.
-
-On the other hand, perhaps sd_suspend/sd_resume could use the mode page
-by telling it to go into or out of Stopped mode immediately.
-
-Alan Stern
-
+Yinghai
