@@ -1,58 +1,64 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH v2 4/6] ACPI, PCI: add acpi_pci_roots protection
-Date: Thu, 13 Sep 2012 13:39:55 -0600
-Message-ID: <CAErSpo7xuhxv5Fev1JCKdK72fKFN8TGdAL3g8JcE8SLUzfXKSw@mail.gmail.com>
-References: <20120903165831.29aed72c.izumi.taku@jp.fujitsu.com>
- <20120903170602.375b00cc.izumi.taku@jp.fujitsu.com> <CAErSpo54LO_mow3dNSJ2-Aj4xBs=Zrk9fiAuFzZKdh9=YKyWuA@mail.gmail.com>
- <CAE9FiQVHgLGCmU2GTPkRKO8qRrWDwXOXNXoOf0OxvjWJBPLWMA@mail.gmail.com>
+From: Oliver Neukum <oliver@neukum.org>
+Subject: Re: [PATCH 1/2] scsi: sd: set ready_to_power_off for scsi disk
+Date: Thu, 13 Sep 2012 22:18:24 +0200
+Message-ID: <1787325.sGDVDNVD6E@linux-lqwf.site>
+References: <Pine.LNX.4.44L0.1209131213450.21932-100000@netrider.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAE9FiQVHgLGCmU2GTPkRKO8qRrWDwXOXNXoOf0OxvjWJBPLWMA@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, kaneshige.kenji@jp.fujitsu.com, jiang.liu@huawei.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.44L0.1209131213450.21932-100000@netrider.rowland.org>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: James Bottomley <James.Bottomley@hansenpartnership.com>, Aaron Lu <aaron.lu@intel.com>, Jeff Garzik <jgarzik@pobox.com>, Aaron Lu <aaron.lwe@gmail.com>, Jack Wang <jack_wang@usish.com>, Shane Huang <shane.huang@amd.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Sep 13, 2012 at 1:09 PM, Yinghai Lu <yinghai@kernel.org> wrote:
-> On Wed, Sep 12, 2012 at 4:40 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
->> On Mon, Sep 3, 2012 at 2:06 AM, Taku Izumi <izumi.taku@jp.fujitsu.com> wrote:
->>> Use mutex and RCU to protect global acpi_pci_roots list against
->>> PCI host bridge hotplug operations.
->>>
->>> RCU is used to avoid possible deadlock in function acpi_pci_find_root()
->>> and acpi_get_pci_rootbridge_handle(). A possible call graph:
->>> acpi_pci_register_driver()
->>>         mutex_lock(&acpi_pci_root_lock)
->>>                 driver->add(root)
->>>                         ......
->>>                                 acpi_pci_find_root()
->>
->> Where does this path occur?  I didn't see in in the current tree
->> (where the only users of acpi_pci_register_driver() are for
->> acpi_pci_slot_driver and acpi_pci_hp_driver).  Maybe it's in Yinghai's
->> work, which adds more acpi_pci_register_driver() users.
->>
->> RCU seems unnecessarily complicated for this list, but I haven't gone
->> through Yinghai's work yet, so I don't know what it requires.
->>
->> In acpi_pci_root_start() and acpi_pci_root_remove(), we have the
->> struct acpi_pci_root, which has all sorts of information that would be
->> useful to the .add() and .remove() methods of sub-drivers.  It seems
->> sort of stupid that we only pass the acpi_handle to the sub-drivers,
->> forcing them to use hacks like acpi_pci_find_root() to look up the
->> information we just threw away.  Can we just fix the .add() and
->> .remove() interfaces to pass something more useful so we avoid the
->> need for this deadlock path?
->
-> new added acpi_pci_driver for ioapic, and iommu does not call
-> acpi_pci_find_root().
->
-> after split out pci_root_hp.c from acpiphp_glue.c, there will be
-> acpi_root_configure_bridge in pci_root_hp.c. that one could be
-> converted to
-> passing device instead of handle.
+On Thursday 13 September 2012 12:24:46 Alan Stern wrote:
+> On Thu, 13 Sep 2012, Oliver Neukum wrote:
 
-If I understand you correctly, you're agreeing that if we change the
-.add()/.remove() interfaces, there is no need for RCU here.  Correct
-me if I'm wrong.
+> > Yes, but this confusion is necessary. The driver core is supposed to
+> > be generic and knows strictly speaking only suspended and active.
+> > It is a driver's job to do what needs to be done and translate this
+> > into the appropriate device states.
+> 
+> Currently the sd driver's suspend routine is not very sophisticated.  
+> It needs to become smarter about the differences between system
+> suspend, runtime suspend, and power off.
+
+In what way?
+
+> > Well, yes, but we need support modes of power management that cut off
+> > power to the disk in any case, so what does it matter if we also do it for
+> > runtime PM?
+> > 
+> > Are you concerned about layering?
+> 
+> It sounds like James is partly concerned about efficiency.  If Lin
+> Ming's patches are merged then we will be doing runtime suspend
+> relatively often, not just when the device file is closed.  The
+> sd_suspend routine should know when SYNCHRONIZE CACHE is needed and
+> when it can be skipped.
+
+How? This depends on the hardware?
+
+> From what I gather of this discussion, we can avoid flushing the cache 
+> during (1) a runtime suspend provided (2) the drive isn't going to be 
+> powered down.  If either (1) or (2) doesn't hold then the cache needs 
+> to be synchronized.
+
+This is true, but how is it relevant?
+
+> The problem with relying on the internal timers and the power
+> management mode page is that the transitions take place automatically
+> and the host system doesn't know about them.  We _want_ to know about
+> them so that the higher layers of the device tree can go to low power
+> when the disk does.
+
+Why would you want that to correlate? The operation of the controller
+and the driver is independent of the state.
+And what would it tell us, as the driver knows aout all IO anyway?
+
+	Regards
+		Oliver
+
+
