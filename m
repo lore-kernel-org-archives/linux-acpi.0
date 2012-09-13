@@ -1,32 +1,36 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH v2 4/6] ACPI, PCI: add acpi_pci_roots protection
-Date: Thu, 13 Sep 2012 14:17:04 -0700
-Message-ID: <CAE9FiQXWU-PPJceZAafBxypMf6ieZFdLzyR9NmStbkNmmg_P5g@mail.gmail.com>
-References: <20120903165831.29aed72c.izumi.taku@jp.fujitsu.com>
-	<20120903170602.375b00cc.izumi.taku@jp.fujitsu.com>
-	<CAErSpo54LO_mow3dNSJ2-Aj4xBs=Zrk9fiAuFzZKdh9=YKyWuA@mail.gmail.com>
-	<CAE9FiQVHgLGCmU2GTPkRKO8qRrWDwXOXNXoOf0OxvjWJBPLWMA@mail.gmail.com>
-	<CAErSpo7xuhxv5Fev1JCKdK72fKFN8TGdAL3g8JcE8SLUzfXKSw@mail.gmail.com>
+From: Borislav Petkov <bp@amd64.org>
+Subject: Re: [PATCH] ACPI: power: Use KERN_DEBUG when no power resources are
+ found
+Date: Fri, 14 Sep 2012 00:10:47 +0200
+Message-ID: <20120913221047.GA4598@aftab.osrc.amd.com>
+References: <1344564353-493-1-git-send-email-aaron.lu@amd.com>
+ <20120829020134.GA1761@aaronlu.sh.intel.com>
+ <20120913134819.GD19691@aftab.osrc.amd.com>
+ <201209132317.32969.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:39344 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751313Ab2IMVRH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Sep 2012 17:17:07 -0400
-In-Reply-To: <CAErSpo7xuhxv5Fev1JCKdK72fKFN8TGdAL3g8JcE8SLUzfXKSw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <201209132317.32969.rjw@sisk.pl>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Aaron Lu <aaron.lwe@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, Joe Perches <joe@perches.com>, Lin Ming <minggr@gmail.com>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, kaneshige.kenji@jp.fujitsu.com, jiang.liu@huawei.com
 
-On Thu, Sep 13, 2012 at 12:39 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
-> If I understand you correctly, you're agreeing that if we change the
-> .add()/.remove() interfaces, there is no need for RCU here.  Correct
-> me if I'm wrong.
+On Thu, Sep 13, 2012 at 11:17:32PM +0200, Rafael J. Wysocki wrote:
+> I'll take it. There are two more ACPI PM patches that would be good to
+> have in v3.6 IMO.
 
-yes.
+Ok, cool. Can you pls adjust the stable tag to include 3.4 too?
 
-just passing acpi_pci_root point or acpi_device pointer.
+Thanks.
 
-Yinghai
+-- 
+Regards/Gruss,
+Boris.
+
+Advanced Micro Devices GmbH
+Einsteinring 24, 85609 Dornach
+GM: Alberto Bozzo
+Reg: Dornach, Landkreis Muenchen
+HRB Nr. 43632 WEEE Registernr: 129 19551
