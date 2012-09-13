@@ -1,73 +1,32 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI: power: Use KERN_DEBUG when no power resources are found
-Date: Thu, 13 Sep 2012 23:17:32 +0200
-Message-ID: <201209132317.32969.rjw@sisk.pl>
-References: <1344564353-493-1-git-send-email-aaron.lu@amd.com> <20120829020134.GA1761@aaronlu.sh.intel.com> <20120913134819.GD19691@aftab.osrc.amd.com>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH v2 4/6] ACPI, PCI: add acpi_pci_roots protection
+Date: Thu, 13 Sep 2012 14:17:04 -0700
+Message-ID: <CAE9FiQXWU-PPJceZAafBxypMf6ieZFdLzyR9NmStbkNmmg_P5g@mail.gmail.com>
+References: <20120903165831.29aed72c.izumi.taku@jp.fujitsu.com>
+	<20120903170602.375b00cc.izumi.taku@jp.fujitsu.com>
+	<CAErSpo54LO_mow3dNSJ2-Aj4xBs=Zrk9fiAuFzZKdh9=YKyWuA@mail.gmail.com>
+	<CAE9FiQVHgLGCmU2GTPkRKO8qRrWDwXOXNXoOf0OxvjWJBPLWMA@mail.gmail.com>
+	<CAErSpo7xuhxv5Fev1JCKdK72fKFN8TGdAL3g8JcE8SLUzfXKSw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:53006 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752235Ab2IMVLP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 13 Sep 2012 17:11:15 -0400
-In-Reply-To: <20120913134819.GD19691@aftab.osrc.amd.com>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:39344 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751313Ab2IMVRH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Sep 2012 17:17:07 -0400
+In-Reply-To: <CAErSpo7xuhxv5Fev1JCKdK72fKFN8TGdAL3g8JcE8SLUzfXKSw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@amd64.org>
-Cc: Aaron Lu <aaron.lwe@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, Joe Perches <joe@perches.com>, Lin Ming <minggr@gmail.com>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, kaneshige.kenji@jp.fujitsu.com, jiang.liu@huawei.com
 
-On Thursday, September 13, 2012, Borislav Petkov wrote:
-> On Wed, Aug 29, 2012 at 10:01:36AM +0800, Aaron Lu wrote:
-> > On Fri, Aug 24, 2012 at 03:36:21PM -0700, Joe Perches wrote:
-> > > On Thu, 2012-08-23 at 15:26 +0200, Borislav Petkov wrote:
-> > > > On Fri, Aug 10, 2012 at 10:05:53AM +0800, Aaron Lu wrote:
-> > > > > commit a606dac368eed5696fb38e16b1394f1d049c09e9 adds support to link
-> > > > > devices which have _PRx, if a device does not have _PRx, a warning
-> > > > > message will be printed.
-> > > > > 
-> > > > > This commit is for ZPODD on Intel's platform, on AMD's platform, there
-> > > > > is no _PRx to support ZPODD, we use _PSx.
-> > > > > 
-> > > > > So instead of printing a useless warning message on AMD's platform,
-> > > > > changing the print level to DEBUG to suppress this message.
-> > > []
-> > > > > diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-> > > []
-> > > > > @@ -460,7 +460,7 @@ int acpi_power_resource_register_device(struct device *dev, acpi_handle handle)
-> > > > >  	return ret;
-> > > > >  
-> > > > >  no_power_resource:
-> > > > > -	printk(KERN_WARNING PREFIX "Invalid Power Resource to register!");
-> > > > > +	printk(KERN_DEBUG PREFIX "Invalid Power Resource to register!");
-> > > 
-> > > Perhaps add something like:
-> > > 	if (boot_cpu_data.x86_vendor != X86_VENDOR_AMD)
-> > > 		printk(etc...)
-> > > instead?
-> > 
-> > Sorry for not describing this problem clear, this would also occur on
-> > Intel platforms as long as that device we are calling this register
-> > function on does not have any power resource attached to it.
-> > 
-> > So the problem is actually, does the acpi_power_resource_register_device
-> > function expect such input devices that they do not have any power
-> > resource attached? If yes, then it shouldn't complain with a warning
-> > message; if no, then we should probably check these conditions before
-> > making such a call.
-> > 
-> > Looking at the function itself, I think it expects such devices so a
-> > warning message here is not appropriate.
-> 
-> This is still present in -rc5.
-> 
-> Linus, this message obviously warns for no good reason. Can you please
-> pick up the patch at http://marc.info/?l=linux-kernel&m=134456468110431
-> since ACPI people don't seem to react here.
+On Thu, Sep 13, 2012 at 12:39 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+> If I understand you correctly, you're agreeing that if we change the
+> .add()/.remove() interfaces, there is no need for RCU here.  Correct
+> me if I'm wrong.
 
-I'll take it.  There are two more ACPI PM patches that would be good to have
-in v3.6 IMO.
+yes.
 
-Thanks,
-Rafael
+just passing acpi_pci_root point or acpi_device pointer.
+
+Yinghai
