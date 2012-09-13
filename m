@@ -1,49 +1,83 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH v6 0/7] ZPODD patches
-Date: Thu, 13 Sep 2012 11:20:23 +0800
-Message-ID: <505150F7.3040800@intel.com>
-References: <1346768680-7287-1-git-send-email-aaron.lwe@gmail.com> <7AD76063A97F48128F7F6B285CD05C7E@usish.com.cn>
+From: "Song, Youquan" <youquan.song@intel.com>
+Subject: RE: MSR Len Brown Sept 12, 2012
+Date: Thu, 13 Sep 2012 04:59:21 +0000
+Message-ID: <70A3B115BE79814398B8E4E7C4AE18EE1164BE@SHSMSX101.ccr.corp.intel.com>
+References: <1A7043D5F58CCB44A599DFD55ED4C94828CD99A4@FMSMSX108.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <7AD76063A97F48128F7F6B285CD05C7E@usish.com.cn>
-Sender: linux-ide-owner@vger.kernel.org
-To: Jack Wang <jack_wang@usish.com>
-Cc: 'Aaron Lu' <aaron.lwe@gmail.com>, 'Alan Stern' <stern@rowland.harvard.edu>, 'James Bottomley' <James.Bottomley@HansenPartnership.com>, 'Jeff Garzik' <jgarzik@pobox.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:38848 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753170Ab2IME7b convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Sep 2012 00:59:31 -0400
+In-Reply-To: <1A7043D5F58CCB44A599DFD55ED4C94828CD99A4@FMSMSX108.amr.corp.intel.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Brown, Len" <len.brown@intel.com>, "Schlobohm, Bruce" <bruce.schlobohm@intel.com>
+Cc: SSD-OTC ALL <ssd-otc.all@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Song, Youquan" <youquan.song@intel.com>
 
-On 09/13/2012 10:42 AM, Jack Wang wrote:
-> Hi Aaron,
+>cpuidle BOF had Scheduler people (PeterZ) stating that the Scheduler should do the idle prediction logic and it makes no sense to duplicate it in cpuidle governor.
+>This is a very promising prospect.
 
-Hi Jack,
+When tasking moved to CPU running, it will wake up CPU from C-states, it is reasonable for scheduler to prediction. However, interrupt coming also wake up CPU from C-states, how can schedule predict it?  Interrupt is not task, so it is out of scheduler scope.
+So I do not think it is duplicated in cpuidle even though possible idle prediction in scheduler for task. In addition, scheduler is not agile for cpuidle prediction because scheduler granularity is at milli-seconds level (HZ) while C-state entry/exit is at micro-seconds level.  What's more, scheduler is too big/heavy to do fully prediction for cpuidle, it will scarify scheduler performance. 
 
-> 
-> This feature looks nice
+I think that the doable things scheduler at it are there: 1. when task is generated, scheduler do not put it to idlest scheduler_domain/schedule_group, it in according current task assignment and power saving(/performance) policy to predict which is the best target scheduler_domain/schedule_group which will benefit package C-state/Core C-state entry in recent future.  2. when load balance also can do the same prediction.  If nobody deny, I will quickly write sample code for testing.
 
-Glad to hear this :-)
 
-> but how could I test this patch set, I suppose it
-> need special Hardware which support ZPODD, could suggest the test setup
-> environment?
+Thanks & Regards, 
+Song, Youquan 
+Intel SSG/SSD/OTC 
+MOB: 13681289076 
+TEL: 010-85711549 
+INET: 8-571-1549 
+LOC: GTC/BJ 18W025
 
-For ZPODD, there are 2 requirements:
-1 The platform, it has to have the ability to power off a sata device
-while at S0;
-2 The ODD needs support for device attention capability.
 
-> 
-> For hard disk runtime power off, Is there (hardware?) requirement for hard
-> drive to support similar feature?
+-----Original Message-----
+From: Brown, Len 
+Sent: Thursday, September 13, 2012 1:28 AM
+To: Schlobohm, Bruce
+Cc: SSD-OTC ALL; linux-acpi@vger.kernel.org
+Subject: MSR Len Brown Sept 12, 2012
 
-No requirement for hard drive, as it does not need to remote wake up
-itself while powered off.
+> Presented "ACPI 5.0 in Linux" at Linux Plumber's Conference:
 
-Please note that there is a v7 sent yesterday, you may want to take a
-look at that instead of v6.
+http://www.linuxplumbersconf.org/2012/wp-content/uploads/2012/09/LPC2012-ACPI5.pdf
 
-And the runtime power off of hard drive is dropped from that patch set,
-I'll submit it in another patch set(pretty small changes needed).
+There was some hallway discussion about ACPI for ARM, but none in the forum.  Notably, Grant Likely, the Linaro developer responsible for ACPI/ARM, was stuck in the UK.
 
-Thanks,
-Aaron
+OTC has a reactive stance on ACPI/ARM.  We maintain Linux/ACPI, and will thus accept patches from the Linux community if they want Linux to support ACPI/ARM.  As yet, we've received no such patches or RFCs.
+
+I do see a lot of activity from Linaro on cpuidle, and very high interest in thermals and cpufreq.
+
+> Participated in Linux Kernel Summit, LPC, took some photos:
+
+https://picasaweb.google.com/106626681355613318425/2012SanDiego
+
+Linus valued Rafael's regression tracking summary e-mail.
+Rafael doesn't do this anymore.  Volunteers are burnt out on it and SuSE no longer pays Rafael to do it.
+
+Linus doesn't use bugzilla because it is poor for initial sightings.
+More information is usually needed before an issue can be worked.
+Further, many submitters produce low signal/noise and an intelligent maintainer must work with them to get the needed info.
+
+Unfortunately, the community tends to translate this into "Linus thinks bugzilla is bad, so we should ignore it."
+
+Google stated that their useful testing is done with "internal applications", and that "available benchmarks tend to be out of date"
+
+Fengguang's automated build & test setup is well regarded.
+
+cpuidle BOF had Scheduler people (PeterZ) stating that the Scheduler should do the idle prediction logic and it makes no sense to duplicate it in cpuidle governor.
+This is a very promising prospect.
+
+My raw KS and LPC notes are attached, for those interested.
+
+> 2-week vacation at Philmont Scout Ranch in New Mexico:
+
+https://picasaweb.google.com/BSA157/Philmont2012#5784140983380897058
+
+All survived.  Only one minor physical injury (I broke a toe).
+
