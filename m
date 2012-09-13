@@ -1,79 +1,73 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH 1/2] scsi: sd: set ready_to_power_off for scsi disk
-Date: Thu, 13 Sep 2012 16:46:29 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1209131639250.31536-100000@netrider.rowland.org>
-References: <1787325.sGDVDNVD6E@linux-lqwf.site>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] ACPI: power: Use KERN_DEBUG when no power resources are found
+Date: Thu, 13 Sep 2012 23:17:32 +0200
+Message-ID: <201209132317.32969.rjw@sisk.pl>
+References: <1344564353-493-1-git-send-email-aaron.lu@amd.com> <20120829020134.GA1761@aaronlu.sh.intel.com> <20120913134819.GD19691@aftab.osrc.amd.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:58121 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1758157Ab2IMUqa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Sep 2012 16:46:30 -0400
-In-Reply-To: <1787325.sGDVDNVD6E@linux-lqwf.site>
+Received: from ogre.sisk.pl ([193.178.161.156]:53006 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752235Ab2IMVLP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 13 Sep 2012 17:11:15 -0400
+In-Reply-To: <20120913134819.GD19691@aftab.osrc.amd.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Oliver Neukum <oliver@neukum.org>
-Cc: James Bottomley <James.Bottomley@hansenpartnership.com>, Aaron Lu <aaron.lu@intel.com>, Jeff Garzik <jgarzik@pobox.com>, Aaron Lu <aaron.lwe@gmail.com>, Jack Wang <jack_wang@usish.com>, Shane Huang <shane.huang@amd.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Borislav Petkov <bp@amd64.org>
+Cc: Aaron Lu <aaron.lwe@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, Joe Perches <joe@perches.com>, Lin Ming <minggr@gmail.com>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Thu, 13 Sep 2012, Oliver Neukum wrote:
-
-> On Thursday 13 September 2012 12:24:46 Alan Stern wrote:
-> > On Thu, 13 Sep 2012, Oliver Neukum wrote:
-> 
-> > > Yes, but this confusion is necessary. The driver core is supposed to
-> > > be generic and knows strictly speaking only suspended and active.
-> > > It is a driver's job to do what needs to be done and translate this
-> > > into the appropriate device states.
+On Thursday, September 13, 2012, Borislav Petkov wrote:
+> On Wed, Aug 29, 2012 at 10:01:36AM +0800, Aaron Lu wrote:
+> > On Fri, Aug 24, 2012 at 03:36:21PM -0700, Joe Perches wrote:
+> > > On Thu, 2012-08-23 at 15:26 +0200, Borislav Petkov wrote:
+> > > > On Fri, Aug 10, 2012 at 10:05:53AM +0800, Aaron Lu wrote:
+> > > > > commit a606dac368eed5696fb38e16b1394f1d049c09e9 adds support to link
+> > > > > devices which have _PRx, if a device does not have _PRx, a warning
+> > > > > message will be printed.
+> > > > > 
+> > > > > This commit is for ZPODD on Intel's platform, on AMD's platform, there
+> > > > > is no _PRx to support ZPODD, we use _PSx.
+> > > > > 
+> > > > > So instead of printing a useless warning message on AMD's platform,
+> > > > > changing the print level to DEBUG to suppress this message.
+> > > []
+> > > > > diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+> > > []
+> > > > > @@ -460,7 +460,7 @@ int acpi_power_resource_register_device(struct device *dev, acpi_handle handle)
+> > > > >  	return ret;
+> > > > >  
+> > > > >  no_power_resource:
+> > > > > -	printk(KERN_WARNING PREFIX "Invalid Power Resource to register!");
+> > > > > +	printk(KERN_DEBUG PREFIX "Invalid Power Resource to register!");
+> > > 
+> > > Perhaps add something like:
+> > > 	if (boot_cpu_data.x86_vendor != X86_VENDOR_AMD)
+> > > 		printk(etc...)
+> > > instead?
 > > 
-> > Currently the sd driver's suspend routine is not very sophisticated.  
-> > It needs to become smarter about the differences between system
-> > suspend, runtime suspend, and power off.
+> > Sorry for not describing this problem clear, this would also occur on
+> > Intel platforms as long as that device we are calling this register
+> > function on does not have any power resource attached to it.
+> > 
+> > So the problem is actually, does the acpi_power_resource_register_device
+> > function expect such input devices that they do not have any power
+> > resource attached? If yes, then it shouldn't complain with a warning
+> > message; if no, then we should probably check these conditions before
+> > making such a call.
+> > 
+> > Looking at the function itself, I think it expects such devices so a
+> > warning message here is not appropriate.
 > 
-> In what way?
-
-sd_suspend should know whether or not to issue the SYNCHRONIZE CACHE 
-command.
-
-> > It sounds like James is partly concerned about efficiency.  If Lin
-> > Ming's patches are merged then we will be doing runtime suspend
-> > relatively often, not just when the device file is closed.  The
-> > sd_suspend routine should know when SYNCHRONIZE CACHE is needed and
-> > when it can be skipped.
+> This is still present in -rc5.
 > 
-> How? This depends on the hardware?
+> Linus, this message obviously warns for no good reason. Can you please
+> pick up the patch at http://marc.info/?l=linux-kernel&m=134456468110431
+> since ACPI people don't seem to react here.
 
-It depends partly on the hardware, partly on the type of suspend, and 
-partly on the flag settings in sysfs.
+I'll take it.  There are two more ACPI PM patches that would be good to have
+in v3.6 IMO.
 
-> > From what I gather of this discussion, we can avoid flushing the cache 
-> > during (1) a runtime suspend provided (2) the drive isn't going to be 
-> > powered down.  If either (1) or (2) doesn't hold then the cache needs 
-> > to be synchronized.
-> 
-> This is true, but how is it relevant?
-
-This, or something like it, is the algorithm sd_suspend should use for 
-determining whether or not to issue SYNCHRONIZE CACHE.
-
-> > The problem with relying on the internal timers and the power
-> > management mode page is that the transitions take place automatically
-> > and the host system doesn't know about them.  We _want_ to know about
-> > them so that the higher layers of the device tree can go to low power
-> > when the disk does.
-> 
-> Why would you want that to correlate? The operation of the controller
-> and the driver is independent of the state.
-
-That's the problem -- I would like them not to be so independent.  The
-reason stated above: If we know when the controller puts the drive in a
-low-power state then we can tell the higher layers of the device tree
-to go to low power at those times.
-
-> And what would it tell us, as the driver knows aout all IO anyway?
-
-But the driver doesn't know when the controller has spun down the disk.  
-That's something else sd_suspend has to worry about.
-
-Alan Stern
-
+Thanks,
+Rafael
