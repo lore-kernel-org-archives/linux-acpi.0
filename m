@@ -1,114 +1,71 @@
-From: Borislav Petkov <bp@amd64.org>
-Subject: Re: [PATCH] ACPI: power: Use KERN_DEBUG when no power resources are
- found
-Date: Thu, 13 Sep 2012 15:48:19 +0200
-Message-ID: <20120913134819.GD19691@aftab.osrc.amd.com>
-References: <1344564353-493-1-git-send-email-aaron.lu@amd.com>
- <20120823132646.GD18279@aftab.osrc.amd.com>
- <1345847781.32359.15.camel@joe2Laptop>
- <20120829020134.GA1761@aaronlu.sh.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Jiri Slaby <jslaby@suse.cz>
+Subject: [RFC 1/1] MISC: hpilo, remove pci_disable_device
+Date: Thu, 13 Sep 2012 16:06:48 +0200
+Message-ID: <1347545208-18512-1-git-send-email-jslaby@suse.cz>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.x86-64.org ([217.9.48.20]:34909 "EHLO mail.x86-64.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751470Ab2IMNsW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 13 Sep 2012 09:48:22 -0400
-Content-Disposition: inline
-In-Reply-To: <20120829020134.GA1761@aaronlu.sh.intel.com>
+Received: from mail.pripojeni.net ([178.22.112.14]:50438 "EHLO
+	smtp.pripojeni.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751186Ab2IMOGz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Sep 2012 10:06:55 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lwe@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Joe Perches <joe@perches.com>, Lin Ming <minggr@gmail.com>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: gregkh@linuxfoundation.org
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, jirislaby@gmail.com, Grant Grundler <grundler@parisc-linux.org>, Nobin Mathew <nobin.mathew@gmail.com>, Robert Hancock <hancockr@shaw.ca>, Arnd Bergmann <arnd@arndb.de>, David Altobelli <david.altobelli@hp.com>
 
-On Wed, Aug 29, 2012 at 10:01:36AM +0800, Aaron Lu wrote:
-> On Fri, Aug 24, 2012 at 03:36:21PM -0700, Joe Perches wrote:
-> > On Thu, 2012-08-23 at 15:26 +0200, Borislav Petkov wrote:
-> > > On Fri, Aug 10, 2012 at 10:05:53AM +0800, Aaron Lu wrote:
-> > > > commit a606dac368eed5696fb38e16b1394f1d049c09e9 adds support to link
-> > > > devices which have _PRx, if a device does not have _PRx, a warning
-> > > > message will be printed.
-> > > > 
-> > > > This commit is for ZPODD on Intel's platform, on AMD's platform, there
-> > > > is no _PRx to support ZPODD, we use _PSx.
-> > > > 
-> > > > So instead of printing a useless warning message on AMD's platform,
-> > > > changing the print level to DEBUG to suppress this message.
-> > []
-> > > > diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-> > []
-> > > > @@ -460,7 +460,7 @@ int acpi_power_resource_register_device(struct device *dev, acpi_handle handle)
-> > > >  	return ret;
-> > > >  
-> > > >  no_power_resource:
-> > > > -	printk(KERN_WARNING PREFIX "Invalid Power Resource to register!");
-> > > > +	printk(KERN_DEBUG PREFIX "Invalid Power Resource to register!");
-> > 
-> > Perhaps add something like:
-> > 	if (boot_cpu_data.x86_vendor != X86_VENDOR_AMD)
-> > 		printk(etc...)
-> > instead?
-> 
-> Sorry for not describing this problem clear, this would also occur on
-> Intel platforms as long as that device we are calling this register
-> function on does not have any power resource attached to it.
-> 
-> So the problem is actually, does the acpi_power_resource_register_device
-> function expect such input devices that they do not have any power
-> resource attached? If yes, then it shouldn't complain with a warning
-> message; if no, then we should probably check these conditions before
-> making such a call.
-> 
-> Looking at the function itself, I think it expects such devices so a
-> warning message here is not appropriate.
+pci_disable_device(pdev) used to be in pci remove function. But this
+PCI device has two functions with interrupt lines connected to a
+single pin. The other one is a USB host controller. So when we disable
+the PIN there e.g. by rmmod hpilo, the controller stops working. It is
+because the interrupt link is disabled in ACPI since it is not
+refcounted yet. See acpi_pci_link_free_irq called from
+acpi_pci_irq_disable.
 
-This is still present in -rc5.
+It is not the best solution whatsoever, but as a workaround until the
+ACPI irq link refcounting is sorted out this should fix the reported
+errors.
 
-Linus, this message obviously warns for no good reason. Can you please
-pick up the patch at http://marc.info/?l=linux-kernel&m=134456468110431
-since ACPI people don't seem to react here.
+References: https://lkml.org/lkml/2008/11/4/535
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Cc: Grant Grundler <grundler@parisc-linux.org>
+Cc: Nobin Mathew <nobin.mathew@gmail.com>
+Cc: Robert Hancock <hancockr@shaw.ca>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: David Altobelli <david.altobelli@hp.com>
+---
+ drivers/misc/hpilo.c | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-Btw, Aaron, the stable tag should be covering 3.4 too because the patch
-that added the message actually is 0090def6c37c8:
-
-$ git tag --contains 0090def6c37c8
-v3.4
-v3.4-rc1
-v3.4-rc2
-v3.4-rc3
-v3.4-rc4
-v3.4-rc5
-v3.4-rc6
-v3.4-rc7
-v3.4.1
-v3.4.2
-v3.4.3
-v3.4.4
-v3.4.5
-v3.4.6
-v3.4.7
-v3.5
-v3.5-rc1
-v3.5-rc2
-v3.5-rc3
-v3.5-rc4
-v3.5-rc5
-v3.5-rc6
-v3.5-rc7
-v3.6-rc1
-v3.6-rc2
-v3.6-rc3
-v3.6-rc4
-v3.6-rc5
-
-Thanks.
-
+diff --git a/drivers/misc/hpilo.c b/drivers/misc/hpilo.c
+index 6df0da4..12ccdf9 100644
+--- a/drivers/misc/hpilo.c
++++ b/drivers/misc/hpilo.c
+@@ -736,7 +736,14 @@ static void ilo_remove(struct pci_dev *pdev)
+ 	free_irq(pdev->irq, ilo_hw);
+ 	ilo_unmap_device(pdev, ilo_hw);
+ 	pci_release_regions(pdev);
+-	pci_disable_device(pdev);
++	/*
++	 * pci_disable_device(pdev) used to be here. But this PCI device has
++	 * two functions with interrupt lines connected to a single pin. The
++	 * other one is a USB host controller. So when we disable the PIN here
++	 * e.g. by rmmod hpilo, the controller stops working. It is because
++	 * the interrupt link is disabled in ACPI since it is not refcounted
++	 * yet. See acpi_pci_link_free_irq called from acpi_pci_irq_disable.
++	 */
+ 	kfree(ilo_hw);
+ 	ilo_hwdev[(minor / max_ccb)] = 0;
+ }
+@@ -826,7 +833,7 @@ unmap:
+ free_regions:
+ 	pci_release_regions(pdev);
+ disable:
+-	pci_disable_device(pdev);
++/*	pci_disable_device(pdev);  see comment in ilo_remove */
+ free:
+ 	kfree(ilo_hw);
+ out:
 -- 
-Regards/Gruss,
-Boris.
+1.7.11.5
 
-Advanced Micro Devices GmbH
-Einsteinring 24, 85609 Dornach
-GM: Alberto Bozzo
-Reg: Dornach, Landkreis Muenchen
-HRB Nr. 43632 WEEE Registernr: 129 19551
+
