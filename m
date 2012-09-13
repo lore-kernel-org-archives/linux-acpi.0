@@ -1,81 +1,114 @@
-From: Oliver Neukum <oneukum@suse.de>
-Subject: Re: [PATCH 1/2] scsi: sd: set ready_to_power_off for scsi disk
-Date: Thu, 13 Sep 2012 14:34:28 +0200
-Message-ID: <1791163.r67kWVIx1R@linux-lqwf.site>
-References: <1347522049-1836-1-git-send-email-aaron.lu@intel.com> <39641980.Xo4Ylv7ahU@linux-lqwf.site> <1347533467.2720.45.camel@dabdike.int.hansenpartnership.com>
+From: Borislav Petkov <bp@amd64.org>
+Subject: Re: [PATCH] ACPI: power: Use KERN_DEBUG when no power resources are
+ found
+Date: Thu, 13 Sep 2012 15:48:19 +0200
+Message-ID: <20120913134819.GD19691@aftab.osrc.amd.com>
+References: <1344564353-493-1-git-send-email-aaron.lu@amd.com>
+ <20120823132646.GD18279@aftab.osrc.amd.com>
+ <1345847781.32359.15.camel@joe2Laptop>
+ <20120829020134.GA1761@aaronlu.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:38155 "EHLO mx2.suse.de"
+Received: from mail.x86-64.org ([217.9.48.20]:34909 "EHLO mail.x86-64.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755179Ab2IMMgA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 13 Sep 2012 08:36:00 -0400
-In-Reply-To: <1347533467.2720.45.camel@dabdike.int.hansenpartnership.com>
+	id S1751470Ab2IMNsW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 13 Sep 2012 09:48:22 -0400
+Content-Disposition: inline
+In-Reply-To: <20120829020134.GA1761@aaronlu.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: James Bottomley <James.Bottomley@hansenpartnership.com>
-Cc: Aaron Lu <aaron.lu@intel.com>, Alan Stern <stern@rowland.harvard.edu>, Jeff Garzik <jgarzik@pobox.com>, Aaron Lu <aaron.lwe@gmail.com>, Jack Wang <jack_wang@usish.com>, Shane Huang <shane.huang@amd.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lwe@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Joe Perches <joe@perches.com>, Lin Ming <minggr@gmail.com>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Thursday 13 September 2012 11:51:07 James Bottomley wrote:
-> On Thu, 2012-09-13 at 12:16 +0200, Oliver Neukum wrote:
-> > On Thursday 13 September 2012 10:26:44 James Bottomley wrote:
-> > > On Thu, 2012-09-13 at 17:07 +0800, Aaron Lu wrote:
+On Wed, Aug 29, 2012 at 10:01:36AM +0800, Aaron Lu wrote:
+> On Fri, Aug 24, 2012 at 03:36:21PM -0700, Joe Perches wrote:
+> > On Thu, 2012-08-23 at 15:26 +0200, Borislav Petkov wrote:
+> > > On Fri, Aug 10, 2012 at 10:05:53AM +0800, Aaron Lu wrote:
+> > > > commit a606dac368eed5696fb38e16b1394f1d049c09e9 adds support to link
+> > > > devices which have _PRx, if a device does not have _PRx, a warning
+> > > > message will be printed.
+> > > > 
+> > > > This commit is for ZPODD on Intel's platform, on AMD's platform, there
+> > > > is no _PRx to support ZPODD, we use _PSx.
+> > > > 
+> > > > So instead of printing a useless warning message on AMD's platform,
+> > > > changing the print level to DEBUG to suppress this message.
+> > []
+> > > > diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+> > []
+> > > > @@ -460,7 +460,7 @@ int acpi_power_resource_register_device(struct device *dev, acpi_handle handle)
+> > > >  	return ret;
+> > > >  
+> > > >  no_power_resource:
+> > > > -	printk(KERN_WARNING PREFIX "Invalid Power Resource to register!");
+> > > > +	printk(KERN_DEBUG PREFIX "Invalid Power Resource to register!");
 > > 
-> > > > So I think this is basically 2 things, one is the runtime suspend of the
-> > > > disk, another is when it is runtime suspended, how to remove its power.
-> > > > I'm currently doing the latter one, which is simpler, so I want to do it
-> > > > first :-)
-> > > 
-> > > Well, I don't like the way the interaction of the patches is going.
-> > > You're the one proposing powering down the device outside of the
-> > > standards defined transitions, so you need to be responsible for the
-> > > actions that necessitates, including synchronizing the cache.  The specs
-> > > (SPC-4) say that cache management is explicitly unnecessary for the
-> > > standard SCSI power states (Active, Idle, Standby and Stopped), so
-> > > someone at some point is going to read that and remove the unnecessary
-> > > cache sync in the code.  When that happens, you'll start getting data
-> > > loss.
-> > 
-> > The cache is handled identically in sd_suspend() and sd_shutdown().
-> > In fact sd_shutdown() will skip handling it if the device has already been
-> > suspended, so the assumption is built into the code and has been so
-> > for a long time.
-> > 
-> > Though it wouldn't hurt to add a comment that says that the system going
-> > to S3 or S4 will cut power to a lot of disk so that the cache needs to be synced
-> > even if the spec says we need not. Runtime PM doesn't much alter the
-> > situation.
+> > Perhaps add something like:
+> > 	if (boot_cpu_data.x86_vendor != X86_VENDOR_AMD)
+> > 		printk(etc...)
+> > instead?
 > 
-> I think you're confusing two things.  Sleep states (S3 and S4) aren't
-> spec'd in SCSI, so we have to take care of everything (including the
-> cache before power off) because they're done invisibly to the disk.  The
+> Sorry for not describing this problem clear, this would also occur on
+> Intel platforms as long as that device we are calling this register
+> function on does not have any power resource attached to it.
+> 
+> So the problem is actually, does the acpi_power_resource_register_device
+> function expect such input devices that they do not have any power
+> resource attached? If yes, then it shouldn't complain with a warning
+> message; if no, then we should probably check these conditions before
+> making such a call.
+> 
+> Looking at the function itself, I think it expects such devices so a
+> warning message here is not appropriate.
 
-Yes, but this confusion is necessary. The driver core is supposed to
-be generic and knows strictly speaking only suspended and active.
-It is a driver's job to do what needs to be done and translate this
-into the appropriate device states.
+This is still present in -rc5.
 
-> same tends to go for link power management, which was previously our
-> only form of runtime PM, but which doesn't actually affect the disk at
-> all and, of course, ACPI power off of devices (ZPDD).
+Linus, this message obviously warns for no good reason. Can you please
+pick up the patch at http://marc.info/?l=linux-kernel&m=134456468110431
+since ACPI people don't seem to react here.
 
-The latter however does cut power to the drive. So the driver should do
-what it does when other operations that affect power are done.
+Btw, Aaron, the stable tag should be covering 3.4 too because the patch
+that added the message actually is 0090def6c37c8:
 
-> Disk runtime power states are defined in the standard and so we rely on
-> the standard taking care of the cache.  I suspect the most efficient use
-> may be via the power management mode page, which does everything
-> automatically on timers (you just get to set the timer interval, plus
-> some transports *may* require an initialising command which we already
-> have some provision for) than doing it all ourselves from block.
+$ git tag --contains 0090def6c37c8
+v3.4
+v3.4-rc1
+v3.4-rc2
+v3.4-rc3
+v3.4-rc4
+v3.4-rc5
+v3.4-rc6
+v3.4-rc7
+v3.4.1
+v3.4.2
+v3.4.3
+v3.4.4
+v3.4.5
+v3.4.6
+v3.4.7
+v3.5
+v3.5-rc1
+v3.5-rc2
+v3.5-rc3
+v3.5-rc4
+v3.5-rc5
+v3.5-rc6
+v3.5-rc7
+v3.6-rc1
+v3.6-rc2
+v3.6-rc3
+v3.6-rc4
+v3.6-rc5
 
-Well, yes, but we need support modes of power management that cut off
-power to the disk in any case, so what does it matter if we also do it for
-runtime PM?
+Thanks.
 
-Are you concerned about layering?
+-- 
+Regards/Gruss,
+Boris.
 
-	Regards
-		Oliver
-
+Advanced Micro Devices GmbH
+Einsteinring 24, 85609 Dornach
+GM: Alberto Bozzo
+Reg: Dornach, Landkreis Muenchen
+HRB Nr. 43632 WEEE Registernr: 129 19551
