@@ -1,215 +1,60 @@
-From: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Subject: Re: [PATCH v2 4/6] ACPI, PCI: add acpi_pci_roots protection
-Date: Fri, 14 Sep 2012 13:35:01 +0900
-Message-ID: <20120914133501.e17d1395.izumi.taku@jp.fujitsu.com>
-References: <20120903165831.29aed72c.izumi.taku@jp.fujitsu.com>
-	<20120903170602.375b00cc.izumi.taku@jp.fujitsu.com>
-	<CAErSpo54LO_mow3dNSJ2-Aj4xBs=Zrk9fiAuFzZKdh9=YKyWuA@mail.gmail.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH 1/2] scsi: sd: set ready_to_power_off for scsi disk
+Date: Fri, 14 Sep 2012 13:20:42 +0800
+Message-ID: <20120914052041.GA5177@mint-spring.sh.intel.com>
+References: <1347522049-1836-1-git-send-email-aaron.lu@intel.com>
+ <1347522049-1836-2-git-send-email-aaron.lu@intel.com>
+ <1347524092.2720.1.camel@dabdike.int.hansenpartnership.com>
+ <50519801.6080502@intel.com>
+ <1347525466.2720.10.camel@dabdike.int.hansenpartnership.com>
+ <50519E08.10800@intel.com>
+ <1347526590.2720.15.camel@dabdike.int.hansenpartnership.com>
+ <5051A25F.7040704@intel.com>
+ <1347528404.2720.28.camel@dabdike.int.hansenpartnership.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:42072 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750825Ab2INEfQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Sep 2012 00:35:16 -0400
-In-Reply-To: <CAErSpo54LO_mow3dNSJ2-Aj4xBs=Zrk9fiAuFzZKdh9=YKyWuA@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-ide-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1347528404.2720.28.camel@dabdike.int.hansenpartnership.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Jeff Garzik <jgarzik@pobox.com>, Aaron Lu <aaron.lwe@gmail.com>, Jack Wang <jack_wang@usish.com>, Shane Huang <shane.huang@amd.com>, Oliver Neukum <oliver@neukum.org>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, kaneshige.kenji@jp.fujitsu.com, yinghai@kernel.org, jiang.liu@huawei.com
 
-On Wed, 12 Sep 2012 17:40:45 -0600
-Bjorn Helgaas <bhelgaas@google.com> wrote:
-
-> On Mon, Sep 3, 2012 at 2:06 AM, Taku Izumi <izumi.taku@jp.fujitsu.com> wrote:
-> > Use mutex and RCU to protect global acpi_pci_roots list against
-> > PCI host bridge hotplug operations.
-> >
-> > RCU is used to avoid possible deadlock in function acpi_pci_find_root()
-> > and acpi_get_pci_rootbridge_handle(). A possible call graph:
-> > acpi_pci_register_driver()
-> >         mutex_lock(&acpi_pci_root_lock)
-> >                 driver->add(root)
-> >                         ......
-> >                                 acpi_pci_find_root()
+On Thu, Sep 13, 2012 at 10:26:44AM +0100, James Bottomley wrote:
+> On Thu, 2012-09-13 at 17:07 +0800, Aaron Lu wrote:
+> > So I think this is basically 2 things, one is the runtime suspend of the
+> > disk, another is when it is runtime suspended, how to remove its power.
+> > I'm currently doing the latter one, which is simpler, so I want to do it
+> > first :-)
 > 
-> Where does this path occur?  I didn't see in in the current tree
-> (where the only users of acpi_pci_register_driver() are for
-> acpi_pci_slot_driver and acpi_pci_hp_driver).  Maybe it's in Yinghai's
-> work, which adds more acpi_pci_register_driver() users.
+> Well, I don't like the way the interaction of the patches is going.
+> You're the one proposing powering down the device outside of the
+> standards defined transitions, so you need to be responsible for the
+> actions that necessitates, including synchronizing the cache. The specs
 
-  First I protected acpi_pci_roots list by using mutex(acpi_pci_root_lock).
-  In that case I faced deadlock at the following path:
-  acpiphp_glue_init
-     + acpi_pci_register_driver
-       ...
-         + add_bridge
-           + acpi_pci_find_root
+OK, I'll update the code.
 
-  So I used RCU instead.
+> (SPC-4) say that cache management is explicitly unnecessary for the
+> standard SCSI power states (Active, Idle, Standby and Stopped), so
 
-> RCU seems unnecessarily complicated for this list, but I haven't gone
-> through Yinghai's work yet, so I don't know what it requires.
-> 
-> In acpi_pci_root_start() and acpi_pci_root_remove(), we have the
-> struct acpi_pci_root, which has all sorts of information that would be
-> useful to the .add() and .remove() methods of sub-drivers.  It seems
-> sort of stupid that we only pass the acpi_handle to the sub-drivers,
-> forcing them to use hacks like acpi_pci_find_root() to look up the
-> information we just threw away.  Can we just fix the .add() and
-> .remove() interfaces to pass something more useful so we avoid the
-> need for this deadlock path?
+Just read the SPC-4 spec, in section 5.12.3, it has words like this:
 
-  Maybe yes. Do you prefer imprementation without RCU ?
+Logical units that contain cache memory shall write all cached data to
+the medium for the logical unit(e.g., as a logical unit would do in
+response to a SYNCHRONIZE CACHE command as described SBC-3) prior to
+entering into any power condition that prevents accessing the
+media(e.g., before a hard drive stops its spindle motor during a change
+to the standby power condition).
 
-  Best regards,
-  Taku Izumi
-> 
-> > Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-> > Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-> > Signed-off-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
-> > ---
-> >  drivers/acpi/pci_root.c |   50 +++++++++++++++++++++++++++++++-----------------
-> >  1 file changed, 33 insertions(+), 17 deletions(-)
-> >
-> > Index: Bjorn-next-0903/drivers/acpi/pci_root.c
-> > ===================================================================
-> > --- Bjorn-next-0903.orig/drivers/acpi/pci_root.c
-> > +++ Bjorn-next-0903/drivers/acpi/pci_root.c
-> > @@ -28,6 +28,7 @@
-> >  #include <linux/init.h>
-> >  #include <linux/types.h>
-> >  #include <linux/mutex.h>
-> > +#include <linux/rculist.h>
-> >  #include <linux/pm.h>
-> >  #include <linux/pm_runtime.h>
-> >  #include <linux/pci.h>
-> > @@ -86,7 +87,7 @@ int acpi_pci_register_driver(struct acpi
-> >         mutex_lock(&acpi_pci_root_lock);
-> >         list_add_tail(&driver->node, &acpi_pci_drivers);
-> >         if (driver->add)
-> > -               list_for_each_entry(root, &acpi_pci_roots, node) {
-> > +               list_for_each_entry_rcu(root, &acpi_pci_roots, node) {
-> >                         driver->add(root->device->handle);
-> >                         n++;
-> >                 }
-> > @@ -103,7 +104,7 @@ void acpi_pci_unregister_driver(struct a
-> >         mutex_lock(&acpi_pci_root_lock);
-> >         list_del(&driver->node);
-> >         if (driver->remove)
-> > -               list_for_each_entry(root, &acpi_pci_roots, node)
-> > +               list_for_each_entry_rcu(root, &acpi_pci_roots, node)
-> >                         driver->remove(root->device->handle);
-> >         mutex_unlock(&acpi_pci_root_lock);
-> >  }
-> > @@ -112,14 +113,19 @@ EXPORT_SYMBOL(acpi_pci_unregister_driver
-> >  acpi_handle acpi_get_pci_rootbridge_handle(unsigned int seg, unsigned int bus)
-> >  {
-> >         struct acpi_pci_root *root;
-> > +       struct acpi_handle *handle = NULL;
-> >
-> > -       list_for_each_entry(root, &acpi_pci_roots, node)
-> > +       rcu_read_lock();
-> > +       list_for_each_entry_rcu(root, &acpi_pci_roots, node)
-> >                 if ((root->segment == (u16) seg) &&
-> > -                   (root->secondary.start == (u16) bus))
-> > -                       return root->device->handle;
-> > -       return NULL;
-> > -}
-> > +                   (root->secondary.start == (u16) bus)) {
-> > +                       handle = root->device->handle;
-> > +                       break;
-> > +               }
-> > +       rcu_read_unlock();
-> >
-> > +       return handle;
-> > +}
-> >  EXPORT_SYMBOL_GPL(acpi_get_pci_rootbridge_handle);
-> >
-> >  /**
-> > @@ -266,10 +272,14 @@ struct acpi_pci_root *acpi_pci_find_root
-> >  {
-> >         struct acpi_pci_root *root;
-> >
-> > -       list_for_each_entry(root, &acpi_pci_roots, node) {
-> > -               if (root->device->handle == handle)
-> > +       rcu_read_lock();
-> > +       list_for_each_entry_rcu(root, &acpi_pci_roots, node)
-> > +               if (root->device->handle == handle) {
-> > +                       rcu_read_unlock();
-> >                         return root;
-> > -       }
-> > +               }
-> > +       rcu_read_unlock();
-> > +
-> >         return NULL;
-> >  }
-> >  EXPORT_SYMBOL_GPL(acpi_pci_find_root);
-> > @@ -506,8 +516,9 @@ static int __devinit acpi_pci_root_add(s
-> >          * TBD: Need PCI interface for enumeration/configuration of roots.
-> >          */
-> >
-> > -       /* TBD: Locking */
-> > -       list_add_tail(&root->node, &acpi_pci_roots);
-> > +       mutex_lock(&acpi_pci_root_lock);
-> > +       list_add_tail_rcu(&root->node, &acpi_pci_roots);
-> > +       mutex_unlock(&acpi_pci_root_lock);
-> >
-> >         printk(KERN_INFO PREFIX "%s [%s] (domain %04x %pR)\n",
-> >                acpi_device_name(device), acpi_device_bid(device),
-> > @@ -526,7 +537,7 @@ static int __devinit acpi_pci_root_add(s
-> >                             "Bus %04x:%02x not present in PCI namespace\n",
-> >                             root->segment, (unsigned int)root->secondary.start);
-> >                 result = -ENODEV;
-> > -               goto end;
-> > +               goto out_del_root;
-> >         }
-> >
-> >         /*
-> > @@ -536,7 +547,7 @@ static int __devinit acpi_pci_root_add(s
-> >          */
-> >         result = acpi_pci_bind_root(device);
-> >         if (result)
-> > -               goto end;
-> > +               goto out_del_root;
-> >
-> >         /*
-> >          * PCI Routing Table
-> > @@ -614,9 +625,12 @@ static int __devinit acpi_pci_root_add(s
-> >
-> >         return 0;
-> >
-> > +out_del_root:
-> > +       mutex_lock(&acpi_pci_root_lock);
-> > +       list_del_rcu(&root->node);
-> > +       mutex_unlock(&acpi_pci_root_lock);
-> > +       synchronize_rcu();
-> >  end:
-> > -       if (!list_empty(&root->node))
-> > -               list_del(&root->node);
-> >         kfree(root);
-> >         return result;
-> >  }
-> > @@ -646,11 +660,13 @@ static int acpi_pci_root_remove(struct a
-> >         list_for_each_entry(driver, &acpi_pci_drivers, node)
-> >                 if (driver->remove)
-> >                         driver->remove(root->device->handle);
-> > -       mutex_unlock(&acpi_pci_root_lock);
-> >
-> >         device_set_run_wake(root->bus->bridge, false);
-> >         pci_acpi_remove_bus_pm_notifier(device);
-> >
-> > +       list_del_rcu(&root->node);
-> > +       mutex_unlock(&acpi_pci_root_lock);
-> > +       synchronize_rcu();
-> >         kfree(root);
-> >         return 0;
-> >  }
-> >
-> 
+So this looks like cache needs to be synced before the device enter
+standby/stopped power condition. Or do I miss somthing?
 
+> someone at some point is going to read that and remove the unnecessary
+> cache sync in the code.  When that happens, you'll start getting data
+> loss.
 
--- 
-Taku Izumi <izumi.taku@jp.fujitsu.com>
+Indeed, I'll make sure cache gets synced when we are to power off the
+device. Thanks for the remind.
 
+-Aaron
