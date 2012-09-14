@@ -1,119 +1,81 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH 1/2] scsi: sd: set ready_to_power_off for scsi disk
-Date: Fri, 14 Sep 2012 21:54:16 +0800
-Message-ID: <20120914135416.GA2730@mint-spring.sh.intel.com>
-References: <50519801.6080502@intel.com>
- <1347525466.2720.10.camel@dabdike.int.hansenpartnership.com>
- <50519E08.10800@intel.com>
- <1347526590.2720.15.camel@dabdike.int.hansenpartnership.com>
- <5051A25F.7040704@intel.com>
- <1347528404.2720.28.camel@dabdike.int.hansenpartnership.com>
- <20120914052041.GA5177@mint-spring.sh.intel.com>
- <1347610640.2794.11.camel@dabdike.int.hansenpartnership.com>
- <5052EF5F.3000103@intel.com>
- <1347618389.2450.5.camel@dabdike.int.hansenpartnership.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH v2 4/6] ACPI, PCI: add acpi_pci_roots protection
+Date: Fri, 14 Sep 2012 08:43:59 -0600
+Message-ID: <CAErSpo7MHmOQAj95xsfyZ1A5oZ9UcF8djQhQedKUkS4fX_uw8w@mail.gmail.com>
+References: <20120903165831.29aed72c.izumi.taku@jp.fujitsu.com>
+ <20120903170602.375b00cc.izumi.taku@jp.fujitsu.com> <CAErSpo54LO_mow3dNSJ2-Aj4xBs=Zrk9fiAuFzZKdh9=YKyWuA@mail.gmail.com>
+ <20120914133501.e17d1395.izumi.taku@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:41453 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755682Ab2INNyT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 14 Sep 2012 09:54:19 -0400
-Content-Disposition: inline
-In-Reply-To: <1347618389.2450.5.camel@dabdike.int.hansenpartnership.com>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:38314 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756437Ab2INOoW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Sep 2012 10:44:22 -0400
+Received: by lbbgj3 with SMTP id gj3so2804813lbb.19
+        for <linux-acpi@vger.kernel.org>; Fri, 14 Sep 2012 07:44:21 -0700 (PDT)
+In-Reply-To: <20120914133501.e17d1395.izumi.taku@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: James Bottomley <James.Bottomley@HansenPartnership.com>, Alan Stern <stern@rowland.harvard.edu>
-Cc: Jeff Garzik <jgarzik@pobox.com>, Aaron Lu <aaron.lwe@gmail.com>, Jack Wang <jack_wang@usish.com>, Shane Huang <shane.huang@amd.com>, Oliver Neukum <oliver@neukum.org>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Taku Izumi <izumi.taku@jp.fujitsu.com>
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, kaneshige.kenji@jp.fujitsu.com, yinghai@kernel.org, jiang.liu@huawei.com
 
-On Fri, Sep 14, 2012 at 11:26:29AM +0100, James Bottomley wrote:
-> On Fri, 2012-09-14 at 16:48 +0800, Aaron Lu wrote:
-> > So if we program the device to let it enter standby/stopped power
-> > condition with the start_stop_unit command, do we need to sync the
-> > cache?
-> 
-> No, that's what the spec says.  The device must manage the cache in both
-> the forced (start stop unit) and timed (power control mode page) cases.
-> 
-> The reason is the spec doesn't define what idle and standby actually
-> mean (just that they're "lower" power states).  So the device
-> implementers get to choose if they stop the platter or power off the
-> motor.  The spec just means that if they do anything that causes danger
-> to data in the cache, they have to deal with it themselves.
+On Thu, Sep 13, 2012 at 10:35 PM, Taku Izumi <izumi.taku@jp.fujitsu.com> wrote:
+> On Wed, 12 Sep 2012 17:40:45 -0600
+> Bjorn Helgaas <bhelgaas@google.com> wrote:
+>
+>> On Mon, Sep 3, 2012 at 2:06 AM, Taku Izumi <izumi.taku@jp.fujitsu.com> wrote:
+>> > Use mutex and RCU to protect global acpi_pci_roots list against
+>> > PCI host bridge hotplug operations.
+>> >
+>> > RCU is used to avoid possible deadlock in function acpi_pci_find_root()
+>> > and acpi_get_pci_rootbridge_handle(). A possible call graph:
+>> > acpi_pci_register_driver()
+>> >         mutex_lock(&acpi_pci_root_lock)
+>> >                 driver->add(root)
+>> >                         ......
+>> >                                 acpi_pci_find_root()
+>>
+>> Where does this path occur?  I didn't see in in the current tree
+>> (where the only users of acpi_pci_register_driver() are for
+>> acpi_pci_slot_driver and acpi_pci_hp_driver).  Maybe it's in Yinghai's
+>> work, which adds more acpi_pci_register_driver() users.
+>
+>   First I protected acpi_pci_roots list by using mutex(acpi_pci_root_lock).
+>   In that case I faced deadlock at the following path:
+>   acpiphp_glue_init
+>      + acpi_pci_register_driver
+>        ...
+>          + add_bridge
+>            + acpi_pci_find_root
+>
+>   So I used RCU instead.
 
-Thanks for the clear explanation.
+Oh, right.  I missed the acpiphp_glue_init() path.  That's clearly a problem.
 
-So what about the following change? In sd_suspend, if device supports
-start_stop command, then we just need issue this command then both
-runtime suspend case and system S3/S4 case are OK, since when the device
-enters stopped power condition, the internal cache should be taken care
-of by the device and it is also ready to be powered off. And if device
-does not support start_stop command, we will sync the cache if we are
-doing S3/S4 or runtime suspend with power to be removed.
+>> RCU seems unnecessarily complicated for this list, but I haven't gone
+>> through Yinghai's work yet, so I don't know what it requires.
+>>
+>> In acpi_pci_root_start() and acpi_pci_root_remove(), we have the
+>> struct acpi_pci_root, which has all sorts of information that would be
+>> useful to the .add() and .remove() methods of sub-drivers.  It seems
+>> sort of stupid that we only pass the acpi_handle to the sub-drivers,
+>> forcing them to use hacks like acpi_pci_find_root() to look up the
+>> information we just threw away.  Can we just fix the .add() and
+>> .remove() interfaces to pass something more useful so we avoid the
+>> need for this deadlock path?
+>
+>   Maybe yes. Do you prefer imprementation without RCU ?
 
-The sd_shutdown is changed accordingly, when device is already runtime
-suspended:
-1 If it supports start_stop, it should be in stopped power condition, no
-more action required;
-2 If it is already powered off, no more action required.
+Yes, if it's possible, I prefer to avoid RCU in this case.  RCU is
+appropriate for performance paths, but it's much more difficult to
+analyze than mutex locking.
 
-Otherwise, we runtime resume the device and sync cache for WCE device.
+Host bridge hotplug is definitely not a path where performance is an
+issue, and I think reworking the .add()/.remove() interfaces will
+allow us to use mutex locking.
 
-diff --git a/drivers/scsi/sd.c b/drivers/scsi/sd.c
-index 4df73e5..760ce5b 100644
---- a/drivers/scsi/sd.c
-+++ b/drivers/scsi/sd.c
-@@ -2845,18 +2845,18 @@ static void sd_shutdown(struct device *dev)
- 	if (!sdkp)
- 		return;         /* this can happen */
- 
--	if (pm_runtime_suspended(dev))
-+	if (pm_runtime_suspended(dev)
-+	    && (sdkp->device->manage_start_stop || sdkp->device->powered_off))
- 		goto exit;
- 
-+	scsi_autopm_get_device(sdkp->device);
-+
- 	if (sdkp->WCE) {
- 		sd_printk(KERN_NOTICE, sdkp, "Synchronizing SCSI cache\n");
- 		sd_sync_cache(sdkp);
- 	}
- 
--	if (system_state != SYSTEM_RESTART && sdkp->device->manage_start_stop) {
--		sd_printk(KERN_NOTICE, sdkp, "Stopping disk\n");
--		sd_start_stop_device(sdkp, 0);
--	}
-+	scsi_autopm_put_device(sdkp->device);
- 
- exit:
- 	scsi_disk_put(sdkp);
-@@ -2870,16 +2870,18 @@ static int sd_suspend(struct device *dev, pm_message_t mesg)
- 	if (!sdkp)
- 		return 0;	/* this can happen */
- 
--	if (sdkp->WCE) {
--		sd_printk(KERN_NOTICE, sdkp, "Synchronizing SCSI cache\n");
--		ret = sd_sync_cache(sdkp);
--		if (ret)
--			goto done;
--	}
--
--	if ((mesg.event & PM_EVENT_SLEEP) && sdkp->device->manage_start_stop) {
-+	if (sdkp->device->manage_start_stop) {
- 		sd_printk(KERN_NOTICE, sdkp, "Stopping disk\n");
- 		ret = sd_start_stop_device(sdkp, 0);
-+		goto done;
-+	}
-+
-+	if (sdkp->WCE) {
-+		if ((PMSG_IS_AUTO(mesg) && sdkp->device->may_power_off) ||
-+				(mesg.event & PM_EVENT_SLEEP)) {
-+			sd_printk(KERN_NOTICE, sdkp, "Synchronizing SCSI cache\n");
-+			ret = sd_sync_cache(sdkp);
-+		}
- 	}
- 
- done:
-
-Thanks,
-Aaron
+I think it will also simplify the sub-drivers because having the
+struct acpi_pci_root means they can get rid of acpi_pci_find_root(),
+they don't have to re-evaluate _SEG and _BBN (in acpi_pci_slot_add()
+-> walk_root_bridge()), they don't have to use pci_find_bus(), etc.
