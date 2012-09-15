@@ -1,172 +1,84 @@
 From: Jiang Liu <liuj97@gmail.com>
-Subject: [PATCH v2 6/9] ACPI/pci_slot: update PCI slot information when PCI hotplug event happens
-Date: Sat, 15 Sep 2012 11:05:09 +0800
-Message-ID: <1347678312-11124-7-git-send-email-jiang.liu@huawei.com>
-References: <1347678312-11124-1-git-send-email-jiang.liu@huawei.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1347678312-11124-1-git-send-email-jiang.liu@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>
-Cc: Tony Luck <tony.luck@intel.com>, Jiang Liu <jiang.liu@huawei.com>, Yinghai Lu <yinghai@kernel.org>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Yijing Wang <wangyijing@huawei.com>, Jiang Liu <liuj97@gmail.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Subject: Re: [PATCH v2 4/6] ACPI, PCI: add acpi_pci_roots protection
+Date: Sat, 15 Sep 2012 11:23:51 +0800
+Message-ID: <5053F4C7.8030506@gmail.com>
+References: <20120903165831.29aed72c.izumi.taku@jp.fujitsu.com> <20120903170602.375b00cc.izumi.taku@jp.fujitsu.com> <CAErSpo54LO_mow3dNSJ2-Aj4xBs=Zrk9fiAuFzZKdh9=YKyWuA@mail.gmail.com> <20120914133501.e17d1395.izumi.taku@jp.fujitsu.com> <CAErSpo7MHmOQAj95xsfyZ1A5oZ9UcF8djQhQedKUkS4fX_uw8w@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:63044 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756013Ab2IODYA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Sep 2012 23:24:00 -0400
+In-Reply-To: <CAErSpo7MHmOQAj95xsfyZ1A5oZ9UcF8djQhQedKUkS4fX_uw8w@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, kaneshige.kenji@jp.fujitsu.com, yinghai@kernel.org, jiang.liu@huawei.com
 
-Currently the pci_slot driver doesn't update PCI slot information
-when PCI device hotplug event happens, which may cause memory leak
-and returning stale information to user.
+On 09/14/2012 10:43 PM, Bjorn Helgaas wrote:
+> On Thu, Sep 13, 2012 at 10:35 PM, Taku Izumi <izumi.taku@jp.fujitsu.com> wrote:
+>> On Wed, 12 Sep 2012 17:40:45 -0600
+>> Bjorn Helgaas <bhelgaas@google.com> wrote:
+>>
+>>> On Mon, Sep 3, 2012 at 2:06 AM, Taku Izumi <izumi.taku@jp.fujitsu.com> wrote:
+>>>> Use mutex and RCU to protect global acpi_pci_roots list against
+>>>> PCI host bridge hotplug operations.
+>>>>
+>>>> RCU is used to avoid possible deadlock in function acpi_pci_find_root()
+>>>> and acpi_get_pci_rootbridge_handle(). A possible call graph:
+>>>> acpi_pci_register_driver()
+>>>>         mutex_lock(&acpi_pci_root_lock)
+>>>>                 driver->add(root)
+>>>>                         ......
+>>>>                                 acpi_pci_find_root()
+>>>
+>>> Where does this path occur?  I didn't see in in the current tree
+>>> (where the only users of acpi_pci_register_driver() are for
+>>> acpi_pci_slot_driver and acpi_pci_hp_driver).  Maybe it's in Yinghai's
+>>> work, which adds more acpi_pci_register_driver() users.
+>>
+>>   First I protected acpi_pci_roots list by using mutex(acpi_pci_root_lock).
+>>   In that case I faced deadlock at the following path:
+>>   acpiphp_glue_init
+>>      + acpi_pci_register_driver
+>>        ...
+>>          + add_bridge
+>>            + acpi_pci_find_root
+>>
+>>   So I used RCU instead.
+> 
+> Oh, right.  I missed the acpiphp_glue_init() path.  That's clearly a problem.
+It's amazing. When I was writing the code, I just realized there's a possible
+deadlock scenario and then wrote defensive code. Not it's proven to be true:)
 
-So hook the BUS_NOTIFY_ADD_DEVICE/BUS_NOTIFY_DEL_DEVICE events to
-update PCI slot information when PCI hotplug event happens.
+>>> RCU seems unnecessarily complicated for this list, but I haven't gone
+>>> through Yinghai's work yet, so I don't know what it requires.
+>>>
+>>> In acpi_pci_root_start() and acpi_pci_root_remove(), we have the
+>>> struct acpi_pci_root, which has all sorts of information that would be
+>>> useful to the .add() and .remove() methods of sub-drivers.  It seems
+>>> sort of stupid that we only pass the acpi_handle to the sub-drivers,
+>>> forcing them to use hacks like acpi_pci_find_root() to look up the
+>>> information we just threw away.  Can we just fix the .add() and
+>>> .remove() interfaces to pass something more useful so we avoid the
+>>> need for this deadlock path?
+>>
+>>   Maybe yes. Do you prefer imprementation without RCU ?
+> 
+> Yes, if it's possible, I prefer to avoid RCU in this case.  RCU is
+> appropriate for performance paths, but it's much more difficult to
+> analyze than mutex locking.
+> 
+> Host bridge hotplug is definitely not a path where performance is an
+> issue, and I think reworking the .add()/.remove() interfaces will
+> allow us to use mutex locking.
+> 
+> I think it will also simplify the sub-drivers because having the
+> struct acpi_pci_root means they can get rid of acpi_pci_find_root(),
+> they don't have to re-evaluate _SEG and _BBN (in acpi_pci_slot_add()
+> -> walk_root_bridge()), they don't have to use pci_find_bus(), etc.
+Yes, it would be better to get rid of the RCU staff.
 
-Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
----
- drivers/acpi/pci_slot.c |   86 ++++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 78 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/acpi/pci_slot.c b/drivers/acpi/pci_slot.c
-index e50e31a..96dcc19 100644
---- a/drivers/acpi/pci_slot.c
-+++ b/drivers/acpi/pci_slot.c
-@@ -32,6 +32,7 @@
- #include <linux/acpi.h>
- #include <acpi/acpi_bus.h>
- #include <acpi/acpi_drivers.h>
-+#include <linux/pci-acpi.h>
- #include <linux/dmi.h>
- 
- static bool debug;
-@@ -123,12 +124,7 @@ struct callback_args {
- /*
-  * register_slot
-  *
-- * Called once for each SxFy object in the namespace. Don't worry about
-- * calling pci_create_slot multiple times for the same pci_bus:device,
-- * since each subsequent call simply bumps the refcount on the pci_slot.
-- *
-- * The number of calls to pci_destroy_slot from unregister_slot is
-- * symmetrical.
-+ * Called once for each SxFy object in the namespace.
-  */
- static acpi_status
- register_slot(acpi_handle handle, u32 lvl, void *context, void **rv)
-@@ -145,6 +141,15 @@ register_slot(acpi_handle handle, u32 lvl, void *context, void **rv)
- 	if (device < 0)
- 		return AE_OK;
- 
-+	/* Avoid duplicated records for the same slot */
-+	list_for_each_entry(slot, &slot_list, list) {
-+		pci_slot = slot->pci_slot;
-+		if (pci_slot && pci_slot->bus == pci_bus &&
-+		    pci_slot->number == device) {
-+			return AE_OK;
-+		}
-+	}
-+
- 	slot = kmalloc(sizeof(*slot), GFP_KERNEL);
- 	if (!slot) {
- 		err("%s: cannot allocate memory\n", __func__);
-@@ -162,9 +167,7 @@ register_slot(acpi_handle handle, u32 lvl, void *context, void **rv)
- 	slot->root_handle = parent_context->root_handle;
- 	slot->pci_slot = pci_slot;
- 	INIT_LIST_HEAD(&slot->list);
--	mutex_lock(&slot_list_lock);
- 	list_add(&slot->list, &slot_list);
--	mutex_unlock(&slot_list_lock);
- 
- 	get_device(&pci_bus->dev);
- 
-@@ -299,7 +302,9 @@ acpi_pci_slot_add(acpi_handle handle)
- {
- 	acpi_status status;
- 
-+	mutex_lock(&slot_list_lock);
- 	status = walk_root_bridge(handle, register_slot);
-+	mutex_unlock(&slot_list_lock);
- 	if (ACPI_FAILURE(status))
- 		err("%s: register_slot failure - %d\n", __func__, status);
- 
-@@ -354,17 +359,82 @@ static struct dmi_system_id acpi_pci_slot_dmi_table[] __initdata = {
- 	{}
- };
- 
-+static void acpi_pci_slot_notify_add(struct pci_dev *dev)
-+{
-+	acpi_handle handle;
-+	struct callback_args context;
-+
-+	if (!dev->subordinate)
-+		return;
-+
-+	mutex_lock(&slot_list_lock);
-+	handle = DEVICE_ACPI_HANDLE(&dev->dev);
-+	context.root_handle = acpi_find_root_bridge_handle(dev);
-+	if (handle && context.root_handle) {
-+		context.pci_bus = dev->subordinate;
-+		context.user_function = register_slot;
-+		acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, (u32)1,
-+				    register_slot, NULL, &context, NULL);
-+	}
-+	mutex_unlock(&slot_list_lock);
-+}
-+
-+static void acpi_pci_slot_notify_del(struct pci_dev *dev)
-+{
-+	struct acpi_pci_slot *slot, *tmp;
-+	struct pci_bus *bus = dev->subordinate;
-+
-+	if (!bus)
-+		return;
-+
-+	mutex_lock(&slot_list_lock);
-+	list_for_each_entry_safe(slot, tmp, &slot_list, list)
-+		if (slot->pci_slot && slot->pci_slot->bus == bus) {
-+			list_del(&slot->list);
-+			pci_destroy_slot(slot->pci_slot);
-+			put_device(&bus->dev);
-+			kfree(slot);
-+		}
-+	mutex_unlock(&slot_list_lock);
-+}
-+
-+static int acpi_pci_slot_notify_fn(struct notifier_block *nb,
-+				   unsigned long event, void *data)
-+{
-+	struct device *dev = data;
-+
-+	switch (event) {
-+	case BUS_NOTIFY_ADD_DEVICE:
-+		acpi_pci_slot_notify_add(to_pci_dev(dev));
-+		break;
-+	case BUS_NOTIFY_DEL_DEVICE:
-+		acpi_pci_slot_notify_del(to_pci_dev(dev));
-+		break;
-+	default:
-+		return NOTIFY_DONE;
-+	}
-+
-+	return NOTIFY_OK;
-+}
-+
-+static struct notifier_block acpi_pci_slot_notifier = {
-+	.notifier_call = &acpi_pci_slot_notify_fn,
-+};
-+
- static int __init
- acpi_pci_slot_init(void)
- {
- 	dmi_check_system(acpi_pci_slot_dmi_table);
- 	acpi_pci_register_driver(&acpi_pci_slot_driver);
-+	bus_register_notifier(&pci_bus_type, &acpi_pci_slot_notifier);
-+
- 	return 0;
- }
- 
- static void __exit
- acpi_pci_slot_exit(void)
- {
-+	bus_unregister_notifier(&pci_bus_type, &acpi_pci_slot_notifier);
- 	acpi_pci_unregister_driver(&acpi_pci_slot_driver);
- }
- 
--- 
-1.7.9.5
