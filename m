@@ -1,51 +1,74 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 3/3] acpi : remove pointless variable initialization
-Date: Sat, 15 Sep 2012 22:56:42 +0200
-Message-ID: <201209152256.42695.rjw@sisk.pl>
-References: <1347614736-9553-1-git-send-email-daniel.lezcano@linaro.org> <1347614736-9553-3-git-send-email-daniel.lezcano@linaro.org>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH v2 5/9] ACPI/pci-bind: remove bind/unbind callbacks from acpi_device_ops
+Date: Sat, 15 Sep 2012 16:27:22 -0700
+Message-ID: <CAE9FiQWk_2gPyVUiLgvRQ=qrFNby_R7Qh-QNruobQnhVFTn21w@mail.gmail.com>
+References: <1347678312-11124-1-git-send-email-jiang.liu@huawei.com>
+	<1347678312-11124-6-git-send-email-jiang.liu@huawei.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:55889 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751788Ab2IOUuT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 15 Sep 2012 16:50:19 -0400
-In-Reply-To: <1347614736-9553-3-git-send-email-daniel.lezcano@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1347678312-11124-6-git-send-email-jiang.liu@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jiang Liu <liuj97@gmail.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Jiang Liu <jiang.liu@huawei.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Yijing Wang <wangyijing@huawei.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: lenb@kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, patches@linaro.org, linaro-dev@lists.linaro.org
 
-On Friday, September 14, 2012, Daniel Lezcano wrote:
-> The 'errata' variable is a global variable which is set to zero,
-> no need to do that with a memset in the init function.
-> 
-> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
-
-Applied to the linux-next branch of the linux-pm.git tree as v3.7 material.
-
-Thanks,
-Rafael
-
-
+On Fri, Sep 14, 2012 at 8:05 PM, Jiang Liu <liuj97@gmail.com> wrote:
+>  From: Jiang Liu <jiang.liu@huawei.com>
+>
+> Now ACPI devices are created before/destroyed after corresponding PCI
+> devices, and acpi_platform_notify/acpi_platform_notify_remove will
+> update PCI<->ACPI binding relationship when creating/destroying PCI
+> devices, there's no need to invoke bind/unbind callbacks from ACPI
+> device probe/destroy routines anymore. So remove bind/unbind callbacks
+> from acpi_device_ops.
+>
+> Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+> Signed-off-by: Yijing Wang <wangyijing@huawei.com>
 > ---
->  drivers/acpi/processor_driver.c |    2 --
->  1 files changed, 0 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-> index 9c9288b..e78c2a5 100644
-> --- a/drivers/acpi/processor_driver.c
-> +++ b/drivers/acpi/processor_driver.c
-> @@ -905,8 +905,6 @@ static int __init acpi_processor_init(void)
->  	if (acpi_disabled)
->  		return 0;
->  
-> -	memset(&errata, 0, sizeof(errata));
+>  drivers/acpi/pci_bind.c     |  100 +++++++++----------------------------------
+>  drivers/acpi/pci_root.c     |    9 ----
+>  drivers/acpi/scan.c         |   21 +--------
+>  include/acpi/acpi_bus.h     |    4 --
+>  include/acpi/acpi_drivers.h |    1 -
+>  5 files changed, 23 insertions(+), 112 deletions(-)
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index d1ecca2..f31cb2f 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -1232,17 +1232,8 @@ static int acpi_bus_remove(struct acpi_device *dev, int rmdevice)
+>         dev->removal_type = ACPI_BUS_REMOVAL_EJECT;
+>         device_release_driver(&dev->dev);
+>
+> -       if (!rmdevice)
+> -               return 0;
 > -
->  	result = acpi_bus_register_driver(&acpi_processor_driver);
->  	if (result < 0)
->  		return result;
-> 
+> -       /*
+> -        * unbind _ADR-Based Devices when hot removal
+> -        */
+> -       if (dev->flags.bus_address) {
+> -               if ((dev->parent) && (dev->parent->ops.unbind))
+> -                       dev->parent->ops.unbind(dev);
+> -       }
+> -       acpi_device_unregister(dev, ACPI_BUS_REMOVAL_EJECT);
+> +       if (rmdevice)
+> +               acpi_device_unregister(dev, ACPI_BUS_REMOVAL_EJECT);
+>
+>         return 0;
+>  }
 
+for pci root bus, acpi_bus_trim() is used to remove acpi_device.
+
+and later in acpi_pci_root_remove to stop pci drivers/ioapic driver,
+iommu driver then remove pci devices.
+
+if call back is removed there, then could some functions in
+acpi_pci_unbind() will be skipped.
+
+I really do not want to add pci_stop_bus_devices() in
+pci_root_hp.c::handle_root_bridge_removal before
+calling acpi_bus_trim...
+
+Thanks
+
+Yinghai
