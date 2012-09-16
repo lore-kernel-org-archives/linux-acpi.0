@@ -1,74 +1,24 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH v2 5/9] ACPI/pci-bind: remove bind/unbind callbacks from acpi_device_ops
-Date: Sat, 15 Sep 2012 16:27:22 -0700
-Message-ID: <CAE9FiQWk_2gPyVUiLgvRQ=qrFNby_R7Qh-QNruobQnhVFTn21w@mail.gmail.com>
-References: <1347678312-11124-1-git-send-email-jiang.liu@huawei.com>
-	<1347678312-11124-6-git-send-email-jiang.liu@huawei.com>
+From: Witold Szczeponik <Witold.Szczeponik@gmx.net>
+Subject: Re: [PATCH V3 0/3] PNP: Allow PNP resources to be disabled (interface)
+Date: Sun, 16 Sep 2012 16:18:30 +0200
+Message-ID: <5055DFB6.6070809@gmx.net>
+References: <50158321.4030007@gmx.net> <201208022209.16015.rjw@sisk.pl> <501AE10E.6080606@gmx.net> <201208022340.16948.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1347678312-11124-6-git-send-email-jiang.liu@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jiang Liu <liuj97@gmail.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Jiang Liu <jiang.liu@huawei.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Yijing Wang <wangyijing@huawei.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mailout-de.gmx.net ([213.165.64.22]:60626 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751378Ab2IPOSn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 16 Sep 2012 10:18:43 -0400
+In-Reply-To: <201208022340.16948.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Borislav Petkov <bp@alien8.de>, bhelgaas@google.com, lenb@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Fri, Sep 14, 2012 at 8:05 PM, Jiang Liu <liuj97@gmail.com> wrote:
->  From: Jiang Liu <jiang.liu@huawei.com>
->
-> Now ACPI devices are created before/destroyed after corresponding PCI
-> devices, and acpi_platform_notify/acpi_platform_notify_remove will
-> update PCI<->ACPI binding relationship when creating/destroying PCI
-> devices, there's no need to invoke bind/unbind callbacks from ACPI
-> device probe/destroy routines anymore. So remove bind/unbind callbacks
-> from acpi_device_ops.
->
-> Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-> Signed-off-by: Yijing Wang <wangyijing@huawei.com>
-> ---
->  drivers/acpi/pci_bind.c     |  100 +++++++++----------------------------------
->  drivers/acpi/pci_root.c     |    9 ----
->  drivers/acpi/scan.c         |   21 +--------
->  include/acpi/acpi_bus.h     |    4 --
->  include/acpi/acpi_drivers.h |    1 -
->  5 files changed, 23 insertions(+), 112 deletions(-)
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index d1ecca2..f31cb2f 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -1232,17 +1232,8 @@ static int acpi_bus_remove(struct acpi_device *dev, int rmdevice)
->         dev->removal_type = ACPI_BUS_REMOVAL_EJECT;
->         device_release_driver(&dev->dev);
->
-> -       if (!rmdevice)
-> -               return 0;
-> -
-> -       /*
-> -        * unbind _ADR-Based Devices when hot removal
-> -        */
-> -       if (dev->flags.bus_address) {
-> -               if ((dev->parent) && (dev->parent->ops.unbind))
-> -                       dev->parent->ops.unbind(dev);
-> -       }
-> -       acpi_device_unregister(dev, ACPI_BUS_REMOVAL_EJECT);
-> +       if (rmdevice)
-> +               acpi_device_unregister(dev, ACPI_BUS_REMOVAL_EJECT);
->
->         return 0;
->  }
+Hi Rafael, 
 
-for pci root bus, acpi_bus_trim() is used to remove acpi_device.
+what about the patches 1 and 3 which do not make any changes to the ABI?  The first patch simplifies the code, while the third patch fixes a problem in the PNP resource allocation.  Any chances to have them included in 3.7?
 
-and later in acpi_pci_root_remove to stop pci drivers/ioapic driver,
-iommu driver then remove pci devices.
-
-if call back is removed there, then could some functions in
-acpi_pci_unbind() will be skipped.
-
-I really do not want to add pci_stop_bus_devices() in
-pci_root_hp.c::handle_root_bridge_removal before
-calling acpi_bus_trim...
-
-Thanks
-
-Yinghai
+--- Witold
