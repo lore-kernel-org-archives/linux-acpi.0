@@ -1,120 +1,156 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH v2 5/9] ACPI/pci-bind: remove bind/unbind callbacks from acpi_device_ops
-Date: Sun, 16 Sep 2012 20:03:48 -0700
-Message-ID: <CAE9FiQX2hgxQo3GC3_0h5D5uo9coRZqcpPCKGtzF7jYbUfvxUw@mail.gmail.com>
-References: <1347678312-11124-1-git-send-email-jiang.liu@huawei.com>
-	<1347678312-11124-6-git-send-email-jiang.liu@huawei.com>
-	<CAE9FiQWk_2gPyVUiLgvRQ=qrFNby_R7Qh-QNruobQnhVFTn21w@mail.gmail.com>
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [PATCH 0/6] cpuidle : per cpu latencies
+Date: Mon, 17 Sep 2012 10:03:56 +0200
+Message-ID: <5056D96C.5040904@linaro.org>
+References: <1347013172-12465-1-git-send-email-daniel.lezcano@linaro.org> <201209080017.17418.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=bcaec555517ac78a2704c9dd0559
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAE9FiQWk_2gPyVUiLgvRQ=qrFNby_R7Qh-QNruobQnhVFTn21w@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jiang Liu <liuj97@gmail.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Jiang Liu <jiang.liu@huawei.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Yijing Wang <wangyijing@huawei.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:42671 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754740Ab2IQIEB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Sep 2012 04:04:01 -0400
+Received: by bkwj10 with SMTP id j10so2307773bkw.19
+        for <linux-acpi@vger.kernel.org>; Mon, 17 Sep 2012 01:04:00 -0700 (PDT)
+In-Reply-To: <201209080017.17418.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: lenb@kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, patches@linaro.org, linaro-dev@lists.linaro.org, pdeschrijver@nvidia.com, lorenzo.pieralisi@arm.com
 
---bcaec555517ac78a2704c9dd0559
-Content-Type: text/plain; charset=ISO-8859-1
-
-On Sat, Sep 15, 2012 at 4:27 PM, Yinghai Lu <yinghai@kernel.org> wrote:
-> On Fri, Sep 14, 2012 at 8:05 PM, Jiang Liu <liuj97@gmail.com> wrote:
->>  From: Jiang Liu <jiang.liu@huawei.com>
+On 09/08/2012 12:17 AM, Rafael J. Wysocki wrote:
+> On Friday, September 07, 2012, Daniel Lezcano wrote:
+>> Since commit 46bcfad7a819bd17ac4e831b04405152d59784ab,
+>>         cpuidle: Single/Global registration of idle states
 >>
->> Now ACPI devices are created before/destroyed after corresponding PCI
->> devices, and acpi_platform_notify/acpi_platform_notify_remove will
->> update PCI<->ACPI binding relationship when creating/destroying PCI
->> devices, there's no need to invoke bind/unbind callbacks from ACPI
->> device probe/destroy routines anymore. So remove bind/unbind callbacks
->> from acpi_device_ops.
-> for pci root bus, acpi_bus_trim() is used to remove acpi_device.
->
-> and later in acpi_pci_root_remove to stop pci drivers/ioapic driver,
-> iommu driver then remove pci devices.
->
-> if call back is removed there, then could some functions in
-> acpi_pci_unbind() will be skipped.
->
-> I really do not want to add pci_stop_bus_devices() in
-> pci_root_hp.c::handle_root_bridge_removal before
-> calling acpi_bus_trim...
+>> we have a single registration for the cpuidle states which makes
+>> sense. But now two new architectures are coming: tegra3 and big.LITT=
+LE.
+>>
+>> These architectures have different cpus with different caracteristic=
+s
+>> for power saving. High load =3D> powerfull processors, idle =3D> sma=
+ll processors.
+>>
+>> That implies different cpu latencies.
+>>
+>> This patchset keeps the current behavior as introduced by Deepthi wi=
+thout
+>> breaking the drivers and add the possibility to specify a per cpu st=
+ates.
+>>
+>>  * Tested on intel core 2 duo T9500
+>>  * Tested on vexpress by Lorenzo Pieralsi
+>>  * Tested on tegra3 by Peter De Schrijver
+>>
+>> Daniel Lezcano (6):
+>>   acpi : move the acpi_idle_driver variable declaration
+>>   acpi : move cpuidle_device field out of the acpi_processor_power
+>>     structure
+>>   acpi : remove pointless cpuidle device state_count init
+>=20
+> I've posted comments about patches [1-3/6] already.  In short, I don'=
+t like
+> [1/6], [2/6] would require some more work IMO and I'm not sure about =
+the
+> validity of the observation that [3/6] is based on.
+>=20
+> Yes, I agree that the ACPI processor driver as a whole might be clean=
+er
+> and it probably would be good to spend some time on cleaning it up, b=
+ut
+> not necessarily in a hurry.
+>=20
+> Unfortunately, I also don't agree with the approach used by the remai=
+ning
+> patches, which is to try to use a separate array of states for each
+> individual CPU core.  This way we end up with quite some duplicated d=
+ata
+> if the CPU cores in question actually happen to be identical.
 
-FYI, I solved the problem.  will call apci_bus_remove() two times. it
-will make sure pci devices
-get removed at first before acpi devices...
+Actually, there is a single array of states which is defined with the
+cpuidle_driver. A pointer to this array from the cpuidle_device
+structure is added and used from the cpuidle core.
 
-Thanks
+If the cpu cores are identical, this pointer will refer to the same arr=
+ay.
 
-Yinghai
+Maybe I misunderstood you remark but there is no data duplication, that
+was the purpose of this approach to just add a pointer to point to a
+single array when the core are identical and to a different array when
+the cores are different (set by the driver). Furthermore, this patch
+allows to support multiple cpu latencies without impacting the existing
+drivers.
 
---bcaec555517ac78a2704c9dd0559
-Content-Type: application/octet-stream; name="pci_root_hp_1.patch"
-Content-Disposition: attachment; filename="pci_root_hp_1.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_h76zoini0
+> What about using a separate cpuidle driver for every kind of differen=
+t CPUs in
+> the system (e.g. one driver for "big" CPUs and the other for "little"=
+ ones)?
+>=20
+> Have you considered this approach already?
 
-U3ViamVjdDogW1BBVENIXSBQQ0ksIEFDUEk6IEFkZCBwY2lfcm9vdF9ocCBob3QgcmVtb3ZhbCBu
-b3RpZmljYXRpb24gc3VwcG9ydC4KCkFkZCBtaXNzaW5nIGhvdF9yZW1vdmUgc3VwcG9ydCBmb3Ig
-cm9vdCBkZXZpY2UuCgpIb3cgdG8gdXNlIGl0PwpGaW5kIG91dCByb290IGJ1cyBudW1iZXIgdG8g
-YWNwaSByb290IG5hbWUgbWFwcGluZyBmcm9tIGRtZXNnIG9yIC9zeXMKCiAgZWNobyAiXF9TQi5Q
-Q0lCIDMiID4gL3N5cy9rZXJuZWwvZGVidWcvYWNwaS9zY2lfbm90aWZ5CnRvIHJlbW92ZSByb290
-IGJ1cwoKLXYyOiBzZXBhcmF0ZSBzdG9wIGFuZCByZW1vdmUsIHNvIGNvdWxkIHVzZSBhY3BpX3Bj
-aV9iaW5kX25vdGlmeSgpLi4uCgpTaWduZWQtb2ZmLWJ5OiBZaW5naGFpIEx1IDx5aW5naGFpQGtl
-cm5lbC5vcmc+CkNjOiBMZW4gQnJvd24gPGxlbmJAa2VybmVsLm9yZz4KQ2M6IGxpbnV4LWFjcGlA
-dmdlci5rZXJuZWwub3JnCgotLS0KIGRyaXZlcnMvYWNwaS9wY2lfcm9vdF9ocC5jIHwgICA2NyAr
-KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysKIGRyaXZlcnMvYWNw
-aS9zY2FuLmMgICAgICAgIHwgICAgNSAtLS0KIDIgZmlsZXMgY2hhbmdlZCwgNjggaW5zZXJ0aW9u
-cygrKSwgNCBkZWxldGlvbnMoLSkKCkluZGV4OiBsaW51eC0yLjYvZHJpdmVycy9hY3BpL3BjaV9y
-b290X2hwLmMKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PQotLS0gbGludXgtMi42Lm9yaWcvZHJpdmVycy9hY3BpL3BjaV9y
-b290X2hwLmMKKysrIGxpbnV4LTIuNi9kcml2ZXJzL2FjcGkvcGNpX3Jvb3RfaHAuYwpAQCAtNzMs
-NiArNzMsMTIgQEAgc3RhdGljIHZvaWQgYWRkX2FjcGlfcm9vdF9icmlkZ2UoYWNwaV9oYQogCWxp
-c3RfYWRkKCZicmlkZ2UtPmxpc3QsICZhY3BpX3Jvb3RfYnJpZGdlX2xpc3QpOwogfQogCitzdGF0
-aWMgdm9pZCByZW1vdmVfYWNwaV9yb290X2JyaWRnZShzdHJ1Y3QgYWNwaV9yb290X2JyaWRnZSAq
-YnJpZGdlKQoreworCWxpc3RfZGVsKCZicmlkZ2UtPmxpc3QpOworCWtmcmVlKGJyaWRnZSk7Cit9
-CisKIHN0cnVjdCBhY3BpX3Jvb3RfaHBfd29yayB7CiAJc3RydWN0IHdvcmtfc3RydWN0IHdvcms7
-CiAJYWNwaV9oYW5kbGUgaGFuZGxlOwpAQCAtMTQzLDYgKzE0OSw2MSBAQCBzdGF0aWMgdm9pZCBo
-YW5kbGVfcm9vdF9icmlkZ2VfaW5zZXJ0aW9uCiAJCXByaW50ayhLRVJOX0VSUiAiY2Fubm90IHN0
-YXJ0IGJyaWRnZVxuIik7CiB9CiAKK3N0YXRpYyBpbnQgYWNwaV9yb290X2V2YWx1YXRlX29iamVj
-dChhY3BpX2hhbmRsZSBoYW5kbGUsIGNoYXIgKmNtZCwgaW50IHZhbCkKK3sKKwlhY3BpX3N0YXR1
-cyBzdGF0dXM7CisJc3RydWN0IGFjcGlfb2JqZWN0X2xpc3QgYXJnX2xpc3Q7CisJdW5pb24gYWNw
-aV9vYmplY3QgYXJnOworCisJYXJnX2xpc3QuY291bnQgPSAxOworCWFyZ19saXN0LnBvaW50ZXIg
-PSAmYXJnOworCWFyZy50eXBlID0gQUNQSV9UWVBFX0lOVEVHRVI7CisJYXJnLmludGVnZXIudmFs
-dWUgPSB2YWw7CisKKwlzdGF0dXMgPSBhY3BpX2V2YWx1YXRlX29iamVjdChoYW5kbGUsIGNtZCwg
-JmFyZ19saXN0LCBOVUxMKTsKKwlpZiAoQUNQSV9GQUlMVVJFKHN0YXR1cykpIHsKKwkJcHJpbnRr
-KEtFUk5fV0FSTklORyAiJXM6ICVzIHRvICVkIGZhaWxlZFxuIiwKKwkJCQkgX19mdW5jX18sIGNt
-ZCwgdmFsKTsKKwkJcmV0dXJuIC0xOworCX0KKworCXJldHVybiAwOworfQorCitzdGF0aWMgdm9p
-ZCBoYW5kbGVfcm9vdF9icmlkZ2VfcmVtb3ZhbChhY3BpX2hhbmRsZSBoYW5kbGUsCisJCSBzdHJ1
-Y3QgYWNwaV9yb290X2JyaWRnZSAqYnJpZGdlKQoreworCXUzMiBmbGFncyA9IDA7CisJc3RydWN0
-IGFjcGlfZGV2aWNlICpkZXZpY2U7CisKKwlpZiAoYnJpZGdlKSB7CisJCWZsYWdzID0gYnJpZGdl
-LT5mbGFnczsKKwkJcmVtb3ZlX2FjcGlfcm9vdF9icmlkZ2UoYnJpZGdlKTsKKwl9CisKKwlpZiAo
-IWFjcGlfYnVzX2dldF9kZXZpY2UoaGFuZGxlLCAmZGV2aWNlKSkgeworCQlpbnQgcmV0X3ZhbDsK
-KworCQkvKiByZW1vdmUgcGNpIGRldmljZXMgYXQgZmlyc3QgKi8KKwkJcmV0X3ZhbCA9IGFjcGlf
-YnVzX3RyaW0oZGV2aWNlLCAwKTsKKwkJcHJpbnRrKEtFUk5fREVCVUcgImFjcGlfYnVzX3RyaW0g
-c3RvcCByZXR1cm4gJXhcbiIsIHJldF92YWwpOworCisJCS8qIHJlbW92ZSBhY3BpIGRldmljZXMg
-Ki8KKwkJcmV0X3ZhbCA9IGFjcGlfYnVzX3RyaW0oZGV2aWNlLCAxKTsKKwkJcHJpbnRrKEtFUk5f
-REVCVUcgImFjcGlfYnVzX3RyaW0gcmVtb3ZlIHJldHVybiAleFxuIiwgcmV0X3ZhbCk7CisJfQor
-CisJaWYgKGZsYWdzICYgUk9PVF9CUklER0VfSEFTX1BTMykgeworCQlhY3BpX3N0YXR1cyBzdGF0
-dXM7CisKKwkJc3RhdHVzID0gYWNwaV9ldmFsdWF0ZV9vYmplY3QoaGFuZGxlLCAiX1BTMyIsIE5V
-TEwsIE5VTEwpOworCQlpZiAoQUNQSV9GQUlMVVJFKHN0YXR1cykpCisJCQlwcmludGsoS0VSTl9X
-QVJOSU5HICIlczogX1BTMyBmYWlsZWRcbiIsIF9fZnVuY19fKTsKKwl9CisJaWYgKGZsYWdzICYg
-Uk9PVF9CUklER0VfSEFTX0VKMCkKKwkJYWNwaV9yb290X2V2YWx1YXRlX29iamVjdChoYW5kbGUs
-ICJfRUowIiwgMSk7Cit9CisKIHN0YXRpYyB2b2lkIF9oYW5kbGVfaG90cGx1Z19ldmVudF9yb290
-KHN0cnVjdCB3b3JrX3N0cnVjdCAqd29yaykKIHsKIAlzdHJ1Y3QgYWNwaV9yb290X2JyaWRnZSAq
-YnJpZGdlOwpAQCAtMTgzLDYgKzI0NCwxMiBAQCBzdGF0aWMgdm9pZCBfaGFuZGxlX2hvdHBsdWdf
-ZXZlbnRfcm9vdChzCiAJCX0KIAkJYnJlYWs7CiAKKwljYXNlIEFDUElfTk9USUZZX0VKRUNUX1JF
-UVVFU1Q6CisJCS8qIHJlcXVlc3QgZGV2aWNlIGVqZWN0ICovCisJCXByaW50ayhLRVJOX0RFQlVH
-ICIlczogRGV2aWNlIGVqZWN0IG5vdGlmeSBvbiAlc1xuIiwgX19mdW5jX18sCisJCQkJIG9iam5h
-bWUpOworCQloYW5kbGVfcm9vdF9icmlkZ2VfcmVtb3ZhbChoYW5kbGUsIGJyaWRnZSk7CisJCWJy
-ZWFrOwogCWRlZmF1bHQ6CiAJCXByaW50ayhLRVJOX1dBUk5JTkcgIm5vdGlmeV9oYW5kbGVyOiB1
-bmtub3duIGV2ZW50IHR5cGUgMHgleCBmb3IgJXNcbiIsCiAJCQkJIHR5cGUsIG9iam5hbWUpOwpJ
-bmRleDogbGludXgtMi42L2RyaXZlcnMvYWNwaS9zY2FuLmMKPT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQotLS0gbGludXgt
-Mi42Lm9yaWcvZHJpdmVycy9hY3BpL3NjYW4uYworKysgbGludXgtMi42L2RyaXZlcnMvYWNwaS9z
-Y2FuLmMKQEAgLTE1MjIsMTAgKzE1MjIsNyBAQCBpbnQgYWNwaV9idXNfdHJpbShzdHJ1Y3QgYWNw
-aV9kZXZpY2UgKnN0CiAJCQljaGlsZCA9IHBhcmVudDsKIAkJCXBhcmVudCA9IHBhcmVudC0+cGFy
-ZW50OwogCi0JCQlpZiAobGV2ZWwgPT0gMCkKLQkJCQllcnIgPSBhY3BpX2J1c19yZW1vdmUoY2hp
-bGQsIHJtZGV2aWNlKTsKLQkJCWVsc2UKLQkJCQllcnIgPSBhY3BpX2J1c19yZW1vdmUoY2hpbGQs
-IDEpOworCQkJZXJyID0gYWNwaV9idXNfcmVtb3ZlKGNoaWxkLCBybWRldmljZSk7CiAKIAkJCWNv
-bnRpbnVlOwogCQl9Cg==
---bcaec555517ac78a2704c9dd0559--
+No, what would be the benefit of this approach ? We will need to switch
+the driver each time we switch the cluster (assuming all it is the bL
+switcher in place and not the scheduler). IMHO, that could be suboptima=
+l
+because we will have to (un)register the driver, register the devices,
+pull all the sysfs and notifications mechanisms. The cpuidle core is no=
+t
+designed for that.
+
+eg.
+
+int cpuidle_register_driver(struct cpuidle_driver *drv)
+{
+        if (!drv || !drv->state_count)
+                return -EINVAL;
+
+        if (cpuidle_disabled())
+                return -ENODEV;
+
+        spin_lock(&cpuidle_driver_lock);
+>>>>    if (cpuidle_curr_driver) {
+>>>>            spin_unlock(&cpuidle_driver_lock);
+>>>>            return -EBUSY;
+>>>>    }
+        __cpuidle_register_driver(drv);
+        cpuidle_curr_driver =3D drv;
+        spin_unlock(&cpuidle_driver_lock);
+
+        return 0;
+}
+
+
+>>   cpuidle : add a pointer for cpuidle_state in the cpuidle_device
+>>   cpuidle : use per cpuidle device cpu states
+>>   cpuidle : add cpuidle_register_states function
+>>
+>>  drivers/acpi/processor_driver.c    |    2 +-
+>>  drivers/acpi/processor_idle.c      |   27 +++++++++++++++-------
+>>  drivers/cpuidle/cpuidle.c          |   42 +++++++++++++++++++++++++=
++++-------
+>>  drivers/cpuidle/governors/ladder.c |   22 +++++++++---------
+>>  drivers/cpuidle/governors/menu.c   |    8 +++---
+>>  drivers/cpuidle/sysfs.c            |    3 +-
+>>  include/acpi/processor.h           |    3 --
+>>  include/linux/cpuidle.h            |   11 ++++++--
+>>  8 files changed, 76 insertions(+), 42 deletions(-)
+>=20
+> Thanks,
+> Rafael
+
+
+--=20
+ <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software for=
+ ARM SoCs
+
+=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
+<http://twitter.com/#!/linaroorg> Twitter |
+<http://www.linaro.org/linaro-blog/> Blog
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
