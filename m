@@ -1,35 +1,46 @@
-From: Youquan Song <youquan.song@linux.intel.com>
-Subject: Re: [PATCH V2 1/3] x86,idle: Quickly notice prediction failure for
-	repeat mode
-Date: Mon, 17 Sep 2012 22:15:15 -0400
-Message-ID: <20120918021514.GA6997@linux-youquan.bj.intel.com>
-References: <1347933209-25939-1-git-send-email-youquan.song@intel.com> <1347933209-25939-2-git-send-email-youquan.song@intel.com> <50572CD1.700@redhat.com>
+From: Jiang Liu <liuj97@gmail.com>
+Subject: Re: [PATCH v2 5/9] ACPI/pci-bind: remove bind/unbind callbacks from
+ acpi_device_ops
+Date: Mon, 17 Sep 2012 22:22:42 +0800
+Message-ID: <50573232.9080508@gmail.com>
+References: <1347678312-11124-1-git-send-email-jiang.liu@huawei.com> <1347678312-11124-6-git-send-email-jiang.liu@huawei.com> <CAE9FiQWk_2gPyVUiLgvRQ=qrFNby_R7Qh-QNruobQnhVFTn21w@mail.gmail.com> <CAE9FiQX2hgxQo3GC3_0h5D5uo9coRZqcpPCKGtzF7jYbUfvxUw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:52411 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756205Ab2IQOMb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 17 Sep 2012 10:12:31 -0400
-Content-Disposition: inline
-In-Reply-To: <50572CD1.700@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAE9FiQX2hgxQo3GC3_0h5D5uo9coRZqcpPCKGtzF7jYbUfvxUw@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Jiang Liu <jiang.liu@huawei.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Yijing Wang <wangyijing@huawei.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rik van Riel <riel@redhat.com>
-Cc: Youquan Song <youquan.song@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, arjan@linux.intel.com, lenb@kernel.org, Youquan Song <youquan.song@linux.intel.com>
 
-> Could I convince you to try out my variation on
-> detect_repeating_intervals? :)
->
-> http://people.redhat.com/riel/cstate/cstate-stddev-converge.patch
->
-> I suspect that small change might help your code adapt to changed
-> conditions even faster.
-
-Yes. of course. your patch of cstate-stddev-converge is a good point by
-filter some noise first, then calculate further. I will try to integrate
-the patch to my patchset, then ask you review tomorrow. 
-
-Thanks
--Youquan
-
+On 09/17/2012 11:03 AM, Yinghai Lu wrote:
+> On Sat, Sep 15, 2012 at 4:27 PM, Yinghai Lu <yinghai@kernel.org> wrote:
+>> On Fri, Sep 14, 2012 at 8:05 PM, Jiang Liu <liuj97@gmail.com> wrote:
+>>>  From: Jiang Liu <jiang.liu@huawei.com>
+>>>
+>>> Now ACPI devices are created before/destroyed after corresponding PCI
+>>> devices, and acpi_platform_notify/acpi_platform_notify_remove will
+>>> update PCI<->ACPI binding relationship when creating/destroying PCI
+>>> devices, there's no need to invoke bind/unbind callbacks from ACPI
+>>> device probe/destroy routines anymore. So remove bind/unbind callbacks
+>>> from acpi_device_ops.
+>> for pci root bus, acpi_bus_trim() is used to remove acpi_device.
+>>
+>> and later in acpi_pci_root_remove to stop pci drivers/ioapic driver,
+>> iommu driver then remove pci devices.
+>>
+>> if call back is removed there, then could some functions in
+>> acpi_pci_unbind() will be skipped.
+>>
+>> I really do not want to add pci_stop_bus_devices() in
+>> pci_root_hp.c::handle_root_bridge_removal before
+>> calling acpi_bus_trim...
+> 
+> FYI, I solved the problem.  will call apci_bus_remove() two times. it
+> will make sure pci devices
+> get removed at first before acpi devices...
+Hi Yinghai,
+	Great! So we could remove the acpi<->PCI logic now.
+	Thanks!
+	Gerry
