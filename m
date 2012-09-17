@@ -1,86 +1,96 @@
-From: Jiang Liu <liuj97@gmail.com>
-Subject: Re: [PATCH v2 5/9] ACPI/pci-bind: remove bind/unbind callbacks from
- acpi_device_ops
-Date: Mon, 17 Sep 2012 22:31:24 +0800
-Message-ID: <5057343C.2010201@gmail.com>
-References: <1347678312-11124-1-git-send-email-jiang.liu@huawei.com> <1347678312-11124-6-git-send-email-jiang.liu@huawei.com> <CAE9FiQWk_2gPyVUiLgvRQ=qrFNby_R7Qh-QNruobQnhVFTn21w@mail.gmail.com>
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [PATCH V2 0/3] x86,idle: Enhance cpuidle prediction to handle
+ its failure
+Date: Mon, 17 Sep 2012 16:52:36 +0200
+Message-ID: <50573934.4030102@linaro.org>
+References: <1347933209-25939-1-git-send-email-youquan.song@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAE9FiQWk_2gPyVUiLgvRQ=qrFNby_R7Qh-QNruobQnhVFTn21w@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Jiang Liu <jiang.liu@huawei.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Yijing Wang <wangyijing@huawei.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:49764 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755436Ab2IQOwk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Sep 2012 10:52:40 -0400
+Received: by eaac11 with SMTP id c11so2486545eaa.19
+        for <linux-acpi@vger.kernel.org>; Mon, 17 Sep 2012 07:52:39 -0700 (PDT)
+In-Reply-To: <1347933209-25939-1-git-send-email-youquan.song@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Youquan Song <youquan.song@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, arjan@linux.intel.com, lenb@kernel.org, Rik van Riel <riel@redhat.com>, Youquan Song <youquan.song@linux.intel.com>
 
-On 09/16/2012 07:27 AM, Yinghai Lu wrote:
-> On Fri, Sep 14, 2012 at 8:05 PM, Jiang Liu <liuj97@gmail.com> wrote:
->>  From: Jiang Liu <jiang.liu@huawei.com>
->>
->> Now ACPI devices are created before/destroyed after corresponding PCI
->> devices, and acpi_platform_notify/acpi_platform_notify_remove will
->> update PCI<->ACPI binding relationship when creating/destroying PCI
->> devices, there's no need to invoke bind/unbind callbacks from ACPI
->> device probe/destroy routines anymore. So remove bind/unbind callbacks
->> from acpi_device_ops.
->>
->> Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
->> Signed-off-by: Yijing Wang <wangyijing@huawei.com>
->> ---
->>  drivers/acpi/pci_bind.c     |  100 +++++++++----------------------------------
->>  drivers/acpi/pci_root.c     |    9 ----
->>  drivers/acpi/scan.c         |   21 +--------
->>  include/acpi/acpi_bus.h     |    4 --
->>  include/acpi/acpi_drivers.h |    1 -
->>  5 files changed, 23 insertions(+), 112 deletions(-)
->> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
->> index d1ecca2..f31cb2f 100644
->> --- a/drivers/acpi/scan.c
->> +++ b/drivers/acpi/scan.c
->> @@ -1232,17 +1232,8 @@ static int acpi_bus_remove(struct acpi_device *dev, int rmdevice)
->>         dev->removal_type = ACPI_BUS_REMOVAL_EJECT;
->>         device_release_driver(&dev->dev);
->>
->> -       if (!rmdevice)
->> -               return 0;
->> -
->> -       /*
->> -        * unbind _ADR-Based Devices when hot removal
->> -        */
->> -       if (dev->flags.bus_address) {
->> -               if ((dev->parent) && (dev->parent->ops.unbind))
->> -                       dev->parent->ops.unbind(dev);
->> -       }
->> -       acpi_device_unregister(dev, ACPI_BUS_REMOVAL_EJECT);
->> +       if (rmdevice)
->> +               acpi_device_unregister(dev, ACPI_BUS_REMOVAL_EJECT);
->>
->>         return 0;
->>  }
-> 
-> for pci root bus, acpi_bus_trim() is used to remove acpi_device.
-> 
-> and later in acpi_pci_root_remove to stop pci drivers/ioapic driver,
-> iommu driver then remove pci devices.
-> 
-> if call back is removed there, then could some functions in
-> acpi_pci_unbind() will be skipped.
-> 
-> I really do not want to add pci_stop_bus_devices() in
-> pci_root_hp.c::handle_root_bridge_removal before
-> calling acpi_bus_trim...
-Hi Yinghai,
-	We are working on a ACPI based hotplug framework for CPU, memory and IOH.
-With our framework, the sequence to remove a IOH is:
-1) unbind all PCI device drivers for affected PCI devices.
-2) stop and remove all affected PCI devices.
-3) stop ACPI ioapic drivers(a new driver like PCI version).
-4) destroy all ACPI devices.
+On 09/18/2012 03:53 AM, Youquan Song wrote:
+> The prediction for future is difficult and when the cpuidle governor =
+prediction=20
+> fails and govenor possibly choose the shallower C-state than it shoul=
+d. How to=20
+> quickly notice and find the failure becomes important for power savin=
+g.   =20
+>=20
+> cpuidle menu governor has a method to predict the repeat pattern if t=
+here are 8
+> C-states residency which are continuous and the same or very close, s=
+o it will
+> predict the next C-states residency will keep same residency time.
+>=20
+> This patchset adds a timer when menu governor choose a non-deepest C-=
+state in
+> order to wake up quickly from shallow C-state to avoid staying too lo=
+ng at=20
+> shallow C-state for prediction failure. The timer is set to a time ou=
+t value=20
+> that is greater than predicted time and if the timer with the value i=
+s triggered=20
+> , we can confidently conclude prediction is failure. When prediction
+> succeeds, CPU is waken up from C-states in predicted time and the tim=
+er is not=20
+> triggered and will be cancelled right after CPU waken up. When predic=
+tion fails,
+> the timer is triggered to wake up CPU from shallow C-states, so menu =
+governor=20
+> will quickly notice that prediction fails and then re-evaluates deepe=
+r C-states
+>  possibility. This patchset can improves cpuidle prediction process f=
+or both=20
+> repeat mode and general mode.
+>=20
+> There are 2 cases will clear show this patchset benefit.
+>=20
+> One case is turbostat utility (tools/power/x86/turbostat) at kernel 3=
+=2E3 or early
+> . turbostat utility will read 10 registers one by one at Sandybridge,=
+ so it will
+> generate 10 IPIs to wake up idle CPUs. So cpuidle menu governor will =
+predict it
+>  is repeat mode and there is another IPI wake up idle CPU soon, so it=
+ keeps idle
+>  CPU stay at C1 state even though CPU is totally idle. However, in th=
+e turbostat
+> , following 10 registers reading is sleep 5 seconds by default, so th=
+e idle CPU
+>  will keep at C1 for a long time though it is idle until break event =
+occurs.
+> In a idle Sandybridge system, run "./turbostat -v", we will notice th=
+at deep=20
+> C-state dangles between "70% ~ 99%". After patched the kernel, we wil=
+l notice
+> deep C-state stays at >99.98%.
 
---Gerry
-> 
-> Thanks
-> 
-> Yinghai
-> 
+Is there an impact on performances ?
+
+
+
+--=20
+ <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software for=
+ ARM SoCs
+
+=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
+<http://twitter.com/#!/linaroorg> Twitter |
+<http://www.linaro.org/linaro-blog/> Blog
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
