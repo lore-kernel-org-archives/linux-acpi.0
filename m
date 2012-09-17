@@ -1,39 +1,120 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH] x86, acpi: Make acpi_processor_ffh_cstate_probe() use
- a work item instead of work_on_cpu()
-Date: Mon, 17 Sep 2012 14:37:38 -0700
-Message-ID: <20120917213738.GM18677@google.com>
-References: <20120824002643.GA21325@google.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH part2 4/6] x86, PCI: Separate rom resource claim out
+Date: Mon, 17 Sep 2012 17:38:22 -0600
+Message-ID: <CAErSpo40tRGynUQEfyB6svinH_wizevXvg5kEMFQtvCdmO1duw@mail.gmail.com>
+References: <1346622653-30741-1-git-send-email-yinghai@kernel.org> <1346622653-30741-5-git-send-email-yinghai@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:62848 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752474Ab2IQVhn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Sep 2012 17:37:43 -0400
-Content-Disposition: inline
-In-Reply-To: <20120824002643.GA21325@google.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:52439 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757484Ab2IQXin (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Sep 2012 19:38:43 -0400
+Received: by iahk25 with SMTP id k25so5706640iah.19
+        for <linux-acpi@vger.kernel.org>; Mon, 17 Sep 2012 16:38:42 -0700 (PDT)
+In-Reply-To: <1346622653-30741-5-git-send-email-yinghai@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>
-Cc: x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, x86 <x86@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Thu, Aug 23, 2012 at 05:26:43PM -0700, Tejun Heo wrote:
-> Workqueue is guaranteed to be available on the target CPU by the time
-> acpi_processor_ffh_cstate_probe() is invoked for it.  There's no
-> reason to use costly work_on_cpu() which involves creating and tearing
-> down a full kthread on each invocation to execute the probing function
-> on the target CPU.  Use a work item instead.
-> 
-> Tested and works as expected.
-> 
-> Signed-off-by: Tejun Heo <tj@kernel.org>
+On Sun, Sep 2, 2012 at 3:50 PM, Yinghai Lu <yinghai@kernel.org> wrote:
+> So could use it with hot-added root bus.
+>
+> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+> ---
+>  arch/x86/pci/i386.c |   58 ++++++++++++++++++++++++++++++++++++---------------
+>  1 files changed, 41 insertions(+), 17 deletions(-)
+>
+> diff --git a/arch/x86/pci/i386.c b/arch/x86/pci/i386.c
+> index 84696ed..4fdf0b2 100644
+> --- a/arch/x86/pci/i386.c
+> +++ b/arch/x86/pci/i386.c
+> @@ -298,27 +298,51 @@ static void __init pcibios_allocate_resources(struct pci_bus *bus, int pass)
+>         }
+>  }
+>
+> -static int __init pcibios_assign_resources(void)
+> +static void __init pcibios_allocate_dev_rom_resource(struct pci_dev *dev)
+>  {
+> -       struct pci_dev *dev = NULL;
+>         struct resource *r;
+>
+> -       if (!(pci_probe & PCI_ASSIGN_ROMS)) {
+> -               /*
+> -                * Try to use BIOS settings for ROMs, otherwise let
+> -                * pci_assign_unassigned_resources() allocate the new
+> -                * addresses.
+> -                */
+> -               for_each_pci_dev(dev) {
+> -                       r = &dev->resource[PCI_ROM_RESOURCE];
+> -                       if (!r->flags || !r->start)
+> -                               continue;
+> -                       if (pci_claim_resource(dev, PCI_ROM_RESOURCE) < 0) {
+> -                               r->end -= r->start;
+> -                               r->start = 0;
+> -                       }
+> -               }
+> +       /*
+> +        * Try to use BIOS settings for ROMs, otherwise let
+> +        * pci_assign_unassigned_resources() allocate the new
+> +        * addresses.
+> +        */
+> +       r = &dev->resource[PCI_ROM_RESOURCE];
+> +       if (!r->flags || !r->start)
+> +               return;
+> +
+> +       if (pci_claim_resource(dev, PCI_ROM_RESOURCE) < 0) {
+> +               r->end -= r->start;
+> +               r->start = 0;
+>         }
+> +}
+> +static void __init __pcibios_allocate_rom_resources(struct pci_bus *bus)
+> +{
+> +       struct pci_dev *dev;
+> +       struct pci_bus *child;
+> +
+> +       list_for_each_entry(dev, &bus->devices, bus_list) {
+> +               pcibios_allocate_dev_rom_resource(dev);
+> +
+> +               child = dev->subordinate;
+> +               if (child)
+> +                       __pcibios_allocate_rom_resources(child);
 
-Please forget about this patch (doesn't seem like it has been applied
-yet).  Planning on reimplementing work_on_cpu() using system_wq
-instead.
+I really dislike the "__" prefix on the function names.  It seems
+pointless to add another function and the "__" when all you need is a
+test of PCI_ASSIGN_ROMS.  Also, it makes the structure of
+__pcibios_allocate_rom_resources() different from
+pcibios_allocate_resources() when they should be exactly the same.
 
-Thanks.
+What if you made pcibios_assign_resources() look like this:
 
--- 
-tejun
+    if (!!(pci_probe & PCI_ASSIGN_ROMS)) {
+        list_for_each_entry(bus, &pci_root_buses, node)
+            pcibios_allocate_rom_resources(bus);
+    }
+
+Then I don't think you'd need the extra function.
+
+> +       }
+> +}
+> +static void __init pcibios_allocate_rom_resources(struct pci_bus *bus)
+> +{
+> +       if (pci_probe & PCI_ASSIGN_ROMS)
+> +               return;
+> +
+> +       __pcibios_allocate_rom_resources(bus);
+> +}
+> +
+> +static int __init pcibios_assign_resources(void)
+> +{
+> +       struct pci_bus *bus;
+> +
+> +       list_for_each_entry(bus, &pci_root_buses, node)
+> +               pcibios_allocate_rom_resources(bus);
+>
+>         pci_assign_unassigned_resources();
+>         pcibios_fw_addr_list_del();
+> --
+> 1.7.7
+>
