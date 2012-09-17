@@ -1,96 +1,101 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH V2 0/3] x86,idle: Enhance cpuidle prediction to handle
- its failure
-Date: Mon, 17 Sep 2012 16:52:36 +0200
-Message-ID: <50573934.4030102@linaro.org>
-References: <1347933209-25939-1-git-send-email-youquan.song@intel.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH 1/2] scsi: sd: set ready_to_power_off for scsi disk
+Date: Mon, 17 Sep 2012 23:01:41 +0800
+Message-ID: <20120917150139.GA18759@mint-spring.sh.intel.com>
+References: <1347525466.2720.10.camel@dabdike.int.hansenpartnership.com>
+ <50519E08.10800@intel.com>
+ <1347526590.2720.15.camel@dabdike.int.hansenpartnership.com>
+ <5051A25F.7040704@intel.com>
+ <1347528404.2720.28.camel@dabdike.int.hansenpartnership.com>
+ <20120914052041.GA5177@mint-spring.sh.intel.com>
+ <1347610640.2794.11.camel@dabdike.int.hansenpartnership.com>
+ <5052EF5F.3000103@intel.com>
+ <1347618389.2450.5.camel@dabdike.int.hansenpartnership.com>
+ <20120914135416.GA2730@mint-spring.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:49764 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755436Ab2IQOwk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Sep 2012 10:52:40 -0400
-Received: by eaac11 with SMTP id c11so2486545eaa.19
-        for <linux-acpi@vger.kernel.org>; Mon, 17 Sep 2012 07:52:39 -0700 (PDT)
-In-Reply-To: <1347933209-25939-1-git-send-email-youquan.song@intel.com>
+Received: from mga11.intel.com ([192.55.52.93]:5477 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756127Ab2IQPBp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 17 Sep 2012 11:01:45 -0400
+Content-Disposition: inline
+In-Reply-To: <20120914135416.GA2730@mint-spring.sh.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Youquan Song <youquan.song@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, arjan@linux.intel.com, lenb@kernel.org, Rik van Riel <riel@redhat.com>, Youquan Song <youquan.song@linux.intel.com>
+To: Jeff Garzik <jgarzik@pobox.com>, James Bottomley <James.Bottomley@HansenPartnership.com>, Alan Stern <stern@rowland.harvard.edu>
+Cc: Aaron Lu <aaron.lwe@gmail.com>, Jack Wang <jack_wang@usish.com>, Shane Huang <shane.huang@amd.com>, Oliver Neukum <oliver@neukum.org>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On 09/18/2012 03:53 AM, Youquan Song wrote:
-> The prediction for future is difficult and when the cpuidle governor =
-prediction=20
-> fails and govenor possibly choose the shallower C-state than it shoul=
-d. How to=20
-> quickly notice and find the failure becomes important for power savin=
-g.   =20
->=20
-> cpuidle menu governor has a method to predict the repeat pattern if t=
-here are 8
-> C-states residency which are continuous and the same or very close, s=
-o it will
-> predict the next C-states residency will keep same residency time.
->=20
-> This patchset adds a timer when menu governor choose a non-deepest C-=
-state in
-> order to wake up quickly from shallow C-state to avoid staying too lo=
-ng at=20
-> shallow C-state for prediction failure. The timer is set to a time ou=
-t value=20
-> that is greater than predicted time and if the timer with the value i=
-s triggered=20
-> , we can confidently conclude prediction is failure. When prediction
-> succeeds, CPU is waken up from C-states in predicted time and the tim=
-er is not=20
-> triggered and will be cancelled right after CPU waken up. When predic=
-tion fails,
-> the timer is triggered to wake up CPU from shallow C-states, so menu =
-governor=20
-> will quickly notice that prediction fails and then re-evaluates deepe=
-r C-states
->  possibility. This patchset can improves cpuidle prediction process f=
-or both=20
-> repeat mode and general mode.
->=20
-> There are 2 cases will clear show this patchset benefit.
->=20
-> One case is turbostat utility (tools/power/x86/turbostat) at kernel 3=
-=2E3 or early
-> . turbostat utility will read 10 registers one by one at Sandybridge,=
- so it will
-> generate 10 IPIs to wake up idle CPUs. So cpuidle menu governor will =
-predict it
->  is repeat mode and there is another IPI wake up idle CPU soon, so it=
- keeps idle
->  CPU stay at C1 state even though CPU is totally idle. However, in th=
-e turbostat
-> , following 10 registers reading is sleep 5 seconds by default, so th=
-e idle CPU
->  will keep at C1 for a long time though it is idle until break event =
-occurs.
-> In a idle Sandybridge system, run "./turbostat -v", we will notice th=
-at deep=20
-> C-state dangles between "70% ~ 99%". After patched the kernel, we wil=
-l notice
-> deep C-state stays at >99.98%.
+On Fri, Sep 14, 2012 at 09:54:16PM +0800, Aaron Lu wrote:
+> On Fri, Sep 14, 2012 at 11:26:29AM +0100, James Bottomley wrote:
+> > On Fri, 2012-09-14 at 16:48 +0800, Aaron Lu wrote:
+> > > So if we program the device to let it enter standby/stopped power
+> > > condition with the start_stop_unit command, do we need to sync the
+> > > cache?
+> > 
+> > No, that's what the spec says.  The device must manage the cache in both
+> > the forced (start stop unit) and timed (power control mode page) cases.
+> > 
+> > The reason is the spec doesn't define what idle and standby actually
+> > mean (just that they're "lower" power states).  So the device
+> > implementers get to choose if they stop the platter or power off the
+> > motor.  The spec just means that if they do anything that causes danger
+> > to data in the cache, they have to deal with it themselves.
+> 
+> Thanks for the clear explanation.
+> 
+> So what about the following change? In sd_suspend, if device supports
+> start_stop command, then we just need issue this command then both
+> runtime suspend case and system S3/S4 case are OK, since when the device
+> enters stopped power condition, the internal cache should be taken care
+> of by the device and it is also ready to be powered off. And if device
 
-Is there an impact on performances ?
+This is not the case for ata device, so scsi stop command should
+translate to 2 ata commands: flush cache + enter standby.
 
+If flush cache is skipped in sd driver, then ata scsi translate will
+need to update to address this issue.
 
+A possible change(not tested) like this:
 
---=20
- <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software for=
- ARM SoCs
+diff --git a/drivers/ata/libata-scsi.c b/drivers/ata/libata-scsi.c
+index 8ec81ca..2de5fac 100644
+--- a/drivers/ata/libata-scsi.c
++++ b/drivers/ata/libata-scsi.c
+@@ -1759,6 +1759,19 @@ static void ata_scsi_qc_complete(struct ata_queued_cmd *qc)
+ 	ata_qc_free(qc);
+ }
+ 
++static int ata_flush_cache(struct ata_device *dev)
++{
++	u8 cmd;
++
++	if (dev->flags & ATA_DFLAG_FLUSH_EXT)
++		cmd = ATA_CMD_FLUSH_EXT;
++	else
++		cmd = ATA_CMD_FLUSH;
++
++	return ata_do_simple_cmd(dev, cmd);
++}
++
++
+ /**
+  *	ata_scsi_translate - Translate then issue SCSI command to ATA device
+  *	@dev: ATA device to which the command is addressed
+@@ -1816,6 +1829,13 @@ static int ata_scsi_translate(struct ata_device *dev, struct scsi_cmnd *cmd,
+ 	if (xlat_func(qc))
+ 		goto early_finish;
+ 
++	/* scsi stop cmd = flush cache + standby */
++	if (qc->tf.command == ATA_CMD_STANDBYNOW1 && ata_try_flush_cache(dev)) {
++		rc = ata_flush_cache(dev);
++		if (rc)
++			goto err_did;
++	}
++
+ 	if (ap->ops->qc_defer) {
+ 		if ((rc = ap->ops->qc_defer(qc)))
+ 			goto defer;
 
-=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Aaron
