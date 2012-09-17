@@ -1,43 +1,92 @@
-From: Youquan Song <youquan.song@linux.intel.com>
-Subject: Re: [PATCH V2 0/3] x86,idle: Enhance cpuidle prediction to handle
-	its failure
-Date: Mon, 17 Sep 2012 23:30:20 -0400
-Message-ID: <20120918033020.GA20862@linux-youquan.bj.intel.com>
-References: <1347933209-25939-1-git-send-email-youquan.song@intel.com> <50573934.4030102@linaro.org>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH v2 5/9] ACPI/pci-bind: remove bind/unbind callbacks from acpi_device_ops
+Date: Mon, 17 Sep 2012 08:41:07 -0700
+Message-ID: <CAE9FiQWt2sPFRGTropM=oiiKv0qh2s__-MsMs=OFYx3OQkL2Tg@mail.gmail.com>
+References: <1347678312-11124-1-git-send-email-jiang.liu@huawei.com>
+	<1347678312-11124-6-git-send-email-jiang.liu@huawei.com>
+	<CAE9FiQWk_2gPyVUiLgvRQ=qrFNby_R7Qh-QNruobQnhVFTn21w@mail.gmail.com>
+	<5057343C.2010201@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:60790 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932093Ab2IQP1g (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 17 Sep 2012 11:27:36 -0400
-Content-Disposition: inline
-In-Reply-To: <50573934.4030102@linaro.org>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:56647 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755494Ab2IQPlJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Sep 2012 11:41:09 -0400
+In-Reply-To: <5057343C.2010201@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: Youquan Song <youquan.song@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, arjan@linux.intel.com, lenb@kernel.org, Rik van Riel <riel@redhat.com>, Youquan Song <youquan.song@linux.intel.com>
+To: Jiang Liu <liuj97@gmail.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Jiang Liu <jiang.liu@huawei.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Yijing Wang <wangyijing@huawei.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-> > One case is turbostat utility (tools/power/x86/turbostat) at kernel 3.3 or early
-> > . turbostat utility will read 10 registers one by one at Sandybridge, so it will
-> > generate 10 IPIs to wake up idle CPUs. So cpuidle menu governor will predict it
-> >  is repeat mode and there is another IPI wake up idle CPU soon, so it keeps idle
-> >  CPU stay at C1 state even though CPU is totally idle. However, in the turbostat
-> > , following 10 registers reading is sleep 5 seconds by default, so the idle CPU
-> >  will keep at C1 for a long time though it is idle until break event occurs.
-> > In a idle Sandybridge system, run "./turbostat -v", we will notice that deep 
-> > C-state dangles between "70% ~ 99%". After patched the kernel, we will notice
-> > deep C-state stays at >99.98%.
-> 
-> Is there an impact on performances ?
+On Mon, Sep 17, 2012 at 7:31 AM, Jiang Liu <liuj97@gmail.com> wrote:
+> On 09/16/2012 07:27 AM, Yinghai Lu wrote:
+>>> --- a/drivers/acpi/scan.c
+>>> +++ b/drivers/acpi/scan.c
+>>> @@ -1232,17 +1232,8 @@ static int acpi_bus_remove(struct acpi_device *dev, int rmdevice)
+>>>         dev->removal_type = ACPI_BUS_REMOVAL_EJECT;
+>>>         device_release_driver(&dev->dev);
+>>>
+>>> -       if (!rmdevice)
+>>> -               return 0;
+>>> -
+>>> -       /*
+>>> -        * unbind _ADR-Based Devices when hot removal
+>>> -        */
+>>> -       if (dev->flags.bus_address) {
+>>> -               if ((dev->parent) && (dev->parent->ops.unbind))
+>>> -                       dev->parent->ops.unbind(dev);
+>>> -       }
+>>> -       acpi_device_unregister(dev, ACPI_BUS_REMOVAL_EJECT);
+>>> +       if (rmdevice)
+>>> +               acpi_device_unregister(dev, ACPI_BUS_REMOVAL_EJECT);
+>>>
+>>>         return 0;
+>>>  }
+>>
+>> for pci root bus, acpi_bus_trim() is used to remove acpi_device.
+>>
+>> and later in acpi_pci_root_remove to stop pci drivers/ioapic driver,
+>> iommu driver then remove pci devices.
+>>
+>> if call back is removed there, then could some functions in
+>> acpi_pci_unbind() will be skipped.
+>>
+>> I really do not want to add pci_stop_bus_devices() in
+>> pci_root_hp.c::handle_root_bridge_removal before
+>> calling acpi_bus_trim...
+> Hi Yinghai,
+>         We are working on a ACPI based hotplug framework for CPU, memory and IOH.
+> With our framework, the sequence to remove a IOH is:
+> 1) unbind all PCI device drivers for affected PCI devices.
+> 2) stop and remove all affected PCI devices.
+> 3) stop ACPI ioapic drivers(a new driver like PCI version).
+> 4) destroy all ACPI devices.
 
-In this case, turbostat is utility to measure cpu idle status and itself
-also is a workload to system. Its purpose is that show cpu C-state
-information every 5 seconds. After patched the kernel, it also does
-the same thing as usual. So I think the performance has no/little impact.
+i solved the problem...
 
-I do not find performance impact in my tests. If you performance impact cases or
-suggestions, I will be very glad to try. 
+http://git.kernel.org/?p=linux/kernel/git/yinghai/linux-yinghai.git;a=commitdiff;h=15967ed108f9543c160422a7aaec18de30a53373
+
++       if (!acpi_bus_get_device(handle, &device)) {
++               int ret_val;
++
++               /* remove pci devices at first */
++               ret_val = acpi_bus_trim(device, 0);
++               printk(KERN_DEBUG "acpi_bus_trim stop return %x\n", ret_val);
++
++               /* remove acpi devices */
++               ret_val = acpi_bus_trim(device, 1);
++               printk(KERN_DEBUG "acpi_bus_trim remove return %x\n", ret_val);
++       }
+
+...
+
+also need to update acpi_bus_trim
+
+http://git.kernel.org/?p=linux/kernel/git/yinghai/linux-yinghai.git;a=commitdiff;h=c8805fe6ec46c46f352cdbffb13191116ea794ba
+
+BTW, memory hot-remove may need some work.
 
 Thanks
--Youquan
+
+Yinghai
