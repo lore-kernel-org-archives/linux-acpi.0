@@ -1,204 +1,194 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: PM: Summary of changes for v3.7
-Date: Tue, 18 Sep 2012 22:19:00 +0200
-Message-ID: <201209182219.00649.rjw@sisk.pl>
+Subject: Re: [PATCH 0/6] cpuidle : per cpu latencies
+Date: Tue, 18 Sep 2012 23:05:14 +0200
+Message-ID: <201209182305.14261.rjw@sisk.pl>
+References: <1347013172-12465-1-git-send-email-daniel.lezcano@linaro.org> <201209172250.33157.rjw@sisk.pl> <50579784.4090000@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
+Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:60497 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([193.178.161.156]:60628 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754707Ab2IRUMe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 18 Sep 2012 16:12:34 -0400
+	id S1755189Ab2IRU7C (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Sep 2012 16:59:02 -0400
+In-Reply-To: <50579784.4090000@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Linux-sh list <linux-sh@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: lenb@kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, patches@linaro.org, linaro-dev@lists.linaro.org, pdeschrijver@nvidia.com, lorenzo.pieralisi@arm.com, "len.brown@intel.com >> Len Brown" <len.brown@intel.com>
 
-Hi all,
+On Monday, September 17, 2012, Daniel Lezcano wrote:
+> On 09/17/2012 10:50 PM, Rafael J. Wysocki wrote:
+> > On Monday, September 17, 2012, Daniel Lezcano wrote:
+> >> On 09/08/2012 12:17 AM, Rafael J. Wysocki wrote:
+> >>> On Friday, September 07, 2012, Daniel Lezcano wrote:
+> >>>> Since commit 46bcfad7a819bd17ac4e831b04405152d59784ab,
+> >>>>         cpuidle: Single/Global registration of idle states
+> >>>>
+> >>>> we have a single registration for the cpuidle states which makes
+> >>>> sense. But now two new architectures are coming: tegra3 and big.LITTLE.
+> >>>>
+> >>>> These architectures have different cpus with different caracteristics
+> >>>> for power saving. High load => powerfull processors, idle => small processors.
+> >>>>
+> >>>> That implies different cpu latencies.
+> >>>>
+> >>>> This patchset keeps the current behavior as introduced by Deepthi without
+> >>>> breaking the drivers and add the possibility to specify a per cpu states.
+> >>>>
+> >>>>  * Tested on intel core 2 duo T9500
+> >>>>  * Tested on vexpress by Lorenzo Pieralsi
+> >>>>  * Tested on tegra3 by Peter De Schrijver
+> >>>>
+> >>>> Daniel Lezcano (6):
+> >>>>   acpi : move the acpi_idle_driver variable declaration
+> >>>>   acpi : move cpuidle_device field out of the acpi_processor_power
+> >>>>     structure
+> >>>>   acpi : remove pointless cpuidle device state_count init
+> >>>
+> >>> I've posted comments about patches [1-3/6] already.  In short, I don't like
+> >>> [1/6], [2/6] would require some more work IMO and I'm not sure about the
+> >>> validity of the observation that [3/6] is based on.
+> >>>
+> >>> Yes, I agree that the ACPI processor driver as a whole might be cleaner
+> >>> and it probably would be good to spend some time on cleaning it up, but
+> >>> not necessarily in a hurry.
+> >>>
+> >>> Unfortunately, I also don't agree with the approach used by the remaining
+> >>> patches, which is to try to use a separate array of states for each
+> >>> individual CPU core.  This way we end up with quite some duplicated data
+> >>> if the CPU cores in question actually happen to be identical.
+> >>
+> >> Actually, there is a single array of states which is defined with the
+> >> cpuidle_driver. A pointer to this array from the cpuidle_device
+> >> structure is added and used from the cpuidle core.
+> >>
+> >> If the cpu cores are identical, this pointer will refer to the same array.
+> > 
+> > OK, but what if there are two (or more) sets of cores, where all cores in one
+> > set are identical, but two cores from different sets differ?
+> 
+> A second array is defined and registered for these cores with the
+> cpuidle_register_states function.
+> 
+> Let's pick an example with the big.LITTLE architecture.
+> 
+> There are two A7 and two A15, resulting in the code on 4 cpuidle_device
+> structure (eg. dev_A7_1, dev_A7_2, dev_A15_1, dev_A15_2). Then the
+> driver registers a different cpu states array for the A7s and the A15s
+> 
+> At the end,
+> 
+> dev_A7_1->states points to the array states 1
+> dev_A7_2->states points to the array states 1
+> 
+> dev_A15_1->states points to the array states 2
+> dev_A15_2->states points to the array states 2
+> 
+> It is similar with Tegra3.
+> 
+> I think Peter and Lorenzo already wrote a driver based on this approach.
+> Peter, Lorenzo any comments ?
+> 
+> The single registration mechanism introduced by Deepthi is kept and we
+> have a way to specify different idle states for different cpus.
+> 
+> > In that case it would be good to have one array of states per set, but the
+> > patch doesn't seem to do that, does it?
+> 
+> Yes, this is what does the patch.
 
-All of the changes I'd like to include into the first PM pull request during
-the v3.7 merge window, except maybe for a couple of patches I know of, but
-haven't decided what to do with them yet, is on the 'linux-next' branch of the
-linux-pm.git tree now.
+OK
 
-The summary of those changes is appended.  If anyone finds any of them
-objectionable, please let me know ASAP.  Also please let me know if there are
-any power management patches I've seen already that you'd like me to take for
-v3.7 (if I haven't seen them yet, they clearly are not v3.7 material, unless
-they are urgent fixes).
+Now, if you look at struct cpuidle_driver, it is not much more than the
+array of struct cpuidle_state objects.  Yes, there are more fields in there,
+but they are all secondary.
+
+This means that by adding a new array of states you effectively add a different
+cpuidle driver for those CPU cores.
+
+> >> Maybe I misunderstood you remark but there is no data duplication, that
+> >> was the purpose of this approach to just add a pointer to point to a
+> >> single array when the core are identical and to a different array when
+> >> the cores are different (set by the driver). Furthermore, this patch
+> >> allows to support multiple cpu latencies without impacting the existing
+> >> drivers.
+> > 
+> > Well that's required. :-)
+> 
+> Yes :)
+> 
+> >>> What about using a separate cpuidle driver for every kind of different CPUs in
+> >>> the system (e.g. one driver for "big" CPUs and the other for "little" ones)?
+> >>>
+> >>> Have you considered this approach already?
+> >>
+> >> No, what would be the benefit of this approach ?
+> > 
+> > Uniform handling of all the CPUs of the same kind without data duplication
+> > and less code complexity, I think.
+> > 
+> >> We will need to switch
+> >> the driver each time we switch the cluster (assuming all it is the bL
+> >> switcher in place and not the scheduler). IMHO, that could be suboptimal
+> >> because we will have to (un)register the driver, register the devices,
+> >> pull all the sysfs and notifications mechanisms. The cpuidle core is not
+> >> designed for that.
+> > 
+> > I don't seem to understand how things are supposed to work, then.
+> 
+> Sorry, I did not suggest that.
+
+No, but that's what happened, actually. :-)
+
+I didn't realize that you wanted to address the "bL switcher" use case and now
+the changes make more sense to me than before, but still I'd prefer this to be
+done a bit differently.
+
+> I am wondering how several cpuidle drivers can co-exist together in the state
+> of the code. Maybe I misunderstood your idea.
+
+Well, we have the assumption that there will be only one cpuidle driver in the
+system, but I don't think it would be a big deal to change that.
+
+> The patchset I sent is pretty simple and do not duplicate the array states.
+> 
+> That would be nice if Len could react to this patchset (4/6,5/6, and
+> 6/6). Cc'ing him to its intel address.
+
+Well, I'm afraid you'll need to deal with me instead. :-)
+
+> > What _exactly_ do you mean by "the bL switcher", for instance?
+> 
+> The switcher is in charge of migrating tasks from the A7 to A15 (and
+> vice versa) depending on the system load and make the one cluster up and
+> visible while the other is not visible [1].
+> 
+> 
+> [1] www.arm.com/files/downloads/big.LITTLE_Final.pdf
+
+Yeah.  So for that use case I'd just add a secondary_states pointer to
+struct cpuidle_driver containing the address of an array of states for
+"secondary" CPU cores.  It probably would need its own counterparts of
+state_count and safe_state_index.
+
+Next, I'd add a "secondary" flag to struct cpuidle_device which, when set,
+would indicate that for this particular CPU the core should use the states
+from the "secondary_states" array.
+
+However, for the use case in which all cores are normally visible to the
+scheduler, I'd just go for making it possible to use more than one cpuidle
+driver at a time.
+
+We do that for all other kinds of devices already.  Consider Ethernet, for
+one example.  There is no reason to have a single Ethernet driver trying to
+handle all of the adapters in the system, if they are different.  If they
+are identical, then yes, one driver should handle all of them, but if they
+are different, we use different drivers.
+
+I don't see why CPU cores should be treated in any special way in that respect
+(except for the "bL switcher" use case with is kind of unusual).
 
 Thanks,
 Rafael
-
----
-
- Documentation/ABI/testing/sysfs-devices-system-cpu |  11 +
- Documentation/cpu-freq/boost.txt                   |  93 +++++
- Documentation/cpuidle/sysfs.txt                    |  10 +-
- .../devicetree/bindings/cpufreq/cpufreq-cpu0.txt   |  55 +++
- Documentation/devicetree/bindings/power/opp.txt    |  25 ++
- arch/arm/kernel/smp.c                              |  54 +++
- arch/arm/mach-shmobile/Makefile                    |   2 +-
- arch/arm/mach-shmobile/board-ap4evb.c              |  21 +-
- arch/arm/mach-shmobile/board-armadillo800eva.c     |   6 +-
- arch/arm/mach-shmobile/board-mackerel.c            |  34 +-
- arch/arm/mach-shmobile/common.c                    |  24 --
- arch/arm/mach-shmobile/cpuidle.c                   |  39 +-
- arch/arm/mach-shmobile/include/mach/common.h       |  14 +-
- arch/arm/mach-shmobile/include/mach/pm-rmobile.h   |  35 +-
- arch/arm/mach-shmobile/include/mach/r8a7740.h      |   6 +-
- arch/arm/mach-shmobile/include/mach/r8a7779.h      |  12 +-
- arch/arm/mach-shmobile/include/mach/sh7372.h       |  20 +-
- arch/arm/mach-shmobile/pm-r8a7740.c                |  42 ++-
- arch/arm/mach-shmobile/pm-r8a7779.c                |  71 ++--
- arch/arm/mach-shmobile/pm-rmobile.c                |  33 +-
- arch/arm/mach-shmobile/pm-sh7372.c                 | 283 ++++++++------
- arch/arm/mach-shmobile/setup-r8a7740.c             |  27 +-
- arch/arm/mach-shmobile/setup-r8a7779.c             |   5 +-
- arch/arm/mach-shmobile/setup-sh7372.c              |  69 ++--
- arch/x86/include/asm/msr-index.h                   |   3 +
- drivers/acpi/processor_driver.c                    |   8 +-
- drivers/acpi/processor_idle.c                      |  40 +-
- drivers/acpi/processor_perflib.c                   |  30 ++
- drivers/base/platform.c                            |   2 +
- drivers/base/power/domain.c                        | 244 ++++++++++---
- drivers/base/power/main.c                          |  35 +-
- drivers/base/power/opp.c                           |  47 +++
- drivers/base/power/power.h                         |  36 +-
- drivers/base/power/wakeup.c                        |  46 ++-
- drivers/clocksource/sh_cmt.c                       |  71 +++-
- drivers/clocksource/sh_mtu2.c                      |  41 ++-
- drivers/clocksource/sh_tmu.c                       | 112 +++++-
- drivers/cpufreq/Kconfig                            |  11 +
- drivers/cpufreq/Kconfig.x86                        |  18 +-
- drivers/cpufreq/Makefile                           |   4 +-
- drivers/cpufreq/acpi-cpufreq.c                     | 272 +++++++++++++-
- drivers/cpufreq/cpufreq-cpu0.c                     | 269 ++++++++++++++
- drivers/cpufreq/cpufreq_conservative.c             |   2 +
- drivers/cpufreq/cpufreq_ondemand.c                 |   1 +
- drivers/cpufreq/longhaul.h                         |  26 +-
- drivers/cpufreq/omap-cpufreq.c                     |  35 --
- drivers/cpufreq/powernow-k8.c                      | 406 ++-------------------
- drivers/cpufreq/powernow-k8.h                      |  32 --
- drivers/cpuidle/governors/ladder.c                 |   6 +-
- drivers/xen/xen-acpi-processor.c                   |   1 -
- include/acpi/processor.h                           |   9 +-
- include/linux/clockchips.h                         |   8 +
- include/linux/device.h                             |   7 +
- include/linux/opp.h                                |   8 +
- include/linux/pm.h                                 |   2 +
- include/linux/pm_domain.h                          |  92 ++++-
- kernel/power/Kconfig                               |   4 +
- kernel/power/poweroff.c                            |   2 +-
- kernel/power/process.c                             |   2 +-
- kernel/power/qos.c                                 |   1 +
- kernel/time/clockevents.c                          |  24 ++
- kernel/time/timekeeping.c                          |   2 +
- 62 files changed, 2028 insertions(+), 922 deletions(-)
-
----------------
-
-Amit Daniel Kachhap (1):
-      PM / cpufreq: Initialise the cpu field during conservative governor start
-
-Andi Kleen (1):
-      sections: fix section conflicts in drivers/cpufreq
-
-Andre Przywara (5):
-      acpi-cpufreq: Add quirk to disable _PSD usage on all AMD CPUs
-      cpufreq: Add warning message to powernow-k8
-      powernow-k8: delay info messages until initialization has succeeded
-      acpi-cpufreq: Add support for disabling dynamic overclocking
-      acpi-cpufreq: Add compatibility for legacy AMD cpb sysfs knob
-
-Borislav Petkov (1):
-      cpufreq / powernow-k8: Fixup missing _PSS objects message
-
-Carsten Emde (1):
-      Honor state disabling in the cpuidle ladder governor
-
-Daniel Lezcano (4):
-      cpuidle / ACPI : remove power from acpi_processor_cx structure
-      ACPI / processor: remove unused function parameter
-      ACPI / processor: remove pointless variable initialization
-      cpuidle / ACPI : move cpuidle_device field out of the acpi_processor_power structure
-
-Jan Beulich (1):
-      properly __init-annotate pm_sysrq_init()
-
-John Stultz (1):
-      PM / wakeup: Use irqsave/irqrestore for events_lock
-
-Luis Gonzalez Fernandez (1):
-      PM / QoS: Add return code to pm_qos_get_value function.
-
-Matthew Garrett (3):
-      acpi-cpufreq: Add support for modern AMD CPUs
-      ACPI: Add fixups for AMD P-state figures
-      cpufreq: Remove support for hardware P-state chips from powernow-k8
-
-Michal Pecio (2):
-      cpufreq / ondemand: update frequency when limits are relaxed
-      cpufreq: conservative: update frequency when limits are relaxed
-
-Rafael J. Wysocki (40):
-      PM / cpuidle: Make ladder governor use the "disabled" state flag
-      PM / Domains: Introduce simplified power on routine for system resume
-      PM / Domains: Add power off/on function for system core suspend stage
-      timekeeping: Add suspend and resume of clock event devices
-      sh: TMU: Introduce clocksource/clock events suspend/resume routines
-      sh: CMT: Introduce clocksource/clock events suspend/resume routines
-      sh: MTU2: Introduce clock events suspend/resume routines
-      PM: Reorganize device PM initialization
-      PM / Runtime: Allow helpers to be called by early platform drivers
-      PM / Domains: Rename the always_on device flag to syscore
-      PM / Domains: Move syscore flag from subsys data to struct device
-      PM / Domains: Do not measure start time for "irq safe" devices
-      sh: TMU: Basic runtime PM support
-      sh: CMT: Basic runtime PM support
-      sh: MTU2: Basic runtime PM support
-      PM: Do not use the syscore flag for runtime PM
-      PM / Domains: Make it possible to use domain names when adding devices
-      PM / Domains: Make it possible to use names when adding subdomains
-      PM / Domains: Add power-on function using names to identify domains
-      PM / Domains: Document cpuidle-related functions and change their names
-      PM / Domains: Operations related to cpuidle using domain names
-      ARM: shmobile: Use names of power domains for adding devices to them
-      ARM: shmobile: Drop r8a7779_add_device_to_domain()
-      ARM: shmobile: Use domain names when adding subdomains to power domains
-      ARM: shmobile: Add routine for automatic PM domains initialization
-      ARM: shmobile: Do not access sh7372 A4S domain internals directly
-      ARM: shmobile: Move sh7372's PM domain objects to a table
-      ARM: shmobile: Move r8a7740's PM domain objects to a table
-      ARM: shmobile: Move r8a7779's PM domain objects to a table
-      ARM: shmobile: Make rmobile_init_pm_domain() static
-      ARM: shmobile: Set PM domain on/off latencies directly
-      ARM: shmobile: Allow device latencies to be specified directly
-      ARM: shmobile: Specify device latencies for SH7372 devices directly
-      ARM: shmobile: Specify device latencies for Mackerel devices directly
-      ARM: shmobile: Rework adding devices to PM domains on Mackerel
-      ARM: shmobile: Rework adding devices to PM domains on AP4EVB
-      ARM: shmobile: Remove the console check from sh7372_enter_suspend()
-      ARM: shmobile: Move definition of shmobile_init_late() to header
-      ARM: shmobile: Make sh7372 cpuidle handling more straightforward
-      ARM: shmobile: Add A4S cpuidle state on sh7372
-
-Richard Zhao (2):
-      ARM: add cpufreq transiton notifier to adjust loops_per_jiffy for smp
-      cpufreq: OMAP: remove loops_per_jiffy recalculate for smp
-
-Sachin Kamat (1):
-      PM / Domains: Fix compilation warning related to genpd_start_dev_no_timing()
-
-Sedat Dilek (1):
-      PM / Freezer: Fix small typo "regrigerator"
-
-Shawn Guo (2):
-      PM / OPP: Initialize OPP table from device tree
-      cpufreq: Add a generic cpufreq-cpu0 driver
-
-Todd Poynor (1):
-      PM / Sleep: Print name of wakeup source that aborts suspend
-
