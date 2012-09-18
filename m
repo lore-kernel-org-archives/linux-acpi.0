@@ -1,87 +1,128 @@
 From: Durgadoss R <durgadoss.r@intel.com>
-Subject: [PATCHv4 00/15] Thermal_framework_enhancements
-Date: Tue, 18 Sep 2012 11:04:51 +0530
-Message-ID: <1347946506-18449-1-git-send-email-durgadoss.r@intel.com>
+Subject: [PATCHv4 02/15] Thermal: Move thermal_instance to thermal_core.h
+Date: Tue, 18 Sep 2012 11:04:53 +0530
+Message-ID: <1347946506-18449-3-git-send-email-durgadoss.r@intel.com>
+References: <1347946506-18449-1-git-send-email-durgadoss.r@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga02.intel.com ([134.134.136.20]:28021 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754221Ab2IRFgB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 18 Sep 2012 01:36:01 -0400
+	id S1754791Ab2IRFgG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Sep 2012 01:36:06 -0400
+In-Reply-To: <1347946506-18449-1-git-send-email-durgadoss.r@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org, rui.zhang@intel.com
 Cc: linux-acpi@vger.kernel.org, eduardo.valentin@ti.com, Durgadoss R <durgadoss.r@intel.com>
 
-This patch series is a v4 of the series submitted here:
-http://www.spinics.net/lists/linux-acpi/msg37375.html
+This patch creates a thermal_core.h file which can contain
+all defines used by the core thermal framework files. For
+now, move the thermal_instance structure to thermal_core.h
+This structure is used by files under drivers/thermal/.
 
-These patches are based on Rui's tree here: (branch - next)
-git://git.kernel.org/pub/scm/linux/kernel/git/rzhang/linux.git
-
-Changes since v3:
- * Rebase the patches on top of Rui's next branch
- * Register a separate governor for user space
- * Make step_wise governor as default (Kconfig change)
- * Synchronize policy_store method in thermal_sys.c
-Changes since v2:
- * Made thermal_zone_params as argument to tzd_register()
- * Introduced Thermal governor register/unregister APIs
- * Added 'write' permission for policy sysfs attribute
- * Added function pointer based implemention for thermal
-   governors.
- * Added a 'dummy' user space governor in thermal_sys.c
- * Renamed 'do_binding' and 'update_bind_info' functions as
-   'bind_tz' and 'bind_cdev' respectively
- * Updated Documentation for all the changes
-Changes since v1:
- * Created thermal_core.h
- * Removed get_cdev_by_name API, as it is no longer needed
- * Introduced thermal_bind_params inside thermal_zone_params
- * Use a single arbitrator by making thermal_cdev_update global
- * Added more documentation on EXPORT_SYMBOL APIs in thermal_sys.c
- * Various minor fixes based on comments from Rui and Eduardo.
-
-
-Durgadoss R (15):
-  Thermal: Refactor thermal.h file
-  Thermal: Move thermal_instance to thermal_core.h
-  Thermal: Add get trend, get instance API's to thermal_sys
-  Thermal: Add platform level information to thermal.h
-  Thermal: Pass zone parameters as argument to tzd_register
-  Thermal: Add thermal governor registration APIs
-  Thermal: Add a policy sysfs attribute
-  Thermal: Update binding logic based on platform data
-  Thermal: Make thermal_cdev_update as a global function
-  Thermal: Introduce fair_share thermal governor
-  Thermal: Introduce a step_wise thermal governor
-  Thermal: Add a thermal notifier for user space
-  Thermal: Remove throttling logic out of thermal_sys.c
-  Thermal: Add a notification API
-  Thermal: Add documentation for platform layer data
-
- Documentation/thermal/sysfs-api.txt                |   64 ++
- drivers/acpi/thermal.c                             |    6 +-
- drivers/platform/x86/acerhdf.c                     |    2 +-
- drivers/platform/x86/intel_mid_thermal.c           |    2 +-
- drivers/power/power_supply_core.c                  |    2 +-
- drivers/staging/omap-thermal/omap-thermal-common.c |    2 +-
- drivers/thermal/Kconfig                            |   19 +
- drivers/thermal/Makefile                           |    3 +
- drivers/thermal/exynos_thermal.c                   |    2 +-
- drivers/thermal/fair_share.c                       |  133 ++++
- drivers/thermal/rcar_thermal.c                     |    2 +-
- drivers/thermal/spear_thermal.c                    |    2 +-
- drivers/thermal/step_wise.c                        |  194 ++++++
- drivers/thermal/thermal_core.h                     |   53 ++
- drivers/thermal/thermal_sys.c                      |  705 +++++++++++++-------
- drivers/thermal/user_space.c                       |   68 ++
- include/linux/thermal.h                            |  128 +++-
- 17 files changed, 1096 insertions(+), 291 deletions(-)
- create mode 100644 drivers/thermal/fair_share.c
- create mode 100644 drivers/thermal/step_wise.c
+Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
+---
+ drivers/thermal/thermal_core.h |   53 ++++++++++++++++++++++++++++++++++++++++
+ drivers/thermal/thermal_sys.c  |   23 ++---------------
+ 2 files changed, 55 insertions(+), 21 deletions(-)
  create mode 100644 drivers/thermal/thermal_core.h
- create mode 100644 drivers/thermal/user_space.c
 
+diff --git a/drivers/thermal/thermal_core.h b/drivers/thermal/thermal_core.h
+new file mode 100644
+index 0000000..0d3205a
+--- /dev/null
++++ b/drivers/thermal/thermal_core.h
+@@ -0,0 +1,53 @@
++/*
++ *  thermal_core.h
++ *
++ *  Copyright (C) 2012  Intel Corp
++ *  Author: Durgadoss R <durgadoss.r@intel.com>
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; version 2 of the License.
++ *
++ *  This program is distributed in the hope that it will be useful, but
++ *  WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ *  General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License along
++ *  with this program; if not, write to the Free Software Foundation, Inc.,
++ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ */
++
++#ifndef __THERMAL_CORE_H__
++#define __THERMAL_CORE_H__
++
++#include <linux/device.h>
++#include <linux/thermal.h>
++
++/* Initial state of a cooling device during binding */
++#define THERMAL_NO_TARGET -1UL
++
++/*
++ * This structure is used to describe the behavior of
++ * a certain cooling device on a certain trip point
++ * in a certain thermal zone
++ */
++struct thermal_instance {
++	int id;
++	char name[THERMAL_NAME_LENGTH];
++	struct thermal_zone_device *tz;
++	struct thermal_cooling_device *cdev;
++	int trip;
++	unsigned long upper;	/* Highest cooling state for this trip point */
++	unsigned long lower;	/* Lowest cooling state for this trip point */
++	unsigned long target;	/* expected cooling state */
++	char attr_name[THERMAL_NAME_LENGTH];
++	struct device_attribute attr;
++	struct list_head tz_node; /* node in tz->thermal_instances */
++	struct list_head cdev_node; /* node in cdev->thermal_instances */
++};
++
++#endif /* __THERMAL_CORE_H__ */
+diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
+index 47498b8..b246d45 100644
+--- a/drivers/thermal/thermal_sys.c
++++ b/drivers/thermal/thermal_sys.c
+@@ -37,31 +37,12 @@
+ #include <net/netlink.h>
+ #include <net/genetlink.h>
+ 
++#include "thermal_core.h"
++
+ MODULE_AUTHOR("Zhang Rui");
+ MODULE_DESCRIPTION("Generic thermal management sysfs support");
+ MODULE_LICENSE("GPL");
+ 
+-#define THERMAL_NO_TARGET -1UL
+-/*
+- * This structure is used to describe the behavior of
+- * a certain cooling device on a certain trip point
+- * in a certain thermal zone
+- */
+-struct thermal_instance {
+-	int id;
+-	char name[THERMAL_NAME_LENGTH];
+-	struct thermal_zone_device *tz;
+-	struct thermal_cooling_device *cdev;
+-	int trip;
+-	unsigned long upper;	/* Highest cooling state for this trip point */
+-	unsigned long lower;	/* Lowest cooling state for this trip point */
+-	unsigned long target;	/* expected cooling state */
+-	char attr_name[THERMAL_NAME_LENGTH];
+-	struct device_attribute attr;
+-	struct list_head tz_node; /* node in tz->thermal_instances */
+-	struct list_head cdev_node; /* node in cdev->thermal_instances */
+-};
+-
+ static DEFINE_IDR(thermal_tz_idr);
+ static DEFINE_IDR(thermal_cdev_idr);
+ static DEFINE_MUTEX(thermal_idr_lock);
 -- 
 1.7.9.5
 
