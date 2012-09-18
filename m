@@ -1,156 +1,167 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH 0/6] cpuidle : per cpu latencies
-Date: Mon, 17 Sep 2012 10:03:56 +0200
-Message-ID: <5056D96C.5040904@linaro.org>
-References: <1347013172-12465-1-git-send-email-daniel.lezcano@linaro.org> <201209080017.17418.rjw@sisk.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:42671 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754740Ab2IQIEB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Sep 2012 04:04:01 -0400
-Received: by bkwj10 with SMTP id j10so2307773bkw.19
-        for <linux-acpi@vger.kernel.org>; Mon, 17 Sep 2012 01:04:00 -0700 (PDT)
-In-Reply-To: <201209080017.17418.rjw@sisk.pl>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Youquan Song <youquan.song@intel.com>
+Subject: [PATCH V2 0/3] x86,idle: Enhance cpuidle prediction to handle its failure
+Date: Mon, 17 Sep 2012 21:53:26 -0400
+Message-ID: <1347933209-25939-1-git-send-email-youquan.song@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, arjan@linux.intel.com, lenb@kernel.org
+Cc: Rik van Riel <riel@redhat.com>, Youquan Song <youquan.song@linux.intel.com>, Youquan Song <youquan.song@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: lenb@kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, patches@linaro.org, linaro-dev@lists.linaro.org, pdeschrijver@nvidia.com, lorenzo.pieralisi@arm.com
 
-On 09/08/2012 12:17 AM, Rafael J. Wysocki wrote:
-> On Friday, September 07, 2012, Daniel Lezcano wrote:
->> Since commit 46bcfad7a819bd17ac4e831b04405152d59784ab,
->>         cpuidle: Single/Global registration of idle states
->>
->> we have a single registration for the cpuidle states which makes
->> sense. But now two new architectures are coming: tegra3 and big.LITT=
-LE.
->>
->> These architectures have different cpus with different caracteristic=
-s
->> for power saving. High load =3D> powerfull processors, idle =3D> sma=
-ll processors.
->>
->> That implies different cpu latencies.
->>
->> This patchset keeps the current behavior as introduced by Deepthi wi=
-thout
->> breaking the drivers and add the possibility to specify a per cpu st=
-ates.
->>
->>  * Tested on intel core 2 duo T9500
->>  * Tested on vexpress by Lorenzo Pieralsi
->>  * Tested on tegra3 by Peter De Schrijver
->>
->> Daniel Lezcano (6):
->>   acpi : move the acpi_idle_driver variable declaration
->>   acpi : move cpuidle_device field out of the acpi_processor_power
->>     structure
->>   acpi : remove pointless cpuidle device state_count init
->=20
-> I've posted comments about patches [1-3/6] already.  In short, I don'=
-t like
-> [1/6], [2/6] would require some more work IMO and I'm not sure about =
-the
-> validity of the observation that [3/6] is based on.
->=20
-> Yes, I agree that the ACPI processor driver as a whole might be clean=
-er
-> and it probably would be good to spend some time on cleaning it up, b=
-ut
-> not necessarily in a hurry.
->=20
-> Unfortunately, I also don't agree with the approach used by the remai=
-ning
-> patches, which is to try to use a separate array of states for each
-> individual CPU core.  This way we end up with quite some duplicated d=
-ata
-> if the CPU cores in question actually happen to be identical.
 
-Actually, there is a single array of states which is defined with the
-cpuidle_driver. A pointer to this array from the cpuidle_device
-structure is added and used from the cpuidle core.
+The prediction for future is difficult and when the cpuidle governor prediction 
+fails and govenor possibly choose the shallower C-state than it should. How to 
+quickly notice and find the failure becomes important for power saving.    
 
-If the cpu cores are identical, this pointer will refer to the same arr=
-ay.
+cpuidle menu governor has a method to predict the repeat pattern if there are 8
+C-states residency which are continuous and the same or very close, so it will
+predict the next C-states residency will keep same residency time.
 
-Maybe I misunderstood you remark but there is no data duplication, that
-was the purpose of this approach to just add a pointer to point to a
-single array when the core are identical and to a different array when
-the cores are different (set by the driver). Furthermore, this patch
-allows to support multiple cpu latencies without impacting the existing
-drivers.
+This patchset adds a timer when menu governor choose a non-deepest C-state in
+order to wake up quickly from shallow C-state to avoid staying too long at 
+shallow C-state for prediction failure. The timer is set to a time out value 
+that is greater than predicted time and if the timer with the value is triggered 
+, we can confidently conclude prediction is failure. When prediction
+succeeds, CPU is waken up from C-states in predicted time and the timer is not 
+triggered and will be cancelled right after CPU waken up. When prediction fails,
+the timer is triggered to wake up CPU from shallow C-states, so menu governor 
+will quickly notice that prediction fails and then re-evaluates deeper C-states
+ possibility. This patchset can improves cpuidle prediction process for both 
+repeat mode and general mode.
 
-> What about using a separate cpuidle driver for every kind of differen=
-t CPUs in
-> the system (e.g. one driver for "big" CPUs and the other for "little"=
- ones)?
->=20
-> Have you considered this approach already?
+There are 2 cases will clear show this patchset benefit.
 
-No, what would be the benefit of this approach ? We will need to switch
-the driver each time we switch the cluster (assuming all it is the bL
-switcher in place and not the scheduler). IMHO, that could be suboptima=
-l
-because we will have to (un)register the driver, register the devices,
-pull all the sysfs and notifications mechanisms. The cpuidle core is no=
-t
-designed for that.
+One case is turbostat utility (tools/power/x86/turbostat) at kernel 3.3 or early
+. turbostat utility will read 10 registers one by one at Sandybridge, so it will
+generate 10 IPIs to wake up idle CPUs. So cpuidle menu governor will predict it
+ is repeat mode and there is another IPI wake up idle CPU soon, so it keeps idle
+ CPU stay at C1 state even though CPU is totally idle. However, in the turbostat
+, following 10 registers reading is sleep 5 seconds by default, so the idle CPU
+ will keep at C1 for a long time though it is idle until break event occurs.
+In a idle Sandybridge system, run "./turbostat -v", we will notice that deep 
+C-state dangles between "70% ~ 99%". After patched the kernel, we will notice
+deep C-state stays at >99.98%.
 
-eg.
+Below is another case which will clearly show the patch much benefit:
 
-int cpuidle_register_driver(struct cpuidle_driver *drv)
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <signal.h>
+#include <sys/time.h>
+#include <time.h>
+#include <pthread.h>
+
+volatile int * shutdown;
+volatile long * count;
+int delay = 20;
+int loop = 8;
+
+void usage(void)
 {
-        if (!drv || !drv->state_count)
-                return -EINVAL;
-
-        if (cpuidle_disabled())
-                return -ENODEV;
-
-        spin_lock(&cpuidle_driver_lock);
->>>>    if (cpuidle_curr_driver) {
->>>>            spin_unlock(&cpuidle_driver_lock);
->>>>            return -EBUSY;
->>>>    }
-        __cpuidle_register_driver(drv);
-        cpuidle_curr_driver =3D drv;
-        spin_unlock(&cpuidle_driver_lock);
-
-        return 0;
+	fprintf(stderr,
+		"Usage: idle_predict [options]\n"
+		"  --help	-h  Print this help\n"
+		"  --thread	-n  Thread number\n"
+		"  --loop     	-l  Loop times in shallow Cstate\n"
+		"  --delay	-t  Sleep time (uS)in shallow Cstate\n");
 }
 
+void *simple_loop() {
+	int idle_num = 1;
+	while (!(*shutdown)) {
+		*count = *count + 1;
+	
+		if (idle_num % loop)
+			usleep(delay);
+		else {
+			/* sleep 1 second */
+			usleep(1000000);
+			idle_num = 0;
+		}
+		idle_num++;
+	}
 
->>   cpuidle : add a pointer for cpuidle_state in the cpuidle_device
->>   cpuidle : use per cpuidle device cpu states
->>   cpuidle : add cpuidle_register_states function
->>
->>  drivers/acpi/processor_driver.c    |    2 +-
->>  drivers/acpi/processor_idle.c      |   27 +++++++++++++++-------
->>  drivers/cpuidle/cpuidle.c          |   42 +++++++++++++++++++++++++=
-+++-------
->>  drivers/cpuidle/governors/ladder.c |   22 +++++++++---------
->>  drivers/cpuidle/governors/menu.c   |    8 +++---
->>  drivers/cpuidle/sysfs.c            |    3 +-
->>  include/acpi/processor.h           |    3 --
->>  include/linux/cpuidle.h            |   11 ++++++--
->>  8 files changed, 76 insertions(+), 42 deletions(-)
->=20
-> Thanks,
-> Rafael
+}
 
+static void sighand(int sig)
+{
+	*shutdown = 1;
+}
 
---=20
- <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software for=
- ARM SoCs
+int main(int argc, char *argv[])
+{
+	sigset_t sigset;
+	int signum = SIGALRM;
+	int i, c, er = 0, thread_num = 8;
+	pthread_t pt[1024];
 
-=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
+	static char optstr[] = "n:l:t:h:";
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	while ((c = getopt(argc, argv, optstr)) != EOF)
+		switch (c) {
+			case 'n':
+				thread_num = atoi(optarg);
+				break;
+			case 'l':
+				loop = atoi(optarg);
+				break;
+			case 't':
+				delay = atoi(optarg);
+				break;
+			case 'h':
+			default:
+				usage();
+				exit(1);
+		}
+
+	printf("thread=%d,loop=%d,delay=%d\n",thread_num,loop,delay);
+	count = malloc(sizeof(long));
+	shutdown = malloc(sizeof(int));
+	*count = 0;
+	*shutdown = 0;
+
+	sigemptyset(&sigset);
+	sigaddset(&sigset, signum);
+	sigprocmask (SIG_BLOCK, &sigset, NULL);
+	signal(SIGINT, sighand);
+	signal(SIGTERM, sighand);
+
+	for(i = 0; i < thread_num ; i++)
+		pthread_create(&pt[i], NULL, simple_loop, NULL);
+
+	for (i = 0; i < thread_num; i++)
+		pthread_join(pt[i], NULL);
+
+	exit(0);
+}
+
+Get powertop v2 from git://github.com/fenrus75/powertop, build powertop.
+After build the above test application, then run it.
+Test plaform can be Intel Sandybridge or other recent platforms.
+#./idle_predict -l 10 &
+#./powertop
+
+We will find that deep C-state will dangle between 40%~100% and much time spent
+on C1 state. It is because menu governor wrongly predict that repeat mode
+is kept, so it will choose the C1 shallow C-state even though it has chance to
+sleep 1 second in deep C-state.
+ 
+While after patched the kernel, we find that deep C-state will keep >99.6%. 
+
+I also run plenty of testing and tuning with other benchmarks, the patcheset
+also show some power saving and there is no negative result found at least.
+
+The first version of patchset sent at May 11th 2012, 
+http://lwn.net/Articles/496919/ "x86,idle: Enhance cpuidle prediction to handle
+ its failure". 
+Recently, I notice that Rik has raised a topic at KS/Plumbers,
+http://lkml.indiana.edu/hypermail/linux/kernel/1208.3/00325.html
+so I have a discussed with Rik about my patchset, it is a interesting and 
+valuable topic, so I decide resend it again.  
+Compare with patchset V1, V2 only change the description without code update. 
+
+Thanks for help from Arjan, Len Brown and Rik!
+
+Thanks
+-Youquan
