@@ -1,40 +1,61 @@
-From: Peter De Schrijver <pdeschrijver@nvidia.com>
-Subject: Re: [PATCH 0/6] cpuidle : per cpu latencies
-Date: Tue, 18 Sep 2012 14:19:01 +0300
-Message-ID: <20120918111901.GC2831@tbergstrom-lnx.Nvidia.com>
-References: <1347013172-12465-1-git-send-email-daniel.lezcano@linaro.org>
- <201209080017.17418.rjw@sisk.pl>
- <5056D96C.5040904@linaro.org>
- <201209172250.33157.rjw@sisk.pl>
- <50579784.4090000@linaro.org>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH v3 0/6] acpi,pci: hostbridge hotplug support
+Date: Tue, 18 Sep 2012 11:41:51 -0700
+Message-ID: <CAE9FiQVRGK-Of1RuvFZRtuT-yZ7LGDD_oNWr2ier2aaUqrugmA@mail.gmail.com>
+References: <20120918151215.59ea763b.izumi.taku@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hqemgate04.nvidia.com ([216.228.121.35]:2571 "EHLO
-	hqemgate04.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757961Ab2IRLTS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Sep 2012 07:19:18 -0400
-Content-Disposition: inline
-In-Reply-To: <50579784.4090000@linaro.org>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:43759 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750862Ab2IRSlx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Sep 2012 14:41:53 -0400
+In-Reply-To: <20120918151215.59ea763b.izumi.taku@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "lenb@kernel.org" <lenb@kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "patches@linaro.org" <patches@linaro.org>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "len.brown@intel.com >> Len Brown" <len.brown@intel.com>
+To: Taku Izumi <izumi.taku@jp.fujitsu.com>
+Cc: linux-pci@vger.kernel.org, bhelgaas@google.com, linux-acpi@vger.kernel.org, kaneshige.kenji@jp.fujitsu.com, jiang.liu@huawei.com
 
-> 
-> It is similar with Tegra3.
-> 
+On Mon, Sep 17, 2012 at 11:12 PM, Taku Izumi <izumi.taku@jp.fujitsu.com> wrote:
+> Hi all,
+>
+>   This patchset is 3rd version of the following:
+>     http://marc.info/?l=linux-pci&m=134457928913775&w=2
+>     http://marc.info/?l=linux-pci&m=134665909321684&w=2
+>
+>  v2 -> v3:
+>    - change acpi_pci_drivers' add/remove interface according to Bjorn's suggestion
+>    - abandon RCU for protecting acpi_pci_roots list according to Bjorn's suggestion
+>    - change acpi_pci_find_root implementation to avoid potential deadlock
+>
+>   * [PATCH v3 1/8] ACPI, PCI: Use normal list for struct acpi_pci_driver
+>   * [PATCH v3 2/8] ACPI, PCI: Notify acpi_pci_drivers when hot-plugging PCI root bridges
+>   * [PATCH v3 3/8] ACPI, PCI: add acpi_pci_drivers protection
+>   * [PATCH v3 4/8] ACPI, PCI: change acpi_pci_drivers' add/remove interface
+>   * [PATCH v3 5/8] ACPI, PCI: change acpi_pci_find_root implementation
+>   * [PATCH v3 6/8] ACPI, PCI: add acpi_pci_roots protection
+>   * [PATCH v3 7/8] ACPI, PCI: add hostbridge removal function
+>   * [PATCH v3 8/8] ACPI, PCI: add resoruce-assign code for devices under hot-added hostbridge
 
-In our case CPU0 has different latencies for 1 C state compared to the other
-CPUs
+now it is more similar to my for-pci-root-bus-hotplug-part4 and part5
 
-> I think Peter and Lorenzo already wrote a driver based on this approach.
-> Peter, Lorenzo any comments ?
-> 
+http://git.kernel.org/?p=linux/kernel/git/yinghai/linux-yinghai.git;a=shortlog;h=refs/heads/for-pci-root-bus-hotplug-part5
 
-Yes. My implementation doesn't provide a state table in the cpuidle device 
-at all. I always use cpuidle_register_states() to register the state tables.
+big difference:
+I separated code from acpiphp_glue.c to pci_root_hp.c for root bridge
+hotplug support
 
-Cheers,
+I thought we all agreed on that acpi root bridge hotplug plug need to
+be separated from acpiphp at first.
 
-Peter.
+http://git.kernel.org/?p=linux/kernel/git/yinghai/linux-yinghai.git;a=commitdiff;h=ab9fd4ccbfb6120a4a4adf9833487d656b0501d3
+
+and CONFIG_HOTPLUG will always be enabled, so root bridge hotplug will
+be always enabled.
+acpiphp will still be used as one module, and to keep it simple pciehp
+will be used for pcie etc.
+That make the system BIOS much simple to avoid acpiphp.
+
+Thanks
+
+Yinghai
