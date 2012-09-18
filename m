@@ -1,163 +1,87 @@
 From: Durgadoss R <durgadoss.r@intel.com>
-Subject: [PATCHv4 01/15] Thermal: Refactor thermal.h file
-Date: Tue, 18 Sep 2012 11:04:52 +0530
-Message-ID: <1347946506-18449-2-git-send-email-durgadoss.r@intel.com>
-References: <1347946506-18449-1-git-send-email-durgadoss.r@intel.com>
+Subject: [PATCHv4 00/15] Thermal_framework_enhancements
+Date: Tue, 18 Sep 2012 11:04:51 +0530
+Message-ID: <1347946506-18449-1-git-send-email-durgadoss.r@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga02.intel.com ([134.134.136.20]:28021 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754791Ab2IRFgE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 18 Sep 2012 01:36:04 -0400
-In-Reply-To: <1347946506-18449-1-git-send-email-durgadoss.r@intel.com>
+	id S1754221Ab2IRFgB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Sep 2012 01:36:01 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org, rui.zhang@intel.com
 Cc: linux-acpi@vger.kernel.org, eduardo.valentin@ti.com, Durgadoss R <durgadoss.r@intel.com>
 
-This patch rearranges the code in thermal.h file,
-in the following order, so that it is easy to
-read/maintain.
-1. All #defines
-2. All enums
-3. All fops structures
-4. All device structures
-5. All function declarations
+This patch series is a v4 of the series submitted here:
+http://www.spinics.net/lists/linux-acpi/msg37375.html
 
-Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
----
- include/linux/thermal.h |   78 ++++++++++++++++++++++++++---------------------
- 1 file changed, 43 insertions(+), 35 deletions(-)
+These patches are based on Rui's tree here: (branch - next)
+git://git.kernel.org/pub/scm/linux/kernel/git/rzhang/linux.git
 
-diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-index 91b3481..8611e3e 100644
---- a/include/linux/thermal.h
-+++ b/include/linux/thermal.h
-@@ -29,6 +29,23 @@
- #include <linux/device.h>
- #include <linux/workqueue.h>
- 
-+#define THERMAL_TRIPS_NONE	-1
-+#define THERMAL_MAX_TRIPS	12
-+#define THERMAL_NAME_LENGTH	20
-+
-+/* No upper/lower limit requirement */
-+#define THERMAL_NO_LIMIT	-1UL
-+
-+/* Unit conversion macros */
-+#define KELVIN_TO_CELSIUS(t)	(long)(((long)t-2732 >= 0) ?	\
-+				((long)t-2732+5)/10 : ((long)t-2732-5)/10)
-+#define CELSIUS_TO_KELVIN(t)	((t)*10+2732)
-+
-+/* Adding event notification support elements */
-+#define THERMAL_GENL_FAMILY_NAME                "thermal_event"
-+#define THERMAL_GENL_VERSION                    0x01
-+#define THERMAL_GENL_MCAST_GROUP_NAME           "thermal_mc_group"
-+
- struct thermal_zone_device;
- struct thermal_cooling_device;
- 
-@@ -50,6 +67,30 @@ enum thermal_trend {
- 	THERMAL_TREND_DROPPING, /* temperature is dropping */
- };
- 
-+/* Events supported by Thermal Netlink */
-+enum events {
-+	THERMAL_AUX0,
-+	THERMAL_AUX1,
-+	THERMAL_CRITICAL,
-+	THERMAL_DEV_FAULT,
-+};
-+
-+/* attributes of thermal_genl_family */
-+enum {
-+	THERMAL_GENL_ATTR_UNSPEC,
-+	THERMAL_GENL_ATTR_EVENT,
-+	__THERMAL_GENL_ATTR_MAX,
-+};
-+#define THERMAL_GENL_ATTR_MAX (__THERMAL_GENL_ATTR_MAX - 1)
-+
-+/* commands supported by the thermal_genl_family */
-+enum {
-+	THERMAL_GENL_CMD_UNSPEC,
-+	THERMAL_GENL_CMD_EVENT,
-+	__THERMAL_GENL_CMD_MAX,
-+};
-+#define THERMAL_GENL_CMD_MAX (__THERMAL_GENL_CMD_MAX - 1)
-+
- struct thermal_zone_device_ops {
- 	int (*bind) (struct thermal_zone_device *,
- 		     struct thermal_cooling_device *);
-@@ -83,11 +124,6 @@ struct thermal_cooling_device_ops {
- 	int (*set_cur_state) (struct thermal_cooling_device *, unsigned long);
- };
- 
--#define THERMAL_NO_LIMIT -1UL /* no upper/lower limit requirement */
--
--#define THERMAL_TRIPS_NONE -1
--#define THERMAL_MAX_TRIPS 12
--#define THERMAL_NAME_LENGTH 20
- struct thermal_cooling_device {
- 	int id;
- 	char type[THERMAL_NAME_LENGTH];
-@@ -100,10 +136,6 @@ struct thermal_cooling_device {
- 	struct list_head node;
- };
- 
--#define KELVIN_TO_CELSIUS(t)	(long)(((long)t-2732 >= 0) ?	\
--				((long)t-2732+5)/10 : ((long)t-2732-5)/10)
--#define CELSIUS_TO_KELVIN(t)	((t)*10+2732)
--
- struct thermal_attr {
- 	struct device_attribute attr;
- 	char name[THERMAL_NAME_LENGTH];
-@@ -131,38 +163,13 @@ struct thermal_zone_device {
- 	struct list_head node;
- 	struct delayed_work poll_queue;
- };
--/* Adding event notification support elements */
--#define THERMAL_GENL_FAMILY_NAME                "thermal_event"
--#define THERMAL_GENL_VERSION                    0x01
--#define THERMAL_GENL_MCAST_GROUP_NAME           "thermal_mc_group"
--
--enum events {
--	THERMAL_AUX0,
--	THERMAL_AUX1,
--	THERMAL_CRITICAL,
--	THERMAL_DEV_FAULT,
--};
- 
- struct thermal_genl_event {
- 	u32 orig;
- 	enum events event;
- };
--/* attributes of thermal_genl_family */
--enum {
--	THERMAL_GENL_ATTR_UNSPEC,
--	THERMAL_GENL_ATTR_EVENT,
--	__THERMAL_GENL_ATTR_MAX,
--};
--#define THERMAL_GENL_ATTR_MAX (__THERMAL_GENL_ATTR_MAX - 1)
--
--/* commands supported by the thermal_genl_family */
--enum {
--	THERMAL_GENL_CMD_UNSPEC,
--	THERMAL_GENL_CMD_EVENT,
--	__THERMAL_GENL_CMD_MAX,
--};
--#define THERMAL_GENL_CMD_MAX (__THERMAL_GENL_CMD_MAX - 1)
- 
-+/* Function declarations */
- struct thermal_zone_device *thermal_zone_device_register(const char *, int, int,
- 		void *, const struct thermal_zone_device_ops *, int, int);
- void thermal_zone_device_unregister(struct thermal_zone_device *);
-@@ -173,6 +180,7 @@ int thermal_zone_bind_cooling_device(struct thermal_zone_device *, int,
- int thermal_zone_unbind_cooling_device(struct thermal_zone_device *, int,
- 				       struct thermal_cooling_device *);
- void thermal_zone_device_update(struct thermal_zone_device *);
-+
- struct thermal_cooling_device *thermal_cooling_device_register(char *, void *,
- 		const struct thermal_cooling_device_ops *);
- void thermal_cooling_device_unregister(struct thermal_cooling_device *);
+Changes since v3:
+ * Rebase the patches on top of Rui's next branch
+ * Register a separate governor for user space
+ * Make step_wise governor as default (Kconfig change)
+ * Synchronize policy_store method in thermal_sys.c
+Changes since v2:
+ * Made thermal_zone_params as argument to tzd_register()
+ * Introduced Thermal governor register/unregister APIs
+ * Added 'write' permission for policy sysfs attribute
+ * Added function pointer based implemention for thermal
+   governors.
+ * Added a 'dummy' user space governor in thermal_sys.c
+ * Renamed 'do_binding' and 'update_bind_info' functions as
+   'bind_tz' and 'bind_cdev' respectively
+ * Updated Documentation for all the changes
+Changes since v1:
+ * Created thermal_core.h
+ * Removed get_cdev_by_name API, as it is no longer needed
+ * Introduced thermal_bind_params inside thermal_zone_params
+ * Use a single arbitrator by making thermal_cdev_update global
+ * Added more documentation on EXPORT_SYMBOL APIs in thermal_sys.c
+ * Various minor fixes based on comments from Rui and Eduardo.
+
+
+Durgadoss R (15):
+  Thermal: Refactor thermal.h file
+  Thermal: Move thermal_instance to thermal_core.h
+  Thermal: Add get trend, get instance API's to thermal_sys
+  Thermal: Add platform level information to thermal.h
+  Thermal: Pass zone parameters as argument to tzd_register
+  Thermal: Add thermal governor registration APIs
+  Thermal: Add a policy sysfs attribute
+  Thermal: Update binding logic based on platform data
+  Thermal: Make thermal_cdev_update as a global function
+  Thermal: Introduce fair_share thermal governor
+  Thermal: Introduce a step_wise thermal governor
+  Thermal: Add a thermal notifier for user space
+  Thermal: Remove throttling logic out of thermal_sys.c
+  Thermal: Add a notification API
+  Thermal: Add documentation for platform layer data
+
+ Documentation/thermal/sysfs-api.txt                |   64 ++
+ drivers/acpi/thermal.c                             |    6 +-
+ drivers/platform/x86/acerhdf.c                     |    2 +-
+ drivers/platform/x86/intel_mid_thermal.c           |    2 +-
+ drivers/power/power_supply_core.c                  |    2 +-
+ drivers/staging/omap-thermal/omap-thermal-common.c |    2 +-
+ drivers/thermal/Kconfig                            |   19 +
+ drivers/thermal/Makefile                           |    3 +
+ drivers/thermal/exynos_thermal.c                   |    2 +-
+ drivers/thermal/fair_share.c                       |  133 ++++
+ drivers/thermal/rcar_thermal.c                     |    2 +-
+ drivers/thermal/spear_thermal.c                    |    2 +-
+ drivers/thermal/step_wise.c                        |  194 ++++++
+ drivers/thermal/thermal_core.h                     |   53 ++
+ drivers/thermal/thermal_sys.c                      |  705 +++++++++++++-------
+ drivers/thermal/user_space.c                       |   68 ++
+ include/linux/thermal.h                            |  128 +++-
+ 17 files changed, 1096 insertions(+), 291 deletions(-)
+ create mode 100644 drivers/thermal/fair_share.c
+ create mode 100644 drivers/thermal/step_wise.c
+ create mode 100644 drivers/thermal/thermal_core.h
+ create mode 100644 drivers/thermal/user_space.c
+
 -- 
 1.7.9.5
 
