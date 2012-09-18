@@ -1,371 +1,128 @@
 From: Durgadoss R <durgadoss.r@intel.com>
-Subject: [PATCHv4 13/15] Thermal: Remove throttling logic out of thermal_sys.c
-Date: Tue, 18 Sep 2012 11:05:04 +0530
-Message-ID: <1347946506-18449-14-git-send-email-durgadoss.r@intel.com>
+Subject: [PATCHv4 15/15] Thermal: Add documentation for platform layer data
+Date: Tue, 18 Sep 2012 11:05:06 +0530
+Message-ID: <1347946506-18449-16-git-send-email-durgadoss.r@intel.com>
 References: <1347946506-18449-1-git-send-email-durgadoss.r@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga02.intel.com ([134.134.136.20]:28021 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755359Ab2IRFgg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 18 Sep 2012 01:36:36 -0400
+	id S1755359Ab2IRFgl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Sep 2012 01:36:41 -0400
 In-Reply-To: <1347946506-18449-1-git-send-email-durgadoss.r@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org, rui.zhang@intel.com
 Cc: linux-acpi@vger.kernel.org, eduardo.valentin@ti.com, Durgadoss R <durgadoss.r@intel.com>
 
-This patch removes the throttling logic out of
-thermal_sys.c; also refactors the code into smaller
-functions so that are easy to read/maintain.
- * Seperates the handling of critical and non-critical trips
- * Re-arranges the set_polling and device_check methods, so
-   that all related functions are arranged in one place.
- * Removes the 'do_update' and 'trip_update' method, as part
-   of moving the throttling logic out of thermal_sys.c
+This patch adds documentation for thermal_bind_params
+and thermal_zone_params structures. Also, adds details
+on EXPORT_SYMBOL APIs.
 
 Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
 ---
- drivers/thermal/thermal_sys.c |  313 +++++++++++++++--------------------------
- 1 file changed, 112 insertions(+), 201 deletions(-)
+ Documentation/thermal/sysfs-api.txt |   64 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 64 insertions(+)
 
-diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
-index eebd11d..cde613b 100644
---- a/drivers/thermal/thermal_sys.c
-+++ b/drivers/thermal/thermal_sys.c
-@@ -306,6 +306,118 @@ exit:
- 	mutex_unlock(&thermal_list_lock);
- }
+diff --git a/Documentation/thermal/sysfs-api.txt b/Documentation/thermal/sysfs-api.txt
+index ca1a1a3..88c0233 100644
+--- a/Documentation/thermal/sysfs-api.txt
++++ b/Documentation/thermal/sysfs-api.txt
+@@ -112,6 +112,29 @@ temperature) and throttle appropriate devices.
+     trip: indicates which trip point the cooling devices is associated with
+ 	  in this thermal zone.
  
-+static void thermal_zone_device_set_polling(struct thermal_zone_device *tz,
-+					    int delay)
-+{
-+	cancel_delayed_work(&(tz->poll_queue));
++1.4 Thermal Zone Parameters
++1.4.1 struct thermal_bind_params
++    This structure defines the following parameters that are used to bind
++    a zone with a cooling device for a particular trip point.
++    .cdev: The cooling device pointer
++    .weight: The 'influence' of a particular cooling device on this zone.
++             This is on a percentage scale. The sum of all these weights
++             (for a particular zone) cannot exceed 100.
++    .trip_mask:This is a bit mask that gives the binding relation between
++               this thermal zone and cdev, for a particular trip point.
++               If nth bit is set, then the cdev and thermal zone are bound
++               for trip point n.
++    .match: This call back returns success(0) if the 'tz and cdev' need to
++	    be bound, as per platform data.
++1.4.2 struct thermal_zone_params
++    This structure defines the platform level parameters for a thermal zone.
++    This data, for each thermal zone should come from the platform layer.
++    This is an optional feature where some platforms can choose not to
++    provide this data.
++    .governor_name: Name of the thermal governor used for this zone
++    .num_tbps: Number of thermal_bind_params entries for this zone
++    .tbp: thermal_bind_params entries
 +
-+	if (!delay)
-+		return;
-+
-+	if (delay > 1000)
-+		queue_delayed_work(system_freezable_wq, &(tz->poll_queue),
-+				      round_jiffies(msecs_to_jiffies(delay)));
-+	else
-+		queue_delayed_work(system_freezable_wq, &(tz->poll_queue),
-+				      msecs_to_jiffies(delay));
-+}
-+
-+static void monitor_thermal_zone(struct thermal_zone_device *tz)
-+{
-+	mutex_lock(&tz->lock);
-+
-+	if (tz->passive)
-+		thermal_zone_device_set_polling(tz, tz->passive_delay);
-+	else if (tz->polling_delay)
-+		thermal_zone_device_set_polling(tz, tz->polling_delay);
-+	else
-+		thermal_zone_device_set_polling(tz, 0);
-+
-+	mutex_unlock(&tz->lock);
-+}
-+
-+static void handle_non_critical_trips(struct thermal_zone_device *tz,
-+			int trip, enum thermal_trip_type trip_type)
-+{
-+	tz->governor->throttle(tz, trip);
-+}
-+
-+static void handle_critical_trips(struct thermal_zone_device *tz,
-+				int trip, enum thermal_trip_type trip_type)
-+{
-+	long trip_temp;
-+
-+	tz->ops->get_trip_temp(tz, trip, &trip_temp);
-+
-+	/* If we have not crossed the trip_temp, we do not care. */
-+	if (tz->temperature < trip_temp)
-+		return;
-+
-+	if (tz->ops->notify)
-+		tz->ops->notify(tz, trip, trip_type);
-+
-+	if (trip_type == THERMAL_TRIP_CRITICAL) {
-+		pr_emerg("Critical temperature reached(%d C),shutting down\n",
-+			 tz->temperature / 1000);
-+		orderly_poweroff(true);
-+	}
-+}
-+
-+static void handle_thermal_trip(struct thermal_zone_device *tz, int trip)
-+{
-+	enum thermal_trip_type type;
-+
-+	tz->ops->get_trip_type(tz, trip, &type);
-+
-+	if (type == THERMAL_TRIP_CRITICAL || type == THERMAL_TRIP_HOT)
-+		handle_critical_trips(tz, trip, type);
-+	else
-+		handle_non_critical_trips(tz, trip, type);
-+	/*
-+	 * Alright, we handled this trip successfully.
-+	 * So, start monitoring again.
-+	 */
-+	monitor_thermal_zone(tz);
-+}
-+
-+static void update_temperature(struct thermal_zone_device *tz)
-+{
-+	long temp;
-+	int ret;
-+
-+	mutex_lock(&tz->lock);
-+
-+	ret = tz->ops->get_temp(tz, &temp);
-+	if (ret) {
-+		pr_warn("failed to read out thermal zone %d\n", tz->id);
-+		return;
-+	}
-+
-+	tz->last_temperature = tz->temperature;
-+	tz->temperature = temp;
-+
-+	mutex_unlock(&tz->lock);
-+}
-+
-+void thermal_zone_device_update(struct thermal_zone_device *tz)
-+{
-+	int count;
-+
-+	update_temperature(tz);
-+
-+	for (count = 0; count < tz->trips; count++)
-+		handle_thermal_trip(tz, count);
-+}
-+EXPORT_SYMBOL(thermal_zone_device_update);
-+
-+static void thermal_zone_device_check(struct work_struct *work)
-+{
-+	struct thermal_zone_device *tz = container_of(work, struct
-+						      thermal_zone_device,
-+						      poll_queue.work);
-+	thermal_zone_device_update(tz);
-+}
-+
- /* sys I/F for thermal zone */
+ 2. sysfs attributes structure
  
- #define to_thermal_zone(_dev) \
-@@ -936,30 +1048,6 @@ thermal_remove_hwmon_sysfs(struct thermal_zone_device *tz)
- }
- #endif
+ RO	read only value
+@@ -126,6 +149,7 @@ Thermal zone device sys I/F, created once it's registered:
+     |---type:			Type of the thermal zone
+     |---temp:			Current temperature
+     |---mode:			Working mode of the thermal zone
++    |---policy:			Thermal governor used for this zone
+     |---trip_point_[0-*]_temp:	Trip point temperature
+     |---trip_point_[0-*]_type:	Trip point type
+     |---trip_point_[0-*]_hyst:	Hysteresis value for this trip point
+@@ -187,6 +211,10 @@ mode
+ 			  charge of the thermal management.
+ 	RW, Optional
  
--static void thermal_zone_device_set_polling(struct thermal_zone_device *tz,
--					    int delay)
--{
--	cancel_delayed_work(&(tz->poll_queue));
--
--	if (!delay)
--		return;
--
--	if (delay > 1000)
--		queue_delayed_work(system_freezable_wq, &(tz->poll_queue),
--				      round_jiffies(msecs_to_jiffies(delay)));
--	else
--		queue_delayed_work(system_freezable_wq, &(tz->poll_queue),
--				      msecs_to_jiffies(delay));
--}
--
--static void thermal_zone_device_check(struct work_struct *work)
--{
--	struct thermal_zone_device *tz = container_of(work, struct
--						      thermal_zone_device,
--						      poll_queue.work);
--	thermal_zone_device_update(tz);
--}
--
- /**
-  * thermal_zone_bind_cooling_device - bind a cooling device to a thermal zone
-  * @tz:		thermal zone device
-@@ -1283,183 +1371,6 @@ void thermal_cdev_update(struct thermal_cooling_device *cdev)
- }
- EXPORT_SYMBOL(thermal_cdev_update);
- 
--static void thermal_zone_do_update(struct thermal_zone_device *tz)
--{
--	struct thermal_instance *instance;
--
--	list_for_each_entry(instance, &tz->thermal_instances, tz_node)
--		thermal_cdev_update(instance->cdev);
--}
--
--/*
-- * Cooling algorithm for both active and passive cooling
-- *
-- * 1. if the temperature is higher than a trip point,
-- *    a. if the trend is THERMAL_TREND_RAISING, use higher cooling
-- *       state for this trip point
-- *    b. if the trend is THERMAL_TREND_DROPPING, use lower cooling
-- *       state for this trip point
-- *
-- * 2. if the temperature is lower than a trip point, use lower
-- *    cooling state for this trip point
-- *
-- * Note that this behaves the same as the previous passive cooling
-- * algorithm.
-- */
--
--static void thermal_zone_trip_update(struct thermal_zone_device *tz,
--				     int trip, long temp)
--{
--	struct thermal_instance *instance;
--	struct thermal_cooling_device *cdev = NULL;
--	unsigned long cur_state, max_state;
--	long trip_temp;
--	enum thermal_trip_type trip_type;
--	enum thermal_trend trend;
--
--	if (trip == THERMAL_TRIPS_NONE) {
--		trip_temp = tz->forced_passive;
--		trip_type = THERMAL_TRIPS_NONE;
--	} else {
--		tz->ops->get_trip_temp(tz, trip, &trip_temp);
--		tz->ops->get_trip_type(tz, trip, &trip_type);
--	}
--
--	if (!tz->ops->get_trend || tz->ops->get_trend(tz, trip, &trend)) {
--		/*
--		 * compare the current temperature and previous temperature
--		 * to get the thermal trend, if no special requirement
--		 */
--		if (tz->temperature > tz->last_temperature)
--			trend = THERMAL_TREND_RAISING;
--		else if (tz->temperature < tz->last_temperature)
--			trend = THERMAL_TREND_DROPPING;
--		else
--			trend = THERMAL_TREND_STABLE;
--	}
--
--	if (temp >= trip_temp) {
--		list_for_each_entry(instance, &tz->thermal_instances, tz_node) {
--			if (instance->trip != trip)
--				continue;
--
--			cdev = instance->cdev;
--
--			cdev->ops->get_cur_state(cdev, &cur_state);
--			cdev->ops->get_max_state(cdev, &max_state);
--
--			if (trend == THERMAL_TREND_RAISING) {
--				cur_state = cur_state < instance->upper ?
--					    (cur_state + 1) : instance->upper;
--			} else if (trend == THERMAL_TREND_DROPPING) {
--				cur_state = cur_state > instance->lower ?
--				    (cur_state - 1) : instance->lower;
--			}
--
--			/* activate a passive thermal instance */
--			if ((trip_type == THERMAL_TRIP_PASSIVE ||
--			     trip_type == THERMAL_TRIPS_NONE) &&
--			     instance->target == THERMAL_NO_TARGET)
--				tz->passive++;
--
--			instance->target = cur_state;
--			cdev->updated = false; /* cooling device needs update */
--		}
--	} else {	/* below trip */
--		list_for_each_entry(instance, &tz->thermal_instances, tz_node) {
--			if (instance->trip != trip)
--				continue;
--
--			/* Do not use the inactive thermal instance */
--			if (instance->target == THERMAL_NO_TARGET)
--				continue;
--			cdev = instance->cdev;
--			cdev->ops->get_cur_state(cdev, &cur_state);
--
--			cur_state = cur_state > instance->lower ?
--				    (cur_state - 1) : THERMAL_NO_TARGET;
--
--			/* deactivate a passive thermal instance */
--			if ((trip_type == THERMAL_TRIP_PASSIVE ||
--			     trip_type == THERMAL_TRIPS_NONE) &&
--			     cur_state == THERMAL_NO_TARGET)
--				tz->passive--;
--			instance->target = cur_state;
--			cdev->updated = false; /* cooling device needs update */
--		}
--	}
--
--	return;
--}
--/**
-- * thermal_zone_device_update - force an update of a thermal zone's state
-- * @ttz:	the thermal zone to update
-- */
--
--void thermal_zone_device_update(struct thermal_zone_device *tz)
--{
--	int count, ret = 0;
--	long temp, trip_temp;
--	enum thermal_trip_type trip_type;
--
--	mutex_lock(&tz->lock);
--
--	if (tz->ops->get_temp(tz, &temp)) {
--		/* get_temp failed - retry it later */
--		pr_warn("failed to read out thermal zone %d\n", tz->id);
--		goto leave;
--	}
--
--	tz->last_temperature = tz->temperature;
--	tz->temperature = temp;
--
--	for (count = 0; count < tz->trips; count++) {
--		tz->ops->get_trip_type(tz, count, &trip_type);
--		tz->ops->get_trip_temp(tz, count, &trip_temp);
--
--		switch (trip_type) {
--		case THERMAL_TRIP_CRITICAL:
--			if (temp >= trip_temp) {
--				if (tz->ops->notify)
--					ret = tz->ops->notify(tz, count,
--							      trip_type);
--				if (!ret) {
--					pr_emerg("Critical temperature reached (%ld C), shutting down\n",
--						 temp/1000);
--					orderly_poweroff(true);
--				}
--			}
--			break;
--		case THERMAL_TRIP_HOT:
--			if (temp >= trip_temp)
--				if (tz->ops->notify)
--					tz->ops->notify(tz, count, trip_type);
--			break;
--		case THERMAL_TRIP_ACTIVE:
--			thermal_zone_trip_update(tz, count, temp);
--			break;
--		case THERMAL_TRIP_PASSIVE:
--			if (temp >= trip_temp || tz->passive)
--				thermal_zone_trip_update(tz, count, temp);
--			break;
--		}
--	}
--
--	if (tz->forced_passive)
--		thermal_zone_trip_update(tz, THERMAL_TRIPS_NONE, temp);
--	thermal_zone_do_update(tz);
--
--leave:
--	if (tz->passive)
--		thermal_zone_device_set_polling(tz, tz->passive_delay);
--	else if (tz->polling_delay)
--		thermal_zone_device_set_polling(tz, tz->polling_delay);
--	else
--		thermal_zone_device_set_polling(tz, 0);
--	mutex_unlock(&tz->lock);
--}
--EXPORT_SYMBOL(thermal_zone_device_update);
--
- /**
-  * create_trip_attrs - create attributes for trip points
-  * @tz:		the thermal zone device
++policy
++	One of the various thermal governors used for a particular zone.
++	RW, Required
++
+ trip_point_[0-*]_temp
+ 	The temperature above which trip point will be fired.
+ 	Unit: millidegree Celsius
+@@ -264,6 +292,7 @@ method, the sys I/F structure will be built like this:
+     |---type:			acpitz
+     |---temp:			37000
+     |---mode:			enabled
++    |---policy:			step_wise
+     |---trip_point_0_temp:	100000
+     |---trip_point_0_type:	critical
+     |---trip_point_1_temp:	80000
+@@ -305,3 +334,38 @@ to a thermal_zone_device when it registers itself with the framework. The
+ event will be one of:{THERMAL_AUX0, THERMAL_AUX1, THERMAL_CRITICAL,
+ THERMAL_DEV_FAULT}. Notification can be sent when the current temperature
+ crosses any of the configured thresholds.
++
++5. Export Symbol APIs:
++
++5.1: get_tz_trend:
++This function returns the trend of a thermal zone, i.e the rate of change
++of temperature of the thermal zone. Ideally, the thermal sensor drivers
++are supposed to implement the callback. If they don't, the thermal
++framework calculated the trend by comparing the previous and the current
++temperature values.
++
++5.2:get_thermal_instance:
++This function returns the thermal_instance corresponding to a given
++{thermal_zone, cooling_device, trip_point} combination. Returns NULL
++if such an instance does not exist.
++
++5.3:notify_thermal_framework:
++This function handles the trip events from sensor drivers. It starts
++throttling the cooling devices according to the policy configured.
++For CRITICAL and HOT trip points, this notifies the respective drivers,
++and does actual throttling for other trip points i.e ACTIVE and PASSIVE.
++The throttling policy is based on the configured platform data; if no
++platform data is provided, this uses the step_wise throttling policy.
++
++5.4:thermal_cdev_update:
++This function serves as an arbitrator to set the state of a cooling
++device. It sets the cooling device to the deepest cooling state if
++possible.
++
++5.5:thermal_register_governor:
++This function lets the various thermal governors to register themselves
++with the Thermal framework. At run time, depending on a zone's platform
++data, a particular governor is used for throttling.
++
++5.6:thermal_unregister_governor:
++This function unregisters a governor from the thermal framework.
 -- 
 1.7.9.5
 
