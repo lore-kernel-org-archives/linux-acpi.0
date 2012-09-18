@@ -1,192 +1,201 @@
 From: Durgadoss R <durgadoss.r@intel.com>
-Subject: [PATCHv4 05/15] Thermal: Pass zone parameters as argument to tzd_register
-Date: Tue, 18 Sep 2012 11:04:56 +0530
-Message-ID: <1347946506-18449-6-git-send-email-durgadoss.r@intel.com>
+Subject: [PATCHv4 06/15] Thermal: Add thermal governor registration APIs
+Date: Tue, 18 Sep 2012 11:04:57 +0530
+Message-ID: <1347946506-18449-7-git-send-email-durgadoss.r@intel.com>
 References: <1347946506-18449-1-git-send-email-durgadoss.r@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga02.intel.com ([134.134.136.20]:28021 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754791Ab2IRFgP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 18 Sep 2012 01:36:15 -0400
+	id S1754791Ab2IRFgR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Sep 2012 01:36:17 -0400
 In-Reply-To: <1347946506-18449-1-git-send-email-durgadoss.r@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org, rui.zhang@intel.com
 Cc: linux-acpi@vger.kernel.org, eduardo.valentin@ti.com, Durgadoss R <durgadoss.r@intel.com>
 
-This patch adds the thermal zone parameter as an argument to
-the tzd_register() function call; and updates other drivers
-using this function.
+This patch creates a structure to hold platform
+thermal governor information, and provides APIs
+for individual thermal governors to register/unregister
+with the Thermal framework.
 
 Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
 ---
- drivers/acpi/thermal.c                             |    6 +++---
- drivers/platform/x86/acerhdf.c                     |    2 +-
- drivers/platform/x86/intel_mid_thermal.c           |    2 +-
- drivers/power/power_supply_core.c                  |    2 +-
- drivers/staging/omap-thermal/omap-thermal-common.c |    2 +-
- drivers/thermal/exynos_thermal.c                   |    2 +-
- drivers/thermal/rcar_thermal.c                     |    2 +-
- drivers/thermal/spear_thermal.c                    |    2 +-
- drivers/thermal/thermal_sys.c                      |    3 +++
- include/linux/thermal.h                            |    3 ++-
- 10 files changed, 15 insertions(+), 11 deletions(-)
+ drivers/thermal/thermal_sys.c |   90 +++++++++++++++++++++++++++++++++++++++++
+ include/linux/thermal.h       |   16 ++++++++
+ 2 files changed, 106 insertions(+)
 
-diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-index bd66bd2..d999eda 100644
---- a/drivers/acpi/thermal.c
-+++ b/drivers/acpi/thermal.c
-@@ -898,14 +898,14 @@ static int acpi_thermal_register_thermal_zone(struct acpi_thermal *tz)
- 	if (tz->trips.passive.flags.valid)
- 		tz->thermal_zone =
- 			thermal_zone_device_register("acpitz", trips, 0, tz,
--						     &acpi_thermal_zone_ops,
-+						&acpi_thermal_zone_ops, NULL,
- 						     tz->trips.passive.tsp*100,
- 						     tz->polling_frequency*100);
- 	else
- 		tz->thermal_zone =
- 			thermal_zone_device_register("acpitz", trips, 0, tz,
--						     &acpi_thermal_zone_ops, 0,
--						     tz->polling_frequency*100);
-+						&acpi_thermal_zone_ops, NULL,
-+						0, tz->polling_frequency*100);
- 	if (IS_ERR(tz->thermal_zone))
- 		return -ENODEV;
- 
-diff --git a/drivers/platform/x86/acerhdf.c b/drivers/platform/x86/acerhdf.c
-index 84c5688..c2e3e63 100644
---- a/drivers/platform/x86/acerhdf.c
-+++ b/drivers/platform/x86/acerhdf.c
-@@ -662,7 +662,7 @@ static int acerhdf_register_thermal(void)
- 		return -EINVAL;
- 
- 	thz_dev = thermal_zone_device_register("acerhdf", 1, 0, NULL,
--					      &acerhdf_dev_ops, 0,
-+					      &acerhdf_dev_ops, NULL, 0,
- 					      (kernelmode) ? interval*1000 : 0);
- 	if (IS_ERR(thz_dev))
- 		return -EINVAL;
-diff --git a/drivers/platform/x86/intel_mid_thermal.c b/drivers/platform/x86/intel_mid_thermal.c
-index c809761..93de090 100644
---- a/drivers/platform/x86/intel_mid_thermal.c
-+++ b/drivers/platform/x86/intel_mid_thermal.c
-@@ -502,7 +502,7 @@ static int mid_thermal_probe(struct platform_device *pdev)
- 			goto err;
- 		}
- 		pinfo->tzd[i] = thermal_zone_device_register(name[i],
--				0, 0, td_info, &tzd_ops, 0, 0);
-+				0, 0, td_info, &tzd_ops, NULL, 0, 0);
- 		if (IS_ERR(pinfo->tzd[i])) {
- 			kfree(td_info);
- 			ret = PTR_ERR(pinfo->tzd[i]);
-diff --git a/drivers/power/power_supply_core.c b/drivers/power/power_supply_core.c
-index 2436f13..f77a412 100644
---- a/drivers/power/power_supply_core.c
-+++ b/drivers/power/power_supply_core.c
-@@ -201,7 +201,7 @@ static int psy_register_thermal(struct power_supply *psy)
- 	for (i = 0; i < psy->num_properties; i++) {
- 		if (psy->properties[i] == POWER_SUPPLY_PROP_TEMP) {
- 			psy->tzd = thermal_zone_device_register(psy->name, 0, 0,
--					psy, &psy_tzd_ops, 0, 0);
-+					psy, &psy_tzd_ops, NULL, 0, 0);
- 			if (IS_ERR(psy->tzd))
- 				return PTR_ERR(psy->tzd);
- 			break;
-diff --git a/drivers/staging/omap-thermal/omap-thermal-common.c b/drivers/staging/omap-thermal/omap-thermal-common.c
-index b4cd6cc..342be75 100644
---- a/drivers/staging/omap-thermal/omap-thermal-common.c
-+++ b/drivers/staging/omap-thermal/omap-thermal-common.c
-@@ -248,7 +248,7 @@ int omap_thermal_expose_sensor(struct omap_bandgap *bg_ptr, int id,
- 	/* Create thermal zone */
- 	data->omap_thermal = thermal_zone_device_register(domain,
- 				OMAP_TRIP_NUMBER, 0, data, &omap_thermal_ops,
--				0, FAST_TEMP_MONITORING_RATE);
-+				NULL, FAST_TEMP_MONITORING_RATE, 0);
- 	if (IS_ERR_OR_NULL(data->omap_thermal)) {
- 		dev_err(bg_ptr->dev, "thermal zone device is NULL\n");
- 		return PTR_ERR(data->omap_thermal);
-diff --git a/drivers/thermal/exynos_thermal.c b/drivers/thermal/exynos_thermal.c
-index e84acde..4b203b6 100644
---- a/drivers/thermal/exynos_thermal.c
-+++ b/drivers/thermal/exynos_thermal.c
-@@ -451,7 +451,7 @@ static int exynos_register_thermal(struct thermal_sensor_conf *sensor_conf)
- 	th_zone->cool_dev_size++;
- 
- 	th_zone->therm_dev = thermal_zone_device_register(sensor_conf->name,
--			EXYNOS_ZONE_COUNT, 0, NULL, &exynos_dev_ops, 0,
-+			EXYNOS_ZONE_COUNT, 0, NULL, &exynos_dev_ops, NULL, 0,
- 			IDLE_INTERVAL);
- 
- 	if (IS_ERR(th_zone->therm_dev)) {
-diff --git a/drivers/thermal/rcar_thermal.c b/drivers/thermal/rcar_thermal.c
-index d445271..b13fe5d 100644
---- a/drivers/thermal/rcar_thermal.c
-+++ b/drivers/thermal/rcar_thermal.c
-@@ -211,7 +211,7 @@ static int rcar_thermal_probe(struct platform_device *pdev)
- 	}
- 
- 	zone = thermal_zone_device_register("rcar_thermal", 0, priv,
--					    &rcar_thermal_zone_ops, 0, 0);
-+				    &rcar_thermal_zone_ops, NULL, 0, 0);
- 	if (IS_ERR(zone)) {
- 		dev_err(&pdev->dev, "thermal zone device is NULL\n");
- 		ret = PTR_ERR(zone);
-diff --git a/drivers/thermal/spear_thermal.c b/drivers/thermal/spear_thermal.c
-index 9bc9692..6b2d8b2 100644
---- a/drivers/thermal/spear_thermal.c
-+++ b/drivers/thermal/spear_thermal.c
-@@ -147,7 +147,7 @@ static int spear_thermal_probe(struct platform_device *pdev)
- 	writel_relaxed(stdev->flags, stdev->thermal_base);
- 
- 	spear_thermal = thermal_zone_device_register("spear_thermal", 0, 0,
--				stdev, &ops, 0, 0);
-+				stdev, &ops, NULL, 0, 0);
- 	if (IS_ERR(spear_thermal)) {
- 		dev_err(&pdev->dev, "thermal zone device is NULL\n");
- 		ret = PTR_ERR(spear_thermal);
 diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
-index 798c628..980d347 100644
+index 980d347..a67c6c0 100644
 --- a/drivers/thermal/thermal_sys.c
 +++ b/drivers/thermal/thermal_sys.c
-@@ -1344,6 +1344,7 @@ static void remove_trip_attrs(struct thermal_zone_device *tz)
-  * @mask:	a bit string indicating the writeablility of trip points
-  * @devdata:	private device data
-  * @ops:	standard thermal zone device callbacks
-+ * @tzp:	thermal zone platform parameters
-  * @passive_delay: number of milliseconds to wait between polls when
-  *		   performing passive cooling
-  * @polling_delay: number of milliseconds to wait between polls when checking
-@@ -1356,6 +1357,7 @@ static void remove_trip_attrs(struct thermal_zone_device *tz)
- struct thermal_zone_device *thermal_zone_device_register(const char *type,
- 	int trips, int mask, void *devdata,
- 	const struct thermal_zone_device_ops *ops,
-+	const struct thermal_zone_params *tzp,
- 	int passive_delay, int polling_delay)
- {
- 	struct thermal_zone_device *tz;
-@@ -1389,6 +1391,7 @@ struct thermal_zone_device *thermal_zone_device_register(const char *type,
+@@ -49,7 +49,86 @@ static DEFINE_MUTEX(thermal_idr_lock);
  
- 	strcpy(tz->type, type ? : "");
- 	tz->ops = ops;
-+	tz->tzp = tzp;
- 	tz->device.class = &thermal_class;
- 	tz->devdata = devdata;
- 	tz->trips = trips;
+ static LIST_HEAD(thermal_tz_list);
+ static LIST_HEAD(thermal_cdev_list);
++static LIST_HEAD(thermal_governor_list);
++
+ static DEFINE_MUTEX(thermal_list_lock);
++static DEFINE_MUTEX(thermal_governor_lock);
++
++static struct thermal_governor *__find_governor(const char *name)
++{
++	struct thermal_governor *pos;
++
++	list_for_each_entry(pos, &thermal_governor_list, governor_list)
++		if (!strnicmp(name, pos->name, THERMAL_NAME_LENGTH))
++			return pos;
++
++	return NULL;
++}
++
++int thermal_register_governor(struct thermal_governor *governor)
++{
++	int err;
++	const char *name;
++	struct thermal_zone_device *pos;
++
++	if (!governor)
++		return -EINVAL;
++
++	mutex_lock(&thermal_governor_lock);
++
++	err = -EBUSY;
++	if (__find_governor(governor->name) == NULL) {
++		err = 0;
++		list_add(&governor->governor_list, &thermal_governor_list);
++	}
++
++	mutex_lock(&thermal_list_lock);
++
++	list_for_each_entry(pos, &thermal_tz_list, node) {
++		if (pos->governor)
++			continue;
++		if (pos->tzp)
++			name = pos->tzp->governor_name;
++		else
++			name = DEFAULT_THERMAL_GOVERNOR;
++		if (!strnicmp(name, governor->name, THERMAL_NAME_LENGTH))
++			pos->governor = governor;
++	}
++
++	mutex_unlock(&thermal_list_lock);
++	mutex_unlock(&thermal_governor_lock);
++
++	return err;
++}
++EXPORT_SYMBOL_GPL(thermal_register_governor);
++
++void thermal_unregister_governor(struct thermal_governor *governor)
++{
++	struct thermal_zone_device *pos;
++
++	if (!governor)
++		return;
++
++	mutex_lock(&thermal_governor_lock);
++
++	if (__find_governor(governor->name) == NULL)
++		goto exit;
++
++	mutex_lock(&thermal_list_lock);
++
++	list_for_each_entry(pos, &thermal_tz_list, node) {
++		if (!strnicmp(pos->governor->name, governor->name,
++						THERMAL_NAME_LENGTH))
++			pos->governor = NULL;
++	}
++
++	mutex_unlock(&thermal_list_lock);
++	list_del(&governor->governor_list);
++exit:
++	mutex_unlock(&thermal_governor_lock);
++	return;
++}
++EXPORT_SYMBOL_GPL(thermal_unregister_governor);
+ 
+ static int get_idr(struct idr *idr, struct mutex *lock, int *id)
+ {
+@@ -1440,6 +1519,16 @@ struct thermal_zone_device *thermal_zone_device_register(const char *type,
+ 	if (result)
+ 		goto unregister;
+ 
++	/* Update 'this' zone's governor information */
++	mutex_lock(&thermal_governor_lock);
++
++	if (tz->tzp)
++		tz->governor = __find_governor(tz->tzp->governor_name);
++	else
++		tz->governor = __find_governor(DEFAULT_THERMAL_GOVERNOR);
++
++	mutex_unlock(&thermal_governor_lock);
++
+ 	result = thermal_add_hwmon_sysfs(tz);
+ 	if (result)
+ 		goto unregister;
+@@ -1503,6 +1592,7 @@ void thermal_zone_device_unregister(struct thermal_zone_device *tz)
+ 	if (tz->ops->get_mode)
+ 		device_remove_file(&tz->device, &dev_attr_mode);
+ 	remove_trip_attrs(tz);
++	tz->governor = NULL;
+ 
+ 	thermal_remove_hwmon_sysfs(tz);
+ 	release_idr(&thermal_tz_idr, &thermal_idr_lock, tz->id);
 diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-index 4caa32e..58cb1c0 100644
+index 58cb1c0..6182bd5 100644
 --- a/include/linux/thermal.h
 +++ b/include/linux/thermal.h
-@@ -200,7 +200,8 @@ struct thermal_genl_event {
+@@ -46,6 +46,9 @@
+ #define THERMAL_GENL_VERSION                    0x01
+ #define THERMAL_GENL_MCAST_GROUP_NAME           "thermal_mc_group"
  
- /* Function declarations */
- struct thermal_zone_device *thermal_zone_device_register(const char *, int, int,
--		void *, const struct thermal_zone_device_ops *, int, int);
-+		void *, const struct thermal_zone_device_ops *,
-+		const struct thermal_zone_params *, int, int);
- void thermal_zone_device_unregister(struct thermal_zone_device *);
++/* Default Thermal Governor: Does Linear Throttling */
++#define DEFAULT_THERMAL_GOVERNOR	"step_wise"
++
+ struct thermal_zone_device;
+ struct thermal_cooling_device;
  
- int thermal_zone_bind_cooling_device(struct thermal_zone_device *, int,
+@@ -158,6 +161,7 @@ struct thermal_zone_device {
+ 	unsigned int forced_passive;
+ 	const struct thermal_zone_device_ops *ops;
+ 	const struct thermal_zone_params *tzp;
++	struct thermal_governor *governor;
+ 	struct list_head thermal_instances;
+ 	struct idr idr;
+ 	struct mutex lock; /* protect thermal_instances list */
+@@ -165,6 +169,14 @@ struct thermal_zone_device {
+ 	struct delayed_work poll_queue;
+ };
+ 
++/* Structure that holds thermal governor information */
++struct thermal_governor {
++	char name[THERMAL_NAME_LENGTH];
++	int (*throttle)(struct thermal_zone_device *tz, int trip);
++	struct list_head	governor_list;
++	struct module		*owner;
++};
++
+ /* Structure that holds binding parameters for a zone */
+ struct thermal_bind_params {
+ 	struct thermal_cooling_device *cdev;
+@@ -189,6 +201,7 @@ struct thermal_bind_params {
+ 
+ /* Structure to define Thermal Zone parameters */
+ struct thermal_zone_params {
++	char governor_name[THERMAL_NAME_LENGTH];
+ 	int num_tbps;	/* Number of tbp entries */
+ 	struct thermal_bind_params *tbp;
+ };
+@@ -219,6 +232,9 @@ int get_tz_trend(struct thermal_zone_device *, int);
+ struct thermal_instance *get_thermal_instance(struct thermal_zone_device *,
+ 		struct thermal_cooling_device *, int);
+ 
++int thermal_register_governor(struct thermal_governor *);
++void thermal_unregister_governor(struct thermal_governor *);
++
+ #ifdef CONFIG_NET
+ extern int thermal_generate_netlink_event(u32 orig, enum events event);
+ #else
 -- 
 1.7.9.5
 
