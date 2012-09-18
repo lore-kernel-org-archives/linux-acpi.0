@@ -1,89 +1,91 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
-Subject: RE: [PATCHv4 11/15] Thermal: Introduce a step_wise thermal governor
-Date: Tue, 18 Sep 2012 08:32:57 +0000
-Message-ID: <4D68720C2E767A4AA6A8796D42C8EB591BD489@BGSMSX101.gar.corp.intel.com>
-References: <1347946506-18449-1-git-send-email-durgadoss.r@intel.com>
-	 <1347946506-18449-12-git-send-email-durgadoss.r@intel.com>
-	 <1347952410.1682.1227.camel@rui.sh.intel.com>
-	 <4D68720C2E767A4AA6A8796D42C8EB591BD338@BGSMSX101.gar.corp.intel.com>
- <1347956520.1682.1231.camel@rui.sh.intel.com>
+From: Wen Congyang <wency@cn.fujitsu.com>
+Subject: Re: [RFC v8 PATCH 00/20] memory-hotplug: hot-remove physical memory
+Date: Tue, 18 Sep 2012 17:39:37 +0800
+Message-ID: <50584159.3020403@cn.fujitsu.com>
+References: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com> <20120831134956.fec0f681.akpm@linux-foundation.org> <504D467D.2080201@jp.fujitsu.com> <504D4A08.7090602@cn.fujitsu.com> <20120910135213.GA1550@dhcp-192-168-178-175.profitbricks.localdomain> <50501B9C.7000200@cn.fujitsu.com> <20120912171814.GB5253@dhcp-192-168-178-175.profitbricks.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:1270 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932591Ab2IRIdV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 18 Sep 2012 04:33:21 -0400
-In-Reply-To: <1347956520.1682.1231.camel@rui.sh.intel.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <20120912171814.GB5253@dhcp-192-168-178-175.profitbricks.localdomain>
+Sender: linux-ia64-owner@vger.kernel.org
+To: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Andrew Morton <akpm@linux-foundation.org>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>
 
-SGkgUnVpLA0KDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogWmhhbmcs
-IFJ1aQ0KPiBTZW50OiBUdWVzZGF5LCBTZXB0ZW1iZXIgMTgsIDIwMTIgMTo1MiBQTQ0KPiBUbzog
-UiwgRHVyZ2Fkb3NzDQo+IENjOiBsZW5iQGtlcm5lbC5vcmc7IGxpbnV4LWFjcGlAdmdlci5rZXJu
-ZWwub3JnOyBlZHVhcmRvLnZhbGVudGluQHRpLmNvbQ0KPiBTdWJqZWN0OiBSRTogW1BBVENIdjQg
-MTEvMTVdIFRoZXJtYWw6IEludHJvZHVjZSBhIHN0ZXBfd2lzZSB0aGVybWFsDQo+IGdvdmVybm9y
-DQo+IA0KPiBPbiDkuowsIDIwMTItMDktMTggYXQgMDI6MTEgLTA2MDAsIFIsIER1cmdhZG9zcyB3
-cm90ZToNCj4gPiBIaSBSdWksDQo+ID4NCj4gPg0KPiA+ID4gLS0tLS1PcmlnaW5hbCBNZXNzYWdl
-LS0tLS0NCj4gPiA+IEZyb206IGxpbnV4LWFjcGktb3duZXJAdmdlci5rZXJuZWwub3JnIFttYWls
-dG86bGludXgtYWNwaS0NCj4gPiA+IG93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9m
-IFpoYW5nIFJ1aQ0KPiA+ID4gU2VudDogVHVlc2RheSwgU2VwdGVtYmVyIDE4LCAyMDEyIDEyOjQ0
-IFBNDQo+ID4gPiBUbzogUiwgRHVyZ2Fkb3NzDQo+ID4gPiBDYzogbGVuYkBrZXJuZWwub3JnOyBs
-aW51eC1hY3BpQHZnZXIua2VybmVsLm9yZzsNCj4gZWR1YXJkby52YWxlbnRpbkB0aS5jb20NCj4g
-PiA+IFN1YmplY3Q6IFJlOiBbUEFUQ0h2NCAxMS8xNV0gVGhlcm1hbDogSW50cm9kdWNlIGEgc3Rl
-cF93aXNlIHRoZXJtYWwNCj4gPiA+IGdvdmVybm9yDQo+ID4gPg0KPiA+ID4gT24g5LqMLCAyMDEy
-LTA5LTE4IGF0IDExOjA1ICswNTMwLCBEdXJnYWRvc3MgUiB3cm90ZToNCj4gPiA+ID4gVGhpcyBw
-YXRjaCBhZGRzIGEgc2ltcGxlIHN0ZXBfd2lzZSBnb3Zlcm5vciB0byB0aGUNCj4gPiA+ID4gZ2Vu
-ZXJpYyB0aGVybWFsIGxheWVyLiBUaGlzIGFsZ29yaXRobSB0aHJvdHRsZXMgdGhlDQo+ID4gPiA+
-IGNvb2xpbmcgZGV2aWNlcyBpbiBhIGxpbmVhciBmYXNoaW9uLiBJZiB0aGUgJ3RyZW5kJw0KPiA+
-ID4gPiBpcyBoZWF0aW5nLCBpdCB0aHJvdHRsZXMgYnkgb25lIHN0ZXAuIEFuZCBpZiB0aGUNCj4g
-PiA+ID4gdGhlcm1hbCB0cmVuZCBpcyBjb29saW5nIGl0IGRlLXRocm90dGxlcyBieSBvbmUgc3Rl
-cC4NCj4gPiA+ID4NCj4gPiA+ID4gVGhpcyBhY3R1YWxseSBtb3ZlcyB0aGUgdGhyb3R0bGluZyBs
-b2dpYyBmcm9tIHRoZXJtYWxfc3lzLmMNCj4gPiA+ID4gYW5kIHB1dHMgaW5zaWRlIHN0ZXBfd2lz
-ZS5jLCB3aXRob3V0IGFueSBjaGFuZ2UuIFRoaXMgaXMNCj4gPiA+ID4gYWx3YXlzIHNlbGVjdGVk
-IGFzIHRoZSBkZWZhdWx0IGdvdmVybm9yLg0KPiA+ID4gPg0KPiA+ID4gPiBTaWduZWQtb2ZmLWJ5
-OiBEdXJnYWRvc3MgUiA8ZHVyZ2Fkb3NzLnJAaW50ZWwuY29tPg0KPiA+ID4gPiAtLS0NCj4gPiA+
-ID4gIGRyaXZlcnMvdGhlcm1hbC9LY29uZmlnICAgICB8ICAgIDcgKysNCj4gPiA+ID4gIGRyaXZl
-cnMvdGhlcm1hbC9NYWtlZmlsZSAgICB8ICAgIDEgKw0KPiA+ID4gPiAgZHJpdmVycy90aGVybWFs
-L3N0ZXBfd2lzZS5jIHwgIDE5NA0KPiA+ID4gKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKw0KPiA+ID4gPiAgMyBmaWxlcyBjaGFuZ2VkLCAyMDIgaW5zZXJ0aW9ucygr
-KQ0KPiA+ID4gPiAgY3JlYXRlIG1vZGUgMTAwNjQ0IGRyaXZlcnMvdGhlcm1hbC9zdGVwX3dpc2Uu
-Yw0KPiA+ID4gPg0KPiA+ID4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy90aGVybWFsL0tjb25maWcg
-Yi9kcml2ZXJzL3RoZXJtYWwvS2NvbmZpZw0KPiA+ID4gPiBpbmRleCAyMjAwOTEyLi45ZjZhM2Fh
-IDEwMDY0NA0KPiA+ID4gPiAtLS0gYS9kcml2ZXJzL3RoZXJtYWwvS2NvbmZpZw0KPiA+ID4gPiAr
-KysgYi9kcml2ZXJzL3RoZXJtYWwvS2NvbmZpZw0KPiA+ID4gPiBAQCAtNCw2ICs0LDcgQEANCj4g
-PiA+ID4NCj4gPiA+ID4gIG1lbnVjb25maWcgVEhFUk1BTA0KPiA+ID4gPiAgCXRyaXN0YXRlICJH
-ZW5lcmljIFRoZXJtYWwgc3lzZnMgZHJpdmVyIg0KPiA+ID4gPiArCXNlbGVjdCBTVEVQX1dJU0UN
-Cj4gPiA+ID4gIAloZWxwDQo+ID4gPiA+ICAJICBHZW5lcmljIFRoZXJtYWwgU3lzZnMgZHJpdmVy
-IG9mZmVycyBhIGdlbmVyaWMgbWVjaGFuaXNtIGZvcg0KPiA+ID4gPiAgCSAgdGhlcm1hbCBtYW5h
-Z2VtZW50LiBVc3VhbGx5IGl0J3MgbWFkZSB1cCBvZiBvbmUgb3IgbW9yZSB0aGVybWFsDQo+ID4g
-PiA+IEBAIC01OSwzICs2MCw5IEBAIGNvbmZpZyBGQUlSX1NIQVJFDQo+ID4gPiA+ICAJZGVwZW5k
-cyBvbiBUSEVSTUFMDQo+ID4gPiA+ICAJaGVscA0KPiA+ID4gPiAgCSAgRW5hYmxlIHRoaXMgdG8g
-bWFuYWdlIHBsYXRmb3JtIHRoZXJtYWxzIHVzaW5nIGZhaXItc2hhcmUgZ292ZXJub3IuDQo+ID4g
-PiA+ICsNCj4gPiA+ID4gK2NvbmZpZyBTVEVQX1dJU0UNCj4gPiA+ID4gKwlib29sICJTdGVwX3dp
-c2UgdGhlcm1hbCBnb3Zlcm5vciINCj4gPiA+ID4gKwlkZXBlbmRzIG9uIFRIRVJNQUwNCj4gPiA+
-ID4gKwloZWxwDQo+ID4gPiA+ICsJICBFbmFibGUgdGhpcyB0byBtYW5hZ2UgcGxhdGZvcm0gdGhl
-cm1hbHMgdXNpbmcgYSBzaW1wbGUgbGluZWFyDQo+ID4gPg0KPiA+ID4gaWYgd2UgYWx3YXlzIHdh
-bnRzIENPTkZJR19TVEVQX1dJU0UgYnVpbHQgaW4sIHdoeSBib3RoZXIgdG8gZXhwb3J0DQo+IHRo
-aXMNCj4gPiA+IGNvbmZpZyBvcHRpb24gdG8gdXNlcnM/DQo+ID4gPg0KPiA+ID4gSU1PLCBzb21l
-dGhpbmcgbGlrZQ0KPiA+ID4gIG1lbnVjb25maWcgVEhFUk1BTA0KPiA+ID4gICAJdHJpc3RhdGUg
-IkdlbmVyaWMgVGhlcm1hbCBzeXNmcyBkcml2ZXIiDQo+ID4gPiAJc2VsZWN0IFNURVBfV0lTRQ0K
-PiA+ID4NCj4gPiA+ICBjb25maWcgU1RFUF9XSVNFDQo+ID4gPiAJYm9vbA0KPiA+ID4gCWRlcGVu
-ZHMgb24gVEhFUk1BTA0KPiA+ID4NCj4gPiA+IGlzIGVub3VnaCwgU0VUUF9XSVNFIHdpbGwgYWx3
-YXlzIGJlIHNlbGVjdGVkLg0KPiA+ID4NCj4gPiA+IGZ1cnRoZXIgbW9yZSwgd2UgZXZlbiBkbyBu
-b3QgbmVlZCBhIGNvbmZpZyBvcHRpb24gZm9yIHRoaXMgZ292ZXJub3IsDQo+ID4gPiBqdXN0ICJv
-YmoteSArPSBzdGVwX3dpc2UubyIgaW4gTWFrZWZpbGUuDQo+ID4NCj4gPiBZZXMsIFRob3VnaHQg
-dGhyb3VnaCB0aGlzLiBCdXQgSSB0aG91Z2h0IGl0IHdvdWxkIGJlIGdvb2QgdG8gYWxpZ24gdGhp
-cw0KPiA+IHdpdGggdGhlIHJlc3Qgb2YgdGhlIGdvdmVybm9ycy4NCj4gPg0KPiANCj4gd2UnZCBi
-ZXR0ZXIgZm9sbG93IGNwdWZyZXEgZ292ZXJub3IgdG8gYWxsb3cgdXNlcnMgdG8gc2VsZWN0IHRo
-ZSBkZWZhdWx0DQo+IGdvdmVybm9yLCBvciBlbHNlIHRoaXMgY29uZmlndXJlIG9wdGlvbiBpcyBu
-ZWVkbGVzcyBiZWNhdXNlIHdlIG5ldmVyDQo+IHdhbnQgaXQgdG8gYmUgY2xlYXJlZCB3aXRoIENP
-TkZJR19USEVSTUFMPXkuDQoNCkkgd291bGQgcHJlZmVyIG5vdCB0byBnaXZlIGFueSBjb25maWd1
-cmUgb3B0aW9uLCB3aGljaCBleGFjdGx5DQppcyBvdXIgb2xkIGJlaGF2aW9yLiBJbiB0aGlzIGNh
-c2UsIHlvdSB3YW50IG1lIHRvIGZpeCBpdCBhbmQNCnJlLXNlbmQgMTEvMTUgb3IgeW91IGFyZSBy
-ZXZpZXdpbmcgYW5kIHNob3VsZCBJIHdhaXQgZm9yDQpjb21tZW50cyBvbiBvdGhlciBwYXRjaGVz
-ID8NCg0KVGhhbmtzLA0KRHVyZ2ENCg==
+At 09/13/2012 01:18 AM, Vasilis Liaskovitis Wrote:
+> Hi,
+> 
+> On Wed, Sep 12, 2012 at 01:20:28PM +0800, Wen Congyang wrote:
+>>>
+>>> On Mon, Sep 10, 2012 at 10:01:44AM +0800, Wen Congyang wrote:
+>>>> At 09/10/2012 09:46 AM, Yasuaki Ishimatsu Wrote:
+>>>>> How do you test the patch? As Andrew says, for hot-removing memory,
+>>>>> we need a particular hardware. I think so too. So many people may want
+>>>>> to know how to test the patch.
+>>>>> If we apply following patch to kvm guest, can we hot-remove memory on
+>>>>> kvm guest?
+>>>>>
+>>>>> http://lists.gnu.org/archive/html/qemu-devel/2012-07/msg01389.html
+>>>>
+>>>> Yes, if we apply this patchset, we can test hot-remove memory on kvm guest.
+>>>> But that patchset doesn't implement _PS3, so there is some restriction.
+>>>
+>>> the following repos contain the patchset above, plus 2 more patches that add
+>>> PS3 support to the dimm devices in qemu/seabios:
+>>>
+>>> https://github.com/vliaskov/seabios/commits/memhp-v2
+>>> https://github.com/vliaskov/qemu-kvm/commits/memhp-v2
+>>>
+>>> I have not posted the PS3 patches yet in the qemu list, but will post them
+>>> soon for v3 of the memory hotplug series. If you have issues testing, let me
+>>> know.
+>>
+>> Hmm, seabios doesn't support ACPI table SLIT. We can specify node it for dimm
+>> device, so I think we should support SLIT in seabios. Otherwise we may meet
+>> the following kernel messages:
+>> [  325.016769] init_memory_mapping: [mem 0x40000000-0x5fffffff]
+>> [  325.018060]  [mem 0x40000000-0x5fffffff] page 2M
+>> [  325.019168] [ffffea0001000000-ffffea00011fffff] potential offnode page_structs
+>> [  325.024172] [ffffea0001200000-ffffea00013fffff] potential offnode page_structs
+>> [  325.028596]  [ffffea0001400000-ffffea00017fffff] PMD -> [ffff880035000000-ffff8800353fffff] on node 1
+>> [  325.031775] [ffffea0001600000-ffffea00017fffff] potential offnode page_structs
+>>
+>> Do you have plan to do it?
+> thanks for testing.
+> 
+> commit 5294828 from https://github.com/vliaskov/seabios/commits/memhp-v2
+> implements a SLIT table for the given numa nodes.
+
+Hmm, why do you set node_distance(i, j) to REMOTE_DISTANCE if i != j?
+
+> 
+> However I am not sure the SLIT is the problem. The kernel builds a default
+> numa_distance table in arch/x86/mm/numa.c: numa_alloc_distance(). If the BIOS
+> doesn't present a SLIT, this should take effect (numactl --hardware should
+> report this table)
+
+If the BIOS doesn't present a SLIT, numa_distance_cnt is set to 0 in the
+function numa_reset_distance(). So node_distance(i, j) is REMOTE_DISTANCE(i != j).
+
+> 
+> Do you have more details on how to reproduce the warning? e.g. how many dimms
+> are present in the system? Does this happen on the first dimm hot-plugged?
+> Are all SRAT entries parsed correctly at boot-time or do you see any other
+> warnings at boot-time?
+
+I can't reproduce it again. IIRC, I only do the following things:
+hotplug a memory device, online the pages, offline the pages and hot remove
+the memory device.
+
+Thanks
+Wen Congyang
+
+> 
+> I 'll investigate a bit more and report back.
+> 
+> thanks,
+> 
+> - Vasilis
+> 
+
