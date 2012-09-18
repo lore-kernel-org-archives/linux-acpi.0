@@ -1,16 +1,16 @@
 From: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Subject: [PATCH v3 5/8] ACPI, PCI: change acpi_pci_find_root implementation
-Date: Tue, 18 Sep 2012 15:23:23 +0900
-Message-ID: <20120918152323.48cb2703.izumi.taku@jp.fujitsu.com>
+Subject: [PATCH v3 6/8] ACPI, PCI: add acpi_pci_roots protection
+Date: Tue, 18 Sep 2012 15:24:40 +0900
+Message-ID: <20120918152440.117dd1cb.izumi.taku@jp.fujitsu.com>
 References: <20120918151215.59ea763b.izumi.taku@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:53634 "EHLO
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:53689 "EHLO
 	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755817Ab2IRGXP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Sep 2012 02:23:15 -0400
+	with ESMTP id S1755437Ab2IRGYd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Sep 2012 02:24:33 -0400
 In-Reply-To: <20120918151215.59ea763b.izumi.taku@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -18,41 +18,94 @@ To: linux-pci@vger.kernel.org, bhelgaas@google.com
 Cc: linux-acpi@vger.kernel.org, kaneshige.kenji@jp.fujitsu.com, yinghai@kernel.org, jiang.liu@huawei.com
 
 
-This patch changes the implementation of acpi_pci_find_root().
-
-We can access acpi_pci_root without scanning acpi_pci_roots list.
-If hostbridge hotplug is supported, acpi_pci_roots list will be
-protected by mutex. We should not access acpi_pci_roots list 
-if preventable to lessen deadlock risk.
+Use mutex to protect acpi_pci_roots list against PCI host bridge 
+hotplug operations.
 
 Signed-off-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
 ---
- drivers/acpi/pci_root.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ drivers/acpi/pci_root.c |   27 ++++++++++++++++++---------
+ 1 file changed, 18 insertions(+), 9 deletions(-)
 
 Index: Bjorn-next-0903/drivers/acpi/pci_root.c
 ===================================================================
 --- Bjorn-next-0903.orig/drivers/acpi/pci_root.c
 +++ Bjorn-next-0903/drivers/acpi/pci_root.c
-@@ -265,12 +265,15 @@ static acpi_status acpi_pci_osc_support(
- struct acpi_pci_root *acpi_pci_find_root(acpi_handle handle)
+@@ -112,12 +112,17 @@ EXPORT_SYMBOL(acpi_pci_unregister_driver
+ acpi_handle acpi_get_pci_rootbridge_handle(unsigned int seg, unsigned int bus)
  {
  	struct acpi_pci_root *root;
-+	struct acpi_device *device;
- 
--	list_for_each_entry(root, &acpi_pci_roots, node) {
--		if (root->device->handle == handle)
--			return root;
--	}
--	return NULL;
-+	if (acpi_bus_get_device(handle, &device) ||
-+	    acpi_match_device_ids(device, root_device_ids))
-+		return NULL;
-+
-+	root = acpi_driver_data(device);
-+
-+	return root;
++	struct acpi_handle *handle = NULL;
+ 	
++	mutex_lock(&acpi_pci_root_lock);
+ 	list_for_each_entry(root, &acpi_pci_roots, node)
+ 		if ((root->segment == (u16) seg) &&
+-		    (root->secondary.start == (u16) bus))
+-			return root->device->handle;
+-	return NULL;		
++		    (root->secondary.start == (u16) bus)) {
++			handle = root->device->handle;
++			break;
++		}
++	mutex_unlock(&acpi_pci_root_lock);
++	return handle;
  }
- EXPORT_SYMBOL_GPL(acpi_pci_find_root);
  
+ EXPORT_SYMBOL_GPL(acpi_get_pci_rootbridge_handle);
+@@ -509,8 +514,9 @@ static int __devinit acpi_pci_root_add(s
+ 	 * TBD: Need PCI interface for enumeration/configuration of roots.
+ 	 */
+ 
+-	/* TBD: Locking */
++	mutex_lock(&acpi_pci_root_lock);
+ 	list_add_tail(&root->node, &acpi_pci_roots);
++	mutex_unlock(&acpi_pci_root_lock);
+ 
+ 	printk(KERN_INFO PREFIX "%s [%s] (domain %04x %pR)\n",
+ 	       acpi_device_name(device), acpi_device_bid(device),
+@@ -529,7 +535,7 @@ static int __devinit acpi_pci_root_add(s
+ 			    "Bus %04x:%02x not present in PCI namespace\n",
+ 			    root->segment, (unsigned int)root->secondary.start);
+ 		result = -ENODEV;
+-		goto end;
++		goto out_del_root;
+ 	}
+ 
+ 	/*
+@@ -539,7 +545,7 @@ static int __devinit acpi_pci_root_add(s
+ 	 */
+ 	result = acpi_pci_bind_root(device);
+ 	if (result)
+-		goto end;
++		goto out_del_root;
+ 
+ 	/*
+ 	 * PCI Routing Table
+@@ -617,9 +623,11 @@ static int __devinit acpi_pci_root_add(s
+ 
+ 	return 0;
+ 
++out_del_root:
++	mutex_lock(&acpi_pci_root_lock);
++	list_del(&root->node);
++	mutex_unlock(&acpi_pci_root_lock);
+ end:
+-	if (!list_empty(&root->node))
+-		list_del(&root->node);
+ 	kfree(root);
+ 	return result;
+ }
+@@ -649,11 +657,12 @@ static int acpi_pci_root_remove(struct a
+ 	list_for_each_entry(driver, &acpi_pci_drivers, node)
+ 		if (driver->remove)
+ 			driver->remove(root);
+-	mutex_unlock(&acpi_pci_root_lock);
+ 
+ 	device_set_run_wake(root->bus->bridge, false);
+ 	pci_acpi_remove_bus_pm_notifier(device);
+ 
++	list_del(&root->node);
++	mutex_unlock(&acpi_pci_root_lock);
+ 	kfree(root);
+ 	return 0;
+ }
 
