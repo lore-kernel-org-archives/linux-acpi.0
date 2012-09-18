@@ -1,128 +1,57 @@
-From: Durgadoss R <durgadoss.r@intel.com>
-Subject: [PATCHv4 15/15] Thermal: Add documentation for platform layer data
-Date: Tue, 18 Sep 2012 11:05:06 +0530
-Message-ID: <1347946506-18449-16-git-send-email-durgadoss.r@intel.com>
-References: <1347946506-18449-1-git-send-email-durgadoss.r@intel.com>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH part2 6/6] PCI: Claim hw/fw allocated resources in hot add path.
+Date: Mon, 17 Sep 2012 22:36:41 -0700
+Message-ID: <CAE9FiQWFcVNKMnV1qaHchwCXfZuMpyxf_f7GQy3FZid9YuLD3w@mail.gmail.com>
+References: <1346622653-30741-1-git-send-email-yinghai@kernel.org>
+	<1346622653-30741-7-git-send-email-yinghai@kernel.org>
+	<CAErSpo4wmnnFKZeY4XyZdmoOZeQz8sj-5VoAhGhCSqWTBi0GRw@mail.gmail.com>
+	<CAE9FiQUB6wshovj=TBmCEL140nZB5K40BfKPYGNmmpZx536F+Q@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:28021 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755359Ab2IRFgl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 18 Sep 2012 01:36:41 -0400
-In-Reply-To: <1347946506-18449-1-git-send-email-durgadoss.r@intel.com>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:56465 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755371Ab2IRFgm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Sep 2012 01:36:42 -0400
+In-Reply-To: <CAE9FiQUB6wshovj=TBmCEL140nZB5K40BfKPYGNmmpZx536F+Q@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, rui.zhang@intel.com
-Cc: linux-acpi@vger.kernel.org, eduardo.valentin@ti.com, Durgadoss R <durgadoss.r@intel.com>
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, x86 <x86@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-This patch adds documentation for thermal_bind_params
-and thermal_zone_params structures. Also, adds details
-on EXPORT_SYMBOL APIs.
+On Mon, Sep 17, 2012 at 9:44 PM, Yinghai Lu <yinghai@kernel.org> wrote:
+> On Mon, Sep 17, 2012 at 5:12 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+>> On Sun, Sep 2, 2012 at 3:50 PM, Yinghai Lu <yinghai@kernel.org> wrote:
+>
+>>> -static void __init pcibios_allocate_bridge_resources(struct pci_dev *dev)
+>>> +static void pcibios_allocate_bridge_resources(struct pci_dev *dev)
+>>
+>> This patch has a little too much going on at the same time.  Can you
+>> split the __init removal into its own patch so we can focus on what's
+>> left by itself?
+>
+> ok.
+>
+>>
+>>>  {
+>>>         int idx;
+>>>         struct resource *r;
+>>>
+>>>         for (idx = PCI_BRIDGE_RESOURCES; idx < PCI_NUM_RESOURCES; idx++) {
+>>>                 r = &dev->resource[idx];
+>>> +               if (r->parent)  /* Already allocated */
+>>> +                       continue;
+>>
+>> This is also a potentially interesting change that maybe should be in
+>> its own patch.
+>
+> oh, we don't need that extra checking anymore. because support
+> removing non-root bus is dropped.
 
-Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
----
- Documentation/thermal/sysfs-api.txt |   64 +++++++++++++++++++++++++++++++++++
- 1 file changed, 64 insertions(+)
+I updated for-pci-root-bus-hotplug-part2.
 
-diff --git a/Documentation/thermal/sysfs-api.txt b/Documentation/thermal/sysfs-api.txt
-index ca1a1a3..88c0233 100644
---- a/Documentation/thermal/sysfs-api.txt
-+++ b/Documentation/thermal/sysfs-api.txt
-@@ -112,6 +112,29 @@ temperature) and throttle appropriate devices.
-     trip: indicates which trip point the cooling devices is associated with
- 	  in this thermal zone.
- 
-+1.4 Thermal Zone Parameters
-+1.4.1 struct thermal_bind_params
-+    This structure defines the following parameters that are used to bind
-+    a zone with a cooling device for a particular trip point.
-+    .cdev: The cooling device pointer
-+    .weight: The 'influence' of a particular cooling device on this zone.
-+             This is on a percentage scale. The sum of all these weights
-+             (for a particular zone) cannot exceed 100.
-+    .trip_mask:This is a bit mask that gives the binding relation between
-+               this thermal zone and cdev, for a particular trip point.
-+               If nth bit is set, then the cdev and thermal zone are bound
-+               for trip point n.
-+    .match: This call back returns success(0) if the 'tz and cdev' need to
-+	    be bound, as per platform data.
-+1.4.2 struct thermal_zone_params
-+    This structure defines the platform level parameters for a thermal zone.
-+    This data, for each thermal zone should come from the platform layer.
-+    This is an optional feature where some platforms can choose not to
-+    provide this data.
-+    .governor_name: Name of the thermal governor used for this zone
-+    .num_tbps: Number of thermal_bind_params entries for this zone
-+    .tbp: thermal_bind_params entries
-+
- 2. sysfs attributes structure
- 
- RO	read only value
-@@ -126,6 +149,7 @@ Thermal zone device sys I/F, created once it's registered:
-     |---type:			Type of the thermal zone
-     |---temp:			Current temperature
-     |---mode:			Working mode of the thermal zone
-+    |---policy:			Thermal governor used for this zone
-     |---trip_point_[0-*]_temp:	Trip point temperature
-     |---trip_point_[0-*]_type:	Trip point type
-     |---trip_point_[0-*]_hyst:	Hysteresis value for this trip point
-@@ -187,6 +211,10 @@ mode
- 			  charge of the thermal management.
- 	RW, Optional
- 
-+policy
-+	One of the various thermal governors used for a particular zone.
-+	RW, Required
-+
- trip_point_[0-*]_temp
- 	The temperature above which trip point will be fired.
- 	Unit: millidegree Celsius
-@@ -264,6 +292,7 @@ method, the sys I/F structure will be built like this:
-     |---type:			acpitz
-     |---temp:			37000
-     |---mode:			enabled
-+    |---policy:			step_wise
-     |---trip_point_0_temp:	100000
-     |---trip_point_0_type:	critical
-     |---trip_point_1_temp:	80000
-@@ -305,3 +334,38 @@ to a thermal_zone_device when it registers itself with the framework. The
- event will be one of:{THERMAL_AUX0, THERMAL_AUX1, THERMAL_CRITICAL,
- THERMAL_DEV_FAULT}. Notification can be sent when the current temperature
- crosses any of the configured thresholds.
-+
-+5. Export Symbol APIs:
-+
-+5.1: get_tz_trend:
-+This function returns the trend of a thermal zone, i.e the rate of change
-+of temperature of the thermal zone. Ideally, the thermal sensor drivers
-+are supposed to implement the callback. If they don't, the thermal
-+framework calculated the trend by comparing the previous and the current
-+temperature values.
-+
-+5.2:get_thermal_instance:
-+This function returns the thermal_instance corresponding to a given
-+{thermal_zone, cooling_device, trip_point} combination. Returns NULL
-+if such an instance does not exist.
-+
-+5.3:notify_thermal_framework:
-+This function handles the trip events from sensor drivers. It starts
-+throttling the cooling devices according to the policy configured.
-+For CRITICAL and HOT trip points, this notifies the respective drivers,
-+and does actual throttling for other trip points i.e ACTIVE and PASSIVE.
-+The throttling policy is based on the configured platform data; if no
-+platform data is provided, this uses the step_wise throttling policy.
-+
-+5.4:thermal_cdev_update:
-+This function serves as an arbitrator to set the state of a cooling
-+device. It sets the cooling device to the deepest cooling state if
-+possible.
-+
-+5.5:thermal_register_governor:
-+This function lets the various thermal governors to register themselves
-+with the Thermal framework. At run time, depending on a zone's platform
-+data, a particular governor is used for throttling.
-+
-+5.6:thermal_unregister_governor:
-+This function unregisters a governor from the thermal framework.
--- 
-1.7.9.5
+http://git.kernel.org/?p=linux/kernel/git/yinghai/linux-yinghai.git;a=shortlog;h=refs/heads/for-pci-root-bus-hotplug-part2
 
+Thanks
+
+Yinghai
