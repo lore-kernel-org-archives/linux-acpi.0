@@ -1,128 +1,97 @@
 From: Durgadoss R <durgadoss.r@intel.com>
-Subject: [PATCHv4 02/15] Thermal: Move thermal_instance to thermal_core.h
-Date: Tue, 18 Sep 2012 11:04:53 +0530
-Message-ID: <1347946506-18449-3-git-send-email-durgadoss.r@intel.com>
+Subject: [PATCHv4 03/15] Thermal: Add get trend, get instance API's to thermal_sys
+Date: Tue, 18 Sep 2012 11:04:54 +0530
+Message-ID: <1347946506-18449-4-git-send-email-durgadoss.r@intel.com>
 References: <1347946506-18449-1-git-send-email-durgadoss.r@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga02.intel.com ([134.134.136.20]:28021 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754791Ab2IRFgG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 18 Sep 2012 01:36:06 -0400
+	id S1754791Ab2IRFgJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Sep 2012 01:36:09 -0400
 In-Reply-To: <1347946506-18449-1-git-send-email-durgadoss.r@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: lenb@kernel.org, rui.zhang@intel.com
 Cc: linux-acpi@vger.kernel.org, eduardo.valentin@ti.com, Durgadoss R <durgadoss.r@intel.com>
 
-This patch creates a thermal_core.h file which can contain
-all defines used by the core thermal framework files. For
-now, move the thermal_instance structure to thermal_core.h
-This structure is used by files under drivers/thermal/.
+This patch adds the following API's to thermal_sys.c, that
+can be used by other Thermal drivers.
+ * get_tz_trend: obtain the trend of the given thermal zone
+ * get_thermal_instance: obtain the instance corresponding
+   to the given tz, cdev and the trip point.
 
 Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
 ---
- drivers/thermal/thermal_core.h |   53 ++++++++++++++++++++++++++++++++++++++++
- drivers/thermal/thermal_sys.c  |   23 ++---------------
- 2 files changed, 55 insertions(+), 21 deletions(-)
- create mode 100644 drivers/thermal/thermal_core.h
+ drivers/thermal/thermal_sys.c |   40 ++++++++++++++++++++++++++++++++++++++++
+ include/linux/thermal.h       |    4 ++++
+ 2 files changed, 44 insertions(+)
 
-diff --git a/drivers/thermal/thermal_core.h b/drivers/thermal/thermal_core.h
-new file mode 100644
-index 0000000..0d3205a
---- /dev/null
-+++ b/drivers/thermal/thermal_core.h
-@@ -0,0 +1,53 @@
-+/*
-+ *  thermal_core.h
-+ *
-+ *  Copyright (C) 2012  Intel Corp
-+ *  Author: Durgadoss R <durgadoss.r@intel.com>
-+ *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; version 2 of the License.
-+ *
-+ *  This program is distributed in the hope that it will be useful, but
-+ *  WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ *  General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License along
-+ *  with this program; if not, write to the Free Software Foundation, Inc.,
-+ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
-+ *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ */
-+
-+#ifndef __THERMAL_CORE_H__
-+#define __THERMAL_CORE_H__
-+
-+#include <linux/device.h>
-+#include <linux/thermal.h>
-+
-+/* Initial state of a cooling device during binding */
-+#define THERMAL_NO_TARGET -1UL
-+
-+/*
-+ * This structure is used to describe the behavior of
-+ * a certain cooling device on a certain trip point
-+ * in a certain thermal zone
-+ */
-+struct thermal_instance {
-+	int id;
-+	char name[THERMAL_NAME_LENGTH];
-+	struct thermal_zone_device *tz;
-+	struct thermal_cooling_device *cdev;
-+	int trip;
-+	unsigned long upper;	/* Highest cooling state for this trip point */
-+	unsigned long lower;	/* Lowest cooling state for this trip point */
-+	unsigned long target;	/* expected cooling state */
-+	char attr_name[THERMAL_NAME_LENGTH];
-+	struct device_attribute attr;
-+	struct list_head tz_node; /* node in tz->thermal_instances */
-+	struct list_head cdev_node; /* node in cdev->thermal_instances */
-+};
-+
-+#endif /* __THERMAL_CORE_H__ */
 diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
-index 47498b8..b246d45 100644
+index b246d45..798c628 100644
 --- a/drivers/thermal/thermal_sys.c
 +++ b/drivers/thermal/thermal_sys.c
-@@ -37,31 +37,12 @@
- #include <net/netlink.h>
- #include <net/genetlink.h>
+@@ -82,6 +82,46 @@ static void release_idr(struct idr *idr, struct mutex *lock, int id)
+ 		mutex_unlock(lock);
+ }
  
-+#include "thermal_core.h"
++int get_tz_trend(struct thermal_zone_device *tz, int trip)
++{
++	enum thermal_trend trend;
 +
- MODULE_AUTHOR("Zhang Rui");
- MODULE_DESCRIPTION("Generic thermal management sysfs support");
- MODULE_LICENSE("GPL");
++	if (!tz->ops->get_trend || tz->ops->get_trend(tz, trip, &trend)) {
++		if (tz->temperature > tz->last_temperature)
++			trend = THERMAL_TREND_RAISING;
++		else if (tz->temperature < tz->last_temperature)
++			trend = THERMAL_TREND_DROPPING;
++		else
++			trend = THERMAL_TREND_STABLE;
++	}
++
++	return trend;
++}
++EXPORT_SYMBOL(get_tz_trend);
++
++struct thermal_instance *get_thermal_instance(struct thermal_zone_device *tz,
++			struct thermal_cooling_device *cdev, int trip)
++{
++	struct thermal_instance *pos = NULL;
++	struct thermal_instance *target_instance = NULL;
++
++	mutex_lock(&tz->lock);
++	mutex_lock(&cdev->lock);
++
++	list_for_each_entry(pos, &tz->thermal_instances, tz_node) {
++		if (pos->tz == tz && pos->trip == trip && pos->cdev == cdev) {
++			target_instance = pos;
++			break;
++		}
++	}
++
++	mutex_unlock(&cdev->lock);
++	mutex_unlock(&tz->lock);
++
++	return target_instance;
++}
++EXPORT_SYMBOL(get_thermal_instance);
++
+ /* sys I/F for thermal zone */
  
--#define THERMAL_NO_TARGET -1UL
--/*
-- * This structure is used to describe the behavior of
-- * a certain cooling device on a certain trip point
-- * in a certain thermal zone
-- */
--struct thermal_instance {
--	int id;
--	char name[THERMAL_NAME_LENGTH];
--	struct thermal_zone_device *tz;
--	struct thermal_cooling_device *cdev;
--	int trip;
--	unsigned long upper;	/* Highest cooling state for this trip point */
--	unsigned long lower;	/* Lowest cooling state for this trip point */
--	unsigned long target;	/* expected cooling state */
--	char attr_name[THERMAL_NAME_LENGTH];
--	struct device_attribute attr;
--	struct list_head tz_node; /* node in tz->thermal_instances */
--	struct list_head cdev_node; /* node in cdev->thermal_instances */
--};
--
- static DEFINE_IDR(thermal_tz_idr);
- static DEFINE_IDR(thermal_cdev_idr);
- static DEFINE_MUTEX(thermal_idr_lock);
+ #define to_thermal_zone(_dev) \
+diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+index 8611e3e..32af124 100644
+--- a/include/linux/thermal.h
++++ b/include/linux/thermal.h
+@@ -185,6 +185,10 @@ struct thermal_cooling_device *thermal_cooling_device_register(char *, void *,
+ 		const struct thermal_cooling_device_ops *);
+ void thermal_cooling_device_unregister(struct thermal_cooling_device *);
+ 
++int get_tz_trend(struct thermal_zone_device *, int);
++struct thermal_instance *get_thermal_instance(struct thermal_zone_device *,
++		struct thermal_cooling_device *, int);
++
+ #ifdef CONFIG_NET
+ extern int thermal_generate_netlink_event(u32 orig, enum events event);
+ #else
 -- 
 1.7.9.5
 
