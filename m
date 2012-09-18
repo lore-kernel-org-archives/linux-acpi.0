@@ -1,57 +1,41 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH part2 6/6] PCI: Claim hw/fw allocated resources in hot add path.
-Date: Mon, 17 Sep 2012 22:36:41 -0700
-Message-ID: <CAE9FiQWFcVNKMnV1qaHchwCXfZuMpyxf_f7GQy3FZid9YuLD3w@mail.gmail.com>
-References: <1346622653-30741-1-git-send-email-yinghai@kernel.org>
-	<1346622653-30741-7-git-send-email-yinghai@kernel.org>
-	<CAErSpo4wmnnFKZeY4XyZdmoOZeQz8sj-5VoAhGhCSqWTBi0GRw@mail.gmail.com>
-	<CAE9FiQUB6wshovj=TBmCEL140nZB5K40BfKPYGNmmpZx536F+Q@mail.gmail.com>
+From: Taku Izumi <izumi.taku@jp.fujitsu.com>
+Subject: [PATCH v3 0/6] acpi,pci: hostbridge hotplug support
+Date: Tue, 18 Sep 2012 15:12:15 +0900
+Message-ID: <20120918151215.59ea763b.izumi.taku@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:56465 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755371Ab2IRFgm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Sep 2012 01:36:42 -0400
-In-Reply-To: <CAE9FiQUB6wshovj=TBmCEL140nZB5K40BfKPYGNmmpZx536F+Q@mail.gmail.com>
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:48610 "EHLO
+	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755770Ab2IRGMR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Sep 2012 02:12:17 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, x86 <x86@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: linux-pci@vger.kernel.org, bhelgaas@google.com, linux-acpi@vger.kernel.org
+Cc: kaneshige.kenji@jp.fujitsu.com, yinghai@kernel.org, jiang.liu@huawei.com
 
-On Mon, Sep 17, 2012 at 9:44 PM, Yinghai Lu <yinghai@kernel.org> wrote:
-> On Mon, Sep 17, 2012 at 5:12 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
->> On Sun, Sep 2, 2012 at 3:50 PM, Yinghai Lu <yinghai@kernel.org> wrote:
->
->>> -static void __init pcibios_allocate_bridge_resources(struct pci_dev *dev)
->>> +static void pcibios_allocate_bridge_resources(struct pci_dev *dev)
->>
->> This patch has a little too much going on at the same time.  Can you
->> split the __init removal into its own patch so we can focus on what's
->> left by itself?
->
-> ok.
->
->>
->>>  {
->>>         int idx;
->>>         struct resource *r;
->>>
->>>         for (idx = PCI_BRIDGE_RESOURCES; idx < PCI_NUM_RESOURCES; idx++) {
->>>                 r = &dev->resource[idx];
->>> +               if (r->parent)  /* Already allocated */
->>> +                       continue;
->>
->> This is also a potentially interesting change that maybe should be in
->> its own patch.
->
-> oh, we don't need that extra checking anymore. because support
-> removing non-root bus is dropped.
+Hi all,
+ 
+  This patchset is 3rd version of the following:
+    http://marc.info/?l=linux-pci&m=134457928913775&w=2
+    http://marc.info/?l=linux-pci&m=134665909321684&w=2
 
-I updated for-pci-root-bus-hotplug-part2.
+ v2 -> v3:
+   - change acpi_pci_drivers' add/remove interface according to Bjorn's suggestion
+   - abandon RCU for protecting acpi_pci_roots list according to Bjorn's suggestion
+   - change acpi_pci_find_root implementation to avoid potential deadlock
 
-http://git.kernel.org/?p=linux/kernel/git/yinghai/linux-yinghai.git;a=shortlog;h=refs/heads/for-pci-root-bus-hotplug-part2
+  * [PATCH v3 1/8] ACPI, PCI: Use normal list for struct acpi_pci_driver
+  * [PATCH v3 2/8] ACPI, PCI: Notify acpi_pci_drivers when hot-plugging PCI root bridges
+  * [PATCH v3 3/8] ACPI, PCI: add acpi_pci_drivers protection
+  * [PATCH v3 4/8] ACPI, PCI: change acpi_pci_drivers' add/remove interface
+  * [PATCH v3 5/8] ACPI, PCI: change acpi_pci_find_root implementation
+  * [PATCH v3 6/8] ACPI, PCI: add acpi_pci_roots protection
+  * [PATCH v3 7/8] ACPI, PCI: add hostbridge removal function
+  * [PATCH v3 8/8] ACPI, PCI: add resoruce-assign code for devices under hot-added hostbridge
 
-Thanks
+-- 
+Best regards,
+Taku Izumi <izumi.taku@jp.fujitsu.com>
 
-Yinghai
