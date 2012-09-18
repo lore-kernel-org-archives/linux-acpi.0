@@ -1,91 +1,139 @@
-From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: Re: [RFC v8 PATCH 00/20] memory-hotplug: hot-remove physical memory
-Date: Tue, 18 Sep 2012 17:39:37 +0800
-Message-ID: <50584159.3020403@cn.fujitsu.com>
-References: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com> <20120831134956.fec0f681.akpm@linux-foundation.org> <504D467D.2080201@jp.fujitsu.com> <504D4A08.7090602@cn.fujitsu.com> <20120910135213.GA1550@dhcp-192-168-178-175.profitbricks.localdomain> <50501B9C.7000200@cn.fujitsu.com> <20120912171814.GB5253@dhcp-192-168-178-175.profitbricks.localdomain>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH 0/6] cpuidle : per cpu latencies
+Date: Tue, 18 Sep 2012 10:52:13 +0100
+Message-ID: <20120918095212.GA23259@e102568-lin.cambridge.arm.com>
+References: <1347013172-12465-1-git-send-email-daniel.lezcano@linaro.org>
+ <201209080017.17418.rjw@sisk.pl>
+ <5056D96C.5040904@linaro.org>
+ <201209172250.33157.rjw@sisk.pl>
+ <50579784.4090000@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <20120912171814.GB5253@dhcp-192-168-178-175.profitbricks.localdomain>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Andrew Morton <akpm@linux-foundation.org>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from service87.mimecast.com ([91.220.42.44]:35318 "EHLO
+	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932662Ab2IRJwU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Sep 2012 05:52:20 -0400
+In-Reply-To: <50579784.4090000@linaro.org>
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "lenb@kernel.org" <lenb@kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "patches@linaro.org" <patches@linaro.org>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>, "pdeschrijver@nvidia.com" <pdeschrijver@nvidia.com>, "len.brown@intel.com >> Len Brown" <len.brown@intel.com>
 
-At 09/13/2012 01:18 AM, Vasilis Liaskovitis Wrote:
-> Hi,
+On Mon, Sep 17, 2012 at 10:35:00PM +0100, Daniel Lezcano wrote:
+> On 09/17/2012 10:50 PM, Rafael J. Wysocki wrote:
+> > On Monday, September 17, 2012, Daniel Lezcano wrote:
+> >> On 09/08/2012 12:17 AM, Rafael J. Wysocki wrote:
+> >>> On Friday, September 07, 2012, Daniel Lezcano wrote:
+
+[...]
+
+> >>> Unfortunately, I also don't agree with the approach used by the remaining
+> >>> patches, which is to try to use a separate array of states for each
+> >>> individual CPU core.  This way we end up with quite some duplicated data
+> >>> if the CPU cores in question actually happen to be identical.
+> >>
+> >> Actually, there is a single array of states which is defined with the
+> >> cpuidle_driver. A pointer to this array from the cpuidle_device
+> >> structure is added and used from the cpuidle core.
+> >>
+> >> If the cpu cores are identical, this pointer will refer to the same array.
+> > 
+> > OK, but what if there are two (or more) sets of cores, where all cores in one
+> > set are identical, but two cores from different sets differ?
 > 
-> On Wed, Sep 12, 2012 at 01:20:28PM +0800, Wen Congyang wrote:
->>>
->>> On Mon, Sep 10, 2012 at 10:01:44AM +0800, Wen Congyang wrote:
->>>> At 09/10/2012 09:46 AM, Yasuaki Ishimatsu Wrote:
->>>>> How do you test the patch? As Andrew says, for hot-removing memory,
->>>>> we need a particular hardware. I think so too. So many people may want
->>>>> to know how to test the patch.
->>>>> If we apply following patch to kvm guest, can we hot-remove memory on
->>>>> kvm guest?
->>>>>
->>>>> http://lists.gnu.org/archive/html/qemu-devel/2012-07/msg01389.html
->>>>
->>>> Yes, if we apply this patchset, we can test hot-remove memory on kvm guest.
->>>> But that patchset doesn't implement _PS3, so there is some restriction.
->>>
->>> the following repos contain the patchset above, plus 2 more patches that add
->>> PS3 support to the dimm devices in qemu/seabios:
->>>
->>> https://github.com/vliaskov/seabios/commits/memhp-v2
->>> https://github.com/vliaskov/qemu-kvm/commits/memhp-v2
->>>
->>> I have not posted the PS3 patches yet in the qemu list, but will post them
->>> soon for v3 of the memory hotplug series. If you have issues testing, let me
->>> know.
->>
->> Hmm, seabios doesn't support ACPI table SLIT. We can specify node it for dimm
->> device, so I think we should support SLIT in seabios. Otherwise we may meet
->> the following kernel messages:
->> [  325.016769] init_memory_mapping: [mem 0x40000000-0x5fffffff]
->> [  325.018060]  [mem 0x40000000-0x5fffffff] page 2M
->> [  325.019168] [ffffea0001000000-ffffea00011fffff] potential offnode page_structs
->> [  325.024172] [ffffea0001200000-ffffea00013fffff] potential offnode page_structs
->> [  325.028596]  [ffffea0001400000-ffffea00017fffff] PMD -> [ffff880035000000-ffff8800353fffff] on node 1
->> [  325.031775] [ffffea0001600000-ffffea00017fffff] potential offnode page_structs
->>
->> Do you have plan to do it?
-> thanks for testing.
+> A second array is defined and registered for these cores with the
+> cpuidle_register_states function.
 > 
-> commit 5294828 from https://github.com/vliaskov/seabios/commits/memhp-v2
-> implements a SLIT table for the given numa nodes.
-
-Hmm, why do you set node_distance(i, j) to REMOTE_DISTANCE if i != j?
-
+> Let's pick an example with the big.LITTLE architecture.
 > 
-> However I am not sure the SLIT is the problem. The kernel builds a default
-> numa_distance table in arch/x86/mm/numa.c: numa_alloc_distance(). If the BIOS
-> doesn't present a SLIT, this should take effect (numactl --hardware should
-> report this table)
-
-If the BIOS doesn't present a SLIT, numa_distance_cnt is set to 0 in the
-function numa_reset_distance(). So node_distance(i, j) is REMOTE_DISTANCE(i != j).
-
+> There are two A7 and two A15, resulting in the code on 4 cpuidle_device
+> structure (eg. dev_A7_1, dev_A7_2, dev_A15_1, dev_A15_2). Then the
+> driver registers a different cpu states array for the A7s and the A15s
 > 
-> Do you have more details on how to reproduce the warning? e.g. how many dimms
-> are present in the system? Does this happen on the first dimm hot-plugged?
-> Are all SRAT entries parsed correctly at boot-time or do you see any other
-> warnings at boot-time?
+> At the end,
+> 
+> dev_A7_1->states points to the array states 1
+> dev_A7_2->states points to the array states 1
+> 
+> dev_A15_1->states points to the array states 2
+> dev_A15_2->states points to the array states 2
+> 
+> It is similar with Tegra3.
+> 
+> I think Peter and Lorenzo already wrote a driver based on this approach.
+> Peter, Lorenzo any comments ?
 
-I can't reproduce it again. IIRC, I only do the following things:
-hotplug a memory device, online the pages, offline the pages and hot remove
-the memory device.
+Well, I guess the question is about *where* the array of states should
+belong. With the current approach we end up having an array of states
+in the cpuidle_driver, but also array(s) of states in platform code and we
+override the newly added pointer in cpuidle_device to point to those
+array(s) for CPUs whose idle states differ from the ones registered (and
+copied) in the driver.
 
-Thanks
-Wen Congyang
+Data is NOT duplicated but now I understand Rafael's remark.
+
+If we have a driver per-[set of cpus] (that is impossible with the
+current framework as you higlighted) code would be cleaner since
+all idle states data would live in cpuidle_driver(s), not possibly in
+platform code. Then the problem becomes: what cpuidle_driver should be
+used and how to choose that at run-time within the governors.
 
 > 
-> I 'll investigate a bit more and report back.
+> The single registration mechanism introduced by Deepthi is kept and we
+> have a way to specify different idle states for different cpus.
 > 
-> thanks,
+> > In that case it would be good to have one array of states per set, but the
+> > patch doesn't seem to do that, does it?
 > 
-> - Vasilis
+> Yes, this is what does the patch.
+
+The patch adds a pointer to idle states in cpuidle_device, the platform driver
+defines the array(s).
+
+> >> Maybe I misunderstood you remark but there is no data duplication, that
+> >> was the purpose of this approach to just add a pointer to point to a
+> >> single array when the core are identical and to a different array when
+> >> the cores are different (set by the driver). Furthermore, this patch
+> >> allows to support multiple cpu latencies without impacting the existing
+> >> drivers.
+> > 
+> > Well that's required. :-)
 > 
+> Yes :)
+> 
+> >>> What about using a separate cpuidle driver for every kind of different CPUs in
+> >>> the system (e.g. one driver for "big" CPUs and the other for "little" ones)?
+> >>>
+> >>> Have you considered this approach already?
+> >>
+> >> No, what would be the benefit of this approach ?
+> > 
+> > Uniform handling of all the CPUs of the same kind without data duplication
+> > and less code complexity, I think.
+> > 
+> >> We will need to switch
+> >> the driver each time we switch the cluster (assuming all it is the bL
+> >> switcher in place and not the scheduler). IMHO, that could be suboptimal
+> >> because we will have to (un)register the driver, register the devices,
+> >> pull all the sysfs and notifications mechanisms. The cpuidle core is not
+> >> designed for that.
+> > 
+> > I don't seem to understand how things are supposed to work, then.
+> 
+> Sorry, I did not suggest that. I am wondering how several cpuidle
+> drivers can co-exist together in the state of the code. Maybe I
+> misunderstood your idea.
+> 
+> The patchset I sent is pretty simple and do not duplicate the array states.
+> 
+> That would be nice if Len could react to this patchset (4/6,5/6, and
+> 6/6). Cc'ing him to its intel address.
+
+As the idle infrastructure stands I do not see how multiple cpuidle drivers
+can co-exist, that's the problem, and Daniel already mentioned that.
+
+Lorenzo
 
