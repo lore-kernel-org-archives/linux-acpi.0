@@ -1,74 +1,130 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
+From: Zhang Rui <rui.zhang@intel.com>
 Subject: RE: [PATCHv4 11/15] Thermal: Introduce a step_wise thermal governor
-Date: Tue, 18 Sep 2012 08:11:56 +0000
-Message-ID: <4D68720C2E767A4AA6A8796D42C8EB591BD338@BGSMSX101.gar.corp.intel.com>
+Date: Tue, 18 Sep 2012 16:22:00 +0800
+Message-ID: <1347956520.1682.1231.camel@rui.sh.intel.com>
 References: <1347946506-18449-1-git-send-email-durgadoss.r@intel.com>
 	 <1347946506-18449-12-git-send-email-durgadoss.r@intel.com>
- <1347952410.1682.1227.camel@rui.sh.intel.com>
+	 <1347952410.1682.1227.camel@rui.sh.intel.com>
+	 <4D68720C2E767A4AA6A8796D42C8EB591BD338@BGSMSX101.gar.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:59276 "EHLO mga03.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:5986 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755411Ab2IRIMB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 18 Sep 2012 04:12:01 -0400
-In-Reply-To: <1347952410.1682.1227.camel@rui.sh.intel.com>
-Content-Language: en-US
+	id S1752001Ab2IRIVr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Sep 2012 04:21:47 -0400
+In-Reply-To: <4D68720C2E767A4AA6A8796D42C8EB591BD338@BGSMSX101.gar.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>
+To: "R, Durgadoss" <durgadoss.r@intel.com>
 Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>
 
-SGkgUnVpLA0KDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogbGludXgt
-YWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1hY3BpLQ0KPiBvd25lckB2
-Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBaaGFuZyBSdWkNCj4gU2VudDogVHVlc2RheSwg
-U2VwdGVtYmVyIDE4LCAyMDEyIDEyOjQ0IFBNDQo+IFRvOiBSLCBEdXJnYWRvc3MNCj4gQ2M6IGxl
-bmJAa2VybmVsLm9yZzsgbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc7IGVkdWFyZG8udmFsZW50
-aW5AdGkuY29tDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0h2NCAxMS8xNV0gVGhlcm1hbDogSW50cm9k
-dWNlIGEgc3RlcF93aXNlIHRoZXJtYWwNCj4gZ292ZXJub3INCj4gDQo+IE9uIOS6jCwgMjAxMi0w
-OS0xOCBhdCAxMTowNSArMDUzMCwgRHVyZ2Fkb3NzIFIgd3JvdGU6DQo+ID4gVGhpcyBwYXRjaCBh
-ZGRzIGEgc2ltcGxlIHN0ZXBfd2lzZSBnb3Zlcm5vciB0byB0aGUNCj4gPiBnZW5lcmljIHRoZXJt
-YWwgbGF5ZXIuIFRoaXMgYWxnb3JpdGhtIHRocm90dGxlcyB0aGUNCj4gPiBjb29saW5nIGRldmlj
-ZXMgaW4gYSBsaW5lYXIgZmFzaGlvbi4gSWYgdGhlICd0cmVuZCcNCj4gPiBpcyBoZWF0aW5nLCBp
-dCB0aHJvdHRsZXMgYnkgb25lIHN0ZXAuIEFuZCBpZiB0aGUNCj4gPiB0aGVybWFsIHRyZW5kIGlz
-IGNvb2xpbmcgaXQgZGUtdGhyb3R0bGVzIGJ5IG9uZSBzdGVwLg0KPiA+DQo+ID4gVGhpcyBhY3R1
-YWxseSBtb3ZlcyB0aGUgdGhyb3R0bGluZyBsb2dpYyBmcm9tIHRoZXJtYWxfc3lzLmMNCj4gPiBh
-bmQgcHV0cyBpbnNpZGUgc3RlcF93aXNlLmMsIHdpdGhvdXQgYW55IGNoYW5nZS4gVGhpcyBpcw0K
-PiA+IGFsd2F5cyBzZWxlY3RlZCBhcyB0aGUgZGVmYXVsdCBnb3Zlcm5vci4NCj4gPg0KPiA+IFNp
-Z25lZC1vZmYtYnk6IER1cmdhZG9zcyBSIDxkdXJnYWRvc3MuckBpbnRlbC5jb20+DQo+ID4gLS0t
-DQo+ID4gIGRyaXZlcnMvdGhlcm1hbC9LY29uZmlnICAgICB8ICAgIDcgKysNCj4gPiAgZHJpdmVy
-cy90aGVybWFsL01ha2VmaWxlICAgIHwgICAgMSArDQo+ID4gIGRyaXZlcnMvdGhlcm1hbC9zdGVw
-X3dpc2UuYyB8ICAxOTQNCj4gKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-KysrKw0KPiA+ICAzIGZpbGVzIGNoYW5nZWQsIDIwMiBpbnNlcnRpb25zKCspDQo+ID4gIGNyZWF0
-ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL3RoZXJtYWwvc3RlcF93aXNlLmMNCj4gPg0KPiA+IGRpZmYg
-LS1naXQgYS9kcml2ZXJzL3RoZXJtYWwvS2NvbmZpZyBiL2RyaXZlcnMvdGhlcm1hbC9LY29uZmln
-DQo+ID4gaW5kZXggMjIwMDkxMi4uOWY2YTNhYSAxMDA2NDQNCj4gPiAtLS0gYS9kcml2ZXJzL3Ro
-ZXJtYWwvS2NvbmZpZw0KPiA+ICsrKyBiL2RyaXZlcnMvdGhlcm1hbC9LY29uZmlnDQo+ID4gQEAg
-LTQsNiArNCw3IEBADQo+ID4NCj4gPiAgbWVudWNvbmZpZyBUSEVSTUFMDQo+ID4gIAl0cmlzdGF0
-ZSAiR2VuZXJpYyBUaGVybWFsIHN5c2ZzIGRyaXZlciINCj4gPiArCXNlbGVjdCBTVEVQX1dJU0UN
-Cj4gPiAgCWhlbHANCj4gPiAgCSAgR2VuZXJpYyBUaGVybWFsIFN5c2ZzIGRyaXZlciBvZmZlcnMg
-YSBnZW5lcmljIG1lY2hhbmlzbSBmb3INCj4gPiAgCSAgdGhlcm1hbCBtYW5hZ2VtZW50LiBVc3Vh
-bGx5IGl0J3MgbWFkZSB1cCBvZiBvbmUgb3IgbW9yZSB0aGVybWFsDQo+ID4gQEAgLTU5LDMgKzYw
-LDkgQEAgY29uZmlnIEZBSVJfU0hBUkUNCj4gPiAgCWRlcGVuZHMgb24gVEhFUk1BTA0KPiA+ICAJ
-aGVscA0KPiA+ICAJICBFbmFibGUgdGhpcyB0byBtYW5hZ2UgcGxhdGZvcm0gdGhlcm1hbHMgdXNp
-bmcgZmFpci1zaGFyZSBnb3Zlcm5vci4NCj4gPiArDQo+ID4gK2NvbmZpZyBTVEVQX1dJU0UNCj4g
-PiArCWJvb2wgIlN0ZXBfd2lzZSB0aGVybWFsIGdvdmVybm9yIg0KPiA+ICsJZGVwZW5kcyBvbiBU
-SEVSTUFMDQo+ID4gKwloZWxwDQo+ID4gKwkgIEVuYWJsZSB0aGlzIHRvIG1hbmFnZSBwbGF0Zm9y
-bSB0aGVybWFscyB1c2luZyBhIHNpbXBsZSBsaW5lYXINCj4gDQo+IGlmIHdlIGFsd2F5cyB3YW50
-cyBDT05GSUdfU1RFUF9XSVNFIGJ1aWx0IGluLCB3aHkgYm90aGVyIHRvIGV4cG9ydCB0aGlzDQo+
-IGNvbmZpZyBvcHRpb24gdG8gdXNlcnM/DQo+IA0KPiBJTU8sIHNvbWV0aGluZyBsaWtlDQo+ICBt
-ZW51Y29uZmlnIFRIRVJNQUwNCj4gICAJdHJpc3RhdGUgIkdlbmVyaWMgVGhlcm1hbCBzeXNmcyBk
-cml2ZXIiDQo+IAlzZWxlY3QgU1RFUF9XSVNFDQo+IA0KPiAgY29uZmlnIFNURVBfV0lTRQ0KPiAJ
-Ym9vbA0KPiAJZGVwZW5kcyBvbiBUSEVSTUFMDQo+IA0KPiBpcyBlbm91Z2gsIFNFVFBfV0lTRSB3
-aWxsIGFsd2F5cyBiZSBzZWxlY3RlZC4NCj4gDQo+IGZ1cnRoZXIgbW9yZSwgd2UgZXZlbiBkbyBu
-b3QgbmVlZCBhIGNvbmZpZyBvcHRpb24gZm9yIHRoaXMgZ292ZXJub3IsDQo+IGp1c3QgIm9iai15
-ICs9IHN0ZXBfd2lzZS5vIiBpbiBNYWtlZmlsZS4NCg0KWWVzLCBUaG91Z2h0IHRocm91Z2ggdGhp
-cy4gQnV0IEkgdGhvdWdodCBpdCB3b3VsZCBiZSBnb29kIHRvIGFsaWduIHRoaXMNCndpdGggdGhl
-IHJlc3Qgb2YgdGhlIGdvdmVybm9ycy4NCg0KPiANCj4gYW5vdGhlciBxdWVzdGlvbiB3b3VsZCBi
-ZSwNCj4gYXMgdGhpcyBnb3Zlcm5vciByZWdpc3RyYXRpb24gZnVuY3Rpb24gaXMgZnNfaW5pdGNh
-bGwoKSwNCj4gd2hhdCBpZiBhIHBsYXRmb3JtIHRoZXJtYWwgZHJpdmVyIGlzIHJlZ2lzdGVyZWQg
-YW5kIGdldHMgYSB0aGVybWFsIGV2ZW50DQo+IGJlZm9yZSB0aGlzIGdvdmVybm9yIGJlaW5nIHJl
-Z2lzdGVyZWQ/DQoNCldvbmRlciBpZiB0aGlzIGNhbiBoYXBwZW4gd2l0aCB0aGUgY3VycmVudCBj
-b2RlLCBzaW5jZSB0aGUNCnRoZXJtYWxfc3lzLmMgYWxzbyBsb2FkcyB3aXRoIGZzX2luaXRjYWxs
-Lg0KDQpUaGFua3MsDQpEdXJnYQ0K
+On =E4=BA=8C, 2012-09-18 at 02:11 -0600, R, Durgadoss wrote:
+> Hi Rui,
+>=20
+>=20
+> > -----Original Message-----
+> > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+> > owner@vger.kernel.org] On Behalf Of Zhang Rui
+> > Sent: Tuesday, September 18, 2012 12:44 PM
+> > To: R, Durgadoss
+> > Cc: lenb@kernel.org; linux-acpi@vger.kernel.org; eduardo.valentin@t=
+i.com
+> > Subject: Re: [PATCHv4 11/15] Thermal: Introduce a step_wise thermal
+> > governor
+> >=20
+> > On =E4=BA=8C, 2012-09-18 at 11:05 +0530, Durgadoss R wrote:
+> > > This patch adds a simple step_wise governor to the
+> > > generic thermal layer. This algorithm throttles the
+> > > cooling devices in a linear fashion. If the 'trend'
+> > > is heating, it throttles by one step. And if the
+> > > thermal trend is cooling it de-throttles by one step.
+> > >
+> > > This actually moves the throttling logic from thermal_sys.c
+> > > and puts inside step_wise.c, without any change. This is
+> > > always selected as the default governor.
+> > >
+> > > Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
+> > > ---
+> > >  drivers/thermal/Kconfig     |    7 ++
+> > >  drivers/thermal/Makefile    |    1 +
+> > >  drivers/thermal/step_wise.c |  194
+> > +++++++++++++++++++++++++++++++++++++++++++
+> > >  3 files changed, 202 insertions(+)
+> > >  create mode 100644 drivers/thermal/step_wise.c
+> > >
+> > > diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
+> > > index 2200912..9f6a3aa 100644
+> > > --- a/drivers/thermal/Kconfig
+> > > +++ b/drivers/thermal/Kconfig
+> > > @@ -4,6 +4,7 @@
+> > >
+> > >  menuconfig THERMAL
+> > >  	tristate "Generic Thermal sysfs driver"
+> > > +	select STEP_WISE
+> > >  	help
+> > >  	  Generic Thermal Sysfs driver offers a generic mechanism for
+> > >  	  thermal management. Usually it's made up of one or more therm=
+al
+> > > @@ -59,3 +60,9 @@ config FAIR_SHARE
+> > >  	depends on THERMAL
+> > >  	help
+> > >  	  Enable this to manage platform thermals using fair-share gove=
+rnor.
+> > > +
+> > > +config STEP_WISE
+> > > +	bool "Step_wise thermal governor"
+> > > +	depends on THERMAL
+> > > +	help
+> > > +	  Enable this to manage platform thermals using a simple linear
+> >=20
+> > if we always wants CONFIG_STEP_WISE built in, why bother to export =
+this
+> > config option to users?
+> >=20
+> > IMO, something like
+> >  menuconfig THERMAL
+> >   	tristate "Generic Thermal sysfs driver"
+> > 	select STEP_WISE
+> >=20
+> >  config STEP_WISE
+> > 	bool
+> > 	depends on THERMAL
+> >=20
+> > is enough, SETP_WISE will always be selected.
+> >=20
+> > further more, we even do not need a config option for this governor=
+,
+> > just "obj-y +=3D step_wise.o" in Makefile.
+>=20
+> Yes, Thought through this. But I thought it would be good to align th=
+is
+> with the rest of the governors.
+>=20
+
+we'd better follow cpufreq governor to allow users to select the defaul=
+t
+governor, or else this configure option is needless because we never
+want it to be cleared with CONFIG_THERMAL=3Dy.
+
+> >=20
+> > another question would be,
+> > as this governor registration function is fs_initcall(),
+> > what if a platform thermal driver is registered and gets a thermal =
+event
+> > before this governor being registered?
+>=20
+> Wonder if this can happen with the current code, since the
+> thermal_sys.c also loads with fs_initcall.
+>=20
+you're right. this is not a problem.
+
+thanks,
+rui
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
