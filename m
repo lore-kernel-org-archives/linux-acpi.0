@@ -1,73 +1,193 @@
-From: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Subject: Re: [PATCH v3 0/6] acpi,pci: hostbridge hotplug support
-Date: Wed, 19 Sep 2012 13:53:22 +0900
-Message-ID: <20120919135322.85c608fa.izumi.taku@jp.fujitsu.com>
-References: <20120918151215.59ea763b.izumi.taku@jp.fujitsu.com>
-	<CAE9FiQVRGK-Of1RuvFZRtuT-yZ7LGDD_oNWr2ier2aaUqrugmA@mail.gmail.com>
-	<CAE9FiQW3pyFFt714yuG-BzuK55eUjN4ojhNZ6LvwGqGWuAtMYQ@mail.gmail.com>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [PATCH] ACPI: Add new sysfs interface to export device description
+Date: Wed, 19 Sep 2012 14:45:20 +0900
+Message-ID: <50595BF0.2010002@jp.fujitsu.com>
+References: <1347035296-8882-1-git-send-email-lance.ortiz@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="ISO-2022-JP"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAE9FiQW3pyFFt714yuG-BzuK55eUjN4ojhNZ6LvwGqGWuAtMYQ@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: linux-pci@vger.kernel.org, bhelgaas@google.com, linux-acpi@vger.kernel.org, kaneshige.kenji@jp.fujitsu.com, jiang.liu@huawei.com
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1347035296-8882-1-git-send-email-lance.ortiz@hp.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Lance Ortiz <lance.ortiz@hp.com>
+Cc: rob@landley.net, lenb@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 18 Sep 2012 11:57:59 -0700
-Yinghai Lu <yinghai@kernel.org> wrote:
+Hi Lance,
 
-> On Tue, Sep 18, 2012 at 11:41 AM, Yinghai Lu <yinghai@kernel.org> wrote:
-> > On Mon, Sep 17, 2012 at 11:12 PM, Taku Izumi <izumi.taku@jp.fujitsu.com> wrote:
-> >> Hi all,
-> >>
-> >>   This patchset is 3rd version of the following:
-> >>     http://marc.info/?l=linux-pci&m=134457928913775&w=2
-> >>     http://marc.info/?l=linux-pci&m=134665909321684&w=2
-> >>
-> >>  v2 -> v3:
-> >>    - change acpi_pci_drivers' add/remove interface according to Bjorn's suggestion
-> >>    - abandon RCU for protecting acpi_pci_roots list according to Bjorn's suggestion
-> >>    - change acpi_pci_find_root implementation to avoid potential deadlock
-> >>
-> >>   * [PATCH v3 1/8] ACPI, PCI: Use normal list for struct acpi_pci_driver
-> >>   * [PATCH v3 2/8] ACPI, PCI: Notify acpi_pci_drivers when hot-plugging PCI root bridges
-> >>   * [PATCH v3 3/8] ACPI, PCI: add acpi_pci_drivers protection
-> >>   * [PATCH v3 4/8] ACPI, PCI: change acpi_pci_drivers' add/remove interface
-> >>   * [PATCH v3 5/8] ACPI, PCI: change acpi_pci_find_root implementation
-> >>   * [PATCH v3 6/8] ACPI, PCI: add acpi_pci_roots protection
-> >>   * [PATCH v3 7/8] ACPI, PCI: add hostbridge removal function
-> >>   * [PATCH v3 8/8] ACPI, PCI: add resoruce-assign code for devices under hot-added hostbridge
-> >
-> > now it is more similar to my for-pci-root-bus-hotplug-part4 and part5
-> >
-> > http://git.kernel.org/?p=linux/kernel/git/yinghai/linux-yinghai.git;a=shortlog;h=refs/heads/for-pci-root-bus-hotplug-part5
-> >
-> > big difference:
-> > I separated code from acpiphp_glue.c to pci_root_hp.c for root bridge
-> > hotplug support
-> >
-> > I thought we all agreed on that acpi root bridge hotplug plug need to
-> > be separated from acpiphp at first.
-> >
-> > http://git.kernel.org/?p=linux/kernel/git/yinghai/linux-yinghai.git;a=commitdiff;h=ab9fd4ccbfb6120a4a4adf9833487d656b0501d3
-> >
-> > and CONFIG_HOTPLUG will always be enabled, so root bridge hotplug will
-> > be always enabled.
-> > acpiphp will still be used as one module, and to keep it simple pciehp
-> > will be used for pcie etc.
-> > That make the system BIOS much simple to avoid acpiphp.
+2012/09/08 1:28, Lance Ortiz wrote:
+> Add support to export the device description obtained from the ACPI _STR
+> method, if one exists for a device, to user-space via a sysfs interface.
+> This new interface provides a standard and platform neutral way for users
+> to obtain the description text stored in the ACPI _STR method.  If no
+> _STR method exists for the device, no sysfs 'description' file will be
+> created.  The 'description' file will be located in the /sys/devices/
+> directory using the device's path.
 > 
-> also current acpiphp only have root bridge add notification.
-> and your code do not add any code for remove notification.
+> /sys/device/<bus>/<bridge path>/<device path>.../firmware_node/description
 > 
-> So how to you test your code with removal path?
+> Example:
+> 
+> /sys/devices/pci0000:00/0000:00.07.0/0000:0e:00.0/firmware_node/description
+> 
+> It can also be located using the ACPI device path, for example:
+> 
+> /sys/devices/LNXSYSTM:00/device:00/ACPI0004:00/PNP0A08:00/device:13/device:15/description
+> /sys/devices/LNXSYSTM:00/device:00/ACPI0004:00/ACPI0004:01/ACPI0007:02/description
+> 
+> Execute the 'cat' command on the 'description' file to obtain the
+> description string for that device.
+> 
+> This patch also includes documentation describing how the new sysfs
+> interface works
+> 
+> Signed-off-by: Lance Ortiz <lance.ortiz@hp.com>
+> ---
 
- You were saying how to hot-remove hostbridge ?
- I tested by ejecting ACPI container which includes hostbridge.
- acpiphp is not the only way to hotplug hostbridge, so I ommit acpiphp
- work from this patchset. This patchset is core part.
-  
-Best regards,
-Taku Izumi <izumi.taku@jp.fujitsu.com>
+Tested-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+
+There is a comment as follows. 
+
+>   .../ABI/testing/sysfs-devices-firmware_node        |   17 ++++++
+>   drivers/acpi/scan.c                                |   58 +++++++++++++++++++-
+>   include/acpi/acpi_bus.h                            |    1 +
+>   3 files changed, 74 insertions(+), 2 deletions(-)
+>   create mode 100644 Documentation/ABI/testing/sysfs-devices-firmware_node
+> 
+> diff --git a/Documentation/ABI/testing/sysfs-devices-firmware_node b/Documentation/ABI/testing/sysfs-devices-firmware_node
+> new file mode 100644
+> index 0000000..46badc9
+> --- /dev/null
+> +++ b/Documentation/ABI/testing/sysfs-devices-firmware_node
+> @@ -0,0 +1,17 @@
+> +What:		/sys/devices/.../firmware_node/
+> +Date:		September 2012
+> +Contact:	<>
+> +Description:
+> +		The /sys/devices/.../firmware_node directory contains attributes
+> +		allowing the user space to check and modify some firmware
+> +		related properties of given device.
+> +
+> +What:		/sys/devices/.../firmware_node/description
+> +Date:		September 2012
+> +Contact:	Lance Ortiz <lance.ortiz@hp.com>
+> +Description:
+> +		The /sys/devices/.../firmware/description attribute contains a string
+> +		that describes the device as provided by the _STR method in the ACPI
+> +		namespace.  This attribute is read-only.  If the device does not have
+> +		an _STR method associated with it in the ACPI namespace, this
+> +		attribute is not present.
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index c8a1f3b..c9c91e1 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -10,6 +10,7 @@
+>   #include <linux/signal.h>
+>   #include <linux/kthread.h>
+>   #include <linux/dmi.h>
+> +#include <linux/nls.h>
+>   
+>   #include <acpi/acpi_drivers.h>
+>   
+> @@ -192,8 +193,38 @@ end:
+>   }
+>   static DEVICE_ATTR(path, 0444, acpi_device_path_show, NULL);
+>   
+> +/* sysfs file that shows description text from the ACPI _STR method */
+> +static ssize_t description_show(struct device *dev,
+> +				struct device_attribute *attr,
+> +				char *buf) {
+> +	struct acpi_device *acpi_dev = to_acpi_device(dev);
+> +	int result;
+> +
+> +	if (acpi_dev->pnp.str_obj == NULL) {
+> +		result = sprintf(buf, "No Description\n");
+> +		goto end;
+> +	}
+> +
+> +	/*
+> +	 * The _STR object contains a Unicode identifier for a device.
+> +	 * We need to convert to utf-8 so it can be displayed.
+> +	 */
+> +	result = utf16s_to_utf8s(
+> +		(wchar_t *)acpi_dev->pnp.str_obj->buffer.pointer,
+> +		acpi_dev->pnp.str_obj->buffer.length,
+> +		UTF16_LITTLE_ENDIAN, buf,
+> +		PAGE_SIZE);
+> +
+> +	buf[result++] = '\n';
+> +
+> +end:
+> +	return result;
+> +}
+> +static DEVICE_ATTR(description, 0444, description_show, NULL);
+> +
+>   static int acpi_device_setup_files(struct acpi_device *dev)
+>   {
+> +	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER, NULL};
+>   	acpi_status status;
+>   	acpi_handle temp;
+>   	int result = 0;
+> @@ -217,6 +248,21 @@ static int acpi_device_setup_files(struct acpi_device *dev)
+>   			goto end;
+>   	}
+>   
+> +	/*
+> +	 * If device has _STR, 'description' file is created
+> +	 */
+> +	status = acpi_get_handle(dev->handle, "_STR", &temp);
+> +	if (ACPI_SUCCESS(status)) {
+> +		status = acpi_evaluate_object(dev->handle, "_STR",
+> +					NULL, &buffer);
+> +		if (ACPI_FAILURE(status))
+> +			buffer.pointer = NULL;
+> +		dev->pnp.str_obj = buffer.pointer;
+> +		result = device_create_file(&dev->dev, &dev_attr_description);
+
+A description sysfs is created even if "acpi_evaluate_object()" fails.
+Why do you create it in this case?
+
+Thanks,
+Yasuaki Ishimatsu
+
+> +		if (result)
+> +			goto end;
+> +	}
+> +
+>           /*
+>            * If device has _EJ0, 'eject' file is created that is used to trigger
+>            * hot-removal function from userland.
+> @@ -234,8 +280,16 @@ static void acpi_device_remove_files(struct acpi_device *dev)
+>   	acpi_handle temp;
+>   
+>   	/*
+> -	 * If device has _EJ0, 'eject' file is created that is used to trigger
+> -	 * hot-removal function from userland.
+> +	 * If device has _STR, remove 'description' file
+> +	 */
+> +	status = acpi_get_handle(dev->handle, "_STR", &temp);
+> +	if (ACPI_SUCCESS(status)) {
+> +		if (dev->pnp.str_obj != NULL)
+> +			kfree(dev->pnp.str_obj);
+> +		device_remove_file(&dev->dev, &dev_attr_description);
+> +	}
+> +	/*
+> +	 * If device has _EJ0, remove 'eject' file.
+>   	 */
+>   	status = acpi_get_handle(dev->handle, "_EJ0", &temp);
+>   	if (ACPI_SUCCESS(status))
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index 9e6e1c6..12172d5 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -209,6 +209,7 @@ struct acpi_device_pnp {
+>   	struct list_head ids;		/* _HID and _CIDs */
+>   	acpi_device_name device_name;	/* Driver-determined */
+>   	acpi_device_class device_class;	/*        "          */
+> +	union acpi_object *str_obj;	/* unicode string for _STR method */
+>   };
+>   
+>   #define acpi_device_bid(d)	((d)->pnp.bus_id)
+> 
+
+
