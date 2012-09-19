@@ -1,193 +1,93 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [PATCH] ACPI: Add new sysfs interface to export device description
-Date: Wed, 19 Sep 2012 14:45:20 +0900
-Message-ID: <50595BF0.2010002@jp.fujitsu.com>
-References: <1347035296-8882-1-git-send-email-lance.ortiz@hp.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v7 0/6] ZPODD patches
+Date: Wed, 19 Sep 2012 16:03:30 +0800
+Message-ID: <20120919080328.GA4283@mint-spring.sh.intel.com>
+References: <1347438597-5903-1-git-send-email-aaron.lu@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1347035296-8882-1-git-send-email-lance.ortiz@hp.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Lance Ortiz <lance.ortiz@hp.com>
-Cc: rob@landley.net, lenb@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-ide-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1347438597-5903-1-git-send-email-aaron.lu@intel.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: James Bottomley <James.Bottomley@hansenpartnership.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Oliver Neukum <oliver@neukum.org>, Jeff Garzik <jgarzik@pobox.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Lance,
+Hi James,
 
-2012/09/08 1:28, Lance Ortiz wrote:
-> Add support to export the device description obtained from the ACPI _STR
-> method, if one exists for a device, to user-space via a sysfs interface.
-> This new interface provides a standard and platform neutral way for users
-> to obtain the description text stored in the ACPI _STR method.  If no
-> _STR method exists for the device, no sysfs 'description' file will be
-> created.  The 'description' file will be located in the /sys/devices/
-> directory using the device's path.
-> 
-> /sys/device/<bus>/<bridge path>/<device path>.../firmware_node/description
-> 
-> Example:
-> 
-> /sys/devices/pci0000:00/0000:00.07.0/0000:0e:00.0/firmware_node/description
-> 
-> It can also be located using the ACPI device path, for example:
-> 
-> /sys/devices/LNXSYSTM:00/device:00/ACPI0004:00/PNP0A08:00/device:13/device:15/description
-> /sys/devices/LNXSYSTM:00/device:00/ACPI0004:00/ACPI0004:01/ACPI0007:02/description
-> 
-> Execute the 'cat' command on the 'description' file to obtain the
-> description string for that device.
-> 
-> This patch also includes documentation describing how the new sysfs
-> interface works
-> 
-> Signed-off-by: Lance Ortiz <lance.ortiz@hp.com>
-> ---
-
-Tested-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-
-There is a comment as follows. 
-
->   .../ABI/testing/sysfs-devices-firmware_node        |   17 ++++++
->   drivers/acpi/scan.c                                |   58 +++++++++++++++++++-
->   include/acpi/acpi_bus.h                            |    1 +
->   3 files changed, 74 insertions(+), 2 deletions(-)
->   create mode 100644 Documentation/ABI/testing/sysfs-devices-firmware_node
-> 
-> diff --git a/Documentation/ABI/testing/sysfs-devices-firmware_node b/Documentation/ABI/testing/sysfs-devices-firmware_node
-> new file mode 100644
-> index 0000000..46badc9
-> --- /dev/null
-> +++ b/Documentation/ABI/testing/sysfs-devices-firmware_node
-> @@ -0,0 +1,17 @@
-> +What:		/sys/devices/.../firmware_node/
-> +Date:		September 2012
-> +Contact:	<>
-> +Description:
-> +		The /sys/devices/.../firmware_node directory contains attributes
-> +		allowing the user space to check and modify some firmware
-> +		related properties of given device.
-> +
-> +What:		/sys/devices/.../firmware_node/description
-> +Date:		September 2012
-> +Contact:	Lance Ortiz <lance.ortiz@hp.com>
-> +Description:
-> +		The /sys/devices/.../firmware/description attribute contains a string
-> +		that describes the device as provided by the _STR method in the ACPI
-> +		namespace.  This attribute is read-only.  If the device does not have
-> +		an _STR method associated with it in the ACPI namespace, this
-> +		attribute is not present.
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index c8a1f3b..c9c91e1 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -10,6 +10,7 @@
->   #include <linux/signal.h>
->   #include <linux/kthread.h>
->   #include <linux/dmi.h>
-> +#include <linux/nls.h>
->   
->   #include <acpi/acpi_drivers.h>
->   
-> @@ -192,8 +193,38 @@ end:
->   }
->   static DEVICE_ATTR(path, 0444, acpi_device_path_show, NULL);
->   
-> +/* sysfs file that shows description text from the ACPI _STR method */
-> +static ssize_t description_show(struct device *dev,
-> +				struct device_attribute *attr,
-> +				char *buf) {
-> +	struct acpi_device *acpi_dev = to_acpi_device(dev);
-> +	int result;
-> +
-> +	if (acpi_dev->pnp.str_obj == NULL) {
-> +		result = sprintf(buf, "No Description\n");
-> +		goto end;
-> +	}
-> +
-> +	/*
-> +	 * The _STR object contains a Unicode identifier for a device.
-> +	 * We need to convert to utf-8 so it can be displayed.
-> +	 */
-> +	result = utf16s_to_utf8s(
-> +		(wchar_t *)acpi_dev->pnp.str_obj->buffer.pointer,
-> +		acpi_dev->pnp.str_obj->buffer.length,
-> +		UTF16_LITTLE_ENDIAN, buf,
-> +		PAGE_SIZE);
-> +
-> +	buf[result++] = '\n';
-> +
-> +end:
-> +	return result;
-> +}
-> +static DEVICE_ATTR(description, 0444, description_show, NULL);
-> +
->   static int acpi_device_setup_files(struct acpi_device *dev)
->   {
-> +	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER, NULL};
->   	acpi_status status;
->   	acpi_handle temp;
->   	int result = 0;
-> @@ -217,6 +248,21 @@ static int acpi_device_setup_files(struct acpi_device *dev)
->   			goto end;
->   	}
->   
-> +	/*
-> +	 * If device has _STR, 'description' file is created
-> +	 */
-> +	status = acpi_get_handle(dev->handle, "_STR", &temp);
-> +	if (ACPI_SUCCESS(status)) {
-> +		status = acpi_evaluate_object(dev->handle, "_STR",
-> +					NULL, &buffer);
-> +		if (ACPI_FAILURE(status))
-> +			buffer.pointer = NULL;
-> +		dev->pnp.str_obj = buffer.pointer;
-> +		result = device_create_file(&dev->dev, &dev_attr_description);
-
-A description sysfs is created even if "acpi_evaluate_object()" fails.
-Why do you create it in this case?
+May I know if this patchset will enter v3.7?
 
 Thanks,
-Yasuaki Ishimatsu
+Aaron
 
-> +		if (result)
-> +			goto end;
-> +	}
-> +
->           /*
->            * If device has _EJ0, 'eject' file is created that is used to trigger
->            * hot-removal function from userland.
-> @@ -234,8 +280,16 @@ static void acpi_device_remove_files(struct acpi_device *dev)
->   	acpi_handle temp;
->   
->   	/*
-> -	 * If device has _EJ0, 'eject' file is created that is used to trigger
-> -	 * hot-removal function from userland.
-> +	 * If device has _STR, remove 'description' file
-> +	 */
-> +	status = acpi_get_handle(dev->handle, "_STR", &temp);
-> +	if (ACPI_SUCCESS(status)) {
-> +		if (dev->pnp.str_obj != NULL)
-> +			kfree(dev->pnp.str_obj);
-> +		device_remove_file(&dev->dev, &dev_attr_description);
-> +	}
-> +	/*
-> +	 * If device has _EJ0, remove 'eject' file.
->   	 */
->   	status = acpi_get_handle(dev->handle, "_EJ0", &temp);
->   	if (ACPI_SUCCESS(status))
-> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-> index 9e6e1c6..12172d5 100644
-> --- a/include/acpi/acpi_bus.h
-> +++ b/include/acpi/acpi_bus.h
-> @@ -209,6 +209,7 @@ struct acpi_device_pnp {
->   	struct list_head ids;		/* _HID and _CIDs */
->   	acpi_device_name device_name;	/* Driver-determined */
->   	acpi_device_class device_class;	/*        "          */
-> +	union acpi_object *str_obj;	/* unicode string for _STR method */
->   };
->   
->   #define acpi_device_bid(d)	((d)->pnp.bus_id)
+On Wed, Sep 12, 2012 at 04:29:51PM +0800, Aaron Lu wrote:
+> v7:
+> Re work of runtime pm of sr driver, based on ideas of Alan Stern and
+> Oliver Neukum.
 > 
-
-
+> Jeff, due to the ready_to_power_off flag added, there is a small
+> change in [PATCH v7 6/6] libata: acpi: respect may_power_off flag,
+> please check if I can still get your ack, thanks.
+> 
+> v6:
+> When user changes may_power_off flag through sysfs entry and if device
+> is already runtime suspended, resume resume it so that it can respect
+> this flag next time it is runtime suspended as suggested by Alan Stern.
+> Call scsi_autopm_get/put_device once in sr_check_events as suggested by
+> Alan Stern.
+> 
+> v5:
+> Add may_power_off flag to scsi device.
+> Alan Stern suggested that I should not mess runtime suspend with
+> runtime power off, but the current zpodd implementation made it not
+> easy to seperate. So I re-wrote the zpodd implementation, the end
+> result is, normal ODD can also enter runtime suspended state, but
+> their power won't be removed.
+> 
+> v4:
+> Rebase on top of Linus' tree, due to this, the problem of a missing
+> flag in v3 is gone;
+> Add a new function scsi_autopm_put_device_autosuspend to first mark
+> last busy for the device and then put autosuspend it as suggested by
+> Oliver Neukum.
+> Typo fix as pointed by Sergei Shtylyov.
+> Check can_power_off flag before any runtime pm operations in sr.
+> 
+> v3:
+> Rebase on top of scsi-misc tree;
+> Add the sr related patches previously in Jeff's libata tree;
+> Re-organize the sr patches.
+> A problem for now: for patch
+> scsi: sr: support zero power ODD(ZPODD)
+> I can't set a flag in libata-acpi.c since a related function is
+> missing in scsi-misc tree. Will fix this when 3.6-rc1 released.
+> 
+> v2:
+> Bug fix for v1;
+> Use scsi_autopm_* in sr driver instead of pm_runtime_*;
+> 
+> v1:
+> Here are some patches to make ZPODD easier to use for end users and
+> a fix for using ZPODD with system suspend.
+> 
+> Aaron Lu (6):
+>   block: genhd: add an interface to set disk poll interval
+>   scsi: sr: support runtime pm
+>   scsi: sr: support zero power ODD(ZPODD)
+>   scsi: pm: add may_power_off flag
+>   scsi: sr: use may_power_off
+>   libata: acpi: respect may_power_off flag
+> 
+>  block/genhd.c              | 23 +++++++++----
+>  drivers/ata/libata-acpi.c  | 30 +++++++++++-----
+>  drivers/scsi/scsi_sysfs.c  | 37 +++++++++++++++++++-
+>  drivers/scsi/sr.c          | 86 +++++++++++++++++++++++++++++++++++++++++++---
+>  drivers/scsi/sr.h          |  1 +
+>  drivers/scsi/sr_ioctl.c    |  7 +++-
+>  include/linux/genhd.h      |  1 +
+>  include/scsi/scsi_device.h |  4 +++
+>  8 files changed, 168 insertions(+), 21 deletions(-)
+> 
+> -- 
+> 1.7.12.21.g871e293
+> 
