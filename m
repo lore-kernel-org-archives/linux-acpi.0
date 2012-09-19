@@ -1,90 +1,97 @@
-From: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
-Subject: Re: [RFC v8 PATCH 00/20] memory-hotplug: hot-remove physical memory
-Date: Wed, 19 Sep 2012 19:02:05 +0200
-Message-ID: <20120919170205.GA15549@dhcp-192-168-178-175.profitbricks.localdomain>
-References: <1346148027-24468-1-git-send-email-wency@cn.fujitsu.com>
- <20120831134956.fec0f681.akpm@linux-foundation.org>
- <504D467D.2080201@jp.fujitsu.com>
- <504D4A08.7090602@cn.fujitsu.com>
- <20120910135213.GA1550@dhcp-192-168-178-175.profitbricks.localdomain>
- <50501B9C.7000200@cn.fujitsu.com>
- <20120912171814.GB5253@dhcp-192-168-178-175.profitbricks.localdomain>
- <50584159.3020403@cn.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: [PATCH 1/3] cpuidle : remove unused ref count function
+Date: Wed, 19 Sep 2012 19:22:47 +0200
+Message-ID: <1348075369-16451-1-git-send-email-daniel.lezcano@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:55301 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754859Ab2ISRCK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Sep 2012 13:02:10 -0400
-Received: by bkwj10 with SMTP id j10so662386bkw.19
-        for <linux-acpi@vger.kernel.org>; Wed, 19 Sep 2012 10:02:08 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <50584159.3020403@cn.fujitsu.com>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:58631 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932295Ab2ISRWx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Sep 2012 13:22:53 -0400
+Received: by wibhr14 with SMTP id hr14so1415928wib.1
+        for <linux-acpi@vger.kernel.org>; Wed, 19 Sep 2012 10:22:52 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Andrew Morton <akpm@linux-foundation.org>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com
+To: rjw@sisk.pl, lenb@kernel.org
+Cc: linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, patches@linaro.org, linaro-dev@lists.linaro.org
 
-Hi,
-On Tue, Sep 18, 2012 at 05:39:37PM +0800, Wen Congyang wrote:
-> At 09/13/2012 01:18 AM, Vasilis Liaskovitis Wrote:
-> > Hi,
-> > 
-> > On Wed, Sep 12, 2012 at 01:20:28PM +0800, Wen Congyang wrote:
-> >> Hmm, seabios doesn't support ACPI table SLIT. We can specify node it for dimm
-> >> device, so I think we should support SLIT in seabios. Otherwise we may meet
-> >> the following kernel messages:
-> >> [  325.016769] init_memory_mapping: [mem 0x40000000-0x5fffffff]
-> >> [  325.018060]  [mem 0x40000000-0x5fffffff] page 2M
-> >> [  325.019168] [ffffea0001000000-ffffea00011fffff] potential offnode page_structs
-> >> [  325.024172] [ffffea0001200000-ffffea00013fffff] potential offnode page_structs
-> >> [  325.028596]  [ffffea0001400000-ffffea00017fffff] PMD -> [ffff880035000000-ffff8800353fffff] on node 1
-> >> [  325.031775] [ffffea0001600000-ffffea00017fffff] potential offnode page_structs
-> >>
-> >> Do you have plan to do it?
-> > thanks for testing.
-> > 
-> > commit 5294828 from https://github.com/vliaskov/seabios/commits/memhp-v2
-> > implements a SLIT table for the given numa nodes.
-> 
-> Hmm, why do you set node_distance(i, j) to REMOTE_DISTANCE if i != j?
+These two functions are never used.
 
-What's the alternative?
+Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+---
+ drivers/cpuidle/driver.c |   29 +----------------------------
+ include/linux/cpuidle.h  |    4 ----
+ 2 files changed, 1 insertions(+), 32 deletions(-)
 
-Afaik SLIT[i][j] shows the distance between proximity domains (_PXM) i and j. It
-doesn't correspond to individual SRAT entries. So i and j here are not memory
-ranges associated with 2 different dimms. They denote domains i and j, which map
-to 2 different logical nodeids in the kernel.
+diff --git a/drivers/cpuidle/driver.c b/drivers/cpuidle/driver.c
+index 58bf3b1..40cd3f3 100644
+--- a/drivers/cpuidle/driver.c
++++ b/drivers/cpuidle/driver.c
+@@ -16,7 +16,6 @@
+ 
+ static struct cpuidle_driver *cpuidle_curr_driver;
+ DEFINE_SPINLOCK(cpuidle_driver_lock);
+-int cpuidle_driver_refcount;
+ 
+ static void __cpuidle_register_driver(struct cpuidle_driver *drv)
+ {
+@@ -90,34 +89,8 @@ void cpuidle_unregister_driver(struct cpuidle_driver *drv)
+ 	}
+ 
+ 	spin_lock(&cpuidle_driver_lock);
+-
+-	if (!WARN_ON(cpuidle_driver_refcount > 0))
+-		cpuidle_curr_driver = NULL;
+-
++	cpuidle_curr_driver = NULL;
+ 	spin_unlock(&cpuidle_driver_lock);
+ }
+ 
+ EXPORT_SYMBOL_GPL(cpuidle_unregister_driver);
+-
+-struct cpuidle_driver *cpuidle_driver_ref(void)
+-{
+-	struct cpuidle_driver *drv;
+-
+-	spin_lock(&cpuidle_driver_lock);
+-
+-	drv = cpuidle_curr_driver;
+-	cpuidle_driver_refcount++;
+-
+-	spin_unlock(&cpuidle_driver_lock);
+-	return drv;
+-}
+-
+-void cpuidle_driver_unref(void)
+-{
+-	spin_lock(&cpuidle_driver_lock);
+-
+-	if (!WARN_ON(cpuidle_driver_refcount <= 0))
+-		cpuidle_driver_refcount--;
+-
+-	spin_unlock(&cpuidle_driver_lock);
+-}
+diff --git a/include/linux/cpuidle.h b/include/linux/cpuidle.h
+index 279b1ea..5abf62b 100644
+--- a/include/linux/cpuidle.h
++++ b/include/linux/cpuidle.h
+@@ -145,8 +145,6 @@ extern void disable_cpuidle(void);
+ extern int cpuidle_idle_call(void);
+ extern int cpuidle_register_driver(struct cpuidle_driver *drv);
+ extern struct cpuidle_driver *cpuidle_get_driver(void);
+-extern struct cpuidle_driver *cpuidle_driver_ref(void);
+-extern void cpuidle_driver_unref(void);
+ extern void cpuidle_unregister_driver(struct cpuidle_driver *drv);
+ extern int cpuidle_register_device(struct cpuidle_device *dev);
+ extern void cpuidle_unregister_device(struct cpuidle_device *dev);
+@@ -169,8 +167,6 @@ static inline int cpuidle_idle_call(void) { return -ENODEV; }
+ static inline int cpuidle_register_driver(struct cpuidle_driver *drv)
+ {return -ENODEV; }
+ static inline struct cpuidle_driver *cpuidle_get_driver(void) {return NULL; }
+-static inline struct cpuidle_driver *cpuidle_driver_ref(void) {return NULL; }
+-static inline void cpuidle_driver_unref(void) {}
+ static inline void cpuidle_unregister_driver(struct cpuidle_driver *drv) { }
+ static inline int cpuidle_register_device(struct cpuidle_device *dev)
+ {return -ENODEV; }
+-- 
+1.7.5.4
 
-A default setting would be to set the entry to REMOTE_DISTANCE for all different
-domains (i!=j). So this SLIT implementation is not useful, since it results
-in the same numa_distance values as the non-SLIT kernel calculation in
-include/linux/topology.h
-
-> 
-> > 
-> > However I am not sure the SLIT is the problem. The kernel builds a default
-> > numa_distance table in arch/x86/mm/numa.c: numa_alloc_distance(). If the BIOS
-> > doesn't present a SLIT, this should take effect (numactl --hardware should
-> > report this table)
-> 
-> If the BIOS doesn't present a SLIT, numa_distance_cnt is set to 0 in the
-> function numa_reset_distance(). So node_distance(i, j) is REMOTE_DISTANCE(i != j).
-> 
-> > 
-> > Do you have more details on how to reproduce the warning? e.g. how many dimms
-> > are present in the system? Does this happen on the first dimm hot-plugged?
-> > Are all SRAT entries parsed correctly at boot-time or do you see any other
-> > warnings at boot-time?
-> 
-> I can't reproduce it again. IIRC, I only do the following things:
-> hotplug a memory device, online the pages, offline the pages and hot remove
-> the memory device.
-
-Is the sparse_vmemmap allocation supposed to guarantee no off-node allocations?
-If not, then the warning could be valid.
-
-thanks,
-
-- Vasilis
