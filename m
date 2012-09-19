@@ -1,55 +1,46 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH 27/40] ACPI: acpi_bus_trim to support two steps.
-Date: Wed, 19 Sep 2012 11:54:41 -0700
-Message-ID: <1348080894-23412-28-git-send-email-yinghai@kernel.org>
+Subject: [PATCH 26/40] PCI, ACPI: del root bus prt
+Date: Wed, 19 Sep 2012 11:54:40 -0700
+Message-ID: <1348080894-23412-27-git-send-email-yinghai@kernel.org>
 References: <CAE9FiQWFcVNKMnV1qaHchwCXfZuMpyxf_f7GQy3FZid9YuLD3w@mail.gmail.com>
  <1348080894-23412-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from acsinet15.oracle.com ([141.146.126.227]:48037 "EHLO
-	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756991Ab2ISSza (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Sep 2012 14:55:30 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1348080894-23412-1-git-send-email-yinghai@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, x86 <x86@kernel.org>
 Cc: Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-current all acpi_bus_trim callers have rmdevice to 1.
-that means it will remove all acpi devices.
-
-When 0, is passed, it will keep one parent.
-
-For root bus hotremove support, we need to have pci device removed before
-acpi devices.
-
-So try to keep all acpi devices, and only stop drivers with them.
-
-This change should be safe because all current callers all have 1 passed.
+corresponding to add path.
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
 ---
- drivers/acpi/scan.c |    5 +----
- 1 files changed, 1 insertions(+), 4 deletions(-)
+ drivers/acpi/pci_root.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index d1ecca2..d1a1f25 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1539,10 +1539,7 @@ int acpi_bus_trim(struct acpi_device *start, int rmdevice)
- 			child = parent;
- 			parent = parent->parent;
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index 92ec5c9..b72c85c 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -650,6 +650,8 @@ static int acpi_pci_root_start(struct acpi_device *device)
  
--			if (level == 0)
--				err = acpi_bus_remove(child, rmdevice);
--			else
--				err = acpi_bus_remove(child, 1);
-+			err = acpi_bus_remove(child, rmdevice);
+ static int acpi_pci_root_remove(struct acpi_device *device, int type)
+ {
++	acpi_status status;
++	acpi_handle handle;
+ 	struct acpi_pci_root *root = acpi_driver_data(device);
  
- 			continue;
- 		}
+ 	/* that root bus could be removed already */
+@@ -664,6 +666,10 @@ static int acpi_pci_root_remove(struct acpi_device *device, int type)
+ 	device_set_run_wake(root->bus->bridge, false);
+ 	pci_acpi_remove_bus_pm_notifier(device);
+ 
++	status = acpi_get_handle(device->handle, METHOD_NAME__PRT, &handle);
++	if (ACPI_SUCCESS(status))
++		acpi_pci_irq_del_prt(root->bus);
++
+ 	dev_printk(KERN_DEBUG, &device->dev,
+ 		"freeing acpi_pci_root, will remove pci root bus at first");
+ 	pci_remove_root_bus(root->bus);
 -- 
 1.7.7
-
