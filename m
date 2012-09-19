@@ -1,54 +1,54 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH 02/40] PCI, x86: clear initial value for root info resources
-Date: Wed, 19 Sep 2012 11:54:16 -0700
-Message-ID: <1348080894-23412-3-git-send-email-yinghai@kernel.org>
+Subject: [PATCH 03/40] PCI, ia64: clear initial value for root info resources
+Date: Wed, 19 Sep 2012 11:54:17 -0700
+Message-ID: <1348080894-23412-4-git-send-email-yinghai@kernel.org>
 References: <CAE9FiQWFcVNKMnV1qaHchwCXfZuMpyxf_f7GQy3FZid9YuLD3w@mail.gmail.com>
  <1348080894-23412-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from acsinet15.oracle.com ([141.146.126.227]:47802 "EHLO
+	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753761Ab2ISSzN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Sep 2012 14:55:13 -0400
 In-Reply-To: <1348080894-23412-1-git-send-email-yinghai@kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, x86 <x86@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, x86 <x86@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, linux-ia64@vger.kernel.org
 
-Found one system one root bus hot remove get panic.
-Panic happens when try to release hostbridge resource.
+after
+	PCI, x86: clear initial value for root info resources
 
-It turns out that resource get reject during put into resource tree
-because of conflicts.
-Also that resource parent pointer have random value.
-
-That invalid value cause it pass through check __release_pci_root_info
-and panic in release_resource.
-
-Try to use kzalloc instead.
+change ia64 code accordingly, because later ia64 will support root bus removal too.
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: x86@kernel.org
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: linux-ia64@vger.kernel.org
 ---
- arch/x86/pci/acpi.c |    3 +--
+ arch/ia64/pci/pci.c |    3 +--
  1 files changed, 1 insertions(+), 2 deletions(-)
 
-diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-index 505acdd..192397c 100644
---- a/arch/x86/pci/acpi.c
-+++ b/arch/x86/pci/acpi.c
-@@ -305,7 +305,6 @@ setup_resource(struct acpi_resource *acpi_res, void *data)
- 	res->flags = flags;
- 	res->start = start;
- 	res->end = end;
--	res->child = NULL;
+diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
+index a7ebe94..5faa66c 100644
+--- a/arch/ia64/pci/pci.c
++++ b/arch/ia64/pci/pci.c
+@@ -295,7 +295,6 @@ static __devinit acpi_status add_window(struct acpi_resource *res, void *data)
+ 	window->resource.flags = flags;
+ 	window->resource.start = addr.minimum + offset;
+ 	window->resource.end = window->resource.start + addr.address_length - 1;
+-	window->resource.child = NULL;
+ 	window->offset = offset;
  
- 	if (!pci_use_crs) {
- 		dev_printk(KERN_DEBUG, &info->bridge->dev,
-@@ -434,7 +433,7 @@ probe_pci_root_info(struct pci_root_info *info, struct acpi_device *device,
- 
- 	size = sizeof(*info->res) * info->res_num;
- 	info->res_num = 0;
--	info->res = kmalloc(size, GFP_KERNEL);
-+	info->res = kzalloc(size, GFP_KERNEL);
- 	if (!info->res)
- 		return;
- 
+ 	if (insert_resource(root, &window->resource)) {
+@@ -357,7 +356,7 @@ pci_acpi_scan_root(struct acpi_pci_root *root)
+ 			&windows);
+ 	if (windows) {
+ 		controller->window =
+-			kmalloc_node(sizeof(*controller->window) * windows,
++			kzalloc_node(sizeof(*controller->window) * windows,
+ 				     GFP_KERNEL, controller->node);
+ 		if (!controller->window)
+ 			goto out2;
 -- 
 1.7.7
+
