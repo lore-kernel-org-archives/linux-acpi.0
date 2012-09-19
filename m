@@ -1,7 +1,7 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH 05/40] PCI: Add root bus children dev's res to fail list
-Date: Wed, 19 Sep 2012 11:54:19 -0700
-Message-ID: <1348080894-23412-6-git-send-email-yinghai@kernel.org>
+Subject: [PATCH 07/40] x86, PCI: Separate pcibios_allocate_bridge_resources()
+Date: Wed, 19 Sep 2012 11:54:21 -0700
+Message-ID: <1348080894-23412-8-git-send-email-yinghai@kernel.org>
 References: <CAE9FiQWFcVNKMnV1qaHchwCXfZuMpyxf_f7GQy3FZid9YuLD3w@mail.gmail.com>
  <1348080894-23412-1-git-send-email-yinghai@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
@@ -11,27 +11,75 @@ To: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi
 Cc: Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-We can stop according to try number now and do not need to use root_bus checking
-as stop sign anymore.
-Also in extreme case we could need to reallocate device just under bus 0.
+Thus pcibios_allocate_bus_resources() could more simple and clean
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 ---
- drivers/pci/setup-bus.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ arch/x86/pci/i386.c |   46 ++++++++++++++++++++++++----------------------
+ 1 files changed, 24 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
-index 1e808ca..9e625d84 100644
---- a/drivers/pci/setup-bus.c
-+++ b/drivers/pci/setup-bus.c
-@@ -283,7 +283,7 @@ static void assign_requested_resources_sorted(struct list_head *head,
- 		idx = res - &dev_res->dev->resource[0];
- 		if (resource_size(res) &&
- 		    pci_assign_resource(dev_res->dev, idx)) {
--			if (fail_head && !pci_is_root_bus(dev_res->dev->bus)) {
-+			if (fail_head) {
- 				/*
- 				 * if the failed res is for ROM BAR, and it will
- 				 * be enabled later, don't add it to the list
+diff --git a/arch/x86/pci/i386.c b/arch/x86/pci/i386.c
+index dd8ca6f..9800362 100644
+--- a/arch/x86/pci/i386.c
++++ b/arch/x86/pci/i386.c
+@@ -193,34 +193,36 @@ EXPORT_SYMBOL(pcibios_align_resource);
+  *	    as well.
+  */
+ 
+-static void __init pcibios_allocate_bus_resources(struct list_head *bus_list)
++static void __init pcibios_allocate_bridge_resources(struct pci_dev *dev)
+ {
+-	struct pci_bus *bus;
+-	struct pci_dev *dev;
+ 	int idx;
+ 	struct resource *r;
+ 
++	for (idx = PCI_BRIDGE_RESOURCES; idx < PCI_NUM_RESOURCES; idx++) {
++		r = &dev->resource[idx];
++		if (!r->flags)
++			continue;
++		if (!r->start || pci_claim_resource(dev, idx) < 0) {
++			/*
++			 * Something is wrong with the region.
++			 * Invalidate the resource to prevent
++			 * child resource allocations in this
++			 * range.
++			 */
++			r->start = r->end = 0;
++			r->flags = 0;
++		}
++	}
++}
++
++static void __init pcibios_allocate_bus_resources(struct list_head *bus_list)
++{
++	struct pci_bus *bus;
++
+ 	/* Depth-First Search on bus tree */
+ 	list_for_each_entry(bus, bus_list, node) {
+-		if ((dev = bus->self)) {
+-			for (idx = PCI_BRIDGE_RESOURCES;
+-			    idx < PCI_NUM_RESOURCES; idx++) {
+-				r = &dev->resource[idx];
+-				if (!r->flags)
+-					continue;
+-				if (!r->start ||
+-				    pci_claim_resource(dev, idx) < 0) {
+-					/*
+-					 * Something is wrong with the region.
+-					 * Invalidate the resource to prevent
+-					 * child resource allocations in this
+-					 * range.
+-					 */
+-					r->start = r->end = 0;
+-					r->flags = 0;
+-				}
+-			}
+-		}
++		if (bus->self)
++			pcibios_allocate_bridge_resources(bus->self);
+ 		pcibios_allocate_bus_resources(&bus->children);
+ 	}
+ }
 -- 
 1.7.7
