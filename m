@@ -1,7 +1,7 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH 11/40] PCI, x86: Add pcibios_fw_addr_done
-Date: Wed, 19 Sep 2012 11:54:25 -0700
-Message-ID: <1348080894-23412-12-git-send-email-yinghai@kernel.org>
+Subject: [PATCH 05/40] PCI: Add root bus children dev's res to fail list
+Date: Wed, 19 Sep 2012 11:54:19 -0700
+Message-ID: <1348080894-23412-6-git-send-email-yinghai@kernel.org>
 References: <CAE9FiQWFcVNKMnV1qaHchwCXfZuMpyxf_f7GQy3FZid9YuLD3w@mail.gmail.com>
  <1348080894-23412-1-git-send-email-yinghai@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
@@ -11,64 +11,27 @@ To: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi
 Cc: Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Use it to skip not needed function after pcibios_fw_addr_list_del is called.
-
-for pci root bus hot add, we will need to use pcibios_allocate_dev_resources(),
-and don't want to mess up with fw_addr.
+We can stop according to try number now and do not need to use root_bus checking
+as stop sign anymore.
+Also in extreme case we could need to reallocate device just under bus 0.
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 ---
- arch/x86/pci/i386.c |   10 +++++++++-
- 1 files changed, 9 insertions(+), 1 deletions(-)
+ drivers/pci/setup-bus.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/x86/pci/i386.c b/arch/x86/pci/i386.c
-index 42dd755..edfc376 100644
---- a/arch/x86/pci/i386.c
-+++ b/arch/x86/pci/i386.c
-@@ -51,6 +51,7 @@ struct pcibios_fwaddrmap {
- 
- static LIST_HEAD(pcibios_fwaddrmappings);
- static DEFINE_SPINLOCK(pcibios_fwaddrmap_lock);
-+static bool pcibios_fw_addr_done;
- 
- /* Must be called with 'pcibios_fwaddrmap_lock' lock held. */
- static struct pcibios_fwaddrmap *pcibios_fwaddrmap_lookup(struct pci_dev *dev)
-@@ -72,6 +73,9 @@ pcibios_save_fw_addr(struct pci_dev *dev, int idx, resource_size_t fw_addr)
- 	unsigned long flags;
- 	struct pcibios_fwaddrmap *map;
- 
-+	if (pcibios_fw_addr_done)
-+		return;
-+
- 	spin_lock_irqsave(&pcibios_fwaddrmap_lock, flags);
- 	map = pcibios_fwaddrmap_lookup(dev);
- 	if (!map) {
-@@ -97,6 +101,9 @@ resource_size_t pcibios_retrieve_fw_addr(struct pci_dev *dev, int idx)
- 	struct pcibios_fwaddrmap *map;
- 	resource_size_t fw_addr = 0;
- 
-+	if (pcibios_fw_addr_done)
-+		return fw_addr;
-+
- 	spin_lock_irqsave(&pcibios_fwaddrmap_lock, flags);
- 	map = pcibios_fwaddrmap_lookup(dev);
- 	if (map)
-@@ -106,7 +113,7 @@ resource_size_t pcibios_retrieve_fw_addr(struct pci_dev *dev, int idx)
- 	return fw_addr;
- }
- 
--static void pcibios_fw_addr_list_del(void)
-+static void __init pcibios_fw_addr_list_del(void)
- {
- 	unsigned long flags;
- 	struct pcibios_fwaddrmap *entry, *next;
-@@ -118,6 +125,7 @@ static void pcibios_fw_addr_list_del(void)
- 		kfree(entry);
- 	}
- 	spin_unlock_irqrestore(&pcibios_fwaddrmap_lock, flags);
-+	pcibios_fw_addr_done = true;
- }
- 
- static int
+diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
+index 1e808ca..9e625d84 100644
+--- a/drivers/pci/setup-bus.c
++++ b/drivers/pci/setup-bus.c
+@@ -283,7 +283,7 @@ static void assign_requested_resources_sorted(struct list_head *head,
+ 		idx = res - &dev_res->dev->resource[0];
+ 		if (resource_size(res) &&
+ 		    pci_assign_resource(dev_res->dev, idx)) {
+-			if (fail_head && !pci_is_root_bus(dev_res->dev->bus)) {
++			if (fail_head) {
+ 				/*
+ 				 * if the failed res is for ROM BAR, and it will
+ 				 * be enabled later, don't add it to the list
 -- 
 1.7.7
