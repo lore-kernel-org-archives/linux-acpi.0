@@ -1,75 +1,110 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH 04/40] PCI, acpiphp: Add is_hotplug_bridge detection
-Date: Wed, 19 Sep 2012 11:54:18 -0700
-Message-ID: <1348080894-23412-5-git-send-email-yinghai@kernel.org>
-References: <CAE9FiQWFcVNKMnV1qaHchwCXfZuMpyxf_f7GQy3FZid9YuLD3w@mail.gmail.com>
- <1348080894-23412-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1348080894-23412-1-git-send-email-yinghai@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, x86 <x86@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 1/3] cpuidle : remove unused ref count function
+Date: Wed, 19 Sep 2012 21:49:37 +0200
+Message-ID: <201209192149.38164.rjw@sisk.pl>
+References: <1348075369-16451-1-git-send-email-daniel.lezcano@linaro.org>
+Mime-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([193.178.161.156]:34496 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750799Ab2ISTnJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Sep 2012 15:43:09 -0400
+In-Reply-To: <1348075369-16451-1-git-send-email-daniel.lezcano@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: lenb@kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, patches@linaro.org, linaro-dev@lists.linaro.org
 
-When system support hotplug bridge with children hotplug slots, we need to make sure
-that parent bridge get preallocated resource so later when device is plugged into
-children slot, those children devices will get resource allocated.
+On Wednesday, September 19, 2012, Daniel Lezcano wrote:
+> These two functions are never used.
 
-We do not meet this problem, because for pcie hotplug card, when acpiphp is used,
-pci_scan_bridge will set that for us when detect hotplug bit in slot cap.
+This is not the case.  pm_genpd_attach_cpuidle() and
+pm_genpd_detach_cpuidle() use them.
 
-Reported-and-tested-by: Jason Baron <jbaron@redhat.com>
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Acked-by: Jason Baron <jbaron@redhat.com>
----
- drivers/pci/hotplug/acpiphp_glue.c |   27 ++++++++++++++++++++++++++-
- 1 files changed, 26 insertions(+), 1 deletions(-)
+Please be more careful.
 
-diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
-index 7be4ca5..085eec7 100644
---- a/drivers/pci/hotplug/acpiphp_glue.c
-+++ b/drivers/pci/hotplug/acpiphp_glue.c
-@@ -783,6 +783,29 @@ static void acpiphp_set_acpi_region(struct acpiphp_slot *slot)
- 	}
- }
- 
-+static void check_hotplug_bridge(struct acpiphp_slot *slot, struct pci_dev *dev)
-+{
-+	struct acpiphp_func *func;
-+
-+	if (!dev->subordinate)
-+		return;
-+
-+	/* quirk, or pcie could set it already */
-+	if (dev->is_hotplug_bridge)
-+		return;
-+
-+	if (PCI_SLOT(dev->devfn) != slot->device)
-+		return;
-+
-+	list_for_each_entry(func, &slot->funcs, sibling) {
-+		if (PCI_FUNC(dev->devfn) == func->function) {
-+			/* check if this bridge has ejectable slots */
-+			if ((detect_ejectable_slots(func->handle) > 0))
-+				dev->is_hotplug_bridge = 1;
-+			break;
-+		}
-+	}
-+}
- /**
-  * enable_device - enable, configure a slot
-  * @slot: slot to be enabled
-@@ -817,8 +840,10 @@ static int __ref enable_device(struct acpiphp_slot *slot)
- 			if (dev->hdr_type == PCI_HEADER_TYPE_BRIDGE ||
- 			    dev->hdr_type == PCI_HEADER_TYPE_CARDBUS) {
- 				max = pci_scan_bridge(bus, dev, max, pass);
--				if (pass && dev->subordinate)
-+				if (pass && dev->subordinate) {
-+					check_hotplug_bridge(slot, dev);
- 					pci_bus_size_bridges(dev->subordinate);
-+				}
- 			}
- 		}
- 	}
--- 
-1.7.7
+Thanks,
+Rafael
+
+
+> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+> ---
+>  drivers/cpuidle/driver.c |   29 +----------------------------
+>  include/linux/cpuidle.h  |    4 ----
+>  2 files changed, 1 insertions(+), 32 deletions(-)
+> 
+> diff --git a/drivers/cpuidle/driver.c b/drivers/cpuidle/driver.c
+> index 58bf3b1..40cd3f3 100644
+> --- a/drivers/cpuidle/driver.c
+> +++ b/drivers/cpuidle/driver.c
+> @@ -16,7 +16,6 @@
+>  
+>  static struct cpuidle_driver *cpuidle_curr_driver;
+>  DEFINE_SPINLOCK(cpuidle_driver_lock);
+> -int cpuidle_driver_refcount;
+>  
+>  static void __cpuidle_register_driver(struct cpuidle_driver *drv)
+>  {
+> @@ -90,34 +89,8 @@ void cpuidle_unregister_driver(struct cpuidle_driver *drv)
+>  	}
+>  
+>  	spin_lock(&cpuidle_driver_lock);
+> -
+> -	if (!WARN_ON(cpuidle_driver_refcount > 0))
+> -		cpuidle_curr_driver = NULL;
+> -
+> +	cpuidle_curr_driver = NULL;
+>  	spin_unlock(&cpuidle_driver_lock);
+>  }
+>  
+>  EXPORT_SYMBOL_GPL(cpuidle_unregister_driver);
+> -
+> -struct cpuidle_driver *cpuidle_driver_ref(void)
+> -{
+> -	struct cpuidle_driver *drv;
+> -
+> -	spin_lock(&cpuidle_driver_lock);
+> -
+> -	drv = cpuidle_curr_driver;
+> -	cpuidle_driver_refcount++;
+> -
+> -	spin_unlock(&cpuidle_driver_lock);
+> -	return drv;
+> -}
+> -
+> -void cpuidle_driver_unref(void)
+> -{
+> -	spin_lock(&cpuidle_driver_lock);
+> -
+> -	if (!WARN_ON(cpuidle_driver_refcount <= 0))
+> -		cpuidle_driver_refcount--;
+> -
+> -	spin_unlock(&cpuidle_driver_lock);
+> -}
+> diff --git a/include/linux/cpuidle.h b/include/linux/cpuidle.h
+> index 279b1ea..5abf62b 100644
+> --- a/include/linux/cpuidle.h
+> +++ b/include/linux/cpuidle.h
+> @@ -145,8 +145,6 @@ extern void disable_cpuidle(void);
+>  extern int cpuidle_idle_call(void);
+>  extern int cpuidle_register_driver(struct cpuidle_driver *drv);
+>  extern struct cpuidle_driver *cpuidle_get_driver(void);
+> -extern struct cpuidle_driver *cpuidle_driver_ref(void);
+> -extern void cpuidle_driver_unref(void);
+>  extern void cpuidle_unregister_driver(struct cpuidle_driver *drv);
+>  extern int cpuidle_register_device(struct cpuidle_device *dev);
+>  extern void cpuidle_unregister_device(struct cpuidle_device *dev);
+> @@ -169,8 +167,6 @@ static inline int cpuidle_idle_call(void) { return -ENODEV; }
+>  static inline int cpuidle_register_driver(struct cpuidle_driver *drv)
+>  {return -ENODEV; }
+>  static inline struct cpuidle_driver *cpuidle_get_driver(void) {return NULL; }
+> -static inline struct cpuidle_driver *cpuidle_driver_ref(void) {return NULL; }
+> -static inline void cpuidle_driver_unref(void) {}
+>  static inline void cpuidle_unregister_driver(struct cpuidle_driver *drv) { }
+>  static inline int cpuidle_register_device(struct cpuidle_device *dev)
+>  {return -ENODEV; }
+> 
+
