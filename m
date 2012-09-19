@@ -1,74 +1,86 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH 29/40] PCI, ACPI: Add alloc_acpi_hp_work()
-Date: Wed, 19 Sep 2012 11:54:43 -0700
-Message-ID: <1348080894-23412-30-git-send-email-yinghai@kernel.org>
+Subject: [PATCH 31/40] PCI, pci_root_hp: Use acpi_hp_work
+Date: Wed, 19 Sep 2012 11:54:45 -0700
+Message-ID: <1348080894-23412-32-git-send-email-yinghai@kernel.org>
 References: <CAE9FiQWFcVNKMnV1qaHchwCXfZuMpyxf_f7GQy3FZid9YuLD3w@mail.gmail.com>
  <1348080894-23412-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1348080894-23412-1-git-send-email-yinghai@kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, x86 <x86@kernel.org>
 Cc: Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Will use it with acpiphp and pci_root_hp events handling
+Remove local copy: acpi_root_hp_work
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 Cc: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org
 ---
- drivers/acpi/osl.c      |   21 +++++++++++++++++++++
- include/acpi/acpiosxf.h |    9 +++++++++
- 2 files changed, 30 insertions(+), 0 deletions(-)
+ drivers/acpi/pci_root_hp.c |   34 +++-------------------------------
+ 1 files changed, 3 insertions(+), 31 deletions(-)
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 9eaf708..0719fa7 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -1592,3 +1592,24 @@ void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state,
- {
- 	__acpi_os_prepare_sleep = func;
+diff --git a/drivers/acpi/pci_root_hp.c b/drivers/acpi/pci_root_hp.c
+index 434ee35..e573298 100644
+--- a/drivers/acpi/pci_root_hp.c
++++ b/drivers/acpi/pci_root_hp.c
+@@ -79,34 +79,6 @@ static void remove_acpi_root_bridge(struct acpi_root_bridge *bridge)
+ 	kfree(bridge);
  }
-+
-+void alloc_acpi_hp_work(acpi_handle handle, u32 type, void *context,
-+			void (*func)(struct work_struct *work))
-+{
+ 
+-struct acpi_root_hp_work {
+-	struct work_struct work;
+-	acpi_handle handle;
+-	u32 type;
+-	void *context;
+-};
+-
+-static void alloc_acpi_root_hp_work(acpi_handle handle, u32 type,
+-					void *context,
+-					void (*func)(struct work_struct *work))
+-{
+-	struct acpi_root_hp_work *hp_work;
+-	int ret;
+-
+-	hp_work = kmalloc(sizeof(*hp_work), GFP_KERNEL);
+-	if (!hp_work)
+-		return;
+-
+-	hp_work->handle = handle;
+-	hp_work->type = type;
+-	hp_work->context = context;
+-
+-	INIT_WORK(&hp_work->work, func);
+-	ret = queue_work(kacpi_hotplug_wq, &hp_work->work);
+-	if (!ret)
+-		kfree(hp_work);
+-}
+-
+ /* Program resources in newly inserted bridge */
+ static void acpi_root_configure_bridge(struct acpi_device *device)
+ {
+@@ -210,11 +182,11 @@ static void _handle_hotplug_event_root(struct work_struct *work)
+ 	char objname[64];
+ 	struct acpi_buffer buffer = { .length = sizeof(objname),
+ 				      .pointer = objname };
+-	struct acpi_root_hp_work *hp_work;
 +	struct acpi_hp_work *hp_work;
-+	int ret;
-+
-+	hp_work = kmalloc(sizeof(*hp_work), GFP_KERNEL);
-+	if (!hp_work)
-+		return;
-+
-+	hp_work->handle = handle;
-+	hp_work->type = type;
-+	hp_work->context = context;
-+
-+	INIT_WORK(&hp_work->work, func);
-+	ret = queue_work(kacpi_hotplug_wq, &hp_work->work);
-+	if (!ret)
-+		kfree(hp_work);
-+}
-+EXPORT_SYMBOL(alloc_acpi_hp_work);
-diff --git a/include/acpi/acpiosxf.h b/include/acpi/acpiosxf.h
-index 0650f5f..6ff92ea 100644
---- a/include/acpi/acpiosxf.h
-+++ b/include/acpi/acpiosxf.h
-@@ -196,6 +196,15 @@ void acpi_os_fixed_event_count(u32 fixed_event_number);
-  */
- extern struct workqueue_struct *kacpi_hotplug_wq;
+ 	acpi_handle handle;
+ 	u32 type;
  
-+struct acpi_hp_work {
-+	struct work_struct work;
-+	acpi_handle handle;
-+	u32 type;
-+	void *context;
-+};
-+void alloc_acpi_hp_work(acpi_handle handle, u32 type, void *context,
-+			void (*func)(struct work_struct *work));
-+
- acpi_thread_id acpi_os_get_thread_id(void);
+-	hp_work = container_of(work, struct acpi_root_hp_work, work);
++	hp_work = container_of(work, struct acpi_hp_work, work);
+ 	handle = hp_work->handle;
+ 	type = hp_work->type;
  
- acpi_status
+@@ -262,7 +234,7 @@ static void _handle_hotplug_event_root(struct work_struct *work)
+ static void handle_hotplug_event_root(acpi_handle handle, u32 type,
+ 					void *context)
+ {
+-	alloc_acpi_root_hp_work(handle, type, context,
++	alloc_acpi_hp_work(handle, type, context,
+ 				_handle_hotplug_event_root);
+ }
+ 
 -- 
 1.7.7
