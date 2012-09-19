@@ -1,87 +1,80 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH 15/40] PCI: Move back pci_rescan_bus() to probe.c
-Date: Wed, 19 Sep 2012 11:54:29 -0700
-Message-ID: <1348080894-23412-16-git-send-email-yinghai@kernel.org>
+Subject: [PATCH 12/40] PCI, x86: Remove __init for hw/fw allocated functions
+Date: Wed, 19 Sep 2012 11:54:26 -0700
+Message-ID: <1348080894-23412-13-git-send-email-yinghai@kernel.org>
 References: <CAE9FiQWFcVNKMnV1qaHchwCXfZuMpyxf_f7GQy3FZid9YuLD3w@mail.gmail.com>
  <1348080894-23412-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1348080894-23412-1-git-send-email-yinghai@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, x86 <x86@kernel.org>
 Cc: Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-We have pci_assign_unassigned_bus_resources() in as global function now.
-
-So could move back pci_rescan_bus to probe.c where it should be.
+will need it for hot add path.
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 ---
- drivers/pci/probe.c     |   21 +++++++++++++++++++++
- drivers/pci/setup-bus.c |   22 ----------------------
- 2 files changed, 21 insertions(+), 22 deletions(-)
+ arch/x86/pci/i386.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index 2396111..47238dd 100644
---- a/drivers/pci/probe.c
-+++ b/drivers/pci/probe.c
-@@ -1888,6 +1888,27 @@ unsigned int __ref pci_rescan_bus_bridge_resize(struct pci_dev *bridge)
- 	return max;
+diff --git a/arch/x86/pci/i386.c b/arch/x86/pci/i386.c
+index edfc376..1806e91 100644
+--- a/arch/x86/pci/i386.c
++++ b/arch/x86/pci/i386.c
+@@ -201,7 +201,7 @@ EXPORT_SYMBOL(pcibios_align_resource);
+  *	    as well.
+  */
+ 
+-static void __init pcibios_allocate_bridge_resources(struct pci_dev *dev)
++static void pcibios_allocate_bridge_resources(struct pci_dev *dev)
+ {
+ 	int idx;
+ 	struct resource *r;
+@@ -223,7 +223,7 @@ static void __init pcibios_allocate_bridge_resources(struct pci_dev *dev)
+ 	}
  }
  
-+/**
-+ * pci_rescan_bus - scan a PCI bus for devices.
-+ * @bus: PCI bus to scan
-+ *
-+ * Scan a PCI bus and child buses for new devices, adds them,
-+ * and enables them.
-+ *
-+ * Returns the max number of subordinate bus discovered.
-+ */
-+unsigned int __ref pci_rescan_bus(struct pci_bus *bus)
-+{
-+	unsigned int max;
-+
-+	max = pci_scan_child_bus(bus);
-+	pci_assign_unassigned_bus_resources(bus);
-+	pci_bus_add_devices(bus);
-+
-+	return max;
-+}
-+EXPORT_SYMBOL_GPL(pci_rescan_bus);
-+
- EXPORT_SYMBOL(pci_add_new_bus);
- EXPORT_SYMBOL(pci_scan_slot);
- EXPORT_SYMBOL(pci_scan_bridge);
-diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
-index 7d7c1c9..31821d4 100644
---- a/drivers/pci/setup-bus.c
-+++ b/drivers/pci/setup-bus.c
-@@ -1569,25 +1569,3 @@ void pci_assign_unassigned_bus_resources(struct pci_bus *bus)
+-static void __init pcibios_allocate_bus_resources(struct pci_bus *bus)
++static void pcibios_allocate_bus_resources(struct pci_bus *bus)
+ {
+ 	struct pci_bus *child;
  
- 	pci_enable_bridges(bus);
+@@ -239,7 +239,7 @@ struct pci_check_idx_range {
+ 	int end;
+ };
+ 
+-static void __init pcibios_allocate_dev_resources(struct pci_dev *dev, int pass)
++static void pcibios_allocate_dev_resources(struct pci_dev *dev, int pass)
+ {
+ 	int idx, disabled, i;
+ 	u16 command;
+@@ -292,7 +292,7 @@ static void __init pcibios_allocate_dev_resources(struct pci_dev *dev, int pass)
+ 	}
  }
--#ifdef CONFIG_HOTPLUG
--/**
-- * pci_rescan_bus - scan a PCI bus for devices.
-- * @bus: PCI bus to scan
-- *
-- * Scan a PCI bus and child buses for new devices, adds them,
-- * and enables them.
-- *
-- * Returns the max number of subordinate bus discovered.
-- */
--unsigned int __ref pci_rescan_bus(struct pci_bus *bus)
--{
--	unsigned int max;
--
--	max = pci_scan_child_bus(bus);
--	pci_assign_unassigned_bus_resources(bus);
--	pci_bus_add_devices(bus);
--
--	return max;
--}
--EXPORT_SYMBOL_GPL(pci_rescan_bus);
--#endif
+ 
+-static void __init pcibios_allocate_resources(struct pci_bus *bus, int pass)
++static void pcibios_allocate_resources(struct pci_bus *bus, int pass)
+ {
+ 	struct pci_dev *dev;
+ 	struct pci_bus *child;
+@@ -306,7 +306,7 @@ static void __init pcibios_allocate_resources(struct pci_bus *bus, int pass)
+ 	}
+ }
+ 
+-static void __init pcibios_allocate_dev_rom_resource(struct pci_dev *dev)
++static void pcibios_allocate_dev_rom_resource(struct pci_dev *dev)
+ {
+ 	struct resource *r;
+ 
+@@ -324,7 +324,7 @@ static void __init pcibios_allocate_dev_rom_resource(struct pci_dev *dev)
+ 		r->start = 0;
+ 	}
+ }
+-static void __init pcibios_allocate_rom_resources(struct pci_bus *bus)
++static void pcibios_allocate_rom_resources(struct pci_bus *bus)
+ {
+ 	struct pci_dev *dev;
+ 	struct pci_bus *child;
 -- 
 1.7.7
