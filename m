@@ -1,7 +1,7 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH 13/40] PCI: Claim hw/fw allocated resources in hot add path.
-Date: Wed, 19 Sep 2012 11:54:27 -0700
-Message-ID: <1348080894-23412-14-git-send-email-yinghai@kernel.org>
+Subject: [PATCH 08/40] x86, PCI: Separate pcibios_allocate_dev_resources()
+Date: Wed, 19 Sep 2012 11:54:22 -0700
+Message-ID: <1348080894-23412-9-git-send-email-yinghai@kernel.org>
 References: <CAE9FiQWFcVNKMnV1qaHchwCXfZuMpyxf_f7GQy3FZid9YuLD3w@mail.gmail.com>
  <1348080894-23412-1-git-send-email-yinghai@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
@@ -11,81 +11,88 @@ To: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi
 Cc: Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-During testing remove/rescan root bus 00, found
-[  338.142574] bus: 'pci': really_probe: probing driver ata_piix with device 0000:00:01.1
-[  338.146788] ata_piix 0000:00:01.1: device not available (can't reserve [io  0x01f0-0x01f7])
-[  338.150565] ata_piix: probe of 0000:00:01.1 failed with error -22
-
-because that fixed resource is not claimed from
-        arch/x86/pci/i386.c::pcibios_allocate_resources()
-that is init path.
-
-Try to claim those resources, so on the remove/rescan will still use old
-resources.
-
-It is some kind honoring HW/FW setting in the registers during hot add.
-esp root-bus hot add is through acpi, BIOS have chance to set some register
-for us.
-
--v2: add rom resource claiming.
--v3: separate __init removing to another patch, also
-   put pci_probe checking with caller from rom resource allocating
+Thus pcibios_allocate_resources() could more simple and clean
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 ---
- arch/x86/pci/i386.c |   13 +++++++++++++
- drivers/pci/bus.c   |    2 ++
- include/linux/pci.h |    1 +
- 3 files changed, 16 insertions(+), 0 deletions(-)
+ arch/x86/pci/i386.c |   42 +++++++++++++++++++++++-------------------
+ 1 files changed, 23 insertions(+), 19 deletions(-)
 
 diff --git a/arch/x86/pci/i386.c b/arch/x86/pci/i386.c
-index 1806e91..e0b7f30 100644
+index 9800362..5817cf2 100644
 --- a/arch/x86/pci/i386.c
 +++ b/arch/x86/pci/i386.c
-@@ -352,6 +352,19 @@ static int __init pcibios_assign_resources(void)
- 	return 0;
+@@ -232,9 +232,8 @@ struct pci_check_idx_range {
+ 	int end;
+ };
+ 
+-static void __init pcibios_allocate_resources(int pass)
++static void __init pcibios_allocate_dev_resources(struct pci_dev *dev, int pass)
+ {
+-	struct pci_dev *dev = NULL;
+ 	int idx, disabled, i;
+ 	u16 command;
+ 	struct resource *r;
+@@ -246,14 +245,13 @@ static void __init pcibios_allocate_resources(int pass)
+ #endif
+ 	};
+ 
+-	for_each_pci_dev(dev) {
+-		pci_read_config_word(dev, PCI_COMMAND, &command);
+-		for (i = 0; i < ARRAY_SIZE(idx_range); i++)
++	pci_read_config_word(dev, PCI_COMMAND, &command);
++	for (i = 0; i < ARRAY_SIZE(idx_range); i++)
+ 		for (idx = idx_range[i].start; idx <= idx_range[i].end; idx++) {
+ 			r = &dev->resource[idx];
+-			if (r->parent)		/* Already allocated */
++			if (r->parent)	/* Already allocated */
+ 				continue;
+-			if (!r->start)		/* Address not assigned at all */
++			if (!r->start)	/* Address not assigned at all */
+ 				continue;
+ 			if (r->flags & IORESOURCE_IO)
+ 				disabled = !(command & PCI_COMMAND_IO);
+@@ -272,23 +270,29 @@ static void __init pcibios_allocate_resources(int pass)
+ 				}
+ 			}
+ 		}
+-		if (!pass) {
+-			r = &dev->resource[PCI_ROM_RESOURCE];
+-			if (r->flags & IORESOURCE_ROM_ENABLE) {
+-				/* Turn the ROM off, leave the resource region,
+-				 * but keep it unregistered. */
+-				u32 reg;
+-				dev_dbg(&dev->dev, "disabling ROM %pR\n", r);
+-				r->flags &= ~IORESOURCE_ROM_ENABLE;
+-				pci_read_config_dword(dev,
+-						dev->rom_base_reg, &reg);
+-				pci_write_config_dword(dev, dev->rom_base_reg,
++	if (!pass) {
++		r = &dev->resource[PCI_ROM_RESOURCE];
++		if (r->flags & IORESOURCE_ROM_ENABLE) {
++			/* Turn the ROM off, leave the resource region,
++			 * but keep it unregistered. */
++			u32 reg;
++			dev_dbg(&dev->dev, "disabling ROM %pR\n", r);
++			r->flags &= ~IORESOURCE_ROM_ENABLE;
++			pci_read_config_dword(dev, dev->rom_base_reg, &reg);
++			pci_write_config_dword(dev, dev->rom_base_reg,
+ 						reg & ~PCI_ROM_ADDRESS_ENABLE);
+-			}
+ 		}
+ 	}
  }
  
-+void pcibios_resource_survey_bus(struct pci_bus *bus)
++static void __init pcibios_allocate_resources(int pass)
 +{
-+	dev_printk(KERN_DEBUG, &bus->dev, "Allocating resources\n");
++	struct pci_dev *dev = NULL;
 +
-+	pcibios_allocate_bus_resources(bus);
-+
-+	pcibios_allocate_resources(bus, 0);
-+	pcibios_allocate_resources(bus, 1);
-+
-+	if (!(pci_probe & PCI_ASSIGN_ROMS))
-+		pcibios_allocate_rom_resources(bus);
++	for_each_pci_dev(dev)
++		pcibios_allocate_dev_resources(dev, pass);
 +}
 +
- void __init pcibios_resource_survey(void)
+ static int __init pcibios_assign_resources(void)
  {
- 	struct pci_bus *bus;
-diff --git a/drivers/pci/bus.c b/drivers/pci/bus.c
-index 4b0970b..2882d01 100644
---- a/drivers/pci/bus.c
-+++ b/drivers/pci/bus.c
-@@ -154,6 +154,8 @@ pci_bus_alloc_resource(struct pci_bus *bus, struct resource *res,
- 	return ret;
- }
- 
-+void __weak pcibios_resource_survey_bus(struct pci_bus *bus) { }
-+
- /**
-  * pci_bus_add_device - add a single device
-  * @dev: device to add
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index be1de01..ec25403 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -676,6 +676,7 @@ extern struct list_head pci_root_buses;	/* list of all known PCI buses */
- /* Some device drivers need know if pci is initiated */
- extern int no_pci_devices(void);
- 
-+void pcibios_resource_survey_bus(struct pci_bus *bus);
- void pcibios_fixup_bus(struct pci_bus *);
- int __must_check pcibios_enable_device(struct pci_dev *, int mask);
- /* Architecture specific versions may override this (weak) */
+ 	struct pci_dev *dev = NULL;
 -- 
 1.7.7
