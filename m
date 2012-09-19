@@ -1,55 +1,54 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: [PATCH 3/3] cpuidle : remove trailing carriage return
-Date: Wed, 19 Sep 2012 19:22:49 +0200
-Message-ID: <1348075369-16451-3-git-send-email-daniel.lezcano@linaro.org>
-References: <1348075369-16451-1-git-send-email-daniel.lezcano@linaro.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:58631 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932613Ab2ISRW4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Sep 2012 13:22:56 -0400
-Received: by mail-wi0-f178.google.com with SMTP id hr14so1415928wib.1
-        for <linux-acpi@vger.kernel.org>; Wed, 19 Sep 2012 10:22:56 -0700 (PDT)
-In-Reply-To: <1348075369-16451-1-git-send-email-daniel.lezcano@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: [PATCH 02/40] PCI, x86: clear initial value for root info resources
+Date: Wed, 19 Sep 2012 11:54:16 -0700
+Message-ID: <1348080894-23412-3-git-send-email-yinghai@kernel.org>
+References: <CAE9FiQWFcVNKMnV1qaHchwCXfZuMpyxf_f7GQy3FZid9YuLD3w@mail.gmail.com>
+ <1348080894-23412-1-git-send-email-yinghai@kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1348080894-23412-1-git-send-email-yinghai@kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, x86 <x86@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@sisk.pl, lenb@kernel.org
-Cc: linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, patches@linaro.org, linaro-dev@lists.linaro.org
 
-This mindless patch is just about removing some trailing
-carriage returns.
+Found one system one root bus hot remove get panic.
+Panic happens when try to release hostbridge resource.
 
-Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+It turns out that resource get reject during put into resource tree
+because of conflicts.
+Also that resource parent pointer have random value.
+
+That invalid value cause it pass through check __release_pci_root_info
+and panic in release_resource.
+
+Try to use kzalloc instead.
+
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: x86@kernel.org
 ---
- drivers/cpuidle/driver.c |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
+ arch/x86/pci/acpi.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/cpuidle/driver.c b/drivers/cpuidle/driver.c
-index 774d2cb..fc8bfc2 100644
---- a/drivers/cpuidle/driver.c
-+++ b/drivers/cpuidle/driver.c
-@@ -39,7 +39,6 @@ static void set_power_states(struct cpuidle_driver *drv)
- 		drv->states[i].power_usage = -1 - i;
- }
+diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+index 505acdd..192397c 100644
+--- a/arch/x86/pci/acpi.c
++++ b/arch/x86/pci/acpi.c
+@@ -305,7 +305,6 @@ setup_resource(struct acpi_resource *acpi_res, void *data)
+ 	res->flags = flags;
+ 	res->start = start;
+ 	res->end = end;
+-	res->child = NULL;
  
--
- /**
-  * cpuidle_register_driver - registers a driver
-  * @drv: the driver
-@@ -65,7 +64,6 @@ int cpuidle_register_driver(struct cpuidle_driver *drv)
+ 	if (!pci_use_crs) {
+ 		dev_printk(KERN_DEBUG, &info->bridge->dev,
+@@ -434,7 +433,7 @@ probe_pci_root_info(struct pci_root_info *info, struct acpi_device *device,
  
- 	return 0;
- }
--
- EXPORT_SYMBOL_GPL(cpuidle_register_driver);
+ 	size = sizeof(*info->res) * info->res_num;
+ 	info->res_num = 0;
+-	info->res = kmalloc(size, GFP_KERNEL);
++	info->res = kzalloc(size, GFP_KERNEL);
+ 	if (!info->res)
+ 		return;
  
- /**
-@@ -93,5 +91,4 @@ void cpuidle_unregister_driver(struct cpuidle_driver *drv)
- 	cpuidle_curr_driver = NULL;
- 	spin_unlock(&cpuidle_driver_lock);
- }
--
- EXPORT_SYMBOL_GPL(cpuidle_unregister_driver);
 -- 
-1.7.5.4
-
+1.7.7
