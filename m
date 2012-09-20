@@ -1,27 +1,88 @@
-From: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Subject: Re: [PATCH v3 4/8] ACPI, PCI: change acpi_pci_drivers' add/remove
- interface
-Date: Thu, 20 Sep 2012 19:15:23 +0900
-Message-ID: <20120920191523.72cb21c3.izumi.taku@jp.fujitsu.com>
-References: <20120918151215.59ea763b.izumi.taku@jp.fujitsu.com>
-	<20120918152235.fedf80b5.izumi.taku@jp.fujitsu.com>
-	<CAErSpo7MUNae9Aez8VMhj+z7bedrOVxSHKadFv7tgGYcZwLk_g@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAErSpo7MUNae9Aez8VMhj+z7bedrOVxSHKadFv7tgGYcZwLk_g@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, kaneshige.kenji@jp.fujitsu.com, yinghai@kernel.org, jiang.liu@huawei.com
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: [PATCH][V2] cpuidle : rename function name "__cpuidle_register_driver"
+Date: Thu, 20 Sep 2012 14:41:24 +0200
+Message-ID: <1348144884-14911-1-git-send-email-daniel.lezcano@linaro.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:59072 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754629Ab2ITMl3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Sep 2012 08:41:29 -0400
+Received: by bkuw11 with SMTP id w11so187456bku.19
+        for <linux-acpi@vger.kernel.org>; Thu, 20 Sep 2012 05:41:28 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rjw@sisk.pl, lenb@kernel.org
+Cc: linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, patches@linaro.org, linaro-dev@lists.linaro.org
 
-On Wed, 19 Sep 2012 16:46:57 -0600
-Bjorn Helgaas <bhelgaas@google.com> wrote:
+The function __cpuidle_register_driver name is confusing because it
+suggests, conforming to the coding style of the kernel, it registers
+the driver without taking a lock. Actually, it just fill the different
+power field states with a decresing value if the power has not been
+specified.
 
-> This should be a separate patch, if you choose to do it :)
+Clarify the purpose of the function by changing its name and
+move the condition out of this function.
 
- OK. I'll do this later.
+This patch fix nothing and does not change the behavior of the
+function. It is just for the sake of clarity.
 
+IHMO, reading in the code:
+
++       if (!drv->power_specified)
++               set_power_states(drv);
+
+is much more explicit than:
+
+-       __cpuidle_register_driver(drv);
+
+Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+---
+ drivers/cpuidle/driver.c |   15 +++++++++------
+ 1 files changed, 9 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/cpuidle/driver.c b/drivers/cpuidle/driver.c
+index 424bc81..87db387 100644
+--- a/drivers/cpuidle/driver.c
++++ b/drivers/cpuidle/driver.c
+@@ -18,9 +18,10 @@ static struct cpuidle_driver *cpuidle_curr_driver;
+ DEFINE_SPINLOCK(cpuidle_driver_lock);
+ int cpuidle_driver_refcount;
+ 
+-static void __cpuidle_register_driver(struct cpuidle_driver *drv)
++static void set_power_states(struct cpuidle_driver *drv)
+ {
+ 	int i;
++
+ 	/*
+ 	 * cpuidle driver should set the drv->power_specified bit
+ 	 * before registering if the driver provides
+@@ -35,10 +36,8 @@ static void __cpuidle_register_driver(struct cpuidle_driver *drv)
+ 	 * an power value of -1.  So we use -2, -3, etc, for other
+ 	 * c-states.
+ 	 */
+-	if (!drv->power_specified) {
+-		for (i = CPUIDLE_DRIVER_STATE_START; i < drv->state_count; i++)
+-			drv->states[i].power_usage = -1 - i;
+-	}
++	for (i = CPUIDLE_DRIVER_STATE_START; i < drv->state_count; i++)
++		drv->states[i].power_usage = -1 - i;
+ }
+ 
+ /**
+@@ -58,8 +57,12 @@ int cpuidle_register_driver(struct cpuidle_driver *drv)
+ 		spin_unlock(&cpuidle_driver_lock);
+ 		return -EBUSY;
+ 	}
+-	__cpuidle_register_driver(drv);
++
++	if (!drv->power_specified)
++		set_power_states(drv);
++
+ 	cpuidle_curr_driver = drv;
++
+ 	spin_unlock(&cpuidle_driver_lock);
+ 
+ 	return 0;
 -- 
-Taku Izumi <izumi.taku@jp.fujitsu.com>
+1.7.5.4
+
