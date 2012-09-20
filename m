@@ -1,55 +1,79 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH v3 6/8] ACPI, PCI: add acpi_pci_roots protection
-Date: Thu, 20 Sep 2012 13:32:59 -0600
-Message-ID: <CAErSpo6Cdb8MuA1TCv9YnjyddyLjKJzLsVD18apDF6icXewEmA@mail.gmail.com>
-References: <20120918151215.59ea763b.izumi.taku@jp.fujitsu.com> <20120918152440.117dd1cb.izumi.taku@jp.fujitsu.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v7 0/6] ZPODD patches
+Date: Thu, 20 Sep 2012 22:00:51 +0200
+Message-ID: <201209202200.51303.rjw@sisk.pl>
+References: <1347438597-5903-1-git-send-email-aaron.lu@intel.com> <201209191450.37735.rjw@sisk.pl> <5059D488.6070208@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:55770 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755636Ab2ITTdU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Sep 2012 15:33:20 -0400
-Received: by lbbgj3 with SMTP id gj3so2885072lbb.19
-        for <linux-acpi@vger.kernel.org>; Thu, 20 Sep 2012 12:33:19 -0700 (PDT)
-In-Reply-To: <20120918152440.117dd1cb.izumi.taku@jp.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <5059D488.6070208@intel.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: James Bottomley <James.Bottomley@hansenpartnership.com>, Alan Stern <stern@rowland.harvard.edu>, Oliver Neukum <oliver@neukum.org>, Jeff Garzik <jgarzik@pobox.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, kaneshige.kenji@jp.fujitsu.com, yinghai@kernel.org, jiang.liu@huawei.com
 
-On Tue, Sep 18, 2012 at 12:24 AM, Taku Izumi <izumi.taku@jp.fujitsu.com> wrote:
->
-> Use mutex to protect acpi_pci_roots list against PCI host bridge
-> hotplug operations.
->
-> Signed-off-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
-> ---
->  drivers/acpi/pci_root.c |   27 ++++++++++++++++++---------
->  1 file changed, 18 insertions(+), 9 deletions(-)
->
-> Index: Bjorn-next-0903/drivers/acpi/pci_root.c
-> ===================================================================
-> --- Bjorn-next-0903.orig/drivers/acpi/pci_root.c
-> +++ Bjorn-next-0903/drivers/acpi/pci_root.c
-> @@ -112,12 +112,17 @@ EXPORT_SYMBOL(acpi_pci_unregister_driver
->  acpi_handle acpi_get_pci_rootbridge_handle(unsigned int seg, unsigned int bus)
->  {
->         struct acpi_pci_root *root;
-> +       struct acpi_handle *handle = NULL;
+On Wednesday, September 19, 2012, Aaron Lu wrote:
+> On 09/19/2012 08:50 PM, Rafael J. Wysocki wrote:
+> > On Wednesday, September 19, 2012, James Bottomley wrote:
+> >> On Wed, 2012-09-19 at 16:03 +0800, Aaron Lu wrote:
+> >>> Hi James,
+> >>>
+> >>> May I know if this patchset will enter v3.7?
+> >>
+> >> Sigh, well, I was hoping to persuade the PM people to sort this out
+> >> first.
+> >>
+> >> The first observation is that all this looks to be too specific.  ZPO
+> >> may be ACPI specific, but the property it abstracts: whether the
+> >> particular device is powered off or not is generic and probably should
+> >> be known at the generic PM level.  Nothing actually really cares about
+> >> how we power off the device until you get all the way down to the ACPI
+> >> controller.
+> >>
+> >> I think we could do this with a couple of flags sitting inside struct
+> >> device itself: one for pm state and capabilities defined at a generic
+> >> level and one for device specific pm state.  The latter would be for
+> >> things like the door lock information which is very specific to CDs
+> >> (although not specific to SCSI CDs).  Alternatively, even if we can't
+> >> use these capabilities at the generic pm level, we still need an
+> >> internal state set of flags because power state stuff traverses the
+> >> stack and struct device is the only universal object in that stack.
+> >>
+> >> So I definitely think all of the sdev flags should become either generic
+> >> or specific flags in device.
+> > 
+> > Well, the problem is that it is kind of irrelevant to the core whether or
+> > not the given device can be powered off.  Moreover, the actual meaning of
+> > what "power off" means depends on the platform (it may be an individual device
+> > state or a power domain state, for instance).  Also, the set of available
+> > low-power states depends on the platform (or the bus type) and generally
+> > cannot be universally represented and there are low-power states that
+> > aren't "power off" per se, but still require the device state to be
+> > restored when putting it back into full power.
+> > 
+> > We've discussed that for a few times and each time we've ended up agreeing
+> > that struct device is not the right place to store this information (for
+> > example, PCI stores it in struct pci_dev, USB has its own rules etc.).
+> > 
+> > I'll have a look at the patchset again and see what can be done about this.
+> 
+> Thanks Rafael, and if there is any question/problem,
+> please kindly let me know.
 
-This should be "acpi_handle handle", not "struct acpi_handle *handle".
+Well, unfortunately my initial review indicates that the patchset is not
+quite ready to go upstream yet.
 
-> +       mutex_lock(&acpi_pci_root_lock);
->         list_for_each_entry(root, &acpi_pci_roots, node)
->                 if ((root->segment == (u16) seg) &&
-> -                   (root->secondary.start == (u16) bus))
-> -                       return root->device->handle;
-> -       return NULL;
-> +                   (root->secondary.start == (u16) bus)) {
-> +                       handle = root->device->handle;
-> +                       break;
-> +               }
-> +       mutex_unlock(&acpi_pci_root_lock);
-> +       return handle;
->  }
+I'll send comments in replies to the individual patches, but overall I can
+say that at this stage of development, when I look at the patches, it should
+be clear to me not only what is being changed, but _why_ it is being changed
+in the first place and, secondly, why it is being changed in this particular
+way.  It's far from that, though.
+
+The first patch in the series doesn't even have a changelog.  How the changelog
+of the second patch is related to it's actual contents is more than quite
+unclear to me.  Etc.
+
+Thanks,
+Rafael
