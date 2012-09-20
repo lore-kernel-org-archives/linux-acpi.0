@@ -1,51 +1,90 @@
-From: "Jack Wang" <jack_wang@usish.com>
-Subject: RE: [PATCH v7 0/6] ZPODD patches
-Date: Thu, 20 Sep 2012 08:34:59 +0800
-Message-ID: <61B33BA8121D47DDB62CF71F004E15E8@usish.com.cn>
-References: <1347438597-5903-1-git-send-email-aaron.lu@intel.com> <20120919080328.GA4283@mint-spring.sh.intel.com> <1348057667.2479.33.camel@dabdike.int.hansenpartnership.com> <1348067972.21322.218.camel@shinybook.infradead.org>
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: Re: [lm-sensors] CPU fan rapidly turns on and off
+Date: Wed, 19 Sep 2012 18:39:19 -0700
+Message-ID: <20120920013919.GA22634@roeck-us.net>
+References: <CALHKqSXP=Qkeor_orw+Cu5B9jaBb9O6EHicZUp_OP2nWcJGLpg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from sr-smtp.usish.com ([210.5.144.203]:56519 "EHLO
-	sr-smtp.usish.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751180Ab2ITAft (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Sep 2012 20:35:49 -0400
-In-Reply-To: <1348067972.21322.218.camel@shinybook.infradead.org>
+Received: from mail.active-venture.com ([67.228.131.205]:49663 "EHLO
+	mail.active-venture.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751562Ab2ITBjE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Sep 2012 21:39:04 -0400
+Content-Disposition: inline
+In-Reply-To: <CALHKqSXP=Qkeor_orw+Cu5B9jaBb9O6EHicZUp_OP2nWcJGLpg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: 'David Woodhouse' <dwmw2@infradead.org>, 'James Bottomley' <James.Bottomley@HansenPartnership.com>
-Cc: 'Aaron Lu' <aaron.lu@intel.com>, 'Alan Stern' <stern@rowland.harvard.edu>, 'Oliver Neukum' <oliver@neukum.org>, 'Jeff Garzik' <jgarzik@pobox.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, 'Aaron Lu' <aaron.lwe@gmail.com>
+To: Jack Kelly <jack-list@xlk.org.uk>
+Cc: lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org
 
+On Thu, Sep 20, 2012 at 01:19:13AM +0100, Jack Kelly wrote:
+> Dear lm-sensors list,
 > 
-> On Wed, 2012-09-19 at 13:27 +0100, James Bottomley wrote:
-> > I think we could do this with a couple of flags sitting inside struct
-> > device itself: one for pm state and capabilities defined at a generic
-> > level and one for device specific pm state.  The latter would be for
-> > things like the door lock information which is very specific to CDs
-> > (although not specific to SCSI CDs).  Alternatively, even if we can't
-> > use these capabilities at the generic pm level, we still need an
-> > internal state set of flags because power state stuff traverses the
-> > stack and struct device is the only universal object in that stack.
+> Please may I ask for a bit of technical support (the problem I'm
+> experiencing may be the result of a bug but I'm not sure... it might
+> also be me being an idiot!)
 > 
-> FWIW the SATA Device Sleep support, which is currently only used (in a
-> patch which is pending) automatically as an extension of the AHCI link
-> power management, can also be triggered manually by a GPIO line; I've
-> got a platform where it's done with an ACPI call. I suspect we'll see
-> that kind of manual setup on a few embedded platforms too.
+> I am using lm-sensors and coretemp on an HP ProBook 6450b laptop with
+> an Intel i5 quad-core CPU.  I'm running Ubuntu 12.04 with all the
+> latest updates:
 > 
-> If we're working on hooking this up through the device layers, perhaps
-> that's worth taking into consideration?
+> $ uname -a
+> Linux probook 3.2.0-31-generic #50-Ubuntu SMP Fri Sep 7 16:16:45 UTC
+> 2012 x86_64 x86_64 x86_64 GNU/Linux
 > 
-> --
+> The CPU fan is off when the system is idling.  When I stress the
+> system the fan starts running when the CPU gets to 105 degrees C
+> (which seems rather high but never mind...).  The problem is that the
+> system appears to be  failing to provide a constant current to the
+> fan.  Instead the fan is being turned on and off very rapidly which
+> results in a "clicking" noise which sounds a little like a hard disk
+> seeking.  I have manually measured the voltage supplied to the fan and
+> it does indeed turn on and off rapidly.
+> 
+> I wonder if this problem could be fixed by enabling a hysteresis
+> setting in coretemp?
+> 
+> This "clicking fan" problem does not occur if I run Windows7 or if I
+> boot Linux using apci=off.
+> 
+> Alternatively, is there a way for me to manually set the max and crit
+> temperatures for my CPU?  I've tried
+> 
+> sudo bash -c "echo 90000 > /sys/class/hwmon/hwmon1/device/temp2_max"
+> 
+> But I get a "permission denied" error.
+> 
+> I've also tried adding "set temp2_max 90000" to sensors3.conf but I
+> get a "Failed to set value" error.
+> 
+Hi Jack,
 
-Hi David,
+the coretemp module only reports CPU temperatures. It does not let you set
+limits, and it does not perform any fan control. So the errors are not really
+surprising.
 
-For SATA Device sleep, what's the appropriate time to set the Device sleep,
-this seems also part of runtime PM?
+What you _might_ have is ACPI based fan control. ACPI fan control in Linux is
+implemented as thermal device, and currently only supports on/off status. The
+latest revision of ACPI supports more fine grain fan control, but support for it
+has not yet been implemented in the Linux kernel (nor do I know if it is
+supported in your system).
 
-Best regards!
+You can see if ACPI fan control is enabled/used by checking your system log
+(dmesg) for occurrences of "ACPI". Example of what to look for:
 
-Jack
+ACPI: PNP0C0B:00 is registered as cooling_device1
+ACPI: Fan [FAN0] (on)
+ACPI: Transitioning device [FAN1] to D0
+ACPI: PNP0C0B:01 is registered as cooling_device2
+ACPI: Fan [FAN1] (off)
 
+If you see something like that, there are two possibilities: Something in the
+DSDT (Differentiated System Description Table) is wrong, or ACPI on your system
+implements fine grained fan control and Linux does not support it. Or something
+else - I am not really an ACPI expert.
+
+Anyway, this might be an ACPI problem, so I am adding the ACPI mailing list
+(linux-acpi@vger.kernel.org). Maybe someone has an idea what is going on.
+
+Thanks,
+Guenter
