@@ -1,232 +1,66 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: [PATCH 2/2][RFC] cpudidle : use a per cpu cpuidle driver
-Date: Thu, 20 Sep 2012 15:14:40 +0200
-Message-ID: <1348146880-17320-2-git-send-email-daniel.lezcano@linaro.org>
-References: <1348146880-17320-1-git-send-email-daniel.lezcano@linaro.org>
+From: =?utf-8?B?5q+P5aSp5LuFMTDlhYM=?= <admin@spam.com.cn>
+Subject: =?utf-8?B?MjAxMuaYpeWtozExMeWxiuW5v+S6pOS8muS5sOWutu+8jEIyQuivog==?=
+	=?utf-8?B?55uY5Lmw5a6244CBdGhvbWFzbmV0IOmHh+i0reWVhizmtbflhbM=?=
+	=?utf-8?B?5pWw5o2uLOe+pOWPkei9r+S7tu+8jOWxleS8muS5sOWutiDku4UzMDDlhYMh?=
+Date: Thu, 20 Sep 2012 13:42:35 +0000 (UTC)
+Message-ID: <20240919150732513061@spam.com.cn>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:64557 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753340Ab2ITNOt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Sep 2012 09:14:49 -0400
-Received: by mail-bk0-f46.google.com with SMTP id w11so208338bku.19
-        for <linux-acpi@vger.kernel.org>; Thu, 20 Sep 2012 06:14:48 -0700 (PDT)
-In-Reply-To: <1348146880-17320-1-git-send-email-daniel.lezcano@linaro.org>
+Received: from [202.108.212.216] ([202.108.212.216]:46386 "EHLO h1.spam.com.cn"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1755274Ab2ITNmR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 20 Sep 2012 09:42:17 -0400
+Date: Thu, 19 Sep 2024 15:07:23 +0800
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@sisk.pl, lenb@kernel.org
-Cc: linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, patches@linaro.org, linaro-dev@lists.linaro.org
+To: lintianhao1@163.com, lintong.ltd@gmail.com, luc.wozny@wanadoo.fr, luc@macadamian.com, linus_yin@hotmail.com, linust@interramp.com, luca@aremun.com, linux@seaq.com, lucabelluccini@gmail.com, linux-acpi@vger.kernel.org, linuxaz@azerimail.net
 
-The discussion about having different cpus on the system with
-different latencies bring us to a first attemp by adding a
-pointer in the cpuidle_device to the states array.
+MjAxMuaYpeWtozExMeWxiuW5v+S6pOS8muS5sOWutu+8jOa1t+WFs+aVsOaNruaPkOWNlXBpZXJz
+54mI77yMMjAwOC0yMDEy5bm0OeWxiuW5v+S6pOS8muaVsOaNruOAgg0KDQrkuIDlhbExMOS4quWM
+hSjmlbDmja7mmK/lhajooYzkuJrnmoTvvIzlj6/ku6XmjInnhaflhbPplK7or43mj5Dlj5blh7rm
+naXnmoQp77yaIA0KMe+8jDIwMTLmmKXlraMxMTHlsYrlub/kuqTkvJrkubDlrrbnjrDlnLror6Ln
+m5jmlbDmja7lupPmlrDpspzlh7rngonvvIzotoXnuqfmlrDpspzkubDlrrbvvIzmlrDpspzmlbDm
+ja7vvIzlrrnmmJPmiJDljZXvvIEgDQoy77yM6LSt5Lmw5ZCO5Y+v5Lul5YWN6LS55pu05pawMjAx
+Mueni+Wto+W5v+S6pOS8muS5sOWutuaVsOaNruOAguWkqui2heWAvOS6huOAgg0KM++8jDIwMTLm
+nIDmlrDlhajnkIPlsZXkvJrnjrDlnLrkubDlrrblupMo5LiO6LS45Y+R5ZCM5q2lKSzlhbE0NuS4
+h+adoeaVsOaNruOAgiAo5oyJ54Wn6KGM5Lia5YiG57G7KQ0KNO+8jDIwMTEsMjAxMOW5tCwyMDA5
+5bm0LDIwMDjlubQg5pil5a2jK+eni+Wto+W5v+S6pOS8muS5sOWutuWQjeW9le+8jDEwMyAxMDQg
+MTA1IDEwNiAxMDcgMTA4LDEwOSwxMTAg5YWx5YWt5bGKIOWFsTEyMC425LiH5pWw5o2u44CCDQo1
+77yMNDguNjjkuIfmnaHmnIDmlrDkubDlrrbor6Lnm5jvvIzpg73luKbmnIlFbWFpbO+8jOacgOac
+ieS7t+WAvOeahOivouebmOOAgg0KNu+8jDIwMTHmnIDmlrAgQjJCIOiLseaWh+WbvemZheermTYw
+5LiH5bim6IGU57uc5pa55byP6K+i55uYIOacgOacieS7t+WAvOivouebmOS5i+S4gC4NCjfvvIwy
+MDEw5rW35YWz5o+Q5Y2VcGllcnPniYgxMDAw5LiH5pWw5o2uLg0KOO+8jDIwMTHlubTliLDpppnm
+uK/ph4fotK3nmoTlm73lpJblrqLkurrlkI3lvZUo6aaZ5riv6LS45Y+R5bGA5o+Q5L6bKe+8jOi2
+hee6p+mHjeimgeeahOS5sOWutuOAgg0KOe+8jDIwMTHlubTmlrDlop7liqDnmoQt576O5Zu9QjJC
+IHRob21hc25ldCDph4fotK3llYblkI3ljZXjgIINCjEw77yM576k5Y+R6L2v5Lu25a6J6KOF5LiO
+6YOo572y5pyN5Yqh44CCDQoNCui/meS6m+WFqOacie+8jOWFsTEyODDkuIcg5pWw5o2u44CCDQoN
+CiANCuimgeeahOaKk+e0p+iBlOezu1FROiA0NjAxMjI2NDEg5oiW6ICF56uL5Y2z5Zue5aSN6YKu
+566xOiA0NjAxMjI2NDFAcXEuY29tDQropoHnmoTmipPntKfogZTns7tRUTogNDYwMTIyNjQxIOaI
+luiAheeri+WNs+WbnuWkjemCrueusTogNDYwMTIyNjQxQHFxLmNvbQ0K6KaB55qE5oqT57Sn6IGU
+57O7UVE6IDQ2MDEyMjY0MSDmiJbogIXnq4vljbPlm57lpI3pgq7nrrE6IDQ2MDEyMjY0MUBxcS5j
+b20NCg0K6K+a5L+h5Li65pys77yM5aaC5p6c5LiN5L+h5Lu75pys5Lq6LOWPr+S7pei1sOa3mOWu
+neS6pOaYkyzmlLbliLDmlbDmja7pqozor4Ez5aSp5ZCO5YaN5LuY5qy+LOi/meaYr+WvueaCqOac
+gOWlveeahOS/nemanOS6huOAgiANCg0KDQoNCuWwj+aKgOW3p++8miANCuaKijUwMOS4h+S5sOWu
+tue+pOWPkeS7peS4gOmBje+8jOWdh+S8muacieaVsOWNg+S4quWbnuWkjeeahO+8jOi/meS6m+Ww
+seaYr+mdnuW4uOmrmOi0qOmHj+eahOS5sOWutuOAgiANCuS9v+eUqOaIkeS7rOmAgeeahOe+pOWP
+kei9r+S7tu+8jDEtMuWRqOWwseWPr+WujOWFqOWPkeWujOOAgg0KDQoNCg0KDQoNCuW5v+S6pOS8
+muS5sOWutuaMieS6p+WTgeexu+WIq+WIhuexu++8jOWIhuS4uuS7peS4i+WHoOexu++8mg0KMSDl
+ip7lhazorr7lpIcNCjIg57yW57uH5Y+K6Jek6ZOB5bel6Im65ZOBDQozIOeOu+eSgw0KNCDppJDl
+jqjnlKjlhbcNCjUg6L2m6L6GDQo2IOWkp+Wei+acuuaisOWPiuiuvuWkhw0KNyDnlLXlrZDnlLXm
+sJQNCjgg55S15a2Q5raI6LS55ZOBDQo5IOe6uue7hw0KMTAg5pyN6KOFDQoxMSDkuKrkurrmiqTn
+kIYNCjEyIOW3peeoi+acuuaisA0KMTMg5bel5YW3DQoxNCDljJblt6UNCjE1IOiuoeeul+acuuWP
+iumAmuiurw0KMTYg5a625bGF55So5ZOBDQoxNyDlrrblsYXoo4XppbANCjE4IOWutuWFtw0KMTkg
+5a6255So55S15ZmoDQoyMCDlu7rnrZHlj4roo4XppbDmnZDmlpkNCjIxIOiKguaXpeeUqOWTgQ0K
+MjIg56S85ZOB5Y+K6LWg5ZOBDQoyMyDmkanmiZjovaYNCjI0IOaxvei9pumFjeS7tg0KMjUg6aOf
+5ZOBDQoyNiDpmbbnk7cNCjI3IOmTgeefsw0KMjgg546p5YW3DQoyOSDljavmtbQNCjMwIOS6lOmH
+kQ0KMzEg5bCP5Z6L5py65qKwDQozMiDpnosNCjMzIOS8kemXsueUqOWTgQ0KMzQg5Yy755aXDQoz
+NSDmtbTlrqTkuqflk4ENCjM2IOWbreaelw0KMzcg54Wn5piO5Lqn5ZOBDQozOCDpkp/ooajnnLzp
+lZwNCjM5IOiHquihjOi9pg0KNDAg5YyFDQoNCg0K5paw6bKc5pWw5o2uLeaIkOWNleeOh+aegemr
+mA0K5paw6bKc5pWw5o2uLeaIkOWNleeOh+aegemrmA0K5paw6bKc5pWw5o2uLeaIkOWNleeOh+ae
+gemrmA0K5paw6bKc5pWw5o2uLeaIkOWNleeOh+aegemrmA0K5paw6bKc5pWw5o2uLeaIkOWNleeO
+h+aegemrmA0K
 
-But as Rafael suggested, it would make more sense to create a
-driver per cpu [1].
-
-This patch add support for multiple cpuidle drivers and as Rafael
-expected, it had less impact than the first approach and is much
-more clean.
-
-It creates a per cpu cpuidle driver pointer.
-In order to not break the different drivers, the function cpuidle_register_driver
-assign for each cpu, the driver.
-
-If this patch is accepted, I will add a cpuidle_register_cpu_driver and modify
-the cpuidle drivers to make use of it and then remove the cpuidle_register_driver.
-
-Note the output of sysfs for "/sys/devices/system/cpu/cpuidle/current_driver" has
-been changed and instead of showing a single driver name, it shows the cpu and the
-associated driver name.
-
-[1] http://www.spinics.net/lists/linux-acpi/msg37921.html
-
-Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
----
- drivers/cpuidle/driver.c |   62 +++++++++++++++++++++++++++++++---------------
- drivers/cpuidle/sysfs.c  |   28 ++++++++++++++++----
- include/linux/cpuidle.h  |    1 +
- 3 files changed, 65 insertions(+), 26 deletions(-)
-
-diff --git a/drivers/cpuidle/driver.c b/drivers/cpuidle/driver.c
-index 676febd..b2f8823 100644
---- a/drivers/cpuidle/driver.c
-+++ b/drivers/cpuidle/driver.c
-@@ -11,10 +11,11 @@
- #include <linux/mutex.h>
- #include <linux/module.h>
- #include <linux/cpuidle.h>
-+#include <linux/smp.h>
- 
- #include "cpuidle.h"
- 
--static struct cpuidle_driver *cpuidle_curr_driver;
-+DEFINE_PER_CPU(struct cpuidle_driver *, cpuidle_drivers);
- DEFINE_SPINLOCK(cpuidle_driver_lock);
- 
- static void set_power_states(struct cpuidle_driver *drv)
-@@ -45,6 +46,8 @@ static void set_power_states(struct cpuidle_driver *drv)
-  */
- int cpuidle_register_driver(struct cpuidle_driver *drv)
- {
-+	int cpu, ret, i;
-+
- 	if (!drv || !drv->state_count)
- 		return -EINVAL;
- 
-@@ -52,28 +55,44 @@ int cpuidle_register_driver(struct cpuidle_driver *drv)
- 		return -ENODEV;
- 
- 	spin_lock(&cpuidle_driver_lock);
--	if (cpuidle_curr_driver) {
--		spin_unlock(&cpuidle_driver_lock);
--		return -EBUSY;
--	}
--
--	if (!drv->power_specified)
--		set_power_states(drv);
-+	ret = -EBUSY;
-+	for_each_present_cpu(cpu) {
-+		if (per_cpu(cpuidle_drivers, cpu))
-+			goto unregister;
- 
--	cpuidle_curr_driver = drv;
-+		if (!drv->power_specified)
-+			set_power_states(drv);
- 
-+		per_cpu(cpuidle_drivers, cpu) = drv;
-+	}
-+	ret = 0;
-+out:
- 	spin_unlock(&cpuidle_driver_lock);
-+	return ret;
- 
--	return 0;
-+unregister:
-+	for (i = cpu; i >= 0; i--)
-+		per_cpu(cpuidle_drivers, i) = NULL;
-+	goto out;
- }
- EXPORT_SYMBOL_GPL(cpuidle_register_driver);
- 
- /**
-+ * cpuidle_get_cpu_driver - return the driver tied with the cpu
-+ * @cpu : the cpu number
-+ */
-+struct cpuidle_driver *cpuidle_get_cpu_driver(int cpu)
-+{
-+	return per_cpu(cpuidle_drivers, cpu);
-+}
-+EXPORT_SYMBOL_GPL(cpuidle_get_cpu_driver);
-+
-+/**
-  * cpuidle_get_driver - return the current driver
-  */
- struct cpuidle_driver *cpuidle_get_driver(void)
- {
--	return cpuidle_curr_driver;
-+	return cpuidle_get_cpu_driver(smp_processor_id());
- }
- EXPORT_SYMBOL_GPL(cpuidle_get_driver);
- 
-@@ -83,17 +102,20 @@ EXPORT_SYMBOL_GPL(cpuidle_get_driver);
-  */
- void cpuidle_unregister_driver(struct cpuidle_driver *drv)
- {
--	if (drv != cpuidle_curr_driver) {
--		WARN(1, "invalid cpuidle_unregister_driver(%s)\n",
--			drv->name);
--		return;
--	}
-+	int cpu;
-+	struct cpuidle_driver *d;
- 
- 	spin_lock(&cpuidle_driver_lock);
-+	for_each_present_cpu(cpu) {
-+
-+		d = per_cpu(cpuidle_drivers, cpu);
-+		if (drv != d)
-+			continue;
- 
--	if (!WARN_ON(drv->refcnt > 0))
--		cpuidle_curr_driver = NULL;
-+		if (!WARN_ON(drv->refcnt > 0))
-+			per_cpu(cpuidle_drivers, cpu) = NULL;
- 
-+	}
- 	spin_unlock(&cpuidle_driver_lock);
- }
- EXPORT_SYMBOL_GPL(cpuidle_unregister_driver);
-@@ -104,7 +126,7 @@ struct cpuidle_driver *cpuidle_driver_ref(void)
- 
- 	spin_lock(&cpuidle_driver_lock);
- 
--	drv = cpuidle_curr_driver;
-+	drv = cpuidle_get_driver();
- 	drv->refcnt++;
- 
- 	spin_unlock(&cpuidle_driver_lock);
-@@ -113,7 +135,7 @@ struct cpuidle_driver *cpuidle_driver_ref(void)
- 
- void cpuidle_driver_unref(void)
- {
--	struct cpuidle_driver *drv = cpuidle_curr_driver;
-+	struct cpuidle_driver *drv = cpuidle_get_driver();
- 
- 	spin_lock(&cpuidle_driver_lock);
- 
-diff --git a/drivers/cpuidle/sysfs.c b/drivers/cpuidle/sysfs.c
-index 5f809e3..05abebe 100644
---- a/drivers/cpuidle/sysfs.c
-+++ b/drivers/cpuidle/sysfs.c
-@@ -47,14 +47,30 @@ static ssize_t show_current_driver(struct device *dev,
- 				   struct device_attribute *attr,
- 				   char *buf)
- {
--	ssize_t ret;
--	struct cpuidle_driver *cpuidle_driver = cpuidle_get_driver();
-+	int cpu;
-+	ssize_t ret, count = 0;
-+	struct cpuidle_driver *drv;
- 
- 	spin_lock(&cpuidle_driver_lock);
--	if (cpuidle_driver)
--		ret = sprintf(buf, "%s\n", cpuidle_driver->name);
--	else
--		ret = sprintf(buf, "none\n");
-+	for_each_online_cpu(cpu) {
-+
-+		drv = cpuidle_get_cpu_driver(cpu);
-+
-+		ret = -EOVERFLOW;
-+		if ((drv && (strlen(drv->name) + count) >= PAGE_SIZE) ||
-+		    (!drv && (strlen("none") + count) >= PAGE_SIZE))
-+			goto out;
-+
-+		ret = sprintf(buf + count, "cpu%d: %s\n",
-+			      cpu, drv ? drv->name : "none" );
-+
-+		if (ret < 0)
-+			goto out;
-+
-+		count += ret;
-+	}
-+	ret = count;
-+out:
- 	spin_unlock(&cpuidle_driver_lock);
- 
- 	return ret;
-diff --git a/include/linux/cpuidle.h b/include/linux/cpuidle.h
-index a4ff9f8..ab6a3ed 100644
---- a/include/linux/cpuidle.h
-+++ b/include/linux/cpuidle.h
-@@ -146,6 +146,7 @@ extern void disable_cpuidle(void);
- extern int cpuidle_idle_call(void);
- extern int cpuidle_register_driver(struct cpuidle_driver *drv);
- extern struct cpuidle_driver *cpuidle_get_driver(void);
-+extern struct cpuidle_driver *cpuidle_get_cpu_driver(int cpu);
- extern struct cpuidle_driver *cpuidle_driver_ref(void);
- extern void cpuidle_driver_unref(void);
- extern void cpuidle_unregister_driver(struct cpuidle_driver *drv);
--- 
-1.7.5.4
 
