@@ -1,80 +1,63 @@
-From: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Subject: Re: [PATCH v3 5/8] ACPI, PCI: change acpi_pci_find_root
- implementation
-Date: Fri, 21 Sep 2012 16:14:47 +0900
-Message-ID: <20120921161447.46771be7.izumi.taku@jp.fujitsu.com>
-References: <20120918151215.59ea763b.izumi.taku@jp.fujitsu.com>
-	<20120918152323.48cb2703.izumi.taku@jp.fujitsu.com>
-	<CAErSpo6VeKfwzVmv=WjH7wNPMf6_PLHpo99FeKoHXOrYPnYVPQ@mail.gmail.com>
+From: Fengguang Wu <fengguang.wu@intel.com>
+Subject: [acpi:release 13/17] drivers/usb/core/usb-acpi.c:55:18: error:
+ storage size of 'pld' isn't known
+Date: Fri, 21 Sep 2012 15:21:42 +0800
+Message-ID: <20120921072142.GB1253@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAErSpo6VeKfwzVmv=WjH7wNPMf6_PLHpo99FeKoHXOrYPnYVPQ@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, kaneshige.kenji@jp.fujitsu.com, yinghai@kernel.org, jiang.liu@huawei.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:40621 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754110Ab2IUHVu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 21 Sep 2012 03:21:50 -0400
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Feng Tang <feng.tang@intel.com>
+Cc: Yuanhan Liu <yuanhan.liu@intel.com>, kernel-janitors@vger.kernel.org, Len Brown <len.brown@intel.com>, Bob Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 
-On Wed, 19 Sep 2012 16:03:27 -0600
-Bjorn Helgaas <bhelgaas@google.com> wrote:
+Hi Feng,
 
-> On Tue, Sep 18, 2012 at 12:23 AM, Taku Izumi <izumi.taku@jp.fujitsu.com> wrote:
-> >
-> > This patch changes the implementation of acpi_pci_find_root().
-> >
-> > We can access acpi_pci_root without scanning acpi_pci_roots list.
-> > If hostbridge hotplug is supported, acpi_pci_roots list will be
-> > protected by mutex. We should not access acpi_pci_roots list
-> > if preventable to lessen deadlock risk.
-> >
-> > Signed-off-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
-> > ---
-> >  drivers/acpi/pci_root.c |   13 ++++++++-----
-> >  1 file changed, 8 insertions(+), 5 deletions(-)
-> >
-> > Index: Bjorn-next-0903/drivers/acpi/pci_root.c
-> > ===================================================================
-> > --- Bjorn-next-0903.orig/drivers/acpi/pci_root.c
-> > +++ Bjorn-next-0903/drivers/acpi/pci_root.c
-> > @@ -265,12 +265,15 @@ static acpi_status acpi_pci_osc_support(
-> >  struct acpi_pci_root *acpi_pci_find_root(acpi_handle handle)
-> >  {
-> >         struct acpi_pci_root *root;
-> > +       struct acpi_device *device;
-> >
-> > -       list_for_each_entry(root, &acpi_pci_roots, node) {
-> > -               if (root->device->handle == handle)
-> > -                       return root;
-> > -       }
-> > -       return NULL;
-> > +       if (acpi_bus_get_device(handle, &device) ||
-> > +           acpi_match_device_ids(device, root_device_ids))
-> 
-> What's the purpose of the acpi_match_device_ids() check?  It's not
-> obvious, so worth calling it out in the changelog, and maybe even a
-> comment in the code.
+FYI, kernel build failed on
 
-  My intention is to reject acpi_handle which doesn't represent 
-  hostbrige. I think this is reasonable...
+tree:   git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux.git release
+head:   abd4c92003ce21c37ca0e6d9d62b93eb22ec118b
+commit: 8ede06aba5dffa78a27a18c47a9059eb38072ada [13/17] ACPI: Use ACPICA native way to decode the PLD buffer
+config: x86_64-allmodconfig
 
-  Best regards,
-  Taku Izumi
+[error]
+drivers/usb/core/usb-acpi.c:55:18: error: storage size of 'pld' isn't known
 
-> 
-> Nice to get rid of the list traversal.
-> 
-> > +               return NULL;
-> > +
-> > +       root = acpi_driver_data(device);
-> > +
-> > +       return root;
-> >  }
-> >  EXPORT_SYMBOL_GPL(acpi_pci_find_root);
-> >
-> >
-> 
+[warning]
+drivers/usb/core/usb-acpi.c:55:18: warning: unused variable 'pld' [-Wunused-variable]
 
+vim +55 drivers/usb/core/usb-acpi.c
+    39			goto out;
+    40		}
+    41	
+    42		if (upc->package.elements[0].integer.value)
+    43			udev->removable = USB_DEVICE_REMOVABLE;
+    44		else
+    45			udev->removable = USB_DEVICE_FIXED;
+    46	
+    47	out:
+    48		kfree(upc);
+    49		return ret;
+    50	}
+    51	
+    52	static int usb_acpi_check_pld(struct usb_device *udev, acpi_handle handle)
+    53	{
+    54		acpi_status status;
+  > 55		struct acpi_pld pld;
+    56	
+    57		status = acpi_get_physical_device_location(handle, &pld);
+    58	
+    59		if (ACPI_FAILURE(status))
+    60			return -ENODEV;
+    61	
+    62		if (pld.user_visible)
+    63			udev->removable = USB_DEVICE_REMOVABLE;
 
--- 
-Taku Izumi <izumi.taku@jp.fujitsu.com>
+---
+0-DAY kernel build testing backend         Open Source Technology Centre
+Fengguang Wu <wfg@linux.intel.com>                     Intel Corporation
