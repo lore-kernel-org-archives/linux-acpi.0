@@ -1,90 +1,264 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH v7 0/6] ZPODD patches
-Date: Fri, 21 Sep 2012 13:48:44 +0800
-Message-ID: <20120921054844.GB2987@mint-spring.sh.intel.com>
-References: <1347438597-5903-1-git-send-email-aaron.lu@intel.com>
- <201209191450.37735.rjw@sisk.pl>
- <5059D488.6070208@intel.com>
- <201209202200.51303.rjw@sisk.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-ide-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201209202200.51303.rjw@sisk.pl>
-Sender: linux-ide-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: James Bottomley <James.Bottomley@hansenpartnership.com>, Alan Stern <stern@rowland.harvard.edu>, Oliver Neukum <oliver@neukum.org>, Jeff Garzik <jgarzik@pobox.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>
+From: Durgadoss R <durgadoss.r@intel.com>
+Subject: [PATCHv4 11/15] Thermal: Introduce a step_wise thermal governor
+Date: Fri, 21 Sep 2012 12:06:04 +0530
+Message-ID: <1348209365-4464-1-git-send-email-durgadoss.r@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:22687 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751132Ab2IUGg5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 21 Sep 2012 02:36:57 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org, rui.zhang@intel.com
+Cc: linux-acpi@vger.kernel.org, eduardo.valentin@ti.com, Durgadoss R <durgadoss.r@intel.com>
 
-On Thu, Sep 20, 2012 at 10:00:51PM +0200, Rafael J. Wysocki wrote:
-> On Wednesday, September 19, 2012, Aaron Lu wrote:
-> > Thanks Rafael, and if there is any question/problem,
-> > please kindly let me know.
-> 
-> Well, unfortunately my initial review indicates that the patchset is not
-> quite ready to go upstream yet.
-> 
-> I'll send comments in replies to the individual patches, but overall I can
-> say that at this stage of development, when I look at the patches, it should
-> be clear to me not only what is being changed, but _why_ it is being changed
-> in the first place and, secondly, why it is being changed in this particular
-> way.  It's far from that, though.
+This patch adds a simple step_wise governor to the
+generic thermal layer. This algorithm throttles the
+cooling devices in a linear fashion. If the 'trend'
+is heating, it throttles by one step. And if the
+thermal trend is cooling it de-throttles by one step.
 
-I'm adding zero power support for optical disk drive(ZPODD), which is
-made possible with the newly defined device attention(DA) pin introduced
-in SATA 3.1 spec.
+This actually moves the throttling logic from thermal_sys.c
+and puts inside step_wise.c, without any change.
 
-The idea here is to use runtime pm to achieve this, so I basically did 2
-things:
-1 Add runtime pm support for ODD;
-2 Add power off support for ODD after it is runtime suspended.
+Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
+---
+ * This patch is a modified version of v4 series submitted here:
+   http://www.spinics.net/lists/linux-acpi/msg37375.html
+ * This patch removes the Kconfig option to always select
+   step_wise as default governor.
+ * I will submit a separate patch to let the user select
+   a default thermal governor like how it is being done
+   for cpufreq governors.
+ drivers/thermal/Kconfig     |    6 ++
+ drivers/thermal/Makefile    |    1 +
+ drivers/thermal/step_wise.c |  194 +++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 201 insertions(+)
+ create mode 100644 drivers/thermal/step_wise.c
 
-Patch 2 is runtime pm support for ODD, the reason it is done this way is
-discussed here:
-http://www.spinics.net/lists/linux-scsi/msg61551.html
+diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
+index 2200912..becec31 100644
+--- a/drivers/thermal/Kconfig
++++ b/drivers/thermal/Kconfig
+@@ -59,3 +59,9 @@ config FAIR_SHARE
+ 	depends on THERMAL
+ 	help
+ 	  Enable this to manage platform thermals using fair-share governor.
++
++config STEP_WISE
++	bool "Step_wise thermal governor"
++	depends on THERMAL
++	help
++	  Enable this to manage platform thermals using a simple linear
+diff --git a/drivers/thermal/Makefile b/drivers/thermal/Makefile
+index 30540dd..4e53c00 100644
+--- a/drivers/thermal/Makefile
++++ b/drivers/thermal/Makefile
+@@ -8,3 +8,4 @@ obj-$(CONFIG_SPEAR_THERMAL)		+= spear_thermal.o
+ obj-$(CONFIG_RCAR_THERMAL)	+= rcar_thermal.o
+ obj-$(CONFIG_EXYNOS_THERMAL)		+= exynos_thermal.o
+ obj-$(CONFIG_FAIR_SHARE)		+= fair_share.o
++obj-$(CONFIG_STEP_WISE)			+= step_wise.o
+diff --git a/drivers/thermal/step_wise.c b/drivers/thermal/step_wise.c
+new file mode 100644
+index 0000000..3f9cfcf
+--- /dev/null
++++ b/drivers/thermal/step_wise.c
+@@ -0,0 +1,194 @@
++/*
++ *  step_wise.c - A step-by-step Thermal throttling governor
++ *
++ *  Copyright (C) 2012 Intel Corp
++ *  Copyright (C) 2012 Durgadoss R <durgadoss.r@intel.com>
++ *
++ *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; version 2 of the License.
++ *
++ *  This program is distributed in the hope that it will be useful, but
++ *  WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ *  General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License along
++ *  with this program; if not, write to the Free Software Foundation, Inc.,
++ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ */
++
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
++#include <linux/module.h>
++#include <linux/thermal.h>
++
++#include "thermal_core.h"
++
++/*
++ * If the temperature is higher than a trip point,
++ *    a. if the trend is THERMAL_TREND_RAISING, use higher cooling
++ *       state for this trip point
++ *    b. if the trend is THERMAL_TREND_DROPPING, use lower cooling
++ *       state for this trip point
++ */
++static unsigned long get_target_state(struct thermal_instance *instance,
++					enum thermal_trend trend)
++{
++	struct thermal_cooling_device *cdev = instance->cdev;
++	unsigned long cur_state;
++
++	cdev->ops->get_cur_state(cdev, &cur_state);
++
++	if (trend == THERMAL_TREND_RAISING) {
++		cur_state = cur_state < instance->upper ?
++			    (cur_state + 1) : instance->upper;
++	} else if (trend == THERMAL_TREND_DROPPING) {
++		cur_state = cur_state > instance->lower ?
++			    (cur_state - 1) : instance->lower;
++	}
++
++	return cur_state;
++}
++
++static void update_passive_instance(struct thermal_zone_device *tz,
++				enum thermal_trip_type type, int value)
++{
++	/*
++	 * If value is +1, activate a passive instance.
++	 * If value is -1, deactivate a passive instance.
++	 */
++	if (type == THERMAL_TRIP_PASSIVE || type == THERMAL_TRIPS_NONE)
++		tz->passive += value;
++}
++
++static void update_instance_for_throttle(struct thermal_zone_device *tz,
++				int trip, enum thermal_trip_type trip_type,
++				enum thermal_trend trend)
++{
++	struct thermal_instance *instance;
++
++	list_for_each_entry(instance, &tz->thermal_instances, tz_node) {
++		if (instance->trip != trip)
++			continue;
++
++		instance->target = get_target_state(instance, trend);
++
++		/* Activate a passive thermal instance */
++		if (instance->target == THERMAL_NO_TARGET)
++			update_passive_instance(tz, trip_type, 1);
++
++		instance->cdev->updated = false; /* cdev needs update */
++	}
++}
++
++static void update_instance_for_dethrottle(struct thermal_zone_device *tz,
++				int trip, enum thermal_trip_type trip_type)
++{
++	struct thermal_instance *instance;
++	struct thermal_cooling_device *cdev;
++	unsigned long cur_state;
++
++	list_for_each_entry(instance, &tz->thermal_instances, tz_node) {
++		if (instance->trip != trip ||
++			instance->target == THERMAL_NO_TARGET)
++			continue;
++
++		cdev = instance->cdev;
++		cdev->ops->get_cur_state(cdev, &cur_state);
++
++		instance->target = cur_state > instance->lower ?
++			    (cur_state - 1) : THERMAL_NO_TARGET;
++
++		/* Deactivate a passive thermal instance */
++		if (instance->target == THERMAL_NO_TARGET)
++			update_passive_instance(tz, trip_type, -1);
++
++		cdev->updated = false; /* cdev needs update */
++	}
++}
++
++static void thermal_zone_trip_update(struct thermal_zone_device *tz, int trip)
++{
++	long trip_temp;
++	enum thermal_trip_type trip_type;
++	enum thermal_trend trend;
++
++	if (trip == THERMAL_TRIPS_NONE) {
++		trip_temp = tz->forced_passive;
++		trip_type = THERMAL_TRIPS_NONE;
++	} else {
++		tz->ops->get_trip_temp(tz, trip, &trip_temp);
++		tz->ops->get_trip_type(tz, trip, &trip_type);
++	}
++
++	trend = get_tz_trend(tz, trip);
++
++	mutex_lock(&tz->lock);
++
++	if (tz->temperature >= trip_temp)
++		update_instance_for_throttle(tz, trip, trip_type, trend);
++	else
++		update_instance_for_dethrottle(tz, trip, trip_type);
++
++	mutex_unlock(&tz->lock);
++}
++
++/**
++ * step_wise_throttle - throttles devices asscciated with the given zone
++ * @tz - thermal_zone_device
++ * @trip - the trip point
++ * @trip_type - type of the trip point
++ *
++ * Throttling Logic: This uses the trend of the thermal zone to throttle.
++ * If the thermal zone is 'heating up' this throttles all the cooling
++ * devices associated with the zone and its particular trip point, by one
++ * step. If the zone is 'cooling down' it brings back the performance of
++ * the devices by one step.
++ */
++int step_wise_throttle(struct thermal_zone_device *tz, int trip)
++{
++	struct thermal_instance *instance;
++
++	thermal_zone_trip_update(tz, trip);
++
++	if (tz->forced_passive)
++		thermal_zone_trip_update(tz, THERMAL_TRIPS_NONE);
++
++	mutex_lock(&tz->lock);
++
++	list_for_each_entry(instance, &tz->thermal_instances, tz_node)
++		thermal_cdev_update(instance->cdev);
++
++	mutex_unlock(&tz->lock);
++
++	return 0;
++}
++
++struct thermal_governor thermal_gov_step_wise = {
++	.name		= DEFAULT_THERMAL_GOVERNOR,
++	.throttle	= step_wise_throttle,
++	.owner		= THIS_MODULE,
++};
++
++static int __init thermal_gov_step_wise_init(void)
++{
++	return thermal_register_governor(&thermal_gov_step_wise);
++}
++
++static void __exit thermal_gov_step_wise_exit(void)
++{
++	thermal_unregister_governor(&thermal_gov_step_wise);
++}
++
++/* This should load after thermal framework */
++fs_initcall(thermal_gov_step_wise_init);
++module_exit(thermal_gov_step_wise_exit);
++
++MODULE_AUTHOR("Durgadoss R");
++MODULE_DESCRIPTION("A step-by-step thermal throttling governor");
++MODULE_LICENSE("GPL");
+-- 
+1.7.9.5
 
-The basic idea is, the ODD will be runtime suspended as long as there is
-nobody using it, that is, no programs opening the block device.
-
-The ODD will be polled periodically, so it will be runtime resumed
-before checking if there is any events pending and suspended when done.
-The only exception is, if we found a disc is just inserted, we will not
-idle it immediately at the end of the poll, reason explained in another
-mail.
-
-This is the rational I wrote patch 2, and patch 1 is used by patch 2.
-
-Patch 3 is adding power off support for ODD after it is runtime
-suspended, the condition is specified in section 15:
-ftp://ftp.seagate.com/sff/INF-8090.PDF
-
-That is, for tray type ODD: no media inside and door closed; for slot
-type ODD: no media inside.
-
-The is the reason sr_suspend is written, for non-ZPODD capable devices,
-it does nothing; for ZPODD devices, it will check the above condition to
-see if it is ready to be powered off. The ready_to_power_off flag will be
-used by ATA layer to decide if power can be removed.
-
-When in powered off state, if user presses the eject button or insert a
-disc, an ACPI event will be generated and our acpi wake handler will
-pm_runtime_resume the ODD. And if it is a tray type ODD, its tray should
-be ejected(need_eject flag) after powered on. This is patch 3.
-
-And patch 4-6 introduces a new sysfs file may_power_off to give user a
-chance to disable the power off of the device due to various reasons
-like the ODD claims support of device attention while actually it is
-broken.
-
-I hope it makes more sense to you now.
-
-Thanks,
-Aaron
-
-> 
-> The first patch in the series doesn't even have a changelog.  How the changelog
-> of the second patch is related to it's actual contents is more than quite
-> unclear to me.  Etc.
-> 
-> Thanks,
-> Rafael
