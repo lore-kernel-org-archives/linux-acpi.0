@@ -1,131 +1,66 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCHv4 07/15] Thermal: Add a policy sysfs attribute
-Date: Fri, 21 Sep 2012 16:07:07 +0800
-Message-ID: <1348214827.10877.138.camel@rui.sh.intel.com>
+From: "R, Durgadoss" <durgadoss.r@intel.com>
+Subject: RE: [PATCHv4 04/15] Thermal: Add platform level information to
+ thermal.h
+Date: Fri, 21 Sep 2012 08:07:36 +0000
+Message-ID: <4D68720C2E767A4AA6A8796D42C8EB591C038E@BGSMSX101.gar.corp.intel.com>
 References: <1347946506-18449-1-git-send-email-durgadoss.r@intel.com>
-	 <1347946506-18449-8-git-send-email-durgadoss.r@intel.com>
+	 <1347946506-18449-5-git-send-email-durgadoss.r@intel.com>
+ <1348211569.10877.125.camel@rui.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:20947 "EHLO mga01.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:25498 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754347Ab2IUIGX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 21 Sep 2012 04:06:23 -0400
-In-Reply-To: <1347946506-18449-8-git-send-email-durgadoss.r@intel.com>
+	id S1753381Ab2IUIHm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 21 Sep 2012 04:07:42 -0400
+In-Reply-To: <1348211569.10877.125.camel@rui.sh.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Durgadoss R <durgadoss.r@intel.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, eduardo.valentin@ti.com
+To: "Zhang, Rui" <rui.zhang@intel.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>
 
-On =E4=BA=8C, 2012-09-18 at 11:04 +0530, Durgadoss R wrote:
-> This patch adds a policy sysfs attribute to a thermal zone.
-> This attribute denotes the throttling governor used for the
-> zone. This is a RW attribute.
->=20
-> Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
-> ---
->  drivers/thermal/thermal_sys.c |   42 +++++++++++++++++++++++++++++++=
-+++++++---
->  1 file changed, 39 insertions(+), 3 deletions(-)
->=20
-> diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_=
-sys.c
-> index a67c6c0..0948a60 100644
-> --- a/drivers/thermal/thermal_sys.c
-> +++ b/drivers/thermal/thermal_sys.c
-> @@ -454,10 +454,41 @@ passive_show(struct device *dev, struct device_=
-attribute *attr,
->  	return sprintf(buf, "%d\n", tz->forced_passive);
->  }
-> =20
-> +static ssize_t
-> +policy_store(struct device *dev, struct device_attribute *attr,
-> +		    const char *buf, size_t count)
-> +{
-> +	int ret =3D -EINVAL;
-> +	struct thermal_zone_device *tz =3D to_thermal_zone(dev);
-> +	struct thermal_governor *gov;
-> +
-> +	mutex_lock(&thermal_governor_lock);
-> +
-> +	gov =3D __find_governor(buf);
-> +	if (!gov)
-> +		goto exit;
-> +
-> +	tz->governor =3D gov;
-> +	ret =3D count;
-> +
-> +exit:
-> +	mutex_unlock(&thermal_governor_lock);
-> +	return ret;
-> +}
-> +
-> +static ssize_t
-> +policy_show(struct device *dev, struct device_attribute *devattr, ch=
-ar *buf)
-> +{
-> +	struct thermal_zone_device *tz =3D to_thermal_zone(dev);
-> +
-> +	return sprintf(buf, "%s\n", tz->governor->name);
-> +}
-> +
-
-we should introduce an API for platform thermal drivers to switch their
-policy.
-say they may want to switch to "userspace" to disable the kernel therma=
-l
-control.
-and policy_store should invoke that function directly.
-
-BTW, IMO, deactiving all the thermal_instances and updating the cooling
-devices when a thermal zone switches to "userspace" governor is
-reasonable.
-
-thanks,
-rui
->  static DEVICE_ATTR(type, 0444, type_show, NULL);
->  static DEVICE_ATTR(temp, 0444, temp_show, NULL);
->  static DEVICE_ATTR(mode, 0644, mode_show, mode_store);
->  static DEVICE_ATTR(passive, S_IRUGO | S_IWUSR, passive_show, passive=
-_store);
-> +static DEVICE_ATTR(policy, S_IRUGO | S_IWUSR, policy_show, policy_st=
-ore);
-> =20
->  /* sys I/F for cooling device */
->  #define to_cooling_device(_dev)	\
-> @@ -1512,10 +1543,14 @@ struct thermal_zone_device *thermal_zone_devi=
-ce_register(const char *type,
->  			passive =3D 1;
->  	}
-> =20
-> -	if (!passive)
-> -		result =3D device_create_file(&tz->device,
-> -					    &dev_attr_passive);
-> +	if (!passive) {
-> +		result =3D device_create_file(&tz->device, &dev_attr_passive);
-> +		if (result)
-> +			goto unregister;
-> +	}
-> =20
-> +	/* Create policy attribute */
-> +	result =3D device_create_file(&tz->device, &dev_attr_policy);
->  	if (result)
->  		goto unregister;
-> =20
-> @@ -1591,6 +1626,7 @@ void thermal_zone_device_unregister(struct ther=
-mal_zone_device *tz)
->  	device_remove_file(&tz->device, &dev_attr_temp);
->  	if (tz->ops->get_mode)
->  		device_remove_file(&tz->device, &dev_attr_mode);
-> +	device_remove_file(&tz->device, &dev_attr_policy);
->  	remove_trip_attrs(tz);
->  	tz->governor =3D NULL;
-> =20
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SGkgUnVpLA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFpoYW5nLCBS
+dWkNCj4gU2VudDogRnJpZGF5LCBTZXB0ZW1iZXIgMjEsIDIwMTIgMTI6NDMgUE0NCj4gVG86IFIs
+IER1cmdhZG9zcw0KPiBDYzogbGVuYkBrZXJuZWwub3JnOyBsaW51eC1hY3BpQHZnZXIua2VybmVs
+Lm9yZzsgZWR1YXJkby52YWxlbnRpbkB0aS5jb20NCj4gU3ViamVjdDogUmU6IFtQQVRDSHY0IDA0
+LzE1XSBUaGVybWFsOiBBZGQgcGxhdGZvcm0gbGV2ZWwgaW5mb3JtYXRpb24gdG8NCj4gdGhlcm1h
+bC5oDQo+IA0KPiBPbiDkuowsIDIwMTItMDktMTggYXQgMTE6MDQgKzA1MzAsIER1cmdhZG9zcyBS
+IHdyb3RlOg0KPiA+IFRoaXMgcGF0Y2ggYWRkcyBwbGF0Zm9ybSBsZXZlbCBpbmZvcm1hdGlvbiB0
+byB0aGVybWFsLmgNCj4gPiBieSBpbnRyb2R1Y2luZyB0d28gc3RydWN0dXJlcyB0byBob2xkOg0K
+PiA+ICAqIGJpbmQgcGFyYW1ldGVycyBmb3IgYSB0aGVybWFsIHpvbmUsDQo+ID4gICogem9uZSBs
+ZXZlbCBwbGF0Zm9ybSBwYXJhbWV0ZXJzDQo+ID4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBEdXJnYWRv
+c3MgUiA8ZHVyZ2Fkb3NzLnJAaW50ZWwuY29tPg0KPiA+IC0tLQ0KPiA+ICBpbmNsdWRlL2xpbnV4
+L3RoZXJtYWwuaCB8ICAgMjkgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysNCj4gPiAgMSBm
+aWxlIGNoYW5nZWQsIDI5IGluc2VydGlvbnMoKykNCj4gPg0KPiA+IGRpZmYgLS1naXQgYS9pbmNs
+dWRlL2xpbnV4L3RoZXJtYWwuaCBiL2luY2x1ZGUvbGludXgvdGhlcm1hbC5oDQo+ID4gaW5kZXgg
+MzJhZjEyNC4uNGNhYTMyZSAxMDA2NDQNCj4gPiAtLS0gYS9pbmNsdWRlL2xpbnV4L3RoZXJtYWwu
+aA0KPiA+ICsrKyBiL2luY2x1ZGUvbGludXgvdGhlcm1hbC5oDQo+ID4gQEAgLTE1Nyw2ICsxNTcs
+NyBAQCBzdHJ1Y3QgdGhlcm1hbF96b25lX2RldmljZSB7DQo+ID4gIAlpbnQgcGFzc2l2ZTsNCj4g
+PiAgCXVuc2lnbmVkIGludCBmb3JjZWRfcGFzc2l2ZTsNCj4gPiAgCWNvbnN0IHN0cnVjdCB0aGVy
+bWFsX3pvbmVfZGV2aWNlX29wcyAqb3BzOw0KPiA+ICsJY29uc3Qgc3RydWN0IHRoZXJtYWxfem9u
+ZV9wYXJhbXMgKnR6cDsNCj4gPiAgCXN0cnVjdCBsaXN0X2hlYWQgdGhlcm1hbF9pbnN0YW5jZXM7
+DQo+ID4gIAlzdHJ1Y3QgaWRyIGlkcjsNCj4gPiAgCXN0cnVjdCBtdXRleCBsb2NrOyAvKiBwcm90
+ZWN0IHRoZXJtYWxfaW5zdGFuY2VzIGxpc3QgKi8NCj4gPiBAQCAtMTY0LDYgKzE2NSwzNCBAQCBz
+dHJ1Y3QgdGhlcm1hbF96b25lX2RldmljZSB7DQo+ID4gIAlzdHJ1Y3QgZGVsYXllZF93b3JrIHBv
+bGxfcXVldWU7DQo+ID4gIH07DQo+ID4NCj4gPiArLyogU3RydWN0dXJlIHRoYXQgaG9sZHMgYmlu
+ZGluZyBwYXJhbWV0ZXJzIGZvciBhIHpvbmUgKi8NCj4gPiArc3RydWN0IHRoZXJtYWxfYmluZF9w
+YXJhbXMgew0KPiA+ICsJc3RydWN0IHRoZXJtYWxfY29vbGluZ19kZXZpY2UgKmNkZXY7DQo+ID4g
+Kw0KPiA+ICsJLyoNCj4gPiArCSAqIFRoaXMgaXMgYSBtZWFzdXJlIG9mICdob3cgZWZmZWN0aXZl
+bHkgdGhlc2UgZGV2aWNlcyBjYW4NCj4gPiArCSAqIGNvb2wgJ3RoaXMnIHRoZXJtYWwgem9uZS4g
+VGhlIHNoYWxsIGJlIGRldGVybWluZWQgYnkgcGxhdGZvcm0NCj4gPiArCSAqIGNoYXJhY3Rlcml6
+YXRpb24uIFRoaXMgaXMgb24gYSAncGVyY2VudGFnZScgc2NhbGUuDQo+ID4gKwkgKiBTZWUgRG9j
+dW1lbnRhdGlvbi90aGVybWFsL3N5c2ZzLWFwaS50eHQgZm9yIG1vcmUgaW5mb3JtYXRpb24uDQo+
+ID4gKwkgKi8NCj4gPiArCWludCB3ZWlnaHQ7DQo+ID4gKw0KPiA+ICsJLyoNCj4gPiArCSAqIFRo
+aXMgaXMgYSBiaXQgbWFzayB0aGF0IGdpdmVzIHRoZSBiaW5kaW5nIHJlbGF0aW9uIGJldHdlZW4g
+dGhpcw0KPiA+ICsJICogdGhlcm1hbCB6b25lIGFuZCBjZGV2LCBmb3IgYSBwYXJ0aWN1bGFyIHRy
+aXAgcG9pbnQuDQo+ID4gKwkgKiBTZWUgRG9jdW1lbnRhdGlvbi90aGVybWFsL3N5c2ZzLWFwaS50
+eHQgZm9yIG1vcmUgaW5mb3JtYXRpb24uDQo+ID4gKwkgKi8NCj4gPiArCWludCB0cmlwX21hc2s7
+DQo+ID4gKwlpbnQgKCptYXRjaCkgKHN0cnVjdCB0aGVybWFsX3pvbmVfZGV2aWNlICp0eiwNCj4g
+PiArCQkJc3RydWN0IHRoZXJtYWxfY29vbGluZ19kZXZpY2UgKmNkZXYpOw0KPiA+ICt9Ow0KPiAN
+Cj4gd2UgZG8gbm90IGhhdmUgZmllbGQgdG8gZGVzY3JpYmUgdGhlIHVwcGVyIGFuZCBsb3dlciBs
+aW1pdD8NCg0KTG9va3MgbGlrZSBJIG1pc3NlZCBpdCBoZXJlIDotKA0KQnV0LCBJTU8sIHdlIG5l
+ZWQgYW4gYXJyYXkgb2YgJ3VwcGVyJyBhbmQgJ2xvd2VyJyBsaW1pdHMgaGVyZSAuLiBjb3JyZWN0
+ID8NCkxldCBtZSBrbm93IGhvdyB5b3Ugd291bGQgd2FudCB0byBhZGRyZXNzIGl0ID8NCmEgc2Vw
+YXJhdGUgcGF0Y2ggb3IgZml4IGhlcmUgPw0KDQpUaGFua3MsDQpEdXJnYQ0K
