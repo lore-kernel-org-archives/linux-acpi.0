@@ -1,28 +1,24 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCHv3 4/4] efi: Fix the ACPI BGRT driver for images located
- in EFI boot services memory
-Date: Fri, 21 Sep 2012 15:00:30 -0400
-Message-ID: <505CB94E.2040100@kernel.org>
-References: <cover.1347141698.git.josh@joshtriplett.org> <ced9fa2da63a605cdd905f3e75d7e0bd33a2011d.1347141698.git.josh@joshtriplett.org>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: ACPI errors on Dell Latitude E5430
+Date: Fri, 21 Sep 2012 20:34:20 +0100
+Message-ID: <20120921193420.GA10882@srcf.ucam.org>
+References: <505C594A.60903@hundeboll.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:65075 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933014Ab2IUTAk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Sep 2012 15:00:40 -0400
-In-Reply-To: <ced9fa2da63a605cdd905f3e75d7e0bd33a2011d.1347141698.git.josh@joshtriplett.org>
+Received: from cavan.codon.org.uk ([93.93.128.6]:49648 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753152Ab2IUTeX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Sep 2012 15:34:23 -0400
+Content-Disposition: inline
+In-Reply-To: <505C594A.60903@hundeboll.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Josh Triplett <josh@joshtriplett.org>
-Cc: linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Matt Fleming <matt.fleming@intel.com>, Olof Johansson <olof@lixom.net>, Matthew Garrett <mjg@redhat.com>, David Howells <dhowells@redhat.com>, Rusty Russell <rusty@rustcorp.com.au>, Jim Cromie <jim.cromie@gmail.com>, Peter Zijlstra <a.p.zijlstra@chello.nl>, linux-acpi@vger.kernel.org
+To: Martin =?iso-8859-1?Q?Hundeb=F8ll?= <martin@hundeboll.net>
+Cc: linux-acpi@vger.kernel.org
 
-for drivers/acpi/
+We're getting timeouts when trying to access the embedded controller, 
+which would explain your problems.
 
-Acked-by: Len Brown <len.brown@intel.com>
-
-As this is mostly an EFI thing, I assume HPA is handling this series.
-
--Len Brown, Intel Open Source Technology Center
-
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
