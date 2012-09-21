@@ -1,83 +1,60 @@
-From: jonghwa3.lee@samsung.com
-Subject: Re: [PATCH v6 1/6] thermal: add generic cpufreq cooling implementation
-Date: Fri, 21 Sep 2012 11:23:47 +0900
-Message-ID: <505BCFB3.3040004@samsung.com>
-References: <0MAO00DCVFKI4NS0@ms2.samsung.com>
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: Re: [PATCH V2] ACPI: Allow acpi binding with usb3.0 hub
+Date: Fri, 21 Sep 2012 11:16:01 +0800
+Message-ID: <505BDBF1.2020209@intel.com>
+References: <1345185849-3041-1-git-send-email-tianyu.lan@intel.com> <20120921002527.GB6909@xanatos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=EUC-KR
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:48141 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755899Ab2IUCYB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Sep 2012 22:24:01 -0400
-In-reply-to: <0MAO00DCVFKI4NS0@ms2.samsung.com>
+Received: from mga03.intel.com ([143.182.124.21]:42136 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753694Ab2IUDRn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 20 Sep 2012 23:17:43 -0400
+In-Reply-To: <20120921002527.GB6909@xanatos>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Amit Daniel Kachhap <amit.kachhap@linaro.org>
-Cc: linux-pm@lists.linux-foundation.org, Andrew Morton <akpm@linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org
+To: Sarah Sharp <sarah.a.sharp@linux.intel.com>, lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-usb@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-Hi, Amit,
-On 2012=B3=E2 08=BF=F9 16=C0=CF 20:41, Amit Daniel Kachhap wrote:
+On 2012=E5=B9=B409=E6=9C=8821=E6=97=A5 08:25, Sarah Sharp wrote:
+> Hi Tianyu,
+>=20
+> You're correct that the USB core and the xHCI driver has a slightly
+> different architecture than the ACPI representation.  We have one PCI
+> device that has two USB buses/roothubs underneath it.  That's because
+> external USB 3.0 hubs show up as two USB devices: a USB 3.0 only
+> portion, and a USB 2.0 portion.  We wanted roothubs to act the same w=
+ay.
+>=20
+> The architecture looks something like this:
+>=20
+>       struct pci_dev
+>       |
+> struct usb_hcd *primary_hcd -- struct usb_hcd *secondary_hcd
+>       |                               |
+> struct usb_bus                  struct usb_bus
+>       |                               |
+>  struct usb_device *root_hub     struct usb_device *root_hub
+>       |                               |
+>    struct device                   struct device
+>=20
+> Where the primary_hcd is for the USB 2.0 roothub, and the secondary_h=
+cd
+> is for the USB 3.0 roothub.
+>=20
+> So you're trying to bind one ACPI node (RHUB) to the struct device
+> contained in those two root_hubs, correct?  That goal seems sane to m=
+e.
+>=20
+Yes, that is my patch's purpose.
 
->  diff --git a/drivers/thermal/cpu_cooling.c b/drivers/thermal/cpu_coo=
-ling.c
->  new file mode 100644
->  index 0000000..66cbd52
->  --- /dev/null
->  +++ b/drivers/thermal/cpu_cooling.c
->  @@ -0,0 +1,586 @@
-
->  +/**
->  + * cpufreq_cooling_register - function to create cpufreq cooling de=
-vice.
->  + * @clip_cpus: cpumask of cpus where the frequency constraints will=
- happen.
->  + */
->  +struct thermal_cooling_device *cpufreq_cooling_register(
->  +       struct cpumask *clip_cpus)
->  +{
->  +       struct thermal_cooling_device *cool_dev;
->  +       struct cpufreq_cooling_device *cpufreq_dev =3D NULL;
->  +       unsigned int cpufreq_dev_count =3D 0, min =3D 0, max =3D 0;
->  +       char dev_name[THERMAL_NAME_LENGTH];
->  +       int ret =3D 0, id =3D 0, i;
->  +       struct cpufreq_policy policy;
->  +       ret =3D get_idr(&cpufreq_idr,&cpufreq_dev->id);
->  +       if (ret) {
->  +               kfree(cpufreq_dev);
->  +               return ERR_PTR(-EINVAL);
->  +       }
->  +
->  +       sprintf(dev_name, "thermal-cpufreq-%d", cpufreq_dev->id);
->  +
->  +       cool_dev =3D thermal_cooling_device_register(dev_name, cpufr=
-eq_dev,
->  +&cpufreq_cooling_ops);
->  +       if (!cool_dev) {
->  +               release_idr(&cpufreq_idr, cpufreq_dev->id);
->  +               kfree(cpufreq_dev);
->  +               return ERR_PTR(-EINVAL);
->  +       }
->  +       cpufreq_dev->id =3D id;
+> Sarah Sharp
 
 
-Why is this needed? Should every cpufreq_dev instance's id be same for
-zero? It looks odd. And it also has problem which can be occurred when
-it release id during unregistering cpufreq_dev. I think it should keep
-the idr value taken before.
-
-
->  1.7.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kerne=
-l" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-
-
+--=20
+Best regards
+Tianyu Lan
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
