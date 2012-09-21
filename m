@@ -1,91 +1,80 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCHv4 04/15] Thermal: Add platform level information to
- thermal.h
-Date: Fri, 21 Sep 2012 15:12:49 +0800
-Message-ID: <1348211569.10877.125.camel@rui.sh.intel.com>
-References: <1347946506-18449-1-git-send-email-durgadoss.r@intel.com>
-	 <1347946506-18449-5-git-send-email-durgadoss.r@intel.com>
+From: Taku Izumi <izumi.taku@jp.fujitsu.com>
+Subject: Re: [PATCH v3 5/8] ACPI, PCI: change acpi_pci_find_root
+ implementation
+Date: Fri, 21 Sep 2012 16:14:47 +0900
+Message-ID: <20120921161447.46771be7.izumi.taku@jp.fujitsu.com>
+References: <20120918151215.59ea763b.izumi.taku@jp.fujitsu.com>
+	<20120918152323.48cb2703.izumi.taku@jp.fujitsu.com>
+	<CAErSpo6VeKfwzVmv=WjH7wNPMf6_PLHpo99FeKoHXOrYPnYVPQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:5646 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753886Ab2IUHMF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 21 Sep 2012 03:12:05 -0400
-In-Reply-To: <1347946506-18449-5-git-send-email-durgadoss.r@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAErSpo6VeKfwzVmv=WjH7wNPMf6_PLHpo99FeKoHXOrYPnYVPQ@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, kaneshige.kenji@jp.fujitsu.com, yinghai@kernel.org, jiang.liu@huawei.com
 List-Id: linux-acpi@vger.kernel.org
-To: Durgadoss R <durgadoss.r@intel.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, eduardo.valentin@ti.com
 
-On =E4=BA=8C, 2012-09-18 at 11:04 +0530, Durgadoss R wrote:
-> This patch adds platform level information to thermal.h
-> by introducing two structures to hold:
->  * bind parameters for a thermal zone,
->  * zone level platform parameters
->=20
-> Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
-> ---
->  include/linux/thermal.h |   29 +++++++++++++++++++++++++++++
->  1 file changed, 29 insertions(+)
->=20
-> diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-> index 32af124..4caa32e 100644
-> --- a/include/linux/thermal.h
-> +++ b/include/linux/thermal.h
-> @@ -157,6 +157,7 @@ struct thermal_zone_device {
->  	int passive;
->  	unsigned int forced_passive;
->  	const struct thermal_zone_device_ops *ops;
-> +	const struct thermal_zone_params *tzp;
->  	struct list_head thermal_instances;
->  	struct idr idr;
->  	struct mutex lock; /* protect thermal_instances list */
-> @@ -164,6 +165,34 @@ struct thermal_zone_device {
->  	struct delayed_work poll_queue;
->  };
-> =20
-> +/* Structure that holds binding parameters for a zone */
-> +struct thermal_bind_params {
-> +	struct thermal_cooling_device *cdev;
-> +
-> +	/*
-> +	 * This is a measure of 'how effectively these devices can
-> +	 * cool 'this' thermal zone. The shall be determined by platform
-> +	 * characterization. This is on a 'percentage' scale.
-> +	 * See Documentation/thermal/sysfs-api.txt for more information.
-> +	 */
-> +	int weight;
-> +
-> +	/*
-> +	 * This is a bit mask that gives the binding relation between this
-> +	 * thermal zone and cdev, for a particular trip point.
-> +	 * See Documentation/thermal/sysfs-api.txt for more information.
-> +	 */
-> +	int trip_mask;
-> +	int (*match) (struct thermal_zone_device *tz,
-> +			struct thermal_cooling_device *cdev);
-> +};
+On Wed, 19 Sep 2012 16:03:27 -0600
+Bjorn Helgaas <bhelgaas@google.com> wrote:
 
-we do not have field to describe the upper and lower limit?
+> On Tue, Sep 18, 2012 at 12:23 AM, Taku Izumi <izumi.taku@jp.fujitsu.com> wrote:
+> >
+> > This patch changes the implementation of acpi_pci_find_root().
+> >
+> > We can access acpi_pci_root without scanning acpi_pci_roots list.
+> > If hostbridge hotplug is supported, acpi_pci_roots list will be
+> > protected by mutex. We should not access acpi_pci_roots list
+> > if preventable to lessen deadlock risk.
+> >
+> > Signed-off-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
+> > ---
+> >  drivers/acpi/pci_root.c |   13 ++++++++-----
+> >  1 file changed, 8 insertions(+), 5 deletions(-)
+> >
+> > Index: Bjorn-next-0903/drivers/acpi/pci_root.c
+> > ===================================================================
+> > --- Bjorn-next-0903.orig/drivers/acpi/pci_root.c
+> > +++ Bjorn-next-0903/drivers/acpi/pci_root.c
+> > @@ -265,12 +265,15 @@ static acpi_status acpi_pci_osc_support(
+> >  struct acpi_pci_root *acpi_pci_find_root(acpi_handle handle)
+> >  {
+> >         struct acpi_pci_root *root;
+> > +       struct acpi_device *device;
+> >
+> > -       list_for_each_entry(root, &acpi_pci_roots, node) {
+> > -               if (root->device->handle == handle)
+> > -                       return root;
+> > -       }
+> > -       return NULL;
+> > +       if (acpi_bus_get_device(handle, &device) ||
+> > +           acpi_match_device_ids(device, root_device_ids))
+> 
+> What's the purpose of the acpi_match_device_ids() check?  It's not
+> obvious, so worth calling it out in the changelog, and maybe even a
+> comment in the code.
 
-thanks.
-rui
-> +
-> +/* Structure to define Thermal Zone parameters */
-> +struct thermal_zone_params {
-> +	int num_tbps;	/* Number of tbp entries */
-> +	struct thermal_bind_params *tbp;
-> +};
-> +
->  struct thermal_genl_event {
->  	u32 orig;
->  	enum events event;
+  My intention is to reject acpi_handle which doesn't represent 
+  hostbrige. I think this is reasonable...
+
+  Best regards,
+  Taku Izumi
+
+> 
+> Nice to get rid of the list traversal.
+> 
+> > +               return NULL;
+> > +
+> > +       root = acpi_driver_data(device);
+> > +
+> > +       return root;
+> >  }
+> >  EXPORT_SYMBOL_GPL(acpi_pci_find_root);
+> >
+> >
+> 
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Taku Izumi <izumi.taku@jp.fujitsu.com>
