@@ -1,95 +1,76 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH 01/40] PCI: fix default vga ref_count
-Date: Fri, 21 Sep 2012 14:52:13 -0600
-Message-ID: <CAErSpo7S3DCMq1Rsj0Ya856ebyqFT_1pF2yirzaHrGPSSUJinQ@mail.gmail.com>
-References: <CAE9FiQWFcVNKMnV1qaHchwCXfZuMpyxf_f7GQy3FZid9YuLD3w@mail.gmail.com>
- <1348080894-23412-1-git-send-email-yinghai@kernel.org> <1348080894-23412-2-git-send-email-yinghai@kernel.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v7 3/6] scsi: sr: support zero power ODD(ZPODD)
+Date: Fri, 21 Sep 2012 23:02:19 +0200
+Message-ID: <201209212302.19896.rjw@sisk.pl>
+References: <1347438597-5903-1-git-send-email-aaron.lu@intel.com> <201209210007.23494.rjw@sisk.pl> <20120921013917.GB2142@mint-spring.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1348080894-23412-2-git-send-email-yinghai@kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, x86 <x86@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Dave Airlie <airlied@redhat.com>, Julia Lawall <julia@diku.dk>, Matthew Garrett <mjg@redhat.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([193.178.161.156]:39178 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752576Ab2IUUzw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 21 Sep 2012 16:55:52 -0400
+In-Reply-To: <20120921013917.GB2142@mint-spring.sh.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Oliver Neukum <oliver@neukum.org>, James Bottomley <James.Bottomley@hansenpartnership.com>, Jeff Garzik <jgarzik@pobox.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>
 
-On Wed, Sep 19, 2012 at 12:54 PM, Yinghai Lu <yinghai@kernel.org> wrote:
-> when __ARCH_HAS_VGA_DEFAULT_DEVICE is not defined, aka EFIFB is not used,
-> for static path, vga_default setting is through vga_arbiter_add_pci_device.
-> and later x86 pci_fixup_video, will skip setting again.
-> - subsys_initcall(vga_arb_device_init) come first to call vga_arbiter_add_pci_device. It will call pci_get_dev to hold one reference.
->
-> for hotplug add path, even vga_arbiter_add_pci_device is called via notifier,
-> but it will check VGA_RSRC_LEGACY_MASK that is not set for hotplug path.
-> So x86 pci_fixup_video will take over to call vga_set_default_device().
-> It will not hold one refrence.
->
-> Later for hotplug remove path, vga_arbiter_del_pci_device that does not check
-> VGA_RSRC_LEGACY_MASK will call put_device and it will cause ref_count to
-> decrease extra. that will have that pci device get deleted early wrongly.
->
-> Need to make get/put balance for both cases.
->
-> -v2: According to Bjorn, update vga_set_default_device instead...
->
-> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-> Cc: x86@kernel.org
-> Cc: Dave Airlie <airlied@redhat.com>
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> Cc: Julia Lawall <julia@diku.dk>
-> Cc: Matthew Garrett <mjg@redhat.com>
-> ---
->  drivers/gpu/vga/vgaarb.c |   14 +++++++++-----
->  1 files changed, 9 insertions(+), 5 deletions(-)
->
-> diff --git a/drivers/gpu/vga/vgaarb.c b/drivers/gpu/vga/vgaarb.c
-> index b6852b7..0888951e 100644
-> --- a/drivers/gpu/vga/vgaarb.c
-> +++ b/drivers/gpu/vga/vgaarb.c
-> @@ -141,6 +141,12 @@ EXPORT_SYMBOL_GPL(vga_default_device);
->
->  void vga_set_default_device(struct pci_dev *pdev)
->  {
-> +       if (vga_default)
-> +               pci_dev_put(vga_default);
-> +
-> +       if (pdev)
-> +               pdev = pci_dev_get(pdev);
-> +
->         vga_default = pdev;
+On Friday, September 21, 2012, Aaron Lu wrote:
+> On Fri, Sep 21, 2012 at 12:07:23AM +0200, Rafael J. Wysocki wrote:
+> > On Wednesday, September 12, 2012, Aaron Lu wrote:
+> > >  static struct scsi_driver sr_template = {
+> > >  	.owner			= THIS_MODULE,
+> > > @@ -87,6 +89,8 @@ static struct scsi_driver sr_template = {
+> > >  		.name   	= "sr",
+> > >  		.probe		= sr_probe,
+> > >  		.remove		= sr_remove,
+> > > +		.suspend        = sr_suspend,
+> > > +		.resume         = sr_resume,
+> > >  	},
+> > >  	.done			= sr_done,
+> > >  };
+> > > @@ -172,6 +176,52 @@ static void scsi_cd_put(struct scsi_cd *cd)
+> > >  	mutex_unlock(&sr_ref_mutex);
+> > >  }
+> > 
+> > Besides, I need some help to understand how this is supposed to work.
+> > 
+> > Do I think correctly that sr_suspend(), for example, will be run by the
+> > SCSI bus type layer in case of a CD device runtime suspend?  However,
+> 
+> Yes.
+> 
+> > won't this routine be used during system suspend as well and won't it cause
+> > problems to happen if so?
+> 
+> On system suspend, nothing needs to be done.
+> I'll add the following code in next version.
+> 
+> 	if (!PMSG_IS_AUTO(msg))
+> 		return 0;
 
-I think this is equivalent to:
+Please don't.  The pm_message_t thing is obsolete and shoulnd't really be
+used by device drivers.  I know that ATA relies on it internally, but that's
+just something that needs to be changed at one point.
 
-    pci_dev_put(vga_default);
-    vga_default = pci_dev_get(pdev);
+Moreover, I'd like to migrate SCSI drivers to the PM handling based on struct
+dev_pm_ops eventually and your change is kind of going in the opposite
+direction.  I don't know how much effort the migration is going to take,
+though, so perhaps we can just make this change first.
 
-I haven't seen an answer to Matthew's question about whether we want
-to check for "vga_default == pdev".
+On a slightly related note, suppose that we have an "enabled" bit in flags
+in struct acpi_device_power_state and suppose that we have a helper
+function pm_platform_power_off_allowed(dev, bool), such that if the driver
+(or subsystem) does pm_platform_power_off_allowed(dev, false) and the
+platform is ACPI, the "enabled" bit for the D3cold state will be cleared.
+Then, the ACPI device PM routines will never use D3cold as the device
+power state.
 
->  }
->  #endif
-> @@ -577,7 +583,7 @@ static bool vga_arbiter_add_pci_device(struct pci_dev *pdev)
->  #ifndef __ARCH_HAS_VGA_DEFAULT_DEVICE
->         if (vga_default == NULL &&
->             ((vgadev->owns & VGA_RSRC_LEGACY_MASK) == VGA_RSRC_LEGACY_MASK))
-> -               vga_default = pci_dev_get(pdev);
-> +               vga_set_default_device(pdev);
->  #endif
->
->         vga_arbiter_check_bridge_sharing(vgadev);
-> @@ -613,10 +619,8 @@ static bool vga_arbiter_del_pci_device(struct pci_dev *pdev)
->         }
->
->  #ifndef __ARCH_HAS_VGA_DEFAULT_DEVICE
-> -       if (vga_default == pdev) {
-> -               pci_dev_put(vga_default);
-> -               vga_default = NULL;
-> -       }
-> +       if (vga_default == pdev)
-> +               vga_set_default_device(NULL);
->  #endif
->
->         if (vgadev->decodes & (VGA_RSRC_LEGACY_IO | VGA_RSRC_LEGACY_MEM))
-> --
-> 1.7.7
->
+In that case, it seems, you won't need the "ready_to_power_off" flag in struct
+scsi_device any more.
+
+Thanks,
+Rafael
