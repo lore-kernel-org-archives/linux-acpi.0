@@ -1,43 +1,99 @@
-From: Webmaster Help Desk <webmailcontrolunit@cyberservices.com>
-Subject: AVISO URGENTE!
-Date: Fri, 21 Sep 2012 22:13:10 +0100
-Message-ID: <CADH1W14xjnMBYUcG=KTU3z9jcqXBoKegreO=kWS8-G_KjrsDGw__48223.823370836$1348263050$gmane$org@mail.gmail.com>
-Reply-To: webmailcontrolunit@cyberservices.com
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH][V2] cpuidle : rename function name "__cpuidle_register_driver"
+Date: Sat, 22 Sep 2012 00:51:52 +0200
+Message-ID: <201209220051.52681.rjw@sisk.pl>
+References: <1348144884-14911-1-git-send-email-daniel.lezcano@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f194.google.com ([209.85.223.194]:54742 "EHLO
-	mail-ie0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753217Ab2IUVak convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Sep 2012 17:30:40 -0400
-Received: by iebc11 with SMTP id c11so3379034ieb.1
-        for <linux-acpi@vger.kernel.org>; Fri, 21 Sep 2012 14:30:39 -0700 (PDT)
+Received: from ogre.sisk.pl ([193.178.161.156]:39314 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754581Ab2IUWpV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 21 Sep 2012 18:45:21 -0400
+In-Reply-To: <1348144884-14911-1-git-send-email-daniel.lezcano@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: lenb@kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, patches@linaro.org, linaro-dev@lists.linaro.org
 
---=20
-Caro usu=E1rio Webmail
+On Thursday, September 20, 2012, Daniel Lezcano wrote:
+> The function __cpuidle_register_driver name is confusing because it
+> suggests, conforming to the coding style of the kernel, it registers
+> the driver without taking a lock. Actually, it just fill the different
+> power field states with a decresing value if the power has not been
+> specified.
+> 
+> Clarify the purpose of the function by changing its name and
+> move the condition out of this function.
+> 
+> This patch fix nothing and does not change the behavior of the
+> function. It is just for the sake of clarity.
+> 
+> IHMO, reading in the code:
+> 
+> +       if (!drv->power_specified)
+> +               set_power_states(drv);
+> 
+> is much more explicit than:
+> 
+> -       __cpuidle_register_driver(drv);
+> 
+> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
 
-Sua caixa de correio excedeu o limite de uso da cota, que =E9 como
-definido pelo seu gerente, e acesso =E0 sua caixa de correio atrav=E9s =
-do
-nosso portal mail estar=E1 indispon=EDvel por algum tempo durante este
-per=EDodo de manuten=E7=E3o.
+Applied to the linux-next branch of the linux-pm.git tree as v3.7 material.
 
-Voc=EA n=E3o ser=E1 capaz de criar um novo e-mail para enviar ou recebe=
-r
-novamente at=E9 que voc=EA validar a sua caixa de correio.
+Thanks,
+Rafael
 
-Para revalidar sua caixa de entrada, voc=EA pode clicar
-http://www.pinoybroker.com/4buyers/forms/form1.html
 
-obrigado
-Administrador do Sistema.
+> ---
+>  drivers/cpuidle/driver.c |   15 +++++++++------
+>  1 files changed, 9 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/cpuidle/driver.c b/drivers/cpuidle/driver.c
+> index 424bc81..87db387 100644
+> --- a/drivers/cpuidle/driver.c
+> +++ b/drivers/cpuidle/driver.c
+> @@ -18,9 +18,10 @@ static struct cpuidle_driver *cpuidle_curr_driver;
+>  DEFINE_SPINLOCK(cpuidle_driver_lock);
+>  int cpuidle_driver_refcount;
+>  
+> -static void __cpuidle_register_driver(struct cpuidle_driver *drv)
+> +static void set_power_states(struct cpuidle_driver *drv)
+>  {
+>  	int i;
+> +
+>  	/*
+>  	 * cpuidle driver should set the drv->power_specified bit
+>  	 * before registering if the driver provides
+> @@ -35,10 +36,8 @@ static void __cpuidle_register_driver(struct cpuidle_driver *drv)
+>  	 * an power value of -1.  So we use -2, -3, etc, for other
+>  	 * c-states.
+>  	 */
+> -	if (!drv->power_specified) {
+> -		for (i = CPUIDLE_DRIVER_STATE_START; i < drv->state_count; i++)
+> -			drv->states[i].power_usage = -1 - i;
+> -	}
+> +	for (i = CPUIDLE_DRIVER_STATE_START; i < drv->state_count; i++)
+> +		drv->states[i].power_usage = -1 - i;
+>  }
+>  
+>  /**
+> @@ -58,8 +57,12 @@ int cpuidle_register_driver(struct cpuidle_driver *drv)
+>  		spin_unlock(&cpuidle_driver_lock);
+>  		return -EBUSY;
+>  	}
+> -	__cpuidle_register_driver(drv);
+> +
+> +	if (!drv->power_specified)
+> +		set_power_states(drv);
+> +
+>  	cpuidle_curr_driver = drv;
+> +
+>  	spin_unlock(&cpuidle_driver_lock);
+>  
+>  	return 0;
+> 
 
-Copyright =A9 2012 # WEBMASTER ADMIN =95 Todos os direitos reservados =95
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
