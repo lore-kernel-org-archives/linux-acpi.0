@@ -1,62 +1,52 @@
-From: Lan Tianyu <tianyu.lan@intel.com>
-Subject: Re: [PATCH V2] ACPI: Allow acpi binding with usb3.0 hub
-Date: Fri, 21 Sep 2012 11:16:01 +0800
-Message-ID: <505BDBF1.2020209@intel.com>
-References: <1345185849-3041-1-git-send-email-tianyu.lan@intel.com> <20120921002527.GB6909@xanatos>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: ACPICA release 20120816 linuxized patches
+Date: Fri, 21 Sep 2012 00:29:14 -0400
+Message-ID: <505BED1A.4000804@kernel.org>
+References: <1342415080.3628.179.camel@minggr> <A74E4C03C808B649AF1F11527F2D44140335DA78@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:42136 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753694Ab2IUDRn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Sep 2012 23:17:43 -0400
-In-Reply-To: <20120921002527.GB6909@xanatos>
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:33511 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750804Ab2IUE3U (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 21 Sep 2012 00:29:20 -0400
+Received: by qcro28 with SMTP id o28so2308897qcr.19
+        for <linux-acpi@vger.kernel.org>; Thu, 20 Sep 2012 21:29:19 -0700 (PDT)
+In-Reply-To: <A74E4C03C808B649AF1F11527F2D44140335DA78@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sarah Sharp <sarah.a.sharp@linux.intel.com>, lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-usb@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: "Tang, Feng" <feng.tang@intel.com>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-On 2012=E5=B9=B409=E6=9C=8821=E6=97=A5 08:25, Sarah Sharp wrote:
-> Hi Tianyu,
->=20
-> You're correct that the USB core and the xHCI driver has a slightly
-> different architecture than the ACPI representation.  We have one PCI
-> device that has two USB buses/roothubs underneath it.  That's because
-> external USB 3.0 hubs show up as two USB devices: a USB 3.0 only
-> portion, and a USB 2.0 portion.  We wanted roothubs to act the same w=
-ay.
->=20
-> The architecture looks something like this:
->=20
->       struct pci_dev
->       |
-> struct usb_hcd *primary_hcd -- struct usb_hcd *secondary_hcd
->       |                               |
-> struct usb_bus                  struct usb_bus
->       |                               |
->  struct usb_device *root_hub     struct usb_device *root_hub
->       |                               |
->    struct device                   struct device
->=20
-> Where the primary_hcd is for the USB 2.0 roothub, and the secondary_h=
-cd
-> is for the USB 3.0 roothub.
->=20
-> So you're trying to bind one ACPI node (RHUB) to the struct device
-> contained in those two root_hubs, correct?  That goal seems sane to m=
-e.
->=20
-Yes, that is my patch's purpose.
+Thanks for the series, Feng.
 
-> Sarah Sharp
+We are not doing as well here on checkpatch.pl compliance as I'd like --
+something perhaps we can improve going forward?
 
+thanks,
+-Len
 
---=20
-Best regards
-Tianyu Lan
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On 08/21/2012 10:42 PM, Tang, Feng wrote:
+> Hi Len,
+> 
+> Here are the 20120816 ACPICA linuxized patches based on
+> your acpi/next branch, please review.
+> 
+> [PATCH 01/12] ACPI: delelte more BFS/GTS related definition and code
+> [PATCH 02/12] ACPICA: Enable Scope change to root during module-level code execution.
+> [PATCH 03/12] ACPICA: Split ACPICA initialization functions to new file, utxfinit.c
+> [PATCH 04/12] ACPICA: Comment update: Fix some typos in actble.h
+> [PATCH 05/12] ACPICA: Add Windows8/Server2012 string for _OSI method.
+> [PATCH 06/12] ACPICA: GPE Support: Update debug info for GPE tracing.
+> [PATCH 07/12] ACPICA: Debug output: Update output for Processor object.
+> [PATCH 08/12] ACPICA: GPE support: Remove extraneous parameter from low-level function.
+> [PATCH 09/12] ACPICA: Headers: Add support for CSRT and DBG2 ACPI tables.
+> [PATCH 10/12] ACPICA: Add support for complex _PLD buffers.
+> [PATCH 11/12] ACPICA: Add struct header support for _FDE, _GRT, _GTM, and _SRT names.
+> [PATCH 12/12] ACPICA: Update version to 20120816.
+> 
+> Thanks,
+> Feng
+> 
+
