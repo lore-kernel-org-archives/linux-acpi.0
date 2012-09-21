@@ -1,244 +1,450 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v7 3/6] scsi: sr: support zero power ODD(ZPODD)
-Date: Fri, 21 Sep 2012 00:07:23 +0200
-Message-ID: <201209210007.23494.rjw@sisk.pl>
-References: <1347438597-5903-1-git-send-email-aaron.lu@intel.com> <1347438597-5903-4-git-send-email-aaron.lu@intel.com>
+From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Subject: Re: [PATCH V2] ACPI: Allow acpi binding with usb3.0 hub
+Date: Thu, 20 Sep 2012 17:25:27 -0700
+Message-ID: <20120921002527.GB6909@xanatos>
+References: <1345185849-3041-1-git-send-email-tianyu.lan@intel.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <1347438597-5903-4-git-send-email-aaron.lu@intel.com>
-Sender: linux-ide-owner@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Oliver Neukum <oliver@neukum.org>, James Bottomley <James.Bottomley@hansenpartnership.com>, Jeff Garzik <jgarzik@pobox.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:47251 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755036Ab2IUAZa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 20 Sep 2012 20:25:30 -0400
+Content-Disposition: inline
+In-Reply-To: <1345185849-3041-1-git-send-email-tianyu.lan@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lenb@kernel.org
+Cc: Lan Tianyu <tianyu.lan@intel.com>, linux-acpi@vger.kernel.org, linux-usb@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-On Wednesday, September 12, 2012, Aaron Lu wrote:
-> When ODD is runtime suspended, we will check if it is OK to remove
-> its power:
-> 1 For tray type, no medium inside and tray closed;
-> 2 For slot type, no medium inside.
-> And if yes, we will set the ready_to_power_off flag as an indication to
-> ATA layer that it is safe to place this device into ACPI D3 cold power
-> state.
+Len, do you have any comments on the ACPI code itself?  The description
+about why the code is needed for the USB core seems sane, but the actual
+patch code is all ACPI core stuff, so you need to review that.
+
+On Fri, Aug 17, 2012 at 02:44:09PM +0800, Lan Tianyu wrote:
+> usb port's position and connectability can't be identified on some boards
+> via usb hub's register. ACPI _UPC and _PLD can help to resolve such issue
+> and so it is necessary to bind usb with acpi. This patch is to allow acpi
+> binding with usb3.0 hub.
 > 
-> And when it is powered off, we will set the powered_off flag so that the
-> periodically running check_events will not bother this device by simply
-> return.
+> Current acpi only can bind one struct device to one acpi device node.
+> This can not work with usb3.0 hub. Because the usb3.0 hub has two logical
+> devices. Each works for usb2.0 and usb3.0 devices. In the liux usb subsystem,
+> those two logical hubs are treated as two seperate devices that have two struct
+> devices. But in the ACPI DSDT, these two logical hubs share one acpi device
+> node. So there is a requirement to bind multi struct devices to one acpi
+> node. This patch is to resolve such problem.
+> 
+> Following is the acpi device nodes' description under xhci hcd.
+> Device (XHC)
+>             Device (RHUB)
+>                 Device (HSP1)
+>                 Device (HSP2)
+>                 Device (HSP3)
+>                 Device (HSP4)
+>                 Device (SSP1)
+>                 Device (SSP2)
+>                 Device (SSP3)
+>                 Device (SSP4)
+> 
+> Topology in the linux
+> 	device XHC
+> 	   usb2.0 logical hub    usb3.0 logical hub
+> 		HSP1			SSP1
+> 		HSP2			SSP2
+> 		HSP3			SSP3
+> 		HSP4			SSP4
 
-Well, so I agree with James that the PM flags in struct scsi_device are
-kind of odd and it would be better to put them somewhere else.
+Hi Tianyu,
 
-I'd probably prefer them to sit in the ACPI layer with some helper functions
-allowing the sr driver to manipulate them, but that depends on the resulting
-code complexity.
+You're correct that the USB core and the xHCI driver has a slightly
+different architecture than the ACPI representation.  We have one PCI
+device that has two USB buses/roothubs underneath it.  That's because
+external USB 3.0 hubs show up as two USB devices: a USB 3.0 only
+portion, and a USB 2.0 portion.  We wanted roothubs to act the same way.
 
-> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+The architecture looks something like this:
+
+      struct pci_dev
+      |
+struct usb_hcd *primary_hcd -- struct usb_hcd *secondary_hcd
+      |                               |
+struct usb_bus                  struct usb_bus
+      |                               |
+ struct usb_device *root_hub     struct usb_device *root_hub
+      |                               |
+   struct device                   struct device
+
+Where the primary_hcd is for the USB 2.0 roothub, and the secondary_hcd
+is for the USB 3.0 roothub.
+
+So you're trying to bind one ACPI node (RHUB) to the struct device
+contained in those two root_hubs, correct?  That goal seems sane to me.
+
+Sarah Sharp
+
+> 
+> This patch also modifies the output of /proc/acpi/wakeup. One acpi node
+> can be associated with multi devices. Just like following.
+> 
+> XHC		S4	*enabled	pci:0000:00:14.0
+> RHUB	S0	disabled	usb:usb1
+> 			disabled	usb:usb2
+> 
+> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
 > ---
->  drivers/ata/libata-acpi.c  | 27 +++++++++++++++--------
->  drivers/scsi/sr.c          | 53 ++++++++++++++++++++++++++++++++++++++++++++++
->  drivers/scsi/sr.h          |  1 +
->  drivers/scsi/sr_ioctl.c    |  7 +++++-
->  include/scsi/scsi_device.h |  3 +++
->  5 files changed, 81 insertions(+), 10 deletions(-)
+> v2: Add lock to protect physical_node related data in bind() and unbind().
+> Add an example here of the syntax change to the contents of /proc/acpi/wakeup. Replace
+> link file name physical_node0 with physical_node when physical_node_id is 0.
+> ---
+>  drivers/acpi/glue.c        |  135 ++++++++++++++++++++++++++++----------------
+>  drivers/acpi/proc.c        |   57 ++++++++++++-------
+>  drivers/acpi/scan.c        |    2 +
+>  drivers/pnp/pnpacpi/core.c |    7 +--
+>  include/acpi/acpi_bus.h    |   15 ++++-
+>  5 files changed, 139 insertions(+), 77 deletions(-)
 > 
-> diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c
-> index 902b5a4..9aca057 100644
-> --- a/drivers/ata/libata-acpi.c
-> +++ b/drivers/ata/libata-acpi.c
-> @@ -854,7 +854,7 @@ void ata_acpi_set_state(struct ata_port *ap, pm_message_t state)
->  {
->  	struct ata_device *dev;
->  	acpi_handle handle;
-> -	int acpi_state;
-> +	int acpi_state, ret;
+> diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
+> index 243ee85..d1a2d74 100644
+> --- a/drivers/acpi/glue.c
+> +++ b/drivers/acpi/glue.c
+> @@ -25,6 +25,8 @@
+>  static LIST_HEAD(bus_type_list);
+>  static DECLARE_RWSEM(bus_type_sem);
 >  
->  	/* channel first and then drives for power on and vica versa
->  	   for power off */
-> @@ -869,17 +869,24 @@ void ata_acpi_set_state(struct ata_port *ap, pm_message_t state)
->  
->  		if (state.event != PM_EVENT_ON) {
->  			acpi_state = acpi_pm_device_sleep_state(
-> -				&dev->sdev->sdev_gendev, NULL, ACPI_STATE_D3);
-> -			if (acpi_state > 0)
-> -				acpi_bus_set_power(handle, acpi_state);
-> -			/* TBD: need to check if it's runtime pm request */
-> -			acpi_pm_device_run_wake(
-> -				&dev->sdev->sdev_gendev, true);
-> +					&dev->sdev->sdev_gendev, NULL,
-> +					dev->sdev->ready_to_power_off ?
-> +					ACPI_STATE_D3 : ACPI_STATE_D3_HOT);
-> +			if (acpi_state > 0) {
-> +				ret = acpi_bus_set_power(handle, acpi_state);
-> +				if (!ret && acpi_state == ACPI_STATE_D3)
-> +					dev->sdev->powered_off = 1;
+> +#define PHYSICAL_NODE_STRING "physical_node"
 > +
-> +				/* TODO: check if it's runtime pm request */
-> +				acpi_pm_device_run_wake(
-> +						&dev->sdev->sdev_gendev, true);
-> +			}
->  		} else {
->  			/* Ditto */
->  			acpi_pm_device_run_wake(
->  				&dev->sdev->sdev_gendev, false);
->  			acpi_bus_set_power(handle, ACPI_STATE_D0);
-> +			dev->sdev->powered_off = 0;
->  		}
+>  int register_acpi_bus_type(struct acpi_bus_type *type)
+>  {
+>  	if (acpi_disabled)
+> @@ -124,84 +126,119 @@ acpi_handle acpi_get_child(acpi_handle parent, u64 address)
+>  
+>  EXPORT_SYMBOL(acpi_get_child);
+>  
+> -/* Link ACPI devices with physical devices */
+> -static void acpi_glue_data_handler(acpi_handle handle,
+> -				   void *context)
+> -{
+> -	/* we provide an empty handler */
+> -}
+> -
+> -/* Note: a success call will increase reference count by one */
+> -struct device *acpi_get_physical_device(acpi_handle handle)
+> -{
+> -	acpi_status status;
+> -	struct device *dev;
+> -
+> -	status = acpi_get_data(handle, acpi_glue_data_handler, (void **)&dev);
+> -	if (ACPI_SUCCESS(status))
+> -		return get_device(dev);
+> -	return NULL;
+> -}
+> -
+> -EXPORT_SYMBOL(acpi_get_physical_device);
+> -
+>  static int acpi_bind_one(struct device *dev, acpi_handle handle)
+>  {
+>  	struct acpi_device *acpi_dev;
+>  	acpi_status status;
+> +	struct acpi_device_physical_node *physical_node;
+> +	char physical_node_name[sizeof(PHYSICAL_NODE_STRING) + 2];
+> +	int retval = -EINVAL;
+>  
+>  	if (dev->archdata.acpi_handle) {
+>  		dev_warn(dev, "Drivers changed 'acpi_handle'\n");
+>  		return -EINVAL;
+>  	}
+> +
+>  	get_device(dev);
+> -	status = acpi_attach_data(handle, acpi_glue_data_handler, dev);
+> -	if (ACPI_FAILURE(status)) {
+> -		put_device(dev);
+> -		return -EINVAL;
+> +	status = acpi_bus_get_device(handle, &acpi_dev);
+> +	if (ACPI_FAILURE(status))
+> +		goto err;
+> +
+> +	physical_node = kzalloc(sizeof(struct acpi_device_physical_node),
+> +		GFP_KERNEL);
+> +	if (!physical_node) {
+> +		retval = -ENOMEM;
+> +		goto err;
+>  	}
+> -	dev->archdata.acpi_handle = handle;
+>  
+> -	status = acpi_bus_get_device(handle, &acpi_dev);
+> -	if (!ACPI_FAILURE(status)) {
+> -		int ret;
+> -
+> -		ret = sysfs_create_link(&dev->kobj, &acpi_dev->dev.kobj,
+> -				"firmware_node");
+> -		ret = sysfs_create_link(&acpi_dev->dev.kobj, &dev->kobj,
+> -				"physical_node");
+> -		if (acpi_dev->wakeup.flags.valid)
+> -			device_set_wakeup_capable(dev, true);
+> +	mutex_lock(&acpi_dev->physical_node_lock);
+> +	/* allocate physical node id according to physical_node_id_bitmap */
+> +	physical_node->node_id =
+> +		find_first_zero_bit(acpi_dev->physical_node_id_bitmap,
+> +		ACPI_MAX_PHYSICAL_NODE);
+> +	if (physical_node->node_id >= ACPI_MAX_PHYSICAL_NODE) {
+> +		retval = -ENOSPC;
+> +		mutex_unlock(&acpi_dev->physical_node_lock);
+> +		goto err;
 >  	}
 >  
-> @@ -985,8 +992,10 @@ static void ata_acpi_wake_dev(acpi_handle handle, u32 event, void *context)
->  	struct ata_device *ata_dev = context;
->  
->  	if (event == ACPI_NOTIFY_DEVICE_WAKE && ata_dev &&
-> -			pm_runtime_suspended(&ata_dev->sdev->sdev_gendev))
-> -		scsi_autopm_get_device(ata_dev->sdev);
-> +			ata_dev->sdev->powered_off) {
-> +		ata_dev->sdev->need_eject = 1;
-> +		pm_runtime_resume(&ata_dev->sdev->sdev_gendev);
-> +	}
->  }
->  
->  static void ata_acpi_add_pm_notifier(struct ata_device *dev)
-> diff --git a/drivers/scsi/sr.c b/drivers/scsi/sr.c
-> index 7a8222f..ef72682 100644
-> --- a/drivers/scsi/sr.c
-> +++ b/drivers/scsi/sr.c
-> @@ -80,6 +80,8 @@ static DEFINE_MUTEX(sr_mutex);
->  static int sr_probe(struct device *);
->  static int sr_remove(struct device *);
->  static int sr_done(struct scsi_cmnd *);
-> +static int sr_suspend(struct device *, pm_message_t msg);
-> +static int sr_resume(struct device *);
->  
->  static struct scsi_driver sr_template = {
->  	.owner			= THIS_MODULE,
-> @@ -87,6 +89,8 @@ static struct scsi_driver sr_template = {
->  		.name   	= "sr",
->  		.probe		= sr_probe,
->  		.remove		= sr_remove,
-> +		.suspend        = sr_suspend,
-> +		.resume         = sr_resume,
->  	},
->  	.done			= sr_done,
->  };
-> @@ -172,6 +176,52 @@ static void scsi_cd_put(struct scsi_cd *cd)
->  	mutex_unlock(&sr_ref_mutex);
->  }
-
-Besides, I need some help to understand how this is supposed to work.
-
-Do I think correctly that sr_suspend(), for example, will be run by the
-SCSI bus type layer in case of a CD device runtime suspend?  However,
-won't this routine be used during system suspend as well and won't it cause
-problems to happen if so?
-
-> +static int sr_suspend(struct device *dev, pm_message_t msg)
-> +{
-> +	struct scsi_sense_hdr sshdr;
-> +	struct scsi_cd *cd = dev_get_drvdata(dev);
+> +	set_bit(physical_node->node_id, acpi_dev->physical_node_id_bitmap);
+> +	physical_node->dev = dev;
+> +	list_add_tail(&physical_node->node, &acpi_dev->physical_node_list);
+> +	acpi_dev->physical_node_count++;
+> +	mutex_unlock(&acpi_dev->physical_node_lock);
 > +
-> +	if (!cd->device->can_power_off)
-> +		return 0;
+> +	dev->archdata.acpi_handle = handle;
 > +
-> +	/* See if we can power off this ZPODD device */
-> +	scsi_test_unit_ready(cd->device, SR_TIMEOUT, MAX_RETRIES, &sshdr);
-> +	if (cd->cdi.mask & CDC_CLOSE_TRAY)
-> +		/* no media for caddy/slot type ODD */
-> +		cd->device->ready_to_power_off = scsi_sense_valid(&sshdr) &&
-> +							sshdr.asc == 0x3a;
+> +	if (!physical_node->node_id)
+> +		strcpy(physical_node_name, PHYSICAL_NODE_STRING);
 > +	else
-> +		/* no media and door closed for tray type ODD */
-> +		cd->device->ready_to_power_off = scsi_sense_valid(&sshdr) &&
-> +					sshdr.asc == 0x3a && sshdr.ascq == 0x01;
+> +		sprintf(physical_node_name,
+> +			"physical_node%d", physical_node->node_id);
+> +	retval = sysfs_create_link(&acpi_dev->dev.kobj, &dev->kobj,
+> +			physical_node_name);
+> +	retval = sysfs_create_link(&dev->kobj, &acpi_dev->dev.kobj,
+> +		"firmware_node");
 > +
-> +	return 0;
-> +}
+> +	if (acpi_dev->wakeup.flags.valid)
+> +		device_set_wakeup_capable(dev, true);
 > +
-> +static int sr_resume(struct device *dev)
-> +{
-> +	struct scsi_cd *cd;
-> +	struct scsi_sense_hdr sshdr;
+>  	return 0;
 > +
-> +	cd = dev_get_drvdata(dev);
-> +
-> +	if (!cd->device->powered_off)
-> +		return 0;
-> +
-> +	/* get the disk ready */
-> +	scsi_test_unit_ready(cd->device, SR_TIMEOUT, MAX_RETRIES, &sshdr);
-> +
-> +	/* If user wakes up the ODD, eject the tray */
-> +	if (cd->device->need_eject) {
-> +		cd->device->need_eject = 0;
-> +		/* But only for tray type ODD when door is not locked */
-> +		if (!(cd->cdi.mask & CDC_CLOSE_TRAY) && !cd->door_locked)
-> +			sr_tray_move(&cd->cdi, 1);
-> +	}
-> +
-> +	return 0;
-> +}
-> +
->  static unsigned int sr_get_events(struct scsi_device *sdev)
->  {
->  	u8 buf[8];
-> @@ -226,6 +276,9 @@ static unsigned int sr_check_events(struct cdrom_device_info *cdi,
->  	if (CDSL_CURRENT != slot)
->  		return 0;
->  
-> +	if (cd->device->powered_off)
-> +		return 0;
-> +
->  	scsi_autopm_get_device(cd->device);
->  
->  	events = sr_get_events(cd->device);
-> diff --git a/drivers/scsi/sr.h b/drivers/scsi/sr.h
-> index 37c8f6b..1c84537 100644
-> --- a/drivers/scsi/sr.h
-> +++ b/drivers/scsi/sr.h
-> @@ -41,6 +41,7 @@ typedef struct scsi_cd {
->  	unsigned readcd_known:1;	/* drive supports READ_CD (0xbe) */
->  	unsigned readcd_cdda:1;	/* reading audio data using READ_CD */
->  	unsigned media_present:1;	/* media is present */
-> +	unsigned door_locked:1; /* door is locked */
->  
->  	/* GET_EVENT spurious event handling, blk layer guarantees exclusion */
->  	int tur_mismatch;		/* nr of get_event TUR mismatches */
-> diff --git a/drivers/scsi/sr_ioctl.c b/drivers/scsi/sr_ioctl.c
-> index a3911c3..c1275f6 100644
-> --- a/drivers/scsi/sr_ioctl.c
-> +++ b/drivers/scsi/sr_ioctl.c
-> @@ -292,10 +292,15 @@ int sr_tray_move(struct cdrom_device_info *cdi, int pos)
->  
->  int sr_lock_door(struct cdrom_device_info *cdi, int lock)
->  {
-> +	int ret;
->  	Scsi_CD *cd = cdi->handle;
->  
-> -	return scsi_set_medium_removal(cd->device, lock ?
-> +	ret = scsi_set_medium_removal(cd->device, lock ?
->  		       SCSI_REMOVAL_PREVENT : SCSI_REMOVAL_ALLOW);
-> +	if (!ret)
-> +		cd->door_locked = lock;
-> +
-> +	return ret;
+> + err:
+> +	put_device(dev);
+> +	return retval;
 >  }
 >  
->  int sr_drive_status(struct cdrom_device_info *cdi, int slot)
-> diff --git a/include/scsi/scsi_device.h b/include/scsi/scsi_device.h
-> index 9895f69..da5c86f 100644
-> --- a/include/scsi/scsi_device.h
-> +++ b/include/scsi/scsi_device.h
-> @@ -156,6 +156,9 @@ struct scsi_device {
->  	unsigned is_visible:1;	/* is the device visible in sysfs */
->  	unsigned can_power_off:1; /* Device supports runtime power off */
->  	unsigned wce_default_on:1;	/* Cache is ON by default */
-> +	unsigned need_eject:1;	/* Need eject the tray when wakes up */
-> +	unsigned ready_to_power_off:1;	/* Device is ready to be powered off */
-> +	unsigned powered_off:1;	/* Device is powered off */
+>  static int acpi_unbind_one(struct device *dev)
+>  {
+> +	struct acpi_device_physical_node *entry;
+> +	struct acpi_device *acpi_dev;
+> +	acpi_status status;
+> +	struct list_head *node, *next;
+> +
+>  	if (!dev->archdata.acpi_handle)
+>  		return 0;
+> -	if (dev == acpi_get_physical_device(dev->archdata.acpi_handle)) {
+> -		struct acpi_device *acpi_dev;
 >  
->  	DECLARE_BITMAP(supported_events, SDEV_EVT_MAXBITS); /* supported events */
->  	struct list_head event_list;	/* asserted events */
-
-Thanks,
-Rafael
+> -		/* acpi_get_physical_device increase refcnt by one */
+> -		put_device(dev);
+> +	status = acpi_bus_get_device(dev->archdata.acpi_handle,
+> +		&acpi_dev);
+> +	if (ACPI_FAILURE(status))
+> +		goto err;
+>  
+> -		if (!acpi_bus_get_device(dev->archdata.acpi_handle,
+> -					&acpi_dev)) {
+> -			sysfs_remove_link(&dev->kobj, "firmware_node");
+> -			sysfs_remove_link(&acpi_dev->dev.kobj, "physical_node");
+> -		}
+> +	mutex_lock(&acpi_dev->physical_node_lock);
+> +	list_for_each_safe(node, next, &acpi_dev->physical_node_list) {
+> +		char physical_node_name[sizeof(PHYSICAL_NODE_STRING) + 2];
+> +
+> +		entry = list_entry(node, struct acpi_device_physical_node,
+> +			node);
+> +		if (entry->dev != dev)
+> +			continue;
+> +
+> +		list_del(node);
+> +		clear_bit(entry->node_id, acpi_dev->physical_node_id_bitmap);
+>  
+> -		acpi_detach_data(dev->archdata.acpi_handle,
+> -				 acpi_glue_data_handler);
+> +		acpi_dev->physical_node_count--;
+> +
+> +		if (!entry->node_id)
+> +			strcpy(physical_node_name, PHYSICAL_NODE_STRING);
+> +		else
+> +			sprintf(physical_node_name,
+> +				"physical_node%d", entry->node_id);
+> +
+> +		sysfs_remove_link(&acpi_dev->dev.kobj, physical_node_name);
+> +		sysfs_remove_link(&dev->kobj, "firmware_node");
+>  		dev->archdata.acpi_handle = NULL;
+>  		/* acpi_bind_one increase refcnt by one */
+>  		put_device(dev);
+> -	} else {
+> -		dev_err(dev, "Oops, 'acpi_handle' corrupt\n");
+> +		kfree(entry);
+>  	}
+> +	mutex_unlock(&acpi_dev->physical_node_lock);
+> +
+>  	return 0;
+> +
+> +err:
+> +	dev_err(dev, "Oops, 'acpi_handle' corrupt\n");
+> +	return -EINVAL;
+>  }
+>  
+>  static int acpi_platform_notify(struct device *dev)
+> diff --git a/drivers/acpi/proc.c b/drivers/acpi/proc.c
+> index 251c7b62..e4c242f 100644
+> --- a/drivers/acpi/proc.c
+> +++ b/drivers/acpi/proc.c
+> @@ -302,26 +302,41 @@ acpi_system_wakeup_device_seq_show(struct seq_file *seq, void *offset)
+>  	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+>  		struct acpi_device *dev =
+>  		    container_of(node, struct acpi_device, wakeup_list);
+> -		struct device *ldev;
+> +		struct acpi_device_physical_node *entry;
+>  
+>  		if (!dev->wakeup.flags.valid)
+>  			continue;
+>  
+> -		ldev = acpi_get_physical_device(dev->handle);
+> -		seq_printf(seq, "%s\t  S%d\t%c%-8s  ",
+> +		seq_printf(seq, "%s\t  S%d\t",
+>  			   dev->pnp.bus_id,
+> -			   (u32) dev->wakeup.sleep_state,
+> -			   dev->wakeup.flags.run_wake ? '*' : ' ',
+> -			   (device_may_wakeup(&dev->dev)
+> -			     || (ldev && device_may_wakeup(ldev))) ?
+> -			       "enabled" : "disabled");
+> -		if (ldev)
+> -			seq_printf(seq, "%s:%s",
+> -				   ldev->bus ? ldev->bus->name : "no-bus",
+> -				   dev_name(ldev));
+> -		seq_printf(seq, "\n");
+> -		put_device(ldev);
+> -
+> +			   (u32) dev->wakeup.sleep_state);
+> +
+> +		if (!dev->physical_node_count)
+> +			seq_printf(seq, "%c%-8s\n",
+> +				dev->wakeup.flags.run_wake ?
+> +				'*' : ' ', "disabled");
+> +		else {
+> +			struct device *ldev;
+> +			list_for_each_entry(entry, &dev->physical_node_list,
+> +					node) {
+> +				ldev = get_device(entry->dev);
+> +				if (!ldev)
+> +					continue;
+> +
+> +				if (&entry->node !=
+> +						dev->physical_node_list.next)
+> +					seq_printf(seq, "\t\t");
+> +
+> +				seq_printf(seq, "%c%-8s  %s:%s\n",
+> +					dev->wakeup.flags.run_wake ? '*' : ' ',
+> +					(device_may_wakeup(&dev->dev) ||
+> +					(ldev && device_may_wakeup(ldev))) ?
+> +					"enabled" : "disabled",
+> +					ldev->bus ? ldev->bus->name :
+> +					"no-bus", dev_name(ldev));
+> +				put_device(ldev);
+> +			}
+> +		}
+>  	}
+>  	mutex_unlock(&acpi_device_lock);
+>  	return 0;
+> @@ -329,12 +344,14 @@ acpi_system_wakeup_device_seq_show(struct seq_file *seq, void *offset)
+>  
+>  static void physical_device_enable_wakeup(struct acpi_device *adev)
+>  {
+> -	struct device *dev = acpi_get_physical_device(adev->handle);
+> +	struct acpi_device_physical_node *entry;
+>  
+> -	if (dev && device_can_wakeup(dev)) {
+> -		bool enable = !device_may_wakeup(dev);
+> -		device_set_wakeup_enable(dev, enable);
+> -	}
+> +	list_for_each_entry(entry,
+> +		&adev->physical_node_list, node)
+> +		if (entry->dev && device_can_wakeup(entry->dev)) {
+> +			bool enable = !device_may_wakeup(entry->dev);
+> +			device_set_wakeup_enable(entry->dev, enable);
+> +		}
+>  }
+>  
+>  static ssize_t
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index d1ecca2..d730a93 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -481,6 +481,8 @@ static int acpi_device_register(struct acpi_device *device)
+>  	INIT_LIST_HEAD(&device->children);
+>  	INIT_LIST_HEAD(&device->node);
+>  	INIT_LIST_HEAD(&device->wakeup_list);
+> +	INIT_LIST_HEAD(&device->physical_node_list);
+> +	mutex_init(&device->physical_node_lock);
+>  
+>  	new_bus_id = kzalloc(sizeof(struct acpi_device_bus_id), GFP_KERNEL);
+>  	if (!new_bus_id) {
+> diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
+> index 507a8e2..26b5d4b 100644
+> --- a/drivers/pnp/pnpacpi/core.c
+> +++ b/drivers/pnp/pnpacpi/core.c
+> @@ -321,14 +321,9 @@ static int __init acpi_pnp_match(struct device *dev, void *_pnp)
+>  {
+>  	struct acpi_device *acpi = to_acpi_device(dev);
+>  	struct pnp_dev *pnp = _pnp;
+> -	struct device *physical_device;
+> -
+> -	physical_device = acpi_get_physical_device(acpi->handle);
+> -	if (physical_device)
+> -		put_device(physical_device);
+>  
+>  	/* true means it matched */
+> -	return !physical_device
+> +	return !acpi->physical_node_count
+>  	    && compare_pnp_id(pnp->id, acpi_device_hid(acpi));
+>  }
+>  
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index bde976e..453596d 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -282,8 +282,16 @@ struct acpi_device_wakeup {
+>  	int prepare_count;
+>  };
+>  
+> -/* Device */
+> +struct acpi_device_physical_node {
+> +	u8 node_id;
+> +	struct list_head node;
+> +	struct device *dev;
+> +};
+>  
+> +/* set maximum of physical nodes to 32 for expansibility */
+> +#define ACPI_MAX_PHYSICAL_NODE	32
+> +
+> +/* Device */
+>  struct acpi_device {
+>  	int device_type;
+>  	acpi_handle handle;		/* no handle for fixed hardware */
+> @@ -304,6 +312,10 @@ struct acpi_device {
+>  	struct device dev;
+>  	struct acpi_bus_ops bus_ops;	/* workaround for different code path for hotplug */
+>  	enum acpi_bus_removal_type removal_type;	/* indicate for different removal type */
+> +	u8 physical_node_count;
+> +	struct list_head physical_node_list;
+> +	struct mutex physical_node_lock;
+> +	DECLARE_BITMAP(physical_node_id_bitmap, ACPI_MAX_PHYSICAL_NODE);
+>  };
+>  
+>  static inline void *acpi_driver_data(struct acpi_device *d)
+> @@ -394,7 +406,6 @@ struct acpi_bus_type {
+>  };
+>  int register_acpi_bus_type(struct acpi_bus_type *);
+>  int unregister_acpi_bus_type(struct acpi_bus_type *);
+> -struct device *acpi_get_physical_device(acpi_handle);
+>  
+>  struct acpi_pci_root {
+>  	struct list_head node;
+> -- 
+> 1.7.9.5
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
