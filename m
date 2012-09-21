@@ -1,97 +1,39 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH] change signature of walk_root_bridge() function
-Date: Fri, 21 Sep 2012 07:24:32 -0600
-Message-ID: <CAErSpo67fOjM7FV4Jq8rU1TTx6eqZpxWSO0b88opLFgPg8e=Jg@mail.gmail.com>
-References: <20120918151215.59ea763b.izumi.taku@jp.fujitsu.com>
- <20120918152235.fedf80b5.izumi.taku@jp.fujitsu.com> <CAErSpo7MUNae9Aez8VMhj+z7bedrOVxSHKadFv7tgGYcZwLk_g@mail.gmail.com>
- <20120920191523.72cb21c3.izumi.taku@jp.fujitsu.com> <20120921160358.e6509b8c.izumi.taku@jp.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20120921160358.e6509b8c.izumi.taku@jp.fujitsu.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, kaneshige.kenji@jp.fujitsu.com, yinghai@kernel.org, jiang.liu@huawei.com
+From: Thomas Renninger <trenn@suse.de>
+Subject: Early cpio decoder and ACPI table override via initrd making use of it
+Date: Fri, 21 Sep 2012 15:28:03 +0200
+Message-ID: <1348234085-39220-1-git-send-email-trenn@suse.de>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:60377 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755296Ab2IUN2T (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 21 Sep 2012 09:28:19 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: hpa@zytor.com
+Cc: trenn@suse.de, initramfs@vger.kernel.org, robert.moore@intel.com, lenb@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, yinghai@kernel.org, eric.piel@tremplin-utc.net
 
-On Fri, Sep 21, 2012 at 1:03 AM, Taku Izumi <izumi.taku@jp.fujitsu.com> wrote:
->
-> This patch changes the function signature of walk_root_bridge().
->
-> We can omit _STA, _SEG, and _BBN evaluation by passing not acpi_handle
-> but acpi_pci_root. Now that acpi_pci_slot_add() which is the only
-> caller of walk_root_bridge() gets acpi_pci_root structure, changing
-> signature of walk_root_bridge() is reasonable.
->
->
-> Signed-off-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
-> ---
->  drivers/acpi/pci_slot.c |   35 +++++------------------------------
->  1 file changed, 5 insertions(+), 30 deletions(-)
+Should still apply on latest Linux tree, I can resubmit if not.
+Would be great if hpa can push this into a x86 branch to get
+this into linux-next and into Linus' tree with the next merge
+window.
 
-This is beautiful!
+Thanks,
 
-> Index: Bjorn-next-0903/drivers/acpi/pci_slot.c
-> ===================================================================
-> --- Bjorn-next-0903.orig/drivers/acpi/pci_slot.c
-> +++ Bjorn-next-0903/drivers/acpi/pci_slot.c
-> @@ -233,45 +233,20 @@ out:
->
->  /*
->   * walk_root_bridge - generic root bridge walker
-> - * @handle: points to an acpi_pci_root
-> + * @root: poiner of an acpi_pci_root
->   * @user_function: user callback for slot objects
->   *
->   * Call user_function for all objects underneath this root bridge.
->   * Walk p2p bridges underneath us and call user_function on those too.
->   */
->  static int
-> -walk_root_bridge(acpi_handle handle, acpi_walk_callback user_function)
-> +walk_root_bridge(struct acpi_pci_root *root, acpi_walk_callback user_function)
->  {
-> -       int seg, bus;
-> -       unsigned long long tmp;
->         acpi_status status;
-> -       acpi_handle dummy_handle;
-> -       struct pci_bus *pci_bus;
-> +       acpi_handle handle = root->device->handle;
-> +       struct pci_bus *pci_bus = root->bus;
->         struct callback_args context;
->
-> -       /* If the bridge doesn't have _STA, we assume it is always there */
-> -       status = acpi_get_handle(handle, "_STA", &dummy_handle);
-> -       if (ACPI_SUCCESS(status)) {
-> -               status = acpi_evaluate_integer(handle, "_STA", NULL, &tmp);
-> -               if (ACPI_FAILURE(status)) {
-> -                       info("%s: _STA evaluation failure\n", __func__);
-> -                       return 0;
-> -               }
-> -               if ((tmp & ACPI_STA_DEVICE_FUNCTIONING) == 0)
-> -                       /* don't register this object */
-> -                       return 0;
-> -       }
-> -
-> -       status = acpi_evaluate_integer(handle, "_SEG", NULL, &tmp);
-> -       seg = ACPI_SUCCESS(status) ? tmp : 0;
-> -
-> -       status = acpi_evaluate_integer(handle, "_BBN", NULL, &tmp);
-> -       bus = ACPI_SUCCESS(status) ? tmp : 0;
-> -
-> -       pci_bus = pci_find_bus(seg, bus);
-> -       if (!pci_bus)
-> -               return 0;
-> -
->         context.pci_bus = pci_bus;
->         context.user_function = user_function;
->         context.root_handle = handle;
-> @@ -299,7 +274,7 @@ acpi_pci_slot_add(struct acpi_pci_root *
->  {
->         acpi_status status;
->
-> -       status = walk_root_bridge(root->device->handle, register_slot);
-> +       status = walk_root_bridge(root, register_slot);
->         if (ACPI_FAILURE(status))
->                 err("%s: register_slot failure - %d\n", __func__, status);
->
->
+    Thomas
+
+Dmesg output of a quick test:
+ FACP ACPI table found in initrd [kernel/firmware/acpi/facp.aml][0xf4]
+ DSDT ACPI table found in initrd [kernel/firmware/acpi/dsdt.aml][0x333c]
+ e820: modified physical RAM map:
+...
+   modified: [mem 0x00000000f7fec000-0x00000000f7fef42f] ACPI data
+...
+ Disabling lock debugging due to kernel taint
+ ACPI: Override [FACP-OEMFACP ], this is unsafe: tainting kernel
+ ACPI: FACP 00000000f7ff0281 Physical table override, new table: ffffffffff4b7000
+ ACPI: FACP 00000000f7fec000 000F4 (v03 A M I  OEMFACP  08000713 INTL 20120518)
+ ACPI: Override [DSDT-0AAAA001], this is unsafe: tainting kernel
+ ACPI: DSDT 00000000f7ff0410 Physical table override, new table: ffffffffff4b70f4
+ ACPI: DSDT 00000000f7fec0f4 0333C (v01  0AAAA 0AAAA001 00000001 INTL 20120518)
+
+
