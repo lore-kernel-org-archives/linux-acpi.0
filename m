@@ -1,105 +1,105 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v7 0/6] ZPODD patches
-Date: Fri, 21 Sep 2012 23:18:27 +0200
-Message-ID: <201209212318.28137.rjw@sisk.pl>
-References: <1347438597-5903-1-git-send-email-aaron.lu@intel.com> <201209202200.51303.rjw@sisk.pl> <20120921054844.GB2987@mint-spring.sh.intel.com>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH 01/40] PCI: fix default vga ref_count
+Date: Fri, 21 Sep 2012 14:18:00 -0700
+Message-ID: <CAE9FiQVP7Q2p2zN8pXubcgx=7CFAt9pw0tWcWpuPddO9U7pR5A@mail.gmail.com>
+References: <CAE9FiQWFcVNKMnV1qaHchwCXfZuMpyxf_f7GQy3FZid9YuLD3w@mail.gmail.com>
+	<1348080894-23412-1-git-send-email-yinghai@kernel.org>
+	<1348080894-23412-2-git-send-email-yinghai@kernel.org>
+	<CAErSpo7S3DCMq1Rsj0Ya856ebyqFT_1pF2yirzaHrGPSSUJinQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <20120921054844.GB2987@mint-spring.sh.intel.com>
-Sender: linux-ide-owner@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: James Bottomley <James.Bottomley@hansenpartnership.com>, Alan Stern <stern@rowland.harvard.edu>, Oliver Neukum <oliver@neukum.org>, Jeff Garzik <jgarzik@pobox.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>
+Content-Type: multipart/mixed; boundary=0015175884fc55a90404ca3cc6cd
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAErSpo7S3DCMq1Rsj0Ya856ebyqFT_1pF2yirzaHrGPSSUJinQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, x86 <x86@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Dave Airlie <airlied@redhat.com>, Julia Lawall <julia@diku.dk>, Matthew Garrett <mjg@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday, September 21, 2012, Aaron Lu wrote:
-> On Thu, Sep 20, 2012 at 10:00:51PM +0200, Rafael J. Wysocki wrote:
-> > On Wednesday, September 19, 2012, Aaron Lu wrote:
-> > > Thanks Rafael, and if there is any question/problem,
-> > > please kindly let me know.
-> > 
-> > Well, unfortunately my initial review indicates that the patchset is not
-> > quite ready to go upstream yet.
-> > 
-> > I'll send comments in replies to the individual patches, but overall I can
-> > say that at this stage of development, when I look at the patches, it should
-> > be clear to me not only what is being changed, but _why_ it is being changed
-> > in the first place and, secondly, why it is being changed in this particular
-> > way.  It's far from that, though.
-> 
-> I'm adding zero power support for optical disk drive(ZPODD), which is
-> made possible with the newly defined device attention(DA) pin introduced
-> in SATA 3.1 spec.
-> 
-> The idea here is to use runtime pm to achieve this, so I basically did 2
-> things:
-> 1 Add runtime pm support for ODD;
-> 2 Add power off support for ODD after it is runtime suspended.
-> 
-> Patch 2 is runtime pm support for ODD, the reason it is done this way is
-> discussed here:
-> http://www.spinics.net/lists/linux-scsi/msg61551.html
+--0015175884fc55a90404ca3cc6cd
+Content-Type: text/plain; charset=ISO-8859-1
 
-Why isn't it explained in the patch changelog, then?  People should be able
-to learn why things are done the way they are done from git logs.
+On Fri, Sep 21, 2012 at 1:52 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+> On Wed, Sep 19, 2012 at 12:54 PM, Yinghai Lu <yinghai@kernel.org> wrote:
+>> --- a/drivers/gpu/vga/vgaarb.c
+>> +++ b/drivers/gpu/vga/vgaarb.c
+>> @@ -141,6 +141,12 @@ EXPORT_SYMBOL_GPL(vga_default_device);
+>>
+>>  void vga_set_default_device(struct pci_dev *pdev)
+>>  {
+>> +       if (vga_default)
+>> +               pci_dev_put(vga_default);
+>> +
+>> +       if (pdev)
+>> +               pdev = pci_dev_get(pdev);
+>> +
+>>         vga_default = pdev;
+>
+> I think this is equivalent to:
+>
+>     pci_dev_put(vga_default);
+>     vga_default = pci_dev_get(pdev);
 
-> The basic idea is, the ODD will be runtime suspended as long as there is
-> nobody using it, that is, no programs opening the block device.
-> 
-> The ODD will be polled periodically, so it will be runtime resumed
-> before checking if there is any events pending and suspended when done.
+ah, i missed that, pci_dev_put and pci_dev_get check that inside.
 
-OK.  So what happens if we power off the drive via runtime PM.  Does it
-it really make sense to resumie it through polling in that case?
+>
+> I haven't seen an answer to Matthew's question about whether we want
+> to check for "vga_default == pdev".
 
-> The only exception is, if we found a disc is just inserted, we will not
-> idle it immediately at the end of the poll, reason explained in another
-> mail.
-> 
-> This is the rational I wrote patch 2, and patch 1 is used by patch 2.
-> 
-> Patch 3 is adding power off support for ODD after it is runtime
-> suspended, the condition is specified in section 15:
-> ftp://ftp.seagate.com/sff/INF-8090.PDF
-> 
-> That is, for tray type ODD: no media inside and door closed; for slot
-> type ODD: no media inside.
-> 
-> The is the reason sr_suspend is written, for non-ZPODD capable devices,
-> it does nothing; for ZPODD devices, it will check the above condition to
-> see if it is ready to be powered off. The ready_to_power_off flag will be
-> used by ATA layer to decide if power can be removed.
+yes, that could avoid the extra put/get pair.
 
-Now, James says he doesn't like the way ready_to_power_off is used.  Sure
-enough, it is totally irrelevant to the majority of SCSI devices.  It actually
-is totally irrelevant to everything in the SCSI subsystem except for the sr
-driver and libata.  So I wonder if you have considered any alternative
-way to address the use case at hand?
+Please check updated version.
 
-> When in powered off state, if user presses the eject button or insert a
-> disc, an ACPI event will be generated and our acpi wake handler will
-> pm_runtime_resume the ODD. And if it is a tray type ODD, its tray should
-> be ejected(need_eject flag) after powered on. This is patch 3.
+-Yinghai
 
-That sounds reasonable enough, but the role of the powered_off and
-need_eject flags could be explained a bit better.  In particular, it would
-be nice to have explained why they have to be present in struct scsi_device,
-because they don't seem to be particularly useful for many SCSI devices
-that aren't CD drives (the need_eject one in particular).
+--0015175884fc55a90404ca3cc6cd
+Content-Type: application/octet-stream; name="fix_vgarab_add_x.patch"
+Content-Disposition: attachment; filename="fix_vgarab_add_x.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_h7dsizhi0
 
-> And patch 4-6 introduces a new sysfs file may_power_off to give user a
-> chance to disable the power off of the device due to various reasons
-> like the ODD claims support of device attention while actually it is
-> broken.
-
-User space has an interface to disable runtime PM of any device and it looks
-like that interface should be sufficient to disable the feature in question.
-Why do you think the new interface is needed?
-
-> I hope it makes more sense to you now.
-
-Well, thanks for the explanation. :-)
-
-Rafael
+U3ViamVjdDogW1BBVENIXSBQQ0k6IGZpeCBkZWZhdWx0IHZnYSByZWZfY291bnQKCndoZW4gX19B
+UkNIX0hBU19WR0FfREVGQVVMVF9ERVZJQ0UgaXMgbm90IGRlZmluZWQsIGFrYSBFRklGQiBpcyBu
+b3QgdXNlZCwKZm9yIHN0YXRpYyBwYXRoLCB2Z2FfZGVmYXVsdCBzZXR0aW5nIGlzIHRocm91Z2gg
+dmdhX2FyYml0ZXJfYWRkX3BjaV9kZXZpY2UuCmFuZCBsYXRlciB4ODYgcGNpX2ZpeHVwX3ZpZGVv
+LCB3aWxsIHNraXAgc2V0dGluZyBhZ2Fpbi4KLSBzdWJzeXNfaW5pdGNhbGwodmdhX2FyYl9kZXZp
+Y2VfaW5pdCkgY29tZSBmaXJzdCB0byBjYWxsIHZnYV9hcmJpdGVyX2FkZF9wY2lfZGV2aWNlLiBJ
+dCB3aWxsIGNhbGwgcGNpX2dldF9kZXYgdG8gaG9sZCBvbmUgcmVmZXJlbmNlLgoKZm9yIGhvdHBs
+dWcgYWRkIHBhdGgsIGV2ZW4gdmdhX2FyYml0ZXJfYWRkX3BjaV9kZXZpY2UgaXMgY2FsbGVkIHZp
+YSBub3RpZmllciwKYnV0IGl0IHdpbGwgY2hlY2sgVkdBX1JTUkNfTEVHQUNZX01BU0sgdGhhdCBp
+cyBub3Qgc2V0IGZvciBob3RwbHVnIHBhdGguClNvIHg4NiBwY2lfZml4dXBfdmlkZW8gd2lsbCB0
+YWtlIG92ZXIgdG8gY2FsbCB2Z2Ffc2V0X2RlZmF1bHRfZGV2aWNlKCkuCkl0IHdpbGwgbm90IGhv
+bGQgb25lIHJlZnJlbmNlLgoKTGF0ZXIgZm9yIGhvdHBsdWcgcmVtb3ZlIHBhdGgsIHZnYV9hcmJp
+dGVyX2RlbF9wY2lfZGV2aWNlIHRoYXQgZG9lcyBub3QgY2hlY2sKVkdBX1JTUkNfTEVHQUNZX01B
+U0sgd2lsbCBjYWxsIHB1dF9kZXZpY2UgYW5kIGl0IHdpbGwgY2F1c2UgcmVmX2NvdW50IHRvCmRl
+Y3JlYXNlIGV4dHJhLiB0aGF0IHdpbGwgaGF2ZSB0aGF0IHBjaSBkZXZpY2UgZ2V0IGRlbGV0ZWQg
+ZWFybHkgd3JvbmdseS4KCk5lZWQgdG8gbWFrZSBnZXQvcHV0IGJhbGFuY2UgZm9yIGJvdGggY2Fz
+ZXMuCgotdjI6IEFjY29yZGluZyB0byBCam9ybiwgdXBkYXRlIHZnYV9zZXRfZGVmYXVsdF9kZXZp
+Y2UgaW5zdGVhZC4uLgotdjM6IFJlbW92ZSBleHRyYSBjaGVja2luZyBhYm91dCBudWxsIHRoYXQg
+cG9pbnRlZCBvdXQgYnkgQmpvcm4uCiAgICAgQWRkIGV4dHJhIGNoZWNrIGZvciBzYW1lIHZhbHVl
+LCB0byBhdm9pZCBleHRyYSBwdXQvZ2V0IHBhaXIsIHN1Z2dlc3RlZCBieQoJTWF0dGhldy4KClNp
+Z25lZC1vZmYtYnk6IFlpbmdoYWkgTHUgPHlpbmdoYWlAa2VybmVsLm9yZz4KQ2M6IHg4NkBrZXJu
+ZWwub3JnCkNjOiBEYXZlIEFpcmxpZSA8YWlybGllZEByZWRoYXQuY29tPgpDYzogQW5kcmV3IE1v
+cnRvbiA8YWtwbUBsaW51eC1mb3VuZGF0aW9uLm9yZz4KQ2M6IEp1bGlhIExhd2FsbCA8anVsaWFA
+ZGlrdS5kaz4KQ2M6IE1hdHRoZXcgR2FycmV0dCA8bWpnQHJlZGhhdC5jb20+CgotLS0KIGRyaXZl
+cnMvZ3B1L3ZnYS92Z2FhcmIuYyB8ICAgMTQgKysrKysrKystLS0tLS0KIDEgZmlsZSBjaGFuZ2Vk
+LCA4IGluc2VydGlvbnMoKyksIDYgZGVsZXRpb25zKC0pCgpJbmRleDogbGludXgtMi42L2RyaXZl
+cnMvZ3B1L3ZnYS92Z2FhcmIuYwo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Ci0tLSBsaW51eC0yLjYub3JpZy9kcml2ZXJz
+L2dwdS92Z2EvdmdhYXJiLmMKKysrIGxpbnV4LTIuNi9kcml2ZXJzL2dwdS92Z2EvdmdhYXJiLmMK
+QEAgLTE0MSw3ICsxNDEsMTEgQEAgRVhQT1JUX1NZTUJPTF9HUEwodmdhX2RlZmF1bHRfZGV2aWNl
+KTsKIAogdm9pZCB2Z2Ffc2V0X2RlZmF1bHRfZGV2aWNlKHN0cnVjdCBwY2lfZGV2ICpwZGV2KQog
+ewotCXZnYV9kZWZhdWx0ID0gcGRldjsKKwlpZiAodmdhX2RlZmF1bHQgPT0gcGRldikKKwkJcmV0
+dXJuOworCisJcGNpX2Rldl9wdXQodmdhX2RlZmF1bHQpOworCXZnYV9kZWZhdWx0ID0gcGNpX2Rl
+dl9nZXQocGRldik7CiB9CiAjZW5kaWYKIApAQCAtNTc3LDcgKzU4MSw3IEBAIHN0YXRpYyBib29s
+IHZnYV9hcmJpdGVyX2FkZF9wY2lfZGV2aWNlKHMKICNpZm5kZWYgX19BUkNIX0hBU19WR0FfREVG
+QVVMVF9ERVZJQ0UKIAlpZiAodmdhX2RlZmF1bHQgPT0gTlVMTCAmJgogCSAgICAoKHZnYWRldi0+
+b3ducyAmIFZHQV9SU1JDX0xFR0FDWV9NQVNLKSA9PSBWR0FfUlNSQ19MRUdBQ1lfTUFTSykpCi0J
+CXZnYV9kZWZhdWx0ID0gcGNpX2Rldl9nZXQocGRldik7CisJCXZnYV9zZXRfZGVmYXVsdF9kZXZp
+Y2UocGRldik7CiAjZW5kaWYKIAogCXZnYV9hcmJpdGVyX2NoZWNrX2JyaWRnZV9zaGFyaW5nKHZn
+YWRldik7CkBAIC02MTMsMTAgKzYxNyw4IEBAIHN0YXRpYyBib29sIHZnYV9hcmJpdGVyX2RlbF9w
+Y2lfZGV2aWNlKHMKIAl9CiAKICNpZm5kZWYgX19BUkNIX0hBU19WR0FfREVGQVVMVF9ERVZJQ0UK
+LQlpZiAodmdhX2RlZmF1bHQgPT0gcGRldikgewotCQlwY2lfZGV2X3B1dCh2Z2FfZGVmYXVsdCk7
+Ci0JCXZnYV9kZWZhdWx0ID0gTlVMTDsKLQl9CisJaWYgKHZnYV9kZWZhdWx0ID09IHBkZXYpCisJ
+CXZnYV9zZXRfZGVmYXVsdF9kZXZpY2UoTlVMTCk7CiAjZW5kaWYKIAogCWlmICh2Z2FkZXYtPmRl
+Y29kZXMgJiAoVkdBX1JTUkNfTEVHQUNZX0lPIHwgVkdBX1JTUkNfTEVHQUNZX01FTSkpCg==
+--0015175884fc55a90404ca3cc6cd--
