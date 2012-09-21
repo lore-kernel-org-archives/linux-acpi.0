@@ -1,88 +1,67 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
-Subject: RE: [PATCHv4 07/15] Thermal: Add a policy sysfs attribute
-Date: Fri, 21 Sep 2012 08:09:50 +0000
-Message-ID: <4D68720C2E767A4AA6A8796D42C8EB591C03A3@BGSMSX101.gar.corp.intel.com>
-References: <1347946506-18449-1-git-send-email-durgadoss.r@intel.com>
-	 <1347946506-18449-8-git-send-email-durgadoss.r@intel.com>
- <1348214827.10877.138.camel@rui.sh.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Durgadoss R <durgadoss.r@intel.com>
+Subject: [PATCH] Thermal: Provide option to choose default thermal governor
+Date: Fri, 21 Sep 2012 14:32:24 +0530
+Message-ID: <1348218144-6845-1-git-send-email-durgadoss.r@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:2599 "EHLO mga02.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:12182 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753366Ab2IUIJ7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 21 Sep 2012 04:09:59 -0400
-In-Reply-To: <1348214827.10877.138.camel@rui.sh.intel.com>
-Content-Language: en-US
+	id S932195Ab2IUJD1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 21 Sep 2012 05:03:27 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "eduardo.valentin@ti.com" <eduardo.valentin@ti.com>
+To: lenb@kernel.org, rui.zhang@intel.com
+Cc: linux-acpi@vger.kernel.org, Durgadoss R <durgadoss.r@intel.com>
 
-SGkgUnVpLA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFpoYW5nLCBS
-dWkNCj4gU2VudDogRnJpZGF5LCBTZXB0ZW1iZXIgMjEsIDIwMTIgMTozNyBQTQ0KPiBUbzogUiwg
-RHVyZ2Fkb3NzDQo+IENjOiBsZW5iQGtlcm5lbC5vcmc7IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwu
-b3JnOyBlZHVhcmRvLnZhbGVudGluQHRpLmNvbQ0KPiBTdWJqZWN0OiBSZTogW1BBVENIdjQgMDcv
-MTVdIFRoZXJtYWw6IEFkZCBhIHBvbGljeSBzeXNmcyBhdHRyaWJ1dGUNCj4gDQo+IE9uIOS6jCwg
-MjAxMi0wOS0xOCBhdCAxMTowNCArMDUzMCwgRHVyZ2Fkb3NzIFIgd3JvdGU6DQo+ID4gVGhpcyBw
-YXRjaCBhZGRzIGEgcG9saWN5IHN5c2ZzIGF0dHJpYnV0ZSB0byBhIHRoZXJtYWwgem9uZS4NCj4g
-PiBUaGlzIGF0dHJpYnV0ZSBkZW5vdGVzIHRoZSB0aHJvdHRsaW5nIGdvdmVybm9yIHVzZWQgZm9y
-IHRoZQ0KPiA+IHpvbmUuIFRoaXMgaXMgYSBSVyBhdHRyaWJ1dGUuDQo+ID4NCj4gPiBTaWduZWQt
-b2ZmLWJ5OiBEdXJnYWRvc3MgUiA8ZHVyZ2Fkb3NzLnJAaW50ZWwuY29tPg0KPiA+IC0tLQ0KPiA+
-ICBkcml2ZXJzL3RoZXJtYWwvdGhlcm1hbF9zeXMuYyB8ICAgNDINCj4gKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKystLS0NCj4gPiAgMSBmaWxlIGNoYW5nZWQsIDM5IGluc2Vy
-dGlvbnMoKyksIDMgZGVsZXRpb25zKC0pDQo+ID4NCj4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy90
-aGVybWFsL3RoZXJtYWxfc3lzLmMgYi9kcml2ZXJzL3RoZXJtYWwvdGhlcm1hbF9zeXMuYw0KPiA+
-IGluZGV4IGE2N2M2YzAuLjA5NDhhNjAgMTAwNjQ0DQo+ID4gLS0tIGEvZHJpdmVycy90aGVybWFs
-L3RoZXJtYWxfc3lzLmMNCj4gPiArKysgYi9kcml2ZXJzL3RoZXJtYWwvdGhlcm1hbF9zeXMuYw0K
-PiA+IEBAIC00NTQsMTAgKzQ1NCw0MSBAQCBwYXNzaXZlX3Nob3coc3RydWN0IGRldmljZSAqZGV2
-LCBzdHJ1Y3QNCj4gZGV2aWNlX2F0dHJpYnV0ZSAqYXR0ciwNCj4gPiAgCXJldHVybiBzcHJpbnRm
-KGJ1ZiwgIiVkXG4iLCB0ei0+Zm9yY2VkX3Bhc3NpdmUpOw0KPiA+ICB9DQo+ID4NCj4gPiArc3Rh
-dGljIHNzaXplX3QNCj4gPiArcG9saWN5X3N0b3JlKHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0
-IGRldmljZV9hdHRyaWJ1dGUgKmF0dHIsDQo+ID4gKwkJICAgIGNvbnN0IGNoYXIgKmJ1Ziwgc2l6
-ZV90IGNvdW50KQ0KPiA+ICt7DQo+ID4gKwlpbnQgcmV0ID0gLUVJTlZBTDsNCj4gPiArCXN0cnVj
-dCB0aGVybWFsX3pvbmVfZGV2aWNlICp0eiA9IHRvX3RoZXJtYWxfem9uZShkZXYpOw0KPiA+ICsJ
-c3RydWN0IHRoZXJtYWxfZ292ZXJub3IgKmdvdjsNCj4gPiArDQo+ID4gKwltdXRleF9sb2NrKCZ0
-aGVybWFsX2dvdmVybm9yX2xvY2spOw0KPiA+ICsNCj4gPiArCWdvdiA9IF9fZmluZF9nb3Zlcm5v
-cihidWYpOw0KPiA+ICsJaWYgKCFnb3YpDQo+ID4gKwkJZ290byBleGl0Ow0KPiA+ICsNCj4gPiAr
-CXR6LT5nb3Zlcm5vciA9IGdvdjsNCj4gPiArCXJldCA9IGNvdW50Ow0KPiA+ICsNCj4gPiArZXhp
-dDoNCj4gPiArCW11dGV4X3VubG9jaygmdGhlcm1hbF9nb3Zlcm5vcl9sb2NrKTsNCj4gPiArCXJl
-dHVybiByZXQ7DQo+ID4gK30NCj4gPiArDQo+ID4gK3N0YXRpYyBzc2l6ZV90DQo+ID4gK3BvbGlj
-eV9zaG93KHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgKmRldmF0
-dHIsIGNoYXINCj4gKmJ1ZikNCj4gPiArew0KPiA+ICsJc3RydWN0IHRoZXJtYWxfem9uZV9kZXZp
-Y2UgKnR6ID0gdG9fdGhlcm1hbF96b25lKGRldik7DQo+ID4gKw0KPiA+ICsJcmV0dXJuIHNwcmlu
-dGYoYnVmLCAiJXNcbiIsIHR6LT5nb3Zlcm5vci0+bmFtZSk7DQo+ID4gK30NCj4gPiArDQo+IA0K
-PiB3ZSBzaG91bGQgaW50cm9kdWNlIGFuIEFQSSBmb3IgcGxhdGZvcm0gdGhlcm1hbCBkcml2ZXJz
-IHRvIHN3aXRjaCB0aGVpcg0KPiBwb2xpY3kuDQo+IHNheSB0aGV5IG1heSB3YW50IHRvIHN3aXRj
-aCB0byAidXNlcnNwYWNlIiB0byBkaXNhYmxlIHRoZSBrZXJuZWwgdGhlcm1hbA0KPiBjb250cm9s
-Lg0KPiBhbmQgcG9saWN5X3N0b3JlIHNob3VsZCBpbnZva2UgdGhhdCBmdW5jdGlvbiBkaXJlY3Rs
-eS4NCg0KWWVzLCBtYWtlcyBzZW5zZSwgd2UgY2FuIGludHJvZHVjZSBhbiBFWFBPUlRfU1lNQk9M
-IEFQSS4NCg0KVGhhbmtzLA0KRHVyZ2ENCg0KPiBCVFcsIElNTywgZGVhY3RpdmluZyBhbGwgdGhl
-IHRoZXJtYWxfaW5zdGFuY2VzIGFuZCB1cGRhdGluZyB0aGUgY29vbGluZw0KPiBkZXZpY2VzIHdo
-ZW4gYSB0aGVybWFsIHpvbmUgc3dpdGNoZXMgdG8gInVzZXJzcGFjZSIgZ292ZXJub3IgaXMNCj4g
-cmVhc29uYWJsZS4NCj4gDQo+IHRoYW5rcywNCj4gcnVpDQo+ID4gIHN0YXRpYyBERVZJQ0VfQVRU
-Uih0eXBlLCAwNDQ0LCB0eXBlX3Nob3csIE5VTEwpOw0KPiA+ICBzdGF0aWMgREVWSUNFX0FUVFIo
-dGVtcCwgMDQ0NCwgdGVtcF9zaG93LCBOVUxMKTsNCj4gPiAgc3RhdGljIERFVklDRV9BVFRSKG1v
-ZGUsIDA2NDQsIG1vZGVfc2hvdywgbW9kZV9zdG9yZSk7DQo+ID4gIHN0YXRpYyBERVZJQ0VfQVRU
-UihwYXNzaXZlLCBTX0lSVUdPIHwgU19JV1VTUiwgcGFzc2l2ZV9zaG93LA0KPiBwYXNzaXZlX3N0
-b3JlKTsNCj4gPiArc3RhdGljIERFVklDRV9BVFRSKHBvbGljeSwgU19JUlVHTyB8IFNfSVdVU1Is
-IHBvbGljeV9zaG93LA0KPiBwb2xpY3lfc3RvcmUpOw0KPiA+DQo+ID4gIC8qIHN5cyBJL0YgZm9y
-IGNvb2xpbmcgZGV2aWNlICovDQo+ID4gICNkZWZpbmUgdG9fY29vbGluZ19kZXZpY2UoX2RldikJ
-XA0KPiA+IEBAIC0xNTEyLDEwICsxNTQzLDE0IEBAIHN0cnVjdCB0aGVybWFsX3pvbmVfZGV2aWNl
-DQo+ICp0aGVybWFsX3pvbmVfZGV2aWNlX3JlZ2lzdGVyKGNvbnN0IGNoYXIgKnR5cGUsDQo+ID4g
-IAkJCXBhc3NpdmUgPSAxOw0KPiA+ICAJfQ0KPiA+DQo+ID4gLQlpZiAoIXBhc3NpdmUpDQo+ID4g
-LQkJcmVzdWx0ID0gZGV2aWNlX2NyZWF0ZV9maWxlKCZ0ei0+ZGV2aWNlLA0KPiA+IC0JCQkJCSAg
-ICAmZGV2X2F0dHJfcGFzc2l2ZSk7DQo+ID4gKwlpZiAoIXBhc3NpdmUpIHsNCj4gPiArCQlyZXN1
-bHQgPSBkZXZpY2VfY3JlYXRlX2ZpbGUoJnR6LT5kZXZpY2UsICZkZXZfYXR0cl9wYXNzaXZlKTsN
-Cj4gPiArCQlpZiAocmVzdWx0KQ0KPiA+ICsJCQlnb3RvIHVucmVnaXN0ZXI7DQo+ID4gKwl9DQo+
-ID4NCj4gPiArCS8qIENyZWF0ZSBwb2xpY3kgYXR0cmlidXRlICovDQo+ID4gKwlyZXN1bHQgPSBk
-ZXZpY2VfY3JlYXRlX2ZpbGUoJnR6LT5kZXZpY2UsICZkZXZfYXR0cl9wb2xpY3kpOw0KPiA+ICAJ
-aWYgKHJlc3VsdCkNCj4gPiAgCQlnb3RvIHVucmVnaXN0ZXI7DQo+ID4NCj4gPiBAQCAtMTU5MSw2
-ICsxNjI2LDcgQEAgdm9pZCB0aGVybWFsX3pvbmVfZGV2aWNlX3VucmVnaXN0ZXIoc3RydWN0DQo+
-IHRoZXJtYWxfem9uZV9kZXZpY2UgKnR6KQ0KPiA+ICAJZGV2aWNlX3JlbW92ZV9maWxlKCZ0ei0+
-ZGV2aWNlLCAmZGV2X2F0dHJfdGVtcCk7DQo+ID4gIAlpZiAodHotPm9wcy0+Z2V0X21vZGUpDQo+
-ID4gIAkJZGV2aWNlX3JlbW92ZV9maWxlKCZ0ei0+ZGV2aWNlLCAmZGV2X2F0dHJfbW9kZSk7DQo+
-ID4gKwlkZXZpY2VfcmVtb3ZlX2ZpbGUoJnR6LT5kZXZpY2UsICZkZXZfYXR0cl9wb2xpY3kpOw0K
-PiA+ICAJcmVtb3ZlX3RyaXBfYXR0cnModHopOw0KPiA+ICAJdHotPmdvdmVybm9yID0gTlVMTDsN
-Cj4gPg0KPiANCg0K
+This patch provides option to choose the default thermal
+governor. If no option is provided, the step_wise
+governor is selected by default.
+
+Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
+---
+ drivers/thermal/Kconfig |   33 +++++++++++++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
+
+diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
+index 040c626..c0e11aa 100644
+--- a/drivers/thermal/Kconfig
++++ b/drivers/thermal/Kconfig
+@@ -71,3 +71,36 @@ config USER_SPACE
+ 	depends on THERMAL
+ 	help
+ 	  Enable this to let the user space manage the platform thermals.
++
++choice
++	prompt "Default Thermal governor"
++	depends on THERMAL
++	default THERMAL_DEFAULT_GOV_STEP_WISE
++	help
++	  This option sets which thermal governor shall be loaded at
++	  startup. If in doubt, select 'step_wise'.
++
++config THERMAL_DEFAULT_GOV_STEP_WISE
++	bool "step_wise"
++	select STEP_WISE
++	help
++	  Use the step_wise governor as default. This throttles the
++	  devices one step at a time.
++
++config THERMAL_DEFAULT_GOV_FAIR_SHARE
++	bool "fair_share"
++	select FAIR_SHARE
++	help
++	  Use the fair_share governor as default. This throttles the
++	  devices based on their 'contribution' to a zone. The
++	  contribution should be provided through platform data.
++
++config THERMAL_DEFAULT_GOV_USER_SPACE
++	bool "user_space"
++	select USER_SPACE
++	help
++	  Select this if you want to let the user space manage the
++	  platform thermals.
++endchoice
++
++
+-- 
+1.7.9.5
+
