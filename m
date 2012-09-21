@@ -1,95 +1,91 @@
-From: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Subject: [PATCH] change signature of walk_root_bridge() function
-Date: Fri, 21 Sep 2012 16:03:58 +0900
-Message-ID: <20120921160358.e6509b8c.izumi.taku@jp.fujitsu.com>
-References: <20120918151215.59ea763b.izumi.taku@jp.fujitsu.com>
-	<20120918152235.fedf80b5.izumi.taku@jp.fujitsu.com>
-	<CAErSpo7MUNae9Aez8VMhj+z7bedrOVxSHKadFv7tgGYcZwLk_g@mail.gmail.com>
-	<20120920191523.72cb21c3.izumi.taku@jp.fujitsu.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCHv4 04/15] Thermal: Add platform level information to
+ thermal.h
+Date: Fri, 21 Sep 2012 15:12:49 +0800
+Message-ID: <1348211569.10877.125.camel@rui.sh.intel.com>
+References: <1347946506-18449-1-git-send-email-durgadoss.r@intel.com>
+	 <1347946506-18449-5-git-send-email-durgadoss.r@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20120920191523.72cb21c3.izumi.taku@jp.fujitsu.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, kaneshige.kenji@jp.fujitsu.com, yinghai@kernel.org, jiang.liu@huawei.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:5646 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753886Ab2IUHMF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 21 Sep 2012 03:12:05 -0400
+In-Reply-To: <1347946506-18449-5-git-send-email-durgadoss.r@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Durgadoss R <durgadoss.r@intel.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, eduardo.valentin@ti.com
+
+On =E4=BA=8C, 2012-09-18 at 11:04 +0530, Durgadoss R wrote:
+> This patch adds platform level information to thermal.h
+> by introducing two structures to hold:
+>  * bind parameters for a thermal zone,
+>  * zone level platform parameters
+>=20
+> Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
+> ---
+>  include/linux/thermal.h |   29 +++++++++++++++++++++++++++++
+>  1 file changed, 29 insertions(+)
+>=20
+> diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+> index 32af124..4caa32e 100644
+> --- a/include/linux/thermal.h
+> +++ b/include/linux/thermal.h
+> @@ -157,6 +157,7 @@ struct thermal_zone_device {
+>  	int passive;
+>  	unsigned int forced_passive;
+>  	const struct thermal_zone_device_ops *ops;
+> +	const struct thermal_zone_params *tzp;
+>  	struct list_head thermal_instances;
+>  	struct idr idr;
+>  	struct mutex lock; /* protect thermal_instances list */
+> @@ -164,6 +165,34 @@ struct thermal_zone_device {
+>  	struct delayed_work poll_queue;
+>  };
+> =20
+> +/* Structure that holds binding parameters for a zone */
+> +struct thermal_bind_params {
+> +	struct thermal_cooling_device *cdev;
+> +
+> +	/*
+> +	 * This is a measure of 'how effectively these devices can
+> +	 * cool 'this' thermal zone. The shall be determined by platform
+> +	 * characterization. This is on a 'percentage' scale.
+> +	 * See Documentation/thermal/sysfs-api.txt for more information.
+> +	 */
+> +	int weight;
+> +
+> +	/*
+> +	 * This is a bit mask that gives the binding relation between this
+> +	 * thermal zone and cdev, for a particular trip point.
+> +	 * See Documentation/thermal/sysfs-api.txt for more information.
+> +	 */
+> +	int trip_mask;
+> +	int (*match) (struct thermal_zone_device *tz,
+> +			struct thermal_cooling_device *cdev);
+> +};
+
+we do not have field to describe the upper and lower limit?
+
+thanks.
+rui
+> +
+> +/* Structure to define Thermal Zone parameters */
+> +struct thermal_zone_params {
+> +	int num_tbps;	/* Number of tbp entries */
+> +	struct thermal_bind_params *tbp;
+> +};
+> +
+>  struct thermal_genl_event {
+>  	u32 orig;
+>  	enum events event;
 
 
-This patch changes the function signature of walk_root_bridge().
-
-We can omit _STA, _SEG, and _BBN evaluation by passing not acpi_handle 
-but acpi_pci_root. Now that acpi_pci_slot_add() which is the only 
-caller of walk_root_bridge() gets acpi_pci_root structure, changing
-signature of walk_root_bridge() is reasonable.
-
-
-Signed-off-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
----
- drivers/acpi/pci_slot.c |   35 +++++------------------------------
- 1 file changed, 5 insertions(+), 30 deletions(-)
-
-Index: Bjorn-next-0903/drivers/acpi/pci_slot.c
-===================================================================
---- Bjorn-next-0903.orig/drivers/acpi/pci_slot.c
-+++ Bjorn-next-0903/drivers/acpi/pci_slot.c
-@@ -233,45 +233,20 @@ out:
- 
- /*
-  * walk_root_bridge - generic root bridge walker
-- * @handle: points to an acpi_pci_root
-+ * @root: poiner of an acpi_pci_root
-  * @user_function: user callback for slot objects
-  *
-  * Call user_function for all objects underneath this root bridge.
-  * Walk p2p bridges underneath us and call user_function on those too.
-  */
- static int
--walk_root_bridge(acpi_handle handle, acpi_walk_callback user_function)
-+walk_root_bridge(struct acpi_pci_root *root, acpi_walk_callback user_function)
- {
--	int seg, bus;
--	unsigned long long tmp;
- 	acpi_status status;
--	acpi_handle dummy_handle;
--	struct pci_bus *pci_bus;
-+	acpi_handle handle = root->device->handle;
-+	struct pci_bus *pci_bus = root->bus;
- 	struct callback_args context;
- 
--	/* If the bridge doesn't have _STA, we assume it is always there */
--	status = acpi_get_handle(handle, "_STA", &dummy_handle);
--	if (ACPI_SUCCESS(status)) {
--		status = acpi_evaluate_integer(handle, "_STA", NULL, &tmp);
--		if (ACPI_FAILURE(status)) {
--			info("%s: _STA evaluation failure\n", __func__);
--			return 0;
--		}
--		if ((tmp & ACPI_STA_DEVICE_FUNCTIONING) == 0)
--			/* don't register this object */
--			return 0;
--	}
--
--	status = acpi_evaluate_integer(handle, "_SEG", NULL, &tmp);
--	seg = ACPI_SUCCESS(status) ? tmp : 0;
--
--	status = acpi_evaluate_integer(handle, "_BBN", NULL, &tmp);
--	bus = ACPI_SUCCESS(status) ? tmp : 0;
--
--	pci_bus = pci_find_bus(seg, bus);
--	if (!pci_bus)
--		return 0;
--
- 	context.pci_bus = pci_bus;
- 	context.user_function = user_function;
- 	context.root_handle = handle;
-@@ -299,7 +274,7 @@ acpi_pci_slot_add(struct acpi_pci_root *
- {
- 	acpi_status status;
- 
--	status = walk_root_bridge(root->device->handle, register_slot);
-+	status = walk_root_bridge(root, register_slot);
- 	if (ACPI_FAILURE(status))
- 		err("%s: register_slot failure - %d\n", __func__, status);
- 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
