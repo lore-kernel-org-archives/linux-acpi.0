@@ -1,74 +1,57 @@
-From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: Re: [ACPI/PCI] possible recursive locking detected
-Date: Sat, 22 Sep 2012 16:10:09 +0800
-Message-ID: <20120922081009.GA5677@localhost>
-References: <20120922003557.GF5959@localhost>
- <CAE9FiQVQJQfBZn7AH4M5hibx=iNa9RbfSaBdb35FWxDiRXHvrA@mail.gmail.com>
- <CAE9FiQVQMVsqG2vHhyktTtUSJ_dDRpTpwB_x--agMWbm6PHsEg@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v7 0/6] ZPODD patches
+Date: Sat, 22 Sep 2012 13:28:36 +0200
+Message-ID: <201209221328.37967.rjw@sisk.pl>
+References: <1347438597-5903-1-git-send-email-aaron.lu@intel.com> <201209212318.28137.rjw@sisk.pl> <7102619.L8oEHmBsA2@linux-lqwf.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAE9FiQVQMVsqG2vHhyktTtUSJ_dDRpTpwB_x--agMWbm6PHsEg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <7102619.L8oEHmBsA2@linux-lqwf.site>
+Sender: linux-ide-owner@vger.kernel.org
+To: Oliver Neukum <oliver@neukum.org>
+Cc: Aaron Lu <aaron.lu@intel.com>, James Bottomley <James.Bottomley@hansenpartnership.com>, Alan Stern <stern@rowland.harvard.edu>, Jeff Garzik <jgarzik@pobox.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Sep 22, 2012 at 12:04:51AM -0700, Yinghai Lu wrote:
-> On Fri, Sep 21, 2012 at 9:53 PM, Yinghai Lu <yinghai@kernel.org> wrote:
-> > On Fri, Sep 21, 2012 at 5:35 PM, Fengguang Wu <fengguang.wu@intel.com> wrote:
-> >> Hi Taku,
-> >>
-> >> The below oops is pretty reproducible, and shows up first in:
-> >>
-> >> tree:   git://git.kernel.org/pub/scm/linux/kernel/git/helgaas/pci.git pci/taku-acpi-pci-host-bridge-v3
-> >> head:   e3faec8ea9c8aa683c56fa20ff2c58a4c5857960
-> >> commit: d3c663236318a43fed5d86a643e6ea2534e9220e [5/7] PCI/ACPI: Protect acpi_pci_roots list with mutex
-> >>
-> >> [    8.613239]  (acpi_pci_root_lock){+.+.+.}, at: [<ffffffff81741e5f>] acpi_get_pci_rootbridge_handle+0x22/0x63
-> >> [    8.613239]  (acpi_pci_root_lock){+.+.+.}, at: [<ffffffff81741e5f>] acpi_get_pci_rootbridge_handle+0x22/0x63
-> >> [    8.613239]  (acpi_pci_root_lock){+.+.+.}, at: [<ffffffff81742398>] acpi_pci_register_driver+0x21/0x79
-> >> [    8.613239]   lock(acpi_pci_root_lock);
-> >> [    8.613239]   lock(acpi_pci_root_lock);
-> >> [    8.613239]  #0:  (acpi_pci_root_lock){+.+.+.}, at: [<ffffffff81742398>] acpi_pci_register_driver+0x21/0x79
-> >> [    8.613239]  [<ffffffff81741e5f>] ? acpi_get_pci_rootbridge_handle+0x22/0x63
-> >> [    8.613239]  [<ffffffff81741e5f>] ? acpi_get_pci_rootbridge_handle+0x22/0x63
-> >> [    8.613239]  [<ffffffff81741e5f>] ? acpi_get_pci_rootbridge_handle+0x22/0x63
-> >> [    8.613239]  [<ffffffff81741e5f>] acpi_get_pci_rootbridge_handle+0x22/0x63
-> >>
-> >> [    8.610859]
-> >> [    8.611385] =============================================
-> >> [    8.612505] [ INFO: possible recursive locking detected ]
-> >> [    8.613239] 3.6.0-rc1-00022-gd3c6632 #7512 Not tainted
-> >> [    8.613239] ---------------------------------------------
-> >> [    8.613239] swapper/0/1 is trying to acquire lock:
-> >> [    8.613239]  (acpi_pci_root_lock){+.+.+.}, at: [<ffffffff81741e5f>] acpi_get_pci_rootbridge_handle+0x22/0x63
-> >> [    8.613239]
-> >> [    8.613239] but task is already holding lock:
-> >> [    8.613239]  (acpi_pci_root_lock){+.+.+.}, at: [<ffffffff81742398>] acpi_pci_register_driver+0x21/0x79
-> >> [    8.613239]
-> >> [    8.613239] other info that might help us debug this:
-> >> [    8.613239]  Possible unsafe locking scenario:
-> >> [    8.613239]
-> >> [    8.613239]        CPU0
-> >> [    8.613239]        ----
-> >> [    8.613239]   lock(acpi_pci_root_lock);
-> >> [    8.613239]   lock(acpi_pci_root_lock);
-> >> [    8.613239]
-> >> [    8.613239]  *** DEADLOCK ***
-> >> [    8.613239]
-> >> [    8.613239]  May be due to missing lock nesting notation
-> >> [    8.613239]
-> >> [    8.613239] 1 lock held by swapper/0/1:
-> >> [    8.613239]  #0:  (acpi_pci_root_lock){+.+.+.}, at: [<ffffffff81742398>] acpi_pci_register_driver+0x21/0x79
-> >> [    8.613239]
-
-> > Please check attached patch that should fix the problem.
+On Saturday, September 22, 2012, Oliver Neukum wrote:
+> On Friday 21 September 2012 23:18:27 Rafael J. Wysocki wrote:
 > 
-> updated more aggressive version. two patches.
+> > Now, James says he doesn't like the way ready_to_power_off is used.  Sure
+> > enough, it is totally irrelevant to the majority of SCSI devices.  It actually
+> > is totally irrelevant to everything in the SCSI subsystem except for the sr
+> > driver and libata.  So I wonder if you have considered any alternative
+> > way to address the use case at hand?
+> 
+> Strictly speaking, USB on very modern systems could use it, but doesn't
+> in the current implementation.
 
-Yes they work nicely. Thank you very much!
+OK
 
-Thanks,
-Fengguang
+Still, why does the flag have to be in struct scsi_device for this purpose?
+
+> > That sounds reasonable enough, but the role of the powered_off and
+> > need_eject flags could be explained a bit better.  In particular, it would
+> 
+> I think need_eject needs to be renamed. Something like "media_change_detected"
+> 
+> > be nice to have explained why they have to be present in struct scsi_device,
+> > because they don't seem to be particularly useful for many SCSI devices
+> > that aren't CD drives (the need_eject one in particular).
+> 
+> There are sd devices with removable media.
+
+OK.  Does the SCSI layer distinguish them from devices without removable media?
+
+> > User space has an interface to disable runtime PM of any device and it looks
+> > like that interface should be sufficient to disable the feature in question.
+> > Why do you think the new interface is needed?
+> 
+> Because this is not equivalent to doing no runtime PM at all. SCSI
+> now defines some powersaving states which do not involve powering
+> down and thus losing state.
+
+I see. So the sr's runtime suspend may be useful even without the power-off
+feature, right?
+
+Rafael
