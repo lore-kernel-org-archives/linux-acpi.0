@@ -1,57 +1,79 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v7 0/6] ZPODD patches
-Date: Sat, 22 Sep 2012 13:28:36 +0200
-Message-ID: <201209221328.37967.rjw@sisk.pl>
-References: <1347438597-5903-1-git-send-email-aaron.lu@intel.com> <201209212318.28137.rjw@sisk.pl> <7102619.L8oEHmBsA2@linux-lqwf.site>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [ACPI/PCI] possible recursive locking detected
+Date: Sat, 22 Sep 2012 07:11:34 -0700
+Message-ID: <CAE9FiQWi46m4rP9chVK0W5ahtgk7cuCO60dTYzP6JVM=x=5abA@mail.gmail.com>
+References: <20120922003557.GF5959@localhost>
+	<CAE9FiQVQJQfBZn7AH4M5hibx=iNa9RbfSaBdb35FWxDiRXHvrA@mail.gmail.com>
+	<CAE9FiQVQMVsqG2vHhyktTtUSJ_dDRpTpwB_x--agMWbm6PHsEg@mail.gmail.com>
+	<20120922081009.GA5677@localhost>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <7102619.L8oEHmBsA2@linux-lqwf.site>
-Sender: linux-ide-owner@vger.kernel.org
-To: Oliver Neukum <oliver@neukum.org>
-Cc: Aaron Lu <aaron.lu@intel.com>, James Bottomley <James.Bottomley@hansenpartnership.com>, Alan Stern <stern@rowland.harvard.edu>, Jeff Garzik <jgarzik@pobox.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>
+Content-Type: multipart/mixed; boundary=bcaec555517a1d060c04ca4aef10
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20120922081009.GA5677@localhost>
+Sender: linux-pci-owner@vger.kernel.org
+To: Fengguang Wu <fengguang.wu@intel.com>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Saturday, September 22, 2012, Oliver Neukum wrote:
-> On Friday 21 September 2012 23:18:27 Rafael J. Wysocki wrote:
-> 
-> > Now, James says he doesn't like the way ready_to_power_off is used.  Sure
-> > enough, it is totally irrelevant to the majority of SCSI devices.  It actually
-> > is totally irrelevant to everything in the SCSI subsystem except for the sr
-> > driver and libata.  So I wonder if you have considered any alternative
-> > way to address the use case at hand?
-> 
-> Strictly speaking, USB on very modern systems could use it, but doesn't
-> in the current implementation.
+--bcaec555517a1d060c04ca4aef10
+Content-Type: text/plain; charset=ISO-8859-1
 
-OK
+On Sat, Sep 22, 2012 at 1:10 AM, Fengguang Wu <fengguang.wu@intel.com> wrote:
+>
+>> > Please check attached patch that should fix the problem.
+>>
+>> updated more aggressive version. two patches.
+>
+> Yes they work nicely. Thank you very much!
 
-Still, why does the flag have to be in struct scsi_device for this purpose?
+Thanks.
 
-> > That sounds reasonable enough, but the role of the powered_off and
-> > need_eject flags could be explained a bit better.  In particular, it would
-> 
-> I think need_eject needs to be renamed. Something like "media_change_detected"
-> 
-> > be nice to have explained why they have to be present in struct scsi_device,
-> > because they don't seem to be particularly useful for many SCSI devices
-> > that aren't CD drives (the need_eject one in particular).
-> 
-> There are sd devices with removable media.
+v2 breaks acpi_bind_one.
 
-OK.  Does the SCSI layer distinguish them from devices without removable media?
+So we should use attached -v3.
 
-> > User space has an interface to disable runtime PM of any device and it looks
-> > like that interface should be sufficient to disable the feature in question.
-> > Why do you think the new interface is needed?
-> 
-> Because this is not equivalent to doing no runtime PM at all. SCSI
-> now defines some powersaving states which do not involve powering
-> down and thus losing state.
+Bjorn, please apply -v3 before Taku's patchset.
 
-I see. So the sr's runtime suspend may be useful even without the power-off
-feature, right?
+-Yinghai
 
-Rafael
+--bcaec555517a1d060c04ca4aef10
+Content-Type: application/octet-stream;
+	name="pci_root_bus_to_handle_v3.patch"
+Content-Disposition: attachment; filename="pci_root_bus_to_handle_v3.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_h7esqp4k0
+
+U3ViamVjdDogW1BBVENIIC12M10gUENJLCBBQ1BJOiBVc2UgREVWSUNFX0FDUElfSEFORExFIGZv
+ciByb290IGJ1cyBzdHJ1Y3QgcG9pbnRlcgoKU28gd2UgY291bGQgYXZvaWQgY2FsbGluZyBhY3Bp
+X2dldF9wY2lfcm9vdGJyaWRnZV9oYW5kbGUgdGhhdCBjb3VsZCBjYXVzZSBkZWFkbG9jay4KCm5v
+biByb290IHBjaSBidXMgaXMgdXNpbmcgYnJpZGdlLT5kZXYgYXJjaGRhdGEuYWNwaV9oYW5kbGUu
+CndlIHNob3VkbCB1c2UgdGhhdCBzYW1lIGZpZWxkIGZvciBmb3Igcm9vdCBidXMKCi12MzogZG8g
+bm90IG5lZWQgdG8gYW5kICBzaG91bGQgbm90IHNldCB0aGF0IGFyY2hkYXRhLmFjcGlfaGFuZGxl
+IGRpcmVjdGx5CiAgICAgYWNwaV9wY2lfcm9vdF9hZGQKCT09PiBwY2lfYWNwaV9zY2FuX3Jvb3QK
+CQk9PT4gcGNpX2NyZWF0ZV9yb290X2J1cwoJCQk9PT4gZGV2aWNlX3JlZ2lzdGVyKCZicmlkZ2Ut
+PmRldikKCQkJCT09PiBkZXZpY2VfYWRkCgkJCQkJPT0+IHBsYXRmb3JtX25vdGlmeQoJCQkJCQk9
+PT4gYWNwaV9iaW5kX29uZQogICAgIHdpbGwgc2V0IHRoYXQgZm9yIHVzLgoJdGhhdCBtZWFuJ3Mg
+d2Ugc3RpbGwgbmVlZCB0byBrZWVwIGFjcGlfZ2V0X3BjaV9yb290YnJpZGdlX2hhbmRsZSBmb3IK
+CWFjcGlfcGNpX2ZpbmRfcm9vdF9icmlkZ2UgaW4gYWNwaV9wY2lfYnVzIGJ1c190eXBlLgoKU2ln
+bmVkLW9mZi1ieTogWWluZ2hhaSBMdSA8eWluZ2hhaUBrZXJuZWwub3JnPgpDYzogTGVuIEJyb3du
+IDxsZW5iQGtlcm5lbC5vcmc+CkNjOiBsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZwoKLS0tCiBp
+bmNsdWRlL2xpbnV4L3BjaS1hY3BpLmggfCAgIDE1ICsrKysrKysrKystLS0tLQogMSBmaWxlIGNo
+YW5nZWQsIDEwIGluc2VydGlvbnMoKyksIDUgZGVsZXRpb25zKC0pCgpJbmRleDogbGludXgtMi42
+L2luY2x1ZGUvbGludXgvcGNpLWFjcGkuaAo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Ci0tLSBsaW51eC0yLjYub3JpZy9p
+bmNsdWRlL2xpbnV4L3BjaS1hY3BpLmgKKysrIGxpbnV4LTIuNi9pbmNsdWRlL2xpbnV4L3BjaS1h
+Y3BpLmgKQEAgLTIyLDE5ICsyMiwyNCBAQCBleHRlcm4gcGh5c19hZGRyX3QgYWNwaV9wY2lfcm9v
+dF9nZXRfbWNmCiBzdGF0aWMgaW5saW5lIGFjcGlfaGFuZGxlIGFjcGlfZmluZF9yb290X2JyaWRn
+ZV9oYW5kbGUoc3RydWN0IHBjaV9kZXYgKnBkZXYpCiB7CiAJc3RydWN0IHBjaV9idXMgKnBidXMg
+PSBwZGV2LT5idXM7CisKIAkvKiBGaW5kIGEgUENJIHJvb3QgYnVzICovCiAJd2hpbGUgKCFwY2lf
+aXNfcm9vdF9idXMocGJ1cykpCiAJCXBidXMgPSBwYnVzLT5wYXJlbnQ7Ci0JcmV0dXJuIGFjcGlf
+Z2V0X3BjaV9yb290YnJpZGdlX2hhbmRsZShwY2lfZG9tYWluX25yKHBidXMpLAotCQkJCQkgICAg
+ICBwYnVzLT5udW1iZXIpOworCisJcmV0dXJuIERFVklDRV9BQ1BJX0hBTkRMRShwYnVzLT5icmlk
+Z2UpOwogfQogCiBzdGF0aWMgaW5saW5lIGFjcGlfaGFuZGxlIGFjcGlfcGNpX2dldF9icmlkZ2Vf
+aGFuZGxlKHN0cnVjdCBwY2lfYnVzICpwYnVzKQogeworCXN0cnVjdCBkZXZpY2UgKmRldjsKKwog
+CWlmICghcGNpX2lzX3Jvb3RfYnVzKHBidXMpKQotCQlyZXR1cm4gREVWSUNFX0FDUElfSEFORExF
+KCYocGJ1cy0+c2VsZi0+ZGV2KSk7Ci0JcmV0dXJuIGFjcGlfZ2V0X3BjaV9yb290YnJpZGdlX2hh
+bmRsZShwY2lfZG9tYWluX25yKHBidXMpLAotCQkJCQkgICAgICBwYnVzLT5udW1iZXIpOworCQlk
+ZXYgPSAmcGJ1cy0+c2VsZi0+ZGV2OworCWVsc2UKKwkJZGV2ID0gcGJ1cy0+YnJpZGdlOworCisJ
+cmV0dXJuIERFVklDRV9BQ1BJX0hBTkRMRShkZXYpOwogfQogI2VuZGlmCiAK
+--bcaec555517a1d060c04ca4aef10--
