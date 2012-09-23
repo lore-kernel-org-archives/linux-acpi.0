@@ -1,72 +1,134 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 06/23] ACPICA: GPE Support: Update debug info for GPE tracing.
-Date: Sun, 23 Sep 2012 00:33:54 -0400
-Message-ID: <e1154ebd4d0215937528016c41e2f13d30a28082.1348371388.git.len.brown@intel.com>
+Subject: [PATCH 08/23] ACPICA: GPE support: Remove extraneous parameter from low-level function.
+Date: Sun, 23 Sep 2012 00:33:56 -0400
+Message-ID: <1d94e1e8ba9d466c707f1bcb32494ca7daefb644.1348371388.git.len.brown@intel.com>
 References: <1348374851-20378-1-git-send-email-lenb@kernel.org>
 Reply-To: Len Brown <lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:49268 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752464Ab2IWEek (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 23 Sep 2012 00:34:40 -0400
+Received: from mail-qa0-f53.google.com ([209.85.216.53]:43694 "EHLO
+	mail-qa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752886Ab2IWEeo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 23 Sep 2012 00:34:44 -0400
 In-Reply-To: <1348374851-20378-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <a950c135e5b2be6ef7518d54d98a7901db1b377a.1348371388.git.len.brown@intel.com>
 References: <a950c135e5b2be6ef7518d54d98a7901db1b377a.1348371388.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Bob Moore <robert.moore@intel.com>, Feng Tang <feng.tang@intel.com>, Len Brown <len.brown@intel.com>
+Cc: linux-kernel@vger.kernel.org, Feng Tang <feng.tang@intel.com>, Bob Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>
 
-From: Bob Moore <robert.moore@intel.com>
+From: Feng Tang <feng.tang@intel.com>
 
-Add additional debug info to assist with GPE debugging.
+The gpe_register_info argument is no longer needed, reduce it to
+make code simpler.
 
-Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Feng Tang <feng.tang@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/acpica/evgpe.c | 21 +++++++++++++++++++--
- 1 file changed, 19 insertions(+), 2 deletions(-)
+ drivers/acpi/acpica/achware.h |  3 +--
+ drivers/acpi/acpica/evgpe.c   |  3 +--
+ drivers/acpi/acpica/evxfgpe.c |  3 +--
+ drivers/acpi/acpica/hwgpe.c   | 15 +++++----------
+ 4 files changed, 8 insertions(+), 16 deletions(-)
 
+diff --git a/drivers/acpi/acpica/achware.h b/drivers/acpi/acpica/achware.h
+index 5de4ec7..d902d31 100644
+--- a/drivers/acpi/acpica/achware.h
++++ b/drivers/acpi/acpica/achware.h
+@@ -110,8 +110,7 @@ acpi_status acpi_hw_write_port(acpi_io_address address, u32 value, u32 width);
+ /*
+  * hwgpe - GPE support
+  */
+-u32 acpi_hw_get_gpe_register_bit(struct acpi_gpe_event_info *gpe_event_info,
+-			     struct acpi_gpe_register_info *gpe_register_info);
++u32 acpi_hw_get_gpe_register_bit(struct acpi_gpe_event_info *gpe_event_info);
+ 
+ acpi_status
+ acpi_hw_low_set_gpe(struct acpi_gpe_event_info *gpe_event_info, u32 action);
 diff --git a/drivers/acpi/acpica/evgpe.c b/drivers/acpi/acpica/evgpe.c
-index afbd5cb..3db3c56 100644
+index 3db3c56..ef0193d 100644
 --- a/drivers/acpi/acpica/evgpe.c
 +++ b/drivers/acpi/acpica/evgpe.c
-@@ -379,6 +379,18 @@ u32 acpi_ev_gpe_detect(struct acpi_gpe_xrupt_info * gpe_xrupt_list)
- 			 */
- 			if (!(gpe_register_info->enable_for_run |
- 			      gpe_register_info->enable_for_wake)) {
-+				ACPI_DEBUG_PRINT((ACPI_DB_INTERRUPTS,
-+						  "Ignore disabled registers for GPE%02X-GPE%02X: "
-+						  "RunEnable=%02X, WakeEnable=%02X\n",
-+						  gpe_register_info->
-+						  base_gpe_number,
-+						  gpe_register_info->
-+						  base_gpe_number +
-+						  (ACPI_GPE_REGISTER_WIDTH - 1),
-+						  gpe_register_info->
-+						  enable_for_run,
-+						  gpe_register_info->
-+						  enable_for_wake));
- 				continue;
- 			}
+@@ -80,8 +80,7 @@ acpi_ev_update_gpe_enable_mask(struct acpi_gpe_event_info *gpe_event_info)
+ 		return_ACPI_STATUS(AE_NOT_EXIST);
+ 	}
  
-@@ -401,9 +413,14 @@ u32 acpi_ev_gpe_detect(struct acpi_gpe_xrupt_info * gpe_xrupt_list)
- 			}
+-	register_bit = acpi_hw_get_gpe_register_bit(gpe_event_info,
+-						gpe_register_info);
++	register_bit = acpi_hw_get_gpe_register_bit(gpe_event_info);
  
- 			ACPI_DEBUG_PRINT((ACPI_DB_INTERRUPTS,
--					  "Read GPE Register at GPE%02X: Status=%02X, Enable=%02X\n",
-+					  "Read registers for GPE%02X-GPE%02X: Status=%02X, Enable=%02X, "
-+					  "RunEnable=%02X, WakeEnable=%02X\n",
- 					  gpe_register_info->base_gpe_number,
--					  status_reg, enable_reg));
-+					  gpe_register_info->base_gpe_number +
-+					  (ACPI_GPE_REGISTER_WIDTH - 1),
-+					  status_reg, enable_reg,
-+					  gpe_register_info->enable_for_run,
-+					  gpe_register_info->enable_for_wake));
+ 	/* Clear the run bit up front */
  
- 			/* Check if there is anything active at all in this register */
+diff --git a/drivers/acpi/acpica/evxfgpe.c b/drivers/acpi/acpica/evxfgpe.c
+index 6affbdb..87c5f23 100644
+--- a/drivers/acpi/acpica/evxfgpe.c
++++ b/drivers/acpi/acpica/evxfgpe.c
+@@ -357,8 +357,7 @@ acpi_status acpi_set_gpe_wake_mask(acpi_handle gpe_device, u32 gpe_number, u8 ac
+ 		goto unlock_and_exit;
+ 	}
+ 
+-	register_bit =
+-	    acpi_hw_get_gpe_register_bit(gpe_event_info, gpe_register_info);
++	register_bit = acpi_hw_get_gpe_register_bit(gpe_event_info);
+ 
+ 	/* Perform the action */
+ 
+diff --git a/drivers/acpi/acpica/hwgpe.c b/drivers/acpi/acpica/hwgpe.c
+index 25bd28c..db40765 100644
+--- a/drivers/acpi/acpica/hwgpe.c
++++ b/drivers/acpi/acpica/hwgpe.c
+@@ -60,7 +60,6 @@ acpi_hw_enable_wakeup_gpe_block(struct acpi_gpe_xrupt_info *gpe_xrupt_info,
+  * FUNCTION:	acpi_hw_get_gpe_register_bit
+  *
+  * PARAMETERS:	gpe_event_info	    - Info block for the GPE
+- *		gpe_register_info   - Info block for the GPE register
+  *
+  * RETURN:	Register mask with a one in the GPE bit position
+  *
+@@ -69,11 +68,10 @@ acpi_hw_enable_wakeup_gpe_block(struct acpi_gpe_xrupt_info *gpe_xrupt_info,
+  *
+  ******************************************************************************/
+ 
+-u32 acpi_hw_get_gpe_register_bit(struct acpi_gpe_event_info *gpe_event_info,
+-			     struct acpi_gpe_register_info *gpe_register_info)
++u32 acpi_hw_get_gpe_register_bit(struct acpi_gpe_event_info *gpe_event_info)
+ {
+ 	return (u32)1 << (gpe_event_info->gpe_number -
+-				gpe_register_info->base_gpe_number);
++		 gpe_event_info->register_info->base_gpe_number);
+ }
+ 
+ /******************************************************************************
+@@ -115,8 +113,7 @@ acpi_hw_low_set_gpe(struct acpi_gpe_event_info *gpe_event_info, u32 action)
+ 
+ 	/* Set or clear just the bit that corresponds to this GPE */
+ 
+-	register_bit = acpi_hw_get_gpe_register_bit(gpe_event_info,
+-						gpe_register_info);
++	register_bit = acpi_hw_get_gpe_register_bit(gpe_event_info);
+ 	switch (action) {
+ 	case ACPI_GPE_CONDITIONAL_ENABLE:
+ 
+@@ -178,8 +175,7 @@ acpi_status acpi_hw_clear_gpe(struct acpi_gpe_event_info * gpe_event_info)
+ 	 * Write a one to the appropriate bit in the status register to
+ 	 * clear this GPE.
+ 	 */
+-	register_bit =
+-	    acpi_hw_get_gpe_register_bit(gpe_event_info, gpe_register_info);
++	register_bit = acpi_hw_get_gpe_register_bit(gpe_event_info);
+ 
+ 	status = acpi_hw_write(register_bit,
+ 			       &gpe_register_info->status_address);
+@@ -222,8 +218,7 @@ acpi_hw_get_gpe_status(struct acpi_gpe_event_info * gpe_event_info,
+ 
+ 	/* Get the register bitmask for this GPE */
+ 
+-	register_bit = acpi_hw_get_gpe_register_bit(gpe_event_info,
+-						gpe_register_info);
++	register_bit = acpi_hw_get_gpe_register_bit(gpe_event_info);
+ 
+ 	/* GPE currently enabled? (enabled for runtime?) */
  
 -- 
 1.7.12.1.396.g16eed7c
