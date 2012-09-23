@@ -1,31 +1,92 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH 14/23] usb-acpi: Comply with the ACPI API change
-Date: Sat, 22 Sep 2012 22:54:41 -0700
-Message-ID: <20120923055441.GA21084@kroah.com>
-References: <a950c135e5b2be6ef7518d54d98a7901db1b377a.1348371388.git.len.brown@intel.com>
- <59e6423ba8aaa42289457a15ffc7d111a955a2fa.1348371388.git.len.brown@intel.com>
+From: Jiang Liu <liuj97@gmail.com>
+Subject: Re: [PATCH 01/40] PCI: fix default vga ref_count
+Date: Sun, 23 Sep 2012 23:25:53 +0800
+Message-ID: <505F2A01.7010109@gmail.com>
+References: <CAE9FiQWFcVNKMnV1qaHchwCXfZuMpyxf_f7GQy3FZid9YuLD3w@mail.gmail.com> <1348080894-23412-1-git-send-email-yinghai@kernel.org> <1348080894-23412-2-git-send-email-yinghai@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <59e6423ba8aaa42289457a15ffc7d111a955a2fa.1348371388.git.len.brown@intel.com>
+In-Reply-To: <1348080894-23412-2-git-send-email-yinghai@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Feng Tang <feng.tang@intel.com>, Bob Moore <robert.moore@intel.com>, Matthew Garrett <mjg@redhat.com>, Lan Tianyu <tianyu.lan@intel.com>, Len Brown <len.brown@intel.com>
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, x86 <x86@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Dave Airlie <airlied@redhat.com>, Julia Lawall <julia@diku.dk>, Matthew Garrett <mjg@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Sep 23, 2012 at 12:34:02AM -0400, Len Brown wrote:
-> From: Feng Tang <feng.tang@intel.com>
+On 09/20/2012 02:54 AM, Yinghai Lu wrote:
+> when __ARCH_HAS_VGA_DEFAULT_DEVICE is not defined, aka EFIFB is not used,
+> for static path, vga_default setting is through vga_arbiter_add_pci_device.
+> and later x86 pci_fixup_video, will skip setting again.
+> - subsys_initcall(vga_arb_device_init) come first to call vga_arbiter_add_pci_device. It will call pci_get_dev to hold one reference.
 > 
-> acpi_get_physical_device_location()'s 2nd argument has been changed
-> in ACPI implementaion, so need a follow-on change in
-> usb_acpi_check_pld().
+> for hotplug add path, even vga_arbiter_add_pci_device is called via notifier,
+> but it will check VGA_RSRC_LEGACY_MASK that is not set for hotplug path.
+> So x86 pci_fixup_video will take over to call vga_set_default_device().
+> It will not hold one refrence.
 > 
-> Signed-off-by: Feng Tang <feng.tang@intel.com>
-> Signed-off-by: Bob Moore <robert.moore@intel.com>
+> Later for hotplug remove path, vga_arbiter_del_pci_device that does not check
+> VGA_RSRC_LEGACY_MASK will call put_device and it will cause ref_count to
+> decrease extra. that will have that pci device get deleted early wrongly.
+> 
+> Need to make get/put balance for both cases.
+> 
+> -v2: According to Bjorn, update vga_set_default_device instead...
+> 
+> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+> Cc: x86@kernel.org
+> Cc: Dave Airlie <airlied@redhat.com>
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+> Cc: Julia Lawall <julia@diku.dk>
 > Cc: Matthew Garrett <mjg@redhat.com>
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Cc: Lan Tianyu <tianyu.lan@intel.com>
-> Signed-off-by: Len Brown <len.brown@intel.com>
+> ---
+>  drivers/gpu/vga/vgaarb.c |   14 +++++++++-----
+>  1 files changed, 9 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/gpu/vga/vgaarb.c b/drivers/gpu/vga/vgaarb.c
+> index b6852b7..0888951e 100644
+> --- a/drivers/gpu/vga/vgaarb.c
+> +++ b/drivers/gpu/vga/vgaarb.c
+> @@ -141,6 +141,12 @@ EXPORT_SYMBOL_GPL(vga_default_device);
+>  
+>  void vga_set_default_device(struct pci_dev *pdev)
+>  {
+> +	if (vga_default)
+> +		pci_dev_put(vga_default);
+> +
+> +	if (pdev)
+> +		pdev = pci_dev_get(pdev);
+> +
+>  	vga_default = pdev;
+>  }
+Seems it could be simplified as
+void vga_set_default_device(struct pci_dev *pdev)
+{
+	pci_dev_put(vga_default);
+ 	vga_default = pci_dev_get(pdev);
+}
+--Gerry
 
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+>  #endif
+> @@ -577,7 +583,7 @@ static bool vga_arbiter_add_pci_device(struct pci_dev *pdev)
+>  #ifndef __ARCH_HAS_VGA_DEFAULT_DEVICE
+>  	if (vga_default == NULL &&
+>  	    ((vgadev->owns & VGA_RSRC_LEGACY_MASK) == VGA_RSRC_LEGACY_MASK))
+> -		vga_default = pci_dev_get(pdev);
+> +		vga_set_default_device(pdev);
+>  #endif
+>  
+>  	vga_arbiter_check_bridge_sharing(vgadev);
+> @@ -613,10 +619,8 @@ static bool vga_arbiter_del_pci_device(struct pci_dev *pdev)
+>  	}
+>  
+>  #ifndef __ARCH_HAS_VGA_DEFAULT_DEVICE
+> -	if (vga_default == pdev) {
+> -		pci_dev_put(vga_default);
+> -		vga_default = NULL;
+> -	}
+> +	if (vga_default == pdev)
+> +		vga_set_default_device(NULL);
+>  #endif
+>  
+>  	if (vgadev->decodes & (VGA_RSRC_LEGACY_IO | VGA_RSRC_LEGACY_MEM))
+> 
