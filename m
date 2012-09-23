@@ -1,7 +1,7 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 05/23] ACPICA: Add Windows8/Server2012 string for _OSI method.
-Date: Sun, 23 Sep 2012 00:33:53 -0400
-Message-ID: <a57f7f9175b8ccbc9df83ac13860488913115de4.1348371388.git.len.brown@intel.com>
+Subject: [PATCH 23/23] tools/power/acpi/acpidump: create acpidump(8), local make install targets
+Date: Sun, 23 Sep 2012 00:34:11 -0400
+Message-ID: <0e7cc27935cda92c7a39a00791d0d4bbffeab117.1348371388.git.len.brown@intel.com>
 References: <1348374851-20378-1-git-send-email-lenb@kernel.org>
 Reply-To: Len Brown <lenb@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
@@ -10,48 +10,94 @@ In-Reply-To: <a950c135e5b2be6ef7518d54d98a7901db1b377a.1348371388.git.len.brown@
 References: <a950c135e5b2be6ef7518d54d98a7901db1b377a.1348371388.git.len.brown@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Bob Moore <robert.moore@intel.com>, Feng Tang <feng.tang@intel.com>, Len Brown <len.brown@intel.com>
+Cc: linux-kernel@vger.kernel.org, Len Brown <len.brown@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Bob Moore <robert.moore@intel.com>
+From: Len Brown <len.brown@intel.com>
 
-This change adds a new _OSI string, "Windows 2012" for both Windows 8
-and Windows Server 2012.
-
->From Microsoft document "How to Identify the Windows Version in ACPI
-by Using _OSI", July 13, 2012.
-
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Feng Tang <feng.tang@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/acpi/acpica/aclocal.h | 1 +
- drivers/acpi/acpica/utosi.c   | 1 +
- 2 files changed, 2 insertions(+)
+ tools/power/acpi/Makefile   |  4 +++
+ tools/power/acpi/acpidump.8 | 59 +++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 63 insertions(+)
+ create mode 100644 tools/power/acpi/acpidump.8
 
-diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
-index cc80fe1..493529a 100644
---- a/drivers/acpi/acpica/aclocal.h
-+++ b/drivers/acpi/acpica/aclocal.h
-@@ -932,6 +932,7 @@ struct acpi_bit_register_info {
- #define ACPI_OSI_WIN_VISTA_SP1          0x09
- #define ACPI_OSI_WIN_VISTA_SP2          0x0A
- #define ACPI_OSI_WIN_7                  0x0B
-+#define ACPI_OSI_WIN_8                  0x0C
+diff --git a/tools/power/acpi/Makefile b/tools/power/acpi/Makefile
+index dad79a6..6b9cf7a 100644
+--- a/tools/power/acpi/Makefile
++++ b/tools/power/acpi/Makefile
+@@ -12,3 +12,7 @@ CLEANFILES= $(PROG)
+ clean : 
+ 	rm -f $(CLEANFILES) $(patsubst %.c,%.o, $(SRCS)) *~
  
- #define ACPI_ALWAYS_ILLEGAL             0x00
- 
-diff --git a/drivers/acpi/acpica/utosi.c b/drivers/acpi/acpica/utosi.c
-index 34ef0bd..676285d 100644
---- a/drivers/acpi/acpica/utosi.c
-+++ b/drivers/acpi/acpica/utosi.c
-@@ -73,6 +73,7 @@ static struct acpi_interface_info acpi_default_supported_interfaces[] = {
- 	{"Windows 2006 SP1", NULL, 0, ACPI_OSI_WIN_VISTA_SP1},	/* Windows Vista SP1 - Added 09/2009 */
- 	{"Windows 2006 SP2", NULL, 0, ACPI_OSI_WIN_VISTA_SP2},	/* Windows Vista SP2 - Added 09/2010 */
- 	{"Windows 2009", NULL, 0, ACPI_OSI_WIN_7},	/* Windows 7 and Server 2008 R2 - Added 09/2009 */
-+	{"Windows 2012", NULL, 0, ACPI_OSI_WIN_8},	/* Windows 8 and Server 2012 - Added 08/2012 */
- 
- 	/* Feature Group Strings */
- 
++install :
++	install acpidump /usr/bin/acpidump
++	install acpidump.8 /usr/share/man/man8
++
+diff --git a/tools/power/acpi/acpidump.8 b/tools/power/acpi/acpidump.8
+new file mode 100644
+index 0000000..adfa991
+--- /dev/null
++++ b/tools/power/acpi/acpidump.8
+@@ -0,0 +1,59 @@
++.TH ACPIDUMP 8
++.SH NAME
++acpidump \- Dump system's ACPI tables to an ASCII file.
++.SH SYNOPSIS
++.ft B
++.B acpidump > acpidump.out
++.SH DESCRIPTION
++\fBacpidump \fP dumps the systems ACPI tables to an ASCII file
++appropriate for attaching to a bug report.
++
++Subsequently, they can be processed by utilities in the ACPICA package.
++.SS Options
++no options worth worrying about.
++.PP
++.SH EXAMPLE
++
++.nf
++# acpidump > acpidump.out
++
++$ acpixtract -a acpidump.out
++        Acpi table [DSDT] -  15974 bytes written to DSDT.dat
++        Acpi table [FACS] -     64 bytes written to FACS.dat
++        Acpi table [FACP] -    116 bytes written to FACP.dat
++        Acpi table [APIC] -    120 bytes written to APIC.dat
++        Acpi table [MCFG] -     60 bytes written to MCFG.dat
++        Acpi table [SSDT] -    444 bytes written to SSDT1.dat
++        Acpi table [SSDT] -    439 bytes written to SSDT2.dat
++        Acpi table [SSDT] -    439 bytes written to SSDT3.dat
++        Acpi table [SSDT] -    439 bytes written to SSDT4.dat
++        Acpi table [SSDT] -    439 bytes written to SSDT5.dat
++        Acpi table [RSDT] -     76 bytes written to RSDT.dat
++        Acpi table [RSDP] -     20 bytes written to RSDP.dat
++
++$ iasl -d *.dat
++...
++.fi
++creates *.dsl, a human readable form which can be edited
++and compiled using iasl.
++
++
++.SH NOTES
++
++.B "acpidump "
++must be run as root.
++
++.SH REFERENCES
++ACPICA: https://acpica.org/
++
++.SH FILES
++.ta
++.nf
++/dev/mem
++/sys/firmware/acpi/tables/dynamic/*
++.fi
++
++.PP
++.SH AUTHOR
++.nf
++Written by Len Brown <len.brown@intel.com>
 -- 
 1.7.12.1.396.g16eed7c
