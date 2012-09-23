@@ -1,32 +1,22 @@
-From: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 2/2] ACPI: Override arbitrary ACPI tables via initrd for
- debugging
-Date: Sun, 23 Sep 2012 00:25:40 -0400
-Message-ID: <505E8F44.9020208@kernel.org>
-References: <1348234085-39220-1-git-send-email-trenn@suse.de> <1348234085-39220-3-git-send-email-trenn@suse.de> <505DD65F.9080203@kernel.org> <201209230317.04050.trenn@suse.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <initramfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201209230317.04050.trenn-l3A5Bk7waGM@public.gmane.org>
-Sender: initramfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Cc: hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org, initramfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yinghai-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, eric.piel-VkQ1JFuSMpfAbQlEx87xDw@public.gmane.org, vojcek-wYtBgQxc//8@public.gmane.org
+From: Len Brown <lenb@kernel.org>
+Subject: ACPICA related patch queue for Linux-3.7
+Date: Sun, 23 Sep 2012 00:33:48 -0400
+Message-ID: <1348374851-20378-1-git-send-email-lenb@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-> +config ACPI_INITRD_TABLE_OVERRIDE
-> +       bool
-> +       default y
+Here is my ACPICA branch queued for Linux-3.7
 
-Do distros in addition to SuSE concur they want to ship this way?
+Please let me know if you see troubles with any of them.
 
-The last time we tried to make debugging easier we added
-ACPI_CUSTOM_METHOD, which allowed root to over-ride an AML method
-on a running system.  Distro security-minded people were not amused.
+Note that the acpidump utility is also in here.
+Since it lost its home on kernel.org in pmtools,
+and it depends on kernel headers, it seemed to
+make sense to put it here.  Yes, it is a bit dusty,
+and could use some clean-up...
 
 thanks,
--Len Brown, Intel Open Source Technology Center
-
-ps I noticed your reference to acpidump in the README.
-That reminded me to push it to the kernel source tree.
-Its new home will be tools/power/acpi/
+Len Brown, Intel Open Source Technology Center
