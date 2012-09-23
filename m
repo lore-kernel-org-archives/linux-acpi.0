@@ -1,7 +1,7 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 11/23] ACPICA: Add struct header support for _FDE, _GRT, _GTM, and _SRT names.
-Date: Sun, 23 Sep 2012 00:33:59 -0400
-Message-ID: <84be5d687f8060ad96d5a4a060e207a0ec5cc016.1348371388.git.len.brown@intel.com>
+Subject: [PATCH 05/23] ACPICA: Add Windows8/Server2012 string for _OSI method.
+Date: Sun, 23 Sep 2012 00:33:53 -0400
+Message-ID: <a57f7f9175b8ccbc9df83ac13860488913115de4.1348371388.git.len.brown@intel.com>
 References: <1348374851-20378-1-git-send-email-lenb@kernel.org>
 Reply-To: Len Brown <lenb@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
@@ -15,76 +15,43 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-Added structs for the buffers related to these predefined names,
-in acbuffer.h
+This change adds a new _OSI string, "Windows 2012" for both Windows 8
+and Windows Server 2012.
+
+>From Microsoft document "How to Identify the Windows Version in ACPI
+by Using _OSI", July 13, 2012.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Feng Tang <feng.tang@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- include/acpi/acbuffer.h | 43 +++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 43 insertions(+)
+ drivers/acpi/acpica/aclocal.h | 1 +
+ drivers/acpi/acpica/utosi.c   | 1 +
+ 2 files changed, 2 insertions(+)
 
-diff --git a/include/acpi/acbuffer.h b/include/acpi/acbuffer.h
-index 2c3b447..a1e45cd 100644
---- a/include/acpi/acbuffer.h
-+++ b/include/acpi/acbuffer.h
-@@ -45,6 +45,11 @@
- #define __ACBUFFER_H__
+diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
+index cc80fe1..493529a 100644
+--- a/drivers/acpi/acpica/aclocal.h
++++ b/drivers/acpi/acpica/aclocal.h
+@@ -932,6 +932,7 @@ struct acpi_bit_register_info {
+ #define ACPI_OSI_WIN_VISTA_SP1          0x09
+ #define ACPI_OSI_WIN_VISTA_SP2          0x0A
+ #define ACPI_OSI_WIN_7                  0x0B
++#define ACPI_OSI_WIN_8                  0x0C
  
- /*
-+ * Contains buffer structures for these predefined names:
-+ * _FDE, _GRT, _GTM, _PLD, _SRT
-+ */
-+
-+/*
-  * Note: C bitfields are not used for this reason:
-  *
-  * "Bitfields are great and easy to read, but unfortunately the C language
-@@ -56,6 +61,44 @@
-  * See http://stackoverflow.com/a/1053662/41661
-  */
+ #define ACPI_ALWAYS_ILLEGAL             0x00
  
-+/* _FDE return value */
-+
-+struct acpi_fde_info {
-+	u32 floppy0;
-+	u32 floppy1;
-+	u32 floppy2;
-+	u32 floppy3;
-+	u32 tape;
-+};
-+
-+/*
-+ * _GRT return value
-+ * _SRT input value
-+ */
-+struct acpi_grt_info {
-+	u16 year;
-+	u8 month;
-+	u8 day;
-+	u8 hour;
-+	u8 minute;
-+	u8 second;
-+	u8 valid;
-+	u16 milliseconds;
-+	u16 timezone;
-+	u8 daylight;
-+	u8 reserved[3];
-+};
-+
-+/* _GTM return value */
-+
-+struct acpi_gtm_info {
-+	u32 pio_speed0;
-+	u32 dma_speed0;
-+	u32 pio_speed1;
-+	u32 dma_speed1;
-+	u32 flags;
-+};
-+
- /*
-  * Formatted _PLD return value. The minimum size is a package containing
-  * one buffer.
+diff --git a/drivers/acpi/acpica/utosi.c b/drivers/acpi/acpica/utosi.c
+index 34ef0bd..676285d 100644
+--- a/drivers/acpi/acpica/utosi.c
++++ b/drivers/acpi/acpica/utosi.c
+@@ -73,6 +73,7 @@ static struct acpi_interface_info acpi_default_supported_interfaces[] = {
+ 	{"Windows 2006 SP1", NULL, 0, ACPI_OSI_WIN_VISTA_SP1},	/* Windows Vista SP1 - Added 09/2009 */
+ 	{"Windows 2006 SP2", NULL, 0, ACPI_OSI_WIN_VISTA_SP2},	/* Windows Vista SP2 - Added 09/2010 */
+ 	{"Windows 2009", NULL, 0, ACPI_OSI_WIN_7},	/* Windows 7 and Server 2008 R2 - Added 09/2009 */
++	{"Windows 2012", NULL, 0, ACPI_OSI_WIN_8},	/* Windows 8 and Server 2012 - Added 08/2012 */
+ 
+ 	/* Feature Group Strings */
+ 
 -- 
 1.7.12.1.396.g16eed7c
