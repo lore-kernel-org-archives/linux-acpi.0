@@ -1,112 +1,297 @@
-From: Stephane Grosjean <s.grosjean@peak-system.com>
-Subject: Info about ACPI/PCI vs ISA
-Date: Mon, 24 Sep 2012 14:13:35 +0200
-Message-ID: <50604E6F.2000104@peak-system.com>
-Reply-To: Stephane Grosjean <s.grosjean@peak-system.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v7 2/6] scsi: sr: support runtime pm
+Date: Mon, 24 Sep 2012 14:55:31 +0200
+Message-ID: <201209241455.31754.rjw@sisk.pl>
+References: <1347438597-5903-1-git-send-email-aaron.lu@intel.com> <201209212249.33063.rjw@sisk.pl> <20120924012010.GA14797@mint-spring.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.peak-system.com ([213.157.13.214]:54395 "EHLO
-	mail.peak-system.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754289Ab2IXMZ4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Sep 2012 08:25:56 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <20120924012010.GA14797@mint-spring.sh.intel.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Oliver Neukum <oliver@neukum.org>, James Bottomley <James.Bottomley@hansenpartnership.com>, Jeff Garzik <jgarzik@pobox.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-Good morning,
+On Monday, September 24, 2012, Aaron Lu wrote:
+> On Fri, Sep 21, 2012 at 10:49:32PM +0200, Rafael J. Wysocki wrote:
+> > On Friday, September 21, 2012, Aaron Lu wrote:
+> > > On Thu, Sep 20, 2012 at 10:48:10PM +0200, Rafael J. Wysocki wrote:
+> > > > On Wednesday, September 12, 2012, Aaron Lu wrote:
+> > > > > Place the ODD into runtime suspend state as soon as there is nobody
+> > > > > using it.
+> > > > 
+> > > > OK, so how is ODD related to the sr driver?
+> > > 
+> > > As Alan has explained, ODD(optical disk drive) is driven by scsi
+> > > sr driver.
+> > 
+> > OK, but what about writing "ODD (Optical Disk Drive)" in the changelog?
+> > 
+> > People reading git logs may not know all of the hardware acronyms and the
+> > "0" message doesn't go into the git log. :-)
+> > 
+> > > > > The only exception is, if we just find that a new medium is
+> > > > > inserted, we wait for the next events checking to idle it.
+> > > > 
+> > > > What exactly do you mean by "to idle it"?
+> > > 
+> > > I mean to put its usage count so that its idle callback will kick in.
+> > 
+> > So I'd just write that directly in the changelog.
+> > 
+> > > > Does this patch have any functional effect without the following patches?
+> > > 
+> > > Yes, this one alone takes care of ODD's runtime pm
+> > 
+> > I suppose you mean the runtime PM status and usage counter?  I.e. the "software
+> > state"?
+> 
+> Yes.
+> 
+> > 
+> > > while the following
+> > > patches take care of removing its power after it's runtime suspended.
+> > > But it doesn't have any real benefit without the following patches.
+> > 
+> > Please put that information into the changelog too.
+> 
+> As Alan explained, I think I would say:
+> Though currently it doesn't have any benefit, it allows its parent
+> devices enter runtime suspend state which may save some power.
 
-I'm working on a problem from one of our customers, which has an issue=20
-with one of our PCI adapters.
-This PCI adapter is a standard and well proven board:
+Well, please say that in the changelog, then. :-)
 
-$ lspci -v
-=2E..
-04:08.0 Network controller: PEAK-System Technik GmbH PCAN-PCI CAN-Bus=20
-controller (rev 02)
-     Subsystem: PEAK-System Technik GmbH 2 Channel CAN Bus SJC1000
-     Flags: medium devsel, IRQ 11
-     Memory at f0410000 (32-bit, non-prefetchable) [size=3D64K]
-     Memory at f0400000 (32-bit, non-prefetchable) [size=3D64K]
-     Kernel driver in use: pcan
+> > > > > Based on ideas of Alan Stern and Oliver Neukum.
+> > > > > 
+> > > > > Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+> > > > > ---
+> > > > >  drivers/scsi/sr.c | 29 +++++++++++++++++++++++++----
+> > > > >  1 file changed, 25 insertions(+), 4 deletions(-)
+> > > > > 
+> > > > > diff --git a/drivers/scsi/sr.c b/drivers/scsi/sr.c
+> > > > > index 5fc97d2..7a8222f 100644
+> > > > > --- a/drivers/scsi/sr.c
+> > > > > +++ b/drivers/scsi/sr.c
+> > > > > @@ -45,6 +45,7 @@
+> > > > >  #include <linux/blkdev.h>
+> > > > >  #include <linux/mutex.h>
+> > > > >  #include <linux/slab.h>
+> > > > > +#include <linux/pm_runtime.h>
+> > > > >  #include <asm/uaccess.h>
+> > > > >  
+> > > > >  #include <scsi/scsi.h>
+> > > > > @@ -146,8 +147,12 @@ static inline struct scsi_cd *scsi_cd_get(struct gendisk *disk)
+> > > > >  	kref_get(&cd->kref);
+> > > > >  	if (scsi_device_get(cd->device))
+> > > > >  		goto out_put;
+> > > > > +	if (scsi_autopm_get_device(cd->device))
+> > > > > +		goto out_pm;
+> > > > >  	goto out;
+> > > > 
+> > > > Why don't you do
+> > > > 
+> > > > > +	if (!scsi_autopm_get_device(cd->device))
+> > > > > +		goto out;
+> > > > 
+> > > > without the new label?
+> > > 
+> > > I was just stupidly following the pattern.
+> > > Thanks and I'll change this.
+> > > 
+> > > > 
+> > > > >  
+> > > > > + out_pm:
+> > > > > +	scsi_device_put(cd->device);
+> > > > >   out_put:
+> > > > >  	kref_put(&cd->kref, sr_kref_release);
+> > > > >  	cd = NULL;
+> > > > > @@ -163,6 +168,7 @@ static void scsi_cd_put(struct scsi_cd *cd)
+> > > > >  	mutex_lock(&sr_ref_mutex);
+> > > > >  	kref_put(&cd->kref, sr_kref_release);
+> > > > >  	scsi_device_put(sdev);
+> > > > > +	scsi_autopm_put_device(sdev);
+> > > > >  	mutex_unlock(&sr_ref_mutex);
+> > > > >  }
+> > > > >  
+> > > > > @@ -211,7 +217,7 @@ static unsigned int sr_check_events(struct cdrom_device_info *cdi,
+> > > > >  				    unsigned int clearing, int slot)
+> > > > >  {
+> > > > >  	struct scsi_cd *cd = cdi->handle;
+> > > > > -	bool last_present;
+> > > > > +	bool last_present = cd->media_present;
+> > > > >  	struct scsi_sense_hdr sshdr;
+> > > > >  	unsigned int events;
+> > > > >  	int ret;
+> > > > > @@ -220,6 +226,8 @@ static unsigned int sr_check_events(struct cdrom_device_info *cdi,
+> > > > >  	if (CDSL_CURRENT != slot)
+> > > > >  		return 0;
+> > > > >  
+> > > > > +	scsi_autopm_get_device(cd->device);
+> > > > > +
+> > > > >  	events = sr_get_events(cd->device);
+> > > > >  	cd->get_event_changed |= events & DISK_EVENT_MEDIA_CHANGE;
+> > > > >  
+> > > > > @@ -246,10 +254,9 @@ static unsigned int sr_check_events(struct cdrom_device_info *cdi,
+> > > > >  	}
+> > > > >  
+> > > > >  	if (!(clearing & DISK_EVENT_MEDIA_CHANGE))
+> > > > > -		return events;
+> > > > > +		goto out;
+> > > > >  do_tur:
+> > > > >  	/* let's see whether the media is there with TUR */
+> > > > > -	last_present = cd->media_present;
+> > > > >  	ret = scsi_test_unit_ready(cd->device, SR_TIMEOUT, MAX_RETRIES, &sshdr);
+> > > > >  
+> > > > >  	/*
+> > > > > @@ -270,7 +277,7 @@ do_tur:
+> > > > >  	}
+> > > > >  
+> > > > >  	if (cd->ignore_get_event)
+> > > > > -		return events;
+> > > > > +		goto out;
+> > > > >  
+> > > > >  	/* check whether GET_EVENT is reporting spurious MEDIA_CHANGE */
+> > > > >  	if (!cd->tur_changed) {
+> > > > > @@ -287,6 +294,12 @@ do_tur:
+> > > > >  	cd->tur_changed = false;
+> > > > >  	cd->get_event_changed = false;
+> > > > >  
+> > > > > +out:
+> > > > > +	if (cd->media_present && !last_present)
+> > > > > +		pm_runtime_put_noidle(&cd->device->sdev_gendev);
+> > > > > +	else
+> > > > > +		scsi_autopm_put_device(cd->device);
+> > > > > +
+> > > > 
+> > > > This thing is asking for a comment.
+> > > > 
+> > > > It looks like you're kind of avoiding to call _idle() for the device, but why?
+> > > > What might go wrong if pm_runtime_put() is used instead of the whole conditional,
+> > > > among other things?
+> > > 
+> > > The above code means, if we found that a disc is just inserted(reflected
+> > > by cd->media_present is true and last_present is false), we do not want
+> > > to put the device into suspend state immediately until next poll. In the
+> > > interval, some programs may decide to use this device by opening it.
+> > > 
+> > > Nothing will go wrong, but it can possibly avoid a runtime status change.
+> > 
+> > OK, so suppose the condition is true and we do the _noidle() put.  Who's
+> > going to suspend the device in that case if no one actually uses the device?
+> 
+> Next time when the check_events poll runs, it will find that:
+> 1 Either the disc is still there, then both last_present and
+>   media_present would be true, we will do the put to idle it;
+> 2 Or the disc is ejected, we will do the put to idle it.
 
-The running system is:
+In that case I would do:
 
-[    0.000000] Initializing cgroup subsys cpuset
-[    0.000000] Initializing cgroup subsys cpu
-[    0.000000] Linux version 3.1.9-1.4-desktop (geeko@buildhost) (gcc=20
-version 4.6.2 (SUSE Linux) ) #1 SMP PREEMPT Fri Jan 27 08:55:10 UTC 201=
-2=20
-(efb5ff4)
-=2E..
-[    0.000000] Kernel command line:=20
-root=3D/dev/disk/by-id/ata-SPCC_Solid_State_DiskB28_0000000000000000001=
-5-part2=20
-resume=3D/dev/disk/by-id/ata-SPCC_Solid_State_DiskB28_00000000000000000=
-015-part1=20
-splash=3Dsilent quiet vga=3D0x31b
-=2E..
-[    0.471267] ACPI: PCI Interrupt Link [LNKA] (IRQs 1 3 4 5 6 10 *11 1=
-2=20
-14 15)
-[    0.471323] ACPI: PCI Interrupt Link [LNKB] (IRQs 1 3 4 5 6 10 11 12=
-=20
-14 15) *7
-[    0.471378] ACPI: PCI Interrupt Link [LNKC] (IRQs 1 3 4 5 6 10 11 12=
-=20
-14 15) *7
-[    0.471434] ACPI: PCI Interrupt Link [LNKD] (IRQs 1 3 4 5 6 *10 11 1=
-2=20
-14 15)
-[    0.471487] ACPI: PCI Interrupt Link [LNKE] (IRQs 1 3 4 5 6 10 11 12=
-=20
-14 15) *0, disabled.
-[    0.471541] ACPI: PCI Interrupt Link [LNKF] (IRQs 1 3 4 5 6 10 11 12=
-=20
-14 15) *0, disabled.
-[    0.471594] ACPI: PCI Interrupt Link [LNKG] (IRQs 1 3 4 5 6 *10 11 1=
-2=20
-14 15)
-[    0.471647] ACPI: PCI Interrupt Link [LNKH] (IRQs 1 3 4 5 6 10 *11 1=
-2=20
-14 15)
+pm_runtime_put_noidle(&cd->device->sdev_gendev);
+if (cd->media_present && !last_present)
+    pm_runtime_suspend(&cd->device->sdev_gendev);
 
-The customer does not succeed to send and receive data to/from this car=
-d=20
-and we suspect an IRQ related issue. For example, loading our (good old=
-)=20
-"pcan" driver leads to the below logs:
+And I'd add a comment about the next poll.
 
-=2E..
-[    6.186877] pci 0000:00:1e.0: can't derive routing for PCI INT A
-[    6.186878] pcan 0000:04:08.0: PCI INT A: no GSI - using ISA IRQ 11
-=2E..
+This appears somewhat racy, though, because in theory a media may be inserted
+while we are removing power from the device.  Isn't that a problem?
 
-My questions are:
+> The poll runs periodically, until the device is powered off(reflected by
+> the powered_off flag), in which case, the poll will simply return
+> 0 without touching this device.
 
-- why does the customer system not succeed to "derive" routing for INTA=
-?=20
-And why us? ;-)
-- since the system looks like it switched in old "ISA" mode, should the=
-=20
-driver run differently (IRQ not shared, for example) or is this=20
-transparently handled by the Kernel?
+Is it useful to poll the device after it has been suspended, but not powered
+off?
 
-(implied question: how to fix this problem by the customer?)
+> > > > >  	return events;
+> > > > >  }
+> > > > >  
+> > > > > @@ -715,9 +728,14 @@ static int sr_probe(struct device *dev)
+> > > > >  	dev_set_drvdata(dev, cd);
+> > > > >  	disk->flags |= GENHD_FL_REMOVABLE;
+> > > > >  	add_disk(disk);
+> > > > > +	disk_events_set_poll_msecs(disk, 5000);
+> > > > 
+> > > > Why do you need this and why is the poll interval universally suitable?
+> > > 
+> > > For a system with udev, the block module parameter events_dfl_poll_msecs
+> > > will be set to 2s. If disk's events_poll_msecs is not set, that will be
+> > > used. So the disk will be polled every 2s, that means it will be runtime
+> > > suspended/resumed every 2s if there is no user. I set it to 5s so that
+> > > the device can stay in runtime suspended state longer.
+> > > 
+> > > And the sysfs interface is still there, if udev thinks a device needs
+> > > special setting, it will do that and I'll not overwrite that setting.
+> > 
+> > I'm not quite convinced this is the right approach here.
+> > 
+> > So if you set it to 5 s this way, the user space will have no idea that
+> > the polling happens less often than it thinks, or am I misunderstanding
+> > what you said above?
+> 
+> That's correct.
+> AFAIK, user space does not care how often the device is polled, it
+> cares only one thing: when there is a media change event, please let me
+> know(through uevent).
 
-Many thanks for your time and your help,
+So that's why we do the polling, right?
 
-St=E9phane Grosjean
+> I agree that we can't make user wait for too long before seeing
+> something happen(auto play, etc.) after he inserted a disc, and 5
+> seconds doesn't seem too long to me.
+> 
+> > 
+> > Moreover, what about changing the code so that the polling doesn't
+> > actually resume the device?
+> 
+> Since the device is going to do IO(executing a scsi command), I think I
+> should resume the device.
+> 
+> But there is a case for ZPODD, when the ODD is powered off(reflected by
+> the powered_off flag), the events checking will simply return without
+> resuming the device.
 
---
-PEAK-System Technik GmbH, Otto-Roehm-Strasse 69, D-64293 Darmstadt=20
-Geschaeftsleitung: A.Gach/U.Wilhelm,St.Nr.:007/241/13586 FA Darmstadt=20
-HRB-9183 Darmstadt, Ust.IdNr.:DE 202220078, WEE-Reg.-Nr.: DE39305391=20
-Tel.+49 (0)6151-817320 / Fax:+49 (0)6151-817329, info@peak-system.com
-----
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yes, I understand that.  My question is whether or not we still need to poll
+if the device hasn't been powered off, although it has been suspended.
+
+> > > > >  
+> > > > >  	sdev_printk(KERN_DEBUG, sdev,
+> > > > >  		    "Attached scsi CD-ROM %s\n", cd->cdi.name);
+> > > > > +
+> > > > > +	/* enable runtime pm */
+> > > > 
+> > > > Not really.  What it does is to enable the device to be suspended.
+> > > 
+> > > OK, will change this.
+> > > 
+> > > > 
+> > > > > +	scsi_autopm_put_device(cd->device);
+> > > > > +
+> > > > >  	return 0;
+> > > > >  
+> > > > >  fail_put:
+> > > > > @@ -965,6 +983,9 @@ static int sr_remove(struct device *dev)
+> > > > >  {
+> > > > >  	struct scsi_cd *cd = dev_get_drvdata(dev);
+> > > > >  
+> > > > > +	/* disable runtime pm */
+> > > > 
+> > > > And that prevents the device from being suspended (which means that it's
+> > > > going to be resumed at this point in case it was suspended before).
+> > > 
+> > > Yes, that's what I want.
+> > > We are removing its driver and I think we should undo what we have done
+> > > to it.
+> > 
+> > Yes, I agree.  Only the comment wording can better reflect what really
+> > happens here (runtime PM is not disabled, in particular).
+> 
+> OK, looks like you are saying by disable, disable_depth is the subject
+> while I'm playing with usage_count. I'll pay attention to these words,
+> thanks for the remind.
+
+Please do.
+
+Thanks,
+Rafael
