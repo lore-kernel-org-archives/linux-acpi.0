@@ -1,7 +1,7 @@
 From: Matthew Garrett <mjg@redhat.com>
-Subject: [PATCH 4/4] ACPI: Add a default handler for IPMI operation regions
-Date: Mon, 24 Sep 2012 11:05:40 -0400
-Message-ID: <1348499140-13550-5-git-send-email-mjg@redhat.com>
+Subject: [PATCH 3/4] IPMI: Add a callback to indicate that probing has finished
+Date: Mon, 24 Sep 2012 11:05:39 -0400
+Message-ID: <1348499140-13550-4-git-send-email-mjg@redhat.com>
 References: <1348499140-13550-1-git-send-email-mjg@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1348499140-13550-1-git-send-email-mjg@redhat.com>
@@ -10,117 +10,117 @@ To: yakui.zhao@intel.com
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, cminyard@mvista.com, Matthew Garrett <mjg@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-The ACPI spec makes it clear that IPMI operation regions should be declared
-inside the scope of an IPMI device. Based on the existence of systems for
-which this is untrue, it seems likely that alternative implementations exist
-that perform some kind of fallback for regions outside the scope of an IPMI
-device. Add a callback to the ACPI IPMI driver to glue these operation
-regions onto an IPMI device. Behaviour in the case of multiple controllers
-may be unpredictable, but there's clearly no way to know the correct answer
-in that case.
+Some IPMI callbacks may want to know how many IPMI devices were registered
+or perform some specific action after probing has been completed. Add a
+new callback to handle that.
 
 Signed-off-by: Matthew Garrett <mjg@redhat.com>
 ---
- drivers/acpi/acpi_ipmi.c | 50 ++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 50 insertions(+)
+ drivers/char/ipmi/ipmi_msghandler.c | 15 +++++++++++++++
+ drivers/char/ipmi/ipmi_si_intf.c    |  6 +++++-
+ include/linux/ipmi.h                |  3 ++-
+ include/linux/ipmi_smi.h            |  5 +++++
+ 4 files changed, 27 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/acpi_ipmi.c b/drivers/acpi/acpi_ipmi.c
-index f40acef..15dc0e8 100644
---- a/drivers/acpi/acpi_ipmi.c
-+++ b/drivers/acpi/acpi_ipmi.c
-@@ -72,6 +72,7 @@ struct ipmi_driver_data {
- 	struct ipmi_smi_watcher	bmc_events;
- 	struct ipmi_user_hndl	ipmi_hndlrs;
- 	struct mutex		ipmi_lock;
-+	struct acpi_ipmi_device *global_device;
- };
- 
- struct acpi_ipmi_msg {
-@@ -106,9 +107,14 @@ struct acpi_ipmi_buffer {
- 
- static void ipmi_register_bmc(int iface, struct device *dev);
- static void ipmi_bmc_gone(int iface);
-+static void ipmi_probe_complete(void);
- static void ipmi_msg_handler(struct ipmi_recv_msg *msg, void *user_msg_data);
- static void acpi_add_ipmi_device(struct acpi_ipmi_device *ipmi_device);
- static void acpi_remove_ipmi_device(struct acpi_ipmi_device *ipmi_device);
-+static acpi_status
-+acpi_ipmi_space_handler(u32 function, acpi_physical_address address,
-+			u32 bits, acpi_integer *value,
-+			void *handler_context, void *region_context);
- 
- static struct ipmi_driver_data driver_data = {
- 	.ipmi_devices = LIST_HEAD_INIT(driver_data.ipmi_devices),
-@@ -116,6 +122,7 @@ static struct ipmi_driver_data driver_data = {
- 		.owner = THIS_MODULE,
- 		.new_smi = ipmi_register_bmc,
- 		.smi_gone = ipmi_bmc_gone,
-+		.smi_probe_complete = ipmi_probe_complete,
- 	},
- 	.ipmi_hndlrs = {
- 		.ipmi_recv_hndl = ipmi_msg_handler,
-@@ -276,6 +283,32 @@ static void ipmi_msg_handler(struct ipmi_recv_msg *msg, void *user_msg_data)
- 	ipmi_free_recv_msg(msg);
- };
- 
-+/* Must be called with driver_data.ipmi_lock held */
-+static void ipmi_update_global_handler(void)
-+{
-+	struct acpi_ipmi_device *ipmi_device;
-+	acpi_status status;
-+
-+	if (driver_data.global_device)
-+		return;
-+
-+	list_for_each_entry(ipmi_device, &driver_data.ipmi_devices, head) {
-+		/*
-+		 * Register a handler for IPMI regions that aren't under a
-+		 * specific IPMI namespace. This appears to be a spec violation
-+		 * but we should do what we can.
-+		 */
-+		status = acpi_install_address_space_handler(ACPI_ROOT_OBJECT,
-+						      ACPI_ADR_SPACE_IPMI,
-+						      &acpi_ipmi_space_handler,
-+						      NULL, ipmi_device);
-+		if (ACPI_SUCCESS(status)) {
-+			driver_data.global_device = ipmi_device;
-+			break;
-+		}
-+	}
-+}
-+
- static void ipmi_register_bmc(int iface, struct device *dev)
- {
- 	struct acpi_ipmi_device *ipmi_device, *temp;
-@@ -347,12 +380,29 @@ static void ipmi_bmc_gone(int iface)
- 			continue;
- 
- 		acpi_remove_ipmi_device(ipmi_device);
-+
-+		if (driver_data.global_device == ipmi_device) {
-+			acpi_remove_address_space_handler(ACPI_ROOT_OBJECT,
-+				ACPI_ADR_SPACE_IPMI, &acpi_ipmi_space_handler);
-+			driver_data.global_device = NULL;
-+			ipmi_update_global_handler();
-+		}
-+
- 		put_device(ipmi_device->smi_data.dev);
- 		kfree(ipmi_device);
- 		break;
+diff --git a/drivers/char/ipmi/ipmi_msghandler.c b/drivers/char/ipmi/ipmi_msghandler.c
+index 2c29942..3aacb6d 100644
+--- a/drivers/char/ipmi/ipmi_msghandler.c
++++ b/drivers/char/ipmi/ipmi_msghandler.c
+@@ -571,6 +571,9 @@ int ipmi_smi_watcher_register(struct ipmi_smi_watcher *watcher)
+ 		kfree(e);
  	}
+ 
++	if (watcher->smi_probe_complete)
++		watcher->smi_probe_complete();
 +
- 	mutex_unlock(&driver_data.ipmi_lock);
+ 	mutex_unlock(&smi_watchers_mutex);
+ 
+ 	return 0;
+@@ -2807,6 +2810,18 @@ void ipmi_poll_interface(ipmi_user_t user)
  }
-+
-+static void ipmi_probe_complete(void)
+ EXPORT_SYMBOL(ipmi_poll_interface);
+ 
++void ipmi_smi_probe_complete(void)
 +{
-+	mutex_lock(&driver_data.ipmi_lock);
-+	ipmi_update_global_handler();
-+	mutex_unlock(&driver_data.ipmi_lock);
++	struct ipmi_smi_watcher *w;
++
++	mutex_lock(&smi_watchers_mutex);
++	list_for_each_entry(w, &smi_watchers, link) {
++		if (w->smi_probe_complete)
++			w->smi_probe_complete();
++	}
++	mutex_unlock(&smi_watchers_mutex);
 +}
 +
- /* --------------------------------------------------------------------------
-  *			Address Space Management
-  * -------------------------------------------------------------------------- */
+ int ipmi_register_smi(struct ipmi_smi_handlers *handlers,
+ 		      void		       *send_info,
+ 		      struct ipmi_device_id    *device_id,
+diff --git a/drivers/char/ipmi/ipmi_si_intf.c b/drivers/char/ipmi/ipmi_si_intf.c
+index 83f85cf..75e3c4f 100644
+--- a/drivers/char/ipmi/ipmi_si_intf.c
++++ b/drivers/char/ipmi/ipmi_si_intf.c
+@@ -3408,6 +3408,7 @@ static int __devinit init_ipmi_si(void)
+ 	/* type will only have been set if we successfully registered an si */
+ 	if (type) {
+ 		mutex_unlock(&smi_infos_lock);
++		ipmi_smi_probe_complete();
+ 		return 0;
+ 	}
+ 
+@@ -3422,8 +3423,10 @@ static int __devinit init_ipmi_si(void)
+ 	}
+ 	mutex_unlock(&smi_infos_lock);
+ 
+-	if (type)
++	if (type) {
++		ipmi_smi_probe_complete();
+ 		return 0;
++	}
+ 
+ 	if (si_trydefaults) {
+ 		mutex_lock(&smi_infos_lock);
+@@ -3444,6 +3447,7 @@ static int __devinit init_ipmi_si(void)
+ 		return -ENODEV;
+ 	} else {
+ 		mutex_unlock(&smi_infos_lock);
++		ipmi_smi_probe_complete();
+ 		return 0;
+ 	}
+ }
+diff --git a/include/linux/ipmi.h b/include/linux/ipmi.h
+index 48dcba9..6c8faaa 100644
+--- a/include/linux/ipmi.h
++++ b/include/linux/ipmi.h
+@@ -435,12 +435,13 @@ struct ipmi_smi_watcher {
+ 	   a module (generally just set it to "THIS_MODULE"). */
+ 	struct module *owner;
+ 
+-	/* These two are called with read locks held for the interface
++	/* These three are called with read locks held for the interface
+ 	   the watcher list.  So you can add and remove users from the
+ 	   IPMI interface, send messages, etc., but you cannot add
+ 	   or remove SMI watchers or SMI interfaces. */
+ 	void (*new_smi)(int if_num, struct device *dev);
+ 	void (*smi_gone)(int if_num);
++	void (*smi_probe_complete)(void);
+ };
+ 
+ int ipmi_smi_watcher_register(struct ipmi_smi_watcher *watcher);
+diff --git a/include/linux/ipmi_smi.h b/include/linux/ipmi_smi.h
+index fcb5d44..56abc7c 100644
+--- a/include/linux/ipmi_smi.h
++++ b/include/linux/ipmi_smi.h
+@@ -215,6 +215,11 @@ int ipmi_register_smi(struct ipmi_smi_handlers *handlers,
+ int ipmi_unregister_smi(ipmi_smi_t intf);
+ 
+ /*
++ * Indicate to the IPMI driver that probing has been completed
++ */
++void ipmi_smi_probe_complete(void);
++
++/*
+  * The lower layer reports received messages through this interface.
+  * The data_size should be zero if this is an asyncronous message.  If
+  * the lower layer gets an error sending a message, it should format
 -- 
 1.7.11.4
