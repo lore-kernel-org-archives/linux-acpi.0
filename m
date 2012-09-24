@@ -1,37 +1,63 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
-Subject: RE: [PATCH] Thermal: Provide option to choose default thermal
- governor
-Date: Mon, 24 Sep 2012 06:16:01 +0000
-Message-ID: <4D68720C2E767A4AA6A8796D42C8EB591C9763@BGSMSX102.gar.corp.intel.com>
-References: <1348218144-6845-1-git-send-email-durgadoss.r@intel.com>
- <1348465205.10877.146.camel@rui.sh.intel.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH 2/2] ACPI: Override arbitrary ACPI tables via initrd for debugging
+Date: Mon, 24 Sep 2012 08:40:28 +0200
+Message-ID: <201209240840.29342.trenn@suse.de>
+References: <1348234085-39220-1-git-send-email-trenn@suse.de> <201209230317.04050.trenn@suse.de> <505E8F44.9020208@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:2334 "EHLO mga01.intel.com"
+Received: from cantor2.suse.de ([195.135.220.15]:44931 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754283Ab2IXGQM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 24 Sep 2012 02:16:12 -0400
-In-Reply-To: <1348465205.10877.146.camel@rui.sh.intel.com>
-Content-Language: en-US
+	id S1752246Ab2IXGm7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 24 Sep 2012 02:42:59 -0400
+In-Reply-To: <505E8F44.9020208@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Len Brown <lenb@kernel.org>
+Cc: hpa@zytor.com, initramfs@vger.kernel.org, robert.moore@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, yinghai@kernel.org, eric.piel@tremplin-utc.net, vojcek@tlen.pl
 
-SGkgUnVpLA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFpoYW5nLCBS
-dWkNCj4gU2VudDogTW9uZGF5LCBTZXB0ZW1iZXIgMjQsIDIwMTIgMTE6MTAgQU0NCj4gVG86IFIs
-IER1cmdhZG9zcw0KPiBDYzogbGVuYkBrZXJuZWwub3JnOyBsaW51eC1hY3BpQHZnZXIua2VybmVs
-Lm9yZw0KPiBTdWJqZWN0OiBSZTogW1BBVENIXSBUaGVybWFsOiBQcm92aWRlIG9wdGlvbiB0byBj
-aG9vc2UgZGVmYXVsdCB0aGVybWFsDQo+IGdvdmVybm9yDQo+IA0KPiBPbiDkupQsIDIwMTItMDkt
-MjEgYXQgMTQ6MzIgKzA1MzAsIER1cmdhZG9zcyBSIHdyb3RlOg0KPiA+IFRoaXMgcGF0Y2ggcHJv
-dmlkZXMgb3B0aW9uIHRvIGNob29zZSB0aGUgZGVmYXVsdCB0aGVybWFsDQo+ID4gZ292ZXJub3Iu
-IElmIG5vIG9wdGlvbiBpcyBwcm92aWRlZCwgdGhlIHN0ZXBfd2lzZQ0KPiA+IGdvdmVybm9yIGlz
-IHNlbGVjdGVkIGJ5IGRlZmF1bHQuDQo+ID4NCj4geWVwLCBJIGxpa2UgdGhpcyBhcHByb2FjaC4g
-d2lsbCBhcHBseSB0byBteSBuZXh0IHRyZWUuDQoNClRoYXTigJlzIGdyZWF0Li4gVGhhbmtzIFJ1
-aS4NCkluIHRoaXMgY2FzZSwgSSBiZWxpZXZlIHlvdSBhcmUgdGFraW5nIHRoZSB2NCBvZiB0aGUg
-MTUgcGF0Y2hlcywNCmFuZCB0aGlzIG9uZSBvbiB0b3Agb2YgdGhlbS4NCg0KTWVhbndoaWxlLCBJ
-IHdpbGwgZml4IHRoZSBtaW5vciBjb21tZW50cyBvbiBwYXRjaGVzIDQgYW5kIDcNCmFuZCBzdWJt
-aXQgc2VwYXJhdGUgcGF0Y2hlcywgaG9wZWZ1bGx5IGJ5IHRoaXMgd2Vlay4NCg0KVGhhbmtzLA0K
-RHVyZ2ENCg==
+On Sunday 23 September 2012 06:25:40 Len Brown wrote:
+> > +config ACPI_INITRD_TABLE_OVERRIDE
+> > +       bool
+> > +       default y
+> 
+> Do distros in addition to SuSE concur they want to ship this way?
+Whether distros ship this in their enterprise, community or just in
+a -debug kernel flavor is up to them.
+I cannot see why this cannot be enabled by default on all.
+That is what the TAINT flag is for...
+ 
+> The last time we tried to make debugging easier we added
+> ACPI_CUSTOM_METHOD, which allowed root to over-ride an AML method
+> on a running system.  Distro security-minded people were not amused.
+Yep and therefore you have to remove this one from the tools for
+ACPI debugging you listed.
+The issue is/was, that root can inject code at runtime which is then
+executed in kernel environment.
+Afaik there are "security" provisions or say setups, which do
+hide modprobe/insmod and do not allow root to load any kernel drivers 
+or similar.
+If one can write the kernel or initrd which gets booted, I guess there
+are not much security restrictions anymore you could put on this user...
+But thanks for the pointer, I'll go and double check with some
+security guys.
+
+> thanks,
+> -Len Brown, Intel Open Source Technology Center
+> 
+> ps I noticed your reference to acpidump in the README.
+> That reminded me to push it to the kernel source tree.
+> Its new home will be tools/power/acpi
+This is the one which I tried to/did adjust to acpica headers?
+This sounds like a very good idea. I'll adjust the docs.
+
+pss: Can this tool live there as well:
+ftp://ftp.suse.com/pub/people/trenn/sources/ec/ec_access.c
+It's the userspace tool for examining EC values (and changes) via
+ec_sys debug driver and a corresponding /sys/kernel/debug/.. file.
+It's more ore less doing the same what the old thinkpad_acpi driver
+could, but offers this to all machines with an EC device.
+
+    Thomas
