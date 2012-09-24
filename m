@@ -1,63 +1,59 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH 2/2] ACPI: Override arbitrary ACPI tables via initrd for debugging
-Date: Mon, 24 Sep 2012 08:40:28 +0200
-Message-ID: <201209240840.29342.trenn@suse.de>
-References: <1348234085-39220-1-git-send-email-trenn@suse.de> <201209230317.04050.trenn@suse.de> <505E8F44.9020208@kernel.org>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: RE: [PATCH] Thermal: Provide option to choose default thermal
+ governor
+Date: Mon, 24 Sep 2012 14:57:03 +0800
+Message-ID: <1348469823.10877.152.camel@rui.sh.intel.com>
+References: <1348218144-6845-1-git-send-email-durgadoss.r@intel.com>
+	 <1348465205.10877.146.camel@rui.sh.intel.com>
+	 <4D68720C2E767A4AA6A8796D42C8EB591C9763@BGSMSX102.gar.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:44931 "EHLO mx2.suse.de"
+Received: from mga09.intel.com ([134.134.136.24]:40074 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752246Ab2IXGm7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 24 Sep 2012 02:42:59 -0400
-In-Reply-To: <505E8F44.9020208@kernel.org>
+	id S1752919Ab2IXG4U (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 24 Sep 2012 02:56:20 -0400
+In-Reply-To: <4D68720C2E767A4AA6A8796D42C8EB591C9763@BGSMSX102.gar.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: hpa@zytor.com, initramfs@vger.kernel.org, robert.moore@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, yinghai@kernel.org, eric.piel@tremplin-utc.net, vojcek@tlen.pl
+To: "R, Durgadoss" <durgadoss.r@intel.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Sunday 23 September 2012 06:25:40 Len Brown wrote:
-> > +config ACPI_INITRD_TABLE_OVERRIDE
-> > +       bool
-> > +       default y
-> 
-> Do distros in addition to SuSE concur they want to ship this way?
-Whether distros ship this in their enterprise, community or just in
-a -debug kernel flavor is up to them.
-I cannot see why this cannot be enabled by default on all.
-That is what the TAINT flag is for...
- 
-> The last time we tried to make debugging easier we added
-> ACPI_CUSTOM_METHOD, which allowed root to over-ride an AML method
-> on a running system.  Distro security-minded people were not amused.
-Yep and therefore you have to remove this one from the tools for
-ACPI debugging you listed.
-The issue is/was, that root can inject code at runtime which is then
-executed in kernel environment.
-Afaik there are "security" provisions or say setups, which do
-hide modprobe/insmod and do not allow root to load any kernel drivers 
-or similar.
-If one can write the kernel or initrd which gets booted, I guess there
-are not much security restrictions anymore you could put on this user...
-But thanks for the pointer, I'll go and double check with some
-security guys.
+On =E4=B8=80, 2012-09-24 at 00:16 -0600, R, Durgadoss wrote:
+> Hi Rui,
+>=20
+> > -----Original Message-----
+> > From: Zhang, Rui
+> > Sent: Monday, September 24, 2012 11:10 AM
+> > To: R, Durgadoss
+> > Cc: lenb@kernel.org; linux-acpi@vger.kernel.org
+> > Subject: Re: [PATCH] Thermal: Provide option to choose default ther=
+mal
+> > governor
+> >=20
+> > On =E4=BA=94, 2012-09-21 at 14:32 +0530, Durgadoss R wrote:
+> > > This patch provides option to choose the default thermal
+> > > governor. If no option is provided, the step_wise
+> > > governor is selected by default.
+> > >
+> > yep, I like this approach. will apply to my next tree.
+>=20
+> That=E2=80=99s great.. Thanks Rui.
+> In this case, I believe you are taking the v4 of the 15 patches,
+> and this one on top of them.
+>=20
+yep, all of them have been applied to my next branch.
 
-> thanks,
-> -Len Brown, Intel Open Source Technology Center
-> 
-> ps I noticed your reference to acpidump in the README.
-> That reminded me to push it to the kernel source tree.
-> Its new home will be tools/power/acpi
-This is the one which I tried to/did adjust to acpica headers?
-This sounds like a very good idea. I'll adjust the docs.
+> Meanwhile, I will fix the minor comments on patches 4 and 7
+> and submit separate patches, hopefully by this week.
+>=20
+> Thanks,
+> Durga
 
-pss: Can this tool live there as well:
-ftp://ftp.suse.com/pub/people/trenn/sources/ec/ec_access.c
-It's the userspace tool for examining EC values (and changes) via
-ec_sys debug driver and a corresponding /sys/kernel/debug/.. file.
-It's more ore less doing the same what the old thinkpad_acpi driver
-could, but offers this to all machines with an EC device.
 
-    Thomas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
