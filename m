@@ -1,129 +1,174 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [PATCH v4] create sun sysfs file
-Date: Mon, 24 Sep 2012 11:31:13 +0900
-Message-ID: <505FC5F1.4090306@jp.fujitsu.com>
-References: <502062FB.7030502@jp.fujitsu.com> <503EC30B.2070900@jp.fujitsu.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v7 0/6] ZPODD patches
+Date: Mon, 24 Sep 2012 10:55:41 +0800
+Message-ID: <20120924025540.GA15069@mint-spring.sh.intel.com>
+References: <1347438597-5903-1-git-send-email-aaron.lu@intel.com>
+ <201209202200.51303.rjw@sisk.pl>
+ <20120921054844.GB2987@mint-spring.sh.intel.com>
+ <201209212318.28137.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:43210 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754759Ab2IXCbu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 23 Sep 2012 22:31:50 -0400
-In-Reply-To: <503EC30B.2070900@jp.fujitsu.com>
+Received: from mga09.intel.com ([134.134.136.24]:20671 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754849Ab2IXCzp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 23 Sep 2012 22:55:45 -0400
+Content-Disposition: inline
+In-Reply-To: <201209212318.28137.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: toshi.kani@hp.com, liuj97@gmail.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, Oliver Neukum <oliver@neukum.org>
+Cc: James Bottomley <James.Bottomley@hansenpartnership.com>, Alan Stern <stern@rowland.harvard.edu>, Jeff Garzik <jgarzik@pobox.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>
 
-Hi Len,
+On Fri, Sep 21, 2012 at 11:18:27PM +0200, Rafael J. Wysocki wrote:
+> On Friday, September 21, 2012, Aaron Lu wrote:
+> > On Thu, Sep 20, 2012 at 10:00:51PM +0200, Rafael J. Wysocki wrote:
+> > > On Wednesday, September 19, 2012, Aaron Lu wrote:
+> > > > Thanks Rafael, and if there is any question/problem,
+> > > > please kindly let me know.
+> > > 
+> > > Well, unfortunately my initial review indicates that the patchset is not
+> > > quite ready to go upstream yet.
+> > > 
+> > > I'll send comments in replies to the individual patches, but overall I can
+> > > say that at this stage of development, when I look at the patches, it should
+> > > be clear to me not only what is being changed, but _why_ it is being changed
+> > > in the first place and, secondly, why it is being changed in this particular
+> > > way.  It's far from that, though.
+> > 
+> > I'm adding zero power support for optical disk drive(ZPODD), which is
+> > made possible with the newly defined device attention(DA) pin introduced
+> > in SATA 3.1 spec.
+> > 
+> > The idea here is to use runtime pm to achieve this, so I basically did 2
+> > things:
+> > 1 Add runtime pm support for ODD;
+> > 2 Add power off support for ODD after it is runtime suspended.
+> > 
+> > Patch 2 is runtime pm support for ODD, the reason it is done this way is
+> > discussed here:
+> > http://www.spinics.net/lists/linux-scsi/msg61551.html
+> 
+> Why isn't it explained in the patch changelog, then?  People should be able
+> to learn why things are done the way they are done from git logs.
+> 
+> > The basic idea is, the ODD will be runtime suspended as long as there is
+> > nobody using it, that is, no programs opening the block device.
+> > 
+> > The ODD will be polled periodically, so it will be runtime resumed
+> > before checking if there is any events pending and suspended when done.
+> 
+> OK.  So what happens if we power off the drive via runtime PM.  Does it
+> it really make sense to resumie it through polling in that case?
 
-Ping...
-I want you to merge the patch into your tree for linux-3.7.
+No, this is the reason I introduced the powered_off flag. If set, the
+poll will simply return without touching the device.
+
+I've tried to do a disk_block_events call on its suspend callback when
+it is ready to be powered off, but there is a race that I don't know how
+to solve:
+pm_runtime_suspend			disk_events_workfn		
+  scsi_dev_type_suspend			  sr_block_check_events
+    sr_suspend				    cdrom_check_events
+      disk_block_events		      	      cdrom_update_events
+      (this call waits for all		        sr_check_events
+      running events_checking function	          scsi_autopm_get_device
+      to return)
+
+Suppose sr_suspend runs first, and then sr_check_events comes in.
+sr_suspend calls disk_block_events, which waits for sr_check_events,
+while scsi_autopm_get_device wait for suspend callback to finish,
+deadlock.
+
+> 
+> > The only exception is, if we found a disc is just inserted, we will not
+> > idle it immediately at the end of the poll, reason explained in another
+> > mail.
+> > 
+> > This is the rational I wrote patch 2, and patch 1 is used by patch 2.
+> > 
+> > Patch 3 is adding power off support for ODD after it is runtime
+> > suspended, the condition is specified in section 15:
+> > ftp://ftp.seagate.com/sff/INF-8090.PDF
+> > 
+> > That is, for tray type ODD: no media inside and door closed; for slot
+> > type ODD: no media inside.
+> > 
+> > The is the reason sr_suspend is written, for non-ZPODD capable devices,
+> > it does nothing; for ZPODD devices, it will check the above condition to
+> > see if it is ready to be powered off. The ready_to_power_off flag will be
+> > used by ATA layer to decide if power can be removed.
+> 
+> Now, James says he doesn't like the way ready_to_power_off is used.  Sure
+> enough, it is totally irrelevant to the majority of SCSI devices.  It actually
+> is totally irrelevant to everything in the SCSI subsystem except for the sr
+> driver and libata.  So I wonder if you have considered any alternative
+> way to address the use case at hand?
+> 
+> > When in powered off state, if user presses the eject button or insert a
+> > disc, an ACPI event will be generated and our acpi wake handler will
+> > pm_runtime_resume the ODD. And if it is a tray type ODD, its tray should
+> > be ejected(need_eject flag) after powered on. This is patch 3.
+> 
+> That sounds reasonable enough, but the role of the powered_off and
+> need_eject flags could be explained a bit better.  In particular, it would
+
+powered_off: set when the device is powered off, clear otherwise.
+
+need_eject:
+First consider how the device will be runtime resumed:
+1 Some program opens the block device;
+2 Events checking poll when it's not powered off yet;
+3 User presses the eject button or inserts a disc into the slot when the
+  device is in powered off state.
+And the need_eject flag is for case 3, when the device is in powered off
+state and user presses the eject button, it will be powered on(through
+acpi wake notification function) and runtime resumed. In its runtime
+resume callback, its tray needs to be ejected since user just presses
+the eject button. The whole process of ZPODD is opaque to the user,
+he/she doesn't know the ODD lost power so the ODD has to behave exactly
+like it doesn't lose power.
+
+Hi Oliver,
+This flag is really to say the tray needs to be ejected after runtime
+resumed, it's not that media change detected. It is possible that user
+ejects the tray without putting any disc inside and simply close the
+tray, which doesn't qualify a media change event. And if user does
+put a disc in, the sr_check_events will find that and report the media
+change event to user space. Agree?
+
+> be nice to have explained why they have to be present in struct scsi_device,
+> because they don't seem to be particularly useful for many SCSI devices
+> that aren't CD drives (the need_eject one in particular).
+
+With your suggestion of pm_platform_power_off_allowed, I suppose
+powered_off can be eliminated similarly with something like
+pm_platform_powered_off returning true or false(for ACPI platform,
+return true when device is in D3 cold state).
+
+And for the need_eject flag, I don't know if there is a better place for
+it. The acpi wake notification code resides in libata(where we need to
+record that this resume is due to user presses the eject button and the
+tray needs to be ejected after resumed), and the runtime resume callback
+resides in scsi driver(where we actually eject the tray). Ideally, this
+flag should sit in scsi_cd structure, but libata does not have access to
+it.
 
 Thanks,
-Yasuaki Ishimatsu
+Aaron
 
-2012/08/30 10:34, Yasuaki Ishimatsu wrote:
-> Hi Len,
 > 
-> Three weeks passed after I post the patch.
-> All comments have already been applied to it. And I think there is no
-> comments about it. So I want you to merge it into your tree.
+> > And patch 4-6 introduces a new sysfs file may_power_off to give user a
+> > chance to disable the power off of the device due to various reasons
+> > like the ODD claims support of device attention while actually it is
+> > broken.
 > 
-> Thanks,
-> Yasuaki Ishimatsu
+> User space has an interface to disable runtime PM of any device and it looks
+> like that interface should be sufficient to disable the feature in question.
+> Why do you think the new interface is needed?
 > 
-> 2012/08/07 9:36, Yasuaki Ishimatsu wrote:
->> Even if a device has _SUN method, there is no way to know the slot unique-ID.
->> Thus the patch creates "sun" file in sysfs so that we can recognize it.
->>
->> Reviewed-by: Toshi Kani <toshi.kani@hp.com>
->> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->>
->> ---
->>    drivers/acpi/scan.c     |   24 ++++++++++++++++++++++++
->>    include/acpi/acpi_bus.h |    1 +
->>    2 files changed, 25 insertions(+)
->>
->> Index: linux-3.5/include/acpi/acpi_bus.h
->> ===================================================================
->> --- linux-3.5.orig/include/acpi/acpi_bus.h	2012-07-30 10:06:49.722171575 +0900
->> +++ linux-3.5/include/acpi/acpi_bus.h	2012-08-07 08:57:45.678204360 +0900
->> @@ -209,6 +209,7 @@ struct acpi_device_pnp {
->>    	struct list_head ids;		/* _HID and _CIDs */
->>    	acpi_device_name device_name;	/* Driver-determined */
->>    	acpi_device_class device_class;	/*        "          */
->> +	unsigned long sun;		/* _SUN */
->>    };
->>    
->>    #define acpi_device_bid(d)	((d)->pnp.bus_id)
->> Index: linux-3.5/drivers/acpi/scan.c
->> ===================================================================
->> --- linux-3.5.orig/drivers/acpi/scan.c	2012-07-30 10:06:49.713171688 +0900
->> +++ linux-3.5/drivers/acpi/scan.c	2012-08-07 09:01:38.196203659 +0900
->> @@ -192,10 +192,20 @@ end:
->>    }
->>    static DEVICE_ATTR(path, 0444, acpi_device_path_show, NULL);
->>    
->> +static ssize_t
->> +acpi_device_sun_show(struct device *dev, struct device_attribute *attr,
->> +		     char *buf) {
->> +	struct acpi_device *acpi_dev = to_acpi_device(dev);
->> +
->> +	return sprintf(buf, "%lu\n", acpi_dev->pnp.sun);
->> +}
->> +static DEVICE_ATTR(sun, 0444, acpi_device_sun_show, NULL);
->> +
->>    static int acpi_device_setup_files(struct acpi_device *dev)
->>    {
->>    	acpi_status status;
->>    	acpi_handle temp;
->> +	unsigned long long sun;
->>    	int result = 0;
->>    
->>    	/*
->> @@ -217,6 +227,16 @@ static int acpi_device_setup_files(struc
->>    			goto end;
->>    	}
->>    
->> +	status = acpi_evaluate_integer(dev->handle, "_SUN", NULL, &sun);
->> +	if (ACPI_SUCCESS(status)) {
->> +		dev->pnp.sun = (unsigned long)sun;
->> +		result = device_create_file(&dev->dev, &dev_attr_sun);
->> +		if (result)
->> +			goto end;
->> +	} else {
->> +		dev->pnp.sun = (unsigned long)-1;
->> +	}
->> +
->>            /*
->>             * If device has _EJ0, 'eject' file is created that is used to trigger
->>             * hot-removal function from userland.
->> @@ -241,6 +261,10 @@ static void acpi_device_remove_files(str
->>    	if (ACPI_SUCCESS(status))
->>    		device_remove_file(&dev->dev, &dev_attr_eject);
->>    
->> +	status = acpi_get_handle(dev->handle, "_SUN", &temp);
->> +	if (ACPI_SUCCESS(status))
->> +		device_remove_file(&dev->dev, &dev_attr_sun);
->> +
->>    	device_remove_file(&dev->dev, &dev_attr_modalias);
->>    	device_remove_file(&dev->dev, &dev_attr_hid);
->>    	if (dev->handle)
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
+> > I hope it makes more sense to you now.
 > 
+> Well, thanks for the explanation. :-)
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
-
+> Rafael
