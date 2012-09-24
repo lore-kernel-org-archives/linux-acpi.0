@@ -1,57 +1,66 @@
 From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: [PATCH 0/4] cpuidle - support multiple drivers at a time
-Date: Tue, 25 Sep 2012 00:43:50 +0200
-Message-ID: <1348526634-19029-1-git-send-email-daniel.lezcano@linaro.org>
+Subject: [PATCH 2/4] cpuidle : move driver checking within the lock section
+Date: Tue, 25 Sep 2012 00:43:52 +0200
+Message-ID: <1348526634-19029-3-git-send-email-daniel.lezcano@linaro.org>
+References: <1348526634-19029-1-git-send-email-daniel.lezcano@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:58166 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751468Ab2IXWn5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Sep 2012 18:43:57 -0400
-Received: by wibhr14 with SMTP id hr14so5514933wib.1
-        for <linux-acpi@vger.kernel.org>; Mon, 24 Sep 2012 15:43:56 -0700 (PDT)
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:43162 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751097Ab2IXWoB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Sep 2012 18:44:01 -0400
+Received: by mail-wi0-f172.google.com with SMTP id hq12so2539837wib.1
+        for <linux-acpi@vger.kernel.org>; Mon, 24 Sep 2012 15:44:00 -0700 (PDT)
+In-Reply-To: <1348526634-19029-1-git-send-email-daniel.lezcano@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: rjw@sisk.pl, lenb@kernel.org
 Cc: linux-pm@vger.kernel.org, lorenzo.pieralisi@arm.com, pdeschrijver@nvidia.com, linux-acpi@vger.kernel.org, patches@linaro.org, linaro-dev@lists.linaro.org
 
-The discussion about having different cpus on the system with
-different latencies bring us to a first attemp by adding a
-pointer in the cpuidle_device to the states array.
+The code checks if the driver is already set without taking the lock,
+but, right after, it takes the lock to assign the variable.
 
-But as Rafael suggested, it would make more sense to create a
-driver per cpu [1].
+If it is safe to check the variable without lock, then it is safe to
+assign it without lock. If it is unsafe to assign without a lock, then
+it is unsafe to check it without a lock.
 
-This patch adds support for multiple cpuidle drivers.
+I don't find a path in the different drivers where that could happen
+because the arch specific drivers are written in such way it is not
+possible to register a driver while it is unregistered, except maybe
+in a very improbable case when "intel_idle" and "processor_idle" are
+competing. One could unregister a driver, while the other one is
+registering.
 
-It creates a per cpu cpuidle driver pointer.
+Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+---
+ drivers/cpuidle/driver.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-In order to not break the different drivers, the function cpuidle_register_driver
-assign for each cpu, the driver.
-
-The multiple driver support is optional and if it is not set, the cpuide driver
-core code remains the same (except some code reorganisation).
-
-I did the following tests compiled, booted, tested without/with CONFIG_CPU_IDLE,
-with/without CONFIG_CPU_IDLE_MULTIPLE_DRIVERS.
-
-Tested on Core2 Duo T9500 with acpi_idle [and intel_idle]
-Tested on ARM Dual Cortex-A9 U8500 (aka Snowball)
-
-[1] http://www.spinics.net/lists/linux-acpi/msg37921.html
-
-Daniel Lezcano (4):
-  cpuidle : move driver's refcount to cpuidle
-  cpuidle : move driver checking within the lock section
-  cpuidle - prepare the driver core to be multi drivers aware
-  cpuidle - support multiple drivers
-
- drivers/cpuidle/Kconfig   |    9 ++
- drivers/cpuidle/cpuidle.c |   24 ++++--
- drivers/cpuidle/driver.c  |  194 ++++++++++++++++++++++++++++++++++++++-------
- drivers/cpuidle/sysfs.c   |   50 +++++++++---
- include/linux/cpuidle.h   |    9 ++-
- 5 files changed, 238 insertions(+), 48 deletions(-)
-
+diff --git a/drivers/cpuidle/driver.c b/drivers/cpuidle/driver.c
+index 39ba8e1..4a0c4ab 100644
+--- a/drivers/cpuidle/driver.c
++++ b/drivers/cpuidle/driver.c
+@@ -85,17 +85,17 @@ EXPORT_SYMBOL_GPL(cpuidle_get_driver);
+  */
+ void cpuidle_unregister_driver(struct cpuidle_driver *drv)
+ {
++	spin_lock(&cpuidle_driver_lock);
++
+ 	if (drv != cpuidle_curr_driver) {
+ 		WARN(1, "invalid cpuidle_unregister_driver(%s)\n",
+ 			drv->name);
+-		return;
++		goto out;
+ 	}
+ 
+-	spin_lock(&cpuidle_driver_lock);
+-
+ 	if (!WARN_ON(drv->refcnt > 0))
+ 		cpuidle_curr_driver = NULL;
+-
++out:
+ 	spin_unlock(&cpuidle_driver_lock);
+ }
+ EXPORT_SYMBOL_GPL(cpuidle_unregister_driver);
 -- 
 1.7.5.4
 
