@@ -1,50 +1,51 @@
 From: Matthew Garrett <mjg@redhat.com>
-Subject: [PATCH 1/4] ACPI: Reorder IPMI driver before any other ACPI drivers
-Date: Mon, 24 Sep 2012 11:05:37 -0400
-Message-ID: <1348499140-13550-2-git-send-email-mjg@redhat.com>
+Subject: [PATCH 2/4] IPMI: Change link order
+Date: Mon, 24 Sep 2012 11:05:38 -0400
+Message-ID: <1348499140-13550-3-git-send-email-mjg@redhat.com>
 References: <1348499140-13550-1-git-send-email-mjg@redhat.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:33837 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753701Ab2IXPGM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 24 Sep 2012 11:06:12 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1348499140-13550-1-git-send-email-mjg@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: yakui.zhao@intel.com
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, cminyard@mvista.com, Matthew Garrett <mjg@redhat.com>
+List-Id: linux-acpi@vger.kernel.org
 
-Drivers may make calls that require the ACPI IPMI driver to have been
-initialised already, so make sure that it appears earlier in the build
-order.
+IPMI must be initialised before ACPI in order to ensure that any IPMI
+services are available before ACPI driver initialisation attempts to use
+any IPMI operation regions.
 
 Signed-off-by: Matthew Garrett <mjg@redhat.com>
 ---
- drivers/acpi/Makefile | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/Makefile      | 4 ++++
+ drivers/char/Makefile | 1 -
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 47199e2..82422fe 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -47,6 +47,10 @@ acpi-y				+= video_detect.o
- endif
- 
- # These are (potentially) separate modules
+diff --git a/drivers/Makefile b/drivers/Makefile
+index 5b42184..9d26b04 100644
+--- a/drivers/Makefile
++++ b/drivers/Makefile
+@@ -14,6 +14,10 @@ obj-$(CONFIG_PARISC)		+= parisc/
+ obj-$(CONFIG_RAPIDIO)		+= rapidio/
+ obj-y				+= video/
+ obj-y				+= idle/
 +
-+# IPMI may be used by other drivers, so it has to initialise before them
-+obj-$(CONFIG_ACPI_IPMI)		+= acpi_ipmi.o
++# IPMI must come before ACPI in order to provide IPMI opregion support
++obj-$(CONFIG_IPMI_HANDLER)	+= char/ipmi/
 +
- obj-$(CONFIG_ACPI_AC) 		+= ac.o
- obj-$(CONFIG_ACPI_BUTTON)	+= button.o
- obj-$(CONFIG_ACPI_FAN)		+= fan.o
-@@ -70,6 +74,5 @@ processor-y			+= processor_idle.o processor_thermal.o
- processor-$(CONFIG_CPU_FREQ)	+= processor_perflib.o
+ obj-$(CONFIG_ACPI)		+= acpi/
+ obj-$(CONFIG_SFI)		+= sfi/
+ # PnP must come after ACPI since it will eventually need to check if acpi
+diff --git a/drivers/char/Makefile b/drivers/char/Makefile
+index d0b27a3..7ff1d0d 100644
+--- a/drivers/char/Makefile
++++ b/drivers/char/Makefile
+@@ -52,7 +52,6 @@ obj-$(CONFIG_TELCLOCK)		+= tlclk.o
+ obj-$(CONFIG_MWAVE)		+= mwave/
+ obj-$(CONFIG_AGP)		+= agp/
+ obj-$(CONFIG_PCMCIA)		+= pcmcia/
+-obj-$(CONFIG_IPMI_HANDLER)	+= ipmi/
  
- obj-$(CONFIG_ACPI_PROCESSOR_AGGREGATOR) += acpi_pad.o
--obj-$(CONFIG_ACPI_IPMI)		+= acpi_ipmi.o
- 
- obj-$(CONFIG_ACPI_APEI)		+= apei/
+ obj-$(CONFIG_HANGCHECK_TIMER)	+= hangcheck-timer.o
+ obj-$(CONFIG_TCG_TPM)		+= tpm/
 -- 
 1.7.11.4
-
