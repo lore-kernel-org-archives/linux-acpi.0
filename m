@@ -1,60 +1,36 @@
-From: Jeff Garzik <jgarzik@pobox.com>
-Subject: Re: [PATCH v7 6/6] libata: acpi: respect may_power_off flag
-Date: Mon, 24 Sep 2012 17:55:57 -0400
-Message-ID: <5060D6ED.8040802@pobox.com>
-References: <1347438597-5903-1-git-send-email-aaron.lu@intel.com> <1347438597-5903-7-git-send-email-aaron.lu@intel.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [ACPI/PCI] possible recursive locking detected
+Date: Mon, 24 Sep 2012 16:38:53 -0600
+Message-ID: <CAErSpo6cwcYbi_pFrGrWgMLXH9dx4Po1s5KLDWtc596s+Kv2hQ@mail.gmail.com>
+References: <20120922003557.GF5959@localhost> <CAE9FiQVQJQfBZn7AH4M5hibx=iNa9RbfSaBdb35FWxDiRXHvrA@mail.gmail.com>
+ <CAE9FiQVQMVsqG2vHhyktTtUSJ_dDRpTpwB_x--agMWbm6PHsEg@mail.gmail.com>
+ <20120922081009.GA5677@localhost> <CAE9FiQWi46m4rP9chVK0W5ahtgk7cuCO60dTYzP6JVM=x=5abA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:47024 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751044Ab2IXV4C (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Sep 2012 17:56:02 -0400
-In-Reply-To: <1347438597-5903-7-git-send-email-aaron.lu@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAE9FiQWi46m4rP9chVK0W5ahtgk7cuCO60dTYzP6JVM=x=5abA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Fengguang Wu <fengguang.wu@intel.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Oliver Neukum <oliver@neukum.org>, James Bottomley <James.Bottomley@hansenpartnership.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>
 
-On 09/12/2012 04:29 AM, Aaron Lu wrote:
-> If user does not want the device to be powered off when runtime
-> suspended by setting may_power_off flag to 0, we will not choose
-> D3 cold for it.
+On Sat, Sep 22, 2012 at 8:11 AM, Yinghai Lu <yinghai@kernel.org> wrote:
+> On Sat, Sep 22, 2012 at 1:10 AM, Fengguang Wu <fengguang.wu@intel.com> wrote:
+>>
+>>> > Please check attached patch that should fix the problem.
+>>>
+>>> updated more aggressive version. two patches.
+>>
+>> Yes they work nicely. Thank you very much!
 >
-> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-> ---
->   drivers/ata/libata-acpi.c | 5 ++++-
->   1 file changed, 4 insertions(+), 1 deletion(-)
+> Thanks.
 >
-> diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c
-> index 9aca057..24347e0 100644
-> --- a/drivers/ata/libata-acpi.c
-> +++ b/drivers/ata/libata-acpi.c
-> @@ -855,6 +855,7 @@ void ata_acpi_set_state(struct ata_port *ap, pm_message_t state)
->   	struct ata_device *dev;
->   	acpi_handle handle;
->   	int acpi_state, ret;
-> +	bool power_off_allowed;
+> v2 breaks acpi_bind_one.
 >
->   	/* channel first and then drives for power on and vica versa
->   	   for power off */
-> @@ -868,9 +869,11 @@ void ata_acpi_set_state(struct ata_port *ap, pm_message_t state)
->   			continue;
+> So we should use attached -v3.
 >
->   		if (state.event != PM_EVENT_ON) {
-> +			power_off_allowed = dev->sdev->ready_to_power_off &&
-> +					    dev->sdev->may_power_off;
->   			acpi_state = acpi_pm_device_sleep_state(
->   					&dev->sdev->sdev_gendev, NULL,
-> -					dev->sdev->ready_to_power_off ?
-> +					power_off_allowed ?
->   					ACPI_STATE_D3 : ACPI_STATE_D3_HOT);
+> Bjorn, please apply -v3 before Taku's patchset.
 
-Acked-by: Jeff Garzik <jgarzik@redhat.com>
-
-with the same caveat as with the rest of this patchset:  contingent upon 
-acceptance of the other API changes.
-
-
-
+I  applied this as the first patch in
+pci/taku-acpi-pci-host-bridge-v3.  I also merged that branch to
+pci/next.
