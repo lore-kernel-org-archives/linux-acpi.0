@@ -1,51 +1,104 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH] ACPI: Only allow users with CAP_SYS_RAWIO rights to overwrite ACPI funcs at runtime
-Date: Tue, 25 Sep 2012 17:25:11 +0200
-Message-ID: <201209251725.13085.trenn@suse.de>
-References: <1348234085-39220-1-git-send-email-trenn@suse.de> <201209240840.29342.trenn@suse.de> <20120924102159.346d0735@pyramind.ukuu.org.uk>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH 1/2] PNP: Add a release method to system resource driver
+Date: Tue, 25 Sep 2012 10:27:18 -0600
+Message-ID: <CAErSpo5NgmguZTT7dQwj+7JZoTHVm5t+ubh1zHtPVTH5XGKkcQ@mail.gmail.com>
+References: <1348579544-1573-1-git-send-email-mjg@redhat.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:41012 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753230Ab2IYP31 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 25 Sep 2012 11:29:27 -0400
-In-Reply-To: <20120924102159.346d0735@pyramind.ukuu.org.uk>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1348579544-1573-1-git-send-email-mjg@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matthew Garrett <mjg@redhat.com>
+Cc: abelay@mit.edu, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, hpa@zytor.com, initramfs@vger.kernel.org, robert.moore@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, yinghai@kernel.org, eric.piel@tremplin-utc.net, vojcek@tlen.pl
 
-ACPI: Only allow users with CAP_SYS_RAWIO rights to overwrite ACPI funcs at runtime
+On Tue, Sep 25, 2012 at 7:25 AM, Matthew Garrett <mjg@redhat.com> wrote:
+> This could conceivably be hotpluggable, and we may want to displace it
+> from devices under certain circustances, so add a release method to hand
 
-and tab align file_operations callbacks.
+s/circustances/circumstances/
 
-Signed-off-by: Thomas Renninger <trenn@suse.de>
----
- drivers/acpi/custom_method.c |   10 ++++++++--
- 1 files changed, 8 insertions(+), 2 deletions(-)
+> back the resources.
+>
+> Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 
-diff --git a/drivers/acpi/custom_method.c b/drivers/acpi/custom_method.c
-index 5d42c24..9a0294d 100644
---- a/drivers/acpi/custom_method.c
-+++ b/drivers/acpi/custom_method.c
-@@ -72,9 +72,15 @@ static ssize_t cm_write(struct file *file, const char __user * user_buf,
- 	return count;
- }
- 
-+static int open_check_acc(struct inode *inode, struct file *filp)
-+{
-+	return capable(CAP_SYS_RAWIO) ? 0 : -EPERM;
-+}
-+
- static const struct file_operations cm_fops = {
--	.write = cm_write,
--	.llseek = default_llseek,
-+	.write	= cm_write,
-+	.llseek	= default_llseek,
-+	.open	= open_check_acc,
- };
- 
- static int __init acpi_custom_method_init(void)
+I've never directly applied PNP patches; I've always sent them through
+Len's ACPI tree (cc'd), so let me know if you want me to do more than
+ack this.
+
+> ---
+>  drivers/pnp/system.c | 30 ++++++++++++++++++++++++++----
+>  1 file changed, 26 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/pnp/system.c b/drivers/pnp/system.c
+> index 49c1720..b0a50f2 100644
+> --- a/drivers/pnp/system.c
+> +++ b/drivers/pnp/system.c
+> @@ -52,7 +52,17 @@ static void reserve_range(struct pnp_dev *dev, struct resource *r, int port)
+>                  res ? "has been" : "could not be");
+>  }
+>
+> -static void reserve_resources_of_dev(struct pnp_dev *dev)
+> +static void free_range(struct pnp_dev *dev, struct resource *r, int port)
+> +{
+> +       resource_size_t start = r->start, end = r->end;
+> +
+> +       if (port)
+> +               release_region(start, end - start + 1);
+> +       else
+> +               release_mem_region(start, end - start + 1);
+> +}
+> +
+> +static void handle_resources_of_dev(struct pnp_dev *dev, bool free)
+>  {
+>         struct resource *res;
+>         int i;
+> @@ -75,29 +85,41 @@ static void reserve_resources_of_dev(struct pnp_dev *dev)
+>                 if (res->end < res->start)
+>                         continue;       /* invalid */
+>
+> -               reserve_range(dev, res, 1);
+> +               if (free)
+> +                       free_range(dev, res, 1);
+> +               else
+> +                       reserve_range(dev, res, 1);
+>         }
+>
+>         for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_MEM, i)); i++) {
+>                 if (res->flags & IORESOURCE_DISABLED)
+>                         continue;
+>
+> -               reserve_range(dev, res, 0);
+> +               if (free)
+> +                       free_range(dev, res, 0);
+> +               else
+> +                       reserve_range(dev, res, 0);
+>         }
+>  }
+>
+>  static int system_pnp_probe(struct pnp_dev *dev,
+>                             const struct pnp_device_id *dev_id)
+>  {
+> -       reserve_resources_of_dev(dev);
+> +       handle_resources_of_dev(dev, false);
+>         return 0;
+>  }
+>
+> +static void system_pnp_remove(struct pnp_dev *dev)
+> +{
+> +       handle_resources_of_dev(dev, true);
+> +}
+> +
+>  static struct pnp_driver system_pnp_driver = {
+>         .name     = "system",
+>         .id_table = pnp_dev_table,
+>         .flags    = PNP_DRIVER_RES_DO_NOT_CHANGE,
+>         .probe    = system_pnp_probe,
+> +       .remove   = system_pnp_remove,
+>  };
+>
+>  static int __init pnp_system_init(void)
+> --
+> 1.7.11.4
+>
