@@ -1,70 +1,72 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH v7 2/6] scsi: sr: support runtime pm
-Date: Tue, 25 Sep 2012 22:46:06 +0800
-Message-ID: <5061C3AE.6030103@intel.com>
-References: <1347438597-5903-1-git-send-email-aaron.lu@intel.com> <201209251347.52407.rjw@sisk.pl> <20120925142020.GA3653@mint-spring.sh.intel.com> <1627578.tkYE3uqGuq@linux-lqwf.site>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Thomas Renninger <trenn@suse.de>
+Subject: [PATCH 5/6] ACPI: Create acpi_table_taint() function to avoid code duplication
+Date: Tue, 25 Sep 2012 16:56:00 +0200
+Message-ID: <1348584961-1476-6-git-send-email-trenn@suse.de>
+References: <1348584961-1476-1-git-send-email-trenn@suse.de>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:28917 "EHLO mga02.intel.com"
+Received: from cantor2.suse.de ([195.135.220.15]:38674 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752676Ab2IYOqW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 25 Sep 2012 10:46:22 -0400
-In-Reply-To: <1627578.tkYE3uqGuq@linux-lqwf.site>
+	id S1753903Ab2IYO42 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 25 Sep 2012 10:56:28 -0400
+In-Reply-To: <1348584961-1476-1-git-send-email-trenn@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Oliver Neukum <oneukum@suse.de>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, James Bottomley <James.Bottomley@hansenpartnership.com>, Jeff Garzik <jgarzik@pobox.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>
+To: hpa@zytor.com
+Cc: lenb@kernel.org, initramfs@vger.kernel.org, robert.moore@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, yinghai@kernel.org, Thomas Renninger <trenn@suse.de>
 
-On 09/25/2012 10:23 PM, Oliver Neukum wrote:
-> On Tuesday 25 September 2012 22:20:21 Aaron Lu wrote:
->> On Tue, Sep 25, 2012 at 01:47:52PM +0200, Rafael J. Wysocki wrote:
->>> On Tuesday, September 25, 2012, Aaron Lu wrote:
->>>> I'm thinking of enabling this GPE in sr_suspend once we decided that it
->>>> is ready to be powered off, so the time frame between sr_suspend and
->>>> when the power is actually removed in libata should be taken care of by
->>>> the GPE. If GPE fires, the notification function will request a runtime
->>>> resume of the device. Does this sound OK?
->>>
->>> Well, depending on the implementation.  sr_suspend() should be rather
->>> generic, but the ACPI association (including the GPE thing) is specific to ATA.
->>
->> Sorry, but don't quite understand this.
->>
->> We have ACPI bindings for scsi devices, isn't that for us to use ACPI
->> when needed in scsi?
-> 
-> We don't have ACPI bindings for generic SCSI devices. We have such
-> bindings for SATA drives. You can put such things only in sr if it applies
-> to all (maybe most) types of drives.
+There are two ways of overriding ACPI tables now, both need to taint the
+the kernel.
 
-OK. Then these scsi bindings for sata drives will be pretty much of
-no use I think.
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+---
+ drivers/acpi/osl.c |   20 +++++++++++++-------
+ 1 files changed, 13 insertions(+), 7 deletions(-)
 
-> 
->> BTW, if sr_suspend should be generic, that would suggest I shouldn't
->> write any ZPODD related code there, right? Any suggestion where these
->> code should go then?
-> 
-> libata. Maybe some generic hooks can be called in sr_suspend().
-
-Thanks for the suggestion.
-The problem is, I need to know whether the door is closed and if there
-is a medium inside. I've no way of getting such information in libata.
-
-> PS: Are you sure sr_suspend() handles DVD-RAMs correctly?
-
-No. Is there a spec for it?
-Considering there are many different drives sr handle, is it possible to
-write a generic sr_suspend?
-Maybe your suggestion of callback is the way to go.
-What about this idea, if we find this is a ZPODD capable drive, we
-enable runtime suspend for it and write a suspend callback according to
-ZPODD spec. For other drives that does not have a suspend callback, we
-do not enable runtime suspend.
-Does this sound reasonable?
-
-Thanks,
-Aaron
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 007224b..a2845ff 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -656,6 +656,15 @@ void __init acpi_initrd_override(void *data, size_t size)
+ }
+ #endif /* CONFIG_ACPI_INITRD_TABLE_OVERRIDE */
+ 
++static void acpi_table_taint(struct acpi_table_header *table)
++{
++	pr_warn(PREFIX
++		"Override [%4.4s-%8.8s], this is unsafe: tainting kernel\n",
++		table->signature, table->oem_table_id);
++	add_taint(TAINT_OVERRIDDEN_ACPI_TABLE);
++}
++
++
+ acpi_status
+ acpi_os_table_override(struct acpi_table_header * existing_table,
+ 		       struct acpi_table_header ** new_table)
+@@ -669,13 +678,8 @@ acpi_os_table_override(struct acpi_table_header * existing_table,
+ 	if (strncmp(existing_table->signature, "DSDT", 4) == 0)
+ 		*new_table = (struct acpi_table_header *)AmlCode;
+ #endif
+-	if (*new_table != NULL) {
+-		printk(KERN_WARNING PREFIX "Override [%4.4s-%8.8s], "
+-			   "this is unsafe: tainting kernel\n",
+-		       existing_table->signature,
+-		       existing_table->oem_table_id);
+-		add_taint(TAINT_OVERRIDDEN_ACPI_TABLE);
+-	}
++	if (*new_table != NULL)
++		acpi_table_taint(existing_table);
+ 	return AE_OK;
+ }
+ 
+@@ -736,6 +740,8 @@ acpi_os_physical_table_override(struct acpi_table_header *existing_table,
+ 		break;
+ 	} while (table_offset + ACPI_HEADER_SIZE < all_tables_size);
+ 
++	if (*address != 0)
++		acpi_table_taint(existing_table);
+ 	return AE_OK;
+ #endif
+ }
+-- 
+1.7.6.1
 
