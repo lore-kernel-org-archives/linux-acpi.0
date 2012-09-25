@@ -1,67 +1,88 @@
-From: "Fenghua Yu" <fenghua.yu@intel.com>
-Subject: [PATCH] acpi/tables.c: Harden acpi_table_parse_entries
-Date: Tue, 25 Sep 2012 11:11:43 -0700
-Message-ID: <1348596703-6178-1-git-send-email-fenghua.yu@intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v7 2/6] scsi: sr: support runtime pm
+Date: Tue, 25 Sep 2012 23:45:34 +0200
+Message-ID: <201209252345.35233.rjw@sisk.pl>
+References: <1347438597-5903-1-git-send-email-aaron.lu@intel.com> <1627578.tkYE3uqGuq@linux-lqwf.site> <5061C3AE.6030103@intel.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:4211 "EHLO mga11.intel.com"
+Received: from ogre.sisk.pl ([193.178.161.156]:44290 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752187Ab2IYS10 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 25 Sep 2012 14:27:26 -0400
+	id S1753697Ab2IYVjB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 25 Sep 2012 17:39:01 -0400
+In-Reply-To: <5061C3AE.6030103@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <len.brown@intel.com>, Andi Kleen <andi@firstfloor.org>, linux-acpi <linux-acpi@vger.kernel.org>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Oliver Neukum <oneukum@suse.de>, Alan Stern <stern@rowland.harvard.edu>, James Bottomley <James.Bottomley@hansenpartnership.com>, Jeff Garzik <jgarzik@pobox.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>
 
-From: Fenghua Yu <fenghua.yu@intel.com>
+On Tuesday, September 25, 2012, Aaron Lu wrote:
+> On 09/25/2012 10:23 PM, Oliver Neukum wrote:
+> > On Tuesday 25 September 2012 22:20:21 Aaron Lu wrote:
+> >> On Tue, Sep 25, 2012 at 01:47:52PM +0200, Rafael J. Wysocki wrote:
+> >>> On Tuesday, September 25, 2012, Aaron Lu wrote:
+> >>>> I'm thinking of enabling this GPE in sr_suspend once we decided that it
+> >>>> is ready to be powered off, so the time frame between sr_suspend and
+> >>>> when the power is actually removed in libata should be taken care of by
+> >>>> the GPE. If GPE fires, the notification function will request a runtime
+> >>>> resume of the device. Does this sound OK?
+> >>>
+> >>> Well, depending on the implementation.  sr_suspend() should be rather
+> >>> generic, but the ACPI association (including the GPE thing) is specific to ATA.
+> >>
+> >> Sorry, but don't quite understand this.
+> >>
+> >> We have ACPI bindings for scsi devices, isn't that for us to use ACPI
+> >> when needed in scsi?
+> > 
+> > We don't have ACPI bindings for generic SCSI devices. We have such
+> > bindings for SATA drives. You can put such things only in sr if it applies
+> > to all (maybe most) types of drives.
+> 
+> OK. Then these scsi bindings for sata drives will be pretty much of
+> no use I think.
+> 
+> > 
+> >> BTW, if sr_suspend should be generic, that would suggest I shouldn't
+> >> write any ZPODD related code there, right? Any suggestion where these
+> >> code should go then?
+> > 
+> > libata. Maybe some generic hooks can be called in sr_suspend().
+> 
+> Thanks for the suggestion.
+> The problem is, I need to know whether the door is closed and if there
+> is a medium inside. I've no way of getting such information in libata.
 
-Parsing acpi table entries may fall into an infinite loop on a buggy BIOS
-which has entry length=0 in acpi table.
+How does sr get to know it in the libata case?
 
-Instead of kernel hang with few failure clue which leads to heavy lifting debug
-effort, this patch hardens kernel boot by booting into non NUMA mode. The debug
-info left in log buffer helps people identify the issue.
+> > PS: Are you sure sr_suspend() handles DVD-RAMs correctly?
+> 
+> No. Is there a spec for it?
+> Considering there are many different drives sr handle, is it possible to
+> write a generic sr_suspend?
+> Maybe your suggestion of callback is the way to go.
+> What about this idea, if we find this is a ZPODD capable drive, we
+> enable runtime suspend for it and write a suspend callback according to
+> ZPODD spec. For other drives that does not have a suspend callback, we
+> do not enable runtime suspend.
 
-Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
----
- drivers/acpi/tables.c |   18 ++++++++++++++----
- 1 files changed, 14 insertions(+), 4 deletions(-)
+You can enable runtime PM for all kinds of drives, but make the suspend
+and resume callbacks only do something for ZPODD ones.  This may allow their
+parents to use runtime PM (as Alan said earlier in this thread), even if the
+drives themseleves are not really physically suspended.
 
-diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-index f336bca7..2572d97 100644
---- a/drivers/acpi/tables.c
-+++ b/drivers/acpi/tables.c
-@@ -240,10 +240,17 @@ acpi_table_parse_entries(char *id,
- 	       table_end) {
- 		if (entry->type == entry_id
- 		    && (!max_entries || count++ < max_entries))
--			if (handler(entry, table_end)) {
--				early_acpi_os_unmap_memory((char *)table_header, tbl_size);
--				return -EINVAL;
--			}
-+			if (handler(entry, table_end))
-+				goto err;
-+
-+		/*
-+		 * If entry->length is 0, break from this loop to avoid
-+		 * infinite loop.
-+		 */
-+		if (entry->length == 0) {
-+			pr_err(PREFIX "[%4.4s:0x%02x] Invalid zero length\n", id, entry_id);
-+			goto err;
-+		}
- 
- 		entry = (struct acpi_subtable_header *)
- 		    ((unsigned long)entry + entry->length);
-@@ -255,6 +262,9 @@ acpi_table_parse_entries(char *id,
- 
- 	early_acpi_os_unmap_memory((char *)table_header, tbl_size);
- 	return count;
-+err:
-+	early_acpi_os_unmap_memory((char *)table_header, tbl_size);
-+	return -EINVAL;
- }
- 
- int __init
--- 
-1.7.2
+> Does this sound reasonable?
 
+First, we need to know when the drive is not in use.  That information
+we can get from the sr's runtime PM and it looks like we need to notify
+libata about that somehow.  I'm not sure what mechanism is the best for
+that at the moment.
+
+Second, when the device is resumed by remote wakeup, we need to notify
+sr about that.  A "resume" alone is not sufficient, though, because it may
+be necessary to open the tray.  Perhaps in that case we can use the same
+mechanism by which user events are processed by libata and delivered to sr?
+
+Rafael
