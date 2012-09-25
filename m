@@ -1,36 +1,68 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH 11/29] PCI, ACPI: remove find_bridge in acpi_bus_type
-Date: Tue, 25 Sep 2012 01:26:12 -0700
-Message-ID: <1348561590-28067-12-git-send-email-yinghai@kernel.org>
+Subject: [PATCH 08/29] PCI, ACPI: Remove acpi_find_bridge_device for acpi_bus_type
+Date: Tue, 25 Sep 2012 01:26:09 -0700
+Message-ID: <1348561590-28067-9-git-send-email-yinghai@kernel.org>
 References: <1348561590-28067-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from rcsinet15.oracle.com ([148.87.113.117]:35446 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753479Ab2IYI0i (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Sep 2012 04:26:38 -0400
 In-Reply-To: <1348561590-28067-1-git-send-email-yinghai@kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>
 Cc: linux-pci@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, linux-acpi@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
-The struct member is not used anymore, remove it.
+Now all acpi_bus_typs definitions have bus assigned, so remove not needed code.
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 Cc: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org
 ---
- include/acpi/acpi_bus.h |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
+ drivers/acpi/glue.c |   20 ++------------------
+ 1 files changed, 2 insertions(+), 18 deletions(-)
 
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index bde976e..0e41e5f 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -389,8 +389,6 @@ struct acpi_bus_type {
- 	struct bus_type *bus;
- 	/* For general devices under the bus */
- 	int (*find_device) (struct device *, acpi_handle *);
--	/* For bridges, such as PCI root bridge, IDE controller */
--	int (*find_bridge) (struct device *, acpi_handle *);
- };
- int register_acpi_bus_type(struct acpi_bus_type *);
- int unregister_acpi_bus_type(struct acpi_bus_type *);
+diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
+index 3079634..db6b625 100644
+--- a/drivers/acpi/glue.c
++++ b/drivers/acpi/glue.c
+@@ -72,22 +72,6 @@ static struct acpi_bus_type *acpi_get_bus_type(struct bus_type *type)
+ 	return ret;
+ }
+ 
+-static int acpi_find_bridge_device(struct device *dev, acpi_handle * handle)
+-{
+-	struct acpi_bus_type *tmp;
+-	int ret = -ENODEV;
+-
+-	down_read(&bus_type_sem);
+-	list_for_each_entry(tmp, &bus_type_list, list) {
+-		if (tmp->find_bridge && !tmp->find_bridge(dev, handle)) {
+-			ret = 0;
+-			break;
+-		}
+-	}
+-	up_read(&bus_type_sem);
+-	return ret;
+-}
+-
+ /* Get device's handler per its address under its parent */
+ struct acpi_find_child {
+ 	acpi_handle handle;
+@@ -211,10 +195,10 @@ static int acpi_platform_notify(struct device *dev)
+ 	int ret = -EINVAL;
+ 
+ 	if (!dev->bus) {
+-		/* bridge devices genernally haven't bus */
+-		ret = acpi_find_bridge_device(dev, &handle);
++		DBG("No bus is set for %s\n", dev_name(dev));
+ 		goto end;
+ 	}
++
+ 	type = acpi_get_bus_type(dev->bus);
+ 	if (!type) {
+ 		DBG("No ACPI bus support for %s\n", dev_name(dev));
 -- 
 1.7.7
+
