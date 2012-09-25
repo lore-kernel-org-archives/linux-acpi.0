@@ -1,150 +1,86 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: [PATCH 3/4] cpuidle - prepare the driver core to be multi drivers aware
-Date: Tue, 25 Sep 2012 00:43:53 +0200
-Message-ID: <1348526634-19029-4-git-send-email-daniel.lezcano@linaro.org>
-References: <1348526634-19029-1-git-send-email-daniel.lezcano@linaro.org>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [PATCH] ACPI: Do not touch legacy irq in Hardware Reduced ACPI mode
+Date: Tue, 25 Sep 2012 09:37:16 +0800
+Message-ID: <1348537036.10877.186.camel@rui.sh.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:41212 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751710Ab2IXWoE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Sep 2012 18:44:04 -0400
-Received: by mail-we0-f174.google.com with SMTP id t9so527447wey.19
-        for <linux-acpi@vger.kernel.org>; Mon, 24 Sep 2012 15:44:03 -0700 (PDT)
-In-Reply-To: <1348526634-19029-1-git-send-email-daniel.lezcano@linaro.org>
+Received: from mga09.intel.com ([134.134.136.24]:26956 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750928Ab2IYBgd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 24 Sep 2012 21:36:33 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@sisk.pl, lenb@kernel.org
-Cc: linux-pm@vger.kernel.org, lorenzo.pieralisi@arm.com, pdeschrijver@nvidia.com, linux-acpi@vger.kernel.org, patches@linaro.org, linaro-dev@lists.linaro.org
+To: "Len, Brown" <lenb@kernel.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-This patch is a preparation for the multiple drivers support.
+>From 3a60407725e92bbb05e4d723863fe4bd810bdc5e Mon Sep 17 00:00:00 2001
+From: Zhang Rui <rui.zhang@intel.com>
+Date: Tue, 25 Sep 2012 09:31:08 +0800
+Subject: [PATCH] Do not touch legacy irq in Hardware Reduced ACPI mode
 
-As the next patch will introduce the multiple drivers with the Kconfig
-option and we want to keep the code clean and understandable, this patch
-defines a set of functions for encapsulating some common parts and split
-what should be done in a lock context or not.
+In Hardware Reduced ACPI mode, there is neither SCI nor legacy IRQ,
+thus we should not touch any of these.
 
-Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- drivers/cpuidle/driver.c |   71 +++++++++++++++++++++++++++++-----------------
- 1 files changed, 45 insertions(+), 26 deletions(-)
+ arch/x86/kernel/acpi/boot.c |   11 ++++++++++-
+ drivers/acpi/pci_link.c     |    3 +++
+ 2 files changed, 13 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/cpuidle/driver.c b/drivers/cpuidle/driver.c
-index 4a0c4ab..391f80f 100644
---- a/drivers/cpuidle/driver.c
-+++ b/drivers/cpuidle/driver.c
-@@ -39,11 +39,20 @@ static void set_power_states(struct cpuidle_driver *drv)
- 		drv->states[i].power_usage = -1 - i;
- }
- 
--/**
-- * cpuidle_register_driver - registers a driver
-- * @drv: the driver
-- */
--int cpuidle_register_driver(struct cpuidle_driver *drv)
-+static void __cpuidle_driver_init(struct cpuidle_driver *drv)
-+{
-+	drv->refcnt = 0;
-+
-+	if (!drv->power_specified)
-+		set_power_states(drv);
-+}
-+
-+static void cpuidle_set_driver(struct cpuidle_driver *drv)
-+{
-+	cpuidle_curr_driver = drv;
-+}
-+
-+static int __cpuidle_register_driver(struct cpuidle_driver *drv)
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index b2297e5..f44648f 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -373,6 +373,10 @@ acpi_parse_ioapic(struct acpi_subtable_header * header, const unsigned long end)
+  */
+ static void __init acpi_sci_ioapic_setup(u8 bus_irq, u16 polarity, u16 trigger, u32 gsi)
  {
- 	if (!drv || !drv->state_count)
- 		return -EINVAL;
-@@ -51,22 +60,41 @@ int cpuidle_register_driver(struct cpuidle_driver *drv)
- 	if (cpuidle_disabled())
- 		return -ENODEV;
- 
--	spin_lock(&cpuidle_driver_lock);
--	if (cpuidle_curr_driver) {
--		spin_unlock(&cpuidle_driver_lock);
-+	if (cpuidle_get_driver())
- 		return -EBUSY;
--	}
- 
--	if (!drv->power_specified)
--		set_power_states(drv);
-+	__cpuidle_driver_init(drv);
- 
--	drv->refcnt = 0;
-+	cpuidle_set_driver(drv);
- 
--	cpuidle_curr_driver = drv;
-+	return 0;
-+}
- 
-+static void __cpuidle_unregister_driver(struct cpuidle_driver *drv)
-+{
-+	if (drv != cpuidle_get_driver()) {
-+		WARN(1, "invalid cpuidle_unregister_driver(%s)\n",
-+			drv->name);
++	/* No SCI in Hardware Reduced Mode */
++	if (acpi_gbl_reduced_hardware)
 +		return;
-+	}
 +
-+	if (!WARN_ON(drv->refcnt > 0))
-+		cpuidle_set_driver(NULL);
-+}
+ 	if (trigger == 0)	/* compatible SCI trigger is level */
+ 		trigger = 3;
+ 
+@@ -992,6 +996,10 @@ void __init mp_config_acpi_legacy_irqs(void)
+ 	int i;
+ 	struct mpc_intsrc mp_irq;
+ 
++	/* No legacy IRQ in Hardware Reduced Mode */
++	if (acpi_gbl_reduced_hardware)
++		return;
 +
-+/**
-+ * cpuidle_register_driver - registers a driver
-+ * @drv: the driver
-+ */
-+int cpuidle_register_driver(struct cpuidle_driver *drv)
-+{
-+	int ret;
-+
-+	spin_lock(&cpuidle_driver_lock);
-+	ret = __cpuidle_register_driver(drv);
- 	spin_unlock(&cpuidle_driver_lock);
+ #ifdef CONFIG_EISA
+ 	/*
+ 	 * Fabricate the legacy ISA bus (bus #31).
+@@ -1109,7 +1117,8 @@ int mp_register_gsi(struct device *dev, u32 gsi, int trigger, int polarity)
+ 		return gsi;
  
--	return 0;
-+	return ret;
- }
- EXPORT_SYMBOL_GPL(cpuidle_register_driver);
+ 	/* Don't set up the ACPI SCI because it's already set up */
+-	if (acpi_gbl_FADT.sci_interrupt == gsi)
++	if (!acpi_gbl_reduced_hardware &&
++	    acpi_gbl_FADT.sci_interrupt == gsi)
+ 		return gsi;
  
-@@ -86,16 +114,7 @@ EXPORT_SYMBOL_GPL(cpuidle_get_driver);
- void cpuidle_unregister_driver(struct cpuidle_driver *drv)
- {
- 	spin_lock(&cpuidle_driver_lock);
--
--	if (drv != cpuidle_curr_driver) {
--		WARN(1, "invalid cpuidle_unregister_driver(%s)\n",
--			drv->name);
--		goto out;
--	}
--
--	if (!WARN_ON(drv->refcnt > 0))
--		cpuidle_curr_driver = NULL;
--out:
-+	__cpuidle_unregister_driver(drv);
- 	spin_unlock(&cpuidle_driver_lock);
- }
- EXPORT_SYMBOL_GPL(cpuidle_unregister_driver);
-@@ -106,7 +125,7 @@ struct cpuidle_driver *cpuidle_driver_ref(void)
+ 	ioapic = mp_find_ioapic(gsi);
+diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+index a128082..95ce198 100644
+--- a/drivers/acpi/pci_link.c
++++ b/drivers/acpi/pci_link.c
+@@ -481,6 +481,9 @@ int __init acpi_irq_penalty_init(void)
+ 	struct acpi_pci_link *link;
+ 	int i;
  
- 	spin_lock(&cpuidle_driver_lock);
- 
--	drv = cpuidle_curr_driver;
-+	drv = cpuidle_get_driver();
- 	drv->refcnt++;
- 
- 	spin_unlock(&cpuidle_driver_lock);
-@@ -115,7 +134,7 @@ struct cpuidle_driver *cpuidle_driver_ref(void)
- 
- void cpuidle_driver_unref(void)
- {
--	struct cpuidle_driver *drv = cpuidle_curr_driver;
-+	struct cpuidle_driver *drv = cpuidle_get_driver();
- 
- 	spin_lock(&cpuidle_driver_lock);
- 
++	/* No irq penalty in Hardware Reduced Mode */
++	if (acpi_gbl_reduced_hardware)
++		return 0;
+ 	/*
+ 	 * Update penalties to facilitate IRQ balancing.
+ 	 */
 -- 
-1.7.5.4
+1.7.7.6
+
+
 
