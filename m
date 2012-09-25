@@ -1,104 +1,67 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH 1/2] PNP: Add a release method to system resource driver
-Date: Tue, 25 Sep 2012 10:27:18 -0600
-Message-ID: <CAErSpo5NgmguZTT7dQwj+7JZoTHVm5t+ubh1zHtPVTH5XGKkcQ@mail.gmail.com>
-References: <1348579544-1573-1-git-send-email-mjg@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1348579544-1573-1-git-send-email-mjg@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matthew Garrett <mjg@redhat.com>
-Cc: abelay@mit.edu, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+From: "Fenghua Yu" <fenghua.yu@intel.com>
+Subject: [PATCH] acpi/tables.c: Harden acpi_table_parse_entries
+Date: Tue, 25 Sep 2012 11:11:43 -0700
+Message-ID: <1348596703-6178-1-git-send-email-fenghua.yu@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:4211 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752187Ab2IYS10 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 25 Sep 2012 14:27:26 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <len.brown@intel.com>, Andi Kleen <andi@firstfloor.org>, linux-acpi <linux-acpi@vger.kernel.org>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
 
-On Tue, Sep 25, 2012 at 7:25 AM, Matthew Garrett <mjg@redhat.com> wrote:
-> This could conceivably be hotpluggable, and we may want to displace it
-> from devices under certain circustances, so add a release method to hand
+From: Fenghua Yu <fenghua.yu@intel.com>
 
-s/circustances/circumstances/
+Parsing acpi table entries may fall into an infinite loop on a buggy BIOS
+which has entry length=0 in acpi table.
 
-> back the resources.
->
-> Signed-off-by: Matthew Garrett <mjg@redhat.com>
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+Instead of kernel hang with few failure clue which leads to heavy lifting debug
+effort, this patch hardens kernel boot by booting into non NUMA mode. The debug
+info left in log buffer helps people identify the issue.
 
-I've never directly applied PNP patches; I've always sent them through
-Len's ACPI tree (cc'd), so let me know if you want me to do more than
-ack this.
+Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
+---
+ drivers/acpi/tables.c |   18 ++++++++++++++----
+ 1 files changed, 14 insertions(+), 4 deletions(-)
 
-> ---
->  drivers/pnp/system.c | 30 ++++++++++++++++++++++++++----
->  1 file changed, 26 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/pnp/system.c b/drivers/pnp/system.c
-> index 49c1720..b0a50f2 100644
-> --- a/drivers/pnp/system.c
-> +++ b/drivers/pnp/system.c
-> @@ -52,7 +52,17 @@ static void reserve_range(struct pnp_dev *dev, struct resource *r, int port)
->                  res ? "has been" : "could not be");
->  }
->
-> -static void reserve_resources_of_dev(struct pnp_dev *dev)
-> +static void free_range(struct pnp_dev *dev, struct resource *r, int port)
-> +{
-> +       resource_size_t start = r->start, end = r->end;
-> +
-> +       if (port)
-> +               release_region(start, end - start + 1);
-> +       else
-> +               release_mem_region(start, end - start + 1);
-> +}
-> +
-> +static void handle_resources_of_dev(struct pnp_dev *dev, bool free)
->  {
->         struct resource *res;
->         int i;
-> @@ -75,29 +85,41 @@ static void reserve_resources_of_dev(struct pnp_dev *dev)
->                 if (res->end < res->start)
->                         continue;       /* invalid */
->
-> -               reserve_range(dev, res, 1);
-> +               if (free)
-> +                       free_range(dev, res, 1);
-> +               else
-> +                       reserve_range(dev, res, 1);
->         }
->
->         for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_MEM, i)); i++) {
->                 if (res->flags & IORESOURCE_DISABLED)
->                         continue;
->
-> -               reserve_range(dev, res, 0);
-> +               if (free)
-> +                       free_range(dev, res, 0);
-> +               else
-> +                       reserve_range(dev, res, 0);
->         }
->  }
->
->  static int system_pnp_probe(struct pnp_dev *dev,
->                             const struct pnp_device_id *dev_id)
->  {
-> -       reserve_resources_of_dev(dev);
-> +       handle_resources_of_dev(dev, false);
->         return 0;
->  }
->
-> +static void system_pnp_remove(struct pnp_dev *dev)
-> +{
-> +       handle_resources_of_dev(dev, true);
-> +}
-> +
->  static struct pnp_driver system_pnp_driver = {
->         .name     = "system",
->         .id_table = pnp_dev_table,
->         .flags    = PNP_DRIVER_RES_DO_NOT_CHANGE,
->         .probe    = system_pnp_probe,
-> +       .remove   = system_pnp_remove,
->  };
->
->  static int __init pnp_system_init(void)
-> --
-> 1.7.11.4
->
+diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+index f336bca7..2572d97 100644
+--- a/drivers/acpi/tables.c
++++ b/drivers/acpi/tables.c
+@@ -240,10 +240,17 @@ acpi_table_parse_entries(char *id,
+ 	       table_end) {
+ 		if (entry->type == entry_id
+ 		    && (!max_entries || count++ < max_entries))
+-			if (handler(entry, table_end)) {
+-				early_acpi_os_unmap_memory((char *)table_header, tbl_size);
+-				return -EINVAL;
+-			}
++			if (handler(entry, table_end))
++				goto err;
++
++		/*
++		 * If entry->length is 0, break from this loop to avoid
++		 * infinite loop.
++		 */
++		if (entry->length == 0) {
++			pr_err(PREFIX "[%4.4s:0x%02x] Invalid zero length\n", id, entry_id);
++			goto err;
++		}
+ 
+ 		entry = (struct acpi_subtable_header *)
+ 		    ((unsigned long)entry + entry->length);
+@@ -255,6 +262,9 @@ acpi_table_parse_entries(char *id,
+ 
+ 	early_acpi_os_unmap_memory((char *)table_header, tbl_size);
+ 	return count;
++err:
++	early_acpi_os_unmap_memory((char *)table_header, tbl_size);
++	return -EINVAL;
+ }
+ 
+ int __init
+-- 
+1.7.2
+
