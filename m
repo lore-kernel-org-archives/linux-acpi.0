@@ -1,30 +1,91 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: Re: [PATCH] Thermal: Fix synchronization issues in thermal_sys.c
-Date: Thu, 27 Sep 2012 11:07:36 +0300
-Message-ID: <20120927080736.GT13767@mwanda>
-References: <1348726083-8540-1-git-send-email-durgadoss.r@intel.com>
- <1348726484.10877.278.camel@rui.sh.intel.com>
- <4D68720C2E767A4AA6A8796D42C8EB591D3D4E@BGSMSX101.gar.corp.intel.com>
- <CA+icZUWUtbbLwutsKaKL3WAD2hdSido6FfW5PQcezVzYzQdrTQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-next-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CA+icZUWUtbbLwutsKaKL3WAD2hdSido6FfW5PQcezVzYzQdrTQ@mail.gmail.com>
-Sender: linux-next-owner@vger.kernel.org
-To: Sedat Dilek <sedat.dilek@gmail.com>
-Cc: "R, Durgadoss" <durgadoss.r@intel.com>, "Zhang, Rui" <rui.zhang@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "hughd@google.com" <hughd@google.com>, "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: [PATCH 2/8] PCI: Move pci_rescan_bus() back to probe.c
+Date: Thu, 27 Sep 2012 01:11:53 -0700
+Message-ID: <1348733519-24684-3-git-send-email-yinghai@kernel.org>
+References: <1348733519-24684-1-git-send-email-yinghai@kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from rcsinet15.oracle.com ([148.87.113.117]:48390 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755201Ab2I0IMS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Sep 2012 04:12:18 -0400
+In-Reply-To: <1348733519-24684-1-git-send-email-yinghai@kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
 
-On Thu, Sep 27, 2012 at 08:25:11AM +0200, Sedat Dilek wrote:
-> Looks like you will sent a v2 of this patch.
-> Feel free to add a...
-> 
->         Reported-by: Sedat Dilek <sedat.dilek@gmail.com>
-> 
-> ,,, and don't forget Hugh :-).
+We have pci_assign_unassigned_bus_resources() in as global function now.
 
-And me!  I want a reported by cookie too!
+Move back pci_rescan_bus to probe.c where it should be.
 
-regards,
-dan carpenter
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+---
+ drivers/pci/probe.c     |   21 +++++++++++++++++++++
+ drivers/pci/setup-bus.c |   22 ----------------------
+ 2 files changed, 21 insertions(+), 22 deletions(-)
+
+diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+index ec909af..65f62e3 100644
+--- a/drivers/pci/probe.c
++++ b/drivers/pci/probe.c
+@@ -1890,6 +1890,27 @@ unsigned int __ref pci_rescan_bus_bridge_resize(struct pci_dev *bridge)
+ 	return max;
+ }
+ 
++/**
++ * pci_rescan_bus - scan a PCI bus for devices.
++ * @bus: PCI bus to scan
++ *
++ * Scan a PCI bus and child buses for new devices, adds them,
++ * and enables them.
++ *
++ * Returns the max number of subordinate bus discovered.
++ */
++unsigned int __ref pci_rescan_bus(struct pci_bus *bus)
++{
++	unsigned int max;
++
++	max = pci_scan_child_bus(bus);
++	pci_assign_unassigned_bus_resources(bus);
++	pci_bus_add_devices(bus);
++
++	return max;
++}
++EXPORT_SYMBOL_GPL(pci_rescan_bus);
++
+ EXPORT_SYMBOL(pci_add_new_bus);
+ EXPORT_SYMBOL(pci_scan_slot);
+ EXPORT_SYMBOL(pci_scan_bridge);
+diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
+index 1f34929..59e6c55 100644
+--- a/drivers/pci/setup-bus.c
++++ b/drivers/pci/setup-bus.c
+@@ -1569,25 +1569,3 @@ void pci_assign_unassigned_bus_resources(struct pci_bus *bus)
+ 
+ 	pci_enable_bridges(bus);
+ }
+-#ifdef CONFIG_HOTPLUG
+-/**
+- * pci_rescan_bus - scan a PCI bus for devices.
+- * @bus: PCI bus to scan
+- *
+- * Scan a PCI bus and child buses for new devices, adds them,
+- * and enables them.
+- *
+- * Returns the max number of subordinate bus discovered.
+- */
+-unsigned int __ref pci_rescan_bus(struct pci_bus *bus)
+-{
+-	unsigned int max;
+-
+-	max = pci_scan_child_bus(bus);
+-	pci_assign_unassigned_bus_resources(bus);
+-	pci_bus_add_devices(bus);
+-
+-	return max;
+-}
+-EXPORT_SYMBOL_GPL(pci_rescan_bus);
+-#endif
+-- 
+1.7.7
+
