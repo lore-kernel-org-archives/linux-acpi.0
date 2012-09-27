@@ -1,67 +1,365 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v3 0/2] ACPI: DBGP/DBG2 early console support for LPIA.
-Date: Thu, 27 Sep 2012 16:40:47 +0800
-Message-ID: <cover.1348652044.git.lv.zheng@intel.com>
-References: <cover.1347453194.git.zetalog@gmail.com>
+Subject: [PATCH v3 1/2] ACPI: Add early console framework for DBGP/DBG2.
+Date: Thu, 27 Sep 2012 16:41:08 +0800
+Message-ID: <f6e58d76efcbdb935b9f433c624686f7d34e0151.1348652044.git.lv.zheng@intel.com>
+References: <cover.1347453194.git.zetalog@gmail.com> <cover.1348652044.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:35663 "EHLO mga14.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:1864 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751134Ab2I0AlG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 26 Sep 2012 20:41:06 -0400
-In-Reply-To: <cover.1347453194.git.zetalog@gmail.com>
+	id S1751270Ab2I0AlS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 26 Sep 2012 20:41:18 -0400
+In-Reply-To: <cover.1348652044.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Linux ACPI <linux-acpi@vger.kernel.org>
 Cc: Len Brown <len.brown@intel.com>, Robert Moore <robert.moore@intel.com>, Ying Huang <ying.huang@intel.com>, Rui Zhang <rui.zhang@intel.com>, Lv Zheng <lv.zheng@intel.com>
 
-Microsoft Debug Port Table (DBGP or DBG2) is used by the Windows SoC
-platforms to describe their debugging facilities.
-Recent Low Power Intel Architecture (LPIA) platforms have utilized
-this for the SPI UART debug ports that are resident on their debug
-boards.
+Microsoft Debug Port Table (DBGP or DBG2) is required for Windows SoC
+platforms.  This patch is introduced to fix the gap between Windows
+and Linux.
 
-This patch set enables the DBGP/DBG2 debug ports as an Linux early
-console launcher.
-The SPI UART debug ports support is also refined to co-exist with this
-new usage model.
-
-To use this facility on LPIA platforms, you need to enable the following
-kernel configurations:
-  CONFIG_EARLY_PRINTK_ACPI=y
-  CONFIG_EARLY_PRINTK_INTEL_MID_SPI=y
-Then you need to append the following kernel parameter to the kernel
-command line in your the boot loader configuration file:
-  earlyprintk=acpi
-
-Version 3 of this patch set is the first version that will be published
-in the Linux community.  Earlier versions are reviewed internally in
-Intel.  This patch set keeps the version number to track the history
-that is known to Intel internal developers.
-
-Lv Zheng (2):
-  ACPI: Add early console framework for DBGP/DBG2.
-  ACPI: Add Intel MID SPI early console support.
-
- Documentation/kernel-parameters.txt        |    1 +
- arch/x86/Kconfig.debug                     |   25 ++++
- arch/x86/include/asm/mrst.h                |    2 +-
- arch/x86/kernel/acpi/boot.c                |    1 +
- arch/x86/kernel/early_printk.c             |   25 +++-
- arch/x86/platform/mrst/early_printk_mrst.c |  186 +----------------------
- drivers/acpi/Makefile                      |    2 +
- drivers/acpi/early_printk.c                |  201 +++++++++++++++++++++++++
- drivers/platform/x86/Makefile              |    2 +
- drivers/platform/x86/early/Makefile        |    5 +
- drivers/platform/x86/early/intel_mid_spi.c |  220 ++++++++++++++++++++++++++++
- include/acpi/actbl2.h                      |    1 +
- include/linux/acpi.h                       |   24 +++
- include/linux/intel_mid_early.h            |   12 ++
- 14 files changed, 526 insertions(+), 181 deletions(-)
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ Documentation/kernel-parameters.txt |    1 +
+ arch/x86/Kconfig.debug              |   15 +++
+ arch/x86/kernel/acpi/boot.c         |    1 +
+ arch/x86/kernel/early_printk.c      |   13 +++
+ drivers/acpi/Makefile               |    2 +
+ drivers/acpi/early_printk.c         |  201 +++++++++++++++++++++++++++++++++++
+ include/linux/acpi.h                |   24 +++++
+ 7 files changed, 257 insertions(+)
  create mode 100644 drivers/acpi/early_printk.c
- create mode 100644 drivers/platform/x86/early/Makefile
- create mode 100644 drivers/platform/x86/early/intel_mid_spi.c
- create mode 100644 include/linux/intel_mid_early.h
 
--- 
-1.7.10
-
+Index: linux-acpi/Documentation/kernel-parameters.txt
+===================================================================
+--- linux-acpi.orig/Documentation/kernel-parameters.txt	2012-09-26 17:52:44.000000000 +0800
++++ linux-acpi/Documentation/kernel-parameters.txt	2012-09-27 01:38:15.000000000 +0800
+@@ -763,6 +763,7 @@
+ 			earlyprintk=serial[,ttySn[,baudrate]]
+ 			earlyprintk=ttySn[,baudrate]
+ 			earlyprintk=dbgp[debugController#]
++			earlyprintk=acpi[debugController#]
+ 
+ 			Append ",keep" to not disable it when the real console
+ 			takes over.
+Index: linux-acpi/arch/x86/Kconfig.debug
+===================================================================
+--- linux-acpi.orig/arch/x86/Kconfig.debug	2012-09-26 17:52:44.000000000 +0800
++++ linux-acpi/arch/x86/Kconfig.debug	2012-09-27 01:46:12.000000000 +0800
+@@ -59,6 +59,21 @@
+ 	  with klogd/syslogd or the X server. You should normally N here,
+ 	  unless you want to debug such a crash. You need usb debug device.
+ 
++config EARLY_PRINTK_ACPI
++	bool "Early printk launcher via ACPI debug port tables"
++	depends on EARLY_PRINTK && ACPI
++	---help---
++	  Write kernel log output directly into the debug ports described
++	  in the ACPI tables known as DBGP and DBG2.
++
++	  To enable such debugging facilities, you need to enable this
++	  configuration option and append the "earlyprintk=acpi" kernel
++	  parameter through the boot loaders.  Please refer the
++	  "Documentation/kernel-parameters.txt" for details.  Since this
++	  is an early console launcher, you still need to enable actual
++	  early console drivers that are suitable for your platform.
++	  If in doubt, say "N".
++
+ config DEBUG_STACKOVERFLOW
+ 	bool "Check for stack overflows"
+ 	depends on DEBUG_KERNEL
+Index: linux-acpi/arch/x86/kernel/acpi/boot.c
+===================================================================
+--- linux-acpi.orig/arch/x86/kernel/acpi/boot.c	2012-09-26 17:52:44.000000000 +0800
++++ linux-acpi/arch/x86/kernel/acpi/boot.c	2012-09-27 01:38:15.000000000 +0800
+@@ -1518,6 +1518,7 @@
+ 		return;
+ 	}
+ 
++	acpi_early_console_parse();
+ 	acpi_table_parse(ACPI_SIG_BOOT, acpi_parse_sbf);
+ 
+ 	/*
+Index: linux-acpi/arch/x86/kernel/early_printk.c
+===================================================================
+--- linux-acpi.orig/arch/x86/kernel/early_printk.c	2012-09-26 17:52:44.000000000 +0800
++++ linux-acpi/arch/x86/kernel/early_printk.c	2012-09-27 01:39:09.000000000 +0800
+@@ -200,6 +200,15 @@
+ 	register_console(early_console);
+ }
+ 
++#ifdef CONFIG_EARLY_PRINTK_ACPI
++#include <linux/acpi.h>
++
++int __init acpi_early_console_setup(struct acpi_debug_port *info)
++{
++	return 0;
++}
++#endif
++
+ static int __init setup_early_printk(char *buf)
+ {
+ 	int keep;
+@@ -236,6 +245,10 @@
+ 		if (!strncmp(buf, "dbgp", 4) && !early_dbgp_init(buf + 4))
+ 			early_console_register(&early_dbgp_console, keep);
+ #endif
++#ifdef CONFIG_EARLY_PRINTK_ACPI
++		if (!strncmp(buf, "acpi", 4))
++			acpi_early_console_init(buf + 4, keep);
++#endif
+ #ifdef CONFIG_HVC_XEN
+ 		if (!strncmp(buf, "xen", 3))
+ 			early_console_register(&xenboot_console, keep);
+Index: linux-acpi/drivers/acpi/Makefile
+===================================================================
+--- linux-acpi.orig/drivers/acpi/Makefile	2012-09-26 17:52:44.000000000 +0800
++++ linux-acpi/drivers/acpi/Makefile	2012-09-27 01:38:15.000000000 +0800
+@@ -46,6 +46,8 @@
+ acpi-y				+= video_detect.o
+ endif
+ 
++obj-$(CONFIG_EARLY_PRINTK_ACPI)	+= early_printk.o
++
+ # These are (potentially) separate modules
+ obj-$(CONFIG_ACPI_AC) 		+= ac.o
+ obj-$(CONFIG_ACPI_BUTTON)	+= button.o
+Index: linux-acpi/drivers/acpi/early_printk.c
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-acpi/drivers/acpi/early_printk.c	2012-09-27 01:38:15.000000000 +0800
+@@ -0,0 +1,201 @@
++/*
++ *  acpi/early_printk.c - ACPI Boot-Time Debug Ports
++ *
++ *  Copyright (C) 2012 Lv Zheng <lv.zheng@intel.com>
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ *
++ */
++
++#include <linux/init.h>
++#include <linux/kernel.h>
++#include <linux/string.h>
++#include <linux/types.h>
++#include <linux/errno.h>
++#include <linux/acpi.h>
++#include <linux/bootmem.h>
++
++#define ACPI_EARLY_DISABLED	0x0000
++#define ACPI_EARLY_ENABLED	0x0001
++#define ACPI_EARLY_KEEP		0x0002
++#define ACPI_EARLY_PORT_MSK	0xFF00
++#define ACPI_EARLY_PORT_OFF	8
++
++u16 acpi_early_flags = ACPI_EARLY_DISABLED;
++
++static inline bool acpi_early_enabled(void)
++{
++	return acpi_early_flags & ACPI_EARLY_ENABLED;
++}
++
++static inline u8 acpi_early_port_index(void)
++{
++	return (acpi_early_flags & ACPI_EARLY_PORT_MSK) >> ACPI_EARLY_PORT_OFF;
++}
++
++int __init acpi_early_console_keep(void)
++{
++	return acpi_early_flags & ACPI_EARLY_KEEP ? 1 : 0;
++}
++
++static inline int acpi_table_parse_dbg2(acpi_early_console_handler handler)
++{
++	struct acpi_table_header *table_header = NULL;
++	struct acpi_dbg2_device *entry;
++	unsigned int count = 0;
++	unsigned long table_end;
++	acpi_size tbl_size;
++	unsigned int max_entries;
++	struct acpi_debug_port devinfo;
++
++	if (acpi_disabled)
++		return -ENODEV;
++
++	if (!handler)
++		return -EINVAL;
++
++	acpi_get_table(ACPI_SIG_DBG2, 0, &table_header);
++	if (!table_header) {
++		pr_warn("DBG2 not present\n");
++		return -ENODEV;
++	}
++	tbl_size = table_header->length;
++	table_end = (unsigned long)table_header + table_header->length;
++
++	entry = (struct acpi_dbg2_device *)
++	    ((unsigned long)table_header +
++	     ((struct acpi_table_dbg2 *)table_header)->info_offset);
++	max_entries = ((struct acpi_table_dbg2 *)table_header)->info_count;
++
++	while (((unsigned long)entry) + sizeof(struct acpi_dbg2_device) <
++	       table_end) {
++		if (entry->revision != 0) {
++			pr_warn("DBG2 revision %d not supported\n",
++				entry->revision);
++			count = -ENODEV;
++			goto fail;
++		}
++		if (!max_entries || count++ < max_entries) {
++			devinfo.port_index = (u8)count;
++			devinfo.port_type = entry->port_type;
++			devinfo.port_subtype = entry->port_subtype;
++			devinfo.register_count = entry->register_count;
++			devinfo.registers = (struct acpi_generic_address *)
++			    ((unsigned long)entry + entry->base_address_offset);
++			devinfo.namepath_length = entry->namepath_length;
++			devinfo.namepath = (char *)
++			    ((unsigned long)entry + entry->namepath_offset);
++			devinfo.oem_data_length = entry->oem_data_length;
++			devinfo.oem_data = (u8 *)
++			    ((unsigned long)entry + entry->oem_data_offset);
++
++			if (handler(&devinfo, table_end)) {
++				count = -ENODEV;
++				goto fail;
++			}
++		}
++
++		entry = (struct acpi_dbg2_device *)
++		    ((unsigned long)entry + entry->length);
++	}
++
++fail:
++	early_acpi_os_unmap_memory((char *)table_header, tbl_size);
++	return count;
++}
++
++static int __init acpi_parse_early_console(struct acpi_debug_port *info,
++					   const unsigned long end)
++{
++	pr_info("early: DBG2 console %d detected: %04x:%04x.\n",
++		info->port_index, info->port_type, info->port_subtype);
++
++	if (acpi_early_port_index() != 0 &&
++	    acpi_early_port_index() != info->port_index)
++		return 0;
++
++	acpi_early_console_setup(info);
++
++	return 0;
++}
++
++static int __init acpi_parse_dbgp(struct acpi_table_header *table)
++{
++	struct acpi_table_dbgp *dbgp;
++	struct acpi_debug_port devinfo;
++
++	if (acpi_early_port_index() != 0 &&
++	    acpi_early_port_index() != 1)
++		return 0;
++
++	dbgp = (struct acpi_table_dbgp *)table;
++	if (!dbgp) {
++		pr_warn("Unable to map DBGP\n");
++		return -ENODEV;
++	}
++
++	pr_info("early: DBGP console detected: %04x.\n",
++		dbgp->type);
++
++	devinfo.port_index = 1;
++	devinfo.port_type = ACPI_DBG2_SERIAL_PORT;
++	devinfo.port_subtype = dbgp->type;
++	devinfo.register_count = 1;
++	devinfo.registers = (struct acpi_generic_address *)&dbgp->debug_port;
++	devinfo.namepath_length = 0;
++	devinfo.namepath = NULL;
++	devinfo.oem_data_length = 0;
++	devinfo.oem_data = NULL;
++
++	acpi_parse_early_console(&devinfo, 0);
++
++	return 0;
++}
++
++int __init acpi_early_console_parse(void)
++{
++	if (!acpi_early_enabled())
++		return -EINVAL;
++
++	if (acpi_table_parse_dbg2(acpi_parse_early_console) == 0)
++		acpi_table_parse(ACPI_SIG_DBGP, acpi_parse_dbgp);
++
++	return 0;
++}
++
++int __init acpi_early_console_init(char *s, int keep)
++{
++	char *e;
++
++	acpi_early_flags = ACPI_EARLY_ENABLED;
++	if (keep)
++		acpi_early_flags |= ACPI_EARLY_KEEP;
++
++	if (*s) {
++		u8 port;
++
++		port = (u8)simple_strtoul(s, &e, 10);
++		acpi_early_flags |= (port) << ACPI_EARLY_PORT_OFF;
++	}
++
++	pr_info("early: debug port index %d.\n", acpi_early_port_index());
++
++	return 0;
++}
++
+Index: linux-acpi/include/linux/acpi.h
+===================================================================
+--- linux-acpi.orig/include/linux/acpi.h	2012-09-26 17:52:44.000000000 +0800
++++ linux-acpi/include/linux/acpi.h	2012-09-27 01:38:16.000000000 +0800
+@@ -430,4 +430,28 @@
+ #define acpi_os_set_prepare_sleep(func, pm1a_ctrl, pm1b_ctrl) do { } while (0)
+ #endif
+ 
++#ifdef CONFIG_EARLY_PRINTK_ACPI
++struct acpi_debug_port {
++	u8 port_index;
++	u16 port_type;
++	u16 port_subtype;
++	u16 register_count;
++	struct acpi_generic_address *registers;
++	u16 namepath_length;
++	char *namepath;
++	u16 oem_data_length;
++	u8 *oem_data;
++};
++
++typedef int (*acpi_early_console_handler)(struct acpi_debug_port *dev,
++					  const unsigned long end);
++
++int __init acpi_early_console_keep(void);
++int __init acpi_early_console_init(char *s, int keep);
++int __init acpi_early_console_parse(void);
++int __init acpi_early_console_setup(struct acpi_debug_port *info);
++#else
++static int acpi_early_console_parse(void) { return 0; }
++#endif
++
+ #endif	/*_LINUX_ACPI_H*/
