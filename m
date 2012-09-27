@@ -1,91 +1,39 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH 2/8] PCI: Move pci_rescan_bus() back to probe.c
-Date: Thu, 27 Sep 2012 01:11:53 -0700
-Message-ID: <1348733519-24684-3-git-send-email-yinghai@kernel.org>
-References: <1348733519-24684-1-git-send-email-yinghai@kernel.org>
+Subject: [PATCH 0/8] PCI, ACPI, x86: pci root bus hotplug support pci_root.c related core changes
+Date: Thu, 27 Sep 2012 01:11:51 -0700
+Message-ID: <1348733519-24684-1-git-send-email-yinghai@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:48390 "EHLO
+Received: from rcsinet15.oracle.com ([148.87.113.117]:48327 "EHLO
 	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755201Ab2I0IMS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Sep 2012 04:12:18 -0400
-In-Reply-To: <1348733519-24684-1-git-send-email-yinghai@kernel.org>
+	with ESMTP id S1755201Ab2I0IMN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Sep 2012 04:12:13 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>
 Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
 
-We have pci_assign_unassigned_bus_resources() in as global function now.
+based on pci/next
 
-Move back pci_rescan_bus to probe.c where it should be.
+could get from
+        git://git.kernel.org/pub/scm/linux/kernel/git/yinghai/linux-yinghai.git for-pci-root-bus-hotplug
 
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
----
- drivers/pci/probe.c     |   21 +++++++++++++++++++++
- drivers/pci/setup-bus.c |   22 ----------------------
- 2 files changed, 21 insertions(+), 22 deletions(-)
+Yinghai Lu (8):
+  PCI: Separate out pci_assign_unassigned_bus_resources()
+  PCI: Move pci_rescan_bus() back to probe.c
+  PCI: Move out pci_enable_bridges out of assign_unsigned_bus_res
+  PCI, ACPI: assign unassigned resource for hot add root bus
+  PCI: Add pci_stop_and_remove_root_bus()
+  PCI, ACPI: Make acpi_pci_root_remove stop/remove pci root bus
+  PCI, ACPI: delete root bus prt during hot remove path
+  PCI, ACPI: remove acpi_root_driver in reserse order
 
-diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index ec909af..65f62e3 100644
---- a/drivers/pci/probe.c
-+++ b/drivers/pci/probe.c
-@@ -1890,6 +1890,27 @@ unsigned int __ref pci_rescan_bus_bridge_resize(struct pci_dev *bridge)
- 	return max;
- }
- 
-+/**
-+ * pci_rescan_bus - scan a PCI bus for devices.
-+ * @bus: PCI bus to scan
-+ *
-+ * Scan a PCI bus and child buses for new devices, adds them,
-+ * and enables them.
-+ *
-+ * Returns the max number of subordinate bus discovered.
-+ */
-+unsigned int __ref pci_rescan_bus(struct pci_bus *bus)
-+{
-+	unsigned int max;
-+
-+	max = pci_scan_child_bus(bus);
-+	pci_assign_unassigned_bus_resources(bus);
-+	pci_bus_add_devices(bus);
-+
-+	return max;
-+}
-+EXPORT_SYMBOL_GPL(pci_rescan_bus);
-+
- EXPORT_SYMBOL(pci_add_new_bus);
- EXPORT_SYMBOL(pci_scan_slot);
- EXPORT_SYMBOL(pci_scan_bridge);
-diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
-index 1f34929..59e6c55 100644
---- a/drivers/pci/setup-bus.c
-+++ b/drivers/pci/setup-bus.c
-@@ -1569,25 +1569,3 @@ void pci_assign_unassigned_bus_resources(struct pci_bus *bus)
- 
- 	pci_enable_bridges(bus);
- }
--#ifdef CONFIG_HOTPLUG
--/**
-- * pci_rescan_bus - scan a PCI bus for devices.
-- * @bus: PCI bus to scan
-- *
-- * Scan a PCI bus and child buses for new devices, adds them,
-- * and enables them.
-- *
-- * Returns the max number of subordinate bus discovered.
-- */
--unsigned int __ref pci_rescan_bus(struct pci_bus *bus)
--{
--	unsigned int max;
--
--	max = pci_scan_child_bus(bus);
--	pci_assign_unassigned_bus_resources(bus);
--	pci_bus_add_devices(bus);
--
--	return max;
--}
--EXPORT_SYMBOL_GPL(pci_rescan_bus);
--#endif
+ drivers/acpi/pci_root.c |   21 ++++++++++++++++++++-
+ drivers/pci/probe.c     |   22 ++++++++++++++++++++++
+ drivers/pci/remove.c    |   36 ++++++++++++++++++++++++++++++++++++
+ drivers/pci/setup-bus.c |   22 +---------------------
+ include/linux/pci.h     |    3 +++
+ 5 files changed, 82 insertions(+), 22 deletions(-)
+
 -- 
 1.7.7
 
