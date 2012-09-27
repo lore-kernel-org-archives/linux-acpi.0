@@ -1,187 +1,111 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH v7 0/6] ZPODD patches
-Date: Thu, 27 Sep 2012 17:43:52 +0800
-Message-ID: <20120927094351.GA21156@mint-spring.sh.intel.com>
-References: <1347438597-5903-1-git-send-email-aaron.lu@intel.com>
- <201209241506.11631.rjw@sisk.pl>
- <20120924150449.GB3293@mint-spring.sh.intel.com>
- <201209242346.03414.rjw@sisk.pl>
- <20120925081825.GA1666@mint-spring.sh.intel.com>
- <1348570949.2457.36.camel@dabdike>
+From: Wen Congyang <wency@cn.fujitsu.com>
+Subject: Re: [RFC v9 PATCH 00/21] memory-hotplug: hot-remove physical memory
+Date: Thu, 27 Sep 2012 18:06:30 +0800
+Message-ID: <50642526.4070603@cn.fujitsu.com>
+References: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com> <20120926165820.GB7559@dhcp-192-168-178-175.profitbricks.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-ide-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1348570949.2457.36.camel@dabdike>
-Sender: linux-ide-owner@vger.kernel.org
-To: James Bottomley <James.Bottomley@HansenPartnership.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Oliver Neukum <oliver@neukum.org>, Alan Stern <stern@rowland.harvard.edu>, Jeff Garzik <jgarzik@pobox.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20120926165820.GB7559@dhcp-192-168-178-175.profitbricks.localdomain>
+Sender: owner-linux-mm@kvack.org
+To: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
+Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Sep 25, 2012 at 03:02:29PM +0400, James Bottomley wrote:
-> On Tue, 2012-09-25 at 16:18 +0800, Aaron Lu wrote:
-> > A example patch would be something like the following, I didn't seperate
-> > these ACPI calls in sr.c as this is just a concept proof, if this is the
-> > right thing to do, I will separate them into another file sr-acpi.c and
-> > make empty stubs for them in sr.h for systems do not have ACPI configured.
+At 09/27/2012 12:58 AM, Vasilis Liaskovitis Wrote:
+> Testing 3.6.0-rc7 with this v9 patchset plus more recent fixes [1],[2],[3]
+> Running in a guest (qemu+seabios from [4]). 
+> CONFIG_SLAB=y
+> CONFIG_DEBUG_SLAB=y
 > 
-> Apart from the needed separation to compile in the !ACPI case
+> - succesfull hot-add and online
+> - succesfull hot-remove with SCI (qemu) eject
+> - attempt to hot-readd same memory
 > 
-> > +static void sr_acpi_add_pm_notifier(struct device *dev)
-> > +{
-> > +	struct acpi_device *acpi_dev;
-> > +	acpi_handle handle;
-> > +	acpi_status status;
-> > +
-> > +	handle = dev->archdata.acpi_handle;
+> When the pages are re-onlined on hot-readd, I get a bad_page state for many
+> pages e.g.
 > 
-> This is a complete no-no.  archdata is defined to be specific to the
-> architecture it's supposed to be opaque to non-arch code.  You'll find
-> that only x86 and ia64 defines an acpi_handle there.  This will
-> instantly fail to compile on non intel.  If you need the handle, it
-> should be obtained via some accessor like dev_to_acpi_handle() which
-> will allow this to continue to function when, say, arm acquires ACPI.
+> [   59.611278] init_memory_mapping: [mem 0x80000000-0x9fffffff]
+> [   59.637836] Built 2 zonelists in Node order, mobility grouping on.  Total pages: 547617
+> [   59.638739] Policy zone: Normal
+> [   59.650840] BUG: Bad page state in process bash  pfn:9b6dc
+> [   59.651124] page:ffffea0002200020 count:0 mapcount:0 mapping:          (null) index:0xfdfdfdfdfdfdfdfd
+> [   59.651494] page flags: 0x2fdfdfdfd5df9fd(locked|referenced|uptodate|dirty|lru|active|slab|owner_priv_1|private|private_2|writeback|head|tail|swapcache|reclaim|swapbacked|unevictable|uncached|compound_lock)
+> [   59.653604] Modules linked in: netconsole acpiphp pci_hotplug acpi_memhotplug loop kvm_amd kvm microcode tpm_tis tpm tpm_bios evdev psmouse serio_raw i2c_piix4 i2c_core parport_pc parport processor button thermal_sys ext3 jbd mbcache sg sr_mod cdrom ata_generic virtio_net ata_piix virtio_blk libata virtio_pci virtio_ring virtio scsi_mod
+> [   59.656998] Pid: 988, comm: bash Not tainted 3.6.0-rc7-guest #12
+> [   59.657172] Call Trace:
+> [   59.657275]  [<ffffffff810e9b30>] ? bad_page+0xb0/0x100
+> [   59.657434]  [<ffffffff810ea4c3>] ? free_pages_prepare+0xb3/0x100
+> [   59.657610]  [<ffffffff810ea668>] ? free_hot_cold_page+0x48/0x1a0
+> [   59.657787]  [<ffffffff8112cc08>] ? online_pages_range+0x68/0xa0
+> [   59.657961]  [<ffffffff8112cba0>] ? __online_page_increment_counters+0x10/0x10
+> [   59.658162]  [<ffffffff81045561>] ? walk_system_ram_range+0x101/0x110
+> [   59.658346]  [<ffffffff814c4f95>] ? online_pages+0x1a5/0x2b0
+> [   59.658515]  [<ffffffff8135663d>] ? __memory_block_change_state+0x20d/0x270
+> [   59.658710]  [<ffffffff81356756>] ? store_mem_state+0xb6/0xf0
+> [   59.658878]  [<ffffffff8119e482>] ? sysfs_write_file+0xd2/0x160
+> [   59.659052]  [<ffffffff8113769a>] ? vfs_write+0xaa/0x160
+> [   59.659212]  [<ffffffff81137977>] ? sys_write+0x47/0x90
+> [   59.659371]  [<ffffffff814e2f25>] ? async_page_fault+0x25/0x30
+> [   59.659543]  [<ffffffff814ea239>] ? system_call_fastpath+0x16/0x1b
+> [   59.659720] Disabling lock debugging due to kernel taint
 > 
-> I've got to say, this looks like a fault in ACPI itself.  If the handles
-> are 1:1 with struct device, then why not have all the functions taking
-> handles take the device instead and leave the embedded handle safely in
-> the architecture specific code?
+> Patch 20/21 deals with a similar scenario, but only for __PG_HWPOISON flag.
+> Did i miss any other patch for this?
 
-I've prepared a complete code change for you to take a look, with the
-notification code resides in sr, I can move the need_eject flag from
-scsi_device to scsi_cd, which should make more sense.
+Please try the following patch:
+>From a38ec678e0a9b48b252f457d7910b7527049dc43 Mon Sep 17 00:00:00 2001
+From: Wen Congyang <wency@cn.fujitsu.com>
+Date: Thu, 27 Sep 2012 17:27:57 +0800
+Subject: [PATCH] clear the memory to store page information
 
+---
+ mm/sparse.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/scsi/Makefile b/drivers/scsi/Makefile
-index 888f73a..9f0a1da 100644
---- a/drivers/scsi/Makefile
-+++ b/drivers/scsi/Makefile
-@@ -177,6 +177,7 @@ sd_mod-objs	:= sd.o
- sd_mod-$(CONFIG_BLK_DEV_INTEGRITY) += sd_dif.o
+diff --git a/mm/sparse.c b/mm/sparse.c
+index ab9d755..36dda08 100644
+--- a/mm/sparse.c
++++ b/mm/sparse.c
+@@ -639,7 +639,6 @@ static struct page *__kmalloc_section_memmap(unsigned long nr_pages)
+ got_map_page:
+ 	ret = (struct page *)pfn_to_kaddr(page_to_pfn(page));
+ got_map_ptr:
+-	memset(ret, 0, memmap_size);
  
- sr_mod-objs	:= sr.o sr_ioctl.o sr_vendor.o
-+sr_mod-$(CONFIG_ACPI)	+= sr_acpi.o
- ncr53c8xx-flags-$(CONFIG_SCSI_ZALON) \
- 		:= -DCONFIG_NCR53C8XX_PREFETCH -DSCSI_NCR_BIG_ENDIAN \
- 			-DCONFIG_SCSI_NCR53C8XX_NO_WORD_TRANSFERS
-diff --git a/drivers/scsi/sr.c b/drivers/scsi/sr.c
-index 4d1a610..cb6703c 100644
---- a/drivers/scsi/sr.c
-+++ b/drivers/scsi/sr.c
-@@ -734,6 +734,7 @@ static int sr_probe(struct device *dev)
+ 	return ret;
+ }
+@@ -761,6 +760,8 @@ int __meminit sparse_add_one_section(struct zone *zone, unsigned long start_pfn,
+ 		goto out;
+ 	}
  
- 	sdev_printk(KERN_DEBUG, sdev,
- 		    "Attached scsi CD-ROM %s\n", cd->cdi.name);
-+	sr_acpi_add_pm_notifier(dev);
- 	scsi_autopm_put_device(cd->device);
++	memset(memmap, 0, sizeof(struct page) * nr_pages);
++
+ 	ms->section_mem_map |= SECTION_MARKED_PRESENT;
  
- 	return 0;
-@@ -984,6 +985,7 @@ static int sr_remove(struct device *dev)
- 	struct scsi_cd *cd = dev_get_drvdata(dev);
- 
- 	scsi_autopm_get_device(cd->device);
-+	sr_acpi_remove_pm_notifier(dev);
- 
- 	blk_queue_prep_rq(cd->device->request_queue, scsi_prep_fn);
- 	del_gendisk(cd->disk);
-diff --git a/drivers/scsi/sr.h b/drivers/scsi/sr.h
-index 37c8f6b..1f66fa0a 100644
---- a/drivers/scsi/sr.h
-+++ b/drivers/scsi/sr.h
-@@ -48,6 +48,8 @@ typedef struct scsi_cd {
- 	bool get_event_changed:1;	/* changed according to GET_EVENT */
- 	bool ignore_get_event:1;	/* GET_EVENT is unreliable, use TUR */
- 
-+	bool need_eject:1; /* User wakes up the ODD, need eject the tray */
-+
- 	struct cdrom_device_info cdi;
- 	/* We hold gendisk and scsi_device references on probe and use
- 	 * the refs on this kref to decide when to release them */
-@@ -74,4 +76,13 @@ void sr_vendor_init(Scsi_CD *);
- int sr_cd_check(struct cdrom_device_info *);
- int sr_set_blocklength(Scsi_CD *, int blocklength);
- 
-+/* sr_acpi.c */
-+#ifdef CONFIG_ACPI
-+extern void sr_acpi_add_pm_notifier(struct device *);
-+extern void sr_acpi_remove_pm_notifier(struct device *);
-+#else
-+static inline void sr_acpi_add_pm_notifier(struct device *dev) {}
-+static inline void sr_acpi_remove_pm_notifier(struct device *dev) {}
-+#endif
-+
- #endif
-diff --git a/drivers/scsi/sr_acpi.c b/drivers/scsi/sr_acpi.c
-new file mode 100644
-index 0000000..ce6bc11
---- /dev/null
-+++ b/drivers/scsi/sr_acpi.c
-@@ -0,0 +1,64 @@
-+#include <linux/cdrom.h>
-+#include <linux/pm_runtime.h>
-+#include <scsi/scsi_device.h>
-+#include <linux/acpi.h>
-+#include <acpi/acpi_bus.h>
-+#include "sr.h"
-+
-+static void sr_acpi_wake_dev(acpi_handle handle, u32 event, void *context)
-+{
-+	struct device *dev = context;
-+	struct scsi_cd *cd = dev_get_drvdata(dev);
-+
-+	if (event == ACPI_NOTIFY_DEVICE_WAKE && pm_runtime_suspended(dev)) {
-+		cd->need_eject = 1;
-+		pm_runtime_resume(dev);
-+	}
-+}
-+
-+void sr_acpi_add_pm_notifier(struct device *dev)
-+{
-+	struct acpi_device *acpi_dev;
-+	acpi_handle handle;
-+	acpi_status status;
-+	struct scsi_device *sdev = to_scsi_device(dev);
-+
-+	if (!sdev->can_power_off)
-+		return;
-+
-+	handle = DEVICE_ACPI_HANDLE(dev);
-+	if (!handle)
-+		return;
-+
-+	status = acpi_bus_get_device(handle, &acpi_dev);
-+	if (ACPI_FAILURE(status))
-+		return;
-+
-+	acpi_power_resource_register_device(dev, handle);
-+	acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
-+			sr_acpi_wake_dev, dev);
-+	device_set_run_wake(dev, true);
-+}
-+
-+void sr_acpi_remove_pm_notifier(struct device *dev)
-+{
-+	struct acpi_device *acpi_dev;
-+	acpi_handle handle;
-+	acpi_status status;
-+	struct scsi_device *sdev = to_scsi_device(dev);
-+
-+	if (!sdev->can_power_off)
-+		return;
-+
-+	handle = DEVICE_ACPI_HANDLE(dev);
-+	if (!handle)
-+		return;
-+
-+	status = acpi_bus_get_device(handle, &acpi_dev);
-+	if (ACPI_FAILURE(status))
-+		return;
-+
-+	acpi_power_resource_unregister_device(dev, handle);
-+	device_set_run_wake(dev, false);
-+	acpi_remove_notify_handler(handle, ACPI_SYSTEM_NOTIFY, sr_acpi_wake_dev);
-+}
+ 	ret = sparse_init_one_section(ms, section_nr, memmap, usemap);
+-- 
+1.7.1
 
-Thanks,
-Aaron
+Thanks
+Wen Congyang
 
+> 
+> thanks,
+> 
+> - Vasilis
+> 
+> [1] https://lkml.org/lkml/2012/9/6/635
+> [2] https://lkml.org/lkml/2012/9/11/542
+> [3] https://lkml.org/lkml/2012/9/20/37
+> [4] http://permalink.gmane.org/gmane.comp.emulators.kvm.devel/98691
+> 
+> 
+> 
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
