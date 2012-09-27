@@ -1,80 +1,105 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v7 3/6] scsi: sr: support zero power ODD(ZPODD)
-Date: Fri, 28 Sep 2012 01:29:48 +0200
-Message-ID: <201209280129.48715.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.1209271038050.1596-100000@iolanthe.rowland.org> <506468E6.1020007@intel.com>
+From: Hugh Dickins <hughd@google.com>
+Subject: Re: [PATCHv2] Thermal: Fix synchronization issues in thermal_sys.c
+Date: Thu, 27 Sep 2012 16:48:28 -0700 (PDT)
+Message-ID: <alpine.LSU.2.00.1209271626460.1314@eggly.anvils>
+References: <1348727888-11196-1-git-send-email-durgadoss.r@intel.com> <CA+icZUXV21BqzAHwPy5gY_VHEws8hXZ8B=vESuPazpmOSQVHvA@mail.gmail.com> <CA+icZUWd0s4bo4ASnfryUvSNSk82d5f3-so1RghbOhqHH5UOaw@mail.gmail.com>
+ <CA+icZUXo+w8G1ugG+m3YBE-LT7Qb6_Mbo2ijRqRXP1HXLTohGQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:47852 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754952Ab2I0XXN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 27 Sep 2012 19:23:13 -0400
-In-Reply-To: <506468E6.1020007@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <CA+icZUXo+w8G1ugG+m3YBE-LT7Qb6_Mbo2ijRqRXP1HXLTohGQ@mail.gmail.com>
+Sender: linux-next-owner@vger.kernel.org
+To: lenb@kernel.org, rui.zhang@intel.com
+Cc: Durgadoss R <durgadoss.r@intel.com>, Sedat Dilek <sedat.dilek@gmail.com>, linux-acpi@vger.kernel.org, dan.carpenter@oracle.com, linux-next@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Oliver Neukum <oliver@neukum.org>, James Bottomley <James.Bottomley@hansenpartnership.com>, Jeff Garzik <jgarzik@pobox.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>
 
-On Thursday, September 27, 2012, Aaron Lu wrote:
-> On 09/27/2012 10:42 PM, Alan Stern wrote:
-> > On Thu, 27 Sep 2012, Aaron Lu wrote:
-> > 
-> >>> Moreover, I'd like to migrate SCSI drivers to the PM handling based on struct
-> >>> dev_pm_ops eventually and your change is kind of going in the opposite
-> >>> direction.  I don't know how much effort the migration is going to take,
-> >>> though, so perhaps we can just make this change first.
+On Thu, 27 Sep 2012, Sedat Dilek wrote:
 > >>
-> >> Does the following change look OK?
+> >> The v2 patch does *not* fix the issue here!
 > >>
-> >> diff --git a/drivers/scsi/scsi_pm.c b/drivers/scsi/scsi_pm.c
-> >> index dc0ad85..1fb7ccc 100644
-> >> --- a/drivers/scsi/scsi_pm.c
-> >> +++ b/drivers/scsi/scsi_pm.c
-> >> @@ -143,7 +143,15 @@ static int scsi_runtime_suspend(struct device *dev)
-> >>  
-> >>  	dev_dbg(dev, "scsi_runtime_suspend\n");
-> >>  	if (scsi_is_sdev_device(dev)) {
-> >> -		err = scsi_dev_type_suspend(dev, PMSG_AUTO_SUSPEND);
-> >> +		err = scsi_device_quiesce(to_scsi_device(dev));
-> >> +		if (err)
-> >> +			goto out;
-> >> +
-> >> +		err = pm_generic_runtime_suspend(dev);
-> >> +		if (!err)
-> >> +			goto out;
-> >> +
-> >> +		scsi_device_resume(to_scsi_device(dev));
-> >>  		if (err == -EAGAIN)
-> >>  			pm_schedule_suspend(dev, jiffies_to_msecs(
-> >>  				round_jiffies_up_relative(HZ/10)));
-> > 
-> > Maybe in the end it will be better, but for now this looks like 
-> > unnecessary code duplication.  Basically you are copying 
-> > scsi_dev_type_suspend() into scsi_runtime_suspend(), except that you 
-> > omitted the debugging statement.
+> >> [1] https://patchwork.kernel.org/patch/1511961/
+> >>
+> >
+> > I have re-tested with Linux-Next (next-20120927) plus thermal-next [1]
+> > pulled in and see still the same call-trace!
+
+Same here on mmotm, yes.
+
+> >
+> > Hugh or Dan can you confirm this works for you or not?
+> > Thanks in advance.
+> >
+> > [1] http://git.kernel.org/?p=linux/kernel/git/rzhang/linux.git;a=shortlog;h=refs/heads/next
+> > [2] http://git.kernel.org/?p=linux/kernel/git/rzhang/linux.git;a=commitdiff;h=404b134156bd9d9bc506c0974a1254806e13db2c
+> >
 > 
-> And I've used pm_generic_runtime_suspend :-)
-> That would allow me to write runtime callbacks of dev_pm_ops for
-> indivisual scsi drivers, like sr.
+> With the attached fixup/followup patch, I can boot into my system!
+> But, as said yesterday... working within X, Firefox is a pain in the a**.
 
-Well, actually, I meant something different.
+Indeed, this works for me too, thanks.
+Let's get your addition out of the attachment and fold it into a v3.
+Mind if we change "synchronization issues" to "oops and unlocking"?
 
-The above patch would make it possible for drivers to provide runtime PM
-callbacks through dev->driver.pm, but drv->suspend and drv->resume would
-still be used for system suspend/resume (and hibernation).
 
-The transition to struct dev_pm_ops I meant, however, would be to start using
-callbacks from dev->driver.pm for _all_ device PM operations by default and
-fall back to drv->suspend and drv->resume for the drivers whose dev->driver.pm
-is NULL (along the lines of what PCI does).  The next step would be to
-convert all drivers to use dev->driver.pm only.
+[PATCHv3] Thermal: Fix oops and unlocking in thermal_sys.c
 
-So I wouldn't like any drivers to use dev->driver.pm callbacks for some
-operations and drv->suspend and drv->resume for the remaining ones at the
-same time.
+This patch fixes the following mutex and NULL pointer
+problems in thermal_sys.c:
 
-Thanks,
-Rafael
+ * mutex_unlock fix in update_temperature function
+ * mutex_unlock fix in bind_cdev function
+ * Correct early return to continue in bind_cdev function
+ * NULL check fix in bind_cdev function
+ * NULL check fix in bind_tz function
+
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Reported-by: Sedat Dilek <sedat.dilek@gmail.com>
+Reported-by: Hugh Dickins <hughd@google.com>
+Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
+Signed-off-by: Sedat Dilek <sedat.dilek@gmail.com>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+---
+v3:
+ * Sedat restored necessary NULL check in bind_cdev and his signoff.
+ * Hugh added two more comments above, his signoff, and Dan's 'Reported-by'.
+
+ drivers/thermal/thermal_sys.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+--- mmotm/drivers/thermal/thermal_sys.c	2012-09-26 10:15:28.652071362 -0700
++++ linux/drivers/thermal/thermal_sys.c	2012-09-27 16:19:14.427515890 -0700
+@@ -252,8 +252,8 @@ static void bind_cdev(struct thermal_coo
+ 		}
+ 
+ 		tzp = pos->tzp;
+-		if (!tzp->tbp)
+-			return;
++		if (!tzp || !tzp->tbp)
++			continue;
+ 
+ 		for (i = 0; i < tzp->num_tbps; i++) {
+ 			if (tzp->tbp[i].cdev || !tzp->tbp[i].match)
+@@ -289,7 +289,7 @@ static void bind_tz(struct thermal_zone_
+ 		goto exit;
+ 	}
+ 
+-	if (!tzp->tbp)
++	if (!tzp || !tzp->tbp)
+ 		goto exit;
+ 
+ 	list_for_each_entry(pos, &thermal_cdev_list, node) {
+@@ -387,12 +387,13 @@ static void update_temperature(struct th
+ 	ret = tz->ops->get_temp(tz, &temp);
+ 	if (ret) {
+ 		pr_warn("failed to read out thermal zone %d\n", tz->id);
+-		return;
++		goto exit;
+ 	}
+ 
+ 	tz->last_temperature = tz->temperature;
+ 	tz->temperature = temp;
+ 
++exit:
+ 	mutex_unlock(&tz->lock);
+ }
+ 
