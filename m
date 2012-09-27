@@ -1,104 +1,52 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH] ACPI: Add identification objects' user interface.
-Date: Thu, 27 Sep 2012 09:45:21 +0800
-Message-ID: <1348710321.10877.273.camel@rui.sh.intel.com>
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [RESEND PATCH] ACPI: Add _UID support for ACPI devices.
+Date: Thu, 27 Sep 2012 13:02:33 +0800
+Message-ID: <6714b0d7ea3b72d7702dae911afad081e948be3b.1348722104.git.lv.zheng@intel.com>
 References: <3f02ff942122d086c4d6e44a9ffa9269300675b3.1348736272.git.lv.zheng@intel.com>
-	 <ce5e3ff518a8a0a74b2acb2920df409fa618276f.1348709690.git.lv.zheng@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:18097 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:63720 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750902Ab2I0BpG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 26 Sep 2012 21:45:06 -0400
-In-Reply-To: <ce5e3ff518a8a0a74b2acb2920df409fa618276f.1348709690.git.lv.zheng@intel.com>
+	id S1751332Ab2I0FDX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 27 Sep 2012 01:03:23 -0400
+In-Reply-To: <3f02ff942122d086c4d6e44a9ffa9269300675b3.1348736272.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Len Brown <len.brown@intel.com>, Robert Moore <robert.moore@intel.com>, Ying Huang <ying.huang@intel.com>
+To: Len Brown <len.brown@intel.com>
+Cc: linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>, Rui Zhang <rui.zhang@intel.com>
 
-On =E5=9B=9B, 2012-09-27 at 09:40 +0800, Lv Zheng wrote:
-> ACPI devices are glued with physical devices through _ADR object, ACP=
-I
-> enumerated devices are identified with _UID object.  Currently we can
-> observe _HID/_CID through sysfs interfaces (hid/modalias), but there'=
-s
-> no mean for us to check _ADR/_UID from user space.  This patch fix th=
-is
-> gap for ACPI developers and users.
->=20
-why do we need to get this information from userspace?
+The _UID object is optional, but is required when the device has no
+other way to report a persistent unique device ID.
+This patch is required for ACPI 5.0 ACPI enumerated IP cores.
 
-thanks,
-rui
-> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> ---
->  drivers/acpi/scan.c |   25 +++++++++++++++++++++++++
->  1 file changed, 25 insertions(+)
->=20
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index bb7fe47..df53190 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -216,6 +216,22 @@ acpi_device_hid_show(struct device *dev, struct =
-device_attribute *attr, char *bu
->  static DEVICE_ATTR(hid, 0444, acpi_device_hid_show, NULL);
-> =20
->  static ssize_t
-> +acpi_device_uid_show(struct device *dev, struct device_attribute *at=
-tr, char *buf) {
-> +	struct acpi_device *acpi_dev =3D to_acpi_device(dev);
-> +
-> +	return sprintf(buf, "%s\n", acpi_dev->pnp.unique_id);
-> +}
-> +static DEVICE_ATTR(uid, 0444, acpi_device_uid_show, NULL);
-> +
-> +static ssize_t
-> +acpi_device_adr_show(struct device *dev, struct device_attribute *at=
-tr, char *buf) {
-> +	struct acpi_device *acpi_dev =3D to_acpi_device(dev);
-> +
-> +	return sprintf(buf, "0x%08x\n", (unsigned int)(acpi_dev->pnp.bus_ad=
-dress));
-> +}
-> +static DEVICE_ATTR(adr, 0444, acpi_device_adr_show, NULL);
-> +
-> +static ssize_t
->  acpi_device_path_show(struct device *dev, struct device_attribute *a=
-ttr, char *buf) {
->  	struct acpi_device *acpi_dev =3D to_acpi_device(dev);
->  	struct acpi_buffer path =3D {ACPI_ALLOCATE_BUFFER, NULL};
-> @@ -257,6 +273,11 @@ static int acpi_device_setup_files(struct acpi_d=
-evice *dev)
->  			goto end;
->  	}
-> =20
-> +	if (dev->flags.bus_address)
-> +		result =3D device_create_file(&dev->dev, &dev_attr_adr);
-> +	if (dev->pnp.unique_id)
-> +		result =3D device_create_file(&dev->dev, &dev_attr_uid);
-> +
->          /*
->           * If device has _EJ0, 'eject' file is created that is used =
-to trigger
->           * hot-removal function from userland.
-> @@ -281,6 +302,10 @@ static void acpi_device_remove_files(struct acpi=
-_device *dev)
->  	if (ACPI_SUCCESS(status))
->  		device_remove_file(&dev->dev, &dev_attr_eject);
-> =20
-> +	if (dev->pnp.unique_id)
-> +		device_remove_file(&dev->dev, &dev_attr_uid);
-> +	if (dev->flags.bus_address)
-> +		device_remove_file(&dev->dev, &dev_attr_adr);
->  	device_remove_file(&dev->dev, &dev_attr_modalias);
->  	device_remove_file(&dev->dev, &dev_attr_hid);
->  	if (dev->handle)
+Signed-off-by: Rui Zhang <rui.zhang@intel.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ drivers/acpi/scan.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index d730a93..bb7fe47 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -327,6 +327,8 @@ static void acpi_device_release(struct device *dev)
+ 	struct acpi_device *acpi_dev = to_acpi_device(dev);
+ 
+ 	acpi_free_ids(acpi_dev);
++	if (acpi_dev->pnp.unique_id)
++		kfree(acpi_dev->pnp.unique_id);
+ 	kfree(acpi_dev);
+ }
+ 
+@@ -1162,6 +1164,9 @@ static void acpi_device_set_id(struct acpi_device *device)
+ 			device->pnp.bus_address = info->address;
+ 			device->flags.bus_address = 1;
+ 		}
++		if (info->valid & ACPI_VALID_UID) {
++			device->pnp.unique_id = kstrdup(info->unique_id.string, GFP_KERNEL);
++		}
+ 
+ 		kfree(info);
+ 
+-- 
+1.7.10
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
