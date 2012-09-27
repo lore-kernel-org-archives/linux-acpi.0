@@ -1,81 +1,287 @@
 From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH] Thermal: Fix synchronization issues in thermal_sys.c
-Date: Thu, 27 Sep 2012 14:14:44 +0800
-Message-ID: <1348726484.10877.278.camel@rui.sh.intel.com>
-References: <1348726083-8540-1-git-send-email-durgadoss.r@intel.com>
+Subject: RE: inux-next: Tree for Sept 26 (not bootable on AMD64:
+ thermal|acpi|drm/i915|pci related?)
+Date: Thu, 27 Sep 2012 14:16:37 +0800
+Message-ID: <1348726597.10877.279.camel@rui.sh.intel.com>
+References: <CA+icZUWF92LaJ6pOMUPh6M-MVhF1GikJfyb9_1xXdNTxGLahXw@mail.gmail.com>
+	 <alpine.LSU.2.00.1209261241190.2175@eggly.anvils>
+	 <1348726082.10877.276.camel@rui.sh.intel.com>
+	 <4D68720C2E767A4AA6A8796D42C8EB591D3CF5@BGSMSX101.gar.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:3180 "EHLO mga14.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:30306 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755826Ab2I0GOF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 27 Sep 2012 02:14:05 -0400
-In-Reply-To: <1348726083-8540-1-git-send-email-durgadoss.r@intel.com>
+	id S1755512Ab2I0GQN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 27 Sep 2012 02:16:13 -0400
+In-Reply-To: <4D68720C2E767A4AA6A8796D42C8EB591D3CF5@BGSMSX101.gar.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Durgadoss R <durgadoss.r@intel.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, dan.carpenter@oracle.com, hughd@google.com, linux-next@vger.kernel.org
+To: "R, Durgadoss" <durgadoss.r@intel.com>
+Cc: Hugh Dickins <hughd@google.com>, Sedat Dilek <sedat.dilek@gmail.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Andrew Morton <akpm@linux-foundation.org>, Dan Carpenter <dan.carpenter@oracle.com>, "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Dave Airlie <airlied@gmail.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, DRI <dri-devel@lists.freedesktop.org>, Bjorn Helgaas <bhelgaas@google.com>
 
-On =E5=9B=9B, 2012-09-27 at 11:38 +0530, Durgadoss R wrote:
-> This patch fixes the following mutex and NULL pointer
-> problems in thermal_sys.c:
->  * mutex_unlock fix in update_temperature function
->  * mutex_unlock/NULL check fix in bind_cdev function
->  * NULL check fix in bind_tz function
+On =E5=9B=9B, 2012-09-27 at 00:11 -0600, R, Durgadoss wrote:
+> Hi Rui,
 >=20
-> Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
-> ---
->  drivers/thermal/thermal_sys.c |    9 +++++----
->  1 file changed, 5 insertions(+), 4 deletions(-)
 >=20
-> diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_=
-sys.c
-> index 4f77d89..848553d 100644
-> --- a/drivers/thermal/thermal_sys.c
-> +++ b/drivers/thermal/thermal_sys.c
-> @@ -252,8 +252,8 @@ static void bind_cdev(struct thermal_cooling_devi=
-ce *cdev)
->  		}
-> =20
->  		tzp =3D pos->tzp;
-> -		if (!tzp->tbp)
-> -			return;
-> +		if (!tzp || !tzp->tbp)
-> +			continue;
-> =20
->  		for (i =3D 0; i < tzp->num_tbps; i++) {
->  			if (tzp->tbp[i].cdev || !tzp->tbp[i].match)
-> @@ -289,7 +289,7 @@ static void bind_tz(struct thermal_zone_device *t=
-z)
->  		goto exit;
->  	}
-> =20
-> -	if (!tzp->tbp)
-> +	if (!tzp || !tzp->tbp)
->  		goto exit;
-> =20
-actually, this is not a problem.
-I checked the code just now, tzp can not be NULL if the code runs here.
+> > -----Original Message-----
+> > From: Zhang, Rui
+> > Sent: Thursday, September 27, 2012 11:38 AM
+> > To: Hugh Dickins
+> > Cc: Sedat Dilek; Stephen Rothwell; Andrew Morton; Dan Carpenter; R,
+> > Durgadoss; linux-next@vger.kernel.org; linux-kernel@vger.kernel.org=
+;
+> > Rafael J. Wysocki; Dave Airlie; Daniel Vetter; Linux ACPI; linux-
+> > pci@vger.kernel.org; DRI; Bjorn Helgaas
+> > Subject: Re: inux-next: Tree for Sept 26 (not bootable on AMD64:
+> > thermal|acpi|drm/i915|pci related?)
+> >=20
+> > Hi, hugh,
+> >=20
+> > On =E4=B8=89, 2012-09-26 at 12:51 -0700, Hugh Dickins wrote:
+> > > On Wed, 26 Sep 2012, Sedat Dilek wrote:
+> > > >
+> > > > on my Ubuntu/precise AMD64 today's Linux-Next runs into the fol=
+lowing
+> > > > call-trace (machine freezes):
+> > > >
+> > > >  Sep 26 19:22:58 fambox kernel: [   11.124739] BUG: unable to h=
+andle
+> > > > kernel NULL pointer dereference at 0000000000000018
+> > > > Sep 26 19:22:58 fambox kernel: [   11.124806] IP: [<ffffffff814=
+bb058>]
+> > > > thermal_cooling_device_register+0x2c8/0x3d0
+> > > > Sep 26 19:22:58 fambox kernel: [   11.124869] PGD 0
+> > > > Sep 26 19:22:58 fambox kernel: [   11.124895] Oops: 0000 [#1] S=
+MP
+> > > > Sep 26 19:22:58 fambox kernel: [   11.124919] Modules linked in=
+:
+> > > > coretemp kvm_intel kvm snd_hda_intel(+) arc4 snd_hda_codec iwld=
+vm
+> > > > snd_hwdep ghash_clmulni_intel snd_pcm aesni_intel uvcvideo mac8=
+0211
+> > > > aes_x86_64 snd_page_alloc ablk_helper i915(+) snd_seq_midi cryp=
+td
+> > > > videobuf2_vmalloc snd_seq_midi_event xts videobuf2_memops lrw
+> > > > snd_rawmidi videobuf2_core joydev gf128mul videodev snd_seq
+> > > > snd_seq_device hid_generic snd_timer drm_kms_helper iwlwifi drm=
+ snd
+> > > > psmouse i2c_algo_bit soundcore btusb microcode serio_raw
+> > > > samsung_laptop wmi cfg80211 bluetooth mei mac_hid video lpc_ich=
+ lp
+> > > > parport ext4 jbd2 usbhid hid r8169
+> > > > Sep 26 19:22:58 fambox kernel: [   11.125319] CPU 2
+> > > > Sep 26 19:22:58 fambox kernel: [   11.125332] Pid: 579, comm: m=
+odprobe
+> > > > Not tainted 3.6.0-rc7-next20120926-2-iniza-generic #1 SAMSUNG
+> > > > ELECTRONICS CO., LTD.
+> > 530U3BI/530U4BI/530U4BH/530U3BI/530U4BI/530U4BH
+> > > > Sep 26 19:22:58 fambox kernel: [   11.125401] RIP:
+> > > > 0010:[<ffffffff814bb058>]  [<ffffffff814bb058>]
+> > > > thermal_cooling_device_register+0x2c8/0x3d0
+> > > > Sep 26 19:22:58 fambox kernel: [   11.125450] RSP:
+> > > > 0018:ffff88010f23d838  EFLAGS: 00010246
+> > > > Sep 26 19:22:58 fambox kernel: [   11.125475] RAX: 000000000000=
+0000
+> > > > RBX: ffff88010bfd4c00 RCX: 0000000000000001
+> > > > Sep 26 19:22:58 fambox kernel: [   11.125507] RDX: 000000000000=
+0000
+> > > > RSI: 0000000000000282 RDI: 0000000000000282
+> > > > Sep 26 19:22:58 fambox kernel: [   11.125539] RBP: ffff88010f23=
+d878
+> > > > R08: 0000000000000000 R09: 0000000000000001
+> > > > Sep 26 19:22:58 fambox kernel: [   11.125570] R10: ffff8801054f=
+c460
+> > > > R11: 0000000000000000 R12: ffff88010bfd4c04
+> > > > Sep 26 19:22:58 fambox kernel: [   11.125602] R13: ffff88011a73=
+e000
+> > > > R14: 0000000000000000 R15: 0000000000000000
+> > > > Sep 26 19:22:58 fambox kernel: [   11.125634] FS:
+> > > > 00007f6b8da29700(0000) GS:ffff88011fa80000(0000)
+> > > > knlGS:0000000000000000
+> > > > Sep 26 19:22:58 fambox kernel: [   11.125670] CS:  0010 DS: 000=
+0 ES:
+> > > > 0000 CR0: 0000000080050033
+> > > > Sep 26 19:22:58 fambox kernel: [   11.125697] CR2: 000000000000=
+0018
+> > > > CR3: 0000000110185000 CR4: 00000000000407e0
+> > > > Sep 26 19:22:58 fambox kernel: [   11.125729] DR0: 000000000000=
+0000
+> > > > DR1: 0000000000000000 DR2: 0000000000000000
+> > > > Sep 26 19:22:58 fambox kernel: [   11.125761] DR3: 000000000000=
+0000
+> > > > DR6: 00000000ffff0ff0 DR7: 0000000000000400
+> > > > Sep 26 19:22:58 fambox kernel: [   11.125793] Process modprobe =
+(pid:
+> > > > 579, threadinfo ffff88010f23c000, task ffff880116648000)
+> > > > Sep 26 19:22:58 fambox kernel: [   11.127133] Stack:
+> > > > Sep 26 19:22:58 fambox kernel: [   11.128461]  ffff88011a5d9098
+> > > > ffff88010d74c300 ffff88010f23d878 ffff880110b06480
+> > > > Sep 26 19:22:58 fambox kernel: [   11.129755]  ffff88010bfd1000
+> > > > ffff88011a5d9098 ffff88010d74c300 ffff88011a625000
+> > > > Sep 26 19:22:58 fambox kernel: [   11.130943]  ffff88010f23d958
+> > > > ffffffffa00e5868 0000000000000000 ffffffff811fa033
+> > > > Sep 26 19:22:58 fambox kernel: [   11.132749] Call Trace:
+> > > > Sep 26 19:22:58 fambox kernel: [   11.133939]  [<ffffffffa00e58=
+68>]
+> > > > acpi_video_bus_add+0x9ba/0xce6 [video]
+> > > > Sep 26 19:22:58 fambox kernel: [   11.135130]  [<ffffffff811fa0=
+33>] ?
+> > > > sysfs_addrm_finish+0x33/0xc0
+> > > > Sep 26 19:22:58 fambox kernel: [   11.136313]  [<ffffffff813454=
+cc>]
+> > > > acpi_device_probe+0x4e/0x11c
+> > > > Sep 26 19:22:58 fambox kernel: [   11.137482]  [<ffffffff813d47=
+2b>]
+> > > > driver_probe_device+0x7b/0x240
+> > > > Sep 26 19:22:58 fambox kernel: [   11.138642]  [<ffffffff813d49=
+9b>]
+> > > > __driver_attach+0xab/0xb0
+> > > > Sep 26 19:22:58 fambox kernel: [   11.139798]  [<ffffffff813d48=
+f0>] ?
+> > > > driver_probe_device+0x240/0x240
+> > > > Sep 26 19:22:58 fambox kernel: [   11.140981]  [<ffffffff813d2b=
+46>]
+> > > > bus_for_each_dev+0x56/0x90
+> > > > Sep 26 19:22:58 fambox kernel: [   11.142129]  [<ffffffff813d42=
+5e>]
+> > > > driver_attach+0x1e/0x20
+> > > > Sep 26 19:22:58 fambox kernel: [   11.143264]  [<ffffffff813d3d=
+d0>]
+> > > > bus_add_driver+0x190/0x290
+> > > > Sep 26 19:22:58 fambox kernel: [   11.144443]  [<ffffffff813d4e=
+fa>]
+> > > > driver_register+0x7a/0x160
+> > > > Sep 26 19:22:58 fambox kernel: [   11.145583]  [<ffffffff81345c=
+cf>]
+> > > > acpi_bus_register_driver+0x43/0x45
+> > > > Sep 26 19:22:58 fambox kernel: [   11.146871]  [<ffffffffa00e4d=
+ac>]
+> > > > acpi_video_register+0x20/0x39 [video]
+> > > > Sep 26 19:22:58 fambox kernel: [   11.148167]  [<ffffffffa02f4b=
+ad>]
+> > > > i915_driver_load+0x83d/0xea0 [i915]
+> > > > Sep 26 19:22:58 fambox kernel: [   11.149451]  [<ffffffffa020eb=
+c1>]
+> > > > drm_get_pci_dev+0x191/0x2b0 [drm]
+> > > > Sep 26 19:22:58 fambox kernel: [   11.150739]  [<ffffffffa0345e=
+2b>]
+> > > > i915_pci_probe+0x4f/0x57 [i915]
+> > > > Sep 26 19:22:58 fambox kernel: [   11.152015]  [<ffffffff81309a=
+f9>]
+> > > > local_pci_probe+0x79/0x100
+> > > > Sep 26 19:22:58 fambox kernel: [   11.153287]  [<ffffffff8130b1=
+f9>]
+> > > > pci_device_probe+0x109/0x130
+> > > > Sep 26 19:22:58 fambox kernel: [   11.154546]  [<ffffffff813d47=
+2b>]
+> > > > driver_probe_device+0x7b/0x240
+> > > > Sep 26 19:22:58 fambox kernel: [   11.155796]  [<ffffffff813d49=
+9b>]
+> > > > __driver_attach+0xab/0xb0
+> > > > Sep 26 19:22:58 fambox kernel: [   11.157048]  [<ffffffff813d48=
+f0>] ?
+> > > > driver_probe_device+0x240/0x240
+> > > > Sep 26 19:22:58 fambox kernel: [   11.158280]  [<ffffffff813d2b=
+46>]
+> > > > bus_for_each_dev+0x56/0x90
+> > > > Sep 26 19:22:58 fambox kernel: [   11.159496]  [<ffffffff813d42=
+5e>]
+> > > > driver_attach+0x1e/0x20
+> > > > Sep 26 19:22:58 fambox kernel: [   11.160708]  [<ffffffff813d3d=
+d0>]
+> > > > bus_add_driver+0x190/0x290
+> > > > Sep 26 19:22:58 fambox kernel: [   11.161909]  [<ffffffff813d4e=
+fa>]
+> > > > driver_register+0x7a/0x160
+> > > > Sep 26 19:22:58 fambox kernel: [   11.163121]  [<ffffffff8130a1=
+59>]
+> > > > __pci_register_driver+0x49/0x50
+> > > > Sep 26 19:22:58 fambox kernel: [   11.164227]  [<ffffffffa020ed=
+fa>]
+> > > > drm_pci_init+0x11a/0x130 [drm]
+> > > > Sep 26 19:22:58 fambox kernel: [   11.165295]  [<ffffffffa037c0=
+00>] ?
+> > > > 0xffffffffa037bfff
+> > > > Sep 26 19:22:58 fambox kernel: [   11.166351]  [<ffffffffa037c0=
+66>]
+> > > > i915_init+0x66/0x68 [i915]
+> > > > Sep 26 19:22:58 fambox kernel: [   11.167360]  [<ffffffff810020=
+3f>]
+> > > > do_one_initcall+0x3f/0x170
+> > > > Sep 26 19:22:58 fambox kernel: [   11.168332]  [<ffffffff810bc9=
+be>]
+> > > > sys_init_module+0xbe/0x220
+> > > > Sep 26 19:22:58 fambox kernel: [   11.169276]  [<ffffffff8164a0=
+bd>]
+> > > > system_call_fastpath+0x1a/0x1f
+> > > > Sep 26 19:22:58 fambox kernel: [   11.170200] Code: 1b 7e 00 48=
+ 3d c0
+> > > > cb c9 81 4c 8d a8 b0 fc ff ff 0f 84 bf 00 00 00 0f 1f 44 00 00 =
+4d 8b
+> > > > bd f0 02 00 00 4d 85 ff 0f 84 c0 00 00 00 <49> 8b 77 18 48 85 f=
+6 0f 84
+> > > > d3 fe ff ff 41 8b 47 14 85 c0 7e 7b
+> > > > Sep 26 19:22:58 fambox kernel: [   11.172467] RIP
+> > > > [<ffffffff814bb058>] thermal_cooling_device_register+0x2c8/0x3d=
+0
+> > > > Sep 26 19:22:58 fambox kernel: [   11.173542]  RSP <ffff88010f2=
+3d838>
+> > > > Sep 26 19:22:58 fambox kernel: [   11.174603] CR2: 000000000000=
+0018
+> > > > Sep 26 19:22:58 fambox kernel: [   11.175675] ---[ end trace
+> > > > 0f2bc437662fc097 ]---
+> > > >
+> > > > I have CCed some maintainers, hope they might have a look at it
+> > > > (sorry, didnt check any MLs).
+> > > >
+> > > > My kern.log and kernel-config are attached.
+> > >
+> > > I get oops in bind_cdev() called from thermal_cooling_device_regi=
+ster()
+> > > on mmotm, I expect yours is the same (but bind_cdev inlined so it=
+ doesn't
+> > > appear in the backtrace).  This patch gets me booting (note it al=
+so fixes
+> > > return to break to unlock the mutex), does it help you?  Whether =
+the root
+> > > problem is elsewhere or not, I've no idea; but I see Dan already =
+spotted
+> > > other errors hereabouts - probably needs more thorough review.
+> > >
+> >=20
+> >=20
+> > > Hugh
+> > >
+> > > --- mmotm/drivers/thermal/thermal_sys.c	2012-09-26
+> > 10:15:28.652071362 -0700
+> > > +++ linux/drivers/thermal/thermal_sys.c	2012-09-26
+> > 11:41:01.549684983 -0700
+> > > @@ -252,8 +252,8 @@ static void bind_cdev(struct thermal_coo
+> > >  		}
+> > >
+> > >  		tzp =3D pos->tzp;
+> > > -		if (!tzp->tbp)
+> > > -			return;
+> > > +		if (!tzp || !tzp->tbp)
+> > > +			break;
+> > >
+> > >  		for (i =3D 0; i < tzp->num_tbps; i++) {
+> > >  			if (tzp->tbp[i].cdev || !tzp->tbp[i].match)
+> >=20
+> > thanks for the fix, this patch looks good to me.
+> > could you please resend it in a proper format, say, with changelog =
+and
+> > Singed-off-by, so that I can apply to my -next tree?
+> >=20
+>=20
+> Shouldn't this be a 'continue' instead of the 'break' here ?
 
->  	list_for_each_entry(pos, &thermal_cdev_list, node) {
-> @@ -390,12 +390,13 @@ static void update_temperature(struct thermal_z=
-one_device *tz)
->  	ret =3D tz->ops->get_temp(tz, &temp);
->  	if (ret) {
->  		pr_warn("failed to read out thermal zone %d\n", tz->id);
-> -		return;
-> +		goto exit;
->  	}
-> =20
->  	tz->last_temperature =3D tz->temperature;
->  	tz->temperature =3D temp;
-> =20
-> +exit:
->  	mutex_unlock(&tz->lock);
->  }
-> =20
+yes, you're right.
 
+thanks,
+rui
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
