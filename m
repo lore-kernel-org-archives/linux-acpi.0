@@ -1,49 +1,74 @@
-From: Oliver Neukum <oneukum@suse.de>
-Subject: Re: [PATCH v7 2/6] scsi: sr: support runtime pm
-Date: Thu, 27 Sep 2012 12:46:41 +0200
-Message-ID: <3158525.rj2S1Jvnll@linux-lqwf.site>
-References: <1347438597-5903-1-git-send-email-aaron.lu@intel.com> <201209242340.18318.rjw@sisk.pl> <20120925080133.GA1629@mint-spring.sh.intel.com>
+From: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
+Subject: Re: [RFC v9 PATCH 00/21] memory-hotplug: hot-remove physical memory
+Date: Thu, 27 Sep 2012 13:02:05 +0200
+Message-ID: <20120927110205.GB30772@dhcp-192-168-178-175.profitbricks.localdomain>
+References: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com>
+ <20120926165820.GB7559@dhcp-192-168-178-175.profitbricks.localdomain>
+ <50642526.4070603@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:34853 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754429Ab2I0Kqu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 27 Sep 2012 06:46:50 -0400
-In-Reply-To: <20120925080133.GA1629@mint-spring.sh.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <sparclinux-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <50642526.4070603@cn.fujitsu.com>
+Sender: sparclinux-owner@vger.kernel.org
+To: Wen Congyang <wency@cn.fujitsu.com>
+Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, James Bottomley <James.Bottomley@hansenpartnership.com>, Jeff Garzik <jgarzik@pobox.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>
 
-On Tuesday 25 September 2012 16:01:35 Aaron Lu wrote:
-> On Mon, Sep 24, 2012 at 11:40:18PM +0200, Rafael J. Wysocki wrote:
-> > On Monday, September 24, 2012, Aaron Lu wrote:
-> > > On Mon, Sep 24, 2012 at 02:55:31PM +0200, Rafael J. Wysocki wrote:
+On Thu, Sep 27, 2012 at 06:06:30PM +0800, Wen Congyang wrote:
+> Please try the following patch:
+> From a38ec678e0a9b48b252f457d7910b7527049dc43 Mon Sep 17 00:00:00 2001
+> From: Wen Congyang <wency@cn.fujitsu.com>
+> Date: Thu, 27 Sep 2012 17:27:57 +0800
+> Subject: [PATCH] clear the memory to store page information
 
-> I just checked the spec again and tested, when the ODD has power, it
-> will also send out notifications on pressing the eject button/inserting
-> a disc. So we should be able to capture such a event.
+this solves the hot re-add problem for me.
+thanks for the quick solution.
 
-In this case there's no need to poll for disk change unless the button has
-been pressed.
+- Vasilis
 
-> I'm thinking of enabling this GPE in sr_suspend once we decided that it
-> is ready to be powered off, so the time frame between sr_suspend and
-> when the power is actually removed in libata should be taken care of by
-> the GPE. If GPE fires, the notification function will request a runtime
-> resume of the device. Does this sound OK?
-
-This sounds terribly, needlessly complicated. Just enable it when
-you detect the presence of a disk drive that supports it.
-
-Furthermore we have a device which can detect that a button has
-been pressed. It is fundamentally wrong to poll for medium change in
-such devices. You know that it hasn't been changed.
-We should notify the upper layers that we can do medium change
-detection on our own.
-
-	Regards
-		Oliver
-
+> 
+> ---
+>  mm/sparse.c |    3 ++-
+>  1 files changed, 2 insertions(+), 1 deletions(-)
+> 
+> diff --git a/mm/sparse.c b/mm/sparse.c
+> index ab9d755..36dda08 100644
+> --- a/mm/sparse.c
+> +++ b/mm/sparse.c
+> @@ -639,7 +639,6 @@ static struct page *__kmalloc_section_memmap(unsigned long nr_pages)
+>  got_map_page:
+>  	ret = (struct page *)pfn_to_kaddr(page_to_pfn(page));
+>  got_map_ptr:
+> -	memset(ret, 0, memmap_size);
+>  
+>  	return ret;
+>  }
+> @@ -761,6 +760,8 @@ int __meminit sparse_add_one_section(struct zone *zone, unsigned long start_pfn,
+>  		goto out;
+>  	}
+>  
+> +	memset(memmap, 0, sizeof(struct page) * nr_pages);
+> +
+>  	ms->section_mem_map |= SECTION_MARKED_PRESENT;
+>  
+>  	ret = sparse_init_one_section(ms, section_nr, memmap, usemap);
+> -- 
+> 1.7.1
+> 
+> Thanks
+> Wen Congyang
+> 
+> > 
+> > thanks,
+> > 
+> > - Vasilis
+> > 
+> > [1] https://lkml.org/lkml/2012/9/6/635
+> > [2] https://lkml.org/lkml/2012/9/11/542
+> > [3] https://lkml.org/lkml/2012/9/20/37
+> > [4] http://permalink.gmane.org/gmane.comp.emulators.kvm.devel/98691
+> > 
+> > 
+> > 
+> 
