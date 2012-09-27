@@ -1,52 +1,104 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
-Subject: RE: [PATCH] Thermal: Fix synchronization issues in thermal_sys.c
-Date: Thu, 27 Sep 2012 06:21:24 +0000
-Message-ID: <4D68720C2E767A4AA6A8796D42C8EB591D3D4E@BGSMSX101.gar.corp.intel.com>
+From: Sedat Dilek <sedat.dilek@gmail.com>
+Subject: Re: [PATCH] Thermal: Fix synchronization issues in thermal_sys.c
+Date: Thu, 27 Sep 2012 08:25:11 +0200
+Message-ID: <CA+icZUWUtbbLwutsKaKL3WAD2hdSido6FfW5PQcezVzYzQdrTQ@mail.gmail.com>
 References: <1348726083-8540-1-git-send-email-durgadoss.r@intel.com>
- <1348726484.10877.278.camel@rui.sh.intel.com>
+	<1348726484.10877.278.camel@rui.sh.intel.com>
+	<4D68720C2E767A4AA6A8796D42C8EB591D3D4E@BGSMSX101.gar.corp.intel.com>
+Reply-To: sedat.dilek@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <1348726484.10877.278.camel@rui.sh.intel.com>
-Content-Language: en-US
-Sender: linux-next-owner@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "dan.carpenter@oracle.com" <dan.carpenter@oracle.com>, "hughd@google.com" <hughd@google.com>, "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:38429 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751475Ab2I0GZM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Sep 2012 02:25:12 -0400
+In-Reply-To: <4D68720C2E767A4AA6A8796D42C8EB591D3D4E@BGSMSX101.gar.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "R, Durgadoss" <durgadoss.r@intel.com>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "dan.carpenter@oracle.com" <dan.carpenter@oracle.com>, "hughd@google.com" <hughd@google.com>, "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>
 
-SGkgUnVpLA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IGxpbnV4LWFj
-cGktb3duZXJAdmdlci5rZXJuZWwub3JnIFttYWlsdG86bGludXgtYWNwaS0NCj4gb3duZXJAdmdl
-ci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgWmhhbmcgUnVpDQo+IFNlbnQ6IFRodXJzZGF5LCBT
-ZXB0ZW1iZXIgMjcsIDIwMTIgMTE6NDUgQU0NCj4gVG86IFIsIER1cmdhZG9zcw0KPiBDYzogbGVu
-YkBrZXJuZWwub3JnOyBsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZzsNCj4gZGFuLmNhcnBlbnRl
-ckBvcmFjbGUuY29tOyBodWdoZEBnb29nbGUuY29tOyBsaW51eC0NCj4gbmV4dEB2Z2VyLmtlcm5l
-bC5vcmcNCj4gU3ViamVjdDogUmU6IFtQQVRDSF0gVGhlcm1hbDogRml4IHN5bmNocm9uaXphdGlv
-biBpc3N1ZXMgaW4gdGhlcm1hbF9zeXMuYw0KPiANCj4gT24g5ZubLCAyMDEyLTA5LTI3IGF0IDEx
-OjM4ICswNTMwLCBEdXJnYWRvc3MgUiB3cm90ZToNCj4gPiBUaGlzIHBhdGNoIGZpeGVzIHRoZSBm
-b2xsb3dpbmcgbXV0ZXggYW5kIE5VTEwgcG9pbnRlcg0KPiA+IHByb2JsZW1zIGluIHRoZXJtYWxf
-c3lzLmM6DQo+ID4gICogbXV0ZXhfdW5sb2NrIGZpeCBpbiB1cGRhdGVfdGVtcGVyYXR1cmUgZnVu
-Y3Rpb24NCj4gPiAgKiBtdXRleF91bmxvY2svTlVMTCBjaGVjayBmaXggaW4gYmluZF9jZGV2IGZ1
-bmN0aW9uDQo+ID4gICogTlVMTCBjaGVjayBmaXggaW4gYmluZF90eiBmdW5jdGlvbg0KPiA+DQo+
-ID4gU2lnbmVkLW9mZi1ieTogRHVyZ2Fkb3NzIFIgPGR1cmdhZG9zcy5yQGludGVsLmNvbT4NCj4g
-PiAtLS0NCj4gPiAgZHJpdmVycy90aGVybWFsL3RoZXJtYWxfc3lzLmMgfCAgICA5ICsrKysrLS0t
-LQ0KPiA+ICAxIGZpbGUgY2hhbmdlZCwgNSBpbnNlcnRpb25zKCspLCA0IGRlbGV0aW9ucygtKQ0K
-PiA+DQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvdGhlcm1hbC90aGVybWFsX3N5cy5jIGIvZHJp
-dmVycy90aGVybWFsL3RoZXJtYWxfc3lzLmMNCj4gPiBpbmRleCA0Zjc3ZDg5Li44NDg1NTNkIDEw
-MDY0NA0KPiA+IC0tLSBhL2RyaXZlcnMvdGhlcm1hbC90aGVybWFsX3N5cy5jDQo+ID4gKysrIGIv
-ZHJpdmVycy90aGVybWFsL3RoZXJtYWxfc3lzLmMNCj4gPiBAQCAtMjUyLDggKzI1Miw4IEBAIHN0
-YXRpYyB2b2lkIGJpbmRfY2RldihzdHJ1Y3QgdGhlcm1hbF9jb29saW5nX2RldmljZQ0KPiAqY2Rl
-dikNCj4gPiAgCQl9DQo+ID4NCj4gPiAgCQl0enAgPSBwb3MtPnR6cDsNCj4gPiAtCQlpZiAoIXR6
-cC0+dGJwKQ0KPiA+IC0JCQlyZXR1cm47DQo+ID4gKwkJaWYgKCF0enAgfHwgIXR6cC0+dGJwKQ0K
-PiA+ICsJCQljb250aW51ZTsNCj4gPg0KPiA+ICAJCWZvciAoaSA9IDA7IGkgPCB0enAtPm51bV90
-YnBzOyBpKyspIHsNCj4gPiAgCQkJaWYgKHR6cC0+dGJwW2ldLmNkZXYgfHwgIXR6cC0+dGJwW2ld
-Lm1hdGNoKQ0KPiA+IEBAIC0yODksNyArMjg5LDcgQEAgc3RhdGljIHZvaWQgYmluZF90eihzdHJ1
-Y3QgdGhlcm1hbF96b25lX2RldmljZSAqdHopDQo+ID4gIAkJZ290byBleGl0Ow0KPiA+ICAJfQ0K
-PiA+DQo+ID4gLQlpZiAoIXR6cC0+dGJwKQ0KPiA+ICsJaWYgKCF0enAgfHwgIXR6cC0+dGJwKQ0K
-PiA+ICAJCWdvdG8gZXhpdDsNCj4gPg0KPiBhY3R1YWxseSwgdGhpcyBpcyBub3QgYSBwcm9ibGVt
-Lg0KPiBJIGNoZWNrZWQgdGhlIGNvZGUganVzdCBub3csIHR6cCBjYW4gbm90IGJlIE5VTEwgaWYg
-dGhlIGNvZGUgcnVucyBoZXJlLg0KDQpJIGFncmVlLCBJIHNhdyBhIHNpbWlsYXIga2luZCBvZiBj
-aGFuZ2UgbmVlZGVkIGluIGJpbmRfdHosIGFuZCBoZW5jZQ0KYWRkZWQgaXQgaGVyZS4gU2hvdWxk
-IHdlIGNhcnJ5IGl0IGFzIHN1Y2ggPyBvciB5b3Ugd2FudCBtZSB0byByZWZyZXNoIGJ5DQpjaGFu
-Z2luZyBpdCA/DQoNClRoYW5rcyBmb3IgbG9va2luZyBpbnRvIHRoaXMgcXVpY2tseS4NCg0KVGhh
-bmtzLA0KRHVyZ2ENCg==
+On Thu, Sep 27, 2012 at 8:21 AM, R, Durgadoss <durgadoss.r@intel.com> w=
+rote:
+> Hi Rui,
+>
+>> -----Original Message-----
+>> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+>> owner@vger.kernel.org] On Behalf Of Zhang Rui
+>> Sent: Thursday, September 27, 2012 11:45 AM
+>> To: R, Durgadoss
+>> Cc: lenb@kernel.org; linux-acpi@vger.kernel.org;
+>> dan.carpenter@oracle.com; hughd@google.com; linux-
+>> next@vger.kernel.org
+>> Subject: Re: [PATCH] Thermal: Fix synchronization issues in thermal_=
+sys.c
+>>
+>> On =E5=9B=9B, 2012-09-27 at 11:38 +0530, Durgadoss R wrote:
+>> > This patch fixes the following mutex and NULL pointer
+>> > problems in thermal_sys.c:
+>> >  * mutex_unlock fix in update_temperature function
+>> >  * mutex_unlock/NULL check fix in bind_cdev function
+>> >  * NULL check fix in bind_tz function
+>> >
+>> > Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
+>> > ---
+>> >  drivers/thermal/thermal_sys.c |    9 +++++----
+>> >  1 file changed, 5 insertions(+), 4 deletions(-)
+>> >
+>> > diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/therm=
+al_sys.c
+>> > index 4f77d89..848553d 100644
+>> > --- a/drivers/thermal/thermal_sys.c
+>> > +++ b/drivers/thermal/thermal_sys.c
+>> > @@ -252,8 +252,8 @@ static void bind_cdev(struct thermal_cooling_d=
+evice
+>> *cdev)
+>> >             }
+>> >
+>> >             tzp =3D pos->tzp;
+>> > -           if (!tzp->tbp)
+>> > -                   return;
+>> > +           if (!tzp || !tzp->tbp)
+>> > +                   continue;
+>> >
+>> >             for (i =3D 0; i < tzp->num_tbps; i++) {
+>> >                     if (tzp->tbp[i].cdev || !tzp->tbp[i].match)
+>> > @@ -289,7 +289,7 @@ static void bind_tz(struct thermal_zone_device=
+ *tz)
+>> >             goto exit;
+>> >     }
+>> >
+>> > -   if (!tzp->tbp)
+>> > +   if (!tzp || !tzp->tbp)
+>> >             goto exit;
+>> >
+>> actually, this is not a problem.
+>> I checked the code just now, tzp can not be NULL if the code runs he=
+re.
+>
+> I agree, I saw a similar kind of change needed in bind_tz, and hence
+> added it here. Should we carry it as such ? or you want me to refresh=
+ by
+> changing it ?
+>
+> Thanks for looking into this quickly.
+>
+
+Looks like you will sent a v2 of this patch.
+=46eel free to add a...
+
+        Reported-by: Sedat Dilek <sedat.dilek@gmail.com>
+
+,,, and don't forget Hugh :-).
+
+- Sedat -
+
+> Thanks,
+> Durga
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
