@@ -1,7 +1,7 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH 6/8] PCI, ACPI: Make acpi_pci_root_remove stop/remove pci root bus
-Date: Thu, 27 Sep 2012 01:11:57 -0700
-Message-ID: <1348733519-24684-7-git-send-email-yinghai@kernel.org>
+Subject: [PATCH 7/8] PCI, ACPI: delete root bus prt during hot remove path
+Date: Thu, 27 Sep 2012 01:11:58 -0700
+Message-ID: <1348733519-24684-8-git-send-email-yinghai@kernel.org>
 References: <1348733519-24684-1-git-send-email-yinghai@kernel.org>
 Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1348733519-24684-1-git-send-email-yinghai@kernel.org>
@@ -10,39 +10,36 @@ To: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi
 Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-It will call new added pci_stop_and_remove_bus() to stop/remove pci root bus.
+corresponding to add path.
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
 ---
  drivers/acpi/pci_root.c |    6 ++++++
  1 files changed, 6 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index 27adbfd..aed0953 100644
+index aed0953..a27cbb57 100644
 --- a/drivers/acpi/pci_root.c
 +++ b/drivers/acpi/pci_root.c
-@@ -667,14 +667,20 @@ static int acpi_pci_root_remove(struct acpi_device *device, int type)
+@@ -664,6 +664,8 @@ static int acpi_pci_root_start(struct acpi_device *device)
+ 
+ static int acpi_pci_root_remove(struct acpi_device *device, int type)
+ {
++	acpi_status status;
++	acpi_handle handle;
  	struct acpi_pci_root *root = acpi_driver_data(device);
  	struct acpi_pci_driver *driver;
  
-+	pci_stop_root_bus(root->bus);
-+
- 	mutex_lock(&acpi_pci_root_lock);
- 	list_for_each_entry(driver, &acpi_pci_drivers, node)
- 		if (driver->remove)
- 			driver->remove(root);
-+	mutex_unlock(&acpi_pci_root_lock);
- 
+@@ -678,6 +680,10 @@ static int acpi_pci_root_remove(struct acpi_device *device, int type)
  	device_set_run_wake(root->bus->bridge, false);
  	pci_acpi_remove_bus_pm_notifier(device);
  
-+	pci_remove_root_bus(root->bus);
++	status = acpi_get_handle(device->handle, METHOD_NAME__PRT, &handle);
++	if (ACPI_SUCCESS(status))
++		acpi_pci_irq_del_prt(root->bus);
 +
-+	mutex_lock(&acpi_pci_root_lock);
- 	list_del(&root->node);
- 	mutex_unlock(&acpi_pci_root_lock);
- 	kfree(root);
+ 	pci_remove_root_bus(root->bus);
+ 
+ 	mutex_lock(&acpi_pci_root_lock);
 -- 
 1.7.7
