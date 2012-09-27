@@ -1,607 +1,202 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v3 2/2] ACPI: Add Intel MID SPI early console support.
-Date: Thu, 27 Sep 2012 16:41:18 +0800
-Message-ID: <387a9f8c290f142c38c10370688289844b12462a.1348652044.git.lv.zheng@intel.com>
-References: <cover.1347453194.git.zetalog@gmail.com> <cover.1348652044.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:5410 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751270Ab2I0Ala (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 26 Sep 2012 20:41:30 -0400
-In-Reply-To: <cover.1348652044.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: inux-next: Tree for Sept 26 (not bootable on AMD64:
+ thermal|acpi|drm/i915|pci related?)
+Date: Thu, 27 Sep 2012 08:49:26 +0800
+Message-ID: <1348706966.10877.269.camel@rui.sh.intel.com>
+References: <CA+icZUWF92LaJ6pOMUPh6M-MVhF1GikJfyb9_1xXdNTxGLahXw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <CA+icZUWF92LaJ6pOMUPh6M-MVhF1GikJfyb9_1xXdNTxGLahXw@mail.gmail.com>
+Sender: linux-next-owner@vger.kernel.org
+To: sedat.dilek@gmail.com
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Dave Airlie <airlied@gmail.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, Linux ACPI <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org, DRI <dri-devel@lists.freedesktop.org>, Bjorn Helgaas <bhelgaas@google.com>, "R, Durgadoss" <durgadoss.r@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: Len Brown <len.brown@intel.com>, Robert Moore <robert.moore@intel.com>, Ying Huang <ying.huang@intel.com>, Rui Zhang <rui.zhang@intel.com>, Lv Zheng <lv.zheng@intel.com>
 
-DesignWare SPI UART is used as one of the debug ports on Low Power Intel
-Architecture (LPIA) platforms.  This patch is introduced to support this
-debugging console reported by ACPI DBGP/DBG2.  The original MID SPI
-early console stuff is also refined to co-exist with the new ACPI usage
-model.
+CC Durga.
 
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- arch/x86/Kconfig.debug                     |   10 ++
- arch/x86/include/asm/mrst.h                |    2 +-
- arch/x86/kernel/early_printk.c             |   12 +-
- arch/x86/platform/mrst/early_printk_mrst.c |  186 +----------------------
- drivers/platform/x86/Makefile              |    2 +
- drivers/platform/x86/early/Makefile        |    5 +
- drivers/platform/x86/early/intel_mid_spi.c |  220 ++++++++++++++++++++++++++++
- include/acpi/actbl2.h                      |    1 +
- include/linux/intel_mid_early.h            |   12 ++
- 9 files changed, 269 insertions(+), 181 deletions(-)
- create mode 100644 drivers/platform/x86/early/Makefile
- create mode 100644 drivers/platform/x86/early/intel_mid_spi.c
- create mode 100644 include/linux/intel_mid_early.h
-
-Index: linux-acpi/arch/x86/Kconfig.debug
-===================================================================
---- linux-acpi.orig/arch/x86/Kconfig.debug	2012-09-27 01:46:12.000000000 +0800
-+++ linux-acpi/arch/x86/Kconfig.debug	2012-09-27 01:46:54.000000000 +0800
-@@ -43,9 +43,19 @@
- 	  with klogd/syslogd or the X server. You should normally N here,
- 	  unless you want to debug such a crash.
- 
-+config EARLY_PRINTK_INTEL_MID_SPI
-+	bool "Early printk for Intel MID SPI UART port"
-+	depends on EARLY_PRINTK
-+	---help---
-+	  Write kernel log output directly into the SPI UART debug port.
-+
-+	  Intel MID platforms are using DesignWare SPI UART as its debug
-+	  console.
-+
- config EARLY_PRINTK_INTEL_MID
- 	bool "Early printk for Intel MID platform support"
- 	depends on EARLY_PRINTK && X86_INTEL_MID
-+	select EARLY_PRINTK_INTEL_MID_SPI
- 
- config EARLY_PRINTK_DBGP
- 	bool "Early printk via EHCI debug port"
-Index: linux-acpi/arch/x86/include/asm/mrst.h
-===================================================================
---- linux-acpi.orig/arch/x86/include/asm/mrst.h	2012-09-27 01:39:09.000000000 +0800
-+++ linux-acpi/arch/x86/include/asm/mrst.h	2012-09-27 01:46:54.000000000 +0800
-@@ -12,6 +12,7 @@
- #define _ASM_X86_MRST_H
- 
- #include <linux/sfi.h>
-+#include <linux/intel_mid_early.h>
- 
- extern int pci_mrst_init(void);
- extern int __init sfi_parse_mrtc(struct sfi_table_header *table);
-@@ -63,7 +64,6 @@
- #define SFI_MTMR_MAX_NUM 8
- #define SFI_MRTC_MAX	8
- 
--extern struct console early_mrst_console;
- extern void mrst_early_console_init(void);
- 
- extern struct console early_hsu_console;
-Index: linux-acpi/arch/x86/kernel/early_printk.c
-===================================================================
---- linux-acpi.orig/arch/x86/kernel/early_printk.c	2012-09-27 01:39:09.000000000 +0800
-+++ linux-acpi/arch/x86/kernel/early_printk.c	2012-09-27 01:46:54.000000000 +0800
-@@ -205,6 +205,16 @@
- 
- int __init acpi_early_console_setup(struct acpi_debug_port *info)
- {
-+#ifdef CONFIG_EARLY_PRINTK_INTEL_MID_SPI
-+	if (info->port_type == ACPI_DBG2_SERIAL_PORT
-+	    && info->port_subtype == ACPI_DBG2_INTEL_MID_SPI
-+	    && info->register_count > 0) {
-+		mid_spi_early_console_init((u32)(info->registers[0].address));
-+		early_console_register(&mid_spi_early_console,
-+				       acpi_early_console_keep());
-+	}
-+#endif
-+
- 	return 0;
- }
- #endif
-@@ -256,7 +266,7 @@
- #ifdef CONFIG_EARLY_PRINTK_INTEL_MID
- 		if (!strncmp(buf, "mrst", 4)) {
- 			mrst_early_console_init();
--			early_console_register(&early_mrst_console, keep);
-+			early_console_register(&mid_spi_early_console, keep);
- 		}
- 
- 		if (!strncmp(buf, "hsu", 3)) {
-Index: linux-acpi/arch/x86/platform/mrst/early_printk_mrst.c
-===================================================================
---- linux-acpi.orig/arch/x86/platform/mrst/early_printk_mrst.c	2012-09-27 01:39:09.000000000 +0800
-+++ linux-acpi/arch/x86/platform/mrst/early_printk_mrst.c	2012-09-27 01:46:54.000000000 +0800
-@@ -29,82 +29,8 @@
- #include <asm/pgtable.h>
- #include <asm/mrst.h>
- 
--#define MRST_SPI_TIMEOUT		0x200000
- #define MRST_REGBASE_SPI0		0xff128000
- #define MRST_REGBASE_SPI1		0xff128400
--#define MRST_CLK_SPI0_REG		0xff11d86c
--
--/* Bit fields in CTRLR0 */
--#define SPI_DFS_OFFSET			0
--
--#define SPI_FRF_OFFSET			4
--#define SPI_FRF_SPI			0x0
--#define SPI_FRF_SSP			0x1
--#define SPI_FRF_MICROWIRE		0x2
--#define SPI_FRF_RESV			0x3
--
--#define SPI_MODE_OFFSET			6
--#define SPI_SCPH_OFFSET			6
--#define SPI_SCOL_OFFSET			7
--#define SPI_TMOD_OFFSET			8
--#define	SPI_TMOD_TR			0x0		/* xmit & recv */
--#define SPI_TMOD_TO			0x1		/* xmit only */
--#define SPI_TMOD_RO			0x2		/* recv only */
--#define SPI_TMOD_EPROMREAD		0x3		/* eeprom read mode */
--
--#define SPI_SLVOE_OFFSET		10
--#define SPI_SRL_OFFSET			11
--#define SPI_CFS_OFFSET			12
--
--/* Bit fields in SR, 7 bits */
--#define SR_MASK				0x7f		/* cover 7 bits */
--#define SR_BUSY				(1 << 0)
--#define SR_TF_NOT_FULL			(1 << 1)
--#define SR_TF_EMPT			(1 << 2)
--#define SR_RF_NOT_EMPT			(1 << 3)
--#define SR_RF_FULL			(1 << 4)
--#define SR_TX_ERR			(1 << 5)
--#define SR_DCOL				(1 << 6)
--
--struct dw_spi_reg {
--	u32	ctrl0;
--	u32	ctrl1;
--	u32	ssienr;
--	u32	mwcr;
--	u32	ser;
--	u32	baudr;
--	u32	txfltr;
--	u32	rxfltr;
--	u32	txflr;
--	u32	rxflr;
--	u32	sr;
--	u32	imr;
--	u32	isr;
--	u32	risr;
--	u32	txoicr;
--	u32	rxoicr;
--	u32	rxuicr;
--	u32	msticr;
--	u32	icr;
--	u32	dmacr;
--	u32	dmatdlr;
--	u32	dmardlr;
--	u32	idr;
--	u32	version;
--
--	/* Currently operates as 32 bits, though only the low 16 bits matter */
--	u32	dr;
--} __packed;
--
--#define dw_readl(dw, name)		__raw_readl(&(dw)->name)
--#define dw_writel(dw, name, val)	__raw_writel((val), &(dw)->name)
--
--/* Default use SPI0 register for mrst, we will detect Penwell and use SPI1 */
--static unsigned long mrst_spi_paddr = MRST_REGBASE_SPI0;
--
--static u32 *pclk_spi0;
--/* Always contains an accessible address, start with 0 */
--static struct dw_spi_reg *pspi;
- 
- static struct kmsg_dumper dw_dumper;
- static int dumper_registered;
-@@ -116,77 +42,21 @@
- 	size_t len;
- 
- 	/* When run to this, we'd better re-init the HW */
--	mrst_early_console_init();
-+	mid_spi_early_console_reset();
- 
- 	while (kmsg_dump_get_line(dumper, true, line, sizeof(line), &len))
--		early_mrst_console.write(&early_mrst_console, line, len);
--}
--
--/* Set the ratio rate to 115200, 8n1, IRQ disabled */
--static void max3110_write_config(void)
--{
--	u16 config;
--
--	config = 0xc001;
--	dw_writel(pspi, dr, config);
--}
--
--/* Translate char to a eligible word and send to max3110 */
--static void max3110_write_data(char c)
--{
--	u16 data;
--
--	data = 0x8000 | c;
--	dw_writel(pspi, dr, data);
-+		mid_spi_early_console.write(&mid_spi_early_console, line, len);
- }
- 
- void mrst_early_console_init(void)
- {
--	u32 ctrlr0 = 0;
--	u32 spi0_cdiv;
--	u32 freq; /* Freqency info only need be searched once */
--
--	/* Base clk is 100 MHz, the actual clk = 100M / (clk_divider + 1) */
--	pclk_spi0 = (void *)set_fixmap_offset_nocache(FIX_EARLYCON_MEM_BASE,
--							MRST_CLK_SPI0_REG);
--	spi0_cdiv = ((*pclk_spi0) & 0xe00) >> 9;
--	freq = 100000000 / (spi0_cdiv + 1);
-+	/* Default use SPI0 register for mrst */
-+	unsigned long spi_paddr = MRST_REGBASE_SPI0;
- 
-+	/* Detect Penwell and use SPI1 */
- 	if (mrst_identify_cpu() == MRST_CPU_CHIP_PENWELL)
--		mrst_spi_paddr = MRST_REGBASE_SPI1;
--
--	pspi = (void *)set_fixmap_offset_nocache(FIX_EARLYCON_MEM_BASE,
--						mrst_spi_paddr);
--
--	/* Disable SPI controller */
--	dw_writel(pspi, ssienr, 0);
--
--	/* Set control param, 8 bits, transmit only mode */
--	ctrlr0 = dw_readl(pspi, ctrl0);
--
--	ctrlr0 &= 0xfcc0;
--	ctrlr0 |= 0xf | (SPI_FRF_SPI << SPI_FRF_OFFSET)
--		      | (SPI_TMOD_TO << SPI_TMOD_OFFSET);
--	dw_writel(pspi, ctrl0, ctrlr0);
--
--	/*
--	 * Change the spi0 clk to comply with 115200 bps, use 100000 to
--	 * calculate the clk dividor to make the clock a little slower
--	 * than real baud rate.
--	 */
--	dw_writel(pspi, baudr, freq/100000);
--
--	/* Disable all INT for early phase */
--	dw_writel(pspi, imr, 0x0);
--
--	/* Set the cs to spi-uart */
--	dw_writel(pspi, ser, 0x2);
--
--	/* Enable the HW, the last step for HW init */
--	dw_writel(pspi, ssienr, 0x1);
--
--	/* Set the default configuration */
--	max3110_write_config();
-+		spi_paddr = MRST_REGBASE_SPI1;
-+	mid_spi_early_console_init(spi_paddr);
- 
- 	/* Register the kmsg dumper */
- 	if (!dumper_registered) {
-@@ -196,48 +66,6 @@
- 	}
- }
- 
--/* Slave select should be called in the read/write function */
--static void early_mrst_spi_putc(char c)
--{
--	unsigned int timeout;
--	u32 sr;
--
--	timeout = MRST_SPI_TIMEOUT;
--	/* Early putc needs to make sure the TX FIFO is not full */
--	while (--timeout) {
--		sr = dw_readl(pspi, sr);
--		if (!(sr & SR_TF_NOT_FULL))
--			cpu_relax();
--		else
--			break;
--	}
--
--	if (!timeout)
--		pr_warning("MRST earlycon: timed out\n");
--	else
--		max3110_write_data(c);
--}
--
--/* Early SPI only uses polling mode */
--static void early_mrst_spi_write(struct console *con, const char *str, unsigned n)
--{
--	int i;
--
--	for (i = 0; i < n && *str; i++) {
--		if (*str == '\n')
--			early_mrst_spi_putc('\r');
--		early_mrst_spi_putc(*str);
--		str++;
--	}
--}
--
--struct console early_mrst_console = {
--	.name =		"earlymrst",
--	.write =	early_mrst_spi_write,
--	.flags =	CON_PRINTBUFFER,
--	.index =	-1,
--};
--
- /*
-  * Following is the early console based on Medfield HSU (High
-  * Speed UART) device.
-Index: linux-acpi/drivers/platform/x86/Makefile
-===================================================================
---- linux-acpi.orig/drivers/platform/x86/Makefile	2012-09-27 01:39:09.000000000 +0800
-+++ linux-acpi/drivers/platform/x86/Makefile	2012-09-27 01:46:54.000000000 +0800
-@@ -50,3 +50,5 @@
- obj-$(CONFIG_INTEL_OAKTRAIL)	+= intel_oaktrail.o
- obj-$(CONFIG_SAMSUNG_Q10)	+= samsung-q10.o
- obj-$(CONFIG_APPLE_GMUX)	+= apple-gmux.o
-+
-+obj-$(CONFIG_EARLY_PRINTK)	+= early/
-Index: linux-acpi/drivers/platform/x86/early/Makefile
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ linux-acpi/drivers/platform/x86/early/Makefile	2012-09-27 01:46:54.000000000 +0800
-@@ -0,0 +1,5 @@
-+#
-+# Makefile for linux/drivers/platform/x86/early
-+# x86 Platform-Specific Early Printk Support
-+#
-+obj-$(CONFIG_EARLY_PRINTK_INTEL_MID_SPI)	+= intel_mid_spi.o
-Index: linux-acpi/drivers/platform/x86/early/intel_mid_spi.c
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ linux-acpi/drivers/platform/x86/early/intel_mid_spi.c	2012-09-27 01:46:54.000000000 +0800
-@@ -0,0 +1,220 @@
-+/*
-+ * intel_mid_spi.c - SPI UART early consoles for Intel MID platforms
-+ *
-+ * Copyright (c) 2008-2012, Intel Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; version 2
-+ * of the License.
-+ */
-+
-+/*
-+ * This file implements early console named intel_pmic.
-+ * intel_pmic is based on Maxim3110 spi-uart device, it exists in
-+ * Low Power Intel Architecture (LPIA) platforms.
-+ */
-+
-+#include <linux/serial_reg.h>
-+#include <linux/serial_mfd.h>
-+#include <linux/kernel.h>
-+#include <linux/delay.h>
-+#include <linux/init.h>
-+#include <linux/export.h>
-+#include <linux/io.h>
-+#include <linux/intel_mid_early.h>
-+#include <asm/fixmap.h>
-+
-+#define DW_SPI_TIMEOUT			0x200000
-+#define DW_SPI0_CLK_REG			0xff11d86c
-+
-+/* Bit fields in CTRLR0 */
-+#define SPI_DFS_OFFSET			0
-+
-+#define SPI_FRF_OFFSET			4
-+#define SPI_FRF_SPI			0x0
-+#define SPI_FRF_SSP			0x1
-+#define SPI_FRF_MICROWIRE		0x2
-+#define SPI_FRF_RESV			0x3
-+
-+#define SPI_MODE_OFFSET			6
-+#define SPI_SCPH_OFFSET			6
-+#define SPI_SCOL_OFFSET			7
-+#define SPI_TMOD_OFFSET			8
-+#define	SPI_TMOD_TR			0x0		/* xmit & recv */
-+#define SPI_TMOD_TO			0x1		/* xmit only */
-+#define SPI_TMOD_RO			0x2		/* recv only */
-+#define SPI_TMOD_EPROMREAD		0x3		/* eeprom read mode */
-+
-+#define SPI_SLVOE_OFFSET		10
-+#define SPI_SRL_OFFSET			11
-+#define SPI_CFS_OFFSET			12
-+
-+/* Bit fields in SR, 7 bits */
-+#define SR_MASK				0x7f		/* cover 7 bits */
-+#define SR_BUSY				(1 << 0)
-+#define SR_TF_NOT_FULL			(1 << 1)
-+#define SR_TF_EMPT			(1 << 2)
-+#define SR_RF_NOT_EMPT			(1 << 3)
-+#define SR_RF_FULL			(1 << 4)
-+#define SR_TX_ERR			(1 << 5)
-+#define SR_DCOL				(1 << 6)
-+
-+struct dw_spi_reg {
-+	u32	ctrl0;
-+	u32	ctrl1;
-+	u32	ssienr;
-+	u32	mwcr;
-+	u32	ser;
-+	u32	baudr;
-+	u32	txfltr;
-+	u32	rxfltr;
-+	u32	txflr;
-+	u32	rxflr;
-+	u32	sr;
-+	u32	imr;
-+	u32	isr;
-+	u32	risr;
-+	u32	txoicr;
-+	u32	rxoicr;
-+	u32	rxuicr;
-+	u32	msticr;
-+	u32	icr;
-+	u32	dmacr;
-+	u32	dmatdlr;
-+	u32	dmardlr;
-+	u32	idr;
-+	u32	version;
-+
-+	/* Currently operates as 32 bits, though only the low 16 bits matter */
-+	u32	dr;
-+} __packed;
-+
-+#define dw_readl(dw, name)		__raw_readl(&(dw)->name)
-+#define dw_writel(dw, name, val)	__raw_writel((val), &(dw)->name)
-+
-+static u32 *pclk_spi0;
-+/* Always contains an accessible address, start with 0 */
-+static struct dw_spi_reg *pspi;
-+static int dw_spi_initialized;
-+static u32 dw_spi_regbase;
-+
-+/* Translate char to a eligible word and send to max3110 */
-+static void max3110_write_data(char c)
-+{
-+	u16 data;
-+
-+	data = 0x8000 | c;
-+	dw_writel(pspi, dr, data);
-+}
-+
-+/* Set the ratio rate to 115200, 8n1, IRQ disabled */
-+static void max3110_write_config(void)
-+{
-+	u16 config;
-+
-+	config = 0xc001;
-+	dw_writel(pspi, dr, config);
-+}
-+
-+int mid_spi_early_console_reset(void)
-+{
-+	u32 ctrlr0 = 0;
-+	u32 spi0_cdiv;
-+	u32 freq; /* Freqency info only need be searched once */
-+
-+	/* Base clk is 100 MHz, the actual clk = 100M / (clk_divider + 1) */
-+	pclk_spi0 = (void *)set_fixmap_offset_nocache(FIX_EARLYCON_MEM_BASE,
-+						      DW_SPI0_CLK_REG);
-+	spi0_cdiv = ((*pclk_spi0) & 0xe00) >> 9;
-+	freq = 100000000 / (spi0_cdiv + 1);
-+
-+	pspi = (void *)set_fixmap_offset_nocache(FIX_EARLYCON_MEM_BASE,
-+						 dw_spi_regbase);
-+
-+	/* Disable SPI controller */
-+	dw_writel(pspi, ssienr, 0);
-+
-+	/* Set control param, 8 bits, transmit only mode */
-+	ctrlr0 = dw_readl(pspi, ctrl0);
-+
-+	ctrlr0 &= 0xfcc0;
-+	ctrlr0 |= 0xf | (SPI_FRF_SPI << SPI_FRF_OFFSET)
-+		      | (SPI_TMOD_TO << SPI_TMOD_OFFSET);
-+	dw_writel(pspi, ctrl0, ctrlr0);
-+
-+	/*
-+	 * Change the spi0 clk to comply with 115200 bps, use 100000 to
-+	 * calculate the clk dividor to make the clock a little slower
-+	 * than real baud rate.
-+	 */
-+	dw_writel(pspi, baudr, freq/100000);
-+
-+	/* Disable all INT for early phase */
-+	dw_writel(pspi, imr, 0x0);
-+
-+	/* Set the cs to spi-uart */
-+	dw_writel(pspi, ser, 0x2);
-+
-+	/* Enable the HW, the last step for HW init */
-+	dw_writel(pspi, ssienr, 0x1);
-+
-+	/* Set the default configuration */
-+	max3110_write_config();
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(mid_spi_early_console_reset);
-+
-+/* Slave select should be called in the read/write function */
-+static void dw_early_spi_putc(char c)
-+{
-+	unsigned int timeout;
-+	u32 sr;
-+
-+	timeout = DW_SPI_TIMEOUT;
-+	/* Early putc needs to make sure the TX FIFO is not full */
-+	while (--timeout) {
-+		sr = dw_readl(pspi, sr);
-+		if (!(sr & SR_TF_NOT_FULL))
-+			cpu_relax();
-+		else
-+			break;
-+	}
-+
-+	if (!timeout)
-+		pr_warn("mid-spi-early: timed out\n");
-+	else
-+		max3110_write_data(c);
-+}
-+
-+/* Early SPI only uses polling mode */
-+static void dw_early_spi_write(struct console *con,
-+			       const char *str, unsigned n)
-+{
-+	int i;
-+
-+	for (i = 0; i < n && *str; i++) {
-+		if (*str == '\n')
-+			dw_early_spi_putc('\r');
-+		dw_early_spi_putc(*str);
-+		str++;
-+	}
-+}
-+
-+struct console mid_spi_early_console = {
-+	.name =		"earlymidspi",
-+	.write =	dw_early_spi_write,
-+	.flags =	CON_PRINTBUFFER,
-+	.index =	-1,
-+};
-+
-+void __init mid_spi_early_console_init(u32 spi_paddr)
-+{
-+	if (dw_spi_initialized)
-+		return;
-+	dw_spi_regbase = spi_paddr;
-+	mid_spi_early_console_reset();
-+	dw_spi_initialized = 1;
-+}
-+
-Index: linux-acpi/include/acpi/actbl2.h
-===================================================================
---- linux-acpi.orig/include/acpi/actbl2.h	2012-09-27 01:39:09.000000000 +0800
-+++ linux-acpi/include/acpi/actbl2.h	2012-09-27 01:46:54.000000000 +0800
-@@ -341,6 +341,7 @@
- 
- #define ACPI_DBG2_16550_COMPATIBLE  0x0000
- #define ACPI_DBG2_16550_SUBSET      0x0001
-+#define ACPI_DBG2_INTEL_MID_SPI     0x0002
- 
- #define ACPI_DBG2_1394_STANDARD     0x0000
- 
-Index: linux-acpi/include/linux/intel_mid_early.h
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ linux-acpi/include/linux/intel_mid_early.h	2012-09-27 01:46:54.000000000 +0800
-@@ -0,0 +1,12 @@
-+#ifndef LINUX_INTEL_MID_EARLY_H
-+#define LINUX_INTEL_MID_EARLY_H
-+
-+#include <linux/console.h>
-+
-+extern struct console mid_spi_early_console;
-+
-+extern void mid_spi_early_console_init(u32 spi_paddr);
-+extern int mid_spi_early_console_reset(void);
-+
-+#endif /* LINUX_INTEL_MID_EARLY_H */
-+
+On =E4=B8=89, 2012-09-26 at 19:42 +0200, Sedat Dilek wrote:
+> On Wed, Sep 26, 2012 at 8:44 AM, Stephen Rothwell <sfr@canb.auug.org.=
+au> wrote:
+> > Hi all,
+> >
+> > Changes since 201209025:
+> >
+> > The net-next tree lost a conflict but gained another against Linus'=
+ tree.
+> >
+> > The wireless-next tree gained a conflict against the pci tree.
+> >
+> > The md tree lost its build failure.
+> >
+> > The mfd tree lost its build failure.
+> >
+> > The battery tree lost a conflict.
+> >
+> > The pm tree lost its build failure and its conflict.
+> >
+> > The edac tree lost its conflict.
+> >
+> > The spi tree lost its conflict.
+> >
+> > The rcu tree lost its conflicts.
+> >
+> > The tty tree lost its build failure.
+> >
+> > The arm-soc tree lost a conflict but gained another against the fbd=
+ev
+> > tree.
+> >
+> > The signal tree lost a conflict.
+> >
+> > The akpm tree gained a build failure for which I reverted a patch.
+> >
+> > -------------------------------------------------------------------=
+---------
+> >
+>=20
+> Hi,
+>=20
+> on my Ubuntu/precise AMD64 today's Linux-Next runs into the following
+> call-trace (machine freezes):
+>=20
+>  Sep 26 19:22:58 fambox kernel: [   11.124739] BUG: unable to handle
+> kernel NULL pointer dereference at 0000000000000018
+> Sep 26 19:22:58 fambox kernel: [   11.124806] IP: [<ffffffff814bb058>=
+]
+> thermal_cooling_device_register+0x2c8/0x3d0
+> Sep 26 19:22:58 fambox kernel: [   11.124869] PGD 0
+> Sep 26 19:22:58 fambox kernel: [   11.124895] Oops: 0000 [#1] SMP
+> Sep 26 19:22:58 fambox kernel: [   11.124919] Modules linked in:
+> coretemp kvm_intel kvm snd_hda_intel(+) arc4 snd_hda_codec iwldvm
+> snd_hwdep ghash_clmulni_intel snd_pcm aesni_intel uvcvideo mac80211
+> aes_x86_64 snd_page_alloc ablk_helper i915(+) snd_seq_midi cryptd
+> videobuf2_vmalloc snd_seq_midi_event xts videobuf2_memops lrw
+> snd_rawmidi videobuf2_core joydev gf128mul videodev snd_seq
+> snd_seq_device hid_generic snd_timer drm_kms_helper iwlwifi drm snd
+> psmouse i2c_algo_bit soundcore btusb microcode serio_raw
+> samsung_laptop wmi cfg80211 bluetooth mei mac_hid video lpc_ich lp
+> parport ext4 jbd2 usbhid hid r8169
+> Sep 26 19:22:58 fambox kernel: [   11.125319] CPU 2
+> Sep 26 19:22:58 fambox kernel: [   11.125332] Pid: 579, comm: modprob=
+e
+> Not tainted 3.6.0-rc7-next20120926-2-iniza-generic #1 SAMSUNG
+> ELECTRONICS CO., LTD. 530U3BI/530U4BI/530U4BH/530U3BI/530U4BI/530U4BH
+> Sep 26 19:22:58 fambox kernel: [   11.125401] RIP:
+> 0010:[<ffffffff814bb058>]  [<ffffffff814bb058>]
+> thermal_cooling_device_register+0x2c8/0x3d0
+> Sep 26 19:22:58 fambox kernel: [   11.125450] RSP:
+> 0018:ffff88010f23d838  EFLAGS: 00010246
+> Sep 26 19:22:58 fambox kernel: [   11.125475] RAX: 0000000000000000
+> RBX: ffff88010bfd4c00 RCX: 0000000000000001
+> Sep 26 19:22:58 fambox kernel: [   11.125507] RDX: 0000000000000000
+> RSI: 0000000000000282 RDI: 0000000000000282
+> Sep 26 19:22:58 fambox kernel: [   11.125539] RBP: ffff88010f23d878
+> R08: 0000000000000000 R09: 0000000000000001
+> Sep 26 19:22:58 fambox kernel: [   11.125570] R10: ffff8801054fc460
+> R11: 0000000000000000 R12: ffff88010bfd4c04
+> Sep 26 19:22:58 fambox kernel: [   11.125602] R13: ffff88011a73e000
+> R14: 0000000000000000 R15: 0000000000000000
+> Sep 26 19:22:58 fambox kernel: [   11.125634] FS:
+> 00007f6b8da29700(0000) GS:ffff88011fa80000(0000)
+> knlGS:0000000000000000
+> Sep 26 19:22:58 fambox kernel: [   11.125670] CS:  0010 DS: 0000 ES:
+> 0000 CR0: 0000000080050033
+> Sep 26 19:22:58 fambox kernel: [   11.125697] CR2: 0000000000000018
+> CR3: 0000000110185000 CR4: 00000000000407e0
+> Sep 26 19:22:58 fambox kernel: [   11.125729] DR0: 0000000000000000
+> DR1: 0000000000000000 DR2: 0000000000000000
+> Sep 26 19:22:58 fambox kernel: [   11.125761] DR3: 0000000000000000
+> DR6: 00000000ffff0ff0 DR7: 0000000000000400
+> Sep 26 19:22:58 fambox kernel: [   11.125793] Process modprobe (pid:
+> 579, threadinfo ffff88010f23c000, task ffff880116648000)
+> Sep 26 19:22:58 fambox kernel: [   11.127133] Stack:
+> Sep 26 19:22:58 fambox kernel: [   11.128461]  ffff88011a5d9098
+> ffff88010d74c300 ffff88010f23d878 ffff880110b06480
+> Sep 26 19:22:58 fambox kernel: [   11.129755]  ffff88010bfd1000
+> ffff88011a5d9098 ffff88010d74c300 ffff88011a625000
+> Sep 26 19:22:58 fambox kernel: [   11.130943]  ffff88010f23d958
+> ffffffffa00e5868 0000000000000000 ffffffff811fa033
+> Sep 26 19:22:58 fambox kernel: [   11.132749] Call Trace:
+> Sep 26 19:22:58 fambox kernel: [   11.133939]  [<ffffffffa00e5868>]
+> acpi_video_bus_add+0x9ba/0xce6 [video]
+> Sep 26 19:22:58 fambox kernel: [   11.135130]  [<ffffffff811fa033>] ?
+> sysfs_addrm_finish+0x33/0xc0
+> Sep 26 19:22:58 fambox kernel: [   11.136313]  [<ffffffff813454cc>]
+> acpi_device_probe+0x4e/0x11c
+> Sep 26 19:22:58 fambox kernel: [   11.137482]  [<ffffffff813d472b>]
+> driver_probe_device+0x7b/0x240
+> Sep 26 19:22:58 fambox kernel: [   11.138642]  [<ffffffff813d499b>]
+> __driver_attach+0xab/0xb0
+> Sep 26 19:22:58 fambox kernel: [   11.139798]  [<ffffffff813d48f0>] ?
+> driver_probe_device+0x240/0x240
+> Sep 26 19:22:58 fambox kernel: [   11.140981]  [<ffffffff813d2b46>]
+> bus_for_each_dev+0x56/0x90
+> Sep 26 19:22:58 fambox kernel: [   11.142129]  [<ffffffff813d425e>]
+> driver_attach+0x1e/0x20
+> Sep 26 19:22:58 fambox kernel: [   11.143264]  [<ffffffff813d3dd0>]
+> bus_add_driver+0x190/0x290
+> Sep 26 19:22:58 fambox kernel: [   11.144443]  [<ffffffff813d4efa>]
+> driver_register+0x7a/0x160
+> Sep 26 19:22:58 fambox kernel: [   11.145583]  [<ffffffff81345ccf>]
+> acpi_bus_register_driver+0x43/0x45
+> Sep 26 19:22:58 fambox kernel: [   11.146871]  [<ffffffffa00e4dac>]
+> acpi_video_register+0x20/0x39 [video]
+> Sep 26 19:22:58 fambox kernel: [   11.148167]  [<ffffffffa02f4bad>]
+> i915_driver_load+0x83d/0xea0 [i915]
+> Sep 26 19:22:58 fambox kernel: [   11.149451]  [<ffffffffa020ebc1>]
+> drm_get_pci_dev+0x191/0x2b0 [drm]
+> Sep 26 19:22:58 fambox kernel: [   11.150739]  [<ffffffffa0345e2b>]
+> i915_pci_probe+0x4f/0x57 [i915]
+> Sep 26 19:22:58 fambox kernel: [   11.152015]  [<ffffffff81309af9>]
+> local_pci_probe+0x79/0x100
+> Sep 26 19:22:58 fambox kernel: [   11.153287]  [<ffffffff8130b1f9>]
+> pci_device_probe+0x109/0x130
+> Sep 26 19:22:58 fambox kernel: [   11.154546]  [<ffffffff813d472b>]
+> driver_probe_device+0x7b/0x240
+> Sep 26 19:22:58 fambox kernel: [   11.155796]  [<ffffffff813d499b>]
+> __driver_attach+0xab/0xb0
+> Sep 26 19:22:58 fambox kernel: [   11.157048]  [<ffffffff813d48f0>] ?
+> driver_probe_device+0x240/0x240
+> Sep 26 19:22:58 fambox kernel: [   11.158280]  [<ffffffff813d2b46>]
+> bus_for_each_dev+0x56/0x90
+> Sep 26 19:22:58 fambox kernel: [   11.159496]  [<ffffffff813d425e>]
+> driver_attach+0x1e/0x20
+> Sep 26 19:22:58 fambox kernel: [   11.160708]  [<ffffffff813d3dd0>]
+> bus_add_driver+0x190/0x290
+> Sep 26 19:22:58 fambox kernel: [   11.161909]  [<ffffffff813d4efa>]
+> driver_register+0x7a/0x160
+> Sep 26 19:22:58 fambox kernel: [   11.163121]  [<ffffffff8130a159>]
+> __pci_register_driver+0x49/0x50
+> Sep 26 19:22:58 fambox kernel: [   11.164227]  [<ffffffffa020edfa>]
+> drm_pci_init+0x11a/0x130 [drm]
+> Sep 26 19:22:58 fambox kernel: [   11.165295]  [<ffffffffa037c000>] ?
+> 0xffffffffa037bfff
+> Sep 26 19:22:58 fambox kernel: [   11.166351]  [<ffffffffa037c066>]
+> i915_init+0x66/0x68 [i915]
+> Sep 26 19:22:58 fambox kernel: [   11.167360]  [<ffffffff8100203f>]
+> do_one_initcall+0x3f/0x170
+> Sep 26 19:22:58 fambox kernel: [   11.168332]  [<ffffffff810bc9be>]
+> sys_init_module+0xbe/0x220
+> Sep 26 19:22:58 fambox kernel: [   11.169276]  [<ffffffff8164a0bd>]
+> system_call_fastpath+0x1a/0x1f
+> Sep 26 19:22:58 fambox kernel: [   11.170200] Code: 1b 7e 00 48 3d c0
+> cb c9 81 4c 8d a8 b0 fc ff ff 0f 84 bf 00 00 00 0f 1f 44 00 00 4d 8b
+> bd f0 02 00 00 4d 85 ff 0f 84 c0 00 00 00 <49> 8b 77 18 48 85 f6 0f 8=
+4
+> d3 fe ff ff 41 8b 47 14 85 c0 7e 7b
+> Sep 26 19:22:58 fambox kernel: [   11.172467] RIP
+> [<ffffffff814bb058>] thermal_cooling_device_register+0x2c8/0x3d0
+> Sep 26 19:22:58 fambox kernel: [   11.173542]  RSP <ffff88010f23d838>
+> Sep 26 19:22:58 fambox kernel: [   11.174603] CR2: 0000000000000018
+> Sep 26 19:22:58 fambox kernel: [   11.175675] ---[ end trace
+> 0f2bc437662fc097 ]---
+>=20
+> I have CCed some maintainers, hope they might have a look at it
+> (sorry, didnt check any MLs).
+>=20
+> My kern.log and kernel-config are attached.
+>=20
+> Regards,
+> - Sedat -
