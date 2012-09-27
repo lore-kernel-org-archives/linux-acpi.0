@@ -1,52 +1,77 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [RESEND PATCH] ACPI: Add _UID support for ACPI devices.
-Date: Thu, 27 Sep 2012 13:02:33 +0800
-Message-ID: <6714b0d7ea3b72d7702dae911afad081e948be3b.1348722104.git.lv.zheng@intel.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH] ACPI: Add identification objects' user interface.
+Date: Thu, 27 Sep 2012 05:05:01 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88B9AE72@SHSMSX101.ccr.corp.intel.com>
 References: <3f02ff942122d086c4d6e44a9ffa9269300675b3.1348736272.git.lv.zheng@intel.com>
+	 <ce5e3ff518a8a0a74b2acb2920df409fa618276f.1348709690.git.lv.zheng@intel.com>
+ <1348710321.10877.273.camel@rui.sh.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:63720 "EHLO mga02.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:12394 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751332Ab2I0FDX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 27 Sep 2012 01:03:23 -0400
-In-Reply-To: <3f02ff942122d086c4d6e44a9ffa9269300675b3.1348736272.git.lv.zheng@intel.com>
+	id S1752026Ab2I0FFF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 27 Sep 2012 01:05:05 -0400
+In-Reply-To: <1348710321.10877.273.camel@rui.sh.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <len.brown@intel.com>
-Cc: linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>, Rui Zhang <rui.zhang@intel.com>
+To: "Zhang, Rui" <rui.zhang@intel.com>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Michael Kerrisk <mtk.manpages@gmail.com>
 
-The _UID object is optional, but is required when the device has no
-other way to report a persistent unique device ID.
-This patch is required for ACPI 5.0 ACPI enumerated IP cores.
-
-Signed-off-by: Rui Zhang <rui.zhang@intel.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/scan.c |    5 +++++
- 1 file changed, 5 insertions(+)
-
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index d730a93..bb7fe47 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -327,6 +327,8 @@ static void acpi_device_release(struct device *dev)
- 	struct acpi_device *acpi_dev = to_acpi_device(dev);
- 
- 	acpi_free_ids(acpi_dev);
-+	if (acpi_dev->pnp.unique_id)
-+		kfree(acpi_dev->pnp.unique_id);
- 	kfree(acpi_dev);
- }
- 
-@@ -1162,6 +1164,9 @@ static void acpi_device_set_id(struct acpi_device *device)
- 			device->pnp.bus_address = info->address;
- 			device->flags.bus_address = 1;
- 		}
-+		if (info->valid & ACPI_VALID_UID) {
-+			device->pnp.unique_id = kstrdup(info->unique_id.string, GFP_KERNEL);
-+		}
- 
- 		kfree(info);
- 
--- 
-1.7.10
-
+PiA+IEFDUEkgZGV2aWNlcyBhcmUgZ2x1ZWQgd2l0aCBwaHlzaWNhbCBkZXZpY2VzIHRocm91Z2gg
+X0FEUiBvYmplY3QsIEFDUEkNCj4gPiBlbnVtZXJhdGVkIGRldmljZXMgYXJlIGlkZW50aWZpZWQg
+d2l0aCBfVUlEIG9iamVjdC4gIEN1cnJlbnRseSB3ZSBjYW4NCj4gPiBvYnNlcnZlIF9ISUQvX0NJ
+RCB0aHJvdWdoIHN5c2ZzIGludGVyZmFjZXMgKGhpZC9tb2RhbGlhcyksIGJ1dCB0aGVyZSdzDQo+
+ID4gbm8gbWVhbiBmb3IgdXMgdG8gY2hlY2sgX0FEUi9fVUlEIGZyb20gdXNlciBzcGFjZS4gIFRo
+aXMgcGF0Y2ggZml4DQo+ID4gdGhpcyBnYXAgZm9yIEFDUEkgZGV2ZWxvcGVycyBhbmQgdXNlcnMu
+DQo+ID4NCj4gd2h5IGRvIHdlIG5lZWQgdG8gZ2V0IHRoaXMgaW5mb3JtYXRpb24gZnJvbSB1c2Vy
+c3BhY2U/DQoNCkRldmVsb3BlcnMgbWF5IHdhbnQgdG8gY2hlY2sgX0FEUiBmcm9tIHVzZXIgbGFu
+ZCB0byBzZWUgd2hldGhlciB0aGUgZ2x1ZSBpbXBsZW1lbnRhdGlvbiBpcyBjb3JyZWN0Lg0KU2Ft
+ZSBzaXR1YXRpb24gbWF5IGJlIGVuY291bnRlcmVkIG9uIF9VSUQuDQoNCldlIG1heSBkaXNjdXNz
+IGhlcmUgdG8gc2VlIHdoZXRoZXIgdGhlIHR3byBmaWxlcyBhcmUgcmVxdWlyZWQgZm9yIEFDUEkg
+dXNlcnMuDQpUaHVzIHRoaXMgb3B0aW9uYWwgZmVhdHVyZSBoYXNuJ3QgYmVlbiBjb21iaW5lZCB3
+aXRoIHRoZSBmb3JtZXIgX1VJRCBlbmFibGluZyBvbmUuDQoNCkJlc3QgcmVnYXJkcy9MdiBaaGVu
+Zw0KDQo+ID4gU2lnbmVkLW9mZi1ieTogTHYgWmhlbmcgPGx2LnpoZW5nQGludGVsLmNvbT4NCj4g
+PiAtLS0NCj4gPiAgZHJpdmVycy9hY3BpL3NjYW4uYyB8ICAgMjUgKysrKysrKysrKysrKysrKysr
+KysrKysrKw0KPiA+ICAxIGZpbGUgY2hhbmdlZCwgMjUgaW5zZXJ0aW9ucygrKQ0KPiA+DQo+ID4g
+ZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9zY2FuLmMgYi9kcml2ZXJzL2FjcGkvc2Nhbi5jIGlu
+ZGV4DQo+ID4gYmI3ZmU0Ny4uZGY1MzE5MCAxMDA2NDQNCj4gPiAtLS0gYS9kcml2ZXJzL2FjcGkv
+c2Nhbi5jDQo+ID4gKysrIGIvZHJpdmVycy9hY3BpL3NjYW4uYw0KPiA+IEBAIC0yMTYsNiArMjE2
+LDIyIEBAIGFjcGlfZGV2aWNlX2hpZF9zaG93KHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0DQo+
+ID4gZGV2aWNlX2F0dHJpYnV0ZSAqYXR0ciwgY2hhciAqYnUgIHN0YXRpYyBERVZJQ0VfQVRUUiho
+aWQsIDA0NDQsDQo+ID4gYWNwaV9kZXZpY2VfaGlkX3Nob3csIE5VTEwpOw0KPiA+DQo+ID4gIHN0
+YXRpYyBzc2l6ZV90DQo+ID4gK2FjcGlfZGV2aWNlX3VpZF9zaG93KHN0cnVjdCBkZXZpY2UgKmRl
+diwgc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgKmF0dHIsDQo+IGNoYXIgKmJ1Zikgew0KPiA+ICsJ
+c3RydWN0IGFjcGlfZGV2aWNlICphY3BpX2RldiA9IHRvX2FjcGlfZGV2aWNlKGRldik7DQo+ID4g
+Kw0KPiA+ICsJcmV0dXJuIHNwcmludGYoYnVmLCAiJXNcbiIsIGFjcGlfZGV2LT5wbnAudW5pcXVl
+X2lkKTsgfSBzdGF0aWMNCj4gPiArREVWSUNFX0FUVFIodWlkLCAwNDQ0LCBhY3BpX2RldmljZV91
+aWRfc2hvdywgTlVMTCk7DQo+ID4gKw0KPiA+ICtzdGF0aWMgc3NpemVfdA0KPiA+ICthY3BpX2Rl
+dmljZV9hZHJfc2hvdyhzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBkZXZpY2VfYXR0cmlidXRl
+ICphdHRyLA0KPiBjaGFyICpidWYpIHsNCj4gPiArCXN0cnVjdCBhY3BpX2RldmljZSAqYWNwaV9k
+ZXYgPSB0b19hY3BpX2RldmljZShkZXYpOw0KPiA+ICsNCj4gPiArCXJldHVybiBzcHJpbnRmKGJ1
+ZiwgIjB4JTA4eFxuIiwgKHVuc2lnbmVkDQo+ID4gK2ludCkoYWNwaV9kZXYtPnBucC5idXNfYWRk
+cmVzcykpOyB9IHN0YXRpYyBERVZJQ0VfQVRUUihhZHIsIDA0NDQsDQo+ID4gK2FjcGlfZGV2aWNl
+X2Fkcl9zaG93LCBOVUxMKTsNCj4gPiArDQo+ID4gK3N0YXRpYyBzc2l6ZV90DQo+ID4gIGFjcGlf
+ZGV2aWNlX3BhdGhfc2hvdyhzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBkZXZpY2VfYXR0cmli
+dXRlICphdHRyLA0KPiBjaGFyICpidWYpIHsNCj4gPiAgCXN0cnVjdCBhY3BpX2RldmljZSAqYWNw
+aV9kZXYgPSB0b19hY3BpX2RldmljZShkZXYpOw0KPiA+ICAJc3RydWN0IGFjcGlfYnVmZmVyIHBh
+dGggPSB7QUNQSV9BTExPQ0FURV9CVUZGRVIsIE5VTEx9OyBAQCAtMjU3LDYNCj4gPiArMjczLDEx
+IEBAIHN0YXRpYyBpbnQgYWNwaV9kZXZpY2Vfc2V0dXBfZmlsZXMoc3RydWN0IGFjcGlfZGV2aWNl
+ICpkZXYpDQo+ID4gIAkJCWdvdG8gZW5kOw0KPiA+ICAJfQ0KPiA+DQo+ID4gKwlpZiAoZGV2LT5m
+bGFncy5idXNfYWRkcmVzcykNCj4gPiArCQlyZXN1bHQgPSBkZXZpY2VfY3JlYXRlX2ZpbGUoJmRl
+di0+ZGV2LCAmZGV2X2F0dHJfYWRyKTsNCj4gPiArCWlmIChkZXYtPnBucC51bmlxdWVfaWQpDQo+
+ID4gKwkJcmVzdWx0ID0gZGV2aWNlX2NyZWF0ZV9maWxlKCZkZXYtPmRldiwgJmRldl9hdHRyX3Vp
+ZCk7DQo+ID4gKw0KPiA+ICAgICAgICAgIC8qDQo+ID4gICAgICAgICAgICogSWYgZGV2aWNlIGhh
+cyBfRUowLCAnZWplY3QnIGZpbGUgaXMgY3JlYXRlZCB0aGF0IGlzIHVzZWQgdG8gdHJpZ2dlcg0K
+PiA+ICAgICAgICAgICAqIGhvdC1yZW1vdmFsIGZ1bmN0aW9uIGZyb20gdXNlcmxhbmQuDQo+ID4g
+QEAgLTI4MSw2ICszMDIsMTAgQEAgc3RhdGljIHZvaWQgYWNwaV9kZXZpY2VfcmVtb3ZlX2ZpbGVz
+KHN0cnVjdA0KPiBhY3BpX2RldmljZSAqZGV2KQ0KPiA+ICAJaWYgKEFDUElfU1VDQ0VTUyhzdGF0
+dXMpKQ0KPiA+ICAJCWRldmljZV9yZW1vdmVfZmlsZSgmZGV2LT5kZXYsICZkZXZfYXR0cl9lamVj
+dCk7DQo+ID4NCj4gPiArCWlmIChkZXYtPnBucC51bmlxdWVfaWQpDQo+ID4gKwkJZGV2aWNlX3Jl
+bW92ZV9maWxlKCZkZXYtPmRldiwgJmRldl9hdHRyX3VpZCk7DQo+ID4gKwlpZiAoZGV2LT5mbGFn
+cy5idXNfYWRkcmVzcykNCj4gPiArCQlkZXZpY2VfcmVtb3ZlX2ZpbGUoJmRldi0+ZGV2LCAmZGV2
+X2F0dHJfYWRyKTsNCj4gPiAgCWRldmljZV9yZW1vdmVfZmlsZSgmZGV2LT5kZXYsICZkZXZfYXR0
+cl9tb2RhbGlhcyk7DQo+ID4gIAlkZXZpY2VfcmVtb3ZlX2ZpbGUoJmRldi0+ZGV2LCAmZGV2X2F0
+dHJfaGlkKTsNCj4gPiAgCWlmIChkZXYtPmhhbmRsZSkNCg0K
