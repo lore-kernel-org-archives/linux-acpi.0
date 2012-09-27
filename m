@@ -1,89 +1,80 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH v3 7/8] ACPI, PCI: add hostbridge removal function
-Date: Thu, 27 Sep 2012 13:17:39 -0700
-Message-ID: <CAE9FiQUrovv143dTo_k2m0DYXqwGc4BtbjmzGxo2Fk21Fp2EJw@mail.gmail.com>
-References: <20120918151215.59ea763b.izumi.taku@jp.fujitsu.com>
-	<20120918152553.8c8390d8.izumi.taku@jp.fujitsu.com>
-	<CAErSpo7hYHkFAgFy=q6ASV_15r-y_Cp=92nUdRAnBSGLi9ZMrA@mail.gmail.com>
-	<CAErSpo5bTDWCoVbzP-zz_ZcbSL-QJg+eFwoJHQxvaeQAY5OG2A@mail.gmail.com>
-	<CAE9FiQUUjPza9Hq8jJR0nLN__26zQooQAr=paB6dRjQtTM=ngw@mail.gmail.com>
-	<CAErSpo7Vf1Pz3bFfMAfWXoh0gF844X2JT7RQ9-ecr3uWj=z9_w@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v7 3/6] scsi: sr: support zero power ODD(ZPODD)
+Date: Fri, 28 Sep 2012 01:29:48 +0200
+Message-ID: <201209280129.48715.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.1209271038050.1596-100000@iolanthe.rowland.org> <506468E6.1020007@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAErSpo7Vf1Pz3bFfMAfWXoh0gF844X2JT7RQ9-ecr3uWj=z9_w@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, kaneshige.kenji@jp.fujitsu.com, jiang.liu@huawei.com
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([193.178.161.156]:47852 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754952Ab2I0XXN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 27 Sep 2012 19:23:13 -0400
+In-Reply-To: <506468E6.1020007@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Oliver Neukum <oliver@neukum.org>, James Bottomley <James.Bottomley@hansenpartnership.com>, Jeff Garzik <jgarzik@pobox.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>
 
-On Thu, Sep 27, 2012 at 11:44 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
->>
->> I'm not sure if that is needed.
->
-> That's a useless response.  Do you want to elaborate on *why* you
-> think this is a bad idea?
+On Thursday, September 27, 2012, Aaron Lu wrote:
+> On 09/27/2012 10:42 PM, Alan Stern wrote:
+> > On Thu, 27 Sep 2012, Aaron Lu wrote:
+> > 
+> >>> Moreover, I'd like to migrate SCSI drivers to the PM handling based on struct
+> >>> dev_pm_ops eventually and your change is kind of going in the opposite
+> >>> direction.  I don't know how much effort the migration is going to take,
+> >>> though, so perhaps we can just make this change first.
+> >>
+> >> Does the following change look OK?
+> >>
+> >> diff --git a/drivers/scsi/scsi_pm.c b/drivers/scsi/scsi_pm.c
+> >> index dc0ad85..1fb7ccc 100644
+> >> --- a/drivers/scsi/scsi_pm.c
+> >> +++ b/drivers/scsi/scsi_pm.c
+> >> @@ -143,7 +143,15 @@ static int scsi_runtime_suspend(struct device *dev)
+> >>  
+> >>  	dev_dbg(dev, "scsi_runtime_suspend\n");
+> >>  	if (scsi_is_sdev_device(dev)) {
+> >> -		err = scsi_dev_type_suspend(dev, PMSG_AUTO_SUSPEND);
+> >> +		err = scsi_device_quiesce(to_scsi_device(dev));
+> >> +		if (err)
+> >> +			goto out;
+> >> +
+> >> +		err = pm_generic_runtime_suspend(dev);
+> >> +		if (!err)
+> >> +			goto out;
+> >> +
+> >> +		scsi_device_resume(to_scsi_device(dev));
+> >>  		if (err == -EAGAIN)
+> >>  			pm_schedule_suspend(dev, jiffies_to_msecs(
+> >>  				round_jiffies_up_relative(HZ/10)));
+> > 
+> > Maybe in the end it will be better, but for now this looks like 
+> > unnecessary code duplication.  Basically you are copying 
+> > scsi_dev_type_suspend() into scsi_runtime_suspend(), except that you 
+> > omitted the debugging statement.
+> 
+> And I've used pm_generic_runtime_suspend :-)
+> That would allow me to write runtime callbacks of dev_pm_ops for
+> indivisual scsi drivers, like sr.
 
-I did not say that is bad idea.
+Well, actually, I meant something different.
 
-it is just not needed to waste your time.
+The above patch would make it possible for drivers to provide runtime PM
+callbacks through dev->driver.pm, but drv->suspend and drv->resume would
+still be used for system suspend/resume (and hibernation).
 
->
-> I explained the reasons why I think it's a good idea above, but just
-> to expand on it, we currently have to create the struct pci_bus before
-> we can add _PRT information.   But adding the _PRT info doesn't
-> actually depend on the struct pci_bus; it only requires the segment
-> number and the bus number.  We have that information before we scan
-> the bus .
->
-> I think it's useful to disentangle _PRT interface from the specifics
-> of PCI (in this case, the struct pci_bus).  We're currently using the
-> struct pci_bus here just as a convenient way to pass around the
-> segment/bus number, but I don't think it's the appropriate abstraction
-> for that.
->
-> Do you see a technical problem with it?  Even if it's not *necessary*
-> in order to make host bridge hotplug work, I think it's worth doing to
-> make the code more understandable.
->
-> Do you see a problem with adding the _PRT info before scanning the bus
-> or with removing it after deleting the bus?
+The transition to struct dev_pm_ops I meant, however, would be to start using
+callbacks from dev->driver.pm for _all_ device PM operations by default and
+fall back to drv->suspend and drv->resume for the drivers whose dev->driver.pm
+is NULL (along the lines of what PCI does).  The next step would be to
+convert all drivers to use dev->driver.pm only.
 
-If the bus is not there, do not need that prt.
+So I wouldn't like any drivers to use dev->driver.pm callbacks for some
+operations and drv->suspend and drv->resume for the remaining ones at the
+same time.
 
-So if you find the prt and add it to the list before, later if
-scanning fail etc failing path
-you will need to clean that prt in the list.
-
-
-> I'd like the bus scan
-> code to be able to scan/add/bind drivers all at once in the PCI core.
-> Today I think we have scan/add _PRT/device_add, where we have to do
-> this _PRT stuff in the middle, so we have to use two PCI interfaces
-> rather than one.
-
-looks like we handle _PRT in pci_host_bridge add/remove notification,
-just like Jiang's put that for pci device bus notifier.
-
->
-> It's great if you see a way to remove acpi_pci_root_start() -- that
-> will be tremendous.
-
-that will need to more test.
-
-> I think the current PCI stop/remove split is a
-> similar issue, and I hope you can dream up a way to consolidate those,
-> too.
-
-that is SRIOV handling resign.
-
-I would suggest following way:
-use pf as parent for one new domain. and put all VFs on that domain.
-and the domain could have 256 buses for those VFs.
-and we have 16 bits domain number that could be used.
-
-current got too many patches in my quilt... hate to keep rebasing again.
-
-after pci root bus hotplug and for_each_res topic, will work on that SRIOV one.
-
--Yinghai
+Thanks,
+Rafael
