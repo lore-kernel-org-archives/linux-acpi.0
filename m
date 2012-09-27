@@ -1,42 +1,73 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH v3 7/8] ACPI, PCI: add hostbridge removal function
-Date: Thu, 27 Sep 2012 10:59:43 -0700
-Message-ID: <CAE9FiQXNdWO9pmr_vsMqaHCzm-TesMdBjTxHUUXTCY9m0G4KcQ@mail.gmail.com>
-References: <20120918151215.59ea763b.izumi.taku@jp.fujitsu.com>
-	<20120918152553.8c8390d8.izumi.taku@jp.fujitsu.com>
-	<CAErSpo7hYHkFAgFy=q6ASV_15r-y_Cp=92nUdRAnBSGLi9ZMrA@mail.gmail.com>
-	<CAErSpo5bTDWCoVbzP-zz_ZcbSL-QJg+eFwoJHQxvaeQAY5OG2A@mail.gmail.com>
-	<CAE9FiQUUjPza9Hq8jJR0nLN__26zQooQAr=paB6dRjQtTM=ngw@mail.gmail.com>
+From: Dan <vxltage@gmail.com>
+Subject: Re: PROBLEM: Acer D255E Backlight out for 10 seconds with ACPI
+Date: Thu, 27 Sep 2012 14:09:38 -0400
+Message-ID: <CALKZjMKDb_tJ6wQmF4D7RLN+C_4fPTGecufuXa4LM+JyAp_XUw@mail.gmail.com>
+References: <CALKZjMKcCA68XLWADb+EmU+a3VTQuOGr1dqNywGCCMj8DWNsiQ@mail.gmail.com>
+	<1348701543.8621.104.camel@linux-s257.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAE9FiQUUjPza9Hq8jJR0nLN__26zQooQAr=paB6dRjQtTM=ngw@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, kaneshige.kenji@jp.fujitsu.com, jiang.liu@huawei.com
+Content-Type: text/plain; charset=Big5
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-la0-f46.google.com ([209.85.215.46]:48960 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751981Ab2I0SJk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Sep 2012 14:09:40 -0400
+Received: by lagh6 with SMTP id h6so534982lag.19
+        for <linux-acpi@vger.kernel.org>; Thu, 27 Sep 2012 11:09:39 -0700 (PDT)
+In-Reply-To: <1348701543.8621.104.camel@linux-s257.site>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: joeyli <jlee@suse.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Thu, Sep 27, 2012 at 10:23 AM, Yinghai Lu <yinghai@kernel.org> wrote:
-> On Thu, Sep 27, 2012 at 9:48 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
->> On Fri, Sep 21, 2012 at 2:09 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
->>> If we get rid of the struct pci_bus * dependency, then we can easily
->>> add the _PRT before doing PCI enumeration behind the bridge, and we
->>> can remove the _PRT after removing the PCI devices.  I think this is
->>> one small step toward getting rid of the add/start and stop/remove
->>> split.
+On Wed, Sep 26, 2012 at 7:19 PM, joeyli <jlee@suse.com> wrote:
+> =A9=F3 =A4T=A1A2012-09-26 =A9=F3 16:48 -0400=A1ADan =B4=A3=A8=EC=A1G
+>> Hello,
 >>
->> I'm going to work on doing this if nobody else is interested.
+>> Apologies if this was sent to the wrong place.
+>>
+>> With an Acer AOD255E netbook, the backlight goes out for exactly 10
+>> seconds before returning while booting.
+>>
+>> This is a backlight issue and not KMS, as I can shine a flashlight a=
+t
+>> the screen and still see boot text scrolling.
+>>
+>> With "acpi=3Doff" appended to the kernel line, this no longer occurs=
+ (Fn
+>> key backlight controls still work with this appended). With every
+>> other acpi option I have tried, this still occurs though. This
+>> includes "acpi_backlight" and "acpi_display_output". With
+>> "acpi_backlight=3Dvendor" the entry in /sys/class/backlight changes =
+from
+>> acpi_video0 to acer_wmi, but backlight still goes out.
+>>
+>> Otherwise backlight works correctly.
 >
-> I'm not sure if that is needed.
+> Could you please try this kernel parameter?
+> video.use_bios_initial_backlight=3D0
+>
+>
+> Thanks
+> Joey Lee
+>
 
-After patches that is using pci_host_bridge_bus_type and pci_bus_type
-notification, we can remove
-acpi_pci_root_start.
+Same results with that kernel parameter applied.
 
-please check patches in my for-pci-next branch: it include jiang's 7
-patches about notifier, and my kill pci_root_buses and etc.
+Just to make it clear when this is happening:
+The BIOS screen and bootloader work fine. This occurs during the boot
+process while the systemd text is scrolling (or with the splash screen
+in the case of Ubuntu). I have not been able to pin down any event
+during the boot process that triggers it. It seems to be based on time
+after the kernel loads. I can tell by the difference booting from a
+HDD vs a SSD. With a HDD, it will occur earlier in the process (close
+to the time init is called) since booting takes longer. With an SSD,
+the backlight goes out close to the time the login screen appears.
 
-git://git.kernel.org/pub/scm/linux/kernel/git/yinghai/linux-yinghai.git
-for-pci-next
-
--Yinghai
+Once the backlight is out, it will stay out for exactly 10 seconds
+before returning no matter what is on the screen.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
