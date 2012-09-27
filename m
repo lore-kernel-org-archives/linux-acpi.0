@@ -1,202 +1,242 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: inux-next: Tree for Sept 26 (not bootable on AMD64:
- thermal|acpi|drm/i915|pci related?)
-Date: Thu, 27 Sep 2012 08:49:26 +0800
-Message-ID: <1348706966.10877.269.camel@rui.sh.intel.com>
-References: <CA+icZUWF92LaJ6pOMUPh6M-MVhF1GikJfyb9_1xXdNTxGLahXw@mail.gmail.com>
+From: Wen Congyang <wency@cn.fujitsu.com>
+Subject: Re: [RFC v9 PATCH 00/21] memory-hotplug: hot-remove physical memory
+Date: Thu, 27 Sep 2012 08:59:51 +0800
+Message-ID: <5063A507.3030004@cn.fujitsu.com>
+References: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com> <20120926164649.GA7559@dhcp-192-168-178-175.profitbricks.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <CA+icZUWF92LaJ6pOMUPh6M-MVhF1GikJfyb9_1xXdNTxGLahXw@mail.gmail.com>
-Sender: linux-next-owner@vger.kernel.org
-To: sedat.dilek@gmail.com
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Dave Airlie <airlied@gmail.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, Linux ACPI <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org, DRI <dri-devel@lists.freedesktop.org>, Bjorn Helgaas <bhelgaas@google.com>, "R, Durgadoss" <durgadoss.r@intel.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20120926164649.GA7559@dhcp-192-168-178-175.profitbricks.localdomain>
+Sender: owner-linux-mm@kvack.org
+To: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
+Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
 
-CC Durga.
-
-On =E4=B8=89, 2012-09-26 at 19:42 +0200, Sedat Dilek wrote:
-> On Wed, Sep 26, 2012 at 8:44 AM, Stephen Rothwell <sfr@canb.auug.org.=
-au> wrote:
-> > Hi all,
-> >
-> > Changes since 201209025:
-> >
-> > The net-next tree lost a conflict but gained another against Linus'=
- tree.
-> >
-> > The wireless-next tree gained a conflict against the pci tree.
-> >
-> > The md tree lost its build failure.
-> >
-> > The mfd tree lost its build failure.
-> >
-> > The battery tree lost a conflict.
-> >
-> > The pm tree lost its build failure and its conflict.
-> >
-> > The edac tree lost its conflict.
-> >
-> > The spi tree lost its conflict.
-> >
-> > The rcu tree lost its conflicts.
-> >
-> > The tty tree lost its build failure.
-> >
-> > The arm-soc tree lost a conflict but gained another against the fbd=
-ev
-> > tree.
-> >
-> > The signal tree lost a conflict.
-> >
-> > The akpm tree gained a build failure for which I reverted a patch.
-> >
-> > -------------------------------------------------------------------=
----------
-> >
->=20
+At 09/27/2012 12:46 AM, Vasilis Liaskovitis Wrote:
 > Hi,
->=20
-> on my Ubuntu/precise AMD64 today's Linux-Next runs into the following
-> call-trace (machine freezes):
->=20
->  Sep 26 19:22:58 fambox kernel: [   11.124739] BUG: unable to handle
-> kernel NULL pointer dereference at 0000000000000018
-> Sep 26 19:22:58 fambox kernel: [   11.124806] IP: [<ffffffff814bb058>=
-]
-> thermal_cooling_device_register+0x2c8/0x3d0
-> Sep 26 19:22:58 fambox kernel: [   11.124869] PGD 0
-> Sep 26 19:22:58 fambox kernel: [   11.124895] Oops: 0000 [#1] SMP
-> Sep 26 19:22:58 fambox kernel: [   11.124919] Modules linked in:
-> coretemp kvm_intel kvm snd_hda_intel(+) arc4 snd_hda_codec iwldvm
-> snd_hwdep ghash_clmulni_intel snd_pcm aesni_intel uvcvideo mac80211
-> aes_x86_64 snd_page_alloc ablk_helper i915(+) snd_seq_midi cryptd
-> videobuf2_vmalloc snd_seq_midi_event xts videobuf2_memops lrw
-> snd_rawmidi videobuf2_core joydev gf128mul videodev snd_seq
-> snd_seq_device hid_generic snd_timer drm_kms_helper iwlwifi drm snd
-> psmouse i2c_algo_bit soundcore btusb microcode serio_raw
-> samsung_laptop wmi cfg80211 bluetooth mei mac_hid video lpc_ich lp
-> parport ext4 jbd2 usbhid hid r8169
-> Sep 26 19:22:58 fambox kernel: [   11.125319] CPU 2
-> Sep 26 19:22:58 fambox kernel: [   11.125332] Pid: 579, comm: modprob=
-e
-> Not tainted 3.6.0-rc7-next20120926-2-iniza-generic #1 SAMSUNG
-> ELECTRONICS CO., LTD. 530U3BI/530U4BI/530U4BH/530U3BI/530U4BI/530U4BH
-> Sep 26 19:22:58 fambox kernel: [   11.125401] RIP:
-> 0010:[<ffffffff814bb058>]  [<ffffffff814bb058>]
-> thermal_cooling_device_register+0x2c8/0x3d0
-> Sep 26 19:22:58 fambox kernel: [   11.125450] RSP:
-> 0018:ffff88010f23d838  EFLAGS: 00010246
-> Sep 26 19:22:58 fambox kernel: [   11.125475] RAX: 0000000000000000
-> RBX: ffff88010bfd4c00 RCX: 0000000000000001
-> Sep 26 19:22:58 fambox kernel: [   11.125507] RDX: 0000000000000000
-> RSI: 0000000000000282 RDI: 0000000000000282
-> Sep 26 19:22:58 fambox kernel: [   11.125539] RBP: ffff88010f23d878
-> R08: 0000000000000000 R09: 0000000000000001
-> Sep 26 19:22:58 fambox kernel: [   11.125570] R10: ffff8801054fc460
-> R11: 0000000000000000 R12: ffff88010bfd4c04
-> Sep 26 19:22:58 fambox kernel: [   11.125602] R13: ffff88011a73e000
-> R14: 0000000000000000 R15: 0000000000000000
-> Sep 26 19:22:58 fambox kernel: [   11.125634] FS:
-> 00007f6b8da29700(0000) GS:ffff88011fa80000(0000)
-> knlGS:0000000000000000
-> Sep 26 19:22:58 fambox kernel: [   11.125670] CS:  0010 DS: 0000 ES:
-> 0000 CR0: 0000000080050033
-> Sep 26 19:22:58 fambox kernel: [   11.125697] CR2: 0000000000000018
-> CR3: 0000000110185000 CR4: 00000000000407e0
-> Sep 26 19:22:58 fambox kernel: [   11.125729] DR0: 0000000000000000
-> DR1: 0000000000000000 DR2: 0000000000000000
-> Sep 26 19:22:58 fambox kernel: [   11.125761] DR3: 0000000000000000
-> DR6: 00000000ffff0ff0 DR7: 0000000000000400
-> Sep 26 19:22:58 fambox kernel: [   11.125793] Process modprobe (pid:
-> 579, threadinfo ffff88010f23c000, task ffff880116648000)
-> Sep 26 19:22:58 fambox kernel: [   11.127133] Stack:
-> Sep 26 19:22:58 fambox kernel: [   11.128461]  ffff88011a5d9098
-> ffff88010d74c300 ffff88010f23d878 ffff880110b06480
-> Sep 26 19:22:58 fambox kernel: [   11.129755]  ffff88010bfd1000
-> ffff88011a5d9098 ffff88010d74c300 ffff88011a625000
-> Sep 26 19:22:58 fambox kernel: [   11.130943]  ffff88010f23d958
-> ffffffffa00e5868 0000000000000000 ffffffff811fa033
-> Sep 26 19:22:58 fambox kernel: [   11.132749] Call Trace:
-> Sep 26 19:22:58 fambox kernel: [   11.133939]  [<ffffffffa00e5868>]
-> acpi_video_bus_add+0x9ba/0xce6 [video]
-> Sep 26 19:22:58 fambox kernel: [   11.135130]  [<ffffffff811fa033>] ?
-> sysfs_addrm_finish+0x33/0xc0
-> Sep 26 19:22:58 fambox kernel: [   11.136313]  [<ffffffff813454cc>]
-> acpi_device_probe+0x4e/0x11c
-> Sep 26 19:22:58 fambox kernel: [   11.137482]  [<ffffffff813d472b>]
-> driver_probe_device+0x7b/0x240
-> Sep 26 19:22:58 fambox kernel: [   11.138642]  [<ffffffff813d499b>]
-> __driver_attach+0xab/0xb0
-> Sep 26 19:22:58 fambox kernel: [   11.139798]  [<ffffffff813d48f0>] ?
-> driver_probe_device+0x240/0x240
-> Sep 26 19:22:58 fambox kernel: [   11.140981]  [<ffffffff813d2b46>]
-> bus_for_each_dev+0x56/0x90
-> Sep 26 19:22:58 fambox kernel: [   11.142129]  [<ffffffff813d425e>]
-> driver_attach+0x1e/0x20
-> Sep 26 19:22:58 fambox kernel: [   11.143264]  [<ffffffff813d3dd0>]
-> bus_add_driver+0x190/0x290
-> Sep 26 19:22:58 fambox kernel: [   11.144443]  [<ffffffff813d4efa>]
-> driver_register+0x7a/0x160
-> Sep 26 19:22:58 fambox kernel: [   11.145583]  [<ffffffff81345ccf>]
-> acpi_bus_register_driver+0x43/0x45
-> Sep 26 19:22:58 fambox kernel: [   11.146871]  [<ffffffffa00e4dac>]
-> acpi_video_register+0x20/0x39 [video]
-> Sep 26 19:22:58 fambox kernel: [   11.148167]  [<ffffffffa02f4bad>]
-> i915_driver_load+0x83d/0xea0 [i915]
-> Sep 26 19:22:58 fambox kernel: [   11.149451]  [<ffffffffa020ebc1>]
-> drm_get_pci_dev+0x191/0x2b0 [drm]
-> Sep 26 19:22:58 fambox kernel: [   11.150739]  [<ffffffffa0345e2b>]
-> i915_pci_probe+0x4f/0x57 [i915]
-> Sep 26 19:22:58 fambox kernel: [   11.152015]  [<ffffffff81309af9>]
-> local_pci_probe+0x79/0x100
-> Sep 26 19:22:58 fambox kernel: [   11.153287]  [<ffffffff8130b1f9>]
-> pci_device_probe+0x109/0x130
-> Sep 26 19:22:58 fambox kernel: [   11.154546]  [<ffffffff813d472b>]
-> driver_probe_device+0x7b/0x240
-> Sep 26 19:22:58 fambox kernel: [   11.155796]  [<ffffffff813d499b>]
-> __driver_attach+0xab/0xb0
-> Sep 26 19:22:58 fambox kernel: [   11.157048]  [<ffffffff813d48f0>] ?
-> driver_probe_device+0x240/0x240
-> Sep 26 19:22:58 fambox kernel: [   11.158280]  [<ffffffff813d2b46>]
-> bus_for_each_dev+0x56/0x90
-> Sep 26 19:22:58 fambox kernel: [   11.159496]  [<ffffffff813d425e>]
-> driver_attach+0x1e/0x20
-> Sep 26 19:22:58 fambox kernel: [   11.160708]  [<ffffffff813d3dd0>]
-> bus_add_driver+0x190/0x290
-> Sep 26 19:22:58 fambox kernel: [   11.161909]  [<ffffffff813d4efa>]
-> driver_register+0x7a/0x160
-> Sep 26 19:22:58 fambox kernel: [   11.163121]  [<ffffffff8130a159>]
-> __pci_register_driver+0x49/0x50
-> Sep 26 19:22:58 fambox kernel: [   11.164227]  [<ffffffffa020edfa>]
-> drm_pci_init+0x11a/0x130 [drm]
-> Sep 26 19:22:58 fambox kernel: [   11.165295]  [<ffffffffa037c000>] ?
-> 0xffffffffa037bfff
-> Sep 26 19:22:58 fambox kernel: [   11.166351]  [<ffffffffa037c066>]
-> i915_init+0x66/0x68 [i915]
-> Sep 26 19:22:58 fambox kernel: [   11.167360]  [<ffffffff8100203f>]
-> do_one_initcall+0x3f/0x170
-> Sep 26 19:22:58 fambox kernel: [   11.168332]  [<ffffffff810bc9be>]
-> sys_init_module+0xbe/0x220
-> Sep 26 19:22:58 fambox kernel: [   11.169276]  [<ffffffff8164a0bd>]
-> system_call_fastpath+0x1a/0x1f
-> Sep 26 19:22:58 fambox kernel: [   11.170200] Code: 1b 7e 00 48 3d c0
-> cb c9 81 4c 8d a8 b0 fc ff ff 0f 84 bf 00 00 00 0f 1f 44 00 00 4d 8b
-> bd f0 02 00 00 4d 85 ff 0f 84 c0 00 00 00 <49> 8b 77 18 48 85 f6 0f 8=
-4
-> d3 fe ff ff 41 8b 47 14 85 c0 7e 7b
-> Sep 26 19:22:58 fambox kernel: [   11.172467] RIP
-> [<ffffffff814bb058>] thermal_cooling_device_register+0x2c8/0x3d0
-> Sep 26 19:22:58 fambox kernel: [   11.173542]  RSP <ffff88010f23d838>
-> Sep 26 19:22:58 fambox kernel: [   11.174603] CR2: 0000000000000018
-> Sep 26 19:22:58 fambox kernel: [   11.175675] ---[ end trace
-> 0f2bc437662fc097 ]---
->=20
-> I have CCed some maintainers, hope they might have a look at it
-> (sorry, didnt check any MLs).
->=20
-> My kern.log and kernel-config are attached.
->=20
-> Regards,
-> - Sedat -
+> 
+> I am testing 3.6.0-rc7 with this v9 patchset plus more recent fixes [1],[2],[3]
+> Running in a guest (qemu+seabios from [4]). 
+> CONFIG_SLAB=y
+> CONFIG_DEBUG_SLAB=y
+> 
+> After succesfull hot-add and online, I am doing a hot-remove with "echo 1 > /sys/bus/acpi/devices/PNP/eject"
+> When I do the OSPM-eject, I often get slab corruption in "acpi-state" cache, or in other caches
+> 
+> [  170.566995] Slab corruption (Not tainted): Acpi-State start=ffff88009fc1e548, len=80
+> [  170.567265] Redzone: 0x0/0x0.
+> [  170.567399] Last user: [<          (null)>](0x0)
+> [  170.567667] 000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+> [  170.568078] 010: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+> [  170.568487] 020: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+> [  170.568894] 030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+> [  170.569302] 040: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+> [  170.569712] Prev obj: start=000000009fc1e4d0, len=80
+> [  170.569869] BUG: unable to handle kernel paging request at 000000009fc1e520
+> [  170.570171] IP: [<ffffffff8112803c>] print_objinfo+0x9c/0x110
+> [  170.570397] PGD 7cf37067 PUD 0 
+> [  170.570619] Oops: 0000 [#1] SMP 
+> [  170.570843] Modules linked in: netconsole acpiphp pci_hotplug acpi_memhotplug loop kvm_amd kvm tpm_tis microcode tpm tpm_bios psmouse parport_pc serio_raw evdev parport i2c_piix4 processor thermal_sys i2c_core button ext3 jbd mbcache sg sr_mod cdrom ata_generic virtio_net virtio_blk ata_piix libata scsi_mod virtio_pci virtio_ring virtio
+> [  170.573474] CPU 0 
+> [  170.573568] Pid: 29, comm: kworker/0:1 Not tainted 3.6.0-rc7-guest #12 Bochs Bochs
+> [  170.573830] RIP: 0010:[<ffffffff8112803c>]  [<ffffffff8112803c>] print_objinfo+0x9c/0x110
+> [  170.574106] RSP: 0018:ffff88003eaf3a70  EFLAGS: 00010202
+> [  170.574268] RAX: 000000009fc1e4c8 RBX: 0000000000000002 RCX: 00000000000024b8
+> [  170.574468] RDX: 000000009fc1e4c8 RSI: 000000009fc1e4c8 RDI: ffff88003e9bb980
+> [  170.574668] RBP: ffff88003e9bb980 R08: ffff880037964078 R09: 0000000000000000
+> [  170.574870] R10: 000000000000021e R11: 0000000000000002 R12: 000000009fc1e4c8
+> [  170.575070] R13: 000000009fc1e520 R14: 000000000000004f R15: 00000000ffffffa5
+> [  170.575274] FS:  00007fc6b7530700(0000) GS:ffff88003fc00000(0000) knlGS:0000000000000000
+> [  170.575494] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+> [  170.575665] CR2: 000000009fc1e520 CR3: 000000007c9c1000 CR4: 00000000000006f0
+> [  170.575870] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+> [  170.576075] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+> [  170.576276] Process kworker/0:1 (pid: 29, threadinfo ffff88003eaf2000, task ffff88003ea941c0)
+> [  170.576507] Stack:
+> [  170.576599]  0000000000000010 0000000001893fbe ffff88009fc1e000 0000000000000050
+> [  170.576938]  000000009fc1e4c8 000000000000004f 00000000ffffffa5 ffffffff8112899f
+> [  170.576938]  ffff88003eb309d8 ffffffff81712d6d ffff88003e9bb980 ffff88009fc1e540
+> [  170.576938] Call Trace:
+> [  170.576938]  [<ffffffff8112899f>] ? check_poison_obj+0x1df/0x1f0
+> [  170.576938]  [<ffffffff813047d0>] ? acpi_ut_create_generic_state+0x2f/0x4c
+> [  170.576938]  [<ffffffff813047d0>] ? acpi_ut_create_generic_state+0x2f/0x4c
+> [  170.576938]  [<ffffffff81128a9d>] ? cache_alloc_debugcheck_after.isra.52+0xed/0x220
+> [  170.576938]  [<ffffffff813047d0>] ? acpi_ut_create_generic_state+0x2f/0x4c
+> [  170.576938]  [<ffffffff8112beb5>] ? kmem_cache_alloc+0xb5/0x1e0
+> [  170.576938]  [<ffffffff813047d0>] ? acpi_ut_create_generic_state+0x2f/0x4c
+> [  170.576938]  [<ffffffff812edf2d>] ? acpi_ds_result_push+0x5d/0x12e
+> [  170.576938]  [<ffffffff812ed127>] ? acpi_ds_exec_end_op+0x28e/0x3d3
+> [  170.576938]  [<ffffffff812fd86a>] ? acpi_ps_parse_loop+0x79f/0x931
+> [  170.576938]  [<ffffffff812fdd6c>] ? acpi_ps_parse_aml+0x89/0x261
+> [  170.576938]  [<ffffffff812fe50c>] ? acpi_ps_execute_method+0x1be/0x266
+> [  170.576938]  [<ffffffff812f91f7>] ? acpi_ns_evaluate+0xd3/0x19a
+> [  170.576938]  [<ffffffff812fb93e>] ? acpi_evaluate_object+0xf3/0x1f4
+> [  170.576938]  [<ffffffff812e1104>] ? acpi_os_wait_events_complete+0x1b/0x1b
+> [  170.576938]  [<ffffffff812e4782>] ? acpi_bus_hot_remove_device+0xeb/0x123
+> [  170.576938]  [<ffffffff812e1121>] ? acpi_os_execute_deferred+0x1d/0x29
+> [  170.576938]  [<ffffffff81058ec5>] ? process_one_work+0x125/0x560
+> [  170.576938]  [<ffffffff81059e7a>] ? worker_thread+0x16a/0x4e0
+> [  170.576938]  [<ffffffff81059d10>] ? manage_workers+0x310/0x310
+> [  170.576938]  [<ffffffff8105e6c5>] ? kthread+0x85/0x90
+> [  170.576938]  [<ffffffff814eb2c4>] ? kernel_thread_helper+0x4/0x10
+> [  170.576938]  [<ffffffff8105e640>] ? flush_kthread_worker+0xa0/0xa0
+> [  170.576938]  [<ffffffff814eb2c0>] ? gs_change+0x13/0x13
+> [  170.576938] Code: cb 75 dc 48 83 c4 08 5b 5d 41 5c 41 5d 41 5e 41 5f c3 8b 7f 0c 4c 89 e2 e8 02 fd ff ff 4c 89 e6 49 89 c5 48 89 ef e8 d4 fc ff ff <49> 8b 55 00 48 8b 30 48 c7 c7 8c 39 6f 81 31 c0 e8 3e 34 3b 00 
+> 
+> Other times, the problem happens on a slab object free:
+> 
+> [   52.313366] Offlined Pages 32768
+> [   52.800232] slab error in verify_redzone_free(): cache `Acpi-ParseExt': memory outside object was overwritten
+> [   52.801298] Pid: 29, comm: kworker/0:1 Not tainted 3.6.0-rc7-guest #12
+> [   52.802039] Call Trace:
+> [   52.802443]  [<ffffffff811280cb>] ? __slab_error.isra.46+0x1b/0x30
+> [   52.803199]  [<ffffffff811287b6>] ? cache_free_debugcheck+0x256/0x260
+> [   52.803940]  [<ffffffff812e1b0e>] ? acpi_os_release_object+0x7/0xc
+> [   52.804645]  [<ffffffff81128fe3>] ? kmem_cache_free+0x63/0x260
+> [   52.805321]  [<ffffffff812e1b0e>] ? acpi_os_release_object+0x7/0xc
+> [   52.806023]  [<ffffffff812fe298>] ? acpi_ps_delete_parse_tree+0x34/0x58
+> [   52.806762]  [<ffffffff812fe517>] ? acpi_ps_execute_method+0x1c9/0x266
+> [   52.807499]  [<ffffffff812f91f7>] ? acpi_ns_evaluate+0xd3/0x19a
+> [   52.808183]  [<ffffffff812fb93e>] ? acpi_evaluate_object+0xf3/0x1f4
+> [   52.808897]  [<ffffffff812e1104>] ? acpi_os_wait_events_complete+0x1b/0x1b
+> [   52.809659]  [<ffffffff812e4782>] ? acpi_bus_hot_remove_device+0xeb/0x123
+> [   52.810032]  [<ffffffff812e1121>] ? acpi_os_execute_deferred+0x1d/0x29
+> [   52.810032]  [<ffffffff81058ec5>] ? process_one_work+0x125/0x560
+> [   52.810032]  [<ffffffff81059e7a>] ? worker_thread+0x16a/0x4e0
+> [   52.810032]  [<ffffffff81059d10>] ? manage_workers+0x310/0x310
+> [   52.810032]  [<ffffffff8105e6c5>] ? kthread+0x85/0x90
+> [   52.810032]  [<ffffffff814eb2c4>] ? kernel_thread_helper+0x4/0x10
+> [   52.810032]  [<ffffffff8105e640>] ? flush_kthread_worker+0xa0/0xa0
+> [   52.810032]  [<ffffffff814eb2c0>] ? gs_change+0x13/0x13
+> [   52.810032] ffff88008f809670: redzone 1:0x0, redzone 2:0x0.
+> [   52.810032] ------------[ cut here ]------------
+> [   52.810032] kernel BUG at mm/slab.c:3125!
+> [   52.810032] invalid opcode: 0000 [#1] SMP 
+> [   52.810032] Modules linked in: netconsole acpiphp pci_hotplug acpi_memhotplug loop kvm_amd kvm tpm_tis tpm tpm_bios microcode parport_pc parport evdev processor thermal_sys psmouse i2c_piix4 serio_raw i2c_core button ext3 jbd mbcache sg sr_mod cdrom virtio_net ata_generic virtio_blk virtio_pci virtio_ring virtio ata_piix libata scsi_mod
+> [   52.810032] CPU 0 
+> [   52.810032] Pid: 29, comm: kworker/0:1 Not tainted 3.6.0-rc7-guest #12 Bochs Bochs
+> [   52.810032] RIP: 0010:[<ffffffff81128733>]  [<ffffffff81128733>] cache_free_debugcheck+0x1d3/0x260
+> [   52.810032] RSP: 0018:ffff88003eaf3bc0  EFLAGS: 00010093
+> [   52.810032] RAX: 00000000017eac3c RBX: ffff88003e9bb700 RCX: 0000000002aaaaab
+> [   52.810032] RDX: 0000000000000000 RSI: 0000000000010000 RDI: 0000000000000060
+> [   52.810032] RBP: ffff88008f809670 R08: 09f911029d74e35b R09: 0000000000000000
+> [   52.810032] R10: 00000000000001d3 R11: 0000000000000002 R12: ffff88008f809000
+> [   52.810032] R13: ffffffff812e1b0e R14: 0000000000000000 R15: 0000000000010c00
+> [   52.810032] FS:  00007f63fc263700(0000) GS:ffff88003fc00000(0000) knlGS:0000000000000000
+> [   52.810032] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+> [   52.810032] CR2: 00007fff8d895b78 CR3: 000000007c866000 CR4: 00000000000006f0
+> [   52.810032] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+> [   52.810032] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+> [   52.810032] Process kworker/0:1 (pid: 29, threadinfo ffff88003eaf2000, task ffff88003ea941c0)
+> [   52.810032] Stack:
+> [   52.810032]  ffff88003e9bb980 ffff88008f809670 ffff880037ba8e18 ffff88008f809678
+> [   52.810032]  ffff88003e9bb700 0000000000000282 ffff88003e9bf270 ffffffff812e1b0e
+> [   52.810032]  0000000000000001 ffffffff81128fe3 ffff88003e80f5e8 ffff88003eb31748
+> [   52.810032] Call Trace:
+> [   52.810032]  [<ffffffff812e1b0e>] ? acpi_os_release_object+0x7/0xc
+> [   52.810032]  [<ffffffff81128fe3>] ? kmem_cache_free+0x63/0x260
+> [   52.810032]  [<ffffffff812e1b0e>] ? acpi_os_release_object+0x7/0xc
+> [   52.810032]  [<ffffffff812fe298>] ? acpi_ps_delete_parse_tree+0x34/0x58
+> [   52.810032]  [<ffffffff812fe517>] ? acpi_ps_execute_method+0x1c9/0x266
+> [   52.810032]  [<ffffffff812f91f7>] ? acpi_ns_evaluate+0xd3/0x19a
+> [   52.810032]  [<ffffffff812fb93e>] ? acpi_evaluate_object+0xf3/0x1f4
+> [   52.810032]  [<ffffffff812e1104>] ? acpi_os_wait_events_complete+0x1b/0x1b
+> [   52.810032]  [<ffffffff812e4782>] ? acpi_bus_hot_remove_device+0xeb/0x123
+> [   52.810032]  [<ffffffff812e1121>] ? acpi_os_execute_deferred+0x1d/0x29
+> [   52.810032]  [<ffffffff81058ec5>] ? process_one_work+0x125/0x560
+> [   52.810032]  [<ffffffff81059e7a>] ? worker_thread+0x16a/0x4e0
+> [   52.810032]  [<ffffffff81059d10>] ? manage_workers+0x310/0x310
+> [   52.810032]  [<ffffffff8105e6c5>] ? kthread+0x85/0x90
+> [   52.810032]  [<ffffffff814eb2c4>] ? kernel_thread_helper+0x4/0x10
+> [   52.810032]  [<ffffffff8105e640>] ? flush_kthread_worker+0xa0/0xa0
+> [   52.810032]  [<ffffffff814eb2c0>] ? gs_change+0x13/0x13
+> [   52.810032] Code: 89 ea 49 89 38 8b 73 14 8b 7b 0c e8 18 f6 ff ff 49 b8 5b e3 74 9d 02 11 f9 09 4c 89 00 44 8b 7b 14 44 89 f8 e9 fa fe ff ff 0f 0b <0f> 0b 48 8b 40 30 e9 d9 fe ff ff e8 c6 43 3b 00 0f 0b 48 8b 40 
+> [   52.810032] RIP  [<ffffffff81128733>] cache_free_debugcheck+0x1d3/0x260
+> [   52.810032]  RSP <ffff88003eaf3bc0>
+> [   52.810032] ---[ end trace c699c8cecd5870a3 ]---
+> 
+> 
+> And other times, I see a filesystem related slab corruption when doing the eject.
+> Here I have also seen a bad rss-counter state message. 
+> 
+> [  232.114232] BUG: Bad rss-counter state mm:ffff88007d9c1f80 idx:0 val:1
+> [  232.115214] BUG: unable to handle kernel NULL pointer dereference at           (null)
+> [  232.115807] IP: [<ffffffffa00cfce3>] do_get_write_access+0x43/0x480 [jbd]
+> [  232.116186] PGD 7cdec067 PUD 7c946067 PMD 0 
+> [  232.116627] Oops: 0000 [#3] SMP 
+> [  232.116990] Modules linked in: netconsole acpiphp pci_hotplug acpi_memhotplug loop kvm_amd kvm microcode tpm_tis tpm tpm_bios evdev psmouse serio_raw i2c_piix4 i2c_core parport_pc parport processor thermal_sys button ext3 jbd mbcache virtio_net sg sr_mod cdrom virtio_blk ata_generic virtio_pci virtio_ring virtio ata_piix libata scsi_mod
+> [  232.120013] CPU 2 
+> [  232.120013] Pid: 880, comm: dhclient Tainted: G      D      3.6.0-rc7-guest #1 Bochs Bochs
+> [  232.120013] RIP: 0010:[<ffffffffa00cfce3>]  [<ffffffffa00cfce3>] do_get_write_access+0x43/0x480 [jbd]
+> [  232.120013] RSP: 0018:ffff88007cd6fab8  EFLAGS: 00010246
+> [  232.120013] RAX: ffff88003e513f50 RBX: ffff88003e513f50 RCX: 0000000000000000
+> [  232.120013] RDX: 0000000000000000 RSI: ffff88003e513f50 RDI: ffff880097800000
+> [  232.120013] RBP: ffff88003e513f50 R08: 000000003e513f01 R09: 0000000180240024
+> [  232.120013] R10: ffff88003e513f50 R11: 00000000000198e0 R12: 0000000000000000
+> [  232.120013] R13: ffffffffa00eb437 R14: ffff880097800000 R15: 000000000000027a
+> [  232.120013] FS:  00007f082638d700(0000) GS:ffff88003ec80000(0000) knlGS:0000000000000000
+> [  232.120013] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> [  232.120013] CR2: 0000000000000000 CR3: 000000007c94c000 CR4: 00000000000006e0
+> [  232.120013] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+> [  232.120013] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+> [  232.120013] Process dhclient (pid: 880, threadinfo ffff88007cd6e000, task ffff88007ca46800)
+> [  232.120013] Stack:
+> [  232.120013]  ffff88007dc205b0 ffffffff8116645f ffff88007dc205b0 ffff88007dc205b0
+> [  232.120013]  ffff88007cf58800 0000000000000000 000000000000000e 0000000000000000
+> [  232.120013]  000000000000027a ffffffff8112b934 0000005000000003 0000000000000fff
+> [  232.120013] Call Trace:
+> [  232.120013]  [<ffffffff8116645f>] ? __find_get_block+0x7f/0x200
+> [  232.120013]  [<ffffffff8112b934>] ? kmem_cache_alloc+0xe4/0x140
+> [  232.120013]  [<ffffffffa00eb437>] ? ext3_dirty_inode+0x57/0xb0 [ext3]
+> [  232.120013]  [<ffffffffa00d0279>] ? journal_get_write_access+0x29/0x50 [jbd]
+> [  232.120013]  [<ffffffffa00eaeef>] ? __ext3_get_inode_loc+0xcf/0x360 [ext3]
+> [  232.120013]  [<ffffffffa0101317>] ? __ext3_journal_get_write_access+0x27/0x60 [ext3]
+> [  232.120013]  [<ffffffffa00eb213>] ? ext3_reserve_inode_write+0x73/0xa0 [ext3]
+> [  232.120013]  [<ffffffffa00eb27b>] ? ext3_mark_inode_dirty+0x3b/0xa0 [ext3]
+> [  232.120013]  [<ffffffffa00eb437>] ? ext3_dirty_inode+0x57/0xb0 [ext3]
+> [  232.120013]  [<ffffffff8115ded6>] ? __mark_inode_dirty+0x36/0x230
+> [  232.120013]  [<ffffffff811504a1>] ? update_time+0x71/0xb0
+> [  232.120013]  [<ffffffff811536c9>] ? mnt_clone_write+0x9/0x20
+> [  232.120013]  [<ffffffff81150581>] ? file_update_time+0xa1/0xf0
+> [  232.120013]  [<ffffffff8103385c>] ? ptep_set_access_flags+0x6c/0x70
+> [  232.120013]  [<ffffffff810e3f30>] ? __generic_file_aio_write+0x1a0/0x3c0
+> [  232.120013]  [<ffffffff811396fb>] ? __sb_start_write+0x6b/0x130
+> [  232.120013]  [<ffffffff810e41ce>] ? generic_file_aio_write+0x7e/0x100
+> [  232.120013]  [<ffffffff81137484>] ? do_sync_write+0x94/0xd0
+> [  232.120013]  [<ffffffff81137caa>] ? vfs_write+0xaa/0x160
+> [  232.120013]  [<ffffffff81137f87>] ? sys_write+0x47/0x90
+> [  232.120013]  [<ffffffff814e5765>] ? async_page_fault+0x25/0x30
+> [  232.120013]  [<ffffffff814eca79>] ? system_call_fastpath+0x16/0x1b
+> [  232.120013] Code: 54 24 2c f6 47 14 04 74 1f 41 bc e2 ff ff ff 48 81 c4 98 00 00 00 44 89 e0 5b 5d 41 5c 41 5d 41 5e 41 5f c3 0f 1f 40 00 4c 8b 27 <4d> 8b 3c 24 41 f6 07 02 75 d4 65 48 8b 04 25 80 b9 00 00 48 89 
+> 
+> Is this a known issue? If yes, can you point me to any relevant patches?
+> 
+> When I do an SCI(hardware) eject, I have not seen corruptions. The acpi driver is
+> evaluating fewer objects in this path I think, but I don't see why corruption can't
+> happen here as well.
+> 
+> I have seen similar problems with CONFIG_SLUB (I did not have debug_options
+> there but I can also provide those if helpful)
+
+Thanks for testing it.
+It is not a know issue. I will start to investigate it.
+
+Wen Congyang
+
+> 
+> [1] https://lkml.org/lkml/2012/9/6/635
+> [2] https://lkml.org/lkml/2012/9/11/542
+> [3] https://lkml.org/lkml/2012/9/20/37
+> [4] http://permalink.gmane.org/gmane.comp.emulators.kvm.devel/98691
+> 
+> thanks,
+> 
+> - Vasilis
+> 
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
