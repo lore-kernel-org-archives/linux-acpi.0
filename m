@@ -1,79 +1,119 @@
-From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: Re: [RFC v9 PATCH 00/21] memory-hotplug: hot-remove physical memory
-Date: Thu, 27 Sep 2012 16:53:59 +0800
-Message-ID: <50641427.3040103@cn.fujitsu.com>
-References: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com> <20120926165820.GB7559@dhcp-192-168-178-175.profitbricks.localdomain>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v7 3/6] scsi: sr: support zero power ODD(ZPODD)
+Date: Thu, 27 Sep 2012 17:26:29 +0800
+Message-ID: <50641BC5.2090000@intel.com>
+References: <1347438597-5903-1-git-send-email-aaron.lu@intel.com> <201209210007.23494.rjw@sisk.pl> <20120921013917.GB2142@mint-spring.sh.intel.com> <201209212302.19896.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <20120926165820.GB7559@dhcp-192-168-178-175.profitbricks.localdomain>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
-Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([143.182.124.37]:28117 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755319Ab2I0J0q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 27 Sep 2012 05:26:46 -0400
+In-Reply-To: <201209212302.19896.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>
+Cc: Oliver Neukum <oliver@neukum.org>, James Bottomley <James.Bottomley@hansenpartnership.com>, Jeff Garzik <jgarzik@pobox.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>
 
-At 09/27/2012 12:58 AM, Vasilis Liaskovitis Wrote:
-> Testing 3.6.0-rc7 with this v9 patchset plus more recent fixes [1],[2],[3]
-> Running in a guest (qemu+seabios from [4]). 
-> CONFIG_SLAB=y
-> CONFIG_DEBUG_SLAB=y
+On 09/22/2012 05:02 AM, Rafael J. Wysocki wrote:
+> On Friday, September 21, 2012, Aaron Lu wrote:
+>> On Fri, Sep 21, 2012 at 12:07:23AM +0200, Rafael J. Wysocki wrote:
+>>> On Wednesday, September 12, 2012, Aaron Lu wrote:
+>>>>  static struct scsi_driver sr_template = {
+>>>>  	.owner			= THIS_MODULE,
+>>>> @@ -87,6 +89,8 @@ static struct scsi_driver sr_template = {
+>>>>  		.name   	= "sr",
+>>>>  		.probe		= sr_probe,
+>>>>  		.remove		= sr_remove,
+>>>> +		.suspend        = sr_suspend,
+>>>> +		.resume         = sr_resume,
+>>>>  	},
+>>>>  	.done			= sr_done,
+>>>>  };
+>>>> @@ -172,6 +176,52 @@ static void scsi_cd_put(struct scsi_cd *cd)
+>>>>  	mutex_unlock(&sr_ref_mutex);
+>>>>  }
+>>>
+>>> Besides, I need some help to understand how this is supposed to work.
+>>>
+>>> Do I think correctly that sr_suspend(), for example, will be run by the
+>>> SCSI bus type layer in case of a CD device runtime suspend?  However,
+>>
+>> Yes.
+>>
+>>> won't this routine be used during system suspend as well and won't it cause
+>>> problems to happen if so?
+>>
+>> On system suspend, nothing needs to be done.
+>> I'll add the following code in next version.
+>>
+>> 	if (!PMSG_IS_AUTO(msg))
+>> 		return 0;
 > 
-> - succesfull hot-add and online
-> - succesfull hot-remove with SCI (qemu) eject
-> - attempt to hot-readd same memory
+> Please don't.  The pm_message_t thing is obsolete and shoulnd't really be
+> used by device drivers.  I know that ATA relies on it internally, but that's
+> just something that needs to be changed at one point.
 > 
-> When the pages are re-onlined on hot-readd, I get a bad_page state for many
-> pages e.g.
+> Moreover, I'd like to migrate SCSI drivers to the PM handling based on struct
+> dev_pm_ops eventually and your change is kind of going in the opposite
+> direction.  I don't know how much effort the migration is going to take,
+> though, so perhaps we can just make this change first.
 
-I have reproduced this problem, and I investigate it now.
+Does the following change look OK?
 
-Thanks
-Wen Congyang
+diff --git a/drivers/scsi/scsi_pm.c b/drivers/scsi/scsi_pm.c
+index dc0ad85..1fb7ccc 100644
+--- a/drivers/scsi/scsi_pm.c
++++ b/drivers/scsi/scsi_pm.c
+@@ -143,7 +143,15 @@ static int scsi_runtime_suspend(struct device *dev)
+ 
+ 	dev_dbg(dev, "scsi_runtime_suspend\n");
+ 	if (scsi_is_sdev_device(dev)) {
+-		err = scsi_dev_type_suspend(dev, PMSG_AUTO_SUSPEND);
++		err = scsi_device_quiesce(to_scsi_device(dev));
++		if (err)
++			goto out;
++
++		err = pm_generic_runtime_suspend(dev);
++		if (!err)
++			goto out;
++
++		scsi_device_resume(to_scsi_device(dev));
+ 		if (err == -EAGAIN)
+ 			pm_schedule_suspend(dev, jiffies_to_msecs(
+ 				round_jiffies_up_relative(HZ/10)));
+@@ -151,6 +159,7 @@ static int scsi_runtime_suspend(struct device *dev)
+ 
+ 	/* Insert hooks here for targets, hosts, and transport classes */
+ 
++out:
+ 	return err;
+ }
+ 
+@@ -159,11 +168,17 @@ static int scsi_runtime_resume(struct device *dev)
+ 	int err = 0;
+ 
+ 	dev_dbg(dev, "scsi_runtime_resume\n");
+-	if (scsi_is_sdev_device(dev))
++	if (scsi_is_sdev_device(dev)) {
++		err = pm_generic_runtime_resume(dev);
++		if (err)
++			goto out;
++
+ 		err = scsi_dev_type_resume(dev);
++	}
+ 
+ 	/* Insert hooks here for targets, hosts, and transport classes */
+ 
++out:
+ 	return err;
+ }
+ 
 
-> 
-> [   59.611278] init_memory_mapping: [mem 0x80000000-0x9fffffff]
-> [   59.637836] Built 2 zonelists in Node order, mobility grouping on.  Total pages: 547617
-> [   59.638739] Policy zone: Normal
-> [   59.650840] BUG: Bad page state in process bash  pfn:9b6dc
-> [   59.651124] page:ffffea0002200020 count:0 mapcount:0 mapping:          (null) index:0xfdfdfdfdfdfdfdfd
-> [   59.651494] page flags: 0x2fdfdfdfd5df9fd(locked|referenced|uptodate|dirty|lru|active|slab|owner_priv_1|private|private_2|writeback|head|tail|swapcache|reclaim|swapbacked|unevictable|uncached|compound_lock)
-> [   59.653604] Modules linked in: netconsole acpiphp pci_hotplug acpi_memhotplug loop kvm_amd kvm microcode tpm_tis tpm tpm_bios evdev psmouse serio_raw i2c_piix4 i2c_core parport_pc parport processor button thermal_sys ext3 jbd mbcache sg sr_mod cdrom ata_generic virtio_net ata_piix virtio_blk libata virtio_pci virtio_ring virtio scsi_mod
-> [   59.656998] Pid: 988, comm: bash Not tainted 3.6.0-rc7-guest #12
-> [   59.657172] Call Trace:
-> [   59.657275]  [<ffffffff810e9b30>] ? bad_page+0xb0/0x100
-> [   59.657434]  [<ffffffff810ea4c3>] ? free_pages_prepare+0xb3/0x100
-> [   59.657610]  [<ffffffff810ea668>] ? free_hot_cold_page+0x48/0x1a0
-> [   59.657787]  [<ffffffff8112cc08>] ? online_pages_range+0x68/0xa0
-> [   59.657961]  [<ffffffff8112cba0>] ? __online_page_increment_counters+0x10/0x10
-> [   59.658162]  [<ffffffff81045561>] ? walk_system_ram_range+0x101/0x110
-> [   59.658346]  [<ffffffff814c4f95>] ? online_pages+0x1a5/0x2b0
-> [   59.658515]  [<ffffffff8135663d>] ? __memory_block_change_state+0x20d/0x270
-> [   59.658710]  [<ffffffff81356756>] ? store_mem_state+0xb6/0xf0
-> [   59.658878]  [<ffffffff8119e482>] ? sysfs_write_file+0xd2/0x160
-> [   59.659052]  [<ffffffff8113769a>] ? vfs_write+0xaa/0x160
-> [   59.659212]  [<ffffffff81137977>] ? sys_write+0x47/0x90
-> [   59.659371]  [<ffffffff814e2f25>] ? async_page_fault+0x25/0x30
-> [   59.659543]  [<ffffffff814ea239>] ? system_call_fastpath+0x16/0x1b
-> [   59.659720] Disabling lock debugging due to kernel taint
-> 
-> Patch 20/21 deals with a similar scenario, but only for __PG_HWPOISON flag.
-> Did i miss any other patch for this?
-> 
-> thanks,
-> 
-> - Vasilis
-> 
-> [1] https://lkml.org/lkml/2012/9/6/635
-> [2] https://lkml.org/lkml/2012/9/11/542
-> [3] https://lkml.org/lkml/2012/9/20/37
-> [4] http://permalink.gmane.org/gmane.comp.emulators.kvm.devel/98691
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
+And I'll define runtime callbacks for sr and sd.
+
+Thanks,
+Aaron
 
