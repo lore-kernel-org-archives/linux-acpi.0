@@ -1,118 +1,41 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: [PATCH 2/2] acpi : prevent cpu from becoming online
-Date: Fri, 28 Sep 2012 19:39:45 +0900
-Message-ID: <50657E71.4050001@jp.fujitsu.com>
-References: <50657D92.3010106@jp.fujitsu.com>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: [RFC PATCH 5/6] ACPI: Introduce ACPI I2C controller
+ enumeration driver
+Date: Fri, 28 Sep 2012 13:54:01 +0100
+Message-ID: <20120928135401.6781d134@pyramind.ukuu.org.uk>
+References: <1348818032.10877.325.camel@rui.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:45277 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753011Ab2I1KkE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Sep 2012 06:40:04 -0400
-In-Reply-To: <50657D92.3010106@jp.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <1348818032.10877.325.camel@rui.sh.intel.com>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, LKML <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-i2c <linux-i2c@vger.kernel.org>, Dirk Brandewie <dirk.brandewie@gmail.com>, linux-pm <linux-pm@lists.linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: srivatsa.bhat@linux.vnet.ibm.com, toshi.kani@hp.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Even if acpi_processor_handle_eject() offlines cpu, there is a chance
-to online the cpu after that. So the patch closes the window by using
-get/put_online_cpus().
+On Fri, 28 Sep 2012 15:40:32 +0800
+Zhang Rui <rui.zhang@intel.com> wrote:
 
-Why does the patch change _cpu_up() logic?
+> >From 6077a62f2865201ab6727ca7d628ee5e43aa57e1 Mon Sep 17 00:00:00 2001
+> From: Zhang Rui <rui.zhang@intel.com>
+> Date: Fri, 24 Aug 2012 15:18:25 +0800
+> Subject: [RFC PATCH 5/6] ACPI: Introduce ACPI I2C controller enumeration
+>  driver
+>=20
+> This driver is able to
+> 1) enumerate I2C controller via ACPI namespace
+>    and register it as a platform device.
+> 2) enumerate I2C slave devices via ACPI namespace.
 
-The patch cares the race of hot-remove cpu and _cpu_up(). If the patch
-does not change it, there is the following race.
-
-hot-remove cpu                         |  _cpu_up()
-------------------------------------- ------------------------------------
-call acpi_processor_handle_eject()     |
-     call cpu_down()                   |
-     call get_online_cpus()            |
-                                       | call cpu_hotplug_begin() and stop here
-     call arch_unregister_cpu()        |
-     call acpi_unmap_lsapic()          |
-     call put_online_cpus()            |
-                                       | start and continue _cpu_up()
-     return acpi_processor_remove()    |
-continue hot-remove the cpu            |
-
-So _cpu_up() can continue to itself. And hot-remove cpu can also continue
-itself. If the patch changes _cpu_up() logic, the race disappears as below:
-
-hot-remove cpu                         | _cpu_up()
------------------------------------------------------------------------
-call acpi_processor_handle_eject()     |
-     call cpu_down()                   |
-     call get_online_cpus()            |
-                                       | call cpu_hotplug_begin() and stop here
-     call arch_unregister_cpu()        |
-     call acpi_unmap_lsapic()          |
-          cpu's cpu_present is set     |
-          to false by set_cpu_present()|
-     call put_online_cpus()            |
-                                       | start _cpu_up()
-                                       | check cpu_present() and return -EINVAL
-     return acpi_processor_remove()    |
-continue hot-remove the cpu            |
-
-Reviewed-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
-Reviewed-by: Toshi Kani <toshi.kani@hp.com>
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-
----
- drivers/acpi/processor_driver.c |   14 ++++++++++++++
- kernel/cpu.c                    |    8 +++++---
- 2 files changed, 19 insertions(+), 3 deletions(-)
-
-Index: linux-3.6-rc7/drivers/acpi/processor_driver.c
-===================================================================
---- linux-3.6-rc7.orig/drivers/acpi/processor_driver.c	2012-09-28 19:16:33.207858261 +0900
-+++ linux-3.6-rc7/drivers/acpi/processor_driver.c	2012-09-28 19:23:05.129858476 +0900
-@@ -857,8 +857,22 @@ static int acpi_processor_handle_eject(s
- 			return ret;
- 	}
- 
-+	get_online_cpus();
-+	/*
-+	 * The cpu might become online again at this point. So we check whether
-+	 * the cpu has been onlined or not. If the cpu became online, it means
-+	 * that someone wants to use the cpu. So acpi_processor_handle_eject()
-+	 * returns -EAGAIN.
-+	 */
-+	if (unlikely(cpu_online(pr->id))) {
-+		put_online_cpus();
-+		pr_warn("Failed to remove CPU %d, because other task "
-+			"brought the CPU back online\n", pr->id);
-+		return -EAGAIN;
-+	}
- 	arch_unregister_cpu(pr->id);
- 	acpi_unmap_lsapic(pr->id);
-+	put_online_cpus();
- 	return ret;
- }
- #else
-Index: linux-3.6-rc7/kernel/cpu.c
-===================================================================
---- linux-3.6-rc7.orig/kernel/cpu.c	2012-09-24 10:10:57.000000000 +0900
-+++ linux-3.6-rc7/kernel/cpu.c	2012-09-28 19:19:32.321858402 +0900
-@@ -343,11 +343,13 @@ static int __cpuinit _cpu_up(unsigned in
- 	unsigned long mod = tasks_frozen ? CPU_TASKS_FROZEN : 0;
- 	struct task_struct *idle;
- 
--	if (cpu_online(cpu) || !cpu_present(cpu))
--		return -EINVAL;
--
- 	cpu_hotplug_begin();
- 
-+	if (cpu_online(cpu) || !cpu_present(cpu)) {
-+		ret = -EINVAL;
-+		goto out;
-+	}
-+
- 	idle = idle_thread_get(cpu);
- 	if (IS_ERR(idle)) {
- 		ret = PTR_ERR(idle);
-
-
+Will this also trigger and work with the ACPI4 based devices that seem to
+have I=C2=B2C tables that Linux currently doesn't understand (eq some
+GMA600/Oaktrail platforms) ?
