@@ -1,78 +1,56 @@
-From: Feng Tang <feng.tang@intel.com>
-Subject: [PATCH 1/2] ACPI: EC: Make the GPE storm threshold a module parameter
-Date: Fri, 28 Sep 2012 15:22:00 +0800
-Message-ID: <1348816921-2637-1-git-send-email-feng.tang@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:16437 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752619Ab2I1H2k (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 28 Sep 2012 03:28:40 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [RFC PATCH 0/6] ACPI: ACPI 5.0 device enumeration
+	proposal
+Date: Fri, 28 Sep 2012 15:37:43 +0800
+Message-ID: <1348817863.10877.320.camel@rui.sh.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Grant Likely <grant.likely@secretlab.ca>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-i2c <linux-i2c@vger.kernel.org>, Dirk Brandewie <dirk.brandewie@gmail.com>, linux-pm <linux-pm@lists.linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
-Cc: Bob Moore <robert.moore@intel.com>, Francesco <trentini@dei.unipd.it>, Feng Tang <feng.tang@intel.com>
 
-Different EC hardwares have different behaviors for the GPE storm
-detection, some requires the storm threshold to be low to work fine,
-and some need a higher value to work ok.
+Hi, all,
 
-The ACPI_EC_STORM_THRESHOLD was initially 20 when it's created, and
-was changed to 8 in commit 06cf7d3c7 "ACPI: EC: lower interrupt storm
-threshold" to fix kernel bug 11892 by forcing the laptop in that bug to
-work in polling mode. However in bug 45151, it works fine in interrupt
-mode if we lift the threshold back to 20.
+I'm working on ACPI device enumeration support recently, and here is the
+proposal I made to enumerate devices via ACPI namespace.
 
-This patch makes the threshold a module parameter so that user has a
-flexible option to chose a number according to their specific EC HW.
-It doesn't affect current EC behavior.
+the main idea is that, for Serial Buses like I2C and SPI, we enumerate
+the controller as a platform device, and then enumerate the slaves via
+i2c/spi_register_board_info. And then, when the controller is really
+probed and enabled in the platform driver, the SPI/I2C bus code will
+enumerate I2C/SPI slaves automatically.
+And for the other devices, we will enumerate all of them as platform
+devices, which is not covered in this patch set yet.
 
-This is also a preparation patch to solve kernel bug:
-	https://bugzilla.kernel.org/show_bug.cgi?id=45151
+Patch 1 & 2 Introduce ACPI style device match method in platform_match.
+this is because an ACPI device may have multiple hardware ID (_HID) and
+Compatible IDs, aka, _CID, but in platform device code, only pdev->name
+is used to match the driver id_table currently.
+Patch 3 introduces a new API acpi_get_generic_resources().
+this API is used to convert ACPI style resources to the generic struct
+resource.
+Patch 4 changes i2c_register_board_info from __init to __devinit.
+This is needed because I want to enumerate the slave devices in ACPI I2C
+control Driver, which supports hotplug in theory.
+Patch 5 introduces the ACPI I2C controller enumeration drive.
+it enumerate the ACPI I2C controller to a platform device and then
+enumerate the I2C slaves as I2C_board_info.
+Patch 6 is an example driver for an ACPI enuemrated I2C controller.
 
-Signed-off-by: Feng Tang <feng.tang@intel.com>
----
- drivers/acpi/ec.c |   14 ++++++++++----
- 1 files changed, 10 insertions(+), 4 deletions(-)
+Note that this is just prototype patch set, which just passes build
+test. Because I'd like to get your ideas about this before going on.
+any comments are welcome.
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 7edaccc..615264c 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -71,9 +71,6 @@ enum ec_command {
- #define ACPI_EC_UDELAY_GLK	1000	/* Wait 1ms max. to get global lock */
- #define ACPI_EC_MSI_UDELAY	550	/* Wait 550us for MSI EC */
- 
--#define ACPI_EC_STORM_THRESHOLD 8	/* number of false interrupts
--					   per one transaction */
--
- enum {
- 	EC_FLAGS_QUERY_PENDING,		/* Query is pending */
- 	EC_FLAGS_GPE_STORM,		/* GPE storm detected */
-@@ -87,6 +84,15 @@ static unsigned int ec_delay __read_mostly = ACPI_EC_DELAY;
- module_param(ec_delay, uint, 0644);
- MODULE_PARM_DESC(ec_delay, "Timeout(ms) waited until an EC command completes");
- 
-+/*
-+ * If the number of false interrupts per one transaction exceeds
-+ * this threshold, will think there is a GPE storm happened and
-+ * will disable the GPE for normal transaction.
-+ */
-+static unsigned int ec_storm_threshold  __read_mostly = 8;
-+module_param(ec_storm_threshold, uint, 0644);
-+MODULE_PARM_DESC(ec_storm_threshold, "Maxim false GPE numbers not considered as GPE storm");
-+
- /* If we find an EC via the ECDT, we need to keep a ptr to its context */
- /* External interfaces use first EC only, so remember */
- typedef int (*acpi_ec_query_func) (void *data);
-@@ -319,7 +325,7 @@ static int acpi_ec_transaction(struct acpi_ec *ec, struct transaction *t)
- 		msleep(1);
- 		/* It is safe to enable the GPE outside of the transaction. */
- 		acpi_enable_gpe(NULL, ec->gpe);
--	} else if (t->irq_count > ACPI_EC_STORM_THRESHOLD) {
-+	} else if (t->irq_count > ec_storm_threshold) {
- 		pr_info(PREFIX "GPE storm detected, "
- 			"transactions will use polling mode\n");
- 		set_bit(EC_FLAGS_GPE_STORM, &ec->flags);
--- 
-1.7.1
-
+thanks,
+rui
