@@ -1,194 +1,70 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [RFC PATCH 6/6] Introduce INT33B1 I2C controller driver
-Date: Fri, 28 Sep 2012 15:40:43 +0800
-Message-ID: <1348818043.10877.326.camel@rui.sh.intel.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v7 2/6] scsi: sr: support runtime pm
+Date: Fri, 28 Sep 2012 16:20:50 +0800
+Message-ID: <50655DE2.3030600@intel.com>
+References: <1347438597-5903-1-git-send-email-aaron.lu@intel.com> <201209242340.18318.rjw@sisk.pl> <20120925080133.GA1629@mint-spring.sh.intel.com> <3158525.rj2S1Jvnll@linux-lqwf.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Grant Likely <grant.likely@secretlab.ca>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-i2c <linux-i2c@vger.kernel.org>, Dirk Brandewie <dirk.brandewie@gmail.com>, linux-pm <linux-pm@lists.linux-foundation.org>
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <3158525.rj2S1Jvnll@linux-lqwf.site>
+Sender: linux-ide-owner@vger.kernel.org
+To: Oliver Neukum <oneukum@suse.de>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, James Bottomley <James.Bottomley@hansenpartnership.com>, Jeff Garzik <jgarzik@pobox.com>, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
->From 817d814ecae91862f42a0447f455dae7f74cba27 Mon Sep 17 00:00:00 2001
-From: Zhang Rui <rui.zhang@intel.com>
-Date: Fri, 24 Aug 2012 15:20:38 +0800
-Subject: [RFC PATCH 6/6] Introduce INT33B1 I2C controller driver
+On 09/27/2012 06:46 PM, Oliver Neukum wrote:
+> On Tuesday 25 September 2012 16:01:35 Aaron Lu wrote:
+>> On Mon, Sep 24, 2012 at 11:40:18PM +0200, Rafael J. Wysocki wrote:
+>>> On Monday, September 24, 2012, Aaron Lu wrote:
+>>>> On Mon, Sep 24, 2012 at 02:55:31PM +0200, Rafael J. Wysocki wrote:
+> 
+>> I just checked the spec again and tested, when the ODD has power, it
+>> will also send out notifications on pressing the eject button/inserting
+>> a disc. So we should be able to capture such a event.
+> 
+> In this case there's no need to poll for disk change unless the button has
+> been pressed.
 
-This is a dummy platform device driver to illustrate my idea about
-how a really I2C controller should work on ACPI 5 platforms. 
-It just probes the INT33B1 I2C controller which is enumerated by ACPI.
+The SATA spec says the device attention pin shall assert when:
+- For tray type ODD, its front panel button is released;
+- For slot type ODD, media is inserted.
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- drivers/i2c/busses/Kconfig    |    8 +++
- drivers/i2c/busses/Makefile   |    1 +
- drivers/i2c/busses/i2c-33b1.c |  117 +++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 126 insertions(+), 0 deletions(-)
- create mode 100644 drivers/i2c/busses/i2c-33b1.c
+I've a slot type ODD which has a eject button. The notification will be
+sent when a disc is inserted, but not when the eject button is pressed,
+and this doesn't violate the spec.
 
-diff --git a/drivers/i2c/busses/Kconfig b/drivers/i2c/busses/Kconfig
-index b4aaa1b..536a19c 100644
---- a/drivers/i2c/busses/Kconfig
-+++ b/drivers/i2c/busses/Kconfig
-@@ -257,6 +257,14 @@ config I2C_SCMI
- 	  To compile this driver as a module, choose M here:
- 	  the module will be called i2c-scmi.
- 
-+config I2C_33B1
-+	tristate "INT33B1 I2C controller"
-+	help
-+	  This driver supports the ACPI enumerated INT33B1 I2C controller.
-+
-+	  To compile this driver as a module, choose M here:
-+	  the module will be called i2c-scmi.
-+
- endif # ACPI
- 
- comment "Mac SMBus host controller drivers"
-diff --git a/drivers/i2c/busses/Makefile b/drivers/i2c/busses/Makefile
-index ce3c2be..8e478bd 100644
---- a/drivers/i2c/busses/Makefile
-+++ b/drivers/i2c/busses/Makefile
-@@ -4,6 +4,7 @@
- 
- # ACPI drivers
- obj-$(CONFIG_I2C_SCMI)		+= i2c-scmi.o
-+obj-$(CONFIG_I2C_33B1)		+= i2c-33b1.o
- 
- # PC SMBus host controller drivers
- obj-$(CONFIG_I2C_ALI1535)	+= i2c-ali1535.o
-diff --git a/drivers/i2c/busses/i2c-33b1.c b/drivers/i2c/busses/i2c-33b1.c
-new file mode 100644
-index 0000000..152c3e4
---- /dev/null
-+++ b/drivers/i2c/busses/i2c-33b1.c
-@@ -0,0 +1,117 @@
-+/*
-+ *  i2c_33b1.c -INT33B1 i2c Controller Driver
-+ *
-+ *  Copyright (c) 2012 Intel Corp
-+ *  Copyright (c) 2012 Zhang Rui <rui.zhang@intel.com>
-+ *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; version 2 of the License.
-+ *
-+ *  This program is distributed in the hope that it will be useful, but
-+ *  WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ *  General Public License for more details.
-+ *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/slab.h>
-+#include <linux/init.h>
-+#include <linux/ioport.h>
-+#include <linux/delay.h>
-+#include <linux/errno.h>
-+#include <linux/i2c.h>
-+#include <linux/io.h>
-+#include <linux/platform_device.h>
-+
-+
-+struct int33b1_i2c_private {
-+        struct i2c_adapter adap;
-+        void __iomem *iobase;
-+};
-+
-+
-+static int int33b1_i2c_xfer(struct i2c_adapter *adap,
-+	struct i2c_msg *msgs, int num)
-+{
-+	return 0;
-+}
-+
-+static u32 int33b1_func(struct i2c_adapter *adap)
-+{
-+	/* Emulate SMBUS over I2C */
-+	return I2C_FUNC_SMBUS_EMUL | I2C_FUNC_I2C;
-+}
-+
-+static struct i2c_algorithm int33b1_i2c_algo = {
-+	.master_xfer	= int33b1_i2c_xfer,
-+	.functionality	= int33b1_func,
-+};
-+
-+static int __devinit int33b1_i2c_probe(struct platform_device *pdev)
-+{
-+	struct int33b1_i2c_private  *priv;
-+	struct resource *res;
-+	int ret;
-+
-+	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
-+	if (!priv)
-+		return -ENOMEM;
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	priv->iobase = devm_request_and_ioremap(&pdev->dev, res);
-+	if (!priv->iobase) {
-+		dev_err(&pdev->dev, "devm_request_and_ioremap failed\n");
-+		return -EBUSY;
-+	}
-+
-+	priv->adap.dev.parent = &pdev->dev;
-+	priv->adap.owner	= THIS_MODULE;
-+	priv->adap.algo_data	= priv;
-+	priv->adap.algo		= &int33b1_i2c_algo;
-+	priv->adap.nr		= pdev->id;
-+	priv->adap.class	= I2C_CLASS_HWMON;
-+	snprintf(priv->adap.name, sizeof(priv->adap.name), "int33b1-i2c");
-+
-+	i2c_set_adapdata(&priv->adap, priv);
-+	ret = i2c_add_numbered_adapter(&priv->adap);
-+	if (ret < 0) {
-+		dev_err(&priv->adap.dev, "Failed to add i2c bus.\n");
-+		return ret;
-+	}
-+
-+	platform_set_drvdata(pdev, priv);
-+	dev_info(&priv->adap.dev, "Added I2C Bus.\n");
-+	return 0;
-+}
-+
-+static int __devexit int33b1_i2c_remove(struct platform_device *pdev)
-+{
-+	struct int33b1_i2c_private *priv;
-+
-+	priv = platform_get_drvdata(pdev);
-+	i2c_del_adapter(&priv->adap);
-+	platform_set_drvdata(pdev, NULL);
-+	return 0;
-+}
-+
-+static struct platform_driver int33b1_i2c_driver = {
-+	.probe  = int33b1_i2c_probe,
-+	.remove = __devexit_p(int33b1_i2c_remove),
-+	.driver = {
-+		.name   = "int33b1-i2cbus",
-+		.owner  = THIS_MODULE,
-+	},
-+};
-+
-+module_platform_driver(int33b1_i2c_driver);
-+
-+MODULE_AUTHOR("Zhang Rui <rui.zhang@intel.com>");
-+MODULE_DESCRIPTION("INT33B1 I2C Controller driver");
-+MODULE_LICENSE("GPL v2");
-+MODULE_ALIAS("platform:INT33B1");
--- 
-1.7.7.6
+But if we disable the poll for disc changes, we will lose an event when
+the disc is ejected by the eject button(the device attention pin shall
+not trigger this time). I suppose this is a problem?
+
+I think the device attention scheme is not designed to do this job,
+while SATA asynchronous notification is.
+
+> 
+>> I'm thinking of enabling this GPE in sr_suspend once we decided that it
+>> is ready to be powered off, so the time frame between sr_suspend and
+>> when the power is actually removed in libata should be taken care of by
+>> the GPE. If GPE fires, the notification function will request a runtime
+>> resume of the device. Does this sound OK?
+> 
+> This sounds terribly, needlessly complicated. Just enable it when
+> you detect the presence of a disk drive that supports it.
+> 
+> Furthermore we have a device which can detect that a button has
+> been pressed. It is fundamentally wrong to poll for medium change in
+> such devices. You know that it hasn't been changed.
+
+That may depend on the ODD's capability. For the slot type ODD I
+mentioned above, we will not know when the disc is gone.
+
+Thanks,
+Aaron
+
+> We should notify the upper layers that we can do medium change
+> detection on our own.
+> 
+> 	Regards
+> 		Oliver
+> 
+
