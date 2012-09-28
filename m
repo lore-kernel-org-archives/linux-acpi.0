@@ -1,77 +1,76 @@
-From: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Subject: Re: [PATCH v3 8/8] ACPI, PCI: add resoruce-assign code for devices
- under hot-added hostbridge
-Date: Fri, 28 Sep 2012 18:48:33 +0900
-Message-ID: <20120928184833.910cf605.izumi.taku@jp.fujitsu.com>
-References: <20120918151215.59ea763b.izumi.taku@jp.fujitsu.com>
-	<20120918152641.410dad43.izumi.taku@jp.fujitsu.com>
-	<CAE9FiQU_-FYdy0ARuGaoCEg+F+5t0tDF-WToFhafGWbbAWBvDw@mail.gmail.com>
-	<CAE9FiQWujHz9D180Av8Vupdtu3Zqz2gKzv0FHW0PdpmJ3DM3sA@mail.gmail.com>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: [PATCH 1/2] acpi : cpu hot-remove returns error when cpu_down() fails
+Date: Fri, 28 Sep 2012 19:36:02 +0900
+Message-ID: <50657D92.3010106@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="ISO-2022-JP"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAE9FiQWujHz9D180Av8Vupdtu3Zqz2gKzv0FHW0PdpmJ3DM3sA@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: linux-pci@vger.kernel.org
-Cc: bhelgaas@google.com, linux-acpi@vger.kernel.org, kaneshige.kenji@jp.fujitsu.com, jiang.liu@huawei.com, Yinghai Lu <yinghai@kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:45135 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751610Ab2I1KgZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Sep 2012 06:36:25 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: srivatsa.bhat@linux.vnet.ibm.com, toshi.kani@hp.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
+Even if cpu_down() fails, acpi_processor_remove() continues to remove the cpu.
+But in this case, it should return error number since some process may run on
+the cpu. If the cpu has a running process and the cpu is turned the power off,
+the system may not work well.
 
-Devices under hot-added hostbridge have no chance to assign resources
-and to configure them, so this patch adds such code for hot-added 
-hostbridges at acpi_pci_root_start().
+Reviewed-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+Reviewed-by: Toshi Kani <toshi.kani@hp.com>
+Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-diff: updated according to Yinhai's comment
-      disconnect dependency on CONFIG_HOTPLUG
-      
-
-Signed-off-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
 ---
- drivers/acpi/pci_root.c |   13 +++++++++++++
- include/acpi/acpi_bus.h |    1 +
- 2 files changed, 14 insertions(+)
+ drivers/acpi/processor_driver.c |   18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
-Index: Bjorn-next-0925/drivers/acpi/pci_root.c
+Index: linux-3.6-rc7/drivers/acpi/processor_driver.c
 ===================================================================
---- Bjorn-next-0925.orig/drivers/acpi/pci_root.c
-+++ Bjorn-next-0925/drivers/acpi/pci_root.c
-@@ -628,6 +628,9 @@ static int __devinit acpi_pci_root_add(s
- 	if (device->wakeup.flags.run_wake)
- 		device_set_run_wake(root->bus->bridge, true);
+--- linux-3.6-rc7.orig/drivers/acpi/processor_driver.c	2012-09-24 10:10:57.000000000 +0900
++++ linux-3.6-rc7/drivers/acpi/processor_driver.c	2012-09-28 19:16:33.207858261 +0900
+@@ -605,7 +605,7 @@ err_free_pr:
+ static int acpi_processor_remove(struct acpi_device *device, int type)
+ {
+ 	struct acpi_processor *pr = NULL;
+-
++	int ret;
  
-+	if (system_state != SYSTEM_BOOTING)
-+		root->hot_added = true;
+ 	if (!device || !acpi_driver_data(device))
+ 		return -EINVAL;
+@@ -616,8 +616,9 @@ static int acpi_processor_remove(struct 
+ 		goto free;
+ 
+ 	if (type == ACPI_BUS_REMOVAL_EJECT) {
+-		if (acpi_processor_handle_eject(pr))
+-			return -EINVAL;
++		ret = acpi_processor_handle_eject(pr);
++		if (ret)
++			return ret;
+ 	}
+ 
+ 	acpi_processor_power_exit(pr, device);
+@@ -848,12 +849,17 @@ static acpi_status acpi_processor_hotadd
+ 
+ static int acpi_processor_handle_eject(struct acpi_processor *pr)
+ {
+-	if (cpu_online(pr->id))
+-		cpu_down(pr->id);
++	int ret = 0;
 +
- 	return 0;
- 
- out_del_root:
-@@ -644,6 +647,16 @@ static int acpi_pci_root_start(struct ac
- 	struct acpi_pci_root *root = acpi_driver_data(device);
- 	struct acpi_pci_driver *driver;
- 
-+	/*
-+	 * Devices under hot-added hostbridge have no chance to assign
-+	 * resources and to configure them, so do that here
-+	 */
-+	if (root->hot_added) {
-+		pci_bus_size_bridges(root->bus);
-+		pci_bus_assign_resources(root->bus);
-+		pci_enable_bridges(root->bus);
++	if (cpu_online(pr->id)) {
++		ret = cpu_down(pr->id);
++		if (ret)
++			return ret;
 +	}
-+
- 	mutex_lock(&acpi_pci_root_lock);
- 	list_for_each_entry(driver, &acpi_pci_drivers, node)
- 		if (driver->add)
-Index: Bjorn-next-0925/include/acpi/acpi_bus.h
-===================================================================
---- Bjorn-next-0925.orig/include/acpi/acpi_bus.h
-+++ Bjorn-next-0925/include/acpi/acpi_bus.h
-@@ -407,6 +407,7 @@ struct acpi_pci_root {
- 	u32 osc_support_set;	/* _OSC state of support bits */
- 	u32 osc_control_set;	/* _OSC state of control bits */
- 	phys_addr_t mcfg_addr;
-+	bool hot_added;
- };
  
- /* helper */
+ 	arch_unregister_cpu(pr->id);
+ 	acpi_unmap_lsapic(pr->id);
+-	return (0);
++	return ret;
+ }
+ #else
+ static acpi_status acpi_processor_hotadd_init(struct acpi_processor *pr)
+
