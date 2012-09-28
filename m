@@ -1,51 +1,69 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 1/2] ACPI: Add _UID support for ACPI devices.
-Date: Fri, 28 Sep 2012 08:40:28 +0800
-Message-ID: <247a799571d25d5eb52532222e7ff48fb3de84b1.1348791925.git.lv.zheng@intel.com>
-References: <3f02ff942122d086c4d6e44a9ffa9269300675b3.1348736272.git.lv.zheng@intel.com> <cover.1348791925.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:48286 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752492Ab2I1Al3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 27 Sep 2012 20:41:29 -0400
-In-Reply-To: <cover.1348791925.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Wen Congyang <wency@cn.fujitsu.com>
+Subject: Re: [RFC v9 PATCH 00/21] memory-hotplug: hot-remove physical memory
+Date: Fri, 28 Sep 2012 09:41:46 +0800
+Message-ID: <5065005A.4020907@cn.fujitsu.com>
+References: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com> <20120926164649.GA7559@dhcp-192-168-178-175.profitbricks.localdomain> <5063F41A.3010600@cn.fujitsu.com> <20120927103557.GA30772@dhcp-192-168-178-175.profitbricks.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20120927103557.GA30772@dhcp-192-168-178-175.profitbricks.localdomain>
+Sender: owner-linux-mm@kvack.org
+To: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
+Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <len.brown@intel.com>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>, linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>, Rui Zhang <rui.zhang@intel.com>
 
-The _UID object is optional, but is required when the device has no
-other way to report a persistent unique device ID.
-This patch is required for ACPI 5.0 ACPI enumerated IP cores.
+At 09/27/2012 06:35 PM, Vasilis Liaskovitis Wrote:
+> On Thu, Sep 27, 2012 at 02:37:14PM +0800, Wen Congyang wrote:
+>> Hi Vasilis Liaskovitis
+>>
+>> At 09/27/2012 12:46 AM, Vasilis Liaskovitis Wrote:
+>>> Hi,
+>>>
+>>> I am testing 3.6.0-rc7 with this v9 patchset plus more recent fixes [1],[2],[3]
+>>> Running in a guest (qemu+seabios from [4]). 
+>>> CONFIG_SLAB=y
+>>> CONFIG_DEBUG_SLAB=y
+>>>
+>>> After succesfull hot-add and online, I am doing a hot-remove with "echo 1 > /sys/bus/acpi/devices/PNP/eject"
+>>> When I do the OSPM-eject, I often get slab corruption in "acpi-state" cache, or in other caches
+>>
+>> I can't reproduce this problem. Can you provide the following information:
+>> 1. config file
+>> 2. qemu's command line
+>>
+>> You said you did OSPM-eject. Do you mean write 1 to /sys/bus/acpi/devices/PNP0C80:XX/eject?
+> yes.
+> 
+> example qemu command line with one dimm:
+> 
+> "/opt/qemu-kvm-memhp/bin/qemu-system-x86_64 -bios
+> /opt/extra/vliaskov/devel/seabios-upstream/out/bios.bin -enable-kvm -M pc -smp
+> 4,maxcpus=8 -cpu host -m 2048 -drive file=/opt/extra/debian-template.raw,if=none,id=drive-virtio-disk0,format=raw
+> -device virtio-blk-pci,bus=pci.0,drive=drive-virtio-disk0,id=virtio-disk0,bootindex=1
+> -vga cirrus -netdev type=tap,id=guest0,vhost=on -device virtio-net-pci,netdev=guest0
+> -monitor unix:/tmp/qemu.monitor11,server,nowait -chardev stdio,id=seabios  -device
+> isa-debugcon,iobase=0x402,chardev=seabios
+> -dimm id=n0,size=512M,node=0"
+> 
+> or last line with 2 numa nodes:
+> "-dimm id=n0,size=512M,node=0 -dimm id=n1,size=512M,node=1 -numa node,nodeid=0 -numa node,nodeid=1"
 
-Signed-off-by: Rui Zhang <rui.zhang@intel.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/scan.c |    4 ++++
- 1 file changed, 4 insertions(+)
+I have reproduced this problem. It only can be reproduced when the dimm's memory is on node 0.
+I investigate it now.
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index d730a93..7e8a130 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -327,6 +327,7 @@ static void acpi_device_release(struct device *dev)
- 	struct acpi_device *acpi_dev = to_acpi_device(dev);
- 
- 	acpi_free_ids(acpi_dev);
-+	kfree(acpi_dev->pnp.unique_id);
- 	kfree(acpi_dev);
- }
- 
-@@ -1162,6 +1163,9 @@ static void acpi_device_set_id(struct acpi_device *device)
- 			device->pnp.bus_address = info->address;
- 			device->flags.bus_address = 1;
- 		}
-+		if (info->valid & ACPI_VALID_UID)
-+			device->pnp.unique_id = kstrdup(info->unique_id.string,
-+							GFP_KERNEL);
- 
- 		kfree(info);
- 
--- 
-1.7.10
+Thanks
+Wen Congyang
 
+> 
+> attached config. Tree is at:
+> https://github.com/vliaskov/linux/commits/memhp-fujitsu
+> 
+> thanks,
+> - Vasilis
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
