@@ -1,142 +1,77 @@
 From: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Subject: Re: [PATCH v3 7/8] ACPI, PCI: add hostbridge removal function
-Date: Fri, 28 Sep 2012 18:46:27 +0900
-Message-ID: <20120928184627.0b039d14.izumi.taku@jp.fujitsu.com>
+Subject: Re: [PATCH v3 8/8] ACPI, PCI: add resoruce-assign code for devices
+ under hot-added hostbridge
+Date: Fri, 28 Sep 2012 18:48:33 +0900
+Message-ID: <20120928184833.910cf605.izumi.taku@jp.fujitsu.com>
 References: <20120918151215.59ea763b.izumi.taku@jp.fujitsu.com>
-	<20120918152553.8c8390d8.izumi.taku@jp.fujitsu.com>
-	<CAErSpo7hYHkFAgFy=q6ASV_15r-y_Cp=92nUdRAnBSGLi9ZMrA@mail.gmail.com>
+	<20120918152641.410dad43.izumi.taku@jp.fujitsu.com>
+	<CAE9FiQU_-FYdy0ARuGaoCEg+F+5t0tDF-WToFhafGWbbAWBvDw@mail.gmail.com>
+	<CAE9FiQWujHz9D180Av8Vupdtu3Zqz2gKzv0FHW0PdpmJ3DM3sA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:37078 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751879Ab2I1JqQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Sep 2012 05:46:16 -0400
-In-Reply-To: <CAErSpo7hYHkFAgFy=q6ASV_15r-y_Cp=92nUdRAnBSGLi9ZMrA@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAE9FiQWujHz9D180Av8Vupdtu3Zqz2gKzv0FHW0PdpmJ3DM3sA@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: linux-pci@vger.kernel.org
+Cc: bhelgaas@google.com, linux-acpi@vger.kernel.org, kaneshige.kenji@jp.fujitsu.com, jiang.liu@huawei.com, Yinghai Lu <yinghai@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, kaneshige.kenji@jp.fujitsu.com, yinghai@kernel.org, jiang.liu@huawei.com
 
 
-Currently there's no PCI-related clean-up code
-in acpi_pci_root_remove() function.
-This patch introduces function for hostbridge removal,
-and brings back pci_stop_bus_devices() function.
+Devices under hot-added hostbridge have no chance to assign resources
+and to configure them, so this patch adds such code for hot-added 
+hostbridges at acpi_pci_root_start().
 
-diff: rebased against current next
-      updated according to Bjorn's comment
+diff: updated according to Yinhai's comment
+      disconnect dependency on CONFIG_HOTPLUG
+      
 
 Signed-off-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
 ---
- drivers/acpi/pci_bind.c     |    7 +++++++
- drivers/acpi/pci_root.c     |    6 ++++++
- drivers/pci/remove.c        |   28 ++++++++++++++++++++++++++++
- include/acpi/acpi_drivers.h |    1 +
- include/linux/pci.h         |    2 ++
- 5 files changed, 44 insertions(+)
+ drivers/acpi/pci_root.c |   13 +++++++++++++
+ include/acpi/acpi_bus.h |    1 +
+ 2 files changed, 14 insertions(+)
 
-Index: Bjorn-next-0925-configchange/drivers/pci/remove.c
+Index: Bjorn-next-0925/drivers/acpi/pci_root.c
 ===================================================================
---- Bjorn-next-0925-configchange.orig/drivers/pci/remove.c
-+++ Bjorn-next-0925-configchange/drivers/pci/remove.c
-@@ -111,3 +111,31 @@ void pci_stop_and_remove_bus_device(stru
- 	pci_remove_bus_device(dev);
- }
- EXPORT_SYMBOL(pci_stop_and_remove_bus_device);
+--- Bjorn-next-0925.orig/drivers/acpi/pci_root.c
++++ Bjorn-next-0925/drivers/acpi/pci_root.c
+@@ -628,6 +628,9 @@ static int __devinit acpi_pci_root_add(s
+ 	if (device->wakeup.flags.run_wake)
+ 		device_set_run_wake(root->bus->bridge, true);
+ 
++	if (system_state != SYSTEM_BOOTING)
++		root->hot_added = true;
 +
-+void pci_stop_bus_devices(struct pci_bus *bus)
-+{
-+	struct pci_dev *dev, *tmp;
-+
-+	list_for_each_entry_safe_reverse(dev, tmp,
-+					 &bus->devices, bus_list) {
-+		pci_stop_bus_device(dev);
-+	}
-+
-+}
-+EXPORT_SYMBOL(pci_stop_bus_devices);
-+
-+void pci_remove_host_bridge(struct pci_host_bridge *bridge)
-+{
-+	struct pci_bus *root = bridge->bus;
-+	struct pci_dev *dev, *tmp;
-+
-+	list_for_each_entry_safe_reverse(dev, tmp,
-+					 &root->devices, bus_list) {
-+		pci_remove_bus_device(dev);
-+	}
-+
-+	pci_remove_bus(root);
-+
-+	device_unregister(&bridge->dev);
-+}
-+EXPORT_SYMBOL(pci_remove_host_bridge);
-Index: Bjorn-next-0925-configchange/drivers/acpi/pci_root.c
-===================================================================
---- Bjorn-next-0925-configchange.orig/drivers/acpi/pci_root.c
-+++ Bjorn-next-0925-configchange/drivers/acpi/pci_root.c
-@@ -659,8 +659,10 @@ static int acpi_pci_root_remove(struct a
- {
+ 	return 0;
+ 
+ out_del_root:
+@@ -644,6 +647,16 @@ static int acpi_pci_root_start(struct ac
  	struct acpi_pci_root *root = acpi_driver_data(device);
  	struct acpi_pci_driver *driver;
-+	struct pci_host_bridge *bridge = to_pci_host_bridge(root->bus->bridge);
  
++	/*
++	 * Devices under hot-added hostbridge have no chance to assign
++	 * resources and to configure them, so do that here
++	 */
++	if (root->hot_added) {
++		pci_bus_size_bridges(root->bus);
++		pci_bus_assign_resources(root->bus);
++		pci_enable_bridges(root->bus);
++	}
++
  	mutex_lock(&acpi_pci_root_lock);
-+	pci_stop_bus_devices(root->bus);
  	list_for_each_entry(driver, &acpi_pci_drivers, node)
- 		if (driver->remove)
- 			driver->remove(root);
-@@ -668,6 +670,10 @@ static int acpi_pci_root_remove(struct a
- 	device_set_run_wake(root->bus->bridge, false);
- 	pci_acpi_remove_bus_pm_notifier(device);
- 
-+	acpi_pci_unbind_root(device);
-+
-+	pci_remove_host_bridge(bridge);
-+
- 	list_del(&root->node);
- 	mutex_unlock(&acpi_pci_root_lock);
- 	kfree(root);
-Index: Bjorn-next-0925-configchange/include/linux/pci.h
+ 		if (driver->add)
+Index: Bjorn-next-0925/include/acpi/acpi_bus.h
 ===================================================================
---- Bjorn-next-0925-configchange.orig/include/linux/pci.h
-+++ Bjorn-next-0925-configchange/include/linux/pci.h
-@@ -734,6 +734,8 @@ extern struct pci_dev *pci_dev_get(struc
- extern void pci_dev_put(struct pci_dev *dev);
- extern void pci_remove_bus(struct pci_bus *b);
- extern void pci_stop_and_remove_bus_device(struct pci_dev *dev);
-+extern void pci_stop_bus_devices(struct pci_bus *bus);
-+extern void pci_remove_host_bridge(struct pci_host_bridge *bridge);
- void pci_setup_cardbus(struct pci_bus *bus);
- extern void pci_sort_breadthfirst(void);
- #define dev_is_pci(d) ((d)->bus == &pci_bus_type)
-Index: Bjorn-next-0925-configchange/drivers/acpi/pci_bind.c
-===================================================================
---- Bjorn-next-0925-configchange.orig/drivers/acpi/pci_bind.c
-+++ Bjorn-next-0925-configchange/drivers/acpi/pci_bind.c
-@@ -118,3 +118,10 @@ int acpi_pci_bind_root(struct acpi_devic
+--- Bjorn-next-0925.orig/include/acpi/acpi_bus.h
++++ Bjorn-next-0925/include/acpi/acpi_bus.h
+@@ -407,6 +407,7 @@ struct acpi_pci_root {
+ 	u32 osc_support_set;	/* _OSC state of support bits */
+ 	u32 osc_control_set;	/* _OSC state of control bits */
+ 	phys_addr_t mcfg_addr;
++	bool hot_added;
+ };
  
- 	return 0;
- }
-+
-+void  acpi_pci_unbind_root(struct acpi_device *device)
-+{
-+	device->ops.bind = NULL;
-+	device->ops.unbind = NULL;
-+}
-+
-Index: Bjorn-next-0925-configchange/include/acpi/acpi_drivers.h
-===================================================================
---- Bjorn-next-0925-configchange.orig/include/acpi/acpi_drivers.h
-+++ Bjorn-next-0925-configchange/include/acpi/acpi_drivers.h
-@@ -101,6 +101,7 @@ struct pci_bus;
- 
- struct pci_dev *acpi_get_pci_dev(acpi_handle);
- int acpi_pci_bind_root(struct acpi_device *device);
-+void acpi_pci_unbind_root(struct acpi_device *device);
- 
- /* Arch-defined function to add a bus to the system */
- 
-
+ /* helper */
