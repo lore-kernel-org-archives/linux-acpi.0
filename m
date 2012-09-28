@@ -1,55 +1,59 @@
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Subject: Re: [RFC v9 PATCH 01/21] memory-hotplug: rename remove_memory() to offline_memory()/offline_pages()
-Date: Fri, 28 Sep 2012 18:15:22 -0400
-Message-ID: <CAHGf_=oJ_Jmjqcdr4cPJghf7PX+vfmZe=CV2sdQQhS5agzG15w@mail.gmail.com>
-References: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com>
- <1346837155-534-2-git-send-email-wency@cn.fujitsu.com> <506509E4.1090000@gmail.com>
- <50651E68.3040208@jp.fujitsu.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH 3/8] PCI: Move out pci_enable_bridges out of assign_unsigned_bus_res
+Date: Fri, 28 Sep 2012 17:46:01 -0600
+Message-ID: <CAErSpo63QeF-Wd8nW-K_Qfp5rjMd0mhWADGW-fZiw4Up5-0ezA@mail.gmail.com>
+References: <1348733519-24684-1-git-send-email-yinghai@kernel.org> <1348733519-24684-4-git-send-email-yinghai@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <50651E68.3040208@jp.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Ni zhan Chen <nizhan.chen@gmail.com>, wency@cn.fujitsu.com, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1348733519-24684-4-git-send-email-yinghai@kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Sep 27, 2012 at 11:50 PM, Yasuaki Ishimatsu
-<isimatu.yasuaki@jp.fujitsu.com> wrote:
-> Hi Chen,
->
->
-> 2012/09/28 11:22, Ni zhan Chen wrote:
->>
->> On 09/05/2012 05:25 PM, wency@cn.fujitsu.com wrote:
->>>
->>> From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->>>
->>> remove_memory() only try to offline pages. It is called in two cases:
->>> 1. hot remove a memory device
->>> 2. echo offline >/sys/devices/system/memory/memoryXX/state
->>>
->>> In the 1st case, we should also change memory block's state, and notify
->>> the userspace that the memory block's state is changed after offlining
->>> pages.
->>>
->>> So rename remove_memory() to offline_memory()/offline_pages(). And in
->>> the 1st case, offline_memory() will be used. The function
->>> offline_memory()
->>> is not implemented. In the 2nd case, offline_pages() will be used.
->>
->>
->> But this time there is not a function associated with add_memory.
->
->
-> To associate with add_memory() later, we renamed it.
+On Thu, Sep 27, 2012 at 2:11 AM, Yinghai Lu <yinghai@kernel.org> wrote:
+> So could use assign_unassigned_bus_res pci root bus add
 
-Then, you introduced bisect breakage. It is definitely unacceptable.
+After your series, acpi_pci_root_start() looks like this:
 
-NAK.
+    pci_assign_unassigned_bus_resources
+    list_for_each_entry(driver, &acpi_pci_drivers, node)
+        driver->add(root);
+    pci_enable_bridges(root->bus);
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+so apparently it's important that the driver->add() methods be run
+*before* the bridges are enabled.  Why?
+
+> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+> ---
+>  drivers/pci/probe.c     |    1 +
+>  drivers/pci/setup-bus.c |    2 --
+>  2 files changed, 1 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+> index 65f62e3..59cf1ba 100644
+> --- a/drivers/pci/probe.c
+> +++ b/drivers/pci/probe.c
+> @@ -1905,6 +1905,7 @@ unsigned int __ref pci_rescan_bus(struct pci_bus *bus)
+>
+>         max = pci_scan_child_bus(bus);
+>         pci_assign_unassigned_bus_resources(bus);
+> +       pci_enable_bridges(bus);
+>         pci_bus_add_devices(bus);
+>
+>         return max;
+> diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
+> index 59e6c55..6d3591d 100644
+> --- a/drivers/pci/setup-bus.c
+> +++ b/drivers/pci/setup-bus.c
+> @@ -1566,6 +1566,4 @@ void pci_assign_unassigned_bus_resources(struct pci_bus *bus)
+>         up_read(&pci_bus_sem);
+>         __pci_bus_assign_resources(bus, &add_list, NULL);
+>         BUG_ON(!list_empty(&add_list));
+> -
+> -       pci_enable_bridges(bus);
+>  }
+> --
+> 1.7.7
+>
