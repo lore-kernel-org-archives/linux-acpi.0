@@ -1,42 +1,67 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [RESEND PATCH v4 0/2] ACPI: DBGP/DBG2 early console support for
- LPIA.
-Date: Thu, 27 Sep 2012 23:36:46 -0700
-Message-ID: <5065457E.4040500@zytor.com>
-References: <cover.1347453194.git.zetalog@gmail.com> <cover.1348652044.git.lv.zheng@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Feng Tang <feng.tang@intel.com>
+Subject: [PATCH 2/2] ACPI: EC: Add a quirk for CLEVO M720T/M730T laptop
+Date: Fri, 28 Sep 2012 15:22:01 +0800
+Message-ID: <1348816921-2637-2-git-send-email-feng.tang@intel.com>
+References: <1348816921-2637-1-git-send-email-feng.tang@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from terminus.zytor.com ([198.137.202.10]:37477 "EHLO mail.zytor.com"
+Received: from mga09.intel.com ([134.134.136.24]:16437 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750995Ab2I1Ggy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 28 Sep 2012 02:36:54 -0400
-In-Reply-To: <cover.1348652044.git.lv.zheng@intel.com>
+	id S1752777Ab2I1H2l (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 28 Sep 2012 03:28:41 -0400
+In-Reply-To: <1348816921-2637-1-git-send-email-feng.tang@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: Len Brown <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Jason Wessel <jason.wessel@windriver.com>, Feng Tang <feng.tang@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org, platform-driver-x86@vger.kernel.org
+To: Len Brown <lenb@kernel.org>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
+Cc: Bob Moore <robert.moore@intel.com>, Francesco <trentini@dei.unipd.it>, Feng Tang <feng.tang@intel.com>
 
-On 09/27/2012 10:36 PM, Lv Zheng wrote:
-> Microsoft Debug Port Table (DBGP or DBG2) is used by the Windows SoC
-> platforms to describe their debugging facilities.
-> Recent Low Power Intel Architecture (LPIA) platforms have utilized
-> this for the SPI UART debug ports that are resident on their debug
-> boards.
->
-> This patch set enables the DBGP/DBG2 debug ports as an Linux early
-> console launcher.
-> The SPI UART debug ports support is also refined to co-exist with this
-> new usage model.
+By enlarging the GPE storm threshold back to 20, that laptop's
+EC works fine with interrupt mode instead of polling mode.
 
-Hi Len,
+This solves the bug https://bugzilla.kernel.org/show_bug.cgi?id=45151
 
-You want to take this, or should I?
+Reported-and-Tested-by: Francesco <trentini@dei.unipd.it>
+Signed-off-by: Feng Tang <feng.tang@intel.com>
+---
+ drivers/acpi/ec.c |   16 +++++++++++++++-
+ 1 files changed, 15 insertions(+), 1 deletions(-)
 
-	-hpa
-
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index 615264c..a51df96 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -930,6 +930,17 @@ static int ec_flag_msi(const struct dmi_system_id *id)
+ 	return 0;
+ }
+ 
++/*
++ * Clevo M720 notebook actually works ok with IRQ mode, if we lifted
++ * the GPE storm threshold back to 20
++ */
++static int ec_enlarge_storm_threshold(const struct dmi_system_id *id)
++{
++	pr_debug("Setting the EC GPE storm threshold to 20\n");
++	ec_storm_threshold  = 20;
++	return 0;
++}
++
+ static struct dmi_system_id __initdata ec_dmi_table[] = {
+ 	{
+ 	ec_skip_dsdt_scan, "Compal JFL92", {
+@@ -961,10 +972,13 @@ static struct dmi_system_id __initdata ec_dmi_table[] = {
+ 	{
+ 	ec_validate_ecdt, "ASUS hardware", {
+ 	DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer Inc.") }, NULL},
++	{
++	ec_enlarge_storm_threshold, "CLEVO hardware", {
++	DMI_MATCH(DMI_SYS_VENDOR, "CLEVO Co."),
++	DMI_MATCH(DMI_PRODUCT_NAME, "M720T/M730T"),}, NULL},
+ 	{},
+ };
+ 
+-
+ int __init acpi_ec_ecdt_probe(void)
+ {
+ 	acpi_status status;
 -- 
-H. Peter Anvin, Intel Open Source Technology Center
-I work for Intel.  I don't speak on their behalf.
+1.7.1
 
