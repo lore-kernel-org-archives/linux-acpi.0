@@ -1,118 +1,183 @@
-From: Sedat Dilek <sedat.dilek@gmail.com>
-Subject: Re: [PATCHv2] Thermal: Fix synchronization issues in thermal_sys.c
-Date: Fri, 28 Sep 2012 06:57:45 +0200
-Message-ID: <CA+icZUWbbAj16rG5pLo3RUjJ0DKS=Tkzt6p3Wa7xnMDiAs8pWg@mail.gmail.com>
-References: <1348727888-11196-1-git-send-email-durgadoss.r@intel.com>
-	<CA+icZUXV21BqzAHwPy5gY_VHEws8hXZ8B=vESuPazpmOSQVHvA@mail.gmail.com>
-	<CA+icZUWd0s4bo4ASnfryUvSNSk82d5f3-so1RghbOhqHH5UOaw@mail.gmail.com>
-	<CA+icZUXo+w8G1ugG+m3YBE-LT7Qb6_Mbo2ijRqRXP1HXLTohGQ@mail.gmail.com>
-	<alpine.LSU.2.00.1209271626460.1314@eggly.anvils>
-Reply-To: sedat.dilek@gmail.com
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v4 0/2] ACPI: DBGP/DBG2 early console support for LPIA.
+Date: Fri, 28 Sep 2012 05:24:14 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88B9B1F6@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1347453194.git.zetalog@gmail.com>
+ <cover.1348652044.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <alpine.LSU.2.00.1209271626460.1314@eggly.anvils>
-Sender: linux-next-owner@vger.kernel.org
-To: Hugh Dickins <hughd@google.com>
-Cc: lenb@kernel.org, rui.zhang@intel.com, Durgadoss R <durgadoss.r@intel.com>, linux-acpi@vger.kernel.org, dan.carpenter@oracle.com, linux-next@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:63137 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750915Ab2I1FYw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Sep 2012 01:24:52 -0400
+In-Reply-To: <cover.1348652044.git.lv.zheng@intel.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Brown, Len" <len.brown@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Fri, Sep 28, 2012 at 1:48 AM, Hugh Dickins <hughd@google.com> wrote:
-> On Thu, 27 Sep 2012, Sedat Dilek wrote:
->> >>
->> >> The v2 patch does *not* fix the issue here!
->> >>
->> >> [1] https://patchwork.kernel.org/patch/1511961/
->> >>
->> >
->> > I have re-tested with Linux-Next (next-20120927) plus thermal-next [1]
->> > pulled in and see still the same call-trace!
->
-> Same here on mmotm, yes.
->
->> >
->> > Hugh or Dan can you confirm this works for you or not?
->> > Thanks in advance.
->> >
->> > [1] http://git.kernel.org/?p=linux/kernel/git/rzhang/linux.git;a=shortlog;h=refs/heads/next
->> > [2] http://git.kernel.org/?p=linux/kernel/git/rzhang/linux.git;a=commitdiff;h=404b134156bd9d9bc506c0974a1254806e13db2c
->> >
->>
->> With the attached fixup/followup patch, I can boot into my system!
->> But, as said yesterday... working within X, Firefox is a pain in the a**.
->
-> Indeed, this works for me too, thanks.
-> Let's get your addition out of the attachment and fold it into a v3.
-> Mind if we change "synchronization issues" to "oops and unlocking"?
->
->
+Forgot to Cc x86 maintainers, will send again. Sorry for the noise.
 
-Cool, I see this new patch now in [1].
-Thanks to all involved people!
+> -----Original Message-----
+> From: Zheng, Lv
+> Sent: Friday, September 28, 2012 10:40 AM
+> To: Brown, Len
+> Cc: linux-kernel@vger.kernel.org; linux-acpi@vger.kernel.org; Zheng, Lv
+> Subject: [PATCH v4 0/2] ACPI: DBGP/DBG2 early console support for LPIA.
+> 
+> Microsoft Debug Port Table (DBGP or DBG2) is used by the Windows SoC
+> platforms to describe their debugging facilities.
+> Recent Low Power Intel Architecture (LPIA) platforms have utilized
+> this for the SPI UART debug ports that are resident on their debug
+> boards.
+> 
+> This patch set enables the DBGP/DBG2 debug ports as an Linux early
+> console launcher.
+> The SPI UART debug ports support is also refined to co-exist with this
+> new usage model.
+> 
+> To use this facility on LPIA platforms, you need to enable the following
+> kernel configurations:
+>   CONFIG_EARLY_PRINTK_ACPI=y
+>   CONFIG_EARLY_PRINTK_INTEL_MID_SPI=y
+> Then you need to append the following kernel parameter to the kernel
+> command line in your the boot loader configuration file:
+>   earlyprintk=acpi
+> 
+> There is a dilemma in designing this patch set.  There should be three
+> steps to enable an early console for an operating system:
+> 1. Probe: In this stage, the Linux kernel can detect the early consoles
+>           and the base address of their register block can be determined.
+>           This can be done by parsing the descriptors in the ACPI
+> DBGP/DBG2
+>           tables.  Note that acpi_table_init() must be called before
+>           parsing.
+> 2. Setup: In this stage, the Linux kernel can apply user specified
+>           configuration options (ex. baudrate of serial ports) for the
+>           early consoles.  This is done by parsing the early parameters
+>           passed to the kernel from the boot loaders.  Note that
+>           parse_early_params() is called very early to allow parameters to
+>           be passed to other kernel subsystems.
+> 3. Start: In this stage, the Linux kernel can make the console available
+>           to output messages.  Since early consoles are always used for
+>           kernel boot up debugging, this must be done as early as possible
+>           to arm the kernel with more testability the kernel subsystems.
+>           Note that, this stage happens when the register_console() is
+>           called.
+> The preferred sequence for the above steps is:
+>    +-----------------+    +-------------------+    +--------------------+
+>    | ACPI DBGP PROBE | -> | EARLY_PARAM SETUP | -> | EARLY_RPINTK
+> START |
+>    +-----------------+    +-------------------+    +--------------------+
+> But unfortunately, in the current x86 implementation, early parameters and
+> early printk initialization are called before acpi_table_init() which
+> requires early memory mapping facility.
+> There are some choices for me to design this patch set:
+> 1. Invoking acpi_table_init() before parse_early_param() to maintain the
+>    sequence:
+>    +-----------------+    +-------------------+    +--------------------+
+>    | ACPI DBGP PROBE | -> | EARLY_PARAM SETUP | -> | EARLY_RPINTK
+> START |
+>    +-----------------+    +-------------------+    +--------------------+
+>    This requires other subsystem maintainers' review to ensure no
+>    regressions will be introduced.  As far as I know, one kind of issue
+>    might be found in EFI subsystsm:
+>    The EFI boot services and runtime services are mixed up in the x86
+>    specific initialization process before the ACPI table initialization.
+>    Things are much worse that you even cannot disable the runtime services
+>    while still allow the boot services codes to be executed in the kernel
+>    compilation stage.  Enabling the early consoles after the ACPI table
+>    initialization will make it difficult to debug the runtime BIOS bugs.
+>    If any progress is made to the kernel boot sequences, please let me
+>    know.  I'll be willing to redesign the ACPI DBGP/DBG2 console probing
+>    facility.  You can reach me at <zetalog@gmail.com>.
+> 2. Modifying above sequece to make it look like:
+>    +-------------------+    +-----------------+    +--------------------+
+>    | EARLY_PARAM SETUP | -> | ACPI DBGP PROBE | -> | EARLY_RPINTK
+> START |
+>    +-------------------+    +-----------------+    +--------------------+
+>    Early consoles started in this style will lose some debuggabilities in
+>    the kernel boot up.  If the system does not crash very early,
+>    developers still can see the bufferred kernel outputs when the
+>    register_console() is called.
+>    Current early console implementation need to be modified to split their
+>    initialization codes into tow part:
+>    1. Detecting hardware.  This can be called in the PROBE stage.
+>    2. Applying user parameters.  This can be called in the SETUP stage.
+>    Individual early console drver maintainers need to be involved to avoid
+>    regressions that might occur on this modification as the maintainers
+>    might offer the real tests rather than I can do.
+> 3. Introducing a barely new debugging facility that does not relate to the
+>    current early console implementation to allow automatic detection for
+>    the early consoles.
+>    +-------------------+    +--------------------+
+>    | EARLY_PARAM SETUP | -> | EARLY_RPINTK START |
+>    +-------------------+    +--------------------+
+>    +-----------------+    +--------------------+
+>    | ACPI DBGP PROBE | -> | EARLY_RPINTK START |
+>    +-----------------+    +--------------------+
+>    This is what the patch set has done to enable this new usage model.
+>    It is known as "ACPI early console launcher mode".
+>    Early consoles started in this style will lose some debuggabilities in
+>    the kernel boot up.  If the system does not crash very early,
+>    developers still can see the bufferred kernel outputs when the
+>    register_console() is called.
+>    Note that the user configuration can not be applied to the registered
+>    early consoles in this way as the acpi_table_init() is still called
+>    after the parse_early_param().  Instead, the early consoles should
+>    derive the hardware settings used in the BIOS/bootloaders.
+>    As a launcher, ACPI DBGP will not actually output kernel messages
+>    without the real early console drivers, that's why the
+>    CONFIG_EARLY_PRINTK_INTEL_MID_SPI is still need to be enabled along
+>    along with the CONFIG_EARLY_PRINTK_ACPI.
+>    In order to disable this facility by default and enable it at runtime,
+>    an kernel parameter "earlyprintk=acpi" is introduced.  This makes the
+>    actual sequence looks like:
+>    +-------------------+    +--------------------+
+>    | EARLY_PARAM SETUP | -> | EARLY_RPINTK START |
+>    +-------------------+    +....................+    +-----------------+
+>                             | ACPI DBGP LAUNCH   | -> | ACPI DBGP
+> PROBE | ->
+>                             +--------------------+    +-----------------+
+>       +--------------------+
+>    -> | EARLY_RPINTK START |
+>       +--------------------+
+> 
+> Version 3 of this patch set is the first version that will be published
+> in the Linux community.  Earlier versions are reviewed internally in
+> Intel.  This patch set keeps the version number to track the history
+> that is known to Intel internal developers.
+> Version 4 of this patch set fixed bunch of CodingStyle issues.
+> 
+> Lv Zheng (2):
+>   ACPI: Add early console framework for DBGP/DBG2.
+>   ACPI: Add Intel MID SPI early console support.
+> 
+>  Documentation/kernel-parameters.txt        |    2 +
+>  arch/x86/Kconfig.debug                     |   38 +++++
+>  arch/x86/include/asm/mrst.h                |    2 +-
+>  arch/x86/kernel/acpi/boot.c                |    1 +
+>  arch/x86/kernel/early_printk.c             |   25 +++-
+>  arch/x86/platform/mrst/early_printk_mrst.c |  186 +----------------------
+>  drivers/acpi/Makefile                      |    2 +
+>  drivers/acpi/early_printk.c                |  201
+> +++++++++++++++++++++++++
+>  drivers/platform/x86/Makefile              |    2 +
+>  drivers/platform/x86/early/Makefile        |    5 +
+>  drivers/platform/x86/early/intel_mid_spi.c |  220
+> ++++++++++++++++++++++++++++
+>  include/acpi/actbl2.h                      |    1 +
+>  include/linux/acpi.h                       |   24 +++
+>  include/linux/intel_mid_early.h            |   12 ++
+>  14 files changed, 540 insertions(+), 181 deletions(-)
+>  create mode 100644 drivers/acpi/early_printk.c
+>  create mode 100644 drivers/platform/x86/early/Makefile
+>  create mode 100644 drivers/platform/x86/early/intel_mid_spi.c
+>  create mode 100644 include/linux/intel_mid_early.h
+> 
+> --
+> 1.7.10
 
-- Sedat -
-
-[1] http://git.kernel.org/?p=linux/kernel/git/rzhang/linux.git;a=commitdiff;h=6b02e5bd25fea17b3271d275d5700e22d7195a68
-
-> [PATCHv3] Thermal: Fix oops and unlocking in thermal_sys.c
->
-> This patch fixes the following mutex and NULL pointer
-> problems in thermal_sys.c:
->
->  * mutex_unlock fix in update_temperature function
->  * mutex_unlock fix in bind_cdev function
->  * Correct early return to continue in bind_cdev function
->  * NULL check fix in bind_cdev function
->  * NULL check fix in bind_tz function
->
-> Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-> Reported-by: Sedat Dilek <sedat.dilek@gmail.com>
-> Reported-by: Hugh Dickins <hughd@google.com>
-> Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
-> Signed-off-by: Sedat Dilek <sedat.dilek@gmail.com>
-> Signed-off-by: Hugh Dickins <hughd@google.com>
-> ---
-> v3:
->  * Sedat restored necessary NULL check in bind_cdev and his signoff.
->  * Hugh added two more comments above, his signoff, and Dan's 'Reported-by'.
->
->  drivers/thermal/thermal_sys.c |    9 +++++----
->  1 file changed, 5 insertions(+), 4 deletions(-)
->
-> --- mmotm/drivers/thermal/thermal_sys.c 2012-09-26 10:15:28.652071362 -0700
-> +++ linux/drivers/thermal/thermal_sys.c 2012-09-27 16:19:14.427515890 -0700
-> @@ -252,8 +252,8 @@ static void bind_cdev(struct thermal_coo
->                 }
->
->                 tzp = pos->tzp;
-> -               if (!tzp->tbp)
-> -                       return;
-> +               if (!tzp || !tzp->tbp)
-> +                       continue;
->
->                 for (i = 0; i < tzp->num_tbps; i++) {
->                         if (tzp->tbp[i].cdev || !tzp->tbp[i].match)
-> @@ -289,7 +289,7 @@ static void bind_tz(struct thermal_zone_
->                 goto exit;
->         }
->
-> -       if (!tzp->tbp)
-> +       if (!tzp || !tzp->tbp)
->                 goto exit;
->
->         list_for_each_entry(pos, &thermal_cdev_list, node) {
-> @@ -387,12 +387,13 @@ static void update_temperature(struct th
->         ret = tz->ops->get_temp(tz, &temp);
->         if (ret) {
->                 pr_warn("failed to read out thermal zone %d\n", tz->id);
-> -               return;
-> +               goto exit;
->         }
->
->         tz->last_temperature = tz->temperature;
->         tz->temperature = temp;
->
-> +exit:
->         mutex_unlock(&tz->lock);
->  }
->
