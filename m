@@ -1,41 +1,60 @@
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: Re: [RFC PATCH 5/6] ACPI: Introduce ACPI I2C controller
- enumeration driver
-Date: Fri, 28 Sep 2012 13:54:01 +0100
-Message-ID: <20120928135401.6781d134@pyramind.ukuu.org.uk>
-References: <1348818032.10877.325.camel@rui.sh.intel.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: shutdown with toshiba portege
+Date: Fri, 28 Sep 2012 16:23:55 +0300
+Message-ID: <20120928132354.GG28937@mwanda>
+References: <20120920204234.0fb035a89f88a2e1f468aa54@maison.homelinux.net>
+ <20120921165753.7a5701fc6a0e1445daa92500@maison.homelinux.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <1348818032.10877.325.camel@rui.sh.intel.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>, LKML <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-i2c <linux-i2c@vger.kernel.org>, Dirk Brandewie <dirk.brandewie@gmail.com>, linux-pm <linux-pm@lists.linux-foundation.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20120921165753.7a5701fc6a0e1445daa92500@maison.homelinux.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: =?iso-8859-1?Q?Fran=E7ois?= Boisson <user.anti-spam@maison.homelinux.net>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 28 Sep 2012 15:40:32 +0800
-Zhang Rui <rui.zhang@intel.com> wrote:
-
-> >From 6077a62f2865201ab6727ca7d628ee5e43aa57e1 Mon Sep 17 00:00:00 2001
-> From: Zhang Rui <rui.zhang@intel.com>
-> Date: Fri, 24 Aug 2012 15:18:25 +0800
-> Subject: [RFC PATCH 5/6] ACPI: Introduce ACPI I2C controller enumeration
->  driver
+On Fri, Sep 21, 2012 at 04:57:53PM +0200, Fran=E7ois Boisson wrote:
+> Le Thu, 20 Sep 2012 20:42:34 +0200
+> Fran=E7ois Boisson  <user.anti-spam@maison.homelinux.net> a =E9crit:
 >=20
-> This driver is able to
-> 1) enumerate I2C controller via ACPI namespace
->    and register it as a platform device.
-> 2) enumerate I2C slave devices via ACPI namespace.
+> > Hey=20
+> >=20
+> > I have a problem which seems to be related to shutdown for a Toshib=
+a portege
+> > (it's seems that the problem is also on other Toshiba, on VAIO cw5,=
+ y
+> [...]
+> > If i shutdown the computer and wait some hours, the power consumpti=
+on of the
+> > computer is not null, it's about the same as the power consumtion d=
+uring a
+> > suspend of computer. In fact
+> >=20
+> > Boot and halt with:
+> > Windows 7 ---> No power consumption after
+> > Linux 2.6.37-486-PAE --->  No power consumption after
+> > Linux >=3D 3.0  ---> Power consumption (about 45-50 mW if acpitool =
+is correct)
+> [...]
+>=20
+> Well can anybody just tell me the sequence of shutdown and power of a=
+ x86
+> computer in then linux kernell, or just how to verify that a device i=
+s power
+> off with a printk, or where to search or even only where is the part =
+of code
+> doing this. There is many documentation about use device but nothing =
+about
+> power off.
+>=20
 
-Will this also trigger and work with the ACPI4 based devices that seem to
-have I=C2=B2C tables that Linux currently doesn't understand (eq some
-GMA600/Oaktrail platforms) ?
+So your Toshiba is going into suspend instead of power off...
+
+There are several ways that computers shutdown but modern systems
+use ACPI.  It could be that the 2.6.37-486-PAE was using a
+different method.  I've CC'd the ACPI list.
+
+regards,
+dan carpenter
