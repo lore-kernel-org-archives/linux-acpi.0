@@ -1,53 +1,93 @@
-From: =?ISO-8859-1?Q?Fran=E7ois?= Boisson
-	<user.anti-spam@maison.homelinux.net>
-Subject: Re: shutdown with toshiba portege
-Date: Fri, 28 Sep 2012 23:14:58 +0200
-Message-ID: <20120928231458.40a6f95eeac645d713647776@maison.homelinux.net>
-References: <20120920204234.0fb035a89f88a2e1f468aa54@maison.homelinux.net>
-	<20120921165753.7a5701fc6a0e1445daa92500@maison.homelinux.net>
-	<20120928132354.GG28937@mwanda>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [RFD][PATCH 3/7] PM / QoS: Prepare struct dev_pm_qos_request for more request types
+Date: Fri, 28 Sep 2012 23:53:33 +0200
+Message-ID: <201209282353.33982.rjw@sisk.pl>
+References: <201209282351.10663.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fbsmtp.dnsalias.org ([82.66.248.156]:36625 "EHLO
-	fbsmtp.dnsalias.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031786Ab2I1ViZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Sep 2012 17:38:25 -0400
-In-Reply-To: <20120928132354.GG28937@mwanda>
+Received: from ogre.sisk.pl ([193.178.161.156]:50846 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1423142Ab2I1Vug (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 28 Sep 2012 17:50:36 -0400
+In-Reply-To: <201209282351.10663.rjw@sisk.pl>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
+To: Linux PM list <linux-pm@vger.kernel.org>
+Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Huang Ying <ying.huang@intel.com>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, Lan Tianyu <tianyu.lan@intel.com>, Aaron Lu <aaron.lu@intel.com>, Jean Pihet <j-pihet@ti.com>, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, mark gross <markgross@thegnar.org>
 
-Le Fri, 28 Sep 2012 16:23:55 +0300
-Dan Carpenter <dan.carpenter@oracle.com> a =E9crit:
+The subsequent patches will use struct dev_pm_qos_request for
+representing both latency requests and flags requests.  To make that
+easier, put the node member of struct dev_pm_qos_request (under the
+name "pnode") into a union called "data" that will represent the
+request's  value and list node depending on its type.
 
->=20
-> So your Toshiba is going into suspend instead of power off...
->=20
-> There are several ways that computers shutdown but modern systems
-> use ACPI.  It could be that the 2.6.37-486-PAE was using a
-> different method.  I've CC'd the ACPI list.
->=20
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/base/power/qos.c   |    6 +++---
+ drivers/base/power/sysfs.c |    2 +-
+ include/linux/pm_qos.h     |    4 +++-
+ 3 files changed, 7 insertions(+), 5 deletions(-)
 
-Thinks, first I have open a bug=20
-https://bugzilla.kernel.org/show_bug.cgi?id=3D47811
-the I have compiled a 3.5.4 with some printk around the halt/poweroff. =
-(FIles
-arch/x86/kernel/reboot.c
-arch/x86/kernel/apm32.c ) trying to trace call BIOS but nothing printk,=
- either
-I do not understand the power off mechanism, or the computer is in a st=
-ate
-where printk do not appear on screen.
-In fact I don't know what I can do to find an issue to this bug.
+Index: linux/include/linux/pm_qos.h
+===================================================================
+--- linux.orig/include/linux/pm_qos.h
++++ linux/include/linux/pm_qos.h
+@@ -39,7 +39,9 @@ struct pm_qos_flags_request {
+ };
+ 
+ struct dev_pm_qos_request {
+-	struct plist_node node;
++	union {
++		struct plist_node pnode;
++	} data;
+ 	struct device *dev;
+ };
+ 
+Index: linux/drivers/base/power/sysfs.c
+===================================================================
+--- linux.orig/drivers/base/power/sysfs.c
++++ linux/drivers/base/power/sysfs.c
+@@ -221,7 +221,7 @@ static DEVICE_ATTR(autosuspend_delay_ms,
+ static ssize_t pm_qos_latency_show(struct device *dev,
+ 				   struct device_attribute *attr, char *buf)
+ {
+-	return sprintf(buf, "%d\n", dev->power.pq_req->node.prio);
++	return sprintf(buf, "%d\n", dev->power.pq_req->data.pnode.prio);
+ }
+ 
+ static ssize_t pm_qos_latency_store(struct device *dev,
+Index: linux/drivers/base/power/qos.c
+===================================================================
+--- linux.orig/drivers/base/power/qos.c
++++ linux/drivers/base/power/qos.c
+@@ -90,7 +90,7 @@ static int apply_constraint(struct dev_p
+ 	int ret, curr_value;
+ 
+ 	ret = pm_qos_update_target(&req->dev->power.qos->latency,
+-				   &req->node, action, value);
++				   &req->data.pnode, action, value);
+ 
+ 	if (ret) {
+ 		/* Call the global callbacks if needed */
+@@ -183,7 +183,7 @@ void dev_pm_qos_constraints_destroy(stru
+ 
+ 	c = &qos->latency;
+ 	/* Flush the constraints list for the device */
+-	plist_for_each_entry_safe(req, tmp, &c->list, node) {
++	plist_for_each_entry_safe(req, tmp, &c->list, data.pnode) {
+ 		/*
+ 		 * Update constraints list and call the notification
+ 		 * callbacks if needed
+@@ -293,7 +293,7 @@ int dev_pm_qos_update_request(struct dev
+ 	mutex_lock(&dev_pm_qos_mtx);
+ 
+ 	if (req->dev->power.qos) {
+-		if (new_value != req->node.prio)
++		if (new_value != req->data.pnode.prio)
+ 			ret = apply_constraint(req, PM_QOS_UPDATE_REQ,
+ 					       new_value);
+ 	} else {
 
-Thanks for your answer
-
-=46ran=E7ois Boisson
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
