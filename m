@@ -1,105 +1,171 @@
-From: Hugh Dickins <hughd@google.com>
-Subject: Re: [PATCHv2] Thermal: Fix synchronization issues in thermal_sys.c
-Date: Thu, 27 Sep 2012 16:48:28 -0700 (PDT)
-Message-ID: <alpine.LSU.2.00.1209271626460.1314@eggly.anvils>
-References: <1348727888-11196-1-git-send-email-durgadoss.r@intel.com> <CA+icZUXV21BqzAHwPy5gY_VHEws8hXZ8B=vESuPazpmOSQVHvA@mail.gmail.com> <CA+icZUWd0s4bo4ASnfryUvSNSk82d5f3-so1RghbOhqHH5UOaw@mail.gmail.com>
- <CA+icZUXo+w8G1ugG+m3YBE-LT7Qb6_Mbo2ijRqRXP1HXLTohGQ@mail.gmail.com>
+From: Taku Izumi <izumi.taku@jp.fujitsu.com>
+Subject: Re: [PATCH v3 7/8] ACPI, PCI: add hostbridge removal function
+Date: Fri, 28 Sep 2012 09:15:20 +0900
+Message-ID: <20120928091520.92bf495b.izumi.taku@jp.fujitsu.com>
+References: <20120918151215.59ea763b.izumi.taku@jp.fujitsu.com>
+	<20120918152553.8c8390d8.izumi.taku@jp.fujitsu.com>
+	<CAErSpo7hYHkFAgFy=q6ASV_15r-y_Cp=92nUdRAnBSGLi9ZMrA@mail.gmail.com>
+	<CAErSpo5bTDWCoVbzP-zz_ZcbSL-QJg+eFwoJHQxvaeQAY5OG2A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <CA+icZUXo+w8G1ugG+m3YBE-LT7Qb6_Mbo2ijRqRXP1HXLTohGQ@mail.gmail.com>
-Sender: linux-next-owner@vger.kernel.org
-To: lenb@kernel.org, rui.zhang@intel.com
-Cc: Durgadoss R <durgadoss.r@intel.com>, Sedat Dilek <sedat.dilek@gmail.com>, linux-acpi@vger.kernel.org, dan.carpenter@oracle.com, linux-next@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAErSpo5bTDWCoVbzP-zz_ZcbSL-QJg+eFwoJHQxvaeQAY5OG2A@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, kaneshige.kenji@jp.fujitsu.com, yinghai@kernel.org, jiang.liu@huawei.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 27 Sep 2012, Sedat Dilek wrote:
-> >>
-> >> The v2 patch does *not* fix the issue here!
-> >>
-> >> [1] https://patchwork.kernel.org/patch/1511961/
-> >>
-> >
-> > I have re-tested with Linux-Next (next-20120927) plus thermal-next [1]
-> > pulled in and see still the same call-trace!
+On Thu, 27 Sep 2012 10:48:09 -0600
+Bjorn Helgaas <bhelgaas@google.com> wrote:
 
-Same here on mmotm, yes.
-
+> On Fri, Sep 21, 2012 at 2:09 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+> > On Tue, Sep 18, 2012 at 12:25 AM, Taku Izumi <izumi.taku@jp.fujitsu.com> wrote:
+> >>
+> >> Currently there's no PCI-related clean-up code
+> >> in acpi_pci_root_remove() function.
+> >> This patch introduces function for hostbridge removal,
+> >> and brings back pci_stop_bus_devices() function.
+> >>
+> >> Signed-off-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
+> >> ---
+> >>  drivers/acpi/pci_bind.c     |    7 +++++++
+> >>  drivers/acpi/pci_root.c     |    7 +++++++
+> >>  drivers/pci/remove.c        |   27 +++++++++++++++++++++++++++
+> >>  include/acpi/acpi_drivers.h |    1 +
+> >>  include/linux/pci.h         |    2 ++
+> >>  5 files changed, 44 insertions(+)
+> >>
+> >> Index: Bjorn-next-0903/drivers/pci/remove.c
+> >> ===================================================================
+> >> --- Bjorn-next-0903.orig/drivers/pci/remove.c
+> >> +++ Bjorn-next-0903/drivers/pci/remove.c
+> >> @@ -92,3 +92,30 @@ void pci_stop_and_remove_bus_device(stru
+> >>         pci_destroy_dev(dev);
+> >>  }
+> >>  EXPORT_SYMBOL(pci_stop_and_remove_bus_device);
+> >> +
+> >> +void pci_stop_bus_devices(struct pci_bus *bus)
+> >> +{
+> >> +       struct pci_dev *dev, *tmp;
+> >> +
+> >> +       list_for_each_entry_safe_reverse(dev, tmp, &bus->devices, bus_list) {
+> >> +               if (dev->subordinate)
+> >> +                       pci_stop_bus_devices(dev->subordinate);
+> >> +               pci_stop_dev(dev);
+> >> +       }
+> >> +
+> >> +}
+> >> +EXPORT_SYMBOL(pci_stop_bus_devices);
+> >> +
+> >> +void pci_remove_host_bridge(struct pci_host_bridge *bridge)
+> >> +{
+> >> +       struct pci_bus *root = bridge->bus;
+> >> +       struct pci_dev *dev, *tmp;
+> >> +
+> >> +       list_for_each_entry_safe_reverse(dev, tmp, &root->devices, bus_list)
+> >> +               pci_stop_and_remove_bus_device(dev);
+> >> +
+> >> +       pci_remove_bus(root);
+> >> +
+> >> +       device_unregister(&bridge->dev);
+> >> +}
+> >> +EXPORT_SYMBOL(pci_remove_host_bridge);
+> >> Index: Bjorn-next-0903/drivers/acpi/pci_root.c
+> >> ===================================================================
+> >> --- Bjorn-next-0903.orig/drivers/acpi/pci_root.c
+> >> +++ Bjorn-next-0903/drivers/acpi/pci_root.c
+> >> @@ -652,8 +652,10 @@ static int acpi_pci_root_remove(struct a
+> >>  {
+> >>         struct acpi_pci_root *root = acpi_driver_data(device);
+> >>         struct acpi_pci_driver *driver;
+> >> +       struct pci_host_bridge *bridge = to_pci_host_bridge(root->bus->bridge);
+> >>
+> >>         mutex_lock(&acpi_pci_root_lock);
+> >> +       pci_stop_bus_devices(root->bus);
+> >>         list_for_each_entry(driver, &acpi_pci_drivers, node)
+> >>                 if (driver->remove)
+> >>                         driver->remove(root);
+> >> @@ -661,6 +663,11 @@ static int acpi_pci_root_remove(struct a
+> >>         device_set_run_wake(root->bus->bridge, false);
+> >>         pci_acpi_remove_bus_pm_notifier(device);
+> >>
+> >> +       acpi_pci_irq_del_prt(root->bus);
 > >
-> > Hugh or Dan can you confirm this works for you or not?
-> > Thanks in advance.
+> > acpi_pci_irq_del_prt() does not actually have a dependency on the
+> > struct pci_bus, so I think its interface should be changed so it takes
+> > a segment number and a bus number instead of the "struct pci_bus *".
+> > The same applies to acpi_pci_irq_add_prt().
 > >
-> > [1] http://git.kernel.org/?p=linux/kernel/git/rzhang/linux.git;a=shortlog;h=refs/heads/next
-> > [2] http://git.kernel.org/?p=linux/kernel/git/rzhang/linux.git;a=commitdiff;h=404b134156bd9d9bc506c0974a1254806e13db2c
+> > This basically boils down to reverting 859a3f86ca8 and d9efae3688a.  I
+> > acked those changes at the time, but I think they were a mistake.  The
+> > reason is that passing in the struct pci_bus * ties them into the host
+> > bridge add/remove flow in a way that's not necessary.
 > >
+> > If we get rid of the struct pci_bus * dependency, then we can easily
+> > add the _PRT before doing PCI enumeration behind the bridge, and we
+> > can remove the _PRT after removing the PCI devices.  I think this is
+> > one small step toward getting rid of the add/start and stop/remove
+> > split.
 > 
-> With the attached fixup/followup patch, I can boot into my system!
-> But, as said yesterday... working within X, Firefox is a pain in the a**.
+> I'm going to work on doing this if nobody else is interested.
 
-Indeed, this works for me too, thanks.
-Let's get your addition out of the attachment and fold it into a v3.
-Mind if we change "synchronization issues" to "oops and unlocking"?
+  I'll do that. Maybee that is separeted from this patchset.
+
+  Best regards,
+  Taku Izumi
+
+> 
+> >> +       acpi_pci_unbind_root(device);
+> >> +
+> >> +       pci_remove_host_bridge(bridge);
+> >> +
+> >>         list_del(&root->node);
+> >>         mutex_unlock(&acpi_pci_root_lock);
+> >>         kfree(root);
+> >> Index: Bjorn-next-0903/include/linux/pci.h
+> >> ===================================================================
+> >> --- Bjorn-next-0903.orig/include/linux/pci.h
+> >> +++ Bjorn-next-0903/include/linux/pci.h
+> >> @@ -734,6 +734,8 @@ extern struct pci_dev *pci_dev_get(struc
+> >>  extern void pci_dev_put(struct pci_dev *dev);
+> >>  extern void pci_remove_bus(struct pci_bus *b);
+> >>  extern void pci_stop_and_remove_bus_device(struct pci_dev *dev);
+> >> +extern void pci_stop_bus_devices(struct pci_bus *bus);
+> >> +extern void pci_remove_host_bridge(struct pci_host_bridge *bridge);
+> >>  void pci_setup_cardbus(struct pci_bus *bus);
+> >>  extern void pci_sort_breadthfirst(void);
+> >>  #define dev_is_pci(d) ((d)->bus == &pci_bus_type)
+> >> Index: Bjorn-next-0903/drivers/acpi/pci_bind.c
+> >> ===================================================================
+> >> --- Bjorn-next-0903.orig/drivers/acpi/pci_bind.c
+> >> +++ Bjorn-next-0903/drivers/acpi/pci_bind.c
+> >> @@ -118,3 +118,10 @@ int acpi_pci_bind_root(struct acpi_devic
+> >>
+> >>         return 0;
+> >>  }
+> >> +
+> >> +void  acpi_pci_unbind_root(struct acpi_device *device)
+> >> +{
+> >> +       device->ops.bind = NULL;
+> >> +       device->ops.unbind = NULL;
+> >> +}
+> >> +
+> >> Index: Bjorn-next-0903/include/acpi/acpi_drivers.h
+> >> ===================================================================
+> >> --- Bjorn-next-0903.orig/include/acpi/acpi_drivers.h
+> >> +++ Bjorn-next-0903/include/acpi/acpi_drivers.h
+> >> @@ -101,6 +101,7 @@ struct pci_bus;
+> >>
+> >>  struct pci_dev *acpi_get_pci_dev(acpi_handle);
+> >>  int acpi_pci_bind_root(struct acpi_device *device);
+> >> +void acpi_pci_unbind_root(struct acpi_device *device);
+> >>
+> >>  /* Arch-defined function to add a bus to the system */
+> >>
+> >>
+> 
 
 
-[PATCHv3] Thermal: Fix oops and unlocking in thermal_sys.c
-
-This patch fixes the following mutex and NULL pointer
-problems in thermal_sys.c:
-
- * mutex_unlock fix in update_temperature function
- * mutex_unlock fix in bind_cdev function
- * Correct early return to continue in bind_cdev function
- * NULL check fix in bind_cdev function
- * NULL check fix in bind_tz function
-
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Reported-by: Sedat Dilek <sedat.dilek@gmail.com>
-Reported-by: Hugh Dickins <hughd@google.com>
-Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
-Signed-off-by: Sedat Dilek <sedat.dilek@gmail.com>
-Signed-off-by: Hugh Dickins <hughd@google.com>
----
-v3:
- * Sedat restored necessary NULL check in bind_cdev and his signoff.
- * Hugh added two more comments above, his signoff, and Dan's 'Reported-by'.
-
- drivers/thermal/thermal_sys.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
-
---- mmotm/drivers/thermal/thermal_sys.c	2012-09-26 10:15:28.652071362 -0700
-+++ linux/drivers/thermal/thermal_sys.c	2012-09-27 16:19:14.427515890 -0700
-@@ -252,8 +252,8 @@ static void bind_cdev(struct thermal_coo
- 		}
- 
- 		tzp = pos->tzp;
--		if (!tzp->tbp)
--			return;
-+		if (!tzp || !tzp->tbp)
-+			continue;
- 
- 		for (i = 0; i < tzp->num_tbps; i++) {
- 			if (tzp->tbp[i].cdev || !tzp->tbp[i].match)
-@@ -289,7 +289,7 @@ static void bind_tz(struct thermal_zone_
- 		goto exit;
- 	}
- 
--	if (!tzp->tbp)
-+	if (!tzp || !tzp->tbp)
- 		goto exit;
- 
- 	list_for_each_entry(pos, &thermal_cdev_list, node) {
-@@ -387,12 +387,13 @@ static void update_temperature(struct th
- 	ret = tz->ops->get_temp(tz, &temp);
- 	if (ret) {
- 		pr_warn("failed to read out thermal zone %d\n", tz->id);
--		return;
-+		goto exit;
- 	}
- 
- 	tz->last_temperature = tz->temperature;
- 	tz->temperature = temp;
- 
-+exit:
- 	mutex_unlock(&tz->lock);
- }
- 
+-- 
+Taku Izumi <izumi.taku@jp.fujitsu.com>
