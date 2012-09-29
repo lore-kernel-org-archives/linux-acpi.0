@@ -1,143 +1,58 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: Re: [RFD][PATCH 7/7] PM / ACPI: Take device PM QoS flags into
- account
-Date: Sat, 29 Sep 2012 11:16:48 +0800
-Message-ID: <1348888608.10452.31.camel@yhuang-dev>
-References: <201209282351.10663.rjw@sisk.pl>
-	 <201209282356.52558.rjw@sisk.pl>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH 3/8] PCI: Move out pci_enable_bridges out of assign_unsigned_bus_res
+Date: Fri, 28 Sep 2012 21:27:55 -0600
+Message-ID: <CAErSpo4soM=HigBX3CxbGOGRtjr=4VgXneDXakaCHSufsOoH4Q@mail.gmail.com>
+References: <1348733519-24684-1-git-send-email-yinghai@kernel.org>
+ <1348733519-24684-4-git-send-email-yinghai@kernel.org> <CAErSpo63QeF-Wd8nW-K_Qfp5rjMd0mhWADGW-fZiw4Up5-0ezA@mail.gmail.com>
+ <CAE9FiQXDw+D8FeMiojmcX0k_g939zkRM3XmJP08yJJG6o7_Cyg@mail.gmail.com> <CAE9FiQXWxgBQDPisGdVKb_r3hy6pA7LpamV-jW5OX0SqDyrCCw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:4109 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758941Ab2I2DQw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 28 Sep 2012 23:16:52 -0400
-In-Reply-To: <201209282356.52558.rjw@sisk.pl>
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:49190 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754804Ab2I2D2Q (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Sep 2012 23:28:16 -0400
+Received: by ieak13 with SMTP id k13so8855340iea.19
+        for <linux-acpi@vger.kernel.org>; Fri, 28 Sep 2012 20:28:15 -0700 (PDT)
+In-Reply-To: <CAE9FiQXWxgBQDPisGdVKb_r3hy6pA7LpamV-jW5OX0SqDyrCCw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, Lan Tianyu <tianyu.lan@intel.com>, Aaron Lu <aaron.lu@intel.com>, Jean Pihet <j-pihet@ti.com>, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, mark gross <markgross@thegnar.org>
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Fri, 2012-09-28 at 23:56 +0200, Rafael J. Wysocki wrote:
-> Make ACPI power management routines and PCI power management
-> routines depending on ACPI take device PM QoS flags into account
-> when deciding what power state to put the device into.
-> 
-> In particular, after this change acpi_pm_device_sleep_state() will
-> not return ACPI_STATE_D3_COLD as the deepest available low-power
-> state if PM_QOS_FLAG_NO_POWER_OFF is requested for the device and it
-> will not require remote wakeup to work for the device in the returned
-> low-power state if there is at least one PM QoS flags request for the
-> device, but PM_QOS_FLAG_REMOTE_WAKEUP is not requested for it.
-> 
-> Accordingly, acpi_pci_set_power_state() will refuse to put the
-> device into D3cold if PM_QOS_FLAG_NO_POWER_OFF is requested for it.
-> 
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> ---
->  drivers/acpi/sleep.c   |   16 ++++++++++++----
->  drivers/pci/pci-acpi.c |    8 +++++++-
->  2 files changed, 19 insertions(+), 5 deletions(-)
-> 
-> Index: linux/drivers/pci/pci-acpi.c
-> ===================================================================
-> --- linux.orig/drivers/pci/pci-acpi.c
-> +++ linux/drivers/pci/pci-acpi.c
-> @@ -17,6 +17,7 @@
->  
->  #include <linux/pci-acpi.h>
->  #include <linux/pm_runtime.h>
-> +#include <linux/pm_qos.h>
->  #include "pci.h"
->  
->  static DEFINE_MUTEX(pci_acpi_pm_notify_mtx);
-> @@ -257,11 +258,16 @@ static int acpi_pci_set_power_state(stru
->  		return -ENODEV;
->  
->  	switch (state) {
-> +	case PCI_D3cold:
-> +		if (dev_pm_qos_flags(&dev->dev, PM_QOS_FLAG_NO_POWER_OFF) ==
-> +				PM_QOS_FLAGS_ALL) {
-> +			error = -EBUSY;
-> +			break;
-> +		}
->  	case PCI_D0:
->  	case PCI_D1:
->  	case PCI_D2:
->  	case PCI_D3hot:
-> -	case PCI_D3cold:
->  		error = acpi_bus_set_power(handle, state_conv[state]);
->  	}
->  
-> Index: linux/drivers/acpi/sleep.c
-> ===================================================================
-> --- linux.orig/drivers/acpi/sleep.c
-> +++ linux/drivers/acpi/sleep.c
-> @@ -19,6 +19,7 @@
->  #include <linux/acpi.h>
->  #include <linux/module.h>
->  #include <linux/pm_runtime.h>
-> +#include <linux/pm_qos.h>
->  
->  #include <asm/io.h>
->  
-> @@ -711,6 +712,7 @@ int acpi_pm_device_sleep_state(struct de
->  	struct acpi_device *adev;
->  	char acpi_method[] = "_SxD";
->  	unsigned long long d_min, d_max;
-> +	bool wakeup = false;
->  
->  	if (d_max_in < ACPI_STATE_D0 || d_max_in > ACPI_STATE_D3)
->  		return -EINVAL;
-> @@ -718,6 +720,8 @@ int acpi_pm_device_sleep_state(struct de
->  		printk(KERN_DEBUG "ACPI handle has no context!\n");
->  		return -ENODEV;
->  	}
-> +	if (dev_pm_qos_flags(dev, PM_QOS_FLAG_NO_POWER_OFF) == PM_QOS_FLAGS_ALL)
-> +		d_max_in = ACPI_STATE_D3_HOT;
+On Fri, Sep 28, 2012 at 7:52 PM, Yinghai Lu <yinghai@kernel.org> wrote:
+> On Fri, Sep 28, 2012 at 6:48 PM, Yinghai Lu <yinghai@kernel.org> wrote:
+>> On Fri, Sep 28, 2012 at 4:46 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+>>> On Thu, Sep 27, 2012 at 2:11 AM, Yinghai Lu <yinghai@kernel.org> wrote:
+>>>> So could use assign_unassigned_bus_res pci root bus add
+>>>
+>>> After your series, acpi_pci_root_start() looks like this:
+>>>
+>>>     pci_assign_unassigned_bus_resources
+>>>     list_for_each_entry(driver, &acpi_pci_drivers, node)
+>>>         driver->add(root);
+>>>     pci_enable_bridges(root->bus);
+>>>
+>>> so apparently it's important that the driver->add() methods be run
+>>> *before* the bridges are enabled.  Why?
+>>
+>
+> During rebase, the changelog get lost.
+>
+>  pci_enable_bridges
+>     ==> pci_enable_device
+>         ==> ...
+>            ===> pcibios_enable_device
+>                ===> pcibios_enable_irq
+>
+> and one of driver in acpi_pci_drivers, is ioapic drivers and it will
+> enable ioapic there.
+>
+> So we need to enable bridges that later.
 
-In theory, d_max_in may < ACPI_STATE_D3_HOT.  So better to be
+Is it important that pci_assign_unassigned_bus_resources() be run
+before the driver->add() methods?  Why?
 
-d_max_in = min_t(int, d_max_in, ACPI_STATE_D3_HOT);
-
-But in fact, d_max_in is introduced to support something similar to
-PM_QOS_FLAG_NO_POWER_OFF, so I think we can remove d_max_in in the
-future.
-
-Best Regards,
-Huang Ying
-
->  
->  	acpi_method[2] = '0' + acpi_target_sleep_state;
->  	/*
-> @@ -737,8 +741,14 @@ int acpi_pm_device_sleep_state(struct de
->  	 * NOTE: We rely on acpi_evaluate_integer() not clobbering the integer
->  	 * provided -- that's our fault recovery, we ignore retval.
->  	 */
-> -	if (acpi_target_sleep_state > ACPI_STATE_S0)
-> +	if (acpi_target_sleep_state > ACPI_STATE_S0) {
->  		acpi_evaluate_integer(handle, acpi_method, NULL, &d_min);
-> +		wakeup = device_may_wakeup(dev) && adev->wakeup.flags.valid
-> +			&& adev->wakeup.sleep_state >= acpi_target_sleep_state;
-> +	} else if (dev_pm_qos_flags(dev, PM_QOS_FLAG_REMOTE_WAKEUP) !=
-> +			PM_QOS_FLAGS_NONE) {
-> +		wakeup = adev->wakeup.flags.valid;
-> +	}
->  
->  	/*
->  	 * If _PRW says we can wake up the system from the target sleep state,
-> @@ -747,9 +757,7 @@ int acpi_pm_device_sleep_state(struct de
->  	 * (ACPI 3.x), it should return the maximum (lowest power) D-state that
->  	 * can wake the system.  _S0W may be valid, too.
->  	 */
-> -	if (acpi_target_sleep_state == ACPI_STATE_S0 ||
-> -	    (device_may_wakeup(dev) && adev->wakeup.flags.valid &&
-> -	     adev->wakeup.sleep_state >= acpi_target_sleep_state)) {
-> +	if (wakeup) {
->  		acpi_status status;
->  
->  		acpi_method[3] = 'W';
-> 
-
-
+Do you have a pointer to this ioapic driver?  I don't think it's in
+the tree yet.  I know about drivers/pci/ioapic.c, but it doesn't use
+acpi_pci_register_driver().
