@@ -1,14 +1,14 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH 5/8] PCI: Add pci_stop_and_remove_root_bus()
-Date: Fri, 28 Sep 2012 19:05:03 -0700
-Message-ID: <CAE9FiQUnrTqvx8Sd3yjp4hBD3q8E89H=LdgUcHcc_6p1aJDFOQ@mail.gmail.com>
+Subject: Re: [PATCH 8/8] PCI, ACPI: remove acpi_root_driver in reserse order
+Date: Fri, 28 Sep 2012 19:09:05 -0700
+Message-ID: <CAE9FiQV8tvRB7ZiseSrkWbHoZ=DN9r=xOn_fwGy8Akj_R6y-nA@mail.gmail.com>
 References: <1348733519-24684-1-git-send-email-yinghai@kernel.org>
-	<1348733519-24684-6-git-send-email-yinghai@kernel.org>
-	<CAErSpo5_gBQwPYSm3oMeQmqTxqRPB_r0-HVv88LD2mR72QafDQ@mail.gmail.com>
+	<1348733519-24684-9-git-send-email-yinghai@kernel.org>
+	<CAErSpo4c6ti0OCmBvP+_M43920HU5+8RgnvEHKw=zBw2LkmGDA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAErSpo5_gBQwPYSm3oMeQmqTxqRPB_r0-HVv88LD2mR72QafDQ@mail.gmail.com>
+In-Reply-To: <CAErSpo4c6ti0OCmBvP+_M43920HU5+8RgnvEHKw=zBw2LkmGDA@mail.gmail.com>
 Sender: linux-pci-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>
 Cc: Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
@@ -16,56 +16,41 @@ List-Id: linux-acpi@vger.kernel.org
 
 On Fri, Sep 28, 2012 at 4:46 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
 > On Thu, Sep 27, 2012 at 2:11 AM, Yinghai Lu <yinghai@kernel.org> wrote:
->> It supports both pci root bus and pci bus under pci bridge.
->>
->> -v2: clear pci_bridge's subordinate.
->> -v3: only handle root bus. and also put Jiang's get/put pair in
->> -v4: fold pci_stop/remove_bus_devices in... reducing confusing.
->> -v5: split device_register/unregister to avoid extra get...
->>      also remove extra blank line.
+>> aka stop acpi root driver in this sequence: acpiphp, iommu, ioapic.
 >>
 >> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 >> ---
->>  drivers/pci/remove.c |   36 ++++++++++++++++++++++++++++++++++++
->>  include/linux/pci.h  |    2 ++
->>  2 files changed, 38 insertions(+), 0 deletions(-)
+>>  drivers/acpi/pci_root.c |    2 +-
+>>  1 files changed, 1 insertions(+), 1 deletions(-)
 >>
->> diff --git a/drivers/pci/remove.c b/drivers/pci/remove.c
->> index 513972f..7c0fd92 100644
->> --- a/drivers/pci/remove.c
->> +++ b/drivers/pci/remove.c
->> @@ -111,3 +111,39 @@ void pci_stop_and_remove_bus_device(struct pci_dev *dev)
->>         pci_remove_bus_device(dev);
->>  }
->>  EXPORT_SYMBOL(pci_stop_and_remove_bus_device);
->> +
->> +void pci_stop_root_bus(struct pci_bus *bus)
->> +{
->> +       struct pci_dev *child, *tmp;
->> +       struct pci_host_bridge *host_bridge;
->> +
->> +       if (!pci_is_root_bus(bus))
->> +               return;
->> +
->> +       host_bridge = to_pci_host_bridge(bus->bridge);
+>> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+>> index a27cbb57..012f40d 100644
+>> --- a/drivers/acpi/pci_root.c
+>> +++ b/drivers/acpi/pci_root.c
+>> @@ -672,7 +672,7 @@ static int acpi_pci_root_remove(struct acpi_device *device, int type)
+>>         pci_stop_root_bus(root->bus);
+>>
+>>         mutex_lock(&acpi_pci_root_lock);
+>> -       list_for_each_entry(driver, &acpi_pci_drivers, node)
+>> +       list_for_each_entry_reverse(driver, &acpi_pci_drivers, node)
+>>                 if (driver->remove)
+>>                         driver->remove(root);
 >
-> What if we made these functions just take a "struct pci_host_bridge *"
-> directly instead of a "struct pci_bus *"?  Then the caller
-> (acpi_pci_root_remove()) could just look up the pci_host_bridge
-> pointer itself,
+> This seems sort of OK just because we call the ->add() methods in
+> forward order, so it is symmetric to call the ->remove() methods in
+> reverse order.
+>
+> But I'm uncomfortable with using this as a way to enforce ->remove()
+> ordering across acpiphp, iommu, and ioapic.  That seems fragile.
+>
+> What are the dependencies between these drivers that require this ordering?
 
-yes, that could save pci_is_root_bus checking.
+ioapic should come at first, and iommu and last is acpiphp.
 
-> or even keep that pointer in struct acpi_pci_root
-> instead of keeping the pci_bus pointer.
+iommu will check if intr-mapping is corresponding to ioapic controller number.
+also dmar controller will need one normal irq without intr-remapping
+for error handling.
 
-that could be a lot of change. could be next one stage.
-
-actually acpi root is bound to pci host bridge instead of root bus.
-so it is more reasonable to save host_bridge pointer.
-
-we also can think in another way.
-host_bridge and pci bus should be one part.
-we may could just embed pci bus into pci_host_bridge instead.
+need to use link sequence in Makefile to make sure iommu come at first.
 
 -Yinghai
