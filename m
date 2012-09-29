@@ -1,91 +1,143 @@
-From: Ni zhan Chen <nizhan.chen@gmail.com>
-Subject: Re: [RFC v9 PATCH 13/21] memory-hotplug: check page type in get_page_bootmem
-Date: Sat, 29 Sep 2012 10:15:51 +0800
-Message-ID: <506659D7.9080904@gmail.com>
-References: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com> <1346837155-534-14-git-send-email-wency@cn.fujitsu.com>
+From: Huang Ying <ying.huang@intel.com>
+Subject: Re: [RFD][PATCH 7/7] PM / ACPI: Take device PM QoS flags into
+ account
+Date: Sat, 29 Sep 2012 11:16:48 +0800
+Message-ID: <1348888608.10452.31.camel@yhuang-dev>
+References: <201209282351.10663.rjw@sisk.pl>
+	 <201209282356.52558.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1346837155-534-14-git-send-email-wency@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, Wen Congyang <wency@cn.fujitsu.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:4109 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758941Ab2I2DQw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 28 Sep 2012 23:16:52 -0400
+In-Reply-To: <201209282356.52558.rjw@sisk.pl>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, Lan Tianyu <tianyu.lan@intel.com>, Aaron Lu <aaron.lu@intel.com>, Jean Pihet <j-pihet@ti.com>, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, mark gross <markgross@thegnar.org>
 
-On 09/05/2012 05:25 PM, wency@cn.fujitsu.com wrote:
-> From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->
-> The function get_page_bootmem() may be called more than one time to the same
-> page. There is no need to set page's type, private if the function is not
-> the first time called to the page.
->
-> Note: the patch is just optimization and does not fix any problem.
-
-Hi Yasuaki,
-
-this patch is reasonable to me. I have another question associated to 
-get_page_bootmem(), the question is from another fujitsu guy's patch 
-changelog [commit : 04753278769f3], the changelog said  that:
-
-  1) When the memmap of removing section is allocated on other
-      section by bootmem, it should/can be free.
-  2) When the memmap of removing section is allocated on the
-      same section, it shouldn't be freed. Because the section has to be
-      logical memory offlined already and all pages must be isolated against
-      page allocater. If it is freed, page allocator may use it which will
-      be removed physically soon.
-
-but I don't see his patch guarantee 2), it means that his patch doesn't 
-guarantee the memmap of removing section which is allocated on other 
-section by bootmem doesn't be freed. Hopefully get your explaination in 
-details, thanks in advance. :-)
-
->
-> CC: David Rientjes <rientjes@google.com>
-> CC: Jiang Liu <liuj97@gmail.com>
-> CC: Len Brown <len.brown@intel.com>
-> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-> CC: Paul Mackerras <paulus@samba.org>
-> CC: Christoph Lameter <cl@linux.com>
-> Cc: Minchan Kim <minchan.kim@gmail.com>
-> CC: Andrew Morton <akpm@linux-foundation.org>
-> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-> CC: Wen Congyang <wency@cn.fujitsu.com>
-> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+On Fri, 2012-09-28 at 23:56 +0200, Rafael J. Wysocki wrote:
+> Make ACPI power management routines and PCI power management
+> routines depending on ACPI take device PM QoS flags into account
+> when deciding what power state to put the device into.
+> 
+> In particular, after this change acpi_pm_device_sleep_state() will
+> not return ACPI_STATE_D3_COLD as the deepest available low-power
+> state if PM_QOS_FLAG_NO_POWER_OFF is requested for the device and it
+> will not require remote wakeup to work for the device in the returned
+> low-power state if there is at least one PM QoS flags request for the
+> device, but PM_QOS_FLAG_REMOTE_WAKEUP is not requested for it.
+> 
+> Accordingly, acpi_pci_set_power_state() will refuse to put the
+> device into D3cold if PM_QOS_FLAG_NO_POWER_OFF is requested for it.
+> 
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 > ---
->   mm/memory_hotplug.c |   15 +++++++++++----
->   1 files changed, 11 insertions(+), 4 deletions(-)
->
-> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-> index d736df3..26a5012 100644
-> --- a/mm/memory_hotplug.c
-> +++ b/mm/memory_hotplug.c
-> @@ -95,10 +95,17 @@ static void release_memory_resource(struct resource *res)
->   static void get_page_bootmem(unsigned long info,  struct page *page,
->   			     unsigned long type)
->   {
-> -	page->lru.next = (struct list_head *) type;
-> -	SetPagePrivate(page);
-> -	set_page_private(page, info);
-> -	atomic_inc(&page->_count);
-> +	unsigned long page_type;
-> +
-> +	page_type = (unsigned long)page->lru.next;
-> +	if (page_type < MEMORY_HOTPLUG_MIN_BOOTMEM_TYPE ||
-> +	    page_type > MEMORY_HOTPLUG_MAX_BOOTMEM_TYPE){
-> +		page->lru.next = (struct list_head *)type;
-> +		SetPagePrivate(page);
-> +		set_page_private(page, info);
-> +		atomic_inc(&page->_count);
-> +	} else
-> +		atomic_inc(&page->_count);
->   }
->   
->   /* reference to __meminit __free_pages_bootmem is valid
+>  drivers/acpi/sleep.c   |   16 ++++++++++++----
+>  drivers/pci/pci-acpi.c |    8 +++++++-
+>  2 files changed, 19 insertions(+), 5 deletions(-)
+> 
+> Index: linux/drivers/pci/pci-acpi.c
+> ===================================================================
+> --- linux.orig/drivers/pci/pci-acpi.c
+> +++ linux/drivers/pci/pci-acpi.c
+> @@ -17,6 +17,7 @@
+>  
+>  #include <linux/pci-acpi.h>
+>  #include <linux/pm_runtime.h>
+> +#include <linux/pm_qos.h>
+>  #include "pci.h"
+>  
+>  static DEFINE_MUTEX(pci_acpi_pm_notify_mtx);
+> @@ -257,11 +258,16 @@ static int acpi_pci_set_power_state(stru
+>  		return -ENODEV;
+>  
+>  	switch (state) {
+> +	case PCI_D3cold:
+> +		if (dev_pm_qos_flags(&dev->dev, PM_QOS_FLAG_NO_POWER_OFF) ==
+> +				PM_QOS_FLAGS_ALL) {
+> +			error = -EBUSY;
+> +			break;
+> +		}
+>  	case PCI_D0:
+>  	case PCI_D1:
+>  	case PCI_D2:
+>  	case PCI_D3hot:
+> -	case PCI_D3cold:
+>  		error = acpi_bus_set_power(handle, state_conv[state]);
+>  	}
+>  
+> Index: linux/drivers/acpi/sleep.c
+> ===================================================================
+> --- linux.orig/drivers/acpi/sleep.c
+> +++ linux/drivers/acpi/sleep.c
+> @@ -19,6 +19,7 @@
+>  #include <linux/acpi.h>
+>  #include <linux/module.h>
+>  #include <linux/pm_runtime.h>
+> +#include <linux/pm_qos.h>
+>  
+>  #include <asm/io.h>
+>  
+> @@ -711,6 +712,7 @@ int acpi_pm_device_sleep_state(struct de
+>  	struct acpi_device *adev;
+>  	char acpi_method[] = "_SxD";
+>  	unsigned long long d_min, d_max;
+> +	bool wakeup = false;
+>  
+>  	if (d_max_in < ACPI_STATE_D0 || d_max_in > ACPI_STATE_D3)
+>  		return -EINVAL;
+> @@ -718,6 +720,8 @@ int acpi_pm_device_sleep_state(struct de
+>  		printk(KERN_DEBUG "ACPI handle has no context!\n");
+>  		return -ENODEV;
+>  	}
+> +	if (dev_pm_qos_flags(dev, PM_QOS_FLAG_NO_POWER_OFF) == PM_QOS_FLAGS_ALL)
+> +		d_max_in = ACPI_STATE_D3_HOT;
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+In theory, d_max_in may < ACPI_STATE_D3_HOT.  So better to be
+
+d_max_in = min_t(int, d_max_in, ACPI_STATE_D3_HOT);
+
+But in fact, d_max_in is introduced to support something similar to
+PM_QOS_FLAG_NO_POWER_OFF, so I think we can remove d_max_in in the
+future.
+
+Best Regards,
+Huang Ying
+
+>  
+>  	acpi_method[2] = '0' + acpi_target_sleep_state;
+>  	/*
+> @@ -737,8 +741,14 @@ int acpi_pm_device_sleep_state(struct de
+>  	 * NOTE: We rely on acpi_evaluate_integer() not clobbering the integer
+>  	 * provided -- that's our fault recovery, we ignore retval.
+>  	 */
+> -	if (acpi_target_sleep_state > ACPI_STATE_S0)
+> +	if (acpi_target_sleep_state > ACPI_STATE_S0) {
+>  		acpi_evaluate_integer(handle, acpi_method, NULL, &d_min);
+> +		wakeup = device_may_wakeup(dev) && adev->wakeup.flags.valid
+> +			&& adev->wakeup.sleep_state >= acpi_target_sleep_state;
+> +	} else if (dev_pm_qos_flags(dev, PM_QOS_FLAG_REMOTE_WAKEUP) !=
+> +			PM_QOS_FLAGS_NONE) {
+> +		wakeup = adev->wakeup.flags.valid;
+> +	}
+>  
+>  	/*
+>  	 * If _PRW says we can wake up the system from the target sleep state,
+> @@ -747,9 +757,7 @@ int acpi_pm_device_sleep_state(struct de
+>  	 * (ACPI 3.x), it should return the maximum (lowest power) D-state that
+>  	 * can wake the system.  _S0W may be valid, too.
+>  	 */
+> -	if (acpi_target_sleep_state == ACPI_STATE_S0 ||
+> -	    (device_may_wakeup(dev) && adev->wakeup.flags.valid &&
+> -	     adev->wakeup.sleep_state >= acpi_target_sleep_state)) {
+> +	if (wakeup) {
+>  		acpi_status status;
+>  
+>  		acpi_method[3] = 'W';
+> 
+
+
