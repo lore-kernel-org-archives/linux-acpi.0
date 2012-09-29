@@ -1,56 +1,91 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH 8/8] PCI, ACPI: remove acpi_root_driver in reserse order
-Date: Fri, 28 Sep 2012 19:09:05 -0700
-Message-ID: <CAE9FiQV8tvRB7ZiseSrkWbHoZ=DN9r=xOn_fwGy8Akj_R6y-nA@mail.gmail.com>
-References: <1348733519-24684-1-git-send-email-yinghai@kernel.org>
-	<1348733519-24684-9-git-send-email-yinghai@kernel.org>
-	<CAErSpo4c6ti0OCmBvP+_M43920HU5+8RgnvEHKw=zBw2LkmGDA@mail.gmail.com>
+From: Ni zhan Chen <nizhan.chen@gmail.com>
+Subject: Re: [RFC v9 PATCH 13/21] memory-hotplug: check page type in get_page_bootmem
+Date: Sat, 29 Sep 2012 10:15:51 +0800
+Message-ID: <506659D7.9080904@gmail.com>
+References: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com> <1346837155-534-14-git-send-email-wency@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAErSpo4c6ti0OCmBvP+_M43920HU5+8RgnvEHKw=zBw2LkmGDA@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1346837155-534-14-git-send-email-wency@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, Wen Congyang <wency@cn.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Sep 28, 2012 at 4:46 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
-> On Thu, Sep 27, 2012 at 2:11 AM, Yinghai Lu <yinghai@kernel.org> wrote:
->> aka stop acpi root driver in this sequence: acpiphp, iommu, ioapic.
->>
->> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
->> ---
->>  drivers/acpi/pci_root.c |    2 +-
->>  1 files changed, 1 insertions(+), 1 deletions(-)
->>
->> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
->> index a27cbb57..012f40d 100644
->> --- a/drivers/acpi/pci_root.c
->> +++ b/drivers/acpi/pci_root.c
->> @@ -672,7 +672,7 @@ static int acpi_pci_root_remove(struct acpi_device *device, int type)
->>         pci_stop_root_bus(root->bus);
->>
->>         mutex_lock(&acpi_pci_root_lock);
->> -       list_for_each_entry(driver, &acpi_pci_drivers, node)
->> +       list_for_each_entry_reverse(driver, &acpi_pci_drivers, node)
->>                 if (driver->remove)
->>                         driver->remove(root);
+On 09/05/2012 05:25 PM, wency@cn.fujitsu.com wrote:
+> From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 >
-> This seems sort of OK just because we call the ->add() methods in
-> forward order, so it is symmetric to call the ->remove() methods in
-> reverse order.
+> The function get_page_bootmem() may be called more than one time to the same
+> page. There is no need to set page's type, private if the function is not
+> the first time called to the page.
 >
-> But I'm uncomfortable with using this as a way to enforce ->remove()
-> ordering across acpiphp, iommu, and ioapic.  That seems fragile.
+> Note: the patch is just optimization and does not fix any problem.
+
+Hi Yasuaki,
+
+this patch is reasonable to me. I have another question associated to 
+get_page_bootmem(), the question is from another fujitsu guy's patch 
+changelog [commit : 04753278769f3], the changelog said  that:
+
+  1) When the memmap of removing section is allocated on other
+      section by bootmem, it should/can be free.
+  2) When the memmap of removing section is allocated on the
+      same section, it shouldn't be freed. Because the section has to be
+      logical memory offlined already and all pages must be isolated against
+      page allocater. If it is freed, page allocator may use it which will
+      be removed physically soon.
+
+but I don't see his patch guarantee 2), it means that his patch doesn't 
+guarantee the memmap of removing section which is allocated on other 
+section by bootmem doesn't be freed. Hopefully get your explaination in 
+details, thanks in advance. :-)
+
 >
-> What are the dependencies between these drivers that require this ordering?
+> CC: David Rientjes <rientjes@google.com>
+> CC: Jiang Liu <liuj97@gmail.com>
+> CC: Len Brown <len.brown@intel.com>
+> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+> CC: Paul Mackerras <paulus@samba.org>
+> CC: Christoph Lameter <cl@linux.com>
+> Cc: Minchan Kim <minchan.kim@gmail.com>
+> CC: Andrew Morton <akpm@linux-foundation.org>
+> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+> CC: Wen Congyang <wency@cn.fujitsu.com>
+> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+> ---
+>   mm/memory_hotplug.c |   15 +++++++++++----
+>   1 files changed, 11 insertions(+), 4 deletions(-)
+>
+> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+> index d736df3..26a5012 100644
+> --- a/mm/memory_hotplug.c
+> +++ b/mm/memory_hotplug.c
+> @@ -95,10 +95,17 @@ static void release_memory_resource(struct resource *res)
+>   static void get_page_bootmem(unsigned long info,  struct page *page,
+>   			     unsigned long type)
+>   {
+> -	page->lru.next = (struct list_head *) type;
+> -	SetPagePrivate(page);
+> -	set_page_private(page, info);
+> -	atomic_inc(&page->_count);
+> +	unsigned long page_type;
+> +
+> +	page_type = (unsigned long)page->lru.next;
+> +	if (page_type < MEMORY_HOTPLUG_MIN_BOOTMEM_TYPE ||
+> +	    page_type > MEMORY_HOTPLUG_MAX_BOOTMEM_TYPE){
+> +		page->lru.next = (struct list_head *)type;
+> +		SetPagePrivate(page);
+> +		set_page_private(page, info);
+> +		atomic_inc(&page->_count);
+> +	} else
+> +		atomic_inc(&page->_count);
+>   }
+>   
+>   /* reference to __meminit __free_pages_bootmem is valid
 
-ioapic should come at first, and iommu and last is acpiphp.
-
-iommu will check if intr-mapping is corresponding to ioapic controller number.
-also dmar controller will need one normal irq without intr-remapping
-for error handling.
-
-need to use link sequence in Makefile to make sure iommu come at first.
-
--Yinghai
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
