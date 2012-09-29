@@ -1,92 +1,73 @@
-From: Francesco Lavra <francescolavra.fl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 4/4] cpuidle - support multiple drivers
-Date: Sat, 29 Sep 2012 11:41:26 +0200
-Message-ID: <5066C246.1050003@gmail.com>
-References: <1348526634-19029-1-git-send-email-daniel.lezcano@linaro.org>
-	<1348526634-19029-5-git-send-email-daniel.lezcano@linaro.org>
+From: "Zhang, Rui" <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [RFC PATCH 1/6] Introduce acpi_match_device_id().
+Date: Sat, 29 Sep 2012 13:31:52 +0000
+Message-ID: <744357E9AAD1214791ACBA4B0B90926322C156@SHSMSX101.ccr.corp.intel.com>
+References: <1348817910.10877.321.camel@rui.sh.intel.com>
+ <20120928141347.GC15548@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-In-Reply-To: <1348526634-19029-5-git-send-email-daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
-List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
-Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-To: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pdeschrijver-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20120928141347.GC15548-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-pm <linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, linux-i2c <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Len, Brown" <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Dirk Brandewie <dirk.brandewie-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
 
-On 09/25/2012 12:43 AM, Daniel Lezcano wrote:
-...
-> diff --git a/drivers/cpuidle/sysfs.c b/drivers/cpuidle/sysfs.c
-> index 5f809e3..2596422 100644
-> --- a/drivers/cpuidle/sysfs.c
-> +++ b/drivers/cpuidle/sysfs.c
-> @@ -43,21 +43,46 @@ out:
->  	return i;
->  }
->  
-> +struct cbarg {
-> +	char *buf;
-> +	ssize_t count;
-> +};
-> +
-> +static int each_driver_cb(int cpu, struct cpuidle_driver *drv, void *data)
-> +{
-> +	int ret;
-> +	struct cbarg *cbarg = data;
-> +
-> +	if ((drv && (strlen(drv->name) + cbarg->count) >= PAGE_SIZE) ||
-> +	    (!drv && (strlen("none") + cbarg->count) >= PAGE_SIZE))
-> +		return -EOVERFLOW;
-> +
-> +#ifdef CONFIG_CPU_IDLE_MULTIPLE_DRIVERS
-> +	ret = sprintf(cbarg->buf + cbarg->count, "cpu%d: %s\n",
-> +		      cpu, drv ? drv->name : "none" );
-> +#else
-> +	ret = sprintf(cbarg->buf, "%s\n", drv ? drv->name : "none");
-> +#endif
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	cbarg->count += ret;
-> +
-> +	return 0;
-> +}
-> +
->  static ssize_t show_current_driver(struct device *dev,
->  				   struct device_attribute *attr,
->  				   char *buf)
->  {
-> -	ssize_t ret;
-> -	struct cpuidle_driver *cpuidle_driver = cpuidle_get_driver();
-> +	struct cbarg cbarg = { .buf = buf };
 
-cbarg.count should be initialized to 0.
+> -----Original Message-----
+> From: Mika Westerberg [mailto:mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org]
+> Sent: Friday, September 28, 2012 10:14 PM
+> To: Zhang, Rui
+> Cc: LKML; linux-pm; linux-i2c; linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Len, Brown;
+> Rafael J. Wysocki; Grant Likely; Dirk Brandewie
+> Subject: Re: [RFC PATCH 1/6] Introduce acpi_match_device_id().
+> Importance: High
+> 
+> On Fri, Sep 28, 2012 at 03:38:30PM +0800, Zhang Rui wrote:
+> > >From 72df5d1f51fb27a4ba7f70a3b07df759d32b8288 Mon Sep 17 00:00:00
+> > >2001
+> > From: Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > Date: Thu, 27 Sep 2012 15:11:55 +0800
+> > Subject: [RFC PATCH 1/6] Introduce acpi_match_device_id().
+> >
+> > This API is used to check if a device id string is compatible with an
+> > ACPI device, either PNP id exported via _HID or compatible ids
+> > exported via _CID control method.
+> >
+> > Signed-off-by: Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > ---
+> >  drivers/acpi/scan.c     |   22 ++++++++++++++++++++++
+> >  include/acpi/acpi_bus.h |    6 ++++++
+> >  2 files changed, 28 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c index
+> > d1ecca2..936a7c9 100644
+> > --- a/drivers/acpi/scan.c
+> > +++ b/drivers/acpi/scan.c
+> > @@ -312,6 +312,28 @@ int acpi_match_device_ids(struct acpi_device
+> > *device,  }  EXPORT_SYMBOL(acpi_match_device_ids);
+> >
+> > +int acpi_match_device_id(const struct device *dev, const char *id)
+> 
+> Would be good idea to implement this in terms of of_match_device() so
+> that it returns pointer to the matched id. This way drivers can get the
+> ->driver_data pretty easily if needed.
+>
+Good idea.
+Will do that in v2.
+ 
+> > +{
+> > +	acpi_handle handle = DEVICE_ACPI_HANDLE(dev);
+> 
+> If the device is not bound to an ACPI handle this will return NULL. And
+> I don't see you doing that in this series meaning that..
+> 
 
-> +	int ret;
->  
-> -	spin_lock(&cpuidle_driver_lock);
-> -	if (cpuidle_driver)
-> -		ret = sprintf(buf, "%s\n", cpuidle_driver->name);
-> -	else
-> -		ret = sprintf(buf, "none\n");
-> -	spin_unlock(&cpuidle_driver_lock);
-> +	ret = cpuidle_for_each_driver(each_driver_cb, &cbarg);
-> +	if (ret < 0)
-> +		return ret;
->  
-> -	return ret;
-> +	return cbarg.count;
->  }
 
---
-Francesco
+You're right, I should set pdev->archdata.acpi_handle to the I2C controller in i2c_root.c.
+
+Thanks,
+rui
