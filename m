@@ -1,36 +1,42 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH 3/8] PCI: Move out pci_enable_bridges out of assign_unsigned_bus_res
-Date: Fri, 28 Sep 2012 21:04:16 -0700
-Message-ID: <CAE9FiQWv9V7gV1SPcTGGhnCGMow2xT42MXvFh1s6T6S23xTgkQ@mail.gmail.com>
+Subject: Re: [PATCH 4/8] PCI, ACPI: assign unassigned resource for hot add
+ root bus
+Date: Fri, 28 Sep 2012 21:08:32 -0700
+Message-ID: <CAE9FiQXno7kmQ526dFx+jVSicxxuqLk8Cz4a4Da9fb_Ha-yigQ@mail.gmail.com>
 References: <1348733519-24684-1-git-send-email-yinghai@kernel.org>
-	<1348733519-24684-4-git-send-email-yinghai@kernel.org>
-	<CAErSpo63QeF-Wd8nW-K_Qfp5rjMd0mhWADGW-fZiw4Up5-0ezA@mail.gmail.com>
-	<CAE9FiQXDw+D8FeMiojmcX0k_g939zkRM3XmJP08yJJG6o7_Cyg@mail.gmail.com>
-	<CAE9FiQXWxgBQDPisGdVKb_r3hy6pA7LpamV-jW5OX0SqDyrCCw@mail.gmail.com>
-	<CAErSpo4soM=HigBX3CxbGOGRtjr=4VgXneDXakaCHSufsOoH4Q@mail.gmail.com>
+	<1348733519-24684-5-git-send-email-yinghai@kernel.org>
+	<CAErSpo4WYEFg9HBRm8z=sSUTYLv5eLNfH07RQaQGh2+ZScp8sw@mail.gmail.com>
+	<CAE9FiQW2mvXGVKF7Wn0Td+_Wafu1sPMYr-sn2zffAfBycKi=Hg@mail.gmail.com>
+	<CAErSpo4Or84GO-DjKcu=G7hqUo8BF8Lu7czHwfmZDecvVS-tMQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAErSpo4soM=HigBX3CxbGOGRtjr=4VgXneDXakaCHSufsOoH4Q@mail.gmail.com>
+In-Reply-To: <CAErSpo4Or84GO-DjKcu=G7hqUo8BF8Lu7czHwfmZDecvVS-tMQ@mail.gmail.com>
 Sender: linux-pci-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>
 Cc: Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Sep 28, 2012 at 8:27 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+On Fri, Sep 28, 2012 at 8:31 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+> On Fri, Sep 28, 2012 at 7:56 PM, Yinghai Lu <yinghai@kernel.org> wrote:
+>> On Fri, Sep 28, 2012 at 4:46 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+>>> On Thu, Sep 27, 2012 at 2:11 AM, Yinghai Lu <yinghai@kernel.org> wrote:
+>>>> After we get hot-added ioapic registered.
+>>>> pci_enable_bridges will try to enable ioapic irq for pci bridges.
+>>>
+>>> What makes this specifically related to IOAPICs?
 >
-> Is it important that pci_assign_unassigned_bus_resources() be run
-> before the driver->add() methods?  Why?
+> I think you missed this question.
 
-for ioapic controller that may need kernel to assign base bar.
+in another response:
 
->
-> Do you have a pointer to this ioapic driver?  I don't think it's in
-> the tree yet.  I know about drivers/pci/ioapic.c, but it doesn't use
-> acpi_pci_register_driver().
+ pci_enable_bridges
+    ==> pci_enable_device
+        ==> ...
+           ===> pcibios_enable_device
+               ===> pcibios_enable_irq
 
-it is in my for-x86-irq branch.
+and one of driver in acpi_pci_drivers, is ioapic drivers and it will
+enable ioapic there.
 
-http://git.kernel.org/?p=linux/kernel/git/yinghai/linux-yinghai.git;a=shortlog;h=refs/heads/for-x86-irq
-
-http://git.kernel.org/?p=linux/kernel/git/yinghai/linux-yinghai.git;a=commitdiff;h=c186df98f84336422088740ef8cedc1313ca2485
+So we need to enable bridges that later.
