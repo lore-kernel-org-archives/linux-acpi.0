@@ -1,49 +1,62 @@
-From: "Pihet-XID, Jean" <j-pihet@ti.com>
-Subject: Re: [RFD][PATCH 0/7] PM / QoS: Support for PM QoS device flags
-Date: Mon, 1 Oct 2012 18:17:10 +0200
-Message-ID: <CAN5iSWq2UE4gk3VJFdnV_mOxDShrZEKPcBErvNBPVR4iFgmutQ@mail.gmail.com>
-References: <201209282351.10663.rjw@sisk.pl>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH 3/8] PCI: Move out pci_enable_bridges out of assign_unsigned_bus_res
+Date: Mon, 1 Oct 2012 12:01:16 -0600
+Message-ID: <CAErSpo55BBr8YGdD1e4Oe0zeCOPG7i-os1tc3WTZAzMkVJfAqw@mail.gmail.com>
+References: <1348733519-24684-1-git-send-email-yinghai@kernel.org>
+ <1348733519-24684-4-git-send-email-yinghai@kernel.org> <CAErSpo63QeF-Wd8nW-K_Qfp5rjMd0mhWADGW-fZiw4Up5-0ezA@mail.gmail.com>
+ <CAE9FiQXDw+D8FeMiojmcX0k_g939zkRM3XmJP08yJJG6o7_Cyg@mail.gmail.com>
+ <CAE9FiQXWxgBQDPisGdVKb_r3hy6pA7LpamV-jW5OX0SqDyrCCw@mail.gmail.com>
+ <CAErSpo4soM=HigBX3CxbGOGRtjr=4VgXneDXakaCHSufsOoH4Q@mail.gmail.com> <CAE9FiQWv9V7gV1SPcTGGhnCGMow2xT42MXvFh1s6T6S23xTgkQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <201209282351.10663.rjw@sisk.pl>
+In-Reply-To: <CAE9FiQWv9V7gV1SPcTGGhnCGMow2xT42MXvFh1s6T6S23xTgkQ@mail.gmail.com>
 Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Huang Ying <ying.huang@intel.com>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, Lan Tianyu <tianyu.lan@intel.com>, Aaron Lu <aaron.lu@intel.com>, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, mark gross <markgross@thegnar.org>
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Rafael,
+On Fri, Sep 28, 2012 at 10:04 PM, Yinghai Lu <yinghai@kernel.org> wrote:
+> On Fri, Sep 28, 2012 at 8:27 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+>>
+>> Is it important that pci_assign_unassigned_bus_resources() be run
+>> before the driver->add() methods?  Why?
+>
+> for ioapic controller that may need kernel to assign base bar.
 
-On Fri, Sep 28, 2012 at 11:51 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> Hi All,
->
-> The following patch series extends the existing device PM QoS core code to
-> support PM QoS flags representing binary (on/off) requirements, such as
-> whether or not power may be removed entirely from the device or whether
-> or not remote wakeup (i.e. signalling of external events while suspended)
-> should work for it.
->
-> [1/7] Prepare PM QoS device structure for adding more constraint types.
-> [2/7] Introduce request and constraint data types for PM QoS flags.
-> [3/7] Prepare struct dev_pm_qos_request for representing more request types.
-> [4/7] Introduce device PM QoS flags support.
-> [5/7] Make it possible to expose PM QoS device flags to user space.
-> [6/7] PM / Domains: Check device PM QoS flags in pm_genpd_poweroff().
-> [7/7] PM / ACPI: Take device PM QoS flags into account.
->
-> The last two patches make the generic PM domains framework and ACPI / PCI,
-> respectively, take the PM QoS device flags introduced by patch [5/7] into
-> accont when making their decisions.
->
-> The changelogs describe the details, but if anything isn't clear, please let
-> me know.
-That looks OK after review. FWIW:
-Reviewed-by: Jean Pihet <j-pihet@ti.com>
+It seems like there are two cases of IOAPICs we need to worry about:
 
-Thanks!
-Jean
+1) An IOAPIC device in the ACPI namespace (ACPI0009, ACPI000A, or
+ACPI000B).  This device has a _CRS that contains the device base
+address.  Since it's an ACPI device and has _CRS, I expect it should
+*not* appear in PCI config space and would have no BARs.
 
+2) An IOAPIC device that appears in PCI config space.  This has a BAR
+that we'll need to assign when hot-adding the device.
+
+The spec (ACPI v5.0, sec 9.17) implies that the second type (a
+bus-enumerated device) will not have an device in the ACPI namespace.
+However, sec 6.2.6 says we need a _GSB for both types of IOAPICs, and
+I don't know where the _GSB for bus-enumerated IOAPICs would live if
+there's no ACPI device for them.
+
+Since you're talking about assigning a BAR, I assume you're talking
+about the second type -- a bus-enumerated IOAPIC.  I would also assume
+that a PCI IOAPIC would appear in the hierarchy *above* any devices
+that are connected to it, so we'd enumerate it *before* those devices.
+ Maybe that will help ensure that we bind the driver to the IOAPIC
+before binding drivers to devices that use it.
+
+Can you help me understand this?  What's the topology of the machine
+you're working on?  E.g., what does this part of the ACPI namespace
+and PCI config space look like?
+
+>> Do you have a pointer to this ioapic driver?  I don't think it's in
+>> the tree yet.  I know about drivers/pci/ioapic.c, but it doesn't use
+>> acpi_pci_register_driver().
 >
-> Thanks,
-> Rafael
+> it is in my for-x86-irq branch.
 >
+> http://git.kernel.org/?p=linux/kernel/git/yinghai/linux-yinghai.git;a=shortlog;h=refs/heads/for-x86-irq
+>
+> http://git.kernel.org/?p=linux/kernel/git/yinghai/linux-yinghai.git;a=commitdiff;h=c186df98f84336422088740ef8cedc1313ca2485
