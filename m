@@ -1,65 +1,97 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH 4/4] cpuidle - support multiple drivers
-Date: Sun, 30 Sep 2012 18:34:31 +0200
-Message-ID: <50687497.9040205@linaro.org>
-References: <1348526634-19029-1-git-send-email-daniel.lezcano@linaro.org> <5066C246.1050003@gmail.com> <50673394.5030502@linaro.org> <201209300007.49771.rjw@sisk.pl>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [RFC v9 PATCH 13/21] memory-hotplug: check page type in get_page_bootmem
+Date: Mon, 1 Oct 2012 12:03:01 +0900
+Message-ID: <506907E5.2080609@jp.fujitsu.com>
+References: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com> <1346837155-534-14-git-send-email-wency@cn.fujitsu.com> <506659D7.9080904@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:59698 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751176Ab2I3Qeg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 30 Sep 2012 12:34:36 -0400
-Received: by eekb15 with SMTP id b15so2052768eek.19
-        for <linux-acpi@vger.kernel.org>; Sun, 30 Sep 2012 09:34:34 -0700 (PDT)
-In-Reply-To: <201209300007.49771.rjw@sisk.pl>
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:58561 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751476Ab2JADDw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 30 Sep 2012 23:03:52 -0400
+In-Reply-To: <506659D7.9080904@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, linaro-dev@lists.linaro.org, linux-pm@vger.kernel.org, pdeschrijver@nvidia.com, patches@linaro.org, linux-acpi@vger.kernel.org, lenb@kernel.org
+To: Ni zhan Chen <nizhan.chen@gmail.com>
+Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, Wen Congyang <wency@cn.fujitsu.com>
 
-On 09/30/2012 12:07 AM, Rafael J. Wysocki wrote:
-> On Saturday, September 29, 2012, Daniel Lezcano wrote:
->> On 09/29/2012 11:41 AM, Francesco Lavra wrote:
->>> Hi,
->> Hi Francesco,
+Hi Chen,
+
+2012/09/29 11:15, Ni zhan Chen wrote:
+> On 09/05/2012 05:25 PM, wency@cn.fujitsu.com wrote:
+>> From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 >>
->> thanks for reviewing the patch.
+>> The function get_page_bootmem() may be called more than one time to the same
+>> page. There is no need to set page's type, private if the function is not
+>> the first time called to the page.
 >>
->>>>  static ssize_t show_current_driver(struct device *dev,
->>>>  				   struct device_attribute *attr,
->>>>  				   char *buf)
->>>>  {
->>>> -	ssize_t ret;
->>>> -	struct cpuidle_driver *cpuidle_driver =3D cpuidle_get_driver();
->>>> +	struct cbarg cbarg =3D { .buf =3D buf };
->>> cbarg.count should be initialized to 0.
->> Actually, with this initialization, all the fields will be initializ=
-ed
->> to 0, except 'buf'.
-> However, it would be good to initialize count explicitly so as to sho=
-w
-> that we care about the initial value of it.
+>> Note: the patch is just optimization and does not fix any problem.
+>
+> Hi Yasuaki,
+>
+> this patch is reasonable to me. I have another question associated to get_page_bootmem(), the question is from another fujitsu guy's patch changelog [commit : 04753278769f3], the changelog said  that:
+>
+>   1) When the memmap of removing section is allocated on other
+>       section by bootmem, it should/can be free.
+>   2) When the memmap of removing section is allocated on the
+>       same section, it shouldn't be freed. Because the section has to be
+>       logical memory offlined already and all pages must be isolated against
+>       page allocater. If it is freed, page allocator may use it which will
+>       be removed physically soon.
+>
+> but I don't see his patch guarantee 2), it means that his patch doesn't guarantee the memmap of removing section which is allocated on other section by bootmem doesn't be freed. Hopefully get your explaination in details, thanks in advance. :-)
 
-Ok, I will change that in a V2.
+In my understanding, the patch does not guarantee it.
+Please see [commit : 0c0a4a517a31e]. free_map_bootmem() in the commit
+guarantees it.
 
-Rafael, you're right, this approach makes more sense IMO.
+Thanks,
+Yasuaki Ishimatsu
 
-Thanks
--- Daniel
+>
+>>
+>> CC: David Rientjes <rientjes@google.com>
+>> CC: Jiang Liu <liuj97@gmail.com>
+>> CC: Len Brown <len.brown@intel.com>
+>> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+>> CC: Paul Mackerras <paulus@samba.org>
+>> CC: Christoph Lameter <cl@linux.com>
+>> Cc: Minchan Kim <minchan.kim@gmail.com>
+>> CC: Andrew Morton <akpm@linux-foundation.org>
+>> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+>> CC: Wen Congyang <wency@cn.fujitsu.com>
+>> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+>> ---
+>>   mm/memory_hotplug.c |   15 +++++++++++----
+>>   1 files changed, 11 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+>> index d736df3..26a5012 100644
+>> --- a/mm/memory_hotplug.c
+>> +++ b/mm/memory_hotplug.c
+>> @@ -95,10 +95,17 @@ static void release_memory_resource(struct resource *res)
+>>   static void get_page_bootmem(unsigned long info,  struct page *page,
+>>                    unsigned long type)
+>>   {
+>> -    page->lru.next = (struct list_head *) type;
+>> -    SetPagePrivate(page);
+>> -    set_page_private(page, info);
+>> -    atomic_inc(&page->_count);
+>> +    unsigned long page_type;
+>> +
+>> +    page_type = (unsigned long)page->lru.next;
+>> +    if (page_type < MEMORY_HOTPLUG_MIN_BOOTMEM_TYPE ||
+>> +        page_type > MEMORY_HOTPLUG_MAX_BOOTMEM_TYPE){
+>> +        page->lru.next = (struct list_head *)type;
+>> +        SetPagePrivate(page);
+>> +        set_page_private(page, info);
+>> +        atomic_inc(&page->_count);
+>> +    } else
+>> +        atomic_inc(&page->_count);
+>>   }
+>>   /* reference to __meminit __free_pages_bootmem is valid
+>
 
---=20
- <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software for=
- ARM SoCs
 
-=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
