@@ -1,32 +1,49 @@
-From: Peter Stuge <peter@stuge.se>
-Subject: Re: [PATCH 2/2] ACPI: EC: Add a quirk for CLEVO M720T/M730T laptop
-Date: Mon, 1 Oct 2012 18:10:32 +0200
-Message-ID: <20121001161032.29368.qmail@stuge.se>
-References: <1348816921-2637-1-git-send-email-feng.tang@intel.com> <1348816921-2637-2-git-send-email-feng.tang@intel.com>
+From: "Pihet-XID, Jean" <j-pihet@ti.com>
+Subject: Re: [RFD][PATCH 0/7] PM / QoS: Support for PM QoS device flags
+Date: Mon, 1 Oct 2012 18:17:10 +0200
+Message-ID: <CAN5iSWq2UE4gk3VJFdnV_mOxDShrZEKPcBErvNBPVR4iFgmutQ@mail.gmail.com>
+References: <201209282351.10663.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foo.stuge.se ([212.116.89.98]:40444 "HELO foo.stuge.se"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752788Ab2JAQKf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 1 Oct 2012 12:10:35 -0400
-Content-Disposition: inline
-In-Reply-To: <1348816921-2637-2-git-send-email-feng.tang@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <201209282351.10663.rjw@sisk.pl>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Huang Ying <ying.huang@intel.com>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, Lan Tianyu <tianyu.lan@intel.com>, Aaron Lu <aaron.lu@intel.com>, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, mark gross <markgross@thegnar.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Feng Tang <feng.tang@intel.com>
-Cc: Len Brown <lenb@kernel.org>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>, Francesco <trentini@dei.unipd.it>
 
-Feng Tang wrote:
-> +/*
-> + * Clevo M720 notebook actually works ok with IRQ mode, if we lifted
-> + * the GPE storm threshold back to 20
-> + */
-> +static int ec_enlarge_storm_threshold(const struct dmi_system_id *id)
+Hi Rafael,
 
-This function name is very generic. Maybe there will be different
-thresholds needed in the future. Is it a good idea to name the
-function ec_set_storm_threshold_20 instead?
+On Fri, Sep 28, 2012 at 11:51 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> Hi All,
+>
+> The following patch series extends the existing device PM QoS core code to
+> support PM QoS flags representing binary (on/off) requirements, such as
+> whether or not power may be removed entirely from the device or whether
+> or not remote wakeup (i.e. signalling of external events while suspended)
+> should work for it.
+>
+> [1/7] Prepare PM QoS device structure for adding more constraint types.
+> [2/7] Introduce request and constraint data types for PM QoS flags.
+> [3/7] Prepare struct dev_pm_qos_request for representing more request types.
+> [4/7] Introduce device PM QoS flags support.
+> [5/7] Make it possible to expose PM QoS device flags to user space.
+> [6/7] PM / Domains: Check device PM QoS flags in pm_genpd_poweroff().
+> [7/7] PM / ACPI: Take device PM QoS flags into account.
+>
+> The last two patches make the generic PM domains framework and ACPI / PCI,
+> respectively, take the PM QoS device flags introduced by patch [5/7] into
+> accont when making their decisions.
+>
+> The changelogs describe the details, but if anything isn't clear, please let
+> me know.
+That looks OK after review. FWIW:
+Reviewed-by: Jean Pihet <j-pihet@ti.com>
 
+Thanks!
+Jean
 
-//Peter
+>
+> Thanks,
+> Rafael
+>
