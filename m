@@ -1,117 +1,79 @@
-From: joeyli <jlee@suse.com>
-Subject: Re: [PATCH] acpi: fix brightness level is initialized to zero when
- BIOS does not restore the brightness value to _BQC.
-Date: Mon, 01 Oct 2012 15:17:03 +0800
-Message-ID: <1349075823.24232.30.camel@linux-s257.site>
-References: <1349069987-23992-1-git-send-email-alex.hung@canonical.com>
-	 <1349074033.24232.19.camel@linux-s257.site>
-	 <50694027.5060902@canonical.com>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [RFC v9 PATCH 03/21] memory-hotplug: store the node id in acpi_memory_device
+Date: Mon, 1 Oct 2012 16:38:44 +0900
+Message-ID: <50694884.7090706@jp.fujitsu.com>
+References: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com> <1346837155-534-4-git-send-email-wency@cn.fujitsu.com> <506517C1.7050909@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.nue.novell.com ([195.135.221.5]:35305 "EHLO
-	smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751821Ab2JAHXv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Oct 2012 03:23:51 -0400
-In-Reply-To: <50694027.5060902@canonical.com>
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:47335 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751551Ab2JAHjY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Oct 2012 03:39:24 -0400
+In-Reply-To: <506517C1.7050909@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Hung <alex.hung@canonical.com>
-Cc: rui.zhang@intel.com, linux-acpi@vger.kernel.org
+To: Ni zhan Chen <nizhan.chen@gmail.com>
+Cc: wency@cn.fujitsu.com, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com
 
-=E6=96=BC =E4=B8=80=EF=BC=8C2012-10-01 =E6=96=BC 15:03 +0800=EF=BC=8CAl=
-ex Hung =E6=8F=90=E5=88=B0=EF=BC=9A
-> On 10/01/2012 02:47 PM, joeyli wrote:
-> > Hi Alex,
-> >
-> > =E6=96=BC =E4=B8=80=EF=BC=8C2012-10-01 =E6=96=BC 13:39 +0800=EF=BC=8C=
-Alex Hung =E6=8F=90=E5=88=B0=EF=BC=9A
-> >> Signed-off-by: Alex Hung <alex.hung@canonical.com>
-> >> ---
-> >>   drivers/acpi/video.c |    4 ++++
-> >>   1 files changed, 4 insertions(+), 0 deletions(-)
-> >>
-> >> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> >> index 42b226e..eaa9573 100644
-> >> --- a/drivers/acpi/video.c
-> >> +++ b/drivers/acpi/video.c
-> >> @@ -724,6 +724,10 @@ acpi_video_init_brightness(struct acpi_video_=
-device *device)
-> >>   				if (level_old =3D=3D br->levels[i])
-> >>   					level =3D level_old;
-> >>   		}
-> >> +
-> >> +		if (level =3D=3D 0)
-> >> +			level =3D br->levels[(br->count) / 2 + 1];
-> >
-> > Looks here used the 50% brightness level.
-> >
-> > Per comment in video.c, we want set the backlight to max_level when
-> > level_old is invalid:
-> >
-> >          if (!br->flags._BQC_use_index) {
-> >                  /*
-> >                   * Set the backlight to the initial state.
-> >                   * On some buggy laptops, _BQC returns an uninitia=
-lized value
-> >                   * when invoked for the first time, i.e. level_old=
- is invalid.
-> >                   * set the backlight to max_level in this case
-> >                   */
-> >
-> > I think here used max_level to fulfill it, e.g.
-> > =09
-> > +		if (level =3D=3D 0)
-> > +			level =3D max_level;
-> >
-> > How do you think?
-> Hi Joey,
->=20
-> I was debating with myself which level to be set, ex. 50%, ~75% or 10=
-0%,=20
-> and I think 50% *might* be closer to normal use-case (just a personal=
-=20
-> guess).
->=20
-> However, "max_level" seems to fit best if we treat the initial zero=20
-> brightness in invalid. I can modify it according it that's preferred.
->=20
-> Thanks for the feedback.
->=20
-> Cheers,
-> Alex Hung
->=20
+Hi Chen,
 
-hm.... I have a question for what's the BIOS's problem that causes
-'level =3D=3D 0'?
-That implied the issue machine's max_level is 0?
+2012/09/28 12:21, Ni zhan Chen wrote:
+> On 09/05/2012 05:25 PM, wency@cn.fujitsu.com wrote:
+>> From: Wen Congyang <wency@cn.fujitsu.com>
+>>
+>> The memory device has only one node id. Store the node id when
+>> enable the memory device, and we can reuse it when removing the
+>> memory device.
+>
+> one question:
+> if use numa emulation, memory device will associated to one node or ...?
 
-		/*
-		 * Set the level to maximum and check if _BQC uses indexed value
-		 */
-		result =3D acpi_video_device_lcd_set_level(device, max_level);		/* wr=
-ite max_level purposely, then read level back, compare them */
-		...
-		result =3D acpi_video_device_lcd_get_level_current(device, &level, 0)=
-;
-		...
-		br->flags._BQC_use_index =3D (level =3D=3D max_level ? 0 : 1);
-		if (!br->flags._BQC_use_index) {				/* _BQC_use_index is 0 will run i=
-nto if, means level =3D=3D max_level */
+Memory device has only one node, even if you use numa emulation.
 
-So, looks the 'level =3D=3D max_level =3D=3D 0' when level_old is inval=
-id.
+Thanks,
+Yasuaki Ishimatsu
 
-Just wonder what's defect of BIOS (in _BCL?) causes problem.
+>
+>>
+>> CC: David Rientjes <rientjes@google.com>
+>> CC: Jiang Liu <liuj97@gmail.com>
+>> CC: Len Brown <len.brown@intel.com>
+>> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+>> CC: Paul Mackerras <paulus@samba.org>
+>> CC: Christoph Lameter <cl@linux.com>
+>> Cc: Minchan Kim <minchan.kim@gmail.com>
+>> CC: Andrew Morton <akpm@linux-foundation.org>
+>> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+>> CC: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+>> Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+>> Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+>> ---
+>>   drivers/acpi/acpi_memhotplug.c |    4 ++++
+>>   1 files changed, 4 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+>> index 2a7beac..7873832 100644
+>> --- a/drivers/acpi/acpi_memhotplug.c
+>> +++ b/drivers/acpi/acpi_memhotplug.c
+>> @@ -83,6 +83,7 @@ struct acpi_memory_info {
+>>   struct acpi_memory_device {
+>>       struct acpi_device * device;
+>>       unsigned int state;    /* State of the memory device */
+>> +    int nid;
+>>       struct list_head res_list;
+>>   };
+>> @@ -256,6 +257,9 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
+>>           info->enabled = 1;
+>>           num_enabled++;
+>>       }
+>> +
+>> +    mem_device->nid = node;
+>> +
+>>       if (!num_enabled) {
+>>           printk(KERN_ERR PREFIX "add_memory failed\n");
+>>           mem_device->state = MEMORY_INVALID_STATE;
+>
 
 
-Thanks a lot!
-Joey Lee
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
