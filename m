@@ -1,63 +1,85 @@
 From: "Zhang, Rui" <rui.zhang@intel.com>
-Subject: RE: [RFC PATCH 0/6] ACPI: ACPI 5.0 device enumeration proposal
-Date: Mon, 1 Oct 2012 14:30:00 +0000
-Message-ID: <744357E9AAD1214791ACBA4B0B90926322D989@SHSMSX101.ccr.corp.intel.com>
-References: <1348817863.10877.320.camel@rui.sh.intel.com>
- <20121001064433.GF15548@intel.com>
+Subject: RE: HP laptop: fan off until CPU temp near 105 degrees C
+Date: Mon, 1 Oct 2012 14:33:17 +0000
+Message-ID: <744357E9AAD1214791ACBA4B0B90926322D9A3@SHSMSX101.ccr.corp.intel.com>
+References: <CALHKqSU44q6LakKrBKeNFFu7=xbipAog4URMLT0i5Yturo6w9w@mail.gmail.com>
+ <4D68720C2E767A4AA6A8796D42C8EB591C9D47@BGSMSX102.gar.corp.intel.com>
+ <CALHKqSXFhf7zoQWMrPDzgS0EGXN5xVxOHLu2j8Ysdtexk5prww@mail.gmail.com>
+ <4D68720C2E767A4AA6A8796D42C8EB591C9E51@BGSMSX102.gar.corp.intel.com>
+ <CALHKqSXtD_TbGYTxJv+fhXhjqO2=UoDUoeF8dFkEeuuvN36PwQ@mail.gmail.com>
+ <CALHKqSWoGMQ9sEP34zWjRxoxOPXAWOjyKd1SC-asW7qypvAPng@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:21429 "EHLO mga14.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:49296 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751993Ab2JAOaG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Oct 2012 10:30:06 -0400
-In-Reply-To: <20121001064433.GF15548@intel.com>
+	id S1751332Ab2JAOdV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Oct 2012 10:33:21 -0400
+In-Reply-To: <CALHKqSWoGMQ9sEP34zWjRxoxOPXAWOjyKd1SC-asW7qypvAPng@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-i2c <linux-i2c@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Len, Brown" <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Grant Likely <grant.likely@secretlab.ca>, Dirk Brandewie <dirk.brandewie@gmail.com>
+To: Jack Kelly <jack-list@xlk.org.uk>, "R, Durgadoss" <durgadoss.r@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-
+Can you attach the acpidump output of this machine?
+Can you attach the output of "grep . /sys/class/thermal/*/*" both when the system is cool and overheat?
 
 > -----Original Message-----
-> From: Mika Westerberg [mailto:mika.westerberg@linux.intel.com]
-> Sent: Monday, October 01, 2012 2:45 PM
-> To: Zhang, Rui
-> Cc: LKML; linux-pm; linux-i2c; linux-acpi@vger.kernel.org; Len, Brown;
-> Rafael J. Wysocki; Grant Likely; Dirk Brandewie
-> Subject: Re: [RFC PATCH 0/6] ACPI: ACPI 5.0 device enumeration proposal
+> From: jack.kelly.productions@googlemail.com
+> [mailto:jack.kelly.productions@googlemail.com] On Behalf Of Jack Kelly
+> Sent: Monday, October 01, 2012 4:51 PM
+> To: R, Durgadoss
+> Cc: linux-acpi@vger.kernel.org; Zhang, Rui
+> Subject: Re: HP laptop: fan off until CPU temp near 105 degrees C
 > Importance: High
 > 
-> On Fri, Sep 28, 2012 at 03:37:43PM +0800, Zhang Rui wrote:
+> Dear ACPI list, Rui and Durga,
+> 
+> I'm just wondering if you have any further thoughts or suggestions
+> regarding the issue whereby my laptop fan turns off when Linux boots?
+> 
+> If not then are there any other avenues I should pursue?  e.g. should I
+> try writing to HP support to let them know that something odd happens
+> with the firmware?
+> 
+> If all else fails then I'll get my soldering iron out and permanently
+> send power to the CPU fan.
+> 
+> Thanks,
+> Jack
+> 
+> 
+> 
+> On 24 September 2012 18:04, Jack Kelly <jack-list@xlk.org.uk> wrote:
 > >
-> > the main idea is that, for Serial Buses like I2C and SPI, we
-> enumerate
-> > the controller as a platform device, and then enumerate the slaves
-> via
-> > i2c/spi_register_board_info. And then, when the controller is really
-> > probed and enabled in the platform driver, the SPI/I2C bus code will
-> > enumerate I2C/SPI slaves automatically.
-> > And for the other devices, we will enumerate all of them as platform
-> > devices, which is not covered in this patch set yet.
-> 
-> Can you show some example how we could use this new code for example
-> with an existing I2C/SPI slave driver?
-
-This is just prototype patch set that I want to illustrate my idea
-on ACPI device enumeration, to get more thoughts on this.
-So no example driver so far.
-
-> Let's say the device uses few
-> GPIOs, one for interrupt and other for triggering firmware download. In
-> addition to that it needs a special parameters that can be extracted
-> running the "_DSM" method of the device.
-> 
-> Normally the driver would get this stuff from the platform data or from
-> Device Tree but how it is done with these patches?
-
-Can you show me an example driver that gets the special parameters from Device Tree?
-
-Thanks,
-rui
+> > On 24 September 2012 17:47, R, Durgadoss <durgadoss.r@intel.com>
+> wrote:
+> > > IMO, this crit_alarm should become 1 when your CPU temperature
+> > > reaches
+> > > 105 C. Does this happen ?
+> >
+> > No, crit_alarm stays set to 0 even when CPU temp hits 105.
+> >
+> > > Okay, That explains a bit of it. You have CPU cores and LCD
+> > > registered as cooling devices. But I believe throttling these
+> things
+> > > would require some intelligence/information from ACPI tables.. Not
+> > > sure whether your BIOS has them.. May be Rui can help us here..
+> >
+> > My CPU definitely throttles.  When idling the CPU freq is 1.2GHz;
+> when
+> > fully loaded it's 2.4GHz (according to /proc/cpuinfo)
+> >
+> > > AFAIK, The coretemp driver does not do/handle any hysteresis like
+> this.
+> > > My best guess is again the BIOS has something configured to do like
+> this.
+> >
+> > Oh yes, I should mention: the BIOS setup has an option "Fan Always on
+> > while on AC Power".  I've tried booting with this option on and with
+> > it off but it appears to make no difference to Linux.
+> >
+> > Thanks again,
+> > Jack
