@@ -1,140 +1,80 @@
-From: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [RFC PATCH 5/6] ACPI: Introduce ACPI I2C controller enumeration
- driver
-Date: Mon, 1 Oct 2012 09:55:26 +0300
-Message-ID: <20121001065526.GH15548@intel.com>
-References: <1348818032.10877.325.camel@rui.sh.intel.com>
+From: joeyli <jlee@suse.com>
+Subject: Re: [PATCH] acpi: fix brightness level is initialized to zero when
+ BIOS does not restore the brightness value to _BQC.
+Date: Mon, 01 Oct 2012 14:47:13 +0800
+Message-ID: <1349074033.24232.19.camel@linux-s257.site>
+References: <1349069987-23992-1-git-send-email-alex.hung@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1348818032.10877.325.camel-fuY85erJQUO75v1z/vFq2g@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-pm <linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, linux-i2c <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Len, Brown" <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Dirk Brandewie <dirk.brandewie-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.nue.novell.com ([195.135.221.5]:33727 "EHLO
+	smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751916Ab2JAGx7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Oct 2012 02:53:59 -0400
+In-Reply-To: <1349069987-23992-1-git-send-email-alex.hung@canonical.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alex Hung <alex.hung@canonical.com>
+Cc: rui.zhang@intel.com, linux-acpi@vger.kernel.org
 
-On Fri, Sep 28, 2012 at 03:40:32PM +0800, Zhang Rui wrote:
-> +acpi_status __init i2c_enumerate_slave(acpi_handle handle, u32 level,
-> +				       void *data, void **return_value)
-> +{
-> +	int result;
-> +	acpi_status status;
-> +	struct acpi_buffer buffer;
-> +	struct acpi_resource *resource;
-> +	struct acpi_resource_gpio *gpio;
-> +	struct acpi_resource_i2c_serialbus *i2c;
-> +	int i;
-> +	struct acpi_i2c_root *root = data;
-> +	struct i2c_board_info info;
-> +	struct acpi_device *device;
-> +
-> +	if (acpi_bus_get_device(handle, &device))
-> +		return AE_OK;
-> +
-> +	status = acpi_get_current_resources(handle, &buffer);
-> +	if (ACPI_FAILURE(status)) {
-> +		dev_err(&device->dev, "Failed to get ACPI resources\n");
-> +		return AE_OK;
-> +	}
-> +
-> +	for (i = 0; i < buffer.length; i += sizeof(struct acpi_resource)) {
-> +		resource = (struct acpi_resource *)(buffer.pointer + i);
-> +
-> +		switch (resource->type) {
-> +		case ACPI_RESOURCE_TYPE_GPIO:
-> +			gpio = &resource->data.gpio;
-> +
-> +			if (gpio->connection_type == ACPI_RESOURCE_GPIO_TYPE_INT) {
-> +				result =
-> +				    acpi_device_get_gpio_irq
-> +				    (gpio->resource_source.string_ptr,
-> +				     gpio->pin_table[0], &info.irq);
+Hi Alex,=20
 
-acpi_device_get_gpio_irq() is not defined in this patch series?
+=E6=96=BC =E4=B8=80=EF=BC=8C2012-10-01 =E6=96=BC 13:39 +0800=EF=BC=8CAl=
+ex Hung =E6=8F=90=E5=88=B0=EF=BC=9A
+> Signed-off-by: Alex Hung <alex.hung@canonical.com>
+> ---
+>  drivers/acpi/video.c |    4 ++++
+>  1 files changed, 4 insertions(+), 0 deletions(-)
+>=20
+> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+> index 42b226e..eaa9573 100644
+> --- a/drivers/acpi/video.c
+> +++ b/drivers/acpi/video.c
+> @@ -724,6 +724,10 @@ acpi_video_init_brightness(struct acpi_video_dev=
+ice *device)
+>  				if (level_old =3D=3D br->levels[i])
+>  					level =3D level_old;
+>  		}
+> +
+> +		if (level =3D=3D 0)
+> +			level =3D br->levels[(br->count) / 2 + 1];
 
-Also you need to do the gpio_request()/gpio_to_irq() things somewhere. Are
-they handled in acpi_device_get_gpio_irq()?
+Looks here used the 50% brightness level.
 
-How about GpioIo resources?
+Per comment in video.c, we want set the backlight to max_level when
+level_old is invalid:
 
-> +				if (result)
-> +					dev_err(&device->dev,
-> +						"Failed to get IRQ\n");
-> +			}
-> +			break;
-> +		case ACPI_RESOURCE_TYPE_SERIAL_BUS:
-> +			i2c = &resource->data.i2c_serial_bus;
-> +
-> +			info.addr = i2c->slave_address;
-> +			break;
-> +		default:
-> +			break;
-> +		}
-> +	}
-> +
-> +	add_slave(root, &info);
-> +
-> +	kfree(buffer.pointer);
-> +	return AE_OK;
-> +}
-> +
-> +static int __devinit acpi_i2c_root_add(struct acpi_device *device)
-> +{
-> +	acpi_status status;
-> +	struct acpi_i2c_root *root;
-> +	struct resource *resources;
-> +	int result;
-> +
-> +	if (!device->pnp.unique_id) {
-> +		dev_err(&device->dev,
-> +			"Unsupported ACPI I2C controller. No UID\n");
+        if (!br->flags._BQC_use_index) {
+                /*
+                 * Set the backlight to the initial state.
+                 * On some buggy laptops, _BQC returns an uninitialized=
+ value
+                 * when invoked for the first time, i.e. level_old is i=
+nvalid.
+                 * set the backlight to max_level in this case
+                 */
 
-Where does this restriction come from? As far as I understand UID is
-optional.
+I think here used max_level to fulfill it, e.g.
+=09
++		if (level =3D=3D 0)
++			level =3D max_level;
 
-> +		return -ENODEV;
-> +	}
+How do you think?
+
 > +
-> +	root = kzalloc(sizeof(struct acpi_i2c_root), GFP_KERNEL);
-> +	if (!root)
-> +		return -ENOMEM;
-> +
-> +	root->device = device;
-> +
-> +	kstrtoint(device->pnp.unique_id, 10, &root->busnum);
-> +
-> +	/* enumerate I2C controller */
-> +	root->pdev =
-> +	    platform_device_alloc(acpi_device_hid(device), root->busnum);
-> +	if (!root->pdev) {
-> +		dev_err(&device->dev, "Failed to alloc platform device\n");
-> +		goto err;
-> +	}
-> +
-> +	result = acpi_get_generic_resources(device, &resources);
-> +	if (result < 0) {
-> +		dev_err(&device->dev, "Failed to get resources\n");
-> +		goto err;
-> +	}
-> +
-> +	platform_device_add_resources(root->pdev, resources, result);
-> +	platform_device_add(root->pdev);
-> +
-> +	/* enumerate I2C slave devices */
-> +	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, root->device->handle, 1,
-> +				     i2c_enumerate_slave, NULL, root, NULL);
-> +
-> +	if (ACPI_FAILURE(status)) {
-> +		dev_err(&root->device->dev, "i2c ACPI namespace walk error!\n");
-> +		kfree(root);
-> +		return -ENODEV;
-> +	}
-> +
-> +	register_slaves(root);
-> +
-> +	return 0;
-> +err:
-> +	kfree(root);
-> +	return -ENODEV;
-> +}
+>  		goto set_level;
+>  	}
+> =20
+
+Thanks a lot!
+Joey Lee
+
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
