@@ -1,62 +1,62 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH 3/8] PCI: Move out pci_enable_bridges out of assign_unsigned_bus_res
-Date: Mon, 1 Oct 2012 12:01:16 -0600
-Message-ID: <CAErSpo55BBr8YGdD1e4Oe0zeCOPG7i-os1tc3WTZAzMkVJfAqw@mail.gmail.com>
-References: <1348733519-24684-1-git-send-email-yinghai@kernel.org>
- <1348733519-24684-4-git-send-email-yinghai@kernel.org> <CAErSpo63QeF-Wd8nW-K_Qfp5rjMd0mhWADGW-fZiw4Up5-0ezA@mail.gmail.com>
- <CAE9FiQXDw+D8FeMiojmcX0k_g939zkRM3XmJP08yJJG6o7_Cyg@mail.gmail.com>
- <CAE9FiQXWxgBQDPisGdVKb_r3hy6pA7LpamV-jW5OX0SqDyrCCw@mail.gmail.com>
- <CAErSpo4soM=HigBX3CxbGOGRtjr=4VgXneDXakaCHSufsOoH4Q@mail.gmail.com> <CAE9FiQWv9V7gV1SPcTGGhnCGMow2xT42MXvFh1s6T6S23xTgkQ@mail.gmail.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: ACPI errors on Dell Latitude E5430
+Date: Mon, 01 Oct 2012 20:38:42 +0200
+Message-ID: <5069E332.9060109@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAE9FiQWv9V7gV1SPcTGGhnCGMow2xT42MXvFh1s6T6S23xTgkQ@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:7881 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751401Ab2JAShW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 1 Oct 2012 14:37:22 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi <linux-acpi@vger.kernel.org>
+Cc: martin@hundeboll.net, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On Fri, Sep 28, 2012 at 10:04 PM, Yinghai Lu <yinghai@kernel.org> wrote:
-> On Fri, Sep 28, 2012 at 8:27 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
->>
->> Is it important that pci_assign_unassigned_bus_resources() be run
->> before the driver->add() methods?  Why?
->
-> for ioapic controller that may need kernel to assign base bar.
+Hi,
 
-It seems like there are two cases of IOAPICs we need to worry about:
+Matthew Garrett wrote:
+ > We're getting timeouts when trying to access the embedded controller,
+ > which would explain your problems.
 
-1) An IOAPIC device in the ACPI namespace (ACPI0009, ACPI000A, or
-ACPI000B).  This device has a _CRS that contains the device base
-address.  Since it's an ACPI device and has _CRS, I expect it should
-*not* appear in PCI config space and would have no BARs.
+I've been seeing the same problem on my Dell E6430. but only
+with 3.6 not with 3.5. I've done quite a bit of debugging on
+this enabling all the debug prints in drivers/acpi/ec.c + adding
+some of my own, and I've failed to catch Linux on doing anything
+"wrong" (unsurprisingly).
 
-2) An IOAPIC device that appears in PCI config space.  This has a BAR
-that we'll need to assign when hot-adding the device.
+I've learned 2 interesting things though:
+1) The timeout of the EC transactions is timing dependent, if
+we feed the EC commands + data with the right timing all is ok,
+this is why 3.5 worked and 3.6 did not work for me, the Fedora 3.6
+kernels for F-18 are build with various kernel debugging options
+enabled, changing the timing. If I take a 3.6 build from Fedora
+without the debugging options 3.6 works just as well as 3.5 for me.
 
-The spec (ACPI v5.0, sec 9.17) implies that the second type (a
-bus-enumerated device) will not have an device in the ACPI namespace.
-However, sec 6.2.6 says we need a _GSB for both types of IOAPICs, and
-I don't know where the _GSB for bus-enumerated IOAPICs would live if
-there's no ACPI device for them.
+2) Even with a 3.6 which shows the problematic behavior, I can
+make things work by adding acpi.ec_delay=2000 to the kernel cmdline,
+the debug traces show that the EC takes it sweet time to respond
+(sometime close to 2 seconds) but it does eventually respond in all
+cases I've seen sofar.
 
-Since you're talking about assigning a BAR, I assume you're talking
-about the second type -- a bus-enumerated IOAPIC.  I would also assume
-that a PCI IOAPIC would appear in the hierarchy *above* any devices
-that are connected to it, so we'd enumerate it *before* those devices.
- Maybe that will help ensure that we bind the driver to the IOAPIC
-before binding drivers to devices that use it.
+This also seems to fix a sporadic occurence of:
+"ACPI: EC: input buffer is not empty aborting transaction"
+Which I'm seeing with 3.5 / 3.6 in a non debug build.
 
-Can you help me understand this?  What's the topology of the machine
-you're working on?  E.g., what does this part of the ACPI namespace
-and PCI config space look like?
+Martin, can you see if adding that helps you with the E5430 problems
+too ?
 
->> Do you have a pointer to this ioapic driver?  I don't think it's in
->> the tree yet.  I know about drivers/pci/ioapic.c, but it doesn't use
->> acpi_pci_register_driver().
->
-> it is in my for-x86-irq branch.
->
-> http://git.kernel.org/?p=linux/kernel/git/yinghai/linux-yinghai.git;a=shortlog;h=refs/heads/for-x86-irq
->
-> http://git.kernel.org/?p=linux/kernel/git/yinghai/linux-yinghai.git;a=commitdiff;h=c186df98f84336422088740ef8cedc1313ca2485
+###
+
+I'll go and report this to Dell's Linux team, as I believe this is
+an EC firmware bug. In the mean time, since even if Dell fixes this,
+people are bad in applying BIOS updates, maybe we should add a DMI
+quirk for machines which need a longer ec_delay, and add these 2?
+
+Regards,
+
+Hans
+
+
