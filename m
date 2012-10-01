@@ -1,36 +1,35 @@
-From: Alex Hung <alex.hung@canonical.com>
-Subject: [PATCH] acpi: fix brightness level is initialized to zero when BIOS does not restore the brightness value to _BQC.
-Date: Mon,  1 Oct 2012 13:39:47 +0800
-Message-ID: <1349069987-23992-1-git-send-email-alex.hung@canonical.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [RFC PATCH 1/6] Introduce acpi_match_device_id().
+Date: Mon, 1 Oct 2012 09:37:53 +0300
+Message-ID: <20121001063753.GE15548@intel.com>
+References: <1348817910.10877.321.camel@rui.sh.intel.com>
+ <20120928141347.GC15548@intel.com>
+ <744357E9AAD1214791ACBA4B0B90926322C156@SHSMSX101.ccr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:34434 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751194Ab2JAFjy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Oct 2012 01:39:54 -0400
+Received: from mga02.intel.com ([134.134.136.20]:29138 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751960Ab2JAGfc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 1 Oct 2012 02:35:32 -0400
+Content-Disposition: inline
+In-Reply-To: <744357E9AAD1214791ACBA4B0B90926322C156@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: alex.hung@canonical.com, rui.zhang@intel.com, linux-acpi@vger.kernel.org
+To: "Zhang, Rui" <rui.zhang@intel.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-i2c <linux-i2c@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Len, Brown" <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Grant Likely <grant.likely@secretlab.ca>, Dirk Brandewie <dirk.brandewie@gmail.com>
 
-Signed-off-by: Alex Hung <alex.hung@canonical.com>
----
- drivers/acpi/video.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+On Sat, Sep 29, 2012 at 01:31:52PM +0000, Zhang, Rui wrote:
+>  
+> > > +{
+> > > +	acpi_handle handle = DEVICE_ACPI_HANDLE(dev);
+> > 
+> > If the device is not bound to an ACPI handle this will return NULL. And
+> > I don't see you doing that in this series meaning that..
+> > 
+> 
+> 
+> You're right, I should set pdev->archdata.acpi_handle to the I2C
+> controller in i2c_root.c.
 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index 42b226e..eaa9573 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -724,6 +724,10 @@ acpi_video_init_brightness(struct acpi_video_device *device)
- 				if (level_old == br->levels[i])
- 					level = level_old;
- 		}
-+
-+		if (level == 0)
-+			level = br->levels[(br->count) / 2 + 1];
-+
- 		goto set_level;
- 	}
- 
--- 
-1.7.0.4
-
+There already is an API for that - check drivers/acpi/glue.c.
