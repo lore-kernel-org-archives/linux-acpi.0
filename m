@@ -1,22 +1,176 @@
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Subject: Re: [RFC v9 PATCH 01/21] memory-hotplug: rename remove_memory() to offline_memory()/offline_pages()
-Date: Tue, 2 Oct 2012 13:29:19 -0400
-Message-ID: <CAHGf_=rNSmtxw2JL2g+b-yq9KTFZPWBp90KtERJouDS-vv3zWw@mail.gmail.com>
-References: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com>
- <1346837155-534-2-git-send-email-wency@cn.fujitsu.com> <506509E4.1090000@gmail.com>
- <50651E68.3040208@jp.fujitsu.com> <CAHGf_=oJ_Jmjqcdr4cPJghf7PX+vfmZe=CV2sdQQhS5agzG15w@mail.gmail.com>
- <506A4100.7070305@jp.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <506A4100.7070305@jp.fujitsu.com>
-Sender: linux-sh-owner@vger.kernel.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Ni zhan Chen <nizhan.chen@gmail.com>, wency@cn.fujitsu.com, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org
+From: Lance Ortiz <lance.ortiz@hp.com>
+Subject: [PATCH v2] ACPI: Add new sysfs interface to export device description
+Date: Tue,  2 Oct 2012 12:43:23 -0600
+Message-ID: <1349203403-6996-1-git-send-email-lance.ortiz@hp.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: rob@landley.net, lenb@kernel.org
+Cc: linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Lance Ortiz <lance.ortiz@hp.com>
 List-Id: linux-acpi@vger.kernel.org
 
->> Then, you introduced bisect breakage. It is definitely unacceptable.
->
-> What is "bisect breakage" meaning?
+Add support to export the device description obtained from the ACPI _STR
+method, if one exists for a device, to user-space via a sysfs interface.
+This new interface provides a standard and platform neutral way for users
+to obtain the description text stored in the ACPI _STR method.  If no
+_STR method exists for the device, no sysfs 'description' file will be
+created.  The 'description' file will be located in the /sys/devices/
+directory using the device's path.
 
-Think what's happen when only applying path [1/21].
+/sys/device/<bus>/<bridge path>/<device path>.../firmware_node/description
+
+Example:
+
+/sys/devices/pci0000:00/0000:00.07.0/0000:0e:00.0/firmware_node/description
+
+It can also be located using the ACPI device path, for example:
+
+/sys/devices/LNXSYSTM:00/device:00/ACPI0004:00/PNP0A08:00/device:13/device:15/description
+/sys/devices/LNXSYSTM:00/device:00/ACPI0004:00/ACPI0004:01/ACPI0007:02/description
+
+Execute the 'cat' command on the 'description' file to obtain the
+description string for that device.
+
+This patch also includes documentation describing how the new sysfs
+interface works
+
+Changes from v1-v2 based on comments by Len Brown and Fengguang Wu
+* Removed output "No Description" and leaving a NULL attribute if the
+_STR method failed to evaluate.
+
+* In acpi_device_remove_files() removed the redundent check of
+dev->pnp.str_obj before calling free.  This check triggered a message
+from smatch.
+
+Signed-off-by: Lance Ortiz <lance.ortiz@hp.com>
+---
+ .../ABI/testing/sysfs-devices-firmware_node        |   17 ++++++
+ drivers/acpi/scan.c                                |   54 +++++++++++++++++++-
+ include/acpi/acpi_bus.h                            |    1 +
+ 3 files changed, 70 insertions(+), 2 deletions(-)
+ create mode 100644 Documentation/ABI/testing/sysfs-devices-firmware_node
+
+diff --git a/Documentation/ABI/testing/sysfs-devices-firmware_node b/Documentation/ABI/testing/sysfs-devices-firmware_node
+new file mode 100644
+index 0000000..46badc9
+--- /dev/null
++++ b/Documentation/ABI/testing/sysfs-devices-firmware_node
+@@ -0,0 +1,17 @@
++What:		/sys/devices/.../firmware_node/
++Date:		September 2012
++Contact:	<>
++Description:
++		The /sys/devices/.../firmware_node directory contains attributes
++		allowing the user space to check and modify some firmware
++		related properties of given device.
++
++What:		/sys/devices/.../firmware_node/description
++Date:		September 2012
++Contact:	Lance Ortiz <lance.ortiz@hp.com>
++Description:
++		The /sys/devices/.../firmware/description attribute contains a string
++		that describes the device as provided by the _STR method in the ACPI
++		namespace.  This attribute is read-only.  If the device does not have
++		an _STR method associated with it in the ACPI namespace, this
++		attribute is not present.
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index c8a1f3b..ed5dfeb 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -10,6 +10,7 @@
+ #include <linux/signal.h>
+ #include <linux/kthread.h>
+ #include <linux/dmi.h>
++#include <linux/nls.h>
+ 
+ #include <acpi/acpi_drivers.h>
+ 
+@@ -192,8 +193,35 @@ end:
+ }
+ static DEVICE_ATTR(path, 0444, acpi_device_path_show, NULL);
+ 
++/* sysfs file that shows description text from the ACPI _STR method */
++static ssize_t description_show(struct device *dev,
++				struct device_attribute *attr,
++				char *buf) {
++	struct acpi_device *acpi_dev = to_acpi_device(dev);
++	int result;
++
++	if (acpi_dev->pnp.str_obj == NULL)
++		return 0;
++
++	/*
++	 * The _STR object contains a Unicode identifier for a device.
++	 * We need to convert to utf-8 so it can be displayed.
++	 */
++	result = utf16s_to_utf8s(
++		(wchar_t *)acpi_dev->pnp.str_obj->buffer.pointer,
++		acpi_dev->pnp.str_obj->buffer.length,
++		UTF16_LITTLE_ENDIAN, buf,
++		PAGE_SIZE);
++
++	buf[result++] = '\n';
++
++	return result;
++}
++static DEVICE_ATTR(description, 0444, description_show, NULL);
++
+ static int acpi_device_setup_files(struct acpi_device *dev)
+ {
++	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER, NULL};
+ 	acpi_status status;
+ 	acpi_handle temp;
+ 	int result = 0;
+@@ -217,6 +245,21 @@ static int acpi_device_setup_files(struct acpi_device *dev)
+ 			goto end;
+ 	}
+ 
++	/*
++	 * If device has _STR, 'description' file is created
++	 */
++	status = acpi_get_handle(dev->handle, "_STR", &temp);
++	if (ACPI_SUCCESS(status)) {
++		status = acpi_evaluate_object(dev->handle, "_STR",
++					NULL, &buffer);
++		if (ACPI_FAILURE(status))
++			buffer.pointer = NULL;
++		dev->pnp.str_obj = buffer.pointer;
++		result = device_create_file(&dev->dev, &dev_attr_description);
++		if (result)
++			goto end;
++	}
++
+         /*
+          * If device has _EJ0, 'eject' file is created that is used to trigger
+          * hot-removal function from userland.
+@@ -234,8 +277,15 @@ static void acpi_device_remove_files(struct acpi_device *dev)
+ 	acpi_handle temp;
+ 
+ 	/*
+-	 * If device has _EJ0, 'eject' file is created that is used to trigger
+-	 * hot-removal function from userland.
++	 * If device has _STR, remove 'description' file
++	 */
++	status = acpi_get_handle(dev->handle, "_STR", &temp);
++	if (ACPI_SUCCESS(status)) {
++		kfree(dev->pnp.str_obj);
++		device_remove_file(&dev->dev, &dev_attr_description);
++	}
++	/*
++	 * If device has _EJ0, remove 'eject' file.
+ 	 */
+ 	status = acpi_get_handle(dev->handle, "_EJ0", &temp);
+ 	if (ACPI_SUCCESS(status))
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 9e6e1c6..12172d5 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -209,6 +209,7 @@ struct acpi_device_pnp {
+ 	struct list_head ids;		/* _HID and _CIDs */
+ 	acpi_device_name device_name;	/* Driver-determined */
+ 	acpi_device_class device_class;	/*        "          */
++	union acpi_object *str_obj;	/* unicode string for _STR method */
+ };
+ 
+ #define acpi_device_bid(d)	((d)->pnp.bus_id)
+-- 
+1.7.7.6
