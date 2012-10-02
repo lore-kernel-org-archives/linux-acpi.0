@@ -1,59 +1,62 @@
-From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: [acpi:next 4/5] drivers/acpi/scan.c:328 acpi_device_remove_files()
- info: redundant null check on dev->pnp.str_obj calling kfree()
-Date: Tue, 2 Oct 2012 15:39:52 +0800
-Message-ID: <20121002073952.GA24180@localhost>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: [PATCH 0/2] memory-hotplug : notification of memoty block's state
+Date: Tue, 2 Oct 2012 17:25:06 +0900
+Message-ID: <506AA4E2.7070302@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:48874 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752957Ab2JBHj5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 2 Oct 2012 03:39:57 -0400
-Content-Disposition: inline
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:58457 "EHLO
+	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754511Ab2JBIZo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Oct 2012 04:25:44 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lance Ortiz <lance.ortiz@hp.com>
-Cc: kernel-janitors@vger.kernel.org, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+To: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, wency@cn.fujitsu.com
 
-Hi Lance,
+We are trying to implement a physical memory hot removing function as
+following thread.
 
-FYI, there are new smatch warnings show up in
+https://lkml.org/lkml/2012/9/5/201
 
-tree:   git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux.git next
-head:   10eaea0474b0078bb84ff9009329b83d3e30337f
-commit: 2bc8195d56163f54d3036304efa8d71ab1091bf1 [4/5] ACPI: Add new sysfs interface to export device description
+But there is not enough review to merge into linux kernel.
 
-+ drivers/acpi/scan.c:328 acpi_device_remove_files() info: redundant null check on dev->pnp.str_obj calling kfree()
+I think there are following blockades.
+  1. no physical memory hot removable system
+  2. huge patch-set
 
-vim +328 drivers/acpi/scan.c
+If you have a KVM system, we can get rid of 1st blockade. Because
+applying following patch, we can create memory hot removable system
+on KVM guest.
 
-e49bd2dd (Zhang Rui      2006-12-08  312) 		result = device_create_file(&dev->dev, &dev_attr_eject);
-0c526d96 (Alex Chiang    2009-05-14  313) end:
-e49bd2dd (Zhang Rui      2006-12-08  314) 	return result;
-^1da177e (Linus Torvalds 2005-04-16  315) }
-^1da177e (Linus Torvalds 2005-04-16  316) 
-f883d9db (Patrick Mochel 2006-12-07  317) static void acpi_device_remove_files(struct acpi_device *dev)
-^1da177e (Linus Torvalds 2005-04-16  318) {
-f883d9db (Patrick Mochel 2006-12-07  319) 	acpi_status status;
-f883d9db (Patrick Mochel 2006-12-07  320) 	acpi_handle temp;
-^1da177e (Linus Torvalds 2005-04-16  321) 
-f883d9db (Patrick Mochel 2006-12-07  322) 	/*
-2bc8195d (Lance Ortiz    2012-09-07  323) 	 * If device has _STR, remove 'description' file
-2bc8195d (Lance Ortiz    2012-09-07  324) 	 */
-2bc8195d (Lance Ortiz    2012-09-07  325) 	status = acpi_get_handle(dev->handle, "_STR", &temp);
-2bc8195d (Lance Ortiz    2012-09-07  326) 	if (ACPI_SUCCESS(status)) {
-2bc8195d (Lance Ortiz    2012-09-07  327) 		if (dev->pnp.str_obj != NULL)
-2bc8195d (Lance Ortiz    2012-09-07 @328) 			kfree(dev->pnp.str_obj);
-2bc8195d (Lance Ortiz    2012-09-07  329) 		device_remove_file(&dev->dev, &dev_attr_description);
-2bc8195d (Lance Ortiz    2012-09-07  330) 	}
-2bc8195d (Lance Ortiz    2012-09-07  331) 	/*
-2bc8195d (Lance Ortiz    2012-09-07  332) 	 * If device has _EJ0, remove 'eject' file.
-f883d9db (Patrick Mochel 2006-12-07  333) 	 */
-f883d9db (Patrick Mochel 2006-12-07  334) 	status = acpi_get_handle(dev->handle, "_EJ0", &temp);
-f883d9db (Patrick Mochel 2006-12-07  335) 	if (ACPI_SUCCESS(status))
-f883d9db (Patrick Mochel 2006-12-07  336) 		device_remove_file(&dev->dev, &dev_attr_eject);
+http://lists.gnu.org/archive/html/qemu-devel/2012-07/msg01389.html
 
----
-0-DAY kernel build testing backend         Open Source Technology Centre
-Fengguang Wu, Yuanhan Liu                              Intel Corporation
+2nd blockade is own problem. So we try to divide huge patch into
+a small patch in each function as follows: 
+
+ - bug fix
+ - acpi framework
+ - kernel core
+
+We had already sent bug fix patches.
+
+https://lkml.org/lkml/2012/9/27/39
+
+And the patch fixes following bug.
+
+remove_memory() offlines memory. And it is called by following two cases:
+
+1. echo offline >/sys/devices/system/memory/memoryXX/state
+2. hot remove a memory device
+
+In the 1st case, the memory block's state is changed and the notification
+that memory block's state changed is sent to userland after calling
+offline_memory(). So user can notice memory block is changed.
+
+But in the 2nd case, the memory block's state is not changed and the
+notification is not also sent to userspcae even if calling offline_memory().
+So user cannot notice memory block is changed.
+
+We should also notify to userspace at 2nd case.
+
