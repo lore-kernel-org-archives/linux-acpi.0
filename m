@@ -1,37 +1,49 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: Re: [acpi:next 4/5] drivers/acpi/scan.c:328
- acpi_device_remove_files() info: redundant null check on dev->pnp.str_obj
- calling kfree()
-Date: Tue, 2 Oct 2012 23:46:05 +0300
-Message-ID: <20121002204604.GW4587@mwanda>
-References: <20121002073952.GA24180@localhost>
- <A961433CDFF2F640A2866803152E61F950D26B71@G4W3226.americas.hpqcorp.net>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH 0/2] memory-hotplug : notification of memoty block's
+ state
+Date: Tue, 2 Oct 2012 14:42:11 -0700
+Message-ID: <20121002144211.b60881a8.akpm@linux-foundation.org>
+References: <506AA4E2.7070302@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:34373 "EHLO
-	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751318Ab2JBUqQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Oct 2012 16:46:16 -0400
-Content-Disposition: inline
-In-Reply-To: <A961433CDFF2F640A2866803152E61F950D26B71@G4W3226.americas.hpqcorp.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <506AA4E2.7070302@jp.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, wency@cn.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
-To: "Ortiz, Lance E" <lance.oritz@hp.com>
-Cc: Fengguang Wu <fengguang.wu@intel.com>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>, Len Brown <len.brown@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
 
-On Tue, Oct 02, 2012 at 06:53:05PM +0000, Ortiz, Lance E wrote:
-> Thanks for letting me know. I send out an updated patch removing
-> the redundant check.  But I am wondering if we should leave it in
-> for safety's sake.
+On Tue, 2 Oct 2012 17:25:06 +0900
+Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com> wrote:
 
-There is no safety issue here.  kfree() will always accept NULL
-pointers.  It's cleaner to leave it out.
+> remove_memory() offlines memory. And it is called by following two cases:
+> 
+> 1. echo offline >/sys/devices/system/memory/memoryXX/state
+> 2. hot remove a memory device
+> 
+> In the 1st case, the memory block's state is changed and the notification
+> that memory block's state changed is sent to userland after calling
+> offline_memory(). So user can notice memory block is changed.
+> 
+> But in the 2nd case, the memory block's state is not changed and the
+> notification is not also sent to userspcae even if calling offline_memory().
+> So user cannot notice memory block is changed.
+> 
+> We should also notify to userspace at 2nd case.
 
-> Is having a info message like this from smatch a problem?
+These two little patches look reasonable to me.
 
-It's not a problem.  We just send you the one email is all.
+There's a lot of recent activity with memory hotplug!  We're in the 3.7
+merge window now so it is not a good time to be merging new material. 
+Also there appear to be two teams working on it and it's unclear to me
+how well coordinated this work is?
 
-regards,
-dan carpenter
+However these two patches are pretty simple and do fix a problem, so I
+added them to the 3.7 MM queue.
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
