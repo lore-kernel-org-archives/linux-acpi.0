@@ -1,53 +1,52 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 4/4] cpuidle - support multiple drivers
-Date: Tue, 02 Oct 2012 04:08:23 +0200
-Message-ID: <3723306.GAm1cPlZaP@vostro.rjw.lan>
-References: <1348526634-19029-1-git-send-email-daniel.lezcano@linaro.org> <201209300007.49771.rjw@sisk.pl> <50687497.9040205@linaro.org>
+Subject: Re: [RFD][PATCH 0/7] PM / QoS: Support for PM QoS device flags
+Date: Tue, 02 Oct 2012 04:17:22 +0200
+Message-ID: <1562279.1b7gTztYdq@vostro.rjw.lan>
+References: <201209282351.10663.rjw@sisk.pl> <CAN5iSWq2UE4gk3VJFdnV_mOxDShrZEKPcBErvNBPVR4iFgmutQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:54483 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([193.178.161.156]:54502 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752529Ab2JBCFB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 1 Oct 2012 22:05:01 -0400
-In-Reply-To: <50687497.9040205@linaro.org>
+	id S1752100Ab2JBCN5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 1 Oct 2012 22:13:57 -0400
+In-Reply-To: <CAN5iSWq2UE4gk3VJFdnV_mOxDShrZEKPcBErvNBPVR4iFgmutQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: linaro-dev@lists.linaro.org, linux-pm@vger.kernel.org, pdeschrijver@nvidia.com, patches@linaro.org, linux-acpi@vger.kernel.org, lenb@kernel.org
+To: "Pihet-XID, Jean" <j-pihet@ti.com>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Huang Ying <ying.huang@intel.com>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, Lan Tianyu <tianyu.lan@intel.com>, Aaron Lu <aaron.lu@intel.com>, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, mark gross <markgross@thegnar.org>
 
-On Sunday 30 of September 2012 18:34:31 Daniel Lezcano wrote:
-> On 09/30/2012 12:07 AM, Rafael J. Wysocki wrote:
-> > On Saturday, September 29, 2012, Daniel Lezcano wrote:
-> >> On 09/29/2012 11:41 AM, Francesco Lavra wrote:
-> >>> Hi,
-> >> Hi Francesco,
-> >>
-> >> thanks for reviewing the patch.
-> >>
-> >>>>  static ssize_t show_current_driver(struct device *dev,
-> >>>>  				   struct device_attribute *attr,
-> >>>>  				   char *buf)
-> >>>>  {
-> >>>> -	ssize_t ret;
-> >>>> -	struct cpuidle_driver *cpuidle_driver = cpuidle_get_driver();
-> >>>> +	struct cbarg cbarg = { .buf = buf };
-> >>> cbarg.count should be initialized to 0.
-> >> Actually, with this initialization, all the fields will be initialized
-> >> to 0, except 'buf'.
-> > However, it would be good to initialize count explicitly so as to show
-> > that we care about the initial value of it.
+On Monday 01 of October 2012 18:17:10 Pihet-XID, Jean wrote:
+> Hi Rafael,
 > 
-> Ok, I will change that in a V2.
-> 
-> Rafael, you're right, this approach makes more sense IMO.
+> On Fri, Sep 28, 2012 at 11:51 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > Hi All,
+> >
+> > The following patch series extends the existing device PM QoS core code to
+> > support PM QoS flags representing binary (on/off) requirements, such as
+> > whether or not power may be removed entirely from the device or whether
+> > or not remote wakeup (i.e. signalling of external events while suspended)
+> > should work for it.
+> >
+> > [1/7] Prepare PM QoS device structure for adding more constraint types.
+> > [2/7] Introduce request and constraint data types for PM QoS flags.
+> > [3/7] Prepare struct dev_pm_qos_request for representing more request types.
+> > [4/7] Introduce device PM QoS flags support.
+> > [5/7] Make it possible to expose PM QoS device flags to user space.
+> > [6/7] PM / Domains: Check device PM QoS flags in pm_genpd_poweroff().
+> > [7/7] PM / ACPI: Take device PM QoS flags into account.
+> >
+> > The last two patches make the generic PM domains framework and ACPI / PCI,
+> > respectively, take the PM QoS device flags introduced by patch [5/7] into
+> > accont when making their decisions.
+> >
+> > The changelogs describe the details, but if anything isn't clear, please let
+> > me know.
+> That looks OK after review. FWIW:
+> Reviewed-by: Jean Pihet <j-pihet@ti.com>
 
-Well, I'm glad that you agree. :-)
+Thanks!
 
-I'm sorry I haven't posted any comments about the latest series,
-I'll do my best to review it later this week.
-
-Thanks,
 Rafael
 
