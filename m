@@ -1,343 +1,188 @@
-From: Ni zhan Chen <nizhan.chen@gmail.com>
-Subject: Re: [RFC v9 PATCH 16/21] memory-hotplug: free memmap of sparse-vmemmap
-Date: Tue, 02 Oct 2012 12:21:48 +0800
-Message-ID: <506A6BDC.3010400@gmail.com>
-References: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com> <1346837155-534-17-git-send-email-wency@cn.fujitsu.com>
+From: joeyli <jlee@suse.com>
+Subject: Re: PROBLEM: Acer D255E Backlight out for 10 seconds with ACPI
+Date: Tue, 02 Oct 2012 12:39:39 +0800
+Message-ID: <1349152779.24232.65.camel@linux-s257.site>
+References: <CALKZjMKcCA68XLWADb+EmU+a3VTQuOGr1dqNywGCCMj8DWNsiQ@mail.gmail.com>
+	 <1348701543.8621.104.camel@linux-s257.site>
+	 <CALKZjMKDb_tJ6wQmF4D7RLN+C_4fPTGecufuXa4LM+JyAp_XUw@mail.gmail.com>
+	 <1348876697.8621.135.camel@linux-s257.site>
+	 <CALKZjMJGQ+eQaTWEawEXc9caRpotqHNb9CpDxKXUEssPFse5Lw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1346837155-534-17-git-send-email-wency@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: isimatu.yasuaki@jp.fujitsu.com
-Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, Wen Congyang <wency@cn.fujitsu.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.nue.novell.com ([195.135.221.5]:33173 "EHLO
+	smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750753Ab2JBEq2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Oct 2012 00:46:28 -0400
+In-Reply-To: <CALKZjMJGQ+eQaTWEawEXc9caRpotqHNb9CpDxKXUEssPFse5Lw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dan <vxltage@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-On 09/05/2012 05:25 PM, wency@cn.fujitsu.com wrote:
-> From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->
-> All pages of virtual mapping in removed memory cannot be freed, since some pages
-> used as PGD/PUD includes not only removed memory but also other memory. So the
-> patch checks whether page can be freed or not.
->
-> How to check whether page can be freed or not?
->   1. When removing memory, the page structs of the revmoved memory are filled
->      with 0FD.
->   2. All page structs are filled with 0xFD on PT/PMD, PT/PMD can be cleared.
->      In this case, the page used as PT/PMD can be freed.
->
-> Applying patch, __remove_section() of CONFIG_SPARSEMEM_VMEMMAP is integrated
-> into one. So __remove_section() of CONFIG_SPARSEMEM_VMEMMAP is deleted.
->
-> Note:  vmemmap_kfree() and vmemmap_free_bootmem() are not implemented for ia64,
-> ppc, s390, and sparc.
->
-> CC: David Rientjes <rientjes@google.com>
-> CC: Jiang Liu <liuj97@gmail.com>
-> CC: Len Brown <len.brown@intel.com>
-> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-> CC: Paul Mackerras <paulus@samba.org>
-> CC: Christoph Lameter <cl@linux.com>
-> Cc: Minchan Kim <minchan.kim@gmail.com>
-> CC: Andrew Morton <akpm@linux-foundation.org>
-> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-> CC: Wen Congyang <wency@cn.fujitsu.com>
-> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> ---
->   arch/ia64/mm/discontig.c  |    8 +++
->   arch/powerpc/mm/init_64.c |    8 +++
->   arch/s390/mm/vmem.c       |    8 +++
->   arch/sparc/mm/init_64.c   |    8 +++
->   arch/x86/mm/init_64.c     |  119 +++++++++++++++++++++++++++++++++++++++++++++
->   include/linux/mm.h        |    2 +
->   mm/memory_hotplug.c       |   17 +------
->   mm/sparse.c               |    5 +-
->   8 files changed, 158 insertions(+), 17 deletions(-)
->
-> diff --git a/arch/ia64/mm/discontig.c b/arch/ia64/mm/discontig.c
-> index 33943db..0d23b69 100644
-> --- a/arch/ia64/mm/discontig.c
-> +++ b/arch/ia64/mm/discontig.c
-> @@ -823,6 +823,14 @@ int __meminit vmemmap_populate(struct page *start_page,
->   	return vmemmap_populate_basepages(start_page, size, node);
->   }
->   
-> +void vmemmap_kfree(struct page *memmap, unsigned long nr_pages)
-> +{
-> +}
-> +
-> +void vmemmap_free_bootmem(struct page *memmap, unsigned long nr_pages)
-> +{
-> +}
-> +
->   void register_page_bootmem_memmap(unsigned long section_nr,
->   				  struct page *start_page, unsigned long size)
->   {
-> diff --git a/arch/powerpc/mm/init_64.c b/arch/powerpc/mm/init_64.c
-> index 3690c44..835a2b3 100644
-> --- a/arch/powerpc/mm/init_64.c
-> +++ b/arch/powerpc/mm/init_64.c
-> @@ -299,6 +299,14 @@ int __meminit vmemmap_populate(struct page *start_page,
->   	return 0;
->   }
->   
-> +void vmemmap_kfree(struct page *memmap, unsigned long nr_pages)
-> +{
-> +}
-> +
-> +void vmemmap_free_bootmem(struct page *memmap, unsigned long nr_pages)
-> +{
-> +}
-> +
->   void register_page_bootmem_memmap(unsigned long section_nr,
->   				  struct page *start_page, unsigned long size)
->   {
-> diff --git a/arch/s390/mm/vmem.c b/arch/s390/mm/vmem.c
-> index eda55cd..4b42b0b 100644
-> --- a/arch/s390/mm/vmem.c
-> +++ b/arch/s390/mm/vmem.c
-> @@ -227,6 +227,14 @@ out:
->   	return ret;
->   }
->   
-> +void vmemmap_kfree(struct page *memmap, unsigned long nr_pages)
-> +{
-> +}
-> +
-> +void vmemmap_free_bootmem(struct page *memmap, unsigned long nr_pages)
-> +{
-> +}
-> +
->   void register_page_bootmem_memmap(unsigned long section_nr,
->   				  struct page *start_page, unsigned long size)
->   {
-> diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-> index add1cc7..1384826 100644
-> --- a/arch/sparc/mm/init_64.c
-> +++ b/arch/sparc/mm/init_64.c
-> @@ -2078,6 +2078,14 @@ void __meminit vmemmap_populate_print_last(void)
->   	}
->   }
->   
-> +void vmemmap_kfree(struct page *memmap, unsigned long nr_pages)
-> +{
-> +}
-> +
-> +void vmemmap_free_bootmem(struct page *memmap, unsigned long nr_pages)
-> +{
-> +}
-> +
->   void register_page_bootmem_memmap(unsigned long section_nr,
->   				  struct page *start_page, unsigned long size)
->   {
-> diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
-> index 0075592..4e8f8a4 100644
-> --- a/arch/x86/mm/init_64.c
-> +++ b/arch/x86/mm/init_64.c
-> @@ -1138,6 +1138,125 @@ vmemmap_populate(struct page *start_page, unsigned long size, int node)
->   	return 0;
->   }
->   
-> +#define PAGE_INUSE 0xFD
-> +
-> +unsigned long find_and_clear_pte_page(unsigned long addr, unsigned long end,
-> +			    struct page **pp, int *page_size)
-> +{
-> +	pgd_t *pgd;
-> +	pud_t *pud;
-> +	pmd_t *pmd;
-> +	pte_t *pte;
-> +	void *page_addr;
-> +	unsigned long next;
-> +
-> +	*pp = NULL;
-> +
-> +	pgd = pgd_offset_k(addr);
-> +	if (pgd_none(*pgd))
-> +		return pgd_addr_end(addr, end);
-> +
-> +	pud = pud_offset(pgd, addr);
-> +	if (pud_none(*pud))
-> +		return pud_addr_end(addr, end);
-> +
-> +	if (!cpu_has_pse) {
-> +		next = (addr + PAGE_SIZE) & PAGE_MASK;
-> +		pmd = pmd_offset(pud, addr);
-> +		if (pmd_none(*pmd))
-> +			return next;
-> +
-> +		pte = pte_offset_kernel(pmd, addr);
-> +		if (pte_none(*pte))
-> +			return next;
-> +
-> +		*page_size = PAGE_SIZE;
-> +		*pp = pte_page(*pte);
-> +	} else {
-> +		next = pmd_addr_end(addr, end);
-> +
-> +		pmd = pmd_offset(pud, addr);
-> +		if (pmd_none(*pmd))
-> +			return next;
-> +
-> +		*page_size = PMD_SIZE;
-> +		*pp = pmd_page(*pmd);
-> +	}
-> +
-> +	/*
-> +	 * Removed page structs are filled with 0xFD.
-> +	 */
-> +	memset((void *)addr, PAGE_INUSE, next - addr);
-> +
-> +	page_addr = page_address(*pp);
-> +
-> +	/*
-> +	 * Check the page is filled with 0xFD or not.
-> +	 * memchr_inv() returns the address. In this case, we cannot
-> +	 * clear PTE/PUD entry, since the page is used by other.
-> +	 * So we cannot also free the page.
-> +	 *
-> +	 * memchr_inv() returns NULL. In this case, we can clear
-> +	 * PTE/PUD entry, since the page is not used by other.
-> +	 * So we can also free the page.
-> +	 */
-> +	if (memchr_inv(page_addr, PAGE_INUSE, *page_size)) {
-> +		*pp = NULL;
-> +		return next;
-> +	}
-> +
+=E6=96=BC =E5=85=AD=EF=BC=8C2012-09-29 =E6=96=BC 22:42 -0400=EF=BC=8CDa=
+n =E6=8F=90=E5=88=B0=EF=BC=9A
+> On Fri, Sep 28, 2012 at 7:58 PM, joeyli <jlee@suse.com> wrote:
+> > Hi Dan,
+> >
+> > =E6=96=BC =E5=9B=9B=EF=BC=8C2012-09-27 =E6=96=BC 14:09 -0400=EF=BC=8C=
+Dan =E6=8F=90=E5=88=B0=EF=BC=9A
+> >> On Wed, Sep 26, 2012 at 7:19 PM, joeyli <jlee@suse.com> wrote:
+> >> > =E6=96=BC =E4=B8=89=EF=BC=8C2012-09-26 =E6=96=BC 16:48 -0400=EF=BC=
+=8CDan =E6=8F=90=E5=88=B0=EF=BC=9A
+> >> >> Hello,
+> >> >>
+> >> >> Apologies if this was sent to the wrong place.
+> >> >>
+> >> >> With an Acer AOD255E netbook, the backlight goes out for exactl=
+y 10
+> >> >> seconds before returning while booting.
+> >> >>
+> >> >> This is a backlight issue and not KMS, as I can shine a flashli=
+ght at
+> >> >> the screen and still see boot text scrolling.
+> >> >>
+> >> >> With "acpi=3Doff" appended to the kernel line, this no longer o=
+ccurs (Fn
+> >> >> key backlight controls still work with this appended). With eve=
+ry
+> >
+> > It's a clue for that problem is happen in acpi, but sometimes the F=
+n key
+> > on notebook is changed by BIOS, need check DSDT.
+> >
+> >> >> other acpi option I have tried, this still occurs though. This
+> >> >> includes "acpi_backlight" and "acpi_display_output". With
+> >> >> "acpi_backlight=3Dvendor" the entry in /sys/class/backlight cha=
+nges from
+> >> >> acpi_video0 to acer_wmi, but backlight still goes out.
+> >> >>
+> >> >> Otherwise backlight works correctly.
+> >> >
+> >> > Could you please try this kernel parameter?
+> >> > video.use_bios_initial_backlight=3D0
+> >> >
+> >> >
+> >> > Thanks
+> >> > Joey Lee
+> >> >
+> >>
+> >> Same results with that kernel parameter applied.
+> >>
+> >
+> > This parameter works when _BQC used indexed value but not direct us=
+e
+> > brightness value.
+> > One possible thing is BIOS really set the initial index or brightne=
+ss
+> > level to lowest level.
+> >
+> >> Just to make it clear when this is happening:
+> >> The BIOS screen and bootloader work fine. This occurs during the b=
+oot
+> >> process while the systemd text is scrolling (or with the splash sc=
+reen
+> >> in the case of Ubuntu). I have not been able to pin down any event
+> >> during the boot process that triggers it. It seems to be based on =
+time
+> >> after the kernel loads. I can tell by the difference booting from =
+a
+> >> HDD vs a SSD. With a HDD, it will occur earlier in the process (cl=
+ose
+> >> to the time init is called) since booting takes longer. With an SS=
+D,
+> >> the backlight goes out close to the time the login screen appears.
+> >>
+> >> Once the backlight is out, it will stay out for exactly 10 seconds
+> >> before returning no matter what is on the screen.
+> >>
+> >
+> > What's your value of max brightness? Please run:
+> >  # cat /sys/class/backlight/acpi_video0/max_brightness
+> >
+> > Please also manually change brightness level after your system boot
+> > finished, and look at does it changed or have problem like reversed=
+?
+> >  # echo 10 > /sys/class/backlight/acpi_video0/brightness
+> >
+> > And,
+> > Please attached your acpidump:
+> >  # acpidump > acpidump.dat
+> >
+> >
+> > Thanks
+> > Joey Lee
+> >
+> >
+>=20
+> # cat /sys/class/backlight/acpi_video0/max_brightness
+> 9
+>=20
+> Echoing values into brightness works as expected. Higher values
+> increase the brightness, lower values descrease it. Echoing 0 into it
+> results in a dim screen, but not a blank one.
+>=20
+> I should also mention my findings are consistent with this person's:
+> https://bbs.archlinux.org/viewtopic.php?pid=3D941871#p941871
+>=20
+> He found that the brightness level in
+> /sys/class/backlight/acpi_video0/brightness remains the same during
+> the blackout by echoing it out at random times during the boot proces=
+s
+> (I had found this out awhile back but failed to remember and mention
+> it in the original message. Sorry about that!).
+>=20
+> Acpidump is attached.
+>=20
 
-Hi Yasuaki,
+I traced your DSDT at this morning, didn't see problem in _BCL, _BCM an=
+d
+_BQC.=20
+Per DSDT, the _BQC on this machine used brightness value but not index,
+so 'video.use_bios_initial_backlight=3D0' should works to you for set t=
+he
+backlight to max_level when acpi/video driver loaded.
 
-why call memchr_inv check after memset, this time the page can always be 
-filled with 0xFD.
+And, the value of max_level in package of _BCL is 100, there have no 0
+value in level list:
 
-> +	if (!cpu_has_pse)
-> +		pte_clear(&init_mm, addr, pte);
-> +	else
-> +		pmd_clear(pmd);
-> +
-> +	return next;
-> +}
-> +
-> +void vmemmap_kfree(struct page *memmap, unsigned long nr_pages)
-> +{
-> +	unsigned long addr = (unsigned long)memmap;
-> +	unsigned long end = (unsigned long)(memmap + nr_pages);
-> +	unsigned long next;
-> +	struct page *page;
-> +	int page_size;
-> +
-> +	for (; addr < end; addr = next) {
-> +		page = NULL;
-> +		page_size = 0;
-> +		next = find_and_clear_pte_page(addr, end, &page, &page_size);
-> +		if (!page)
-> +			continue;
-> +
-> +		free_pages((unsigned long)page_address(page),
-> +			    get_order(page_size));
-> +		__flush_tlb_one(addr);
-> +	}
-> +}
-> +
-> +void vmemmap_free_bootmem(struct page *memmap, unsigned long nr_pages)
-> +{
-> +	unsigned long addr = (unsigned long)memmap;
-> +	unsigned long end = (unsigned long)(memmap + nr_pages);
-> +	unsigned long next;
-> +	struct page *page;
-> +	int page_size;
-> +	unsigned long magic;
-> +
-> +	for (; addr < end; addr = next) {
-> +		page = NULL;
-> +		page_size = 0;
-> +		next = find_and_clear_pte_page(addr, end, &page, &page_size);
-> +		if (!page)
-> +			continue;
-> +
-> +		magic = (unsigned long) page->lru.next;
-> +		if (magic == SECTION_INFO)
-> +			put_page_bootmem(page);
-> +		flush_tlb_kernel_range(addr, end);
-> +	}
-> +}
-> +
->   void register_page_bootmem_memmap(unsigned long section_nr,
->   				  struct page *start_page, unsigned long size)
->   {
-> diff --git a/include/linux/mm.h b/include/linux/mm.h
-> index c607913..fb0d1fc 100644
-> --- a/include/linux/mm.h
-> +++ b/include/linux/mm.h
-> @@ -1620,6 +1620,8 @@ int vmemmap_populate(struct page *start_page, unsigned long pages, int node);
->   void vmemmap_populate_print_last(void);
->   void register_page_bootmem_memmap(unsigned long section_nr, struct page *map,
->   				  unsigned long size);
-> +void vmemmap_kfree(struct page *memmpa, unsigned long nr_pages);
-> +void vmemmap_free_bootmem(struct page *memmpa, unsigned long nr_pages);
->   
->   enum mf_flags {
->   	MF_COUNT_INCREASED = 1 << 0,
-> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-> index 647a7f2..c54922c 100644
-> --- a/mm/memory_hotplug.c
-> +++ b/mm/memory_hotplug.c
-> @@ -308,19 +308,6 @@ static int __meminit __add_section(int nid, struct zone *zone,
->   	return register_new_memory(nid, __pfn_to_section(phys_start_pfn));
->   }
->   
-> -#ifdef CONFIG_SPARSEMEM_VMEMMAP
-> -static int __remove_section(struct zone *zone, struct mem_section *ms)
-> -{
-> -	int ret = -EINVAL;
-> -
-> -	if (!valid_section(ms))
-> -		return ret;
-> -
-> -	ret = unregister_memory_section(ms);
-> -
-> -	return ret;
-> -}
-> -#else
->   static int __remove_section(struct zone *zone, struct mem_section *ms)
->   {
->   	unsigned long flags;
-> @@ -337,9 +324,9 @@ static int __remove_section(struct zone *zone, struct mem_section *ms)
->   	pgdat_resize_lock(pgdat, &flags);
->   	sparse_remove_one_section(zone, ms);
->   	pgdat_resize_unlock(pgdat, &flags);
-> -	return 0;
-> +
-> +	return ret;
->   }
-> -#endif
->   
->   /*
->    * Reasonably generic function for adding memory.  It is
-> diff --git a/mm/sparse.c b/mm/sparse.c
-> index fac95f2..ab9d755 100644
-> --- a/mm/sparse.c
-> +++ b/mm/sparse.c
-> @@ -613,12 +613,13 @@ static inline struct page *kmalloc_section_memmap(unsigned long pnum, int nid,
->   	/* This will make the necessary allocations eventually. */
->   	return sparse_mem_map_populate(pnum, nid);
->   }
-> -static void __kfree_section_memmap(struct page *memmap, unsigned long nr_pages)
-> +static void __kfree_section_memmap(struct page *page, unsigned long nr_pages)
->   {
-> -	return; /* XXX: Not implemented yet */
-> +	vmemmap_kfree(page, nr_pages);
->   }
->   static void free_map_bootmem(struct page *page, unsigned long nr_pages)
->   {
-> +	vmemmap_free_bootmem(page, nr_pages);
->   }
->   #else
->   static struct page *__kmalloc_section_memmap(unsigned long nr_pages)
+    Method (_BCL, 0, NotSerialized)
+    {
+        Return (Package (0x0C)
+        {
+            0x46,               /* level on AC */
+            0x28,               /* level on Battery */
+            0x0A,               /* 10 */
+            0x14,               /* 20 */
+            0x1E,
+            0x28,
+            0x32,
+            0x3C,
+            0x46,
+            0x50,
+            0x5A,
+            0x64                /* 100 */
+
+That strange for 'video.use_bios_initial_backlight=3D0' doesn't work to
+you for set the backlight level to maximum.
+Could you please share the acpi debug log? Please add the following
+kernel parameter when system boot. Please also check the kernel config
+need CONFIG_ACPI_DEBUG=3Dy:
+
+	acpi.debug_level=3D0x0000000F acpi.debug_layer=3D0xffffffff log_buf_le=
+n=3D5M
+
+Please attached on your dmesg or boot message after system boot finishe=
+d. Hope we
+can find any hint from acpi debug log.
+
+
+Thanks a lot!
+Joey Lee
 
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
