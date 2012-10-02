@@ -1,66 +1,53 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [RFC v9 PATCH 01/21] memory-hotplug: rename remove_memory() to
- offline_memory()/offline_pages()
-Date: Tue, 2 Oct 2012 10:18:56 +0900
-Message-ID: <506A4100.7070305@jp.fujitsu.com>
-References: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com> <1346837155-534-2-git-send-email-wency@cn.fujitsu.com> <506509E4.1090000@gmail.com> <50651E68.3040208@jp.fujitsu.com> <CAHGf_=oJ_Jmjqcdr4cPJghf7PX+vfmZe=CV2sdQQhS5agzG15w@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 4/4] cpuidle - support multiple drivers
+Date: Tue, 02 Oct 2012 04:08:23 +0200
+Message-ID: <3723306.GAm1cPlZaP@vostro.rjw.lan>
+References: <1348526634-19029-1-git-send-email-daniel.lezcano@linaro.org> <201209300007.49771.rjw@sisk.pl> <50687497.9040205@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <CAHGf_=oJ_Jmjqcdr4cPJghf7PX+vfmZe=CV2sdQQhS5agzG15w@mail.gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Ni zhan Chen <nizhan.chen@gmail.com>, wency@cn.fujitsu.com, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([193.178.161.156]:54483 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752529Ab2JBCFB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 1 Oct 2012 22:05:01 -0400
+In-Reply-To: <50687497.9040205@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: linaro-dev@lists.linaro.org, linux-pm@vger.kernel.org, pdeschrijver@nvidia.com, patches@linaro.org, linux-acpi@vger.kernel.org, lenb@kernel.org
 
-Hi Kosaki-san,
+On Sunday 30 of September 2012 18:34:31 Daniel Lezcano wrote:
+> On 09/30/2012 12:07 AM, Rafael J. Wysocki wrote:
+> > On Saturday, September 29, 2012, Daniel Lezcano wrote:
+> >> On 09/29/2012 11:41 AM, Francesco Lavra wrote:
+> >>> Hi,
+> >> Hi Francesco,
+> >>
+> >> thanks for reviewing the patch.
+> >>
+> >>>>  static ssize_t show_current_driver(struct device *dev,
+> >>>>  				   struct device_attribute *attr,
+> >>>>  				   char *buf)
+> >>>>  {
+> >>>> -	ssize_t ret;
+> >>>> -	struct cpuidle_driver *cpuidle_driver = cpuidle_get_driver();
+> >>>> +	struct cbarg cbarg = { .buf = buf };
+> >>> cbarg.count should be initialized to 0.
+> >> Actually, with this initialization, all the fields will be initialized
+> >> to 0, except 'buf'.
+> > However, it would be good to initialize count explicitly so as to show
+> > that we care about the initial value of it.
+> 
+> Ok, I will change that in a V2.
+> 
+> Rafael, you're right, this approach makes more sense IMO.
 
-2012/09/29 7:15, KOSAKI Motohiro wrote:
-> On Thu, Sep 27, 2012 at 11:50 PM, Yasuaki Ishimatsu
-> <isimatu.yasuaki@jp.fujitsu.com> wrote:
->> Hi Chen,
->>
->>
->> 2012/09/28 11:22, Ni zhan Chen wrote:
->>>
->>> On 09/05/2012 05:25 PM, wency@cn.fujitsu.com wrote:
->>>>
->>>> From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->>>>
->>>> remove_memory() only try to offline pages. It is called in two cases:
->>>> 1. hot remove a memory device
->>>> 2. echo offline >/sys/devices/system/memory/memoryXX/state
->>>>
->>>> In the 1st case, we should also change memory block's state, and notify
->>>> the userspace that the memory block's state is changed after offlining
->>>> pages.
->>>>
->>>> So rename remove_memory() to offline_memory()/offline_pages(). And in
->>>> the 1st case, offline_memory() will be used. The function
->>>> offline_memory()
->>>> is not implemented. In the 2nd case, offline_pages() will be used.
->>>
->>>
->>> But this time there is not a function associated with add_memory.
->>
->>
->> To associate with add_memory() later, we renamed it.
->
-> Then, you introduced bisect breakage. It is definitely unacceptable.
+Well, I'm glad that you agree. :-)
 
-What is "bisect breakage" meaning?
+I'm sorry I haven't posted any comments about the latest series,
+I'll do my best to review it later this week.
 
 Thanks,
-Yasuaki Ishimatsu
+Rafael
 
->
-> NAK.
->
-
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
