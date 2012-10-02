@@ -1,62 +1,138 @@
 From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: [PATCH 0/2] memory-hotplug : notification of memoty block's state
-Date: Tue, 2 Oct 2012 17:25:06 +0900
-Message-ID: <506AA4E2.7070302@jp.fujitsu.com>
+Subject: [Patch 1/2] memory-hotplug : Preparation to notify memory block's
+ state at memory hot remove
+Date: Tue, 2 Oct 2012 17:27:40 +0900
+Message-ID: <506AA57C.1090209@jp.fujitsu.com>
+References: <506AA4E2.7070302@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-2022-JP"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:58457 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754511Ab2JBIZo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Oct 2012 04:25:44 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <506AA4E2.7070302@jp.fujitsu.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 Cc: rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, wency@cn.fujitsu.com
+List-Id: linux-acpi@vger.kernel.org
 
-We are trying to implement a physical memory hot removing function as
-following thread.
+From: Wen Congyang <wency@cn.fujitsu.com>
 
-https://lkml.org/lkml/2012/9/5/201
-
-But there is not enough review to merge into linux kernel.
-
-I think there are following blockades.
-  1. no physical memory hot removable system
-  2. huge patch-set
-
-If you have a KVM system, we can get rid of 1st blockade. Because
-applying following patch, we can create memory hot removable system
-on KVM guest.
-
-http://lists.gnu.org/archive/html/qemu-devel/2012-07/msg01389.html
-
-2nd blockade is own problem. So we try to divide huge patch into
-a small patch in each function as follows: 
-
- - bug fix
- - acpi framework
- - kernel core
-
-We had already sent bug fix patches.
-
-https://lkml.org/lkml/2012/9/27/39
-
-And the patch fixes following bug.
-
-remove_memory() offlines memory. And it is called by following two cases:
-
+remove_memory() is called in two cases:
 1. echo offline >/sys/devices/system/memory/memoryXX/state
 2. hot remove a memory device
 
 In the 1st case, the memory block's state is changed and the notification
 that memory block's state changed is sent to userland after calling
-offline_memory(). So user can notice memory block is changed.
+remove_memory(). So user can notice memory block is changed.
 
 But in the 2nd case, the memory block's state is not changed and the
-notification is not also sent to userspcae even if calling offline_memory().
+notification is not also sent to userspcae even if calling remove_memory().
 So user cannot notice memory block is changed.
 
-We should also notify to userspace at 2nd case.
+For adding the notification at memory hot remove, the patch just prepare
+as follows:
+1st case uses offline_pages() for offlining memory.
+2nd case uses remove_memory() for offlining memory and changing memory block's
+state and notifing the information.
 
+The patch does not implement notification to remove_memory().
+
+CC: David Rientjes <rientjes@google.com>
+CC: Jiang Liu <liuj97@gmail.com>
+CC: Len Brown <len.brown@intel.com>
+CC: Christoph Lameter <cl@linux.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+CC: Andrew Morton <akpm@linux-foundation.org>
+CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com> 
+Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+---
+ drivers/base/memory.c          |    9 +++------
+ include/linux/memory_hotplug.h |    1 +
+ mm/memory_hotplug.c            |   13 +++++++++++--
+ 3 files changed, 15 insertions(+), 8 deletions(-)
+
+Index: linux-3.6/drivers/base/memory.c
+===================================================================
+--- linux-3.6.orig/drivers/base/memory.c	2012-10-02 16:01:46.000000000 +0900
++++ linux-3.6/drivers/base/memory.c	2012-10-02 16:07:08.278081232 +0900
+@@ -248,26 +248,23 @@ static bool pages_correctly_reserved(uns
+ static int
+ memory_block_action(unsigned long phys_index, unsigned long action)
+ {
+-	unsigned long start_pfn, start_paddr;
++	unsigned long start_pfn;
+ 	unsigned long nr_pages = PAGES_PER_SECTION * sections_per_block;
+ 	struct page *first_page;
+ 	int ret;
+ 
+ 	first_page = pfn_to_page(phys_index << PFN_SECTION_SHIFT);
++	start_pfn = page_to_pfn(first_page);
+ 
+ 	switch (action) {
+ 		case MEM_ONLINE:
+-			start_pfn = page_to_pfn(first_page);
+-
+ 			if (!pages_correctly_reserved(start_pfn, nr_pages))
+ 				return -EBUSY;
+ 
+ 			ret = online_pages(start_pfn, nr_pages);
+ 			break;
+ 		case MEM_OFFLINE:
+-			start_paddr = page_to_pfn(first_page) << PAGE_SHIFT;
+-			ret = remove_memory(start_paddr,
+-					    nr_pages << PAGE_SHIFT);
++			ret = offline_pages(start_pfn, nr_pages);
+ 			break;
+ 		default:
+ 			WARN(1, KERN_WARNING "%s(%ld, %ld) unknown action: "
+Index: linux-3.6/include/linux/memory_hotplug.h
+===================================================================
+--- linux-3.6.orig/include/linux/memory_hotplug.h	2012-10-02 16:01:46.000000000 +0900
++++ linux-3.6/include/linux/memory_hotplug.h	2012-10-02 16:07:08.281081235 +0900
+@@ -233,6 +233,7 @@ static inline int is_mem_section_removab
+ extern int mem_online_node(int nid);
+ extern int add_memory(int nid, u64 start, u64 size);
+ extern int arch_add_memory(int nid, u64 start, u64 size);
++extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
+ extern int remove_memory(u64 start, u64 size);
+ extern int sparse_add_one_section(struct zone *zone, unsigned long start_pfn,
+ 								int nr_pages);
+Index: linux-3.6/mm/memory_hotplug.c
+===================================================================
+--- linux-3.6.orig/mm/memory_hotplug.c	2012-10-02 16:01:46.000000000 +0900
++++ linux-3.6/mm/memory_hotplug.c	2012-10-02 16:07:08.279081233 +0900
+@@ -870,7 +870,7 @@ check_pages_isolated(unsigned long start
+ 	return offlined;
+ }
+ 
+-static int __ref offline_pages(unsigned long start_pfn,
++static int __ref __offline_pages(unsigned long start_pfn,
+ 		  unsigned long end_pfn, unsigned long timeout)
+ {
+ 	unsigned long pfn, nr_pages, expire;
+@@ -998,15 +998,24 @@ out:
+ 	return ret;
+ }
+ 
++int offline_pages(unsigned long start_pfn, unsigned long nr_pages)
++{
++	return __offline_pages(start_pfn, start_pfn + nr_pages, 120 * HZ);
++}
++
+ int remove_memory(u64 start, u64 size)
+ {
+ 	unsigned long start_pfn, end_pfn;
+ 
+ 	start_pfn = PFN_DOWN(start);
+ 	end_pfn = start_pfn + PFN_DOWN(size);
+-	return offline_pages(start_pfn, end_pfn, 120 * HZ);
++	return __offline_pages(start_pfn, end_pfn, 120 * HZ);
+ }
+ #else
++int offline_pages(unsigned long start_pfn, unsigned long nr_pages)
++{
++	return -EINVAL;
++}
+ int remove_memory(u64 start, u64 size)
+ {
+ 	return -EINVAL;
