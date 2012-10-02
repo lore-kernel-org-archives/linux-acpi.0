@@ -1,65 +1,31 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 4/4] cpuidle - support multiple drivers
-Date: Tue, 02 Oct 2012 16:02:57 +0200
-Message-ID: <7641903.D6ceG2hO4l@vostro.rjw.lan>
-References: <1348526634-19029-1-git-send-email-daniel.lezcano@linaro.org> <3723306.GAm1cPlZaP@vostro.rjw.lan> <506ADDA5.3010905@linaro.org>
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: Re: [RFC v9 PATCH 06/21] memory-hotplug: export the function acpi_bus_remove()
+Date: Tue, 2 Oct 2012 13:28:24 -0400
+Message-ID: <CAHGf_=rX-OHFkBCKzdOi-ydF3VY+Sv_J1osDzZ_MiYEoop145A@mail.gmail.com>
+References: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com>
+ <1346837155-534-7-git-send-email-wency@cn.fujitsu.com> <506A36A1.6030709@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:55271 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752359Ab2JBN7n (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 2 Oct 2012 09:59:43 -0400
-In-Reply-To: <506ADDA5.3010905@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <506A36A1.6030709@gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Ni zhan Chen <nizhan.chen@gmail.com>
+Cc: wency@cn.fujitsu.com, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, isimatu.yasuaki@jp.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: linaro-dev@lists.linaro.org, linux-pm@vger.kernel.org, pdeschrijver@nvidia.com, patches@linaro.org, linux-acpi@vger.kernel.org, lenb@kernel.org
 
-On Tuesday 02 of October 2012 14:27:17 Daniel Lezcano wrote:
-> On 10/02/2012 04:08 AM, Rafael J. Wysocki wrote:
-> > On Sunday 30 of September 2012 18:34:31 Daniel Lezcano wrote:
-> >> On 09/30/2012 12:07 AM, Rafael J. Wysocki wrote:
-> >>> On Saturday, September 29, 2012, Daniel Lezcano wrote:
-> >>>> On 09/29/2012 11:41 AM, Francesco Lavra wrote:
-> >>>>> Hi,
-> >>>> Hi Francesco,
-> >>>>
-> >>>> thanks for reviewing the patch.
-> >>>>
-> >>>>>>  static ssize_t show_current_driver(struct device *dev,
-> >>>>>>  				   struct device_attribute *attr,
-> >>>>>>  				   char *buf)
-> >>>>>>  {
-> >>>>>> -	ssize_t ret;
-> >>>>>> -	struct cpuidle_driver *cpuidle_driver = cpuidle_get_driver();
-> >>>>>> +	struct cbarg cbarg = { .buf = buf };
-> >>>>> cbarg.count should be initialized to 0.
-> >>>> Actually, with this initialization, all the fields will be initialized
-> >>>> to 0, except 'buf'.
-> >>> However, it would be good to initialize count explicitly so as to show
-> >>> that we care about the initial value of it.
-> >>
-> >> Ok, I will change that in a V2.
-> >>
-> >> Rafael, you're right, this approach makes more sense IMO.
-> > 
-> > Well, I'm glad that you agree. :-)
-> > 
-> > I'm sorry I haven't posted any comments about the latest series,
-> > I'll do my best to review it later this week.
-> 
-> Ok, cool. Thanks!
-> 
-> I guess it is too late to have this material for v3.7, right ?
+On Mon, Oct 1, 2012 at 8:34 PM, Ni zhan Chen <nizhan.chen@gmail.com> wrote:
+> On 09/05/2012 05:25 PM, wency@cn.fujitsu.com wrote:
+>>
+>> From: Wen Congyang <wency@cn.fujitsu.com>
+>>
+>> The function acpi_bus_remove() can remove a acpi device from acpi device.
+>
+> IIUC, s/acpi device/acpi bus
 
-Yes, it is too late.
+IIUC, acpi_bus_remove() mean "remove the device from a bus".
 
-Thanks,
-Rafael
-
-
----
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
