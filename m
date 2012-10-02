@@ -1,52 +1,36 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFD][PATCH 0/7] PM / QoS: Support for PM QoS device flags
-Date: Tue, 02 Oct 2012 04:17:22 +0200
-Message-ID: <1562279.1b7gTztYdq@vostro.rjw.lan>
-References: <201209282351.10663.rjw@sisk.pl> <CAN5iSWq2UE4gk3VJFdnV_mOxDShrZEKPcBErvNBPVR4iFgmutQ@mail.gmail.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] ACPI: Add new sysfs interface to export device description
+Date: Tue, 02 Oct 2012 00:14:45 -0400
+Message-ID: <506A6A35.4060500@kernel.org>
+References: <1347035296-8882-1-git-send-email-lance.ortiz@hp.com> <50595BF0.2010002@jp.fujitsu.com> <A961433CDFF2F640A2866803152E61F950D1B50A@G9W0753.americas.hpqcorp.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:54502 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752100Ab2JBCN5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 1 Oct 2012 22:13:57 -0400
-In-Reply-To: <CAN5iSWq2UE4gk3VJFdnV_mOxDShrZEKPcBErvNBPVR4iFgmutQ@mail.gmail.com>
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:44159 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750737Ab2JBEOs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Oct 2012 00:14:48 -0400
+In-Reply-To: <A961433CDFF2F640A2866803152E61F950D1B50A@G9W0753.americas.hpqcorp.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Pihet-XID, Jean" <j-pihet@ti.com>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Huang Ying <ying.huang@intel.com>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, Lan Tianyu <tianyu.lan@intel.com>, Aaron Lu <aaron.lu@intel.com>, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, mark gross <markgross@thegnar.org>
+To: "Ortiz, Lance E" <lance.oritz@hp.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, "rob@landley.net" <rob@landley.net>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Monday 01 of October 2012 18:17:10 Pihet-XID, Jean wrote:
-> Hi Rafael,
 > 
-> On Fri, Sep 28, 2012 at 11:51 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > Hi All,
-> >
-> > The following patch series extends the existing device PM QoS core code to
-> > support PM QoS flags representing binary (on/off) requirements, such as
-> > whether or not power may be removed entirely from the device or whether
-> > or not remote wakeup (i.e. signalling of external events while suspended)
-> > should work for it.
-> >
-> > [1/7] Prepare PM QoS device structure for adding more constraint types.
-> > [2/7] Introduce request and constraint data types for PM QoS flags.
-> > [3/7] Prepare struct dev_pm_qos_request for representing more request types.
-> > [4/7] Introduce device PM QoS flags support.
-> > [5/7] Make it possible to expose PM QoS device flags to user space.
-> > [6/7] PM / Domains: Check device PM QoS flags in pm_genpd_poweroff().
-> > [7/7] PM / ACPI: Take device PM QoS flags into account.
-> >
-> > The last two patches make the generic PM domains framework and ACPI / PCI,
-> > respectively, take the PM QoS device flags introduced by patch [5/7] into
-> > accont when making their decisions.
-> >
-> > The changelogs describe the details, but if anything isn't clear, please let
-> > me know.
-> That looks OK after review. FWIW:
-> Reviewed-by: Jean Pihet <j-pihet@ti.com>
+> To address your comment, I was trying to differentiate between the existence of the _STR method and the failure to evaluate it.
+> If an STR method exists, we create the sysfs file.  If it fails to
+evaluate, we will see "No Description" when we read the file.
+> This would indicate that something is wrong as opposed to the system not having an _STR.
+> If you feel that this is unnecessary, or should be done differently let me know.
 
-Thanks!
+This patch looks useful, and I this does seem like a logical place
+to export this information.
 
-Rafael
+however, I'd think that an empty attribute instead of "No description"
+is sufficient to cover the case of _STR existing, but for some reason
+failing to evaluate.
+
+thanks,
+Len Brown, Intel Open Source Technology Center
 
