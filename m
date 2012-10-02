@@ -1,113 +1,54 @@
-From: Ni zhan Chen <nizhan.chen@gmail.com>
-Subject: Re: [RFC v9 PATCH 13/21] memory-hotplug: check page type in get_page_bootmem
-Date: Tue, 02 Oct 2012 20:24:00 +0800
-Message-ID: <506ADCE0.1020602@gmail.com>
-References: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com> <1346837155-534-14-git-send-email-wency@cn.fujitsu.com> <506659D7.9080904@gmail.com> <506907E5.2080609@jp.fujitsu.com>
+From: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 4/4] cpuidle - support multiple drivers
+Date: Tue, 02 Oct 2012 14:27:17 +0200
+Message-ID: <506ADDA5.3010905@linaro.org>
+References: <1348526634-19029-1-git-send-email-daniel.lezcano@linaro.org>
+	<201209300007.49771.rjw@sisk.pl> <50687497.9040205@linaro.org>
+	<3723306.GAm1cPlZaP@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <sparclinux-owner@vger.kernel.org>
-In-Reply-To: <506907E5.2080609@jp.fujitsu.com>
-Sender: sparclinux-owner@vger.kernel.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, Wen Congyang <wency@cn.fujitsu.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+In-Reply-To: <3723306.GAm1cPlZaP-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
+List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
+List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
+Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+To: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+Cc: linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, pdeschrijver-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 10/01/2012 11:03 AM, Yasuaki Ishimatsu wrote:
-> Hi Chen,
->
-> 2012/09/29 11:15, Ni zhan Chen wrote:
->> On 09/05/2012 05:25 PM, wency@cn.fujitsu.com wrote:
->>> From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->>>
->>> The function get_page_bootmem() may be called more than one time to 
->>> the same
->>> page. There is no need to set page's type, private if the function 
->>> is not
->>> the first time called to the page.
->>>
->>> Note: the patch is just optimization and does not fix any problem.
->>
->> Hi Yasuaki,
->>
->> this patch is reasonable to me. I have another question associated to 
->> get_page_bootmem(), the question is from another fujitsu guy's patch 
->> changelog [commit : 04753278769f3], the changelog said  that:
->>
->>   1) When the memmap of removing section is allocated on other
->>       section by bootmem, it should/can be free.
->>   2) When the memmap of removing section is allocated on the
->>       same section, it shouldn't be freed. Because the section has to be
->>       logical memory offlined already and all pages must be isolated 
->> against
->>       page allocater. If it is freed, page allocator may use it which 
->> will
->>       be removed physically soon.
->>
->> but I don't see his patch guarantee 2), it means that his patch 
->> doesn't guarantee the memmap of removing section which is allocated 
->> on other section by bootmem doesn't be freed. Hopefully get your 
->> explaination in details, thanks in advance. :-)
->
-> In my understanding, the patch does not guarantee it.
-> Please see [commit : 0c0a4a517a31e]. free_map_bootmem() in the commit
-> guarantees it.
-
-Thanks Yasuaki, I have already seen the commit you mentioned. But the 
-changelog of the commit I point out 2), why it said that "If it is 
-freed, page allocator may use it which will be removed physically soon", 
-does it mean that use-after-free ? AFAK, the isolated pages will be free 
-if no users use it, so why not free the associated memmap?
-
->
-> Thanks,
-> Yasuaki Ishimatsu
->
->>
->>>
->>> CC: David Rientjes <rientjes@google.com>
->>> CC: Jiang Liu <liuj97@gmail.com>
->>> CC: Len Brown <len.brown@intel.com>
->>> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
->>> CC: Paul Mackerras <paulus@samba.org>
->>> CC: Christoph Lameter <cl@linux.com>
->>> Cc: Minchan Kim <minchan.kim@gmail.com>
->>> CC: Andrew Morton <akpm@linux-foundation.org>
->>> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
->>> CC: Wen Congyang <wency@cn.fujitsu.com>
->>> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->>> ---
->>>   mm/memory_hotplug.c |   15 +++++++++++----
->>>   1 files changed, 11 insertions(+), 4 deletions(-)
->>>
->>> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
->>> index d736df3..26a5012 100644
->>> --- a/mm/memory_hotplug.c
->>> +++ b/mm/memory_hotplug.c
->>> @@ -95,10 +95,17 @@ static void release_memory_resource(struct 
->>> resource *res)
->>>   static void get_page_bootmem(unsigned long info,  struct page *page,
->>>                    unsigned long type)
->>>   {
->>> -    page->lru.next = (struct list_head *) type;
->>> -    SetPagePrivate(page);
->>> -    set_page_private(page, info);
->>> -    atomic_inc(&page->_count);
->>> +    unsigned long page_type;
->>> +
->>> +    page_type = (unsigned long)page->lru.next;
->>> +    if (page_type < MEMORY_HOTPLUG_MIN_BOOTMEM_TYPE ||
->>> +        page_type > MEMORY_HOTPLUG_MAX_BOOTMEM_TYPE){
->>> +        page->lru.next = (struct list_head *)type;
->>> +        SetPagePrivate(page);
->>> +        set_page_private(page, info);
->>> +        atomic_inc(&page->_count);
->>> +    } else
->>> +        atomic_inc(&page->_count);
->>>   }
->>>   /* reference to __meminit __free_pages_bootmem is valid
->>
->
->
->
-
+T24gMTAvMDIvMjAxMiAwNDowOCBBTSwgUmFmYWVsIEouIFd5c29ja2kgd3JvdGU6Cj4gT24gU3Vu
+ZGF5IDMwIG9mIFNlcHRlbWJlciAyMDEyIDE4OjM0OjMxIERhbmllbCBMZXpjYW5vIHdyb3RlOgo+
+PiBPbiAwOS8zMC8yMDEyIDEyOjA3IEFNLCBSYWZhZWwgSi4gV3lzb2NraSB3cm90ZToKPj4+IE9u
+IFNhdHVyZGF5LCBTZXB0ZW1iZXIgMjksIDIwMTIsIERhbmllbCBMZXpjYW5vIHdyb3RlOgo+Pj4+
+IE9uIDA5LzI5LzIwMTIgMTE6NDEgQU0sIEZyYW5jZXNjbyBMYXZyYSB3cm90ZToKPj4+Pj4gSGks
+Cj4+Pj4gSGkgRnJhbmNlc2NvLAo+Pj4+Cj4+Pj4gdGhhbmtzIGZvciByZXZpZXdpbmcgdGhlIHBh
+dGNoLgo+Pj4+Cj4+Pj4+PiAgc3RhdGljIHNzaXplX3Qgc2hvd19jdXJyZW50X2RyaXZlcihzdHJ1
+Y3QgZGV2aWNlICpkZXYsCj4+Pj4+PiAgCQkJCSAgIHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICph
+dHRyLAo+Pj4+Pj4gIAkJCQkgICBjaGFyICpidWYpCj4+Pj4+PiAgewo+Pj4+Pj4gLQlzc2l6ZV90
+IHJldDsKPj4+Pj4+IC0Jc3RydWN0IGNwdWlkbGVfZHJpdmVyICpjcHVpZGxlX2RyaXZlciA9IGNw
+dWlkbGVfZ2V0X2RyaXZlcigpOwo+Pj4+Pj4gKwlzdHJ1Y3QgY2JhcmcgY2JhcmcgPSB7IC5idWYg
+PSBidWYgfTsKPj4+Pj4gY2JhcmcuY291bnQgc2hvdWxkIGJlIGluaXRpYWxpemVkIHRvIDAuCj4+
+Pj4gQWN0dWFsbHksIHdpdGggdGhpcyBpbml0aWFsaXphdGlvbiwgYWxsIHRoZSBmaWVsZHMgd2ls
+bCBiZSBpbml0aWFsaXplZAo+Pj4+IHRvIDAsIGV4Y2VwdCAnYnVmJy4KPj4+IEhvd2V2ZXIsIGl0
+IHdvdWxkIGJlIGdvb2QgdG8gaW5pdGlhbGl6ZSBjb3VudCBleHBsaWNpdGx5IHNvIGFzIHRvIHNo
+b3cKPj4+IHRoYXQgd2UgY2FyZSBhYm91dCB0aGUgaW5pdGlhbCB2YWx1ZSBvZiBpdC4KPj4KPj4g
+T2ssIEkgd2lsbCBjaGFuZ2UgdGhhdCBpbiBhIFYyLgo+Pgo+PiBSYWZhZWwsIHlvdSdyZSByaWdo
+dCwgdGhpcyBhcHByb2FjaCBtYWtlcyBtb3JlIHNlbnNlIElNTy4KPiAKPiBXZWxsLCBJJ20gZ2xh
+ZCB0aGF0IHlvdSBhZ3JlZS4gOi0pCj4gCj4gSSdtIHNvcnJ5IEkgaGF2ZW4ndCBwb3N0ZWQgYW55
+IGNvbW1lbnRzIGFib3V0IHRoZSBsYXRlc3Qgc2VyaWVzLAo+IEknbGwgZG8gbXkgYmVzdCB0byBy
+ZXZpZXcgaXQgbGF0ZXIgdGhpcyB3ZWVrLgoKT2ssIGNvb2wuIFRoYW5rcyEKCkkgZ3Vlc3MgaXQg
+aXMgdG9vIGxhdGUgdG8gaGF2ZSB0aGlzIG1hdGVyaWFsIGZvciB2My43LCByaWdodCA/CgogIC0t
+IERhbmllbAoKLS0gCiA8aHR0cDovL3d3dy5saW5hcm8ub3JnLz4gTGluYXJvLm9yZyDilIIgT3Bl
+biBzb3VyY2Ugc29mdHdhcmUgZm9yIEFSTSBTb0NzCgpGb2xsb3cgTGluYXJvOiAgPGh0dHA6Ly93
+d3cuZmFjZWJvb2suY29tL3BhZ2VzL0xpbmFybz4gRmFjZWJvb2sgfAo8aHR0cDovL3R3aXR0ZXIu
+Y29tLyMhL2xpbmFyb29yZz4gVHdpdHRlciB8CjxodHRwOi8vd3d3LmxpbmFyby5vcmcvbGluYXJv
+LWJsb2cvPiBCbG9nCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX18KbGluYXJvLWRldiBtYWlsaW5nIGxpc3QKbGluYXJvLWRldkBsaXN0cy5saW5hcm8ub3Jn
+Cmh0dHA6Ly9saXN0cy5saW5hcm8ub3JnL21haWxtYW4vbGlzdGluZm8vbGluYXJvLWRldgo=
