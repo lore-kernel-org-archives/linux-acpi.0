@@ -1,108 +1,42 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [PATCH 0/2] memory-hotplug : notification of memoty block's state
-Date: Wed, 3 Oct 2012 10:21:16 +0900
-Message-ID: <506B930C.2080000@jp.fujitsu.com>
-References: <506AA4E2.7070302@jp.fujitsu.com> <20121002144211.b60881a8.akpm@linux-foundation.org>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH 01/10] device: add drivers_autoprobe in struct device
+Date: Tue, 2 Oct 2012 19:07:28 -0700
+Message-ID: <CAE9FiQVpLtMMAvWF-ehKCpNXW=uxwQWhpcHmgRJFDP22AKY1Mw@mail.gmail.com>
+References: <1349159588-15029-1-git-send-email-yinghai@kernel.org>
+	<1349159588-15029-2-git-send-email-yinghai@kernel.org>
+	<20121002133303.GA502@kroah.com>
+	<CAE9FiQVCFs8cgFoU2rb=a8MWCzBcfRT6iNh7UchV8q6Bg6XzGQ@mail.gmail.com>
+	<20121002174712.GA11843@kroah.com>
+	<CAE9FiQXM6Cy64ZbXtjsnQaMFJi0C1QABC7TNYSBZ3FGsjC8D8w@mail.gmail.com>
+	<20121002204548.GC28663@kroah.com>
+	<CAE9FiQV51R2RBAZBPobDifq6jQUhBCyx_Bo8EHxOX4yrUMSnLg@mail.gmail.com>
+	<CAErSpo5EuGVhu_ObioV-4n7930MkJzD9jrtkn6-JdBLikDBmMg@mail.gmail.com>
+	<CAE9FiQUXmURaO40sA4ibf7j9sokEHYXK_EaGiEq9b-ob=d1MRw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20121002144211.b60881a8.akpm@linux-foundation.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, wency@cn.fujitsu.com
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:59888 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753076Ab2JCCHa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Oct 2012 22:07:30 -0400
+In-Reply-To: <CAE9FiQUXmURaO40sA4ibf7j9sokEHYXK_EaGiEq9b-ob=d1MRw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-Hi Andrew,
-
-2012/10/03 6:42, Andrew Morton wrote:
-> On Tue, 2 Oct 2012 17:25:06 +0900
-> Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com> wrote:
+On Tue, Oct 2, 2012 at 5:00 PM, Yinghai Lu <yinghai@kernel.org> wrote:
+> On Tue, Oct 2, 2012 at 3:38 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
 >
->> remove_memory() offlines memory. And it is called by following two cases:
->>
->> 1. echo offline >/sys/devices/system/memory/memoryXX/state
->> 2. hot remove a memory device
->>
->> In the 1st case, the memory block's state is changed and the notification
->> that memory block's state changed is sent to userland after calling
->> offline_memory(). So user can notice memory block is changed.
->>
->> But in the 2nd case, the memory block's state is not changed and the
->> notification is not also sent to userspcae even if calling offline_memory().
->> So user cannot notice memory block is changed.
->>
->> We should also notify to userspace at 2nd case.
+>> I don't know what the right answer is, but I do think it's better to
+>> resolve it inside PCI and ACPI rather than playing games with driver
+>> binding times in the driver core.
 >
-> These two little patches look reasonable to me.
->
-> There's a lot of recent activity with memory hotplug!  We're in the 3.7
-> merge window now so it is not a good time to be merging new material.
+> is that ok to save that drivers_autoprobe bit in device.archdata for
+> ia64 and x86 that using acpi?
 
-> Also there appear to be two teams working on it and it's unclear to me
-> how well coordinated this work is?
+updated patch to put the bit in pci_dev and acpi_device instead.
 
-As you know, there are two teams for developing the memory hotplug.
-   - Wen's patch-set
-     https://lkml.org/lkml/2012/9/5/201
+please check attached patches.
 
-   - Lai's patch-set
-     https://lkml.org/lkml/2012/9/10/180
-
-Wen's patch-set is for removing physical memory. Now, I'm splitting the
-patch-set for reviewing more easy. If the patch-set is merged into
-linux kernel, I believe that linux on x86 can hot remove a physical
-memory device.
-
-But it is not enough since we cannot remove a memory which has kernel
-memory. If we guarantee the memory hot remove, the memory must belong
-to ZONE_MOVABLE.
-
-So Lai's patch-set tries to create a movable node that the all memory
-belongs to ZONE_MOVABLE.
-
-I think there are two chances for creating the movable node.
-   - boot time
-   - after hot add memory
-
-- boot time
-
-For creating a movable memory, linux has two kernel parameters
-(kernelcore and movablecore). But it is not enough, since even if we
-set the kernel paramter, the movable memory is distributed evenly in
-each node. So we introduce the kernelcore_max_addr boot parameter.
-The parameter limits the range of the memory used as a kernel memory.
-
-For example, the system has following nodes.
-
-     node0 : 0x40000000 - 0x80000000
-     node1 : 0x80000000 - 0xc0000000
-
-And when I want to hot remove a node1, we set "kernelcore_max_addr=0x80000000".
-In doing so, kernel memory is limited within 0x80000000 and node1's
-memory belongs to ZONE_MOEVALBE. As a result, we can guarantee that
-node1 is a movable node and we always hot remove node1.
-
-- after hot add memory
-
-When hot adding memory, the memory belongs to ZONE_NORMAL and is offline.
-If we online the memory, the memory may have kernel memory. In this case,
-we cannot hot remove the memory. So we introduce the online_movable
-function. If we use the function as follow, the memory belongs to
-ZONE_MOVABLE.
-
-echo online_movable > /sys/devices/system/node/nodeX/memoryX/state
-
-So when new node is hot added and I echo "online_movale" to all hot added
-memory, the node's memory belongs to ZONE_MOVABLE. As a result, we can
-guarantee that the node is a movable node and we always hot remove node.
-
-# I hope to help your understanding about our works by the information.
-
-Thanks,
-Yasuaki Ishimatsu
-
->
-> However these two patches are pretty simple and do fix a problem, so I
-> added them to the 3.7 MM queue.
->
+Yinghai
