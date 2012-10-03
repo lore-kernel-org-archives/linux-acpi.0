@@ -1,139 +1,92 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [PATCH 0/2] memory-hotplug : notification of memoty block's state
-Date: Wed, 3 Oct 2012 12:58:26 +0900
-Message-ID: <506BB7E2.2070804@jp.fujitsu.com>
-References: <506AA4E2.7070302@jp.fujitsu.com> <20121002144211.b60881a8.akpm@linux-foundation.org> <506B930C.2080000@jp.fujitsu.com> <506B9F1C.9050504@gmail.com>
+From: =?UTF-8?B?TWFydGluIEh1bmRlYsO4bGw=?= <martin@hundeboll.net>
+Subject: Re: ACPI errors on Dell Latitude E5430
+Date: Wed, 03 Oct 2012 08:36:17 +0200
+Message-ID: <506BDCE1.4050007@hundeboll.net>
+References: <5069E332.9060109@redhat.com> <506AB25D.7000900@hundeboll.net> <506ACCA1.6030908@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <506B9F1C.9050504@gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: Ni zhan Chen <nizhan.chen@gmail.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, wency@cn.fujitsu.com
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.hundeboll.net ([95.211.44.99]:57804 "EHLO
+	mail.hundeboll.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752825Ab2JCGhP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Oct 2012 02:37:15 -0400
+In-Reply-To: <506ACCA1.6030908@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-Hi Chen,
-
-2012/10/03 11:12, Ni zhan Chen wrote:
-> On 10/03/2012 09:21 AM, Yasuaki Ishimatsu wrote:
->> Hi Andrew,
->>
->> 2012/10/03 6:42, Andrew Morton wrote:
->>> On Tue, 2 Oct 2012 17:25:06 +0900
->>> Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com> wrote:
->>>
->>>> remove_memory() offlines memory. And it is called by following two cases:
->>>>
->>>> 1. echo offline >/sys/devices/system/memory/memoryXX/state
->>>> 2. hot remove a memory device
->>>>
->>>> In the 1st case, the memory block's state is changed and the notification
->>>> that memory block's state changed is sent to userland after calling
->>>> offline_memory(). So user can notice memory block is changed.
->>>>
->>>> But in the 2nd case, the memory block's state is not changed and the
->>>> notification is not also sent to userspcae even if calling offline_memory().
->>>> So user cannot notice memory block is changed.
->>>>
->>>> We should also notify to userspace at 2nd case.
->>>
->>> These two little patches look reasonable to me.
->>>
->>> There's a lot of recent activity with memory hotplug!  We're in the 3.7
->>> merge window now so it is not a good time to be merging new material.
->>
->>> Also there appear to be two teams working on it and it's unclear to me
->>> how well coordinated this work is?
->>
->> As you know, there are two teams for developing the memory hotplug.
->>   - Wen's patch-set
->>     https://lkml.org/lkml/2012/9/5/201
->>
->>   - Lai's patch-set
->>     https://lkml.org/lkml/2012/9/10/180
->>
->> Wen's patch-set is for removing physical memory. Now, I'm splitting the
->> patch-set for reviewing more easy. If the patch-set is merged into
->> linux kernel, I believe that linux on x86 can hot remove a physical
->> memory device.
->>
->> But it is not enough since we cannot remove a memory which has kernel
->> memory. If we guarantee the memory hot remove, the memory must belong
->> to ZONE_MOVABLE.
->>
->> So Lai's patch-set tries to create a movable node that the all memory
->> belongs to ZONE_MOVABLE.
->>
->> I think there are two chances for creating the movable node.
->>   - boot time
->>   - after hot add memory
->>
->> - boot time
->>
->> For creating a movable memory, linux has two kernel parameters
->> (kernelcore and movablecore). But it is not enough, since even if we
->> set the kernel paramter, the movable memory is distributed evenly in
->> each node. So we introduce the kernelcore_max_addr boot parameter.
->> The parameter limits the range of the memory used as a kernel memory.
->>
->> For example, the system has following nodes.
->>
->>     node0 : 0x40000000 - 0x80000000
->>     node1 : 0x80000000 - 0xc0000000
->>
->> And when I want to hot remove a node1, we set "kernelcore_max_addr=0x80000000".
->> In doing so, kernel memory is limited within 0x80000000 and node1's
->> memory belongs to ZONE_MOEVALBE. As a result, we can guarantee that
->> node1 is a movable node and we always hot remove node1.
->>
->> - after hot add memory
->>
->> When hot adding memory, the memory belongs to ZONE_NORMAL and is offline.
->> If we online the memory, the memory may have kernel memory. In this case,
->> we cannot hot remove the memory. So we introduce the online_movable
->> function. If we use the function as follow, the memory belongs to
->> ZONE_MOVABLE.
->>
->> echo online_movable > /sys/devices/system/node/nodeX/memoryX/state
->>
->> So when new node is hot added and I echo "online_movale" to all hot added
->> memory, the node's memory belongs to ZONE_MOVABLE. As a result, we can Y
->> guarantee that the node is a movable node and we always hot remove node.
+On 2012-10-02 13:14, Hans de Goede wrote:
+> Hi,
 >
-> Hi Yasuaki,
->
-> This time can kernel memory allocated from ZONE_MOVABLE ?
-
-No. In this case, the memory cannot be used as kernel memory.
-
-Thanks,
-Yasuaki Ishimatsu
-
->
+> On 10/02/2012 11:22 AM, Martin Hundeb=C3=B8ll wrote:
+>> Hi Hans,
 >>
->> # I hope to help your understanding about our works by the information.
->>
->> Thanks,
->> Yasuaki Ishimatsu
->>
+>> On 2012-10-01 20:38, Hans de Goede wrote:
+>>> 2) Even with a 3.6 which shows the problematic behavior, I can
+>>> make things work by adding acpi.ec_delay=3D2000 to the kernel cmdli=
+ne,
+>>> the debug traces show that the EC takes it sweet time to respond
+>>> (sometime close to 2 seconds) but it does eventually respond in all
+>>> cases I've seen sofar.
 >>>
->>> However these two patches are pretty simple and do fix a problem, so I
->>> added them to the 3.7 MM queue.
+>>> This also seems to fix a sporadic occurence of:
+>>> "ACPI: EC: input buffer is not empty aborting transaction"
+>>> Which I'm seeing with 3.5 / 3.6 in a non debug build.
 >>>
+>>> Martin, can you see if adding that helps you with the E5430 problem=
+s
+>>> too ?
 >>
+>> As far as I can tell from the attached dmesg, the errors are gone
+>> after setting acpi.ec_delay=3D2000. Thanks a lot!
 >>
->> --
->> To unsubscribe, send a message with 'unsubscribe linux-mm' in
->> the body to majordomo@kvack.org.  For more info on Linux MM,
->> see: http://www.linux-mm.org/ .
->> Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
->>
+>> The only remaining issue is the fan control, which works as expected
+>> initially, but then fails to spin down after a few minutes.
 >
+> Hmm, I'm seeing the same thing, but only when charging my battery, an=
+d
+> then indeed
+> does not spin down completely, but it does step down from vacuum clea=
+ner
+> mode to
+> something more pleasant after the machine was loaded for a while and
+> returns back
+> to idle.
+>
+> Also it spins up to its slowest speed by jut using the charger, so I
+> think it is
+> just bleeding of heat caused by the charging hardware in this case (f=
+or
+> me).
 
+=46or the record, my fan keeps spinning also when on battery (as report=
+ed=20
+by i8k/sensors):
 
+   i8k-virtual-0
+   Adapter: Virtual device
+   Right Fan:   84000 RPM
+   CPU:          +39.0C
+
+This is not a total show-stopper, but nevertheless quite annoying when=20
+the home-office is shared with the bedroom :)
+
+Thanks again.
+
+--=20
+Kind Regards
+Martin Hundeb=C3=B8ll
+=46rederiks All=C3=A9 99, 1.th
+8000 Aarhus C
+Denmark
+
++45 61 65 54 61
+martin@hundeboll.net
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
