@@ -1,62 +1,91 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: [PATCH 1/2] acpi,memory-hotplug : export the function acpi_bus_remove()
-Date: Thu, 4 Oct 2012 10:46:56 +0900
-Message-ID: <506CEA90.4020309@jp.fujitsu.com>
-References: <506CE9F5.8020809@jp.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
-Content-Transfer-Encoding: 7bit
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: [PATCH 3/4] PCI, ACPI: Remove not used acpi_pci_root_start()
+Date: Wed,  3 Oct 2012 16:00:13 -0700
+Message-ID: <1349305214-3241-4-git-send-email-yinghai@kernel.org>
+References: <CAE9FiQWgvVqnTTeYFvxf1GxLcEEeRyN-uSKPdg3o69oCpm43sQ@mail.gmail.com>
+ <1349305214-3241-1-git-send-email-yinghai@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <506CE9F5.8020809@jp.fujitsu.com>
+In-Reply-To: <1349305214-3241-1-git-send-email-yinghai@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
-Cc: len.brown@intel.com, wency@cn.fujitsu.com
+To: Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Wen Congyang <wency@cn.fujitsu.com>
+Now with new acpi_bus_add, we could move code in acpi_pci_root_start into
+acpi_pci_root_add.
 
-The function acpi_bus_remove() can remove a acpi device from acpi bus.
-When a acpi device is removed, we need to call this function to remove
-the acpi device from acpi bus. So export this function.
+After that we could remove acpi_pci_root_start.
 
-CC: Len Brown <len.brown@intel.com>
-Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 ---
- drivers/acpi/scan.c     |    3 ++-
- include/acpi/acpi_bus.h |    1 +
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ drivers/acpi/pci_root.c |   27 +++++++++------------------
+ 1 files changed, 9 insertions(+), 18 deletions(-)
 
-Index: linux-3.6/drivers/acpi/scan.c
-===================================================================
---- linux-3.6.orig/drivers/acpi/scan.c	2012-10-03 18:16:57.206246798 +0900
-+++ linux-3.6/drivers/acpi/scan.c	2012-10-03 18:17:49.974249714 +0900
-@@ -1224,7 +1224,7 @@ static int acpi_device_set_context(struc
- 	return -ENODEV;
- }
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index bce469c..8d85287 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -47,7 +47,6 @@ ACPI_MODULE_NAME("pci_root");
+ #define ACPI_PCI_ROOT_DEVICE_NAME	"PCI Root Bridge"
+ static int acpi_pci_root_add(struct acpi_device *device);
+ static int acpi_pci_root_remove(struct acpi_device *device, int type);
+-static int acpi_pci_root_start(struct acpi_device *device);
  
--static int acpi_bus_remove(struct acpi_device *dev, int rmdevice)
-+int acpi_bus_remove(struct acpi_device *dev, int rmdevice)
- {
- 	if (!dev)
- 		return -EINVAL;
-@@ -1246,6 +1246,7 @@ static int acpi_bus_remove(struct acpi_d
+ #define ACPI_PCIE_REQ_SUPPORT (OSC_EXT_PCI_CONFIG_SUPPORT \
+ 				| OSC_ACTIVE_STATE_PWR_SUPPORT \
+@@ -67,7 +66,6 @@ static struct acpi_driver acpi_pci_root_driver = {
+ 	.ops = {
+ 		.add = acpi_pci_root_add,
+ 		.remove = acpi_pci_root_remove,
+-		.start = acpi_pci_root_start,
+ 		},
+ };
+ 
+@@ -451,6 +449,7 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
+ 	acpi_status status;
+ 	int result;
+ 	struct acpi_pci_root *root;
++	struct acpi_pci_driver *driver;
+ 	acpi_handle handle;
+ 	struct acpi_device *child;
+ 	u32 flags, base_flags;
+@@ -628,22 +627,6 @@ static int __devinit acpi_pci_root_add(struct acpi_device *device)
+ 	if (device->wakeup.flags.run_wake)
+ 		device_set_run_wake(root->bus->bridge, true);
+ 
+-	return 0;
+-
+-out_del_root:
+-	mutex_lock(&acpi_pci_root_lock);
+-	list_del(&root->node);
+-	mutex_unlock(&acpi_pci_root_lock);
+-end:
+-	kfree(root);
+-	return result;
+-}
+-
+-static int acpi_pci_root_start(struct acpi_device *device)
+-{
+-	struct acpi_pci_root *root = acpi_driver_data(device);
+-	struct acpi_pci_driver *driver;
+-
+ 	mutex_lock(&acpi_pci_root_lock);
+ 	list_for_each_entry(driver, &acpi_pci_drivers, node)
+ 		if (driver->add)
+@@ -653,6 +636,14 @@ static int acpi_pci_root_start(struct acpi_device *device)
+ 	pci_bus_add_devices(root->bus);
  
  	return 0;
++
++out_del_root:
++	mutex_lock(&acpi_pci_root_lock);
++	list_del(&root->node);
++	mutex_unlock(&acpi_pci_root_lock);
++end:
++	kfree(root);
++	return result;
  }
-+EXPORT_SYMBOL(acpi_bus_remove);
  
- static int acpi_add_single_object(struct acpi_device **child,
- 				  acpi_handle handle, int type,
-Index: linux-3.6/include/acpi/acpi_bus.h
-===================================================================
---- linux-3.6.orig/include/acpi/acpi_bus.h	2012-10-03 18:16:57.208246800 +0900
-+++ linux-3.6/include/acpi/acpi_bus.h	2012-10-03 18:17:49.976249717 +0900
-@@ -360,6 +360,7 @@ bool acpi_bus_power_manageable(acpi_hand
- bool acpi_bus_can_wakeup(acpi_handle handle);
- int acpi_power_resource_register_device(struct device *dev, acpi_handle handle);
- void acpi_power_resource_unregister_device(struct device *dev, acpi_handle handle);
-+int acpi_bus_remove(struct acpi_device *dev, int rmdevice);
- #ifdef CONFIG_ACPI_PROC_EVENT
- int acpi_bus_generate_proc_event(struct acpi_device *device, u8 type, int data);
- int acpi_bus_generate_proc_event4(const char *class, const char *bid, u8 type, int data);
+ static int acpi_pci_root_remove(struct acpi_device *device, int type)
+-- 
+1.7.7
