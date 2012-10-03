@@ -1,130 +1,131 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH 01/10] device: add drivers_autoprobe in struct device
-Date: Tue, 2 Oct 2012 19:08:50 -0700
-Message-ID: <CAE9FiQUQO97UbWEEA5wrzzaQsUwZ9a9rhvpPwqjo3CbtbA4xAQ@mail.gmail.com>
-References: <1349159588-15029-1-git-send-email-yinghai@kernel.org>
-	<1349159588-15029-2-git-send-email-yinghai@kernel.org>
-	<20121002133303.GA502@kroah.com>
-	<CAE9FiQVCFs8cgFoU2rb=a8MWCzBcfRT6iNh7UchV8q6Bg6XzGQ@mail.gmail.com>
-	<20121002174712.GA11843@kroah.com>
-	<CAE9FiQXM6Cy64ZbXtjsnQaMFJi0C1QABC7TNYSBZ3FGsjC8D8w@mail.gmail.com>
-	<20121002204548.GC28663@kroah.com>
-	<CAE9FiQV51R2RBAZBPobDifq6jQUhBCyx_Bo8EHxOX4yrUMSnLg@mail.gmail.com>
-	<CAErSpo5EuGVhu_ObioV-4n7930MkJzD9jrtkn6-JdBLikDBmMg@mail.gmail.com>
-	<CAE9FiQUXmURaO40sA4ibf7j9sokEHYXK_EaGiEq9b-ob=d1MRw@mail.gmail.com>
-	<CAE9FiQVpLtMMAvWF-ehKCpNXW=uxwQWhpcHmgRJFDP22AKY1Mw@mail.gmail.com>
+From: Ni zhan Chen <nizhan.chen@gmail.com>
+Subject: Re: [PATCH 0/2] memory-hotplug : notification of memoty block's state
+Date: Wed, 03 Oct 2012 10:12:44 +0800
+Message-ID: <506B9F1C.9050504@gmail.com>
+References: <506AA4E2.7070302@jp.fujitsu.com> <20121002144211.b60881a8.akpm@linux-foundation.org> <506B930C.2080000@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=000e0cd1e0ceabb44a04cb1e1e2a
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:48498 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750765Ab2JCCIw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Oct 2012 22:08:52 -0400
-In-Reply-To: <CAE9FiQVpLtMMAvWF-ehKCpNXW=uxwQWhpcHmgRJFDP22AKY1Mw@mail.gmail.com>
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:55255 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750835Ab2JCCM6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Oct 2012 22:12:58 -0400
+In-Reply-To: <506B930C.2080000@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, wency@cn.fujitsu.com
 
---000e0cd1e0ceabb44a04cb1e1e2a
-Content-Type: text/plain; charset=ISO-8859-1
-
-On Tue, Oct 2, 2012 at 7:07 PM, Yinghai Lu <yinghai@kernel.org> wrote:
-> On Tue, Oct 2, 2012 at 5:00 PM, Yinghai Lu <yinghai@kernel.org> wrote:
->> On Tue, Oct 2, 2012 at 3:38 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
->>
->>> I don't know what the right answer is, but I do think it's better to
->>> resolve it inside PCI and ACPI rather than playing games with driver
->>> binding times in the driver core.
->>
->> is that ok to save that drivers_autoprobe bit in device.archdata for
->> ia64 and x86 that using acpi?
+On 10/03/2012 09:21 AM, Yasuaki Ishimatsu wrote:
+> Hi Andrew,
 >
-> updated patch to put the bit in pci_dev and acpi_device instead.
+> 2012/10/03 6:42, Andrew Morton wrote:
+>> On Tue, 2 Oct 2012 17:25:06 +0900
+>> Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com> wrote:
+>>
+>>> remove_memory() offlines memory. And it is called by following two 
+>>> cases:
+>>>
+>>> 1. echo offline >/sys/devices/system/memory/memoryXX/state
+>>> 2. hot remove a memory device
+>>>
+>>> In the 1st case, the memory block's state is changed and the 
+>>> notification
+>>> that memory block's state changed is sent to userland after calling
+>>> offline_memory(). So user can notice memory block is changed.
+>>>
+>>> But in the 2nd case, the memory block's state is not changed and the
+>>> notification is not also sent to userspcae even if calling 
+>>> offline_memory().
+>>> So user cannot notice memory block is changed.
+>>>
+>>> We should also notify to userspace at 2nd case.
+>>
+>> These two little patches look reasonable to me.
+>>
+>> There's a lot of recent activity with memory hotplug!  We're in the 3.7
+>> merge window now so it is not a good time to be merging new material.
 >
-> please check attached patches.
+>> Also there appear to be two teams working on it and it's unclear to me
+>> how well coordinated this work is?
+>
+> As you know, there are two teams for developing the memory hotplug.
+>   - Wen's patch-set
+>     https://lkml.org/lkml/2012/9/5/201
+>
+>   - Lai's patch-set
+>     https://lkml.org/lkml/2012/9/10/180
+>
+> Wen's patch-set is for removing physical memory. Now, I'm splitting the
+> patch-set for reviewing more easy. If the patch-set is merged into
+> linux kernel, I believe that linux on x86 can hot remove a physical
+> memory device.
+>
+> But it is not enough since we cannot remove a memory which has kernel
+> memory. If we guarantee the memory hot remove, the memory must belong
+> to ZONE_MOVABLE.
+>
+> So Lai's patch-set tries to create a movable node that the all memory
+> belongs to ZONE_MOVABLE.
+>
+> I think there are two chances for creating the movable node.
+>   - boot time
+>   - after hot add memory
+>
+> - boot time
+>
+> For creating a movable memory, linux has two kernel parameters
+> (kernelcore and movablecore). But it is not enough, since even if we
+> set the kernel paramter, the movable memory is distributed evenly in
+> each node. So we introduce the kernelcore_max_addr boot parameter.
+> The parameter limits the range of the memory used as a kernel memory.
+>
+> For example, the system has following nodes.
+>
+>     node0 : 0x40000000 - 0x80000000
+>     node1 : 0x80000000 - 0xc0000000
+>
+> And when I want to hot remove a node1, we set 
+> "kernelcore_max_addr=0x80000000".
+> In doing so, kernel memory is limited within 0x80000000 and node1's
+> memory belongs to ZONE_MOEVALBE. As a result, we can guarantee that
+> node1 is a movable node and we always hot remove node1.
+>
+> - after hot add memory
+>
+> When hot adding memory, the memory belongs to ZONE_NORMAL and is offline.
+> If we online the memory, the memory may have kernel memory. In this case,
+> we cannot hot remove the memory. So we introduce the online_movable
+> function. If we use the function as follow, the memory belongs to
+> ZONE_MOVABLE.
+>
+> echo online_movable > /sys/devices/system/node/nodeX/memoryX/state
+>
+> So when new node is hot added and I echo "online_movale" to all hot added
+> memory, the node's memory belongs to ZONE_MOVABLE. As a result, we can Y
+> guarantee that the node is a movable node and we always hot remove node.
 
-attached.
+Hi Yasuaki,
 
---000e0cd1e0ceabb44a04cb1e1e2a
-Content-Type: application/octet-stream;
-	name="autoprobe_stop_core_acpi_only.patch"
-Content-Disposition: attachment;
-	filename="autoprobe_stop_core_acpi_only.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_h7tsrtcj0
+This time can kernel memory allocated from ZONE_MOVABLE ?
 
-U3ViamVjdDogW1BBVENIXSBBQ1BJOiBhZGQgZHJpdmVyc19hdXRvcHJvYmUgaW4gc3RydWN0IGFj
-cGlfZGV2aWNlCgpUbyB1c2UgdG8gY29udHJvbCB0aGUgZGVsYXkgYXR0YWNoIGRyaXZlciBmb3Ig
-YWNwaV9kZXZpY2UuCgpXaWxsIHVzZSBidXMgbm90aWZpZXIgdG8gdG9nZ2xlIHRoaXMgYml0cyB3
-aGVuIG5lZWRlZC4KClNpZ25lZC1vZmYtYnk6IFlpbmdoYWkgTHUgPHlpbmdoYWlAa2VybmVsLm9y
-Zz4KCi0tLQogZHJpdmVycy9hY3BpL3NjYW4uYyAgICAgfCAgICA4ICsrKysrKystCiBpbmNsdWRl
-L2FjcGkvYWNwaV9idXMuaCB8ICAgIDEgKwogMiBmaWxlcyBjaGFuZ2VkLCA4IGluc2VydGlvbnMo
-KyksIDEgZGVsZXRpb24oLSkKCkluZGV4OiBsaW51eC0yLjYvZHJpdmVycy9hY3BpL3NjYW4uYwo9
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09Ci0tLSBsaW51eC0yLjYub3JpZy9kcml2ZXJzL2FjcGkvc2Nhbi5jCisrKyBsaW51
-eC0yLjYvZHJpdmVycy9hY3BpL3NjYW4uYwpAQCAtMzMzLDcgKzMzMywxMiBAQCBzdGF0aWMgdm9p
-ZCBhY3BpX2RldmljZV9yZWxlYXNlKHN0cnVjdCBkCiBzdGF0aWMgaW50IGFjcGlfYnVzX21hdGNo
-KHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGRldmljZV9kcml2ZXIgKmRydikKIHsKIAlzdHJ1
-Y3QgYWNwaV9kZXZpY2UgKmFjcGlfZGV2ID0gdG9fYWNwaV9kZXZpY2UoZGV2KTsKLQlzdHJ1Y3Qg
-YWNwaV9kcml2ZXIgKmFjcGlfZHJ2ID0gdG9fYWNwaV9kcml2ZXIoZHJ2KTsKKwlzdHJ1Y3QgYWNw
-aV9kcml2ZXIgKmFjcGlfZHJ2OworCisJaWYgKCFhY3BpX2Rldi0+ZHJpdmVyc19hdXRvcHJvYmUp
-CisJCXJldHVybiAwOworCisJYWNwaV9kcnYgPSB0b19hY3BpX2RyaXZlcihkcnYpOwogCiAJcmV0
-dXJuICFhY3BpX21hdGNoX2RldmljZV9pZHMoYWNwaV9kZXYsIGFjcGlfZHJ2LT5pZHMpOwogfQpA
-QCAtMTI1OSw2ICsxMjY0LDcgQEAgc3RhdGljIGludCBhY3BpX2FkZF9zaW5nbGVfb2JqZWN0KHN0
-cnVjdAogCWRldmljZS0+cGFyZW50ID0gYWNwaV9idXNfZ2V0X3BhcmVudChoYW5kbGUpOwogCWRl
-dmljZS0+YnVzX29wcyA9ICpvcHM7IC8qIHdvcmtyb3VuZCBmb3Igbm90IGNhbGwgLnN0YXJ0ICov
-CiAJU1RSVUNUX1RPX0lOVChkZXZpY2UtPnN0YXR1cykgPSBzdGE7CisJZGV2aWNlLT5kcml2ZXJz
-X2F1dG9wcm9iZSA9IHRydWU7CiAKIAlhY3BpX2RldmljZV9nZXRfYnVzaWQoZGV2aWNlKTsKIApJ
-bmRleDogbGludXgtMi42L2luY2x1ZGUvYWNwaS9hY3BpX2J1cy5oCj09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KLS0tIGxp
-bnV4LTIuNi5vcmlnL2luY2x1ZGUvYWNwaS9hY3BpX2J1cy5oCisrKyBsaW51eC0yLjYvaW5jbHVk
-ZS9hY3BpL2FjcGlfYnVzLmgKQEAgLTMwMCw2ICszMDAsNyBAQCBzdHJ1Y3QgYWNwaV9kZXZpY2Ug
-ewogCXN0cnVjdCBkZXZpY2UgZGV2OwogCXN0cnVjdCBhY3BpX2J1c19vcHMgYnVzX29wczsJLyog
-d29ya2Fyb3VuZCBmb3IgZGlmZmVyZW50IGNvZGUgcGF0aCBmb3IgaG90cGx1ZyAqLwogCWVudW0g
-YWNwaV9idXNfcmVtb3ZhbF90eXBlIHJlbW92YWxfdHlwZTsJLyogaW5kaWNhdGUgZm9yIGRpZmZl
-cmVudCByZW1vdmFsIHR5cGUgKi8KKwlib29sIGRyaXZlcnNfYXV0b3Byb2JlOwogfTsKIAogc3Rh
-dGljIGlubGluZSB2b2lkICphY3BpX2RyaXZlcl9kYXRhKHN0cnVjdCBhY3BpX2RldmljZSAqZCkK
---000e0cd1e0ceabb44a04cb1e1e2a
-Content-Type: application/octet-stream;
-	name="autoprobe_stop_core_pci_only.patch"
-Content-Disposition: attachment;
-	filename="autoprobe_stop_core_pci_only.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_h7tss4wq1
+>
+> # I hope to help your understanding about our works by the information.
+>
+> Thanks,
+> Yasuaki Ishimatsu
+>
+>>
+>> However these two patches are pretty simple and do fix a problem, so I
+>> added them to the 3.7 MM queue.
+>>
+>
+>
+> -- 
+> To unsubscribe, send a message with 'unsubscribe linux-mm' in
+> the body to majordomo@kvack.org.  For more info on Linux MM,
+> see: http://www.linux-mm.org/ .
+> Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+>
 
-U3ViamVjdDogW1BBVENIXSBQQ0k6IGFkZCBkcml2ZXJzX2F1dG9wcm9iZSBpbiBzdHJ1Y3QgcGNp
-X2RldgoKVG8gdXNlIHRvIGNvbnRyb2wgdGhlIGRlbGF5IGF0dGFjaCBkcml2ZXIgZm9yIHBjaV9k
-ZXYKCldpbGwgdXNlIGJ1cyBub3RpZmllciB0byB0b2dnbGUgdGhpcyBiaXRzIHdoZW4gbmVlZGVk
-LgoKU2lnbmVkLW9mZi1ieTogWWluZ2hhaSBMdSA8eWluZ2hhaUBrZXJuZWwub3JnPgoKLS0tCiBk
-cml2ZXJzL3BjaS9wY2ktZHJpdmVyLmMgfCAgICA2ICsrKysrLQogZHJpdmVycy9wY2kvcHJvYmUu
-YyAgICAgIHwgICAgMSArCiBpbmNsdWRlL2xpbnV4L3BjaS5oICAgICAgfCAgICAxICsKIDMgZmls
-ZXMgY2hhbmdlZCwgNyBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9uKC0pCgpJbmRleDogbGludXgt
-Mi42L2RyaXZlcnMvcGNpL3BjaS1kcml2ZXIuYwo9PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Ci0tLSBsaW51eC0yLjYub3Jp
-Zy9kcml2ZXJzL3BjaS9wY2ktZHJpdmVyLmMKKysrIGxpbnV4LTIuNi9kcml2ZXJzL3BjaS9wY2kt
-ZHJpdmVyLmMKQEAgLTEyMDYsOSArMTIwNiwxMyBAQCBwY2lfZGV2X2RyaXZlcihjb25zdCBzdHJ1
-Y3QgcGNpX2RldiAqZGV2CiBzdGF0aWMgaW50IHBjaV9idXNfbWF0Y2goc3RydWN0IGRldmljZSAq
-ZGV2LCBzdHJ1Y3QgZGV2aWNlX2RyaXZlciAqZHJ2KQogewogCXN0cnVjdCBwY2lfZGV2ICpwY2lf
-ZGV2ID0gdG9fcGNpX2RldihkZXYpOwotCXN0cnVjdCBwY2lfZHJpdmVyICpwY2lfZHJ2ID0gdG9f
-cGNpX2RyaXZlcihkcnYpOworCXN0cnVjdCBwY2lfZHJpdmVyICpwY2lfZHJ2OwogCWNvbnN0IHN0
-cnVjdCBwY2lfZGV2aWNlX2lkICpmb3VuZF9pZDsKIAorCWlmICghcGNpX2Rldi0+ZHJpdmVyc19h
-dXRvcHJvYmUpCisJCXJldHVybiAwOworCisJcGNpX2RydiA9IHRvX3BjaV9kcml2ZXIoZHJ2KTsK
-IAlmb3VuZF9pZCA9IHBjaV9tYXRjaF9kZXZpY2UocGNpX2RydiwgcGNpX2Rldik7CiAJaWYgKGZv
-dW5kX2lkKQogCQlyZXR1cm4gMTsKSW5kZXg6IGxpbnV4LTIuNi9pbmNsdWRlL2xpbnV4L3BjaS5o
-Cj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT0KLS0tIGxpbnV4LTIuNi5vcmlnL2luY2x1ZGUvbGludXgvcGNpLmgKKysrIGxp
-bnV4LTIuNi9pbmNsdWRlL2xpbnV4L3BjaS5oCkBAIC0zMDgsNiArMzA4LDcgQEAgc3RydWN0IHBj
-aV9kZXYgewogCXVuc2lnbmVkIGludAlpcnE7CiAJc3RydWN0IHJlc291cmNlIHJlc291cmNlW0RF
-VklDRV9DT1VOVF9SRVNPVVJDRV07IC8qIEkvTyBhbmQgbWVtb3J5IHJlZ2lvbnMgKyBleHBhbnNp
-b24gUk9NcyAqLwogCisJYm9vbCBkcml2ZXJzX2F1dG9wcm9iZTsKIAkvKiBUaGVzZSBmaWVsZHMg
-YXJlIHVzZWQgYnkgY29tbW9uIGZpeHVwcyAqLwogCXVuc2lnbmVkIGludAl0cmFuc3BhcmVudDox
-OwkvKiBUcmFuc3BhcmVudCBQQ0kgYnJpZGdlICovCiAJdW5zaWduZWQgaW50CW11bHRpZnVuY3Rp
-b246MTsvKiBQYXJ0IG9mIG11bHRpLWZ1bmN0aW9uIGRldmljZSAqLwpJbmRleDogbGludXgtMi42
-L2RyaXZlcnMvcGNpL3Byb2JlLmMKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQotLS0gbGludXgtMi42Lm9yaWcvZHJpdmVy
-cy9wY2kvcHJvYmUuYworKysgbGludXgtMi42L2RyaXZlcnMvcGNpL3Byb2JlLmMKQEAgLTExOTEs
-NiArMTE5MSw3IEBAIHN0cnVjdCBwY2lfZGV2ICphbGxvY19wY2lfZGV2KHZvaWQpCiAJCXJldHVy
-biBOVUxMOwogCiAJSU5JVF9MSVNUX0hFQUQoJmRldi0+YnVzX2xpc3QpOworCWRldi0+ZHJpdmVy
-c19hdXRvcHJvYmUgPSB0cnVlOwogCiAJcmV0dXJuIGRldjsKIH0K
---000e0cd1e0ceabb44a04cb1e1e2a--
