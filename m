@@ -1,92 +1,66 @@
-From: =?UTF-8?B?TWFydGluIEh1bmRlYsO4bGw=?= <martin@hundeboll.net>
-Subject: Re: ACPI errors on Dell Latitude E5430
-Date: Wed, 03 Oct 2012 08:36:17 +0200
-Message-ID: <506BDCE1.4050007@hundeboll.net>
-References: <5069E332.9060109@redhat.com> <506AB25D.7000900@hundeboll.net> <506ACCA1.6030908@redhat.com>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: [PATCH 0/4] acpi,memory-hotplug : implement framework for hot removing
+ memory
+Date: Wed, 3 Oct 2012 18:52:40 +0900
+Message-ID: <506C0AE8.40702@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.hundeboll.net ([95.211.44.99]:57804 "EHLO
-	mail.hundeboll.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752825Ab2JCGhP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Oct 2012 02:37:15 -0400
-In-Reply-To: <506ACCA1.6030908@redhat.com>
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:58316 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752858Ab2JCJxY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Oct 2012 05:53:24 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, wency@cn.fujitsu.com
 
-On 2012-10-02 13:14, Hans de Goede wrote:
-> Hi,
->
-> On 10/02/2012 11:22 AM, Martin Hundeb=C3=B8ll wrote:
->> Hi Hans,
->>
->> On 2012-10-01 20:38, Hans de Goede wrote:
->>> 2) Even with a 3.6 which shows the problematic behavior, I can
->>> make things work by adding acpi.ec_delay=3D2000 to the kernel cmdli=
-ne,
->>> the debug traces show that the EC takes it sweet time to respond
->>> (sometime close to 2 seconds) but it does eventually respond in all
->>> cases I've seen sofar.
->>>
->>> This also seems to fix a sporadic occurence of:
->>> "ACPI: EC: input buffer is not empty aborting transaction"
->>> Which I'm seeing with 3.5 / 3.6 in a non debug build.
->>>
->>> Martin, can you see if adding that helps you with the E5430 problem=
-s
->>> too ?
->>
->> As far as I can tell from the attached dmesg, the errors are gone
->> after setting acpi.ec_delay=3D2000. Thanks a lot!
->>
->> The only remaining issue is the fan control, which works as expected
->> initially, but then fails to spin down after a few minutes.
->
-> Hmm, I'm seeing the same thing, but only when charging my battery, an=
-d
-> then indeed
-> does not spin down completely, but it does step down from vacuum clea=
-ner
-> mode to
-> something more pleasant after the machine was loaded for a while and
-> returns back
-> to idle.
->
-> Also it spins up to its slowest speed by jut using the charger, so I
-> think it is
-> just bleeding of heat caused by the charging hardware in this case (f=
-or
-> me).
+We are trying to implement a physical memory hot removing function as
+following thread.
 
-=46or the record, my fan keeps spinning also when on battery (as report=
-ed=20
-by i8k/sensors):
+https://lkml.org/lkml/2012/9/5/201
 
-   i8k-virtual-0
-   Adapter: Virtual device
-   Right Fan:   84000 RPM
-   CPU:          +39.0C
+But there is not enough review to merge into linux kernel.
 
-This is not a total show-stopper, but nevertheless quite annoying when=20
-the home-office is shared with the bedroom :)
+I think there are following blockades.
+  1. no physical memory hot removable system
+  2. huge patch-set
 
-Thanks again.
+If you have a KVM system, we can get rid of 1st blockade. Because
+applying following patch, we can create memory hot removable system
+on KVM guest.
 
---=20
-Kind Regards
-Martin Hundeb=C3=B8ll
-=46rederiks All=C3=A9 99, 1.th
-8000 Aarhus C
-Denmark
+http://lists.gnu.org/archive/html/qemu-devel/2012-07/msg01389.html
 
-+45 61 65 54 61
-martin@hundeboll.net
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2nd blockade is own problem. So we try to divide huge patch into
+a small patch in each function as follows: 
+
+ - bug fix
+ - acpi framework
+ - kernel core
+
+We had already sent bug fix patches.
+https://lkml.org/lkml/2012/9/27/39
+https://lkml.org/lkml/2012/10/2/83
+
+The patch-set implements a framework for hot removing memory.
+
+The memory device can be removed by 2 ways:
+1. send eject request by SCI
+2. echo 1 >/sys/bus/pci/devices/PNP0C80:XX/eject
+
+In the 1st case, acpi_memory_disable_device() will be called.
+In the 2nd case, acpi_memory_device_remove() will be called.
+acpi_memory_device_remove() will also be called when we unbind the
+memory device from the driver acpi_memhotplug.
+
+acpi_memory_disable_device() has already implemented a code which
+offlines memory and releases acpi_memory_info struct . But
+acpi_memory_device_remove() has not implemented it yet.
+
+So the patch prepares the framework for hot removing memory and
+adds the framework intoacpi_memory_device_remove(). And it prepares
+remove_memory(). But the function does nothing because we cannot
+support memory hot remove.
+
