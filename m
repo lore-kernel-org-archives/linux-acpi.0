@@ -1,50 +1,124 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH 0/4] ACPI: kill acpi_pci_root_start
-Date: Wed,  3 Oct 2012 16:00:10 -0700
-Message-ID: <1349305214-3241-1-git-send-email-yinghai@kernel.org>
+Subject: [PATCH 2/4] ACPI: use device drivers_autoprobe to delay loading acpi drivers
+Date: Wed,  3 Oct 2012 16:00:12 -0700
+Message-ID: <1349305214-3241-3-git-send-email-yinghai@kernel.org>
 References: <CAE9FiQWgvVqnTTeYFvxf1GxLcEEeRyN-uSKPdg3o69oCpm43sQ@mail.gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAE9FiQWgvVqnTTeYFvxf1GxLcEEeRyN-uSKPdg3o69oCpm43sQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+ <1349305214-3241-1-git-send-email-yinghai@kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1349305214-3241-1-git-send-email-yinghai@kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
 To: Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Now acpi_pci_root_driver has two ops: .add and .start, aka acpi_pci_root_add
-and acpi_pci_root_start.
+Current acpi driver for pci_root is working like this way for hotplug:
 
-That is for hotplug handling: .add need to return early to make sure all
-acpi device could be created and added early. So .start could device_add
-pci device that are found in acpi_pci_root_add/pci_acpi_scan_root().
+	acpi try to enumberate acpi device and create acpi_device for pci_root
+	and loading driver for it, and that drivers .add aka acpi_pci_root_add
+	calls pci_acpi_scan_root to enumerate pci devices but not add those pci
+	devices into device tree to prevent drivers for pci devices get probed.
 
-That is holding pci devics to be out of devices for while.
+	Later .start aka acpi_pci_root_start will call pci_bus_add_devices to
+	add pci devices into the tree to make drivers for pci devices get
+	attached or probed.
 
-We could use bus notifier to handle hotplug case.
-	CONFIG_HOTPLUG is enabled always now.
-Need to add drivers_autoprobe bit in acpi_device to hold attaching drivers
-for acpi_devices, so could make sure all acpi_devices get created at first.
-Then acpi_bus_attach() that is called from acpi_bus_add will attach driver
-for all acpi_devices that are just created.
+The reason for that .add must get back for pci_root, so could create acpi_device
+for other pci_devices. otherwise adding the pci device tree early than
+acpi_device will cause binding for acpi/pci failing becuse pci_device can not
+find acpi_dev that is not created yet.
 
-That make the logic more simple: hotplug path handling just like booting path
-that drivers are attached after all acpi device get created.
+booting path is working becasue driver for acpi driver is registered later,
+that means all acpi_device get created at first, and later when acpi_driver
+get registered, and .add get called, that probe pci devices, when pci devices
+is found, it could find acpi_device and binding will be ok, even
+pci_add_bus_devices in done in acpi_pci_root_add.
 
-At last we could remove all acpi_bus_start workaround.
+That .start design is broken, and it will leave pci devices out of device tree
+for a while.
 
-Thanks
+We could use device drivers_autoprobe and acpi_bus_type notifier to control
+the process to make sure for hot adding path, will have all acpi_device get
+created, then attach acpi driver for acpi_device for pci_root.
+That will make the path more like booting path.
 
-Yinghai
+After that we could remove the workaround .start in acpi driver ops.
 
-Yinghai Lu (4):
-  ACPI: add drivers_autoprobe in struct acpi_device
-  ACPI: use device drivers_autoprobe to delay loading acpi drivers
-  PCI, ACPI: Remove not used acpi_pci_root_start()
-  ACPI: remove acpi_op_start workaround
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+---
+ drivers/acpi/scan.c |   46 +++++++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 45 insertions(+), 1 deletions(-)
 
- drivers/acpi/pci_root.c |   27 +++------
- drivers/acpi/scan.c     |  145 ++++++++++++++++++++++-------------------------
- include/acpi/acpi_bus.h |    9 +---
- 3 files changed, 77 insertions(+), 104 deletions(-)
-
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index cbb3ed1..1bafa2d 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -1474,6 +1474,19 @@ static int acpi_bus_scan(acpi_handle handle, struct acpi_bus_ops *ops,
+ 		return -ENODEV;
+ }
+ 
++static void acpi_bus_attach(struct acpi_device *dev)
++{
++	struct acpi_device *child;
++	int ret;
++
++	dev->drivers_autoprobe = true;
++	ret = device_attach(&dev->dev);
++	WARN_ON(ret < 0);
++
++	list_for_each_entry(child, &dev->children, node)
++		acpi_bus_attach(child);
++}
++
+ /*
+  * acpi_bus_add and acpi_bus_start
+  *
+@@ -1491,11 +1504,17 @@ acpi_bus_add(struct acpi_device **child,
+ 	     struct acpi_device *parent, acpi_handle handle, int type)
+ {
+ 	struct acpi_bus_ops ops;
++	int result;
+ 
+ 	memset(&ops, 0, sizeof(ops));
+ 	ops.acpi_op_add = 1;
+ 
+-	return acpi_bus_scan(handle, &ops, child);
++	result = acpi_bus_scan(handle, &ops, child);
++
++	if (*child)
++		acpi_bus_attach(*child);
++
++	return result;
+ }
+ EXPORT_SYMBOL(acpi_bus_add);
+ 
+@@ -1636,3 +1655,28 @@ int __init acpi_scan_init(void)
+ 
+ 	return result;
+ }
++
++static int acpi_hp_notifier(struct notifier_block *nb,
++				 unsigned long event, void *data)
++{
++	struct device *dev = data;
++
++	switch (event) {
++	case BUS_NOTIFY_ADD_DEVICE:
++		to_acpi_device(dev)->drivers_autoprobe = false;
++		break;
++	}
++
++	return NOTIFY_OK;
++}
++
++static struct notifier_block acpi_hp_nb = {
++	.notifier_call = &acpi_hp_notifier,
++};
++
++static int __init acpi_hp_init(void)
++{
++	return bus_register_notifier(&acpi_bus_type, &acpi_hp_nb);
++}
++
++fs_initcall(acpi_hp_init);
 -- 
 1.7.7
