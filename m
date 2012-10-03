@@ -1,39 +1,52 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
+From: Yinghai Lu <yinghai@kernel.org>
 Subject: Re: [PATCH 01/10] device: add drivers_autoprobe in struct device
-Date: Wed, 3 Oct 2012 13:48:58 -0600
-Message-ID: <CAErSpo4gFhiyS8GdZG21Eo0NPjvedr1+rXtY-MP11hDWCZ+LzA@mail.gmail.com>
+Date: Wed, 3 Oct 2012 13:50:02 -0700
+Message-ID: <CAE9FiQWgvVqnTTeYFvxf1GxLcEEeRyN-uSKPdg3o69oCpm43sQ@mail.gmail.com>
 References: <1349159588-15029-1-git-send-email-yinghai@kernel.org>
- <1349159588-15029-2-git-send-email-yinghai@kernel.org> <20121002133303.GA502@kroah.com>
- <CAE9FiQVCFs8cgFoU2rb=a8MWCzBcfRT6iNh7UchV8q6Bg6XzGQ@mail.gmail.com>
- <20121002174712.GA11843@kroah.com> <CAE9FiQXM6Cy64ZbXtjsnQaMFJi0C1QABC7TNYSBZ3FGsjC8D8w@mail.gmail.com>
- <20121002204548.GC28663@kroah.com> <CAE9FiQV51R2RBAZBPobDifq6jQUhBCyx_Bo8EHxOX4yrUMSnLg@mail.gmail.com>
- <CAErSpo5EuGVhu_ObioV-4n7930MkJzD9jrtkn6-JdBLikDBmMg@mail.gmail.com> <CAE9FiQUXmURaO40sA4ibf7j9sokEHYXK_EaGiEq9b-ob=d1MRw@mail.gmail.com>
+	<1349159588-15029-2-git-send-email-yinghai@kernel.org>
+	<20121002133303.GA502@kroah.com>
+	<CAE9FiQVCFs8cgFoU2rb=a8MWCzBcfRT6iNh7UchV8q6Bg6XzGQ@mail.gmail.com>
+	<20121002174712.GA11843@kroah.com>
+	<CAE9FiQXM6Cy64ZbXtjsnQaMFJi0C1QABC7TNYSBZ3FGsjC8D8w@mail.gmail.com>
+	<20121002204548.GC28663@kroah.com>
+	<CAE9FiQV51R2RBAZBPobDifq6jQUhBCyx_Bo8EHxOX4yrUMSnLg@mail.gmail.com>
+	<CAErSpo5EuGVhu_ObioV-4n7930MkJzD9jrtkn6-JdBLikDBmMg@mail.gmail.com>
+	<CAE9FiQUXmURaO40sA4ibf7j9sokEHYXK_EaGiEq9b-ob=d1MRw@mail.gmail.com>
+	<CAErSpo4gFhiyS8GdZG21Eo0NPjvedr1+rXtY-MP11hDWCZ+LzA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAE9FiQUXmURaO40sA4ibf7j9sokEHYXK_EaGiEq9b-ob=d1MRw@mail.gmail.com>
+In-Reply-To: <CAErSpo4gFhiyS8GdZG21Eo0NPjvedr1+rXtY-MP11hDWCZ+LzA@mail.gmail.com>
 Sender: linux-pci-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
+To: Bjorn Helgaas <bhelgaas@google.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Oct 2, 2012 at 6:00 PM, Yinghai Lu <yinghai@kernel.org> wrote:
-> On Tue, Oct 2, 2012 at 3:38 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+On Wed, Oct 3, 2012 at 12:48 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
 >
->> I don't know what the right answer is, but I do think it's better to
->> resolve it inside PCI and ACPI rather than playing games with driver
->> binding times in the driver core.
->
-> is that ok to save that drivers_autoprobe bit in device.archdata for
-> ia64 and x86 that using acpi?
+> You'll have to ask Len (cc'd) what he thinks about the ACPI piece, but
+> I don't like the PCI piece.  It's the same idea that Greg already said
+> he wouldn't put in the driver core.  Why would it be better to add
+> this complexity in the ACPI and PCI cores?
 
-You'll have to ask Len (cc'd) what he thinks about the ACPI piece, but
-I don't like the PCI piece.  It's the same idea that Greg already said
-he wouldn't put in the driver core.  Why would it be better to add
-this complexity in the ACPI and PCI cores?
+It should be simplify acpi code a little.
 
-I still think you need to work on the ACPI/PCI binding issue.  Yes,
-it's hard, but I'm not in favor of avoiding that hard work by adding
-kludges everywhere.
+I will reorder acpi parts as separate patcheset for review.
 
-Bjorn
+> I still think you need to work on the ACPI/PCI binding issue.  Yes,
+> it's hard, but I'm not in favor of avoiding that hard work by adding
+> kludges everywhere.
+
+acpi pci binding should be solved if len could accept acpi changes.
+
+for pci separate driver attach, that is for registering pci dev to
+tree early instead of
+waiting till pci_bus_add_devices.
+Let me know if you still want us to pursue that.
+
+Otherwise I'd like to move root bus and host bridge registering into
+pci_bus_add_devices().
+
+Thanks
+
+Yinghai
