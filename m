@@ -1,48 +1,50 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: [PATCH 2/2] acpi,memory-hotplug : call acpi_bus_remo() to remove
- memory device
-Date: Thu, 4 Oct 2012 10:48:10 +0900
-Message-ID: <506CEADA.9060108@jp.fujitsu.com>
-References: <506CE9F5.8020809@jp.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:33408 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753192Ab2JDBs2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Oct 2012 21:48:28 -0400
-In-Reply-To: <506CE9F5.8020809@jp.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: [PATCH 0/4] ACPI: kill acpi_pci_root_start
+Date: Wed,  3 Oct 2012 16:00:10 -0700
+Message-ID: <1349305214-3241-1-git-send-email-yinghai@kernel.org>
+References: <CAE9FiQWgvVqnTTeYFvxf1GxLcEEeRyN-uSKPdg3o69oCpm43sQ@mail.gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAE9FiQWgvVqnTTeYFvxf1GxLcEEeRyN-uSKPdg3o69oCpm43sQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
-Cc: len.brown@intel.com, wency@cn.fujitsu.com
 
-From: Wen Congyang <wency@cn.fujitsu.com>
+Now acpi_pci_root_driver has two ops: .add and .start, aka acpi_pci_root_add
+and acpi_pci_root_start.
 
-The memory device has been ejected and powoffed, so we can call
-acpi_bus_remove() to remove the memory device from acpi bus.
+That is for hotplug handling: .add need to return early to make sure all
+acpi device could be created and added early. So .start could device_add
+pci device that are found in acpi_pci_root_add/pci_acpi_scan_root().
 
-CC: Len Brown <len.brown@intel.com>
-Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
----
- drivers/acpi/acpi_memhotplug.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+That is holding pci devics to be out of devices for while.
 
-Index: linux-3.6/drivers/acpi/acpi_memhotplug.c
-===================================================================
---- linux-3.6.orig/drivers/acpi/acpi_memhotplug.c	2012-10-03 18:17:47.802249170 +0900
-+++ linux-3.6/drivers/acpi/acpi_memhotplug.c	2012-10-03 18:17:52.471250299 +0900
-@@ -424,8 +424,9 @@ static void acpi_memory_device_notify(ac
- 		}
- 
- 		/*
--		 * TBD: Invoke acpi_bus_remove to cleanup data structures
-+		 * Invoke acpi_bus_remove() to remove memory device
- 		 */
-+		acpi_bus_remove(device, 1);
- 
- 		/* _EJ0 succeeded; _OST is not necessary */
- 		return;
+We could use bus notifier to handle hotplug case.
+	CONFIG_HOTPLUG is enabled always now.
+Need to add drivers_autoprobe bit in acpi_device to hold attaching drivers
+for acpi_devices, so could make sure all acpi_devices get created at first.
+Then acpi_bus_attach() that is called from acpi_bus_add will attach driver
+for all acpi_devices that are just created.
 
+That make the logic more simple: hotplug path handling just like booting path
+that drivers are attached after all acpi device get created.
+
+At last we could remove all acpi_bus_start workaround.
+
+Thanks
+
+Yinghai
+
+Yinghai Lu (4):
+  ACPI: add drivers_autoprobe in struct acpi_device
+  ACPI: use device drivers_autoprobe to delay loading acpi drivers
+  PCI, ACPI: Remove not used acpi_pci_root_start()
+  ACPI: remove acpi_op_start workaround
+
+ drivers/acpi/pci_root.c |   27 +++------
+ drivers/acpi/scan.c     |  145 ++++++++++++++++++++++-------------------------
+ include/acpi/acpi_bus.h |    9 +---
+ 3 files changed, 77 insertions(+), 104 deletions(-)
+
+-- 
+1.7.7
