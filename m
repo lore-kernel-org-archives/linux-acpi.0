@@ -1,34 +1,53 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH 1/4] ACPI: add drivers_autoprobe in struct acpi_device
-Date: Thu, 4 Oct 2012 08:15:44 -0700
-Message-ID: <CAE9FiQVFY1M65smht2vkAAR3nvH+SMUe2NteBvUyZzqabARV2Q@mail.gmail.com>
-References: <CAE9FiQWgvVqnTTeYFvxf1GxLcEEeRyN-uSKPdg3o69oCpm43sQ@mail.gmail.com>
-	<1349305214-3241-1-git-send-email-yinghai@kernel.org>
-	<1349305214-3241-2-git-send-email-yinghai@kernel.org>
-	<CACJDEmoeD+XwjGnA2WwkeJ5TrsaXfgw+mZHPDcX0+7QZ9_80SA@mail.gmail.com>
+From: Peter De Schrijver <pdeschrijver@nvidia.com>
+Subject: Re: [PATCH 4/4] cpuidle - support multiple drivers
+Date: Thu, 4 Oct 2012 17:34:42 +0300
+Message-ID: <20121004143442.GM13834@tbergstrom-lnx.Nvidia.com>
+References: <1348526634-19029-1-git-send-email-daniel.lezcano@linaro.org>
+ <1348526634-19029-5-git-send-email-daniel.lezcano@linaro.org>
+ <20121004141425.GK13834@tbergstrom-lnx.Nvidia.com>
+ <506D9CA9.8000308@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CACJDEmoeD+XwjGnA2WwkeJ5TrsaXfgw+mZHPDcX0+7QZ9_80SA@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Konrad Rzeszutek Wilk <konrad@kernel.org>
-Cc: Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hqemgate03.nvidia.com ([216.228.121.140]:8959 "EHLO
+	hqemgate03.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965038Ab2JDOe6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Oct 2012 10:34:58 -0400
+Content-Disposition: inline
+In-Reply-To: <506D9CA9.8000308@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: "rjw@sisk.pl" <rjw@sisk.pl>, "lenb@kernel.org" <lenb@kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "patches@linaro.org" <patches@linaro.org>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>
 
-On Thu, Oct 4, 2012 at 6:03 AM, Konrad Rzeszutek Wilk <konrad@kernel.org> wrote:
-> On Wed, Oct 3, 2012 at 7:00 PM, Yinghai Lu <yinghai@kernel.org> wrote:
->> To use to control the delay attach driver for acpi_device.
->
-> <blinks>
-> I am not sure what this says. Can you please explain how it controls
-> the delaying of
-> attaching drivers?
->>
->> Will use bus notifier to toggle this bits when needed.
->
-> Will use ..? In a subsequent patch? Which patch? And when is this
-> needed? Is there a patch that needs this?
+> >>
+> >> eg.
+> >> cpu0: acpi_idle
+> >> cpu1: acpi_idle
+> >>
+> > 
+> > Is this allowed? I thought sysfs files can output only 1 line of data?
+> 
+> Ah yeah :)
+> 
+> Does it make sense to put the following files:
+> 
+> /sys/devices/system/cpu/cpu0/cpuidle/driver
+>  => acpi_idle
+> /sys/devices/system/cpu/cpu1/cpuidle/driver
+>  => acpi_idle
+> 
 
-please check patch 0-4 as a whole.
+Sounds like a reasonable idea.
 
-Yinghai
+> and the content of the file:
+> 
+> /sys/devices/system/cpu/cpuidle/current_driver will show the driver
+> associated with current cpu ?
+> 
+
+I think that's ok.
+
+Cheers,
+
+Peter.
