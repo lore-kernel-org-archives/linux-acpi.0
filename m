@@ -1,300 +1,345 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH 4/4] ACPI: remove acpi_op_start workaround
-Date: Wed,  3 Oct 2012 16:00:14 -0700
-Message-ID: <1349305214-3241-5-git-send-email-yinghai@kernel.org>
-References: <CAE9FiQWgvVqnTTeYFvxf1GxLcEEeRyN-uSKPdg3o69oCpm43sQ@mail.gmail.com>
- <1349305214-3241-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1349305214-3241-1-git-send-email-yinghai@kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [RFC v9 PATCH 16/21] memory-hotplug: free memmap of sparse-vmemmap
+Date: Thu, 4 Oct 2012 15:26:36 +0900
+Message-ID: <506D2C1C.5060706@jp.fujitsu.com>
+References: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com> <1346837155-534-17-git-send-email-wency@cn.fujitsu.com> <506A6BDC.3010400@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-sh-owner@vger.kernel.org>
+In-Reply-To: <506A6BDC.3010400@gmail.com>
+Sender: linux-sh-owner@vger.kernel.org
+To: Ni zhan Chen <nizhan.chen@gmail.com>
+Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, Wen Congyang <wency@cn.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
 
-No .start on any acpi_driver ops anymore.
+Hi Chen,
 
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
----
- drivers/acpi/scan.c     |   95 ++++++++--------------------------------------
- include/acpi/acpi_bus.h |    8 ----
- 2 files changed, 17 insertions(+), 86 deletions(-)
+Sorry for late reply.
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 1bafa2d..5e6d2ad 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -416,7 +416,6 @@ static void acpi_device_remove_notify_handler(struct acpi_device *device)
- }
- 
- static int acpi_bus_driver_init(struct acpi_device *, struct acpi_driver *);
--static int acpi_start_single_object(struct acpi_device *);
- static int acpi_device_probe(struct device * dev)
- {
- 	struct acpi_device *acpi_dev = to_acpi_device(dev);
-@@ -425,9 +424,6 @@ static int acpi_device_probe(struct device * dev)
- 
- 	ret = acpi_bus_driver_init(acpi_dev, acpi_drv);
- 	if (!ret) {
--		if (acpi_dev->bus_ops.acpi_op_start)
--			acpi_start_single_object(acpi_dev);
--
- 		if (acpi_drv->ops.notify) {
- 			ret = acpi_device_install_notify_handler(acpi_dev);
- 			if (ret) {
-@@ -604,24 +600,6 @@ acpi_bus_driver_init(struct acpi_device *device, struct acpi_driver *driver)
- 	return 0;
- }
- 
--static int acpi_start_single_object(struct acpi_device *device)
--{
--	int result = 0;
--	struct acpi_driver *driver;
--
--
--	if (!(driver = device->driver))
--		return 0;
--
--	if (driver->ops.start) {
--		result = driver->ops.start(device);
--		if (result && driver->ops.remove)
--			driver->ops.remove(device, ACPI_BUS_REMOVAL_NORMAL);
--	}
--
--	return result;
--}
--
- /**
-  * acpi_bus_register_driver - register a driver with the ACPI bus
-  * @driver: driver being registered
-@@ -1254,8 +1232,7 @@ static int acpi_bus_remove(struct acpi_device *dev, int rmdevice)
- 
- static int acpi_add_single_object(struct acpi_device **child,
- 				  acpi_handle handle, int type,
--				  unsigned long long sta,
--				  struct acpi_bus_ops *ops)
-+				  unsigned long long sta)
- {
- 	int result;
- 	struct acpi_device *device;
-@@ -1271,7 +1248,6 @@ static int acpi_add_single_object(struct acpi_device **child,
- 	device->device_type = type;
- 	device->handle = handle;
- 	device->parent = acpi_bus_get_parent(handle);
--	device->bus_ops = *ops; /* workround for not call .start */
- 	STRUCT_TO_INT(device->status) = sta;
- 	device->drivers_autoprobe = true;
- 
-@@ -1354,16 +1330,12 @@ end:
- 
- static void acpi_bus_add_power_resource(acpi_handle handle)
- {
--	struct acpi_bus_ops ops = {
--		.acpi_op_add = 1,
--		.acpi_op_start = 1,
--	};
- 	struct acpi_device *device = NULL;
- 
- 	acpi_bus_get_device(handle, &device);
- 	if (!device)
- 		acpi_add_single_object(&device, handle, ACPI_BUS_TYPE_POWER,
--					ACPI_STA_DEFAULT, &ops);
-+					ACPI_STA_DEFAULT);
- }
- 
- static int acpi_bus_type_and_status(acpi_handle handle, int *type,
-@@ -1408,7 +1380,6 @@ static int acpi_bus_type_and_status(acpi_handle handle, int *type,
- static acpi_status acpi_bus_check_add(acpi_handle handle, u32 lvl,
- 				      void *context, void **return_value)
- {
--	struct acpi_bus_ops *ops = context;
- 	int type;
- 	unsigned long long sta;
- 	struct acpi_device *device;
-@@ -1433,37 +1404,30 @@ static acpi_status acpi_bus_check_add(acpi_handle handle, u32 lvl,
- 
- 	/*
- 	 * We may already have an acpi_device from a previous enumeration.  If
--	 * so, we needn't add it again, but we may still have to start it.
-+	 * so, we needn't add it again.
- 	 */
- 	device = NULL;
- 	acpi_bus_get_device(handle, &device);
--	if (ops->acpi_op_add && !device)
--		acpi_add_single_object(&device, handle, type, sta, ops);
-+	if (!device)
-+		acpi_add_single_object(&device, handle, type, sta);
- 
- 	if (!device)
- 		return AE_CTRL_DEPTH;
- 
--	if (ops->acpi_op_start && !(ops->acpi_op_add)) {
--		status = acpi_start_single_object(device);
--		if (ACPI_FAILURE(status))
--			return AE_CTRL_DEPTH;
--	}
--
- 	if (!*return_value)
- 		*return_value = device;
- 	return AE_OK;
- }
- 
--static int acpi_bus_scan(acpi_handle handle, struct acpi_bus_ops *ops,
--			 struct acpi_device **child)
-+static int acpi_bus_scan(acpi_handle handle, struct acpi_device **child)
- {
- 	acpi_status status;
- 	void *device = NULL;
- 
--	status = acpi_bus_check_add(handle, 0, ops, &device);
-+	status = acpi_bus_check_add(handle, 0, NULL, &device);
- 	if (ACPI_SUCCESS(status))
- 		acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
--				    acpi_bus_check_add, NULL, ops, &device);
-+				    acpi_bus_check_add, NULL, NULL, &device);
- 
- 	if (child)
- 		*child = device;
-@@ -1488,28 +1452,24 @@ static void acpi_bus_attach(struct acpi_device *dev)
- }
- 
- /*
-- * acpi_bus_add and acpi_bus_start
-+ * acpi_bus_add
-  *
-  * scan a given ACPI tree and (probably recently hot-plugged)
-- * create and add or starts found devices.
-+ * create and add found devices.
-  *
-  * If no devices were found -ENODEV is returned which does not
-  * mean that this is a real error, there just have been no suitable
-  * ACPI objects in the table trunk from which the kernel could create
-- * a device and add/start an appropriate driver.
-+ * a device and add an appropriate driver.
-  */
- 
- int
- acpi_bus_add(struct acpi_device **child,
- 	     struct acpi_device *parent, acpi_handle handle, int type)
- {
--	struct acpi_bus_ops ops;
- 	int result;
- 
--	memset(&ops, 0, sizeof(ops));
--	ops.acpi_op_add = 1;
--
--	result = acpi_bus_scan(handle, &ops, child);
-+	result = acpi_bus_scan(handle, child);
- 
- 	if (*child)
- 		acpi_bus_attach(*child);
-@@ -1520,20 +1480,12 @@ EXPORT_SYMBOL(acpi_bus_add);
- 
- int acpi_bus_start(struct acpi_device *device)
- {
--	struct acpi_bus_ops ops;
--	int result;
--
- 	if (!device)
- 		return -EINVAL;
- 
--	memset(&ops, 0, sizeof(ops));
--	ops.acpi_op_start = 1;
--
--	result = acpi_bus_scan(device->handle, &ops, NULL);
--
- 	acpi_update_all_gpes();
- 
--	return result;
-+	return 0;
- }
- EXPORT_SYMBOL(acpi_bus_start);
- 
-@@ -1596,11 +1548,6 @@ static int acpi_bus_scan_fixed(void)
- {
- 	int result = 0;
- 	struct acpi_device *device = NULL;
--	struct acpi_bus_ops ops;
--
--	memset(&ops, 0, sizeof(ops));
--	ops.acpi_op_add = 1;
--	ops.acpi_op_start = 1;
- 
- 	/*
- 	 * Enumerate all fixed-feature devices.
-@@ -1608,17 +1555,14 @@ static int acpi_bus_scan_fixed(void)
- 	if ((acpi_gbl_FADT.flags & ACPI_FADT_POWER_BUTTON) == 0) {
- 		result = acpi_add_single_object(&device, NULL,
- 						ACPI_BUS_TYPE_POWER_BUTTON,
--						ACPI_STA_DEFAULT,
--						&ops);
-+						ACPI_STA_DEFAULT);
- 		device_init_wakeup(&device->dev, true);
- 	}
- 
--	if ((acpi_gbl_FADT.flags & ACPI_FADT_SLEEP_BUTTON) == 0) {
-+	if ((acpi_gbl_FADT.flags & ACPI_FADT_SLEEP_BUTTON) == 0)
- 		result = acpi_add_single_object(&device, NULL,
- 						ACPI_BUS_TYPE_SLEEP_BUTTON,
--						ACPI_STA_DEFAULT,
--						&ops);
--	}
-+						ACPI_STA_DEFAULT);
- 
- 	return result;
- }
-@@ -1626,11 +1570,6 @@ static int acpi_bus_scan_fixed(void)
- int __init acpi_scan_init(void)
- {
- 	int result;
--	struct acpi_bus_ops ops;
--
--	memset(&ops, 0, sizeof(ops));
--	ops.acpi_op_add = 1;
--	ops.acpi_op_start = 1;
- 
- 	result = bus_register(&acpi_bus_type);
- 	if (result) {
-@@ -1643,7 +1582,7 @@ int __init acpi_scan_init(void)
- 	/*
- 	 * Enumerate devices in the ACPI namespace.
- 	 */
--	result = acpi_bus_scan(ACPI_ROOT_OBJECT, &ops, &acpi_root);
-+	result = acpi_bus_scan(ACPI_ROOT_OBJECT, &acpi_root);
- 
- 	if (!result)
- 		result = acpi_bus_scan_fixed();
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 969544e..cc9363b 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -119,20 +119,13 @@ struct acpi_device;
- 
- typedef int (*acpi_op_add) (struct acpi_device * device);
- typedef int (*acpi_op_remove) (struct acpi_device * device, int type);
--typedef int (*acpi_op_start) (struct acpi_device * device);
- typedef int (*acpi_op_bind) (struct acpi_device * device);
- typedef int (*acpi_op_unbind) (struct acpi_device * device);
- typedef void (*acpi_op_notify) (struct acpi_device * device, u32 event);
- 
--struct acpi_bus_ops {
--	u32 acpi_op_add:1;
--	u32 acpi_op_start:1;
--};
--
- struct acpi_device_ops {
- 	acpi_op_add add;
- 	acpi_op_remove remove;
--	acpi_op_start start;
- 	acpi_op_bind bind;
- 	acpi_op_unbind unbind;
- 	acpi_op_notify notify;
-@@ -302,7 +295,6 @@ struct acpi_device {
- 	struct acpi_driver *driver;
- 	void *driver_data;
- 	struct device dev;
--	struct acpi_bus_ops bus_ops;	/* workaround for different code path for hotplug */
- 	enum acpi_bus_removal_type removal_type;	/* indicate for different removal type */
- 	bool drivers_autoprobe;
- };
--- 
-1.7.7
+2012/10/02 13:21, Ni zhan Chen wrote:
+> On 09/05/2012 05:25 PM, wency@cn.fujitsu.com wrote:
+>> From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+>>
+>> All pages of virtual mapping in removed memory cannot be freed, since some pages
+>> used as PGD/PUD includes not only removed memory but also other memory. So the
+>> patch checks whether page can be freed or not.
+>>
+>> How to check whether page can be freed or not?
+>>   1. When removing memory, the page structs of the revmoved memory are filled
+>>      with 0FD.
+>>   2. All page structs are filled with 0xFD on PT/PMD, PT/PMD can be cleared.
+>>      In this case, the page used as PT/PMD can be freed.
+>>
+>> Applying patch, __remove_section() of CONFIG_SPARSEMEM_VMEMMAP is integrated
+>> into one. So __remove_section() of CONFIG_SPARSEMEM_VMEMMAP is deleted.
+>>
+>> Note:  vmemmap_kfree() and vmemmap_free_bootmem() are not implemented for ia64,
+>> ppc, s390, and sparc.
+>>
+>> CC: David Rientjes <rientjes@google.com>
+>> CC: Jiang Liu <liuj97@gmail.com>
+>> CC: Len Brown <len.brown@intel.com>
+>> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+>> CC: Paul Mackerras <paulus@samba.org>
+>> CC: Christoph Lameter <cl@linux.com>
+>> Cc: Minchan Kim <minchan.kim@gmail.com>
+>> CC: Andrew Morton <akpm@linux-foundation.org>
+>> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+>> CC: Wen Congyang <wency@cn.fujitsu.com>
+>> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+>> ---
+>>   arch/ia64/mm/discontig.c  |    8 +++
+>>   arch/powerpc/mm/init_64.c |    8 +++
+>>   arch/s390/mm/vmem.c       |    8 +++
+>>   arch/sparc/mm/init_64.c   |    8 +++
+>>   arch/x86/mm/init_64.c     |  119 +++++++++++++++++++++++++++++++++++++++++++++
+>>   include/linux/mm.h        |    2 +
+>>   mm/memory_hotplug.c       |   17 +------
+>>   mm/sparse.c               |    5 +-
+>>   8 files changed, 158 insertions(+), 17 deletions(-)
+>>
+>> diff --git a/arch/ia64/mm/discontig.c b/arch/ia64/mm/discontig.c
+>> index 33943db..0d23b69 100644
+>> --- a/arch/ia64/mm/discontig.c
+>> +++ b/arch/ia64/mm/discontig.c
+>> @@ -823,6 +823,14 @@ int __meminit vmemmap_populate(struct page *start_page,
+>>       return vmemmap_populate_basepages(start_page, size, node);
+>>   }
+>> +void vmemmap_kfree(struct page *memmap, unsigned long nr_pages)
+>> +{
+>> +}
+>> +
+>> +void vmemmap_free_bootmem(struct page *memmap, unsigned long nr_pages)
+>> +{
+>> +}
+>> +
+>>   void register_page_bootmem_memmap(unsigned long section_nr,
+>>                     struct page *start_page, unsigned long size)
+>>   {
+>> diff --git a/arch/powerpc/mm/init_64.c b/arch/powerpc/mm/init_64.c
+>> index 3690c44..835a2b3 100644
+>> --- a/arch/powerpc/mm/init_64.c
+>> +++ b/arch/powerpc/mm/init_64.c
+>> @@ -299,6 +299,14 @@ int __meminit vmemmap_populate(struct page *start_page,
+>>       return 0;
+>>   }
+>> +void vmemmap_kfree(struct page *memmap, unsigned long nr_pages)
+>> +{
+>> +}
+>> +
+>> +void vmemmap_free_bootmem(struct page *memmap, unsigned long nr_pages)
+>> +{
+>> +}
+>> +
+>>   void register_page_bootmem_memmap(unsigned long section_nr,
+>>                     struct page *start_page, unsigned long size)
+>>   {
+>> diff --git a/arch/s390/mm/vmem.c b/arch/s390/mm/vmem.c
+>> index eda55cd..4b42b0b 100644
+>> --- a/arch/s390/mm/vmem.c
+>> +++ b/arch/s390/mm/vmem.c
+>> @@ -227,6 +227,14 @@ out:
+>>       return ret;
+>>   }
+>> +void vmemmap_kfree(struct page *memmap, unsigned long nr_pages)
+>> +{
+>> +}
+>> +
+>> +void vmemmap_free_bootmem(struct page *memmap, unsigned long nr_pages)
+>> +{
+>> +}
+>> +
+>>   void register_page_bootmem_memmap(unsigned long section_nr,
+>>                     struct page *start_page, unsigned long size)
+>>   {
+>> diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+>> index add1cc7..1384826 100644
+>> --- a/arch/sparc/mm/init_64.c
+>> +++ b/arch/sparc/mm/init_64.c
+>> @@ -2078,6 +2078,14 @@ void __meminit vmemmap_populate_print_last(void)
+>>       }
+>>   }
+>> +void vmemmap_kfree(struct page *memmap, unsigned long nr_pages)
+>> +{
+>> +}
+>> +
+>> +void vmemmap_free_bootmem(struct page *memmap, unsigned long nr_pages)
+>> +{
+>> +}
+>> +
+>>   void register_page_bootmem_memmap(unsigned long section_nr,
+>>                     struct page *start_page, unsigned long size)
+>>   {
+>> diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
+>> index 0075592..4e8f8a4 100644
+>> --- a/arch/x86/mm/init_64.c
+>> +++ b/arch/x86/mm/init_64.c
+>> @@ -1138,6 +1138,125 @@ vmemmap_populate(struct page *start_page, unsigned long size, int node)
+>>       return 0;
+>>   }
+>> +#define PAGE_INUSE 0xFD
+>> +
+>> +unsigned long find_and_clear_pte_page(unsigned long addr, unsigned long end,
+>> +                struct page **pp, int *page_size)
+>> +{
+>> +    pgd_t *pgd;
+>> +    pud_t *pud;
+>> +    pmd_t *pmd;
+>> +    pte_t *pte;
+>> +    void *page_addr;
+>> +    unsigned long next;
+>> +
+>> +    *pp = NULL;
+>> +
+>> +    pgd = pgd_offset_k(addr);
+>> +    if (pgd_none(*pgd))
+>> +        return pgd_addr_end(addr, end);
+>> +
+>> +    pud = pud_offset(pgd, addr);
+>> +    if (pud_none(*pud))
+>> +        return pud_addr_end(addr, end);
+>> +
+>> +    if (!cpu_has_pse) {
+>> +        next = (addr + PAGE_SIZE) & PAGE_MASK;
+>> +        pmd = pmd_offset(pud, addr);
+>> +        if (pmd_none(*pmd))
+>> +            return next;
+>> +
+>> +        pte = pte_offset_kernel(pmd, addr);
+>> +        if (pte_none(*pte))
+>> +            return next;
+>> +
+>> +        *page_size = PAGE_SIZE;
+>> +        *pp = pte_page(*pte);
+>> +    } else {
+>> +        next = pmd_addr_end(addr, end);
+>> +
+>> +        pmd = pmd_offset(pud, addr);
+>> +        if (pmd_none(*pmd))
+>> +            return next;
+>> +
+>> +        *page_size = PMD_SIZE;
+>> +        *pp = pmd_page(*pmd);
+>> +    }
+>> +
+>> +    /*
+>> +     * Removed page structs are filled with 0xFD.
+>> +     */
+>> +    memset((void *)addr, PAGE_INUSE, next - addr);
+>> +
+>> +    page_addr = page_address(*pp);
+>> +
+>> +    /*
+>> +     * Check the page is filled with 0xFD or not.
+>> +     * memchr_inv() returns the address. In this case, we cannot
+>> +     * clear PTE/PUD entry, since the page is used by other.
+>> +     * So we cannot also free the page.
+>> +     *
+>> +     * memchr_inv() returns NULL. In this case, we can clear
+>> +     * PTE/PUD entry, since the page is not used by other.
+>> +     * So we can also free the page.
+>> +     */
+>> +    if (memchr_inv(page_addr, PAGE_INUSE, *page_size)) {
+>> +        *pp = NULL;
+>> +        return next;
+>> +    }
+>> +
+>
+> Hi Yasuaki,
+>
+> why call memchr_inv check after memset, this time the page can always be filled with 0xFD.
+
+The page is not always filled with 0xFD. find_and_clear_pte_page()
+is calld in each section. So the function fills the page
+section size/sizeof(page) byte with 0xFD one time. Thus if section size is
+small, the page is filled with 0xFD.
+
+Thanks,
+Yasuaki Ishimatsu
+
+  
+>> +    if (!cpu_has_pse)
+>> +        pte_clear(&init_mm, addr, pte);
+>> +    else
+>> +        pmd_clear(pmd);
+>> +
+>> +    return next;
+>> +}
+>> +
+>> +void vmemmap_kfree(struct page *memmap, unsigned long nr_pages)
+>> +{
+>> +    unsigned long addr = (unsigned long)memmap;
+>> +    unsigned long end = (unsigned long)(memmap + nr_pages);
+>> +    unsigned long next;
+>> +    struct page *page;
+>> +    int page_size;
+>> +
+>> +    for (; addr < end; addr = next) {
+>> +        page = NULL;
+>> +        page_size = 0;
+>> +        next = find_and_clear_pte_page(addr, end, &page, &page_size);
+>> +        if (!page)
+>> +            continue;
+>> +
+>> +        free_pages((unsigned long)page_address(page),
+>> +                get_order(page_size));
+>> +        __flush_tlb_one(addr);
+>> +    }
+>> +}
+>> +
+>> +void vmemmap_free_bootmem(struct page *memmap, unsigned long nr_pages)
+>> +{
+>> +    unsigned long addr = (unsigned long)memmap;
+>> +    unsigned long end = (unsigned long)(memmap + nr_pages);
+>> +    unsigned long next;
+>> +    struct page *page;
+>> +    int page_size;
+>> +    unsigned long magic;
+>> +
+>> +    for (; addr < end; addr = next) {
+>> +        page = NULL;
+>> +        page_size = 0;
+>> +        next = find_and_clear_pte_page(addr, end, &page, &page_size);
+>> +        if (!page)
+>> +            continue;
+>> +
+>> +        magic = (unsigned long) page->lru.next;
+>> +        if (magic == SECTION_INFO)
+>> +            put_page_bootmem(page);
+>> +        flush_tlb_kernel_range(addr, end);
+>> +    }
+>> +}
+>> +
+>>   void register_page_bootmem_memmap(unsigned long section_nr,
+>>                     struct page *start_page, unsigned long size)
+>>   {
+>> diff --git a/include/linux/mm.h b/include/linux/mm.h
+>> index c607913..fb0d1fc 100644
+>> --- a/include/linux/mm.h
+>> +++ b/include/linux/mm.h
+>> @@ -1620,6 +1620,8 @@ int vmemmap_populate(struct page *start_page, unsigned long pages, int node);
+>>   void vmemmap_populate_print_last(void);
+>>   void register_page_bootmem_memmap(unsigned long section_nr, struct page *map,
+>>                     unsigned long size);
+>> +void vmemmap_kfree(struct page *memmpa, unsigned long nr_pages);
+>> +void vmemmap_free_bootmem(struct page *memmpa, unsigned long nr_pages);
+>>   enum mf_flags {
+>>       MF_COUNT_INCREASED = 1 << 0,
+>> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+>> index 647a7f2..c54922c 100644
+>> --- a/mm/memory_hotplug.c
+>> +++ b/mm/memory_hotplug.c
+>> @@ -308,19 +308,6 @@ static int __meminit __add_section(int nid, struct zone *zone,
+>>       return register_new_memory(nid, __pfn_to_section(phys_start_pfn));
+>>   }
+>> -#ifdef CONFIG_SPARSEMEM_VMEMMAP
+>> -static int __remove_section(struct zone *zone, struct mem_section *ms)
+>> -{
+>> -    int ret = -EINVAL;
+>> -
+>> -    if (!valid_section(ms))
+>> -        return ret;
+>> -
+>> -    ret = unregister_memory_section(ms);
+>> -
+>> -    return ret;
+>> -}
+>> -#else
+>>   static int __remove_section(struct zone *zone, struct mem_section *ms)
+>>   {
+>>       unsigned long flags;
+>> @@ -337,9 +324,9 @@ static int __remove_section(struct zone *zone, struct mem_section *ms)
+>>       pgdat_resize_lock(pgdat, &flags);
+>>       sparse_remove_one_section(zone, ms);
+>>       pgdat_resize_unlock(pgdat, &flags);
+>> -    return 0;
+>> +
+>> +    return ret;
+>>   }
+>> -#endif
+>>   /*
+>>    * Reasonably generic function for adding memory.  It is
+>> diff --git a/mm/sparse.c b/mm/sparse.c
+>> index fac95f2..ab9d755 100644
+>> --- a/mm/sparse.c
+>> +++ b/mm/sparse.c
+>> @@ -613,12 +613,13 @@ static inline struct page *kmalloc_section_memmap(unsigned long pnum, int nid,
+>>       /* This will make the necessary allocations eventually. */
+>>       return sparse_mem_map_populate(pnum, nid);
+>>   }
+>> -static void __kfree_section_memmap(struct page *memmap, unsigned long nr_pages)
+>> +static void __kfree_section_memmap(struct page *page, unsigned long nr_pages)
+>>   {
+>> -    return; /* XXX: Not implemented yet */
+>> +    vmemmap_kfree(page, nr_pages);
+>>   }
+>>   static void free_map_bootmem(struct page *page, unsigned long nr_pages)
+>>   {
+>> +    vmemmap_free_bootmem(page, nr_pages);
+>>   }
+>>   #else
+>>   static struct page *__kmalloc_section_memmap(unsigned long nr_pages)
+>
+
+
