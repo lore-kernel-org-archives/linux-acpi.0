@@ -1,52 +1,53 @@
-From: Borislav Petkov <bp@amd64.org>
-Subject: [PATCH] ACPI: Sanitize ACPI_INITRD_TABLE_OVERRIDE Kconfig text
-Date: Thu,  4 Oct 2012 11:02:34 +0200
-Message-ID: <1349341354-21466-1-git-send-email-bp@amd64.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Borislav Petkov <borislav.petkov@amd.com>, Thomas Renninger <trenn@suse.de>, "H. Peter Anvin" <hpa@linux.intel.com>, linux-acpi@vger.kernel.org
+From: Peter De Schrijver <pdeschrijver@nvidia.com>
+Subject: Re: [PATCH 0/4] cpuidle - support multiple drivers at a time
+Date: Thu, 4 Oct 2012 17:16:46 +0300
+Message-ID: <20121004141646.GL13834@tbergstrom-lnx.Nvidia.com>
+References: <1348526634-19029-1-git-send-email-daniel.lezcano@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hqemgate04.nvidia.com ([216.228.121.35]:4330 "EHLO
+	hqemgate04.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964793Ab2JDOQ6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Oct 2012 10:16:58 -0400
+Content-Disposition: inline
+In-Reply-To: <1348526634-19029-1-git-send-email-daniel.lezcano@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: "rjw@sisk.pl" <rjw@sisk.pl>, "lenb@kernel.org" <lenb@kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "patches@linaro.org" <patches@linaro.org>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>
 
-From: Borislav Petkov <borislav.petkov@amd.com>
+On Tue, Sep 25, 2012 at 12:43:50AM +0200, Daniel Lezcano wrote:
+> The discussion about having different cpus on the system with
+> different latencies bring us to a first attemp by adding a
+> pointer in the cpuidle_device to the states array.
+> 
+> But as Rafael suggested, it would make more sense to create a
+> driver per cpu [1].
+> 
+> This patch adds support for multiple cpuidle drivers.
+> 
+> It creates a per cpu cpuidle driver pointer.
+> 
+> In order to not break the different drivers, the function cpuidle_register_driver
+> assign for each cpu, the driver.
+> 
+> The multiple driver support is optional and if it is not set, the cpuide driver
+> core code remains the same (except some code reorganisation).
+> 
+> I did the following tests compiled, booted, tested without/with CONFIG_CPU_IDLE,
+> with/without CONFIG_CPU_IDLE_MULTIPLE_DRIVERS.
+> 
+> Tested on Core2 Duo T9500 with acpi_idle [and intel_idle]
+> Tested on ARM Dual Cortex-A9 U8500 (aka Snowball)
+> 
 
-Make the bool prompt text shorter and fit the style of Kconfig options
-and move the actual description into the help text.
+Tested on Cardhu (Tegra30).
 
-No functionality change.
+Besides the possibly problem with the sysfs format:
 
-Cc: Thomas Renninger <trenn@suse.de>
-Cc: H. Peter Anvin <hpa@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org
-Signed-off-by: Borislav Petkov <borislav.petkov@amd.com>
----
+Acked-by: Peter De Schrijver <pdeschrijver@nvidia.com>
 
-I guess this one is against tip's x86/acpi branch.
+Cheers,
 
- drivers/acpi/Kconfig | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 44cea5d4b04e..c556b794e12f 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -262,13 +262,13 @@ config ACPI_CUSTOM_DSDT
- 	default ACPI_CUSTOM_DSDT_FILE != ""
- 
- config ACPI_INITRD_TABLE_OVERRIDE
--	bool "ACPI tables can be passed via uncompressed cpio in initrd"
-+	bool "ACPI tables override via initrd"
- 	default n
- 	help
- 	  This option provides functionality to override arbitrary ACPI tables
--	  via initrd. No functional change if no ACPI tables are passed via
--	  initrd, therefore it's safe to say Y.
--	  See Documentation/acpi/initrd_table_override.txt for details
-+	  via uncompressed cpio in initrd. No functional change if no ACPI
-+	  tables are passed via the initrd, therefore it's safe to say Y.
-+	  See Documentation/acpi/initrd_table_override.txt for details.
- 
- config ACPI_BLACKLIST_YEAR
- 	int "Disable ACPI for systems before Jan 1st this year" if X86_32
--- 
-1.7.11.rc1
+Peter.
