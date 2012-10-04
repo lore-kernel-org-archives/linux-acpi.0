@@ -1,95 +1,38 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [PATCH 0/4] ACPI: kill acpi_pci_root_start
-Date: Thu, 4 Oct 2012 11:47:46 -0600
-Message-ID: <20121004174746.GA24119@google.com>
-References: <CAE9FiQWgvVqnTTeYFvxf1GxLcEEeRyN-uSKPdg3o69oCpm43sQ@mail.gmail.com>
- <1349305214-3241-1-git-send-email-yinghai@kernel.org>
+Date: Thu, 04 Oct 2012 23:53:40 +0200
+Message-ID: <15022838.BvGHsiOjXu@vostro.rjw.lan>
+References: <CAE9FiQWgvVqnTTeYFvxf1GxLcEEeRyN-uSKPdg3o69oCpm43sQ@mail.gmail.com> <16287303.8DVGGcjq5E@vostro.rjw.lan> <CAE9FiQU=h8mchDHCQ31U-UpPhqmFiO_H5yX2uonsyOh3tK9DYA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1349305214-3241-1-git-send-email-yinghai@kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Len Brown <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([193.178.161.156]:59812 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750780Ab2JDVuN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 4 Oct 2012 17:50:13 -0400
+In-Reply-To: <CAE9FiQU=h8mchDHCQ31U-UpPhqmFiO_H5yX2uonsyOh3tK9DYA@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wed, Oct 03, 2012 at 04:00:10PM -0700, Yinghai Lu wrote:
-> Now acpi_pci_root_driver has two ops: .add and .start, aka acpi_pci_root_add
-> and acpi_pci_root_start.
+On Thursday 04 of October 2012 14:31:46 Yinghai Lu wrote:
+> On Thu, Oct 4, 2012 at 2:23 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> >>
+> >> At last we could remove all acpi_bus_start workaround.
+> >
+> > Do I understand correctly that you just want to prevent acpi_pci_root_driver
+> > from binding to the host bridge's struct acpi_device created while we're
+> > walking the ACPI namespace?
 > 
-> That is for hotplug handling: .add need to return early to make sure all
-> acpi device could be created and added early. So .start could device_add
-> pci device that are found in acpi_pci_root_add/pci_acpi_scan_root().
-> 
-> That is holding pci devics to be out of devices for while.
-> 
-> We could use bus notifier to handle hotplug case.
-> 	CONFIG_HOTPLUG is enabled always now.
-> Need to add drivers_autoprobe bit in acpi_device to hold attaching drivers
-> for acpi_devices, so could make sure all acpi_devices get created at first.
-> Then acpi_bus_attach() that is called from acpi_bus_add will attach driver
-> for all acpi_devices that are just created.
-> 
-> That make the logic more simple: hotplug path handling just like booting path
-> that drivers are attached after all acpi device get created.
-> 
-> At last we could remove all acpi_bus_start workaround.
+> yes, during hot add path.
 
-I think we should get rid of ACPI .start() methods, but I'm opposed to this
-approach of fiddling with driver binding order.
+Why exactly do you want to prevent that from happening?
 
-At hot-plug time, the pci_root.c driver is already loaded, then we enumerate
-the new host bridge.  Since pci_root.c is already loaded, we bind the driver
-before descending the ACPI tree below the host bridge.  We need to make that
-same ordering work at boot-time.
+Rafael
 
-At boot-time, we currently enumerate ALL ACPI devices before registering
-the pci_root.c driver:
 
-    acpi_init				# subsys_initcall
-	acpi_scan_init
-	    acpi_bus_scan		# enumerate ACPI devices
-
-    acpi_pci_root_init			# subsys_initcall for pci_root.c
-	acpi_bus_register_driver
-	    ...
-		acpi_pci_root_add	# pci_root.c add method
-
-This is a fundamental difference: at boot-time, all the ACPI devices below the
-host bridge already exist before the pci_root.c driver claims the bridge,
-while at hot-add time, pci_root.c claims the bridge *before* those ACPI
-devices exist.
-
-I think this is wrong.  The hot-plug case (where the driver is already
-loaded and binds to the device as soon as it's discovered, before the
-ACPI hierarchy below it is enumerated) seems like the obviously correct
-order.  I think we should change the boot-time order to match that, i.e.,
-we should register pci_root.c *before* enumerating ACPI devices.
-
-I realize that this will require changes in the way we bind PCI and ACPI
-devices.  I pointed that out in a previous response, appended below for
-convenience:
-
-On Tue, Oct 2, 2012 at 4:38 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
-
->> We enumerate ACPI devices by doing a depth-first traversal of the
->> namespace.  We should be able to bind a driver to a device as soon as
->> we discover it.  For PNP0A03/08 host bridges, that will be the
->> pci_root.c driver.  That driver's .add() method enumerates all the PCI
->> devices behind the host bridge, which is another depth-first
->> traversal, this time of the PCI hierarchy.  Similarly, we ought to be
->> able to bind drivers to the PCI devices as we discover them.
->
->> But the PCI/ACPI binding is an issue here, because the ACPI
->> enumeration hasn't descended below the host bridge yet, so we have the
->> pci_dev structs but the acpi_device structs don't exist yet.  I think
->> this is part of the reason for the .add()/.start() split.  But I don't
->> think the split is the correct solution.  I think we need to think
->> about the binding in a different way.  Maybe we don't bind at all and
->> instead search the namespace every time we need the association.  Or
->> maybe we do the binding but base it on the acpi_handle (which exists
->> before the ACPI subtree has been enumerated) rather than the
->> acpi_device (which doesn't exist until we enumerate the subtree).
->> It's not even clear to me that we should build acpi_device structs for
->> things that already have pci_dev structs.
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
