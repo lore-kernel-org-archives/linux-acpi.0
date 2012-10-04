@@ -1,82 +1,43 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [PATCH 0/4] ACPI: kill acpi_pci_root_start
-Date: Fri, 05 Oct 2012 00:36:52 +0200
-Message-ID: <1938257.EXdpWtCqiy@vostro.rjw.lan>
-References: <CAE9FiQWgvVqnTTeYFvxf1GxLcEEeRyN-uSKPdg3o69oCpm43sQ@mail.gmail.com> <15022838.BvGHsiOjXu@vostro.rjw.lan> <CAE9FiQXDBaiwckKsUi4k34=O1GnkTOJf+mG33cKHDp8RGqrsnA@mail.gmail.com>
+Date: Thu, 04 Oct 2012 23:23:24 +0200
+Message-ID: <16287303.8DVGGcjq5E@vostro.rjw.lan>
+References: <CAE9FiQWgvVqnTTeYFvxf1GxLcEEeRyN-uSKPdg3o69oCpm43sQ@mail.gmail.com> <1349305214-3241-1-git-send-email-yinghai@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAE9FiQXDBaiwckKsUi4k34=O1GnkTOJf+mG33cKHDp8RGqrsnA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1349305214-3241-1-git-send-email-yinghai@kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
 To: Yinghai Lu <yinghai@kernel.org>
 Cc: Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday 04 of October 2012 15:01:21 Yinghai Lu wrote:
-> On Thu, Oct 4, 2012 at 2:53 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > On Thursday 04 of October 2012 14:31:46 Yinghai Lu wrote:
-> >> On Thu, Oct 4, 2012 at 2:23 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> >> >>
-> >> >> At last we could remove all acpi_bus_start workaround.
-> >> >
-> >> > Do I understand correctly that you just want to prevent acpi_pci_root_driver
-> >> > from binding to the host bridge's struct acpi_device created while we're
-> >> > walking the ACPI namespace?
-> >>
-> >> yes, during hot add path.
-> >
-> > Why exactly do you want to prevent that from happening?
-> >
+On Wednesday 03 of October 2012 16:00:10 Yinghai Lu wrote:
+> Now acpi_pci_root_driver has two ops: .add and .start, aka acpi_pci_root_add
+> and acpi_pci_root_start.
 > 
-> during adding pci root bus hotplug, Bjorn found some unsafe searching
-> that caused by pci_bus_add_devices.
-
-Do you have a link to a description of that problem?
-
-> pci devices are created during pci scan root, but until very late
-> acpi_pci_root_start call pci_bus_add_devices.
-
-So you mean that pci_bus_add_devices() is called too late, right?
-
-> To fill the gap, we need to move pci_bus_add_devices to acpi_pci_root_add
-> at first.
+> That is for hotplug handling: .add need to return early to make sure all
+> acpi device could be created and added early. So .start could device_add
+> pci device that are found in acpi_pci_root_add/pci_acpi_scan_root().
 > 
-> but after we move that there, pci device will be added to device tree, and it
-> will try to bind with acpi devices that should be under acpi pci root,
-> but are not
-> created yet. because device_add for acpi_device for acpi pci root is done yet.
-> it still calling the .add in the acpi_driver aka acpi_pci_root_add.
-
-Quite obviously, we haven't walked the ACPI namespace below the host bridge
-object yet at that point.
-
-> So I want to hold the driver attach for pci root acpi devices, and
-> later attach it
-> until pci devices created.
+> That is holding pci devics to be out of devices for while.
 > 
-> booting path, all acpi devices get created, and attach driver for them
-> one by one.
+> We could use bus notifier to handle hotplug case.
+> 	CONFIG_HOTPLUG is enabled always now.
+> Need to add drivers_autoprobe bit in acpi_device to hold attaching drivers
+> for acpi_devices, so could make sure all acpi_devices get created at first.
+> Then acpi_bus_attach() that is called from acpi_bus_add will attach driver
+> for all acpi_devices that are just created.
+> 
+> That make the logic more simple: hotplug path handling just like booting path
+> that drivers are attached after all acpi device get created.
+> 
+> At last we could remove all acpi_bus_start workaround.
 
-I see.
-
-Your patches seem to affect all devices in the ACPI namespace added after
-boot, though, not only host bridges.
-
-And the problem seems to be that the scanning of the ACPI namespace and
-configuring the host bridge are kind of independent operations now.  What
-we should do, actually, seems to be something like this:
-
-(1) Configure the host bridge when discovered (i.e. do what the current
-    acpi_pci_root_add() does.
-(2) Parse the ACPI namespace under the host bridge (without binding ACPI
-    drivers to the struct acpi_device objects created in the process,
-    because they are known to correspond to PCI devices).
-(3) Run pci_bus_add_devices() for the bridge.
-
-in one routine.
-
-What do you think?
+Do I understand correctly that you just want to prevent acpi_pci_root_driver
+from binding to the host bridge's struct acpi_device created while we're
+walking the ACPI namespace?
 
 Rafael
 
