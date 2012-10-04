@@ -1,74 +1,57 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH 0/4] cpuidle - support multiple drivers at a time
-Date: Thu, 04 Oct 2012 16:27:53 +0200
-Message-ID: <506D9CE9.5040603@linaro.org>
-References: <1348526634-19029-1-git-send-email-daniel.lezcano@linaro.org> <20121004141646.GL13834@tbergstrom-lnx.Nvidia.com>
+From: Peter De Schrijver <pdeschrijver@nvidia.com>
+Subject: Re: [PATCH 4/4] cpuidle - support multiple drivers
+Date: Thu, 4 Oct 2012 17:14:25 +0300
+Message-ID: <20121004141425.GK13834@tbergstrom-lnx.Nvidia.com>
+References: <1348526634-19029-1-git-send-email-daniel.lezcano@linaro.org>
+ <1348526634-19029-5-git-send-email-daniel.lezcano@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:59357 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964963Ab2JDO17 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Oct 2012 10:27:59 -0400
-Received: by mail-bk0-f46.google.com with SMTP id jk13so349554bkc.19
-        for <linux-acpi@vger.kernel.org>; Thu, 04 Oct 2012 07:27:58 -0700 (PDT)
-In-Reply-To: <20121004141646.GL13834@tbergstrom-lnx.Nvidia.com>
+Received: from hqemgate04.nvidia.com ([216.228.121.35]:3998 "EHLO
+	hqemgate04.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964793Ab2JDOOl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Oct 2012 10:14:41 -0400
+Content-Disposition: inline
+In-Reply-To: <1348526634-19029-5-git-send-email-daniel.lezcano@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter De Schrijver <pdeschrijver@nvidia.com>
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
 Cc: "rjw@sisk.pl" <rjw@sisk.pl>, "lenb@kernel.org" <lenb@kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "patches@linaro.org" <patches@linaro.org>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>
 
-On 10/04/2012 04:16 PM, Peter De Schrijver wrote:
-> On Tue, Sep 25, 2012 at 12:43:50AM +0200, Daniel Lezcano wrote:
->> The discussion about having different cpus on the system with
->> different latencies bring us to a first attemp by adding a
->> pointer in the cpuidle_device to the states array.
->>
->> But as Rafael suggested, it would make more sense to create a
->> driver per cpu [1].
->>
->> This patch adds support for multiple cpuidle drivers.
->>
->> It creates a per cpu cpuidle driver pointer.
->>
->> In order to not break the different drivers, the function cpuidle_re=
-gister_driver
->> assign for each cpu, the driver.
->>
->> The multiple driver support is optional and if it is not set, the cp=
-uide driver
->> core code remains the same (except some code reorganisation).
->>
->> I did the following tests compiled, booted, tested without/with CONF=
-IG_CPU_IDLE,
->> with/without CONFIG_CPU_IDLE_MULTIPLE_DRIVERS.
->>
->> Tested on Core2 Duo T9500 with acpi_idle [and intel_idle]
->> Tested on ARM Dual Cortex-A9 U8500 (aka Snowball)
->>
->=20
-> Tested on Cardhu (Tegra30).
->=20
-> Besides the possibly problem with the sysfs format:
->=20
-> Acked-by: Peter De Schrijver <pdeschrijver@nvidia.com>
+On Tue, Sep 25, 2012 at 12:43:54AM +0200, Daniel Lezcano wrote:
+> With the tegra3 and the big.LITTLE [1] new architectures, several cpus
+> with different characteristics (latencies and states) can co-exists on the
+> system.
+> 
+> The cpuidle framework has the limitation of handling only identical cpus.
+> 
+> This patch removes this limitation by introducing the multiple driver support
+> for cpuidle.
+> 
+> This option is configurable at compile time and should be enabled for the
+> architectures mentioned above. So there is no impact for the other platforms
+> if the option is disabled. The option defaults to 'n'. Note the multiple drivers
+> support is also compatible with the existing drivers, even if just one driver is
+> needed, all the cpu will be tied to this driver using an extra small chunk of
+> processor memory.
+> 
+> The multiple driver support use a per-cpu driver pointer instead of a global
+> variable and the accessor to this variable are done from a cpu context.
+> 
+> In order to keep the compatibility with the existing drivers, the function
+> 'cpuidle_register_driver' and 'cpuidle_unregister_driver' will register
+> the specified driver for all the cpus.
+> 
+> The sysfs output for the 'current_driver' is changed when this option is
+> set by giving the drivers per cpu.
+> 
+> eg.
+> cpu0: acpi_idle
+> cpu1: acpi_idle
+> 
 
-Thanks a lot Peter for testing and reviewing the patchset.
+Is this allowed? I thought sysfs files can output only 1 line of data?
 
-  -- Daniel
+Cheers,
 
-
---=20
- <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software for=
- ARM SoCs
-
-=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Peter.
