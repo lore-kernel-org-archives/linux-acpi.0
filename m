@@ -1,82 +1,74 @@
-From: Konrad Rzeszutek Wilk <konrad@kernel.org>
-Subject: Re: [PATCH 1/4] ACPI: add drivers_autoprobe in struct acpi_device
-Date: Thu, 4 Oct 2012 09:03:51 -0400
-Message-ID: <CACJDEmoeD+XwjGnA2WwkeJ5TrsaXfgw+mZHPDcX0+7QZ9_80SA@mail.gmail.com>
-References: <CAE9FiQWgvVqnTTeYFvxf1GxLcEEeRyN-uSKPdg3o69oCpm43sQ@mail.gmail.com>
-	<1349305214-3241-1-git-send-email-yinghai@kernel.org>
-	<1349305214-3241-2-git-send-email-yinghai@kernel.org>
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [PATCH 0/4] cpuidle - support multiple drivers at a time
+Date: Thu, 04 Oct 2012 16:27:53 +0200
+Message-ID: <506D9CE9.5040603@linaro.org>
+References: <1348526634-19029-1-git-send-email-daniel.lezcano@linaro.org> <20121004141646.GL13834@tbergstrom-lnx.Nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1349305214-3241-2-git-send-email-yinghai@kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:59357 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964963Ab2JDO17 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Oct 2012 10:27:59 -0400
+Received: by mail-bk0-f46.google.com with SMTP id jk13so349554bkc.19
+        for <linux-acpi@vger.kernel.org>; Thu, 04 Oct 2012 07:27:58 -0700 (PDT)
+In-Reply-To: <20121004141646.GL13834@tbergstrom-lnx.Nvidia.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Peter De Schrijver <pdeschrijver@nvidia.com>
+Cc: "rjw@sisk.pl" <rjw@sisk.pl>, "lenb@kernel.org" <lenb@kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "patches@linaro.org" <patches@linaro.org>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>
 
-On Wed, Oct 3, 2012 at 7:00 PM, Yinghai Lu <yinghai@kernel.org> wrote:
-> To use to control the delay attach driver for acpi_device.
+On 10/04/2012 04:16 PM, Peter De Schrijver wrote:
+> On Tue, Sep 25, 2012 at 12:43:50AM +0200, Daniel Lezcano wrote:
+>> The discussion about having different cpus on the system with
+>> different latencies bring us to a first attemp by adding a
+>> pointer in the cpuidle_device to the states array.
+>>
+>> But as Rafael suggested, it would make more sense to create a
+>> driver per cpu [1].
+>>
+>> This patch adds support for multiple cpuidle drivers.
+>>
+>> It creates a per cpu cpuidle driver pointer.
+>>
+>> In order to not break the different drivers, the function cpuidle_re=
+gister_driver
+>> assign for each cpu, the driver.
+>>
+>> The multiple driver support is optional and if it is not set, the cp=
+uide driver
+>> core code remains the same (except some code reorganisation).
+>>
+>> I did the following tests compiled, booted, tested without/with CONF=
+IG_CPU_IDLE,
+>> with/without CONFIG_CPU_IDLE_MULTIPLE_DRIVERS.
+>>
+>> Tested on Core2 Duo T9500 with acpi_idle [and intel_idle]
+>> Tested on ARM Dual Cortex-A9 U8500 (aka Snowball)
+>>
+>=20
+> Tested on Cardhu (Tegra30).
+>=20
+> Besides the possibly problem with the sysfs format:
+>=20
+> Acked-by: Peter De Schrijver <pdeschrijver@nvidia.com>
 
-<blinks>
-I am not sure what this says. Can you please explain how it controls
-the delaying of
-attaching drivers?
->
-> Will use bus notifier to toggle this bits when needed.
+Thanks a lot Peter for testing and reviewing the patchset.
 
-Will use ..? In a subsequent patch? Which patch? And when is this
-needed? Is there a patch that needs this?
->
-> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-> ---
->  drivers/acpi/scan.c     |    8 +++++++-
->  include/acpi/acpi_bus.h |    1 +
->  2 files changed, 8 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index d1ecca2..cbb3ed1 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -333,7 +333,12 @@ static void acpi_device_release(struct device *dev)
->  static int acpi_bus_match(struct device *dev, struct device_driver *drv)
->  {
->         struct acpi_device *acpi_dev = to_acpi_device(dev);
-> -       struct acpi_driver *acpi_drv = to_acpi_driver(drv);
-> +       struct acpi_driver *acpi_drv;
-> +
-> +       if (!acpi_dev->drivers_autoprobe)
-> +               return 0;
-> +
-> +       acpi_drv = to_acpi_driver(drv);
->
->         return !acpi_match_device_ids(acpi_dev, acpi_drv->ids);
->  }
-> @@ -1268,6 +1273,7 @@ static int acpi_add_single_object(struct acpi_device **child,
->         device->parent = acpi_bus_get_parent(handle);
->         device->bus_ops = *ops; /* workround for not call .start */
->         STRUCT_TO_INT(device->status) = sta;
-> +       device->drivers_autoprobe = true;
->
->         acpi_device_get_busid(device);
->
-> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-> index bde976e..969544e 100644
-> --- a/include/acpi/acpi_bus.h
-> +++ b/include/acpi/acpi_bus.h
-> @@ -304,6 +304,7 @@ struct acpi_device {
->         struct device dev;
->         struct acpi_bus_ops bus_ops;    /* workaround for different code path for hotplug */
->         enum acpi_bus_removal_type removal_type;        /* indicate for different removal type */
-> +       bool drivers_autoprobe;
->  };
->
->  static inline void *acpi_driver_data(struct acpi_device *d)
-> --
-> 1.7.7
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
->
+  -- Daniel
+
+
+--=20
+ <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software for=
+ ARM SoCs
+
+=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
+<http://twitter.com/#!/linaroorg> Twitter |
+<http://www.linaro.org/linaro-blog/> Blog
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
