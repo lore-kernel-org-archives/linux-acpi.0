@@ -1,52 +1,48 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH 01/10] device: add drivers_autoprobe in struct device
-Date: Wed, 3 Oct 2012 13:50:02 -0700
-Message-ID: <CAE9FiQWgvVqnTTeYFvxf1GxLcEEeRyN-uSKPdg3o69oCpm43sQ@mail.gmail.com>
-References: <1349159588-15029-1-git-send-email-yinghai@kernel.org>
-	<1349159588-15029-2-git-send-email-yinghai@kernel.org>
-	<20121002133303.GA502@kroah.com>
-	<CAE9FiQVCFs8cgFoU2rb=a8MWCzBcfRT6iNh7UchV8q6Bg6XzGQ@mail.gmail.com>
-	<20121002174712.GA11843@kroah.com>
-	<CAE9FiQXM6Cy64ZbXtjsnQaMFJi0C1QABC7TNYSBZ3FGsjC8D8w@mail.gmail.com>
-	<20121002204548.GC28663@kroah.com>
-	<CAE9FiQV51R2RBAZBPobDifq6jQUhBCyx_Bo8EHxOX4yrUMSnLg@mail.gmail.com>
-	<CAErSpo5EuGVhu_ObioV-4n7930MkJzD9jrtkn6-JdBLikDBmMg@mail.gmail.com>
-	<CAE9FiQUXmURaO40sA4ibf7j9sokEHYXK_EaGiEq9b-ob=d1MRw@mail.gmail.com>
-	<CAErSpo4gFhiyS8GdZG21Eo0NPjvedr1+rXtY-MP11hDWCZ+LzA@mail.gmail.com>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: [PATCH 2/2] acpi,memory-hotplug : call acpi_bus_remo() to remove
+ memory device
+Date: Thu, 4 Oct 2012 10:48:10 +0900
+Message-ID: <506CEADA.9060108@jp.fujitsu.com>
+References: <506CE9F5.8020809@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAErSpo4gFhiyS8GdZG21Eo0NPjvedr1+rXtY-MP11hDWCZ+LzA@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:33408 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753192Ab2JDBs2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Oct 2012 21:48:28 -0400
+In-Reply-To: <506CE9F5.8020809@jp.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
+Cc: len.brown@intel.com, wency@cn.fujitsu.com
 
-On Wed, Oct 3, 2012 at 12:48 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
->
-> You'll have to ask Len (cc'd) what he thinks about the ACPI piece, but
-> I don't like the PCI piece.  It's the same idea that Greg already said
-> he wouldn't put in the driver core.  Why would it be better to add
-> this complexity in the ACPI and PCI cores?
+From: Wen Congyang <wency@cn.fujitsu.com>
 
-It should be simplify acpi code a little.
+The memory device has been ejected and powoffed, so we can call
+acpi_bus_remove() to remove the memory device from acpi bus.
 
-I will reorder acpi parts as separate patcheset for review.
+CC: Len Brown <len.brown@intel.com>
+Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+---
+ drivers/acpi/acpi_memhotplug.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-> I still think you need to work on the ACPI/PCI binding issue.  Yes,
-> it's hard, but I'm not in favor of avoiding that hard work by adding
-> kludges everywhere.
+Index: linux-3.6/drivers/acpi/acpi_memhotplug.c
+===================================================================
+--- linux-3.6.orig/drivers/acpi/acpi_memhotplug.c	2012-10-03 18:17:47.802249170 +0900
++++ linux-3.6/drivers/acpi/acpi_memhotplug.c	2012-10-03 18:17:52.471250299 +0900
+@@ -424,8 +424,9 @@ static void acpi_memory_device_notify(ac
+ 		}
+ 
+ 		/*
+-		 * TBD: Invoke acpi_bus_remove to cleanup data structures
++		 * Invoke acpi_bus_remove() to remove memory device
+ 		 */
++		acpi_bus_remove(device, 1);
+ 
+ 		/* _EJ0 succeeded; _OST is not necessary */
+ 		return;
 
-acpi pci binding should be solved if len could accept acpi changes.
-
-for pci separate driver attach, that is for registering pci dev to
-tree early instead of
-waiting till pci_bus_add_devices.
-Let me know if you still want us to pursue that.
-
-Otherwise I'd like to move root bus and host bridge registering into
-pci_bus_add_devices().
-
-Thanks
-
-Yinghai
