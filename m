@@ -1,57 +1,168 @@
-From: Peter De Schrijver <pdeschrijver@nvidia.com>
-Subject: Re: [PATCH 4/4] cpuidle - support multiple drivers
-Date: Thu, 4 Oct 2012 17:14:25 +0300
-Message-ID: <20121004141425.GK13834@tbergstrom-lnx.Nvidia.com>
-References: <1348526634-19029-1-git-send-email-daniel.lezcano@linaro.org>
- <1348526634-19029-5-git-send-email-daniel.lezcano@linaro.org>
+From: joeyli <jlee@suse.com>
+Subject: Re: PROBLEM: Acer D255E Backlight out for 10 seconds with ACPI
+Date: Thu, 04 Oct 2012 23:01:36 +0800
+Message-ID: <1349362896.24232.163.camel@linux-s257.site>
+References: <CALKZjMKcCA68XLWADb+EmU+a3VTQuOGr1dqNywGCCMj8DWNsiQ@mail.gmail.com>
+	 <1348701543.8621.104.camel@linux-s257.site>
+	 <CALKZjMKDb_tJ6wQmF4D7RLN+C_4fPTGecufuXa4LM+JyAp_XUw@mail.gmail.com>
+	 <1348876697.8621.135.camel@linux-s257.site>
+	 <CALKZjMJGQ+eQaTWEawEXc9caRpotqHNb9CpDxKXUEssPFse5Lw@mail.gmail.com>
+	 <1349152779.24232.65.camel@linux-s257.site>
+	 <CALKZjMKMjPoOH0wUwkdU4v78BcYr+SO-QmGUEJwqPMmpZX1m7w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hqemgate04.nvidia.com ([216.228.121.35]:3998 "EHLO
-	hqemgate04.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964793Ab2JDOOl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Oct 2012 10:14:41 -0400
-Content-Disposition: inline
-In-Reply-To: <1348526634-19029-5-git-send-email-daniel.lezcano@linaro.org>
+Received: from smtp.nue.novell.com ([195.135.221.5]:53010 "EHLO
+	smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965330Ab2JDPIm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Oct 2012 11:08:42 -0400
+In-Reply-To: <CALKZjMKMjPoOH0wUwkdU4v78BcYr+SO-QmGUEJwqPMmpZX1m7w@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: "rjw@sisk.pl" <rjw@sisk.pl>, "lenb@kernel.org" <lenb@kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "patches@linaro.org" <patches@linaro.org>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>
+To: Dan <vxltage@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Tue, Sep 25, 2012 at 12:43:54AM +0200, Daniel Lezcano wrote:
-> With the tegra3 and the big.LITTLE [1] new architectures, several cpus
-> with different characteristics (latencies and states) can co-exists on the
-> system.
-> 
-> The cpuidle framework has the limitation of handling only identical cpus.
-> 
-> This patch removes this limitation by introducing the multiple driver support
-> for cpuidle.
-> 
-> This option is configurable at compile time and should be enabled for the
-> architectures mentioned above. So there is no impact for the other platforms
-> if the option is disabled. The option defaults to 'n'. Note the multiple drivers
-> support is also compatible with the existing drivers, even if just one driver is
-> needed, all the cpu will be tied to this driver using an extra small chunk of
-> processor memory.
-> 
-> The multiple driver support use a per-cpu driver pointer instead of a global
-> variable and the accessor to this variable are done from a cpu context.
-> 
-> In order to keep the compatibility with the existing drivers, the function
-> 'cpuidle_register_driver' and 'cpuidle_unregister_driver' will register
-> the specified driver for all the cpus.
-> 
-> The sysfs output for the 'current_driver' is changed when this option is
-> set by giving the drivers per cpu.
-> 
-> eg.
-> cpu0: acpi_idle
-> cpu1: acpi_idle
-> 
+=E6=96=BC =E4=B8=89=EF=BC=8C2012-10-03 =E6=96=BC 08:26 -0400=EF=BC=8CDa=
+n =E6=8F=90=E5=88=B0=EF=BC=9A
+> >> Acpidump is attached.
+> >>
+> >
+> > I traced your DSDT at this morning, didn't see problem in _BCL, _BC=
+M
+> and
+> > _BQC.
+> > Per DSDT, the _BQC on this machine used brightness value but not
+> index,
+> > so 'video.use_bios_initial_backlight=3D0' should works to you for s=
+et
+> the
+> > backlight to max_level when acpi/video driver loaded.
+> >
+> > And, the value of max_level in package of _BCL is 100, there have n=
+o
+> 0
+> > value in level list:
+> >
+> >     Method (_BCL, 0, NotSerialized)
+> >     {
+> >         Return (Package (0x0C)
+> >         {
+> >             0x46,               /* level on AC */
+> >             0x28,               /* level on Battery */
+> >             0x0A,               /* 10 */
+> >             0x14,               /* 20 */
+> >             0x1E,
+> >             0x28,
+> >             0x32,
+> >             0x3C,
+> >             0x46,
+> >             0x50,
+> >             0x5A,
+> >             0x64                /* 100 */
+> >
+> > That strange for 'video.use_bios_initial_backlight=3D0' doesn't wor=
+k
+> to
+> > you for set the backlight level to maximum.
+> > Could you please share the acpi debug log? Please add the following
+> > kernel parameter when system boot. Please also check the kernel
+> config
+> > need CONFIG_ACPI_DEBUG=3Dy:
+> >
+> >         acpi.debug_level=3D0x0000000F acpi.debug_layer=3D0xffffffff
+> log_buf_len=3D5M
+> >
+> > Please attached on your dmesg or boot message after system boot
+> finished. Hope we
+> > can find any hint from acpi debug log.
+> >
+> >
+> > Thanks a lot!
+> > Joey Lee
+> >
+>=20
+> I've attached the resulting dmesg log. I also set the loglevel to 8
+> during this so I could watch the messages on the console. The last
+> message I could see before the backlight went out was at 5.93 seconds=
+=2E
+> I tried looking through the log around there, but it's over my head.
+>=20
+> Thank you,
+> Dan
+>=20
 
-Is this allowed? I thought sysfs files can output only 1 line of data?
+Thanks for your acpi debug log.
 
-Cheers,
+Per acpi debug log, the DD02 device have backlight control capability.
+The default brightness value is 30, acpi/video driver set brightness
+value to 100 then set it back to 30 for determine does _BQC use index
+but not brightness level:
 
-Peter.
+[    3.113825] ACPI: Execute Method [\_SB_.PCI0.OVGA.DD02._BCL] (Node f=
+fff88007b741c58)
+[    3.115980] ACPI: Execute Method [\_SB_.PCI0.OVGA.DD02._BQC] (Node f=
+fff88007b741ca8)
+[    3.118310] exregion-0302 [00] ex_system_io_space_han: System-IO (wi=
+dth 32) R/W 1 Address=3D0000000000000080
+[    3.220145]    utils-0286 [00] evaluate_integer      : Return value =
+[30]				<=3D=3D=3D default brightness value is 30(default value set by =
+BIOS)
+[    3.222315] ACPI: Execute Method [\_SB_.PCI0.OVGA.DD02._BCM] (Node f=
+fff88007b741c80)
+[    3.225422] exregion-0302 [00] ex_system_io_space_han: System-IO (wi=
+dth 8) R/W 1 Address=3D0000000000000072
+[    3.227947] exregion-0302 [00] ex_system_io_space_han: System-IO (wi=
+dth 8) R/W 1 Address=3D0000000000000073
+[    3.230424] ACPI: Execute Method [\_SB_.PCI0.OVGA.DD02._BQC] (Node f=
+fff88007b741ca8)
+[    3.233123] exregion-0302 [00] ex_system_io_space_han: System-IO (wi=
+dth 32) R/W 1 Address=3D0000000000000080
+[    3.333487]    utils-0286 [00] evaluate_integer      : Return value =
+[100]				<=3D=3D=3D set to 100 for determine _BQC_use_index
+[    3.336019] ACPI: Execute Method [\_SB_.PCI0.OVGA.DD02._BCM] (Node f=
+fff88007b741c80)
+[    3.339263] exregion-0302 [00] ex_system_io_space_han: System-IO (wi=
+dth 8) R/W 1 Address=3D0000000000000072
+[    3.342167] exregion-0302 [00] ex_system_io_space_han: System-IO (wi=
+dth 8) R/W 1 Address=3D0000000000000073
+[    3.345001]    video-0734 [00] video_init_brightness : found 10 brig=
+htness levels
+[    3.347899]    utils-0286 [00] evaluate_integer      : Return value =
+[131072]
+[    3.350956] ACPI: Execute Method [\_SB_.PCI0.OVGA.DD02._BQC] (Node f=
+fff88007b741ca8)
+[    3.354598] exregion-0302 [00] ex_system_io_space_han: System-IO (wi=
+dth 32) R/W 1 Address=3D0000000000000080
+[    3.456824]    utils-0286 [00] evaluate_integer      : Return value =
+[30]				<=3D=3D=3D set brightness value back to 30
+[    3.460059] acpi device:28: registered as cooling_device0
+
+The above acpi/video's behavior is normal, didn't see strange thing.
+Please add 'video.use_bios_initial_backlight=3D0' then grab acpi debug =
+log
+again. You can find the similar log of DD02 device, this time the lates=
+t
+'Return value' should be 100 like: Return value [100].
+
+If 'video.use_bios_initial_backlight=3D0' works fine, the brightness
+should set to 100%, means lightest.
+
+
+Another dubious message in your dmesg is not from ACPI, it's a message
+from i915 driver:
+[    2.083603] i915: fixme: max PWM is zero
+
+That means ODM set PWM register value default to zero, this register
+used to control the the intensity of the backlight. I am still looking
+what's the side effect that was caused by 'PWM =3D 0'.
+
+
+Thanks a lot!
+Joey Lee
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
