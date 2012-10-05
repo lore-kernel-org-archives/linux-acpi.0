@@ -1,79 +1,37 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: memory-hotplug : suppres
- "Trying to free nonexistent resource <XXXXXXXXXXXXXXXX-YYYYYYYYYYYYYYYY>"
- warning
-Date: Fri, 5 Oct 2012 14:09:38 -0700
-Message-ID: <20121005140938.e3e1e196.akpm@linux-foundation.org>
-References: <506D1F1D.9000301@jp.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <506D1F1D.9000301@jp.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, wency@cn.fujitsu.com
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: [PATCH] X86 ACPI: Use #ifdef not #if for CONFIG_X86 check
+Date: Fri, 05 Oct 2012 15:05:34 -0700
+Message-ID: <506f59ae9600b36a4@agluck-desktop.sc.intel.com>
+References: <201209251712.17678.trenn@suse.de>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:46823 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754678Ab2JEWFf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 5 Oct 2012 18:05:35 -0400
+In-Reply-To: <201209251712.17678.trenn@suse.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: lenb@kernel.org, initramfs@vger.kernel.org, robert.moore@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, yinghai@kernel.org, hpa@zytor.com
 
-On Thu, 4 Oct 2012 14:31:09 +0900
-Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com> wrote:
+Fix a build warning on ia64:
 
-> When our x86 box calls __remove_pages(), release_mem_region() shows
-> many warnings. And x86 box cannot unregister iomem_resource.
-> 
-> "Trying to free nonexistent resource <XXXXXXXXXXXXXXXX-YYYYYYYYYYYYYYYY>"
-> 
-> release_mem_region() has been changed as called in each PAGES_PER_SECTION
-> chunk since applying a patch(de7f0cba96786c). Because powerpc registers
-> iomem_resource in each PAGES_PER_SECTION chunk. But when I hot add memory
-> on x86 box, iomem_resource is register in each _CRS not PAGES_PER_SECTION
-> chunk. So x86 box unregisters iomem_resource.
-> 
-> The patch fixes the problem.
-> 
-> --- linux-3.6.orig/arch/powerpc/platforms/pseries/hotplug-memory.c	2012-10-04 14:22:59.833520792 +0900
-> +++ linux-3.6/arch/powerpc/platforms/pseries/hotplug-memory.c	2012-10-04 14:23:05.150521411 +0900
-> @@ -77,7 +77,8 @@ static int pseries_remove_memblock(unsig
->  {
->  	unsigned long start, start_pfn;
->  	struct zone *zone;
-> -	int ret;
-> +	int i, ret;
-> +	int sections_to_remove;
->  
->  	start_pfn = base >> PAGE_SHIFT;
->  
-> @@ -97,9 +98,13 @@ static int pseries_remove_memblock(unsig
->  	 * to sysfs "state" file and we can't remove sysfs entries
->  	 * while writing to it. So we have to defer it to here.
->  	 */
-> -	ret = __remove_pages(zone, start_pfn, memblock_size >> PAGE_SHIFT);
-> -	if (ret)
-> -		return ret;
-> +	sections_to_remove = (memblock_size >> PAGE_SHIFT) / PAGES_PER_SECTION;
-> +	for (i = 0; i < sections_to_remove; i++) {
-> +		unsigned long pfn = start_pfn + i * PAGES_PER_SECTION;
-> +		ret = __remove_pages(zone, start_pfn,  PAGES_PER_SECTION);
-> +		if (ret)
-> +			return ret;
-> +	}
+include/linux/acpi.h:437:5: warning: "CONFIG_X86" is not defined
 
-It is inappropriate that `i' have a signed 32-bit type.  I doubt if
-there's any possibility of an overflow bug here, but using a consistent
-and well-chosen type would eliminate all doubt.
+Signed-off-by: Tony Luck <tony.luck@intel.com>
 
-Note that __remove_pages() does use an unsigned long for this, although
-it stupidly calls that variable "i", despite the C programmers'
-expectation that a variable called "i" has type "int".
+---
 
-The same applies to `sections_to_remove', but __remove_pages() went and
-decided to use an `int' for that variable.  Sigh.
-
-Anyway, please have a think, and see if we can come up with the best
-and most accurate choice of types and identifiers in this code.
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 4f42332..f70f18d 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -434,7 +434,7 @@ void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state,
+ 
+ acpi_status acpi_os_prepare_sleep(u8 sleep_state,
+ 				  u32 pm1a_control, u32 pm1b_control);
+-#if CONFIG_X86
++#ifdef CONFIG_X86
+ void arch_reserve_mem_area(acpi_physical_address addr, size_t size);
+ #else
+ static inline void arch_reserve_mem_area(acpi_physical_address addr,
