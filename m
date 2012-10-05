@@ -1,37 +1,106 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: [PATCH] X86 ACPI: Use #ifdef not #if for CONFIG_X86 check
-Date: Fri, 05 Oct 2012 15:05:34 -0700
-Message-ID: <506f59ae9600b36a4@agluck-desktop.sc.intel.com>
-References: <201209251712.17678.trenn@suse.de>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 0/4] ACPI: kill acpi_pci_root_start
+Date: Sat, 06 Oct 2012 01:01:04 +0200
+Message-ID: <1595267.JDdDB2dfnM@vostro.rjw.lan>
+References: <CAE9FiQWgvVqnTTeYFvxf1GxLcEEeRyN-uSKPdg3o69oCpm43sQ@mail.gmail.com> <1938257.EXdpWtCqiy@vostro.rjw.lan> <CAE9FiQXZqBE6BmQ5v-vDq2E5vmyU5QRNrjjYRYONQu6jiHGD6w@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:46823 "EHLO mga11.intel.com"
+Received: from ogre.sisk.pl ([193.178.161.156]:33455 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754678Ab2JEWFf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 5 Oct 2012 18:05:35 -0400
-In-Reply-To: <201209251712.17678.trenn@suse.de>
+	id S1751737Ab2JEW5e (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 5 Oct 2012 18:57:34 -0400
+In-Reply-To: <CAE9FiQXZqBE6BmQ5v-vDq2E5vmyU5QRNrjjYRYONQu6jiHGD6w@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: lenb@kernel.org, initramfs@vger.kernel.org, robert.moore@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, yinghai@kernel.org, hpa@zytor.com
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Fix a build warning on ia64:
+On Thursday 04 of October 2012 15:46:39 Yinghai Lu wrote:
+> On Thu, Oct 4, 2012 at 3:36 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > On Thursday 04 of October 2012 15:01:21 Yinghai Lu wrote:
+> >> during adding pci root bus hotplug, Bjorn found some unsafe searching
+> >> that caused by pci_bus_add_devices.
+> >
+> > Do you have a link to a description of that problem?
+> 
+> Maybe bjorn could expand it more.
+> 
+> >
+> >> pci devices are created during pci scan root, but until very late
+> >> acpi_pci_root_start call pci_bus_add_devices.
+> >
+> > So you mean that pci_bus_add_devices() is called too late, right?
+> 
+> yes.
+> 
+> >
+> >> To fill the gap, we need to move pci_bus_add_devices to acpi_pci_root_add
+> >> at first.
+> >>
+> >> but after we move that there, pci device will be added to device tree, and it
+> >> will try to bind with acpi devices that should be under acpi pci root,
+> >> but are not
+> >> created yet. because device_add for acpi_device for acpi pci root is done yet.
+> >> it still calling the .add in the acpi_driver aka acpi_pci_root_add.
+> >
+> > Quite obviously, we haven't walked the ACPI namespace below the host bridge
+> > object yet at that point.
+> 
+> yes.
+> 
+> >
+> >> So I want to hold the driver attach for pci root acpi devices, and
+> >> later attach it
+> >> until pci devices created.
+> >>
+> >> booting path, all acpi devices get created, and attach driver for them
+> >> one by one.
+> >
+> > I see.
+> >
+> > Your patches seem to affect all devices in the ACPI namespace added after
+> > boot, though, not only host bridges.
+> 
+> yes, but it still should be safe.
 
-include/linux/acpi.h:437:5: warning: "CONFIG_X86" is not defined
+I'm not really sure of that (what about undock/dock, for exmaple?) and it's
+damn ugly.
 
-Signed-off-by: Tony Luck <tony.luck@intel.com>
+> > And the problem seems to be that the scanning of the ACPI namespace and
+> > configuring the host bridge are kind of independent operations now.  What
+> > we should do, actually, seems to be something like this:
+> >
+> > (1) Configure the host bridge when discovered (i.e. do what the current
+> >     acpi_pci_root_add() does.
+> > (2) Parse the ACPI namespace under the host bridge (without binding ACPI
+> >     drivers to the struct acpi_device objects created in the process,
+> >     because they are known to correspond to PCI devices).
+> > (3) Run pci_bus_add_devices() for the bridge.
+> >
+> > in one routine.
+> 
+> problem is still there. if 1 still has acpi_pci_root_add and pci_acpi_scan_root
 
----
+OK, so why don't we do (2) in acpi_pci_root_add(), before pci_acpi_scan_root()
+is called?
 
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 4f42332..f70f18d 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -434,7 +434,7 @@ void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state,
- 
- acpi_status acpi_os_prepare_sleep(u8 sleep_state,
- 				  u32 pm1a_control, u32 pm1b_control);
--#if CONFIG_X86
-+#ifdef CONFIG_X86
- void arch_reserve_mem_area(acpi_physical_address addr, size_t size);
- #else
- static inline void arch_reserve_mem_area(acpi_physical_address addr,
+> that scan pci devices. what is need is we need to bind 1 and 3 together.
+
+I don't understand now.  You said previously that we need the ACPI namespace
+below the bridge to be scanned before (3), so why do you want to do (3) before
+(2) now?
+
+> or we could move pci_scan_root_scan from acpi_pci_root_add to
+> acpi_pci_root_start?
+
+No, I don't think so, because we call acpi_pci_bind_root() after that.
+
+Thanks,
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
