@@ -1,63 +1,32 @@
-From: Jiang Liu <liuj97@gmail.com>
-Subject: [RFC PATCH v3 28/28] ACPI/processor: serialize call to acpi_map/unmap_lsapic
-Date: Sat,  6 Oct 2012 23:27:36 +0800
-Message-ID: <1349537256-21670-29-git-send-email-jiang.liu@huawei.com>
-References: <1349537256-21670-1-git-send-email-jiang.liu@huawei.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1349537256-21670-1-git-send-email-jiang.liu@huawei.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, Tang Chen <tangchen@cn.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>
-Cc: Hanjun Guo <guohanjun@huawei.com>, Yijing Wang <wangyijing@huawei.com>, Gong Chen <gong.chen@linux.intel.com>, Jiang Liu <jiang.liu@huawei.com>, Tony Luck <tony.luck@intel.com>, Huang Ying <ying.huang@intel.com>, Bob Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, "Srivatsa S . Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [RESEND PATCH v4 0/2] ACPI: DBGP/DBG2 early console support for
+ LPIA.
+Date: Sat, 06 Oct 2012 14:42:56 -0400
+Message-ID: <50707BB0.8050301@kernel.org>
+References: <cover.1347453194.git.zetalog@gmail.com> <cover.1348652044.git.lv.zheng@intel.com> <5065457E.4040500@zytor.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <5065457E.4040500@zytor.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Jason Wessel <jason.wessel@windriver.com>, Feng Tang <feng.tang@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org, platform-driver-x86@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Add a mutex to serialize call to acpi_map/unmap_lsapic.
 
-Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
----
- drivers/acpi/processor_driver.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+> You want to take this, or should I?
 
-diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-index 2346b81..9fc20b4 100644
---- a/drivers/acpi/processor_driver.c
-+++ b/drivers/acpi/processor_driver.c
-@@ -108,6 +108,7 @@ static struct acpi_driver acpi_processor_driver = {
- 	.drv.pm = &acpi_processor_pm,
- };
- 
-+static DEFINE_MUTEX(acpi_processor_mutex);
- static DEFINE_PER_CPU(void *, processor_device_array);
- 
- DEFINE_PER_CPU(struct acpi_processor *, processors);
-@@ -668,7 +669,9 @@ static void acpi_processor_reset(struct acpi_device *device, struct acpi_process
- 	acpi_processor_unlink(device, pr);
- 	put_online_cpus();
- 	arch_unregister_cpu(pr->id);
-+	mutex_lock(&acpi_processor_mutex);
- 	acpi_unmap_lsapic(pr->id);
-+	mutex_unlock(&acpi_processor_mutex);
- 	pr->id = -1;
- }
- 
-@@ -702,7 +705,9 @@ static int acpi_processor_pre_configure(struct acpi_device *device,
- 	if (pr->id == -1) {
- 		if (pr->apic_id == -1)
- 			goto out;
-+		mutex_lock(&acpi_processor_mutex);
- 		result = acpi_map_lsapic(device->handle, pr->apic_id, &pr->id);
-+		mutex_unlock(&acpi_processor_mutex);
- 		if (result)
- 			goto out;
- 		BUG_ON((pr->id >= nr_cpu_ids) || (pr->id < 0));
-@@ -722,7 +727,9 @@ static int acpi_processor_pre_configure(struct acpi_device *device,
- 	return 0;
- 
- out_unmap:
-+	mutex_lock(&acpi_processor_mutex);
- 	acpi_unmap_lsapic(pr->id);
-+	mutex_unlock(&acpi_processor_mutex);
- 	pr->id = -1;
- out:
- 
--- 
-1.7.9.5
+go ahead and take the series in tip 3.8, Peter, thanks.
+
+I looked over this series a while back and my feedback was that
+it should be disabled by default and enabled by bootparam --
+like other earlyprink -- else an issue here would render
+a system un-bootable.  I see that LV has addressed that
+in the latest version.
+
+LV,
+have you addressed the feedback from Konrad?
+
+thanks,
+-Len
