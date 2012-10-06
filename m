@@ -1,70 +1,384 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH 0/4] ACPI: kill acpi_pci_root_start
-Date: Fri, 5 Oct 2012 16:10:43 -0700
-Message-ID: <CAE9FiQXraKirjQgRad2t87SmxsonDupkpE2BM6Ktx8yUdCPPiQ@mail.gmail.com>
-References: <CAE9FiQWgvVqnTTeYFvxf1GxLcEEeRyN-uSKPdg3o69oCpm43sQ@mail.gmail.com>
-	<1938257.EXdpWtCqiy@vostro.rjw.lan>
-	<CAE9FiQXZqBE6BmQ5v-vDq2E5vmyU5QRNrjjYRYONQu6jiHGD6w@mail.gmail.com>
-	<1595267.JDdDB2dfnM@vostro.rjw.lan>
+From: Ni zhan Chen <nizhan.chen@gmail.com>
+Subject: Re: [RFC v9 PATCH 16/21] memory-hotplug: free memmap of sparse-vmemmap
+Date: Sat, 06 Oct 2012 22:18:18 +0800
+Message-ID: <50703DAA.20407@gmail.com>
+References: <1346837155-534-1-git-send-email-wency@cn.fujitsu.com> <1346837155-534-17-git-send-email-wency@cn.fujitsu.com> <506A6BDC.3010400@gmail.com> <506D2C1C.5060706@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1595267.JDdDB2dfnM@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:42942 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750993Ab2JFOSl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 6 Oct 2012 10:18:41 -0400
+In-Reply-To: <506D2C1C.5060706@jp.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, Wen Congyang <wency@cn.fujitsu.com>
 
-On Fri, Oct 5, 2012 at 4:01 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Thursday 04 of October 2012 15:46:39 Yinghai Lu wrote:
->> > Your patches seem to affect all devices in the ACPI namespace added after
->> > boot, though, not only host bridges.
+On 10/04/2012 02:26 PM, Yasuaki Ishimatsu wrote:
+> Hi Chen,
+>
+> Sorry for late reply.
+>
+> 2012/10/02 13:21, Ni zhan Chen wrote:
+>> On 09/05/2012 05:25 PM, wency@cn.fujitsu.com wrote:
+>>> From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+>>>
+>>> All pages of virtual mapping in removed memory cannot be freed, 
+>>> since some pages
+>>> used as PGD/PUD includes not only removed memory but also other 
+>>> memory. So the
+>>> patch checks whether page can be freed or not.
+>>>
+>>> How to check whether page can be freed or not?
+>>>   1. When removing memory, the page structs of the revmoved memory 
+>>> are filled
+>>>      with 0FD.
+>>>   2. All page structs are filled with 0xFD on PT/PMD, PT/PMD can be 
+>>> cleared.
+>>>      In this case, the page used as PT/PMD can be freed.
+>>>
+>>> Applying patch, __remove_section() of CONFIG_SPARSEMEM_VMEMMAP is 
+>>> integrated
+>>> into one. So __remove_section() of CONFIG_SPARSEMEM_VMEMMAP is deleted.
+>>>
+>>> Note:  vmemmap_kfree() and vmemmap_free_bootmem() are not 
+>>> implemented for ia64,
+>>> ppc, s390, and sparc.
+>>>
+>>> CC: David Rientjes <rientjes@google.com>
+>>> CC: Jiang Liu <liuj97@gmail.com>
+>>> CC: Len Brown <len.brown@intel.com>
+>>> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+>>> CC: Paul Mackerras <paulus@samba.org>
+>>> CC: Christoph Lameter <cl@linux.com>
+>>> Cc: Minchan Kim <minchan.kim@gmail.com>
+>>> CC: Andrew Morton <akpm@linux-foundation.org>
+>>> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+>>> CC: Wen Congyang <wency@cn.fujitsu.com>
+>>> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+>>> ---
+>>>   arch/ia64/mm/discontig.c  |    8 +++
+>>>   arch/powerpc/mm/init_64.c |    8 +++
+>>>   arch/s390/mm/vmem.c       |    8 +++
+>>>   arch/sparc/mm/init_64.c   |    8 +++
+>>>   arch/x86/mm/init_64.c     |  119 
+>>> +++++++++++++++++++++++++++++++++++++++++++++
+>>>   include/linux/mm.h        |    2 +
+>>>   mm/memory_hotplug.c       |   17 +------
+>>>   mm/sparse.c               |    5 +-
+>>>   8 files changed, 158 insertions(+), 17 deletions(-)
+>>>
+>>> diff --git a/arch/ia64/mm/discontig.c b/arch/ia64/mm/discontig.c
+>>> index 33943db..0d23b69 100644
+>>> --- a/arch/ia64/mm/discontig.c
+>>> +++ b/arch/ia64/mm/discontig.c
+>>> @@ -823,6 +823,14 @@ int __meminit vmemmap_populate(struct page 
+>>> *start_page,
+>>>       return vmemmap_populate_basepages(start_page, size, node);
+>>>   }
+>>> +void vmemmap_kfree(struct page *memmap, unsigned long nr_pages)
+>>> +{
+>>> +}
+>>> +
+>>> +void vmemmap_free_bootmem(struct page *memmap, unsigned long nr_pages)
+>>> +{
+>>> +}
+>>> +
+>>>   void register_page_bootmem_memmap(unsigned long section_nr,
+>>>                     struct page *start_page, unsigned long size)
+>>>   {
+>>> diff --git a/arch/powerpc/mm/init_64.c b/arch/powerpc/mm/init_64.c
+>>> index 3690c44..835a2b3 100644
+>>> --- a/arch/powerpc/mm/init_64.c
+>>> +++ b/arch/powerpc/mm/init_64.c
+>>> @@ -299,6 +299,14 @@ int __meminit vmemmap_populate(struct page 
+>>> *start_page,
+>>>       return 0;
+>>>   }
+>>> +void vmemmap_kfree(struct page *memmap, unsigned long nr_pages)
+>>> +{
+>>> +}
+>>> +
+>>> +void vmemmap_free_bootmem(struct page *memmap, unsigned long nr_pages)
+>>> +{
+>>> +}
+>>> +
+>>>   void register_page_bootmem_memmap(unsigned long section_nr,
+>>>                     struct page *start_page, unsigned long size)
+>>>   {
+>>> diff --git a/arch/s390/mm/vmem.c b/arch/s390/mm/vmem.c
+>>> index eda55cd..4b42b0b 100644
+>>> --- a/arch/s390/mm/vmem.c
+>>> +++ b/arch/s390/mm/vmem.c
+>>> @@ -227,6 +227,14 @@ out:
+>>>       return ret;
+>>>   }
+>>> +void vmemmap_kfree(struct page *memmap, unsigned long nr_pages)
+>>> +{
+>>> +}
+>>> +
+>>> +void vmemmap_free_bootmem(struct page *memmap, unsigned long nr_pages)
+>>> +{
+>>> +}
+>>> +
+>>>   void register_page_bootmem_memmap(unsigned long section_nr,
+>>>                     struct page *start_page, unsigned long size)
+>>>   {
+>>> diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+>>> index add1cc7..1384826 100644
+>>> --- a/arch/sparc/mm/init_64.c
+>>> +++ b/arch/sparc/mm/init_64.c
+>>> @@ -2078,6 +2078,14 @@ void __meminit vmemmap_populate_print_last(void)
+>>>       }
+>>>   }
+>>> +void vmemmap_kfree(struct page *memmap, unsigned long nr_pages)
+>>> +{
+>>> +}
+>>> +
+>>> +void vmemmap_free_bootmem(struct page *memmap, unsigned long nr_pages)
+>>> +{
+>>> +}
+>>> +
+>>>   void register_page_bootmem_memmap(unsigned long section_nr,
+>>>                     struct page *start_page, unsigned long size)
+>>>   {
+>>> diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
+>>> index 0075592..4e8f8a4 100644
+>>> --- a/arch/x86/mm/init_64.c
+>>> +++ b/arch/x86/mm/init_64.c
+>>> @@ -1138,6 +1138,125 @@ vmemmap_populate(struct page *start_page, 
+>>> unsigned long size, int node)
+>>>       return 0;
+>>>   }
+>>> +#define PAGE_INUSE 0xFD
+>>> +
+>>> +unsigned long find_and_clear_pte_page(unsigned long addr, unsigned 
+>>> long end,
+>>> +                struct page **pp, int *page_size)
+>>> +{
+>>> +    pgd_t *pgd;
+>>> +    pud_t *pud;
+>>> +    pmd_t *pmd;
+>>> +    pte_t *pte;
+>>> +    void *page_addr;
+>>> +    unsigned long next;
+>>> +
+>>> +    *pp = NULL;
+>>> +
+>>> +    pgd = pgd_offset_k(addr);
+>>> +    if (pgd_none(*pgd))
+>>> +        return pgd_addr_end(addr, end);
+>>> +
+>>> +    pud = pud_offset(pgd, addr);
+>>> +    if (pud_none(*pud))
+>>> +        return pud_addr_end(addr, end);
+>>> +
+>>> +    if (!cpu_has_pse) {
+>>> +        next = (addr + PAGE_SIZE) & PAGE_MASK;
+>>> +        pmd = pmd_offset(pud, addr);
+>>> +        if (pmd_none(*pmd))
+>>> +            return next;
+>>> +
+>>> +        pte = pte_offset_kernel(pmd, addr);
+>>> +        if (pte_none(*pte))
+>>> +            return next;
+>>> +
+>>> +        *page_size = PAGE_SIZE;
+>>> +        *pp = pte_page(*pte);
+>>> +    } else {
+>>> +        next = pmd_addr_end(addr, end);
+>>> +
+>>> +        pmd = pmd_offset(pud, addr);
+>>> +        if (pmd_none(*pmd))
+>>> +            return next;
+>>> +
+>>> +        *page_size = PMD_SIZE;
+>>> +        *pp = pmd_page(*pmd);
+>>> +    }
+>>> +
+>>> +    /*
+>>> +     * Removed page structs are filled with 0xFD.
+>>> +     */
+>>> +    memset((void *)addr, PAGE_INUSE, next - addr);
+>>> +
+>>> +    page_addr = page_address(*pp);
+>>> +
+>>> +    /*
+>>> +     * Check the page is filled with 0xFD or not.
+>>> +     * memchr_inv() returns the address. In this case, we cannot
+>>> +     * clear PTE/PUD entry, since the page is used by other.
+>>> +     * So we cannot also free the page.
+>>> +     *
+>>> +     * memchr_inv() returns NULL. In this case, we can clear
+>>> +     * PTE/PUD entry, since the page is not used by other.
+>>> +     * So we can also free the page.
+>>> +     */
+>>> +    if (memchr_inv(page_addr, PAGE_INUSE, *page_size)) {
+>>> +        *pp = NULL;
+>>> +        return next;
+>>> +    }
+>>> +
 >>
->> yes, but it still should be safe.
->
-> I'm not really sure of that (what about undock/dock, for exmaple?) and it's
-> damn ugly.
-
-only one acpi_driver has .start , that is acpi_pci_root_driver.
-
-should be clean than with .add/start pair.
-
->
->> > And the problem seems to be that the scanning of the ACPI namespace and
->> > configuring the host bridge are kind of independent operations now.  What
->> > we should do, actually, seems to be something like this:
->> >
->> > (1) Configure the host bridge when discovered (i.e. do what the current
->> >     acpi_pci_root_add() does.
->> > (2) Parse the ACPI namespace under the host bridge (without binding ACPI
->> >     drivers to the struct acpi_device objects created in the process,
->> >     because they are known to correspond to PCI devices).
->> > (3) Run pci_bus_add_devices() for the bridge.
->> >
->> > in one routine.
+>> Hi Yasuaki,
 >>
->> problem is still there. if 1 still has acpi_pci_root_add and pci_acpi_scan_root
+>> why call memchr_inv check after memset, this time the page can always 
+>> be filled with 0xFD.
 >
-> OK, so why don't we do (2) in acpi_pci_root_add(), before pci_acpi_scan_root()
-> is called?
->
->> that scan pci devices. what is need is we need to bind 1 and 3 together.
+> The page is not always filled with 0xFD. find_and_clear_pte_page()
+> is calld in each section. So the function fills the page
+> section size/sizeof(page) byte with 0xFD one time. Thus if section 
+> size is
+> small, the page is filled with 0xFD.
 
-some one already walk the acpi space, and during that it create
-acpi_device for pci_root
-and then attach driver for that, aka acpi_pci_root_add is executing.
+Hi Yasuaki,
 
-Now you want to walking the acpi acpi space to create children devices
-before device_add really done for that pci root
-acpi device. ?
+But when section size will be small?
 
-is that some kind of nesting?
+Regards,
+Chen
 
 >
-> I don't understand now.  You said previously that we need the ACPI namespace
-> below the bridge to be scanned before (3), so why do you want to do (3) before
-> (2) now?
+> Thanks,
+> Yasuaki Ishimatsu
+>
+>
+>>> +    if (!cpu_has_pse)
+>>> +        pte_clear(&init_mm, addr, pte);
+>>> +    else
+>>> +        pmd_clear(pmd);
+>>> +
+>>> +    return next;
+>>> +}
+>>> +
+>>> +void vmemmap_kfree(struct page *memmap, unsigned long nr_pages)
+>>> +{
+>>> +    unsigned long addr = (unsigned long)memmap;
+>>> +    unsigned long end = (unsigned long)(memmap + nr_pages);
+>>> +    unsigned long next;
+>>> +    struct page *page;
+>>> +    int page_size;
+>>> +
+>>> +    for (; addr < end; addr = next) {
+>>> +        page = NULL;
+>>> +        page_size = 0;
+>>> +        next = find_and_clear_pte_page(addr, end, &page, &page_size);
+>>> +        if (!page)
+>>> +            continue;
+>>> +
+>>> +        free_pages((unsigned long)page_address(page),
+>>> +                get_order(page_size));
+>>> +        __flush_tlb_one(addr);
+>>> +    }
+>>> +}
+>>> +
+>>> +void vmemmap_free_bootmem(struct page *memmap, unsigned long nr_pages)
+>>> +{
+>>> +    unsigned long addr = (unsigned long)memmap;
+>>> +    unsigned long end = (unsigned long)(memmap + nr_pages);
+>>> +    unsigned long next;
+>>> +    struct page *page;
+>>> +    int page_size;
+>>> +    unsigned long magic;
+>>> +
+>>> +    for (; addr < end; addr = next) {
+>>> +        page = NULL;
+>>> +        page_size = 0;
+>>> +        next = find_and_clear_pte_page(addr, end, &page, &page_size);
+>>> +        if (!page)
+>>> +            continue;
+>>> +
+>>> +        magic = (unsigned long) page->lru.next;
+>>> +        if (magic == SECTION_INFO)
+>>> +            put_page_bootmem(page);
+>>> +        flush_tlb_kernel_range(addr, end);
+>>> +    }
+>>> +}
+>>> +
+>>>   void register_page_bootmem_memmap(unsigned long section_nr,
+>>>                     struct page *start_page, unsigned long size)
+>>>   {
+>>> diff --git a/include/linux/mm.h b/include/linux/mm.h
+>>> index c607913..fb0d1fc 100644
+>>> --- a/include/linux/mm.h
+>>> +++ b/include/linux/mm.h
+>>> @@ -1620,6 +1620,8 @@ int vmemmap_populate(struct page *start_page, 
+>>> unsigned long pages, int node);
+>>>   void vmemmap_populate_print_last(void);
+>>>   void register_page_bootmem_memmap(unsigned long section_nr, struct 
+>>> page *map,
+>>>                     unsigned long size);
+>>> +void vmemmap_kfree(struct page *memmpa, unsigned long nr_pages);
+>>> +void vmemmap_free_bootmem(struct page *memmpa, unsigned long 
+>>> nr_pages);
+>>>   enum mf_flags {
+>>>       MF_COUNT_INCREASED = 1 << 0,
+>>> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+>>> index 647a7f2..c54922c 100644
+>>> --- a/mm/memory_hotplug.c
+>>> +++ b/mm/memory_hotplug.c
+>>> @@ -308,19 +308,6 @@ static int __meminit __add_section(int nid, 
+>>> struct zone *zone,
+>>>       return register_new_memory(nid, 
+>>> __pfn_to_section(phys_start_pfn));
+>>>   }
+>>> -#ifdef CONFIG_SPARSEMEM_VMEMMAP
+>>> -static int __remove_section(struct zone *zone, struct mem_section *ms)
+>>> -{
+>>> -    int ret = -EINVAL;
+>>> -
+>>> -    if (!valid_section(ms))
+>>> -        return ret;
+>>> -
+>>> -    ret = unregister_memory_section(ms);
+>>> -
+>>> -    return ret;
+>>> -}
+>>> -#else
+>>>   static int __remove_section(struct zone *zone, struct mem_section 
+>>> *ms)
+>>>   {
+>>>       unsigned long flags;
+>>> @@ -337,9 +324,9 @@ static int __remove_section(struct zone *zone, 
+>>> struct mem_section *ms)
+>>>       pgdat_resize_lock(pgdat, &flags);
+>>>       sparse_remove_one_section(zone, ms);
+>>>       pgdat_resize_unlock(pgdat, &flags);
+>>> -    return 0;
+>>> +
+>>> +    return ret;
+>>>   }
+>>> -#endif
+>>>   /*
+>>>    * Reasonably generic function for adding memory.  It is
+>>> diff --git a/mm/sparse.c b/mm/sparse.c
+>>> index fac95f2..ab9d755 100644
+>>> --- a/mm/sparse.c
+>>> +++ b/mm/sparse.c
+>>> @@ -613,12 +613,13 @@ static inline struct page 
+>>> *kmalloc_section_memmap(unsigned long pnum, int nid,
+>>>       /* This will make the necessary allocations eventually. */
+>>>       return sparse_mem_map_populate(pnum, nid);
+>>>   }
+>>> -static void __kfree_section_memmap(struct page *memmap, unsigned 
+>>> long nr_pages)
+>>> +static void __kfree_section_memmap(struct page *page, unsigned long 
+>>> nr_pages)
+>>>   {
+>>> -    return; /* XXX: Not implemented yet */
+>>> +    vmemmap_kfree(page, nr_pages);
+>>>   }
+>>>   static void free_map_bootmem(struct page *page, unsigned long 
+>>> nr_pages)
+>>>   {
+>>> +    vmemmap_free_bootmem(page, nr_pages);
+>>>   }
+>>>   #else
+>>>   static struct page *__kmalloc_section_memmap(unsigned long nr_pages)
+>>
+>
+>
+>
 
-purpose is calling pci_bus_add_devices in pci_acpi_scan_root.
-
-Yinghai
