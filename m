@@ -1,32 +1,25 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [RESEND PATCH v4 0/2] ACPI: DBGP/DBG2 early console support for
- LPIA.
-Date: Sat, 06 Oct 2012 14:42:56 -0400
-Message-ID: <50707BB0.8050301@kernel.org>
-References: <cover.1347453194.git.zetalog@gmail.com> <cover.1348652044.git.lv.zheng@intel.com> <5065457E.4040500@zytor.com>
+Subject: Re: [PATCH 2/2] ACPI: EC: Add a quirk for CLEVO M720T/M730T laptop
+Date: Sat, 06 Oct 2012 14:51:07 -0400
+Message-ID: <50707D9B.1080107@kernel.org>
+References: <1348816921-2637-1-git-send-email-feng.tang@intel.com> <1348816921-2637-2-git-send-email-feng.tang@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <5065457E.4040500@zytor.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Jason Wessel <jason.wessel@windriver.com>, Feng Tang <feng.tang@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org, platform-driver-x86@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:55272 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751676Ab2JFSvJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 6 Oct 2012 14:51:09 -0400
+Received: by mail-qc0-f174.google.com with SMTP id d3so1887373qch.19
+        for <linux-acpi@vger.kernel.org>; Sat, 06 Oct 2012 11:51:09 -0700 (PDT)
+In-Reply-To: <1348816921-2637-2-git-send-email-feng.tang@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Feng Tang <feng.tang@intel.com>
+Cc: Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>, Francesco <trentini@dei.unipd.it>
 
-
-> You want to take this, or should I?
-
-go ahead and take the series in tip 3.8, Peter, thanks.
-
-I looked over this series a while back and my feedback was that
-it should be disabled by default and enabled by bootparam --
-like other earlyprink -- else an issue here would render
-a system un-bootable.  I see that LV has addressed that
-in the latest version.
-
-LV,
-have you addressed the feedback from Konrad?
+applied this workaround for 3.7.
 
 thanks,
--Len
+Len Brown, Intel Open Source Technology Center
