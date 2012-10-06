@@ -1,14 +1,14 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 09/49] ACPICA: Headers: Add support for CSRT and DBG2 ACPI tables.
-Date: Sat,  6 Oct 2012 16:09:30 -0400
-Message-ID: <4e2f9c278ad84196991fcf6f6646a3e15967fe90.1349554105.git.len.brown@intel.com>
+Subject: [PATCH 11/49] ACPICA: Add struct header support for _FDE, _GRT, _GTM, and _SRT names.
+Date: Sat,  6 Oct 2012 16:09:32 -0400
+Message-ID: <84be5d687f8060ad96d5a4a060e207a0ec5cc016.1349554106.git.len.brown@intel.com>
 References: <1349554210-29978-1-git-send-email-lenb@kernel.org>
 Reply-To: Len Brown <lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:35281 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750923Ab2JFUMv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 6 Oct 2012 16:12:51 -0400
+Received: from mail-qa0-f46.google.com ([209.85.216.46]:35259 "EHLO
+	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752050Ab2JFUNO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 6 Oct 2012 16:13:14 -0400
 In-Reply-To: <1349554210-29978-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <a950c135e5b2be6ef7518d54d98a7901db1b377a.1349554105.git.len.brown@intel.com>
 References: <a950c135e5b2be6ef7518d54d98a7901db1b377a.1349554105.git.len.brown@intel.com>
@@ -19,157 +19,77 @@ Cc: linux-kernel@vger.kernel.org, Bob Moore <robert.moore@intel.com>, Feng Tang 
 
 From: Bob Moore <robert.moore@intel.com>
 
-These tables are defined outside of the ACPI specification.
+Added structs for the buffers related to these predefined names,
+in acbuffer.h
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Feng Tang <feng.tang@intel.com>
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- include/acpi/actbl2.h | 111 ++++++++++++++++++++++++++++++++++++++++++++++++++
- include/acpi/actbl3.h |   1 -
- 2 files changed, 111 insertions(+), 1 deletion(-)
+ include/acpi/acbuffer.h | 43 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 43 insertions(+)
 
-diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-index d9ceb3d..b74476c 100644
---- a/include/acpi/actbl2.h
-+++ b/include/acpi/actbl2.h
-@@ -63,6 +63,8 @@
+diff --git a/include/acpi/acbuffer.h b/include/acpi/acbuffer.h
+index 2c3b447..a1e45cd 100644
+--- a/include/acpi/acbuffer.h
++++ b/include/acpi/acbuffer.h
+@@ -45,6 +45,11 @@
+ #define __ACBUFFER_H__
+ 
+ /*
++ * Contains buffer structures for these predefined names:
++ * _FDE, _GRT, _GTM, _PLD, _SRT
++ */
++
++/*
+  * Note: C bitfields are not used for this reason:
+  *
+  * "Bitfields are great and easy to read, but unfortunately the C language
+@@ -56,6 +61,44 @@
+  * See http://stackoverflow.com/a/1053662/41661
   */
- #define ACPI_SIG_ASF            "ASF!"	/* Alert Standard Format table */
- #define ACPI_SIG_BOOT           "BOOT"	/* Simple Boot Flag Table */
-+#define ACPI_SIG_CSRT           "CSRT"	/* Core System Resource Table */
-+#define ACPI_SIG_DBG2           "DBG2"	/* Debug Port table type 2 */
- #define ACPI_SIG_DBGP           "DBGP"	/* Debug Port table */
- #define ACPI_SIG_DMAR           "DMAR"	/* DMA Remapping table */
- #define ACPI_SIG_HPET           "HPET"	/* High Precision Event Timer table */
-@@ -232,6 +234,115 @@ struct acpi_table_boot {
  
- /*******************************************************************************
-  *
-+ * CSRT - Core System Resource Table
-+ *        Version 0
-+ *
-+ * Conforms to the "Core System Resource Table (CSRT)", November 14, 2011
-+ *
-+ ******************************************************************************/
++/* _FDE return value */
 +
-+struct acpi_table_csrt {
-+	struct acpi_table_header header;	/* Common ACPI table header */
++struct acpi_fde_info {
++	u32 floppy0;
++	u32 floppy1;
++	u32 floppy2;
++	u32 floppy3;
++	u32 tape;
 +};
 +
-+/* Resource Group subtable */
-+
-+struct acpi_csrt_group {
-+	u32 length;
-+	u32 vendor_id;
-+	u32 subvendor_id;
-+	u16 device_id;
-+	u16 subdevice_id;
-+	u16 revision;
-+	u16 reserved;
-+	u32 info_length;
-+
-+	/* Shared data (length = info_length) immediately follows */
++/*
++ * _GRT return value
++ * _SRT input value
++ */
++struct acpi_grt_info {
++	u16 year;
++	u8 month;
++	u8 day;
++	u8 hour;
++	u8 minute;
++	u8 second;
++	u8 valid;
++	u16 milliseconds;
++	u16 timezone;
++	u8 daylight;
++	u8 reserved[3];
 +};
 +
-+/* Resource Descriptor subtable */
++/* _GTM return value */
 +
-+struct acpi_csrt_descriptor {
-+	u32 length;
-+	u16 type;
-+	u16 subtype;
-+	u32 uid;
-+
-+	/* Resource-specific information immediately follows */
++struct acpi_gtm_info {
++	u32 pio_speed0;
++	u32 dma_speed0;
++	u32 pio_speed1;
++	u32 dma_speed1;
++	u32 flags;
 +};
 +
-+/* Resource Types */
-+
-+#define ACPI_CSRT_TYPE_INTERRUPT    0x0001
-+#define ACPI_CSRT_TYPE_TIMER        0x0002
-+#define ACPI_CSRT_TYPE_DMA          0x0003
-+
-+/* Resource Subtypes */
-+
-+#define ACPI_CSRT_XRUPT_LINE        0x0000
-+#define ACPI_CSRT_XRUPT_CONTROLLER  0x0001
-+#define ACPI_CSRT_TIMER             0x0000
-+#define ACPI_CSRT_DMA_CHANNEL       0x0000
-+#define ACPI_CSRT_DMA_CONTROLLER    0x0001
-+
-+/*******************************************************************************
-+ *
-+ * DBG2 - Debug Port Table 2
-+ *        Version 0 (Both main table and subtables)
-+ *
-+ * Conforms to "Microsoft Debug Port Table 2 (DBG2)", May 22 2012.
-+ *
-+ ******************************************************************************/
-+
-+struct acpi_table_dbg2 {
-+	struct acpi_table_header header;	/* Common ACPI table header */
-+	u32 info_offset;
-+	u32 info_count;
-+};
-+
-+/* Debug Device Information Subtable */
-+
-+struct acpi_dbg2_device {
-+	u8 revision;
-+	u16 length;
-+	u8 register_count;	/* Number of base_address registers */
-+	u16 namepath_length;
-+	u16 namepath_offset;
-+	u16 oem_data_length;
-+	u16 oem_data_offset;
-+	u16 port_type;
-+	u16 port_subtype;
-+	u16 reserved;
-+	u16 base_address_offset;
-+	u16 address_size_offset;
-+	/*
-+	 * Data that follows:
-+	 *    base_address (required) - Each in 12-byte Generic Address Structure format.
-+	 *    address_size (required) - Array of u32 sizes corresponding to each base_address register.
-+	 *    Namepath    (required) - Null terminated string. Single dot if not supported.
-+	 *    oem_data    (optional) - Length is oem_data_length.
-+	 */
-+};
-+
-+/* Types for port_type field above */
-+
-+#define ACPI_DBG2_SERIAL_PORT       0x8000
-+#define ACPI_DBG2_1394_PORT         0x8001
-+#define ACPI_DBG2_USB_PORT          0x8002
-+#define ACPI_DBG2_NET_PORT          0x8003
-+
-+/* Subtypes for port_subtype field above */
-+
-+#define ACPI_DBG2_16550_COMPATIBLE  0x0000
-+#define ACPI_DBG2_16550_SUBSET      0x0001
-+
-+#define ACPI_DBG2_1394_STANDARD     0x0000
-+
-+#define ACPI_DBG2_USB_XHCI          0x0000
-+#define ACPI_DBG2_USB_EHCI          0x0001
-+
-+/*******************************************************************************
-+ *
-  * DBGP - Debug Port table
-  *        Version 1
-  *
-diff --git a/include/acpi/actbl3.h b/include/acpi/actbl3.h
-index f65a0ed..37781ab 100644
---- a/include/acpi/actbl3.h
-+++ b/include/acpi/actbl3.h
-@@ -75,7 +75,6 @@
- /* Reserved table signatures */
- 
- #define ACPI_SIG_CSRT           "CSRT"	/* Core System Resources Table */
--#define ACPI_SIG_DBG2           "DBG2"	/* Debug Port table 2 */
- #define ACPI_SIG_MATR           "MATR"	/* Memory Address Translation Table */
- #define ACPI_SIG_MSDM           "MSDM"	/* Microsoft Data Management Table */
- #define ACPI_SIG_WPBT           "WPBT"	/* Windows Platform Binary Table */
+ /*
+  * Formatted _PLD return value. The minimum size is a package containing
+  * one buffer.
 -- 
 1.8.0.rc0.18.gf84667d
 
