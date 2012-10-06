@@ -1,24 +1,27 @@
 From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH v2] ACPI: Add new sysfs interface to export device description
-Date: Sat, 06 Oct 2012 15:53:45 -0400
-Message-ID: <50708C49.1090109@kernel.org>
-References: <1349203403-6996-1-git-send-email-lance.ortiz@hp.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Subject: ACPI & PM queue for 3.7-merge
+Date: Sat,  6 Oct 2012 16:09:21 -0400
+Message-ID: <1349554210-29978-1-git-send-email-lenb@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:36589 "EHLO
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:44996 "EHLO
 	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751885Ab2JFTxy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 6 Oct 2012 15:53:54 -0400
-In-Reply-To: <1349203403-6996-1-git-send-email-lance.ortiz@hp.com>
+	with ESMTP id S1750721Ab2JFUKT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 6 Oct 2012 16:10:19 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lance Ortiz <lance.ortiz@hp.com>
-Cc: rob@landley.net, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 
-Applied.
+Here's my queue for 3.7
 
-thanks for the refresh.
+add acpidump utility
+intel_idle driver now supports IVB Xeon
+turbostat can now count SMIs
+ACPI can now bind to USB3 hubs
+misc fixes
 
+Let me know if you have troubles with any of these patches.
+
+thanks,
 Len Brown, Intel Open Source Technology Center
+
