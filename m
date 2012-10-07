@@ -1,74 +1,43 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 43/49] tools/power turbostat: make -M output pretty
-Date: Sat,  6 Oct 2012 22:43:13 -0400
-Message-ID: <130ff304f6d31484fc73bb337bc635cba1ffe04c.1349554106.git.len.brown@intel.com>
+Subject: [PATCH 45/49] intel_idle: enable IVB Xeon support
+Date: Sat,  6 Oct 2012 22:43:15 -0400
+Message-ID: <23795e580cad5d6b73d47d51b9074ce3e58bf334.1349554106.git.len.brown@intel.com>
 References: <1349577799-566-1-git-send-email-lenb@kernel.org>
 Reply-To: Len Brown <lenb@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:33543 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752473Ab2JGCoE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 6 Oct 2012 22:44:04 -0400
 In-Reply-To: <1349577799-566-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <a950c135e5b2be6ef7518d54d98a7901db1b377a.1349554105.git.len.brown@intel.com>
 References: <a950c135e5b2be6ef7518d54d98a7901db1b377a.1349554105.git.len.brown@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org, Len Brown <len.brown@intel.com>
-List-Id: linux-acpi@vger.kernel.org
 
 From: Len Brown <len.brown@intel.com>
 
-The -M option dumps the specified 64-bit MSR with every sample.
-
-Previously it was output at the end of each line.
-However, with the v2 style of printing, the lines are now staggered,
-making MSR output hard to read.
-
-So move the MSR output column to the left where things are aligned.
+IVB Xeon currently shares the same parameters IVB client.
 
 Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- tools/power/x86/turbostat/turbostat.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ drivers/idle/intel_idle.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/tools/power/x86/turbostat/turbostat.c b/tools/power/x86/turbostat/turbostat.c
-index 5db4add..5ce88dd 100644
---- a/tools/power/x86/turbostat/turbostat.c
-+++ b/tools/power/x86/turbostat/turbostat.c
-@@ -223,6 +223,8 @@ void print_header(void)
- 	if (has_aperf)
- 		outp += sprintf(outp, "  GHz");
- 	outp += sprintf(outp, "  TSC");
-+	if (extra_msr_offset)
-+		outp += sprintf(outp, "          MSR 0x%04X", extra_msr_offset);
- 	if (do_nhm_cstates)
- 		outp += sprintf(outp, "    %%c1");
- 	if (do_nhm_cstates)
-@@ -239,8 +241,6 @@ void print_header(void)
- 		outp += sprintf(outp, "   %%pc6");
- 	if (do_snb_cstates)
- 		outp += sprintf(outp, "   %%pc7");
--	if (extra_msr_offset)
--		outp += sprintf(outp, "        MSR 0x%x ", extra_msr_offset);
- 
- 	outp += sprintf(outp, "\n");
- }
-@@ -361,6 +361,10 @@ int format_counters(struct thread_data *t, struct core_data *c,
- 	/* TSC */
- 	outp += sprintf(outp, "%5.2f", 1.0 * t->tsc/units/interval_float);
- 
-+	/* MSR */
-+	if (extra_msr_offset)
-+		outp += sprintf(outp, "  0x%016llx", t->extra_msr);
-+
- 	if (do_nhm_cstates) {
- 		if (!skip_c1)
- 			outp += sprintf(outp, " %6.2f", 100.0 * t->c1/t->tsc);
-@@ -392,8 +396,6 @@ int format_counters(struct thread_data *t, struct core_data *c,
- 	if (do_snb_cstates)
- 		outp += sprintf(outp, " %6.2f", 100.0 * p->pc7/t->tsc);
- done:
--	if (extra_msr_offset)
--		outp += sprintf(outp, "  0x%016llx", t->extra_msr);
- 	outp += sprintf(outp, "\n");
- 
- 	return 0;
+diff --git a/drivers/idle/intel_idle.c b/drivers/idle/intel_idle.c
+index e872617..b0f6b4c 100644
+--- a/drivers/idle/intel_idle.c
++++ b/drivers/idle/intel_idle.c
+@@ -413,6 +413,7 @@ static const struct x86_cpu_id intel_idle_ids[] = {
+ 	ICPU(0x2a, idle_cpu_snb),
+ 	ICPU(0x2d, idle_cpu_snb),
+ 	ICPU(0x3a, idle_cpu_ivb),
++	ICPU(0x3e, idle_cpu_ivb),
+ 	{}
+ };
+ MODULE_DEVICE_TABLE(x86cpu, intel_idle_ids);
 -- 
 1.8.0.rc0.18.gf84667d
+
