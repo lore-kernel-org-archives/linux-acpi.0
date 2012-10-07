@@ -1,534 +1,245 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 4/4] cpuidle - support multiple drivers
-Date: Sun, 07 Oct 2012 23:26:14 +0200
-Message-ID: <2357350.9DgMVa61GL@vostro.rjw.lan>
-References: <1348526634-19029-1-git-send-email-daniel.lezcano@linaro.org> <1348526634-19029-5-git-send-email-daniel.lezcano@linaro.org>
+Subject: Re: [RFC PATCH v3 00/28] ACPI based system device hotplug framework
+Date: Sun, 07 Oct 2012 23:47:12 +0200
+Message-ID: <4290643.jEcV9mqAac@vostro.rjw.lan>
+References: <1349537256-21670-1-git-send-email-jiang.liu@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:35304 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([193.178.161.156]:35337 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751089Ab2JGVWn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 7 Oct 2012 17:22:43 -0400
-In-Reply-To: <1348526634-19029-5-git-send-email-daniel.lezcano@linaro.org>
+	id S1751661Ab2JGVnl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 7 Oct 2012 17:43:41 -0400
+In-Reply-To: <1349537256-21670-1-git-send-email-jiang.liu@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: lenb@kernel.org, linux-pm@vger.kernel.org, lorenzo.pieralisi@arm.com, pdeschrijver@nvidia.com, linux-acpi@vger.kernel.org, patches@linaro.org, linaro-dev@lists.linaro.org
+To: Jiang Liu <liuj97@gmail.com>
+Cc: Yinghai Lu <yinghai@kernel.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, Tang Chen <tangchen@cn.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Hanjun Guo <guohanjun@huawei.com>, Yijing Wang <wangyijing@huawei.com>, Gong Chen <gong.chen@linux.intel.com>, Jiang Liu <jiang.liu@huawei.com>, Tony Luck <tony.luck@intel.com>, Huang Ying <ying.huang@intel.com>, Bob Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, "Srivatsa S . Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 
-On Tuesday 25 of September 2012 00:43:54 Daniel Lezcano wrote:
-> With the tegra3 and the big.LITTLE [1] new architectures, several cpus
-> with different characteristics (latencies and states) can co-exists on the
-> system.
+Hi,
+
+On Saturday 06 of October 2012 23:27:08 Jiang Liu wrote:
+> The patchset is based on "5f3d2f2e1a63679cf1c4a4210f2f1cc2f335bef6"
+> from git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+> And you pull the changeset from git://github.com/jiangliu/linux.git acpihp
 > 
-> The cpuidle framework has the limitation of handling only identical cpus.
+> Modern high-end server may support advanced hotplug features for system
+> devices, including physical processor, memory board, IO extension board
+> and/or computer node. The ACPI specifications have provided standard
+> interfaces between firmware and OS to support device hotplug at runtime.
+> This patch series provide an ACPI based hotplug framework to support system
+> device hotplug at runtime, which will replace current existing ACPI device
+> driver based CPU/memory/CONTAINER hotplug mechanism.
 > 
-> This patch removes this limitation by introducing the multiple driver support
-> for cpuidle.
+> The new ACPI system device hotplug framework has following design goals:
+> 1) Provide a mechanism to detect hotplug slots by checking ACPI _EJ0 method,
+> ACPI PRCT (platform RAS capabilities table) and other platform specific
+> mechanisms.
+
+Which of the patches does that?
+
+> 2) Unify the way to enumerate ACPI based hotplug slots. All hotplug slots
+> will be enumerated by the enumeration driver
+
+What is the enumeration driver?
+
+> , instead of by ACPI device drivers.
+> 3) Unify the way to handle ACPI hotplug events. All ACPI hotplug events
+> for system devices will be handled by a generic ACPI hotplug driver,
+> instead of handled by ACPI device drivers.
+
+What are "system devices"
+
+> 4) Solve dependencies among hotplug slots. You need first to remove the
+> memory device before removing a physical processor if a hotpluggable memory
+> device is connected to a hotpluggable physical processor.
+> 5) Provide better error handling and recover.
+> 6) Provide interface to cancel ongoing hotplug operations. It may take a
+> very long time to remove a memory device, so provide interface to cancel
+> the operation. This is important especially for memory hot-removal.
+> 7) Support new RAS features, such as socket/memory migration.
+> 8) Provide better user interfaces to the hotplug functionalities.
+> 9) Trigger hotplug events/operations by software. This feature is useful
+>    for hardware fault management and power saving.
+
+Well, this may or may not be OK.  I'm going to review the patches, but I can't
+really say when it's going to happen (not really soon for sure).
+
+> The new ACPI based hotplug framework is modelled after PCI hotplug
+> architecture, which uses a hotplug driver to manage hotplug operations
+> and different device drivers to manage individual devices.
 > 
-> This option is configurable at compile time and should be enabled for the
-> architectures mentioned above. So there is no impact for the other platforms
-> if the option is disabled. The option defaults to 'n'. Note the multiple drivers
-> support is also compatible with the existing drivers, even if just one driver is
-> needed, all the cpu will be tied to this driver using an extra small chunk of
-> processor memory.
+> The new framework contains three main components as follow:
+> 1) ACPI system device hotplug slot enumerator, which enumerates all ACPI
+>    hotplug slots according to platform specific knowledges. And it also
+>    provides callbacks to control each slot, such as poweron, poweroff,
+>    get_status etc. Currently there are two built-in methods to detect
+>    hotplug slots.
+> 1.a) Detecting hotplug slot by checking _EJ0 method.
+> 1.b) Faking hotplug slot. Use "modprobe acpihp_slot fake_slot=0xnn",
+>      0x1 for CONTAINER, 0x2 for memory device, 0x4 for CPU and 0x8 PCI host
+>      bridge. The fake slot enumerator will treat each assigned ACPI device
+>      as a hotplug slot, so it could be used for testing on hardware platforms
+>      without hardware hotplug capabilities.
+> 2) ACPI system device hotplug driver, which implements a platform indenpendent
+>    state machine for hotplug slots and also provides sysfs based user
+>    interfaces.
+> 3) Enhanced ACPI device drivers for CONTAINER, CPU, Memroy and PCI host bridge.
+>    All logic to handle hotplug events has been moved from these ACPI device
+>    driver into the hotplug driver. Now these ACPI device dirvers only take
+>    resposibilities configure/unconfigure corresponding system devices when
+>    hotplug happens.
 > 
-> The multiple driver support use a per-cpu driver pointer instead of a global
-> variable and the accessor to this variable are done from a cpu context.
+> Now 1), 2) and part of 2) are ready, we still need to enhance mem_hotplug
+> and pci_root drivers to support new hotplug framework.
 > 
-> In order to keep the compatibility with the existing drivers, the function
-> 'cpuidle_register_driver' and 'cpuidle_unregister_driver' will register
-> the specified driver for all the cpus.
+> On my laptop with fake slot enumerator, we got:
+> root@cat:/sys/devices/LNXSYSTM:00/acpihp# ls
+> CPU00  CPU01  CPU02  CPU03  CPU04  CPU05  CPU06  CPU07  IOX00
+> root@cat:/sys/devices/LNXSYSTM:00/acpihp# cd CPU07/
+> root@cat:/sys/devices/LNXSYSTM:00/acpihp/CPU07# ls
+> capabilities  connect     device  object  state   subsystem  uevent
+> configure     dependency  enable  power   status  type
 > 
-> The sysfs output for the 'current_driver' is changed when this option is
-> set by giving the drivers per cpu.
+> /* Hot-remove CPU07 */
+> root@cat:/sys/devices/LNXSYSTM:00/acpihp/CPU07# echo 0 > enable
+> /* Hot-add CPU07 */
+> root@cat:/sys/devices/LNXSYSTM:00/acpihp/CPU07# echo 1 > configure
 > 
-> eg.
-> cpu0: acpi_idle
-> cpu1: acpi_idle
+> V2->V3 changes:
+> 1) Fix minor bugs and refine code
+> 2) Implement fake slot enumerator for testing
+> 3) Enhance ACPI container driver to support new hotplug framework
+> 4) Enhance ACPI processor driver to support new hotplug framework
+> 5) Resolve dependencies among slots by evaluating _EDL method.
+> TODO:
+> 1) Enhance ACPI mem_hotplug driver to support new hotplug framework
+> 2) Enhance ACPI pci_root driver to support new PCI host bridge hotplug
+>    based on Yinghai's work
 > 
-> but if the option is disabled, the output will remain the same.
+> V1->V2 changes:
+> 1) implement the ACPI hotplug driver
+> 2) enhance ACPI container driver to support new hotplug framework
+> TODO:
+> 1) handle ACPI hotplug events in ACPI hotplug driver
+> 2) handle dependencies among slots by evaluating ACPI _EDL
+> 3) enhance ACPI processor, memory and PCI root drivers to support new
+>    hotplug framework
+> 4) develop an ACPI driver for IOAPIC
+> 5) thorough tests:)
 > 
-> [1] http://lwn.net/Articles/481055/
+> Jiang Liu (28):
+>   ACPIHP: introduce a framework for ACPI based system device hotplug
+>   ACPIHP: ACPI system device hotplug slot enumerator driver
+>   ACPIHP: detect ACPI hotplug slots by checking ACPI _EJ0 method
+>   ACPIHP: implement a fake ACPI system device hotplug slot enumerator
+>   ACPI: introduce interfaces to manage ACPI device reference count
+>   ACPIHP: introduce interfaces to scan and walk ACPI devices connecting
+>     to a slot
+>   ACPIHP: use klist to manage ACPI devices connecting to a slot
+>   ACPIHP: add callbacks into acpi_device_ops to support new hotplug
+>     framework
+>   ACPIHP: provide interfaces to associate driver specific data with
+>     slots
+>   ACPIHP: implement utility functions to support system device hotplug
+>   ACPIHP: implement skeleton of ACPI system device hotplug driver
+>   ACPIHP: analyse dependencies among ACPI hotplug slots
+>   ACPIHP: provide interface to cancel inprogress hotplug operations
+>   ACPIHP: configure/unconfigure system devices connecting to a hotplug
+>     slot
+>   ACPIHP: implement the state machine for ACPI hotplug slots
+>   ACPIHP: implement sysfs interfaces for ACPI system device hotplug
+>   ACPIHP: block ACPI device driver unloading when executing hotplug
+>     operations
+>   ACPIHP/container: change ACPI container driver to support new hotplug
+>     framework
+>   ACPIHP/container: move container.c into drivers/acpi/hotplug
+>   ACPI/processor: remove dead code from processor_driver.c
+>   ACPIHP/processor: reorganize ACPI processor driver for new hotplug
+>     framework
+>   ACPIHP/processor: protect accesses to device->driver_data
+>   ACPIHP/processor: enhance processor driver to support new hotplug
+>     framework
+>   CPU: introduce busy flag to temporarily disable CPU online sysfs
+>     interface
+>   ACPIHP/processor: reject online/offline requests when doing processor
+>     hotplug
+>   ACPI/processor: save parsed APIC ID in processor driver data
+>     structure
+>   x86: simplify _acpi_map_lsapic()
+>   ACPI/processor: serialize call to acpi_map/unmap_lsapic
 > 
-> 
-> Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
-> ---
->  drivers/cpuidle/Kconfig   |    9 +++
->  drivers/cpuidle/cpuidle.c |   24 ++++++--
->  drivers/cpuidle/driver.c  |  136 +++++++++++++++++++++++++++++++++++++++++---
->  drivers/cpuidle/sysfs.c   |   50 +++++++++++++----
->  include/linux/cpuidle.h   |    8 ++-
->  5 files changed, 197 insertions(+), 30 deletions(-)
-> 
-> diff --git a/drivers/cpuidle/Kconfig b/drivers/cpuidle/Kconfig
-> index a76b689..234ae65 100644
-> --- a/drivers/cpuidle/Kconfig
-> +++ b/drivers/cpuidle/Kconfig
-> @@ -9,6 +9,15 @@ config CPU_IDLE
->  
->  	  If you're using an ACPI-enabled platform, you should say Y here.
->  
-> +config CPU_IDLE_MULTIPLE_DRIVERS
-> +        bool "Support multiple cpuidle drivers"
-> +        depends on CPU_IDLE
-> +        default n
-> +        help
-> +         Allows the cpuidle framework to use different drivers for each CPU.
-> +         This is useful if you have a system with different CPU latencies and
-> +         states. If unsure say N.
-> +
->  config CPU_IDLE_GOV_LADDER
->  	bool
->  	depends on CPU_IDLE
-> diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
-> index e28f6ea..c581b99 100644
-> --- a/drivers/cpuidle/cpuidle.c
-> +++ b/drivers/cpuidle/cpuidle.c
-> @@ -68,7 +68,7 @@ static cpuidle_enter_t cpuidle_enter_ops;
->  int cpuidle_play_dead(void)
->  {
->  	struct cpuidle_device *dev = __this_cpu_read(cpuidle_devices);
-> -	struct cpuidle_driver *drv = cpuidle_get_driver();
-> +	struct cpuidle_driver *drv = cpuidle_get_cpu_driver(dev->cpu);
+>  arch/ia64/include/asm/cpu.h            |    2 +-
+>  arch/ia64/kernel/acpi.c                |   38 +-
+>  arch/ia64/kernel/topology.c            |   15 +-
+>  arch/x86/include/asm/cpu.h             |    2 +-
+>  arch/x86/include/asm/mpspec.h          |    2 +-
+>  arch/x86/kernel/acpi/boot.c            |   82 +---
+>  arch/x86/kernel/apic/apic.c            |    8 +-
+>  arch/x86/kernel/topology.c             |   10 +-
+>  drivers/acpi/Kconfig                   |   69 ++-
+>  drivers/acpi/Makefile                  |    3 +-
+>  drivers/acpi/bus.c                     |   22 +-
+>  drivers/acpi/container.c               |  296 -----------
+>  drivers/acpi/hotplug/Makefile          |   21 +
+>  drivers/acpi/hotplug/acpihp.h          |   37 ++
+>  drivers/acpi/hotplug/acpihp_drv.h      |  107 ++++
+>  drivers/acpi/hotplug/cancel.c          |  174 +++++++
+>  drivers/acpi/hotplug/configure.c       |  354 ++++++++++++++
+>  drivers/acpi/hotplug/container.c       |  135 +++++
+>  drivers/acpi/hotplug/core.c            |  842 ++++++++++++++++++++++++++++++++
+>  drivers/acpi/hotplug/dependency.c      |  249 ++++++++++
+>  drivers/acpi/hotplug/device.c          |  208 ++++++++
+>  drivers/acpi/hotplug/drv_main.c        |  351 +++++++++++++
+>  drivers/acpi/hotplug/slot.c            |  421 ++++++++++++++++
+>  drivers/acpi/hotplug/slot_ej0.c        |  153 ++++++
+>  drivers/acpi/hotplug/slot_fake.c       |  177 +++++++
+>  drivers/acpi/hotplug/state_machine.c   |  631 ++++++++++++++++++++++++
+>  drivers/acpi/hotplug/sysfs.c           |  245 ++++++++++
+>  drivers/acpi/internal.h                |    7 +
+>  drivers/acpi/processor_core.c          |   26 +-
+>  drivers/acpi/processor_driver.c        |  557 ++++++++++-----------
+>  drivers/acpi/scan.c                    |   17 +-
+>  drivers/base/cpu.c                     |   22 +
+>  drivers/gpu/drm/i915/intel_opregion.c  |    2 +
+>  drivers/gpu/drm/nouveau/nouveau_acpi.c |    1 +
+>  drivers/pci/hotplug/acpiphp_glue.c     |    9 +-
+>  drivers/pci/hotplug/acpiphp_ibm.c      |    5 +-
+>  drivers/pci/hotplug/sgi_hotplug.c      |    6 +-
+>  drivers/platform/x86/thinkpad_acpi.c   |    2 +
+>  drivers/pnp/pnpacpi/core.c             |   23 +-
+>  drivers/xen/cpu_hotplug.c              |    2 +-
+>  include/acpi/acpi_bus.h                |   21 +-
+>  include/acpi/acpi_hotplug.h            |  323 ++++++++++++
+>  include/acpi/container.h               |   12 -
+>  include/acpi/processor.h               |    3 +
+>  include/linux/acpi.h                   |    2 +-
+>  include/linux/cpu.h                    |    2 +
+>  46 files changed, 4923 insertions(+), 773 deletions(-)
+>  delete mode 100644 drivers/acpi/container.c
+>  create mode 100644 drivers/acpi/hotplug/Makefile
+>  create mode 100644 drivers/acpi/hotplug/acpihp.h
+>  create mode 100644 drivers/acpi/hotplug/acpihp_drv.h
+>  create mode 100644 drivers/acpi/hotplug/cancel.c
+>  create mode 100644 drivers/acpi/hotplug/configure.c
+>  create mode 100644 drivers/acpi/hotplug/container.c
+>  create mode 100644 drivers/acpi/hotplug/core.c
+>  create mode 100644 drivers/acpi/hotplug/dependency.c
+>  create mode 100644 drivers/acpi/hotplug/device.c
+>  create mode 100644 drivers/acpi/hotplug/drv_main.c
+>  create mode 100644 drivers/acpi/hotplug/slot.c
+>  create mode 100644 drivers/acpi/hotplug/slot_ej0.c
+>  create mode 100644 drivers/acpi/hotplug/slot_fake.c
+>  create mode 100644 drivers/acpi/hotplug/state_machine.c
+>  create mode 100644 drivers/acpi/hotplug/sysfs.c
+>  create mode 100644 include/acpi/acpi_hotplug.h
+>  delete mode 100644 include/acpi/container.h
 
-It would be better to change that to be called as cpuidle_get_cpu_driver(dev),
-since dev is a cpuidle_device already.
+And I seriously think this is too much material for a single patchset.
 
->  	int i, dead_state = -1;
->  	int power_usage = -1;
->  
-> @@ -128,7 +128,7 @@ int cpuidle_enter_state(struct cpuidle_device *dev, struct cpuidle_driver *drv,
->  int cpuidle_idle_call(void)
->  {
->  	struct cpuidle_device *dev = __this_cpu_read(cpuidle_devices);
-> -	struct cpuidle_driver *drv = cpuidle_get_driver();
-> +	struct cpuidle_driver *drv;
->  	int next_state, entered_state;
->  
->  	if (off)
-> @@ -141,6 +141,8 @@ int cpuidle_idle_call(void)
->  	if (!dev || !dev->enabled)
->  		return -EBUSY;
->  
-> +	drv = cpuidle_get_cpu_driver(dev->cpu);
-> +
->  	/* ask the governor for the next state */
->  	next_state = cpuidle_curr_governor->select(drv, dev);
->  	if (need_resched()) {
-> @@ -308,15 +310,19 @@ static void poll_idle_init(struct cpuidle_driver *drv) {}
->  int cpuidle_enable_device(struct cpuidle_device *dev)
->  {
->  	int ret, i;
-> -	struct cpuidle_driver *drv = cpuidle_get_driver();
-> +	struct cpuidle_driver *drv;
->  
->  	if (!dev)
->  		return -EINVAL;
->  
->  	if (dev->enabled)
->  		return 0;
-> +
-> +	drv = cpuidle_get_cpu_driver(dev->cpu);
-> +
->  	if (!drv || !cpuidle_curr_governor)
->  		return -EIO;
-> +
->  	if (!dev->state_count)
->  		dev->state_count = drv->state_count;
->  
-> @@ -368,15 +374,18 @@ EXPORT_SYMBOL_GPL(cpuidle_enable_device);
->   */
->  void cpuidle_disable_device(struct cpuidle_device *dev)
->  {
-> +	struct cpuidle_driver *drv = cpuidle_get_cpu_driver(dev->cpu);
-> +
->  	if (!dev->enabled)
->  		return;
-> -	if (!cpuidle_get_driver() || !cpuidle_curr_governor)
-> +
-> +	if (!drv || !cpuidle_curr_governor)
->  		return;
->  
->  	dev->enabled = 0;
->  
->  	if (cpuidle_curr_governor->disable)
-> -		cpuidle_curr_governor->disable(cpuidle_get_driver(), dev);
-> +		cpuidle_curr_governor->disable(drv, dev);
->  
->  	cpuidle_remove_state_sysfs(dev);
->  	enabled_devices--;
-> @@ -395,7 +404,8 @@ static int __cpuidle_register_device(struct cpuidle_device *dev)
->  {
->  	int ret;
->  	struct device *cpu_dev = get_cpu_device((unsigned long)dev->cpu);
-> -	struct cpuidle_driver *cpuidle_driver = cpuidle_get_driver();
-> +	struct cpuidle_driver *cpuidle_driver =
-> +		cpuidle_get_cpu_driver(dev->cpu);
->  
->  	if (!try_module_get(cpuidle_driver->owner))
->  		return -EINVAL;
-> @@ -461,7 +471,7 @@ EXPORT_SYMBOL_GPL(cpuidle_register_device);
->  void cpuidle_unregister_device(struct cpuidle_device *dev)
->  {
->  	struct device *cpu_dev = get_cpu_device((unsigned long)dev->cpu);
-> -	struct cpuidle_driver *cpuidle_driver = cpuidle_get_driver();
-> +	struct cpuidle_driver *cpuidle_driver = cpuidle_get_cpu_driver(dev->cpu);
->  
->  	if (dev->registered == 0)
->  		return;
-> diff --git a/drivers/cpuidle/driver.c b/drivers/cpuidle/driver.c
-> index 391f80f..6529b91 100644
-> --- a/drivers/cpuidle/driver.c
-> +++ b/drivers/cpuidle/driver.c
-> @@ -14,7 +14,11 @@
->  
->  #include "cpuidle.h"
->  
-> +#ifdef CONFIG_CPU_IDLE_MULTIPLE_DRIVERS
-> +DEFINE_PER_CPU(struct cpuidle_driver *, cpuidle_drivers);
-> +#else
->  static struct cpuidle_driver *cpuidle_curr_driver;
-> +#endif
->  DEFINE_SPINLOCK(cpuidle_driver_lock);
->  
->  static void set_power_states(struct cpuidle_driver *drv)
-> @@ -47,12 +51,25 @@ static void __cpuidle_driver_init(struct cpuidle_driver *drv)
->  		set_power_states(drv);
->  }
->  
-> -static void cpuidle_set_driver(struct cpuidle_driver *drv)
-> +static void __cpuidle_set_cpu_driver(struct cpuidle_driver *drv, int cpu)
->  {
-> +#ifdef CONFIG_CPU_IDLE_MULTIPLE_DRIVERS
-> +	per_cpu(cpuidle_drivers, cpu) = drv;
-> +#else
->  	cpuidle_curr_driver = drv;
-> +#endif
-
-I'm not a big fan of #ifdef blocks inside of functions.  In my opinion it's
-better to put entire functions under #ifdef blocks.  So, for example, in this
-particular case I would do"
-
-#ifdef CONFIG_CPU_IDLE_MULTIPLE_DRIVERS
-static void __cpuidle_set_cpu_driver(struct cpuidle_driver *drv, int cpu)
-{
-	per_cpu(cpuidle_drivers, cpu) = drv;
-}
-#else
-static void __cpuidle_set_cpu_driver(struct cpuidle_driver *drv, int cpu)
-{
-	cpuidle_curr_driver = drv;
-}
-#endif
-
->  }
->  
-> -static int __cpuidle_register_driver(struct cpuidle_driver *drv)
-> +static struct cpuidle_driver *__cpuidle_get_cpu_driver(int cpu)
-> +{
-> +#ifdef CONFIG_CPU_IDLE_MULTIPLE_DRIVERS
-> +	return per_cpu(cpuidle_drivers, cpu);
-> +#else
-> +	return cpuidle_curr_driver;
-> +#endif
-> +}
-
-And here analogously.
-
-> +
-> +static int __cpuidle_register_driver(struct cpuidle_driver *drv, int cpu)
->  {
->  	if (!drv || !drv->state_count)
->  		return -EINVAL;
-> @@ -60,26 +77,102 @@ static int __cpuidle_register_driver(struct cpuidle_driver *drv)
->  	if (cpuidle_disabled())
->  		return -ENODEV;
->  
-> -	if (cpuidle_get_driver())
-> +	if (__cpuidle_get_cpu_driver(cpu))
->  		return -EBUSY;
->  
->  	__cpuidle_driver_init(drv);
->  
-> -	cpuidle_set_driver(drv);
-> +	__cpuidle_set_cpu_driver(drv, cpu);
->  
->  	return 0;
->  }
->  
-> -static void __cpuidle_unregister_driver(struct cpuidle_driver *drv)
-> +static void __cpuidle_unregister_driver(struct cpuidle_driver *drv, int cpu)
->  {
-> -	if (drv != cpuidle_get_driver()) {
-> +	if (drv != __cpuidle_get_cpu_driver(cpu)) {
->  		WARN(1, "invalid cpuidle_unregister_driver(%s)\n",
->  			drv->name);
->  		return;
->  	}
->  
->  	if (!WARN_ON(drv->refcnt > 0))
-> -		cpuidle_set_driver(NULL);
-> +		__cpuidle_set_cpu_driver(NULL, cpu);
-> +}
-> +
-> +#ifdef CONFIG_CPU_IDLE_MULTIPLE_DRIVERS
-> +static void __cpuidle_unregister_all_cpu_driver(struct cpuidle_driver *drv)
-> +{
-> +	int cpu;
-> +	for_each_present_cpu(cpu)
-> +		__cpuidle_unregister_driver(drv, cpu);
-> +}
-> +
-> +static int __cpuidle_register_all_cpu_driver(struct cpuidle_driver *drv)
-> +{
-> +	int ret = 0;
-> +	int i, cpu;
-> +
-> +	for_each_present_cpu(cpu) {
-> +		ret = __cpuidle_register_driver(drv, cpu);
-> +		if (!ret)
-> +			continue;
-> +		for (i = cpu - 1; i >= 0; i--)
-
-I wonder if this is going to work in all cases.  For example, is there any
-guarantee that the CPU numbers start from 0 and that there are no gaps?
-
-> +			__cpuidle_unregister_driver(drv, i);
-> +		break;
-> +	}
-> +
-> +	return ret;
-> +}
-> +
-> +static int __cpuidle_for_each_driver(int (*cb)(int, struct cpuidle_driver *,
-> +					       void *), void *data)
-> +{
-> +	struct cpuidle_driver *drv;
-> +	int cpu, ret = 0;
-> +
-> +	for_each_present_cpu(cpu) {
-> +		drv = __cpuidle_get_cpu_driver(cpu);
-> +		ret = cb(cpu, drv, data);
-> +		if (ret < 0)
-> +			break;
-> +	}
-> +	return ret;
-> +}
-> +
-> +int cpuidle_register_cpu_driver(struct cpuidle_driver *drv, int cpu)
-> +{
-> +	int ret;
-> +
-> +	spin_lock(&cpuidle_driver_lock);
-> +	ret = __cpuidle_register_driver(drv, cpu);
-> +	spin_unlock(&cpuidle_driver_lock);
-> +
-> +	return ret;
-> +}
-> +
-> +void cpuidle_unregister_cpu_driver(struct cpuidle_driver *drv, int cpu)
-> +{
-> +	spin_lock(&cpuidle_driver_lock);
-> +	__cpuidle_unregister_driver(drv, cpu);
-> +	spin_unlock(&cpuidle_driver_lock);
-> +}
-> +#endif
-> +
-> +int cpuidle_for_each_driver(int (*cb)(int, struct cpuidle_driver *, void *),
-> +			    void *data)
-> +{
-> +	int ret;
-> +
-> +	spin_lock(&cpuidle_driver_lock);
-> +#ifdef CONFIG_CPU_IDLE_MULTIPLE_DRIVERS
-> +	ret = __cpuidle_for_each_driver(cb, data);
-> +#else
-> +	ret = cb(smp_processor_id(),
-> +		 __cpuidle_get_cpu_driver(smp_processor_id()), data);
-> +#endif
-
-Here I'd make the definition of __cpuidle_for_each_driver() depend on
-whether or not CONFIG_CPU_IDLE_MULTIPLE_DRIVERS is set.
-
-> +	spin_unlock(&cpuidle_driver_lock);
-> +
-> +	return ret;
->  }
->  
->  /**
-> @@ -91,7 +184,11 @@ int cpuidle_register_driver(struct cpuidle_driver *drv)
->  	int ret;
->  
->  	spin_lock(&cpuidle_driver_lock);
-> -	ret = __cpuidle_register_driver(drv);
-> +#ifdef CONFIG_CPU_IDLE_MULTIPLE_DRIVERS
-> +	ret = __cpuidle_register_all_cpu_driver(drv);
-> +#else
-> +	ret = __cpuidle_register_driver(drv, smp_processor_id());
-> +#endif
-
-And analogously here.
-
->  	spin_unlock(&cpuidle_driver_lock);
->  
->  	return ret;
-> @@ -103,18 +200,37 @@ EXPORT_SYMBOL_GPL(cpuidle_register_driver);
->   */
->  struct cpuidle_driver *cpuidle_get_driver(void)
->  {
-> -	return cpuidle_curr_driver;
-> +	return __cpuidle_get_cpu_driver(smp_processor_id());
->  }
->  EXPORT_SYMBOL_GPL(cpuidle_get_driver);
->  
->  /**
-> + * cpuidle_get_cpu_driver - return the driver tied with a cpu
-> + */
-> +struct cpuidle_driver *cpuidle_get_cpu_driver(int cpu)
-> +{
-> +	struct cpuidle_driver *drv;
-> +
-> +	spin_lock(&cpuidle_driver_lock);
-> +	drv = __cpuidle_get_cpu_driver(cpu);
-> +	spin_unlock(&cpuidle_driver_lock);
-> +
-> +	return drv;
-> +}
-> +EXPORT_SYMBOL_GPL(cpuidle_get_cpu_driver);
-> +
-> +/**
->   * cpuidle_unregister_driver - unregisters a driver
->   * @drv: the driver
->   */
->  void cpuidle_unregister_driver(struct cpuidle_driver *drv)
->  {
->  	spin_lock(&cpuidle_driver_lock);
-> -	__cpuidle_unregister_driver(drv);
-> +#ifdef CONFIG_CPU_IDLE_MULTIPLE_DRIVERS
-> +	__cpuidle_unregister_all_cpu_driver(drv);
-> +#else
-> +	__cpuidle_unregister_driver(drv, smp_processor_id());
-> +#endif
-
-I'm slightly cautious about using smp_processor_id() above.
-get_cpu()/put_cpu() is the preferred way of doing this nowadays (although
-this particular code is under the spinlock, so it should be OK).
-
->  	spin_unlock(&cpuidle_driver_lock);
->  }
->  EXPORT_SYMBOL_GPL(cpuidle_unregister_driver);
-> diff --git a/drivers/cpuidle/sysfs.c b/drivers/cpuidle/sysfs.c
-> index 5f809e3..2596422 100644
-> --- a/drivers/cpuidle/sysfs.c
-> +++ b/drivers/cpuidle/sysfs.c
-> @@ -43,21 +43,46 @@ out:
->  	return i;
->  }
->  
-> +struct cbarg {
-> +	char *buf;
-> +	ssize_t count;
-> +};
-> +
-> +static int each_driver_cb(int cpu, struct cpuidle_driver *drv, void *data)
-> +{
-> +	int ret;
-> +	struct cbarg *cbarg = data;
-> +
-> +	if ((drv && (strlen(drv->name) + cbarg->count) >= PAGE_SIZE) ||
-> +	    (!drv && (strlen("none") + cbarg->count) >= PAGE_SIZE))
-> +		return -EOVERFLOW;
-> +
-> +#ifdef CONFIG_CPU_IDLE_MULTIPLE_DRIVERS
-> +	ret = sprintf(cbarg->buf + cbarg->count, "cpu%d: %s\n",
-> +		      cpu, drv ? drv->name : "none" );
-> +#else
-> +	ret = sprintf(cbarg->buf, "%s\n", drv ? drv->name : "none");
-> +#endif
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	cbarg->count += ret;
-> +
-> +	return 0;
-> +}
-> +
->  static ssize_t show_current_driver(struct device *dev,
->  				   struct device_attribute *attr,
->  				   char *buf)
->  {
-> -	ssize_t ret;
-> -	struct cpuidle_driver *cpuidle_driver = cpuidle_get_driver();
-> +	struct cbarg cbarg = { .buf = buf };
-> +	int ret;
->  
-> -	spin_lock(&cpuidle_driver_lock);
-> -	if (cpuidle_driver)
-> -		ret = sprintf(buf, "%s\n", cpuidle_driver->name);
-> -	else
-> -		ret = sprintf(buf, "none\n");
-> -	spin_unlock(&cpuidle_driver_lock);
-> +	ret = cpuidle_for_each_driver(each_driver_cb, &cbarg);
-> +	if (ret < 0)
-> +		return ret;
->  
-> -	return ret;
-> +	return cbarg.count;
->  }
->  
->  static ssize_t show_current_governor(struct device *dev,
-> @@ -363,10 +388,10 @@ int cpuidle_add_state_sysfs(struct cpuidle_device *device)
->  {
->  	int i, ret = -ENOMEM;
->  	struct cpuidle_state_kobj *kobj;
-> -	struct cpuidle_driver *drv = cpuidle_get_driver();
-> +	struct cpuidle_driver *drv = cpuidle_get_cpu_driver(device->cpu);
->  
->  	/* state statistics */
-> -	for (i = 0; i < device->state_count; i++) {
-> +	for (i = 0; i < drv->state_count; i++) {
->  		kobj = kzalloc(sizeof(struct cpuidle_state_kobj), GFP_KERNEL);
->  		if (!kobj)
->  			goto error_state;
-> @@ -374,7 +399,8 @@ int cpuidle_add_state_sysfs(struct cpuidle_device *device)
->  		kobj->state_usage = &device->states_usage[i];
->  		init_completion(&kobj->kobj_unregister);
->  
-> -		ret = kobject_init_and_add(&kobj->kobj, &ktype_state_cpuidle, &device->kobj,
-> +		ret = kobject_init_and_add(&kobj->kobj,
-> +					   &ktype_state_cpuidle, &device->kobj,
->  					   "state%d", i);
->  		if (ret) {
->  			kfree(kobj);
-> diff --git a/include/linux/cpuidle.h b/include/linux/cpuidle.h
-> index a4ff9f8..0e0b0ad 100644
-> --- a/include/linux/cpuidle.h
-> +++ b/include/linux/cpuidle.h
-> @@ -164,6 +164,13 @@ extern int cpuidle_wrap_enter(struct cpuidle_device *dev,
->  					struct cpuidle_driver *drv, int index));
->  extern int cpuidle_play_dead(void);
->  
-> +extern int cpuidle_for_each_driver(
-> +	int (*cb)(int, struct cpuidle_driver *, void *), void *data);
-> +
-> +extern struct cpuidle_driver *cpuidle_get_cpu_driver(int cpu);
-> +extern int cpuidle_register_cpu_driver(struct cpuidle_driver *drv, int cpu);
-> +extern void cpuidle_unregister_cpu_driver(struct cpuidle_driver *drv, int cpu);
-> +
->  #else
->  static inline void disable_cpuidle(void) { }
->  static inline int cpuidle_idle_call(void) { return -ENODEV; }
-> @@ -190,7 +197,6 @@ static inline int cpuidle_wrap_enter(struct cpuidle_device *dev,
->  					struct cpuidle_driver *drv, int index))
->  { return -ENODEV; }
->  static inline int cpuidle_play_dead(void) {return -ENODEV; }
-> -
->  #endif
->  
->  #ifdef CONFIG_ARCH_NEEDS_CPU_IDLE_COUPLED
-> 
+Please consider splitting it into smaller and well-documented series of
+patches, so that the reviewers can understand things more easily.
 
 Thanks,
 Rafael
