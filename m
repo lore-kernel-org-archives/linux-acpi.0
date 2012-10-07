@@ -1,189 +1,177 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 49/49] ACPI: Add new sysfs interface to export device description
-Date: Sat,  6 Oct 2012 22:43:19 -0400
-Message-ID: <d1efe3c324ead77d3f6cd85093b50f6bd2e17aba.1349554106.git.len.brown@intel.com>
-References: <1349577799-566-1-git-send-email-lenb@kernel.org>
-Reply-To: Len Brown <lenb@kernel.org>
+Subject: [GIT PULL] ACPI & Power Management patches for Linux-3.7-merge
+Date: Sat, 06 Oct 2012 23:19:31 -0400
+Message-ID: <5070F4C3.4000501@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:35578 "EHLO
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:38864 "EHLO
 	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753107Ab2JGCo7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 6 Oct 2012 22:44:59 -0400
-In-Reply-To: <1349577799-566-1-git-send-email-lenb@kernel.org>
-In-Reply-To: <a950c135e5b2be6ef7518d54d98a7901db1b377a.1349554105.git.len.brown@intel.com>
-References: <a950c135e5b2be6ef7518d54d98a7901db1b377a.1349554105.git.len.brown@intel.com>
+	with ESMTP id S1751615Ab2JGDTe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 6 Oct 2012 23:19:34 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Lance Ortiz <lance.ortiz@hp.com>, Len Brown <len.brown@intel.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 
-From: Lance Ortiz <lance.ortiz@hp.com>
+Hi Linus,
 
-Add support to export the device description obtained from the ACPI _STR
-method, if one exists for a device, to user-space via a sysfs interface.
-This new interface provides a standard and platform neutral way for users
-to obtain the description text stored in the ACPI _STR method.  If no
-_STR method exists for the device, no sysfs 'description' file will be
-created.  The 'description' file will be located in the /sys/devices/
-directory using the device's path.
+Please pull these ACPI & Power Management patches.
 
-/sys/device/<bus>/<bridge path>/<device path>.../firmware_node/description
+acpidump utility added
+intel_idle driver now supports IVB Xeon
+turbostat utility can now count SMIs
+ACPI can now bind to USB3 hubs
+misc fixes
 
-Example:
+You will see two minor merge conflicts; acpixf.h and usb-acpi.c.
+Note that the conflict resolution is available on my "next" branch,
+which is the merge of my "release" and your latest upstream.
 
-/sys/devices/pci0000:00/0000:00.07.0/0000:0e:00.0/firmware_node/description
+thanks!
+Len Brown, Intel Open Source Technology Center
 
-It can also be located using the ACPI device path, for example:
+The following changes since commit a0d271cbfed1dd50278c6b06bead3d00ba0a88f9:
 
-/sys/devices/LNXSYSTM:00/device:00/ACPI0004:00/PNP0A08:00/device:13/device:15/description
-/sys/devices/LNXSYSTM:00/device:00/ACPI0004:00/ACPI0004:01/ACPI0007:02/description
+  Linux 3.6 (2012-09-30 16:47:46 -0700)
 
-Execute the 'cat' command on the 'description' file to obtain the
-description string for that device.
+are available in the git repository at:
 
-This patch also includes documentation describing how the new sysfs
-interface works
+  git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux.git release
 
-Changes from v1-v2 based on comments by Len Brown and Fengguang Wu
-* Removed output "No Description" and leaving a NULL attribute if the
-_STR method failed to evaluate.
+for you to fetch changes up to 3f44ea0d1c3835872033a6633135e16f87161202:
 
-* In acpi_device_remove_files() removed the redundent check of
-dev->pnp.str_obj before calling free.  This check triggered a message
-from smatch.
+  Merge branches 'acpica', 'acpidump', 'intel-idle', 'misc', 'module_acpi_driver-simplify', 'turbostat' and 'usb3' into release (2012-10-06 16:00:32 -0400)
 
-Signed-off-by: Lance Ortiz <lance.ortiz@hp.com>
-Signed-off-by: Len Brown <len.brown@intel.com>
----
- .../ABI/testing/sysfs-devices-firmware_node        | 17 +++++++
- drivers/acpi/scan.c                                | 54 +++++++++++++++++++++-
- include/acpi/acpi_bus.h                            |  1 +
- 3 files changed, 70 insertions(+), 2 deletions(-)
+----------------------------------------------------------------
+
+Bob Moore (12):
+      ACPICA: Enable Scope change to root during module-level code execution.
+      ACPICA: Split ACPICA initialization functions to new file, utxfinit.c
+      ACPICA: Comment update: Fix some typos in actble.h
+      ACPICA: Add Windows8/Server2012 string for _OSI method.
+      ACPICA: GPE Support: Update debug info for GPE tracing.
+      ACPICA: Debug output: Update output for Processor object.
+      ACPICA: Headers: Add support for CSRT and DBG2 ACPI tables.
+      ACPICA: Add support for complex _PLD buffers.
+      ACPICA: Add struct header support for _FDE, _GRT, _GTM, and _SRT names.
+      ACPICA: Update version to 20120816.
+      ACPICA: Headers: Add new ACPI 5 HEST notify type values.
+      ACPICA: Update version to 20120913
+
+Feng Tang (4):
+      ACPI: delelte more BFS/GTS related definition and code
+      ACPICA: GPE support: Remove extraneous parameter from low-level function.
+      ACPI: Use ACPICA native way to decode the PLD buffer
+      usb-acpi: Comply with the ACPI API change
+
+Fenghua Yu (1):
+      ACPI: Harden acpi_table_parse_entries() against BIOS bug
+
+Lan Tianyu (1):
+      ACPI: Allow ACPI binding with USB-3.0 hub
+
+Lance Ortiz (1):
+      ACPI: Add new sysfs interface to export device description
+
+Len Brown (17):
+      tools/power/acpi/acpidump: version 20051111
+      tools/power/acpi/acpidump: version 20060606
+      tools/power/acpi/acpidump: version 20070714
+      tools/power/acpi/acpidump: version 20071116
+      tools/power/acpi/acpidump: version 20101221 - find dynamic tables in sysfs
+      tools/power/acpi/acpidump: create acpidump(8), local make install targets
+      Merge branch 'acpidump' into acpica
+      tools/power/acpi/acpidump: create acpidump(8), local make install targets
+      tools/power turbostat: run on IVB Xeon
+      tools/power turbostat: delete unused line
+      tools/power turbostat: print more turbo-limit information
+      tools/power turbostat: make -M output pretty
+      tools/power turbostat: add [-m MSR#] option
+      intel_idle: enable IVB Xeon support
+      tools/power turbostat: add [-d MSR#][-D MSR#] options to print counter deltas
+      tools/power/turbostat: add option to count SMIs, re-name some options
+      Merge branches 'acpica', 'acpidump', 'intel-idle', 'misc', 'module_acpi_driver-simplify', 'turbostat' and 'usb3' into release
+
+Lin Ming (1):
+      ACPI: run _OSC after ACPI_FULL_INITIALIZATION
+
+Lv Zheng (1):
+      ACPICA: Table Manager: Merge duplicate code (root table)
+
+Mika Westerberg (12):
+      ACPI: introduce module_acpi_driver() helper macro
+      ACPI/button: convert to module_acpi_driver()
+      ACPI/fan: convert to module_acpi_driver()
+      ACPI/hed: convert to module_acpi_driver()
+      ACPI/sbshc: convert to module_acpi_driver()
+      i2c-scmi: convert to module_acpi_driver()
+      Input: atlas_btns - convert to module_acpi_driver()
+      hp_accel: convert to module_acpi_driver()
+      ideapad: convert to module_acpi_driver()
+      topstar-laptop: convert to module_acpi_driver()
+      toshiba_bluetooth: convert to module_acpi_driver()
+      xo15-ebook: convert to module_acpi_driver()
+
+Yakui Zhao (1):
+      tools/power/acpi/acpidump: version 20101221 - find dynamic tables in sysfs
+
+ .../ABI/testing/sysfs-devices-firmware_node        |  17 +
+ drivers/acpi/acpica/Makefile                       |   1 +
+ drivers/acpi/acpica/achware.h                      |   3 +-
+ drivers/acpi/acpica/aclocal.h                      |  23 +-
+ drivers/acpi/acpica/acmacros.h                     |  29 +-
+ drivers/acpi/acpica/dswload.c                      |  14 +
+ drivers/acpi/acpica/dswload2.c                     |  14 +
+ drivers/acpi/acpica/evgpe.c                        |  24 +-
+ drivers/acpi/acpica/evxfgpe.c                      |   3 +-
+ drivers/acpi/acpica/hwgpe.c                        |  15 +-
+ drivers/acpi/acpica/hwxfsleep.c                    |   1 -
+ drivers/acpi/acpica/nsdump.c                       |   2 +-
+ drivers/acpi/acpica/tbinstal.c                     |  20 +-
+ drivers/acpi/acpica/tbxface.c                      |  41 +-
+ drivers/acpi/acpica/utosi.c                        |   1 +
+ drivers/acpi/acpica/utxface.c                      | 354 ++++---------
+ drivers/acpi/acpica/utxfinit.c                     | 317 ++++++++++++
+ drivers/acpi/bus.c                                 |   8 +-
+ drivers/acpi/button.c                              |  13 +-
+ drivers/acpi/fan.c                                 |  22 +-
+ drivers/acpi/glue.c                                | 135 +++--
+ drivers/acpi/hed.c                                 |  20 +-
+ drivers/acpi/proc.c                                |  57 ++-
+ drivers/acpi/sbshc.c                               |  18 +-
+ drivers/acpi/scan.c                                |  56 ++-
+ drivers/acpi/tables.c                              |  18 +-
+ drivers/acpi/utils.c                               |  11 +-
+ drivers/i2c/busses/i2c-scmi.c                      |  14 +-
+ drivers/idle/intel_idle.c                          |   1 +
+ drivers/input/misc/atlas_btns.c                    |  17 +-
+ drivers/platform/x86/hp_accel.c                    |  25 +-
+ drivers/platform/x86/ideapad-laptop.c              |  14 +-
+ drivers/platform/x86/topstar-laptop.c              |  22 +-
+ drivers/platform/x86/toshiba_bluetooth.c           |  22 +-
+ drivers/platform/x86/xo15-ebook.c                  |  14 +-
+ drivers/pnp/pnpacpi/core.c                         |   7 +-
+ drivers/usb/core/usb-acpi.c                        |   5 +-
+ include/acpi/acbuffer.h                            | 235 +++++++++
+ include/acpi/acnames.h                             |   3 +-
+ include/acpi/acpi_bus.h                            |  60 ++-
+ include/acpi/acpixf.h                              |   7 +-
+ include/acpi/actbl.h                               |  60 ++-
+ include/acpi/actbl1.h                              |  16 +-
+ include/acpi/actbl2.h                              | 123 ++++-
+ include/acpi/actbl3.h                              |  13 +-
+ include/acpi/actypes.h                             |   7 -
+ tools/power/acpi/Makefile                          |  18 +
+ tools/power/acpi/acpidump.8                        |  59 +++
+ tools/power/acpi/acpidump.c                        | 560 +++++++++++++++++++++
+ tools/power/x86/turbostat/turbostat.8              |  55 +-
+ tools/power/x86/turbostat/turbostat.c              | 214 +++++++-
+ 51 files changed, 2072 insertions(+), 736 deletions(-)
  create mode 100644 Documentation/ABI/testing/sysfs-devices-firmware_node
-
-diff --git a/Documentation/ABI/testing/sysfs-devices-firmware_node b/Documentation/ABI/testing/sysfs-devices-firmware_node
-new file mode 100644
-index 0000000..46badc9
---- /dev/null
-+++ b/Documentation/ABI/testing/sysfs-devices-firmware_node
-@@ -0,0 +1,17 @@
-+What:		/sys/devices/.../firmware_node/
-+Date:		September 2012
-+Contact:	<>
-+Description:
-+		The /sys/devices/.../firmware_node directory contains attributes
-+		allowing the user space to check and modify some firmware
-+		related properties of given device.
-+
-+What:		/sys/devices/.../firmware_node/description
-+Date:		September 2012
-+Contact:	Lance Ortiz <lance.ortiz@hp.com>
-+Description:
-+		The /sys/devices/.../firmware/description attribute contains a string
-+		that describes the device as provided by the _STR method in the ACPI
-+		namespace.  This attribute is read-only.  If the device does not have
-+		an _STR method associated with it in the ACPI namespace, this
-+		attribute is not present.
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index d1ecca2..0430283 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -10,6 +10,7 @@
- #include <linux/signal.h>
- #include <linux/kthread.h>
- #include <linux/dmi.h>
-+#include <linux/nls.h>
- 
- #include <acpi/acpi_drivers.h>
- 
-@@ -232,8 +233,35 @@ end:
- }
- static DEVICE_ATTR(path, 0444, acpi_device_path_show, NULL);
- 
-+/* sysfs file that shows description text from the ACPI _STR method */
-+static ssize_t description_show(struct device *dev,
-+				struct device_attribute *attr,
-+				char *buf) {
-+	struct acpi_device *acpi_dev = to_acpi_device(dev);
-+	int result;
-+
-+	if (acpi_dev->pnp.str_obj == NULL)
-+		return 0;
-+
-+	/*
-+	 * The _STR object contains a Unicode identifier for a device.
-+	 * We need to convert to utf-8 so it can be displayed.
-+	 */
-+	result = utf16s_to_utf8s(
-+		(wchar_t *)acpi_dev->pnp.str_obj->buffer.pointer,
-+		acpi_dev->pnp.str_obj->buffer.length,
-+		UTF16_LITTLE_ENDIAN, buf,
-+		PAGE_SIZE);
-+
-+	buf[result++] = '\n';
-+
-+	return result;
-+}
-+static DEVICE_ATTR(description, 0444, description_show, NULL);
-+
- static int acpi_device_setup_files(struct acpi_device *dev)
- {
-+	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER, NULL};
- 	acpi_status status;
- 	acpi_handle temp;
- 	int result = 0;
-@@ -257,6 +285,21 @@ static int acpi_device_setup_files(struct acpi_device *dev)
- 			goto end;
- 	}
- 
-+	/*
-+	 * If device has _STR, 'description' file is created
-+	 */
-+	status = acpi_get_handle(dev->handle, "_STR", &temp);
-+	if (ACPI_SUCCESS(status)) {
-+		status = acpi_evaluate_object(dev->handle, "_STR",
-+					NULL, &buffer);
-+		if (ACPI_FAILURE(status))
-+			buffer.pointer = NULL;
-+		dev->pnp.str_obj = buffer.pointer;
-+		result = device_create_file(&dev->dev, &dev_attr_description);
-+		if (result)
-+			goto end;
-+	}
-+
-         /*
-          * If device has _EJ0, 'eject' file is created that is used to trigger
-          * hot-removal function from userland.
-@@ -274,8 +317,15 @@ static void acpi_device_remove_files(struct acpi_device *dev)
- 	acpi_handle temp;
- 
- 	/*
--	 * If device has _EJ0, 'eject' file is created that is used to trigger
--	 * hot-removal function from userland.
-+	 * If device has _STR, remove 'description' file
-+	 */
-+	status = acpi_get_handle(dev->handle, "_STR", &temp);
-+	if (ACPI_SUCCESS(status)) {
-+		kfree(dev->pnp.str_obj);
-+		device_remove_file(&dev->dev, &dev_attr_description);
-+	}
-+	/*
-+	 * If device has _EJ0, remove 'eject' file.
- 	 */
- 	status = acpi_get_handle(dev->handle, "_EJ0", &temp);
- 	if (ACPI_SUCCESS(status))
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index bde976e..3eb9de3 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -208,6 +208,7 @@ struct acpi_device_pnp {
- 	struct list_head ids;		/* _HID and _CIDs */
- 	acpi_device_name device_name;	/* Driver-determined */
- 	acpi_device_class device_class;	/*        "          */
-+	union acpi_object *str_obj;	/* unicode string for _STR method */
- };
- 
- #define acpi_device_bid(d)	((d)->pnp.bus_id)
--- 
-1.8.0.rc0.18.gf84667d
-
+ create mode 100644 drivers/acpi/acpica/utxfinit.c
+ create mode 100644 include/acpi/acbuffer.h
+ create mode 100644 tools/power/acpi/Makefile
+ create mode 100644 tools/power/acpi/acpidump.8
+ create mode 100644 tools/power/acpi/acpidump.c
