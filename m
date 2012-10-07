@@ -1,83 +1,52 @@
-From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Subject: Re: [PATCH 2/4] cpuidle : move driver checking within the lock section
-Date: Sun, 07 Oct 2012 22:17:15 +0200
-Message-ID: <1719250.lMrW2bZ9vi@vostro.rjw.lan>
-References: <1348526634-19029-1-git-send-email-daniel.lezcano@linaro.org>
-	<1348526634-19029-3-git-send-email-daniel.lezcano@linaro.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 4/4] cpuidle - support multiple drivers
+Date: Sun, 07 Oct 2012 23:09:41 +0200
+Message-ID: <5874070.u8crxYxFx3@vostro.rjw.lan>
+References: <1348526634-19029-1-git-send-email-daniel.lezcano@linaro.org> <506D9CA9.8000308@linaro.org> <20121004143442.GM13834@tbergstrom-lnx.Nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-In-Reply-To: <1348526634-19029-3-git-send-email-daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
-List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
-Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-To: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pdeschrijver-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([193.178.161.156]:35278 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750833Ab2JGVGO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 7 Oct 2012 17:06:14 -0400
+In-Reply-To: <20121004143442.GM13834@tbergstrom-lnx.Nvidia.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Peter De Schrijver <pdeschrijver@nvidia.com>
+Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, "lenb@kernel.org" <lenb@kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "patches@linaro.org" <patches@linaro.org>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>
 
-On Tuesday 25 of September 2012 00:43:52 Daniel Lezcano wrote:
-> The code checks if the driver is already set without taking the lock,
-> but, right after, it takes the lock to assign the variable.
+On Thursday 04 of October 2012 17:34:42 Peter De Schrijver wrote:
+> > >>
+> > >> eg.
+> > >> cpu0: acpi_idle
+> > >> cpu1: acpi_idle
+> > >>
+> > > 
+> > > Is this allowed? I thought sysfs files can output only 1 line of data?
+> > 
+> > Ah yeah :)
+> > 
+> > Does it make sense to put the following files:
+> > 
+> > /sys/devices/system/cpu/cpu0/cpuidle/driver
+> >  => acpi_idle
+> > /sys/devices/system/cpu/cpu1/cpuidle/driver
+> >  => acpi_idle
+> > 
 > 
-> If it is safe to check the variable without lock, then it is safe to
-> assign it without lock. If it is unsafe to assign without a lock, then
-> it is unsafe to check it without a lock.
+> Sounds like a reasonable idea.
 > 
-> I don't find a path in the different drivers where that could happen
-> because the arch specific drivers are written in such way it is not
-> possible to register a driver while it is unregistered, except maybe
-> in a very improbable case when "intel_idle" and "processor_idle" are
-> competing. One could unregister a driver, while the other one is
-> registering.
+> > and the content of the file:
+> > 
+> > /sys/devices/system/cpu/cpuidle/current_driver will show the driver
+> > associated with current cpu ?
+> > 
 > 
-> Signed-off-by: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> I think that's ok.
 
-The code looks generally OK (a minor nit below), but I'm not really sure what
-you wanted to say in the changelog.  It would suffice to say that the existing
-code is racy and either we don't need to take the spinlock in
-cpuidle_unregister_driver() at all, or we should put the test under the
-spinlock as well as the modification.
-
-> ---
->  drivers/cpuidle/driver.c |    8 ++++----
->  1 files changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/cpuidle/driver.c b/drivers/cpuidle/driver.c
-> index 39ba8e1..4a0c4ab 100644
-> --- a/drivers/cpuidle/driver.c
-> +++ b/drivers/cpuidle/driver.c
-> @@ -85,17 +85,17 @@ EXPORT_SYMBOL_GPL(cpuidle_get_driver);
->   */
->  void cpuidle_unregister_driver(struct cpuidle_driver *drv)
->  {
-> +	spin_lock(&cpuidle_driver_lock);
-> +
->  	if (drv != cpuidle_curr_driver) {
->  		WARN(1, "invalid cpuidle_unregister_driver(%s)\n",
->  			drv->name);
-
-It is not necessary to execute the WARN() under the spinlock.
-
-> -		return;
-> +		goto out;
->  	}
->  
-> -	spin_lock(&cpuidle_driver_lock);
-> -
->  	if (!WARN_ON(drv->refcnt > 0))
->  		cpuidle_curr_driver = NULL;
-> -
-> +out:
->  	spin_unlock(&cpuidle_driver_lock);
->  }
->  EXPORT_SYMBOL_GPL(cpuidle_unregister_driver);
+Yes, that sounds good.
 
 Thanks,
 Rafael
