@@ -1,191 +1,134 @@
-From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: Re: [PATCH 1/4] acpi,memory-hotplug : add memory offline code to
- acpi_memory_device_remove()
-Date: Mon, 08 Oct 2012 14:58:12 +0800
-Message-ID: <50727984.20401@cn.fujitsu.com>
-References: <506C0AE8.40702@jp.fujitsu.com> <506C0C53.60205@jp.fujitsu.com> <CAHGf_=p7PaQs-kpnyB8uC1MntHQfL-CXhhq4QQP54mYiqOswqQ@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH 7/7] PM / ACPI: Take device PM QoS flags into account
+Date: Mon, 08 Oct 2012 10:09:26 +0200
+Message-ID: <3734460.X8hLyTaasd@vostro.rjw.lan>
+References: <201209282351.10663.rjw@sisk.pl> <1413438.1MkXj8vjQK@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:23238 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1751773Ab2JHGxE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 8 Oct 2012 02:53:04 -0400
-In-Reply-To: <CAHGf_=p7PaQs-kpnyB8uC1MntHQfL-CXhhq4QQP54mYiqOswqQ@mail.gmail.com>
+Received: from ogre.sisk.pl ([193.178.161.156]:36125 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751113Ab2JHIJy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 8 Oct 2012 04:09:54 -0400
+In-Reply-To: <1413438.1MkXj8vjQK@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org
+To: Linux PM list <linux-pm@vger.kernel.org>
+Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Huang Ying <ying.huang@intel.com>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, Lan Tianyu <tianyu.lan@intel.com>, Aaron Lu <aaron.lu@intel.com>, Jean Pihet <j-pihet@ti.com>, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, mark gross <markgross@thegnar.org>, LKML <linux-kernel@vger.kernel.org>
 
-At 10/05/2012 04:53 AM, KOSAKI Motohiro Wrote:
-> On Wed, Oct 3, 2012 at 5:58 AM, Yasuaki Ishimatsu
-> <isimatu.yasuaki@jp.fujitsu.com> wrote:
->> From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->>
->> The memory device can be removed by 2 ways:
->> 1. send eject request by SCI
->> 2. echo 1 >/sys/bus/pci/devices/PNP0C80:XX/eject
->>
->> In the 1st case, acpi_memory_disable_device() will be called.
->> In the 2nd case, acpi_memory_device_remove() will be called.
->> acpi_memory_device_remove() will also be called when we unbind the
->> memory device from the driver acpi_memhotplug.
->>
->> acpi_memory_disable_device() has already implemented a code which
->> offlines memory and releases acpi_memory_info struct . But
->> acpi_memory_device_remove() has not implemented it yet.
->>
->> So the patch implements acpi_memory_remove_memory() for offlining
->> memory and releasing acpi_memory_info struct. And it is used by both
->> acpi_memory_device_remove() and acpi_memory_disable_device().
->>
->> Additionally, if the type is ACPI_BUS_REMOVAL_EJECT in
->> acpi_memory_device_remove() , it means that the user wants to eject
->> the memory device. In this case, acpi_memory_device_remove() calls
->> acpi_memory_remove_memory().
->>
->> CC: David Rientjes <rientjes@google.com>
->> CC: Jiang Liu <liuj97@gmail.com>
->> CC: Len Brown <len.brown@intel.com>
->> CC: Christoph Lameter <cl@linux.com>
->> Cc: Minchan Kim <minchan.kim@gmail.com>
->> CC: Andrew Morton <akpm@linux-foundation.org>
->> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
->> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->> Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
->> ---
->>  drivers/acpi/acpi_memhotplug.c |   44 +++++++++++++++++++++++++++++++----------
->>  1 file changed, 34 insertions(+), 10 deletions(-)
->>
->> Index: linux-3.6/drivers/acpi/acpi_memhotplug.c
->> ===================================================================
->> --- linux-3.6.orig/drivers/acpi/acpi_memhotplug.c       2012-10-03 18:55:33.386378909 +0900
->> +++ linux-3.6/drivers/acpi/acpi_memhotplug.c    2012-10-03 18:55:58.624380688 +0900
->> @@ -306,24 +306,37 @@ static int acpi_memory_powerdown_device(
->>         return 0;
->>  }
->>
->> -static int acpi_memory_disable_device(struct acpi_memory_device *mem_device)
->> +static int acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
->>  {
->>         int result;
->>         struct acpi_memory_info *info, *n;
->>
->> +       list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
-> 
-> Which lock protect this loop?
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-There is no any lock to protect it now...
+Make ACPI power management routines and PCI power management
+routines depending on ACPI take device PM QoS flags into account
+when deciding what power state to put the device into.
 
-> 
-> 
->> +               if (!info->enabled)
->> +                       return -EBUSY;
->> +
->> +               result = remove_memory(info->start_addr, info->length);
->> +               if (result)
->> +                       return result;
-> 
-> I suspect you need to implement rollback code instead of just return.
-> 
-> 
->> +
->> +               list_del(&info->list);
->> +               kfree(info);
->> +       }
->> +
->> +       return 0;
->> +}
->> +
->> +static int acpi_memory_disable_device(struct acpi_memory_device *mem_device)
->> +{
->> +       int result;
->>
->>         /*
->>          * Ask the VM to offline this memory range.
->>          * Note: Assume that this function returns zero on success
->>          */
-> 
-> Write function comment instead of this silly comment.
-> 
->> -       list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
->> -               if (info->enabled) {
->> -                       result = remove_memory(info->start_addr, info->length);
->> -                       if (result)
->> -                               return result;
->> -               }
->> -               kfree(info);
->> -       }
->> +       result = acpi_memory_remove_memory(mem_device);
->> +       if (result)
->> +               return result;
->>
->>         /* Power-off and eject the device */
->>         result = acpi_memory_powerdown_device(mem_device);
-> 
-> This patch move acpi_memory_powerdown_device() from ACPI_NOTIFY_EJECT_REQUEST
-> to release callback, but don't explain why.
+In particular, after this change acpi_pm_device_sleep_state() will
+not return ACPI_STATE_D3_COLD as the deepest available low-power
+state if PM_QOS_FLAG_NO_POWER_OFF is requested for the device and it
+will not require remote wakeup to work for the device in the returned
+low-power state if there is at least one PM QoS flags request for the
+device, but PM_QOS_FLAG_REMOTE_WAKEUP is not requested for it.
 
-Hmm, it doesn't move the code. It just reuse the code in acpi_memory_powerdown_device().
+Accordingly, acpi_pci_set_power_state() will refuse to put the
+device into D3cold if PM_QOS_FLAG_NO_POWER_OFF is requested for it.
 
-> 
-> 
-> 
-> 
-> 
->> @@ -473,12 +486,23 @@ static int acpi_memory_device_add(struct
->>  static int acpi_memory_device_remove(struct acpi_device *device, int type)
->>  {
->>         struct acpi_memory_device *mem_device = NULL;
->> -
->> +       int result;
->>
->>         if (!device || !acpi_driver_data(device))
->>                 return -EINVAL;
->>
->>         mem_device = acpi_driver_data(device);
->> +
->> +       if (type == ACPI_BUS_REMOVAL_EJECT) {
->> +               /*
->> +                * offline and remove memory only when the memory device is
->> +                * ejected.
->> +                */
-> 
-> This comment explain nothing. A comment should describe _why_ should we do.
-> e.g. Why REMOVAL_NORMAL and REMOVEL_EJECT should be ignored. Why
-> we need remove memory here instead of ACPI_NOTIFY_EJECT_REQUEST.
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Reviewed-by: Jean Pihet <j-pihet@ti.com>
+---
+ drivers/acpi/sleep.c   |   21 +++++++++++++++++----
+ drivers/pci/pci-acpi.c |    8 +++++++-
+ 2 files changed, 24 insertions(+), 5 deletions(-)
 
-Hmm, we have 2 ways to remove a memory:
-1. SCI
-2. echo 1 >/sys/bus/acpi/devices/PNP0C80:XX/eject
-
-In the 2nd case, there is no ACPI_NOTIFY_EJECT_REQUEST. We should offline
-the memory and remove it from kernel in the release callback. We will poweroff
-the memory device in acpi_bus_hot_remove_device(), so we must offline
-and remove it if the type is ACPI_BUS_REMOVAL_EJECT.
-
-I guess we should not poweroff the memory device when we fail to offline it.
-But device_release_driver() doesn't returns any error...
-
-Thanks
-Wen Congyang
-
-> 
-> 
->> +               result = acpi_memory_remove_memory(mem_device);
->> +               if (result)
->> +                       return result;
->> +       }
->> +
->>         kfree(mem_device);
->>
->>         return 0;
->>
->> --
->> To unsubscribe, send a message with 'unsubscribe linux-mm' in
->> the body to majordomo@kvack.org.  For more info on Linux MM,
->> see: http://www.linux-mm.org/ .
->> Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
-> 
+Index: linux/drivers/pci/pci-acpi.c
+===================================================================
+--- linux.orig/drivers/pci/pci-acpi.c
++++ linux/drivers/pci/pci-acpi.c
+@@ -17,6 +17,7 @@
+ 
+ #include <linux/pci-acpi.h>
+ #include <linux/pm_runtime.h>
++#include <linux/pm_qos.h>
+ #include "pci.h"
+ 
+ static DEFINE_MUTEX(pci_acpi_pm_notify_mtx);
+@@ -257,11 +258,16 @@ static int acpi_pci_set_power_state(stru
+ 		return -ENODEV;
+ 
+ 	switch (state) {
++	case PCI_D3cold:
++		if (dev_pm_qos_flags(&dev->dev, PM_QOS_FLAG_NO_POWER_OFF) ==
++				PM_QOS_FLAGS_ALL) {
++			error = -EBUSY;
++			break;
++		}
+ 	case PCI_D0:
+ 	case PCI_D1:
+ 	case PCI_D2:
+ 	case PCI_D3hot:
+-	case PCI_D3cold:
+ 		error = acpi_bus_set_power(handle, state_conv[state]);
+ 	}
+ 
+Index: linux/drivers/acpi/sleep.c
+===================================================================
+--- linux.orig/drivers/acpi/sleep.c
++++ linux/drivers/acpi/sleep.c
+@@ -19,6 +19,7 @@
+ #include <linux/acpi.h>
+ #include <linux/module.h>
+ #include <linux/pm_runtime.h>
++#include <linux/pm_qos.h>
+ 
+ #include <asm/io.h>
+ 
+@@ -711,6 +712,7 @@ int acpi_pm_device_sleep_state(struct de
+ 	struct acpi_device *adev;
+ 	char acpi_method[] = "_SxD";
+ 	unsigned long long d_min, d_max;
++	bool wakeup = false;
+ 
+ 	if (d_max_in < ACPI_STATE_D0 || d_max_in > ACPI_STATE_D3)
+ 		return -EINVAL;
+@@ -718,6 +720,13 @@ int acpi_pm_device_sleep_state(struct de
+ 		printk(KERN_DEBUG "ACPI handle has no context!\n");
+ 		return -ENODEV;
+ 	}
++	if (d_max_in > ACPI_STATE_D3_HOT) {
++		enum pm_qos_flags_status stat;
++
++		stat = dev_pm_qos_flags(dev, PM_QOS_FLAG_NO_POWER_OFF);
++		if (stat == PM_QOS_FLAGS_ALL)
++			d_max_in = ACPI_STATE_D3_HOT;
++	}
+ 
+ 	acpi_method[2] = '0' + acpi_target_sleep_state;
+ 	/*
+@@ -737,8 +746,14 @@ int acpi_pm_device_sleep_state(struct de
+ 	 * NOTE: We rely on acpi_evaluate_integer() not clobbering the integer
+ 	 * provided -- that's our fault recovery, we ignore retval.
+ 	 */
+-	if (acpi_target_sleep_state > ACPI_STATE_S0)
++	if (acpi_target_sleep_state > ACPI_STATE_S0) {
+ 		acpi_evaluate_integer(handle, acpi_method, NULL, &d_min);
++		wakeup = device_may_wakeup(dev) && adev->wakeup.flags.valid
++			&& adev->wakeup.sleep_state >= acpi_target_sleep_state;
++	} else if (dev_pm_qos_flags(dev, PM_QOS_FLAG_REMOTE_WAKEUP) !=
++			PM_QOS_FLAGS_NONE) {
++		wakeup = adev->wakeup.flags.valid;
++	}
+ 
+ 	/*
+ 	 * If _PRW says we can wake up the system from the target sleep state,
+@@ -747,9 +762,7 @@ int acpi_pm_device_sleep_state(struct de
+ 	 * (ACPI 3.x), it should return the maximum (lowest power) D-state that
+ 	 * can wake the system.  _S0W may be valid, too.
+ 	 */
+-	if (acpi_target_sleep_state == ACPI_STATE_S0 ||
+-	    (device_may_wakeup(dev) && adev->wakeup.flags.valid &&
+-	     adev->wakeup.sleep_state >= acpi_target_sleep_state)) {
++	if (wakeup) {
+ 		acpi_status status;
+ 
+ 		acpi_method[3] = 'W';
 
