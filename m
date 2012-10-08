@@ -1,52 +1,29 @@
-From: Wei Yongjun <weiyj.lk@gmail.com>
-Subject: [PATCH] cpuidle / ACPI: fix potential NULL pointer dereference
-Date: Mon, 8 Oct 2012 08:40:42 +0800
-Message-ID: <CAPgLHd-8SzCJHbi8sknFvBe11taoXS5z3MOkM=Jet-VD5z14tw@mail.gmail.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [RESEND PATCH v4 0/2] ACPI: DBGP/DBG2 early console support for
+ LPIA.
+Date: Mon, 8 Oct 2012 00:51:35 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88B9C2E4@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1347453194.git.zetalog@gmail.com>
+ <cover.1348652044.git.lv.zheng@intel.com> <5065457E.4040500@zytor.com>
+ <50707BB0.8050301@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:64157 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750870Ab2JHAkn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 7 Oct 2012 20:40:43 -0400
-Received: by mail-qc0-f174.google.com with SMTP id d3so2471568qch.19
-        for <linux-acpi@vger.kernel.org>; Sun, 07 Oct 2012 17:40:43 -0700 (PDT)
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <50707BB0.8050301@kernel.org>
+Content-Language: en-US
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Len Brown <lenb@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Jason Wessel <jason.wessel@windriver.com>, "Tang, Feng" <feng.tang@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: yongjun_wei@trendmicro.com.cn, linux-acpi@vger.kernel.org
 
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-
-The dereference should be moved below the NULL test.
-
-dpatch engine is used to auto generate this patch.
-(https://github.com/weiyj/dpatch)
-
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
----
- drivers/acpi/processor_idle.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index 3655ab9..e8086c7 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -1132,7 +1132,7 @@ static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
- int acpi_processor_hotplug(struct acpi_processor *pr)
- {
- 	int ret = 0;
--	struct cpuidle_device *dev = per_cpu(acpi_cpuidle_device, pr->id);
-+	struct cpuidle_device *dev;
- 
- 	if (disabled_by_idle_boot_param())
- 		return 0;
-@@ -1147,6 +1147,7 @@ int acpi_processor_hotplug(struct acpi_processor *pr)
- 	if (!pr->flags.power_setup_done)
- 		return -ENODEV;
- 
-+	dev = per_cpu(acpi_cpuidle_device, pr->id);
- 	cpuidle_pause_and_lock();
- 	cpuidle_disable_device(dev);
- 	acpi_processor_get_power_info(pr);
-
+PiBnbyBhaGVhZCBhbmQgdGFrZSB0aGUgc2VyaWVzIGluIHRpcCAzLjgsIFBldGVyLCB0aGFua3Mu
+DQo+IA0KPiBJIGxvb2tlZCBvdmVyIHRoaXMgc2VyaWVzIGEgd2hpbGUgYmFjayBhbmQgbXkgZmVl
+ZGJhY2sgd2FzIHRoYXQgaXQgc2hvdWxkIGJlDQo+IGRpc2FibGVkIGJ5IGRlZmF1bHQgYW5kIGVu
+YWJsZWQgYnkgYm9vdHBhcmFtIC0tIGxpa2Ugb3RoZXIgZWFybHlwcmluayAtLSBlbHNlIGFuDQo+
+IGlzc3VlIGhlcmUgd291bGQgcmVuZGVyIGEgc3lzdGVtIHVuLWJvb3RhYmxlLiAgSSBzZWUgdGhh
+dCBMViBoYXMgYWRkcmVzc2VkDQo+IHRoYXQgaW4gdGhlIGxhdGVzdCB2ZXJzaW9uLg0KPiBMViwN
+Cj4gaGF2ZSB5b3UgYWRkcmVzc2VkIHRoZSBmZWVkYmFjayBmcm9tIEtvbnJhZD8NCg0KSSBtaXNz
+ZWQgdGhlIG1haWwgZnJvbSBLb25yYWQuIFRoYW5rcyBmb3IgeW91ciByZW1pbmRlci4NCkknbGwg
+ZmluZCBpdCBhbmQgdXBkYXRlIG15IHBhdGNoZXMgYWNjb3JkaW5nIHRvIGhpcyBzdWdnZXN0aW9u
+Lg0KDQpCZXN0IHJlZ2FyZHMvTHYgWmhlbmcNCg0K
