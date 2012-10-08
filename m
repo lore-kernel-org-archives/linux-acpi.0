@@ -1,84 +1,58 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 0/4] ACPI: kill acpi_pci_root_start
-Date: Mon, 08 Oct 2012 22:12:11 +0200
-Message-ID: <1391924.CXAbAIeqJX@vostro.rjw.lan>
-References: <CAE9FiQWgvVqnTTeYFvxf1GxLcEEeRyN-uSKPdg3o69oCpm43sQ@mail.gmail.com> <1595267.JDdDB2dfnM@vostro.rjw.lan> <CAE9FiQXraKirjQgRad2t87SmxsonDupkpE2BM6Ktx8yUdCPPiQ@mail.gmail.com>
+From: Justin Piszcz <jpiszcz@lucidpixels.com>
+Subject: 3.6.0 ACPI: e1000e - Invalid Power Resource to register! (Supermicro
+ X9SCM-F) - Disabling IRQ #44
+Date: Mon, 8 Oct 2012 17:04:02 -0400
+Message-ID: <CAO9zADyRC8sSChC1whP+b46CsgObW-ygfsmdRxSPKcfW0Z9FGQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:36985 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752846Ab2JHUIi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 8 Oct 2012 16:08:38 -0400
-In-Reply-To: <CAE9FiQXraKirjQgRad2t87SmxsonDupkpE2BM6Ktx8yUdCPPiQ@mail.gmail.com>
+Received: from mail-oa0-f46.google.com ([209.85.219.46]:60914 "EHLO
+	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754876Ab2JHVEC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Oct 2012 17:04:02 -0400
+Received: by mail-oa0-f46.google.com with SMTP id h16so4337255oag.19
+        for <linux-acpi@vger.kernel.org>; Mon, 08 Oct 2012 14:04:02 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org, al piszcz <ap@solarrain.com>
+Cc: linux-acpi@vger.kernel.org, e1000-devel@lists.sf.net
 
-On Friday 05 of October 2012 16:10:43 Yinghai Lu wrote:
-> On Fri, Oct 5, 2012 at 4:01 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > On Thursday 04 of October 2012 15:46:39 Yinghai Lu wrote:
-> >> > Your patches seem to affect all devices in the ACPI namespace added after
-> >> > boot, though, not only host bridges.
-> >>
-> >> yes, but it still should be safe.
-> >
-> > I'm not really sure of that (what about undock/dock, for exmaple?) and it's
-> > damn ugly.
-> 
-> only one acpi_driver has .start , that is acpi_pci_root_driver.
-> 
-> should be clean than with .add/start pair.
-> 
-> >
-> >> > And the problem seems to be that the scanning of the ACPI namespace and
-> >> > configuring the host bridge are kind of independent operations now.  What
-> >> > we should do, actually, seems to be something like this:
-> >> >
-> >> > (1) Configure the host bridge when discovered (i.e. do what the current
-> >> >     acpi_pci_root_add() does.
-> >> > (2) Parse the ACPI namespace under the host bridge (without binding ACPI
-> >> >     drivers to the struct acpi_device objects created in the process,
-> >> >     because they are known to correspond to PCI devices).
-> >> > (3) Run pci_bus_add_devices() for the bridge.
-> >> >
-> >> > in one routine.
-> >>
-> >> problem is still there. if 1 still has acpi_pci_root_add and pci_acpi_scan_root
-> >
-> > OK, so why don't we do (2) in acpi_pci_root_add(), before pci_acpi_scan_root()
-> > is called?
-> >
-> >> that scan pci devices. what is need is we need to bind 1 and 3 together.
-> 
-> some one already walk the acpi space, and during that it create
-> acpi_device for pci_root
-> and then attach driver for that, aka acpi_pci_root_add is executing.
-> 
-> Now you want to walking the acpi acpi space to create children devices
-> before device_add really done for that pci root
-> acpi device. ?
-> 
-> is that some kind of nesting?
+Hello,
 
-Yes, basically.  The idea is to do the scan of the host bridge's children in
-the ACPI tree synchronously within acpi_pci_root_add() instead of trying to
-delay the execution of it until the children have been scanned (and using
-notifiers to kind of trigger the driver binding, i.e. the execution of .add()).
+Kernel: 3.6.0 (x86_64)
+Distribution: Debian Testing
 
-> > I don't understand now.  You said previously that we need the ACPI namespace
-> > below the bridge to be scanned before (3), so why do you want to do (3) before
-> > (2) now?
-> 
-> purpose is calling pci_bus_add_devices in pci_acpi_scan_root.
+I was copying 600GB of files from Samba/Linux to a Windows host, it
+copied around 500GB, then this happened, it disabled the network
+interface on my Supermicro X9CM-F board (on-board) -- the first
+interface, any idea why this happened?
 
-OK, but what's the reason?
+[93593.565667] irq 44: nobody cared (try booting with the "irqpoll" option)
+[93593.565673] Pid: 0, comm: swapper/0 Not tainted 3.6.0 #4
+[93593.565675] Call Trace:
+[    0.971861] ACPI: Invalid Power Resource to register!
+[93593.565677]  <IRQ>  [<ffffffff810a6fe1>] __report_bad_irq+0x31/0xd0
+[93593.565690]  [<ffffffff810a72c3>] note_interrupt+0x1a3/0x1f0
+[93593.565694]  [<ffffffff810a4e59>] handle_irq_event_percpu+0x89/0x160
+[93593.565697]  [<ffffffff810a4f6c>] handle_irq_event+0x3c/0x60
+[93593.565700]  [<ffffffff810a7b7f>] handle_edge_irq+0x6f/0x110
+[93593.565705]  [<ffffffff81003c6d>] handle_irq+0x1d/0x30
+[93593.565709]  [<ffffffff81003b65>] do_IRQ+0x55/0xd0
+[93593.565714]  [<ffffffff815fdb27>] common_interrupt+0x67/0x67
+[93593.565715]  <EOI>  [<ffffffff8107d1ed>] ?
+__hrtimer_start_range_ns+0x1bd/0x3b0
+[93593.565728]  [<ffffffff81383894>] ? acpi_idle_enter_c1+0xaa/0xcf
+[93593.565731]  [<ffffffff81383873>] ? acpi_idle_enter_c1+0x89/0xcf
+[93593.565735]  [<ffffffff814a1719>] cpuidle_enter+0x19/0x20
+[93593.565738]  [<ffffffff814a1a98>] cpuidle_idle_call+0x88/0x100
+[93593.565750]  [<ffffffff8100a39f>] cpu_idle+0x5f/0xd0
+[93593.565752]  [<ffffffff815e9a24>] rest_init+0x68/0x74
+[93593.565755]  [<ffffffff81a8ca86>] start_kernel+0x2a8/0x2b5
+[93593.565756]  [<ffffffff81a8c5dd>] ? repair_env_string+0x5e/0x5e
+[93593.565758]  [<ffffffff81a8c2fd>] x86_64_start_reservations+0x101/0x105
+[93593.565759]  [<ffffffff81a8c3d9>] x86_64_start_kernel+0xd8/0xdc
+[93593.565760] handlers:
+[93593.565762] [<ffffffff8140c330>] e1000_msix_other
+[93593.565763] Disabling IRQ #44
 
-Rafael
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Justin.
