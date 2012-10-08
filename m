@@ -1,68 +1,160 @@
-From: "Justin Piszcz" <jpiszcz@lucidpixels.com>
-Subject: RE: 3.6.0 ACPI: e1000e - Invalid Power Resource to register! (Supermicro X9SCM-F) - Disabling IRQ #44
-Date: Mon, 8 Oct 2012 17:19:26 -0400
-Message-ID: <01c001cda59a$99179aa0$cb46cfe0$@lucidpixels.com>
-References: <CAO9zADyRC8sSChC1whP+b46CsgObW-ygfsmdRxSPKcfW0Z9FGQ@mail.gmail.com>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [PATCH v4] create sun sysfs file
+Date: Tue, 9 Oct 2012 08:57:57 +0900
+Message-ID: <50736885.9010909@jp.fujitsu.com>
+References: <502062FB.7030502@jp.fujitsu.com> <503EC30B.2070900@jp.fujitsu.com> <505FC5F1.4090306@jp.fujitsu.com> <506C0B52.4010800@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset="ISO-2022-JP"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:64667 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754932Ab2JHVT2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Oct 2012 17:19:28 -0400
-Received: by mail-qc0-f174.google.com with SMTP id d3so3278702qch.19
-        for <linux-acpi@vger.kernel.org>; Mon, 08 Oct 2012 14:19:28 -0700 (PDT)
-In-Reply-To: <CAO9zADyRC8sSChC1whP+b46CsgObW-ygfsmdRxSPKcfW0Z9FGQ@mail.gmail.com>
-Content-Language: en-us
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:42881 "EHLO
+	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751235Ab2JHX6j (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Oct 2012 19:58:39 -0400
+In-Reply-To: <506C0B52.4010800@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, 'al piszcz' <ap@solarrain.com>
-Cc: linux-acpi@vger.kernel.org, e1000-devel@lists.sf.net
+To: lenb@kernel.org
+Cc: toshi.kani@hp.com, liuj97@gmail.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Kernel: 3.6.0 (x86_64)
-Distribution: Debian Testing
+Hi Len,
 
-I was copying 600GB of files from Samba/Linux to a Windows host, it
-copied around 500GB, then this happened, it disabled the network
-interface on my Supermicro X9CM-F board (on-board) -- the first
-interface, any idea why this happened?
+What should I do to put this patch in your tree?
 
-[93593.565667] irq 44: nobody cared (try booting with the "irqpoll" option)
-[93593.565673] Pid: 0, comm: swapper/0 Not tainted 3.6.0 #4
-[93593.565675] Call Trace:
-[    0.971861] ACPI: Invalid Power Resource to register!
-[93593.565677]  <IRQ>  [<ffffffff810a6fe1>] __report_bad_irq+0x31/0xd0
-[93593.565690]  [<ffffffff810a72c3>] note_interrupt+0x1a3/0x1f0
-[93593.565694]  [<ffffffff810a4e59>] handle_irq_event_percpu+0x89/0x160
-[93593.565697]  [<ffffffff810a4f6c>] handle_irq_event+0x3c/0x60
-[93593.565700]  [<ffffffff810a7b7f>] handle_edge_irq+0x6f/0x110
-[93593.565705]  [<ffffffff81003c6d>] handle_irq+0x1d/0x30
-[93593.565709]  [<ffffffff81003b65>] do_IRQ+0x55/0xd0
-[93593.565714]  [<ffffffff815fdb27>] common_interrupt+0x67/0x67
-[93593.565715]  <EOI>  [<ffffffff8107d1ed>] ?
-__hrtimer_start_range_ns+0x1bd/0x3b0
-[93593.565728]  [<ffffffff81383894>] ? acpi_idle_enter_c1+0xaa/0xcf
-[93593.565731]  [<ffffffff81383873>] ? acpi_idle_enter_c1+0x89/0xcf
-[93593.565735]  [<ffffffff814a1719>] cpuidle_enter+0x19/0x20
-[93593.565738]  [<ffffffff814a1a98>] cpuidle_idle_call+0x88/0x100
-[93593.565750]  [<ffffffff8100a39f>] cpu_idle+0x5f/0xd0
-[93593.565752]  [<ffffffff815e9a24>] rest_init+0x68/0x74
-[93593.565755]  [<ffffffff81a8ca86>] start_kernel+0x2a8/0x2b5
-[93593.565756]  [<ffffffff81a8c5dd>] ? repair_env_string+0x5e/0x5e
-[93593.565758]  [<ffffffff81a8c2fd>] x86_64_start_reservations+0x101/0x105
-[93593.565759]  [<ffffffff81a8c3d9>] x86_64_start_kernel+0xd8/0xdc
-[93593.565760] handlers:
-[93593.565762] [<ffffffff8140c330>] e1000_msix_other
-[93593.565763] Disabling IRQ #44
+Thanks,
+Yasuaki Ishimatsu
 
----
+2012/10/03 18:54, Yasuaki Ishimatsu wrote:
+> Hi Len,
+> 
+> Ping...
+> Pleae merge the patch into your tree.
+> 
+> Thanks,
+> Yasuaki Ishimatsu
+> 
+> 2012/09/24 11:31, Yasuaki Ishimatsu wrote:
+>> Hi Len,
+>>
+>> Ping...
+>> I want you to merge the patch into your tree for linux-3.7.
+>>
+>> Thanks,
+>> Yasuaki Ishimatsu
+>>
+>> 2012/08/30 10:34, Yasuaki Ishimatsu wrote:
+>>> Hi Len,
+>>>
+>>> Three weeks passed after I post the patch.
+>>> All comments have already been applied to it. And I think there is no
+>>> comments about it. So I want you to merge it into your tree.
+>>>
+>>> Thanks,
+>>> Yasuaki Ishimatsu
+>>>
+>>> 2012/08/07 9:36, Yasuaki Ishimatsu wrote:
+>>>> Even if a device has _SUN method, there is no way to know the slot unique-ID.
+>>>> Thus the patch creates "sun" file in sysfs so that we can recognize it.
+>>>>
+>>>> Reviewed-by: Toshi Kani <toshi.kani@hp.com>
+>>>> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+>>>>
+>>>> ---
+>>>>      drivers/acpi/scan.c     |   24 ++++++++++++++++++++++++
+>>>>      include/acpi/acpi_bus.h |    1 +
+>>>>      2 files changed, 25 insertions(+)
+>>>>
+>>>> Index: linux-3.5/include/acpi/acpi_bus.h
+>>>> ===================================================================
+>>>> --- linux-3.5.orig/include/acpi/acpi_bus.h	2012-07-30 10:06:49.722171575 +0900
+>>>> +++ linux-3.5/include/acpi/acpi_bus.h	2012-08-07 08:57:45.678204360 +0900
+>>>> @@ -209,6 +209,7 @@ struct acpi_device_pnp {
+>>>>      	struct list_head ids;		/* _HID and _CIDs */
+>>>>      	acpi_device_name device_name;	/* Driver-determined */
+>>>>      	acpi_device_class device_class;	/*        "          */
+>>>> +	unsigned long sun;		/* _SUN */
+>>>>      };
+>>>>      
+>>>>      #define acpi_device_bid(d)	((d)->pnp.bus_id)
+>>>> Index: linux-3.5/drivers/acpi/scan.c
+>>>> ===================================================================
+>>>> --- linux-3.5.orig/drivers/acpi/scan.c	2012-07-30 10:06:49.713171688 +0900
+>>>> +++ linux-3.5/drivers/acpi/scan.c	2012-08-07 09:01:38.196203659 +0900
+>>>> @@ -192,10 +192,20 @@ end:
+>>>>      }
+>>>>      static DEVICE_ATTR(path, 0444, acpi_device_path_show, NULL);
+>>>>      
+>>>> +static ssize_t
+>>>> +acpi_device_sun_show(struct device *dev, struct device_attribute *attr,
+>>>> +		     char *buf) {
+>>>> +	struct acpi_device *acpi_dev = to_acpi_device(dev);
+>>>> +
+>>>> +	return sprintf(buf, "%lu\n", acpi_dev->pnp.sun);
+>>>> +}
+>>>> +static DEVICE_ATTR(sun, 0444, acpi_device_sun_show, NULL);
+>>>> +
+>>>>      static int acpi_device_setup_files(struct acpi_device *dev)
+>>>>      {
+>>>>      	acpi_status status;
+>>>>      	acpi_handle temp;
+>>>> +	unsigned long long sun;
+>>>>      	int result = 0;
+>>>>      
+>>>>      	/*
+>>>> @@ -217,6 +227,16 @@ static int acpi_device_setup_files(struc
+>>>>      			goto end;
+>>>>      	}
+>>>>      
+>>>> +	status = acpi_evaluate_integer(dev->handle, "_SUN", NULL, &sun);
+>>>> +	if (ACPI_SUCCESS(status)) {
+>>>> +		dev->pnp.sun = (unsigned long)sun;
+>>>> +		result = device_create_file(&dev->dev, &dev_attr_sun);
+>>>> +		if (result)
+>>>> +			goto end;
+>>>> +	} else {
+>>>> +		dev->pnp.sun = (unsigned long)-1;
+>>>> +	}
+>>>> +
+>>>>              /*
+>>>>               * If device has _EJ0, 'eject' file is created that is used to trigger
+>>>>               * hot-removal function from userland.
+>>>> @@ -241,6 +261,10 @@ static void acpi_device_remove_files(str
+>>>>      	if (ACPI_SUCCESS(status))
+>>>>      		device_remove_file(&dev->dev, &dev_attr_eject);
+>>>>      
+>>>> +	status = acpi_get_handle(dev->handle, "_SUN", &temp);
+>>>> +	if (ACPI_SUCCESS(status))
+>>>> +		device_remove_file(&dev->dev, &dev_attr_sun);
+>>>> +
+>>>>      	device_remove_file(&dev->dev, &dev_attr_modalias);
+>>>>      	device_remove_file(&dev->dev, &dev_attr_hid);
+>>>>      	if (dev->handle)
+>>>>
+>>>> --
+>>>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>>>> the body of a message to majordomo@vger.kernel.org
+>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>
+>>>
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>>
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-A known issue with this hardware/nics it appears:
-https://www.centos.org/modules/newbb/viewtopic.php?topic_id=34820
-
-Hopefully someone from Intel can chime in.
-
-Justin.
 
