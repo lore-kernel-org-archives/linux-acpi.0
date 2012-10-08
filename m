@@ -1,23 +1,25 @@
-From: Justin Piszcz <jpiszcz@lucidpixels.com>
-Subject: 3.6.0 ACPI: e1000e - Invalid Power Resource to register! (Supermicro
- X9SCM-F) - Disabling IRQ #44
-Date: Mon, 8 Oct 2012 17:04:02 -0400
-Message-ID: <CAO9zADyRC8sSChC1whP+b46CsgObW-ygfsmdRxSPKcfW0Z9FGQ@mail.gmail.com>
+From: "Justin Piszcz" <jpiszcz@lucidpixels.com>
+Subject: RE: 3.6.0 ACPI: e1000e - Invalid Power Resource to register! (Supermicro X9SCM-F) - Disabling IRQ #44
+Date: Mon, 8 Oct 2012 17:19:26 -0400
+Message-ID: <01c001cda59a$99179aa0$cb46cfe0$@lucidpixels.com>
+References: <CAO9zADyRC8sSChC1whP+b46CsgObW-ygfsmdRxSPKcfW0Z9FGQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oa0-f46.google.com ([209.85.219.46]:60914 "EHLO
-	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754876Ab2JHVEC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Oct 2012 17:04:02 -0400
-Received: by mail-oa0-f46.google.com with SMTP id h16so4337255oag.19
-        for <linux-acpi@vger.kernel.org>; Mon, 08 Oct 2012 14:04:02 -0700 (PDT)
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:64667 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754932Ab2JHVT2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Oct 2012 17:19:28 -0400
+Received: by mail-qc0-f174.google.com with SMTP id d3so3278702qch.19
+        for <linux-acpi@vger.kernel.org>; Mon, 08 Oct 2012 14:19:28 -0700 (PDT)
+In-Reply-To: <CAO9zADyRC8sSChC1whP+b46CsgObW-ygfsmdRxSPKcfW0Z9FGQ@mail.gmail.com>
+Content-Language: en-us
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, al piszcz <ap@solarrain.com>
+To: linux-kernel@vger.kernel.org, 'al piszcz' <ap@solarrain.com>
 Cc: linux-acpi@vger.kernel.org, e1000-devel@lists.sf.net
-
-Hello,
 
 Kernel: 3.6.0 (x86_64)
 Distribution: Debian Testing
@@ -55,4 +57,12 @@ __hrtimer_start_range_ns+0x1bd/0x3b0
 [93593.565762] [<ffffffff8140c330>] e1000_msix_other
 [93593.565763] Disabling IRQ #44
 
+---
+
+A known issue with this hardware/nics it appears:
+https://www.centos.org/modules/newbb/viewtopic.php?topic_id=34820
+
+Hopefully someone from Intel can chime in.
+
 Justin.
+
