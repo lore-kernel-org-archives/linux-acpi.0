@@ -1,7 +1,7 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 6/7] PM / Domains: Check device PM QoS flags in pm_genpd_poweroff()
-Date: Mon, 08 Oct 2012 10:08:39 +0200
-Message-ID: <3595636.rclQsqiayj@vostro.rjw.lan>
+Subject: [PATCH 3/7] PM / QoS: Prepare struct dev_pm_qos_request for more request types
+Date: Mon, 08 Oct 2012 10:06:08 +0200
+Message-ID: <1701634.Jkkbu1sQKe@vostro.rjw.lan>
 References: <201209282351.10663.rjw@sisk.pl> <1413438.1MkXj8vjQK@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,44 +15,76 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Make the generic PM domains pm_genpd_poweroff() function take
-device PM QoS flags into account when deciding whether or not to
-remove power from the domain.
-
-After this change the routine will return -EBUSY without executing
-the domain's .power_off() callback if there is at least one PM QoS
-flags request for at least one device in the domain and at least of
-those request has at least one of the NO_POWER_OFF and REMOTE_WAKEUP
-flags set.
+The subsequent patches will use struct dev_pm_qos_request for
+representing both latency requests and flags requests.  To make that
+easier, put the node member of struct dev_pm_qos_request (under the
+name "pnode") into a union called "data" that will represent the
+request's  value and list node depending on its type.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Reviewed-by: Jean Pihet <j-pihet@ti.com>
 ---
- drivers/base/power/domain.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ drivers/base/power/qos.c   |    6 +++---
+ drivers/base/power/sysfs.c |    2 +-
+ include/linux/pm_qos.h     |    4 +++-
+ 3 files changed, 7 insertions(+), 5 deletions(-)
 
-Index: linux/drivers/base/power/domain.c
+Index: linux/include/linux/pm_qos.h
 ===================================================================
---- linux.orig/drivers/base/power/domain.c
-+++ linux/drivers/base/power/domain.c
-@@ -470,10 +470,19 @@ static int pm_genpd_poweroff(struct gene
- 		return -EBUSY;
+--- linux.orig/include/linux/pm_qos.h
++++ linux/include/linux/pm_qos.h
+@@ -39,7 +39,9 @@ struct pm_qos_flags_request {
+ };
  
- 	not_suspended = 0;
--	list_for_each_entry(pdd, &genpd->dev_list, list_node)
-+	list_for_each_entry(pdd, &genpd->dev_list, list_node) {
-+		enum pm_qos_flags_status stat;
-+
-+		stat = dev_pm_qos_flags(pdd->dev,
-+					PM_QOS_FLAG_NO_POWER_OFF
-+						| PM_QOS_FLAG_REMOTE_WAKEUP);
-+		if (stat > PM_QOS_FLAGS_NONE)
-+			return -EBUSY;
-+
- 		if (pdd->dev->driver && (!pm_runtime_suspended(pdd->dev)
- 		    || pdd->dev->power.irq_safe))
- 			not_suspended++;
-+	}
+ struct dev_pm_qos_request {
+-	struct plist_node node;
++	union {
++		struct plist_node pnode;
++	} data;
+ 	struct device *dev;
+ };
  
- 	if (not_suspended > genpd->in_progress)
- 		return -EBUSY;
+Index: linux/drivers/base/power/sysfs.c
+===================================================================
+--- linux.orig/drivers/base/power/sysfs.c
++++ linux/drivers/base/power/sysfs.c
+@@ -221,7 +221,7 @@ static DEVICE_ATTR(autosuspend_delay_ms,
+ static ssize_t pm_qos_latency_show(struct device *dev,
+ 				   struct device_attribute *attr, char *buf)
+ {
+-	return sprintf(buf, "%d\n", dev->power.pq_req->node.prio);
++	return sprintf(buf, "%d\n", dev->power.pq_req->data.pnode.prio);
+ }
+ 
+ static ssize_t pm_qos_latency_store(struct device *dev,
+Index: linux/drivers/base/power/qos.c
+===================================================================
+--- linux.orig/drivers/base/power/qos.c
++++ linux/drivers/base/power/qos.c
+@@ -90,7 +90,7 @@ static int apply_constraint(struct dev_p
+ 	int ret, curr_value;
+ 
+ 	ret = pm_qos_update_target(&req->dev->power.qos->latency,
+-				   &req->node, action, value);
++				   &req->data.pnode, action, value);
+ 
+ 	if (ret) {
+ 		/* Call the global callbacks if needed */
+@@ -183,7 +183,7 @@ void dev_pm_qos_constraints_destroy(stru
+ 
+ 	c = &qos->latency;
+ 	/* Flush the constraints list for the device */
+-	plist_for_each_entry_safe(req, tmp, &c->list, node) {
++	plist_for_each_entry_safe(req, tmp, &c->list, data.pnode) {
+ 		/*
+ 		 * Update constraints list and call the notification
+ 		 * callbacks if needed
+@@ -293,7 +293,7 @@ int dev_pm_qos_update_request(struct dev
+ 	mutex_lock(&dev_pm_qos_mtx);
+ 
+ 	if (req->dev->power.qos) {
+-		if (new_value != req->node.prio)
++		if (new_value != req->data.pnode.prio)
+ 			ret = apply_constraint(req, PM_QOS_UPDATE_REQ,
+ 					       new_value);
+ 	} else {
