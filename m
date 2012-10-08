@@ -1,38 +1,191 @@
 From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: Re: [PATCH 4/4] acpi,memory-hotplug : store the node id in acpi_memory_device
-Date: Mon, 08 Oct 2012 14:47:25 +0800
-Message-ID: <507276FD.4020808@cn.fujitsu.com>
-References: <506C0AE8.40702@jp.fujitsu.com> <506C0F53.5030500@jp.fujitsu.com> <CAHGf_=o6K71u4+OVsLvfCSRmOTk12TpsgKwsJO6bGdd_6dYnyA@mail.gmail.com>
+Subject: Re: [PATCH 1/4] acpi,memory-hotplug : add memory offline code to
+ acpi_memory_device_remove()
+Date: Mon, 08 Oct 2012 14:58:12 +0800
+Message-ID: <50727984.20401@cn.fujitsu.com>
+References: <506C0AE8.40702@jp.fujitsu.com> <506C0C53.60205@jp.fujitsu.com> <CAHGf_=p7PaQs-kpnyB8uC1MntHQfL-CXhhq4QQP54mYiqOswqQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <CAHGf_=o6K71u4+OVsLvfCSRmOTk12TpsgKwsJO6bGdd_6dYnyA@mail.gmail.com>
-Sender: owner-linux-mm@kvack.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cn.fujitsu.com ([222.73.24.84]:23238 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1751773Ab2JHGxE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 8 Oct 2012 02:53:04 -0400
+In-Reply-To: <CAHGf_=p7PaQs-kpnyB8uC1MntHQfL-CXhhq4QQP54mYiqOswqQ@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org
-List-Id: linux-acpi@vger.kernel.org
 
-At 10/06/2012 02:56 AM, KOSAKI Motohiro Wrote:
-> On Wed, Oct 3, 2012 at 6:11 AM, Yasuaki Ishimatsu
+At 10/05/2012 04:53 AM, KOSAKI Motohiro Wrote:
+> On Wed, Oct 3, 2012 at 5:58 AM, Yasuaki Ishimatsu
 > <isimatu.yasuaki@jp.fujitsu.com> wrote:
->> From: Wen Congyang <wency@cn.fujitsu.com>
+>> From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 >>
->> The memory device has only one node id. Store the node id when
->> enable the memory device, and we can reuse it when removing the
->> memory device.
+>> The memory device can be removed by 2 ways:
+>> 1. send eject request by SCI
+>> 2. echo 1 >/sys/bus/pci/devices/PNP0C80:XX/eject
+>>
+>> In the 1st case, acpi_memory_disable_device() will be called.
+>> In the 2nd case, acpi_memory_device_remove() will be called.
+>> acpi_memory_device_remove() will also be called when we unbind the
+>> memory device from the driver acpi_memhotplug.
+>>
+>> acpi_memory_disable_device() has already implemented a code which
+>> offlines memory and releases acpi_memory_info struct . But
+>> acpi_memory_device_remove() has not implemented it yet.
+>>
+>> So the patch implements acpi_memory_remove_memory() for offlining
+>> memory and releasing acpi_memory_info struct. And it is used by both
+>> acpi_memory_device_remove() and acpi_memory_disable_device().
+>>
+>> Additionally, if the type is ACPI_BUS_REMOVAL_EJECT in
+>> acpi_memory_device_remove() , it means that the user wants to eject
+>> the memory device. In this case, acpi_memory_device_remove() calls
+>> acpi_memory_remove_memory().
+>>
+>> CC: David Rientjes <rientjes@google.com>
+>> CC: Jiang Liu <liuj97@gmail.com>
+>> CC: Len Brown <len.brown@intel.com>
+>> CC: Christoph Lameter <cl@linux.com>
+>> Cc: Minchan Kim <minchan.kim@gmail.com>
+>> CC: Andrew Morton <akpm@linux-foundation.org>
+>> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+>> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+>> Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+>> ---
+>>  drivers/acpi/acpi_memhotplug.c |   44 +++++++++++++++++++++++++++++++----------
+>>  1 file changed, 34 insertions(+), 10 deletions(-)
+>>
+>> Index: linux-3.6/drivers/acpi/acpi_memhotplug.c
+>> ===================================================================
+>> --- linux-3.6.orig/drivers/acpi/acpi_memhotplug.c       2012-10-03 18:55:33.386378909 +0900
+>> +++ linux-3.6/drivers/acpi/acpi_memhotplug.c    2012-10-03 18:55:58.624380688 +0900
+>> @@ -306,24 +306,37 @@ static int acpi_memory_powerdown_device(
+>>         return 0;
+>>  }
+>>
+>> -static int acpi_memory_disable_device(struct acpi_memory_device *mem_device)
+>> +static int acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
+>>  {
+>>         int result;
+>>         struct acpi_memory_info *info, *n;
+>>
+>> +       list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
 > 
-> You don't explain why we need this. Then nobody can review nor ack.
-> 
+> Which lock protect this loop?
 
-This patch doesn't fix any problem. Its purpose is: avoid to calculate
-the node id twice.
+There is no any lock to protect it now...
+
+> 
+> 
+>> +               if (!info->enabled)
+>> +                       return -EBUSY;
+>> +
+>> +               result = remove_memory(info->start_addr, info->length);
+>> +               if (result)
+>> +                       return result;
+> 
+> I suspect you need to implement rollback code instead of just return.
+> 
+> 
+>> +
+>> +               list_del(&info->list);
+>> +               kfree(info);
+>> +       }
+>> +
+>> +       return 0;
+>> +}
+>> +
+>> +static int acpi_memory_disable_device(struct acpi_memory_device *mem_device)
+>> +{
+>> +       int result;
+>>
+>>         /*
+>>          * Ask the VM to offline this memory range.
+>>          * Note: Assume that this function returns zero on success
+>>          */
+> 
+> Write function comment instead of this silly comment.
+> 
+>> -       list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
+>> -               if (info->enabled) {
+>> -                       result = remove_memory(info->start_addr, info->length);
+>> -                       if (result)
+>> -                               return result;
+>> -               }
+>> -               kfree(info);
+>> -       }
+>> +       result = acpi_memory_remove_memory(mem_device);
+>> +       if (result)
+>> +               return result;
+>>
+>>         /* Power-off and eject the device */
+>>         result = acpi_memory_powerdown_device(mem_device);
+> 
+> This patch move acpi_memory_powerdown_device() from ACPI_NOTIFY_EJECT_REQUEST
+> to release callback, but don't explain why.
+
+Hmm, it doesn't move the code. It just reuse the code in acpi_memory_powerdown_device().
+
+> 
+> 
+> 
+> 
+> 
+>> @@ -473,12 +486,23 @@ static int acpi_memory_device_add(struct
+>>  static int acpi_memory_device_remove(struct acpi_device *device, int type)
+>>  {
+>>         struct acpi_memory_device *mem_device = NULL;
+>> -
+>> +       int result;
+>>
+>>         if (!device || !acpi_driver_data(device))
+>>                 return -EINVAL;
+>>
+>>         mem_device = acpi_driver_data(device);
+>> +
+>> +       if (type == ACPI_BUS_REMOVAL_EJECT) {
+>> +               /*
+>> +                * offline and remove memory only when the memory device is
+>> +                * ejected.
+>> +                */
+> 
+> This comment explain nothing. A comment should describe _why_ should we do.
+> e.g. Why REMOVAL_NORMAL and REMOVEL_EJECT should be ignored. Why
+> we need remove memory here instead of ACPI_NOTIFY_EJECT_REQUEST.
+
+Hmm, we have 2 ways to remove a memory:
+1. SCI
+2. echo 1 >/sys/bus/acpi/devices/PNP0C80:XX/eject
+
+In the 2nd case, there is no ACPI_NOTIFY_EJECT_REQUEST. We should offline
+the memory and remove it from kernel in the release callback. We will poweroff
+the memory device in acpi_bus_hot_remove_device(), so we must offline
+and remove it if the type is ACPI_BUS_REMOVAL_EJECT.
+
+I guess we should not poweroff the memory device when we fail to offline it.
+But device_release_driver() doesn't returns any error...
 
 Thanks
 Wen Congyang
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+> 
+> 
+>> +               result = acpi_memory_remove_memory(mem_device);
+>> +               if (result)
+>> +                       return result;
+>> +       }
+>> +
+>>         kfree(mem_device);
+>>
+>>         return 0;
+>>
+>> --
+>> To unsubscribe, send a message with 'unsubscribe linux-mm' in
+>> the body to majordomo@kvack.org.  For more info on Linux MM,
+>> see: http://www.linux-mm.org/ .
+>> Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+> 
+
