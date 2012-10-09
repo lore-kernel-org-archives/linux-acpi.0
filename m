@@ -1,166 +1,34 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: memory-hotplug : suppres "Trying to free nonexistent resource
- <XXXXXXXXXXXXXXXX-YYYYYYYYYYYYYYYY>" warning
-Date: Tue, 9 Oct 2012 11:51:38 +0900
-Message-ID: <5073913A.3080103@jp.fujitsu.com>
-References: <506D1F1D.9000301@jp.fujitsu.com> <20121005140938.e3e1e196.akpm@linux-foundation.org>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH v4] create sun sysfs file
+Date: Tue, 09 Oct 2012 01:05:48 -0400
+Message-ID: <5073B0AC.3090601@kernel.org>
+References: <502062FB.7030502@jp.fujitsu.com> <503EC30B.2070900@jp.fujitsu.com> <505FC5F1.4090306@jp.fujitsu.com> <506C0B52.4010800@jp.fujitsu.com> <50736885.9010909@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-2022-JP
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20121005140938.e3e1e196.akpm@linux-foundation.org>
-Sender: owner-linux-mm@kvack.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, wency@cn.fujitsu.com, dave@linux.vnet.ibm.com
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:37230 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750952Ab2JIFFu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Oct 2012 01:05:50 -0400
+In-Reply-To: <50736885.9010909@jp.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: toshi.kani@hp.com, liuj97@gmail.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi Andrew,
+On 10/08/2012 07:57 PM, Yasuaki Ishimatsu wrote:
+> Hi Len,
+> 
+> What should I do to put this patch in your tree?
 
-2012/10/06 6:09, Andrew Morton wrote:
-> On Thu, 4 Oct 2012 14:31:09 +0900
-> Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com> wrote:
->
->> When our x86 box calls __remove_pages(), release_mem_region() shows
->> many warnings. And x86 box cannot unregister iomem_resource.
->>
->> "Trying to free nonexistent resource <XXXXXXXXXXXXXXXX-YYYYYYYYYYYYYYYY>"
->>
->> release_mem_region() has been changed as called in each PAGES_PER_SECTION
->> chunk since applying a patch(de7f0cba96786c). Because powerpc registers
->> iomem_resource in each PAGES_PER_SECTION chunk. But when I hot add memory
->> on x86 box, iomem_resource is register in each _CRS not PAGES_PER_SECTION
->> chunk. So x86 box unregisters iomem_resource.
->>
->> The patch fixes the problem.
->>
->> --- linux-3.6.orig/arch/powerpc/platforms/pseries/hotplug-memory.c	2012-10-04 14:22:59.833520792 +0900
->> +++ linux-3.6/arch/powerpc/platforms/pseries/hotplug-memory.c	2012-10-04 14:23:05.150521411 +0900
->> @@ -77,7 +77,8 @@ static int pseries_remove_memblock(unsig
->>   {
->>   	unsigned long start, start_pfn;
->>   	struct zone *zone;
->> -	int ret;
->> +	int i, ret;
->> +	int sections_to_remove;
->>
->>   	start_pfn = base >> PAGE_SHIFT;
->>
->> @@ -97,9 +98,13 @@ static int pseries_remove_memblock(unsig
->>   	 * to sysfs "state" file and we can't remove sysfs entries
->>   	 * while writing to it. So we have to defer it to here.
->>   	 */
->> -	ret = __remove_pages(zone, start_pfn, memblock_size >> PAGE_SHIFT);
->> -	if (ret)
->> -		return ret;
->> +	sections_to_remove = (memblock_size >> PAGE_SHIFT) / PAGES_PER_SECTION;
->> +	for (i = 0; i < sections_to_remove; i++) {
->> +		unsigned long pfn = start_pfn + i * PAGES_PER_SECTION;
->> +		ret = __remove_pages(zone, start_pfn,  PAGES_PER_SECTION);
->> +		if (ret)
->> +			return ret;
->> +	}
->
-> It is inappropriate that `i' have a signed 32-bit type.  I doubt if
-> there's any possibility of an overflow bug here, but using a consistent
-> and well-chosen type would eliminate all doubt.
->
-> Note that __remove_pages() does use an unsigned long for this, although
-> it stupidly calls that variable "i", despite the C programmers'
-> expectation that a variable called "i" has type "int".
->
-> The same applies to `sections_to_remove', but __remove_pages() went and
-> decided to use an `int' for that variable.  Sigh.
->
-> Anyway, please have a think, and see if we can come up with the best
-> and most accurate choice of types and identifiers in this code.
+Please add a description of the attribute in
+Documentation/ABI/testing/
 
-Your concern is right. Overflow bug may occur in the future.
-So I changed type of "i" and "sections_to_remove" to "unsigned long".
-Please merge it into your tree instead of previous patch.
+A human needs to understand exactly what is in that file
+because you are proposing it as an ABI.
 
-__remove_pages() also has same concern. So I'll fix it.
-
------------------------------------------------------------------------
-When our x86 box calls __remove_pages(), release_mem_region() shows
-many warnings. And x86 box cannot unregister iomem_resource.
-
-"Trying to free nonexistent resource <XXXXXXXXXXXXXXXX-YYYYYYYYYYYYYYYY>"
-
-release_mem_region() has been changed as called in each PAGES_PER_SECTION
-chunk since applying a patch(de7f0cba96786c). Because powerpc registers
-iomem_resource in each PAGES_PER_SECTION chunk. But when I hot add memory
-on x86 box, iomem_resource is register in each _CRS not PAGES_PER_SECTION
-chunk. So x86 box unregisters iomem_resource.
-
-The patch fixes the problem.
-
-CC: David Rientjes <rientjes@google.com>
-CC: Jiang Liu <liuj97@gmail.com>
-CC: Len Brown <len.brown@intel.com>
-CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-CC: Paul Mackerras <paulus@samba.org>
-CC: Christoph Lameter <cl@linux.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-CC: Andrew Morton <akpm@linux-foundation.org>
-CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-CC: Wen Congyang <wency@cn.fujitsu.com>
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
----
-  arch/powerpc/platforms/pseries/hotplug-memory.c |   11 ++++++++---
-  mm/memory_hotplug.c                             |    4 ++--
-  2 files changed, 10 insertions(+), 5 deletions(-)
-
-Index: linux-3.6/arch/powerpc/platforms/pseries/hotplug-memory.c
-===================================================================
---- linux-3.6.orig/arch/powerpc/platforms/pseries/hotplug-memory.c	2012-10-05 14:33:09.516197839 +0900
-+++ linux-3.6/arch/powerpc/platforms/pseries/hotplug-memory.c	2012-10-09 11:27:50.555709827 +0900
-@@ -78,6 +78,7 @@ static int pseries_remove_memblock(unsig
-  	unsigned long start, start_pfn;
-  	struct zone *zone;
-  	int ret;
-+	unsigned long i, sections_to_remove;
-  
-  	start_pfn = base >> PAGE_SHIFT;
-  
-@@ -97,9 +98,13 @@ static int pseries_remove_memblock(unsig
-  	 * to sysfs "state" file and we can't remove sysfs entries
-  	 * while writing to it. So we have to defer it to here.
-  	 */
--	ret = __remove_pages(zone, start_pfn, memblock_size >> PAGE_SHIFT);
--	if (ret)
--		return ret;
-+	sections_to_remove = (memblock_size >> PAGE_SHIFT) / PAGES_PER_SECTION;
-+	for (i = 0; i < sections_to_remove; i++) {
-+		unsigned long pfn = start_pfn + i * PAGES_PER_SECTION;
-+		ret = __remove_pages(zone, start_pfn,  PAGES_PER_SECTION);
-+		if (ret)
-+			return ret;
-+	}
-  
-  	/*
-  	 * Update memory regions for memory remove
-Index: linux-3.6/mm/memory_hotplug.c
-===================================================================
---- linux-3.6.orig/mm/memory_hotplug.c	2012-10-05 15:21:42.856325965 +0900
-+++ linux-3.6/mm/memory_hotplug.c	2012-10-05 15:21:43.047326148 +0900
-@@ -596,11 +596,11 @@ int __remove_pages(struct zone *zone, un
-  	BUG_ON(phys_start_pfn & ~PAGE_SECTION_MASK);
-  	BUG_ON(nr_pages % PAGES_PER_SECTION);
-  
-+	release_mem_region(phys_start_pfn << PAGE_SHIFT, nr_pages * PAGE_SIZE);
-+
-  	sections_to_remove = nr_pages / PAGES_PER_SECTION;
-  	for (i = 0; i < sections_to_remove; i++) {
-  		unsigned long pfn = phys_start_pfn + i*PAGES_PER_SECTION;
--		release_mem_region(pfn << PAGE_SHIFT,
--				   PAGES_PER_SECTION << PAGE_SHIFT);
-  		ret = __remove_section(zone, __pfn_to_section(pfn));
-  		if (ret)
-  			break;
+thanks,
+Len Brown, Intel Open Source Technology Center
 
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
