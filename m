@@ -1,166 +1,57 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: acpi : acpi_bus_trim() stops removing devices when failing to remove
- the device
-Date: Tue, 9 Oct 2012 17:48:12 +0900
-Message-ID: <5073E4CC.3090600@jp.fujitsu.com>
+From: Jack Kelly <jack-list@xlk.org.uk>
+Subject: Re: HP laptop: fan off until CPU temp near 105 degrees C
+Date: Tue, 9 Oct 2012 11:32:31 +0100
+Message-ID: <CALHKqSU7SR+6tJaAE_66diAN6+2FzCnhP-L-8Bgf1TerMw1hgA@mail.gmail.com>
+References: <CALHKqSU44q6LakKrBKeNFFu7=xbipAog4URMLT0i5Yturo6w9w@mail.gmail.com>
+ <4D68720C2E767A4AA6A8796D42C8EB591C9D47@BGSMSX102.gar.corp.intel.com>
+ <CALHKqSXFhf7zoQWMrPDzgS0EGXN5xVxOHLu2j8Ysdtexk5prww@mail.gmail.com>
+ <4D68720C2E767A4AA6A8796D42C8EB591C9E51@BGSMSX102.gar.corp.intel.com>
+ <CALHKqSXtD_TbGYTxJv+fhXhjqO2=UoDUoeF8dFkEeuuvN36PwQ@mail.gmail.com>
+ <CALHKqSWoGMQ9sEP34zWjRxoxOPXAWOjyKd1SC-asW7qypvAPng@mail.gmail.com> <744357E9AAD1214791ACBA4B0B90926322D9A3@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:51165 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752124Ab2JIIsi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Oct 2012 04:48:38 -0400
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:63979 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754392Ab2JIKcw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Oct 2012 06:32:52 -0400
+Received: by mail-vc0-f174.google.com with SMTP id fo13so6205621vcb.19
+        for <linux-acpi@vger.kernel.org>; Tue, 09 Oct 2012 03:32:52 -0700 (PDT)
+In-Reply-To: <744357E9AAD1214791ACBA4B0B90926322D9A3@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: toshi.kani@hp.com, lenb@kernel.org, wency@cn.fujitsu.com, vasilis.liaskovitis@profitbricks.com
+To: "Zhang, Rui" <rui.zhang@intel.com>
+Cc: "R, Durgadoss" <durgadoss.r@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-acpi_bus_trim() stops removing devices, when acpi_bus_remove() return error
-number. But acpi_bus_remove() cannot return error number correctly.
-acpi_bus_remove() only return -EINVAL, when dev argument is NULL. Thus even if
-device cannot be removed correctly, acpi_bus_trim() ignores and continues to
-remove devices. acpi_bus_hot_remove_device() uses acpi_bus_trim() for removing
-devices. Therefore acpi_bus_hot_remove_device() can send "_EJ0" to firmware,
-even if the device is running on the system. In this case, the system cannot
-work well.
+Dear Rui,
 
-Vasilis hit the bug at memory hotplug and reported it as follow:
-https://lkml.org/lkml/2012/9/26/318
+Many thanks for the reply.  I have uploaded the data you requested to:
 
-So acpi_bus_trim() should check whether device was removed or not correctly.
-The patch adds error check into some functions to remove the device.
+http://xlk.org.uk/ext/laptop-data.tar.gz
 
-Applying the patch, acpi_bus_trim() stops removing devices when failing
-to remove the device. But I think there is no impact with the
-exceptionof CPU and Memory hotplug path. Because other device also fails
-but the fail is an irregular case like device is NULL.
+laptop-data.tar.gz contains 4 text files:
 
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+* acpidump.txt
 
----
- drivers/acpi/scan.c    |   15 ++++++++++++---
- drivers/base/dd.c      |   22 +++++++++++++++++-----
- include/linux/device.h |    2 +-
- 3 files changed, 30 insertions(+), 9 deletions(-)
+* cool.txt (output of "grep . /sys/class/thermal/*/*" when system is cool)
 
-Index: linux-3.6/drivers/acpi/scan.c
-===================================================================
---- linux-3.6.orig/drivers/acpi/scan.c	2012-10-09 17:25:40.956496325 +0900
-+++ linux-3.6/drivers/acpi/scan.c	2012-10-09 17:25:55.405497800 +0900
-@@ -445,12 +445,17 @@ static int acpi_device_remove(struct dev
- {
- 	struct acpi_device *acpi_dev = to_acpi_device(dev);
- 	struct acpi_driver *acpi_drv = acpi_dev->driver;
-+	int ret;
- 
- 	if (acpi_drv) {
- 		if (acpi_drv->ops.notify)
- 			acpi_device_remove_notify_handler(acpi_dev);
--		if (acpi_drv->ops.remove)
--			acpi_drv->ops.remove(acpi_dev, acpi_dev->removal_type);
-+		if (acpi_drv->ops.remove) {
-+			ret = acpi_drv->ops.remove(acpi_dev,
-+						   acpi_dev->removal_type);
-+			if (ret)
-+				return ret;
-+		}
- 	}
- 	acpi_dev->driver = NULL;
- 	acpi_dev->driver_data = NULL;
-@@ -1226,11 +1231,15 @@ static int acpi_device_set_context(struc
- 
- static int acpi_bus_remove(struct acpi_device *dev, int rmdevice)
- {
-+	int ret;
-+
- 	if (!dev)
- 		return -EINVAL;
- 
- 	dev->removal_type = ACPI_BUS_REMOVAL_EJECT;
--	device_release_driver(&dev->dev);
-+	ret = device_release_driver(&dev->dev);
-+	if (ret)
-+		return ret;
- 
- 	if (!rmdevice)
- 		return 0;
-Index: linux-3.6/drivers/base/dd.c
-===================================================================
---- linux-3.6.orig/drivers/base/dd.c	2012-10-01 08:47:46.000000000 +0900
-+++ linux-3.6/drivers/base/dd.c	2012-10-09 17:25:55.442497825 +0900
-@@ -475,9 +475,10 @@ EXPORT_SYMBOL_GPL(driver_attach);
-  * __device_release_driver() must be called with @dev lock held.
-  * When called for a USB interface, @dev->parent lock must be held as well.
-  */
--static void __device_release_driver(struct device *dev)
-+static int __device_release_driver(struct device *dev)
- {
- 	struct device_driver *drv;
-+	int ret = 0;
- 
- 	drv = dev->driver;
- 	if (drv) {
-@@ -493,9 +494,11 @@ static void __device_release_driver(stru
- 		pm_runtime_put_sync(dev);
- 
- 		if (dev->bus && dev->bus->remove)
--			dev->bus->remove(dev);
-+			ret = dev->bus->remove(dev);
- 		else if (drv->remove)
--			drv->remove(dev);
-+			ret = drv->remove(dev);
-+		if (ret)
-+			goto rollback;
- 		devres_release_all(dev);
- 		dev->driver = NULL;
- 		dev_set_drvdata(dev, NULL);
-@@ -506,6 +509,12 @@ static void __device_release_driver(stru
- 						     dev);
- 
- 	}
-+
-+	return ret;
-+
-+rollback:
-+	driver_sysfs_add(dev);
-+	return ret;
- }
- 
- /**
-@@ -515,16 +524,19 @@ static void __device_release_driver(stru
-  * Manually detach device from driver.
-  * When called for a USB interface, @dev->parent lock must be held.
-  */
--void device_release_driver(struct device *dev)
-+int device_release_driver(struct device *dev)
- {
-+	int ret;
- 	/*
- 	 * If anyone calls device_release_driver() recursively from
- 	 * within their ->remove callback for the same device, they
- 	 * will deadlock right here.
- 	 */
- 	device_lock(dev);
--	__device_release_driver(dev);
-+	ret = __device_release_driver(dev);
- 	device_unlock(dev);
-+
-+	return ret;
- }
- EXPORT_SYMBOL_GPL(device_release_driver);
- 
-Index: linux-3.6/include/linux/device.h
-===================================================================
---- linux-3.6.orig/include/linux/device.h	2012-10-01 08:47:46.000000000 +0900
-+++ linux-3.6/include/linux/device.h	2012-10-09 17:25:55.479497852 +0900
-@@ -834,7 +834,7 @@ static inline void *dev_get_platdata(con
-  * for information on use.
-  */
- extern int __must_check device_bind_driver(struct device *dev);
--extern void device_release_driver(struct device *dev);
-+extern int device_release_driver(struct device *dev);
- extern int  __must_check device_attach(struct device *dev);
- extern int __must_check driver_attach(struct device_driver *drv);
- extern int __must_check device_reprobe(struct device *dev);
+* overheat.txt (output of "grep . /sys/class/thermal/*/*" when CPU
+overheats. I don't think this file contains any temperatures readings
+from the CPU though)
 
+* overheat_sensors.txt (output of "sensors" when CPU overheats)
+
+Please do let me know if you need any more info.
+
+(Sorry for the very late reply. I did reply on 1st Oct but it seems
+that email didn't get through to the list).
+
+Thanks again for your help,
+Jack
+
+
+On 1 October 2012 15:33, Zhang, Rui <rui.zhang@intel.com> wrote:
+>
+> Can you attach the acpidump output of this machine?
+> Can you attach the output of "grep . /sys/class/thermal/*/*" both when the
+> system is cool and overheat?
