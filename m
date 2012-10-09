@@ -1,83 +1,62 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 10/30] Thermal: List thermal_instance in thermal_cooling_device.
-Date: Tue,  9 Oct 2012 01:54:00 -0400
-Message-ID: <b5e4ae620b06274981781aeadc2aea50b507f7fb.1349761836.git.len.brown@intel.com>
+Subject: [PATCH 14/30] thermal: fix potential out-of-bounds memory access
+Date: Tue,  9 Oct 2012 01:54:04 -0400
+Message-ID: <79a49168b595f5400ed3108cd57e90f5bbe144ca.1349761836.git.len.brown@intel.com>
 References: <1349762060-25334-1-git-send-email-lenb@kernel.org>
 Reply-To: Len Brown <lenb@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:38957 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752853Ab2JIGDD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Oct 2012 02:03:03 -0400
 In-Reply-To: <1349762060-25334-1-git-send-email-lenb@kernel.org>
 In-Reply-To: <e3f25e6e5836c4790fbe395ff42e241f372d859d.1349761836.git.len.brown@intel.com>
 References: <e3f25e6e5836c4790fbe395ff42e241f372d859d.1349761836.git.len.brown@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>, "Brown, Len" <len.brown@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>
 
-From: Zhang Rui <rui.zhang@intel.com>
+From: Guenter Roeck <linux@roeck-us.net>
 
-List thermal_instance in thermal_cooling_device so that
-cooling device can know the cooling state requirement
-of all the thermal instances.
+temp_crit.name and temp_input.name have a length of 16 bytes.  Using
+THERMAL_NAME_LENGTH (20) as length parameter for snprintf() may result in
+out-of-bounds memory accesses.  Replace it with sizeof().
 
+Addresses Coverity #115679
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: "Brown, Len" <len.brown@intel.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-Reviewed-by: Rafael J. Wysocki <rjw@sisk.pl>
-Reviewed-by: Eduardo Valentin <eduardo.valentin@ti.com>
 ---
- drivers/thermal/thermal_sys.c | 7 ++++++-
- include/linux/thermal.h       | 1 +
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ drivers/thermal/thermal_sys.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
-index 2884376..70045c1 100644
+index 5be8728..36e6f4d 100644
 --- a/drivers/thermal/thermal_sys.c
 +++ b/drivers/thermal/thermal_sys.c
-@@ -57,6 +57,7 @@ struct thermal_instance {
- 	char attr_name[THERMAL_NAME_LENGTH];
- 	struct device_attribute attr;
- 	struct list_head tz_node; /* node in tz->thermal_instances */
-+	struct list_head cdev_node; /* node in cdev->thermal_instances */
- };
+@@ -598,7 +598,7 @@ thermal_add_hwmon_sysfs(struct thermal_zone_device *tz)
+ 	temp->tz = tz;
+ 	hwmon->count++;
  
- static DEFINE_IDR(thermal_tz_idr);
-@@ -878,8 +879,10 @@ int thermal_zone_bind_cooling_device(struct thermal_zone_device *tz,
- 		result = -EEXIST;
- 		break;
- 	}
--	if (!result)
-+	if (!result) {
- 		list_add_tail(&dev->tz_node, &tz->thermal_instances);
-+		list_add_tail(&dev->cdev_node, &cdev->thermal_instances);
-+	}
- 	mutex_unlock(&tz->lock);
- 
- 	if (!result)
-@@ -915,6 +918,7 @@ int thermal_zone_unbind_cooling_device(struct thermal_zone_device *tz,
- 	list_for_each_entry_safe(pos, next, &tz->thermal_instances, tz_node) {
- 		if (pos->tz == tz && pos->trip == trip && pos->cdev == cdev) {
- 			list_del(&pos->tz_node);
-+			list_del(&pos->cdev_node);
- 			mutex_unlock(&tz->lock);
- 			goto unbind;
- 		}
-@@ -984,6 +988,7 @@ thermal_cooling_device_register(char *type, void *devdata,
- 	}
- 
- 	strcpy(cdev->type, type);
-+	INIT_LIST_HEAD(&cdev->thermal_instances);
- 	cdev->ops = ops;
- 	cdev->device.class = &thermal_class;
- 	cdev->devdata = devdata;
-diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-index cb0b0e3..9ae378a 100644
---- a/include/linux/thermal.h
-+++ b/include/linux/thermal.h
-@@ -94,6 +94,7 @@ struct thermal_cooling_device {
- 	struct device device;
- 	void *devdata;
- 	const struct thermal_cooling_device_ops *ops;
-+	struct list_head thermal_instances;
- 	struct list_head node;
- };
- 
+-	snprintf(temp->temp_input.name, THERMAL_NAME_LENGTH,
++	snprintf(temp->temp_input.name, sizeof(temp->temp_input.name),
+ 		 "temp%d_input", hwmon->count);
+ 	temp->temp_input.attr.attr.name = temp->temp_input.name;
+ 	temp->temp_input.attr.attr.mode = 0444;
+@@ -611,7 +611,8 @@ thermal_add_hwmon_sysfs(struct thermal_zone_device *tz)
+ 	if (tz->ops->get_crit_temp) {
+ 		unsigned long temperature;
+ 		if (!tz->ops->get_crit_temp(tz, &temperature)) {
+-			snprintf(temp->temp_crit.name, THERMAL_NAME_LENGTH,
++			snprintf(temp->temp_crit.name,
++				 sizeof(temp->temp_crit.name),
+ 				"temp%d_crit", hwmon->count);
+ 			temp->temp_crit.attr.attr.name = temp->temp_crit.name;
+ 			temp->temp_crit.attr.attr.mode = 0444;
 -- 
 1.8.0.rc1
+
