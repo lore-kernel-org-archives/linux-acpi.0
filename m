@@ -1,41 +1,46 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [bisected] PS/2 keyboard and mouse dead on resume on Intel D845BG
-Date: Tue, 09 Oct 2012 01:11:55 -0400
-Message-ID: <5073B21B.4090600@kernel.org>
-References: <201210071513.27959.linux@rainbow-software.org> <201210072100.09813.linux@rainbow-software.org> <20121008144243.GC5068@srcf.ucam.org>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [PATCH v4] create sun sysfs file
+Date: Tue, 9 Oct 2012 14:13:15 +0900
+Message-ID: <5073B26B.20504@jp.fujitsu.com>
+References: <502062FB.7030502@jp.fujitsu.com> <503EC30B.2070900@jp.fujitsu.com> <505FC5F1.4090306@jp.fujitsu.com> <506C0B52.4010800@jp.fujitsu.com> <50736885.9010909@jp.fujitsu.com> <5073B0AC.3090601@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-2022-JP"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:56622 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750810Ab2JIFL6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Oct 2012 01:11:58 -0400
-In-Reply-To: <20121008144243.GC5068@srcf.ucam.org>
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:47726 "EHLO
+	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751872Ab2JIFNl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Oct 2012 01:13:41 -0400
+In-Reply-To: <5073B0AC.3090601@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Garrett <mjg@redhat.com>
-Cc: Ondrej Zary <linux@rainbow-software.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>
+Cc: toshi.kani@hp.com, liuj97@gmail.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 10/08/2012 10:42 AM, Matthew Garrett wrote:
-> On Sun, Oct 07, 2012 at 09:00:09PM +0200, Ondrej Zary wrote:
-> 
->> Added acpi_read_bit_register there and it seems that SCI_EN is already set!
+Hi Len,
+
+2012/10/09 14:05, Len Brown wrote:
+> On 10/08/2012 07:57 PM, Yasuaki Ishimatsu wrote:
+>> Hi Len,
 >>
->> This patch fixes the problem here. I wonder how this affects systems that
->> require SCI_EN to be set.
+>> What should I do to put this patch in your tree?
 > 
-> I /think/ that this will be safe, but it doesn't match my recollection 
-> of how Windows behaves so it may break something. Any chance you can 
-> find someone with one of the machines mentioned in 
-> https://bugzilla.kernel.org/show_bug.cgi?id=13745 and make sure that 
-> they still work with your patch?
+> Please add a description of the attribute in
+> Documentation/ABI/testing/
+> 
+> A human needs to understand exactly what is in that file
+> because you are proposing it as an ABI.
+>
 
-yikes.
-we started with a white-list,
-then we made setting SCI_EN the default,
-and here is at least one box that wants to be on a black list
-so that we don't set SCI_EN:-(
+Thank you for your comment. I'll update soon.
 
+Regards,
+Yasuaki Ishimatsu
+
+ 
+> thanks,
+> Len Brown, Intel Open Source Technology Center
+> 
+> 
 
 
