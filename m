@@ -1,46 +1,62 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: Re: [PATCH 7/7] PM / ACPI: Take device PM QoS flags into account
-Date: Tue, 09 Oct 2012 10:46:39 +0800
-Message-ID: <1349750799.5332.1.camel@yhuang-dev>
-References: <201209282351.10663.rjw@sisk.pl>
-	 <1413438.1MkXj8vjQK@vostro.rjw.lan> <3734460.X8hLyTaasd@vostro.rjw.lan>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: [PATCH] cpuidle / ACPI: fix potential NULL pointer dereference
+Date: Mon, 08 Oct 2012 22:51:55 -0400
+Message-ID: <5073914B.3050606@kernel.org>
+References: <CAPgLHd-8SzCJHbi8sknFvBe11taoXS5z3MOkM=Jet-VD5z14tw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:33856 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753594Ab2JICqt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 8 Oct 2012 22:46:49 -0400
-In-Reply-To: <3734460.X8hLyTaasd@vostro.rjw.lan>
+Received: from mail-qc0-f180.google.com ([209.85.216.180]:40741 "EHLO
+	mail-qc0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754296Ab2JICv5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Oct 2012 22:51:57 -0400
+Received: by mail-qc0-f180.google.com with SMTP id v28so3600872qcm.11
+        for <linux-acpi@vger.kernel.org>; Mon, 08 Oct 2012 19:51:57 -0700 (PDT)
+In-Reply-To: <CAPgLHd-8SzCJHbi8sknFvBe11taoXS5z3MOkM=Jet-VD5z14tw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, Lan Tianyu <tianyu.lan@intel.com>, Aaron Lu <aaron.lu@intel.com>, Jean Pihet <j-pihet@ti.com>, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, mark gross <markgross@thegnar.org>, LKML <linux-kernel@vger.kernel.org>
+To: Wei Yongjun <weiyj.lk@gmail.com>
+Cc: yongjun_wei@trendmicro.com.cn, linux-acpi@vger.kernel.org
 
-On Mon, 2012-10-08 at 10:09 +0200, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> Make ACPI power management routines and PCI power management
-> routines depending on ACPI take device PM QoS flags into account
-> when deciding what power state to put the device into.
-> 
-> In particular, after this change acpi_pm_device_sleep_state() will
-> not return ACPI_STATE_D3_COLD as the deepest available low-power
-> state if PM_QOS_FLAG_NO_POWER_OFF is requested for the device and it
-> will not require remote wakeup to work for the device in the returned
-> low-power state if there is at least one PM QoS flags request for the
-> device, but PM_QOS_FLAG_REMOTE_WAKEUP is not requested for it.
-> 
-> Accordingly, acpi_pci_set_power_state() will refuse to put the
-> device into D3cold if PM_QOS_FLAG_NO_POWER_OFF is requested for it.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Reviewed-by: Jean Pihet <j-pihet@ti.com>
+Applied.
 
-Reviewed-by: Huang Ying <ying.huang@intel.com>
+thanks,
+Len Brown, Intel Open Source Technology Center
 
-Best Regards,
-Huang Ying
-
+On 10/07/2012 08:40 PM, Wei Yongjun wrote:
+> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+> 
+> The dereference should be moved below the NULL test.
+> 
+> dpatch engine is used to auto generate this patch.
+> (https://github.com/weiyj/dpatch)
+> 
+> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+> ---
+>  drivers/acpi/processor_idle.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+> index 3655ab9..e8086c7 100644
+> --- a/drivers/acpi/processor_idle.c
+> +++ b/drivers/acpi/processor_idle.c
+> @@ -1132,7 +1132,7 @@ static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
+>  int acpi_processor_hotplug(struct acpi_processor *pr)
+>  {
+>  	int ret = 0;
+> -	struct cpuidle_device *dev = per_cpu(acpi_cpuidle_device, pr->id);
+> +	struct cpuidle_device *dev;
+>  
+>  	if (disabled_by_idle_boot_param())
+>  		return 0;
+> @@ -1147,6 +1147,7 @@ int acpi_processor_hotplug(struct acpi_processor *pr)
+>  	if (!pr->flags.power_setup_done)
+>  		return -ENODEV;
+>  
+> +	dev = per_cpu(acpi_cpuidle_device, pr->id);
+>  	cpuidle_pause_and_lock();
+>  	cpuidle_disable_device(dev);
+>  	acpi_processor_get_power_info(pr);
+> 
 
