@@ -1,180 +1,53 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: acpi : acpi_bus_trim() stops removing devices when failing to
- remove the device
-Date: Tue, 09 Oct 2012 10:36:06 -0600
-Message-ID: <1349800566.23493.9.camel@misato.fc.hp.com>
-References: <5073E4CC.3090600@jp.fujitsu.com>
+From: Konrad Rzeszutek Wilk <konrad@kernel.org>
+Subject: Re: [PATCH 1/4] ACPI: add drivers_autoprobe in struct acpi_device
+Date: Tue, 9 Oct 2012 12:38:59 -0400
+Message-ID: <20121009163858.GA25276@phenom.dumpdata.com>
+References: <CAE9FiQWgvVqnTTeYFvxf1GxLcEEeRyN-uSKPdg3o69oCpm43sQ@mail.gmail.com>
+ <1349305214-3241-1-git-send-email-yinghai@kernel.org>
+ <1349305214-3241-2-git-send-email-yinghai@kernel.org>
+ <CACJDEmoeD+XwjGnA2WwkeJ5TrsaXfgw+mZHPDcX0+7QZ9_80SA@mail.gmail.com>
+ <CAE9FiQVFY1M65smht2vkAAR3nvH+SMUe2NteBvUyZzqabARV2Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0017.houston.hp.com ([15.201.24.20]:19435 "EHLO
-	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751373Ab2JIQnQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Oct 2012 12:43:16 -0400
-In-Reply-To: <5073E4CC.3090600@jp.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAE9FiQVFY1M65smht2vkAAR3nvH+SMUe2NteBvUyZzqabARV2Q@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, wency@cn.fujitsu.com, vasilis.liaskovitis@profitbricks.com
 
-On Tue, 2012-10-09 at 17:48 +0900, Yasuaki Ishimatsu wrote:
-> acpi_bus_trim() stops removing devices, when acpi_bus_remove() return error
-> number. But acpi_bus_remove() cannot return error number correctly.
-> acpi_bus_remove() only return -EINVAL, when dev argument is NULL. Thus even if
-> device cannot be removed correctly, acpi_bus_trim() ignores and continues to
-> remove devices. acpi_bus_hot_remove_device() uses acpi_bus_trim() for removing
-> devices. Therefore acpi_bus_hot_remove_device() can send "_EJ0" to firmware,
-> even if the device is running on the system. In this case, the system cannot
-> work well.
+On Thu, Oct 04, 2012 at 08:15:44AM -0700, Yinghai Lu wrote:
+> On Thu, Oct 4, 2012 at 6:03 AM, Konrad Rzeszutek Wilk <konrad@kernel.org> wrote:
+> > On Wed, Oct 3, 2012 at 7:00 PM, Yinghai Lu <yinghai@kernel.org> wrote:
+> >> To use to control the delay attach driver for acpi_device.
+> >
+> > <blinks>
+> > I am not sure what this says. Can you please explain how it controls
+> > the delaying of
+> > attaching drivers?
+> >>
+> >> Will use bus notifier to toggle this bits when needed.
+> >
+> > Will use ..? In a subsequent patch? Which patch? And when is this
+> > needed? Is there a patch that needs this?
 > 
-> Vasilis hit the bug at memory hotplug and reported it as follow:
-> https://lkml.org/lkml/2012/9/26/318
-> 
-> So acpi_bus_trim() should check whether device was removed or not correctly.
-> The patch adds error check into some functions to remove the device.
-> 
-> Applying the patch, acpi_bus_trim() stops removing devices when failing
-> to remove the device. But I think there is no impact with the
-> exceptionof CPU and Memory hotplug path. Because other device also fails
-> but the fail is an irregular case like device is NULL.
-> 
-> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> 
-> ---
->  drivers/acpi/scan.c    |   15 ++++++++++++---
->  drivers/base/dd.c      |   22 +++++++++++++++++-----
->  include/linux/device.h |    2 +-
->  3 files changed, 30 insertions(+), 9 deletions(-)
-> 
-> Index: linux-3.6/drivers/acpi/scan.c
-> ===================================================================
-> --- linux-3.6.orig/drivers/acpi/scan.c	2012-10-09 17:25:40.956496325 +0900
-> +++ linux-3.6/drivers/acpi/scan.c	2012-10-09 17:25:55.405497800 +0900
-> @@ -445,12 +445,17 @@ static int acpi_device_remove(struct dev
->  {
->  	struct acpi_device *acpi_dev = to_acpi_device(dev);
->  	struct acpi_driver *acpi_drv = acpi_dev->driver;
-> +	int ret;
->  
->  	if (acpi_drv) {
->  		if (acpi_drv->ops.notify)
->  			acpi_device_remove_notify_handler(acpi_dev);
-> -		if (acpi_drv->ops.remove)
-> -			acpi_drv->ops.remove(acpi_dev, acpi_dev->removal_type);
-> +		if (acpi_drv->ops.remove) {
-> +			ret = acpi_drv->ops.remove(acpi_dev,
-> +						   acpi_dev->removal_type);
-> +			if (ret)
+> please check patch 0-4 as a whole.
 
-Hi Yasuaki,
+But that is not how one is going to read the source code in a year or
+so. In a year I will look at at file, run 'git gui annotate <file>' and
+from the lines can find the corresponding patch. Then from there on
+continue on to get the other patches.
 
-Shouldn't the notify handler be reinstalled here if it was removed by
-the acpi_device_remove_notify_handler() above?
+The point is that in a year or so, the writeup you did will be
+forgotten. If it is part of the _patch_ then it will not be.
 
-Thanks,
--Toshi
-
-> +				return ret;
-> +		}
->  	}
->  	acpi_dev->driver = NULL;
->  	acpi_dev->driver_data = NULL;
-> @@ -1226,11 +1231,15 @@ static int acpi_device_set_context(struc
->  
->  static int acpi_bus_remove(struct acpi_device *dev, int rmdevice)
->  {
-> +	int ret;
-> +
->  	if (!dev)
->  		return -EINVAL;
->  
->  	dev->removal_type = ACPI_BUS_REMOVAL_EJECT;
-> -	device_release_driver(&dev->dev);
-> +	ret = device_release_driver(&dev->dev);
-> +	if (ret)
-> +		return ret;
->  
->  	if (!rmdevice)
->  		return 0;
-> Index: linux-3.6/drivers/base/dd.c
-> ===================================================================
-> --- linux-3.6.orig/drivers/base/dd.c	2012-10-01 08:47:46.000000000 +0900
-> +++ linux-3.6/drivers/base/dd.c	2012-10-09 17:25:55.442497825 +0900
-> @@ -475,9 +475,10 @@ EXPORT_SYMBOL_GPL(driver_attach);
->   * __device_release_driver() must be called with @dev lock held.
->   * When called for a USB interface, @dev->parent lock must be held as well.
->   */
-> -static void __device_release_driver(struct device *dev)
-> +static int __device_release_driver(struct device *dev)
->  {
->  	struct device_driver *drv;
-> +	int ret = 0;
->  
->  	drv = dev->driver;
->  	if (drv) {
-> @@ -493,9 +494,11 @@ static void __device_release_driver(stru
->  		pm_runtime_put_sync(dev);
->  
->  		if (dev->bus && dev->bus->remove)
-> -			dev->bus->remove(dev);
-> +			ret = dev->bus->remove(dev);
->  		else if (drv->remove)
-> -			drv->remove(dev);
-> +			ret = drv->remove(dev);
-> +		if (ret)
-> +			goto rollback;
->  		devres_release_all(dev);
->  		dev->driver = NULL;
->  		dev_set_drvdata(dev, NULL);
-> @@ -506,6 +509,12 @@ static void __device_release_driver(stru
->  						     dev);
->  
->  	}
-> +
-> +	return ret;
-> +
-> +rollback:
-> +	driver_sysfs_add(dev);
-> +	return ret;
->  }
->  
->  /**
-> @@ -515,16 +524,19 @@ static void __device_release_driver(stru
->   * Manually detach device from driver.
->   * When called for a USB interface, @dev->parent lock must be held.
->   */
-> -void device_release_driver(struct device *dev)
-> +int device_release_driver(struct device *dev)
->  {
-> +	int ret;
->  	/*
->  	 * If anyone calls device_release_driver() recursively from
->  	 * within their ->remove callback for the same device, they
->  	 * will deadlock right here.
->  	 */
->  	device_lock(dev);
-> -	__device_release_driver(dev);
-> +	ret = __device_release_driver(dev);
->  	device_unlock(dev);
-> +
-> +	return ret;
->  }
->  EXPORT_SYMBOL_GPL(device_release_driver);
->  
-> Index: linux-3.6/include/linux/device.h
-> ===================================================================
-> --- linux-3.6.orig/include/linux/device.h	2012-10-01 08:47:46.000000000 +0900
-> +++ linux-3.6/include/linux/device.h	2012-10-09 17:25:55.479497852 +0900
-> @@ -834,7 +834,7 @@ static inline void *dev_get_platdata(con
->   * for information on use.
->   */
->  extern int __must_check device_bind_driver(struct device *dev);
-> -extern void device_release_driver(struct device *dev);
-> +extern int device_release_driver(struct device *dev);
->  extern int  __must_check device_attach(struct device *dev);
->  extern int __must_check driver_attach(struct device_driver *drv);
->  extern int __must_check device_reprobe(struct device *dev);
+If that means the git commit description has a couple of paragraphs
+- that is OK.
 > 
-
-
+> Yinghai
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
