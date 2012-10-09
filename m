@@ -1,91 +1,44 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: memory-hotplug : suppres
- "Trying to free nonexistent resource <XXXXXXXXXXXXXXXX-YYYYYYYYYYYYYYYY>"
- warning
-Date: Tue, 9 Oct 2012 14:39:36 -0700
-Message-ID: <20121009143936.1f74a7fb.akpm@linux-foundation.org>
-References: <506D1F1D.9000301@jp.fujitsu.com>
-	<20121005140938.e3e1e196.akpm@linux-foundation.org>
-	<5073913A.3080103@jp.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <5073913A.3080103@jp.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, wency@cn.fujitsu.com, dave@linux.vnet.ibm.com
+From: Igor Murzov <e-mail@date.by>
+Subject: [PATCH] ACPI video: Ignore AE_AML_PACKAGE_LIMIT errors after _DOD evaluation.
+Date: Wed, 10 Oct 2012 02:19:06 +0400
+Message-ID: <1349821146-19155-1-git-send-email-e-mail@date.by>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from forward9.mail.yandex.net ([77.88.61.48]:33721 "EHLO
+	forward9.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752184Ab2JIW2M (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Oct 2012 18:28:12 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Sergey V <sftp.mtuci@gmail.com>, linux-kernel@vger.kernel.org, Igor Murzov <e-mail@date.by>
 
-On Tue, 9 Oct 2012 11:51:38 +0900
-Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com> wrote:
+This should fix brightness controls on some laptops.
+Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=47861
 
-> > Anyway, please have a think, and see if we can come up with the best
-> > and most accurate choice of types and identifiers in this code.
-> 
-> Your concern is right. Overflow bug may occur in the future.
-> So I changed type of "i" and "sections_to_remove" to "unsigned long".
-> Please merge it into your tree instead of previous patch.
-
-Too late, the original patch was merged.  So I generated the delta.
-
-I remain allergic to the `i' identifier so I renamed it to `section'. 
-That's not 100% accurate, but it is better.
-
-> __remove_pages() also has same concern. So I'll fix it.
-
-Thanks.
-
-
-
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: arch/powerpc/platforms/pseries/hotplug-memory.c: section removal cleanups
-
-Followups to d760afd4d25 ("memory-hotplug: suppress "Trying to free
-nonexistent resource <XXXXXXXXXXXXXXXX-YYYYYYYYYYYYYYYY>" warning").
-
-- use unsigned long type, as overflows are conceivable
-
-- rename `i' to the less-misleading and more informative `section'
-
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Igor Murzov <e-mail@date.by>
 ---
+ drivers/acpi/video.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
- arch/powerpc/platforms/pseries/hotplug-memory.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
-
-diff -puN arch/powerpc/platforms/pseries/hotplug-memory.c~arch-powerpc-platforms-pseries-hotplug-memoryc-section-removal-cleanups arch/powerpc/platforms/pseries/hotplug-memory.c
---- a/arch/powerpc/platforms/pseries/hotplug-memory.c~arch-powerpc-platforms-pseries-hotplug-memoryc-section-removal-cleanups
-+++ a/arch/powerpc/platforms/pseries/hotplug-memory.c
-@@ -77,8 +77,9 @@ static int pseries_remove_memblock(unsig
- {
- 	unsigned long start, start_pfn;
- 	struct zone *zone;
--	int i, ret;
--	int sections_to_remove;
-+	int ret;
-+	unsigned long section;
-+	unsigned long sections_to_remove;
+diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+index 1e0a9e1..01bb58d 100644
+--- a/drivers/acpi/video.c
++++ b/drivers/acpi/video.c
+@@ -1349,8 +1349,12 @@ acpi_video_bus_get_devices(struct acpi_video_bus *video,
+ 	struct acpi_device *dev;
  
- 	start_pfn = base >> PAGE_SHIFT;
+ 	status = acpi_video_device_enumerate(video);
+-	if (status)
+-		return status;
++	if (status) {
++		if (status == AE_AML_PACKAGE_LIMIT)
++			status = 0; /* Ignore this error */
++		else
++			return status;
++	}
  
-@@ -99,8 +100,8 @@ static int pseries_remove_memblock(unsig
- 	 * while writing to it. So we have to defer it to here.
- 	 */
- 	sections_to_remove = (memblock_size >> PAGE_SHIFT) / PAGES_PER_SECTION;
--	for (i = 0; i < sections_to_remove; i++) {
--		unsigned long pfn = start_pfn + i * PAGES_PER_SECTION;
-+	for (section = 0; section < sections_to_remove; section++) {
-+		unsigned long pfn = start_pfn + section * PAGES_PER_SECTION;
- 		ret = __remove_pages(zone, start_pfn,  PAGES_PER_SECTION);
- 		if (ret)
- 			return ret;
-diff -puN mm/memory_hotplug.c~arch-powerpc-platforms-pseries-hotplug-memoryc-section-removal-cleanups mm/memory_hotplug.c
-_
+ 	list_for_each_entry(dev, &device->children, node) {
+ 
+-- 
+1.7.12
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
