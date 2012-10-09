@@ -1,61 +1,124 @@
-From: "Zhang, Rui" <rui.zhang@intel.com>
-Subject: RE: Discussion on device's runtime wake capability
-Date: Tue, 9 Oct 2012 06:39:08 +0000
-Message-ID: <744357E9AAD1214791ACBA4B0B90926322FF88@SHSMSX101.ccr.corp.intel.com>
-References: <5073C2D0.1080900@intel.com>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: [PATCH v5] create sun sysfs file
+Date: Tue, 9 Oct 2012 15:49:42 +0900
+Message-ID: <5073C906.1070400@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:63962 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753743Ab2JIGkF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Oct 2012 02:40:05 -0400
-In-Reply-To: <5073C2D0.1080900@intel.com>
-Content-Language: en-US
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:42427 "EHLO
+	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752227Ab2JIGuO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Oct 2012 02:50:14 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Lu, Aaron" <aaron.lu@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>
-Cc: "Huang, Ying" <ying.huang@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, toshi.kani@hp.com, liuj97@gmail.com
 
+_SUN method provides the slot unique-ID in the ACPI namespace. And The value
+is written in Advanced Configuration and Power Interface Specification as
+follows:
 
+"The _SUN value is required to be unique among the slots ofthe same type.
+It is also recommended that this number match the slot number printed on
+the physical slot whenever possible."
 
-> -----Original Message-----
-> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
-> owner@vger.kernel.org] On Behalf Of Aaron Lu
-> Sent: Tuesday, October 09, 2012 2:23 PM
-> To: Rafael J. Wysocki; Len Brown
-> Cc: Huang, Ying; Zhang, Rui; linux-acpi@vger.kernel.org
-> Subject: Discussion on device's runtime wake capability
-> Importance: High
-> 
-> Hi all,
-> 
-> We are using _PRW as a hint to see if a device supports wakeup, this is
-> fine for device which is able to wake the system in a sleep state, but
-> not to wake itself when system is at S0.
-> 
-> Moreover, when we are to arm the device runtime wake, I think there is
-> no need to power on the power resources referenced in _PRW, those power
-> resources should be used to give the device ability to wake the system
-> from a sleep state, not to wake itself when system is at S0, so
-> powering thoses power resources on for run wake is a waste.
-> 
-Sounds reasonable to me.
-To do runtime wake, we only need to power on the resources in _PR0.
+So if we can know the value, we can identify the physical position of the
+slot in the system.
 
-> But I may miss something, so it would be very kind of you to point it
-> out if things are not like what I've thought, thanks.
-> 
-> BTW, _S0W seems to be a good hint whether the device supports run wake
-> from ACPI's perspective.
->
-Agreed.
+The patch creates "sun" file in sysfs for identifying physical position
+of the slot.
 
+Reviewed-by: Toshi Kani <toshi.kani@hp.com>
+Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+
+---
+ Documentation/ABI/testing/sysfs-devices-sun |   14 ++++++++++++++
+ drivers/acpi/scan.c                         |   24 ++++++++++++++++++++++++
+ include/acpi/acpi_bus.h                     |    1 +
+ 3 files changed, 39 insertions(+)
+
+Index: linux-3.6/include/acpi/acpi_bus.h
+===================================================================
+--- linux-3.6.orig/include/acpi/acpi_bus.h	2012-10-09 11:54:17.690072343 +0900
++++ linux-3.6/include/acpi/acpi_bus.h	2012-10-09 14:15:49.207794671 +0900
+@@ -208,6 +208,7 @@ struct acpi_device_pnp {
+ 	struct list_head ids;		/* _HID and _CIDs */
+ 	acpi_device_name device_name;	/* Driver-determined */
+ 	acpi_device_class device_class;	/*        "          */
++	unsigned long sun;		/* _SUN */
+ };
  
-> -Aaron
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi"
-> in the body of a message to majordomo@vger.kernel.org More majordomo
-> info at  http://vger.kernel.org/majordomo-info.html
+ #define acpi_device_bid(d)	((d)->pnp.bus_id)
+Index: linux-3.6/drivers/acpi/scan.c
+===================================================================
+--- linux-3.6.orig/drivers/acpi/scan.c	2012-10-09 11:54:17.688072343 +0900
++++ linux-3.6/drivers/acpi/scan.c	2012-10-09 14:15:49.211794675 +0900
+@@ -232,10 +232,20 @@ end:
+ }
+ static DEVICE_ATTR(path, 0444, acpi_device_path_show, NULL);
+ 
++static ssize_t
++acpi_device_sun_show(struct device *dev, struct device_attribute *attr,
++		     char *buf) {
++	struct acpi_device *acpi_dev = to_acpi_device(dev);
++
++	return sprintf(buf, "%lu\n", acpi_dev->pnp.sun);
++}
++static DEVICE_ATTR(sun, 0444, acpi_device_sun_show, NULL);
++
+ static int acpi_device_setup_files(struct acpi_device *dev)
+ {
+ 	acpi_status status;
+ 	acpi_handle temp;
++	unsigned long long sun;
+ 	int result = 0;
+ 
+ 	/*
+@@ -257,6 +267,16 @@ static int acpi_device_setup_files(struc
+ 			goto end;
+ 	}
+ 
++	status = acpi_evaluate_integer(dev->handle, "_SUN", NULL, &sun);
++	if (ACPI_SUCCESS(status)) {
++		dev->pnp.sun = (unsigned long)sun;
++		result = device_create_file(&dev->dev, &dev_attr_sun);
++		if (result)
++			goto end;
++	} else {
++		dev->pnp.sun = (unsigned long)-1;
++	}
++
+         /*
+          * If device has _EJ0, 'eject' file is created that is used to trigger
+          * hot-removal function from userland.
+@@ -281,6 +301,10 @@ static void acpi_device_remove_files(str
+ 	if (ACPI_SUCCESS(status))
+ 		device_remove_file(&dev->dev, &dev_attr_eject);
+ 
++	status = acpi_get_handle(dev->handle, "_SUN", &temp);
++	if (ACPI_SUCCESS(status))
++		device_remove_file(&dev->dev, &dev_attr_sun);
++
+ 	device_remove_file(&dev->dev, &dev_attr_modalias);
+ 	device_remove_file(&dev->dev, &dev_attr_hid);
+ 	if (dev->handle)
+Index: linux-3.6/Documentation/ABI/testing/sysfs-devices-sun
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-3.6/Documentation/ABI/testing/sysfs-devices-sun	2012-10-09 15:47:02.333245246 +0900
+@@ -0,0 +1,14 @@
++Whatt:		/sys/devices/.../sun
++Date:		October 2012
++Contact:	Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
++Description:
++		The file contains a Slot-unique ID which provided by the _SUN
++		method in the ACPI namespace. The value is written in Advanced
++		Configuration and Power Interface Specification as follows:
++
++		"The _SUN value is required to be unique among the slots of
++		the same type. It is also recommended that this number match
++		the slot number printed on the physical slot whenever possible."
++
++		So reading the sysfs file, we can identify a physical position
++		of the slot in the system. 
+
