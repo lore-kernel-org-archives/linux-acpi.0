@@ -1,69 +1,58 @@
-From: Feng Tang <feng.tang@intel.com>
-Subject: Re: [PATCH 27/30] ACPI: EC: Add a quirk for CLEVO M720T/M730T
- laptop
-Date: Tue, 9 Oct 2012 15:19:59 +0800
-Message-ID: <20121009151959.548d8718@feng-i7>
-References: <e3f25e6e5836c4790fbe395ff42e241f372d859d.1349761836.git.len.brown@intel.com>
-	<67bfa9b60bd689601554526d144b21d529f78a09.1349761836.git.len.brown@intel.com>
-	<20121009061633.GA3648@elie.Belkin>
-	<20121009142206.63dd9981@feng-i7>
-	<20121009065907.GB3648@elie.Belkin>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: [PATCH] libata-acpi: Fix NULL ptr derference in ata_acpi_dev_handle
+Date: Tue, 09 Oct 2012 15:37:48 +0800
+Message-ID: <5073D44C.7070101@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:30091 "EHLO mga03.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:62130 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753070Ab2JIH0d (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 9 Oct 2012 03:26:33 -0400
-In-Reply-To: <20121009065907.GB3648@elie.Belkin>
+	id S1753047Ab2JIHh4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 9 Oct 2012 03:37:56 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jonathan Nieder <jrnieder@gmail.com>
-Cc: Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>, "stable@vger.kernel.org" <stable@vger.kernel.org>
+To: Jeff Garzik <jgarzik@pobox.com>, Dan van der Ster <dan@vanderster.com>
+Cc: linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Mon, 8 Oct 2012 23:59:07 -0700
-Jonathan Nieder <jrnieder@gmail.com> wrote:
+commit 6b66d95895c149cbc04d4fac5a2f5477c543a8ae didn't handle SATA PMP
+case in ata_acpi_bind_device and will cause a NULL ptr dereference when
+user attached a SATA drive to the PMP port. Fix this by checking PMP
+support.
 
-> Feng Tang wrote:
-> > Jonathan Nieder <jrnieder@gmail.com> wrote:
-> 
-> >> What would go wrong if the threshold were just increased to 20 on all
-> >> models?
-> >
-> > Then some other platform will stop to work.
-> >	https://bugzilla.kernel.org/show_bug.cgi?id=11892 
-> >
-> > The 26/30 and 27/30 patches are bound together to fix one bug. Some
-> > quote from description from the 26th patch:
-> >
-> > ACPI_EC_STORM_THRESHOLD was initially 20 when it's created, and
-> > was changed to 8 in 2.6.28 commit 06cf7d3c7 "ACPI: EC: lower interrupt storm
-> > threshold" to fix kernel bug 11892 by forcing the laptop in that bug to
-> > work in polling mode.
-> >
-> > Hope this answers your question.
-> 
-> Thanks much.  Yes, that clarifies.
-> 
-> The magic numbers are not too thrilling.  If the polling mode just
-> doesn't work on the Clevo M720, why isn't the appropriate storm
-> threshold 999999 or infinity rather than 20?  Do we know why the
-> polling mode doesn't work?
+This bug is reported by Dan van der Ster in the following bugzilla page:
+https://bugzilla.kernel.org/show_bug.cgi?id=48211
 
-I don't know why it doesn't work, if you check the https://bugzilla.kernel.org/show_bug.cgi?id=45151 
-you'll see the debugging model is
-   test result --> patch --> 1-2 weeks + result --> patch
-    --> 1-2 weeks + result ...
-over and over, which makes it difficult to root cause it but
-provide a workaround.
+Reported-by: Dan van der Ster <dan@vanderster.com>
+Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+Cc: <stable@vger.kernel.org>
+---
+ drivers/ata/libata-acpi.c | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-And frankly speaking, I'm not sure if I can figure it out 100%
-even if I had that HW at hand. As per my understanding, EC is
-very tricky, as OS, ACPI FW, EC FW, BIOS will all access it
-without a global lock (in most cases), which makes it hard
-to work properly without race condition. Not mentioning its
-hardware may be broken.
+diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c
+index fd9ecf7..5b0ba3f 100644
+--- a/drivers/ata/libata-acpi.c
++++ b/drivers/ata/libata-acpi.c
+@@ -1105,10 +1105,15 @@ static int ata_acpi_bind_device(struct ata_port *ap, struct scsi_device *sdev,
+ 	struct acpi_device *acpi_dev;
+ 	struct acpi_device_power_state *states;
+ 
+-	if (ap->flags & ATA_FLAG_ACPI_SATA)
+-		ata_dev = &ap->link.device[sdev->channel];
+-	else
++	if (ap->flags & ATA_FLAG_ACPI_SATA) {
++		if (!sata_pmp_attached(ap))
++			ata_dev = &ap->link.device[sdev->id];
++		else
++			ata_dev = &ap->pmp_link[sdev->channel].device[sdev->id];
++	}
++	else {
+ 		ata_dev = &ap->link.device[sdev->id];
++	}
+ 
+ 	*handle = ata_dev_acpi_handle(ata_dev);
+ 
+-- 
+1.7.12.21.g871e293
 
-Thanks,
-Feng 
