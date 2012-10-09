@@ -1,81 +1,78 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH v5 0/5] ACPI: hotplug messages improvement
-Date: Tue, 09 Oct 2012 07:42:55 -0600
-Message-ID: <1349790175.23493.1.camel@misato.fc.hp.com>
-References: <1346180581-12641-1-git-send-email-toshi.kani@hp.com>
+Subject: Re: [PATCH v2 0/4] ACPI: Refactor system notify handling
+Date: Tue, 09 Oct 2012 07:55:16 -0600
+Message-ID: <1349790916.23493.5.camel@misato.fc.hp.com>
+References: <1346974828-12500-1-git-send-email-toshi.kani@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g6t0185.atlanta.hp.com ([15.193.32.62]:48949 "EHLO
-	g6t0185.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755843Ab2JIN44 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Oct 2012 09:56:56 -0400
-In-Reply-To: <1346180581-12641-1-git-send-email-toshi.kani@hp.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1346974828-12500-1-git-send-email-toshi.kani@hp.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: lenb@kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, liuj97@gmail.com, isimatu.yasuaki@jp.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, joe@perches.com, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, vijaymohan.pandarathil@hp.com, shaohua.li@intel.com
 
 Hi Len,
 
-Can you please review this patch?  Please let me know if there is
-anything I need to do for 3.7.
+Can you please review this patchset?  Please let me know if you have any
+concern/question.
 
 Thanks,
 -Toshi
 
 
-On Tue, 2012-08-28 at 13:02 -0600, Toshi Kani wrote:
-> This patchset improves logging messages for ACPI CPU, Memory, 
-> Container and Dock hotplug notify handlers.  The patchset 
-> introduces a set of new macro interfaces, acpi_pr_<level>(),
-> and uses them to update the notify handlers.  acpi_pr_<level>()
-> appends "ACPI" prefix and ACPI object path to the messages,
-> which has similar usage model as dev_<level>().  This improves
-> diagnosis of hotplug operations since an error message in 
-> a log file now identifies an object that caused an issue.
+On Thu, 2012-09-06 at 17:40 -0600, Toshi Kani wrote:
+> This patchset updates the ACPI system-level (ex. hotplug)
+> notify handling with a new .sys_notify interface.  It provides
+> the following changes:
 > 
-> v5:
->  - Added update for ACPI Dock hotplug error messages.
->  - Added error status / ID info to the messages where needed.
->  - Rebased on 3.6-rc3.
+> - Allow ACPI drivers to register their system-level (hotplug)
+>   notify handlers to a new .sys_notify interface through their
+>   acpi_driver table.  This removes redundant ACPI namespace
+>   walks from ACPI drivers for faster booting.  The global notify
+>   handler acpi_bus_notify() is called for all system-level ACPI
+>   device notifications, which then calls an appropriate driver's
+>   handler if any.  ACPI drivers no longer need to register or
+>   unregister driver's handlers to each device object in ACPI
+>   namespace.
+>  
+> - Support dynamic ACPI namespace with LoadTable & Unload opcode
+>   without any changes in ACPI drivers.  There is no need to 
+>   register / unregister handlers to ACPI device objects that are
+>   being loaded to / unloaded from ACPI namespace.
 > 
-> v4:
->  - Changed to use dev_<level>() where it is appropriate.
+> - Allow ACPI drivers to use a common hotplug handler when it is
+>   implemented.  It removes functional conflict between driver's
+>   notify handler and the global notify handler acpi_bus_notify().
+>   acpi_bus_notify() only calls an appropriate notify handler if
+>   any.
 > 
-> v3:
->  - Changed acpi_pr_debug() to NOP when !DEBUG and !DYNAMIC_DEBUG.
->    DYNAMIC_DEBUG will be supported later when necessary.
->  - Added const to a path variable in acpi_printk().
->  - Added more descriptions to the change log of patch 1/4.
+> Note that the changes maintain backward compatibility for ACPI
+> drivers.  Any drivers registered their hotplug handlers through
+> the existing interfaces, such as acpi_install_notify_handler()
+> and register_acpi_bus_notifier(), will continue to work as before.
 > 
 > v2:
->  - Set buffer.pointer to NULL in acpi_printk().
->  - Added acpi_pr_debug().
+>  - Protected unbound driver from unloading when calling .sys_notify.
+>  - Changed acpi_bus_notify() to call acpi_bus_notify_list first for
+>    maintaining the original order.
 > 
 > ---
-> This patchset applies on top of the patch below.
-> 
-> [PATCH v2] ACPI: Add ACPI CPU hot-remove support
-> https://lkml.org/lkml/2012/8/24/419
-> 
-> ---
-> Toshi Kani (5):
->  ACPI: Add acpi_pr_<level>() interfaces
->  ACPI: Update CPU hotplug error messages
->  ACPI: Update Memory hotplug error messages
->  ACPI: Update Container hotplug error messages
->  ACPI: Update Dock hotplug error messages
+> Toshi Kani (4):
+>  ACPI: Support system notify handler via .sys_notify
+>  ACPI: Update processor_driver to use .sys_notify
+>  ACPI: Update acpi_memhotplug to use .sys_notify
+>  ACPI: Update container to use .sys_notify
 > 
 > ---
->  drivers/acpi/acpi_memhotplug.c  |   25 +++++++++++++------------
->  drivers/acpi/container.c        |   10 ++--------
->  drivers/acpi/dock.c             |   29 +++++++++++++----------------
->  drivers/acpi/processor_driver.c |   38 +++++++++++++++++++++++---------------
->  drivers/acpi/utils.c            |   34 ++++++++++++++++++++++++++++++++++
->  include/acpi/acpi_bus.h         |   31 +++++++++++++++++++++++++++++++
->  6 files changed, 116 insertions(+), 51 deletions(-)
+>  drivers/acpi/acpi_memhotplug.c  |   93 +-------------------------------------
+>  drivers/acpi/bus.c              |   64 ++++++++++++++++++++-------
+>  drivers/acpi/container.c        |   66 +--------------------------
+>  drivers/acpi/processor_driver.c |   82 +++-------------------------------
+>  drivers/acpi/scan.c             |   83 ++++++++++++++++++++++++++++++++++
+>  include/acpi/acpi_bus.h         |    6 +++
+>  6 files changed, 150 insertions(+), 244 deletions(-)
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
 > the body of a message to majordomo@vger.kernel.org
@@ -83,5 +80,3 @@ On Tue, 2012-08-28 at 13:02 -0600, Toshi Kani wrote:
 > Please read the FAQ at  http://www.tux.org/lkml/
 > 
 > 
-
-
