@@ -1,17 +1,21 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH v2] ACPI: Add ACPI CPU hot-remove support
-Date: Tue, 09 Oct 2012 07:43:49 -0600
-Message-ID: <1349790229.23493.2.camel@misato.fc.hp.com>
-References: <1345841699-20067-1-git-send-email-toshi.kani@hp.com>
+Subject: Re: [PATCH] ACPI: dock: Remove redundant ACPI NS walk
+Date: Tue, 09 Oct 2012 07:46:25 -0600
+Message-ID: <1349790385.23493.3.camel@misato.fc.hp.com>
+References: <1347481849-17973-1-git-send-email-toshi.kani@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1345841699-20067-1-git-send-email-toshi.kani@hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, prarit@redhat.com, imammedo@redhat.com, vijaymohan.pandarathil@hp.com
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g1t0029.austin.hp.com ([15.216.28.36]:37115 "EHLO
+	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755843Ab2JINxe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Oct 2012 09:53:34 -0400
+In-Reply-To: <1347481849-17973-1-git-send-email-toshi.kani@hp.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: lenb@kernel.org, linux-kernel@vger.kernel.org, shli@fusionio.com
 
 Hi Len,
 
@@ -22,73 +26,70 @@ Thanks,
 -Toshi
 
 
-On Fri, 2012-08-24 at 14:54 -0600, Toshi Kani wrote:
-> Added CPU hot-remove support through an ACPI eject notification.
-> It calls acpi_bus_hot_remove_device(), which shares the same code
-> path with the sysfs eject operation.  acpi_os_hotplug_execute()
-> serializes hot-remove operations between ACPI hot-remove and sysfs
-> eject requests.
-> 
-> v2:
->  - Rebased to 3.6-rc3.
+On Wed, 2012-09-12 at 14:30 -0600, Toshi Kani wrote:
+> Combined two ACPI namespace walks, which look for dock stations
+> and then bays separately, into a single walk.
 > 
 > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-> Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> Tested-by: IgorMammedov <imammedo@redhat.com>
-> Tested-by: Vijay Mohan Pandarathil <vijaymohan.pandarathil@hp.com>
-> Tested-by: Prarit Bhargava <prarit@redhat.com>
 > ---
->  drivers/acpi/processor_driver.c |   27 +++++++++++++++++----------
->  1 files changed, 17 insertions(+), 10 deletions(-)
+>  drivers/acpi/dock.c |   26 +++++++-------------------
+>  1 files changed, 7 insertions(+), 19 deletions(-)
 > 
-> diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-> index bfc31cb..d12e9c3 100644
-> --- a/drivers/acpi/processor_driver.c
-> +++ b/drivers/acpi/processor_driver.c
-> @@ -694,8 +694,8 @@ int acpi_processor_device_add(acpi_handle handle, struct acpi_device **device)
->  static void acpi_processor_hotplug_notify(acpi_handle handle,
->  					  u32 event, void *data)
+> diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
+> index 88eb143..ae4ebf2 100644
+> --- a/drivers/acpi/dock.c
+> +++ b/drivers/acpi/dock.c
+> @@ -1016,44 +1016,32 @@ static int dock_remove(struct dock_station *ds)
+>  }
+>  
+>  /**
+> - * find_dock - look for a dock station
+> + * find_dock_and_bay - look for dock stations and bays
+>   * @handle: acpi handle of a device
+>   * @lvl: unused
+> - * @context: counter of dock stations found
+> + * @context: unused
+>   * @rv: unused
+>   *
+> - * This is called by acpi_walk_namespace to look for dock stations.
+> + * This is called by acpi_walk_namespace to look for dock stations and bays.
+>   */
+>  static __init acpi_status
+> -find_dock(acpi_handle handle, u32 lvl, void *context, void **rv)
+> +find_dock_and_bay(acpi_handle handle, u32 lvl, void *context, void **rv)
 >  {
-> -	struct acpi_processor *pr;
->  	struct acpi_device *device = NULL;
-> +	struct acpi_eject_event *ej_event = NULL;
->  	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE; /* default */
->  	int result;
+> -	if (is_dock(handle))
+> +	if (is_dock(handle) || is_ejectable_bay(handle))
+>  		dock_add(handle);
 >  
-> @@ -727,20 +727,27 @@ static void acpi_processor_hotplug_notify(acpi_handle handle,
->  				  "received ACPI_NOTIFY_EJECT_REQUEST\n"));
+>  	return AE_OK;
+>  }
 >  
->  		if (acpi_bus_get_device(handle, &device)) {
-> -			printk(KERN_ERR PREFIX
-> -				    "Device don't exist, dropping EJECT\n");
-> +			pr_err(PREFIX "Device don't exist, dropping EJECT\n");
->  			break;
->  		}
-> -		pr = acpi_driver_data(device);
-> -		if (!pr) {
-> -			printk(KERN_ERR PREFIX
-> -				    "Driver data is NULL, dropping EJECT\n");
-> +		if (!acpi_driver_data(device)) {
-> +			pr_err(PREFIX "Driver data is NULL, dropping EJECT\n");
->  			break;
->  		}
+> -static __init acpi_status
+> -find_bay(acpi_handle handle, u32 lvl, void *context, void **rv)
+> -{
+> -	/* If bay is a dock, it's already handled */
+> -	if (is_ejectable_bay(handle) && !is_dock(handle))
+> -		dock_add(handle);
+> -	return AE_OK;
+> -}
+> -
+>  static int __init dock_init(void)
+>  {
+>  	if (acpi_disabled)
+>  		return 0;
 >  
-> -		/* REVISIT: update when eject is supported */
-> -		ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
-> -		break;
-> +		ej_event = kmalloc(sizeof(*ej_event), GFP_KERNEL);
-> +		if (!ej_event) {
-> +			pr_err(PREFIX "No memory, dropping EJECT\n");
-> +			break;
-> +		}
-> +
-> +		ej_event->handle = handle;
-> +		ej_event->event = ACPI_NOTIFY_EJECT_REQUEST;
-> +		acpi_os_hotplug_execute(acpi_bus_hot_remove_device,
-> +					(void *)ej_event);
-> +
-> +		/* eject is performed asynchronously */
-> +		return;
+> -	/* look for a dock station */
+> +	/* look for dock stations and bays */
+>  	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
+> -			    ACPI_UINT32_MAX, find_dock, NULL, NULL, NULL);
+> +		ACPI_UINT32_MAX, find_dock_and_bay, NULL, NULL, NULL);
 >  
->  	default:
->  		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+> -	/* look for bay */
+> -	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
+> -			ACPI_UINT32_MAX, find_bay, NULL, NULL, NULL);
+>  	if (!dock_station_count) {
+>  		printk(KERN_INFO PREFIX "No dock devices found.\n");
+>  		return 0;
+
+
