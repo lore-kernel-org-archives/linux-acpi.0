@@ -1,7 +1,7 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 15/30] thermal: add Renesas R-Car thermal sensor support
-Date: Tue,  9 Oct 2012 01:54:05 -0400
-Message-ID: <1e426ffddf2f158367eb6c7b8eb563c814a43283.1349761836.git.len.brown@intel.com>
+Subject: [PATCH 10/30] Thermal: List thermal_instance in thermal_cooling_device.
+Date: Tue,  9 Oct 2012 01:54:00 -0400
+Message-ID: <b5e4ae620b06274981781aeadc2aea50b507f7fb.1349761836.git.len.brown@intel.com>
 References: <1349762060-25334-1-git-send-email-lenb@kernel.org>
 Reply-To: Len Brown <lenb@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
@@ -10,322 +10,74 @@ In-Reply-To: <e3f25e6e5836c4790fbe395ff42e241f372d859d.1349761836.git.len.brown@
 References: <e3f25e6e5836c4790fbe395ff42e241f372d859d.1349761836.git.len.brown@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, Len Brown <len.brown@intel.com>, Joe Perches <joe@perches.com>, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, Magnus Damm <magnus.damm@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>
+Cc: linux-kernel@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+From: Zhang Rui <rui.zhang@intel.com>
 
-This patch add basic Renesas R-Car thermal sensor support.
-It was tested on R-Car H1 Marzen board.
+List thermal_instance in thermal_cooling_device so that
+cooling device can know the cooling state requirement
+of all the thermal instances.
 
-Signed-off-by: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: Magnus Damm <magnus.damm@gmail.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+Reviewed-by: Rafael J. Wysocki <rjw@sisk.pl>
+Reviewed-by: Eduardo Valentin <eduardo.valentin@ti.com>
 ---
- drivers/thermal/Kconfig        |   8 ++
- drivers/thermal/Makefile       |   3 +-
- drivers/thermal/rcar_thermal.c | 260 +++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 270 insertions(+), 1 deletion(-)
- create mode 100644 drivers/thermal/rcar_thermal.c
+ drivers/thermal/thermal_sys.c | 7 ++++++-
+ include/linux/thermal.h       | 1 +
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
-index 3ab2bd5..7dd8c34 100644
---- a/drivers/thermal/Kconfig
-+++ b/drivers/thermal/Kconfig
-@@ -27,3 +27,11 @@ config SPEAR_THERMAL
- 	help
- 	  Enable this to plug the SPEAr thermal sensor driver into the Linux
- 	  thermal framework
-+
-+config RCAR_THERMAL
-+	tristate "Renesas R-Car thermal driver"
-+	depends on THERMAL
-+	depends on ARCH_SHMOBILE
-+	help
-+	  Enable this to plug the R-Car thermal sensor driver into the Linux
-+	  thermal framework
-diff --git a/drivers/thermal/Makefile b/drivers/thermal/Makefile
-index a9fff0b..fd9369a 100644
---- a/drivers/thermal/Makefile
-+++ b/drivers/thermal/Makefile
-@@ -3,4 +3,5 @@
- #
+diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
+index 2884376..70045c1 100644
+--- a/drivers/thermal/thermal_sys.c
++++ b/drivers/thermal/thermal_sys.c
+@@ -57,6 +57,7 @@ struct thermal_instance {
+ 	char attr_name[THERMAL_NAME_LENGTH];
+ 	struct device_attribute attr;
+ 	struct list_head tz_node; /* node in tz->thermal_instances */
++	struct list_head cdev_node; /* node in cdev->thermal_instances */
+ };
  
- obj-$(CONFIG_THERMAL)		+= thermal_sys.o
--obj-$(CONFIG_SPEAR_THERMAL)		+= spear_thermal.o
-\ No newline at end of file
-+obj-$(CONFIG_SPEAR_THERMAL)		+= spear_thermal.o
-+obj-$(CONFIG_RCAR_THERMAL)	+= rcar_thermal.o
-diff --git a/drivers/thermal/rcar_thermal.c b/drivers/thermal/rcar_thermal.c
-new file mode 100644
-index 0000000..d445271
---- /dev/null
-+++ b/drivers/thermal/rcar_thermal.c
-@@ -0,0 +1,260 @@
-+/*
-+ *  R-Car THS/TSC thermal sensor driver
-+ *
-+ * Copyright (C) 2012 Renesas Solutions Corp.
-+ * Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; version 2 of the License.
-+ *
-+ *  This program is distributed in the hope that it will be useful, but
-+ *  WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ *  General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License along
-+ *  with this program; if not, write to the Free Software Foundation, Inc.,
-+ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
-+ */
-+#include <linux/delay.h>
-+#include <linux/err.h>
-+#include <linux/io.h>
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/slab.h>
-+#include <linux/spinlock.h>
-+#include <linux/thermal.h>
-+
-+#define THSCR	0x2c
-+#define THSSR	0x30
-+
-+/* THSCR */
-+#define CPTAP	0xf
-+
-+/* THSSR */
-+#define CTEMP	0x3f
-+
-+
-+struct rcar_thermal_priv {
-+	void __iomem *base;
-+	struct device *dev;
-+	spinlock_t lock;
-+	u32 comp;
-+};
-+
-+/*
-+ *		basic functions
-+ */
-+static u32 rcar_thermal_read(struct rcar_thermal_priv *priv, u32 reg)
-+{
-+	unsigned long flags;
-+	u32 ret;
-+
-+	spin_lock_irqsave(&priv->lock, flags);
-+
-+	ret = ioread32(priv->base + reg);
-+
-+	spin_unlock_irqrestore(&priv->lock, flags);
-+
-+	return ret;
-+}
-+
-+#if 0 /* no user at this point */
-+static void rcar_thermal_write(struct rcar_thermal_priv *priv,
-+			       u32 reg, u32 data)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&priv->lock, flags);
-+
-+	iowrite32(data, priv->base + reg);
-+
-+	spin_unlock_irqrestore(&priv->lock, flags);
-+}
-+#endif
-+
-+static void rcar_thermal_bset(struct rcar_thermal_priv *priv, u32 reg,
-+			      u32 mask, u32 data)
-+{
-+	unsigned long flags;
-+	u32 val;
-+
-+	spin_lock_irqsave(&priv->lock, flags);
-+
-+	val = ioread32(priv->base + reg);
-+	val &= ~mask;
-+	val |= (data & mask);
-+	iowrite32(val, priv->base + reg);
-+
-+	spin_unlock_irqrestore(&priv->lock, flags);
-+}
-+
-+/*
-+ *		zone device functions
-+ */
-+static int rcar_thermal_get_temp(struct thermal_zone_device *zone,
-+			   unsigned long *temp)
-+{
-+	struct rcar_thermal_priv *priv = zone->devdata;
-+	int val, min, max, tmp;
-+
-+	tmp = -200; /* default */
-+	while (1) {
-+		if (priv->comp < 1 || priv->comp > 12) {
-+			dev_err(priv->dev,
-+				"THSSR invalid data (%d)\n", priv->comp);
-+			priv->comp = 4; /* for next thermal */
-+			return -EINVAL;
-+		}
-+
-+		/*
-+		 * THS comparator offset and the reference temperature
-+		 *
-+		 * Comparator	| reference	| Temperature field
-+		 * offset	| temperature	| measurement
-+		 *		| (degrees C)	| (degrees C)
-+		 * -------------+---------------+-------------------
-+		 *  1		|  -45		|  -45 to  -30
-+		 *  2		|  -30		|  -30 to  -15
-+		 *  3		|  -15		|  -15 to    0
-+		 *  4		|    0		|    0 to  +15
-+		 *  5		|  +15		|  +15 to  +30
-+		 *  6		|  +30		|  +30 to  +45
-+		 *  7		|  +45		|  +45 to  +60
-+		 *  8		|  +60		|  +60 to  +75
-+		 *  9		|  +75		|  +75 to  +90
-+		 * 10		|  +90		|  +90 to +105
-+		 * 11		| +105		| +105 to +120
-+		 * 12		| +120		| +120 to +135
-+		 */
-+
-+		/* calculate thermal limitation */
-+		min = (priv->comp * 15) - 60;
-+		max = min + 15;
-+
-+		/*
-+		 * we need to wait 300us after changing comparator offset
-+		 * to get stable temperature.
-+		 * see "Usage Notes" on datasheet
-+		 */
-+		rcar_thermal_bset(priv, THSCR, CPTAP, priv->comp);
-+		udelay(300);
-+
-+		/* calculate current temperature */
-+		val = rcar_thermal_read(priv, THSSR) & CTEMP;
-+		val = (val * 5) - 65;
-+
-+		dev_dbg(priv->dev, "comp/min/max/val = %d/%d/%d/%d\n",
-+			priv->comp, min, max, val);
-+
-+		/*
-+		 * If val is same as min/max, then,
-+		 * it should try again on next comparator.
-+		 * But the val might be correct temperature.
-+		 * Keep it on "tmp" and compare with next val.
-+		 */
-+		if (tmp == val)
-+			break;
-+
-+		if (val <= min) {
-+			tmp = min;
-+			priv->comp--; /* try again */
-+		} else if (val >= max) {
-+			tmp = max;
-+			priv->comp++; /* try again */
-+		} else {
-+			tmp = val;
-+			break;
-+		}
+ static DEFINE_IDR(thermal_tz_idr);
+@@ -878,8 +879,10 @@ int thermal_zone_bind_cooling_device(struct thermal_zone_device *tz,
+ 		result = -EEXIST;
+ 		break;
+ 	}
+-	if (!result)
++	if (!result) {
+ 		list_add_tail(&dev->tz_node, &tz->thermal_instances);
++		list_add_tail(&dev->cdev_node, &cdev->thermal_instances);
 +	}
-+
-+	*temp = tmp;
-+	return 0;
-+}
-+
-+static struct thermal_zone_device_ops rcar_thermal_zone_ops = {
-+	.get_temp = rcar_thermal_get_temp,
-+};
-+
-+/*
-+ *		platform functions
-+ */
-+static int rcar_thermal_probe(struct platform_device *pdev)
-+{
-+	struct thermal_zone_device *zone;
-+	struct rcar_thermal_priv *priv;
-+	struct resource *res;
-+	int ret;
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!res) {
-+		dev_err(&pdev->dev, "Could not get platform resource\n");
-+		return -ENODEV;
-+	}
-+
-+	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
-+	if (!priv) {
-+		dev_err(&pdev->dev, "Could not allocate priv\n");
-+		return -ENOMEM;
-+	}
-+
-+	priv->comp = 4; /* basic setup */
-+	priv->dev = &pdev->dev;
-+	spin_lock_init(&priv->lock);
-+	priv->base = devm_ioremap_nocache(&pdev->dev,
-+					  res->start, resource_size(res));
-+	if (!priv->base) {
-+		dev_err(&pdev->dev, "Unable to ioremap thermal register\n");
-+		ret = -ENOMEM;
-+		goto error_free_priv;
-+	}
-+
-+	zone = thermal_zone_device_register("rcar_thermal", 0, priv,
-+					    &rcar_thermal_zone_ops, 0, 0);
-+	if (IS_ERR(zone)) {
-+		dev_err(&pdev->dev, "thermal zone device is NULL\n");
-+		ret = PTR_ERR(zone);
-+		goto error_iounmap;
-+	}
-+
-+	platform_set_drvdata(pdev, zone);
-+
-+	dev_info(&pdev->dev, "proved\n");
-+
-+	return 0;
-+
-+error_iounmap:
-+	devm_iounmap(&pdev->dev, priv->base);
-+error_free_priv:
-+	devm_kfree(&pdev->dev, priv);
-+
-+	return ret;
-+}
-+
-+static int rcar_thermal_remove(struct platform_device *pdev)
-+{
-+	struct thermal_zone_device *zone = platform_get_drvdata(pdev);
-+	struct rcar_thermal_priv *priv = zone->devdata;
-+
-+	thermal_zone_device_unregister(zone);
-+	platform_set_drvdata(pdev, NULL);
-+
-+	devm_iounmap(&pdev->dev, priv->base);
-+	devm_kfree(&pdev->dev, priv);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver rcar_thermal_driver = {
-+	.driver	= {
-+		.name	= "rcar_thermal",
-+	},
-+	.probe		= rcar_thermal_probe,
-+	.remove		= rcar_thermal_remove,
-+};
-+module_platform_driver(rcar_thermal_driver);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("R-Car THS/TSC thermal sensor driver");
-+MODULE_AUTHOR("Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>");
+ 	mutex_unlock(&tz->lock);
+ 
+ 	if (!result)
+@@ -915,6 +918,7 @@ int thermal_zone_unbind_cooling_device(struct thermal_zone_device *tz,
+ 	list_for_each_entry_safe(pos, next, &tz->thermal_instances, tz_node) {
+ 		if (pos->tz == tz && pos->trip == trip && pos->cdev == cdev) {
+ 			list_del(&pos->tz_node);
++			list_del(&pos->cdev_node);
+ 			mutex_unlock(&tz->lock);
+ 			goto unbind;
+ 		}
+@@ -984,6 +988,7 @@ thermal_cooling_device_register(char *type, void *devdata,
+ 	}
+ 
+ 	strcpy(cdev->type, type);
++	INIT_LIST_HEAD(&cdev->thermal_instances);
+ 	cdev->ops = ops;
+ 	cdev->device.class = &thermal_class;
+ 	cdev->devdata = devdata;
+diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+index cb0b0e3..9ae378a 100644
+--- a/include/linux/thermal.h
++++ b/include/linux/thermal.h
+@@ -94,6 +94,7 @@ struct thermal_cooling_device {
+ 	struct device device;
+ 	void *devdata;
+ 	const struct thermal_cooling_device_ops *ops;
++	struct list_head thermal_instances;
+ 	struct list_head node;
+ };
+ 
 -- 
 1.8.0.rc1
