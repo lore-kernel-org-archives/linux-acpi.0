@@ -1,47 +1,37 @@
-From: Ondrej Zary <linux@rainbow-software.org>
-Subject: Re: [bisected] PS/2 keyboard and mouse dead on resume on Intel D845BG
-Date: Tue, 9 Oct 2012 08:17:00 +0200
-Message-ID: <201210090817.00538.linux@rainbow-software.org>
-References: <201210071513.27959.linux@rainbow-software.org> <20121008144243.GC5068@srcf.ucam.org> <5073B21B.4090600@kernel.org>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Discussion on device's runtime wake capability
+Date: Tue, 09 Oct 2012 14:23:12 +0800
+Message-ID: <5073C2D0.1080900@intel.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-1-out2.atlantis.sk ([80.94.52.71]:37635 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752346Ab2JIGRo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Oct 2012 02:17:44 -0400
-In-Reply-To: <5073B21B.4090600@kernel.org>
-Content-Disposition: inline
+Received: from mga03.intel.com ([143.182.124.21]:41313 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752443Ab2JIGXR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 9 Oct 2012 02:23:17 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: Matthew Garrett <mjg@redhat.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>
+Cc: Huang Ying <ying.huang@intel.com>, Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org
 
-On Tuesday 09 October 2012, Len Brown wrote:
-> On 10/08/2012 10:42 AM, Matthew Garrett wrote:
-> > On Sun, Oct 07, 2012 at 09:00:09PM +0200, Ondrej Zary wrote:
-> >> Added acpi_read_bit_register there and it seems that SCI_EN is already
-> >> set!
-> >>
-> >> This patch fixes the problem here. I wonder how this affects systems
-> >> that require SCI_EN to be set.
-> >
-> > I /think/ that this will be safe, but it doesn't match my recollection
-> > of how Windows behaves so it may break something. Any chance you can
-> > find someone with one of the machines mentioned in
-> > https://bugzilla.kernel.org/show_bug.cgi?id=13745 and make sure that
-> > they still work with your patch?
->
-> yikes.
-> we started with a white-list,
-> then we made setting SCI_EN the default,
-> and here is at least one box that wants to be on a black list
-> so that we don't set SCI_EN:-(
+Hi all,
 
-I wonder what Windows does here. Haven't tested it on this machine but I 
-assume that it works.
+We are using _PRW as a hint to see if a device supports wakeup, this is
+fine for device which is able to wake the system in a sleep state, but
+not to wake itself when system is at S0.
 
--- 
-Ondrej Zary
+Moreover, when we are to arm the device runtime wake, I think there is
+no need to power on the power resources referenced in _PRW, those power
+resources should be used to give the device ability to wake the system
+from a sleep state, not to wake itself when system is at S0, so powering
+thoses power resources on for run wake is a waste.
+
+But I may miss something, so it would be very kind of you to point it
+out if things are not like what I've thought, thanks.
+
+BTW, _S0W seems to be a good hint whether the device supports run wake
+from ACPI's perspective.
+
+-Aaron
+
