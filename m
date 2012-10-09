@@ -1,90 +1,75 @@
-From: Konrad Rzeszutek Wilk <konrad@kernel.org>
-Subject: Re: [PATCH 01/49] ACPI: delelte more BFS/GTS related definition and
- code
-Date: Tue, 9 Oct 2012 10:23:25 -0400
-Message-ID: <20121009142323.GA7639@phenom.dumpdata.com>
-References: <1349554210-29978-1-git-send-email-lenb@kernel.org>
- <a950c135e5b2be6ef7518d54d98a7901db1b377a.1349554105.git.len.brown@intel.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: Discussion on device's runtime wake capability
+Date: Tue, 9 Oct 2012 22:44:10 +0800
+Message-ID: <20121009144407.GA1426@localhost.localdomain>
+References: <5073C2D0.1080900@intel.com>
+ <744357E9AAD1214791ACBA4B0B90926322FF88@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qa0-f46.google.com ([209.85.216.46]:51515 "EHLO
-	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751110Ab2JIOfM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Oct 2012 10:35:12 -0400
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:49346 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753329Ab2JIOoS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Oct 2012 10:44:18 -0400
+Received: by mail-pb0-f46.google.com with SMTP id rr4so5256279pbb.19
+        for <linux-acpi@vger.kernel.org>; Tue, 09 Oct 2012 07:44:17 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <a950c135e5b2be6ef7518d54d98a7901db1b377a.1349554105.git.len.brown@intel.com>
+In-Reply-To: <744357E9AAD1214791ACBA4B0B90926322FF88@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Feng Tang <feng.tang@intel.com>, Bob Moore <robert.moore@intel.com>, Len Brown <len.brown@intel.com>
+To: "Zhang, Rui" <rui.zhang@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, "Huang, Ying" <ying.huang@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Sat, Oct 06, 2012 at 04:09:22PM -0400, Len Brown wrote:
-> From: Feng Tang <feng.tang@intel.com>
+On Tue, Oct 09, 2012 at 06:39:08AM +0000, Zhang, Rui wrote:
+> 
+> 
+> > -----Original Message-----
+> > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+> > owner@vger.kernel.org] On Behalf Of Aaron Lu
+> > Sent: Tuesday, October 09, 2012 2:23 PM
+> > To: Rafael J. Wysocki; Len Brown
+> > Cc: Huang, Ying; Zhang, Rui; linux-acpi@vger.kernel.org
+> > Subject: Discussion on device's runtime wake capability
+> > Importance: High
+> > 
+> > Hi all,
+> > 
+> > We are using _PRW as a hint to see if a device supports wakeup, this is
+> > fine for device which is able to wake the system in a sleep state, but
+> > not to wake itself when system is at S0.
+> > 
+> > Moreover, when we are to arm the device runtime wake, I think there is
+> > no need to power on the power resources referenced in _PRW, those power
+> > resources should be used to give the device ability to wake the system
+> > from a sleep state, not to wake itself when system is at S0, so
+> > powering thoses power resources on for run wake is a waste.
+> > 
+> Sounds reasonable to me.
+> To do runtime wake, we only need to power on the resources in _PR0.
 
-The title has 'delete' misspelled.
+That would keep the device in D0 state :-)
+We can put the device into a lower power state which _S0W permits for
+run wake.
+
+-Aaron
 
 > 
-> This is a follow on for commmit 3f6f49c7 "ACPI: delete _GTS/_BFS support"
-> to do more cleanup.
+> > But I may miss something, so it would be very kind of you to point it
+> > out if things are not like what I've thought, thanks.
+> > 
+> > BTW, _S0W seems to be a good hint whether the device supports run wake
+> > from ACPI's perspective.
+> >
+> Agreed.
 > 
-> Signed-off-by: Feng Tang <feng.tang@intel.com>
-> Signed-off-by: Bob Moore <robert.moore@intel.com>
-> Signed-off-by: Len Brown <len.brown@intel.com>
-> ---
->  drivers/acpi/acpica/hwxfsleep.c | 1 -
->  include/acpi/acnames.h          | 2 --
->  include/acpi/actypes.h          | 7 -------
->  3 files changed, 10 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpica/hwxfsleep.c b/drivers/acpi/acpica/hwxfsleep.c
-> index 1f165a7..0ff1ece 100644
-> --- a/drivers/acpi/acpica/hwxfsleep.c
-> +++ b/drivers/acpi/acpica/hwxfsleep.c
-> @@ -381,7 +381,6 @@ ACPI_EXPORT_SYMBOL(acpi_enter_sleep_state)
->   * FUNCTION:    acpi_leave_sleep_state_prep
->   *
->   * PARAMETERS:  sleep_state         - Which sleep state we are exiting
-> - *              flags               - ACPI_EXECUTE_BFS to run optional method
->   *
->   * RETURN:      Status
->   *
-> diff --git a/include/acpi/acnames.h b/include/acpi/acnames.h
-> index d988ac5..d2f61dd 100644
-> --- a/include/acpi/acnames.h
-> +++ b/include/acpi/acnames.h
-> @@ -66,8 +66,6 @@
 >  
->  /* Method names - these methods must appear at the namespace root */
->  
-> -#define METHOD_PATHNAME__BFS    "\\_BFS"
-> -#define METHOD_PATHNAME__GTS    "\\_GTS"
->  #define METHOD_PATHNAME__PTS    "\\_PTS"
->  #define METHOD_PATHNAME__SST    "\\_SI._SST"
->  #define METHOD_PATHNAME__WAK    "\\_WAK"
-> diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-> index 3d00bd5..a85bae9 100644
-> --- a/include/acpi/actypes.h
-> +++ b/include/acpi/actypes.h
-> @@ -519,13 +519,6 @@ typedef u64 acpi_integer;
->  #define ACPI_SLEEP_TYPE_INVALID         0xFF
->  
->  /*
-> - * Sleep/Wake flags
-> - */
-> -#define ACPI_NO_OPTIONAL_METHODS        0x00	/* Do not execute any optional methods */
-> -#define ACPI_EXECUTE_GTS                0x01	/* For enter sleep interface */
-> -#define ACPI_EXECUTE_BFS                0x02	/* For leave sleep prep interface */
-> -
-> -/*
->   * Standard notify values
->   */
->  #define ACPI_NOTIFY_BUS_CHECK           (u8) 0x00
-> -- 
-> 1.8.0.rc0.18.gf84667d
-> 
+> > -Aaron
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-acpi"
+> > in the body of a message to majordomo@vger.kernel.org More majordomo
+> > info at  http://vger.kernel.org/majordomo-info.html
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
