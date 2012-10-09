@@ -1,30 +1,47 @@
-From: Jonathan Nieder <jrnieder@gmail.com>
-Subject: Re: [PATCH 27/30] ACPI: EC: Add a quirk for CLEVO M720T/M730T laptop
-Date: Mon, 8 Oct 2012 23:16:33 -0700
-Message-ID: <20121009061633.GA3648@elie.Belkin>
-References: <e3f25e6e5836c4790fbe395ff42e241f372d859d.1349761836.git.len.brown@intel.com>
- <67bfa9b60bd689601554526d144b21d529f78a09.1349761836.git.len.brown@intel.com>
+From: Ondrej Zary <linux@rainbow-software.org>
+Subject: Re: [bisected] PS/2 keyboard and mouse dead on resume on Intel D845BG
+Date: Tue, 9 Oct 2012 08:17:00 +0200
+Message-ID: <201210090817.00538.linux@rainbow-software.org>
+References: <201210071513.27959.linux@rainbow-software.org> <20121008144243.GC5068@srcf.ucam.org> <5073B21B.4090600@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:42329 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752346Ab2JIGQl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Oct 2012 02:16:41 -0400
+Received: from mail-1-out2.atlantis.sk ([80.94.52.71]:37635 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752346Ab2JIGRo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Oct 2012 02:17:44 -0400
+In-Reply-To: <5073B21B.4090600@kernel.org>
 Content-Disposition: inline
-In-Reply-To: <67bfa9b60bd689601554526d144b21d529f78a09.1349761836.git.len.brown@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Feng Tang <feng.tang@intel.com>, Len Brown <len.brown@intel.com>, stable@vger.kernel.org
+Cc: Matthew Garrett <mjg@redhat.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Len Brown wrote:
+On Tuesday 09 October 2012, Len Brown wrote:
+> On 10/08/2012 10:42 AM, Matthew Garrett wrote:
+> > On Sun, Oct 07, 2012 at 09:00:09PM +0200, Ondrej Zary wrote:
+> >> Added acpi_read_bit_register there and it seems that SCI_EN is already
+> >> set!
+> >>
+> >> This patch fixes the problem here. I wonder how this affects systems
+> >> that require SCI_EN to be set.
+> >
+> > I /think/ that this will be safe, but it doesn't match my recollection
+> > of how Windows behaves so it may break something. Any chance you can
+> > find someone with one of the machines mentioned in
+> > https://bugzilla.kernel.org/show_bug.cgi?id=13745 and make sure that
+> > they still work with your patch?
+>
+> yikes.
+> we started with a white-list,
+> then we made setting SCI_EN the default,
+> and here is at least one box that wants to be on a black list
+> so that we don't set SCI_EN:-(
 
-> By enlarging the GPE storm threshold back to 20, that laptop's
-> EC works fine with interrupt mode instead of polling mode.
+I wonder what Windows does here. Haven't tested it on this machine but I 
+assume that it works.
 
-What would go wrong if the threshold were just increased to 20 on all
-models?
-
-Thanks,
-Jonathan
+-- 
+Ondrej Zary
