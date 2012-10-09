@@ -1,57 +1,94 @@
-From: Jack Kelly <jack-list@xlk.org.uk>
-Subject: Re: HP laptop: fan off until CPU temp near 105 degrees C
-Date: Tue, 9 Oct 2012 11:32:31 +0100
-Message-ID: <CALHKqSU7SR+6tJaAE_66diAN6+2FzCnhP-L-8Bgf1TerMw1hgA@mail.gmail.com>
-References: <CALHKqSU44q6LakKrBKeNFFu7=xbipAog4URMLT0i5Yturo6w9w@mail.gmail.com>
- <4D68720C2E767A4AA6A8796D42C8EB591C9D47@BGSMSX102.gar.corp.intel.com>
- <CALHKqSXFhf7zoQWMrPDzgS0EGXN5xVxOHLu2j8Ysdtexk5prww@mail.gmail.com>
- <4D68720C2E767A4AA6A8796D42C8EB591C9E51@BGSMSX102.gar.corp.intel.com>
- <CALHKqSXtD_TbGYTxJv+fhXhjqO2=UoDUoeF8dFkEeuuvN36PwQ@mail.gmail.com>
- <CALHKqSWoGMQ9sEP34zWjRxoxOPXAWOjyKd1SC-asW7qypvAPng@mail.gmail.com> <744357E9AAD1214791ACBA4B0B90926322D9A3@SHSMSX101.ccr.corp.intel.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH v2] ACPI: Add ACPI CPU hot-remove support
+Date: Tue, 09 Oct 2012 07:43:49 -0600
+Message-ID: <1349790229.23493.2.camel@misato.fc.hp.com>
+References: <1345841699-20067-1-git-send-email-toshi.kani@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:63979 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754392Ab2JIKcw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Oct 2012 06:32:52 -0400
-Received: by mail-vc0-f174.google.com with SMTP id fo13so6205621vcb.19
-        for <linux-acpi@vger.kernel.org>; Tue, 09 Oct 2012 03:32:52 -0700 (PDT)
-In-Reply-To: <744357E9AAD1214791ACBA4B0B90926322D9A3@SHSMSX101.ccr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1345841699-20067-1-git-send-email-toshi.kani@hp.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, prarit@redhat.com, imammedo@redhat.com, vijaymohan.pandarathil@hp.com
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: "R, Durgadoss" <durgadoss.r@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Dear Rui,
+Hi Len,
 
-Many thanks for the reply.  I have uploaded the data you requested to:
+Can you please review this patch?  Please let me know if there is
+anything I need to do for 3.7.
 
-http://xlk.org.uk/ext/laptop-data.tar.gz
-
-laptop-data.tar.gz contains 4 text files:
-
-* acpidump.txt
-
-* cool.txt (output of "grep . /sys/class/thermal/*/*" when system is cool)
-
-* overheat.txt (output of "grep . /sys/class/thermal/*/*" when CPU
-overheats. I don't think this file contains any temperatures readings
-from the CPU though)
-
-* overheat_sensors.txt (output of "sensors" when CPU overheats)
-
-Please do let me know if you need any more info.
-
-(Sorry for the very late reply. I did reply on 1st Oct but it seems
-that email didn't get through to the list).
-
-Thanks again for your help,
-Jack
+Thanks,
+-Toshi
 
 
-On 1 October 2012 15:33, Zhang, Rui <rui.zhang@intel.com> wrote:
->
-> Can you attach the acpidump output of this machine?
-> Can you attach the output of "grep . /sys/class/thermal/*/*" both when the
-> system is cool and overheat?
+On Fri, 2012-08-24 at 14:54 -0600, Toshi Kani wrote:
+> Added CPU hot-remove support through an ACPI eject notification.
+> It calls acpi_bus_hot_remove_device(), which shares the same code
+> path with the sysfs eject operation.  acpi_os_hotplug_execute()
+> serializes hot-remove operations between ACPI hot-remove and sysfs
+> eject requests.
+> 
+> v2:
+>  - Rebased to 3.6-rc3.
+> 
+> Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+> Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+> Tested-by: IgorMammedov <imammedo@redhat.com>
+> Tested-by: Vijay Mohan Pandarathil <vijaymohan.pandarathil@hp.com>
+> Tested-by: Prarit Bhargava <prarit@redhat.com>
+> ---
+>  drivers/acpi/processor_driver.c |   27 +++++++++++++++++----------
+>  1 files changed, 17 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+> index bfc31cb..d12e9c3 100644
+> --- a/drivers/acpi/processor_driver.c
+> +++ b/drivers/acpi/processor_driver.c
+> @@ -694,8 +694,8 @@ int acpi_processor_device_add(acpi_handle handle, struct acpi_device **device)
+>  static void acpi_processor_hotplug_notify(acpi_handle handle,
+>  					  u32 event, void *data)
+>  {
+> -	struct acpi_processor *pr;
+>  	struct acpi_device *device = NULL;
+> +	struct acpi_eject_event *ej_event = NULL;
+>  	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE; /* default */
+>  	int result;
+>  
+> @@ -727,20 +727,27 @@ static void acpi_processor_hotplug_notify(acpi_handle handle,
+>  				  "received ACPI_NOTIFY_EJECT_REQUEST\n"));
+>  
+>  		if (acpi_bus_get_device(handle, &device)) {
+> -			printk(KERN_ERR PREFIX
+> -				    "Device don't exist, dropping EJECT\n");
+> +			pr_err(PREFIX "Device don't exist, dropping EJECT\n");
+>  			break;
+>  		}
+> -		pr = acpi_driver_data(device);
+> -		if (!pr) {
+> -			printk(KERN_ERR PREFIX
+> -				    "Driver data is NULL, dropping EJECT\n");
+> +		if (!acpi_driver_data(device)) {
+> +			pr_err(PREFIX "Driver data is NULL, dropping EJECT\n");
+>  			break;
+>  		}
+>  
+> -		/* REVISIT: update when eject is supported */
+> -		ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
+> -		break;
+> +		ej_event = kmalloc(sizeof(*ej_event), GFP_KERNEL);
+> +		if (!ej_event) {
+> +			pr_err(PREFIX "No memory, dropping EJECT\n");
+> +			break;
+> +		}
+> +
+> +		ej_event->handle = handle;
+> +		ej_event->event = ACPI_NOTIFY_EJECT_REQUEST;
+> +		acpi_os_hotplug_execute(acpi_bus_hot_remove_device,
+> +					(void *)ej_event);
+> +
+> +		/* eject is performed asynchronously */
+> +		return;
+>  
+>  	default:
+>  		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
