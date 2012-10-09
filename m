@@ -1,7 +1,7 @@
 From: Len Brown <lenb@kernel.org>
-Subject: [PATCH 25/30] thermal: Exynos: Fix NULL pointer dereference in exynos_unregister_thermal()
-Date: Tue,  9 Oct 2012 01:54:15 -0400
-Message-ID: <c072fed95c9855a920c114d7fa3351f0f54ea06e.1349761836.git.len.brown@intel.com>
+Subject: [PATCH 28/30] cpuidle / ACPI: fix potential NULL pointer dereference
+Date: Tue,  9 Oct 2012 01:54:18 -0400
+Message-ID: <e8b1b59dc8e42a47c4ce541bd1767ffac206b29c.1349761836.git.len.brown@intel.com>
 References: <1349762060-25334-1-git-send-email-lenb@kernel.org>
 Reply-To: Len Brown <lenb@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
@@ -10,40 +10,42 @@ In-Reply-To: <e3f25e6e5836c4790fbe395ff42e241f372d859d.1349761836.git.len.brown@
 References: <e3f25e6e5836c4790fbe395ff42e241f372d859d.1349761836.git.len.brown@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Sachin Kamat <sachin.kamat@linaro.org>
+Cc: linux-kernel@vger.kernel.org, Wei Yongjun <yongjun_wei@trendmicro.com.cn>, Len Brown <len.brown@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Sachin Kamat <sachin.kamat@linaro.org>
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-exynos_unregister_thermal() is functional only when 'th_zone' is not
-NULL (ensured by the NULL checks). However, in the event it is NULL, it
-gets dereferenced in the for loop. This patch fixes this issue.
+The dereference should be moved below the NULL test.
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+dpatch engine is used to auto generate this patch.
+(https://github.com/weiyj/dpatch)
+
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Signed-off-by: Len Brown <len.brown@intel.com>
 ---
- drivers/thermal/exynos_thermal.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/acpi/processor_idle.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/thermal/exynos_thermal.c b/drivers/thermal/exynos_thermal.c
-index e84acde..fd03e85 100644
---- a/drivers/thermal/exynos_thermal.c
-+++ b/drivers/thermal/exynos_thermal.c
-@@ -475,11 +475,14 @@ static void exynos_unregister_thermal(void)
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index 3655ab9..e8086c7 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -1132,7 +1132,7 @@ static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
+ int acpi_processor_hotplug(struct acpi_processor *pr)
  {
- 	int i;
+ 	int ret = 0;
+-	struct cpuidle_device *dev = per_cpu(acpi_cpuidle_device, pr->id);
++	struct cpuidle_device *dev;
  
--	if (th_zone && th_zone->therm_dev)
-+	if (!th_zone)
-+		return;
-+
-+	if (th_zone->therm_dev)
- 		thermal_zone_device_unregister(th_zone->therm_dev);
+ 	if (disabled_by_idle_boot_param())
+ 		return 0;
+@@ -1147,6 +1147,7 @@ int acpi_processor_hotplug(struct acpi_processor *pr)
+ 	if (!pr->flags.power_setup_done)
+ 		return -ENODEV;
  
- 	for (i = 0; i < th_zone->cool_dev_size; i++) {
--		if (th_zone && th_zone->cool_dev[i])
-+		if (th_zone->cool_dev[i])
- 			cpufreq_cooling_unregister(th_zone->cool_dev[i]);
- 	}
- 
++	dev = per_cpu(acpi_cpuidle_device, pr->id);
+ 	cpuidle_pause_and_lock();
+ 	cpuidle_disable_device(dev);
+ 	acpi_processor_get_power_info(pr);
 -- 
 1.8.0.rc1
