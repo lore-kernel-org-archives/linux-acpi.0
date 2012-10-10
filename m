@@ -1,61 +1,112 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: acpi : acpi_bus_trim() stops removing devices when failing to
- remove the device
-Date: Wed, 10 Oct 2012 07:01:05 -0600
-Message-ID: <1349874065.23493.23.camel@misato.fc.hp.com>
-References: <5073E4CC.3090600@jp.fujitsu.com>
-	 <1349800566.23493.9.camel@misato.fc.hp.com>
-	 <5074CA61.3010802@jp.fujitsu.com>
+Subject: Re: [PATCH] ACPI: dock: Remove redundant ACPI NS walk
+Date: Wed, 10 Oct 2012 07:20:17 -0600
+Message-ID: <1349875217.23493.25.camel@misato.fc.hp.com>
+References: <1347481849-17973-1-git-send-email-toshi.kani@hp.com>
+	 <5074CBEB.4040500@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:38347 "EHLO
-	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755832Ab2JJNIP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Oct 2012 09:08:15 -0400
-In-Reply-To: <5074CA61.3010802@jp.fujitsu.com>
+Received: from g1t0027.austin.hp.com ([15.216.28.34]:34016 "EHLO
+	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751648Ab2JJN12 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Oct 2012 09:27:28 -0400
+In-Reply-To: <5074CBEB.4040500@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, wency@cn.fujitsu.com, vasilis.liaskovitis@profitbricks.com
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, linux-kernel@vger.kernel.org, shli@fusionio.com
 
-On Wed, 2012-10-10 at 10:07 +0900, Yasuaki Ishimatsu wrote:
- :
-> >>   	if (acpi_drv) {
-> >>   		if (acpi_drv->ops.notify)
-> >>   			acpi_device_remove_notify_handler(acpi_dev);
-
-THIS CALL
-
-> >> -		if (acpi_drv->ops.remove)
-> >> -			acpi_drv->ops.remove(acpi_dev, acpi_dev->removal_type);
-> >> +		if (acpi_drv->ops.remove) {
-> >> +			ret = acpi_drv->ops.remove(acpi_dev,
-> >> +						   acpi_dev->removal_type);
-> >> +			if (ret)
-> >
-> > Hi Yasuaki,
-> >
-> > Shouldn't the notify handler be reinstalled here if it was removed by
-> > the acpi_device_remove_notify_handler() above?
+On Wed, 2012-10-10 at 10:14 +0900, Yasuaki Ishimatsu wrote:
+> Hi Toshi,
 > 
-> I do not reinstall the notify handler.
-> The function has not been removed on linux-3.6. And the patch is created
-> on linux-3.6. So the function remains in the patch.
+> Sorry for late reply.
+> 
+> 2012/09/13 5:30, Toshi Kani wrote:
+> > Combined two ACPI namespace walks, which look for dock stations
+> > and then bays separately, into a single walk.
+> > 
+> > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+> > ---
+> 
+> I have not tested the patch. But it looks good to me.
+> 
+> Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-Umm... I am not sure what you meant.  Let me clarify my comment.  When
-acpi_drv->ops.remove() failed, I thought we would need to roll-back the
-procedure done by the acpi_device_remove_notify_handler() call, which I
-indicated as "THIS CALL" above.  So, in this error path, don't we need
-something like below?
+Hi Yasuaki,
 
-if (acpi_drv->ops.notify)
-	acpi_device_install_notify_handler(acpi_dev)
+Thanks for the review!  I did test the patch with _DCK and PNP0C0A in
+ACPI.
 
-Thanks,
 -Toshi
 
 
+> 
+> Thanks,
+> Yasuaki Ishimatsu
+> 
+> >   drivers/acpi/dock.c |   26 +++++++-------------------
+> >   1 files changed, 7 insertions(+), 19 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
+> > index 88eb143..ae4ebf2 100644
+> > --- a/drivers/acpi/dock.c
+> > +++ b/drivers/acpi/dock.c
+> > @@ -1016,44 +1016,32 @@ static int dock_remove(struct dock_station *ds)
+> >   }
+> >   
+> >   /**
+> > - * find_dock - look for a dock station
+> > + * find_dock_and_bay - look for dock stations and bays
+> >    * @handle: acpi handle of a device
+> >    * @lvl: unused
+> > - * @context: counter of dock stations found
+> > + * @context: unused
+> >    * @rv: unused
+> >    *
+> > - * This is called by acpi_walk_namespace to look for dock stations.
+> > + * This is called by acpi_walk_namespace to look for dock stations and bays.
+> >    */
+> >   static __init acpi_status
+> > -find_dock(acpi_handle handle, u32 lvl, void *context, void **rv)
+> > +find_dock_and_bay(acpi_handle handle, u32 lvl, void *context, void **rv)
+> >   {
+> > -	if (is_dock(handle))
+> > +	if (is_dock(handle) || is_ejectable_bay(handle))
+> >   		dock_add(handle);
+> >   
+> >   	return AE_OK;
+> >   }
+> >   
+> > -static __init acpi_status
+> > -find_bay(acpi_handle handle, u32 lvl, void *context, void **rv)
+> > -{
+> > -	/* If bay is a dock, it's already handled */
+> > -	if (is_ejectable_bay(handle) && !is_dock(handle))
+> > -		dock_add(handle);
+> > -	return AE_OK;
+> > -}
+> > -
+> >   static int __init dock_init(void)
+> >   {
+> >   	if (acpi_disabled)
+> >   		return 0;
+> >   
+> > -	/* look for a dock station */
+> > +	/* look for dock stations and bays */
+> >   	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
+> > -			    ACPI_UINT32_MAX, find_dock, NULL, NULL, NULL);
+> > +		ACPI_UINT32_MAX, find_dock_and_bay, NULL, NULL, NULL);
+> >   
+> > -	/* look for bay */
+> > -	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
+> > -			ACPI_UINT32_MAX, find_bay, NULL, NULL, NULL);
+> >   	if (!dock_station_count) {
+> >   		printk(KERN_INFO PREFIX "No dock devices found.\n");
+> >   		return 0;
+> > 
+> 
+> 
 
 
