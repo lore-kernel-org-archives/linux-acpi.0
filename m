@@ -1,72 +1,43 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 1/7] PM / QoS: Prepare device structure for adding more constraint types
-Date: Thu, 11 Oct 2012 01:12:04 +0200
-Message-ID: <1768451.HPQmsTHsyu@vostro.rjw.lan>
-References: <201209282351.10663.rjw@sisk.pl> <5823653.QdHL6Lda2x@vostro.rjw.lan> <20121010031547.GA21067@MGROSS-X220VM>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v6 1/2] ACPI: Add early console framework for DBGP/DBG2.
+Date: Wed, 10 Oct 2012 23:39:19 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88B9CCEC@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1348652044.git.lv.zheng@intel.com>
+ <09ee0e9c79c57da2fc9d0af1c2daeaacdc0bb234.1349838218.git.lv.zheng@intel.com>
+ <20121010141057.GF4005@phenom.dumpdata.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20121010031547.GA21067@MGROSS-X220VM>
-Sender: linux-pci-owner@vger.kernel.org
-To: markgross@thegnar.org
-Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Huang Ying <ying.huang@intel.com>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, Lan Tianyu <tianyu.lan@intel.com>, Aaron Lu <aaron.lu@intel.com>, Jean Pihet <j-pihet@ti.com>, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:29733 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756850Ab2JJXjX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Oct 2012 19:39:23 -0400
+In-Reply-To: <20121010141057.GF4005@phenom.dumpdata.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Konrad Rzeszutek Wilk <konrad@kernel.org>
+Cc: "Brown, Len" <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Jason Wessel <jason.wessel@windriver.com>, "Tang, Feng" <feng.tang@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>
 
-On Tuesday 09 of October 2012 20:15:47 mark gross wrote:
-> On Mon, Oct 08, 2012 at 10:04:03AM +0200, Rafael J. Wysocki wrote:
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > 
-> > Currently struct dev_pm_info contains only one PM QoS constraints
-> > pointer reserved for latency requirements.  Since one more device
-> > constraints type (i.e. flags) will be necessary, introduce a new
-> > structure, struct dev_pm_qos, that eventually will contain all of
-> > the available device PM QoS constraints and replace the "constraints"
-> > pointer in struct dev_pm_info with a pointer to the new structure
-> > called "qos".
-> > 
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > Reviewed-by: Jean Pihet <j-pihet@ti.com>
-> > ---
-> >  drivers/base/power/qos.c |   42 ++++++++++++++++++++++--------------------
-> >  include/linux/pm.h       |    2 +-
-> >  include/linux/pm_qos.h   |    4 ++++
-> >  3 files changed, 27 insertions(+), 21 deletions(-)
-> > 
-> > Index: linux/include/linux/pm.h
-> > ===================================================================
-> > --- linux.orig/include/linux/pm.h
-> > +++ linux/include/linux/pm.h
-> > @@ -551,7 +551,7 @@ struct dev_pm_info {
-> >  	struct dev_pm_qos_request *pq_req;
-> >  #endif
-> >  	struct pm_subsys_data	*subsys_data;  /* Owned by the subsystem. */
-> > -	struct pm_qos_constraints *constraints;
-> > +	struct dev_pm_qos	*qos;
-> >  };
-> >  
-> >  extern void update_pm_runtime_accounting(struct device *dev);
-> > Index: linux/include/linux/pm_qos.h
-> > ===================================================================
-> > --- linux.orig/include/linux/pm_qos.h
-> > +++ linux/include/linux/pm_qos.h
-> > @@ -57,6 +57,10 @@ struct pm_qos_constraints {
-> >  	struct blocking_notifier_head *notifiers;
-> >  };
-> >  
-> > +struct dev_pm_qos {
-> > +	struct pm_qos_constraints latency;
-> What about non-latency constraints?  This pretty much makes it explicit
-> that dev_pm_qos is all about latency.  from the commit comment I thought
-> you where trying to make it more genaric.  Why not call "latency"
-> "constraint" or something less specific?
+> > +static __initdata DECLARE_BITMAP(acpi_early_flags,
+> > +MAX_ACPI_DBG_PORTS*2);
 
-Please see the next patches in the series that add one more constraint type.
+It's OK since the keep bit will be derived by the real earlycon drivers in the __acpi_early_console_start() which is an arch specific interface.
+You can find this usage in the [PATCH v6 2/2].
 
-Thanks,
-Rafael
+> > +	set_bit(port, acpi_early_flags);
+> > +	if (keep)
+> > +		set_bit(port+MAX_ACPI_DBG_PORTS, acpi_early_flags);
+> Put a comment explaining why you use half of the bitmap to mark them as
+> 'keep'. Thought wouldn't be just easier if you had another bitmap:
+> acpi_keep_ports?
+> To set those instead of using this bitmap?
 
+I prefer to put comment here.
+I've been a deep embedded engineer for the last 5 years, implementing software containing 4 bus protocol stacks within 128bytes ram and 16kbytes rom, where we used high modularity design patterns.
+Thus made my habit being critical to ram/rom consumption...
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+I'm OOO now, the updated version will be sent next week.
+
+Thanks for your comments and best regards/Lv Zheng
