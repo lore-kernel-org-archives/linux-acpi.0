@@ -1,97 +1,35 @@
-From: mark gross <markgross@thegnar.org>
-Subject: Re: [PATCH 3/7] PM / QoS: Prepare struct dev_pm_qos_request for more
- request types
-Date: Tue, 9 Oct 2012 20:37:59 -0700
-Message-ID: <20121010033759.GG21067@MGROSS-X220VM>
-References: <201209282351.10663.rjw@sisk.pl>
- <1413438.1MkXj8vjQK@vostro.rjw.lan>
- <1701634.Jkkbu1sQKe@vostro.rjw.lan>
-Reply-To: markgross@thegnar.org
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: Discussion on device's runtime wake capability
+Date: Wed, 10 Oct 2012 15:54:23 +0800
+Message-ID: <507529AF.4080701@intel.com>
+References: <5073C2D0.1080900@intel.com> <9718124.Sj45DoTPo2@vostro.rjw.lan> <5074C70C.9090704@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1701634.Jkkbu1sQKe@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Huang Ying <ying.huang@intel.com>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, Lan Tianyu <tianyu.lan@intel.com>, Aaron Lu <aaron.lu@intel.com>, Jean Pihet <j-pihet@ti.com>, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, mark gross <markgross@thegnar.org>, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([143.182.124.37]:36946 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754103Ab2JJHy3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 10 Oct 2012 03:54:29 -0400
+In-Reply-To: <5074C70C.9090704@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>, Huang Ying <ying.huang@intel.com>, Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On Mon, Oct 08, 2012 at 10:06:08AM +0200, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On 10/10/2012 08:53 AM, Aaron Lu wrote:
+> On 10/10/2012 04:48 AM, Rafael J. Wysocki wrote:
+>> On Tuesday 09 of October 2012 14:23:12 Aaron Lu wrote:
+>>> BTW, _S0W seems to be a good hint whether the device supports run wake
+>>> from ACPI's perspective.
+>>
+>> Yes, it is a _hint_.
 > 
-> The subsequent patches will use struct dev_pm_qos_request for
-> representing both latency requests and flags requests.  To make that
-> easier, put the node member of struct dev_pm_qos_request (under the
-> name "pnode") into a union called "data" that will represent the
-> request's  value and list node depending on its type.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Reviewed-by: Jean Pihet <j-pihet@ti.com>
-> ---
->  drivers/base/power/qos.c   |    6 +++---
->  drivers/base/power/sysfs.c |    2 +-
->  include/linux/pm_qos.h     |    4 +++-
->  3 files changed, 7 insertions(+), 5 deletions(-)
-> 
-> Index: linux/include/linux/pm_qos.h
-> ===================================================================
-> --- linux.orig/include/linux/pm_qos.h
-> +++ linux/include/linux/pm_qos.h
-> @@ -39,7 +39,9 @@ struct pm_qos_flags_request {
->  };
->  
->  struct dev_pm_qos_request {
-> -	struct plist_node node;
-> +	union {
-> +		struct plist_node pnode;
-> +	} data;
->  	struct device *dev;
->  };
->  
-> Index: linux/drivers/base/power/sysfs.c
-> ===================================================================
-> --- linux.orig/drivers/base/power/sysfs.c
-> +++ linux/drivers/base/power/sysfs.c
-> @@ -221,7 +221,7 @@ static DEVICE_ATTR(autosuspend_delay_ms,
->  static ssize_t pm_qos_latency_show(struct device *dev,
->  				   struct device_attribute *attr, char *buf)
->  {
-> -	return sprintf(buf, "%d\n", dev->power.pq_req->node.prio);
-> +	return sprintf(buf, "%d\n", dev->power.pq_req->data.pnode.prio);
->  }
->  
->  static ssize_t pm_qos_latency_store(struct device *dev,
-> Index: linux/drivers/base/power/qos.c
-> ===================================================================
-> --- linux.orig/drivers/base/power/qos.c
-> +++ linux/drivers/base/power/qos.c
-> @@ -90,7 +90,7 @@ static int apply_constraint(struct dev_p
->  	int ret, curr_value;
->  
->  	ret = pm_qos_update_target(&req->dev->power.qos->latency,
-> -				   &req->node, action, value);
-> +				   &req->data.pnode, action, value);
->  
->  	if (ret) {
->  		/* Call the global callbacks if needed */
-> @@ -183,7 +183,7 @@ void dev_pm_qos_constraints_destroy(stru
->  
->  	c = &qos->latency;
->  	/* Flush the constraints list for the device */
-> -	plist_for_each_entry_safe(req, tmp, &c->list, node) {
-> +	plist_for_each_entry_safe(req, tmp, &c->list, data.pnode) {
->  		/*
->  		 * Update constraints list and call the notification
->  		 * callbacks if needed
-> @@ -293,7 +293,7 @@ int dev_pm_qos_update_request(struct dev
->  	mutex_lock(&dev_pm_qos_mtx);
->  
->  	if (req->dev->power.qos) {
-> -		if (new_value != req->node.prio)
-> +		if (new_value != req->data.pnode.prio)
->  			ret = apply_constraint(req, PM_QOS_UPDATE_REQ,
->  					       new_value);
->  	} else {
-> 
-Reviewed-by: mark gross <markgross@thegnar.org>
+> And I think it is a better hint than _PRW.
+
+I probably need to add that, devices only have _PRW are of cource
+runtime wake capable. This is already handled in our current code.
+
+Thanks,
+Aaron
+
