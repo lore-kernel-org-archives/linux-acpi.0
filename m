@@ -1,652 +1,555 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v6 2/2] ACPI: Add Intel MID SPI early console support.
-Date: Wed, 10 Oct 2012 11:23:29 +0800
-Message-ID: <6b2b7e377a4e55ecc53e2d8f638dc556506ac596.1349838219.git.lv.zheng@intel.com>
-References: <cover.1348652044.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:46793 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754145Ab2JJDXq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 9 Oct 2012 23:23:46 -0400
-In-Reply-To: <cover.1348652044.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: mark gross <markgross@thegnar.org>
+Subject: Re: [PATCH 5/7] PM / QoS: Make it possible to expose PM QoS device
+ flags to user space
+Date: Tue, 9 Oct 2012 20:33:23 -0700
+Message-ID: <20121010033323.GC21067@MGROSS-X220VM>
+References: <201209282351.10663.rjw@sisk.pl>
+ <1413438.1MkXj8vjQK@vostro.rjw.lan>
+ <5925717.MuPWJfgSgk@vostro.rjw.lan>
+Reply-To: markgross@thegnar.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5925717.MuPWJfgSgk@vostro.rjw.lan>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Huang Ying <ying.huang@intel.com>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, Lan Tianyu <tianyu.lan@intel.com>, Aaron Lu <aaron.lu@intel.com>, Jean Pihet <j-pihet@ti.com>, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, mark gross <markgross@thegnar.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Jason Wessel <jason.wessel@windriver.com>, Feng Tang <feng.tang@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org, platform-driver-x86@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>
 
-DesignWare SPI UART is used as one of the debug ports on Low Power Intel
-Architecture (LPIA) platforms.  This patch is introduced to support this
-debugging console reported by ACPI DBGP/DBG2.  The original MID SPI
-early console stuff is also refined to co-exist with the new ACPI usage
-model.
+On Mon, Oct 08, 2012 at 10:07:58AM +0200, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> Define two device PM QoS flags, PM_QOS_FLAG_NO_POWER_OFF
+> and PM_QOS_FLAG_REMOTE_WAKEUP, and introduce routines
+> dev_pm_qos_expose_flags() and dev_pm_qos_hide_flags() allowing the
+> caller to expose those two flags to user space or to hide them
+> from it, respectively.
+> 
+> After the flags have been exposed, user space will see two
+> additional sysfs attributes, pm_qos_no_power_off and
+> pm_qos_remote_wakeup, under the device's /sys/devices/.../power/
+> directory.  Then, writing 1 to one of them will update the
+> PM QoS flags request owned by user space so that the corresponding
+> flag is requested to be set.  In turn, writing 0 to one of them
+> will cause the corresponding flag in the user space's request to
+> be cleared (however, the owners of the other PM QoS flags requests
+> for the same device may still request the flag to be set and it
+> may be effectively set even if user space doesn't request that).
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Reviewed-by: Jean Pihet <j-pihet@ti.com>
+> ---
+>  Documentation/ABI/testing/sysfs-devices-power |   31 ++++
+>  drivers/base/power/power.h                    |    6 
+>  drivers/base/power/qos.c                      |  167 ++++++++++++++++++++------
+>  drivers/base/power/sysfs.c                    |   95 +++++++++++++-
+>  include/linux/pm.h                            |    1 
+>  include/linux/pm_qos.h                        |   26 ++++
+>  6 files changed, 278 insertions(+), 48 deletions(-)
+> 
+> Index: linux/include/linux/pm_qos.h
+> ===================================================================
+> --- linux.orig/include/linux/pm_qos.h
+> +++ linux/include/linux/pm_qos.h
+> @@ -34,6 +34,9 @@ enum pm_qos_flags_status {
+>  #define PM_QOS_NETWORK_THROUGHPUT_DEFAULT_VALUE	0
+>  #define PM_QOS_DEV_LAT_DEFAULT_VALUE		0
+>  
+> +#define PM_QOS_FLAG_NO_POWER_OFF	(1 << 0)
+> +#define PM_QOS_FLAG_REMOTE_WAKEUP	(1 << 1)
+> +
+>  struct pm_qos_request {
+>  	struct plist_node node;
+>  	int pm_qos_class;
+> @@ -86,6 +89,8 @@ struct pm_qos_flags {
+>  struct dev_pm_qos {
+>  	struct pm_qos_constraints latency;
+>  	struct pm_qos_flags flags;
+> +	struct dev_pm_qos_request *latency_req;
+> +	struct dev_pm_qos_request *flags_req;
 
-There are two alternatives to use this facility on LPIA platforms:
-1. Launch by normal earlycon (on MEDFIELD platforms):
-   Enable the following kernel configurations:
-     CONFIG_EARLY_PRINTK_INTEL_MID=y
-   Pass the following kernel parameter to the kernel:
-     earlyprintk=mrst
-2. Launch by ACPI DBG2 earlycon (on CLOVERVIEW platforms):
-   Enable the following kernel configurations:
-     CONFIG_EARLY_PRINTK_ACPI=y
-     CONFIG_EARLY_PRINTK_INTEL_MID_SPI=y
-   Pass the following kernel parameter to the kernel:
-     earlyprintk=acpi
+I think I'm getting it now.  if someday we have per device throughput
+you would have us add a pm_qos_constraints throughput; and a
+dev_pm_qos_request *throughput_req;
 
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- Documentation/kernel-parameters.txt        |    1 +
- arch/x86/Kconfig.debug                     |   23 +++
- arch/x86/include/asm/mrst.h                |    2 +-
- arch/x86/kernel/early_printk.c             |   12 +-
- arch/x86/platform/mrst/early_printk_mrst.c |  186 +----------------------
- drivers/platform/x86/Makefile              |    2 +
- drivers/platform/x86/early/Makefile        |    5 +
- drivers/platform/x86/early/intel_mid_spi.c |  220 ++++++++++++++++++++++++++++
- include/acpi/actbl2.h                      |    1 +
- include/linux/intel_mid_early.h            |   12 ++
- 10 files changed, 283 insertions(+), 181 deletions(-)
- create mode 100644 drivers/platform/x86/early/Makefile
- create mode 100644 drivers/platform/x86/early/intel_mid_spi.c
- create mode 100644 include/linux/intel_mid_early.h
 
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-index f656765..003ffd9 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -762,6 +762,7 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
- 			earlyprintk=vga
- 			earlyprintk=serial[,ttySn[,baudrate]]
- 			earlyprintk=ttySn[,baudrate]
-+			earlyprintk=mrst
- 			earlyprintk=dbgp[debugController#]
- 			earlyprintk=acpi[debugController#]
- 
-diff --git a/arch/x86/Kconfig.debug b/arch/x86/Kconfig.debug
-index 5778082..4a26e2d 100644
---- a/arch/x86/Kconfig.debug
-+++ b/arch/x86/Kconfig.debug
-@@ -43,9 +43,32 @@ config EARLY_PRINTK
- 	  with klogd/syslogd or the X server. You should normally N here,
- 	  unless you want to debug such a crash.
- 
-+config EARLY_PRINTK_INTEL_MID_SPI
-+	bool "Early printk for Intel MID SPI UART port"
-+	depends on EARLY_PRINTK
-+	---help---
-+	  Write kernel log output directly into the MID SPI UART debug port.
-+
-+	  Intel MID platforms are using DesignWare SPI UART as its debug
-+	  console.  This option does not introduce actual early console into
-+	  the kernel binary, but is required by a real early console
-+	  implementation (EARLY_PRINTK_INTEL_MID or EARLY_PRINTK_ACPI).
-+	  You should normally N here unless you need to do kernel booting
-+	  development.
-+
- config EARLY_PRINTK_INTEL_MID
- 	bool "Early printk for Intel MID platform support"
- 	depends on EARLY_PRINTK && X86_INTEL_MID
-+	select EARLY_PRINTK_INTEL_MID_SPI
-+	---help---
-+	  Write kernel log output directly into the MID SPI UART debug port.
-+
-+	  Intel MID platforms are always equipped with SPI debug ports and
-+	  USB OTG debug ports. To enable these debugging facilities, you
-+	  need to pass "earlyprintk=mrst" parameter to the kernel through
-+	  boot loaders.  Please see "Documentation/kernel-parameter.txt" for
-+	  details.  You should normally N here unless you need to do kernel
-+	  booting development.
- 
- config EARLY_PRINTK_DBGP
- 	bool "Early printk via EHCI debug port"
-diff --git a/arch/x86/include/asm/mrst.h b/arch/x86/include/asm/mrst.h
-index fc18bf3..8ab0655 100644
---- a/arch/x86/include/asm/mrst.h
-+++ b/arch/x86/include/asm/mrst.h
-@@ -12,6 +12,7 @@
- #define _ASM_X86_MRST_H
- 
- #include <linux/sfi.h>
-+#include <linux/intel_mid_early.h>
- 
- extern int pci_mrst_init(void);
- extern int __init sfi_parse_mrtc(struct sfi_table_header *table);
-@@ -63,7 +64,6 @@ extern enum mrst_timer_options mrst_timer_options;
- #define SFI_MTMR_MAX_NUM 8
- #define SFI_MRTC_MAX	8
- 
--extern struct console early_mrst_console;
- extern void mrst_early_console_init(void);
- 
- extern struct console early_hsu_console;
-diff --git a/arch/x86/kernel/early_printk.c b/arch/x86/kernel/early_printk.c
-index bf5b596..9b5ee96 100644
---- a/arch/x86/kernel/early_printk.c
-+++ b/arch/x86/kernel/early_printk.c
-@@ -205,6 +205,16 @@ static inline void early_console_register(struct console *con, int keep_early)
- 
- int __init __acpi_early_console_start(struct acpi_debug_port *info)
- {
-+#ifdef CONFIG_EARLY_PRINTK_INTEL_MID_SPI
-+	if (info->port_type == ACPI_DBG2_SERIAL_PORT
-+	    && info->port_subtype == ACPI_DBG2_INTEL_MID_SPI
-+	    && info->register_count > 0) {
-+		mid_spi_early_console_init((u32)(info->registers[0].address));
-+		early_console_register(&mid_spi_early_console,
-+				       acpi_early_console_keep(info));
-+	}
-+#endif
-+
- 	return 0;
- }
- #endif
-@@ -256,7 +266,7 @@ static int __init setup_early_printk(char *buf)
- #ifdef CONFIG_EARLY_PRINTK_INTEL_MID
- 		if (!strncmp(buf, "mrst", 4)) {
- 			mrst_early_console_init();
--			early_console_register(&early_mrst_console, keep);
-+			early_console_register(&mid_spi_early_console, keep);
- 		}
- 
- 		if (!strncmp(buf, "hsu", 3)) {
-diff --git a/arch/x86/platform/mrst/early_printk_mrst.c b/arch/x86/platform/mrst/early_printk_mrst.c
-index 028454f..7afbf18 100644
---- a/arch/x86/platform/mrst/early_printk_mrst.c
-+++ b/arch/x86/platform/mrst/early_printk_mrst.c
-@@ -29,82 +29,8 @@
- #include <asm/pgtable.h>
- #include <asm/mrst.h>
- 
--#define MRST_SPI_TIMEOUT		0x200000
- #define MRST_REGBASE_SPI0		0xff128000
- #define MRST_REGBASE_SPI1		0xff128400
--#define MRST_CLK_SPI0_REG		0xff11d86c
--
--/* Bit fields in CTRLR0 */
--#define SPI_DFS_OFFSET			0
--
--#define SPI_FRF_OFFSET			4
--#define SPI_FRF_SPI			0x0
--#define SPI_FRF_SSP			0x1
--#define SPI_FRF_MICROWIRE		0x2
--#define SPI_FRF_RESV			0x3
--
--#define SPI_MODE_OFFSET			6
--#define SPI_SCPH_OFFSET			6
--#define SPI_SCOL_OFFSET			7
--#define SPI_TMOD_OFFSET			8
--#define	SPI_TMOD_TR			0x0		/* xmit & recv */
--#define SPI_TMOD_TO			0x1		/* xmit only */
--#define SPI_TMOD_RO			0x2		/* recv only */
--#define SPI_TMOD_EPROMREAD		0x3		/* eeprom read mode */
--
--#define SPI_SLVOE_OFFSET		10
--#define SPI_SRL_OFFSET			11
--#define SPI_CFS_OFFSET			12
--
--/* Bit fields in SR, 7 bits */
--#define SR_MASK				0x7f		/* cover 7 bits */
--#define SR_BUSY				(1 << 0)
--#define SR_TF_NOT_FULL			(1 << 1)
--#define SR_TF_EMPT			(1 << 2)
--#define SR_RF_NOT_EMPT			(1 << 3)
--#define SR_RF_FULL			(1 << 4)
--#define SR_TX_ERR			(1 << 5)
--#define SR_DCOL				(1 << 6)
--
--struct dw_spi_reg {
--	u32	ctrl0;
--	u32	ctrl1;
--	u32	ssienr;
--	u32	mwcr;
--	u32	ser;
--	u32	baudr;
--	u32	txfltr;
--	u32	rxfltr;
--	u32	txflr;
--	u32	rxflr;
--	u32	sr;
--	u32	imr;
--	u32	isr;
--	u32	risr;
--	u32	txoicr;
--	u32	rxoicr;
--	u32	rxuicr;
--	u32	msticr;
--	u32	icr;
--	u32	dmacr;
--	u32	dmatdlr;
--	u32	dmardlr;
--	u32	idr;
--	u32	version;
--
--	/* Currently operates as 32 bits, though only the low 16 bits matter */
--	u32	dr;
--} __packed;
--
--#define dw_readl(dw, name)		__raw_readl(&(dw)->name)
--#define dw_writel(dw, name, val)	__raw_writel((val), &(dw)->name)
--
--/* Default use SPI0 register for mrst, we will detect Penwell and use SPI1 */
--static unsigned long mrst_spi_paddr = MRST_REGBASE_SPI0;
--
--static u32 *pclk_spi0;
--/* Always contains an accessible address, start with 0 */
--static struct dw_spi_reg *pspi;
- 
- static struct kmsg_dumper dw_dumper;
- static int dumper_registered;
-@@ -116,77 +42,21 @@ static void dw_kmsg_dump(struct kmsg_dumper *dumper,
- 	size_t len;
- 
- 	/* When run to this, we'd better re-init the HW */
--	mrst_early_console_init();
-+	mid_spi_early_console_reset();
- 
- 	while (kmsg_dump_get_line(dumper, true, line, sizeof(line), &len))
--		early_mrst_console.write(&early_mrst_console, line, len);
--}
--
--/* Set the ratio rate to 115200, 8n1, IRQ disabled */
--static void max3110_write_config(void)
--{
--	u16 config;
--
--	config = 0xc001;
--	dw_writel(pspi, dr, config);
--}
--
--/* Translate char to a eligible word and send to max3110 */
--static void max3110_write_data(char c)
--{
--	u16 data;
--
--	data = 0x8000 | c;
--	dw_writel(pspi, dr, data);
-+		mid_spi_early_console.write(&mid_spi_early_console, line, len);
- }
- 
- void mrst_early_console_init(void)
- {
--	u32 ctrlr0 = 0;
--	u32 spi0_cdiv;
--	u32 freq; /* Freqency info only need be searched once */
--
--	/* Base clk is 100 MHz, the actual clk = 100M / (clk_divider + 1) */
--	pclk_spi0 = (void *)set_fixmap_offset_nocache(FIX_EARLYCON_MEM_BASE,
--							MRST_CLK_SPI0_REG);
--	spi0_cdiv = ((*pclk_spi0) & 0xe00) >> 9;
--	freq = 100000000 / (spi0_cdiv + 1);
-+	/* Default use SPI0 register for mrst */
-+	unsigned long spi_paddr = MRST_REGBASE_SPI0;
- 
-+	/* Detect Penwell and use SPI1 */
- 	if (mrst_identify_cpu() == MRST_CPU_CHIP_PENWELL)
--		mrst_spi_paddr = MRST_REGBASE_SPI1;
--
--	pspi = (void *)set_fixmap_offset_nocache(FIX_EARLYCON_MEM_BASE,
--						mrst_spi_paddr);
--
--	/* Disable SPI controller */
--	dw_writel(pspi, ssienr, 0);
--
--	/* Set control param, 8 bits, transmit only mode */
--	ctrlr0 = dw_readl(pspi, ctrl0);
--
--	ctrlr0 &= 0xfcc0;
--	ctrlr0 |= 0xf | (SPI_FRF_SPI << SPI_FRF_OFFSET)
--		      | (SPI_TMOD_TO << SPI_TMOD_OFFSET);
--	dw_writel(pspi, ctrl0, ctrlr0);
--
--	/*
--	 * Change the spi0 clk to comply with 115200 bps, use 100000 to
--	 * calculate the clk dividor to make the clock a little slower
--	 * than real baud rate.
--	 */
--	dw_writel(pspi, baudr, freq/100000);
--
--	/* Disable all INT for early phase */
--	dw_writel(pspi, imr, 0x0);
--
--	/* Set the cs to spi-uart */
--	dw_writel(pspi, ser, 0x2);
--
--	/* Enable the HW, the last step for HW init */
--	dw_writel(pspi, ssienr, 0x1);
--
--	/* Set the default configuration */
--	max3110_write_config();
-+		spi_paddr = MRST_REGBASE_SPI1;
-+	mid_spi_early_console_init(spi_paddr);
- 
- 	/* Register the kmsg dumper */
- 	if (!dumper_registered) {
-@@ -196,48 +66,6 @@ void mrst_early_console_init(void)
- 	}
- }
- 
--/* Slave select should be called in the read/write function */
--static void early_mrst_spi_putc(char c)
--{
--	unsigned int timeout;
--	u32 sr;
--
--	timeout = MRST_SPI_TIMEOUT;
--	/* Early putc needs to make sure the TX FIFO is not full */
--	while (--timeout) {
--		sr = dw_readl(pspi, sr);
--		if (!(sr & SR_TF_NOT_FULL))
--			cpu_relax();
--		else
--			break;
--	}
--
--	if (!timeout)
--		pr_warning("MRST earlycon: timed out\n");
--	else
--		max3110_write_data(c);
--}
--
--/* Early SPI only uses polling mode */
--static void early_mrst_spi_write(struct console *con, const char *str, unsigned n)
--{
--	int i;
--
--	for (i = 0; i < n && *str; i++) {
--		if (*str == '\n')
--			early_mrst_spi_putc('\r');
--		early_mrst_spi_putc(*str);
--		str++;
--	}
--}
--
--struct console early_mrst_console = {
--	.name =		"earlymrst",
--	.write =	early_mrst_spi_write,
--	.flags =	CON_PRINTBUFFER,
--	.index =	-1,
--};
--
- /*
-  * Following is the early console based on Medfield HSU (High
-  * Speed UART) device.
-diff --git a/drivers/platform/x86/Makefile b/drivers/platform/x86/Makefile
-index bf7e4f9..6e4ff46 100644
---- a/drivers/platform/x86/Makefile
-+++ b/drivers/platform/x86/Makefile
-@@ -50,3 +50,5 @@ obj-$(CONFIG_INTEL_MID_POWER_BUTTON)	+= intel_mid_powerbtn.o
- obj-$(CONFIG_INTEL_OAKTRAIL)	+= intel_oaktrail.o
- obj-$(CONFIG_SAMSUNG_Q10)	+= samsung-q10.o
- obj-$(CONFIG_APPLE_GMUX)	+= apple-gmux.o
-+
-+obj-$(CONFIG_EARLY_PRINTK)	+= early/
-diff --git a/drivers/platform/x86/early/Makefile b/drivers/platform/x86/early/Makefile
-new file mode 100644
-index 0000000..5d9408c
---- /dev/null
-+++ b/drivers/platform/x86/early/Makefile
-@@ -0,0 +1,5 @@
-+#
-+# Makefile for linux/drivers/platform/x86/early
-+# x86 Platform-Specific Early Printk Support
-+#
-+obj-$(CONFIG_EARLY_PRINTK_INTEL_MID_SPI)	+= intel_mid_spi.o
-diff --git a/drivers/platform/x86/early/intel_mid_spi.c b/drivers/platform/x86/early/intel_mid_spi.c
-new file mode 100644
-index 0000000..fa5a1a2
---- /dev/null
-+++ b/drivers/platform/x86/early/intel_mid_spi.c
-@@ -0,0 +1,220 @@
-+/*
-+ * intel_mid_spi.c - SPI UART early consoles for Intel MID platforms
-+ *
-+ * Copyright (c) 2008-2012, Intel Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; version 2
-+ * of the License.
-+ */
-+
-+/*
-+ * This file is originally implemented by Feng Tang <feng.tang@intel.com>.
-+ * It is moved here to co-exist with CONFIG_EARLY_PRINTK_ACPI.
-+ * Any questions you should contact the original author.
-+ */
-+
-+#include <linux/serial_reg.h>
-+#include <linux/serial_mfd.h>
-+#include <linux/kernel.h>
-+#include <linux/delay.h>
-+#include <linux/init.h>
-+#include <linux/export.h>
-+#include <linux/io.h>
-+#include <linux/intel_mid_early.h>
-+#include <asm/fixmap.h>
-+
-+#define DW_SPI_TIMEOUT			0x200000
-+#define DW_SPI0_CLK_REG			0xff11d86c
-+
-+/* Bit fields in CTRLR0 */
-+#define SPI_DFS_OFFSET			0
-+
-+#define SPI_FRF_OFFSET			4
-+#define SPI_FRF_SPI			0x0
-+#define SPI_FRF_SSP			0x1
-+#define SPI_FRF_MICROWIRE		0x2
-+#define SPI_FRF_RESV			0x3
-+
-+#define SPI_MODE_OFFSET			6
-+#define SPI_SCPH_OFFSET			6
-+#define SPI_SCOL_OFFSET			7
-+#define SPI_TMOD_OFFSET			8
-+#define	SPI_TMOD_TR			0x0		/* xmit & recv */
-+#define SPI_TMOD_TO			0x1		/* xmit only */
-+#define SPI_TMOD_RO			0x2		/* recv only */
-+#define SPI_TMOD_EPROMREAD		0x3		/* eeprom read mode */
-+
-+#define SPI_SLVOE_OFFSET		10
-+#define SPI_SRL_OFFSET			11
-+#define SPI_CFS_OFFSET			12
-+
-+/* Bit fields in SR, 7 bits */
-+#define SR_MASK				0x7f		/* cover 7 bits */
-+#define SR_BUSY				(1 << 0)
-+#define SR_TF_NOT_FULL			(1 << 1)
-+#define SR_TF_EMPT			(1 << 2)
-+#define SR_RF_NOT_EMPT			(1 << 3)
-+#define SR_RF_FULL			(1 << 4)
-+#define SR_TX_ERR			(1 << 5)
-+#define SR_DCOL				(1 << 6)
-+
-+struct dw_spi_reg {
-+	u32	ctrl0;
-+	u32	ctrl1;
-+	u32	ssienr;
-+	u32	mwcr;
-+	u32	ser;
-+	u32	baudr;
-+	u32	txfltr;
-+	u32	rxfltr;
-+	u32	txflr;
-+	u32	rxflr;
-+	u32	sr;
-+	u32	imr;
-+	u32	isr;
-+	u32	risr;
-+	u32	txoicr;
-+	u32	rxoicr;
-+	u32	rxuicr;
-+	u32	msticr;
-+	u32	icr;
-+	u32	dmacr;
-+	u32	dmatdlr;
-+	u32	dmardlr;
-+	u32	idr;
-+	u32	version;
-+
-+	/* Currently operates as 32 bits, though only the low 16 bits matter */
-+	u32	dr;
-+} __packed;
-+
-+#define dw_readl(dw, name)		__raw_readl(&(dw)->name)
-+#define dw_writel(dw, name, val)	__raw_writel((val), &(dw)->name)
-+
-+static u32 *pclk_spi0;
-+/* Always contains an accessible address, start with 0 */
-+static struct dw_spi_reg *pspi;
-+static int dw_spi_initialized;
-+static u32 dw_spi_regbase;
-+
-+/* Translate char to a eligible word and send to max3110 */
-+static void max3110_write_data(char c)
-+{
-+	u16 data;
-+
-+	data = 0x8000 | c;
-+	dw_writel(pspi, dr, data);
-+}
-+
-+/* Set the ratio rate to 115200, 8n1, IRQ disabled */
-+static void max3110_write_config(void)
-+{
-+	u16 config;
-+
-+	config = 0xc001;
-+	dw_writel(pspi, dr, config);
-+}
-+
-+int mid_spi_early_console_reset(void)
-+{
-+	u32 ctrlr0 = 0;
-+	u32 spi0_cdiv;
-+	u32 freq; /* Freqency info only need be searched once */
-+
-+	/* Base clk is 100 MHz, the actual clk = 100M / (clk_divider + 1) */
-+	pclk_spi0 = (void *)set_fixmap_offset_nocache(FIX_EARLYCON_MEM_BASE,
-+						      DW_SPI0_CLK_REG);
-+	spi0_cdiv = ((*pclk_spi0) & 0xe00) >> 9;
-+	freq = 100000000 / (spi0_cdiv + 1);
-+
-+	pspi = (void *)set_fixmap_offset_nocache(FIX_EARLYCON_MEM_BASE,
-+						 dw_spi_regbase);
-+
-+	/* Disable SPI controller */
-+	dw_writel(pspi, ssienr, 0);
-+
-+	/* Set control param, 8 bits, transmit only mode */
-+	ctrlr0 = dw_readl(pspi, ctrl0);
-+
-+	ctrlr0 &= 0xfcc0;
-+	ctrlr0 |= 0xf | (SPI_FRF_SPI << SPI_FRF_OFFSET)
-+		      | (SPI_TMOD_TO << SPI_TMOD_OFFSET);
-+	dw_writel(pspi, ctrl0, ctrlr0);
-+
-+	/*
-+	 * Change the spi0 clk to comply with 115200 bps, use 100000 to
-+	 * calculate the clk dividor to make the clock a little slower
-+	 * than real baud rate.
-+	 */
-+	dw_writel(pspi, baudr, freq/100000);
-+
-+	/* Disable all INT for early phase */
-+	dw_writel(pspi, imr, 0x0);
-+
-+	/* Set the cs to spi-uart */
-+	dw_writel(pspi, ser, 0x2);
-+
-+	/* Enable the HW, the last step for HW init */
-+	dw_writel(pspi, ssienr, 0x1);
-+
-+	/* Set the default configuration */
-+	max3110_write_config();
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(mid_spi_early_console_reset);
-+
-+/* Slave select should be called in the read/write function */
-+static void dw_early_spi_putc(char c)
-+{
-+	unsigned int timeout;
-+	u32 sr;
-+
-+	timeout = DW_SPI_TIMEOUT;
-+	/* Early putc needs to make sure the TX FIFO is not full */
-+	while (--timeout) {
-+		sr = dw_readl(pspi, sr);
-+		if (!(sr & SR_TF_NOT_FULL))
-+			cpu_relax();
-+		else
-+			break;
-+	}
-+
-+	if (!timeout)
-+		pr_warn("mid-spi-early: timed out\n");
-+	else
-+		max3110_write_data(c);
-+}
-+
-+/* Early SPI only uses polling mode */
-+static void dw_early_spi_write(struct console *con,
-+			       const char *str, unsigned n)
-+{
-+	int i;
-+
-+	for (i = 0; i < n && *str; i++) {
-+		if (*str == '\n')
-+			dw_early_spi_putc('\r');
-+		dw_early_spi_putc(*str);
-+		str++;
-+	}
-+}
-+
-+struct console mid_spi_early_console = {
-+	.name =		"earlymidspi",
-+	.write =	dw_early_spi_write,
-+	.flags =	CON_PRINTBUFFER,
-+	.index =	-1,
-+};
-+
-+void __init mid_spi_early_console_init(u32 spi_paddr)
-+{
-+	if (dw_spi_initialized)
-+		return;
-+	dw_spi_regbase = spi_paddr;
-+	mid_spi_early_console_reset();
-+	dw_spi_initialized = 1;
-+}
-+
-diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-index 1b2b356..ffa9d62 100644
---- a/include/acpi/actbl2.h
-+++ b/include/acpi/actbl2.h
-@@ -341,6 +341,7 @@ struct acpi_dbg2_device {
- 
- #define ACPI_DBG2_16550_COMPATIBLE  0x0000
- #define ACPI_DBG2_16550_SUBSET      0x0001
-+#define ACPI_DBG2_INTEL_MID_SPI     0x0002
- 
- #define ACPI_DBG2_1394_STANDARD     0x0000
- 
-diff --git a/include/linux/intel_mid_early.h b/include/linux/intel_mid_early.h
-new file mode 100644
-index 0000000..edba232
---- /dev/null
-+++ b/include/linux/intel_mid_early.h
-@@ -0,0 +1,12 @@
-+#ifndef LINUX_INTEL_MID_EARLY_H
-+#define LINUX_INTEL_MID_EARLY_H
-+
-+#include <linux/console.h>
-+
-+extern struct console mid_spi_early_console;
-+
-+extern void mid_spi_early_console_init(u32 spi_paddr);
-+extern int mid_spi_early_console_reset(void);
-+
-+#endif /* LINUX_INTEL_MID_EARLY_H */
-+
--- 
-1.7.10
-
+>  };
+>  
+>  /* Action requested to pm_qos_update_target */
+> @@ -187,10 +192,31 @@ static inline int dev_pm_qos_add_ancesto
+>  #ifdef CONFIG_PM_RUNTIME
+>  int dev_pm_qos_expose_latency_limit(struct device *dev, s32 value);
+>  void dev_pm_qos_hide_latency_limit(struct device *dev);
+> +int dev_pm_qos_expose_flags(struct device *dev, s32 value);
+> +void dev_pm_qos_hide_flags(struct device *dev);
+> +int dev_pm_qos_update_flags(struct device *dev, s32 mask, bool set);
+> +
+> +static inline s32 dev_pm_qos_requested_latency(struct device *dev)
+> +{
+> +	return dev->power.qos->latency_req->data.pnode.prio;
+> +}
+> +
+> +static inline s32 dev_pm_qos_requested_flags(struct device *dev)
+> +{
+> +	return dev->power.qos->flags_req->data.flr.flags;
+> +}
+>  #else
+>  static inline int dev_pm_qos_expose_latency_limit(struct device *dev, s32 value)
+>  			{ return 0; }
+>  static inline void dev_pm_qos_hide_latency_limit(struct device *dev) {}
+> +static inline int dev_pm_qos_expose_flags(struct device *dev, s32 value)
+> +			{ return 0; }
+> +static inline void dev_pm_qos_hide_flags(struct device *dev) {}
+> +static inline int dev_pm_qos_update_flags(struct device *dev, s32 m, bool set)
+> +			{ return 0; }
+> +
+> +static inline s32 dev_pm_qos_requested_latency(struct device *dev) { return 0; }
+> +static inline s32 dev_pm_qos_requested_flags(struct device *dev) { return 0; }
+>  #endif
+>  
+>  #endif
+> Index: linux/include/linux/pm.h
+> ===================================================================
+> --- linux.orig/include/linux/pm.h
+> +++ linux/include/linux/pm.h
+> @@ -548,7 +548,6 @@ struct dev_pm_info {
+>  	unsigned long		active_jiffies;
+>  	unsigned long		suspended_jiffies;
+>  	unsigned long		accounting_timestamp;
+> -	struct dev_pm_qos_request *pq_req;
+>  #endif
+>  	struct pm_subsys_data	*subsys_data;  /* Owned by the subsystem. */
+>  	struct dev_pm_qos	*qos;
+> Index: linux/drivers/base/power/qos.c
+> ===================================================================
+> --- linux.orig/drivers/base/power/qos.c
+> +++ linux/drivers/base/power/qos.c
+> @@ -40,6 +40,7 @@
+>  #include <linux/device.h>
+>  #include <linux/mutex.h>
+>  #include <linux/export.h>
+> +#include <linux/pm_runtime.h>
+>  
+>  #include "power.h"
+>  
+> @@ -322,6 +323,36 @@ int dev_pm_qos_add_request(struct device
+>  EXPORT_SYMBOL_GPL(dev_pm_qos_add_request);
+>  
+>  /**
+> + * __dev_pm_qos_update_request - Modify an existing device PM QoS request.
+> + * @req : PM QoS request to modify.
+> + * @new_value: New value to request.
+> + */
+> +int __dev_pm_qos_update_request(struct dev_pm_qos_request *req, s32 new_value)
+> +{
+> +	s32 curr_value;
+> +	int ret = 0;
+> +
+> +	if (!req->dev->power.qos)
+> +		return -ENODEV;
+> +
+> +	switch(req->type) {
+> +	case DEV_PM_QOS_LATENCY:
+> +		curr_value = req->data.pnode.prio;
+> +		break;
+> +	case DEV_PM_QOS_FLAGS:
+> +		curr_value = req->data.flr.flags;
+> +		break;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (curr_value != new_value)
+> +		ret = apply_constraint(req, PM_QOS_UPDATE_REQ, new_value);
+> +
+> +	return ret;
+> +}
+> +
+> +/**
+>   * dev_pm_qos_update_request - modifies an existing qos request
+>   * @req : handle to list element holding a dev_pm_qos request to use
+>   * @new_value: defines the qos request
+> @@ -336,11 +367,9 @@ EXPORT_SYMBOL_GPL(dev_pm_qos_add_request
+>   * -EINVAL in case of wrong parameters, -ENODEV if the device has been
+>   * removed from the system
+>   */
+> -int dev_pm_qos_update_request(struct dev_pm_qos_request *req,
+> -			      s32 new_value)
+> +int dev_pm_qos_update_request(struct dev_pm_qos_request *req, s32 new_value)
+>  {
+> -	s32 curr_value;
+> -	int ret = 0;
+> +	int ret;
+>  
+>  	if (!req) /*guard against callers passing in null */
+>  		return -EINVAL;
+> @@ -350,29 +379,9 @@ int dev_pm_qos_update_request(struct dev
+>  		return -EINVAL;
+>  
+>  	mutex_lock(&dev_pm_qos_mtx);
+> -
+> -	if (!req->dev->power.qos) {
+> -		ret = -ENODEV;
+> -		goto out;
+> -	}
+> -
+> -	switch(req->type) {
+> -	case DEV_PM_QOS_LATENCY:
+> -		curr_value = req->data.pnode.prio;
+> -		break;
+> -	case DEV_PM_QOS_FLAGS:
+> -		curr_value = req->data.flr.flags;
+> -		break;
+> -	default:
+> -		ret = -EINVAL;
+> -		goto out;
+> -	}
+> -
+> -	if (curr_value != new_value)
+> -		ret = apply_constraint(req, PM_QOS_UPDATE_REQ, new_value);
+> -
+> - out:
+> +	__dev_pm_qos_update_request(req, new_value);
+>  	mutex_unlock(&dev_pm_qos_mtx);
+> +
+>  	return ret;
+>  }
+>  EXPORT_SYMBOL_GPL(dev_pm_qos_update_request);
+> @@ -533,10 +542,19 @@ int dev_pm_qos_add_ancestor_request(stru
+>  EXPORT_SYMBOL_GPL(dev_pm_qos_add_ancestor_request);
+>  
+>  #ifdef CONFIG_PM_RUNTIME
+> -static void __dev_pm_qos_drop_user_request(struct device *dev)
+> +static void __dev_pm_qos_drop_user_request(struct device *dev,
+> +					   enum dev_pm_qos_req_type type)
+>  {
+> -	dev_pm_qos_remove_request(dev->power.pq_req);
+> -	dev->power.pq_req = NULL;
+> +	switch(type) {
+> +	case DEV_PM_QOS_LATENCY:
+> +		dev_pm_qos_remove_request(dev->power.qos->latency_req);
+> +		dev->power.qos->latency_req = NULL;
+> +		break;
+> +	case DEV_PM_QOS_FLAGS:
+> +		dev_pm_qos_remove_request(dev->power.qos->flags_req);
+> +		dev->power.qos->flags_req = NULL;
+> +		break;
+> +	}
+>  }
+>  
+>  /**
+> @@ -552,7 +570,7 @@ int dev_pm_qos_expose_latency_limit(stru
+>  	if (!device_is_registered(dev) || value < 0)
+>  		return -EINVAL;
+>  
+> -	if (dev->power.pq_req)
+> +	if (dev->power.qos && dev->power.qos->latency_req)
+>  		return -EEXIST;
+>  
+>  	req = kzalloc(sizeof(*req), GFP_KERNEL);
+> @@ -563,10 +581,10 @@ int dev_pm_qos_expose_latency_limit(stru
+>  	if (ret < 0)
+>  		return ret;
+>  
+> -	dev->power.pq_req = req;
+> -	ret = pm_qos_sysfs_add(dev);
+> +	dev->power.qos->latency_req = req;
+> +	ret = pm_qos_sysfs_add_latency(dev);
+>  	if (ret)
+> -		__dev_pm_qos_drop_user_request(dev);
+> +		__dev_pm_qos_drop_user_request(dev, DEV_PM_QOS_LATENCY);
+>  
+>  	return ret;
+>  }
+> @@ -578,10 +596,87 @@ EXPORT_SYMBOL_GPL(dev_pm_qos_expose_late
+>   */
+>  void dev_pm_qos_hide_latency_limit(struct device *dev)
+>  {
+> -	if (dev->power.pq_req) {
+> -		pm_qos_sysfs_remove(dev);
+> -		__dev_pm_qos_drop_user_request(dev);
+> +	if (dev->power.qos && dev->power.qos->latency_req) {
+> +		pm_qos_sysfs_remove_latency(dev);
+> +		__dev_pm_qos_drop_user_request(dev, DEV_PM_QOS_LATENCY);
+>  	}
+>  }
+>  EXPORT_SYMBOL_GPL(dev_pm_qos_hide_latency_limit);
+> +
+> +/**
+> + * dev_pm_qos_expose_flags - Expose PM QoS flags of a device to user space.
+> + * @dev: Device whose PM QoS flags are to be exposed to user space.
+> + * @val: Initial values of the flags.
+> + */
+> +int dev_pm_qos_expose_flags(struct device *dev, s32 val)
+> +{
+> +	struct dev_pm_qos_request *req;
+> +	int ret;
+> +
+> +	if (!device_is_registered(dev))
+> +		return -EINVAL;
+> +
+> +	if (dev->power.qos && dev->power.qos->flags_req)
+> +		return -EEXIST;
+> +
+> +	req = kzalloc(sizeof(*req), GFP_KERNEL);
+> +	if (!req)
+> +		return -ENOMEM;
+> +
+> +	ret = dev_pm_qos_add_request(dev, req, DEV_PM_QOS_FLAGS, val);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	dev->power.qos->flags_req = req;
+> +	ret = pm_qos_sysfs_add_flags(dev);
+> +	if (ret)
+> +		__dev_pm_qos_drop_user_request(dev, DEV_PM_QOS_FLAGS);
+> +
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(dev_pm_qos_expose_flags);
+> +
+> +/**
+> + * dev_pm_qos_hide_flags - Hide PM QoS flags of a device from user space.
+> + * @dev: Device whose PM QoS flags are to be hidden from user space.
+> + */
+> +void dev_pm_qos_hide_flags(struct device *dev)
+> +{
+> +	if (dev->power.qos && dev->power.qos->flags_req) {
+> +		pm_qos_sysfs_remove_flags(dev);
+> +		__dev_pm_qos_drop_user_request(dev, DEV_PM_QOS_FLAGS);
+> +	}
+> +}
+> +EXPORT_SYMBOL_GPL(dev_pm_qos_hide_flags);
+> +
+> +/**
+> + * dev_pm_qos_update_flags - Update PM QoS flags request owned by user space.
+> + * @dev: Device to update the PM QoS flags request for.
+> + * @mask: Flags to set/clear.
+> + * @set: Whether to set or clear the flags (true means set).
+> + */
+> +int dev_pm_qos_update_flags(struct device *dev, s32 mask, bool set)
+> +{
+> +	s32 value;
+> +	int ret;
+> +
+> +	if (!dev->power.qos || !dev->power.qos->flags_req)
+> +		return -EINVAL;
+> +
+> +	pm_runtime_get_sync(dev);
+> +	mutex_lock(&dev_pm_qos_mtx);
+> +
+> +	value = dev_pm_qos_requested_flags(dev);
+> +	if (set)
+> +		value |= mask;
+> +	else
+> +		value &= ~mask;
+> +
+> +	ret = __dev_pm_qos_update_request(dev->power.qos->flags_req, value);
+> +
+> +	mutex_unlock(&dev_pm_qos_mtx);
+> +	pm_runtime_put(dev);
+> +
+> +	return ret;
+> +}
+>  #endif /* CONFIG_PM_RUNTIME */
+> Index: linux/drivers/base/power/power.h
+> ===================================================================
+> --- linux.orig/drivers/base/power/power.h
+> +++ linux/drivers/base/power/power.h
+> @@ -93,8 +93,10 @@ extern void dpm_sysfs_remove(struct devi
+>  extern void rpm_sysfs_remove(struct device *dev);
+>  extern int wakeup_sysfs_add(struct device *dev);
+>  extern void wakeup_sysfs_remove(struct device *dev);
+> -extern int pm_qos_sysfs_add(struct device *dev);
+> -extern void pm_qos_sysfs_remove(struct device *dev);
+> +extern int pm_qos_sysfs_add_latency(struct device *dev);
+> +extern void pm_qos_sysfs_remove_latency(struct device *dev);
+> +extern int pm_qos_sysfs_add_flags(struct device *dev);
+> +extern void pm_qos_sysfs_remove_flags(struct device *dev);
+>  
+>  #else /* CONFIG_PM */
+>  
+> Index: linux/drivers/base/power/sysfs.c
+> ===================================================================
+> --- linux.orig/drivers/base/power/sysfs.c
+> +++ linux/drivers/base/power/sysfs.c
+> @@ -221,7 +221,7 @@ static DEVICE_ATTR(autosuspend_delay_ms,
+>  static ssize_t pm_qos_latency_show(struct device *dev,
+>  				   struct device_attribute *attr, char *buf)
+>  {
+> -	return sprintf(buf, "%d\n", dev->power.pq_req->data.pnode.prio);
+> +	return sprintf(buf, "%d\n", dev_pm_qos_requested_latency(dev));
+>  }
+>  
+>  static ssize_t pm_qos_latency_store(struct device *dev,
+> @@ -237,12 +237,67 @@ static ssize_t pm_qos_latency_store(stru
+>  	if (value < 0)
+>  		return -EINVAL;
+>  
+> -	ret = dev_pm_qos_update_request(dev->power.pq_req, value);
+> +	ret = dev_pm_qos_update_request(dev->power.qos->latency_req, value);
+>  	return ret < 0 ? ret : n;
+>  }
+>  
+>  static DEVICE_ATTR(pm_qos_resume_latency_us, 0644,
+>  		   pm_qos_latency_show, pm_qos_latency_store);
+> +
+> +static ssize_t pm_qos_no_power_off_show(struct device *dev,
+> +					struct device_attribute *attr,
+> +					char *buf)
+> +{
+> +	return sprintf(buf, "%d\n", !!(dev_pm_qos_requested_flags(dev)
+> +					& PM_QOS_FLAG_NO_POWER_OFF));
+> +}
+> +
+> +static ssize_t pm_qos_no_power_off_store(struct device *dev,
+> +					 struct device_attribute *attr,
+> +					 const char *buf, size_t n)
+> +{
+> +	int ret;
+> +
+> +	if (kstrtoint(buf, 0, &ret))
+> +		return -EINVAL;
+> +
+> +	if (ret != 0 && ret != 1)
+> +		return -EINVAL;
+> +
+> +	ret = dev_pm_qos_update_flags(dev, PM_QOS_FLAG_NO_POWER_OFF, ret);
+> +	return ret < 0 ? ret : n;
+> +}
+> +
+> +static DEVICE_ATTR(pm_qos_no_power_off, 0644,
+> +		   pm_qos_no_power_off_show, pm_qos_no_power_off_store);
+> +
+> +static ssize_t pm_qos_remote_wakeup_show(struct device *dev,
+> +					 struct device_attribute *attr,
+> +					 char *buf)
+> +{
+> +	return sprintf(buf, "%d\n", !!(dev_pm_qos_requested_flags(dev)
+> +					& PM_QOS_FLAG_REMOTE_WAKEUP));
+> +}
+> +
+> +static ssize_t pm_qos_remote_wakeup_store(struct device *dev,
+> +					  struct device_attribute *attr,
+> +					  const char *buf, size_t n)
+> +{
+> +	s32 value;
+> +	int ret;
+> +
+> +	if (kstrtoint(buf, 0, &ret))
+> +		return -EINVAL;
+> +
+> +	if (ret != 0 && ret != 1)
+> +		return -EINVAL;
+> +
+> +	ret = dev_pm_qos_update_flags(dev, PM_QOS_FLAG_REMOTE_WAKEUP, ret);
+> +	return ret < 0 ? ret : n;
+> +}
+> +
+> +static DEVICE_ATTR(pm_qos_remote_wakeup, 0644,
+> +		   pm_qos_remote_wakeup_show, pm_qos_remote_wakeup_store);
+>  #endif /* CONFIG_PM_RUNTIME */
+>  
+>  #ifdef CONFIG_PM_SLEEP
+> @@ -564,15 +619,27 @@ static struct attribute_group pm_runtime
+>  	.attrs	= runtime_attrs,
+>  };
+>  
+> -static struct attribute *pm_qos_attrs[] = {
+> +static struct attribute *pm_qos_latency_attrs[] = {
+>  #ifdef CONFIG_PM_RUNTIME
+>  	&dev_attr_pm_qos_resume_latency_us.attr,
+>  #endif /* CONFIG_PM_RUNTIME */
+>  	NULL,
+>  };
+> -static struct attribute_group pm_qos_attr_group = {
+> +static struct attribute_group pm_qos_latency_attr_group = {
+> +	.name	= power_group_name,
+> +	.attrs	= pm_qos_latency_attrs,
+> +};
+> +
+> +static struct attribute *pm_qos_flags_attrs[] = {
+> +#ifdef CONFIG_PM_RUNTIME
+> +	&dev_attr_pm_qos_no_power_off.attr,
+> +	&dev_attr_pm_qos_remote_wakeup.attr,
+> +#endif /* CONFIG_PM_RUNTIME */
+> +	NULL,
+> +};
+> +static struct attribute_group pm_qos_flags_attr_group = {
+>  	.name	= power_group_name,
+> -	.attrs	= pm_qos_attrs,
+> +	.attrs	= pm_qos_flags_attrs,
+>  };
+>  
+>  int dpm_sysfs_add(struct device *dev)
+> @@ -615,14 +682,24 @@ void wakeup_sysfs_remove(struct device *
+>  	sysfs_unmerge_group(&dev->kobj, &pm_wakeup_attr_group);
+>  }
+>  
+> -int pm_qos_sysfs_add(struct device *dev)
+> +int pm_qos_sysfs_add_latency(struct device *dev)
+> +{
+> +	return sysfs_merge_group(&dev->kobj, &pm_qos_latency_attr_group);
+> +}
+> +
+> +void pm_qos_sysfs_remove_latency(struct device *dev)
+> +{
+> +	sysfs_unmerge_group(&dev->kobj, &pm_qos_latency_attr_group);
+> +}
+> +
+> +int pm_qos_sysfs_add_flags(struct device *dev)
+>  {
+> -	return sysfs_merge_group(&dev->kobj, &pm_qos_attr_group);
+> +	return sysfs_merge_group(&dev->kobj, &pm_qos_flags_attr_group);
+>  }
+>  
+> -void pm_qos_sysfs_remove(struct device *dev)
+> +void pm_qos_sysfs_remove_flags(struct device *dev)
+>  {
+> -	sysfs_unmerge_group(&dev->kobj, &pm_qos_attr_group);
+> +	sysfs_unmerge_group(&dev->kobj, &pm_qos_flags_attr_group);
+>  }
+>  
+>  void rpm_sysfs_remove(struct device *dev)
+> Index: linux/Documentation/ABI/testing/sysfs-devices-power
+> ===================================================================
+> --- linux.orig/Documentation/ABI/testing/sysfs-devices-power
+> +++ linux/Documentation/ABI/testing/sysfs-devices-power
+> @@ -204,3 +204,34 @@ Description:
+>  
+>  		This attribute has no effect on system-wide suspend/resume and
+>  		hibernation.
+> +
+> +What:		/sys/devices/.../power/pm_qos_no_power_off
+> +Date:		September 2012
+> +Contact:	Rafael J. Wysocki <rjw@sisk.pl>
+> +Description:
+> +		The /sys/devices/.../power/pm_qos_no_power_off attribute
+> +		is used for manipulating the PM QoS "no power off" flag.  If
+> +		set, this flag indicates to the kernel that power should not
+> +		be removed entirely from the device.
+> +
+> +		Not all drivers support this attribute.  If it isn't supported,
+> +		it is not present.
+> +
+> +		This attribute has no effect on system-wide suspend/resume and
+> +		hibernation.
+> +
+> +What:		/sys/devices/.../power/pm_qos_remote_wakeup
+> +Date:		September 2012
+> +Contact:	Rafael J. Wysocki <rjw@sisk.pl>
+> +Description:
+> +		The /sys/devices/.../power/pm_qos_remote_wakeup attribute
+> +		is used for manipulating the PM QoS "remote wakeup required"
+> +		flag.  If set, this flag indicates to the kernel that the
+> +		device is a source of user events that have to be signaled from
+> +		its low-power states.
+> +
+> +		Not all drivers support this attribute.  If it isn't supported,
+> +		it is not present.
+> +
+> +		This attribute has no effect on system-wide suspend/resume and
+> +		hibernation.
+>
+acked-by: mark gross <markgross@thegnar.org>
