@@ -1,117 +1,181 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH 4/4] cpuidle - support multiple drivers
-Date: Thu, 11 Oct 2012 12:04:37 +0200
-Message-ID: <507699B5.3010702@linaro.org>
-References: <1348526634-19029-1-git-send-email-daniel.lezcano@linaro.org> <1348526634-19029-5-git-send-email-daniel.lezcano@linaro.org> <2357350.9DgMVa61GL@vostro.rjw.lan>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: [PATCH v2] acpi : acpi_bus_trim() stops removing devices when failing
+ to remove the device
+Date: Thu, 11 Oct 2012 19:12:28 +0900
+Message-ID: <50769B8C.2060901@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:57932 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758289Ab2JKKEm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Oct 2012 06:04:42 -0400
-Received: by mail-bk0-f46.google.com with SMTP id jk13so851649bkc.19
-        for <linux-acpi@vger.kernel.org>; Thu, 11 Oct 2012 03:04:41 -0700 (PDT)
-In-Reply-To: <2357350.9DgMVa61GL@vostro.rjw.lan>
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:37008 "EHLO
+	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758309Ab2JKKNO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Oct 2012 06:13:14 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, linaro-dev@lists.linaro.org, linux-pm@vger.kernel.org, pdeschrijver@nvidia.com, patches@linaro.org, linux-acpi@vger.kernel.org, lenb@kernel.org
+To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: toshi.kani@hp.com, lenb@kernel.org, wency@cn.fujitsu.com, vasilis.liaskovitis@profitbricks.com
 
-On 10/07/2012 11:26 PM, Rafael J. Wysocki wrote:
-> On Tuesday 25 of September 2012 00:43:54 Daniel Lezcano wrote:
->> With the tegra3 and the big.LITTLE [1] new architectures, several cp=
-us
->> with different characteristics (latencies and states) can co-exists =
-on the
->> system.
->>
->> The cpuidle framework has the limitation of handling only identical =
-cpus.
->>
->> This patch removes this limitation by introducing the multiple drive=
-r support
->> for cpuidle.
->>
->> This option is configurable at compile time and should be enabled fo=
-r the
->> architectures mentioned above. So there is no impact for the other p=
-latforms
->> if the option is disabled. The option defaults to 'n'. Note the mult=
-iple drivers
->> support is also compatible with the existing drivers, even if just o=
-ne driver is
->> needed, all the cpu will be tied to this driver using an extra small=
- chunk of
->> processor memory.
->>
->> The multiple driver support use a per-cpu driver pointer instead of =
-a global
->> variable and the accessor to this variable are done from a cpu conte=
-xt.
+acpi_bus_trim() stops removing devices, when acpi_bus_remove() return error
+number. But acpi_bus_remove() cannot return error number correctly.
+acpi_bus_remove() only return -EINVAL, when dev argument is NULL. Thus even if
+device cannot be removed correctly, acpi_bus_trim() ignores and continues to
+remove devices. acpi_bus_hot_remove_device() uses acpi_bus_trim() for removing
+devices. Therefore acpi_bus_hot_remove_device() can send "_EJ0" to firmware,
+even if the device is running on the system. In this case, the system cannot
+work well.
 
-Thanks Rafael for the review.
+Vasilis hit the bug at memory hotplug and reported it as follow:
+https://lkml.org/lkml/2012/9/26/318
 
-I took into account all your remarks for the V2.
+So acpi_bus_trim() should check whether device was removed or not correctly.
+The patch adds error check into some functions to remove the device.
 
-[ cut ]
+Applying the patch, acpi_bus_trim() stops removing devices when failing
+to remove the device. But I think there is no impact with the
+exceptionof CPU and Memory hotplug path. Because other device also fails
+but the fail is an irregular case like device is NULL.
 
->> +static int __cpuidle_register_all_cpu_driver(struct cpuidle_driver =
-*drv)
->> +{
->> +	int ret =3D 0;
->> +	int i, cpu;
->> +
->> +	for_each_present_cpu(cpu) {
->> +		ret =3D __cpuidle_register_driver(drv, cpu);
->> +		if (!ret)
->> +			continue;
->> +		for (i =3D cpu - 1; i >=3D 0; i--)
-> I wonder if this is going to work in all cases.  For example, is ther=
-e any
-> guarantee that the CPU numbers start from 0 and that there are no gap=
-s?
+v1->v2
+- add a rollback for reinstalling a notify handler.
 
-AFAICS, the cpumask.h is not assuming the cpu numbers start from zero
-and they are contiguous.
+Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-I will fix this reverse loop, thanks for spotting this.
+---
+ drivers/acpi/scan.c    |   21 ++++++++++++++++++---
+ drivers/base/dd.c      |   22 +++++++++++++++++-----
+ include/linux/device.h |    2 +-
+ 3 files changed, 36 insertions(+), 9 deletions(-)
 
-[ cut ]
+Index: linux-3.6/drivers/acpi/scan.c
+===================================================================
+--- linux-3.6.orig/drivers/acpi/scan.c	2012-10-11 18:31:40.189019503 +0900
++++ linux-3.6/drivers/acpi/scan.c	2012-10-11 18:42:35.669041641 +0900
+@@ -445,18 +445,29 @@ static int acpi_device_remove(struct dev
+ {
+ 	struct acpi_device *acpi_dev = to_acpi_device(dev);
+ 	struct acpi_driver *acpi_drv = acpi_dev->driver;
++	int ret;
+ 
+ 	if (acpi_drv) {
+ 		if (acpi_drv->ops.notify)
+ 			acpi_device_remove_notify_handler(acpi_dev);
+-		if (acpi_drv->ops.remove)
+-			acpi_drv->ops.remove(acpi_dev, acpi_dev->removal_type);
++		if (acpi_drv->ops.remove) {
++			ret = acpi_drv->ops.remove(acpi_dev,
++						   acpi_dev->removal_type);
++			if (ret)
++				goto rollback;
++		}
+ 	}
+ 	acpi_dev->driver = NULL;
+ 	acpi_dev->driver_data = NULL;
+ 
+ 	put_device(dev);
+ 	return 0;
++
++rollback:
++	if (acpi_drv->ops.notify)
++		acpi_device_install_notify_handler(acpi_dev);
++
++	return ret;
+ }
+ 
+ struct bus_type acpi_bus_type = {
+@@ -1226,11 +1237,15 @@ static int acpi_device_set_context(struc
+ 
+ static int acpi_bus_remove(struct acpi_device *dev, int rmdevice)
+ {
++	int ret;
++
+ 	if (!dev)
+ 		return -EINVAL;
+ 
+ 	dev->removal_type = ACPI_BUS_REMOVAL_EJECT;
+-	device_release_driver(&dev->dev);
++	ret = device_release_driver(&dev->dev);
++	if (ret)
++		return ret;
+ 
+ 	if (!rmdevice)
+ 		return 0;
+Index: linux-3.6/drivers/base/dd.c
+===================================================================
+--- linux-3.6.orig/drivers/base/dd.c	2012-10-11 18:31:40.191019505 +0900
++++ linux-3.6/drivers/base/dd.c	2012-10-11 18:31:46.873020548 +0900
+@@ -475,9 +475,10 @@ EXPORT_SYMBOL_GPL(driver_attach);
+  * __device_release_driver() must be called with @dev lock held.
+  * When called for a USB interface, @dev->parent lock must be held as well.
+  */
+-static void __device_release_driver(struct device *dev)
++static int __device_release_driver(struct device *dev)
+ {
+ 	struct device_driver *drv;
++	int ret = 0;
+ 
+ 	drv = dev->driver;
+ 	if (drv) {
+@@ -493,9 +494,11 @@ static void __device_release_driver(stru
+ 		pm_runtime_put_sync(dev);
+ 
+ 		if (dev->bus && dev->bus->remove)
+-			dev->bus->remove(dev);
++			ret = dev->bus->remove(dev);
+ 		else if (drv->remove)
+-			drv->remove(dev);
++			ret = drv->remove(dev);
++		if (ret)
++			goto rollback;
+ 		devres_release_all(dev);
+ 		dev->driver = NULL;
+ 		dev_set_drvdata(dev, NULL);
+@@ -506,6 +509,12 @@ static void __device_release_driver(stru
+ 						     dev);
+ 
+ 	}
++
++	return ret;
++
++rollback:
++	driver_sysfs_add(dev);
++	return ret;
+ }
+ 
+ /**
+@@ -515,16 +524,19 @@ static void __device_release_driver(stru
+  * Manually detach device from driver.
+  * When called for a USB interface, @dev->parent lock must be held.
+  */
+-void device_release_driver(struct device *dev)
++int device_release_driver(struct device *dev)
+ {
++	int ret;
+ 	/*
+ 	 * If anyone calls device_release_driver() recursively from
+ 	 * within their ->remove callback for the same device, they
+ 	 * will deadlock right here.
+ 	 */
+ 	device_lock(dev);
+-	__device_release_driver(dev);
++	ret = __device_release_driver(dev);
+ 	device_unlock(dev);
++
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(device_release_driver);
+ 
+Index: linux-3.6/include/linux/device.h
+===================================================================
+--- linux-3.6.orig/include/linux/device.h	2012-10-11 18:31:40.194019508 +0900
++++ linux-3.6/include/linux/device.h	2012-10-11 18:31:46.881020556 +0900
+@@ -834,7 +834,7 @@ static inline void *dev_get_platdata(con
+  * for information on use.
+  */
+ extern int __must_check device_bind_driver(struct device *dev);
+-extern void device_release_driver(struct device *dev);
++extern int device_release_driver(struct device *dev);
+ extern int  __must_check device_attach(struct device *dev);
+ extern int __must_check driver_attach(struct device_driver *drv);
+ extern int __must_check device_reprobe(struct device *dev);
 
->>  void cpuidle_unregister_driver(struct cpuidle_driver *drv)
->>  {
->>  	spin_lock(&cpuidle_driver_lock);
->> -	__cpuidle_unregister_driver(drv);
->> +#ifdef CONFIG_CPU_IDLE_MULTIPLE_DRIVERS
->> +	__cpuidle_unregister_all_cpu_driver(drv);
->> +#else
->> +	__cpuidle_unregister_driver(drv, smp_processor_id());
->> +#endif
-> I'm slightly cautious about using smp_processor_id() above.
-> get_cpu()/put_cpu() is the preferred way of doing this nowadays (alth=
-ough
-> this particular code is under the spinlock, so it should be OK).
-yes, get_cpu does preempt_disable() and smp_processor_id()
-As spin_lock does also preempt_disable() that should be ok.
-But I changed the code to use the preferred way.
-
-Thanks
--- Daniel
-
-
---=20
- <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software for=
- ARM SoCs
-
-=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
-<http://twitter.com/#!/linaroorg> Twitter |
-<http://www.linaro.org/linaro-blog/> Blog
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
