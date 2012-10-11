@@ -1,43 +1,91 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v6 1/2] ACPI: Add early console framework for DBGP/DBG2.
-Date: Wed, 10 Oct 2012 23:39:19 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E88B9CCEC@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1348652044.git.lv.zheng@intel.com>
- <09ee0e9c79c57da2fc9d0af1c2daeaacdc0bb234.1349838218.git.lv.zheng@intel.com>
- <20121010141057.GF4005@phenom.dumpdata.com>
+From: Ni zhan Chen <nizhan.chen@gmail.com>
+Subject: Re: [PATCH 8/10] memory-hotplug : remove page table of x86_64 architecture
+Date: Thu, 11 Oct 2012 08:35:50 +0800
+Message-ID: <50761466.9010902@gmail.com>
+References: <506E43E0.70507@jp.fujitsu.com> <506E4799.30407@jp.fujitsu.com> <m2d30tvatv.fsf@firstfloor.org> <50726354.60803@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:29733 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756850Ab2JJXjX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Oct 2012 19:39:23 -0400
-In-Reply-To: <20121010141057.GF4005@phenom.dumpdata.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <50726354.60803@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Wen Congyang <wency@cn.fujitsu.com>
+Cc: Andi Kleen <andi@firstfloor.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
-To: Konrad Rzeszutek Wilk <konrad@kernel.org>
-Cc: "Brown, Len" <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Jason Wessel <jason.wessel@windriver.com>, "Tang, Feng" <feng.tang@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>
 
-> > +static __initdata DECLARE_BITMAP(acpi_early_flags,
-> > +MAX_ACPI_DBG_PORTS*2);
+On 10/08/2012 01:23 PM, Wen Congyang wrote:
+> At 10/08/2012 12:37 PM, Andi Kleen Wrote:
+>> Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com> writes:
+>>> +			}
+>>> +
+>>> +			/*
+>>> +			 * We use 2M page, but we need to remove part of them,
+>>> +			 * so split 2M page to 4K page.
+>>> +			 */
+>>> +			pte = alloc_low_page(&pte_phys);
+>> What happens when the allocation fails?
+>>
+>> alloc_low_page seems to be buggy there too, it would __pa a NULL
+>> pointer.
+> Yes, it will cause kernek panicked in __pa() if CONFI_DEBUG_VIRTUAL is set.
+> Otherwise, it will return a NULL pointer. I will update this patch to deal
+> with NULL pointer.
+>
+>>> +		if (pud_large(*pud)) {
+>>> +			if ((addr & ~PUD_MASK) == 0 && next <= end) {
+>>> +				set_pud(pud, __pud(0));
+>>> +				pages++;
+>>> +				continue;
+>>> +			}
+>>> +
+>>> +			/*
+>>> +			 * We use 1G page, but we need to remove part of them,
+>>> +			 * so split 1G page to 2M page.
+>>> +			 */
+>>> +			pmd = alloc_low_page(&pmd_phys);
+>> Same here
+>>
+>>> +			__split_large_page((pte_t *)pud, addr, (pte_t *)pmd);
+>>> +
+>>> +			spin_lock(&init_mm.page_table_lock);
+>>> +			pud_populate(&init_mm, pud, __va(pmd_phys));
+>>> +			spin_unlock(&init_mm.page_table_lock);
+>>> +		}
+>>> +
+>>> +		pmd = map_low_page(pmd_offset(pud, 0));
+>>> +		phys_pmd_remove(pmd, addr, end);
+>>> +		unmap_low_page(pmd);
+>>> +		__flush_tlb_all();
+>>> +	}
+>>> +	__flush_tlb_all();
 
-It's OK since the keep bit will be derived by the real earlycon drivers in the __acpi_early_console_start() which is an arch specific interface.
-You can find this usage in the [PATCH v6 2/2].
+Hi Congyang,
 
-> > +	set_bit(port, acpi_early_flags);
-> > +	if (keep)
-> > +		set_bit(port+MAX_ACPI_DBG_PORTS, acpi_early_flags);
-> Put a comment explaining why you use half of the bitmap to mark them as
-> 'keep'. Thought wouldn't be just easier if you had another bitmap:
-> acpi_keep_ports?
-> To set those instead of using this bitmap?
+I see you call __flush_tlb_all() every pud entry(all pmd, pte related to 
+it changed) modified, then how to determine the flush frequency? why not 
+every pmd entry?
 
-I prefer to put comment here.
-I've been a deep embedded engineer for the last 5 years, implementing software containing 4 bus protocol stacks within 128bytes ram and 16kbytes rom, where we used high modularity design patterns.
-Thus made my habit being critical to ram/rom consumption...
+Regards,
+Chen
 
-I'm OOO now, the updated version will be sent next week.
+>> This doesn't flush the other CPUs doesn't it?
+> How to flush the other CPU's tlb? use on_each_cpu() to run __flush_tlb_all()
+> on each online cpu?
+>
+> Thanks
+> Wen Congyang
+>
+>> -Andi
+>>
+> --
+> To unsubscribe, send a message with 'unsubscribe linux-mm' in
+> the body to majordomo@kvack.org.  For more info on Linux MM,
+> see: http://www.linux-mm.org/ .
+> Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+>
 
-Thanks for your comments and best regards/Lv Zheng
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
