@@ -1,193 +1,117 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH v2] acpi : acpi_bus_trim() stops removing devices when
- failing to remove the device
-Date: Thu, 11 Oct 2012 07:58:32 -0600
-Message-ID: <1349963912.23493.26.camel@misato.fc.hp.com>
-References: <50769B8C.2060901@jp.fujitsu.com>
+Subject: Re: [PATCH v2] ACPI: Add ACPI CPU hot-remove support
+Date: Thu, 11 Oct 2012 09:16:02 -0600
+Message-ID: <1349968562.23493.49.camel@misato.fc.hp.com>
+References: <1345841699-20067-1-git-send-email-toshi.kani@hp.com>
+	 <1349790229.23493.2.camel@misato.fc.hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0027.austin.hp.com ([15.216.28.34]:1729 "EHLO
-	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758679Ab2JKOFp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Oct 2012 10:05:45 -0400
-In-Reply-To: <50769B8C.2060901@jp.fujitsu.com>
+Received: from g4t0014.houston.hp.com ([15.201.24.17]:33641 "EHLO
+	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751819Ab2JKPXP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Oct 2012 11:23:15 -0400
+In-Reply-To: <1349790229.23493.2.camel@misato.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, wency@cn.fujitsu.com, vasilis.liaskovitis@profitbricks.com
+To: lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, prarit@redhat.com, imammedo@redhat.com, vijaymohan.pandarathil@hp.com
 
-On Thu, 2012-10-11 at 19:12 +0900, Yasuaki Ishimatsu wrote:
-> acpi_bus_trim() stops removing devices, when acpi_bus_remove() return error
-> number. But acpi_bus_remove() cannot return error number correctly.
-> acpi_bus_remove() only return -EINVAL, when dev argument is NULL. Thus even if
-> device cannot be removed correctly, acpi_bus_trim() ignores and continues to
-> remove devices. acpi_bus_hot_remove_device() uses acpi_bus_trim() for removing
-> devices. Therefore acpi_bus_hot_remove_device() can send "_EJ0" to firmware,
-> even if the device is running on the system. In this case, the system cannot
-> work well.
-> 
-> Vasilis hit the bug at memory hotplug and reported it as follow:
-> https://lkml.org/lkml/2012/9/26/318
-> 
-> So acpi_bus_trim() should check whether device was removed or not correctly.
-> The patch adds error check into some functions to remove the device.
-> 
-> Applying the patch, acpi_bus_trim() stops removing devices when failing
-> to remove the device. But I think there is no impact with the
-> exceptionof CPU and Memory hotplug path. Because other device also fails
-> but the fail is an irregular case like device is NULL.
-> 
-> v1->v2
-> - add a rollback for reinstalling a notify handler.
-> 
-> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Hi Len,
 
-Thanks for the update. Looks good.
+This patch has been waiting for your review for 4 months. (v2 simply
+rebased.)  Is there any thing I need to do?
 
-Reviewed-by: Toshi Kani <toshi.kani@hp.com>
-
+Thanks,
 -Toshi
 
+On Tue, 2012-10-09 at 07:43 -0600, Toshi Kani wrote:
+> Hi Len,
 > 
-> ---
->  drivers/acpi/scan.c    |   21 ++++++++++++++++++---
->  drivers/base/dd.c      |   22 +++++++++++++++++-----
->  include/linux/device.h |    2 +-
->  3 files changed, 36 insertions(+), 9 deletions(-)
+> Can you please review this patch?  Please let me know if there is
+> anything I need to do for 3.7.
 > 
-> Index: linux-3.6/drivers/acpi/scan.c
-> ===================================================================
-> --- linux-3.6.orig/drivers/acpi/scan.c	2012-10-11 18:31:40.189019503 +0900
-> +++ linux-3.6/drivers/acpi/scan.c	2012-10-11 18:42:35.669041641 +0900
-> @@ -445,18 +445,29 @@ static int acpi_device_remove(struct dev
->  {
->  	struct acpi_device *acpi_dev = to_acpi_device(dev);
->  	struct acpi_driver *acpi_drv = acpi_dev->driver;
-> +	int ret;
->  
->  	if (acpi_drv) {
->  		if (acpi_drv->ops.notify)
->  			acpi_device_remove_notify_handler(acpi_dev);
-> -		if (acpi_drv->ops.remove)
-> -			acpi_drv->ops.remove(acpi_dev, acpi_dev->removal_type);
-> +		if (acpi_drv->ops.remove) {
-> +			ret = acpi_drv->ops.remove(acpi_dev,
-> +						   acpi_dev->removal_type);
-> +			if (ret)
-> +				goto rollback;
-> +		}
->  	}
->  	acpi_dev->driver = NULL;
->  	acpi_dev->driver_data = NULL;
->  
->  	put_device(dev);
->  	return 0;
-> +
-> +rollback:
-> +	if (acpi_drv->ops.notify)
-> +		acpi_device_install_notify_handler(acpi_dev);
-> +
-> +	return ret;
->  }
->  
->  struct bus_type acpi_bus_type = {
-> @@ -1226,11 +1237,15 @@ static int acpi_device_set_context(struc
->  
->  static int acpi_bus_remove(struct acpi_device *dev, int rmdevice)
->  {
-> +	int ret;
-> +
->  	if (!dev)
->  		return -EINVAL;
->  
->  	dev->removal_type = ACPI_BUS_REMOVAL_EJECT;
-> -	device_release_driver(&dev->dev);
-> +	ret = device_release_driver(&dev->dev);
-> +	if (ret)
-> +		return ret;
->  
->  	if (!rmdevice)
->  		return 0;
-> Index: linux-3.6/drivers/base/dd.c
-> ===================================================================
-> --- linux-3.6.orig/drivers/base/dd.c	2012-10-11 18:31:40.191019505 +0900
-> +++ linux-3.6/drivers/base/dd.c	2012-10-11 18:31:46.873020548 +0900
-> @@ -475,9 +475,10 @@ EXPORT_SYMBOL_GPL(driver_attach);
->   * __device_release_driver() must be called with @dev lock held.
->   * When called for a USB interface, @dev->parent lock must be held as well.
->   */
-> -static void __device_release_driver(struct device *dev)
-> +static int __device_release_driver(struct device *dev)
->  {
->  	struct device_driver *drv;
-> +	int ret = 0;
->  
->  	drv = dev->driver;
->  	if (drv) {
-> @@ -493,9 +494,11 @@ static void __device_release_driver(stru
->  		pm_runtime_put_sync(dev);
->  
->  		if (dev->bus && dev->bus->remove)
-> -			dev->bus->remove(dev);
-> +			ret = dev->bus->remove(dev);
->  		else if (drv->remove)
-> -			drv->remove(dev);
-> +			ret = drv->remove(dev);
-> +		if (ret)
-> +			goto rollback;
->  		devres_release_all(dev);
->  		dev->driver = NULL;
->  		dev_set_drvdata(dev, NULL);
-> @@ -506,6 +509,12 @@ static void __device_release_driver(stru
->  						     dev);
->  
->  	}
-> +
-> +	return ret;
-> +
-> +rollback:
-> +	driver_sysfs_add(dev);
-> +	return ret;
->  }
->  
->  /**
-> @@ -515,16 +524,19 @@ static void __device_release_driver(stru
->   * Manually detach device from driver.
->   * When called for a USB interface, @dev->parent lock must be held.
->   */
-> -void device_release_driver(struct device *dev)
-> +int device_release_driver(struct device *dev)
->  {
-> +	int ret;
->  	/*
->  	 * If anyone calls device_release_driver() recursively from
->  	 * within their ->remove callback for the same device, they
->  	 * will deadlock right here.
->  	 */
->  	device_lock(dev);
-> -	__device_release_driver(dev);
-> +	ret = __device_release_driver(dev);
->  	device_unlock(dev);
-> +
-> +	return ret;
->  }
->  EXPORT_SYMBOL_GPL(device_release_driver);
->  
-> Index: linux-3.6/include/linux/device.h
-> ===================================================================
-> --- linux-3.6.orig/include/linux/device.h	2012-10-11 18:31:40.194019508 +0900
-> +++ linux-3.6/include/linux/device.h	2012-10-11 18:31:46.881020556 +0900
-> @@ -834,7 +834,7 @@ static inline void *dev_get_platdata(con
->   * for information on use.
->   */
->  extern int __must_check device_bind_driver(struct device *dev);
-> -extern void device_release_driver(struct device *dev);
-> +extern int device_release_driver(struct device *dev);
->  extern int  __must_check device_attach(struct device *dev);
->  extern int __must_check driver_attach(struct device_driver *drv);
->  extern int __must_check device_reprobe(struct device *dev);
+> Thanks,
+> -Toshi
 > 
+> 
+> On Fri, 2012-08-24 at 14:54 -0600, Toshi Kani wrote:
+> > Added CPU hot-remove support through an ACPI eject notification.
+> > It calls acpi_bus_hot_remove_device(), which shares the same code
+> > path with the sysfs eject operation.  acpi_os_hotplug_execute()
+> > serializes hot-remove operations between ACPI hot-remove and sysfs
+> > eject requests.
+> > 
+> > v2:
+> >  - Rebased to 3.6-rc3.
+> > 
+> > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+> > Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+> > Tested-by: IgorMammedov <imammedo@redhat.com>
+> > Tested-by: Vijay Mohan Pandarathil <vijaymohan.pandarathil@hp.com>
+> > Tested-by: Prarit Bhargava <prarit@redhat.com>
+> > ---
+> >  drivers/acpi/processor_driver.c |   27 +++++++++++++++++----------
+> >  1 files changed, 17 insertions(+), 10 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+> > index bfc31cb..d12e9c3 100644
+> > --- a/drivers/acpi/processor_driver.c
+> > +++ b/drivers/acpi/processor_driver.c
+> > @@ -694,8 +694,8 @@ int acpi_processor_device_add(acpi_handle handle, struct acpi_device **device)
+> >  static void acpi_processor_hotplug_notify(acpi_handle handle,
+> >  					  u32 event, void *data)
+> >  {
+> > -	struct acpi_processor *pr;
+> >  	struct acpi_device *device = NULL;
+> > +	struct acpi_eject_event *ej_event = NULL;
+> >  	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE; /* default */
+> >  	int result;
+> >  
+> > @@ -727,20 +727,27 @@ static void acpi_processor_hotplug_notify(acpi_handle handle,
+> >  				  "received ACPI_NOTIFY_EJECT_REQUEST\n"));
+> >  
+> >  		if (acpi_bus_get_device(handle, &device)) {
+> > -			printk(KERN_ERR PREFIX
+> > -				    "Device don't exist, dropping EJECT\n");
+> > +			pr_err(PREFIX "Device don't exist, dropping EJECT\n");
+> >  			break;
+> >  		}
+> > -		pr = acpi_driver_data(device);
+> > -		if (!pr) {
+> > -			printk(KERN_ERR PREFIX
+> > -				    "Driver data is NULL, dropping EJECT\n");
+> > +		if (!acpi_driver_data(device)) {
+> > +			pr_err(PREFIX "Driver data is NULL, dropping EJECT\n");
+> >  			break;
+> >  		}
+> >  
+> > -		/* REVISIT: update when eject is supported */
+> > -		ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
+> > -		break;
+> > +		ej_event = kmalloc(sizeof(*ej_event), GFP_KERNEL);
+> > +		if (!ej_event) {
+> > +			pr_err(PREFIX "No memory, dropping EJECT\n");
+> > +			break;
+> > +		}
+> > +
+> > +		ej_event->handle = handle;
+> > +		ej_event->event = ACPI_NOTIFY_EJECT_REQUEST;
+> > +		acpi_os_hotplug_execute(acpi_bus_hot_remove_device,
+> > +					(void *)ej_event);
+> > +
+> > +		/* eject is performed asynchronously */
+> > +		return;
+> >  
+> >  	default:
+> >  		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
 
 
