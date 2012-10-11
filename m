@@ -1,309 +1,66 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [PATCH 2/10] memory-hotplug : remove /sys/firmware/memmap/X sysfs
-Date: Thu, 11 Oct 2012 16:06:58 +0900
-Message-ID: <50767012.5080306@jp.fujitsu.com>
-References: <506E43E0.70507@jp.fujitsu.com> <506E4571.4090608@jp.fujitsu.com> <CAHGf_=rc9z7OmuH-pamQmPE=dpy3zPX3fXab=-APo2_NX7=KpQ@mail.gmail.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH] libata-acpi: Fix NULL ptr derference in ata_acpi_dev_handle
+Date: Thu, 11 Oct 2012 15:57:52 +0800
+Message-ID: <50767C00.6070001@intel.com>
+References: <5073D44C.7070101@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <CAHGf_=rc9z7OmuH-pamQmPE=dpy3zPX3fXab=-APo2_NX7=KpQ@mail.gmail.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, wency@cn.fujitsu.com
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:28573 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757748Ab2JKH6P (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 11 Oct 2012 03:58:15 -0400
+In-Reply-To: <5073D44C.7070101@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dan van der Ster <dan@vanderster.com>
+Cc: Jeff Garzik <jgarzik@pobox.com>, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org
 
-2012/10/06 4:36, KOSAKI Motohiro wrote:
-> On Thu, Oct 4, 2012 at 10:26 PM, Yasuaki Ishimatsu
-> <isimatu.yasuaki@jp.fujitsu.com> wrote:
->> When (hot)adding memory into system, /sys/firmware/memmap/X/{end, start, type}
->> sysfs files are created. But there is no code to remove these files. The patch
->> implements the function to remove them.
->>
->> Note : The code does not free firmware_map_entry since there is no way to free
->>         memory which is allocated by bootmem.
->
-> You have to explain why this is ok. I guess the unfreed
-> firmware_map_entry is reused
-> at next online memory and don't make memory leak, right?
+Hi Dan,
 
-Unfortunately, it is no. It makes memory leak about firmware_map_entry size.
-If we hot add memory, slab allocater prepares a other memory for
-firmware_map_entry.
+It would be good if you can give this patch a Tested-by tag, thanks.
 
-In my understanding, if the memory is allocated by bootmem allocator,
-the memory is not managed by slab allocator. So we can not use kfree()
-against the memory.
-On the other hand, the page of the memory may have various data allocalted
-by bootmem allocater with the exception of the firmware_map_entry. Thus we
-cannot free the page.
+-Aaron
 
-So the patch makes memory leak. But I think the memory leak size is
-very samll. And it does not affect the system.
-
->
->
->
->>
->> CC: David Rientjes <rientjes@google.com>
->> CC: Jiang Liu <liuj97@gmail.com>
->> CC: Len Brown <len.brown@intel.com>
->> CC: Christoph Lameter <cl@linux.com>
->> Cc: Minchan Kim <minchan.kim@gmail.com>
->> CC: Andrew Morton <akpm@linux-foundation.org>
->> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
->> Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
->> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->>
->> ---
->>   drivers/firmware/memmap.c    |   98 ++++++++++++++++++++++++++++++++++++++++++-
->>   include/linux/firmware-map.h |    6 ++
->>   mm/memory_hotplug.c          |    7 ++-
->>   3 files changed, 108 insertions(+), 3 deletions(-)
->>
->> Index: linux-3.6/drivers/firmware/memmap.c
->> ===================================================================
->> --- linux-3.6.orig/drivers/firmware/memmap.c    2012-10-04 18:27:05.195500420 +0900
->> +++ linux-3.6/drivers/firmware/memmap.c 2012-10-04 18:27:18.901514330 +0900
->> @@ -21,6 +21,7 @@
->>   #include <linux/types.h>
->>   #include <linux/bootmem.h>
->>   #include <linux/slab.h>
->> +#include <linux/mm.h>
->>
->>   /*
->>    * Data types ------------------------------------------------------------------
->> @@ -41,6 +42,7 @@ struct firmware_map_entry {
->>          const char              *type;  /* type of the memory range */
->>          struct list_head        list;   /* entry for the linked list */
->>          struct kobject          kobj;   /* kobject for each entry */
->> +       unsigned int            bootmem:1; /* allocated from bootmem */
->
-> Use bool.
-
-We'll update it.
-
->
->>   };
->>
->>   /*
->> @@ -79,7 +81,26 @@ static const struct sysfs_ops memmap_att
->>          .show = memmap_attr_show,
->>   };
->>
->> +
->> +static inline struct firmware_map_entry *
->> +to_memmap_entry(struct kobject *kobj)
->> +{
->> +       return container_of(kobj, struct firmware_map_entry, kobj);
->> +}
->> +
->> +static void release_firmware_map_entry(struct kobject *kobj)
->> +{
->> +       struct firmware_map_entry *entry = to_memmap_entry(kobj);
->> +
->> +       if (entry->bootmem)
->> +               /* There is no way to free memory allocated from bootmem */
->> +               return;
->> +
->> +       kfree(entry);
->> +}
->> +
->>   static struct kobj_type memmap_ktype = {
->> +       .release        = release_firmware_map_entry,
->>          .sysfs_ops      = &memmap_attr_ops,
->>          .default_attrs  = def_attrs,
->>   };
->> @@ -94,6 +115,7 @@ static struct kobj_type memmap_ktype = {
->>    * in firmware initialisation code in one single thread of execution.
->>    */
->>   static LIST_HEAD(map_entries);
->> +static DEFINE_SPINLOCK(map_entries_lock);
->>
->>   /**
->>    * firmware_map_add_entry() - Does the real work to add a firmware memmap entry.
->> @@ -118,11 +140,25 @@ static int firmware_map_add_entry(u64 st
->>          INIT_LIST_HEAD(&entry->list);
->>          kobject_init(&entry->kobj, &memmap_ktype);
->>
->> +       spin_lock(&map_entries_lock);
->>          list_add_tail(&entry->list, &map_entries);
->> +       spin_unlock(&map_entries_lock);
->>
->>          return 0;
->>   }
->>
->> +/**
->> + * firmware_map_remove_entry() - Does the real work to remove a firmware
->> + * memmap entry.
->> + * @entry: removed entry.
->> + **/
->> +static inline void firmware_map_remove_entry(struct firmware_map_entry *entry)
->
-> Don't use inline in *.c file. gcc is wise than you.
-
-We'll update it.
-
->> +{
->> +       spin_lock(&map_entries_lock);
->> +       list_del(&entry->list);
->> +       spin_unlock(&map_entries_lock);
->> +}
->> +
->>   /*
->>    * Add memmap entry on sysfs
->>    */
->> @@ -144,6 +180,35 @@ static int add_sysfs_fw_map_entry(struct
->>          return 0;
->>   }
->>
->> +/*
->> + * Remove memmap entry on sysfs
->> + */
->> +static inline void remove_sysfs_fw_map_entry(struct firmware_map_entry *entry)
->> +{
->> +       kobject_put(&entry->kobj);
->> +}
->> +
->> +/*
->> + * Search memmap entry
->> + */
->> +
->> +static struct firmware_map_entry * __meminit
->> +firmware_map_find_entry(u64 start, u64 end, const char *type)
->> +{
->> +       struct firmware_map_entry *entry;
->> +
->> +       spin_lock(&map_entries_lock);
->> +       list_for_each_entry(entry, &map_entries, list)
->> +               if ((entry->start == start) && (entry->end == end) &&
->> +                   (!strcmp(entry->type, type))) {
->> +                       spin_unlock(&map_entries_lock);
->> +                       return entry;
->> +               }
->> +
->> +       spin_unlock(&map_entries_lock);
->> +       return NULL;
->> +}
->> +
->>   /**
->>    * firmware_map_add_hotplug() - Adds a firmware mapping entry when we do
->>    * memory hotplug.
->> @@ -193,9 +258,36 @@ int __init firmware_map_add_early(u64 st
->>          if (WARN_ON(!entry))
->>                  return -ENOMEM;
->>
->> +       entry->bootmem = 1;
->>          return firmware_map_add_entry(start, end, type, entry);
->>   }
->>
->> +/**
->> + * firmware_map_remove() - remove a firmware mapping entry
->> + * @start: Start of the memory range.
->> + * @end:   End of the memory range.
->> + * @type:  Type of the memory range.
->> + *
->> + * removes a firmware mapping entry.
->> + *
->> + * Returns 0 on success, or -EINVAL if no entry.
->> + **/
->> +int __meminit firmware_map_remove(u64 start, u64 end, const char *type)
->
-> Remove type argument if this is always passed "System RAM".
-
-Probably, the type is always "System RAM". But we need to check whether
-that the range of start and end variables are "System RAM" or not.
-So I want to keep it.
-
-Thanks,
-Yasuaki Ishimatsu
-
->
->> +{
->> +       struct firmware_map_entry *entry;
->> +
->> +       entry = firmware_map_find_entry(start, end - 1, type);
->> +       if (!entry)
->> +               return -EINVAL;
->> +
->> +       firmware_map_remove_entry(entry);
->> +
->> +       /* remove the memmap entry */
->> +       remove_sysfs_fw_map_entry(entry);
->> +
->> +       return 0;
->> +}
->> +
->>   /*
->>    * Sysfs functions -------------------------------------------------------------
->>    */
->> @@ -217,8 +309,10 @@ static ssize_t type_show(struct firmware
->>          return snprintf(buf, PAGE_SIZE, "%s\n", entry->type);
->>   }
->>
->> -#define to_memmap_attr(_attr) container_of(_attr, struct memmap_attribute, attr)
->> -#define to_memmap_entry(obj) container_of(obj, struct firmware_map_entry, kobj)
->> +static inline struct memmap_attribute *to_memmap_attr(struct attribute *attr)
->> +{
->> +       return container_of(attr, struct memmap_attribute, attr);
->> +}
->>
->>   static ssize_t memmap_attr_show(struct kobject *kobj,
->>                                  struct attribute *attr, char *buf)
->> Index: linux-3.6/include/linux/firmware-map.h
->> ===================================================================
->> --- linux-3.6.orig/include/linux/firmware-map.h 2012-10-04 18:27:05.197500422 +0900
->> +++ linux-3.6/include/linux/firmware-map.h      2012-10-04 18:27:18.904514333 +0900
->> @@ -25,6 +25,7 @@
->>
->>   int firmware_map_add_early(u64 start, u64 end, const char *type);
->>   int firmware_map_add_hotplug(u64 start, u64 end, const char *type);
->> +int firmware_map_remove(u64 start, u64 end, const char *type);
->>
->>   #else /* CONFIG_FIRMWARE_MEMMAP */
->>
->> @@ -38,6 +39,11 @@ static inline int firmware_map_add_hotpl
->>          return 0;
->>   }
->>
->> +static inline int firmware_map_remove(u64 start, u64 end, const char *type)
->> +{
->> +       return 0;
->> +}
->> +
->>   #endif /* CONFIG_FIRMWARE_MEMMAP */
->>
->>   #endif /* _LINUX_FIRMWARE_MAP_H */
->> Index: linux-3.6/mm/memory_hotplug.c
->> ===================================================================
->> --- linux-3.6.orig/mm/memory_hotplug.c  2012-10-04 18:27:03.000000000 +0900
->> +++ linux-3.6/mm/memory_hotplug.c       2012-10-04 18:28:42.851599524 +0900
->> @@ -1043,7 +1043,7 @@ int offline_memory(u64 start, u64 size)
->>          return 0;
->>   }
->>
->> -int remove_memory(int nid, u64 start, u64 size)
->> +int __ref remove_memory(int nid, u64 start, u64 size)
->>   {
->>          int ret = 0;
->>          lock_memory_hotplug();
->> @@ -1056,8 +1056,13 @@ int remove_memory(int nid, u64 start, u6
->>                          "because the memmory range is online\n",
->>                          start, start + size);
->>                  ret = -EAGAIN;
->> +               goto out;
->>          }
->>
->> +       /* remove memmap entry */
->> +       firmware_map_remove(start, start + size, "System RAM");
->> +
->> +out:
->>          unlock_memory_hotplug();
->>          return ret;
->>   }
->
->
-> Other than that, looks ok to me.
->
-
+On 10/09/2012 03:37 PM, Aaron Lu wrote:
+> commit 6b66d95895c149cbc04d4fac5a2f5477c543a8ae didn't handle SATA PMP
+> case in ata_acpi_bind_device and will cause a NULL ptr dereference when
+> user attached a SATA drive to the PMP port. Fix this by checking PMP
+> support.
+> 
+> This bug is reported by Dan van der Ster in the following bugzilla page:
+> https://bugzilla.kernel.org/show_bug.cgi?id=48211
+> 
+> Reported-by: Dan van der Ster <dan@vanderster.com>
+> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+> Cc: <stable@vger.kernel.org>
+> ---
+>  drivers/ata/libata-acpi.c | 11 ++++++++---
+>  1 file changed, 8 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c
+> index fd9ecf7..5b0ba3f 100644
+> --- a/drivers/ata/libata-acpi.c
+> +++ b/drivers/ata/libata-acpi.c
+> @@ -1105,10 +1105,15 @@ static int ata_acpi_bind_device(struct ata_port *ap, struct scsi_device *sdev,
+>  	struct acpi_device *acpi_dev;
+>  	struct acpi_device_power_state *states;
+>  
+> -	if (ap->flags & ATA_FLAG_ACPI_SATA)
+> -		ata_dev = &ap->link.device[sdev->channel];
+> -	else
+> +	if (ap->flags & ATA_FLAG_ACPI_SATA) {
+> +		if (!sata_pmp_attached(ap))
+> +			ata_dev = &ap->link.device[sdev->id];
+> +		else
+> +			ata_dev = &ap->pmp_link[sdev->channel].device[sdev->id];
+> +	}
+> +	else {
+>  		ata_dev = &ap->link.device[sdev->id];
+> +	}
+>  
+>  	*handle = ata_dev_acpi_handle(ata_dev);
+>  
+> 
 
