@@ -1,203 +1,54 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [PATCH v2] acpi : acpi_bus_trim() stops removing devices when
- failing to remove the device
-Date: Fri, 12 Oct 2012 13:31:49 +0900
-Message-ID: <50779D35.3040600@jp.fujitsu.com>
-References: <50769B8C.2060901@jp.fujitsu.com> <1349963912.23493.26.camel@misato.fc.hp.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: [PATCH] Fix a hard coding style when determining if a device is a container.
+Date: Fri, 12 Oct 2012 14:55:16 +0800
+Message-ID: <1350024916-3628-1-git-send-email-tangchen@cn.fujitsu.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:55047 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750778Ab2JLEcN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Oct 2012 00:32:13 -0400
-In-Reply-To: <1349963912.23493.26.camel@misato.fc.hp.com>
+Received: from cn.fujitsu.com ([222.73.24.84]:59026 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1755877Ab2JLG40 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 12 Oct 2012 02:56:26 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, wency@cn.fujitsu.com, vasilis.liaskovitis@profitbricks.com
+To: bhelgaas@google.com, lenb@kernel.org, yinghai@kernel.org, izumi.taku@jp.fujitsu.com, jiang.liu@huawei.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
 
-Hi Toshi,
+"ACPI0004","PNP0A05" and "PNP0A06" are all defined in array
+container_device_ids[], so use it, but not the hard coding style.
 
-2012/10/11 22:58, Toshi Kani wrote:
-> On Thu, 2012-10-11 at 19:12 +0900, Yasuaki Ishimatsu wrote:
->> acpi_bus_trim() stops removing devices, when acpi_bus_remove() return error
->> number. But acpi_bus_remove() cannot return error number correctly.
->> acpi_bus_remove() only return -EINVAL, when dev argument is NULL. Thus even if
->> device cannot be removed correctly, acpi_bus_trim() ignores and continues to
->> remove devices. acpi_bus_hot_remove_device() uses acpi_bus_trim() for removing
->> devices. Therefore acpi_bus_hot_remove_device() can send "_EJ0" to firmware,
->> even if the device is running on the system. In this case, the system cannot
->> work well.
->>
->> Vasilis hit the bug at memory hotplug and reported it as follow:
->> https://lkml.org/lkml/2012/9/26/318
->>
->> So acpi_bus_trim() should check whether device was removed or not correctly.
->> The patch adds error check into some functions to remove the device.
->>
->> Applying the patch, acpi_bus_trim() stops removing devices when failing
->> to remove the device. But I think there is no impact with the
->> exceptionof CPU and Memory hotplug path. Because other device also fails
->> but the fail is an irregular case like device is NULL.
->>
->> v1->v2
->> - add a rollback for reinstalling a notify handler.
->>
->> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->
-> Thanks for the update. Looks good.
->
-> Reviewed-by: Toshi Kani <toshi.kani@hp.com>
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+---
+ drivers/acpi/container.c |   10 +++++++---
+ 1 files changed, 7 insertions(+), 3 deletions(-)
 
-Thank you for reviewing.
-
-Thanks,
-Yasauaki Ishimatsu
-
-> -Toshi
->
->>
->> ---
->>   drivers/acpi/scan.c    |   21 ++++++++++++++++++---
->>   drivers/base/dd.c      |   22 +++++++++++++++++-----
->>   include/linux/device.h |    2 +-
->>   3 files changed, 36 insertions(+), 9 deletions(-)
->>
->> Index: linux-3.6/drivers/acpi/scan.c
->> ===================================================================
->> --- linux-3.6.orig/drivers/acpi/scan.c	2012-10-11 18:31:40.189019503 +0900
->> +++ linux-3.6/drivers/acpi/scan.c	2012-10-11 18:42:35.669041641 +0900
->> @@ -445,18 +445,29 @@ static int acpi_device_remove(struct dev
->>   {
->>   	struct acpi_device *acpi_dev = to_acpi_device(dev);
->>   	struct acpi_driver *acpi_drv = acpi_dev->driver;
->> +	int ret;
->>
->>   	if (acpi_drv) {
->>   		if (acpi_drv->ops.notify)
->>   			acpi_device_remove_notify_handler(acpi_dev);
->> -		if (acpi_drv->ops.remove)
->> -			acpi_drv->ops.remove(acpi_dev, acpi_dev->removal_type);
->> +		if (acpi_drv->ops.remove) {
->> +			ret = acpi_drv->ops.remove(acpi_dev,
->> +						   acpi_dev->removal_type);
->> +			if (ret)
->> +				goto rollback;
->> +		}
->>   	}
->>   	acpi_dev->driver = NULL;
->>   	acpi_dev->driver_data = NULL;
->>
->>   	put_device(dev);
->>   	return 0;
->> +
->> +rollback:
->> +	if (acpi_drv->ops.notify)
->> +		acpi_device_install_notify_handler(acpi_dev);
->> +
->> +	return ret;
->>   }
->>
->>   struct bus_type acpi_bus_type = {
->> @@ -1226,11 +1237,15 @@ static int acpi_device_set_context(struc
->>
->>   static int acpi_bus_remove(struct acpi_device *dev, int rmdevice)
->>   {
->> +	int ret;
->> +
->>   	if (!dev)
->>   		return -EINVAL;
->>
->>   	dev->removal_type = ACPI_BUS_REMOVAL_EJECT;
->> -	device_release_driver(&dev->dev);
->> +	ret = device_release_driver(&dev->dev);
->> +	if (ret)
->> +		return ret;
->>
->>   	if (!rmdevice)
->>   		return 0;
->> Index: linux-3.6/drivers/base/dd.c
->> ===================================================================
->> --- linux-3.6.orig/drivers/base/dd.c	2012-10-11 18:31:40.191019505 +0900
->> +++ linux-3.6/drivers/base/dd.c	2012-10-11 18:31:46.873020548 +0900
->> @@ -475,9 +475,10 @@ EXPORT_SYMBOL_GPL(driver_attach);
->>    * __device_release_driver() must be called with @dev lock held.
->>    * When called for a USB interface, @dev->parent lock must be held as well.
->>    */
->> -static void __device_release_driver(struct device *dev)
->> +static int __device_release_driver(struct device *dev)
->>   {
->>   	struct device_driver *drv;
->> +	int ret = 0;
->>
->>   	drv = dev->driver;
->>   	if (drv) {
->> @@ -493,9 +494,11 @@ static void __device_release_driver(stru
->>   		pm_runtime_put_sync(dev);
->>
->>   		if (dev->bus && dev->bus->remove)
->> -			dev->bus->remove(dev);
->> +			ret = dev->bus->remove(dev);
->>   		else if (drv->remove)
->> -			drv->remove(dev);
->> +			ret = drv->remove(dev);
->> +		if (ret)
->> +			goto rollback;
->>   		devres_release_all(dev);
->>   		dev->driver = NULL;
->>   		dev_set_drvdata(dev, NULL);
->> @@ -506,6 +509,12 @@ static void __device_release_driver(stru
->>   						     dev);
->>
->>   	}
->> +
->> +	return ret;
->> +
->> +rollback:
->> +	driver_sysfs_add(dev);
->> +	return ret;
->>   }
->>
->>   /**
->> @@ -515,16 +524,19 @@ static void __device_release_driver(stru
->>    * Manually detach device from driver.
->>    * When called for a USB interface, @dev->parent lock must be held.
->>    */
->> -void device_release_driver(struct device *dev)
->> +int device_release_driver(struct device *dev)
->>   {
->> +	int ret;
->>   	/*
->>   	 * If anyone calls device_release_driver() recursively from
->>   	 * within their ->remove callback for the same device, they
->>   	 * will deadlock right here.
->>   	 */
->>   	device_lock(dev);
->> -	__device_release_driver(dev);
->> +	ret = __device_release_driver(dev);
->>   	device_unlock(dev);
->> +
->> +	return ret;
->>   }
->>   EXPORT_SYMBOL_GPL(device_release_driver);
->>
->> Index: linux-3.6/include/linux/device.h
->> ===================================================================
->> --- linux-3.6.orig/include/linux/device.h	2012-10-11 18:31:40.194019508 +0900
->> +++ linux-3.6/include/linux/device.h	2012-10-11 18:31:46.881020556 +0900
->> @@ -834,7 +834,7 @@ static inline void *dev_get_platdata(con
->>    * for information on use.
->>    */
->>   extern int __must_check device_bind_driver(struct device *dev);
->> -extern void device_release_driver(struct device *dev);
->> +extern int device_release_driver(struct device *dev);
->>   extern int  __must_check device_attach(struct device *dev);
->>   extern int __must_check driver_attach(struct device_driver *drv);
->>   extern int __must_check device_reprobe(struct device *dev);
->>
->
->
-
+diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
+index 1f9f7d7..448c0e2 100644
+--- a/drivers/acpi/container.c
++++ b/drivers/acpi/container.c
+@@ -217,6 +217,7 @@ container_walk_namespace_cb(acpi_handle handle,
+ {
+ 	char *hid = NULL;
+ 	struct acpi_device_info *info;
++	struct acpi_device_id *container_id;
+ 	acpi_status status;
+ 	int *action = context;
+ 
+@@ -232,10 +233,13 @@ container_walk_namespace_cb(acpi_handle handle,
+ 		goto end;
+ 	}
+ 
+-	if (strcmp(hid, "ACPI0004") && strcmp(hid, "PNP0A05") &&
+-	    strcmp(hid, "PNP0A06")) {
+-		goto end;
++	for (container_id = container_device_ids;
++	     container_id->id[0]; container_id++) {
++		if (!strcmp((char *)container_id->id, hid))
++			break;
+ 	}
++	if (!container_id->id[0])
++		goto end;
+ 
+ 	switch (*action) {
+ 	case INSTALL_NOTIFY_HANDLER:
+-- 
+1.7.1
 
