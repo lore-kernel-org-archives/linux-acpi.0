@@ -1,37 +1,60 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: How to install linux kernel-2.4.18-14 in fedora 7
-Date: Thu, 11 Oct 2012 14:47:18 -0600
-Message-ID: <1349988438.23493.110.camel@misato.fc.hp.com>
-References: <CAO1Rv-acHDvNJUiK1pUOLZkJFVngRLtg9mHwQ3UAbaedoo-0NA@mail.gmail.com>
-	 <CAO1Rv-a+D3pkhkZC+ZA5G3Bgef4FPY=sEeYP_Va0b_VZVkXDsA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAO1Rv-a+D3pkhkZC+ZA5G3Bgef4FPY=sEeYP_Va0b_VZVkXDsA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thirumalesha N <thiru.linux@gmail.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, srivatsa.bhat@linux.vnet.ibm.com
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: [RFC PATCH 0/4] Enable setting of sdio device power state with ACPI
+Date: Fri, 12 Oct 2012 11:12:37 +0800
+Message-ID: <1350011561-21039-1-git-send-email-aaron.lu@intel.com>
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Chris Ball <cjb@laptop.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-mmc@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2012-10-11 at 19:40 +0530, Thirumalesha N wrote:
-> 
-> Dear Sir,
-> 
->            I'm new to linux, is there any possibility to install
-> kernel-2.4.18-14 in fedora 7?. If not in which fedora version i can
-> install this kernel? and if yes how do i proceed ?
+This patchset enables setting of acpi power state for sdio device
+when it is runtime suspended/resumed. SDIO function drivers can use
+the interfaces too introduced in patch 3 when there is such a need.
 
-I do not know the answer, but you can find the kernel versions of Fedora
-at:
-http://en.wikipedia.org/wiki/Fedora_(operating_system)
+Patch 1 adds slot number information to the sdhci_host structure,
+the slot number will be used to bind the sdio device with acpi node.
 
--Toshi
+Patch 2 does the actual binding.
 
-> 
->          The reply greatly appreciable in advance.
-> 
-> Regards
-> Thiru N
-> 
-> 
+Patch 3 introduces a platform power management operation structure,
+in which 4 callbacks are defined. The reason this structure is used is
+that in addition to ACPI, there may be other platform mechanisms to
+place a device into a low power state. And a implementation of this
+structure is done for ACPI in this patch. The idea and the definition
+of this structure is heavily based on the one used in PCI subsystem.
+
+Patch 4 utilizes the newly added platform pm api to set the device
+into a low power state after its driver's runtime suspend callback.
+Its runtime wakeup capability is also enabled, and for this to work,
+driver must call device_set_run_wake(dev, true) somewhere when wakeup
+is desired. Please note that this wakeup mentioned here is realized
+through a sideband signal, it's not done by a SDIO interrupt. So
+platform support code is needed.
+
+Aaron Lu (4):
+  sdhci: add slot number into sdhci_host structure
+  mmc: sdio: bind sdio device with acpi device
+  sdio: introduce sdio_platform_pm_ops
+  sdio: pm: set device's power state after driver runtime suspended it
+
+ drivers/mmc/core/Makefile      |  1 +
+ drivers/mmc/core/sdio.c        | 37 +++++++++++++++++++
+ drivers/mmc/core/sdio.h        | 28 +++++++++++++++
+ drivers/mmc/core/sdio_acpi.c   | 81 ++++++++++++++++++++++++++++++++++++++++++
+ drivers/mmc/core/sdio_bus.c    | 63 +++++++++++++++++++++++++++++---
+ drivers/mmc/core/sdio_bus.h    |  2 ++
+ drivers/mmc/host/sdhci-pci.c   |  2 +-
+ drivers/mmc/host/sdhci-pltfm.c |  4 +--
+ drivers/mmc/host/sdhci-s3c.c   |  2 +-
+ drivers/mmc/host/sdhci-spear.c |  4 +--
+ drivers/mmc/host/sdhci.c       |  3 +-
+ drivers/mmc/host/sdhci.h       |  2 +-
+ include/linux/mmc/sdhci.h      |  1 +
+ 13 files changed, 218 insertions(+), 12 deletions(-)
+ create mode 100644 drivers/mmc/core/sdio.h
+ create mode 100644 drivers/mmc/core/sdio_acpi.c
+
+-- 
+1.7.12.21.g871e293
+
