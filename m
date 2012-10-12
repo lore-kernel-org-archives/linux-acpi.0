@@ -1,43 +1,84 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH 0/3] Find pci root bridges by comparing HID from acpi_device_info, not acpi_device.
-Date: Fri, 12 Oct 2012 18:31:27 +0800
-Message-ID: <1350037890-5899-1-git-send-email-tangchen@cn.fujitsu.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: yinghai@kernel.org, lenb@kernel.org, bhelgaas@google.com, izumi.taku@jp.fujitsu.com, jiang.liu@huawei.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Jiang Liu <jiang.liu@huawei.com>
+Subject: Re: [PATCH 2/3] Do not use acpi_device to find pci root bridge in
+ _init code.
+Date: Fri, 12 Oct 2012 18:36:50 +0800
+Message-ID: <5077F2C2.1010300@huawei.com>
+References: <1350037890-5899-1-git-send-email-tangchen@cn.fujitsu.com> <1350037890-5899-3-git-send-email-tangchen@cn.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1350037890-5899-3-git-send-email-tangchen@cn.fujitsu.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: yinghai@kernel.org, lenb@kernel.org, bhelgaas@google.com, izumi.taku@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Yinghai,
+On 2012-10-12 18:31, Tang Chen wrote:
+> When the kernel is being initialized, and some hardwares are not added
+> to system, there won't be acpi_device structs for these devices. But
+> acpi_is_root_bridge() depends on acpi_device struct. As a result, all
+> the not-added root bridge will not be judged as a root bridge in
+> find_root_bridges(). And further more, no handle_hotplug_event_root()
+> notifier will be installed for them.
+> 
+> This patch introduces a new api to find all root bridges in system by
+> getting HID directly from ACPI namespace, not depending on acpi_device
+> struct.
+> 
+> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+> ---
+>  drivers/acpi/pci_root.c |   27 ++++++++++++++++++++++-----
+>  1 files changed, 22 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+> index 7d0fb03..3819bee 100644
+> --- a/drivers/acpi/pci_root.c
+> +++ b/drivers/acpi/pci_root.c
+> @@ -128,9 +128,6 @@ EXPORT_SYMBOL_GPL(acpi_get_pci_rootbridge_handle);
+>  /**
+>   * acpi_is_root_bridge - determine whether an ACPI CA node is a PCI root bridge
+>   * @handle - the ACPI CA node in question.
+> - *
+> - * Note: we could make this API take a struct acpi_device * instead, but
+> - * for now, it's more convenient to operate on an acpi_handle.
+>   */
+>  int acpi_is_root_bridge(acpi_handle handle)
+>  {
+> @@ -138,8 +135,28 @@ int acpi_is_root_bridge(acpi_handle handle)
+>  	struct acpi_device *device;
+>  
+>  	ret = acpi_bus_get_device(handle, &device);
+> -	if (ret)
+> -		return 0;
+> +	if (ret) {
+> +		/**
+> +		 * If a device is not added to the system yet, there won't be
+> +		 * an acpi_device struct for it. But it doesn't mean it is not
+> +		 * a PCI root bridge. In this case we need to get HID and CID
+> +		 * from ACPI namespace directly.
+> +		 */
+> +		struct acpi_device_info *info;
+> +		acpi_status status;
+> +		status = acpi_get_object_info(handle, &info);
+> +		if (ACPI_FAILURE(status)) {
+> +			printk(KERN_ERR PREFIX "%s: Error reading"
+> +					       "device info\n", __func__);
+> +			return 0;
+> +		}
+> +
+> +		ret = acpi_match_object_info_ids(info, root_device_ids);
+> +		if (ret)
+> +			return 0;
+> +		else
+> +			return 1;
+> +	}
+I have sent a similar patch to Yinghai before. For simplicity, we could
+use acpi_match_object_info_ids() instead of acpi_match_device_ids()
+directly.
+Thanks!
+Gerry
 
-I found a little problem in your following patches. :)
-[PATCH 00/40] PCI, ACPI, x86: pci root bus hotplug support.
-
-In acpi_is_root_bridge(), it gets device's HID from acpi_device struct.
-If the device is not added when the system boots, there will be no
-acpi_device for it. And as a result, acpi_is_root_bridge() will fail.
-But it doesn't mean that the device is not a root bridge.
-
-In this case, the not-added root bridges have no handle_hotplug_event_root()
-callback registerred. And when we hot add it later, it will do nothing.
-
-This patch set changes the acpi_is_root_bridge()'s behavior. When we fail
-to get HID from acpi_device, we will get HID from acpi_device_info by
-acpi_get_object_info(), which gets the HID from ACPI namespace directly.
-
-So no matter the device is present or not, we will always find out if it
-is a pci root bridge, and register a handle_hotplug_event_root() callback
-for it.
-
-These patches are based on Lu Yinghai's for-pci-root-bus-hotplug branch.
-
-Tang Chen (3):
-  Introduce a new acpi to determine HID match.
-  Do not use acpi_device to find pci root bridge in _init code.
-  Check exit status of acpi_install_notify_handler() in
-    find_root_bridges().
-
- drivers/acpi/pci_root.c    |   27 ++++++++++++++++++++++-----
- drivers/acpi/pci_root_hp.c |   12 +++++++++---
- drivers/acpi/scan.c        |   24 ++++++++++++++++++++++++
- include/acpi/acpi_bus.h    |    2 ++
- 4 files changed, 57 insertions(+), 8 deletions(-)
+>  
+>  	ret = acpi_match_device_ids(device, root_device_ids);
+>  	if (ret)
