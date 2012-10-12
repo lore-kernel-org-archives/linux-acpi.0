@@ -1,65 +1,72 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH v2] Fix a hard coding style when determining if a device is a container.
-Date: Fri, 12 Oct 2012 20:31:38 +0800
-Message-ID: <1350045098-7232-1-git-send-email-tangchen@cn.fujitsu.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:63948 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1755720Ab2JLMcx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 12 Oct 2012 08:32:53 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH 1/3 v2] Introduce a new acpi to determine HID match.
+Date: Fri, 12 Oct 2012 20:34:19 +0800
+Message-ID: <1350045261-7344-2-git-send-email-tangchen@cn.fujitsu.com>
+References: <1350045261-7344-1-git-send-email-tangchen@cn.fujitsu.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1350045261-7344-1-git-send-email-tangchen@cn.fujitsu.com>
+Sender: linux-pci-owner@vger.kernel.org
 To: bhelgaas@google.com, lenb@kernel.org, yinghai@kernel.org, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc: Tang Chen <tangchen@cn.fujitsu.com>
+List-Id: linux-acpi@vger.kernel.org
 
-"ACPI0004","PNP0A05" and "PNP0A06" are all defined in array
-container_device_ids[], so use it, but not the hard coding style.
-
-Also, introduce a new api is_container_device() to determine if a
-device is a container device.
+This introduce a new api to determine if a HID matches a list of IDs.
+Different from acpi_match_device_ids(), the new api gets HID from
+acpi_device_info struct.
 
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 ---
- drivers/acpi/container.c |   17 ++++++++++++++---
- 1 files changed, 14 insertions(+), 3 deletions(-)
+ drivers/acpi/scan.c     |   24 ++++++++++++++++++++++++
+ include/acpi/acpi_bus.h |    2 ++
+ 2 files changed, 26 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
-index 1f9f7d7..ffd76ee 100644
---- a/drivers/acpi/container.c
-+++ b/drivers/acpi/container.c
-@@ -92,6 +92,19 @@ static int is_device_present(acpi_handle handle)
- 	return ((sta & ACPI_STA_DEVICE_PRESENT) == ACPI_STA_DEVICE_PRESENT);
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 03c12e6..41fd4c9 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -312,6 +312,30 @@ int acpi_match_device_ids(struct acpi_device *device,
  }
+ EXPORT_SYMBOL(acpi_match_device_ids);
  
-+static int is_container_device(const char *hid)
++int acpi_match_object_info_ids(struct acpi_device_info *info,
++			       const struct acpi_device_id *ids)
 +{
-+	const struct acpi_device_id *container_id;
++	char *hardware_id;
++	int i, j;
 +
-+	for (container_id = container_device_ids;
-+	     container_id->id[0]; container_id++) {
-+		if (!strcmp((char *)container_id->id, hid))
-+			return 1;
++	for (i = 0; ids[i].id[0]; i++) {
++		hardware_id = info->hardware_id.string;
++		if (hardware_id &&
++		    !strcmp((char *)ids[i].id, hardware_id))
++				return 0;
++
++		for (j = 0; j < info->compatible_id_list.count; j++) {
++			hardware_id = info->compatible_id_list.ids[j].string;
++			if (hardware_id &&
++			    !strcmp((char *)ids[i].id, hardware_id))
++				return 0;
++		}
 +	}
 +
-+	return 0;
++	return 1;
 +}
++EXPORT_SYMBOL(acpi_match_object_info_ids);
 +
- /*******************************************************************/
- static int acpi_container_add(struct acpi_device *device)
+ static void acpi_free_ids(struct acpi_device *device)
  {
-@@ -232,10 +245,8 @@ container_walk_namespace_cb(acpi_handle handle,
- 		goto end;
- 	}
+ 	struct acpi_hardware_id *id, *tmp;
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index f0b9681..f83d581 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -379,6 +379,8 @@ int acpi_bus_start(struct acpi_device *device);
+ acpi_status acpi_bus_get_ejd(acpi_handle handle, acpi_handle * ejd);
+ int acpi_match_device_ids(struct acpi_device *device,
+ 			  const struct acpi_device_id *ids);
++int acpi_match_object_info_ids(struct acpi_device_info *info,
++			       const struct acpi_device_id *ids);
+ int acpi_create_dir(struct acpi_device *);
+ void acpi_remove_dir(struct acpi_device *);
  
--	if (strcmp(hid, "ACPI0004") && strcmp(hid, "PNP0A05") &&
--	    strcmp(hid, "PNP0A06")) {
-+	if (!is_container_device(hid))
- 		goto end;
--	}
- 
- 	switch (*action) {
- 	case INSTALL_NOTIFY_HANDLER:
 -- 
 1.7.1
-
