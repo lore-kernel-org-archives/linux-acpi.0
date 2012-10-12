@@ -1,57 +1,44 @@
-From: Dan van der Ster <dan@vanderster.com>
-Subject: Re: [PATCH] libata-acpi: Fix NULL ptr derference in ata_acpi_dev_handle
-Date: Thu, 11 Oct 2012 10:27:39 +0200
-Message-ID: <CABZ+qqkv-iuAxs=DXnQzQn+j-BWaH5jwLsuv0nREFpz3gqHE=g@mail.gmail.com>
-References: <5073D44C.7070101@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <5073D44C.7070101@intel.com>
-Sender: linux-ide-owner@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Jeff Garzik <jgarzik@pobox.com>, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org
+From: Feng Tang <feng.tang@intel.com>
+Subject: [PATCH] x86/PCI: Add quirk for "CheckPoint P-20-00" to not use bridge _CRS_ info
+Date: Fri, 12 Oct 2012 09:15:09 +0800
+Message-ID: <1350004509-17414-1-git-send-email-feng.tang@intel.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Len Brown <len.brown@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, x86@kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Feng Tang <feng.tang@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Oct 9, 2012 at 9:37 AM, Aaron Lu <aaron.lu@intel.com> wrote:
-> commit 6b66d95895c149cbc04d4fac5a2f5477c543a8ae didn't handle SATA PMP
-> case in ata_acpi_bind_device and will cause a NULL ptr dereference when
-> user attached a SATA drive to the PMP port. Fix this by checking PMP
-> support.
->
-> This bug is reported by Dan van der Ster in the following bugzilla page:
-> https://bugzilla.kernel.org/show_bug.cgi?id=48211
->
-> Reported-by: Dan van der Ster <dan@vanderster.com>
-> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-> Cc: <stable@vger.kernel.org>
-Tested-by: Dan van der Ster <dan@vanderster.com>
-> ---
->  drivers/ata/libata-acpi.c | 11 ++++++++---
->  1 file changed, 8 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c
-> index fd9ecf7..5b0ba3f 100644
-> --- a/drivers/ata/libata-acpi.c
-> +++ b/drivers/ata/libata-acpi.c
-> @@ -1105,10 +1105,15 @@ static int ata_acpi_bind_device(struct ata_port *ap, struct scsi_device *sdev,
->         struct acpi_device *acpi_dev;
->         struct acpi_device_power_state *states;
->
-> -       if (ap->flags & ATA_FLAG_ACPI_SATA)
-> -               ata_dev = &ap->link.device[sdev->channel];
-> -       else
-> +       if (ap->flags & ATA_FLAG_ACPI_SATA) {
-> +               if (!sata_pmp_attached(ap))
-> +                       ata_dev = &ap->link.device[sdev->id];
-> +               else
-> +                       ata_dev = &ap->pmp_link[sdev->channel].device[sdev->id];
-> +       }
-> +       else {
->                 ata_dev = &ap->link.device[sdev->id];
-> +       }
->
->         *handle = ata_dev_acpi_handle(ata_dev);
->
-> --
-> 1.7.12.21.g871e293
->
+This is to fix a regression https://bugzilla.kernel.org/show_bug.cgi?id=47981
+
+The CheckPoint P-20-00 works ok before new machines (2008 and later) are
+forced to use the bridge _CRS info by default in 2.6.34. Add this quirk
+to restore its old way of working: not using bridge _CRS info.
+
+Signed-off-by: Feng Tang <feng.tang@intel.com>
+---
+ arch/x86/pci/acpi.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+index 192397c..7010c19 100644
+--- a/arch/x86/pci/acpi.c
++++ b/arch/x86/pci/acpi.c
+@@ -98,6 +98,16 @@ static const struct dmi_system_id pci_use_crs_table[] __initconst = {
+ 			DMI_MATCH(DMI_BIOS_VERSION, "6JET85WW (1.43 )"),
+ 		},
+ 	},
++	/* https://bugzilla.kernel.org/show_bug.cgi?id=47981 */
++	{
++		.callback = set_nouse_crs,
++		.ident = "CheckPoint P-20-00",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "CheckPoint"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "P-20-00"),
++			DMI_MATCH(DMI_BOARD_NAME, "Bridgeport"),
++		},
++	},
+ 	{}
+ };
+ 
+-- 
+1.7.9.5
