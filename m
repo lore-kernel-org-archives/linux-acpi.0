@@ -1,39 +1,116 @@
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Subject: Re: [PATCH 4/4] acpi,memory-hotplug : store the node id in acpi_memory_device
-Date: Fri, 12 Oct 2012 14:59:56 -0400
-Message-ID: <CAHGf_=rf+ginaNjYifJJVa6sy2Hd41tdJQtC_JtmGaneyKqbkA@mail.gmail.com>
-References: <506C0AE8.40702@jp.fujitsu.com> <506C0F53.5030500@jp.fujitsu.com>
- <CAHGf_=o6K71u4+OVsLvfCSRmOTk12TpsgKwsJO6bGdd_6dYnyA@mail.gmail.com> <507276FD.4020808@cn.fujitsu.com>
+Subject: Re: [PATCH 1/4] acpi,memory-hotplug : add memory offline code to acpi_memory_device_remove()
+Date: Fri, 12 Oct 2012 15:10:27 -0400
+Message-ID: <CAHGf_=pCrx8AkL9eiSYVgwvT1v0SW2__P_DW-1Wwj_zskqcLXw@mail.gmail.com>
+References: <506C0AE8.40702@jp.fujitsu.com> <506C0C53.60205@jp.fujitsu.com>
+ <CAHGf_=p7PaQs-kpnyB8uC1MntHQfL-CXhhq4QQP54mYiqOswqQ@mail.gmail.com> <50727984.20401@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:45285 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754095Ab2JLTAR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Oct 2012 15:00:17 -0400
-In-Reply-To: <507276FD.4020808@cn.fujitsu.com>
+Received: from mail-oa0-f46.google.com ([209.85.219.46]:47896 "EHLO
+	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751980Ab2JLTKs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Oct 2012 15:10:48 -0400
+In-Reply-To: <50727984.20401@cn.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Wen Congyang <wency@cn.fujitsu.com>
 Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org
 
-On Mon, Oct 8, 2012 at 2:47 AM, Wen Congyang <wency@cn.fujitsu.com> wrote:
-> At 10/06/2012 02:56 AM, KOSAKI Motohiro Wrote:
->> On Wed, Oct 3, 2012 at 6:11 AM, Yasuaki Ishimatsu
->> <isimatu.yasuaki@jp.fujitsu.com> wrote:
->>> From: Wen Congyang <wency@cn.fujitsu.com>
+>>> -static int acpi_memory_disable_device(struct acpi_memory_device *mem_device)
+>>> +static int acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
+>>>  {
+>>>         int result;
+>>>         struct acpi_memory_info *info, *n;
 >>>
->>> The memory device has only one node id. Store the node id when
->>> enable the memory device, and we can reuse it when removing the
->>> memory device.
+>>> +       list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
 >>
->> You don't explain why we need this. Then nobody can review nor ack.
->>
+>> Which lock protect this loop?
 >
-> This patch doesn't fix any problem. Its purpose is: avoid to calculate
-> the node id twice.
+> There is no any lock to protect it now...
 
-ditto.
+When iterate an item removal list, you should use lock for protecting from
+memory corruption.
 
-Please separate patches as logical change. You should make problem fix
-patch set.
+
+
+
+>>> +static int acpi_memory_disable_device(struct acpi_memory_device *mem_device)
+>>> +{
+>>> +       int result;
+>>>
+>>>         /*
+>>>          * Ask the VM to offline this memory range.
+>>>          * Note: Assume that this function returns zero on success
+>>>          */
+>>
+>> Write function comment instead of this silly comment.
+>>
+>>> -       list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
+>>> -               if (info->enabled) {
+>>> -                       result = remove_memory(info->start_addr, info->length);
+>>> -                       if (result)
+>>> -                               return result;
+>>> -               }
+>>> -               kfree(info);
+>>> -       }
+>>> +       result = acpi_memory_remove_memory(mem_device);
+>>> +       if (result)
+>>> +               return result;
+>>>
+>>>         /* Power-off and eject the device */
+>>>         result = acpi_memory_powerdown_device(mem_device);
+>>
+>> This patch move acpi_memory_powerdown_device() from ACPI_NOTIFY_EJECT_REQUEST
+>> to release callback, but don't explain why.
+>
+> Hmm, it doesn't move the code. It just reuse the code in acpi_memory_powerdown_device().
+
+Even if reuse or not reuse, you changed the behavior. If any changes
+has no good rational, you cannot get an ack.
+
+
+
+
+>>> @@ -473,12 +486,23 @@ static int acpi_memory_device_add(struct
+>>>  static int acpi_memory_device_remove(struct acpi_device *device, int type)
+>>>  {
+>>>         struct acpi_memory_device *mem_device = NULL;
+>>> -
+>>> +       int result;
+>>>
+>>>         if (!device || !acpi_driver_data(device))
+>>>                 return -EINVAL;
+>>>
+>>>         mem_device = acpi_driver_data(device);
+>>> +
+>>> +       if (type == ACPI_BUS_REMOVAL_EJECT) {
+>>> +               /*
+>>> +                * offline and remove memory only when the memory device is
+>>> +                * ejected.
+>>> +                */
+>>
+>> This comment explain nothing. A comment should describe _why_ should we do.
+>> e.g. Why REMOVAL_NORMAL and REMOVEL_EJECT should be ignored. Why
+>> we need remove memory here instead of ACPI_NOTIFY_EJECT_REQUEST.
+>
+> Hmm, we have 2 ways to remove a memory:
+> 1. SCI
+> 2. echo 1 >/sys/bus/acpi/devices/PNP0C80:XX/eject
+>
+> In the 2nd case, there is no ACPI_NOTIFY_EJECT_REQUEST. We should offline
+> the memory and remove it from kernel in the release callback. We will poweroff
+> the memory device in acpi_bus_hot_remove_device(), so we must offline
+> and remove it if the type is ACPI_BUS_REMOVAL_EJECT.
+>
+> I guess we should not poweroff the memory device when we fail to offline it.
+> But device_release_driver() doesn't returns any error...
+
+1) I think /sys/bus/acpi/devices/PNP0C80:XX/eject should emulate acpi
+eject. Can't
+you make a pseudo acpi eject event and detach device by acpi regular path?
+
+2) Your explanation didn't explain why we should ignore REMOVAL_NORMAL
+and REMOVEL_EJECT. As far as reviewers can't track your intention, we
+can't maintain
+the code and can't ack them.
