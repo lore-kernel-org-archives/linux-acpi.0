@@ -1,51 +1,39 @@
-From: Igor Murzov <e-mail@date.by>
-Subject: [PATCH] ACPI video: Ignore errors after _DOD evaluation.
-Date: Sat, 13 Oct 2012 04:41:25 +0400
-Message-ID: <1350088885-13918-1-git-send-email-e-mail@date.by>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Stefan Wilkens <stefanwilkens@gmail.com>, Sergey V <sftp.mtuci@gmail.com>, linux-kernel@vger.kernel.org, Igor Murzov <e-mail@date.by>
+From: Royaldoc International Globe <bensonblake_co@yahoo.com>
+Subject: enquiry
+Date: Sat, 13 Oct 2012 08:37:19 +0900
+Message-ID: <20121013083719.59176q18jivprbsw@27.120.95.201>
+Reply-To: royaldoc@inbox.org.tw
+Mime-Version: 1.0
+Content-Type: text/plain;
+ charset=ISO-8859-1;
+ DelSp="Yes";
+ format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v-27-120-95-201.ub-freebit.net ([27.120.95.201]:39980 "EHLO
+	ns.pro.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752848Ab2JMBZl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 12 Oct 2012 21:25:41 -0400
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-There are systems where video module known to work fine regardless
-of broken _DOD and ignoring returned value here doesn't cause
-any issues later. This should fix brightness controls on some laptops.
 
-Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=47861
 
-Signed-off-by: Igor Murzov <e-mail@date.by>
-Reviewed-by: Sergey V <sftp.mtuci@gmail.com>
----
-Previous discussion of the issue:
-http://thread.gmane.org/gmane.linux.acpi.devel/56345
 
- drivers/acpi/video.c | 11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+Royaldoc International Globe,
+103, Park son road,
+Carlifonia,USA.
+63-1-3522 2501
+royaldoc@inbox.org.tw
 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index f94d4c8..0230cb6 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -1345,12 +1345,15 @@ static int
- acpi_video_bus_get_devices(struct acpi_video_bus *video,
- 			   struct acpi_device *device)
- {
--	int status;
-+	int status = 0;
- 	struct acpi_device *dev;
- 
--	status = acpi_video_device_enumerate(video);
--	if (status)
--		return status;
-+	/*
-+	 * There are systems where video module known to work fine regardless
-+	 * of broken _DOD and ignoring returned value here doesn't cause
-+	 * any issues later.
-+	 */
-+	acpi_video_device_enumerate(video);
- 
- 	list_for_each_entry(dev, &device->children, node) {
- 
--- 
-1.7.12.1
+   We are interested in purchasing your products and I would like to  
+make an inquiry. can you inform me of your minimum order quantity? and  
+also your maximum order quantity, if there is any available sample do  
+let me know.
+
+
+Sincerely,
+Purchase Manager
+Alan Smith
+
