@@ -1,69 +1,90 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH 2/3] Do not use acpi_device to find pci root bridge in
- _init code.
-Date: Fri, 12 Oct 2012 18:58:02 +0800
-Message-ID: <5077F7BA.50905@cn.fujitsu.com>
-References: <1350037890-5899-1-git-send-email-tangchen@cn.fujitsu.com> <1350037890-5899-3-git-send-email-tangchen@cn.fujitsu.com> <5077F2C2.1010300@huawei.com> <5077F407.3040205@cn.fujitsu.com> <5077F6E1.7090600@huawei.com>
+Subject: Re: [PATCH] Fix a hard coding style when determining if a device
+ is a container.
+Date: Fri, 12 Oct 2012 18:47:30 +0800
+Message-ID: <5077F542.3010003@cn.fujitsu.com>
+References: <1350024916-3628-1-git-send-email-tangchen@cn.fujitsu.com> <5077ECA6.4010302@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-2022-JP
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:34334 "EHLO song.cn.fujitsu.com"
+Received: from cn.fujitsu.com ([222.73.24.84]:42104 "EHLO song.cn.fujitsu.com"
 	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1754156Ab2JLK7M (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 12 Oct 2012 06:59:12 -0400
-In-Reply-To: <5077F6E1.7090600@huawei.com>
+	id S1753175Ab2JLLCZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 12 Oct 2012 07:02:25 -0400
+In-Reply-To: <5077ECA6.4010302@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@huawei.com>
-Cc: yinghai@kernel.org, lenb@kernel.org, bhelgaas@google.com, izumi.taku@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: bhelgaas@google.com, lenb@kernel.org, yinghai@kernel.org, izumi.taku@jp.fujitsu.com, jiang.liu@huawei.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 10/12/2012 06:54 PM, Jiang Liu wrote:
->>> I have sent a similar patch to Yinghai before. For simplicity, we could
->>> use acpi_match_object_info_ids() instead of acpi_match_device_ids()
->>> directly.
+On 10/12/2012 06:10 PM, Yasuaki Ishimatsu wrote:
+> Hi Tang,
+> 
+> 2012/10/12 15:55, Tang Chen wrote:
+>> "ACPI0004","PNP0A05" and "PNP0A06" are all defined in array
+>> container_device_ids[], so use it, but not the hard coding style.
+> 
+> The idea is good.
+> 
 >>
->> Hum, I must have missed it. :)
->> Using acpi_match_object_info_ids() directly seems good. I'm just worry
->> about if it could cause any other problem. :)
+>> Signed-off-by: Tang Chen<tangchen@cn.fujitsu.com>
+>> ---
+>>    drivers/acpi/container.c |   10 +++++++---
+>>    1 files changed, 7 insertions(+), 3 deletions(-)
 >>
->> So now, is this bug fixed ? And we don't need these patches, right ?
+>> diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
+>> index 1f9f7d7..448c0e2 100644
+>> --- a/drivers/acpi/container.c
+>> +++ b/drivers/acpi/container.c
+>> @@ -217,6 +217,7 @@ container_walk_namespace_cb(acpi_handle handle,
+>>    {
+>>    	char *hid = NULL;
+>>    	struct acpi_device_info *info;
+>> +	struct acpi_device_id *container_id;
+>>    	acpi_status status;
+>>    	int *action = context;
 >>
->> Thanks. :)
-> I think Yinghai has missed my patch too, so just suggest to use
-> acpi_match_object_info_ids() directly.
+>> @@ -232,10 +233,13 @@ container_walk_namespace_cb(acpi_handle handle,
+>>    		goto end;
+>>    	}
+>>
+>> -	if (strcmp(hid, "ACPI0004")&&  strcmp(hid, "PNP0A05")&&
+>> -	    strcmp(hid, "PNP0A06")) {
+>> -		goto end;
+>> +	for (container_id = container_device_ids;
+>> +	     container_id->id[0]; container_id++) {
+>> +		if (!strcmp((char *)container_id->id, hid))
+>> +			break;
+>>    	}
+>> +	if (!container_id->id[0])
+>> +		goto end;
+> 
+> How about prepare is_container_device() function and check whether
+> the device is the container device or not as below?
 
-OK. :)
+Sure. :)
+A new patch will be sent soon.
 
-I will resend a new patch set soon. Thanks for your advice. :)
+Thanks for the wonderful idea. :)
 
->
-> --Gerry
->
+> 
+> 	if (is_container_device())
+> 		goto end;
+> 
+> Thanks,
+> Yasuaki Ishimatsu
+> 
 >>
->>> Thanks!
->>> Gerry
->>>
->>>>
->>>>        ret = acpi_match_device_ids(device, root_device_ids);
->>>>        if (ret)
->>>
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
+>>    	switch (*action) {
+>>    	case INSTALL_NOTIFY_HANDLER:
 >>
->>
->> .
->>
->
->
+> 
+> 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > Please read the FAQ at  http://www.tux.org/lkml/
->
+> 
 
