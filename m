@@ -1,76 +1,77 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [PATCH] Fix a hard coding style when determining if a device
- is a container.
-Date: Fri, 12 Oct 2012 19:10:46 +0900
-Message-ID: <5077ECA6.4010302@jp.fujitsu.com>
-References: <1350024916-3628-1-git-send-email-tangchen@cn.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
-Content-Transfer-Encoding: 7bit
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: [PATCH 1/3] Introduce a new acpi to determine HID match.
+Date: Fri, 12 Oct 2012 18:31:28 +0800
+Message-ID: <1350037890-5899-2-git-send-email-tangchen@cn.fujitsu.com>
+References: <1350037890-5899-1-git-send-email-tangchen@cn.fujitsu.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:59972 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751132Ab2JLKL1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Oct 2012 06:11:27 -0400
-In-Reply-To: <1350024916-3628-1-git-send-email-tangchen@cn.fujitsu.com>
+Received: from cn.fujitsu.com ([222.73.24.84]:43149 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1757951Ab2JLKcu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 12 Oct 2012 06:32:50 -0400
+In-Reply-To: <1350037890-5899-1-git-send-email-tangchen@cn.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: bhelgaas@google.com, lenb@kernel.org, yinghai@kernel.org, izumi.taku@jp.fujitsu.com, jiang.liu@huawei.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+To: yinghai@kernel.org, lenb@kernel.org, bhelgaas@google.com, izumi.taku@jp.fujitsu.com, jiang.liu@huawei.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
 
-Hi Tang,
+This introduce a new api to determine if a HID matches a list of IDs.
+Different from acpi_match_device_ids(), the new api gets HID from
+acpi_device_info struct.
 
-2012/10/12 15:55, Tang Chen wrote:
-> "ACPI0004","PNP0A05" and "PNP0A06" are all defined in array
-> container_device_ids[], so use it, but not the hard coding style.
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+---
+ drivers/acpi/scan.c     |   24 ++++++++++++++++++++++++
+ include/acpi/acpi_bus.h |    2 ++
+ 2 files changed, 26 insertions(+), 0 deletions(-)
 
-The idea is good.
-
-> 
-> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-> ---
->   drivers/acpi/container.c |   10 +++++++---
->   1 files changed, 7 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
-> index 1f9f7d7..448c0e2 100644
-> --- a/drivers/acpi/container.c
-> +++ b/drivers/acpi/container.c
-> @@ -217,6 +217,7 @@ container_walk_namespace_cb(acpi_handle handle,
->   {
->   	char *hid = NULL;
->   	struct acpi_device_info *info;
-> +	struct acpi_device_id *container_id;
->   	acpi_status status;
->   	int *action = context;
->   
-> @@ -232,10 +233,13 @@ container_walk_namespace_cb(acpi_handle handle,
->   		goto end;
->   	}
->   
-> -	if (strcmp(hid, "ACPI0004") && strcmp(hid, "PNP0A05") &&
-> -	    strcmp(hid, "PNP0A06")) {
-> -		goto end;
-> +	for (container_id = container_device_ids;
-> +	     container_id->id[0]; container_id++) {
-> +		if (!strcmp((char *)container_id->id, hid))
-> +			break;
->   	}
-> +	if (!container_id->id[0])
-> +		goto end;
-
-How about prepare is_container_device() function and check whether
-the device is the container device or not as below?
-
-	if (is_container_device())
-		goto end;
-
-Thanks,
-Yasuaki Ishimatsu
-
->   
->   	switch (*action) {
->   	case INSTALL_NOTIFY_HANDLER:
-> 
-
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 03c12e6..41fd4c9 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -312,6 +312,30 @@ int acpi_match_device_ids(struct acpi_device *device,
+ }
+ EXPORT_SYMBOL(acpi_match_device_ids);
+ 
++int acpi_match_object_info_ids(struct acpi_device_info *info,
++			       const struct acpi_device_id *ids)
++{
++	char *hardware_id;
++	int i, j;
++
++	for (i = 0; ids[i].id[0]; i++) {
++		hardware_id = info->hardware_id.string;
++		if (hardware_id &&
++		    !strcmp((char *)ids[i].id, hardware_id))
++				return 0;
++
++		for (j = 0; j < info->compatible_id_list.count; j++) {
++			hardware_id = info->compatible_id_list.ids[j].string;
++			if (hardware_id &&
++			    !strcmp((char *)ids[i].id, hardware_id))
++				return 0;
++		}
++	}
++
++	return 1;
++}
++EXPORT_SYMBOL(acpi_match_object_info_ids);
++
+ static void acpi_free_ids(struct acpi_device *device)
+ {
+ 	struct acpi_hardware_id *id, *tmp;
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index f0b9681..f83d581 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -379,6 +379,8 @@ int acpi_bus_start(struct acpi_device *device);
+ acpi_status acpi_bus_get_ejd(acpi_handle handle, acpi_handle * ejd);
+ int acpi_match_device_ids(struct acpi_device *device,
+ 			  const struct acpi_device_id *ids);
++int acpi_match_object_info_ids(struct acpi_device_info *info,
++			       const struct acpi_device_id *ids);
+ int acpi_create_dir(struct acpi_device *);
+ void acpi_remove_dir(struct acpi_device *);
+ 
+-- 
+1.7.1
 
