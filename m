@@ -1,102 +1,203 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: [RFC PATCH 4/4] sdio: pm: set device's power state after driver runtime suspended it
-Date: Fri, 12 Oct 2012 11:12:41 +0800
-Message-ID: <1350011561-21039-5-git-send-email-aaron.lu@intel.com>
-References: <1350011561-21039-1-git-send-email-aaron.lu@intel.com>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [PATCH v2] acpi : acpi_bus_trim() stops removing devices when
+ failing to remove the device
+Date: Fri, 12 Oct 2012 13:31:49 +0900
+Message-ID: <50779D35.3040600@jp.fujitsu.com>
+References: <50769B8C.2060901@jp.fujitsu.com> <1349963912.23493.26.camel@misato.fc.hp.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:6650 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755821Ab2JLDMz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 11 Oct 2012 23:12:55 -0400
-In-Reply-To: <1350011561-21039-1-git-send-email-aaron.lu@intel.com>
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:55047 "EHLO
+	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750778Ab2JLEcN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Oct 2012 00:32:13 -0400
+In-Reply-To: <1349963912.23493.26.camel@misato.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Chris Ball <cjb@laptop.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-mmc@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, wency@cn.fujitsu.com, vasilis.liaskovitis@profitbricks.com
 
-In sdio bus level runtime callback function, after call the driver's
-runtime suspend callback, we will check if the device supports a
-platform level power management, and if so, a proper power state is
-chosen by the corresponding platform callback and then set.
+Hi Toshi,
 
-Platform level runtime wakeup is also set, if device is enabled for
-runtime wakeup by its driver, it will be armed the ability to generate
-a wakeup event by the platform.
+2012/10/11 22:58, Toshi Kani wrote:
+> On Thu, 2012-10-11 at 19:12 +0900, Yasuaki Ishimatsu wrote:
+>> acpi_bus_trim() stops removing devices, when acpi_bus_remove() return error
+>> number. But acpi_bus_remove() cannot return error number correctly.
+>> acpi_bus_remove() only return -EINVAL, when dev argument is NULL. Thus even if
+>> device cannot be removed correctly, acpi_bus_trim() ignores and continues to
+>> remove devices. acpi_bus_hot_remove_device() uses acpi_bus_trim() for removing
+>> devices. Therefore acpi_bus_hot_remove_device() can send "_EJ0" to firmware,
+>> even if the device is running on the system. In this case, the system cannot
+>> work well.
+>>
+>> Vasilis hit the bug at memory hotplug and reported it as follow:
+>> https://lkml.org/lkml/2012/9/26/318
+>>
+>> So acpi_bus_trim() should check whether device was removed or not correctly.
+>> The patch adds error check into some functions to remove the device.
+>>
+>> Applying the patch, acpi_bus_trim() stops removing devices when failing
+>> to remove the device. But I think there is no impact with the
+>> exceptionof CPU and Memory hotplug path. Because other device also fails
+>> but the fail is an irregular case like device is NULL.
+>>
+>> v1->v2
+>> - add a rollback for reinstalling a notify handler.
+>>
+>> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+>
+> Thanks for the update. Looks good.
+>
+> Reviewed-by: Toshi Kani <toshi.kani@hp.com>
 
-Signed-off-by: Aaron Lu <aaron.lu@intel.com>
----
- drivers/mmc/core/sdio_bus.c | 49 +++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 47 insertions(+), 2 deletions(-)
+Thank you for reviewing.
 
-diff --git a/drivers/mmc/core/sdio_bus.c b/drivers/mmc/core/sdio_bus.c
-index aaec9e2..d83dea8 100644
---- a/drivers/mmc/core/sdio_bus.c
-+++ b/drivers/mmc/core/sdio_bus.c
-@@ -23,6 +23,7 @@
- 
- #include "sdio_cis.h"
- #include "sdio_bus.h"
-+#include "sdio.h"
- #include "sdio_acpi.h"
- 
- /* show configuration fields */
-@@ -194,10 +195,54 @@ static int sdio_bus_remove(struct device *dev)
- }
- 
- #ifdef CONFIG_PM
-+
-+static int sdio_bus_runtime_suspend(struct device *dev)
-+{
-+	int ret;
-+	sdio_power_t state;
-+
-+	ret = pm_generic_runtime_suspend(dev);
-+	if (ret)
-+		goto out;
-+
-+	if (!platform_sdio_power_manageable(dev))
-+		goto out;
-+
-+	platform_sdio_run_wake(dev, true);
-+
-+	state = platform_sdio_choose_power_state(dev);
-+	if (state == SDIO_POWER_ERROR) {
-+		ret = -EIO;
-+		goto out;
-+	}
-+
-+	ret = platform_sdio_set_power_state(dev, state);
-+
-+out:
-+	return ret;
-+}
-+
-+static int sdio_bus_runtime_resume(struct device *dev)
-+{
-+	int ret;
-+
-+	if (platform_sdio_power_manageable(dev)) {
-+		platform_sdio_run_wake(dev, false);
-+		ret = platform_sdio_set_power_state(dev, SDIO_D0);
-+		if (ret)
-+			goto out;
-+	}
-+
-+	ret = pm_generic_runtime_resume(dev);
-+
-+out:
-+	return ret;
-+}
-+
- static const struct dev_pm_ops sdio_bus_pm_ops = {
- 	SET_RUNTIME_PM_OPS(
--		pm_generic_runtime_suspend,
--		pm_generic_runtime_resume,
-+		sdio_bus_runtime_suspend,
-+		sdio_bus_runtime_resume,
- 		pm_generic_runtime_idle
- 	)
- };
--- 
-1.7.12.21.g871e293
+Thanks,
+Yasauaki Ishimatsu
+
+> -Toshi
+>
+>>
+>> ---
+>>   drivers/acpi/scan.c    |   21 ++++++++++++++++++---
+>>   drivers/base/dd.c      |   22 +++++++++++++++++-----
+>>   include/linux/device.h |    2 +-
+>>   3 files changed, 36 insertions(+), 9 deletions(-)
+>>
+>> Index: linux-3.6/drivers/acpi/scan.c
+>> ===================================================================
+>> --- linux-3.6.orig/drivers/acpi/scan.c	2012-10-11 18:31:40.189019503 +0900
+>> +++ linux-3.6/drivers/acpi/scan.c	2012-10-11 18:42:35.669041641 +0900
+>> @@ -445,18 +445,29 @@ static int acpi_device_remove(struct dev
+>>   {
+>>   	struct acpi_device *acpi_dev = to_acpi_device(dev);
+>>   	struct acpi_driver *acpi_drv = acpi_dev->driver;
+>> +	int ret;
+>>
+>>   	if (acpi_drv) {
+>>   		if (acpi_drv->ops.notify)
+>>   			acpi_device_remove_notify_handler(acpi_dev);
+>> -		if (acpi_drv->ops.remove)
+>> -			acpi_drv->ops.remove(acpi_dev, acpi_dev->removal_type);
+>> +		if (acpi_drv->ops.remove) {
+>> +			ret = acpi_drv->ops.remove(acpi_dev,
+>> +						   acpi_dev->removal_type);
+>> +			if (ret)
+>> +				goto rollback;
+>> +		}
+>>   	}
+>>   	acpi_dev->driver = NULL;
+>>   	acpi_dev->driver_data = NULL;
+>>
+>>   	put_device(dev);
+>>   	return 0;
+>> +
+>> +rollback:
+>> +	if (acpi_drv->ops.notify)
+>> +		acpi_device_install_notify_handler(acpi_dev);
+>> +
+>> +	return ret;
+>>   }
+>>
+>>   struct bus_type acpi_bus_type = {
+>> @@ -1226,11 +1237,15 @@ static int acpi_device_set_context(struc
+>>
+>>   static int acpi_bus_remove(struct acpi_device *dev, int rmdevice)
+>>   {
+>> +	int ret;
+>> +
+>>   	if (!dev)
+>>   		return -EINVAL;
+>>
+>>   	dev->removal_type = ACPI_BUS_REMOVAL_EJECT;
+>> -	device_release_driver(&dev->dev);
+>> +	ret = device_release_driver(&dev->dev);
+>> +	if (ret)
+>> +		return ret;
+>>
+>>   	if (!rmdevice)
+>>   		return 0;
+>> Index: linux-3.6/drivers/base/dd.c
+>> ===================================================================
+>> --- linux-3.6.orig/drivers/base/dd.c	2012-10-11 18:31:40.191019505 +0900
+>> +++ linux-3.6/drivers/base/dd.c	2012-10-11 18:31:46.873020548 +0900
+>> @@ -475,9 +475,10 @@ EXPORT_SYMBOL_GPL(driver_attach);
+>>    * __device_release_driver() must be called with @dev lock held.
+>>    * When called for a USB interface, @dev->parent lock must be held as well.
+>>    */
+>> -static void __device_release_driver(struct device *dev)
+>> +static int __device_release_driver(struct device *dev)
+>>   {
+>>   	struct device_driver *drv;
+>> +	int ret = 0;
+>>
+>>   	drv = dev->driver;
+>>   	if (drv) {
+>> @@ -493,9 +494,11 @@ static void __device_release_driver(stru
+>>   		pm_runtime_put_sync(dev);
+>>
+>>   		if (dev->bus && dev->bus->remove)
+>> -			dev->bus->remove(dev);
+>> +			ret = dev->bus->remove(dev);
+>>   		else if (drv->remove)
+>> -			drv->remove(dev);
+>> +			ret = drv->remove(dev);
+>> +		if (ret)
+>> +			goto rollback;
+>>   		devres_release_all(dev);
+>>   		dev->driver = NULL;
+>>   		dev_set_drvdata(dev, NULL);
+>> @@ -506,6 +509,12 @@ static void __device_release_driver(stru
+>>   						     dev);
+>>
+>>   	}
+>> +
+>> +	return ret;
+>> +
+>> +rollback:
+>> +	driver_sysfs_add(dev);
+>> +	return ret;
+>>   }
+>>
+>>   /**
+>> @@ -515,16 +524,19 @@ static void __device_release_driver(stru
+>>    * Manually detach device from driver.
+>>    * When called for a USB interface, @dev->parent lock must be held.
+>>    */
+>> -void device_release_driver(struct device *dev)
+>> +int device_release_driver(struct device *dev)
+>>   {
+>> +	int ret;
+>>   	/*
+>>   	 * If anyone calls device_release_driver() recursively from
+>>   	 * within their ->remove callback for the same device, they
+>>   	 * will deadlock right here.
+>>   	 */
+>>   	device_lock(dev);
+>> -	__device_release_driver(dev);
+>> +	ret = __device_release_driver(dev);
+>>   	device_unlock(dev);
+>> +
+>> +	return ret;
+>>   }
+>>   EXPORT_SYMBOL_GPL(device_release_driver);
+>>
+>> Index: linux-3.6/include/linux/device.h
+>> ===================================================================
+>> --- linux-3.6.orig/include/linux/device.h	2012-10-11 18:31:40.194019508 +0900
+>> +++ linux-3.6/include/linux/device.h	2012-10-11 18:31:46.881020556 +0900
+>> @@ -834,7 +834,7 @@ static inline void *dev_get_platdata(con
+>>    * for information on use.
+>>    */
+>>   extern int __must_check device_bind_driver(struct device *dev);
+>> -extern void device_release_driver(struct device *dev);
+>> +extern int device_release_driver(struct device *dev);
+>>   extern int  __must_check device_attach(struct device *dev);
+>>   extern int __must_check driver_attach(struct device_driver *drv);
+>>   extern int __must_check device_reprobe(struct device *dev);
+>>
+>
+>
+
 
