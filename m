@@ -1,51 +1,39 @@
-From: Jesper Juhl <jj@chaosbits.net>
-Subject: [PATCH] ACPI: Fix memory leak in acpi_bind_one()
-Date: Sun, 9 Nov 2008 14:38:30 +0100 (CET)
-Message-ID: <alpine.LNX.2.00.0811091436310.23308@swampdragon.chaosbits.net>
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: Re: [PATCH 4/4] acpi,memory-hotplug : store the node id in acpi_memory_device
+Date: Fri, 12 Oct 2012 14:59:56 -0400
+Message-ID: <CAHGf_=rf+ginaNjYifJJVa6sy2Hd41tdJQtC_JtmGaneyKqbkA@mail.gmail.com>
+References: <506C0AE8.40702@jp.fujitsu.com> <506C0F53.5030500@jp.fujitsu.com>
+ <CAHGf_=o6K71u4+OVsLvfCSRmOTk12TpsgKwsJO6bGdd_6dYnyA@mail.gmail.com> <507276FD.4020808@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 1010ds2-suoe.0.fullrate.dk ([90.184.90.115]:25689 "EHLO
-	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752691Ab2JLS7y (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Oct 2012 14:59:54 -0400
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:45285 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754095Ab2JLTAR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Oct 2012 15:00:17 -0400
+In-Reply-To: <507276FD.4020808@cn.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: Wen Congyang <wency@cn.fujitsu.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org
 
-Memory is allocated with kzalloc() and assigned to
-'physical_node'. Then 'physical_node->node_id' is initialized with a
-call to 'find_first_zero_bit()', if that results in a value greater
-than ACPI_MAX_PHYSICAL_NODE we'll end up jumping to the 'err:' label
-and there leave the function and let 'physical_node' go out of scope
-and leak the memory we allocated.
-This patch fixes the leak by simply freeing the unused/unneeded memory
-pointed to by 'physical_node' just before we jump to 'err:'.
+On Mon, Oct 8, 2012 at 2:47 AM, Wen Congyang <wency@cn.fujitsu.com> wrote:
+> At 10/06/2012 02:56 AM, KOSAKI Motohiro Wrote:
+>> On Wed, Oct 3, 2012 at 6:11 AM, Yasuaki Ishimatsu
+>> <isimatu.yasuaki@jp.fujitsu.com> wrote:
+>>> From: Wen Congyang <wency@cn.fujitsu.com>
+>>>
+>>> The memory device has only one node id. Store the node id when
+>>> enable the memory device, and we can reuse it when removing the
+>>> memory device.
+>>
+>> You don't explain why we need this. Then nobody can review nor ack.
+>>
+>
+> This patch doesn't fix any problem. Its purpose is: avoid to calculate
+> the node id twice.
 
-Signed-off-by: Jesper Juhl <jj@chaosbits.net>
----
- drivers/acpi/glue.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ditto.
 
-diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
-index d1a2d74..0837308 100644
---- a/drivers/acpi/glue.c
-+++ b/drivers/acpi/glue.c
-@@ -159,6 +159,7 @@ static int acpi_bind_one(struct device *dev, acpi_handle handle)
- 	if (physical_node->node_id >= ACPI_MAX_PHYSICAL_NODE) {
- 		retval = -ENOSPC;
- 		mutex_unlock(&acpi_dev->physical_node_lock);
-+		kfree(physical_node);
- 		goto err;
- 	}
- 
--- 
-1.7.1
-
-
--- 
-Jesper Juhl <jj@chaosbits.net>       http://www.chaosbits.net/
-Don't top-post http://www.catb.org/jargon/html/T/top-post.html
-Plain text mails only, please.
-
+Please separate patches as logical change. You should make problem fix
+patch set.
