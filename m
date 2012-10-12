@@ -1,77 +1,52 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH 1/3] Introduce a new acpi to determine HID match.
-Date: Fri, 12 Oct 2012 18:31:28 +0800
-Message-ID: <1350037890-5899-2-git-send-email-tangchen@cn.fujitsu.com>
+Subject: [PATCH 3/3] Check exit status of acpi_install_notify_handler() in find_root_bridges().
+Date: Fri, 12 Oct 2012 18:31:30 +0800
+Message-ID: <1350037890-5899-4-git-send-email-tangchen@cn.fujitsu.com>
 References: <1350037890-5899-1-git-send-email-tangchen@cn.fujitsu.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:43149 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1757951Ab2JLKcu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 12 Oct 2012 06:32:50 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1350037890-5899-1-git-send-email-tangchen@cn.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: yinghai@kernel.org, lenb@kernel.org, bhelgaas@google.com, izumi.taku@jp.fujitsu.com, jiang.liu@huawei.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc: Tang Chen <tangchen@cn.fujitsu.com>
+List-Id: linux-acpi@vger.kernel.org
 
-This introduce a new api to determine if a HID matches a list of IDs.
-Different from acpi_match_device_ids(), the new api gets HID from
-acpi_device_info struct.
+acpi_install_notify_handler() could fail. So check the exit status
+and give a better debug info.
 
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
 ---
- drivers/acpi/scan.c     |   24 ++++++++++++++++++++++++
- include/acpi/acpi_bus.h |    2 ++
- 2 files changed, 26 insertions(+), 0 deletions(-)
+ drivers/acpi/pci_root_hp.c |   12 +++++++++---
+ 1 files changed, 9 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 03c12e6..41fd4c9 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -312,6 +312,30 @@ int acpi_match_device_ids(struct acpi_device *device,
- }
- EXPORT_SYMBOL(acpi_match_device_ids);
- 
-+int acpi_match_object_info_ids(struct acpi_device_info *info,
-+			       const struct acpi_device_id *ids)
-+{
-+	char *hardware_id;
-+	int i, j;
-+
-+	for (i = 0; ids[i].id[0]; i++) {
-+		hardware_id = info->hardware_id.string;
-+		if (hardware_id &&
-+		    !strcmp((char *)ids[i].id, hardware_id))
-+				return 0;
-+
-+		for (j = 0; j < info->compatible_id_list.count; j++) {
-+			hardware_id = info->compatible_id_list.ids[j].string;
-+			if (hardware_id &&
-+			    !strcmp((char *)ids[i].id, hardware_id))
-+				return 0;
-+		}
-+	}
-+
-+	return 1;
-+}
-+EXPORT_SYMBOL(acpi_match_object_info_ids);
-+
- static void acpi_free_ids(struct acpi_device *device)
+diff --git a/drivers/acpi/pci_root_hp.c b/drivers/acpi/pci_root_hp.c
+index 05a88ae..1985749 100644
+--- a/drivers/acpi/pci_root_hp.c
++++ b/drivers/acpi/pci_root_hp.c
+@@ -246,6 +246,7 @@ static void handle_hotplug_event_root(acpi_handle handle, u32 type,
+ static acpi_status __init
+ find_root_bridges(acpi_handle handle, u32 lvl, void *context, void **rv)
  {
- 	struct acpi_hardware_id *id, *tmp;
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index f0b9681..f83d581 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -379,6 +379,8 @@ int acpi_bus_start(struct acpi_device *device);
- acpi_status acpi_bus_get_ejd(acpi_handle handle, acpi_handle * ejd);
- int acpi_match_device_ids(struct acpi_device *device,
- 			  const struct acpi_device_id *ids);
-+int acpi_match_object_info_ids(struct acpi_device_info *info,
-+			       const struct acpi_device_id *ids);
- int acpi_create_dir(struct acpi_device *);
- void acpi_remove_dir(struct acpi_device *);
++	acpi_status status;
+ 	char objname[64];
+ 	struct acpi_buffer buffer = { .length = sizeof(objname),
+ 				      .pointer = objname };
+@@ -258,9 +259,14 @@ find_root_bridges(acpi_handle handle, u32 lvl, void *context, void **rv)
+ 
+ 	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
+ 
+-	acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
+-				handle_hotplug_event_root, NULL);
+-	printk(KERN_DEBUG "acpi root: %s notify handler installed\n", objname);
++	status = acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
++					handle_hotplug_event_root, NULL);
++	if (ACPI_FAILURE(status))
++		printk(KERN_DEBUG "acpi root: %s notify handler not installed\n"
++				  "acpi root: exit status: %u\n",
++				  objname, (unsigned int)status);
++	else
++		printk(KERN_DEBUG "acpi root: %s notify handler installed\n", objname);
+ 
+ 	add_acpi_root_bridge(handle);
  
 -- 
 1.7.1
-
