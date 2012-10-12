@@ -1,42 +1,210 @@
-From: Khalid Aziz <khalid@gonehiking.org>
-Subject: Re: [PATCH v6 1/2] ACPI: Add early console framework for DBGP/DBG2.
-Date: Fri, 12 Oct 2012 13:24:03 -0600
-Message-ID: <1350069843.7065.65.camel@rhapsody>
-References: <cover.1348652044.git.lv.zheng@intel.com>
-	 <09ee0e9c79c57da2fc9d0af1c2daeaacdc0bb234.1349838218.git.lv.zheng@intel.com>
-	 <20121010174406.GA13861@srcf.ucam.org>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH 2/3] Do not use acpi_device to find pci root bridge in
+ _init code.
+Date: Fri, 12 Oct 2012 15:00:52 -0700
+Message-ID: <CAE9FiQV_XQWvtJcmEcqNd3ork2hYOxNhNrT9bpkvS2bWRhqpGw@mail.gmail.com>
+References: <1350037890-5899-1-git-send-email-tangchen@cn.fujitsu.com>
+	<1350037890-5899-3-git-send-email-tangchen@cn.fujitsu.com>
+	<5077F2C2.1010300@huawei.com>
+	<5077F407.3040205@cn.fujitsu.com>
+	<5077F6E1.7090600@huawei.com>
+	<CAE9FiQUDy0Hb60z2E=UnYcF-06-Buoy+JFcNOvT8+3ic13Eokw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <20121010174406.GA13861@srcf.ucam.org>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Matthew Garrett <mjg@redhat.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Len Brown <len.brown@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Jason Wessel <jason.wessel@windriver.com>, Feng Tang <feng.tang@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org, platform-driver-x86@vger.kernel.org
+Content-Type: multipart/mixed; boundary=0015175d03584a1b8504cbe3d24e
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:50442 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752514Ab2JLWAy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Oct 2012 18:00:54 -0400
+In-Reply-To: <CAE9FiQUDy0Hb60z2E=UnYcF-06-Buoy+JFcNOvT8+3ic13Eokw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jiang Liu <jiang.liu@huawei.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>, lenb@kernel.org, bhelgaas@google.com, izumi.taku@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, 2012-10-10 at 18:44 +0100, Matthew Garrett wrote:
-> On Wed, Oct 10, 2012 at 11:23:01AM +0800, Lv Zheng wrote:
-> > Microsoft Debug Port Table (DBGP or DBG2) is used by the Windows SoC
-> > platforms to describe their debugging facilities.
-> > DBGP: http://msdn.microsoft.com/en-us/windows/hardware/hh134821
-> > DBG2: http://msdn.microsoft.com/en-us/library/windows/hardware/hh673515
-> 
-> The license for these specifications only covers BIOS implementations, 
-> not OS implementations. Has this had appropriate legal review?
-> 
+--0015175d03584a1b8504cbe3d24e
+Content-Type: text/plain; charset=ISO-8859-1
 
-I agree with Matthew. There are potential legal issues with using
-DBGP/DBGP2 tables in Linux. I had added support for SPCR and DBGP tables
-many years ago (in early 2.6 kernel timeframe) before Microsoft added
-this new license. I pulled the code out (in 2.6.14, I think) after
-Microsoft added the new license to these tables. I agree with Matthew's
-interpretation that the license is clear only about BIOS vendors being
-allowed to use these tables. PCDP table in DIG64 spec was introduced to
-get around the legal issues with using SPCR and DBGP in Linux.
+On Fri, Oct 12, 2012 at 11:34 AM, Yinghai Lu <yinghai@kernel.org> wrote:
+> On Fri, Oct 12, 2012 at 3:54 AM, Jiang Liu <jiang.liu@huawei.com> wrote:
+>> On 2012-10-12 18:42, Tang Chen wrote:
+>>> On 10/12/2012 06:36 PM, Jiang Liu wrote:
+>>>> I have sent a similar patch to Yinghai before. For simplicity, we could
+>>>> use acpi_match_object_info_ids() instead of acpi_match_device_ids()
+>>>> directly.
+>>>
+>>> Hum, I must have missed it. :)
+>>> Using acpi_match_object_info_ids() directly seems good. I'm just worry
+>>> about if it could cause any other problem. :)
+>>>
+>>> So now, is this bug fixed ? And we don't need these patches, right ?
+>>>
+>>> Thanks. :)
+>> I think Yinghai has missed my patch too, so just suggest to use
+>> acpi_match_object_info_ids() directly.
+>
+> i put that patch from Jiang in my branch for while, and later found it
+> cause pci_root_bus notifying
+> do not work anymore, so i dropped that.
 
-License for DBGP/DBGP2 needs some legal review before this patch can go
-into Linux.
+I updated three patches and put them into my for-pci-split-pci-root-hp-2 branch.
 
---
-Khalid
+http://git.kernel.org/?p=linux/kernel/git/yinghai/linux-yinghai.git;a=shortlog;h=refs/heads/for-pci-split-pci-root-hp-2
+
+	git://git.kernel.org/pub/scm/linux/kernel/git/yinghai/linux-yinghai.git
+for-pci-split-pci-root-hp-2
+
+Thanks
+
+Yinghai
+
+--0015175d03584a1b8504cbe3d24e
+Content-Type: application/octet-stream;
+	name="0001-ACPI-Introduce-a-new-acpi-handle-to-determine-HID-ma.patch"
+Content-Disposition: attachment;
+	filename="0001-ACPI-Introduce-a-new-acpi-handle-to-determine-HID-ma.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_h87u7mp90
+
+RnJvbSAwNzMwNThkMjU4ODNjZDA2OWFiZGJkNzYzMWRhZmRkYjI5NjI3NDJmIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBUYW5nIENoZW4gPHRhbmdjaGVuQGNuLmZ1aml0c3UuY29tPgpE
+YXRlOiBGcmksIDEyIE9jdCAyMDEyIDIwOjM0OjE5ICswODAwClN1YmplY3Q6IFtQQVRDSCAxLzNd
+IEFDUEk6IEludHJvZHVjZSBhIG5ldyBhY3BpIGhhbmRsZSB0byBkZXRlcm1pbmUgSElECiBtYXRj
+aC4KCldlIG5lZWQgdG8gZmluZCBvdXQgaWYgb25lIGhhbmRsZSBpcyBmb3Igcm9vdCBicmlkZ2Us
+IGFuZCBpbnN0YWxsIG5vdGlmeQpoYW5kbGVyIGZvciBpdCB0byBoYW5kbGUgcGNpIHJvb3QgYnVz
+IGhvdCBhZGQuCkF0IHRoYXQgdGltZSwgcm9vdCBicmlkZ2UgYWNwaSBkZXZpY2UgaXMgbm90IGNy
+ZWF0ZWQgeWV0LgoKU28gYWNwaV9tYXRjaF9kZXZpY2VfaWRzKCkgd2lsbCBub3Qgd29yay4KClRo
+aXMgcGF0Y2ggYWRkIGEgZnVuY3Rpb24gdG8gY2hlY2sgaWYgbmV3IGFjcGkgaGFuZGxlJ3MgSElE
+IG1hdGNoZXMgYSBsaXN0Cm9mIElEcy4gIFRoZSBuZXcgYXBpIHVzZSBhY3BpX2RldmljZV9pbmZv
+IGluc3RlYWQgYWNwaV9kZXZpY2UuCgotdjI6IHVwZGF0ZWQgY2hhbmdlbG9nLCBhbHNvIGNoZWNr
+IGxlbmd0aCBmb3Igc3RyaW5nIGluZm8uLi4KICAgICBjaGFuZ2UgY2hlY2tpbmcgc2VxdWVuY2Ug
+YnkgbW92aW5nIHN0cmluZyBjb21hcmluZyBjbG9zZSB0byBmb3IgbG9vcC4KCQkJCQktIFlpbmdo
+YWkKClNpZ25lZC1vZmYtYnk6IFRhbmcgQ2hlbiA8dGFuZ2NoZW5AY24uZnVqaXRzdS5jb20+ClNp
+Z25lZC1vZmYtYnk6IFlpbmdoYWkgTHUgPHlpbmdoYWlAa2VybmVsLm9yZz4KQ2M6IExlbiBCcm93
+biA8bGVuYkBrZXJuZWwub3JnPgpDYzogbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmcKLS0tCiBk
+cml2ZXJzL2FjcGkvc2Nhbi5jICAgICB8ICAgMzMgKysrKysrKysrKysrKysrKysrKysrKysrKysr
+KysrKysrCiBpbmNsdWRlL2FjcGkvYWNwaV9idXMuaCB8ICAgIDIgKysKIDIgZmlsZXMgY2hhbmdl
+ZCwgMzUgaW5zZXJ0aW9ucygrKSwgMCBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJz
+L2FjcGkvc2Nhbi5jIGIvZHJpdmVycy9hY3BpL3NjYW4uYwppbmRleCA1ZGZlYzA5Li4zM2NhOTkz
+IDEwMDY0NAotLS0gYS9kcml2ZXJzL2FjcGkvc2Nhbi5jCisrKyBiL2RyaXZlcnMvYWNwaS9zY2Fu
+LmMKQEAgLTMxMiw2ICszMTIsMzkgQEAgaW50IGFjcGlfbWF0Y2hfZGV2aWNlX2lkcyhzdHJ1Y3Qg
+YWNwaV9kZXZpY2UgKmRldmljZSwKIH0KIEVYUE9SVF9TWU1CT0woYWNwaV9tYXRjaF9kZXZpY2Vf
+aWRzKTsKIAoraW50IGFjcGlfbWF0Y2hfb2JqZWN0X2luZm9faWRzKHN0cnVjdCBhY3BpX2Rldmlj
+ZV9pbmZvICppbmZvLAorCQkJICAgICAgIGNvbnN0IHN0cnVjdCBhY3BpX2RldmljZV9pZCAqaWRz
+KQoreworCWNvbnN0IHN0cnVjdCBhY3BpX2RldmljZV9pZCAqaWQ7CisJY2hhciAqc3RyOworCXUz
+MiBsZW47CisJaW50IGk7CisKKwlsZW4gPSBpbmZvLT5oYXJkd2FyZV9pZC5sZW5ndGg7CisJaWYg
+KGxlbikgeworCQlzdHIgPSBpbmZvLT5oYXJkd2FyZV9pZC5zdHJpbmc7CisJCWlmIChzdHIpCisJ
+CQlmb3IgKGlkID0gaWRzOyBpZC0+aWRbMF07IGlkKyspCisJCQkJaWYgKCFzdHJjbXAoKGNoYXIg
+KilpZC0+aWQsIHN0cikpCisJCQkJCXJldHVybiAwOworCX0KKworCWZvciAoaSA9IDA7IGkgPCBp
+bmZvLT5jb21wYXRpYmxlX2lkX2xpc3QuY291bnQ7IGkrKykgeworCQlsZW4gPSBpbmZvLT5jb21w
+YXRpYmxlX2lkX2xpc3QuaWRzW2ldLmxlbmd0aDsKKwkJaWYgKCFsZW4pCisJCQljb250aW51ZTsK
+KwkJc3RyID0gaW5mby0+Y29tcGF0aWJsZV9pZF9saXN0Lmlkc1tpXS5zdHJpbmc7CisJCWlmICgh
+c3RyKQorCQkJY29udGludWU7CisJCWZvciAoaWQgPSBpZHM7IGlkLT5pZFswXTsgaWQrKykKKwkJ
+CWlmICghc3RyY21wKChjaGFyICopaWQtPmlkLCBzdHIpKQorCQkJCXJldHVybiAwOworCX0KKwor
+CXJldHVybiAtRU5PRU5UOworfQorRVhQT1JUX1NZTUJPTChhY3BpX21hdGNoX29iamVjdF9pbmZv
+X2lkcyk7CisKIHN0YXRpYyB2b2lkIGFjcGlfZnJlZV9pZHMoc3RydWN0IGFjcGlfZGV2aWNlICpk
+ZXZpY2UpCiB7CiAJc3RydWN0IGFjcGlfaGFyZHdhcmVfaWQgKmlkLCAqdG1wOwpkaWZmIC0tZ2l0
+IGEvaW5jbHVkZS9hY3BpL2FjcGlfYnVzLmggYi9pbmNsdWRlL2FjcGkvYWNwaV9idXMuaAppbmRl
+eCA2MDhmOTJmLi42YWM0MTVjIDEwMDY0NAotLS0gYS9pbmNsdWRlL2FjcGkvYWNwaV9idXMuaAor
+KysgYi9pbmNsdWRlL2FjcGkvYWNwaV9idXMuaApAQCAtMzc0LDYgKzM3NCw4IEBAIGludCBhY3Bp
+X2J1c19zdGFydChzdHJ1Y3QgYWNwaV9kZXZpY2UgKmRldmljZSk7CiBhY3BpX3N0YXR1cyBhY3Bp
+X2J1c19nZXRfZWpkKGFjcGlfaGFuZGxlIGhhbmRsZSwgYWNwaV9oYW5kbGUgKiBlamQpOwogaW50
+IGFjcGlfbWF0Y2hfZGV2aWNlX2lkcyhzdHJ1Y3QgYWNwaV9kZXZpY2UgKmRldmljZSwKIAkJCSAg
+Y29uc3Qgc3RydWN0IGFjcGlfZGV2aWNlX2lkICppZHMpOworaW50IGFjcGlfbWF0Y2hfb2JqZWN0
+X2luZm9faWRzKHN0cnVjdCBhY3BpX2RldmljZV9pbmZvICppbmZvLAorCQkJICAgICAgIGNvbnN0
+IHN0cnVjdCBhY3BpX2RldmljZV9pZCAqaWRzKTsKIGludCBhY3BpX2NyZWF0ZV9kaXIoc3RydWN0
+IGFjcGlfZGV2aWNlICopOwogdm9pZCBhY3BpX3JlbW92ZV9kaXIoc3RydWN0IGFjcGlfZGV2aWNl
+ICopOwogCi0tIAoxLjcuNwoK
+--0015175d03584a1b8504cbe3d24e
+Content-Type: application/octet-stream;
+	name="0002-PCI-correctly-detect-ACPI-PCI-host-bridge-objects.patch"
+Content-Disposition: attachment;
+	filename="0002-PCI-correctly-detect-ACPI-PCI-host-bridge-objects.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_h87u7mpc1
+
+RnJvbSAyNjVlNmNhYjU5ZGI2MjYxZTFjMmU0ZTE0NDY4MDI1MmU1YWNlY2E4IE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBKaWFuZyBMaXUgPGppYW5nLmxpdUBodWF3ZWkuY29tPgpEYXRl
+OiBUaHUsIDEyIEFwciAyMDEyIDAwOjI3OjAzICswODAwClN1YmplY3Q6IFtQQVRDSCAyLzNdIFBD
+STogY29ycmVjdGx5IGRldGVjdCBBQ1BJIFBDSSBob3N0IGJyaWRnZSBvYmplY3RzCgpUaGUgY29k
+ZSBpbiBwY2lfcm9vdF9ocC5jIGRlcGVuZHMgb24gZnVuY3Rpb24gYWNwaV9pc19yb290X2JyaWRn
+ZSgpCnRvIGNoZWNrIHdoZXRoZXIgYW4gQUNQSSBvYmplY3QgaXMgYSBQQ0kgaG9zdCBicmlkZ2Ug
+b3Igbm90LgpJZiBhbiBBQ1BJIGRldmljZSBoYXNuJ3QgYmVlbiBjcmVhdGVkIGZvciB0aGUgQUNQ
+SSBvYmplY3QgeWV0LApmdW5jdGlvbiBhY3BpX2lzX3Jvb3RfYnJpZGdlKCkgd2lsbCByZXR1cm4g
+ZmFsc2UgZXZlbiBpZiB0aGUgb2JqZWN0CmlzIGEgUENJIGhvc3QgYnJpZGdlIG9iamVjdC4gVGhh
+dCBiZWhhdmlvciB3aWxsIGNhdXNlIHR3byBpc3N1ZXM6CjEpIE5vIEFDUEkgbm90aWZpY2F0aW9u
+IGhhbmRsZXIgaW5zdGFsbGVkIGZvciBQQ0kgaG9zdCBicmlkZ2VzIGFic2VudAogICBhdCBzdGFy
+dHVwLCBzbyBob3RwbHVnIGV2ZW50cyBmb3IgdGhvc2UgYnJpZGdlcyB3b24ndCBiZSBoYW5kbGVk
+LgoyKSByZXNjYW5fcm9vdF9icmlkZ2UoKSBjYW4ndCByZWVudW1lcmF0ZSBvZmZsaW5lZCBQQ0kg
+aG9zdCBicmlkZ2VzCiAgIGJlY2F1c2UgdGhlIEFDUEkgZGV2aWNlcyBoYXZlIGJlZW4gYWxyZWFk
+eSBkZXN0cm95ZWQuCgpTbyB1c2UgYWNwaV9tYXRjaF9vYmplY3RfaW5mb19pZHMoKSB0byBjb3Jy
+ZWN0bHkgZGV0ZWN0IFBDSSBob3N0IGJyaWRnZXMuCgotdjI6IHVwZGF0ZSB0byB1c2UgYWNwaV9t
+YXRjaF9vYmplY3RfaW5mb19pZHMoKSBmcm9tIFRhbmcgQ2hlbiAgLSBZaW5naGFpCgpTaWduZWQt
+b2ZmLWJ5OiBKaWFuZyBMaXUgPGppYW5nLmxpdUBodWF3ZWkuY29tPgpTaWduZWQtb2ZmLWJ5OiBZ
+aW5naGFpIEx1IDx5aW5naGFpQGtlcm5lbC5vcmc+CkNjOiBMZW4gQnJvd24gPGxlbmJAa2VybmVs
+Lm9yZz4KQ2M6IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnCi0tLQogZHJpdmVycy9hY3BpL3Bj
+aV9yb290X2hwLmMgfCAgIDI1ICsrKysrKysrKysrKysrKysrKysrKysrKy0KIDEgZmlsZXMgY2hh
+bmdlZCwgMjQgaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2
+ZXJzL2FjcGkvcGNpX3Jvb3RfaHAuYyBiL2RyaXZlcnMvYWNwaS9wY2lfcm9vdF9ocC5jCmluZGV4
+IDJhZWJmNzguLjNlZGVjN2YgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvYWNwaS9wY2lfcm9vdF9ocC5j
+CisrKyBiL2RyaXZlcnMvYWNwaS9wY2lfcm9vdF9ocC5jCkBAIC0xOSw2ICsxOSwxMiBAQCBzdHJ1
+Y3QgYWNwaV9yb290X2JyaWRnZSB7CiAJdTMyIGZsYWdzOwogfTsKIAorc3RhdGljIGNvbnN0IHN0
+cnVjdCBhY3BpX2RldmljZV9pZCByb290X2RldmljZV9pZHNbXSA9IHsKKwl7IlBOUDBBMDMiLCAw
+fSwKKwl7IlBOUDBBMDgiLCAwfSwKKwl7IiIsIDB9LAorfTsKKwogLyogYnJpZGdlIGZsYWdzICov
+CiAjZGVmaW5lIFJPT1RfQlJJREdFX0hBU19FSjAJKDB4MDAwMDAwMDIpCiAjZGVmaW5lIFJPT1Rf
+QlJJREdFX0hBU19QUzMJKDB4MDAwMDAwODApCkBAIC0yNTYsNiArMjYyLDIzIEBAIHN0YXRpYyB2
+b2lkIGhhbmRsZV9ob3RwbHVnX2V2ZW50X3Jvb3QoYWNwaV9oYW5kbGUgaGFuZGxlLCB1MzIgdHlw
+ZSwKIAkJCQlfaGFuZGxlX2hvdHBsdWdfZXZlbnRfcm9vdCk7CiB9CiAKK3N0YXRpYyBib29sIGFj
+cGlfaXNfcm9vdF9icmlkZ2Vfb2JqZWN0KGFjcGlfaGFuZGxlIGhhbmRsZSkKK3sKKwlzdHJ1Y3Qg
+YWNwaV9kZXZpY2VfaW5mbyAqaW5mbyA9IE5VTEw7CisJYWNwaV9zdGF0dXMgc3RhdHVzOworCWJv
+b2wgcmV0OworCisJc3RhdHVzID0gYWNwaV9nZXRfb2JqZWN0X2luZm8oaGFuZGxlLCAmaW5mbyk7
+CisJaWYgKEFDUElfRkFJTFVSRShzdGF0dXMpKQorCQlyZXR1cm4gZmFsc2U7CisKKwlyZXQgPSAh
+YWNwaV9tYXRjaF9vYmplY3RfaW5mb19pZHMoaW5mbywgcm9vdF9kZXZpY2VfaWRzKTsKKworCWtm
+cmVlKGluZm8pOworCisJcmV0dXJuIHJldDsKK30KKwogc3RhdGljIGFjcGlfc3RhdHVzIF9faW5p
+dAogZmluZF9yb290X2JyaWRnZXMoYWNwaV9oYW5kbGUgaGFuZGxlLCB1MzIgbHZsLCB2b2lkICpj
+b250ZXh0LCB2b2lkICoqcnYpCiB7CkBAIC0yNjQsNyArMjg3LDcgQEAgZmluZF9yb290X2JyaWRn
+ZXMoYWNwaV9oYW5kbGUgaGFuZGxlLCB1MzIgbHZsLCB2b2lkICpjb250ZXh0LCB2b2lkICoqcnYp
+CiAJCQkJICAgICAgLnBvaW50ZXIgPSBvYmpuYW1lIH07CiAJaW50ICpjb3VudCA9IChpbnQgKilj
+b250ZXh0OwogCi0JaWYgKCFhY3BpX2lzX3Jvb3RfYnJpZGdlKGhhbmRsZSkpCisJaWYgKCFhY3Bp
+X2lzX3Jvb3RfYnJpZGdlX29iamVjdChoYW5kbGUpKQogCQlyZXR1cm4gQUVfT0s7CiAKIAkoKmNv
+dW50KSsrOwotLSAKMS43LjcKCg==
+--0015175d03584a1b8504cbe3d24e
+Content-Type: application/octet-stream;
+	name="0003-PCI-ACPI-debug-print-for-installation-of-acpi-root-b.patch"
+Content-Disposition: attachment;
+	filename="0003-PCI-ACPI-debug-print-for-installation-of-acpi-root-b.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_h87u7mpe2
+
+RnJvbSBkMDc5MzA5N2VjMGVjZWJlZjQ1ZWI5OGU5NjMyYjk3OGQwZjc3MzcwIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBUYW5nIENoZW4gPHRhbmdjaGVuQGNuLmZ1aml0c3UuY29tPgpE
+YXRlOiBGcmksIDEyIE9jdCAyMDEyIDIwOjM0OjIxICswODAwClN1YmplY3Q6IFtQQVRDSCAzLzNd
+IFBDSSwgQUNQSTogZGVidWcgcHJpbnQgZm9yIGluc3RhbGxhdGlvbiBvZiBhY3BpIHJvb3QKIGJy
+aWRnZSdzIG5vdGlmaWVyCgphY3BpX2luc3RhbGxfbm90aWZ5X2hhbmRsZXIoKSBjb3VsZCBmYWls
+LiBTbyBjaGVjayB0aGUgZXhpdCBzdGF0dXMKYW5kIGdpdmUgYSBiZXR0ZXIgZGVidWcgaW5mby4K
+ClNpZ25lZC1vZmYtYnk6IFRhbmcgQ2hlbiA8dGFuZ2NoZW5AY24uZnVqaXRzdS5jb20+ClNpbmdl
+ZC1vZmYtYnk6IFlpbmdoYWkgTHUgPHlpbmdoYWlAa2VybmVsLm9yZz4KLS0tCiBkcml2ZXJzL2Fj
+cGkvcGNpX3Jvb3RfaHAuYyB8ICAgMTIgKysrKysrKysrLS0tCiAxIGZpbGVzIGNoYW5nZWQsIDkg
+aW5zZXJ0aW9ucygrKSwgMyBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkv
+cGNpX3Jvb3RfaHAuYyBiL2RyaXZlcnMvYWNwaS9wY2lfcm9vdF9ocC5jCmluZGV4IDNlZGVjN2Yu
+LjAxZTcxZjYgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvYWNwaS9wY2lfcm9vdF9ocC5jCisrKyBiL2Ry
+aXZlcnMvYWNwaS9wY2lfcm9vdF9ocC5jCkBAIC0yODIsNiArMjgyLDcgQEAgc3RhdGljIGJvb2wg
+YWNwaV9pc19yb290X2JyaWRnZV9vYmplY3QoYWNwaV9oYW5kbGUgaGFuZGxlKQogc3RhdGljIGFj
+cGlfc3RhdHVzIF9faW5pdAogZmluZF9yb290X2JyaWRnZXMoYWNwaV9oYW5kbGUgaGFuZGxlLCB1
+MzIgbHZsLCB2b2lkICpjb250ZXh0LCB2b2lkICoqcnYpCiB7CisJYWNwaV9zdGF0dXMgc3RhdHVz
+OwogCWNoYXIgb2JqbmFtZVs2NF07CiAJc3RydWN0IGFjcGlfYnVmZmVyIGJ1ZmZlciA9IHsgLmxl
+bmd0aCA9IHNpemVvZihvYmpuYW1lKSwKIAkJCQkgICAgICAucG9pbnRlciA9IG9iam5hbWUgfTsK
+QEAgLTI5NCw5ICsyOTUsMTQgQEAgZmluZF9yb290X2JyaWRnZXMoYWNwaV9oYW5kbGUgaGFuZGxl
+LCB1MzIgbHZsLCB2b2lkICpjb250ZXh0LCB2b2lkICoqcnYpCiAKIAlhY3BpX2dldF9uYW1lKGhh
+bmRsZSwgQUNQSV9GVUxMX1BBVEhOQU1FLCAmYnVmZmVyKTsKIAotCWFjcGlfaW5zdGFsbF9ub3Rp
+ZnlfaGFuZGxlcihoYW5kbGUsIEFDUElfU1lTVEVNX05PVElGWSwKLQkJCQloYW5kbGVfaG90cGx1
+Z19ldmVudF9yb290LCBOVUxMKTsKLQlwcmludGsoS0VSTl9ERUJVRyAiYWNwaSByb290OiAlcyBu
+b3RpZnkgaGFuZGxlciBpbnN0YWxsZWRcbiIsIG9iam5hbWUpOworCXN0YXR1cyA9IGFjcGlfaW5z
+dGFsbF9ub3RpZnlfaGFuZGxlcihoYW5kbGUsIEFDUElfU1lTVEVNX05PVElGWSwKKwkJCQkJaGFu
+ZGxlX2hvdHBsdWdfZXZlbnRfcm9vdCwgTlVMTCk7CisJaWYgKEFDUElfRkFJTFVSRShzdGF0dXMp
+KQorCQlwcmludGsoS0VSTl9ERUJVRyAiYWNwaSByb290OiAlcyBub3RpZnkgaGFuZGxlciBpcyBu
+b3QgaW5zdGFsbGVkLCBleGl0IHN0YXR1czogJXVcbiIsCisJCQkJICBvYmpuYW1lLCAodW5zaWdu
+ZWQgaW50KXN0YXR1cyk7CisJZWxzZQorCQlwcmludGsoS0VSTl9ERUJVRyAiYWNwaSByb290OiAl
+cyBub3RpZnkgaGFuZGxlciBpcyBpbnN0YWxsZWRcbiIsCisJCQkJIG9iam5hbWUpOwogCiAJYWRk
+X2FjcGlfcm9vdF9icmlkZ2UoaGFuZGxlKTsKIAotLSAKMS43LjcKCg==
+--0015175d03584a1b8504cbe3d24e--
