@@ -1,48 +1,75 @@
-From: melchiaros <melchiaros@aol.com>
-Subject: Backlight is not adjustable on HP 655 laptop
-Date: Sat, 13 Oct 2012 17:29:35 +0200
-Message-ID: <507988DF.3060201@aol.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Discussion on device's runtime wake capability
+Date: Sat, 13 Oct 2012 19:13:02 +0200
+Message-ID: <29356922.eWlVE9E7SJ@vostro.rjw.lan>
+References: <5073C2D0.1080900@intel.com> <2938573.5VAPp3FQcI@vostro.rjw.lan> <CAOzJMDRRao8B-BOeofnoT2a5Bzy7G9bhhi7fFuST2g-1wc+owQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from imr-ma03.mx.aol.com ([64.12.206.41]:48313 "EHLO
-	imr-ma03.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753652Ab2JMP3r (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 13 Oct 2012 11:29:47 -0400
-Received: from mtaout-db02.r1000.mx.aol.com (mtaout-db02.r1000.mx.aol.com [172.29.51.194])
-	by imr-ma03.mx.aol.com (8.14.1/8.14.1) with ESMTP id q9DFTf6K014539
-	for <linux-acpi@vger.kernel.org>; Sat, 13 Oct 2012 11:29:41 -0400
-Received: from [192.168.1.12] (blfd-4db0fa8d.pool.mediaWays.net [77.176.250.141])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mtaout-db02.r1000.mx.aol.com (MUA/Third Party Client Interface) with ESMTPSA id BAA81E000094
-	for <linux-acpi@vger.kernel.org>; Sat, 13 Oct 2012 11:29:39 -0400 (EDT)
+Received: from ogre.sisk.pl ([193.178.161.156]:45496 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753210Ab2JMRJb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 13 Oct 2012 13:09:31 -0400
+In-Reply-To: <CAOzJMDRRao8B-BOeofnoT2a5Bzy7G9bhhi7fFuST2g-1wc+owQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lwe@gmail.com>
+Cc: Len Brown <lenb@kernel.org>, Huang Ying <ying.huang@intel.com>, Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>
 
-May be I have done the last step first. My apologize for this.
+On Friday 12 of October 2012 22:15:10 Aaron Lu wrote:
+> On Fri, Oct 12, 2012 at 1:18 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > On Thursday 11 of October 2012 08:47:43 Aaron Lu wrote:
+> >> On 10/11/2012 06:59 AM, Rafael J. Wysocki wrote:
+> >> > On Wednesday 10 of October 2012 08:53:32 Aaron Lu wrote:
+> >> >
+> >> >> And if possible, we can change the way we do to arm the device for
+> >> >> run wake by not powering those _PRW power resources.
+> >> >
+> >> > No, we can't.
+> >> >
+> >> > Do you have examples of devices where it is harmful?
+> >>
+> >> Yes, for the ZPODD device.
+> >> It has _PRW specifying it can wake the system up from S4. And I tried
+> >> not to powering on the power resources referenced in _PRW, no problem
+> >> for it to generate wake event in S0.
+> >
+> > How does it do that? Through the _PRW GPE or something else?
+> 
+> Yes, through the GPE defined in _PRW.
+> 
+> >
+> >> Let me try to conclude:
+> >> - The behaviour of devices which only have _PRW should not be changed;
+> >> - We can change the way we check if a device is run wake capable by
+> >>   checking if it has _PRW or _S0W;
+> >> - For devices which have both _PRW and _S0W, we need consider if
+> >>   powering on _PRW is needed for run wake.
+> >
+> > Well, _S0W only tells us what power state(s) it is safe to put the device into
+> > without breaking its wakeup capability, but it doesn't really guarantee that,
+> > for example, the _PRW GPE will always work if the device is in one of the
+> > "safe" states.
+> 
+> Suppose _S0W returns 4, and its wake up event is sent through GPE
+> defined in _PRW, and system is at S0. Do we need to turn on the power
+> resources referenced in _PRW when we put the device into D3_COLD
+> and its run wake capability is desired?
+> 
+> >
+> > My interpretation of the _PRW output is that it tells us the wakeup GPE number
+> > and a list of resources needed for that GPE to actually work. In which case it
+> > shouldn't matter whether or not the system is in S0.
+> 
+> From this, it sounds like if GPE is used, _PRW should always be turned on.
 
-I have original reported
+Yes, that's my understanding of this.
 
-https://bugs.launchpad.net/linux/+bug/1054647
-
-and than opened up
-
-https://bugzilla.kernel.org/show_bug.cgi?id=48731
-
-.
-Following this guide
-
-https://wiki.ubuntu.com/Bugs/Upstream/kernel
-
-I should have send to this list first, before opening a ticket on 
-bugzilla.kernel.org.
-
-Well, sorry.
+Thanks,
+Rafael
 
 
-I have done my best to bring the reports in a good enough style.
-
-Should there be missed some information, please tell me.
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
