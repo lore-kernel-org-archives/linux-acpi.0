@@ -1,92 +1,56 @@
-From: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Subject: Re: [PATCH 2/3 v2] Do not use acpi_device to find pci root bridge
- in _init code.
-Date: Mon, 15 Oct 2012 14:41:27 +0900
-Message-ID: <20121015144127.731e8cf0.izumi.taku@jp.fujitsu.com>
-References: <1350045261-7344-1-git-send-email-tangchen@cn.fujitsu.com>
-	<1350045261-7344-3-git-send-email-tangchen@cn.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1350045261-7344-3-git-send-email-tangchen@cn.fujitsu.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: bhelgaas@google.com, lenb@kernel.org, yinghai@kernel.org, jiang.liu@huawei.com, isimatu.yasuaki@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: [PATCH 1/2] ACPI: Fix stale pointer access to flags.lockable
+Date: Mon, 15 Oct 2012 10:34:29 -0600
+Message-ID: <1350318870-5700-1-git-send-email-toshi.kani@hp.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org, lenb@kernel.org
+Cc: linux-kernel@vger.kernel.org, rjw@sisk.pl, isimatu.yasuaki@jp.fujitsu.com, liuj97@gmail.com, Toshi Kani <toshi.kani@hp.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 12 Oct 2012 20:34:20 +0800
-Tang Chen <tangchen@cn.fujitsu.com> wrote:
+During hot-remove, acpi_bus_hot_remove_device() calls ACPI _LCK
+method when device->flags.lockable is set. However, this device
+pointer is stale since the target acpi_device object has been
+already kfree'd by acpi_bus_trim().
 
-> When the kernel is being initialized, and some hardwares are not added
-> to system, there won't be acpi_device structs for these devices. But
-> acpi_is_root_bridge() depends on acpi_device struct. As a result, all
-> the not-added root bridge will not be judged as a root bridge in
-> find_root_bridges(). And further more, no handle_hotplug_event_root()
-> notifier will be installed for them.
-> 
-> This patch introduces a new api to find all root bridges in system by
-> getting HID directly from ACPI namespace, not depending on acpi_device
-> struct.
+The flags.lockable indicates whether or not this ACPI object
+implements _LCK method. Fix the stable pointer access by replacing
+it with acpi_get_handle() to check if _LCK is implemented.
 
-  How about squashing patch #2 into patch #1 ?
-  The caller and callee should be the same place in my mind.
+Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+---
+ drivers/acpi/scan.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-  Best regards,
-  Taku Izumi
-
-> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-> Signed-off-by: Liu Jiang <jiang.liu@huawei.com>
-> ---
->  drivers/acpi/pci_root.c |   19 +++++++++++--------
->  1 files changed, 11 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> index 6151d83..582eb11 100644
-> --- a/drivers/acpi/pci_root.c
-> +++ b/drivers/acpi/pci_root.c
-> @@ -129,20 +129,23 @@ EXPORT_SYMBOL_GPL(acpi_get_pci_rootbridge_handle);
->   * acpi_is_root_bridge - determine whether an ACPI CA node is a PCI root bridge
->   * @handle - the ACPI CA node in question.
->   *
-> - * Note: we could make this API take a struct acpi_device * instead, but
-> - * for now, it's more convenient to operate on an acpi_handle.
-> + * Note: If a device is not added to the system yet, there won't be an
-> + * acpi_device struct for it. So do not get HID and CID from acpi_device,
-> + * get them from ACPI namespace directly.
->   */
->  int acpi_is_root_bridge(acpi_handle handle)
->  {
-> -	int ret;
-> -	struct acpi_device *device;
-> +	struct acpi_device_info *info;
-> +	acpi_status status;
->  
-> -	ret = acpi_bus_get_device(handle, &device);
-> -	if (ret)
-> +	status = acpi_get_object_info(handle, &info);
-> +	if (ACPI_FAILURE(status)) {
-> +		printk(KERN_ERR PREFIX "%s: Error reading"
-> +				       "device info\n", __func__);
->  		return 0;
-> +	}
->  
-> -	ret = acpi_match_device_ids(device, root_device_ids);
-> -	if (ret)
-> +	if (acpi_match_object_info_ids(info, root_device_ids))
->  		return 0;
->  	else
->  		return 1;
-> -- 
-> 1.7.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
-
-
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 1fcb867..ed87f43 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -97,6 +97,7 @@ void acpi_bus_hot_remove_device(void *context)
+ 	struct acpi_eject_event *ej_event = (struct acpi_eject_event *) context;
+ 	struct acpi_device *device;
+ 	acpi_handle handle = ej_event->handle;
++	acpi_handle temp;
+ 	struct acpi_object_list arg_list;
+ 	union acpi_object arg;
+ 	acpi_status status = AE_OK;
+@@ -117,13 +118,16 @@ void acpi_bus_hot_remove_device(void *context)
+ 		goto err_out;
+ 	}
+ 
++	/* device has been freed */
++	device = NULL;
++
+ 	/* power off device */
+ 	status = acpi_evaluate_object(handle, "_PS3", NULL, NULL);
+ 	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND)
+ 		printk(KERN_WARNING PREFIX
+ 				"Power-off device failed\n");
+ 
+-	if (device->flags.lockable) {
++	if (ACPI_SUCCESS(acpi_get_handle(handle, "_LCK", &temp))) {
+ 		arg_list.count = 1;
+ 		arg_list.pointer = &arg;
+ 		arg.type = ACPI_TYPE_INTEGER;
 -- 
-Taku Izumi <izumi.taku@jp.fujitsu.com>
+1.7.11.7
