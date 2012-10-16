@@ -1,89 +1,29 @@
-From: Youquan Song <youquan.song@intel.com>
-Subject: [PATCH 2/5] x86,idle: Quickly notice prediction failure in general case
-Date: Tue, 16 Oct 2012 21:04:37 -0400
-Message-ID: <1350435880-19143-3-git-send-email-youquan.song@intel.com>
-References: <1350435880-19143-1-git-send-email-youquan.song@intel.com>
- <1350435880-19143-2-git-send-email-youquan.song@intel.com>
+From: David Rientjes <rientjes@google.com>
+Subject: Re: [PATCH] [resend] ACPI: Fix memory leak in acpi_bind_one()
+ (fwd)
+Date: Tue, 16 Oct 2012 12:14:16 -0700 (PDT)
+Message-ID: <alpine.DEB.2.00.1210161214001.4770@chino.kir.corp.google.com>
+References: <alpine.LNX.2.00.1210152049550.1038@swampdragon.chaosbits.net>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1350435880-19143-2-git-send-email-youquan.song@intel.com>
+In-Reply-To: <alpine.LNX.2.00.1210152049550.1038@swampdragon.chaosbits.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, arjan@linux.intel.com, lenb@kernel.org
-Cc: Rik van Riel <riel@redhat.com>, Youquan Song <youquan.song@linux.intel.com>, Youquan Song <youquan.song@intel.com>
+To: Jesper Juhl <jj@chaosbits.net>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-The prediction for future is difficult and when the cpuidle governor prediction 
-fails and govenor possibly choose the shallower C-state than it should. How to 
-quickly notice and find the failure becomes important for power saving.    
+On Mon, 15 Oct 2012, Jesper Juhl wrote:
 
-The patch extends to general case that prediction logic get a small predicted
-residency, so it choose a shallow C-state though the expected residency is large
-. Once the prediction will be fail, the CPU will keep staying at shallow C-state
-for a long time. Acutally, the CPU has change enter into deep C-state.
-So when the expected residency is long enough but governor choose a shallow
-C-state, an timer will be added in order to monitor if the prediction failure. 
+> Memory is allocated with kzalloc() and assigned to
+> 'physical_node'. Then 'physical_node->node_id' is initialized with a
+> call to 'find_first_zero_bit()', if that results in a value greater
+> than ACPI_MAX_PHYSICAL_NODE we'll end up jumping to the 'err:' label
+> and there leave the function and let 'physical_node' go out of scope
+> and leak the memory we allocated.
+> This patch fixes the leak by simply freeing the unused/unneeded memory
+> pointed to by 'physical_node' just before we jump to 'err:'.
+> 
+> Signed-off-by: Jesper Juhl <jj@chaosbits.net>
 
-When C-state is waken up prior to the adding timer, the timer will be cancelled 
-initiatively. When the timer is triggered and menu governor will quickly notice
-prediction failure and re-evaluates deeper C-states possibility. 
-
-Signed-off-by: Youquan Song <youquan.song@intel.com>
-Signed-off-by: Rik van Riel <riel@redhat.com>
----
- drivers/cpuidle/governors/menu.c |   22 ++++++++++++++++++++++
- 1 files changed, 22 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/cpuidle/governors/menu.c b/drivers/cpuidle/governors/menu.c
-index beeab6a..b34bf11 100644
---- a/drivers/cpuidle/governors/menu.c
-+++ b/drivers/cpuidle/governors/menu.c
-@@ -114,6 +114,13 @@ static DEFINE_PER_CPU(int, hrtimer_started);
-  *
-  */
- 
-+/*
-+ * The C-state residency is so long that is is worthwhile to exit
-+ * from the shallow C-state and re-enter into a deeper C-state.
-+ */
-+static unsigned int perfect_cstate_ms __read_mostly = 30;
-+module_param(perfect_cstate_ms, uint, 0000);
-+
- struct menu_device {
- 	int		last_state_idx;
- 	int             needs_update;
-@@ -351,6 +358,7 @@ static int menu_select(struct cpuidle_driver *drv, struct cpuidle_device *dev)
- 	/* not deepest C-state chosen for low predicted residency */
- 	if (low_predicted) {
- 		unsigned int timer_us = 0;
-+		unsigned int perfect_us = 0;
- 
- 		/*
- 		 * Set a timer to detect whether this sleep is much
-@@ -361,12 +369,26 @@ static int menu_select(struct cpuidle_driver *drv, struct cpuidle_device *dev)
- 		 */
- 		timer_us = 2 * (data->predicted_us + MAX_DEVIATION);
- 
-+		perfect_us = perfect_cstate_ms * 1000;
-+
- 		if (repeat && (4 * timer_us < data->expected_us)) {
- 			hrtimer_start(hrtmr, ns_to_ktime(1000 * timer_us),
- 				HRTIMER_MODE_REL_PINNED);
- 			/* menu hrtimer is started */
- 			per_cpu(hrtimer_started, cpu) = 1;
-+		} else if (perfect_us < data->expected_us) {
-+			/*
-+			 * The next timer is long. This could be because
-+			 * we did not make a useful prediction.
-+			 * In that case, it makes sense to re-enter
-+			 * into a deeper C-state after some time.
-+			 */
-+			hrtimer_start(hrtmr, ns_to_ktime(1000 * timer_us),
-+				HRTIMER_MODE_REL_PINNED);
-+			/* menu hrtimer is started */
-+			per_cpu(hrtimer_started, cpu) = 1;
- 		}
-+
- 	}
- 
- 	return data->last_state_idx;
--- 
-1.7.7.4
+Acked-by: David Rientjes <rientjes@google.com>
