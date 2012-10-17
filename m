@@ -1,39 +1,83 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Subject: Re: Is: axe read_tscp pvops call. Was: Re: [RFC] ACPI S3 and Xen
  (suprisingly small\!).
-Date: Wed, 17 Oct 2012 09:50:11 -0700
-Message-ID: <507EE1C3.7070300@zytor.com>
-References: <1350481786-4969-1-git-send-email-konrad.wilk@oracle.com> <507ED6C0.4020503@zytor.com> <20121017161036.GA10691@phenom.dumpdata.com>
+Date: Wed, 17 Oct 2012 12:39:45 -0400
+Message-ID: <20121017163945.GA28856@phenom.dumpdata.com>
+References: <1350481786-4969-1-git-send-email-konrad.wilk@oracle.com>
+ <507ED6C0.4020503@zytor.com>
+ <20121017161036.GA10691@phenom.dumpdata.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from acsinet15.oracle.com ([141.146.126.227]:46129 "EHLO
+	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756485Ab2JQQvz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Oct 2012 12:51:55 -0400
+Content-Disposition: inline
 In-Reply-To: <20121017161036.GA10691@phenom.dumpdata.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xensource.com, lenb@kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xensource.com, lenb@kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org
 
-On 10/17/2012 09:10 AM, Konrad Rzeszutek Wilk wrote:
+On Wed, Oct 17, 2012 at 12:10:36PM -0400, Konrad Rzeszutek Wilk wrote:
 > On Wed, Oct 17, 2012 at 09:03:12AM -0700, H. Peter Anvin wrote:
->> On 10/17/2012 06:49 AM, Konrad Rzeszutek Wilk wrote:
->>>
->>> Note: These are the other patches that went in 3.7-rc1:
->>> xen/bootup: allow {read|write}_cr8 pvops call [https://lkml.org/lkml/2012/10/10/339]
->>> xen/bootup: allow read_tscp call for Xen PV guests. [https://lkml.org/lkml/2012/10/10/340]
->>>
->>
->> So WTF do we have a read_tscp PV call?  Again, if there isn't a user
->> we should just axe it...
->
+> > On 10/17/2012 06:49 AM, Konrad Rzeszutek Wilk wrote:
+> > >
+> > >Note: These are the other patches that went in 3.7-rc1:
+> > >xen/bootup: allow {read|write}_cr8 pvops call [https://lkml.org/lkml/2012/10/10/339]
+> > >xen/bootup: allow read_tscp call for Xen PV guests. [https://lkml.org/lkml/2012/10/10/340]
+> > >
+> > 
+> > So WTF do we have a read_tscp PV call?  Again, if there isn't a user
+> > we should just axe it...
+> 
 > Let me spin off a patch to see if that can be done.
->
 
-Could you do an audit for other pvops calls that have no users?  If the 
-*only* user is lguest, we should talk about it, too...
+It can be done faily easy. That said  the only user that could
+_potentially_ use this (if the read_tscp had some extra logic to
+do 'readtsc' operations) would be the __vdso_getcpu.
 
-	-hpa
+Meaning in __vdso_getcpu we would modify it from native_read_tscp
+to paravirt_read_tscp:
 
--- 
-H. Peter Anvin, Intel Open Source Technology Center
-I work for Intel.  I don't speak on their behalf.
+notrace long
+__vdso_getcpu(unsigned *cpu, unsigned *node, struct getcpu_cache *unused)
+{
+	unsigned int p;
+
+	if (VVAR(vgetcpu_mode) == VGETCPU_RDTSCP) {
+		/* Load per CPU data from RDTSCP */
+===>		native_read_tscp(&p);
+	} else {
+		/* Load per CPU data from GDT */
+		asm("lsl %1,%0" : "=r" (p) : "r" (__PER_CPU_SEG));
+	}
+	if (cpu)
+		*cpu = p & 0xfff;
+	if (node)
+		*node = p >> 12;
+	return 0;
+}
+
+but that line was added for a purpose, which was
+in git commit 8f12dea6135d0a55b151dcb4c6bbe211f5f8d35d
+Author: Glauber de Oliveira Costa <gcosta@redhat.com>
+Date:   Wed Jan 30 13:31:06 2008 +0100
+
+    x86: introduce native_read_tscp
+    
+    Targetting paravirt, this patch introduces native_read_tscp, in
+    place of rdtscp() macro. When in a paravirt guest, this will
+    involve a function call, and thus, cannot be done in the vdso area.
+    These users then have to call the native version directly
+    
+    Signed-off-by: Glauber de Oliveira Costa <gcosta@redhat.com>
+    Signed-off-by: Ingo Molnar <mingo@elte.hu>
+    Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+
+which implies that it since it is a vDSO area it cannot do paravirt
+calls anyhow.
+
+In other words, I think I'm OK with axing it. Going to spin a patch
+and ask for some other folks to review/double check.
