@@ -1,73 +1,52 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH 1/2] ACPI: Fix stale pointer access to flags.lockable
-Date: Wed, 17 Oct 2012 07:55:42 -0600
-Message-ID: <1350482142.28185.0.camel@misato.fc.hp.com>
-References: <1350318870-5700-1-git-send-email-toshi.kani@hp.com>
-	 <507E090C.2070607@jp.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <507E090C.2070607@jp.fujitsu.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, linux-kernel@vger.kernel.org, rjw@sisk.pl, liuj97@gmail.com
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Subject: [PATCH 1/4] x86/wakeup/sleep: Check whether the TSS GDT descriptor is empty before using it.
+Date: Wed, 17 Oct 2012 09:49:43 -0400
+Message-ID: <1350481786-4969-2-git-send-email-konrad.wilk@oracle.com>
+References: <1350481786-4969-1-git-send-email-konrad.wilk@oracle.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from rcsinet15.oracle.com ([148.87.113.117]:18132 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757102Ab2JQODp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Oct 2012 10:03:45 -0400
+In-Reply-To: <1350481786-4969-1-git-send-email-konrad.wilk@oracle.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org, xen-devel@lists.xensource.com, lenb@kernel.org, linux-acpi@vger.kernel.org, hpa@zytor.com, x86@kernel.org
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 
-On Wed, 2012-10-17 at 10:25 +0900, Yasuaki Ishimatsu wrote:
-> 2012/10/16 1:34, Toshi Kani wrote:
-> > During hot-remove, acpi_bus_hot_remove_device() calls ACPI _LCK
-> > method when device->flags.lockable is set. However, this device
-> > pointer is stale since the target acpi_device object has been
-> > already kfree'd by acpi_bus_trim().
-> > 
-> > The flags.lockable indicates whether or not this ACPI object
-> > implements _LCK method. Fix the stable pointer access by replacing
-> > it with acpi_get_handle() to check if _LCK is implemented.
-> > 
-> > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-> 
-> Looks good to me.
-> Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+We check the TSS descriptor before we try to dereference it.
+Also fix up the value to use the #defines.
 
-Thanks Yasuaki for reviewing!
--Toshi
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+---
+ arch/x86/power/cpu.c |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
 
+diff --git a/arch/x86/power/cpu.c b/arch/x86/power/cpu.c
+index 218cdb1..c17370e 100644
+--- a/arch/x86/power/cpu.c
++++ b/arch/x86/power/cpu.c
+@@ -133,7 +133,9 @@ static void fix_processor_context(void)
+ {
+ 	int cpu = smp_processor_id();
+ 	struct tss_struct *t = &per_cpu(init_tss, cpu);
+-
++#ifdef CONFIG_X86_64
++	struct desc_struct *desc = get_cpu_gdt_table(cpu);
++#endif
+ 	set_tss_desc(cpu, t);	/*
+ 				 * This just modifies memory; should not be
+ 				 * necessary. But... This is necessary, because
+@@ -142,7 +144,8 @@ static void fix_processor_context(void)
+ 				 */
+ 
+ #ifdef CONFIG_X86_64
+-	get_cpu_gdt_table(cpu)[GDT_ENTRY_TSS].type = 9;
++	if (!desc_empty(&desc[GDT_ENTRY_TSS]))
++		desc[GDT_ENTRY_TSS].type = DESC_TSS;
+ 
+ 	syscall_init();				/* This sets MSR_*STAR and related */
+ #endif
+-- 
+1.7.7.6
 
-> > ---
-> >   drivers/acpi/scan.c | 6 +++++-
-> >   1 file changed, 5 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> > index 1fcb867..ed87f43 100644
-> > --- a/drivers/acpi/scan.c
-> > +++ b/drivers/acpi/scan.c
-> > @@ -97,6 +97,7 @@ void acpi_bus_hot_remove_device(void *context)
-> >   	struct acpi_eject_event *ej_event = (struct acpi_eject_event *) context;
-> >   	struct acpi_device *device;
-> >   	acpi_handle handle = ej_event->handle;
-> > +	acpi_handle temp;
-> >   	struct acpi_object_list arg_list;
-> >   	union acpi_object arg;
-> >   	acpi_status status = AE_OK;
-> > @@ -117,13 +118,16 @@ void acpi_bus_hot_remove_device(void *context)
-> >   		goto err_out;
-> >   	}
-> >   
-> > +	/* device has been freed */
-> > +	device = NULL;
-> > +
-> >   	/* power off device */
-> >   	status = acpi_evaluate_object(handle, "_PS3", NULL, NULL);
-> >   	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND)
-> >   		printk(KERN_WARNING PREFIX
-> >   				"Power-off device failed\n");
-> >   
-> > -	if (device->flags.lockable) {
-> > +	if (ACPI_SUCCESS(acpi_get_handle(handle, "_LCK", &temp))) {
-> >   		arg_list.count = 1;
-> >   		arg_list.pointer = &arg;
-> >   		arg.type = ACPI_TYPE_INTEGER;
-> > 
-> 
-> 
