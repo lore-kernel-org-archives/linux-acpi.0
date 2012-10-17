@@ -1,63 +1,73 @@
-From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: Re: [PATCH 1/4] acpi,memory-hotplug : add memory offline code to
- acpi_memory_device_remove()
-Date: Wed, 17 Oct 2012 17:52:02 +0800
-Message-ID: <507E7FC2.8@cn.fujitsu.com>
-References: <506C0AE8.40702@jp.fujitsu.com> <506C0C53.60205@jp.fujitsu.com> <CAHGf_=p7PaQs-kpnyB8uC1MntHQfL-CXhhq4QQP54mYiqOswqQ@mail.gmail.com> <50727984.20401@cn.fujitsu.com> <CAHGf_=pCrx8AkL9eiSYVgwvT1v0SW2__P_DW-1Wwj_zskqcLXw@mail.gmail.com> <507E54AA.2080806@cn.fujitsu.com> <CAHGf_=o_Wu1kr56C=7XTjYRzL4egSyGJYd4+2RecVWzpeM427Q@mail.gmail.com> <507E75AA.2000605@cn.fujitsu.com> <CAHGf_=oNufcAQhxWtvq56qwF==+14+Cm7r9eiTGdY=B=ENwPQg@mail.gmail.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH 1/2] ACPI: Fix stale pointer access to flags.lockable
+Date: Wed, 17 Oct 2012 07:55:42 -0600
+Message-ID: <1350482142.28185.0.camel@misato.fc.hp.com>
+References: <1350318870-5700-1-git-send-email-toshi.kani@hp.com>
+	 <507E090C.2070607@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:12958 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1752773Ab2JQKrt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 17 Oct 2012 06:47:49 -0400
-In-Reply-To: <CAHGf_=oNufcAQhxWtvq56qwF==+14+Cm7r9eiTGdY=B=ENwPQg@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <507E090C.2070607@jp.fujitsu.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, linux-kernel@vger.kernel.org, rjw@sisk.pl, liuj97@gmail.com
 List-Id: linux-acpi@vger.kernel.org
-To: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org
 
-At 10/17/2012 05:18 PM, KOSAKI Motohiro Wrote:
->>>>>> Hmm, it doesn't move the code. It just reuse the code in acpi_memory_powerdown_device().
->>>>>
->>>>> Even if reuse or not reuse, you changed the behavior. If any changes
->>>>> has no good rational, you cannot get an ack.
->>>>
->>>> I don't understand this? IIRC, the behavior isn't changed.
->>>
->>> Heh, please explain why do you think so.
->>
->> We just introduce a function, and move codes from acpi_memory_disable_device() to the new
->> function. We call the new function in acpi_memory_disable_device(), so the function
->> acpi_memory_disable_device()'s behavior isn't changed.
->>
->> Maybe I don't understand what do you want to say.
+On Wed, 2012-10-17 at 10:25 +0900, Yasuaki Ishimatsu wrote:
+> 2012/10/16 1:34, Toshi Kani wrote:
+> > During hot-remove, acpi_bus_hot_remove_device() calls ACPI _LCK
+> > method when device->flags.lockable is set. However, this device
+> > pointer is stale since the target acpi_device object has been
+> > already kfree'd by acpi_bus_trim().
+> > 
+> > The flags.lockable indicates whether or not this ACPI object
+> > implements _LCK method. Fix the stable pointer access by replacing
+> > it with acpi_get_handle() to check if _LCK is implemented.
+> > 
+> > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
 > 
-> Ok, now you agreed you moved the code, yes? So then, you should explain why
-> your code moving makes zero impact other acpi_memory_disable_device() caller.
+> Looks good to me.
+> Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-We just move the code, and don't change the acpi_memory_disable_device()'s behavior.
+Thanks Yasuaki for reviewing!
+-Toshi
 
-I look it the change again, and found some diffs:
-1. we treat !info->enabled as error, while it isn't a error without this patch
-2. we remove memory info from the list, it is a bug fix because we free the memory
-   that stores memory info.(I have sent a patch to fix this bug, and it is in akpm's tree now)
 
-I guess you mean 1 will change the behavior. In the last version, I don't do it.
-Ishimatsu changes this and I don't notify this.
-
-To Ishimatsu:
-
-Why do you change this?
-
-Thanks
-Wen Congyang
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+> > ---
+> >   drivers/acpi/scan.c | 6 +++++-
+> >   1 file changed, 5 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> > index 1fcb867..ed87f43 100644
+> > --- a/drivers/acpi/scan.c
+> > +++ b/drivers/acpi/scan.c
+> > @@ -97,6 +97,7 @@ void acpi_bus_hot_remove_device(void *context)
+> >   	struct acpi_eject_event *ej_event = (struct acpi_eject_event *) context;
+> >   	struct acpi_device *device;
+> >   	acpi_handle handle = ej_event->handle;
+> > +	acpi_handle temp;
+> >   	struct acpi_object_list arg_list;
+> >   	union acpi_object arg;
+> >   	acpi_status status = AE_OK;
+> > @@ -117,13 +118,16 @@ void acpi_bus_hot_remove_device(void *context)
+> >   		goto err_out;
+> >   	}
+> >   
+> > +	/* device has been freed */
+> > +	device = NULL;
+> > +
+> >   	/* power off device */
+> >   	status = acpi_evaluate_object(handle, "_PS3", NULL, NULL);
+> >   	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND)
+> >   		printk(KERN_WARNING PREFIX
+> >   				"Power-off device failed\n");
+> >   
+> > -	if (device->flags.lockable) {
+> > +	if (ACPI_SUCCESS(acpi_get_handle(handle, "_LCK", &temp))) {
+> >   		arg_list.count = 1;
+> >   		arg_list.pointer = &arg;
+> >   		arg.type = ACPI_TYPE_INTEGER;
+> > 
 > 
-
+> 
