@@ -1,56 +1,66 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
 Subject: Re: [PATCH 1/1] Update acpi_root_bridge_list in container hotplug
  path.
-Date: Wed, 17 Oct 2012 15:39:46 +0800
-Message-ID: <507E60C2.6010104@cn.fujitsu.com>
-References: <1350444308-27102-1-git-send-email-tangchen@cn.fujitsu.com> <CAE9FiQVFc9VVfWZpEfjPeGvo5pby3BQNzDei3VTXdoR048_SPg@mail.gmail.com>
+Date: Wed, 17 Oct 2012 15:42:31 +0800
+Message-ID: <507E6167.6060506@cn.fujitsu.com>
+References: <1350444308-27102-1-git-send-email-tangchen@cn.fujitsu.com> <CAE9FiQVFc9VVfWZpEfjPeGvo5pby3BQNzDei3VTXdoR048_SPg@mail.gmail.com> <507E60C2.6010104@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:21573 "EHLO song.cn.fujitsu.com"
+Received: from cn.fujitsu.com ([222.73.24.84]:4672 "EHLO song.cn.fujitsu.com"
 	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1751111Ab2JQHk4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 17 Oct 2012 03:40:56 -0400
-In-Reply-To: <CAE9FiQVFc9VVfWZpEfjPeGvo5pby3BQNzDei3VTXdoR048_SPg@mail.gmail.com>
+	id S1751854Ab2JQHni (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 17 Oct 2012 03:43:38 -0400
+In-Reply-To: <507E60C2.6010104@cn.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Yinghai Lu <yinghai@kernel.org>
 Cc: jiang.liu@huawei.com, bhelgaas@google.com, lenb@kernel.org, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 10/17/2012 01:18 PM, Yinghai Lu wrote:
+On 10/17/2012 03:39 PM, Tang Chen wrote:
+> On 10/17/2012 01:18 PM, Yinghai Lu wrote:
+>>
+>> no, we don't need that.
+>>
+>> after closely looking, it seems we can dump acpi_root_bridge.
+>>
+>> please check if attached patch could work with container path.
 >
-> no, we don't need that.
+> Hi Yinghai,
 >
-> after closely looking, it seems we can dump acpi_root_bridge.
+> Your patch seems working well.
 >
-> please check if attached patch could work with container path.
-
-Hi Yinghai,
-
-Your patch seems working well.
-
-BTW, I actually found that the two lists, acpi_root_bridge and
-acpi_pci_roots in drivers/acpi/pci_root.c were similar, except
-your acpi_root_bridge included PNP0A08.
-
-In the beginning, I thought you would use it in some other situations,
-and now it is clear that it can be removed.
-Thanks. :)
-
-And also, I have another 2 questions, maybe you can help me.
-1) Do we need to put PNP0A08 into acpi_pci_roots ?
-2) In container_notify_cb(), when it got a ACPI_NOTIFY_EJECT_REQUEST
-    event, it doesn't do the hot-remove things.
-    I use your sci emulator patch to test it. I did the following thing:
-	echo echo "\_SB_.LSB1" > /sys/kernel/debug/acpi/sci_notify
-    where \_SB_.LSB1 is a container, it just did nothing.
-    Do we need to support this operation ?
-
-Thanks. :)
-
+> BTW, I actually found that the two lists, acpi_root_bridge and
+> acpi_pci_roots in drivers/acpi/pci_root.c were similar, except
+> your acpi_root_bridge included PNP0A08.
 >
-> Thanks
+> In the beginning, I thought you would use it in some other situations,
+> and now it is clear that it can be removed.
+> Thanks. :)
 >
-> Yinghai
+> And also, I have another 2 questions, maybe you can help me.
+> 1) Do we need to put PNP0A08 into acpi_pci_roots ?
+> 2) In container_notify_cb(), when it got a ACPI_NOTIFY_EJECT_REQUEST
+> event, it doesn't do the hot-remove things.
+> I use your sci emulator patch to test it. I did the following thing:
+> echo echo "\_SB_.LSB1" > /sys/kernel/debug/acpi/sci_notify
+	==> echo "\_SB_.LSB1 3" > /sys/kernel/debug/acpi/sci_notify
+
+> where \_SB_.LSB1 is a container, it just did nothing.
+> Do we need to support this operation ?
+>
+> Thanks. :)
+>
+>>
+>> Thanks
+>>
+>> Yinghai
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at http://www.tux.org/lkml/
+>
 
