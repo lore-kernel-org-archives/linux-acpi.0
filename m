@@ -1,33 +1,39 @@
-From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: Is: axe read_tscp pvops call. Was: Re: [RFC] ACPI S3 and Xen
- (suprisingly small\!).
-Date: Wed, 17 Oct 2012 12:10:36 -0400
-Message-ID: <20121017161036.GA10691@phenom.dumpdata.com>
-References: <1350481786-4969-1-git-send-email-konrad.wilk@oracle.com>
- <507ED6C0.4020503@zytor.com>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH 1/1] Update acpi_root_bridge_list in container hotplug path.
+Date: Wed, 17 Oct 2012 09:28:09 -0700
+Message-ID: <CAE9FiQX60dOE7odBx4OC0kawesZW3w9yLHEhmLoOvASaZ7q8dw@mail.gmail.com>
+References: <1350444308-27102-1-git-send-email-tangchen@cn.fujitsu.com>
+	<CAE9FiQVFc9VVfWZpEfjPeGvo5pby3BQNzDei3VTXdoR048_SPg@mail.gmail.com>
+	<507E60C2.6010104@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from acsinet15.oracle.com ([141.146.126.227]:42857 "EHLO
-	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757386Ab2JQQWo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Oct 2012 12:22:44 -0400
-Content-Disposition: inline
-In-Reply-To: <507ED6C0.4020503@zytor.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <507E60C2.6010104@cn.fujitsu.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: jiang.liu@huawei.com, bhelgaas@google.com, lenb@kernel.org, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xensource.com, lenb@kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org
 
-On Wed, Oct 17, 2012 at 09:03:12AM -0700, H. Peter Anvin wrote:
-> On 10/17/2012 06:49 AM, Konrad Rzeszutek Wilk wrote:
-> >
-> >Note: These are the other patches that went in 3.7-rc1:
-> >xen/bootup: allow {read|write}_cr8 pvops call [https://lkml.org/lkml/2012/10/10/339]
-> >xen/bootup: allow read_tscp call for Xen PV guests. [https://lkml.org/lkml/2012/10/10/340]
-> >
-> 
-> So WTF do we have a read_tscp PV call?  Again, if there isn't a user
-> we should just axe it...
+On Wed, Oct 17, 2012 at 12:39 AM, Tang Chen <tangchen@cn.fujitsu.com> wrote:
+> On 10/17/2012 01:18 PM, Yinghai Lu wrote:
+>
+> And also, I have another 2 questions, maybe you can help me.
+> 1) Do we need to put PNP0A08 into acpi_pci_roots ?
 
-Let me spin off a patch to see if that can be done.
+looks like we need to unify those two ids.
+
+> 2) In container_notify_cb(), when it got a ACPI_NOTIFY_EJECT_REQUEST
+>    event, it doesn't do the hot-remove things.
+>    I use your sci emulator patch to test it. I did the following thing:
+>         echo echo "\_SB_.LSB1" > /sys/kernel/debug/acpi/sci_notify
+>    where \_SB_.LSB1 is a container, it just did nothing.
+>    Do we need to support this operation ?
+
+yes, looks like need to add container_device_remove and call it under
+ container_notify_cb/ACPI_NOTIFY_EJECT_REQUEST
+
+and should look like handle_root_bridge_removal to call acpi_bus_trim two times.
+
+Thanks
+
+Yinghai
