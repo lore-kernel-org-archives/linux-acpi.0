@@ -1,185 +1,76 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH 1/1] Update acpi_root_bridge_list in container hotplug path.
-Date: Wed, 17 Oct 2012 11:25:08 +0800
-Message-ID: <1350444308-27102-1-git-send-email-tangchen@cn.fujitsu.com>
+Subject: Re: [PATCH v2] Fix a hard coding style when determining if a device
+ is a container.
+Date: Wed, 17 Oct 2012 11:26:18 +0800
+Message-ID: <507E255A.4070201@cn.fujitsu.com>
+References: <1350045098-7232-1-git-send-email-tangchen@cn.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:9067 "EHLO song.cn.fujitsu.com"
+Received: from cn.fujitsu.com ([222.73.24.84]:26378 "EHLO song.cn.fujitsu.com"
 	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1755690Ab2JQD0Q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Oct 2012 23:26:16 -0400
+	id S1755690Ab2JQD1Z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Oct 2012 23:27:25 -0400
+In-Reply-To: <1350045098-7232-1-git-send-email-tangchen@cn.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: yinghai@kernel.org, jiang.liu@huawei.com, bhelgaas@google.com, lenb@kernel.org, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: bhelgaas@google.com, lenb@kernel.org, yinghai@kernel.org, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi Yinghai,
+Hi,
 
-List acpi_root_bridge_list is only updated when kernel is booting,
-or in _handle_hotplug_event_root() when handling ACPI_NOTIFY_DEVICE_CHECK
-event on a pci root bridge device. But when we hotplug a container, which
-contains one or more pci root bridges, container_notify_cb() will be
-called but not _handle_hotplug_event_root(). As a result,
-acpi_root_bridge_list won't be updated.
+Would anyone help to review this patch, and give some comments, please ?
 
-This patch makes the following api and struct public in pci_root_hp.h,
-	struct acpi_root_bridge;
-	add_acpi_root_bridge()
-	remove_acpi_root_bridge()
-	acpi_root_handle_to_bridge()
-and call add_acpi_root_bridge() in acpi_bus_check_add() and call
-remove_acpi_root_bridge() in acpi_bus_remove().
+Thanks. :)
 
-This patch is based on Lu Yinghai's git tree branch for-pci-split-pci-root-hp-2.
-
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
----
- drivers/acpi/pci_root_hp.c |   20 ++++++--------------
- drivers/acpi/scan.c        |   18 ++++++++++++++++--
- include/acpi/pci_root_hp.h |   13 +++++++++++++
- 3 files changed, 35 insertions(+), 16 deletions(-)
- create mode 100644 include/acpi/pci_root_hp.h
-
-diff --git a/drivers/acpi/pci_root_hp.c b/drivers/acpi/pci_root_hp.c
-index 01e71f6..6381a26 100644
---- a/drivers/acpi/pci_root_hp.c
-+++ b/drivers/acpi/pci_root_hp.c
-@@ -31,7 +31,7 @@ static const struct acpi_device_id root_device_ids[] = {
- 
- #define ACPI_STA_FUNCTIONING	(0x00000008)
- 
--static struct acpi_root_bridge *acpi_root_handle_to_bridge(acpi_handle handle)
-+struct acpi_root_bridge *acpi_root_handle_to_bridge(acpi_handle handle)
- {
- 	struct acpi_root_bridge *bridge;
- 
-@@ -43,7 +43,7 @@ static struct acpi_root_bridge *acpi_root_handle_to_bridge(acpi_handle handle)
- }
- 
- /* allocate and initialize host bridge data structure */
--static void add_acpi_root_bridge(acpi_handle handle)
-+void add_acpi_root_bridge(acpi_handle handle)
- {
- 	struct acpi_root_bridge *bridge;
- 	acpi_handle dummy_handle;
-@@ -79,7 +79,7 @@ static void add_acpi_root_bridge(acpi_handle handle)
- 	list_add(&bridge->list, &acpi_root_bridge_list);
- }
- 
--static void remove_acpi_root_bridge(struct acpi_root_bridge *bridge)
-+void remove_acpi_root_bridge(struct acpi_root_bridge *bridge)
- {
- 	list_del(&bridge->list);
- 	kfree(bridge);
-@@ -172,10 +172,8 @@ static void handle_root_bridge_removal(acpi_handle handle,
- 	u32 flags = 0;
- 	struct acpi_device *device;
- 
--	if (bridge) {
-+	if (bridge)
- 		flags = bridge->flags;
--		remove_acpi_root_bridge(bridge);
--	}
- 
- 	if (!acpi_bus_get_device(handle, &device)) {
- 		int ret_val;
-@@ -223,10 +221,8 @@ static void _handle_hotplug_event_root(struct work_struct *work)
- 		/* bus enumerate */
- 		printk(KERN_DEBUG "%s: Bus check notify on %s\n", __func__,
- 				 objname);
--		if (!bridge) {
-+		if (!bridge)
- 			handle_root_bridge_insertion(handle);
--			add_acpi_root_bridge(handle);
--		}
- 
- 		break;
- 
-@@ -234,10 +230,8 @@ static void _handle_hotplug_event_root(struct work_struct *work)
- 		/* device check */
- 		printk(KERN_DEBUG "%s: Device check notify on %s\n", __func__,
- 				 objname);
--		if (!bridge) {
-+		if (!bridge)
- 			handle_root_bridge_insertion(handle);
--			add_acpi_root_bridge(handle);
--		}
- 		break;
- 
- 	case ACPI_NOTIFY_EJECT_REQUEST:
-@@ -304,8 +298,6 @@ find_root_bridges(acpi_handle handle, u32 lvl, void *context, void **rv)
- 		printk(KERN_DEBUG "acpi root: %s notify handler is installed\n",
- 				 objname);
- 
--	add_acpi_root_bridge(handle);
--
- 	return AE_OK;
- }
- 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 6ca2eaf..c258064 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -12,6 +12,7 @@
- #include <linux/dmi.h>
- 
- #include <acpi/acpi_drivers.h>
-+#include <acpi/pci_root_hp.h>
- 
- #include "internal.h"
- 
-@@ -1265,8 +1266,17 @@ int acpi_bus_remove(struct acpi_device *dev, int rmdevice)
- 	dev->removal_type = ACPI_BUS_REMOVAL_EJECT;
- 	device_release_driver(&dev->dev);
- 
--	if (rmdevice)
-+	if (rmdevice) {
-+		if (acpi_is_root_bridge(dev->handle)) {
-+			struct acpi_root_bridge *bridge;
-+
-+			bridge = acpi_root_handle_to_bridge(dev->handle);
-+			if (bridge)
-+				remove_acpi_root_bridge(bridge);
-+		}
-+
- 		acpi_device_unregister(dev, ACPI_BUS_REMOVAL_EJECT);
-+	}
- 
- 	return 0;
- }
-@@ -1448,9 +1458,13 @@ static acpi_status acpi_bus_check_add(acpi_handle handle, u32 lvl,
- 	 */
- 	device = NULL;
- 	acpi_bus_get_device(handle, &device);
--	if (ops->acpi_op_add && !device)
-+	if (ops->acpi_op_add && !device) {
- 		acpi_add_single_object(&device, handle, type, sta, ops);
- 
-+		if (acpi_is_root_bridge(handle))
-+			add_acpi_root_bridge(handle);
-+	}
-+
- 	if (!device)
- 		return AE_CTRL_DEPTH;
- 
-diff --git a/include/acpi/pci_root_hp.h b/include/acpi/pci_root_hp.h
-new file mode 100644
-index 0000000..2761add
---- /dev/null
-+++ b/include/acpi/pci_root_hp.h
-@@ -0,0 +1,13 @@
-+
-+/*PCI root bridge hotplug API */
-+
-+#ifndef __PCI_ROOT_HP__
-+#define __PCI_ROOT_HP__
-+
-+struct acpi_root_bridge;
-+
-+void add_acpi_root_bridge(acpi_handle handle);
-+void remove_acpi_root_bridge(struct acpi_root_bridge *bridge);
-+struct acpi_root_bridge *acpi_root_handle_to_bridge(acpi_handle handle);
-+
-+#endif				/* __PCI_ROOT_HP_H__ */
--- 
-1.7.1
+On 10/12/2012 08:31 PM, Tang Chen wrote:
+> "ACPI0004","PNP0A05" and "PNP0A06" are all defined in array
+> container_device_ids[], so use it, but not the hard coding style.
+>
+> Also, introduce a new api is_container_device() to determine if a
+> device is a container device.
+>
+> Signed-off-by: Tang Chen<tangchen@cn.fujitsu.com>
+> Signed-off-by: Yasuaki Ishimatsu<isimatu.yasuaki@jp.fujitsu.com>
+> ---
+>   drivers/acpi/container.c |   17 ++++++++++++++---
+>   1 files changed, 14 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
+> index 1f9f7d7..ffd76ee 100644
+> --- a/drivers/acpi/container.c
+> +++ b/drivers/acpi/container.c
+> @@ -92,6 +92,19 @@ static int is_device_present(acpi_handle handle)
+>   	return ((sta&  ACPI_STA_DEVICE_PRESENT) == ACPI_STA_DEVICE_PRESENT);
+>   }
+>
+> +static int is_container_device(const char *hid)
+> +{
+> +	const struct acpi_device_id *container_id;
+> +
+> +	for (container_id = container_device_ids;
+> +	     container_id->id[0]; container_id++) {
+> +		if (!strcmp((char *)container_id->id, hid))
+> +			return 1;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+>   /*******************************************************************/
+>   static int acpi_container_add(struct acpi_device *device)
+>   {
+> @@ -232,10 +245,8 @@ container_walk_namespace_cb(acpi_handle handle,
+>   		goto end;
+>   	}
+>
+> -	if (strcmp(hid, "ACPI0004")&&  strcmp(hid, "PNP0A05")&&
+> -	    strcmp(hid, "PNP0A06")) {
+> +	if (!is_container_device(hid))
+>   		goto end;
+> -	}
+>
+>   	switch (*action) {
+>   	case INSTALL_NOTIFY_HANDLER:
 
