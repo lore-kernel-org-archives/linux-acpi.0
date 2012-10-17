@@ -1,52 +1,83 @@
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: [PATCH 1/4] x86/wakeup/sleep: Check whether the TSS GDT descriptor is empty before using it.
-Date: Wed, 17 Oct 2012 09:49:43 -0400
-Message-ID: <1350481786-4969-2-git-send-email-konrad.wilk@oracle.com>
+Subject: [PATCH 4/4] xen/acpi: Prep saved_context cr3 values.
+Date: Wed, 17 Oct 2012 09:49:46 -0400
+Message-ID: <1350481786-4969-5-git-send-email-konrad.wilk@oracle.com>
 References: <1350481786-4969-1-git-send-email-konrad.wilk@oracle.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:18132 "EHLO
-	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757102Ab2JQODp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Oct 2012 10:03:45 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1350481786-4969-1-git-send-email-konrad.wilk@oracle.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, xen-devel@lists.xensource.com, lenb@kernel.org, linux-acpi@vger.kernel.org, hpa@zytor.com, x86@kernel.org
 Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+List-Id: linux-acpi@vger.kernel.org
 
-We check the TSS descriptor before we try to dereference it.
-Also fix up the value to use the #defines.
+When save_processor_state is executed it executes a bunch of
+pvops calls to save the CPU state values. When it comes back
+from Xen's S3 (so acpi_enter_sleep_state, which ends up calling
+xen_acpi_notify_hypervisor_state), it ends up back in the
+assembler code in wakeup_[32|64].S. It skips the wakeup
+calls (so wakeup_pmode_return and wakeup_long64) as that has
+been done in the hypervisor. Instead it continues on in
+the resume_point (64-bit) or ret_point (32-bit). Most of the
+calls in there are safe to be executed except when it comes to
+reloading of cr3 (which it only does on 64-bit kernels). Since
+they are native assembler calls and Xen expects a PV kernel to
+prep those to use machine address for cr3 that is what
+we are going to do. Note: that it is not Machine Frame Numbers
+(those are used in the MMUEXT_NEW_BASEPTR hypercall for cr3
+installation) but the machine physical address.
+
+When the assembler code executes this mov %ebx, cr3 it ends
+end up trapped in the hypervisor (traps.c) which properly now
+sets the cr3 value.
 
 Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 ---
- arch/x86/power/cpu.c |    7 +++++--
- 1 files changed, 5 insertions(+), 2 deletions(-)
+ drivers/xen/acpi.c |   25 +++++++++++++++++++++++++
+ 1 files changed, 25 insertions(+), 0 deletions(-)
 
-diff --git a/arch/x86/power/cpu.c b/arch/x86/power/cpu.c
-index 218cdb1..c17370e 100644
---- a/arch/x86/power/cpu.c
-+++ b/arch/x86/power/cpu.c
-@@ -133,7 +133,9 @@ static void fix_processor_context(void)
- {
- 	int cpu = smp_processor_id();
- 	struct tss_struct *t = &per_cpu(init_tss, cpu);
--
+diff --git a/drivers/xen/acpi.c b/drivers/xen/acpi.c
+index 119d42a..25e612c 100644
+--- a/drivers/xen/acpi.c
++++ b/drivers/xen/acpi.c
+@@ -35,6 +35,13 @@
+ #include <asm/xen/hypercall.h>
+ #include <asm/xen/hypervisor.h>
+ 
++#include <xen/page.h>
++
 +#ifdef CONFIG_X86_64
-+	struct desc_struct *desc = get_cpu_gdt_table(cpu);
++#include <asm/suspend_64.h>
++extern struct saved_context saved_context;
 +#endif
- 	set_tss_desc(cpu, t);	/*
- 				 * This just modifies memory; should not be
- 				 * necessary. But... This is necessary, because
-@@ -142,7 +144,8 @@ static void fix_processor_context(void)
- 				 */
++
+ int xen_acpi_notify_hypervisor_state(u8 sleep_state,
+ 				     u32 pm1a_cnt, u32 pm1b_cnt)
+ {
+@@ -56,7 +63,25 @@ int xen_acpi_notify_hypervisor_state(u8 sleep_state,
+ 		     pm1a_cnt, pm1b_cnt);
+ 		return -1;
+ 	}
++#ifdef CONFIG_X86_64
++	/* We do not need to anything for 32-bit kernels as the
++	 * low-level calls (write to cr3) is done in the wakup code
++	 * which we never execute when running under Xen.
++	 */
++	{
++		unsigned long mfn;
  
- #ifdef CONFIG_X86_64
--	get_cpu_gdt_table(cpu)[GDT_ENTRY_TSS].type = 9;
-+	if (!desc_empty(&desc[GDT_ENTRY_TSS]))
-+		desc[GDT_ENTRY_TSS].type = DESC_TSS;
- 
- 	syscall_init();				/* This sets MSR_*STAR and related */
- #endif
++		/* resume_point in wakeup_64.s barrels through and does:
++		 * movq    saved_context_cr3(%rax), %rbx
++		 * movq    %rbx, %cr3
++		 * so lets prep the values so they are OK with the
++		 * hypervisor. */
++		mfn = pfn_to_mfn(PFN_DOWN(saved_context.cr3));
++		/* and back to a physical address */
++		mfn = PFN_PHYS(mfn);
++		saved_context.cr3 = mfn;
++	}
++#endif
+ 	HYPERVISOR_dom0_op(&op);
+ 	return 1;
+ }
 -- 
 1.7.7.6
-
