@@ -1,88 +1,146 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH 2/3] PCI: correctly detect ACPI PCI host bridge objects
-Date: Thu, 18 Oct 2012 13:50:11 -0700
-Message-ID: <1350593430-24470-4-git-send-email-yinghai@kernel.org>
-References: <1350593430-24470-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1350593430-24470-1-git-send-email-yinghai@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Jacob Shin <jacob.shin@amd.com>, Tejun Heo <tj@kernel.org>
-Cc: Stefano Stabellini <stefano.stabellini@eu.citrix.com>, linux-kernel@vger.kernel.org, Jiang Liu <jiang.liu@huawei.com>, Yinghai Lu <yinghai@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC PATCH 2/4] mmc: sdio: bind sdio device with acpi device
+Date: Fri, 19 Oct 2012 01:25:46 +0200
+Message-ID: <1834995.5UHtKnYTb2@vostro.rjw.lan>
+References: <1350011561-21039-1-git-send-email-aaron.lu@intel.com> <1350011561-21039-3-git-send-email-aaron.lu@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1350011561-21039-3-git-send-email-aaron.lu@intel.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Jiang Liu <jiang.liu@huawei.com>
+On Friday 12 of October 2012 11:12:39 Aaron Lu wrote:
+> ACPI spec defines the _ADDR encoding for sdio bus as:
+> High word - slot number (0 based)
+> Low word  - function number
+> 
+> This patch adds support for sdio device binding with acpi using the
+> generic ACPI glue framework.
+> 
+> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+> ---
+>  drivers/mmc/core/Makefile    |  1 +
+>  drivers/mmc/core/sdio_acpi.c | 35 +++++++++++++++++++++++++++++++++++
+>  drivers/mmc/core/sdio_bus.c  | 14 ++++++++++++--
+>  drivers/mmc/core/sdio_bus.h  |  2 ++
+>  4 files changed, 50 insertions(+), 2 deletions(-)
+>  create mode 100644 drivers/mmc/core/sdio_acpi.c
+> 
+> diff --git a/drivers/mmc/core/Makefile b/drivers/mmc/core/Makefile
+> index 38ed210..c8300aa 100644
+> --- a/drivers/mmc/core/Makefile
+> +++ b/drivers/mmc/core/Makefile
+> @@ -10,3 +10,4 @@ mmc_core-y			:= core.o bus.o host.o \
+>  				   quirks.o slot-gpio.o
+>  
+>  mmc_core-$(CONFIG_DEBUG_FS)	+= debugfs.o
+> +mmc_core-$(CONFIG_ACPI)		+= sdio_acpi.o
+> diff --git a/drivers/mmc/core/sdio_acpi.c b/drivers/mmc/core/sdio_acpi.c
+> new file mode 100644
+> index 0000000..0f92e90
+> --- /dev/null
+> +++ b/drivers/mmc/core/sdio_acpi.c
+> @@ -0,0 +1,35 @@
+> +#include <linux/mmc/host.h>
+> +#include <linux/mmc/card.h>
+> +#include <linux/mmc/sdhci.h>
+> +#include <linux/mmc/sdio_func.h>
+> +#include <linux/acpi.h>
+> +#include <acpi/acpi_bus.h>
+> +#include "sdio_bus.h"
+> +
+> +static int acpi_sdio_find_device(struct device *dev, acpi_handle *handle)
+> +{
+> +	struct sdio_func *func;
+> +	struct sdhci_host *host;
+> +	u64 addr;
+> +
+> +	func = dev_to_sdio_func(dev);
+> +	host = mmc_priv(func->card->host);
+> +
+> +	addr = (host->slotno << 16) | func->num;
+> +
+> +	*handle = acpi_get_child(DEVICE_ACPI_HANDLE(dev), addr);
+> +	if (!*handle)
+> +		return -ENODEV;
+> +
+> +	return 0;
+> +}
+> +
+> +static struct acpi_bus_type acpi_sdio_bus = {
+> +	.bus = &sdio_bus_type,
+> +	.find_device = acpi_sdio_find_device,
+> +};
+> +
+> +int sdio_acpi_register(void)
 
-The code in pci_root_hp.c depends on function acpi_is_root_bridge()
-to check whether an ACPI object is a PCI host bridge or not.
-If an ACPI device hasn't been created for the ACPI object yet,
-function acpi_is_root_bridge() will return false even if the object
-is a PCI host bridge object. That behavior will cause two issues:
-1) No ACPI notification handler installed for PCI host bridges absent
-   at startup, so hotplug events for those bridges won't be handled.
-2) rescan_root_bridge() can't reenumerate offlined PCI host bridges
-   because the ACPI devices have been already destroyed.
+I'd call it sdio_acpi_register_bus().
 
-So use acpi_match_object_info_ids() to correctly detect PCI host bridges.
+> +{
+> +	return register_acpi_bus_type(&acpi_sdio_bus);
+> +}
+> diff --git a/drivers/mmc/core/sdio_bus.c b/drivers/mmc/core/sdio_bus.c
+> index 6bf6879..aaec9e2 100644
+> --- a/drivers/mmc/core/sdio_bus.c
+> +++ b/drivers/mmc/core/sdio_bus.c
+> @@ -23,6 +23,7 @@
+>  
+>  #include "sdio_cis.h"
+>  #include "sdio_bus.h"
+> +#include "sdio_acpi.h"
+>  
+>  /* show configuration fields */
+>  #define sdio_config_attr(field, format_string)				\
+> @@ -209,7 +210,7 @@ static const struct dev_pm_ops sdio_bus_pm_ops = {
+>  
+>  #endif /* !CONFIG_PM */
+>  
+> -static struct bus_type sdio_bus_type = {
+> +struct bus_type sdio_bus_type = {
+>  	.name		= "sdio",
+>  	.dev_attrs	= sdio_dev_attrs,
+>  	.match		= sdio_bus_match,
+> @@ -221,7 +222,16 @@ static struct bus_type sdio_bus_type = {
+>  
+>  int sdio_register_bus(void)
+>  {
+> -	return bus_register(&sdio_bus_type);
+> +	int ret;
+> +
+> +	ret = bus_register(&sdio_bus_type);
+> +	if (ret)
+> +		goto out;
+> +
+> +	ret = sdio_acpi_register();
 
--v2: update to use acpi_match_object_info_ids() from Tang Chen  - Yinghai
+What happens if this fails?
 
-Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
----
- drivers/acpi/pci_root_hp.c |   25 ++++++++++++++++++++++++-
- 1 files changed, 24 insertions(+), 1 deletions(-)
+> +
+> +out:
+> +	return ret;
+>  }
+>  
+>  void sdio_unregister_bus(void)
+> diff --git a/drivers/mmc/core/sdio_bus.h b/drivers/mmc/core/sdio_bus.h
+> index 567a768..91c0e93 100644
+> --- a/drivers/mmc/core/sdio_bus.h
+> +++ b/drivers/mmc/core/sdio_bus.h
+> @@ -18,5 +18,7 @@ void sdio_remove_func(struct sdio_func *func);
+>  int sdio_register_bus(void);
+>  void sdio_unregister_bus(void);
+>  
+> +extern struct bus_type sdio_bus_type;
+> +
+>  #endif
 
-diff --git a/drivers/acpi/pci_root_hp.c b/drivers/acpi/pci_root_hp.c
-index 2aebf78..3edec7f 100644
---- a/drivers/acpi/pci_root_hp.c
-+++ b/drivers/acpi/pci_root_hp.c
-@@ -19,6 +19,12 @@ struct acpi_root_bridge {
- 	u32 flags;
- };
- 
-+static const struct acpi_device_id root_device_ids[] = {
-+	{"PNP0A03", 0},
-+	{"PNP0A08", 0},
-+	{"", 0},
-+};
-+
- /* bridge flags */
- #define ROOT_BRIDGE_HAS_EJ0	(0x00000002)
- #define ROOT_BRIDGE_HAS_PS3	(0x00000080)
-@@ -256,6 +262,23 @@ static void handle_hotplug_event_root(acpi_handle handle, u32 type,
- 				_handle_hotplug_event_root);
- }
- 
-+static bool acpi_is_root_bridge_object(acpi_handle handle)
-+{
-+	struct acpi_device_info *info = NULL;
-+	acpi_status status;
-+	bool ret;
-+
-+	status = acpi_get_object_info(handle, &info);
-+	if (ACPI_FAILURE(status))
-+		return false;
-+
-+	ret = !acpi_match_object_info_ids(info, root_device_ids);
-+
-+	kfree(info);
-+
-+	return ret;
-+}
-+
- static acpi_status __init
- find_root_bridges(acpi_handle handle, u32 lvl, void *context, void **rv)
- {
-@@ -264,7 +287,7 @@ find_root_bridges(acpi_handle handle, u32 lvl, void *context, void **rv)
- 				      .pointer = objname };
- 	int *count = (int *)context;
- 
--	if (!acpi_is_root_bridge(handle))
-+	if (!acpi_is_root_bridge_object(handle))
- 		return AE_OK;
- 
- 	(*count)++;
+Thanks,
+Rafael
+
+
 -- 
-1.7.7
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
