@@ -1,90 +1,100 @@
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Subject: Re: [PATCH 1/4] acpi,memory-hotplug : add memory offline code to acpi_memory_device_remove()
-Date: Thu, 18 Oct 2012 15:44:38 -0400
-Message-ID: <CAHGf_=rxGeb0RsgEFF2FRRfdX0wiE9cDyVaftsG3E8AgyzYi1g@mail.gmail.com>
-References: <506C0AE8.40702@jp.fujitsu.com> <506C0C53.60205@jp.fujitsu.com>
- <CAHGf_=p7PaQs-kpnyB8uC1MntHQfL-CXhhq4QQP54mYiqOswqQ@mail.gmail.com>
- <50727984.20401@cn.fujitsu.com> <CAHGf_=pCrx8AkL9eiSYVgwvT1v0SW2__P_DW-1Wwj_zskqcLXw@mail.gmail.com>
- <507E77D1.3030709@cn.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: [PATCH 1/3] ACPI: Introduce a new acpi handle to determine HID match.
+Date: Thu, 18 Oct 2012 13:50:09 -0700
+Message-ID: <1350593430-24470-2-git-send-email-yinghai@kernel.org>
+References: <1350593430-24470-1-git-send-email-yinghai@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:62117 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751501Ab2JRTo7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Oct 2012 15:44:59 -0400
-In-Reply-To: <507E77D1.3030709@cn.fujitsu.com>
+Received: from acsinet15.oracle.com ([141.146.126.227]:24786 "EHLO
+	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756450Ab2JRUvN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Oct 2012 16:51:13 -0400
+In-Reply-To: <1350593430-24470-1-git-send-email-yinghai@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org
+To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Jacob Shin <jacob.shin@amd.com>, Tejun Heo <tj@kernel.org>
+Cc: Stefano Stabellini <stefano.stabellini@eu.citrix.com>, linux-kernel@vger.kernel.org, Tang Chen <tangchen@cn.fujitsu.com>, Yinghai Lu <yinghai@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
->>>>> +       if (type == ACPI_BUS_REMOVAL_EJECT) {
->>>>> +               /*
->>>>> +                * offline and remove memory only when the memory device is
->>>>> +                * ejected.
->>>>> +                */
->>>>
->>>> This comment explain nothing. A comment should describe _why_ should we do.
->>>> e.g. Why REMOVAL_NORMAL and REMOVEL_EJECT should be ignored. Why
->>>> we need remove memory here instead of ACPI_NOTIFY_EJECT_REQUEST.
->>>
->>> Hmm, we have 2 ways to remove a memory:
->>> 1. SCI
->>> 2. echo 1 >/sys/bus/acpi/devices/PNP0C80:XX/eject
->>>
->>> In the 2nd case, there is no ACPI_NOTIFY_EJECT_REQUEST. We should offline
->>> the memory and remove it from kernel in the release callback. We will poweroff
->>> the memory device in acpi_bus_hot_remove_device(), so we must offline
->>> and remove it if the type is ACPI_BUS_REMOVAL_EJECT.
->>>
->>> I guess we should not poweroff the memory device when we fail to offline it.
->>> But device_release_driver() doesn't returns any error...
->>
->> 1) I think /sys/bus/acpi/devices/PNP0C80:XX/eject should emulate acpi
->> eject. Can't
->> you make a pseudo acpi eject event and detach device by acpi regular path?
->
-> It is another issue. And we only can implement it here with current acpi
-> implemention. Some other acpi devices(for example: cpu) do it like this.
+From: Tang Chen <tangchen@cn.fujitsu.com>
 
-Hint: only cpu take like this.
+We need to find out if one handle is for root bridge, and install notify
+handler for it to handle pci root bus hot add.
+At that time, root bridge acpi device is not created yet.
 
+So acpi_match_device_ids() will not work.
 
->> 2) Your explanation didn't explain why we should ignore REMOVAL_NORMAL
->> and REMOVEL_EJECT. As far as reviewers can't track your intention, we
->> can't maintain
->> the code and can't ack them.
->>
->
-> REMOVAL_NORMAL means the user want to unbind the memory device from this driver.
-> It is no need to eject the device, and we can still use this device after unbinding.
-> So it can be ignored.
->
-> REMOVAL_EJECT means the user want to eject and remove the device, and we should
-> not use the device. So we should offline and remove the memory here.
+This patch add a function to check if new acpi handle's HID matches a list
+of IDs.  The new api use acpi_device_info instead acpi_device.
 
-This is not exactly correct, IMHO. Usually, we must not touch unbinded
-device because
-they are out of OS control. If I understand is correct, the main
-reason is to distinguish a
-rollback of driver initialization failure and true ejection.
+-v2: updated changelog, also check length for string info...
+     change checking sequence by moving string comaring close to for loop.
+					- Yinghai
 
-REMOVAL_NORMAL is usually used for rollback and REMOVAL_EJECT is used for
-removal device eject. Typical device don't need to distinguish them
-because we should
-deallocate every resource even when driver initialization failure.
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
+---
+ drivers/acpi/scan.c     |   33 +++++++++++++++++++++++++++++++++
+ include/acpi/acpi_bus.h |    2 ++
+ 2 files changed, 35 insertions(+), 0 deletions(-)
 
-However, cpu and memory are exceptions. They are recognized from kernel before
-driver initialization. Then even if machine have crappy acpi table and
-make failure acpi
-initialization, disabling memory make no sense.
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 5dfec09..33ca993 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -312,6 +312,39 @@ int acpi_match_device_ids(struct acpi_device *device,
+ }
+ EXPORT_SYMBOL(acpi_match_device_ids);
+ 
++int acpi_match_object_info_ids(struct acpi_device_info *info,
++			       const struct acpi_device_id *ids)
++{
++	const struct acpi_device_id *id;
++	char *str;
++	u32 len;
++	int i;
++
++	len = info->hardware_id.length;
++	if (len) {
++		str = info->hardware_id.string;
++		if (str)
++			for (id = ids; id->id[0]; id++)
++				if (!strcmp((char *)id->id, str))
++					return 0;
++	}
++
++	for (i = 0; i < info->compatible_id_list.count; i++) {
++		len = info->compatible_id_list.ids[i].length;
++		if (!len)
++			continue;
++		str = info->compatible_id_list.ids[i].string;
++		if (!str)
++			continue;
++		for (id = ids; id->id[0]; id++)
++			if (!strcmp((char *)id->id, str))
++				return 0;
++	}
++
++	return -ENOENT;
++}
++EXPORT_SYMBOL(acpi_match_object_info_ids);
++
+ static void acpi_free_ids(struct acpi_device *device)
+ {
+ 	struct acpi_hardware_id *id, *tmp;
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 608f92f..6ac415c 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -374,6 +374,8 @@ int acpi_bus_start(struct acpi_device *device);
+ acpi_status acpi_bus_get_ejd(acpi_handle handle, acpi_handle * ejd);
+ int acpi_match_device_ids(struct acpi_device *device,
+ 			  const struct acpi_device_id *ids);
++int acpi_match_object_info_ids(struct acpi_device_info *info,
++			       const struct acpi_device_id *ids);
+ int acpi_create_dir(struct acpi_device *);
+ void acpi_remove_dir(struct acpi_device *);
+ 
+-- 
+1.7.7
 
-And, when you make _exceptional_ rule, you should comment verbosely in the code
-the detail.  likes 1) why we need.  2) which
-device/machine/environment suffer such exception. 2)  what affect
-other subsys.
-
-Even though cpu hotplug has crappy poor comment and document, please
-don't follow
-them.
