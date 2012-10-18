@@ -1,49 +1,55 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [Xen-devel] Is: axe read_tscp pvops call. Was: Re: [RFC] ACPI S3
- and Xen (suprisingly small\!).
-Date: Thu, 18 Oct 2012 18:17:00 +0200
-Message-ID: <20121018161659.GA20354@x1.osrc.amd.com>
-References: <1350481786-4969-1-git-send-email-konrad.wilk@oracle.com>
- <507ED6C0.4020503@zytor.com>
- <20121017161036.GA10691@phenom.dumpdata.com>
- <507EE1C3.7070300@zytor.com>
- <20121017165452.GA22740@phenom.dumpdata.com>
- <507EEC53.1010309@zytor.com>
- <84b3cbf9-7c84-4d7e-a2d7-46b0d1cc5975@default>
- <50802030.8070107@zytor.com>
- <dd8748de-4715-499a-8c7e-745af37fa6c4@default>
+From: David Vrabel <david.vrabel@citrix.com>
+Subject: Re: [Xen-devel] Is: axe read_tscp pvops call. Was: Re: [RFC] ACPI
+ S3 and Xen (suprisingly small\!).
+Date: Thu, 18 Oct 2012 17:31:40 +0100
+Message-ID: <50802EEC.6060102@citrix.com>
+References: <1350481786-4969-1-git-send-email-konrad.wilk@oracle.com>	<507ED6C0.4020503@zytor.com>	<20121017161036.GA10691@phenom.dumpdata.com>	<507EE1C3.7070300@zytor.com> <20121017165452.GA22740@phenom.dumpdata.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:40508 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753324Ab2JRQRA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 18 Oct 2012 12:17:00 -0400
-Content-Disposition: inline
-In-Reply-To: <dd8748de-4715-499a-8c7e-745af37fa6c4@default>
+Received: from smtp02.citrix.com ([66.165.176.63]:64238 "EHLO
+	SMTP02.CITRIX.COM" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752992Ab2JRQbn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Oct 2012 12:31:43 -0400
+In-Reply-To: <20121017165452.GA22740@phenom.dumpdata.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Magenheimer <dan.magenheimer@oracle.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>, Konrad Wilk <konrad.wilk@oracle.com>, linux-acpi@vger.kernel.org, x86@kernel.org, xen-devel@lists.xensource.com, linux-kernel@vger.kernel.org, lenb@kernel.org
+To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>, linux-acpi@vger.kernel.org, x86@kernel.org, xen-devel@lists.xensource.com, linux-kernel@vger.kernel.org, lenb@kernel.org
 
-On Thu, Oct 18, 2012 at 08:56:40AM -0700, Dan Magenheimer wrote:
-> I agree the whole idea of paravirtualization is a hack, but it is a
-> hack to workaround some poor architectural design decisions many years
-> ago by Intel processor designers who should have known better. Go yell
-> at them.
->
-> Worse, the rdtscp instruction was a poor design decision by AMD
-> processor designers to hack around tsc skew problems. Go yell at them
-> too.
->
-> And both Intel and AMD chose to perpetuate the problem with a
-> complicated VT/SVM implementation that will never perform as well as
-> native. At least they tried ;-)
+On 17/10/12 17:54, Konrad Rzeszutek Wilk wrote:
+> On Wed, Oct 17, 2012 at 09:50:11AM -0700, H. Peter Anvin wrote:
+>> On 10/17/2012 09:10 AM, Konrad Rzeszutek Wilk wrote:
+>>> On Wed, Oct 17, 2012 at 09:03:12AM -0700, H. Peter Anvin wrote:
+>>>> On 10/17/2012 06:49 AM, Konrad Rzeszutek Wilk wrote:
+>>>>>
+>>>>> Note: These are the other patches that went in 3.7-rc1:
+>>>>> xen/bootup: allow {read|write}_cr8 pvops call [https://lkml.org/lkml/2012/10/10/339]
+>>>>> xen/bootup: allow read_tscp call for Xen PV guests. [https://lkml.org/lkml/2012/10/10/340]
+>>>>>
+>>>>
+>>>> So WTF do we have a read_tscp PV call?  Again, if there isn't a user
+>>>> we should just axe it...
+>>>
+>>> Let me spin off a patch to see if that can be done.
+>>>
+>>
+>> Could you do an audit for other pvops calls that have no users?  If
+>> the *only* user is lguest, we should talk about it, too...
+> 
+> I can do that - but I don't want to be hasty here. There is a bit of
+> danger here - for example the read_pmc (or read_tsc) is not in use right
+> now. But it might be when one starts looking at making perf be able to
+> analyze the hypervisor (hand-waving the implementation details). So while
+> removing read_pmc now sounds good, it might be needed in the future.
 
-Looks like xen people seem to know better so maybe they should design
-their own processor, add xen support for it and leave the linux kernel
-alone so that both camps can finally get on with their lives.
+I don't see any reason why would ever need a PV-specific implementation
+of either read_pmc or read_tsc.  And I certainly agree with hpa that
+leaving them around 'just in case' isn't useful.
 
--- 
-Regards/Gruss,
-Boris.
+As for 'perf', since Xen already provides a virtual PMU for HVM guests
+It's not clear why we would spend the effort to implement another
+mechanism for PV guests (instead of using the virtual PMU from a PVH guest).
+
+David
