@@ -1,85 +1,194 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH] Add PNP0A08 into acpi_pci_roots array.
-Date: Thu, 18 Oct 2012 13:52:21 +0800
-Message-ID: <507F9915.2080409@cn.fujitsu.com>
-References: <1350526971-9427-1-git-send-email-tangchen@cn.fujitsu.com> <CAErSpo6ehw1JHMyE27MuX2VR89+1zC48QJe9Udih88N-W-73Wg@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 0/5] x86,idle: Enhance menu governor C-state prediction
+Date: Thu, 18 Oct 2012 08:46:44 +0200
+Message-ID: <1442687.rHjvTAEjKG@vostro.rjw.lan>
+References: <1350435880-19143-1-git-send-email-youquan.song@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAErSpo6ehw1JHMyE27MuX2VR89+1zC48QJe9Udih88N-W-73Wg@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: lenb@kernel.org, yinghai@kernel.org, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([193.178.161.156]:52157 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754190Ab2JRGnB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 18 Oct 2012 02:43:01 -0400
+In-Reply-To: <1350435880-19143-1-git-send-email-youquan.song@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Youquan Song <youquan.song@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, arjan@linux.intel.com, lenb@kernel.org, Rik van Riel <riel@redhat.com>, Youquan Song <youquan.song@linux.intel.com>
 
-On 10/18/2012 11:55 AM, Bjorn Helgaas wrote:
-> On Wed, Oct 17, 2012 at 8:22 PM, Tang Chen<tangchen@cn.fujitsu.com>  wrote:
->> acpi_pci_roots array doesn't include PNP0A08, which is PCI Express
->> Root Bridge.
->
-> You need to explain why this change is necessary.  PNP0A08 devices
-> will have a PNP0A03 _CID, so the driver already claims PNP0A08 devices
-> because the _CID matches.
+Hi,
 
-Hi Bjorn,
+On Tuesday 16 of October 2012 21:04:35 Youquan Song wrote:
+> 
+> The prediction for future is difficult and when the cpuidle governor prediction 
+> fails and govenor possibly choose the shallower C-state than it should. How to 
+> quickly notice and find the failure becomes important for power saving.    
+> 
+> cpuidle menu governor has a method to predict the repeat pattern if there are 8
+> C-states residency which are continuous and the same or very close, so it will
+> predict the next C-states residency will keep same residency time.
+> 
+> This patchset adds a timer when menu governor choose a non-deepest C-state in
+> order to wake up quickly from shallow C-state to avoid staying too long at 
+> shallow C-state for prediction failure. The timer is set to a time out value 
+> that is greater than predicted time and if the timer with the value is triggered 
+> , we can confidently conclude prediction is failure. When prediction
+> succeeds, CPU is waken up from C-states in predicted time and the timer is not 
+> triggered and will be cancelled right after CPU waken up. When prediction fails,
+> the timer is triggered to wake up CPU from shallow C-states, so menu governor 
+> will quickly notice that prediction fails and then re-evaluates deeper C-states
+>  possibility. This patchset can improves cpuidle prediction process for both 
+> repeat mode and general mode.
+> 
+> The patchset integrates one patch from Rik van Riel <riel@redhat.com>, which try
+> to find a typical interval along with cut the upside outliers depends on
+> historical sleep intervals. The patch tends to choose a shallow C-state to
+> achieve better performance and ehancement of prediction failure will advise it
+> if the deepest C-state should be chosen.  
+> 
+> Testing result:
+> 
+> The whole patchset achieve good result after bunch of testing/tuning. 
+> Testing on two sockets Sandybridge server, SPECPower2008 get 2%~5% increase
+> ssj_ops/watt; Running benchmark in phoronix-test-suite: compress-7zip, 
+> build-linux-kernel, apache, fio etc, it also proves to increase the 
+> performance/power; What's more, it not only boosts the performance but also
+> saves power.  
+>  
+> There are also 2 cases will clear show this patchset benefit.
+> 
+> One case is turbostat utility (tools/power/x86/turbostat) at kernel 3.3 or early
+> . turbostat utility will read 10 registers one by one at Sandybridge, so it will
+> generate 10 IPIs to wake up idle CPUs. So cpuidle menu governor will predict it
+>  is repeat mode and there is another IPI wake up idle CPU soon, so it keeps idle
+>  CPU stay at C1 state even though CPU is totally idle. However, in the turbostat
+> , following 10 registers reading is sleep 5 seconds by default, so the idle CPU
+>  will keep at C1 for a long time though it is idle until break event occurs.
+> In a idle Sandybridge system, run "./turbostat -v", we will notice that deep 
+> C-state dangles between "70% ~ 99%". After patched the kernel, we will notice
+> deep C-state stays at >99.98%.
+> 
+> Below is another case which will clearly show the patch much benefit:
+> 
+> #include <stdlib.h>
+> #include <stdio.h>
+> #include <unistd.h>
+> #include <signal.h>
+> #include <sys/time.h>
+> #include <time.h>
+> #include <pthread.h>
+> 
+> volatile int * shutdown;
+> volatile long * count;
+> int delay = 20;
+> int loop = 8;
+> 
+> void usage(void)
+> {
+> 	fprintf(stderr,
+> 		"Usage: idle_predict [options]\n"
+> 		"  --help	-h  Print this help\n"
+> 		"  --thread	-n  Thread number\n"
+> 		"  --loop     	-l  Loop times in shallow Cstate\n"
+> 		"  --delay	-t  Sleep time (uS)in shallow Cstate\n");
+> }
+> 
+> void *simple_loop() {
+> 	int idle_num = 1;
+> 	while (!(*shutdown)) {
+> 		*count = *count + 1;
+> 	
+> 		if (idle_num % loop)
+> 			usleep(delay);
+> 		else {
+> 			/* sleep 1 second */
+> 			usleep(1000000);
+> 			idle_num = 0;
+> 		}
+> 		idle_num++;
+> 	}
+> 
+> }
+> 
+> static void sighand(int sig)
+> {
+> 	*shutdown = 1;
+> }
+> 
+> int main(int argc, char *argv[])
+> {
+> 	sigset_t sigset;
+> 	int signum = SIGALRM;
+> 	int i, c, er = 0, thread_num = 8;
+> 	pthread_t pt[1024];
+> 
+> 	static char optstr[] = "n:l:t:h:";
+> 
+> 	while ((c = getopt(argc, argv, optstr)) != EOF)
+> 		switch (c) {
+> 			case 'n':
+> 				thread_num = atoi(optarg);
+> 				break;
+> 			case 'l':
+> 				loop = atoi(optarg);
+> 				break;
+> 			case 't':
+> 				delay = atoi(optarg);
+> 				break;
+> 			case 'h':
+> 			default:
+> 				usage();
+> 				exit(1);
+> 		}
+> 
+> 	printf("thread=%d,loop=%d,delay=%d\n",thread_num,loop,delay);
+> 	count = malloc(sizeof(long));
+> 	shutdown = malloc(sizeof(int));
+> 	*count = 0;
+> 	*shutdown = 0;
+> 
+> 	sigemptyset(&sigset);
+> 	sigaddset(&sigset, signum);
+> 	sigprocmask (SIG_BLOCK, &sigset, NULL);
+> 	signal(SIGINT, sighand);
+> 	signal(SIGTERM, sighand);
+> 
+> 	for(i = 0; i < thread_num ; i++)
+> 		pthread_create(&pt[i], NULL, simple_loop, NULL);
+> 
+> 	for (i = 0; i < thread_num; i++)
+> 		pthread_join(pt[i], NULL);
+> 
+> 	exit(0);
+> }
+> 
+> Get powertop v2 from git://github.com/fenrus75/powertop, build powertop.
+> After build the above test application, then run it.
+> Test plaform can be Intel Sandybridge or other recent platforms.
+> #./idle_predict -l 10 &
+> #./powertop
+> 
+> We will find that deep C-state will dangle between 40%~100% and much time spent
+> on C1 state. It is because menu governor wrongly predict that repeat mode
+> is kept, so it will choose the C1 shallow C-state even though it has chance to
+> sleep 1 second in deep C-state.
+>  
+> While after patched the kernel, we find that deep C-state will keep >99.6%. 
+> 
+> Thanks for help from Arjan, Len Brown and Rik!
 
-Here is my reason, but just my personal opinion. :)
+The whole series looks good to me, but I think it would be better to fold
+patch [3/5] into [2/5] and use #defined symbols or enums instead of "magic"
+numbers 1 and 2 as values for hrtimer_started.
 
-1) There is no code to handle a pcie host bridge hotplug in kernel now.
-    And when this happens,  pci host bridge related code will be
-    executed, which makes me think that PNP0A03 and PNP0A08 are seen as
-    the same devices. At least for now they are.
-    So, acpi_pci_roots doesn't include PNP0A08 seems a little strange to
-    me.
+Moreover, patch [4/5] seems to be a bug fix that should go into -stable
+regardless of the other patches in the series.
 
-2) When I was reading Liu Jiang's "ACPI based hotplug framework"
-    patches, I happened to see that he defined the following:
-
-         static char *acpihp_dev_pcihb_ids[] = {
-	        "PNP0A03",
-                 "PNP0A08",
-                 NULL
-         };
-
-    And also, Lu Yinghai defined the following in his own patch:
-
-         static const struct acpi_device_id root_device_ids[] = {
-                 {"PNP0A03", 0},
-                 {"PNP0A08", 0},
-                 {NULL, 0}
-         };
-
-    I think all these arraies should represent the same things, and we
-    need only one of them.
-    For now, it is root_device_ids[] in drivers/acpi/pci_root.c.
-
-Well, all above is my own opinion. And you are right, even if we don't
-change it, there won't be any problem.
-
-Thanks. :)
+Thanks,
+Rafael
 
 
-
->
->> Signed-off-by: Tang Chen<tangchen@cn.fujitsu.com>
->> ---
->>   drivers/acpi/pci_root.c |    1 +
->>   1 files changed, 1 insertions(+), 0 deletions(-)
->>
->> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
->> index 037b59c..dedc4d6 100644
->> --- a/drivers/acpi/pci_root.c
->> +++ b/drivers/acpi/pci_root.c
->> @@ -56,6 +56,7 @@ static int acpi_pci_root_start(struct acpi_device *device);
->>
->>   static const struct acpi_device_id root_device_ids[] = {
->>          {"PNP0A03", 0},
->> +       {"PNP0A08", 0},
->>          {"", 0},
->>   };
->>   MODULE_DEVICE_TABLE(acpi, root_device_ids);
->> --
->> 1.7.1
->>
->
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
