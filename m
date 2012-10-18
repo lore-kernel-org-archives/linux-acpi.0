@@ -1,100 +1,88 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH 1/3] ACPI: Introduce a new acpi handle to determine HID match.
-Date: Thu, 18 Oct 2012 13:50:09 -0700
-Message-ID: <1350593430-24470-2-git-send-email-yinghai@kernel.org>
+Subject: [PATCH 2/3] PCI: correctly detect ACPI PCI host bridge objects
+Date: Thu, 18 Oct 2012 13:50:11 -0700
+Message-ID: <1350593430-24470-4-git-send-email-yinghai@kernel.org>
 References: <1350593430-24470-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from acsinet15.oracle.com ([141.146.126.227]:24786 "EHLO
-	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756450Ab2JRUvN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Oct 2012 16:51:13 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1350593430-24470-1-git-send-email-yinghai@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Jacob Shin <jacob.shin@amd.com>, Tejun Heo <tj@kernel.org>
-Cc: Stefano Stabellini <stefano.stabellini@eu.citrix.com>, linux-kernel@vger.kernel.org, Tang Chen <tangchen@cn.fujitsu.com>, Yinghai Lu <yinghai@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+Cc: Stefano Stabellini <stefano.stabellini@eu.citrix.com>, linux-kernel@vger.kernel.org, Jiang Liu <jiang.liu@huawei.com>, Yinghai Lu <yinghai@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-From: Tang Chen <tangchen@cn.fujitsu.com>
+From: Jiang Liu <jiang.liu@huawei.com>
 
-We need to find out if one handle is for root bridge, and install notify
-handler for it to handle pci root bus hot add.
-At that time, root bridge acpi device is not created yet.
+The code in pci_root_hp.c depends on function acpi_is_root_bridge()
+to check whether an ACPI object is a PCI host bridge or not.
+If an ACPI device hasn't been created for the ACPI object yet,
+function acpi_is_root_bridge() will return false even if the object
+is a PCI host bridge object. That behavior will cause two issues:
+1) No ACPI notification handler installed for PCI host bridges absent
+   at startup, so hotplug events for those bridges won't be handled.
+2) rescan_root_bridge() can't reenumerate offlined PCI host bridges
+   because the ACPI devices have been already destroyed.
 
-So acpi_match_device_ids() will not work.
+So use acpi_match_object_info_ids() to correctly detect PCI host bridges.
 
-This patch add a function to check if new acpi handle's HID matches a list
-of IDs.  The new api use acpi_device_info instead acpi_device.
+-v2: update to use acpi_match_object_info_ids() from Tang Chen  - Yinghai
 
--v2: updated changelog, also check length for string info...
-     change checking sequence by moving string comaring close to for loop.
-					- Yinghai
-
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 Cc: Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org
 ---
- drivers/acpi/scan.c     |   33 +++++++++++++++++++++++++++++++++
- include/acpi/acpi_bus.h |    2 ++
- 2 files changed, 35 insertions(+), 0 deletions(-)
+ drivers/acpi/pci_root_hp.c |   25 ++++++++++++++++++++++++-
+ 1 files changed, 24 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 5dfec09..33ca993 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -312,6 +312,39 @@ int acpi_match_device_ids(struct acpi_device *device,
+diff --git a/drivers/acpi/pci_root_hp.c b/drivers/acpi/pci_root_hp.c
+index 2aebf78..3edec7f 100644
+--- a/drivers/acpi/pci_root_hp.c
++++ b/drivers/acpi/pci_root_hp.c
+@@ -19,6 +19,12 @@ struct acpi_root_bridge {
+ 	u32 flags;
+ };
+ 
++static const struct acpi_device_id root_device_ids[] = {
++	{"PNP0A03", 0},
++	{"PNP0A08", 0},
++	{"", 0},
++};
++
+ /* bridge flags */
+ #define ROOT_BRIDGE_HAS_EJ0	(0x00000002)
+ #define ROOT_BRIDGE_HAS_PS3	(0x00000080)
+@@ -256,6 +262,23 @@ static void handle_hotplug_event_root(acpi_handle handle, u32 type,
+ 				_handle_hotplug_event_root);
  }
- EXPORT_SYMBOL(acpi_match_device_ids);
  
-+int acpi_match_object_info_ids(struct acpi_device_info *info,
-+			       const struct acpi_device_id *ids)
++static bool acpi_is_root_bridge_object(acpi_handle handle)
 +{
-+	const struct acpi_device_id *id;
-+	char *str;
-+	u32 len;
-+	int i;
++	struct acpi_device_info *info = NULL;
++	acpi_status status;
++	bool ret;
 +
-+	len = info->hardware_id.length;
-+	if (len) {
-+		str = info->hardware_id.string;
-+		if (str)
-+			for (id = ids; id->id[0]; id++)
-+				if (!strcmp((char *)id->id, str))
-+					return 0;
-+	}
++	status = acpi_get_object_info(handle, &info);
++	if (ACPI_FAILURE(status))
++		return false;
 +
-+	for (i = 0; i < info->compatible_id_list.count; i++) {
-+		len = info->compatible_id_list.ids[i].length;
-+		if (!len)
-+			continue;
-+		str = info->compatible_id_list.ids[i].string;
-+		if (!str)
-+			continue;
-+		for (id = ids; id->id[0]; id++)
-+			if (!strcmp((char *)id->id, str))
-+				return 0;
-+	}
++	ret = !acpi_match_object_info_ids(info, root_device_ids);
 +
-+	return -ENOENT;
++	kfree(info);
++
++	return ret;
 +}
-+EXPORT_SYMBOL(acpi_match_object_info_ids);
 +
- static void acpi_free_ids(struct acpi_device *device)
+ static acpi_status __init
+ find_root_bridges(acpi_handle handle, u32 lvl, void *context, void **rv)
  {
- 	struct acpi_hardware_id *id, *tmp;
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 608f92f..6ac415c 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -374,6 +374,8 @@ int acpi_bus_start(struct acpi_device *device);
- acpi_status acpi_bus_get_ejd(acpi_handle handle, acpi_handle * ejd);
- int acpi_match_device_ids(struct acpi_device *device,
- 			  const struct acpi_device_id *ids);
-+int acpi_match_object_info_ids(struct acpi_device_info *info,
-+			       const struct acpi_device_id *ids);
- int acpi_create_dir(struct acpi_device *);
- void acpi_remove_dir(struct acpi_device *);
+@@ -264,7 +287,7 @@ find_root_bridges(acpi_handle handle, u32 lvl, void *context, void **rv)
+ 				      .pointer = objname };
+ 	int *count = (int *)context;
  
+-	if (!acpi_is_root_bridge(handle))
++	if (!acpi_is_root_bridge_object(handle))
+ 		return AE_OK;
+ 
+ 	(*count)++;
 -- 
 1.7.7
-
