@@ -1,51 +1,47 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Subject: Re: [PATCH 00/40] PCI, ACPI, x86: pci root bus hotplug support
-Date: Thu, 18 Oct 2012 08:51:45 +0800
-Message-ID: <507F52A1.1030800@huawei.com>
-References: <CAE9FiQWFcVNKMnV1qaHchwCXfZuMpyxf_f7GQy3FZid9YuLD3w@mail.gmail.com> <1348080894-23412-1-git-send-email-yinghai@kernel.org> <507E6355.40904@huawei.com> <CAE9FiQWW2zMK0fQ1RGox653PNxoH_RY_X8N4Oh_osu8Pt9gWpg@mail.gmail.com>
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: Re: [PATCH 1/1] Update acpi_root_bridge_list in container hotplug
+ path.
+Date: Thu, 18 Oct 2012 09:00:42 +0800
+Message-ID: <507F54BA.2050103@cn.fujitsu.com>
+References: <1350444308-27102-1-git-send-email-tangchen@cn.fujitsu.com> <CAE9FiQVFc9VVfWZpEfjPeGvo5pby3BQNzDei3VTXdoR048_SPg@mail.gmail.com> <507E60C2.6010104@cn.fujitsu.com> <CAE9FiQX60dOE7odBx4OC0kawesZW3w9yLHEhmLoOvASaZ7q8dw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([119.145.14.64]:4723 "EHLO
-	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753243Ab2JRAxe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Oct 2012 20:53:34 -0400
-In-Reply-To: <CAE9FiQWW2zMK0fQ1RGox653PNxoH_RY_X8N4Oh_osu8Pt9gWpg@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAE9FiQX60dOE7odBx4OC0kawesZW3w9yLHEhmLoOvASaZ7q8dw@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
 To: Yinghai Lu <yinghai@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, x86 <x86@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: jiang.liu@huawei.com, bhelgaas@google.com, lenb@kernel.org, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-On 2012/10/18 0:19, Yinghai Lu wrote:
-> On Wed, Oct 17, 2012 at 12:50 AM, Yijing Wang <wangyijing@huawei.com> wrote:
->> On 2012/9/20 2:54, Yinghai Lu wrote:
+On 10/18/2012 12:28 AM, Yinghai Lu wrote:
+> On Wed, Oct 17, 2012 at 12:39 AM, Tang Chen<tangchen@cn.fujitsu.com>  wrote:
+>> On 10/17/2012 01:18 PM, Yinghai Lu wrote:
 >>
->> Hi Yinghai,
->>    I applied this series patches to the latest pci-next, but git am fail occured.
->> When I try to pull from for-pci-root-bus-hotplug branch, I found some patches missed(eg. SCI_EMULATE).
->> Where can I get the newest pci root bus hotplug patches?
-> 
-> should be
-> for-pci-split-pci-root-hp-2
-> or
-> for-pci-next-2
-> branch.
-> 
-> but
->>> part6: acpi add/remove simulation
->>> [PATCH 40/40] ACPI: Enable SCI_EMULATE to manually simulate physical
-> 
-> is not in. you need to apply that separately.
-> 
+>> And also, I have another 2 questions, maybe you can help me.
+>> 1) Do we need to put PNP0A08 into acpi_pci_roots ?
+>
+> looks like we need to unify those two ids.
+>
+>> 2) In container_notify_cb(), when it got a ACPI_NOTIFY_EJECT_REQUEST
+>>     event, it doesn't do the hot-remove things.
+>>     I use your sci emulator patch to test it. I did the following thing:
+>>          echo echo "\_SB_.LSB1">  /sys/kernel/debug/acpi/sci_notify
+>>     where \_SB_.LSB1 is a container, it just did nothing.
+>>     Do we need to support this operation ?
+>
+> yes, looks like need to add container_device_remove and call it under
+>   container_notify_cb/ACPI_NOTIFY_EJECT_REQUEST
+>
+> and should look like handle_root_bridge_removal to call acpi_bus_trim two times.
 
-OK, Thanks!
+Hi Yinghai,
 
-> .
-> 
+OK, I can do that. :)
+And I'll send patches for that soon. :)
 
-
--- 
-Thanks!
-Yijing
-
+>
+> Thanks
+>
+> Yinghai
+>
