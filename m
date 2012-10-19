@@ -1,205 +1,36 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC PATCH 4/4] sdio: pm: set device's power state after driver runtime suspended it
-Date: Fri, 19 Oct 2012 20:08:38 +0200
-Message-ID: <96495050.e1u1tibeG9@vostro.rjw.lan>
-References: <1350011561-21039-1-git-send-email-aaron.lu@intel.com> <1350011561-21039-5-git-send-email-aaron.lu@intel.com> <8682251.Y8RZX4ziBd@vostro.rjw.lan>
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: Re: [PATCH 1/4] acpi,memory-hotplug : add memory offline code to acpi_memory_device_remove()
+Date: Fri, 19 Oct 2012 14:19:53 -0400
+Message-ID: <CAHGf_=qfzEJ0VjeYkKFVtyew+wYM-rHS4nqmXU4t7HYGuv8k9w@mail.gmail.com>
+References: <506C0AE8.40702@jp.fujitsu.com> <506C0C53.60205@jp.fujitsu.com>
+ <CAHGf_=p7PaQs-kpnyB8uC1MntHQfL-CXhhq4QQP54mYiqOswqQ@mail.gmail.com>
+ <50727984.20401@cn.fujitsu.com> <CAHGf_=pCrx8AkL9eiSYVgwvT1v0SW2__P_DW-1Wwj_zskqcLXw@mail.gmail.com>
+ <507E77D1.3030709@cn.fujitsu.com> <CAHGf_=rxGeb0RsgEFF2FRRfdX0wiE9cDyVaftsG3E8AgyzYi1g@mail.gmail.com>
+ <508118A6.80804@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <8682251.Y8RZX4ziBd@vostro.rjw.lan>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:54321 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751194Ab2JSSUO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Oct 2012 14:20:14 -0400
+In-Reply-To: <508118A6.80804@cn.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Wen Congyang <wency@cn.fujitsu.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org
 
-On Friday 19 of October 2012 01:39:25 Rafael J. Wysocki wrote:
-> On Friday 12 of October 2012 11:12:41 Aaron Lu wrote:
-> > In sdio bus level runtime callback function, after call the driver's
-> > runtime suspend callback, we will check if the device supports a
-> > platform level power management, and if so, a proper power state is
-> > chosen by the corresponding platform callback and then set.
-> > 
-> > Platform level runtime wakeup is also set, if device is enabled for
-> > runtime wakeup by its driver, it will be armed the ability to generate
-> > a wakeup event by the platform.
-> > 
-> > Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-> > ---
-> >  drivers/mmc/core/sdio_bus.c | 49 +++++++++++++++++++++++++++++++++++++++++++--
-> >  1 file changed, 47 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/mmc/core/sdio_bus.c b/drivers/mmc/core/sdio_bus.c
-> > index aaec9e2..d83dea8 100644
-> > --- a/drivers/mmc/core/sdio_bus.c
-> > +++ b/drivers/mmc/core/sdio_bus.c
-> > @@ -23,6 +23,7 @@
-> >  
-> >  #include "sdio_cis.h"
-> >  #include "sdio_bus.h"
-> > +#include "sdio.h"
-> >  #include "sdio_acpi.h"
-> >  
-> >  /* show configuration fields */
-> > @@ -194,10 +195,54 @@ static int sdio_bus_remove(struct device *dev)
-> >  }
-> >  
-> >  #ifdef CONFIG_PM
-> > +
-> > +static int sdio_bus_runtime_suspend(struct device *dev)
-> > +{
-> > +	int ret;
-> > +	sdio_power_t state;
-> > +
-> > +	ret = pm_generic_runtime_suspend(dev);
-> > +	if (ret)
-> > +		goto out;
-> > +
-> > +	if (!platform_sdio_power_manageable(dev))
-> > +		goto out;
-> > +
-> > +	platform_sdio_run_wake(dev, true);
-> > +
-> > +	state = platform_sdio_choose_power_state(dev);
-> > +	if (state == SDIO_POWER_ERROR) {
-> > +		ret = -EIO;
-> > +		goto out;
-> > +	}
-> > +
-> > +	ret = platform_sdio_set_power_state(dev, state);
-> > +
-> > +out:
-> > +	return ret;
-> > +}
-> > +
-> > +static int sdio_bus_runtime_resume(struct device *dev)
-> > +{
-> > +	int ret;
-> > +
-> > +	if (platform_sdio_power_manageable(dev)) {
-> > +		platform_sdio_run_wake(dev, false);
-> > +		ret = platform_sdio_set_power_state(dev, SDIO_D0);
-> > +		if (ret)
-> > +			goto out;
-> > +	}
-> > +
-> > +	ret = pm_generic_runtime_resume(dev);
-> > +
-> > +out:
-> > +	return ret;
-> > +}
-> > +
-> 
-> Most likely we will need to make analogous changes for other bus types that
-> don't support power management natively, like platform, SPI, I2C etc.  In all
-> of them the _runtime_suspend() and _runtime_resume() routine will look
-> almost exactly the same except for the platform_sdio_ prefix.
-> 
-> For this reason, I think it would be better to simply define two functions
-> acpi_pm_runtime_suspend() and acpi_pm_runtime_resume() that will do all of
-> the ACPI-specific operations related to runtime suspend/resume.  Then, we
-> will be able to use these functions for all of the bus types in question
-> in the same way (we may also need to add analogous functions for system
-> suspend/resume handling).
+> Hmm, IIRC, if the memory is recognized from kerenl before driver initialization,
+> the memory device is not managed by the driver acpi_memhotplug.
 
-Something like in the (totally untested) patch below.
-
-With this code the SDIO bus type should be able to use
-acpi_subsys_runtime_suspend() and acpi_subsys_runtime_resume() as its
-bus-type-level runtime suspend/resume callback routines, respectively.
-
-Thanks,
-Rafael
+Yup.
 
 
-Prototype, no sign-off.
----
- drivers/acpi/dev_pm.c |   54 ++++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/acpi.h  |   12 +++++++++++
- 2 files changed, 66 insertions(+)
+> I think we should also deal with REMOVAL_NORMAL here now. Otherwise it will cause
+> some critical problem: we unbind the device from the driver but we still use
+> it. If we eject it, we have no chance to offline and remove it. It is very dangerous.
 
-Index: linux-pm/drivers/acpi/dev_pm.c
-===================================================================
---- /dev/null
-+++ linux-pm/drivers/acpi/dev_pm.c
-@@ -0,0 +1,54 @@
-+#include <linux/acpi.h>
-+#include <linux/device.h>
-+#include <linux/kernel.h>
-+#include <linux/pm_qos.h>
-+#include <linux/pm_runtime.h>
-+
-+#include <acpi/acpi_bus.h>
-+
-+int acpi_dev_runtime_suspend(struct device *dev)
-+{
-+	acpi_handle handle = DEVICE_ACPI_HANDLE(dev);
-+	bool enable_wakeup;
-+	int power_state;
-+
-+	if (!handle || !acpi_bus_power_manageable(handle))
-+		return 0;
-+
-+	enable_wakeup = dev_pm_qos_flags(dev, PM_QOS_FLAG_REMOTE_WAKEUP))
-+				!= PM_QOS_FLAGS_NONE;
-+	acpi_pm_device_run_wake(dev, enable_wakeup);
-+
-+	power_state = acpi_pm_device_sleep_state(dev, NULL, ACPI_STATE_D3);
-+	if (power_state < ACPI_STATE_D0 || power_state > ACPI_STATE_D3)
-+		return -EIO;
-+
-+	return acpi_bus_set_power(handle, power_state);
-+}
-+EXPORT_SYMBOL_GPL(acpi_dev_runtime_suspend);
-+
-+int acpi_dev_runtime_resume(struct device *dev)
-+{
-+	acpi_handle handle = DEVICE_ACPI_HANDLE(dev);
-+
-+	if (!handle || !acpi_bus_power_manageable(handle))
-+		return 0;
-+
-+	acpi_pm_device_run_wake(dev, false);
-+	return acpi_bus_set_power(handle, ACPI_STATE_D0);
-+}
-+EXPORT_SYMBOL_GPL(acpi_dev_runtime_resume);
-+
-+int acpi_subsys_runtime_suspend(struct device *dev)
-+{
-+	int ret = pm_generic_runtime_suspend(dev);
-+	return ret ? ret : acpi_dev_runtime_suspend(dev);
-+}
-+EXPORT_SYMBOL_GPL(acpi_subsys_runtime_suspend);
-+
-+int acpi_subsys_runtime_resume(struct device *dev)
-+{
-+	int ret = acpi_dev_runtime_resume(dev);
-+	return ret ? ret : pm_generic_runtime_resume(dev);
-+}
-+EXPORT_SYMBOL_GPL(acpi_subsys_runtime_resume);
-Index: linux-pm/include/linux/acpi.h
-===================================================================
---- linux-pm.orig/include/linux/acpi.h
-+++ linux-pm/include/linux/acpi.h
-@@ -434,4 +434,16 @@ acpi_status acpi_os_prepare_sleep(u8 sle
- #define acpi_os_set_prepare_sleep(func, pm1a_ctrl, pm1b_ctrl) do { } while (0)
- #endif
- 
-+#if defined(CONFIG_ACPI) && defined (CONFIG_PM_RUNTIME)
-+int acpi_dev_runtime_suspend(struct device *dev);
-+int acpi_dev_runtime_resume(struct device *dev);
-+int acpi_subsys_runtime_suspend(struct device *dev);
-+int acpi_subsys_runtime_resume(struct device *dev);
-+#else
-+static inline acpi_dev_runtime_suspend(struct device *dev) { return 0; }
-+static inline acpi_dev_runtime_resume(struct device *dev) { return 0; }
-+static inline acpi_subsys_runtime_suspend(struct device *dev) { return 0; }
-+static inline acpi_subsys_runtime_resume(struct device *dev) { return 0; }
-+#endif
-+
- #endif	/*_LINUX_ACPI_H*/
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+??
+If resource was not allocated a driver, a driver doesn't need to
+deallocate it when
+error path. I haven't caught your point.
