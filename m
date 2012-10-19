@@ -1,85 +1,61 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v2 RESEND] ACPI: Add ACPI CPU hot-remove support
-Date: Fri, 19 Oct 2012 13:09:53 -0600
-Message-ID: <1350673793-19248-1-git-send-email-toshi.kani@hp.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0027.austin.hp.com ([15.216.28.34]:12231 "EHLO
-	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753363Ab2JSTRd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Oct 2012 15:17:33 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: Re: [PATCH v2 2/3] acpi,memory-hotplug: introduce a mutex lock to
+ protect the list in acpi_memory_device
+Date: Fri, 19 Oct 2012 15:20:06 -0400
+Message-ID: <CAHGf_=pxLj8r99GwKO3n-Zc_drebVe5Lr4dB+xqB=TQG2B0Wtg@mail.gmail.com>
+References: <1350641040-19434-1-git-send-email-wency@cn.fujitsu.com> <1350641040-19434-3-git-send-email-wency@cn.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1350641040-19434-3-git-send-email-wency@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: wency@cn.fujitsu.com
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, liuj97@gmail.com, len.brown@intel.com, akpm@linux-foundation.org, isimatu.yasuaki@jp.fujitsu.com, muneda.takahiro@jp.fujitsu.com, David Rientjes <rientjes@google.com>, Christoph Lameter <cl@linux.com>, Minchan Kim <minchan.kim@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, lenb@kernel.org, rjw@sisk.pl
-Cc: linux-kernel@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, imammedo@redhat.com, vijaymohan.pandarathil@hp.com, prarit@redhat.com, bhelgaas@google.com, Toshi Kani <toshi.kani@hp.com>
 
-Added CPU hot-remove support through an ACPI eject notification.
-It calls acpi_bus_hot_remove_device(), which shares the same code
-path with the sysfs eject operation.  acpi_os_hotplug_execute()
-serializes hot-remove operations between ACPI hot-remove and sysfs
-eject requests.
+On Fri, Oct 19, 2012 at 6:03 AM,  <wency@cn.fujitsu.com> wrote:
+> From: Wen Congyang <wency@cn.fujitsu.com>
+>
+> The memory device can be removed by 2 ways:
+> 1. send eject request by SCI
+> 2. echo 1 >/sys/bus/pci/devices/PNP0C80:XX/eject
+>
+> This 2 events may happen at the same time, so we may touch
+> acpi_memory_device.res_list at the same time. This patch
+> introduce a lock to protect this list.
+>
+> CC: David Rientjes <rientjes@google.com>
+> CC: Jiang Liu <liuj97@gmail.com>
+> CC: Len Brown <len.brown@intel.com>
+> CC: Christoph Lameter <cl@linux.com>
+> Cc: Minchan Kim <minchan.kim@gmail.com>
+> CC: Andrew Morton <akpm@linux-foundation.org>
+> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+> CC: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+> Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+> ---
+>  drivers/acpi/acpi_memhotplug.c |   17 +++++++++++++++--
+>  1 files changed, 15 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+> index 1e90e8f..8ff2976 100644
+> --- a/drivers/acpi/acpi_memhotplug.c
+> +++ b/drivers/acpi/acpi_memhotplug.c
+> @@ -83,7 +83,8 @@ struct acpi_memory_info {
+>  struct acpi_memory_device {
+>         struct acpi_device * device;
+>         unsigned int state;     /* State of the memory device */
+> -       struct list_head res_list;
+> +       struct mutex lock;
+> +       struct list_head res_list;      /* protected by lock */
+>  };
 
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Tested-by: IgorMammedov <imammedo@redhat.com>
-Tested-by: Vijay Mohan Pandarathil <vijaymohan.pandarathil@hp.com>
-Tested-by: Prarit Bhargava <prarit@redhat.com>
----
-v2: Rebased to the current Linus's tree.
----
- drivers/acpi/processor_driver.c | 27 +++++++++++++++++----------
- 1 file changed, 17 insertions(+), 10 deletions(-)
+Please avoid grep unfriendly name. "lock" is too common. res_list_lock
+or list_lock
+are better IMHO.
 
-diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-index e78c2a5..1cc9652 100644
---- a/drivers/acpi/processor_driver.c
-+++ b/drivers/acpi/processor_driver.c
-@@ -694,8 +694,8 @@ int acpi_processor_device_add(acpi_handle handle, struct acpi_device **device)
- static void acpi_processor_hotplug_notify(acpi_handle handle,
- 					  u32 event, void *data)
- {
--	struct acpi_processor *pr;
- 	struct acpi_device *device = NULL;
-+	struct acpi_eject_event *ej_event = NULL;
- 	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE; /* default */
- 	int result;
- 
-@@ -727,20 +727,27 @@ static void acpi_processor_hotplug_notify(acpi_handle handle,
- 				  "received ACPI_NOTIFY_EJECT_REQUEST\n"));
- 
- 		if (acpi_bus_get_device(handle, &device)) {
--			printk(KERN_ERR PREFIX
--				    "Device don't exist, dropping EJECT\n");
-+			pr_err(PREFIX "Device don't exist, dropping EJECT\n");
- 			break;
- 		}
--		pr = acpi_driver_data(device);
--		if (!pr) {
--			printk(KERN_ERR PREFIX
--				    "Driver data is NULL, dropping EJECT\n");
-+		if (!acpi_driver_data(device)) {
-+			pr_err(PREFIX "Driver data is NULL, dropping EJECT\n");
- 			break;
- 		}
- 
--		/* REVISIT: update when eject is supported */
--		ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
--		break;
-+		ej_event = kmalloc(sizeof(*ej_event), GFP_KERNEL);
-+		if (!ej_event) {
-+			pr_err(PREFIX "No memory, dropping EJECT\n");
-+			break;
-+		}
-+
-+		ej_event->handle = handle;
-+		ej_event->event = ACPI_NOTIFY_EJECT_REQUEST;
-+		acpi_os_hotplug_execute(acpi_bus_hot_remove_device,
-+					(void *)ej_event);
-+
-+		/* eject is performed asynchronously */
-+		return;
- 
- 	default:
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--- 
-1.7.11.7
-
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
