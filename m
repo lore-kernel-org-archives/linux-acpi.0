@@ -1,45 +1,143 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH V3 0/3] PNP: Allow PNP resources to be disabled (interface)
-Date: Sat, 20 Oct 2012 00:19:40 +0200
-Message-ID: <5450043.aKImp0J8nh@vostro.rjw.lan>
-References: <50158321.4030007@gmx.net> <201209182342.30244.rjw@sisk.pl> <5081A3BC.9050201@gmx.net>
+Subject: [PATCH] ACPI / PM: Fix device PM kernedoc comments and #ifdefs
+Date: Sat, 20 Oct 2012 01:15:50 +0200
+Message-ID: <4768434.2rQpsxG0uT@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5081A3BC.9050201@gmx.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Witold Szczeponik <Witold.Szczeponik@gmx.net>
-Cc: Borislav Petkov <bp@alien8.de>, bhelgaas@google.com, lenb@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([193.178.161.156]:55925 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755127Ab2JSXMF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 19 Oct 2012 19:12:05 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Randy Dunlap <rdunlap@xenotime.net>
 
-On Friday 19 of October 2012 21:02:20 Witold Szczeponik wrote:
-> On 18/09/12 23:42, Rafael J. Wysocki wrote:
-> 
-> > Hi,
-> > 
-> > On Sunday, September 16, 2012, Witold Szczeponik wrote:
-> >> Hi Rafael, 
-> >>
-> >> what about the patches 1 and 3 which do not make any changes to the ABI?
-> >> The first patch simplifies the code, while the third patch fixes a problem in
-> >> the PNP resource allocation.  Any chances to have them included in 3.7?
-> > 
-> > They would be fine as far as I'm concerned, but I'm not maintaining that part
-> > of the kernel (at least at the moment).
-> > 
-> > I'm not sure who's the maintainer of it, to be honest.
-> 
-> Well, according to https://lkml.org/lkml/2012/10/19/375, that would be you
-> (together with Bjorn and Len).  :-)  Hence I am resending the request for
-> inclusion to you as well.  PNP code went, if I am not mistaken, traditionally
-> through Len's tree.  
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-OK, so can you please resend them?
+The kerneldoc comments for acpi_pm_device_sleep_state(),
+acpi_pm_device_run_wake(), and acpi_pm_device_sleep_wake() are
+outdated and/or don't follow the common kerneldoc patters, so
+fix them.
 
-Rafael
+Additionally, notice that acpi_pm_device_run_wake() should be under
+CONFIG_PM_RUNTIME rather than under CONFIG_PM_SLEEP, so fix that too.
 
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/sleep.c    |   51 +++++++++++++++++++++---------------------------
+ include/acpi/acpi_bus.h |    8 +++++--
+ 2 files changed, 29 insertions(+), 30 deletions(-)
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Index: linux-pm/drivers/acpi/sleep.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/sleep.c
++++ linux-pm/drivers/acpi/sleep.c
+@@ -699,28 +699,21 @@ int acpi_suspend(u32 acpi_state)
+ 
+ #ifdef CONFIG_PM
+ /**
+- *	acpi_pm_device_sleep_state - return preferred power state of ACPI device
+- *		in the system sleep state given by %acpi_target_sleep_state
+- *	@dev: device to examine; its driver model wakeup flags control
+- *		whether it should be able to wake up the system
+- *	@d_min_p: used to store the upper limit of allowed states range
+- *	@d_max_in: specify the lowest allowed states
+- *	Return value: preferred power state of the device on success, -ENODEV
+- *	(ie. if there's no 'struct acpi_device' for @dev) or -EINVAL on failure
++ * acpi_pm_device_sleep_state - Get preferred power state of ACPI device.
++ * @dev: Device whose preferred target power state to return.
++ * @d_min_p: Location to store the upper limit of the allowed states range.
++ * @d_max_in: Deepest low-power state to take into consideration.
++ * Return value: Preferred power state of the device on success, -ENODEV
++ * (if there's no 'struct acpi_device' for @dev) or -EINVAL on failure
+  *
+- *	Find the lowest power (highest number) ACPI device power state that
+- *	device @dev can be in while the system is in the sleep state represented
+- *	by %acpi_target_sleep_state.  If @wake is nonzero, the device should be
+- *	able to wake up the system from this sleep state.  If @d_min_p is set,
+- *	the highest power (lowest number) device power state of @dev allowed
+- *	in this system sleep state is stored at the location pointed to by it.
++ * Find the lowest power (highest number) ACPI device power state that the
++ * device can be in while the system is in the sleep state represented
++ * by %acpi_target_sleep_state.  If @d_min_p is set, the highest power (lowest
++ * number) device power state that @dev can be in for the given system sleep
++ * state is stored at the location pointed to by it.
+  *
+- *	The caller must ensure that @dev is valid before using this function.
+- *	The caller is also responsible for figuring out if the device is
+- *	supposed to be able to wake up the system and passing this information
+- *	via @wake.
++ * The caller must ensure that @dev is valid before using this function.
+  */
+-
+ int acpi_pm_device_sleep_state(struct device *dev, int *d_min_p, int d_max_in)
+ {
+ 	acpi_handle handle = DEVICE_ACPI_HANDLE(dev);
+@@ -812,14 +805,15 @@ int acpi_pm_device_sleep_state(struct de
+ EXPORT_SYMBOL(acpi_pm_device_sleep_state);
+ #endif /* CONFIG_PM */
+ 
+-#ifdef CONFIG_PM_SLEEP
++#ifdef CONFIG_PM_RUNTIME
+ /**
+- * acpi_pm_device_run_wake - Enable/disable wake-up for given device.
+- * @phys_dev: Device to enable/disable the platform to wake-up the system for.
+- * @enable: Whether enable or disable the wake-up functionality.
++ * acpi_pm_device_run_wake - Enable/disable remote wakeup for given device.
++ * @phys_dev: Device to enable/disable the platform to wake up.
++ * @enable: Whether enable or disable the wakeup functionality.
+  *
+  * Find the ACPI device object corresponding to @pci_dev and try to
+- * enable/disable the GPE associated with it.
++ * enable/disable the GPE associated with it, so that it can generate
++ * wakeup signals for the device in response to external (remote) events.
+  */
+ int acpi_pm_device_run_wake(struct device *phys_dev, bool enable)
+ {
+@@ -847,12 +841,13 @@ int acpi_pm_device_run_wake(struct devic
+ 	return 0;
+ }
+ EXPORT_SYMBOL(acpi_pm_device_run_wake);
++#endif /* CONFIG_PM_RUNTIME */
+ 
++#ifdef CONFIG_PM_SLEEP
+ /**
+- *	acpi_pm_device_sleep_wake - enable or disable the system wake-up
+- *                                  capability of given device
+- *	@dev: device to handle
+- *	@enable: 'true' - enable, 'false' - disable the wake-up capability
++ * acpi_pm_device_sleep_wake - Enable or disable device to wake up the system.
++ * @dev: Device to enable/desible to wake up the system from sleep states.
++ * @enable: Whether enable or disable @dev to wake up the system.
+  */
+ int acpi_pm_device_sleep_wake(struct device *dev, bool enable)
+ {
+Index: linux-pm/include/acpi/acpi_bus.h
+===================================================================
+--- linux-pm.orig/include/acpi/acpi_bus.h
++++ linux-pm/include/acpi/acpi_bus.h
+@@ -425,14 +425,18 @@ static inline int acpi_pm_device_sleep_s
+ }
+ #endif
+ 
+-#ifdef CONFIG_PM_SLEEP
++#ifdef CONFIG_PM_RUNTIME
+ int acpi_pm_device_run_wake(struct device *, bool);
+-int acpi_pm_device_sleep_wake(struct device *, bool);
+ #else
+ static inline int acpi_pm_device_run_wake(struct device *dev, bool enable)
+ {
+ 	return -ENODEV;
+ }
++#endif
++
++#ifdef CONFIG_PM_SLEEP
++int acpi_pm_device_sleep_wake(struct device *, bool);
++#else
+ static inline int acpi_pm_device_sleep_wake(struct device *dev, bool enable)
+ {
+ 	return -ENODEV;
+
