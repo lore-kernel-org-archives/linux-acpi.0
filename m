@@ -1,67 +1,67 @@
-From: Mike Waychison <mikew@google.com>
-Subject: Re: [RFC][PATCH 2/2] efi_pstore: add a sequence counter to a variable name
-Date: Thu, 18 Oct 2012 16:47:40 -0700
-Message-ID: <CAGTjWtCKwubHVTvqkmSBvU0g6OiDFdKkULu+ZEneLoWyBgQesA@mail.gmail.com>
-References: <A5ED84D3BB3A384992CBB9C77DEDA4D41386D130@USINDEM103.corp.hds.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Daniel J Blueman <daniel@numascale-asia.com>
+Subject: [PATCH] Fix printing when no interrupt is allocated
+Date: Fri, 19 Oct 2012 08:33:41 +0800
+Message-ID: <1350606821-29813-1-git-send-email-daniel@numascale-asia.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-da0-f46.google.com ([209.85.210.46]:47184 "EHLO
+Received: from mail-da0-f46.google.com ([209.85.210.46]:48831 "EHLO
 	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753916Ab2JRXsB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Oct 2012 19:48:01 -0400
-Received: by mail-da0-f46.google.com with SMTP id n41so3718380dak.19
-        for <linux-acpi@vger.kernel.org>; Thu, 18 Oct 2012 16:48:01 -0700 (PDT)
-In-Reply-To: <A5ED84D3BB3A384992CBB9C77DEDA4D41386D130@USINDEM103.corp.hds.com>
+	with ESMTP id S1751665Ab2JSAeL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Oct 2012 20:34:11 -0400
+Received: by mail-da0-f46.google.com with SMTP id n41so3733315dak.19
+        for <linux-acpi@vger.kernel.org>; Thu, 18 Oct 2012 17:34:10 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Seiji Aguchi <seiji.aguchi@hds.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, "Luck, Tony (tony.luck@intel.com)" <tony.luck@intel.com>, "Matthew Garrett (mjg@redhat.com)" <mjg@redhat.com>, "dzickus@redhat.com" <dzickus@redhat.com>, "dle-develop@lists.sourceforge.net" <dle-develop@lists.sourceforge.net>, Satoru Moriya <satoru.moriya@hds.com>
+To: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Daniel J Blueman <daniel@numascale-asia.com>
 
-On Fri, Oct 5, 2012 at 12:02 PM, Seiji Aguchi <seiji.aguchi@hds.com> wrote:
-> [Problem]
->
-> Currently, a variable name, which distinguishes each entry, consists of type, id and ctime.
-> But if multiple events happens in a short time, a second/third event may fail to log because
-> efi_pstore can't distinguish each event with current variable name.
->
-> [Solution]
->
->   A reasonable way to identify all events precisely is introducing a sequence counter to
->   the variable name.
->
-> [Patch Description]
->
->   The sequence counter has already supported in a pstore layer with "oopscount".
->   So, this patch adds it to a variable name.
->   Also, it is passed to read/erase callbacks of platform drivers in accordance with
->   the modification of the variable name.
->
->   <before applying this patch>
->  a variable name of first event: dump-type0-1-12345678
->  a variable name of second event: dump-type0-1-12345678
->
->   type:0
->   id:1
->   ctime:12345678
->
->  If multiple events happen in a short time, efi_pstore can't distinguish them because
->  variable names are same among them.
->
->   <after applying this patch>
->
->  it can be distinguishable by adding a sequence counter as follows.
->
->  a variable name of first event: dump-type0-1-1-12345678
->  a variable name of Second event: dump-type0-1-2-12345678
->
->   type:0
->   id:1
->   sequence counter: 1(first event), 2(second event)
->   ctime:12345678
+Previously a new line is implicitly added in the no GSI case:
 
-This patch plumbs the count through the same way as you plumbed the
-ctime through in patch 1/2, so I'm going to hold off on commenting on
-this patch until we better understand i_ctime use is resolved there.
-I suspect that we don't want to continue adding more arguments through
-pstore ops this way.
+[    7.185182] pci 0001:00:12.0: can't derive routing for PCI INT A
+[    7.191352] pci 0001:00:12.0: PCI INT A: no GSI
+[    7.195956]  - using ISA IRQ 10
+
+The code thus prints a blank line where no legacy IRQ is available:
+
+[    1.650124] pci 0000:00:14.0: can't derive routing for PCI INT A
+[    1.650126] pci 0000:00:14.0: PCI INT A: no GSI
+[    1.650126] 
+[    1.650180] pci 0000:00:14.0: can't derive routing for PCI INT A
+
+Fix this by making the newline explicit and removing the superfluous
+one.
+
+Signed-off-by: Daniel J Blueman <daniel@numascale-asia.com>
+---
+ drivers/acpi/pci_irq.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+index 0eefa12..2c37996 100644
+--- a/drivers/acpi/pci_irq.c
++++ b/drivers/acpi/pci_irq.c
+@@ -459,7 +459,7 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
+ 	 */
+ 	if (gsi < 0) {
+ 		u32 dev_gsi;
+-		dev_warn(&dev->dev, "PCI INT %c: no GSI", pin_name(pin));
++		dev_warn(&dev->dev, "PCI INT %c: no GSI\n", pin_name(pin));
+ 		/* Interrupt Line values above 0xF are forbidden */
+ 		if (dev->irq > 0 && (dev->irq <= 0xF) &&
+ 		    (acpi_isa_irq_to_gsi(dev->irq, &dev_gsi) == 0)) {
+@@ -467,11 +467,9 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
+ 			acpi_register_gsi(&dev->dev, dev_gsi,
+ 					  ACPI_LEVEL_SENSITIVE,
+ 					  ACPI_ACTIVE_LOW);
+-			return 0;
+-		} else {
+-			printk("\n");
+-			return 0;
+ 		}
++
++		return 0;
+ 	}
+ 
+ 	rc = acpi_register_gsi(&dev->dev, gsi, triggering, polarity);
+-- 
+1.7.9.5
+
