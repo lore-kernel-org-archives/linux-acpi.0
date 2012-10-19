@@ -1,104 +1,41 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [PATCH 1/2] acpi : cpu hot-remove returns error when cpu_down()
- fails
-Date: Fri, 19 Oct 2012 13:40:10 +0900
-Message-ID: <5080D9AA.8070801@jp.fujitsu.com>
-References: <50657D92.3010106@jp.fujitsu.com> <4180255.BSUqs0l2F5@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: MAINTAINERS: Add Rafael's address to ACPI maintainers
+Date: Fri, 19 Oct 2012 07:11:44 +0200
+Message-ID: <4293795.KzBmWitzil@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:45830 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757689Ab2JSEks (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Oct 2012 00:40:48 -0400
-In-Reply-To: <4180255.BSUqs0l2F5@vostro.rjw.lan>
+Received: from ogre.sisk.pl ([193.178.161.156]:54452 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752932Ab2JSFH7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 19 Oct 2012 01:07:59 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: srivatsa.bhat@linux.vnet.ibm.com, toshi.kani@hp.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-Hi Rafael,
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-2012/10/19 10:06, Rafael J. Wysocki wrote:
-> On Friday 28 of September 2012 19:36:02 Yasuaki Ishimatsu wrote:
->> Even if cpu_down() fails, acpi_processor_remove() continues to remove the cpu.
->> But in this case, it should return error number since some process may run on
->> the cpu. If the cpu has a running process and the cpu is turned the power off,
->> the system may not work well.
->>
->> Reviewed-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
->> Reviewed-by: Toshi Kani <toshi.kani@hp.com>
->> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->>
->> ---
->>   drivers/acpi/processor_driver.c |   18 ++++++++++++------
->>   1 file changed, 12 insertions(+), 6 deletions(-)
->>
->> Index: linux-3.6-rc7/drivers/acpi/processor_driver.c
->> ===================================================================
->> --- linux-3.6-rc7.orig/drivers/acpi/processor_driver.c	2012-09-24 10:10:57.000000000 +0900
->> +++ linux-3.6-rc7/drivers/acpi/processor_driver.c	2012-09-28 19:16:33.207858261 +0900
->> @@ -605,7 +605,7 @@ err_free_pr:
->>   static int acpi_processor_remove(struct acpi_device *device, int type)
->>   {
->>   	struct acpi_processor *pr = NULL;
->> -
->> +	int ret;
->>
->>   	if (!device || !acpi_driver_data(device))
->>   		return -EINVAL;
->> @@ -616,8 +616,9 @@ static int acpi_processor_remove(struct
->>   		goto free;
->>
->>   	if (type == ACPI_BUS_REMOVAL_EJECT) {
->> -		if (acpi_processor_handle_eject(pr))
->> -			return -EINVAL;
->> +		ret = acpi_processor_handle_eject(pr);
->> +		if (ret)
->> +			return ret;
->>   	}
->>
->>   	acpi_processor_power_exit(pr, device);
->> @@ -848,12 +849,17 @@ static acpi_status acpi_processor_hotadd
->>
->>   static int acpi_processor_handle_eject(struct acpi_processor *pr)
->>   {
->> -	if (cpu_online(pr->id))
->> -		cpu_down(pr->id);
->> +	int ret = 0;
->> +
->> +	if (cpu_online(pr->id)) {
->> +		ret = cpu_down(pr->id);
->
-> If you defined ret here ...
->
->> +		if (ret)
->> +			return ret;
->> +	}
->>
+Since I will be maintaining ACPI together with Len from now on, add my
+address to the ACPI maintainers list in the MAINTAINERS file (this is
+the address to send patches to).
 
->>   	arch_unregister_cpu(pr->id);
->>   	acpi_unmap_lsapic(pr->id);
->> -	return (0);
->> +	return ret;
->
-> ... this line wouldn't need to be changed.
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
-Thank you for your review.
-O.K. I'll put the return code back.
-
-Thanks,
-Yasuaki Ishimatsu
-
->
->>   }
->>   #else
->>   static acpi_status acpi_processor_hotadd_init(struct acpi_processor *pr)
->
-> Thanks,
-> Rafael
->
->
-
+Index: linux-pm/MAINTAINERS
+===================================================================
+--- linux-pm.orig/MAINTAINERS
++++ linux-pm/MAINTAINERS
+@@ -235,6 +235,7 @@ F:	drivers/platform/x86/acer-wmi.c
+ 
+ ACPI
+ M:	Len Brown <lenb@kernel.org>
++M:	Rafael J. Wysocki <rjw@sisk.pl>
+ L:	linux-acpi@vger.kernel.org
+ W:	http://www.lesswatts.org/projects/acpi/
+ Q:	http://patchwork.kernel.org/project/linux-acpi/list/
 
