@@ -1,42 +1,85 @@
-From: Witold Szczeponik <Witold.Szczeponik@gmx.net>
-Subject: Re: [PATCH V3 0/3] PNP: Allow PNP resources to be disabled (interface)
-Date: Fri, 19 Oct 2012 21:02:20 +0200
-Message-ID: <5081A3BC.9050201@gmx.net>
-References: <50158321.4030007@gmx.net> <201208022340.16948.rjw@sisk.pl> <5055DFB6.6070809@gmx.net> <201209182342.30244.rjw@sisk.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201209182342.30244.rjw@sisk.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Borislav Petkov <bp@alien8.de>, bhelgaas@google.com, lenb@kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: [PATCH v2 RESEND] ACPI: Add ACPI CPU hot-remove support
+Date: Fri, 19 Oct 2012 13:09:53 -0600
+Message-ID: <1350673793-19248-1-git-send-email-toshi.kani@hp.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g1t0027.austin.hp.com ([15.216.28.34]:12231 "EHLO
+	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753363Ab2JSTRd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Oct 2012 15:17:33 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, lenb@kernel.org, rjw@sisk.pl
+Cc: linux-kernel@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, imammedo@redhat.com, vijaymohan.pandarathil@hp.com, prarit@redhat.com, bhelgaas@google.com, Toshi Kani <toshi.kani@hp.com>
 
-On 18/09/12 23:42, Rafael J. Wysocki wrote:
+Added CPU hot-remove support through an ACPI eject notification.
+It calls acpi_bus_hot_remove_device(), which shares the same code
+path with the sysfs eject operation.  acpi_os_hotplug_execute()
+serializes hot-remove operations between ACPI hot-remove and sysfs
+eject requests.
 
-> Hi,
-> 
-> On Sunday, September 16, 2012, Witold Szczeponik wrote:
->> Hi Rafael, 
->>
->> what about the patches 1 and 3 which do not make any changes to the ABI?
->> The first patch simplifies the code, while the third patch fixes a problem in
->> the PNP resource allocation.  Any chances to have them included in 3.7?
-> 
-> They would be fine as far as I'm concerned, but I'm not maintaining that part
-> of the kernel (at least at the moment).
-> 
-> I'm not sure who's the maintainer of it, to be honest.
+Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Tested-by: IgorMammedov <imammedo@redhat.com>
+Tested-by: Vijay Mohan Pandarathil <vijaymohan.pandarathil@hp.com>
+Tested-by: Prarit Bhargava <prarit@redhat.com>
+---
+v2: Rebased to the current Linus's tree.
+---
+ drivers/acpi/processor_driver.c | 27 +++++++++++++++++----------
+ 1 file changed, 17 insertions(+), 10 deletions(-)
 
-Well, according to https://lkml.org/lkml/2012/10/19/375, that would be you
-(together with Bjorn and Len).  :-)  Hence I am resending the request for
-inclusion to you as well.  PNP code went, if I am not mistaken, traditionally
-through Len's tree.  
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index e78c2a5..1cc9652 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -694,8 +694,8 @@ int acpi_processor_device_add(acpi_handle handle, struct acpi_device **device)
+ static void acpi_processor_hotplug_notify(acpi_handle handle,
+ 					  u32 event, void *data)
+ {
+-	struct acpi_processor *pr;
+ 	struct acpi_device *device = NULL;
++	struct acpi_eject_event *ej_event = NULL;
+ 	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE; /* default */
+ 	int result;
+ 
+@@ -727,20 +727,27 @@ static void acpi_processor_hotplug_notify(acpi_handle handle,
+ 				  "received ACPI_NOTIFY_EJECT_REQUEST\n"));
+ 
+ 		if (acpi_bus_get_device(handle, &device)) {
+-			printk(KERN_ERR PREFIX
+-				    "Device don't exist, dropping EJECT\n");
++			pr_err(PREFIX "Device don't exist, dropping EJECT\n");
+ 			break;
+ 		}
+-		pr = acpi_driver_data(device);
+-		if (!pr) {
+-			printk(KERN_ERR PREFIX
+-				    "Driver data is NULL, dropping EJECT\n");
++		if (!acpi_driver_data(device)) {
++			pr_err(PREFIX "Driver data is NULL, dropping EJECT\n");
+ 			break;
+ 		}
+ 
+-		/* REVISIT: update when eject is supported */
+-		ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
+-		break;
++		ej_event = kmalloc(sizeof(*ej_event), GFP_KERNEL);
++		if (!ej_event) {
++			pr_err(PREFIX "No memory, dropping EJECT\n");
++			break;
++		}
++
++		ej_event->handle = handle;
++		ej_event->event = ACPI_NOTIFY_EJECT_REQUEST;
++		acpi_os_hotplug_execute(acpi_bus_hot_remove_device,
++					(void *)ej_event);
++
++		/* eject is performed asynchronously */
++		return;
+ 
+ 	default:
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-- 
+1.7.11.7
 
---- Witold
-
-> 
-> Thanks,
-> Rafael
-> 
