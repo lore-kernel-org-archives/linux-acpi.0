@@ -1,47 +1,75 @@
-From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: Is: Xen architecture document. Was: Re: [Xen-devel] Is: axe
- read_tscp pvops call. Was: Re: [RFC] ACPI S3 and Xen (suprisingly small\!).
-Date: Fri, 19 Oct 2012 11:48:55 -0400
-Message-ID: <20121019154854.GO26830@phenom.dumpdata.com>
-References: <1350481786-4969-1-git-send-email-konrad.wilk@oracle.com>
- <507ED6C0.4020503@zytor.com>
- <20121017161036.GA10691@phenom.dumpdata.com>
- <507EE1C3.7070300@zytor.com>
- <20121017165452.GA22740@phenom.dumpdata.com>
- <507EEC53.1010309@zytor.com>
- <84b3cbf9-7c84-4d7e-a2d7-46b0d1cc5975@default>
- <50802030.8070107@zytor.com>
- <dd8748de-4715-499a-8c7e-745af37fa6c4@default>
- <50803057.5000307@zytor.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v2 0/3] acpi,memory-hotplug : implement framework for hot removing memory
+Date: Fri, 19 Oct 2012 18:32:42 +0200
+Message-ID: <10485269.ao9A69hu9S@vostro.rjw.lan>
+References: <1350641040-19434-1-git-send-email-wency@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:49269 "EHLO
-	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759127Ab2JSQBG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Oct 2012 12:01:06 -0400
-Content-Disposition: inline
-In-Reply-To: <50803057.5000307@zytor.com>
+Received: from ogre.sisk.pl ([193.178.161.156]:55397 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758015Ab2JSQ24 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 19 Oct 2012 12:28:56 -0400
+In-Reply-To: <1350641040-19434-1-git-send-email-wency@cn.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Dan Magenheimer <dan.magenheimer@oracle.com>, linux-acpi@vger.kernel.org, x86@kernel.org, xen-devel@lists.xensource.com, linux-kernel@vger.kernel.org, lenb@kernel.org
+To: wency@cn.fujitsu.com
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, liuj97@gmail.com, len.brown@intel.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, muneda.takahiro@jp.fujitsu.com
 
-> paravirtualized architectures out there which are perfectly well
-> documented and supportable, but Xen has resisted doing that for
-> years, and all we ever get are vague future promises.
+On Friday 19 of October 2012 18:03:57 wency@cn.fujitsu.com wrote:
+> From: Wen Congyang <wency@cn.fujitsu.com>
+> 
+> The patch-set implements a framework for hot removing memory.
+> 
+> The memory device can be removed by 2 ways:
+> 1. send eject request by SCI
+> 2. echo 1 >/sys/bus/pci/devices/PNP0C80:XX/eject
+> 
+> In the 1st case, acpi_memory_disable_device() will be called.
+> In the 2nd case, acpi_memory_device_remove() will be called.
+> acpi_memory_device_remove() will also be called when we unbind the
+> memory device from the driver acpi_memhotplug or a driver initialization
+> fails.
+> 
+> acpi_memory_disable_device() has already implemented a code which
+> offlines memory and releases acpi_memory_info struct . But
+> acpi_memory_device_remove() has not implemented it yet.
+> 
+> So the patch prepares the framework for hot removing memory and
+> adds the framework into acpi_memory_device_remove().
+> 
+> The last version of this patchset is here:
+> https://lkml.org/lkml/2012/10/3/126
+> 
+> Changelos from v1 to v2:
+>   Patch1: use acpi_bus_trim() instead of acpi_bus_remove()
+>   Patch2: new patch, introduce a lock to protect the list
+>   Patch3: remove memory too when type is ACPI_BUS_REMOVAL_NORMAL
+>   Note: I don't send [Patch2-4 v1] in this series because they
+>   are no logical changes in these 3 patches.
+> 
+> Wen Congyang (2):
+>   acpi,memory-hotplug: call acpi_bus_trim() to remove memory device
+>   acpi,memory-hotplug: introduce a mutex lock to protect the list in
+>     acpi_memory_device
+> 
+> Yasuaki Ishimatsu (1):
+>   acpi,memory-hotplug : add memory offline code to
+>     acpi_memory_device_remove()
+> 
+>  drivers/acpi/acpi_memhotplug.c |   51 ++++++++++++++++++++++++++++++++--------
+>  1 files changed, 41 insertions(+), 10 deletions(-)
+> 
+> --
 
-There is no resistance - and it is being done. Every month we document
-various APIs, man-pages, etc so that knowledge won't be lost. The
-end-result of that is to create a PDF similar to the PowerPC architecture
-document.
+Can you please tell me what kernel is the series supposed to apply to?
+Is it the current Linus' tree, or linux-next, or something else?
 
-I have not been pointing you to it, b/c as of right what we have is
-raw data (various header files growing in size) that keep on growing.
-I need to hire/cajole an editor to help us get from the "raw" brain
-dump to a book and some sense of milestones/schedule or whatever one
-does in the book-world.
+Thanks,
+Rafael
 
-And Peter, just in case it is not clear, every suggestion you make is
-appreciated and taken seriously. If there are things that have been
-dropped or forgotten by me - please remind me.
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
