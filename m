@@ -1,47 +1,60 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: Is: Xen architecture document. Was: Re: [Xen-devel] Is: axe read_tscp
- pvops call. Was: Re: [RFC] ACPI S3 and Xen (suprisingly small\!).
-Date: Fri, 19 Oct 2012 10:45:33 -0700
-Message-ID: <508191BD.4000107@zytor.com>
-References: <1350481786-4969-1-git-send-email-konrad.wilk@oracle.com> <507ED6C0.4020503@zytor.com> <20121017161036.GA10691@phenom.dumpdata.com> <507EE1C3.7070300@zytor.com> <20121017165452.GA22740@phenom.dumpdata.com> <507EEC53.1010309@zytor.com> <84b3cbf9-7c84-4d7e-a2d7-46b0d1cc5975@default> <50802030.8070107@zytor.com> <dd8748de-4715-499a-8c7e-745af37fa6c4@default> <50803057.5000307@zytor.com> <20121019154854.GO26830@phenom.dumpdata.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH v2] acpi : acpi_bus_trim() stops removing devices when
+ failing to remove the device
+Date: Fri, 19 Oct 2012 10:59:41 -0700
+Message-ID: <20121019175941.GB3375@kroah.com>
+References: <50769B8C.2060901@jp.fujitsu.com>
+ <1846185.MSykHDcMmb@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from terminus.zytor.com ([198.137.202.10]:60717 "EHLO mail.zytor.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752645Ab2JSRps (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 19 Oct 2012 13:45:48 -0400
-In-Reply-To: <20121019154854.GO26830@phenom.dumpdata.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1846185.MSykHDcMmb@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, toshi.kani@hp.com, lenb@kernel.org, wency@cn.fujitsu.com, vasilis.liaskovitis@profitbricks.com
 List-Id: linux-acpi@vger.kernel.org
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Dan Magenheimer <dan.magenheimer@oracle.com>, linux-acpi@vger.kernel.org, x86@kernel.org, xen-devel@lists.xensource.com, linux-kernel@vger.kernel.org, lenb@kernel.org
 
-On 10/19/2012 08:48 AM, Konrad Rzeszutek Wilk wrote:
->> paravirtualized architectures out there which are perfectly well
->> documented and supportable, but Xen has resisted doing that for
->> years, and all we ever get are vague future promises.
+On Fri, Oct 19, 2012 at 06:29:52AM +0200, Rafael J. Wysocki wrote:
+> On Thursday 11 of October 2012 19:12:28 Yasuaki Ishimatsu wrote:
+> > acpi_bus_trim() stops removing devices, when acpi_bus_remove() return error
+> > number. But acpi_bus_remove() cannot return error number correctly.
+> > acpi_bus_remove() only return -EINVAL, when dev argument is NULL. Thus even if
+> > device cannot be removed correctly, acpi_bus_trim() ignores and continues to
+> > remove devices. acpi_bus_hot_remove_device() uses acpi_bus_trim() for removing
+> > devices. Therefore acpi_bus_hot_remove_device() can send "_EJ0" to firmware,
+> > even if the device is running on the system. In this case, the system cannot
+> > work well.
+> > 
+> > Vasilis hit the bug at memory hotplug and reported it as follow:
+> > https://lkml.org/lkml/2012/9/26/318
+> > 
+> > So acpi_bus_trim() should check whether device was removed or not correctly.
+> > The patch adds error check into some functions to remove the device.
+> > 
+> > Applying the patch, acpi_bus_trim() stops removing devices when failing
+> > to remove the device. But I think there is no impact with the
+> > exceptionof CPU and Memory hotplug path. Because other device also fails
+> > but the fail is an irregular case like device is NULL.
+> > 
+> > v1->v2
+> > - add a rollback for reinstalling a notify handler.
+> > 
+> > Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 > 
-> There is no resistance - and it is being done. Every month we document
-> various APIs, man-pages, etc so that knowledge won't be lost. The
-> end-result of that is to create a PDF similar to the PowerPC architecture
-> document.
-> 
-> I have not been pointing you to it, b/c as of right what we have is
-> raw data (various header files growing in size) that keep on growing.
-> I need to hire/cajole an editor to help us get from the "raw" brain
-> dump to a book and some sense of milestones/schedule or whatever one
-> does in the book-world.
-> 
-> And Peter, just in case it is not clear, every suggestion you make is
-> appreciated and taken seriously. If there are things that have been
-> dropped or forgotten by me - please remind me.
-> 
+> Greg, do you think there may be any problems with the changes in dd.c?
 
-Right... so for those who don't know, this is something I have discussed
-with Konrad over the course of the last several years.  It is good to
-know progress is happening.  It is late, of course -- this should have
-happened before Xen was integrated -- but we can't change the past.
+Yes, I don't like it.
 
-	-hpa
+remove should always work, just like the exit call in a module.  It
+means that the core wants to remove the driver, so it is going to
+happen, a driver can't refuse it.
+
+Which brings me to the larger question, why would this solve anything?
+If the kernel wants to unbind a device, why would we ever not want that
+to happen?
+
+So, NAK on this patch, sorry.  Fix up the ACPI core to handle this
+properly, don't mess with the driver core here.
+
+greg k-h
