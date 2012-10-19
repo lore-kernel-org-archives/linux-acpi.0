@@ -1,103 +1,45 @@
-From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: Re: [PATCH 1/4] acpi,memory-hotplug : add memory offline code to
- acpi_memory_device_remove()
-Date: Fri, 19 Oct 2012 17:08:54 +0800
-Message-ID: <508118A6.80804@cn.fujitsu.com>
-References: <506C0AE8.40702@jp.fujitsu.com> <506C0C53.60205@jp.fujitsu.com> <CAHGf_=p7PaQs-kpnyB8uC1MntHQfL-CXhhq4QQP54mYiqOswqQ@mail.gmail.com> <50727984.20401@cn.fujitsu.com> <CAHGf_=pCrx8AkL9eiSYVgwvT1v0SW2__P_DW-1Wwj_zskqcLXw@mail.gmail.com> <507E77D1.3030709@cn.fujitsu.com> <CAHGf_=rxGeb0RsgEFF2FRRfdX0wiE9cDyVaftsG3E8AgyzYi1g@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: [PATCH 1/5] cpuidle / ACPI : remove unused definition
+Date: Fri, 19 Oct 2012 11:51:28 +0200
+Message-ID: <1350640292-22468-1-git-send-email-daniel.lezcano@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:50999 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1753531Ab2JSJDU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 19 Oct 2012 05:03:20 -0400
-In-Reply-To: <CAHGf_=rxGeb0RsgEFF2FRRfdX0wiE9cDyVaftsG3E8AgyzYi1g@mail.gmail.com>
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:57496 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753054Ab2JSJvg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Oct 2012 05:51:36 -0400
+Received: by mail-wi0-f170.google.com with SMTP id hm2so50261wib.1
+        for <linux-acpi@vger.kernel.org>; Fri, 19 Oct 2012 02:51:34 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org
+To: lenb@kernel.org, rjw@sisk.pl
+Cc: linux-acpi@vger.kernel.org, linaro-dev@lists.linaro.org, patches@linaro.org
 
-At 10/19/2012 03:44 AM, KOSAKI Motohiro Wrote:
->>>>>> +       if (type == ACPI_BUS_REMOVAL_EJECT) {
->>>>>> +               /*
->>>>>> +                * offline and remove memory only when the memory device is
->>>>>> +                * ejected.
->>>>>> +                */
->>>>>
->>>>> This comment explain nothing. A comment should describe _why_ should we do.
->>>>> e.g. Why REMOVAL_NORMAL and REMOVEL_EJECT should be ignored. Why
->>>>> we need remove memory here instead of ACPI_NOTIFY_EJECT_REQUEST.
->>>>
->>>> Hmm, we have 2 ways to remove a memory:
->>>> 1. SCI
->>>> 2. echo 1 >/sys/bus/acpi/devices/PNP0C80:XX/eject
->>>>
->>>> In the 2nd case, there is no ACPI_NOTIFY_EJECT_REQUEST. We should offline
->>>> the memory and remove it from kernel in the release callback. We will poweroff
->>>> the memory device in acpi_bus_hot_remove_device(), so we must offline
->>>> and remove it if the type is ACPI_BUS_REMOVAL_EJECT.
->>>>
->>>> I guess we should not poweroff the memory device when we fail to offline it.
->>>> But device_release_driver() doesn't returns any error...
->>>
->>> 1) I think /sys/bus/acpi/devices/PNP0C80:XX/eject should emulate acpi
->>> eject. Can't
->>> you make a pseudo acpi eject event and detach device by acpi regular path?
->>
->> It is another issue. And we only can implement it here with current acpi
->> implemention. Some other acpi devices(for example: cpu) do it like this.
-> 
-> Hint: only cpu take like this.
-> 
-> 
->>> 2) Your explanation didn't explain why we should ignore REMOVAL_NORMAL
->>> and REMOVEL_EJECT. As far as reviewers can't track your intention, we
->>> can't maintain
->>> the code and can't ack them.
->>>
->>
->> REMOVAL_NORMAL means the user want to unbind the memory device from this driver.
->> It is no need to eject the device, and we can still use this device after unbinding.
->> So it can be ignored.
->>
->> REMOVAL_EJECT means the user want to eject and remove the device, and we should
->> not use the device. So we should offline and remove the memory here.
-> 
-> This is not exactly correct, IMHO. Usually, we must not touch unbinded
-> device because
-> they are out of OS control. If I understand is correct, the main
-> reason is to distinguish a
-> rollback of driver initialization failure and true ejection.
-> 
-> REMOVAL_NORMAL is usually used for rollback and REMOVAL_EJECT is used for
-> removal device eject. Typical device don't need to distinguish them
-> because we should
-> deallocate every resource even when driver initialization failure.
-> 
-> However, cpu and memory are exceptions. They are recognized from kernel before
-> driver initialization. Then even if machine have crappy acpi table and
-> make failure acpi
-> initialization, disabling memory make no sense.
+The different definitions are not used anywhere in the code.
 
-Hmm, IIRC, if the memory is recognized from kerenl before driver initialization,
-the memory device is not managed by the driver acpi_memhotplug.
+Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+---
+ drivers/acpi/processor_idle.c |    7 -------
+ 1 files changed, 0 insertions(+), 7 deletions(-)
 
-I think we should also deal with REMOVAL_NORMAL here now. Otherwise it will cause
-some critical problem: we unbind the device from the driver but we still use
-it. If we eject it, we have no chance to offline and remove it. It is very dangerous.
-
-Thanks
-Wen Congyang
-
-> 
-> And, when you make _exceptional_ rule, you should comment verbosely in the code
-> the detail.  likes 1) why we need.  2) which
-> device/machine/environment suffer such exception. 2)  what affect
-> other subsys.
-> 
-> Even though cpu hotplug has crappy poor comment and document, please
-> don't follow
-> them.
-> 
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index e8086c7..1f536a3 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -60,14 +60,7 @@
+ #include <asm/processor.h>
+ 
+ #define PREFIX "ACPI: "
+-
+-#define ACPI_PROCESSOR_CLASS            "processor"
+-#define _COMPONENT              ACPI_PROCESSOR_COMPONENT
+ ACPI_MODULE_NAME("processor_idle");
+-#define PM_TIMER_TICK_NS		(1000000000ULL/PM_TIMER_FREQUENCY)
+-#define C2_OVERHEAD			1	/* 1us */
+-#define C3_OVERHEAD			1	/* 1us */
+-#define PM_TIMER_TICKS_TO_US(p)		(((p) * 1000)/(PM_TIMER_FREQUENCY/1000))
+ 
+ static unsigned int max_cstate __read_mostly = ACPI_PROCESSOR_MAX_POWER;
+ module_param(max_cstate, uint, 0000);
+-- 
+1.7.5.4
 
