@@ -1,123 +1,93 @@
-From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: Re: [PATCH 5/10] memory-hotplug : memory-hotplug: check page type
- in get_page_bootmem
-Date: Fri, 19 Oct 2012 09:55:28 +0800
-Message-ID: <5080B310.50608@cn.fujitsu.com>
-References: <506E43E0.70507@jp.fujitsu.com> <506E46B6.3060502@jp.fujitsu.com> <CAHGf_=raSH5C8ye90F1PLZ8mGQUGggB=J0HYU8UhkKVDTV5JXQ@mail.gmail.com> <5080A394.2000409@jp.fujitsu.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 1/2] acpi : cpu hot-remove returns error when cpu_down() fails
+Date: Fri, 19 Oct 2012 03:06:19 +0200
+Message-ID: <4180255.BSUqs0l2F5@vostro.rjw.lan>
+References: <50657D92.3010106@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <5080A394.2000409@jp.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([193.178.161.156]:54369 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750976Ab2JSEJK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 19 Oct 2012 00:09:10 -0400
+In-Reply-To: <50657D92.3010106@jp.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: srivatsa.bhat@linux.vnet.ibm.com, toshi.kani@hp.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-At 10/19/2012 08:49 AM, Yasuaki Ishimatsu Wrote:
-> Hi Kosaki,
+On Friday 28 of September 2012 19:36:02 Yasuaki Ishimatsu wrote:
+> Even if cpu_down() fails, acpi_processor_remove() continues to remove the cpu.
+> But in this case, it should return error number since some process may run on
+> the cpu. If the cpu has a running process and the cpu is turned the power off,
+> the system may not work well.
 > 
-> Sorry for late reply.
+> Reviewed-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+> Reviewed-by: Toshi Kani <toshi.kani@hp.com>
+> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 > 
-> 2012/10/13 4:28, KOSAKI Motohiro wrote:
->> On Thu, Oct 4, 2012 at 10:32 PM, Yasuaki Ishimatsu
->> <isimatu.yasuaki@jp.fujitsu.com> wrote:
->>> The function get_page_bootmem() may be called more than one time to
->>> the same
->>> page. There is no need to set page's type, private if the function is
->>> not
->>> the first time called to the page.
->>>
->>> Note: the patch is just optimization and does not fix any problem.
->>>
->>> CC: David Rientjes <rientjes@google.com>
->>> CC: Jiang Liu <liuj97@gmail.com>
->>> CC: Len Brown <len.brown@intel.com>
->>> CC: Christoph Lameter <cl@linux.com>
->>> Cc: Minchan Kim <minchan.kim@gmail.com>
->>> CC: Andrew Morton <akpm@linux-foundation.org>
->>> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
->>> CC: Wen Congyang <wency@cn.fujitsu.com>
->>> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->>> ---
->>>   mm/memory_hotplug.c |   15 +++++++++++----
->>>   1 file changed, 11 insertions(+), 4 deletions(-)
->>>
->>> Index: linux-3.6/mm/memory_hotplug.c
->>> ===================================================================
->>> --- linux-3.6.orig/mm/memory_hotplug.c  2012-10-04 18:29:58.284676075
->>> +0900
->>> +++ linux-3.6/mm/memory_hotplug.c       2012-10-04 18:30:03.454680542
->>> +0900
->>> @@ -95,10 +95,17 @@ static void release_memory_resource(stru
->>>   static void get_page_bootmem(unsigned long info,  struct page *page,
->>>                               unsigned long type)
->>>   {
->>> -       page->lru.next = (struct list_head *) type;
->>> -       SetPagePrivate(page);
->>> -       set_page_private(page, info);
->>> -       atomic_inc(&page->_count);
->>> +       unsigned long page_type;
->>> +
->>> +       page_type = (unsigned long)page->lru.next;
->>
->> If I understand correctly, page->lru.next might be uninitialized yet.
+> ---
+>  drivers/acpi/processor_driver.c |   18 ++++++++++++------
+>  1 file changed, 12 insertions(+), 6 deletions(-)
 > 
-> Ah yes. I was misunderstanding...
-> 
-> Hi Wen,
-> 
-> When you update the physical hot remove patch-set, please drop the patch.
+> Index: linux-3.6-rc7/drivers/acpi/processor_driver.c
+> ===================================================================
+> --- linux-3.6-rc7.orig/drivers/acpi/processor_driver.c	2012-09-24 10:10:57.000000000 +0900
+> +++ linux-3.6-rc7/drivers/acpi/processor_driver.c	2012-09-28 19:16:33.207858261 +0900
+> @@ -605,7 +605,7 @@ err_free_pr:
+>  static int acpi_processor_remove(struct acpi_device *device, int type)
+>  {
+>  	struct acpi_processor *pr = NULL;
+> -
+> +	int ret;
+>  
+>  	if (!device || !acpi_driver_data(device))
+>  		return -EINVAL;
+> @@ -616,8 +616,9 @@ static int acpi_processor_remove(struct 
+>  		goto free;
+>  
+>  	if (type == ACPI_BUS_REMOVAL_EJECT) {
+> -		if (acpi_processor_handle_eject(pr))
+> -			return -EINVAL;
+> +		ret = acpi_processor_handle_eject(pr);
+> +		if (ret)
+> +			return ret;
+>  	}
+>  
+>  	acpi_processor_power_exit(pr, device);
+> @@ -848,12 +849,17 @@ static acpi_status acpi_processor_hotadd
+>  
+>  static int acpi_processor_handle_eject(struct acpi_processor *pr)
+>  {
+> -	if (cpu_online(pr->id))
+> -		cpu_down(pr->id);
+> +	int ret = 0;
+> +
+> +	if (cpu_online(pr->id)) {
+> +		ret = cpu_down(pr->id);
 
-OK
+If you defined ret here ...
 
-Thanks
-Wen Congyang
+> +		if (ret)
+> +			return ret;
+> +	}
+>  
+>  	arch_unregister_cpu(pr->id);
+>  	acpi_unmap_lsapic(pr->id);
+> -	return (0);
+> +	return ret;
 
-> 
-> Thanks,
-> Yasuaki Ishimatsu   
->> Moreover, I have no seen any good effect in this patch. I don't
->> understand
->> why we need to increase code complexity.
->>
->>
->>
->>> +       if (page_type < MEMORY_HOTPLUG_MIN_BOOTMEM_TYPE ||
->>> +           page_type > MEMORY_HOTPLUG_MAX_BOOTMEM_TYPE){
->>> +               page->lru.next = (struct list_head *)type;
->>> +               SetPagePrivate(page);
->>> +               set_page_private(page, info);
->>> +               atomic_inc(&page->_count);
->>> +       } else
->>> +               atomic_inc(&page->_count);
->>>   }
->>>
->>>   /* reference to __meminit __free_pages_bootmem is valid
->>>
->>> -- 
->>> To unsubscribe, send a message with 'unsubscribe linux-mm' in
->>> the body to majordomo@kvack.org.  For more info on Linux MM,
->>> see: http://www.linux-mm.org/ .
->>> Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
->> -- 
->> To unsubscribe from this list: send the line "unsubscribe
->> linux-kernel" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> Please read the FAQ at  http://www.tux.org/lkml/
->>
-> 
-> 
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
+... this line wouldn't need to be changed.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+>  }
+>  #else
+>  static acpi_status acpi_processor_hotadd_init(struct acpi_processor *pr)
+
+Thanks,
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
