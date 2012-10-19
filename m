@@ -1,54 +1,42 @@
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Subject: Re: [PATCH v2 1/3] acpi,memory-hotplug: call acpi_bus_trim() to
- remove memory device
-Date: Fri, 19 Oct 2012 14:26:39 -0400
-Message-ID: <CAHGf_=pHQKqL+uSsHbcBe5Jy_NqabUTWFauaPVwN_B6JUn+VBA@mail.gmail.com>
-References: <1350641040-19434-1-git-send-email-wency@cn.fujitsu.com> <1350641040-19434-2-git-send-email-wency@cn.fujitsu.com>
+Subject: Re: [PATCH 1/10] memory-hotplug : check whether memory is offline or
+ not when removing memory
+Date: Fri, 19 Oct 2012 14:33:17 -0400
+Message-ID: <CAHGf_=q=Agidyj_j6jhBdhNmJBy2u1dP+UMAoXbM=_=DyZJs_w@mail.gmail.com>
+References: <506E43E0.70507@jp.fujitsu.com> <506E451E.1050403@jp.fujitsu.com>
+ <CAHGf_=rVDm-JygjPoLHbmF28Dgd52HFc4-b5KCxhEieG60okuw@mail.gmail.com>
+ <50812F13.20503@cn.fujitsu.com> <5081609C.9080702@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oa0-f46.google.com ([209.85.219.46]:64631 "EHLO
-	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754187Ab2JSS1A (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Oct 2012 14:27:00 -0400
-In-Reply-To: <1350641040-19434-2-git-send-email-wency@cn.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <5081609C.9080702@gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Wen Congyang <wencongyang@gmail.com>
+Cc: Wen Congyang <wency@cn.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org
 List-Id: linux-acpi@vger.kernel.org
-To: wency@cn.fujitsu.com
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, liuj97@gmail.com, len.brown@intel.com, akpm@linux-foundation.org, isimatu.yasuaki@jp.fujitsu.com, muneda.takahiro@jp.fujitsu.com, David Rientjes <rientjes@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Christoph Lameter <cl@linux.com>, Minchan Kim <minchan.kim@gmail.com>
 
-On Fri, Oct 19, 2012 at 6:03 AM,  <wency@cn.fujitsu.com> wrote:
-> From: Wen Congyang <wency@cn.fujitsu.com>
+> I think it again, and found that this check is necessary. Because we only
+> lock memory hotplug when offlining pages. Here is the steps to offline and
+> remove memory:
 >
-> The memory device has been ejected and powoffed, so we can call
-> acpi_bus_trim() to remove the memory device from acpi bus.
+> 1. lock memory hotplug
+> 2. offline a memory section
+> 3. unlock memory hotplug
+> 4. repeat 1-3 to offline all memory sections
+> 5. lock memory hotplug
+> 6. remove memory
+> 7. unlock memory hotplug
 >
-> CC: David Rientjes <rientjes@google.com>
-> CC: Jiang Liu <liuj97@gmail.com>
-> CC: Len Brown <len.brown@intel.com>
-> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-> CC: Paul Mackerras <paulus@samba.org>
-> CC: Christoph Lameter <cl@linux.com>
-> Cc: Minchan Kim <minchan.kim@gmail.com>
-> CC: Andrew Morton <akpm@linux-foundation.org>
-> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-> CC: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
-> ---
->  drivers/acpi/acpi_memhotplug.c |    3 ++-
->  1 files changed, 2 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-> index 24c807f..1e90e8f 100644
-> --- a/drivers/acpi/acpi_memhotplug.c
-> +++ b/drivers/acpi/acpi_memhotplug.c
-> @@ -401,8 +401,9 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
->                 }
->
->                 /*
-> -                * TBD: Invoke acpi_bus_remove to cleanup data structures
-> +                * Invoke acpi_bus_trim() to remove memory device
->                  */
-> +               acpi_bus_trim(device, 1);
+> All memory sections must be offlined before removing memory. But we don't
+> hold
+> the lock in the whole operation. So we should check whether all memory
+> sections
+> are offlined before step6.
 
-I'm happy we removed mysterious acpi_bus_remove().
+You should describe the race scenario in the patch description. OK?
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
