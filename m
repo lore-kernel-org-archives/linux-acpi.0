@@ -1,218 +1,117 @@
-From: Wen Congyang <wencongyang@gmail.com>
-Subject: Re: [PATCH 1/10] memory-hotplug : check whether memory is offline
- or not when removing memory
-Date: Fri, 19 Oct 2012 22:15:56 +0800
-Message-ID: <5081609C.9080702@gmail.com>
-References: <506E43E0.70507@jp.fujitsu.com> <506E451E.1050403@jp.fujitsu.com> <CAHGf_=rVDm-JygjPoLHbmF28Dgd52HFc4-b5KCxhEieG60okuw@mail.gmail.com> <50812F13.20503@cn.fujitsu.com>
+From: Seiji Aguchi <seiji.aguchi-7rDLJAbr9SE@public.gmane.org>
+Subject: RE: [RFC][PATCH 1/2] efi_pstore: hold multiple logs
+Date: Fri, 19 Oct 2012 14:26:33 +0000
+Message-ID: <A5ED84D3BB3A384992CBB9C77DEDA4D4138796E1@USINDEM103.corp.hds.com>
+References: <A5ED84D3BB3A384992CBB9C77DEDA4D41386D119@USINDEM103.corp.hds.com>
+ <CAGTjWtDgrDGN-+yCqfFsfaA8Xjbhj8nherA+puoGVRs-8vXO5g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <50812F13.20503@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Wen Congyang <wency@cn.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAGTjWtDgrDGN-+yCqfFsfaA8Xjbhj8nherA+puoGVRs-8vXO5g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mike Waychison <mikew-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Luck, Tony (tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org)" <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Matthew Garrett (mjg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org)" <mjg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "dzickus-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dzickus-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "dle-develop-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <dle-develop-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Satoru Moriya <satoru.moriya-7rDLJAbr9SE@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-At 2012/10/19 18:44, Wen Congyang Wrote:
-> At 10/06/2012 03:27 AM, KOSAKI Motohiro Wrote:
->> On Thu, Oct 4, 2012 at 10:25 PM, Yasuaki Ishimatsu
->> <isimatu.yasuaki@jp.fujitsu.com>  wrote:
->>> When calling remove_memory(), the memory should be offline. If the function
->>> is used to online memory, kernel panic may occur.
->>>
->>> So the patch checks whether memory is offline or not.
->>
->> You don't explain WHY we need the check.
->
-> This patch is no necessary now, because the newest kernel has checked
-> it.
+Mike,
 
-I think it again, and found that this check is necessary. Because we only
-lock memory hotplug when offlining pages. Here is the steps to offline and
-remove memory:
+Thank you for reviewing my patch.
+Here is my comment.
 
-1. lock memory hotplug
-2. offline a memory section
-3. unlock memory hotplug
-4. repeat 1-3 to offline all memory sections
-5. lock memory hotplug
-6. remove memory
-7. unlock memory hotplug
-
-All memory sections must be offlined before removing memory. But we 
-don't hold
-the lock in the whole operation. So we should check whether all memory 
-sections
-are offlined before step6.
-
->
-> Thanks
-> Wen Congyang
->
->>
->>
->>> CC: David Rientjes<rientjes@google.com>
->>> CC: Jiang Liu<liuj97@gmail.com>
->>> CC: Len Brown<len.brown@intel.com>
->>> CC: Christoph Lameter<cl@linux.com>
->>> Cc: Minchan Kim<minchan.kim@gmail.com>
->>> CC: Andrew Morton<akpm@linux-foundation.org>
->>> CC: KOSAKI Motohiro<kosaki.motohiro@jp.fujitsu.com>
->>> Signed-off-by: Wen Congyang<wency@cn.fujitsu.com>
->>> Signed-off-by: Yasuaki Ishimatsu<isimatu.yasuaki@jp.fujitsu.com>
->>>
->>> ---
->>>   drivers/base/memory.c  |   39 +++++++++++++++++++++++++++++++++++++++
->>>   include/linux/memory.h |    5 +++++
->>>   mm/memory_hotplug.c    |   17 +++++++++++++++--
->>>   3 files changed, 59 insertions(+), 2 deletions(-)
->>>
->>> Index: linux-3.6/drivers/base/memory.c
->>> ===================================================================
->>> --- linux-3.6.orig/drivers/base/memory.c        2012-10-04 14:22:57.000000000 +0900
->>> +++ linux-3.6/drivers/base/memory.c     2012-10-04 14:45:46.653585860 +0900
->>> @@ -70,6 +70,45 @@ void unregister_memory_isolate_notifier(
->>>   }
->>>   EXPORT_SYMBOL(unregister_memory_isolate_notifier);
->>>
->>> +bool is_memblk_offline(unsigned long start, unsigned long size)
->>
->> Don't use memblk. Usually memblk mean struct numa_meminfo for x86/numa.
->> Maybe memory_range_offlined() is better.
->>
->> And, this function don't take struct memory_block, then this file may be no good
->> place.
->>
->> And you need to write down function comment.
->>
->>
->>> +{
->>> +       struct memory_block *mem = NULL;
->>> +       struct mem_section *section;
->>> +       unsigned long start_pfn, end_pfn;
->>> +       unsigned long pfn, section_nr;
->>> +
->>> +       start_pfn = PFN_DOWN(start);
->>> +       end_pfn = PFN_UP(start + size);
->>> +
->>> +       for (pfn = start_pfn; pfn<  end_pfn; pfn += PAGES_PER_SECTION) {
->>> +               section_nr = pfn_to_section_nr(pfn);
->>> +               if (!present_section_nr(section_nr))
->>> +                       continue;
->>> +
->>> +               section = __nr_to_section(section_nr);
->>> +               /* same memblock? */
->>> +               if (mem)
->>> +                       if ((section_nr>= mem->start_section_nr)&&
->>> +                           (section_nr<= mem->end_section_nr))
->>> +                               continue;
->>> +
->>> +               mem = find_memory_block_hinted(section, mem);
->>> +               if (!mem)
->>> +                       continue;
->>> +               if (mem->state == MEM_OFFLINE)
->>> +                       continue;
->>> +
->>> +               kobject_put(&mem->dev.kobj);
->>> +               return false;
->>> +       }
->>> +
->>> +       if (mem)
->>> +               kobject_put(&mem->dev.kobj);
->>> +
->>> +       return true;
->>> +}
->>> +EXPORT_SYMBOL(is_memblk_offline);
->>> +
->>>   /*
->>>    * register_memory - Setup a sysfs device for a memory block
->>>    */
->>> Index: linux-3.6/include/linux/memory.h
->>> ===================================================================
->>> --- linux-3.6.orig/include/linux/memory.h       2012-10-02 18:00:22.000000000 +0900
->>> +++ linux-3.6/include/linux/memory.h    2012-10-04 14:44:40.902581028 +0900
->>> @@ -106,6 +106,10 @@ static inline int memory_isolate_notify(
->>>   {
->>>          return 0;
->>>   }
->>> +static inline bool is_memblk_offline(unsigned long start, unsigned long size)
->>> +{
->>> +       return false;
->>> +}
->>>   #else
->>>   extern int register_memory_notifier(struct notifier_block *nb);
->>>   extern void unregister_memory_notifier(struct notifier_block *nb);
->>> @@ -120,6 +124,7 @@ extern int memory_isolate_notify(unsigne
->>>   extern struct memory_block *find_memory_block_hinted(struct mem_section *,
->>>                                                          struct memory_block *);
->>>   extern struct memory_block *find_memory_block(struct mem_section *);
->>> +extern bool is_memblk_offline(unsigned long start, unsigned long size);
->>>   #define CONFIG_MEM_BLOCK_SIZE  (PAGES_PER_SECTION<<PAGE_SHIFT)
->>>   enum mem_add_context { BOOT, HOTPLUG };
->>>   #endif /* CONFIG_MEMORY_HOTPLUG_SPARSE */
->>> Index: linux-3.6/mm/memory_hotplug.c
->>> ===================================================================
->>> --- linux-3.6.orig/mm/memory_hotplug.c  2012-10-04 14:31:08.000000000 +0900
->>> +++ linux-3.6/mm/memory_hotplug.c       2012-10-04 14:58:22.449687986 +0900
->>> @@ -1045,8 +1045,21 @@ int offline_memory(u64 start, u64 size)
->>>
->>>   int remove_memory(int nid, u64 start, u64 size)
->>>   {
->>
->> Your remove_memory() don't remove anything. that's strange.
-
-IIUC, this batch is based on another patchset.
-
->>
->>
->>> -       /* It is not implemented yet*/
->>> -       return 0;
->>> +       int ret = 0;
->>> +       lock_memory_hotplug();
->>> +       /*
->>> +        * The memory might become online by other task, even if you offine it.
->>> +        * So we check whether the memory has been onlined or not.
->>> +        */
->>> +       if (!is_memblk_offline(start, size)) {
->>> +               pr_warn("memory removing [mem %#010llx-%#010llx] failed, "
->>> +                       "because the memmory range is online\n",
->>> +                       start, start + size);
->>
->> No good warning. You should output which memory block can't be
->> offlined, I think.
-
-OK. I'll update it.
-
-Thanks
-Wen Congyang
-
->>
->>
->>> +               ret = -EAGAIN;
->>> +       }
->>> +
->>> +       unlock_memory_hotplug();
->>> +       return ret;
->>>   }
->>>   EXPORT_SYMBOL_GPL(remove_memory);
->>>   #else
->>>
->>> --
->>> To unsubscribe, send a message with 'unsubscribe linux-mm' in
->>> the body to majordomo@kvack.org.  For more info on Linux MM,
->>> see: http://www.linux-mm.org/ .
->>> Don't email:<a href=mailto:"dont@kvack.org">  email@kvack.org</a>
->>
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >   - Write callback
+> >     - Check if there are enough spaces to write logs with QueryVariableInfo()
+> >       to avoid handling out of space situation. (It is suggested by
+> > Matthew Garrett.)
+> >
+> 
+> I would prefer to see the exposing query_variable_info callback as a separate patch.  The check in the patch looks good.
 >
 
+OK. I will make a separate patch.
+
+ 
+> >     - Remove a logic erasing existing entries.
+> >
+> >   - Erase callback
+> >     - Freshly create a logic rather than sharing it with a write callback because
+> >       erasing entries doesn't need in a write callback.
+> >
+> 
+> This sort of change is a lot easier to review if you copy and paste the routine in a patch separate from this one.
+> 
+
+I will separate it as well.
+
+
+> > +       /*
+> > +        * Check if there is a space enough to log.
+> > +        * size: a size of logging data
+> > +        * DUMP_NAME_LEN * 2: a maximum size of variable name
+> > +        *
+> 
+> extra line
+> 
+
+Will fix.
+
+> > +
+> > +       efivars->ops->set_variable(efi_name, &vendor, PSTORE_EFI_ATTRIBUTES,
+> > +                                  size, psi->buf);
+> > +
+> > +       spin_unlock(&efivars->lock);
+> > +
+> > +       if (size)
+> > +               ret = efivar_create_sysfs_entry(efivars,
+> > +                                         utf16_strsize(efi_name,
+> > +                                                       DUMP_NAME_LEN * 2),
+> > +                                         efi_name, &vendor);
+> 
+> What is happening here?  Why is size checked for non-zero?
+> 
+
+I just copied an original code sharing a logic of write callback and erase callback.. 
+But, if size is zero, we don't need to create a sysfs file because a set_variable service erases the entry.
+It is defined in EFI specification.
+So, I think this code is right.
+
+> > +++ b/fs/pstore/inode.c
+> > @@ -175,7 +175,8 @@ static int pstore_unlink(struct inode *dir, struct dentry *dentry)
+> >         struct pstore_private *p = dentry->d_inode->i_private;
+> >
+> >         if (p->psi->erase)
+> > -               p->psi->erase(p->type, p->id, p->psi);
+> > +               p->psi->erase(p->type, p->id, dentry->d_inode->i_ctime,
+> > +                             p->psi);
+> 
+> This doesn't look right.  What guarantees that the i_ctime means anything across reboots?
+> 
+
+Ctime is persistent across reboots because ctime of pstore means the date that the recode was
+originally stored. (See below.)
+
+To do this, efi_pstore saves the ctime to variable name at writing time and passes it to pstore at reading time.
+
+fs/pstore/inode.c:
+<snip>
+/*
+  * Make a regular file in the root directory of our file system.
+  * Load it up with "size" bytes of data from "buf".
+  * Set the mtime & ctime to the date that this record was originally stored.
+  */
+int pstore_mkfile(enum pstore_type_id type, char *psname, u64 id, int count,
+                   char *data, size_t size, struct timespec time,
+                   struct pstore_info *psi) {
+         struct dentry           *root = pstore_sb->s_root;
+         struct dentry           *dentry;
+         struct inode            *inode;
+         int                     rc = 0;
+         char                    name[PSTORE_NAMELEN];
+<snip>
+
+Seiji
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-efi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
