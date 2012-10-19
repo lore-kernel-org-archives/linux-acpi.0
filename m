@@ -1,99 +1,74 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [PATCH 5/10] memory-hotplug : memory-hotplug: check page type
- in get_page_bootmem
-Date: Fri, 19 Oct 2012 09:49:24 +0900
-Message-ID: <5080A394.2000409@jp.fujitsu.com>
-References: <506E43E0.70507@jp.fujitsu.com> <506E46B6.3060502@jp.fujitsu.com> <CAHGf_=raSH5C8ye90F1PLZ8mGQUGggB=J0HYU8UhkKVDTV5JXQ@mail.gmail.com>
+From: Joe Perches <joe@perches.com>
+Subject: Re: [PATCH] Fix printing when no interrupt is allocated
+Date: Thu, 18 Oct 2012 18:21:51 -0700
+Message-ID: <1350609711.22385.21.camel@joe-AO722>
+References: <1350606821-29813-1-git-send-email-daniel@numascale-asia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <CAHGf_=raSH5C8ye90F1PLZ8mGQUGggB=J0HYU8UhkKVDTV5JXQ@mail.gmail.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, wency@cn.fujitsu.com
-Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from perches-mx.perches.com ([206.117.179.246]:46082 "EHLO
+	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751026Ab2JSBVx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 18 Oct 2012 21:21:53 -0400
+In-Reply-To: <1350606821-29813-1-git-send-email-daniel@numascale-asia.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Daniel J Blueman <daniel@numascale-asia.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi Kosaki,
+On Fri, 2012-10-19 at 08:33 +0800, Daniel J Blueman wrote:
+> Previously a new line is implicitly added in the no GSI case:
+> 
+> [    7.185182] pci 0001:00:12.0: can't derive routing for PCI INT A
+> [    7.191352] pci 0001:00:12.0: PCI INT A: no GSI
+> [    7.195956]  - using ISA IRQ 10
+> 
+> The code thus prints a blank line where no legacy IRQ is available:
+> 
+> [    1.650124] pci 0000:00:14.0: can't derive routing for PCI INT A
+> [    1.650126] pci 0000:00:14.0: PCI INT A: no GSI
+> [    1.650126] 
+> [    1.650180] pci 0000:00:14.0: can't derive routing for PCI INT A
+> 
+> Fix this by making the newline explicit and removing the superfluous
+> one.
 
-Sorry for late reply.
 
-2012/10/13 4:28, KOSAKI Motohiro wrote:
-> On Thu, Oct 4, 2012 at 10:32 PM, Yasuaki Ishimatsu
-> <isimatu.yasuaki@jp.fujitsu.com> wrote:
->> The function get_page_bootmem() may be called more than one time to the same
->> page. There is no need to set page's type, private if the function is not
->> the first time called to the page.
->>
->> Note: the patch is just optimization and does not fix any problem.
->>
->> CC: David Rientjes <rientjes@google.com>
->> CC: Jiang Liu <liuj97@gmail.com>
->> CC: Len Brown <len.brown@intel.com>
->> CC: Christoph Lameter <cl@linux.com>
->> Cc: Minchan Kim <minchan.kim@gmail.com>
->> CC: Andrew Morton <akpm@linux-foundation.org>
->> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
->> CC: Wen Congyang <wency@cn.fujitsu.com>
->> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->> ---
->>   mm/memory_hotplug.c |   15 +++++++++++----
->>   1 file changed, 11 insertions(+), 4 deletions(-)
->>
->> Index: linux-3.6/mm/memory_hotplug.c
->> ===================================================================
->> --- linux-3.6.orig/mm/memory_hotplug.c  2012-10-04 18:29:58.284676075 +0900
->> +++ linux-3.6/mm/memory_hotplug.c       2012-10-04 18:30:03.454680542 +0900
->> @@ -95,10 +95,17 @@ static void release_memory_resource(stru
->>   static void get_page_bootmem(unsigned long info,  struct page *page,
->>                               unsigned long type)
->>   {
->> -       page->lru.next = (struct list_head *) type;
->> -       SetPagePrivate(page);
->> -       set_page_private(page, info);
->> -       atomic_inc(&page->_count);
->> +       unsigned long page_type;
->> +
->> +       page_type = (unsigned long)page->lru.next;
->
-> If I understand correctly, page->lru.next might be uninitialized yet.
+I think this is a better fix:
 
-Ah yes. I was misunderstanding...
+ drivers/acpi/pci_irq.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-Hi Wen,
-
-When you update the physical hot remove patch-set, please drop the patch.
-
-Thanks,
-Yasuaki Ishimatsu  
-  
-> Moreover, I have no seen any good effect in this patch. I don't understand
-> why we need to increase code complexity.
->
->
->
->> +       if (page_type < MEMORY_HOTPLUG_MIN_BOOTMEM_TYPE ||
->> +           page_type > MEMORY_HOTPLUG_MAX_BOOTMEM_TYPE){
->> +               page->lru.next = (struct list_head *)type;
->> +               SetPagePrivate(page);
->> +               set_page_private(page, info);
->> +               atomic_inc(&page->_count);
->> +       } else
->> +               atomic_inc(&page->_count);
->>   }
->>
->>   /* reference to __meminit __free_pages_bootmem is valid
->>
->> --
->> To unsubscribe, send a message with 'unsubscribe linux-mm' in
->> the body to majordomo@kvack.org.  For more info on Linux MM,
->> see: http://www.linux-mm.org/ .
->> Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
->
+diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+index 0eefa12..9b98f9f 100644
+--- a/drivers/acpi/pci_irq.c
++++ b/drivers/acpi/pci_irq.c
+@@ -459,19 +459,20 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
+ 	 */
+ 	if (gsi < 0) {
+ 		u32 dev_gsi;
+-		dev_warn(&dev->dev, "PCI INT %c: no GSI", pin_name(pin));
+ 		/* Interrupt Line values above 0xF are forbidden */
+ 		if (dev->irq > 0 && (dev->irq <= 0xF) &&
+ 		    (acpi_isa_irq_to_gsi(dev->irq, &dev_gsi) == 0)) {
+-			printk(" - using ISA IRQ %d\n", dev->irq);
++			dev_warn(&dev->dev,
++				 "PCI INT %c: no GSI - using ISA IRQ %d\n",
++				 pin_name(pin), dev->irq);
+ 			acpi_register_gsi(&dev->dev, dev_gsi,
+ 					  ACPI_LEVEL_SENSITIVE,
+ 					  ACPI_ACTIVE_LOW);
+-			return 0;
+ 		} else {
+-			printk("\n");
+-			return 0;
++			dev_warn(&dev->dev, "PCI INT %c: no GSI\n",
++				 pin_name(pin));
+ 		}
++		return 0;
+ 	}
+ 
+ 	rc = acpi_register_gsi(&dev->dev, gsi, triggering, polarity);
 
 
