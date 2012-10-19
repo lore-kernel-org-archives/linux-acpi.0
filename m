@@ -1,45 +1,47 @@
-From: "Robert P. J. Day" <rpjday@crashcourse.ca>
-Subject: weird code in acpi/osl.c that could be simplified?
-Date: Fri, 19 Oct 2012 09:32:59 -0400 (EDT)
-Message-ID: <alpine.DEB.2.02.1210190931370.3906@oneiric>
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Subject: Is: Xen architecture document. Was: Re: [Xen-devel] Is: axe
+ read_tscp pvops call. Was: Re: [RFC] ACPI S3 and Xen (suprisingly small\!).
+Date: Fri, 19 Oct 2012 11:48:55 -0400
+Message-ID: <20121019154854.GO26830@phenom.dumpdata.com>
+References: <1350481786-4969-1-git-send-email-konrad.wilk@oracle.com>
+ <507ED6C0.4020503@zytor.com>
+ <20121017161036.GA10691@phenom.dumpdata.com>
+ <507EE1C3.7070300@zytor.com>
+ <20121017165452.GA22740@phenom.dumpdata.com>
+ <507EEC53.1010309@zytor.com>
+ <84b3cbf9-7c84-4d7e-a2d7-46b0d1cc5975@default>
+ <50802030.8070107@zytor.com>
+ <dd8748de-4715-499a-8c7e-745af37fa6c4@default>
+ <50803057.5000307@zytor.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from astoria.ccjclearline.com ([64.235.106.9]:32925 "EHLO
-	astoria.ccjclearline.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964873Ab2JSOf2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Oct 2012 10:35:28 -0400
-Received: from cpe78cd8ec702a0-cm78cd8ec7029d.cpe.net.cable.rogers.com ([174.116.193.149]:45033 helo=crashcourse.ca)
-	by astoria.ccjclearline.com with esmtpsa (TLSv1:AES256-SHA:256)
-	(Exim 4.77)
-	(envelope-from <rpjday@crashcourse.ca>)
-	id 1TPChC-0001FR-F3
-	for linux-acpi@vger.kernel.org; Fri, 19 Oct 2012 09:33:02 -0400
+Received: from rcsinet15.oracle.com ([148.87.113.117]:49269 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759127Ab2JSQBG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Oct 2012 12:01:06 -0400
+Content-Disposition: inline
+In-Reply-To: <50803057.5000307@zytor.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Dan Magenheimer <dan.magenheimer@oracle.com>, linux-acpi@vger.kernel.org, x86@kernel.org, xen-devel@lists.xensource.com, linux-kernel@vger.kernel.org, lenb@kernel.org
 
+> paravirtualized architectures out there which are perfectly well
+> documented and supportable, but Xen has resisted doing that for
+> years, and all we ever get are vague future promises.
 
-  this from drivers/acpi/osl.c:
+There is no resistance - and it is being done. Every month we document
+various APIs, man-pages, etc so that knowledge won't be lost. The
+end-result of that is to create a PDF similar to the PowerPC architecture
+document.
 
-        if (queue == kacpi_hotplug_wq)
-                INIT_WORK(&dpc->work, acpi_os_execute_deferred);
-        else if (queue == kacpi_notify_wq)
-                INIT_WORK(&dpc->work, acpi_os_execute_deferred);
-        else
-                INIT_WORK(&dpc->work, acpi_os_execute_deferred);
+I have not been pointing you to it, b/c as of right what we have is
+raw data (various header files growing in size) that keep on growing.
+I need to hire/cajole an editor to help us get from the "raw" brain
+dump to a book and some sense of milestones/schedule or whatever one
+does in the book-world.
 
-any reason all that can't be collapsed to a simple call to
-INIT_WORK()?
-
-rday
-
--- 
-
-========================================================================
-Robert P. J. Day                                 Ottawa, Ontario, CANADA
-                        http://crashcourse.ca
-
-Twitter:                                       http://twitter.com/rpjday
-LinkedIn:                               http://ca.linkedin.com/in/rpjday
-========================================================================
+And Peter, just in case it is not clear, every suggestion you make is
+appreciated and taken seriously. If there are things that have been
+dropped or forgotten by me - please remind me.
