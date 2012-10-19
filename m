@@ -1,83 +1,57 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: [PATCH 5/5] cpuidle / ACPI : pass the cpuidle driver as parameter
-Date: Fri, 19 Oct 2012 11:51:32 +0200
-Message-ID: <1350640292-22468-5-git-send-email-daniel.lezcano@linaro.org>
-References: <1350640292-22468-1-git-send-email-daniel.lezcano@linaro.org>
+From: wency@cn.fujitsu.com
+Subject: [PATCH v2 0/3] acpi,memory-hotplug : implement framework for hot removing memory
+Date: Fri, 19 Oct 2012 18:03:57 +0800
+Message-ID: <1350641040-19434-1-git-send-email-wency@cn.fujitsu.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:50414 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753054Ab2JSJvn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Oct 2012 05:51:43 -0400
-Received: by mail-wg0-f44.google.com with SMTP id dr13so255377wgb.1
-        for <linux-acpi@vger.kernel.org>; Fri, 19 Oct 2012 02:51:42 -0700 (PDT)
-In-Reply-To: <1350640292-22468-1-git-send-email-daniel.lezcano@linaro.org>
+Received: from cn.fujitsu.com ([222.73.24.84]:45697 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1750810Ab2JSJ60 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 19 Oct 2012 05:58:26 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, rjw@sisk.pl
-Cc: linux-acpi@vger.kernel.org, linaro-dev@lists.linaro.org, patches@linaro.org
+To: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: liuj97@gmail.com, len.brown@intel.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, muneda.takahiro@jp.fujitsu.com, Wen Congyang <wency@cn.fujitsu.com>
 
-Instead of refering to a global variable in the function, let's pass
-the cpuidle_driver as a parameter to this function.
+From: Wen Congyang <wency@cn.fujitsu.com>
 
-Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
----
- drivers/acpi/processor_idle.c |   11 ++++++-----
- 1 files changed, 6 insertions(+), 5 deletions(-)
+The patch-set implements a framework for hot removing memory.
 
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index f87cb2e..da38a4b 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -1030,12 +1030,12 @@ static int acpi_processor_setup_cpuidle_cx(struct acpi_processor *pr,
-  *
-  * @pr: the ACPI processor
-  */
--static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
-+static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr,
-+					       struct cpuidle_driver *drv)
- {
- 	int i, count = CPUIDLE_DRIVER_STATE_START;
- 	struct acpi_processor_cx *cx;
- 	struct cpuidle_state *state;
--	struct cpuidle_driver *drv = &acpi_idle_driver;
- 
- 	if (!pr->flags.power_setup_done)
- 		return -EINVAL;
-@@ -1146,6 +1146,7 @@ int acpi_processor_cst_has_changed(struct acpi_processor *pr)
- 	int cpu;
- 	struct acpi_processor *_pr;
- 	struct cpuidle_device *dev;
-+	struct cpuidle_driver *drv = cpuidle_get_driver();
- 
- 	if (disabled_by_idle_boot_param())
- 		return 0;
-@@ -1164,7 +1165,7 @@ int acpi_processor_cst_has_changed(struct acpi_processor *pr)
- 	 * system instead of once per-cpu.  This condition is a hack
- 	 * to make the code that updates C-States be called once.
- 	 */
--	if (pr->id != 0 || cpuidle_get_driver() != &acpi_idle_driver)
-+	if (pr->id != 0 || drv != &acpi_idle_driver)
- 		return 0;
- 
- 	cpuidle_pause_and_lock();
-@@ -1181,7 +1182,7 @@ int acpi_processor_cst_has_changed(struct acpi_processor *pr)
- 	}
- 
- 	/* Populate Updated C-state information */
--	acpi_processor_setup_cpuidle_states(pr);
-+	acpi_processor_setup_cpuidle_states(pr, drv);
- 
- 	/* Enable all cpuidle devices */
- 	for_each_online_cpu(cpu) {
-@@ -1250,7 +1251,7 @@ int __cpuinit acpi_processor_power_init(struct acpi_processor *pr)
- 
- 	/* Register acpi_idle_driver if not already registered */
- 	if (!acpi_processor_registered) {
--		acpi_processor_setup_cpuidle_states(pr);
-+		acpi_processor_setup_cpuidle_states(pr, &acpi_idle_driver);
- 		retval = cpuidle_register_driver(&acpi_idle_driver);
- 		if (retval)
- 			return retval;
--- 
-1.7.5.4
+The memory device can be removed by 2 ways:
+1. send eject request by SCI
+2. echo 1 >/sys/bus/pci/devices/PNP0C80:XX/eject
+
+In the 1st case, acpi_memory_disable_device() will be called.
+In the 2nd case, acpi_memory_device_remove() will be called.
+acpi_memory_device_remove() will also be called when we unbind the
+memory device from the driver acpi_memhotplug or a driver initialization
+fails.
+
+acpi_memory_disable_device() has already implemented a code which
+offlines memory and releases acpi_memory_info struct . But
+acpi_memory_device_remove() has not implemented it yet.
+
+So the patch prepares the framework for hot removing memory and
+adds the framework into acpi_memory_device_remove().
+
+The last version of this patchset is here:
+https://lkml.org/lkml/2012/10/3/126
+
+Changelos from v1 to v2:
+  Patch1: use acpi_bus_trim() instead of acpi_bus_remove()
+  Patch2: new patch, introduce a lock to protect the list
+  Patch3: remove memory too when type is ACPI_BUS_REMOVAL_NORMAL
+  Note: I don't send [Patch2-4 v1] in this series because they
+  are no logical changes in these 3 patches.
+
+Wen Congyang (2):
+  acpi,memory-hotplug: call acpi_bus_trim() to remove memory device
+  acpi,memory-hotplug: introduce a mutex lock to protect the list in
+    acpi_memory_device
+
+Yasuaki Ishimatsu (1):
+  acpi,memory-hotplug : add memory offline code to
+    acpi_memory_device_remove()
+
+ drivers/acpi/acpi_memhotplug.c |   51 ++++++++++++++++++++++++++++++++--------
+ 1 files changed, 41 insertions(+), 10 deletions(-)
 
