@@ -1,74 +1,61 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH] Fix printing when no interrupt is allocated
-Date: Thu, 18 Oct 2012 18:21:51 -0700
-Message-ID: <1350609711.22385.21.camel@joe-AO722>
-References: <1350606821-29813-1-git-send-email-daniel@numascale-asia.com>
+From: Wen Congyang <wency@cn.fujitsu.com>
+Subject: Re: [PATCH 2/2] acpi,memory-hotplug : call acpi_bus_remo() to remove
+ memory device
+Date: Fri, 19 Oct 2012 09:50:05 +0800
+Message-ID: <5080B1CD.6030008@cn.fujitsu.com>
+References: <506CE9F5.8020809@jp.fujitsu.com>	<506CEADA.9060108@jp.fujitsu.com> <CAE9FiQWaESFEBp+7w+E-ZfjgG4YFSTREoKfjNWNiOyhntf=uzg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from perches-mx.perches.com ([206.117.179.246]:46082 "EHLO
-	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751026Ab2JSBVx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 18 Oct 2012 21:21:53 -0400
-In-Reply-To: <1350606821-29813-1-git-send-email-daniel@numascale-asia.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <CAE9FiQWaESFEBp+7w+E-ZfjgG4YFSTREoKfjNWNiOyhntf=uzg@mail.gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, len.brown@intel.com
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel J Blueman <daniel@numascale-asia.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, 2012-10-19 at 08:33 +0800, Daniel J Blueman wrote:
-> Previously a new line is implicitly added in the no GSI case:
+At 10/04/2012 10:41 AM, Yinghai Lu Wrote:
+> On Wed, Oct 3, 2012 at 6:48 PM, Yasuaki Ishimatsu
+> <isimatu.yasuaki@jp.fujitsu.com> wrote:
+>> From: Wen Congyang <wency@cn.fujitsu.com>
+>>
+>> The memory device has been ejected and powoffed, so we can call
+>> acpi_bus_remove() to remove the memory device from acpi bus.
+>>
+>> CC: Len Brown <len.brown@intel.com>
+>> Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+>> Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+>> ---
+>>  drivers/acpi/acpi_memhotplug.c |    3 ++-
+>>  1 file changed, 2 insertions(+), 1 deletion(-)
+>>
+>> Index: linux-3.6/drivers/acpi/acpi_memhotplug.c
+>> ===================================================================
+>> --- linux-3.6.orig/drivers/acpi/acpi_memhotplug.c       2012-10-03 18:17:47.802249170 +0900
+>> +++ linux-3.6/drivers/acpi/acpi_memhotplug.c    2012-10-03 18:17:52.471250299 +0900
+>> @@ -424,8 +424,9 @@ static void acpi_memory_device_notify(ac
+>>                 }
+>>
+>>                 /*
+>> -                * TBD: Invoke acpi_bus_remove to cleanup data structures
+>> +                * Invoke acpi_bus_remove() to remove memory device
+>>                  */
+>> +               acpi_bus_remove(device, 1);
 > 
-> [    7.185182] pci 0001:00:12.0: can't derive routing for PCI INT A
-> [    7.191352] pci 0001:00:12.0: PCI INT A: no GSI
-> [    7.195956]  - using ISA IRQ 10
+> why not using acpi_bus_trim instead?
+
+Sorry for late reply. It's OK to use acpi_bus_trim(), and I will
+update this patch soon.
+
+Thanks
+Wen Congyang
+
 > 
-> The code thus prints a blank line where no legacy IRQ is available:
+> Yinghai
 > 
-> [    1.650124] pci 0000:00:14.0: can't derive routing for PCI INT A
-> [    1.650126] pci 0000:00:14.0: PCI INT A: no GSI
-> [    1.650126] 
-> [    1.650180] pci 0000:00:14.0: can't derive routing for PCI INT A
-> 
-> Fix this by making the newline explicit and removing the superfluous
-> one.
 
-
-I think this is a better fix:
-
- drivers/acpi/pci_irq.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-index 0eefa12..9b98f9f 100644
---- a/drivers/acpi/pci_irq.c
-+++ b/drivers/acpi/pci_irq.c
-@@ -459,19 +459,20 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
- 	 */
- 	if (gsi < 0) {
- 		u32 dev_gsi;
--		dev_warn(&dev->dev, "PCI INT %c: no GSI", pin_name(pin));
- 		/* Interrupt Line values above 0xF are forbidden */
- 		if (dev->irq > 0 && (dev->irq <= 0xF) &&
- 		    (acpi_isa_irq_to_gsi(dev->irq, &dev_gsi) == 0)) {
--			printk(" - using ISA IRQ %d\n", dev->irq);
-+			dev_warn(&dev->dev,
-+				 "PCI INT %c: no GSI - using ISA IRQ %d\n",
-+				 pin_name(pin), dev->irq);
- 			acpi_register_gsi(&dev->dev, dev_gsi,
- 					  ACPI_LEVEL_SENSITIVE,
- 					  ACPI_ACTIVE_LOW);
--			return 0;
- 		} else {
--			printk("\n");
--			return 0;
-+			dev_warn(&dev->dev, "PCI INT %c: no GSI\n",
-+				 pin_name(pin));
- 		}
-+		return 0;
- 	}
- 
- 	rc = acpi_register_gsi(&dev->dev, gsi, triggering, polarity);
-
-
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
