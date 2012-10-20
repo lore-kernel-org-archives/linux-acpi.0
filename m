@@ -1,143 +1,81 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] ACPI / PM: Fix device PM kernedoc comments and #ifdefs
-Date: Sat, 20 Oct 2012 01:15:50 +0200
-Message-ID: <4768434.2rQpsxG0uT@vostro.rjw.lan>
+From: Wen Congyang <wency@cn.fujitsu.com>
+Subject: Re: [PATCH v2 0/3] acpi,memory-hotplug : implement framework for
+ hot removing memory
+Date: Sat, 20 Oct 2012 08:50:26 +0800
+Message-ID: <5081F552.9060008@cn.fujitsu.com>
+References: <1350641040-19434-1-git-send-email-wency@cn.fujitsu.com> <10485269.ao9A69hu9S@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:55925 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755127Ab2JSXMF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 19 Oct 2012 19:12:05 -0400
+Received: from cn.fujitsu.com ([222.73.24.84]:65294 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1755233Ab2JTAov (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 19 Oct 2012 20:44:51 -0400
+In-Reply-To: <10485269.ao9A69hu9S@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Randy Dunlap <rdunlap@xenotime.net>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, liuj97@gmail.com, len.brown@intel.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, muneda.takahiro@jp.fujitsu.com
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+At 10/20/2012 12:32 AM, Rafael J. Wysocki Wrote:
+> On Friday 19 of October 2012 18:03:57 wency@cn.fujitsu.com wrote:
+>> From: Wen Congyang <wency@cn.fujitsu.com>
+>>
+>> The patch-set implements a framework for hot removing memory.
+>>
+>> The memory device can be removed by 2 ways:
+>> 1. send eject request by SCI
+>> 2. echo 1 >/sys/bus/pci/devices/PNP0C80:XX/eject
+>>
+>> In the 1st case, acpi_memory_disable_device() will be called.
+>> In the 2nd case, acpi_memory_device_remove() will be called.
+>> acpi_memory_device_remove() will also be called when we unbind the
+>> memory device from the driver acpi_memhotplug or a driver initialization
+>> fails.
+>>
+>> acpi_memory_disable_device() has already implemented a code which
+>> offlines memory and releases acpi_memory_info struct . But
+>> acpi_memory_device_remove() has not implemented it yet.
+>>
+>> So the patch prepares the framework for hot removing memory and
+>> adds the framework into acpi_memory_device_remove().
+>>
+>> The last version of this patchset is here:
+>> https://lkml.org/lkml/2012/10/3/126
+>>
+>> Changelos from v1 to v2:
+>>   Patch1: use acpi_bus_trim() instead of acpi_bus_remove()
+>>   Patch2: new patch, introduce a lock to protect the list
+>>   Patch3: remove memory too when type is ACPI_BUS_REMOVAL_NORMAL
+>>   Note: I don't send [Patch2-4 v1] in this series because they
+>>   are no logical changes in these 3 patches.
+>>
+>> Wen Congyang (2):
+>>   acpi,memory-hotplug: call acpi_bus_trim() to remove memory device
+>>   acpi,memory-hotplug: introduce a mutex lock to protect the list in
+>>     acpi_memory_device
+>>
+>> Yasuaki Ishimatsu (1):
+>>   acpi,memory-hotplug : add memory offline code to
+>>     acpi_memory_device_remove()
+>>
+>>  drivers/acpi/acpi_memhotplug.c |   51 ++++++++++++++++++++++++++++++++--------
+>>  1 files changed, 41 insertions(+), 10 deletions(-)
+>>
+>> --
+> 
+> Can you please tell me what kernel is the series supposed to apply to?
+> Is it the current Linus' tree, or linux-next, or something else?
 
-The kerneldoc comments for acpi_pm_device_sleep_state(),
-acpi_pm_device_run_wake(), and acpi_pm_device_sleep_wake() are
-outdated and/or don't follow the common kerneldoc patters, so
-fix them.
+Current Linux's tree.
 
-Additionally, notice that acpi_pm_device_run_wake() should be under
-CONFIG_PM_RUNTIME rather than under CONFIG_PM_SLEEP, so fix that too.
+Thanks
+Wen Congyang
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/sleep.c    |   51 +++++++++++++++++++++---------------------------
- include/acpi/acpi_bus.h |    8 +++++--
- 2 files changed, 29 insertions(+), 30 deletions(-)
-
-Index: linux-pm/drivers/acpi/sleep.c
-===================================================================
---- linux-pm.orig/drivers/acpi/sleep.c
-+++ linux-pm/drivers/acpi/sleep.c
-@@ -699,28 +699,21 @@ int acpi_suspend(u32 acpi_state)
- 
- #ifdef CONFIG_PM
- /**
-- *	acpi_pm_device_sleep_state - return preferred power state of ACPI device
-- *		in the system sleep state given by %acpi_target_sleep_state
-- *	@dev: device to examine; its driver model wakeup flags control
-- *		whether it should be able to wake up the system
-- *	@d_min_p: used to store the upper limit of allowed states range
-- *	@d_max_in: specify the lowest allowed states
-- *	Return value: preferred power state of the device on success, -ENODEV
-- *	(ie. if there's no 'struct acpi_device' for @dev) or -EINVAL on failure
-+ * acpi_pm_device_sleep_state - Get preferred power state of ACPI device.
-+ * @dev: Device whose preferred target power state to return.
-+ * @d_min_p: Location to store the upper limit of the allowed states range.
-+ * @d_max_in: Deepest low-power state to take into consideration.
-+ * Return value: Preferred power state of the device on success, -ENODEV
-+ * (if there's no 'struct acpi_device' for @dev) or -EINVAL on failure
-  *
-- *	Find the lowest power (highest number) ACPI device power state that
-- *	device @dev can be in while the system is in the sleep state represented
-- *	by %acpi_target_sleep_state.  If @wake is nonzero, the device should be
-- *	able to wake up the system from this sleep state.  If @d_min_p is set,
-- *	the highest power (lowest number) device power state of @dev allowed
-- *	in this system sleep state is stored at the location pointed to by it.
-+ * Find the lowest power (highest number) ACPI device power state that the
-+ * device can be in while the system is in the sleep state represented
-+ * by %acpi_target_sleep_state.  If @d_min_p is set, the highest power (lowest
-+ * number) device power state that @dev can be in for the given system sleep
-+ * state is stored at the location pointed to by it.
-  *
-- *	The caller must ensure that @dev is valid before using this function.
-- *	The caller is also responsible for figuring out if the device is
-- *	supposed to be able to wake up the system and passing this information
-- *	via @wake.
-+ * The caller must ensure that @dev is valid before using this function.
-  */
--
- int acpi_pm_device_sleep_state(struct device *dev, int *d_min_p, int d_max_in)
- {
- 	acpi_handle handle = DEVICE_ACPI_HANDLE(dev);
-@@ -812,14 +805,15 @@ int acpi_pm_device_sleep_state(struct de
- EXPORT_SYMBOL(acpi_pm_device_sleep_state);
- #endif /* CONFIG_PM */
- 
--#ifdef CONFIG_PM_SLEEP
-+#ifdef CONFIG_PM_RUNTIME
- /**
-- * acpi_pm_device_run_wake - Enable/disable wake-up for given device.
-- * @phys_dev: Device to enable/disable the platform to wake-up the system for.
-- * @enable: Whether enable or disable the wake-up functionality.
-+ * acpi_pm_device_run_wake - Enable/disable remote wakeup for given device.
-+ * @phys_dev: Device to enable/disable the platform to wake up.
-+ * @enable: Whether enable or disable the wakeup functionality.
-  *
-  * Find the ACPI device object corresponding to @pci_dev and try to
-- * enable/disable the GPE associated with it.
-+ * enable/disable the GPE associated with it, so that it can generate
-+ * wakeup signals for the device in response to external (remote) events.
-  */
- int acpi_pm_device_run_wake(struct device *phys_dev, bool enable)
- {
-@@ -847,12 +841,13 @@ int acpi_pm_device_run_wake(struct devic
- 	return 0;
- }
- EXPORT_SYMBOL(acpi_pm_device_run_wake);
-+#endif /* CONFIG_PM_RUNTIME */
- 
-+#ifdef CONFIG_PM_SLEEP
- /**
-- *	acpi_pm_device_sleep_wake - enable or disable the system wake-up
-- *                                  capability of given device
-- *	@dev: device to handle
-- *	@enable: 'true' - enable, 'false' - disable the wake-up capability
-+ * acpi_pm_device_sleep_wake - Enable or disable device to wake up the system.
-+ * @dev: Device to enable/desible to wake up the system from sleep states.
-+ * @enable: Whether enable or disable @dev to wake up the system.
-  */
- int acpi_pm_device_sleep_wake(struct device *dev, bool enable)
- {
-Index: linux-pm/include/acpi/acpi_bus.h
-===================================================================
---- linux-pm.orig/include/acpi/acpi_bus.h
-+++ linux-pm/include/acpi/acpi_bus.h
-@@ -425,14 +425,18 @@ static inline int acpi_pm_device_sleep_s
- }
- #endif
- 
--#ifdef CONFIG_PM_SLEEP
-+#ifdef CONFIG_PM_RUNTIME
- int acpi_pm_device_run_wake(struct device *, bool);
--int acpi_pm_device_sleep_wake(struct device *, bool);
- #else
- static inline int acpi_pm_device_run_wake(struct device *dev, bool enable)
- {
- 	return -ENODEV;
- }
-+#endif
-+
-+#ifdef CONFIG_PM_SLEEP
-+int acpi_pm_device_sleep_wake(struct device *, bool);
-+#else
- static inline int acpi_pm_device_sleep_wake(struct device *dev, bool enable)
- {
- 	return -ENODEV;
+> 
+> Thanks,
+> Rafael
+> 
+> 
 
