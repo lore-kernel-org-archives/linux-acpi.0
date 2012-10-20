@@ -1,56 +1,163 @@
-From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: Re: [PATCH 1/4] acpi,memory-hotplug : add memory offline code to
- acpi_memory_device_remove()
-Date: Sat, 20 Oct 2012 13:02:18 +0800
-Message-ID: <5082305A.2050108@cn.fujitsu.com>
-References: <506C0AE8.40702@jp.fujitsu.com> <506C0C53.60205@jp.fujitsu.com> <CAHGf_=p7PaQs-kpnyB8uC1MntHQfL-CXhhq4QQP54mYiqOswqQ@mail.gmail.com> <50727984.20401@cn.fujitsu.com> <CAHGf_=pCrx8AkL9eiSYVgwvT1v0SW2__P_DW-1Wwj_zskqcLXw@mail.gmail.com> <507E77D1.3030709@cn.fujitsu.com> <CAHGf_=rxGeb0RsgEFF2FRRfdX0wiE9cDyVaftsG3E8AgyzYi1g@mail.gmail.com> <508118A6.80804@cn.fujitsu.com> <CAHGf_=qfzEJ0VjeYkKFVtyew+wYM-rHS4nqmXU4t7HYGuv8k9w@mail.gmail.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [RFC PATCH 2/4] mmc: sdio: bind sdio device with acpi device
+Date: Sat, 20 Oct 2012 15:12:47 +0800
+Message-ID: <20121020071244.GA4798@localhost.localdomain>
+References: <1350011561-21039-1-git-send-email-aaron.lu@intel.com>
+ <1350011561-21039-3-git-send-email-aaron.lu@intel.com>
+ <1834995.5UHtKnYTb2@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <CAHGf_=qfzEJ0VjeYkKFVtyew+wYM-rHS4nqmXU4t7HYGuv8k9w@mail.gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:45421 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751653Ab2JTHM4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 20 Oct 2012 03:12:56 -0400
+Content-Disposition: inline
+In-Reply-To: <1834995.5UHtKnYTb2@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>
 
-At 10/20/2012 02:19 AM, KOSAKI Motohiro Wrote:
->> Hmm, IIRC, if the memory is recognized from kerenl before driver initialization,
->> the memory device is not managed by the driver acpi_memhotplug.
+On Fri, Oct 19, 2012 at 01:25:46AM +0200, Rafael J. Wysocki wrote:
+> On Friday 12 of October 2012 11:12:39 Aaron Lu wrote:
+> > ACPI spec defines the _ADDR encoding for sdio bus as:
+> > High word - slot number (0 based)
+> > Low word  - function number
+> > 
+> > This patch adds support for sdio device binding with acpi using the
+> > generic ACPI glue framework.
+> > 
+> > Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+> > ---
+> >  drivers/mmc/core/Makefile    |  1 +
+> >  drivers/mmc/core/sdio_acpi.c | 35 +++++++++++++++++++++++++++++++++++
+> >  drivers/mmc/core/sdio_bus.c  | 14 ++++++++++++--
+> >  drivers/mmc/core/sdio_bus.h  |  2 ++
+> >  4 files changed, 50 insertions(+), 2 deletions(-)
+> >  create mode 100644 drivers/mmc/core/sdio_acpi.c
+> > 
+> > diff --git a/drivers/mmc/core/Makefile b/drivers/mmc/core/Makefile
+> > index 38ed210..c8300aa 100644
+> > --- a/drivers/mmc/core/Makefile
+> > +++ b/drivers/mmc/core/Makefile
+> > @@ -10,3 +10,4 @@ mmc_core-y			:= core.o bus.o host.o \
+> >  				   quirks.o slot-gpio.o
+> >  
+> >  mmc_core-$(CONFIG_DEBUG_FS)	+= debugfs.o
+> > +mmc_core-$(CONFIG_ACPI)		+= sdio_acpi.o
+> > diff --git a/drivers/mmc/core/sdio_acpi.c b/drivers/mmc/core/sdio_acpi.c
+> > new file mode 100644
+> > index 0000000..0f92e90
+> > --- /dev/null
+> > +++ b/drivers/mmc/core/sdio_acpi.c
+> > @@ -0,0 +1,35 @@
+> > +#include <linux/mmc/host.h>
+> > +#include <linux/mmc/card.h>
+> > +#include <linux/mmc/sdhci.h>
+> > +#include <linux/mmc/sdio_func.h>
+> > +#include <linux/acpi.h>
+> > +#include <acpi/acpi_bus.h>
+> > +#include "sdio_bus.h"
+> > +
+> > +static int acpi_sdio_find_device(struct device *dev, acpi_handle *handle)
+> > +{
+> > +	struct sdio_func *func;
+> > +	struct sdhci_host *host;
+> > +	u64 addr;
+> > +
+> > +	func = dev_to_sdio_func(dev);
+> > +	host = mmc_priv(func->card->host);
+> > +
+> > +	addr = (host->slotno << 16) | func->num;
+> > +
+> > +	*handle = acpi_get_child(DEVICE_ACPI_HANDLE(dev), addr);
+> > +	if (!*handle)
+> > +		return -ENODEV;
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static struct acpi_bus_type acpi_sdio_bus = {
+> > +	.bus = &sdio_bus_type,
+> > +	.find_device = acpi_sdio_find_device,
+> > +};
+> > +
+> > +int sdio_acpi_register(void)
 > 
-> Yup.
+> I'd call it sdio_acpi_register_bus().
+
+OK, will update this in v2.
+
+> 
+> > +{
+> > +	return register_acpi_bus_type(&acpi_sdio_bus);
+> > +}
+> > diff --git a/drivers/mmc/core/sdio_bus.c b/drivers/mmc/core/sdio_bus.c
+> > index 6bf6879..aaec9e2 100644
+> > --- a/drivers/mmc/core/sdio_bus.c
+> > +++ b/drivers/mmc/core/sdio_bus.c
+> > @@ -23,6 +23,7 @@
+> >  
+> >  #include "sdio_cis.h"
+> >  #include "sdio_bus.h"
+> > +#include "sdio_acpi.h"
+> >  
+> >  /* show configuration fields */
+> >  #define sdio_config_attr(field, format_string)				\
+> > @@ -209,7 +210,7 @@ static const struct dev_pm_ops sdio_bus_pm_ops = {
+> >  
+> >  #endif /* !CONFIG_PM */
+> >  
+> > -static struct bus_type sdio_bus_type = {
+> > +struct bus_type sdio_bus_type = {
+> >  	.name		= "sdio",
+> >  	.dev_attrs	= sdio_dev_attrs,
+> >  	.match		= sdio_bus_match,
+> > @@ -221,7 +222,16 @@ static struct bus_type sdio_bus_type = {
+> >  
+> >  int sdio_register_bus(void)
+> >  {
+> > -	return bus_register(&sdio_bus_type);
+> > +	int ret;
+> > +
+> > +	ret = bus_register(&sdio_bus_type);
+> > +	if (ret)
+> > +		goto out;
+> > +
+> > +	ret = sdio_acpi_register();
+> 
+> What happens if this fails?
+
+Oh, yes, it shouldn't affect the sdio_register_bus function. So I'll not
+check its return value in v2.
+
+Thanks,
+Aaron
+
+> 
+> > +
+> > +out:
+> > +	return ret;
+> >  }
+> >  
+> >  void sdio_unregister_bus(void)
+> > diff --git a/drivers/mmc/core/sdio_bus.h b/drivers/mmc/core/sdio_bus.h
+> > index 567a768..91c0e93 100644
+> > --- a/drivers/mmc/core/sdio_bus.h
+> > +++ b/drivers/mmc/core/sdio_bus.h
+> > @@ -18,5 +18,7 @@ void sdio_remove_func(struct sdio_func *func);
+> >  int sdio_register_bus(void);
+> >  void sdio_unregister_bus(void);
+> >  
+> > +extern struct bus_type sdio_bus_type;
+> > +
+> >  #endif
+> 
+> Thanks,
+> Rafael
 > 
 > 
->> I think we should also deal with REMOVAL_NORMAL here now. Otherwise it will cause
->> some critical problem: we unbind the device from the driver but we still use
->> it. If we eject it, we have no chance to offline and remove it. It is very dangerous.
-> 
-> ??
-> If resource was not allocated a driver, a driver doesn't need to
-> deallocate it when
-> error path. I haven't caught your point.
-> 
-
-REMOVAL_NORMAL can be in 2 cases:
-1. error path. If init call fails, we don't call it. We call this function
-   only when something fails after init.
-
-2. unbind the device from the driver.
-   If we don't offline and remove memory when unbinding the device from the driver,
-   the device may be out of control. When we eject this driver, we don't offline and
-   remove it, but we will eject and poweroff the device. It is very dangerous because
-   the kernel uses the memory but we poweroff it.
-
-   acpi_bus_hot_remove_device()
-       acpi_bus_trim() // this function successes because the device has no driver
-       _PS3 // poweroff
-       _EJ0 // eject
-
-Thanks
-Wen Congyang
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+> -- 
+> I speak only for myself.
+> Rafael J. Wysocki, Intel Open Source Technology Center.
