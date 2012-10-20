@@ -1,81 +1,59 @@
-From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: Re: [PATCH v2 0/3] acpi,memory-hotplug : implement framework for
- hot removing memory
-Date: Sat, 20 Oct 2012 08:50:26 +0800
-Message-ID: <5081F552.9060008@cn.fujitsu.com>
-References: <1350641040-19434-1-git-send-email-wency@cn.fujitsu.com> <10485269.ao9A69hu9S@vostro.rjw.lan>
+From: Ben Guthro <ben@guthro.net>
+Subject: Re: [RFC] ACPI S3 and Xen (suprisingly small\!).
+Date: Fri, 19 Oct 2012 21:23:55 -0400
+Message-ID: <CAOvdn6V+R2+Ur-_KXWffawrLNDph7+R8UHTfwrdJo-1gUGj6xQ@mail.gmail.com>
+References: <1350481786-4969-1-git-send-email-konrad.wilk@oracle.com>
+	<CAOvdn6WBj_-=3Z=ZrD670Zup4H=pvjXknvHGgjs55k3LWJyDxQ@mail.gmail.com>
+	<20121017174317.GA25443@phenom.dumpdata.com>
+	<CAOvdn6Uubr8J0a5+nhDKrtMYebKkBTX6+-0v0J1BGMnU-ZkVRA@mail.gmail.com>
+	<20121019184908.GA19834@phenom.dumpdata.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:65294 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1755233Ab2JTAov (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 19 Oct 2012 20:44:51 -0400
-In-Reply-To: <10485269.ao9A69hu9S@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20121019184908.GA19834@phenom.dumpdata.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xensource.com, lenb@kernel.org, linux-acpi@vger.kernel.org, hpa@zytor.com, x86@kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, liuj97@gmail.com, len.brown@intel.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, muneda.takahiro@jp.fujitsu.com
 
-At 10/20/2012 12:32 AM, Rafael J. Wysocki Wrote:
-> On Friday 19 of October 2012 18:03:57 wency@cn.fujitsu.com wrote:
->> From: Wen Congyang <wency@cn.fujitsu.com>
->>
->> The patch-set implements a framework for hot removing memory.
->>
->> The memory device can be removed by 2 ways:
->> 1. send eject request by SCI
->> 2. echo 1 >/sys/bus/pci/devices/PNP0C80:XX/eject
->>
->> In the 1st case, acpi_memory_disable_device() will be called.
->> In the 2nd case, acpi_memory_device_remove() will be called.
->> acpi_memory_device_remove() will also be called when we unbind the
->> memory device from the driver acpi_memhotplug or a driver initialization
->> fails.
->>
->> acpi_memory_disable_device() has already implemented a code which
->> offlines memory and releases acpi_memory_info struct . But
->> acpi_memory_device_remove() has not implemented it yet.
->>
->> So the patch prepares the framework for hot removing memory and
->> adds the framework into acpi_memory_device_remove().
->>
->> The last version of this patchset is here:
->> https://lkml.org/lkml/2012/10/3/126
->>
->> Changelos from v1 to v2:
->>   Patch1: use acpi_bus_trim() instead of acpi_bus_remove()
->>   Patch2: new patch, introduce a lock to protect the list
->>   Patch3: remove memory too when type is ACPI_BUS_REMOVAL_NORMAL
->>   Note: I don't send [Patch2-4 v1] in this series because they
->>   are no logical changes in these 3 patches.
->>
->> Wen Congyang (2):
->>   acpi,memory-hotplug: call acpi_bus_trim() to remove memory device
->>   acpi,memory-hotplug: introduce a mutex lock to protect the list in
->>     acpi_memory_device
->>
->> Yasuaki Ishimatsu (1):
->>   acpi,memory-hotplug : add memory offline code to
->>     acpi_memory_device_remove()
->>
->>  drivers/acpi/acpi_memhotplug.c |   51 ++++++++++++++++++++++++++++++++--------
->>  1 files changed, 41 insertions(+), 10 deletions(-)
->>
->> --
-> 
-> Can you please tell me what kernel is the series supposed to apply to?
-> Is it the current Linus' tree, or linux-next, or something else?
+ack.
+I'm happy to test a 2nd round, if you CC me on any fixed patches (just
+in case I'm not monitoring lkml / xen-devel on that particular day)
 
-Current Linux's tree.
-
-Thanks
-Wen Congyang
-
-> 
-> Thanks,
-> Rafael
-> 
-> 
-
+On Fri, Oct 19, 2012 at 2:49 PM, Konrad Rzeszutek Wilk
+<konrad.wilk@oracle.com> wrote:
+> On Wed, Oct 17, 2012 at 02:00:29PM -0400, Ben Guthro wrote:
+>> I'm not sure it matters, but I'm testing against a changeset about a week old:
+>> http://xenbits.xen.org/gitweb/?p=xen.git;a=commit;h=1c4a5b37b55c56e49135e65728137f54288d1fe6
+>
+> I was able to reproduce it with Xen 4.2 so found the culprit.
+>
+> .. And then another issue :-(
+>
+>>
+>> Plus patches specific to XenClient Enterprise.
+>>
+>>
+>> On Wed, Oct 17, 2012 at 1:43 PM, Konrad Rzeszutek Wilk
+>> <konrad.wilk@oracle.com> wrote:
+>> > On Wed, Oct 17, 2012 at 01:46:09PM -0400, Ben Guthro wrote:
+>> >> On Wed, Oct 17, 2012 at 9:49 AM, Konrad Rzeszutek Wilk
+>> >> <konrad.wilk@oracle.com> wrote:
+>> >> [...]
+>> >>
+>> >> > The end result is this is a nice set of patches where there is only
+>> >> > _one_ change in the x86 code (and it is just more of dealing with
+>> >> > error case) - and the rest are all done in Xen side.
+>> >>
+>> >> I'm sorry to report that this series doesn't seem to work in my setup
+>> >> against xen-unstable.
+>> >>
+>> >> To verify that it was, in fact this patch series, and not another Xen
+>> >> regression - I swapped out the kernel with this patch series, with an
+>> >> identical one, replacing only this series with your acpi-s3.v9 branch
+>> >> - and everything worked fine.
+>> >
+>> > Thanks for testing it!
+>> >
+>> > I had tested it with Xen 4.1.3, which could be doing something different.
+>> > Will see what is up.
