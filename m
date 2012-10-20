@@ -1,59 +1,48 @@
-From: Ben Guthro <ben@guthro.net>
-Subject: Re: [RFC] ACPI S3 and Xen (suprisingly small\!).
-Date: Fri, 19 Oct 2012 21:23:55 -0400
-Message-ID: <CAOvdn6V+R2+Ur-_KXWffawrLNDph7+R8UHTfwrdJo-1gUGj6xQ@mail.gmail.com>
-References: <1350481786-4969-1-git-send-email-konrad.wilk@oracle.com>
-	<CAOvdn6WBj_-=3Z=ZrD670Zup4H=pvjXknvHGgjs55k3LWJyDxQ@mail.gmail.com>
-	<20121017174317.GA25443@phenom.dumpdata.com>
-	<CAOvdn6Uubr8J0a5+nhDKrtMYebKkBTX6+-0v0J1BGMnU-ZkVRA@mail.gmail.com>
-	<20121019184908.GA19834@phenom.dumpdata.com>
+From: Wen Congyang <wency@cn.fujitsu.com>
+Subject: Re: [PATCH 1/10] memory-hotplug : check whether memory is offline
+ or not when removing memory
+Date: Sat, 20 Oct 2012 08:50:45 +0800
+Message-ID: <5081F565.8020605@cn.fujitsu.com>
+References: <506E43E0.70507@jp.fujitsu.com> <506E451E.1050403@jp.fujitsu.com> <CAHGf_=rVDm-JygjPoLHbmF28Dgd52HFc4-b5KCxhEieG60okuw@mail.gmail.com> <50812F13.20503@cn.fujitsu.com> <5081609C.9080702@gmail.com> <CAHGf_=q=Agidyj_j6jhBdhNmJBy2u1dP+UMAoXbM=_=DyZJs_w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20121019184908.GA19834@phenom.dumpdata.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xensource.com, lenb@kernel.org, linux-acpi@vger.kernel.org, hpa@zytor.com, x86@kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <CAHGf_=q=Agidyj_j6jhBdhNmJBy2u1dP+UMAoXbM=_=DyZJs_w@mail.gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Wen Congyang <wencongyang@gmail.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org
 List-Id: linux-acpi@vger.kernel.org
 
-ack.
-I'm happy to test a 2nd round, if you CC me on any fixed patches (just
-in case I'm not monitoring lkml / xen-devel on that particular day)
+At 10/20/2012 02:33 AM, KOSAKI Motohiro Wrote:
+>> I think it again, and found that this check is necessary. Because we only
+>> lock memory hotplug when offlining pages. Here is the steps to offline and
+>> remove memory:
+>>
+>> 1. lock memory hotplug
+>> 2. offline a memory section
+>> 3. unlock memory hotplug
+>> 4. repeat 1-3 to offline all memory sections
+>> 5. lock memory hotplug
+>> 6. remove memory
+>> 7. unlock memory hotplug
+>>
+>> All memory sections must be offlined before removing memory. But we don't
+>> hold
+>> the lock in the whole operation. So we should check whether all memory
+>> sections
+>> are offlined before step6.
+> 
+> You should describe the race scenario in the patch description. OK?
+> 
 
-On Fri, Oct 19, 2012 at 2:49 PM, Konrad Rzeszutek Wilk
-<konrad.wilk@oracle.com> wrote:
-> On Wed, Oct 17, 2012 at 02:00:29PM -0400, Ben Guthro wrote:
->> I'm not sure it matters, but I'm testing against a changeset about a week old:
->> http://xenbits.xen.org/gitweb/?p=xen.git;a=commit;h=1c4a5b37b55c56e49135e65728137f54288d1fe6
->
-> I was able to reproduce it with Xen 4.2 so found the culprit.
->
-> .. And then another issue :-(
->
->>
->> Plus patches specific to XenClient Enterprise.
->>
->>
->> On Wed, Oct 17, 2012 at 1:43 PM, Konrad Rzeszutek Wilk
->> <konrad.wilk@oracle.com> wrote:
->> > On Wed, Oct 17, 2012 at 01:46:09PM -0400, Ben Guthro wrote:
->> >> On Wed, Oct 17, 2012 at 9:49 AM, Konrad Rzeszutek Wilk
->> >> <konrad.wilk@oracle.com> wrote:
->> >> [...]
->> >>
->> >> > The end result is this is a nice set of patches where there is only
->> >> > _one_ change in the x86 code (and it is just more of dealing with
->> >> > error case) - and the rest are all done in Xen side.
->> >>
->> >> I'm sorry to report that this series doesn't seem to work in my setup
->> >> against xen-unstable.
->> >>
->> >> To verify that it was, in fact this patch series, and not another Xen
->> >> regression - I swapped out the kernel with this patch series, with an
->> >> identical one, replacing only this series with your acpi-s3.v9 branch
->> >> - and everything worked fine.
->> >
->> > Thanks for testing it!
->> >
->> > I had tested it with Xen 4.1.3, which could be doing something different.
->> > Will see what is up.
+OK
+
+Thanks
+Wen Congyang
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
