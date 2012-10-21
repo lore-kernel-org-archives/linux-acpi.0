@@ -1,127 +1,79 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC PATCH 4/4] sdio: pm: set device's power state after driver runtime suspended it
-Date: Sun, 21 Oct 2012 21:57:16 +0200
-Message-ID: <1729978.qEmlCqSTY2@vostro.rjw.lan>
-References: <1350011561-21039-1-git-send-email-aaron.lu@intel.com> <96495050.e1u1tibeG9@vostro.rjw.lan> <20121020071539.GB4798@localhost.localdomain>
+From: Lekensteyn <lekensteyn@gmail.com>
+Subject: Re: Linux 3.7-rc1 (nouveau_bios_score oops).
+Date: Sun, 21 Oct 2012 22:07:27 +0200
+Message-ID: <2998525.z8RPfWksxL@al>
+References: <1724445.dN2yMEzN6d@localhost> <CA+55aFzYDY0FLGhVevqv9Gk0bnJnM4r13=JzWDO9hdySi8zFoA@mail.gmail.com> <20121021144908.GC22587@joi.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:57137 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752938Ab2JUTxZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 21 Oct 2012 15:53:25 -0400
-In-Reply-To: <20121020071539.GB4798@localhost.localdomain>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:52086 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753492Ab2JUUHc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 21 Oct 2012 16:07:32 -0400
+In-Reply-To: <20121021144908.GC22587@joi.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>
+To: Marcin Slusarz <marcin.slusarz@gmail.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Heinz Diehl <htd@fritha.org>, Martin Peres <martin.peres@labri.fr>, Heinz Diehl <htd@fancy-poultry.org>, David Airlie <airlied@linux.ie>, Ben Skeggs <bskeggs@redhat.com>, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, =?utf-8?B?UGF3ZcWC?= Sikora <pawel.sikora@agmk.net>
 
-On Saturday 20 of October 2012 15:15:41 Aaron Lu wrote:
-> On Fri, Oct 19, 2012 at 08:08:38PM +0200, Rafael J. Wysocki wrote:
-> > On Friday 19 of October 2012 01:39:25 Rafael J. Wysocki wrote:
-> > > On Friday 12 of October 2012 11:12:41 Aaron Lu wrote:
-> > > > In sdio bus level runtime callback function, after call the driver's
-> > > > runtime suspend callback, we will check if the device supports a
-> > > > platform level power management, and if so, a proper power state is
-> > > > chosen by the corresponding platform callback and then set.
-> > > > 
-> > > > Platform level runtime wakeup is also set, if device is enabled for
-> > > > runtime wakeup by its driver, it will be armed the ability to generate
-> > > > a wakeup event by the platform.
-> > > > 
-> > > > Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-> > > > ---
-> > > >  drivers/mmc/core/sdio_bus.c | 49 +++++++++++++++++++++++++++++++++++++++++++--
-> > > >  1 file changed, 47 insertions(+), 2 deletions(-)
-> > > > 
-> > > > diff --git a/drivers/mmc/core/sdio_bus.c b/drivers/mmc/core/sdio_bus.c
-> > > > index aaec9e2..d83dea8 100644
-> > > > --- a/drivers/mmc/core/sdio_bus.c
-> > > > +++ b/drivers/mmc/core/sdio_bus.c
-> > > > @@ -23,6 +23,7 @@
-> > > >  
-> > > >  #include "sdio_cis.h"
-> > > >  #include "sdio_bus.h"
-> > > > +#include "sdio.h"
-> > > >  #include "sdio_acpi.h"
-> > > >  
-> > > >  /* show configuration fields */
-> > > > @@ -194,10 +195,54 @@ static int sdio_bus_remove(struct device *dev)
-> > > >  }
-> > > >  
-> > > >  #ifdef CONFIG_PM
-> > > > +
-> > > > +static int sdio_bus_runtime_suspend(struct device *dev)
-> > > > +{
-> > > > +	int ret;
-> > > > +	sdio_power_t state;
-> > > > +
-> > > > +	ret = pm_generic_runtime_suspend(dev);
-> > > > +	if (ret)
-> > > > +		goto out;
-> > > > +
-> > > > +	if (!platform_sdio_power_manageable(dev))
-> > > > +		goto out;
-> > > > +
-> > > > +	platform_sdio_run_wake(dev, true);
-> > > > +
-> > > > +	state = platform_sdio_choose_power_state(dev);
-> > > > +	if (state == SDIO_POWER_ERROR) {
-> > > > +		ret = -EIO;
-> > > > +		goto out;
-> > > > +	}
-> > > > +
-> > > > +	ret = platform_sdio_set_power_state(dev, state);
-> > > > +
-> > > > +out:
-> > > > +	return ret;
-> > > > +}
-> > > > +
-> > > > +static int sdio_bus_runtime_resume(struct device *dev)
-> > > > +{
-> > > > +	int ret;
-> > > > +
-> > > > +	if (platform_sdio_power_manageable(dev)) {
-> > > > +		platform_sdio_run_wake(dev, false);
-> > > > +		ret = platform_sdio_set_power_state(dev, SDIO_D0);
-> > > > +		if (ret)
-> > > > +			goto out;
-> > > > +	}
-> > > > +
-> > > > +	ret = pm_generic_runtime_resume(dev);
-> > > > +
-> > > > +out:
-> > > > +	return ret;
-> > > > +}
-> > > > +
-> > > 
-> > > Most likely we will need to make analogous changes for other bus types that
-> > > don't support power management natively, like platform, SPI, I2C etc.  In all
-> > > of them the _runtime_suspend() and _runtime_resume() routine will look
-> > > almost exactly the same except for the platform_sdio_ prefix.
-> > > 
-> > > For this reason, I think it would be better to simply define two functions
-> > > acpi_pm_runtime_suspend() and acpi_pm_runtime_resume() that will do all of
-> > > the ACPI-specific operations related to runtime suspend/resume.  Then, we
-> > > will be able to use these functions for all of the bus types in question
-> > > in the same way (we may also need to add analogous functions for system
-> > > suspend/resume handling).
+On Sunday 21 October 2012 16:49:08 Marcin Slusarz wrote:
+> On Sun, Oct 21, 2012 at 07:38:58AM -0700, Linus Torvalds wrote:
+> > On Sun, Oct 21, 2012 at 5:09 AM, Marcin Slusarz
 > > 
-> > Something like in the (totally untested) patch below.
+> > <marcin.slusarz@gmail.com> wrote:
+> > > This looks like ACPI bug...
+> >
+> > I'm shocked to hear that firmware would be fragile.
+> >
+> > Anyway, here's the #1 thing to keep in mind about firmware:
+> > 
+> >  - firmware is always buggy.
 > 
-> Looks good to me.
-> I'll test the code and put it into v2 of the patchset with your
-> sign-off, is it OK?
+> I know. But this bug is not about broken firmware. It's about Linux kernel
+> ACPI implementation, which (I think) wrongly interprets ACPI script.
 
-I'd rather do it a bit differently in the signed-off version (I'm working
-on these patches, they should be ready around Tuesday), but if you can test
-it in its current form, that'd be useful too.
+The ACPI implementation is fine, it is just the fw engineers that suck. I see I 
+have not cc'd the linux-vger ml when replying to a previous mail. I'll paste 
+it below:
 
-Thanks,
-Rafael
+Since commit 9a334cd "drm/nouveau/bios: fix shadowing of ACPI ROMs larger than 
+64KiB" chunks are not always read in multiples of 4KiB anymore (less is 
+possible). That is the only obvious thing I can think of atm (besides the 
+kmalloc(0) bug for which Martin submitted a patch in the previous mail).
 
+Do you still still have an Asus laptop with the same BIOS as in 
+https://bugzilla.kernel.org/show_bug.cgi?id=19702? (if yes, then the acpidump 
+from that bug still applies).
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+This is the ACPI _ROM method that is being called:
+Method (_ROM, 2, NotSerialized)  // _ROM: Read-Only Memory
+{
+    Add (Arg0, RBUF, Local0)
+    ShiftLeft (Arg1, 0x03, Local1) // times 8, bytes to bits?
+    Name (VBUF, Buffer (Arg1) {}) 
+    OperationRegion (VROM, SystemMemory, Local0, Local1)
+    Field (VROM, ByteAcc, NoLock, Preserve)
+    {   
+        ROMI,   65536
+    }   
+
+    Store (ROMI, VBUF)
+    Return (VBUF)
+}
+
+Arg0 is the offset (0 when first reading the size), Arg1 is the number of read 
+bytes (3). Note the use of Local1 in OperationRegion. The meaning there is 
+bytes, but a multiple of the requested bytes is passed. So if we request 4096 
+bytes, we end up with a VROM of size 32KiB. ROMI is 65536 bits (or 8192 
+bytes), hence reading 4096 does not give errors. But reading only 3 bytes will 
+fail. Martin, I saw your second patch (https://lkml.org/lkml/2012/10/20/150) 
+which takes care of the first case, but it skips the case where the ROM is of 
+an odd size (does that even happen, something like 64KiB+1 bytes? No idea.)
+
+Addition: Conclusion: this means that the request must have a length must be 
+at least 1 KiB or it will fail with the ACPI error that you have seen before. 
+This AML snippet suck.
+
+Regards,
+Peter
