@@ -1,40 +1,37 @@
-From: Marcin Slusarz <marcin.slusarz@gmail.com>
-Subject: Re: Linux 3.7-rc1 (nouveau_bios_score oops).
-Date: Sun, 21 Oct 2012 16:49:08 +0200
-Message-ID: <20121021144908.GC22587@joi.lan>
-References: <1724445.dN2yMEzN6d@localhost>
- <20121020212036.GA1698@fritha.org>
- <20121020221948.GE5826@joi.lan>
- <2155889.FOmdXlva7q@localhost>
- <20121021120901.GA22587@joi.lan>
- <CA+55aFzYDY0FLGhVevqv9Gk0bnJnM4r13=JzWDO9hdySi8zFoA@mail.gmail.com>
+From: Maciej Rutecki <maciej.rutecki@gmail.com>
+Subject: [REGRESSION] 3.7-rc2 kernel BUG at kernel/power/snapshot.c:517!
+Date: Sun, 21 Oct 2012 17:12:28 +0200
+Message-ID: <201210211712.28571.maciej.rutecki@gmail.com>
+Reply-To: maciej.rutecki@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:34743 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932073Ab2JUOsp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 21 Oct 2012 10:48:45 -0400
-Content-Disposition: inline
-In-Reply-To: <CA+55aFzYDY0FLGhVevqv9Gk0bnJnM4r13=JzWDO9hdySi8zFoA@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: lenb@kernel.org, rjw@sisk.pl, linux-acpi@vger.kernel.org, pavel@ucw.cz, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Heinz Diehl <htd@fritha.org>, Martin Peres <martin.peres@labri.fr>, Heinz Diehl <htd@fancy-poultry.org>, David Airlie <airlied@linux.ie>, Ben Skeggs <bskeggs@redhat.com>, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, =?utf-8?B?UGF3ZcWC?= Sikora <pawel.sikora@agmk.net>
 
-On Sun, Oct 21, 2012 at 07:38:58AM -0700, Linus Torvalds wrote:
-> On Sun, Oct 21, 2012 at 5:09 AM, Marcin Slusarz
-> <marcin.slusarz@gmail.com> wrote:
-> >
-> > This looks like ACPI bug...
-> 
-> I'm _shocked_ to hear that firmware would be fragile.
-> 
-> Anyway, here's the #1 thing to keep in mind about firmware:
-> 
->  - firmware is *always* buggy.
+Error: kernel BUG at kernel/power/snapshot.c:517!
 
-I know. But this bug is not about broken firmware. It's about Linux kernel
-ACPI implementation, which (I think) wrongly interprets ACPI script.
+Last known good: 3.6.1
+Bad: 3.7-rc2
 
-Marcin
+Steps to reproduce:
+1. Boot system with 3.7-rc2 kernel
+2. Try suspend to disk (s2ram works OK)
+
+System dies on message:
+http://mrutecki.pl/download/kernel/3.7-rc2/swinka/DSCN0280.jpg
+
+lspci:
+http://mrutecki.pl/download/kernel/3.7-rc2/swinka/lspci.txt
+
+dmesg:
+http://mrutecki.pl/download/kernel/3.7-rc2/swinka/dmesg-3.7-rc2.txt
+
+
+-- 
+Maciej Rutecki
+http://www.mrutecki.pl
