@@ -1,28 +1,127 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: Linux 3.7-rc1 (nouveau_bios_score oops).
-Date: Sun, 21 Oct 2012 20:13:14 +0300
-Message-ID: <CA+55aFyFDQEgdmWZk5_WUUhMtJNngeg_-d6u36z8rE4e5xWaQQ@mail.gmail.com>
-References: <1724445.dN2yMEzN6d@localhost> <20121020212036.GA1698@fritha.org>
- <20121020221948.GE5826@joi.lan> <2155889.FOmdXlva7q@localhost>
- <20121021120901.GA22587@joi.lan> <CA+55aFzYDY0FLGhVevqv9Gk0bnJnM4r13=JzWDO9hdySi8zFoA@mail.gmail.com>
- <20121021144908.GC22587@joi.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC PATCH 4/4] sdio: pm: set device's power state after driver runtime suspended it
+Date: Sun, 21 Oct 2012 21:57:16 +0200
+Message-ID: <1729978.qEmlCqSTY2@vostro.rjw.lan>
+References: <1350011561-21039-1-git-send-email-aaron.lu@intel.com> <96495050.e1u1tibeG9@vostro.rjw.lan> <20121020071539.GB4798@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20121021144908.GC22587@joi.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Marcin Slusarz <marcin.slusarz@gmail.com>
-Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Heinz Diehl <htd@fritha.org>, Martin Peres <martin.peres@labri.fr>, Heinz Diehl <htd@fancy-poultry.org>, David Airlie <airlied@linux.ie>, Ben Skeggs <bskeggs@redhat.com>, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, =?ISO-8859-2?Q?Pawe=B3_Sikora?= <pawel.sikora@agmk.net>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([193.178.161.156]:57137 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752938Ab2JUTxZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 21 Oct 2012 15:53:25 -0400
+In-Reply-To: <20121020071539.GB4798@localhost.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>
 
-On Sun, Oct 21, 2012 at 5:49 PM, Marcin Slusarz
-<marcin.slusarz@gmail.com> wrote:
->
-> I know. But this bug is not about broken firmware. It's about Linux kernel
-> ACPI implementation, which (I think) wrongly interprets ACPI script.
+On Saturday 20 of October 2012 15:15:41 Aaron Lu wrote:
+> On Fri, Oct 19, 2012 at 08:08:38PM +0200, Rafael J. Wysocki wrote:
+> > On Friday 19 of October 2012 01:39:25 Rafael J. Wysocki wrote:
+> > > On Friday 12 of October 2012 11:12:41 Aaron Lu wrote:
+> > > > In sdio bus level runtime callback function, after call the driver's
+> > > > runtime suspend callback, we will check if the device supports a
+> > > > platform level power management, and if so, a proper power state is
+> > > > chosen by the corresponding platform callback and then set.
+> > > > 
+> > > > Platform level runtime wakeup is also set, if device is enabled for
+> > > > runtime wakeup by its driver, it will be armed the ability to generate
+> > > > a wakeup event by the platform.
+> > > > 
+> > > > Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+> > > > ---
+> > > >  drivers/mmc/core/sdio_bus.c | 49 +++++++++++++++++++++++++++++++++++++++++++--
+> > > >  1 file changed, 47 insertions(+), 2 deletions(-)
+> > > > 
+> > > > diff --git a/drivers/mmc/core/sdio_bus.c b/drivers/mmc/core/sdio_bus.c
+> > > > index aaec9e2..d83dea8 100644
+> > > > --- a/drivers/mmc/core/sdio_bus.c
+> > > > +++ b/drivers/mmc/core/sdio_bus.c
+> > > > @@ -23,6 +23,7 @@
+> > > >  
+> > > >  #include "sdio_cis.h"
+> > > >  #include "sdio_bus.h"
+> > > > +#include "sdio.h"
+> > > >  #include "sdio_acpi.h"
+> > > >  
+> > > >  /* show configuration fields */
+> > > > @@ -194,10 +195,54 @@ static int sdio_bus_remove(struct device *dev)
+> > > >  }
+> > > >  
+> > > >  #ifdef CONFIG_PM
+> > > > +
+> > > > +static int sdio_bus_runtime_suspend(struct device *dev)
+> > > > +{
+> > > > +	int ret;
+> > > > +	sdio_power_t state;
+> > > > +
+> > > > +	ret = pm_generic_runtime_suspend(dev);
+> > > > +	if (ret)
+> > > > +		goto out;
+> > > > +
+> > > > +	if (!platform_sdio_power_manageable(dev))
+> > > > +		goto out;
+> > > > +
+> > > > +	platform_sdio_run_wake(dev, true);
+> > > > +
+> > > > +	state = platform_sdio_choose_power_state(dev);
+> > > > +	if (state == SDIO_POWER_ERROR) {
+> > > > +		ret = -EIO;
+> > > > +		goto out;
+> > > > +	}
+> > > > +
+> > > > +	ret = platform_sdio_set_power_state(dev, state);
+> > > > +
+> > > > +out:
+> > > > +	return ret;
+> > > > +}
+> > > > +
+> > > > +static int sdio_bus_runtime_resume(struct device *dev)
+> > > > +{
+> > > > +	int ret;
+> > > > +
+> > > > +	if (platform_sdio_power_manageable(dev)) {
+> > > > +		platform_sdio_run_wake(dev, false);
+> > > > +		ret = platform_sdio_set_power_state(dev, SDIO_D0);
+> > > > +		if (ret)
+> > > > +			goto out;
+> > > > +	}
+> > > > +
+> > > > +	ret = pm_generic_runtime_resume(dev);
+> > > > +
+> > > > +out:
+> > > > +	return ret;
+> > > > +}
+> > > > +
+> > > 
+> > > Most likely we will need to make analogous changes for other bus types that
+> > > don't support power management natively, like platform, SPI, I2C etc.  In all
+> > > of them the _runtime_suspend() and _runtime_resume() routine will look
+> > > almost exactly the same except for the platform_sdio_ prefix.
+> > > 
+> > > For this reason, I think it would be better to simply define two functions
+> > > acpi_pm_runtime_suspend() and acpi_pm_runtime_resume() that will do all of
+> > > the ACPI-specific operations related to runtime suspend/resume.  Then, we
+> > > will be able to use these functions for all of the bus types in question
+> > > in the same way (we may also need to add analogous functions for system
+> > > suspend/resume handling).
+> > 
+> > Something like in the (totally untested) patch below.
+> 
+> Looks good to me.
+> I'll test the code and put it into v2 of the patchset with your
+> sign-off, is it OK?
 
-Hmm. Len, care to comment? Marcin quoted the AML and our arguments in
-an earlier thing. I don't read AML, so I was assuming it's the AML
-itself that was buggy, not our interpretation of it..
+I'd rather do it a bit differently in the signed-off version (I'm working
+on these patches, they should be ready around Tuesday), but if you can test
+it in its current form, that'd be useful too.
 
-               Linus
+Thanks,
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
