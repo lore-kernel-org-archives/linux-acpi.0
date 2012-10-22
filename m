@@ -1,40 +1,54 @@
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Subject: Re: [PATCH 1/4] acpi,memory-hotplug : add memory offline code to acpi_memory_device_remove()
-Date: Mon, 22 Oct 2012 11:34:49 -0400
-Message-ID: <CAHGf_=qK=mAAwor7iXxDtwTtW2Qhui_8GmtHGreMuFuQVGWAvQ@mail.gmail.com>
-References: <506C0AE8.40702@jp.fujitsu.com> <506C0C53.60205@jp.fujitsu.com>
- <CAHGf_=p7PaQs-kpnyB8uC1MntHQfL-CXhhq4QQP54mYiqOswqQ@mail.gmail.com>
- <50727984.20401@cn.fujitsu.com> <CAHGf_=pCrx8AkL9eiSYVgwvT1v0SW2__P_DW-1Wwj_zskqcLXw@mail.gmail.com>
- <507E77D1.3030709@cn.fujitsu.com> <CAHGf_=rxGeb0RsgEFF2FRRfdX0wiE9cDyVaftsG3E8AgyzYi1g@mail.gmail.com>
- <508118A6.80804@cn.fujitsu.com> <CAHGf_=qfzEJ0VjeYkKFVtyew+wYM-rHS4nqmXU4t7HYGuv8k9w@mail.gmail.com>
- <5082305A.2050108@cn.fujitsu.com> <CAHGf_=rYgA=yAjcvziGbN0k48zTZn8+5XQJxoMwZ4wvrX6x4sA@mail.gmail.com>
+From: "Robert P. J. Day" <rpjday@crashcourse.ca>
+Subject: [PATCH] ACPI: Simplify conditional that has the same effect no matter
+ what.
+Date: Mon, 22 Oct 2012 17:40:36 -0400 (EDT)
+Message-ID: <alpine.DEB.2.02.1210221738310.5975@oneiric>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAHGf_=rYgA=yAjcvziGbN0k48zTZn8+5XQJxoMwZ4wvrX6x4sA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from astoria.ccjclearline.com ([64.235.106.9]:43238 "EHLO
+	astoria.ccjclearline.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754337Ab2JVVkl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Oct 2012 17:40:41 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: lenb@kernel.org, rjw@sisk.pl
 
-On Mon, Oct 22, 2012 at 11:11 AM, KOSAKI Motohiro
-<kosaki.motohiro@jp.fujitsu.com> wrote:
->>> ??
->>> If resource was not allocated a driver, a driver doesn't need to
->>> deallocate it when
->>> error path. I haven't caught your point.
->>>
->>
->> REMOVAL_NORMAL can be in 2 cases:
->> 1. error path. If init call fails, we don't call it. We call this function
->>    only when something fails after init.
->> 2. unbind the device from the driver.
->>    If we don't offline and remove memory when unbinding the device from the driver,
->>    the device may be out of control. When we eject this driver, we don't offline and
->
-> Memory never be out of control by driver unloading. It is controled
-> from kernel core. It is an exception from regular linux driver model.
 
-Ah, got it.
-acpi_bus_hot_remove_device() evaluate PS3 before EJ0. Then
-your first patch may cause memory lost.
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+
+---
+
+  not sure if there's something weirdly subtle happening here, but
+this looks like a straightforward simplification.
+
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 9eaf708..e76a7f5 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -949,12 +949,7 @@ static acpi_status __acpi_os_execute(acpi_execute_type type,
+ 		(type == OSL_NOTIFY_HANDLER ? kacpi_notify_wq : kacpid_wq);
+ 	dpc->wait = hp ? 1 : 0;
+
+-	if (queue == kacpi_hotplug_wq)
+-		INIT_WORK(&dpc->work, acpi_os_execute_deferred);
+-	else if (queue == kacpi_notify_wq)
+-		INIT_WORK(&dpc->work, acpi_os_execute_deferred);
+-	else
+-		INIT_WORK(&dpc->work, acpi_os_execute_deferred);
++	INIT_WORK(&dpc->work, acpi_os_execute_deferred);
+
+ 	/*
+ 	 * On some machines, a software-initiated SMI causes corruption unless
+
+
+-- 
+
+========================================================================
+Robert P. J. Day                                 Ottawa, Ontario, CANADA
+                        http://crashcourse.ca
+
+Twitter:                                       http://twitter.com/rpjday
+LinkedIn:                               http://ca.linkedin.com/in/rpjday
+========================================================================
