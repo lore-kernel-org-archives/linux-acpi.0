@@ -1,1176 +1,539 @@
-From: joeyli <jlee@suse.com>
-Subject: Re: Screen backlight problem on HP Folio 13-1050la
-Date: Mon, 22 Oct 2012 10:45:53 +0800
-Message-ID: <1350873953.30067.18.camel@linux-s257.site>
-References: <CAC=LiNNtQue1Pzy9RtY5OAsizkTVux1nnYxCHr86cBwiXnPRyA@mail.gmail.com>
-	 <CAC=LiNOSH_3wkKxS3VQxLR3vRgfZxNgKd-dKx55ZXS_KNFD0oQ@mail.gmail.com>
-	 <1350545537.29823.75.camel@linux-s257.site>
-	 <CAC=LiNNVLZGKk_s+TyoWQTFZX2cF5mgzqn3uf89Q=-M3RY8JWQ@mail.gmail.com>
-	 <CAC=LiNNCFLVN3U5rdN-9Uf45eRRa6zgkBfDfQ5RQJ-1SdLzhMw@mail.gmail.com>
+From: Wen Congyang <wency@cn.fujitsu.com>
+Subject: Re: [PATCH 8/10] memory-hotplug : remove page table of x86_64 architecture
+Date: Mon, 22 Oct 2012 15:11:17 +0800
+Message-ID: <5084F195.6030908@cn.fujitsu.com>
+References: <506E43E0.70507@jp.fujitsu.com> <506E4799.30407@jp.fujitsu.com> <5073DFC0.3010400@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.nue.novell.com ([195.135.221.5]:35344 "EHLO
-	smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932804Ab2JVCqP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 21 Oct 2012 22:46:15 -0400
-In-Reply-To: <CAC=LiNNCFLVN3U5rdN-9Uf45eRRa6zgkBfDfQ5RQJ-1SdLzhMw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <5073DFC0.3010400@gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: wujianguo <wujianguo106@gmail.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, cl@linux.com, minchan.kim@gmail.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, wujianguo@huawei.com, qiuxishi@huawei.com, jiang.liu@huawei.com
 List-Id: linux-acpi@vger.kernel.org
-To: Guillaume Pothier <gpothier@gmail.com>
-Cc: linux-acpi@vger.kernel.org, christopher.penalver@gmx.com
 
-Hi Guillaume,=20
+Hi, Wu
 
-If acpi_backlight=3Dvendor more stable workaround to your problem, then
-just feel at ease to use it.
+Sorry for late reply.
 
-The acpi/video driver will set the video device's backlight that binded
-with backlight device when S3/S4 resume, it should not happen
-_sometimes_ turned off after resume.
+At 10/09/2012 04:26 PM, wujianguo Wrote:
+> Hi Congyang,
+> 	I think we should also free pages which are used by page tables after removing
+> page tables of the memory.
 
-Does this issue also happen on when system running on console mode? I
-mean the X doesn't launched.
+It is OK to do it.
 
+> 
+> From: Jianguo Wu <wujianguo@huawei.com>
+> 
+> Signed-off-by: Jianguo Wu <wujianguo@huawei.com>
+> Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+> ---
+>  arch/x86/mm/init_64.c |  110 +++++++++++++++++++++++++++++++++++++++---------
+>  1 files changed, 89 insertions(+), 21 deletions(-)
+> 
+> diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
+> index 5596dfa..81f9c3b 100644
+> --- a/arch/x86/mm/init_64.c
+> +++ b/arch/x86/mm/init_64.c
+> @@ -675,6 +675,74 @@ int arch_add_memory(int nid, u64 start, u64 size)
+>  }
+>  EXPORT_SYMBOL_GPL(arch_add_memory);
+> 
+> +static inline void free_pagetable(struct page *page)
+> +{
+> +	struct zone *zone;
+> +
+> +	__ClearPageReserved(page);
+> +	__free_page(page);
+> +
+> +	zone = page_zone(page);
+> +	zone_span_writelock(zone);
+> +	zone->present_pages++;
+> +	zone_span_writeunlock(zone);
+> +	totalram_pages++;
 
-Thanks a lot!
-Joey Lele
+Why do you update zone and totalram_pages here?
 
-=E6=96=BC =E6=97=A5=EF=BC=8C2012-10-21 =E6=96=BC 20:42 -0300=EF=BC=8CGu=
-illaume Pothier =E6=8F=90=E5=88=B0=EF=BC=9A
-> Hi, just a quick update: the video.use_bios_initial_backlight=3D0
-> workaround has proven less stable than the acpi_backlight=3Dvendor on=
-e,
-> especially after a suspend/resume cycle (the backlight sometimes
-> starts turned off, and I have to use the gnome brightness settings to
-> turn it on).
-> Regards,
-> g
->=20
-> On 20 October 2012 13:17, Guillaume Pothier <gpothier@gmail.com> wrot=
-e:
-> > Hi, I replaced acpi_backlight=3Dvendor by
-> > video.use_bios_initial_backlight=3D0, works like a charm.
-> > Regards,
-> > g
-> >
-> > On 18 October 2012 04:32, joeyli <jlee@suse.com> wrote:
-> >> Hi Guillaume,
-> >>
-> >> =E6=96=BC =E4=B8=89=EF=BC=8C2012-10-17 =E6=96=BC 15:11 -0300=EF=BC=
-=8CGuillaume Pothier =E6=8F=90=E5=88=B0=EF=BC=9A
-> >>> [1.]
-> >>> Screen backlight problem on HP Folio 13-1050la
-> >>>
-> >>> [2.]
-> >>> On an HP Folio 13, the monitor's backlight is turned off on start=
-up. Going
-> >>> to the gnome brightness settings (using an external monitor) allo=
-ws to turn
-> >>> it on.
-> >>>
-> >>> WORKAROUND: Add a kernel parameter through grub's config to make =
-it work:
-> >>> acpi_backlight=3Dvendor
-> >>>
-> >>> See http://labo.eliaz.fr/spip.php?article94
-> >>>
-> >>
-> >> Please try 'video.use_bios_initial_backlight=3D0' kernel parameter=
-=2E
-> >>
-> >>
-> >> Thanks
-> >> Joey Lee
-> >>
-> >>>
-> >>> [3.]
-> >>> backlight, HP Folio 13
-> >>>
-> >>> [4.]
-> >>> Linux version 3.6.2-030602-generic (apw@gomeisa) (gcc version 4.6=
-=2E3
-> >>> (Ubuntu/Linaro 4.6.3-1ubuntu5) ) #201210121823 SMP Fri Oct 12 22:=
-24:18 UTC
-> >>> 2012
-> >>>
-> >>> [7.]
-> >>> Description: Ubuntu 12.10
-> >>> Release: 12.10
-> >>>
-> >>> [7.1.]
-> >>> Linux tadzim2 3.6.2-030602-generic #201210121823 SMP Fri Oct 12 2=
-2:24:18 UTC
-> >>> 2012 x86_64 x86_64 x86_64 GNU/Linux
-> >>>
-> >>> Gnu C                  4.7
-> >>> Gnu make               3.81
-> >>> binutils               2.22.90.20120924
-> >>> util-linux             2.20.1
-> >>> mount                  support
-> >>> module-init-tools      3.16
-> >>> e2fsprogs              1.42.5
-> >>> pcmciautils            018
-> >>> PPP                    2.4.5
-> >>> Linux C Library        2.15
-> >>> Dynamic linker (ldd)   2.15
-> >>> Procps                 3.3.3
-> >>> Net-tools              1.60
-> >>> Kbd                    1.15.3
-> >>> Sh-utils               8.13
-> >>> wireless-tools         30
-> >>> Modules Loaded         hid_generic hidp snd_hda_codec_hdmi snd_hd=
-a_codec_idt
-> >>> joydev btusb uvcvideo videobuf2_core videodev videobuf2_vmalloc
-> >>> videobuf2_memops arc4 iwldvm hid_monterey mac80211 snd_hda_intel =
-rfcomm bnep
-> >>> snd_hda_codec bluetooth snd_hwdep hp_wmi usbhid hid sparse_keymap=
- snd_pcm
-> >>> parport_pc ppdev snd_seq_midi snd_rawmidi coretemp snd_seq_midi_e=
-vent
-> >>> kvm_intel snd_seq kvm i915 snd_timer ghash_clmulni_intel snd_seq_=
-device
-> >>> drm_kms_helper aesni_intel drm ablk_helper cryptd snd iwlwifi aes=
-_x86_64
-> >>> psmouse cfg80211 microcode rts_pstor serio_raw i2c_algo_bit mei s=
-oundcore
-> >>> snd_page_alloc r8169 lpc_ich sdhci_pci sdhci wmi mac_hid video lp=
- parport
-> >>>
-> >>> [7.2]
-> >>> processor : 0
-> >>> vendor_id : GenuineIntel
-> >>> cpu family : 6
-> >>> model : 42
-> >>> model name : Intel(R) Core(TM) i5-2467M CPU @ 1.60GHz
-> >>> stepping : 7
-> >>> microcode : 0x25
-> >>> cpu MHz : 800.000
-> >>> cache size : 3072 KB
-> >>> physical id : 0
-> >>> siblings : 4
-> >>> core id : 0
-> >>> cpu cores : 2
-> >>> apicid : 0
-> >>> initial apicid : 0
-> >>> fpu : yes
-> >>> fpu_exception : yes
-> >>> cpuid level : 13
-> >>> wp : yes
-> >>> flags : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca =
-cmov pat
-> >>> pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx =
-rdtscp lm
-> >>> constant_tsc arch_perfmon pebs bts rep_good nopl xtopology nonsto=
-p_tsc
-> >>> aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx est tm2 ssse3 =
-cx16 xtpr
-> >>> pdcm pcid sse4_1 sse4_2 x2apic popcnt tsc_deadline_timer aes xsav=
-e avx
-> >>> lahf_lm ida arat epb xsaveopt pln pts dtherm tpr_shadow vnmi flex=
-priority
-> >>> ept vpid
-> >>> bogomips : 3192.80
-> >>> clflush size : 64
-> >>> cache_alignment : 64
-> >>> address sizes : 36 bits physical, 48 bits virtual
-> >>> power management:
-> >>>
-> >>> processor : 1
-> >>> vendor_id : GenuineIntel
-> >>> cpu family : 6
-> >>> model : 42
-> >>> model name : Intel(R) Core(TM) i5-2467M CPU @ 1.60GHz
-> >>> stepping : 7
-> >>> microcode : 0x25
-> >>> cpu MHz : 800.000
-> >>> cache size : 3072 KB
-> >>> physical id : 0
-> >>> siblings : 4
-> >>> core id : 0
-> >>> cpu cores : 2
-> >>> apicid : 1
-> >>> initial apicid : 1
-> >>> fpu : yes
-> >>> fpu_exception : yes
-> >>> cpuid level : 13
-> >>> wp : yes
-> >>> flags : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca =
-cmov pat
-> >>> pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx =
-rdtscp lm
-> >>> constant_tsc arch_perfmon pebs bts rep_good nopl xtopology nonsto=
-p_tsc
-> >>> aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx est tm2 ssse3 =
-cx16 xtpr
-> >>> pdcm pcid sse4_1 sse4_2 x2apic popcnt tsc_deadline_timer aes xsav=
-e avx
-> >>> lahf_lm ida arat epb xsaveopt pln pts dtherm tpr_shadow vnmi flex=
-priority
-> >>> ept vpid
-> >>> bogomips : 3192.80
-> >>> clflush size : 64
-> >>> cache_alignment : 64
-> >>> address sizes : 36 bits physical, 48 bits virtual
-> >>> power management:
-> >>>
-> >>> processor : 2
-> >>> vendor_id : GenuineIntel
-> >>> cpu family : 6
-> >>> model : 42
-> >>> model name : Intel(R) Core(TM) i5-2467M CPU @ 1.60GHz
-> >>> stepping : 7
-> >>> microcode : 0x25
-> >>> cpu MHz : 800.000
-> >>> cache size : 3072 KB
-> >>> physical id : 0
-> >>> siblings : 4
-> >>> core id : 1
-> >>> cpu cores : 2
-> >>> apicid : 2
-> >>> initial apicid : 2
-> >>> fpu : yes
-> >>> fpu_exception : yes
-> >>> cpuid level : 13
-> >>> wp : yes
-> >>> flags : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca =
-cmov pat
-> >>> pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx =
-rdtscp lm
-> >>> constant_tsc arch_perfmon pebs bts rep_good nopl xtopology nonsto=
-p_tsc
-> >>> aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx est tm2 ssse3 =
-cx16 xtpr
-> >>> pdcm pcid sse4_1 sse4_2 x2apic popcnt tsc_deadline_timer aes xsav=
-e avx
-> >>> lahf_lm ida arat epb xsaveopt pln pts dtherm tpr_shadow vnmi flex=
-priority
-> >>> ept vpid
-> >>> bogomips : 3192.80
-> >>> clflush size : 64
-> >>> cache_alignment : 64
-> >>> address sizes : 36 bits physical, 48 bits virtual
-> >>> power management:
-> >>>
-> >>> processor : 3
-> >>> vendor_id : GenuineIntel
-> >>> cpu family : 6
-> >>> model : 42
-> >>> model name : Intel(R) Core(TM) i5-2467M CPU @ 1.60GHz
-> >>> stepping : 7
-> >>> microcode : 0x25
-> >>> cpu MHz : 1601.000
-> >>> cache size : 3072 KB
-> >>> physical id : 0
-> >>> siblings : 4
-> >>> core id : 1
-> >>> cpu cores : 2
-> >>> apicid : 3
-> >>> initial apicid : 3
-> >>> fpu : yes
-> >>> fpu_exception : yes
-> >>> cpuid level : 13
-> >>> wp : yes
-> >>> flags : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca =
-cmov pat
-> >>> pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx =
-rdtscp lm
-> >>> constant_tsc arch_perfmon pebs bts rep_good nopl xtopology nonsto=
-p_tsc
-> >>> aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx est tm2 ssse3 =
-cx16 xtpr
-> >>> pdcm pcid sse4_1 sse4_2 x2apic popcnt tsc_deadline_timer aes xsav=
-e avx
-> >>> lahf_lm ida arat epb xsaveopt pln pts dtherm tpr_shadow vnmi flex=
-priority
-> >>> ept vpid
-> >>> bogomips : 3192.80
-> >>> clflush size : 64
-> >>> cache_alignment : 64
-> >>> address sizes : 36 bits physical, 48 bits virtual
-> >>> power management:
-> >>>
-> >>>
-> >>> [7.3]
-> >>> hid_generic 12493 0 - Live 0x0000000000000000
-> >>> hidp 22562 1 - Live 0x0000000000000000
-> >>> snd_hda_codec_hdmi 32506 1 - Live 0x0000000000000000
-> >>> snd_hda_codec_idt 70773 1 - Live 0x0000000000000000
-> >>> joydev 17693 0 - Live 0x0000000000000000
-> >>> btusb 18291 0 - Live 0x0000000000000000
-> >>> uvcvideo 82212 0 - Live 0x0000000000000000
-> >>> videobuf2_core 36094 1 uvcvideo, Live 0x0000000000000000
-> >>> videodev 120715 2 uvcvideo,videobuf2_core, Live 0x000000000000000=
-0
-> >>> videobuf2_vmalloc 12860 1 uvcvideo, Live 0x0000000000000000
-> >>> videobuf2_memops 13368 1 videobuf2_vmalloc, Live 0x00000000000000=
-00
-> >>> arc4 12573 2 - Live 0x0000000000000000
-> >>> iwldvm 249157 0 - Live 0x0000000000000000
-> >>> hid_monterey 12667 0 - Live 0x0000000000000000
-> >>> mac80211 564631 1 iwldvm, Live 0x0000000000000000
-> >>> snd_hda_intel 34147 3 - Live 0x0000000000000000
-> >>> rfcomm 47922 12 - Live 0x0000000000000000
-> >>> bnep 18315 2 - Live 0x0000000000000000
-> >>> snd_hda_codec 135374 3 snd_hda_codec_hdmi,snd_hda_codec_idt,snd_h=
-da_intel,
-> >>> Live 0x0000000000000000
-> >>> bluetooth 218412 27 hidp,btusb,rfcomm,bnep, Live 0x00000000000000=
-00
-> >>> snd_hwdep 13668 1 snd_hda_codec, Live 0x0000000000000000
-> >>> hp_wmi 18092 0 - Live 0x0000000000000000
-> >>> usbhid 47307 0 - Live 0x0000000000000000
-> >>> hid 100612 4 hid_generic,hidp,hid_monterey,usbhid, Live 0x0000000=
-000000000
-> >>> sparse_keymap 13890 1 hp_wmi, Live 0x0000000000000000
-> >>> snd_pcm 97661 3 snd_hda_codec_hdmi,snd_hda_intel,snd_hda_codec, L=
-ive
-> >>> 0x0000000000000000
-> >>> parport_pc 32866 0 - Live 0x0000000000000000
-> >>> ppdev 17113 0 - Live 0x0000000000000000
-> >>> snd_seq_midi 13324 0 - Live 0x0000000000000000
-> >>> snd_rawmidi 30749 1 snd_seq_midi, Live 0x0000000000000000
-> >>> coretemp 13554 0 - Live 0x0000000000000000
-> >>> snd_seq_midi_event 14899 1 snd_seq_midi, Live 0x0000000000000000
-> >>> kvm_intel 137895 0 - Live 0x0000000000000000
-> >>> snd_seq 61897 2 snd_seq_midi,snd_seq_midi_event, Live 0x000000000=
-0000000
-> >>> kvm 437435 1 kvm_intel, Live 0x0000000000000000
-> >>> i915 550154 4 - Live 0x0000000000000000
-> >>> snd_timer 29989 2 snd_pcm,snd_seq, Live 0x0000000000000000
-> >>> ghash_clmulni_intel 13180 0 - Live 0x0000000000000000
-> >>> snd_seq_device 14497 3 snd_seq_midi,snd_rawmidi,snd_seq, Live
-> >>> 0x0000000000000000
-> >>> drm_kms_helper 46931 1 i915, Live 0x0000000000000000
-> >>> aesni_intel 50947 2 - Live 0x0000000000000000
-> >>> drm 277074 5 i915,drm_kms_helper, Live 0x0000000000000000
-> >>> ablk_helper 13597 1 aesni_intel, Live 0x0000000000000000
-> >>> cryptd 20530 3 ghash_clmulni_intel,aesni_intel,ablk_helper, Live
-> >>> 0x0000000000000000
-> >>> snd 79391 16
-> >>> snd_hda_codec_hdmi,snd_hda_codec_idt,snd_hda_intel,snd_hda_codec,=
-snd_hwdep,snd_pcm,snd_rawmidi,snd_seq,snd_timer,snd_seq_device,
-> >>> Live 0x0000000000000000
-> >>> iwlwifi 167779 1 iwldvm, Live 0x0000000000000000
-> >>> aes_x86_64 17208 1 aesni_intel, Live 0x0000000000000000
-> >>> psmouse 92362 0 - Live 0x0000000000000000
-> >>> cfg80211 212917 3 iwldvm,mac80211,iwlwifi, Live 0x000000000000000=
-0
-> >>> microcode 23040 0 - Live 0x0000000000000000
-> >>> rts_pstor 445272 0 - Live 0x0000000000000000 (C)
-> >>> serio_raw 13215 0 - Live 0x0000000000000000
-> >>> i2c_algo_bit 13564 1 i915, Live 0x0000000000000000
-> >>> mei 41409 0 - Live 0x0000000000000000
-> >>> soundcore 15091 1 snd, Live 0x0000000000000000
-> >>> snd_page_alloc 18572 2 snd_hda_intel,snd_pcm, Live 0x000000000000=
-0000
-> >>> r8169 68885 0 - Live 0x0000000000000000
-> >>> lpc_ich 17144 0 - Live 0x0000000000000000
-> >>> sdhci_pci 18748 0 - Live 0x0000000000000000
-> >>> sdhci 33144 1 sdhci_pci, Live 0x0000000000000000
-> >>> wmi 19256 1 hp_wmi, Live 0x0000000000000000
-> >>> mac_hid 13253 0 - Live 0x0000000000000000
-> >>> video 19412 1 i915, Live 0x0000000000000000
-> >>> lp 17799 0 - Live 0x0000000000000000
-> >>> parport 46562 3 parport_pc,ppdev,lp, Live 0x0000000000000000
-> >>>
-> >>> [7.4]
-> >>> gpothier@tadzim2:~$ cat /proc/ioports
-> >>> 0000-0cf7 : PCI Bus 0000:00
-> >>>   0000-001f : dma1
-> >>>   0020-0021 : pic1
-> >>>   0040-0043 : timer0
-> >>>   0050-0053 : timer1
-> >>>   0060-0060 : keyboard
-> >>>   0062-0062 : EC data
-> >>>   0064-0064 : keyboard
-> >>>   0066-0066 : EC cmd
-> >>>   0070-0077 : rtc0
-> >>>   0080-008f : dma page reg
-> >>>   00a0-00a1 : pic2
-> >>>   00c0-00df : dma2
-> >>>   00f0-00ff : fpu
-> >>>   0400-0403 : ACPI PM1a_EVT_BLK
-> >>>   0404-0405 : ACPI PM1a_CNT_BLK
-> >>>   0408-040b : ACPI PM_TMR
-> >>>   0410-0415 : ACPI CPU throttle
-> >>>   0420-042f : ACPI GPE0_BLK
-> >>>   0430-0433 : iTCO_wdt
-> >>>   0450-0450 : ACPI PM2_CNT_BLK
-> >>>   0460-047f : iTCO_wdt
-> >>> 0cf8-0cff : PCI conf1
-> >>> 0d00-ffff : PCI Bus 0000:00
-> >>>   2000-2fff : PCI Bus 0000:03
-> >>>   3000-3fff : PCI Bus 0000:01
-> >>>     3000-30ff : 0000:01:00.0
-> >>>       3000-30ff : r8169
-> >>>   4000-403f : 0000:00:02.0
-> >>>   4040-405f : 0000:00:1f.3
-> >>>   4060-407f : 0000:00:1f.2
-> >>>     4060-407f : ahci
-> >>>   4080-4087 : 0000:00:1f.2
-> >>>     4080-4087 : ahci
-> >>>   4088-408f : 0000:00:1f.2
-> >>>     4088-408f : ahci
-> >>>   4090-4093 : 0000:00:1f.2
-> >>>     4090-4093 : ahci
-> >>>   4094-4097 : 0000:00:1f.2
-> >>>     4094-4097 : ahci
-> >>> gpothier@tadzim2:~$ cat /proc/iomem
-> >>> 00000000-0000ffff : reserved
-> >>> 00010000-0009d7ff : System RAM
-> >>> 0009d800-0009ffff : reserved
-> >>> 000a0000-000bffff : PCI Bus 0000:00
-> >>>   000a6d60-000b4d5f : efifb
-> >>> 000c0000-000cf1ff : Video ROM
-> >>> 000e0000-000fffff : reserved
-> >>>   000f0000-000fffff : System ROM
-> >>> 00100000-aa86cfff : System RAM
-> >>>   01000000-016ab6aa : Kernel code
-> >>>   016ab6ab-01ce033f : Kernel data
-> >>>   01dd7000-01f31fff : Kernel bss
-> >>> aa86d000-aaa97fff : reserved
-> >>> aaa98000-acdd8fff : System RAM
-> >>> acdd9000-ace1afff : reserved
-> >>> ace1b000-ace3efff : System RAM
-> >>> ace3f000-acebefff : reserved
-> >>> acebf000-acfbefff : ACPI Non-volatile Storage
-> >>> acfbf000-acffefff : ACPI Tables
-> >>> acfff000-acffffff : System RAM
-> >>> ad000000-af9fffff : reserved
-> >>> afa00000-feafffff : PCI Bus 0000:00
-> >>>   afa00000-afa00fff : pnp 00:07
-> >>>   b0000000-bfffffff : 0000:00:02.0
-> >>>   c0000000-c03fffff : 0000:00:02.0
-> >>>   c0400000-c04fffff : PCI Bus 0000:01
-> >>>     c0400000-c0403fff : 0000:01:00.0
-> >>>       c0400000-c0403fff : r8169
-> >>>     c0404000-c0404fff : 0000:01:00.0
-> >>>       c0404000-c0404fff : r8169
-> >>>   c0500000-c14fffff : PCI Bus 0000:03
-> >>>   c1500000-c15fffff : PCI Bus 0000:09
-> >>>     c1500000-c150ffff : 0000:09:00.0
-> >>>       c1500000-c150ffff : xhci_hcd
-> >>>     c1510000-c1510fff : 0000:09:00.0
-> >>>     c1511000-c1511fff : 0000:09:00.0
-> >>>   c1600000-c25fffff : PCI Bus 0000:03
-> >>>     c1600000-c16000ff : 0000:03:00.1
-> >>>       c1600000-c16000ff : mmc0
-> >>>     c1601000-c1601fff : 0000:03:00.0
-> >>>       c1601000-c1601fff : rts_pstor
-> >>>   c2600000-c26fffff : PCI Bus 0000:02
-> >>>     c2600000-c2601fff : 0000:02:00.0
-> >>>       c2600000-c2601fff : iwlwifi
-> >>>   c2700000-c2703fff : 0000:00:1b.0
-> >>>     c2700000-c2703fff : ICH HD audio
-> >>>   c2704000-c270400f : 0000:00:16.0
-> >>>     c2704000-c270400f : mei
-> >>>   c2705000-c27050ff : 0000:00:1f.3
-> >>>   c2707000-c27077ff : 0000:00:1f.2
-> >>>     c2707000-c27077ff : ahci
-> >>>   c2708000-c27083ff : 0000:00:1d.0
-> >>>     c2708000-c27083ff : ehci_hcd
-> >>>   c2709000-c27093ff : 0000:00:1a.0
-> >>>     c2709000-c27093ff : ehci_hcd
-> >>>   e0000000-efffffff : PCI MMCONFIG 0000 [bus 00-ff]
-> >>>     e0000000-efffffff : reserved
-> >>>       e0000000-efffffff : pnp 00:07
-> >>> feb00000-feb03fff : reserved
-> >>> fec00000-fec00fff : reserved
-> >>>   fec00000-fec003ff : IOAPIC 0
-> >>> fed00000-fed003ff : HPET 0
-> >>> fed10000-fed19fff : reserved
-> >>>   fed10000-fed17fff : pnp 00:07
-> >>>   fed18000-fed18fff : pnp 00:07
-> >>>   fed19000-fed19fff : pnp 00:07
-> >>> fed1c000-fed1ffff : reserved
-> >>>   fed1c000-fed1ffff : pnp 00:07
-> >>>     fed1f410-fed1f414 : iTCO_wdt
-> >>> fed20000-fed3ffff : pnp 00:07
-> >>> fed90000-fed93fff : pnp 00:07
-> >>> fee00000-fee00fff : Local APIC
-> >>>   fee00000-fee00fff : reserved
-> >>> ffd80000-ffffffff : reserved
-> >>> 100000000-14fdfffff : System RAM
-> >>> 14fe00000-14fffffff : RAM buffer
-> >>>
-> >>> [7.5]
-> >>>
-> >>> 00:1c.3 PCI bridge: Intel Corporation 6 Series/C200 Series Chipse=
-t Family
-> >>> PCI Express Root Port 4 (rev b4) (prog-if 00 [Normal decode])
-> >>> Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParEr=
-r-
-> >>> Stepping- SERR- FastB2B- DisINTx-
-> >>> Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=3Dfast >TAbort+ =
-<TAbort-
-> >>> <MAbort- >SERR- <PERR- INTx-
-> >>> Latency: 0, Cache Line Size: 64 bytes
-> >>> Bus: primary=3D00, secondary=3D03, subordinate=3D08, sec-latency=3D=
-0
-> >>> I/O behind bridge: 00002000-00002fff
-> >>> Memory behind bridge: c1600000-c25fffff
-> >>> Prefetchable memory behind bridge: 00000000c0500000-00000000c14ff=
-fff
-> >>> Secondary status: 66MHz- FastB2B- ParErr- DEVSEL=3Dfast >TAbort- =
-<TAbort-
-> >>> <MAbort- <SERR- <PERR-
-> >>> BridgeCtl: Parity- SERR- NoISA- VGA- MAbort- >Reset- FastB2B-
-> >>> PriDiscTmr- SecDiscTmr- DiscTmrStat- DiscTmrSERREn-
-> >>> Capabilities: [40] Express (v2) Root Port (Slot+), MSI 00
-> >>> DevCap: MaxPayload 128 bytes, PhantFunc 0, Latency L0s <64ns, L1 =
-<1us
-> >>> ExtTag- RBE+ FLReset-
-> >>> DevCtl: Report errors: Correctable- Non-Fatal- Fatal- Unsupported=
--
-> >>> RlxdOrd- ExtTag- PhantFunc- AuxPwr- NoSnoop-
-> >>> MaxPayload 128 bytes, MaxReadReq 128 bytes
-> >>> DevSta: CorrErr+ UncorrErr+ FatalErr- UnsuppReq- AuxPwr+ TransPen=
-d-
-> >>> LnkCap: Port #4, Speed 5GT/s, Width x1, ASPM L0s L1, Latency L0 <=
-512ns, L1
-> >>> <16us
-> >>> ClockPM- Surprise- LLActRep+ BwNot-
-> >>> LnkCtl: ASPM Disabled; RCB 64 bytes Disabled- Retrain- CommClk+
-> >>> ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
-> >>> LnkSta: Speed 2.5GT/s, Width x1, TrErr- Train- SlotClk+ DLActive+=
- BWMgmt+
-> >>> ABWMgmt-
-> >>> SltCap: AttnBtn- PwrCtrl- MRL- AttnInd- PwrInd- HotPlug+ Surprise=
-+
-> >>> Slot #3, PowerLimit 10.000W; Interlock- NoCompl+
-> >>> SltCtl: Enable: AttnBtn- PwrFlt- MRL- PresDet+ CmdCplt- HPIrq- Li=
-nkChg-
-> >>> Control: AttnInd Unknown, PwrInd Unknown, Power- Interlock-
-> >>> SltSta: Status: AttnBtn- PowerFlt- MRL- CmdCplt- PresDet+ Interlo=
-ck-
-> >>> Changed: MRL- PresDet- LinkState-
-> >>> RootCtl: ErrCorrectable- ErrNon-Fatal- ErrFatal- PMEIntEna- CRSVi=
-sible-
-> >>> RootCap: CRSVisible-
-> >>> RootSta: PME ReqID 0000, PMEStatus- PMEPending-
-> >>> DevCap2: Completion Timeout: Range BC, TimeoutDis+ ARIFwd-
-> >>> DevCtl2: Completion Timeout: 50us to 50ms, TimeoutDis- ARIFwd-
-> >>> LnkCtl2: Target Link Speed: 5GT/s, EnterCompliance- SpeedDis-, Se=
-lectable
-> >>> De-emphasis: -6dB
-> >>> Transmit Margin: Normal Operating Range, EnterModifiedCompliance-
-> >>> ComplianceSOS-
-> >>> Compliance De-emphasis: -6dB
-> >>> LnkSta2: Current De-emphasis Level: -3.5dB, EqualizationComplete-=
-,
-> >>> EqualizationPhase1-
-> >>> EqualizationPhase2-, EqualizationPhase3-, LinkEqualizationRequest=
--
-> >>> Capabilities: [80] MSI: Enable- Count=3D1/1 Maskable- 64bit-
-> >>> Address: 00000000  Data: 0000
-> >>> Capabilities: [90] Subsystem: Hewlett-Packard Company Device 17f8
-> >>> Capabilities: [a0] Power Management version 2
-> >>> Flags: PMEClk- DSI- D1- D2- AuxCurrent=3D0mA PME(D0+,D1-,D2-,D3ho=
-t+,D3cold+)
-> >>> Status: D0 NoSoftRst- PME-Enable- DSel=3D0 DScale=3D0 PME-
-> >>> Kernel driver in use: pcieport
-> >>> Kernel modules: shpchp
-> >>>
-> >>> 00:1c.4 PCI bridge: Intel Corporation 6 Series/C200 Series Chipse=
-t Family
-> >>> PCI Express Root Port 5 (rev b4) (prog-if 00 [Normal decode])
-> >>> Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParEr=
-r-
-> >>> Stepping- SERR- FastB2B- DisINTx-
-> >>> Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=3Dfast >TAbort- =
-<TAbort-
-> >>> <MAbort- >SERR- <PERR- INTx-
-> >>> Latency: 0, Cache Line Size: 64 bytes
-> >>> Bus: primary=3D00, secondary=3D09, subordinate=3D09, sec-latency=3D=
-0
-> >>> I/O behind bridge: 0000f000-00000fff
-> >>> Memory behind bridge: c1500000-c15fffff
-> >>> Prefetchable memory behind bridge: 00000000fff00000-00000000000ff=
-fff
-> >>> Secondary status: 66MHz- FastB2B- ParErr- DEVSEL=3Dfast >TAbort- =
-<TAbort-
-> >>> <MAbort+ <SERR- <PERR-
-> >>> BridgeCtl: Parity- SERR- NoISA- VGA- MAbort- >Reset- FastB2B-
-> >>> PriDiscTmr- SecDiscTmr- DiscTmrStat- DiscTmrSERREn-
-> >>> Capabilities: [40] Express (v2) Root Port (Slot+), MSI 00
-> >>> DevCap: MaxPayload 128 bytes, PhantFunc 0, Latency L0s <64ns, L1 =
-<1us
-> >>> ExtTag- RBE+ FLReset-
-> >>> DevCtl: Report errors: Correctable- Non-Fatal- Fatal- Unsupported=
--
-> >>> RlxdOrd- ExtTag- PhantFunc- AuxPwr- NoSnoop-
-> >>> MaxPayload 128 bytes, MaxReadReq 128 bytes
-> >>> DevSta: CorrErr- UncorrErr- FatalErr- UnsuppReq- AuxPwr+ TransPen=
-d-
-> >>> LnkCap: Port #5, Speed 5GT/s, Width x1, ASPM L0s L1, Latency L0 <=
-512ns, L1
-> >>> <16us
-> >>> ClockPM- Surprise- LLActRep+ BwNot-
-> >>> LnkCtl: ASPM L0s L1 Enabled; RCB 64 bytes Disabled- Retrain- Comm=
-Clk+
-> >>> ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
-> >>> LnkSta: Speed 5GT/s, Width x1, TrErr- Train- SlotClk+ DLActive+ B=
-WMgmt+
-> >>> ABWMgmt-
-> >>> SltCap: AttnBtn- PwrCtrl- MRL- AttnInd- PwrInd- HotPlug- Surprise=
--
-> >>> Slot #4, PowerLimit 10.000W; Interlock- NoCompl+
-> >>> SltCtl: Enable: AttnBtn- PwrFlt- MRL- PresDet- CmdCplt- HPIrq- Li=
-nkChg-
-> >>> Control: AttnInd Unknown, PwrInd Unknown, Power- Interlock-
-> >>> SltSta: Status: AttnBtn- PowerFlt- MRL- CmdCplt- PresDet+ Interlo=
-ck-
-> >>> Changed: MRL- PresDet- LinkState+
-> >>> RootCtl: ErrCorrectable- ErrNon-Fatal- ErrFatal- PMEIntEna- CRSVi=
-sible-
-> >>> RootCap: CRSVisible-
-> >>> RootSta: PME ReqID 0000, PMEStatus- PMEPending-
-> >>> DevCap2: Completion Timeout: Range BC, TimeoutDis+ ARIFwd-
-> >>> DevCtl2: Completion Timeout: 50us to 50ms, TimeoutDis- ARIFwd-
-> >>> LnkCtl2: Target Link Speed: 5GT/s, EnterCompliance- SpeedDis-, Se=
-lectable
-> >>> De-emphasis: -6dB
-> >>> Transmit Margin: Normal Operating Range, EnterModifiedCompliance-
-> >>> ComplianceSOS-
-> >>> Compliance De-emphasis: -6dB
-> >>> LnkSta2: Current De-emphasis Level: -6dB, EqualizationComplete-,
-> >>> EqualizationPhase1-
-> >>> EqualizationPhase2-, EqualizationPhase3-, LinkEqualizationRequest=
--
-> >>> Capabilities: [80] MSI: Enable- Count=3D1/1 Maskable- 64bit-
-> >>> Address: 00000000  Data: 0000
-> >>> Capabilities: [90] Subsystem: Hewlett-Packard Company Device 17f8
-> >>> Capabilities: [a0] Power Management version 2
-> >>> Flags: PMEClk- DSI- D1- D2- AuxCurrent=3D0mA PME(D0+,D1-,D2-,D3ho=
-t+,D3cold+)
-> >>> Status: D0 NoSoftRst- PME-Enable- DSel=3D0 DScale=3D0 PME-
-> >>> Kernel driver in use: pcieport
-> >>> Kernel modules: shpchp
-> >>>
-> >>> 00:1d.0 USB controller: Intel Corporation 6 Series/C200 Series Ch=
-ipset
-> >>> Family USB Enhanced Host Controller #1 (rev 04) (prog-if 20 [EHCI=
-])
-> >>> Subsystem: Hewlett-Packard Company Device 17f8
-> >>> Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParEr=
-r-
-> >>> Stepping- SERR- FastB2B- DisINTx-
-> >>> Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium >TAbort=
-- <TAbort-
-> >>> <MAbort- >SERR- <PERR- INTx-
-> >>> Latency: 0
-> >>> Interrupt: pin A routed to IRQ 23
-> >>> Region 0: Memory at c2708000 (32-bit, non-prefetchable) [size=3D1=
-K]
-> >>> Capabilities: [50] Power Management version 2
-> >>> Flags: PMEClk- DSI- D1- D2- AuxCurrent=3D375mA PME(D0+,D1-,D2-,D3=
-hot+,D3cold+)
-> >>> Status: D0 NoSoftRst- PME-Enable- DSel=3D0 DScale=3D0 PME-
-> >>> Capabilities: [58] Debug port: BAR=3D1 offset=3D00a0
-> >>> Capabilities: [98] PCI Advanced Features
-> >>> AFCap: TP+ FLR+
-> >>> AFCtrl: FLR-
-> >>> AFStatus: TP-
-> >>> Kernel driver in use: ehci_hcd
-> >>>
-> >>> 00:1f.0 ISA bridge: Intel Corporation HM65 Express Chipset Family=
- LPC
-> >>> Controller (rev 04)
-> >>> Subsystem: Hewlett-Packard Company Device 17f8
-> >>> Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParEr=
-r-
-> >>> Stepping- SERR- FastB2B- DisINTx-
-> >>> Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=3Dmedium >TAbort=
-- <TAbort-
-> >>> <MAbort- >SERR- <PERR- INTx-
-> >>> Latency: 0
-> >>> Capabilities: [e0] Vendor Specific Information: Len=3D0c <?>
-> >>> Kernel driver in use: lpc_ich
-> >>> Kernel modules: lpc_ich
-> >>>
-> >>> 00:1f.2 SATA controller: Intel Corporation 6 Series/C200 Series C=
-hipset
-> >>> Family 6 port SATA AHCI Controller (rev 04) (prog-if 01 [AHCI 1.0=
-])
-> >>> Subsystem: Hewlett-Packard Company Device 17f8
-> >>> Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParEr=
-r-
-> >>> Stepping- SERR- FastB2B- DisINTx+
-> >>> Status: Cap+ 66MHz+ UDF- FastB2B+ ParErr- DEVSEL=3Dmedium >TAbort=
-- <TAbort-
-> >>> <MAbort- >SERR- <PERR- INTx-
-> >>> Latency: 0
-> >>> Interrupt: pin B routed to IRQ 40
-> >>> Region 0: I/O ports at 4088 [size=3D8]
-> >>> Region 1: I/O ports at 4094 [size=3D4]
-> >>> Region 2: I/O ports at 4080 [size=3D8]
-> >>> Region 3: I/O ports at 4090 [size=3D4]
-> >>> Region 4: I/O ports at 4060 [size=3D32]
-> >>> Region 5: Memory at c2707000 (32-bit, non-prefetchable) [size=3D2=
-K]
-> >>> Capabilities: [80] MSI: Enable+ Count=3D1/1 Maskable- 64bit-
-> >>> Address: fee0300c  Data: 4191
-> >>> Capabilities: [70] Power Management version 3
-> >>> Flags: PMEClk- DSI- D1- D2- AuxCurrent=3D0mA PME(D0-,D1-,D2-,D3ho=
-t+,D3cold-)
-> >>> Status: D0 NoSoftRst+ PME-Enable- DSel=3D0 DScale=3D0 PME-
-> >>> Capabilities: [a8] SATA HBA v1.0 BAR4 Offset=3D00000004
-> >>> Capabilities: [b0] PCI Advanced Features
-> >>> AFCap: TP+ FLR+
-> >>> AFCtrl: FLR-
-> >>> AFStatus: TP-
-> >>> Kernel driver in use: ahci
-> >>>
-> >>> 00:1f.3 SMBus: Intel Corporation 6 Series/C200 Series Chipset Fam=
-ily SMBus
-> >>> Controller (rev 04)
-> >>> Subsystem: Hewlett-Packard Company Device 17f8
-> >>> Control: I/O+ Mem+ BusMaster- SpecCycle- MemWINV- VGASnoop- ParEr=
-r-
-> >>> Stepping- SERR- FastB2B- DisINTx-
-> >>> Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium >TAbort=
-- <TAbort-
-> >>> <MAbort- >SERR- <PERR- INTx-
-> >>> Interrupt: pin C routed to IRQ 10
-> >>> Region 0: Memory at c2705000 (64-bit, non-prefetchable) [size=3D2=
-56]
-> >>> Region 4: I/O ports at 4040 [size=3D32]
-> >>> Kernel modules: i2c-i801
-> >>>
-> >>> 01:00.0 Ethernet controller: Realtek Semiconductor Co., Ltd. RTL8=
-111/8168B
-> >>> PCI Express Gigabit Ethernet controller (rev 06)
-> >>> Subsystem: Hewlett-Packard Company Device 17f8
-> >>> Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParEr=
-r-
-> >>> Stepping- SERR- FastB2B- DisINTx+
-> >>> Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=3Dfast >TAbort- =
-<TAbort-
-> >>> <MAbort- >SERR- <PERR- INTx-
-> >>> Latency: 0, Cache Line Size: 64 bytes
-> >>> Interrupt: pin A routed to IRQ 46
-> >>> Region 0: I/O ports at 3000 [size=3D256]
-> >>> Region 2: Memory at c0404000 (64-bit, prefetchable) [size=3D4K]
-> >>> Region 4: Memory at c0400000 (64-bit, prefetchable) [size=3D16K]
-> >>> Capabilities: [40] Power Management version 3
-> >>> Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=3D375mA PME(D0+,D1+,D2+,D3=
-hot+,D3cold+)
-> >>> Status: D0 NoSoftRst+ PME-Enable- DSel=3D0 DScale=3D0 PME-
-> >>> Capabilities: [50] MSI: Enable+ Count=3D1/1 Maskable- 64bit+
-> >>> Address: 00000000fee0f00c  Data: 4122
-> >>> Capabilities: [70] Express (v2) Endpoint, MSI 01
-> >>> DevCap: MaxPayload 128 bytes, PhantFunc 0, Latency L0s <512ns, L1=
- <64us
-> >>> ExtTag- AttnBtn- AttnInd- PwrInd- RBE+ FLReset-
-> >>> DevCtl: Report errors: Correctable- Non-Fatal- Fatal- Unsupported=
--
-> >>> RlxdOrd+ ExtTag- PhantFunc- AuxPwr- NoSnoop-
-> >>> MaxPayload 128 bytes, MaxReadReq 4096 bytes
-> >>> DevSta: CorrErr+ UncorrErr- FatalErr- UnsuppReq+ AuxPwr+ TransPen=
-d-
-> >>> LnkCap: Port #0, Speed 2.5GT/s, Width x1, ASPM L0s L1, Latency L0=
- unlimited,
-> >>> L1 <64us
-> >>> ClockPM+ Surprise- LLActRep- BwNot-
-> >>> LnkCtl: ASPM L0s L1 Enabled; RCB 64 bytes Disabled- Retrain- Comm=
-Clk+
-> >>> ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
-> >>> LnkSta: Speed 2.5GT/s, Width x1, TrErr- Train- SlotClk+ DLActive-=
- BWMgmt-
-> >>> ABWMgmt-
-> >>> DevCap2: Completion Timeout: Range ABCD, TimeoutDis+
-> >>> DevCtl2: Completion Timeout: 50us to 50ms, TimeoutDis-
-> >>> LnkCtl2: Target Link Speed: 2.5GT/s, EnterCompliance- SpeedDis-, =
-Selectable
-> >>> De-emphasis: -6dB
-> >>> Transmit Margin: Normal Operating Range, EnterModifiedCompliance-
-> >>> ComplianceSOS-
-> >>> Compliance De-emphasis: -6dB
-> >>> LnkSta2: Current De-emphasis Level: -6dB, EqualizationComplete-,
-> >>> EqualizationPhase1-
-> >>> EqualizationPhase2-, EqualizationPhase3-, LinkEqualizationRequest=
--
-> >>> Capabilities: [b0] MSI-X: Enable- Count=3D4 Masked-
-> >>> Vector table: BAR=3D4 offset=3D00000000
-> >>> PBA: BAR=3D4 offset=3D00000800
-> >>> Capabilities: [d0] Vital Product Data
-> >>> No end tag found
-> >>> Capabilities: [100 v1] Advanced Error Reporting
-> >>> UESta: DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt- UnxCmplt- RxOF- M=
-alfTLP-
-> >>> ECRC- UnsupReq+ ACSViol-
-> >>> UEMsk: DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt- UnxCmplt- RxOF- M=
-alfTLP-
-> >>> ECRC- UnsupReq- ACSViol-
-> >>> UESvrt: DLP+ SDES+ TLP- FCP+ CmpltTO- CmpltAbrt- UnxCmplt- RxOF+ =
-MalfTLP+
-> >>> ECRC- UnsupReq- ACSViol-
-> >>> CESta: RxErr- BadTLP- BadDLLP- Rollover- Timeout- NonFatalErr+
-> >>> CEMsk: RxErr- BadTLP- BadDLLP- Rollover- Timeout- NonFatalErr+
-> >>> AERCap: First Error Pointer: 14, GenCap+ CGenEn- ChkCap+ ChkEn-
-> >>> Capabilities: [140 v1] Virtual Channel
-> >>> Caps: LPEVC=3D0 RefClk=3D100ns PATEntryBits=3D1
-> >>> Arb: Fixed- WRR32- WRR64- WRR128-
-> >>> Ctrl: ArbSelect=3DFixed
-> >>> Status: InProgress-
-> >>> VC0: Caps: PATOffset=3D00 MaxTimeSlots=3D1 RejSnoopTrans-
-> >>> Arb: Fixed- WRR32- WRR64- WRR128- TWRR128- WRR256-
-> >>> Ctrl: Enable+ ID=3D0 ArbSelect=3DFixed TC/VC=3Dff
-> >>> Status: NegoPending- InProgress-
-> >>> Capabilities: [160 v1] Device Serial Number 95-00-00-00-68-4c-e0-=
-00
-> >>> Kernel driver in use: r8169
-> >>> Kernel modules: r8169
-> >>>
-> >>> 02:00.0 Network controller: Intel Corporation Centrino Wireless-N=
- 1030 (rev
-> >>> 34)
-> >>> Subsystem: Intel Corporation Centrino Wireless-N 1030 BGN
-> >>> Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParEr=
-r-
-> >>> Stepping- SERR- FastB2B- DisINTx-
-> >>> Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=3Dfast >TAbort- =
-<TAbort-
-> >>> <MAbort- >SERR- <PERR- INTx-
-> >>> Latency: 0, Cache Line Size: 64 bytes
-> >>> Interrupt: pin A routed to IRQ 48
-> >>> Region 0: Memory at c2600000 (64-bit, non-prefetchable) [size=3D8=
-K]
-> >>> Capabilities: [c8] Power Management version 3
-> >>> Flags: PMEClk- DSI+ D1- D2- AuxCurrent=3D0mA PME(D0+,D1-,D2-,D3ho=
-t+,D3cold+)
-> >>> Status: D0 NoSoftRst- PME-Enable- DSel=3D0 DScale=3D0 PME-
-> >>> Capabilities: [d0] MSI: Enable+ Count=3D1/1 Maskable- 64bit+
-> >>> Address: 00000000fee0100c  Data: 4152
-> >>> Capabilities: [e0] Express (v1) Endpoint, MSI 00
-> >>> DevCap: MaxPayload 128 bytes, PhantFunc 0, Latency L0s <512ns, L1=
- unlimited
-> >>> ExtTag- AttnBtn- AttnInd- PwrInd- RBE+ FLReset+
-> >>> DevCtl: Report errors: Correctable- Non-Fatal- Fatal- Unsupported=
--
-> >>> RlxdOrd+ ExtTag- PhantFunc- AuxPwr- NoSnoop+ FLReset-
-> >>> MaxPayload 128 bytes, MaxReadReq 128 bytes
-> >>> DevSta: CorrErr+ UncorrErr- FatalErr- UnsuppReq+ AuxPwr+ TransPen=
-d-
-> >>> LnkCap: Port #0, Speed 2.5GT/s, Width x1, ASPM L0s L1, Latency L0=
- <4us, L1
-> >>> <32us
-> >>> ClockPM+ Surprise- LLActRep- BwNot-
-> >>> LnkCtl: ASPM L0s L1 Enabled; RCB 64 bytes Disabled- Retrain- Comm=
-Clk+
-> >>> ExtSynch- ClockPM+ AutWidDis- BWInt- AutBWInt-
-> >>> LnkSta: Speed 2.5GT/s, Width x1, TrErr- Train- SlotClk+ DLActive-=
- BWMgmt-
-> >>> ABWMgmt-
-> >>> Capabilities: [100 v1] Advanced Error Reporting
-> >>> UESta: DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt- UnxCmplt- RxOF- M=
-alfTLP-
-> >>> ECRC- UnsupReq- ACSViol-
-> >>> UEMsk: DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt- UnxCmplt- RxOF- M=
-alfTLP-
-> >>> ECRC- UnsupReq- ACSViol-
-> >>> UESvrt: DLP+ SDES- TLP- FCP+ CmpltTO- CmpltAbrt- UnxCmplt- RxOF+ =
-MalfTLP+
-> >>> ECRC- UnsupReq- ACSViol-
-> >>> CESta: RxErr- BadTLP- BadDLLP- Rollover- Timeout- NonFatalErr+
-> >>> CEMsk: RxErr- BadTLP- BadDLLP- Rollover- Timeout- NonFatalErr+
-> >>> AERCap: First Error Pointer: 00, GenCap- CGenEn- ChkCap- ChkEn-
-> >>> Capabilities: [140 v1] Device Serial Number 4c-eb-42-ff-ff-9d-d5-=
-d2
-> >>> Kernel driver in use: iwlwifi
-> >>> Kernel modules: iwlwifi
-> >>>
-> >>> 03:00.0 Unassigned class [ff00]: Realtek Semiconductor Co., Ltd. =
-RTS5209 PCI
-> >>> Express Card Reader (rev 01)
-> >>> Subsystem: Realtek Semiconductor Co., Ltd. RTS5209 PCI Express Ca=
-rd Reader
-> >>> Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParEr=
-r-
-> >>> Stepping- SERR- FastB2B- DisINTx-
-> >>> Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=3Dfast >TAbort- =
-<TAbort-
-> >>> <MAbort- >SERR- <PERR- INTx-
-> >>> Latency: 0, Cache Line Size: 64 bytes
-> >>> Interrupt: pin A routed to IRQ 19
-> >>> Region 0: Memory at c1601000 (32-bit, non-prefetchable) [size=3D4=
-K]
-> >>> Capabilities: [40] Power Management version 3
-> >>> Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=3D375mA PME(D0-,D1+,D2+,D3=
-hot+,D3cold-)
-> >>> Status: D0 NoSoftRst- PME-Enable- DSel=3D0 DScale=3D0 PME-
-> >>> Capabilities: [50] MSI: Enable- Count=3D1/1 Maskable- 64bit+
-> >>> Address: 0000000000000000  Data: 0000
-> >>> Capabilities: [70] Express (v2) Endpoint, MSI 00
-> >>> DevCap: MaxPayload 128 bytes, PhantFunc 0, Latency L0s <1us, L1 <=
-8us
-> >>> ExtTag- AttnBtn- AttnInd- PwrInd- RBE+ FLReset-
-> >>> DevCtl: Report errors: Correctable- Non-Fatal- Fatal- Unsupported=
--
-> >>> RlxdOrd+ ExtTag- PhantFunc- AuxPwr- NoSnoop-
-> >>> MaxPayload 128 bytes, MaxReadReq 512 bytes
-> >>> DevSta: CorrErr+ UncorrErr- FatalErr- UnsuppReq+ AuxPwr- TransPen=
-d-
-> >>> LnkCap: Port #0, Speed 2.5GT/s, Width x1, ASPM L0s L1, Latency L0=
- unlimited,
-> >>> L1 <64us
-> >>> ClockPM+ Surprise- LLActRep- BwNot-
-> >>> LnkCtl: ASPM Disabled; RCB 64 bytes Disabled- Retrain- CommClk-
-> >>> ExtSynch- ClockPM+ AutWidDis- BWInt- AutBWInt-
-> >>> LnkSta: Speed 2.5GT/s, Width x1, TrErr- Train- SlotClk+ DLActive-=
- BWMgmt-
-> >>> ABWMgmt-
-> >>> DevCap2: Completion Timeout: Not Supported, TimeoutDis+
-> >>> DevCtl2: Completion Timeout: 50us to 50ms, TimeoutDis-
-> >>> LnkCtl2: Target Link Speed: 2.5GT/s, EnterCompliance- SpeedDis-, =
-Selectable
-> >>> De-emphasis: -6dB
-> >>> Transmit Margin: Normal Operating Range, EnterModifiedCompliance-
-> >>> ComplianceSOS-
-> >>> Compliance De-emphasis: -6dB
-> >>> LnkSta2: Current De-emphasis Level: -6dB, EqualizationComplete-,
-> >>> EqualizationPhase1-
-> >>> EqualizationPhase2-, EqualizationPhase3-, LinkEqualizationRequest=
--
-> >>> Capabilities: [100 v1] Advanced Error Reporting
-> >>> UESta: DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt- UnxCmplt- RxOF- M=
-alfTLP-
-> >>> ECRC- UnsupReq- ACSViol-
-> >>> UEMsk: DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt- UnxCmplt- RxOF- M=
-alfTLP-
-> >>> ECRC- UnsupReq- ACSViol-
-> >>> UESvrt: DLP+ SDES+ TLP- FCP+ CmpltTO- CmpltAbrt- UnxCmplt- RxOF+ =
-MalfTLP+
-> >>> ECRC- UnsupReq- ACSViol-
-> >>> CESta: RxErr+ BadTLP- BadDLLP- Rollover- Timeout+ NonFatalErr+
-> >>> CEMsk: RxErr- BadTLP- BadDLLP- Rollover- Timeout- NonFatalErr+
-> >>> AERCap: First Error Pointer: 00, GenCap+ CGenEn- ChkCap+ ChkEn-
-> >>> Capabilities: [140 v1] Device Serial Number 00-00-00-01-00-4c-e0-=
-00
-> >>> Kernel driver in use: rts_pstor
-> >>> Kernel modules: rts_pstor
-> >>>
-> >>> 03:00.1 SD Host controller: Realtek Semiconductor Co., Ltd. RTS52=
-09 PCI
-> >>> Express Card Reader (rev 01)
-> >>> Subsystem: Realtek Semiconductor Co., Ltd. RTS5209 PCI Express Ca=
-rd Reader
-> >>> Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParEr=
-r-
-> >>> Stepping- SERR- FastB2B- DisINTx-
-> >>> Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=3Dfast >TAbort- =
-<TAbort-
-> >>> <MAbort- >SERR- <PERR- INTx-
-> >>> Latency: 0, Cache Line Size: 64 bytes
-> >>> Interrupt: pin B routed to IRQ 16
-> >>> Region 0: Memory at c1600000 (32-bit, non-prefetchable) [size=3D2=
-56]
-> >>> Capabilities: [80] Power Management version 3
-> >>> Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=3D375mA PME(D0-,D1+,D2+,D3=
-hot+,D3cold-)
-> >>> Status: D0 NoSoftRst- PME-Enable- DSel=3D0 DScale=3D0 PME-
-> >>> Capabilities: [90] MSI: Enable- Count=3D1/1 Maskable- 64bit+
-> >>> Address: 0000000000000000  Data: 0000
-> >>> Capabilities: [b0] Express (v2) Endpoint, MSI 01
-> >>> DevCap: MaxPayload 128 bytes, PhantFunc 0, Latency L0s <1us, L1 <=
-8us
-> >>> ExtTag- AttnBtn- AttnInd- PwrInd- RBE+ FLReset-
-> >>> DevCtl: Report errors: Correctable- Non-Fatal- Fatal- Unsupported=
--
-> >>> RlxdOrd+ ExtTag- PhantFunc- AuxPwr- NoSnoop-
-> >>> MaxPayload 128 bytes, MaxReadReq 512 bytes
-> >>> DevSta: CorrErr+ UncorrErr- FatalErr- UnsuppReq+ AuxPwr- TransPen=
-d-
-> >>> LnkCap: Port #0, Speed 2.5GT/s, Width x1, ASPM L0s L1, Latency L0=
- unlimited,
-> >>> L1 <64us
-> >>> ClockPM+ Surprise- LLActRep- BwNot-
-> >>> LnkCtl: ASPM L0s Enabled; RCB 64 bytes Disabled- Retrain- CommClk=
-+
-> >>> ExtSynch- ClockPM+ AutWidDis- BWInt- AutBWInt-
-> >>> LnkSta: Speed 2.5GT/s, Width x1, TrErr- Train- SlotClk+ DLActive-=
- BWMgmt-
-> >>> ABWMgmt-
-> >>> DevCap2: Completion Timeout: Not Supported, TimeoutDis+
-> >>> DevCtl2: Completion Timeout: 50us to 50ms, TimeoutDis-
-> >>> LnkCtl2: Target Link Speed: 2.5GT/s, EnterCompliance- SpeedDis-, =
-Selectable
-> >>> De-emphasis: -6dB
-> >>> Transmit Margin: Normal Operating Range, EnterModifiedCompliance-
-> >>> ComplianceSOS-
-> >>> Compliance De-emphasis: -6dB
-> >>> LnkSta2: Current De-emphasis Level: -6dB, EqualizationComplete-,
-> >>> EqualizationPhase1-
-> >>> EqualizationPhase2-, EqualizationPhase3-, LinkEqualizationRequest=
--
-> >>> Capabilities: [100 v1] Advanced Error Reporting
-> >>> UESta: DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt- UnxCmplt- RxOF- M=
-alfTLP-
-> >>> ECRC- UnsupReq- ACSViol-
-> >>> UEMsk: DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt- UnxCmplt- RxOF- M=
-alfTLP-
-> >>> ECRC- UnsupReq- ACSViol-
-> >>> UESvrt: DLP+ SDES+ TLP- FCP+ CmpltTO- CmpltAbrt- UnxCmplt- RxOF+ =
-MalfTLP+
-> >>> ECRC- UnsupReq- ACSViol-
-> >>> CESta: RxErr- BadTLP- BadDLLP- Rollover- Timeout- NonFatalErr-
-> >>> CEMsk: RxErr- BadTLP- BadDLLP- Rollover- Timeout- NonFatalErr+
-> >>> AERCap: First Error Pointer: 00, GenCap+ CGenEn- ChkCap+ ChkEn-
-> >>> Capabilities: [140 v1] Device Serial Number 00-00-00-01-00-4c-e0-=
-00
-> >>> Kernel driver in use: sdhci-pci
-> >>> Kernel modules: sdhci-pci
-> >>>
-> >>> 09:00.0 USB controller: Fresco Logic Device 1009 (rev 02) (prog-i=
-f 30
-> >>> [XHCI])
-> >>> Subsystem: Hewlett-Packard Company Device 17f8
-> >>> Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParEr=
-r-
-> >>> Stepping- SERR- FastB2B- DisINTx+
-> >>> Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=3Dfast >TAbort- =
-<TAbort-
-> >>> <MAbort- >SERR- <PERR- INTx-
-> >>> Latency: 0, Cache Line Size: 64 bytes
-> >>> Interrupt: pin A routed to IRQ 16
-> >>> Region 0: Memory at c1500000 (64-bit, non-prefetchable) [size=3D6=
-4K]
-> >>> Region 2: Memory at c1510000 (64-bit, non-prefetchable) [size=3D4=
-K]
-> >>> Region 4: Memory at c1511000 (64-bit, non-prefetchable) [size=3D4=
-K]
-> >>> Capabilities: [40] Power Management version 3
-> >>> Flags: PMEClk- DSI- D1+ D2- AuxCurrent=3D375mA PME(D0+,D1+,D2-,D3=
-hot+,D3cold+)
-> >>> Status: D0 NoSoftRst- PME-Enable- DSel=3D0 DScale=3D0 PME-
-> >>> Capabilities: [50] MSI: Enable- Count=3D1/8 Maskable- 64bit+
-> >>> Address: 0000000000000000  Data: 0000
-> >>> Capabilities: [70] Express (v2) Endpoint, MSI 00
-> >>> DevCap: MaxPayload 512 bytes, PhantFunc 0, Latency L0s unlimited,=
- L1
-> >>> unlimited
-> >>> ExtTag- AttnBtn- AttnInd- PwrInd- RBE+ FLReset-
-> >>> DevCtl: Report errors: Correctable- Non-Fatal- Fatal- Unsupported=
--
-> >>> RlxdOrd+ ExtTag- PhantFunc- AuxPwr- NoSnoop+
-> >>> MaxPayload 128 bytes, MaxReadReq 512 bytes
-> >>> DevSta: CorrErr+ UncorrErr- FatalErr- UnsuppReq+ AuxPwr+ TransPen=
-d-
-> >>> LnkCap: Port #0, Speed 5GT/s, Width x1, ASPM L0s L1, Latency L0 u=
-nlimited,
-> >>> L1 unlimited
-> >>> ClockPM- Surprise- LLActRep- BwNot-
-> >>> LnkCtl: ASPM L0s L1 Enabled; RCB 64 bytes Disabled- Retrain- Comm=
-Clk+
-> >>> ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
-> >>> LnkSta: Speed 5GT/s, Width x1, TrErr- Train- SlotClk+ DLActive- B=
-WMgmt-
-> >>> ABWMgmt-
-> >>> DevCap2: Completion Timeout: Not Supported, TimeoutDis+
-> >>> DevCtl2: Completion Timeout: 50us to 50ms, TimeoutDis-
-> >>> LnkCtl2: Target Link Speed: 5GT/s, EnterCompliance- SpeedDis-, Se=
-lectable
-> >>> De-emphasis: -6dB
-> >>> Transmit Margin: Normal Operating Range, EnterModifiedCompliance-
-> >>> ComplianceSOS-
-> >>> Compliance De-emphasis: -6dB
-> >>> LnkSta2: Current De-emphasis Level: -6dB, EqualizationComplete-,
-> >>> EqualizationPhase1-
-> >>> EqualizationPhase2-, EqualizationPhase3-, LinkEqualizationRequest=
--
-> >>> Capabilities: [b0] MSI-X: Enable+ Count=3D8 Masked-
-> >>> Vector table: BAR=3D2 offset=3D00000000
-> >>> PBA: BAR=3D4 offset=3D00000000
-> >>> Capabilities: [100 v1] Advanced Error Reporting
-> >>> UESta: DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt- UnxCmplt- RxOF- M=
-alfTLP-
-> >>> ECRC- UnsupReq- ACSViol-
-> >>> UEMsk: DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt- UnxCmplt- RxOF- M=
-alfTLP-
-> >>> ECRC- UnsupReq- ACSViol-
-> >>> UESvrt: DLP+ SDES+ TLP- FCP+ CmpltTO- CmpltAbrt- UnxCmplt- RxOF+ =
-MalfTLP+
-> >>> ECRC- UnsupReq- ACSViol-
-> >>> CESta: RxErr- BadTLP- BadDLLP- Rollover- Timeout- NonFatalErr+
-> >>> CEMsk: RxErr- BadTLP- BadDLLP- Rollover- Timeout- NonFatalErr+
-> >>> AERCap: First Error Pointer: 00, GenCap+ CGenEn- ChkCap+ ChkEn-
-> >>> Kernel driver in use: xhci_hcd
-> >>>
-> >>> [7.6]
-> >>> gpothier@tadzim2:~$ cat /proc/scsi/scsi
-> >>> Attached devices:
-> >>> Host: scsi0 Channel: 00 Id: 00 Lun: 00
-> >>>   Vendor: ATA      Model: SAMSUNG MZMPC128 Rev: CXM1
-> >>>   Type:   Direct-Access                    ANSI  SCSI revision: 0=
-5
-> >>> Host: scsi6 Channel: 00 Id: 00 Lun: 00
-> >>>   Vendor: Generic- Model: xD/SD/M.S.       Rev: 1.00
-> >>>   Type:   Direct-Access                    ANSI  SCSI revision: 0=
-2
-> >>>
-> >>> [7.7]
-> >>> gpothier@tadzim2:~$ ls /proc
-> >>> 1     1618  2012  2252  2489  298  568  889        execdomains   =
- schedstat
-> >>> 10    17    2013  2253  2496  3    58   89         fb            =
- scsi
-> >>> 11    1760  2017  2257  25    30   59   894        filesystems   =
- self
-> >>> 1100  18    202   2258  2517  303  60   895        fs            =
- slabinfo
-> >>> 1125  1897  2022  2279  2551  31   61   9          interrupts    =
- softirqs
-> >>> 1133  19    203   2297  2555  32   62   90         iomem         =
- stat
-> >>> 1149  1908  204   23    2557  33   63   91         ioports       =
- swaps
-> >>> 1152  194   2045  2309  2558  34   633  916        irq           =
- sys
-> >>> 1160  1943  2052  2312  26    35   65   919        kallsyms
-> >>> sysrq-trigger
-> >>> 1187  1946  2076  2322  2659  36   679  92         kcore         =
- sysvipc
-> >>> 1188  1947  2094  2324  2662  38   68   923        key-users     =
- timer_list
-> >>> 1189  1949  21    2327  2679  39   69   924        kmsg
-> >>> timer_stats
-> >>> 1191  1953  2102  2328  27    4    7    970        kpagecount    =
- tty
-> >>> 1192  1956  2110  2334  2704  40   708  acpi       kpageflags    =
- uptime
-> >>> 12    1970  2117  2335  2721  41   746  asound     latency_stats =
- version
-> >>> 1202  1975  2121  2336  2732  42   765  buddyinfo  loadavg
-> >>> vmallocinfo
-> >>> 1211  1979  2180  2337  2746  43   772  bus        locks         =
- vmstat
-> >>> 1260  1990  2193  2341  2747  44   778  cgroups    mdstat        =
- zoneinfo
-> >>> 13    1995  2195  2385  2752  5    780  cmdline    meminfo
-> >>> 1375  2     22    24    2754  507  783  consoles   misc
-> >>> 1388  20    2203  2402  28    53   788  cpuinfo    modules
-> >>> 14    2000  2205  2403  2808  54   795  crypto     mounts
-> >>> 1406  2002  2206  2410  29    55   8    devices    mtrr
-> >>> 15    2004  2228  2441  2900  556  801  diskstats  net
-> >>> 1546  2005  2230  2444  2904  563  846  dma        pagetypeinfo
-> >>> 1551  2009  2246  2445  2905  566  853  dri        partitions
-> >>> 1613  2010  2250  2483  2914  567  854  driver     sched_debug
-> >>> --
-> >>> To unsubscribe from this list: send the line "unsubscribe linux-a=
-cpi" in
-> >>> the body of a message to majordomo@vger.kernel.org
-> >>> More majordomo info at  http://vger.kernel.org/majordomo-info.htm=
-l
-> >>>
-> >>
-> >>
->=20
+> +}
+> +
+> +static void free_pte_table(pte_t *pte_start, pmd_t *pmd)
+> +{
+> +	pte_t *pte;
+> +	int i;
+> +
+> +	for (i = 0; i < PTRS_PER_PTE; i++) {
+> +		pte = pte_start + i;
+> +		if (pte_val(*pte))
+> +			break;
+> +	}
+> +
+> +	/* free a pte talbe */
+> +	if (i == PTRS_PER_PTE) {
+> +		free_pagetable(pmd_page(*pmd));
 
+The memory may be allocated at booting. So it is very dangerous to
+free it without any check.
+
+> +		pmd_clear(pmd);
+> +	}
+> +}
+> +
+> +static void free_pmd_table(pmd_t *pmd_start, pud_t *pud)
+> +{
+> +	pmd_t *pmd;
+> +	int i;
+> +
+> +	for (i = 0; i < PTRS_PER_PMD; i++) {
+> +		pmd = pmd_start + i;
+> +		if (pmd_val(*pmd))
+> +			break;
+> +	}
+> +
+> +	/* free a pmd talbe */
+> +	if (i == PTRS_PER_PMD) {
+> +		free_pagetable(pud_page(*pud));
+> +		pud_clear(pud);
+> +	}
+> +}
+> +
+> +static void free_pud_table(pud_t *pud_start, pgd_t *pgd)
+> +{
+> +	pud_t *pud;
+> +	int i;
+> +
+> +	for (i = 0; i < PTRS_PER_PUD; i++) {
+> +		pud = pud_start + i;
+> +		if (pud_val(*pud))
+> +			break;
+> +	}
+> +
+> +	/* free a pud table */
+> +	if (i == PTRS_PER_PUD) {
+> +		free_pagetable(pgd_page(*pgd));
+> +		pgd_clear(pgd);
+> +	}
+> +}
+> +
+>  static void __meminit
+>  phys_pte_remove(pte_t *pte_page, unsigned long addr, unsigned long end)
+>  {
+> @@ -704,21 +772,19 @@ phys_pmd_remove(pmd_t *pmd_page, unsigned long addr, unsigned long end)
+>  	unsigned long pages = 0, next;
+>  	int i = pmd_index(addr);
+> 
+> -	for (; i < PTRS_PER_PMD; i++, addr = next) {
+> +	for (; i < PTRS_PER_PMD && addr < end; i++, addr = next) {
+>  		unsigned long pte_phys;
+>  		pmd_t *pmd = pmd_page + pmd_index(addr);
+>  		pte_t *pte;
+> 
+> -		if (addr >= end)
+> -			break;
+> -
+> -		next = (addr & PMD_MASK) + PMD_SIZE;
+> +		next = pmd_addr_end(addr, end);
+> 
+>  		if (!pmd_present(*pmd))
+>  			continue;
+> 
+>  		if (pmd_large(*pmd)) {
+> -			if ((addr & ~PMD_MASK) == 0 && next <= end) {
+> +			if (IS_ALIGNED(addr, PMD_SIZE) &&
+> +			    IS_ALIGNED(next, PMD_SIZE)) {
+>  				set_pmd(pmd, __pmd(0));
+>  				pages++;
+>  				continue;
+> @@ -729,7 +795,8 @@ phys_pmd_remove(pmd_t *pmd_page, unsigned long addr, unsigned long end)
+>  			 * so split 2M page to 4K page.
+>  			 */
+>  			pte = alloc_low_page(&pte_phys);
+> -			__split_large_page((pte_t *)pmd, addr, pte);
+> +			__split_large_page((pte_t *)pmd,
+> +					   (unsigned long)__va(addr), pte);
+> 
+>  			spin_lock(&init_mm.page_table_lock);
+>  			pmd_populate_kernel(&init_mm, pmd, __va(pte_phys));
+> @@ -738,7 +805,8 @@ phys_pmd_remove(pmd_t *pmd_page, unsigned long addr, unsigned long end)
+> 
+>  		spin_lock(&init_mm.page_table_lock);
+>  		pte = map_low_page((pte_t *)pmd_page_vaddr(*pmd));
+> -		phys_pte_remove(pte, addr, end);
+> +		phys_pte_remove(pte, addr, next);
+> +		free_pte_table(pte, pmd);
+>  		unmap_low_page(pte);
+>  		spin_unlock(&init_mm.page_table_lock);
+>  	}
+> @@ -751,21 +819,19 @@ phys_pud_remove(pud_t *pud_page, unsigned long addr, unsigned long end)
+>  	unsigned long pages = 0, next;
+>  	int i = pud_index(addr);
+> 
+> -	for (; i < PTRS_PER_PUD; i++, addr = next) {
+> +	for (; i < PTRS_PER_PUD && addr < end; i++, addr = next) {
+>  		unsigned long pmd_phys;
+>  		pud_t *pud = pud_page + pud_index(addr);
+>  		pmd_t *pmd;
+> 
+> -		if (addr >= end)
+> -			break;
+> -
+> -		next = (addr & PUD_MASK) + PUD_SIZE;
+> +		next = pud_addr_end(addr, end);
+> 
+>  		if (!pud_present(*pud))
+>  			continue;
+> 
+>  		if (pud_large(*pud)) {
+> -			if ((addr & ~PUD_MASK) == 0 && next <= end) {
+> +			if (IS_ALIGNED(addr, PUD_SIZE) &&
+> +			    IS_ALIGNED(next, PUD_SIZE)) {
+>  				set_pud(pud, __pud(0));
+>  				pages++;
+>  				continue;
+> @@ -776,15 +842,18 @@ phys_pud_remove(pud_t *pud_page, unsigned long addr, unsigned long end)
+>  			 * so split 1G page to 2M page.
+>  			 */
+>  			pmd = alloc_low_page(&pmd_phys);
+> -			__split_large_page((pte_t *)pud, addr, (pte_t *)pmd);
+> +			__split_large_page((pte_t *)pud,
+> +					   (unsigned long)__va(addr),
+> +					   (pte_t *)pmd);
+> 
+>  			spin_lock(&init_mm.page_table_lock);
+>  			pud_populate(&init_mm, pud, __va(pmd_phys));
+>  			spin_unlock(&init_mm.page_table_lock);
+>  		}
+> 
+> -		pmd = map_low_page(pmd_offset(pud, 0));
+> -		phys_pmd_remove(pmd, addr, end);
+> +		pmd = map_low_page((pmd_t *)pud_page_vaddr(*pud));
+
+Hmm, pmd_offset(pud, 0) is equal to (pmd_t *)pud_page_vaddr(*pud).
+
+Is it OK to merge your patch into my patch?
+
+Thanks
+Wen Congyang
+
+> +		phys_pmd_remove(pmd, addr, next);
+> +		free_pmd_table(pmd, pud);
+>  		unmap_low_page(pmd);
+>  		__flush_tlb_all();
+>  	}
+> @@ -805,15 +874,14 @@ kernel_physical_mapping_remove(unsigned long start, unsigned long end)
+>  		pgd_t *pgd = pgd_offset_k(start);
+>  		pud_t *pud;
+> 
+> -		next = (start + PGDIR_SIZE) & PGDIR_MASK;
+> -		if (next > end)
+> -			next = end;
+> +		next = pgd_addr_end(start, end);
+> 
+>  		if (!pgd_present(*pgd))
+>  			continue;
+> 
+>  		pud = map_low_page((pud_t *)pgd_page_vaddr(*pgd));
+> -		phys_pud_remove(pud, __pa(start), __pa(end));
+> +		phys_pud_remove(pud, __pa(start), __pa(next));
+> +		free_pud_table(pud, pgd);
+>  		unmap_low_page(pud);
+>  	}
+> 
+> -- 1.7.6.1 .
+> 
+> 
+> On 2012-10-5 10:36, Yasuaki Ishimatsu wrote:
+>> From: Wen Congyang <wency@cn.fujitsu.com>
+>>
+>> For hot removing memory, we sholud remove page table about the memory.
+>> So the patch searches a page table about the removed memory, and clear
+>> page table.
+>>
+>> CC: David Rientjes <rientjes@google.com>
+>> CC: Jiang Liu <liuj97@gmail.com>
+>> CC: Len Brown <len.brown@intel.com>
+>> CC: Christoph Lameter <cl@linux.com>
+>> Cc: Minchan Kim <minchan.kim@gmail.com>
+>> CC: Andrew Morton <akpm@linux-foundation.org>
+>> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+>> CC: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+>> Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+>> ---
+>>  arch/x86/include/asm/pgtable_types.h |    1 
+>>  arch/x86/mm/init_64.c                |  147 +++++++++++++++++++++++++++++++++++
+>>  arch/x86/mm/pageattr.c               |   47 +++++------
+>>  3 files changed, 173 insertions(+), 22 deletions(-)
+>>
+>> Index: linux-3.6/arch/x86/mm/init_64.c
+>> ===================================================================
+>> --- linux-3.6.orig/arch/x86/mm/init_64.c	2012-10-04 18:30:21.171698416 +0900
+>> +++ linux-3.6/arch/x86/mm/init_64.c	2012-10-04 18:30:27.317704652 +0900
+>> @@ -675,6 +675,151 @@ int arch_add_memory(int nid, u64 start, 
+>>  }
+>>  EXPORT_SYMBOL_GPL(arch_add_memory);
+>>  
+>> +static void __meminit
+>> +phys_pte_remove(pte_t *pte_page, unsigned long addr, unsigned long end)
+>> +{
+>> +	unsigned pages = 0;
+>> +	int i = pte_index(addr);
+>> +
+>> +	pte_t *pte = pte_page + pte_index(addr);
+>> +
+>> +	for (; i < PTRS_PER_PTE; i++, addr += PAGE_SIZE, pte++) {
+>> +
+>> +		if (addr >= end)
+>> +			break;
+>> +
+>> +		if (!pte_present(*pte))
+>> +			continue;
+>> +
+>> +		pages++;
+>> +		set_pte(pte, __pte(0));
+>> +	}
+>> +
+>> +	update_page_count(PG_LEVEL_4K, -pages);
+>> +}
+>> +
+>> +static void __meminit
+>> +phys_pmd_remove(pmd_t *pmd_page, unsigned long addr, unsigned long end)
+>> +{
+>> +	unsigned long pages = 0, next;
+>> +	int i = pmd_index(addr);
+>> +
+>> +	for (; i < PTRS_PER_PMD; i++, addr = next) {
+>> +		unsigned long pte_phys;
+>> +		pmd_t *pmd = pmd_page + pmd_index(addr);
+>> +		pte_t *pte;
+>> +
+>> +		if (addr >= end)
+>> +			break;
+>> +
+>> +		next = (addr & PMD_MASK) + PMD_SIZE;
+>> +
+>> +		if (!pmd_present(*pmd))
+>> +			continue;
+>> +
+>> +		if (pmd_large(*pmd)) {
+>> +			if ((addr & ~PMD_MASK) == 0 && next <= end) {
+>> +				set_pmd(pmd, __pmd(0));
+>> +				pages++;
+>> +				continue;
+>> +			}
+>> +
+>> +			/*
+>> +			 * We use 2M page, but we need to remove part of them,
+>> +			 * so split 2M page to 4K page.
+>> +			 */
+>> +			pte = alloc_low_page(&pte_phys);
+>> +			__split_large_page((pte_t *)pmd, addr, pte);
+>> +
+>> +			spin_lock(&init_mm.page_table_lock);
+>> +			pmd_populate_kernel(&init_mm, pmd, __va(pte_phys));
+>> +			spin_unlock(&init_mm.page_table_lock);
+>> +		}
+>> +
+>> +		spin_lock(&init_mm.page_table_lock);
+>> +		pte = map_low_page((pte_t *)pmd_page_vaddr(*pmd));
+>> +		phys_pte_remove(pte, addr, end);
+>> +		unmap_low_page(pte);
+>> +		spin_unlock(&init_mm.page_table_lock);
+>> +	}
+>> +	update_page_count(PG_LEVEL_2M, -pages);
+>> +}
+>> +
+>> +static void __meminit
+>> +phys_pud_remove(pud_t *pud_page, unsigned long addr, unsigned long end)
+>> +{
+>> +	unsigned long pages = 0, next;
+>> +	int i = pud_index(addr);
+>> +
+>> +	for (; i < PTRS_PER_PUD; i++, addr = next) {
+>> +		unsigned long pmd_phys;
+>> +		pud_t *pud = pud_page + pud_index(addr);
+>> +		pmd_t *pmd;
+>> +
+>> +		if (addr >= end)
+>> +			break;
+>> +
+>> +		next = (addr & PUD_MASK) + PUD_SIZE;
+>> +
+>> +		if (!pud_present(*pud))
+>> +			continue;
+>> +
+>> +		if (pud_large(*pud)) {
+>> +			if ((addr & ~PUD_MASK) == 0 && next <= end) {
+>> +				set_pud(pud, __pud(0));
+>> +				pages++;
+>> +				continue;
+>> +			}
+>> +
+>> +			/*
+>> +			 * We use 1G page, but we need to remove part of them,
+>> +			 * so split 1G page to 2M page.
+>> +			 */
+>> +			pmd = alloc_low_page(&pmd_phys);
+>> +			__split_large_page((pte_t *)pud, addr, (pte_t *)pmd);
+>> +
+>> +			spin_lock(&init_mm.page_table_lock);
+>> +			pud_populate(&init_mm, pud, __va(pmd_phys));
+>> +			spin_unlock(&init_mm.page_table_lock);
+>> +		}
+>> +
+>> +		pmd = map_low_page(pmd_offset(pud, 0));
+>> +		phys_pmd_remove(pmd, addr, end);
+>> +		unmap_low_page(pmd);
+>> +		__flush_tlb_all();
+>> +	}
+>> +	__flush_tlb_all();
+>> +
+>> +	update_page_count(PG_LEVEL_1G, -pages);
+>> +}
+>> +
+>> +void __meminit
+>> +kernel_physical_mapping_remove(unsigned long start, unsigned long end)
+>> +{
+>> +	unsigned long next;
+>> +
+>> +	start = (unsigned long)__va(start);
+>> +	end = (unsigned long)__va(end);
+>> +
+>> +	for (; start < end; start = next) {
+>> +		pgd_t *pgd = pgd_offset_k(start);
+>> +		pud_t *pud;
+>> +
+>> +		next = (start + PGDIR_SIZE) & PGDIR_MASK;
+>> +		if (next > end)
+>> +			next = end;
+>> +
+>> +		if (!pgd_present(*pgd))
+>> +			continue;
+>> +
+>> +		pud = map_low_page((pud_t *)pgd_page_vaddr(*pgd));
+>> +		phys_pud_remove(pud, __pa(start), __pa(end));
+>> +		unmap_low_page(pud);
+>> +	}
+>> +
+>> +	__flush_tlb_all();
+>> +}
+>> +
+>>  #ifdef CONFIG_MEMORY_HOTREMOVE
+>>  int __ref arch_remove_memory(u64 start, u64 size)
+>>  {
+>> @@ -687,6 +832,8 @@ int __ref arch_remove_memory(u64 start, 
+>>  	ret = __remove_pages(zone, start_pfn, nr_pages);
+>>  	WARN_ON_ONCE(ret);
+>>  
+>> +	kernel_physical_mapping_remove(start, start + size);
+>> +
+>>  	return ret;
+>>  }
+>>  #endif
+>> Index: linux-3.6/arch/x86/include/asm/pgtable_types.h
+>> ===================================================================
+>> --- linux-3.6.orig/arch/x86/include/asm/pgtable_types.h	2012-10-04 18:26:51.925486954 +0900
+>> +++ linux-3.6/arch/x86/include/asm/pgtable_types.h	2012-10-04 18:30:27.322704656 +0900
+>> @@ -334,6 +334,7 @@ static inline void update_page_count(int
+>>   * as a pte too.
+>>   */
+>>  extern pte_t *lookup_address(unsigned long address, unsigned int *level);
+>> +extern int __split_large_page(pte_t *kpte, unsigned long address, pte_t *pbase);
+>>  
+>>  #endif	/* !__ASSEMBLY__ */
+>>  
+>> Index: linux-3.6/arch/x86/mm/pageattr.c
+>> ===================================================================
+>> --- linux-3.6.orig/arch/x86/mm/pageattr.c	2012-10-04 18:26:51.923486952 +0900
+>> +++ linux-3.6/arch/x86/mm/pageattr.c	2012-10-04 18:30:27.328704662 +0900
+>> @@ -501,21 +501,13 @@ out_unlock:
+>>  	return do_split;
+>>  }
+>>  
+>> -static int split_large_page(pte_t *kpte, unsigned long address)
+>> +int __split_large_page(pte_t *kpte, unsigned long address, pte_t *pbase)
+>>  {
+>>  	unsigned long pfn, pfninc = 1;
+>>  	unsigned int i, level;
+>> -	pte_t *pbase, *tmp;
+>> +	pte_t *tmp;
+>>  	pgprot_t ref_prot;
+>> -	struct page *base;
+>> -
+>> -	if (!debug_pagealloc)
+>> -		spin_unlock(&cpa_lock);
+>> -	base = alloc_pages(GFP_KERNEL | __GFP_NOTRACK, 0);
+>> -	if (!debug_pagealloc)
+>> -		spin_lock(&cpa_lock);
+>> -	if (!base)
+>> -		return -ENOMEM;
+>> +	struct page *base = virt_to_page(pbase);
+>>  
+>>  	spin_lock(&pgd_lock);
+>>  	/*
+>> @@ -523,10 +515,11 @@ static int split_large_page(pte_t *kpte,
+>>  	 * up for us already:
+>>  	 */
+>>  	tmp = lookup_address(address, &level);
+>> -	if (tmp != kpte)
+>> -		goto out_unlock;
+>> +	if (tmp != kpte) {
+>> +		spin_unlock(&pgd_lock);
+>> +		return 1;
+>> +	}
+>>  
+>> -	pbase = (pte_t *)page_address(base);
+>>  	paravirt_alloc_pte(&init_mm, page_to_pfn(base));
+>>  	ref_prot = pte_pgprot(pte_clrhuge(*kpte));
+>>  	/*
+>> @@ -579,17 +572,27 @@ static int split_large_page(pte_t *kpte,
+>>  	 * going on.
+>>  	 */
+>>  	__flush_tlb_all();
+>> +	spin_unlock(&pgd_lock);
+>>  
+>> -	base = NULL;
+>> +	return 0;
+>> +}
+>>  
+>> -out_unlock:
+>> -	/*
+>> -	 * If we dropped out via the lookup_address check under
+>> -	 * pgd_lock then stick the page back into the pool:
+>> -	 */
+>> -	if (base)
+>> +static int split_large_page(pte_t *kpte, unsigned long address)
+>> +{
+>> +	pte_t *pbase;
+>> +	struct page *base;
+>> +
+>> +	if (!debug_pagealloc)
+>> +		spin_unlock(&cpa_lock);
+>> +	base = alloc_pages(GFP_KERNEL | __GFP_NOTRACK, 0);
+>> +	if (!debug_pagealloc)
+>> +		spin_lock(&cpa_lock);
+>> +	if (!base)
+>> +		return -ENOMEM;
+>> +
+>> +	pbase = (pte_t *)page_address(base);
+>> +	if (__split_large_page(kpte, address, pbase))
+>>  		__free_page(base);
+>> -	spin_unlock(&pgd_lock);
+>>  
+>>  	return 0;
+>>  }
+>>
+>> --
+>> To unsubscribe, send a message with 'unsubscribe linux-mm' in
+>> the body to majordomo@kvack.org.  For more info on Linux MM,
+>> see: http://www.linux-mm.org/ .
+>> Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+>>
+> 
+> 
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
