@@ -1,59 +1,31 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI: Simplify conditional that has the same effect no matter what.
-Date: Tue, 23 Oct 2012 00:30:02 +0200
-Message-ID: <2233864.3RfD4h10pf@vostro.rjw.lan>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [PATCH] ACPI: Simplify conditional that has the same effect no
+ matter what.
+Date: Tue, 23 Oct 2012 03:27:27 +0100
+Message-ID: <20121023022727.GA13880@srcf.ucam.org>
 References: <alpine.DEB.2.02.1210221738310.5975@oneiric>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:59082 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932171Ab2JVW0K (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 22 Oct 2012 18:26:10 -0400
+Received: from cavan.codon.org.uk ([93.93.128.6]:50304 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756491Ab2JWC1c (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Oct 2012 22:27:32 -0400
+Content-Disposition: inline
 In-Reply-To: <alpine.DEB.2.02.1210221738310.5975@oneiric>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Robert P. J. Day" <rpjday@crashcourse.ca>
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, rjw@sisk.pl
 
-On Monday 22 of October 2012 17:40:36 Robert P. J. Day wrote:
-> 
-> Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+On Mon, Oct 22, 2012 at 05:40:36PM -0400, Robert P. J. Day wrote:
 
-I recall having an identical patch in my queue for v3.8.  If it's not there
-after all, I'll take yours.
-
-Thanks,
-Rafael
-
-
-> ---
-> 
 >   not sure if there's something weirdly subtle happening here, but
 > this looks like a straightforward simplification.
-> 
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index 9eaf708..e76a7f5 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -949,12 +949,7 @@ static acpi_status __acpi_os_execute(acpi_execute_type type,
->  		(type == OSL_NOTIFY_HANDLER ? kacpi_notify_wq : kacpid_wq);
->  	dpc->wait = hp ? 1 : 0;
-> 
-> -	if (queue == kacpi_hotplug_wq)
-> -		INIT_WORK(&dpc->work, acpi_os_execute_deferred);
-> -	else if (queue == kacpi_notify_wq)
-> -		INIT_WORK(&dpc->work, acpi_os_execute_deferred);
-> -	else
-> -		INIT_WORK(&dpc->work, acpi_os_execute_deferred);
-> +	INIT_WORK(&dpc->work, acpi_os_execute_deferred);
-> 
->  	/*
->  	 * On some machines, a software-initiated SMI causes corruption unless
-> 
-> 
-> 
+
+There is - it provides a hint to lockdep, but it should probably have a 
+comment explaining it. See 
+https://bugzilla.kernel.org/show_bug.cgi?id=14553 
+
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Matthew Garrett | mjg59@srcf.ucam.org
