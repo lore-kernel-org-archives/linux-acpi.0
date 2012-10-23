@@ -1,114 +1,123 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH 1/2] Use kacpi_hotplug_wq to handle container hotplug event.
-Date: Tue, 23 Oct 2012 21:10:38 +0800
-Message-ID: <1350997839-13260-2-git-send-email-tangchen@cn.fujitsu.com>
+Subject: [PATCH 2/2] Improve container_notify_cb() to support container hot-remove.
+Date: Tue, 23 Oct 2012 21:10:39 +0800
+Message-ID: <1350997839-13260-3-git-send-email-tangchen@cn.fujitsu.com>
 References: <1350997839-13260-1-git-send-email-tangchen@cn.fujitsu.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1350997839-13260-1-git-send-email-tangchen@cn.fujitsu.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
 To: yinghai@kernel.org, bhelgaas@google.com, lenb@kernel.org, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-As the comments in __acpi_os_execute() said:
+This patch introduces a new function container_device_remove() to do
+the container hot-remove job. It works like the following:
 
-	We can't run hotplug code in keventd_wq/kacpid_wq/kacpid_notify_wq
-	because the hotplug code may call driver .remove() functions,
-	which invoke flush_scheduled_work/acpi_os_wait_events_complete
-	to flush these workqueues.
+1. call acpi_bus_trim(device, 0) to stop the container device.
+2. generate the KOBJ_OFFLINE uevent. (Did I do this correct ?)
+3. call acpi_bus_hot_remove_device(), which will call acpi_bus_trim(device, 1)
+   to remove the container.
 
-we should keep the hotplug code in kacpi_hotplug_wq.
-
-But we have the following call series in kernel now:
-	acpi_ev_queue_notify_request()
-	|--> acpi_os_execute()
-	     |--> __acpi_os_execute(type, function, context, 0)
-
-The last parameter 0 makes the container_notify_cb() executed in
-kacpi_notify_wq or kacpid_wq. So, we need to put the real hotplug code
-into kacpi_hotplug_wq.
+This patch is based on Lu Yinghai's work.
+git://git.kernel.org/pub/scm/linux/kernel/git/yinghai/linux-yinghai.git for-pci-split-pci-root-hp-2
 
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
 ---
- drivers/acpi/container.c |   44 +++++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 43 insertions(+), 1 deletions(-)
+ drivers/acpi/container.c |   58 ++++++++++++++++++++++++++++++++++++++-------
+ 1 files changed, 49 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
-index 1f9f7d7..643657a 100644
+index 643657a..1de4672 100644
 --- a/drivers/acpi/container.c
 +++ b/drivers/acpi/container.c
-@@ -72,8 +72,36 @@ static struct acpi_driver acpi_container_driver = {
- 		},
- };
- 
-+struct acpi_container_hp_work {
-+	struct work_struct work;
-+	acpi_handle handle;
-+	u32 type;
-+	void *context;
-+};
-+
- /*******************************************************************/
- 
-+static void alloc_acpi_container_hp_work(acpi_handle handle, u32 type,
-+					void *context,
-+					void (*func)(struct work_struct *work))
-+{
-+	struct acpi_container_hp_work *hp_work;
-+	int ret;
-+
-+	hp_work = kmalloc(sizeof(*hp_work), GFP_KERNEL);
-+	if (!hp_work)
-+		return;
-+
-+	hp_work->handle = handle;
-+	hp_work->type = type;
-+	hp_work->context = context;
-+
-+	INIT_WORK(&hp_work->work, func);
-+	ret = queue_work(kacpi_hotplug_wq, &hp_work->work);
-+	if (!ret)
-+		kfree(hp_work);
-+}
-+
- static int is_device_present(acpi_handle handle)
- {
- 	acpi_handle temp;
-@@ -152,14 +180,21 @@ static int container_device_add(struct acpi_device **device, acpi_handle handle)
+@@ -180,6 +180,35 @@ static int container_device_add(struct acpi_device **device, acpi_handle handle)
  	return result;
  }
  
--static void container_notify_cb(acpi_handle handle, u32 type, void *context)
-+static void __container_notify_cb(struct work_struct *work)
++static int container_device_remove(struct acpi_device *device)
++{
++	int ret;
++	struct acpi_eject_event *ej_event;
++
++	ej_event = kmalloc(sizeof(*ej_event), GFP_KERNEL);
++	if (!ej_event)
++		return -ENOMEM;
++
++	ej_event->device = device;
++	ej_event->event = ACPI_NOTIFY_EJECT_REQUEST;
++
++	/* stop container device at first */
++	ret = acpi_bus_trim(device, 0);
++	printk(KERN_WARNING "acpi_bus_trim stop return %x\n", ret);
++	if (ret)
++		return ret;
++
++	/* event originated from ACPI eject notification */
++	device->flags.eject_pending = 1;
++
++	/* send the uevent before remove the device */
++	kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
++
++	acpi_bus_hot_remove_device(ej_event);
++
++	return 0;
++}
++
+ static void __container_notify_cb(struct work_struct *work)
  {
  	struct acpi_device *device = NULL;
- 	int result;
- 	int present;
- 	acpi_status status;
-+	struct acpi_container_hp_work *hp_work;
-+	acpi_handle handle;
-+	u32 type;
- 	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE; /* default */
+@@ -195,6 +224,9 @@ static void __container_notify_cb(struct work_struct *work)
+ 	handle = hp_work->handle;
+ 	type = hp_work->type;
  
-+	hp_work = container_of(work, struct acpi_container_hp_work, work);
-+	handle = hp_work->handle;
-+	type = hp_work->type;
++	present = is_device_present(handle);
++	status = acpi_bus_get_device(handle, &device);
 +
  	switch (type) {
  	case ACPI_NOTIFY_BUS_CHECK:
  		/* Fall through */
-@@ -211,6 +246,13 @@ static void container_notify_cb(acpi_handle handle, u32 type, void *context)
- 	return;
- }
+@@ -203,13 +235,14 @@ static void __container_notify_cb(struct work_struct *work)
+ 		       (type == ACPI_NOTIFY_BUS_CHECK) ?
+ 		       "ACPI_NOTIFY_BUS_CHECK" : "ACPI_NOTIFY_DEVICE_CHECK");
  
-+static void container_notify_cb(acpi_handle handle, u32 type,
-+				void *context)
-+{
-+	alloc_acpi_container_hp_work(handle, type, context,
-+				__container_notify_cb);
-+}
+-		present = is_device_present(handle);
+-		status = acpi_bus_get_device(handle, &device);
+ 		if (!present) {
+ 			if (ACPI_SUCCESS(status)) {
+ 				/* device exist and this is a remove request */
+-				device->flags.eject_pending = 1;
+-				kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
++				result = container_device_remove(device);
++				if (result) {
++					printk(KERN_WARNING "Failed to remove container\n");
++					break;
++				}
+ 				return;
+ 			}
+ 			break;
+@@ -229,12 +262,19 @@ static void __container_notify_cb(struct work_struct *work)
+ 		break;
+ 
+ 	case ACPI_NOTIFY_EJECT_REQUEST:
+-		if (!acpi_bus_get_device(handle, &device) && device) {
+-			device->flags.eject_pending = 1;
+-			kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
+-			return;
++		printk(KERN_WARNING "Container driver received %s event\n",
++			"ACPI_NOTIFY_EJECT_REQUEST");
 +
- static acpi_status
- container_walk_namespace_cb(acpi_handle handle,
- 			    u32 lvl, void *context, void **rv)
++		if (!present || ACPI_FAILURE(status) || !device)
++			break;
++
++		result = container_device_remove(device);
++		if (result) {
++			printk(KERN_WARNING "Failed to remove container\n");
++			break;
+ 		}
+-		break;
++
++		return;
+ 
+ 	default:
+ 		/* non-hotplug event; possibly handled by other handler */
 -- 
 1.7.1
