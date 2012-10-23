@@ -1,123 +1,75 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH 2/2] Improve container_notify_cb() to support container hot-remove.
-Date: Tue, 23 Oct 2012 21:10:39 +0800
-Message-ID: <1350997839-13260-3-git-send-email-tangchen@cn.fujitsu.com>
-References: <1350997839-13260-1-git-send-email-tangchen@cn.fujitsu.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH v2] Fix a hard coding style when determining if a device
+ is a container.
+Date: Tue, 23 Oct 2012 10:00:25 -0600
+Message-ID: <CAErSpo5QESO0J8LfzvvzCm4pTG=+9dOb0eYfsphoE7+mb2-MeA@mail.gmail.com>
+References: <1350045098-7232-1-git-send-email-tangchen@cn.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1350997839-13260-1-git-send-email-tangchen@cn.fujitsu.com>
+In-Reply-To: <1350045098-7232-1-git-send-email-tangchen@cn.fujitsu.com>
 Sender: linux-pci-owner@vger.kernel.org
-To: yinghai@kernel.org, bhelgaas@google.com, lenb@kernel.org, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: lenb@kernel.org, yinghai@kernel.org, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-This patch introduces a new function container_device_remove() to do
-the container hot-remove job. It works like the following:
+On Fri, Oct 12, 2012 at 6:31 AM, Tang Chen <tangchen@cn.fujitsu.com> wrote:
+> "ACPI0004","PNP0A05" and "PNP0A06" are all defined in array
+> container_device_ids[], so use it, but not the hard coding style.
+>
+> Also, introduce a new api is_container_device() to determine if a
+> device is a container device.
+>
+> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-1. call acpi_bus_trim(device, 0) to stop the container device.
-2. generate the KOBJ_OFFLINE uevent. (Did I do this correct ?)
-3. call acpi_bus_hot_remove_device(), which will call acpi_bus_trim(device, 1)
-   to remove the container.
+Looks good to me, but is_container_device() should be of type "bool",
+not type "int".
 
-This patch is based on Lu Yinghai's work.
-git://git.kernel.org/pub/scm/linux/kernel/git/yinghai/linux-yinghai.git for-pci-split-pci-root-hp-2
+With that change,
 
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
----
- drivers/acpi/container.c |   58 ++++++++++++++++++++++++++++++++++++++-------
- 1 files changed, 49 insertions(+), 9 deletions(-)
+Reviewed-by: Bjorn Helgaas <bhelgaas@google.com>
 
-diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
-index 643657a..1de4672 100644
---- a/drivers/acpi/container.c
-+++ b/drivers/acpi/container.c
-@@ -180,6 +180,35 @@ static int container_device_add(struct acpi_device **device, acpi_handle handle)
- 	return result;
- }
- 
-+static int container_device_remove(struct acpi_device *device)
-+{
-+	int ret;
-+	struct acpi_eject_event *ej_event;
-+
-+	ej_event = kmalloc(sizeof(*ej_event), GFP_KERNEL);
-+	if (!ej_event)
-+		return -ENOMEM;
-+
-+	ej_event->device = device;
-+	ej_event->event = ACPI_NOTIFY_EJECT_REQUEST;
-+
-+	/* stop container device at first */
-+	ret = acpi_bus_trim(device, 0);
-+	printk(KERN_WARNING "acpi_bus_trim stop return %x\n", ret);
-+	if (ret)
-+		return ret;
-+
-+	/* event originated from ACPI eject notification */
-+	device->flags.eject_pending = 1;
-+
-+	/* send the uevent before remove the device */
-+	kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
-+
-+	acpi_bus_hot_remove_device(ej_event);
-+
-+	return 0;
-+}
-+
- static void __container_notify_cb(struct work_struct *work)
- {
- 	struct acpi_device *device = NULL;
-@@ -195,6 +224,9 @@ static void __container_notify_cb(struct work_struct *work)
- 	handle = hp_work->handle;
- 	type = hp_work->type;
- 
-+	present = is_device_present(handle);
-+	status = acpi_bus_get_device(handle, &device);
-+
- 	switch (type) {
- 	case ACPI_NOTIFY_BUS_CHECK:
- 		/* Fall through */
-@@ -203,13 +235,14 @@ static void __container_notify_cb(struct work_struct *work)
- 		       (type == ACPI_NOTIFY_BUS_CHECK) ?
- 		       "ACPI_NOTIFY_BUS_CHECK" : "ACPI_NOTIFY_DEVICE_CHECK");
- 
--		present = is_device_present(handle);
--		status = acpi_bus_get_device(handle, &device);
- 		if (!present) {
- 			if (ACPI_SUCCESS(status)) {
- 				/* device exist and this is a remove request */
--				device->flags.eject_pending = 1;
--				kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
-+				result = container_device_remove(device);
-+				if (result) {
-+					printk(KERN_WARNING "Failed to remove container\n");
-+					break;
-+				}
- 				return;
- 			}
- 			break;
-@@ -229,12 +262,19 @@ static void __container_notify_cb(struct work_struct *work)
- 		break;
- 
- 	case ACPI_NOTIFY_EJECT_REQUEST:
--		if (!acpi_bus_get_device(handle, &device) && device) {
--			device->flags.eject_pending = 1;
--			kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
--			return;
-+		printk(KERN_WARNING "Container driver received %s event\n",
-+			"ACPI_NOTIFY_EJECT_REQUEST");
-+
-+		if (!present || ACPI_FAILURE(status) || !device)
-+			break;
-+
-+		result = container_device_remove(device);
-+		if (result) {
-+			printk(KERN_WARNING "Failed to remove container\n");
-+			break;
- 		}
--		break;
-+
-+		return;
- 
- 	default:
- 		/* non-hotplug event; possibly handled by other handler */
--- 
-1.7.1
+> ---
+>  drivers/acpi/container.c |   17 ++++++++++++++---
+>  1 files changed, 14 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
+> index 1f9f7d7..ffd76ee 100644
+> --- a/drivers/acpi/container.c
+> +++ b/drivers/acpi/container.c
+> @@ -92,6 +92,19 @@ static int is_device_present(acpi_handle handle)
+>         return ((sta & ACPI_STA_DEVICE_PRESENT) == ACPI_STA_DEVICE_PRESENT);
+>  }
+>
+> +static int is_container_device(const char *hid)
+> +{
+> +       const struct acpi_device_id *container_id;
+> +
+> +       for (container_id = container_device_ids;
+> +            container_id->id[0]; container_id++) {
+> +               if (!strcmp((char *)container_id->id, hid))
+> +                       return 1;
+> +       }
+> +
+> +       return 0;
+> +}
+> +
+>  /*******************************************************************/
+>  static int acpi_container_add(struct acpi_device *device)
+>  {
+> @@ -232,10 +245,8 @@ container_walk_namespace_cb(acpi_handle handle,
+>                 goto end;
+>         }
+>
+> -       if (strcmp(hid, "ACPI0004") && strcmp(hid, "PNP0A05") &&
+> -           strcmp(hid, "PNP0A06")) {
+> +       if (!is_container_device(hid))
+>                 goto end;
+> -       }
+>
+>         switch (*action) {
+>         case INSTALL_NOTIFY_HANDLER:
+> --
+> 1.7.1
+>
