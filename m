@@ -1,71 +1,50 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH v2] Fix a hard coding style when determining if a device
- is a container.
-Date: Tue, 23 Oct 2012 20:05:15 +0800
-Message-ID: <508687FB.9080701@cn.fujitsu.com>
-References: <1350045098-7232-1-git-send-email-tangchen@cn.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1350045098-7232-1-git-send-email-tangchen@cn.fujitsu.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: bhelgaas@google.com, lenb@kernel.org, yinghai@kernel.org, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 0/2] ACPI: container hot remove support.
+Date: Tue, 23 Oct 2012 21:10:37 +0800
+Message-ID: <1350997839-13260-1-git-send-email-tangchen@cn.fujitsu.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cn.fujitsu.com ([222.73.24.84]:21036 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1756896Ab2JWNLx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 23 Oct 2012 09:11:53 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: yinghai@kernel.org, bhelgaas@google.com, lenb@kernel.org, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 
 Hi,
 
-Would somebody give some comments ?
+The container hotplug handler container_notify_cb() didn't implement
+the hot-remove functionality. So, these 2 patches implement it like
+the following way:
 
-Thanks. :)
+patch 1. Do not use kacpid_wq/kacpid_notify_wq to handle container hotplug event,
+         use kacpi_hotplug_wq instead to avoid deadlock.
+         Doing this is to reuse acpi_bus_hot_remove_device() in container
+         hot-remove handling.
 
-On 10/12/2012 08:31 PM, Tang Chen wrote:
-> "ACPI0004","PNP0A05" and "PNP0A06" are all defined in array
-> container_device_ids[], so use it, but not the hard coding style.
->
-> Also, introduce a new api is_container_device() to determine if a
-> device is a container device.
->
-> Signed-off-by: Tang Chen<tangchen@cn.fujitsu.com>
-> Signed-off-by: Yasuaki Ishimatsu<isimatu.yasuaki@jp.fujitsu.com>
-> ---
->   drivers/acpi/container.c |   17 ++++++++++++++---
->   1 files changed, 14 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
-> index 1f9f7d7..ffd76ee 100644
-> --- a/drivers/acpi/container.c
-> +++ b/drivers/acpi/container.c
-> @@ -92,6 +92,19 @@ static int is_device_present(acpi_handle handle)
->   	return ((sta&  ACPI_STA_DEVICE_PRESENT) == ACPI_STA_DEVICE_PRESENT);
->   }
->
-> +static int is_container_device(const char *hid)
-> +{
-> +	const struct acpi_device_id *container_id;
-> +
-> +	for (container_id = container_device_ids;
-> +	     container_id->id[0]; container_id++) {
-> +		if (!strcmp((char *)container_id->id, hid))
-> +			return 1;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
->   /*******************************************************************/
->   static int acpi_container_add(struct acpi_device *device)
->   {
-> @@ -232,10 +245,8 @@ container_walk_namespace_cb(acpi_handle handle,
->   		goto end;
->   	}
->
-> -	if (strcmp(hid, "ACPI0004")&&  strcmp(hid, "PNP0A05")&&
-> -	    strcmp(hid, "PNP0A06")) {
-> +	if (!is_container_device(hid))
->   		goto end;
-> -	}
->
->   	switch (*action) {
->   	case INSTALL_NOTIFY_HANDLER:
+patch 2. Introduce a new function container_device_remove() to handle
+         ACPI_NOTIFY_EJECT_REQUEST event for container.
+
+
+In __acpi_os_execute(), we have the following comments:
+
+        We can't run hotplug code in keventd_wq/kacpid_wq/kacpid_notify_wq
+        because the hotplug code may call driver .remove() functions,
+        which invoke flush_scheduled_work/acpi_os_wait_events_complete
+        to flush these workqueues.
+
+Actually, I run into the deadlock caused by running hotplug code in
+kacpid_wq/kacpid_notify_wq. And I'm not quite sure if I did the right
+thing in patch1. So, please give some comments if you have a better idea.
+
+
+This is based on Lu Yinghai's job.
+git://git.kernel.org/pub/scm/linux/kernel/git/yinghai/linux-yinghai.git for-pci-split-pci-root-hp-2
+
+Tang Chen (2):
+  Use kacpi_hotplug_wq to handle container hotplug event.
+  Container hot remove support.
+
+ drivers/acpi/container.c |  102 +++++++++++++++++++++++++++++++++++++++++-----
+ 1 files changed, 92 insertions(+), 10 deletions(-)
+
