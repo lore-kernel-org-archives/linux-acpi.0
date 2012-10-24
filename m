@@ -1,68 +1,121 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH v3] Fix a hard coding style when determining if a device is a container.
-Date: Wed, 24 Oct 2012 14:11:53 +0800
-Message-ID: <1351059113-4660-1-git-send-email-tangchen@cn.fujitsu.com>
+From: Ondrej Zary <linux@rainbow-software.org>
+Subject: [PATCH] Enable A20 using KBC for some MSI laptops to fix S3 resume
+Date: Wed, 24 Oct 2012 08:47:52 +0200
+Message-ID: <201210240847.52417.linux@rainbow-software.org>
+Mime-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:32734 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1756369Ab2JXGNI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 24 Oct 2012 02:13:08 -0400
+Received: from mail-1.atlantis.sk ([80.94.52.57]:44810 "EHLO mail.atlantis.sk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933727Ab2JXGsd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 24 Oct 2012 02:48:33 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: yinghai@kernel.org, bhelgaas@google.com, lenb@kernel.org, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+To: hpa@zytor.com
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-"ACPI0004","PNP0A05" and "PNP0A06" are all defined in array
-container_device_ids[], so use it, but not the hard coding style.
+Some MSI laptop BIOSes are broken - INT 15h code uses port 92h to enable A20
+line but resume code assumes that KBC was used.
+The laptop will not resume from S3 otherwise but powers off after a while
+and then powers on again stuck with a blank screen.
 
-Also, introduce a new api is_container_device() to determine if a
-device is a container device.
+Fix it by enabling A20 using KBC. Affected laptop list and DMI data are from
+bug reports at Ubuntu Launchpad.
 
-change log v2 -> v3:
+Tested with EX600 and PR200.
 
-1. change the is_container_device()'s return value type from int to bool.
+Fixes https://bugzilla.kernel.org/show_bug.cgi?id=12878
 
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
----
- drivers/acpi/container.c |   17 ++++++++++++++---
- 1 files changed, 14 insertions(+), 3 deletions(-)
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 
-diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
-index 1f9f7d7..69e2d6b 100644
---- a/drivers/acpi/container.c
-+++ b/drivers/acpi/container.c
-@@ -92,6 +92,19 @@ static int is_device_present(acpi_handle handle)
- 	return ((sta & ACPI_STA_DEVICE_PRESENT) == ACPI_STA_DEVICE_PRESENT);
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -1349,6 +1349,20 @@ static int __init dmi_ignore_irq0_timer_override(const struct dmi_system_id *d)
  }
  
-+static bool is_container_device(const char *hid)
+ /*
++ * Enable A20 line using KBC even if it's already enabled using other method.
++ * This is needed for some MSI laptops to resume from S3.
++ */
++static int __init a20_enable_kbc(const struct dmi_system_id *d)
 +{
-+	const struct acpi_device_id *container_id;
++	printk(KERN_NOTICE "%s detected: enabling A20 using KBC\n", d->ident);
++	outb(0xd1, 0x64);	/* Command write */
++	outb(0xdf, 0x60);	/* A20 on */
++	outb(0xff, 0x64);	/* Null command, but UHCI wants it */
 +
-+	for (container_id = container_device_ids;
-+	     container_id->id[0]; container_id++) {
-+		if (!strcmp((char *)container_id->id, hid))
-+			return true;
-+	}
-+
-+	return false;
++	return 0;
 +}
 +
- /*******************************************************************/
- static int acpi_container_add(struct acpi_device *device)
- {
-@@ -232,10 +245,8 @@ container_walk_namespace_cb(acpi_handle handle,
- 		goto end;
- 	}
++/*
+  * If your system is blacklisted here, but you find that acpi=force
+  * works for you, please contact linux-acpi@vger.kernel.org
+  */
+@@ -1423,6 +1437,60 @@ static struct dmi_system_id __initdata acpi_dmi_table[] = {
+ 		     DMI_MATCH(DMI_PRODUCT_NAME, "TravelMate 360"),
+ 		     },
+ 	 },
++	/*
++	 * Some MSI laptop BIOSes are broken - INT 15h code uses port 92h to
++	 * enable A20 line but resume code assumes that KBC was used.
++	 * The laptop will not resume from S3 otherwise but powers off
++	 * after a while and then powers on again stuck with a blank screen.
++	 */
++	{
++	 .callback = a20_enable_kbc,
++	 .ident = "MSI EX600 Laptop",
++	 .matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star International"),
++		     DMI_MATCH(DMI_PRODUCT_NAME, "MSI Notebook EX600"),
++		     },
++	 },
++	{
++	 .callback = a20_enable_kbc,
++	 .ident = "MSI EX700 Laptop",
++	 .matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star International"),
++		     DMI_MATCH(DMI_PRODUCT_NAME, "EX700"),
++		     },
++	 },
++	{
++	 .callback = a20_enable_kbc,
++	 .ident = "MSI GX700 Laptop",
++	 .matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star International"),
++		     DMI_MATCH(DMI_PRODUCT_NAME, "GX700"),
++		     },
++	 },
++	{
++	 .callback = a20_enable_kbc,
++	 .ident = "MSI VR201 Laptop",
++	 .matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star International"),
++		     DMI_MATCH(DMI_PRODUCT_NAME, "MSI Notebook VR201"),
++		     },
++	 },
++	{
++	 .callback = a20_enable_kbc,
++	 .ident = "MSI VR601 Laptop",
++	 .matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star International"),
++		     DMI_MATCH(DMI_PRODUCT_NAME, "MSI Notebook VR601"),
++		     },
++	 },
++	{
++	 .callback = a20_enable_kbc,
++	 .ident = "MSI PR200 Laptop",
++	 .matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star International"),
++		     DMI_MATCH(DMI_PRODUCT_NAME, "MSI Notebook PR200"),
++		     },
++	 },
+ 	{}
+ };
  
--	if (strcmp(hid, "ACPI0004") && strcmp(hid, "PNP0A05") &&
--	    strcmp(hid, "PNP0A06")) {
-+	if (!is_container_device(hid))
- 		goto end;
--	}
- 
- 	switch (*action) {
- 	case INSTALL_NOTIFY_HANDLER:
--- 
-1.7.1
 
+
+-- 
+Ondrej Zary
