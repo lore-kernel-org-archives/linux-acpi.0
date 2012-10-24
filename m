@@ -1,30 +1,82 @@
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: Re: [PATCH] Enable A20 using KBC for some MSI laptops to fix S3
- resume
-Date: Wed, 24 Oct 2012 21:09:41 +0100
-Message-ID: <20121024210941.3c7d2cfb@pyramind.ukuu.org.uk>
-References: <201210240847.52417.linux@rainbow-software.org>
-	<450396555.xT2D53NWjT@vostro.rjw.lan>
-	<5e64035c-9ee0-4e76-a348-d4f9f6c7b198@email.android.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH v3] Fix a hard coding style when determining if a device
+ is a container.
+Date: Wed, 24 Oct 2012 15:03:52 -0600
+Message-ID: <CAErSpo6649U3FU_LL8CSgpdoP0aTQK49AEHEcC4JuHGZaqXP0w@mail.gmail.com>
+References: <1351059113-4660-1-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from lxorguk.ukuu.org.uk ([81.2.110.251]:52628 "EHLO
-	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754798Ab2JXUGi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Oct 2012 16:06:38 -0400
-In-Reply-To: <5e64035c-9ee0-4e76-a348-d4f9f6c7b198@email.android.com>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:37338 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757672Ab2JXVEN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Oct 2012 17:04:13 -0400
+Received: by mail-wi0-f178.google.com with SMTP id hr7so965366wib.1
+        for <linux-acpi@vger.kernel.org>; Wed, 24 Oct 2012 14:04:12 -0700 (PDT)
+In-Reply-To: <1351059113-4660-1-git-send-email-tangchen@cn.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Ondrej Zary <linux@rainbow-software.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: yinghai@kernel.org, lenb@kernel.org, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, 24 Oct 2012 12:36:04 -0700
-"H. Peter Anvin" <hpa@zytor.com> wrote:
+On Wed, Oct 24, 2012 at 12:11 AM, Tang Chen <tangchen@cn.fujitsu.com> wrote:
+> "ACPI0004","PNP0A05" and "PNP0A06" are all defined in array
+> container_device_ids[], so use it, but not the hard coding style.
+>
+> Also, introduce a new api is_container_device() to determine if a
+> device is a container device.
+>
+> change log v2 -> v3:
+>
+> 1. change the is_container_device()'s return value type from int to bool.
 
-> Minor concern: it should do the wait for ready before sending each command.
+No need to keep this level of detail in the permanent git changelogs.
 
-Can we get a command line to do this quirk too - it strikes me that if
-the MSIs rely upon it then it may be something Windows always does so
-will be useful to try on other problem machines as an experiment.
+> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+
+Reviewed-by: Bjorn Helgaas <bhelgaas@google.com>
+
+> ---
+>  drivers/acpi/container.c |   17 ++++++++++++++---
+>  1 files changed, 14 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
+> index 1f9f7d7..69e2d6b 100644
+> --- a/drivers/acpi/container.c
+> +++ b/drivers/acpi/container.c
+> @@ -92,6 +92,19 @@ static int is_device_present(acpi_handle handle)
+>         return ((sta & ACPI_STA_DEVICE_PRESENT) == ACPI_STA_DEVICE_PRESENT);
+>  }
+>
+> +static bool is_container_device(const char *hid)
+> +{
+> +       const struct acpi_device_id *container_id;
+> +
+> +       for (container_id = container_device_ids;
+> +            container_id->id[0]; container_id++) {
+> +               if (!strcmp((char *)container_id->id, hid))
+> +                       return true;
+> +       }
+> +
+> +       return false;
+> +}
+> +
+>  /*******************************************************************/
+>  static int acpi_container_add(struct acpi_device *device)
+>  {
+> @@ -232,10 +245,8 @@ container_walk_namespace_cb(acpi_handle handle,
+>                 goto end;
+>         }
+>
+> -       if (strcmp(hid, "ACPI0004") && strcmp(hid, "PNP0A05") &&
+> -           strcmp(hid, "PNP0A06")) {
+> +       if (!is_container_device(hid))
+>                 goto end;
+> -       }
+>
+>         switch (*action) {
+>         case INSTALL_NOTIFY_HANDLER:
+> --
+> 1.7.1
+>
