@@ -1,121 +1,105 @@
-From: Ondrej Zary <linux@rainbow-software.org>
-Subject: [PATCH] Enable A20 using KBC for some MSI laptops to fix S3 resume
-Date: Wed, 24 Oct 2012 08:47:52 +0200
-Message-ID: <201210240847.52417.linux@rainbow-software.org>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [PATCH v2 1/2] Use kacpi_hotplug_wq to handle container hotplug
+ event.
+Date: Wed, 24 Oct 2012 15:54:36 +0900
+Message-ID: <508790AC.5080001@jp.fujitsu.com>
+References: <1351058750-4275-1-git-send-email-tangchen@cn.fujitsu.com> <1351058750-4275-2-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset="ISO-2022-JP"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-1.atlantis.sk ([80.94.52.57]:44810 "EHLO mail.atlantis.sk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933727Ab2JXGsd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 24 Oct 2012 02:48:33 -0400
-Content-Disposition: inline
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:35522 "EHLO
+	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933450Ab2JXGzQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Oct 2012 02:55:16 -0400
+In-Reply-To: <1351058750-4275-2-git-send-email-tangchen@cn.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: hpa@zytor.com
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: yinghai@kernel.org, bhelgaas@google.com, lenb@kernel.org, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, mihailm@parallels.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Some MSI laptop BIOSes are broken - INT 15h code uses port 92h to enable A20
-line but resume code assumes that KBC was used.
-The laptop will not resume from S3 otherwise but powers off after a while
-and then powers on again stuck with a blank screen.
+Hi Tang,
 
-Fix it by enabling A20 using KBC. Affected laptop list and DMI data are from
-bug reports at Ubuntu Launchpad.
+2012/10/24 15:05, Tang Chen wrote:
+> As the comments in __acpi_os_execute() said:
+> 
+> 	We can't run hotplug code in keventd_wq/kacpid_wq/kacpid_notify_wq
+> 	because the hotplug code may call driver .remove() functions,
+> 	which invoke flush_scheduled_work/acpi_os_wait_events_complete
+> 	to flush these workqueues.
+> 
+> we should keep the hotplug code in kacpi_hotplug_wq.
+> 
+> But we have the following call series in kernel now:
+> 	acpi_ev_queue_notify_request()
+> 	|--> acpi_os_execute()
+> 	     |--> __acpi_os_execute(type, function, context, 0)
+> 
+> The last parameter 0 makes the container_notify_cb() executed in
+> kacpi_notify_wq or kacpid_wq. So, we need to put the real hotplug code
+> into kacpi_hotplug_wq.
 
-Tested with EX600 and PR200.
+I cannot understand the purpose of the patch.
+Is the patch a bug fix patch? If yes, what problem happens?
 
-Fixes https://bugzilla.kernel.org/show_bug.cgi?id=12878
+Thanks,
+Yasuaki Ishimatsu
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
-
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -1349,6 +1349,20 @@ static int __init dmi_ignore_irq0_timer_override(const struct dmi_system_id *d)
- }
- 
- /*
-+ * Enable A20 line using KBC even if it's already enabled using other method.
-+ * This is needed for some MSI laptops to resume from S3.
-+ */
-+static int __init a20_enable_kbc(const struct dmi_system_id *d)
-+{
-+	printk(KERN_NOTICE "%s detected: enabling A20 using KBC\n", d->ident);
-+	outb(0xd1, 0x64);	/* Command write */
-+	outb(0xdf, 0x60);	/* A20 on */
-+	outb(0xff, 0x64);	/* Null command, but UHCI wants it */
-+
-+	return 0;
-+}
-+
-+/*
-  * If your system is blacklisted here, but you find that acpi=force
-  * works for you, please contact linux-acpi@vger.kernel.org
-  */
-@@ -1423,6 +1437,60 @@ static struct dmi_system_id __initdata acpi_dmi_table[] = {
- 		     DMI_MATCH(DMI_PRODUCT_NAME, "TravelMate 360"),
- 		     },
- 	 },
-+	/*
-+	 * Some MSI laptop BIOSes are broken - INT 15h code uses port 92h to
-+	 * enable A20 line but resume code assumes that KBC was used.
-+	 * The laptop will not resume from S3 otherwise but powers off
-+	 * after a while and then powers on again stuck with a blank screen.
-+	 */
-+	{
-+	 .callback = a20_enable_kbc,
-+	 .ident = "MSI EX600 Laptop",
-+	 .matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star International"),
-+		     DMI_MATCH(DMI_PRODUCT_NAME, "MSI Notebook EX600"),
-+		     },
-+	 },
-+	{
-+	 .callback = a20_enable_kbc,
-+	 .ident = "MSI EX700 Laptop",
-+	 .matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star International"),
-+		     DMI_MATCH(DMI_PRODUCT_NAME, "EX700"),
-+		     },
-+	 },
-+	{
-+	 .callback = a20_enable_kbc,
-+	 .ident = "MSI GX700 Laptop",
-+	 .matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star International"),
-+		     DMI_MATCH(DMI_PRODUCT_NAME, "GX700"),
-+		     },
-+	 },
-+	{
-+	 .callback = a20_enable_kbc,
-+	 .ident = "MSI VR201 Laptop",
-+	 .matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star International"),
-+		     DMI_MATCH(DMI_PRODUCT_NAME, "MSI Notebook VR201"),
-+		     },
-+	 },
-+	{
-+	 .callback = a20_enable_kbc,
-+	 .ident = "MSI VR601 Laptop",
-+	 .matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star International"),
-+		     DMI_MATCH(DMI_PRODUCT_NAME, "MSI Notebook VR601"),
-+		     },
-+	 },
-+	{
-+	 .callback = a20_enable_kbc,
-+	 .ident = "MSI PR200 Laptop",
-+	 .matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star International"),
-+		     DMI_MATCH(DMI_PRODUCT_NAME, "MSI Notebook PR200"),
-+		     },
-+	 },
- 	{}
- };
- 
+> 
+> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+> ---
+>   drivers/acpi/container.c |   17 ++++++++++++++++-
+>   1 files changed, 16 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
+> index 69e2d6b..d300e03 100644
+> --- a/drivers/acpi/container.c
+> +++ b/drivers/acpi/container.c
+> @@ -35,6 +35,7 @@
+>   #include <acpi/acpi_bus.h>
+>   #include <acpi/acpi_drivers.h>
+>   #include <acpi/container.h>
+> +#include <acpi/acpiosxf.h>
+>   
+>   #define PREFIX "ACPI: "
+>   
+> @@ -165,14 +166,21 @@ static int container_device_add(struct acpi_device **device, acpi_handle handle)
+>   	return result;
+>   }
+>   
+> -static void container_notify_cb(acpi_handle handle, u32 type, void *context)
+> +static void __container_notify_cb(struct work_struct *work)
+>   {
+>   	struct acpi_device *device = NULL;
+>   	int result;
+>   	int present;
+>   	acpi_status status;
+> +	struct acpi_hp_work *hp_work;
+> +	acpi_handle handle;
+> +	u32 type;
+>   	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE; /* default */
+>   
+> +	hp_work = container_of(work, struct acpi_hp_work, work);
+> +	handle = hp_work->handle;
+> +	type = hp_work->type;
+> +
+>   	switch (type) {
+>   	case ACPI_NOTIFY_BUS_CHECK:
+>   		/* Fall through */
+> @@ -224,6 +232,13 @@ static void container_notify_cb(acpi_handle handle, u32 type, void *context)
+>   	return;
+>   }
+>   
+> +static void container_notify_cb(acpi_handle handle, u32 type,
+> +				void *context)
+> +{
+> +	alloc_acpi_hp_work(handle, type, context,
+> +			   __container_notify_cb);
+> +}
+> +
+>   static acpi_status
+>   container_walk_namespace_cb(acpi_handle handle,
+>   			    u32 lvl, void *context, void **rv)
+> 
 
 
--- 
-Ondrej Zary
