@@ -1,49 +1,74 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPICA: Don't leak next_walk_state in acpi_ds_call_control_method()
-Date: Thu, 25 Oct 2012 00:15:20 +0200
-Message-ID: <2295104.eQ6lcDpNzT@vostro.rjw.lan>
-References: <alpine.LNX.2.00.1210212233180.26319@swampdragon.chaosbits.net>
+Subject: Re: [PATCH v2] Fix a hard coding style when determining if a device is a container.
+Date: Thu, 25 Oct 2012 00:16:08 +0200
+Message-ID: <2015066.6aPMCAtdiB@vostro.rjw.lan>
+References: <1350045098-7232-1-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.LNX.2.00.1210212233180.26319@swampdragon.chaosbits.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jesper Juhl <jj@chaosbits.net>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, Lin Ming <ming.m.lin@intel.com>, Bob Moore <robert.moore@intel.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1350045098-7232-1-git-send-email-tangchen@cn.fujitsu.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: bhelgaas@google.com, lenb@kernel.org, yinghai@kernel.org, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sunday 21 of October 2012 22:35:46 Jesper Juhl wrote:
-> If acpi_ds_create_walk_state() succeeds, but the call to
-> ACPI_ALLOCATE_ZEROED() fails, then we'll return from the function
-> without properly freeing 'next_walk_state'.
+On Friday 12 of October 2012 20:31:38 Tang Chen wrote:
+> "ACPI0004","PNP0A05" and "PNP0A06" are all defined in array
+> container_device_ids[], so use it, but not the hard coding style.
 > 
-> Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+> Also, introduce a new api is_container_device() to determine if a
+> device is a container device.
+> 
+> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-This has to go through ACPICA upstream, but we'll get it from there eventually.
+Applied to linux-pm.git/acpi-next as v3.8 material.
 
 Thanks,
 Rafael
 
 
 > ---
->  drivers/acpi/acpica/dsmethod.c |    3 ++-
->  1 files changed, 2 insertions(+), 1 deletions(-)
+>  drivers/acpi/container.c |   17 ++++++++++++++---
+>  1 files changed, 14 insertions(+), 3 deletions(-)
 > 
-> diff --git a/drivers/acpi/acpica/dsmethod.c b/drivers/acpi/acpica/dsmethod.c
-> index aa9a5d4..ade59a3 100644
-> --- a/drivers/acpi/acpica/dsmethod.c
-> +++ b/drivers/acpi/acpica/dsmethod.c
-> @@ -378,7 +378,8 @@ acpi_ds_call_control_method(struct acpi_thread_state *thread,
->  	 */
->  	info = ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_evaluate_info));
->  	if (!info) {
-> -		return_ACPI_STATUS(AE_NO_MEMORY);
-> +		status = AE_NO_MEMORY;
-> +		goto cleanup;
+> diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
+> index 1f9f7d7..ffd76ee 100644
+> --- a/drivers/acpi/container.c
+> +++ b/drivers/acpi/container.c
+> @@ -92,6 +92,19 @@ static int is_device_present(acpi_handle handle)
+>  	return ((sta & ACPI_STA_DEVICE_PRESENT) == ACPI_STA_DEVICE_PRESENT);
+>  }
+>  
+> +static int is_container_device(const char *hid)
+> +{
+> +	const struct acpi_device_id *container_id;
+> +
+> +	for (container_id = container_device_ids;
+> +	     container_id->id[0]; container_id++) {
+> +		if (!strcmp((char *)container_id->id, hid))
+> +			return 1;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+>  /*******************************************************************/
+>  static int acpi_container_add(struct acpi_device *device)
+>  {
+> @@ -232,10 +245,8 @@ container_walk_namespace_cb(acpi_handle handle,
+>  		goto end;
 >  	}
 >  
->  	info->parameters = &this_walk_state->operands[0];
+> -	if (strcmp(hid, "ACPI0004") && strcmp(hid, "PNP0A05") &&
+> -	    strcmp(hid, "PNP0A06")) {
+> +	if (!is_container_device(hid))
+>  		goto end;
+> -	}
+>  
+>  	switch (*action) {
+>  	case INSTALL_NOTIFY_HANDLER:
 > 
 -- 
 I speak only for myself.
