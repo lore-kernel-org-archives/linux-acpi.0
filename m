@@ -1,43 +1,123 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH v2 2/2] Improve container_notify_cb() to support container hot-remove.
-Date: Wed, 24 Oct 2012 12:02:04 -0600
-Message-ID: <CAErSpo7KRTY+M1gSO7s_PGRPkXABK6x9CQsaMXbZ__C11mmTWQ@mail.gmail.com>
-References: <1351058750-4275-1-git-send-email-tangchen@cn.fujitsu.com>
- <1351058750-4275-3-git-send-email-tangchen@cn.fujitsu.com> <1351098875.19172.21.camel@misato.fc.hp.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] Enable A20 using KBC for some MSI laptops to fix S3 resume
+Date: Wed, 24 Oct 2012 21:01:16 +0200
+Message-ID: <450396555.xT2D53NWjT@vostro.rjw.lan>
+References: <201210240847.52417.linux@rainbow-software.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1351098875.19172.21.camel@misato.fc.hp.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>, yinghai@kernel.org, lenb@kernel.org, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, mihailm@parallels.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201210240847.52417.linux@rainbow-software.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ondrej Zary <linux@rainbow-software.org>, hpa@zytor.com
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Oct 24, 2012 at 11:14 AM, Toshi Kani <toshi.kani@hp.com> wrote:
-> On Wed, 2012-10-24 at 14:05 +0800, Tang Chen wrote:
+On Wednesday 24 of October 2012 08:47:52 Ondrej Zary wrote:
+> Some MSI laptop BIOSes are broken - INT 15h code uses port 92h to enable A20
+> line but resume code assumes that KBC was used.
+> The laptop will not resume from S3 otherwise but powers off after a while
+> and then powers on again stuck with a blank screen.
+> 
+> Fix it by enabling A20 using KBC. Affected laptop list and DMI data are from
+> bug reports at Ubuntu Launchpad.
+> 
+> Tested with EX600 and PR200.
+> 
+> Fixes https://bugzilla.kernel.org/show_bug.cgi?id=12878
+> 
+> Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 
->> +             result = container_device_remove(device);
->> +             if (result) {
->> +                     printk(KERN_WARNING "Failed to remove container\n");
->
-> Please use pr_warn().
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-I think you should use dev_warn() and similar when possible.  In a
-year or two, the text "Failed to remove container" all by itself in a
-dmesg log is not going to mean anything to anybody except you, and it
-doesn't give any clue where to start looking for issues.
 
-I also have a larger question.  I'm not sure if
-drivers/acpi/container.c does anything important in the first place.
-The code in it looks an awful lot like the code in
-drivers/acpi/processor_driver.c, drivers/acpi/acpi_memhotplug.c, and
-drivers/pci/hotplug/acpiphp_glue.c.
-
-To me, it looks like container.c (as well as the other places I
-mentioned) is an attempt to compensate for the lack of hotplug support
-in the ACPI core.  If the ACPI core had generic hotplug support, e.g.,
-if it handled BUS_CHECK, DEVICE_CHECK, and EJECT_REQUEST notifications
-and turned those into the appropriate calls to driver .add()/.start()
-and .remove() methods, would we need container.c at all?
-
-Bjorn
+> --- a/arch/x86/kernel/acpi/boot.c
+> +++ b/arch/x86/kernel/acpi/boot.c
+> @@ -1349,6 +1349,20 @@ static int __init dmi_ignore_irq0_timer_override(const struct dmi_system_id *d)
+>  }
+>  
+>  /*
+> + * Enable A20 line using KBC even if it's already enabled using other method.
+> + * This is needed for some MSI laptops to resume from S3.
+> + */
+> +static int __init a20_enable_kbc(const struct dmi_system_id *d)
+> +{
+> +	printk(KERN_NOTICE "%s detected: enabling A20 using KBC\n", d->ident);
+> +	outb(0xd1, 0x64);	/* Command write */
+> +	outb(0xdf, 0x60);	/* A20 on */
+> +	outb(0xff, 0x64);	/* Null command, but UHCI wants it */
+> +
+> +	return 0;
+> +}
+> +
+> +/*
+>   * If your system is blacklisted here, but you find that acpi=force
+>   * works for you, please contact linux-acpi@vger.kernel.org
+>   */
+> @@ -1423,6 +1437,60 @@ static struct dmi_system_id __initdata acpi_dmi_table[] = {
+>  		     DMI_MATCH(DMI_PRODUCT_NAME, "TravelMate 360"),
+>  		     },
+>  	 },
+> +	/*
+> +	 * Some MSI laptop BIOSes are broken - INT 15h code uses port 92h to
+> +	 * enable A20 line but resume code assumes that KBC was used.
+> +	 * The laptop will not resume from S3 otherwise but powers off
+> +	 * after a while and then powers on again stuck with a blank screen.
+> +	 */
+> +	{
+> +	 .callback = a20_enable_kbc,
+> +	 .ident = "MSI EX600 Laptop",
+> +	 .matches = {
+> +		     DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star International"),
+> +		     DMI_MATCH(DMI_PRODUCT_NAME, "MSI Notebook EX600"),
+> +		     },
+> +	 },
+> +	{
+> +	 .callback = a20_enable_kbc,
+> +	 .ident = "MSI EX700 Laptop",
+> +	 .matches = {
+> +		     DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star International"),
+> +		     DMI_MATCH(DMI_PRODUCT_NAME, "EX700"),
+> +		     },
+> +	 },
+> +	{
+> +	 .callback = a20_enable_kbc,
+> +	 .ident = "MSI GX700 Laptop",
+> +	 .matches = {
+> +		     DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star International"),
+> +		     DMI_MATCH(DMI_PRODUCT_NAME, "GX700"),
+> +		     },
+> +	 },
+> +	{
+> +	 .callback = a20_enable_kbc,
+> +	 .ident = "MSI VR201 Laptop",
+> +	 .matches = {
+> +		     DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star International"),
+> +		     DMI_MATCH(DMI_PRODUCT_NAME, "MSI Notebook VR201"),
+> +		     },
+> +	 },
+> +	{
+> +	 .callback = a20_enable_kbc,
+> +	 .ident = "MSI VR601 Laptop",
+> +	 .matches = {
+> +		     DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star International"),
+> +		     DMI_MATCH(DMI_PRODUCT_NAME, "MSI Notebook VR601"),
+> +		     },
+> +	 },
+> +	{
+> +	 .callback = a20_enable_kbc,
+> +	 .ident = "MSI PR200 Laptop",
+> +	 .matches = {
+> +		     DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star International"),
+> +		     DMI_MATCH(DMI_PRODUCT_NAME, "MSI Notebook PR200"),
+> +		     },
+> +	 },
+>  	{}
+>  };
+>  
+> 
+> 
+> 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
