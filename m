@@ -1,55 +1,90 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH 2/2] Improve container_notify_cb() to support container
- hot-remove.
-Date: Wed, 24 Oct 2012 09:51:23 +0800
-Message-ID: <5087499B.4050505@cn.fujitsu.com>
-References: <1350997839-13260-1-git-send-email-tangchen@cn.fujitsu.com>  <1350997839-13260-3-git-send-email-tangchen@cn.fujitsu.com> <1351029261.16186.3.camel@QWERTY1.site>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH v2 1/2] Use kacpi_hotplug_wq to handle container hotplug event.
+Date: Wed, 24 Oct 2012 14:05:49 +0800
+Message-ID: <1351058750-4275-2-git-send-email-tangchen@cn.fujitsu.com>
+References: <1351058750-4275-1-git-send-email-tangchen@cn.fujitsu.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:11770 "EHLO song.cn.fujitsu.com"
+Received: from cn.fujitsu.com ([222.73.24.84]:53191 "EHLO song.cn.fujitsu.com"
 	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1754702Ab2JXBwd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 23 Oct 2012 21:52:33 -0400
-In-Reply-To: <1351029261.16186.3.camel@QWERTY1.site>
+	id S1757500Ab2JXGHH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 24 Oct 2012 02:07:07 -0400
+In-Reply-To: <1351058750-4275-1-git-send-email-tangchen@cn.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mike Maslenkin <mihailm@parallels.com>
-Cc: linux-acpi@vger.kernel.org
+To: yinghai@kernel.org, bhelgaas@google.com, lenb@kernel.org, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, mihailm@parallels.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 10/24/2012 05:54 AM, Mike Maslenkin wrote:
-> On Tue, 2012-10-23 at 21:10 +0800, Tang Chen wrote:
->> +static int container_device_remove(struct acpi_device *device)
->> +{
->> +	int ret;
->> +	struct acpi_eject_event *ej_event;
->> +
->> +	ej_event = kmalloc(sizeof(*ej_event), GFP_KERNEL);
->> +	if (!ej_event)
->> +		return -ENOMEM;
->> +
->> +	ej_event->device = device;
->> +	ej_event->event = ACPI_NOTIFY_EJECT_REQUEST;
->> +
->> +	/* stop container device at first */
->> +	ret = acpi_bus_trim(device, 0);
->> +	printk(KERN_WARNING "acpi_bus_trim stop return %x\n", ret);
->> +	if (ret)
->> +		return ret;
->> +
-> Looks like kfree() is missed here. Would it be better to stop container
-> before event allocation?
+As the comments in __acpi_os_execute() said:
 
-Oh yes, my mistake.
+	We can't run hotplug code in keventd_wq/kacpid_wq/kacpid_notify_wq
+	because the hotplug code may call driver .remove() functions,
+	which invoke flush_scheduled_work/acpi_os_wait_events_complete
+	to flush these workqueues.
 
-And do the allocation after stopping container would be better. :)
+we should keep the hotplug code in kacpi_hotplug_wq.
 
-Thanks.
+But we have the following call series in kernel now:
+	acpi_ev_queue_notify_request()
+	|--> acpi_os_execute()
+	     |--> __acpi_os_execute(type, function, context, 0)
 
->
->
-> Mike.
->
->
+The last parameter 0 makes the container_notify_cb() executed in
+kacpi_notify_wq or kacpid_wq. So, we need to put the real hotplug code
+into kacpi_hotplug_wq.
+
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+---
+ drivers/acpi/container.c |   17 ++++++++++++++++-
+ 1 files changed, 16 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
+index 69e2d6b..d300e03 100644
+--- a/drivers/acpi/container.c
++++ b/drivers/acpi/container.c
+@@ -35,6 +35,7 @@
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+ #include <acpi/container.h>
++#include <acpi/acpiosxf.h>
+ 
+ #define PREFIX "ACPI: "
+ 
+@@ -165,14 +166,21 @@ static int container_device_add(struct acpi_device **device, acpi_handle handle)
+ 	return result;
+ }
+ 
+-static void container_notify_cb(acpi_handle handle, u32 type, void *context)
++static void __container_notify_cb(struct work_struct *work)
+ {
+ 	struct acpi_device *device = NULL;
+ 	int result;
+ 	int present;
+ 	acpi_status status;
++	struct acpi_hp_work *hp_work;
++	acpi_handle handle;
++	u32 type;
+ 	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE; /* default */
+ 
++	hp_work = container_of(work, struct acpi_hp_work, work);
++	handle = hp_work->handle;
++	type = hp_work->type;
++
+ 	switch (type) {
+ 	case ACPI_NOTIFY_BUS_CHECK:
+ 		/* Fall through */
+@@ -224,6 +232,13 @@ static void container_notify_cb(acpi_handle handle, u32 type, void *context)
+ 	return;
+ }
+ 
++static void container_notify_cb(acpi_handle handle, u32 type,
++				void *context)
++{
++	alloc_acpi_hp_work(handle, type, context,
++			   __container_notify_cb);
++}
++
+ static acpi_status
+ container_walk_namespace_cb(acpi_handle handle,
+ 			    u32 lvl, void *context, void **rv)
+-- 
+1.7.1
 
