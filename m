@@ -1,129 +1,99 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH v2 2/2] Improve container_notify_cb() to support
- container hot-remove.
-Date: Thu, 25 Oct 2012 11:20:48 -0600
-Message-ID: <1351185648.19172.51.camel@misato.fc.hp.com>
-References: <1351058750-4275-1-git-send-email-tangchen@cn.fujitsu.com>
-	  <1351058750-4275-3-git-send-email-tangchen@cn.fujitsu.com>
-	 <1351098875.19172.21.camel@misato.fc.hp.com>
-	 <5088967E.3060204@cn.fujitsu.com> <50889A14.9030607@huawei.com>
+From: Mike Waychison <mikew@google.com>
+Subject: Re: [PATCH v2 1/5] efi_pstore: Check remaining space with
+ QueryVariableInfo() before writing data
+Date: Thu, 25 Oct 2012 11:56:13 -0700
+Message-ID: <CAGTjWtDMB6GXStq2uGc486hrjYoLejxd3TEWV0AX2BrK0GOnTA@mail.gmail.com>
+References: <A5ED84D3BB3A384992CBB9C77DEDA4D41388897F@USINDEM103.corp.hds.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <50889A14.9030607@huawei.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@huawei.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>, yinghai@kernel.org, bhelgaas@google.com, lenb@kernel.org, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, mihailm@parallels.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:36134 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760027Ab2JYS4e (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Oct 2012 14:56:34 -0400
+Received: by mail-ob0-f174.google.com with SMTP id uo13so1892545obb.19
+        for <linux-acpi@vger.kernel.org>; Thu, 25 Oct 2012 11:56:34 -0700 (PDT)
+In-Reply-To: <A5ED84D3BB3A384992CBB9C77DEDA4D41388897F@USINDEM103.corp.hds.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Seiji Aguchi <seiji.aguchi@hds.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Luck, Tony (tony.luck@intel.com)" <tony.luck@intel.com>, "Matthew Garrett (mjg@redhat.com)" <mjg@redhat.com>, "dzickus@redhat.com" <dzickus@redhat.com>, "dle-develop@lists.sourceforge.net" <dle-develop@lists.sourceforge.net>, Satoru Moriya <satoru.moriya@hds.com>
 
-On Thu, 2012-10-25 at 09:47 +0800, Jiang Liu wrote:
-> On 2012-10-25 9:31, Tang Chen wrote:
-> > Hi Toshi,
-> > 
-> > On 10/25/2012 01:14 AM, Toshi Kani wrote:
-> >> On Wed, 2012-10-24 at 14:05 +0800, Tang Chen wrote:
-> >>> +static int container_device_remove(struct acpi_device *device)
-> >>> +{
-> >>> +    int ret;
-> >>> +    struct acpi_eject_event *ej_event;
-> >>> +
-> >>> +    /* stop container device at first */
-> >>> +    ret = acpi_bus_trim(device, 0);
-> >>
-> >> Hi Tang,
-> >>
-> >> Why do you need to call acpi_bus_trim(device,0) to stop the container
-> >> device first?
-> > 
-> > This issue was introduced by Lu Yinghai, I think he could give a better
-> > answer than me. :)
-> > Please refer to the following url:
-> > 
-> > http://www.spinics.net/lists/linux-pci/msg17667.html
-> > 
-> > However, this is not applied into the pci tree yet.
-> We have worked out a patch set to clean up the logic for PCI/ACPI binding
-> relationship. It updates PCI/ACPI binding relationship by registering bus
-> notification onto pci_bus_type instead of hooking into the ACPI/glue.c.
+Acked-by: Mike Waychison <mikew@google.com>
 
-Thanks for the info and pointer.  Tang, I'd suggest you add such info to
-the comment so that others know that this step is needed for removing
-PCI bridges.  It helps us to know where to look at...
-
-> To accommodate that patch set, the ACPI device destroy process has been
-> split into two steps:
-> 1) acpi_bus_trim(device,0) to unbind ACPI drivers
-
-Does this step also detach PCI drivers from PCI cards as well?
-
-Thanks,
--Toshi
-
-
-> 2) acpi_bus_trim(device,1) to destroy ACPI devices
-> 
-> > 
-> >>
-> >>> +    printk(KERN_WARNING "acpi_bus_trim stop return %x\n", ret);
-> >>
-> >> Do you need this message in the normal case?  If so, I'd suggest to use
-> >> pr_debug().
-> >>
-> >>> +    if (ret)
-> >>> +        return ret;
-> >>> +
-> >>> +    /* event originated from ACPI eject notification */
-> >>> +    device->flags.eject_pending = 1;
-> >>
-> >> You do not need to set the eject_pending flag when the handler calls
-> >> acpi_bus_hot_remove_device().  It was set before because the handler did
-> >> not initiate the hot-remove operation.
-> > 
-> > I just set it to keep the logic the same as before.
-> > And thanks for telling me this. :)
-> > 
-> >>
-> > ...
-> >>> +        printk(KERN_WARNING "Container driver received %s event\n",
-> >>> +            "ACPI_NOTIFY_EJECT_REQUEST");
-> >>
-> >> Same as other comment.  Suggest to use pr_debug().
-> > 
-> > OK. :)
-> > 
-> >>
-> >>> +
-> >>> +        if (!present || ACPI_FAILURE(status) || !device)
-> >>> +            break;
-> >>> +
-> >>> +        result = container_device_remove(device);
-> >>> +        if (result) {
-> >>> +            printk(KERN_WARNING "Failed to remove container\n");
-> >>
-> >> Please use pr_warn().
-> >>
-> >> Thanks,
-> >> -Toshi
-> >>
-> >>> +            break;
-> >>>           }
-> >>> -        break;
-> >>> +
-> >>> +        return;
-> >>>
-> >>>       default:
-> >>>           /* non-hotplug event; possibly handled by other handler */
-> >>
-> >>
-> >> -- 
-> >> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> >> the body of a message to majordomo@vger.kernel.org
-> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >>
-> > 
-> > 
-> > .
-> > 
-> 
-> 
+On Wed, Oct 24, 2012 at 6:51 PM, Seiji Aguchi <seiji.aguchi@hds.com> wrote:
+> [Issue]
+>
+> As discussed in a thread below, Running out of space in EFI isn't a well-tested scenario.
+> And we wouldn't expect all firmware to handle it gracefully.
+> http://marc.info/?l=linux-kernel&m=134305325801789&w=2
+>
+> On the other hand, current efi_pstore doesn't check a remaining space of storage at writing time.
+> Therefore, efi_pstore may not work if it tries to write a large amount of data.
+>
+> [Patch Description]
+>
+> To avoid handling the situation above, this patch checks if there is a space enough to log with
+> QueryVariableInfo() before writing data.
+>
+> Signed-off-by: Seiji Aguchi <seiji.aguchi@hds.com>
+> ---
+>  drivers/firmware/efivars.c |   18 ++++++++++++++++++
+>  include/linux/efi.h        |    1 +
+>  2 files changed, 19 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/firmware/efivars.c b/drivers/firmware/efivars.c
+> index d10c987..37ac21a 100644
+> --- a/drivers/firmware/efivars.c
+> +++ b/drivers/firmware/efivars.c
+> @@ -707,12 +707,29 @@ static int efi_pstore_write(enum pstore_type_id type,
+>         struct efivars *efivars = psi->data;
+>         struct efivar_entry *entry, *found = NULL;
+>         int i, ret = 0;
+> +       u64 storage_space, remaining_space, max_variable_size;
+> +       efi_status_t status = EFI_NOT_FOUND;
+>
+>         sprintf(stub_name, "dump-type%u-%u-", type, part);
+>         sprintf(name, "%s%lu", stub_name, get_seconds());
+>
+>         spin_lock(&efivars->lock);
+>
+> +       /*
+> +        * Check if there is a space enough to log.
+> +        * size: a size of logging data
+> +        * DUMP_NAME_LEN * 2: a maximum size of variable name
+> +        */
+> +       status = efivars->ops->query_variable_info(PSTORE_EFI_ATTRIBUTES,
+> +                                                  &storage_space,
+> +                                                  &remaining_space,
+> +                                                  &max_variable_size);
+> +       if (status || remaining_space < size + DUMP_NAME_LEN * 2) {
+> +               spin_unlock(&efivars->lock);
+> +               *id = part;
+> +               return -ENOSPC;
+> +       }
+> +
+>         for (i = 0; i < DUMP_NAME_LEN; i++)
+>                 efi_name[i] = stub_name[i];
+>
+> @@ -1237,6 +1254,7 @@ efivars_init(void)
+>         ops.get_variable = efi.get_variable;
+>         ops.set_variable = efi.set_variable;
+>         ops.get_next_variable = efi.get_next_variable;
+> +       ops.query_variable_info = efi.query_variable_info;
+>         error = register_efivars(&__efivars, &ops, efi_kobj);
+>         if (error)
+>                 goto err_put;
+> diff --git a/include/linux/efi.h b/include/linux/efi.h
+> index 8670eb1..c47ec36 100644
+> --- a/include/linux/efi.h
+> +++ b/include/linux/efi.h
+> @@ -643,6 +643,7 @@ struct efivar_operations {
+>         efi_get_variable_t *get_variable;
+>         efi_get_next_variable_t *get_next_variable;
+>         efi_set_variable_t *set_variable;
+> +       efi_query_variable_info_t *query_variable_info;
+>  };
+>
+>  struct efivars {
+> -- 1.7.1
