@@ -1,61 +1,75 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 1/5] cpuidle / ACPI : remove unused definition
-Date: Fri, 26 Oct 2012 01:31:09 +0200
-Message-ID: <1753050.VjvrJt9oL3@vostro.rjw.lan>
-References: <1350640292-22468-1-git-send-email-daniel.lezcano@linaro.org>
+Subject: Re: [PATCH 2/5] cpuidle / ACPI : remove pointless headers
+Date: Fri, 26 Oct 2012 01:36:18 +0200
+Message-ID: <1993708.2VhgMUSPIE@vostro.rjw.lan>
+References: <1350640292-22468-1-git-send-email-daniel.lezcano@linaro.org> <1350640292-22468-2-git-send-email-daniel.lezcano@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:37905 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([193.178.161.156]:37917 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751310Ab2JYX1N (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 25 Oct 2012 19:27:13 -0400
-In-Reply-To: <1350640292-22468-1-git-send-email-daniel.lezcano@linaro.org>
+	id S1750887Ab2JYXcV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 25 Oct 2012 19:32:21 -0400
+In-Reply-To: <1350640292-22468-2-git-send-email-daniel.lezcano@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Daniel Lezcano <daniel.lezcano@linaro.org>
 Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linaro-dev@lists.linaro.org, patches@linaro.org
 
-On Friday, October 19, 2012 11:51:28 AM Daniel Lezcano wrote:
-> The different definitions are not used anywhere in the code.
+On Friday, October 19, 2012 11:51:29 AM Daniel Lezcano wrote:
+> These different headers are not needed.
 > 
 > Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
 
-If you tried to build the kernel with this patch applied, I wonder
-what .config you used. :-)
-
-It doesn't build for me, because _COMPONENT is actually used.
-
-And in the future, please check the *code* in addition to build-testing.
+The kernel doesn't build for me with this patch applied (presumably
+because the #defines from the previous patch were necessary after all).
 
 Thanks,
 Rafael
 
 
 > ---
->  drivers/acpi/processor_idle.c |    7 -------
->  1 files changed, 0 insertions(+), 7 deletions(-)
+>  drivers/acpi/processor_idle.c |   13 -------------
+>  1 files changed, 0 insertions(+), 13 deletions(-)
 > 
 > diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-> index e8086c7..1f536a3 100644
+> index 1f536a3..9aac69b 100644
 > --- a/drivers/acpi/processor_idle.c
 > +++ b/drivers/acpi/processor_idle.c
-> @@ -60,14 +60,7 @@
->  #include <asm/processor.h>
+> @@ -28,19 +28,10 @@
+>   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+>   */
+>  
+> -#include <linux/kernel.h>
+>  #include <linux/module.h>
+> -#include <linux/init.h>
+> -#include <linux/cpufreq.h>
+> -#include <linux/slab.h>
+> -#include <linux/acpi.h>
+>  #include <linux/dmi.h>
+> -#include <linux/moduleparam.h>
+> -#include <linux/sched.h>	/* need_resched() */
+> -#include <linux/pm_qos.h>
+>  #include <linux/clockchips.h>
+>  #include <linux/cpuidle.h>
+> -#include <linux/irqflags.h>
+>  
+>  /*
+>   * Include the apic definitions for x86 to have the APIC timer related defines
+> @@ -52,12 +43,8 @@
+>  #include <asm/apic.h>
+>  #endif
+>  
+> -#include <asm/io.h>
+> -#include <asm/uaccess.h>
+> -
+>  #include <acpi/acpi_bus.h>
+>  #include <acpi/processor.h>
+> -#include <asm/processor.h>
 >  
 >  #define PREFIX "ACPI: "
-> -
-> -#define ACPI_PROCESSOR_CLASS            "processor"
-> -#define _COMPONENT              ACPI_PROCESSOR_COMPONENT
 >  ACPI_MODULE_NAME("processor_idle");
-> -#define PM_TIMER_TICK_NS		(1000000000ULL/PM_TIMER_FREQUENCY)
-> -#define C2_OVERHEAD			1	/* 1us */
-> -#define C3_OVERHEAD			1	/* 1us */
-> -#define PM_TIMER_TICKS_TO_US(p)		(((p) * 1000)/(PM_TIMER_FREQUENCY/1000))
->  
->  static unsigned int max_cstate __read_mostly = ACPI_PROCESSOR_MAX_POWER;
->  module_param(max_cstate, uint, 0000);
 > 
 -- 
 I speak only for myself.
