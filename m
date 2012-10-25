@@ -1,49 +1,39 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH 2/2] ACPI: Remove unused lockable in acpi_device_flags
-Date: Thu, 25 Oct 2012 08:01:54 -0600
-Message-ID: <1351173714.19172.27.camel@misato.fc.hp.com>
-References: <1350318870-5700-1-git-send-email-toshi.kani@hp.com>
-	 <507E0942.1080708@jp.fujitsu.com>
-	 <1350482209.28185.2.camel@misato.fc.hp.com>
-	 <4977274.iWiO0dh4FZ@vostro.rjw.lan>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: [PATCH] acpi: missing break
+Date: Thu, 25 Oct 2012 15:32:37 +0100
+Message-ID: <20121025143229.17059.47783.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0027.austin.hp.com ([15.216.28.34]:31350 "EHLO
-	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1945971Ab2JYOJ2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Oct 2012 10:09:28 -0400
-In-Reply-To: <4977274.iWiO0dh4FZ@vostro.rjw.lan>
+Received: from lxorguk.ukuu.org.uk ([81.2.110.251]:53792 "EHLO
+	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759744Ab2JYObG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Oct 2012 10:31:06 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, linux-acpi@vger.kernel.org, lenb@kernel.org, linux-kernel@vger.kernel.org, liuj97@gmail.com
+To: lenb@linux.intel.com, linux-acpi@vger.kernel.org
 
-On Thu, 2012-10-25 at 00:08 +0200, Rafael J. Wysocki wrote:
-> On Wednesday 17 of October 2012 07:56:49 Toshi Kani wrote:
-> > On Wed, 2012-10-17 at 10:26 +0900, Yasuaki Ishimatsu wrote:
-> > > 2012/10/16 1:34, Toshi Kani wrote:
-> > > > Removed lockable in struct acpi_device_flags since it is no
-> > > > longer used by any code. acpi_bus_hot_remove_device() cannot
-> > > > use this flag because acpi_bus_trim() frees up its acpi_device
-> > > > object. Furthermore, the dock driver calls _LCK method without
-> > > > using this lockable flag.
-> > > > 
-> > > > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-> > > 
-> > > Looks good to me.
-> > > Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> > 
-> > Thanks Yasuaki for reviewing!
-> 
-> Applied to linux-pm.git/acpi-next as v3.8 material.
+From: Alan Cox <alan@linux.intel.com>
 
-Cool! Thanks Rafael!
--Toshi
+We handle NOTIFY_THROTTLING so don't then fll through to unsupported event
 
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+---
 
-> Thanks,
-> Rafael
+ drivers/acpi/processor_driver.c |    1 +
+ 1 file changed, 1 insertion(+)
 
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index ae50bfc..a4352b8 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -409,6 +409,7 @@ static void acpi_processor_notify(struct acpi_device *device, u32 event)
+ 		acpi_bus_generate_proc_event(device, event, 0);
+ 		acpi_bus_generate_netlink_event(device->pnp.device_class,
+ 						  dev_name(&device->dev), event, 0);
++		break;
+ 	default:
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 				  "Unsupported event [0x%x]\n", event));
 
