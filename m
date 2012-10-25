@@ -1,112 +1,70 @@
-From: Jiang Liu <jiang.liu@huawei.com>
-Subject: Re: [PATCH v2 2/2] Improve container_notify_cb() to support container
- hot-remove.
-Date: Thu, 25 Oct 2012 09:47:00 +0800
-Message-ID: <50889A14.9030607@huawei.com>
-References: <1351058750-4275-1-git-send-email-tangchen@cn.fujitsu.com>  <1351058750-4275-3-git-send-email-tangchen@cn.fujitsu.com> <1351098875.19172.21.camel@misato.fc.hp.com> <5088967E.3060204@cn.fujitsu.com>
+From: Seiji Aguchi <seiji.aguchi-7rDLJAbr9SE@public.gmane.org>
+Subject: [PATCH v2 0/5] efi_pstore: multiple event logging support
+Date: Thu, 25 Oct 2012 01:49:33 +0000
+Message-ID: <A5ED84D3BB3A384992CBB9C77DEDA4D41388895F@USINDEM103.corp.hds.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <5088967E.3060204@cn.fujitsu.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Toshi Kani <toshi.kani@hp.com>, yinghai@kernel.org, bhelgaas@google.com, lenb@kernel.org, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, mihailm@parallels.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "mikew-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <mikew-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "Luck, Tony (tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org)" <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Matthew Garrett (mjg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org)" <mjg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "dzickus-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dzickus-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "dle-develop-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <dle-develop-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Satoru Moriya <satoru.moriya-7rDLJAbr9SE@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 2012-10-25 9:31, Tang Chen wrote:
-> Hi Toshi,
-> 
-> On 10/25/2012 01:14 AM, Toshi Kani wrote:
->> On Wed, 2012-10-24 at 14:05 +0800, Tang Chen wrote:
->>> +static int container_device_remove(struct acpi_device *device)
->>> +{
->>> +    int ret;
->>> +    struct acpi_eject_event *ej_event;
->>> +
->>> +    /* stop container device at first */
->>> +    ret = acpi_bus_trim(device, 0);
->>
->> Hi Tang,
->>
->> Why do you need to call acpi_bus_trim(device,0) to stop the container
->> device first?
-> 
-> This issue was introduced by Lu Yinghai, I think he could give a better
-> answer than me. :)
-> Please refer to the following url:
-> 
-> http://www.spinics.net/lists/linux-pci/msg17667.html
-> 
-> However, this is not applied into the pci tree yet.
-We have worked out a patch set to clean up the logic for PCI/ACPI binding
-relationship. It updates PCI/ACPI binding relationship by registering bus
-notification onto pci_bus_type instead of hooking into the ACPI/glue.c.
+Changelog
+v1 -> v2
+   - Separate into 5 patches in accordance with Mike's comment
+   - Erase an extra line of comment in patch 1/5
 
-To accommodate that patch set, the ACPI device destroy process has been
-split into two steps:
-1) acpi_bus_trim(device,0) to unbind ACPI drivers
-2) acpi_bus_trim(device,1) to destroy ACPI devices
+[Issue]
 
-> 
->>
->>> +    printk(KERN_WARNING "acpi_bus_trim stop return %x\n", ret);
->>
->> Do you need this message in the normal case?  If so, I'd suggest to use
->> pr_debug().
->>
->>> +    if (ret)
->>> +        return ret;
->>> +
->>> +    /* event originated from ACPI eject notification */
->>> +    device->flags.eject_pending = 1;
->>
->> You do not need to set the eject_pending flag when the handler calls
->> acpi_bus_hot_remove_device().  It was set before because the handler did
->> not initiate the hot-remove operation.
-> 
-> I just set it to keep the logic the same as before.
-> And thanks for telling me this. :)
-> 
->>
-> ...
->>> +        printk(KERN_WARNING "Container driver received %s event\n",
->>> +            "ACPI_NOTIFY_EJECT_REQUEST");
->>
->> Same as other comment.  Suggest to use pr_debug().
-> 
-> OK. :)
-> 
->>
->>> +
->>> +        if (!present || ACPI_FAILURE(status) || !device)
->>> +            break;
->>> +
->>> +        result = container_device_remove(device);
->>> +        if (result) {
->>> +            printk(KERN_WARNING "Failed to remove container\n");
->>
->> Please use pr_warn().
->>
->> Thanks,
->> -Toshi
->>
->>> +            break;
->>>           }
->>> -        break;
->>> +
->>> +        return;
->>>
->>>       default:
->>>           /* non-hotplug event; possibly handled by other handler */
->>
->>
->> -- 
->> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
-> 
-> 
-> .
-> 
+    Currently, efi_pstore driver simply overwrites existing panic messages in NVRAM.
+    So, in the following scenario, we will lose 1st panic messages.
+
+    1. kernel panics.
+    2. efi_pstore is kicked and writes panic messages to NVRAM.
+    3. system reboots.
+    4. kernel panics again before a user checks the 1st panic messages in NVRAM.
+
+[Solution]
+
+   Solutions of this problem has been discussed among Tony, Matthew, Don, Mike and me.
+
+   http://marc.info/?l=linux-kernel&m=134273270704586&w=2
+
+   And there are two possible solutions right now.
+     - First one is introducing some policy overwriting existing logs.
+     - Second one is simply holding multiple log without overwriting any entries.
+
+   We haven't decided the overwriting policy which is reasonable to all users yet.
+   But I believe we agree that just holding multiple logs is a reasonable way.
+
+   We may need further discussions to find the possibility of introducing overwriting
+   policy, especially getting critical messages in multiple oops case.
+   But I would like to begin with a simple and reasonable way to everyone.
+   So, this patch takes an approach just holding multiple logs.
+
+[Patch Description]
+
+(1/5) efi_pstore: Check remaining space with QueryVariableInfo() before writing data
+
+(2/5) efi_pstore: Add a logic erasing entries to an erase callback
+
+(3/5) efi_pstore: Remove a logic erasing entries from a write callback to hold multiple logs
+
+(4/5) efi_pstore: Add ctime to argument of erase callback
+
+(5/5) efi_pstore: Add a sequence counter to a variable name
+
+Detailed explanations are written in each patch.
+
+ drivers/acpi/apei/erst.c   |   16 ++++----
+ drivers/firmware/efivars.c |  100 ++++++++++++++++++++++++++++---------------
+ fs/pstore/inode.c          |    7 ++-
+ fs/pstore/internal.h       |    2 +-
+ fs/pstore/platform.c       |   11 +++--
+ fs/pstore/ram.c            |    9 ++--
+ include/linux/efi.h        |    1 +
+ include/linux/pstore.h     |    6 ++-
+ 8 files changed, 94 insertions(+), 58 deletions(-)
