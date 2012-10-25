@@ -1,60 +1,144 @@
-From: Jiang Liu <jiang.liu@huawei.com>
-Subject: Re: [PATCH v2 2/2] Improve container_notify_cb() to support container
- hot-remove.
-Date: Thu, 25 Oct 2012 08:53:11 +0800
-Message-ID: <50888D77.2090006@huawei.com>
-References: <1351058750-4275-1-git-send-email-tangchen@cn.fujitsu.com> <1351058750-4275-3-git-send-email-tangchen@cn.fujitsu.com> <1351098875.19172.21.camel@misato.fc.hp.com> <CAErSpo7KRTY+M1gSO7s_PGRPkXABK6x9CQsaMXbZ__C11mmTWQ@mail.gmail.com>
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: Re: [PATCH 1/2] Use kacpi_hotplug_wq to handle container hotplug
+ event.
+Date: Thu, 25 Oct 2012 09:24:39 +0800
+Message-ID: <508894D7.1040008@cn.fujitsu.com>
+References: <1350997839-13260-1-git-send-email-tangchen@cn.fujitsu.com>  <1350997839-13260-2-git-send-email-tangchen@cn.fujitsu.com> <1351100001.19172.26.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([119.145.14.64]:40906 "EHLO
-	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758853Ab2JYAy2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Oct 2012 20:54:28 -0400
-In-Reply-To: <CAErSpo7KRTY+M1gSO7s_PGRPkXABK6x9CQsaMXbZ__C11mmTWQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1351100001.19172.26.camel@misato.fc.hp.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: yinghai@kernel.org, bhelgaas@google.com, lenb@kernel.org, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Toshi Kani <toshi.kani@hp.com>, Tang Chen <tangchen@cn.fujitsu.com>, yinghai@kernel.org, lenb@kernel.org, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, mihailm@parallels.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 2012-10-25 2:02, Bjorn Helgaas wrote:
-> On Wed, Oct 24, 2012 at 11:14 AM, Toshi Kani <toshi.kani@hp.com> wrote:
->> On Wed, 2012-10-24 at 14:05 +0800, Tang Chen wrote:
-> 
->>> +             result = container_device_remove(device);
->>> +             if (result) {
->>> +                     printk(KERN_WARNING "Failed to remove container\n");
+On 10/25/2012 01:33 AM, Toshi Kani wrote:
+> On Tue, 2012-10-23 at 21:10 +0800, Tang Chen wrote:
+>> As the comments in __acpi_os_execute() said:
 >>
->> Please use pr_warn().
-> 
-> I think you should use dev_warn() and similar when possible.  In a
-> year or two, the text "Failed to remove container" all by itself in a
-> dmesg log is not going to mean anything to anybody except you, and it
-> doesn't give any clue where to start looking for issues.
-> 
-> I also have a larger question.  I'm not sure if
-> drivers/acpi/container.c does anything important in the first place.
-> The code in it looks an awful lot like the code in
-> drivers/acpi/processor_driver.c, drivers/acpi/acpi_memhotplug.c, and
-> drivers/pci/hotplug/acpiphp_glue.c.
-> 
-> To me, it looks like container.c (as well as the other places I
-> mentioned) is an attempt to compensate for the lack of hotplug support
-> in the ACPI core.  If the ACPI core had generic hotplug support, e.g.,
-> if it handled BUS_CHECK, DEVICE_CHECK, and EJECT_REQUEST notifications
-> and turned those into the appropriate calls to driver .add()/.start()
-> and .remove() methods, would we need container.c at all?
-Hi Bjorn,
-	It's true that container driver is just for hotplug. We are working
-on a hotplug framework which will consolidate all hotplug logic into one
-driver.
-	--Gerry
+>> 	We can't run hotplug code in keventd_wq/kacpid_wq/kacpid_notify_wq
+>> 	because the hotplug code may call driver .remove() functions,
+>> 	which invoke flush_scheduled_work/acpi_os_wait_events_complete
+>> 	to flush these workqueues.
+>>
+>> we should keep the hotplug code in kacpi_hotplug_wq.
+>>
+>> But we have the following call series in kernel now:
+>> 	acpi_ev_queue_notify_request()
+>> 	|-->  acpi_os_execute()
+>> 	     |-->  __acpi_os_execute(type, function, context, 0)
+>>
+>> The last parameter 0 makes the container_notify_cb() executed in
+>> kacpi_notify_wq or kacpid_wq. So, we need to put the real hotplug code
+>> into kacpi_hotplug_wq.
+>
+> Hi Tang,
+>
+> I am curious; is there a particular reason why you use
+> alloc_acpi_container_hp_work() instead of acpi_os_hotplug_execute(),
+> which is already there in the tree?
 
-> 
-> Bjorn
-> 
-> .
-> 
+Hi Toshi,
 
+Thanks for telling me this. I didn't realize this function. :)
+And yes, it is better.
 
+Thanks. :)
+
+>
+> Thanks,
+> -Toshi
+>
+>
+>> Signed-off-by: Tang Chen<tangchen@cn.fujitsu.com>
+>> ---
+>>   drivers/acpi/container.c |   44 +++++++++++++++++++++++++++++++++++++++++++-
+>>   1 files changed, 43 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
+>> index 1f9f7d7..643657a 100644
+>> --- a/drivers/acpi/container.c
+>> +++ b/drivers/acpi/container.c
+>> @@ -72,8 +72,36 @@ static struct acpi_driver acpi_container_driver = {
+>>   		},
+>>   };
+>>
+>> +struct acpi_container_hp_work {
+>> +	struct work_struct work;
+>> +	acpi_handle handle;
+>> +	u32 type;
+>> +	void *context;
+>> +};
+>> +
+>>   /*******************************************************************/
+>>
+>> +static void alloc_acpi_container_hp_work(acpi_handle handle, u32 type,
+>> +					void *context,
+>> +					void (*func)(struct work_struct *work))
+>> +{
+>> +	struct acpi_container_hp_work *hp_work;
+>> +	int ret;
+>> +
+>> +	hp_work = kmalloc(sizeof(*hp_work), GFP_KERNEL);
+>> +	if (!hp_work)
+>> +		return;
+>> +
+>> +	hp_work->handle = handle;
+>> +	hp_work->type = type;
+>> +	hp_work->context = context;
+>> +
+>> +	INIT_WORK(&hp_work->work, func);
+>> +	ret = queue_work(kacpi_hotplug_wq,&hp_work->work);
+>> +	if (!ret)
+>> +		kfree(hp_work);
+>> +}
+>> +
+>>   static int is_device_present(acpi_handle handle)
+>>   {
+>>   	acpi_handle temp;
+>> @@ -152,14 +180,21 @@ static int container_device_add(struct acpi_device **device, acpi_handle handle)
+>>   	return result;
+>>   }
+>>
+>> -static void container_notify_cb(acpi_handle handle, u32 type, void *context)
+>> +static void __container_notify_cb(struct work_struct *work)
+>>   {
+>>   	struct acpi_device *device = NULL;
+>>   	int result;
+>>   	int present;
+>>   	acpi_status status;
+>> +	struct acpi_container_hp_work *hp_work;
+>> +	acpi_handle handle;
+>> +	u32 type;
+>>   	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE; /* default */
+>>
+>> +	hp_work = container_of(work, struct acpi_container_hp_work, work);
+>> +	handle = hp_work->handle;
+>> +	type = hp_work->type;
+>> +
+>>   	switch (type) {
+>>   	case ACPI_NOTIFY_BUS_CHECK:
+>>   		/* Fall through */
+>> @@ -211,6 +246,13 @@ static void container_notify_cb(acpi_handle handle, u32 type, void *context)
+>>   	return;
+>>   }
+>>
+>> +static void container_notify_cb(acpi_handle handle, u32 type,
+>> +				void *context)
+>> +{
+>> +	alloc_acpi_container_hp_work(handle, type, context,
+>> +				__container_notify_cb);
+>> +}
+>> +
+>>   static acpi_status
+>>   container_walk_namespace_cb(acpi_handle handle,
+>>   			    u32 lvl, void *context, void **rv)
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
