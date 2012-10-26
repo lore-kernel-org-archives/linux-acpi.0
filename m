@@ -1,53 +1,93 @@
-From: Ondrej Zary <linux@rainbow-software.org>
-Subject: Re: [PATCH] Enable A20 using KBC for some MSI laptops to fix S3 resume
-Date: Fri, 26 Oct 2012 08:20:03 +0200
-Message-ID: <201210260820.03379.linux@rainbow-software.org>
-References: <201210240847.52417.linux@rainbow-software.org> <508A122F.3090304@gmail.com> <e3c7bcc1-5562-4fb9-ab34-a8f1b391c34d@email.android.com>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [PATCH v2] acpi : acpi_bus_trim() stops removing devices when
+ failing to remove the device
+Date: Fri, 26 Oct 2012 16:33:49 +0900
+Message-ID: <508A3CDD.20506@jp.fujitsu.com>
+References: <50769B8C.2060901@jp.fujitsu.com> <1846185.MSykHDcMmb@vostro.rjw.lan> <20121019175941.GB3375@kroah.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <e3c7bcc1-5562-4fb9-ab34-a8f1b391c34d@email.android.com>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Robert Hancock <hancockrwd@gmail.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:40011 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756554Ab2JZHeQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Oct 2012 03:34:16 -0400
+In-Reply-To: <20121019175941.GB3375@kroah.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, toshi.kani@hp.com, lenb@kernel.org, wency@cn.fujitsu.com, vasilis.liaskovitis@profitbricks.com
 
-On Friday 26 October 2012, H. Peter Anvin wrote:
-> My guess is that Windows explicitly enables A20 on resume.  We should do
-> that too, really... with the current heavily unified realmode code it
-> should be easy - let me hack up a patch in the morning.
+Hi Greg,
 
-Neither s3_beep nor s3_leds (this patch: 
-https://lists.ubuntu.com/archives/kernel-team/2011-May/015621.html ) worked 
-for me so I thing that BIOS breaks on resume before we can do anything.
+Sorry for late reply.
 
-> Robert Hancock <hancockrwd@gmail.com> wrote:
-> >On 10/24/2012 02:09 PM, Alan Cox wrote:
-> >> On Wed, 24 Oct 2012 12:36:04 -0700
-> >>
-> >> "H. Peter Anvin" <hpa@zytor.com> wrote:
-> >>> Minor concern: it should do the wait for ready before sending each
-> >
-> >command.
-> >
-> >> Can we get a command line to do this quirk too - it strikes me that
-> >
-> >if
-> >
-> >> the MSIs rely upon it then it may be something Windows always does so
-> >> will be useful to try on other problem machines as an experiment.
-> >
-> >I agree, one has to keep in mind the age-old question "how does Windows
-> >
-> >work?" since it surely has no such quirk. I'd say we're sometimes too
-> >quick to add these DMI quirks when a more general solution would be
-> >somehow figure out how the Linux behavior differs from what Windows is
-> >doing.
+2012/10/20 2:59, Greg Kroah-Hartman wrote:
+> On Fri, Oct 19, 2012 at 06:29:52AM +0200, Rafael J. Wysocki wrote:
+>> On Thursday 11 of October 2012 19:12:28 Yasuaki Ishimatsu wrote:
+>>> acpi_bus_trim() stops removing devices, when acpi_bus_remove() return error
+>>> number. But acpi_bus_remove() cannot return error number correctly.
+>>> acpi_bus_remove() only return -EINVAL, when dev argument is NULL. Thus even if
+>>> device cannot be removed correctly, acpi_bus_trim() ignores and continues to
+>>> remove devices. acpi_bus_hot_remove_device() uses acpi_bus_trim() for removing
+>>> devices. Therefore acpi_bus_hot_remove_device() can send "_EJ0" to firmware,
+>>> even if the device is running on the system. In this case, the system cannot
+>>> work well.
+>>>
+>>> Vasilis hit the bug at memory hotplug and reported it as follow:
+>>> https://lkml.org/lkml/2012/9/26/318
+>>>
+>>> So acpi_bus_trim() should check whether device was removed or not correctly.
+>>> The patch adds error check into some functions to remove the device.
+>>>
+>>> Applying the patch, acpi_bus_trim() stops removing devices when failing
+>>> to remove the device. But I think there is no impact with the
+>>> exceptionof CPU and Memory hotplug path. Because other device also fails
+>>> but the fail is an irregular case like device is NULL.
+>>>
+>>> v1->v2
+>>> - add a rollback for reinstalling a notify handler.
+>>>
+>>> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+>>
+>> Greg, do you think there may be any problems with the changes in dd.c?
+>
+> Yes, I don't like it.
+>
+> remove should always work, just like the exit call in a module.  It
+> means that the core wants to remove the driver, so it is going to
+> happen, a driver can't refuse it.
+>
+> Which brings me to the larger question, why would this solve anything?
+
+Now we are developing physical memory hot plug.
+
+https://lkml.org/lkml/2012/10/23/213
+
+So if we aplly the patch-set, we can hot remove a physical memory
+by the following way.
+
+"echo 1 > /sys/bus/acpi/devices/PNP/eject"
+
+In this case, acpi_bus_hot_remove_device() tries to remove memory
+device by acpi_bus_trim(). But if the memory has irremovable memory,
+memory hot remove fails. And the memory remains in kernel.
+However acpi_bus_trim() cannot notice that memory hot remove fails and
+retruns 0. So acpi_bus_hot_remove_device() continues to remove memory
+devices and sends _EJ0 method to firmware. Thus the memory device cannot
+be used. But the memory remains in kernel yet. So if someone access the
+memory, kernel panic occurs.
+
+Thanks,
+Yasuaki Ishimatsu
+
+> If the kernel wants to unbind a device, why would we ever not want that
+> to happen?
+>
+> So, NAK on this patch, sorry.  Fix up the ACPI core to handle this
+> properly, don't mess with the driver core here.
+>
+> greg k-h
+>
 
 
-
--- 
-Ondrej Zary
