@@ -1,94 +1,64 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: Info about ACPI/PCI vs ISA
-Date: Fri, 26 Oct 2012 03:31:44 -0600
-Message-ID: <CAErSpo4GFn_xSzMb7Y8cR+oJUT4LPi046zJs5iLUY0cp2c85zQ@mail.gmail.com>
-References: <5062BA8B.7090503@peak-system.com> <CAErSpo7vk6d1RCWQPFL9PqqwbH5u+F=uyPywCM_3sAVF3RW34g@mail.gmail.com>
- <508A544F.1030007@peak-system.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <508A544F.1030007@peak-system.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Stephane Grosjean <s.grosjean@peak-system.com>
-Cc: linux-acpi@vger.kernel.org, support@peak-system.com, Robert Hancock <hancockrwd@gmail.com>, linux-pci@vger.kernel.org
+From: wency@cn.fujitsu.com
+Subject: [PATCH v3 0/3] acpi,memory-hotplug : implement framework for hot removing memory
+Date: Fri, 26 Oct 2012 18:31:00 +0800
+Message-ID: <1351247463-5653-1-git-send-email-wency@cn.fujitsu.com>
+Return-path: <owner-linux-mm@kvack.org>
+Sender: owner-linux-mm@kvack.org
+To: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: liuj97@gmail.com, len.brown@intel.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, rjw@sisk.pl, laijs@cn.fujitsu.com, Wen Congyang <wency@cn.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Oct 26, 2012 at 3:13 AM, Stephane Grosjean
-<s.grosjean@peak-system.com> wrote:
-> Hi Bjorn,
->
-> Thanks for your answer. See my comments below...
->
-> Le 26/10/2012 10:29, Bjorn Helgaas a =E9crit :
->>
->> On Wed, Sep 26, 2012 at 2:19 AM, Stephane Grosjean
->> <s.grosjean@peak-system.com> wrote:
->>
->>> I'm working on an issue with one of our PCI adapters.
->>> This PCI adapter is a standard and well proven board, for many year=
-s:
->>>
->>> $ lspci -v
->>> ...
->>> 04:08.0 Network controller: PEAK-System Technik GmbH PCAN-PCI CAN-B=
-us
->>> controller (rev 02)
->>>      Subsystem: PEAK-System Technik GmbH 2 Channel CAN Bus SJC1000
->>>      Flags: medium devsel, IRQ 11
->>>      Memory at f0410000 (32-bit, non-prefetchable) [size=3D64K]
->>>      Memory at f0400000 (32-bit, non-prefetchable) [size=3D64K]
->>>      Kernel driver in use: pcan
->>>
->>>
->> Where's the source for the "pcan" driver?  I see the pcan_usb driver
->> in the tree, but that looks like something different from what you'r=
-e
->> looking at here.
->
->
-> The "pcan" driver is an out-ot-tree driver which offers a chardev int=
-erface,
-> not a mainline driver. The "pcan_usb" (as well as peak_pci...) are ou=
-r
-> recent linux-can (only) drivers.
-> Since the "pcan" driver does exist since the old ages of 2.4 kernels,=
- we
-> need to continue to support it. See also below for more information a=
-bout
-> that...
->
->> Does the device work under any version of Linux?  If so, please
->> collect the complete dmesg log from the newest working version, and
->> the same log from the broken version.
->
->
-> Yes it does! Anyway, you'll find the complete dmesg.txt attached to t=
-hat
-> e-mail. Hoping this could help.
+From: Wen Congyang <wency@cn.fujitsu.com>
 
-Thanks.  You attached the log for the broken version.  Can you also
-attach a log from the newest working version of Linux?
+The patch-set implements a framework for hot removing memory.
 
-I assume the same driver works on the old version but fails on new
-versions.  If so, it sounds like this might be a Linux regression, and
-finding the newest working and oldest broken versions will help
-identify it.
+The memory device can be removed by 2 ways:
+1. send eject request by SCI
+2. echo 1 >/sys/bus/pci/devices/PNP0C80:XX/eject
 
->>> - why does the system not succeed to "derive" routing for INTA? And=
- why
->>> us?
->>
->> The derivation is based on ACPI _PRT tables.  Regrettably, we don't
->> dump the _PRT contents in dmesg, so we'd need an acpidump to look
->> further into that.
->
-> Well unfortunately, we are not able to provide this kind of informati=
-on at
-> this moment.
+In the 1st case, acpi_memory_disable_device() will be called.
+In the 2nd case, acpi_memory_device_remove() will be called.
+acpi_memory_device_remove() will also be called when we unbind the
+memory device from the driver acpi_memhotplug or a driver initialization
+fails.
 
-The acpidump isn't secret (it's not part of the BIOS source); it's
-just information extracted from the running system.  See
-https://lesswatts.org/projects/acpi/utilities.php for details.
+acpi_memory_disable_device() has already implemented a code which
+offlines memory and releases acpi_memory_info struct . But
+acpi_memory_device_remove() has not implemented it yet.
 
-Bjorn
+So the patch prepares the framework for hot removing memory and
+adds the framework into acpi_memory_device_remove().
+
+The last version of this patchset is here:
+https://lkml.org/lkml/2012/10/19/156
+
+Changelogs from v2 to v3:
+  Patch2: rename lock to list_lock
+
+Changelogs from v1 to v2:
+  Patch1: use acpi_bus_trim() instead of acpi_bus_remove()
+  Patch2: new patch, introduce a lock to protect the list
+  Patch3: remove memory too when type is ACPI_BUS_REMOVAL_NORMAL
+  Note: I don't send [Patch2-4 v1] in this series because they
+  are no logical changes in these 3 patches.
+
+Wen Congyang (2):
+  acpi,memory-hotplug: call acpi_bus_trim() to remove memory device
+  acpi,memory-hotplug: introduce a mutex lock to protect the list in
+    acpi_memory_device
+
+Yasuaki Ishimatsu (1):
+  acpi,memory-hotplug : add memory offline code to
+    acpi_memory_device_remove()
+
+ drivers/acpi/acpi_memhotplug.c | 51 +++++++++++++++++++++++++++++++++---------
+ 1 file changed, 41 insertions(+), 10 deletions(-)
+
+-- 
+1.8.0
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
