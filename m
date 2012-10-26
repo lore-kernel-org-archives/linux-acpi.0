@@ -1,84 +1,83 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [GIT PULL] Power management and ACPI fixes for 3.7-rc3
-Date: Fri, 26 Oct 2012 23:20:24 +0200
-Message-ID: <20490446.pylUFvD5EM@vostro.rjw.lan>
+From: Seiji Aguchi <seiji.aguchi@hds.com>
+Subject: [PATCH v3 0/7] efi_pstore: multiple event logging support
+Date: Fri, 26 Oct 2012 21:39:22 +0000
+Message-ID: <A5ED84D3BB3A384992CBB9C77DEDA4D41388EFB6@USINDEM103.corp.hds.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:40188 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966544Ab2JZVQ1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 26 Oct 2012 17:16:27 -0400
+Received: from usindpps06.hds.com ([207.126.252.19]:39911 "EHLO
+	usindpps06.hds.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933882Ab2JZVjm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Oct 2012 17:39:42 -0400
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "mikew@google.com" <mikew@google.com>, "Luck, Tony (tony.luck@intel.com)" <tony.luck@intel.com>, "Matthew Garrett (mjg@redhat.com)" <mjg@redhat.com>, "dzickus@redhat.com" <dzickus@redhat.com>
+Cc: "dle-develop@lists.sourceforge.net" <dle-develop@lists.sourceforge.net>, Satoru Moriya <satoru.moriya@hds.com>
 
-Hi Linus,
+Changelog
 
-Please pull from the git repository at
+v2 -> v3
+   - Create patches 6/7 and 7/7 to work with an existing format of variable name
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git pm+acpi-for-3.7-rc3
+v1 -> v2
+   - Separate into 5 patches in accordance with Mike's comment
+   - Erase an extra line of comment in patch 1/5
 
-to receive power management and ACPI fixes for v3.7-rc3 with top-most commit
-879dca019dc43a1622edca3e7dde644b14b5acc5
+[Issue]
 
-  ACPI: missing break
+    Currently, efi_pstore driver simply overwrites existing panic messages in NVRAM.
+    So, in the following scenario, we will lose 1st panic messages.
 
-on top of commit 6f0c0580b70c89094b3422ba81118c7b959c7556
+    1. kernel panics.
+    2. efi_pstore is kicked and writes panic messages to NVRAM.
+    3. system reboots.
+    4. kernel panics again before a user checks the 1st panic messages in NVRAM.
 
-  Linux 3.7-rc2
+[Solution]
 
-Included are:
+   Solutions of this problem has been discussed among Tony, Matthew, Don, Mike and me.
 
-* Fix for a recently introduced memory leak in acpi_bind_one() from Jesper Juhl.
+   http://marc.info/?l=linux-kernel&m=134273270704586&w=2
 
-* PM domains fix for an error code path memory leak in pm_genpd_attach_cpuidle()
-  from Jonghwan Choi.
+   And there are two possible solutions right now.
+     - First one is introducing some policy overwriting existing logs.
+     - Second one is simply holding multiple log without overwriting any entries.
 
-* Fix for smp_processor_id() usage in preemptible code in powernow-k8 from
-  Andreas Herrmann (stable material).
+   We haven't decided the overwriting policy which is reasonable to all users yet.
+   But I believe we agree that just holding multiple logs is a reasonable way.
 
-* Fix for a suspend-related memory leak in cpufreq stats from Xiaobing Tu.
+   We may need further discussions to find the possibility of introducing overwriting
+   policy, especially getting critical messages in multiple oops case.
+   But I would like to begin with a simple and reasonable way to everyone.
+   So, this patch takes an approach just holding multiple logs.
 
-* Freezer fix for failure to clear PF_NOFREEZE along with PF_KTHREAD
-  in flush_old_exec() from Oleg Nesterov.
+[Patch Description]
 
-* One-liner acpi_processor_notify() fix from Alan Cox.
+(1/7) efi_pstore: Check remaining space with QueryVariableInfo() before writing data
 
-Thanks!
+(2/7) efi_pstore: Add a logic erasing entries to an erase callback
 
+(3/7) efi_pstore: Remove a logic erasing entries from a write callback to hold multiple logs
 
- drivers/acpi/glue.c             | 1 +
- drivers/acpi/processor_driver.c | 1 +
- drivers/base/power/domain.c     | 5 ++++-
- drivers/cpufreq/cpufreq_stats.c | 1 +
- drivers/cpufreq/powernow-k8.c   | 9 +--------
- fs/exec.c                       | 3 ++-
- 6 files changed, 10 insertions(+), 10 deletions(-)
+(4/7) efi_pstore: Add ctime to argument of erase callback
 
----------------
+(5/7) efi_pstore: Change a format of a variable name by adding a sequence counter
 
-Alan Cox (1):
-      ACPI: missing break
+(6/7) efi_pstore: Add a format check for an existing variable name at reading time
 
-Andreas Herrmann (1):
-      cpufreq / powernow-k8: Remove usage of smp_processor_id() in preemptible code
+(7/7) efi_pstore: Add a format check for an existing variable name at erasing time
 
-Jesper Juhl (1):
-      ACPI: Fix memory leak in acpi_bind_one()
+Detailed explanations are written in each patch.
 
-Oleg Nesterov (1):
-      freezer: exec should clear PF_NOFREEZE along with PF_KTHREAD
+ drivers/acpi/apei/erst.c   |   16 +++---
+ drivers/firmware/efivars.c |  150 ++++++++++++++++++++++++++++++-------------
+ fs/pstore/inode.c          |    7 ++-
+ fs/pstore/internal.h       |    2 +-
+ fs/pstore/platform.c       |   11 ++--
+ fs/pstore/ram.c            |    9 +--
+ include/linux/efi.h        |    1 +
+ include/linux/pstore.h     |    6 +-
+ 8 files changed, 133 insertions(+), 69 deletions(-)
 
-Tu, Xiaobing (1):
-      Fix memory leak in cpufreq stats.
-
-jhbird.choi@samsung.com (1):
-      PM / Domains: Fix memory leak on error path in pm_genpd_attach_cpuidle
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
