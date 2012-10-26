@@ -1,96 +1,123 @@
 From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: Info about ACPI/PCI vs ISA
-Date: Fri, 26 Oct 2012 02:29:33 -0600
-Message-ID: <CAErSpo7vk6d1RCWQPFL9PqqwbH5u+F=uyPywCM_3sAVF3RW34g@mail.gmail.com>
-References: <5062BA8B.7090503@peak-system.com>
+Subject: Re: [PATCH 2/3] PCI: correctly detect ACPI PCI host bridge objects
+Date: Fri, 26 Oct 2012 03:10:21 -0600
+Message-ID: <CAErSpo5s9sz+i+Qkuu1=HpfrSh271axkLDRgJSaKED5q3DNfPg@mail.gmail.com>
+References: <1350593430-24470-1-git-send-email-yinghai@kernel.org> <1350593430-24470-4-git-send-email-yinghai@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:43500 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932128Ab2JZI3z (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Oct 2012 04:29:55 -0400
-Received: by mail-wi0-f170.google.com with SMTP id hm2so205388wib.1
-        for <linux-acpi@vger.kernel.org>; Fri, 26 Oct 2012 01:29:54 -0700 (PDT)
-In-Reply-To: <5062BA8B.7090503@peak-system.com>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:37270 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757866Ab2JZJKn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Oct 2012 05:10:43 -0400
+Received: by mail-wi0-f178.google.com with SMTP id hr7so239548wib.1
+        for <linux-acpi@vger.kernel.org>; Fri, 26 Oct 2012 02:10:42 -0700 (PDT)
+In-Reply-To: <1350593430-24470-4-git-send-email-yinghai@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Stephane Grosjean <s.grosjean@peak-system.com>
-Cc: linux-acpi@vger.kernel.org, support@peak-system.com, Robert Hancock <hancockrwd@gmail.com>, linux-pci@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Jacob Shin <jacob.shin@amd.com>, Tejun Heo <tj@kernel.org>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, linux-kernel@vger.kernel.org, Jiang Liu <jiang.liu@huawei.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On Wed, Sep 26, 2012 at 2:19 AM, Stephane Grosjean
-<s.grosjean@peak-system.com> wrote:
-
-> I'm working on an issue with one of our PCI adapters.
-> This PCI adapter is a standard and well proven board, for many years:
+On Thu, Oct 18, 2012 at 2:50 PM, Yinghai Lu <yinghai@kernel.org> wrote:
+> From: Jiang Liu <jiang.liu@huawei.com>
 >
-> $ lspci -v
-> ...
-> 04:08.0 Network controller: PEAK-System Technik GmbH PCAN-PCI CAN-Bus
-> controller (rev 02)
->     Subsystem: PEAK-System Technik GmbH 2 Channel CAN Bus SJC1000
->     Flags: medium devsel, IRQ 11
->     Memory at f0410000 (32-bit, non-prefetchable) [size=64K]
->     Memory at f0400000 (32-bit, non-prefetchable) [size=64K]
->     Kernel driver in use: pcan
+> The code in pci_root_hp.c depends on function acpi_is_root_bridge()
+> to check whether an ACPI object is a PCI host bridge or not.
+> If an ACPI device hasn't been created for the ACPI object yet,
+> function acpi_is_root_bridge() will return false even if the object
+> is a PCI host bridge object. That behavior will cause two issues:
+> 1) No ACPI notification handler installed for PCI host bridges absent
+>    at startup, so hotplug events for those bridges won't be handled.
+> 2) rescan_root_bridge() can't reenumerate offlined PCI host bridges
+>    because the ACPI devices have been already destroyed.
 >
-> The running system is:
+> So use acpi_match_object_info_ids() to correctly detect PCI host bridges.
 >
-> [    0.000000] Initializing cgroup subsys cpuset
-> [    0.000000] Initializing cgroup subsys cpu
-> [    0.000000] Linux version 3.1.9-1.4-desktop (geeko@buildhost) (gcc
-> version 4.6.2 (SUSE Linux) ) #1 SMP PREEMPT Fri Jan 27 08:55:10 UTC 2012
-> (efb5ff4)
-> ...
-> [    0.000000] Kernel command line:
-> root=/dev/disk/by-id/ata-SPCC_Solid_State_DiskB28_00000000000000000015-part2
-> resume=/dev/disk/by-id/ata-SPCC_Solid_State_DiskB28_00000000000000000015-part1
-> splash=silent quiet vga=0x31b
-> ...
-> [    0.471267] ACPI: PCI Interrupt Link [LNKA] (IRQs 1 3 4 5 6 10 *11 12 14
-> 15)
-> [    0.471323] ACPI: PCI Interrupt Link [LNKB] (IRQs 1 3 4 5 6 10 11 12 14
-> 15) *7
-> [    0.471378] ACPI: PCI Interrupt Link [LNKC] (IRQs 1 3 4 5 6 10 11 12 14
-> 15) *7
-> [    0.471434] ACPI: PCI Interrupt Link [LNKD] (IRQs 1 3 4 5 6 *10 11 12 14
-> 15)
-> [    0.471487] ACPI: PCI Interrupt Link [LNKE] (IRQs 1 3 4 5 6 10 11 12 14
-> 15) *0, disabled.
-> [    0.471541] ACPI: PCI Interrupt Link [LNKF] (IRQs 1 3 4 5 6 10 11 12 14
-> 15) *0, disabled.
-> [    0.471594] ACPI: PCI Interrupt Link [LNKG] (IRQs 1 3 4 5 6 *10 11 12 14
-> 15)
-> [    0.471647] ACPI: PCI Interrupt Link [LNKH] (IRQs 1 3 4 5 6 10 *11 12 14
-> 15)
+> -v2: update to use acpi_match_object_info_ids() from Tang Chen  - Yinghai
 >
-> We don't succeed to send and receive data to/from this card and we suspect
-> an IRQ related issue. For example, loading our (good old) "pcan" driver
-> leads to the below logs:
+> Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: linux-acpi@vger.kernel.org
+> ---
+>  drivers/acpi/pci_root_hp.c |   25 ++++++++++++++++++++++++-
+>  1 files changed, 24 insertions(+), 1 deletions(-)
 >
-> ...
-> [    6.186877] pci 0000:00:1e.0: can't derive routing for PCI INT A
-> [    6.186878] pcan 0000:04:08.0: PCI INT A: no GSI - using ISA IRQ 11
-
-Where's the source for the "pcan" driver?  I see the pcan_usb driver
-in the tree, but that looks like something different from what you're
-looking at here.
-
-Does the device work under any version of Linux?  If so, please
-collect the complete dmesg log from the newest working version, and
-the same log from the broken version.
-
-Does this adapter work in some systems but not others?  Under Windows
-but not under Linux?  You refer to the "good old" driver, so I infer
-that it works *somewhere* and I'm trying to figure out what's
-different about the case where it doesn't work.
-
-> My questions are:
+> diff --git a/drivers/acpi/pci_root_hp.c b/drivers/acpi/pci_root_hp.c
+> index 2aebf78..3edec7f 100644
+> --- a/drivers/acpi/pci_root_hp.c
+> +++ b/drivers/acpi/pci_root_hp.c
+> @@ -19,6 +19,12 @@ struct acpi_root_bridge {
+>         u32 flags;
+>  };
 >
-> - why does the system not succeed to "derive" routing for INTA? And why us?
+> +static const struct acpi_device_id root_device_ids[] = {
+> +       {"PNP0A03", 0},
+> +       {"PNP0A08", 0},
 
-The derivation is based on ACPI _PRT tables.  Regrettably, we don't
-dump the _PRT contents in dmesg, so we'd need an acpidump to look
-further into that.
+Why do we need PNP0A08 here?
 
-Bjorn
+Per the PCI Firmware Spec, sec 4.1.5, PNP0A08 identifies a PCI Express
+or a PCI-X Mode 2 host bridge, and such a device is required to
+include PNP0A03 in _CID.  Therefore, it should be sufficient to look
+only for PNP0A03.
+
+That raises the question of why the spec defined PNP0A08 in the first
+place.  It looks like PNP0A08 is intended specifically to indicate
+support for extended config space (offsets 256-4095), per sec 4.1.5
+(Note 1) and sec 4.3.1.
+
+I don't think Linux currently does anything differently with PNP0A08,
+so if the spec authors thought it was important to add PNP0A08, maybe
+Linux is missing something.  For example, maybe we should be limiting
+config space size to 256 unless we're below a PNP0A08 device.  I don't
+know what that could *fix*, unless it would allow us to get rid of
+some quirks or something, but usually spec authors don't add things
+unless they think there's a reason it's needed.
+
+> +       {"", 0},
+> +};
+> +
+>  /* bridge flags */
+>  #define ROOT_BRIDGE_HAS_EJ0    (0x00000002)
+>  #define ROOT_BRIDGE_HAS_PS3    (0x00000080)
+> @@ -256,6 +262,23 @@ static void handle_hotplug_event_root(acpi_handle handle, u32 type,
+>                                 _handle_hotplug_event_root);
+>  }
+>
+> +static bool acpi_is_root_bridge_object(acpi_handle handle)
+> +{
+> +       struct acpi_device_info *info = NULL;
+> +       acpi_status status;
+> +       bool ret;
+> +
+> +       status = acpi_get_object_info(handle, &info);
+> +       if (ACPI_FAILURE(status))
+> +               return false;
+> +
+> +       ret = !acpi_match_object_info_ids(info, root_device_ids);
+> +
+> +       kfree(info);
+> +
+> +       return ret;
+> +}
+> +
+>  static acpi_status __init
+>  find_root_bridges(acpi_handle handle, u32 lvl, void *context, void **rv)
+>  {
+> @@ -264,7 +287,7 @@ find_root_bridges(acpi_handle handle, u32 lvl, void *context, void **rv)
+>                                       .pointer = objname };
+>         int *count = (int *)context;
+>
+> -       if (!acpi_is_root_bridge(handle))
+> +       if (!acpi_is_root_bridge_object(handle))
+>                 return AE_OK;
+>
+>         (*count)++;
+> --
+> 1.7.7
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
