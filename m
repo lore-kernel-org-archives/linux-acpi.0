@@ -1,65 +1,53 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH v2 2/2] Improve container_notify_cb() to support container
- hot-remove.
-Date: Fri, 26 Oct 2012 13:43:10 +0800
-Message-ID: <508A22EE.1000607@cn.fujitsu.com>
-References: <1351058750-4275-1-git-send-email-tangchen@cn.fujitsu.com>   <1351058750-4275-3-git-send-email-tangchen@cn.fujitsu.com>  <1351098875.19172.21.camel@misato.fc.hp.com>  <5088967E.3060204@cn.fujitsu.com> <50889A14.9030607@huawei.com> <1351185648.19172.51.camel@misato.fc.hp.com>
+From: Ondrej Zary <linux@rainbow-software.org>
+Subject: Re: [PATCH] Enable A20 using KBC for some MSI laptops to fix S3 resume
+Date: Fri, 26 Oct 2012 08:20:03 +0200
+Message-ID: <201210260820.03379.linux@rainbow-software.org>
+References: <201210240847.52417.linux@rainbow-software.org> <508A122F.3090304@gmail.com> <e3c7bcc1-5562-4fb9-ab34-a8f1b391c34d@email.android.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:19121 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1753804Ab2JZFoa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 26 Oct 2012 01:44:30 -0400
-In-Reply-To: <1351185648.19172.51.camel@misato.fc.hp.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <e3c7bcc1-5562-4fb9-ab34-a8f1b391c34d@email.android.com>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Robert Hancock <hancockrwd@gmail.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: Jiang Liu <jiang.liu@huawei.com>, yinghai@kernel.org, bhelgaas@google.com, lenb@kernel.org, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, mihailm@parallels.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi Toshi,
+On Friday 26 October 2012, H. Peter Anvin wrote:
+> My guess is that Windows explicitly enables A20 on resume.  We should do
+> that too, really... with the current heavily unified realmode code it
+> should be easy - let me hack up a patch in the morning.
 
-On 10/26/2012 01:20 AM, Toshi Kani wrote:
-...
->>>> Why do you need to call acpi_bus_trim(device,0) to stop the container
->>>> device first?
->>>
->>> This issue was introduced by Lu Yinghai, I think he could give a better
->>> answer than me. :)
->>> Please refer to the following url:
->>>
->>> http://www.spinics.net/lists/linux-pci/msg17667.html
->>>
->>> However, this is not applied into the pci tree yet.
->> We have worked out a patch set to clean up the logic for PCI/ACPI binding
->> relationship. It updates PCI/ACPI binding relationship by registering bus
->> notification onto pci_bus_type instead of hooking into the ACPI/glue.c.
->
-> Thanks for the info and pointer.  Tang, I'd suggest you add such info to
-> the comment so that others know that this step is needed for removing
-> PCI bridges.  It helps us to know where to look at...
+Neither s3_beep nor s3_leds (this patch: 
+https://lists.ubuntu.com/archives/kernel-team/2011-May/015621.html ) worked 
+for me so I thing that BIOS breaks on resume before we can do anything.
 
-OK, I'll add it in the next version. :)
+> Robert Hancock <hancockrwd@gmail.com> wrote:
+> >On 10/24/2012 02:09 PM, Alan Cox wrote:
+> >> On Wed, 24 Oct 2012 12:36:04 -0700
+> >>
+> >> "H. Peter Anvin" <hpa@zytor.com> wrote:
+> >>> Minor concern: it should do the wait for ready before sending each
+> >
+> >command.
+> >
+> >> Can we get a command line to do this quirk too - it strikes me that
+> >
+> >if
+> >
+> >> the MSIs rely upon it then it may be something Windows always does so
+> >> will be useful to try on other problem machines as an experiment.
+> >
+> >I agree, one has to keep in mind the age-old question "how does Windows
+> >
+> >work?" since it surely has no such quirk. I'd say we're sometimes too
+> >quick to add these DMI quirks when a more general solution would be
+> >somehow figure out how the Linux behavior differs from what Windows is
+> >doing.
 
->
->> To accommodate that patch set, the ACPI device destroy process has been
->> split into two steps:
->> 1) acpi_bus_trim(device,0) to unbind ACPI drivers
->
-> Does this step also detach PCI drivers from PCI cards as well?
 
-Yes, it calls device_release_driver() to release the device driver.
 
-     device_release_driver()
-       |->__device_release_driver()
-            |->dev->driver = NULL;
-
-Thanks. :)
-
->
-> Thanks,
-> -Toshi
->
->
-
+-- 
+Ondrej Zary
