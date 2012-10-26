@@ -1,97 +1,141 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH v2] acpi : acpi_bus_trim() stops removing devices when
- failing to remove the device
-Date: Fri, 26 Oct 2012 08:25:44 -0700
-Message-ID: <20121026152544.GC15840@kroah.com>
-References: <50769B8C.2060901@jp.fujitsu.com>
- <1846185.MSykHDcMmb@vostro.rjw.lan>
- <20121019175941.GB3375@kroah.com>
- <508A3CDD.20506@jp.fujitsu.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH v3 3/3] acpi,memory-hotplug : add memory offline code to
+ acpi_memory_device_remove()
+Date: Fri, 26 Oct 2012 11:14:31 -0600
+Message-ID: <1351271671.19172.74.camel@misato.fc.hp.com>
+References: <1351247463-5653-1-git-send-email-wency@cn.fujitsu.com>
+	 <1351247463-5653-4-git-send-email-wency@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:56221 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753273Ab2JZPZD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Oct 2012 11:25:03 -0400
-Received: by mail-pb0-f46.google.com with SMTP id rr4so2844029pbb.19
-        for <linux-acpi@vger.kernel.org>; Fri, 26 Oct 2012 08:25:03 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <508A3CDD.20506@jp.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1351247463-5653-4-git-send-email-wency@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: wency@cn.fujitsu.com
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, liuj97@gmail.com, len.brown@intel.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, rjw@sisk.pl, laijs@cn.fujitsu.com, David Rientjes <rientjes@google.com>, Christoph Lameter <cl@linux.com>, Minchan Kim <minchan.kim@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, toshi.kani@hp.com, lenb@kernel.org, wency@cn.fujitsu.com, vasilis.liaskovitis@profitbricks.com
 
-On Fri, Oct 26, 2012 at 04:33:49PM +0900, Yasuaki Ishimatsu wrote:
-> Hi Greg,
+On Fri, 2012-10-26 at 18:31 +0800, wency@cn.fujitsu.com wrote:
+> From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 > 
-> Sorry for late reply.
+> The memory device can be removed by 2 ways:
+> 1. send eject request by SCI
+> 2. echo 1 >/sys/bus/pci/devices/PNP0C80:XX/eject
 > 
-> 2012/10/20 2:59, Greg Kroah-Hartman wrote:
-> >On Fri, Oct 19, 2012 at 06:29:52AM +0200, Rafael J. Wysocki wrote:
-> >>On Thursday 11 of October 2012 19:12:28 Yasuaki Ishimatsu wrote:
-> >>>acpi_bus_trim() stops removing devices, when acpi_bus_remove() return error
-> >>>number. But acpi_bus_remove() cannot return error number correctly.
-> >>>acpi_bus_remove() only return -EINVAL, when dev argument is NULL. Thus even if
-> >>>device cannot be removed correctly, acpi_bus_trim() ignores and continues to
-> >>>remove devices. acpi_bus_hot_remove_device() uses acpi_bus_trim() for removing
-> >>>devices. Therefore acpi_bus_hot_remove_device() can send "_EJ0" to firmware,
-> >>>even if the device is running on the system. In this case, the system cannot
-> >>>work well.
-> >>>
-> >>>Vasilis hit the bug at memory hotplug and reported it as follow:
-> >>>https://lkml.org/lkml/2012/9/26/318
-> >>>
-> >>>So acpi_bus_trim() should check whether device was removed or not correctly.
-> >>>The patch adds error check into some functions to remove the device.
-> >>>
-> >>>Applying the patch, acpi_bus_trim() stops removing devices when failing
-> >>>to remove the device. But I think there is no impact with the
-> >>>exceptionof CPU and Memory hotplug path. Because other device also fails
-> >>>but the fail is an irregular case like device is NULL.
-> >>>
-> >>>v1->v2
-> >>>- add a rollback for reinstalling a notify handler.
-> >>>
-> >>>Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> >>
-> >>Greg, do you think there may be any problems with the changes in dd.c?
-> >
-> >Yes, I don't like it.
-> >
-> >remove should always work, just like the exit call in a module.  It
-> >means that the core wants to remove the driver, so it is going to
-> >happen, a driver can't refuse it.
-> >
-> >Which brings me to the larger question, why would this solve anything?
-> 
-> Now we are developing physical memory hot plug.
-> 
-> https://lkml.org/lkml/2012/10/23/213
-> 
-> So if we aplly the patch-set, we can hot remove a physical memory
-> by the following way.
-> 
-> "echo 1 > /sys/bus/acpi/devices/PNP/eject"
-> 
-> In this case, acpi_bus_hot_remove_device() tries to remove memory
-> device by acpi_bus_trim(). But if the memory has irremovable memory,
-> memory hot remove fails. And the memory remains in kernel.
-> However acpi_bus_trim() cannot notice that memory hot remove fails and
-> retruns 0. So acpi_bus_hot_remove_device() continues to remove memory
-> devices and sends _EJ0 method to firmware. Thus the memory device cannot
-> be used. But the memory remains in kernel yet. So if someone access the
-> memory, kernel panic occurs.
+> In the 1st case, acpi_memory_disable_device() will be called.
+> In the 2nd case, acpi_memory_device_remove() will be called.
 
-Why can't you check to find out if you can do the remove operation
-before you enter the driver core asking to actually remove the devices?
-That would allow you to "know" if you can do this before having to go
-through the whole operation.  What happens if you can complete half of
-the removal, and do that, but not the whole thing?  Don't you end up
-with half of the memory chunk gone from the system now?
+Hi Yasuaki, Wen,
 
-In other words, please solve this at a higher level than the driver
-core if at all possible.
+Why do you need to have separate code design & implementation for the
+two cases?  In other words, can the 1st case simply use the same code
+path of the 2nd case, just like I did for the CPU hot-remove patch
+below?  It will simplify the code and make the memory notify handler
+more consistent with other handlers.
+https://lkml.org/lkml/2012/10/19/456
 
-greg k-h
+Thanks,
+-Toshi
+
+
+> acpi_memory_device_remove() will also be called when we unbind the
+> memory device from the driver acpi_memhotplug or a driver initialization
+> fails.
+> 
+> acpi_memory_disable_device() has already implemented a code which
+> offlines memory and releases acpi_memory_info struct. But
+> acpi_memory_device_remove() has not implemented it yet.
+> 
+> So the patch move offlining memory and releasing acpi_memory_info struct
+> codes to a new function acpi_memory_remove_memory(). And it is used by both
+> acpi_memory_device_remove() and acpi_memory_disable_device().
+> 
+> CC: David Rientjes <rientjes@google.com>
+> CC: Jiang Liu <liuj97@gmail.com>
+> CC: Len Brown <len.brown@intel.com>
+> CC: Christoph Lameter <cl@linux.com>
+> Cc: Minchan Kim <minchan.kim@gmail.com>
+> CC: Andrew Morton <akpm@linux-foundation.org>
+> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+> Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+> ---
+>  drivers/acpi/acpi_memhotplug.c | 31 ++++++++++++++++++++++++-------
+>  1 file changed, 24 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+> index 666dac6..92c973a 100644
+> --- a/drivers/acpi/acpi_memhotplug.c
+> +++ b/drivers/acpi/acpi_memhotplug.c
+> @@ -316,16 +316,11 @@ static int acpi_memory_powerdown_device(struct acpi_memory_device *mem_device)
+>  	return 0;
+>  }
+>  
+> -static int acpi_memory_disable_device(struct acpi_memory_device *mem_device)
+> +static int acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
+>  {
+>  	int result;
+>  	struct acpi_memory_info *info, *n;
+>  
+> -
+> -	/*
+> -	 * Ask the VM to offline this memory range.
+> -	 * Note: Assume that this function returns zero on success
+> -	 */
+>  	mutex_lock(&mem_device->list_lock);
+>  	list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
+>  		if (info->enabled) {
+> @@ -333,10 +328,27 @@ static int acpi_memory_disable_device(struct acpi_memory_device *mem_device)
+>  			if (result)
+>  				return result;
+>  		}
+> +
+> +		list_del(&info->list);
+>  		kfree(info);
+>  	}
+>  	mutex_unlock(&mem_device->list_lock);
+>  
+> +	return 0;
+> +}
+> +
+> +static int acpi_memory_disable_device(struct acpi_memory_device *mem_device)
+> +{
+> +	int result;
+> +
+> +	/*
+> +	 * Ask the VM to offline this memory range.
+> +	 * Note: Assume that this function returns zero on success
+> +	 */
+> +	result = acpi_memory_remove_memory(mem_device);
+> +	if (result)
+> +		return result;
+> +
+>  	/* Power-off and eject the device */
+>  	result = acpi_memory_powerdown_device(mem_device);
+>  	if (result) {
+> @@ -487,12 +499,17 @@ static int acpi_memory_device_add(struct acpi_device *device)
+>  static int acpi_memory_device_remove(struct acpi_device *device, int type)
+>  {
+>  	struct acpi_memory_device *mem_device = NULL;
+> -
+> +	int result;
+>  
+>  	if (!device || !acpi_driver_data(device))
+>  		return -EINVAL;
+>  
+>  	mem_device = acpi_driver_data(device);
+> +
+> +	result = acpi_memory_remove_memory(mem_device);
+> +	if (result)
+> +		return result;
+> +
+>  	kfree(mem_device);
+>  
+>  	return 0;
+
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
