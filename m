@@ -1,141 +1,39 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH v3 3/3] acpi,memory-hotplug : add memory offline code to
- acpi_memory_device_remove()
-Date: Fri, 26 Oct 2012 11:14:31 -0600
-Message-ID: <1351271671.19172.74.camel@misato.fc.hp.com>
-References: <1351247463-5653-1-git-send-email-wency@cn.fujitsu.com>
-	 <1351247463-5653-4-git-send-email-wency@cn.fujitsu.com>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH 2/3] PCI: correctly detect ACPI PCI host bridge objects
+Date: Fri, 26 Oct 2012 11:13:50 -0700
+Message-ID: <CAE9FiQU8Tt4yF40AnaGS_Ompt1LYHe-fupkNY1SRyp+3BTjg6w@mail.gmail.com>
+References: <1350593430-24470-1-git-send-email-yinghai@kernel.org>
+	<1350593430-24470-4-git-send-email-yinghai@kernel.org>
+	<CAErSpo5s9sz+i+Qkuu1=HpfrSh271axkLDRgJSaKED5q3DNfPg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1351247463-5653-4-git-send-email-wency@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: wency@cn.fujitsu.com
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, liuj97@gmail.com, len.brown@intel.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, rjw@sisk.pl, laijs@cn.fujitsu.com, David Rientjes <rientjes@google.com>, Christoph Lameter <cl@linux.com>, Minchan Kim <minchan.kim@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:52329 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965842Ab2JZSNv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Oct 2012 14:13:51 -0400
+In-Reply-To: <CAErSpo5s9sz+i+Qkuu1=HpfrSh271axkLDRgJSaKED5q3DNfPg@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Jacob Shin <jacob.shin@amd.com>, Tejun Heo <tj@kernel.org>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, linux-kernel@vger.kernel.org, Jiang Liu <jiang.liu@huawei.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On Fri, 2012-10-26 at 18:31 +0800, wency@cn.fujitsu.com wrote:
-> From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> 
-> The memory device can be removed by 2 ways:
-> 1. send eject request by SCI
-> 2. echo 1 >/sys/bus/pci/devices/PNP0C80:XX/eject
-> 
-> In the 1st case, acpi_memory_disable_device() will be called.
-> In the 2nd case, acpi_memory_device_remove() will be called.
+On Fri, Oct 26, 2012 at 2:10 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+> On Thu, Oct 18, 2012 at 2:50 PM, Yinghai Lu <yinghai@kernel.org> wrote:
+>>
+>> +static const struct acpi_device_id root_device_ids[] = {
+>> +       {"PNP0A03", 0},
+>> +       {"PNP0A08", 0},
+>
+> Why do we need PNP0A08 here?
+>
+> Per the PCI Firmware Spec, sec 4.1.5, PNP0A08 identifies a PCI Express
+> or a PCI-X Mode 2 host bridge, and such a device is required to
+> include PNP0A03 in _CID.  Therefore, it should be sufficient to look
+> only for PNP0A03.
 
-Hi Yasuaki, Wen,
+good, I removed that line and updated for-pci-split-pci-root-hp-2 branch.
 
-Why do you need to have separate code design & implementation for the
-two cases?  In other words, can the 1st case simply use the same code
-path of the 2nd case, just like I did for the CPU hot-remove patch
-below?  It will simplify the code and make the memory notify handler
-more consistent with other handlers.
-https://lkml.org/lkml/2012/10/19/456
+Thanks
 
-Thanks,
--Toshi
-
-
-> acpi_memory_device_remove() will also be called when we unbind the
-> memory device from the driver acpi_memhotplug or a driver initialization
-> fails.
-> 
-> acpi_memory_disable_device() has already implemented a code which
-> offlines memory and releases acpi_memory_info struct. But
-> acpi_memory_device_remove() has not implemented it yet.
-> 
-> So the patch move offlining memory and releasing acpi_memory_info struct
-> codes to a new function acpi_memory_remove_memory(). And it is used by both
-> acpi_memory_device_remove() and acpi_memory_disable_device().
-> 
-> CC: David Rientjes <rientjes@google.com>
-> CC: Jiang Liu <liuj97@gmail.com>
-> CC: Len Brown <len.brown@intel.com>
-> CC: Christoph Lameter <cl@linux.com>
-> Cc: Minchan Kim <minchan.kim@gmail.com>
-> CC: Andrew Morton <akpm@linux-foundation.org>
-> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
-> ---
->  drivers/acpi/acpi_memhotplug.c | 31 ++++++++++++++++++++++++-------
->  1 file changed, 24 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-> index 666dac6..92c973a 100644
-> --- a/drivers/acpi/acpi_memhotplug.c
-> +++ b/drivers/acpi/acpi_memhotplug.c
-> @@ -316,16 +316,11 @@ static int acpi_memory_powerdown_device(struct acpi_memory_device *mem_device)
->  	return 0;
->  }
->  
-> -static int acpi_memory_disable_device(struct acpi_memory_device *mem_device)
-> +static int acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
->  {
->  	int result;
->  	struct acpi_memory_info *info, *n;
->  
-> -
-> -	/*
-> -	 * Ask the VM to offline this memory range.
-> -	 * Note: Assume that this function returns zero on success
-> -	 */
->  	mutex_lock(&mem_device->list_lock);
->  	list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
->  		if (info->enabled) {
-> @@ -333,10 +328,27 @@ static int acpi_memory_disable_device(struct acpi_memory_device *mem_device)
->  			if (result)
->  				return result;
->  		}
-> +
-> +		list_del(&info->list);
->  		kfree(info);
->  	}
->  	mutex_unlock(&mem_device->list_lock);
->  
-> +	return 0;
-> +}
-> +
-> +static int acpi_memory_disable_device(struct acpi_memory_device *mem_device)
-> +{
-> +	int result;
-> +
-> +	/*
-> +	 * Ask the VM to offline this memory range.
-> +	 * Note: Assume that this function returns zero on success
-> +	 */
-> +	result = acpi_memory_remove_memory(mem_device);
-> +	if (result)
-> +		return result;
-> +
->  	/* Power-off and eject the device */
->  	result = acpi_memory_powerdown_device(mem_device);
->  	if (result) {
-> @@ -487,12 +499,17 @@ static int acpi_memory_device_add(struct acpi_device *device)
->  static int acpi_memory_device_remove(struct acpi_device *device, int type)
->  {
->  	struct acpi_memory_device *mem_device = NULL;
-> -
-> +	int result;
->  
->  	if (!device || !acpi_driver_data(device))
->  		return -EINVAL;
->  
->  	mem_device = acpi_driver_data(device);
-> +
-> +	result = acpi_memory_remove_memory(mem_device);
-> +	if (result)
-> +		return result;
-> +
->  	kfree(mem_device);
->  
->  	return 0;
-
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Yinghai
