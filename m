@@ -1,103 +1,94 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: [PATCH v2 1/2] acpi : cpu hot-remove returns error when cpu_down()
- fails
-Date: Fri, 26 Oct 2012 18:25:42 +0900
-Message-ID: <508A5716.1090509@jp.fujitsu.com>
-References: <50657D92.3010106@jp.fujitsu.com> <4180255.BSUqs0l2F5@vostro.rjw.lan> <5080D9AA.8070801@jp.fujitsu.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: Info about ACPI/PCI vs ISA
+Date: Fri, 26 Oct 2012 03:31:44 -0600
+Message-ID: <CAErSpo4GFn_xSzMb7Y8cR+oJUT4LPi046zJs5iLUY0cp2c85zQ@mail.gmail.com>
+References: <5062BA8B.7090503@peak-system.com> <CAErSpo7vk6d1RCWQPFL9PqqwbH5u+F=uyPywCM_3sAVF3RW34g@mail.gmail.com>
+ <508A544F.1030007@peak-system.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:48018 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755914Ab2JZJ0T (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Oct 2012 05:26:19 -0400
-In-Reply-To: <5080D9AA.8070801@jp.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <508A544F.1030007@peak-system.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Stephane Grosjean <s.grosjean@peak-system.com>
+Cc: linux-acpi@vger.kernel.org, support@peak-system.com, Robert Hancock <hancockrwd@gmail.com>, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: srivatsa.bhat@linux.vnet.ibm.com, toshi.kani@hp.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-
-v1 -> v2
-- update Rafael's comment.
-
->>   static int acpi_processor_handle_eject(struct acpi_processor *pr)
->>   {
->> -    if (cpu_online(pr->id))
->> -        cpu_down(pr->id);
->> +    int ret = 0;
->> +
->> +    if (cpu_online(pr->id)) {
->> +        ret = cpu_down(pr->id);
+On Fri, Oct 26, 2012 at 3:13 AM, Stephane Grosjean
+<s.grosjean@peak-system.com> wrote:
+> Hi Bjorn,
 >
-> If you defined ret here ...
+> Thanks for your answer. See my comments below...
 >
->> +        if (ret)
->> +            return ret;
->> +    }
+> Le 26/10/2012 10:29, Bjorn Helgaas a =E9crit :
 >>
-
->>       arch_unregister_cpu(pr->id);
->>       acpi_unmap_lsapic(pr->id);
->> -    return (0);
->> +    return ret;
+>> On Wed, Sep 26, 2012 at 2:19 AM, Stephane Grosjean
+>> <s.grosjean@peak-system.com> wrote:
+>>
+>>> I'm working on an issue with one of our PCI adapters.
+>>> This PCI adapter is a standard and well proven board, for many year=
+s:
+>>>
+>>> $ lspci -v
+>>> ...
+>>> 04:08.0 Network controller: PEAK-System Technik GmbH PCAN-PCI CAN-B=
+us
+>>> controller (rev 02)
+>>>      Subsystem: PEAK-System Technik GmbH 2 Channel CAN Bus SJC1000
+>>>      Flags: medium devsel, IRQ 11
+>>>      Memory at f0410000 (32-bit, non-prefetchable) [size=3D64K]
+>>>      Memory at f0400000 (32-bit, non-prefetchable) [size=3D64K]
+>>>      Kernel driver in use: pcan
+>>>
+>>>
+>> Where's the source for the "pcan" driver?  I see the pcan_usb driver
+>> in the tree, but that looks like something different from what you'r=
+e
+>> looking at here.
 >
-> ... this line wouldn't need to be changed.
+>
+> The "pcan" driver is an out-ot-tree driver which offers a chardev int=
+erface,
+> not a mainline driver. The "pcan_usb" (as well as peak_pci...) are ou=
+r
+> recent linux-can (only) drivers.
+> Since the "pcan" driver does exist since the old ages of 2.4 kernels,=
+ we
+> need to continue to support it. See also below for more information a=
+bout
+> that...
+>
+>> Does the device work under any version of Linux?  If so, please
+>> collect the complete dmesg log from the newest working version, and
+>> the same log from the broken version.
+>
+>
+> Yes it does! Anyway, you'll find the complete dmesg.txt attached to t=
+hat
+> e-mail. Hoping this could help.
 
----
-Even if cpu_down() fails, acpi_processor_remove() continues to remove the cpu.
-But in this case, it should return error number since some process may run on
-the cpu. If the cpu has a running process and the cpu is turned the power off,
-the system may not work well.
+Thanks.  You attached the log for the broken version.  Can you also
+attach a log from the newest working version of Linux?
 
-Reviewed-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
-Reviewed-by: Toshi Kani <toshi.kani@hp.com>
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+I assume the same driver works on the old version but fails on new
+versions.  If so, it sounds like this might be a Linux regression, and
+finding the newest working and oldest broken versions will help
+identify it.
 
----
-  drivers/acpi/processor_driver.c |   16 +++++++++++-----
-  1 file changed, 11 insertions(+), 5 deletions(-)
+>>> - why does the system not succeed to "derive" routing for INTA? And=
+ why
+>>> us?
+>>
+>> The derivation is based on ACPI _PRT tables.  Regrettably, we don't
+>> dump the _PRT contents in dmesg, so we'd need an acpidump to look
+>> further into that.
+>
+> Well unfortunately, we are not able to provide this kind of informati=
+on at
+> this moment.
 
-Index: linux-3.7-rc2/drivers/acpi/processor_driver.c
-===================================================================
---- linux-3.7-rc2.orig/drivers/acpi/processor_driver.c	2012-10-21 04:11:32.000000000 +0900
-+++ linux-3.7-rc2/drivers/acpi/processor_driver.c	2012-10-26 18:15:43.721665836 +0900
-@@ -605,7 +605,7 @@ err_free_pr:
-  static int acpi_processor_remove(struct acpi_device *device, int type)
-  {
-  	struct acpi_processor *pr = NULL;
--
-+	int ret;
-  
-  	if (!device || !acpi_driver_data(device))
-  		return -EINVAL;
-@@ -616,8 +616,9 @@ static int acpi_processor_remove(struct
-  		goto free;
-  
-  	if (type == ACPI_BUS_REMOVAL_EJECT) {
--		if (acpi_processor_handle_eject(pr))
--			return -EINVAL;
-+		ret = acpi_processor_handle_eject(pr);
-+		if (ret)
-+			return ret;
-  	}
-  
-  	acpi_processor_power_exit(pr);
-@@ -848,8 +849,13 @@ static acpi_status acpi_processor_hotadd
-  
-  static int acpi_processor_handle_eject(struct acpi_processor *pr)
-  {
--	if (cpu_online(pr->id))
--		cpu_down(pr->id);
-+	int ret = 0;
-+
-+	if (cpu_online(pr->id)) {
-+		ret = cpu_down(pr->id);
-+		if (ret)
-+			return ret;
-+	}
-  
-  	arch_unregister_cpu(pr->id);
-  	acpi_unmap_lsapic(pr->id);
+The acpidump isn't secret (it's not part of the BIOS source); it's
+just information extracted from the running system.  See
+https://lesswatts.org/projects/acpi/utilities.php for details.
 
+Bjorn
