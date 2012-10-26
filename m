@@ -1,93 +1,96 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [PATCH v2] acpi : acpi_bus_trim() stops removing devices when
- failing to remove the device
-Date: Fri, 26 Oct 2012 16:33:49 +0900
-Message-ID: <508A3CDD.20506@jp.fujitsu.com>
-References: <50769B8C.2060901@jp.fujitsu.com> <1846185.MSykHDcMmb@vostro.rjw.lan> <20121019175941.GB3375@kroah.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: Info about ACPI/PCI vs ISA
+Date: Fri, 26 Oct 2012 02:29:33 -0600
+Message-ID: <CAErSpo7vk6d1RCWQPFL9PqqwbH5u+F=uyPywCM_3sAVF3RW34g@mail.gmail.com>
+References: <5062BA8B.7090503@peak-system.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:40011 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756554Ab2JZHeQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Oct 2012 03:34:16 -0400
-In-Reply-To: <20121019175941.GB3375@kroah.com>
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:43500 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932128Ab2JZI3z (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Oct 2012 04:29:55 -0400
+Received: by mail-wi0-f170.google.com with SMTP id hm2so205388wib.1
+        for <linux-acpi@vger.kernel.org>; Fri, 26 Oct 2012 01:29:54 -0700 (PDT)
+In-Reply-To: <5062BA8B.7090503@peak-system.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, toshi.kani@hp.com, lenb@kernel.org, wency@cn.fujitsu.com, vasilis.liaskovitis@profitbricks.com
+To: Stephane Grosjean <s.grosjean@peak-system.com>
+Cc: linux-acpi@vger.kernel.org, support@peak-system.com, Robert Hancock <hancockrwd@gmail.com>, linux-pci@vger.kernel.org
 
-Hi Greg,
+On Wed, Sep 26, 2012 at 2:19 AM, Stephane Grosjean
+<s.grosjean@peak-system.com> wrote:
 
-Sorry for late reply.
-
-2012/10/20 2:59, Greg Kroah-Hartman wrote:
-> On Fri, Oct 19, 2012 at 06:29:52AM +0200, Rafael J. Wysocki wrote:
->> On Thursday 11 of October 2012 19:12:28 Yasuaki Ishimatsu wrote:
->>> acpi_bus_trim() stops removing devices, when acpi_bus_remove() return error
->>> number. But acpi_bus_remove() cannot return error number correctly.
->>> acpi_bus_remove() only return -EINVAL, when dev argument is NULL. Thus even if
->>> device cannot be removed correctly, acpi_bus_trim() ignores and continues to
->>> remove devices. acpi_bus_hot_remove_device() uses acpi_bus_trim() for removing
->>> devices. Therefore acpi_bus_hot_remove_device() can send "_EJ0" to firmware,
->>> even if the device is running on the system. In this case, the system cannot
->>> work well.
->>>
->>> Vasilis hit the bug at memory hotplug and reported it as follow:
->>> https://lkml.org/lkml/2012/9/26/318
->>>
->>> So acpi_bus_trim() should check whether device was removed or not correctly.
->>> The patch adds error check into some functions to remove the device.
->>>
->>> Applying the patch, acpi_bus_trim() stops removing devices when failing
->>> to remove the device. But I think there is no impact with the
->>> exceptionof CPU and Memory hotplug path. Because other device also fails
->>> but the fail is an irregular case like device is NULL.
->>>
->>> v1->v2
->>> - add a rollback for reinstalling a notify handler.
->>>
->>> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->>
->> Greg, do you think there may be any problems with the changes in dd.c?
+> I'm working on an issue with one of our PCI adapters.
+> This PCI adapter is a standard and well proven board, for many years:
 >
-> Yes, I don't like it.
+> $ lspci -v
+> ...
+> 04:08.0 Network controller: PEAK-System Technik GmbH PCAN-PCI CAN-Bus
+> controller (rev 02)
+>     Subsystem: PEAK-System Technik GmbH 2 Channel CAN Bus SJC1000
+>     Flags: medium devsel, IRQ 11
+>     Memory at f0410000 (32-bit, non-prefetchable) [size=64K]
+>     Memory at f0400000 (32-bit, non-prefetchable) [size=64K]
+>     Kernel driver in use: pcan
 >
-> remove should always work, just like the exit call in a module.  It
-> means that the core wants to remove the driver, so it is going to
-> happen, a driver can't refuse it.
+> The running system is:
 >
-> Which brings me to the larger question, why would this solve anything?
-
-Now we are developing physical memory hot plug.
-
-https://lkml.org/lkml/2012/10/23/213
-
-So if we aplly the patch-set, we can hot remove a physical memory
-by the following way.
-
-"echo 1 > /sys/bus/acpi/devices/PNP/eject"
-
-In this case, acpi_bus_hot_remove_device() tries to remove memory
-device by acpi_bus_trim(). But if the memory has irremovable memory,
-memory hot remove fails. And the memory remains in kernel.
-However acpi_bus_trim() cannot notice that memory hot remove fails and
-retruns 0. So acpi_bus_hot_remove_device() continues to remove memory
-devices and sends _EJ0 method to firmware. Thus the memory device cannot
-be used. But the memory remains in kernel yet. So if someone access the
-memory, kernel panic occurs.
-
-Thanks,
-Yasuaki Ishimatsu
-
-> If the kernel wants to unbind a device, why would we ever not want that
-> to happen?
+> [    0.000000] Initializing cgroup subsys cpuset
+> [    0.000000] Initializing cgroup subsys cpu
+> [    0.000000] Linux version 3.1.9-1.4-desktop (geeko@buildhost) (gcc
+> version 4.6.2 (SUSE Linux) ) #1 SMP PREEMPT Fri Jan 27 08:55:10 UTC 2012
+> (efb5ff4)
+> ...
+> [    0.000000] Kernel command line:
+> root=/dev/disk/by-id/ata-SPCC_Solid_State_DiskB28_00000000000000000015-part2
+> resume=/dev/disk/by-id/ata-SPCC_Solid_State_DiskB28_00000000000000000015-part1
+> splash=silent quiet vga=0x31b
+> ...
+> [    0.471267] ACPI: PCI Interrupt Link [LNKA] (IRQs 1 3 4 5 6 10 *11 12 14
+> 15)
+> [    0.471323] ACPI: PCI Interrupt Link [LNKB] (IRQs 1 3 4 5 6 10 11 12 14
+> 15) *7
+> [    0.471378] ACPI: PCI Interrupt Link [LNKC] (IRQs 1 3 4 5 6 10 11 12 14
+> 15) *7
+> [    0.471434] ACPI: PCI Interrupt Link [LNKD] (IRQs 1 3 4 5 6 *10 11 12 14
+> 15)
+> [    0.471487] ACPI: PCI Interrupt Link [LNKE] (IRQs 1 3 4 5 6 10 11 12 14
+> 15) *0, disabled.
+> [    0.471541] ACPI: PCI Interrupt Link [LNKF] (IRQs 1 3 4 5 6 10 11 12 14
+> 15) *0, disabled.
+> [    0.471594] ACPI: PCI Interrupt Link [LNKG] (IRQs 1 3 4 5 6 *10 11 12 14
+> 15)
+> [    0.471647] ACPI: PCI Interrupt Link [LNKH] (IRQs 1 3 4 5 6 10 *11 12 14
+> 15)
 >
-> So, NAK on this patch, sorry.  Fix up the ACPI core to handle this
-> properly, don't mess with the driver core here.
+> We don't succeed to send and receive data to/from this card and we suspect
+> an IRQ related issue. For example, loading our (good old) "pcan" driver
+> leads to the below logs:
 >
-> greg k-h
+> ...
+> [    6.186877] pci 0000:00:1e.0: can't derive routing for PCI INT A
+> [    6.186878] pcan 0000:04:08.0: PCI INT A: no GSI - using ISA IRQ 11
+
+Where's the source for the "pcan" driver?  I see the pcan_usb driver
+in the tree, but that looks like something different from what you're
+looking at here.
+
+Does the device work under any version of Linux?  If so, please
+collect the complete dmesg log from the newest working version, and
+the same log from the broken version.
+
+Does this adapter work in some systems but not others?  Under Windows
+but not under Linux?  You refer to the "good old" driver, so I infer
+that it works *somewhere* and I'm trying to figure out what's
+different about the case where it doesn't work.
+
+> My questions are:
 >
+> - why does the system not succeed to "derive" routing for INTA? And why us?
 
+The derivation is based on ACPI _PRT tables.  Regrettably, we don't
+dump the _PRT contents in dmesg, so we'd need an acpidump to look
+further into that.
 
+Bjorn
