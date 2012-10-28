@@ -1,64 +1,33 @@
-From: Jesper Juhl <jj@chaosbits.net>
-Subject: Re: [PATCH] ACPICA: Don't leak next_walk_state in
- acpi_ds_call_control_method()
-Date: Tue, 25 Nov 2008 14:42:09 +0100 (CET)
-Message-ID: <alpine.LNX.2.00.0811251440440.1109@swampdragon.chaosbits.net>
-References: <alpine.LNX.2.00.1210212233180.26319@swampdragon.chaosbits.net> <2295104.eQ6lcDpNzT@vostro.rjw.lan>
+From: =?UTF-8?B?VG9yYWxmIEbDtnJzdGVy?= <toralf.foerster@gmx.de>
+Subject: cosmetic issue with error message 'Invalid Power Resource to register!'
+Date: Sun, 28 Oct 2012 19:44:07 +0100
+Message-ID: <508D7CF7.1070707@gmx.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2295104.eQ6lcDpNzT@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, Lin Ming <ming.m.lin@intel.com>, Bob Moore <robert.moore@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mailout-de.gmx.net ([213.165.64.23]:52035 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752038Ab2J1SoL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 28 Oct 2012 14:44:11 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Thu, 25 Oct 2012, Rafael J. Wysocki wrote:
+=46rom time to time I get a line like at my Gentoo Linux:
 
-> On Sunday 21 of October 2012 22:35:46 Jesper Juhl wrote:
-> > If acpi_ds_create_walk_state() succeeds, but the call to
-> > ACPI_ALLOCATE_ZEROED() fails, then we'll return from the function
-> > without properly freeing 'next_walk_state'.
-> > 
-> > Signed-off-by: Jesper Juhl <jj@chaosbits.net>
-> 
-> This has to go through ACPICA upstream, but we'll get it from there eventually.
-> 
+kernel: ACPI: Invalid Power Resource to register!<6>usb 2-1.2: new high=
+-speed USB device number 3 using ehci_hcd
 
-Ok. I haven't heard any response to this other than yours, so I guess I'll 
-just re-send it in a few days if I still hear nothing.
+I'm wondering whether there should be newline between both of them or w=
+hat <6> means.
 
-Can I add your ACK when I re-send?
-
-/Jesper
-
-
-> Thanks,
-> Rafael
-> 
-> 
-> > ---
-> >  drivers/acpi/acpica/dsmethod.c |    3 ++-
-> >  1 files changed, 2 insertions(+), 1 deletions(-)
-> > 
-> > diff --git a/drivers/acpi/acpica/dsmethod.c b/drivers/acpi/acpica/dsmethod.c
-> > index aa9a5d4..ade59a3 100644
-> > --- a/drivers/acpi/acpica/dsmethod.c
-> > +++ b/drivers/acpi/acpica/dsmethod.c
-> > @@ -378,7 +378,8 @@ acpi_ds_call_control_method(struct acpi_thread_state *thread,
-> >  	 */
-> >  	info = ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_evaluate_info));
-> >  	if (!info) {
-> > -		return_ACPI_STATUS(AE_NO_MEMORY);
-> > +		status = AE_NO_MEMORY;
-> > +		goto cleanup;
-> >  	}
-> >  
-> >  	info->parameters = &this_walk_state->operands[0];
-> > 
-> 
-
--- 
-Jesper Juhl <jj@chaosbits.net>       http://www.chaosbits.net/
-Don't top-post http://www.catb.org/jargon/html/T/top-post.html
-Plain text mails only, please.
+--=20
+MfG/Sincerely
+Toralf F=C3=B6rster
+pgp finger print: 7B1A 07F4 EC82 0F90 D4C2 8936 872A E508 7DB6 9DA3
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
