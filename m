@@ -1,33 +1,68 @@
-From: =?UTF-8?B?VG9yYWxmIEbDtnJzdGVy?= <toralf.foerster@gmx.de>
-Subject: cosmetic issue with error message 'Invalid Power Resource to register!'
-Date: Sun, 28 Oct 2012 19:44:07 +0100
-Message-ID: <508D7CF7.1070707@gmx.de>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] ACPICA: Don't leak next_walk_state in acpi_ds_call_control_method()
+Date: Sun, 28 Oct 2012 22:08:20 +0100
+Message-ID: <1616366.ueb6908Eo9@vostro.rjw.lan>
+References: <alpine.LNX.2.00.1210212233180.26319@swampdragon.chaosbits.net> <2295104.eQ6lcDpNzT@vostro.rjw.lan> <alpine.LNX.2.00.0811251440440.1109@swampdragon.chaosbits.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.23]:52035 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752038Ab2J1SoL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 28 Oct 2012 14:44:11 -0400
+Received: from ogre.sisk.pl ([193.178.161.156]:41728 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755483Ab2J1VET (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 28 Oct 2012 17:04:19 -0400
+In-Reply-To: <alpine.LNX.2.00.0811251440440.1109@swampdragon.chaosbits.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Jesper Juhl <jj@chaosbits.net>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, Lin Ming <ming.m.lin@intel.com>, Bob Moore <robert.moore@intel.com>
 
-=46rom time to time I get a line like at my Gentoo Linux:
+On Tuesday, November 25, 2008 02:42:09 PM Jesper Juhl wrote:
+> On Thu, 25 Oct 2012, Rafael J. Wysocki wrote:
+> 
+> > On Sunday 21 of October 2012 22:35:46 Jesper Juhl wrote:
+> > > If acpi_ds_create_walk_state() succeeds, but the call to
+> > > ACPI_ALLOCATE_ZEROED() fails, then we'll return from the function
+> > > without properly freeing 'next_walk_state'.
+> > > 
+> > > Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+> > 
+> > This has to go through ACPICA upstream, but we'll get it from there eventually.
+> > 
+> 
+> Ok. I haven't heard any response to this other than yours, so I guess I'll 
+> just re-send it in a few days if I still hear nothing.
+> 
+> Can I add your ACK when I re-send?
 
-kernel: ACPI: Invalid Power Resource to register!<6>usb 2-1.2: new high=
--speed USB device number 3 using ehci_hcd
+You don't need to resend, it's been taken.
 
-I'm wondering whether there should be newline between both of them or w=
-hat <6> means.
+Thanks,
+Rafael
 
---=20
-MfG/Sincerely
-Toralf F=C3=B6rster
-pgp finger print: 7B1A 07F4 EC82 0F90 D4C2 8936 872A E508 7DB6 9DA3
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+> > > ---
+> > >  drivers/acpi/acpica/dsmethod.c |    3 ++-
+> > >  1 files changed, 2 insertions(+), 1 deletions(-)
+> > > 
+> > > diff --git a/drivers/acpi/acpica/dsmethod.c b/drivers/acpi/acpica/dsmethod.c
+> > > index aa9a5d4..ade59a3 100644
+> > > --- a/drivers/acpi/acpica/dsmethod.c
+> > > +++ b/drivers/acpi/acpica/dsmethod.c
+> > > @@ -378,7 +378,8 @@ acpi_ds_call_control_method(struct acpi_thread_state *thread,
+> > >  	 */
+> > >  	info = ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_evaluate_info));
+> > >  	if (!info) {
+> > > -		return_ACPI_STATUS(AE_NO_MEMORY);
+> > > +		status = AE_NO_MEMORY;
+> > > +		goto cleanup;
+> > >  	}
+> > >  
+> > >  	info->parameters = &this_walk_state->operands[0];
+> > > 
+> > 
+> 
+> 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
