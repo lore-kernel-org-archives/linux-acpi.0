@@ -1,68 +1,52 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPICA: Don't leak next_walk_state in acpi_ds_call_control_method()
-Date: Sun, 28 Oct 2012 22:08:20 +0100
-Message-ID: <1616366.ueb6908Eo9@vostro.rjw.lan>
-References: <alpine.LNX.2.00.1210212233180.26319@swampdragon.chaosbits.net> <2295104.eQ6lcDpNzT@vostro.rjw.lan> <alpine.LNX.2.00.0811251440440.1109@swampdragon.chaosbits.net>
+From: Maciej Rutecki <maciej.rutecki@gmail.com>
+Subject: Re: [REGRESSION] 3.7-rc2 kernel BUG at kernel/power/snapshot.c:517!
+Date: Sun, 28 Oct 2012 22:12:49 +0100
+Message-ID: <201210282212.50282.maciej.rutecki@gmail.com>
+References: <201210211712.28571.maciej.rutecki@gmail.com>
+Reply-To: maciej.rutecki@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: Text/Plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:41728 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755483Ab2J1VET (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 28 Oct 2012 17:04:19 -0400
-In-Reply-To: <alpine.LNX.2.00.0811251440440.1109@swampdragon.chaosbits.net>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:58709 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755796Ab2J1VMz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 28 Oct 2012 17:12:55 -0400
+In-Reply-To: <201210211712.28571.maciej.rutecki@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jesper Juhl <jj@chaosbits.net>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, Lin Ming <ming.m.lin@intel.com>, Bob Moore <robert.moore@intel.com>
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: lenb@kernel.org, rjw@sisk.pl, linux-acpi@vger.kernel.org, pavel@ucw.cz, linux-pm@vger.kernel.org
 
-On Tuesday, November 25, 2008 02:42:09 PM Jesper Juhl wrote:
-> On Thu, 25 Oct 2012, Rafael J. Wysocki wrote:
-> 
-> > On Sunday 21 of October 2012 22:35:46 Jesper Juhl wrote:
-> > > If acpi_ds_create_walk_state() succeeds, but the call to
-> > > ACPI_ALLOCATE_ZEROED() fails, then we'll return from the function
-> > > without properly freeing 'next_walk_state'.
-> > > 
-> > > Signed-off-by: Jesper Juhl <jj@chaosbits.net>
-> > 
-> > This has to go through ACPICA upstream, but we'll get it from there eventually.
-> > 
-> 
-> Ok. I haven't heard any response to this other than yours, so I guess I'll 
-> just re-send it in a few days if I still hear nothing.
-> 
-> Can I add your ACK when I re-send?
+On niedziela, 21 pa=C5=BAdziernika 2012 o 17:12:28 Maciej Rutecki wrote=
+:
+> Error: kernel BUG at kernel/power/snapshot.c:517!
+>=20
+> Last known good: 3.6.1
+> Bad: 3.7-rc2
+>=20
+> Steps to reproduce:
+> 1. Boot system with 3.7-rc2 kernel
+> 2. Try suspend to disk (s2ram works OK)
+>=20
+> System dies on message:
+> http://mrutecki.pl/download/kernel/3.7-rc2/swinka/DSCN0280.jpg
+>=20
+> lspci:
+> http://mrutecki.pl/download/kernel/3.7-rc2/swinka/lspci.txt
+>=20
+> dmesg:
+> http://mrutecki.pl/download/kernel/3.7-rc2/swinka/dmesg-3.7-rc2.txt
 
-You don't need to resend, it's been taken.
+Still present in -rc3
 
-Thanks,
-Rafael
+Regards
 
-
-> > > ---
-> > >  drivers/acpi/acpica/dsmethod.c |    3 ++-
-> > >  1 files changed, 2 insertions(+), 1 deletions(-)
-> > > 
-> > > diff --git a/drivers/acpi/acpica/dsmethod.c b/drivers/acpi/acpica/dsmethod.c
-> > > index aa9a5d4..ade59a3 100644
-> > > --- a/drivers/acpi/acpica/dsmethod.c
-> > > +++ b/drivers/acpi/acpica/dsmethod.c
-> > > @@ -378,7 +378,8 @@ acpi_ds_call_control_method(struct acpi_thread_state *thread,
-> > >  	 */
-> > >  	info = ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_evaluate_info));
-> > >  	if (!info) {
-> > > -		return_ACPI_STATUS(AE_NO_MEMORY);
-> > > +		status = AE_NO_MEMORY;
-> > > +		goto cleanup;
-> > >  	}
-> > >  
-> > >  	info->parameters = &this_walk_state->operands[0];
-> > > 
-> > 
-> 
-> 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+--=20
+Maciej Rutecki
+http://www.mrutecki.pl
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
