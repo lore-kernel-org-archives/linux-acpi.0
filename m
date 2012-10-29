@@ -1,158 +1,128 @@
-From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: Re: [PATCH v3 3/3] acpi,memory-hotplug : add memory offline code
- to acpi_memory_device_remove()
-Date: Mon, 29 Oct 2012 14:16:29 +0800
-Message-ID: <508E1F3D.7030806@cn.fujitsu.com>
-References: <1351247463-5653-1-git-send-email-wency@cn.fujitsu.com>	 <1351247463-5653-4-git-send-email-wency@cn.fujitsu.com> <1351271671.19172.74.camel@misato.fc.hp.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:38579 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1754856Ab2J2GKt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 29 Oct 2012 02:10:49 -0400
-In-Reply-To: <1351271671.19172.74.camel@misato.fc.hp.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: [PATCH v8 00/11] ZPODD Patches
+Date: Mon, 29 Oct 2012 17:01:27 +0800
+Message-ID: <1351501298-3716-1-git-send-email-aaron.lu@intel.com>
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Jeff Garzik <jgarzik@pobox.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, James Bottomley <James.Bottomley@hansenpartnership.com>, Alan Stern <stern@rowland.harvard.edu>, Tejun Heo <tj@kernel.org>, Oliver Neukum <oliver@neukum.org>
+Cc: Jeff Wu <jeff.wu@amd.com>, Aaron Lu <aaron.lwe@gmail.com>, Shane Huang <shane.huang@amd.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, liuj97@gmail.com, len.brown@intel.com, akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, rjw@sisk.pl, laijs@cn.fujitsu.com, David Rientjes <rientjes@google.com>, Christoph Lameter <cl@linux.com>, Minchan Kim <minchan.kim@gmail.com>
 
-At 10/27/2012 01:14 AM, Toshi Kani Wrote:
-> On Fri, 2012-10-26 at 18:31 +0800, wency@cn.fujitsu.com wrote:
->> From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->>
->> The memory device can be removed by 2 ways:
->> 1. send eject request by SCI
->> 2. echo 1 >/sys/bus/pci/devices/PNP0C80:XX/eject
->>
->> In the 1st case, acpi_memory_disable_device() will be called.
->> In the 2nd case, acpi_memory_device_remove() will be called.
-> 
-> Hi Yasuaki, Wen,
-> 
-> Why do you need to have separate code design & implementation for the
-> two cases?  In other words, can the 1st case simply use the same code
-> path of the 2nd case, just like I did for the CPU hot-remove patch
-> below?  It will simplify the code and make the memory notify handler
-> more consistent with other handlers.
-> https://lkml.org/lkml/2012/10/19/456
+v8:
+This version is a redesign, it doesn't have much to do with previous
+versions. The ZPODD implementation is done almost entirely in ATA layer
+now, except 2 helper functions from SCSI sr driver to block disk events.
 
-Yes, the 1st case can simply reuse the same code of the 2nd case.
-It is another issue. The memory is not offlined and removed in 2nd
-case. This patchset tries to fix this problem. After doing this,
-we can merge the codes for the two cases.
+The basic idea is that, when ata port is runtime suspended, it will
+check if the ODD is ready to be powered off. And if yes, events is
+blocked and power omitted; if not, ODD's power supply remains unchanged
+by keeping ACPI state at D0.
 
-But there is some bug in the code for 2nd case:
-If offlining memory failed, we don't know such error in 2nd case, and
-the kernel will in a dangerous state: the memory device is poweroffed
-but the kernel is using it.
+Some background knowledge about ZPODD is added below v1 history log.
 
-We should fix this bug before merging them.
+v7:
+Re work of runtime pm of sr driver, based on ideas of Alan Stern and
+Oliver Neukum.
 
-Thanks
-Wen Congyang
+Jeff, due to the ready_to_power_off flag added, there is a small
+change in [PATCH v7 6/6] libata: acpi: respect may_power_off flag,
+please check if I can still get your ack, thanks.
 
-> 
-> Thanks,
-> -Toshi
-> 
-> 
->> acpi_memory_device_remove() will also be called when we unbind the
->> memory device from the driver acpi_memhotplug or a driver initialization
->> fails.
->>
->> acpi_memory_disable_device() has already implemented a code which
->> offlines memory and releases acpi_memory_info struct. But
->> acpi_memory_device_remove() has not implemented it yet.
->>
->> So the patch move offlining memory and releasing acpi_memory_info struct
->> codes to a new function acpi_memory_remove_memory(). And it is used by both
->> acpi_memory_device_remove() and acpi_memory_disable_device().
->>
->> CC: David Rientjes <rientjes@google.com>
->> CC: Jiang Liu <liuj97@gmail.com>
->> CC: Len Brown <len.brown@intel.com>
->> CC: Christoph Lameter <cl@linux.com>
->> Cc: Minchan Kim <minchan.kim@gmail.com>
->> CC: Andrew Morton <akpm@linux-foundation.org>
->> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
->> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->> Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
->> ---
->>  drivers/acpi/acpi_memhotplug.c | 31 ++++++++++++++++++++++++-------
->>  1 file changed, 24 insertions(+), 7 deletions(-)
->>
->> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
->> index 666dac6..92c973a 100644
->> --- a/drivers/acpi/acpi_memhotplug.c
->> +++ b/drivers/acpi/acpi_memhotplug.c
->> @@ -316,16 +316,11 @@ static int acpi_memory_powerdown_device(struct acpi_memory_device *mem_device)
->>  	return 0;
->>  }
->>  
->> -static int acpi_memory_disable_device(struct acpi_memory_device *mem_device)
->> +static int acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
->>  {
->>  	int result;
->>  	struct acpi_memory_info *info, *n;
->>  
->> -
->> -	/*
->> -	 * Ask the VM to offline this memory range.
->> -	 * Note: Assume that this function returns zero on success
->> -	 */
->>  	mutex_lock(&mem_device->list_lock);
->>  	list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
->>  		if (info->enabled) {
->> @@ -333,10 +328,27 @@ static int acpi_memory_disable_device(struct acpi_memory_device *mem_device)
->>  			if (result)
->>  				return result;
->>  		}
->> +
->> +		list_del(&info->list);
->>  		kfree(info);
->>  	}
->>  	mutex_unlock(&mem_device->list_lock);
->>  
->> +	return 0;
->> +}
->> +
->> +static int acpi_memory_disable_device(struct acpi_memory_device *mem_device)
->> +{
->> +	int result;
->> +
->> +	/*
->> +	 * Ask the VM to offline this memory range.
->> +	 * Note: Assume that this function returns zero on success
->> +	 */
->> +	result = acpi_memory_remove_memory(mem_device);
->> +	if (result)
->> +		return result;
->> +
->>  	/* Power-off and eject the device */
->>  	result = acpi_memory_powerdown_device(mem_device);
->>  	if (result) {
->> @@ -487,12 +499,17 @@ static int acpi_memory_device_add(struct acpi_device *device)
->>  static int acpi_memory_device_remove(struct acpi_device *device, int type)
->>  {
->>  	struct acpi_memory_device *mem_device = NULL;
->> -
->> +	int result;
->>  
->>  	if (!device || !acpi_driver_data(device))
->>  		return -EINVAL;
->>  
->>  	mem_device = acpi_driver_data(device);
->> +
->> +	result = acpi_memory_remove_memory(mem_device);
->> +	if (result)
->> +		return result;
->> +
->>  	kfree(mem_device);
->>  
->>  	return 0;
-> 
-> 
-> 
+v6:
+When user changes may_power_off flag through sysfs entry and if device
+is already runtime suspended, resume resume it so that it can respect
+this flag next time it is runtime suspended as suggested by Alan Stern.
+Call scsi_autopm_get/put_device once in sr_check_events as suggested by
+Alan Stern.
+
+v5:
+Add may_power_off flag to scsi device.
+Alan Stern suggested that I should not mess runtime suspend with
+runtime power off, but the current zpodd implementation made it not
+easy to seperate. So I re-wrote the zpodd implementation, the end
+result is, normal ODD can also enter runtime suspended state, but
+their power won't be removed.
+
+v4:
+Rebase on top of Linus' tree, due to this, the problem of a missing
+flag in v3 is gone;
+Add a new function scsi_autopm_put_device_autosuspend to first mark
+last busy for the device and then put autosuspend it as suggested by
+Oliver Neukum.
+Typo fix as pointed by Sergei Shtylyov.
+Check can_power_off flag before any runtime pm operations in sr.
+
+v3:
+Rebase on top of scsi-misc tree;
+Add the sr related patches previously in Jeff's libata tree;
+Re-organize the sr patches.
+A problem for now: for patch
+scsi: sr: support zero power ODD(ZPODD)
+I can't set a flag in libata-acpi.c since a related function is
+missing in scsi-misc tree. Will fix this when 3.6-rc1 released.
+
+v2:
+Bug fix for v1;
+Use scsi_autopm_* in sr driver instead of pm_runtime_*;
+
+v1:
+Here are some patches to make ZPODD easier to use for end users and
+a fix for using ZPODD with system suspend.
+
+Some background knowledge about ZPODD:
+ODD means Optical Disc Drive.
+ZPODD means Zero Power ODD, it is a mechanism to place the ODD into
+zero power state when the system is running at S0 system state without
+user's awareness.
+It achieved this by ACPI and SATA device attention pin. For power off,
+normal ACPI control method is used to place the device into D3 cold
+ACPI device state, aka. device power supply omitted. For power on, when
+user press the eject button of a drawer type ODD or when user inserts
+an ODD into a slot type ODD, the device attention pin will trigger. In
+the current x86 implementation, this pin will connect to a GPE, and the
+GPE will trigger an ACPI interrupt. With our pre-registered ACPI
+notification code, the device can be runtime resumed, and we place the
+device back to full power state by setting its ACPI state to D0. The
+whole process is transparent to the end user.
+
+Aaron Lu (11):
+  scsi: sr: support runtime pm
+  ata: zpodd: Add CONFIG_SATA_ZPODD
+  ata: zpodd: identify and init ZPODD devices
+  libata: acpi: move acpi notification code to sata_zpodd
+  libata-eh: allow defer in ata_exec_internal
+  ata: zpodd: check loading mechanism for ODD
+  libata: separate ATAPI code
+  ata: zpodd: check zero power ready status
+  block: add a new interface to block events
+  scsi: sr: support (un)block events
+  ata: zpodd: handle power transition of ODD
+
+ block/genhd.c              |  26 ++++
+ drivers/ata/Kconfig        |  12 ++
+ drivers/ata/Makefile       |   3 +-
+ drivers/ata/libata-acpi.c  | 143 +++++++++-----------
+ drivers/ata/libata-atapi.c |  88 +++++++++++++
+ drivers/ata/libata-atapi.h |   7 +
+ drivers/ata/libata-core.c  |  54 ++++++--
+ drivers/ata/libata-eh.c    |  86 +-----------
+ drivers/ata/libata-scsi.c  |   5 +
+ drivers/ata/sata_zpodd.c   | 321 +++++++++++++++++++++++++++++++++++++++++++++
+ drivers/ata/sata_zpodd.h   |  37 ++++++
+ drivers/scsi/Makefile      |   1 +
+ drivers/scsi/sr.c          |  30 ++++-
+ drivers/scsi/sr_zpodd.c    |  21 +++
+ drivers/scsi/sr_zpodd.h    |   9 ++
+ include/linux/cdrom.h      |  35 +++++
+ include/linux/genhd.h      |   1 +
+ 17 files changed, 695 insertions(+), 184 deletions(-)
+ create mode 100644 drivers/ata/libata-atapi.c
+ create mode 100644 drivers/ata/libata-atapi.h
+ create mode 100644 drivers/ata/sata_zpodd.c
+ create mode 100644 drivers/ata/sata_zpodd.h
+ create mode 100644 drivers/scsi/sr_zpodd.c
+ create mode 100644 drivers/scsi/sr_zpodd.h
+
+-- 
+1.7.12.4
 
