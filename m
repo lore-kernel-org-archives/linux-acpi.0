@@ -1,64 +1,43 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH v8 09/11] block: add a new interface to block events
-Date: Mon, 29 Oct 2012 08:35:36 -0700
-Message-ID: <20121029153536.GL5171@htj.dyndns.org>
-References: <1351501298-3716-1-git-send-email-aaron.lu@intel.com>
- <1351501298-3716-10-git-send-email-aaron.lu@intel.com>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: [PATCH] pnpacpi: incorrect test
+Date: Mon, 29 Oct 2012 16:05:09 +0000
+Message-ID: <20121029160455.14886.37788.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-scsi-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1351501298-3716-10-git-send-email-aaron.lu@intel.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Jeff Garzik <jgarzik@pobox.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, James Bottomley <James.Bottomley@hansenpartnership.com>, Alan Stern <stern@rowland.harvard.edu>, Oliver Neukum <oliver@neukum.org>, Jeff Wu <jeff.wu@amd.com>, Aaron Lu <aaron.lwe@gmail.com>, Shane Huang <shane.huang@amd.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from lxorguk.ukuu.org.uk ([81.2.110.251]:58202 "EHLO
+	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759899Ab2J2QDs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Oct 2012 12:03:48 -0400
+Received: from localhost.localdomain (earthlight.etchedpixels.co.uk [81.2.110.250])
+	by lxorguk.ukuu.org.uk (8.14.5/8.14.1) with ESMTP id q9TGZi44003568
+	for <linux-acpi@vger.kernel.org>; Mon, 29 Oct 2012 16:35:49 GMT
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-Hello,
+From: Alan Cox <alan@linux.intel.com>
 
-On Mon, Oct 29, 2012 at 05:01:36PM +0800, Aaron Lu wrote:
-> ODD_suspend                        disk_events_workfn
->   ata_port_suspend                   check_events
->     disk_block_events                  resume ODD
->       cancel_delayed_work_sync           resume parent
->       (waiting for disk_events_workfn)   (waiting for suspend callback)
+TEST_ALPHA() is broken and always returns 0
 
-I don't understand why solving it needs to be this elaborate.
-check_event() can retry.  Just add a per-sr mutex which is try-locked
-by sr_block_check_events() and grab it when entering zero power.
+Resolves-bug:  https://bugzilla.kernel.org/show_bug.cgi?id=45171
+---
 
-> +/*
-> + * Under some circumstances, there is a race between the calling thread
-> + * of disk_block_events and the events checking function. To avoid such a race,
-> + * this function will check if the delayed work is pending. If not, it means
-> + * the work is either not queued or is already running, false is returned.
-> + * And if yes, try to cancel the delayed work. If succedded, disk_block_events
-> + * will be called and there is no worry that cancel_delayed_work_sync will
-> + * deadlock the events checking function. And if failed, false is returned.
-> + */
-> +bool disk_try_block_events(struct gendisk *disk)
-> +{
-> +	struct disk_events *ev = disk->ev;
-> +
-> +	if (!ev)
-> +		return false;
-> +
-> +	if (delayed_work_pending(&ev->dwork)) {
+ drivers/pnp/pnpacpi/core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-And please don't use delayed_work_pending() like this.  It doesn't add
-anything.  cancel_delayed_work() already needs to perform all the
-necessary tests.
+diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
+index 26b5d4b..107b6b6 100644
+--- a/drivers/pnp/pnpacpi/core.c
++++ b/drivers/pnp/pnpacpi/core.c
+@@ -58,7 +58,7 @@ static inline int __init is_exclusive_device(struct acpi_device *dev)
+ 	if (!(('0' <= (c) && (c) <= '9') || ('A' <= (c) && (c) <= 'F'))) \
+ 		return 0
+ #define TEST_ALPHA(c) \
+-	if (!('@' <= (c) || (c) <= 'Z')) \
++	if (!('@' <= (c) && (c) <= 'Z')) \
+ 		return 0
+ static int __init ispnpidacpi(const char *id)
+ {
 
-> +		if (cancel_delayed_work(&disk->ev->dwork)) {
-> +			disk_block_events(disk);
-> +			return true;
-> +		}
-> +	}
-> +
-> +	return false;
-> +}
-
-Thanks.
-
--- 
-tejun
