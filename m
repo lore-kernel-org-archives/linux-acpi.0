@@ -1,35 +1,48 @@
-From: Seiji Aguchi <seiji.aguchi@hds.com>
-Subject: RE: [PATCH v3 7/7] Add a format check for an existing variable name
- at erasing time
-Date: Mon, 29 Oct 2012 20:40:59 +0000
-Message-ID: <A5ED84D3BB3A384992CBB9C77DEDA4D4138995EA@USINDEM103.corp.hds.com>
-References: <A5ED84D3BB3A384992CBB9C77DEDA4D41388F059@USINDEM103.corp.hds.com>
- <CAGTjWtAfaXgx_v46zf_fJ7KhBUTgciU7yedX6w2niER-JQBzTA@mail.gmail.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH v8 10/11] scsi: sr: support (un)block events
+Date: Mon, 29 Oct 2012 18:22:01 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1210291818100.31151-100000@netrider.rowland.org>
+References: <1351534295.3051.9.camel@dabdike>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAGTjWtAfaXgx_v46zf_fJ7KhBUTgciU7yedX6w2niER-JQBzTA@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mike Waychison <mikew@google.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Luck, Tony (tony.luck@intel.com)" <tony.luck@intel.com>, "Matthew Garrett (mjg@redhat.com)" <mjg@redhat.com>, "dzickus@redhat.com" <dzickus@redhat.com>, "dle-develop@lists.sourceforge.net" <dle-develop@lists.sourceforge.net>, Satoru Moriya <satoru.moriya@hds.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from netrider.rowland.org ([192.131.102.5]:58342 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751541Ab2J2WWC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Oct 2012 18:22:02 -0400
+In-Reply-To: <1351534295.3051.9.camel@dabdike>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Aaron Lu <aaron.lu@intel.com>, Jeff Garzik <jgarzik@pobox.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tejun Heo <tj@kernel.org>, Oliver Neukum <oliver@neukum.org>, Jeff Wu <jeff.wu@amd.com>, Aaron Lu <aaron.lwe@gmail.com>, Shane Huang <shane.huang@amd.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
 
-> > +                                 utf16_strlen(efi_name))) {
-> > +                       /*
-> > +                        * Check if an old format,
-> > +                        * which doesn't support holding
-> > +                        * multiple logs, remains.
-> > +                        */
-> > +                       if (sscanf(name, "dump-type%u-%u-%lu",
-> > +                                  &type_old, &part_old, &time_old) !=
-> > + 3)
+On Mon, 29 Oct 2012, James Bottomley wrote:
+
+> On Mon, 2012-10-29 at 17:01 +0800, Aaron Lu wrote:
+> > 2 interfaces are added to block/unblock events for the disk sr manages.
+> > This is used by SATA ZPODD, when ODD is runtime powered off, the events
+> > poll is no longer needed so better be blocked. And once powered on,
+> > events poll will be unblocked.
+> > 
+> > These 2 interfaces are needed here because SATA layer does not have
+> > access to the gendisk structure sr manages.
 > 
-> This doesn't look right.  This should probably mirror the sprintf() at the top of the function using a new string, convert it to 16-bit
-> Unicodeand then compare it like we do for the 4-variable version above (please ignore the fact that this driver incorrectly calls these
-> strings utf16 everywhere -- that needs to be fixed).
+> I'm afraid this is a nasty layering violation.  You can't have a low
+> level driver have knowledge of a call back in an upper layer one (in
+> this case sr_block_events).
+> 
+> This is all done it looks like because of the problem of getting access
+> to the scsi_cd structure from libata, but it's not the right way to
+> solve it.
+> 
+> I also don't really think you need to do any blocking or unblocking.  As
+> I said in the previous thread, just fake the events the standard tells
+> you to, so userspace can probe to its heart's content and you can keep
+> the device powered off.
 
-I will fix it as well.
+James, one of us has misunderstood the event-polling mechanism.  As far
+as I know, the polling calls that Aaron is concerned with are generated
+by the kernel, not by userspace.
 
-Seiji
+Alan Stern
+
