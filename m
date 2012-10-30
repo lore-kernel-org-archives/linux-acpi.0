@@ -1,135 +1,178 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 5/7] ACPI / PM: Provide device PM functions operating on struct acpi_device
-Date: Tue, 30 Oct 2012 16:20:10 +0100
-Message-ID: <2204038.IsGMuMD7u4@vostro.rjw.lan>
-References: <1766582.8gdQKXoi0K@vostro.rjw.lan> <3903921.4RDYB7KMxW@vostro.rjw.lan> <20121030072844.GA6154@aaronlu.sh.intel.com>
+Subject: Re: [RFD][PATCH 5/7] PM / QoS: Make it possible to expose PM QoS device flags to user space
+Date: Tue, 30 Oct 2012 16:29:07 +0100
+Message-ID: <3050749.si8v66pygi@vostro.rjw.lan>
+References: <201209282351.10663.rjw@sisk.pl> <201209282355.31823.rjw@sisk.pl> <508F9588.5040105@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20121030072844.GA6154@aaronlu.sh.intel.com>
+In-Reply-To: <508F9588.5040105@intel.com>
 Sender: linux-pm-owner@vger.kernel.org
 To: Aaron Lu <aaron.lu@intel.com>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Huang Ying <ying.huang@intel.com>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Adrian Hunter <adrian.hunter@intel.com>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Huang Ying <ying.huang@intel.com>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, Lan Tianyu <tianyu.lan@intel.com>, Jean Pihet <j-pihet@ti.com>, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, mark gross <markgross@thegnar.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, October 30, 2012 03:28:45 PM Aaron Lu wrote:
-> On Mon, Oct 29, 2012 at 10:11:20AM +0100, Rafael J. Wysocki wrote:
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Tuesday, October 30, 2012 04:53:28 PM Aaron Lu wrote:
+> On 09/29/2012 05:55 AM, Rafael J. Wysocki wrote:
+> > Define two device PM QoS flags, PM_QOS_FLAG_NO_POWER_OFF
+> > and PM_QOS_FLAG_REMOTE_WAKEUP, and introduce routines
+> > dev_pm_qos_expose_flags() and dev_pm_qos_hide_flags() allowing the
+> > caller to expose those two flags to user space or to hide them
+> > from it, respectively.
 > > 
-> > If the caller of acpi_bus_set_power() already has a pointer to the
-> > struct acpi_device object corresponding to the device in question, it
-> > doesn't make sense for it to go through acpi_bus_get_device(), which
-> > may be costly, because it involves acquiring the global ACPI
-> > namespace mutex.
+> > After the flags have been exposed, user space will see two
+> > additional sysfs attributes, pm_qos_no_power_off and
+> > pm_qos_remote_wakeup, under the device's /sys/devices/.../power/
+> > directory.  Then, writing 1 to one of them will update the
+> > PM QoS flags request owned by user space so that the corresponding
+> > flag is requested to be set.  In turn, writing 0 to one of them
+> > will cause the corresponding flag in the user space's request to
+> > be cleared (however, the owners of the other PM QoS flags requests
+> > for the same device may still request the flag to be set and it
+> > may be effectively set even if user space doesn't request that).
 > > 
-> > For this reason, export the function operating on struct acpi_device
-> > objects used internally by acpi_bus_set_power(), so that it may be
-> > called instead of acpi_bus_set_power() in the above case, and change
-> > its name to acpi_device_set_power().
+> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> > ---
+> >  Documentation/ABI/testing/sysfs-devices-power |   31 ++++
+> >  drivers/base/power/power.h                    |    6 
+> >  drivers/base/power/qos.c                      |  169 ++++++++++++++++++++------
+> >  drivers/base/power/sysfs.c                    |   95 +++++++++++++-
+> >  include/linux/pm.h                            |    1 
+> >  include/linux/pm_qos.h                        |   26 ++++
+> >  6 files changed, 280 insertions(+), 48 deletions(-)
 > > 
-> > Additionally, introduce two inline wrappers for checking ACPI PM
-> > capabilities of devices represented by struct acpi_device objects.
+> > Index: linux/drivers/base/power/qos.c
+> > ===================================================================
+> > --- linux.orig/drivers/base/power/qos.c
+> > +++ linux/drivers/base/power/qos.c
+> > @@ -40,6 +40,7 @@
+> >  #include <linux/device.h>
+> >  #include <linux/mutex.h>
+> >  #include <linux/export.h>
+> > +#include <linux/pm_runtime.h>
+> >  
+> >  #include "power.h"
+> >  
+> > @@ -322,6 +323,38 @@ int dev_pm_qos_add_request(struct device
+> >  EXPORT_SYMBOL_GPL(dev_pm_qos_add_request);
+> >  
+> >  /**
+> > + * __dev_pm_qos_update_request - Modify an existing device PM QoS request.
+> > + * @req : PM QoS request to modify.
+> > + * @new_value: New value to request.
+> > + */
+> > +int __dev_pm_qos_update_request(struct dev_pm_qos_request *req, s32 new_value)
+> > +{
+> > +	s32 curr_value;
+> > +	int ret = 0;
+> > +
+> > +	if (!req->dev->power.qos) {
+> > +		ret = -ENODEV;
+> > +		goto out;
+> > +	}
+> > +
+> > +	switch(req->type) {
+> > +	case DEV_PM_QOS_LATENCY:
+> > +		curr_value = req->data.pnode.prio;
+> > +		break;
+> > +	case DEV_PM_QOS_FLAGS:
+> > +		curr_value = req->data.flr.flags;
+> > +		break;
+> > +	default:
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	if (curr_value != new_value)
+> > +		ret = apply_constraint(req, PM_QOS_UPDATE_REQ, new_value);
+> > +
+> > +	return ret;
+> > +}
+> > +
+> > +/**
+> >   * dev_pm_qos_update_request - modifies an existing qos request
+> >   * @req : handle to list element holding a dev_pm_qos request to use
+> >   * @new_value: defines the qos request
+> > @@ -336,11 +369,9 @@ EXPORT_SYMBOL_GPL(dev_pm_qos_add_request
+> >   * -EINVAL in case of wrong parameters, -ENODEV if the device has been
+> >   * removed from the system
+> >   */
+> > -int dev_pm_qos_update_request(struct dev_pm_qos_request *req,
+> > -			      s32 new_value)
+> > +int dev_pm_qos_update_request(struct dev_pm_qos_request *req, s32 new_value)
+> >  {
+> > -	s32 curr_value;
+> > -	int ret = 0;
+> > +	int ret;
+> >  
+> >  	if (!req) /*guard against callers passing in null */
+> >  		return -EINVAL;
+> > @@ -350,29 +381,9 @@ int dev_pm_qos_update_request(struct dev
+> >  		return -EINVAL;
+> >  
+> >  	mutex_lock(&dev_pm_qos_mtx);
+> > -
+> > -	if (!req->dev->power.qos) {
+> > -		ret = -ENODEV;
+> > -		goto out;
+> > -	}
+> > -
+> > -	switch(req->type) {
+> > -	case DEV_PM_QOS_LATENCY:
+> > -		curr_value = req->data.pnode.prio;
+> > -		break;
+> > -	case DEV_PM_QOS_FLAGS:
+> > -		curr_value = req->data.flr.flags;
+> > -		break;
+> > -	default:
+> > -		ret = -EINVAL;
+> > -		goto out;
+> > -	}
+> > -
+> > -	if (curr_value != new_value)
+> > -		ret = apply_constraint(req, PM_QOS_UPDATE_REQ, new_value);
+> > -
+> > - out:
+> > +	__dev_pm_qos_update_request(req, new_value);
 > 
-> What about adding yet another wrapper to check power off capability of
-> the device? If device has _PS3 or _PRx, it means the device can be
-> powered off from ACPI's perspective. This is useful for ZPODD when
-> deciding if platform has the required ability to support it.
+> You forgot to assign the return value here.
 
-Sure, no problem with that.  Perhaps you can cut a patch for that
-on top of this series?
+Quite obviously.  I'm going to apply the appended patch for that.
+
+Thanks for spotting it!
 
 Rafael
 
 
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > ---
-> >  drivers/acpi/bus.c      |   15 ++++++++++++---
-> >  include/acpi/acpi_bus.h |   11 +++++++++++
-> >  2 files changed, 23 insertions(+), 3 deletions(-)
-> > 
-> > Index: linux/drivers/acpi/bus.c
-> > ===================================================================
-> > --- linux.orig/drivers/acpi/bus.c
-> > +++ linux/drivers/acpi/bus.c
-> > @@ -257,7 +257,15 @@ static int __acpi_bus_get_power(struct a
-> >  }
-> >  
-> >  
-> > -static int __acpi_bus_set_power(struct acpi_device *device, int state)
-> > +/**
-> > + * acpi_device_set_power - Set power state of an ACPI device.
-> > + * @device: Device to set the power state of.
-> > + * @state: New power state to set.
-> > + *
-> > + * Callers must ensure that the device is power manageable before using this
-> > + * function.
-> > + */
-> > +int acpi_device_set_power(struct acpi_device *device, int state)
-> >  {
-> >  	int result = 0;
-> >  	acpi_status status = AE_OK;
-> > @@ -341,6 +349,7 @@ static int __acpi_bus_set_power(struct a
-> >  
-> >  	return result;
-> >  }
-> > +EXPORT_SYMBOL(acpi_device_set_power);
-> >  
-> >  
-> >  int acpi_bus_set_power(acpi_handle handle, int state)
-> > @@ -359,7 +368,7 @@ int acpi_bus_set_power(acpi_handle handl
-> >  		return -ENODEV;
-> >  	}
-> >  
-> > -	return __acpi_bus_set_power(device, state);
-> > +	return acpi_device_set_power(device, state);
-> >  }
-> >  EXPORT_SYMBOL(acpi_bus_set_power);
-> >  
-> > @@ -402,7 +411,7 @@ int acpi_bus_update_power(acpi_handle ha
-> >  	if (result)
-> >  		return result;
-> >  
-> > -	result = __acpi_bus_set_power(device, state);
-> > +	result = acpi_device_set_power(device, state);
-> >  	if (!result && state_p)
-> >  		*state_p = state;
-> >  
-> > Index: linux/include/acpi/acpi_bus.h
-> > ===================================================================
-> > --- linux.orig/include/acpi/acpi_bus.h
-> > +++ linux/include/acpi/acpi_bus.h
-> > @@ -338,6 +338,7 @@ acpi_status acpi_bus_get_status_handle(a
-> >  				       unsigned long long *sta);
-> >  int acpi_bus_get_status(struct acpi_device *device);
-> >  int acpi_bus_set_power(acpi_handle handle, int state);
-> > +int acpi_device_set_power(struct acpi_device *device, int state);
-> >  int acpi_bus_update_power(acpi_handle handle, int *state_p);
-> >  bool acpi_bus_power_manageable(acpi_handle handle);
-> >  bool acpi_bus_can_wakeup(acpi_handle handle);
-> > @@ -482,6 +483,16 @@ static inline int acpi_pm_device_sleep_w
-> >  }
-> >  #endif
-> >  
-> > +static inline bool acpi_device_power_manageable(struct acpi_device *adev)
-> > +{
-> > +	return adev->flags.power_manageable;
-> > +}
-> > +
-> > +static inline bool acpi_device_can_wakeup(struct acpi_device *adev)
-> > +{
-> > +	return adev->wakeup.flags.valid;
-> > +}
-> > +
-> >  #else	/* CONFIG_ACPI */
-> >  
-> >  static inline int register_acpi_bus_type(void *bus) { return 0; }
-> > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+---
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Subject: PM / QoS: Fix the return value of dev_pm_qos_update_request()
+
+Commit e39473d (PM / QoS: Make it possible to expose PM QoS device)
+flags to user space introduced __dev_pm_qos_update_request() to be
+called internally by dev_pm_qos_update_request(), but forgot to make
+the latter actually use the return value of the former.  Fix this
+mistake.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/base/power/qos.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+Index: linux/drivers/base/power/qos.c
+===================================================================
+--- linux.orig/drivers/base/power/qos.c
++++ linux/drivers/base/power/qos.c
+@@ -380,7 +380,7 @@ int dev_pm_qos_update_request(struct dev
+ 		return -EINVAL;
+ 
+ 	mutex_lock(&dev_pm_qos_mtx);
+-	__dev_pm_qos_update_request(req, new_value);
++	ret = __dev_pm_qos_update_request(req, new_value);
+ 	mutex_unlock(&dev_pm_qos_mtx);
+ 
+ 	return ret;
+
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
