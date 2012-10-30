@@ -1,60 +1,85 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH] pnpacpi: incorrect test
-Date: Tue, 30 Oct 2012 13:05:14 -0600
-Message-ID: <CAErSpo7gX2v4Fo0eMY0d5m2ZLsy5r8b2CFbMxqbhsEo8x45M0Q@mail.gmail.com>
-References: <20121029160455.14886.37788.stgit@localhost.localdomain>
+From: Seiji Aguchi <seiji.aguchi-7rDLJAbr9SE@public.gmane.org>
+Subject: [PATCH v4 0/7] efi_pstore: multiple event logging support
+Date: Tue, 30 Oct 2012 20:00:09 +0000
+Message-ID: <A5ED84D3BB3A384992CBB9C77DEDA4D4138B1DE6@USINDEM103.corp.hds.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:45045 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965393Ab2J3TFg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Oct 2012 15:05:36 -0400
-Received: by mail-wg0-f44.google.com with SMTP id dr13so398303wgb.1
-        for <linux-acpi@vger.kernel.org>; Tue, 30 Oct 2012 12:05:35 -0700 (PDT)
-In-Reply-To: <20121029160455.14886.37788.stgit@localhost.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Luck, Tony (tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org)" <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Matthew Garrett (mjg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org)" <mjg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "dzickus-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dzickus-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "dle-develop-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <dle-develop-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Satoru Moriya <satoru.moriya-7rDLJAbr9SE@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: linux-acpi@vger.kernel.org
 
-On Mon, Oct 29, 2012 at 10:05 AM, Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
-> From: Alan Cox <alan@linux.intel.com>
->
-> TEST_ALPHA() is broken and always returns 0
->
-> Resolves-bug:  https://bugzilla.kernel.org/show_bug.cgi?id=45171
-> ---
->
->  drivers/pnp/pnpacpi/core.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
-> index 26b5d4b..107b6b6 100644
-> --- a/drivers/pnp/pnpacpi/core.c
-> +++ b/drivers/pnp/pnpacpi/core.c
-> @@ -58,7 +58,7 @@ static inline int __init is_exclusive_device(struct acpi_device *dev)
->         if (!(('0' <= (c) && (c) <= '9') || ('A' <= (c) && (c) <= 'F'))) \
->                 return 0
->  #define TEST_ALPHA(c) \
-> -       if (!('@' <= (c) || (c) <= 'Z')) \
-> +       if (!('@' <= (c) && (c) <= 'Z')) \
 
-The original is definitely broken.
+Changelog
 
-I think the corrected test allows PNP IDs containing '@', which
-doesn't appear legal per sec 6.1.5 of the ACPI 5.0 spec.  Should this
-be
+v3 -> v4
+   - Rebase to 3.7-rc3
+   - Add ctime to an argument of efi_pstore_erase to build successfully
+     in case where CONFIG_PTORE=n is specified. (Patch 4/7)
+   - Add count to an argument of efi_pstore_erase and efi_pstore_write to
+     build successfully in case where CONFIG_PTORE=n is specified (Patch 5/7)
+   - Fix a white space damage (Patch 6/7)
+   - Modify a logic checking a 3-variable format of a variable name (Patch 7/7)
 
-+       if (!('A' <= (c) && (c) <= 'Z')) \
+v2 -> v3
+   - Create patches 6/7 and 7/7 to work with an existing format of variable name
 
-instead?
+v1 -> v2
+   - Separate into 5 patches in accordance with Mike's comment
+   - Erase an extra line of comment in patch 1/5
 
->                 return 0
->  static int __init ispnpidacpi(const char *id)
->  {
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[Issue]
+
+    Currently, efi_pstore driver simply overwrites existing panic messages in NVRAM.
+    So, in the following scenario, we will lose 1st panic messages.
+
+    1. kernel panics.
+    2. efi_pstore is kicked and writes panic messages to NVRAM.
+    3. system reboots.
+    4. kernel panics again before a user checks the 1st panic messages in NVRAM.
+
+[Solution]
+
+   Solutions of this problem has been discussed among Tony, Matthew, Don, Mike and me.
+
+   http://marc.info/?l=linux-kernel&m=134273270704586&w=2
+
+   And there are two possible solutions right now.
+     - First one is introducing some policy overwriting existing logs.
+     - Second one is simply holding multiple log without overwriting any entries.
+
+   We haven't decided the overwriting policy which is reasonable to all users yet.
+   But I believe we agree that just holding multiple logs is a reasonable way.
+
+   We may need further discussions to find the possibility of introducing overwriting
+   policy, especially getting critical messages in multiple oops case.
+   But I would like to begin with a simple and reasonable way to everyone.
+   So, this patch takes an approach just holding multiple logs.
+
+[Patch Description]
+
+Seiji Aguchi (7):
+  efi_pstore: Check remaining space with QueryVariableInfo() before
+    writing data
+  efi_pstore: Add a logic erasing entries to an erase callback
+  efi_pstore: Remove a logic erasing entries from a write callback to
+    hold multiple logs
+  efi_pstore: Add ctime to argument of erase callback
+  efi_pstore: Add a sequence counter to a variable name
+  efi_pstore: Add a format check for an existing variable name at
+    reading time
+  efi_pstore: Add a format check for an existing variable name at erasing
+    time
+
+ drivers/acpi/apei/erst.c   |   16 ++--
+ drivers/firmware/efivars.c |  163 ++++++++++++++++++++++++++++++-------------
+ fs/pstore/inode.c          |    7 ++-
+ fs/pstore/internal.h       |    2 +-
+ fs/pstore/platform.c       |   11 ++--
+ fs/pstore/ram.c            |    9 +--
+ include/linux/efi.h        |    1 +
+ include/linux/pstore.h     |    6 +-
+ 8 files changed, 143 insertions(+), 72 deletions(-)
