@@ -1,7 +1,7 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH 2/8] PCI: Move pci_rescan_bus() back to probe.c
-Date: Tue, 30 Oct 2012 10:42:39 -0700
-Message-ID: <1351618965-16761-3-git-send-email-yinghai@kernel.org>
+Subject: [PATCH 5/8] PCI: Add pci_stop/remove_root_bus()
+Date: Tue, 30 Oct 2012 10:42:42 -0700
+Message-ID: <1351618965-16761-6-git-send-email-yinghai@kernel.org>
 References: <20121030040237.GA10472@google.com>
  <1351618965-16761-1-git-send-email-yinghai@kernel.org>
 Return-path: <linux-pci-owner@vger.kernel.org>
@@ -11,77 +11,76 @@ To: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi
 Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-We have pci_assign_unassigned_bus_resources() in as global function now.
+It supports both pci root bus and pci bus under pci bridge.
 
-Move back pci_rescan_bus to probe.c where it should be.
+-v2: clear pci_bridge's subordinate.
+-v3: only handle root bus. and also put Jiang's get/put pair in
+-v4: fold pci_stop/remove_bus_devices in... reducing confusing.
+-v5: split device_register/unregister to avoid extra get...
+     also remove extra blank line.
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 ---
- drivers/pci/probe.c     |   21 +++++++++++++++++++++
- drivers/pci/setup-bus.c |   22 ----------------------
- 2 files changed, 21 insertions(+), 22 deletions(-)
+ drivers/pci/remove.c |   36 ++++++++++++++++++++++++++++++++++++
+ include/linux/pci.h  |    2 ++
+ 2 files changed, 38 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index ec909af..65f62e3 100644
---- a/drivers/pci/probe.c
-+++ b/drivers/pci/probe.c
-@@ -1890,6 +1890,27 @@ unsigned int __ref pci_rescan_bus_bridge_resize(struct pci_dev *bridge)
- 	return max;
+diff --git a/drivers/pci/remove.c b/drivers/pci/remove.c
+index 513972f..7c0fd92 100644
+--- a/drivers/pci/remove.c
++++ b/drivers/pci/remove.c
+@@ -111,3 +111,39 @@ void pci_stop_and_remove_bus_device(struct pci_dev *dev)
+ 	pci_remove_bus_device(dev);
  }
- 
-+/**
-+ * pci_rescan_bus - scan a PCI bus for devices.
-+ * @bus: PCI bus to scan
-+ *
-+ * Scan a PCI bus and child buses for new devices, adds them,
-+ * and enables them.
-+ *
-+ * Returns the max number of subordinate bus discovered.
-+ */
-+unsigned int __ref pci_rescan_bus(struct pci_bus *bus)
+ EXPORT_SYMBOL(pci_stop_and_remove_bus_device);
++
++void pci_stop_root_bus(struct pci_bus *bus)
 +{
-+	unsigned int max;
++	struct pci_dev *child, *tmp;
++	struct pci_host_bridge *host_bridge;
 +
-+	max = pci_scan_child_bus(bus);
-+	pci_assign_unassigned_bus_resources(bus);
-+	pci_bus_add_devices(bus);
++	if (!pci_is_root_bus(bus))
++		return;
 +
-+	return max;
++	host_bridge = to_pci_host_bridge(bus->bridge);
++	list_for_each_entry_safe_reverse(child, tmp,
++					 &bus->devices, bus_list)
++		pci_stop_bus_device(child);
++
++	/* stop the host bridge */
++	device_del(&host_bridge->dev);
 +}
-+EXPORT_SYMBOL_GPL(pci_rescan_bus);
 +
- EXPORT_SYMBOL(pci_add_new_bus);
- EXPORT_SYMBOL(pci_scan_slot);
- EXPORT_SYMBOL(pci_scan_bridge);
-diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
-index 1f34929..59e6c55 100644
---- a/drivers/pci/setup-bus.c
-+++ b/drivers/pci/setup-bus.c
-@@ -1569,25 +1569,3 @@ void pci_assign_unassigned_bus_resources(struct pci_bus *bus)
- 
- 	pci_enable_bridges(bus);
- }
--#ifdef CONFIG_HOTPLUG
--/**
-- * pci_rescan_bus - scan a PCI bus for devices.
-- * @bus: PCI bus to scan
-- *
-- * Scan a PCI bus and child buses for new devices, adds them,
-- * and enables them.
-- *
-- * Returns the max number of subordinate bus discovered.
-- */
--unsigned int __ref pci_rescan_bus(struct pci_bus *bus)
--{
--	unsigned int max;
--
--	max = pci_scan_child_bus(bus);
--	pci_assign_unassigned_bus_resources(bus);
--	pci_bus_add_devices(bus);
--
--	return max;
--}
--EXPORT_SYMBOL_GPL(pci_rescan_bus);
--#endif
++void pci_remove_root_bus(struct pci_bus *bus)
++{
++	struct pci_dev *child, *tmp;
++	struct pci_host_bridge *host_bridge;
++
++	if (!pci_is_root_bus(bus))
++		return;
++
++	host_bridge = to_pci_host_bridge(bus->bridge);
++	list_for_each_entry_safe(child, tmp,
++				 &bus->devices, bus_list)
++		pci_remove_bus_device(child);
++	pci_remove_bus(bus);
++	host_bridge->bus = NULL;
++
++	/* remove the host bridge */
++	put_device(&host_bridge->dev);
++}
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index 505c05a..a5cd03b 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -734,6 +734,8 @@ extern struct pci_dev *pci_dev_get(struct pci_dev *dev);
+ extern void pci_dev_put(struct pci_dev *dev);
+ extern void pci_remove_bus(struct pci_bus *b);
+ extern void pci_stop_and_remove_bus_device(struct pci_dev *dev);
++void pci_stop_root_bus(struct pci_bus *bus);
++void pci_remove_root_bus(struct pci_bus *bus);
+ void pci_setup_cardbus(struct pci_bus *bus);
+ extern void pci_sort_breadthfirst(void);
+ #define dev_is_pci(d) ((d)->bus == &pci_bus_type)
 -- 
 1.7.7
