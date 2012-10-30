@@ -1,7 +1,7 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH 7/8] PCI, ACPI: delete root bus prt during hot remove path
-Date: Tue, 30 Oct 2012 10:42:44 -0700
-Message-ID: <1351618965-16761-8-git-send-email-yinghai@kernel.org>
+Subject: [PATCH 1/8] PCI: Separate out pci_assign_unassigned_bus_resources()
+Date: Tue, 30 Oct 2012 10:42:38 -0700
+Message-ID: <1351618965-16761-2-git-send-email-yinghai@kernel.org>
 References: <20121030040237.GA10472@google.com>
  <1351618965-16761-1-git-send-email-yinghai@kernel.org>
 Return-path: <linux-pci-owner@vger.kernel.org>
@@ -11,36 +11,82 @@ To: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi
 Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-corresponding to add path.
+It is main portion of pci_rescan_bus().
+
+Separate it out and prepare to use it for pci root bus hot add later.
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 ---
- drivers/acpi/pci_root.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+ drivers/pci/setup-bus.c |   32 ++++++++++++++++++--------------
+ include/linux/pci.h     |    1 +
+ 2 files changed, 19 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index aed0953..a27cbb57 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -664,6 +664,8 @@ static int acpi_pci_root_start(struct acpi_device *device)
+diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
+index 1e808ca..1f34929 100644
+--- a/drivers/pci/setup-bus.c
++++ b/drivers/pci/setup-bus.c
+@@ -1550,25 +1550,12 @@ enable_all:
+ }
+ EXPORT_SYMBOL_GPL(pci_assign_unassigned_bridge_resources);
  
- static int acpi_pci_root_remove(struct acpi_device *device, int type)
+-#ifdef CONFIG_HOTPLUG
+-/**
+- * pci_rescan_bus - scan a PCI bus for devices.
+- * @bus: PCI bus to scan
+- *
+- * Scan a PCI bus and child buses for new devices, adds them,
+- * and enables them.
+- *
+- * Returns the max number of subordinate bus discovered.
+- */
+-unsigned int __ref pci_rescan_bus(struct pci_bus *bus)
++void pci_assign_unassigned_bus_resources(struct pci_bus *bus)
  {
-+	acpi_status status;
-+	acpi_handle handle;
- 	struct acpi_pci_root *root = acpi_driver_data(device);
- 	struct acpi_pci_driver *driver;
+-	unsigned int max;
+ 	struct pci_dev *dev;
+ 	LIST_HEAD(add_list); /* list of resources that
+ 					want additional resources */
  
-@@ -678,6 +680,10 @@ static int acpi_pci_root_remove(struct acpi_device *device, int type)
- 	device_set_run_wake(root->bus->bridge, false);
- 	pci_acpi_remove_bus_pm_notifier(device);
+-	max = pci_scan_child_bus(bus);
+-
+ 	down_read(&pci_bus_sem);
+ 	list_for_each_entry(dev, &bus->devices, bus_list)
+ 		if (dev->hdr_type == PCI_HEADER_TYPE_BRIDGE ||
+@@ -1581,6 +1568,23 @@ unsigned int __ref pci_rescan_bus(struct pci_bus *bus)
+ 	BUG_ON(!list_empty(&add_list));
  
-+	status = acpi_get_handle(device->handle, METHOD_NAME__PRT, &handle);
-+	if (ACPI_SUCCESS(status))
-+		acpi_pci_irq_del_prt(root->bus);
+ 	pci_enable_bridges(bus);
++}
++#ifdef CONFIG_HOTPLUG
++/**
++ * pci_rescan_bus - scan a PCI bus for devices.
++ * @bus: PCI bus to scan
++ *
++ * Scan a PCI bus and child buses for new devices, adds them,
++ * and enables them.
++ *
++ * Returns the max number of subordinate bus discovered.
++ */
++unsigned int __ref pci_rescan_bus(struct pci_bus *bus)
++{
++	unsigned int max;
 +
- 	pci_remove_root_bus(root->bus);
++	max = pci_scan_child_bus(bus);
++	pci_assign_unassigned_bus_resources(bus);
+ 	pci_bus_add_devices(bus);
  
- 	mutex_lock(&acpi_pci_root_lock);
+ 	return max;
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index be1de01..505c05a 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -980,6 +980,7 @@ void pci_bus_size_bridges(struct pci_bus *bus);
+ int pci_claim_resource(struct pci_dev *, int);
+ void pci_assign_unassigned_resources(void);
+ void pci_assign_unassigned_bridge_resources(struct pci_dev *bridge);
++void pci_assign_unassigned_bus_resources(struct pci_bus *bus);
+ void pdev_enable_device(struct pci_dev *);
+ int pci_enable_resources(struct pci_dev *, int mask);
+ void pci_fixup_irqs(u8 (*)(struct pci_dev *, u8 *),
 -- 
 1.7.7
