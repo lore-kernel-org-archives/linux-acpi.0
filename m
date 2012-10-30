@@ -1,92 +1,64 @@
-From: Seiji Aguchi <seiji.aguchi@hds.com>
-Subject: [PATCH v4 7/7] efi_pstore: Add a format check for an existing
- variable name at erasing time
-Date: Tue, 30 Oct 2012 20:04:14 +0000
-Message-ID: <A5ED84D3BB3A384992CBB9C77DEDA4D4138B1E8C@USINDEM103.corp.hds.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH] acpi: add newline in power.c message
+Date: Tue, 30 Oct 2012 14:34:29 -0600
+Message-ID: <CAErSpo7z8uaQyWj2Ud7jbX+tup3RyFazv2=EGKSZODbj0+=DnQ@mail.gmail.com>
+References: <508D7CF7.1070707@gmx.de> <508EBBFF.2020803@xenotime.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from usindpps06.hds.com ([207.126.252.19]:34923 "EHLO
-	usindpps06.hds.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933850Ab2J3UE0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Oct 2012 16:04:26 -0400
-Content-Language: en-US
+Received: from mail-we0-f174.google.com ([74.125.82.174]:53421 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934502Ab2J3Uev convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Oct 2012 16:34:51 -0400
+Received: by mail-we0-f174.google.com with SMTP id t9so323994wey.19
+        for <linux-acpi@vger.kernel.org>; Tue, 30 Oct 2012 13:34:50 -0700 (PDT)
+In-Reply-To: <508EBBFF.2020803@xenotime.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Luck, Tony (tony.luck@intel.com)" <tony.luck@intel.com>, "Matthew Garrett (mjg@redhat.com)" <mjg@redhat.com>, "dzickus@redhat.com" <dzickus@redhat.com>
-Cc: "dle-develop@lists.sourceforge.net" <dle-develop@lists.sourceforge.net>, Satoru Moriya <satoru.moriya@hds.com>
+To: Randy Dunlap <rdunlap@xenotime.net>
+Cc: =?ISO-8859-1?Q?Toralf_F=F6rster?= <toralf.foerster@gmx.de>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
 
+On Mon, Oct 29, 2012 at 11:25 AM, Randy Dunlap <rdunlap@xenotime.net> w=
+rote:
+> From: Randy Dunlap <rdunlap@xenotime.net>
+>
+> Add newline to printk so that the message is on a line
+> by itself and not merged with something unrelated to it.
+>
+> Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+> Reported-by: Toralf F=F6rster <toralf.foerster@gmx.de>
+> Cc:     Len Brown <lenb@kernel.org>
+> Cc:     Rafael J. Wysocki <rjw@sisk.pl>
+> ---
+>  drivers/acpi/power.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> --- lnx-37-rc3.orig/drivers/acpi/power.c
+> +++ lnx-37-rc3/drivers/acpi/power.c
+> @@ -473,7 +473,7 @@ int acpi_power_resource_register_device(
+>         return ret;
+>
+>  no_power_resource:
+> -       printk(KERN_DEBUG PREFIX "Invalid Power Resource to register!=
+");
+> +       printk(KERN_DEBUG PREFIX "Invalid Power Resource to register!=
+\n");
 
-[Issue]
+It'd be nice if this and the other similar printks in this file
+included a hint about the context, e.g., the device to which it's
+related.
 
-a format of variable name has been updated to type, id, count and ctime
-to support holding multiple logs.
-
-Format of current variable name
-  dump-type0-1-2-12345678
-
-  type:0
-  id:1
-  count:2
-  ctime:12345678
-
-On the other hand, if an old variable name before being updated
-remains, users can't erase it via /dev/pstore.
-
-Format of old variable name
-  dump-type0-1-12345678
-
-  type:0
-  id:1
-  ctime:12345678
-
-[Solution]
-
-This patch add a format check for the old variable name in a erase callback to make it erasable.
-
-Signed-off-by: Seiji Aguchi <seiji.aguchi@hds.com>
----
- drivers/firmware/efivars.c |   20 ++++++++++++++++++--
- 1 files changed, 18 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/firmware/efivars.c b/drivers/firmware/efivars.c
-index bf7a6f9..6e51c1e 100644
---- a/drivers/firmware/efivars.c
-+++ b/drivers/firmware/efivars.c
-@@ -773,6 +773,8 @@ static int efi_pstore_erase(enum pstore_type_id type, u64 id, int count,
- {
- 	char name[DUMP_NAME_LEN];
- 	efi_char16_t efi_name[DUMP_NAME_LEN];
-+	char name_old[DUMP_NAME_LEN];
-+	efi_char16_t efi_name_old[DUMP_NAME_LEN];
- 	efi_guid_t vendor = LINUX_EFI_CRASH_GUID;
- 	struct efivars *efivars = psi->data;
- 	struct efivar_entry *entry, *found = NULL;
-@@ -796,8 +798,22 @@ static int efi_pstore_erase(enum pstore_type_id type, u64 id, int count,
- 		if (efi_guidcmp(entry->var.VendorGuid, vendor))
- 			continue;
- 		if (utf16_strncmp(entry->var.VariableName, efi_name,
--				  utf16_strlen(efi_name)))
--			continue;
-+				  utf16_strlen(efi_name))) {
-+			/*
-+			 * Check if an old format,
-+			 * which doesn't support holding
-+			 * multiple logs, remains.
-+			 */
-+			sprintf(name_old, "dump-type%u-%u-%lu", type,
-+				(unsigned int)id, time.tv_sec);
-+
-+			for (i = 0; i < DUMP_NAME_LEN; i++)
-+				efi_name_old[i] = name_old[i];
-+
-+			if (utf16_strncmp(entry->var.VariableName, efi_name_old,
-+					  utf16_strlen(efi_name_old)))
-+				continue;
-+		}
- 
- 		/* found */
- 		found = entry;
--- 
-1.7.1
+>         return -ENODEV;
+>  }
+>  EXPORT_SYMBOL_GPL(acpi_power_resource_register_device);
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
