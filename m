@@ -1,51 +1,47 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH 3/8] PCI: Move out pci_enable_bridges out of assign_unsigned_bus_res
-Date: Tue, 30 Oct 2012 10:42:40 -0700
-Message-ID: <1351618965-16761-4-git-send-email-yinghai@kernel.org>
+Subject: [PATCH 4/8] PCI, ACPI: assign unassigned resource for hot add root bus
+Date: Tue, 30 Oct 2012 10:42:41 -0700
+Message-ID: <1351618965-16761-5-git-send-email-yinghai@kernel.org>
 References: <20121030040237.GA10472@google.com>
  <1351618965-16761-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from userp1050.oracle.com ([156.151.31.82]:50972 "EHLO
-	userp1050.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964822Ab2J3RpH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Oct 2012 13:45:07 -0400
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1351618965-16761-1-git-send-email-yinghai@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>
 Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-So could use assign_unassigned_bus_res pci root bus add
+After we get hot-added ioapic registered.
+pci_enable_bridges will try to enable ioapic irq for pci bridges.
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 ---
- drivers/pci/probe.c     |    1 +
- drivers/pci/setup-bus.c |    2 --
- 2 files changed, 1 insertions(+), 2 deletions(-)
+ drivers/acpi/pci_root.c |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index 65f62e3..59cf1ba 100644
---- a/drivers/pci/probe.c
-+++ b/drivers/pci/probe.c
-@@ -1905,6 +1905,7 @@ unsigned int __ref pci_rescan_bus(struct pci_bus *bus)
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index bce469c..27adbfd 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -644,12 +644,19 @@ static int acpi_pci_root_start(struct acpi_device *device)
+ 	struct acpi_pci_root *root = acpi_driver_data(device);
+ 	struct acpi_pci_driver *driver;
  
- 	max = pci_scan_child_bus(bus);
- 	pci_assign_unassigned_bus_resources(bus);
-+	pci_enable_bridges(bus);
- 	pci_bus_add_devices(bus);
++	if (system_state != SYSTEM_BOOTING)
++		pci_assign_unassigned_bus_resources(root->bus);
++
+ 	mutex_lock(&acpi_pci_root_lock);
+ 	list_for_each_entry(driver, &acpi_pci_drivers, node)
+ 		if (driver->add)
+ 			driver->add(root);
+ 	mutex_unlock(&acpi_pci_root_lock);
  
- 	return max;
-diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
-index 59e6c55..6d3591d 100644
---- a/drivers/pci/setup-bus.c
-+++ b/drivers/pci/setup-bus.c
-@@ -1566,6 +1566,4 @@ void pci_assign_unassigned_bus_resources(struct pci_bus *bus)
- 	up_read(&pci_bus_sem);
- 	__pci_bus_assign_resources(bus, &add_list, NULL);
- 	BUG_ON(!list_empty(&add_list));
--
--	pci_enable_bridges(bus);
- }
++	/* need to after hot-added ioapic is registered */
++	if (system_state != SYSTEM_BOOTING)
++		pci_enable_bridges(root->bus);
++
+ 	pci_bus_add_devices(root->bus);
+ 
+ 	return 0;
 -- 
 1.7.7
-
