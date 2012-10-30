@@ -1,47 +1,60 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH 4/8] PCI, ACPI: assign unassigned resource for hot add root bus
-Date: Tue, 30 Oct 2012 10:42:41 -0700
-Message-ID: <1351618965-16761-5-git-send-email-yinghai@kernel.org>
-References: <20121030040237.GA10472@google.com>
- <1351618965-16761-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1351618965-16761-1-git-send-email-yinghai@kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH] pnpacpi: incorrect test
+Date: Tue, 30 Oct 2012 13:05:14 -0600
+Message-ID: <CAErSpo7gX2v4Fo0eMY0d5m2ZLsy5r8b2CFbMxqbhsEo8x45M0Q@mail.gmail.com>
+References: <20121029160455.14886.37788.stgit@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:45045 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965393Ab2J3TFg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Oct 2012 15:05:36 -0400
+Received: by mail-wg0-f44.google.com with SMTP id dr13so398303wgb.1
+        for <linux-acpi@vger.kernel.org>; Tue, 30 Oct 2012 12:05:35 -0700 (PDT)
+In-Reply-To: <20121029160455.14886.37788.stgit@localhost.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: linux-acpi@vger.kernel.org
 
-After we get hot-added ioapic registered.
-pci_enable_bridges will try to enable ioapic irq for pci bridges.
+On Mon, Oct 29, 2012 at 10:05 AM, Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
+> From: Alan Cox <alan@linux.intel.com>
+>
+> TEST_ALPHA() is broken and always returns 0
+>
+> Resolves-bug:  https://bugzilla.kernel.org/show_bug.cgi?id=45171
+> ---
+>
+>  drivers/pnp/pnpacpi/core.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
+> index 26b5d4b..107b6b6 100644
+> --- a/drivers/pnp/pnpacpi/core.c
+> +++ b/drivers/pnp/pnpacpi/core.c
+> @@ -58,7 +58,7 @@ static inline int __init is_exclusive_device(struct acpi_device *dev)
+>         if (!(('0' <= (c) && (c) <= '9') || ('A' <= (c) && (c) <= 'F'))) \
+>                 return 0
+>  #define TEST_ALPHA(c) \
+> -       if (!('@' <= (c) || (c) <= 'Z')) \
+> +       if (!('@' <= (c) && (c) <= 'Z')) \
 
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
----
- drivers/acpi/pci_root.c |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
+The original is definitely broken.
 
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index bce469c..27adbfd 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -644,12 +644,19 @@ static int acpi_pci_root_start(struct acpi_device *device)
- 	struct acpi_pci_root *root = acpi_driver_data(device);
- 	struct acpi_pci_driver *driver;
- 
-+	if (system_state != SYSTEM_BOOTING)
-+		pci_assign_unassigned_bus_resources(root->bus);
-+
- 	mutex_lock(&acpi_pci_root_lock);
- 	list_for_each_entry(driver, &acpi_pci_drivers, node)
- 		if (driver->add)
- 			driver->add(root);
- 	mutex_unlock(&acpi_pci_root_lock);
- 
-+	/* need to after hot-added ioapic is registered */
-+	if (system_state != SYSTEM_BOOTING)
-+		pci_enable_bridges(root->bus);
-+
- 	pci_bus_add_devices(root->bus);
- 
- 	return 0;
--- 
-1.7.7
+I think the corrected test allows PNP IDs containing '@', which
+doesn't appear legal per sec 6.1.5 of the ACPI 5.0 spec.  Should this
+be
+
++       if (!('A' <= (c) && (c) <= 'Z')) \
+
+instead?
+
+>                 return 0
+>  static int __init ispnpidacpi(const char *id)
+>  {
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
