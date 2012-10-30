@@ -1,92 +1,54 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH 1/8] PCI: Separate out pci_assign_unassigned_bus_resources()
-Date: Tue, 30 Oct 2012 10:42:38 -0700
-Message-ID: <1351618965-16761-2-git-send-email-yinghai@kernel.org>
+Subject: [PATCH 6/8] PCI, ACPI: Make acpi_pci_root_remove stop/remove pci root bus
+Date: Tue, 30 Oct 2012 10:42:43 -0700
+Message-ID: <1351618965-16761-7-git-send-email-yinghai@kernel.org>
 References: <20121030040237.GA10472@google.com>
  <1351618965-16761-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from acsinet15.oracle.com ([141.146.126.227]:26350 "EHLO
+	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965080Ab2J3Rnl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Oct 2012 13:43:41 -0400
 In-Reply-To: <1351618965-16761-1-git-send-email-yinghai@kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>
 Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
-List-Id: linux-acpi@vger.kernel.org
 
-It is main portion of pci_rescan_bus().
-
-Separate it out and prepare to use it for pci root bus hot add later.
+It will call new added pci_stop_and_remove_bus() to stop/remove pci root bus.
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
 ---
- drivers/pci/setup-bus.c |   32 ++++++++++++++++++--------------
- include/linux/pci.h     |    1 +
- 2 files changed, 19 insertions(+), 14 deletions(-)
+ drivers/acpi/pci_root.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
-index 1e808ca..1f34929 100644
---- a/drivers/pci/setup-bus.c
-+++ b/drivers/pci/setup-bus.c
-@@ -1550,25 +1550,12 @@ enable_all:
- }
- EXPORT_SYMBOL_GPL(pci_assign_unassigned_bridge_resources);
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index 27adbfd..aed0953 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -667,14 +667,20 @@ static int acpi_pci_root_remove(struct acpi_device *device, int type)
+ 	struct acpi_pci_root *root = acpi_driver_data(device);
+ 	struct acpi_pci_driver *driver;
  
--#ifdef CONFIG_HOTPLUG
--/**
-- * pci_rescan_bus - scan a PCI bus for devices.
-- * @bus: PCI bus to scan
-- *
-- * Scan a PCI bus and child buses for new devices, adds them,
-- * and enables them.
-- *
-- * Returns the max number of subordinate bus discovered.
-- */
--unsigned int __ref pci_rescan_bus(struct pci_bus *bus)
-+void pci_assign_unassigned_bus_resources(struct pci_bus *bus)
- {
--	unsigned int max;
- 	struct pci_dev *dev;
- 	LIST_HEAD(add_list); /* list of resources that
- 					want additional resources */
- 
--	max = pci_scan_child_bus(bus);
--
- 	down_read(&pci_bus_sem);
- 	list_for_each_entry(dev, &bus->devices, bus_list)
- 		if (dev->hdr_type == PCI_HEADER_TYPE_BRIDGE ||
-@@ -1581,6 +1568,23 @@ unsigned int __ref pci_rescan_bus(struct pci_bus *bus)
- 	BUG_ON(!list_empty(&add_list));
- 
- 	pci_enable_bridges(bus);
-+}
-+#ifdef CONFIG_HOTPLUG
-+/**
-+ * pci_rescan_bus - scan a PCI bus for devices.
-+ * @bus: PCI bus to scan
-+ *
-+ * Scan a PCI bus and child buses for new devices, adds them,
-+ * and enables them.
-+ *
-+ * Returns the max number of subordinate bus discovered.
-+ */
-+unsigned int __ref pci_rescan_bus(struct pci_bus *bus)
-+{
-+	unsigned int max;
++	pci_stop_root_bus(root->bus);
 +
-+	max = pci_scan_child_bus(bus);
-+	pci_assign_unassigned_bus_resources(bus);
- 	pci_bus_add_devices(bus);
+ 	mutex_lock(&acpi_pci_root_lock);
+ 	list_for_each_entry(driver, &acpi_pci_drivers, node)
+ 		if (driver->remove)
+ 			driver->remove(root);
++	mutex_unlock(&acpi_pci_root_lock);
  
- 	return max;
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index be1de01..505c05a 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -980,6 +980,7 @@ void pci_bus_size_bridges(struct pci_bus *bus);
- int pci_claim_resource(struct pci_dev *, int);
- void pci_assign_unassigned_resources(void);
- void pci_assign_unassigned_bridge_resources(struct pci_dev *bridge);
-+void pci_assign_unassigned_bus_resources(struct pci_bus *bus);
- void pdev_enable_device(struct pci_dev *);
- int pci_enable_resources(struct pci_dev *, int mask);
- void pci_fixup_irqs(u8 (*)(struct pci_dev *, u8 *),
+ 	device_set_run_wake(root->bus->bridge, false);
+ 	pci_acpi_remove_bus_pm_notifier(device);
+ 
++	pci_remove_root_bus(root->bus);
++
++	mutex_lock(&acpi_pci_root_lock);
+ 	list_del(&root->node);
+ 	mutex_unlock(&acpi_pci_root_lock);
+ 	kfree(root);
 -- 
 1.7.7
+
