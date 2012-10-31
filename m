@@ -1,276 +1,198 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH v3 1/3] Use acpi_os_hotplug_execute() instead of alloc_acpi_hp_work().
-Date: Wed, 31 Oct 2012 15:27:49 +0800
-Message-ID: <1351668471-31436-2-git-send-email-tangchen@cn.fujitsu.com>
-References: <1351668471-31436-1-git-send-email-tangchen@cn.fujitsu.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1351668471-31436-1-git-send-email-tangchen@cn.fujitsu.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: yinghai@kernel.org, bhelgaas@google.com, lenb@kernel.org, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Subject: Re: [PATCH 00/26] ACPICA 20121018 Release
+Date: Wed, 31 Oct 2012 09:36:13 +0100
+Message-ID: <5090E2FD.504@intel.com>
+References: <cover.1351649949.git.lv.zheng@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII;
+	format=flowed
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([143.182.124.37]:17486 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S935097Ab2JaIgT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Oct 2012 04:36:19 -0400
+In-Reply-To: <cover.1351649949.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
 
-Hi Yinghai,
+On 10/31/2012 3:24 AM, Lv Zheng wrote:
+> Here are the 20121018 ACPICA linuxized patches based on the acpi/next branch, please review.
+>
 
-alloc_acpi_hp_work() just puts the hutplug work onto kacpi_hotplug_wq.
-As mentioned by Toshi Kani, this job has been done in acpi_os_hotplug_execute().
-So we should use it instead of alloc_acpi_hp_work().
+Do I think correctly that the patches are targeted at the 3.8 kernel?
 
-This patch adds a acpi_hp_cb_data struct, which encapsulates the hotplug
-event notifier's parameters:
-	struct acpi_hp_cb_data {
-		acpi_handle handle;
-		u32 type;
-		void *context;
-	};
+Rafael
 
-And also a function alloc_acpi_hp_work(), which calls acpi_os_hotplug_execute()
-to put the hotplug job onto kacpi_hotplug_wq.
 
-This patch is based on Lu Yinghai's tree:
-git://git.kernel.org/pub/scm/linux/kernel/git/yinghai/linux-yinghai.git for-pci-split-pci-root-hp-2
+> Bob Moore (18):
+>    Cleanup of invalid ACPI name handling and repair
+>    ACPICA: Audit/update for ACPICA return macros and debug depth counter
+>    ACPICA: ACPICA core: Cleanup empty lines at file start and end
+>    ACPICA: Fix some typos in comments
+>    ACPICA: Update local C library module comments for ASCII table
+>    ACPICA: Remove extra spaces after periods within comments
+>    ACPICA: Remove extra spaces after periods in the Intel license
+>    ACPICA: Add debug print message for mutex objects that are
+>      force-released
+>    ACPICA: AcpiExec: Improve algorithm for tracking memory leaks
+>    ACPICA: Add ACPI_MOVE_NAME macro to optimize 4-byte ACPI_NAME copies
+>    ACPICA: Enhance error reporting for invalid opcodes and bad
+>      ACPI_NAMEs
+>    ACPICA: Update support for ACPI 5 MPST table
+>    ACPICA: Deploy ACPI_MOVE_NAME across ACPICA source base
+>    ACPICA: Add starting offset parameter to common dump buffer routine
+>    ACPICA: Fix externalize name to complete migration to ACPI_MOVE_NAME
+>    ACPICA: Update for 64-bit generation of recent error message changes
+>    ACPICA: AcpiGetObjectInfo: Add support for ACPI 5 _SUB method
+>    ACPICA: Update version to 20121018
+>
+> Feng Tang (1):
+>    ACPICA: Resource Mgr: Small fix for buffer size calculation
+>
+> Lv Zheng (6):
+>    ACPICA: Fix unmerged utility divergences.
+>    ACPICA: Fix unmerged debugger divergences.
+>    ACPICA: Fix divergences of definition conflicts.
+>    ACPICA: Fix AcpiSrc caused divergences.
+>    ACPICA: Fix indent caused divergences.
+>    ACPICA: Fix unmerged acmacros.h divergences.
+>
+> Robert Moore (1):
+>    ACPICA: Fix for predefined name loop during ACPICA initialization
+>
+>   drivers/acpi/acpica/Makefile    |    3 +
+>   drivers/acpi/acpica/acdebug.h   |   94 +++--
+>   drivers/acpi/acpica/acdispat.h  |   11 +-
+>   drivers/acpi/acpica/acevents.h  |    6 +-
+>   drivers/acpi/acpica/acglobal.h  |   73 ++--
+>   drivers/acpi/acpica/aclocal.h   |   16 +-
+>   drivers/acpi/acpica/acmacros.h  |  163 +++------
+>   drivers/acpi/acpica/acobject.h  |    7 +-
+>   drivers/acpi/acpica/acopcode.h  |    6 +-
+>   drivers/acpi/acpica/acparser.h  |    3 +-
+>   drivers/acpi/acpica/acpredef.h  |   11 +-
+>   drivers/acpi/acpica/acstruct.h  |    2 +-
+>   drivers/acpi/acpica/acutils.h   |   58 ++-
+>   drivers/acpi/acpica/amlresrc.h  |    1 -
+>   drivers/acpi/acpica/dscontrol.c |    2 +-
+>   drivers/acpi/acpica/dsfield.c   |    2 +-
+>   drivers/acpi/acpica/dsmethod.c  |    6 +-
+>   drivers/acpi/acpica/dsmthdat.c  |   14 +-
+>   drivers/acpi/acpica/dsobject.c  |    6 +-
+>   drivers/acpi/acpica/dsopcode.c  |    3 +-
+>   drivers/acpi/acpica/dsutils.c   |   33 +-
+>   drivers/acpi/acpica/dswexec.c   |   10 +-
+>   drivers/acpi/acpica/dswload2.c  |    4 +-
+>   drivers/acpi/acpica/dswstate.c  |   26 +-
+>   drivers/acpi/acpica/evgpe.c     |   20 +-
+>   drivers/acpi/acpica/evgpeblk.c  |    3 +-
+>   drivers/acpi/acpica/evgpeutil.c |    3 +-
+>   drivers/acpi/acpica/evrgnini.c  |    7 +-
+>   drivers/acpi/acpica/evxface.c   |    2 +-
+>   drivers/acpi/acpica/evxfgpe.c   |   13 +-
+>   drivers/acpi/acpica/exconvrt.c  |    4 +-
+>   drivers/acpi/acpica/excreate.c  |    9 +-
+>   drivers/acpi/acpica/exdebug.c   |   10 +-
+>   drivers/acpi/acpica/exdump.c    |   20 +-
+>   drivers/acpi/acpica/exfield.c   |    4 +-
+>   drivers/acpi/acpica/exfldio.c   |   15 +-
+>   drivers/acpi/acpica/exmisc.c    |    5 +-
+>   drivers/acpi/acpica/exmutex.c   |    9 +-
+>   drivers/acpi/acpica/exnames.c   |    9 +-
+>   drivers/acpi/acpica/exoparg1.c  |   11 +-
+>   drivers/acpi/acpica/exoparg2.c  |    2 +-
+>   drivers/acpi/acpica/exoparg3.c  |    3 +-
+>   drivers/acpi/acpica/exoparg6.c  |    5 +-
+>   drivers/acpi/acpica/exprep.c    |   13 +-
+>   drivers/acpi/acpica/exregion.c  |    3 +-
+>   drivers/acpi/acpica/exresnte.c  |    9 +-
+>   drivers/acpi/acpica/exresolv.c  |    3 +-
+>   drivers/acpi/acpica/exresop.c   |    8 +-
+>   drivers/acpi/acpica/exstore.c   |    4 +-
+>   drivers/acpi/acpica/exstoren.c  |   11 +-
+>   drivers/acpi/acpica/exstorob.c  |    5 +-
+>   drivers/acpi/acpica/exsystem.c  |    9 +-
+>   drivers/acpi/acpica/exutils.c   |    5 +-
+>   drivers/acpi/acpica/hwacpi.c    |    3 +-
+>   drivers/acpi/acpica/hwgpe.c     |    4 +-
+>   drivers/acpi/acpica/hwpci.c     |    4 +-
+>   drivers/acpi/acpica/hwregs.c    |    1 -
+>   drivers/acpi/acpica/hwtimer.c   |    6 +-
+>   drivers/acpi/acpica/hwvalid.c   |    1 -
+>   drivers/acpi/acpica/hwxface.c   |    1 -
+>   drivers/acpi/acpica/hwxfsleep.c |   12 +-
+>   drivers/acpi/acpica/nsaccess.c  |    7 +-
+>   drivers/acpi/acpica/nsalloc.c   |    4 +-
+>   drivers/acpi/acpica/nsdump.c    |   10 +-
+>   drivers/acpi/acpica/nsinit.c    |    4 +-
+>   drivers/acpi/acpica/nsload.c    |   10 +-
+>   drivers/acpi/acpica/nsnames.c   |    2 +-
+>   drivers/acpi/acpica/nsobject.c  |    8 +-
+>   drivers/acpi/acpica/nsparse.c   |    8 +-
+>   drivers/acpi/acpica/nssearch.c  |   17 +-
+>   drivers/acpi/acpica/nsutils.c   |   18 +-
+>   drivers/acpi/acpica/nswalk.c    |   10 +-
+>   drivers/acpi/acpica/nsxfeval.c  |   20 +-
+>   drivers/acpi/acpica/nsxfname.c  |   66 ++--
+>   drivers/acpi/acpica/nsxfobj.c   |    4 +-
+>   drivers/acpi/acpica/psargs.c    |    8 +-
+>   drivers/acpi/acpica/psloop.c    |   59 ++-
+>   drivers/acpi/acpica/psopcode.c  |   29 +-
+>   drivers/acpi/acpica/psparse.c   |   13 +-
+>   drivers/acpi/acpica/psutils.c   |    4 +-
+>   drivers/acpi/acpica/rscalc.c    |   14 +-
+>   drivers/acpi/acpica/rslist.c    |    4 +-
+>   drivers/acpi/acpica/tbfind.c    |    2 +-
+>   drivers/acpi/acpica/tbinstal.c  |    2 +
+>   drivers/acpi/acpica/tbutils.c   |    2 +-
+>   drivers/acpi/acpica/tbxface.c   |    4 +-
+>   drivers/acpi/acpica/tbxfload.c  |    2 +-
+>   drivers/acpi/acpica/tbxfroot.c  |    3 +-
+>   drivers/acpi/acpica/utcache.c   |  323 +++++++++++++++++
+>   drivers/acpi/acpica/utclib.c    |  749 +++++++++++++++++++++++++++++++++++++++
+>   drivers/acpi/acpica/utdebug.c   |   37 +-
+>   drivers/acpi/acpica/utids.c     |  104 +++++-
+>   drivers/acpi/acpica/utmath.c    |    2 +-
+>   drivers/acpi/acpica/utmisc.c    |  150 ++++++--
+>   drivers/acpi/acpica/utmutex.c   |   14 +-
+>   drivers/acpi/acpica/utobject.c  |    8 +-
+>   drivers/acpi/acpica/utstate.c   |    2 +-
+>   drivers/acpi/acpica/uttrack.c   |  692 ++++++++++++++++++++++++++++++++++++
+>   drivers/acpi/acpica/utxface.c   |    5 +-
+>   drivers/acpi/acpica/utxferror.c |    2 +-
+>   drivers/acpi/scan.c             |    2 +-
+>   drivers/acpi/sysfs.c            |    4 +-
+>   include/acpi/acconfig.h         |    1 +
+>   include/acpi/acexcep.h          |    2 +-
+>   include/acpi/acnames.h          |    1 +
+>   include/acpi/acpiosxf.h         |    3 +-
+>   include/acpi/acpixf.h           |   18 +-
+>   include/acpi/actbl3.h           |   22 +-
+>   include/acpi/actypes.h          |   42 ++-
+>   109 files changed, 2669 insertions(+), 664 deletions(-)
+>   create mode 100644 drivers/acpi/acpica/utcache.c
+>   create mode 100644 drivers/acpi/acpica/utclib.c
+>   create mode 100644 drivers/acpi/acpica/uttrack.c
+>
 
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
----
- drivers/acpi/osl.c                 |   28 ++++++++++++------------
- drivers/acpi/pci_root_hp.c         |   25 +++++++++++++++-------
- drivers/pci/hotplug/acpiphp_glue.c |   39 +++++++++++++++++++----------------
- include/acpi/acpiosxf.h            |    7 ++---
- 4 files changed, 55 insertions(+), 44 deletions(-)
+---------------------------------------------------------------------
+Intel Technology Poland sp. z o.o.
+z siedziba w Gdansku
+ul. Slowackiego 173
+80-298 Gdansk
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 311a921..d441b16 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -52,6 +52,7 @@
- #include <acpi/acpi.h>
- #include <acpi/acpi_bus.h>
- #include <acpi/processor.h>
-+#include <acpi/acpiosxf.h>
- 
- #define _COMPONENT		ACPI_OS_SERVICES
- ACPI_MODULE_NAME("osl");
-@@ -1592,23 +1593,22 @@ void acpi_os_set_prepare_sleep(int (*func)(u8 sleep_state,
- 	__acpi_os_prepare_sleep = func;
- }
- 
--void alloc_acpi_hp_work(acpi_handle handle, u32 type, void *context,
--			void (*func)(struct work_struct *work))
-+void acpi_hp_cb_execute(acpi_handle handle, u32 type, void *context,
-+			acpi_osd_exec_callback function)
- {
--	struct acpi_hp_work *hp_work;
--	int ret;
-+	acpi_status status;
-+	struct acpi_hp_cb_data *cb_data;
- 
--	hp_work = kmalloc(sizeof(*hp_work), GFP_KERNEL);
--	if (!hp_work)
-+	cb_data = kmalloc(sizeof(struct acpi_hp_cb_data), GFP_KERNEL);
-+	if (!cb_data)
- 		return;
- 
--	hp_work->handle = handle;
--	hp_work->type = type;
--	hp_work->context = context;
-+	cb_data->handle = handle;
-+	cb_data->type = type;
-+	cb_data->context = context;
- 
--	INIT_WORK(&hp_work->work, func);
--	ret = queue_work(kacpi_hotplug_wq, &hp_work->work);
--	if (!ret)
--		kfree(hp_work);
-+	status = acpi_os_hotplug_execute(function, cb_data);
-+	if (ACPI_FAILURE(status))
-+		kfree(cb_data);
- }
--EXPORT_SYMBOL(alloc_acpi_hp_work);
-+EXPORT_SYMBOL(acpi_hp_cb_execute);
-diff --git a/drivers/acpi/pci_root_hp.c b/drivers/acpi/pci_root_hp.c
-index 7d427e6..2ff83f4 100644
---- a/drivers/acpi/pci_root_hp.c
-+++ b/drivers/acpi/pci_root_hp.c
-@@ -75,19 +75,20 @@ static void handle_root_bridge_removal(struct acpi_device *device)
- 	acpi_bus_hot_remove_device(ej_event);
- }
- 
--static void _handle_hotplug_event_root(struct work_struct *work)
-+/* This function is of type acpi_osd_exec_callback */
-+static void _handle_hotplug_event_root(void *context)
- {
- 	struct acpi_pci_root *root;
- 	char objname[64];
- 	struct acpi_buffer buffer = { .length = sizeof(objname),
- 				      .pointer = objname };
--	struct acpi_hp_work *hp_work;
-+	struct acpi_hp_cb_data *cb_data;
- 	acpi_handle handle;
- 	u32 type;
- 
--	hp_work = container_of(work, struct acpi_hp_work, work);
--	handle = hp_work->handle;
--	type = hp_work->type;
-+	cb_data = (struct acpi_hp_cb_data *)context;
-+	handle = cb_data->handle;
-+	type = cb_data->type;
- 
- 	root = acpi_pci_find_root(handle);
- 
-@@ -124,14 +125,22 @@ static void _handle_hotplug_event_root(struct work_struct *work)
- 		break;
- 	}
- 
--	kfree(hp_work); /* allocated in handle_hotplug_event_bridge */
-+	kfree(context); /* allocated in handle_hotplug_event_bridge */
- }
- 
- static void handle_hotplug_event_root(acpi_handle handle, u32 type,
- 					void *context)
- {
--	alloc_acpi_hp_work(handle, type, context,
--				_handle_hotplug_event_root);
-+	/*
-+	 * Currently the code adds all hotplug events to the kacpid_wq
-+	 * queue when it should add hotplug events to the kacpi_hotplug_wq.
-+	 * The proper way to fix this is to reorganize the code so that
-+	 * drivers (dock, etc.) do not call acpi_os_execute(), etc.
-+	 * For now just re-add this work to the kacpi_hotplug_wq so we
-+	 * don't deadlock on hotplug actions.
-+	 */
-+	acpi_hp_cb_execute(handle, type, context,
-+			_handle_hotplug_event_root);
- }
- 
- static bool acpi_is_root_bridge_object(acpi_handle handle)
-diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
-index 0833d2e..b30fc37 100644
---- a/drivers/pci/hotplug/acpiphp_glue.c
-+++ b/drivers/pci/hotplug/acpiphp_glue.c
-@@ -50,6 +50,8 @@
- #include <linux/slab.h>
- #include <linux/acpi.h>
- 
-+#include <acpi/acpiosxf.h>
-+
- #include "../pci.h"
- #include "acpiphp.h"
- 
-@@ -1209,7 +1211,8 @@ check_sub_bridges(acpi_handle handle, u32 lvl, void *context, void **rv)
- 	return AE_OK ;
- }
- 
--static void _handle_hotplug_event_bridge(struct work_struct *work)
-+/* This function is of type acpi_osd_exec_callback */
-+static void _handle_hotplug_event_bridge(void *context)
- {
- 	struct acpiphp_bridge *bridge;
- 	char objname[64];
-@@ -1217,13 +1220,13 @@ static void _handle_hotplug_event_bridge(struct work_struct *work)
- 				      .pointer = objname };
- 	struct acpi_device *device;
- 	int num_sub_bridges = 0;
--	struct acpi_hp_work *hp_work;
-+	struct acpi_hp_cb_data *cb_data;
- 	acpi_handle handle;
- 	u32 type;
- 
--	hp_work = container_of(work, struct acpi_hp_work, work);
--	handle = hp_work->handle;
--	type = hp_work->type;
-+	cb_data = (struct acpi_hp_cb_data *)context;
-+	handle = cb_data->handle;
-+	type = cb_data->type;
- 
- 	if (acpi_bus_get_device(handle, &device)) {
- 		/* This bridge must have just been physically inserted */
-@@ -1302,7 +1305,7 @@ static void _handle_hotplug_event_bridge(struct work_struct *work)
- 	}
- 
- out:
--	kfree(hp_work); /* allocated in handle_hotplug_event_bridge */
-+	kfree(context); /* allocated in handle_hotplug_event_bridge */
- }
- 
- /**
-@@ -1324,29 +1327,28 @@ static void handle_hotplug_event_bridge(acpi_handle handle, u32 type,
- 	 * For now just re-add this work to the kacpi_hotplug_wq so we
- 	 * don't deadlock on hotplug actions.
- 	 */
--	alloc_acpi_hp_work(handle, type, context, _handle_hotplug_event_bridge);
-+	acpi_hp_cb_execute(handle, type, context,
-+				_handle_hotplug_event_bridge);
- }
- 
--static void _handle_hotplug_event_func(struct work_struct *work)
-+/* This function is of type acpi_osd_exec_callback */
-+static void _handle_hotplug_event_func(void *context)
- {
- 	struct acpiphp_func *func;
- 	char objname[64];
- 	struct acpi_buffer buffer = { .length = sizeof(objname),
- 				      .pointer = objname };
--	struct acpi_hp_work *hp_work;
-+	struct acpi_hp_cb_data *cb_data;
- 	acpi_handle handle;
- 	u32 type;
--	void *context;
- 
--	hp_work = container_of(work, struct acpi_hp_work, work);
--	handle = hp_work->handle;
--	type = hp_work->type;
--	context = hp_work->context;
-+	cb_data = (struct acpi_hp_cb_data *)context;
-+	handle = cb_data->handle;
-+	type = cb_data->type;
-+	func = (struct acpiphp_func *)cb_data->context;
- 
- 	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
- 
--	func = (struct acpiphp_func *)context;
--
- 	switch (type) {
- 	case ACPI_NOTIFY_BUS_CHECK:
- 		/* bus re-enumerate */
-@@ -1377,7 +1379,7 @@ static void _handle_hotplug_event_func(struct work_struct *work)
- 		break;
- 	}
- 
--	kfree(hp_work); /* allocated in handle_hotplug_event_func */
-+	kfree(context); /* allocated in handle_hotplug_event_func */
- }
- 
- /**
-@@ -1399,7 +1401,8 @@ static void handle_hotplug_event_func(acpi_handle handle, u32 type,
- 	 * For now just re-add this work to the kacpi_hotplug_wq so we
- 	 * don't deadlock on hotplug actions.
- 	 */
--	alloc_acpi_hp_work(handle, type, context, _handle_hotplug_event_func);
-+	acpi_hp_cb_execute(handle, type, context,
-+			_handle_hotplug_event_func);
- }
- 
- static struct acpi_pci_driver acpi_pci_hp_driver = {
-diff --git a/include/acpi/acpiosxf.h b/include/acpi/acpiosxf.h
-index 9f68f69..8825891 100644
---- a/include/acpi/acpiosxf.h
-+++ b/include/acpi/acpiosxf.h
-@@ -194,14 +194,13 @@ void acpi_os_fixed_event_count(u32 fixed_event_number);
- /*
-  * Threads and Scheduling
-  */
--struct acpi_hp_work {
--	struct work_struct work;
-+struct acpi_hp_cb_data {
- 	acpi_handle handle;
- 	u32 type;
- 	void *context;
- };
--void alloc_acpi_hp_work(acpi_handle handle, u32 type, void *context,
--			void (*func)(struct work_struct *work));
-+void acpi_hp_cb_execute(acpi_handle handle, u32 type, void *context,
-+			acpi_osd_exec_callback function);
- 
- acpi_thread_id acpi_os_get_thread_id(void);
- 
--- 
-1.7.1
+Sad Rejonowy Gdansk Polnoc w Gdansku, 
+VII Wydzial Gospodarczy Krajowego Rejestru Sadowego, 
+numer KRS 101882
+
+NIP 957-07-52-316
+Kapital zakladowy 200.000 zl
+
+This e-mail and any attachments may contain confidential material for
+the sole use of the intended recipient(s). Any review or distribution
+by others is strictly prohibited. If you are not the intended
+recipient, please contact the sender and delete all copies.
+
