@@ -1,95 +1,88 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [PATCH v3 0/3] ACPI: container hot remove support.
-Date: Wed, 31 Oct 2012 20:09:22 +0900
-Message-ID: <509106E2.70008@jp.fujitsu.com>
-References: <1351668471-31436-1-git-send-email-tangchen@cn.fujitsu.com>
+From: Wen Congyang <wency@cn.fujitsu.com>
+Subject: Re: [Patch v4 0/8] bugfix for memory hotplug
+Date: Wed, 31 Oct 2012 19:32:09 +0800
+Message-ID: <50910C39.70305@cn.fujitsu.com>
+References: <1351682594-17347-1-git-send-email-wency@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:38149 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935389Ab2JaLJt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Oct 2012 07:09:49 -0400
-In-Reply-To: <1351668471-31436-1-git-send-email-tangchen@cn.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1351682594-17347-1-git-send-email-wency@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Jiang Liu <liuj97@gmail.com>, Len Brown <len.brown@intel.com>, Andrew Morton <akpm@linux-foundation.org>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, rjw@sisk.pl, Lai Jiangshan <laijs@cn.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: yinghai@kernel.org, bhelgaas@google.com, lenb@kernel.org, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi Tang,
-
-2012/10/31 16:27, Tang Chen wrote:
-> Hi,
+At 10/31/2012 07:23 PM, Wen Congyang Wrote:
+> The last version is here:
+>     https://lkml.org/lkml/2012/10/19/56
 > 
-> The container hotplug handler container_notify_cb() didn't implement
-> the hot-remove functionality. So, these 3 patches implement it like
-> the following way:
+> Note: patch 1-3 are in -mm tree and I don't touch them. The other patches
+> except patch6 are also in mm tree. Patch 6 is not touched.
 > 
-> patch 1. Do not use kacpid_wq/kacpid_notify_wq to handle container hotplug event,
->           use kacpi_hotplug_wq instead to avoid deadlock.
->           Doing this is to reuse acpi_bus_hot_remove_device() in container
->           hot-remove handling.
-> 
-> patch 2. Introduce a new function container_device_remove() to handle
->           ACPI_NOTIFY_EJECT_REQUEST event for container.
+> Changes from v3 to v4:
+>   Patch4: use dynamically allocated memory instead of static array.
+>   Patch5: merge [patchv3 2-3] into a single patch, and update it as we use
+>           dynamically allocated memory
+>   Patch7: merge [patchv3 5-6] into a single patch
+>   Patch8: merge [patchv3 9] and its fix into a patch
 
-If container device contains memory device, the function is 
-very danger. As you know, we are developing a memory hotplug.
-If memory has kernel memory, memory hot remove operations fails.
-But container_device_remove() cannot realize it. So even if
-the memory hot remove operation fails, container_device_remove()
-keeps hot remove operation. Finally, the function sends _EJ0
-to firmware. In this case, if the memory is accessed, kernel
-panic occurs.
-The example is as follows:
+Note:
+The patch from Michal Hocko <mhocko@suse.cz> is not merged into patch8
 
- https://lkml.org/lkml/2012/9/26/318
-
-Thanks,
-Yasuaki Ishimatsu
+Thanks
+Wen Congyang
 
 > 
+> Changes from v2 to v3:
+>   Merge the bug fix from ishimatsu to this patchset(Patch 1-3)
+>   Patch 3: split it from patch as it fixes another bug.
+>   Patch 4: new patch, and fix bad-page state when hotadding a memory
+>            device after hotremoving it. I forgot to post this patch in v2.
+>   Patch 6: update it according to Dave Hansen's comment.
 > 
-> change log v2 -> v3:
+> Changes from v1 to v2:
+>   Patch 1: updated according to kosaki's suggestion
 > 
-> 1. Add 1 patch(patch1). As Toshi Kan mentioned, acpi_os_hotplug_execute() is already
->     kernel. So use it instead of alloc_acpi_hp_work() to add hotplug job onto kacpi_hotplug_wq.
+>   Patch 2: new patch, and update mce_bad_pages when removing memory.
 > 
-> 2. In patch3: Print caller's function name when container_device_remove() fails to help to debug.
+>   Patch 4: new patch, and fix a NR_FREE_PAGES mismatch, and this bug
+>            cause oom in my test.
 > 
-> 3. In patch3: Add commit message to describ why we need to call acpi_bus_trim() twice when
->     removing devices.
+>   Patch 5: new patch, and fix a new bug. When repeating to online/offline
+>            pages, the free pages will continue to decrease. 
 > 
-> change log v1 -> v2:
+> Wen Congyang (6):
+>   memory-hotplug: auto offline page_cgroup when onlining memory block
+>     failed
+>   memory-hotplug: fix NR_FREE_PAGES mismatch
+>   numa: convert static memory to dynamically allocated memory for per
+>     node device
+>   clear the memory to store struct page
+>   memory-hotplug: current hwpoison doesn't support memory offline
+>   memory-hotplug: allocate zone's pcp before onlining pages
 > 
-> 1. In patch1: Based on the lastest for-pci-split-pci-root-hp-2 branch from Lu Yinghai,
->     use alloc_acpi_hp_work() to add container hotplug work into kacpi_hotplug_wq.
+> Yasuaki Ishimatsu (2):
+>   memory hotplug: suppress "Device memoryX does not have a release()
+>     function" warning
+>   suppress "Device nodeX does not have a release() function" warning
 > 
-> 2. In patch2: Allocate ej_event after container is stopped, so that we don't need to
->     kfree the ej_event if stopping container failed.
-> 
-> 
-> This is based on Lu Yinghai's job.
-> git://git.kernel.org/pub/scm/linux/kernel/git/yinghai/linux-yinghai.git for-pci-split-pci-root-hp-2
-> 
-> 
-> Tang Chen (3):
->    Use acpi_os_hotplug_execute() instead of alloc_acpi_hp_work().
->    Use kacpi_hotplug_wq to handle container hotplug event.
->    Improve container_notify_cb() to support container hot-remove.
-> 
->   drivers/acpi/container.c           |   95 +++++++++++++++++++++++++++++++-----
->   drivers/acpi/osl.c                 |   28 +++++-----
->   drivers/acpi/pci_root_hp.c         |   25 ++++++---
->   drivers/pci/hotplug/acpiphp_glue.c |   39 ++++++++-------
->   include/acpi/acpiosxf.h            |    7 +--
->   5 files changed, 137 insertions(+), 57 deletions(-)
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  arch/powerpc/kernel/sysfs.c    |  4 +--
+>  drivers/base/memory.c          |  9 ++++++-
+>  drivers/base/node.c            | 56 ++++++++++++++++++++++++++++++------------
+>  include/linux/node.h           |  2 +-
+>  include/linux/page-isolation.h | 10 +++++---
+>  mm/hugetlb.c                   |  4 +--
+>  mm/memory-failure.c            |  2 +-
+>  mm/memory_hotplug.c            | 13 +++++++---
+>  mm/page_alloc.c                | 37 +++++++++++++++++++++-------
+>  mm/page_cgroup.c               |  3 +++
+>  mm/page_isolation.c            | 27 ++++++++++++++------
+>  mm/sparse.c                    | 25 ++++++++++++++++++-
+>  12 files changed, 144 insertions(+), 48 deletions(-)
 > 
 
-
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
