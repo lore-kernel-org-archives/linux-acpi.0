@@ -1,87 +1,81 @@
 From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: [Patch v4 6/8] clear the memory to store struct page
-Date: Wed, 31 Oct 2012 19:23:12 +0800
-Message-ID: <1351682594-17347-7-git-send-email-wency@cn.fujitsu.com>
+Subject: [Patch v4 1/8] memory hotplug: suppress "Device memoryX does not have a release() function" warning
+Date: Wed, 31 Oct 2012 19:23:07 +0800
+Message-ID: <1351682594-17347-2-git-send-email-wency@cn.fujitsu.com>
 References: <1351682594-17347-1-git-send-email-wency@cn.fujitsu.com>
-Return-path: <owner-linux-mm@kvack.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cn.fujitsu.com ([222.73.24.84]:55903 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1756883Ab2JaLsX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 31 Oct 2012 07:48:23 -0400
 In-Reply-To: <1351682594-17347-1-git-send-email-wency@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: Jiang Liu <liuj97@gmail.com>, Len Brown <len.brown@intel.com>, Andrew Morton <akpm@linux-foundation.org>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, rjw@sisk.pl, Lai Jiangshan <laijs@cn.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, David Rientjes <rientjes@google.com>, Minchan Kim <minchan.kim@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Jiang Liu <liuj97@gmail.com>, Len Brown <len.brown@intel.com>, Andrew Morton <akpm@linux-foundation.org>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, rjw@sisk.pl, Lai Jiangshan <laijs@cn.fujitsu.com>, Minchan Kim <minchan.kim@gmail.com>, Wen Congyang <wency@cn.fujitsu.com>, Greg KH <greg@kroah.com>
 
-If sparse memory vmemmap is enabled, we can't free the memory to store
-struct page when a memory device is hotremoved, because we may store
-struct page in the memory to manage the memory which doesn't belong
-to this memory device. When we hotadded this memory device again, we
-will reuse this memory to store struct page, and struct page may
-contain some obsolete information, and we will get bad-page state:
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-[   59.611278] init_memory_mapping: [mem 0x80000000-0x9fffffff]
-[   59.637836] Built 2 zonelists in Node order, mobility grouping on.  Total pages: 547617
-[   59.638739] Policy zone: Normal
-[   59.650840] BUG: Bad page state in process bash  pfn:9b6dc
-[   59.651124] page:ffffea0002200020 count:0 mapcount:0 mapping:          (null) index:0xfdfdfdfdfdfdfdfd
-[   59.651494] page flags: 0x2fdfdfdfd5df9fd(locked|referenced|uptodate|dirty|lru|active|slab|owner_priv_1|private|private_2|writeback|head|tail|swapcache|reclaim|swapbacked|unevictable|uncached|compound_lock)
-[   59.653604] Modules linked in: netconsole acpiphp pci_hotplug acpi_memhotplug loop kvm_amd kvm microcode tpm_tis tpm tpm_bios evdev psmouse serio_raw i2c_piix4 i2c_core parport_pc parport processor button thermal_sys ext3 jbd mbcache sg sr_mod cdrom ata_generic virtio_net ata_piix virtio_blk libata virtio_pci virtio_ring virtio scsi_mod
-[   59.656998] Pid: 988, comm: bash Not tainted 3.6.0-rc7-guest #12
-[   59.657172] Call Trace:
-[   59.657275]  [<ffffffff810e9b30>] ? bad_page+0xb0/0x100
-[   59.657434]  [<ffffffff810ea4c3>] ? free_pages_prepare+0xb3/0x100
-[   59.657610]  [<ffffffff810ea668>] ? free_hot_cold_page+0x48/0x1a0
-[   59.657787]  [<ffffffff8112cc08>] ? online_pages_range+0x68/0xa0
-[   59.657961]  [<ffffffff8112cba0>] ? __online_page_increment_counters+0x10/0x10
-[   59.658162]  [<ffffffff81045561>] ? walk_system_ram_range+0x101/0x110
-[   59.658346]  [<ffffffff814c4f95>] ? online_pages+0x1a5/0x2b0
-[   59.658515]  [<ffffffff8135663d>] ? __memory_block_change_state+0x20d/0x270
-[   59.658710]  [<ffffffff81356756>] ? store_mem_state+0xb6/0xf0
-[   59.658878]  [<ffffffff8119e482>] ? sysfs_write_file+0xd2/0x160
-[   59.659052]  [<ffffffff8113769a>] ? vfs_write+0xaa/0x160
-[   59.659212]  [<ffffffff81137977>] ? sys_write+0x47/0x90
-[   59.659371]  [<ffffffff814e2f25>] ? async_page_fault+0x25/0x30
-[   59.659543]  [<ffffffff814ea239>] ? system_call_fastpath+0x16/0x1b
-[   59.659720] Disabling lock debugging due to kernel taint
+When calling remove_memory_block(), the function shows following message
+at device_release().
 
-This patch clears the memory to store struct page to avoid unexpected error.
+"Device 'memory528' does not have a release() function, it is broken and
+must be fixed."
 
-CC: David Rientjes <rientjes@google.com>
-CC: Jiang Liu <liuj97@gmail.com>
+The reason is memory_block's device struct does not have a release()
+function.
+
+So the patch registers memory_block_release() to the device's release()
+function for suppressing the warning message.  Additionally, the patch
+moves kfree(mem) into the release function since the release function is
+prepared as a means to free a memory_block struct.
+
+Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Jiang Liu <liuj97@gmail.com>
 Cc: Minchan Kim <minchan.kim@gmail.com>
-CC: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-CC: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Reported-by: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
-Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+Cc: Wen Congyang <wency@cn.fujitsu.com>
+Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
- mm/sparse.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/base/memory.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff --git a/mm/sparse.c b/mm/sparse.c
-index fac95f2..0021265 100644
---- a/mm/sparse.c
-+++ b/mm/sparse.c
-@@ -638,7 +638,6 @@ static struct page *__kmalloc_section_memmap(unsigned long nr_pages)
- got_map_page:
- 	ret = (struct page *)pfn_to_kaddr(page_to_pfn(page));
- got_map_ptr:
--	memset(ret, 0, memmap_size);
- 
- 	return ret;
+diff --git a/drivers/base/memory.c b/drivers/base/memory.c
+index 86c8821..7eb1211 100644
+--- a/drivers/base/memory.c
++++ b/drivers/base/memory.c
+@@ -70,6 +70,13 @@ void unregister_memory_isolate_notifier(struct notifier_block *nb)
  }
-@@ -760,6 +759,8 @@ int __meminit sparse_add_one_section(struct zone *zone, unsigned long start_pfn,
- 		goto out;
- 	}
+ EXPORT_SYMBOL(unregister_memory_isolate_notifier);
  
-+	memset(memmap, 0, sizeof(struct page) * nr_pages);
++static void memory_block_release(struct device *dev)
++{
++	struct memory_block *mem = container_of(dev, struct memory_block, dev);
 +
- 	ms->section_mem_map |= SECTION_MARKED_PRESENT;
++	kfree(mem);
++}
++
+ /*
+  * register_memory - Setup a sysfs device for a memory block
+  */
+@@ -80,6 +87,7 @@ int register_memory(struct memory_block *memory)
  
- 	ret = sparse_init_one_section(ms, section_nr, memmap, usemap);
+ 	memory->dev.bus = &memory_subsys;
+ 	memory->dev.id = memory->start_section_nr / sections_per_block;
++	memory->dev.release = memory_block_release;
+ 
+ 	error = device_register(&memory->dev);
+ 	return error;
+@@ -635,7 +643,6 @@ int remove_memory_block(unsigned long node_id, struct mem_section *section,
+ 		mem_remove_simple_file(mem, phys_device);
+ 		mem_remove_simple_file(mem, removable);
+ 		unregister_memory(mem);
+-		kfree(mem);
+ 	} else
+ 		kobject_put(&mem->dev.kobj);
+ 
 -- 
 1.8.0
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
