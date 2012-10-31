@@ -1,176 +1,217 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 05/26] ACPICA: Fix AcpiSrc caused divergences.
-Date: Wed, 31 Oct 2012 10:25:36 +0800
-Message-ID: <cd02a09641c29069fe301b12ebe9bc22024afc04.1351649950.git.lv.zheng@intel.com>
+Subject: [PATCH 22/26] ACPICA: Add starting offset parameter to common dump buffer routine
+Date: Wed, 31 Oct 2012 10:28:11 +0800
+Message-ID: <c0a2ca7988a9c5d0fccc8958102eae888b4a6b53.1351649951.git.lv.zheng@intel.com>
 References: <cover.1351649949.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:53963 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:41603 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755343Ab2JaCgF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 30 Oct 2012 22:36:05 -0400
+	id S932338Ab2JaCiU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 30 Oct 2012 22:38:20 -0400
 In-Reply-To: <cover.1351649949.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <len.brown@intel.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>
-Cc: linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>
+Cc: linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>
 
-There are definitions that can been converted into new styles by
-the recent AcpiSrc while they remain the old styles in the Linux.
-This patch fixes those definitions that will be converted by the
-AcpiSrc.
+From: Bob Moore <robert.moore@intel.com>
 
-This patch will not affect the generated vmlinux binary.
-This will decrease 97 lines of 20120913 divergence.diff.
+Rename the dump buffer routines. Offset parameter can specify the
+buffer starting offset that is used when displaying each line of
+the buffer.
 
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/acglobal.h |    2 +-
- drivers/acpi/acpica/aclocal.h  |    4 ++--
- drivers/acpi/acpica/acobject.h |    2 +-
- drivers/acpi/acpica/dswexec.c  |    2 +-
- drivers/acpi/acpica/evxface.c  |    2 +-
- drivers/acpi/sysfs.c           |    4 ++--
- include/acpi/acpixf.h          |    2 +-
- include/acpi/actypes.h         |    8 ++++----
- 8 files changed, 13 insertions(+), 13 deletions(-)
+ drivers/acpi/acpica/acmacros.h |    2 +-
+ drivers/acpi/acpica/acutils.h  |    5 +++--
+ drivers/acpi/acpica/exdebug.c  |    8 ++++----
+ drivers/acpi/acpica/exdump.c   |    9 +++++----
+ drivers/acpi/acpica/psloop.c   |   22 ++++++++++++++--------
+ drivers/acpi/acpica/utdebug.c  |   13 +++++++------
+ 6 files changed, 34 insertions(+), 25 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
-index fe20e18..35006d1 100644
---- a/drivers/acpi/acpica/acglobal.h
-+++ b/drivers/acpi/acpica/acglobal.h
-@@ -376,7 +376,7 @@ ACPI_EXTERN struct acpi_gpe_block_info
- #if (!ACPI_REDUCED_HARDWARE)
+diff --git a/drivers/acpi/acpica/acmacros.h b/drivers/acpi/acpica/acmacros.h
+index da8062d..5efad99 100644
+--- a/drivers/acpi/acpica/acmacros.h
++++ b/drivers/acpi/acpica/acmacros.h
+@@ -460,7 +460,7 @@
+ #define ACPI_DUMP_OPERANDS(a, b ,c)     acpi_ex_dump_operands(a, b, c)
+ #define ACPI_DUMP_ENTRY(a, b)           acpi_ns_dump_entry (a, b)
+ #define ACPI_DUMP_PATHNAME(a, b, c, d)  acpi_ns_dump_pathname(a, b, c, d)
+-#define ACPI_DUMP_BUFFER(a, b)          acpi_ut_dump_buffer((u8 *) a, b, DB_BYTE_DISPLAY, _COMPONENT)
++#define ACPI_DUMP_BUFFER(a, b)          acpi_ut_debug_dump_buffer((u8 *) a, b, DB_BYTE_DISPLAY, _COMPONENT)
  
- ACPI_EXTERN u8 acpi_gbl_all_gpes_initialized;
--ACPI_EXTERN ACPI_GBL_EVENT_HANDLER acpi_gbl_global_event_handler;
-+ACPI_EXTERN acpi_gbl_event_handler acpi_gbl_global_event_handler;
- ACPI_EXTERN void *acpi_gbl_global_event_handler_context;
- 
- #endif				/* !ACPI_REDUCED_HARDWARE */
-diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
-index b5a4651..564f2ab 100644
---- a/drivers/acpi/acpica/aclocal.h
-+++ b/drivers/acpi/acpica/aclocal.h
-@@ -262,7 +262,7 @@ struct acpi_create_field_info {
- };
- 
- typedef
--acpi_status(*ACPI_INTERNAL_METHOD) (struct acpi_walk_state * walk_state);
-+acpi_status(*acpi_internal_method) (struct acpi_walk_state * walk_state);
- 
+ #else
  /*
-  * Bitmapped ACPI types.  Used internally only
-@@ -645,7 +645,7 @@ union acpi_generic_state {
+diff --git a/drivers/acpi/acpica/acutils.h b/drivers/acpi/acpica/acutils.h
+index d94b417..5a6aa58 100644
+--- a/drivers/acpi/acpica/acutils.h
++++ b/drivers/acpi/acpica/acutils.h
+@@ -305,9 +305,10 @@ acpi_ut_ptr_exit(u32 line_number,
+ 		 const char *function_name,
+ 		 const char *module_name, u32 component_id, u8 *ptr);
+ 
+-void acpi_ut_dump_buffer(u8 *buffer, u32 count, u32 display, u32 component_id);
++void
++acpi_ut_debug_dump_buffer(u8 *buffer, u32 count, u32 display, u32 component_id);
+ 
+-void acpi_ut_dump_buffer2(u8 *buffer, u32 count, u32 display);
++void acpi_ut_dump_buffer(u8 *buffer, u32 count, u32 display, u32 offset);
+ 
+ void acpi_ut_report_error(char *module_name, u32 line_number);
+ 
+diff --git a/drivers/acpi/acpica/exdebug.c b/drivers/acpi/acpica/exdebug.c
+index e0c9050..d7c9f51 100644
+--- a/drivers/acpi/acpica/exdebug.c
++++ b/drivers/acpi/acpica/exdebug.c
+@@ -145,10 +145,10 @@ acpi_ex_do_debug_object(union acpi_operand_object *source_desc,
+ 	case ACPI_TYPE_BUFFER:
+ 
+ 		acpi_os_printf("[0x%.2X]\n", (u32)source_desc->buffer.length);
+-		acpi_ut_dump_buffer2(source_desc->buffer.pointer,
+-				     (source_desc->buffer.length < 256) ?
+-				     source_desc->buffer.length : 256,
+-				     DB_BYTE_DISPLAY);
++		acpi_ut_dump_buffer(source_desc->buffer.pointer,
++				    (source_desc->buffer.length < 256) ?
++				    source_desc->buffer.length : 256,
++				    DB_BYTE_DISPLAY, 0);
+ 		break;
+ 
+ 	case ACPI_TYPE_STRING:
+diff --git a/drivers/acpi/acpica/exdump.c b/drivers/acpi/acpica/exdump.c
+index 3157f3b..858b43a 100644
+--- a/drivers/acpi/acpica/exdump.c
++++ b/drivers/acpi/acpica/exdump.c
+@@ -942,10 +942,11 @@ acpi_ex_dump_package_obj(union acpi_operand_object *obj_desc,
+ 		acpi_os_printf("[Buffer] Length %.2X = ",
+ 			       obj_desc->buffer.length);
+ 		if (obj_desc->buffer.length) {
+-			acpi_ut_dump_buffer(ACPI_CAST_PTR
+-					    (u8, obj_desc->buffer.pointer),
+-					    obj_desc->buffer.length,
+-					    DB_DWORD_DISPLAY, _COMPONENT);
++			acpi_ut_debug_dump_buffer(ACPI_CAST_PTR
++						  (u8,
++						   obj_desc->buffer.pointer),
++						  obj_desc->buffer.length,
++						  DB_DWORD_DISPLAY, _COMPONENT);
+ 		} else {
+ 			acpi_os_printf("\n");
+ 		}
+diff --git a/drivers/acpi/acpica/psloop.c b/drivers/acpi/acpica/psloop.c
+index faed180..27f5007 100644
+--- a/drivers/acpi/acpica/psloop.c
++++ b/drivers/acpi/acpica/psloop.c
+@@ -133,7 +133,7 @@ static acpi_status acpi_ps_get_aml_opcode(struct acpi_walk_state *walk_state)
+ 
+ 	case AML_CLASS_UNKNOWN:
+ 
+-		/* The opcode is unrecognized. Just skip unknown opcodes */
++		/* The opcode is unrecognized. Complain and skip unknown opcodes */
+ 
+ 		if (walk_state->pass_number == 2) {
+ 			ACPI_ERROR((AE_INFO,
+@@ -142,28 +142,34 @@ static acpi_status acpi_ps_get_aml_opcode(struct acpi_walk_state *walk_state)
+ 				    walk_state->aml_offset +
+ 				    sizeof(struct acpi_table_header)));
+ 
+-			ACPI_DUMP_BUFFER(walk_state->parser_state.aml, 128);
++			ACPI_DUMP_BUFFER(walk_state->parser_state.aml - 16, 48);
+ 
+ #ifdef ACPI_ASL_COMPILER
+-
++			/*
++			 * This is executed for the disassembler only. Output goes
++			 * to the disassembled ASL output file.
++			 */
+ 			acpi_os_printf
+ 			    ("/*\nError: Unknown opcode 0x%.2X at table offset 0x%.4X, context:\n",
+ 			     walk_state->opcode,
+ 			     walk_state->aml_offset +
+ 			     sizeof(struct acpi_table_header));
+ 
+-			/* TBD: Pass current offset to dump_buffer */
++			/* Dump the context surrounding the invalid opcode */
+ 
+-			acpi_ut_dump_buffer2(((u8 *)walk_state->parser_state.
+-					      aml - 16), 48, DB_BYTE_DISPLAY);
++			acpi_ut_dump_buffer(((u8 *)walk_state->parser_state.
++					     aml - 16), 48, DB_BYTE_DISPLAY,
++					    walk_state->aml_offset +
++					    sizeof(struct acpi_table_header) -
++					    16);
+ 			acpi_os_printf(" */\n");
+ #endif
+ 		}
+ 
+-		/* Increment past one or two-byte opcode */
++		/* Increment past one-byte or two-byte opcode */
+ 
+ 		walk_state->parser_state.aml++;
+-		if (walk_state->opcode > 0xFF) {
++		if (walk_state->opcode > 0xFF) {	/* Can only happen if first byte is 0x5B */
+ 			walk_state->parser_state.aml++;
+ 		}
+ 
+diff --git a/drivers/acpi/acpica/utdebug.c b/drivers/acpi/acpica/utdebug.c
+index 7a33270..5d95166 100644
+--- a/drivers/acpi/acpica/utdebug.c
++++ b/drivers/acpi/acpica/utdebug.c
+@@ -513,7 +513,7 @@ acpi_ut_ptr_exit(u32 line_number,
+  * PARAMETERS:  buffer              - Buffer to dump
+  *              count               - Amount to dump, in bytes
+  *              display             - BYTE, WORD, DWORD, or QWORD display
+- *              component_ID        - Caller's component ID
++ *              offset              - Beginning buffer offset (display only)
   *
-  ****************************************************************************/
- 
--typedef acpi_status(*ACPI_EXECUTE_OP) (struct acpi_walk_state * walk_state);
-+typedef acpi_status(*acpi_execute_op) (struct acpi_walk_state * walk_state);
- 
- /* Address Range info block */
- 
-diff --git a/drivers/acpi/acpica/acobject.h b/drivers/acpi/acpica/acobject.h
-index 364a130..ac4269f 100644
---- a/drivers/acpi/acpica/acobject.h
-+++ b/drivers/acpi/acpica/acobject.h
-@@ -179,7 +179,7 @@ struct acpi_object_method {
- 	union acpi_operand_object *mutex;
- 	u8 *aml_start;
- 	union {
--		ACPI_INTERNAL_METHOD implementation;
-+		acpi_internal_method implementation;
- 		union acpi_operand_object *handler;
- 	} dispatch;
- 
-diff --git a/drivers/acpi/acpica/dswexec.c b/drivers/acpi/acpica/dswexec.c
-index 642f3c0..fa44609 100644
---- a/drivers/acpi/acpica/dswexec.c
-+++ b/drivers/acpi/acpica/dswexec.c
-@@ -57,7 +57,7 @@ ACPI_MODULE_NAME("dswexec")
- /*
-  * Dispatch table for opcode classes
-  */
--static ACPI_EXECUTE_OP acpi_gbl_op_type_dispatch[] = {
-+static acpi_execute_op acpi_gbl_op_type_dispatch[] = {
- 	acpi_ex_opcode_0A_0T_1R,
- 	acpi_ex_opcode_1A_0T_0R,
- 	acpi_ex_opcode_1A_0T_1R,
-diff --git a/drivers/acpi/acpica/evxface.c b/drivers/acpi/acpica/evxface.c
-index 7587eb6..ae668f3 100644
---- a/drivers/acpi/acpica/evxface.c
-+++ b/drivers/acpi/acpica/evxface.c
-@@ -398,7 +398,7 @@ ACPI_EXPORT_SYMBOL(acpi_install_exception_handler)
+  * RETURN:      None
+  *
+@@ -521,7 +521,7 @@ acpi_ut_ptr_exit(u32 line_number,
   *
   ******************************************************************************/
- acpi_status
--acpi_install_global_event_handler(ACPI_GBL_EVENT_HANDLER handler, void *context)
-+acpi_install_global_event_handler(acpi_gbl_event_handler handler, void *context)
- {
- 	acpi_status status;
  
-diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
-index 7c3f98b..ea61ca9 100644
---- a/drivers/acpi/sysfs.c
-+++ b/drivers/acpi/sysfs.c
-@@ -476,7 +476,7 @@ static void fixed_event_count(u32 event_number)
- 	return;
+-void acpi_ut_dump_buffer2(u8 *buffer, u32 count, u32 display)
++void acpi_ut_dump_buffer(u8 *buffer, u32 count, u32 display, u32 base_offset)
+ {
+ 	u32 i = 0;
+ 	u32 j;
+@@ -543,7 +543,7 @@ void acpi_ut_dump_buffer2(u8 *buffer, u32 count, u32 display)
+ 
+ 		/* Print current offset */
+ 
+-		acpi_os_printf("%6.4X: ", i);
++		acpi_os_printf("%6.4X: ", (base_offset + i));
+ 
+ 		/* Print 16 hex chars */
+ 
+@@ -625,7 +625,7 @@ void acpi_ut_dump_buffer2(u8 *buffer, u32 count, u32 display)
+ 
+ /*******************************************************************************
+  *
+- * FUNCTION:    acpi_ut_dump_buffer
++ * FUNCTION:    acpi_ut_debug_dump_buffer
+  *
+  * PARAMETERS:  buffer              - Buffer to dump
+  *              count               - Amount to dump, in bytes
+@@ -638,7 +638,8 @@ void acpi_ut_dump_buffer2(u8 *buffer, u32 count, u32 display)
+  *
+  ******************************************************************************/
+ 
+-void acpi_ut_dump_buffer(u8 *buffer, u32 count, u32 display, u32 component_id)
++void
++acpi_ut_debug_dump_buffer(u8 *buffer, u32 count, u32 display, u32 component_id)
+ {
+ 
+ 	/* Only dump the buffer if tracing is enabled */
+@@ -648,5 +649,5 @@ void acpi_ut_dump_buffer(u8 *buffer, u32 count, u32 display, u32 component_id)
+ 		return;
+ 	}
+ 
+-	acpi_ut_dump_buffer2(buffer, count, display);
++	acpi_ut_dump_buffer(buffer, count, display, 0);
  }
- 
--static void acpi_gbl_event_handler(u32 event_type, acpi_handle device,
-+static void acpi_global_event_handler(u32 event_type, acpi_handle device,
- 	u32 event_number, void *context)
- {
- 	if (event_type == ACPI_EVENT_TYPE_GPE)
-@@ -638,7 +638,7 @@ void acpi_irq_stats_init(void)
- 	if (all_counters == NULL)
- 		goto fail;
- 
--	status = acpi_install_global_event_handler(acpi_gbl_event_handler, NULL);
-+	status = acpi_install_global_event_handler(acpi_global_event_handler, NULL);
- 	if (ACPI_FAILURE(status))
- 		goto fail;
- 
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index 8b891db..352fd1a 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -274,7 +274,7 @@ acpi_install_initialization_handler(acpi_init_handler handler, u32 function);
- 
- ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
- 				acpi_install_global_event_handler
--				(ACPI_GBL_EVENT_HANDLER handler, void *context))
-+				(acpi_gbl_event_handler handler, void *context))
- 
- ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
- 				 acpi_install_fixed_event_handler(u32
-diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-index 7520f42..ea50a31 100644
---- a/include/acpi/actypes.h
-+++ b/include/acpi/actypes.h
-@@ -796,11 +796,11 @@ typedef u8 acpi_adr_space_type;
- 
- /* Sleep function dispatch */
- 
--typedef acpi_status(*ACPI_SLEEP_FUNCTION) (u8 sleep_state);
-+typedef acpi_status(*acpi_sleep_function) (u8 sleep_state);
- 
- struct acpi_sleep_functions {
--	ACPI_SLEEP_FUNCTION legacy_function;
--	ACPI_SLEEP_FUNCTION extended_function;
-+	acpi_sleep_function legacy_function;
-+	acpi_sleep_function extended_function;
- };
- 
- /*
-@@ -931,7 +931,7 @@ typedef void
-  * Various handlers and callback procedures
-  */
- typedef
--void (*ACPI_GBL_EVENT_HANDLER) (u32 event_type,
-+void (*acpi_gbl_event_handler) (u32 event_type,
- 			       acpi_handle device,
- 			       u32 event_number, void *context);
- 
 -- 
 1.7.10
 
