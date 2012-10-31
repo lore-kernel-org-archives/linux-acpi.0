@@ -1,13 +1,13 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 19/26] ACPICA: Enhance error reporting for invalid opcodes and bad ACPI_NAMEs
-Date: Wed, 31 Oct 2012 10:27:48 +0800
-Message-ID: <96c06b771923148645d17c972432fecf382a50c6.1351649951.git.lv.zheng@intel.com>
+Subject: [PATCH 20/26] ACPICA: Update support for ACPI 5 MPST table
+Date: Wed, 31 Oct 2012 10:27:56 +0800
+Message-ID: <3b8ac09363395c18a5a24a4962bc794e48c5442d.1351649951.git.lv.zheng@intel.com>
 References: <cover.1351649949.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:24901 "EHLO mga14.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:39918 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932324Ab2JaC1y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 30 Oct 2012 22:27:54 -0400
+	id S932324Ab2JaC2C (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 30 Oct 2012 22:28:02 -0400
 In-Reply-To: <cover.1351649949.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,142 +16,74 @@ Cc: linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>, Lv Zheng <lv
 
 From: Bob Moore <robert.moore@intel.com>
 
-For disassembler, dump the 48 bytes surrounding the invalid
-opcode.  Fix incorrect table offset reported for invalid opcodes.
-Report original 32-bit value for bad ACPI_NAMEs.
+Fixes some problems introduced by late changes to the table as it
+was added to the ACPI 5.0 specification.  Both the table compiler
+and the disassembler and the main header support for the table.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/nsutils.c   |    9 ++++---
- drivers/acpi/acpica/psloop.c    |   51 ++++++++++++++++++++++++++++++---------
- drivers/acpi/acpica/utmisc.c    |    3 +++
- drivers/acpi/acpica/utxferror.c |    2 +-
- 4 files changed, 49 insertions(+), 16 deletions(-)
+ include/acpi/actbl3.h |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/acpi/acpica/nsutils.c b/drivers/acpi/acpica/nsutils.c
-index 16b3da8..0d3d481 100644
---- a/drivers/acpi/acpica/nsutils.c
-+++ b/drivers/acpi/acpica/nsutils.c
-@@ -557,10 +557,11 @@ acpi_ns_externalize_name(u32 internal_name_length,
- 				(*converted_name)[j++] = '.';
- 			}
+diff --git a/include/acpi/actbl3.h b/include/acpi/actbl3.h
+index 8c61b5f..6585141 100644
+--- a/include/acpi/actbl3.h
++++ b/include/acpi/actbl3.h
+@@ -277,10 +277,10 @@ struct acpi_table_gtdt {
+  ******************************************************************************/
  
--			(*converted_name)[j++] = internal_name[names_index++];
--			(*converted_name)[j++] = internal_name[names_index++];
--			(*converted_name)[j++] = internal_name[names_index++];
--			(*converted_name)[j++] = internal_name[names_index++];
-+			ACPI_MOVE_NAME(*converted_name, internal_name);
-+			acpi_ut_repair_name(*converted_name);
-+
-+			j += ACPI_NAME_SIZE;
-+			names_index += ACPI_NAME_SIZE;
- 		}
- 	}
+ #define ACPI_MPST_CHANNEL_INFO \
+-	u16                             reserved1; \
+ 	u8                              channel_id; \
+-	u8                              reserved2; \
+-	u16                             power_node_count;
++	u8                              reserved1[3]; \
++	u16                             power_node_count; \
++	u16                             reserved2;
  
-diff --git a/drivers/acpi/acpica/psloop.c b/drivers/acpi/acpica/psloop.c
-index 799162c..faed180 100644
---- a/drivers/acpi/acpica/psloop.c
-+++ b/drivers/acpi/acpica/psloop.c
-@@ -135,16 +135,38 @@ static acpi_status acpi_ps_get_aml_opcode(struct acpi_walk_state *walk_state)
+ /* Main table */
  
- 		/* The opcode is unrecognized. Just skip unknown opcodes */
+@@ -304,9 +304,8 @@ struct acpi_mpst_power_node {
+ 	u32 length;
+ 	u64 range_address;
+ 	u64 range_length;
+-	u8 num_power_states;
+-	u8 num_physical_components;
+-	u16 reserved2;
++	u32 num_power_states;
++	u32 num_physical_components;
+ };
  
--		ACPI_ERROR((AE_INFO,
--			    "Found unknown opcode 0x%X at AML address %p offset 0x%X, ignoring",
--			    walk_state->opcode, walk_state->parser_state.aml,
--			    walk_state->aml_offset));
-+		if (walk_state->pass_number == 2) {
-+			ACPI_ERROR((AE_INFO,
-+				    "Unknown opcode 0x%.2X at table offset 0x%.4X, ignoring",
-+				    walk_state->opcode,
-+				    walk_state->aml_offset +
-+				    sizeof(struct acpi_table_header)));
+ /* Values for Flags field above */
+@@ -332,10 +331,11 @@ struct acpi_mpst_component {
  
--		ACPI_DUMP_BUFFER(walk_state->parser_state.aml, 128);
-+			ACPI_DUMP_BUFFER(walk_state->parser_state.aml, 128);
+ struct acpi_mpst_data_hdr {
+ 	u16 characteristics_count;
++	u16 reserved;
+ };
  
--		/* Assume one-byte bad opcode */
-+#ifdef ACPI_ASL_COMPILER
-+
-+			acpi_os_printf
-+			    ("/*\nError: Unknown opcode 0x%.2X at table offset 0x%.4X, context:\n",
-+			     walk_state->opcode,
-+			     walk_state->aml_offset +
-+			     sizeof(struct acpi_table_header));
-+
-+			/* TBD: Pass current offset to dump_buffer */
-+
-+			acpi_ut_dump_buffer2(((u8 *)walk_state->parser_state.
-+					      aml - 16), 48, DB_BYTE_DISPLAY);
-+			acpi_os_printf(" */\n");
-+#endif
-+		}
-+
-+		/* Increment past one or two-byte opcode */
- 
- 		walk_state->parser_state.aml++;
-+		if (walk_state->opcode > 0xFF) {
-+			walk_state->parser_state.aml++;
-+		}
-+
- 		return_ACPI_STATUS(AE_CTRL_PARSE_CONTINUE);
- 
- 	default:
-@@ -519,11 +541,18 @@ acpi_ps_get_arguments(struct acpi_walk_state *walk_state,
- 					if ((op_info->class ==
- 					     AML_CLASS_EXECUTE) && (!arg)) {
- 						ACPI_WARNING((AE_INFO,
--							      "Detected an unsupported executable opcode "
--							      "at module-level: [0x%.4X] at table offset 0x%.4X",
--							      op->common.aml_opcode,
--							      (u32)((aml_op_start - walk_state->parser_state.aml_start)
--								+ sizeof(struct acpi_table_header))));
-+							      "Unsupported module-level executable opcode "
-+							      "0x%.2X at table offset 0x%.4X",
-+							      op->common.
-+							      aml_opcode,
-+							      (u32)
-+							      (ACPI_PTR_DIFF
-+							       (aml_op_start,
-+								walk_state->
-+								parser_state.
-+								aml_start) +
-+							       sizeof(struct
-+								      acpi_table_header))));
- 					}
- 				}
- 				break;
-diff --git a/drivers/acpi/acpica/utmisc.c b/drivers/acpi/acpica/utmisc.c
-index fba6eba..0405c0f 100644
---- a/drivers/acpi/acpica/utmisc.c
-+++ b/drivers/acpi/acpica/utmisc.c
-@@ -720,9 +720,12 @@ void acpi_ut_repair_name(char *name)
- {
- 	u32 i;
- 	u8 found_bad_char = FALSE;
-+	u32 original_name;
- 
- 	ACPI_FUNCTION_NAME(ut_repair_name);
- 
-+	ACPI_MOVE_NAME(&original_name, name);
-+
- 	/* Check each character in the name */
- 
- 	for (i = 0; i < ACPI_NAME_SIZE; i++) {
-diff --git a/drivers/acpi/acpica/utxferror.c b/drivers/acpi/acpica/utxferror.c
-index 6d63cc3..d4d3826 100644
---- a/drivers/acpi/acpica/utxferror.c
-+++ b/drivers/acpi/acpica/utxferror.c
-@@ -408,7 +408,7 @@ acpi_ut_namespace_error(const char *module_name,
- 
- 		ACPI_MOVE_32_TO_32(&bad_name,
- 				   ACPI_CAST_PTR(u32, internal_name));
--		acpi_os_printf("[0x%4.4X] (NON-ASCII)", bad_name);
-+		acpi_os_printf("[0x%.8X] (NON-ASCII)", bad_name);
- 	} else {
- 		/* Convert path to external format */
- 
+ struct acpi_mpst_power_data {
+-	u8 revision;
++	u8 structure_id;
+ 	u8 flags;
+ 	u16 reserved1;
+ 	u32 average_power;
+@@ -356,10 +356,10 @@ struct acpi_mpst_shared {
+ 	u32 signature;
+ 	u16 pcc_command;
+ 	u16 pcc_status;
+-	u16 command_register;
+-	u16 status_register;
+-	u16 power_state_id;
+-	u16 power_node_id;
++	u32 command_register;
++	u32 status_register;
++	u32 power_state_id;
++	u32 power_node_id;
+ 	u64 energy_consumed;
+ 	u64 average_power;
+ };
 -- 
 1.7.10
 
