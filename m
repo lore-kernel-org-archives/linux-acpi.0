@@ -1,73 +1,87 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH 5/5] ACPI: Add support for platform bus type
-Date: Thu, 1 Nov 2012 15:38:19 -0700
-Message-ID: <CAE9FiQWiRcaC3dKQFUHoC0qe0TneW2T+CYNZPEic5At_QcP0rw@mail.gmail.com>
-References: <1421417.rIOjExM5Pt@vostro.rjw.lan>
-	<14394066.j8A8VXQzU7@vostro.rjw.lan>
-	<CAE9FiQUXk9AcR87B8PyLoW3JJveZMd7SqB9pDmfA8F320SCLng@mail.gmail.com>
-	<9809109.C0U00708CM@vostro.rjw.lan>
+From: Seiji Aguchi <seiji.aguchi@hds.com>
+Subject: [RESEND][PATCH v4 0/7] efi_pstore: multiple event logging support
+Date: Thu, 1 Nov 2012 22:59:01 +0000
+Message-ID: <A5ED84D3BB3A384992CBB9C77DEDA4D4138B435F@USINDEM103.corp.hds.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <9809109.C0U00708CM@vostro.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Mathias Nyman <mathias.nyman@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Lv Zheng <lv.zheng@intel.com>, Huang Ying <ying.huang@intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, x86 list <x86@kernel.org>, Tony Luck <tony.luck@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Zhang Rui <rui.zhang@intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from usindpps06.hds.com ([207.126.252.19]:56495 "EHLO
+	usindpps06.hds.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S2992551Ab2KAW7S convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Nov 2012 18:59:18 -0400
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "mikew@google.com" <mikew@google.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Luck, Tony (tony.luck@intel.com)" <tony.luck@intel.com>, "Matthew Garrett (mjg@redhat.com)" <mjg@redhat.com>, "dzickus@redhat.com" <dzickus@redhat.com>
+Cc: "dle-develop@lists.sourceforge.net" <dle-develop@lists.sourceforge.net>, Satoru Moriya <satoru.moriya@hds.com>
 
-On Thu, Nov 1, 2012 at 2:21 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
->> So you are going to replace acpi_device/acpi_driver with
->> platform_device/platform_driver ?
->
-> Not exactly.  Let me start from the big picture, though. :-)
->
-> First off, we need to unify the handling of devices by the ACPI subsystem
-> regardless of whether they are on a specific bus, like PCI, or they are
-> busless "platform" devices.
->
-> Currently, if a device is on a specific bus *and* there is a device node in the
-> ACPI namespace corresponding to it, there will be two objects based on
-> struct device for it eventually, the "physical node", like struct pci_dev, and
-> the "ACPI node" represented by struct acpi_device.  They are associated with
-> each other through the code in drivers/acpi/glue.c.  In turn, if the device is
-> busless and not discoverable natively, we only create the "ACPI node" struct
-> acpi_device thing for it.  Those ACPI nodes are then *sometimes* bind to
-> drivers (represented by struct acpi_driver).
->
-> The fact that the busless devices are *sometimes* handled by binding drivers
-> directly to struct acpi_device while the other devices are handled through
-> glue.c confuses things substantially and causes problems to happen right now
-> (for example, acpi_driver drivers sometimes attempt to bind to things that have
-> other native drivers and should really be handled by them).
-> Furthermore, the situation will only get worse over time if we don't do
-> anything about that, because we're going to see more and more devices that
-> won't be discoverable natively and will have corresponding nodes in the ACPI
-> namespace and we're going to see more buses whose devices will have such
-> nodes.
->
-> Moreover, for many of those devices there are native drivers present in
-> the kernel tree already, because they will be based on IP blocks used in
-> the current hardware (for example, we may see ARM-based systems based on
-> exactly the same hardware with ACPI BIOSes and without them).  That applies
-> to busless devices as well as to devices on specific buses.
->
-> Now, the problem is how the unification is going to be done and I honestly
-> don't think we have much *choice* here.  Namely, for PCI (and other devices
-> discoverable natively) we pretty much have to do the glue.c thing (or something
-> equivalent), because we need to match what we've discovered natively against
-> the information from the ACPI tables in the BIOS.  This means that for busless
-> devices we need to create "physical" nodes as well, so that all of them are
-> handled by drivers binding to the "physical" node rather than to struct
-> acpi_device.  This also will allow us to reuse the existing drivers with
-> minimum modifications (well, hopefully).
+Changelog
 
-ok, acpi_driver will be killed at first.
+v3 -> v4
+   - Rebase to 3.7-rc3
+   - Add ctime to an argument of efi_pstore_erase to build successfully
+     in case where CONFIG_PTORE=n is specified. (Patch 4/7)
+   - Add count to an argument of efi_pstore_erase and efi_pstore_write to
+     build successfully in case where CONFIG_PTORE=n is specified (Patch 5/7)
+   - Fix a white space damage (Patch 6/7)
+   - Modify a logic checking a 3-variable format of a variable name (Patch 7/7)
 
-acpi_pci_root_driver will be converted to platform driver or
-add acpi_pci_host_bridge to work with pci_host_bridge.
+v2 -> v3
+   - Create patches 6/7 and 7/7 to work with an existing format of variable name
 
-BTW,  the problem for hotadd pci root bus,
-the acpi_driver ops.add can pci root bus and create pci dev before all
-acpi device get
-created still there.
-    https://lkml.org/lkml/2012/10/5/569
+v1 -> v2
+   - Separate into 5 patches in accordance with Mike's comment
+   - Erase an extra line of comment in patch 1/5
+
+[Issue]
+
+    Currently, efi_pstore driver simply overwrites existing panic messages in NVRAM.
+    So, in the following scenario, we will lose 1st panic messages.
+
+    1. kernel panics.
+    2. efi_pstore is kicked and writes panic messages to NVRAM.
+    3. system reboots.
+    4. kernel panics again before a user checks the 1st panic messages in NVRAM.
+
+[Solution]
+
+   Solutions of this problem has been discussed among Tony, Matthew, Don, Mike and me.
+
+   http://marc.info/?l=linux-kernel&m=134273270704586&w=2
+
+   And there are two possible solutions right now.
+     - First one is introducing some policy overwriting existing logs.
+     - Second one is simply holding multiple log without overwriting any entries.
+
+   We haven't decided the overwriting policy which is reasonable to all users yet.
+   But I believe we agree that just holding multiple logs is a reasonable way.
+
+   We may need further discussions to find the possibility of introducing overwriting
+   policy, especially getting critical messages in multiple oops case.
+   But I would like to begin with a simple and reasonable way to everyone.
+   So, this patch takes an approach just holding multiple logs.
+
+[Patch Description]
+
+Seiji Aguchi (7):
+  efi_pstore: Check remaining space with QueryVariableInfo() before
+    writing data
+  efi_pstore: Add a logic erasing entries to an erase callback
+  efi_pstore: Remove a logic erasing entries from a write callback to
+    hold multiple logs
+  efi_pstore: Add ctime to argument of erase callback
+  efi_pstore: Add a sequence counter to a variable name
+  efi_pstore: Add a format check for an existing variable name at
+    reading time
+  Add a format check for an existing variable name at erasing time
+
+ drivers/acpi/apei/erst.c   |   16 ++--
+ drivers/firmware/efivars.c |  163 ++++++++++++++++++++++++++++++-------------
+ fs/pstore/inode.c          |    7 ++-
+ fs/pstore/internal.h       |    2 +-
+ fs/pstore/platform.c       |   11 ++--
+ fs/pstore/ram.c            |    9 +--
+ include/linux/efi.h        |    1 +
+ include/linux/pstore.h     |    6 +-
+ 8 files changed, 143 insertions(+), 72 deletions(-)
