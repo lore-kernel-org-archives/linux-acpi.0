@@ -1,50 +1,58 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH v8 05/11] libata-eh: allow defer in ata_exec_internal
-Date: Thu, 01 Nov 2012 10:35:10 +0800
-Message-ID: <5091DFDE.1060904@intel.com>
-References: <1351501298-3716-1-git-send-email-aaron.lu@intel.com> <1351501298-3716-6-git-send-email-aaron.lu@intel.com> <20121029152051.GK5171@htj.dyndns.org> <508F42C0.8070807@intel.com> <20121030030144.GG4066@htj.dyndns.org> <508F44E1.3000801@intel.com> <20121031215213.GD2945@htj.dyndns.org>
+From: Wen Congyang <wency@cn.fujitsu.com>
+Subject: [PATCH] memory-hotplug: fix NR_FREE_PAGES mismatch's fix
+Date: Thu, 01 Nov 2012 10:55:01 +0800
+Message-ID: <5091E485.7090409@cn.fujitsu.com>
+References: <1351682594-17347-1-git-send-email-wency@cn.fujitsu.com> <1351682594-17347-4-git-send-email-wency@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20121031215213.GD2945@htj.dyndns.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>
-Cc: Jeff Garzik <jgarzik@pobox.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, James Bottomley <James.Bottomley@hansenpartnership.com>, Alan Stern <stern@rowland.harvard.edu>, Oliver Neukum <oliver@neukum.org>, Jeff Wu <jeff.wu@amd.com>, Aaron Lu <aaron.lwe@gmail.com>, Shane Huang <shane.huang@amd.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cn.fujitsu.com ([222.73.24.84]:6642 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1755019Ab2KACtS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 31 Oct 2012 22:49:18 -0400
+In-Reply-To: <1351682594-17347-4-git-send-email-wency@cn.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Jiang Liu <liuj97@gmail.com>, Len Brown <len.brown@intel.com>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, rjw@sisk.pl, Lai Jiangshan <laijs@cn.fujitsu.com>, David Rientjes <rientjes@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Christoph Lameter <cl@linux.com>, Minchan Kim <minchan.kim@gmail.com>, Dave Hansen <dave@linux.vnet.ibm.com>, Mel Gorman <mel@csn.ul.ie>, Jianguo wu <wujianguo@huawei.com>
 
-On 11/01/2012 05:52 AM, Tejun Heo wrote:
-> Hello,
-> 
-> On Tue, Oct 30, 2012 at 11:09:21AM +0800, Aaron Lu wrote:
->> I'm not aware of a place to store such ODD specific information when
->> probing the device.
-> 
-> You can always add some fields. :)
+When a page is freed and put into pcp list, get_freepage_migratetype()
+doesn't return MIGRATE_ISOLATE even if this pageblock is isolated.
+So we should use get_pageblock_migratetype() instead of mt to check
+whether it is isolated.
 
-OK. My concern is that, such information is only useful to ZPODD
-capable device+platforms, so checking this loading mechanism thing for
-all ATAPI devices during probe time doesn't seem a good idea.
+Cc: David Rientjes <rientjes@google.com>
+Cc: Jiang Liu <liuj97@gmail.com>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Jianguo Wu <wujianguo@huawei.com>
+Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
 
-> 
->> I'm currently storing the loading mech type in structure zpodd, which
->> gets created after the corresponding SCSI device gets created in
->> ata_scsi_scan_host, so at the probe time, the zpodd structure does not
->> exist yet. And the reason I create the zpodd sturcture this late is
->> that, it is only created when the ODD together the platform is ZPODD
->> capable, and to find out if this platform is ZPODD capbale, ACPI binding
->> has to occur first, and ACPI binding happens when SCSI device is added
->> to the device tree.
-> 
-> Hmm... I see.  Which ACPI binding is it?  The ATA ACPI binding happens
-> during probing.  It's a different one, I presume?
+---
+ mm/page_alloc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Since commit 6b66d95895c149cbc04d4fac5a2f5477c543a8ae:
-libata: bind the Linux device tree to the ACPI device tree
-ACPI binding happens when SCSI devices are added to the device tree. The
-ata port/device software structure does not have a acpi_handle field
-anymore.
-
-Thanks,
-Aaron
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 027afd0..e9c19d2 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -667,7 +667,7 @@ static void free_pcppages_bulk(struct zone *zone, int count,
+ 			/* MIGRATE_MOVABLE list may include MIGRATE_RESERVEs */
+ 			__free_one_page(page, zone, 0, mt);
+ 			trace_mm_page_pcpu_drain(page, 0, mt);
+-			if (likely(mt != MIGRATE_ISOLATE)) {
++			if (likely(mt != get_pageblock_migratetype(page))) {
+ 				__mod_zone_page_state(zone, NR_FREE_PAGES, 1);
+ 				if (is_migrate_cma(mt))
+ 					__mod_zone_page_state(zone, NR_FREE_CMA_PAGES, 1);
+-- 
+1.8.0
 
