@@ -1,59 +1,39 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH v3 3/3] Improve container_notify_cb() to support
- container hot-remove.
-Date: Thu, 01 Nov 2012 15:51:42 -0600
-Message-ID: <1351806702.19172.104.camel@misato.fc.hp.com>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH v3 3/3] Improve container_notify_cb() to support container hot-remove.
+Date: Thu, 1 Nov 2012 15:15:31 -0700
+Message-ID: <CAE9FiQVGPP3+97D2SatH_CBPBpqBZyCe7We=9=x5ZEq8_d0fWQ@mail.gmail.com>
 References: <1351668471-31436-1-git-send-email-tangchen@cn.fujitsu.com>
-	 <1748725.QBg5LLmPOx@vostro.rjw.lan>
-	 <CAE9FiQV0gAJabpcoSHhTYq19m-YmaC0O6HH_dFKXUTuvUMG4Fg@mail.gmail.com>
-	 <11976302.Ya3MGGIAsU@vostro.rjw.lan>
+	<1748725.QBg5LLmPOx@vostro.rjw.lan>
+	<CAE9FiQV0gAJabpcoSHhTYq19m-YmaC0O6HH_dFKXUTuvUMG4Fg@mail.gmail.com>
+	<11976302.Ya3MGGIAsU@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <11976302.Ya3MGGIAsU@vostro.rjw.lan>
 Sender: linux-pci-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Yinghai Lu <yinghai@kernel.org>, ZhangRui <rui.zhang@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, Tang Chen <tangchen@cn.fujitsu.com>, bhelgaas@google.com, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Toshi Kani <toshi.kani@hp.com>, ZhangRui <rui.zhang@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, Tang Chen <tangchen@cn.fujitsu.com>, bhelgaas@google.com, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-
-> > >> Hi Yinghai,
-> > >>
-> > >> Per the following thread, the code seems to be written in this way to
-> > >> allocate a separate lock_class_key for each work queue.  It should have
-> > >> had some comment to explain this, though.
-> > >>
-> > >> https://lkml.org/lkml/2009/12/13/304
-> > >
-> > > The code has evolved since then, however, so that it doesn't make sense
-> > > any more.
-> > >
-> > 
-> > oh, no, that commit should not be reverted. instead we should add some
-> > comment for it...
-> > 
-> > that mean : three path, will have three separated static lock dep key
-> > from every INIT_WORK.
-> 
+On Thu, Nov 1, 2012 at 2:31 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+>> oh, no, that commit should not be reverted. instead we should add some
+>> comment for it...
+>>
+>> that mean : three path, will have three separated static lock dep key
+>> from every INIT_WORK.
+>
 > I see.
-> 
+>
 > OK, I'll drop the patch removing it.
-> 
+>
 > What about the following comment:
-> 
+>
 > "To prevent lockdep from complaining unnecessarily, make sure that there
 >  is a different static lockdep key created for each workqueue by using
 >  INIT_WORK for each of them separately."
+>
+created ?
 
-Looks good to me.
+how about "defined" ?
 
-Thanks,
--Toshi
-
-
-> 
-> Thanks,
-> Rafael
-> 
-> 
+or just remove  "created"
