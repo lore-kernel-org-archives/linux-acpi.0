@@ -1,30 +1,55 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH v3 1/3] Use acpi_os_hotplug_execute() instead of alloc_acpi_hp_work().
-Date: Thu, 01 Nov 2012 14:07:27 +0800
-Message-ID: <5092119F.1000600@cn.fujitsu.com>
-References: <1351668471-31436-1-git-send-email-tangchen@cn.fujitsu.com> <1351668471-31436-2-git-send-email-tangchen@cn.fujitsu.com> <CAE9FiQWZ=Xgnw-U=4v2a5W7OwBkA3gT63qDnNYGT9p8Rn0O3fg@mail.gmail.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v8 09/11] block: add a new interface to block events
+Date: Thu, 01 Nov 2012 14:30:53 +0800
+Message-ID: <5092171D.8040202@intel.com>
+References: <1351501298-3716-1-git-send-email-aaron.lu@intel.com> <1351501298-3716-10-git-send-email-aaron.lu@intel.com> <20121029153536.GL5171@htj.dyndns.org> <508F7BF1.1040009@intel.com> <20121031215121.GC2945@htj.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAE9FiQWZ=Xgnw-U=4v2a5W7OwBkA3gT63qDnNYGT9p8Rn0O3fg@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: bhelgaas@google.com, lenb@kernel.org, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <20121031215121.GC2945@htj.dyndns.org>
+Sender: linux-ide-owner@vger.kernel.org
+To: Tejun Heo <tj@kernel.org>
+Cc: James Bottomley <James.Bottomley@hansenpartnership.com>, Jeff Garzik <jgarzik@pobox.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Oliver Neukum <oliver@neukum.org>, Jeff Wu <jeff.wu@amd.com>, Aaron Lu <aaron.lwe@gmail.com>, Shane Huang <shane.huang@amd.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 11/01/2012 11:52 AM, Yinghai Lu wrote:
-> On Wed, Oct 31, 2012 at 12:27 AM, Tang Chen<tangchen@cn.fujitsu.com>  wrote:
-> Please check if you can just fold
->     acpi_hp_cb_execute
-> callers, and use acpi_os_hotplug_execute directly.
->
-> and have two local conext struct too.
->
-I think this could bring some duplicated work. We need to do the same
-work every time we call acpi_os_hotplug_execute(), what has been done
-in acpi_hp_cb_execute().
+Hi,
 
-I can try to modify it and resend a new patch to see if it is better.
+On 11/01/2012 05:51 AM, Tejun Heo wrote:
+> Hello,
+> 
+> On Tue, Oct 30, 2012 at 03:04:17PM +0800, Aaron Lu wrote:
+>>> check_event() can retry.  Just add a per-sr mutex which is try-locked
+>>> by sr_block_check_events() and grab it when entering zero power.
+>>
+>> Good suggestion. I didn't think about solving it this way.
+>>
+>> Many people suggest me that ZPODD is pure SATA/ACPI stuff, and should
+>> not pollute sr driver, so I was trying hard not to touch sr while
+>> preparing these patches, unless there is no other choice(like the
+>> blocking event interface).
+>>
+>> So I'm not sure if your suggestion is the way to go.
+>>
+>> James, what do you think? Is it OK if I add a mutex into the scsi_cd
+>> structure to do this? Of course I'll define this only under
+>> CONFIG_SATA_ZPODD.
+> 
+> I don't think what James' and my suggestions are that different.  Just
+> silence check_event() while zpodd is kicked in somehow.  There's no
 
-Thanks. :)
+Well, since sr is not supposed to know anything about ZPODD, I don't see
+another way to silence check_event() in ATA layer.
+
+What I hope to achieve is when zero power ready status is sensed in ATA
+layer, no more sr_check_events should be called, as that function will
+runtime resume the ODD.
+
+Thanks,
+Aaron
+
+> reason to synchronize across multiple subsystems.
+> 
+> Thanks.
+> 
+
