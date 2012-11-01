@@ -1,7 +1,7 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v3 1/2] ACPI: Export functions for hot-remove
-Date: Thu,  1 Nov 2012 08:42:12 -0600
-Message-ID: <1351780933-30560-2-git-send-email-toshi.kani@hp.com>
+Subject: [PATCH v3 2/2] ACPI: Add ACPI CPU hot-remove support
+Date: Thu,  1 Nov 2012 08:42:13 -0600
+Message-ID: <1351780933-30560-3-git-send-email-toshi.kani@hp.com>
 References: <1351780933-30560-1-git-send-email-toshi.kani@hp.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1351780933-30560-1-git-send-email-toshi.kani@hp.com>
@@ -10,38 +10,71 @@ To: linux-acpi@vger.kernel.org, lenb@kernel.org, rjw@sisk.pl
 Cc: linux-kernel@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, imammedo@redhat.com, vijaymohan.pandarathil@hp.com, prarit@redhat.com, bhelgaas@google.com, Toshi Kani <toshi.kani@hp.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Exported acpi_os_hotplug_execute() and acpi_bus_hot_remove_device()
-so that they can be called from modules for hot-remove operations.
+Added support of CPU hot-remove via an ACPI eject notification.
+It calls acpi_bus_hot_remove_device(), which shares the same code
+path with the sysfs eject operation.  acpi_os_hotplug_execute()
+runs the hot-remove operation in kacpi_hotplug_wq and serializes
+it between ACPI hot-remove and sysfs eject requests.
 
 Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Tested-by: IgorMammedov <imammedo@redhat.com>
+Tested-by: Vijay Mohan Pandarathil <vijaymohan.pandarathil@hp.com>
+Tested-by: Prarit Bhargava <prarit@redhat.com>
 ---
- drivers/acpi/osl.c  | 1 +
- drivers/acpi/scan.c | 1 +
- 2 files changed, 2 insertions(+)
+ drivers/acpi/processor_driver.c | 27 +++++++++++++++++----------
+ 1 file changed, 17 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 9eaf708..7dfe91d 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -986,6 +986,7 @@ acpi_status acpi_os_hotplug_execute(acpi_osd_exec_callback function,
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index bd4e5dc..ac63b6f 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -695,8 +695,8 @@ int acpi_processor_device_add(acpi_handle handle, struct acpi_device **device)
+ static void acpi_processor_hotplug_notify(acpi_handle handle,
+ 					  u32 event, void *data)
  {
- 	return __acpi_os_execute(0, function, context, 1);
- }
-+EXPORT_SYMBOL(acpi_os_hotplug_execute);
+-	struct acpi_processor *pr;
+ 	struct acpi_device *device = NULL;
++	struct acpi_eject_event *ej_event = NULL;
+ 	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE; /* default */
+ 	int result;
  
- void acpi_os_wait_events_complete(void)
- {
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 1fcb867..a81845e 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -157,6 +157,7 @@ err_out:
- 	kfree(context);
- 	return;
- }
-+EXPORT_SYMBOL(acpi_bus_hot_remove_device);
+@@ -728,20 +728,27 @@ static void acpi_processor_hotplug_notify(acpi_handle handle,
+ 				  "received ACPI_NOTIFY_EJECT_REQUEST\n"));
  
- static ssize_t
- acpi_eject_store(struct device *d, struct device_attribute *attr,
+ 		if (acpi_bus_get_device(handle, &device)) {
+-			printk(KERN_ERR PREFIX
+-				    "Device don't exist, dropping EJECT\n");
++			pr_err(PREFIX "Device don't exist, dropping EJECT\n");
+ 			break;
+ 		}
+-		pr = acpi_driver_data(device);
+-		if (!pr) {
+-			printk(KERN_ERR PREFIX
+-				    "Driver data is NULL, dropping EJECT\n");
++		if (!acpi_driver_data(device)) {
++			pr_err(PREFIX "Driver data is NULL, dropping EJECT\n");
+ 			break;
+ 		}
+ 
+-		/* REVISIT: update when eject is supported */
+-		ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
+-		break;
++		ej_event = kmalloc(sizeof(*ej_event), GFP_KERNEL);
++		if (!ej_event) {
++			pr_err(PREFIX "No memory, dropping EJECT\n");
++			break;
++		}
++
++		ej_event->handle = handle;
++		ej_event->event = ACPI_NOTIFY_EJECT_REQUEST;
++		acpi_os_hotplug_execute(acpi_bus_hot_remove_device,
++					(void *)ej_event);
++
++		/* eject is performed asynchronously */
++		return;
+ 
+ 	default:
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
 -- 
 1.7.11.7
