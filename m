@@ -1,52 +1,50 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH v3 0/3] ACPI: container hot remove support.
-Date: Thu, 01 Nov 2012 09:48:52 +0800
-Message-ID: <5091D504.7010607@cn.fujitsu.com>
-References: <1351668471-31436-1-git-send-email-tangchen@cn.fujitsu.com> <509106E2.70008@jp.fujitsu.com> <CAE9FiQVrMj2KunOMDvftnu=MG=t=UpKTA4-t_YTYdgVL-rg_7Q@mail.gmail.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v8 05/11] libata-eh: allow defer in ata_exec_internal
+Date: Thu, 01 Nov 2012 10:35:10 +0800
+Message-ID: <5091DFDE.1060904@intel.com>
+References: <1351501298-3716-1-git-send-email-aaron.lu@intel.com> <1351501298-3716-6-git-send-email-aaron.lu@intel.com> <20121029152051.GK5171@htj.dyndns.org> <508F42C0.8070807@intel.com> <20121030030144.GG4066@htj.dyndns.org> <508F44E1.3000801@intel.com> <20121031215213.GD2945@htj.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAE9FiQVrMj2KunOMDvftnu=MG=t=UpKTA4-t_YTYdgVL-rg_7Q@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, bhelgaas@google.com, lenb@kernel.org, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20121031215213.GD2945@htj.dyndns.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Tejun Heo <tj@kernel.org>
+Cc: Jeff Garzik <jgarzik@pobox.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, James Bottomley <James.Bottomley@hansenpartnership.com>, Alan Stern <stern@rowland.harvard.edu>, Oliver Neukum <oliver@neukum.org>, Jeff Wu <jeff.wu@amd.com>, Aaron Lu <aaron.lwe@gmail.com>, Shane Huang <shane.huang@amd.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Yinghai,
+On 11/01/2012 05:52 AM, Tejun Heo wrote:
+> Hello,
+> 
+> On Tue, Oct 30, 2012 at 11:09:21AM +0800, Aaron Lu wrote:
+>> I'm not aware of a place to store such ODD specific information when
+>> probing the device.
+> 
+> You can always add some fields. :)
 
-How do you think the 1st patch ? Is the idea OK with you ?
+OK. My concern is that, such information is only useful to ZPODD
+capable device+platforms, so checking this loading mechanism thing for
+all ATAPI devices during probe time doesn't seem a good idea.
 
-And about the memory hotplug thing, so far as I know, we are trying to
-limit kernel memory in some nodes, and only support to hot-remove the
-nodes with out kernel memory. This functionality is called
-online_movable. And some of the patches are already in next-tree, most
-of the patches are under review. :)
+> 
+>> I'm currently storing the loading mech type in structure zpodd, which
+>> gets created after the corresponding SCSI device gets created in
+>> ata_scsi_scan_host, so at the probe time, the zpodd structure does not
+>> exist yet. And the reason I create the zpodd sturcture this late is
+>> that, it is only created when the ODD together the platform is ZPODD
+>> capable, and to find out if this platform is ZPODD capbale, ACPI binding
+>> has to occur first, and ACPI binding happens when SCSI device is added
+>> to the device tree.
+> 
+> Hmm... I see.  Which ACPI binding is it?  The ATA ACPI binding happens
+> during probing.  It's a different one, I presume?
 
-Thanks. :)
+Since commit 6b66d95895c149cbc04d4fac5a2f5477c543a8ae:
+libata: bind the Linux device tree to the ACPI device tree
+ACPI binding happens when SCSI devices are added to the device tree. The
+ata port/device software structure does not have a acpi_handle field
+anymore.
 
-On 11/01/2012 12:48 AM, Yinghai Lu wrote:
-> On Wed, Oct 31, 2012 at 4:09 AM, Yasuaki Ishimatsu
-> <isimatu.yasuaki@jp.fujitsu.com>  wrote:
->>> patch 2. Introduce a new function container_device_remove() to handle
->>>            ACPI_NOTIFY_EJECT_REQUEST event for container.
->>
->> If container device contains memory device, the function is
->> very danger. As you know, we are developing a memory hotplug.
->> If memory has kernel memory, memory hot remove operations fails.
->> But container_device_remove() cannot realize it. So even if
->> the memory hot remove operation fails, container_device_remove()
->> keeps hot remove operation. Finally, the function sends _EJ0
->> to firmware. In this case, if the memory is accessed, kernel
->> panic occurs.
->> The example is as follows:
->>
->>   https://lkml.org/lkml/2012/9/26/318
->
-> so what is the overall status memory hot-remove?
-> how are following memory get processed ?
-> 1. memory for kernel text, module
-> 2. page table
-> 3. vmemmap
-> 4. memory for kmalloc, for dma
->
+Thanks,
+Aaron
+
