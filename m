@@ -1,80 +1,56 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v3 2/2] ACPI: Add ACPI CPU hot-remove support
-Date: Thu,  1 Nov 2012 08:42:13 -0600
-Message-ID: <1351780933-30560-3-git-send-email-toshi.kani@hp.com>
-References: <1351780933-30560-1-git-send-email-toshi.kani@hp.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1351780933-30560-1-git-send-email-toshi.kani@hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, lenb@kernel.org, rjw@sisk.pl
-Cc: linux-kernel@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, imammedo@redhat.com, vijaymohan.pandarathil@hp.com, prarit@redhat.com, bhelgaas@google.com, Toshi Kani <toshi.kani@hp.com>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH v8 05/11] libata-eh: allow defer in ata_exec_internal
+Date: Thu, 1 Nov 2012 09:03:00 -0700
+Message-ID: <20121101160300.GB9169@htj.dyndns.org>
+References: <1351501298-3716-1-git-send-email-aaron.lu@intel.com>
+ <1351501298-3716-6-git-send-email-aaron.lu@intel.com>
+ <20121029152051.GK5171@htj.dyndns.org>
+ <508F42C0.8070807@intel.com>
+ <20121030030144.GG4066@htj.dyndns.org>
+ <508F44E1.3000801@intel.com>
+ <20121031215213.GD2945@htj.dyndns.org>
+ <5091DFDE.1060904@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-scsi-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5091DFDE.1060904@intel.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Jeff Garzik <jgarzik@pobox.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, James Bottomley <James.Bottomley@hansenpartnership.com>, Alan Stern <stern@rowland.harvard.edu>, Oliver Neukum <oliver@neukum.org>, Jeff Wu <jeff.wu@amd.com>, Aaron Lu <aaron.lwe@gmail.com>, Shane Huang <shane.huang@amd.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Added support of CPU hot-remove via an ACPI eject notification.
-It calls acpi_bus_hot_remove_device(), which shares the same code
-path with the sysfs eject operation.  acpi_os_hotplug_execute()
-runs the hot-remove operation in kacpi_hotplug_wq and serializes
-it between ACPI hot-remove and sysfs eject requests.
+Hello, Aaron.
 
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Tested-by: IgorMammedov <imammedo@redhat.com>
-Tested-by: Vijay Mohan Pandarathil <vijaymohan.pandarathil@hp.com>
-Tested-by: Prarit Bhargava <prarit@redhat.com>
----
- drivers/acpi/processor_driver.c | 27 +++++++++++++++++----------
- 1 file changed, 17 insertions(+), 10 deletions(-)
+On Thu, Nov 01, 2012 at 10:35:10AM +0800, Aaron Lu wrote:
+> > You can always add some fields. :)
+> 
+> OK. My concern is that, such information is only useful to ZPODD
+> capable device+platforms, so checking this loading mechanism thing for
+> all ATAPI devices during probe time doesn't seem a good idea.
 
-diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-index bd4e5dc..ac63b6f 100644
---- a/drivers/acpi/processor_driver.c
-+++ b/drivers/acpi/processor_driver.c
-@@ -695,8 +695,8 @@ int acpi_processor_device_add(acpi_handle handle, struct acpi_device **device)
- static void acpi_processor_hotplug_notify(acpi_handle handle,
- 					  u32 event, void *data)
- {
--	struct acpi_processor *pr;
- 	struct acpi_device *device = NULL;
-+	struct acpi_eject_event *ej_event = NULL;
- 	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE; /* default */
- 	int result;
- 
-@@ -728,20 +728,27 @@ static void acpi_processor_hotplug_notify(acpi_handle handle,
- 				  "received ACPI_NOTIFY_EJECT_REQUEST\n"));
- 
- 		if (acpi_bus_get_device(handle, &device)) {
--			printk(KERN_ERR PREFIX
--				    "Device don't exist, dropping EJECT\n");
-+			pr_err(PREFIX "Device don't exist, dropping EJECT\n");
- 			break;
- 		}
--		pr = acpi_driver_data(device);
--		if (!pr) {
--			printk(KERN_ERR PREFIX
--				    "Driver data is NULL, dropping EJECT\n");
-+		if (!acpi_driver_data(device)) {
-+			pr_err(PREFIX "Driver data is NULL, dropping EJECT\n");
- 			break;
- 		}
- 
--		/* REVISIT: update when eject is supported */
--		ost_code = ACPI_OST_SC_EJECT_NOT_SUPPORTED;
--		break;
-+		ej_event = kmalloc(sizeof(*ej_event), GFP_KERNEL);
-+		if (!ej_event) {
-+			pr_err(PREFIX "No memory, dropping EJECT\n");
-+			break;
-+		}
-+
-+		ej_event->handle = handle;
-+		ej_event->event = ACPI_NOTIFY_EJECT_REQUEST;
-+		acpi_os_hotplug_execute(acpi_bus_hot_remove_device,
-+					(void *)ej_event);
-+
-+		/* eject is performed asynchronously */
-+		return;
- 
- 	default:
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+Hmmm.. but it's not like querying acpi is high cost or anything.
+Maybe I'm missing something but if it can be simpler that way, please
+do so by all means.  I don't care whether you add some extra fields or
+some processing overhead during probing.  It doesn't really matter.
+
+> > Hmm... I see.  Which ACPI binding is it?  The ATA ACPI binding happens
+> > during probing.  It's a different one, I presume?
+> 
+> Since commit 6b66d95895c149cbc04d4fac5a2f5477c543a8ae:
+> libata: bind the Linux device tree to the ACPI device tree
+> ACPI binding happens when SCSI devices are added to the device tree. The
+> ata port/device software structure does not have a acpi_handle field
+> anymore.
+
+Please bear with me.  I haven't paid much attention to zpodd, so it
+probably is my ignorance but at least the ATA <-> ACPI association
+happens during probing by calling ata_acpi_on_devcfg() from
+ata_dev_configure(), and it pretty much has to happen then because
+_SDD/_GTF should be executed after hardreset which happens during
+probing.  So, yeah, I'm confused.
+
+Thanks.
+
 -- 
-1.7.11.7
+tejun
