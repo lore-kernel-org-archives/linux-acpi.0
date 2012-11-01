@@ -1,91 +1,102 @@
-From: Seiji Aguchi <seiji.aguchi@hds.com>
-Subject: [RESEND][PATCH v4 7/7] Add a format check for an existing variable
- name at erasing time
-Date: Thu, 1 Nov 2012 23:03:04 +0000
-Message-ID: <A5ED84D3BB3A384992CBB9C77DEDA4D4138B43E7@USINDEM103.corp.hds.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v3 3/3] Improve container_notify_cb() to support container hot-remove.
+Date: Fri, 02 Nov 2012 00:15:35 +0100
+Message-ID: <1920067.RxMJtDGai1@vostro.rjw.lan>
+References: <1351668471-31436-1-git-send-email-tangchen@cn.fujitsu.com> <11976302.Ya3MGGIAsU@vostro.rjw.lan> <CAE9FiQVGPP3+97D2SatH_CBPBpqBZyCe7We=9=x5ZEq8_d0fWQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from usindpps05.hds.com ([207.126.252.18]:44733 "EHLO
-	usindpps05.hds.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965325Ab2KAXDO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Nov 2012 19:03:14 -0400
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAE9FiQVGPP3+97D2SatH_CBPBpqBZyCe7We=9=x5ZEq8_d0fWQ@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Toshi Kani <toshi.kani@hp.com>, ZhangRui <rui.zhang@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, Tang Chen <tangchen@cn.fujitsu.com>, bhelgaas@google.com, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "mikew@google.com" <mikew@google.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Luck, Tony (tony.luck@intel.com)" <tony.luck@intel.com>, "Matthew Garrett (mjg@redhat.com)" <mjg@redhat.com>, "dzickus@redhat.com" <dzickus@redhat.com>
-Cc: "dle-develop@lists.sourceforge.net" <dle-develop@lists.sourceforge.net>, Satoru Moriya <satoru.moriya@hds.com>
 
-[Issue]
+On Thursday, November 01, 2012 03:15:31 PM Yinghai Lu wrote:
+> On Thu, Nov 1, 2012 at 2:31 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> >> oh, no, that commit should not be reverted. instead we should add some
+> >> comment for it...
+> >>
+> >> that mean : three path, will have three separated static lock dep key
+> >> from every INIT_WORK.
+> >
+> > I see.
+> >
+> > OK, I'll drop the patch removing it.
+> >
+> > What about the following comment:
+> >
+> > "To prevent lockdep from complaining unnecessarily, make sure that there
+> >  is a different static lockdep key created for each workqueue by using
+> >  INIT_WORK for each of them separately."
+> >
+> created ?
+> 
+> how about "defined" ?
+> 
+> or just remove  "created"
 
-a format of variable name has been updated to type, id, count and ctime
-to support holding multiple logs.
+Yes, that's better.
 
-Format of current variable name
-  dump-type0-1-2-12345678
+I suppose that the appended patch may be better still, though.
 
-  type:0
-  id:1
-  count:2
-  ctime:12345678
+Thanks,
+Rafael
 
-On the other hand, if an old variable name before being updated
-remains, users can't erase it via /dev/pstore.
 
-Format of old variable name
-  dump-type0-1-12345678
-
-  type:0
-  id:1
-  ctime:12345678
-
-[Solution]
-
-This patch add a format check for the old variable name in a erase callback to make it erasable.
-
-Signed-off-by: Seiji Aguchi <seiji.aguchi@hds.com>
 ---
- drivers/firmware/efivars.c |   20 ++++++++++++++++++--
- 1 files changed, 18 insertions(+), 2 deletions(-)
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Subject: ACPI: Make seemingly useless check in osl.c more understandable
 
-diff --git a/drivers/firmware/efivars.c b/drivers/firmware/efivars.c
-index bf7a6f9..6e51c1e 100644
---- a/drivers/firmware/efivars.c
-+++ b/drivers/firmware/efivars.c
-@@ -773,6 +773,8 @@ static int efi_pstore_erase(enum pstore_type_id type, u64 id, int count,
- {
- 	char name[DUMP_NAME_LEN];
- 	efi_char16_t efi_name[DUMP_NAME_LEN];
-+	char name_old[DUMP_NAME_LEN];
-+	efi_char16_t efi_name_old[DUMP_NAME_LEN];
- 	efi_guid_t vendor = LINUX_EFI_CRASH_GUID;
- 	struct efivars *efivars = psi->data;
- 	struct efivar_entry *entry, *found = NULL;
-@@ -796,8 +798,22 @@ static int efi_pstore_erase(enum pstore_type_id type, u64 id, int count,
- 		if (efi_guidcmp(entry->var.VendorGuid, vendor))
- 			continue;
- 		if (utf16_strncmp(entry->var.VariableName, efi_name,
--				  utf16_strlen(efi_name)))
--			continue;
-+				  utf16_strlen(efi_name))) {
-+			/*
-+			 * Check if an old format,
-+			 * which doesn't support holding
-+			 * multiple logs, remains.
-+			 */
-+			sprintf(name_old, "dump-type%u-%u-%lu", type,
-+				(unsigned int)id, time.tv_sec);
-+
-+			for (i = 0; i < DUMP_NAME_LEN; i++)
-+				efi_name_old[i] = name_old[i];
-+
-+			if (utf16_strncmp(entry->var.VariableName, efi_name_old,
-+					  utf16_strlen(efi_name_old)))
-+				continue;
-+		}
+There is a seemingly useless check in drivers/acpi/osl.c added by
+commit bc73675 (ACPI: fixes a false alarm from lockdep), which really
+is necessary to avoid false positive lockdep complaints.  Document
+this and rearrange the code related to it so that it makes fewer
+checks.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/osl.c |   21 ++++++++++++++-------
+ 1 file changed, 14 insertions(+), 7 deletions(-)
+
+Index: linux/drivers/acpi/osl.c
+===================================================================
+--- linux.orig/drivers/acpi/osl.c
++++ linux/drivers/acpi/osl.c
+@@ -944,17 +944,24 @@ static acpi_status __acpi_os_execute(acp
+ 	 * because the hotplug code may call driver .remove() functions,
+ 	 * which invoke flush_scheduled_work/acpi_os_wait_events_complete
+ 	 * to flush these workqueues.
++	 *
++	 * To prevent lockdep from complaining unnecessarily, make sure that
++	 * there is a different static lockdep key for each workqueue by using
++	 * INIT_WORK() for each of them separately.
+ 	 */
+-	queue = hp ? kacpi_hotplug_wq :
+-		(type == OSL_NOTIFY_HANDLER ? kacpi_notify_wq : kacpid_wq);
+-	dpc->wait = hp ? 1 : 0;
+-
+-	if (queue == kacpi_hotplug_wq)
++	if (hp) {
++		queue = kacpi_hotplug_wq;
++		dpc->wait = 1;
+ 		INIT_WORK(&dpc->work, acpi_os_execute_deferred);
+-	else if (queue == kacpi_notify_wq)
++	} else if (type == OSL_NOTIFY_HANDLER) {
++		queue = kacpi_notify_wq;
++		dpc->wait = 0;
+ 		INIT_WORK(&dpc->work, acpi_os_execute_deferred);
+-	else
++	} else {
++		queue = kacpid_wq;
++		dpc->wait = 0;
+ 		INIT_WORK(&dpc->work, acpi_os_execute_deferred);
++	}
  
- 		/* found */
- 		found = entry;
+ 	/*
+ 	 * On some machines, a software-initiated SMI causes corruption unless
+
 -- 
-1.7.1
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
