@@ -1,27 +1,19 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH v3 3/3] Improve container_notify_cb() to support
- container hot-remove.
-Date: Thu, 01 Nov 2012 13:17:58 -0600
-Message-ID: <1351797478.19172.103.camel@misato.fc.hp.com>
-References: <1351668471-31436-1-git-send-email-tangchen@cn.fujitsu.com>
-	 <1351668471-31436-4-git-send-email-tangchen@cn.fujitsu.com>
-	 <1351788194.19172.98.camel@misato.fc.hp.com>
-	 <CAE9FiQXxHz_RntOc2gxxDscv8+mDQ2XBL0sHSrptj_arwUb8-A@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v3 3/3] Improve container_notify_cb() to support container hot-remove.
+Date: Thu, 01 Nov 2012 21:16:13 +0100
+Message-ID: <2190235.LV034OX9Ij@vostro.rjw.lan>
+References: <1351668471-31436-1-git-send-email-tangchen@cn.fujitsu.com> <1351788194.19172.98.camel@misato.fc.hp.com> <CAE9FiQXxHz_RntOc2gxxDscv8+mDQ2XBL0sHSrptj_arwUb8-A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0014.houston.hp.com ([15.201.24.17]:17942 "EHLO
-	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762179Ab2KATZk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Nov 2012 15:25:40 -0400
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <CAE9FiQXxHz_RntOc2gxxDscv8+mDQ2XBL0sHSrptj_arwUb8-A@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Yinghai Lu <yinghai@kernel.org>
-Cc: ZhangRui <rui.zhang@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tang Chen <tangchen@cn.fujitsu.com>, bhelgaas@google.com, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Toshi Kani <toshi.kani@hp.com>, ZhangRui <rui.zhang@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, Tang Chen <tangchen@cn.fujitsu.com>, bhelgaas@google.com, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2012-11-01 at 11:28 -0700, Yinghai Lu wrote:
+On Thursday, November 01, 2012 11:28:25 AM Yinghai Lu wrote:
 > On Thu, Nov 1, 2012 at 9:43 AM, Toshi Kani <toshi.kani@hp.com> wrote:
 > >
 > > Rafael pointed out in my CPU hot-remove patch that
@@ -109,20 +101,14 @@ On Thu, 2012-11-01 at 11:28 -0700, Yinghai Lu wrote:
 > Len or Rafael,
 > can you just revert that silly patch?
 
-Hi Yinghai,
+We're removing this as per:
 
-Per the following thread, the code seems to be written in this way to
-allocate a separate lock_class_key for each work queue.  It should have
-had some comment to explain this, though.
-
-https://lkml.org/lkml/2009/12/13/304
+http://git.kernel.org/?p=linux/kernel/git/rafael/linux-pm.git;a=commit;h=77f1966ec9763e85e5f1a9202802e90c297b4c21
 
 Thanks,
--Toshi
+Rafael
 
 
-
-> 
-> Yinghai
-
-
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
