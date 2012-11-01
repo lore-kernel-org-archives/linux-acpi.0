@@ -1,128 +1,145 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH v3 3/3] Improve container_notify_cb() to support container hot-remove.
-Date: Thu, 1 Nov 2012 13:16:22 -0700
-Message-ID: <CAE9FiQV0gAJabpcoSHhTYq19m-YmaC0O6HH_dFKXUTuvUMG4Fg@mail.gmail.com>
-References: <1351668471-31436-1-git-send-email-tangchen@cn.fujitsu.com>
-	<CAE9FiQXxHz_RntOc2gxxDscv8+mDQ2XBL0sHSrptj_arwUb8-A@mail.gmail.com>
-	<1351797478.19172.103.camel@misato.fc.hp.com>
-	<1748725.QBg5LLmPOx@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 5/5] ACPI: Add support for platform bus type
+Date: Thu, 01 Nov 2012 22:21:46 +0100
+Message-ID: <9809109.C0U00708CM@vostro.rjw.lan>
+References: <1421417.rIOjExM5Pt@vostro.rjw.lan> <14394066.j8A8VXQzU7@vostro.rjw.lan> <CAE9FiQUXk9AcR87B8PyLoW3JJveZMd7SqB9pDmfA8F320SCLng@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:62370 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758502Ab2KAUQY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Nov 2012 16:16:24 -0400
-In-Reply-To: <1748725.QBg5LLmPOx@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <CAE9FiQUXk9AcR87B8PyLoW3JJveZMd7SqB9pDmfA8F320SCLng@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Mathias Nyman <mathias.nyman@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Lv Zheng <lv.zheng@intel.com>, Huang Ying <ying.huang@intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, x86 list <x86@kernel.org>, Tony Luck <tony.luck@intel.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Zhang Rui <rui.zhang@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Toshi Kani <toshi.kani@hp.com>, ZhangRui <rui.zhang@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, Tang Chen <tangchen@cn.fujitsu.com>, bhelgaas@google.com, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, Nov 1, 2012 at 1:17 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Thursday, November 01, 2012 01:17:58 PM Toshi Kani wrote:
->> On Thu, 2012-11-01 at 11:28 -0700, Yinghai Lu wrote:
->> > On Thu, Nov 1, 2012 at 9:43 AM, Toshi Kani <toshi.kani@hp.com> wrote:
->> > >
->> > > Rafael pointed out in my CPU hot-remove patch that
->> > > acpi_bus_hot_remove_device() was not exported for modules.  Looks like
->> > > you have the same problem here.  FYI, I just sent the following patch
->> > > that exports acpi_bus_hot_remove_device() and acpi_os_hotplug_execute().
->> > >
->> > > https://lkml.org/lkml/2012/11/1/225
->> >
->> > acpi_os_hotplug_execute() does not like having good quality yet.
->> >
->> > c02256be (Zhang Rui           2009-06-23 10:20:29 +0800  941)   /*
->> > c02256be (Zhang Rui           2009-06-23 10:20:29 +0800  942)    * We
->> > can't run hotplug code in keventd_wq/kacpid_wq/kacpid_notify_wq
->> > c02256be (Zhang Rui           2009-06-23 10:20:29 +0800  943)    *
->> > because the hotplug code may call driver .remove() functions,
->> > c02256be (Zhang Rui           2009-06-23 10:20:29 +0800  944)    *
->> > which invoke flush_scheduled_work/acpi_os_wait_events_complete
->> > c02256be (Zhang Rui           2009-06-23 10:20:29 +0800  945)    * to
->> > flush these workqueues.
->> > c02256be (Zhang Rui           2009-06-23 10:20:29 +0800  946)    */
->> > c02256be (Zhang Rui           2009-06-23 10:20:29 +0800  947)   queue
->> > = hp ? kacpi_hotplug_wq :
->> > c02256be (Zhang Rui           2009-06-23 10:20:29 +0800  948)
->> >  (type == OSL_NOTIFY_HANDLER ? kacpi_notify_wq : kacpid_wq);
->> > 9ac61856 (Bjorn Helgaas       2009-08-31 22:32:10 +0000  949)
->> > dpc->wait = hp ? 1 : 0;
->> > bc73675b (Zhang Rui           2010-03-22 15:48:54 +0800  950)
->> > bc73675b (Zhang Rui           2010-03-22 15:48:54 +0800  951)   if
->> > (queue == kacpi_hotplug_wq)
->> > bc73675b (Zhang Rui           2010-03-22 15:48:54 +0800  952)
->> >  INIT_WORK(&dpc->work, acpi_os_execute_deferred);
->> > bc73675b (Zhang Rui           2010-03-22 15:48:54 +0800  953)   else
->> > if (queue == kacpi_notify_wq)
->> > bc73675b (Zhang Rui           2010-03-22 15:48:54 +0800  954)
->> >  INIT_WORK(&dpc->work, acpi_os_execute_deferred);
->> > bc73675b (Zhang Rui           2010-03-22 15:48:54 +0800  955)   else
->> > bc73675b (Zhang Rui           2010-03-22 15:48:54 +0800  956)
->> >  INIT_WORK(&dpc->work, acpi_os_execute_deferred);
->> > bc73675b (Zhang Rui           2010-03-22 15:48:54 +0800  957)
->> >
->> > really don't know why checking queue and call same code in every branch.
->> >
->> > from comm:
->> >
->> > commit bc73675b99fd9850dd914be01d71af99c5d2a1ae
->> > Author: Zhang Rui <rui.zhang@intel.com>
->> > Date:   Mon Mar 22 15:48:54 2010 +0800
->> >
->> >     ACPI: fixes a false alarm from lockdep
->> >
->> >     fixes a false alarm from lockdep, as acpi hotplug workqueue waits other
->> >     workqueues.
->> >     http://bugzilla.kernel.org/show_bug.cgi?id=14553
->> >     https://bugzilla.kernel.org/show_bug.cgi?id=15521
->> >
->> >     Original-patch-from: Andrew Morton <akpm@linux-foundation.org>
->> >     Signed-off-by: Shaohua Li <shaohua.li@intel.com>
->> >     Signed-off-by: Zhang Rui <rui.zhang@intel.com>
->> >     Signed-off-by: Len Brown <len.brown@intel.com>
->> >
->> > diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
->> > index 8e6d866..900da68 100644
->> > --- a/drivers/acpi/osl.c
->> > +++ b/drivers/acpi/osl.c
->> > @@ -758,7 +758,14 @@ static acpi_status
->> > __acpi_os_execute(acpi_execute_type type,
->> >         queue = hp ? kacpi_hotplug_wq :
->> >                 (type == OSL_NOTIFY_HANDLER ? kacpi_notify_wq : kacpid_wq);
->> >         dpc->wait = hp ? 1 : 0;
->> > -       INIT_WORK(&dpc->work, acpi_os_execute_deferred);
->> > +
->> > +       if (queue == kacpi_hotplug_wq)
->> > +               INIT_WORK(&dpc->work, acpi_os_execute_deferred);
->> > +       else if (queue == kacpi_notify_wq)
->> > +               INIT_WORK(&dpc->work, acpi_os_execute_deferred);
->> > +       else
->> > +               INIT_WORK(&dpc->work, acpi_os_execute_deferred);
->> > +
->> >         ret = queue_work(queue, &dpc->work);
->> >
->> >         if (!ret) {
->> >
->> >
->> > Len or Rafael,
->> > can you just revert that silly patch?
->>
->> Hi Yinghai,
->>
->> Per the following thread, the code seems to be written in this way to
->> allocate a separate lock_class_key for each work queue.  It should have
->> had some comment to explain this, though.
->>
->> https://lkml.org/lkml/2009/12/13/304
->
-> The code has evolved since then, however, so that it doesn't make sense
-> any more.
->
+On Thursday, November 01, 2012 09:19:59 AM Yinghai Lu wrote:
+> On Thu, Nov 1, 2012 at 7:35 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> >> > @@ -1544,8 +1553,13 @@ static acpi_status acpi_bus_check_add(ac
+> >> >          */
+> >> >         device = NULL;
+> >> >         acpi_bus_get_device(handle, &device);
+> >> > -       if (ops->acpi_op_add && !device)
+> >> > +       if (ops->acpi_op_add && !device) {
+> >> >                 acpi_add_single_object(&device, handle, type, sta, ops);
+> >> > +               /* Is the device a known good platform device? */
+> >> > +               if (device
+> >> > +                   && !acpi_match_device_ids(device, acpi_platform_device_ids))
+> >> > +                       acpi_create_platform_device(device);
+> >> > +       }
+> >>
+> >> That is ugly! any reason for not using acpi_driver for them.
+> >
+> > Yes, a couple of reasons.  First off, there are existing platform drivers for
+> > these things already and there's no reason for creating a "glue" layer between
+> > those drivers and struct acpi_device objects.  Second, we're going to get rid
+> > of acpi_driver things entirely going forward (the existing ones will be replaced
+> > by platform drivers or included into the ACPI core).
+> 
+> that should be glue between acpi_device and platform_device.
+> 
+> how are you going to handle removing path ? aka when acpi_device get
+> trimed, how those platform get deleted?
 
-oh, no, that commit should not be reverted. instead we should add some
-comment for it...
+This is a valid point.
 
-that mean : three path, will have three separated static lock dep key
-from every INIT_WORK.
+Roughly, the idea is to walk the dev's list of physical nodes and call
+.remove() for each of them in acpi_bus_remove().  Or to do something
+equivalent to that.
+
+However, we're not going to add any IDs of removable devices to
+acpi_platform_device_ids[] for now, so we simply don't need to modify that
+code path just yet (we'll modify it when we're about to add such devices to
+that table).
+
+> >> there is not reason to treat those platform_device different from pci
+> >> root device and other pnp device.
+> >
+> > Well, I agree. :-)
+> >
+> > So those things you're talking about we'll be platform devices too in the
+> > future.
+> >
+> >> something like attached patch. .add of acpi_driver ops could call
+> >> acpi_create_platform_device.
+> >
+> > Been there, decided to do it differently this time.
+> >
+> 
+> So you are going to replace acpi_device/acpi_driver with
+> platform_device/platform_driver ?
+
+Not exactly.  Let me start from the big picture, though. :-)
+
+First off, we need to unify the handling of devices by the ACPI subsystem
+regardless of whether they are on a specific bus, like PCI, or they are
+busless "platform" devices.
+
+Currently, if a device is on a specific bus *and* there is a device node in the
+ACPI namespace corresponding to it, there will be two objects based on
+struct device for it eventually, the "physical node", like struct pci_dev, and
+the "ACPI node" represented by struct acpi_device.  They are associated with
+each other through the code in drivers/acpi/glue.c.  In turn, if the device is
+busless and not discoverable natively, we only create the "ACPI node" struct
+acpi_device thing for it.  Those ACPI nodes are then *sometimes* bind to
+drivers (represented by struct acpi_driver).
+
+The fact that the busless devices are *sometimes* handled by binding drivers
+directly to struct acpi_device while the other devices are handled through
+glue.c confuses things substantially and causes problems to happen right now
+(for example, acpi_driver drivers sometimes attempt to bind to things that have
+other native drivers and should really be handled by them).
+Furthermore, the situation will only get worse over time if we don't do
+anything about that, because we're going to see more and more devices that
+won't be discoverable natively and will have corresponding nodes in the ACPI
+namespace and we're going to see more buses whose devices will have such
+nodes.
+
+Moreover, for many of those devices there are native drivers present in
+the kernel tree already, because they will be based on IP blocks used in
+the current hardware (for example, we may see ARM-based systems based on
+exactly the same hardware with ACPI BIOSes and without them).  That applies
+to busless devices as well as to devices on specific buses.
+
+Now, the problem is how the unification is going to be done and I honestly
+don't think we have much *choice* here.  Namely, for PCI (and other devices
+discoverable natively) we pretty much have to do the glue.c thing (or something
+equivalent), because we need to match what we've discovered natively against
+the information from the ACPI tables in the BIOS.  This means that for busless
+devices we need to create "physical" nodes as well, so that all of them are
+handled by drivers binding to the "physical" node rather than to struct
+acpi_device.  This also will allow us to reuse the existing drivers with
+minimum modifications (well, hopefully).
+
+Pretty much every ACPI developer I have discussed that with so far, including
+people like Matthew Garrett and Zhang Rui who have been working on ACPI for
+years, seems to agree that this is the way to go.
+
+Thus, in the long run, acpi_driver drivers will be replaced by something else
+(platform drivers seem to be a natural choice in many cases), but struct
+acpi_device objects won't go away, at least not entirely.  My long haul plan
+is to drop the "dev" component of struct acpi_device and rename it to something
+like struct acpi_dev_node, to clarify its meaning.
+
+I'm quite confident that this is doable.  The part I'm most concerned about is
+the interactions with user space, because we need to pay attention not to break
+the existing user space interfaces (that are actually used).  That said, I'm
+not expecting this to be a one-shot transition.  Rather, this is going to take
+time, like several kernel releases, and I'm sure there are details we need to
+be very careful about.
+
+That's one of the reasons why acpi_platform_device_ids[] is there: so that we
+can carefully carry out the unification step by step.
+
+> Did you ever try to start to the work to see if it is doable? aka do
+> you have draft version to do that?
+
+Unfortunately, I don't have anything I could share with you at the moment.
+
+Thanks,
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
