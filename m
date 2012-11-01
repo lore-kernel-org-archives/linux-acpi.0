@@ -1,66 +1,79 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH 5/5] ACPI: Add support for platform bus type
-Date: Thu, 1 Nov 2012 09:19:59 -0700
-Message-ID: <CAE9FiQUXk9AcR87B8PyLoW3JJveZMd7SqB9pDmfA8F320SCLng@mail.gmail.com>
-References: <1421417.rIOjExM5Pt@vostro.rjw.lan>
-	<1992450.Ke1VSjeX8X@vostro.rjw.lan>
-	<CAE9FiQURGWOUzHc5j4pHCfcXE9y4a3WaPCEg=RewUpA=u8pSAQ@mail.gmail.com>
-	<14394066.j8A8VXQzU7@vostro.rjw.lan>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH v3 3/3] Improve container_notify_cb() to support
+ container hot-remove.
+Date: Thu, 01 Nov 2012 10:43:14 -0600
+Message-ID: <1351788194.19172.98.camel@misato.fc.hp.com>
+References: <1351668471-31436-1-git-send-email-tangchen@cn.fujitsu.com>
+	 <1351668471-31436-4-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <14394066.j8A8VXQzU7@vostro.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, Mathias Nyman <mathias.nyman@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Lv Zheng <lv.zheng@intel.com>, Huang Ying <ying.huang@intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, x86 list <x86@kernel.org>, Tony Luck <tony.luck@intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1351668471-31436-4-git-send-email-tangchen@cn.fujitsu.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: yinghai@kernel.org, bhelgaas@google.com, lenb@kernel.org, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Nov 1, 2012 at 7:35 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
->> > @@ -1544,8 +1553,13 @@ static acpi_status acpi_bus_check_add(ac
->> >          */
->> >         device = NULL;
->> >         acpi_bus_get_device(handle, &device);
->> > -       if (ops->acpi_op_add && !device)
->> > +       if (ops->acpi_op_add && !device) {
->> >                 acpi_add_single_object(&device, handle, type, sta, ops);
->> > +               /* Is the device a known good platform device? */
->> > +               if (device
->> > +                   && !acpi_match_device_ids(device, acpi_platform_device_ids))
->> > +                       acpi_create_platform_device(device);
->> > +       }
->>
->> That is ugly! any reason for not using acpi_driver for them.
->
-> Yes, a couple of reasons.  First off, there are existing platform drivers for
-> these things already and there's no reason for creating a "glue" layer between
-> those drivers and struct acpi_device objects.  Second, we're going to get rid
-> of acpi_driver things entirely going forward (the existing ones will be replaced
-> by platform drivers or included into the ACPI core).
+On Wed, 2012-10-31 at 15:27 +0800, Tang Chen wrote:
+> This patch introduces a new function container_device_remove() to do
+> the container hot-remove job. It works like the following:
+> 
+> 1. call acpi_bus_trim(device, 0) to stop the container device,
+>    which means to unbind ACPI drivers first before remove devices.
+>    (This feature is introduced by Lu Yinghai:
+>     http://www.spinics.net/lists/linux-pci/msg17667.html)
+> 2. generate the KOBJ_OFFLINE uevent. (Did I do this correct ?)
+> 3. call acpi_bus_hot_remove_device(), which will call acpi_bus_trim(device, 1)
+>    to remove the container.
+> 
+> This patch is based on Lu Yinghai's work.
+> git://git.kernel.org/pub/scm/linux/kernel/git/yinghai/linux-yinghai.git for-pci-split-pci-root-hp-2
+> 
+> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+> ---
+>  drivers/acpi/container.c |   63 ++++++++++++++++++++++++++++++++++++++-------
+>  1 files changed, 53 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
+> index a10eee6..4abec98 100644
+> --- a/drivers/acpi/container.c
+> +++ b/drivers/acpi/container.c
+> @@ -166,6 +166,32 @@ static int container_device_add(struct acpi_device **device, acpi_handle handle)
+>  	return result;
+>  }
+>  
+> +static int container_device_remove(struct acpi_device *device)
+> +{
+> +	int ret;
+> +	struct acpi_eject_event *ej_event;
+> +
+> +	/* stop container device at first */
+> +	ret = acpi_bus_trim(device, 0);
+> +	pr_debug("acpi_bus_trim stop return %x\n", ret);
+> +	if (ret)
+> +		return ret;
+> +
+> +	/* send the uevent before remove the device */
+> +	kobject_uevent(&device->dev.kobj, KOBJ_OFFLINE);
+> +
+> +	ej_event = kmalloc(sizeof(*ej_event), GFP_KERNEL);
+> +	if (!ej_event)
+> +		return -ENOMEM;
+> +
+> +	ej_event->device = device;
+> +	ej_event->event = ACPI_NOTIFY_EJECT_REQUEST;
+> +
+> +	acpi_bus_hot_remove_device(ej_event);
 
-that should be glue between acpi_device and platform_device.
+Hi Tang,
 
-how are you going to handle removing path ? aka when acpi_device get
-trimed, how those platform get deleted?
+Rafael pointed out in my CPU hot-remove patch that
+acpi_bus_hot_remove_device() was not exported for modules.  Looks like
+you have the same problem here.  FYI, I just sent the following patch
+that exports acpi_bus_hot_remove_device() and acpi_os_hotplug_execute().
 
->
->> there is not reason to treat those platform_device different from pci
->> root device and other pnp device.
->
-> Well, I agree. :-)
->
-> So those things you're talking about we'll be platform devices too in the
-> future.
->
->> something like attached patch. .add of acpi_driver ops could call
->> acpi_create_platform_device.
->
-> Been there, decided to do it differently this time.
->
+https://lkml.org/lkml/2012/11/1/225
 
-So you are going to replace acpi_device/acpi_driver with
-platform_device/platform_driver ?
-
-Did you ever try to start to the work to see if it is doable? aka do
-you have draft version to do that?
-
-Yinghai
+Thanks,
+-Toshi
