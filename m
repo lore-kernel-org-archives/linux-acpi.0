@@ -1,55 +1,112 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] acpi: add missing newline to printk
-Date: Fri, 02 Nov 2012 21:06:30 +0100
-Message-ID: <2755585.b9GScQZuQJ@vostro.rjw.lan>
-References: <1351875078-5843-1-git-send-email-cesarb@cesarb.net>
+Subject: Re: [PATCH] PM / Qos: Ensure device not in PRM_SUSPENDED when pm qos flags request functions are invoked in the pm core.
+Date: Fri, 02 Nov 2012 21:11 +0100
+Message-ID: <3462113.4oKq44aJDs@vostro.rjw.lan>
+References: <1351843430-8023-1-git-send-email-tianyu.lan@intel.com> <1888394.d23n1PsP9K@vostro.rjw.lan> <5093F1F3.5020004@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:52948 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750970Ab2KBUCX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 2 Nov 2012 16:02:23 -0400
-In-Reply-To: <1351875078-5843-1-git-send-email-cesarb@cesarb.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <5093F1F3.5020004@intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: stern@rowland.harvard.edu, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Cesar Eduardo Barros <cesarb@cesarb.net>
-Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, trivial@kernel.org, Lin Ming <ming.m.lin@intel.com>, Len Brown <len.brown@intel.com>
 
-On Friday, November 02, 2012 02:51:18 PM Cesar Eduardo Barros wrote:
-> The missing newline causes messages like this on dmesg:
+On Saturday, November 03, 2012 12:16:51 AM Lan Tianyu wrote:
+> On 2012/11/2 19:17, Rafael J. Wysocki wrote:
+> > On Friday, November 02, 2012 04:03:50 PM Lan Tianyu wrote:
+> >> Since dev_pm_qos_add_request(), dev_pm_qos_update_request() and
+> >> dev_pm_qos_remove_request() for pm qos flags should not be invoked
+> >> when device in RPM_SUSPENDED. Add pm_runtime_get_sync() and pm_runtime_put()
+> >> around these functions in the pm core to ensure device not in RPM_SUSPENDED.
+> >>
+> >> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+> >> ---
+> >>   drivers/base/power/qos.c   |   10 ++++++++--
+> >>   drivers/base/power/sysfs.c |    4 ++++
+> >>   2 files changed, 12 insertions(+), 2 deletions(-)
+> >>
+> >> diff --git a/drivers/base/power/qos.c b/drivers/base/power/qos.c
+> >> index 31d3f48..b50ba72 100644
+> >> --- a/drivers/base/power/qos.c
+> >> +++ b/drivers/base/power/qos.c
+> >> @@ -624,15 +624,19 @@ int dev_pm_qos_expose_flags(struct device *dev, s32 val)
+> >>   	if (!req)
+> >>   		return -ENOMEM;
+> >>
+> >> +	pm_runtime_get_sync(dev);
+> >>   	ret = dev_pm_qos_add_request(dev, req, DEV_PM_QOS_FLAGS, val);
+> >> +	pm_runtime_put(dev);
+> >
+> > I would drop this one ...
+> >
+> >>   	if (ret < 0)
+> >>   		return ret;
+> >>
+> >>   	dev->power.qos->flags_req = req;
+> >>   	ret = pm_qos_sysfs_add_flags(dev);
+> >> -	if (ret)
+> >> +	if (ret) {
+> >> +		pm_runtime_get_sync(dev);
+> >>   		__dev_pm_qos_drop_user_request(dev, DEV_PM_QOS_FLAGS);
+> >> -
+> >> +		pm_runtime_put(dev);
+> >
+> > ... and move this one before the return statement (plus a label for
+> > goto from the ret < 0 check after adding the request).
+> >
+> What you mean likes following?
 > 
-> [    2.578212] ACPI: Invalid Power Resource to register!<5>[2.578456] ...
+> +       pm_runtime_get_sync(dev);
+>          ret = dev_pm_qos_add_request(dev, req, DEV_PM_QOS_FLAGS, val);
+>          if (ret < 0)
+> -               return ret;
+> +               goto fail;
 > 
-> Cc: Lin Ming <ming.m.lin@intel.com>
-> Cc: Len Brown <len.brown@intel.com>
-> Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
+>          dev->power.qos->flags_req = req;
+>          ret = pm_qos_sysfs_add_flags(dev);
+>          if (ret)
+>                  __dev_pm_qos_drop_user_request(dev, DEV_PM_QOS_FLAGS);
+> 
+> +fail:
+> +       pm_runtime_put(dev);
+>          return ret;
+>   }
+> 
 
-An equivalent patch has been applied already.
+Yes, it does.
+
+> >> +	}
+> >>   	return ret;
+> >>   }
+> >>   EXPORT_SYMBOL_GPL(dev_pm_qos_expose_flags);
+> >> @@ -645,7 +649,9 @@ void dev_pm_qos_hide_flags(struct device *dev)
+> >>   {
+> >>   	if (dev->power.qos && dev->power.qos->flags_req) {
+> >>   		pm_qos_sysfs_remove_flags(dev);
+> >> +		pm_runtime_get_sync(dev);
+> >>   		__dev_pm_qos_drop_user_request(dev, DEV_PM_QOS_FLAGS);
+> >> +		pm_runtime_put(dev);
+> >
+> > I'm not sure if these two are necessary.  If we remove a request,
+> > then what happens worst case is that some flags will be cleared
+> > effectively which means fewer restrictions on the next sleep state.
+> > Then, it shouldn't hurt that the current sleep state is more
+> > restricted.
+> 
+> But this mean the device can be put into lower power state(power off).
+> So why not do that? that can save more power, right?
+
+Correct.  On the other hand, though, if the device already is in the
+deepest low-power state available, we will resume it unnecessarily this
+way.  Which may not be a big deal, however, and since we do that in other
+cases, we may as well do it here.
 
 Thanks,
 Rafael
 
 
-> ---
->  drivers/acpi/power.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-> index 40e38a0..7db61b8 100644
-> --- a/drivers/acpi/power.c
-> +++ b/drivers/acpi/power.c
-> @@ -473,7 +473,7 @@ int acpi_power_resource_register_device(struct device *dev, acpi_handle handle)
->  	return ret;
->  
->  no_power_resource:
-> -	printk(KERN_DEBUG PREFIX "Invalid Power Resource to register!");
-> +	printk(KERN_DEBUG PREFIX "Invalid Power Resource to register!\n");
->  	return -ENODEV;
->  }
->  EXPORT_SYMBOL_GPL(acpi_power_resource_register_device);
-> 
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
