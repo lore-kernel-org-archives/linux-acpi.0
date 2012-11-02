@@ -1,72 +1,117 @@
-From: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Subject: Re: [PATCH 3/8] PCI: Move out pci_enable_bridges out of
- assign_unsigned_bus_res
-Date: Fri, 2 Nov 2012 19:02:02 +0900
-Message-ID: <20121102190202.2b09edcd.izumi.taku@jp.fujitsu.com>
-References: <20121030040237.GA10472@google.com>
-	<1351618965-16761-1-git-send-email-yinghai@kernel.org>
-	<1351618965-16761-4-git-send-email-yinghai@kernel.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] PM / Qos: Ensure device not in PRM_SUSPENDED when pm qos flags request functions are invoked in the pm core.
+Date: Fri, 02 Nov 2012 12:17:36 +0100
+Message-ID: <1888394.d23n1PsP9K@vostro.rjw.lan>
+References: <1351843430-8023-1-git-send-email-tianyu.lan@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:42201 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750927Ab2KBKCM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Nov 2012 06:02:12 -0400
-In-Reply-To: <1351618965-16761-4-git-send-email-yinghai@kernel.org>
+Received: from ogre.sisk.pl ([193.178.161.156]:52031 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1762580Ab2KBLNb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 2 Nov 2012 07:13:31 -0400
+In-Reply-To: <1351843430-8023-1-git-send-email-tianyu.lan@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: stern@rowland.harvard.edu, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tue, 30 Oct 2012 10:42:40 -0700
-Yinghai Lu <yinghai@kernel.org> wrote:
-
-> So could use assign_unassigned_bus_res pci root bus add
-
-  This description doesn't match the following patch...
-  This is for 4/8?
-
-> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+On Friday, November 02, 2012 04:03:50 PM Lan Tianyu wrote:
+> Since dev_pm_qos_add_request(), dev_pm_qos_update_request() and
+> dev_pm_qos_remove_request() for pm qos flags should not be invoked
+> when device in RPM_SUSPENDED. Add pm_runtime_get_sync() and pm_runtime_put()
+> around these functions in the pm core to ensure device not in RPM_SUSPENDED.
+> 
+> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
 > ---
->  drivers/pci/probe.c     |    1 +
->  drivers/pci/setup-bus.c |    2 --
->  2 files changed, 1 insertions(+), 2 deletions(-)
+>  drivers/base/power/qos.c   |   10 ++++++++--
+>  drivers/base/power/sysfs.c |    4 ++++
+>  2 files changed, 12 insertions(+), 2 deletions(-)
 > 
-> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-> index 65f62e3..59cf1ba 100644
-> --- a/drivers/pci/probe.c
-> +++ b/drivers/pci/probe.c
-> @@ -1905,6 +1905,7 @@ unsigned int __ref pci_rescan_bus(struct pci_bus *bus)
+> diff --git a/drivers/base/power/qos.c b/drivers/base/power/qos.c
+> index 31d3f48..b50ba72 100644
+> --- a/drivers/base/power/qos.c
+> +++ b/drivers/base/power/qos.c
+> @@ -624,15 +624,19 @@ int dev_pm_qos_expose_flags(struct device *dev, s32 val)
+>  	if (!req)
+>  		return -ENOMEM;
 >  
->  	max = pci_scan_child_bus(bus);
->  	pci_assign_unassigned_bus_resources(bus);
-> +	pci_enable_bridges(bus);
->  	pci_bus_add_devices(bus);
+> +	pm_runtime_get_sync(dev);
+>  	ret = dev_pm_qos_add_request(dev, req, DEV_PM_QOS_FLAGS, val);
+> +	pm_runtime_put(dev);
+
+I would drop this one ...
+
+>  	if (ret < 0)
+>  		return ret;
 >  
->  	return max;
-> diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
-> index 59e6c55..6d3591d 100644
-> --- a/drivers/pci/setup-bus.c
-> +++ b/drivers/pci/setup-bus.c
-> @@ -1566,6 +1566,4 @@ void pci_assign_unassigned_bus_resources(struct pci_bus *bus)
->  	up_read(&pci_bus_sem);
->  	__pci_bus_assign_resources(bus, &add_list, NULL);
->  	BUG_ON(!list_empty(&add_list));
+>  	dev->power.qos->flags_req = req;
+>  	ret = pm_qos_sysfs_add_flags(dev);
+> -	if (ret)
+> +	if (ret) {
+> +		pm_runtime_get_sync(dev);
+>  		__dev_pm_qos_drop_user_request(dev, DEV_PM_QOS_FLAGS);
 > -
-> -	pci_enable_bridges(bus);
+> +		pm_runtime_put(dev);
+
+... and move this one before the return statement (plus a label for
+goto from the ret < 0 check after adding the request).
+
+> +	}
+>  	return ret;
 >  }
-> -- 
-> 1.7.7
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+>  EXPORT_SYMBOL_GPL(dev_pm_qos_expose_flags);
+> @@ -645,7 +649,9 @@ void dev_pm_qos_hide_flags(struct device *dev)
+>  {
+>  	if (dev->power.qos && dev->power.qos->flags_req) {
+>  		pm_qos_sysfs_remove_flags(dev);
+> +		pm_runtime_get_sync(dev);
+>  		__dev_pm_qos_drop_user_request(dev, DEV_PM_QOS_FLAGS);
+> +		pm_runtime_put(dev);
+
+I'm not sure if these two are necessary.  If we remove a request,
+then what happens worst case is that some flags will be cleared
+effectively which means fewer restrictions on the next sleep state.
+Then, it shouldn't hurt that the current sleep state is more
+restricted.
+
+Hmm.  Perhaps a comment would suffice?
+
+>  	}
+>  }
+>  EXPORT_SYMBOL_GPL(dev_pm_qos_hide_flags);
+> diff --git a/drivers/base/power/sysfs.c b/drivers/base/power/sysfs.c
+> index 50d16e3..240bfaa 100644
+> --- a/drivers/base/power/sysfs.c
+> +++ b/drivers/base/power/sysfs.c
+> @@ -264,7 +264,9 @@ static ssize_t pm_qos_no_power_off_store(struct device *dev,
+>  	if (ret != 0 && ret != 1)
+>  		return -EINVAL;
+>  
+> +	pm_runtime_get_sync(dev);
+>  	ret = dev_pm_qos_update_flags(dev, PM_QOS_FLAG_NO_POWER_OFF, ret);
+> +	pm_runtime_put(dev);
+>  	return ret < 0 ? ret : n;
+>  }
+
+Well, you haven't noticed that dev_pm_qos_update_flags() already does
+pm_runtime_get_sync()/pm_runtime_put(). :-)
+
+> @@ -291,7 +293,9 @@ static ssize_t pm_qos_remote_wakeup_store(struct device *dev,
+>  	if (ret != 0 && ret != 1)
+>  		return -EINVAL;
+>  
+> +	pm_runtime_get_sync(dev);
+>  	ret = dev_pm_qos_update_flags(dev, PM_QOS_FLAG_REMOTE_WAKEUP, ret);
+> +	pm_runtime_put(dev);
+>  	return ret < 0 ? ret : n;
+>  }
+
+Thanks,
+Rafael
 
 
 -- 
-Taku Izumi <izumi.taku@jp.fujitsu.com>
-
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
