@@ -1,62 +1,109 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 5/7] ACPI / PM: Provide device PM functions operating on struct acpi_device
-Date: Fri, 02 Nov 2012 12:19:42 +0100
-Message-ID: <3727309.uat568eqeC@vostro.rjw.lan>
-References: <1766582.8gdQKXoi0K@vostro.rjw.lan> <2204038.IsGMuMD7u4@vostro.rjw.lan> <50935756.4090405@intel.com>
+Subject: Re: [PATCH 1/3] ACPI: Introduce a new acpi handle to determine HID match.
+Date: Fri, 02 Nov 2012 13:23:36 +0100
+Message-ID: <1952961.jiv6kKxT5N@vostro.rjw.lan>
+References: <1350593430-24470-1-git-send-email-yinghai@kernel.org> <1350593430-24470-2-git-send-email-yinghai@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:52042 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([193.178.161.156]:52094 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762691Ab2KBLPg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 2 Nov 2012 07:15:36 -0400
-In-Reply-To: <50935756.4090405@intel.com>
+	id S1752550Ab2KBMTa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 2 Nov 2012 08:19:30 -0400
+In-Reply-To: <1350593430-24470-2-git-send-email-yinghai@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Huang Ying <ying.huang@intel.com>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Adrian Hunter <adrian.hunter@intel.com>
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Jacob Shin <jacob.shin@amd.com>, Tejun Heo <tj@kernel.org>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, linux-kernel@vger.kernel.org, Tang Chen <tangchen@cn.fujitsu.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On Friday, November 02, 2012 01:17:10 PM Aaron Lu wrote:
-> On 10/30/2012 11:20 PM, Rafael J. Wysocki wrote:
-> > On Tuesday, October 30, 2012 03:28:45 PM Aaron Lu wrote:
-> >> On Mon, Oct 29, 2012 at 10:11:20AM +0100, Rafael J. Wysocki wrote:
-> >>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >>>
-> >>> If the caller of acpi_bus_set_power() already has a pointer to the
-> >>> struct acpi_device object corresponding to the device in question, it
-> >>> doesn't make sense for it to go through acpi_bus_get_device(), which
-> >>> may be costly, because it involves acquiring the global ACPI
-> >>> namespace mutex.
-> >>>
-> >>> For this reason, export the function operating on struct acpi_device
-> >>> objects used internally by acpi_bus_set_power(), so that it may be
-> >>> called instead of acpi_bus_set_power() in the above case, and change
-> >>> its name to acpi_device_set_power().
-> >>>
-> >>> Additionally, introduce two inline wrappers for checking ACPI PM
-> >>> capabilities of devices represented by struct acpi_device objects.
-> >>
-> >> What about adding yet another wrapper to check power off capability of
-> >> the device? If device has _PS3 or _PRx, it means the device can be
-> >> powered off from ACPI's perspective. This is useful for ZPODD when
-> >> deciding if platform has the required ability to support it.
-> > 
-> > Sure, no problem with that.  Perhaps you can cut a patch for that
-> > on top of this series?
+On Thursday, October 18, 2012 01:50:09 PM Yinghai Lu wrote:
+> From: Tang Chen <tangchen@cn.fujitsu.com>
 > 
-> Do you think it is reasonable to add a new field to acpi_state.flags to
-> represent if we, as OSPM, have a way to put the device into a ACPI
-> device state? This field can be set once in acpi_bus_get_power_flags and
-> used afterwards.
+> We need to find out if one handle is for root bridge, and install notify
+> handler for it to handle pci root bus hot add.
+> At that time, root bridge acpi device is not created yet.
 > 
-> The valid field of acpi_state.flags is what we have today, and it means
-> whether this ACPI device state is valid for the device, but not that if
-> OSPM can actually put the device into that power state.
+> So acpi_match_device_ids() will not work.
+> 
+> This patch add a function to check if new acpi handle's HID matches a list
+> of IDs.  The new api use acpi_device_info instead acpi_device.
+> 
+> -v2: updated changelog, also check length for string info...
+>      change checking sequence by moving string comaring close to for loop.
+> 					- Yinghai
+> 
+> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: linux-acpi@vger.kernel.org
+> ---
+>  drivers/acpi/scan.c     |   33 +++++++++++++++++++++++++++++++++
+>  include/acpi/acpi_bus.h |    2 ++
+>  2 files changed, 35 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 5dfec09..33ca993 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -312,6 +312,39 @@ int acpi_match_device_ids(struct acpi_device *device,
+>  }
+>  EXPORT_SYMBOL(acpi_match_device_ids);
+>  
+> +int acpi_match_object_info_ids(struct acpi_device_info *info,
+> +			       const struct acpi_device_id *ids)
+> +{
+> +	const struct acpi_device_id *id;
+> +	char *str;
+> +	u32 len;
+> +	int i;
+> +
+> +	len = info->hardware_id.length;
+> +	if (len) {
+> +		str = info->hardware_id.string;
+> +		if (str)
+> +			for (id = ids; id->id[0]; id++)
+> +				if (!strcmp((char *)id->id, str))
+> +					return 0;
+> +	}
+> +
+> +	for (i = 0; i < info->compatible_id_list.count; i++) {
+> +		len = info->compatible_id_list.ids[i].length;
+> +		if (!len)
+> +			continue;
+> +		str = info->compatible_id_list.ids[i].string;
+> +		if (!str)
+> +			continue;
+> +		for (id = ids; id->id[0]; id++)
+> +			if (!strcmp((char *)id->id, str))
+> +				return 0;
+> +	}
+> +
+> +	return -ENOENT;
+> +}
+> +EXPORT_SYMBOL(acpi_match_object_info_ids);
 
-Yes, I think that adding such a new flag would make sense.
+EXPORT_SYMBOL_GPL, please?
 
-Thanks,
+> +
+>  static void acpi_free_ids(struct acpi_device *device)
+>  {
+>  	struct acpi_hardware_id *id, *tmp;
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index 608f92f..6ac415c 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -374,6 +374,8 @@ int acpi_bus_start(struct acpi_device *device);
+>  acpi_status acpi_bus_get_ejd(acpi_handle handle, acpi_handle * ejd);
+>  int acpi_match_device_ids(struct acpi_device *device,
+>  			  const struct acpi_device_id *ids);
+> +int acpi_match_object_info_ids(struct acpi_device_info *info,
+> +			       const struct acpi_device_id *ids);
+>  int acpi_create_dir(struct acpi_device *);
+>  void acpi_remove_dir(struct acpi_device *);
+
+I wonder which code path(s) is(are) going to use the new routine?
+
 Rafael
 
 
