@@ -1,86 +1,61 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH v3 3/3] Improve container_notify_cb() to support container hot-remove.
-Date: Thu, 1 Nov 2012 16:39:50 -0700
-Message-ID: <CAE9FiQW4ONas+m2HWq_xs457xZu3VJ6Nxsq320MD72Khb+sqJg@mail.gmail.com>
-References: <1351668471-31436-1-git-send-email-tangchen@cn.fujitsu.com>
-	<11976302.Ya3MGGIAsU@vostro.rjw.lan>
-	<CAE9FiQVGPP3+97D2SatH_CBPBpqBZyCe7We=9=x5ZEq8_d0fWQ@mail.gmail.com>
-	<1920067.RxMJtDGai1@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re:
+Date: Fri, 02 Nov 2012 01:17:47 +0100
+Message-ID: <3954574.77sdfIpds8@vostro.rjw.lan>
+References: <20121030040237.GA10472@google.com> <1351618965-16761-1-git-send-email-yinghai@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:41424 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756360Ab2KAXjw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Nov 2012 19:39:52 -0400
-In-Reply-To: <1920067.RxMJtDGai1@vostro.rjw.lan>
+Received: from ogre.sisk.pl ([193.178.161.156]:51514 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752435Ab2KBANm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 1 Nov 2012 20:13:42 -0400
+In-Reply-To: <1351618965-16761-1-git-send-email-yinghai@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Toshi Kani <toshi.kani@hp.com>, ZhangRui <rui.zhang@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, Tang Chen <tangchen@cn.fujitsu.com>, bhelgaas@google.com, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Thu, Nov 1, 2012 at 4:15 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Subject: ACPI: Make seemingly useless check in osl.c more understandable
->
-> There is a seemingly useless check in drivers/acpi/osl.c added by
-> commit bc73675 (ACPI: fixes a false alarm from lockdep), which really
-> is necessary to avoid false positive lockdep complaints.  Document
-> this and rearrange the code related to it so that it makes fewer
-> checks.
->
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  drivers/acpi/osl.c |   21 ++++++++++++++-------
->  1 file changed, 14 insertions(+), 7 deletions(-)
->
-> Index: linux/drivers/acpi/osl.c
-> ===================================================================
-> --- linux.orig/drivers/acpi/osl.c
-> +++ linux/drivers/acpi/osl.c
-> @@ -944,17 +944,24 @@ static acpi_status __acpi_os_execute(acp
->          * because the hotplug code may call driver .remove() functions,
->          * which invoke flush_scheduled_work/acpi_os_wait_events_complete
->          * to flush these workqueues.
-> +        *
-> +        * To prevent lockdep from complaining unnecessarily, make sure that
-> +        * there is a different static lockdep key for each workqueue by using
-> +        * INIT_WORK() for each of them separately.
->          */
-> -       queue = hp ? kacpi_hotplug_wq :
-> -               (type == OSL_NOTIFY_HANDLER ? kacpi_notify_wq : kacpid_wq);
-> -       dpc->wait = hp ? 1 : 0;
-> -
-> -       if (queue == kacpi_hotplug_wq)
-> +       if (hp) {
-> +               queue = kacpi_hotplug_wq;
-> +               dpc->wait = 1;
->                 INIT_WORK(&dpc->work, acpi_os_execute_deferred);
-> -       else if (queue == kacpi_notify_wq)
-> +       } else if (type == OSL_NOTIFY_HANDLER) {
-> +               queue = kacpi_notify_wq;
-> +               dpc->wait = 0;
+Hi,
 
-yes, much clear.
+On Tuesday, October 30, 2012 10:42:37 AM Yinghai Lu wrote:
+> Subject: [PATCH resend 0/8] PCI, ACPI, x86: pci root bus hotplug support resources assign and remove path
+> 
+> 1. add support for assign resource for hot add path.
+> 2. stop and remove root bus during acpi root remove.
+> 
+> 
+> could get from
+>         git://git.kernel.org/pub/scm/linux/kernel/git/yinghai/linux-yinghai.git for-pci-root-bus-hotplug
+> 
+> Yinghai Lu (8):
+>   PCI: Separate out pci_assign_unassigned_bus_resources()
+>   PCI: Move pci_rescan_bus() back to probe.c
+>   PCI: Move out pci_enable_bridges out of assign_unsigned_bus_res
+>   PCI, ACPI: assign unassigned resource for hot add root bus
+>   PCI: Add pci_stop/remove_root_bus()
+>   PCI, ACPI: Make acpi_pci_root_remove stop/remove pci root bus
+>   PCI, ACPI: delete root bus prt during hot remove path
+>   PCI, ACPI: remove acpi_root_driver in reserse order
+> 
+>  drivers/acpi/pci_root.c |   21 ++++++++++++++++++++-
+>  drivers/pci/probe.c     |   22 ++++++++++++++++++++++
+>  drivers/pci/remove.c    |   36 ++++++++++++++++++++++++++++++++++++
+>  drivers/pci/setup-bus.c |   22 +---------------------
+>  include/linux/pci.h     |    3 +++
+>  5 files changed, 82 insertions(+), 22 deletions(-)
 
-at the same can you changne
-dpc allocation from kmalloc with kzalloc instead.
+Please feel free to add
 
-then we save two lines for dpc->wait = 0
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-After that
+to the ACPI-related patches in this series.
 
-Acked-by: Yinghai Lu <yinghai@kernel.org>
+Thanks,
+Rafael
 
->                 INIT_WORK(&dpc->work, acpi_os_execute_deferred);
-> -       else
-> +       } else {
-> +               queue = kacpid_wq;
-> +               dpc->wait = 0;
->                 INIT_WORK(&dpc->work, acpi_os_execute_deferred);
-> +       }
->
->         /*
->          * On some machines, a software-initiated SMI causes corruption unless
->
-> --
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
