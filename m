@@ -1,61 +1,60 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re:
-Date: Fri, 02 Nov 2012 01:17:47 +0100
-Message-ID: <3954574.77sdfIpds8@vostro.rjw.lan>
-References: <20121030040237.GA10472@google.com> <1351618965-16761-1-git-send-email-yinghai@kernel.org>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v8 05/11] libata-eh: allow defer in ata_exec_internal
+Date: Fri, 02 Nov 2012 08:43:00 +0800
+Message-ID: <50931714.6090505@intel.com>
+References: <1351501298-3716-1-git-send-email-aaron.lu@intel.com> <1351501298-3716-6-git-send-email-aaron.lu@intel.com> <20121029152051.GK5171@htj.dyndns.org> <508F42C0.8070807@intel.com> <20121030030144.GG4066@htj.dyndns.org> <508F44E1.3000801@intel.com> <20121031215213.GD2945@htj.dyndns.org> <5091DFDE.1060904@intel.com> <20121101160300.GB9169@htj.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:51514 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752435Ab2KBANm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 1 Nov 2012 20:13:42 -0400
-In-Reply-To: <1351618965-16761-1-git-send-email-yinghai@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <20121101160300.GB9169@htj.dyndns.org>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Tejun Heo <tj@kernel.org>
+Cc: Jeff Garzik <jgarzik@pobox.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, James Bottomley <James.Bottomley@hansenpartnership.com>, Alan Stern <stern@rowland.harvard.edu>, Oliver Neukum <oliver@neukum.org>, Jeff Wu <jeff.wu@amd.com>, Aaron Lu <aaron.lwe@gmail.com>, Shane Huang <shane.huang@amd.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi,
+On 11/02/2012 12:03 AM, Tejun Heo wrote:
+> Hello, Aaron.
+> 
+> On Thu, Nov 01, 2012 at 10:35:10AM +0800, Aaron Lu wrote:
+>>> You can always add some fields. :)
+>>
+>> OK. My concern is that, such information is only useful to ZPODD
+>> capable device+platforms, so checking this loading mechanism thing for
+>> all ATAPI devices during probe time doesn't seem a good idea.
+> 
+> Hmmm.. but it's not like querying acpi is high cost or anything.
+> Maybe I'm missing something but if it can be simpler that way, please
+> do so by all means.  I don't care whether you add some extra fields or
+> some processing overhead during probing.  It doesn't really matter.
 
-On Tuesday, October 30, 2012 10:42:37 AM Yinghai Lu wrote:
-> Subject: [PATCH resend 0/8] PCI, ACPI, x86: pci root bus hotplug support resources assign and remove path
-> 
-> 1. add support for assign resource for hot add path.
-> 2. stop and remove root bus during acpi root remove.
-> 
-> 
-> could get from
->         git://git.kernel.org/pub/scm/linux/kernel/git/yinghai/linux-yinghai.git for-pci-root-bus-hotplug
-> 
-> Yinghai Lu (8):
->   PCI: Separate out pci_assign_unassigned_bus_resources()
->   PCI: Move pci_rescan_bus() back to probe.c
->   PCI: Move out pci_enable_bridges out of assign_unsigned_bus_res
->   PCI, ACPI: assign unassigned resource for hot add root bus
->   PCI: Add pci_stop/remove_root_bus()
->   PCI, ACPI: Make acpi_pci_root_remove stop/remove pci root bus
->   PCI, ACPI: delete root bus prt during hot remove path
->   PCI, ACPI: remove acpi_root_driver in reserse order
-> 
->  drivers/acpi/pci_root.c |   21 ++++++++++++++++++++-
->  drivers/pci/probe.c     |   22 ++++++++++++++++++++++
->  drivers/pci/remove.c    |   36 ++++++++++++++++++++++++++++++++++++
->  drivers/pci/setup-bus.c |   22 +---------------------
->  include/linux/pci.h     |    3 +++
->  5 files changed, 82 insertions(+), 22 deletions(-)
+OK, thanks for the suggestion.
 
-Please feel free to add
+> 
+>>> Hmm... I see.  Which ACPI binding is it?  The ATA ACPI binding happens
+>>> during probing.  It's a different one, I presume?
+>>
+>> Since commit 6b66d95895c149cbc04d4fac5a2f5477c543a8ae:
+>> libata: bind the Linux device tree to the ACPI device tree
+>> ACPI binding happens when SCSI devices are added to the device tree. The
+>> ata port/device software structure does not have a acpi_handle field
+>> anymore.
+> 
+> Please bear with me.  I haven't paid much attention to zpodd, so it
+> probably is my ignorance but at least the ATA <-> ACPI association
+> happens during probing by calling ata_acpi_on_devcfg() from
+> ata_dev_configure(), and it pretty much has to happen then because
+> _SDD/_GTF should be executed after hardreset which happens during
+> probing.  So, yeah, I'm confused.
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-
-to the ACPI-related patches in this series.
+Oh, yes, ACPI handle can be retrieved any time by quering some ACPI
+method. And during probe time, it is done that way, while the binding
+happens much later... But the ACPI handle can indeed be fetched at that
+time :-)
+So all the conditions I need to test ZPODD support is ready during probe
+time and I'll move the check loading mechanism code there, thanks for
+your suggestion.
 
 Thanks,
-Rafael
+Aaron
 
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
