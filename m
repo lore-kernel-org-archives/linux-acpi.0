@@ -1,121 +1,140 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH 1/3] ACPI: Introduce a new acpi handle to determine HID match.
-Date: Fri, 2 Nov 2012 08:03:31 -0700
-Message-ID: <CAE9FiQXdQhv1bxue3PQpCGWdeoLSGrtgcZ+1MAvh+L+zEUFuNw@mail.gmail.com>
-References: <1350593430-24470-1-git-send-email-yinghai@kernel.org>
-	<1350593430-24470-2-git-send-email-yinghai@kernel.org>
-	<1952961.jiv6kKxT5N@vostro.rjw.lan>
+From: Lan Tianyu <tianyu.lan@intel.com>
+Subject: Re: [PATCH] PM / Qos: Ensure device not in PRM_SUSPENDED when pm
+ qos flags request functions are invoked in the pm core.
+Date: Sat, 03 Nov 2012 00:16:51 +0800
+Message-ID: <5093F1F3.5020004@intel.com>
+References: <1351843430-8023-1-git-send-email-tianyu.lan@intel.com> <1888394.d23n1PsP9K@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:55708 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752806Ab2KBPDd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Nov 2012 11:03:33 -0400
-In-Reply-To: <1952961.jiv6kKxT5N@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1888394.d23n1PsP9K@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Jacob Shin <jacob.shin@amd.com>, Tejun Heo <tj@kernel.org>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, linux-kernel@vger.kernel.org, Tang Chen <tangchen@cn.fujitsu.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+Cc: stern@rowland.harvard.edu, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Nov 2, 2012 at 5:23 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Thursday, October 18, 2012 01:50:09 PM Yinghai Lu wrote:
->> From: Tang Chen <tangchen@cn.fujitsu.com>
+On 2012/11/2 19:17, Rafael J. Wysocki wrote:
+> On Friday, November 02, 2012 04:03:50 PM Lan Tianyu wrote:
+>> Since dev_pm_qos_add_request(), dev_pm_qos_update_request() and
+>> dev_pm_qos_remove_request() for pm qos flags should not be invoked
+>> when device in RPM_SUSPENDED. Add pm_runtime_get_sync() and pm_runtime_put()
+>> around these functions in the pm core to ensure device not in RPM_SUSPENDED.
 >>
->> We need to find out if one handle is for root bridge, and install notify
->> handler for it to handle pci root bus hot add.
->> At that time, root bridge acpi device is not created yet.
->>
->> So acpi_match_device_ids() will not work.
->>
->> This patch add a function to check if new acpi handle's HID matches a list
->> of IDs.  The new api use acpi_device_info instead acpi_device.
->>
->> -v2: updated changelog, also check length for string info...
->>      change checking sequence by moving string comaring close to for loop.
->>                                       - Yinghai
->>
->> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
->> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
->> Cc: Len Brown <lenb@kernel.org>
->> Cc: linux-acpi@vger.kernel.org
+>> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
 >> ---
->>  drivers/acpi/scan.c     |   33 +++++++++++++++++++++++++++++++++
->>  include/acpi/acpi_bus.h |    2 ++
->>  2 files changed, 35 insertions(+), 0 deletions(-)
+>>   drivers/base/power/qos.c   |   10 ++++++++--
+>>   drivers/base/power/sysfs.c |    4 ++++
+>>   2 files changed, 12 insertions(+), 2 deletions(-)
 >>
->> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
->> index 5dfec09..33ca993 100644
->> --- a/drivers/acpi/scan.c
->> +++ b/drivers/acpi/scan.c
->> @@ -312,6 +312,39 @@ int acpi_match_device_ids(struct acpi_device *device,
->>  }
->>  EXPORT_SYMBOL(acpi_match_device_ids);
+>> diff --git a/drivers/base/power/qos.c b/drivers/base/power/qos.c
+>> index 31d3f48..b50ba72 100644
+>> --- a/drivers/base/power/qos.c
+>> +++ b/drivers/base/power/qos.c
+>> @@ -624,15 +624,19 @@ int dev_pm_qos_expose_flags(struct device *dev, s32 val)
+>>   	if (!req)
+>>   		return -ENOMEM;
 >>
->> +int acpi_match_object_info_ids(struct acpi_device_info *info,
->> +                            const struct acpi_device_id *ids)
->> +{
->> +     const struct acpi_device_id *id;
->> +     char *str;
->> +     u32 len;
->> +     int i;
->> +
->> +     len = info->hardware_id.length;
->> +     if (len) {
->> +             str = info->hardware_id.string;
->> +             if (str)
->> +                     for (id = ids; id->id[0]; id++)
->> +                             if (!strcmp((char *)id->id, str))
->> +                                     return 0;
->> +     }
->> +
->> +     for (i = 0; i < info->compatible_id_list.count; i++) {
->> +             len = info->compatible_id_list.ids[i].length;
->> +             if (!len)
->> +                     continue;
->> +             str = info->compatible_id_list.ids[i].string;
->> +             if (!str)
->> +                     continue;
->> +             for (id = ids; id->id[0]; id++)
->> +                     if (!strcmp((char *)id->id, str))
->> +                             return 0;
->> +     }
->> +
->> +     return -ENOENT;
->> +}
->> +EXPORT_SYMBOL(acpi_match_object_info_ids);
+>> +	pm_runtime_get_sync(dev);
+>>   	ret = dev_pm_qos_add_request(dev, req, DEV_PM_QOS_FLAGS, val);
+>> +	pm_runtime_put(dev);
 >
-> EXPORT_SYMBOL_GPL, please?
-
-yes, will change that while sending next version..
-
+> I would drop this one ...
 >
->> +
->>  static void acpi_free_ids(struct acpi_device *device)
->>  {
->>       struct acpi_hardware_id *id, *tmp;
->> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
->> index 608f92f..6ac415c 100644
->> --- a/include/acpi/acpi_bus.h
->> +++ b/include/acpi/acpi_bus.h
->> @@ -374,6 +374,8 @@ int acpi_bus_start(struct acpi_device *device);
->>  acpi_status acpi_bus_get_ejd(acpi_handle handle, acpi_handle * ejd);
->>  int acpi_match_device_ids(struct acpi_device *device,
->>                         const struct acpi_device_id *ids);
->> +int acpi_match_object_info_ids(struct acpi_device_info *info,
->> +                            const struct acpi_device_id *ids);
->>  int acpi_create_dir(struct acpi_device *);
->>  void acpi_remove_dir(struct acpi_device *);
+>>   	if (ret < 0)
+>>   		return ret;
+>>
+>>   	dev->power.qos->flags_req = req;
+>>   	ret = pm_qos_sysfs_add_flags(dev);
+>> -	if (ret)
+>> +	if (ret) {
+>> +		pm_runtime_get_sync(dev);
+>>   		__dev_pm_qos_drop_user_request(dev, DEV_PM_QOS_FLAGS);
+>> -
+>> +		pm_runtime_put(dev);
 >
-> I wonder which code path(s) is(are) going to use the new routine?
+> ... and move this one before the return statement (plus a label for
+> goto from the ret < 0 check after adding the request).
+>
+What you mean likes following?
 
-that is for installing handler for pci root bus removal. will resend
-them in batch 3.
++       pm_runtime_get_sync(dev);
+         ret = dev_pm_qos_add_request(dev, req, DEV_PM_QOS_FLAGS, val);
+         if (ret < 0)
+-               return ret;
++               goto fail;
 
-http://git.kernel.org/?p=linux/kernel/git/yinghai/linux-yinghai.git;a=shortlog;h=refs/heads/for-pci-split-pci-root-hp-2
+         dev->power.qos->flags_req = req;
+         ret = pm_qos_sysfs_add_flags(dev);
+         if (ret)
+                 __dev_pm_qos_drop_user_request(dev, DEV_PM_QOS_FLAGS);
 
-http://git.kernel.org/?p=linux/kernel/git/yinghai/linux-yinghai.git;a=commitdiff;h=b3752f4571a3db1bbbaf204a6cb85aadbd40b19d
-   PCI, acpiphp: Separate out hot-add support of pci host bridge
++fail:
++       pm_runtime_put(dev);
+         return ret;
+  }
 
-http://git.kernel.org/?p=linux/kernel/git/yinghai/linux-yinghai.git;a=commitdiff;h=bda84c28ae8e00315fcc7dffceb301e082369c3e
-   PCI: correctly detect ACPI PCI host bridge objects
+>> +	}
+>>   	return ret;
+>>   }
+>>   EXPORT_SYMBOL_GPL(dev_pm_qos_expose_flags);
+>> @@ -645,7 +649,9 @@ void dev_pm_qos_hide_flags(struct device *dev)
+>>   {
+>>   	if (dev->power.qos && dev->power.qos->flags_req) {
+>>   		pm_qos_sysfs_remove_flags(dev);
+>> +		pm_runtime_get_sync(dev);
+>>   		__dev_pm_qos_drop_user_request(dev, DEV_PM_QOS_FLAGS);
+>> +		pm_runtime_put(dev);
+>
+> I'm not sure if these two are necessary.  If we remove a request,
+> then what happens worst case is that some flags will be cleared
+> effectively which means fewer restrictions on the next sleep state.
+> Then, it shouldn't hurt that the current sleep state is more
+> restricted.
+
+But this mean the device can be put into lower power state(power off).
+So why not do that? that can save more power, right?
+>
+> Hmm.  Perhaps a comment would suffice?
+>
+>>   	}
+>>   }
+>>   EXPORT_SYMBOL_GPL(dev_pm_qos_hide_flags);
+>> diff --git a/drivers/base/power/sysfs.c b/drivers/base/power/sysfs.c
+>> index 50d16e3..240bfaa 100644
+>> --- a/drivers/base/power/sysfs.c
+>> +++ b/drivers/base/power/sysfs.c
+>> @@ -264,7 +264,9 @@ static ssize_t pm_qos_no_power_off_store(struct device *dev,
+>>   	if (ret != 0 && ret != 1)
+>>   		return -EINVAL;
+>>
+>> +	pm_runtime_get_sync(dev);
+>>   	ret = dev_pm_qos_update_flags(dev, PM_QOS_FLAG_NO_POWER_OFF, ret);
+>> +	pm_runtime_put(dev);
+>>   	return ret < 0 ? ret : n;
+>>   }
+>
+> Well, you haven't noticed that dev_pm_qos_update_flags() already does
+> pm_runtime_get_sync()/pm_runtime_put(). :-)
+Oh. Yeah. I ignore it. :)
+>
+>> @@ -291,7 +293,9 @@ static ssize_t pm_qos_remote_wakeup_store(struct device *dev,
+>>   	if (ret != 0 && ret != 1)
+>>   		return -EINVAL;
+>>
+>> +	pm_runtime_get_sync(dev);
+>>   	ret = dev_pm_qos_update_flags(dev, PM_QOS_FLAG_REMOTE_WAKEUP, ret);
+>> +	pm_runtime_put(dev);
+>>   	return ret < 0 ? ret : n;
+>>   }
+>
+> Thanks,
+> Rafael
+>
+>
+
+
+-- 
+Best Regards
+Tianyu Lan
+linux kernel enabling team
