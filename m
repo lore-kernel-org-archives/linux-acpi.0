@@ -1,112 +1,56 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 1/3] ACPI: Introduce a new acpi handle to determine HID match.
-Date: Fri, 02 Nov 2012 13:23:36 +0100
-Message-ID: <1952961.jiv6kKxT5N@vostro.rjw.lan>
-References: <1350593430-24470-1-git-send-email-yinghai@kernel.org> <1350593430-24470-2-git-send-email-yinghai@kernel.org>
+Subject: Re: [PATCH v3 0/2] ACPI: CPU hot-remove support
+Date: Fri, 02 Nov 2012 13:46:01 +0100
+Message-ID: <1678274.pulvZO82Js@vostro.rjw.lan>
+References: <1351780933-30560-1-git-send-email-toshi.kani@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:52094 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([193.178.161.156]:52122 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752550Ab2KBMTa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 2 Nov 2012 08:19:30 -0400
-In-Reply-To: <1350593430-24470-2-git-send-email-yinghai@kernel.org>
+	id S1752516Ab2KBMlz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 2 Nov 2012 08:41:55 -0400
+In-Reply-To: <1351780933-30560-1-git-send-email-toshi.kani@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Jacob Shin <jacob.shin@amd.com>, Tejun Heo <tj@kernel.org>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, linux-kernel@vger.kernel.org, Tang Chen <tangchen@cn.fujitsu.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, linux-kernel@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, imammedo@redhat.com, vijaymohan.pandarathil@hp.com, prarit@redhat.com, bhelgaas@google.com
 
-On Thursday, October 18, 2012 01:50:09 PM Yinghai Lu wrote:
-> From: Tang Chen <tangchen@cn.fujitsu.com>
+On Thursday, November 01, 2012 08:42:11 AM Toshi Kani wrote:
+> This patchset adds support of CPU hot-remove via an ACPI eject
+> notification to the ACPI processor driver.  The CPU hot-remove
+> operation shares the same code path with the sysfs eject operation.
 > 
-> We need to find out if one handle is for root bridge, and install notify
-> handler for it to handle pci root bus hot add.
-> At that time, root bridge acpi device is not created yet.
+> The patchset also exports two functions necessary to initiate
+> hot-remove operations from modules, such as the processor driver.
 > 
-> So acpi_match_device_ids() will not work.
+> The patchset is based on the current Linus's tree.
 > 
-> This patch add a function to check if new acpi handle's HID matches a list
-> of IDs.  The new api use acpi_device_info instead acpi_device.
+> v3:
+> - Added patch 1/2 to export functions for hot-remove
 > 
-> -v2: updated changelog, also check length for string info...
->      change checking sequence by moving string comaring close to for loop.
-> 					- Yinghai
+> v2:
+> - Rebased to the latest baseline
 > 
-> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: linux-acpi@vger.kernel.org
 > ---
->  drivers/acpi/scan.c     |   33 +++++++++++++++++++++++++++++++++
->  include/acpi/acpi_bus.h |    2 ++
->  2 files changed, 35 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 5dfec09..33ca993 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -312,6 +312,39 @@ int acpi_match_device_ids(struct acpi_device *device,
->  }
->  EXPORT_SYMBOL(acpi_match_device_ids);
->  
-> +int acpi_match_object_info_ids(struct acpi_device_info *info,
-> +			       const struct acpi_device_id *ids)
-> +{
-> +	const struct acpi_device_id *id;
-> +	char *str;
-> +	u32 len;
-> +	int i;
-> +
-> +	len = info->hardware_id.length;
-> +	if (len) {
-> +		str = info->hardware_id.string;
-> +		if (str)
-> +			for (id = ids; id->id[0]; id++)
-> +				if (!strcmp((char *)id->id, str))
-> +					return 0;
-> +	}
-> +
-> +	for (i = 0; i < info->compatible_id_list.count; i++) {
-> +		len = info->compatible_id_list.ids[i].length;
-> +		if (!len)
-> +			continue;
-> +		str = info->compatible_id_list.ids[i].string;
-> +		if (!str)
-> +			continue;
-> +		for (id = ids; id->id[0]; id++)
-> +			if (!strcmp((char *)id->id, str))
-> +				return 0;
-> +	}
-> +
-> +	return -ENOENT;
-> +}
-> +EXPORT_SYMBOL(acpi_match_object_info_ids);
+> Toshi Kani (2):
+>  ACPI: Export functions for hot-remove
+>  ACPI: Add ACPI CPU hot-remove support
 
-EXPORT_SYMBOL_GPL, please?
+Both patches applied to the linux-next branch of the linux-pm.git
+tree as v3.8 material.
 
-> +
->  static void acpi_free_ids(struct acpi_device *device)
->  {
->  	struct acpi_hardware_id *id, *tmp;
-> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-> index 608f92f..6ac415c 100644
-> --- a/include/acpi/acpi_bus.h
-> +++ b/include/acpi/acpi_bus.h
-> @@ -374,6 +374,8 @@ int acpi_bus_start(struct acpi_device *device);
->  acpi_status acpi_bus_get_ejd(acpi_handle handle, acpi_handle * ejd);
->  int acpi_match_device_ids(struct acpi_device *device,
->  			  const struct acpi_device_id *ids);
-> +int acpi_match_object_info_ids(struct acpi_device_info *info,
-> +			       const struct acpi_device_id *ids);
->  int acpi_create_dir(struct acpi_device *);
->  void acpi_remove_dir(struct acpi_device *);
-
-I wonder which code path(s) is(are) going to use the new routine?
-
+Thanks,
 Rafael
 
 
+> ---
+>  drivers/acpi/osl.c              |  1 +
+>  drivers/acpi/processor_driver.c | 27 +++++++++++++++++----------
+>  drivers/acpi/scan.c             |  1 +
+>  3 files changed, 19 insertions(+), 10 deletions(-)
+> 
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
