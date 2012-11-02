@@ -1,60 +1,137 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH v8 05/11] libata-eh: allow defer in ata_exec_internal
-Date: Fri, 02 Nov 2012 08:43:00 +0800
-Message-ID: <50931714.6090505@intel.com>
-References: <1351501298-3716-1-git-send-email-aaron.lu@intel.com> <1351501298-3716-6-git-send-email-aaron.lu@intel.com> <20121029152051.GK5171@htj.dyndns.org> <508F42C0.8070807@intel.com> <20121030030144.GG4066@htj.dyndns.org> <508F44E1.3000801@intel.com> <20121031215213.GD2945@htj.dyndns.org> <5091DFDE.1060904@intel.com> <20121101160300.GB9169@htj.dyndns.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v3 3/3] Improve container_notify_cb() to support container hot-remove.
+Date: Fri, 02 Nov 2012 02:16:16 +0100
+Message-ID: <2818025.UWNJpCeffI@vostro.rjw.lan>
+References: <1351668471-31436-1-git-send-email-tangchen@cn.fujitsu.com> <1920067.RxMJtDGai1@vostro.rjw.lan> <CAE9FiQW4ONas+m2HWq_xs457xZu3VJ6Nxsq320MD72Khb+sqJg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <20121101160300.GB9169@htj.dyndns.org>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>
-Cc: Jeff Garzik <jgarzik@pobox.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, James Bottomley <James.Bottomley@hansenpartnership.com>, Alan Stern <stern@rowland.harvard.edu>, Oliver Neukum <oliver@neukum.org>, Jeff Wu <jeff.wu@amd.com>, Aaron Lu <aaron.lwe@gmail.com>, Shane Huang <shane.huang@amd.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAE9FiQW4ONas+m2HWq_xs457xZu3VJ6Nxsq320MD72Khb+sqJg@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Toshi Kani <toshi.kani@hp.com>, ZhangRui <rui.zhang@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, Tang Chen <tangchen@cn.fujitsu.com>, bhelgaas@google.com, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 11/02/2012 12:03 AM, Tejun Heo wrote:
-> Hello, Aaron.
+On Thursday, November 01, 2012 04:39:50 PM Yinghai Lu wrote:
+> On Thu, Nov 1, 2012 at 4:15 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > Subject: ACPI: Make seemingly useless check in osl.c more understandable
+> >
+> > There is a seemingly useless check in drivers/acpi/osl.c added by
+> > commit bc73675 (ACPI: fixes a false alarm from lockdep), which really
+> > is necessary to avoid false positive lockdep complaints.  Document
+> > this and rearrange the code related to it so that it makes fewer
+> > checks.
+> >
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > ---
+> >  drivers/acpi/osl.c |   21 ++++++++++++++-------
+> >  1 file changed, 14 insertions(+), 7 deletions(-)
+> >
+> > Index: linux/drivers/acpi/osl.c
+> > ===================================================================
+> > --- linux.orig/drivers/acpi/osl.c
+> > +++ linux/drivers/acpi/osl.c
+> > @@ -944,17 +944,24 @@ static acpi_status __acpi_os_execute(acp
+> >          * because the hotplug code may call driver .remove() functions,
+> >          * which invoke flush_scheduled_work/acpi_os_wait_events_complete
+> >          * to flush these workqueues.
+> > +        *
+> > +        * To prevent lockdep from complaining unnecessarily, make sure that
+> > +        * there is a different static lockdep key for each workqueue by using
+> > +        * INIT_WORK() for each of them separately.
+> >          */
+> > -       queue = hp ? kacpi_hotplug_wq :
+> > -               (type == OSL_NOTIFY_HANDLER ? kacpi_notify_wq : kacpid_wq);
+> > -       dpc->wait = hp ? 1 : 0;
+> > -
+> > -       if (queue == kacpi_hotplug_wq)
+> > +       if (hp) {
+> > +               queue = kacpi_hotplug_wq;
+> > +               dpc->wait = 1;
+> >                 INIT_WORK(&dpc->work, acpi_os_execute_deferred);
+> > -       else if (queue == kacpi_notify_wq)
+> > +       } else if (type == OSL_NOTIFY_HANDLER) {
+> > +               queue = kacpi_notify_wq;
+> > +               dpc->wait = 0;
 > 
-> On Thu, Nov 01, 2012 at 10:35:10AM +0800, Aaron Lu wrote:
->>> You can always add some fields. :)
->>
->> OK. My concern is that, such information is only useful to ZPODD
->> capable device+platforms, so checking this loading mechanism thing for
->> all ATAPI devices during probe time doesn't seem a good idea.
+> yes, much clear.
 > 
-> Hmmm.. but it's not like querying acpi is high cost or anything.
-> Maybe I'm missing something but if it can be simpler that way, please
-> do so by all means.  I don't care whether you add some extra fields or
-> some processing overhead during probing.  It doesn't really matter.
-
-OK, thanks for the suggestion.
-
+> at the same can you changne
+> dpc allocation from kmalloc with kzalloc instead.
 > 
->>> Hmm... I see.  Which ACPI binding is it?  The ATA ACPI binding happens
->>> during probing.  It's a different one, I presume?
->>
->> Since commit 6b66d95895c149cbc04d4fac5a2f5477c543a8ae:
->> libata: bind the Linux device tree to the ACPI device tree
->> ACPI binding happens when SCSI devices are added to the device tree. The
->> ata port/device software structure does not have a acpi_handle field
->> anymore.
+> then we save two lines for dpc->wait = 0
+
+Good idea. :-)
+
+> After that
 > 
-> Please bear with me.  I haven't paid much attention to zpodd, so it
-> probably is my ignorance but at least the ATA <-> ACPI association
-> happens during probing by calling ata_acpi_on_devcfg() from
-> ata_dev_configure(), and it pretty much has to happen then because
-> _SDD/_GTF should be executed after hardreset which happens during
-> probing.  So, yeah, I'm confused.
+> Acked-by: Yinghai Lu <yinghai@kernel.org>
 
-Oh, yes, ACPI handle can be retrieved any time by quering some ACPI
-method. And during probe time, it is done that way, while the binding
-happens much later... But the ACPI handle can indeed be fetched at that
-time :-)
-So all the conditions I need to test ZPODD support is ready during probe
-time and I'll move the check loading mechanism code there, thanks for
-your suggestion.
+For completeness:
 
-Thanks,
-Aaron
+---
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Subject: ACPI: Make seemingly useless check in osl.c more understandable
 
+There is a seemingly useless check in drivers/acpi/osl.c added by
+commit bc73675 (ACPI: fixes a false alarm from lockdep), which really
+is necessary to avoid false positive lockdep complaints.  Document
+this and rearrange the code related to it so that it makes fewer
+checks.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Acked-by: Yinghai Lu <yinghai@kernel.org>
+---
+ drivers/acpi/osl.c |   21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
+
+Index: linux/drivers/acpi/osl.c
+===================================================================
+--- linux.orig/drivers/acpi/osl.c
++++ linux/drivers/acpi/osl.c
+@@ -932,7 +932,7 @@ static acpi_status __acpi_os_execute(acp
+ 	 * having a static work_struct.
+ 	 */
+ 
+-	dpc = kmalloc(sizeof(struct acpi_os_dpc), GFP_ATOMIC);
++	dpc = kzalloc(sizeof(struct acpi_os_dpc), GFP_ATOMIC);
+ 	if (!dpc)
+ 		return AE_NO_MEMORY;
+ 
+@@ -944,17 +944,22 @@ static acpi_status __acpi_os_execute(acp
+ 	 * because the hotplug code may call driver .remove() functions,
+ 	 * which invoke flush_scheduled_work/acpi_os_wait_events_complete
+ 	 * to flush these workqueues.
++	 *
++	 * To prevent lockdep from complaining unnecessarily, make sure that
++	 * there is a different static lockdep key for each workqueue by using
++	 * INIT_WORK() for each of them separately.
+ 	 */
+-	queue = hp ? kacpi_hotplug_wq :
+-		(type == OSL_NOTIFY_HANDLER ? kacpi_notify_wq : kacpid_wq);
+-	dpc->wait = hp ? 1 : 0;
+-
+-	if (queue == kacpi_hotplug_wq)
++	if (hp) {
++		queue = kacpi_hotplug_wq;
++		dpc->wait = 1;
+ 		INIT_WORK(&dpc->work, acpi_os_execute_deferred);
+-	else if (queue == kacpi_notify_wq)
++	} else if (type == OSL_NOTIFY_HANDLER) {
++		queue = kacpi_notify_wq;
+ 		INIT_WORK(&dpc->work, acpi_os_execute_deferred);
+-	else
++	} else {
++		queue = kacpid_wq;
+ 		INIT_WORK(&dpc->work, acpi_os_execute_deferred);
++	}
+ 
+ 	/*
+ 	 * On some machines, a software-initiated SMI causes corruption unless
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
