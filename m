@@ -1,112 +1,88 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] PM / Qos: Ensure device not in PRM_SUSPENDED when pm qos flags request functions are invoked in the pm core.
-Date: Fri, 02 Nov 2012 21:11 +0100
-Message-ID: <3462113.4oKq44aJDs@vostro.rjw.lan>
-References: <1351843430-8023-1-git-send-email-tianyu.lan@intel.com> <1888394.d23n1PsP9K@vostro.rjw.lan> <5093F1F3.5020004@intel.com>
+From: Mike Waychison <mikew-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [RESEND][PATCH v4 0/7] efi_pstore: multiple event logging support
+Date: Fri, 2 Nov 2012 17:03:32 -0700
+Message-ID: <CAGTjWtBvFvx2A9FFpDw+18p_58JiX=zpqHAd0T=JS=r8YkZHiw@mail.gmail.com>
+References: <A5ED84D3BB3A384992CBB9C77DEDA4D4138B435F@USINDEM103.corp.hds.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <5093F1F3.5020004@intel.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: stern@rowland.harvard.edu, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <A5ED84D3BB3A384992CBB9C77DEDA4D4138B435F-ohthHghroY0jroPwUH3sq+6wyyQG6/Uh@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Seiji Aguchi <seiji.aguchi-7rDLJAbr9SE@public.gmane.org>
+Cc: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Luck, Tony (tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org)" <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Matthew Garrett (mjg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org)" <mjg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "dzickus-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dzickus-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "dle-develop-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <dle-develop-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Satoru Moriya <satoru.moriya-7rDLJAbr9SE@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Saturday, November 03, 2012 12:16:51 AM Lan Tianyu wrote:
-> On 2012/11/2 19:17, Rafael J. Wysocki wrote:
-> > On Friday, November 02, 2012 04:03:50 PM Lan Tianyu wrote:
-> >> Since dev_pm_qos_add_request(), dev_pm_qos_update_request() and
-> >> dev_pm_qos_remove_request() for pm qos flags should not be invoked
-> >> when device in RPM_SUSPENDED. Add pm_runtime_get_sync() and pm_runtime_put()
-> >> around these functions in the pm core to ensure device not in RPM_SUSPENDED.
-> >>
-> >> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
-> >> ---
-> >>   drivers/base/power/qos.c   |   10 ++++++++--
-> >>   drivers/base/power/sysfs.c |    4 ++++
-> >>   2 files changed, 12 insertions(+), 2 deletions(-)
-> >>
-> >> diff --git a/drivers/base/power/qos.c b/drivers/base/power/qos.c
-> >> index 31d3f48..b50ba72 100644
-> >> --- a/drivers/base/power/qos.c
-> >> +++ b/drivers/base/power/qos.c
-> >> @@ -624,15 +624,19 @@ int dev_pm_qos_expose_flags(struct device *dev, s32 val)
-> >>   	if (!req)
-> >>   		return -ENOMEM;
-> >>
-> >> +	pm_runtime_get_sync(dev);
-> >>   	ret = dev_pm_qos_add_request(dev, req, DEV_PM_QOS_FLAGS, val);
-> >> +	pm_runtime_put(dev);
-> >
-> > I would drop this one ...
-> >
-> >>   	if (ret < 0)
-> >>   		return ret;
-> >>
-> >>   	dev->power.qos->flags_req = req;
-> >>   	ret = pm_qos_sysfs_add_flags(dev);
-> >> -	if (ret)
-> >> +	if (ret) {
-> >> +		pm_runtime_get_sync(dev);
-> >>   		__dev_pm_qos_drop_user_request(dev, DEV_PM_QOS_FLAGS);
-> >> -
-> >> +		pm_runtime_put(dev);
-> >
-> > ... and move this one before the return statement (plus a label for
-> > goto from the ret < 0 check after adding the request).
-> >
-> What you mean likes following?
-> 
-> +       pm_runtime_get_sync(dev);
->          ret = dev_pm_qos_add_request(dev, req, DEV_PM_QOS_FLAGS, val);
->          if (ret < 0)
-> -               return ret;
-> +               goto fail;
-> 
->          dev->power.qos->flags_req = req;
->          ret = pm_qos_sysfs_add_flags(dev);
->          if (ret)
->                  __dev_pm_qos_drop_user_request(dev, DEV_PM_QOS_FLAGS);
-> 
-> +fail:
-> +       pm_runtime_put(dev);
->          return ret;
->   }
-> 
+Series Acked-by: Mike Waychison <mikew-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
 
-Yes, it does.
+Tony: Did you want to pull this?
 
-> >> +	}
-> >>   	return ret;
-> >>   }
-> >>   EXPORT_SYMBOL_GPL(dev_pm_qos_expose_flags);
-> >> @@ -645,7 +649,9 @@ void dev_pm_qos_hide_flags(struct device *dev)
-> >>   {
-> >>   	if (dev->power.qos && dev->power.qos->flags_req) {
-> >>   		pm_qos_sysfs_remove_flags(dev);
-> >> +		pm_runtime_get_sync(dev);
-> >>   		__dev_pm_qos_drop_user_request(dev, DEV_PM_QOS_FLAGS);
-> >> +		pm_runtime_put(dev);
-> >
-> > I'm not sure if these two are necessary.  If we remove a request,
-> > then what happens worst case is that some flags will be cleared
-> > effectively which means fewer restrictions on the next sleep state.
-> > Then, it shouldn't hurt that the current sleep state is more
-> > restricted.
-> 
-> But this mean the device can be put into lower power state(power off).
-> So why not do that? that can save more power, right?
-
-Correct.  On the other hand, though, if the device already is in the
-deepest low-power state available, we will resume it unnecessarily this
-way.  Which may not be a big deal, however, and since we do that in other
-cases, we may as well do it here.
-
-Thanks,
-Rafael
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+On Thu, Nov 1, 2012 at 3:59 PM, Seiji Aguchi <seiji.aguchi-7rDLJAbr9SE@public.gmane.org> wrote:
+> Changelog
+>
+> v3 -> v4
+>    - Rebase to 3.7-rc3
+>    - Add ctime to an argument of efi_pstore_erase to build successfully
+>      in case where CONFIG_PTORE=n is specified. (Patch 4/7)
+>    - Add count to an argument of efi_pstore_erase and efi_pstore_write to
+>      build successfully in case where CONFIG_PTORE=n is specified (Patch 5/7)
+>    - Fix a white space damage (Patch 6/7)
+>    - Modify a logic checking a 3-variable format of a variable name (Patch 7/7)
+>
+> v2 -> v3
+>    - Create patches 6/7 and 7/7 to work with an existing format of variable name
+>
+> v1 -> v2
+>    - Separate into 5 patches in accordance with Mike's comment
+>    - Erase an extra line of comment in patch 1/5
+>
+> [Issue]
+>
+>     Currently, efi_pstore driver simply overwrites existing panic messages in NVRAM.
+>     So, in the following scenario, we will lose 1st panic messages.
+>
+>     1. kernel panics.
+>     2. efi_pstore is kicked and writes panic messages to NVRAM.
+>     3. system reboots.
+>     4. kernel panics again before a user checks the 1st panic messages in NVRAM.
+>
+> [Solution]
+>
+>    Solutions of this problem has been discussed among Tony, Matthew, Don, Mike and me.
+>
+>    http://marc.info/?l=linux-kernel&m=134273270704586&w=2
+>
+>    And there are two possible solutions right now.
+>      - First one is introducing some policy overwriting existing logs.
+>      - Second one is simply holding multiple log without overwriting any entries.
+>
+>    We haven't decided the overwriting policy which is reasonable to all users yet.
+>    But I believe we agree that just holding multiple logs is a reasonable way.
+>
+>    We may need further discussions to find the possibility of introducing overwriting
+>    policy, especially getting critical messages in multiple oops case.
+>    But I would like to begin with a simple and reasonable way to everyone.
+>    So, this patch takes an approach just holding multiple logs.
+>
+> [Patch Description]
+>
+> Seiji Aguchi (7):
+>   efi_pstore: Check remaining space with QueryVariableInfo() before
+>     writing data
+>   efi_pstore: Add a logic erasing entries to an erase callback
+>   efi_pstore: Remove a logic erasing entries from a write callback to
+>     hold multiple logs
+>   efi_pstore: Add ctime to argument of erase callback
+>   efi_pstore: Add a sequence counter to a variable name
+>   efi_pstore: Add a format check for an existing variable name at
+>     reading time
+>   Add a format check for an existing variable name at erasing time
+>
+>  drivers/acpi/apei/erst.c   |   16 ++--
+>  drivers/firmware/efivars.c |  163 ++++++++++++++++++++++++++++++-------------
+>  fs/pstore/inode.c          |    7 ++-
+>  fs/pstore/internal.h       |    2 +-
+>  fs/pstore/platform.c       |   11 ++--
+>  fs/pstore/ram.c            |    9 +--
+>  include/linux/efi.h        |    1 +
+>  include/linux/pstore.h     |    6 +-
+>  8 files changed, 143 insertions(+), 72 deletions(-)
