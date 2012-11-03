@@ -1,7 +1,7 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH 2/3] spi / ACPI: add ACPI enumeration support
-Date: Sat,  3 Nov 2012 09:46:32 +0200
-Message-ID: <1351928793-14375-3-git-send-email-mika.westerberg@linux.intel.com>
+Subject: [PATCH 3/3] i2c / ACPI: add ACPI enumeration support
+Date: Sat,  3 Nov 2012 09:46:33 +0200
+Message-ID: <1351928793-14375-4-git-send-email-mika.westerberg@linux.intel.com>
 References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com>
@@ -10,56 +10,85 @@ To: linux-kernel@vger.kernel.org
 Cc: lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-ACPI 5 introduced SPISerialBus resource that allows us to enumerate and
-configure the SPI slave devices behind the SPI controller. This patch adds
-support for this to the SPI core.
+ACPI 5 introduced I2cSerialBus resource that makes it possible to enumerate
+and configure the I2C slave devices behind the I2C controller. This patch
+adds helper functions to support I2C slave enumeration.
 
-In addition we bind ACPI nodes to SPI devices. This makes it possible for
-the slave drivers to get the ACPI handle for further configuration.
+An ACPI enabled I2C controller driver only needs to call acpi_i2c_register_devices()
+in order to get its slave devices enumerated, created and bound to the
+corresponding ACPI handle.
 
 Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/spi/spi.c |  231 ++++++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 230 insertions(+), 1 deletion(-)
+ drivers/acpi/Kconfig     |    6 ++
+ drivers/acpi/Makefile    |    1 +
+ drivers/acpi/acpi_i2c.c  |  234 ++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/i2c/i2c-core.c   |    9 ++
+ include/linux/acpi_i2c.h |   29 ++++++
+ 5 files changed, 279 insertions(+)
+ create mode 100644 drivers/acpi/acpi_i2c.c
+ create mode 100644 include/linux/acpi_i2c.h
 
-diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
-index 84c2861..de22a6e 100644
---- a/drivers/spi/spi.c
-+++ b/drivers/spi/spi.c
-@@ -35,6 +35,7 @@
- #include <linux/sched.h>
- #include <linux/delay.h>
- #include <linux/kthread.h>
-+#include <linux/acpi.h>
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 119d58d..0300bf6 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -181,6 +181,12 @@ config ACPI_DOCK
+ 	  This driver supports ACPI-controlled docking stations and removable
+ 	  drive bays such as the IBM Ultrabay and the Dell Module Bay.
  
- static void spidev_release(struct device *dev)
- {
-@@ -93,6 +94,10 @@ static int spi_match_device(struct device *dev, struct device_driver *drv)
- 	if (of_driver_match_device(dev, drv))
- 		return 1;
- 
-+	/* Then try ACPI */
-+	if (acpi_driver_match_device(dev, drv))
-+		return 1;
++config ACPI_I2C
++	def_tristate I2C
++	depends on I2C
++	help
++	  ACPI I2C enumeration support.
 +
- 	if (sdrv->id_table)
- 		return !!spi_match_id(sdrv->id_table, spi);
+ config ACPI_PROCESSOR
+ 	tristate "Processor"
+ 	select THERMAL
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index a7badb5..8573346 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -69,6 +69,7 @@ obj-$(CONFIG_ACPI_HED)		+= hed.o
+ obj-$(CONFIG_ACPI_EC_DEBUGFS)	+= ec_sys.o
+ obj-$(CONFIG_ACPI_CUSTOM_METHOD)+= custom_method.o
+ obj-$(CONFIG_ACPI_BGRT)		+= bgrt.o
++obj-$(CONFIG_ACPI_I2C)		+= acpi_i2c.o
  
-@@ -888,6 +893,227 @@ static void of_register_spi_devices(struct spi_master *master)
- static void of_register_spi_devices(struct spi_master *master) { }
- #endif
- 
-+#ifdef CONFIG_ACPI
-+struct acpi_spi {
+ # processor has its own "processor." module_param namespace
+ processor-y			:= processor_driver.o processor_throttling.o
+diff --git a/drivers/acpi/acpi_i2c.c b/drivers/acpi/acpi_i2c.c
+new file mode 100644
+index 0000000..dc6997e
+--- /dev/null
++++ b/drivers/acpi/acpi_i2c.c
+@@ -0,0 +1,234 @@
++/*
++ * ACPI I2C enumeration support
++ *
++ * Copyright (C) 2012, Intel Corporation
++ * Author: Mika Westerberg <mika.westerberg@linux.intel.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/acpi.h>
++#include <linux/i2c.h>
++#include <linux/module.h>
++
++struct acpi_i2c {
 +	acpi_status (*callback)(struct acpi_device *, void *);
 +	void *data;
 +};
 +
-+static acpi_status acpi_spi_enumerate_device(acpi_handle handle, u32 level,
++static acpi_status acpi_i2c_enumerate_device(acpi_handle handle, u32 level,
 +					     void *data, void **return_value)
 +{
-+	struct acpi_spi *acpi_spi = data;
++	struct acpi_i2c *acpi_i2c = data;
 +	struct acpi_device *adev;
 +
 +	if (acpi_bus_get_device(handle, &adev))
@@ -67,54 +96,46 @@ index 84c2861..de22a6e 100644
 +	if (acpi_bus_get_status(adev) || !adev->status.present)
 +		return AE_OK;
 +
-+	return acpi_spi->callback(adev, acpi_spi->data);
++	return acpi_i2c->callback(adev, acpi_i2c->data);
 +}
 +
-+static acpi_status acpi_spi_enumerate(acpi_handle handle,
++static acpi_status acpi_i2c_enumerate(acpi_handle handle,
 +	acpi_status (*callback)(struct acpi_device *, void *), void *data)
 +{
-+	struct acpi_spi acpi_spi;
++	struct acpi_i2c acpi_i2c;
 +
-+	acpi_spi.callback = callback;
-+	acpi_spi.data = data;
++	acpi_i2c.callback = callback;
++	acpi_i2c.data = data;
 +
 +	return acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, 1,
-+				   acpi_spi_enumerate_device, NULL,
-+				   &acpi_spi, NULL);
++				   acpi_i2c_enumerate_device, NULL,
++				   &acpi_i2c, NULL);
 +}
 +
-+struct acpi_spi_device_info {
-+	struct spi_device *spi;
++struct acpi_i2c_device_info {
++	struct i2c_board_info board;
 +	int triggering;
 +	int polarity;
 +	int gsi;
 +	bool valid;
 +};
 +
-+static acpi_status acpi_spi_add_resources(struct acpi_resource *res, void *data)
++static acpi_status acpi_i2c_add_resources(struct acpi_resource *res, void *data)
 +{
-+	struct acpi_spi_device_info *info = data;
-+	struct acpi_resource_spi_serialbus *sb;
-+	struct spi_device *spi = info->spi;
++	struct acpi_i2c_device_info *info = data;
++	struct acpi_resource_i2c_serialbus *sb;
 +
 +	switch (res->type) {
 +	case ACPI_RESOURCE_TYPE_SERIAL_BUS:
-+		sb = &res->data.spi_serial_bus;
-+		if (sb->type == ACPI_RESOURCE_SERIAL_TYPE_SPI) {
-+			spi->chip_select = sb->device_selection;
-+			spi->max_speed_hz = sb->connection_speed;
-+
-+			/* Mode (clock phase/polarity/etc. */
-+			if (sb->clock_phase == ACPI_SPI_SECOND_PHASE)
-+				spi->mode |= SPI_CPHA;
-+			if (sb->clock_polarity == ACPI_SPI_START_HIGH)
-+				spi->mode |= SPI_CPOL;
-+			if (sb->device_polarity == ACPI_SPI_ACTIVE_HIGH)
-+				spi->mode |= SPI_CS_HIGH;
++		sb = &res->data.i2c_serial_bus;
++		if (sb->type == ACPI_RESOURCE_SERIAL_TYPE_I2C) {
++			info->board.addr = sb->slave_address;
++			if (sb->access_mode == ACPI_I2C_10BIT_MODE)
++				info->board.flags |= I2C_CLIENT_TEN;
 +
 +			/*
 +			 * The info is valid once we have found the
-+			 * SPISerialBus resource.
++			 * I2CSerialBus resource.
 +			 */
 +			info->valid = true;
 +		}
@@ -136,163 +157,223 @@ index 84c2861..de22a6e 100644
 +	return AE_OK;
 +}
 +
-+static acpi_status acpi_spi_add_device(struct acpi_device *adev, void *data)
++static acpi_status acpi_i2c_add_device(struct acpi_device *adev, void *data)
 +{
-+	struct acpi_spi_device_info info;
-+	struct spi_master *master = data;
-+	struct spi_device *spi;
++	struct acpi_i2c_device_info info;
++	struct i2c_adapter *adapter = data;
 +	acpi_status status;
 +
-+	spi = spi_alloc_device(master);
-+	if (!spi) {
-+		dev_err(&master->dev, "failed to allocate SPI device\n");
-+		return AE_ERROR;
-+	}
-+
 +	memset(&info, 0, sizeof(info));
-+	info.spi = spi;
 +	info.gsi = -1;
 +
 +	status = acpi_walk_resources(adev->handle, METHOD_NAME__CRS,
-+				     acpi_spi_add_resources, &info);
++				     acpi_i2c_add_resources, &info);
 +	if (ACPI_FAILURE(status) || !info.valid)
-+		goto fail_put_dev;
++		return status;
 +
-+	strlcpy(spi->modalias, acpi_device_hid(adev), sizeof(spi->modalias));
++	strlcpy(info.board.type, acpi_device_hid(adev),
++		sizeof(info.board.type));
 +	if (info.gsi >= 0)
-+		spi->irq = acpi_register_gsi(&adev->dev, info.gsi,
-+					     info.triggering, info.polarity);
-+	request_module(spi->modalias);
-+	if (spi_add_device(spi)) {
-+		dev_err(&master->dev, "failed to add SPI device from ACPI\n");
-+		goto fail_unregister_gsi;
++		info.board.irq = acpi_register_gsi(&adev->dev, info.gsi,
++						   info.triggering,
++						   info.polarity);
++
++	request_module("%s%s", I2C_MODULE_PREFIX, info.board.type);
++	if (!i2c_new_device(adapter, &info.board)) {
++		dev_err(&adapter->dev, "failed to add i2c device from ACPI\n");
++		if (info.gsi >= 0)
++			acpi_unregister_gsi(info.gsi);
 +	}
 +
 +	return AE_OK;
-+
-+ fail_unregister_gsi:
-+	if (info.gsi >= 0)
-+		acpi_unregister_gsi(info.gsi);
-+ fail_put_dev:
-+	spi_dev_put(spi);
-+
-+	return AE_OK;
 +}
 +
-+static void acpi_register_spi_devices(struct spi_master *master)
++/**
++ * acpi_i2c_register_devices - enumerate I2C slave devices behind adapter
++ * @adapter: pointer to adapter
++ *
++ * Enumerate all I2C slave devices behind this adapter by walking the ACPI
++ * namespace. When a device is found it will be added to the Linux device
++ * model and bound to the corresponding ACPI handle.
++ */
++void acpi_i2c_register_devices(struct i2c_adapter *adapter)
 +{
-+	acpi_status status;
 +	acpi_handle handle;
++	acpi_status status;
 +
-+	handle = master->dev.acpi_handle;
++	handle = adapter->dev.acpi_handle;
 +	if (!handle)
 +		return;
 +
-+	status = acpi_spi_enumerate(handle, acpi_spi_add_device, master);
++	status = acpi_i2c_enumerate(handle, acpi_i2c_add_device, adapter);
 +	if (ACPI_FAILURE(status))
-+		dev_warn(&master->dev, "failed to enumerate SPI slaves\n");
++		dev_warn(&adapter->dev, "failed to enumerate I2C slaves\n");
 +}
++EXPORT_SYMBOL_GPL(acpi_i2c_register_devices);
 +
-+struct acpi_spi_find {
++struct acpi_i2c_find {
 +	acpi_handle handle;
-+	u16 chip_select;
++	u16 addr;
 +	bool found;
 +};
 +
-+static acpi_status acpi_spi_find_child_address(struct acpi_resource *res,
++static acpi_status acpi_i2c_find_child_address(struct acpi_resource *res,
 +					       void *data)
 +{
-+	struct acpi_resource_spi_serialbus *sb;
-+	struct acpi_spi_find *spi_find = data;
++	struct acpi_resource_i2c_serialbus *sb;
++	struct acpi_i2c_find *i2c_find = data;
 +
 +	if (res->type != ACPI_RESOURCE_TYPE_SERIAL_BUS)
 +		return AE_OK;
 +
-+	sb = &res->data.spi_serial_bus;
-+	if (sb->type != ACPI_RESOURCE_SERIAL_TYPE_SPI)
++	sb = &res->data.i2c_serial_bus;
++	if (sb->type != ACPI_RESOURCE_SERIAL_TYPE_I2C)
 +		return AE_OK;
 +
-+	if (sb->device_selection == spi_find->chip_select) {
-+		spi_find->found = true;
++	if (sb->slave_address == i2c_find->addr) {
++		i2c_find->found = true;
 +		return AE_CTRL_TERMINATE;
 +	}
 +
 +	return AE_OK;
 +}
 +
-+static acpi_status acpi_spi_find_child(struct acpi_device *adev, void *data)
++static acpi_status acpi_i2c_find_child(struct acpi_device *adev, void *data)
 +{
-+	struct acpi_spi_find *spi_find = data;
++	struct acpi_i2c_find *i2c_find = data;
 +	acpi_status status;
 +
 +	status = acpi_walk_resources(adev->handle, METHOD_NAME__CRS,
-+				     acpi_spi_find_child_address, spi_find);
-+	if (ACPI_FAILURE(status) || !spi_find->found)
++				     acpi_i2c_find_child_address, i2c_find);
++	if (ACPI_FAILURE(status) || !i2c_find->found)
 +		return status;
 +
-+	spi_find->handle = adev->handle;
++	i2c_find->handle = adev->handle;
 +	return AE_CTRL_TERMINATE;
 +}
 +
-+static int acpi_spi_find_device(struct device *dev, acpi_handle *handle)
++static int acpi_i2c_find_device(struct device *dev, acpi_handle *handle)
 +{
-+	struct spi_device *spi = to_spi_device(dev);
-+	struct spi_master *master = spi->master;
-+	struct acpi_spi_find spi_find;
++	struct acpi_i2c_find i2c_find;
++	struct i2c_adapter *adapter;
++	struct i2c_client *client;
 +	acpi_handle parent;
 +	acpi_status status;
 +
-+	parent = master->dev.acpi_handle;
++	client = i2c_verify_client(dev);
++	if (!client)
++		return -ENODEV;
++
++	adapter = client->adapter;
++	if (!adapter)
++		return -ENODEV;
++
++	parent = adapter->dev.acpi_handle;
 +	if (!parent)
 +		return -ENODEV;
 +
-+	memset(&spi_find, 0, sizeof(spi_find));
-+	spi_find.chip_select = spi->chip_select;
++	memset(&i2c_find, 0, sizeof(i2c_find));
++	i2c_find.addr = client->addr;
 +
-+	status = acpi_spi_enumerate(parent, acpi_spi_find_child, &spi_find);
-+	if (ACPI_FAILURE(status) || !spi_find.handle)
++	status = acpi_i2c_enumerate(parent, acpi_i2c_find_child, &i2c_find);
++	if (ACPI_FAILURE(status) || !i2c_find.handle)
 +		return -ENODEV;
 +
-+	*handle = spi_find.handle;
++	*handle = i2c_find.handle;
 +	return 0;
 +}
 +
-+static struct acpi_bus_type acpi_spi_bus = {
-+	.bus = &spi_bus_type,
-+	.find_device = acpi_spi_find_device,
++static struct acpi_bus_type acpi_i2c_bus = {
++	.bus = &i2c_bus_type,
++	.find_device = acpi_i2c_find_device,
 +};
 +
-+static void acpi_spi_bus_register(void)
++void acpi_i2c_bus_register(void)
 +{
-+	register_acpi_bus_type(&acpi_spi_bus);
++	register_acpi_bus_type(&acpi_i2c_bus);
 +}
-+#else
-+static inline void acpi_register_spi_devices(struct spi_master *master) {}
-+static inline void acpi_spi_bus_register(void) {}
-+#endif /* CONFIG_ACPI */
++EXPORT_SYMBOL_GPL(acpi_i2c_bus_register);
 +
- static void spi_master_release(struct device *dev)
- {
- 	struct spi_master *master;
-@@ -1023,8 +1249,9 @@ int spi_register_master(struct spi_master *master)
- 		spi_match_master_to_boardinfo(master, &bi->board_info);
- 	mutex_unlock(&board_lock);
++void acpi_i2c_bus_unregister(void)
++{
++	unregister_acpi_bus_type(&acpi_i2c_bus);
++}
++EXPORT_SYMBOL_GPL(acpi_i2c_bus_unregister);
+diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+index a7edf98..8b9d6fb 100644
+--- a/drivers/i2c/i2c-core.c
++++ b/drivers/i2c/i2c-core.c
+@@ -39,6 +39,7 @@
+ #include <linux/irqflags.h>
+ #include <linux/rwsem.h>
+ #include <linux/pm_runtime.h>
++#include <linux/acpi_i2c.h>
+ #include <asm/uaccess.h>
  
--	/* Register devices from the device tree */
-+	/* Register devices from the device tree and ACPI */
- 	of_register_spi_devices(master);
-+	acpi_register_spi_devices(master);
- done:
- 	return status;
- }
-@@ -1550,6 +1777,8 @@ static int __init spi_init(void)
- 	status = class_register(&spi_master_class);
- 	if (status < 0)
- 		goto err2;
+ #include "i2c-core.h"
+@@ -78,6 +79,10 @@ static int i2c_device_match(struct device *dev, struct device_driver *drv)
+ 	if (of_driver_match_device(dev, drv))
+ 		return 1;
+ 
++	/* Then ACPI style match */
++	if (acpi_driver_match_device(dev, drv))
++		return 1;
 +
-+	acpi_spi_bus_register();
+ 	driver = to_i2c_driver(drv);
+ 	/* match on an id table if there is one */
+ 	if (driver->id_table)
+@@ -1298,6 +1303,8 @@ static int __init i2c_init(void)
+ 	retval = i2c_add_driver(&dummy_driver);
+ 	if (retval)
+ 		goto class_err;
++
++	acpi_i2c_bus_register();
  	return 0;
  
- err2:
+ class_err:
+@@ -1311,6 +1318,8 @@ bus_err:
+ 
+ static void __exit i2c_exit(void)
+ {
++	acpi_i2c_bus_unregister();
++
+ 	i2c_del_driver(&dummy_driver);
+ #ifdef CONFIG_I2C_COMPAT
+ 	class_compat_unregister(i2c_adapter_compat_class);
+diff --git a/include/linux/acpi_i2c.h b/include/linux/acpi_i2c.h
+new file mode 100644
+index 0000000..d4482df
+--- /dev/null
++++ b/include/linux/acpi_i2c.h
+@@ -0,0 +1,29 @@
++/*
++ * ACPI I2C enumeration support
++ *
++ * Copyright (C) 2012, Intel Corporation
++ * Author: Mika Westerberg <mika.westerberg@linux.intel.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef LINUX_ACPI_I2C_H
++#define LINUX_ACPI_I2C_H
++
++#include <linux/acpi.h>
++
++struct i2c_adapter;
++
++#if defined(CONFIG_ACPI_I2C) || defined(CONFIG_ACPI_I2C_MODULE)
++extern void acpi_i2c_register_devices(struct i2c_adapter *adap);
++extern void acpi_i2c_bus_register(void);
++extern void acpi_i2c_bus_unregister(void);
++#else
++static inline void acpi_i2c_register_devices(struct i2c_adapter *adap) {}
++static inline void acpi_i2c_bus_register(void) {}
++static inline void acpi_i2c_bus_unregister(void) {}
++#endif /* CONFIG_ACPI_I2C */
++
++#endif /* LINUX_ACPI_I2C_H */
 -- 
 1.7.10.4
