@@ -1,284 +1,335 @@
-From: Jiang Liu <liuj97@gmail.com>
-Subject: [ACPIHP PATCH part1 4/4] ACPIHP: implement a fake ACPI system device hotplug slot enumerator
-Date: Sun,  4 Nov 2012 00:07:45 +0800
-Message-ID: <1351958865-24394-5-git-send-email-jiang.liu@huawei.com>
-References: <1351958865-24394-1-git-send-email-jiang.liu@huawei.com>
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1351958865-24394-1-git-send-email-jiang.liu@huawei.com>
-Sender: owner-linux-mm@kvack.org
-To: "Rafael J . Wysocki" <rjw@sisk.pl>, Yinghai Lu <yinghai@kernel.org>, Tony Luck <tony.luck@intel.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, Tang Chen <tangchen@cn.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: Jiang Liu <jiang.liu@huawei.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Huang Ying <ying.huang@intel.com>, Bob Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, "Srivatsa S . Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, Yijing Wang <wangyijing@huawei.com>, Hanjun Guo <guohanjun@huawei.com>, Jiang Liu <liuj97@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-mm@kvack.org
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH 2/3] spi / ACPI: add ACPI enumeration support
+Date: Sat, 3 Nov 2012 13:42:02 -0600
+Message-ID: <CAErSpo5q64uEse3aYYZkuQrD+9AJ9HFP_VVB1TabYfO-_BvY3g@mail.gmail.com>
+References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1351928793-14375-3-git-send-email-mika.westerberg@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:65338 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751113Ab2KCTmY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 3 Nov 2012 15:42:24 -0400
+Received: by mail-wg0-f44.google.com with SMTP id dr13so3090255wgb.1
+        for <linux-acpi@vger.kernel.org>; Sat, 03 Nov 2012 12:42:22 -0700 (PDT)
+In-Reply-To: <1351928793-14375-3-git-send-email-mika.westerberg@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
 
-This patch implements a fake ACPI system device hotplug slot enumerator,
-which could be used to test and verify hotplug logic on platforms with
-hardware hotplug capabilities.
+On Sat, Nov 3, 2012 at 1:46 AM, Mika Westerberg
+<mika.westerberg@linux.intel.com> wrote:
+> ACPI 5 introduced SPISerialBus resource that allows us to enumerate and
+> configure the SPI slave devices behind the SPI controller. This patch adds
+> support for this to the SPI core.
+>
+> In addition we bind ACPI nodes to SPI devices. This makes it possible for
+> the slave drivers to get the ACPI handle for further configuration.
+>
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/spi/spi.c |  231 ++++++++++++++++++++++++++++++++++++++++++++++++++++-
+>  1 file changed, 230 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
+> index 84c2861..de22a6e 100644
+> --- a/drivers/spi/spi.c
+> +++ b/drivers/spi/spi.c
+> @@ -35,6 +35,7 @@
+>  #include <linux/sched.h>
+>  #include <linux/delay.h>
+>  #include <linux/kthread.h>
+> +#include <linux/acpi.h>
+>
+>  static void spidev_release(struct device *dev)
+>  {
+> @@ -93,6 +94,10 @@ static int spi_match_device(struct device *dev, struct device_driver *drv)
+>         if (of_driver_match_device(dev, drv))
+>                 return 1;
+>
+> +       /* Then try ACPI */
+> +       if (acpi_driver_match_device(dev, drv))
+> +               return 1;
+> +
+>         if (sdrv->id_table)
+>                 return !!spi_match_id(sdrv->id_table, spi);
+>
+> @@ -888,6 +893,227 @@ static void of_register_spi_devices(struct spi_master *master)
+>  static void of_register_spi_devices(struct spi_master *master) { }
+>  #endif
+>
+> +#ifdef CONFIG_ACPI
+> +struct acpi_spi {
+> +       acpi_status (*callback)(struct acpi_device *, void *);
+> +       void *data;
+> +};
+> +
+> +static acpi_status acpi_spi_enumerate_device(acpi_handle handle, u32 level,
+> +                                            void *data, void **return_value)
+> +{
+> +       struct acpi_spi *acpi_spi = data;
+> +       struct acpi_device *adev;
+> +
+> +       if (acpi_bus_get_device(handle, &adev))
+> +               return AE_OK;
+> +       if (acpi_bus_get_status(adev) || !adev->status.present)
+> +               return AE_OK;
+> +
+> +       return acpi_spi->callback(adev, acpi_spi->data);
+> +}
+> +
+> +static acpi_status acpi_spi_enumerate(acpi_handle handle,
+> +       acpi_status (*callback)(struct acpi_device *, void *), void *data)
+> +{
+> +       struct acpi_spi acpi_spi;
+> +
+> +       acpi_spi.callback = callback;
+> +       acpi_spi.data = data;
+> +
+> +       return acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, 1,
+> +                                  acpi_spi_enumerate_device, NULL,
+> +                                  &acpi_spi, NULL);
+> +}
+> +
+> +struct acpi_spi_device_info {
+> +       struct spi_device *spi;
+> +       int triggering;
+> +       int polarity;
+> +       int gsi;
+> +       bool valid;
+> +};
+> +
+> +static acpi_status acpi_spi_add_resources(struct acpi_resource *res, void *data)
+> +{
+> +       struct acpi_spi_device_info *info = data;
+> +       struct acpi_resource_spi_serialbus *sb;
+> +       struct spi_device *spi = info->spi;
+> +
+> +       switch (res->type) {
+> +       case ACPI_RESOURCE_TYPE_SERIAL_BUS:
+> +               sb = &res->data.spi_serial_bus;
+> +               if (sb->type == ACPI_RESOURCE_SERIAL_TYPE_SPI) {
+> +                       spi->chip_select = sb->device_selection;
+> +                       spi->max_speed_hz = sb->connection_speed;
+> +
+> +                       /* Mode (clock phase/polarity/etc. */
+> +                       if (sb->clock_phase == ACPI_SPI_SECOND_PHASE)
+> +                               spi->mode |= SPI_CPHA;
+> +                       if (sb->clock_polarity == ACPI_SPI_START_HIGH)
+> +                               spi->mode |= SPI_CPOL;
+> +                       if (sb->device_polarity == ACPI_SPI_ACTIVE_HIGH)
+> +                               spi->mode |= SPI_CS_HIGH;
+> +
+> +                       /*
+> +                        * The info is valid once we have found the
+> +                        * SPISerialBus resource.
+> +                        */
+> +                       info->valid = true;
+> +               }
+> +               break;
+> +
+> +       case ACPI_RESOURCE_TYPE_IRQ:
+> +               info->gsi = res->data.irq.interrupts[0];
+> +               info->triggering = res->data.irq.triggering;
+> +               info->polarity = res->data.irq.polarity;
+> +               break;
+> +
+> +       case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
+> +               info->gsi = res->data.extended_irq.interrupts[0];
+> +               info->triggering = res->data.extended_irq.triggering;
+> +               info->polarity = res->data.extended_irq.polarity;
 
-The fake slot enumerator will be enabled by passing module parameter
-"fake_slot=value". The encoding of "value" is:
-0x1: fake ACPI CONTAINER device as hotplug slot
-0x2: fake ACPI memory device as hotplug slot
-0x4: fake ACPI Processor object or Processor device as hotplug slot
-0x8: fake ACPI PCI host bridge device as hotplug slot.
+A driver doesn't seem like the right place for _CRS parsing code.  I
+think the intent of _CRS is to describe resources that need to be
+coordinated across all devices, e.g., MMIO space, I/O port space, and
+IRQs.  Since these resources require system-wide coordination, even
+when we don't have drivers for some devices, the ACPI core should be
+able to parse _CRS without needing any device-specific knowledge.
 
-Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
----
- drivers/acpi/Kconfig             |   10 +++
- drivers/acpi/hotplug/Makefile    |    1 +
- drivers/acpi/hotplug/acpihp.h    |    3 +
- drivers/acpi/hotplug/slot.c      |    3 +
- drivers/acpi/hotplug/slot_fake.c |  180 ++++++++++++++++++++++++++++++++++++++
- 5 files changed, 197 insertions(+)
- create mode 100644 drivers/acpi/hotplug/slot_fake.c
+I know the Linux ACPI core doesn't parse _CRS today, but it should.
+The only reason we get away with the core ignoring _CRS is because the
+BIOS sets up most ACPI devices and we never change them.  If we change
+any resource assignments, we have to know where all the other devices
+are so we can avoid conflicts.
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index af0aaf6..4d15b49 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -353,6 +353,16 @@ config ACPI_HOTPLUG_SLOT
- 	  To compile this driver as a module, choose M here:
- 	  the module will be called acpihp_slot.
- 
-+config ACPI_HOTPLUG_SLOT_FAKE
-+	bool "Fake Hotplug Slots"
-+	depends on ACPI_HOTPLUG_SLOT
-+	default n
-+	help
-+	  This options enables a method to fake system device hotplug slots
-+	  on hardware platforms without dynamic reconfiguration capabilities.
-+
-+	  Pass parameter "fake_slot=0xf" to enable this function.
-+
- config ACPI_CONTAINER
- 	tristate "Container and Module Devices (EXPERIMENTAL)"
- 	depends on EXPERIMENTAL
-diff --git a/drivers/acpi/hotplug/Makefile b/drivers/acpi/hotplug/Makefile
-index 5420ae7..c19b350 100644
---- a/drivers/acpi/hotplug/Makefile
-+++ b/drivers/acpi/hotplug/Makefile
-@@ -8,3 +8,4 @@ acpihp-y					= core.o
- obj-$(CONFIG_ACPI_HOTPLUG_SLOT)			+= acpihp_slot.o
- acpihp_slot-y					= slot.o
- acpihp_slot-y					+= slot_ej0.o
-+acpihp_slot-$(CONFIG_ACPI_HOTPLUG_SLOT_FAKE)	+= slot_fake.o
-diff --git a/drivers/acpi/hotplug/acpihp.h b/drivers/acpi/hotplug/acpihp.h
-index 278c8c2..7c49eab 100644
---- a/drivers/acpi/hotplug/acpihp.h
-+++ b/drivers/acpi/hotplug/acpihp.h
-@@ -29,5 +29,8 @@
- 
- extern struct acpi_device *acpi_root;
- extern struct acpihp_slot_ops acpihp_slot_ej0;
-+#ifdef	CONFIG_ACPI_HOTPLUG_SLOT_FAKE
-+extern struct acpihp_slot_ops acpihp_slot_fake;
-+#endif
- 
- #endif
-diff --git a/drivers/acpi/hotplug/slot.c b/drivers/acpi/hotplug/slot.c
-index e5861fc..b72523d 100644
---- a/drivers/acpi/hotplug/slot.c
-+++ b/drivers/acpi/hotplug/slot.c
-@@ -44,6 +44,9 @@ static struct acpihp_slot_ops *slot_ops_curr;
-  */
- static struct acpihp_slot_ops *slot_ops_array[] = {
- 	&acpihp_slot_ej0,
-+#ifdef	CONFIG_ACPI_HOTPLUG_SLOT_FAKE
-+	&acpihp_slot_fake,
-+#endif
- 	NULL
- };
- 
-diff --git a/drivers/acpi/hotplug/slot_fake.c b/drivers/acpi/hotplug/slot_fake.c
-new file mode 100644
-index 0000000..e70243a
---- /dev/null
-+++ b/drivers/acpi/hotplug/slot_fake.c
-@@ -0,0 +1,180 @@
-+/*
-+ * Copyright (C) 2012 Huawei Tech. Co., Ltd.
-+ * Copyright (C) 2012 Jiang Liu <jiang.liu@huawei.com>
-+ *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or (at
-+ *  your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful, but
-+ *  WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ *  General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License along
-+ *  with this program.
-+ *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ */
-+
-+#include <linux/acpi.h>
-+#include <acpi/acpi.h>
-+#include <acpi/acpi_hotplug.h>
-+#include "acpihp.h"
-+
-+struct acpihp_slot_fake_data {
-+	bool enabled;
-+};
-+
-+/*
-+ * Encoding of the fake_slot parameter:
-+ * 0x1: fake ACPI CONTAINER device as hotplug slot
-+ * 0x2: fake ACPI memory device as hotplug slot
-+ * 0x4: fake ACPI Processor object or Processor device as hotplug slot
-+ * 0x8: fake ACPI PCI host bridge device as hotplug slot.
-+ * The above encoding must be kept in consistence with definition of
-+ * 'enum acpihp_dev_type'.
-+ */
-+int acpihp_fake_slot;
-+module_param_named(fake_slot, acpihp_fake_slot, int, S_IRUGO);
-+MODULE_PARM_DESC(fake_slot, "fake ACPI hotplug slots");
-+
-+static acpi_status acpihp_slot_fake_init(void)
-+{
-+	return acpihp_fake_slot ? AE_OK : AE_ERROR;
-+}
-+
-+static acpi_status
-+acpihp_slot_fake_check(acpi_handle handle, u32 lvl, void *context, void **rv)
-+{
-+	int *valid = (int *)rv;
-+	enum acpihp_dev_type type;
-+
-+	if (!acpihp_dev_get_type(handle, &type)) {
-+		switch (type) {
-+		case ACPIHP_DEV_TYPE_CPU:
-+		case ACPIHP_DEV_TYPE_MEM:
-+		case ACPIHP_DEV_TYPE_HOST_BRIDGE:
-+			*valid = 1;
-+			return AE_CTRL_TERMINATE;
-+		default:
-+			break;
-+		}
-+	}
-+
-+	return AE_OK;
-+}
-+
-+static acpi_status acpihp_slot_fake_capable(acpi_handle handle)
-+{
-+	int valid = 0;
-+	acpi_status rc;
-+	unsigned long long sta;
-+	enum acpihp_dev_type type;
-+
-+	/* Only care about CPU, memory, PCI host bridge and CONTAINER */
-+	if (acpihp_dev_get_type(handle, &type))
-+		return AE_ERROR;
-+	if (type == ACPIHP_DEV_TYPE_CPU || type == ACPIHP_DEV_TYPE_MEM ||
-+	    type == ACPIHP_DEV_TYPE_HOST_BRIDGE) {
-+		if (acpihp_fake_slot & (1 << (type - 1)))
-+			valid = 1;
-+	} else if (type == ACPIHP_DEV_TYPE_CONTAINER &&
-+		   acpihp_fake_slot & (1 << (type - 1))) {
-+		acpi_walk_namespace(ACPI_TYPE_DEVICE, handle,
-+				ACPI_UINT32_MAX, acpihp_slot_fake_check,
-+				NULL, NULL, (void **)&valid);
-+		acpi_walk_namespace(ACPI_TYPE_PROCESSOR, handle,
-+				ACPI_UINT32_MAX, acpihp_slot_fake_check,
-+				NULL, NULL, (void **)&valid);
-+	}
-+	if (valid == 0)
-+		return AE_ERROR;
-+
-+	/* Check whether device is present and enabled. */
-+	rc = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
-+	if (rc == AE_NOT_FOUND)
-+		sta = ACPI_STA_DEVICE_PRESENT | ACPI_STA_DEVICE_ENABLED;
-+	else if (ACPI_FAILURE(rc))
-+		sta = 0;
-+	else if (sta & ACPI_STA_DEVICE_FUNCTIONING)
-+		sta |= ACPI_STA_DEVICE_PRESENT | ACPI_STA_DEVICE_ENABLED;
-+	if (!(sta & ACPI_STA_DEVICE_PRESENT) ||
-+	    !(sta & ACPI_STA_DEVICE_ENABLED))
-+		return AE_ERROR;
-+
-+	return AE_OK;
-+}
-+
-+static acpi_status acpihp_slot_fake_create(struct acpihp_slot *slot)
-+{
-+	struct acpihp_slot_fake_data *data;
-+
-+	data = kzalloc(sizeof(*data), GFP_KERNEL);
-+	if (!data)
-+		return AE_ERROR;
-+
-+	data->enabled = true;
-+	slot->slot_data = data;
-+	slot->capabilities = ACPIHP_SLOT_CAP_POWERON |
-+			     ACPIHP_SLOT_CAP_POWEROFF |
-+			     ACPIHP_SLOT_CAP_ONLINE |
-+			     ACPIHP_SLOT_CAP_OFFLINE;
-+
-+	return AE_OK;
-+}
-+
-+static void acpihp_slot_fake_destroy(struct acpihp_slot *slot)
-+{
-+	struct acpihp_slot_fake_data *data = slot->slot_data;
-+
-+	slot->slot_data = NULL;
-+	kfree(data);
-+}
-+
-+static acpi_status
-+acpihp_slot_fake_get_status(struct acpihp_slot *slot, u64 *status)
-+{
-+	struct acpihp_slot_fake_data *data = slot->slot_data;
-+
-+	if (data->enabled)
-+		*status = ACPI_STA_DEVICE_PRESENT | ACPI_STA_DEVICE_ENABLED |
-+			  ACPI_STA_DEVICE_FUNCTIONING;
-+	else
-+		*status = ACPI_STA_DEVICE_PRESENT;
-+
-+	return AE_OK;
-+}
-+
-+static acpi_status acpihp_slot_fake_poweron(struct acpihp_slot *slot)
-+{
-+	struct acpihp_slot_fake_data *data = slot->slot_data;
-+
-+	data->enabled = true;
-+
-+	return AE_OK;
-+}
-+
-+static acpi_status acpihp_slot_fake_poweroff(struct acpihp_slot *slot)
-+{
-+	struct acpihp_slot_fake_data *data = slot->slot_data;
-+
-+	data->enabled = false;
-+
-+	return AE_OK;
-+}
-+
-+struct acpihp_slot_ops acpihp_slot_fake = {
-+	.owner = THIS_MODULE,
-+	.desc = "Fake Hotplug Slot Enumerator for Testing",
-+	.init = acpihp_slot_fake_init,
-+	.check = acpihp_slot_fake_capable,
-+	.create = acpihp_slot_fake_create,
-+	.destroy = acpihp_slot_fake_destroy,
-+	.poweron = acpihp_slot_fake_poweron,
-+	.poweroff = acpihp_slot_fake_poweroff,
-+	.get_status = acpihp_slot_fake_get_status,
-+};
--- 
-1.7.9.5
+> +               break;
+> +       }
+> +
+> +       return AE_OK;
+> +}
+> +
+> +static acpi_status acpi_spi_add_device(struct acpi_device *adev, void *data)
+> +{
+> +       struct acpi_spi_device_info info;
+> +       struct spi_master *master = data;
+> +       struct spi_device *spi;
+> +       acpi_status status;
+> +
+> +       spi = spi_alloc_device(master);
+> +       if (!spi) {
+> +               dev_err(&master->dev, "failed to allocate SPI device\n");
+> +               return AE_ERROR;
+> +       }
+> +
+> +       memset(&info, 0, sizeof(info));
+> +       info.spi = spi;
+> +       info.gsi = -1;
+> +
+> +       status = acpi_walk_resources(adev->handle, METHOD_NAME__CRS,
+> +                                    acpi_spi_add_resources, &info);
+> +       if (ACPI_FAILURE(status) || !info.valid)
+> +               goto fail_put_dev;
+> +
+> +       strlcpy(spi->modalias, acpi_device_hid(adev), sizeof(spi->modalias));
+> +       if (info.gsi >= 0)
+> +               spi->irq = acpi_register_gsi(&adev->dev, info.gsi,
+> +                                            info.triggering, info.polarity);
+> +       request_module(spi->modalias);
+> +       if (spi_add_device(spi)) {
+> +               dev_err(&master->dev, "failed to add SPI device from ACPI\n");
+> +               goto fail_unregister_gsi;
+> +       }
+> +
+> +       return AE_OK;
+> +
+> + fail_unregister_gsi:
+> +       if (info.gsi >= 0)
+> +               acpi_unregister_gsi(info.gsi);
+> + fail_put_dev:
+> +       spi_dev_put(spi);
+> +
+> +       return AE_OK;
+> +}
+> +
+> +static void acpi_register_spi_devices(struct spi_master *master)
+> +{
+> +       acpi_status status;
+> +       acpi_handle handle;
+> +
+> +       handle = master->dev.acpi_handle;
+> +       if (!handle)
+> +               return;
+> +
+> +       status = acpi_spi_enumerate(handle, acpi_spi_add_device, master);
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+How does this work with hot-plug?  acpi_spi_enumerate() walks a
+portion of the namespace.  How do we deal with changes to that part of
+the namespace?  For example, what happens if this part of the
+namespace gets pruned because an enclosing device is removed?  Is
+there a way to discover new SPI devices if they get added?
+
+> +       if (ACPI_FAILURE(status))
+> +               dev_warn(&master->dev, "failed to enumerate SPI slaves\n");
+> +}
+> +
+> +struct acpi_spi_find {
+> +       acpi_handle handle;
+> +       u16 chip_select;
+> +       bool found;
+> +};
+> +
+> +static acpi_status acpi_spi_find_child_address(struct acpi_resource *res,
+> +                                              void *data)
+> +{
+> +       struct acpi_resource_spi_serialbus *sb;
+> +       struct acpi_spi_find *spi_find = data;
+> +
+> +       if (res->type != ACPI_RESOURCE_TYPE_SERIAL_BUS)
+> +               return AE_OK;
+> +
+> +       sb = &res->data.spi_serial_bus;
+> +       if (sb->type != ACPI_RESOURCE_SERIAL_TYPE_SPI)
+> +               return AE_OK;
+> +
+> +       if (sb->device_selection == spi_find->chip_select) {
+> +               spi_find->found = true;
+> +               return AE_CTRL_TERMINATE;
+> +       }
+> +
+> +       return AE_OK;
+> +}
+> +
+> +static acpi_status acpi_spi_find_child(struct acpi_device *adev, void *data)
+> +{
+> +       struct acpi_spi_find *spi_find = data;
+> +       acpi_status status;
+> +
+> +       status = acpi_walk_resources(adev->handle, METHOD_NAME__CRS,
+> +                                    acpi_spi_find_child_address, spi_find);
+> +       if (ACPI_FAILURE(status) || !spi_find->found)
+> +               return status;
+> +
+> +       spi_find->handle = adev->handle;
+> +       return AE_CTRL_TERMINATE;
+> +}
+> +
+> +static int acpi_spi_find_device(struct device *dev, acpi_handle *handle)
+> +{
+> +       struct spi_device *spi = to_spi_device(dev);
+> +       struct spi_master *master = spi->master;
+> +       struct acpi_spi_find spi_find;
+> +       acpi_handle parent;
+> +       acpi_status status;
+> +
+> +       parent = master->dev.acpi_handle;
+> +       if (!parent)
+> +               return -ENODEV;
+> +
+> +       memset(&spi_find, 0, sizeof(spi_find));
+> +       spi_find.chip_select = spi->chip_select;
+> +
+> +       status = acpi_spi_enumerate(parent, acpi_spi_find_child, &spi_find);
+> +       if (ACPI_FAILURE(status) || !spi_find.handle)
+> +               return -ENODEV;
+> +
+> +       *handle = spi_find.handle;
+> +       return 0;
+> +}
+> +
+> +static struct acpi_bus_type acpi_spi_bus = {
+> +       .bus = &spi_bus_type,
+> +       .find_device = acpi_spi_find_device,
+> +};
+> +
+> +static void acpi_spi_bus_register(void)
+> +{
+> +       register_acpi_bus_type(&acpi_spi_bus);
+> +}
+> +#else
+> +static inline void acpi_register_spi_devices(struct spi_master *master) {}
+> +static inline void acpi_spi_bus_register(void) {}
+> +#endif /* CONFIG_ACPI */
+> +
+>  static void spi_master_release(struct device *dev)
+>  {
+>         struct spi_master *master;
+> @@ -1023,8 +1249,9 @@ int spi_register_master(struct spi_master *master)
+>                 spi_match_master_to_boardinfo(master, &bi->board_info);
+>         mutex_unlock(&board_lock);
+>
+> -       /* Register devices from the device tree */
+> +       /* Register devices from the device tree and ACPI */
+>         of_register_spi_devices(master);
+> +       acpi_register_spi_devices(master);
+>  done:
+>         return status;
+>  }
+> @@ -1550,6 +1777,8 @@ static int __init spi_init(void)
+>         status = class_register(&spi_master_class);
+>         if (status < 0)
+>                 goto err2;
+> +
+> +       acpi_spi_bus_register();
+>         return 0;
+>
+>  err2:
+> --
+> 1.7.10.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
