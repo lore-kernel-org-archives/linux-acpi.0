@@ -1,25 +1,23 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [PATCH 2/3] spi / ACPI: add ACPI enumeration support
-Date: Sat, 3 Nov 2012 22:13:10 +0200
-Message-ID: <20121103201310.GQ16648@intel.com>
-References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com>
- <1351928793-14375-3-git-send-email-mika.westerberg@linux.intel.com>
- <CAErSpo5q64uEse3aYYZkuQrD+9AJ9HFP_VVB1TabYfO-_BvY3g@mail.gmail.com>
+Date: Sat, 03 Nov 2012 21:39:25 +0100
+Message-ID: <1792336.CIafglX82A@vostro.rjw.lan>
+References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com> <1351928793-14375-3-git-send-email-mika.westerberg@linux.intel.com> <CAErSpo5q64uEse3aYYZkuQrD+9AJ9HFP_VVB1TabYfO-_BvY3g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:12803 "EHLO mga02.intel.com"
+Received: from ogre.sisk.pl ([193.178.161.156]:54125 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750896Ab2KCULJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 3 Nov 2012 16:11:09 -0400
-Content-Disposition: inline
+	id S1752896Ab2KCUfS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 3 Nov 2012 16:35:18 -0400
 In-Reply-To: <CAErSpo5q64uEse3aYYZkuQrD+9AJ9HFP_VVB1TabYfO-_BvY3g@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
 
-On Sat, Nov 03, 2012 at 01:42:02PM -0600, Bjorn Helgaas wrote:
+On Saturday, November 03, 2012 01:42:02 PM Bjorn Helgaas wrote:
 > On Sat, Nov 3, 2012 at 1:46 AM, Mika Westerberg
 > <mika.westerberg@linux.intel.com> wrote:
 > > ACPI 5 introduced SPISerialBus resource that allows us to enumerate and
@@ -143,23 +141,24 @@ On Sat, Nov 03, 2012 at 01:42:02PM -0600, Bjorn Helgaas wrote:
 > > +               info->triggering = res->data.extended_irq.triggering;
 > > +               info->polarity = res->data.extended_irq.polarity;
 > 
-> A driver doesn't seem like the right place for _CRS parsing code.  I
-> think the intent of _CRS is to describe resources that need to be
+> A driver doesn't seem like the right place for _CRS parsing code.
+
+This is not a driver, however. :-)
+
+> I think the intent of _CRS is to describe resources that need to be
 > coordinated across all devices, e.g., MMIO space, I/O port space, and
 > IRQs.  Since these resources require system-wide coordination, even
 > when we don't have drivers for some devices, the ACPI core should be
 > able to parse _CRS without needing any device-specific knowledge.
 
-I think the driver is the only one who really knows the resources it needs
-in order to talk the hardware.
+Hmm.
 
-The purpose of the above code is to extract the resources in a suitable
-form so that we can create a struct spi_device out of them automatically,
-in a similar way than the Device Tree does.
+So you would like the ACPI core to parse _CRS centrally for each device
+node and create an SPI device object and run spi_add_device() to register
+it whenever it finds ACPI_RESOURCE_TYPE_SERIAL_BUS/ACPI_RESOURCE_SERIAL_TYPE_SPI?
+And analogously for I2C?
 
-There are other things which we cannot do in the generic code, such as GPIO
-resources and FixedDMA resources. These should be handled by the actual
-driver with the help of dev->acpi_handle IMO.
+That might work too.
 
 > I know the Linux ACPI core doesn't parse _CRS today, but it should.
 > The only reason we get away with the core ignoring _CRS is because the
@@ -167,17 +166,8 @@ driver with the help of dev->acpi_handle IMO.
 > any resource assignments, we have to know where all the other devices
 > are so we can avoid conflicts.
 
-I agree but these devices are typically "fixed" so that they wont be
-hot-plugged (although we should prepare for such devices as well) so
-basically we don't need to do change any assignments for resources.
+Well, point taken.
 
-And if the ACPI core parses the _CRS, how does it pass all the resources to
-the drivers?
-
-The idea here is to reuse the existing drivers as much as possible. That's
-why we follow what Device Tree did already.
-
-> 
 > > +               break;
 > > +       }
 > > +
@@ -244,13 +234,123 @@ why we follow what Device Tree did already.
 > namespace gets pruned because an enclosing device is removed?  Is
 > there a way to discover new SPI devices if they get added?
 
-I'm not aware that we even support SPI hot-plug in the first place (well,
-I'm not sure that the SPI bus even supports such thing).
+Yes, there should be a way to do that eventually.  No, we don't have any
+removable SPI devices described by ACPI yet, as far as I know.  So even if
+we added code for that now, we wouldn't be able to test it anyway with any
+real hardware until such devices become available.  I have no idea when that's
+going to happen, though.
 
-Typically SPI devices are pretty much "static", at least that is my
-understanding. The platform device type ACPI support doesn't yet handle
-removing of the device and same goes with this code (typically the SPI
-master is based on a platform device).
+> > +       if (ACPI_FAILURE(status))
+> > +               dev_warn(&master->dev, "failed to enumerate SPI slaves\n");
+> > +}
+> > +
+> > +struct acpi_spi_find {
+> > +       acpi_handle handle;
+> > +       u16 chip_select;
+> > +       bool found;
+> > +};
+> > +
+> > +static acpi_status acpi_spi_find_child_address(struct acpi_resource *res,
+> > +                                              void *data)
+> > +{
+> > +       struct acpi_resource_spi_serialbus *sb;
+> > +       struct acpi_spi_find *spi_find = data;
+> > +
+> > +       if (res->type != ACPI_RESOURCE_TYPE_SERIAL_BUS)
+> > +               return AE_OK;
+> > +
+> > +       sb = &res->data.spi_serial_bus;
+> > +       if (sb->type != ACPI_RESOURCE_SERIAL_TYPE_SPI)
+> > +               return AE_OK;
+> > +
+> > +       if (sb->device_selection == spi_find->chip_select) {
+> > +               spi_find->found = true;
+> > +               return AE_CTRL_TERMINATE;
+> > +       }
+> > +
+> > +       return AE_OK;
+> > +}
+> > +
+> > +static acpi_status acpi_spi_find_child(struct acpi_device *adev, void *data)
+> > +{
+> > +       struct acpi_spi_find *spi_find = data;
+> > +       acpi_status status;
+> > +
+> > +       status = acpi_walk_resources(adev->handle, METHOD_NAME__CRS,
+> > +                                    acpi_spi_find_child_address, spi_find);
+> > +       if (ACPI_FAILURE(status) || !spi_find->found)
+> > +               return status;
+> > +
+> > +       spi_find->handle = adev->handle;
+> > +       return AE_CTRL_TERMINATE;
+> > +}
+> > +
+> > +static int acpi_spi_find_device(struct device *dev, acpi_handle *handle)
+> > +{
+> > +       struct spi_device *spi = to_spi_device(dev);
+> > +       struct spi_master *master = spi->master;
+> > +       struct acpi_spi_find spi_find;
+> > +       acpi_handle parent;
+> > +       acpi_status status;
+> > +
+> > +       parent = master->dev.acpi_handle;
+> > +       if (!parent)
+> > +               return -ENODEV;
+> > +
+> > +       memset(&spi_find, 0, sizeof(spi_find));
+> > +       spi_find.chip_select = spi->chip_select;
+> > +
+> > +       status = acpi_spi_enumerate(parent, acpi_spi_find_child, &spi_find);
+> > +       if (ACPI_FAILURE(status) || !spi_find.handle)
+> > +               return -ENODEV;
+> > +
+> > +       *handle = spi_find.handle;
+> > +       return 0;
+> > +}
+> > +
+> > +static struct acpi_bus_type acpi_spi_bus = {
+> > +       .bus = &spi_bus_type,
+> > +       .find_device = acpi_spi_find_device,
+> > +};
+> > +
+> > +static void acpi_spi_bus_register(void)
+> > +{
+> > +       register_acpi_bus_type(&acpi_spi_bus);
+> > +}
+> > +#else
+> > +static inline void acpi_register_spi_devices(struct spi_master *master) {}
+> > +static inline void acpi_spi_bus_register(void) {}
+> > +#endif /* CONFIG_ACPI */
+> > +
+> >  static void spi_master_release(struct device *dev)
+> >  {
+> >         struct spi_master *master;
+> > @@ -1023,8 +1249,9 @@ int spi_register_master(struct spi_master *master)
+> >                 spi_match_master_to_boardinfo(master, &bi->board_info);
+> >         mutex_unlock(&board_lock);
+> >
+> > -       /* Register devices from the device tree */
+> > +       /* Register devices from the device tree and ACPI */
+> >         of_register_spi_devices(master);
+> > +       acpi_register_spi_devices(master);
+> >  done:
+> >         return status;
+> >  }
+> > @@ -1550,6 +1777,8 @@ static int __init spi_init(void)
+> >         status = class_register(&spi_master_class);
+> >         if (status < 0)
+> >                 goto err2;
+> > +
+> > +       acpi_spi_bus_register();
+> >         return 0;
+> >
+> >  err2:
+> > --
 
-Eventually we should prepare for hot-plugging the SPI master device and
-delete the slave device when the master is removed.
+Thanks,
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
