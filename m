@@ -1,7 +1,7 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH 4/8] PCI, x86: Separate out rom resource claim
-Date: Sat,  3 Nov 2012 21:39:27 -0700
-Message-ID: <1352003971-22278-5-git-send-email-yinghai@kernel.org>
+Subject: [PATCH 5/8] PCI, x86: Add pcibios_fw_addr_done
+Date: Sat,  3 Nov 2012 21:39:28 -0700
+Message-ID: <1352003971-22278-6-git-send-email-yinghai@kernel.org>
 References: <20121030040237.GA10472@google.com>
  <1352003971-22278-1-git-send-email-yinghai@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
@@ -11,82 +11,65 @@ To: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len 
 Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, x86@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-So could use it with hot-added root bus later.
+Use it to skip not needed function after pcibios_fw_addr_list_del is called.
 
--v2: remove extra functions.
+for pci root bus hot add, we will need to use pcibios_allocate_dev_resources(),
+and don't want to mess up with fw_addr, for hot-add removing path.
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 Cc: x86@kernel.org
 ---
- arch/x86/pci/i386.c |   52 ++++++++++++++++++++++++++++++++++----------------
- 1 files changed, 35 insertions(+), 17 deletions(-)
+ arch/x86/pci/i386.c |   10 +++++++++-
+ 1 files changed, 9 insertions(+), 1 deletions(-)
 
 diff --git a/arch/x86/pci/i386.c b/arch/x86/pci/i386.c
-index 84696ed..42dd755 100644
+index 42dd755..edfc376 100644
 --- a/arch/x86/pci/i386.c
 +++ b/arch/x86/pci/i386.c
-@@ -298,27 +298,45 @@ static void __init pcibios_allocate_resources(struct pci_bus *bus, int pass)
- 	}
- }
+@@ -51,6 +51,7 @@ struct pcibios_fwaddrmap {
  
--static int __init pcibios_assign_resources(void)
-+static void __init pcibios_allocate_dev_rom_resource(struct pci_dev *dev)
- {
--	struct pci_dev *dev = NULL;
- 	struct resource *r;
+ static LIST_HEAD(pcibios_fwaddrmappings);
+ static DEFINE_SPINLOCK(pcibios_fwaddrmap_lock);
++static bool pcibios_fw_addr_done;
  
--	if (!(pci_probe & PCI_ASSIGN_ROMS)) {
--		/*
--		 * Try to use BIOS settings for ROMs, otherwise let
--		 * pci_assign_unassigned_resources() allocate the new
--		 * addresses.
--		 */
--		for_each_pci_dev(dev) {
--			r = &dev->resource[PCI_ROM_RESOURCE];
--			if (!r->flags || !r->start)
--				continue;
--			if (pci_claim_resource(dev, PCI_ROM_RESOURCE) < 0) {
--				r->end -= r->start;
--				r->start = 0;
--			}
--		}
-+	/*
-+	 * Try to use BIOS settings for ROMs, otherwise let
-+	 * pci_assign_unassigned_resources() allocate the new
-+	 * addresses.
-+	 */
-+	r = &dev->resource[PCI_ROM_RESOURCE];
-+	if (!r->flags || !r->start)
+ /* Must be called with 'pcibios_fwaddrmap_lock' lock held. */
+ static struct pcibios_fwaddrmap *pcibios_fwaddrmap_lookup(struct pci_dev *dev)
+@@ -72,6 +73,9 @@ pcibios_save_fw_addr(struct pci_dev *dev, int idx, resource_size_t fw_addr)
+ 	unsigned long flags;
+ 	struct pcibios_fwaddrmap *map;
+ 
++	if (pcibios_fw_addr_done)
 +		return;
 +
-+	if (pci_claim_resource(dev, PCI_ROM_RESOURCE) < 0) {
-+		r->end -= r->start;
-+		r->start = 0;
- 	}
-+}
-+static void __init pcibios_allocate_rom_resources(struct pci_bus *bus)
-+{
-+	struct pci_dev *dev;
-+	struct pci_bus *child;
-+
-+	list_for_each_entry(dev, &bus->devices, bus_list) {
-+		pcibios_allocate_dev_rom_resource(dev);
-+
-+		child = dev->subordinate;
-+		if (child)
-+			pcibios_allocate_rom_resources(child);
-+	}
-+}
-+
-+static int __init pcibios_assign_resources(void)
-+{
-+	struct pci_bus *bus;
-+
-+	if (!(pci_probe & PCI_ASSIGN_ROMS))
-+		list_for_each_entry(bus, &pci_root_buses, node)
-+			pcibios_allocate_rom_resources(bus);
+ 	spin_lock_irqsave(&pcibios_fwaddrmap_lock, flags);
+ 	map = pcibios_fwaddrmap_lookup(dev);
+ 	if (!map) {
+@@ -97,6 +101,9 @@ resource_size_t pcibios_retrieve_fw_addr(struct pci_dev *dev, int idx)
+ 	struct pcibios_fwaddrmap *map;
+ 	resource_size_t fw_addr = 0;
  
- 	pci_assign_unassigned_resources();
- 	pcibios_fw_addr_list_del();
++	if (pcibios_fw_addr_done)
++		return fw_addr;
++
+ 	spin_lock_irqsave(&pcibios_fwaddrmap_lock, flags);
+ 	map = pcibios_fwaddrmap_lookup(dev);
+ 	if (map)
+@@ -106,7 +113,7 @@ resource_size_t pcibios_retrieve_fw_addr(struct pci_dev *dev, int idx)
+ 	return fw_addr;
+ }
+ 
+-static void pcibios_fw_addr_list_del(void)
++static void __init pcibios_fw_addr_list_del(void)
+ {
+ 	unsigned long flags;
+ 	struct pcibios_fwaddrmap *entry, *next;
+@@ -118,6 +125,7 @@ static void pcibios_fw_addr_list_del(void)
+ 		kfree(entry);
+ 	}
+ 	spin_unlock_irqrestore(&pcibios_fwaddrmap_lock, flags);
++	pcibios_fw_addr_done = true;
+ }
+ 
+ static int
 -- 
 1.7.7
