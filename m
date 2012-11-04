@@ -1,97 +1,92 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH 7/8] PCI, x86: Claim FW allocated resources in hot add path.
-Date: Sat,  3 Nov 2012 21:39:30 -0700
-Message-ID: <1352003971-22278-8-git-send-email-yinghai@kernel.org>
+Subject: [PATCH 4/8] PCI, x86: Separate out rom resource claim
+Date: Sat,  3 Nov 2012 21:39:27 -0700
+Message-ID: <1352003971-22278-5-git-send-email-yinghai@kernel.org>
 References: <20121030040237.GA10472@google.com>
  <1352003971-22278-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:23719 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750867Ab2KDEmE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 4 Nov 2012 00:42:04 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1352003971-22278-1-git-send-email-yinghai@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>
 Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, x86@kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-During testing remove/rescan root bus 00, found
-[  338.142574] bus: 'pci': really_probe: probing driver ata_piix with device 0000:00:01.1
-[  338.146788] ata_piix 0000:00:01.1: device not available (can't reserve [io  0x01f0-0x01f7])
-[  338.150565] ata_piix: probe of 0000:00:01.1 failed with error -22
+So could use it with hot-added root bus later.
 
-because that fixed resource is not claimed.
-For bootint path it is claimed in  from
-        arch/x86/pci/i386.c::pcibios_allocate_resources()
-
-Claim those resources, so on the remove/rescan will still use old
-resources.
-
-It is some kind honoring FW setting in the registers during hot add.
-esp root-bus hot add is through acpi, BIOS has chance to set some registers
-before handing over.
-
--v2: add rom resource claiming.
--v3: separate __init removing to another patch, also
-   put pci_probe checking with caller from rom resource allocating
+-v2: remove extra functions.
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 Cc: x86@kernel.org
 ---
- arch/x86/pci/i386.c |   13 +++++++++++++
- drivers/pci/bus.c   |    2 ++
- include/linux/pci.h |    1 +
- 3 files changed, 16 insertions(+), 0 deletions(-)
+ arch/x86/pci/i386.c |   52 ++++++++++++++++++++++++++++++++++----------------
+ 1 files changed, 35 insertions(+), 17 deletions(-)
 
 diff --git a/arch/x86/pci/i386.c b/arch/x86/pci/i386.c
-index 1806e91..e0b7f30 100644
+index 84696ed..42dd755 100644
 --- a/arch/x86/pci/i386.c
 +++ b/arch/x86/pci/i386.c
-@@ -352,6 +352,19 @@ static int __init pcibios_assign_resources(void)
- 	return 0;
+@@ -298,27 +298,45 @@ static void __init pcibios_allocate_resources(struct pci_bus *bus, int pass)
+ 	}
  }
  
-+void pcibios_resource_survey_bus(struct pci_bus *bus)
+-static int __init pcibios_assign_resources(void)
++static void __init pcibios_allocate_dev_rom_resource(struct pci_dev *dev)
+ {
+-	struct pci_dev *dev = NULL;
+ 	struct resource *r;
+ 
+-	if (!(pci_probe & PCI_ASSIGN_ROMS)) {
+-		/*
+-		 * Try to use BIOS settings for ROMs, otherwise let
+-		 * pci_assign_unassigned_resources() allocate the new
+-		 * addresses.
+-		 */
+-		for_each_pci_dev(dev) {
+-			r = &dev->resource[PCI_ROM_RESOURCE];
+-			if (!r->flags || !r->start)
+-				continue;
+-			if (pci_claim_resource(dev, PCI_ROM_RESOURCE) < 0) {
+-				r->end -= r->start;
+-				r->start = 0;
+-			}
+-		}
++	/*
++	 * Try to use BIOS settings for ROMs, otherwise let
++	 * pci_assign_unassigned_resources() allocate the new
++	 * addresses.
++	 */
++	r = &dev->resource[PCI_ROM_RESOURCE];
++	if (!r->flags || !r->start)
++		return;
++
++	if (pci_claim_resource(dev, PCI_ROM_RESOURCE) < 0) {
++		r->end -= r->start;
++		r->start = 0;
+ 	}
++}
++static void __init pcibios_allocate_rom_resources(struct pci_bus *bus)
 +{
-+	dev_printk(KERN_DEBUG, &bus->dev, "Allocating resources\n");
++	struct pci_dev *dev;
++	struct pci_bus *child;
 +
-+	pcibios_allocate_bus_resources(bus);
++	list_for_each_entry(dev, &bus->devices, bus_list) {
++		pcibios_allocate_dev_rom_resource(dev);
 +
-+	pcibios_allocate_resources(bus, 0);
-+	pcibios_allocate_resources(bus, 1);
-+
-+	if (!(pci_probe & PCI_ASSIGN_ROMS))
-+		pcibios_allocate_rom_resources(bus);
++		child = dev->subordinate;
++		if (child)
++			pcibios_allocate_rom_resources(child);
++	}
 +}
 +
- void __init pcibios_resource_survey(void)
- {
- 	struct pci_bus *bus;
-diff --git a/drivers/pci/bus.c b/drivers/pci/bus.c
-index 6241fd0..a85247d 100644
---- a/drivers/pci/bus.c
-+++ b/drivers/pci/bus.c
-@@ -158,6 +158,8 @@ pci_bus_alloc_resource(struct pci_bus *bus, struct resource *res,
- 	return ret;
- }
- 
-+void __weak pcibios_resource_survey_bus(struct pci_bus *bus) { }
++static int __init pcibios_assign_resources(void)
++{
++	struct pci_bus *bus;
 +
- /**
-  * pci_bus_add_device - add a single device
-  * @dev: device to add
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index 7860942..f30af2f 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -654,6 +654,7 @@ extern struct list_head pci_root_buses;	/* list of all known PCI buses */
- /* Some device drivers need know if pci is initiated */
- extern int no_pci_devices(void);
++	if (!(pci_probe & PCI_ASSIGN_ROMS))
++		list_for_each_entry(bus, &pci_root_buses, node)
++			pcibios_allocate_rom_resources(bus);
  
-+void pcibios_resource_survey_bus(struct pci_bus *bus);
- void pcibios_fixup_bus(struct pci_bus *);
- int __must_check pcibios_enable_device(struct pci_dev *, int mask);
- /* Architecture specific versions may override this (weak) */
+ 	pci_assign_unassigned_resources();
+ 	pcibios_fw_addr_list_del();
 -- 
 1.7.7
-
