@@ -1,82 +1,104 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 2/3] spi / ACPI: add ACPI enumeration support
-Date: Mon, 5 Nov 2012 21:42:04 +0100
-Message-ID: <CACRpkda26Ms3kipp4gF9TtOZY_qw8Y0DjYeAg-MB7iOre6j7aA@mail.gmail.com>
-References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com>
-	<20121105120219.GF24532@intel.com>
-	<20121105132350.59c6e4d9@endymion.delvare>
-	<1983976.4JKTfcThF7@vostro.rjw.lan>
-	<20121105131519.GG24532@intel.com>
-	<CACRpkdaZqka7g2ECAyD_bKhnoULhCP6cTJwMyEsTuVxiUiHy+A@mail.gmail.com>
-	<20121105150326.3bbf69df@endymion.delvare>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [ACPIHP PATCH part1 1/4] ACPIHP: introduce a framework for ACPI
+ based system device hotplug
+Date: Mon, 5 Nov 2012 14:05:24 -0700
+Message-ID: <CAErSpo6RQk+sdeOF7c+G2qp5iYgrnQcx+rD0f8eVNRPLRoLpdg@mail.gmail.com>
+References: <1351958865-24394-1-git-send-email-jiang.liu@huawei.com> <1351958865-24394-2-git-send-email-jiang.liu@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:40422 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932121Ab2KEUmG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Nov 2012 15:42:06 -0500
-Received: by mail-ee0-f46.google.com with SMTP id b15so3200883eek.19
-        for <linux-acpi@vger.kernel.org>; Mon, 05 Nov 2012 12:42:04 -0800 (PST)
-In-Reply-To: <20121105150326.3bbf69df@endymion.delvare>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1351958865-24394-2-git-send-email-jiang.liu@huawei.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiang Liu <liuj97@gmail.com>
+Cc: "Rafael J . Wysocki" <rjw@sisk.pl>, Yinghai Lu <yinghai@kernel.org>, Tony Luck <tony.luck@intel.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, Tang Chen <tangchen@cn.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Huang Ying <ying.huang@intel.com>, Bob Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, "Srivatsa S . Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, Yijing Wang <wangyijing@huawei.com>, Hanjun Guo <guohanjun@huawei.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-mm@kvack.org, Gaohuai Han <hangaohuai@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, grant.likely@secretlab.ca, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
 
-On Mon, Nov 5, 2012 at 3:03 PM, Jean Delvare <khali@linux-fr.org> wrote:
-(...)
->> If the addresses are consecutive like ours it makes sense
->> to just instantiate one device and have the driver know that it will
->> also be able to access address +1, +2 ... +n. So is it possible
->> to group the consecutive related addresses after each other
->> here at the acpi-spi level and just create a single device?
+On Sat, Nov 3, 2012 at 10:07 AM, Jiang Liu <liuj97@gmail.com> wrote:
+> Modern high-end servers may support advanced RAS features, such as
+> system device dynamic reconfiguration. On x86 and IA64 platforms,
+> system device means processor(CPU), memory device, PCI host bridge
+> and even computer node.
 >
-> We were actually discussing I2C here, although I admit not in the right
-> thread, and maybe some of this applies to SPI as well.
-
-This is my typo. The AB8500 example is indeed I2C.
-
-> So if multiple slave addresses must be
-> supported, please do not limit this support to consecutive addresses.
-
-I buy that ... in Nomadik we even have an instance of a single device
-with two discrete *physical* interfaces connected to it, on both of
-them it responds to the same address, but with totally different
-register layouts ... hardware engineers rule! :-)
-
-> There really is no reason to limit us that way anyway, as i2c-core
-> supports attaching any additional slave address to en existing
-> i2c_client using i2c_new_dummy().
-
-Yes, this is how we do it in AB8500. We just take advantage of
-the fact that the addresses are consecutive.
-
-> Note for DDR3 DIMM SPD chips we currently have two different drivers
-> handling the two slave addresses (eeprom/at24 and jc42.) I don't know
-> if this is something that could be instantiated from ACPI. So it seems
-> we really have two different cases when a single chip replies to
-> multiple slave addresses: either they refer to the same function and we
-> want a single driver for all of them, or they are for unrelated
-> functions and we want separate drivers (and thus separate i2c_clients.)
-> Not sure how we can always handle that properly on the ACPI side.
-
-If they can be accessed concurrently and do not share
-any locks or code they should be separate I think?
-When they have strong dependencies we immediately sort of
-fall into the MFD class where you need a mediator I think.
-
->> If the addresses are not consecutive I guess you need to have
->> one device driver bind to several devices and return -EPROBE_DEFER
->> until the driver has been probed for all of them or something like
->> that, this is what multi-block GPIO drivers sometimes do.
+> The ACPI specifications have provided standard interfaces between
+> firmware and OS to support device dynamic reconfiguraiton at runtime.
+> This patch series introduces a new framework for system device
+> dynamic reconfiguration based on ACPI specification, which will
+> replace current existing system device hotplug logic embedded in
+> ACPI processor/memory/container device drivers.
 >
-> Consecutive or not makes no difference really, as long as the driver
-> can deduce the additional addresses from the main address or register
-> contents accessible from the main address. This has always been the
-> case so far.
+> The new ACPI based hotplug framework is modelled after the PCI hotplug
+> architecture and target to achieve following goals:
+> 1) Optimize device configuration order to achieve best performance for
+>    hot-added system devices. For best perforamnce, system device should
+>    be configured in order of memory -> CPU -> IOAPIC/IOMMU -> PCI HB.
+> 2) Resolve dependencies among hotplug slots. You need first to remove
+>    the memory device before removing a physical processor if a
+>    hotpluggable memory device is connected to a hotpluggable physical
+>    processor.
 
-You're right.
+Doesn't the namespace already have a way to communicate these dependencies?
 
-Yours,
-Linus Walleij
+> 3) Provide interface to cancel ongoing hotplug operations. It may take
+>    a very long time to remove a memory device, so provide interface to
+>    cancel the inprogress hotplug operations.
+> 4) Support new advanced RAS features, such as socket/memory migration.
+> 5) Provide better user interfaces to access the hotplug functionalities.
+> 6) Provide a mechanism to detect hotplug slots by checking existence
+>    of ACPI _EJ0 method or by other hardware platform specific methods.
+
+I don't know what "hotplug slot" means for ACPI.  ACPI allows hotplug
+of arbitrary devices in the namespace, whether they have EJ0 or not.
+
+> 7) Unify the way to enumerate ACPI based hotplug slots. All hotplug
+>    slots will be enumerated by the enumeration driver (acpihp_slot),
+>    instead of by individual ACPI device drivers.
+
+Why do we need to enumerate these "slots" specifically?
+
+I think this patch adds things in /sys.  It might help if you
+described what they are.
+
+> 8) Unify the way to handle ACPI hotplug events. All ACPI hotplug events
+>    for system devices will be handled by a generic ACPI hotplug driver
+>    (acpihp_drv) instead of by individual ACPI device drivers.
+> 9) Provide better error handling and error recovery.
+> 10) Trigger hotplug events/operations by software. This feature is useful
+>    for hardware fault management and/or power saving.
+>
+> The new framework is composed up of three major components:
+> 1) A system device hotplug slot enumerator driver, which enumerates
+>    hotplug slots in the system and provides platform specific methods
+>    to control those slots.
+> 2) A system device hotplug driver, which is a platform independent
+>    driver to manage all hotplug slots created by the slot enumerator.
+>    The hotplug driver implements a state machine for hotplug slots and
+>    provides user interfaces to manage hotplug slots.
+> 3) Several ACPI device drivers to configure/unconfigure system devices
+>    at runtime.
+>
+> To get rid of inter dependengcy between the slot enumerator and hotplug
+> driver, common code shared by them will be built into the kernel. The
+> shared code provides some helper routines and a device class named
+> acpihp_slot_class with following default sysfs properties:
+>         capabilities: RAS capabilities of the hotplug slot
+>         state: current state of the hotplug slot state machine
+>         status: current health status of the hotplug slot
+>         object: ACPI object corresponding to the hotplug slot
+>
+> Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+> Signed-off-by: Gaohuai Han <hangaohuai@huawei.com>
+
+...
+> +static char *acpihp_dev_mem_ids[] = {
+> +       "PNP0C80",
+> +       NULL
+> +};
+> +
+> +static char *acpihp_dev_pcihb_ids[] = {
+> +       "PNP0A03",
+> +       NULL
+> +};
+
+Why should this driver need to know about these PNP IDs?  We ought to
+be able to support hotplug of any device in the namespace, no matter
+what its ID.
