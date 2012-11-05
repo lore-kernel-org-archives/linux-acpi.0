@@ -1,76 +1,64 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
 Subject: Re: [PATCH 2/3] spi / ACPI: add ACPI enumeration support
-Date: Mon, 5 Nov 2012 09:54:42 -0700
-Message-ID: <CAErSpo6gfL+QFoWK+8ahYAj+vnp4OCn4B=-vALGbU_LnsyT8oQ@mail.gmail.com>
+Date: Mon, 5 Nov 2012 19:12:48 +0200
+Message-ID: <20121105171248.GJ24532@intel.com>
 References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com>
- <20121103201310.GQ16648@intel.com> <1535917.BaYBBNgGy0@vostro.rjw.lan> <4052192.ry8JrGTr6H@vostro.rjw.lan>
+ <CACRpkdaZqka7g2ECAyD_bKhnoULhCP6cTJwMyEsTuVxiUiHy+A@mail.gmail.com>
+ <20121105150326.3bbf69df@endymion.delvare>
+ <1925265.4Cx64DgKbB@vostro.rjw.lan>
+ <20121105145315.GI24532@intel.com>
+ <20121105161920.44e8e1cb@endymion.delvare>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:56365 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932734Ab2KEQzE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Nov 2012 11:55:04 -0500
-Received: by mail-we0-f174.google.com with SMTP id t9so2719075wey.19
-        for <linux-acpi@vger.kernel.org>; Mon, 05 Nov 2012 08:55:03 -0800 (PST)
-In-Reply-To: <4052192.ry8JrGTr6H@vostro.rjw.lan>
+Received: from mga03.intel.com ([143.182.124.21]:14140 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752146Ab2KERKa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 5 Nov 2012 12:10:30 -0500
+Content-Disposition: inline
+In-Reply-To: <20121105161920.44e8e1cb@endymion.delvare>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, grant.likely@secretlab.ca, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
 
-On Mon, Nov 5, 2012 at 3:31 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Saturday, November 03, 2012 09:59:28 PM Rafael J. Wysocki wrote:
->> On Saturday, November 03, 2012 10:13:10 PM Mika Westerberg wrote:
->> > On Sat, Nov 03, 2012 at 01:42:02PM -0600, Bjorn Helgaas wrote:
->> > > On Sat, Nov 3, 2012 at 1:46 AM, Mika Westerberg
->> > > <mika.westerberg@linux.intel.com> wrote:
->> > > > ACPI 5 introduced SPISerialBus resource that allows us to enumerate and
->> > > > configure the SPI slave devices behind the SPI controller. This patch adds
->> > > > support for this to the SPI core.
-> [...]
->> > And if the ACPI core parses the _CRS, how does it pass all the resources to
->> > the drivers?
->>
->> Pretty much the same way the $subject patch does.
->>
->> Instead of parsing the entire subtree below an SPI controller and trying
->> acpi_spi_add_device() for each device node in there, it could call
->> acpi_spi_add_device() whenever it finds a device of type
->> ACPI_RESOURCE_TYPE_SERIAL_BUS/ACPI_RESOURCE_SERIAL_TYPE_SPI.
->> The only problem is how to pass "master" to it.
->>
->> So Bjorn, do you have any idea how we could pass the "master" pointer from the
->> ACPI core to acpi_spi_add_device() in a sensible way?
->>
->> An alternative might be to store the information obtained from _CRS in
->> struct acpi_device objects created by the ACPI core while parsing the
->> namespace.  We do that already for things like _PRW, so we might as well do it
->> for _CRS.  Then, the SPI core could just walk the subtree of the device hierarchy
->> below the SPI controller's acpi_device to extract that information.
->> Maybe that's the way to go?
->
-> The general idea is to move the _CRS parsing routine from acpi_platform.c
-> to scan.c and make it attach resource objects to struct acpi_device.
->
-> I'm thinking about adding a list head to struct acpi_device pointing to a
-> list of entries like:
->
-> struct resource_list_entry {
->         struct list_head node;
->         struct resource *resources;
->         unsigned int count;
-> };
->
-> where "resources" is an array of resources (e.g. interrupts) in the given
-> entry and count is the size of that array.
->
-> That list would contain common resources like ACPI_RESOURCE_TYPE_FIXED_MEMORY32,
-> ACPI_RESOURCE_TYPE_IRQ, ACPI_RESOURCE_TYPE_ADDRESS32, ACPI_RESOURCE_TYPE_EXTENDED_IRQ.
+On Mon, Nov 05, 2012 at 04:19:20PM +0100, Jean Delvare wrote:
+> On Mon, 5 Nov 2012 16:53:15 +0200, Mika Westerberg wrote:
+> > On Mon, Nov 05, 2012 at 03:19:58PM +0100, Rafael J. Wysocki wrote:
+> > > 
+> > > In the ACPI namespace we have device nodes and serial interfaces below them.
+> > > In the above case we see that a single device node supports two different
+> > > interfaces and in that case we probably should create two different
+> > > struct i2c_adapter objects for the same ACPI device node.
+> > > 
+> > > Mika, what do you think?
+> > 
+> > I agree.
+> > 
+> > Only problem I see is that then we have two I2C adapter devices with the
+> > same ACPI ID (and hence the same i2c_client->name). I wonder what the I2C
+> > core thinks about that.
+> 
+> I2C core fears that you're mixing up everything ;) I2C adapter devices
+> are struct i2c_adapter aka i2c-0, i2c-1 etc. i2c_client is for slave
+> devices. There's nothing wrong with i2c_clients sharing ->name, that's
+> even how device driver matching is achieved. The uniqueness of
+> i2c_clients is on their bus_id which is the combination of i2c adapter
+> number and slave address (e.g. 0-0050)
 
-This is exactly what PNPACPI already does.  For every Device node in
-the namespace, pnpacpi/rsparser.c parses _CRS and builds a list of
-struct resources that correspond to it.  If you put this functionality
-in acpi/scan.c, should we get rid of PNPACPI?
+Yeah, I mixed I2C adapter and client. Thanks for correcting.
 
-Bjorn
+So if we create one I2C adapter from the platform bus code as we do now and
+then for each I2CSerialBus connector we create one I2C client (well, the
+one that is created when i2c_new_device() is called), everything should
+work, right?
+
+Then I suggest that we have a list of serial bus resources in the struct
+acpi_device and create the I2C clients based on that.
+
+> i2c_adapter->name should, OTOH, be unique. In i2c bus drivers we
+> usually append the base I/O address at the end of the name to guarantee
+> that. ACPI will have to come up with something similar.
+
+It should already be unique in case of ACPI. We use ACPI _HID and _UID to
+achieve that.
