@@ -1,32 +1,52 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
+From: Jean Delvare <khali@linux-fr.org>
 Subject: Re: [PATCH 2/3] spi / ACPI: add ACPI enumeration support
-Date: Mon, 5 Nov 2012 16:53:15 +0200
-Message-ID: <20121105145315.GI24532@intel.com>
+Date: Mon, 5 Nov 2012 16:19:20 +0100
+Message-ID: <20121105161920.44e8e1cb@endymion.delvare>
 References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com>
- <CACRpkdaZqka7g2ECAyD_bKhnoULhCP6cTJwMyEsTuVxiUiHy+A@mail.gmail.com>
- <20121105150326.3bbf69df@endymion.delvare>
- <1925265.4Cx64DgKbB@vostro.rjw.lan>
+	<CACRpkdaZqka7g2ECAyD_bKhnoULhCP6cTJwMyEsTuVxiUiHy+A@mail.gmail.com>
+	<20121105150326.3bbf69df@endymion.delvare>
+	<1925265.4Cx64DgKbB@vostro.rjw.lan>
+	<20121105145315.GI24532@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1925265.4Cx64DgKbB@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Jean Delvare <khali@linux-fr.org>, Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, grant.likely@secretlab.ca, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from zoneX.GCU-Squad.org ([194.213.125.0]:5142 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932482Ab2KEPTk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Nov 2012 10:19:40 -0500
+In-Reply-To: <20121105145315.GI24532@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, grant.likely@secretlab.ca, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
 
-On Mon, Nov 05, 2012 at 03:19:58PM +0100, Rafael J. Wysocki wrote:
+On Mon, 5 Nov 2012 16:53:15 +0200, Mika Westerberg wrote:
+> On Mon, Nov 05, 2012 at 03:19:58PM +0100, Rafael J. Wysocki wrote:
+> > 
+> > In the ACPI namespace we have device nodes and serial interfaces below them.
+> > In the above case we see that a single device node supports two different
+> > interfaces and in that case we probably should create two different
+> > struct i2c_adapter objects for the same ACPI device node.
+> > 
+> > Mika, what do you think?
 > 
-> In the ACPI namespace we have device nodes and serial interfaces below them.
-> In the above case we see that a single device node supports two different
-> interfaces and in that case we probably should create two different
-> struct i2c_adapter objects for the same ACPI device node.
+> I agree.
 > 
-> Mika, what do you think?
+> Only problem I see is that then we have two I2C adapter devices with the
+> same ACPI ID (and hence the same i2c_client->name). I wonder what the I2C
+> core thinks about that.
 
-I agree.
+I2C core fears that you're mixing up everything ;) I2C adapter devices
+are struct i2c_adapter aka i2c-0, i2c-1 etc. i2c_client is for slave
+devices. There's nothing wrong with i2c_clients sharing ->name, that's
+even how device driver matching is achieved. The uniqueness of
+i2c_clients is on their bus_id which is the combination of i2c adapter
+number and slave address (e.g. 0-0050)
 
-Only problem I see is that then we have two I2C adapter devices with the
-same ACPI ID (and hence the same i2c_client->name). I wonder what the I2C
-core thinks about that.
+i2c_adapter->name should, OTOH, be unique. In i2c bus drivers we
+usually append the base I/O address at the end of the name to guarantee
+that. ACPI will have to come up with something similar.
+
+-- 
+Jean Delvare
