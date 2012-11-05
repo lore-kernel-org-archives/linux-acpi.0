@@ -1,63 +1,65 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH 2/3] spi / ACPI: add ACPI enumeration support
-Date: Mon, 5 Nov 2012 15:43:38 +0200
-Message-ID: <20121105134338.GH24532@intel.com>
-References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com>
- <20121105120219.GF24532@intel.com>
- <20121105132350.59c6e4d9@endymion.delvare>
- <1983976.4JKTfcThF7@vostro.rjw.lan>
- <20121105131519.GG24532@intel.com>
- <CACRpkdaZqka7g2ECAyD_bKhnoULhCP6cTJwMyEsTuVxiUiHy+A@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 1/3] gpio / ACPI: add ACPI support
+Date: Mon, 05 Nov 2012 14:50:20 +0100
+Message-ID: <2396674.M1Yl70Z09T@vostro.rjw.lan>
+References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com> <4684026.MA6h34pt1X@vostro.rjw.lan> <CACRpkdbRWPYHBwLVTm-TDRVyp9Kmoaxw0uZg0schn7i0koDKJw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:59272 "EHLO mga01.intel.com"
+Received: from ogre.sisk.pl ([193.178.161.156]:55903 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932208Ab2KENlU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 Nov 2012 08:41:20 -0500
-Content-Disposition: inline
-In-Reply-To: <CACRpkdaZqka7g2ECAyD_bKhnoULhCP6cTJwMyEsTuVxiUiHy+A@mail.gmail.com>
+	id S932208Ab2KENqM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 5 Nov 2012 08:46:12 -0500
+In-Reply-To: <CACRpkdbRWPYHBwLVTm-TDRVyp9Kmoaxw0uZg0schn7i0koDKJw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Linus Walleij <linus.walleij@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Jean Delvare <khali@linux-fr.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, grant.likely@secretlab.ca, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
+Cc: Mathias Nyman <mathias.nyman@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, linux-acpi@vger.kernel.org
 
-On Mon, Nov 05, 2012 at 02:20:52PM +0100, Linus Walleij wrote:
+On Monday, November 05, 2012 02:28:45 PM Linus Walleij wrote:
+> On Mon, Nov 5, 2012 at 2:19 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > On Monday, November 05, 2012 02:11:03 PM Linus Walleij wrote:
+> >> Do you think they will change their mind and give me green light if
+> >> I tell them I just need to do it right now? ;-)
 > >
-> > It looks like some PMICs for example have two I2C control interfaces, like
-> > TI's TWL6030 if I'm not mistaken. If both are put behind the same I2C
-> > controller with different address, you have the situation like above.
+> > Well, it's just a matter of fairness to me, actually.
+> >
+> > If you allowed somebody to do something in the past, it's simply unfair
+> > to forbid someone else to do a similar thing later, isn't it?
 > 
-> This is quite common. So for example the AB8500 (drivers/mfd/ab8500-core.c)
-> has this. The reason is usually that the device has more than 256 registers
-> to the address space simply is not big enough.
+> So if some subsystem has previously merged clk_get() for
+> the silicon clock pertaining to a driver the maintainer should
+> be fair to the pinctrl people and merge pinctrl_get() as well.
+
+Well, let's just say if I were the maintainer of the subsystem in
+question, I would propose a deal like this: I'm going to merge your
+patches now, provided that you'll work on the centralized solution
+going forward.  And it's quite easy to call them on the promise like
+this in the future, when they ask you to merge something again.
+
+> Well, they don't. But it wasn't any of your subsystems so
+> I don't blame you.
 > 
-> What we do is refer to the subaddresses as "banks" and they happen
-> to always be at the next consecutive address so n+1.
+> I have been stand-in-maintaining the GPIO subsystem
+> for the last two merge windows and I am worrying about the
+> long term viability of the subsystem if we keep doing this
+> without facing the real problem of the global GPIO
+> numberspace.
 > 
-> So the same device appear behind several addresses just to support
-> a lot of registers.
-> 
-> So you're not actually modelling the devices on the other end but the
-> multiple addresses of a single device.
+> But since Grant merged the gpiolib-of.c thing and is still the
+> main maintainer I can atleast chicken out by referring to him
+> this time ... hit me back if he doesn't respond and I will
+> have to refactor the world or something.
 
-That makes sense. Thanks for the explanation.
+No need to be grumpy. :-)
 
-> If the addresses are consecutive like ours it makes sense
-> to just instantiate one device and have the driver know that it will
-> also be able to access address +1, +2 ... +n. So is it possible
-> to group the consecutive related addresses after each other
-> here at the acpi-spi level and just create a single device?
+I forgot to mention that we want to hook up _existing_ drivers to those things,
+and they already use the global GPIO numbers, don't they?
 
-Not sure if it should be done there, unless we really can be sure that we
-have a single device with multiple addresses (and that is usually something
-that is only known by the actual driver) and not some device that has two
-unrelated interfaces connecting the same controller.
+Rafael
 
-> If the addresses are not consecutive I guess you need to have
-> one device driver bind to several devices and return -EPROBE_DEFER
-> until the driver has been probed for all of them or something like
-> that, this is what multi-block GPIO drivers sometimes do.
 
-The addresses in the DSDT table for this particular device are not
-consecutive so we could do something like you propose above.
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
