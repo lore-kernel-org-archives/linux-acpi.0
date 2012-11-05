@@ -1,38 +1,82 @@
-From: Ondrej Zary <linux@rainbow-software.org>
-Subject: Re: [PATCH v3] Enable A20 using KBC for some MSI laptops to fix S3 resume
-Date: Mon, 5 Nov 2012 21:35:19 +0100
-Message-ID: <201211052135.20009.linux@rainbow-software.org>
-References: <201210261056.44225.zary@gsystems.sk>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 2/3] spi / ACPI: add ACPI enumeration support
+Date: Mon, 5 Nov 2012 21:42:04 +0100
+Message-ID: <CACRpkda26Ms3kipp4gF9TtOZY_qw8Y0DjYeAg-MB7iOre6j7aA@mail.gmail.com>
+References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com>
+	<20121105120219.GF24532@intel.com>
+	<20121105132350.59c6e4d9@endymion.delvare>
+	<1983976.4JKTfcThF7@vostro.rjw.lan>
+	<20121105131519.GG24532@intel.com>
+	<CACRpkdaZqka7g2ECAyD_bKhnoULhCP6cTJwMyEsTuVxiUiHy+A@mail.gmail.com>
+	<20121105150326.3bbf69df@endymion.delvare>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201210261056.44225.zary@gsystems.sk>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: hpa@zytor.com
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:40422 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932121Ab2KEUmG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Nov 2012 15:42:06 -0500
+Received: by mail-ee0-f46.google.com with SMTP id b15so3200883eek.19
+        for <linux-acpi@vger.kernel.org>; Mon, 05 Nov 2012 12:42:04 -0800 (PST)
+In-Reply-To: <20121105150326.3bbf69df@endymion.delvare>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, grant.likely@secretlab.ca, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
 
-On Friday 26 October 2012 10:56:44 Ondrej Zary wrote:
-> Some MSI laptop BIOSes are broken - INT 15h code uses port 92h to enable
-> A20 line but resume code assumes that KBC was used.
-> The laptop will not resume from S3 otherwise but powers off after a while
-> and then powers on again stuck with a blank screen.
+On Mon, Nov 5, 2012 at 3:03 PM, Jean Delvare <khali@linux-fr.org> wrote:
+(...)
+>> If the addresses are consecutive like ours it makes sense
+>> to just instantiate one device and have the driver know that it will
+>> also be able to access address +1, +2 ... +n. So is it possible
+>> to group the consecutive related addresses after each other
+>> here at the acpi-spi level and just create a single device?
 >
-> Fix it by enabling A20 using KBC. Affected laptop list and DMI data are
-> from bug reports at Ubuntu Launchpad.
->
-> Also add kernel parameter to easily activate this quirk on any system.
->
-> Only compile tested. The original patch was tested with EX600 and PR200.
->
-> Fixes https://bugzilla.kernel.org/show_bug.cgi?id=12878
+> We were actually discussing I2C here, although I admit not in the right
+> thread, and maybe some of this applies to SPI as well.
 
-The bug was marked as RESOLVED CODE_FIX but I wonder what happened to this 
-patch. Was it applied? Or is someone working on a better way to fix this 
-problem?
+This is my typo. The AB8500 example is indeed I2C.
 
--- 
-Ondrej Zary
+> So if multiple slave addresses must be
+> supported, please do not limit this support to consecutive addresses.
+
+I buy that ... in Nomadik we even have an instance of a single device
+with two discrete *physical* interfaces connected to it, on both of
+them it responds to the same address, but with totally different
+register layouts ... hardware engineers rule! :-)
+
+> There really is no reason to limit us that way anyway, as i2c-core
+> supports attaching any additional slave address to en existing
+> i2c_client using i2c_new_dummy().
+
+Yes, this is how we do it in AB8500. We just take advantage of
+the fact that the addresses are consecutive.
+
+> Note for DDR3 DIMM SPD chips we currently have two different drivers
+> handling the two slave addresses (eeprom/at24 and jc42.) I don't know
+> if this is something that could be instantiated from ACPI. So it seems
+> we really have two different cases when a single chip replies to
+> multiple slave addresses: either they refer to the same function and we
+> want a single driver for all of them, or they are for unrelated
+> functions and we want separate drivers (and thus separate i2c_clients.)
+> Not sure how we can always handle that properly on the ACPI side.
+
+If they can be accessed concurrently and do not share
+any locks or code they should be separate I think?
+When they have strong dependencies we immediately sort of
+fall into the MFD class where you need a mediator I think.
+
+>> If the addresses are not consecutive I guess you need to have
+>> one device driver bind to several devices and return -EPROBE_DEFER
+>> until the driver has been probed for all of them or something like
+>> that, this is what multi-block GPIO drivers sometimes do.
+>
+> Consecutive or not makes no difference really, as long as the driver
+> can deduce the additional addresses from the main address or register
+> contents accessible from the main address. This has always been the
+> case so far.
+
+You're right.
+
+Yours,
+Linus Walleij
