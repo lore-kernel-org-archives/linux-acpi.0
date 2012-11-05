@@ -1,48 +1,50 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH 2/3] spi / ACPI: add ACPI enumeration support
-Date: Mon, 5 Nov 2012 14:02:19 +0200
-Message-ID: <20121105120219.GF24532@intel.com>
-References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com>
- <20121103201310.GQ16648@intel.com>
- <1535917.BaYBBNgGy0@vostro.rjw.lan>
- <4052192.ry8JrGTr6H@vostro.rjw.lan>
- <20121105105602.GC24532@intel.com>
- <20121105105639.GE1385@opensource.wolfsonmicro.com>
+From: Mathias Nyman <mathias.nyman@linux.intel.com>
+Subject: Re: [PATCH 1/3] gpio / ACPI: add ACPI support
+Date: Mon, 05 Nov 2012 14:14:21 +0200
+Message-ID: <5097AD9D.7060808@linux.intel.com>
+References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com> <1351928793-14375-2-git-send-email-mika.westerberg@linux.intel.com> <CACRpkdYGbNCzV7QOURcEzhrNWv=kbWq+r3i66GtC75Aytso5rw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:49936 "EHLO mga03.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:16804 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750985Ab2KEMAA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 Nov 2012 07:00:00 -0500
-Content-Disposition: inline
-In-Reply-To: <20121105105639.GE1385@opensource.wolfsonmicro.com>
+	id S1751368Ab2KEMLw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 5 Nov 2012 07:11:52 -0500
+In-Reply-To: <CACRpkdYGbNCzV7QOURcEzhrNWv=kbWq+r3i66GtC75Aytso5rw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, linux-acpi@vger.kernel.org
 
-On Mon, Nov 05, 2012 at 11:56:39AM +0100, Mark Brown wrote:
-> On Mon, Nov 05, 2012 at 12:56:02PM +0200, Mika Westerberg wrote:
-> 
-> > > struct acpi_device {
-> > > 	...
-> > > 	union acpi_resource_serial_bus *serial;
-> > > 	...
-> > > };
-> 
-> > It is also possible to have several serial bus connectors on a single
-> > device (although we've seen only one connector per device but it should not
-> > be limited to that).
-> 
-> I've got practical systems where there are multiple buses physically
-> connected, though in practice almost always only one is actually used at
-> runtime when it's I2C and SPI there are some systems (usually with other
-> buses) where you might want to use more than one bus.  Not sure those
-> buses will fit in here though.
+On 11/05/2012 01:53 PM, Linus Walleij wrote:
+> On Sat, Nov 3, 2012 at 8:46 AM, Mika Westerberg
+> <mika.westerberg@linux.intel.com>  wrote:
+>
+>> +/**
+>> + * acpi_get_gpio() - Translate ACPI GPIO pin to GPIO number usable with GPIO API
+>> + * @path:      ACPI GPIO controller full path name, (e.g. "\\_SB.GPO1")
+>> + * @pin:       ACPI GPIO pin number (0-based, controller-relative)
+>> + *
+>> + * Returns GPIO number to use with Linux generic GPIO API, or errno error value
+>> + */
+>
+> So by just looking at that we can see that this is yet another
+> instance of papering
+> over the fact that the Linux GPIO numbers are global to the kernel and not
+> per-chip, as would be preferred.
 
-Yeah, I just went through DSDT table of one of our machines and found a
-device that actually has two I2CSerialBus connectors (and those are to the
-same controller). What I'm not sure is that is it used to select between
-two different addresses or doest the device really have two physical I2C
-connections.
+Yes, it is. ACPI5 GPIO resources are numbered per-chip. This is just a 
+way for device drivers to find the corresponding Linux GPIO.
+
+per-chip based numbering sounds saner, but this deals with what we 
+currently have.
+
+>
+> Can you please contribute to the parallel discussion on how to get rid of
+> the global GPIO numberspace, thread named:
+> "How about a gpio_get(device *, char *) function?"
+
+I'll take a look at it, (and see if I got anything of value to add)
+
+-Mathias
