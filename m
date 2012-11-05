@@ -1,117 +1,53 @@
 From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [ACPIHP PATCH part1 2/4] ACPIHP: introduce acpihp_slot driver to
- enumerate hotplug slots
-Date: Mon, 5 Nov 2012 14:30:25 -0700
-Message-ID: <CAErSpo49kJm3x2K_FT6vLpUUD2pk9Hf62uXqzHt2Vod2PriY8Q@mail.gmail.com>
-References: <1351958865-24394-1-git-send-email-jiang.liu@huawei.com> <1351958865-24394-3-git-send-email-jiang.liu@huawei.com>
+Subject: Re:
+Date: Mon, 5 Nov 2012 15:27:10 -0700
+Message-ID: <CAErSpo4M8ku9uCeXVYcSr3chKvhhG-7vWJ8UjZtOKNezF9y1Yg@mail.gmail.com>
+References: <20121030040237.GA10472@google.com> <1351618965-16761-1-git-send-email-yinghai@kernel.org>
+ <3954574.77sdfIpds8@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1351958865-24394-3-git-send-email-jiang.liu@huawei.com>
-Sender: owner-linux-mm@kvack.org
-To: Jiang Liu <liuj97@gmail.com>
-Cc: "Rafael J . Wysocki" <rjw@sisk.pl>, Yinghai Lu <yinghai@kernel.org>, Tony Luck <tony.luck@intel.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, Tang Chen <tangchen@cn.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Huang Ying <ying.huang@intel.com>, Bob Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, "Srivatsa S . Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, Yijing Wang <wangyijing@huawei.com>, Hanjun Guo <guohanjun@huawei.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-mm@kvack.org, Gaohuai Han <hangaohuai@huawei.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <3954574.77sdfIpds8@vostro.rjw.lan>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Yinghai Lu <yinghai@kernel.org>, Len Brown <lenb@kernel.org>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Nov 3, 2012 at 10:07 AM, Jiang Liu <liuj97@gmail.com> wrote:
-> An ACPI hotplug slot is an abstraction of receptacles, where a group of
-> system devices could be connected to. This patch implements the skeleton
-> of the ACPI system device hotplug slot enumerator. On loading, it scans
-> the whole ACPI namespace for hotplug slots and creates a device node for
-> each hotplug slot found. Every hotplug slot is associated with a device
-> class named acpihp_slot_class. Later hotplug drivers will register onto
-> acpihp_slot_class to manage all hotplug slots.
+On Thu, Nov 1, 2012 at 6:17 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> Hi,
 >
-> Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-> Signed-off-by: Gaohuai Han <hangaohuai@huawei.com>
-> ---
->  drivers/acpi/Kconfig          |   19 ++
->  drivers/acpi/hotplug/Makefile |    3 +
->  drivers/acpi/hotplug/slot.c   |  417 +++++++++++++++++++++++++++++++++++++++++
->  3 files changed, 439 insertions(+)
->  create mode 100644 drivers/acpi/hotplug/slot.c
+> On Tuesday, October 30, 2012 10:42:37 AM Yinghai Lu wrote:
+>> Subject: [PATCH resend 0/8] PCI, ACPI, x86: pci root bus hotplug support resources assign and remove path
+>>
+>> 1. add support for assign resource for hot add path.
+>> 2. stop and remove root bus during acpi root remove.
+>>
+>>
+>> could get from
+>>         git://git.kernel.org/pub/scm/linux/kernel/git/yinghai/linux-yinghai.git for-pci-root-bus-hotplug
+>>
+>> Yinghai Lu (8):
+>>   PCI: Separate out pci_assign_unassigned_bus_resources()
+>>   PCI: Move pci_rescan_bus() back to probe.c
+>>   PCI: Move out pci_enable_bridges out of assign_unsigned_bus_res
+>>   PCI, ACPI: assign unassigned resource for hot add root bus
+>>   PCI: Add pci_stop/remove_root_bus()
+>>   PCI, ACPI: Make acpi_pci_root_remove stop/remove pci root bus
+>>   PCI, ACPI: delete root bus prt during hot remove path
+>>   PCI, ACPI: remove acpi_root_driver in reserse order
+>>
+>>  drivers/acpi/pci_root.c |   21 ++++++++++++++++++++-
+>>  drivers/pci/probe.c     |   22 ++++++++++++++++++++++
+>>  drivers/pci/remove.c    |   36 ++++++++++++++++++++++++++++++++++++
+>>  drivers/pci/setup-bus.c |   22 +---------------------
+>>  include/linux/pci.h     |    3 +++
+>>  5 files changed, 82 insertions(+), 22 deletions(-)
 >
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index 9577b23..af0aaf6 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -334,6 +334,25 @@ menuconfig ACPI_HOTPLUG
->           If your hardware platform does not support system device dynamic
->           reconfiguration at runtime, you need not to enable this option.
+> Please feel free to add
 >
-> +config ACPI_HOTPLUG_SLOT
-> +       tristate "System Device Hotplug Slot Enumerator"
+> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>
+> to the ACPI-related patches in this series.
 
-I don't really believe in hotplug drivers being modules.  I think the
-core should support hotplug directly, and the decision to configure or
-not should be made at build-time.
-
-> +       depends on ACPI_HOTPLUG
-> +       default m
-> +       help
-> +         ACPI system device hotplug slot is an abstraction of ACPI based
-> +         system device dynamic reconfiguration control points. On load,
-> +         this driver enumerates system device hotplug slots by wakling the
-> +         ACPI namespace and provides platform specific methods to control
-> +         those hotplug slots.
-> +
-> +         By default, this driver detects system device hotplug slots by
-> +         checking avaliability of ACPI _EJ0 method. You may pass a module
-> +         parameter "fake_slot=0xf" to enable faking hotplug slots on
-> +         platforms without hardware dynamic reconfiguration capabilities.
-> +
-> +         To compile this driver as a module, choose M here:
-> +         the module will be called acpihp_slot.
-> +
-
-> +static int __init acpihp_slot_generate_name(struct acpihp_slot *slot)
-> +{
-> +       int found = 0;
-> +       u32 child_types = 0;
-> +       unsigned long long uid;
-> +       struct acpihp_slot_id *slot_id;
-> +
-> +       /*
-> +        * Figure out slot type by checking types of ACPI devices which could
-> +        * be attached to the slot.
-> +        */
-> +       slot->type = acpihp_slot_get_type_self(slot);
-> +       if (slot->type == ACPIHP_SLOT_TYPE_UNKNOWN) {
-> +               acpi_walk_namespace(ACPI_TYPE_DEVICE, slot->handle,
-> +                               ACPI_UINT32_MAX, acpihp_slot_get_dev_type,
-> +                               NULL, NULL, (void **)&child_types);
-> +               acpi_walk_namespace(ACPI_TYPE_PROCESSOR, slot->handle,
-> +                               ACPI_UINT32_MAX, acpihp_slot_get_dev_type,
-> +                               NULL, NULL, (void **)&child_types);
-> +               slot->type = acpihp_slot_get_type_child(child_types);
-> +       }
-
-If things can be hot-added below slot->handle, is there an ACPI
-requirement that there be *anything* in the existing namespace below
-slot->handle?  I'm not sure you can tell sort of things might be
-added.
-
-> +static int __init acpihp_slot_scan_slots(void)
-> +{
-> +       acpi_status status;
-> +
-> +       status = acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
-> +                                    ACPI_UINT32_MAX, acpihp_slot_scan,
-> +                                    NULL, NULL, NULL);
-> +       if (!ACPI_SUCCESS(status))
-> +               goto out_err;
-> +
-> +       status = acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
-> +                                    ACPI_UINT32_MAX, acpihp_slot_scan,
-> +                                    NULL, NULL, NULL);
-
-Here's one reason I don't like this as a module: we have to walk the
-namespace again (twice, even).  What happens when you hot-add a node
-that itself *contains* another hot-pluggable receptacle?  Do you walk
-the namespace again, calling acpiphp_slot_scan() as needed?
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+I applied these to my pci/yinghai-for-pci-root-bus-hotplug branch as
+v3.8 material.  They should appear in "next" tomorrow.  Thanks!
