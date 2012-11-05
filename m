@@ -1,45 +1,47 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH 2/3] spi / ACPI: add ACPI enumeration support
-Date: Mon, 5 Nov 2012 15:15:19 +0200
-Message-ID: <20121105131519.GG24532@intel.com>
-References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com>
- <20121105120219.GF24532@intel.com>
- <20121105132350.59c6e4d9@endymion.delvare>
- <1983976.4JKTfcThF7@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 1/3] gpio / ACPI: add ACPI support
+Date: Mon, 05 Nov 2012 14:19:54 +0100
+Message-ID: <4684026.MA6h34pt1X@vostro.rjw.lan>
+References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com> <6279158.LZAthHxtvS@vostro.rjw.lan> <CACRpkdb6-YsyiSYoJb+Jea_9NPGe+8Nqy1hkCk=Mjki26S3-Zw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:51987 "EHLO mga11.intel.com"
+Received: from ogre.sisk.pl ([193.178.161.156]:55808 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753850Ab2KENNA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 Nov 2012 08:13:00 -0500
-Content-Disposition: inline
-In-Reply-To: <1983976.4JKTfcThF7@vostro.rjw.lan>
+	id S932101Ab2KENPo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 5 Nov 2012 08:15:44 -0500
+In-Reply-To: <CACRpkdb6-YsyiSYoJb+Jea_9NPGe+8Nqy1hkCk=Mjki26S3-Zw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Jean Delvare <khali@linux-fr.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Mathias Nyman <mathias.nyman@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, linux-acpi@vger.kernel.org
 
-On Mon, Nov 05, 2012 at 01:59:23PM +0100, Rafael J. Wysocki wrote:
-> On Monday, November 05, 2012 01:23:50 PM Jean Delvare wrote:
-> > On Mon, 5 Nov 2012 14:02:19 +0200, Mika Westerberg wrote:
-> > > On Mon, Nov 05, 2012 at 11:56:39AM +0100, Mark Brown wrote:
-> > > > I've got practical systems where there are multiple buses physically
-> > > > connected, though in practice almost always only one is actually used at
-> > > > runtime when it's I2C and SPI there are some systems (usually with other
-> > > > buses) where you might want to use more than one bus.  Not sure those
-> > > > buses will fit in here though.
-> > > 
-> > > Yeah, I just went through DSDT table of one of our machines and found a
-> > > device that actually has two I2CSerialBus connectors (and those are to the
-> > > same controller). What I'm not sure is that is it used to select between
-> > > two different addresses or doest the device really have two physical I2C
-> > > connections.
-> > 
-> > Neither would make sense from a hardware perspective.
+On Monday, November 05, 2012 02:11:03 PM Linus Walleij wrote:
+> On Mon, Nov 5, 2012 at 1:46 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > On Monday, November 05, 2012 02:14:21 PM Mathias Nyman wrote:
 > 
-> Well, interesting. :-)
+> >> per-chip based numbering sounds saner, but this deals with what we
+> >> currently have.
+> >
+> > And we need something to hook up drivers to right now.
+> 
+> So speaking of it I have these drivers consuming pinctrl that I need
+> to hook up right now and the subsystem maintainers are NACKing
+> the patches because they want a centralized solution instead of
+> per-driver hooks and I get the red light...
+> 
+> Do you think they will change their mind and give me green light if
+> I tell them I just need to do it right now? ;-)
 
-It looks like some PMICs for example have two I2C control interfaces, like
-TI's TWL6030 if I'm not mistaken. If both are put behind the same I2C
-controller with different address, you have the situation like above.
+Well, it's just a matter of fairness to me, actually.
+
+If you allowed somebody to do something in the past, it's simply unfair
+to forbid someone else to do a similar thing later, isn't it?
+
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
