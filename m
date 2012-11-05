@@ -1,40 +1,66 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH 2/3] spi / ACPI: add ACPI enumeration support
-Date: Mon, 5 Nov 2012 20:08:47 +0200
-Message-ID: <20121105180847.GK24532@intel.com>
-References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com>
- <CACRpkdaZqka7g2ECAyD_bKhnoULhCP6cTJwMyEsTuVxiUiHy+A@mail.gmail.com>
- <20121105150326.3bbf69df@endymion.delvare>
- <1925265.4Cx64DgKbB@vostro.rjw.lan>
- <20121105145315.GI24532@intel.com>
- <20121105161920.44e8e1cb@endymion.delvare>
- <20121105171248.GJ24532@intel.com>
- <CAErSpo6h1uUG=Be8TmMeFcRcmTw2GWxChXUWOE0iS7oPNALNCQ@mail.gmail.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: re: acpi_memhotplug.c: don't allow to eject the memory device if it
+ is being used
+Date: Mon, 5 Nov 2012 21:11:33 +0300
+Message-ID: <20121105181133.GA21846@elgon.mountain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:57949 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754264Ab2KESGi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 Nov 2012 13:06:38 -0500
+Received: from aserp1040.oracle.com ([141.146.126.69]:32642 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754061Ab2KESL7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Nov 2012 13:11:59 -0500
 Content-Disposition: inline
-In-Reply-To: <CAErSpo6h1uUG=Be8TmMeFcRcmTw2GWxChXUWOE0iS7oPNALNCQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Jean Delvare <khali@linux-fr.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linus Walleij <linus.walleij@linaro.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, grant.likely@secretlab.ca, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
+To: wency@cn.fujitsu.com
+Cc: linux-acpi@vger.kernel.org
 
-On Mon, Nov 05, 2012 at 10:43:17AM -0700, Bjorn Helgaas wrote:
-> > It should already be unique in case of ACPI. We use ACPI _HID and _UID to
-> > achieve that.
-> 
-> Using only _HID and _UID to guarantee uniqueness means you're relying
-> on a property of the BIOS, so you're vulnerable to BIOS bugs.
-> 
-> If there's an ACPI Device for I2C adapters, why wouldn't you just use
-> its device name as set in acpi_device_register() (basically a _HID +
-> instance number)?
+Hello Wen Congyang,
 
-That's a good point - we could change to use that instead (the platform
-code in linux-pm tree uses _HID + _UID but I guess it is pretty trivial to
-change).
+The patch 306859f13dc1: "acpi_memhotplug.c: don't allow to eject the
+memory device if it is being used" from Nov 3, 2012, leads to the
+following Smatch warning:
+drivers/acpi/acpi_memhotplug.c:367 acpi_memory_remove_memory()
+	 warn: inconsistent returns mutex:&mem_device->list_lock:
+	locked (357,361) unlocked (367)
+
+   341  static int acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
+   342  {
+   343          int result;
+   344          struct acpi_memory_info *info, *n;
+   345  
+   346          mutex_lock(&mem_device->list_lock);
+   347          list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
+   348                  if (info->failed)
+   349                          /* The kernel does not use this memory block */
+   350                          continue;
+   351  
+   352                  if (!info->enabled)
+   353                          /*
+   354                           * The kernel uses this memory block, but it may be not
+   355                           * managed by us.
+   356                           */
+   357                          return -EBUSY;
+                                ^^^^^^^^^^^^^
+   358  
+   359                  result = remove_memory(info->start_addr, info->length);
+   360                  if (result)
+   361                          return result;
+                                ^^^^^^^^^^^^^^
+Unlock before returning?
+
+   362                  list_del(&info->list);
+   363                  kfree(info);
+   364          }
+   365          mutex_unlock(&mem_device->list_lock);
+   366  
+   367          return 0;
+   368  }
+
+
+
+
+regards,
+dan carpenter
+
