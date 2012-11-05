@@ -1,52 +1,45 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 2/3] spi / ACPI: add ACPI enumeration support
-Date: Mon, 05 Nov 2012 13:59:23 +0100
-Message-ID: <1983976.4JKTfcThF7@vostro.rjw.lan>
-References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com> <20121105120219.GF24532@intel.com> <20121105132350.59c6e4d9@endymion.delvare>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 1/3] gpio / ACPI: add ACPI support
+Date: Mon, 5 Nov 2012 14:11:03 +0100
+Message-ID: <CACRpkdb6-YsyiSYoJb+Jea_9NPGe+8Nqy1hkCk=Mjki26S3-Zw@mail.gmail.com>
+References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com>
+	<CACRpkdYGbNCzV7QOURcEzhrNWv=kbWq+r3i66GtC75Aytso5rw@mail.gmail.com>
+	<5097AD9D.7060808@linux.intel.com>
+	<6279158.LZAthHxtvS@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:55760 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751439Ab2KEMzN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 5 Nov 2012 07:55:13 -0500
-In-Reply-To: <20121105132350.59c6e4d9@endymion.delvare>
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:47883 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754212Ab2KENLE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Nov 2012 08:11:04 -0500
+Received: by mail-ea0-f174.google.com with SMTP id c13so2250891eaa.19
+        for <linux-acpi@vger.kernel.org>; Mon, 05 Nov 2012 05:11:03 -0800 (PST)
+In-Reply-To: <6279158.LZAthHxtvS@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jean Delvare <khali@linux-fr.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Mathias Nyman <mathias.nyman@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, linux-acpi@vger.kernel.org
 
-On Monday, November 05, 2012 01:23:50 PM Jean Delvare wrote:
-> On Mon, 5 Nov 2012 14:02:19 +0200, Mika Westerberg wrote:
-> > On Mon, Nov 05, 2012 at 11:56:39AM +0100, Mark Brown wrote:
-> > > I've got practical systems where there are multiple buses physically
-> > > connected, though in practice almost always only one is actually used at
-> > > runtime when it's I2C and SPI there are some systems (usually with other
-> > > buses) where you might want to use more than one bus.  Not sure those
-> > > buses will fit in here though.
-> > 
-> > Yeah, I just went through DSDT table of one of our machines and found a
-> > device that actually has two I2CSerialBus connectors (and those are to the
-> > same controller). What I'm not sure is that is it used to select between
-> > two different addresses or doest the device really have two physical I2C
-> > connections.
-> 
-> Neither would make sense from a hardware perspective.
+On Mon, Nov 5, 2012 at 1:46 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> On Monday, November 05, 2012 02:14:21 PM Mathias Nyman wrote:
 
-Well, interesting. :-)
+>> per-chip based numbering sounds saner, but this deals with what we
+>> currently have.
+>
+> And we need something to hook up drivers to right now.
 
-I wonder what we're supposed to do with things like that?
-It looks like our patch [3/3] will use the last one found, but is that
-correct?  Should it use the first one instead, perhaps?
+So speaking of it I have these drivers consuming pinctrl that I need
+to hook up right now and the subsystem maintainers are NACKing
+the patches because they want a centralized solution instead of
+per-driver hooks and I get the red light...
 
-That little conundrum aside, the observations above seem to indicate
-that we'd need a list of "serial" resources per struct acpi_device too.
+Do you think they will change their mind and give me green light if
+I tell them I just need to do it right now? ;-)
 
-Thanks,
-Rafael
+I suggest to take it easy and prolong the deadline, but none of
+my business primarily, you will have to go through Grant who is
+probably way more reasonable than me.
 
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Yours,
+Linus Walleij
