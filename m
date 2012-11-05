@@ -1,68 +1,54 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Subject: Re: [PATCH 2/3] spi / ACPI: add ACPI enumeration support
-Date: Mon, 5 Nov 2012 12:56:02 +0200
-Message-ID: <20121105105602.GC24532@intel.com>
-References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com>
- <20121103201310.GQ16648@intel.com>
- <1535917.BaYBBNgGy0@vostro.rjw.lan>
- <4052192.ry8JrGTr6H@vostro.rjw.lan>
+Date: Mon, 5 Nov 2012 10:54:40 +0000
+Message-ID: <20121105105440.GA22994@opensource.wolfsonmicro.com>
+References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com> <1351928793-14375-3-git-send-email-mika.westerberg@linux.intel.com> <CAErSpo5q64uEse3aYYZkuQrD+9AJ9HFP_VVB1TabYfO-_BvY3g@mail.gmail.com> <20121103201310.GQ16648@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:58193 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753951Ab2KEKym (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Nov 2012 05:54:42 -0500
 Content-Disposition: inline
-In-Reply-To: <4052192.ry8JrGTr6H@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
+In-Reply-To: <20121103201310.GQ16648@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
 
-On Mon, Nov 05, 2012 at 11:31:19AM +0100, Rafael J. Wysocki wrote:
-> The general idea is to move the _CRS parsing routine from acpi_platform.c
-> to scan.c and make it attach resource objects to struct acpi_device.
-> 
-> I'm thinking about adding a list head to struct acpi_device pointing to a
-> list of entries like:
-> 
-> struct resource_list_entry {
-> 	struct list_head node;
-> 	struct resource *resources;
-> 	unsigned int count;
-> };
-> 
-> where "resources" is an array of resources (e.g. interrupts) in the given
-> entry and count is the size of that array.
-> 
-> That list would contain common resources like ACPI_RESOURCE_TYPE_FIXED_MEMORY32,
-> ACPI_RESOURCE_TYPE_IRQ, ACPI_RESOURCE_TYPE_ADDRESS32, ACPI_RESOURCE_TYPE_EXTENDED_IRQ.
-> I think adding it would allow us to make acpi_create_platform_device(),
-> acpi_spi_add_resources() and acpi_i2c_add_resources() more straightforward (and
-> remove some code duplication between the last two routines).
+On Sat, Nov 03, 2012 at 10:13:10PM +0200, Mika Westerberg wrote:
+> On Sat, Nov 03, 2012 at 01:42:02PM -0600, Bjorn Helgaas wrote:
 
-This certainly sounds good to me.
+> > > +       case ACPI_RESOURCE_TYPE_IRQ:
+> > > +               info->gsi = res->data.irq.interrupts[0];
+> > > +               info->triggering = res->data.irq.triggering;
+> > > +               info->polarity = res->data.irq.polarity;
+> > > +               break;
 
-> In addition to that, I'd add an entry containing serial bus information, if
-> applicable, for the given struct acpi_device, something like:
-> 
-> union acpi_resource_serial_bus {
-> 	struct acpi_resource_common_serialbus;
-> 	struct acpi_resource_spi_serialbus;
-> 	struct acpi_resource_i2c_serialbus;
-> 	struct acpi_resource_uart_serialbus;
-> };
-> 
-> struct acpi_device {
-> 	...
-> 	union acpi_resource_serial_bus *serial;
-> 	...
-> };
+> > > +       case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
+> > > +               info->gsi = res->data.extended_irq.interrupts[0];
+> > > +               info->triggering = res->data.extended_irq.triggering;
+> > > +               info->polarity = res->data.extended_irq.polarity;
 
-It is also possible to have several serial bus connectors on a single
-device (although we've seen only one connector per device but it should not
-be limited to that).
+> > A driver doesn't seem like the right place for _CRS parsing code.  I
+> > think the intent of _CRS is to describe resources that need to be
+> > coordinated across all devices, e.g., MMIO space, I/O port space, and
+> > IRQs.  Since these resources require system-wide coordination, even
+> > when we don't have drivers for some devices, the ACPI core should be
+> > able to parse _CRS without needing any device-specific knowledge.
 
-> Then, things like acpi_spi_add_resources() and acpi_i2c_add_resources() would
-> be able to use struct acpi_device objects directly without running any AML.
-> That could be done on top of the current series and I'm going to prepare a patch
-> for that in the next few days if I find some time between the LCE sessions.
+> I think the driver is the only one who really knows the resources it needs
+> in order to talk the hardware.
 
-Cool :-) Let me know if you need any help, like testing the patches etc.
+Generic SPI drivers expect the subsystem to supply them with an
+interrupt number; if there is a single interrupt it seems reasonable for
+the generic code to continue to do that for them when they're
+instantiated from ACPI.  On the other hand if there are muliple
+interrupts it should probably give up and punt to the driver.
+
+> The purpose of the above code is to extract the resources in a suitable
+> form so that we can create a struct spi_device out of them automatically,
+> in a similar way than the Device Tree does.
+
+Definitely agreed.
