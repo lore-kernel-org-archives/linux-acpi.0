@@ -1,104 +1,117 @@
 From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [ACPIHP PATCH part1 1/4] ACPIHP: introduce a framework for ACPI
- based system device hotplug
-Date: Mon, 5 Nov 2012 14:05:24 -0700
-Message-ID: <CAErSpo6RQk+sdeOF7c+G2qp5iYgrnQcx+rD0f8eVNRPLRoLpdg@mail.gmail.com>
-References: <1351958865-24394-1-git-send-email-jiang.liu@huawei.com> <1351958865-24394-2-git-send-email-jiang.liu@huawei.com>
+Subject: Re: [ACPIHP PATCH part1 2/4] ACPIHP: introduce acpihp_slot driver to
+ enumerate hotplug slots
+Date: Mon, 5 Nov 2012 14:30:25 -0700
+Message-ID: <CAErSpo49kJm3x2K_FT6vLpUUD2pk9Hf62uXqzHt2Vod2PriY8Q@mail.gmail.com>
+References: <1351958865-24394-1-git-send-email-jiang.liu@huawei.com> <1351958865-24394-3-git-send-email-jiang.liu@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1351958865-24394-2-git-send-email-jiang.liu@huawei.com>
-Sender: linux-pci-owner@vger.kernel.org
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1351958865-24394-3-git-send-email-jiang.liu@huawei.com>
+Sender: owner-linux-mm@kvack.org
 To: Jiang Liu <liuj97@gmail.com>
 Cc: "Rafael J . Wysocki" <rjw@sisk.pl>, Yinghai Lu <yinghai@kernel.org>, Tony Luck <tony.luck@intel.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, Tang Chen <tangchen@cn.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Huang Ying <ying.huang@intel.com>, Bob Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, "Srivatsa S . Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, Yijing Wang <wangyijing@huawei.com>, Hanjun Guo <guohanjun@huawei.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-mm@kvack.org, Gaohuai Han <hangaohuai@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
 
 On Sat, Nov 3, 2012 at 10:07 AM, Jiang Liu <liuj97@gmail.com> wrote:
-> Modern high-end servers may support advanced RAS features, such as
-> system device dynamic reconfiguration. On x86 and IA64 platforms,
-> system device means processor(CPU), memory device, PCI host bridge
-> and even computer node.
->
-> The ACPI specifications have provided standard interfaces between
-> firmware and OS to support device dynamic reconfiguraiton at runtime.
-> This patch series introduces a new framework for system device
-> dynamic reconfiguration based on ACPI specification, which will
-> replace current existing system device hotplug logic embedded in
-> ACPI processor/memory/container device drivers.
->
-> The new ACPI based hotplug framework is modelled after the PCI hotplug
-> architecture and target to achieve following goals:
-> 1) Optimize device configuration order to achieve best performance for
->    hot-added system devices. For best perforamnce, system device should
->    be configured in order of memory -> CPU -> IOAPIC/IOMMU -> PCI HB.
-> 2) Resolve dependencies among hotplug slots. You need first to remove
->    the memory device before removing a physical processor if a
->    hotpluggable memory device is connected to a hotpluggable physical
->    processor.
-
-Doesn't the namespace already have a way to communicate these dependencies?
-
-> 3) Provide interface to cancel ongoing hotplug operations. It may take
->    a very long time to remove a memory device, so provide interface to
->    cancel the inprogress hotplug operations.
-> 4) Support new advanced RAS features, such as socket/memory migration.
-> 5) Provide better user interfaces to access the hotplug functionalities.
-> 6) Provide a mechanism to detect hotplug slots by checking existence
->    of ACPI _EJ0 method or by other hardware platform specific methods.
-
-I don't know what "hotplug slot" means for ACPI.  ACPI allows hotplug
-of arbitrary devices in the namespace, whether they have EJ0 or not.
-
-> 7) Unify the way to enumerate ACPI based hotplug slots. All hotplug
->    slots will be enumerated by the enumeration driver (acpihp_slot),
->    instead of by individual ACPI device drivers.
-
-Why do we need to enumerate these "slots" specifically?
-
-I think this patch adds things in /sys.  It might help if you
-described what they are.
-
-> 8) Unify the way to handle ACPI hotplug events. All ACPI hotplug events
->    for system devices will be handled by a generic ACPI hotplug driver
->    (acpihp_drv) instead of by individual ACPI device drivers.
-> 9) Provide better error handling and error recovery.
-> 10) Trigger hotplug events/operations by software. This feature is useful
->    for hardware fault management and/or power saving.
->
-> The new framework is composed up of three major components:
-> 1) A system device hotplug slot enumerator driver, which enumerates
->    hotplug slots in the system and provides platform specific methods
->    to control those slots.
-> 2) A system device hotplug driver, which is a platform independent
->    driver to manage all hotplug slots created by the slot enumerator.
->    The hotplug driver implements a state machine for hotplug slots and
->    provides user interfaces to manage hotplug slots.
-> 3) Several ACPI device drivers to configure/unconfigure system devices
->    at runtime.
->
-> To get rid of inter dependengcy between the slot enumerator and hotplug
-> driver, common code shared by them will be built into the kernel. The
-> shared code provides some helper routines and a device class named
-> acpihp_slot_class with following default sysfs properties:
->         capabilities: RAS capabilities of the hotplug slot
->         state: current state of the hotplug slot state machine
->         status: current health status of the hotplug slot
->         object: ACPI object corresponding to the hotplug slot
+> An ACPI hotplug slot is an abstraction of receptacles, where a group of
+> system devices could be connected to. This patch implements the skeleton
+> of the ACPI system device hotplug slot enumerator. On loading, it scans
+> the whole ACPI namespace for hotplug slots and creates a device node for
+> each hotplug slot found. Every hotplug slot is associated with a device
+> class named acpihp_slot_class. Later hotplug drivers will register onto
+> acpihp_slot_class to manage all hotplug slots.
 >
 > Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
 > Signed-off-by: Gaohuai Han <hangaohuai@huawei.com>
+> ---
+>  drivers/acpi/Kconfig          |   19 ++
+>  drivers/acpi/hotplug/Makefile |    3 +
+>  drivers/acpi/hotplug/slot.c   |  417 +++++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 439 insertions(+)
+>  create mode 100644 drivers/acpi/hotplug/slot.c
+>
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index 9577b23..af0aaf6 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -334,6 +334,25 @@ menuconfig ACPI_HOTPLUG
+>           If your hardware platform does not support system device dynamic
+>           reconfiguration at runtime, you need not to enable this option.
+>
+> +config ACPI_HOTPLUG_SLOT
+> +       tristate "System Device Hotplug Slot Enumerator"
 
-...
-> +static char *acpihp_dev_mem_ids[] = {
-> +       "PNP0C80",
-> +       NULL
-> +};
+I don't really believe in hotplug drivers being modules.  I think the
+core should support hotplug directly, and the decision to configure or
+not should be made at build-time.
+
+> +       depends on ACPI_HOTPLUG
+> +       default m
+> +       help
+> +         ACPI system device hotplug slot is an abstraction of ACPI based
+> +         system device dynamic reconfiguration control points. On load,
+> +         this driver enumerates system device hotplug slots by wakling the
+> +         ACPI namespace and provides platform specific methods to control
+> +         those hotplug slots.
 > +
-> +static char *acpihp_dev_pcihb_ids[] = {
-> +       "PNP0A03",
-> +       NULL
-> +};
+> +         By default, this driver detects system device hotplug slots by
+> +         checking avaliability of ACPI _EJ0 method. You may pass a module
+> +         parameter "fake_slot=0xf" to enable faking hotplug slots on
+> +         platforms without hardware dynamic reconfiguration capabilities.
+> +
+> +         To compile this driver as a module, choose M here:
+> +         the module will be called acpihp_slot.
+> +
 
-Why should this driver need to know about these PNP IDs?  We ought to
-be able to support hotplug of any device in the namespace, no matter
-what its ID.
+> +static int __init acpihp_slot_generate_name(struct acpihp_slot *slot)
+> +{
+> +       int found = 0;
+> +       u32 child_types = 0;
+> +       unsigned long long uid;
+> +       struct acpihp_slot_id *slot_id;
+> +
+> +       /*
+> +        * Figure out slot type by checking types of ACPI devices which could
+> +        * be attached to the slot.
+> +        */
+> +       slot->type = acpihp_slot_get_type_self(slot);
+> +       if (slot->type == ACPIHP_SLOT_TYPE_UNKNOWN) {
+> +               acpi_walk_namespace(ACPI_TYPE_DEVICE, slot->handle,
+> +                               ACPI_UINT32_MAX, acpihp_slot_get_dev_type,
+> +                               NULL, NULL, (void **)&child_types);
+> +               acpi_walk_namespace(ACPI_TYPE_PROCESSOR, slot->handle,
+> +                               ACPI_UINT32_MAX, acpihp_slot_get_dev_type,
+> +                               NULL, NULL, (void **)&child_types);
+> +               slot->type = acpihp_slot_get_type_child(child_types);
+> +       }
+
+If things can be hot-added below slot->handle, is there an ACPI
+requirement that there be *anything* in the existing namespace below
+slot->handle?  I'm not sure you can tell sort of things might be
+added.
+
+> +static int __init acpihp_slot_scan_slots(void)
+> +{
+> +       acpi_status status;
+> +
+> +       status = acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
+> +                                    ACPI_UINT32_MAX, acpihp_slot_scan,
+> +                                    NULL, NULL, NULL);
+> +       if (!ACPI_SUCCESS(status))
+> +               goto out_err;
+> +
+> +       status = acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
+> +                                    ACPI_UINT32_MAX, acpihp_slot_scan,
+> +                                    NULL, NULL, NULL);
+
+Here's one reason I don't like this as a module: we have to walk the
+namespace again (twice, even).  What happens when you hot-add a node
+that itself *contains* another hot-pluggable receptacle?  Do you walk
+the namespace again, calling acpiphp_slot_scan() as needed?
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
