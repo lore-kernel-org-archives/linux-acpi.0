@@ -1,35 +1,41 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH v5] create sun sysfs file
-Date: Mon, 05 Nov 2012 20:27:28 -0500
-Message-ID: <50986780.9030503@kernel.org>
-References: <5073C906.1070400@jp.fujitsu.com> <50763485.1080607@kernel.org>
+From: WANG Siyuan <wangsiyuanbuaa@gmail.com>
+Subject: firmware issue: do_IRQ: X 55 No irq handler for vector (irq -1)
+Date: Tue, 6 Nov 2012 10:30:44 +0800
+Message-ID: <CAKhuMPm1qG-t93+TOi1xHDDnV2Gm-DqR4JQEZDuGZPyqzWejkw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:50279 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754305Ab2KFB1b (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Nov 2012 20:27:31 -0500
-In-Reply-To: <50763485.1080607@kernel.org>
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:39138 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933609Ab2KFCbE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Nov 2012 21:31:04 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, toshi.kani@hp.com, liuj97@gmail.com, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Yasuaki,
-Please refresh this patch on top of linux-next and re-send to Rafael.
-I've dropped it from my tree.
+Hi,
+Firstly, this is a coreboot issue rather than kernel issue. I don't
+know how to deal with it so come here to ask for help.
 
-thanks,
--Len
+I am debugging coreboot which is an open source bios on a mainboard now.
+the mainboard is tyan s8226, which has two CPUs and each CPU has 8 cores.
+the details of s8226 could be googled. I can't insert link.
 
-On 10/10/2012 10:52 PM, Len Brown wrote:
-> v5 applied (with typo fixed).
-> In the future, it would be better if your patches apply to the latest
-> upstream kernel.  (_STR made changes in same place as _SUN)
-> 
-> thanks,
-> Len Brown, Intel Open Source Technology Center
-> 
+I encountered a problem these days. The dmesg has such error:
 
+do_IRQ: X 55 No irq handler for vector (irq -1)
+where X is from 1 to 10
+
+this message is printed by do_IRQ() in arch/x86/kernel/irq.c
+
+this is my coreboot issue, because other bios doesn't have this dmesg error.
+it seems that this error has no effect to the system. Linux works well
+now. But I want to resolve this issue.
+
+I am not familiar with linux kernel, so I don't know how to locate the problem.
+would anybody give me some suggestion?
+thank you!
+I can't send the whole dmesg, because it is rejected. I don't know why.
+
+--
+WANG Siyuan
