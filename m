@@ -1,69 +1,106 @@
-From: David Rientjes <rientjes@google.com>
-Subject: Re: [PATCH 6/7] ACPI / PM: Move device PM functions related to sleep
- states
-Date: Tue, 6 Nov 2012 11:52:42 -0800 (PST)
-Message-ID: <alpine.DEB.2.00.1211061150190.6467@chino.kir.corp.google.com>
-References: <1766582.8gdQKXoi0K@vostro.rjw.lan> <1456107.KxymqUQLId@vostro.rjw.lan>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH 2/3] spi / ACPI: add ACPI enumeration support
+Date: Tue, 6 Nov 2012 13:35:56 -0700
+Message-ID: <CAErSpo44pWUJmRAP6eR9T+2WvO5hJPFOC=Nn-WPXDtCY0v0EDw@mail.gmail.com>
+References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com>
+ <4052192.ry8JrGTr6H@vostro.rjw.lan> <CAErSpo6gfL+QFoWK+8ahYAj+vnp4OCn4B=-vALGbU_LnsyT8oQ@mail.gmail.com>
+ <1815967.2MF0PyW36l@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:52417 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752623Ab2KFTwp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Nov 2012 14:52:45 -0500
-Received: by mail-pb0-f46.google.com with SMTP id rr4so641085pbb.19
-        for <linux-acpi@vger.kernel.org>; Tue, 06 Nov 2012 11:52:44 -0800 (PST)
-In-Reply-To: <1456107.KxymqUQLId@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1815967.2MF0PyW36l@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Aaron Lu <aaron.lu@intel.com>, Huang Ying <ying.huang@intel.com>, Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Adrian Hunter <adrian.hunter@intel.com>, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-Commit b87b49cd0efd ("ACPI / PM: Move device PM functions related to sleep 
-states") declared acpi_target_system_state() for CONFIG_PM_SLEEP whereas 
-it is only defined for CONFIG_ACPI_SLEEP, resulting in the following link 
-error:
+On Tue, Nov 6, 2012 at 6:43 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> On Monday, November 05, 2012 09:54:42 AM Bjorn Helgaas wrote:
+>> On Mon, Nov 5, 2012 at 3:31 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+>> > On Saturday, November 03, 2012 09:59:28 PM Rafael J. Wysocki wrote:
+>> >> On Saturday, November 03, 2012 10:13:10 PM Mika Westerberg wrote:
+>> >> > On Sat, Nov 03, 2012 at 01:42:02PM -0600, Bjorn Helgaas wrote:
+>> >> > > On Sat, Nov 3, 2012 at 1:46 AM, Mika Westerberg
+>> >> > > <mika.westerberg@linux.intel.com> wrote:
+>> >> > > > ACPI 5 introduced SPISerialBus resource that allows us to enumerate and
+>> >> > > > configure the SPI slave devices behind the SPI controller. This patch adds
+>> >> > > > support for this to the SPI core.
+>> > [...]
+>> >> > And if the ACPI core parses the _CRS, how does it pass all the resources to
+>> >> > the drivers?
+>> >>
+>> >> Pretty much the same way the $subject patch does.
+>> >>
+>> >> Instead of parsing the entire subtree below an SPI controller and trying
+>> >> acpi_spi_add_device() for each device node in there, it could call
+>> >> acpi_spi_add_device() whenever it finds a device of type
+>> >> ACPI_RESOURCE_TYPE_SERIAL_BUS/ACPI_RESOURCE_SERIAL_TYPE_SPI.
+>> >> The only problem is how to pass "master" to it.
+>> >>
+>> >> So Bjorn, do you have any idea how we could pass the "master" pointer from the
+>> >> ACPI core to acpi_spi_add_device() in a sensible way?
+>> >>
+>> >> An alternative might be to store the information obtained from _CRS in
+>> >> struct acpi_device objects created by the ACPI core while parsing the
+>> >> namespace.  We do that already for things like _PRW, so we might as well do it
+>> >> for _CRS.  Then, the SPI core could just walk the subtree of the device hierarchy
+>> >> below the SPI controller's acpi_device to extract that information.
+>> >> Maybe that's the way to go?
+>> >
+>> > The general idea is to move the _CRS parsing routine from acpi_platform.c
+>> > to scan.c and make it attach resource objects to struct acpi_device.
+>> >
+>> > I'm thinking about adding a list head to struct acpi_device pointing to a
+>> > list of entries like:
+>> >
+>> > struct resource_list_entry {
+>> >         struct list_head node;
+>> >         struct resource *resources;
+>> >         unsigned int count;
+>> > };
+>> >
+>> > where "resources" is an array of resources (e.g. interrupts) in the given
+>> > entry and count is the size of that array.
+>> >
+>> > That list would contain common resources like ACPI_RESOURCE_TYPE_FIXED_MEMORY32,
+>> > ACPI_RESOURCE_TYPE_IRQ, ACPI_RESOURCE_TYPE_ADDRESS32, ACPI_RESOURCE_TYPE_EXTENDED_IRQ.
+>>
+>> This is exactly what PNPACPI already does.  For every Device node in
+>> the namespace, pnpacpi/rsparser.c parses _CRS and builds a list of
+>> struct resources that correspond to it.  If you put this functionality
+>> in acpi/scan.c, should we get rid of PNPACPI?
+>
+> Quite likely.  At least this part of it, if you want the core to parse
+> resources.
+>
+> That said, I actually tried to abstract out resource parsing in a more generic
+> fashion on the basis of our new platform device support code, but quite frankly
+> I wasn't able to.
+>
+> The problem is that struct resource is too simple to be useful for representing
+> all of the information that can be encoded in ACPI resources.  As a result, some
+> information have to be stored directly in things like struct pnp_dev, struct
+> platform_device etc. and if we want to represent it generically, the only way
+> to do that seems to be using the ACPICA resource types as defined in acrestyp.h.
 
-drivers/built-in.o: In function `acpi_pm_device_sleep_wake':
-drivers/acpi/device_pm.c:342: undefined reference to `acpi_target_system_state'
-drivers/built-in.o: In function `acpi_dev_suspend_late':
-drivers/acpi/device_pm.c:501: undefined reference to `acpi_target_system_state'
-drivers/built-in.o: In function `acpi_pm_device_sleep_state':
-drivers/acpi/device_pm.c:221: undefined reference to `acpi_target_system_state'
+Really?  I didn't have that impression.  It might be that the new GPIO
+and SERIAL_BUS stuff makes it too complicated for a struct resource,
+but prior to that, I don't think it was.  It's true that there are
+many different formats (IO, FIXED_IO, MEMORY24, MEMORY32, etc.), but
+only the core needs to be aware of the encoding of all those formats.
+As far as a *driver* is concerned, there are only IRQ, DMA, IO, and
+MEM resources, and those fit easily in a struct resource.
 
-Define it only for CONFIG_ACPI_SLEEP and fallback to a dummy definition 
-for other configs.
+I want to expand on what I said before about _CRS being the domain of
+the core, not drivers.  The core must evaluate _CRS to know where
+devices are and avoid conflicts when assigning resources.  The core
+must evaluate _PRS and _SRS when making resource assignments.  It
+doesn't make sense for drivers to be using _PRS and _SRS; they don't
+have a global view of resources, and any assignment they make would
+likely cause conflicts with other devices.  I think it makes sense to
+consolidate all _CRS, _PRS, and _SRS management in the core rather
+than splitting it up.  This is exactly analogous to PCI BAR
+management, and we don't intend drivers to read and write BARs
+directly.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
----
- include/acpi/acpi_bus.h |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
-
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -469,11 +469,9 @@ static inline int acpi_pm_device_run_wake(struct device *dev, bool enable)
- #endif
- 
- #ifdef CONFIG_PM_SLEEP
--u32 acpi_target_system_state(void);
- int __acpi_device_sleep_wake(struct acpi_device *, u32, bool);
- int acpi_pm_device_sleep_wake(struct device *, bool);
- #else
--static inline u32 acpi_target_system_state(void) { return ACPI_STATE_S0; }
- static inline int __acpi_device_sleep_wake(struct acpi_device *adev,
- 					   u32 target_state, bool enable)
- {
-@@ -485,6 +483,12 @@ static inline int acpi_pm_device_sleep_wake(struct device *dev, bool enable)
- }
- #endif
- 
-+#ifdef CONFIG_ACPI_SLEEP
-+u32 acpi_target_system_state(void);
-+#else
-+static inline u32 acpi_target_system_state(void) { return ACPI_STATE_S0; }
-+#endif
-+
- static inline bool acpi_device_power_manageable(struct acpi_device *adev)
- {
- 	return adev->flags.power_manageable;
+Bjorn
