@@ -1,89 +1,137 @@
-From: Azat Khuzhin <dohardgopro@gmail.com>
-Subject: Re: ACPI errors with 3.7-rc3
-Date: Tue, 6 Nov 2012 17:04:26 +0400
-Message-ID: <CAAW1UO__wyEbPW=aXo0fy8HE931mhSXhdq6AYdrxfd30rEfTpA@mail.gmail.com>
-References: <20121031014527.GA2984@kroah.com>
-	<2089727.VKpW8oC7hj@vostro.rjw.lan>
-	<20121031173336.GA28991@kroah.com>
-	<CAAW1UO9BtAU5jpy=MqgFCwwXn3Gb8HA3m7FMktmQkYGqYrS0Rw@mail.gmail.com>
-	<20121106124826.GA21806@kroah.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 2/3] spi / ACPI: add ACPI enumeration support
+Date: Tue, 06 Nov 2012 14:16:12 +0100
+Message-ID: <3455360.Z6cZSC3BtR@vostro.rjw.lan>
+References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com> <1792336.CIafglX82A@vostro.rjw.lan> <CAErSpo4Rnu9ioyXWfaNEkUZh402hnFAuwJ9dk5wxT5TNOkc97A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:46396 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751343Ab2KFNE0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Nov 2012 08:04:26 -0500
-In-Reply-To: <20121106124826.GA21806@kroah.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAErSpo4Rnu9ioyXWfaNEkUZh402hnFAuwJ9dk5wxT5TNOkc97A@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, lenb@kernel.org, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-When this messages appears, I was running from AC, not from battery.
+On Monday, November 05, 2012 09:54:37 AM Bjorn Helgaas wrote:
+> On Sat, Nov 3, 2012 at 2:39 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > On Saturday, November 03, 2012 01:42:02 PM Bjorn Helgaas wrote:
+> >> On Sat, Nov 3, 2012 at 1:46 AM, Mika Westerberg
+> >> <mika.westerberg@linux.intel.com> wrote:
+> >> > ACPI 5 introduced SPISerialBus resource that allows us to enumerate and
+> >> > configure the SPI slave devices behind the SPI controller. This patch adds
+> >> > support for this to the SPI core.
+> >> >
+> >> > In addition we bind ACPI nodes to SPI devices. This makes it possible for
+> >> > the slave drivers to get the ACPI handle for further configuration.
+> >> >
+> >> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> >> > Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >> > ---
+> >> >  drivers/spi/spi.c |  231 ++++++++++++++++++++++++++++++++++++++++++++++++++++-
+> 
+> >> > +static acpi_status acpi_spi_add_resources(struct acpi_resource *res, void *data)
+> >> > +{
+> >> > +       struct acpi_spi_device_info *info = data;
+> >> > +       struct acpi_resource_spi_serialbus *sb;
+> >> > +       struct spi_device *spi = info->spi;
+> >> > +
+> >> > +       switch (res->type) {
+> >> > +       case ACPI_RESOURCE_TYPE_SERIAL_BUS:
+> >> > +               sb = &res->data.spi_serial_bus;
+> >> > +               if (sb->type == ACPI_RESOURCE_SERIAL_TYPE_SPI) {
+> >> > +                       spi->chip_select = sb->device_selection;
+> >> > +                       spi->max_speed_hz = sb->connection_speed;
+> >> > +
+> >> > +                       /* Mode (clock phase/polarity/etc. */
+> >> > +                       if (sb->clock_phase == ACPI_SPI_SECOND_PHASE)
+> >> > +                               spi->mode |= SPI_CPHA;
+> >> > +                       if (sb->clock_polarity == ACPI_SPI_START_HIGH)
+> >> > +                               spi->mode |= SPI_CPOL;
+> >> > +                       if (sb->device_polarity == ACPI_SPI_ACTIVE_HIGH)
+> >> > +                               spi->mode |= SPI_CS_HIGH;
+> >> > +
+> >> > +                       /*
+> >> > +                        * The info is valid once we have found the
+> >> > +                        * SPISerialBus resource.
+> >> > +                        */
+> >> > +                       info->valid = true;
+> >> > +               }
+> >> > +               break;
+> >> > +
+> >> > +       case ACPI_RESOURCE_TYPE_IRQ:
+> >> > +               info->gsi = res->data.irq.interrupts[0];
+> >> > +               info->triggering = res->data.irq.triggering;
+> >> > +               info->polarity = res->data.irq.polarity;
+> >> > +               break;
+> >> > +
+> >> > +       case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
+> >> > +               info->gsi = res->data.extended_irq.interrupts[0];
+> >> > +               info->triggering = res->data.extended_irq.triggering;
+> >> > +               info->polarity = res->data.extended_irq.polarity;
+> >>
+> >> A driver doesn't seem like the right place for _CRS parsing code.
+> >
+> > This is not a driver, however. :-)
+> 
+> OK.  Can you describe what this is?  I assume the picture involves an
+> SPI master device and one or more SPI slave devices, and the ACPI
+> namespace tells us something about them, and somehow this code is
+> related to those devices because it's looking at _CRS for them.
 
-On Tue, Nov 6, 2012 at 4:48 PM, Greg KH <gregkh@linuxfoundation.org> wrote:
-> On Tue, Nov 06, 2012 at 04:42:24PM +0400, Azat Khuzhin wrote:
->> I'v also have such errors on my macbook pro.
->>
->> $ dmesg | tail
->> [17056.008564] ACPI Error: Method parse/execution failed
->> [\_SB_.PCI0.LPCB.EC__.SMB0.SBRW] (Node ffff88026547ea10), AE_TIME
->> (20120711/psparse-536)
->> [17056.011194] ACPI Error: Method parse/execution failed
->> [\_SB_.BAT0.UBST] (Node ffff88026547e678), AE_TIME
->> (20120711/psparse-536)
->> [17056.013793] ACPI Error: Method parse/execution failed
->> [\_SB_.BAT0._BST] (Node ffff88026547e740), AE_TIME
->> (20120711/psparse-536)
->> [17056.016383] ACPI Exception: AE_TIME, Evaluating _BST (20120711/battery-464)
->> [17056.511373] ACPI: EC: input buffer is not empty, aborting transaction
->> [17056.512672] ACPI Exception: AE_TIME, Returned by Handler for
->> [EmbeddedControl] (20120711/evregion-501)
->> [17056.515256] ACPI Error: Method parse/execution failed
->> [\_SB_.PCI0.LPCB.EC__.SMB0.SBRW] (Node ffff88026547ea10), AE_TIME
->> (20120711/psparse-536)
->> [17056.517886] ACPI Error: Method parse/execution failed
->> [\_SB_.BAT0.UBST] (Node ffff88026547e678), AE_TIME
->> (20120711/psparse-536)
->> [17056.520479] ACPI Error: Method parse/execution failed
->> [\_SB_.BAT0._BST] (Node ffff88026547e740), AE_TIME
->> (20120711/psparse-536)
->> [17056.523070] ACPI Exception: AE_TIME, Evaluating _BST (20120711/battery-464)
->
-> I'm seeing this again right now.  I'm wondering if it's because I'm
-> running on battery power at the moment:
->
-> [41694.309264] ACPI Exception: AE_TIME, Returned by Handler for [EmbeddedControl] (20120913/evregion-501)
-> [41694.309282] ACPI Error: Method parse/execution failed [\_SB_.PCI0.LPCB.EC__.SMB0.SBRW] (Node ffff88045cc64618), AE_TIME (20120913/psparse-536)
-> [41694.309300] ACPI Error: Method parse/execution failed [\_SB_.BAT0.UBST] (Node ffff88045cc64988), AE_TIME (20120913/psparse-536)
-> [41694.309310] ACPI Error: Method parse/execution failed [\_SB_.BAT0._BST] (Node ffff88045cc648c0), AE_TIME (20120913/psparse-536)
-> [41694.309324] ACPI Exception: AE_TIME, Evaluating _BST (20120913/battery-464)
-> [41694.809093] ACPI: EC: input buffer is not empty, aborting transaction
->
-> ec_storm_threshold is still set to 8 in /sys/module/acpi/parameters/ so that's
-> not the issue here.
->
->> And also loadavg is too high ~ 10
->> While there is no process that load CPU up to 100% or like that.
->> I think that this because of processes that is done in kernel space.
->> (basically that one who write such errors)
->>
->> $ uname -a
->> Linux macbook-pro-sq 3.6.5macbook-pro-custom-v0.1 #4 SMP Sun Nov 4
->> 12:39:03 UTC 2012 x86_64 GNU/Linux
->
-> Ah, ok, that means it's not something new in 3.7-rc, so maybe it's just never
-> worked properly for this hardware :)
->
-> So it's not a regression, just an ACPI issue, any ACPI developer have an idea
-> about this?
->
-> thanks,
->
-> greg k-h
+This is part of the SPI core that looks for SPI devices below a controller.
 
+> A _CRS method is associated with a Device in the namespace.  What is
+> that device in this case?
+
+An SPI device below a controller.
+
+> What is its PNP ID?
+
+I can't answer that from the top of my head, sorry.
+
+> What driver claims devices with that ID?
+
+The driver that declares support for it in its acpi_match_table[] array.
+
+
+> >> > +static void acpi_register_spi_devices(struct spi_master *master)
+> >> > +{
+> >> > +       acpi_status status;
+> >> > +       acpi_handle handle;
+> >> > +
+> >> > +       handle = master->dev.acpi_handle;
+> >> > +       if (!handle)
+> >> > +               return;
+> >> > +
+> >> > +       status = acpi_spi_enumerate(handle, acpi_spi_add_device, master);
+> >>
+> >> How does this work with hot-plug?  acpi_spi_enumerate() walks a
+> >> portion of the namespace.  How do we deal with changes to that part of
+> >> the namespace?  For example, what happens if this part of the
+> >> namespace gets pruned because an enclosing device is removed?  Is
+> >> there a way to discover new SPI devices if they get added?
+> >
+> > Yes, there should be a way to do that eventually.  No, we don't have any
+> > removable SPI devices described by ACPI yet, as far as I know.  So even if
+> > we added code for that now, we wouldn't be able to test it anyway with any
+> > real hardware until such devices become available.  I have no idea when that's
+> > going to happen, though.
+> 
+> I'm not asking about hotplug of devices on an SPI bus.  I'm asking
+> about hotplug of SPI masters.  For example, let's say you hot-add a
+> whole node that contains an SPI master.  I assume there's some ACPI
+> Device node that describes the SPI master, and a hot-add would add a
+> subtree to the namespace that contains a new SPI master Device.
+
+The master will be a platform device and again, we're going to add support
+for the hotplug of those, but the SPI controllers that we currently can test
+it with are not removable.
+
+Thanks,
+Rafael
 
 
 -- 
-Azat Khuzhin
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
