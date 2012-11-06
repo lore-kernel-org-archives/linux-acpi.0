@@ -1,7 +1,7 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v5 RESEND 5/5] ACPI: Update Dock hotplug error messages
-Date: Tue,  6 Nov 2012 08:02:10 -0700
-Message-ID: <1352214130-12055-6-git-send-email-toshi.kani@hp.com>
+Subject: [PATCH v5 RESEND 1/5] ACPI: Add acpi_pr_<level>() interfaces
+Date: Tue,  6 Nov 2012 08:02:06 -0700
+Message-ID: <1352214130-12055-2-git-send-email-toshi.kani@hp.com>
 References: <1352214130-12055-1-git-send-email-toshi.kani@hp.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1352214130-12055-1-git-send-email-toshi.kani@hp.com>
@@ -10,112 +10,129 @@ To: linux-acpi@vger.kernel.org, rjw@sisk.pl, lenb@kernel.org
 Cc: linux-kernel@vger.kernel.org, joe@perches.com, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, vijaymohan.pandarathil@hp.com, imammedo@redhat.com, prarit@redhat.com, Toshi Kani <toshi.kani@hp.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Updated Dock hotplug error messages with acpi_pr_<level>()
-and pr_<level>().  Replaced acpi_get_name() & kfree() with
-apci_pr_<level>().  Added error status to the messages where
-needed.
+This patch introduces acpi_pr_<level>(), where <level> is a kernel
+message level such as err/warn/info, to support improved logging
+messages for ACPI, esp. for hotplug operations.  acpi_pr_<level>()
+appends "ACPI" prefix and ACPI object path to the messages.  This
+improves diagnosis of hotplug operations since an error message in
+a log file identifies an object that caused an issue.
+
+acpi_pr_<level>() takes acpi_handle as an argument, which is passed
+to ACPI hotplug notify handlers from the ACPICA.  Therefore, it is
+always available unlike other kernel objects, such as device.
+
+For example:
+  acpi_pr_err(handle, "Device don't exist, dropping EJECT\n");
+logs an error message like this at KERN_ERR.
+  ACPI: \_SB_.SCK4.CPU4: Device don't exist, dropping EJECT
+
+ACPI drivers can use acpi_pr_<level>() when they need to identify
+a target ACPI object path in their messages, such as error cases.
+The usage model is similar to dev_<level>().  acpi_pr_<level>() can
+be used when device is not created/valid, which may be the case in
+ACPI hotplug handlers.  ACPI object path is also consistent on the
+platform, unlike device name that changes over hotplug operations.
+
+ACPI drivers should use dev_<level>() when device is valid and
+acpi_pr_<level>() is already used by the caller in its error path.
+Device name provides more user friendly information.
+
+ACPI drivers also continue to use pr_<level>() when messages do not
+need to specify device information, such as boot-up messages.
+
+Note: ACPI_[WARNING|INFO|ERROR]() are intended for the ACPICA and
+are not associated with the kernel message level.
 
 Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+Tested-by: Vijay Mohan Pandarathil <vijaymohan.pandarathil@hp.com>
 ---
- drivers/acpi/dock.c | 29 +++++++++++++----------------
- 1 file changed, 13 insertions(+), 16 deletions(-)
+ drivers/acpi/utils.c    | 34 ++++++++++++++++++++++++++++++++++
+ include/acpi/acpi_bus.h | 31 +++++++++++++++++++++++++++++++
+ 2 files changed, 65 insertions(+)
 
-diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
-index ae4ebf2..52e4bfd 100644
---- a/drivers/acpi/dock.c
-+++ b/drivers/acpi/dock.c
-@@ -460,12 +460,8 @@ static void handle_dock(struct dock_station *ds, int dock)
- 	struct acpi_object_list arg_list;
- 	union acpi_object arg;
- 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
--	struct acpi_buffer name_buffer = { ACPI_ALLOCATE_BUFFER, NULL };
- 
--	acpi_get_name(ds->handle, ACPI_FULL_PATHNAME, &name_buffer);
--
--	printk(KERN_INFO PREFIX "%s - %s\n",
--		(char *)name_buffer.pointer, dock ? "docking" : "undocking");
-+	acpi_pr_info(ds->handle, "%s\n", dock ? "docking" : "undocking");
- 
- 	/* _DCK method has one argument */
- 	arg_list.count = 1;
-@@ -474,11 +470,10 @@ static void handle_dock(struct dock_station *ds, int dock)
- 	arg.integer.value = dock;
- 	status = acpi_evaluate_object(ds->handle, "_DCK", &arg_list, &buffer);
- 	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND)
--		ACPI_EXCEPTION((AE_INFO, status, "%s - failed to execute"
--			" _DCK\n", (char *)name_buffer.pointer));
-+		acpi_pr_err(ds->handle, "Failed to execute _DCK (0x%x)\n",
-+				status);
- 
- 	kfree(buffer.pointer);
--	kfree(name_buffer.pointer);
+diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+index 462f7e3..4eade7d 100644
+--- a/drivers/acpi/utils.c
++++ b/drivers/acpi/utils.c
+@@ -457,3 +457,37 @@ acpi_evaluate_hotplug_ost(acpi_handle handle, u32 source_event,
+ #endif
  }
+ EXPORT_SYMBOL(acpi_evaluate_hotplug_ost);
++
++/**
++ * acpi_printk: Print messages with ACPI prefix and object path
++ *
++ * This function is intended to be called through acpi_pr_<level> macros.
++ */
++void
++acpi_printk(const char *level, acpi_handle handle, const char *fmt, ...)
++{
++	struct va_format vaf;
++	va_list args;
++	struct acpi_buffer buffer = {
++		.length = ACPI_ALLOCATE_BUFFER,
++		.pointer = NULL
++	};
++	const char *path;
++	acpi_status ret;
++
++	va_start(args, fmt);
++	vaf.fmt = fmt;
++	vaf.va = &args;
++
++	ret = acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
++	if (ret == AE_OK)
++		path = buffer.pointer;
++	else
++		path = "<n/a>";
++
++	printk("%sACPI: %s: %pV", level, path, &vaf);
++
++	va_end(args);
++	kfree(buffer.pointer);
++}
++EXPORT_SYMBOL(acpi_printk);
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 2242c10..93d5852 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -56,6 +56,37 @@ acpi_evaluate_hotplug_ost(acpi_handle handle, u32 source_event,
  
- static inline void dock(struct dock_station *ds)
-@@ -525,9 +520,11 @@ static void dock_lock(struct dock_station *ds, int lock)
- 	status = acpi_evaluate_object(ds->handle, "_LCK", &arg_list, NULL);
- 	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
- 		if (lock)
--			printk(KERN_WARNING PREFIX "Locking device failed\n");
-+			acpi_pr_warn(ds->handle,
-+				"Locking device failed (0x%x)\n", status);
- 		else
--			printk(KERN_WARNING PREFIX "Unlocking device failed\n");
-+			acpi_pr_warn(ds->handle,
-+				"Unlocking device failed (0x%x)\n", status);
- 	}
- }
+ acpi_status
+ acpi_get_physical_device_location(acpi_handle handle, struct acpi_pld_info **pld);
++
++void acpi_printk(const char *level, acpi_handle handle, const char *fmt, ...);
++
++#define acpi_pr_emerg(handle, fmt, ...)				\
++	acpi_printk(KERN_EMERG, handle, fmt, ##__VA_ARGS__)
++#define acpi_pr_alert(handle, fmt, ...)				\
++	acpi_printk(KERN_ALERT, handle, fmt, ##__VA_ARGS__)
++#define acpi_pr_crit(handle, fmt, ...)				\
++	acpi_printk(KERN_CRIT, handle, fmt, ##__VA_ARGS__)
++#define acpi_pr_err(handle, fmt, ...)				\
++	acpi_printk(KERN_ERR, handle, fmt, ##__VA_ARGS__)
++#define acpi_pr_warn(handle, fmt, ...)				\
++	acpi_printk(KERN_WARNING, handle, fmt, ##__VA_ARGS__)
++#define acpi_pr_notice(handle, fmt, ...)			\
++	acpi_printk(KERN_NOTICE, handle, fmt, ##__VA_ARGS__)
++#define acpi_pr_info(handle, fmt, ...)				\
++	acpi_printk(KERN_INFO, handle, fmt, ##__VA_ARGS__)
++
++/* REVISIT: Support CONFIG_DYNAMIC_DEBUG when necessary */
++#if defined(DEBUG) || defined(CONFIG_DYNAMIC_DEBUG)
++#define acpi_pr_debug(handle, fmt, ...)					\
++	acpi_printk(KERN_DEBUG, handle, fmt, ##__VA_ARGS__)
++#else
++#define acpi_pr_debug(handle, fmt, ...)					\
++({									\
++	if (0)								\
++		acpi_printk(KERN_DEBUG, handle, fmt, ##__VA_ARGS__);	\
++	0;								\
++})
++#endif
++
+ #ifdef CONFIG_ACPI
  
-@@ -667,7 +664,7 @@ static int handle_eject_request(struct dock_station *ds, u32 event)
- 	dock_lock(ds, 0);
- 	eject_dock(ds);
- 	if (dock_present(ds)) {
--		printk(KERN_ERR PREFIX "Unable to undock!\n");
-+		acpi_pr_err(ds->handle, "Unable to undock!\n");
- 		return -EBUSY;
- 	}
- 	complete_undock(ds);
-@@ -715,7 +712,7 @@ static void dock_notify(acpi_handle handle, u32 event, void *data)
- 			begin_dock(ds);
- 			dock(ds);
- 			if (!dock_present(ds)) {
--				printk(KERN_ERR PREFIX "Unable to dock!\n");
-+				acpi_pr_err(handle, "Unable to dock!\n");
- 				complete_dock(ds);
- 				break;
- 			}
-@@ -743,7 +740,7 @@ static void dock_notify(acpi_handle handle, u32 event, void *data)
- 			dock_event(ds, event, UNDOCK_EVENT);
- 		break;
- 	default:
--		printk(KERN_ERR PREFIX "Unknown dock event %d\n", event);
-+		acpi_pr_err(handle, "Unknown dock event %d\n", event);
- 	}
- }
- 
-@@ -987,7 +984,7 @@ err_rmgroup:
- 	sysfs_remove_group(&dd->dev.kobj, &dock_attribute_group);
- err_unregister:
- 	platform_device_unregister(dd);
--	printk(KERN_ERR "%s encountered error %d\n", __func__, ret);
-+	acpi_pr_err(handle, "%s encountered error %d\n", __func__, ret);
- 	return ret;
- }
- 
-@@ -1043,12 +1040,12 @@ static int __init dock_init(void)
- 		ACPI_UINT32_MAX, find_dock_and_bay, NULL, NULL, NULL);
- 
- 	if (!dock_station_count) {
--		printk(KERN_INFO PREFIX "No dock devices found.\n");
-+		pr_info(PREFIX "No dock devices found.\n");
- 		return 0;
- 	}
- 
- 	register_acpi_bus_notifier(&dock_acpi_notifier);
--	printk(KERN_INFO PREFIX "%s: %d docks/bays found\n",
-+	pr_info(PREFIX "%s: %d docks/bays found\n",
- 		ACPI_DOCK_DRIVER_DESCRIPTION, dock_station_count);
- 	return 0;
- }
+ #include <linux/proc_fs.h>
 -- 
 1.7.11.7
