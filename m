@@ -1,140 +1,112 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH] ACPI / platform: use ACPI device name instead of _HID._UID
-Date: Tue,  6 Nov 2012 14:12:51 +0200
-Message-ID: <1352203971-9219-1-git-send-email-mika.westerberg@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: lenb@kernel.org, rjw@sisk.pl, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>
+From: Azat Khuzhin <dohardgopro@gmail.com>
+Subject: Re: ACPI errors with 3.7-rc3
+Date: Tue, 6 Nov 2012 16:42:24 +0400
+Message-ID: <CAAW1UO9BtAU5jpy=MqgFCwwXn3Gb8HA3m7FMktmQkYGqYrS0Rw@mail.gmail.com>
+References: <20121031014527.GA2984@kroah.com>
+	<2089727.VKpW8oC7hj@vostro.rjw.lan>
+	<20121031173336.GA28991@kroah.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:33511 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751118Ab2KFMm0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Nov 2012 07:42:26 -0500
+In-Reply-To: <20121031173336.GA28991@kroah.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, lenb@kernel.org, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Using _UID makes the ACPI platform bus code to depend on BIOS to get it
-right. If it doesn't we fail to create the platform device as the name
-should be unique.
+I'v also have such errors on my macbook pro.
 
-The ACPI core already makes an unique name when it first creates the ACPI
-device so we can use that same name as the platform device name instead of
-trusting that the BIOS sets the _UIDs correctly.
+$ dmesg | tail
+[17056.008564] ACPI Error: Method parse/execution failed
+[\_SB_.PCI0.LPCB.EC__.SMB0.SBRW] (Node ffff88026547ea10), AE_TIME
+(20120711/psparse-536)
+[17056.011194] ACPI Error: Method parse/execution failed
+[\_SB_.BAT0.UBST] (Node ffff88026547e678), AE_TIME
+(20120711/psparse-536)
+[17056.013793] ACPI Error: Method parse/execution failed
+[\_SB_.BAT0._BST] (Node ffff88026547e740), AE_TIME
+(20120711/psparse-536)
+[17056.016383] ACPI Exception: AE_TIME, Evaluating _BST (20120711/battery-464)
+[17056.511373] ACPI: EC: input buffer is not empty, aborting transaction
+[17056.512672] ACPI Exception: AE_TIME, Returned by Handler for
+[EmbeddedControl] (20120711/evregion-501)
+[17056.515256] ACPI Error: Method parse/execution failed
+[\_SB_.PCI0.LPCB.EC__.SMB0.SBRW] (Node ffff88026547ea10), AE_TIME
+(20120711/psparse-536)
+[17056.517886] ACPI Error: Method parse/execution failed
+[\_SB_.BAT0.UBST] (Node ffff88026547e678), AE_TIME
+(20120711/psparse-536)
+[17056.520479] ACPI Error: Method parse/execution failed
+[\_SB_.BAT0._BST] (Node ffff88026547e740), AE_TIME
+(20120711/psparse-536)
+[17056.523070] ACPI Exception: AE_TIME, Evaluating _BST (20120711/battery-464)
 
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
----
-This was suggested by Bjorn Helgaas in another thread. The patch applies on
-top of git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
-linux-next.
+And also loadavg is too high ~ 10
+While there is no process that load CPU up to 100% or like that.
+I think that this because of processes that is done in kernel space.
+(basically that one who write such errors)
 
- drivers/acpi/acpi_platform.c |   62 +++++++++++++++---------------------------
- 1 file changed, 22 insertions(+), 40 deletions(-)
+$ uname -a
+Linux macbook-pro-sq 3.6.5macbook-pro-custom-v0.1 #4 SMP Sun Nov 4
+12:39:03 UTC 2012 x86_64 GNU/Linux
 
-diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
-index a5a2346..dbb31d6 100644
---- a/drivers/acpi/acpi_platform.c
-+++ b/drivers/acpi/acpi_platform.c
-@@ -120,25 +120,6 @@ static acpi_status acpi_platform_add_resources(struct acpi_resource *res,
- 	return AE_OK;
- }
- 
--static acpi_status acpi_platform_get_device_uid(struct acpi_device *adev,
--						int *uid)
--{
--	struct acpi_device_info *info;
--	acpi_status status;
--
--	status = acpi_get_object_info(adev->handle, &info);
--	if (ACPI_FAILURE(status))
--		return status;
--
--	status = AE_NOT_EXIST;
--	if ((info->valid & ACPI_VALID_UID) &&
--	     !kstrtoint(info->unique_id.string, 0, uid))
--		status = AE_OK;
--
--	kfree(info);
--	return status;
--}
--
- /**
-  * acpi_create_platform_device - Create platform device for ACPI device node
-  * @adev: ACPI device node to create a platform device for.
-@@ -156,19 +137,12 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
- 	struct device *parent = NULL;
- 	struct resource_info ri;
- 	acpi_status status;
--	int devid;
- 
- 	/* If the ACPI node already has a physical device attached, skip it. */
- 	if (adev->physical_node_count)
- 		return NULL;
- 
--	/* Use the UID of the device as the new platform device id if found. */
--	status = acpi_platform_get_device_uid(adev, &devid);
--	if (ACPI_FAILURE(status))
--		devid = -1;
--
- 	memset(&ri, 0, sizeof(ri));
--
- 	/* First, count the resources. */
- 	status = acpi_walk_resources(adev->handle, METHOD_NAME__CRS,
- 				     acpi_platform_count_resources, &ri);
-@@ -214,8 +188,8 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
- 		}
- 		mutex_unlock(&acpi_parent->physical_node_lock);
- 	}
--	pdev = platform_device_register_resndata(parent, acpi_device_hid(adev),
--						 devid, ri.res, ri.n, NULL, 0);
-+	pdev = platform_device_register_resndata(parent, dev_name(&adev->dev),
-+						 -1, ri.res, ri.n, NULL, 0);
- 	if (IS_ERR(pdev)) {
- 		dev_err(&adev->dev, "platform device creation failed: %ld\n",
- 			PTR_ERR(pdev));
-@@ -245,17 +219,7 @@ static acpi_status acpi_platform_match(acpi_handle handle, u32 depth,
- 	if (adev->physical_node_count)
- 		return AE_OK;
- 
--	if (!strcmp(pdev->name, acpi_device_hid(adev))) {
--		int devid;
--
--		/* Check that both name and UID match if it exists */
--		status = acpi_platform_get_device_uid(adev, &devid);
--		if (ACPI_FAILURE(status))
--			devid = -1;
--
--		if (pdev->id != devid)
--			return AE_OK;
--
-+	if (!strcmp(dev_name(&pdev->dev), dev_name(&adev->dev))) {
- 		*(acpi_handle *)return_value = handle;
- 		return AE_CTRL_TERMINATE;
- 	}
-@@ -266,10 +230,28 @@ static acpi_status acpi_platform_match(acpi_handle handle, u32 depth,
- static int acpi_platform_find_device(struct device *dev, acpi_handle *handle)
- {
- 	struct platform_device *pdev = to_platform_device(dev);
-+	char *name, *tmp, *hid;
-+
-+	/*
-+	 * The platform device is named using the ACPI device name
-+	 * _HID:INSTANCE so we strip the INSTANCE out in order to find the
-+	 * correct device using its _HID.
-+	 */
-+	name = kstrdup(dev_name(dev), GFP_KERNEL);
-+	if (!name)
-+		return -ENOMEM;
-+
-+	tmp = name;
-+	hid = strsep(&tmp, ":");
-+	if (!hid) {
-+		kfree(name);
-+		return -ENODEV;
-+	}
- 
- 	*handle = NULL;
--	acpi_get_devices(pdev->name, acpi_platform_match, pdev, handle);
-+	acpi_get_devices(hid, acpi_platform_match, pdev, handle);
- 
-+	kfree(name);
- 	return *handle ? 0 : -ENODEV;
- }
- 
--- 
-1.7.10.4
+On Wed, Oct 31, 2012 at 9:33 PM, Greg KH <gregkh@linuxfoundation.org> wrote:
+> On Wed, Oct 31, 2012 at 10:11:21AM +0100, Rafael J. Wysocki wrote:
+>> Hi Greg,
+>>
+>> On Tuesday, October 30, 2012 06:45:27 PM Greg KH wrote:
+>> > Hi Len and Rafael,
+>> >
+>> > With 3.7-rc3, I'm seeing a constant stream of these errors in the kernel
+>> > log for my MacBook Pro:
+>> >
+>> > [30443.430133] ACPI: EC: input buffer is not empty, aborting transaction
+>> > [30443.430145] ACPI Exception: AE_TIME, Returned by Handler for [EmbeddedControl] (20120913/evregion-501)
+>> > [30443.430162] ACPI Error: Method parse/execution failed [\_SB_.PCI0.LPCB.EC__.SMB0.SBRW] (Node ffff88045cc64618), AE_TIME (20120913/psparse-536)
+>> > [30443.430179] ACPI Error: Method parse/execution failed [\_SB_.BAT0.UBST] (Node ffff88045cc64988), AE_TIME (20120913/psparse-536)
+>> > [30443.430188] ACPI Error: Method parse/execution failed [\_SB_.BAT0._BST] (Node ffff88045cc648c0), AE_TIME (20120913/psparse-536)
+>> > [30443.430202] ACPI Exception: AE_TIME, Evaluating _BST (20120913/battery-464)
+>> >
+>> > They never showed up before in 3.7-rc2.
+>> >
+>> > Anything I should try out to resolve this?
+>>
+>> Well, there are the following two post-3.6 EC-related commits:
+>>
+>> commit 67bfa9b60bd689601554526d144b21d529f78a09
+>> Author: Feng Tang <feng.tang@intel.com>
+>> Date:   Fri Sep 28 15:22:01 2012 +0800
+>>
+>>     ACPI: EC: Add a quirk for CLEVO M720T/M730T laptop
+>>
+>> commit a520d52e99b14ba7db135e916348f12f2a6e09be
+>> Author: Feng Tang <feng.tang@intel.com>
+>> Date:   Fri Sep 28 15:22:00 2012 +0800
+>>
+>>     ACPI: EC: Make the GPE storm threshold a module parameter
+>>
+>> Can you please check if reverting the second one helps?
+>
+> That last one seems like it would be it, if the module parameter got
+> changed.  And now I can't duplicate it at all, 3.7-rc3 works fine.  Ick,
+> sorry for the noise, I don't know what happened.  If I see the above
+> errors again, I'll let you know, and I'll also check the ec module
+> parameter first to ensure it didn't change from the default of 8.
+>
+> thanks,
+>
+> greg k-h
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+
+
+
+--
+Azat Khuzhin
