@@ -1,70 +1,59 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: Re: acpi_memhotplug.c: don't allow to eject the memory device if it
- is being used
-Date: Tue, 6 Nov 2012 17:05:45 +0300
-Message-ID: <20121106140545.GB11566@mwanda>
-References: <20121105181133.GA21846@elgon.mountain>
- <50987183.5020007@cn.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: [PATCH v5 RESEND 0/5] ACPI: hotplug messages improvement
+Date: Tue,  6 Nov 2012 08:02:05 -0700
+Message-ID: <1352214130-12055-1-git-send-email-toshi.kani@hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:43241 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751628Ab2KFOF7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Nov 2012 09:05:59 -0500
-Content-Disposition: inline
-In-Reply-To: <50987183.5020007@cn.fujitsu.com>
+Received: from g6t0185.atlanta.hp.com ([15.193.32.62]:46195 "EHLO
+	g6t0185.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750977Ab2KFPKK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Nov 2012 10:10:10 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Wen Congyang <wency@cn.fujitsu.com>
-Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Andrew Morton <akpm@linux-foundation.org>
+To: linux-acpi@vger.kernel.org, rjw@sisk.pl, lenb@kernel.org
+Cc: linux-kernel@vger.kernel.org, joe@perches.com, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, vijaymohan.pandarathil@hp.com, imammedo@redhat.com, prarit@redhat.com, Toshi Kani <toshi.kani@hp.com>
 
-On Tue, Nov 06, 2012 at 10:10:11AM +0800, Wen Congyang wrote:
-> At 11/06/2012 02:11 AM, Dan Carpenter Wrote:
-> > Hello Wen Congyang,
-> > 
-> > The patch 306859f13dc1: "acpi_memhotplug.c: don't allow to eject the
-> > memory device if it is being used" from Nov 3, 2012, leads to the
-> > following Smatch warning:
-> > drivers/acpi/acpi_memhotplug.c:367 acpi_memory_remove_memory()
-> > 	 warn: inconsistent returns mutex:&mem_device->list_lock:
-> > 	locked (357,361) unlocked (367)
-> 
-> Thanks for pointing it out.
-> 
-> The patch 306859f13dc1 is in akpm's tree, and it conflicts with another
-> patch in linux-pm's tree. So Andrew Morton drops them.
-> 
-> I will resend them based on linux-pm's next tree.
+This patchset improves logging messages for ACPI CPU, Memory, 
+Container and Dock hotplug notify handlers.  The patchset 
+introduces a set of new macro interfaces, acpi_pr_<level>(),
+and uses them to update the notify handlers.  acpi_pr_<level>()
+appends "ACPI" prefix and ACPI object path to the messages,
+which has similar usage model as dev_<level>().  This improves
+diagnosis of hotplug operations since an error message in 
+a log file now identifies an object that caused an issue.
 
-Ok. Today's linux-next version 85fcb3758c10e "ACPI / memory-hotplug:
-introduce a mutex lock to protect the list in acpi_memory_device"
-has a similar problem and should be fixed as well.
+The patchset is based on the linux-next branch of linux-pm.git
+tree.
 
-   319  static int acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
-   320  {
-   321          int result;
-   322          struct acpi_memory_info *info, *n;
-   323  
-   324          mutex_lock(&mem_device->list_lock);
-   325          list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
-   326                  if (info->enabled) {
-   327                          result = remove_memory(info->start_addr, info->length);
-   328                          if (result)
-   329                                  return result;
-                                        ^^^^^^^^^^^^^
-We are still holding the lock here.
+v5:
+ - Added update for ACPI Dock hotplug error messages.
+ - Added error status / ID info to the messages where needed.
 
-   330                  }
-   331  
-   332                  list_del(&info->list);
-   333                  kfree(info);
-   334          }
-   335          mutex_unlock(&mem_device->list_lock);
-   336  
-   337          return 0;
-   338  }
+v4:
+ - Changed to use dev_<level>() where it is appropriate.
 
-regards,
-dan carpenter
+v3:
+ - Changed acpi_pr_debug() to NOP when !DEBUG and !DYNAMIC_DEBUG.
+   DYNAMIC_DEBUG will be supported later when necessary.
+ - Added const to a path variable in acpi_printk().
+ - Added more descriptions to the change log of patch 1/4.
 
+v2:
+ - Set buffer.pointer to NULL in acpi_printk().
+ - Added acpi_pr_debug().
+
+---
+Toshi Kani (5):
+ ACPI: Add acpi_pr_<level>() interfaces
+ ACPI: Update CPU hotplug error messages
+ ACPI: Update Memory hotplug error messages
+ ACPI: Update Container hotplug error messages
+ ACPI: Update Dock hotplug error messages
+
+---
+ drivers/acpi/acpi_memhotplug.c  | 25 +++++++++++++------------
+ drivers/acpi/container.c        | 10 ++--------
+ drivers/acpi/dock.c             | 29 +++++++++++++----------------
+ drivers/acpi/processor_driver.c | 38 +++++++++++++++++++++++---------------
+ drivers/acpi/utils.c            | 34 ++++++++++++++++++++++++++++++++++
+ include/acpi/acpi_bus.h         | 31 +++++++++++++++++++++++++++++++
+ 6 files changed, 116 insertions(+), 51 deletions(-)
