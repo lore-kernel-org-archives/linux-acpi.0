@@ -1,74 +1,39 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 2/3] spi / ACPI: add ACPI enumeration support
-Date: Tue, 6 Nov 2012 09:11:45 +0100
-Message-ID: <20121106081144.GB3283@opensource.wolfsonmicro.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH 1/3] gpio / ACPI: add ACPI support
+Date: Tue, 6 Nov 2012 11:39:04 +0200
+Message-ID: <20121106093904.GM24532@intel.com>
 References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com>
- <20121103201310.GQ16648@intel.com>
- <1535917.BaYBBNgGy0@vostro.rjw.lan>
- <4052192.ry8JrGTr6H@vostro.rjw.lan>
- <20121105105602.GC24532@intel.com>
- <20121105105639.GE1385@opensource.wolfsonmicro.com>
- <20121105120219.GF24532@intel.com>
+ <4684026.MA6h34pt1X@vostro.rjw.lan>
+ <CACRpkdbRWPYHBwLVTm-TDRVyp9Kmoaxw0uZg0schn7i0koDKJw@mail.gmail.com>
+ <2396674.M1Yl70Z09T@vostro.rjw.lan>
+ <CACRpkda6jNsKwowdJZ6d7kua5uBPH2tZT8Ka9vheEiPjvEJuUg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="i0/AhcQY5QxfSsSZ"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:54385 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754036Ab2KFILs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Nov 2012 03:11:48 -0500
+Received: from mga14.intel.com ([143.182.124.37]:63239 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750988Ab2KFJhD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 6 Nov 2012 04:37:03 -0500
 Content-Disposition: inline
-In-Reply-To: <20121105120219.GF24532@intel.com>
+In-Reply-To: <CACRpkda6jNsKwowdJZ6d7kua5uBPH2tZT8Ka9vheEiPjvEJuUg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Mathias Nyman <mathias.nyman@linux.intel.com>, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, linux-acpi@vger.kernel.org
 
+On Mon, Nov 05, 2012 at 03:40:14PM +0100, Linus Walleij wrote:
+> > I forgot to mention that we want to hook up _existing_ drivers to those things,
+> > and they already use the global GPIO numbers, don't they?
+> 
+> Yes they do, usually this is either passed from the platform using platform
+> data or handled by device tree lookups to individual drivers.
+> 
+> So you will have to modify each such existing driver to do ACPI
+> probe akin to the DT codepath and call acpi_get_gpio() on every pin they
+> need going forward. But that is the plan I guess.
 
---i0/AhcQY5QxfSsSZ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Yes, that's the plan.
 
-On Mon, Nov 05, 2012 at 02:02:19PM +0200, Mika Westerberg wrote:
-> On Mon, Nov 05, 2012 at 11:56:39AM +0100, Mark Brown wrote:
-
-> > I've got practical systems where there are multiple buses physically
-> > connected, though in practice almost always only one is actually used at
-> > runtime when it's I2C and SPI there are some systems (usually with other
-> > buses) where you might want to use more than one bus.  Not sure those
-> > buses will fit in here though.
-
-> Yeah, I just went through DSDT table of one of our machines and found a
-> device that actually has two I2CSerialBus connectors (and those are to the
-> same controller). What I'm not sure is that is it used to select between
-> two different addresses or doest the device really have two physical I2C
-> connections.
-
-That one is likely to be one device that responds on two addresses as
-others have mentioned.  You do also get devices which have multiple
-physical interfaces for various reasons, such as having a dedicated bus
-for some functions that need to respond quickly.
-
---i0/AhcQY5QxfSsSZ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQmMY2AAoJELSic+t+oim9kiQQAIFCLPY55x3yX8MoBgURppyl
-Y4+/Nwqxv3ALwVPr00JZ5Zi1UZRoXPXwvuk8GxpESafQ0ub6GIqg7jnqaxBKB2fv
-rLgJ1kQMpzRF2v40/CuA7mmbruLAnXhSP8C9fVtXs4GjKHMkGuZCHb88+P7kxXCz
-jQEZkM9Yxe2ND5/BQwBqw+xkSHwrswrZBwwRO7to7GO6d2ZveoDqnymi4dMeBzWg
-fWCk33qLa4InwJjjUmQeOJdr6T8s8Y8L2dVioXM4Vu0oNiRNBXHy8ES+lVl/ziqn
-eQj89BpL84jwPdPkILlnRprOjLzpTAP3dFbttoyol9+tqFPYZMmZFAP6+uJU6TmZ
-QZwQdvSp+GWePU8O7Nt9e96NYMPmIiG13VBfbLIJRoAWQQIEbB7TrRlfjV2QicXf
-My4QRv2wl15sTePF9NVKjX15VsTGcRCEcUFZSYv4j8XdjKLZnJnQgidVAdojaCH6
-6k2LstDx7HmgF4z1SxR/O9heCdONlsTosUerTpqWhQLqIQeb2x670xl1LWjwjkXC
-fcNRNzOGwy8NwqeS4PqIosP3hwPNn+pR0VZcfTyycEgLLE8D2ZPcW4BFTANJxp3x
-6ek1jCQlsFMSOSVYvRlYdCqOss2Tej7awRlfdVmOJRskX8Av3YqMRZ6za2KovfoT
-uCj7ShlU2Z8rxwqgRWZZ
-=GQa+
------END PGP SIGNATURE-----
-
---i0/AhcQY5QxfSsSZ--
+Do you think it is OK to go with this implementation (acpi_get_gpio()) for
+now? We will try to make sure that the gpio_get() (or whatever it will be
+called that time) supports ACPI as well.
