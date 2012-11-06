@@ -1,131 +1,173 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v5 RESEND 3/5] ACPI: Update Memory hotplug error messages
-Date: Tue,  6 Nov 2012 08:02:08 -0700
-Message-ID: <1352214130-12055-4-git-send-email-toshi.kani@hp.com>
-References: <1352214130-12055-1-git-send-email-toshi.kani@hp.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1352214130-12055-1-git-send-email-toshi.kani@hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, rjw@sisk.pl, lenb@kernel.org
-Cc: linux-kernel@vger.kernel.org, joe@perches.com, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, vijaymohan.pandarathil@hp.com, imammedo@redhat.com, prarit@redhat.com, Toshi Kani <toshi.kani@hp.com>
+From: Jiang Liu <liuj97@gmail.com>
+Subject: Re: [ACPIHP PATCH part1 1/4] ACPIHP: introduce a framework for ACPI
+ based system device hotplug
+Date: Wed, 07 Nov 2012 00:18:07 +0800
+Message-ID: <5099383F.3010905@gmail.com>
+References: <1351958865-24394-1-git-send-email-jiang.liu@huawei.com> <1351958865-24394-2-git-send-email-jiang.liu@huawei.com> <CAErSpo6RQk+sdeOF7c+G2qp5iYgrnQcx+rD0f8eVNRPLRoLpdg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-da0-f46.google.com ([209.85.210.46]:53919 "EHLO
+	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751851Ab2KFQSP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Nov 2012 11:18:15 -0500
+In-Reply-To: <CAErSpo6RQk+sdeOF7c+G2qp5iYgrnQcx+rD0f8eVNRPLRoLpdg@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: "Rafael J . Wysocki" <rjw@sisk.pl>, Yinghai Lu <yinghai@kernel.org>, Tony Luck <tony.luck@intel.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, Tang Chen <tangchen@cn.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Huang Ying <ying.huang@intel.com>, Bob Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, "Srivatsa S . Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, Yijing Wang <wangyijing@huawei.com>, Hanjun Guo <guohanjun@huawei.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-mm@kvack.org, Gaohuai Han <hangaohuai@huawei.com>
 
-Updated Memory hotplug error messages with acpi_pr_<level>(),
-dev_<level>() and pr_<level>().
+Hi Bjorn,
+	Thanks for your review and please refer to inlined comments below.
 
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
----
- drivers/acpi/acpi_memhotplug.c | 25 +++++++++++++------------
- 1 file changed, 13 insertions(+), 12 deletions(-)
+On 11/06/2012 05:05 AM, Bjorn Helgaas wrote:
+> On Sat, Nov 3, 2012 at 10:07 AM, Jiang Liu <liuj97@gmail.com> wrote:
+>> Modern high-end servers may support advanced RAS features, such as
+>> system device dynamic reconfiguration. On x86 and IA64 platforms,
+>> system device means processor(CPU), memory device, PCI host bridge
+>> and even computer node.
+>>
+>> The ACPI specifications have provided standard interfaces between
+>> firmware and OS to support device dynamic reconfiguraiton at runtime.
+>> This patch series introduces a new framework for system device
+>> dynamic reconfiguration based on ACPI specification, which will
+>> replace current existing system device hotplug logic embedded in
+>> ACPI processor/memory/container device drivers.
+>>
+>> The new ACPI based hotplug framework is modelled after the PCI hotplug
+>> architecture and target to achieve following goals:
+>> 1) Optimize device configuration order to achieve best performance for
+>>    hot-added system devices. For best perforamnce, system device should
+>>    be configured in order of memory -> CPU -> IOAPIC/IOMMU -> PCI HB.
+>> 2) Resolve dependencies among hotplug slots. You need first to remove
+>>    the memory device before removing a physical processor if a
+>>    hotpluggable memory device is connected to a hotpluggable physical
+>>    processor.
+> 
+> Doesn't the namespace already have a way to communicate these dependencies?
+The namespace could could resolve most dependency issues, but there are still
+several corner cases need special care.
+1) On a typical Intel Nehalem/Westmere platform, an IOH will be connected to
+two physical processors through QPI. The IOH depends on the two processors.
+And the ACPI namespace is something like:
+/_SB
+    |_SCK0
+    |_SCK1
+    |_PCI1
+2) For a large system composed up of multiple computer nodes, nodes may have
+dependency on neighbors due to interconnect topology constraints.
 
-diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-index 92c973a..d00de4b 100644
---- a/drivers/acpi/acpi_memhotplug.c
-+++ b/drivers/acpi/acpi_memhotplug.c
-@@ -178,7 +178,7 @@ acpi_memory_get_device(acpi_handle handle,
- 	/* Get the parent device */
- 	result = acpi_bus_get_device(phandle, &pdevice);
- 	if (result) {
--		printk(KERN_WARNING PREFIX "Cannot get acpi bus device");
-+		acpi_pr_warn(phandle, "Cannot get acpi bus device\n");
- 		return -EINVAL;
- 	}
- 
-@@ -188,14 +188,14 @@ acpi_memory_get_device(acpi_handle handle,
- 	 */
- 	result = acpi_bus_add(&device, pdevice, handle, ACPI_BUS_TYPE_DEVICE);
- 	if (result) {
--		printk(KERN_WARNING PREFIX "Cannot add acpi bus");
-+		acpi_pr_warn(handle, "Cannot add acpi bus\n");
- 		return -EINVAL;
- 	}
- 
-       end:
- 	*mem_device = acpi_driver_data(device);
- 	if (!(*mem_device)) {
--		printk(KERN_ERR "\n driver data not found");
-+		dev_err(&device->dev, "driver data not found\n");
- 		return -ENODEV;
- 	}
- 
-@@ -232,7 +232,8 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
- 	/* Get the range from the _CRS */
- 	result = acpi_memory_get_device_resources(mem_device);
- 	if (result) {
--		printk(KERN_ERR PREFIX "get_device_resources failed\n");
-+		dev_err(&mem_device->device->dev,
-+			"get_device_resources failed\n");
- 		mem_device->state = MEMORY_INVALID_STATE;
- 		return result;
- 	}
-@@ -267,7 +268,7 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
- 	}
- 	mutex_unlock(&mem_device->list_lock);
- 	if (!num_enabled) {
--		printk(KERN_ERR PREFIX "add_memory failed\n");
-+		dev_err(&mem_device->device->dev, "add_memory failed\n");
- 		mem_device->state = MEMORY_INVALID_STATE;
- 		return -EINVAL;
- 	}
-@@ -377,7 +378,7 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
- 			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 					  "\nReceived DEVICE CHECK notification for device\n"));
- 		if (acpi_memory_get_device(handle, &mem_device)) {
--			printk(KERN_ERR PREFIX "Cannot find driver data\n");
-+			acpi_pr_err(handle, "Cannot find driver data\n");
- 			break;
- 		}
- 
-@@ -385,7 +386,7 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
- 			break;
- 
- 		if (acpi_memory_enable_device(mem_device)) {
--			printk(KERN_ERR PREFIX "Cannot enable memory device\n");
-+			acpi_pr_err(handle, "Cannot enable memory device\n");
- 			break;
- 		}
- 
-@@ -397,12 +398,12 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
- 				  "\nReceived EJECT REQUEST notification for device\n"));
- 
- 		if (acpi_bus_get_device(handle, &device)) {
--			printk(KERN_ERR PREFIX "Device doesn't exist\n");
-+			acpi_pr_err(handle, "Device doesn't exist\n");
- 			break;
- 		}
- 		mem_device = acpi_driver_data(device);
- 		if (!mem_device) {
--			printk(KERN_ERR PREFIX "Driver Data is NULL\n");
-+			acpi_pr_err(handle, "Driver Data is NULL\n");
- 			break;
- 		}
- 
-@@ -413,7 +414,7 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
- 		 *      with generic sysfs driver
- 		 */
- 		if (acpi_memory_disable_device(mem_device)) {
--			printk(KERN_ERR PREFIX "Disable memory device\n");
-+			acpi_pr_err(handle, "Failed to remove memory device\n");
- 			/*
- 			 * If _EJ0 was called but failed, _OST is not
- 			 * necessary.
-@@ -475,7 +476,7 @@ static int acpi_memory_device_add(struct acpi_device *device)
- 	/* Set the device state */
- 	mem_device->state = MEMORY_POWER_ON_STATE;
- 
--	printk(KERN_DEBUG "%s \n", acpi_device_name(device));
-+	pr_debug("%s\n", acpi_device_name(device));
- 
- 	/*
- 	 * Early boot code has recognized memory area by EFI/E820.
-@@ -490,7 +491,7 @@ static int acpi_memory_device_add(struct acpi_device *device)
- 		/* call add_memory func */
- 		result = acpi_memory_enable_device(mem_device);
- 		if (result)
--			printk(KERN_ERR PREFIX
-+			dev_err(&device->dev,
- 				"Error in acpi_memory_enable_device\n");
- 	}
- 	return result;
--- 
-1.7.11.7
+So we need to resolve dependency by both evaluating _EDL and analyze ACPI
+namespace topology.
+
+>> 3) Provide interface to cancel ongoing hotplug operations. It may take
+>>    a very long time to remove a memory device, so provide interface to
+>>    cancel the inprogress hotplug operations.
+>> 4) Support new advanced RAS features, such as socket/memory migration.
+>> 5) Provide better user interfaces to access the hotplug functionalities.
+>> 6) Provide a mechanism to detect hotplug slots by checking existence
+>>    of ACPI _EJ0 method or by other hardware platform specific methods.
+> 
+> I don't know what "hotplug slot" means for ACPI.  ACPI allows hotplug
+> of arbitrary devices in the namespace, whether they have EJ0 or not.
+Here "hotplug" slot is an abstraction of receptacles where a group of
+system devices could be attached to, or where we could control a group
+of system devices. It's totally conceptual, may or may not has 
+corresponding physical slots. For example,
+1) a hotplug slot for a hotpluggable memory board has a physical slot.
+2) a hotplug slot for a non-hotpluggable processor with power control
+capability has no physical slot. (That means you may power on/off a
+physical processor but can't hotplug it at runtime). This case is useful
+for hardware partitioning.
+
+Detecting hotplug slots by checking existence of _EJ0 is the default
+but unreliable way. For a real high-end server with system device
+hotplug capabilities should provide some static ACPI table to describe
+hotplug slots/capabilities. There are some ongoing efforts for that from
+Intel, but not in the public domain yet. So the hotplug slot enumeration
+driver is designed to extensible:)
+
+>> 7) Unify the way to enumerate ACPI based hotplug slots. All hotplug
+>>    slots will be enumerated by the enumeration driver (acpihp_slot),
+>>    instead of by individual ACPI device drivers.
+> 
+> Why do we need to enumerate these "slots" specifically?
+> 
+> I think this patch adds things in /sys.  It might help if you
+> described what they are.
+There's no standard way in ACPI5.0 to describe system device hotplug slots yet.
+And we want to show user the system device hotplug capabilities even when there
+is no device attached to a slot. In other word, user could now how much
+devices they could connect to the system by hotplugging.
+
+>> 8) Unify the way to handle ACPI hotplug events. All ACPI hotplug events
+>>    for system devices will be handled by a generic ACPI hotplug driver
+>>    (acpihp_drv) instead of by individual ACPI device drivers.
+>> 9) Provide better error handling and error recovery.
+>> 10) Trigger hotplug events/operations by software. This feature is useful
+>>    for hardware fault management and/or power saving.
+>>
+>> The new framework is composed up of three major components:
+>> 1) A system device hotplug slot enumerator driver, which enumerates
+>>    hotplug slots in the system and provides platform specific methods
+>>    to control those slots.
+>> 2) A system device hotplug driver, which is a platform independent
+>>    driver to manage all hotplug slots created by the slot enumerator.
+>>    The hotplug driver implements a state machine for hotplug slots and
+>>    provides user interfaces to manage hotplug slots.
+>> 3) Several ACPI device drivers to configure/unconfigure system devices
+>>    at runtime.
+>>
+>> To get rid of inter dependengcy between the slot enumerator and hotplug
+>> driver, common code shared by them will be built into the kernel. The
+>> shared code provides some helper routines and a device class named
+>> acpihp_slot_class with following default sysfs properties:
+>>         capabilities: RAS capabilities of the hotplug slot
+>>         state: current state of the hotplug slot state machine
+>>         status: current health status of the hotplug slot
+>>         object: ACPI object corresponding to the hotplug slot
+>>
+>> Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+>> Signed-off-by: Gaohuai Han <hangaohuai@huawei.com>
+> 
+> ...
+>> +static char *acpihp_dev_mem_ids[] = {
+>> +       "PNP0C80",
+>> +       NULL
+>> +};
+>> +
+>> +static char *acpihp_dev_pcihb_ids[] = {
+>> +       "PNP0A03",
+>> +       NULL
+>> +};
+> 
+> Why should this driver need to know about these PNP IDs?  We ought to
+> be able to support hotplug of any device in the namespace, no matter
+> what its ID.
+We need PNP IDs for:
+1) Give a meaningful name for each slot.
+lrwxrwxrwx  CPU00 -> ../../../devices/LNXSYSTM:00/acpihp/CPU00
+lrwxrwxrwx  CPU01 -> ../../../devices/LNXSYSTM:00/acpihp/CPU01
+lrwxrwxrwx  CPU02 -> ../../../devices/LNXSYSTM:00/acpihp/CPU02
+lrwxrwxrwx  CPU03 -> ../../../devices/LNXSYSTM:00/acpihp/CPU03
+lrwxrwxrwx  IOX01 -> ../../../devices/LNXSYSTM:00/acpihp/IOX01
+lrwxrwxrwx  MEM00 -> ../../../devices/LNXSYSTM:00/acpihp/CPU00/MEM00
+lrwxrwxrwx  MEM01 -> ../../../devices/LNXSYSTM:00/acpihp/CPU00/MEM01
+lrwxrwxrwx  MEM02 -> ../../../devices/LNXSYSTM:00/acpihp/CPU01/MEM02
+lrwxrwxrwx  MEM03 -> ../../../devices/LNXSYSTM:00/acpihp/CPU01/MEM03
+lrwxrwxrwx  MEM04 -> ../../../devices/LNXSYSTM:00/acpihp/CPU02/MEM04
+lrwxrwxrwx  MEM05 -> ../../../devices/LNXSYSTM:00/acpihp/CPU02/MEM05
+lrwxrwxrwx  MEM06 -> ../../../devices/LNXSYSTM:00/acpihp/CPU03/MEM06
+lrwxrwxrwx  MEM07 -> ../../../devices/LNXSYSTM:00/acpihp/CPU03/MEM07
+
+2) Classify system device into groups according to device types, so we could
+configure/unconfigure them in optimal order for performance as:
+memory -> CPU -> IOAPIC -> PCI host bridge
+
+3) The new hotplug framework are designed to handle system device hotplug,
+and it won't hand IO device hotplug such as PCI etc. So it need to stop
+scanning subtree of PCI host bridges.
+
+Thanks!
+Gerry
