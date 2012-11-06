@@ -1,105 +1,70 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 2/3] spi / ACPI: add ACPI enumeration support
-Date: Tue, 06 Nov 2012 14:43:19 +0100
-Message-ID: <1815967.2MF0PyW36l@vostro.rjw.lan>
-References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com> <4052192.ry8JrGTr6H@vostro.rjw.lan> <CAErSpo6gfL+QFoWK+8ahYAj+vnp4OCn4B=-vALGbU_LnsyT8oQ@mail.gmail.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: acpi_memhotplug.c: don't allow to eject the memory device if it
+ is being used
+Date: Tue, 6 Nov 2012 17:05:45 +0300
+Message-ID: <20121106140545.GB11566@mwanda>
+References: <20121105181133.GA21846@elgon.mountain>
+ <50987183.5020007@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAErSpo6gfL+QFoWK+8ahYAj+vnp4OCn4B=-vALGbU_LnsyT8oQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from aserp1040.oracle.com ([141.146.126.69]:43241 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751628Ab2KFOF7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Nov 2012 09:05:59 -0500
+Content-Disposition: inline
+In-Reply-To: <50987183.5020007@cn.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Wen Congyang <wency@cn.fujitsu.com>
+Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Andrew Morton <akpm@linux-foundation.org>
 
-On Monday, November 05, 2012 09:54:42 AM Bjorn Helgaas wrote:
-> On Mon, Nov 5, 2012 at 3:31 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > On Saturday, November 03, 2012 09:59:28 PM Rafael J. Wysocki wrote:
-> >> On Saturday, November 03, 2012 10:13:10 PM Mika Westerberg wrote:
-> >> > On Sat, Nov 03, 2012 at 01:42:02PM -0600, Bjorn Helgaas wrote:
-> >> > > On Sat, Nov 3, 2012 at 1:46 AM, Mika Westerberg
-> >> > > <mika.westerberg@linux.intel.com> wrote:
-> >> > > > ACPI 5 introduced SPISerialBus resource that allows us to enumerate and
-> >> > > > configure the SPI slave devices behind the SPI controller. This patch adds
-> >> > > > support for this to the SPI core.
-> > [...]
-> >> > And if the ACPI core parses the _CRS, how does it pass all the resources to
-> >> > the drivers?
-> >>
-> >> Pretty much the same way the $subject patch does.
-> >>
-> >> Instead of parsing the entire subtree below an SPI controller and trying
-> >> acpi_spi_add_device() for each device node in there, it could call
-> >> acpi_spi_add_device() whenever it finds a device of type
-> >> ACPI_RESOURCE_TYPE_SERIAL_BUS/ACPI_RESOURCE_SERIAL_TYPE_SPI.
-> >> The only problem is how to pass "master" to it.
-> >>
-> >> So Bjorn, do you have any idea how we could pass the "master" pointer from the
-> >> ACPI core to acpi_spi_add_device() in a sensible way?
-> >>
-> >> An alternative might be to store the information obtained from _CRS in
-> >> struct acpi_device objects created by the ACPI core while parsing the
-> >> namespace.  We do that already for things like _PRW, so we might as well do it
-> >> for _CRS.  Then, the SPI core could just walk the subtree of the device hierarchy
-> >> below the SPI controller's acpi_device to extract that information.
-> >> Maybe that's the way to go?
-> >
-> > The general idea is to move the _CRS parsing routine from acpi_platform.c
-> > to scan.c and make it attach resource objects to struct acpi_device.
-> >
-> > I'm thinking about adding a list head to struct acpi_device pointing to a
-> > list of entries like:
-> >
-> > struct resource_list_entry {
-> >         struct list_head node;
-> >         struct resource *resources;
-> >         unsigned int count;
-> > };
-> >
-> > where "resources" is an array of resources (e.g. interrupts) in the given
-> > entry and count is the size of that array.
-> >
-> > That list would contain common resources like ACPI_RESOURCE_TYPE_FIXED_MEMORY32,
-> > ACPI_RESOURCE_TYPE_IRQ, ACPI_RESOURCE_TYPE_ADDRESS32, ACPI_RESOURCE_TYPE_EXTENDED_IRQ.
+On Tue, Nov 06, 2012 at 10:10:11AM +0800, Wen Congyang wrote:
+> At 11/06/2012 02:11 AM, Dan Carpenter Wrote:
+> > Hello Wen Congyang,
+> > 
+> > The patch 306859f13dc1: "acpi_memhotplug.c: don't allow to eject the
+> > memory device if it is being used" from Nov 3, 2012, leads to the
+> > following Smatch warning:
+> > drivers/acpi/acpi_memhotplug.c:367 acpi_memory_remove_memory()
+> > 	 warn: inconsistent returns mutex:&mem_device->list_lock:
+> > 	locked (357,361) unlocked (367)
 > 
-> This is exactly what PNPACPI already does.  For every Device node in
-> the namespace, pnpacpi/rsparser.c parses _CRS and builds a list of
-> struct resources that correspond to it.  If you put this functionality
-> in acpi/scan.c, should we get rid of PNPACPI?
+> Thanks for pointing it out.
+> 
+> The patch 306859f13dc1 is in akpm's tree, and it conflicts with another
+> patch in linux-pm's tree. So Andrew Morton drops them.
+> 
+> I will resend them based on linux-pm's next tree.
 
-Quite likely.  At least this part of it, if you want the core to parse
-resources.
+Ok. Today's linux-next version 85fcb3758c10e "ACPI / memory-hotplug:
+introduce a mutex lock to protect the list in acpi_memory_device"
+has a similar problem and should be fixed as well.
 
-That said, I actually tried to abstract out resource parsing in a more generic
-fashion on the basis of our new platform device support code, but quite frankly
-I wasn't able to.
+   319  static int acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
+   320  {
+   321          int result;
+   322          struct acpi_memory_info *info, *n;
+   323  
+   324          mutex_lock(&mem_device->list_lock);
+   325          list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
+   326                  if (info->enabled) {
+   327                          result = remove_memory(info->start_addr, info->length);
+   328                          if (result)
+   329                                  return result;
+                                        ^^^^^^^^^^^^^
+We are still holding the lock here.
 
-The problem is that struct resource is too simple to be useful for representing
-all of the information that can be encoded in ACPI resources.  As a result, some
-information have to be stored directly in things like struct pnp_dev, struct
-platform_device etc. and if we want to represent it generically, the only way
-to do that seems to be using the ACPICA resource types as defined in acrestyp.h.
+   330                  }
+   331  
+   332                  list_del(&info->list);
+   333                  kfree(info);
+   334          }
+   335          mutex_unlock(&mem_device->list_lock);
+   336  
+   337          return 0;
+   338  }
 
-So we can attach a list of things like
+regards,
+dan carpenter
 
-struct acpi_resource_list_entry {
-	struct list_head node;
-	struct acpi_resource resource;
-};
-
-to struct acpi_device, but that doesn't help much, because the different
-bus types will then need to extract the information they need from that list
-anyway.  It would reduce the number of _CRS invocations, but beyond that I'm
-not sure how usefult it's going to be.
-
-Still, we probably should centralize things like
-pnpacpi_parse_allocated_irqresource() to avoid duplicating that code.
-
-Thanks,
-Rafael
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
