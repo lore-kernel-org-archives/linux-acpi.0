@@ -1,129 +1,69 @@
-From: Jiang Liu <liuj97@gmail.com>
-Subject: Re: [ACPIHP PATCH part1 2/4] ACPIHP: introduce acpihp_slot driver
- to enumerate hotplug slots
-Date: Wed, 07 Nov 2012 00:28:16 +0800
-Message-ID: <50993AA0.80703@gmail.com>
-References: <1351958865-24394-1-git-send-email-jiang.liu@huawei.com> <1351958865-24394-3-git-send-email-jiang.liu@huawei.com> <CAErSpo49kJm3x2K_FT6vLpUUD2pk9Hf62uXqzHt2Vod2PriY8Q@mail.gmail.com>
+From: David Rientjes <rientjes@google.com>
+Subject: Re: [PATCH 6/7] ACPI / PM: Move device PM functions related to sleep
+ states
+Date: Tue, 6 Nov 2012 11:52:42 -0800 (PST)
+Message-ID: <alpine.DEB.2.00.1211061150190.6467@chino.kir.corp.google.com>
+References: <1766582.8gdQKXoi0K@vostro.rjw.lan> <1456107.KxymqUQLId@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-da0-f46.google.com ([209.85.210.46]:55872 "EHLO
-	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752193Ab2KFQ2c (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Nov 2012 11:28:32 -0500
-In-Reply-To: <CAErSpo49kJm3x2K_FT6vLpUUD2pk9Hf62uXqzHt2Vod2PriY8Q@mail.gmail.com>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:52417 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752623Ab2KFTwp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Nov 2012 14:52:45 -0500
+Received: by mail-pb0-f46.google.com with SMTP id rr4so641085pbb.19
+        for <linux-acpi@vger.kernel.org>; Tue, 06 Nov 2012 11:52:44 -0800 (PST)
+In-Reply-To: <1456107.KxymqUQLId@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: "Rafael J . Wysocki" <rjw@sisk.pl>, Yinghai Lu <yinghai@kernel.org>, Tony Luck <tony.luck@intel.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, Tang Chen <tangchen@cn.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Huang Ying <ying.huang@intel.com>, Bob Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, "Srivatsa S . Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, Yijing Wang <wangyijing@huawei.com>, Hanjun Guo <guohanjun@huawei.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-mm@kvack.org, Gaohuai Han <hangaohuai@huawei.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Aaron Lu <aaron.lu@intel.com>, Huang Ying <ying.huang@intel.com>, Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Adrian Hunter <adrian.hunter@intel.com>, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On 11/06/2012 05:30 AM, Bjorn Helgaas wrote:
-> On Sat, Nov 3, 2012 at 10:07 AM, Jiang Liu <liuj97@gmail.com> wrote:
->> An ACPI hotplug slot is an abstraction of receptacles, where a group of
->> system devices could be connected to. This patch implements the skeleton
->> of the ACPI system device hotplug slot enumerator. On loading, it scans
->> the whole ACPI namespace for hotplug slots and creates a device node for
->> each hotplug slot found. Every hotplug slot is associated with a device
->> class named acpihp_slot_class. Later hotplug drivers will register onto
->> acpihp_slot_class to manage all hotplug slots.
->>
->> Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
->> Signed-off-by: Gaohuai Han <hangaohuai@huawei.com>
->> ---
->>  drivers/acpi/Kconfig          |   19 ++
->>  drivers/acpi/hotplug/Makefile |    3 +
->>  drivers/acpi/hotplug/slot.c   |  417 +++++++++++++++++++++++++++++++++++++++++
->>  3 files changed, 439 insertions(+)
->>  create mode 100644 drivers/acpi/hotplug/slot.c
->>
->> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
->> index 9577b23..af0aaf6 100644
->> --- a/drivers/acpi/Kconfig
->> +++ b/drivers/acpi/Kconfig
->> @@ -334,6 +334,25 @@ menuconfig ACPI_HOTPLUG
->>           If your hardware platform does not support system device dynamic
->>           reconfiguration at runtime, you need not to enable this option.
->>
->> +config ACPI_HOTPLUG_SLOT
->> +       tristate "System Device Hotplug Slot Enumerator"
-> 
-> I don't really believe in hotplug drivers being modules.  I think the
-> core should support hotplug directly, and the decision to configure or
-> not should be made at build-time.
-Good suggestion, I will change it in next version.
+Commit b87b49cd0efd ("ACPI / PM: Move device PM functions related to sleep 
+states") declared acpi_target_system_state() for CONFIG_PM_SLEEP whereas 
+it is only defined for CONFIG_ACPI_SLEEP, resulting in the following link 
+error:
 
->> +       depends on ACPI_HOTPLUG
->> +       default m
->> +       help
->> +         ACPI system device hotplug slot is an abstraction of ACPI based
->> +         system device dynamic reconfiguration control points. On load,
->> +         this driver enumerates system device hotplug slots by wakling the
->> +         ACPI namespace and provides platform specific methods to control
->> +         those hotplug slots.
->> +
->> +         By default, this driver detects system device hotplug slots by
->> +         checking avaliability of ACPI _EJ0 method. You may pass a module
->> +         parameter "fake_slot=0xf" to enable faking hotplug slots on
->> +         platforms without hardware dynamic reconfiguration capabilities.
->> +
->> +         To compile this driver as a module, choose M here:
->> +         the module will be called acpihp_slot.
->> +
-> 
->> +static int __init acpihp_slot_generate_name(struct acpihp_slot *slot)
->> +{
->> +       int found = 0;
->> +       u32 child_types = 0;
->> +       unsigned long long uid;
->> +       struct acpihp_slot_id *slot_id;
->> +
->> +       /*
->> +        * Figure out slot type by checking types of ACPI devices which could
->> +        * be attached to the slot.
->> +        */
->> +       slot->type = acpihp_slot_get_type_self(slot);
->> +       if (slot->type == ACPIHP_SLOT_TYPE_UNKNOWN) {
->> +               acpi_walk_namespace(ACPI_TYPE_DEVICE, slot->handle,
->> +                               ACPI_UINT32_MAX, acpihp_slot_get_dev_type,
->> +                               NULL, NULL, (void **)&child_types);
->> +               acpi_walk_namespace(ACPI_TYPE_PROCESSOR, slot->handle,
->> +                               ACPI_UINT32_MAX, acpihp_slot_get_dev_type,
->> +                               NULL, NULL, (void **)&child_types);
->> +               slot->type = acpihp_slot_get_type_child(child_types);
->> +       }
-> 
-> If things can be hot-added below slot->handle, is there an ACPI
-> requirement that there be *anything* in the existing namespace below
-> slot->handle?  I'm not sure you can tell sort of things might be
-> added.
-To be compatible with old Windows, some BIOS will expose such a behavior.
-It put the PCI root bus built in a physical processor directly under /_SB
-instead of the module device for the processor. According to my observation,
-new BIOSes have changed that behavior and build ACPI namespace according to
-physical topology. 
+drivers/built-in.o: In function `acpi_pm_device_sleep_wake':
+drivers/acpi/device_pm.c:342: undefined reference to `acpi_target_system_state'
+drivers/built-in.o: In function `acpi_dev_suspend_late':
+drivers/acpi/device_pm.c:501: undefined reference to `acpi_target_system_state'
+drivers/built-in.o: In function `acpi_pm_device_sleep_state':
+drivers/acpi/device_pm.c:221: undefined reference to `acpi_target_system_state'
 
->> +static int __init acpihp_slot_scan_slots(void)
->> +{
->> +       acpi_status status;
->> +
->> +       status = acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
->> +                                    ACPI_UINT32_MAX, acpihp_slot_scan,
->> +                                    NULL, NULL, NULL);
->> +       if (!ACPI_SUCCESS(status))
->> +               goto out_err;
->> +
->> +       status = acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
->> +                                    ACPI_UINT32_MAX, acpihp_slot_scan,
->> +                                    NULL, NULL, NULL);
-> 
-> Here's one reason I don't like this as a module: we have to walk the
-> namespace again (twice, even).  What happens when you hot-add a node
-> that itself *contains* another hot-pluggable receptacle?  Do you walk
-> the namespace again, calling acpiphp_slot_scan() as needed?
-Loading of dynamic ACPI table is an issue, it should be handled. But we have
-left that on the TODO list for simplicity at first stage. When supporting 
-that in future, we just need to scan the subtree starting from the slot.
+Define it only for CONFIG_ACPI_SLEEP and fallback to a dummy definition 
+for other configs.
 
-Thanks
-Gerry
+Signed-off-by: David Rientjes <rientjes@google.com>
+---
+ include/acpi/acpi_bus.h |    8 ++++++--
+ 1 files changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -469,11 +469,9 @@ static inline int acpi_pm_device_run_wake(struct device *dev, bool enable)
+ #endif
+ 
+ #ifdef CONFIG_PM_SLEEP
+-u32 acpi_target_system_state(void);
+ int __acpi_device_sleep_wake(struct acpi_device *, u32, bool);
+ int acpi_pm_device_sleep_wake(struct device *, bool);
+ #else
+-static inline u32 acpi_target_system_state(void) { return ACPI_STATE_S0; }
+ static inline int __acpi_device_sleep_wake(struct acpi_device *adev,
+ 					   u32 target_state, bool enable)
+ {
+@@ -485,6 +483,12 @@ static inline int acpi_pm_device_sleep_wake(struct device *dev, bool enable)
+ }
+ #endif
+ 
++#ifdef CONFIG_ACPI_SLEEP
++u32 acpi_target_system_state(void);
++#else
++static inline u32 acpi_target_system_state(void) { return ACPI_STATE_S0; }
++#endif
++
+ static inline bool acpi_device_power_manageable(struct acpi_device *adev)
+ {
+ 	return adev->flags.power_manageable;
