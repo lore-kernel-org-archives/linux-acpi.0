@@ -1,91 +1,72 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH v3 0/3] acpi,memory-hotplug : implement framework for
- hot removing memory
-Date: Mon, 5 Nov 2012 16:00:20 -0800
-Message-ID: <20121105160020.33b2f494.akpm@linux-foundation.org>
-References: <1351247463-5653-1-git-send-email-wency@cn.fujitsu.com>
-	<1528960.KUfu6MoGpQ@vostro.rjw.lan>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH RESEND] ACPI/PCI: Make PCI devices notified when its power
+ resource turned on
+Date: Mon, 5 Nov 2012 17:02:52 -0700
+Message-ID: <CAErSpo5zZdxeUFtsKjfb+FcLvAWD-MBorSwTppge9HQ5GCL7_g@mail.gmail.com>
+References: <1348667971-30876-1-git-send-email-ying.huang@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56187 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752363Ab2KFAAV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Nov 2012 19:00:21 -0500
-In-Reply-To: <1528960.KUfu6MoGpQ@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1348667971-30876-1-git-send-email-ying.huang@intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Huang Ying <ying.huang@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: wency@cn.fujitsu.com, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, liuj97@gmail.com, len.brown@intel.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, laijs@cn.fujitsu.com
 
-On Fri, 02 Nov 2012 13:51:49 +0100
-"Rafael J. Wysocki" <rjw@sisk.pl> wrote:
+On Wed, Sep 26, 2012 at 7:59 AM, Huang Ying <ying.huang@intel.com> wrote:
+> Sorry for bothering.  It appears that this patch should go through ACPI
+> tree because code changed are under drivers/acpi.
+>
+> A set of power resources may be shared by multiple devices.  When all
+> devices share one set of power resources is put into D3_COLD state,
+> the power resources will be turned off.  When one of the device is
+> waked, the power resource will be turned on and all devices share it
+> will be powered on to D0uninitialized state.  These devices should be
+> resumed, so that they can get opportunity to go to low power state
+> later.
+>
+> Signed-off-by: Huang Ying <ying.huang@intel.com>
+> Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
+> Cc: Bjorn Helgaas <bhelgaas@google.com>
 
-> On Friday, October 26, 2012 06:31:00 PM wency@cn.fujitsu.com wrote:
-> > From: Wen Congyang <wency@cn.fujitsu.com>
-> > 
-> > The patch-set implements a framework for hot removing memory.
-> > 
-> > The memory device can be removed by 2 ways:
-> > 1. send eject request by SCI
-> > 2. echo 1 >/sys/bus/pci/devices/PNP0C80:XX/eject
-> > 
-> > In the 1st case, acpi_memory_disable_device() will be called.
-> > In the 2nd case, acpi_memory_device_remove() will be called.
-> > acpi_memory_device_remove() will also be called when we unbind the
-> > memory device from the driver acpi_memhotplug or a driver initialization
-> > fails.
-> > 
-> > acpi_memory_disable_device() has already implemented a code which
-> > offlines memory and releases acpi_memory_info struct . But
-> > acpi_memory_device_remove() has not implemented it yet.
-> > 
-> > So the patch prepares the framework for hot removing memory and
-> > adds the framework into acpi_memory_device_remove().
-> > 
-> > The last version of this patchset is here:
-> > https://lkml.org/lkml/2012/10/19/156
-> > 
-> > Changelogs from v2 to v3:
-> >   Patch2: rename lock to list_lock
-> > 
-> > Changelogs from v1 to v2:
-> >   Patch1: use acpi_bus_trim() instead of acpi_bus_remove()
-> >   Patch2: new patch, introduce a lock to protect the list
-> >   Patch3: remove memory too when type is ACPI_BUS_REMOVAL_NORMAL
-> >   Note: I don't send [Patch2-4 v1] in this series because they
-> >   are no logical changes in these 3 patches.
-> > 
-> > Wen Congyang (2):
-> >   acpi,memory-hotplug: call acpi_bus_trim() to remove memory device
-> >   acpi,memory-hotplug: introduce a mutex lock to protect the list in
-> >     acpi_memory_device
-> > 
-> > Yasuaki Ishimatsu (1):
-> >   acpi,memory-hotplug : add memory offline code to
-> >     acpi_memory_device_remove()
-> > 
-> >  drivers/acpi/acpi_memhotplug.c | 51 +++++++++++++++++++++++++++++++++---------
-> >  1 file changed, 41 insertions(+), 10 deletions(-)
-> 
-> All patches in the series applied to the linux-next branch of the linux-pm.git
-> tree as v3.8 material.
-> 
+I had applied this to my for-linus branch, headed for v3.7, but had to
+drop it because it introduced these warnings:
 
-That merge made a big mess of some patches I had queued, so I dropped
-them all:
+drivers/acpi/pci_bind.c: In function 'acpi_pci_unbind':
+drivers/acpi/pci_bind.c:48:2: warning: passing argument 1 of
+'acpi_power_resource_unregister_device' from incompatible pointer type
+[enabled by default]
+include/acpi/acpi_bus.h:346:6: note: expected 'struct device *' but
+argument is of type 'struct pci_dev *'
+drivers/acpi/pci_bind.c: In function 'acpi_pci_bind':
+drivers/acpi/pci_bind.c:75:2: warning: passing argument 1 of
+'acpi_power_resource_register_device' from incompatible pointer type
+[enabled by default]
+include/acpi/acpi_bus.h:345:5: note: expected 'struct device *' but
+argument is of type 'struct pci_dev *'
 
-acpi_memhotplugc-fix-memory-leak-when-memory-device-is-unbound-from-the-module-acpi_memhotplug.patch
-acpi_memhotplugc-free-memory-device-if-acpi_memory_enable_device-failed.patch
-acpi_memhotplugc-remove-memory-info-from-list-before-freeing-it.patch
-acpi_memhotplugc-dont-allow-to-eject-the-memory-device-if-it-is-being-used.patch
-acpi_memhotplugc-bind-the-memory-device-when-the-driver-is-being-loaded.patch
-acpi_memhotplugc-auto-bind-the-memory-device-which-is-hotplugged-before-the-driver-is-loaded.patch
+Apparently this wasn't tested :-(
 
-I merged these all the way back in July, actually.  I sent them to Len
-in August to no effect and they've been sitting there since then.
 
-If they're still relevant and needed then they will need to be redone,
-retested and resent, sorry.
-
+> ---
+>  drivers/acpi/pci_bind.c |    2 ++
+>  1 file changed, 2 insertions(+)
+>
+> --- a/drivers/acpi/pci_bind.c
+> +++ b/drivers/acpi/pci_bind.c
+> @@ -45,6 +45,7 @@ static int acpi_pci_unbind(struct acpi_d
+>
+>         device_set_run_wake(&dev->dev, false);
+>         pci_acpi_remove_pm_notifier(device);
+> +       acpi_power_resource_unregister_device(dev, device->handle);
+>
+>         if (!dev->subordinate)
+>                 goto out;
+> @@ -71,6 +72,7 @@ static int acpi_pci_bind(struct acpi_dev
+>                 return 0;
+>
+>         pci_acpi_add_pm_notifier(device, dev);
+> +       acpi_power_resource_register_device(dev, device->handle);
+>         if (device->wakeup.flags.run_wake)
+>                 device_set_run_wake(&dev->dev, true);
+>
