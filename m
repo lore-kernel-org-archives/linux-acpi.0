@@ -1,40 +1,58 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH 2/3] spi / ACPI: add ACPI enumeration support
-Date: Wed, 7 Nov 2012 11:58:42 +0200
-Message-ID: <20121107095842.GY24532@intel.com>
-References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com>
- <CAErSpo44pWUJmRAP6eR9T+2WvO5hJPFOC=Nn-WPXDtCY0v0EDw@mail.gmail.com>
- <1996776.cC14CHafyR@vostro.rjw.lan>
- <2584820.Vd5p0uzRAK@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:17676 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754159Ab2KGJ4f (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 7 Nov 2012 04:56:35 -0500
-Content-Disposition: inline
-In-Reply-To: <2584820.Vd5p0uzRAK@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+From: "hongbo.zhang" <hongbo.zhang@linaro.org>
+Subject: [PATCH V4 0/2] Upstream ST-Ericsson thermal driver
+Date: Wed,  7 Nov 2012 18:23:00 +0800
+Message-ID: <1352283782-16489-1-git-send-email-hongbo.zhang@linaro.com>
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org, rui.zhang@intel.com
+Cc: linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, amit.kachhap@linaro.org, patches@linaro.org, linaro-dev@lists.linaro.org, linaro-kernel@lists.linaro.org, STEricsson_nomadik_linux@list.st.com, kernel@igloocommunity.org, "hongbo.zhang" <hongbo.zhang@linaro.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
 
-On Tue, Nov 06, 2012 at 11:36:08PM +0100, Rafael J. Wysocki wrote:
-> > 
-> > OK, but then we need to pass the information obtained from _CRS
-> > (presumably after some adjustments through _SRS) to drivers, or rather to
-> > things like the SPI core, I2C core etc. so that they can create device
-> > objects for drivers to bind to and quite frankly I don't see why not to use
-> > ACPI resources for that.
-> 
-> Nevertheless, the routines for parsing those resources should belong
-> to the ACPI core, mostly to avoid code duplication.
+From: "hongbo.zhang" <hongbo.zhang@linaro.com>
 
-Rafael,
+V3->V4 Changes:
 
-So is the idea now that the ACPI core parses the resources and passes them
-forward via struct acpi_device? I'm just wondering how to proceed with
-these I2C and SPI enumeration patches.
+1. In previous patch set V3 "Fix thermal bugs and Upstream ST-Ericsson thermal
+driver", there were 5 patches in total, since the first 3 for fixing thermal
+layer bugs have been accepted by the maintainer, I'd like to send out the
+updated last 2 only this time, for upstreaming ST-Ericsson thermal driver.
 
-Thanks.
+2. In patch "Thermal: Add ST-Ericsson DB8500 thermal driver"
+  - typo in commit message: diver -> driver;
+  - add more explanation of device tree properties are optional or required.
+  - in function db8500_thermal_match_cdev: remove cdev_name, use
+    trip_points->cdev_name[i] directly instead;
+  - in function db8500_cdev_bind: move cdev->ops->get_max_state(cdev,
+    &max_state) out of for loop to call it only once;
+  - in function db8500_thermal_parse_dt: update checking strlen(tmp_str) >=
+    THERMAL_NAME_LENGTH
+  - add Reviewed-by: Viresh Kumar <viresh.kumar@linaro.org>
+  - add Reviewed-by: Francesco Lavra <francescolavra.fl@gmail.com>
+
+3. In patch "Thermal: Add ST-Ericsson DB8500 thermal properties and platform
+data"
+  - add Reviewed-by: Viresh Kumar <viresh.kumar@linaro.org>
+
+hongbo.zhang (2):
+  Thermal: Add ST-Ericsson DB8500 thermal driver.
+  Thermal: Add ST-Ericsson DB8500 thermal properties and platform data.
+
+ .../devicetree/bindings/thermal/db8500-thermal.txt |  44 ++
+ arch/arm/boot/dts/dbx5x0.dtsi                      |  14 +
+ arch/arm/boot/dts/snowball.dts                     |  31 ++
+ arch/arm/configs/u8500_defconfig                   |   2 +
+ arch/arm/mach-ux500/board-mop500.c                 |  64 +++
+ drivers/thermal/Kconfig                            |  20 +
+ drivers/thermal/Makefile                           |   2 +
+ drivers/thermal/db8500_cpufreq_cooling.c           | 108 +++++
+ drivers/thermal/db8500_thermal.c                   | 530 +++++++++++++++++++++
+ include/linux/platform_data/db8500_thermal.h       |  38 ++
+ 10 files changed, 853 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/thermal/db8500-thermal.txt
+ create mode 100644 drivers/thermal/db8500_cpufreq_cooling.c
+ create mode 100644 drivers/thermal/db8500_thermal.c
+ create mode 100644 include/linux/platform_data/db8500_thermal.h
+
+-- 
+1.7.11.3
+
