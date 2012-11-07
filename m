@@ -1,51 +1,78 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: [PATCH -v2] ACPI/PCI: Make PCI devices notified when its power resource turned on
-Date: Wed,  7 Nov 2012 08:57:59 +0800
-Message-ID: <1352249879-11406-1-git-send-email-ying.huang@intel.com>
+From: Wen Congyang <wency@cn.fujitsu.com>
+Subject: Re: acpi_memhotplug.c: don't allow to eject the memory device if
+ it is being used
+Date: Wed, 07 Nov 2012 09:39:30 +0800
+Message-ID: <5099BBD2.4020003@cn.fujitsu.com>
+References: <20121105181133.GA21846@elgon.mountain> <50987183.5020007@cn.fujitsu.com> <20121106140545.GB11566@mwanda>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:16148 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752619Ab2KGA6T (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 6 Nov 2012 19:58:19 -0500
+Received: from cn.fujitsu.com ([222.73.24.84]:21474 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1751300Ab2KGBde (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 6 Nov 2012 20:33:34 -0500
+In-Reply-To: <20121106140545.GB11566@mwanda>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, Huang Ying <ying.huang@intel.com>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Andrew Morton <akpm@linux-foundation.org>
 
-A set of power resources may be shared by multiple devices.  When all
-devices share one set of power resources is put into D3_COLD state,
-the power resources will be turned off.  When one of the device is
-waked, the power resource will be turned on and all devices share it
-will be powered on to D0uninitialized state.  These devices should be
-resumed, so that they can get opportunity to go to low power state
-later.
+At 11/06/2012 10:05 PM, Dan Carpenter Wrote:
+> On Tue, Nov 06, 2012 at 10:10:11AM +0800, Wen Congyang wrote:
+>> At 11/06/2012 02:11 AM, Dan Carpenter Wrote:
+>>> Hello Wen Congyang,
+>>>
+>>> The patch 306859f13dc1: "acpi_memhotplug.c: don't allow to eject the
+>>> memory device if it is being used" from Nov 3, 2012, leads to the
+>>> following Smatch warning:
+>>> drivers/acpi/acpi_memhotplug.c:367 acpi_memory_remove_memory()
+>>> 	 warn: inconsistent returns mutex:&mem_device->list_lock:
+>>> 	locked (357,361) unlocked (367)
+>>
+>> Thanks for pointing it out.
+>>
+>> The patch 306859f13dc1 is in akpm's tree, and it conflicts with another
+>> patch in linux-pm's tree. So Andrew Morton drops them.
+>>
+>> I will resend them based on linux-pm's next tree.
+> 
+> Ok. Today's linux-next version 85fcb3758c10e "ACPI / memory-hotplug:
+> introduce a mutex lock to protect the list in acpi_memory_device"
+> has a similar problem and should be fixed as well.
+> 
+>    319  static int acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
+>    320  {
+>    321          int result;
+>    322          struct acpi_memory_info *info, *n;
+>    323  
+>    324          mutex_lock(&mem_device->list_lock);
+>    325          list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
+>    326                  if (info->enabled) {
+>    327                          result = remove_memory(info->start_addr, info->length);
+>    328                          if (result)
+>    329                                  return result;
+>                                         ^^^^^^^^^^^^^
+> We are still holding the lock here.
 
-v2:
+Yes, I found this problem.
 
-- Fix build error
+Thanks
+Wen Congyang
 
-Signed-off-by: Huang Ying <ying.huang@intel.com>
-Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
----
- drivers/acpi/pci_bind.c |    2 ++
- 1 file changed, 2 insertions(+)
+> 
+>    330                  }
+>    331  
+>    332                  list_del(&info->list);
+>    333                  kfree(info);
+>    334          }
+>    335          mutex_unlock(&mem_device->list_lock);
+>    336  
+>    337          return 0;
+>    338  }
+> 
+> regards,
+> dan carpenter
+> 
+> 
 
---- a/drivers/acpi/pci_bind.c
-+++ b/drivers/acpi/pci_bind.c
-@@ -45,6 +45,7 @@ static int acpi_pci_unbind(struct acpi_d
- 
- 	device_set_run_wake(&dev->dev, false);
- 	pci_acpi_remove_pm_notifier(device);
-+	acpi_power_resource_unregister_device(&dev->dev, device->handle);
- 
- 	if (!dev->subordinate)
- 		goto out;
-@@ -71,6 +72,7 @@ static int acpi_pci_bind(struct acpi_dev
- 		return 0;
- 
- 	pci_acpi_add_pm_notifier(device, dev);
-+	acpi_power_resource_register_device(&dev->dev, device->handle);
- 	if (device->wakeup.flags.run_wake)
- 		device_set_run_wake(&dev->dev, true);
- 
