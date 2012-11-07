@@ -1,51 +1,44 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 2/3] spi / ACPI: add ACPI enumeration support
-Date: Wed, 07 Nov 2012 12:14:31 +0100
-Message-ID: <1493573.krE1QVlUux@vostro.rjw.lan>
-References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com> <2584820.Vd5p0uzRAK@vostro.rjw.lan> <20121107095842.GY24532@intel.com>
+From: Wei Yongjun <weiyj.lk@gmail.com>
+Subject: [PATCH -next] ACPI: fix missing unlock on error in acpi_memory_remove_memory()
+Date: Wed, 7 Nov 2012 20:38:04 +0800
+Message-ID: <CAPgLHd_=OTwu-3tVXT0o8+x=N_9dZOkQ4A7HFr0SNdUiyAy_yw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:60262 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753530Ab2KGLKV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 7 Nov 2012 06:10:21 -0500
-In-Reply-To: <20121107095842.GY24532@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: lenb@kernel.org, rjw@sisk.pl, wency@cn.fujitsu.com
+Cc: yongjun_wei@trendmicro.com.cn, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
 
-On Wednesday, November 07, 2012 11:58:42 AM Mika Westerberg wrote:
-> On Tue, Nov 06, 2012 at 11:36:08PM +0100, Rafael J. Wysocki wrote:
-> > > 
-> > > OK, but then we need to pass the information obtained from _CRS
-> > > (presumably after some adjustments through _SRS) to drivers, or rather to
-> > > things like the SPI core, I2C core etc. so that they can create device
-> > > objects for drivers to bind to and quite frankly I don't see why not to use
-> > > ACPI resources for that.
-> > 
-> > Nevertheless, the routines for parsing those resources should belong
-> > to the ACPI core, mostly to avoid code duplication.
-> 
-> Rafael,
-> 
-> So is the idea now that the ACPI core parses the resources and passes them
-> forward via struct acpi_device? I'm just wondering how to proceed with
-> these I2C and SPI enumeration patches.
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-Well, we definitely don't want to duplicate what drivers/pnp/pnpacpi/rsparser.c
-does, so the idea is to move the code from there to the core in such a way that
-both the SPI/I2C patches and the PNP layer can use it.
+Add the missing mutex_unlock() before return from function
+acpi_memory_remove_memory() in the error handling case.
 
-I'll have some prototype code ready shortly, hopefully, and I'll post it
-in that form for comments (and so that you know what to expect).
+Introduce by commit 85fcb3758c10e063a2a30dfad75017097999deed
+'ACPI / memory-hotplug: introduce a mutex lock to protect the list in acpi_memory_device'
 
-Thanks,
-Rafael
+dpatch engine is used to auto generate this patch.
+(https://github.com/weiyj/dpatch)
 
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+---
+ drivers/acpi/acpi_memhotplug.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+index 92c973a..e573e87 100644
+--- a/drivers/acpi/acpi_memhotplug.c
++++ b/drivers/acpi/acpi_memhotplug.c
+@@ -325,8 +325,10 @@ static int acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
+ 	list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
+ 		if (info->enabled) {
+ 			result = remove_memory(info->start_addr, info->length);
+-			if (result)
++			if (result) {
++				mutex_unlock(&mem_device->list_lock);
+ 				return result;
++			}
+ 		}
+ 
+ 		list_del(&info->list);
