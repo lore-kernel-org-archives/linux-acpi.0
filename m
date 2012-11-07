@@ -1,44 +1,37 @@
-From: Wei Yongjun <weiyj.lk@gmail.com>
-Subject: [PATCH -next] ACPI: fix missing unlock on error in acpi_memory_remove_memory()
-Date: Wed, 7 Nov 2012 20:38:04 +0800
-Message-ID: <CAPgLHd_=OTwu-3tVXT0o8+x=N_9dZOkQ4A7HFr0SNdUiyAy_yw@mail.gmail.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH 2/3] spi / ACPI: add ACPI enumeration support
+Date: Wed, 7 Nov 2012 15:05:48 +0200
+Message-ID: <20121107130548.GZ24532@intel.com>
+References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com>
+ <2584820.Vd5p0uzRAK@vostro.rjw.lan>
+ <20121107095842.GY24532@intel.com>
+ <1493573.krE1QVlUux@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: lenb@kernel.org, rjw@sisk.pl, wency@cn.fujitsu.com
-Cc: yongjun_wei@trendmicro.com.cn, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:1394 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751955Ab2KGNDa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 7 Nov 2012 08:03:30 -0500
+Content-Disposition: inline
+In-Reply-To: <1493573.krE1QVlUux@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
 
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+On Wed, Nov 07, 2012 at 12:14:31PM +0100, Rafael J. Wysocki wrote:
+> > So is the idea now that the ACPI core parses the resources and passes them
+> > forward via struct acpi_device? I'm just wondering how to proceed with
+> > these I2C and SPI enumeration patches.
+> 
+> Well, we definitely don't want to duplicate what drivers/pnp/pnpacpi/rsparser.c
+> does, so the idea is to move the code from there to the core in such a way that
+> both the SPI/I2C patches and the PNP layer can use it.
 
-Add the missing mutex_unlock() before return from function
-acpi_memory_remove_memory() in the error handling case.
+Ok.
 
-Introduce by commit 85fcb3758c10e063a2a30dfad75017097999deed
-'ACPI / memory-hotplug: introduce a mutex lock to protect the list in acpi_memory_device'
+> I'll have some prototype code ready shortly, hopefully, and I'll post it
+> in that form for comments (and so that you know what to expect).
 
-dpatch engine is used to auto generate this patch.
-(https://github.com/weiyj/dpatch)
-
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
----
- drivers/acpi/acpi_memhotplug.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-index 92c973a..e573e87 100644
---- a/drivers/acpi/acpi_memhotplug.c
-+++ b/drivers/acpi/acpi_memhotplug.c
-@@ -325,8 +325,10 @@ static int acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
- 	list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
- 		if (info->enabled) {
- 			result = remove_memory(info->start_addr, info->length);
--			if (result)
-+			if (result) {
-+				mutex_unlock(&mem_device->list_lock);
- 				return result;
-+			}
- 		}
- 
- 		list_del(&info->list);
+Sounds good. Thanks!
