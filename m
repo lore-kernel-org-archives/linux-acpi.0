@@ -1,221 +1,51 @@
-From: "hongbo.zhang" <hongbo.zhang-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: [PATCH V4 2/2] Thermal: Add ST-Ericsson DB8500 thermal properties and
-	platform data.
-Date: Wed,  7 Nov 2012 18:23:02 +0800
-Message-ID: <1352283782-16489-3-git-send-email-hongbo.zhang@linaro.com>
-References: <1352283782-16489-1-git-send-email-hongbo.zhang@linaro.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 2/3] spi / ACPI: add ACPI enumeration support
+Date: Wed, 07 Nov 2012 12:14:31 +0100
+Message-ID: <1493573.krE1QVlUux@vostro.rjw.lan>
+References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com> <2584820.Vd5p0uzRAK@vostro.rjw.lan> <20121107095842.GY24532@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-In-Reply-To: <1352283782-16489-1-git-send-email-hongbo.zhang-68IGFXMjmZ7QT0dZR+AlfA@public.gmane.org>
-List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
-List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
-Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linaro-kernel-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, STEricsson_nomadik_linux-nkJGhpqTU55BDgjK7y7TUQ@public.gmane.org, kernel-vMlcbD5RyM6HZuj8yyL1ah2eb7JE58TQ@public.gmane.org, "hongbo.zhang" <hongbo.zhang-68IGFXMjmZ7QT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([193.178.161.156]:60262 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753530Ab2KGLKV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 7 Nov 2012 06:10:21 -0500
+In-Reply-To: <20121107095842.GY24532@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
 
-From: "hongbo.zhang" <hongbo.zhang-68IGFXMjmZ7QT0dZR+AlfA@public.gmane.org>
+On Wednesday, November 07, 2012 11:58:42 AM Mika Westerberg wrote:
+> On Tue, Nov 06, 2012 at 11:36:08PM +0100, Rafael J. Wysocki wrote:
+> > > 
+> > > OK, but then we need to pass the information obtained from _CRS
+> > > (presumably after some adjustments through _SRS) to drivers, or rather to
+> > > things like the SPI core, I2C core etc. so that they can create device
+> > > objects for drivers to bind to and quite frankly I don't see why not to use
+> > > ACPI resources for that.
+> > 
+> > Nevertheless, the routines for parsing those resources should belong
+> > to the ACPI core, mostly to avoid code duplication.
+> 
+> Rafael,
+> 
+> So is the idea now that the ACPI core parses the resources and passes them
+> forward via struct acpi_device? I'm just wondering how to proceed with
+> these I2C and SPI enumeration patches.
 
-This patch adds device tree properties for ST-Ericsson DB8500 thermal driver,
-also adds the platform data to support the old fashion.
+Well, we definitely don't want to duplicate what drivers/pnp/pnpacpi/rsparser.c
+does, so the idea is to move the code from there to the core in such a way that
+both the SPI/I2C patches and the PNP layer can use it.
 
-Signed-off-by: hongbo.zhang <hongbo.zhang-68IGFXMjmZ7QT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Viresh Kumar <viresh.kumar-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
----
- arch/arm/boot/dts/dbx5x0.dtsi      | 14 +++++++++
- arch/arm/boot/dts/snowball.dts     | 31 ++++++++++++++++++
- arch/arm/configs/u8500_defconfig   |  2 ++
- arch/arm/mach-ux500/board-mop500.c | 64 ++++++++++++++++++++++++++++++++++++++
- 4 files changed, 111 insertions(+)
+I'll have some prototype code ready shortly, hopefully, and I'll post it
+in that form for comments (and so that you know what to expect).
 
-diff --git a/arch/arm/boot/dts/dbx5x0.dtsi b/arch/arm/boot/dts/dbx5x0.dtsi
-index 4b0e0ca..731086b 100644
---- a/arch/arm/boot/dts/dbx5x0.dtsi
-+++ b/arch/arm/boot/dts/dbx5x0.dtsi
-@@ -203,6 +203,14 @@
- 				reg = <0x80157450 0xC>;
- 			};
- 
-+			thermal@801573c0 {
-+				compatible = "stericsson,db8500-thermal";
-+				reg = <0x801573c0 0x40>;
-+				interrupts = <21 0x4>, <22 0x4>;
-+				interrupt-names = "IRQ_HOTMON_LOW", "IRQ_HOTMON_HIGH";
-+				status = "disabled";
-+			 };
-+
- 			db8500-prcmu-regulators {
- 				compatible = "stericsson,db8500-prcmu-regulator";
- 
-@@ -660,5 +668,11 @@
- 			ranges = <0 0x50000000 0x4000000>;
- 			status = "disabled";
- 		};
-+
-+		cpufreq-cooling {
-+			compatible = "stericsson,db8500-cpufreq-cooling";
-+			status = "disabled";
-+		 };
-+
- 	};
- };
-diff --git a/arch/arm/boot/dts/snowball.dts b/arch/arm/boot/dts/snowball.dts
-index 702c0ba..c6f85f0 100644
---- a/arch/arm/boot/dts/snowball.dts
-+++ b/arch/arm/boot/dts/snowball.dts
-@@ -99,6 +99,33 @@
- 			status = "okay";
- 		};
- 
-+		prcmu@80157000 {
-+			thermal@801573c0 {
-+				num-trips = <4>;
-+
-+				trip0-temp = <70000>;
-+				trip0-type = "active";
-+				trip0-cdev-num = <1>;
-+				trip0-cdev-name0 = "thermal-cpufreq-0";
-+
-+				trip1-temp = <75000>;
-+				trip1-type = "active";
-+				trip1-cdev-num = <1>;
-+				trip1-cdev-name0 = "thermal-cpufreq-0";
-+
-+				trip2-temp = <80000>;
-+				trip2-type = "active";
-+				trip2-cdev-num = <1>;
-+				trip2-cdev-name0 = "thermal-cpufreq-0";
-+
-+				trip3-temp = <85000>;
-+				trip3-type = "critical";
-+				trip3-cdev-num = <0>;
-+
-+				status = "okay";
-+			 };
-+		};
-+
- 		external-bus@50000000 {
- 			status = "okay";
- 
-@@ -183,5 +210,9 @@
- 				reg = <0x33>;
- 			};
- 		};
-+
-+		cpufreq-cooling {
-+			status = "okay";
-+		};
- 	};
- };
-diff --git a/arch/arm/configs/u8500_defconfig b/arch/arm/configs/u8500_defconfig
-index da68454..250625d 100644
---- a/arch/arm/configs/u8500_defconfig
-+++ b/arch/arm/configs/u8500_defconfig
-@@ -69,6 +69,8 @@ CONFIG_GPIO_TC3589X=y
- CONFIG_POWER_SUPPLY=y
- CONFIG_AB8500_BM=y
- CONFIG_AB8500_BATTERY_THERM_ON_BATCTRL=y
-+CONFIG_THERMAL=y
-+CONFIG_CPU_THERMAL=y
- CONFIG_MFD_STMPE=y
- CONFIG_MFD_TC3589X=y
- CONFIG_AB5500_CORE=y
-diff --git a/arch/arm/mach-ux500/board-mop500.c b/arch/arm/mach-ux500/board-mop500.c
-index 416d436..b03216b 100644
---- a/arch/arm/mach-ux500/board-mop500.c
-+++ b/arch/arm/mach-ux500/board-mop500.c
-@@ -16,6 +16,7 @@
- #include <linux/io.h>
- #include <linux/i2c.h>
- #include <linux/platform_data/i2c-nomadik.h>
-+#include <linux/platform_data/db8500_thermal.h>
- #include <linux/gpio.h>
- #include <linux/amba/bus.h>
- #include <linux/amba/pl022.h>
-@@ -229,6 +230,67 @@ static struct ab8500_platform_data ab8500_platdata = {
- };
- 
- /*
-+ * Thermal Sensor
-+ */
-+
-+static struct resource db8500_thsens_resources[] = {
-+	{
-+		.name = "IRQ_HOTMON_LOW",
-+		.start  = IRQ_PRCMU_HOTMON_LOW,
-+		.end    = IRQ_PRCMU_HOTMON_LOW,
-+		.flags  = IORESOURCE_IRQ,
-+	},
-+	{
-+		.name = "IRQ_HOTMON_HIGH",
-+		.start  = IRQ_PRCMU_HOTMON_HIGH,
-+		.end    = IRQ_PRCMU_HOTMON_HIGH,
-+		.flags  = IORESOURCE_IRQ,
-+	},
-+};
-+
-+static struct db8500_thsens_platform_data db8500_thsens_data = {
-+	.trip_points[0] = {
-+		.temp = 70000,
-+		.type = THERMAL_TRIP_ACTIVE,
-+		.cdev_name = {
-+			[0] = "thermal-cpufreq-0",
-+		},
-+	},
-+	.trip_points[1] = {
-+		.temp = 75000,
-+		.type = THERMAL_TRIP_ACTIVE,
-+		.cdev_name = {
-+			[0] = "thermal-cpufreq-0",
-+		},
-+	},
-+	.trip_points[2] = {
-+		.temp = 80000,
-+		.type = THERMAL_TRIP_ACTIVE,
-+		.cdev_name = {
-+			[0] = "thermal-cpufreq-0",
-+		},
-+	},
-+	.trip_points[3] = {
-+		.temp = 85000,
-+		.type = THERMAL_TRIP_CRITICAL,
-+	},
-+	.num_trips = 4,
-+};
-+
-+static struct platform_device u8500_thsens_device = {
-+	.name           = "db8500-thermal",
-+	.resource       = db8500_thsens_resources,
-+	.num_resources  = ARRAY_SIZE(db8500_thsens_resources),
-+	.dev	= {
-+		.platform_data	= &db8500_thsens_data,
-+	},
-+};
-+
-+static struct platform_device u8500_cpufreq_cooling_device = {
-+	.name           = "db8500-cpufreq-cooling",
-+};
-+
-+/*
-  * TPS61052
-  */
- 
-@@ -583,6 +645,8 @@ static struct platform_device *snowball_platform_devs[] __initdata = {
- 	&snowball_key_dev,
- 	&snowball_sbnet_dev,
- 	&snowball_gpio_en_3v3_regulator_dev,
-+	&u8500_thsens_device,
-+	&u8500_cpufreq_cooling_device,
- };
- 
- static void __init mop500_init_machine(void)
+Thanks,
+Rafael
+
+
 -- 
-1.7.11.3
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
