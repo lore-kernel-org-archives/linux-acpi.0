@@ -1,121 +1,105 @@
-From: Amit Kachhap <amit.kachhap@linaro.org>
-Subject: Re: [PATCH 1/4] thermal: Add new thermal trend type to support quick cooling
-Date: Thu, 8 Nov 2012 11:56:25 +0530
-Message-ID: <CAK44p22REJpaJiahX7sTofShNB-+OHVsULqHeuxFNu5msLk6vA@mail.gmail.com>
-References: <1352348786-24255-1-git-send-email-amit.kachhap@linaro.org>
-	<1352348786-24255-2-git-send-email-amit.kachhap@linaro.org>
-	<1352354503.2190.7.camel@rzhang1-mobl4>
+From: Azat Khuzhin <dohardgopro@gmail.com>
+Subject: Re: ACPI errors with 3.7-rc3
+Date: Thu, 8 Nov 2012 13:15:18 +0400
+Message-ID: <CAAW1UO9HBb5uBXrFrjkSO3i=rBng8stc01MFKu1bLEu29aRc_w@mail.gmail.com>
+References: <20121031014527.GA2984@kroah.com>
+	<CAAW1UO9BtAU5jpy=MqgFCwwXn3Gb8HA3m7FMktmQkYGqYrS0Rw@mail.gmail.com>
+	<20121106124826.GA21806@kroah.com>
+	<41011456.LYWJPCi9Xt@vostro.rjw.lan>
+	<20121108044715.GA12652@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <1352354503.2190.7.camel@rzhang1-mobl4>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-pm@lists.linux-foundation.org, linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org, durgadoss.r@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, jonghwa3.lee@samsung.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:50433 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751184Ab2KHJPS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Nov 2012 04:15:18 -0500
+In-Reply-To: <20121108044715.GA12652@kroah.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Feng Tang <feng.tang@intel.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-On 8 November 2012 11:31, Zhang Rui <rui.zhang@intel.com> wrote:
-> On Thu, 2012-11-08 at 09:56 +0530, Amit Daniel Kachhap wrote:
->> This modification adds 2 new thermal trend type THERMAL_TREND_RAISE_FULL
->> and THERMAL_TREND_DROP_FULL. This thermal trend can be used to quickly
->> jump to the upper or lower cooling level instead of incremental increase
->> or decrease.
+Here is mine - https://gist.github.com/4037687
+
+To Greg:
+acpidump 20100513-3.1
+And I don't have pmtools installed
+
+On Thu, Nov 8, 2012 at 8:47 AM, Greg KH <gregkh@linuxfoundation.org> wrote:
+> On Wed, Nov 07, 2012 at 10:49:40PM +0100, Rafael J. Wysocki wrote:
+>> On Tuesday, November 06, 2012 01:48:26 PM Greg KH wrote:
+>> > On Tue, Nov 06, 2012 at 04:42:24PM +0400, Azat Khuzhin wrote:
+>> > > I'v also have such errors on my macbook pro.
+>> > >
+>> > > $ dmesg | tail
+>> > > [17056.008564] ACPI Error: Method parse/execution failed
+>> > > [\_SB_.PCI0.LPCB.EC__.SMB0.SBRW] (Node ffff88026547ea10), AE_TIME
+>> > > (20120711/psparse-536)
+>> > > [17056.011194] ACPI Error: Method parse/execution failed
+>> > > [\_SB_.BAT0.UBST] (Node ffff88026547e678), AE_TIME
+>> > > (20120711/psparse-536)
+>> > > [17056.013793] ACPI Error: Method parse/execution failed
+>> > > [\_SB_.BAT0._BST] (Node ffff88026547e740), AE_TIME
+>> > > (20120711/psparse-536)
+>> > > [17056.016383] ACPI Exception: AE_TIME, Evaluating _BST (20120711/battery-464)
+>> > > [17056.511373] ACPI: EC: input buffer is not empty, aborting transaction
+>> > > [17056.512672] ACPI Exception: AE_TIME, Returned by Handler for
+>> > > [EmbeddedControl] (20120711/evregion-501)
+>> > > [17056.515256] ACPI Error: Method parse/execution failed
+>> > > [\_SB_.PCI0.LPCB.EC__.SMB0.SBRW] (Node ffff88026547ea10), AE_TIME
+>> > > (20120711/psparse-536)
+>> > > [17056.517886] ACPI Error: Method parse/execution failed
+>> > > [\_SB_.BAT0.UBST] (Node ffff88026547e678), AE_TIME
+>> > > (20120711/psparse-536)
+>> > > [17056.520479] ACPI Error: Method parse/execution failed
+>> > > [\_SB_.BAT0._BST] (Node ffff88026547e740), AE_TIME
+>> > > (20120711/psparse-536)
+>> > > [17056.523070] ACPI Exception: AE_TIME, Evaluating _BST (20120711/battery-464)
+>> >
+>> > I'm seeing this again right now.  I'm wondering if it's because I'm
+>> > running on battery power at the moment:
+>> >
+>> > [41694.309264] ACPI Exception: AE_TIME, Returned by Handler for [EmbeddedControl] (20120913/evregion-501)
+>> > [41694.309282] ACPI Error: Method parse/execution failed [\_SB_.PCI0.LPCB.EC__.SMB0.SBRW] (Node ffff88045cc64618), AE_TIME (20120913/psparse-536)
+>> > [41694.309300] ACPI Error: Method parse/execution failed [\_SB_.BAT0.UBST] (Node ffff88045cc64988), AE_TIME (20120913/psparse-536)
+>> > [41694.309310] ACPI Error: Method parse/execution failed [\_SB_.BAT0._BST] (Node ffff88045cc648c0), AE_TIME (20120913/psparse-536)
+>> > [41694.309324] ACPI Exception: AE_TIME, Evaluating _BST (20120913/battery-464)
+>> > [41694.809093] ACPI: EC: input buffer is not empty, aborting transaction
+>> >
+>> > ec_storm_threshold is still set to 8 in /sys/module/acpi/parameters/ so that's
+>> > not the issue here.
+>> >
+>> > > And also loadavg is too high ~ 10
+>> > > While there is no process that load CPU up to 100% or like that.
+>> > > I think that this because of processes that is done in kernel space.
+>> > > (basically that one who write such errors)
+>> > >
+>> > > $ uname -a
+>> > > Linux macbook-pro-sq 3.6.5macbook-pro-custom-v0.1 #4 SMP Sun Nov 4
+>> > > 12:39:03 UTC 2012 x86_64 GNU/Linux
+>> >
+>> > Ah, ok, that means it's not something new in 3.7-rc, so maybe it's just never
+>> > worked properly for this hardware :)
+>> >
+>> > So it's not a regression, just an ACPI issue, any ACPI developer have an idea
+>> > about this?
+>>
+>> Can you please send the output of acpidump from the affected machine(s)?
 >
-> IMO, what we need is a new more aggressive cooling governor which always
-> uses upper limit when the temperature is raising and lower limit when
-> the temperature is dropping.
-Yes I agree that a new aggressive governor is the best approach but
-then i thought adding a new trend type is a simple solution to achieve
-this and since most of the governor logic might be same as the
-step-wise governor. I have no objection in doing it through governor.
+> # ./acpidump
+> ACPI tables were not found. If you know location of RSD PTR table (from dmesg, etc), supply it with either --addr or -a option
 >
-> I can write such a governor if you do not have time to.
-ok. thanks
+> What am I doing wrong here?
+>
+> Is there a newer version of pmtools than the one labled pmtools-20071116
+> that I should be using?  A link to download it would be appreciated.
 >
 > thanks,
-> rui
->>  This is needed for temperature sensors which support rising/falling
->> threshold interrupts and polling can be totally avoided.
->>
 >
->
->> Signed-off-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
->> Signed-off-by: Amit Daniel Kachhap <amit.kachhap@linaro.org>
->> ---
->>  drivers/thermal/step_wise.c |   19 +++++++++++++++----
->>  include/linux/thermal.h     |    2 ++
->>  2 files changed, 17 insertions(+), 4 deletions(-)
->>
->> diff --git a/drivers/thermal/step_wise.c b/drivers/thermal/step_wise.c
->> index 1242cff..0d2d8d6 100644
->> --- a/drivers/thermal/step_wise.c
->> +++ b/drivers/thermal/step_wise.c
->> @@ -35,6 +35,10 @@
->>   *       state for this trip point
->>   *    b. if the trend is THERMAL_TREND_DROPPING, use lower cooling
->>   *       state for this trip point
->> + *    c. if the trend is THERMAL_TREND_RAISE_FULL, use highest cooling
->> + *       state for this trip point
->> + *    d. if the trend is THERMAL_TREND_DROP_FULL, use lowest cooling
->> + *       state for this trip point
->>   */
->>  static unsigned long get_target_state(struct thermal_instance *instance,
->>                                       enum thermal_trend trend)
->> @@ -50,7 +54,10 @@ static unsigned long get_target_state(struct thermal_instance *instance,
->>       } else if (trend == THERMAL_TREND_DROPPING) {
->>               cur_state = cur_state > instance->lower ?
->>                           (cur_state - 1) : instance->lower;
->> -     }
->> +     } else if (trend == THERMAL_TREND_RAISE_FULL)
->> +             cur_state = instance->upper;
->> +     else if (trend == THERMAL_TREND_DROP_FULL)
->> +             cur_state = instance->lower;
->>
->>       return cur_state;
->>  }
->> @@ -87,7 +94,8 @@ static void update_instance_for_throttle(struct thermal_zone_device *tz,
->>  }
->>
->>  static void update_instance_for_dethrottle(struct thermal_zone_device *tz,
->> -                             int trip, enum thermal_trip_type trip_type)
->> +                             int trip, enum thermal_trip_type trip_type,
->> +                             enum thermal_trend trend)
->>  {
->>       struct thermal_instance *instance;
->>       struct thermal_cooling_device *cdev;
->> @@ -101,7 +109,10 @@ static void update_instance_for_dethrottle(struct thermal_zone_device *tz,
->>               cdev = instance->cdev;
->>               cdev->ops->get_cur_state(cdev, &cur_state);
->>
->> -             instance->target = cur_state > instance->lower ?
->> +             if (trend == THERMAL_TREND_DROP_FULL)
->> +                     instance->target = instance->lower;
->> +             else
->> +                     instance->target = cur_state > instance->lower ?
->>                           (cur_state - 1) : THERMAL_NO_TARGET;
->>
->>               /* Deactivate a passive thermal instance */
->> @@ -133,7 +144,7 @@ static void thermal_zone_trip_update(struct thermal_zone_device *tz, int trip)
->>       if (tz->temperature >= trip_temp)
->>               update_instance_for_throttle(tz, trip, trip_type, trend);
->>       else
->> -             update_instance_for_dethrottle(tz, trip, trip_type);
->> +             update_instance_for_dethrottle(tz, trip, trip_type, trend);
->>
->>       mutex_unlock(&tz->lock);
->>  }
->> diff --git a/include/linux/thermal.h b/include/linux/thermal.h
->> index 807f214..8bce3ec 100644
->> --- a/include/linux/thermal.h
->> +++ b/include/linux/thermal.h
->> @@ -68,6 +68,8 @@ enum thermal_trend {
->>       THERMAL_TREND_STABLE, /* temperature is stable */
->>       THERMAL_TREND_RAISING, /* temperature is raising */
->>       THERMAL_TREND_DROPPING, /* temperature is dropping */
->> +     THERMAL_TREND_RAISE_FULL, /* Apply highest cooling action*/
->> +     THERMAL_TREND_DROP_FULL, /* Apply lowest cooling action*/
->>  };
->>
->>  /* Events supported by Thermal Netlink */
->
->
+> greg k-h
+
+
+
+-- 
+Azat Khuzhin
