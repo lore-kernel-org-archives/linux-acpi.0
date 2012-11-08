@@ -1,19 +1,19 @@
 From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 2/3] spi / ACPI: add ACPI enumeration support
-Date: Thu, 8 Nov 2012 18:48:05 +0000
-Message-ID: <CACxGe6urWvrLUy_fkC6hA6go7p2GdoxSOO13c0aYe+0rNWwJ9Q@mail.gmail.com>
+Subject: Re: [PATCH 3/3] i2c / ACPI: add ACPI enumeration support
+Date: Thu, 8 Nov 2012 18:58:47 +0000
+Message-ID: <CACxGe6vgKrqu9UwDc3gytMWpODhV4Q6yezQRwQmg730BpBxXrA@mail.gmail.com>
 References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com>
- <1351928793-14375-3-git-send-email-mika.westerberg@linux.intel.com>
+ <1351928793-14375-4-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:49651 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752466Ab2KHSsZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Nov 2012 13:48:25 -0500
-Received: by mail-pb0-f46.google.com with SMTP id rr4so2239264pbb.19
-        for <linux-acpi@vger.kernel.org>; Thu, 08 Nov 2012 10:48:25 -0800 (PST)
-In-Reply-To: <1351928793-14375-3-git-send-email-mika.westerberg@linux.intel.com>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:35154 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756507Ab2KHS7K (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Nov 2012 13:59:10 -0500
+Received: by mail-pa0-f46.google.com with SMTP id hz1so2193240pad.19
+        for <linux-acpi@vger.kernel.org>; Thu, 08 Nov 2012 10:59:09 -0800 (PST)
+In-Reply-To: <1351928793-14375-4-git-send-email-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Mika Westerberg <mika.westerberg@linux.intel.com>
@@ -21,56 +21,85 @@ Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, b
 
 On Sat, Nov 3, 2012 at 7:46 AM, Mika Westerberg
 <mika.westerberg@linux.intel.com> wrote:
-> ACPI 5 introduced SPISerialBus resource that allows us to enumerate and
-> configure the SPI slave devices behind the SPI controller. This patch adds
-> support for this to the SPI core.
+> ACPI 5 introduced I2cSerialBus resource that makes it possible to enumerate
+> and configure the I2C slave devices behind the I2C controller. This patch
+> adds helper functions to support I2C slave enumeration.
 >
-> In addition we bind ACPI nodes to SPI devices. This makes it possible for
-> the slave drivers to get the ACPI handle for further configuration.
+> An ACPI enabled I2C controller driver only needs to call acpi_i2c_register_devices()
+> in order to get its slave devices enumerated, created and bound to the
+> corresponding ACPI handle.
 >
 > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 > Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > ---
->  drivers/spi/spi.c |  231 ++++++++++++++++++++++++++++++++++++++++++++++++++++-
->  1 file changed, 230 insertions(+), 1 deletion(-)
+>  drivers/acpi/Kconfig     |    6 ++
+>  drivers/acpi/Makefile    |    1 +
+>  drivers/acpi/acpi_i2c.c  |  234 ++++++++++++++++++++++++++++++++++++++++++++++
+>  drivers/i2c/i2c-core.c   |    9 ++
+>  include/linux/acpi_i2c.h |   29 ++++++
+>  5 files changed, 279 insertions(+)
+>  create mode 100644 drivers/acpi/acpi_i2c.c
+>  create mode 100644 include/linux/acpi_i2c.h
 >
-> diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
-> index 84c2861..de22a6e 100644
-> --- a/drivers/spi/spi.c
-> +++ b/drivers/spi/spi.c
-> @@ -35,6 +35,7 @@
->  #include <linux/sched.h>
->  #include <linux/delay.h>
->  #include <linux/kthread.h>
-> +#include <linux/acpi.h>
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index 119d58d..0300bf6 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -181,6 +181,12 @@ config ACPI_DOCK
+>           This driver supports ACPI-controlled docking stations and removable
+>           drive bays such as the IBM Ultrabay and the Dell Module Bay.
 >
->  static void spidev_release(struct device *dev)
->  {
-> @@ -93,6 +94,10 @@ static int spi_match_device(struct device *dev, struct device_driver *drv)
->         if (of_driver_match_device(dev, drv))
->                 return 1;
->
-> +       /* Then try ACPI */
-> +       if (acpi_driver_match_device(dev, drv))
-> +               return 1;
+> +config ACPI_I2C
+> +       def_tristate I2C
+> +       depends on I2C
+> +       help
+> +         ACPI I2C enumeration support.
 > +
->         if (sdrv->id_table)
->                 return !!spi_match_id(sdrv->id_table, spi);
+>  config ACPI_PROCESSOR
+>         tristate "Processor"
+>         select THERMAL
+> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> index a7badb5..8573346 100644
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -69,6 +69,7 @@ obj-$(CONFIG_ACPI_HED)                += hed.o
+>  obj-$(CONFIG_ACPI_EC_DEBUGFS)  += ec_sys.o
+>  obj-$(CONFIG_ACPI_CUSTOM_METHOD)+= custom_method.o
+>  obj-$(CONFIG_ACPI_BGRT)                += bgrt.o
+> +obj-$(CONFIG_ACPI_I2C)         += acpi_i2c.o
 >
-> @@ -888,6 +893,227 @@ static void of_register_spi_devices(struct spi_master *master)
->  static void of_register_spi_devices(struct spi_master *master) { }
->  #endif
->
-> +#ifdef CONFIG_ACPI
-> +struct acpi_spi {
+>  # processor has its own "processor." module_param namespace
+>  processor-y                    := processor_driver.o processor_throttling.o
+> diff --git a/drivers/acpi/acpi_i2c.c b/drivers/acpi/acpi_i2c.c
+> new file mode 100644
+> index 0000000..dc6997e
+> --- /dev/null
+> +++ b/drivers/acpi/acpi_i2c.c
+> @@ -0,0 +1,234 @@
+> +/*
+> + * ACPI I2C enumeration support
+> + *
+> + * Copyright (C) 2012, Intel Corporation
+> + * Author: Mika Westerberg <mika.westerberg@linux.intel.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/acpi.h>
+> +#include <linux/i2c.h>
+> +#include <linux/module.h>
+> +
+> +struct acpi_i2c {
 > +       acpi_status (*callback)(struct acpi_device *, void *);
 > +       void *data;
 > +};
 > +
-> +static acpi_status acpi_spi_enumerate_device(acpi_handle handle, u32 level,
+> +static acpi_status acpi_i2c_enumerate_device(acpi_handle handle, u32 level,
 > +                                            void *data, void **return_value)
 > +{
-> +       struct acpi_spi *acpi_spi = data;
+> +       struct acpi_i2c *acpi_i2c = data;
 > +       struct acpi_device *adev;
 > +
 > +       if (acpi_bus_get_device(handle, &adev))
@@ -78,35 +107,24 @@ On Sat, Nov 3, 2012 at 7:46 AM, Mika Westerberg
 > +       if (acpi_bus_get_status(adev) || !adev->status.present)
 > +               return AE_OK;
 > +
-> +       return acpi_spi->callback(adev, acpi_spi->data);
+> +       return acpi_i2c->callback(adev, acpi_i2c->data);
 > +}
 > +
-> +static acpi_status acpi_spi_enumerate(acpi_handle handle,
+> +static acpi_status acpi_i2c_enumerate(acpi_handle handle,
 > +       acpi_status (*callback)(struct acpi_device *, void *), void *data)
 > +{
-> +       struct acpi_spi acpi_spi;
+> +       struct acpi_i2c acpi_i2c;
 > +
-> +       acpi_spi.callback = callback;
-> +       acpi_spi.data = data;
+> +       acpi_i2c.callback = callback;
+> +       acpi_i2c.data = data;
 > +
 > +       return acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, 1,
-> +                                  acpi_spi_enumerate_device, NULL,
-> +                                  &acpi_spi, NULL);
+> +                                  acpi_i2c_enumerate_device, NULL,
+> +                                  &acpi_i2c, NULL);
 > +}
 
->From my reading of this, the block causes 2 levels of callback
-indirection. First to either acpi_spi_find_child or
-acpi_spi_add_device and second to acpi_spi_enumerate_device. All to
-share about 4 lines of code in acpi_spi_enumerate_device. It took me a
-while to unravel it. I think acpi_spi_find_child and
-acpi_spi_add_device should be passed directly to acpi_walk_namespace.
-Is there anything that prevents that?
-
-I also agree with the discussion that the actual parsing code for the
-resources should be common,. Retrieving things like IRQs and address
-resources should be function calls into ACPI helpers instead of open
-coding it in the spi core code.
-
-Otherwise the patch looks sane to me.
+Same comment here as for the SPI patch. The two levels of indirection
+is more convoluted than it needs to be. Can acpi_i2c_find_client and
+acpi_i2c_add_device be passed directly to acpi_walk_namespace?
 
 g.
