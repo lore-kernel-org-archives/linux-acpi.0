@@ -1,155 +1,93 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v3 4/4] ACPI: Update container to use .sys_notify
-Date: Thu,  8 Nov 2012 13:23:47 -0700
-Message-ID: <1352406227-32629-5-git-send-email-toshi.kani@hp.com>
-References: <1352406227-32629-1-git-send-email-toshi.kani@hp.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1352406227-32629-1-git-send-email-toshi.kani@hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, rjw@sisk.pl, lenb@kernel.org
-Cc: linux-kernel@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, liuj97@gmail.com, Toshi Kani <toshi.kani@hp.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 2/3] spi / ACPI: add ACPI enumeration support
+Date: Thu, 08 Nov 2012 21:54:12 +0100
+Message-ID: <67633481.iZ3LZ2XKmP@vostro.rjw.lan>
+References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com> <30766811.i5oXHLoU7e@vostro.rjw.lan> <20121108202042.GD16012@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([193.178.161.156]:34899 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756504Ab2KHUuA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 8 Nov 2012 15:50:00 -0500
+In-Reply-To: <20121108202042.GD16012@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
 
-Changed the ACPI container driver to use .sys_notify.  Removed
-ACPI namespace walks and their call-back functions that register
-and unregister the hotplug handler to all container objects
-through acpi_[install|remove]_notify_handler().  Renamed the
-notify handler to container_notify() for consistency.
+On Thursday, November 08, 2012 10:20:42 PM Mika Westerberg wrote:
+> On Thu, Nov 08, 2012 at 01:46:24AM +0100, Rafael J. Wysocki wrote:
+> > On Wednesday, November 07, 2012 03:05:48 PM Mika Westerberg wrote:
+> > > On Wed, Nov 07, 2012 at 12:14:31PM +0100, Rafael J. Wysocki wrote:
+> > > > > So is the idea now that the ACPI core parses the resources and passes them
+> > > > > forward via struct acpi_device? I'm just wondering how to proceed with
+> > > > > these I2C and SPI enumeration patches.
+> > > > 
+> > > > Well, we definitely don't want to duplicate what drivers/pnp/pnpacpi/rsparser.c
+> > > > does, so the idea is to move the code from there to the core in such a way that
+> > > > both the SPI/I2C patches and the PNP layer can use it.
+> > > 
+> > > Ok.
+> > > 
+> > > > I'll have some prototype code ready shortly, hopefully, and I'll post it
+> > > > in that form for comments (and so that you know what to expect).
+> > > 
+> > > Sounds good. Thanks!
+> > 
+> > There you go.
+> > 
+> > I haven't even try to compile it, so most likely it breaks things left, right
+> > and in between, but I hope it shows the idea.
+> 
+> Thanks Rafael!
+> 
+> I'll try this tomorrow (we had problems with the HW today so I wasn't able
+> to do any testing).
+> 
+> I'll convert the SPI and I2C enumeration patches to use this method.
 
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
----
- drivers/acpi/container.c | 77 ++----------------------------------------------
- 1 file changed, 3 insertions(+), 74 deletions(-)
+OK, but I still need to move parsers of interrupt resources from rsparser.c
+to resource.c. :-)
 
-diff --git a/drivers/acpi/container.c b/drivers/acpi/container.c
-index 69e2d6b..d4e8b71 100644
---- a/drivers/acpi/container.c
-+++ b/drivers/acpi/container.c
-@@ -53,6 +53,7 @@ MODULE_LICENSE("GPL");
- 
- static int acpi_container_add(struct acpi_device *device);
- static int acpi_container_remove(struct acpi_device *device, int type);
-+static void container_notify(acpi_handle handle, u32 type, void *context);
- 
- static const struct acpi_device_id container_device_ids[] = {
- 	{"ACPI0004", 0},
-@@ -69,6 +70,7 @@ static struct acpi_driver acpi_container_driver = {
- 	.ops = {
- 		.add = acpi_container_add,
- 		.remove = acpi_container_remove,
-+		.sys_notify = container_notify,
- 		},
- };
- 
-@@ -92,19 +94,6 @@ static int is_device_present(acpi_handle handle)
- 	return ((sta & ACPI_STA_DEVICE_PRESENT) == ACPI_STA_DEVICE_PRESENT);
- }
- 
--static bool is_container_device(const char *hid)
--{
--	const struct acpi_device_id *container_id;
--
--	for (container_id = container_device_ids;
--	     container_id->id[0]; container_id++) {
--		if (!strcmp((char *)container_id->id, hid))
--			return true;
--	}
--
--	return false;
--}
--
- /*******************************************************************/
- static int acpi_container_add(struct acpi_device *device)
- {
-@@ -165,7 +154,7 @@ static int container_device_add(struct acpi_device **device, acpi_handle handle)
- 	return result;
- }
- 
--static void container_notify_cb(acpi_handle handle, u32 type, void *context)
-+static void container_notify(acpi_handle handle, u32 type, void *context)
- {
- 	struct acpi_device *device = NULL;
- 	int result;
-@@ -224,80 +213,20 @@ static void container_notify_cb(acpi_handle handle, u32 type, void *context)
- 	return;
- }
- 
--static acpi_status
--container_walk_namespace_cb(acpi_handle handle,
--			    u32 lvl, void *context, void **rv)
--{
--	char *hid = NULL;
--	struct acpi_device_info *info;
--	acpi_status status;
--	int *action = context;
--
--	status = acpi_get_object_info(handle, &info);
--	if (ACPI_FAILURE(status)) {
--		return AE_OK;
--	}
--
--	if (info->valid & ACPI_VALID_HID)
--		hid = info->hardware_id.string;
--
--	if (hid == NULL) {
--		goto end;
--	}
--
--	if (!is_container_device(hid))
--		goto end;
--
--	switch (*action) {
--	case INSTALL_NOTIFY_HANDLER:
--		acpi_install_notify_handler(handle,
--					    ACPI_SYSTEM_NOTIFY,
--					    container_notify_cb, NULL);
--		break;
--	case UNINSTALL_NOTIFY_HANDLER:
--		acpi_remove_notify_handler(handle,
--					   ACPI_SYSTEM_NOTIFY,
--					   container_notify_cb);
--		break;
--	default:
--		break;
--	}
--
--      end:
--	kfree(info);
--
--	return AE_OK;
--}
--
- static int __init acpi_container_init(void)
- {
- 	int result = 0;
--	int action = INSTALL_NOTIFY_HANDLER;
- 
- 	result = acpi_bus_register_driver(&acpi_container_driver);
- 	if (result < 0) {
- 		return (result);
- 	}
- 
--	/* register notify handler to every container device */
--	acpi_walk_namespace(ACPI_TYPE_DEVICE,
--			    ACPI_ROOT_OBJECT,
--			    ACPI_UINT32_MAX,
--			    container_walk_namespace_cb, NULL, &action, NULL);
--
- 	return (0);
- }
- 
- static void __exit acpi_container_exit(void)
- {
--	int action = UNINSTALL_NOTIFY_HANDLER;
--
--
--	acpi_walk_namespace(ACPI_TYPE_DEVICE,
--			    ACPI_ROOT_OBJECT,
--			    ACPI_UINT32_MAX,
--			    container_walk_namespace_cb, NULL, &action, NULL);
--
- 	acpi_bus_unregister_driver(&acpi_container_driver);
- 
- 	return;
+> > It does a couple of things at the same time, so it should be split into a few
+> > simpler patches.  First, it moves some code from drivers/pnp/pnpacpi/rsparser.c
+> > to a new file drivers/acpi/resource.c and makes pnpacpi use functions from
+> > there.  Second, it changes acpi_platform.c to use those functions too.
+> > Finally, it adds a list of ACPI resources to struct acpi_device and
+> > makes acpi_platform.c use that list intead of evaluating _CRS and parsing its
+> > output with acpi_walk_resources().
+> > 
+> > While changing acpi_platform.c I noticed that we had a bug in there, because
+> > GSIs were registered for the struct acpi_device object, although they should be
+> > registered for the struct platform_device one created by that code.  I didn't
+> > try to fix that in the patch below, but it generally needs fixing.
+> 
+> Good point.
+> 
+> I wonder if the acpi_register_gsi() wants a device that is registered to
+> the Linux device framework?
+
+No, it doesn't, as far as I can tell.  At least the pnpacpi code adds
+devices after registering GSIs for them.  Also the existing implementations
+of acpi_register_gsi() don't require that.
+
+> At least with the SPI and I2C we generally
+> don't have such until we call i2c_new_device() or spi_add_device() and they
+> are getting passed the IRQ number which should be translated to the Linux
+> IRQ before that...
+
+That's correct.
+
+It looks like we could follow the hpet code and pass NULL as the dev argument
+to acpi_register_gsi() from there, as apparently the dev argument is only
+used to special-case PCI devices in mp_config_acpi_gsi().
+
+Thanks,
+Rafael
+
+
 -- 
-1.7.11.7
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
