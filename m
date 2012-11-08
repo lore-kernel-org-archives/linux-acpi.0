@@ -1,130 +1,62 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 3/3] i2c / ACPI: add ACPI enumeration support
-Date: Thu, 8 Nov 2012 18:58:47 +0000
-Message-ID: <CACxGe6vgKrqu9UwDc3gytMWpODhV4Q6yezQRwQmg730BpBxXrA@mail.gmail.com>
-References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com>
- <1351928793-14375-4-git-send-email-mika.westerberg@linux.intel.com>
+From: David Rientjes <rientjes@google.com>
+Subject: [patch] acpi, pm: fix build breakage
+Date: Thu, 8 Nov 2012 11:20:01 -0800 (PST)
+Message-ID: <alpine.DEB.2.00.1211081119350.8749@chino.kir.corp.google.com>
+References: <1766582.8gdQKXoi0K@vostro.rjw.lan> <1456107.KxymqUQLId@vostro.rjw.lan> <alpine.DEB.2.00.1211061150190.6467@chino.kir.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:35154 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756507Ab2KHS7K (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Nov 2012 13:59:10 -0500
-Received: by mail-pa0-f46.google.com with SMTP id hz1so2193240pad.19
-        for <linux-acpi@vger.kernel.org>; Thu, 08 Nov 2012 10:59:09 -0800 (PST)
-In-Reply-To: <1351928793-14375-4-git-send-email-mika.westerberg@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.00.1211061150190.6467@chino.kir.corp.google.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Aaron Lu <aaron.lu@intel.com>, Huang Ying <ying.huang@intel.com>, Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Adrian Hunter <adrian.hunter@intel.com>, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, linus.walleij@linaro.org, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
 
-On Sat, Nov 3, 2012 at 7:46 AM, Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
-> ACPI 5 introduced I2cSerialBus resource that makes it possible to enumerate
-> and configure the I2C slave devices behind the I2C controller. This patch
-> adds helper functions to support I2C slave enumeration.
->
-> An ACPI enabled I2C controller driver only needs to call acpi_i2c_register_devices()
-> in order to get its slave devices enumerated, created and bound to the
-> corresponding ACPI handle.
->
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  drivers/acpi/Kconfig     |    6 ++
->  drivers/acpi/Makefile    |    1 +
->  drivers/acpi/acpi_i2c.c  |  234 ++++++++++++++++++++++++++++++++++++++++++++++
->  drivers/i2c/i2c-core.c   |    9 ++
->  include/linux/acpi_i2c.h |   29 ++++++
->  5 files changed, 279 insertions(+)
->  create mode 100644 drivers/acpi/acpi_i2c.c
->  create mode 100644 include/linux/acpi_i2c.h
->
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index 119d58d..0300bf6 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -181,6 +181,12 @@ config ACPI_DOCK
->           This driver supports ACPI-controlled docking stations and removable
->           drive bays such as the IBM Ultrabay and the Dell Module Bay.
->
-> +config ACPI_I2C
-> +       def_tristate I2C
-> +       depends on I2C
-> +       help
-> +         ACPI I2C enumeration support.
-> +
->  config ACPI_PROCESSOR
->         tristate "Processor"
->         select THERMAL
-> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> index a7badb5..8573346 100644
-> --- a/drivers/acpi/Makefile
-> +++ b/drivers/acpi/Makefile
-> @@ -69,6 +69,7 @@ obj-$(CONFIG_ACPI_HED)                += hed.o
->  obj-$(CONFIG_ACPI_EC_DEBUGFS)  += ec_sys.o
->  obj-$(CONFIG_ACPI_CUSTOM_METHOD)+= custom_method.o
->  obj-$(CONFIG_ACPI_BGRT)                += bgrt.o
-> +obj-$(CONFIG_ACPI_I2C)         += acpi_i2c.o
->
->  # processor has its own "processor." module_param namespace
->  processor-y                    := processor_driver.o processor_throttling.o
-> diff --git a/drivers/acpi/acpi_i2c.c b/drivers/acpi/acpi_i2c.c
-> new file mode 100644
-> index 0000000..dc6997e
-> --- /dev/null
-> +++ b/drivers/acpi/acpi_i2c.c
-> @@ -0,0 +1,234 @@
-> +/*
-> + * ACPI I2C enumeration support
-> + *
-> + * Copyright (C) 2012, Intel Corporation
-> + * Author: Mika Westerberg <mika.westerberg@linux.intel.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include <linux/acpi.h>
-> +#include <linux/i2c.h>
-> +#include <linux/module.h>
-> +
-> +struct acpi_i2c {
-> +       acpi_status (*callback)(struct acpi_device *, void *);
-> +       void *data;
-> +};
-> +
-> +static acpi_status acpi_i2c_enumerate_device(acpi_handle handle, u32 level,
-> +                                            void *data, void **return_value)
-> +{
-> +       struct acpi_i2c *acpi_i2c = data;
-> +       struct acpi_device *adev;
-> +
-> +       if (acpi_bus_get_device(handle, &adev))
-> +               return AE_OK;
-> +       if (acpi_bus_get_status(adev) || !adev->status.present)
-> +               return AE_OK;
-> +
-> +       return acpi_i2c->callback(adev, acpi_i2c->data);
-> +}
-> +
-> +static acpi_status acpi_i2c_enumerate(acpi_handle handle,
-> +       acpi_status (*callback)(struct acpi_device *, void *), void *data)
-> +{
-> +       struct acpi_i2c acpi_i2c;
-> +
-> +       acpi_i2c.callback = callback;
-> +       acpi_i2c.data = data;
-> +
-> +       return acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, 1,
-> +                                  acpi_i2c_enumerate_device, NULL,
-> +                                  &acpi_i2c, NULL);
-> +}
+Commit b87b49cd0efd ("ACPI / PM: Move device PM functions related to sleep 
+states") declared acpi_target_system_state() for CONFIG_PM_SLEEP whereas 
+it is only defined for CONFIG_ACPI_SLEEP, resulting in the following link 
+error:
 
-Same comment here as for the SPI patch. The two levels of indirection
-is more convoluted than it needs to be. Can acpi_i2c_find_client and
-acpi_i2c_add_device be passed directly to acpi_walk_namespace?
+drivers/built-in.o: In function `acpi_pm_device_sleep_wake':
+drivers/acpi/device_pm.c:342: undefined reference to `acpi_target_system_state'
+drivers/built-in.o: In function `acpi_dev_suspend_late':
+drivers/acpi/device_pm.c:501: undefined reference to `acpi_target_system_state'
+drivers/built-in.o: In function `acpi_pm_device_sleep_state':
+drivers/acpi/device_pm.c:221: undefined reference to `acpi_target_system_state'
 
-g.
+Define it only for CONFIG_ACPI_SLEEP and fallback to a dummy definition 
+for other configs.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+---
+ include/acpi/acpi_bus.h |    8 ++++++--
+ 1 files changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -469,11 +469,9 @@ static inline int acpi_pm_device_run_wake(struct device *dev, bool enable)
+ #endif
+ 
+ #ifdef CONFIG_PM_SLEEP
+-u32 acpi_target_system_state(void);
+ int __acpi_device_sleep_wake(struct acpi_device *, u32, bool);
+ int acpi_pm_device_sleep_wake(struct device *, bool);
+ #else
+-static inline u32 acpi_target_system_state(void) { return ACPI_STATE_S0; }
+ static inline int __acpi_device_sleep_wake(struct acpi_device *adev,
+ 					   u32 target_state, bool enable)
+ {
+@@ -485,6 +483,12 @@ static inline int acpi_pm_device_sleep_wake(struct device *dev, bool enable)
+ }
+ #endif
+ 
++#ifdef CONFIG_ACPI_SLEEP
++u32 acpi_target_system_state(void);
++#else
++static inline u32 acpi_target_system_state(void) { return ACPI_STATE_S0; }
++#endif
++
+ static inline bool acpi_device_power_manageable(struct acpi_device *adev)
+ {
+ 	return adev->flags.power_manageable;
