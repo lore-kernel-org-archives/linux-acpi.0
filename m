@@ -1,62 +1,81 @@
-From: David Rientjes <rientjes@google.com>
-Subject: [patch] acpi, pm: fix build breakage
-Date: Thu, 8 Nov 2012 11:20:01 -0800 (PST)
-Message-ID: <alpine.DEB.2.00.1211081119350.8749@chino.kir.corp.google.com>
-References: <1766582.8gdQKXoi0K@vostro.rjw.lan> <1456107.KxymqUQLId@vostro.rjw.lan> <alpine.DEB.2.00.1211061150190.6467@chino.kir.corp.google.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH 2/3] spi / ACPI: add ACPI enumeration support
+Date: Thu, 8 Nov 2012 12:32:25 -0700
+Message-ID: <CAErSpo5My6+ypp9zsxR8vh8k1px0otOWfAcacWaLNs2xjsc7UA@mail.gmail.com>
+References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com>
+ <3455360.Z6cZSC3BtR@vostro.rjw.lan> <CAErSpo5xEO4M_Fb0dJ6w7Qxck-0RcKKwQjKj1QZgFxhof7X5Rw@mail.gmail.com>
+ <1523215.Pon1eKPQDb@vostro.rjw.lan> <20121107095608.GX24532@intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.00.1211061150190.6467@chino.kir.corp.google.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Aaron Lu <aaron.lu@intel.com>, Huang Ying <ying.huang@intel.com>, Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Adrian Hunter <adrian.hunter@intel.com>, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:49958 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752787Ab2KHTcq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Nov 2012 14:32:46 -0500
+Received: by mail-we0-f174.google.com with SMTP id t9so1407296wey.19
+        for <linux-acpi@vger.kernel.org>; Thu, 08 Nov 2012 11:32:45 -0800 (PST)
+In-Reply-To: <20121107095608.GX24532@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
 
-Commit b87b49cd0efd ("ACPI / PM: Move device PM functions related to sleep 
-states") declared acpi_target_system_state() for CONFIG_PM_SLEEP whereas 
-it is only defined for CONFIG_ACPI_SLEEP, resulting in the following link 
-error:
+On Wed, Nov 7, 2012 at 2:56 AM, Mika Westerberg
+<mika.westerberg@linux.intel.com> wrote:
+> On Tue, Nov 06, 2012 at 11:18:11PM +0100, Rafael J. Wysocki wrote:
+>> > How is the SPI controller different than this?  Is there some logical
+>> > difference that requires a different framework?  Or are you proposing
+>> > that we get rid of acpi_bus_register_driver() and migrate everything
+>> > to this new framework?
+>>
+>> Yes, I do, but let's just do it gradually.
+>
+> Bjorn, here is a concrete example how this is supposed to be used.
+>
+> Lets say we have an existing SPI slave driver that we want to extend to
+> support enumeration from ACPI. Instead of writing acpi_driver glue for that
+> (and registering it using acpi_bus_register_driver()) what we do is simple
+> add these to the existing SPI driver:
+>
+>         #ifdef CONFIG_ACPI
+>         static struct acpi_device_id my_spidrv_match[] = {
+>                 /* ACPI IDs here */
+>                 { }
+>         };
+>         MODULE_DEVICE_TABLE(acpi, my_spidrv_match);
+>         #endif
+>
+>         static struct spi_driver my_spidrv = {
+>                 ...
+>                 .driver = {
+>                         .acpi_match_table = ACPI_PTR(my_spidrv_match),
+>                 },
+>         };
+>
+> The same thing works with platform, I2c and SPI drivers and can be extented
+> to others as well. If the driver needs to do some ACPI specific
+> configuration it can get the ACPI handle using its dev->acpi_handle.
+>
+> The above example now supports both, normal SPI (where the devices are
+> enumerated by populating spi_board_info()) and ACPI. Adding support for
+> Device Tree is similar than ACPI so a single driver can support all three
+> easily at the same time.
 
-drivers/built-in.o: In function `acpi_pm_device_sleep_wake':
-drivers/acpi/device_pm.c:342: undefined reference to `acpi_target_system_state'
-drivers/built-in.o: In function `acpi_dev_suspend_late':
-drivers/acpi/device_pm.c:501: undefined reference to `acpi_target_system_state'
-drivers/built-in.o: In function `acpi_pm_device_sleep_state':
-drivers/acpi/device_pm.c:221: undefined reference to `acpi_target_system_state'
+Thanks for the concrete example; that helps me a lot.
 
-Define it only for CONFIG_ACPI_SLEEP and fallback to a dummy definition 
-for other configs.
+Struct device_driver is a generic structure, so it seems strange to
+have to include non-generic things like of_device_id and now
+acpi_match_table there.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
----
- include/acpi/acpi_bus.h |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
+I'm actually interested in the details you didn't include above, too.
+For example, I don't know of a generic way to get resource information
+from a "struct device *", so I assume you need to figure out what sort
+of device it is and then do the appropriate PCI/ACPI/OF/DT/etc
+operations to learn the resources?
 
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -469,11 +469,9 @@ static inline int acpi_pm_device_run_wake(struct device *dev, bool enable)
- #endif
- 
- #ifdef CONFIG_PM_SLEEP
--u32 acpi_target_system_state(void);
- int __acpi_device_sleep_wake(struct acpi_device *, u32, bool);
- int acpi_pm_device_sleep_wake(struct device *, bool);
- #else
--static inline u32 acpi_target_system_state(void) { return ACPI_STATE_S0; }
- static inline int __acpi_device_sleep_wake(struct acpi_device *adev,
- 					   u32 target_state, bool enable)
- {
-@@ -485,6 +483,12 @@ static inline int acpi_pm_device_sleep_wake(struct device *dev, bool enable)
- }
- #endif
- 
-+#ifdef CONFIG_ACPI_SLEEP
-+u32 acpi_target_system_state(void);
-+#else
-+static inline u32 acpi_target_system_state(void) { return ACPI_STATE_S0; }
-+#endif
-+
- static inline bool acpi_device_power_manageable(struct acpi_device *adev)
- {
- 	return adev->flags.power_manageable;
+I think it would be cool if there *were* a generic way to get "struct
+device" resources.  Then you could imagine a mechanism where a driver
+supplied a list of identifiers it could claim, e.g.,
+PCI_VEN_DEV(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_CE4100_UART),
+ACPI_ID("PNP0501"), etc.,  and it might not need to know anything more
+than what the identifier is.
