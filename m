@@ -1,72 +1,70 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH 2/3] spi / ACPI: add ACPI enumeration support
-Date: Thu, 8 Nov 2012 22:20:42 +0200
-Message-ID: <20121108202042.GD16012@intel.com>
-References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com>
- <1493573.krE1QVlUux@vostro.rjw.lan>
- <20121107130548.GZ24532@intel.com>
- <30766811.i5oXHLoU7e@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: [PATCH v3 0/4] ACPI: Refactor system notify handling
+Date: Thu,  8 Nov 2012 13:23:43 -0700
+Message-ID: <1352406227-32629-1-git-send-email-toshi.kani@hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:45961 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756614Ab2KHURw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 8 Nov 2012 15:17:52 -0500
-Content-Disposition: inline
-In-Reply-To: <30766811.i5oXHLoU7e@vostro.rjw.lan>
+Received: from g1t0027.austin.hp.com ([15.216.28.34]:38743 "EHLO
+	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756733Ab2KHUcD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Nov 2012 15:32:03 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, rjw@sisk.pl, lenb@kernel.org
+Cc: linux-kernel@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, liuj97@gmail.com, Toshi Kani <toshi.kani@hp.com>
 
-On Thu, Nov 08, 2012 at 01:46:24AM +0100, Rafael J. Wysocki wrote:
-> On Wednesday, November 07, 2012 03:05:48 PM Mika Westerberg wrote:
-> > On Wed, Nov 07, 2012 at 12:14:31PM +0100, Rafael J. Wysocki wrote:
-> > > > So is the idea now that the ACPI core parses the resources and passes them
-> > > > forward via struct acpi_device? I'm just wondering how to proceed with
-> > > > these I2C and SPI enumeration patches.
-> > > 
-> > > Well, we definitely don't want to duplicate what drivers/pnp/pnpacpi/rsparser.c
-> > > does, so the idea is to move the code from there to the core in such a way that
-> > > both the SPI/I2C patches and the PNP layer can use it.
-> > 
-> > Ok.
-> > 
-> > > I'll have some prototype code ready shortly, hopefully, and I'll post it
-> > > in that form for comments (and so that you know what to expect).
-> > 
-> > Sounds good. Thanks!
-> 
-> There you go.
-> 
-> I haven't even try to compile it, so most likely it breaks things left, right
-> and in between, but I hope it shows the idea.
+This patchset updates the ACPI system-level (ex. hotplug)
+notify handling with a new .sys_notify interface.  It provides
+the following changes:
 
-Thanks Rafael!
+- Allow ACPI drivers to register their system-level (hotplug)
+  notify handlers to a new .sys_notify interface through their
+  acpi_driver table.  This removes redundant ACPI namespace
+  walks from ACPI drivers for faster booting.  The global notify
+  handler acpi_bus_notify() is called for all system-level ACPI
+  device notifications, which then calls an appropriate driver's
+  handler if any.  ACPI drivers no longer need to register or
+  unregister driver's handlers to each device object in ACPI
+  namespace.
+ 
+- Support dynamic ACPI namespace with LoadTable & Unload opcode
+  without any changes in ACPI drivers.  There is no need to 
+  register / unregister handlers to ACPI device objects getting
+  loaded to / unloaded from ACPI namespace.
 
-I'll try this tomorrow (we had problems with the HW today so I wasn't able
-to do any testing).
+- Allow ACPI drivers to use a common hotplug handler when it is
+  implemented.  It removes functional conflict between driver's
+  notify handler and the global notify handler acpi_bus_notify().
+  acpi_bus_notify() only calls an appropriate notify handler if
+  any.
 
-I'll convert the SPI and I2C enumeration patches to use this method.
+Note that the changes maintain backward compatibility for ACPI
+drivers.  Any drivers registered their hotplug handlers through
+the existing interfaces, such as acpi_install_notify_handler()
+and register_acpi_bus_notifier(), will continue to work as before.
 
-> It does a couple of things at the same time, so it should be split into a few
-> simpler patches.  First, it moves some code from drivers/pnp/pnpacpi/rsparser.c
-> to a new file drivers/acpi/resource.c and makes pnpacpi use functions from
-> there.  Second, it changes acpi_platform.c to use those functions too.
-> Finally, it adds a list of ACPI resources to struct acpi_device and
-> makes acpi_platform.c use that list intead of evaluating _CRS and parsing its
-> output with acpi_walk_resources().
-> 
-> While changing acpi_platform.c I noticed that we had a bug in there, because
-> GSIs were registered for the struct acpi_device object, although they should be
-> registered for the struct platform_device one created by that code.  I didn't
-> try to fix that in the patch below, but it generally needs fixing.
+The patchset is based on the linux-next branch of linux-pm.git
+tree.
 
-Good point.
+v3:
+ - Fixed to free the ID list when releasing a temporary device.
 
-I wonder if the acpi_register_gsi() wants a device that is registered to
-the Linux device framework? At least with the SPI and I2C we generally
-don't have such until we call i2c_new_device() or spi_add_device() and they
-are getting passed the IRQ number which should be translated to the Linux
-IRQ before that...
+v2:
+ - Protected unbound driver from unloading when calling .sys_notify.
+ - Changed acpi_bus_notify() to call acpi_bus_notify_list first for
+   maintaining the original order.
+
+---
+Toshi Kani (4):
+ ACPI: Support system notify handler via .sys_notify
+ ACPI: Update processor_driver to use .sys_notify
+ ACPI: Update acpi_memhotplug to use .sys_notify
+ ACPI: Update container to use .sys_notify
+
+---
+ drivers/acpi/acpi_memhotplug.c  | 93 ++---------------------------------------
+ drivers/acpi/bus.c              | 64 +++++++++++++++++++++-------
+ drivers/acpi/container.c        | 77 ++--------------------------------
+ drivers/acpi/processor_driver.c | 82 ++++--------------------------------
+ drivers/acpi/scan.c             | 83 ++++++++++++++++++++++++++++++++++++
+ include/acpi/acpi_bus.h         |  6 +++
+ 6 files changed, 150 insertions(+), 255 deletions(-)
