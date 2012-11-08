@@ -1,80 +1,112 @@
-From: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
-Subject: [RFC PATCH 3/3] acpi_memhotplug: Add prepare_remove operation
-Date: Thu,  8 Nov 2012 19:29:31 +0100
-Message-ID: <1352399371-8015-4-git-send-email-vasilis.liaskovitis@profitbricks.com>
-References: <1352399371-8015-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1352399371-8015-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com
-Cc: rjw@sisk.pl, wency@cn.fujitsu.com, lenb@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-mm@kvack.org, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 2/3] spi / ACPI: add ACPI enumeration support
+Date: Thu, 8 Nov 2012 18:48:05 +0000
+Message-ID: <CACxGe6urWvrLUy_fkC6hA6go7p2GdoxSOO13c0aYe+0rNWwJ9Q@mail.gmail.com>
+References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1351928793-14375-3-git-send-email-mika.westerberg@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:49651 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752466Ab2KHSsZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Nov 2012 13:48:25 -0500
+Received: by mail-pb0-f46.google.com with SMTP id rr4so2239264pbb.19
+        for <linux-acpi@vger.kernel.org>; Thu, 08 Nov 2012 10:48:25 -0800 (PST)
+In-Reply-To: <1351928793-14375-3-git-send-email-mika.westerberg@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, linus.walleij@linaro.org, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
 
-Offlining and removal of memory is now done in the prepare_remove callback,
-not in the remove callback.
+On Sat, Nov 3, 2012 at 7:46 AM, Mika Westerberg
+<mika.westerberg@linux.intel.com> wrote:
+> ACPI 5 introduced SPISerialBus resource that allows us to enumerate and
+> configure the SPI slave devices behind the SPI controller. This patch adds
+> support for this to the SPI core.
+>
+> In addition we bind ACPI nodes to SPI devices. This makes it possible for
+> the slave drivers to get the ACPI handle for further configuration.
+>
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/spi/spi.c |  231 ++++++++++++++++++++++++++++++++++++++++++++++++++++-
+>  1 file changed, 230 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
+> index 84c2861..de22a6e 100644
+> --- a/drivers/spi/spi.c
+> +++ b/drivers/spi/spi.c
+> @@ -35,6 +35,7 @@
+>  #include <linux/sched.h>
+>  #include <linux/delay.h>
+>  #include <linux/kthread.h>
+> +#include <linux/acpi.h>
+>
+>  static void spidev_release(struct device *dev)
+>  {
+> @@ -93,6 +94,10 @@ static int spi_match_device(struct device *dev, struct device_driver *drv)
+>         if (of_driver_match_device(dev, drv))
+>                 return 1;
+>
+> +       /* Then try ACPI */
+> +       if (acpi_driver_match_device(dev, drv))
+> +               return 1;
+> +
+>         if (sdrv->id_table)
+>                 return !!spi_match_id(sdrv->id_table, spi);
+>
+> @@ -888,6 +893,227 @@ static void of_register_spi_devices(struct spi_master *master)
+>  static void of_register_spi_devices(struct spi_master *master) { }
+>  #endif
+>
+> +#ifdef CONFIG_ACPI
+> +struct acpi_spi {
+> +       acpi_status (*callback)(struct acpi_device *, void *);
+> +       void *data;
+> +};
+> +
+> +static acpi_status acpi_spi_enumerate_device(acpi_handle handle, u32 level,
+> +                                            void *data, void **return_value)
+> +{
+> +       struct acpi_spi *acpi_spi = data;
+> +       struct acpi_device *adev;
+> +
+> +       if (acpi_bus_get_device(handle, &adev))
+> +               return AE_OK;
+> +       if (acpi_bus_get_status(adev) || !adev->status.present)
+> +               return AE_OK;
+> +
+> +       return acpi_spi->callback(adev, acpi_spi->data);
+> +}
+> +
+> +static acpi_status acpi_spi_enumerate(acpi_handle handle,
+> +       acpi_status (*callback)(struct acpi_device *, void *), void *data)
+> +{
+> +       struct acpi_spi acpi_spi;
+> +
+> +       acpi_spi.callback = callback;
+> +       acpi_spi.data = data;
+> +
+> +       return acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, 1,
+> +                                  acpi_spi_enumerate_device, NULL,
+> +                                  &acpi_spi, NULL);
+> +}
 
-Signed-off-by: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
----
- drivers/acpi/acpi_memhotplug.c |   22 ++++++++++++++++++++--
- 1 files changed, 20 insertions(+), 2 deletions(-)
+>From my reading of this, the block causes 2 levels of callback
+indirection. First to either acpi_spi_find_child or
+acpi_spi_add_device and second to acpi_spi_enumerate_device. All to
+share about 4 lines of code in acpi_spi_enumerate_device. It took me a
+while to unravel it. I think acpi_spi_find_child and
+acpi_spi_add_device should be passed directly to acpi_walk_namespace.
+Is there anything that prevents that?
 
-diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-index 7fcc844..9b734a5 100644
---- a/drivers/acpi/acpi_memhotplug.c
-+++ b/drivers/acpi/acpi_memhotplug.c
-@@ -54,6 +54,7 @@ MODULE_LICENSE("GPL");
- 
- static int acpi_memory_device_add(struct acpi_device *device);
- static int acpi_memory_device_remove(struct acpi_device *device, int type);
-+static int acpi_memory_device_prepare_remove(struct acpi_device *device);
- 
- static const struct acpi_device_id memory_device_ids[] = {
- 	{ACPI_MEMORY_DEVICE_HID, 0},
-@@ -68,6 +69,7 @@ static struct acpi_driver acpi_memory_device_driver = {
- 	.ops = {
- 		.add = acpi_memory_device_add,
- 		.remove = acpi_memory_device_remove,
-+		.prepare_remove = acpi_memory_device_prepare_remove,
- 		},
- };
- 
-@@ -499,6 +501,20 @@ static int acpi_memory_device_add(struct acpi_device *device)
- static int acpi_memory_device_remove(struct acpi_device *device, int type)
- {
- 	struct acpi_memory_device *mem_device = NULL;
-+
-+	if (!device || !acpi_driver_data(device))
-+		return -EINVAL;
-+
-+	mem_device = acpi_driver_data(device);
-+
-+	kfree(mem_device);
-+
-+	return 0;
-+}
-+
-+static int acpi_memory_device_prepare_remove(struct acpi_device *device)
-+{
-+	struct acpi_memory_device *mem_device = NULL;
- 	int result;
- 
- 	if (!device || !acpi_driver_data(device))
-@@ -506,12 +522,14 @@ static int acpi_memory_device_remove(struct acpi_device *device, int type)
- 
- 	mem_device = acpi_driver_data(device);
- 
-+	/*
-+	 * offline and remove memory only when the memory device is
-+	 * ejected.
-+	 */
- 	result = acpi_memory_remove_memory(mem_device);
- 	if (result)
- 		return result;
- 
--	kfree(mem_device);
--
- 	return 0;
- }
- 
--- 
-1.7.9
+I also agree with the discussion that the actual parsing code for the
+resources should be common,. Retrieving things like IRQs and address
+resources should be function calls into ACPI helpers instead of open
+coding it in the spi core code.
+
+Otherwise the patch looks sane to me.
+
+g.
