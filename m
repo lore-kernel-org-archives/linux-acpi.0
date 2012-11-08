@@ -1,51 +1,89 @@
-From: Wei Yongjun <weiyj.lk@gmail.com>
-Subject: Re: [PATCH -next] ACPI: fix missing unlock on error in acpi_memory_remove_memory()
-Date: Thu, 8 Nov 2012 12:31:12 +0800
-Message-ID: <CAPgLHd8a45+GfNFwox6M-QLbLmZNZHHz1a2BZjGV4Po1a0b6gg@mail.gmail.com>
-References: <CAPgLHd_=OTwu-3tVXT0o8+x=N_9dZOkQ4A7HFr0SNdUiyAy_yw@mail.gmail.com>
-	<509B0B7F.3030308@cn.fujitsu.com>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: ACPI errors with 3.7-rc3
+Date: Thu, 8 Nov 2012 05:47:15 +0100
+Message-ID: <20121108044715.GA12652@kroah.com>
+References: <20121031014527.GA2984@kroah.com>
+ <CAAW1UO9BtAU5jpy=MqgFCwwXn3Gb8HA3m7FMktmQkYGqYrS0Rw@mail.gmail.com>
+ <20121106124826.GA21806@kroah.com>
+ <41011456.LYWJPCi9Xt@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qa0-f46.google.com ([209.85.216.46]:40800 "EHLO
-	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751461Ab2KHEbN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Nov 2012 23:31:13 -0500
-In-Reply-To: <509B0B7F.3030308@cn.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <41011456.LYWJPCi9Xt@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Azat Khuzhin <dohardgopro@gmail.com>, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Feng Tang <feng.tang@intel.com>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: wency@cn.fujitsu.com
-Cc: lenb@kernel.org, rjw@sisk.pl, yongjun_wei@trendmicro.com.cn, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, dan.carpenter@oracle.com
 
-Hi Wen,
+On Wed, Nov 07, 2012 at 10:49:40PM +0100, Rafael J. Wysocki wrote:
+> On Tuesday, November 06, 2012 01:48:26 PM Greg KH wrote:
+> > On Tue, Nov 06, 2012 at 04:42:24PM +0400, Azat Khuzhin wrote:
+> > > I'v also have such errors on my macbook pro.
+> > > 
+> > > $ dmesg | tail
+> > > [17056.008564] ACPI Error: Method parse/execution failed
+> > > [\_SB_.PCI0.LPCB.EC__.SMB0.SBRW] (Node ffff88026547ea10), AE_TIME
+> > > (20120711/psparse-536)
+> > > [17056.011194] ACPI Error: Method parse/execution failed
+> > > [\_SB_.BAT0.UBST] (Node ffff88026547e678), AE_TIME
+> > > (20120711/psparse-536)
+> > > [17056.013793] ACPI Error: Method parse/execution failed
+> > > [\_SB_.BAT0._BST] (Node ffff88026547e740), AE_TIME
+> > > (20120711/psparse-536)
+> > > [17056.016383] ACPI Exception: AE_TIME, Evaluating _BST (20120711/battery-464)
+> > > [17056.511373] ACPI: EC: input buffer is not empty, aborting transaction
+> > > [17056.512672] ACPI Exception: AE_TIME, Returned by Handler for
+> > > [EmbeddedControl] (20120711/evregion-501)
+> > > [17056.515256] ACPI Error: Method parse/execution failed
+> > > [\_SB_.PCI0.LPCB.EC__.SMB0.SBRW] (Node ffff88026547ea10), AE_TIME
+> > > (20120711/psparse-536)
+> > > [17056.517886] ACPI Error: Method parse/execution failed
+> > > [\_SB_.BAT0.UBST] (Node ffff88026547e678), AE_TIME
+> > > (20120711/psparse-536)
+> > > [17056.520479] ACPI Error: Method parse/execution failed
+> > > [\_SB_.BAT0._BST] (Node ffff88026547e740), AE_TIME
+> > > (20120711/psparse-536)
+> > > [17056.523070] ACPI Exception: AE_TIME, Evaluating _BST (20120711/battery-464)
+> > 
+> > I'm seeing this again right now.  I'm wondering if it's because I'm
+> > running on battery power at the moment:
+> > 
+> > [41694.309264] ACPI Exception: AE_TIME, Returned by Handler for [EmbeddedControl] (20120913/evregion-501)
+> > [41694.309282] ACPI Error: Method parse/execution failed [\_SB_.PCI0.LPCB.EC__.SMB0.SBRW] (Node ffff88045cc64618), AE_TIME (20120913/psparse-536)
+> > [41694.309300] ACPI Error: Method parse/execution failed [\_SB_.BAT0.UBST] (Node ffff88045cc64988), AE_TIME (20120913/psparse-536)
+> > [41694.309310] ACPI Error: Method parse/execution failed [\_SB_.BAT0._BST] (Node ffff88045cc648c0), AE_TIME (20120913/psparse-536)
+> > [41694.309324] ACPI Exception: AE_TIME, Evaluating _BST (20120913/battery-464)
+> > [41694.809093] ACPI: EC: input buffer is not empty, aborting transaction
+> > 
+> > ec_storm_threshold is still set to 8 in /sys/module/acpi/parameters/ so that's
+> > not the issue here.
+> > 
+> > > And also loadavg is too high ~ 10
+> > > While there is no process that load CPU up to 100% or like that.
+> > > I think that this because of processes that is done in kernel space.
+> > > (basically that one who write such errors)
+> > > 
+> > > $ uname -a
+> > > Linux macbook-pro-sq 3.6.5macbook-pro-custom-v0.1 #4 SMP Sun Nov 4
+> > > 12:39:03 UTC 2012 x86_64 GNU/Linux
+> > 
+> > Ah, ok, that means it's not something new in 3.7-rc, so maybe it's just never
+> > worked properly for this hardware :)
+> > 
+> > So it's not a regression, just an ACPI issue, any ACPI developer have an idea
+> > about this?
+> 
+> Can you please send the output of acpidump from the affected machine(s)?
 
-On 11/08/2012 09:31 AM, Wen Congyang wrote:
-> Hi, wei
->
-> At 11/07/2012 08:38 PM, Wei Yongjun Wrote:
->> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
->>
->> Add the missing mutex_unlock() before return from function
->> acpi_memory_remove_memory() in the error handling case.
->>
->> Introduce by commit 85fcb3758c10e063a2a30dfad75017097999deed
->> 'ACPI / memory-hotplug: introduce a mutex lock to protect the list in acpi_memory_device'
->>
->> dpatch engine is used to auto generate this patch.
->> (https://github.com/weiyj/dpatch)
->>
->> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-> Thanks for your patch.
->
-> Dan Carpenter has told me this problem. I fix it, but don't
-> resend it because it is in test now.
+# ./acpidump
+ACPI tables were not found. If you know location of RSD PTR table (from dmesg, etc), supply it with either --addr or -a option
 
-I saw your patchset has already applied to linux-pm.git tree:
-http://git.kernel.org/?p=linux/kernel/git/rafael/linux-pm.git;a=shortlog;h=refs/heads/linux-next
+What am I doing wrong here?
 
-So I think what need is to send a new patch to fix it, not
-resend the full patchset.
+Is there a newer version of pmtools than the one labled pmtools-20071116
+that I should be using?  A link to download it would be appreciated.
 
-Regards,
-Yongjun Wei
+thanks,
 
+greg k-h
