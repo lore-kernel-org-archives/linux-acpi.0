@@ -1,174 +1,61 @@
 From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 1/3] gpio / ACPI: add ACPI support
-Date: Thu, 8 Nov 2012 15:55:18 +0000
-Message-ID: <CACxGe6tVcqoSg03JtcTdLP5GakyKM-24D8uK2mQj+1iiSE8Yog@mail.gmail.com>
+Subject: Re: [PATCH 2/3] spi / ACPI: add ACPI enumeration support
+Date: Thu, 8 Nov 2012 18:05:23 +0000
+Message-ID: <CACxGe6sUXWLZVBpD1we_ZAXA7wvMg72DQpyCw5f+E8c5_ox++w@mail.gmail.com>
 References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com>
- <1351928793-14375-2-git-send-email-mika.westerberg@linux.intel.com>
+ <CAErSpo44pWUJmRAP6eR9T+2WvO5hJPFOC=Nn-WPXDtCY0v0EDw@mail.gmail.com>
+ <1996776.cC14CHafyR@vostro.rjw.lan> <2584820.Vd5p0uzRAK@vostro.rjw.lan> <20121107095842.GY24532@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1351928793-14375-2-git-send-email-mika.westerberg@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, linus.walleij@linaro.org, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:53959 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755643Ab2KHSFo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Nov 2012 13:05:44 -0500
+Received: by mail-pb0-f46.google.com with SMTP id rr4so2213950pbb.19
+        for <linux-acpi@vger.kernel.org>; Thu, 08 Nov 2012 10:05:44 -0800 (PST)
+In-Reply-To: <20121107095842.GY24532@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, linus.walleij@linaro.org, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
 
-Hi Mika,
-
-On Sat, Nov 3, 2012 at 7:46 AM, Mika Westerberg
+On Wed, Nov 7, 2012 at 9:58 AM, Mika Westerberg
 <mika.westerberg@linux.intel.com> wrote:
-> From: Mathias Nyman <mathias.nyman@linux.intel.com>
+> On Tue, Nov 06, 2012 at 11:36:08PM +0100, Rafael J. Wysocki wrote:
+>> >
+>> > OK, but then we need to pass the information obtained from _CRS
+>> > (presumably after some adjustments through _SRS) to drivers, or rather to
+>> > things like the SPI core, I2C core etc. so that they can create device
+>> > objects for drivers to bind to and quite frankly I don't see why not to use
+>> > ACPI resources for that.
+>>
+>> Nevertheless, the routines for parsing those resources should belong
+>> to the ACPI core, mostly to avoid code duplication.
 >
-> Add support for translating ACPI GPIO pin numbers to Linux GPIO API pins.
-> Needs a gpio controller driver with the acpi handler hook set.
+> Rafael,
 >
-> Drivers can use acpi_get_gpio() to translate ACPI5 GpioIO and GpioInt
-> resources to Linux GPIO's.
+> So is the idea now that the ACPI core parses the resources and passes them
+> forward via struct acpi_device? I'm just wondering how to proceed with
+> these I2C and SPI enumeration patches.
 
-How does the mapping work? Is the ACPI gpio number space kept
-completely separate from the Linux GPIO numbers, or is there any
-attempt to line up ACPI and Linux GPIO numbering? From my reading, it
-/looks/ like the ACPI GPIO numbering is controller-local (no single
-large global space) because both a full path and a pin number are
-specified, but I'd like to know for sure.
+>From my experience with device tree, that seems the wrong way around.
+Device Tree used to have a separate "of_device" which is analogous to
+an acpi_device. The problem was always that of_devices never fit into
+the view that Linux has of the system. That would mean having both an
+of_device and and spi_device in completely separate parts of the
+driver model tree to support an spi device. Same for platform, i2c and
+onewire and others. Blech.
 
-> Signed-off-by: Mathias Nyman <mathias.nyman@linux.intel.com>
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  drivers/gpio/Kconfig        |    4 +++
->  drivers/gpio/Makefile       |    1 +
->  drivers/gpio/gpiolib-acpi.c |   60 +++++++++++++++++++++++++++++++++++++++++++
->  include/linux/acpi_gpio.h   |   19 ++++++++++++++
->  4 files changed, 84 insertions(+)
->  create mode 100644 drivers/gpio/gpiolib-acpi.c
->  create mode 100644 include/linux/acpi_gpio.h
->
-> diff --git a/drivers/gpio/Kconfig b/drivers/gpio/Kconfig
-> index d055cee..2f1905b 100644
-> --- a/drivers/gpio/Kconfig
-> +++ b/drivers/gpio/Kconfig
-> @@ -49,6 +49,10 @@ config OF_GPIO
->         def_bool y
->         depends on OF && !SPARC
->
-> +config ACPI_GPIO
+So, yes I agree that ACPI core should have the tools for parsing the
+resources, but it makes sense for those functions to be helpers that
+the spi core acpi support and the i2c core acpi support use to
+populate the native spi_device and i2c_client structures. Plus
+individual drivers can call the same functions if (and only if) the
+needed resources cannot fit into the bus type's native format.
 
-Nit: Can you flip this around to GPIO_ACPI? I know OF_GPIO is the
-other way around, but it should be changed.
+We really could also use more common code between bus types for
+storing various kinds of resources, but that's a separate issue and
+doesn't affect this discussion.
 
-> diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-> new file mode 100644
-> index 0000000..ef56ea4
-> --- /dev/null
-> +++ b/drivers/gpio/gpiolib-acpi.c
-> @@ -0,0 +1,60 @@
-> +/*
-> + * ACPI helpers for GPIO API
-> + *
-> + * Copyright (C) 2012, Intel Corporation
-> + * Author: Mathias Nyman <mathias.nyman@linux.intel.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include <linux/errno.h>
-> +#include <linux/gpio.h>
-> +#include <linux/module.h>
-> +#include <linux/acpi_gpio.h>
-> +#include <linux/acpi.h>
-> +
-> +static int acpi_gpiochip_find(struct gpio_chip *gc, void *data)
-> +{
-> +       acpi_handle handle = data;
-> +       acpi_handle gc_handle;
-> +
-> +       if (!gc->dev)
-> +               return false;
-> +
-> +       gc_handle = gc->dev->acpi_handle;
-> +       if (!gc_handle)
-> +               return false;
-
-This test is redundant with the next one... unless 'handle' is also NULL :-)
-
-Is it at all possible for multiple gpiochips to be used for a single
-ACPI gpio controller node? Such as if the gpio controller has multiple
-banks that should be controlled separately? If so then this won't be
-sufficient. I've got the same issue with DT support where the find
-function needs to also check if the pin is provided by that specific
-gpiochip.
-
-Overall the patch looks good, but I need to see how it is used. It
-would be really nice if device drivers could use basically the same
-interface to obtain Linux gpio numbers regardless of if the backing
-data was ACPI or DT. This API is one level below that.
-
-> +
-> +       return gc_handle == handle;
-> +}
-> +
-> +/**
-> + * acpi_get_gpio() - Translate ACPI GPIO pin to GPIO number usable with GPIO API
-> + * @path:      ACPI GPIO controller full path name, (e.g. "\\_SB.GPO1")
-> + * @pin:       ACPI GPIO pin number (0-based, controller-relative)
-> + *
-> + * Returns GPIO number to use with Linux generic GPIO API, or errno error value
-> + */
-> +
-> +int acpi_get_gpio(char *path, int pin)
-> +{
-> +       struct gpio_chip *chip;
-> +       acpi_handle handle;
-> +       acpi_status status;
-> +
-> +       status = acpi_get_handle(NULL, path, &handle);
-> +       if (ACPI_FAILURE(status))
-> +               return -ENODEV;
-> +
-> +       chip = gpiochip_find(handle, acpi_gpiochip_find);
-> +       if (!chip)
-> +               return -ENODEV;
-> +
-> +       if (!gpio_is_valid(chip->base + pin))
-> +               return -EINVAL;
-> +
-> +       return chip->base + pin;
-> +}
-> +EXPORT_SYMBOL(acpi_get_gpio);
-> diff --git a/include/linux/acpi_gpio.h b/include/linux/acpi_gpio.h
-> new file mode 100644
-> index 0000000..e025664
-> --- /dev/null
-> +++ b/include/linux/acpi_gpio.h
-> @@ -0,0 +1,19 @@
-> +#ifndef _LINUX_ACPI_GPIO_H_
-> +#define _LINUX_ACPI_GPIO_H_
-> +
-> +#include <linux/errno.h>
-> +
-> +#ifdef CONFIG_ACPI_GPIO
-> +
-> +int acpi_get_gpio(char *path, int pin);
-> +
-> +#else /* CONFIG_ACPI_GPIO */
-> +
-> +static inline int acpi_get_gpio(char *path, int pin)
-> +{
-> +       return -ENODEV;
-> +}
-> +
-> +#endif /* CONFIG_ACPI_GPIO */
-> +
-> +#endif /* _LINUX_ACPI_GPIO_H_ */
-> --
-> 1.7.10.4
->
-
-
-
--- 
-Grant Likely, B.Sc., P.Eng.
-Secret Lab Technologies Ltd.
+g.
