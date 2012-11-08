@@ -1,61 +1,61 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 2/3] spi / ACPI: add ACPI enumeration support
-Date: Thu, 8 Nov 2012 18:05:23 +0000
-Message-ID: <CACxGe6sUXWLZVBpD1we_ZAXA7wvMg72DQpyCw5f+E8c5_ox++w@mail.gmail.com>
-References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com>
- <CAErSpo44pWUJmRAP6eR9T+2WvO5hJPFOC=Nn-WPXDtCY0v0EDw@mail.gmail.com>
- <1996776.cC14CHafyR@vostro.rjw.lan> <2584820.Vd5p0uzRAK@vostro.rjw.lan> <20121107095842.GY24532@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:53959 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755643Ab2KHSFo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Nov 2012 13:05:44 -0500
-Received: by mail-pb0-f46.google.com with SMTP id rr4so2213950pbb.19
-        for <linux-acpi@vger.kernel.org>; Thu, 08 Nov 2012 10:05:44 -0800 (PST)
-In-Reply-To: <20121107095842.GY24532@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
+Subject: [RFC PATCH 0/3] acpi: Introduce prepare_remove device operation
+Date: Thu,  8 Nov 2012 19:29:28 +0100
+Message-ID: <1352399371-8015-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com
+Cc: rjw@sisk.pl, wency@cn.fujitsu.com, lenb@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-mm@kvack.org, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, linus.walleij@linaro.org, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
 
-On Wed, Nov 7, 2012 at 9:58 AM, Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
-> On Tue, Nov 06, 2012 at 11:36:08PM +0100, Rafael J. Wysocki wrote:
->> >
->> > OK, but then we need to pass the information obtained from _CRS
->> > (presumably after some adjustments through _SRS) to drivers, or rather to
->> > things like the SPI core, I2C core etc. so that they can create device
->> > objects for drivers to bind to and quite frankly I don't see why not to use
->> > ACPI resources for that.
->>
->> Nevertheless, the routines for parsing those resources should belong
->> to the ACPI core, mostly to avoid code duplication.
->
-> Rafael,
->
-> So is the idea now that the ACPI core parses the resources and passes them
-> forward via struct acpi_device? I'm just wondering how to proceed with
-> these I2C and SPI enumeration patches.
+As discussed in
+https://patchwork.kernel.org/patch/1581581/
+the driver core remove function needs to always succeed. This means we need
+to know that the device can be successfully removed before acpi_bus_trim / 
+acpi_bus_hot_remove_device are called. This can cause panics when OSPM-initiated
+eject (echo 1 > /sys/bus/acpi/devices/PNP/eject) of memory devices fails, since
+the ACPI core goes ahead and ejects the device regardless of whether the memory
+is still in use or not.
 
->From my experience with device tree, that seems the wrong way around.
-Device Tree used to have a separate "of_device" which is analogous to
-an acpi_device. The problem was always that of_devices never fit into
-the view that Linux has of the system. That would mean having both an
-of_device and and spi_device in completely separate parts of the
-driver model tree to support an spi device. Same for platform, i2c and
-onewire and others. Blech.
+For this reason a new acpi_device operation called prepare_remove is introduced.
+This operation should be registered for acpi devices whose removal (from kernel
+perspective) can fail.  Memory devices fall in this category.
 
-So, yes I agree that ACPI core should have the tools for parsing the
-resources, but it makes sense for those functions to be helpers that
-the spi core acpi support and the i2c core acpi support use to
-populate the native spi_device and i2c_client structures. Plus
-individual drivers can call the same functions if (and only if) the
-needed resources cannot fit into the bus type's native format.
+acpi_bus_hot_remove_device is changed to handle removal in 2 steps:
+- preparation for removal i.e. perform part of removal that can fail outside of
+  ACPI core. Should succeed for device and all its children.
+- if above step was successfull, proceed to actual ACPI removal
 
-We really could also use more common code between bus types for
-storing various kinds of resources, but that's a separate issue and
-doesn't affect this discussion.
+acpi_bus_trim is changed accordingly to handle preparation for removal and
+actual removal.
 
-g.
+With this patchset, only acpi memory devices use the new prepare_remove
+device operation. The actual memory removal (VM-related offline and other memory
+cleanups) is moved to prepare_remove. The old remove operation just cleans up
+the acpi structures. Directly ejecting PNP0C80 memory devices works safely. I
+haven't tested yet with an ACPI container which contains memory devices.
+
+Other ACPI devices (e.g. CPU) do not register prepare_remove callbacks, and
+their OSPM-side eject should not be affected.
+
+I am not happy with the name prepare_remove. Comments welcome. Let me know if I
+should work more in this direction (I think Yasuaki might also look into this
+and might have a simpler idea)
+
+Patches are on top of Rafael's linux-pm/linux-next
+
+Vasilis Liaskovitis (3):
+  acpi: Introduce prepare_remove operation in acpi_device_ops
+  acpi: Make acpi_bus_trim handle device removal preparation
+  acpi_memhotplug: Add prepare_remove operation
+
+ drivers/acpi/acpi_memhotplug.c     |   24 +++++++++++++++++++++---
+ drivers/acpi/dock.c                |    2 +-
+ drivers/acpi/scan.c                |   32 +++++++++++++++++++++++++++++---
+ drivers/pci/hotplug/acpiphp_glue.c |    4 ++--
+ drivers/pci/hotplug/sgi_hotplug.c  |    2 +-
+ include/acpi/acpi_bus.h            |    4 +++-
+ 6 files changed, 57 insertions(+), 11 deletions(-)
+
+-- 
+1.7.9
