@@ -1,44 +1,119 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: [PATCH 2/2] acpi: add function to check if poweroff is possible
-Date: Fri,  9 Nov 2012 09:54:56 +0800
-Message-ID: <1352426096-15116-3-git-send-email-aaron.lu@intel.com>
-References: <1352426096-15116-1-git-send-email-aaron.lu@intel.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH 2/3] spi / ACPI: add ACPI enumeration support
+Date: Fri, 9 Nov 2012 05:50:42 +0200
+Message-ID: <20121109035042.GF16012@intel.com>
+References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1351928793-14375-3-git-send-email-mika.westerberg@linux.intel.com>
+ <CACxGe6urWvrLUy_fkC6hA6go7p2GdoxSOO13c0aYe+0rNWwJ9Q@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:54338 "EHLO mga09.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:40795 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757259Ab2KIBzI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 8 Nov 2012 20:55:08 -0500
-In-Reply-To: <1352426096-15116-1-git-send-email-aaron.lu@intel.com>
+	id S1750967Ab2KIDrd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 8 Nov 2012 22:47:33 -0500
+Content-Disposition: inline
+In-Reply-To: <CACxGe6urWvrLUy_fkC6hA6go7p2GdoxSOO13c0aYe+0rNWwJ9Q@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, linus.walleij@linaro.org, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
 
->From ACPI's perspective, a device is powered off if we put it into D3
-cold power state. This wrapper inline function can be used to check if
-firmware has provided us a way to power off the device during runtime.
+On Thu, Nov 08, 2012 at 06:48:05PM +0000, Grant Likely wrote:
+> On Sat, Nov 3, 2012 at 7:46 AM, Mika Westerberg
+> <mika.westerberg@linux.intel.com> wrote:
+> > ACPI 5 introduced SPISerialBus resource that allows us to enumerate and
+> > configure the SPI slave devices behind the SPI controller. This patch adds
+> > support for this to the SPI core.
+> >
+> > In addition we bind ACPI nodes to SPI devices. This makes it possible for
+> > the slave drivers to get the ACPI handle for further configuration.
+> >
+> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> > Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > ---
+> >  drivers/spi/spi.c |  231 ++++++++++++++++++++++++++++++++++++++++++++++++++++-
+> >  1 file changed, 230 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
+> > index 84c2861..de22a6e 100644
+> > --- a/drivers/spi/spi.c
+> > +++ b/drivers/spi/spi.c
+> > @@ -35,6 +35,7 @@
+> >  #include <linux/sched.h>
+> >  #include <linux/delay.h>
+> >  #include <linux/kthread.h>
+> > +#include <linux/acpi.h>
+> >
+> >  static void spidev_release(struct device *dev)
+> >  {
+> > @@ -93,6 +94,10 @@ static int spi_match_device(struct device *dev, struct device_driver *drv)
+> >         if (of_driver_match_device(dev, drv))
+> >                 return 1;
+> >
+> > +       /* Then try ACPI */
+> > +       if (acpi_driver_match_device(dev, drv))
+> > +               return 1;
+> > +
+> >         if (sdrv->id_table)
+> >                 return !!spi_match_id(sdrv->id_table, spi);
+> >
+> > @@ -888,6 +893,227 @@ static void of_register_spi_devices(struct spi_master *master)
+> >  static void of_register_spi_devices(struct spi_master *master) { }
+> >  #endif
+> >
+> > +#ifdef CONFIG_ACPI
+> > +struct acpi_spi {
+> > +       acpi_status (*callback)(struct acpi_device *, void *);
+> > +       void *data;
+> > +};
+> > +
+> > +static acpi_status acpi_spi_enumerate_device(acpi_handle handle, u32 level,
+> > +                                            void *data, void **return_value)
+> > +{
+> > +       struct acpi_spi *acpi_spi = data;
+> > +       struct acpi_device *adev;
+> > +
+> > +       if (acpi_bus_get_device(handle, &adev))
+> > +               return AE_OK;
+> > +       if (acpi_bus_get_status(adev) || !adev->status.present)
+> > +               return AE_OK;
+> > +
+> > +       return acpi_spi->callback(adev, acpi_spi->data);
+> > +}
+> > +
+> > +static acpi_status acpi_spi_enumerate(acpi_handle handle,
+> > +       acpi_status (*callback)(struct acpi_device *, void *), void *data)
+> > +{
+> > +       struct acpi_spi acpi_spi;
+> > +
+> > +       acpi_spi.callback = callback;
+> > +       acpi_spi.data = data;
+> > +
+> > +       return acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, 1,
+> > +                                  acpi_spi_enumerate_device, NULL,
+> > +                                  &acpi_spi, NULL);
+> > +}
+> 
+> >From my reading of this, the block causes 2 levels of callback
+> indirection. First to either acpi_spi_find_child or
+> acpi_spi_add_device and second to acpi_spi_enumerate_device. All to
+> share about 4 lines of code in acpi_spi_enumerate_device. It took me a
+> while to unravel it. I think acpi_spi_find_child and
+> acpi_spi_add_device should be passed directly to acpi_walk_namespace.
+> Is there anything that prevents that?
 
-Signed-off-by: Aaron Lu <aaron.lu@intel.com>
----
- include/acpi/acpi_bus.h | 5 +++++
- 1 file changed, 5 insertions(+)
+No, I'll fix that up in the next version of the series.
 
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 7d20617..932977a 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -496,6 +496,11 @@ static inline bool acpi_device_can_wakeup(struct acpi_device *adev)
- 	return adev->wakeup.flags.valid;
- }
- 
-+static inline bool acpi_device_can_poweroff(struct acpi_device *adev)
-+{
-+	return adev->power.states[ACPI_STATE_D3_COLD].flags.swset;
-+}
-+
- #else	/* CONFIG_ACPI */
- 
- static inline int register_acpi_bus_type(void *bus) { return 0; }
--- 
-1.7.12.4
+> I also agree with the discussion that the actual parsing code for the
+> resources should be common,. Retrieving things like IRQs and address
+> resources should be function calls into ACPI helpers instead of open
+> coding it in the spi core code.
 
+We are working on that and I'm hoping the second version will use the
+resources as provided by the ACPI core instead of calling _CRS directly
+here.
+
+> Otherwise the patch looks sane to me.
+
+Thanks.
