@@ -1,118 +1,104 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: [PATCH v9 07/10] block: add a new interface to block events
-Date: Fri,  9 Nov 2012 14:51:59 +0800
-Message-ID: <1352443922-13734-8-git-send-email-aaron.lu@intel.com>
-References: <1352443922-13734-1-git-send-email-aaron.lu@intel.com>
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1352443922-13734-1-git-send-email-aaron.lu@intel.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Jeff Garzik <jgarzik@pobox.com>, James Bottomley <James.Bottomley@hansenpartnership.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Tejun Heo <tj@kernel.org>
-Cc: Jeff Wu <jeff.wu@amd.com>, Aaron Lu <aaron.lwe@gmail.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>
+From: Feng Tang <feng.tang@intel.com>
+Subject: Re: ACPI errors with 3.7-rc3
+Date: Fri, 9 Nov 2012 17:28:51 +0800
+Message-ID: <20121109092851.GA9179@feng-snb>
+References: <20121031014527.GA2984@kroah.com>
+ <CAAW1UO9BtAU5jpy=MqgFCwwXn3Gb8HA3m7FMktmQkYGqYrS0Rw@mail.gmail.com>
+ <20121106124826.GA21806@kroah.com>
+ <41011456.LYWJPCi9Xt@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:44051 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751834Ab2KIJ3X (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 9 Nov 2012 04:29:23 -0500
+Content-Disposition: inline
+In-Reply-To: <41011456.LYWJPCi9Xt@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Greg KH <gregkh@linuxfoundation.org>, Azat Khuzhin <dohardgopro@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-A new interface to block disk events is added, this interface is
-meant to eliminate a race between PM runtime callback and disk events
-checking.
+On Thu, Nov 08, 2012 at 05:49:40AM +0800, Rafael J. Wysocki wrote:
+> On Tuesday, November 06, 2012 01:48:26 PM Greg KH wrote:
+> > On Tue, Nov 06, 2012 at 04:42:24PM +0400, Azat Khuzhin wrote:
+> > > I'v also have such errors on my macbook pro.
+> > > 
+> > > $ dmesg | tail
+> > > [17056.008564] ACPI Error: Method parse/execution failed
+> > > [\_SB_.PCI0.LPCB.EC__.SMB0.SBRW] (Node ffff88026547ea10), AE_TIME
+> > > (20120711/psparse-536)
+> > > [17056.011194] ACPI Error: Method parse/execution failed
+> > > [\_SB_.BAT0.UBST] (Node ffff88026547e678), AE_TIME
+> > > (20120711/psparse-536)
+> > > [17056.013793] ACPI Error: Method parse/execution failed
+> > > [\_SB_.BAT0._BST] (Node ffff88026547e740), AE_TIME
+> > > (20120711/psparse-536)
+> > > [17056.016383] ACPI Exception: AE_TIME, Evaluating _BST (20120711/battery-464)
+> > > [17056.511373] ACPI: EC: input buffer is not empty, aborting transaction
+> > > [17056.512672] ACPI Exception: AE_TIME, Returned by Handler for
+> > > [EmbeddedControl] (20120711/evregion-501)
+> > > [17056.515256] ACPI Error: Method parse/execution failed
+> > > [\_SB_.PCI0.LPCB.EC__.SMB0.SBRW] (Node ffff88026547ea10), AE_TIME
+> > > (20120711/psparse-536)
+> > > [17056.517886] ACPI Error: Method parse/execution failed
+> > > [\_SB_.BAT0.UBST] (Node ffff88026547e678), AE_TIME
+> > > (20120711/psparse-536)
+> > > [17056.520479] ACPI Error: Method parse/execution failed
+> > > [\_SB_.BAT0._BST] (Node ffff88026547e740), AE_TIME
+> > > (20120711/psparse-536)
+> > > [17056.523070] ACPI Exception: AE_TIME, Evaluating _BST (20120711/battery-464)
+> > 
+> > I'm seeing this again right now.  I'm wondering if it's because I'm
+> > running on battery power at the moment:
+> > 
+> > [41694.309264] ACPI Exception: AE_TIME, Returned by Handler for [EmbeddedControl] (20120913/evregion-501)
+> > [41694.309282] ACPI Error: Method parse/execution failed [\_SB_.PCI0.LPCB.EC__.SMB0.SBRW] (Node ffff88045cc64618), AE_TIME (20120913/psparse-536)
+> > [41694.309300] ACPI Error: Method parse/execution failed [\_SB_.BAT0.UBST] (Node ffff88045cc64988), AE_TIME (20120913/psparse-536)
+> > [41694.309310] ACPI Error: Method parse/execution failed [\_SB_.BAT0._BST] (Node ffff88045cc648c0), AE_TIME (20120913/psparse-536)
+> > [41694.309324] ACPI Exception: AE_TIME, Evaluating _BST (20120913/battery-464)
+> > [41694.809093] ACPI: EC: input buffer is not empty, aborting transaction
+> > 
+> > ec_storm_threshold is still set to 8 in /sys/module/acpi/parameters/ so that's
+> > not the issue here.
+> > 
+> > > And also loadavg is too high ~ 10
+> > > While there is no process that load CPU up to 100% or like that.
+> > > I think that this because of processes that is done in kernel space.
+> > > (basically that one who write such errors)
+> > > 
+> > > $ uname -a
+> > > Linux macbook-pro-sq 3.6.5macbook-pro-custom-v0.1 #4 SMP Sun Nov 4
+> > > 12:39:03 UTC 2012 x86_64 GNU/Linux
+> > 
+> > Ah, ok, that means it's not something new in 3.7-rc, so maybe it's just never
+> > worked properly for this hardware :)
+> > 
+> > So it's not a regression, just an ACPI issue, any ACPI developer have an idea
+> > about this?
+> 
+> Can you please send the output of acpidump from the affected machine(s)?
 
-Suppose the following device tree:
-device_sata_port  (the parent)
-  device_ODD      (the child)
+I doubt this problem is sometimes inevitable for some machines, because
+AFAIK most modern machines have the race problem for EC HW controller, 
+as both OS side and the BIOS may access the EC HW at the same time
+without any race control.   
 
-When ODD is runtime suspended, sata port will have a chance to enter
-runtime suspended state. And in sata port's runtime suspend callback,
-it will check if it is OK to omit the power of the ODD. And if yes, the
-periodically running events checking work will be stopped, as the ODD
-will be waken up by that check and cancel it can make the ODD stay in
-zero power state much longer(no worry about how the ODD gets media
-change event in ZPODD's case).
+For this case, usually the battery and thermal modules (which may be
+controlled through EC) are always monitored by BIOS, when OS also
+frequently visit them too, the EC's own state machine may be broken
+and not responsive due to the race, then cause the timeout error. 
+And how severe the problem will be depends on the EC HW, the quality
+of BIOS code and OS/driver code. 
 
-I used disk_block_events to do the events blocking, but there is a race
-and can lead to a deadlock: when I call disk_block_events in sata port's
-runtime suspend callback, the events checking work may already be running
-and it will resume the ODD synchronously, and PM core will try to resume
-its parent, the sata port first. The PM core makes sure that runtime
-resume callback does not run concurrently with runtime suspend callback,
-and if the runtime suspend callback is running, the runtime resume
-callback will wait for it done. So the events checking work will wait
-for sata port's runtime suspend callback, while the sata port's runtime
-suspend callback is waiting for the disk events work to finish. Deadlock.
+Myself have seen the similar "ACPI: EC: input buffer is not empty,
+aborting transaction" error message on one laptop when its EC is
+busy visited by OS.
 
-ODD_suspend                        disk_events_workfn
-  ata_port_suspend                   check_events
-    disk_block_events                  resume ODD
-      cancel_delayed_work_sync           resume parent
-      (waiting for disk_events_workfn)   (waiting for suspend callback)
+btw, in EC driver I see a "ec->global_lock", don't know if it was
+designed to control the race between OS and BIOS.
 
-So a new function disk_try_block_events is added, it will try to
-cancel the delayed work if it is pending. If succeed, disk_block_events
-will be called and we are done; if failed, false is returned without
-doing anything. In this way, the race can be avoided.
-
-The newly added interface and the disk_unblock_events are exported, as
-sr driver will need to use them to block/unblock disk events.
-
-Signed-off-by: Aaron Lu <aaron.lu@intel.com>
----
- block/genhd.c         | 26 ++++++++++++++++++++++++++
- include/linux/genhd.h |  1 +
- 2 files changed, 27 insertions(+)
-
-diff --git a/block/genhd.c b/block/genhd.c
-index 6cace66..8632fd3 100644
---- a/block/genhd.c
-+++ b/block/genhd.c
-@@ -1469,6 +1469,31 @@ void disk_block_events(struct gendisk *disk)
- 	mutex_unlock(&ev->block_mutex);
- }
- 
-+/*
-+ * Under some circumstances, there is a race between the calling thread
-+ * of disk_block_events and the events checking function. To avoid such a race,
-+ * this function will check if the delayed work is pending. If not, it means
-+ * the work is either not queued or is already running, false is returned.
-+ * And if yes, try to cancel the delayed work. If succedded, disk_block_events
-+ * will be called and there is no worry that cancel_delayed_work_sync will
-+ * deadlock the events checking function. And if failed, false is returned.
-+ */
-+bool disk_try_block_events(struct gendisk *disk)
-+{
-+	struct disk_events *ev = disk->ev;
-+
-+	if (!ev)
-+		return false;
-+
-+	if (cancel_delayed_work(&disk->ev->dwork)) {
-+		disk_block_events(disk);
-+		return true;
-+	}
-+
-+	return false;
-+}
-+EXPORT_SYMBOL(disk_try_block_events);
-+
- static void __disk_unblock_events(struct gendisk *disk, bool check_now)
- {
- 	struct disk_events *ev = disk->ev;
-@@ -1512,6 +1537,7 @@ void disk_unblock_events(struct gendisk *disk)
- 	if (disk->ev)
- 		__disk_unblock_events(disk, false);
- }
-+EXPORT_SYMBOL(disk_unblock_events);
- 
- /**
-  * disk_flush_events - schedule immediate event checking and flushing
-diff --git a/include/linux/genhd.h b/include/linux/genhd.h
-index 4f440b3..b67247f 100644
---- a/include/linux/genhd.h
-+++ b/include/linux/genhd.h
-@@ -420,6 +420,7 @@ static inline int get_disk_ro(struct gendisk *disk)
- }
- 
- extern void disk_block_events(struct gendisk *disk);
-+extern bool disk_try_block_events(struct gendisk *disk);
- extern void disk_unblock_events(struct gendisk *disk);
- extern void disk_flush_events(struct gendisk *disk, unsigned int mask);
- extern unsigned int disk_clear_events(struct gendisk *disk, unsigned int mask);
--- 
-1.7.12.4
+Thanks,
+Feng
 
