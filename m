@@ -1,90 +1,45 @@
-From: Mathias Nyman <mathias.nyman@linux.intel.com>
-Subject: Re: [PATCH 1/3] gpio / ACPI: add ACPI support
-Date: Fri, 09 Nov 2012 17:05:41 +0200
-Message-ID: <509D1BC5.7020208@linux.intel.com>
-References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com> <1351928793-14375-2-git-send-email-mika.westerberg@linux.intel.com> <CACxGe6tVcqoSg03JtcTdLP5GakyKM-24D8uK2mQj+1iiSE8Yog@mail.gmail.com> <20121108193808.GB16012@intel.com> <509D0F1F.70001@linux.intel.com> <CACxGe6sgNEqEhiXC_EoBuAg+QaaRis_4eRb7s5k0MKtfZF-3dA@mail.gmail.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH 2/3] spi / ACPI: add ACPI enumeration support
+Date: Fri, 9 Nov 2012 08:11:13 -0700
+Message-ID: <CAErSpo7WT21rZ10vx9A4d8VtVaJB7FLeJqVAxKmZrZDy01FPZQ@mail.gmail.com>
+References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com>
+ <3455360.Z6cZSC3BtR@vostro.rjw.lan> <CAErSpo5xEO4M_Fb0dJ6w7Qxck-0RcKKwQjKj1QZgFxhof7X5Rw@mail.gmail.com>
+ <1523215.Pon1eKPQDb@vostro.rjw.lan> <20121107095608.GX24532@intel.com>
+ <CAErSpo5My6+ypp9zsxR8vh8k1px0otOWfAcacWaLNs2xjsc7UA@mail.gmail.com> <20121108200445.GC16012@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CACxGe6sgNEqEhiXC_EoBuAg+QaaRis_4eRb7s5k0MKtfZF-3dA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, linus.walleij@linaro.org, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:34097 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753879Ab2KIPLg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Nov 2012 10:11:36 -0500
+Received: by mail-wi0-f170.google.com with SMTP id hm9so670480wib.1
+        for <linux-acpi@vger.kernel.org>; Fri, 09 Nov 2012 07:11:34 -0800 (PST)
+In-Reply-To: <20121108200445.GC16012@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>
 
-On 11/09/2012 04:18 PM, Grant Likely wrote:
-> On Fri, Nov 9, 2012 at 2:11 PM, Mathias Nyman
-> <mathias.nyman@linux.intel.com>  wrote:
->> On 11/08/2012 09:38 PM, Mika Westerberg wrote:
->> ...
->>
->>>>> +#include<linux/errno.h>
->>>>> +#include<linux/gpio.h>
->>>>> +#include<linux/module.h>
->>>>> +#include<linux/acpi_gpio.h>
->>>>> +#include<linux/acpi.h>
->>>>> +
->>>>> +static int acpi_gpiochip_find(struct gpio_chip *gc, void *data)
->>>>> +{
->>>>> +       acpi_handle handle = data;
->>>>> +       acpi_handle gc_handle;
->>>>> +
->>>>> +       if (!gc->dev)
->>>>> +               return false;
->>>>> +
->>>>> +       gc_handle = gc->dev->acpi_handle;
->>>>> +       if (!gc_handle)
->>>>> +               return false;
->>>>
->>>>
->>>> This test is redundant with the next one... unless 'handle' is also NULL
->>>> :-)
->>>>
->>>> Is it at all possible for multiple gpiochips to be used for a single
->>>> ACPI gpio controller node? Such as if the gpio controller has multiple
->>>> banks that should be controlled separately? If so then this won't be
->>>> sufficient. I've got the same issue with DT support where the find
->>>> function needs to also check if the pin is provided by that specific
->>>> gpiochip.
->>>
->>>
->>> AFAIK no but I'll let Mathias to answer that as he knows this better.
->>
->>
->> I'm interpreting it the same way as Mika, max one actual controller per ACPI
->> device node
->>
->> The path (called ResourceSource in ACPI5 specs) in GpioIO/GpioInt resources
->> is a "string which uniquely identifies the GPIO controller referred to by
->> this descriptor."  The pin number is zero based controller relative.
->>
->> The  ACPI device controller node includes all other resources needed by the
->> controller driver (ioport/mem base, range, interrupt, and Hardware ID used
->> to pair with a driver)
->>
->> Checked a board with two identical gpio controllers on it and it had two
->> separate ACPI device node entries. (with only different io address base and
->> interrupt resources)
+[+cc Greg, Peter, Tony since they acked the original patch [1]]
+
+On Thu, Nov 8, 2012 at 1:04 PM, Mika Westerberg
+<mika.westerberg@linux.intel.com> wrote:
+> On Thu, Nov 08, 2012 at 12:32:25PM -0700, Bjorn Helgaas wrote:
+>> Struct device_driver is a generic structure, so it seems strange to
+>> have to include non-generic things like of_device_id and now
+>> acpi_match_table there.
 >
-> That's not really the situation that I'm thinking about. What I mean
-> is for a gpio controller that is more convenient for Linux to support
-> using multiple gpiochips (Linux internal detail), even though there it
-> is described with a single ACPI node.
->
+> Yes, but in a sense the DT and ACPI are "generic". So that they are used to
+> describe the configuration of a machine.
 
-Ok, now I get it.
+What I meant by "generic" was "useful across all architectures."  The
+new acpi_match_table and acpi_handle fields [1] are not generic in
+that sense because they're present on all architectures but used only
+on x86 and ia64.  The existing of_match_table and of_node are
+similarly unused on many architectures.  This doesn't seem like a
+scalable strategy to me.  Are we going to add a pnpbios_node for x86
+PNPBIOS machines without ACPI, a pdc_hpa for parisc machines with PDC,
+etc.?
 
-Yes, in case a driver uses several gpiochips internally for different 
-banks of a controller then all would have the same acpi_handle.
-acpi_get_gpio() would use the gpiobase of the first gpiochip that 
-matches the handle, even if it's the wrong one.
-
-I guess It's possible to write a driver like that.
-The only acpi enumerated driver with the acpi_handle set (soon coming to 
-upstream) is not done like that.
-
-Do you think this is a case that should be solved now?  or just expect 
-acpi gpio device driver to not use several gpiochips in one driver?
-
--Mathias
+[1] https://patchwork.kernel.org/patch/1677221/
