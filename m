@@ -1,131 +1,134 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH 3/3] i2c / ACPI: add ACPI enumeration support
-Date: Fri, 9 Nov 2012 05:51:34 +0200
-Message-ID: <20121109035134.GG16012@intel.com>
-References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com>
- <1351928793-14375-4-git-send-email-mika.westerberg@linux.intel.com>
- <CACxGe6vgKrqu9UwDc3gytMWpODhV4Q6yezQRwQmg730BpBxXrA@mail.gmail.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH 1/4] thermal: Add new thermal trend type to support
+ quick cooling
+Date: Fri, 09 Nov 2012 11:51:00 +0800
+Message-ID: <1352433060.2166.3.camel@rzhang1-mobl4>
+References: <1352348786-24255-1-git-send-email-amit.kachhap@linaro.org>
+	 <1352348786-24255-2-git-send-email-amit.kachhap@linaro.org>
+	 <1352354503.2190.7.camel@rzhang1-mobl4>
+	 <CAK44p22REJpaJiahX7sTofShNB-+OHVsULqHeuxFNu5msLk6vA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:23434 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751365Ab2KIDsZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 8 Nov 2012 22:48:25 -0500
-Content-Disposition: inline
-In-Reply-To: <CACxGe6vgKrqu9UwDc3gytMWpODhV4Q6yezQRwQmg730BpBxXrA@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <CAK44p22REJpaJiahX7sTofShNB-+OHVsULqHeuxFNu5msLk6vA@mail.gmail.com>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Amit Kachhap <amit.kachhap@linaro.org>
+Cc: linux-pm@lists.linux-foundation.org, linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org, durgadoss.r@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, jonghwa3.lee@samsung.com
 List-Id: linux-acpi@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, linus.walleij@linaro.org, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
 
-On Thu, Nov 08, 2012 at 06:58:47PM +0000, Grant Likely wrote:
-> On Sat, Nov 3, 2012 at 7:46 AM, Mika Westerberg
-> <mika.westerberg@linux.intel.com> wrote:
-> > ACPI 5 introduced I2cSerialBus resource that makes it possible to enumerate
-> > and configure the I2C slave devices behind the I2C controller. This patch
-> > adds helper functions to support I2C slave enumeration.
+On Thu, 2012-11-08 at 11:56 +0530, Amit Kachhap wrote:
+> On 8 November 2012 11:31, Zhang Rui <rui.zhang@intel.com> wrote:
+> > On Thu, 2012-11-08 at 09:56 +0530, Amit Daniel Kachhap wrote:
+> >> This modification adds 2 new thermal trend type THERMAL_TREND_RAISE_FULL
+> >> and THERMAL_TREND_DROP_FULL. This thermal trend can be used to quickly
+> >> jump to the upper or lower cooling level instead of incremental increase
+> >> or decrease.
 > >
-> > An ACPI enabled I2C controller driver only needs to call acpi_i2c_register_devices()
-> > in order to get its slave devices enumerated, created and bound to the
-> > corresponding ACPI handle.
+> > IMO, what we need is a new more aggressive cooling governor which always
+> > uses upper limit when the temperature is raising and lower limit when
+> > the temperature is dropping.
+> Yes I agree that a new aggressive governor is the best approach but
+> then i thought adding a new trend type is a simple solution to achieve
+> this and since most of the governor logic might be same as the
+> step-wise governor. I have no objection in doing it through governor.
 > >
-> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> > Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > ---
-> >  drivers/acpi/Kconfig     |    6 ++
-> >  drivers/acpi/Makefile    |    1 +
-> >  drivers/acpi/acpi_i2c.c  |  234 ++++++++++++++++++++++++++++++++++++++++++++++
-> >  drivers/i2c/i2c-core.c   |    9 ++
-> >  include/linux/acpi_i2c.h |   29 ++++++
-> >  5 files changed, 279 insertions(+)
-> >  create mode 100644 drivers/acpi/acpi_i2c.c
-> >  create mode 100644 include/linux/acpi_i2c.h
-> >
-> > diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> > index 119d58d..0300bf6 100644
-> > --- a/drivers/acpi/Kconfig
-> > +++ b/drivers/acpi/Kconfig
-> > @@ -181,6 +181,12 @@ config ACPI_DOCK
-> >           This driver supports ACPI-controlled docking stations and removable
-> >           drive bays such as the IBM Ultrabay and the Dell Module Bay.
-> >
-> > +config ACPI_I2C
-> > +       def_tristate I2C
-> > +       depends on I2C
-> > +       help
-> > +         ACPI I2C enumeration support.
-> > +
-> >  config ACPI_PROCESSOR
-> >         tristate "Processor"
-> >         select THERMAL
-> > diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> > index a7badb5..8573346 100644
-> > --- a/drivers/acpi/Makefile
-> > +++ b/drivers/acpi/Makefile
-> > @@ -69,6 +69,7 @@ obj-$(CONFIG_ACPI_HED)                += hed.o
-> >  obj-$(CONFIG_ACPI_EC_DEBUGFS)  += ec_sys.o
-> >  obj-$(CONFIG_ACPI_CUSTOM_METHOD)+= custom_method.o
-> >  obj-$(CONFIG_ACPI_BGRT)                += bgrt.o
-> > +obj-$(CONFIG_ACPI_I2C)         += acpi_i2c.o
-> >
-> >  # processor has its own "processor." module_param namespace
-> >  processor-y                    := processor_driver.o processor_throttling.o
-> > diff --git a/drivers/acpi/acpi_i2c.c b/drivers/acpi/acpi_i2c.c
-> > new file mode 100644
-> > index 0000000..dc6997e
-> > --- /dev/null
-> > +++ b/drivers/acpi/acpi_i2c.c
-> > @@ -0,0 +1,234 @@
-> > +/*
-> > + * ACPI I2C enumeration support
-> > + *
-> > + * Copyright (C) 2012, Intel Corporation
-> > + * Author: Mika Westerberg <mika.westerberg@linux.intel.com>
-> > + *
-> > + * This program is free software; you can redistribute it and/or modify
-> > + * it under the terms of the GNU General Public License version 2 as
-> > + * published by the Free Software Foundation.
-> > + */
-> > +
-> > +#include <linux/acpi.h>
-> > +#include <linux/i2c.h>
-> > +#include <linux/module.h>
-> > +
-> > +struct acpi_i2c {
-> > +       acpi_status (*callback)(struct acpi_device *, void *);
-> > +       void *data;
-> > +};
-> > +
-> > +static acpi_status acpi_i2c_enumerate_device(acpi_handle handle, u32 level,
-> > +                                            void *data, void **return_value)
-> > +{
-> > +       struct acpi_i2c *acpi_i2c = data;
-> > +       struct acpi_device *adev;
-> > +
-> > +       if (acpi_bus_get_device(handle, &adev))
-> > +               return AE_OK;
-> > +       if (acpi_bus_get_status(adev) || !adev->status.present)
-> > +               return AE_OK;
-> > +
-> > +       return acpi_i2c->callback(adev, acpi_i2c->data);
-> > +}
-> > +
-> > +static acpi_status acpi_i2c_enumerate(acpi_handle handle,
-> > +       acpi_status (*callback)(struct acpi_device *, void *), void *data)
-> > +{
-> > +       struct acpi_i2c acpi_i2c;
-> > +
-> > +       acpi_i2c.callback = callback;
-> > +       acpi_i2c.data = data;
-> > +
-> > +       return acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, 1,
-> > +                                  acpi_i2c_enumerate_device, NULL,
-> > +                                  &acpi_i2c, NULL);
-> > +}
-> 
-> Same comment here as for the SPI patch. The two levels of indirection
-> is more convoluted than it needs to be. Can acpi_i2c_find_client and
-> acpi_i2c_add_device be passed directly to acpi_walk_namespace?
+hmmm,
+I think a more proper way is to set the cooling state to upper limit
+when it overheats and reduce the cooling state step by step when the
+temperature drops.
+what do you think?
 
-Yes they can, I'll do that in the next version. Thanks.
+thanks,
+rui
+
+> > I can write such a governor if you do not have time to.
+> ok. thanks
+> >
+> > thanks,
+> > rui
+> >>  This is needed for temperature sensors which support rising/falling
+> >> threshold interrupts and polling can be totally avoided.
+> >>
+> >
+> >
+> >> Signed-off-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
+> >> Signed-off-by: Amit Daniel Kachhap <amit.kachhap@linaro.org>
+> >> ---
+> >>  drivers/thermal/step_wise.c |   19 +++++++++++++++----
+> >>  include/linux/thermal.h     |    2 ++
+> >>  2 files changed, 17 insertions(+), 4 deletions(-)
+> >>
+> >> diff --git a/drivers/thermal/step_wise.c b/drivers/thermal/step_wise.c
+> >> index 1242cff..0d2d8d6 100644
+> >> --- a/drivers/thermal/step_wise.c
+> >> +++ b/drivers/thermal/step_wise.c
+> >> @@ -35,6 +35,10 @@
+> >>   *       state for this trip point
+> >>   *    b. if the trend is THERMAL_TREND_DROPPING, use lower cooling
+> >>   *       state for this trip point
+> >> + *    c. if the trend is THERMAL_TREND_RAISE_FULL, use highest cooling
+> >> + *       state for this trip point
+> >> + *    d. if the trend is THERMAL_TREND_DROP_FULL, use lowest cooling
+> >> + *       state for this trip point
+> >>   */
+> >>  static unsigned long get_target_state(struct thermal_instance *instance,
+> >>                                       enum thermal_trend trend)
+> >> @@ -50,7 +54,10 @@ static unsigned long get_target_state(struct thermal_instance *instance,
+> >>       } else if (trend == THERMAL_TREND_DROPPING) {
+> >>               cur_state = cur_state > instance->lower ?
+> >>                           (cur_state - 1) : instance->lower;
+> >> -     }
+> >> +     } else if (trend == THERMAL_TREND_RAISE_FULL)
+> >> +             cur_state = instance->upper;
+> >> +     else if (trend == THERMAL_TREND_DROP_FULL)
+> >> +             cur_state = instance->lower;
+> >>
+> >>       return cur_state;
+> >>  }
+> >> @@ -87,7 +94,8 @@ static void update_instance_for_throttle(struct thermal_zone_device *tz,
+> >>  }
+> >>
+> >>  static void update_instance_for_dethrottle(struct thermal_zone_device *tz,
+> >> -                             int trip, enum thermal_trip_type trip_type)
+> >> +                             int trip, enum thermal_trip_type trip_type,
+> >> +                             enum thermal_trend trend)
+> >>  {
+> >>       struct thermal_instance *instance;
+> >>       struct thermal_cooling_device *cdev;
+> >> @@ -101,7 +109,10 @@ static void update_instance_for_dethrottle(struct thermal_zone_device *tz,
+> >>               cdev = instance->cdev;
+> >>               cdev->ops->get_cur_state(cdev, &cur_state);
+> >>
+> >> -             instance->target = cur_state > instance->lower ?
+> >> +             if (trend == THERMAL_TREND_DROP_FULL)
+> >> +                     instance->target = instance->lower;
+> >> +             else
+> >> +                     instance->target = cur_state > instance->lower ?
+> >>                           (cur_state - 1) : THERMAL_NO_TARGET;
+> >>
+> >>               /* Deactivate a passive thermal instance */
+> >> @@ -133,7 +144,7 @@ static void thermal_zone_trip_update(struct thermal_zone_device *tz, int trip)
+> >>       if (tz->temperature >= trip_temp)
+> >>               update_instance_for_throttle(tz, trip, trip_type, trend);
+> >>       else
+> >> -             update_instance_for_dethrottle(tz, trip, trip_type);
+> >> +             update_instance_for_dethrottle(tz, trip, trip_type, trend);
+> >>
+> >>       mutex_unlock(&tz->lock);
+> >>  }
+> >> diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+> >> index 807f214..8bce3ec 100644
+> >> --- a/include/linux/thermal.h
+> >> +++ b/include/linux/thermal.h
+> >> @@ -68,6 +68,8 @@ enum thermal_trend {
+> >>       THERMAL_TREND_STABLE, /* temperature is stable */
+> >>       THERMAL_TREND_RAISING, /* temperature is raising */
+> >>       THERMAL_TREND_DROPPING, /* temperature is dropping */
+> >> +     THERMAL_TREND_RAISE_FULL, /* Apply highest cooling action*/
+> >> +     THERMAL_TREND_DROP_FULL, /* Apply lowest cooling action*/
+> >>  };
+> >>
+> >>  /* Events supported by Thermal Netlink */
+> >
+> >
