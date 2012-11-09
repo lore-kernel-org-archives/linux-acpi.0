@@ -1,61 +1,102 @@
-From: Hongbo Zhang <hongbo.zhang@linaro.org>
-Subject: Re: [PATCH V5 0/2] Upstream ST-Ericsson thermal driver
-Date: Fri, 9 Nov 2012 19:39:00 +0800
-Message-ID: <CAJLyvQwVZ1SHnrY9M9C-JgEvoz=n5-3RaDvd-vPy1-gyfmxmUg@mail.gmail.com>
-References: <1352460548-3494-1-git-send-email-hongbo.zhang@linaro.com>
+From: Mathias Nyman <mathias.nyman@linux.intel.com>
+Subject: Re: [PATCH 1/3] gpio / ACPI: add ACPI support
+Date: Fri, 09 Nov 2012 16:11:43 +0200
+Message-ID: <509D0F1F.70001@linux.intel.com>
+References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com> <1351928793-14375-2-git-send-email-mika.westerberg@linux.intel.com> <CACxGe6tVcqoSg03JtcTdLP5GakyKM-24D8uK2mQj+1iiSE8Yog@mail.gmail.com> <20121108193808.GB16012@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:39652 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751228Ab2KILjB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Nov 2012 06:39:01 -0500
-Received: by mail-vc0-f174.google.com with SMTP id fk26so3648969vcb.19
-        for <linux-acpi@vger.kernel.org>; Fri, 09 Nov 2012 03:39:00 -0800 (PST)
-In-Reply-To: <1352460548-3494-1-git-send-email-hongbo.zhang@linaro.com>
+Received: from mga02.intel.com ([134.134.136.20]:45418 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753522Ab2KIOJ1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 9 Nov 2012 09:09:27 -0500
+In-Reply-To: <20121108193808.GB16012@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, rui.zhang@intel.com
-Cc: linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, amit.kachhap@linaro.org, patches@linaro.org, linaro-dev@lists.linaro.org, linaro-kernel@lists.linaro.org, STEricsson_nomadik_linux@list.st.com, kernel@igloocommunity.org, "hongbo.zhang" <hongbo.zhang@linaro.com>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, linus.walleij@linaro.org, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, linux-acpi@vger.kernel.org
 
-Hi Rui Zhang,
-Please have a look at this patch set.
-Since the previous 1/5, 2/5, 3/5 have been accepted, I'd like to send
-these last two updated patches with Reviewed-by added in this new
-thread.
+On 11/08/2012 09:38 PM, Mika Westerberg wrote:
+...
+>>> +#include<linux/errno.h>
+>>> +#include<linux/gpio.h>
+>>> +#include<linux/module.h>
+>>> +#include<linux/acpi_gpio.h>
+>>> +#include<linux/acpi.h>
+>>> +
+>>> +static int acpi_gpiochip_find(struct gpio_chip *gc, void *data)
+>>> +{
+>>> +       acpi_handle handle = data;
+>>> +       acpi_handle gc_handle;
+>>> +
+>>> +       if (!gc->dev)
+>>> +               return false;
+>>> +
+>>> +       gc_handle = gc->dev->acpi_handle;
+>>> +       if (!gc_handle)
+>>> +               return false;
+>>
+>> This test is redundant with the next one... unless 'handle' is also NULL :-)
+>>
+>> Is it at all possible for multiple gpiochips to be used for a single
+>> ACPI gpio controller node? Such as if the gpio controller has multiple
+>> banks that should be controlled separately? If so then this won't be
+>> sufficient. I've got the same issue with DT support where the find
+>> function needs to also check if the pin is provided by that specific
+>> gpiochip.
+>
+> AFAIK no but I'll let Mathias to answer that as he knows this better.
 
-Thanks.
+I'm interpreting it the same way as Mika, max one actual controller per 
+ACPI device node
 
-On 9 November 2012 19:29, hongbo.zhang <hongbo.zhang@linaro.org> wrote:
-> From: "hongbo.zhang" <hongbo.zhang@linaro.com>
+The path (called ResourceSource in ACPI5 specs) in GpioIO/GpioInt 
+resources is a "string which uniquely identifies the GPIO controller 
+referred to by this descriptor."  The pin number is zero based 
+controller relative.
+
+The  ACPI device controller node includes all other resources needed by 
+the controller driver (ioport/mem base, range, interrupt, and Hardware 
+ID used to pair with a driver)
+
+Checked a board with two identical gpio controllers on it and it had two 
+separate ACPI device node entries. (with only different io address base 
+and interrupt resources)
+
+-Mathias
+
 >
-> V4->V5 Changes:
+>> Overall the patch looks good, but I need to see how it is used. It
+>> would be really nice if device drivers could use basically the same
+>> interface to obtain Linux gpio numbers regardless of if the backing
+>> data was ACPI or DT. This API is one level below that.
 >
-> In patch "Thermal: Add ST-Ericsson DB8500 thermal driver":
->  - use flush_work instead of flush_work_sync since the later is deprecated now.
->  - parameter trip_points of db8500_thermal_match_cdev is renamed to trip_point;
->  - re-order oprerations in function db8500_thermal_update_config;
+> Yeah, this patch just mimics the DT version but in general it would be
+> better if there was only one API to get the GPIO. There has been discussion
+> about adding gpio_get() or something similar which could perhaps be used to
+> abstract away DT or ACPI.
 >
-> hongbo.zhang (2):
->   Thermal: Add ST-Ericsson DB8500 thermal driver.
->   Thermal: Add ST-Ericsson DB8500 thermal properties and platform data.
+> We use this in a driver so that we walk through the ACPI resources for a
+> given device (if we have the ACPI handle) and parse the GpioIO/GpioInt
+> resources like:
 >
->  .../devicetree/bindings/thermal/db8500-thermal.txt |  44 ++
->  arch/arm/boot/dts/dbx5x0.dtsi                      |  14 +
->  arch/arm/boot/dts/snowball.dts                     |  31 ++
->  arch/arm/configs/u8500_defconfig                   |   2 +
->  arch/arm/mach-ux500/board-mop500.c                 |  64 +++
->  drivers/thermal/Kconfig                            |  20 +
->  drivers/thermal/Makefile                           |   2 +
->  drivers/thermal/db8500_cpufreq_cooling.c           | 108 +++++
->  drivers/thermal/db8500_thermal.c                   | 531 +++++++++++++++++++++
->  include/linux/platform_data/db8500_thermal.h       |  38 ++
->  10 files changed, 854 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/thermal/db8500-thermal.txt
->  create mode 100644 drivers/thermal/db8500_cpufreq_cooling.c
->  create mode 100644 drivers/thermal/db8500_thermal.c
->  create mode 100644 include/linux/platform_data/db8500_thermal.h
+> 	struct acpi_resource_gpio *acpi_gpio;
+> 	struct acpi_device *adev;
+> 	acpi_resource *res;
+> 	int gpio;
 >
-> --
-> 1.7.11.3
+> 	/* obtain the ACPI device from handle */
+> 	...
 >
+> 	/* walk through the resources attached to adev */
+> 	...
+> 		switch (res->type) {
+> 		case ACPI_RESOURCE_TYPE_GPIO:
+> 			acpi_gpio =&res->data.gpio;
+>
+> 			gpio = acpi_get_gpio(acpi_gpio->resource_source.string_ptr,
+> 					     acpi_gpio->pin_table[0]);
+> 			...
+> 		}
+
