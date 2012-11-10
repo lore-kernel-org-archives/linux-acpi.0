@@ -1,37 +1,43 @@
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: Re: mmotm 2012-11-08-15-17 uploaded  (acpi)
-Date: Fri, 09 Nov 2012 14:46:12 -0800
-Message-ID: <509D87B4.7060702@infradead.org>
-References: <20121108231753.E6B7A100047@wpzn3.hot.corp.google.com> <509D862C.2060408@infradead.org> <alpine.DEB.2.00.1211091345080.2974@chino.kir.corp.google.com>
+From: Lekensteyn <lekensteyn@gmail.com>
+Subject: [PATCH] ACPICA: Fix documentation of acpi_get_name
+Date: Sat, 10 Nov 2012 12:03:25 +0100
+Message-ID: <2420385.2vUNKyqQx0@al>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.00.1211091345080.2974@chino.kir.corp.google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: David Rientjes <rientjes@google.com>
-Cc: akpm@linux-foundation.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, linux-kernel@vger.kernel.org, linux-next@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:42085 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750762Ab2KJLDd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 10 Nov 2012 06:03:33 -0500
+Received: by mail-wi0-f178.google.com with SMTP id hr7so1188897wib.1
+        for <linux-acpi@vger.kernel.org>; Sat, 10 Nov 2012 03:03:32 -0800 (PST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On 11/09/2012 01:45 PM, David Rientjes wrote:
+acpi_get_name has always returned acpi_status since 2009 and passed the
+string containing the path to parameter "buffer".
 
-> On Fri, 9 Nov 2012, Randy Dunlap wrote:
-> 
->> on x86_64:
->>
->> drivers/built-in.o: In function `acpi_pm_device_sleep_state':
->> (.text+0x21855): undefined reference to `acpi_target_system_state'
->> drivers/built-in.o: In function `acpi_pm_device_sleep_wake':
->> (.text+0x2198e): undefined reference to `acpi_target_system_state'
->> drivers/built-in.o: In function `acpi_dev_suspend_late':
->> (.text+0x21add): undefined reference to `acpi_target_system_state'
->>
-> 
-> Sent a fix for this yesterday: 
-> http://marc.info/?l=linux-kernel&m=13524024192708
+Signed-off-by: Peter Wu <lekensteyn@gmail.com>
+---
+ drivers/acpi/acpica/nsxfname.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-
-Thanks for both of those fixes.
-
+diff --git a/drivers/acpi/acpica/nsxfname.c b/drivers/acpi/acpica/nsxfname.c
+index 08e9610..c27c12d 100644
+--- a/drivers/acpi/acpica/nsxfname.c
++++ b/drivers/acpi/acpica/nsxfname.c
+@@ -146,7 +146,7 @@ ACPI_EXPORT_SYMBOL(acpi_get_handle)
+  *              name_type       - Full pathname or single segment
+  *              buffer          - Buffer for returned path
+  *
+- * RETURN:      Pointer to a string containing the fully qualified Name.
++ * RETURN:      Status
+  *
+  * DESCRIPTION: This routine returns the fully qualified name associated with
+  *              the Handle parameter.  This and the acpi_pathname_to_handle are
 -- 
-~Randy
+1.8.0
+
+
