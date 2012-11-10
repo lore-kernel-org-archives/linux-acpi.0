@@ -1,20 +1,26 @@
-From: Grant Likely <grant.likely@secretlab.ca>
+From: Bjorn Helgaas <bhelgaas@google.com>
 Subject: Re: [PATCH 2/3] spi / ACPI: add ACPI enumeration support
-Date: Sat, 10 Nov 2012 11:16:43 +0000
-Message-ID: <CACxGe6vyxt-HSUQ8Y6BYLanH6iAcQQ_M+bObNqzcbWuMs=3NKQ@mail.gmail.com>
+Date: Sat, 10 Nov 2012 10:14:47 -0700
+Message-ID: <CAErSpo71xh0F=8Q93d+yuxBsd6nxNuRJMwOmeVyN2Y-tnXgo9Q@mail.gmail.com>
 References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com>
  <CACxGe6vgYKv92x8qk5dbdA8UJNJPVxT_1p5Mn58NfBfVF3x+iQ@mail.gmail.com>
  <CAErSpo6z26RFZKaO4PuT9L+c3pz9By0UjundbKR7R+0X3dQ5MQ@mail.gmail.com> <24155036.h7GFQbIk2D@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:44635 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752341Ab2KJRPJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 10 Nov 2012 12:15:09 -0500
+Received: by mail-wi0-f178.google.com with SMTP id hr7so1352525wib.1
+        for <linux-acpi@vger.kernel.org>; Sat, 10 Nov 2012 09:15:08 -0800 (PST)
 In-Reply-To: <24155036.h7GFQbIk2D@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, linus.walleij@linaro.org, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Grant Likely <grant.likely@secretlab.ca>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, linus.walleij@linaro.org, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "H. Peter Anvin" <hpa@zytor.com>, Tony Luck <tony.luck@intel.com>
 
-On Sat, Nov 10, 2012 at 11:10 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+On Sat, Nov 10, 2012 at 4:10 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
 > On Friday, November 09, 2012 09:53:26 AM Bjorn Helgaas wrote:
 >> On Fri, Nov 9, 2012 at 9:43 AM, Grant Likely <grant.likely@secretlab.ca> wrote:
 >> > On Fri, Nov 9, 2012 at 4:35 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
@@ -86,11 +92,5 @@ On Sat, Nov 10, 2012 at 11:10 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
 > that we can use ACPI support, which already is there in the form of
 > archdata.acpi_handle anyway, on equal footing with Device Trees?
 
-I'm certainly not. I agree with adding it to struct device now and
-replace it later if someone designs something better.
-
-I also agree with using a dev_acpi_node() macro as you described
-above. I went the opposite way with device tree, and I absolutely
-regret it.
-
-g.
+Of course not.  I'm just trying to understand where we're headed.
+That was not obvious from the patches I've seen so far.
