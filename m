@@ -1,87 +1,75 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH 4/5] x86: acpi: Print warning for malformed host bridge resources
-Date: Sat, 10 Nov 2012 14:52:08 -0700
-Message-ID: <CAErSpo6DV+HKHX=5mSUzGmbJVbZdDpco7Ct-FeJJcVjCO992bg@mail.gmail.com>
-References: <1352343356-4006-1-git-send-email-peter@hurleysoftware.com> <1352343356-4006-5-git-send-email-peter@hurleysoftware.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH V2] PM / Qos: Ensure device not in PRM_SUSPENDED when pm qos flags request functions are invoked in the pm core.
+Date: Sat, 10 Nov 2012 23:08:54 +0100
+Message-ID: <2094718.eUqqrKyKMU@vostro.rjw.lan>
+References: <1352344448-9971-1-git-send-email-tianyu.lan@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:46022 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752569Ab2KJVw3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 10 Nov 2012 16:52:29 -0500
-Received: by mail-wg0-f44.google.com with SMTP id dr13so3335394wgb.1
-        for <linux-acpi@vger.kernel.org>; Sat, 10 Nov 2012 13:52:28 -0800 (PST)
-In-Reply-To: <1352343356-4006-5-git-send-email-peter@hurleysoftware.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1352344448-9971-1-git-send-email-tianyu.lan@intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: stern@rowland.harvard.edu, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Hurley <peter@hurleysoftware.com>
-Cc: linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
 
-On Wed, Nov 7, 2012 at 7:55 PM, Peter Hurley <peter@hurleysoftware.com> wrote:
-> An incorrectly specified host bridge window may prevent
-> other devices from claiming assigned resources. For example,
-> this flawed _CRS resource descriptor from a Dell T5400:
->      DWordMemory (ResourceProducer, PosDecode, MinFixed, MaxFixed, NonCacheable, ReadWrite,
->          0x00000000,         // Granularity
->          0xF0000000,         // Range Minimum
->          0xFE000000,         // Range Maximum
->          0x00000000,         // Translation Offset
->          0x0E000000,         // Length
->          ,, , AddressRangeMemory, TypeStatic)
+On Thursday, November 08, 2012 11:14:08 AM Lan Tianyu wrote:
+> Since dev_pm_qos_add_request(), dev_pm_qos_update_request() and
+> dev_pm_qos_remove_request() for pm qos flags should not be invoked
+> when device in RPM_SUSPENDED. Add pm_runtime_get_sync() and pm_runtime_put()
+> around these functions in the pm core to ensure device not in RPM_SUSPENDED.
+> 
+> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
 
-I think the problem here is that the Range Maximum should be
-0xFDFFFFFF, not 0xFE000000, right?
+Applied to linux-pm.git/linux-next.
 
-> prevents the adjacent device from claiming [mem 0xfe0000000-0xfe01ffff]
->
-> Sanity check that the resource at least conforms to a valid
-> PCI BAR; if not, emit a diagnostic warning.
->
-> Cc: Bjorn Helgaas <bhelgaas@google.com>
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Cc: Ingo Molnar <mingo@redhat.com>
-> Cc: H. Peter Anvin <hpa@zytor.com>
-> Cc: x86@kernel.org
-> Signed-off-by: Peter Hurley <peter@hurleysoftware.com>
+Thanks,
+Rafael
+
+
 > ---
->  arch/x86/pci/acpi.c | 4 ++++
->  1 file changed, 4 insertions(+)
->
-> diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-> index 192397c..3468d16 100644
-> --- a/arch/x86/pci/acpi.c
-> +++ b/arch/x86/pci/acpi.c
-> @@ -298,6 +298,10 @@ setup_resource(struct acpi_resource *acpi_res, void *data)
->                         "host bridge window [%#llx-%#llx] "
->                         "([%#llx-%#llx] ignored, not CPU addressable)\n",
->                         start, orig_end, end + 1, orig_end);
-> +       } else if (flags & IORESOURCE_MEM && (start & 0x0f || ~end & 0x0f)) {
-> +               dev_warn(&info->bridge->dev,
-> +                        "invalid host bridge window [%#llx-%#llx]\n",
-> +                        start, end);
-
-We didn't actually *fix* anything here, so I guess we're just pointing
-out the reason for a subsequent failure to claim the adjacent
-resource.
-
-As far as I know, the spec doesn't actually require resources of ACPI
-devices to be non-overlapping.  Windows accepts overlapping resources,
-and I think Linux probably should, too, but right now we trip over
-this.
-
-In the meantime (until we figure out how to handle overlapping
-resources better), can we do something to actually fix this?  Maybe we
-should truncate the end of the range to 0xFDFFFFFF like we do for
-non-addressable parts of the range?
-
-Is there a bugzilla or a complete dmesg log to look at?
-
-Bjorn
-
->         }
->
->         res = &info->res[info->res_num];
-> --
-> 1.7.12.3
->
+> Change since v1:
+> 	Remove unnecessary pm_runtime_get_sync() and pm_runtime_put()
+> around dev_pm_qos_update_flags().
+> ---
+>  drivers/base/power/qos.c |    7 ++++++-
+>  1 file changed, 6 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/base/power/qos.c b/drivers/base/power/qos.c
+> index 081db2d..fdc3894 100644
+> --- a/drivers/base/power/qos.c
+> +++ b/drivers/base/power/qos.c
+> @@ -633,15 +633,18 @@ int dev_pm_qos_expose_flags(struct device *dev, s32 val)
+>  	if (!req)
+>  		return -ENOMEM;
+>  
+> +	pm_runtime_get_sync(dev);
+>  	ret = dev_pm_qos_add_request(dev, req, DEV_PM_QOS_FLAGS, val);
+>  	if (ret < 0)
+> -		return ret;
+> +		goto fail;
+>  
+>  	dev->power.qos->flags_req = req;
+>  	ret = pm_qos_sysfs_add_flags(dev);
+>  	if (ret)
+>  		__dev_pm_qos_drop_user_request(dev, DEV_PM_QOS_FLAGS);
+>  
+> +fail:
+> +	pm_runtime_put(dev);
+>  	return ret;
+>  }
+>  EXPORT_SYMBOL_GPL(dev_pm_qos_expose_flags);
+> @@ -654,7 +657,9 @@ void dev_pm_qos_hide_flags(struct device *dev)
+>  {
+>  	if (dev->power.qos && dev->power.qos->flags_req) {
+>  		pm_qos_sysfs_remove_flags(dev);
+> +		pm_runtime_get_sync(dev);
+>  		__dev_pm_qos_drop_user_request(dev, DEV_PM_QOS_FLAGS);
+> +		pm_runtime_put(dev);
+>  	}
+>  }
+>  EXPORT_SYMBOL_GPL(dev_pm_qos_hide_flags);
+> 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
