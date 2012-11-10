@@ -1,25 +1,33 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH V2] PM / Qos: Ensure device not in PRM_SUSPENDED when pm qos flags request functions are invoked in the pm core.
-Date: Sat, 10 Nov 2012 23:08:54 +0100
-Message-ID: <2094718.eUqqrKyKMU@vostro.rjw.lan>
-References: <1352344448-9971-1-git-send-email-tianyu.lan@intel.com>
+Subject: Re: [PATCH] ACPI / platform: use ACPI device name instead of _HID._UID
+Date: Sat, 10 Nov 2012 23:26:56 +0100
+Message-ID: <1534244.mUMtElKoGc@vostro.rjw.lan>
+References: <1352203971-9219-1-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1352344448-9971-1-git-send-email-tianyu.lan@intel.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: stern@rowland.harvard.edu, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([193.178.161.156]:37326 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750852Ab2KJWWk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 10 Nov 2012 17:22:40 -0500
+In-Reply-To: <1352203971-9219-1-git-send-email-mika.westerberg@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>
 
-On Thursday, November 08, 2012 11:14:08 AM Lan Tianyu wrote:
-> Since dev_pm_qos_add_request(), dev_pm_qos_update_request() and
-> dev_pm_qos_remove_request() for pm qos flags should not be invoked
-> when device in RPM_SUSPENDED. Add pm_runtime_get_sync() and pm_runtime_put()
-> around these functions in the pm core to ensure device not in RPM_SUSPENDED.
+On Tuesday, November 06, 2012 02:12:51 PM Mika Westerberg wrote:
+> Using _UID makes the ACPI platform bus code to depend on BIOS to get it
+> right. If it doesn't we fail to create the platform device as the name
+> should be unique.
 > 
-> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
+> The ACPI core already makes an unique name when it first creates the ACPI
+> device so we can use that same name as the platform device name instead of
+> trusting that the BIOS sets the _UIDs correctly.
+> 
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Cc: Bjorn Helgaas <bhelgaas@google.com>
 
 Applied to linux-pm.git/linux-next.
 
@@ -28,47 +36,123 @@ Rafael
 
 
 > ---
-> Change since v1:
-> 	Remove unnecessary pm_runtime_get_sync() and pm_runtime_put()
-> around dev_pm_qos_update_flags().
-> ---
->  drivers/base/power/qos.c |    7 ++++++-
->  1 file changed, 6 insertions(+), 1 deletion(-)
+> This was suggested by Bjorn Helgaas in another thread. The patch applies on
+> top of git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
+> linux-next.
 > 
-> diff --git a/drivers/base/power/qos.c b/drivers/base/power/qos.c
-> index 081db2d..fdc3894 100644
-> --- a/drivers/base/power/qos.c
-> +++ b/drivers/base/power/qos.c
-> @@ -633,15 +633,18 @@ int dev_pm_qos_expose_flags(struct device *dev, s32 val)
->  	if (!req)
->  		return -ENOMEM;
->  
-> +	pm_runtime_get_sync(dev);
->  	ret = dev_pm_qos_add_request(dev, req, DEV_PM_QOS_FLAGS, val);
->  	if (ret < 0)
-> -		return ret;
-> +		goto fail;
->  
->  	dev->power.qos->flags_req = req;
->  	ret = pm_qos_sysfs_add_flags(dev);
->  	if (ret)
->  		__dev_pm_qos_drop_user_request(dev, DEV_PM_QOS_FLAGS);
->  
-> +fail:
-> +	pm_runtime_put(dev);
->  	return ret;
+>  drivers/acpi/acpi_platform.c |   62 +++++++++++++++---------------------------
+>  1 file changed, 22 insertions(+), 40 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
+> index a5a2346..dbb31d6 100644
+> --- a/drivers/acpi/acpi_platform.c
+> +++ b/drivers/acpi/acpi_platform.c
+> @@ -120,25 +120,6 @@ static acpi_status acpi_platform_add_resources(struct acpi_resource *res,
+>  	return AE_OK;
 >  }
->  EXPORT_SYMBOL_GPL(dev_pm_qos_expose_flags);
-> @@ -654,7 +657,9 @@ void dev_pm_qos_hide_flags(struct device *dev)
->  {
->  	if (dev->power.qos && dev->power.qos->flags_req) {
->  		pm_qos_sysfs_remove_flags(dev);
-> +		pm_runtime_get_sync(dev);
->  		__dev_pm_qos_drop_user_request(dev, DEV_PM_QOS_FLAGS);
-> +		pm_runtime_put(dev);
+>  
+> -static acpi_status acpi_platform_get_device_uid(struct acpi_device *adev,
+> -						int *uid)
+> -{
+> -	struct acpi_device_info *info;
+> -	acpi_status status;
+> -
+> -	status = acpi_get_object_info(adev->handle, &info);
+> -	if (ACPI_FAILURE(status))
+> -		return status;
+> -
+> -	status = AE_NOT_EXIST;
+> -	if ((info->valid & ACPI_VALID_UID) &&
+> -	     !kstrtoint(info->unique_id.string, 0, uid))
+> -		status = AE_OK;
+> -
+> -	kfree(info);
+> -	return status;
+> -}
+> -
+>  /**
+>   * acpi_create_platform_device - Create platform device for ACPI device node
+>   * @adev: ACPI device node to create a platform device for.
+> @@ -156,19 +137,12 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
+>  	struct device *parent = NULL;
+>  	struct resource_info ri;
+>  	acpi_status status;
+> -	int devid;
+>  
+>  	/* If the ACPI node already has a physical device attached, skip it. */
+>  	if (adev->physical_node_count)
+>  		return NULL;
+>  
+> -	/* Use the UID of the device as the new platform device id if found. */
+> -	status = acpi_platform_get_device_uid(adev, &devid);
+> -	if (ACPI_FAILURE(status))
+> -		devid = -1;
+> -
+>  	memset(&ri, 0, sizeof(ri));
+> -
+>  	/* First, count the resources. */
+>  	status = acpi_walk_resources(adev->handle, METHOD_NAME__CRS,
+>  				     acpi_platform_count_resources, &ri);
+> @@ -214,8 +188,8 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
+>  		}
+>  		mutex_unlock(&acpi_parent->physical_node_lock);
 >  	}
+> -	pdev = platform_device_register_resndata(parent, acpi_device_hid(adev),
+> -						 devid, ri.res, ri.n, NULL, 0);
+> +	pdev = platform_device_register_resndata(parent, dev_name(&adev->dev),
+> +						 -1, ri.res, ri.n, NULL, 0);
+>  	if (IS_ERR(pdev)) {
+>  		dev_err(&adev->dev, "platform device creation failed: %ld\n",
+>  			PTR_ERR(pdev));
+> @@ -245,17 +219,7 @@ static acpi_status acpi_platform_match(acpi_handle handle, u32 depth,
+>  	if (adev->physical_node_count)
+>  		return AE_OK;
+>  
+> -	if (!strcmp(pdev->name, acpi_device_hid(adev))) {
+> -		int devid;
+> -
+> -		/* Check that both name and UID match if it exists */
+> -		status = acpi_platform_get_device_uid(adev, &devid);
+> -		if (ACPI_FAILURE(status))
+> -			devid = -1;
+> -
+> -		if (pdev->id != devid)
+> -			return AE_OK;
+> -
+> +	if (!strcmp(dev_name(&pdev->dev), dev_name(&adev->dev))) {
+>  		*(acpi_handle *)return_value = handle;
+>  		return AE_CTRL_TERMINATE;
+>  	}
+> @@ -266,10 +230,28 @@ static acpi_status acpi_platform_match(acpi_handle handle, u32 depth,
+>  static int acpi_platform_find_device(struct device *dev, acpi_handle *handle)
+>  {
+>  	struct platform_device *pdev = to_platform_device(dev);
+> +	char *name, *tmp, *hid;
+> +
+> +	/*
+> +	 * The platform device is named using the ACPI device name
+> +	 * _HID:INSTANCE so we strip the INSTANCE out in order to find the
+> +	 * correct device using its _HID.
+> +	 */
+> +	name = kstrdup(dev_name(dev), GFP_KERNEL);
+> +	if (!name)
+> +		return -ENOMEM;
+> +
+> +	tmp = name;
+> +	hid = strsep(&tmp, ":");
+> +	if (!hid) {
+> +		kfree(name);
+> +		return -ENODEV;
+> +	}
+>  
+>  	*handle = NULL;
+> -	acpi_get_devices(pdev->name, acpi_platform_match, pdev, handle);
+> +	acpi_get_devices(hid, acpi_platform_match, pdev, handle);
+>  
+> +	kfree(name);
+>  	return *handle ? 0 : -ENODEV;
 >  }
->  EXPORT_SYMBOL_GPL(dev_pm_qos_hide_flags);
+>  
 > 
 -- 
 I speak only for myself.
