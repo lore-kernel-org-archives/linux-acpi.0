@@ -1,83 +1,106 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] PM / Qos: Ensure device not in PRM_SUSPENDED when pm qos flags request functions are invoked in the pm core.
-Date: Sun, 11 Nov 2012 15:43:03 +0100
-Message-ID: <2605346.OH2s8ljTr5@vostro.rjw.lan>
-References: <1351843430-8023-1-git-send-email-tianyu.lan@intel.com> <5096852C.3000707@intel.com> <509F9550.70508@intel.com>
+From: Peter Hurley <peter@hurleysoftware.com>
+Subject: Re: [PATCH 4/5] x86: acpi: Print warning for malformed host bridge
+ resources
+Date: Sun, 11 Nov 2012 09:49:25 -0500
+Message-ID: <1352645365.2320.41.camel@thor>
+References: <1352343356-4006-1-git-send-email-peter@hurleysoftware.com>
+	 <1352343356-4006-5-git-send-email-peter@hurleysoftware.com>
+	 <CAErSpo6DV+HKHX=5mSUzGmbJVbZdDpco7Ct-FeJJcVjCO992bg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:37749 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751768Ab2KKOiq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 11 Nov 2012 09:38:46 -0500
-In-Reply-To: <509F9550.70508@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAErSpo6DV+HKHX=5mSUzGmbJVbZdDpco7Ct-FeJJcVjCO992bg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: stern@rowland.harvard.edu, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Sunday, November 11, 2012 08:08:48 PM Lan Tianyu wrote:
-> On 2012/11/4 23:09, Lan Tianyu wrote:
-> > On 2012/11/3 4:11, Rafael J. Wysocki wrote:
-> >>>>>    }
-> >>>>> > >>   EXPORT_SYMBOL_GPL(dev_pm_qos_expose_flags);
-> >>>>> > >>@@ -645,7 +649,9 @@ void dev_pm_qos_hide_flags(struct device *dev)
-> >>>>> > >>   {
-> >>>>> > >>       if (dev->power.qos && dev->power.qos->flags_req) {
-> >>>>> > >>           pm_qos_sysfs_remove_flags(dev);
-> >>>>> > >>+        pm_runtime_get_sync(dev);
-> >>>>> > >>           __dev_pm_qos_drop_user_request(dev, DEV_PM_QOS_FLAGS);
-> >>>>> > >>+        pm_runtime_put(dev);
-> >>>> > >
-> >>>> > >I'm not sure if these two are necessary.  If we remove a request,
-> >>>> > >then what happens worst case is that some flags will be cleared
-> >>>> > >effectively which means fewer restrictions on the next sleep state.
-> >>>> > >Then, it shouldn't hurt that the current sleep state is more
-> >>>> > >restricted.
-> >>> >
-> >>> >But this mean the device can be put into lower power state(power off).
-> >>> >So why not do that? that can save more power, right?
-> >> Correct.  On the other hand, though, if the device already is in the
-> >> deepest low-power state available, we will resume it unnecessarily this
-> >> way.  Which may not be a big deal, however, and since we do that in other
-> >> cases, we may as well do it here.
-> > Yeah. This seems not very reasonable. But we can optimize this
-> > later.From my previous opinion, add notifier for flags and let device
-> > driver or bus driver to determine when the device should be resumed.
-> > Since you said at another email you would remove all notifiers in the pm
-> > qos to make some functions able to be invoked in interrupt context. I
-> > have a thought that check the context before call notifiers chain. If it
-> > was in interrupt, not call notifier chain and trigger a work queue or
-> > other choices to do that. If not, call the chain. Does this make sense? :)
-> >
-> Hi Rafael:
-> 	Do you have some opinions?
+On Sat, 2012-11-10 at 14:52 -0700, Bjorn Helgaas wrote:
+> On Wed, Nov 7, 2012 at 7:55 PM, Peter Hurley <peter@hurleysoftware.com> wrote:
+> > An incorrectly specified host bridge window may prevent
+> > other devices from claiming assigned resources. For example,
+> > this flawed _CRS resource descriptor from a Dell T5400:
+> >      DWordMemory (ResourceProducer, PosDecode, MinFixed, MaxFixed, NonCacheable, ReadWrite,
+> >          0x00000000,         // Granularity
+> >          0xF0000000,         // Range Minimum
+> >          0xFE000000,         // Range Maximum
+> >          0x00000000,         // Translation Offset
+> >          0x0E000000,         // Length
+> >          ,, , AddressRangeMemory, TypeStatic)
+> 
+> I think the problem here is that the Range Maximum should be
+> 0xFDFFFFFF, not 0xFE000000, right?
 
-First off, I've applied the last version of this patch. :-)
+I presume so.
 
-Second, I don't think we need notifiers at all in the case of device PM QoS
-and, moreover, we'd actually be better off without them.
+> > diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+> > index 192397c..3468d16 100644
+> > --- a/arch/x86/pci/acpi.c
+> > +++ b/arch/x86/pci/acpi.c
+> > @@ -298,6 +298,10 @@ setup_resource(struct acpi_resource *acpi_res, void *data)
+> >                         "host bridge window [%#llx-%#llx] "
+> >                         "([%#llx-%#llx] ignored, not CPU addressable)\n",
+> >                         start, orig_end, end + 1, orig_end);
+> > +       } else if (flags & IORESOURCE_MEM && (start & 0x0f || ~end & 0x0f)) {
+> > +               dev_warn(&info->bridge->dev,
+> > +                        "invalid host bridge window [%#llx-%#llx]\n",
+> > +                        start, end);
+> 
+> We didn't actually *fix* anything here, so I guess we're just pointing
+> out the reason for a subsequent failure to claim the adjacent
+> resource.
 
-There generally are two reasons for the notifiers in that case.  One reason
-is to prevent devices from sleeping too long if they were suspended before
-a new PM QoS request has been added (or an existing one has been updated).
-The second reason is to allow things like PM domains to recompute their
-numbers taking the new request into account.
+Correct. There is no fix; only a diagnostic warning.
 
-Now, if whoever modifies/adds PM QoS requests for certain device ensures
-that the device is not RPM_SUSPENDED while the PM QoS constraints are
-changing, that makes the first reason go away.  The second reason may be
-taken care of by changing the PM core to set a (new) flag whenever PM QoS
-constraints for a device change, so that whoever cares can take that into
-account while the device is suspended next time.  This way all of the
-additional computations will only need to happen when devices are suspended
-and the code flow will be much easier to follow.
+The warning is also a 'red flag' that, on this machine, it might be
+better to boot the kernel with the "pci=nocrs" option.
 
-Thanks,
-Rafael
+> As far as I know, the spec doesn't actually require resources of ACPI
+> devices to be non-overlapping.  Windows accepts overlapping resources,
+> and I think Linux probably should, too, but right now we trip over
+> this.
 
+(note: I included a link below to the defect report which has
+the /proc/iomem, dmesg & dmidecode)
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+The situation is this:
+
+The adjacent resources (northbridge & southbridge) are not defined by
+ACPI, but rather reserved with an e820 address descriptor from
+[0xfe000000-0xfeffffff], so strictly speaking there is no overlapping
+ACPI resource.
+
+The e820 descriptor is bumped out to [0xf0000000-0xfeffffff] and the
+malformed host bridge window is reparented to it.
+
+At this point in the boot, there is no resource conflict.
+
+Later in the boot, the i5k_amb driver tries to map
+[0xfe000000-0xfe01ffff] which is the FB-DIMM AMB register window on the
+Intel 5400 MCH and is rejected. The request is rejected because the
+requested range does not map completely to a single parent and this is
+not allowed. (The i5k_amb driver exposes the FB-DIMM temperature sensors
+through sysfs).
+
+There is no problem in Windows because no driver attempts to allocate
+[0xfe000000-0xfe01ffff]. However, I doubt the PNP Manager would allow
+another bus pdo to claim an overlapping resource with PCI bus 0. I
+suspect the offending device would yellow bang. (That would be an
+interesting experiment...)
+
+> In the meantime (until we figure out how to handle overlapping
+> resources better), can we do something to actually fix this?  Maybe we
+> should truncate the end of the range to 0xFDFFFFFF like we do for
+> non-addressable parts of the range?
+
+Auto-fixing this seems problematic because it's essentially impossible
+to determine if the resource length or the resource end or both is
+wrong.
+
+> Is there a bugzilla or a complete dmesg log to look at?
+
+https://bugzilla.kernel.org/show_bug.cgi?id=50161
+
+Regards,
+Peter Hurley
