@@ -1,234 +1,173 @@
-From: Kamil Iskra <kamil@iskra.name>
-Subject: Patch to correct battery capacity values on Thinkpads (repost)
-Date: Sun, 11 Nov 2012 23:09:35 -0600
-Message-ID: <20121112050935.GA25110@scooby.iskra.name>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH 1/4] thermal: Add new thermal trend type to support
+ quick cooling
+Date: Mon, 12 Nov 2012 13:42:02 +0800
+Message-ID: <1352698922.1834.1.camel@rzhang1-mobl4>
+References: <1352348786-24255-1-git-send-email-amit.kachhap@linaro.org>
+	 <1352348786-24255-2-git-send-email-amit.kachhap@linaro.org>
+	 <1352354503.2190.7.camel@rzhang1-mobl4>
+	 <CAK44p22REJpaJiahX7sTofShNB-+OHVsULqHeuxFNu5msLk6vA@mail.gmail.com>
+	 <1352433060.2166.3.camel@rzhang1-mobl4>
+	 <CAK44p22hHVcL21B1iy1OnECMd5RCRF8DVh-cNj=6Bmvr5n0yyQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from scooby.iskra.name ([184.171.245.232]:41264 "EHLO
-	mail.iskra.name" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751073Ab2KLFin (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Nov 2012 00:38:43 -0500
-Content-Disposition: inline
+Received: from mga14.intel.com ([143.182.124.37]:37578 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750856Ab2KLFmJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 12 Nov 2012 00:42:09 -0500
+In-Reply-To: <CAK44p22hHVcL21B1iy1OnECMd5RCRF8DVh-cNj=6Bmvr5n0yyQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, lenb@kernel.org
-Cc: ibm-acpi-devel@lists.sourceforge.net
+To: Amit Kachhap <amit.kachhap@linaro.org>
+Cc: linux-pm@lists.linux-foundation.org, linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org, durgadoss.r@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, jonghwa3.lee@samsung.com
 
-[ Note: this is a follow-up on
-https://bugzilla.kernel.org/show_bug.cgi?id=41062; in particular, check
-comments #4, #19, and #21 ]
+On Fri, 2012-11-09 at 11:51 +0530, Amit Kachhap wrote:
+> On 9 November 2012 09:21, Zhang Rui <rui.zhang@intel.com> wrote:
+> > On Thu, 2012-11-08 at 11:56 +0530, Amit Kachhap wrote:
+> >> On 8 November 2012 11:31, Zhang Rui <rui.zhang@intel.com> wrote:
+> >> > On Thu, 2012-11-08 at 09:56 +0530, Amit Daniel Kachhap wrote:
+> >> >> This modification adds 2 new thermal trend type THERMAL_TREND_RAISE_FULL
+> >> >> and THERMAL_TREND_DROP_FULL. This thermal trend can be used to quickly
+> >> >> jump to the upper or lower cooling level instead of incremental increase
+> >> >> or decrease.
+> >> >
+> >> > IMO, what we need is a new more aggressive cooling governor which always
+> >> > uses upper limit when the temperature is raising and lower limit when
+> >> > the temperature is dropping.
+> >> Yes I agree that a new aggressive governor is the best approach but
+> >> then i thought adding a new trend type is a simple solution to achieve
+> >> this and since most of the governor logic might be same as the
+> >> step-wise governor. I have no objection in doing it through governor.
+> >> >
+> > hmmm,
+> > I think a more proper way is to set the cooling state to upper limit
+> > when it overheats and reduce the cooling state step by step when the
+> > temperature drops.
+> 
+> No actually I was thinking of having a  simple governor with a feature
+> like it only sets to upper level and lower level. Also since the
+> temperature sensor is capable of interrupting for both increase in
+> threshold(say 100C)  and fall in threshold (say 90C), so polling or
+> step increments is not needed at all.
+> Currently stepwise governor governor does that so we might change the
+> macro name as,
+> THERMAL_TREND_RAISE_STEP,
+> THERMAL_TREND_DROP_STEP,
+> THERMAL_TREND_RAISE_MAX,
+> THERMAL_TREND_DROP_MAX,
+> 
+> and file step_wise.c can be named as state_wise.c or trend_wise.c.
+> 
+> I am not sure if it is the best way . How do you feel ?
+> 
+this sounds good to me.
+I'd like to see Durga' comments on this as well.
 
-Please find below a patch to drivers/acpi/battery.c that adds a quirk to
-correctly report battery capacity on 2010 and 2011 Lenovo Thinkpad models.
-I think the patch is ready to be applied (Len: please apply).  However,
-since it specifically affects Thinkpads, I've copied ibm-acpi-devel ML on
-this message to give them a chance to provide input, if any.
+thanks,
+rui
+> > what do you think?
+> >
+> > thanks,
+> > rui
+> >
+> >> > I can write such a governor if you do not have time to.
+> >> ok. thanks
+> >> >
+> >> > thanks,
+> >> > rui
+> >> >>  This is needed for temperature sensors which support rising/falling
+> >> >> threshold interrupts and polling can be totally avoided.
+> >> >>
+> >> >
+> >> >
+> >> >> Signed-off-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
+> >> >> Signed-off-by: Amit Daniel Kachhap <amit.kachhap@linaro.org>
+> >> >> ---
+> >> >>  drivers/thermal/step_wise.c |   19 +++++++++++++++----
+> >> >>  include/linux/thermal.h     |    2 ++
+> >> >>  2 files changed, 17 insertions(+), 4 deletions(-)
+> >> >>
+> >> >> diff --git a/drivers/thermal/step_wise.c b/drivers/thermal/step_wise.c
+> >> >> index 1242cff..0d2d8d6 100644
+> >> >> --- a/drivers/thermal/step_wise.c
+> >> >> +++ b/drivers/thermal/step_wise.c
+> >> >> @@ -35,6 +35,10 @@
+> >> >>   *       state for this trip point
+> >> >>   *    b. if the trend is THERMAL_TREND_DROPPING, use lower cooling
+> >> >>   *       state for this trip point
+> >> >> + *    c. if the trend is THERMAL_TREND_RAISE_FULL, use highest cooling
+> >> >> + *       state for this trip point
+> >> >> + *    d. if the trend is THERMAL_TREND_DROP_FULL, use lowest cooling
+> >> >> + *       state for this trip point
+> >> >>   */
+> >> >>  static unsigned long get_target_state(struct thermal_instance *instance,
+> >> >>                                       enum thermal_trend trend)
+> >> >> @@ -50,7 +54,10 @@ static unsigned long get_target_state(struct thermal_instance *instance,
+> >> >>       } else if (trend == THERMAL_TREND_DROPPING) {
+> >> >>               cur_state = cur_state > instance->lower ?
+> >> >>                           (cur_state - 1) : instance->lower;
+> >> >> -     }
+> >> >> +     } else if (trend == THERMAL_TREND_RAISE_FULL)
+> >> >> +             cur_state = instance->upper;
+> >> >> +     else if (trend == THERMAL_TREND_DROP_FULL)
+> >> >> +             cur_state = instance->lower;
+> >> >>
+> >> >>       return cur_state;
+> >> >>  }
+> >> >> @@ -87,7 +94,8 @@ static void update_instance_for_throttle(struct thermal_zone_device *tz,
+> >> >>  }
+> >> >>
+> >> >>  static void update_instance_for_dethrottle(struct thermal_zone_device *tz,
+> >> >> -                             int trip, enum thermal_trip_type trip_type)
+> >> >> +                             int trip, enum thermal_trip_type trip_type,
+> >> >> +                             enum thermal_trend trend)
+> >> >>  {
+> >> >>       struct thermal_instance *instance;
+> >> >>       struct thermal_cooling_device *cdev;
+> >> >> @@ -101,7 +109,10 @@ static void update_instance_for_dethrottle(struct thermal_zone_device *tz,
+> >> >>               cdev = instance->cdev;
+> >> >>               cdev->ops->get_cur_state(cdev, &cur_state);
+> >> >>
+> >> >> -             instance->target = cur_state > instance->lower ?
+> >> >> +             if (trend == THERMAL_TREND_DROP_FULL)
+> >> >> +                     instance->target = instance->lower;
+> >> >> +             else
+> >> >> +                     instance->target = cur_state > instance->lower ?
+> >> >>                           (cur_state - 1) : THERMAL_NO_TARGET;
+> >> >>
+> >> >>               /* Deactivate a passive thermal instance */
+> >> >> @@ -133,7 +144,7 @@ static void thermal_zone_trip_update(struct thermal_zone_device *tz, int trip)
+> >> >>       if (tz->temperature >= trip_temp)
+> >> >>               update_instance_for_throttle(tz, trip, trip_type, trend);
+> >> >>       else
+> >> >> -             update_instance_for_dethrottle(tz, trip, trip_type);
+> >> >> +             update_instance_for_dethrottle(tz, trip, trip_type, trend);
+> >> >>
+> >> >>       mutex_unlock(&tz->lock);
+> >> >>  }
+> >> >> diff --git a/include/linux/thermal.h b/include/linux/thermal.h
+> >> >> index 807f214..8bce3ec 100644
+> >> >> --- a/include/linux/thermal.h
+> >> >> +++ b/include/linux/thermal.h
+> >> >> @@ -68,6 +68,8 @@ enum thermal_trend {
+> >> >>       THERMAL_TREND_STABLE, /* temperature is stable */
+> >> >>       THERMAL_TREND_RAISING, /* temperature is raising */
+> >> >>       THERMAL_TREND_DROPPING, /* temperature is dropping */
+> >> >> +     THERMAL_TREND_RAISE_FULL, /* Apply highest cooling action*/
+> >> >> +     THERMAL_TREND_DROP_FULL, /* Apply lowest cooling action*/
+> >> >>  };
+> >> >>
+> >> >>  /* Events supported by Thermal Netlink */
+> >> >
+> >> >
+> >
+> >
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-The affected models that I tested (x201, t410, t410s, and x220) exhibit a
-problem where, when battery capacity reporting unit is mAh, the values
-being reported are wrong.  Pre-2010 and 2012 models appear to always report
-in mWh and are thus unaffected.  Also, in mid-2012 Lenovo issued a BIOS
-update for the 2011 models that fixes the issue (tested on x220 with a
-post-1.29 BIOS).  No such update is available for the 2010 models, so those
-still need this patch.
-
-Problem description: for some reason, the affected Thinkpads switch the
-reporting unit between mAh and mWh; generally, mAh is used when a laptop is
-plugged in and mWh when it's unplugged, although a suspend/resume or
-rmmod/modprobe is needed for the switch to take effect.  The values
-reported in mAh are *always* wrong.  This does not appear to be a kernel
-regression; I believe that the values were never reported correctly.  I
-tested back to kernel 2.6.34, with multiple machines and BIOS versions.
-
-Simply plugging a laptop into mains before turning it on is enough to
-reproduce the problem.  Here's a sample /proc/acpi/battery/BAT0/info from
-Thinkpad x220 (before a BIOS update) with a 4-cell battery:
-
-present:                 yes
-design capacity:         2886 mAh
-last full capacity:      2909 mAh
-battery technology:      rechargeable
-design voltage:          14800 mV
-design capacity warning: 145 mAh
-design capacity low:     13 mAh
-cycle count:              0
-capacity granularity 1:  1 mAh
-capacity granularity 2:  1 mAh
-model number:            42T4899
-serial number:           21064
-battery type:            LION
-OEM info:                SANYO
-
-Once the laptop switches the unit to mWh (unplug from mains, suspend,
-resume), the output changes to:
-
-present:                 yes
-design capacity:         28860 mWh
-last full capacity:      29090 mWh
-battery technology:      rechargeable
-design voltage:          14800 mV
-design capacity warning: 1454 mWh
-design capacity low:     200 mWh
-cycle count:              0
-capacity granularity 1:  1 mWh
-capacity granularity 2:  1 mWh
-model number:            42T4899
-serial number:           21064
-battery type:            LION
-OEM info:                SANYO
-
-Can you see how the values for "design capacity", etc., differ by a factor
-of 10 instead of 14.8 (the design voltage of this battery)?  On the battery
-itself it says: 14.8V, 1.95Ah, 29Wh, so clearly the values reported in mWh
-are correct and the ones in mAh are not.
-
-My guess is that this problem has been around ever since those machines
-have been released, but because the most common Thinkpad batteries are
-rated at 10.8V, the error (8%) is small enough that it simply hasn't been
-noticed or at least nobody could be bothered to look into it.
-
-My patch works around the problem by adjusting the incorrectly reported mAh
-values by "10000 / design_voltage".  The patch also has code to figure out
-if it should be activated or not.  It only activates on Lenovo Thinkpads,
-only when the unit is mAh, and, as an extra precaution, only when the
-battery capacity reported through ACPI does not match what is reported
-through DMI (I've never encountered a machine where the first two
-conditions would be true but the last would not, but better safe than
-sorry).
-
-I've been using this patch for close to a year on several systems without
-any problems.  I believe it is ready to be applied, although I lack kernel
-hacking experience to make that determination.  The patch was generated
-agains 3.7-rc5.
-
-Note that I'm not on either list so I would appreciate a Cc on any replies.
-I will also try to monitor the list archives.
-
-Kamil Iskra
 
 
---- battery.c.orig	2012-11-11 06:44:33.000000000 -0600
-+++ battery.c	2012-11-11 20:03:01.589851544 -0600
-@@ -34,6 +34,7 @@
- #include <linux/dmi.h>
- #include <linux/slab.h>
- #include <linux/suspend.h>
-+#include <asm/unaligned.h>
- 
- #ifdef CONFIG_ACPI_PROCFS_POWER
- #include <linux/proc_fs.h>
-@@ -95,6 +96,18 @@ enum {
- 	ACPI_BATTERY_ALARM_PRESENT,
- 	ACPI_BATTERY_XINFO_PRESENT,
- 	ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY,
-+	/* On Lenovo Thinkpad models from 2010 and 2011, the power unit
-+	   switches between mWh and mAh depending on whether the system
-+	   is running on battery or not.  When mAh is the unit, most
-+	   reported values are incorrect and need to be adjusted by
-+	   10000/design_voltage.  Verified on x201, t410, t410s, and x220.
-+	   Pre-2010 and 2012 models appear to always report in mWh and
-+	   are thus unaffected (tested with t42, t61, t500, x200, x300,
-+	   and x230).  Also, in mid-2012 Lenovo issued a BIOS update for
-+	   the 2011 models that fixes the issue (tested on x220 with a
-+	   post-1.29 BIOS), but as of Nov. 2012, no such update is
-+	   available for the 2010 models.  */
-+	ACPI_BATTERY_QUIRK_THINKPAD_MAH,
- };
- 
- struct acpi_battery {
-@@ -438,6 +451,21 @@ static int acpi_battery_get_info(struct
- 	kfree(buffer.pointer);
- 	if (test_bit(ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY, &battery->flags))
- 		battery->full_charge_capacity = battery->design_capacity;
-+	if (test_bit(ACPI_BATTERY_QUIRK_THINKPAD_MAH, &battery->flags) &&
-+	    battery->power_unit && battery->design_voltage) {
-+		battery->design_capacity = battery->design_capacity *
-+		    10000 / battery->design_voltage;
-+		battery->full_charge_capacity = battery->full_charge_capacity *
-+		    10000 / battery->design_voltage;
-+		battery->design_capacity_warning =
-+		    battery->design_capacity_warning *
-+		    10000 / battery->design_voltage;
-+		/* Curiously, design_capacity_low, unlike the rest of them,
-+		   is correct.  */
-+		/* capacity_granularity_* equal 1 on the systems tested, so
-+		   it's impossible to tell if they would need an adjustment
-+		   or not if their values were higher.  */
-+	}
- 	return result;
- }
- 
-@@ -486,6 +514,11 @@ static int acpi_battery_get_state(struct
- 	    && battery->capacity_now >= 0 && battery->capacity_now <= 100)
- 		battery->capacity_now = (battery->capacity_now *
- 				battery->full_charge_capacity) / 100;
-+	if (test_bit(ACPI_BATTERY_QUIRK_THINKPAD_MAH, &battery->flags) &&
-+	    battery->power_unit && battery->design_voltage) {
-+		battery->capacity_now = battery->capacity_now *
-+		    10000 / battery->design_voltage;
-+	}
- 	return result;
- }
- 
-@@ -595,6 +628,24 @@ static void sysfs_remove_battery(struct
- 	mutex_unlock(&battery->sysfs_lock);
- }
- 
-+static void find_battery(const struct dmi_header *dm, void *private)
-+{
-+	struct acpi_battery *battery = (struct acpi_battery *)private;
-+	/* Note: the hardcoded offsets below have been extracted from
-+	   the source code of dmidecode.  */
-+	if (dm->type == DMI_ENTRY_PORTABLE_BATTERY && dm->length >= 8) {
-+		const u8 *dmi_data = (const u8 *)(dm + 1);
-+		int dmi_capacity = get_unaligned((const u16 *)(dmi_data + 6));
-+		if (dm->length >= 18)
-+			dmi_capacity *= dmi_data[17];
-+		if (battery->design_capacity * battery->design_voltage / 1000
-+		    != dmi_capacity &&
-+		    battery->design_capacity * 10 == dmi_capacity)
-+			set_bit(ACPI_BATTERY_QUIRK_THINKPAD_MAH,
-+				&battery->flags);
-+	}
-+}
-+
- /*
-  * According to the ACPI spec, some kinds of primary batteries can
-  * report percentage battery remaining capacity directly to OS.
-@@ -620,6 +671,32 @@ static void acpi_battery_quirks(struct a
- 		battery->capacity_now = (battery->capacity_now *
- 				battery->full_charge_capacity) / 100;
- 	}
-+
-+	if (test_bit(ACPI_BATTERY_QUIRK_THINKPAD_MAH, &battery->flags))
-+		return ;
-+
-+	if (battery->power_unit && dmi_name_in_vendors("LENOVO")) {
-+		const char *s;
-+		s = dmi_get_system_info(DMI_PRODUCT_VERSION);
-+		if (s && !strnicmp(s, "ThinkPad", 8)) {
-+			dmi_walk(find_battery, battery);
-+			if (test_bit(ACPI_BATTERY_QUIRK_THINKPAD_MAH,
-+				     &battery->flags) &&
-+			    battery->design_voltage) {
-+				battery->design_capacity =
-+				    battery->design_capacity *
-+				    10000 / battery->design_voltage;
-+				battery->full_charge_capacity =
-+				    battery->full_charge_capacity *
-+				    10000 / battery->design_voltage;
-+				battery->design_capacity_warning =
-+				    battery->design_capacity_warning *
-+				    10000 / battery->design_voltage;
-+				battery->capacity_now = battery->capacity_now *
-+				    10000 / battery->design_voltage;
-+			}
-+		}
-+	}
- }
- 
- static int acpi_battery_update(struct acpi_battery *battery)
-
--- 
-Kamil Iskra  kamil@iskra.name
