@@ -1,40 +1,45 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [RFD][PATCH 7/7] PM / ACPI: Take device PM QoS flags into account
-Date: Mon, 12 Nov 2012 14:07:03 -0700
-Message-ID: <CAErSpo7kVb1kLbJ0Y4mYLbzEeZM8dSa-YaZE9B2mN5r74ft-Rg@mail.gmail.com>
-References: <201209282351.10663.rjw@sisk.pl> <201209282356.52558.rjw@sisk.pl>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [Patch v4 1/7] acpi,memory-hotplug: introduce a mutex lock to
+ protect the list in acpi_memory_device
+Date: Mon, 12 Nov 2012 14:00:38 -0700
+Message-ID: <1352754038.12509.16.camel@misato.fc.hp.com>
+References: <1352372693-32411-1-git-send-email-wency@cn.fujitsu.com>
+	 <1352372693-32411-2-git-send-email-wency@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <201209282356.52558.rjw@sisk.pl>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Huang Ying <ying.huang@intel.com>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, Lan Tianyu <tianyu.lan@intel.com>, Aaron Lu <aaron.lu@intel.com>, Jean Pihet <j-pihet@ti.com>, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, mark gross <markgross@thegnar.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g1t0027.austin.hp.com ([15.216.28.34]:33934 "EHLO
+	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752254Ab2KLVIx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Nov 2012 16:08:53 -0500
+In-Reply-To: <1352372693-32411-2-git-send-email-wency@cn.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Wen Congyang <wency@cn.fujitsu.com>
+Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Andrew Morton <akpm@linux-foundation.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Minchan Kim <minchan.kim@gmail.com>, Mel Gorman <mgorman@suse.de>, David Rientjes <rientjes@google.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Jiang Liu <liuj97@gmail.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Christoph Lameter <cl@linux.com>
 
-On Fri, Sep 28, 2012 at 3:56 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> Make ACPI power management routines and PCI power management
-> routines depending on ACPI take device PM QoS flags into account
-> when deciding what power state to put the device into.
->
-> In particular, after this change acpi_pm_device_sleep_state() will
-> not return ACPI_STATE_D3_COLD as the deepest available low-power
-> state if PM_QOS_FLAG_NO_POWER_OFF is requested for the device and it
-> will not require remote wakeup to work for the device in the returned
-> low-power state if there is at least one PM QoS flags request for the
-> device, but PM_QOS_FLAG_REMOTE_WAKEUP is not requested for it.
->
-> Accordingly, acpi_pci_set_power_state() will refuse to put the
-> device into D3cold if PM_QOS_FLAG_NO_POWER_OFF is requested for it.
->
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> ---
->  drivers/acpi/sleep.c   |   16 ++++++++++++----
->  drivers/pci/pci-acpi.c |    8 +++++++-
+On Thu, 2012-11-08 at 19:04 +0800, Wen Congyang wrote:
+> The memory device can be removed by 2 ways:
+> 1. send eject request by SCI
+> 2. echo 1 >/sys/bus/pci/devices/PNP0C80:XX/eject
+> 
+> This 2 events may happen at the same time, so we may touch
+> acpi_memory_device.res_list at the same time. This patch
+> introduce a lock to protect this list.
 
-This touches a file in drivers/pci, but I expect it depends on all the
-previous patches in the series, so if you haven't merged it already,
-Rafael, it seems like it makes sense for you to merge this instead of
-me.
+Hi Wen,
 
-Bjorn
+This race condition is not unique in memory hot-remove as the sysfs
+eject interface is created for all objects with _EJ0.  For CPU
+hot-remove, I addressed this race condition by making the notify handler
+to run the hot-remove operation on kacpi_hotplug_wq by calling
+acpi_os_hotplug_execute().  This serializes the hot-remove operations
+among the two events since the sysfs eject also runs on
+kacpi_hotplug_wq.  This way is much simpler and is easy to maintain,
+although it does not allow both operations to run simultaneously (which
+I do not think we need).  Can it be used for memory hot-remove as well?
+
+Thanks,
+-Toshi
+
