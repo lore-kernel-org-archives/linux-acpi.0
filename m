@@ -1,116 +1,75 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH 3/3] ACPI: Evaluate _CRS while creating device node
- objects
-Date: Mon, 12 Nov 2012 16:46:21 +0200
-Message-ID: <20121112144621.GE31759@intel.com>
-References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com>
- <2429141.J1r7BIpiiT@vostro.rjw.lan>
- <11281928.0BBlrNprhI@vostro.rjw.lan>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Subject: [PATCH 1/1] thermal: cpu cooling: use const parameter while registering
+Date: Mon, 12 Nov 2012 11:58:50 -0400
+Message-ID: <1352735930-8025-1-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:29378 "EHLO mga11.intel.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:53899 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753111Ab2KLOnM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 12 Nov 2012 09:43:12 -0500
-Content-Disposition: inline
-In-Reply-To: <11281928.0BBlrNprhI@vostro.rjw.lan>
+	id S1752004Ab2KLP7R (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 12 Nov 2012 10:59:17 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, khali@linux-fr.org, Bjorn Helgaas <bhelgaas@google.com>
+To: amit.kachhap@linaro.org
+Cc: rui.zhang@intel.com, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, Eduardo Valentin <eduardo.valentin@ti.com>
 
-On Mon, Nov 12, 2012 at 01:02:11PM +0100, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> Currently, whoever wants to use ACPI device resources has to call
-> acpi_walk_resources() to browse the buffer returned by the _CRS
-> method for the given device and create filters passed to that
-> routine to apply to the individual resource items.  This generally
-> is cumbersome, time-consuming and inefficient.  Moreover, it may
-> be problematic if resource conflicts need to be resolved, because
-> the different users of _CRS will need to do that in a consistent
-> way.
-> 
-> For this reason, add code to the ACPI core to execute _CRS once,
-> when the struct acpi_device object is created for a given device
-> node, and attach a list of ACPI resources returned by _CRS to that
-> object for future processing.
-> 
-> Convert the ACPI code that creates platform device objects to using
-> the new resources list instead of executing acpi_walk_resources() by
-> itself, which makes it much more straightforward and easier to
-> follow.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  drivers/acpi/acpi_platform.c |   90 ++++++++++++-------------------------------
->  drivers/acpi/resource.c      |   12 +++++
->  drivers/acpi/scan.c          |   56 ++++++++++++++++++++++++++
->  include/acpi/acpi_bus.h      |    6 ++
->  include/linux/acpi.h         |    1 
->  5 files changed, 102 insertions(+), 63 deletions(-)
-> 
-> Index: linux/include/acpi/acpi_bus.h
-> ===================================================================
-> --- linux.orig/include/acpi/acpi_bus.h
-> +++ linux/include/acpi/acpi_bus.h
-> @@ -259,6 +259,11 @@ struct acpi_device_physical_node {
->  	struct device *dev;
->  };
->  
-> +struct acpi_resource_list_entry {
-> +	struct list_head node;
-> +	struct acpi_resource resource;
-> +};
-> +
->  /* set maximum of physical nodes to 32 for expansibility */
->  #define ACPI_MAX_PHYSICAL_NODE	32
->  
-> @@ -268,6 +273,7 @@ struct acpi_device {
->  	acpi_handle handle;		/* no handle for fixed hardware */
->  	struct acpi_device *parent;
->  	struct list_head children;
-> +	struct list_head resources;	/* Device resources. */
->  	struct list_head node;
->  	struct list_head wakeup_list;
->  	struct acpi_device_status status;
-> Index: linux/drivers/acpi/scan.c
-> ===================================================================
-> --- linux.orig/drivers/acpi/scan.c
-> +++ linux/drivers/acpi/scan.c
-> @@ -382,6 +382,52 @@ static void acpi_device_remove_files(str
->  			ACPI Bus operations
->     -------------------------------------------------------------------------- */
->  
-> +static void acpi_bus_drop_resources(struct acpi_device *adev)
-> +{
-> +	struct acpi_resource_list_entry *entry, *s;
-> +
-> +	list_for_each_entry_safe(entry, s, &adev->resources, node) {
-> +		list_del(&entry->node);
-> +		kfree(entry);
-> +	}
-> +}
-> +
-> +static acpi_status acpi_bus_add_resource(struct acpi_resource *res,
-> +					 void *context)
-> +{
-> +	struct list_head *list = context;
-> +	struct acpi_resource_list_entry *entry;
-> +
-> +	entry = kzalloc(sizeof(*entry), GFP_KERNEL);
-> +	if (!entry)
-> +		return AE_NO_MEMORY;
-> +
-> +	entry->resource = *res;
+There are predefined cpu_masks that are const data structures.
+This patch changes the cpu cooling register function so that
+those const cpu_masks can be used, without compilation warnings.
 
-This does not work well with all resource types - specifically those that
-contain pointers, like acpi_resource_gpio and acpi_resource_source.
+include/linux/cpumask.h
 
-The memory for the resources gets freed once acpi_walk_resources() is done.
+ * The following particular system cpumasks and operations manage
+ * possible, present, active and online cpus.
+ *
+ *     cpu_possible_mask- has bit 'cpu' set iff cpu is populatable
+ *     cpu_present_mask - has bit 'cpu' set iff cpu is populated
+ *     cpu_online_mask  - has bit 'cpu' set iff cpu available to scheduler
+ *     cpu_active_mask  - has bit 'cpu' set iff cpu available to migration
+ *
 
-> +	INIT_LIST_HEAD(&entry->node);
-> +	list_add_tail(&entry->node, list);
-> +	return AE_OK;
-> +}
+Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+---
+ drivers/thermal/cpu_cooling.c |    2 +-
+ include/linux/cpu_cooling.h   |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/thermal/cpu_cooling.c b/drivers/thermal/cpu_cooling.c
+index cc1c930..e5e7153 100644
+--- a/drivers/thermal/cpu_cooling.c
++++ b/drivers/thermal/cpu_cooling.c
+@@ -345,7 +345,7 @@ static struct notifier_block thermal_cpufreq_notifier_block = {
+  * @clip_cpus: cpumask of cpus where the frequency constraints will happen.
+  */
+ struct thermal_cooling_device *cpufreq_cooling_register(
+-	struct cpumask *clip_cpus)
++	const struct cpumask *clip_cpus)
+ {
+ 	struct thermal_cooling_device *cool_dev;
+ 	struct cpufreq_cooling_device *cpufreq_dev = NULL;
+diff --git a/include/linux/cpu_cooling.h b/include/linux/cpu_cooling.h
+index 8515301..b30cc79c 100644
+--- a/include/linux/cpu_cooling.h
++++ b/include/linux/cpu_cooling.h
+@@ -35,7 +35,7 @@
+  * @clip_cpus: cpumask of cpus where the frequency constraints will happen
+  */
+ struct thermal_cooling_device *cpufreq_cooling_register(
+-		struct cpumask *clip_cpus);
++		const struct cpumask *clip_cpus);
+ 
+ /**
+  * cpufreq_cooling_unregister - function to remove cpufreq cooling device.
+@@ -44,7 +44,7 @@ struct thermal_cooling_device *cpufreq_cooling_register(
+ void cpufreq_cooling_unregister(struct thermal_cooling_device *cdev);
+ #else /* !CONFIG_CPU_THERMAL */
+ static inline struct thermal_cooling_device *cpufreq_cooling_register(
+-	struct cpumask *clip_cpus)
++	const struct cpumask *clip_cpus)
+ {
+ 	return NULL;
+ }
+-- 
+1.7.7.1.488.ge8e1c
+
