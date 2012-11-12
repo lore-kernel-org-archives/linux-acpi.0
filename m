@@ -1,89 +1,166 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
-Subject: RE: [PATCH 1/4] thermal: Add new thermal trend type to support
- quick cooling
-Date: Mon, 12 Nov 2012 07:31:27 +0000
-Message-ID: <4D68720C2E767A4AA6A8796D42C8EB59206162@BGSMSX101.gar.corp.intel.com>
-References: <1352348786-24255-1-git-send-email-amit.kachhap@linaro.org>
-	 <1352348786-24255-2-git-send-email-amit.kachhap@linaro.org>
-	 <1352354503.2190.7.camel@rzhang1-mobl4>
-	 <CAK44p22REJpaJiahX7sTofShNB-+OHVsULqHeuxFNu5msLk6vA@mail.gmail.com>
-	 <1352433060.2166.3.camel@rzhang1-mobl4>
-	 <CAK44p22hHVcL21B1iy1OnECMd5RCRF8DVh-cNj=6Bmvr5n0yyQ@mail.gmail.com>
-	 <4D68720C2E767A4AA6A8796D42C8EB59206068@BGSMSX101.gar.corp.intel.com>
- <1352701993.1834.26.camel@rzhang1-mobl4>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH 2/3] ACPI / platform: Use common ACPI device resource parsing routines
+Date: Mon, 12 Nov 2012 13:01:19 +0100
+Message-ID: <2040360.XsGXMDOcxg@vostro.rjw.lan>
+References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com> <2429141.J1r7BIpiiT@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <1352701993.1834.26.camel@rzhang1-mobl4>
-Content-Language: en-US
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: Amit Kachhap <amit.kachhap@linaro.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "jonghwa3.lee@samsung.com" <jonghwa3.lee@samsung.com>
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([193.178.161.156]:38653 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752092Ab2KLL7I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 12 Nov 2012 06:59:08 -0500
+In-Reply-To: <2429141.J1r7BIpiiT@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, khali@linux-fr.org, Bjorn Helgaas <bhelgaas@google.com>
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogWmhhbmcsIFJ1aQ0KPiBT
-ZW50OiBNb25kYXksIE5vdmVtYmVyIDEyLCAyMDEyIDEyOjAzIFBNDQo+IFRvOiBSLCBEdXJnYWRv
-c3MNCj4gQ2M6IEFtaXQgS2FjaGhhcDsgbGludXgtcG1AbGlzdHMubGludXgtZm91bmRhdGlvbi5v
-cmc7IGxpbnV4LXNhbXN1bmctDQo+IHNvY0B2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LWtlcm5lbEB2
-Z2VyLmtlcm5lbC5vcmc7IGxlbmJAa2VybmVsLm9yZzsgbGludXgtDQo+IGFjcGlAdmdlci5rZXJu
-ZWwub3JnOyBqb25naHdhMy5sZWVAc2Ftc3VuZy5jb20NCj4gU3ViamVjdDogUkU6IFtQQVRDSCAx
-LzRdIHRoZXJtYWw6IEFkZCBuZXcgdGhlcm1hbCB0cmVuZCB0eXBlIHRvIHN1cHBvcnQNCj4gcXVp
-Y2sgY29vbGluZw0KPiANCj4gT24gU3VuLCAyMDEyLTExLTExIGF0IDIyOjU1IC0wNzAwLCBSLCBE
-dXJnYWRvc3Mgd3JvdGU6DQo+ID4gSGkgQW1pdC9SdWksDQo+ID4NCj4gPiA+IC0tLS0tT3JpZ2lu
-YWwgTWVzc2FnZS0tLS0tDQo+ID4gPiBGcm9tOiBBbWl0IEthY2hoYXAgW21haWx0bzphbWl0Lmth
-Y2hoYXBAbGluYXJvLm9yZ10NCj4gPiA+IFNlbnQ6IEZyaWRheSwgTm92ZW1iZXIgMDksIDIwMTIg
-MTE6NTIgQU0NCj4gPiA+IFRvOiBaaGFuZywgUnVpDQo+ID4gPiBDYzogbGludXgtcG1AbGlzdHMu
-bGludXgtZm91bmRhdGlvbi5vcmc7IGxpbnV4LXNhbXN1bmctDQo+ID4gPiBzb2NAdmdlci5rZXJu
-ZWwub3JnOyBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnOyBSLCBEdXJnYWRvc3M7DQo+ID4g
-PiBsZW5iQGtlcm5lbC5vcmc7IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnOw0KPiBqb25naHdh
-My5sZWVAc2Ftc3VuZy5jb20NCj4gPiA+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggMS80XSB0aGVybWFs
-OiBBZGQgbmV3IHRoZXJtYWwgdHJlbmQgdHlwZSB0bw0KPiBzdXBwb3J0DQo+ID4gPiBxdWljayBj
-b29saW5nDQo+ID4gPg0KPiA+ID4gT24gOSBOb3ZlbWJlciAyMDEyIDA5OjIxLCBaaGFuZyBSdWkg
-PHJ1aS56aGFuZ0BpbnRlbC5jb20+IHdyb3RlOg0KPiA+ID4gPiBPbiBUaHUsIDIwMTItMTEtMDgg
-YXQgMTE6NTYgKzA1MzAsIEFtaXQgS2FjaGhhcCB3cm90ZToNCj4gPiA+ID4+IE9uIDggTm92ZW1i
-ZXIgMjAxMiAxMTozMSwgWmhhbmcgUnVpIDxydWkuemhhbmdAaW50ZWwuY29tPiB3cm90ZToNCj4g
-PiA+ID4+ID4gT24gVGh1LCAyMDEyLTExLTA4IGF0IDA5OjU2ICswNTMwLCBBbWl0IERhbmllbCBL
-YWNoaGFwIHdyb3RlOg0KPiA+ID4gPj4gPj4gVGhpcyBtb2RpZmljYXRpb24gYWRkcyAyIG5ldyB0
-aGVybWFsIHRyZW5kIHR5cGUNCj4gPiA+IFRIRVJNQUxfVFJFTkRfUkFJU0VfRlVMTA0KPiA+ID4g
-Pj4gPj4gYW5kIFRIRVJNQUxfVFJFTkRfRFJPUF9GVUxMLiBUaGlzIHRoZXJtYWwgdHJlbmQgY2Fu
-IGJlIHVzZWQNCj4gdG8NCj4gPiA+IHF1aWNrbHkNCj4gPiA+ID4+ID4+IGp1bXAgdG8gdGhlIHVw
-cGVyIG9yIGxvd2VyIGNvb2xpbmcgbGV2ZWwgaW5zdGVhZCBvZiBpbmNyZW1lbnRhbA0KPiA+ID4g
-aW5jcmVhc2UNCj4gPiA+ID4+ID4+IG9yIGRlY3JlYXNlLg0KPiA+ID4gPj4gPg0KPiA+ID4gPj4g
-PiBJTU8sIHdoYXQgd2UgbmVlZCBpcyBhIG5ldyBtb3JlIGFnZ3Jlc3NpdmUgY29vbGluZyBnb3Zl
-cm5vcg0KPiB3aGljaA0KPiA+ID4gYWx3YXlzDQo+ID4gPiA+PiA+IHVzZXMgdXBwZXIgbGltaXQg
-d2hlbiB0aGUgdGVtcGVyYXR1cmUgaXMgcmFpc2luZyBhbmQgbG93ZXIgbGltaXQNCj4gd2hlbg0K
-PiA+ID4gPj4gPiB0aGUgdGVtcGVyYXR1cmUgaXMgZHJvcHBpbmcuDQo+ID4gPiA+PiBZZXMgSSBh
-Z3JlZSB0aGF0IGEgbmV3IGFnZ3Jlc3NpdmUgZ292ZXJub3IgaXMgdGhlIGJlc3QgYXBwcm9hY2gg
-YnV0DQo+ID4gPiA+PiB0aGVuIGkgdGhvdWdodCBhZGRpbmcgYSBuZXcgdHJlbmQgdHlwZSBpcyBh
-IHNpbXBsZSBzb2x1dGlvbiB0byBhY2hpZXZlDQo+ID4gPiA+PiB0aGlzIGFuZCBzaW5jZSBtb3N0
-IG9mIHRoZSBnb3Zlcm5vciBsb2dpYyBtaWdodCBiZSBzYW1lIGFzIHRoZQ0KPiA+ID4gPj4gc3Rl
-cC13aXNlIGdvdmVybm9yLiBJIGhhdmUgbm8gb2JqZWN0aW9uIGluIGRvaW5nIGl0IHRocm91Z2gg
-Z292ZXJub3IuDQo+ID4gPiA+PiA+DQo+ID4gPiA+IGhtbW0sDQo+ID4gPiA+IEkgdGhpbmsgYSBt
-b3JlIHByb3BlciB3YXkgaXMgdG8gc2V0IHRoZSBjb29saW5nIHN0YXRlIHRvIHVwcGVyIGxpbWl0
-DQo+ID4gPiA+IHdoZW4gaXQgb3ZlcmhlYXRzIGFuZCByZWR1Y2UgdGhlIGNvb2xpbmcgc3RhdGUg
-c3RlcCBieSBzdGVwIHdoZW4gdGhlDQo+ID4gPiA+IHRlbXBlcmF0dXJlIGRyb3BzLg0KPiA+ID4N
-Cj4gPiA+IE5vIGFjdHVhbGx5IEkgd2FzIHRoaW5raW5nIG9mIGhhdmluZyBhICBzaW1wbGUgZ292
-ZXJub3Igd2l0aCBhIGZlYXR1cmUNCj4gPiA+IGxpa2UgaXQgb25seSBzZXRzIHRvIHVwcGVyIGxl
-dmVsIGFuZCBsb3dlciBsZXZlbC4gQWxzbyBzaW5jZSB0aGUNCj4gPiA+IHRlbXBlcmF0dXJlIHNl
-bnNvciBpcyBjYXBhYmxlIG9mIGludGVycnVwdGluZyBmb3IgYm90aCBpbmNyZWFzZSBpbg0KPiA+
-ID4gdGhyZXNob2xkKHNheSAxMDBDKSAgYW5kIGZhbGwgaW4gdGhyZXNob2xkIChzYXkgOTBDKSwg
-c28gcG9sbGluZyBvcg0KPiA+ID4gc3RlcCBpbmNyZW1lbnRzIGlzIG5vdCBuZWVkZWQgYXQgYWxs
-Lg0KPiA+ID4gQ3VycmVudGx5IHN0ZXB3aXNlIGdvdmVybm9yIGdvdmVybm9yIGRvZXMgdGhhdCBz
-byB3ZSBtaWdodCBjaGFuZ2UgdGhlDQo+ID4gPiBtYWNybyBuYW1lIGFzLA0KPiA+ID4gVEhFUk1B
-TF9UUkVORF9SQUlTRV9TVEVQLA0KPiA+ID4gVEhFUk1BTF9UUkVORF9EUk9QX1NURVAsDQo+ID4g
-PiBUSEVSTUFMX1RSRU5EX1JBSVNFX01BWCwNCj4gPiA+IFRIRVJNQUxfVFJFTkRfRFJPUF9NQVgs
-DQo+ID4gPg0KPiA+ID4gYW5kIGZpbGUgc3RlcF93aXNlLmMgY2FuIGJlIG5hbWVkIGFzIHN0YXRl
-X3dpc2UuYyBvciB0cmVuZF93aXNlLmMuDQo+ID4NCj4gPiBZZXMsIGluIHRoaXMgcGFydGljdWxh
-ciBjYXNlLCB3ZSBuZWl0aGVyIG5lZWQgdG8gcG9sbCBub3IgZG8gc3RlcCB3aXNlDQo+ID4gb3Bl
-cmF0aW9ucy4gQnV0LCBtb3N0IG9mIHRoZSBvdGhlciBzZW5zb3JzIG5lZWQgYXQgbGVhc3Qgb25l
-IG9mIHRoZW0uDQo+ID4NCj4gPiBTbywgSSB0aGluayB3ZSBjYW4gdHJ5IGl0IHRoaXMgd2F5Og0K
-PiA+IAlpZiAoc2Vuc29yIHN1cHBvcnRzIGludGVycnVwdCkgew0KPiA+IAkJJ2Fsd2F5cycgdXNl
-IFJBSVNFX01BWCBhbmQgRFJPUF9NQVg7DQo+ID4gCX0gZWxzZSB7DQo+ID4gCQlEbyBTdGVwIHdp
-c2Ugb3BlcmF0aW9ucw0KPiA+IAl9DQo+ID4NCj4gd2h5IHNob3VsZCB0aGUgZ2VuZXJpYyB0aGVy
-bWFsIGxheWVyIGJlIGF3YXJlIG9mIHRoaXM/DQo+IA0KPiBJTU8sIGl0IGlzIHRoZSBwbGF0Zm9y
-bSB0aGVybWFsIGRyaXZlciB0aGF0IGlzIHJlc3BvbnNpYmxlIGZvciByZXR1cm5pbmcNCj4gVEhF
-Uk1BTF9UUkVORF9SQUlTRV9TVEVQIG9yIFRIRVJNQUxfVFJFTkRfUkFJU0VfTUFYLg0KPiANCj4g
-YW5kIHRoZSBzdGVwX3dpc2UgZ292ZXJub3IganVzdCB0YWtlcyBhY3Rpb24gYmFzZWQgb24gdGhl
-IHJldHVybiB2YWx1ZQ0KPiBvZiAuZ2V0X3RyZW5kKCkgY2FsbGJhY2suDQoNClllcywgYWdyZWUg
-d2l0aCB0aGUgZmxvdyAuLg0KDQpUaGFua3MsDQpEdXJnYQ0K
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+Use common routines in drivers/acpi/resource.c to parse ACPI device
+resources while creating platform device objects.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/acpi_platform.c |   89 +++++++++----------------------------------
+ 1 file changed, 20 insertions(+), 69 deletions(-)
+
+Index: linux/drivers/acpi/acpi_platform.c
+===================================================================
+--- linux.orig/drivers/acpi/acpi_platform.c
++++ linux/drivers/acpi/acpi_platform.c
+@@ -29,21 +29,20 @@ static acpi_status acpi_platform_count_r
+ 						 void *data)
+ {
+ 	struct acpi_resource_extended_irq *acpi_xirq;
++	struct acpi_resource_irq *acpi_irq;
+ 	struct resource_info *ri = data;
+ 
+ 	switch (res->type) {
+-	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
+ 	case ACPI_RESOURCE_TYPE_IRQ:
+-		ri->n++;
++		acpi_irq = &res->data.irq;
++		ri->n += acpi_irq->interrupt_count;
+ 		break;
+ 	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
+ 		acpi_xirq = &res->data.extended_irq;
+ 		ri->n += acpi_xirq->interrupt_count;
+ 		break;
+-	case ACPI_RESOURCE_TYPE_ADDRESS32:
+-		if (res->data.address32.resource_type == ACPI_IO_RANGE)
+-			ri->n++;
+-		break;
++	default:
++		ri->n++;
+ 	}
+ 
+ 	return AE_OK;
+@@ -52,71 +51,26 @@ static acpi_status acpi_platform_count_r
+ static acpi_status acpi_platform_add_resources(struct acpi_resource *res,
+ 					       void *data)
+ {
+-	struct acpi_resource_fixed_memory32 *acpi_mem;
+-	struct acpi_resource_address32 *acpi_add32;
+-	struct acpi_resource_extended_irq *acpi_xirq;
+-	struct acpi_resource_irq *acpi_irq;
+ 	struct resource_info *ri = data;
+ 	struct resource *r;
+-	int irq, i;
+-
+-	switch (res->type) {
+-	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
+-		acpi_mem = &res->data.fixed_memory32;
+-		r = &ri->res[ri->cur++];
+-
+-		r->start = acpi_mem->address;
+-		r->end = r->start + acpi_mem->address_length - 1;
+-		r->flags = IORESOURCE_MEM;
+-
+-		dev_dbg(ri->dev, "Memory32Fixed %pR\n", r);
+-		break;
+-
+-	case ACPI_RESOURCE_TYPE_ADDRESS32:
+-		acpi_add32 = &res->data.address32;
+ 
+-		if (acpi_add32->resource_type == ACPI_IO_RANGE) {
+-			r = &ri->res[ri->cur++];
+-			r->start = acpi_add32->minimum;
+-			r->end = r->start + acpi_add32->address_length - 1;
+-			r->flags = IORESOURCE_IO;
+-			dev_dbg(ri->dev, "Address32 %pR\n", r);
+-		}
+-		break;
+-
+-	case ACPI_RESOURCE_TYPE_IRQ:
+-		acpi_irq = &res->data.irq;
+-		r = &ri->res[ri->cur++];
+-
+-		irq = acpi_register_gsi(ri->dev,
+-					acpi_irq->interrupts[0],
+-					acpi_irq->triggering,
+-					acpi_irq->polarity);
+-
+-		r->start = r->end = irq;
+-		r->flags = IORESOURCE_IRQ;
+-
+-		dev_dbg(ri->dev, "IRQ %pR\n", r);
+-		break;
+-
+-	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
+-		acpi_xirq = &res->data.extended_irq;
+-
+-		for (i = 0; i < acpi_xirq->interrupt_count; i++, ri->cur++) {
+-			r = &ri->res[ri->cur];
+-			irq = acpi_register_gsi(ri->dev,
+-						acpi_xirq->interrupts[i],
+-						acpi_xirq->triggering,
+-						acpi_xirq->polarity);
++	r = ri->res + ri->cur;
++	if (acpi_dev_resource_memory(res, r)
++	    || acpi_dev_resource_io(res, r)
++	    || acpi_dev_resource_address_space(res, r)
++	    || acpi_dev_resource_ext_address_space(res, r)) {
++		ri->cur++;
++		return AE_OK;
++	}
++	if (acpi_dev_resource_interrupt(res, 0, r)) {
++		int i;
+ 
+-			r->start = r->end = irq;
+-			r->flags = IORESOURCE_IRQ;
++		r++;
++		for (i = 1; acpi_dev_resource_interrupt(res, i, r); i++)
++			r++;
+ 
+-			dev_dbg(ri->dev, "Interrupt %pR\n", r);
+-		}
+-		break;
++		ri->cur += i;
+ 	}
+-
+ 	return AE_OK;
+ }
+ 
+@@ -165,9 +119,6 @@ struct platform_device *acpi_create_plat
+ 		goto out;
+ 	}
+ 
+-	if (WARN_ON(ri.n != ri.cur))
+-		goto out;
+-
+ 	/*
+ 	 * If the ACPI node has a parent and that parent has a physical device
+ 	 * attached to it, that physical device should be the parent of the
+@@ -189,7 +140,7 @@ struct platform_device *acpi_create_plat
+ 		mutex_unlock(&acpi_parent->physical_node_lock);
+ 	}
+ 	pdev = platform_device_register_resndata(parent, dev_name(&adev->dev),
+-						 -1, ri.res, ri.n, NULL, 0);
++						 -1, ri.res, ri.cur, NULL, 0);
+ 	if (IS_ERR(pdev)) {
+ 		dev_err(&adev->dev, "platform device creation failed: %ld\n",
+ 			PTR_ERR(pdev));
+
