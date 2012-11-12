@@ -1,75 +1,89 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: [PATCH 1/1] thermal: cpu cooling: use const parameter while registering
-Date: Mon, 12 Nov 2012 11:58:50 -0400
-Message-ID: <1352735930-8025-1-git-send-email-eduardo.valentin@ti.com>
+From: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
+Subject: Re: [RFC PATCH 0/3] acpi: Introduce prepare_remove device operation
+Date: Mon, 12 Nov 2012 18:20:47 +0100
+Message-ID: <20121112172046.GA4931@dhcp-192-168-178-175.profitbricks.localdomain>
+References: <1352399371-8015-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
+ <50A07477.2050002@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53899 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752004Ab2KLP7R (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 12 Nov 2012 10:59:17 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <50A07477.2050002@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Wen Congyang <wency@cn.fujitsu.com>
+Cc: linux-acpi@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, rjw@sisk.pl, lenb@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-mm@kvack.org
 List-Id: linux-acpi@vger.kernel.org
-To: amit.kachhap@linaro.org
-Cc: rui.zhang@intel.com, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, Eduardo Valentin <eduardo.valentin@ti.com>
 
-There are predefined cpu_masks that are const data structures.
-This patch changes the cpu cooling register function so that
-those const cpu_masks can be used, without compilation warnings.
+On Mon, Nov 12, 2012 at 12:00:55PM +0800, Wen Congyang wrote:
+> At 11/09/2012 02:29 AM, Vasilis Liaskovitis Wrote:
+> > As discussed in
+> > https://patchwork.kernel.org/patch/1581581/
+> > the driver core remove function needs to always succeed. This means we need
+> > to know that the device can be successfully removed before acpi_bus_trim / 
+> > acpi_bus_hot_remove_device are called. This can cause panics when OSPM-initiated
+> > eject (echo 1 > /sys/bus/acpi/devices/PNP/eject) of memory devices fails, since
+> > the ACPI core goes ahead and ejects the device regardless of whether the memory
+> > is still in use or not.
+> > 
+> > For this reason a new acpi_device operation called prepare_remove is introduced.
+> > This operation should be registered for acpi devices whose removal (from kernel
+> > perspective) can fail.  Memory devices fall in this category.
+> > 
+> > acpi_bus_hot_remove_device is changed to handle removal in 2 steps:
+> > - preparation for removal i.e. perform part of removal that can fail outside of
+> >   ACPI core. Should succeed for device and all its children.
+> > - if above step was successfull, proceed to actual ACPI removal
+> 
+> If we unbind the device from the driver, we still need to do preparation. But
+> you don't do it in your patch.
 
-include/linux/cpumask.h
+yes, driver_unbind breaks with the current patchset. I 'll try to fix and
+repost. However, I think this will require a new driver-core wide prepare_remove
+callback (not only acpi-specific). I am not sure that would be acceptable.
 
- * The following particular system cpumasks and operations manage
- * possible, present, active and online cpus.
- *
- *     cpu_possible_mask- has bit 'cpu' set iff cpu is populatable
- *     cpu_present_mask - has bit 'cpu' set iff cpu is populated
- *     cpu_online_mask  - has bit 'cpu' set iff cpu available to scheduler
- *     cpu_active_mask  - has bit 'cpu' set iff cpu available to migration
- *
+thanks,
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
----
- drivers/thermal/cpu_cooling.c |    2 +-
- include/linux/cpu_cooling.h   |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+- Vasilis
 
-diff --git a/drivers/thermal/cpu_cooling.c b/drivers/thermal/cpu_cooling.c
-index cc1c930..e5e7153 100644
---- a/drivers/thermal/cpu_cooling.c
-+++ b/drivers/thermal/cpu_cooling.c
-@@ -345,7 +345,7 @@ static struct notifier_block thermal_cpufreq_notifier_block = {
-  * @clip_cpus: cpumask of cpus where the frequency constraints will happen.
-  */
- struct thermal_cooling_device *cpufreq_cooling_register(
--	struct cpumask *clip_cpus)
-+	const struct cpumask *clip_cpus)
- {
- 	struct thermal_cooling_device *cool_dev;
- 	struct cpufreq_cooling_device *cpufreq_dev = NULL;
-diff --git a/include/linux/cpu_cooling.h b/include/linux/cpu_cooling.h
-index 8515301..b30cc79c 100644
---- a/include/linux/cpu_cooling.h
-+++ b/include/linux/cpu_cooling.h
-@@ -35,7 +35,7 @@
-  * @clip_cpus: cpumask of cpus where the frequency constraints will happen
-  */
- struct thermal_cooling_device *cpufreq_cooling_register(
--		struct cpumask *clip_cpus);
-+		const struct cpumask *clip_cpus);
- 
- /**
-  * cpufreq_cooling_unregister - function to remove cpufreq cooling device.
-@@ -44,7 +44,7 @@ struct thermal_cooling_device *cpufreq_cooling_register(
- void cpufreq_cooling_unregister(struct thermal_cooling_device *cdev);
- #else /* !CONFIG_CPU_THERMAL */
- static inline struct thermal_cooling_device *cpufreq_cooling_register(
--	struct cpumask *clip_cpus)
-+	const struct cpumask *clip_cpus)
- {
- 	return NULL;
- }
--- 
-1.7.7.1.488.ge8e1c
+> 
+> Thanks
+> Wen Congyang
+> > 
+> > acpi_bus_trim is changed accordingly to handle preparation for removal and
+> > actual removal.
+> > 
+> > With this patchset, only acpi memory devices use the new prepare_remove
+> > device operation. The actual memory removal (VM-related offline and other memory
+> > cleanups) is moved to prepare_remove. The old remove operation just cleans up
+> > the acpi structures. Directly ejecting PNP0C80 memory devices works safely. I
+> > haven't tested yet with an ACPI container which contains memory devices.
+> > 
+> > Other ACPI devices (e.g. CPU) do not register prepare_remove callbacks, and
+> > their OSPM-side eject should not be affected.
+> > 
+> > I am not happy with the name prepare_remove. Comments welcome. Let me know if I
+> > should work more in this direction (I think Yasuaki might also look into this
+> > and might have a simpler idea)
+> > 
+> > Patches are on top of Rafael's linux-pm/linux-next
+> > 
+> > Vasilis Liaskovitis (3):
+> >   acpi: Introduce prepare_remove operation in acpi_device_ops
+> >   acpi: Make acpi_bus_trim handle device removal preparation
+> >   acpi_memhotplug: Add prepare_remove operation
+> > 
+> >  drivers/acpi/acpi_memhotplug.c     |   24 +++++++++++++++++++++---
+> >  drivers/acpi/dock.c                |    2 +-
+> >  drivers/acpi/scan.c                |   32 +++++++++++++++++++++++++++++---
+> >  drivers/pci/hotplug/acpiphp_glue.c |    4 ++--
+> >  drivers/pci/hotplug/sgi_hotplug.c  |    2 +-
+> >  include/acpi/acpi_bus.h            |    4 +++-
+> >  6 files changed, 57 insertions(+), 11 deletions(-)
+> > 
+> 
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
