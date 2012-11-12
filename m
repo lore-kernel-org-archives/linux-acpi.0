@@ -1,106 +1,77 @@
-From: Peter Hurley <peter@hurleysoftware.com>
-Subject: Re: [PATCH 4/5] x86: acpi: Print warning for malformed host bridge
- resources
-Date: Sun, 11 Nov 2012 09:49:25 -0500
-Message-ID: <1352645365.2320.41.camel@thor>
-References: <1352343356-4006-1-git-send-email-peter@hurleysoftware.com>
-	 <1352343356-4006-5-git-send-email-peter@hurleysoftware.com>
-	 <CAErSpo6DV+HKHX=5mSUzGmbJVbZdDpco7Ct-FeJJcVjCO992bg@mail.gmail.com>
+From: Wen Congyang <wency@cn.fujitsu.com>
+Subject: Re: [RFC PATCH 0/3] acpi: Introduce prepare_remove device operation
+Date: Mon, 12 Nov 2012 12:00:55 +0800
+Message-ID: <50A07477.2050002@cn.fujitsu.com>
+References: <1352399371-8015-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAErSpo6DV+HKHX=5mSUzGmbJVbZdDpco7Ct-FeJJcVjCO992bg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1352399371-8015-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
+Sender: owner-linux-mm@kvack.org
+To: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
+Cc: linux-acpi@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, rjw@sisk.pl, lenb@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-mm@kvack.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, 2012-11-10 at 14:52 -0700, Bjorn Helgaas wrote:
-> On Wed, Nov 7, 2012 at 7:55 PM, Peter Hurley <peter@hurleysoftware.com> wrote:
-> > An incorrectly specified host bridge window may prevent
-> > other devices from claiming assigned resources. For example,
-> > this flawed _CRS resource descriptor from a Dell T5400:
-> >      DWordMemory (ResourceProducer, PosDecode, MinFixed, MaxFixed, NonCacheable, ReadWrite,
-> >          0x00000000,         // Granularity
-> >          0xF0000000,         // Range Minimum
-> >          0xFE000000,         // Range Maximum
-> >          0x00000000,         // Translation Offset
-> >          0x0E000000,         // Length
-> >          ,, , AddressRangeMemory, TypeStatic)
+At 11/09/2012 02:29 AM, Vasilis Liaskovitis Wrote:
+> As discussed in
+> https://patchwork.kernel.org/patch/1581581/
+> the driver core remove function needs to always succeed. This means we need
+> to know that the device can be successfully removed before acpi_bus_trim / 
+> acpi_bus_hot_remove_device are called. This can cause panics when OSPM-initiated
+> eject (echo 1 > /sys/bus/acpi/devices/PNP/eject) of memory devices fails, since
+> the ACPI core goes ahead and ejects the device regardless of whether the memory
+> is still in use or not.
 > 
-> I think the problem here is that the Range Maximum should be
-> 0xFDFFFFFF, not 0xFE000000, right?
-
-I presume so.
-
-> > diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-> > index 192397c..3468d16 100644
-> > --- a/arch/x86/pci/acpi.c
-> > +++ b/arch/x86/pci/acpi.c
-> > @@ -298,6 +298,10 @@ setup_resource(struct acpi_resource *acpi_res, void *data)
-> >                         "host bridge window [%#llx-%#llx] "
-> >                         "([%#llx-%#llx] ignored, not CPU addressable)\n",
-> >                         start, orig_end, end + 1, orig_end);
-> > +       } else if (flags & IORESOURCE_MEM && (start & 0x0f || ~end & 0x0f)) {
-> > +               dev_warn(&info->bridge->dev,
-> > +                        "invalid host bridge window [%#llx-%#llx]\n",
-> > +                        start, end);
+> For this reason a new acpi_device operation called prepare_remove is introduced.
+> This operation should be registered for acpi devices whose removal (from kernel
+> perspective) can fail.  Memory devices fall in this category.
 > 
-> We didn't actually *fix* anything here, so I guess we're just pointing
-> out the reason for a subsequent failure to claim the adjacent
-> resource.
+> acpi_bus_hot_remove_device is changed to handle removal in 2 steps:
+> - preparation for removal i.e. perform part of removal that can fail outside of
+>   ACPI core. Should succeed for device and all its children.
+> - if above step was successfull, proceed to actual ACPI removal
 
-Correct. There is no fix; only a diagnostic warning.
+If we unbind the device from the driver, we still need to do preparation. But
+you don't do it in your patch.
 
-The warning is also a 'red flag' that, on this machine, it might be
-better to boot the kernel with the "pci=nocrs" option.
+Thanks
+Wen Congyang
+> 
+> acpi_bus_trim is changed accordingly to handle preparation for removal and
+> actual removal.
+> 
+> With this patchset, only acpi memory devices use the new prepare_remove
+> device operation. The actual memory removal (VM-related offline and other memory
+> cleanups) is moved to prepare_remove. The old remove operation just cleans up
+> the acpi structures. Directly ejecting PNP0C80 memory devices works safely. I
+> haven't tested yet with an ACPI container which contains memory devices.
+> 
+> Other ACPI devices (e.g. CPU) do not register prepare_remove callbacks, and
+> their OSPM-side eject should not be affected.
+> 
+> I am not happy with the name prepare_remove. Comments welcome. Let me know if I
+> should work more in this direction (I think Yasuaki might also look into this
+> and might have a simpler idea)
+> 
+> Patches are on top of Rafael's linux-pm/linux-next
+> 
+> Vasilis Liaskovitis (3):
+>   acpi: Introduce prepare_remove operation in acpi_device_ops
+>   acpi: Make acpi_bus_trim handle device removal preparation
+>   acpi_memhotplug: Add prepare_remove operation
+> 
+>  drivers/acpi/acpi_memhotplug.c     |   24 +++++++++++++++++++++---
+>  drivers/acpi/dock.c                |    2 +-
+>  drivers/acpi/scan.c                |   32 +++++++++++++++++++++++++++++---
+>  drivers/pci/hotplug/acpiphp_glue.c |    4 ++--
+>  drivers/pci/hotplug/sgi_hotplug.c  |    2 +-
+>  include/acpi/acpi_bus.h            |    4 +++-
+>  6 files changed, 57 insertions(+), 11 deletions(-)
+> 
 
-> As far as I know, the spec doesn't actually require resources of ACPI
-> devices to be non-overlapping.  Windows accepts overlapping resources,
-> and I think Linux probably should, too, but right now we trip over
-> this.
-
-(note: I included a link below to the defect report which has
-the /proc/iomem, dmesg & dmidecode)
-
-The situation is this:
-
-The adjacent resources (northbridge & southbridge) are not defined by
-ACPI, but rather reserved with an e820 address descriptor from
-[0xfe000000-0xfeffffff], so strictly speaking there is no overlapping
-ACPI resource.
-
-The e820 descriptor is bumped out to [0xf0000000-0xfeffffff] and the
-malformed host bridge window is reparented to it.
-
-At this point in the boot, there is no resource conflict.
-
-Later in the boot, the i5k_amb driver tries to map
-[0xfe000000-0xfe01ffff] which is the FB-DIMM AMB register window on the
-Intel 5400 MCH and is rejected. The request is rejected because the
-requested range does not map completely to a single parent and this is
-not allowed. (The i5k_amb driver exposes the FB-DIMM temperature sensors
-through sysfs).
-
-There is no problem in Windows because no driver attempts to allocate
-[0xfe000000-0xfe01ffff]. However, I doubt the PNP Manager would allow
-another bus pdo to claim an overlapping resource with PCI bus 0. I
-suspect the offending device would yellow bang. (That would be an
-interesting experiment...)
-
-> In the meantime (until we figure out how to handle overlapping
-> resources better), can we do something to actually fix this?  Maybe we
-> should truncate the end of the range to 0xFDFFFFFF like we do for
-> non-addressable parts of the range?
-
-Auto-fixing this seems problematic because it's essentially impossible
-to determine if the resource length or the resource end or both is
-wrong.
-
-> Is there a bugzilla or a complete dmesg log to look at?
-
-https://bugzilla.kernel.org/show_bug.cgi?id=50161
-
-Regards,
-Peter Hurley
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
