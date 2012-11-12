@@ -1,93 +1,49 @@
-From: Lekensteyn <lekensteyn@gmail.com>
-Subject: [PATCH] ACPI: return first _ADR match for acpi_get_child
-Date: Mon, 12 Nov 2012 23:28:16 +0100
-Message-ID: <8150264.b2f1OROKxE@al>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFD][PATCH 7/7] PM / ACPI: Take device PM QoS flags into account
+Date: Tue, 13 Nov 2012 00:42:17 +0100
+Message-ID: <1700137.RQD4zuhDgN@vostro.rjw.lan>
+References: <201209282351.10663.rjw@sisk.pl> <201209282356.52558.rjw@sisk.pl> <CAErSpo7kVb1kLbJ0Y4mYLbzEeZM8dSa-YaZE9B2mN5r74ft-Rg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:36982 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752157Ab2KLW2T (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Nov 2012 17:28:19 -0500
-Received: by mail-wi0-f170.google.com with SMTP id hm9so2686201wib.1
-        for <linux-acpi@vger.kernel.org>; Mon, 12 Nov 2012 14:28:18 -0800 (PST)
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAErSpo7kVb1kLbJ0Y4mYLbzEeZM8dSa-YaZE9B2mN5r74ft-Rg@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Huang Ying <ying.huang@intel.com>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, Lan Tianyu <tianyu.lan@intel.com>, Aaron Lu <aaron.lu@intel.com>, Jean Pihet <j-pihet@ti.com>, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, mark gross <markgross@thegnar.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org, Sergio Perez <dagobertstaler@gmail.com>
 
-From: Peter Wu <lekensteyn@gmail.com>
+On Monday, November 12, 2012 02:07:03 PM Bjorn Helgaas wrote:
+> On Fri, Sep 28, 2012 at 3:56 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > Make ACPI power management routines and PCI power management
+> > routines depending on ACPI take device PM QoS flags into account
+> > when deciding what power state to put the device into.
+> >
+> > In particular, after this change acpi_pm_device_sleep_state() will
+> > not return ACPI_STATE_D3_COLD as the deepest available low-power
+> > state if PM_QOS_FLAG_NO_POWER_OFF is requested for the device and it
+> > will not require remote wakeup to work for the device in the returned
+> > low-power state if there is at least one PM QoS flags request for the
+> > device, but PM_QOS_FLAG_REMOTE_WAKEUP is not requested for it.
+> >
+> > Accordingly, acpi_pci_set_power_state() will refuse to put the
+> > device into D3cold if PM_QOS_FLAG_NO_POWER_OFF is requested for it.
+> >
+> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+> > ---
+> >  drivers/acpi/sleep.c   |   16 ++++++++++++----
+> >  drivers/pci/pci-acpi.c |    8 +++++++-
+> 
+> This touches a file in drivers/pci, but I expect it depends on all the
+> previous patches in the series, so if you haven't merged it already,
+> Rafael, it seems like it makes sense for you to merge this instead of
+> me.
 
-When acpi_get_child is called, it loops through all direct child
-devices and calls do_acpi_find_child to find an ACPI handle matching the
-_ADR. The previous implementation visits every direct child, if there
-were multiple devices with a matching _ADR, the last match was always
-returned.
+I will, thanks a lot!
 
-This behaviour (returning the last result) does not work for many recent
-Lenovo machines when looking for the correct ACPI handle for a Nvidia
-PCI video device. On these machines, the first handle should be used
-instead of the last one. On these machines, the PCI Bus ID is 01:00.0,
-hence the address that is searched for is 0 (via acpi_pci_find_device).
+Rafael
 
-When acpi_pci_find_device calls acpi_get_child, it iterates through:
 
-    Address: 00000000 (valid); handle: \_SB_.PCI0.PEG0.PEGP
-    Address: 00000001 (valid); handle: \_SB_.PCI0.PEG0.VGA1
-    Address: 00000000 (valid); handle: \_SB_.PCI0.PEG0.VGA_
-
-The correct handle here is "\_SB_.PCI0.PEG0.PEGP" which contains the
-_ROM method as well as _PSx for PM, and not \_SB.PCI0.PEG0.VGA.
-
-On my own laptop, and many others I believe, there is only one matching
-handle for a PCI device. The acpi_get_child method has been added in
-2005, 4e10d12a3d88c88fba3258809aa42d14fd8cf1d1, and there is no message
-indicating that the last (or first) handle should be returned. However,
-it is kind of useless to iterate from beginning to the end if you only
-need the last match. Therefore, just return the first match (which is
-likely the last one too in almost all cases).
-
-Verified to work for an affected Lenovo Ideapad Y480, tested for no
-regressions on my laptop (Clevo B7130).
-
-Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=42696
-
-Tested-by: Sergio Perez <dagobertstaler@gmail.com>
-Signed-off-by: Peter Wu <lekensteyn@gmail.com>
----
- drivers/acpi/glue.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
-index 0837308..dc9c945 100644
---- a/drivers/acpi/glue.c
-+++ b/drivers/acpi/glue.c
-@@ -99,18 +99,20 @@ struct acpi_find_child {
- static acpi_status
- do_acpi_find_child(acpi_handle handle, u32 lvl, void *context, void **rv)
- {
--	acpi_status status;
-+	acpi_status status, ret = AE_OK;
- 	struct acpi_device_info *info;
- 	struct acpi_find_child *find = context;
- 
- 	status = acpi_get_object_info(handle, &info);
- 	if (ACPI_SUCCESS(status)) {
- 		if ((info->address == find->address)
--			&& (info->valid & ACPI_VALID_ADR))
-+			&& (info->valid & ACPI_VALID_ADR)) {
- 			find->handle = handle;
-+			ret = AE_CTRL_TERMINATE;
-+		}
- 		kfree(info);
- 	}
--	return AE_OK;
-+	return ret;
- }
- 
- acpi_handle acpi_get_child(acpi_handle parent, u64 address)
 -- 
-1.8.0
-
-
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
