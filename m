@@ -1,95 +1,222 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
-Subject: RE: [PATCH 1/4] thermal: Add new thermal trend type to support
- quick cooling
-Date: Mon, 12 Nov 2012 05:55:48 +0000
-Message-ID: <4D68720C2E767A4AA6A8796D42C8EB59206068@BGSMSX101.gar.corp.intel.com>
-References: <1352348786-24255-1-git-send-email-amit.kachhap@linaro.org>
-	<1352348786-24255-2-git-send-email-amit.kachhap@linaro.org>
-	<1352354503.2190.7.camel@rzhang1-mobl4>
-	<CAK44p22REJpaJiahX7sTofShNB-+OHVsULqHeuxFNu5msLk6vA@mail.gmail.com>
-	<1352433060.2166.3.camel@rzhang1-mobl4>
- <CAK44p22hHVcL21B1iy1OnECMd5RCRF8DVh-cNj=6Bmvr5n0yyQ@mail.gmail.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH V5 2/2] Thermal: Add ST-Ericsson DB8500 thermal
+ properties and platform data.
+Date: Mon, 12 Nov 2012 14:07:05 +0800
+Message-ID: <1352700425.1834.11.camel@rzhang1-mobl4>
+References: <1352460548-3494-1-git-send-email-hongbo.zhang@linaro.com>
+	 <1352460548-3494-3-git-send-email-hongbo.zhang@linaro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <CAK44p22hHVcL21B1iy1OnECMd5RCRF8DVh-cNj=6Bmvr5n0yyQ@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Amit Kachhap <amit.kachhap@linaro.org>, "Zhang, Rui" <rui.zhang@intel.com>
-Cc: "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "jonghwa3.lee@samsung.com" <jonghwa3.lee@samsung.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1352460548-3494-3-git-send-email-hongbo.zhang@linaro.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "hongbo.zhang" <hongbo.zhang@linaro.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, amit.kachhap@linaro.org, patches@linaro.org, linaro-dev@lists.linaro.org, linaro-kernel@lists.linaro.org, STEricsson_nomadik_linux@list.st.com, kernel@igloocommunity.org, "hongbo.zhang" <hongbo.zhang@linaro.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Amit/Rui,
-
-> -----Original Message-----
-> From: Amit Kachhap [mailto:amit.kachhap@linaro.org]
-> Sent: Friday, November 09, 2012 11:52 AM
-> To: Zhang, Rui
-> Cc: linux-pm@lists.linux-foundation.org; linux-samsung-
-> soc@vger.kernel.org; linux-kernel@vger.kernel.org; R, Durgadoss;
-> lenb@kernel.org; linux-acpi@vger.kernel.org; jonghwa3.lee@samsung.com
-> Subject: Re: [PATCH 1/4] thermal: Add new thermal trend type to support
-> quick cooling
+On Fri, 2012-11-09 at 19:29 +0800, hongbo.zhang wrote:
+> From: "hongbo.zhang" <hongbo.zhang@linaro.com>
 > 
-> On 9 November 2012 09:21, Zhang Rui <rui.zhang@intel.com> wrote:
-> > On Thu, 2012-11-08 at 11:56 +0530, Amit Kachhap wrote:
-> >> On 8 November 2012 11:31, Zhang Rui <rui.zhang@intel.com> wrote:
-> >> > On Thu, 2012-11-08 at 09:56 +0530, Amit Daniel Kachhap wrote:
-> >> >> This modification adds 2 new thermal trend type
-> THERMAL_TREND_RAISE_FULL
-> >> >> and THERMAL_TREND_DROP_FULL. This thermal trend can be used to
-> quickly
-> >> >> jump to the upper or lower cooling level instead of incremental
-> increase
-> >> >> or decrease.
-> >> >
-> >> > IMO, what we need is a new more aggressive cooling governor which
-> always
-> >> > uses upper limit when the temperature is raising and lower limit when
-> >> > the temperature is dropping.
-> >> Yes I agree that a new aggressive governor is the best approach but
-> >> then i thought adding a new trend type is a simple solution to achieve
-> >> this and since most of the governor logic might be same as the
-> >> step-wise governor. I have no objection in doing it through governor.
-> >> >
-> > hmmm,
-> > I think a more proper way is to set the cooling state to upper limit
-> > when it overheats and reduce the cooling state step by step when the
-> > temperature drops.
+> This patch adds device tree properties for ST-Ericsson DB8500 thermal driver,
+> also adds the platform data to support the old fashion.
 > 
-> No actually I was thinking of having a  simple governor with a feature
-> like it only sets to upper level and lower level. Also since the
-> temperature sensor is capable of interrupting for both increase in
-> threshold(say 100C)  and fall in threshold (say 90C), so polling or
-> step increments is not needed at all.
-> Currently stepwise governor governor does that so we might change the
-> macro name as,
-> THERMAL_TREND_RAISE_STEP,
-> THERMAL_TREND_DROP_STEP,
-> THERMAL_TREND_RAISE_MAX,
-> THERMAL_TREND_DROP_MAX,
+> Signed-off-by: hongbo.zhang <hongbo.zhang@linaro.com>
+> Reviewed-by: Viresh Kumar <viresh.kumar@linaro.org>
+
+hmmm,
+
+who should take this patch?
+I'd like to see ACK from the maintainer of these code before applying
+them to thermal tree.
+
+thanks,
+rui
+> ---
+>  arch/arm/boot/dts/dbx5x0.dtsi      | 14 +++++++++
+>  arch/arm/boot/dts/snowball.dts     | 31 ++++++++++++++++++
+>  arch/arm/configs/u8500_defconfig   |  2 ++
+>  arch/arm/mach-ux500/board-mop500.c | 64 ++++++++++++++++++++++++++++++++++++++
+>  4 files changed, 111 insertions(+)
 > 
-> and file step_wise.c can be named as state_wise.c or trend_wise.c.
-
-Yes, in this particular case, we neither need to poll nor do step wise
-operations. But, most of the other sensors need at least one of them.
-
-So, I think we can try it this way:
-	if (sensor supports interrupt) {
-		'always' use RAISE_MAX and DROP_MAX;
-	} else {
-		Do Step wise operations
-	}
-
-And this could be plugged into step wise. I don't think we need a
-complete new governor just to get this case working.
-
-For this to work, we need a way for the governor to know 'whether the
-sensor can work on interrupt mode'. May be introducing a new field in
-tzd structure can help us here.
-
-I am fine with any name for the governor :-)
-
-Thanks,
-Durga
+> diff --git a/arch/arm/boot/dts/dbx5x0.dtsi b/arch/arm/boot/dts/dbx5x0.dtsi
+> index 4b0e0ca..731086b 100644
+> --- a/arch/arm/boot/dts/dbx5x0.dtsi
+> +++ b/arch/arm/boot/dts/dbx5x0.dtsi
+> @@ -203,6 +203,14 @@
+>  				reg = <0x80157450 0xC>;
+>  			};
+>  
+> +			thermal@801573c0 {
+> +				compatible = "stericsson,db8500-thermal";
+> +				reg = <0x801573c0 0x40>;
+> +				interrupts = <21 0x4>, <22 0x4>;
+> +				interrupt-names = "IRQ_HOTMON_LOW", "IRQ_HOTMON_HIGH";
+> +				status = "disabled";
+> +			 };
+> +
+>  			db8500-prcmu-regulators {
+>  				compatible = "stericsson,db8500-prcmu-regulator";
+>  
+> @@ -660,5 +668,11 @@
+>  			ranges = <0 0x50000000 0x4000000>;
+>  			status = "disabled";
+>  		};
+> +
+> +		cpufreq-cooling {
+> +			compatible = "stericsson,db8500-cpufreq-cooling";
+> +			status = "disabled";
+> +		 };
+> +
+>  	};
+>  };
+> diff --git a/arch/arm/boot/dts/snowball.dts b/arch/arm/boot/dts/snowball.dts
+> index 702c0ba..c6f85f0 100644
+> --- a/arch/arm/boot/dts/snowball.dts
+> +++ b/arch/arm/boot/dts/snowball.dts
+> @@ -99,6 +99,33 @@
+>  			status = "okay";
+>  		};
+>  
+> +		prcmu@80157000 {
+> +			thermal@801573c0 {
+> +				num-trips = <4>;
+> +
+> +				trip0-temp = <70000>;
+> +				trip0-type = "active";
+> +				trip0-cdev-num = <1>;
+> +				trip0-cdev-name0 = "thermal-cpufreq-0";
+> +
+> +				trip1-temp = <75000>;
+> +				trip1-type = "active";
+> +				trip1-cdev-num = <1>;
+> +				trip1-cdev-name0 = "thermal-cpufreq-0";
+> +
+> +				trip2-temp = <80000>;
+> +				trip2-type = "active";
+> +				trip2-cdev-num = <1>;
+> +				trip2-cdev-name0 = "thermal-cpufreq-0";
+> +
+> +				trip3-temp = <85000>;
+> +				trip3-type = "critical";
+> +				trip3-cdev-num = <0>;
+> +
+> +				status = "okay";
+> +			 };
+> +		};
+> +
+>  		external-bus@50000000 {
+>  			status = "okay";
+>  
+> @@ -183,5 +210,9 @@
+>  				reg = <0x33>;
+>  			};
+>  		};
+> +
+> +		cpufreq-cooling {
+> +			status = "okay";
+> +		};
+>  	};
+>  };
+> diff --git a/arch/arm/configs/u8500_defconfig b/arch/arm/configs/u8500_defconfig
+> index da68454..250625d 100644
+> --- a/arch/arm/configs/u8500_defconfig
+> +++ b/arch/arm/configs/u8500_defconfig
+> @@ -69,6 +69,8 @@ CONFIG_GPIO_TC3589X=y
+>  CONFIG_POWER_SUPPLY=y
+>  CONFIG_AB8500_BM=y
+>  CONFIG_AB8500_BATTERY_THERM_ON_BATCTRL=y
+> +CONFIG_THERMAL=y
+> +CONFIG_CPU_THERMAL=y
+>  CONFIG_MFD_STMPE=y
+>  CONFIG_MFD_TC3589X=y
+>  CONFIG_AB5500_CORE=y
+> diff --git a/arch/arm/mach-ux500/board-mop500.c b/arch/arm/mach-ux500/board-mop500.c
+> index 416d436..b03216b 100644
+> --- a/arch/arm/mach-ux500/board-mop500.c
+> +++ b/arch/arm/mach-ux500/board-mop500.c
+> @@ -16,6 +16,7 @@
+>  #include <linux/io.h>
+>  #include <linux/i2c.h>
+>  #include <linux/platform_data/i2c-nomadik.h>
+> +#include <linux/platform_data/db8500_thermal.h>
+>  #include <linux/gpio.h>
+>  #include <linux/amba/bus.h>
+>  #include <linux/amba/pl022.h>
+> @@ -229,6 +230,67 @@ static struct ab8500_platform_data ab8500_platdata = {
+>  };
+>  
+>  /*
+> + * Thermal Sensor
+> + */
+> +
+> +static struct resource db8500_thsens_resources[] = {
+> +	{
+> +		.name = "IRQ_HOTMON_LOW",
+> +		.start  = IRQ_PRCMU_HOTMON_LOW,
+> +		.end    = IRQ_PRCMU_HOTMON_LOW,
+> +		.flags  = IORESOURCE_IRQ,
+> +	},
+> +	{
+> +		.name = "IRQ_HOTMON_HIGH",
+> +		.start  = IRQ_PRCMU_HOTMON_HIGH,
+> +		.end    = IRQ_PRCMU_HOTMON_HIGH,
+> +		.flags  = IORESOURCE_IRQ,
+> +	},
+> +};
+> +
+> +static struct db8500_thsens_platform_data db8500_thsens_data = {
+> +	.trip_points[0] = {
+> +		.temp = 70000,
+> +		.type = THERMAL_TRIP_ACTIVE,
+> +		.cdev_name = {
+> +			[0] = "thermal-cpufreq-0",
+> +		},
+> +	},
+> +	.trip_points[1] = {
+> +		.temp = 75000,
+> +		.type = THERMAL_TRIP_ACTIVE,
+> +		.cdev_name = {
+> +			[0] = "thermal-cpufreq-0",
+> +		},
+> +	},
+> +	.trip_points[2] = {
+> +		.temp = 80000,
+> +		.type = THERMAL_TRIP_ACTIVE,
+> +		.cdev_name = {
+> +			[0] = "thermal-cpufreq-0",
+> +		},
+> +	},
+> +	.trip_points[3] = {
+> +		.temp = 85000,
+> +		.type = THERMAL_TRIP_CRITICAL,
+> +	},
+> +	.num_trips = 4,
+> +};
+> +
+> +static struct platform_device u8500_thsens_device = {
+> +	.name           = "db8500-thermal",
+> +	.resource       = db8500_thsens_resources,
+> +	.num_resources  = ARRAY_SIZE(db8500_thsens_resources),
+> +	.dev	= {
+> +		.platform_data	= &db8500_thsens_data,
+> +	},
+> +};
+> +
+> +static struct platform_device u8500_cpufreq_cooling_device = {
+> +	.name           = "db8500-cpufreq-cooling",
+> +};
+> +
+> +/*
+>   * TPS61052
+>   */
+>  
+> @@ -583,6 +645,8 @@ static struct platform_device *snowball_platform_devs[] __initdata = {
+>  	&snowball_key_dev,
+>  	&snowball_sbnet_dev,
+>  	&snowball_gpio_en_3v3_regulator_dev,
+> +	&u8500_thsens_device,
+> +	&u8500_cpufreq_cooling_device,
+>  };
+>  
+>  static void __init mop500_init_machine(void)
