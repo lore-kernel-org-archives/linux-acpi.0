@@ -1,95 +1,84 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH 3/3] ACPI: Evaluate _CRS while creating device node
- objects
-Date: Tue, 13 Nov 2012 16:34:07 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E346BC0694@ORSMSX101.amr.corp.intel.com>
-References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com>
- <11281928.0BBlrNprhI@vostro.rjw.lan> <20121112144621.GE31759@intel.com>
- <1935553.kFsUz07opN@vostro.rjw.lan> <20121113071208.GF31759@intel.com>
+From: Seiji Aguchi <seiji.aguchi@hds.com>
+Subject: [PATCH v5 0/7] efi_pstore: multiple event logging support
+Date: Tue, 13 Nov 2012 16:35:29 +0000
+Message-ID: <A5ED84D3BB3A384992CBB9C77DEDA4D4138C155D@USINDEM103.corp.hds.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:27505 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754612Ab2KMQeJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Nov 2012 11:34:09 -0500
-In-Reply-To: <20121113071208.GF31759@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Luck, Tony (tony.luck@intel.com)" <tony.luck@intel.com>, "anton.vorontsov@linaro.org" <anton.vorontsov@linaro.org>, "mikew@google.com" <mikew@google.com>, "Matthew Garrett (mjg@redhat.com)" <mjg@redhat.com>, "dzickus@redhat.com" <dzickus@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>
+Cc: "dle-develop@lists.sourceforge.net" <dle-develop@lists.sourceforge.net>, Satoru Moriya <satoru.moriya@hds.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "mathias.nyman@linux.intel.com" <mathias.nyman@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "linus.walleij@linaro.org" <linus.walleij@linaro.org>, "khali@linux-fr.org" <khali@linux-fr.org>, Bjorn Helgaas <bhelgaas@google.com>, "Zheng, Lv" <lv.zheng@intel.com>
 
-> I suppose we can just do acpi_get_current_resources() and play with 
-> the buffer returned by it.  That won't be nice, but still better than 
-> what we have.
+v4 -> v5
+   - Rebase to 3.7-rc5
+   - Add count to an argument of a write callback executed in pstore_console_write()
+     to build successfully in case where CONSIG_PSTORE_CONSOLE=y is specified. (Patch 5/7)
 
-A couple of the reasons we created the ACPICA resource manager was to:
-1) Simplify host access to the various resource fields, especially packed flags.
-2) Avoid alignment issues, especially on machines that don't support misaligned transfers.
+v3 -> v4
+   - Rebase to 3.7-rc3
+   - Add ctime to an argument of efi_pstore_erase to build successfully
+     in case where CONFIG_PTORE=n is specified. (Patch 4/7)
+   - Add count to an argument of efi_pstore_erase and efi_pstore_write to
+     build successfully in case where CONFIG_PTORE=n is specified (Patch 5/7)
+   - Fix a white space damage (Patch 6/7)
+   - Modify a logic checking a 3-variable format of a variable name (Patch 7/7)
 
-If there are issues with the current resource manager, we can discuss them. But I would hope that you really don't want to be fussing around with the raw data coming back from the AML. It is not pretty and we have gone to some lengths to make the entire conversion table-driven to minimize bugs and simplify maintenance.
+v2 -> v3
+   - Create patches 6/7 and 7/7 to work with an existing format of variable name
 
-Bob
+v1 -> v2
+   - Separate into 5 patches in accordance with Mike's comment
+   - Erase an extra line of comment in patch 1/5
 
+[Issue]
 
-> -----Original Message-----
-> From: Mika Westerberg [mailto:mika.westerberg@linux.intel.com]
-> Sent: Monday, November 12, 2012 11:12 PM
-> To: Rafael J. Wysocki
-> Cc: mathias.nyman@linux.intel.com; linux-acpi@vger.kernel.org; linux-
-> kernel@vger.kernel.org; lenb@kernel.org; Wysocki, Rafael J;
-> broonie@opensource.wolfsonmicro.com; grant.likely@secretlab.ca;
-> linus.walleij@linaro.org; khali@linux-fr.org; Bjorn Helgaas; Moore, Robert
-> Subject: Re: [PATCH 3/3] ACPI: Evaluate _CRS while creating device node
-> objects
-> 
-> On Mon, Nov 12, 2012 at 10:03:56PM +0100, Rafael J. Wysocki wrote:
-> > > > +static acpi_status acpi_bus_add_resource(struct acpi_resource *res,
-> > > > +					 void *context)
-> > > > +{
-> > > > +	struct list_head *list = context;
-> > > > +	struct acpi_resource_list_entry *entry;
-> > > > +
-> > > > +	entry = kzalloc(sizeof(*entry), GFP_KERNEL);
-> > > > +	if (!entry)
-> > > > +		return AE_NO_MEMORY;
-> > > > +
-> > > > +	entry->resource = *res;
-> > >
-> > > This does not work well with all resource types - specifically those
-> > > that contain pointers, like acpi_resource_gpio and
-> acpi_resource_source.
-> >
-> > Good point.
-> >
-> > Well, this pretty much means we can't copy those things.
-> 
-> Yeah. I only noticed this yesterday when I tested the GPIO translation in
-> a custom driver (since it uses the acpi_resource_gpio).
-> 
-> > > The memory for the resources gets freed once acpi_walk_resources() is
-> done.
-> >
-> > I know that.
-> >
-> > Having to evaluate _CRS and creating a buffer, converting the output
-> > into ACPI resources and so on every time we need to look into the
-> > device's current resources is totally inefficient.  We _need_ to cache
-> the _CRS output.
-> 
-> I agree and besides having adev->resources is much easier to use than
-> calling acpi_walk_resources() everytime.
-> 
-> > Now, because of the pointers in certain types of resources, we can't
-> > make copies of the resource objects used by acpi_walk_resources()
-> > which makes that function totally unuseful to us.
-> >
-> > I suppose we can just do acpi_get_current_resources() and play with
-> > the buffer returned by it.  That won't be nice, but still better than
-> > what we have.
-> 
-> I don't know any better option.
-> 
-> Thanks.
+    Currently, efi_pstore driver simply overwrites existing panic messages in NVRAM.
+    So, in the following scenario, we will lose 1st panic messages.
+
+    1. kernel panics.
+    2. efi_pstore is kicked and writes panic messages to NVRAM.
+    3. system reboots.
+    4. kernel panics again before a user checks the 1st panic messages in NVRAM.
+
+[Solution]
+
+   Solutions of this problem has been discussed among Tony, Matthew, Don, Mike and me.
+
+   http://marc.info/?l=linux-kernel&m=134273270704586&w=2
+
+   And there are two possible solutions right now.
+     - First one is introducing some policy overwriting existing logs.
+     - Second one is simply holding multiple log without overwriting any entries.
+
+   We haven't decided the overwriting policy which is reasonable to all users yet.
+   But I believe we agree that just holding multiple logs is a reasonable way.
+
+   We may need further discussions to find the possibility of introducing overwriting
+   policy, especially getting critical messages in multiple oops case.
+   But I would like to begin with a simple and reasonable way to everyone.
+   So, this patch takes an approach just holding multiple logs.
+
+Seiji Aguchi (7):
+  efi_pstore: Check remaining space with QueryVariableInfo() before
+    writing data
+  efi_pstore: Add a logic erasing entries to an erase callback
+  efi_pstore: Remove a logic erasing entries from a write callback to
+    hold multiple logs
+  efi_pstore: Add ctime to argument of erase callback
+  efi_pstore: Add a sequence counter to a variable name
+  efi_pstore: Add a format check for an existing variable name at
+    reading time
+  efi_pstore: Add a format check for an existing variable name at erasing time
+
+ drivers/acpi/apei/erst.c   |   16 ++--
+ drivers/firmware/efivars.c |  156 +++++++++++++++++++++++++++++++-------------
+ fs/pstore/inode.c          |    7 ++-
+ fs/pstore/internal.h       |    2 +-
+ fs/pstore/platform.c       |   13 ++--
+ fs/pstore/ram.c            |    9 +--
+ include/linux/efi.h        |    1 +
+ include/linux/pstore.h     |    6 +-
+ 8 files changed, 140 insertions(+), 70 deletions(-)
