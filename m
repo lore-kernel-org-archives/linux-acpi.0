@@ -1,886 +1,172 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 1/3 rev 2] ACPI: Move device resources interpretation code from PNP to ACPI core
-Date: Tue, 13 Nov 2012 21:55:17 +0100
-Message-ID: <1512856.GC2b6SnyWH@vostro.rjw.lan>
-References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com> <2429141.J1r7BIpiiT@vostro.rjw.lan> <5953163.ZajFIHZXph@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+From: Julius Werner <jwerner@chromium.org>
+Subject: [PATCH] cpuidle: Measure idle state durations with monotonic clock
+Date: Tue, 13 Nov 2012 13:52:43 -0800
+Message-ID: <1352843563-16392-1-git-send-email-jwerner@chromium.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5953163.ZajFIHZXph@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, mathias.nyman@linux.intel.com, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, khali@linux-fr.org, Bjorn Helgaas <bhelgaas@google.com>
+To: linux-kernel@vger.kernel.org
+Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Kevin Hilman <khilman@ti.com>, Andrew Morton <akpm@linux-foundation.org>, "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, Deepthi Dharwar <deepthi@linux.vnet.ibm.com>, Trinabh Gupta <g.trinabh@gmail.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Sameer Nanda <snanda@chromium.org>, Julius Werner <jwerner@chromium.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Many cpuidle drivers measure their time spent in an idle state by
+reading the wallclock time before and after idling and calculating the
+difference. This leads to erroneous results when the wallclock time gets
+updated by another processor in the meantime, adding that clock
+adjustment to the idle state's time counter.
 
-Move some code used for parsing ACPI device resources from the PNP
-subsystem to the ACPI core, so that other bus types (platform, SPI,
-I2C) can use the same routines for parsing resources in a consistent
-way, without duplicating code.
+If the clock adjustment was negative, the result is even worse due to an
+erroneous cast from int to unsigned long long of the last_residency
+variable. The negative 32 bit integer will zero-extend and result in a
+forward time jump of roughly four billion milliseconds or 1.3 hours on
+the idle state residency counter.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+This patch changes all affected cpuidle drivers to use the monotonic
+clock for their measurements instead. It also removes the erroneous
+cast, making sure that negative residency values are applied correctly
+even though they should not appear anymore.
+
+Signed-off-by: Julius Werner <jwerner@chromium.org>
 ---
- drivers/acpi/Makefile          |    1 
- drivers/acpi/resource.c        |  393 +++++++++++++++++++++++++++++++++++++++++
- drivers/pnp/base.h             |    2 
- drivers/pnp/pnpacpi/rsparser.c |  296 +++---------------------------
- drivers/pnp/resource.c         |   16 +
- include/linux/acpi.h           |   10 +
- 6 files changed, 454 insertions(+), 264 deletions(-)
+ arch/powerpc/platforms/pseries/processor_idle.c |    4 ++--
+ drivers/acpi/processor_idle.c                   |   12 ++++++------
+ drivers/cpuidle/cpuidle.c                       |    3 +--
+ drivers/idle/intel_idle.c                       |   13 ++++---------
+ 4 files changed, 13 insertions(+), 19 deletions(-)
 
-Index: linux/drivers/acpi/resource.c
-===================================================================
---- /dev/null
-+++ linux/drivers/acpi/resource.c
-@@ -0,0 +1,393 @@
-+/*
-+ * drivers/acpi/resource.c - ACPI device resources interpretation.
-+ *
-+ * Copyright (C) 2012, Intel Corp.
-+ * Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-+ *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License version 2 as published
-+ *  by the Free Software Foundation.
-+ *
-+ *  This program is distributed in the hope that it will be useful, but
-+ *  WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ *  General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License along
-+ *  with this program; if not, write to the Free Software Foundation, Inc.,
-+ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
-+ *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ */
-+
-+#include <linux/acpi.h>
-+#include <linux/device.h>
-+#include <linux/export.h>
-+#include <linux/ioport.h>
-+
-+#ifdef CONFIG_X86
-+#define valid_IRQ(i) (((i) != 0) && ((i) != 2))
-+#else
-+#define valid_IRQ(i) (true)
-+#endif
-+
-+static unsigned long acpi_dev_memresource_flags(u64 len, u8 write_protect,
-+						bool window)
-+{
-+	unsigned long flags = IORESOURCE_MEM;
-+
-+	if (len == 0)
-+		flags |= IORESOURCE_DISABLED;
-+
-+	if (write_protect == ACPI_READ_WRITE_MEMORY)
-+		flags |= IORESOURCE_MEM_WRITEABLE;
-+
-+	if (window)
-+		flags |= IORESOURCE_WINDOW;
-+
-+	return flags;
-+}
-+
-+static void acpi_dev_get_memresource(struct resource *res, u64 start, u64 len,
-+				     u8 write_protect)
-+{
-+	res->start = start;
-+	res->end = start + len - 1;
-+	res->flags = acpi_dev_memresource_flags(len, write_protect, false);
-+}
-+
-+/**
-+ * acpi_dev_resource_memory - Extract ACPI memory resource information.
-+ * @ares: Input ACPI resource object.
-+ * @res: Output generic resource object.
-+ *
-+ * Check if the given ACPI resource object represents a memory resource and
-+ * if that's the case, use the information in it to populate the generic
-+ * resource object pointed to by @res.
-+ */
-+bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res)
-+{
-+	struct acpi_resource_memory24 *memory24;
-+	struct acpi_resource_memory32 *memory32;
-+	struct acpi_resource_fixed_memory32 *fixed_memory32;
-+
-+	switch (ares->type) {
-+	case ACPI_RESOURCE_TYPE_MEMORY24:
-+		memory24 = &ares->data.memory24;
-+		acpi_dev_get_memresource(res, memory24->minimum,
-+					 memory24->address_length,
-+					 memory24->write_protect);
-+		break;
-+	case ACPI_RESOURCE_TYPE_MEMORY32:
-+		memory32 = &ares->data.memory32;
-+		acpi_dev_get_memresource(res, memory32->minimum,
-+					 memory32->address_length,
-+					 memory32->write_protect);
-+		break;
-+	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
-+		fixed_memory32 = &ares->data.fixed_memory32;
-+		acpi_dev_get_memresource(res, fixed_memory32->address,
-+					 fixed_memory32->address_length,
-+					 fixed_memory32->write_protect);
-+		break;
-+	default:
-+		return false;
-+	}
-+	return true;
-+}
-+EXPORT_SYMBOL_GPL(acpi_dev_resource_memory);
-+
-+static unsigned int acpi_dev_ioresource_flags(u64 start, u64 end, u8 io_decode,
-+					      bool window)
-+{
-+	int flags = IORESOURCE_IO;
-+
-+	if (io_decode == ACPI_DECODE_16)
-+		flags |= IORESOURCE_IO_16BIT_ADDR;
-+
-+	if (start > end || end >= 0x10003)
-+		flags |= IORESOURCE_DISABLED;
-+
-+	if (window)
-+		flags |= IORESOURCE_WINDOW;
-+
-+	return flags;
-+}
-+
-+static void acpi_dev_get_ioresource(struct resource *res, u64 start, u64 len,
-+				    u8 io_decode)
-+{
-+	u64 end = start + len - 1;
-+
-+	res->start = start;
-+	res->end = end;
-+	res->flags = acpi_dev_ioresource_flags(start, end, io_decode, false);
-+}
-+
-+/**
-+ * acpi_dev_resource_io - Extract ACPI I/O resource information.
-+ * @ares: Input ACPI resource object.
-+ * @res: Output generic resource object.
-+ *
-+ * Check if the given ACPI resource object represents an I/O resource and
-+ * if that's the case, use the information in it to populate the generic
-+ * resource object pointed to by @res.
-+ */
-+bool acpi_dev_resource_io(struct acpi_resource *ares, struct resource *res)
-+{
-+	struct acpi_resource_io *io;
-+	struct acpi_resource_fixed_io *fixed_io;
-+
-+	switch (ares->type) {
-+	case ACPI_RESOURCE_TYPE_IO:
-+		io = &ares->data.io;
-+		acpi_dev_get_ioresource(res, io->minimum,
-+					io->address_length,
-+					io->io_decode);
-+		break;
-+	case ACPI_RESOURCE_TYPE_FIXED_IO:
-+		fixed_io = &ares->data.fixed_io;
-+		acpi_dev_get_ioresource(res, fixed_io->address,
-+					fixed_io->address_length,
-+					ACPI_DECODE_10);
-+		break;
-+	default:
-+		return false;
-+	}
-+	return true;
-+}
-+EXPORT_SYMBOL_GPL(acpi_dev_resource_io);
-+
-+/**
-+ * acpi_dev_resource_address_space - Extract ACPI address space information.
-+ * @ares: Input ACPI resource object.
-+ * @res: Output generic resource object.
-+ *
-+ * Check if the given ACPI resource object represents an address space resource
-+ * and if that's the case, use the information in it to populate the generic
-+ * resource object pointed to by @res.
-+ */
-+bool acpi_dev_resource_address_space(struct acpi_resource *ares,
-+				     struct resource *res)
-+{
-+	acpi_status status;
-+	struct acpi_resource_address64 addr;
-+	bool window;
-+	u64 len;
-+	u8 io_decode;
-+
-+	switch (ares->type) {
-+	case ACPI_RESOURCE_TYPE_ADDRESS16:
-+	case ACPI_RESOURCE_TYPE_ADDRESS32:
-+	case ACPI_RESOURCE_TYPE_ADDRESS64:
-+		break;
-+	default:
-+		return false;
-+	}
-+
-+	status = acpi_resource_to_address64(ares, &addr);
-+	if (ACPI_FAILURE(status))
-+		return true;
-+
-+	res->start = addr.minimum;
-+	res->end = addr.maximum;
-+	window = addr.producer_consumer == ACPI_PRODUCER;
-+
-+	switch(addr.resource_type) {
-+	case ACPI_MEMORY_RANGE:
-+		len = addr.maximum - addr.minimum + 1;
-+		res->flags = acpi_dev_memresource_flags(len,
-+						addr.info.mem.write_protect,
-+						window);
-+		break;
-+	case ACPI_IO_RANGE:
-+		io_decode = addr.granularity == 0xfff ?
-+				ACPI_DECODE_10 : ACPI_DECODE_16;
-+		res->flags = acpi_dev_ioresource_flags(addr.minimum,
-+						       addr.maximum,
-+						       io_decode, window);
-+		break;
-+	case ACPI_BUS_NUMBER_RANGE:
-+		res->flags = IORESOURCE_BUS;
-+		break;
-+	default:
-+		res->flags = 0;
-+	}
-+
-+	return true;
-+}
-+EXPORT_SYMBOL_GPL(acpi_dev_resource_address_space);
-+
-+/**
-+ * acpi_dev_resource_ext_address_space - Extract ACPI address space information.
-+ * @ares: Input ACPI resource object.
-+ * @res: Output generic resource object.
-+ *
-+ * Check if the given ACPI resource object represents an extended address space
-+ * resource and if that's the case, use the information in it to populate the
-+ * generic resource object pointed to by @res.
-+ */
-+bool acpi_dev_resource_ext_address_space(struct acpi_resource *ares,
-+					 struct resource *res)
-+{
-+	struct acpi_resource_extended_address64 *ext_addr;
-+	bool window;
-+	u64 len;
-+	u8 io_decode;
-+
-+	if (ares->type != ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64)
-+		return false;
-+
-+	ext_addr = &ares->data.ext_address64;
-+
-+	res->start = ext_addr->minimum;
-+	res->end = ext_addr->maximum;
-+	window = ext_addr->producer_consumer == ACPI_PRODUCER;
-+
-+	switch(ext_addr->resource_type) {
-+	case ACPI_MEMORY_RANGE:
-+		len = ext_addr->maximum - ext_addr->minimum + 1;
-+		res->flags = acpi_dev_memresource_flags(len,
-+					ext_addr->info.mem.write_protect,
-+					window);
-+		break;
-+	case ACPI_IO_RANGE:
-+		io_decode = ext_addr->granularity == 0xfff ?
-+				ACPI_DECODE_10 : ACPI_DECODE_16;
-+		res->flags = acpi_dev_ioresource_flags(ext_addr->minimum,
-+						       ext_addr->maximum,
-+						       io_decode, window);
-+		break;
-+	case ACPI_BUS_NUMBER_RANGE:
-+		res->flags = IORESOURCE_BUS;
-+		break;
-+	default:
-+		res->flags = 0;
-+	}
-+
-+	return true;
-+}
-+EXPORT_SYMBOL_GPL(acpi_dev_resource_ext_address_space);
-+
-+/**
-+ * acpi_dev_irq_flags - Determine IRQ resource flags.
-+ * @triggering: Triggering type as provided by ACPI.
-+ * @polarity: Interrupt polarity as provided by ACPI.
-+ * @shareable: Whether or not the interrupt is shareable.
-+ */
-+unsigned long acpi_dev_irq_flags(u8 triggering, u8 polarity, u8 shareable)
-+{
-+	unsigned long flags;
-+
-+	if (triggering == ACPI_LEVEL_SENSITIVE)
-+		flags = polarity == ACPI_ACTIVE_LOW ?
-+			IORESOURCE_IRQ_LOWLEVEL : IORESOURCE_IRQ_HIGHLEVEL;
-+	else
-+		flags = polarity == ACPI_ACTIVE_LOW ?
-+			IORESOURCE_IRQ_LOWEDGE : IORESOURCE_IRQ_HIGHEDGE;
-+
-+	if (shareable == ACPI_SHARED)
-+		flags |= IORESOURCE_IRQ_SHAREABLE;
-+
-+	return flags | IORESOURCE_IRQ;
-+}
-+EXPORT_SYMBOL_GPL(acpi_dev_irq_flags);
-+
-+static void acpi_dev_irqresource_disabled(struct resource *res, u32 gsi)
-+{
-+	res->start = gsi;
-+	res->end = gsi;
-+	res->flags = IORESOURCE_IRQ | IORESOURCE_DISABLED;
-+}
-+
-+static void acpi_dev_get_irqresource(struct resource *res, u32 gsi,
-+				     u8 triggering, u8 polarity, u8 shareable)
-+{
-+	int irq, p, t;
-+
-+	if (!valid_IRQ(gsi)) {
-+		acpi_dev_irqresource_disabled(res, gsi);
-+		return;
-+	}
-+
-+	/*
-+	 * In IO-APIC mode, use overrided attribute. Two reasons:
-+	 * 1. BIOS bug in DSDT
-+	 * 2. BIOS uses IO-APIC mode Interrupt Source Override
-+	 */
-+	if (!acpi_get_override_irq(gsi, &t, &p)) {
-+		u8 trig = t ? ACPI_LEVEL_SENSITIVE : ACPI_EDGE_SENSITIVE;
-+		u8 pol = p ? ACPI_ACTIVE_LOW : ACPI_ACTIVE_HIGH;
-+
-+		if (triggering != trig || polarity != pol) {
-+			pr_warning("ACPI: IRQ %d override to %s, %s\n", gsi,
-+				   t ? "edge" : "level", p ? "low" : "high");
-+			triggering = trig;
-+			polarity = pol;
-+		}
-+	}
-+
-+	res->flags = acpi_dev_irq_flags(triggering, polarity, shareable);
-+	irq = acpi_register_gsi(NULL, gsi, triggering, polarity);
-+	if (irq >= 0) {
-+		res->start = irq;
-+		res->end = irq;
-+	} else {
-+		acpi_dev_irqresource_disabled(res, gsi);
-+	}
-+}
-+
-+/**
-+ * acpi_dev_resource_interrupt - Extract ACPI interrupt resource information.
-+ * @ares: Input ACPI resource object.
-+ * @index: Index into the array of GSIs represented by the resource.
-+ * @res: Output generic resource object.
-+ *
-+ * Check if the given ACPI resource object represents an interrupt resource
-+ * and @index does not exceed the resource's interrupt count (true is returned
-+ * in that case regardless of the results of the other checks)).  If that's the
-+ * case, register the GSI corresponding to @index from the array of interrupts
-+ * represented by the resource and populate the generic resource object pointed
-+ * to by @res accordingly.  If the registration of the GSI is not successful,
-+ * IORESOURCE_DISABLED will be set it that object's flags.
-+ */
-+bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
-+				 struct resource *res)
-+{
-+	struct acpi_resource_irq *irq;
-+	struct acpi_resource_extended_irq *ext_irq;
-+
-+	switch (ares->type) {
-+	case ACPI_RESOURCE_TYPE_IRQ:
-+		/*
-+		 * Per spec, only one interrupt per descriptor is allowed in
-+		 * _CRS, but some firmware violates this, so parse them all.
-+		 */
-+		irq = &ares->data.irq;
-+		if (index >= irq->interrupt_count) {
-+			acpi_dev_irqresource_disabled(res, 0);
-+			return false;
-+		}
-+		acpi_dev_get_irqresource(res, irq->interrupts[index],
-+					 irq->triggering, irq->polarity,
-+					 irq->sharable);
-+		break;
-+	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
-+		ext_irq = &ares->data.extended_irq;
-+		if (index >= ext_irq->interrupt_count) {
-+			acpi_dev_irqresource_disabled(res, 0);
-+			return false;
-+		}
-+		acpi_dev_get_irqresource(res, ext_irq->interrupts[index],
-+					 ext_irq->triggering, ext_irq->polarity,
-+					 ext_irq->sharable);
-+		break;
-+	default:
-+		return false;
-+	}
-+
-+	return true;
-+}
-+EXPORT_SYMBOL_GPL(acpi_dev_resource_interrupt);
-Index: linux/drivers/acpi/Makefile
-===================================================================
---- linux.orig/drivers/acpi/Makefile
-+++ linux/drivers/acpi/Makefile
-@@ -33,6 +33,7 @@ acpi-$(CONFIG_ACPI_SLEEP)	+= proc.o
- #
- acpi-y				+= bus.o glue.o
- acpi-y				+= scan.o
-+acpi-y				+= resource.o
- acpi-y				+= processor_core.o
- acpi-y				+= ec.o
- acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
-Index: linux/drivers/pnp/pnpacpi/rsparser.c
-===================================================================
---- linux.orig/drivers/pnp/pnpacpi/rsparser.c
-+++ linux/drivers/pnp/pnpacpi/rsparser.c
-@@ -28,37 +28,6 @@
- #include "../base.h"
- #include "pnpacpi.h"
- 
--#ifdef CONFIG_IA64
--#define valid_IRQ(i) (1)
--#else
--#define valid_IRQ(i) (((i) != 0) && ((i) != 2))
--#endif
--
--/*
-- * Allocated Resources
-- */
--static int irq_flags(int triggering, int polarity, int shareable)
--{
--	int flags;
--
--	if (triggering == ACPI_LEVEL_SENSITIVE) {
--		if (polarity == ACPI_ACTIVE_LOW)
--			flags = IORESOURCE_IRQ_LOWLEVEL;
--		else
--			flags = IORESOURCE_IRQ_HIGHLEVEL;
--	} else {
--		if (polarity == ACPI_ACTIVE_LOW)
--			flags = IORESOURCE_IRQ_LOWEDGE;
--		else
--			flags = IORESOURCE_IRQ_HIGHEDGE;
--	}
--
--	if (shareable == ACPI_SHARED)
--		flags |= IORESOURCE_IRQ_SHAREABLE;
--
--	return flags;
--}
--
- static void decode_irq_flags(struct pnp_dev *dev, int flags, int *triggering,
- 			     int *polarity, int *shareable)
+diff --git a/arch/powerpc/platforms/pseries/processor_idle.c b/arch/powerpc/platforms/pseries/processor_idle.c
+index 45d00e5..4d806b4 100644
+--- a/arch/powerpc/platforms/pseries/processor_idle.c
++++ b/arch/powerpc/platforms/pseries/processor_idle.c
+@@ -36,7 +36,7 @@ static struct cpuidle_state *cpuidle_state_table;
+ static inline void idle_loop_prolog(unsigned long *in_purr, ktime_t *kt_before)
  {
-@@ -94,45 +63,6 @@ static void decode_irq_flags(struct pnp_
- 		*shareable = ACPI_EXCLUSIVE;
+ 
+-	*kt_before = ktime_get_real();
++	*kt_before = ktime_get();
+ 	*in_purr = mfspr(SPRN_PURR);
+ 	/*
+ 	 * Indicate to the HV that we are idle. Now would be
+@@ -50,7 +50,7 @@ static inline  s64 idle_loop_epilog(unsigned long in_purr, ktime_t kt_before)
+ 	get_lppaca()->wait_state_cycles += mfspr(SPRN_PURR) - in_purr;
+ 	get_lppaca()->idle = 0;
+ 
+-	return ktime_to_us(ktime_sub(ktime_get_real(), kt_before));
++	return ktime_to_us(ktime_sub(ktime_get(), kt_before));
  }
  
--static void pnpacpi_parse_allocated_irqresource(struct pnp_dev *dev,
--						u32 gsi, int triggering,
--						int polarity, int shareable)
--{
--	int irq, flags;
--	int p, t;
--
--	if (!valid_IRQ(gsi)) {
--		pnp_add_irq_resource(dev, gsi, IORESOURCE_DISABLED);
--		return;
--	}
--
--	/*
--	 * in IO-APIC mode, use overrided attribute. Two reasons:
--	 * 1. BIOS bug in DSDT
--	 * 2. BIOS uses IO-APIC mode Interrupt Source Override
--	 */
--	if (!acpi_get_override_irq(gsi, &t, &p)) {
--		t = t ? ACPI_LEVEL_SENSITIVE : ACPI_EDGE_SENSITIVE;
--		p = p ? ACPI_ACTIVE_LOW : ACPI_ACTIVE_HIGH;
--
--		if (triggering != t || polarity != p) {
--			dev_warn(&dev->dev, "IRQ %d override to %s, %s\n",
--				gsi, t ? "edge":"level", p ? "low":"high");
--			triggering = t;
--			polarity = p;
--		}
--	}
--
--	flags = irq_flags(triggering, polarity, shareable);
--	irq = acpi_register_gsi(&dev->dev, gsi, triggering, polarity);
--	if (irq >= 0)
--		pcibios_penalize_isa_irq(irq, 1);
--	else
--		flags |= IORESOURCE_DISABLED;
--
--	pnp_add_irq_resource(dev, irq, flags);
--}
--
- static int dma_flags(struct pnp_dev *dev, int type, int bus_master,
- 		     int transfer)
- {
-@@ -177,21 +107,16 @@ static int dma_flags(struct pnp_dev *dev
- 	return flags;
- }
+ static int snooze_loop(struct cpuidle_device *dev,
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index e8086c7..8c98d73 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -751,9 +751,9 @@ static int acpi_idle_enter_c1(struct cpuidle_device *dev,
  
--static void pnpacpi_parse_allocated_ioresource(struct pnp_dev *dev, u64 start,
--					       u64 len, int io_decode,
--					       int window)
--{
--	int flags = 0;
--	u64 end = start + len - 1;
-+/*
-+ * Allocated Resources
-+ */
  
--	if (io_decode == ACPI_DECODE_16)
--		flags |= IORESOURCE_IO_16BIT_ADDR;
--	if (len == 0 || end >= 0x10003)
--		flags |= IORESOURCE_DISABLED;
--	if (window)
--		flags |= IORESOURCE_WINDOW;
-+static void pnpacpi_add_irqresource(struct pnp_dev *dev, struct resource *r)
-+{
-+	if (!(r->flags & IORESOURCE_DISABLED))
-+		pcibios_penalize_isa_irq(r->start, 1);
+ 	lapic_timer_state_broadcast(pr, cx, 1);
+-	kt1 = ktime_get_real();
++	kt1 = ktime_get();
+ 	acpi_idle_do_entry(cx);
+-	kt2 = ktime_get_real();
++	kt2 = ktime_get();
+ 	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
  
--	pnp_add_io_resource(dev, start, end, flags);
-+	pnp_add_resource(dev, r);
- }
+ 	/* Update device last_residency*/
+@@ -843,11 +843,11 @@ static int acpi_idle_enter_simple(struct cpuidle_device *dev,
+ 	if (cx->type == ACPI_STATE_C3)
+ 		ACPI_FLUSH_CPU_CACHE();
  
- /*
-@@ -249,130 +174,49 @@ static void pnpacpi_parse_allocated_vend
+-	kt1 = ktime_get_real();
++	kt1 = ktime_get();
+ 	/* Tell the scheduler that we are going deep-idle: */
+ 	sched_clock_idle_sleep_event();
+ 	acpi_idle_do_entry(cx);
+-	kt2 = ktime_get_real();
++	kt2 = ktime_get();
+ 	idle_time_ns = ktime_to_ns(ktime_sub(kt2, kt1));
+ 	idle_time = idle_time_ns;
+ 	do_div(idle_time, NSEC_PER_USEC);
+@@ -934,7 +934,7 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
+ 	 */
+ 	lapic_timer_state_broadcast(pr, cx, 1);
+ 
+-	kt1 = ktime_get_real();
++	kt1 = ktime_get();
+ 	/*
+ 	 * disable bus master
+ 	 * bm_check implies we need ARB_DIS
+@@ -965,7 +965,7 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
+ 		c3_cpu_count--;
+ 		raw_spin_unlock(&c3_lock);
  	}
+-	kt2 = ktime_get_real();
++	kt2 = ktime_get();
+ 	idle_time_ns = ktime_to_ns(ktime_sub(kt2, kt1));
+ 	idle_time = idle_time_ns;
+ 	do_div(idle_time, NSEC_PER_USEC);
+diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
+index 7f15b85..1536edd 100644
+--- a/drivers/cpuidle/cpuidle.c
++++ b/drivers/cpuidle/cpuidle.c
+@@ -109,8 +109,7 @@ int cpuidle_enter_state(struct cpuidle_device *dev, struct cpuidle_driver *drv,
+ 		/* This can be moved to within driver enter routine
+ 		 * but that results in multiple copies of same code.
+ 		 */
+-		dev->states_usage[entered_state].time +=
+-				(unsigned long long)dev->last_residency;
++		dev->states_usage[entered_state].time += dev->last_residency;
+ 		dev->states_usage[entered_state].usage++;
+ 	} else {
+ 		dev->last_residency = 0;
+diff --git a/drivers/idle/intel_idle.c b/drivers/idle/intel_idle.c
+index b0f6b4c..6329a97 100644
+--- a/drivers/idle/intel_idle.c
++++ b/drivers/idle/intel_idle.c
+@@ -56,7 +56,7 @@
+ #include <linux/kernel.h>
+ #include <linux/cpuidle.h>
+ #include <linux/clockchips.h>
+-#include <linux/hrtimer.h>	/* ktime_get_real() */
++#include <linux/hrtimer.h>	/* ktime_get() */
+ #include <trace/events/power.h>
+ #include <linux/sched.h>
+ #include <linux/notifier.h>
+@@ -281,8 +281,7 @@ static int intel_idle(struct cpuidle_device *dev,
+ 	struct cpuidle_state_usage *state_usage = &dev->states_usage[index];
+ 	unsigned long eax = (unsigned long)cpuidle_get_statedata(state_usage);
+ 	unsigned int cstate;
+-	ktime_t kt_before, kt_after;
+-	s64 usec_delta;
++	ktime_t kt_before;
+ 	int cpu = smp_processor_id();
+ 
+ 	cstate = (((eax) >> MWAIT_SUBSTATE_SIZE) & MWAIT_CSTATE_MASK) + 1;
+@@ -297,7 +296,7 @@ static int intel_idle(struct cpuidle_device *dev,
+ 	if (!(lapic_timer_reliable_states & (1 << (cstate))))
+ 		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &cpu);
+ 
+-	kt_before = ktime_get_real();
++	kt_before = ktime_get();
+ 
+ 	stop_critical_timings();
+ 	if (!need_resched()) {
+@@ -310,17 +309,13 @@ static int intel_idle(struct cpuidle_device *dev,
+ 
+ 	start_critical_timings();
+ 
+-	kt_after = ktime_get_real();
+-	usec_delta = ktime_to_us(ktime_sub(kt_after, kt_before));
++	dev->last_residency = ktime_to_us(ktime_sub(ktime_get(), kt_before));
+ 
+ 	local_irq_enable();
+ 
+ 	if (!(lapic_timer_reliable_states & (1 << (cstate))))
+ 		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &cpu);
+ 
+-	/* Update cpuidle counters */
+-	dev->last_residency = (int)usec_delta;
+-
+ 	return index;
  }
  
--static void pnpacpi_parse_allocated_memresource(struct pnp_dev *dev,
--						u64 start, u64 len,
--						int write_protect, int window)
--{
--	int flags = 0;
--	u64 end = start + len - 1;
--
--	if (len == 0)
--		flags |= IORESOURCE_DISABLED;
--	if (write_protect == ACPI_READ_WRITE_MEMORY)
--		flags |= IORESOURCE_MEM_WRITEABLE;
--	if (window)
--		flags |= IORESOURCE_WINDOW;
--
--	pnp_add_mem_resource(dev, start, end, flags);
--}
--
--static void pnpacpi_parse_allocated_busresource(struct pnp_dev *dev,
--						u64 start, u64 len)
--{
--	u64 end = start + len - 1;
--
--	pnp_add_bus_resource(dev, start, end);
--}
--
--static void pnpacpi_parse_allocated_address_space(struct pnp_dev *dev,
--						  struct acpi_resource *res)
--{
--	struct acpi_resource_address64 addr, *p = &addr;
--	acpi_status status;
--	int window;
--	u64 len;
--
--	status = acpi_resource_to_address64(res, p);
--	if (!ACPI_SUCCESS(status)) {
--		dev_warn(&dev->dev, "failed to convert resource type %d\n",
--			 res->type);
--		return;
--	}
--
--	/* Windows apparently computes length rather than using _LEN */
--	len = p->maximum - p->minimum + 1;
--	window = (p->producer_consumer == ACPI_PRODUCER) ? 1 : 0;
--
--	if (p->resource_type == ACPI_MEMORY_RANGE)
--		pnpacpi_parse_allocated_memresource(dev, p->minimum, len,
--			p->info.mem.write_protect, window);
--	else if (p->resource_type == ACPI_IO_RANGE)
--		pnpacpi_parse_allocated_ioresource(dev, p->minimum, len,
--			p->granularity == 0xfff ? ACPI_DECODE_10 :
--				ACPI_DECODE_16, window);
--	else if (p->resource_type == ACPI_BUS_NUMBER_RANGE)
--		pnpacpi_parse_allocated_busresource(dev, p->minimum, len);
--}
--
--static void pnpacpi_parse_allocated_ext_address_space(struct pnp_dev *dev,
--						      struct acpi_resource *res)
--{
--	struct acpi_resource_extended_address64 *p = &res->data.ext_address64;
--	int window;
--	u64 len;
--
--	/* Windows apparently computes length rather than using _LEN */
--	len = p->maximum - p->minimum + 1;
--	window = (p->producer_consumer == ACPI_PRODUCER) ? 1 : 0;
--
--	if (p->resource_type == ACPI_MEMORY_RANGE)
--		pnpacpi_parse_allocated_memresource(dev, p->minimum, len,
--			p->info.mem.write_protect, window);
--	else if (p->resource_type == ACPI_IO_RANGE)
--		pnpacpi_parse_allocated_ioresource(dev, p->minimum, len,
--			p->granularity == 0xfff ? ACPI_DECODE_10 :
--				ACPI_DECODE_16, window);
--	else if (p->resource_type == ACPI_BUS_NUMBER_RANGE)
--		pnpacpi_parse_allocated_busresource(dev, p->minimum, len);
--}
--
- static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
- 					      void *data)
- {
- 	struct pnp_dev *dev = data;
--	struct acpi_resource_irq *irq;
- 	struct acpi_resource_dma *dma;
--	struct acpi_resource_io *io;
--	struct acpi_resource_fixed_io *fixed_io;
- 	struct acpi_resource_vendor_typed *vendor_typed;
--	struct acpi_resource_memory24 *memory24;
--	struct acpi_resource_memory32 *memory32;
--	struct acpi_resource_fixed_memory32 *fixed_memory32;
--	struct acpi_resource_extended_irq *extended_irq;
-+	struct resource r;
- 	int i, flags;
- 
--	switch (res->type) {
--	case ACPI_RESOURCE_TYPE_IRQ:
--		/*
--		 * Per spec, only one interrupt per descriptor is allowed in
--		 * _CRS, but some firmware violates this, so parse them all.
--		 */
--		irq = &res->data.irq;
--		if (irq->interrupt_count == 0)
--			pnp_add_irq_resource(dev, 0, IORESOURCE_DISABLED);
--		else {
--			for (i = 0; i < irq->interrupt_count; i++) {
--				pnpacpi_parse_allocated_irqresource(dev,
--					irq->interrupts[i],
--					irq->triggering,
--					irq->polarity,
--				    irq->sharable);
--			}
-+	if (acpi_dev_resource_memory(res, &r)
-+	    || acpi_dev_resource_io(res, &r)
-+	    || acpi_dev_resource_address_space(res, &r)
-+	    || acpi_dev_resource_ext_address_space(res, &r)) {
-+		pnp_add_resource(dev, &r);
-+		return AE_OK;
-+	}
-+
-+	r.flags = 0;
-+	if (acpi_dev_resource_interrupt(res, 0, &r)) {
-+		pnpacpi_add_irqresource(dev, &r);
-+		for (i = 1; acpi_dev_resource_interrupt(res, i, &r); i++)
-+			pnpacpi_add_irqresource(dev, &r);
- 
-+		if (i > 1) {
- 			/*
- 			 * The IRQ encoder puts a single interrupt in each
- 			 * descriptor, so if a _CRS descriptor has more than
- 			 * one interrupt, we won't be able to re-encode it.
- 			 */
--			if (pnp_can_write(dev) && irq->interrupt_count > 1) {
-+			if (pnp_can_write(dev)) {
- 				dev_warn(&dev->dev, "multiple interrupts in "
- 					 "_CRS descriptor; configuration can't "
- 					 "be changed\n");
- 				dev->capabilities &= ~PNP_WRITE;
- 			}
- 		}
--		break;
-+		return AE_OK;
-+	} else if (r.flags & IORESOURCE_DISABLED) {
-+		pnp_add_irq_resource(dev, 0, IORESOURCE_DISABLED);
-+		return AE_OK;
-+	}
- 
-+	switch (res->type) {
- 	case ACPI_RESOURCE_TYPE_DMA:
- 		dma = &res->data.dma;
- 		if (dma->channel_count > 0 && dma->channels[0] != (u8) -1)
-@@ -383,26 +227,10 @@ static acpi_status pnpacpi_allocated_res
- 		pnp_add_dma_resource(dev, dma->channels[0], flags);
- 		break;
- 
--	case ACPI_RESOURCE_TYPE_IO:
--		io = &res->data.io;
--		pnpacpi_parse_allocated_ioresource(dev,
--			io->minimum,
--			io->address_length,
--			io->io_decode, 0);
--		break;
--
- 	case ACPI_RESOURCE_TYPE_START_DEPENDENT:
- 	case ACPI_RESOURCE_TYPE_END_DEPENDENT:
- 		break;
- 
--	case ACPI_RESOURCE_TYPE_FIXED_IO:
--		fixed_io = &res->data.fixed_io;
--		pnpacpi_parse_allocated_ioresource(dev,
--			fixed_io->address,
--			fixed_io->address_length,
--			ACPI_DECODE_10, 0);
--		break;
--
- 	case ACPI_RESOURCE_TYPE_VENDOR:
- 		vendor_typed = &res->data.vendor_typed;
- 		pnpacpi_parse_allocated_vendor(dev, vendor_typed);
-@@ -411,66 +239,6 @@ static acpi_status pnpacpi_allocated_res
- 	case ACPI_RESOURCE_TYPE_END_TAG:
- 		break;
- 
--	case ACPI_RESOURCE_TYPE_MEMORY24:
--		memory24 = &res->data.memory24;
--		pnpacpi_parse_allocated_memresource(dev,
--			memory24->minimum,
--			memory24->address_length,
--			memory24->write_protect, 0);
--		break;
--	case ACPI_RESOURCE_TYPE_MEMORY32:
--		memory32 = &res->data.memory32;
--		pnpacpi_parse_allocated_memresource(dev,
--			memory32->minimum,
--			memory32->address_length,
--			memory32->write_protect, 0);
--		break;
--	case ACPI_RESOURCE_TYPE_FIXED_MEMORY32:
--		fixed_memory32 = &res->data.fixed_memory32;
--		pnpacpi_parse_allocated_memresource(dev,
--			fixed_memory32->address,
--			fixed_memory32->address_length,
--			fixed_memory32->write_protect, 0);
--		break;
--	case ACPI_RESOURCE_TYPE_ADDRESS16:
--	case ACPI_RESOURCE_TYPE_ADDRESS32:
--	case ACPI_RESOURCE_TYPE_ADDRESS64:
--		pnpacpi_parse_allocated_address_space(dev, res);
--		break;
--
--	case ACPI_RESOURCE_TYPE_EXTENDED_ADDRESS64:
--		pnpacpi_parse_allocated_ext_address_space(dev, res);
--		break;
--
--	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
--		extended_irq = &res->data.extended_irq;
--
--		if (extended_irq->interrupt_count == 0)
--			pnp_add_irq_resource(dev, 0, IORESOURCE_DISABLED);
--		else {
--			for (i = 0; i < extended_irq->interrupt_count; i++) {
--				pnpacpi_parse_allocated_irqresource(dev,
--					extended_irq->interrupts[i],
--					extended_irq->triggering,
--					extended_irq->polarity,
--					extended_irq->sharable);
--			}
--
--			/*
--			 * The IRQ encoder puts a single interrupt in each
--			 * descriptor, so if a _CRS descriptor has more than
--			 * one interrupt, we won't be able to re-encode it.
--			 */
--			if (pnp_can_write(dev) &&
--			    extended_irq->interrupt_count > 1) {
--				dev_warn(&dev->dev, "multiple interrupts in "
--					 "_CRS descriptor; configuration can't "
--					 "be changed\n");
--				dev->capabilities &= ~PNP_WRITE;
--			}
--		}
--		break;
--
- 	case ACPI_RESOURCE_TYPE_GENERIC_REGISTER:
- 		break;
- 
-@@ -531,7 +299,7 @@ static __init void pnpacpi_parse_irq_opt
- 		if (p->interrupts[i])
- 			__set_bit(p->interrupts[i], map.bits);
- 
--	flags = irq_flags(p->triggering, p->polarity, p->sharable);
-+	flags = acpi_dev_irq_flags(p->triggering, p->polarity, p->sharable);
- 	pnp_register_irq_resource(dev, option_flags, &map, flags);
- }
- 
-@@ -555,7 +323,7 @@ static __init void pnpacpi_parse_ext_irq
- 		}
- 	}
- 
--	flags = irq_flags(p->triggering, p->polarity, p->sharable);
-+	flags = acpi_dev_irq_flags(p->triggering, p->polarity, p->sharable);
- 	pnp_register_irq_resource(dev, option_flags, &map, flags);
- }
- 
-Index: linux/drivers/pnp/base.h
-===================================================================
---- linux.orig/drivers/pnp/base.h
-+++ linux/drivers/pnp/base.h
-@@ -159,6 +159,8 @@ struct pnp_resource {
- 
- void pnp_free_resource(struct pnp_resource *pnp_res);
- 
-+struct pnp_resource *pnp_add_resource(struct pnp_dev *dev,
-+				      struct resource *res);
- struct pnp_resource *pnp_add_irq_resource(struct pnp_dev *dev, int irq,
- 					  int flags);
- struct pnp_resource *pnp_add_dma_resource(struct pnp_dev *dev, int dma,
-Index: linux/drivers/pnp/resource.c
-===================================================================
---- linux.orig/drivers/pnp/resource.c
-+++ linux/drivers/pnp/resource.c
-@@ -503,6 +503,22 @@ static struct pnp_resource *pnp_new_reso
- 	return pnp_res;
- }
- 
-+struct pnp_resource *pnp_add_resource(struct pnp_dev *dev,
-+				      struct resource *res)
-+{
-+	struct pnp_resource *pnp_res;
-+
-+	pnp_res = pnp_new_resource(dev);
-+	if (!pnp_res) {
-+		dev_err(&dev->dev, "can't add resource %pR\n", res);
-+		return NULL;
-+	}
-+
-+	pnp_res->res = *res;
-+	dev_dbg(&dev->dev, "%pR\n", res);
-+	return pnp_res;
-+}
-+
- struct pnp_resource *pnp_add_irq_resource(struct pnp_dev *dev, int irq,
- 					  int flags)
- {
-Index: linux/include/linux/acpi.h
-===================================================================
---- linux.orig/include/linux/acpi.h
-+++ linux/include/linux/acpi.h
-@@ -251,6 +251,16 @@ extern int pnpacpi_disabled;
- 
- #define PXM_INVAL	(-1)
- 
-+bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res);
-+bool acpi_dev_resource_io(struct acpi_resource *ares, struct resource *res);
-+bool acpi_dev_resource_address_space(struct acpi_resource *ares,
-+				     struct resource *res);
-+bool acpi_dev_resource_ext_address_space(struct acpi_resource *ares,
-+					 struct resource *res);
-+unsigned long acpi_dev_irq_flags(u8 triggering, u8 polarity, u8 shareable);
-+bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
-+				 struct resource *res);
-+
- int acpi_check_resource_conflict(const struct resource *res);
- 
- int acpi_check_region(resource_size_t start, resource_size_t n,
+-- 
+1.7.8.6
