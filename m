@@ -1,26 +1,38 @@
-From: "Luck, Tony" <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v5 0/7] efi_pstore: multiple event logging support
-Date: Tue, 13 Nov 2012 18:43:08 +0000
-Message-ID: <3908561D78D1C84285E8C5FCA982C28F19D5F3A0@ORSMSX108.amr.corp.intel.com>
-References: <A5ED84D3BB3A384992CBB9C77DEDA4D4138C155D@USINDEM103.corp.hds.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH -v2] ACPI/PCI: Make PCI devices notified when its power
+ resource turned on
+Date: Tue, 13 Nov 2012 11:58:44 -0700
+Message-ID: <CAErSpo6LqWfXd3NY2pDsE0RmWNKApyF+Lbv8_Bvq3ULMuy7Bvw@mail.gmail.com>
+References: <1352249879-11406-1-git-send-email-ying.huang@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <A5ED84D3BB3A384992CBB9C77DEDA4D4138C155D-ohthHghroY0jroPwUH3sq+6wyyQG6/Uh@public.gmane.org>
-Content-Language: en-US
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Seiji Aguchi <seiji.aguchi-7rDLJAbr9SE@public.gmane.org>, "anton.vorontsov-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <anton.vorontsov-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "mikew-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <mikew-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "Matthew Garrett (mjg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org)" <mjg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "dzickus-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dzickus-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "dle-develop-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <dle-develop-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Satoru Moriya <satoru.moriya-7rDLJAbr9SE@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1352249879-11406-1-git-send-email-ying.huang@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Huang Ying <ying.huang@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-v4 -> v5
-   - Rebase to 3.7-rc5
-   - Add count to an argument of a write callback executed in pstore_console_write()
-     to build successfully in case where CONSIG_PSTORE_CONSOLE=y is specified. (Patch 5/7)
+On Tue, Nov 6, 2012 at 5:57 PM, Huang Ying <ying.huang@intel.com> wrote:
+> A set of power resources may be shared by multiple devices.  When all
+> devices share one set of power resources is put into D3_COLD state,
+> the power resources will be turned off.  When one of the device is
+> waked, the power resource will be turned on and all devices share it
+> will be powered on to D0uninitialized state.  These devices should be
+> resumed, so that they can get opportunity to go to low power state
+> later.
+>
+> v2:
+>
+> - Fix build error
+>
+> Signed-off-by: Huang Ying <ying.huang@intel.com>
+> Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
+> Cc: Bjorn Helgaas <bhelgaas@google.com>
+> ---
+>  drivers/acpi/pci_bind.c |    2 ++
+>  1 file changed, 2 insertions(+)
 
-Applied. It's in my
-   git://git.kernel.org/pub/scm/linux/kernel/git/aegl/linux.git next
-tree now so should pick up into linux-next by tomorrow or the day after.
+I applied this to my pci/misc branch as v3.8 material.  Thanks!
 
--Tony
+Bjorn
