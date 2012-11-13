@@ -1,47 +1,95 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [Replacement][PATCH 3/3]
-Date: Tue, 13 Nov 2012 17:37:25 +0200
-Message-ID: <20121113153725.GL31759@intel.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH 3/3] ACPI: Evaluate _CRS while creating device node
+ objects
+Date: Tue, 13 Nov 2012 16:34:07 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E346BC0694@ORSMSX101.amr.corp.intel.com>
 References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com>
- <1956273.aTIDahOxd1@vostro.rjw.lan>
- <20121113151813.GK31759@intel.com>
- <3973751.CVDu4LkEMb@vostro.rjw.lan>
+ <11281928.0BBlrNprhI@vostro.rjw.lan> <20121112144621.GE31759@intel.com>
+ <1935553.kFsUz07opN@vostro.rjw.lan> <20121113071208.GF31759@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:11114 "EHLO mga09.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:27505 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753801Ab2KMPeQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 13 Nov 2012 10:34:16 -0500
-Content-Disposition: inline
-In-Reply-To: <3973751.CVDu4LkEMb@vostro.rjw.lan>
+	id S1754612Ab2KMQeJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Nov 2012 11:34:09 -0500
+In-Reply-To: <20121113071208.GF31759@intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, khali@linux-fr.org, Bjorn Helgaas <bhelgaas@google.com>, "Moore, Robert" <robert.moore@intel.com>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "mathias.nyman@linux.intel.com" <mathias.nyman@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "linus.walleij@linaro.org" <linus.walleij@linaro.org>, "khali@linux-fr.org" <khali@linux-fr.org>, Bjorn Helgaas <bhelgaas@google.com>, "Zheng, Lv" <lv.zheng@intel.com>
 
-On Tue, Nov 13, 2012 at 04:28:50PM +0100, Rafael J. Wysocki wrote:
-> On Tuesday, November 13, 2012 05:18:13 PM Mika Westerberg wrote:
-> > On Tue, Nov 13, 2012 at 04:15:51PM +0100, Rafael J. Wysocki wrote:
-> > > > Could we change this so that you can pass NULL list as well (provided that
-> > > > the preproc is given)?
-> > > > 
-> > > > This is useful in case when we try to find the SPI/I2C device handle based
-> > > > on the ACPI serial bus resource address. In that case we are not interested
-> > > > in any other resources (and hence there is no need to allocate memory for
-> > > > them etc.)
-> > > 
-> > > I'd prefer to have a separate helper function for that, if that's not a
-> > > problem.  It should be clear when we ask for resources of a given device
-> > > and when we only want to poke things like that.
-> > 
-> > It's not a problem, we can have a separate helper for that.
-> 
-> OK
-> 
-> I suppose you can introduce such a helper in the GPIO patch, then? :-)
+> I suppose we can just do acpi_get_current_resources() and play with 
+> the buffer returned by it.  That won't be nice, but still better than 
+> what we have.
 
-Actually we don't need that at all - we just need to return 1 from the
-preproc function and acpi_dev_get_resources() will skip creating the normal
-resources (altough we still need to pass valid resource_list but that is
-not a problem).
+A couple of the reasons we created the ACPICA resource manager was to:
+1) Simplify host access to the various resource fields, especially packed flags.
+2) Avoid alignment issues, especially on machines that don't support misaligned transfers.
+
+If there are issues with the current resource manager, we can discuss them. But I would hope that you really don't want to be fussing around with the raw data coming back from the AML. It is not pretty and we have gone to some lengths to make the entire conversion table-driven to minimize bugs and simplify maintenance.
+
+Bob
+
+
+> -----Original Message-----
+> From: Mika Westerberg [mailto:mika.westerberg@linux.intel.com]
+> Sent: Monday, November 12, 2012 11:12 PM
+> To: Rafael J. Wysocki
+> Cc: mathias.nyman@linux.intel.com; linux-acpi@vger.kernel.org; linux-
+> kernel@vger.kernel.org; lenb@kernel.org; Wysocki, Rafael J;
+> broonie@opensource.wolfsonmicro.com; grant.likely@secretlab.ca;
+> linus.walleij@linaro.org; khali@linux-fr.org; Bjorn Helgaas; Moore, Robert
+> Subject: Re: [PATCH 3/3] ACPI: Evaluate _CRS while creating device node
+> objects
+> 
+> On Mon, Nov 12, 2012 at 10:03:56PM +0100, Rafael J. Wysocki wrote:
+> > > > +static acpi_status acpi_bus_add_resource(struct acpi_resource *res,
+> > > > +					 void *context)
+> > > > +{
+> > > > +	struct list_head *list = context;
+> > > > +	struct acpi_resource_list_entry *entry;
+> > > > +
+> > > > +	entry = kzalloc(sizeof(*entry), GFP_KERNEL);
+> > > > +	if (!entry)
+> > > > +		return AE_NO_MEMORY;
+> > > > +
+> > > > +	entry->resource = *res;
+> > >
+> > > This does not work well with all resource types - specifically those
+> > > that contain pointers, like acpi_resource_gpio and
+> acpi_resource_source.
+> >
+> > Good point.
+> >
+> > Well, this pretty much means we can't copy those things.
+> 
+> Yeah. I only noticed this yesterday when I tested the GPIO translation in
+> a custom driver (since it uses the acpi_resource_gpio).
+> 
+> > > The memory for the resources gets freed once acpi_walk_resources() is
+> done.
+> >
+> > I know that.
+> >
+> > Having to evaluate _CRS and creating a buffer, converting the output
+> > into ACPI resources and so on every time we need to look into the
+> > device's current resources is totally inefficient.  We _need_ to cache
+> the _CRS output.
+> 
+> I agree and besides having adev->resources is much easier to use than
+> calling acpi_walk_resources() everytime.
+> 
+> > Now, because of the pointers in certain types of resources, we can't
+> > make copies of the resource objects used by acpi_walk_resources()
+> > which makes that function totally unuseful to us.
+> >
+> > I suppose we can just do acpi_get_current_resources() and play with
+> > the buffer returned by it.  That won't be nice, but still better than
+> > what we have.
+> 
+> I don't know any better option.
+> 
+> Thanks.
