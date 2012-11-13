@@ -1,159 +1,102 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH 3/3] ACPI: Evaluate _CRS while creating device node
- objects
-Date: Tue, 13 Nov 2012 22:06:03 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E346BC083A@ORSMSX101.amr.corp.intel.com>
-References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com>
- <20121113071208.GF31759@intel.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E346BC0694@ORSMSX101.amr.corp.intel.com>
- <2586712.Jsv1H95qXQ@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 3/3] ACPI: Evaluate _CRS while creating device node objects
+Date: Tue, 13 Nov 2012 23:56:40 +0100
+Message-ID: <1957831.MvUm7YPtfp@vostro.rjw.lan>
+References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com> <2586712.Jsv1H95qXQ@vostro.rjw.lan> <94F2FBAB4432B54E8AACC7DFDE6C92E346BC083A@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:60948 "EHLO mga14.intel.com"
+Received: from ogre.sisk.pl ([193.178.161.156]:41982 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752621Ab2KMWGM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 13 Nov 2012 17:06:12 -0500
-In-Reply-To: <2586712.Jsv1H95qXQ@vostro.rjw.lan>
-Content-Language: en-US
+	id S1754045Ab2KMWwU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 13 Nov 2012 17:52:20 -0500
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E346BC083A@ORSMSX101.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
+To: "Moore, Robert" <robert.moore@intel.com>
 Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "mathias.nyman@linux.intel.com" <mathias.nyman@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "linus.walleij@linaro.org" <linus.walleij@linaro.org>, "khali@linux-fr.org" <khali@linux-fr.org>, Bjorn Helgaas <bhelgaas@google.com>, "Zheng, Lv" <lv.zheng@intel.com>
 
-SSBtYXkgbm90IHF1aXRlIHVuZGVyc3RhbmQgd2hhdCB5b3UgYXJlIGFza2luZyBmb3IsIGJ1dCBJ
-IHdpbGwgdHJ5LiBJdCBzZWVtcyBsaWtlIHdlIGFscmVhZHkgaGF2ZSBtdWNoIG9mIHdoYXQgeW91
-IHdhbnQvbmVlZCwgc28gbWF5YmUgSSdtIG1pc3Npbmcgc29tZXRoaW5nLg0KDQoNCg0KPiBTbyB3
-aGF0IEkgd291bGQgbGlrZSB0byBoYXZlLCBpbiBnZW5lcmFsIHRlcm1zLCBpcyBzb21ldGhpbmcg
-bGlrZQ0KPiBhY3BpX3dhbGtfcmVzb3VyY2VzKCkgc3BsaXQgaW50byB0aHJlZSBwYXJ0czoNCj4g
-DQo+ICAoMSkgT25lIHRoYXQgcHJvY2Vzc2VzIHRoZSBfQ1JTIG91dHB1dCBhbmQgY3JlYXRlcyBh
-IGxpc3Qgb2YNCj4gICAgICBzdHJ1Y3QgYWNwaV9yZXNvdXJjZSBvYmplY3RzIGZvciB1cyB0byBw
-bGF5IHdpdGguICBJIHN1cHBvc2UNCj4gICAgICBpdCdzIE9LIGlmIHRoYXQncyBqdXN0IGEgYnVm
-ZmVyIGZpbGxlZCB3aXRoIHJlc291cmNlIG9iamVjdHMsDQo+ICAgICAgYnV0IGEgbGlua2VkIGxp
-c3QgbWlnaHQgYmUgbW9yZSBjb252ZW5pZW50Lg0KPiANCg0KVGhpcyBzb3VuZHMgbGlrZSBBY3Bp
-R2V0Q3VycmVudFJlc291cmNlcy4gSXQgZXhlY3V0ZXMgX0NSUyBhbmQgZm9ybWF0cyB0aGUgZGF0
-YSBpbnRvIGFjcGlfcmVzb3VyY2Ugb2JqZWN0cy4NCg0KDQoNCj4gICgyKSBPbmUgdGhhdCBhbGxv
-d3MgdXMgdG8gYWNjZXNzIChyZWFkL3dyaXRlKSByZXNvdXJjZXMgaW4gdGhlDQo+ICAgICAgbGlz
-dCByZXR1cm5lZCBieSAoMSkuICBXZSBkb24ndCBuZWVkIHRvIG9wZW4gY29kZSB3YWxraW5nDQo+
-ICAgICAgdGhlIGxpc3QgYW5kIEkgcHJvYmFibHkgd291bGRuJ3QgZXZlbnQgd2FudCB0byBkbyB0
-aGF0LiAgV2hhdA0KPiAgICAgIHdlIG5lZWQgaXMgdG8gYmUgYWJsZSB0byB3YWxrIHRoZSBzYW1l
-IGxpc3QgZm9yIGEgbnVtYmVyIG9mDQo+ICAgICAgdGltZXMgYW5kIHBvc3NpYmx5IHRvIG1vZGlm
-eSB2YWx1ZXMgaW4gdGhlIHJlc291cmNlIG9iamVjdHMNCj4gICAgICBpZiB0aGVyZSBhcmUgY29u
-ZmxpY3RzLg0KDQpUaGlzIHNvdW5kcyBsaWtlIEFjcGlXYWxrUmVzb3VyY2VzLiBJIHN1cHBvc2Ug
-YSBwb3NzaWJsZSBpc3N1ZSBpcyB0aGF0IGN1cnJlbnRseSwgQWNwaVdhbGtSZXNvdXJjZXMgYWN0
-dWFsbHkgaW52b2tlcyB0aGUgX0NSUywgX1BSUywgb3IgX0FFSSBtZXRob2Qgb24gYmVoYWxmIG9m
-IHRoZSBjYWxsZXIuIEl0IG1pZ2h0IG1ha2UgbW9yZSBzZW5zZSB0byBhbGxvdyB0aGUgY2FsbGVy
-IHRvIHBhc3MgaW4gdGhlIHJlc291cmNlIGJ1ZmZlciByZXR1cm5lZCBmcm9tIGEgY2FsbCB0byBf
-Q1JTLCBldGMuDQoNCg0KPiANCj4gICgzKSBPbmUgYWxsb3dpbmcgdXMgdG8gZnJlZSB0aGUgbGlz
-dCByZXR1cm5lZCBieSAoMSkgaWYgbm90IG5lZWRlZA0KPiAgICAgIGFueSBtb3JlLg0KPiANCg0K
-QWNwaUdldEN1cnJlbnRSZXNvdXJjZXM6IEN1cnJlbnRseSwgZXZlcnl0aGluZyBpcyByZXR1cm5l
-ZCBpbiBhIHNpbmdsZSBidWZmZXIgdG8gbWluaW1pemUgdGhlIG51bWJlciBvZiBhbGxvY2F0aW9u
-cy4gQSBidWZmZXIgeW91IGNhbiBmcmVlIHdoZW4geW91IGFyZSBkb25lIHdpdGggaXQuDQoNCkkg
-dGhpbmsgSSBzYXcgd2hlcmUgeW91IG1lbnRpb25lZCB0aGF0IHlvdSBjYW5ub3QgY29weSB0aGlz
-IGJ1ZmZlciBiZWNhdXNlIG9mIGludGVybmFsIHBvaW50ZXJzIHRvIG90aGVyIGFyZWFzIG9mIHRo
-ZSBidWZmZXIuIFllcy4gSG93ZXZlciwgd2UgY2FuIGJ1aWxkIGxpbmtlZCBsaXN0cyBhbGwgZGF5
-IGlmIHlvdSByZWFsbHkgd2FudCB0aGVtIDotKQ0KDQoNCj4gQW5kIGl0IHdvdWxkIGJlIGdyZWF0
-IGlmIHdlIGNvdWxkIHRha2UgdGhlIGxpc3QgcmV0dXJuZWQgYnkgKDEpLCBtb2RpZnkNCj4gdGhl
-IHJlc291cmNlcyBpbiBpdCBhbmQgZmVlZCBpdCBiYWNrIHRvIF9TUlMgKGFmdGVyIGNvbnZlcnNp
-b24gYmFjayB0byB0aGUNCj4gZm9ybWF0IHRoYXQgX1NSUyB1bmRlcnN0YW5kcykuDQo+IA0KDQpB
-Y3BpU2V0Q3VycmVudFJlc291cmNlcy4NCg0KVGhlIEFNTCBkZWJ1Z2dlciBhbHJlYWR5IGhhcyBh
-IGNvbW1hbmQgdGhhdCBpbGx1c3RyYXRlcyB0aGUgdXNlIG9mIHRoZSB2YXJpb3VzIHJlc291cmNl
-IGludGVyZmFjZXMsIHNlZSBkYmNtZHMuYw0KDQo+IFRoYW5rcywNCj4gUmFmYWVsDQoNCkJvYg0K
-DQoNCg0KDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUmFmYWVsIEou
-IFd5c29ja2kgW21haWx0bzpyandAc2lzay5wbF0NCj4gU2VudDogVHVlc2RheSwgTm92ZW1iZXIg
-MTMsIDIwMTIgMTI6NDQgUE0NCj4gVG86IE1vb3JlLCBSb2JlcnQNCj4gQ2M6IE1pa2EgV2VzdGVy
-YmVyZzsgbWF0aGlhcy5ueW1hbkBsaW51eC5pbnRlbC5jb207IGxpbnV4LQ0KPiBhY3BpQHZnZXIu
-a2VybmVsLm9yZzsgbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZzsgbGVuYkBrZXJuZWwub3Jn
-Ow0KPiBXeXNvY2tpLCBSYWZhZWwgSjsgYnJvb25pZUBvcGVuc291cmNlLndvbGZzb25taWNyby5j
-b207DQo+IGdyYW50Lmxpa2VseUBzZWNyZXRsYWIuY2E7IGxpbnVzLndhbGxlaWpAbGluYXJvLm9y
-Zzsga2hhbGlAbGludXgtZnIub3JnOw0KPiBCam9ybiBIZWxnYWFzOyBaaGVuZywgTHYNCj4gU3Vi
-amVjdDogUmU6IFtQQVRDSCAzLzNdIEFDUEk6IEV2YWx1YXRlIF9DUlMgd2hpbGUgY3JlYXRpbmcg
-ZGV2aWNlIG5vZGUNCj4gb2JqZWN0cw0KPiANCj4gT24gVHVlc2RheSwgTm92ZW1iZXIgMTMsIDIw
-MTIgMDQ6MzQ6MDcgUE0gTW9vcmUsIFJvYmVydCB3cm90ZToNCj4gPiA+IEkgc3VwcG9zZSB3ZSBj
-YW4ganVzdCBkbyBhY3BpX2dldF9jdXJyZW50X3Jlc291cmNlcygpIGFuZCBwbGF5IHdpdGgNCj4g
-PiA+IHRoZSBidWZmZXIgcmV0dXJuZWQgYnkgaXQuICBUaGF0IHdvbid0IGJlIG5pY2UsIGJ1dCBz
-dGlsbCBiZXR0ZXINCj4gPiA+IHRoYW4gd2hhdCB3ZSBoYXZlLg0KPiA+DQo+ID4gQSBjb3VwbGUg
-b2YgdGhlIHJlYXNvbnMgd2UgY3JlYXRlZCB0aGUgQUNQSUNBIHJlc291cmNlIG1hbmFnZXIgd2Fz
-IHRvOg0KPiA+IDEpIFNpbXBsaWZ5IGhvc3QgYWNjZXNzIHRvIHRoZSB2YXJpb3VzIHJlc291cmNl
-IGZpZWxkcywgZXNwZWNpYWxseQ0KPiBwYWNrZWQgZmxhZ3MuDQo+ID4gMikgQXZvaWQgYWxpZ25t
-ZW50IGlzc3VlcywgZXNwZWNpYWxseSBvbiBtYWNoaW5lcyB0aGF0IGRvbid0IHN1cHBvcnQNCj4g
-bWlzYWxpZ25lZCB0cmFuc2ZlcnMuDQo+IA0KPiBUaGF0J3MgZmluZS4NCj4gDQo+ID4gSWYgdGhl
-cmUgYXJlIGlzc3VlcyB3aXRoIHRoZSBjdXJyZW50IHJlc291cmNlIG1hbmFnZXIsIHdlIGNhbiBk
-aXNjdXNzDQo+IHRoZW0uDQo+ID4gQnV0IEkgd291bGQgaG9wZSB0aGF0IHlvdSByZWFsbHkgZG9u
-J3Qgd2FudCB0byBiZSBmdXNzaW5nIGFyb3VuZCB3aXRoDQo+ID4gdGhlIHJhdyBkYXRhIGNvbWlu
-ZyBiYWNrIGZyb20gdGhlIEFNTC4NCj4gDQo+IE5vLCBJIGRvbid0LiA6LSkNCj4gDQo+IEknZCBs
-aWtlIHRvIGJlIGFibGUgdG8gZG8gbW9yZSB0aGluZ3Mgd2l0aCBzdHJ1Y3QgYWNwaV9yZXNvdXJj
-ZSBvYmplY3RzLg0KPiANCj4gUHJldHR5IG11Y2ggdGhlIG91dHB1dCBvZiBhY3BpX2dldF9jdXJy
-ZW50X3Jlc291cmNlcygpIGlzIHdoYXQgSSdtDQo+IGludGVyZXN0ZWQgaW4sIGJ1dCB0aGVyZSBk
-b2Vzbid0IHNlZW0gdG8gYmUgYW55IGNvbnZlbmllbnQgd2F5IHRvIGFjY2Vzcw0KPiB0aGluZ3Mg
-aW4gdGhlIHJldHVybiBidWZmZXIgZnJvbSB0aGUgb3V0c2lkZSBvZiBBQ1BJQ0Egbm93Lg0KPiAN
-Cj4gPiBJdCBpcyBub3QgcHJldHR5IGFuZCB3ZSBoYXZlIGdvbmUgdG8gc29tZSBsZW5ndGhzIHRv
-IG1ha2UgdGhlIGVudGlyZQ0KPiA+IGNvbnZlcnNpb24gdGFibGUtZHJpdmVuIHRvIG1pbmltaXpl
-IGJ1Z3MgYW5kIHNpbXBsaWZ5IG1haW50ZW5hbmNlLg0KPiANCj4gT0sNCj4gDQo+IFNvIHdoYXQg
-SSB3b3VsZCBsaWtlIHRvIGhhdmUsIGluIGdlbmVyYWwgdGVybXMsIGlzIHNvbWV0aGluZyBsaWtl
-DQo+IGFjcGlfd2Fsa19yZXNvdXJjZXMoKSBzcGxpdCBpbnRvIHRocmVlIHBhcnRzOg0KPiANCj4g
-ICgxKSBPbmUgdGhhdCBwcm9jZXNzZXMgdGhlIF9DUlMgb3V0cHV0IGFuZCBjcmVhdGVzIGEgbGlz
-dCBvZg0KPiAgICAgIHN0cnVjdCBhY3BpX3Jlc291cmNlIG9iamVjdHMgZm9yIHVzIHRvIHBsYXkg
-d2l0aC4gIEkgc3VwcG9zZQ0KPiAgICAgIGl0J3MgT0sgaWYgdGhhdCdzIGp1c3QgYSBidWZmZXIg
-ZmlsbGVkIHdpdGggcmVzb3VyY2Ugb2JqZWN0cywNCj4gICAgICBidXQgYSBsaW5rZWQgbGlzdCBt
-aWdodCBiZSBtb3JlIGNvbnZlbmllbnQuDQo+IA0KPiAgKDIpIE9uZSB0aGF0IGFsbG93cyB1cyB0
-byBhY2Nlc3MgKHJlYWQvd3JpdGUpIHJlc291cmNlcyBpbiB0aGUNCj4gICAgICBsaXN0IHJldHVy
-bmVkIGJ5ICgxKS4gIFdlIGRvbid0IG5lZWQgdG8gb3BlbiBjb2RlIHdhbGtpbmcNCj4gICAgICB0
-aGUgbGlzdCBhbmQgSSBwcm9iYWJseSB3b3VsZG4ndCBldmVudCB3YW50IHRvIGRvIHRoYXQuICBX
-aGF0DQo+ICAgICAgd2UgbmVlZCBpcyB0byBiZSBhYmxlIHRvIHdhbGsgdGhlIHNhbWUgbGlzdCBm
-b3IgYSBudW1iZXIgb2YNCj4gICAgICB0aW1lcyBhbmQgcG9zc2libHkgdG8gbW9kaWZ5IHZhbHVl
-cyBpbiB0aGUgcmVzb3VyY2Ugb2JqZWN0cw0KPiAgICAgIGlmIHRoZXJlIGFyZSBjb25mbGljdHMu
-DQo+IA0KPiAgKDMpIE9uZSBhbGxvd2luZyB1cyB0byBmcmVlIHRoZSBsaXN0IHJldHVybmVkIGJ5
-ICgxKSBpZiBub3QgbmVlZGVkDQo+ICAgICAgYW55IG1vcmUuDQo+IA0KPiBBbmQgaXQgd291bGQg
-YmUgZ3JlYXQgaWYgd2UgY291bGQgdGFrZSB0aGUgbGlzdCByZXR1cm5lZCBieSAoMSksIG1vZGlm
-eQ0KPiB0aGUgcmVzb3VyY2VzIGluIGl0IGFuZCBmZWVkIGl0IGJhY2sgdG8gX1NSUyAoYWZ0ZXIg
-Y29udmVyc2lvbiBiYWNrIHRvIHRoZQ0KPiBmb3JtYXQgdGhhdCBfU1JTIHVuZGVyc3RhbmRzKS4N
-Cj4gDQo+IFRoYW5rcywNCj4gUmFmYWVsDQo+IA0KPiANCj4gPiA+IC0tLS0tT3JpZ2luYWwgTWVz
-c2FnZS0tLS0tDQo+ID4gPiBGcm9tOiBNaWthIFdlc3RlcmJlcmcgW21haWx0bzptaWthLndlc3Rl
-cmJlcmdAbGludXguaW50ZWwuY29tXQ0KPiA+ID4gU2VudDogTW9uZGF5LCBOb3ZlbWJlciAxMiwg
-MjAxMiAxMToxMiBQTQ0KPiA+ID4gVG86IFJhZmFlbCBKLiBXeXNvY2tpDQo+ID4gPiBDYzogbWF0
-aGlhcy5ueW1hbkBsaW51eC5pbnRlbC5jb207IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnOw0K
-PiA+ID4gbGludXgtIGtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc7IGxlbmJAa2VybmVsLm9yZzsgV3lz
-b2NraSwgUmFmYWVsIEo7DQo+ID4gPiBicm9vbmllQG9wZW5zb3VyY2Uud29sZnNvbm1pY3JvLmNv
-bTsgZ3JhbnQubGlrZWx5QHNlY3JldGxhYi5jYTsNCj4gPiA+IGxpbnVzLndhbGxlaWpAbGluYXJv
-Lm9yZzsga2hhbGlAbGludXgtZnIub3JnOyBCam9ybiBIZWxnYWFzOyBNb29yZSwNCj4gPiA+IFJv
-YmVydA0KPiA+ID4gU3ViamVjdDogUmU6IFtQQVRDSCAzLzNdIEFDUEk6IEV2YWx1YXRlIF9DUlMg
-d2hpbGUgY3JlYXRpbmcgZGV2aWNlDQo+ID4gPiBub2RlIG9iamVjdHMNCj4gPiA+DQo+ID4gPiBP
-biBNb24sIE5vdiAxMiwgMjAxMiBhdCAxMDowMzo1NlBNICswMTAwLCBSYWZhZWwgSi4gV3lzb2Nr
-aSB3cm90ZToNCj4gPiA+ID4gPiA+ICtzdGF0aWMgYWNwaV9zdGF0dXMgYWNwaV9idXNfYWRkX3Jl
-c291cmNlKHN0cnVjdCBhY3BpX3Jlc291cmNlDQo+ICpyZXMsDQo+ID4gPiA+ID4gPiArCQkJCQkg
-dm9pZCAqY29udGV4dCkNCj4gPiA+ID4gPiA+ICt7DQo+ID4gPiA+ID4gPiArCXN0cnVjdCBsaXN0
-X2hlYWQgKmxpc3QgPSBjb250ZXh0Ow0KPiA+ID4gPiA+ID4gKwlzdHJ1Y3QgYWNwaV9yZXNvdXJj
-ZV9saXN0X2VudHJ5ICplbnRyeTsNCj4gPiA+ID4gPiA+ICsNCj4gPiA+ID4gPiA+ICsJZW50cnkg
-PSBremFsbG9jKHNpemVvZigqZW50cnkpLCBHRlBfS0VSTkVMKTsNCj4gPiA+ID4gPiA+ICsJaWYg
-KCFlbnRyeSkNCj4gPiA+ID4gPiA+ICsJCXJldHVybiBBRV9OT19NRU1PUlk7DQo+ID4gPiA+ID4g
-PiArDQo+ID4gPiA+ID4gPiArCWVudHJ5LT5yZXNvdXJjZSA9ICpyZXM7DQo+ID4gPiA+ID4NCj4g
-PiA+ID4gPiBUaGlzIGRvZXMgbm90IHdvcmsgd2VsbCB3aXRoIGFsbCByZXNvdXJjZSB0eXBlcyAt
-IHNwZWNpZmljYWxseQ0KPiA+ID4gPiA+IHRob3NlIHRoYXQgY29udGFpbiBwb2ludGVycywgbGlr
-ZSBhY3BpX3Jlc291cmNlX2dwaW8gYW5kDQo+ID4gPiBhY3BpX3Jlc291cmNlX3NvdXJjZS4NCj4g
-PiA+ID4NCj4gPiA+ID4gR29vZCBwb2ludC4NCj4gPiA+ID4NCj4gPiA+ID4gV2VsbCwgdGhpcyBw
-cmV0dHkgbXVjaCBtZWFucyB3ZSBjYW4ndCBjb3B5IHRob3NlIHRoaW5ncy4NCj4gPiA+DQo+ID4g
-PiBZZWFoLiBJIG9ubHkgbm90aWNlZCB0aGlzIHllc3RlcmRheSB3aGVuIEkgdGVzdGVkIHRoZSBH
-UElPDQo+ID4gPiB0cmFuc2xhdGlvbiBpbiBhIGN1c3RvbSBkcml2ZXIgKHNpbmNlIGl0IHVzZXMg
-dGhlIGFjcGlfcmVzb3VyY2VfZ3BpbykuDQo+ID4gPg0KPiA+ID4gPiA+IFRoZSBtZW1vcnkgZm9y
-IHRoZSByZXNvdXJjZXMgZ2V0cyBmcmVlZCBvbmNlDQo+ID4gPiA+ID4gYWNwaV93YWxrX3Jlc291
-cmNlcygpIGlzDQo+ID4gPiBkb25lLg0KPiA+ID4gPg0KPiA+ID4gPiBJIGtub3cgdGhhdC4NCj4g
-PiA+ID4NCj4gPiA+ID4gSGF2aW5nIHRvIGV2YWx1YXRlIF9DUlMgYW5kIGNyZWF0aW5nIGEgYnVm
-ZmVyLCBjb252ZXJ0aW5nIHRoZQ0KPiA+ID4gPiBvdXRwdXQgaW50byBBQ1BJIHJlc291cmNlcyBh
-bmQgc28gb24gZXZlcnkgdGltZSB3ZSBuZWVkIHRvIGxvb2sNCj4gPiA+ID4gaW50byB0aGUgZGV2
-aWNlJ3MgY3VycmVudCByZXNvdXJjZXMgaXMgdG90YWxseSBpbmVmZmljaWVudC4gIFdlDQo+ID4g
-PiA+IF9uZWVkXyB0byBjYWNoZQ0KPiA+ID4gdGhlIF9DUlMgb3V0cHV0Lg0KPiA+ID4NCj4gPiA+
-IEkgYWdyZWUgYW5kIGJlc2lkZXMgaGF2aW5nIGFkZXYtPnJlc291cmNlcyBpcyBtdWNoIGVhc2ll
-ciB0byB1c2UNCj4gPiA+IHRoYW4gY2FsbGluZyBhY3BpX3dhbGtfcmVzb3VyY2VzKCkgZXZlcnl0
-aW1lLg0KPiA+ID4NCj4gPiA+ID4gTm93LCBiZWNhdXNlIG9mIHRoZSBwb2ludGVycyBpbiBjZXJ0
-YWluIHR5cGVzIG9mIHJlc291cmNlcywgd2UNCj4gPiA+ID4gY2FuJ3QgbWFrZSBjb3BpZXMgb2Yg
-dGhlIHJlc291cmNlIG9iamVjdHMgdXNlZCBieQ0KPiA+ID4gPiBhY3BpX3dhbGtfcmVzb3VyY2Vz
-KCkgd2hpY2ggbWFrZXMgdGhhdCBmdW5jdGlvbiB0b3RhbGx5IHVudXNlZnVsIHRvDQo+IHVzLg0K
-PiA+ID4gPg0KPiA+ID4gPiBJIHN1cHBvc2Ugd2UgY2FuIGp1c3QgZG8gYWNwaV9nZXRfY3VycmVu
-dF9yZXNvdXJjZXMoKSBhbmQgcGxheQ0KPiA+ID4gPiB3aXRoIHRoZSBidWZmZXIgcmV0dXJuZWQg
-YnkgaXQuICBUaGF0IHdvbid0IGJlIG5pY2UsIGJ1dCBzdGlsbA0KPiA+ID4gPiBiZXR0ZXIgdGhh
-biB3aGF0IHdlIGhhdmUuDQo+ID4gPg0KPiA+ID4gSSBkb24ndCBrbm93IGFueSBiZXR0ZXIgb3B0
-aW9uLg0KPiA+ID4NCj4gPiA+IFRoYW5rcy4NCj4gPg0KPiAtLQ0KPiBJIHNwZWFrIG9ubHkgZm9y
-IG15c2VsZi4NCj4gUmFmYWVsIEouIFd5c29ja2ksIEludGVsIE9wZW4gU291cmNlIFRlY2hub2xv
-Z3kgQ2VudGVyLg0K
+On Tuesday, November 13, 2012 10:06:03 PM Moore, Robert wrote:
+> I may not quite understand what you are asking for, but I will try.
+> It seems like we already have much of what you want/need, so maybe
+> I'm missing something.
+
+I think all of the necessary pieces are there.
+
+> > So what I would like to have, in general terms, is something like
+> > acpi_walk_resources() split into three parts:
+> > 
+> >  (1) One that processes the _CRS output and creates a list of
+> >      struct acpi_resource objects for us to play with.  I suppose
+> >      it's OK if that's just a buffer filled with resource objects,
+> >      but a linked list might be more convenient.
+> > 
+> 
+> This sounds like AcpiGetCurrentResources. It executes _CRS and formats
+> the data into acpi_resource objects.
+
+Yes, it does.  However, it is not completely clear to me if/how the caller is
+supposed to prepare the buffer object pointed to by the second arg.
+
+If the buffer is initialized by AcpiGetCurrentResources, then that's what
+I need for (1).
+
+> >  (2) One that allows us to access (read/write) resources in the
+> >      list returned by (1).  We don't need to open code walking
+> >      the list and I probably wouldn't event want to do that.  What
+> >      we need is to be able to walk the same list for a number of
+> >      times and possibly to modify values in the resource objects
+> >      if there are conflicts.
+> 
+> This sounds like AcpiWalkResources. I suppose a possible issue is that
+> currently, AcpiWalkResources actually invokes the _CRS, _PRS, or _AEI
+> method on behalf of the caller.
+
+Yes, that exactly is the problem.
+
+> It might make more sense to allow the caller to pass in the resource buffer
+> returned from a call to _CRS, etc.
+
+Yes! :-)
+
+> > 
+> >  (3) One allowing us to free the list returned by (1) if not needed
+> >      any more.
+> > 
+> 
+> AcpiGetCurrentResources: Currently, everything is returned in a single buffer
+> to minimize the number of allocations. A buffer you can free when you are
+> done with it.
+
+I suppose I should use ACPI_FREE(buffer.pointer) for that, but isn't it for the
+ACPICA's internal use only?
+
+Besides, I would prefer to be able to pass just "buffer" for freeing, without
+having to touch its internals.  No big deal, but it would be nicer. :-) 
+
+> I think I saw where you mentioned that you cannot copy this buffer because
+> of internal pointers to other areas of the buffer. Yes. However, we can build
+> linked lists all day if you really want them :-)
+
+I really won't care if I can pass a resource buffer to a "walker" routine. :-)
+
+> > And it would be great if we could take the list returned by (1), modify
+> > the resources in it and feed it back to _SRS (after conversion back to the
+> > format that _SRS understands).
+> > 
+> 
+> AcpiSetCurrentResources.
+> 
+> The AML debugger already has a command that illustrates the use of the
+> various resource interfaces, see dbcmds.c
+
+I will.
+
+Thanks,
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
