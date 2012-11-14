@@ -1,196 +1,137 @@
-From: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
-Subject: Re: [PATCH] cpuidle: Measure idle state durations with monotonic
- clock
-Date: Wed, 14 Nov 2012 14:36:41 +0530
-Message-ID: <50A35F21.9040003@linux.vnet.ibm.com>
-References: <1352843563-16392-1-git-send-email-jwerner@chromium.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 3/3] ACPI: Evaluate _CRS while creating device node objects
+Date: Wed, 14 Nov 2012 10:18:46 +0100
+Message-ID: <5571446.V5xhWp9giY@vostro.rjw.lan>
+References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com> <1957831.MvUm7YPtfp@vostro.rjw.lan> <94F2FBAB4432B54E8AACC7DFDE6C92E346BC08EB@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from e23smtp03.au.ibm.com ([202.81.31.145]:58032 "EHLO
-	e23smtp03.au.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754331Ab2KNJJF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Nov 2012 04:09:05 -0500
-Received: from /spool/local
-	by e23smtp03.au.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <linux-acpi@vger.kernel.org> from <deepthi@linux.vnet.ibm.com>;
-	Wed, 14 Nov 2012 19:05:45 +1000
-In-Reply-To: <1352843563-16392-1-git-send-email-jwerner@chromium.org>
+Received: from ogre.sisk.pl ([193.178.161.156]:43107 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932726Ab2KNJO0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 14 Nov 2012 04:14:26 -0500
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E346BC08EB@ORSMSX101.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Julius Werner <jwerner@chromium.org>
-Cc: linux-kernel@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Trinabh Gupta <g.trinabh@gmail.com>, linux-pm@vger.kernel.org, Daniel Lezcano <daniel.lezcano@linaro.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, Sameer Nanda <snanda@chromium.org>, Len Brown <lenb@kernel.org>
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "mathias.nyman@linux.intel.com" <mathias.nyman@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "linus.walleij@linaro.org" <linus.walleij@linaro.org>, "khali@linux-fr.org" <khali@linux-fr.org>, Bjorn Helgaas <bhelgaas@google.com>, "Zheng, Lv" <lv.zheng@intel.com>
 
-On 11/14/2012 03:22 AM, Julius Werner wrote:
-> Many cpuidle drivers measure their time spent in an idle state by
-> reading the wallclock time before and after idling and calculating the
-> difference. This leads to erroneous results when the wallclock time gets
-> updated by another processor in the meantime, adding that clock
-> adjustment to the idle state's time counter.
+On Wednesday, November 14, 2012 02:23:51 AM Moore, Robert wrote:
+> Rafael,
 > 
-> If the clock adjustment was negative, the result is even worse due to an
-> erroneous cast from int to unsigned long long of the last_residency
-> variable. The negative 32 bit integer will zero-extend and result in a
-> forward time jump of roughly four billion milliseconds or 1.3 hours on
-> the idle state residency counter.
-> 
-> This patch changes all affected cpuidle drivers to use the monotonic
-> clock for their measurements instead. It also removes the erroneous
-> cast, making sure that negative residency values are applied correctly
-> even though they should not appear anymore.
+> I sounds like with a few changes, we can enhance this mechanism to
+> be more useful to you and others. Some comments below. I need to look
+> at the code in question a bit more, but I see no insurmountable issues.
 
-Currently tegra/cpuidle uses ktime_get(). Good to have it for all
-the other arch idle residency time logging too.
-Tested patch on pseries.
+Great, thanks!
+ 
 
-Reviewed-by: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
+> > -----Original Message-----
+> > From: Rafael J. Wysocki [mailto:rjw@sisk.pl]
+> > Sent: Tuesday, November 13, 2012 2:57 PM
+> > To: Moore, Robert
+> > Cc: Mika Westerberg; mathias.nyman@linux.intel.com; linux-
+> > acpi@vger.kernel.org; linux-kernel@vger.kernel.org; lenb@kernel.org;
+> > Wysocki, Rafael J; broonie@opensource.wolfsonmicro.com;
+> > grant.likely@secretlab.ca; linus.walleij@linaro.org; khali@linux-fr.org;
+> > Bjorn Helgaas; Zheng, Lv
+> > Subject: Re: [PATCH 3/3] ACPI: Evaluate _CRS while creating device node
+> > objects
+> > 
+> > On Tuesday, November 13, 2012 10:06:03 PM Moore, Robert wrote:
+> > > I may not quite understand what you are asking for, but I will try.
+> > > It seems like we already have much of what you want/need, so maybe I'm
+> > > missing something.
+> > 
+> > I think all of the necessary pieces are there.
+> > 
+> > > > So what I would like to have, in general terms, is something like
+> > > > acpi_walk_resources() split into three parts:
+> > > >
+> > > >  (1) One that processes the _CRS output and creates a list of
+> > > >      struct acpi_resource objects for us to play with.  I suppose
+> > > >      it's OK if that's just a buffer filled with resource objects,
+> > > >      but a linked list might be more convenient.
+> > > >
+> > >
+> > > This sounds like AcpiGetCurrentResources. It executes _CRS and formats
+> > > the data into acpi_resource objects.
+> > 
+> > Yes, it does.  However, it is not completely clear to me if/how the caller
+> > is supposed to prepare the buffer object pointed to by the second arg.
+> > 
+> > If the buffer is initialized by AcpiGetCurrentResources, then that's what
+> > I need for (1).
+> 
+> 
+> It looks to me that at least AcpiGetCurrentResources does not actually ever
+> allocate a buffer for the resource template, it expects the caller to
+> eventually provide one of at least the size of the returned resource template.
+> 
+> This is really quite a bit out-of-date as far as the memory allocation model.
+> It should also support the option to just allocate the buffer of the appropriate
+> size before returning it to the caller.
 
-Cheers,
-Deepthi
+Yes, that would be really useful.
 
-> 
-> Signed-off-by: Julius Werner <jwerner@chromium.org>
-> ---
->  arch/powerpc/platforms/pseries/processor_idle.c |    4 ++--
->  drivers/acpi/processor_idle.c                   |   12 ++++++------
->  drivers/cpuidle/cpuidle.c                       |    3 +--
->  drivers/idle/intel_idle.c                       |   13 ++++---------
->  4 files changed, 13 insertions(+), 19 deletions(-)
-> 
-> diff --git a/arch/powerpc/platforms/pseries/processor_idle.c b/arch/powerpc/platforms/pseries/processor_idle.c
-> index 45d00e5..4d806b4 100644
-> --- a/arch/powerpc/platforms/pseries/processor_idle.c
-> +++ b/arch/powerpc/platforms/pseries/processor_idle.c
-> @@ -36,7 +36,7 @@ static struct cpuidle_state *cpuidle_state_table;
->  static inline void idle_loop_prolog(unsigned long *in_purr, ktime_t *kt_before)
->  {
-> 
-> -	*kt_before = ktime_get_real();
-> +	*kt_before = ktime_get();
->  	*in_purr = mfspr(SPRN_PURR);
->  	/*
->  	 * Indicate to the HV that we are idle. Now would be
-> @@ -50,7 +50,7 @@ static inline  s64 idle_loop_epilog(unsigned long in_purr, ktime_t kt_before)
->  	get_lppaca()->wait_state_cycles += mfspr(SPRN_PURR) - in_purr;
->  	get_lppaca()->idle = 0;
-> 
-> -	return ktime_to_us(ktime_sub(ktime_get_real(), kt_before));
-> +	return ktime_to_us(ktime_sub(ktime_get(), kt_before));
->  }
-> 
->  static int snooze_loop(struct cpuidle_device *dev,
-> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-> index e8086c7..8c98d73 100644
-> --- a/drivers/acpi/processor_idle.c
-> +++ b/drivers/acpi/processor_idle.c
-> @@ -751,9 +751,9 @@ static int acpi_idle_enter_c1(struct cpuidle_device *dev,
-> 
-> 
->  	lapic_timer_state_broadcast(pr, cx, 1);
-> -	kt1 = ktime_get_real();
-> +	kt1 = ktime_get();
->  	acpi_idle_do_entry(cx);
-> -	kt2 = ktime_get_real();
-> +	kt2 = ktime_get();
->  	idle_time =  ktime_to_us(ktime_sub(kt2, kt1));
-> 
->  	/* Update device last_residency*/
-> @@ -843,11 +843,11 @@ static int acpi_idle_enter_simple(struct cpuidle_device *dev,
->  	if (cx->type == ACPI_STATE_C3)
->  		ACPI_FLUSH_CPU_CACHE();
-> 
-> -	kt1 = ktime_get_real();
-> +	kt1 = ktime_get();
->  	/* Tell the scheduler that we are going deep-idle: */
->  	sched_clock_idle_sleep_event();
->  	acpi_idle_do_entry(cx);
-> -	kt2 = ktime_get_real();
-> +	kt2 = ktime_get();
->  	idle_time_ns = ktime_to_ns(ktime_sub(kt2, kt1));
->  	idle_time = idle_time_ns;
->  	do_div(idle_time, NSEC_PER_USEC);
-> @@ -934,7 +934,7 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
->  	 */
->  	lapic_timer_state_broadcast(pr, cx, 1);
-> 
-> -	kt1 = ktime_get_real();
-> +	kt1 = ktime_get();
->  	/*
->  	 * disable bus master
->  	 * bm_check implies we need ARB_DIS
-> @@ -965,7 +965,7 @@ static int acpi_idle_enter_bm(struct cpuidle_device *dev,
->  		c3_cpu_count--;
->  		raw_spin_unlock(&c3_lock);
->  	}
-> -	kt2 = ktime_get_real();
-> +	kt2 = ktime_get();
->  	idle_time_ns = ktime_to_ns(ktime_sub(kt2, kt1));
->  	idle_time = idle_time_ns;
->  	do_div(idle_time, NSEC_PER_USEC);
-> diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
-> index 7f15b85..1536edd 100644
-> --- a/drivers/cpuidle/cpuidle.c
-> +++ b/drivers/cpuidle/cpuidle.c
-> @@ -109,8 +109,7 @@ int cpuidle_enter_state(struct cpuidle_device *dev, struct cpuidle_driver *drv,
->  		/* This can be moved to within driver enter routine
->  		 * but that results in multiple copies of same code.
->  		 */
-> -		dev->states_usage[entered_state].time +=
-> -				(unsigned long long)dev->last_residency;
-> +		dev->states_usage[entered_state].time += dev->last_residency;
->  		dev->states_usage[entered_state].usage++;
->  	} else {
->  		dev->last_residency = 0;
-> diff --git a/drivers/idle/intel_idle.c b/drivers/idle/intel_idle.c
-> index b0f6b4c..6329a97 100644
-> --- a/drivers/idle/intel_idle.c
-> +++ b/drivers/idle/intel_idle.c
-> @@ -56,7 +56,7 @@
->  #include <linux/kernel.h>
->  #include <linux/cpuidle.h>
->  #include <linux/clockchips.h>
-> -#include <linux/hrtimer.h>	/* ktime_get_real() */
-> +#include <linux/hrtimer.h>	/* ktime_get() */
->  #include <trace/events/power.h>
->  #include <linux/sched.h>
->  #include <linux/notifier.h>
-> @@ -281,8 +281,7 @@ static int intel_idle(struct cpuidle_device *dev,
->  	struct cpuidle_state_usage *state_usage = &dev->states_usage[index];
->  	unsigned long eax = (unsigned long)cpuidle_get_statedata(state_usage);
->  	unsigned int cstate;
-> -	ktime_t kt_before, kt_after;
-> -	s64 usec_delta;
-> +	ktime_t kt_before;
->  	int cpu = smp_processor_id();
-> 
->  	cstate = (((eax) >> MWAIT_SUBSTATE_SIZE) & MWAIT_CSTATE_MASK) + 1;
-> @@ -297,7 +296,7 @@ static int intel_idle(struct cpuidle_device *dev,
->  	if (!(lapic_timer_reliable_states & (1 << (cstate))))
->  		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &cpu);
-> 
-> -	kt_before = ktime_get_real();
-> +	kt_before = ktime_get();
-> 
->  	stop_critical_timings();
->  	if (!need_resched()) {
-> @@ -310,17 +309,13 @@ static int intel_idle(struct cpuidle_device *dev,
-> 
->  	start_critical_timings();
-> 
-> -	kt_after = ktime_get_real();
-> -	usec_delta = ktime_to_us(ktime_sub(kt_after, kt_before));
-> +	dev->last_residency = ktime_to_us(ktime_sub(ktime_get(), kt_before));
-> 
->  	local_irq_enable();
-> 
->  	if (!(lapic_timer_reliable_states & (1 << (cstate))))
->  		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &cpu);
-> 
-> -	/* Update cpuidle counters */
-> -	dev->last_residency = (int)usec_delta;
-> -
->  	return index;
->  }
-> 
+Ideally, I'd like to be able to pass a pointer to an uninitialized buffer
+structure to it (or to a wrapper around it) and get a buffer full of
+struct acpi_resource objects (if _CRS returns any) back from it. :-)
 
+
+> > > >  (2) One that allows us to access (read/write) resources in the
+> > > >      list returned by (1).  We don't need to open code walking
+> > > >      the list and I probably wouldn't event want to do that.  What
+> > > >      we need is to be able to walk the same list for a number of
+> > > >      times and possibly to modify values in the resource objects
+> > > >      if there are conflicts.
+> > >
+> > > This sounds like AcpiWalkResources. I suppose a possible issue is that
+> > > currently, AcpiWalkResources actually invokes the _CRS, _PRS, or _AEI
+> > > method on behalf of the caller.
+> > 
+> > Yes, that exactly is the problem.
+> > 
+> > > It might make more sense to allow the caller to pass in the resource
+> > > buffer returned from a call to _CRS, etc.
+> > 
+> > Yes! :-)
+> 
+> 
+> I'll take a closer look at this tomorrow.
+
+Cool, thanks!
+
+
+> > > >  (3) One allowing us to free the list returned by (1) if not needed
+> > > >      any more.
+> > > >
+> > >
+> > > AcpiGetCurrentResources: Currently, everything is returned in a single
+> > > buffer to minimize the number of allocations. A buffer you can free
+> > > when you are done with it.
+> > 
+> > I suppose I should use ACPI_FREE(buffer.pointer) for that, but isn't it
+> > for the ACPICA's internal use only?
+> > 
+> > Besides, I would prefer to be able to pass just "buffer" for freeing,
+> > without having to touch its internals.  No big deal, but it would be
+> > nicer. :-)
+> 
+> 
+> The ACPI_BUFFER type is in fact a public type that is meant to return both the
+> buffer and the (actual) length. You will find many instances of
+> ACPI_FREE(buffer.pointer) within existing linux code, since it also used for
+> objects returned by control method execution/object evaluation.
+
+Well, I suppose I only wanted to say that acpi_free_buffer(buffer) would look
+a bit more straightforward than ACPI_FREE(buffer.pointer). :-)
+
+Thanks,
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
