@@ -1,96 +1,65 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
-Subject: RE: [linux-pm] [PATCH 1/1] thermal: cpu cooling: allow module builds
-Date: Wed, 14 Nov 2012 16:21:06 +0000
-Message-ID: <4D68720C2E767A4AA6A8796D42C8EB592120B6@BGSMSX101.gar.corp.intel.com>
-References: <1352906610-549-1-git-send-email-eduardo.valentin@ti.com>
+From: Kamil Iskra <kamil@iskra.name>
+Subject: Re: Patch to correct battery capacity values on Thinkpads (repost)
+Date: Wed, 14 Nov 2012 10:54:34 -0600
+Message-ID: <20121114165434.GA31375@scooby.iskra.name>
+References: <20121112050935.GA25110@scooby.iskra.name>
+ <20121114074113.GA32091@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:8555 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161162Ab2KNQV6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Nov 2012 11:21:58 -0500
-In-Reply-To: <1352906610-549-1-git-send-email-eduardo.valentin@ti.com>
-Content-Language: en-US
+Received: from scooby.iskra.name ([184.171.245.232]:41321 "EHLO
+	mail.iskra.name" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1422826Ab2KNQyg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Nov 2012 11:54:36 -0500
+Content-Disposition: inline
+In-Reply-To: <20121114074113.GA32091@srcf.ucam.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Eduardo Valentin <eduardo.valentin@ti.com>, "amit.kachhap@linaro.org" <amit.kachhap@linaro.org>
-Cc: "eballetbo@gmail.com" <eballetbo@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "Zhang, Rui" <rui.zhang@intel.com>, "Linux PM list (linux-pm@vger.kernel.org)" <linux-pm@vger.kernel.org>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, ibm-acpi-devel@lists.sourceforge.net
 
+On Wed, Nov 14, 2012 at 07:41:13 +0000, Matthew Garrett wrote:
 
-> -----Original Message-----
-> From: linux-pm-bounces@lists.linux-foundation.org [mailto:linux-pm-
-> bounces@lists.linux-foundation.org] On Behalf Of Eduardo Valentin
-> Sent: Wednesday, November 14, 2012 8:54 PM
-> To: amit.kachhap@linaro.org
-> Cc: eballetbo@gmail.com; linux-acpi@vger.kernel.org; linux-pm@lists.linux-
-> foundation.org
-> Subject: [linux-pm] [PATCH 1/1] thermal: cpu cooling: allow module builds
-> 
-> As thermal drivers can be built as modules and also
-> the thermal framework itself, building cpu cooling
-> only as built-in can cause linking errors. For instance:
-> * Generic Thermal sysfs driver
-> *
-> Generic Thermal sysfs driver (THERMAL) [M/n/y/?] m
->   generic cpu cooling support (CPU_THERMAL) [N/y/?] (NEW) y
-> 
-> with the following drive:
-> CONFIG_OMAP_BANDGAP=m
+> On Sun, Nov 11, 2012 at 11:09:35PM -0600, Kamil Iskra wrote:
+> > My guess is that this problem has been around ever since those machines
+> > have been released, but because the most common Thinkpad batteries are
+> > rated at 10.8V, the error (8%) is small enough that it simply hasn't been
+> > noticed or at least nobody could be bothered to look into it.
+> Yeah, the DSDT simply multiples the values by 10 when it's in this 
+> state. But the issue is purely cosmetic, right? I can't see any reason 
+> anything would be using the design voltage in calculations.
 
-Nice catch Eduardo :-)
+Well, when the capacity unit is mAh, the correct way of translating it to
+mWh is to multiply by the design voltage, AFAIK, and not the current
+voltage (which seems to fluctuate a lot and is often higher than the design
+voltage for whatever weird reason).  That's what upower does, for example.
 
-Reviewed-by: Durgadoss R <durgadoss.r@intel.com>
+I validated that with the Thinkpad-specific tp_smapi out-of-tree driver,
+e.g., right now on my x201 (with my patch; values without the patch are in
+parentheses):
 
-Also, Ccing Rui to this e-mail and adding linux-pm.
+/proc/acpi/battery/BAT0/info:
+design capacity:         5200 mAh (5616 mAh)
+design voltage:          10800 mV
+/proc/acpi/battery/BAT0/state:
+remaining capacity:      3418 mAh (3691 mAh)
+present voltage:         12249 mV
 
-Thanks,
-Durga
-> 
-> generates:
-> ERROR: "cpufreq_cooling_unregister" [drivers/staging/omap-thermal/omap-
-> thermal.ko] undefined!
-> ERROR: "cpufreq_cooling_register" [drivers/staging/omap-thermal/omap-
-> thermal.ko] undefined!
-> 
-> This patch changes cpu cooling driver to allow it
-> to be built as module.
-> 
-> Reported-by: Enric Balletbo i Serra <eballetbo@gmail.com>
-> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
-> ---
->  drivers/thermal/Kconfig     |    2 +-
->  include/linux/cpu_cooling.h |    2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
-> index e1cb6bd..3b03c8b 100644
-> --- a/drivers/thermal/Kconfig
-> +++ b/drivers/thermal/Kconfig
-> @@ -20,7 +20,7 @@ config THERMAL_HWMON
->  	default y
-> 
->  config CPU_THERMAL
-> -	bool "generic cpu cooling support"
-> +	tristate "generic cpu cooling support"
->  	depends on THERMAL && CPU_FREQ
->  	select CPU_FREQ_TABLE
->  	help
-> diff --git a/include/linux/cpu_cooling.h b/include/linux/cpu_cooling.h
-> index b30cc79c..40b4ef5 100644
-> --- a/include/linux/cpu_cooling.h
-> +++ b/include/linux/cpu_cooling.h
-> @@ -29,7 +29,7 @@
->  #define CPUFREQ_COOLING_START		0
->  #define CPUFREQ_COOLING_STOP		1
-> 
-> -#ifdef CONFIG_CPU_THERMAL
-> +#if defined(CONFIG_CPU_THERMAL) ||
-> defined(CONFIG_CPU_THERMAL_MODULE)
->  /**
->   * cpufreq_cooling_register - function to create cpufreq cooling device.
->   * @clip_cpus: cpumask of cpus where the frequency constraints will happen
-> --
-> 1.7.7.1.488.ge8e1c
+/sys/devices/platform/smapi/BAT0 (capacities are always in mWh here):
+design_capacity:         56160
+design_voltage:          10800
+remaining_capacity:      36920
+voltage:                 12249
 
+Few tools need to do the translation from mAh to mWh, though -- remaining
+battery capacity monitors on the desktop just display percentages, so they
+don't need to care about the units so long as capacity_now/design_capacity
+is sane (which it is, with or without the patch).  One tool that certainly
+does care though is PowerTOP, although, curiously, it seems to use current
+voltage for calculations, resulting in incorrect values (with or without
+the patch -- worse without).
+
+Kamil
+
+-- 
+Kamil Iskra  kamil@iskra.name
