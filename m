@@ -1,70 +1,37 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: [PATCH 1/1] thermal: cpu cooling: allow module builds
-Date: Wed, 14 Nov 2012 11:23:30 -0400
-Message-ID: <1352906610-549-1-git-send-email-eduardo.valentin@ti.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: Patch to correct battery capacity values on Thinkpads (repost)
+Date: Wed, 14 Nov 2012 16:04:43 +0000
+Message-ID: <20121114160443.GA9108@srcf.ucam.org>
+References: <20121112050935.GA25110@scooby.iskra.name>
+ <20121114074113.GA32091@srcf.ucam.org>
+ <20121114095857.29582.qmail@stuge.se>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49377 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161133Ab2KNPYB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 14 Nov 2012 10:24:01 -0500
+Received: from cavan.codon.org.uk ([93.93.128.6]:37038 "EHLO
+	cavan.codon.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754319Ab2KNQEs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Nov 2012 11:04:48 -0500
+Content-Disposition: inline
+In-Reply-To: <20121114095857.29582.qmail@stuge.se>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: amit.kachhap@linaro.org
-Cc: rui.zhang@intel.com, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, eballetbo@gmail.com, Eduardo Valentin <eduardo.valentin@ti.com>
+To: Kamil Iskra <kamil@iskra.name>, linux-acpi@vger.kernel.org, lenb@kernel.org, ibm-acpi-devel@lists.sourceforge.net
 
-As thermal drivers can be built as modules and also
-the thermal framework itself, building cpu cooling
-only as built-in can cause linking errors. For instance:
-* Generic Thermal sysfs driver
-*
-Generic Thermal sysfs driver (THERMAL) [M/n/y/?] m
-  generic cpu cooling support (CPU_THERMAL) [N/y/?] (NEW) y
+On Wed, Nov 14, 2012 at 10:58:57AM +0100, Peter Stuge wrote:
+> Matthew Garrett wrote:
+> > > My guess is that this problem has been around ever since those machines
+> > > have been released, but because the most common Thinkpad batteries are
+> > > rated at 10.8V, the error (8%) is small enough that it simply hasn't been
+> > > noticed or at least nobody could be bothered to look into it.
+> > 
+> > Yeah, the DSDT simply multiples the values by 10 when it's in this 
+> > state. But the issue is purely cosmetic, right? I can't see any reason 
+> > anything would be using the design voltage in calculations.
+> 
+> current energy percent = 100 * energy_now / energy_full_design
 
-with the following drive:
-CONFIG_OMAP_BANDGAP=m
+Right. That's not the voltage.
 
-generates:
-ERROR: "cpufreq_cooling_unregister" [drivers/staging/omap-thermal/omap-thermal.ko] undefined!
-ERROR: "cpufreq_cooling_register" [drivers/staging/omap-thermal/omap-thermal.ko] undefined!
-
-This patch changes cpu cooling driver to allow it
-to be built as module.
-
-Reported-by: Enric Balletbo i Serra <eballetbo@gmail.com>
-Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
----
- drivers/thermal/Kconfig     |    2 +-
- include/linux/cpu_cooling.h |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
-index e1cb6bd..3b03c8b 100644
---- a/drivers/thermal/Kconfig
-+++ b/drivers/thermal/Kconfig
-@@ -20,7 +20,7 @@ config THERMAL_HWMON
- 	default y
- 
- config CPU_THERMAL
--	bool "generic cpu cooling support"
-+	tristate "generic cpu cooling support"
- 	depends on THERMAL && CPU_FREQ
- 	select CPU_FREQ_TABLE
- 	help
-diff --git a/include/linux/cpu_cooling.h b/include/linux/cpu_cooling.h
-index b30cc79c..40b4ef5 100644
---- a/include/linux/cpu_cooling.h
-+++ b/include/linux/cpu_cooling.h
-@@ -29,7 +29,7 @@
- #define CPUFREQ_COOLING_START		0
- #define CPUFREQ_COOLING_STOP		1
- 
--#ifdef CONFIG_CPU_THERMAL
-+#if defined(CONFIG_CPU_THERMAL) || defined(CONFIG_CPU_THERMAL_MODULE)
- /**
-  * cpufreq_cooling_register - function to create cpufreq cooling device.
-  * @clip_cpus: cpumask of cpus where the frequency constraints will happen
 -- 
-1.7.7.1.488.ge8e1c
-
+Matthew Garrett | mjg59@srcf.ucam.org
