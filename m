@@ -1,51 +1,46 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC PATCH 0/3] acpi: Introduce prepare_remove device operation
-Date: Thu, 15 Nov 2012 00:12:55 +0100
-Message-ID: <1647704.U9gX6ykHyh@vostro.rjw.lan>
-References: <1352399371-8015-1-git-send-email-vasilis.liaskovitis@profitbricks.com> <50A07477.2050002@cn.fujitsu.com> <20121112172046.GA4931@dhcp-192-168-178-175.profitbricks.localdomain>
+Subject: Re: [Patch v4 1/7] acpi,memory-hotplug: introduce a mutex lock to protect the list in acpi_memory_device
+Date: Thu, 15 Nov 2012 00:34:01 +0100
+Message-ID: <2008916.VzTIR8JBPq@vostro.rjw.lan>
+References: <1352372693-32411-1-git-send-email-wency@cn.fujitsu.com> <1352754038.12509.16.camel@misato.fc.hp.com> <50A1AAC5.8000506@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:44541 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933195Ab2KNXIe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 14 Nov 2012 18:08:34 -0500
-In-Reply-To: <20121112172046.GA4931@dhcp-192-168-178-175.profitbricks.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <50A1AAC5.8000506@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Wen Congyang <wency@cn.fujitsu.com>
+Cc: Toshi Kani <toshi.kani@hp.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Minchan Kim <minchan.kim@gmail.com>, Mel Gorman <mgorman@suse.de>, David Rientjes <rientjes@google.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Jiang Liu <liuj97@gmail.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Christoph Lameter <cl@linux.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>, linux-acpi@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, lenb@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-mm@kvack.org
 
-On Monday, November 12, 2012 06:20:47 PM Vasilis Liaskovitis wrote:
-> On Mon, Nov 12, 2012 at 12:00:55PM +0800, Wen Congyang wrote:
-> > At 11/09/2012 02:29 AM, Vasilis Liaskovitis Wrote:
-> > > As discussed in
-> > > https://patchwork.kernel.org/patch/1581581/
-> > > the driver core remove function needs to always succeed. This means we need
-> > > to know that the device can be successfully removed before acpi_bus_trim / 
-> > > acpi_bus_hot_remove_device are called. This can cause panics when OSPM-initiated
-> > > eject (echo 1 > /sys/bus/acpi/devices/PNP/eject) of memory devices fails, since
-> > > the ACPI core goes ahead and ejects the device regardless of whether the memory
-> > > is still in use or not.
-> > > 
-> > > For this reason a new acpi_device operation called prepare_remove is introduced.
-> > > This operation should be registered for acpi devices whose removal (from kernel
-> > > perspective) can fail.  Memory devices fall in this category.
-> > > 
-> > > acpi_bus_hot_remove_device is changed to handle removal in 2 steps:
-> > > - preparation for removal i.e. perform part of removal that can fail outside of
-> > >   ACPI core. Should succeed for device and all its children.
-> > > - if above step was successfull, proceed to actual ACPI removal
+On Tuesday, November 13, 2012 10:04:53 AM Wen Congyang wrote:
+> At 11/13/2012 05:00 AM, Toshi Kani Wrote:
+> > On Thu, 2012-11-08 at 19:04 +0800, Wen Congyang wrote:
+> >> The memory device can be removed by 2 ways:
+> >> 1. send eject request by SCI
+> >> 2. echo 1 >/sys/bus/pci/devices/PNP0C80:XX/eject
+> >>
+> >> This 2 events may happen at the same time, so we may touch
+> >> acpi_memory_device.res_list at the same time. This patch
+> >> introduce a lock to protect this list.
 > > 
-> > If we unbind the device from the driver, we still need to do preparation. But
-> > you don't do it in your patch.
+> > Hi Wen,
+> > 
+> > This race condition is not unique in memory hot-remove as the sysfs
+> > eject interface is created for all objects with _EJ0.  For CPU
+> > hot-remove, I addressed this race condition by making the notify handler
+> > to run the hot-remove operation on kacpi_hotplug_wq by calling
+> > acpi_os_hotplug_execute().  This serializes the hot-remove operations
+> > among the two events since the sysfs eject also runs on
+> > kacpi_hotplug_wq.  This way is much simpler and is easy to maintain,
+> > although it does not allow both operations to run simultaneously (which
+> > I do not think we need).  Can it be used for memory hot-remove as well?
 > 
-> yes, driver_unbind breaks with the current patchset. I 'll try to fix and
-> repost. However, I think this will require a new driver-core wide prepare_remove
-> callback (not only acpi-specific). I am not sure that would be acceptable.
+> Good idea. I will update it.
 
-However, you can't break driver_unbind either.
+Still waiting. :-)
+
+But if you want that in v3.8, please repost ASAP.
 
 Thanks,
 Rafael
@@ -54,3 +49,9 @@ Rafael
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
