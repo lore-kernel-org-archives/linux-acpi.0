@@ -1,109 +1,51 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH 3/3] ACPI: Evaluate _CRS while creating device node
- objects
-Date: Wed, 14 Nov 2012 02:23:51 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E346BC08EB@ORSMSX101.amr.corp.intel.com>
-References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com>
- <2586712.Jsv1H95qXQ@vostro.rjw.lan>
- <94F2FBAB4432B54E8AACC7DFDE6C92E346BC083A@ORSMSX101.amr.corp.intel.com>
- <1957831.MvUm7YPtfp@vostro.rjw.lan>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [PATCH] Thermal: Add Linux/Thermal subsystem info in MAINTAINER file
+Date: Wed, 14 Nov 2012 14:38:26 +0800
+Message-ID: <1352875106.2176.5.camel@rzhang1-mobl4>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:23682 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932375Ab2KNCXy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 13 Nov 2012 21:23:54 -0500
-In-Reply-To: <1957831.MvUm7YPtfp@vostro.rjw.lan>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, durga <durgadoss.r@intel.com>, Amit Kachhap <amit.kachhap@linaro.org>, jhbird.choi@samsung.com, kuninori.morimoto.gx@renesas.com, eduardo.valentin@ti.com, viresh.kumar@st.com, "hongbo.zhang" <hongbo.zhang@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "mathias.nyman@linux.intel.com" <mathias.nyman@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "linus.walleij@linaro.org" <linus.walleij@linaro.org>, "khali@linux-fr.org" <khali@linux-fr.org>, Bjorn Helgaas <bhelgaas@google.com>, "Zheng, Lv" <lv.zheng@intel.com>
 
-UmFmYWVsLA0KDQpJIHNvdW5kcyBsaWtlIHdpdGggYSBmZXcgY2hhbmdlcywgd2UgY2FuIGVuaGFu
-Y2UgdGhpcyBtZWNoYW5pc20gdG8gYmUgbW9yZSB1c2VmdWwgdG8geW91IGFuZCBvdGhlcnMuIFNv
-bWUgY29tbWVudHMgYmVsb3cuIEkgbmVlZCB0byBsb29rIGF0IHRoZSBjb2RlIGluIHF1ZXN0aW9u
-IGEgYml0IG1vcmUsIGJ1dCBJIHNlZSBubyBpbnN1cm1vdW50YWJsZSBpc3N1ZXMuDQoNCkJvYg0K
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUmFmYWVsIEouIFd5c29j
-a2kgW21haWx0bzpyandAc2lzay5wbF0NCj4gU2VudDogVHVlc2RheSwgTm92ZW1iZXIgMTMsIDIw
-MTIgMjo1NyBQTQ0KPiBUbzogTW9vcmUsIFJvYmVydA0KPiBDYzogTWlrYSBXZXN0ZXJiZXJnOyBt
-YXRoaWFzLm55bWFuQGxpbnV4LmludGVsLmNvbTsgbGludXgtDQo+IGFjcGlAdmdlci5rZXJuZWwu
-b3JnOyBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnOyBsZW5iQGtlcm5lbC5vcmc7DQo+IFd5
-c29ja2ksIFJhZmFlbCBKOyBicm9vbmllQG9wZW5zb3VyY2Uud29sZnNvbm1pY3JvLmNvbTsNCj4g
-Z3JhbnQubGlrZWx5QHNlY3JldGxhYi5jYTsgbGludXMud2FsbGVpakBsaW5hcm8ub3JnOyBraGFs
-aUBsaW51eC1mci5vcmc7DQo+IEJqb3JuIEhlbGdhYXM7IFpoZW5nLCBMdg0KPiBTdWJqZWN0OiBS
-ZTogW1BBVENIIDMvM10gQUNQSTogRXZhbHVhdGUgX0NSUyB3aGlsZSBjcmVhdGluZyBkZXZpY2Ug
-bm9kZQ0KPiBvYmplY3RzDQo+IA0KPiBPbiBUdWVzZGF5LCBOb3ZlbWJlciAxMywgMjAxMiAxMDow
-NjowMyBQTSBNb29yZSwgUm9iZXJ0IHdyb3RlOg0KPiA+IEkgbWF5IG5vdCBxdWl0ZSB1bmRlcnN0
-YW5kIHdoYXQgeW91IGFyZSBhc2tpbmcgZm9yLCBidXQgSSB3aWxsIHRyeS4NCj4gPiBJdCBzZWVt
-cyBsaWtlIHdlIGFscmVhZHkgaGF2ZSBtdWNoIG9mIHdoYXQgeW91IHdhbnQvbmVlZCwgc28gbWF5
-YmUgSSdtDQo+ID4gbWlzc2luZyBzb21ldGhpbmcuDQo+IA0KPiBJIHRoaW5rIGFsbCBvZiB0aGUg
-bmVjZXNzYXJ5IHBpZWNlcyBhcmUgdGhlcmUuDQo+IA0KPiA+ID4gU28gd2hhdCBJIHdvdWxkIGxp
-a2UgdG8gaGF2ZSwgaW4gZ2VuZXJhbCB0ZXJtcywgaXMgc29tZXRoaW5nIGxpa2UNCj4gPiA+IGFj
-cGlfd2Fsa19yZXNvdXJjZXMoKSBzcGxpdCBpbnRvIHRocmVlIHBhcnRzOg0KPiA+ID4NCj4gPiA+
-ICAoMSkgT25lIHRoYXQgcHJvY2Vzc2VzIHRoZSBfQ1JTIG91dHB1dCBhbmQgY3JlYXRlcyBhIGxp
-c3Qgb2YNCj4gPiA+ICAgICAgc3RydWN0IGFjcGlfcmVzb3VyY2Ugb2JqZWN0cyBmb3IgdXMgdG8g
-cGxheSB3aXRoLiAgSSBzdXBwb3NlDQo+ID4gPiAgICAgIGl0J3MgT0sgaWYgdGhhdCdzIGp1c3Qg
-YSBidWZmZXIgZmlsbGVkIHdpdGggcmVzb3VyY2Ugb2JqZWN0cywNCj4gPiA+ICAgICAgYnV0IGEg
-bGlua2VkIGxpc3QgbWlnaHQgYmUgbW9yZSBjb252ZW5pZW50Lg0KPiA+ID4NCj4gPg0KPiA+IFRo
-aXMgc291bmRzIGxpa2UgQWNwaUdldEN1cnJlbnRSZXNvdXJjZXMuIEl0IGV4ZWN1dGVzIF9DUlMg
-YW5kIGZvcm1hdHMNCj4gPiB0aGUgZGF0YSBpbnRvIGFjcGlfcmVzb3VyY2Ugb2JqZWN0cy4NCj4g
-DQo+IFllcywgaXQgZG9lcy4gIEhvd2V2ZXIsIGl0IGlzIG5vdCBjb21wbGV0ZWx5IGNsZWFyIHRv
-IG1lIGlmL2hvdyB0aGUgY2FsbGVyDQo+IGlzIHN1cHBvc2VkIHRvIHByZXBhcmUgdGhlIGJ1ZmZl
-ciBvYmplY3QgcG9pbnRlZCB0byBieSB0aGUgc2Vjb25kIGFyZy4NCj4gDQo+IElmIHRoZSBidWZm
-ZXIgaXMgaW5pdGlhbGl6ZWQgYnkgQWNwaUdldEN1cnJlbnRSZXNvdXJjZXMsIHRoZW4gdGhhdCdz
-IHdoYXQNCj4gSSBuZWVkIGZvciAoMSkuDQoNCg0KSXQgbG9va3MgdG8gbWUgdGhhdCBhdCBsZWFz
-dCBBY3BpR2V0Q3VycmVudFJlc291cmNlcyBkb2VzIG5vdCBhY3R1YWxseSBldmVyIGFsbG9jYXRl
-IGEgYnVmZmVyIGZvciB0aGUgcmVzb3VyY2UgdGVtcGxhdGUsIGl0IGV4cGVjdHMgdGhlIGNhbGxl
-ciB0byBldmVudHVhbGx5IHByb3ZpZGUgb25lIG9mIGF0IGxlYXN0IHRoZSBzaXplIG9mIHRoZSBy
-ZXR1cm5lZCByZXNvdXJjZSB0ZW1wbGF0ZS4NCg0KVGhpcyBpcyByZWFsbHkgcXVpdGUgYSBiaXQg
-b3V0LW9mLWRhdGUgYXMgZmFyIGFzIHRoZSBtZW1vcnkgYWxsb2NhdGlvbiBtb2RlbC4gSXQgc2hv
-dWxkIGFsc28gc3VwcG9ydCB0aGUgb3B0aW9uIHRvIGp1c3QgYWxsb2NhdGUgdGhlIGJ1ZmZlciBv
-ZiB0aGUgYXBwcm9wcmlhdGUgc2l6ZSBiZWZvcmUgcmV0dXJuaW5nIGl0IHRvIHRoZSBjYWxsZXIu
-DQoNCg0KDQoNCj4gDQo+ID4gPiAgKDIpIE9uZSB0aGF0IGFsbG93cyB1cyB0byBhY2Nlc3MgKHJl
-YWQvd3JpdGUpIHJlc291cmNlcyBpbiB0aGUNCj4gPiA+ICAgICAgbGlzdCByZXR1cm5lZCBieSAo
-MSkuICBXZSBkb24ndCBuZWVkIHRvIG9wZW4gY29kZSB3YWxraW5nDQo+ID4gPiAgICAgIHRoZSBs
-aXN0IGFuZCBJIHByb2JhYmx5IHdvdWxkbid0IGV2ZW50IHdhbnQgdG8gZG8gdGhhdC4gIFdoYXQN
-Cj4gPiA+ICAgICAgd2UgbmVlZCBpcyB0byBiZSBhYmxlIHRvIHdhbGsgdGhlIHNhbWUgbGlzdCBm
-b3IgYSBudW1iZXIgb2YNCj4gPiA+ICAgICAgdGltZXMgYW5kIHBvc3NpYmx5IHRvIG1vZGlmeSB2
-YWx1ZXMgaW4gdGhlIHJlc291cmNlIG9iamVjdHMNCj4gPiA+ICAgICAgaWYgdGhlcmUgYXJlIGNv
-bmZsaWN0cy4NCj4gPg0KPiA+IFRoaXMgc291bmRzIGxpa2UgQWNwaVdhbGtSZXNvdXJjZXMuIEkg
-c3VwcG9zZSBhIHBvc3NpYmxlIGlzc3VlIGlzIHRoYXQNCj4gPiBjdXJyZW50bHksIEFjcGlXYWxr
-UmVzb3VyY2VzIGFjdHVhbGx5IGludm9rZXMgdGhlIF9DUlMsIF9QUlMsIG9yIF9BRUkNCj4gPiBt
-ZXRob2Qgb24gYmVoYWxmIG9mIHRoZSBjYWxsZXIuDQo+IA0KPiBZZXMsIHRoYXQgZXhhY3RseSBp
-cyB0aGUgcHJvYmxlbS4NCj4gDQo+ID4gSXQgbWlnaHQgbWFrZSBtb3JlIHNlbnNlIHRvIGFsbG93
-IHRoZSBjYWxsZXIgdG8gcGFzcyBpbiB0aGUgcmVzb3VyY2UNCj4gPiBidWZmZXIgcmV0dXJuZWQg
-ZnJvbSBhIGNhbGwgdG8gX0NSUywgZXRjLg0KPiANCj4gWWVzISA6LSkNCg0KDQpJJ2xsIHRha2Ug
-YSBjbG9zZXIgbG9vayBhdCB0aGlzIHRvbW9ycm93Lg0KDQoNCg0KDQo+IA0KPiA+ID4NCj4gPiA+
-ICAoMykgT25lIGFsbG93aW5nIHVzIHRvIGZyZWUgdGhlIGxpc3QgcmV0dXJuZWQgYnkgKDEpIGlm
-IG5vdCBuZWVkZWQNCj4gPiA+ICAgICAgYW55IG1vcmUuDQo+ID4gPg0KPiA+DQo+ID4gQWNwaUdl
-dEN1cnJlbnRSZXNvdXJjZXM6IEN1cnJlbnRseSwgZXZlcnl0aGluZyBpcyByZXR1cm5lZCBpbiBh
-IHNpbmdsZQ0KPiA+IGJ1ZmZlciB0byBtaW5pbWl6ZSB0aGUgbnVtYmVyIG9mIGFsbG9jYXRpb25z
-LiBBIGJ1ZmZlciB5b3UgY2FuIGZyZWUNCj4gPiB3aGVuIHlvdSBhcmUgZG9uZSB3aXRoIGl0Lg0K
-PiANCj4gSSBzdXBwb3NlIEkgc2hvdWxkIHVzZSBBQ1BJX0ZSRUUoYnVmZmVyLnBvaW50ZXIpIGZv
-ciB0aGF0LCBidXQgaXNuJ3QgaXQNCj4gZm9yIHRoZSBBQ1BJQ0EncyBpbnRlcm5hbCB1c2Ugb25s
-eT8NCj4gDQo+IEJlc2lkZXMsIEkgd291bGQgcHJlZmVyIHRvIGJlIGFibGUgdG8gcGFzcyBqdXN0
-ICJidWZmZXIiIGZvciBmcmVlaW5nLA0KPiB3aXRob3V0IGhhdmluZyB0byB0b3VjaCBpdHMgaW50
-ZXJuYWxzLiAgTm8gYmlnIGRlYWwsIGJ1dCBpdCB3b3VsZCBiZQ0KPiBuaWNlci4gOi0pDQoNCg0K
-VGhlIEFDUElfQlVGRkVSIHR5cGUgaXMgaW4gZmFjdCBhIHB1YmxpYyB0eXBlIHRoYXQgaXMgbWVh
-bnQgdG8gcmV0dXJuIGJvdGggdGhlIGJ1ZmZlciBhbmQgdGhlIChhY3R1YWwpIGxlbmd0aC4gWW91
-IHdpbGwgZmluZCBtYW55IGluc3RhbmNlcyBvZiBBQ1BJX0ZSRUUoYnVmZmVyLnBvaW50ZXIpIHdp
-dGhpbiBleGlzdGluZyBsaW51eCBjb2RlLCBzaW5jZSBpdCBhbHNvIHVzZWQgZm9yIG9iamVjdHMg
-cmV0dXJuZWQgYnkgY29udHJvbCBtZXRob2QgZXhlY3V0aW9uL29iamVjdCBldmFsdWF0aW9uLg0K
-DQoNCj4gDQo+ID4gSSB0aGluayBJIHNhdyB3aGVyZSB5b3UgbWVudGlvbmVkIHRoYXQgeW91IGNh
-bm5vdCBjb3B5IHRoaXMgYnVmZmVyDQo+ID4gYmVjYXVzZSBvZiBpbnRlcm5hbCBwb2ludGVycyB0
-byBvdGhlciBhcmVhcyBvZiB0aGUgYnVmZmVyLiBZZXMuDQo+ID4gSG93ZXZlciwgd2UgY2FuIGJ1
-aWxkIGxpbmtlZCBsaXN0cyBhbGwgZGF5IGlmIHlvdSByZWFsbHkgd2FudCB0aGVtIDotKQ0KPiAN
-Cj4gSSByZWFsbHkgd29uJ3QgY2FyZSBpZiBJIGNhbiBwYXNzIGEgcmVzb3VyY2UgYnVmZmVyIHRv
-IGEgIndhbGtlciIgcm91dGluZS4NCj4gOi0pDQo+IA0KPiA+ID4gQW5kIGl0IHdvdWxkIGJlIGdy
-ZWF0IGlmIHdlIGNvdWxkIHRha2UgdGhlIGxpc3QgcmV0dXJuZWQgYnkgKDEpLA0KPiA+ID4gbW9k
-aWZ5IHRoZSByZXNvdXJjZXMgaW4gaXQgYW5kIGZlZWQgaXQgYmFjayB0byBfU1JTIChhZnRlcg0K
-PiA+ID4gY29udmVyc2lvbiBiYWNrIHRvIHRoZSBmb3JtYXQgdGhhdCBfU1JTIHVuZGVyc3RhbmRz
-KS4NCj4gPiA+DQo+ID4NCj4gPiBBY3BpU2V0Q3VycmVudFJlc291cmNlcy4NCj4gPg0KPiA+IFRo
-ZSBBTUwgZGVidWdnZXIgYWxyZWFkeSBoYXMgYSBjb21tYW5kIHRoYXQgaWxsdXN0cmF0ZXMgdGhl
-IHVzZSBvZiB0aGUNCj4gPiB2YXJpb3VzIHJlc291cmNlIGludGVyZmFjZXMsIHNlZSBkYmNtZHMu
-Yw0KPiANCj4gSSB3aWxsLg0KPiANCj4gVGhhbmtzLA0KPiBSYWZhZWwNCj4gDQo+IA0KPiAtLQ0K
-PiBJIHNwZWFrIG9ubHkgZm9yIG15c2VsZi4NCj4gUmFmYWVsIEouIFd5c29ja2ksIEludGVsIE9w
-ZW4gU291cmNlIFRlY2hub2xvZ3kgQ2VudGVyLg0K
+Add Linux/Thermal subsystem info in MAINTAINER file.
+
+All the changes made to the generic thermal layer, or
+platform thermal drivers that make use of the thermal layer,
+should be sent to linux-pm@vger.kernel.org for discussion.
+
+And as the maintainer, I will only apply the patches that have been
+sent to linux-pm@vger.kernel.org.
+
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ MAINTAINERS |    8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 59203e7..2d8512b 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -7210,6 +7210,14 @@ L:	linux-xtensa@linux-xtensa.org
+ S:	Maintained
+ F:	arch/xtensa/
+ 
++THERMAL
++M:      Zhang Rui <rui.zhang@intel.com>
++L:      linux-pm@vger.kernel.org
++T:      git git://git.kernel.org/pub/scm/linux/kernel/git/rzhang/linux.git
++S:      Supported
++F:      drivers/thermal/
++F:      include/linux/thermal.h
++
+ THINKPAD ACPI EXTRAS DRIVER
+ M:	Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>
+ L:	ibm-acpi-devel@lists.sourceforge.net
+-- 
+1.7.9.5
+
+
+
