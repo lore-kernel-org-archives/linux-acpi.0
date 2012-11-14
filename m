@@ -1,88 +1,56 @@
-From: Seiji Aguchi <seiji.aguchi-7rDLJAbr9SE@public.gmane.org>
-Subject: [PATCH v6 7/7] efi_pstore: Add a format check for an existing
- variable name at erasing time
-Date: Wed, 14 Nov 2012 20:29:21 +0000
-Message-ID: <A5ED84D3BB3A384992CBB9C77DEDA4D4138CA736@USINDEM103.corp.hds.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC PATCH 0/3] acpi: Introduce prepare_remove device operation
+Date: Thu, 15 Nov 2012 00:12:55 +0100
+Message-ID: <1647704.U9gX6ykHyh@vostro.rjw.lan>
+References: <1352399371-8015-1-git-send-email-vasilis.liaskovitis@profitbricks.com> <50A07477.2050002@cn.fujitsu.com> <20121112172046.GA4931@dhcp-192-168-178-175.profitbricks.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Luck, Tony (tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org)" <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "anton.vorontsov-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <anton.vorontsov-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "mikew-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <mikew-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "Matthew Garrett (mjg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org)" <mjg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "dzickus-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dzickus-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "dle-develop-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <dle-develop-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Satoru Moriya <satoru.moriya-7rDLJAbr9SE@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([193.178.161.156]:44541 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933195Ab2KNXIe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 14 Nov 2012 18:08:34 -0500
+In-Reply-To: <20121112172046.GA4931@dhcp-192-168-178-175.profitbricks.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
+Cc: Wen Congyang <wency@cn.fujitsu.com>, linux-acpi@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, lenb@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-mm@kvack.org
 
-[Issue]
+On Monday, November 12, 2012 06:20:47 PM Vasilis Liaskovitis wrote:
+> On Mon, Nov 12, 2012 at 12:00:55PM +0800, Wen Congyang wrote:
+> > At 11/09/2012 02:29 AM, Vasilis Liaskovitis Wrote:
+> > > As discussed in
+> > > https://patchwork.kernel.org/patch/1581581/
+> > > the driver core remove function needs to always succeed. This means we need
+> > > to know that the device can be successfully removed before acpi_bus_trim / 
+> > > acpi_bus_hot_remove_device are called. This can cause panics when OSPM-initiated
+> > > eject (echo 1 > /sys/bus/acpi/devices/PNP/eject) of memory devices fails, since
+> > > the ACPI core goes ahead and ejects the device regardless of whether the memory
+> > > is still in use or not.
+> > > 
+> > > For this reason a new acpi_device operation called prepare_remove is introduced.
+> > > This operation should be registered for acpi devices whose removal (from kernel
+> > > perspective) can fail.  Memory devices fall in this category.
+> > > 
+> > > acpi_bus_hot_remove_device is changed to handle removal in 2 steps:
+> > > - preparation for removal i.e. perform part of removal that can fail outside of
+> > >   ACPI core. Should succeed for device and all its children.
+> > > - if above step was successfull, proceed to actual ACPI removal
+> > 
+> > If we unbind the device from the driver, we still need to do preparation. But
+> > you don't do it in your patch.
+> 
+> yes, driver_unbind breaks with the current patchset. I 'll try to fix and
+> repost. However, I think this will require a new driver-core wide prepare_remove
+> callback (not only acpi-specific). I am not sure that would be acceptable.
 
-a format of variable name has been updated to type, id, count and ctime
-to support holding multiple logs.
+However, you can't break driver_unbind either.
 
-Format of current variable name
-  dump-type0-1-2-12345678
+Thanks,
+Rafael
 
-  type:0
-  id:1
-  count:2
-  ctime:12345678
 
-On the other hand, if an old variable name before being updated
-remains, users can't erase it via /dev/pstore.
-
-Format of old variable name
-  dump-type0-1-12345678
-
-  type:0
-  id:1
-  ctime:12345678
-
-[Solution]
-
-This patch add a format check for the old variable name in a erase callback to make it erasable.
-
-Signed-off-by: Seiji Aguchi <seiji.aguchi-7rDLJAbr9SE@public.gmane.org>
-Acked-by: Mike Waychison <mikew-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
----
- drivers/firmware/efivars.c |   20 ++++++++++++++++++--
- 1 files changed, 18 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/firmware/efivars.c b/drivers/firmware/efivars.c
-index bf7a6f9..6e51c1e 100644
---- a/drivers/firmware/efivars.c
-+++ b/drivers/firmware/efivars.c
-@@ -773,6 +773,8 @@ static int efi_pstore_erase(enum pstore_type_id type, u64 id, int count,
- {
- 	char name[DUMP_NAME_LEN];
- 	efi_char16_t efi_name[DUMP_NAME_LEN];
-+	char name_old[DUMP_NAME_LEN];
-+	efi_char16_t efi_name_old[DUMP_NAME_LEN];
- 	efi_guid_t vendor = LINUX_EFI_CRASH_GUID;
- 	struct efivars *efivars = psi->data;
- 	struct efivar_entry *entry, *found = NULL;
-@@ -796,8 +798,22 @@ static int efi_pstore_erase(enum pstore_type_id type, u64 id, int count,
- 		if (efi_guidcmp(entry->var.VendorGuid, vendor))
- 			continue;
- 		if (utf16_strncmp(entry->var.VariableName, efi_name,
--				  utf16_strlen(efi_name)))
--			continue;
-+				  utf16_strlen(efi_name))) {
-+			/*
-+			 * Check if an old format,
-+			 * which doesn't support holding
-+			 * multiple logs, remains.
-+			 */
-+			sprintf(name_old, "dump-type%u-%u-%lu", type,
-+				(unsigned int)id, time.tv_sec);
-+
-+			for (i = 0; i < DUMP_NAME_LEN; i++)
-+				efi_name_old[i] = name_old[i];
-+
-+			if (utf16_strncmp(entry->var.VariableName, efi_name_old,
-+					  utf16_strlen(efi_name_old)))
-+				continue;
-+		}
- 
- 		/* found */
- 		found = entry;
 -- 
-1.7.1
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
