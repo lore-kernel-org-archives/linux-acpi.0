@@ -1,130 +1,70 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH 3/3] ACPI: Evaluate _CRS while creating device node
- objects
-Date: Wed, 14 Nov 2012 14:20:00 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E346BD8CD0@ORSMSX101.amr.corp.intel.com>
-References: <1351928793-14375-1-git-send-email-mika.westerberg@linux.intel.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E346BC08EB@ORSMSX101.amr.corp.intel.com>
- <5571446.V5xhWp9giY@vostro.rjw.lan> <4910900.pJ82TKumIi@vostro.rjw.lan>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Subject: [PATCH 1/1] thermal: cpu cooling: allow module builds
+Date: Wed, 14 Nov 2012 11:23:30 -0400
+Message-ID: <1352906610-549-1-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4910900.pJ82TKumIi@vostro.rjw.lan>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "mathias.nyman@linux.intel.com" <mathias.nyman@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "linus.walleij@linaro.org" <linus.walleij@linaro.org>, "khali@linux-fr.org" <khali@linux-fr.org>, Bjorn Helgaas <bhelgaas@google.com>, "Zheng, Lv" <lv.zheng@intel.com>
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49377 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1161133Ab2KNPYB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 14 Nov 2012 10:24:01 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: amit.kachhap@linaro.org
+Cc: rui.zhang@intel.com, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, eballetbo@gmail.com, Eduardo Valentin <eduardo.valentin@ti.com>
 
-PiBBbmQgSSBjYW4gZGVmaW5lIGFjcGlfZnJlZV9idWZmZXIoKSBpbiB0aGUgTGludXgtc3BlY2lm
-aWMgY29kZSB0b28uDQo+IA0KPiBUaGFua3MsDQo+IFJhZmFlbA0KDQpJJ2xsIGJlIGdsYWQgdG8g
-YWRkIGFuIEFDUElfRlJFRV9CVUZGRVIgbWFjcm8sIGFsdGhvdWdoIHdlJ3ZlIGhhZCBjb21wbGFp
-bnRzIG92ZXIgdGhlIHllYXJzIHRoYXQgQUNQSUNBIHVzZXMgdG9vIG1hbnkgbWFjcm9zLiAoTm90
-IHNvIG1hbnkgY29tcGxhaW50cyBpbiB0aGUgbGFzdCA1IHllYXJzLCBob3dldmVyLikNCg0KQm9i
-DQoNCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBSYWZhZWwgSi4gV3lz
-b2NraSBbbWFpbHRvOnJqd0BzaXNrLnBsXQ0KPiBTZW50OiBXZWRuZXNkYXksIE5vdmVtYmVyIDE0
-LCAyMDEyIDE6MzMgQU0NCj4gVG86IE1vb3JlLCBSb2JlcnQNCj4gQ2M6IE1pa2EgV2VzdGVyYmVy
-ZzsgbWF0aGlhcy5ueW1hbkBsaW51eC5pbnRlbC5jb207IGxpbnV4LQ0KPiBhY3BpQHZnZXIua2Vy
-bmVsLm9yZzsgbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZzsgbGVuYkBrZXJuZWwub3JnOw0K
-PiBXeXNvY2tpLCBSYWZhZWwgSjsgYnJvb25pZUBvcGVuc291cmNlLndvbGZzb25taWNyby5jb207
-DQo+IGdyYW50Lmxpa2VseUBzZWNyZXRsYWIuY2E7IGxpbnVzLndhbGxlaWpAbGluYXJvLm9yZzsg
-a2hhbGlAbGludXgtZnIub3JnOw0KPiBCam9ybiBIZWxnYWFzOyBaaGVuZywgTHYNCj4gU3ViamVj
-dDogUmU6IFtQQVRDSCAzLzNdIEFDUEk6IEV2YWx1YXRlIF9DUlMgd2hpbGUgY3JlYXRpbmcgZGV2
-aWNlIG5vZGUNCj4gb2JqZWN0cw0KPiANCj4gT24gV2VkbmVzZGF5LCBOb3ZlbWJlciAxNCwgMjAx
-MiAxMDoxODo0NiBBTSBSYWZhZWwgSi4gV3lzb2NraSB3cm90ZToNCj4gPiBPbiBXZWRuZXNkYXks
-IE5vdmVtYmVyIDE0LCAyMDEyIDAyOjIzOjUxIEFNIE1vb3JlLCBSb2JlcnQgd3JvdGU6DQo+ID4g
-PiBSYWZhZWwsDQo+ID4gPg0KPiA+ID4gSSBzb3VuZHMgbGlrZSB3aXRoIGEgZmV3IGNoYW5nZXMs
-IHdlIGNhbiBlbmhhbmNlIHRoaXMgbWVjaGFuaXNtIHRvDQo+ID4gPiBiZSBtb3JlIHVzZWZ1bCB0
-byB5b3UgYW5kIG90aGVycy4gU29tZSBjb21tZW50cyBiZWxvdy4gSSBuZWVkIHRvDQo+ID4gPiBs
-b29rIGF0IHRoZSBjb2RlIGluIHF1ZXN0aW9uIGEgYml0IG1vcmUsIGJ1dCBJIHNlZSBubyBpbnN1
-cm1vdW50YWJsZQ0KPiBpc3N1ZXMuDQo+ID4NCj4gPiBHcmVhdCwgdGhhbmtzIQ0KPiA+DQo+ID4N
-Cj4gPiA+ID4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPiA+ID4gRnJvbTogUmFmYWVs
-IEouIFd5c29ja2kgW21haWx0bzpyandAc2lzay5wbF0NCj4gPiA+ID4gU2VudDogVHVlc2RheSwg
-Tm92ZW1iZXIgMTMsIDIwMTIgMjo1NyBQTQ0KPiA+ID4gPiBUbzogTW9vcmUsIFJvYmVydA0KPiA+
-ID4gPiBDYzogTWlrYSBXZXN0ZXJiZXJnOyBtYXRoaWFzLm55bWFuQGxpbnV4LmludGVsLmNvbTsg
-bGludXgtDQo+ID4gPiA+IGFjcGlAdmdlci5rZXJuZWwub3JnOyBsaW51eC1rZXJuZWxAdmdlci5r
-ZXJuZWwub3JnOw0KPiA+ID4gPiBsZW5iQGtlcm5lbC5vcmc7IFd5c29ja2ksIFJhZmFlbCBKOw0K
-PiA+ID4gPiBicm9vbmllQG9wZW5zb3VyY2Uud29sZnNvbm1pY3JvLmNvbTsNCj4gPiA+ID4gZ3Jh
-bnQubGlrZWx5QHNlY3JldGxhYi5jYTsgbGludXMud2FsbGVpakBsaW5hcm8ub3JnOw0KPiA+ID4g
-PiBraGFsaUBsaW51eC1mci5vcmc7IEJqb3JuIEhlbGdhYXM7IFpoZW5nLCBMdg0KPiA+ID4gPiBT
-dWJqZWN0OiBSZTogW1BBVENIIDMvM10gQUNQSTogRXZhbHVhdGUgX0NSUyB3aGlsZSBjcmVhdGlu
-ZyBkZXZpY2UNCj4gPiA+ID4gbm9kZSBvYmplY3RzDQo+ID4gPiA+DQo+ID4gPiA+IE9uIFR1ZXNk
-YXksIE5vdmVtYmVyIDEzLCAyMDEyIDEwOjA2OjAzIFBNIE1vb3JlLCBSb2JlcnQgd3JvdGU6DQo+
-ID4gPiA+ID4gSSBtYXkgbm90IHF1aXRlIHVuZGVyc3RhbmQgd2hhdCB5b3UgYXJlIGFza2luZyBm
-b3IsIGJ1dCBJIHdpbGwNCj4gdHJ5Lg0KPiA+ID4gPiA+IEl0IHNlZW1zIGxpa2Ugd2UgYWxyZWFk
-eSBoYXZlIG11Y2ggb2Ygd2hhdCB5b3Ugd2FudC9uZWVkLCBzbw0KPiA+ID4gPiA+IG1heWJlIEkn
-bSBtaXNzaW5nIHNvbWV0aGluZy4NCj4gPiA+ID4NCj4gPiA+ID4gSSB0aGluayBhbGwgb2YgdGhl
-IG5lY2Vzc2FyeSBwaWVjZXMgYXJlIHRoZXJlLg0KPiA+ID4gPg0KPiA+ID4gPiA+ID4gU28gd2hh
-dCBJIHdvdWxkIGxpa2UgdG8gaGF2ZSwgaW4gZ2VuZXJhbCB0ZXJtcywgaXMgc29tZXRoaW5nDQo+
-ID4gPiA+ID4gPiBsaWtlDQo+ID4gPiA+ID4gPiBhY3BpX3dhbGtfcmVzb3VyY2VzKCkgc3BsaXQg
-aW50byB0aHJlZSBwYXJ0czoNCj4gPiA+ID4gPiA+DQo+ID4gPiA+ID4gPiAgKDEpIE9uZSB0aGF0
-IHByb2Nlc3NlcyB0aGUgX0NSUyBvdXRwdXQgYW5kIGNyZWF0ZXMgYSBsaXN0IG9mDQo+ID4gPiA+
-ID4gPiAgICAgIHN0cnVjdCBhY3BpX3Jlc291cmNlIG9iamVjdHMgZm9yIHVzIHRvIHBsYXkgd2l0
-aC4gIEkNCj4gc3VwcG9zZQ0KPiA+ID4gPiA+ID4gICAgICBpdCdzIE9LIGlmIHRoYXQncyBqdXN0
-IGEgYnVmZmVyIGZpbGxlZCB3aXRoIHJlc291cmNlDQo+IG9iamVjdHMsDQo+ID4gPiA+ID4gPiAg
-ICAgIGJ1dCBhIGxpbmtlZCBsaXN0IG1pZ2h0IGJlIG1vcmUgY29udmVuaWVudC4NCj4gPiA+ID4g
-PiA+DQo+ID4gPiA+ID4NCj4gPiA+ID4gPiBUaGlzIHNvdW5kcyBsaWtlIEFjcGlHZXRDdXJyZW50
-UmVzb3VyY2VzLiBJdCBleGVjdXRlcyBfQ1JTIGFuZA0KPiA+ID4gPiA+IGZvcm1hdHMgdGhlIGRh
-dGEgaW50byBhY3BpX3Jlc291cmNlIG9iamVjdHMuDQo+ID4gPiA+DQo+ID4gPiA+IFllcywgaXQg
-ZG9lcy4gIEhvd2V2ZXIsIGl0IGlzIG5vdCBjb21wbGV0ZWx5IGNsZWFyIHRvIG1lIGlmL2hvdw0K
-PiA+ID4gPiB0aGUgY2FsbGVyIGlzIHN1cHBvc2VkIHRvIHByZXBhcmUgdGhlIGJ1ZmZlciBvYmpl
-Y3QgcG9pbnRlZCB0byBieQ0KPiB0aGUgc2Vjb25kIGFyZy4NCj4gPiA+ID4NCj4gPiA+ID4gSWYg
-dGhlIGJ1ZmZlciBpcyBpbml0aWFsaXplZCBieSBBY3BpR2V0Q3VycmVudFJlc291cmNlcywgdGhl
-bg0KPiA+ID4gPiB0aGF0J3Mgd2hhdCBJIG5lZWQgZm9yICgxKS4NCj4gPiA+DQo+ID4gPg0KPiA+
-ID4gSXQgbG9va3MgdG8gbWUgdGhhdCBhdCBsZWFzdCBBY3BpR2V0Q3VycmVudFJlc291cmNlcyBk
-b2VzIG5vdA0KPiA+ID4gYWN0dWFsbHkgZXZlciBhbGxvY2F0ZSBhIGJ1ZmZlciBmb3IgdGhlIHJl
-c291cmNlIHRlbXBsYXRlLCBpdA0KPiA+ID4gZXhwZWN0cyB0aGUgY2FsbGVyIHRvIGV2ZW50dWFs
-bHkgcHJvdmlkZSBvbmUgb2YgYXQgbGVhc3QgdGhlIHNpemUgb2YNCj4gdGhlIHJldHVybmVkIHJl
-c291cmNlIHRlbXBsYXRlLg0KPiA+ID4NCj4gPiA+IFRoaXMgaXMgcmVhbGx5IHF1aXRlIGEgYml0
-IG91dC1vZi1kYXRlIGFzIGZhciBhcyB0aGUgbWVtb3J5IGFsbG9jYXRpb24NCj4gbW9kZWwuDQo+
-ID4gPiBJdCBzaG91bGQgYWxzbyBzdXBwb3J0IHRoZSBvcHRpb24gdG8ganVzdCBhbGxvY2F0ZSB0
-aGUgYnVmZmVyIG9mIHRoZQ0KPiA+ID4gYXBwcm9wcmlhdGUgc2l6ZSBiZWZvcmUgcmV0dXJuaW5n
-IGl0IHRvIHRoZSBjYWxsZXIuDQo+ID4NCj4gPiBZZXMsIHRoYXQgd291bGQgYmUgcmVhbGx5IHVz
-ZWZ1bC4NCj4gPg0KPiA+IElkZWFsbHksIEknZCBsaWtlIHRvIGJlIGFibGUgdG8gcGFzcyBhIHBv
-aW50ZXIgdG8gYW4gdW5pbml0aWFsaXplZA0KPiA+IGJ1ZmZlciBzdHJ1Y3R1cmUgdG8gaXQgKG9y
-IHRvIGEgd3JhcHBlciBhcm91bmQgaXQpIGFuZCBnZXQgYSBidWZmZXINCj4gPiBmdWxsIG9mIHN0
-cnVjdCBhY3BpX3Jlc291cmNlIG9iamVjdHMgKGlmIF9DUlMgcmV0dXJucyBhbnkpIGJhY2sgZnJv
-bQ0KPiA+IGl0LiA6LSkNCj4gDQo+IE9mIGNvdXJzZSwgSSBjYW4gYWRkIHN1Y2ggYSB3cmFwcGVy
-IGluIHRoZSBMaW51eC1zcGVjaWZpYyBjb2RlIGp1c3QgZmluZS4NCj4gDQo+IA0KPiA+ID4gPiA+
-ID4gICgyKSBPbmUgdGhhdCBhbGxvd3MgdXMgdG8gYWNjZXNzIChyZWFkL3dyaXRlKSByZXNvdXJj
-ZXMgaW4gdGhlDQo+ID4gPiA+ID4gPiAgICAgIGxpc3QgcmV0dXJuZWQgYnkgKDEpLiAgV2UgZG9u
-J3QgbmVlZCB0byBvcGVuIGNvZGUgd2Fsa2luZw0KPiA+ID4gPiA+ID4gICAgICB0aGUgbGlzdCBh
-bmQgSSBwcm9iYWJseSB3b3VsZG4ndCBldmVudCB3YW50IHRvIGRvIHRoYXQuDQo+IFdoYXQNCj4g
-PiA+ID4gPiA+ICAgICAgd2UgbmVlZCBpcyB0byBiZSBhYmxlIHRvIHdhbGsgdGhlIHNhbWUgbGlz
-dCBmb3IgYSBudW1iZXIgb2YNCj4gPiA+ID4gPiA+ICAgICAgdGltZXMgYW5kIHBvc3NpYmx5IHRv
-IG1vZGlmeSB2YWx1ZXMgaW4gdGhlIHJlc291cmNlIG9iamVjdHMNCj4gPiA+ID4gPiA+ICAgICAg
-aWYgdGhlcmUgYXJlIGNvbmZsaWN0cy4NCj4gPiA+ID4gPg0KPiA+ID4gPiA+IFRoaXMgc291bmRz
-IGxpa2UgQWNwaVdhbGtSZXNvdXJjZXMuIEkgc3VwcG9zZSBhIHBvc3NpYmxlIGlzc3VlDQo+ID4g
-PiA+ID4gaXMgdGhhdCBjdXJyZW50bHksIEFjcGlXYWxrUmVzb3VyY2VzIGFjdHVhbGx5IGludm9r
-ZXMgdGhlIF9DUlMsDQo+ID4gPiA+ID4gX1BSUywgb3IgX0FFSSBtZXRob2Qgb24gYmVoYWxmIG9m
-IHRoZSBjYWxsZXIuDQo+ID4gPiA+DQo+ID4gPiA+IFllcywgdGhhdCBleGFjdGx5IGlzIHRoZSBw
-cm9ibGVtLg0KPiA+ID4gPg0KPiA+ID4gPiA+IEl0IG1pZ2h0IG1ha2UgbW9yZSBzZW5zZSB0byBh
-bGxvdyB0aGUgY2FsbGVyIHRvIHBhc3MgaW4gdGhlDQo+ID4gPiA+ID4gcmVzb3VyY2UgYnVmZmVy
-IHJldHVybmVkIGZyb20gYSBjYWxsIHRvIF9DUlMsIGV0Yy4NCj4gPiA+ID4NCj4gPiA+ID4gWWVz
-ISA6LSkNCj4gPiA+DQo+ID4gPg0KPiA+ID4gSSdsbCB0YWtlIGEgY2xvc2VyIGxvb2sgYXQgdGhp
-cyB0b21vcnJvdy4NCj4gPg0KPiA+IENvb2wsIHRoYW5rcyENCj4gPg0KPiA+DQo+ID4gPiA+ID4g
-PiAgKDMpIE9uZSBhbGxvd2luZyB1cyB0byBmcmVlIHRoZSBsaXN0IHJldHVybmVkIGJ5ICgxKSBp
-ZiBub3QNCj4gbmVlZGVkDQo+ID4gPiA+ID4gPiAgICAgIGFueSBtb3JlLg0KPiA+ID4gPiA+ID4N
-Cj4gPiA+ID4gPg0KPiA+ID4gPiA+IEFjcGlHZXRDdXJyZW50UmVzb3VyY2VzOiBDdXJyZW50bHks
-IGV2ZXJ5dGhpbmcgaXMgcmV0dXJuZWQgaW4gYQ0KPiA+ID4gPiA+IHNpbmdsZSBidWZmZXIgdG8g
-bWluaW1pemUgdGhlIG51bWJlciBvZiBhbGxvY2F0aW9ucy4gQSBidWZmZXINCj4gPiA+ID4gPiB5
-b3UgY2FuIGZyZWUgd2hlbiB5b3UgYXJlIGRvbmUgd2l0aCBpdC4NCj4gPiA+ID4NCj4gPiA+ID4g
-SSBzdXBwb3NlIEkgc2hvdWxkIHVzZSBBQ1BJX0ZSRUUoYnVmZmVyLnBvaW50ZXIpIGZvciB0aGF0
-LCBidXQNCj4gPiA+ID4gaXNuJ3QgaXQgZm9yIHRoZSBBQ1BJQ0EncyBpbnRlcm5hbCB1c2Ugb25s
-eT8NCj4gPiA+ID4NCj4gPiA+ID4gQmVzaWRlcywgSSB3b3VsZCBwcmVmZXIgdG8gYmUgYWJsZSB0
-byBwYXNzIGp1c3QgImJ1ZmZlciIgZm9yDQo+ID4gPiA+IGZyZWVpbmcsIHdpdGhvdXQgaGF2aW5n
-IHRvIHRvdWNoIGl0cyBpbnRlcm5hbHMuICBObyBiaWcgZGVhbCwgYnV0DQo+ID4gPiA+IGl0IHdv
-dWxkIGJlIG5pY2VyLiA6LSkNCj4gPiA+DQo+ID4gPg0KPiA+ID4gVGhlIEFDUElfQlVGRkVSIHR5
-cGUgaXMgaW4gZmFjdCBhIHB1YmxpYyB0eXBlIHRoYXQgaXMgbWVhbnQgdG8NCj4gPiA+IHJldHVy
-biBib3RoIHRoZSBidWZmZXIgYW5kIHRoZSAoYWN0dWFsKSBsZW5ndGguIFlvdSB3aWxsIGZpbmQg
-bWFueQ0KPiA+ID4gaW5zdGFuY2VzIG9mDQo+ID4gPiBBQ1BJX0ZSRUUoYnVmZmVyLnBvaW50ZXIp
-IHdpdGhpbiBleGlzdGluZyBsaW51eCBjb2RlLCBzaW5jZSBpdCBhbHNvDQo+ID4gPiB1c2VkIGZv
-ciBvYmplY3RzIHJldHVybmVkIGJ5IGNvbnRyb2wgbWV0aG9kIGV4ZWN1dGlvbi9vYmplY3QNCj4g
-ZXZhbHVhdGlvbi4NCj4gPg0KPiA+IFdlbGwsIEkgc3VwcG9zZSBJIG9ubHkgd2FudGVkIHRvIHNh
-eSB0aGF0IGFjcGlfZnJlZV9idWZmZXIoYnVmZmVyKQ0KPiA+IHdvdWxkIGxvb2sgYSBiaXQgbW9y
-ZSBzdHJhaWdodGZvcndhcmQgdGhhbiBBQ1BJX0ZSRUUoYnVmZmVyLnBvaW50ZXIpLg0KPiA+IDot
-KQ0KPiANCj4gQW5kIEkgY2FuIGRlZmluZSBhY3BpX2ZyZWVfYnVmZmVyKCkgaW4gdGhlIExpbnV4
-LXNwZWNpZmljIGNvZGUgdG9vLg0KPiANCj4gVGhhbmtzLA0KPiBSYWZhZWwNCj4gDQo+IA0KPiAt
-LQ0KPiBJIHNwZWFrIG9ubHkgZm9yIG15c2VsZi4NCj4gUmFmYWVsIEouIFd5c29ja2ksIEludGVs
-IE9wZW4gU291cmNlIFRlY2hub2xvZ3kgQ2VudGVyLg0K
+As thermal drivers can be built as modules and also
+the thermal framework itself, building cpu cooling
+only as built-in can cause linking errors. For instance:
+* Generic Thermal sysfs driver
+*
+Generic Thermal sysfs driver (THERMAL) [M/n/y/?] m
+  generic cpu cooling support (CPU_THERMAL) [N/y/?] (NEW) y
+
+with the following drive:
+CONFIG_OMAP_BANDGAP=m
+
+generates:
+ERROR: "cpufreq_cooling_unregister" [drivers/staging/omap-thermal/omap-thermal.ko] undefined!
+ERROR: "cpufreq_cooling_register" [drivers/staging/omap-thermal/omap-thermal.ko] undefined!
+
+This patch changes cpu cooling driver to allow it
+to be built as module.
+
+Reported-by: Enric Balletbo i Serra <eballetbo@gmail.com>
+Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+---
+ drivers/thermal/Kconfig     |    2 +-
+ include/linux/cpu_cooling.h |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
+index e1cb6bd..3b03c8b 100644
+--- a/drivers/thermal/Kconfig
++++ b/drivers/thermal/Kconfig
+@@ -20,7 +20,7 @@ config THERMAL_HWMON
+ 	default y
+ 
+ config CPU_THERMAL
+-	bool "generic cpu cooling support"
++	tristate "generic cpu cooling support"
+ 	depends on THERMAL && CPU_FREQ
+ 	select CPU_FREQ_TABLE
+ 	help
+diff --git a/include/linux/cpu_cooling.h b/include/linux/cpu_cooling.h
+index b30cc79c..40b4ef5 100644
+--- a/include/linux/cpu_cooling.h
++++ b/include/linux/cpu_cooling.h
+@@ -29,7 +29,7 @@
+ #define CPUFREQ_COOLING_START		0
+ #define CPUFREQ_COOLING_STOP		1
+ 
+-#ifdef CONFIG_CPU_THERMAL
++#if defined(CONFIG_CPU_THERMAL) || defined(CONFIG_CPU_THERMAL_MODULE)
+ /**
+  * cpufreq_cooling_register - function to create cpufreq cooling device.
+  * @clip_cpus: cpumask of cpus where the frequency constraints will happen
+-- 
+1.7.7.1.488.ge8e1c
+
