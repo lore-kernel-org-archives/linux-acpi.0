@@ -1,93 +1,58 @@
-From: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
-Subject: [RFC PATCH v2 3/3] acpi_memhotplug: Add prepare_remove operation
-Date: Thu, 15 Nov 2012 11:22:50 +0100
-Message-ID: <1352974970-6643-4-git-send-email-vasilis.liaskovitis@profitbricks.com>
-References: <1352974970-6643-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1352974970-6643-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
-Sender: owner-linux-mm@kvack.org
-To: linux-acpi@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, wency@cn.fujitsu.com
-Cc: rjw@sisk.pl, lenb@kernel.org, toshi.kani@hp.com, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
+From: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] cpuidle: Measure idle state durations with monotonic clock
+Date: Thu, 15 Nov 2012 11:52:19 +0100
+Message-ID: <50A4C963.9060808@linaro.org>
+References: <CAODwPW873M32d9zFT9fpJT9+PuMbz8htzUxdF1TNE+J1zR3jYA@mail.gmail.com>
+	<1352944590-8776-1-git-send-email-jwerner@chromium.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+In-Reply-To: <1352944590-8776-1-git-send-email-jwerner-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
+List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
+Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+To: Julius Werner <jwerner-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
+Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Deepthi Dharwar <deepthi-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Trinabh Gupta <g.trinabh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lists Linaro-dev <linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Srivatsa S. Bhat" <srivatsa.bhat-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Sameer Nanda <snanda-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Offlining and removal of memory is now done in the prepare_remove callback,
-not in the remove callback.
-
-The prepare_remove callback will be called when trying to remove a memory device
-with the following ways:
-
-1. send eject request by SCI
-2. echo 1 >/sys/bus/pci/devices/PNP0C80:XX/eject
-3. echo "PNP0C80:00" > /sys/bus/acpi/drivers/acpi_memhotplug/unbind
-
-Signed-off-by: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
----
- drivers/acpi/acpi_memhotplug.c |   22 ++++++++++++++++++++--
- 1 files changed, 20 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-index 92c973a..8615ff3 100644
---- a/drivers/acpi/acpi_memhotplug.c
-+++ b/drivers/acpi/acpi_memhotplug.c
-@@ -54,6 +54,7 @@ MODULE_LICENSE("GPL");
- 
- static int acpi_memory_device_add(struct acpi_device *device);
- static int acpi_memory_device_remove(struct acpi_device *device, int type);
-+static int acpi_memory_device_prepare_remove(struct acpi_device *device);
- 
- static const struct acpi_device_id memory_device_ids[] = {
- 	{ACPI_MEMORY_DEVICE_HID, 0},
-@@ -68,6 +69,7 @@ static struct acpi_driver acpi_memory_device_driver = {
- 	.ops = {
- 		.add = acpi_memory_device_add,
- 		.remove = acpi_memory_device_remove,
-+		.prepare_remove = acpi_memory_device_prepare_remove,
- 		},
- };
- 
-@@ -499,6 +501,20 @@ static int acpi_memory_device_add(struct acpi_device *device)
- static int acpi_memory_device_remove(struct acpi_device *device, int type)
- {
- 	struct acpi_memory_device *mem_device = NULL;
-+
-+	if (!device || !acpi_driver_data(device))
-+		return -EINVAL;
-+
-+	mem_device = acpi_driver_data(device);
-+
-+	kfree(mem_device);
-+
-+	return 0;
-+}
-+
-+static int acpi_memory_device_prepare_remove(struct acpi_device *device)
-+{
-+	struct acpi_memory_device *mem_device = NULL;
- 	int result;
- 
- 	if (!device || !acpi_driver_data(device))
-@@ -506,12 +522,14 @@ static int acpi_memory_device_remove(struct acpi_device *device, int type)
- 
- 	mem_device = acpi_driver_data(device);
- 
-+	/*
-+	 * offline and remove memory only when the memory device is
-+	 * ejected.
-+	 */
- 	result = acpi_memory_remove_memory(mem_device);
- 	if (result)
- 		return result;
- 
--	kfree(mem_device);
--
- 	return 0;
- }
- 
--- 
-1.7.9
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+T24gMTEvMTUvMjAxMiAwMjo1NiBBTSwgSnVsaXVzIFdlcm5lciB3cm90ZToKPiBNYW55IGNwdWlk
+bGUgZHJpdmVycyBtZWFzdXJlIHRoZWlyIHRpbWUgc3BlbnQgaW4gYW4gaWRsZSBzdGF0ZSBieQo+
+IHJlYWRpbmcgdGhlIHdhbGxjbG9jayB0aW1lIGJlZm9yZSBhbmQgYWZ0ZXIgaWRsaW5nIGFuZCBj
+YWxjdWxhdGluZyB0aGUKPiBkaWZmZXJlbmNlLiBUaGlzIGxlYWRzIHRvIGVycm9uZW91cyByZXN1
+bHRzIHdoZW4gdGhlIHdhbGxjbG9jayB0aW1lIGdldHMKPiB1cGRhdGVkIGJ5IGFub3RoZXIgcHJv
+Y2Vzc29yIGluIHRoZSBtZWFudGltZSwgYWRkaW5nIHRoYXQgY2xvY2sKPiBhZGp1c3RtZW50IHRv
+IHRoZSBpZGxlIHN0YXRlJ3MgdGltZSBjb3VudGVyLgo+IAo+IElmIHRoZSBjbG9jayBhZGp1c3Rt
+ZW50IHdhcyBuZWdhdGl2ZSwgdGhlIHJlc3VsdCBpcyBldmVuIHdvcnNlIGR1ZSB0byBhbgo+IGVy
+cm9uZW91cyBjYXN0IGZyb20gaW50IHRvIHVuc2lnbmVkIGxvbmcgbG9uZyBvZiB0aGUgbGFzdF9y
+ZXNpZGVuY3kKPiB2YXJpYWJsZS4gVGhlIG5lZ2F0aXZlIDMyIGJpdCBpbnRlZ2VyIHdpbGwgemVy
+by1leHRlbmQgYW5kIHJlc3VsdCBpbiBhCj4gZm9yd2FyZCB0aW1lIGp1bXAgb2Ygcm91Z2hseSBm
+b3VyIGJpbGxpb24gbWlsbGlzZWNvbmRzIG9yIDEuMyBob3VycyBvbgo+IHRoZSBpZGxlIHN0YXRl
+IHJlc2lkZW5jeSBjb3VudGVyLgo+IAo+IFRoaXMgcGF0Y2ggY2hhbmdlcyBhbGwgYWZmZWN0ZWQg
+Y3B1aWRsZSBkcml2ZXJzIHRvIGVpdGhlciB1c2UgdGhlCj4gbW9ub3RvbmljIGNsb2NrIGZvciB0
+aGVpciBtZWFzdXJlbWVudHMgb3IgbWFrZSB1c2Ugb2YgdGhlIGdlbmVyaWMgdGltZQo+IG1lYXN1
+cmVtZW50IHdyYXBwZXIgaW4gY3B1aWRsZS5jLCB3aGljaCB3YXMgYWxyZWFkeSB3b3JraW5nIGNv
+cnJlY3RseS4KPiBTb21lIHN1cGVyZmx1b3VzIENMSXMvU1RJcyBpbiB0aGUgQUNQSSBjb2RlIGFy
+ZSByZW1vdmVkIChpbnRlcnJ1cHRzCj4gc2hvdWxkIGFsd2F5cyBhbHJlYWR5IGJlIGRpc2FibGVk
+IGJlZm9yZSBlbnRlcmluZyB0aGUgaWRsZSBmdW5jdGlvbiwgYW5kCj4gbm90IGdldCByZWVuYWJs
+ZWQgdW50aWwgdGhlIGdlbmVyaWMgd3JhcHBlciBoYXMgcGVyZm9ybWVkIGl0cyBzZWNvbmQKPiBt
+ZWFzdXJlbWVudCkuIEl0IGFsc28gcmVtb3ZlcyB0aGUgZXJyb25lb3VzIGNhc3QsIG1ha2luZyBz
+dXJlIHRoYXQKPiBuZWdhdGl2ZSByZXNpZGVuY3kgdmFsdWVzIGFyZSBhcHBsaWVkIGNvcnJlY3Rs
+eSBldmVuIHRob3VnaCB0aGV5IHNob3VsZAo+IG5vdCBhcHBlYXIgYW55bW9yZS4KPiAKPiBTaWdu
+ZWQtb2ZmLWJ5OiBKdWxpdXMgV2VybmVyIDxqd2VybmVyQGNocm9taXVtLm9yZz4KClRlc3RlZCBv
+biBhIENvcmUgMiBEdW8gKHByb2Nlc3Nvcl9pZGxlIGRyaXZlcikuCgpUZXN0ZWQtYnk6IERhbmll
+bCBMZXpjYW5vIDxkYW5pZWwubGV6Y2Fub0BsaW5hcm8ub3JnPgpBY2tlZC1ieTogRGFuaWVsIExl
+emNhbm8gPGRhbmllbC5sZXpjYW5vQGxpbmFyby5vcmc+CgoKCi0tIAogPGh0dHA6Ly93d3cubGlu
+YXJvLm9yZy8+IExpbmFyby5vcmcg4pSCIE9wZW4gc291cmNlIHNvZnR3YXJlIGZvciBBUk0gU29D
+cwoKRm9sbG93IExpbmFybzogIDxodHRwOi8vd3d3LmZhY2Vib29rLmNvbS9wYWdlcy9MaW5hcm8+
+IEZhY2Vib29rIHwKPGh0dHA6Ly90d2l0dGVyLmNvbS8jIS9saW5hcm9vcmc+IFR3aXR0ZXIgfAo8
+aHR0cDovL3d3dy5saW5hcm8ub3JnL2xpbmFyby1ibG9nLz4gQmxvZwoKCl9fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbmFyby1kZXYgbWFpbGluZyBsaXN0
+CmxpbmFyby1kZXZAbGlzdHMubGluYXJvLm9yZwpodHRwOi8vbGlzdHMubGluYXJvLm9yZy9tYWls
+bWFuL2xpc3RpbmZvL2xpbmFyby1kZXYK
