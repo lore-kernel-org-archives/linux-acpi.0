@@ -1,47 +1,54 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [Patch v5 0/7] acpi,memory-hotplug: implement framework for hot removing memory
-Date: Fri, 16 Nov 2012 00:22:58 +0100
-Message-ID: <1637174.XPDXHMEQY8@vostro.rjw.lan>
-References: <1352962777-24407-1-git-send-email-wency@cn.fujitsu.com> <alpine.DEB.2.00.1211151450040.27188@chino.kir.corp.google.com>
+Date: Fri, 16 Nov 2012 00:33:17 +0100
+Message-ID: <5603900.8uSmar4juL@vostro.rjw.lan>
+References: <1352962777-24407-1-git-send-email-wency@cn.fujitsu.com> <alpine.DEB.2.00.1211151450040.27188@chino.kir.corp.google.com> <1637174.XPDXHMEQY8@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:47190 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750801Ab2KOXSg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 Nov 2012 18:18:36 -0500
-In-Reply-To: <alpine.DEB.2.00.1211151450040.27188@chino.kir.corp.google.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1637174.XPDXHMEQY8@vostro.rjw.lan>
+Sender: owner-linux-mm@kvack.org
+To: David Rientjes <rientjes@google.com>, Wen Congyang <wency@cn.fujitsu.com>
+Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Minchan Kim <minchan.kim@gmail.com>, Mel Gorman <mgorman@suse.de>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Toshi Kani <toshi.kani@hp.com>
 List-Id: linux-acpi@vger.kernel.org
-To: David Rientjes <rientjes@google.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Minchan Kim <minchan.kim@gmail.com>, Mel Gorman <mgorman@suse.de>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Toshi Kani <toshi.kani@hp.com>
 
-On Thursday, November 15, 2012 02:51:52 PM David Rientjes wrote:
-> On Thu, 15 Nov 2012, Wen Congyang wrote:
-> 
-> > Note:
-> > 1. The following commit in pm tree can be dropped now(The other two patches
-> >    are already dropped):
-> >    54c4c7db6cb94d7d1217df6d7fca6847c61744ab
-> > 2. This patchset requires the following patch(It is in pm tree now)
-> >    https://lkml.org/lkml/2012/11/1/225
+On Friday, November 16, 2012 12:22:58 AM Rafael J. Wysocki wrote:
+> On Thursday, November 15, 2012 02:51:52 PM David Rientjes wrote:
+> > On Thu, 15 Nov 2012, Wen Congyang wrote:
 > > 
+> > > Note:
+> > > 1. The following commit in pm tree can be dropped now(The other two patches
+> > >    are already dropped):
+> > >    54c4c7db6cb94d7d1217df6d7fca6847c61744ab
+> > > 2. This patchset requires the following patch(It is in pm tree now)
+> > >    https://lkml.org/lkml/2012/11/1/225
+> > > 
+> > 
+> > So this is based on the acpi-general branch of 
+> > git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git correct?
 > 
-> So this is based on the acpi-general branch of 
-> git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git correct?
+> It should be based on that, yes.
+> 
+> > And the branch's HEAD commit 54c4c7db6cb9 ("ACPI / memory-hotplug: call 
+> > acpi_bus_trim() to remove memory device") can be reverted before this 
+> > series is applied?
+> 
+> Why?
 
-It should be based on that, yes.
+Ah, because of patch [2/7].  I wonder what tree this one is supposed to
+apply to.  Surely not to linux-pm.git/acpi-general.
 
-> And the branch's HEAD commit 54c4c7db6cb9 ("ACPI / memory-hotplug: call 
-> acpi_bus_trim() to remove memory device") can be reverted before this 
-> series is applied?
-
-Why?
-
+Thanks,
 Rafael
 
 
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
