@@ -1,28 +1,23 @@
 From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [Patch v5 4/7] acpi_memhotplug.c: free memory device if acpi_memory_enable_device()
- failed
-Date: Thu, 15 Nov 2012 18:17:43 +0900
-Message-ID: <50A4B337.6070109@jp.fujitsu.com>
-References: <1352962777-24407-1-git-send-email-wency@cn.fujitsu.com> <1352962777-24407-5-git-send-email-wency@cn.fujitsu.com>
+Subject: Re: [Patch v5 5/7] acpi_memhotplug.c: don't allow to eject the memory
+ device if it is being used
+Date: Thu, 15 Nov 2012 18:20:27 +0900
+Message-ID: <50A4B3DB.8020702@jp.fujitsu.com>
+References: <1352962777-24407-1-git-send-email-wency@cn.fujitsu.com> <1352962777-24407-6-git-send-email-wency@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-2022-JP"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:51332 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1945910Ab2KOJSN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Nov 2012 04:18:13 -0500
-In-Reply-To: <1352962777-24407-5-git-send-email-wency@cn.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1352962777-24407-6-git-send-email-wency@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
 To: Wen Congyang <wency@cn.fujitsu.com>
-Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Andrew Morton <akpm@linux-foundation.org>, Lai Jiangshan <laijs@cn.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Minchan Kim <minchan.kim@gmail.com>, Mel Gorman <mgorman@suse.de>, David Rientjes <rientjes@google.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Toshi Kani <toshi.kani@hp.com>, Jiang Liu <liuj97@gmail.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Christoph Lameter <cl@linux.com>
+Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, "Rafael J.
+ Wysocki" <rjw@sisk.pl>, Andrew Morton <akpm@linux-foundation.org>, Lai Jiangshan <laijs@cn.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Minchan Kim <minchan.kim@gmail.com>, Mel Gorman <mgorman@suse.de>, David Rientjes <rientjes@google.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Toshi Kani <toshi.kani@hp.com>, Jiang Liu <liuj97@gmail.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Christoph Lameter <cl@linux.com>
+List-Id: linux-acpi@vger.kernel.org
 
 2012/11/15 15:59, Wen Congyang wrote:
-> If acpi_memory_enable_device() fails, acpi_memory_enable_device() will
-> return a non-zero value, which means we fail to bind the memory device to
-> this driver.  So we should free memory device before
-> acpi_memory_device_add() returns.
+> We eject the memory device even if it is in use.  It is very dangerous,
+> and it will cause the kernel to be panicked.
 > 
 > CC: David Rientjes <rientjes@google.com>
 > CC: Jiang Liu <liuj97@gmail.com>
@@ -44,26 +39,90 @@ Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Thanks,
 Yasuaki Ishimatsu
 
->   drivers/acpi/acpi_memhotplug.c | 4 +++-
->   1 file changed, 3 insertions(+), 1 deletion(-)
+>   drivers/acpi/acpi_memhotplug.c | 42 +++++++++++++++++++++++++++++++++---------
+>   1 file changed, 33 insertions(+), 9 deletions(-)
 > 
 > diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-> index c5e7b6d..e52ad5d 100644
+> index e52ad5d..f7e3007 100644
 > --- a/drivers/acpi/acpi_memhotplug.c
 > +++ b/drivers/acpi/acpi_memhotplug.c
-> @@ -421,9 +421,11 @@ static int acpi_memory_device_add(struct acpi_device *device)
->   	if (!acpi_memory_check_device(mem_device)) {
->   		/* call add_memory func */
->   		result = acpi_memory_enable_device(mem_device);
+> @@ -78,6 +78,7 @@ struct acpi_memory_info {
+>   	unsigned short caching;	/* memory cache attribute */
+>   	unsigned short write_protect;	/* memory read/write attribute */
+>   	unsigned int enabled:1;
+> +	unsigned int failed:1;
+>   };
+>   
+>   struct acpi_memory_device {
+> @@ -257,9 +258,23 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
+>   			node = memory_add_physaddr_to_nid(info->start_addr);
+>   
+>   		result = add_memory(node, info->start_addr, info->length);
 > -		if (result)
-> +		if (result) {
->   			printk(KERN_ERR PREFIX
->   				"Error in acpi_memory_enable_device\n");
-> +			acpi_memory_device_free(mem_device);
+> +
+> +		/*
+> +		 * If the memory block has been used by the kernel, add_memory()
+> +		 * returns -EEXIST. If add_memory() returns the other error, it
+> +		 * means that this memory block is not used by the kernel.
+> +		 */
+> +		if (result && result != -EEXIST) {
+> +			info->failed = 1;
+>   			continue;
+> -		info->enabled = 1;
 > +		}
+> +
+> +		if (!result)
+> +			info->enabled = 1;
+> +		/*
+> +		 * Add num_enable even if add_memory() returns -EEXIST, so the
+> +		 * device is bound to this driver.
+> +		 */
+>   		num_enabled++;
 >   	}
->   	return result;
+>   	if (!num_enabled) {
+> @@ -280,21 +295,30 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
+>   
+>   static int acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
+>   {
+> -	int result;
+> +	int result = 0;
+>   	struct acpi_memory_info *info, *n;
+>   
+>   	list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
+> -		if (info->enabled) {
+> -			result = remove_memory(info->start_addr, info->length);
+> -			if (result)
+> -				return result;
+> -		}
+> +		if (info->failed)
+> +			/* The kernel does not use this memory block */
+> +			continue;
+> +
+> +		if (!info->enabled)
+> +			/*
+> +			 * The kernel uses this memory block, but it may be not
+> +			 * managed by us.
+> +			 */
+> +			return -EBUSY;
+> +
+> +		result = remove_memory(info->start_addr, info->length);
+> +		if (result)
+> +			return result;
+>   
+>   		list_del(&info->list);
+>   		kfree(info);
+>   	}
+>   
+> -	return 0;
+> +	return result;
 >   }
+>   
+>   static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
 > 
 
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
