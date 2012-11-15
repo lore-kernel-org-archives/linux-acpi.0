@@ -1,57 +1,55 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Patch v4 1/7] acpi,memory-hotplug: introduce a mutex lock to protect the list in acpi_memory_device
-Date: Thu, 15 Nov 2012 00:34:01 +0100
-Message-ID: <2008916.VzTIR8JBPq@vostro.rjw.lan>
-References: <1352372693-32411-1-git-send-email-wency@cn.fujitsu.com> <1352754038.12509.16.camel@misato.fc.hp.com> <50A1AAC5.8000506@cn.fujitsu.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [PATCH] Thermal: Add Linux/Thermal subsystem info in MAINTAINER file
+Date: Thu, 15 Nov 2012 08:58:27 +0800
+Message-ID: <1352941107.2143.12.camel@rzhang1-mobl4>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <50A1AAC5.8000506@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Toshi Kani <toshi.kani@hp.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Minchan Kim <minchan.kim@gmail.com>, Mel Gorman <mgorman@suse.de>, David Rientjes <rientjes@google.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Jiang Liu <liuj97@gmail.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Christoph Lameter <cl@linux.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:10409 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932984Ab2KOA6c (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 14 Nov 2012 19:58:32 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <lenb@kernel.org>, durga <durgadoss.r@intel.com>, "Zhang, Rui" <rui.zhang@intel.com>, Amit Kachhap <amit.kachhap@linaro.org>, jhbird.choi@samsung.com, kuninori.morimoto.gx@renesas.com, eduardo.valentin@ti.com, "hongbo.zhang" <hongbo.zhang@linaro.org>, Viresh Kumar <viresh.kumar@linaro.org>, Sachin Kamat <sachin.kamat@linaro.org>
 
-On Tuesday, November 13, 2012 10:04:53 AM Wen Congyang wrote:
-> At 11/13/2012 05:00 AM, Toshi Kani Wrote:
-> > On Thu, 2012-11-08 at 19:04 +0800, Wen Congyang wrote:
-> >> The memory device can be removed by 2 ways:
-> >> 1. send eject request by SCI
-> >> 2. echo 1 >/sys/bus/pci/devices/PNP0C80:XX/eject
-> >>
-> >> This 2 events may happen at the same time, so we may touch
-> >> acpi_memory_device.res_list at the same time. This patch
-> >> introduce a lock to protect this list.
-> > 
-> > Hi Wen,
-> > 
-> > This race condition is not unique in memory hot-remove as the sysfs
-> > eject interface is created for all objects with _EJ0.  For CPU
-> > hot-remove, I addressed this race condition by making the notify handler
-> > to run the hot-remove operation on kacpi_hotplug_wq by calling
-> > acpi_os_hotplug_execute().  This serializes the hot-remove operations
-> > among the two events since the sysfs eject also runs on
-> > kacpi_hotplug_wq.  This way is much simpler and is easy to maintain,
-> > although it does not allow both operations to run simultaneously (which
-> > I do not think we need).  Can it be used for memory hot-remove as well?
-> 
-> Good idea. I will update it.
+Add Linux/Thermal subsystem info in MAINTAINER file.
 
-Still waiting. :-)
+All the changes made to the generic thermal layer, or
+platform thermal drivers that make use of the thermal layer,
+should be sent to linux-pm@vger.kernel.org for discussion.
 
-But if you want that in v3.8, please repost ASAP.
+And as the maintainer, I will only apply the patches that have been
+sent to linux-pm@vger.kernel.org.
 
-Thanks,
-Rafael
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ MAINTAINERS |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 59203e7..2d8512b 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -7210,6 +7210,14 @@ L:	linux-xtensa@linux-xtensa.org
+ S:	Maintained
+ F:	arch/xtensa/
+ 
++THERMAL
++M:      Zhang Rui <rui.zhang@intel.com>
++L:      linux-pm@vger.kernel.org
++T:      git git://git.kernel.org/pub/scm/linux/kernel/git/rzhang/linux.git
++S:      Supported
++F:      drivers/thermal/
++F:      include/linux/thermal.h
++
+ THINKPAD ACPI EXTRAS DRIVER
+ M:	Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>
+ L:	ibm-acpi-devel@lists.sourceforge.net
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+1.7.9.5
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+
+
