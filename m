@@ -1,58 +1,86 @@
-From: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] cpuidle: Measure idle state durations with monotonic clock
-Date: Thu, 15 Nov 2012 11:52:19 +0100
-Message-ID: <50A4C963.9060808@linaro.org>
-References: <CAODwPW873M32d9zFT9fpJT9+PuMbz8htzUxdF1TNE+J1zR3jYA@mail.gmail.com>
-	<1352944590-8776-1-git-send-email-jwerner@chromium.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-In-Reply-To: <1352944590-8776-1-git-send-email-jwerner-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
-List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
-List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
-Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-To: Julius Werner <jwerner-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
-Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Deepthi Dharwar <deepthi-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Trinabh Gupta <g.trinabh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lists Linaro-dev <linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Srivatsa S. Bhat" <srivatsa.bhat-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Sameer Nanda <snanda-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH v2 0/3] ACPI 5 support for GPIO, SPI and I2C
+Date: Thu, 15 Nov 2012 13:03:14 +0200
+Message-ID: <1352977397-2280-1-git-send-email-mika.westerberg@linux.intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, bhelgaas@google.com, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-T24gMTEvMTUvMjAxMiAwMjo1NiBBTSwgSnVsaXVzIFdlcm5lciB3cm90ZToKPiBNYW55IGNwdWlk
-bGUgZHJpdmVycyBtZWFzdXJlIHRoZWlyIHRpbWUgc3BlbnQgaW4gYW4gaWRsZSBzdGF0ZSBieQo+
-IHJlYWRpbmcgdGhlIHdhbGxjbG9jayB0aW1lIGJlZm9yZSBhbmQgYWZ0ZXIgaWRsaW5nIGFuZCBj
-YWxjdWxhdGluZyB0aGUKPiBkaWZmZXJlbmNlLiBUaGlzIGxlYWRzIHRvIGVycm9uZW91cyByZXN1
-bHRzIHdoZW4gdGhlIHdhbGxjbG9jayB0aW1lIGdldHMKPiB1cGRhdGVkIGJ5IGFub3RoZXIgcHJv
-Y2Vzc29yIGluIHRoZSBtZWFudGltZSwgYWRkaW5nIHRoYXQgY2xvY2sKPiBhZGp1c3RtZW50IHRv
-IHRoZSBpZGxlIHN0YXRlJ3MgdGltZSBjb3VudGVyLgo+IAo+IElmIHRoZSBjbG9jayBhZGp1c3Rt
-ZW50IHdhcyBuZWdhdGl2ZSwgdGhlIHJlc3VsdCBpcyBldmVuIHdvcnNlIGR1ZSB0byBhbgo+IGVy
-cm9uZW91cyBjYXN0IGZyb20gaW50IHRvIHVuc2lnbmVkIGxvbmcgbG9uZyBvZiB0aGUgbGFzdF9y
-ZXNpZGVuY3kKPiB2YXJpYWJsZS4gVGhlIG5lZ2F0aXZlIDMyIGJpdCBpbnRlZ2VyIHdpbGwgemVy
-by1leHRlbmQgYW5kIHJlc3VsdCBpbiBhCj4gZm9yd2FyZCB0aW1lIGp1bXAgb2Ygcm91Z2hseSBm
-b3VyIGJpbGxpb24gbWlsbGlzZWNvbmRzIG9yIDEuMyBob3VycyBvbgo+IHRoZSBpZGxlIHN0YXRl
-IHJlc2lkZW5jeSBjb3VudGVyLgo+IAo+IFRoaXMgcGF0Y2ggY2hhbmdlcyBhbGwgYWZmZWN0ZWQg
-Y3B1aWRsZSBkcml2ZXJzIHRvIGVpdGhlciB1c2UgdGhlCj4gbW9ub3RvbmljIGNsb2NrIGZvciB0
-aGVpciBtZWFzdXJlbWVudHMgb3IgbWFrZSB1c2Ugb2YgdGhlIGdlbmVyaWMgdGltZQo+IG1lYXN1
-cmVtZW50IHdyYXBwZXIgaW4gY3B1aWRsZS5jLCB3aGljaCB3YXMgYWxyZWFkeSB3b3JraW5nIGNv
-cnJlY3RseS4KPiBTb21lIHN1cGVyZmx1b3VzIENMSXMvU1RJcyBpbiB0aGUgQUNQSSBjb2RlIGFy
-ZSByZW1vdmVkIChpbnRlcnJ1cHRzCj4gc2hvdWxkIGFsd2F5cyBhbHJlYWR5IGJlIGRpc2FibGVk
-IGJlZm9yZSBlbnRlcmluZyB0aGUgaWRsZSBmdW5jdGlvbiwgYW5kCj4gbm90IGdldCByZWVuYWJs
-ZWQgdW50aWwgdGhlIGdlbmVyaWMgd3JhcHBlciBoYXMgcGVyZm9ybWVkIGl0cyBzZWNvbmQKPiBt
-ZWFzdXJlbWVudCkuIEl0IGFsc28gcmVtb3ZlcyB0aGUgZXJyb25lb3VzIGNhc3QsIG1ha2luZyBz
-dXJlIHRoYXQKPiBuZWdhdGl2ZSByZXNpZGVuY3kgdmFsdWVzIGFyZSBhcHBsaWVkIGNvcnJlY3Rs
-eSBldmVuIHRob3VnaCB0aGV5IHNob3VsZAo+IG5vdCBhcHBlYXIgYW55bW9yZS4KPiAKPiBTaWdu
-ZWQtb2ZmLWJ5OiBKdWxpdXMgV2VybmVyIDxqd2VybmVyQGNocm9taXVtLm9yZz4KClRlc3RlZCBv
-biBhIENvcmUgMiBEdW8gKHByb2Nlc3Nvcl9pZGxlIGRyaXZlcikuCgpUZXN0ZWQtYnk6IERhbmll
-bCBMZXpjYW5vIDxkYW5pZWwubGV6Y2Fub0BsaW5hcm8ub3JnPgpBY2tlZC1ieTogRGFuaWVsIExl
-emNhbm8gPGRhbmllbC5sZXpjYW5vQGxpbmFyby5vcmc+CgoKCi0tIAogPGh0dHA6Ly93d3cubGlu
-YXJvLm9yZy8+IExpbmFyby5vcmcg4pSCIE9wZW4gc291cmNlIHNvZnR3YXJlIGZvciBBUk0gU29D
-cwoKRm9sbG93IExpbmFybzogIDxodHRwOi8vd3d3LmZhY2Vib29rLmNvbS9wYWdlcy9MaW5hcm8+
-IEZhY2Vib29rIHwKPGh0dHA6Ly90d2l0dGVyLmNvbS8jIS9saW5hcm9vcmc+IFR3aXR0ZXIgfAo8
-aHR0cDovL3d3dy5saW5hcm8ub3JnL2xpbmFyby1ibG9nLz4gQmxvZwoKCl9fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbmFyby1kZXYgbWFpbGluZyBsaXN0
-CmxpbmFyby1kZXZAbGlzdHMubGluYXJvLm9yZwpodHRwOi8vbGlzdHMubGluYXJvLm9yZy9tYWls
-bWFuL2xpc3RpbmZvL2xpbmFyby1kZXYK
+Hi,
+
+This is a second revision of the ACPI 5 patches originally introduced here:
+
+	https://lkml.org/lkml/2012/11/3/17
+
+The series enables ACPI 5 enumeration of SPI and I2C devices and adds GPIO
+translation support for the GPIO resources.
+
+One can then enable ACPI support in a SPI or I2C driver adding something
+like:
+
+	#ifdef CONFIG_ACPI
+	static struct acpi_device_id mydrv_acpi_match[] = {
+		{ "SPI0001", 0 },
+		...
+		{ }
+	};
+	MODULE_DEVICE_TABLE(acpi, mydrv_acpi_match);
+	#endif
+
+	static struct spi_driver mydrv = {
+		...
+		.driver = {
+			.acpi_match_table = ACPI_PTR(mydrv_acpi_match),
+		},
+	};
+
+to the existing driver. If more complex configuration is needed, like
+getting GPIOs, calling some method, etc. there is dev->acpi_handle for
+that.
+
+Changes to the original version:
+	[gpio]
+	- CONFIG_GPIO_ACPI instead of CONFIG_ACPI_GPIO
+	- removed redundant test in acpi_gpiochip_find()
+
+	[spi and i2c]
+	- switched to use ACPI centralized _CRS evaluation framework
+	  introduced by Rafael 
+	- dropped request_module() call
+	- dropped the acpi_enumerate_spi/i2c_device()
+	- added required includes and dropped <linux/acpi.h> from
+	  acpi_i2c.h
+
+The series applies on top of Rafael's
+git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
+
+There is a dependency to linux-pm.git/linux-next so I think it would be
+better if these will be merged via that tree.
+
+Mathias Nyman (1):
+  gpio / ACPI: add ACPI support
+
+Mika Westerberg (2):
+  spi / ACPI: add ACPI enumeration support
+  i2c / ACPI: add ACPI enumeration support
+
+ drivers/acpi/Kconfig        |    6 ++
+ drivers/acpi/Makefile       |    1 +
+ drivers/acpi/acpi_i2c.c     |  212 +++++++++++++++++++++++++++++++++++++++++++
+ drivers/gpio/Kconfig        |    4 +
+ drivers/gpio/Makefile       |    1 +
+ drivers/gpio/gpiolib-acpi.c |   56 ++++++++++++
+ drivers/i2c/i2c-core.c      |   10 ++
+ drivers/spi/spi.c           |  201 +++++++++++++++++++++++++++++++++++++++-
+ include/linux/acpi_gpio.h   |   19 ++++
+ include/linux/acpi_i2c.h    |   27 ++++++
+ 10 files changed, 536 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/acpi/acpi_i2c.c
+ create mode 100644 drivers/gpio/gpiolib-acpi.c
+ create mode 100644 include/linux/acpi_gpio.h
+ create mode 100644 include/linux/acpi_i2c.h
+
+-- 
+1.7.10.4
