@@ -1,30 +1,68 @@
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Subject: Re: [PATCH V5 1/2] Thermal: Add ST-Ericsson DB8500 thermal driver.
-Date: Thu, 15 Nov 2012 15:47:57 +0530
-Message-ID: <CAKohponUGQNMvA0T1qhZbTGnK12upy4gcTPq4ZfZ-enLDbf4+w@mail.gmail.com>
-References: <1352460548-3494-1-git-send-email-hongbo.zhang@linaro.com>
-	<1352460548-3494-2-git-send-email-hongbo.zhang@linaro.com>
-	<1352967218.2080.15.camel@rzhang1-mobl4>
-	<CAJLyvQyu_oU7xx92JTOj6bvF+7-hOJfM=kTHj6JMogaYjC+Jww@mail.gmail.com>
-	<1352970823.2080.22.camel@rzhang1-mobl4>
-	<CAJLyvQxJeNgGc8sQiV_qmKCfvfWQKyR8S5ZMNCtETvJLMQH-oQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <CAJLyvQxJeNgGc8sQiV_qmKCfvfWQKyR8S5ZMNCtETvJLMQH-oQ@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Hongbo Zhang <hongbo.zhang@linaro.org>
-Cc: Zhang Rui <rui.zhang@intel.com>, linaro-kernel@lists.linaro.org, linaro-dev@lists.linaro.org, patches@linaro.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, amit.kachhap@linaro.org, STEricsson_nomadik_linux@list.st.com, kernel@igloocommunity.org, "hongbo.zhang" <hongbo.zhang@linaro.com>
+From: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
+Subject: [RFC PATCH v2 0/3] acpi: Introduce prepare_remove device operation
+Date: Thu, 15 Nov 2012 11:22:47 +0100
+Message-ID: <1352974970-6643-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
+Return-path: <owner-linux-mm@kvack.org>
+Sender: owner-linux-mm@kvack.org
+To: linux-acpi@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, wency@cn.fujitsu.com
+Cc: rjw@sisk.pl, lenb@kernel.org, toshi.kani@hp.com, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 15 November 2012 14:53, Hongbo Zhang <hongbo.zhang@linaro.org> wrote:
-> this is a driver for ST-Ericsson u8500 board(Snowball), with a ARM core inside.
-> so you should compile like this:
-> make  ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- u8500_defconfig
-> make  ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- uImage
+As discussed in https://patchwork.kernel.org/patch/1581581/
+the driver core remove function needs to always succeed. This means we need
+to know that the device can be successfully removed before acpi_bus_trim / 
+acpi_bus_hot_remove_device are called. This can cause panics when OSPM-initiated
+eject or driver unbind of memory devices fails e.g with:
 
-Then we must have a DEPENDS_ON in Kconfig entry for these.
+echo 1 >/sys/bus/pci/devices/PNP0C80:XX/eject
+echo "PNP0C80:XX" > /sys/bus/acpi/drivers/acpi_memhotplug/unbind
 
+since the ACPI core goes ahead and ejects the device regardless of whether the
+the memory is still in use or not.
+
+For this reason a new acpi_device operation called prepare_remove is introduced.
+This operation should be registered for acpi devices whose removal (from kernel
+perspective) can fail.  Memory devices fall in this category.
+A similar operation is introduced in bus_type to safely handle driver unbind
+from the device driver core.
+
+acpi_bus_hot_remove_device and driver_unbind are changed to handle removal in 2
+steps:
+- preparation for removal i.e. perform part of removal that can fail. Should
+  succeed for device and all its children.
+- if above step was successfull, proceed to actual device removal
+
+With this patchset, only acpi memory devices use the new prepare_remove
+device operation. The actual memory removal (VM-related offline and other memory
+cleanups) is moved to prepare_remove. The old remove operation just cleans up
+the acpi structures. Directly ejecting PNP0C80 memory devices works safely. I
+haven't tested yet with an ACPI container which contains memory devices.
+
+v1->v2:
+- new patch to introduce bus_type prepare_remove callback. Needed to prepare
+removal on driver unbinding from device-driver core.
+- v1 patches 1 and 2 simplified and merged in one. acpi_bus_trim does not require
+argument changes.
+
+Comments welcome.
+
+Vasilis Liaskovitis (3):
+  driver core: Introduce prepare_remove in bus_type
+  acpi: Introduce prepare_remove operation in acpi_device_ops
+  acpi_memhotplug: Add prepare_remove operation
+
+ drivers/acpi/acpi_memhotplug.c |   22 ++++++++++++++++++++--
+ drivers/acpi/scan.c            |   21 ++++++++++++++++++++-
+ drivers/base/bus.c             |   36 ++++++++++++++++++++++++++++++++++++
+ include/acpi/acpi_bus.h        |    2 ++
+ include/linux/device.h         |    2 ++
+ 5 files changed, 80 insertions(+), 3 deletions(-)
+
+-- 
+1.7.9
 
 --
-viresh
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
