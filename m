@@ -1,14 +1,14 @@
 From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [Patch v5 2/7] acpi,memory-hotplug: deal with eject request in
- hotplug queue
-Date: Thu, 15 Nov 2012 18:13:11 +0900
-Message-ID: <50A4B227.4050307@jp.fujitsu.com>
-References: <1352962777-24407-1-git-send-email-wency@cn.fujitsu.com> <1352962777-24407-3-git-send-email-wency@cn.fujitsu.com>
+Subject: Re: [Patch v5 3/7] acpi_memhotplug.c: fix memory leak when memory
+ device is unbound from the module acpi_memhotplug
+Date: Thu, 15 Nov 2012 18:15:36 +0900
+Message-ID: <50A4B2B8.9030406@jp.fujitsu.com>
+References: <1352962777-24407-1-git-send-email-wency@cn.fujitsu.com> <1352962777-24407-4-git-send-email-wency@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-2022-JP"
 Content-Transfer-Encoding: 7bit
 Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1352962777-24407-3-git-send-email-wency@cn.fujitsu.com>
+In-Reply-To: <1352962777-24407-4-git-send-email-wency@cn.fujitsu.com>
 Sender: owner-linux-mm@kvack.org
 To: Wen Congyang <wency@cn.fujitsu.com>
 Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, "Rafael J.
@@ -16,17 +16,8 @@ Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
 2012/11/15 15:59, Wen Congyang wrote:
-> The memory device can be removed by 2 ways:
-> 1. send eject request by SCI
-> 2. echo 1 >/sys/bus/pci/devices/PNP0C80:XX/eject
-> 
-> We handle the 1st case in the module acpi_memhotplug, and handle
-> the 2nd case in ACPI eject notification. This 2 events may happen
-> at the same time, so we may touch acpi_memory_device.res_list at
-> the same time. This patch reimplements memory-hotremove support
-> through an ACPI eject notification. Now the memory device is
-> offlined and hotremoved only in the function acpi_memory_device_remove()
-> which is protected by device_lock().
+> We allocate memory to store acpi_memory_info, so we should free it before
+> freeing mem_device.
 > 
 > CC: David Rientjes <rientjes@google.com>
 > CC: Jiang Liu <liuj97@gmail.com>
@@ -48,130 +39,72 @@ Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Thanks,
 Yasuaki Ishimatsu
 
->   drivers/acpi/acpi_memhotplug.c | 87 +++++-------------------------------------
->   1 file changed, 9 insertions(+), 78 deletions(-)
+>   drivers/acpi/acpi_memhotplug.c | 27 +++++++++++++++++++++------
+>   1 file changed, 21 insertions(+), 6 deletions(-)
 > 
 > diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-> index 2918be1..6e12042 100644
+> index 6e12042..c5e7b6d 100644
 > --- a/drivers/acpi/acpi_memhotplug.c
 > +++ b/drivers/acpi/acpi_memhotplug.c
-> @@ -272,40 +272,6 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
->   	return 0;
+> @@ -125,12 +125,20 @@ acpi_memory_get_resource(struct acpi_resource *resource, void *context)
+>   	return AE_OK;
 >   }
 >   
-> -static int acpi_memory_powerdown_device(struct acpi_memory_device *mem_device)
-> -{
-> -	acpi_status status;
-> -	struct acpi_object_list arg_list;
-> -	union acpi_object arg;
-> -	unsigned long long current_status;
+> +static void
+> +acpi_memory_free_device_resources(struct acpi_memory_device *mem_device)
+> +{
+> +	struct acpi_memory_info *info, *n;
+> +
+> +	list_for_each_entry_safe(info, n, &mem_device->res_list, list)
+> +		kfree(info);
+> +	INIT_LIST_HEAD(&mem_device->res_list);
+> +}
+> +
+>   static int
+>   acpi_memory_get_device_resources(struct acpi_memory_device *mem_device)
+>   {
+>   	acpi_status status;
+> -	struct acpi_memory_info *info, *n;
 > -
-> -
-> -	/* Issue the _EJ0 command */
-> -	arg_list.count = 1;
-> -	arg_list.pointer = &arg;
-> -	arg.type = ACPI_TYPE_INTEGER;
-> -	arg.integer.value = 1;
-> -	status = acpi_evaluate_object(mem_device->device->handle,
-> -				      "_EJ0", &arg_list, NULL);
-> -	/* Return on _EJ0 failure */
-> -	if (ACPI_FAILURE(status)) {
-> -		ACPI_EXCEPTION((AE_INFO, status, "_EJ0 failed"));
-> -		return -ENODEV;
-> -	}
-> -
-> -	/* Evalute _STA to check if the device is disabled */
-> -	status = acpi_evaluate_integer(mem_device->device->handle, "_STA",
-> -				       NULL, &current_status);
-> -	if (ACPI_FAILURE(status))
-> -		return -ENODEV;
-> -
-> -	/* Check for device status.  Device should be disabled */
-> -	if (current_status & ACPI_STA_DEVICE_ENABLED)
-> -		return -EINVAL;
-> -
-> -	return 0;
-> -}
-> -
->   static int acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
+>   
+>   	if (!list_empty(&mem_device->res_list))
+>   		return 0;
+> @@ -138,9 +146,7 @@ acpi_memory_get_device_resources(struct acpi_memory_device *mem_device)
+>   	status = acpi_walk_resources(mem_device->device->handle, METHOD_NAME__CRS,
+>   				     acpi_memory_get_resource, mem_device);
+>   	if (ACPI_FAILURE(status)) {
+> -		list_for_each_entry_safe(info, n, &mem_device->res_list, list)
+> -			kfree(info);
+> -		INIT_LIST_HEAD(&mem_device->res_list);
+> +		acpi_memory_free_device_resources(mem_device);
+>   		return -EINVAL;
+>   	}
+>   
+> @@ -363,6 +369,15 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
+>   	return;
+>   }
+>   
+> +static void acpi_memory_device_free(struct acpi_memory_device *mem_device)
+> +{
+> +	if (!mem_device)
+> +		return;
+> +
+> +	acpi_memory_free_device_resources(mem_device);
+> +	kfree(mem_device);
+> +}
+> +
+>   static int acpi_memory_device_add(struct acpi_device *device)
 >   {
 >   	int result;
-> @@ -325,34 +291,11 @@ static int acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
+> @@ -427,7 +442,7 @@ static int acpi_memory_device_remove(struct acpi_device *device, int type)
+>   	if (result)
+>   		return result;
+>   
+> -	kfree(mem_device);
+> +	acpi_memory_device_free(mem_device);
+>   
 >   	return 0;
 >   }
->   
-> -static int acpi_memory_disable_device(struct acpi_memory_device *mem_device)
-> -{
-> -	int result;
-> -
-> -	/*
-> -	 * Ask the VM to offline this memory range.
-> -	 * Note: Assume that this function returns zero on success
-> -	 */
-> -	result = acpi_memory_remove_memory(mem_device);
-> -	if (result)
-> -		return result;
-> -
-> -	/* Power-off and eject the device */
-> -	result = acpi_memory_powerdown_device(mem_device);
-> -	if (result) {
-> -		/* Set the status of the device to invalid */
-> -		mem_device->state = MEMORY_INVALID_STATE;
-> -		return result;
-> -	}
-> -
-> -	mem_device->state = MEMORY_POWER_OFF_STATE;
-> -	return result;
-> -}
-> -
->   static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
->   {
->   	struct acpi_memory_device *mem_device;
->   	struct acpi_device *device;
-> +	struct acpi_eject_event *ej_event = NULL;
->   	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE; /* default */
->   
->   	switch (event) {
-> @@ -394,31 +337,19 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
->   			break;
->   		}
->   
-> -		/*
-> -		 * Currently disabling memory device from kernel mode
-> -		 * TBD: Can also be disabled from user mode scripts
-> -		 * TBD: Can also be disabled by Callback registration
-> -		 *      with generic sysfs driver
-> -		 */
-> -		if (acpi_memory_disable_device(mem_device)) {
-> -			printk(KERN_ERR PREFIX "Disable memory device\n");
-> -			/*
-> -			 * If _EJ0 was called but failed, _OST is not
-> -			 * necessary.
-> -			 */
-> -			if (mem_device->state == MEMORY_INVALID_STATE)
-> -				return;
-> -
-> +		ej_event = kmalloc(sizeof(*ej_event), GFP_KERNEL);
-> +		if (!ej_event) {
-> +			pr_err(PREFIX "No memory, dropping EJECT\n");
->   			break;
->   		}
->   
-> -		/*
-> -		 * TBD: Invoke acpi_bus_remove to cleanup data structures
-> -		 */
-> +		ej_event->handle = handle;
-> +		ej_event->event = ACPI_NOTIFY_EJECT_REQUEST;
-> +		acpi_os_hotplug_execute(acpi_bus_hot_remove_device,
-> +					(void *)ej_event);
->   
-> -		/* _EJ0 succeeded; _OST is not necessary */
-> +		/* eject is performed asynchronously */
->   		return;
-> -
->   	default:
->   		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
->   				  "Unsupported event [0x%x]\n", event));
 > 
 
 
