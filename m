@@ -1,57 +1,40 @@
-From: Hongbo Zhang <hongbo.zhang@linaro.org>
-Subject: Re: [PATCH V5 1/2] Thermal: Add ST-Ericsson DB8500 thermal driver.
-Date: Thu, 15 Nov 2012 16:32:22 +0800
-Message-ID: <CAJLyvQyu_oU7xx92JTOj6bvF+7-hOJfM=kTHj6JMogaYjC+Jww@mail.gmail.com>
-References: <1352460548-3494-1-git-send-email-hongbo.zhang@linaro.com>
-	<1352460548-3494-2-git-send-email-hongbo.zhang@linaro.com>
-	<1352967218.2080.15.camel@rzhang1-mobl4>
+From: Preeti Murthy <preeti.lkml@gmail.com>
+Subject: Re: [PATCH] cpuidle: Measure idle state durations with monotonic clock
+Date: Thu, 15 Nov 2012 14:34:41 +0530
+Message-ID: <CAM4v1pPhaP=pVnFMXUU_nmrOxhY5yPNtbBdQsT5MH37MndK6LQ@mail.gmail.com>
+References: <CAODwPW873M32d9zFT9fpJT9+PuMbz8htzUxdF1TNE+J1zR3jYA@mail.gmail.com>
+	<1352944590-8776-1-git-send-email-jwerner@chromium.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1352967218.2080.15.camel@rzhang1-mobl4>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, amit.kachhap@linaro.org, patches@linaro.org, linaro-dev@lists.linaro.org, linaro-kernel@lists.linaro.org, STEricsson_nomadik_linux@list.st.com, kernel@igloocommunity.org, "hongbo.zhang" <hongbo.zhang@linaro.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:35448 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753602Ab2KOJEm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Nov 2012 04:04:42 -0500
+In-Reply-To: <1352944590-8776-1-git-send-email-jwerner@chromium.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Julius Werner <jwerner@chromium.org>
+Cc: linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Kevin Hilman <khilman@ti.com>, Andrew Morton <akpm@linux-foundation.org>, "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, Deepthi Dharwar <deepthi@linux.vnet.ibm.com>, Trinabh Gupta <g.trinabh@gmail.com>, Sameer Nanda <snanda@chromium.org>, Lists Linaro-dev <linaro-dev@lists.linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-On 15 November 2012 16:13, Zhang Rui <rui.zhang@intel.com> wrote:
-> On Fri, 2012-11-09 at 19:29 +0800, hongbo.zhang wrote:
->> From: "hongbo.zhang" <hongbo.zhang@linaro.com>
->>
->> This driver is based on the thermal management framework in thermal_sys.c. A
->> thermal zone device is created with the trip points to which cooling devices
->> can be bound, the current cooling device is cpufreq, e.g. CPU frequency is
->> clipped down to cool the CPU, and other cooling devices can be added and bound
->> to the trip points dynamically.  The platform specific PRCMU interrupts are
->> used to active thermal update when trip points are reached.
->>
->> Signed-off-by: hongbo.zhang <hongbo.zhang@linaro.com>
->> Reviewed-by: Viresh Kumar <viresh.kumar@linaro.org>
->> Reviewed-by: Francesco Lavra <francescolavra.fl@gmail.com>
->
->> diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
->> index e1cb6bd..54c8fd0 100644
->> --- a/drivers/thermal/Kconfig
->> +++ b/drivers/thermal/Kconfig
->> @@ -31,6 +31,26 @@ config CPU_THERMAL
->>         and not the ACPI interface.
->>         If you want this support, you should say Y here.
->>
->> +config DB8500_THERMAL
->> +     bool "DB8500 thermal management"
->
-> why is this bool?
+Hi all,
 
-platform specific PRCMU interfaces are used, and those interfaces are
-not exported, so my driver cannot be compiled as a module.
+The code looks correct and inviting to me as it has led to good cleanups.
+I dont think passing 0 as the argument to the function
+sched_clock_idle_wakeup_event()
+should lead to problems,as it does not do anything useful with the
+passed arguments.
 
->
-> thanks,
-> rui
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+My only curiosity is what was the purpose of passing idle residency time to
+sched_clock_idle_wakeup_event() when this data could always be retrieved from
+dev->last_residency for each cpu,which gets almost immediately updated.
+
+But this does not seem to come in way of this patch for now.Anyway I
+have added Peter to
+the list so that he can opine about this issue if possible and needed.
+
+Reviewed-by: Preeti U Murthy <preeti@linux.vnet.ibm.com>
+
+
+Regards
+Preeti U Murthy
