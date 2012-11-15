@@ -1,47 +1,80 @@
-From: Hongbo Zhang <hongbo.zhang@linaro.org>
-Subject: Re: [PATCH V5 2/2] Thermal: Add ST-Ericsson DB8500 thermal properties
- and platform data.
-Date: Thu, 15 Nov 2012 14:37:36 +0800
-Message-ID: <CAJLyvQwhtL3cpb_7Xa25hmQ-Yg4inEF1umaC8rr04A-3x79LAw@mail.gmail.com>
-References: <1352460548-3494-1-git-send-email-hongbo.zhang@linaro.com>
-	<1352460548-3494-3-git-send-email-hongbo.zhang@linaro.com>
-	<1352700425.1834.11.camel@rzhang1-mobl4>
-	<CACRpkdb-C-z1bWA2+xbuGt8TKSWRaD2xYUKS4M=KNMO0mOKF2g@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <CACRpkdb-C-z1bWA2+xbuGt8TKSWRaD2xYUKS4M=KNMO0mOKF2g@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>, Zhang Rui <rui.zhang@intel.com>, linux-pm@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, amit.kachhap@linaro.org, patches@linaro.org, linaro-dev@lists.linaro.org, linaro-kernel@lists.linaro.org, STEricsson_nomadik_linux@list.st.com, kernel@igloocommunity.org, "hongbo.zhang" <hongbo.zhang@linaro.com>
+From: Wen Congyang <wency@cn.fujitsu.com>
+Subject: [Patch v5 6/7] acpi_memhotplug.c: bind the memory device when the driver is being loaded
+Date: Thu, 15 Nov 2012 14:59:36 +0800
+Message-ID: <1352962777-24407-7-git-send-email-wency@cn.fujitsu.com>
+References: <1352962777-24407-1-git-send-email-wency@cn.fujitsu.com>
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1352962777-24407-1-git-send-email-wency@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Minchan Kim <minchan.kim@gmail.com>, Mel Gorman <mgorman@suse.de>, David Rientjes <rientjes@google.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Toshi Kani <toshi.kani@hp.com>, Wen Congyang <wency@cn.fujitsu.com>, Jiang Liu <liuj97@gmail.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Christoph Lameter <cl@linux.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 13 November 2012 04:46, Linus Walleij <linus.walleij@linaro.org> wrote:
-> On Mon, Nov 12, 2012 at 7:07 AM, Zhang Rui <rui.zhang@intel.com> wrote:
->> On Fri, 2012-11-09 at 19:29 +0800, hongbo.zhang wrote:
->>> From: "hongbo.zhang" <hongbo.zhang@linaro.com>
->>>
->>> This patch adds device tree properties for ST-Ericsson DB8500 thermal driver,
->>> also adds the platform data to support the old fashion.
->>>
->>> Signed-off-by: hongbo.zhang <hongbo.zhang@linaro.com>
->>> Reviewed-by: Viresh Kumar <viresh.kumar@linaro.org>
->>
->> hmmm,
->>
->> who should take this patch?
->> I'd like to see ACK from the maintainer of these code before applying
->> them to thermal tree.
->
-> I guess it needs to go through Thermal.
->
-> Acked-by: Linus Walleij <linus.walleij@linaro.org>
+We had introduced acpi_hotmem_initialized to avoid strange add_memory fail
+message.  But the memory device may not be used by the kernel, and the
+device should be bound when the driver is being loaded.  Remove
+acpi_hotmem_initialized to allow that the device can be bound when the
+driver is being loaded.
 
-Thank you Linus Walleij.
+CC: David Rientjes <rientjes@google.com>
+CC: Jiang Liu <liuj97@gmail.com>
+CC: Len Brown <len.brown@intel.com>
+CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+CC: Paul Mackerras <paulus@samba.org>
+CC: Christoph Lameter <cl@linux.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+CC: Andrew Morton <akpm@linux-foundation.org>
+CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+CC: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+CC: Rafael J. Wysocki <rjw@sisk.pl>
+CC: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+---
+ drivers/acpi/acpi_memhotplug.c | 12 ------------
+ 1 file changed, 12 deletions(-)
 
-Hi Rui, I got it.
+diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+index f7e3007..e0f7425 100644
+--- a/drivers/acpi/acpi_memhotplug.c
++++ b/drivers/acpi/acpi_memhotplug.c
+@@ -87,8 +87,6 @@ struct acpi_memory_device {
+ 	struct list_head res_list;
+ };
+ 
+-static int acpi_hotmem_initialized;
+-
+ static acpi_status
+ acpi_memory_get_resource(struct acpi_resource *resource, void *context)
+ {
+@@ -433,15 +431,6 @@ static int acpi_memory_device_add(struct acpi_device *device)
+ 
+ 	printk(KERN_DEBUG "%s \n", acpi_device_name(device));
+ 
+-	/*
+-	 * Early boot code has recognized memory area by EFI/E820.
+-	 * If DSDT shows these memory devices on boot, hotplug is not necessary
+-	 * for them. So, it just returns until completion of this driver's
+-	 * start up.
+-	 */
+-	if (!acpi_hotmem_initialized)
+-		return 0;
+-
+ 	if (!acpi_memory_check_device(mem_device)) {
+ 		/* call add_memory func */
+ 		result = acpi_memory_enable_device(mem_device);
+@@ -557,7 +546,6 @@ static int __init acpi_memory_device_init(void)
+ 		return -ENODEV;
+ 	}
+ 
+-	acpi_hotmem_initialized = 1;
+ 	return 0;
+ }
+ 
+-- 
+1.8.0
 
-> Let's hope it's not creating too much conflict...
->
-> Yours,
-> Linus Walleij
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
