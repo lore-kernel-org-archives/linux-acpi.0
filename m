@@ -1,35 +1,56 @@
-From: Hongbo Zhang <hongbo.zhang@linaro.org>
-Subject: Re: [PATCH V5 1/2] Thermal: Add ST-Ericsson DB8500 thermal driver.
-Date: Thu, 15 Nov 2012 19:02:27 +0800
-Message-ID: <CAJLyvQw6D+3nuaOv=g6zKvBDzceWQzhDOxWE7RNt5xt3MsZ=8Q@mail.gmail.com>
-References: <1352460548-3494-1-git-send-email-hongbo.zhang@linaro.com>
-	<1352460548-3494-2-git-send-email-hongbo.zhang@linaro.com>
-	<1352967218.2080.15.camel@rzhang1-mobl4>
-	<CAJLyvQyu_oU7xx92JTOj6bvF+7-hOJfM=kTHj6JMogaYjC+Jww@mail.gmail.com>
-	<1352970823.2080.22.camel@rzhang1-mobl4>
-	<CAJLyvQxJeNgGc8sQiV_qmKCfvfWQKyR8S5ZMNCtETvJLMQH-oQ@mail.gmail.com>
-	<CAKohponUGQNMvA0T1qhZbTGnK12upy4gcTPq4ZfZ-enLDbf4+w@mail.gmail.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [Patch v5 2/7] acpi,memory-hotplug: deal with eject request in
+ hotplug queue
+Date: Thu, 15 Nov 2012 15:09:26 -0700
+Message-ID: <1353017366.12509.19.camel@misato.fc.hp.com>
+References: <1352962777-24407-1-git-send-email-wency@cn.fujitsu.com>
+	 <1352962777-24407-3-git-send-email-wency@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAKohponUGQNMvA0T1qhZbTGnK12upy4gcTPq4ZfZ-enLDbf4+w@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Viresh Kumar <viresh.kumar@linaro.org>
-Cc: Zhang Rui <rui.zhang@intel.com>, linaro-kernel@lists.linaro.org, linaro-dev@lists.linaro.org, patches@linaro.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, amit.kachhap@linaro.org, STEricsson_nomadik_linux@list.st.com, kernel@igloocommunity.org, "hongbo.zhang" <hongbo.zhang@linaro.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t0016.houston.hp.com ([15.201.24.19]:24365 "EHLO
+	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750740Ab2KOWRm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Nov 2012 17:17:42 -0500
+In-Reply-To: <1352962777-24407-3-git-send-email-wency@cn.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Wen Congyang <wency@cn.fujitsu.com>
+Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Andrew Morton <akpm@linux-foundation.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Minchan Kim <minchan.kim@gmail.com>, Mel Gorman <mgorman@suse.de>, David Rientjes <rientjes@google.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Jiang Liu <liuj97@gmail.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Christoph Lameter <cl@linux.com>
 
-On 15 November 2012 18:17, Viresh Kumar <viresh.kumar@linaro.org> wrote:
-> On 15 November 2012 14:53, Hongbo Zhang <hongbo.zhang@linaro.org> wrote:
->> this is a driver for ST-Ericsson u8500 board(Snowball), with a ARM core inside.
->> so you should compile like this:
->> make  ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- u8500_defconfig
->> make  ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- uImage
->
-> Then we must have a DEPENDS_ON in Kconfig entry for these.
-Sorry for the negligence.
-A V6 iteration has been sent out with "depends on ARCH_U8500" added.
-Thank all of you.
->
->
-> --
-> viresh
+On Thu, 2012-11-15 at 14:59 +0800, Wen Congyang wrote:
+> The memory device can be removed by 2 ways:
+> 1. send eject request by SCI
+> 2. echo 1 >/sys/bus/pci/devices/PNP0C80:XX/eject
+> 
+> We handle the 1st case in the module acpi_memhotplug, and handle
+> the 2nd case in ACPI eject notification. This 2 events may happen
+> at the same time, so we may touch acpi_memory_device.res_list at
+> the same time. This patch reimplements memory-hotremove support
+> through an ACPI eject notification. Now the memory device is
+> offlined and hotremoved only in the function acpi_memory_device_remove()
+> which is protected by device_lock().
+> 
+> CC: David Rientjes <rientjes@google.com>
+> CC: Jiang Liu <liuj97@gmail.com>
+> CC: Len Brown <len.brown@intel.com>
+> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+> CC: Paul Mackerras <paulus@samba.org>
+> CC: Christoph Lameter <cl@linux.com>
+> Cc: Minchan Kim <minchan.kim@gmail.com>
+> CC: Andrew Morton <akpm@linux-foundation.org>
+> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+> CC: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+> CC: Rafael J. Wysocki <rjw@sisk.pl>
+> CC: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+> Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+
+Thanks for the update.  It looks good.
+
+Reviewed-by: Toshi Kani <toshi.kani@hp.com>
+
+-Toshi
+
+
+
