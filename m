@@ -1,115 +1,30 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [Patch v5 7/7] acpi_memhotplug.c: auto bind the memory device
- which is hotplugged before the driver is loaded
-Date: Thu, 15 Nov 2012 18:57:06 +0900
-Message-ID: <50A4BC72.4060305@jp.fujitsu.com>
-References: <1352962777-24407-1-git-send-email-wency@cn.fujitsu.com> <1352962777-24407-8-git-send-email-wency@cn.fujitsu.com>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: Re: [PATCH V5 1/2] Thermal: Add ST-Ericsson DB8500 thermal driver.
+Date: Thu, 15 Nov 2012 15:47:57 +0530
+Message-ID: <CAKohponUGQNMvA0T1qhZbTGnK12upy4gcTPq4ZfZ-enLDbf4+w@mail.gmail.com>
+References: <1352460548-3494-1-git-send-email-hongbo.zhang@linaro.com>
+	<1352460548-3494-2-git-send-email-hongbo.zhang@linaro.com>
+	<1352967218.2080.15.camel@rzhang1-mobl4>
+	<CAJLyvQyu_oU7xx92JTOj6bvF+7-hOJfM=kTHj6JMogaYjC+Jww@mail.gmail.com>
+	<1352970823.2080.22.camel@rzhang1-mobl4>
+	<CAJLyvQxJeNgGc8sQiV_qmKCfvfWQKyR8S5ZMNCtETvJLMQH-oQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1352962777-24407-8-git-send-email-wency@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Wen Congyang <wency@cn.fujitsu.com>
-Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, "Rafael J.
- Wysocki" <rjw@sisk.pl>, Andrew Morton <akpm@linux-foundation.org>, Lai Jiangshan <laijs@cn.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Minchan Kim <minchan.kim@gmail.com>, Mel Gorman <mgorman@suse.de>, David Rientjes <rientjes@google.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Toshi Kani <toshi.kani@hp.com>, Jiang Liu <liuj97@gmail.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Christoph Lameter <cl@linux.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <CAJLyvQxJeNgGc8sQiV_qmKCfvfWQKyR8S5ZMNCtETvJLMQH-oQ@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Hongbo Zhang <hongbo.zhang@linaro.org>
+Cc: Zhang Rui <rui.zhang@intel.com>, linaro-kernel@lists.linaro.org, linaro-dev@lists.linaro.org, patches@linaro.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, amit.kachhap@linaro.org, STEricsson_nomadik_linux@list.st.com, kernel@igloocommunity.org, "hongbo.zhang" <hongbo.zhang@linaro.com>
 List-Id: linux-acpi@vger.kernel.org
 
-2012/11/15 15:59, Wen Congyang wrote:
-> If the memory device is hotplugged before the driver is loaded, the user
-> cannot see this device under the directory /sys/bus/acpi/devices/, and the
-> user cannot bind it by hand after the driver is loaded.  This patch
-> introduces a new feature to bind such device when the driver is being
-> loaded.
-> 
-> CC: David Rientjes <rientjes@google.com>
-> CC: Jiang Liu <liuj97@gmail.com>
-> CC: Len Brown <len.brown@intel.com>
-> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-> CC: Paul Mackerras <paulus@samba.org>
-> CC: Christoph Lameter <cl@linux.com>
-> Cc: Minchan Kim <minchan.kim@gmail.com>
-> CC: Andrew Morton <akpm@linux-foundation.org>
-> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-> CC: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> CC: Rafael J. Wysocki <rjw@sisk.pl>
-> CC: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-> Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
-> ---
+On 15 November 2012 14:53, Hongbo Zhang <hongbo.zhang@linaro.org> wrote:
+> this is a driver for ST-Ericsson u8500 board(Snowball), with a ARM core inside.
+> so you should compile like this:
+> make  ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- u8500_defconfig
+> make  ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- uImage
 
-Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-
-Thanks,
-Yasuaki Ishimatsu
-
->   drivers/acpi/acpi_memhotplug.c | 37 ++++++++++++++++++++++++++++++++++++-
->   1 file changed, 36 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-> index e0f7425..9f1d107 100644
-> --- a/drivers/acpi/acpi_memhotplug.c
-> +++ b/drivers/acpi/acpi_memhotplug.c
-> @@ -52,6 +52,9 @@ MODULE_LICENSE("GPL");
->   #define MEMORY_POWER_ON_STATE	1
->   #define MEMORY_POWER_OFF_STATE	2
->   
-> +static bool auto_probe;
-> +module_param(auto_probe, bool, S_IRUGO | S_IWUSR);
-> +
->   static int acpi_memory_device_add(struct acpi_device *device);
->   static int acpi_memory_device_remove(struct acpi_device *device, int type);
->   
-> @@ -494,12 +497,44 @@ acpi_memory_register_notify_handler(acpi_handle handle,
->   				    u32 level, void *ctxt, void **retv)
->   {
->   	acpi_status status;
-> -
-> +	struct acpi_memory_device *mem_device = NULL;
-> +	unsigned long long current_status;
->   
->   	status = is_memory_device(handle);
->   	if (ACPI_FAILURE(status))
->   		return AE_OK;	/* continue */
->   
-> +	if (auto_probe) {
-> +		/* Get device present/absent information from the _STA */
-> +		status = acpi_evaluate_integer(handle, "_STA", NULL,
-> +					       &current_status);
-> +		if (ACPI_FAILURE(status))
-> +			goto install;
-> +
-> +		/*
-> +		 * Check for device status. Device should be
-> +		 * present/enabled/functioning.
-> +		 */
-> +		if (!(current_status &
-> +		      (ACPI_STA_DEVICE_PRESENT | ACPI_STA_DEVICE_ENABLED |
-> +		       ACPI_STA_DEVICE_FUNCTIONING)))
-> +			goto install;
-> +
-> +		if (acpi_memory_get_device(handle, &mem_device))
-> +			goto install;
-> +
-> +		/* We have bound this device while we register the driver */
-> +		if (mem_device->state == MEMORY_POWER_ON_STATE)
-> +			goto install;
-> +
-> +		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-> +				  "\nauto probe memory device\n"));
-> +
-> +		if (acpi_memory_enable_device(mem_device))
-> +			pr_err(PREFIX "Cannot enable memory device\n");
-> +	}
-> +
-> +install:
->   	status = acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
->   					     acpi_memory_device_notify, NULL);
->   	/* continue */
-> 
+Then we must have a DEPENDS_ON in Kconfig entry for these.
 
 
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+viresh
