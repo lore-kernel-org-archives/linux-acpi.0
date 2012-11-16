@@ -1,74 +1,189 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI / PM: Add check preventing transitioning to non-D0 state from D3.
-Date: Fri, 16 Nov 2012 02:49:54 +0100
-Message-ID: <2072306.j28QTtV7ui@vostro.rjw.lan>
-References: <e4ec829902580af84cddbba6e98ef54b33052b85.1352953283.git.lv.zheng@intel.com>
+From: Wen Congyang <wency@cn.fujitsu.com>
+Subject: Re: [Patch v5 2/7] acpi,memory-hotplug: deal with eject request in
+ hotplug queue
+Date: Fri, 16 Nov 2012 09:54:43 +0800
+Message-ID: <50A59CE3.9020907@cn.fujitsu.com>
+References: <1352962777-24407-1-git-send-email-wency@cn.fujitsu.com> <1352962777-24407-3-git-send-email-wency@cn.fujitsu.com> <alpine.DEB.2.00.1211151531310.27188@chino.kir.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:47545 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750784Ab2KPBpb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 Nov 2012 20:45:31 -0500
-In-Reply-To: <e4ec829902580af84cddbba6e98ef54b33052b85.1352953283.git.lv.zheng@intel.com>
+Received: from cn.fujitsu.com ([222.73.24.84]:29805 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1750784Ab2KPBse (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 Nov 2012 20:48:34 -0500
+In-Reply-To: <alpine.DEB.2.00.1211151531310.27188@chino.kir.corp.google.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: Len Brown <len.brown@intel.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: David Rientjes <rientjes@google.com>
+Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Andrew Morton <akpm@linux-foundation.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Minchan Kim <minchan.kim@gmail.com>, Mel Gorman <mgorman@suse.de>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Toshi Kani <toshi.kani@hp.com>, Jiang Liu <liuj97@gmail.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Christoph Lameter <cl@linux.com>
 
-On Thursday, November 15, 2012 12:25:01 PM Lv Zheng wrote:
-> No power transitioning from D3 state to a non-D0 state is allowed.
-> This patch also cleans up device power updating code in the
-> acpi_device_set_power() as it should already been updated in the
-> acpi_power_transition().
+At 11/16/2012 07:32 AM, David Rientjes Wrote:
+> On Thu, 15 Nov 2012, Wen Congyang wrote:
 > 
-> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> ---
->  drivers/acpi/bus.c |    7 ++++++-
->  1 file changed, 6 insertions(+), 1 deletion(-)
+>> The memory device can be removed by 2 ways:
+>> 1. send eject request by SCI
+>> 2. echo 1 >/sys/bus/pci/devices/PNP0C80:XX/eject
+>>
+>> We handle the 1st case in the module acpi_memhotplug, and handle
+>> the 2nd case in ACPI eject notification. This 2 events may happen
+>> at the same time, so we may touch acpi_memory_device.res_list at
+>> the same time. This patch reimplements memory-hotremove support
+>> through an ACPI eject notification. Now the memory device is
+>> offlined and hotremoved only in the function acpi_memory_device_remove()
+>> which is protected by device_lock().
+>>
 > 
-> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-> index 07a20ee..12c1b51 100644
-> --- a/drivers/acpi/bus.c
-> +++ b/drivers/acpi/bus.c
-> @@ -293,6 +293,12 @@ int acpi_device_set_power(struct acpi_device *device, int state)
->  			      " state than parent\n");
->  		return -ENODEV;
->  	}
-> +	if (device->parent->power.state >= ACPI_STATE_D3_HOT &&
+> You mean it's protected by device_lock() before calling the remove() 
+> function for eject?
 
-Why parent?  The device's own power state shouldn't be D3, right?
+Yes. We call device_release_driver() to unbind the device from the driver
+(the memory will be offlined/removed when it is unbound from the driver).
 
-> +	    state != ACPI_STATE_D0) {
-> +		printk(KERN_WARNING PREFIX
-> +			      "Cannot transition to non-D0 state from D3\n");
-> +		return -ENODEV;
-> +	}
+we call device_lock() in device_release_driver(), so we only unbind it
+from the driver once.
 
-I fixed up the check and moved it into the (state < device->power.state)
-block, because otherwise it would prevent transitions from D3_HOT to
-D3_COLD from being carried out, but they are allowed.
+Thanks
+Wen Congyang
 
->  	/* For D3cold we should execute _PS3, not _PS4. */
->  	if (state == ACPI_STATE_D3_COLD)
-> @@ -341,7 +347,6 @@ int acpi_device_set_power(struct acpi_device *device, int state)
->  			      "Device [%s] failed to transition to %s\n",
->  			      device->pnp.bus_id, state_string(state));
->  	else {
-> -		device->power.state = state;
->  		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
->  				  "Device [%s] transitioned to %s\n",
->  				  device->pnp.bus_id, state_string(state)));
+> 
+>> CC: David Rientjes <rientjes@google.com>
+>> CC: Jiang Liu <liuj97@gmail.com>
+>> CC: Len Brown <len.brown@intel.com>
+>> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+>> CC: Paul Mackerras <paulus@samba.org>
+>> CC: Christoph Lameter <cl@linux.com>
+>> Cc: Minchan Kim <minchan.kim@gmail.com>
+>> CC: Andrew Morton <akpm@linux-foundation.org>
+>> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+>> CC: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+>> CC: Rafael J. Wysocki <rjw@sisk.pl>
+>> CC: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+>> Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+>> ---
+>>  drivers/acpi/acpi_memhotplug.c | 87 +++++-------------------------------------
+>>  1 file changed, 9 insertions(+), 78 deletions(-)
+>>
+>> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+>> index 2918be1..6e12042 100644
+>> --- a/drivers/acpi/acpi_memhotplug.c
+>> +++ b/drivers/acpi/acpi_memhotplug.c
+>> @@ -272,40 +272,6 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
+>>  	return 0;
+>>  }
+>>  
+>> -static int acpi_memory_powerdown_device(struct acpi_memory_device *mem_device)
+>> -{
+>> -	acpi_status status;
+>> -	struct acpi_object_list arg_list;
+>> -	union acpi_object arg;
+>> -	unsigned long long current_status;
+>> -
+>> -
+>> -	/* Issue the _EJ0 command */
+>> -	arg_list.count = 1;
+>> -	arg_list.pointer = &arg;
+>> -	arg.type = ACPI_TYPE_INTEGER;
+>> -	arg.integer.value = 1;
+>> -	status = acpi_evaluate_object(mem_device->device->handle,
+>> -				      "_EJ0", &arg_list, NULL);
+>> -	/* Return on _EJ0 failure */
+>> -	if (ACPI_FAILURE(status)) {
+>> -		ACPI_EXCEPTION((AE_INFO, status, "_EJ0 failed"));
+>> -		return -ENODEV;
+>> -	}
+>> -
+>> -	/* Evalute _STA to check if the device is disabled */
+>> -	status = acpi_evaluate_integer(mem_device->device->handle, "_STA",
+>> -				       NULL, &current_status);
+>> -	if (ACPI_FAILURE(status))
+>> -		return -ENODEV;
+>> -
+>> -	/* Check for device status.  Device should be disabled */
+>> -	if (current_status & ACPI_STA_DEVICE_ENABLED)
+>> -		return -EINVAL;
+>> -
+>> -	return 0;
+>> -}
+>> -
+>>  static int acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
+>>  {
+>>  	int result;
+>> @@ -325,34 +291,11 @@ static int acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
+>>  	return 0;
+>>  }
+>>  
+>> -static int acpi_memory_disable_device(struct acpi_memory_device *mem_device)
+>> -{
+>> -	int result;
+>> -
+>> -	/*
+>> -	 * Ask the VM to offline this memory range.
+>> -	 * Note: Assume that this function returns zero on success
+>> -	 */
+>> -	result = acpi_memory_remove_memory(mem_device);
+>> -	if (result)
+>> -		return result;
+>> -
+>> -	/* Power-off and eject the device */
+>> -	result = acpi_memory_powerdown_device(mem_device);
+>> -	if (result) {
+>> -		/* Set the status of the device to invalid */
+>> -		mem_device->state = MEMORY_INVALID_STATE;
+>> -		return result;
+>> -	}
+>> -
+>> -	mem_device->state = MEMORY_POWER_OFF_STATE;
+>> -	return result;
+>> -}
+>> -
+>>  static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
+>>  {
+>>  	struct acpi_memory_device *mem_device;
+>>  	struct acpi_device *device;
+>> +	struct acpi_eject_event *ej_event = NULL;
+>>  	u32 ost_code = ACPI_OST_SC_NON_SPECIFIC_FAILURE; /* default */
+>>  
+>>  	switch (event) {
+>> @@ -394,31 +337,19 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
+>>  			break;
+>>  		}
+>>  
+>> -		/*
+>> -		 * Currently disabling memory device from kernel mode
+>> -		 * TBD: Can also be disabled from user mode scripts
+>> -		 * TBD: Can also be disabled by Callback registration
+>> -		 *      with generic sysfs driver
+>> -		 */
+>> -		if (acpi_memory_disable_device(mem_device)) {
+>> -			printk(KERN_ERR PREFIX "Disable memory device\n");
+>> -			/*
+>> -			 * If _EJ0 was called but failed, _OST is not
+>> -			 * necessary.
+>> -			 */
+>> -			if (mem_device->state == MEMORY_INVALID_STATE)
+>> -				return;
+>> -
+>> +		ej_event = kmalloc(sizeof(*ej_event), GFP_KERNEL);
+>> +		if (!ej_event) {
+>> +			pr_err(PREFIX "No memory, dropping EJECT\n");
+>>  			break;
+>>  		}
+>>  
+>> -		/*
+>> -		 * TBD: Invoke acpi_bus_remove to cleanup data structures
+>> -		 */
+>> +		ej_event->handle = handle;
+>> +		ej_event->event = ACPI_NOTIFY_EJECT_REQUEST;
+>> +		acpi_os_hotplug_execute(acpi_bus_hot_remove_device,
+>> +					(void *)ej_event);
+>>  
+>> -		/* _EJ0 succeeded; _OST is not necessary */
+>> +		/* eject is performed asynchronously */
+>>  		return;
+>> -
+>>  	default:
+>>  		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+>>  				  "Unsupported event [0x%x]\n", event));
 > 
 
-Please check the linux-next branch of linux-pm.git and see if that's what you
-wanted. :-)
-
-Thanks,
-Rafael
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
