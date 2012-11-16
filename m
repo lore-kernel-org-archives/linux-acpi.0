@@ -1,37 +1,37 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC PATCH v2 0/3] acpi: Introduce prepare_remove device operation
-Date: Fri, 16 Nov 2012 22:43:59 +0100
-Message-ID: <1446291.TgLDtXqY7q@vostro.rjw.lan>
-References: <1352974970-6643-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
+Subject: Re: Patch to correct battery capacity values on Thinkpads (repost)
+Date: Fri, 16 Nov 2012 22:46:07 +0100
+Message-ID: <2078100.fvvKhnd6Mi@vostro.rjw.lan>
+References: <20121112050935.GA25110@scooby.iskra.name> <20121112202202.GA18138@khazad-dum.debian.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:49667 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([193.178.161.156]:49677 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753674Ab2KPVjh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 16 Nov 2012 16:39:37 -0500
-In-Reply-To: <1352974970-6643-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
+	id S1753700Ab2KPVlo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 16 Nov 2012 16:41:44 -0500
+In-Reply-To: <20121112202202.GA18138@khazad-dum.debian.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
-Cc: linux-acpi@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, wency@cn.fujitsu.com, lenb@kernel.org, toshi.kani@hp.com, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Kamil Iskra <kamil@iskra.name>
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, ibm-acpi-devel@lists.sourceforge.net
 
-On Thursday, November 15, 2012 11:22:47 AM Vasilis Liaskovitis wrote:
-> As discussed in https://patchwork.kernel.org/patch/1581581/
-> the driver core remove function needs to always succeed. This means we need
-> to know that the device can be successfully removed before acpi_bus_trim / 
-> acpi_bus_hot_remove_device are called. This can cause panics when OSPM-initiated
-> eject or driver unbind of memory devices fails e.g with:
+On Monday, November 12, 2012 06:22:03 PM Henrique de Moraes Holschuh wrote:
+> On Sun, 11 Nov 2012, Kamil Iskra wrote:
+> > Please find below a patch to drivers/acpi/battery.c that adds a quirk to
+> > correctly report battery capacity on 2010 and 2011 Lenovo Thinkpad models.
+> > I think the patch is ready to be applied (Len: please apply).  However,
+> > since it specifically affects Thinkpads, I've copied ibm-acpi-devel ML on
+> > this message to give them a chance to provide input, if any.
 > 
-> echo 1 >/sys/bus/pci/devices/PNP0C80:XX/eject
-> echo "PNP0C80:XX" > /sys/bus/acpi/drivers/acpi_memhotplug/unbind
+> FWIW,
 > 
-> since the ACPI core goes ahead and ejects the device regardless of whether the
-> the memory is still in use or not.
+> Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
-So the question is, does the ACPI core have to do that and if so, then why?
+Applied to the linux-next branch of the linux-pm.git tree as v3.8 material.
 
+Thanks,
 Rafael
 
 
