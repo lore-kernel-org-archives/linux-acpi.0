@@ -1,153 +1,74 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [PATCH v6] create sun sysfs file
-Date: Fri, 16 Nov 2012 10:43:34 +0900
-Message-ID: <50A59A46.2030308@jp.fujitsu.com>
-References: <50A1F711.7020408@jp.fujitsu.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] ACPI / PM: Add check preventing transitioning to non-D0 state from D3.
+Date: Fri, 16 Nov 2012 02:49:54 +0100
+Message-ID: <2072306.j28QTtV7ui@vostro.rjw.lan>
+References: <e4ec829902580af84cddbba6e98ef54b33052b85.1352953283.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:33277 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751151Ab2KPBoA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Nov 2012 20:44:00 -0500
-In-Reply-To: <50A1F711.7020408@jp.fujitsu.com>
+Received: from ogre.sisk.pl ([193.178.161.156]:47545 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750784Ab2KPBpb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 Nov 2012 20:45:31 -0500
+In-Reply-To: <e4ec829902580af84cddbba6e98ef54b33052b85.1352953283.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@sisk.pl, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: lenb@kernel.org, toshi.kani@hp.com, liuj97@gmail.com
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: Len Brown <len.brown@intel.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-Hi Rafael,
+On Thursday, November 15, 2012 12:25:01 PM Lv Zheng wrote:
+> No power transitioning from D3 state to a non-D0 state is allowed.
+> This patch also cleans up device power updating code in the
+> acpi_device_set_power() as it should already been updated in the
+> acpi_power_transition().
+> 
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> ---
+>  drivers/acpi/bus.c |    7 ++++++-
+>  1 file changed, 6 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> index 07a20ee..12c1b51 100644
+> --- a/drivers/acpi/bus.c
+> +++ b/drivers/acpi/bus.c
+> @@ -293,6 +293,12 @@ int acpi_device_set_power(struct acpi_device *device, int state)
+>  			      " state than parent\n");
+>  		return -ENODEV;
+>  	}
+> +	if (device->parent->power.state >= ACPI_STATE_D3_HOT &&
 
-Please merge this patch into your tree.
-It has been acked by Len.
+Why parent?  The device's own power state shouldn't be D3, right?
+
+> +	    state != ACPI_STATE_D0) {
+> +		printk(KERN_WARNING PREFIX
+> +			      "Cannot transition to non-D0 state from D3\n");
+> +		return -ENODEV;
+> +	}
+
+I fixed up the check and moved it into the (state < device->power.state)
+block, because otherwise it would prevent transitions from D3_HOT to
+D3_COLD from being carried out, but they are allowed.
+
+>  	/* For D3cold we should execute _PS3, not _PS4. */
+>  	if (state == ACPI_STATE_D3_COLD)
+> @@ -341,7 +347,6 @@ int acpi_device_set_power(struct acpi_device *device, int state)
+>  			      "Device [%s] failed to transition to %s\n",
+>  			      device->pnp.bus_id, state_string(state));
+>  	else {
+> -		device->power.state = state;
+>  		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+>  				  "Device [%s] transitioned to %s\n",
+>  				  device->pnp.bus_id, state_string(state)));
+> 
+
+Please check the linux-next branch of linux-pm.git and see if that's what you
+wanted. :-)
 
 Thanks,
-Yasuaki Ishimatsu
-
-2012/11/13 16:30, Yasuaki Ishimatsu wrote:
-> Hi Rafael,
-> 
-> The patch was rebased on linux-next. Ant it has been acked by Len:
-> 
-> https://lkml.org/lkml/2012/10/10/65
-> 
-> So please merge it into your tree.
-> 
-> ---
-> _SUN method provides the slot unique-ID in the ACPI namespace. And The value
-> is written in Advanced Configuration and Power Interface Specification as
-> follows:
-> 
-> "The _SUN value is required to be unique among the slots ofthe same type.
-> It is also recommended that this number match the slot number printed on
-> the physical slot whenever possible."
-> 
-> So if we can know the value, we can identify the physical position of the
-> slot in the system.
-> 
-> The patch creates "sun" file in sysfs for identifying physical position
-> of the slot.
-> 
-> Reviewed-by: Toshi Kani <toshi.kani@hp.com>
-> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> 
-> ---
->   Documentation/ABI/testing/sysfs-devices-sun |   14 ++++++++++++++
->   drivers/acpi/scan.c                         |   24 ++++++++++++++++++++++++
->   include/acpi/acpi_bus.h                     |    1 +
->   3 files changed, 39 insertions(+)
-> 
-> Index: linux-next/include/acpi/acpi_bus.h
-> ===================================================================
-> --- linux-next.orig/include/acpi/acpi_bus.h	2012-11-12 17:58:08.000000000 +0900
-> +++ linux-next/include/acpi/acpi_bus.h	2012-11-12 19:07:33.577427071 +0900
-> @@ -179,6 +179,7 @@ struct acpi_device_pnp {
->   	acpi_device_name device_name;	/* Driver-determined */
->   	acpi_device_class device_class;	/*        "          */
->   	union acpi_object *str_obj;	/* unicode string for _STR method */
-> +	unsigned long sun;		/* _SUN */
->   };
->   
->   #define acpi_device_bid(d)	((d)->pnp.bus_id)
-> Index: linux-next/drivers/acpi/scan.c
-> ===================================================================
-> --- linux-next.orig/drivers/acpi/scan.c	2012-11-12 17:57:44.000000000 +0900
-> +++ linux-next/drivers/acpi/scan.c	2012-11-12 19:08:53.387428254 +0900
-> @@ -292,11 +292,21 @@ static ssize_t description_show(struct d
->   }
->   static DEVICE_ATTR(description, 0444, description_show, NULL);
->   
-> +static ssize_t
-> +acpi_device_sun_show(struct device *dev, struct device_attribute *attr,
-> +		     char *buf) {
-> +	struct acpi_device *acpi_dev = to_acpi_device(dev);
-> +
-> +	return sprintf(buf, "%lu\n", acpi_dev->pnp.sun);
-> +}
-> +static DEVICE_ATTR(sun, 0444, acpi_device_sun_show, NULL);
-> +
->   static int acpi_device_setup_files(struct acpi_device *dev)
->   {
->   	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER, NULL};
->   	acpi_status status;
->   	acpi_handle temp;
-> +	unsigned long long sun;
->   	int result = 0;
->   
->   	/*
-> @@ -338,6 +348,16 @@ static int acpi_device_setup_files(struc
->   	if (dev->pnp.unique_id)
->   		result = device_create_file(&dev->dev, &dev_attr_uid);
->   
-> +	status = acpi_evaluate_integer(dev->handle, "_SUN", NULL, &sun);
-> +	if (ACPI_SUCCESS(status)) {
-> +		dev->pnp.sun = (unsigned long)sun;
-> +		result = device_create_file(&dev->dev, &dev_attr_sun);
-> +		if (result)
-> +			goto end;
-> +	} else {
-> +		dev->pnp.sun = (unsigned long)-1;
-> +	}
-> +
->           /*
->            * If device has _EJ0, 'eject' file is created that is used to trigger
->            * hot-removal function from userland.
-> @@ -369,6 +389,10 @@ static void acpi_device_remove_files(str
->   	if (ACPI_SUCCESS(status))
->   		device_remove_file(&dev->dev, &dev_attr_eject);
->   
-> +	status = acpi_get_handle(dev->handle, "_SUN", &temp);
-> +	if (ACPI_SUCCESS(status))
-> +		device_remove_file(&dev->dev, &dev_attr_sun);
-> +
->   	if (dev->pnp.unique_id)
->   		device_remove_file(&dev->dev, &dev_attr_uid);
->   	if (dev->flags.bus_address)
-> Index: linux-next/Documentation/ABI/testing/sysfs-devices-sun
-> ===================================================================
-> --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-> +++ linux-next/Documentation/ABI/testing/sysfs-devices-sun	2012-11-12 19:09:26.854428750 +0900
-> @@ -0,0 +1,14 @@
-> +Whatt:		/sys/devices/.../sun
-> +Date:		October 2012
-> +Contact:	Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> +Description:
-> +		The file contains a Slot-unique ID which provided by the _SUN
-> +		method in the ACPI namespace. The value is written in Advanced
-> +		Configuration and Power Interface Specification as follows:
-> +
-> +		"The _SUN value is required to be unique among the slots of
-> +		the same type. It is also recommended that this number match
-> +		the slot number printed on the physical slot whenever possible."
-> +
-> +		So reading the sysfs file, we can identify a physical position
-> +		of the slot in the system.
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Rafael
 
 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
