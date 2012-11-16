@@ -1,161 +1,73 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v6] create sun sysfs file
-Date: Fri, 16 Nov 2012 03:08:27 +0100
-Message-ID: <2113879.lcUtkATo6G@vostro.rjw.lan>
-References: <50A1F711.7020408@jp.fujitsu.com> <50A59A46.2030308@jp.fujitsu.com>
+From: Simple Simon <tangouniform@sbcglobal.net>
+Subject: Re: [PATCH] libata-acpi: Fix NULL ptr derference in ata_acpi_dev_handle
+Date: Fri, 16 Nov 2012 03:40:44 +0000
+Message-ID: <50A5B5BC.8060006@sbcglobal.net>
+References: <5073D44C.7070101@intel.com> <CABZ+qqkv-iuAxs=DXnQzQn+j-BWaH5jwLsuv0nREFpz3gqHE=g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:47595 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751024Ab2KPCEF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 Nov 2012 21:04:05 -0500
-In-Reply-To: <50A59A46.2030308@jp.fujitsu.com>
+Received: from nm19-vm0.access.bullet.mail.mud.yahoo.com ([66.94.236.25]:24104
+	"EHLO nm19-vm0.access.bullet.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751079Ab2KPDqp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 Nov 2012 22:46:45 -0500
+In-Reply-To: <CABZ+qqkv-iuAxs=DXnQzQn+j-BWaH5jwLsuv0nREFpz3gqHE=g@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, toshi.kani@hp.com, liuj97@gmail.com
+Cc: Aaron Lu <aaron.lu@intel.com>, Jeff Garzik <jgarzik@pobox.com>, linux-ide@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Friday, November 16, 2012 10:43:34 AM Yasuaki Ishimatsu wrote:
-> Hi Rafael,
-> 
-> Please merge this patch into your tree.
-> It has been acked by Len.
+On 2012-10-11 08:27, Dan van der Ster wrote:
+> On Tue, Oct 9, 2012 at 9:37 AM, Aaron Lu <aaron.lu@intel.com> wrote:
+>> commit 6b66d95895c149cbc04d4fac5a2f5477c543a8ae didn't handle SATA PMP
+>> case in ata_acpi_bind_device and will cause a NULL ptr dereference when
+>> user attached a SATA drive to the PMP port. Fix this by checking PMP
+>> support.
+>>
+>> This bug is reported by Dan van der Ster in the following bugzilla page:
+>> https://bugzilla.kernel.org/show_bug.cgi?id=48211
+>>
+>> Reported-by: Dan van der Ster <dan@vanderster.com>
+>> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+>> Cc: <stable@vger.kernel.org>
+> Tested-by: Dan van der Ster <dan@vanderster.com>
+Tested-by: Simon <tangouniform@sbcglobal.net>
 
-Applied.
+There's a third successful patch test report attached to the bugzilla
+entry (link above) 10 days ago.
 
-Thanks,
-Rafael
+I ran into this, with 3.6.6 failing to boot, I think because of an
+esata-attached enclosure w/ port multiplier.
 
 
-> 2012/11/13 16:30, Yasuaki Ishimatsu wrote:
-> > Hi Rafael,
-> > 
-> > The patch was rebased on linux-next. Ant it has been acked by Len:
-> > 
-> > https://lkml.org/lkml/2012/10/10/65
-> > 
-> > So please merge it into your tree.
-> > 
-> > ---
-> > _SUN method provides the slot unique-ID in the ACPI namespace. And The value
-> > is written in Advanced Configuration and Power Interface Specification as
-> > follows:
-> > 
-> > "The _SUN value is required to be unique among the slots ofthe same type.
-> > It is also recommended that this number match the slot number printed on
-> > the physical slot whenever possible."
-> > 
-> > So if we can know the value, we can identify the physical position of the
-> > slot in the system.
-> > 
-> > The patch creates "sun" file in sysfs for identifying physical position
-> > of the slot.
-> > 
-> > Reviewed-by: Toshi Kani <toshi.kani@hp.com>
-> > Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> > 
-> > ---
-> >   Documentation/ABI/testing/sysfs-devices-sun |   14 ++++++++++++++
-> >   drivers/acpi/scan.c                         |   24 ++++++++++++++++++++++++
-> >   include/acpi/acpi_bus.h                     |    1 +
-> >   3 files changed, 39 insertions(+)
-> > 
-> > Index: linux-next/include/acpi/acpi_bus.h
-> > ===================================================================
-> > --- linux-next.orig/include/acpi/acpi_bus.h	2012-11-12 17:58:08.000000000 +0900
-> > +++ linux-next/include/acpi/acpi_bus.h	2012-11-12 19:07:33.577427071 +0900
-> > @@ -179,6 +179,7 @@ struct acpi_device_pnp {
-> >   	acpi_device_name device_name;	/* Driver-determined */
-> >   	acpi_device_class device_class;	/*        "          */
-> >   	union acpi_object *str_obj;	/* unicode string for _STR method */
-> > +	unsigned long sun;		/* _SUN */
-> >   };
-> >   
-> >   #define acpi_device_bid(d)	((d)->pnp.bus_id)
-> > Index: linux-next/drivers/acpi/scan.c
-> > ===================================================================
-> > --- linux-next.orig/drivers/acpi/scan.c	2012-11-12 17:57:44.000000000 +0900
-> > +++ linux-next/drivers/acpi/scan.c	2012-11-12 19:08:53.387428254 +0900
-> > @@ -292,11 +292,21 @@ static ssize_t description_show(struct d
-> >   }
-> >   static DEVICE_ATTR(description, 0444, description_show, NULL);
-> >   
-> > +static ssize_t
-> > +acpi_device_sun_show(struct device *dev, struct device_attribute *attr,
-> > +		     char *buf) {
-> > +	struct acpi_device *acpi_dev = to_acpi_device(dev);
-> > +
-> > +	return sprintf(buf, "%lu\n", acpi_dev->pnp.sun);
-> > +}
-> > +static DEVICE_ATTR(sun, 0444, acpi_device_sun_show, NULL);
-> > +
-> >   static int acpi_device_setup_files(struct acpi_device *dev)
-> >   {
-> >   	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER, NULL};
-> >   	acpi_status status;
-> >   	acpi_handle temp;
-> > +	unsigned long long sun;
-> >   	int result = 0;
-> >   
-> >   	/*
-> > @@ -338,6 +348,16 @@ static int acpi_device_setup_files(struc
-> >   	if (dev->pnp.unique_id)
-> >   		result = device_create_file(&dev->dev, &dev_attr_uid);
-> >   
-> > +	status = acpi_evaluate_integer(dev->handle, "_SUN", NULL, &sun);
-> > +	if (ACPI_SUCCESS(status)) {
-> > +		dev->pnp.sun = (unsigned long)sun;
-> > +		result = device_create_file(&dev->dev, &dev_attr_sun);
-> > +		if (result)
-> > +			goto end;
-> > +	} else {
-> > +		dev->pnp.sun = (unsigned long)-1;
-> > +	}
-> > +
-> >           /*
-> >            * If device has _EJ0, 'eject' file is created that is used to trigger
-> >            * hot-removal function from userland.
-> > @@ -369,6 +389,10 @@ static void acpi_device_remove_files(str
-> >   	if (ACPI_SUCCESS(status))
-> >   		device_remove_file(&dev->dev, &dev_attr_eject);
-> >   
-> > +	status = acpi_get_handle(dev->handle, "_SUN", &temp);
-> > +	if (ACPI_SUCCESS(status))
-> > +		device_remove_file(&dev->dev, &dev_attr_sun);
-> > +
-> >   	if (dev->pnp.unique_id)
-> >   		device_remove_file(&dev->dev, &dev_attr_uid);
-> >   	if (dev->flags.bus_address)
-> > Index: linux-next/Documentation/ABI/testing/sysfs-devices-sun
-> > ===================================================================
-> > --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-> > +++ linux-next/Documentation/ABI/testing/sysfs-devices-sun	2012-11-12 19:09:26.854428750 +0900
-> > @@ -0,0 +1,14 @@
-> > +Whatt:		/sys/devices/.../sun
-> > +Date:		October 2012
-> > +Contact:	Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> > +Description:
-> > +		The file contains a Slot-unique ID which provided by the _SUN
-> > +		method in the ACPI namespace. The value is written in Advanced
-> > +		Configuration and Power Interface Specification as follows:
-> > +
-> > +		"The _SUN value is required to be unique among the slots of
-> > +		the same type. It is also recommended that this number match
-> > +		the slot number printed on the physical slot whenever possible."
-> > +
-> > +		So reading the sysfs file, we can identify a physical position
-> > +		of the slot in the system.
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
-> 
-> 
-> 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+>> ---
+>>  drivers/ata/libata-acpi.c | 11 ++++++++---
+>>  1 file changed, 8 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c
+>> index fd9ecf7..5b0ba3f 100644
+>> --- a/drivers/ata/libata-acpi.c
+>> +++ b/drivers/ata/libata-acpi.c
+>> @@ -1105,10 +1105,15 @@ static int ata_acpi_bind_device(struct ata_port *ap, struct scsi_device *sdev,
+>>         struct acpi_device *acpi_dev;
+>>         struct acpi_device_power_state *states;
+>>
+>> -       if (ap->flags & ATA_FLAG_ACPI_SATA)
+>> -               ata_dev = &ap->link.device[sdev->channel];
+>> -       else
+>> +       if (ap->flags & ATA_FLAG_ACPI_SATA) {
+>> +               if (!sata_pmp_attached(ap))
+>> +                       ata_dev = &ap->link.device[sdev->id];
+>> +               else
+>> +                       ata_dev = &ap->pmp_link[sdev->channel].device[sdev->id];
+>> +       }
+>> +       else {
+>>                 ata_dev = &ap->link.device[sdev->id];
+>> +       }
+>>
+>>         *handle = ata_dev_acpi_handle(ata_dev);
+>>
+>> --
+>> 1.7.12.21.g871e293
+>>
+
