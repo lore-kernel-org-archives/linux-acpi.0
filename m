@@ -1,53 +1,81 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v2 3/3] i2c / ACPI: add ACPI enumeration support
-Date: Fri, 16 Nov 2012 21:18:35 +0100
-Message-ID: <1525112.xFLEyNyU7b@vostro.rjw.lan>
-References: <1352977397-2280-1-git-send-email-mika.westerberg@linux.intel.com> <5908031.ZEcDQlG5EW@vostro.rjw.lan> <20121116200934.GA17774@intel.com>
+Subject: Re: [RFC PATCH v2 0/3] acpi: Introduce prepare_remove device operation
+Date: Fri, 16 Nov 2012 22:17:17 +0100
+Message-ID: <11897248.2VNutIHaJi@vostro.rjw.lan>
+References: <1352974970-6643-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:49553 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753463Ab2KPUOM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 16 Nov 2012 15:14:12 -0500
-In-Reply-To: <20121116200934.GA17774@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1352974970-6643-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
+Sender: owner-linux-mm@kvack.org
+To: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
+Cc: linux-acpi@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, wency@cn.fujitsu.com, lenb@kernel.org, toshi.kani@hp.com, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Jean Delvare <khali@linux-fr.org>, ben-linux@fluff.org, w.sang@pengutronix.de, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, bhelgaas@google.com, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
 
-On Friday, November 16, 2012 10:09:34 PM Mika Westerberg wrote:
-> On Fri, Nov 16, 2012 at 09:02:36PM +0100, Rafael J. Wysocki wrote:
-> > Ah, that's what's called by acpi_dev_get_resources().  But what about writing
-> > it this way:
-> > 
-> > static int acpi_i2c_find_child_address(struct acpi_resource *ares, void *data)
-> > {
-> > 
-> >        if (ares->type == ACPI_RESOURCE_TYPE_SERIAL_BUS) {
-> >        	struct acpi_resource_i2c_serialbus *sb;
-> > 
-> >        	sb = &ares->data.i2c_serial_bus;
-> >        	if (sb->type == ACPI_RESOURCE_SERIAL_TYPE_I2C) {
-> >        		struct acpi_i2c_find *i2c_find = data;
-> > 
-> >        		if (sb->slave_address == i2c_find->addr)
-> > 				i2c_find->found = true;
-> > 		}
-> > 	}
-> > 
-> > 	/* Tell the ACPI core to skip this resource. */
-> > 	return 1;
-> > }
+On Thursday, November 15, 2012 11:22:47 AM Vasilis Liaskovitis wrote:
+> As discussed in https://patchwork.kernel.org/patch/1581581/
+> the driver core remove function needs to always succeed. This means we need
+> to know that the device can be successfully removed before acpi_bus_trim / 
+> acpi_bus_hot_remove_device are called. This can cause panics when OSPM-initiated
+> eject or driver unbind of memory devices fails e.g with:
 > 
-> Not a problem at all, I'll do it like above and also with the SPI case.
-> I'll wait til tomorrow for more comments and post v3 unless there are
-> objections.
+> echo 1 >/sys/bus/pci/devices/PNP0C80:XX/eject
+> echo "PNP0C80:XX" > /sys/bus/acpi/drivers/acpi_memhotplug/unbind
+> 
+> since the ACPI core goes ahead and ejects the device regardless of whether the
+> the memory is still in use or not.
+> 
+> For this reason a new acpi_device operation called prepare_remove is introduced.
+> This operation should be registered for acpi devices whose removal (from kernel
+> perspective) can fail.  Memory devices fall in this category.
+> A similar operation is introduced in bus_type to safely handle driver unbind
+> from the device driver core.
+> 
+> acpi_bus_hot_remove_device and driver_unbind are changed to handle removal in 2
+> steps:
+> - preparation for removal i.e. perform part of removal that can fail. Should
+>   succeed for device and all its children.
+> - if above step was successfull, proceed to actual device removal
+> 
+> With this patchset, only acpi memory devices use the new prepare_remove
+> device operation. The actual memory removal (VM-related offline and other memory
+> cleanups) is moved to prepare_remove. The old remove operation just cleans up
+> the acpi structures. Directly ejecting PNP0C80 memory devices works safely. I
+> haven't tested yet with an ACPI container which contains memory devices.
+> 
+> v1->v2:
+> - new patch to introduce bus_type prepare_remove callback. Needed to prepare
+> removal on driver unbinding from device-driver core.
+> - v1 patches 1 and 2 simplified and merged in one. acpi_bus_trim does not require
+> argument changes.
+> 
+> Comments welcome.
+> 
+> Vasilis Liaskovitis (3):
+>   driver core: Introduce prepare_remove in bus_type
+>   acpi: Introduce prepare_remove operation in acpi_device_ops
+>   acpi_memhotplug: Add prepare_remove operation
+> 
+>  drivers/acpi/acpi_memhotplug.c |   22 ++++++++++++++++++++--
+>  drivers/acpi/scan.c            |   21 ++++++++++++++++++++-
+>  drivers/base/bus.c             |   36 ++++++++++++++++++++++++++++++++++++
+>  include/acpi/acpi_bus.h        |    2 ++
+>  include/linux/device.h         |    2 ++
+>  5 files changed, 80 insertions(+), 3 deletions(-)
 
-OK, thanks!
+CCs of all driver core patches have to go to Greg Kroah-Hartman.
+
+Thanks,
+Rafael
 
 
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
