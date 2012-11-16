@@ -1,125 +1,153 @@
 From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [Patch v5 0/7] acpi,memory-hotplug: implement framework for hot
- removing memory
-Date: Fri, 16 Nov 2012 10:31:24 +0900
-Message-ID: <50A5976C.6080102@jp.fujitsu.com>
-References: <1352962777-24407-1-git-send-email-wency@cn.fujitsu.com> <9217155.1eDFuhkN55@vostro.rjw.lan> <50A591E5.9080906@jp.fujitsu.com> <1819346.BWGqmHiiPA@vostro.rjw.lan>
+Subject: Re: [PATCH v6] create sun sysfs file
+Date: Fri, 16 Nov 2012 10:43:34 +0900
+Message-ID: <50A59A46.2030308@jp.fujitsu.com>
+References: <50A1F711.7020408@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset="ISO-2022-JP"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:39428 "EHLO
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:33277 "EHLO
 	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751148Ab2KPBb6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Nov 2012 20:31:58 -0500
-In-Reply-To: <1819346.BWGqmHiiPA@vostro.rjw.lan>
+	with ESMTP id S1751151Ab2KPBoA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Nov 2012 20:44:00 -0500
+In-Reply-To: <50A1F711.7020408@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Wen Congyang <wency@cn.fujitsu.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Lai Jiangshan <laijs@cn.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Minchan Kim <minchan.kim@gmail.com>, Mel Gorman <mgorman@suse.de>, David Rientjes <rientjes@google.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Toshi Kani <toshi.kani@hp.com>
+To: rjw@sisk.pl, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: lenb@kernel.org, toshi.kani@hp.com, liuj97@gmail.com
 
 Hi Rafael,
 
-2012/11/16 10:28, Rafael J. Wysocki wrote:
-> On Friday, November 16, 2012 10:07:49 AM Yasuaki Ishimatsu wrote:
->> Hi Rafael,
->>
->> 2012/11/16 9:28, Rafael J. Wysocki wrote:
->>> On Thursday, November 15, 2012 02:59:30 PM Wen Congyang wrote:
->>>> The memory device can be removed by 2 ways:
->>>> 1. send eject request by SCI
->>>> 2. echo 1 >/sys/bus/pci/devices/PNP0C80:XX/eject
->>>>
->>>> In the 1st case, acpi_memory_disable_device() will be called.
->>>> In the 2nd case, acpi_memory_device_remove() will be called.
->>>> acpi_memory_device_remove() will also be called when we unbind the
->>>> memory device from the driver acpi_memhotplug or a driver initialization
->>>> fails.
->>>>
->>>> acpi_memory_disable_device() has already implemented a code which
->>>> offlines memory and releases acpi_memory_info struct . But
->>>> acpi_memory_device_remove() has not implemented it yet.
->>>>
->>>> So the patch prepares the framework for hot removing memory and
->>>> adds the framework into acpi_memory_device_remove().
->>>>
->>>> We may hotremove the memory device by this 2 ways at the same time.
->>>> So we remove the function acpi_memory_disable_device(), and use
->>>> acpi_bus_hot_remove_device() which is used by 2nd case to implement it.
->>>> We lock device in acpi_bus_hot_remove_device(), so there is no
->>>> need to add lock in acpi_memhotplug.
->>>>
->>>> The last version of this patchset is here:
->>>> https://lkml.org/lkml/2012/11/8/121
->>>>
->>>> Note:
->>>> 1. The following commit in pm tree can be dropped now(The other two patches
->>>>      are already dropped):
->>>>      54c4c7db6cb94d7d1217df6d7fca6847c61744ab
->>>> 2. This patchset requires the following patch(It is in pm tree now)
->>>>      https://lkml.org/lkml/2012/11/1/225
->>>>
->>>> Changes from v4 to v5:
->>>> 1. patch2: new patch. use acpi_bus_hot_remove_device() to implement memory
->>>>      device hotremove.
->>>>
->>>> Changes from v3 to v4:
->>>> 1. patch1: unlock list_lock when removing memory fails.
->>>> 2. patch2: just rebase them
->>>> 3. patch3-7: these patches are in -mm tree, and they conflict with this
->>>>      patchset, so Adrew Morton drop them from -mm tree. I rebase and merge
->>>>      them into this patchset.
->>>>
->>>> Wen Congyang (6):
->>>>     acpi,memory-hotplug: deal with eject request in hotplug queue
->>>>     acpi_memhotplug.c: fix memory leak when memory device is unbound from
->>>>       the module acpi_memhotplug
->>>>     acpi_memhotplug.c: free memory device if acpi_memory_enable_device()
->>>>       failed
->>>>     acpi_memhotplug.c: don't allow to eject the memory device if it is
->>>>       being used
->>>>     acpi_memhotplug.c: bind the memory device when the driver is being
->>>>       loaded
->>>>     acpi_memhotplug.c: auto bind the memory device which is hotplugged
->>>>       before the driver is loaded
->>>>
->>>> Yasuaki Ishimatsu (1):
->>>>     acpi,memory-hotplug : add memory offline code to
->>>>       acpi_memory_device_remove()
->>>
->>> Well, I have tried _really_ hard to apply this patchset, but pretty much
->>> none of the patches except for [1/7] applied for me.  I have no idea what
->>> tree they are against, but I'm pretty sure it's not my tree.
->>>
->>> I _have_ applied patches [1-4/7] and pushed them to linux-pm.git/linux-next.
->>
->> I checked your tree and found a mistake.
->> You merged a following patch into your tree.
->>
->> commitid:2ba281f1
->> ACPI / memory-hotplug: introduce a mutex lock to protect the list
->> in acpi_memory_device
->>
->> But it is wrong.
->>
->> [1/7] patch is "acpi,memory-hotplug : add memory offline code to
->> acpi_memory_device_remove()". So we would like you to merge it
->> instead of commitid:2ba281f1.
->
-> Yes, I've found it too.
->
-> Now applied patches [1-6/7], because I agree with Toshi Kani that patch [7/7]
-> goes too far, so I'm not going to apply it.
-
-I confirmed that patches were merged into your tree correctly.
+Please merge this patch into your tree.
+It has been acked by Len.
 
 Thanks,
 Yasuaki Ishimatsu
 
->
-> Thanks,
-> Rafael
->
->
+2012/11/13 16:30, Yasuaki Ishimatsu wrote:
+> Hi Rafael,
+> 
+> The patch was rebased on linux-next. Ant it has been acked by Len:
+> 
+> https://lkml.org/lkml/2012/10/10/65
+> 
+> So please merge it into your tree.
+> 
+> ---
+> _SUN method provides the slot unique-ID in the ACPI namespace. And The value
+> is written in Advanced Configuration and Power Interface Specification as
+> follows:
+> 
+> "The _SUN value is required to be unique among the slots ofthe same type.
+> It is also recommended that this number match the slot number printed on
+> the physical slot whenever possible."
+> 
+> So if we can know the value, we can identify the physical position of the
+> slot in the system.
+> 
+> The patch creates "sun" file in sysfs for identifying physical position
+> of the slot.
+> 
+> Reviewed-by: Toshi Kani <toshi.kani@hp.com>
+> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+> 
+> ---
+>   Documentation/ABI/testing/sysfs-devices-sun |   14 ++++++++++++++
+>   drivers/acpi/scan.c                         |   24 ++++++++++++++++++++++++
+>   include/acpi/acpi_bus.h                     |    1 +
+>   3 files changed, 39 insertions(+)
+> 
+> Index: linux-next/include/acpi/acpi_bus.h
+> ===================================================================
+> --- linux-next.orig/include/acpi/acpi_bus.h	2012-11-12 17:58:08.000000000 +0900
+> +++ linux-next/include/acpi/acpi_bus.h	2012-11-12 19:07:33.577427071 +0900
+> @@ -179,6 +179,7 @@ struct acpi_device_pnp {
+>   	acpi_device_name device_name;	/* Driver-determined */
+>   	acpi_device_class device_class;	/*        "          */
+>   	union acpi_object *str_obj;	/* unicode string for _STR method */
+> +	unsigned long sun;		/* _SUN */
+>   };
+>   
+>   #define acpi_device_bid(d)	((d)->pnp.bus_id)
+> Index: linux-next/drivers/acpi/scan.c
+> ===================================================================
+> --- linux-next.orig/drivers/acpi/scan.c	2012-11-12 17:57:44.000000000 +0900
+> +++ linux-next/drivers/acpi/scan.c	2012-11-12 19:08:53.387428254 +0900
+> @@ -292,11 +292,21 @@ static ssize_t description_show(struct d
+>   }
+>   static DEVICE_ATTR(description, 0444, description_show, NULL);
+>   
+> +static ssize_t
+> +acpi_device_sun_show(struct device *dev, struct device_attribute *attr,
+> +		     char *buf) {
+> +	struct acpi_device *acpi_dev = to_acpi_device(dev);
+> +
+> +	return sprintf(buf, "%lu\n", acpi_dev->pnp.sun);
+> +}
+> +static DEVICE_ATTR(sun, 0444, acpi_device_sun_show, NULL);
+> +
+>   static int acpi_device_setup_files(struct acpi_device *dev)
+>   {
+>   	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER, NULL};
+>   	acpi_status status;
+>   	acpi_handle temp;
+> +	unsigned long long sun;
+>   	int result = 0;
+>   
+>   	/*
+> @@ -338,6 +348,16 @@ static int acpi_device_setup_files(struc
+>   	if (dev->pnp.unique_id)
+>   		result = device_create_file(&dev->dev, &dev_attr_uid);
+>   
+> +	status = acpi_evaluate_integer(dev->handle, "_SUN", NULL, &sun);
+> +	if (ACPI_SUCCESS(status)) {
+> +		dev->pnp.sun = (unsigned long)sun;
+> +		result = device_create_file(&dev->dev, &dev_attr_sun);
+> +		if (result)
+> +			goto end;
+> +	} else {
+> +		dev->pnp.sun = (unsigned long)-1;
+> +	}
+> +
+>           /*
+>            * If device has _EJ0, 'eject' file is created that is used to trigger
+>            * hot-removal function from userland.
+> @@ -369,6 +389,10 @@ static void acpi_device_remove_files(str
+>   	if (ACPI_SUCCESS(status))
+>   		device_remove_file(&dev->dev, &dev_attr_eject);
+>   
+> +	status = acpi_get_handle(dev->handle, "_SUN", &temp);
+> +	if (ACPI_SUCCESS(status))
+> +		device_remove_file(&dev->dev, &dev_attr_sun);
+> +
+>   	if (dev->pnp.unique_id)
+>   		device_remove_file(&dev->dev, &dev_attr_uid);
+>   	if (dev->flags.bus_address)
+> Index: linux-next/Documentation/ABI/testing/sysfs-devices-sun
+> ===================================================================
+> --- /dev/null	1970-01-01 00:00:00.000000000 +0000
+> +++ linux-next/Documentation/ABI/testing/sysfs-devices-sun	2012-11-12 19:09:26.854428750 +0900
+> @@ -0,0 +1,14 @@
+> +Whatt:		/sys/devices/.../sun
+> +Date:		October 2012
+> +Contact:	Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+> +Description:
+> +		The file contains a Slot-unique ID which provided by the _SUN
+> +		method in the ACPI namespace. The value is written in Advanced
+> +		Configuration and Power Interface Specification as follows:
+> +
+> +		"The _SUN value is required to be unique among the slots of
+> +		the same type. It is also recommended that this number match
+> +		the slot number printed on the physical slot whenever possible."
+> +
+> +		So reading the sysfs file, we can identify a physical position
+> +		of the slot in the system.
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
 
