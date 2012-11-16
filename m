@@ -1,373 +1,133 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v2 3/3] i2c / ACPI: add ACPI enumeration support
-Date: Fri, 16 Nov 2012 11:09:03 +0100
-Message-ID: <2439178.tCj2rUMYJS@vostro.rjw.lan>
-References: <1352977397-2280-1-git-send-email-mika.westerberg@linux.intel.com> <1352977397-2280-4-git-send-email-mika.westerberg@linux.intel.com>
+From: Wen Congyang <wency@cn.fujitsu.com>
+Subject: Re: [PATCH v3 00/12] memory-hotplug: hot-remove physical memory
+Date: Fri, 16 Nov 2012 19:55:29 +0800
+Message-ID: <50A629B1.2090102@cn.fujitsu.com>
+References: <1351763083-7905-1-git-send-email-wency@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:48284 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751148Ab2KPKEm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 16 Nov 2012 05:04:42 -0500
-In-Reply-To: <1352977397-2280-4-git-send-email-mika.westerberg@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-sh-owner@vger.kernel.org>
+In-Reply-To: <1351763083-7905-1-git-send-email-wency@cn.fujitsu.com>
+Sender: linux-sh-owner@vger.kernel.org
+To: Wen Congyang <wency@cn.fujitsu.com>
+Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, David Rientjes <rientjes@google.com>, Jiang Liu <liuj97@gmail.com>, Len Brown <len.brown@intel.com>, benh@kernel.crashing.org, paulus@samba.org, Christoph Lameter <cl@linux.com>, Minchan Kim <minchan.kim@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Jianguo Wu <wujianguo@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de
-Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, bhelgaas@google.com, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
 
-On Thursday, November 15, 2012 01:03:17 PM Mika Westerberg wrote:
-> ACPI 5 introduced I2cSerialBus resource that makes it possible to enumerate
-> and configure the I2C slave devices behind the I2C controller. This patch
-> adds helper functions to support I2C slave enumeration.
+Ping
+
+At 11/01/2012 05:44 PM, Wen Congyang Wrote:
+> The patch-set was divided from following thread's patch-set.
+>     https://lkml.org/lkml/2012/9/5/201
 > 
-> An ACPI enabled I2C controller driver only needs to call acpi_i2c_register_devices()
-> in order to get its slave devices enumerated, created and bound to the
-> corresponding ACPI handle.
+> The last version of this patchset:
+>     https://lkml.org/lkml/2012/10/23/213
 > 
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-
-Are there any objections against this patch or comments?
-
-Worfram? Jean? Ben?
-
-Rafael
-
-
-> ---
->  drivers/acpi/Kconfig     |    6 ++
->  drivers/acpi/Makefile    |    1 +
->  drivers/acpi/acpi_i2c.c  |  212 ++++++++++++++++++++++++++++++++++++++++++++++
->  drivers/i2c/i2c-core.c   |   10 +++
->  include/linux/acpi_i2c.h |   27 ++++++
->  5 files changed, 256 insertions(+)
->  create mode 100644 drivers/acpi/acpi_i2c.c
->  create mode 100644 include/linux/acpi_i2c.h
+> If you want to know the reason, please read following thread.
 > 
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index 119d58d..0300bf6 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -181,6 +181,12 @@ config ACPI_DOCK
->  	  This driver supports ACPI-controlled docking stations and removable
->  	  drive bays such as the IBM Ultrabay and the Dell Module Bay.
->  
-> +config ACPI_I2C
-> +	def_tristate I2C
-> +	depends on I2C
-> +	help
-> +	  ACPI I2C enumeration support.
-> +
->  config ACPI_PROCESSOR
->  	tristate "Processor"
->  	select THERMAL
-> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> index 7289828..2a4502b 100644
-> --- a/drivers/acpi/Makefile
-> +++ b/drivers/acpi/Makefile
-> @@ -70,6 +70,7 @@ obj-$(CONFIG_ACPI_HED)		+= hed.o
->  obj-$(CONFIG_ACPI_EC_DEBUGFS)	+= ec_sys.o
->  obj-$(CONFIG_ACPI_CUSTOM_METHOD)+= custom_method.o
->  obj-$(CONFIG_ACPI_BGRT)		+= bgrt.o
-> +obj-$(CONFIG_ACPI_I2C)		+= acpi_i2c.o
->  
->  # processor has its own "processor." module_param namespace
->  processor-y			:= processor_driver.o processor_throttling.o
-> diff --git a/drivers/acpi/acpi_i2c.c b/drivers/acpi/acpi_i2c.c
-> new file mode 100644
-> index 0000000..5bf2dad
-> --- /dev/null
-> +++ b/drivers/acpi/acpi_i2c.c
-> @@ -0,0 +1,212 @@
-> +/*
-> + * ACPI I2C enumeration support
-> + *
-> + * Copyright (C) 2012, Intel Corporation
-> + * Author: Mika Westerberg <mika.westerberg@linux.intel.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include <linux/acpi.h>
-> +#include <linux/device.h>
-> +#include <linux/err.h>
-> +#include <linux/export.h>
-> +#include <linux/i2c.h>
-> +#include <linux/ioport.h>
-> +
-> +ACPI_MODULE_NAME("i2c");
-> +
-> +static int acpi_i2c_add_resource(struct acpi_resource *ares, void *data)
-> +{
-> +	struct acpi_resource_i2c_serialbus *sb;
-> +	struct i2c_board_info *info = data;
-> +
-> +	if (ares->type != ACPI_RESOURCE_TYPE_SERIAL_BUS)
-> +		return 0;
-> +
-> +	sb = &ares->data.i2c_serial_bus;
-> +	if (sb->type != ACPI_RESOURCE_SERIAL_TYPE_I2C)
-> +		return 0;
-> +
-> +	info->addr = sb->slave_address;
-> +	if (sb->access_mode == ACPI_I2C_10BIT_MODE)
-> +		info->flags |= I2C_CLIENT_TEN;
-> +
-> +	return 1;
-> +}
-> +
-> +static acpi_status acpi_i2c_add_device(acpi_handle handle, u32 level,
-> +				       void *data, void **return_value)
-> +{
-> +	struct i2c_adapter *adapter = data;
-> +	struct resource_list_entry *rentry;
-> +	struct list_head resource_list;
-> +	struct i2c_board_info info;
-> +	struct acpi_device *adev;
-> +	int ret;
-> +
-> +	if (acpi_bus_get_device(handle, &adev))
-> +		return AE_OK;
-> +	if (acpi_bus_get_status(adev) || !adev->status.present)
-> +		return AE_OK;
-> +
-> +	memset(&info, 0, sizeof(info));
-> +
-> +	INIT_LIST_HEAD(&resource_list);
-> +	ret = acpi_dev_get_resources(adev, &resource_list,
-> +				     acpi_i2c_add_resource, &info);
-> +	if (ret < 0)
-> +		return AE_OK;
-> +
-> +	list_for_each_entry(rentry, &resource_list, node) {
-> +		struct resource *r = &rentry->res;
-> +
-> +		if (resource_type(r) == IORESOURCE_IRQ) {
-> +			info.irq = r->start;
-> +			break;
-> +		}
-> +	}
-> +
-> +	acpi_dev_free_resource_list(&resource_list);
-> +
-> +	if (!info.addr)
-> +		return AE_OK;
-> +
-> +	strlcpy(info.type, dev_name(&adev->dev), sizeof(info.type));
-> +	if (!i2c_new_device(adapter, &info)) {
-> +		dev_err(&adapter->dev,
-> +			"failed to add I2C device %s from ACPI\n",
-> +			dev_name(&adev->dev));
-> +	}
-> +
-> +	return AE_OK;
-> +}
-> +
-> +/**
-> + * acpi_i2c_register_devices - enumerate I2C slave devices behind adapter
-> + * @adapter: pointer to adapter
-> + *
-> + * Enumerate all I2C slave devices behind this adapter by walking the ACPI
-> + * namespace. When a device is found it will be added to the Linux device
-> + * model and bound to the corresponding ACPI handle.
-> + */
-> +void acpi_i2c_register_devices(struct i2c_adapter *adapter)
-> +{
-> +	acpi_handle handle;
-> +	acpi_status status;
-> +
-> +	handle = adapter->dev.acpi_handle;
-> +	if (!handle)
-> +		return;
-> +
-> +	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, 1,
-> +				     acpi_i2c_add_device, NULL,
-> +				     adapter, NULL);
-> +	if (ACPI_FAILURE(status))
-> +		dev_warn(&adapter->dev, "failed to enumerate I2C slaves\n");
-> +}
-> +EXPORT_SYMBOL_GPL(acpi_i2c_register_devices);
-> +
-> +struct acpi_i2c_find {
-> +	acpi_handle handle;
-> +	u16 addr;
-> +	bool found;
-> +};
-> +
-> +static int acpi_i2c_find_child_address(struct acpi_resource *ares, void *data)
-> +{
-> +	struct acpi_resource_i2c_serialbus *sb;
-> +	struct acpi_i2c_find *i2c_find = data;
-> +
-> +	if (ares->type != ACPI_RESOURCE_TYPE_SERIAL_BUS)
-> +		return 1;
-> +
-> +	sb = &ares->data.i2c_serial_bus;
-> +	if (sb->type != ACPI_RESOURCE_SERIAL_TYPE_I2C)
-> +		return 1;
-> +
-> +	if (sb->slave_address == i2c_find->addr)
-> +		i2c_find->found = true;
-> +
-> +	return 1;
-> +}
-> +
-> +static acpi_status acpi_i2c_find_child(acpi_handle handle, u32 level,
-> +				       void *data, void **return_value)
-> +{
-> +	struct acpi_i2c_find *i2c_find = data;
-> +	struct list_head resource_list;
-> +	struct acpi_device *adev;
-> +	int ret;
-> +
-> +	if (acpi_bus_get_device(handle, &adev))
-> +		return AE_OK;
-> +	if (acpi_bus_get_status(adev) || !adev->status.present)
-> +		return AE_OK;
-> +
-> +	INIT_LIST_HEAD(&resource_list);
-> +	ret = acpi_dev_get_resources(adev, &resource_list,
-> +				     acpi_i2c_find_child_address, i2c_find);
-> +	if (ret < 0)
-> +		return AE_OK;
-> +
-> +	acpi_dev_free_resource_list(&resource_list);
-> +
-> +	if (i2c_find->found) {
-> +		i2c_find->handle = handle;
-> +		return AE_CTRL_TERMINATE;
-> +	}
-> +	return AE_OK;
-> +}
-> +
-> +static int acpi_i2c_find_device(struct device *dev, acpi_handle *handle)
-> +{
-> +	struct acpi_i2c_find i2c_find;
-> +	struct i2c_adapter *adapter;
-> +	struct i2c_client *client;
-> +	acpi_handle parent;
-> +	acpi_status status;
-> +
-> +	client = i2c_verify_client(dev);
-> +	if (!client)
-> +		return -ENODEV;
-> +
-> +	adapter = client->adapter;
-> +	if (!adapter)
-> +		return -ENODEV;
-> +
-> +	parent = adapter->dev.acpi_handle;
-> +	if (!parent)
-> +		return -ENODEV;
-> +
-> +	memset(&i2c_find, 0, sizeof(i2c_find));
-> +	i2c_find.addr = client->addr;
-> +
-> +	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, parent, 1,
-> +				     acpi_i2c_find_child, NULL,
-> +				     &i2c_find, NULL);
-> +	if (ACPI_FAILURE(status) || !i2c_find.handle)
-> +		return -ENODEV;
-> +
-> +	*handle = i2c_find.handle;
-> +	return 0;
-> +}
-> +
-> +static struct acpi_bus_type acpi_i2c_bus = {
-> +	.bus = &i2c_bus_type,
-> +	.find_device = acpi_i2c_find_device,
-> +};
-> +
-> +void acpi_i2c_bus_register(void)
-> +{
-> +	register_acpi_bus_type(&acpi_i2c_bus);
-> +}
-> +EXPORT_SYMBOL_GPL(acpi_i2c_bus_register);
-> +
-> +void acpi_i2c_bus_unregister(void)
-> +{
-> +	unregister_acpi_bus_type(&acpi_i2c_bus);
-> +}
-> +EXPORT_SYMBOL_GPL(acpi_i2c_bus_unregister);
-> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-> index a7edf98..7385de2f 100644
-> --- a/drivers/i2c/i2c-core.c
-> +++ b/drivers/i2c/i2c-core.c
-> @@ -39,6 +39,8 @@
->  #include <linux/irqflags.h>
->  #include <linux/rwsem.h>
->  #include <linux/pm_runtime.h>
-> +#include <linux/acpi.h>
-> +#include <linux/acpi_i2c.h>
->  #include <asm/uaccess.h>
->  
->  #include "i2c-core.h"
-> @@ -78,6 +80,10 @@ static int i2c_device_match(struct device *dev, struct device_driver *drv)
->  	if (of_driver_match_device(dev, drv))
->  		return 1;
->  
-> +	/* Then ACPI style match */
-> +	if (acpi_driver_match_device(dev, drv))
-> +		return 1;
-> +
->  	driver = to_i2c_driver(drv);
->  	/* match on an id table if there is one */
->  	if (driver->id_table)
-> @@ -1298,6 +1304,8 @@ static int __init i2c_init(void)
->  	retval = i2c_add_driver(&dummy_driver);
->  	if (retval)
->  		goto class_err;
-> +
-> +	acpi_i2c_bus_register();
->  	return 0;
->  
->  class_err:
-> @@ -1311,6 +1319,8 @@ bus_err:
->  
->  static void __exit i2c_exit(void)
->  {
-> +	acpi_i2c_bus_unregister();
-> +
->  	i2c_del_driver(&dummy_driver);
->  #ifdef CONFIG_I2C_COMPAT
->  	class_compat_unregister(i2c_adapter_compat_class);
-> diff --git a/include/linux/acpi_i2c.h b/include/linux/acpi_i2c.h
-> new file mode 100644
-> index 0000000..cf2233f
-> --- /dev/null
-> +++ b/include/linux/acpi_i2c.h
-> @@ -0,0 +1,27 @@
-> +/*
-> + * ACPI I2C enumeration support
-> + *
-> + * Copyright (C) 2012, Intel Corporation
-> + * Author: Mika Westerberg <mika.westerberg@linux.intel.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#ifndef LINUX_ACPI_I2C_H
-> +#define LINUX_ACPI_I2C_H
-> +
-> +struct i2c_adapter;
-> +
-> +#if IS_ENABLED(CONFIG_ACPI_I2C)
-> +extern void acpi_i2c_register_devices(struct i2c_adapter *adap);
-> +extern void acpi_i2c_bus_register(void);
-> +extern void acpi_i2c_bus_unregister(void);
-> +#else
-> +static inline void acpi_i2c_register_devices(struct i2c_adapter *adap) {}
-> +static inline void acpi_i2c_bus_register(void) {}
-> +static inline void acpi_i2c_bus_unregister(void) {}
-> +#endif /* IS_ENABLED(CONFIG_ACPI_I2C) */
-> +
-> +#endif /* LINUX_ACPI_I2C_H */
+> https://lkml.org/lkml/2012/10/2/83
 > 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+> The patch-set has only the function of kernel core side for physical
+> memory hot remove. So if you use the patch, please apply following
+> patches.
+> 
+> - bug fix for memory hot remove
+>   https://lkml.org/lkml/2012/10/31/269
+>   
+> - acpi framework
+>   https://lkml.org/lkml/2012/10/26/175
+> 
+> The patches can free/remove the following things:
+> 
+>   - /sys/firmware/memmap/X/{end, start, type} : [PATCH 2/10]
+>   - mem_section and related sysfs files       : [PATCH 3-4/10]
+>   - memmap of sparse-vmemmap                  : [PATCH 5-7/10]
+>   - page table of removed memory              : [RFC PATCH 8/10]
+>   - node and related sysfs files              : [RFC PATCH 9-10/10]
+> 
+> * [PATCH 2/10] checks whether the memory can be removed or not.
+> 
+> If you find lack of function for physical memory hot-remove, please let me
+> know.
+> 
+> How to test this patchset?
+> 1. apply this patchset and build the kernel. MEMORY_HOTPLUG, MEMORY_HOTREMOVE,
+>    ACPI_HOTPLUG_MEMORY must be selected.
+> 2. load the module acpi_memhotplug
+> 3. hotplug the memory device(it depends on your hardware)
+>    You will see the memory device under the directory /sys/bus/acpi/devices/.
+>    Its name is PNP0C80:XX.
+> 4. online/offline pages provided by this memory device
+>    You can write online/offline to /sys/devices/system/memory/memoryX/state to
+>    online/offline pages provided by this memory device
+> 5. hotremove the memory device
+>    You can hotremove the memory device by the hardware, or writing 1 to
+>    /sys/bus/acpi/devices/PNP0C80:XX/eject.
+> 
+> Note: if the memory provided by the memory device is used by the kernel, it
+> can't be offlined. It is not a bug.
+> 
+> Known problems:
+> 1. hotremoving memory device may cause kernel panicked
+>    This bug will be fixed by Liu Jiang's patch:
+>    https://lkml.org/lkml/2012/7/3/1
+> 
+> 
+> Changelogs from v2 to v3:
+>  Patch9: call sync_global_pgds() if pgd is changed
+>  Patch10: fix a problem int the patch
+> 
+> Changelogs from v1 to v2:
+>  Patch1: new patch, offline memory twice. 1st iterate: offline every non primary
+>          memory block. 2nd iterate: offline primary (i.e. first added) memory
+>          block.
+> 
+>  Patch3: new patch, no logical change, just remove reduntant codes.
+> 
+>  Patch9: merge the patch from wujianguo into this patch. flush tlb on all cpu
+>          after the pagetable is changed.
+> 
+>  Patch12: new patch, free node_data when a node is offlined
+> 
+> Wen Congyang (6):
+>   memory-hotplug: try to offline the memory twice to avoid dependence
+>   memory-hotplug: remove redundant codes
+>   memory-hotplug: introduce new function arch_remove_memory() for
+>     removing page table depends on architecture
+>   memory-hotplug: remove page table of x86_64 architecture
+>   memory-hotplug: remove sysfs file of node
+>   memory-hotplug: free node_data when a node is offlined
+> 
+> Yasuaki Ishimatsu (6):
+>   memory-hotplug: check whether all memory blocks are offlined or not
+>     when removing memory
+>   memory-hotplug: remove /sys/firmware/memmap/X sysfs
+>   memory-hotplug: unregister memory section on SPARSEMEM_VMEMMAP
+>   memory-hotplug: implement register_page_bootmem_info_section of
+>     sparse-vmemmap
+>   memory-hotplug: remove memmap of sparse-vmemmap
+>   memory-hotplug: memory_hotplug: clear zone when removing the memory
+> 
+>  arch/ia64/mm/discontig.c             |  14 ++
+>  arch/ia64/mm/init.c                  |  18 ++
+>  arch/powerpc/mm/init_64.c            |  14 ++
+>  arch/powerpc/mm/mem.c                |  12 +
+>  arch/s390/mm/init.c                  |  12 +
+>  arch/s390/mm/vmem.c                  |  14 ++
+>  arch/sh/mm/init.c                    |  17 ++
+>  arch/sparc/mm/init_64.c              |  14 ++
+>  arch/tile/mm/init.c                  |   8 +
+>  arch/x86/include/asm/pgtable_types.h |   1 +
+>  arch/x86/mm/init_32.c                |  12 +
+>  arch/x86/mm/init_64.c                | 417 +++++++++++++++++++++++++++++++++++
+>  arch/x86/mm/pageattr.c               |  47 ++--
+>  drivers/acpi/acpi_memhotplug.c       |   8 +-
+>  drivers/base/memory.c                |   6 +
+>  drivers/firmware/memmap.c            |  98 +++++++-
+>  include/linux/firmware-map.h         |   6 +
+>  include/linux/memory_hotplug.h       |  15 +-
+>  include/linux/mm.h                   |   5 +-
+>  mm/memory_hotplug.c                  | 409 ++++++++++++++++++++++++++++++++--
+>  mm/sparse.c                          |   5 +-
+>  21 files changed, 1095 insertions(+), 57 deletions(-)
+> 
+
