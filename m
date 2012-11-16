@@ -1,137 +1,123 @@
-From: Lekensteyn <lekensteyn@gmail.com>
-Subject: Re: [PATCH] ACPI: return first _ADR match for acpi_get_child
-Date: Fri, 16 Nov 2012 19:37:34 +0100
-Message-ID: <1494285.q9tABqzzMu@al>
-References: <8150264.b2f1OROKxE@al> <50A6690B.2060805@kernel.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v2 3/3] i2c / ACPI: add ACPI enumeration support
+Date: Fri, 16 Nov 2012 21:02:36 +0100
+Message-ID: <5908031.ZEcDQlG5EW@vostro.rjw.lan>
+References: <1352977397-2280-1-git-send-email-mika.westerberg@linux.intel.com> <20121116144256.55b49cae@endymion.delvare> <20121116141729.GS17774@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:36385 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752979Ab2KPShi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Nov 2012 13:37:38 -0500
-Received: by mail-ea0-f174.google.com with SMTP id e13so1187572eaa.19
-        for <linux-acpi@vger.kernel.org>; Fri, 16 Nov 2012 10:37:37 -0800 (PST)
-In-Reply-To: <50A6690B.2060805@kernel.org>
+Received: from ogre.sisk.pl ([193.178.161.156]:49505 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751495Ab2KPT6O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 16 Nov 2012 14:58:14 -0500
+In-Reply-To: <20121116141729.GS17774@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Sergio Perez <dagobertstaler@gmail.com>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Jean Delvare <khali@linux-fr.org>, ben-linux@fluff.org, w.sang@pengutronix.de, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, bhelgaas@google.com, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
 
-Thank you for your reply.
-
-On Friday 16 November 2012 11:25:47 Len Brown wrote:
-> However, this patch can't possibly be the right way to go --
-> as it is just as broken as the code it replaces.
-This is a well-aimed shot in the dark based on the DSDT I see. It is certainly 
-not a solid proof that is won't break other machines and if it does break. As 
-far as PCI is concerned, it only affects machines with multiple handles that 
-have the same PCI address returned by _ADR. This method is also used by USB 
-and others which I am more worried about (still, I think it will not happen, 
-but hey, this is ACPI).
-
-Nowhere in the ACPI spec is stated what should happen with duplicate _ADR 
-values for such devices. Maybe you can ask for a clarification on this at the 
-ACPI team? (given that the ACPI spec is also worked on by Intel)?
-(the Windows Hardware Certification Requirements [1] is also not helpful on 
-this topic)
-
-> Were I to bet, I'd say that it will break as many machines
-> as it fixes.  And when it does, where are we?
+On Friday, November 16, 2012 04:17:29 PM Mika Westerberg wrote:
+> On Fri, Nov 16, 2012 at 02:42:56PM +0100, Jean Delvare wrote:
+> > On Fri, 16 Nov 2012 14:21:54 +0100, Rafael J. Wysocki wrote:
+> > > On Friday, November 16, 2012 02:03:57 PM Jean Delvare wrote:
+> > > > Hi Rafael,
+> > > > 
+> > > > On Fri, 16 Nov 2012 11:09:03 +0100, Rafael J. Wysocki wrote:
+> > > > > On Thursday, November 15, 2012 01:03:17 PM Mika Westerberg wrote:
+> > > > > > ACPI 5 introduced I2cSerialBus resource that makes it possible to enumerate
+> > > > > > and configure the I2C slave devices behind the I2C controller. This patch
+> > > > > > adds helper functions to support I2C slave enumeration.
+> > > > > > 
+> > > > > > An ACPI enabled I2C controller driver only needs to call acpi_i2c_register_devices()
+> > > > > > in order to get its slave devices enumerated, created and bound to the
+> > > > > > corresponding ACPI handle.
+> > > > > > 
+> > > > > > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> > > > > 
+> > > > > Are there any objections against this patch or comments?
+> > > > > 
+> > > > > Worfram? Jean? Ben?
+> > > > 
+> > > > I am no longer maintaining the i2c subsystem and will not have the time
+> > > > to look deeply into this. All I can say is that I very happy to see
+> > > > this finally happen. Maybe with ACPI 5.0 we will finally be done with
+> > > > resource conflicts plaguing many systems for several years now.
+> > > > 
+> > > > I took a quick look, and the only thing which seems suspicious is this
+> > > > function:
+> > > > 
+> > > > > +static int acpi_i2c_find_child_address(struct acpi_resource *ares, void *data)
+> > > > > +{
+> > > > > +	struct acpi_resource_i2c_serialbus *sb;
+> > > > > +	struct acpi_i2c_find *i2c_find = data;
+> > > > > +
+> > > > > +	if (ares->type != ACPI_RESOURCE_TYPE_SERIAL_BUS)
+> > > > > +		return 1;
+> > > > > +
+> > > > > +	sb = &ares->data.i2c_serial_bus;
+> > > > > +	if (sb->type != ACPI_RESOURCE_SERIAL_TYPE_I2C)
+> > > > > +		return 1;
+> > > > > +
+> > > > > +	if (sb->slave_address == i2c_find->addr)
+> > > > 
+> > > > The 7-bit and 10-bit address maps overlap, so the above isn't enough.
+> > > > You must compare the addresses _and_ sb->access_mode with
+> > > > i2c_find->access_mode (which needs to be added and filled properly.)
 > 
-> Clearly we need to be using a more clever search algorithm.
-Right, but what additional information can we throw at this in order to fix the 
-linked bug? If you scan through it and wonder about the 0xFFFF value at _ADR, 
-this is changed by PEGP._INI to 0.
-
-If this patch will not be included, I propose to print at least a debugging 
-message when a duplicate handle is found (i.e. if find->handle != NULL).
-
-> thanks,
-> Len Brown, Intel Open Source Technology Center
+> Ok. I wasn't sure about that and given that 10-bit addresses are not that
+> common I tought that we can just compare the addr to zero. I'll add the
+> check.
 > 
-> On 11/12/2012 05:28 PM, Lekensteyn wrote:
-> > From: Peter Wu <lekensteyn@gmail.com>
+> > > > 
+> > > > > +		i2c_find->found = true;
+> > > > > +
+> > > > > +	return 1;
+> > > > > +}
+> > > > 
+> > > > Plus, it seems odd that this function always returns 1.
+> > > 
+> > > Yes, this is a bug I think.  Mika?
 > > 
-> > When acpi_get_child is called, it loops through all direct child
-> > devices and calls do_acpi_find_child to find an ACPI handle matching the
-> > _ADR. The previous implementation visits every direct child, if there
-> > were multiple devices with a matching _ADR, the last match was always
-> > returned.
+> > The equivalent function for SPI devices does the same, so if this is a
+> > bug, it must be fixed there too. If this is not a bug then it is
+> > questionable why these functions return something in the first place.
 > > 
-> > This behaviour (returning the last result) does not work for many recent
-> > Lenovo machines when looking for the correct ACPI handle for a Nvidia
-> > PCI video device. On these machines, the first handle should be used
-> > instead of the last one. On these machines, the PCI Bus ID is 01:00.0,
-> > hence the address that is searched for is 0 (via acpi_pci_find_device).
-> > 
-> > When acpi_pci_find_device calls acpi_get_child, it iterates through:
-> >     Address: 00000000 (valid); handle: \_SB_.PCI0.PEG0.PEGP
-> >     Address: 00000001 (valid); handle: \_SB_.PCI0.PEG0.VGA1
-> >     Address: 00000000 (valid); handle: \_SB_.PCI0.PEG0.VGA_
-> > 
-> > The correct handle here is "\_SB_.PCI0.PEG0.PEGP" which contains the
-> > _ROM method as well as _PSx for PM, and not \_SB.PCI0.PEG0.VGA.
-> > 
-> > On my own laptop, and many others I believe, there is only one matching
-> > handle for a PCI device. The acpi_get_child method has been added in
-> > 2005, 4e10d12a3d88c88fba3258809aa42d14fd8cf1d1, and there is no message
-> > indicating that the last (or first) handle should be returned. However,
-> > it is kind of useless to iterate from beginning to the end if you only
-> > need the last match. Therefore, just return the first match (which is
-> > likely the last one too in almost all cases).
-> > 
-> > Verified to work for an affected Lenovo Ideapad Y480, tested for no
-> > regressions on my laptop (Clevo B7130).
-> > 
-> > Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=42696
-> > 
-> > Tested-by: Sergio Perez <dagobertstaler@gmail.com>
-> > Signed-off-by: Peter Wu <lekensteyn@gmail.com>
-> > ---
-> > 
-> >  drivers/acpi/glue.c | 8 +++++---
-> >  1 file changed, 5 insertions(+), 3 deletions(-)
-> > 
-> > diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
-> > index 0837308..dc9c945 100644
-> > --- a/drivers/acpi/glue.c
-> > +++ b/drivers/acpi/glue.c
-> > @@ -99,18 +99,20 @@ struct acpi_find_child {
-> > 
-> >  static acpi_status
-> >  do_acpi_find_child(acpi_handle handle, u32 lvl, void *context, void **rv)
-> >  {
-> > 
-> > -	acpi_status status;
-> > +	acpi_status status, ret = AE_OK;
-> > 
-> >  	struct acpi_device_info *info;
-> >  	struct acpi_find_child *find = context;
-> >  	
-> >  	status = acpi_get_object_info(handle, &info);
-> >  	if (ACPI_SUCCESS(status)) {
-> >  	
-> >  		if ((info->address == find->address)
-> > 
-> > -			&& (info->valid & ACPI_VALID_ADR))
-> > +			&& (info->valid & ACPI_VALID_ADR)) {
-> > 
-> >  			find->handle = handle;
-> > 
-> > +			ret = AE_CTRL_TERMINATE;
-> > +		}
-> > 
-> >  		kfree(info);
-> >  	
-> >  	}
-> > 
-> > -	return AE_OK;
-> > +	return ret;
-> > 
-> >  }
-> >  
-> >  acpi_handle acpi_get_child(acpi_handle parent, u64 address)
+> > But then again I didn't look into the design, so I may be missing
+> > something.
+> 
+> It is not a bug, it just means that we don't want the ACPI core to fill in
+> normal resources (we only want to peek the ACPI resources and find the
+> corresponding I2CSerialBus() resource).
 
- [1]: http://msdn.microsoft.com/en-US/library/windows/hardware/jj128256
+Ah, that's what's called by acpi_dev_get_resources().  But what about writing
+it this way:
+
+static int acpi_i2c_find_child_address(struct acpi_resource *ares, void *data)
+{
+
+       if (ares->type == ACPI_RESOURCE_TYPE_SERIAL_BUS) {
+       	struct acpi_resource_i2c_serialbus *sb;
+
+       	sb = &ares->data.i2c_serial_bus;
+       	if (sb->type == ACPI_RESOURCE_SERIAL_TYPE_I2C) {
+       		struct acpi_i2c_find *i2c_find = data;
+
+       		if (sb->slave_address == i2c_find->addr)
+				i2c_find->found = true;
+		}
+	}
+
+	/* Tell the ACPI core to skip this resource. */
+	return 1;
+}
+
+Seems easier to follow. :-)
+
+Thanks,
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
