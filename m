@@ -1,136 +1,146 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v2 3/3 UPDATED] i2c / ACPI: add ACPI enumeration support
-Date: Sat, 17 Nov 2012 11:55:37 +0200
-Message-ID: <20121117095537.GC17774@intel.com>
-References: <2439178.tCj2rUMYJS@vostro.rjw.lan>
- <20121116140357.5e0a6d6b@endymion.delvare>
- <1499062.QDd9DGofy9@vostro.rjw.lan>
- <20121116144256.55b49cae@endymion.delvare>
- <20121116141729.GS17774@intel.com>
- <20121116152332.GV17774@intel.com>
- <20121116174753.67d71043@endymion.delvare>
- <20121116172828.GY17774@intel.com>
- <CAErSpo6f4LtW0Sm8hs8bToyN8r8AhzrovJ_ybv62qDGP6+ABPA@mail.gmail.com>
- <20121117080354.GB17774@intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v2 2/3] spi / ACPI: add ACPI enumeration support
+Date: Sat, 17 Nov 2012 11:11:59 +0100
+Message-ID: <2716271.5hiFYsNu5c@vostro.rjw.lan>
+References: <1352977397-2280-1-git-send-email-mika.westerberg@linux.intel.com> <1352977397-2280-3-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:2414 "EHLO mga14.intel.com"
+Received: from ogre.sisk.pl ([193.178.161.156]:50469 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752205Ab2KQJw2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 17 Nov 2012 04:52:28 -0500
-Content-Disposition: inline
-In-Reply-To: <20121117080354.GB17774@intel.com>
+	id S1752804Ab2KQKHg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 17 Nov 2012 05:07:36 -0500
+In-Reply-To: <1352977397-2280-3-git-send-email-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Jean Delvare <khali@linux-fr.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, ben-linux@fluff.org, w.sang@pengutronix.de, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, bhelgaas@google.com, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
 
-On Sat, Nov 17, 2012 at 10:03:54AM +0200, Mika Westerberg wrote:
-> On Fri, Nov 16, 2012 at 11:46:40PM -0700, Bjorn Helgaas wrote:
-> > On Fri, Nov 16, 2012 at 10:28 AM, Mika Westerberg
-> > <mika.westerberg@linux.intel.com> wrote:
-> > > ...
-> > > From: Mika Westerberg <mika.westerberg@linux.intel.com>
-> > > Date: Mon, 10 Sep 2012 12:12:32 +0300
-> > > Subject: [PATCH] i2c / ACPI: add ACPI enumeration support
-> > >
-> > > ACPI 5 introduced I2cSerialBus resource that makes it possible to enumerate
-> > > and configure the I2C slave devices behind the I2C controller. This patch
-> > > adds helper functions to support I2C slave enumeration.
-> > >
-> > > An ACPI enabled I2C controller driver only needs to call acpi_i2c_register_devices()
-> > > in order to get its slave devices enumerated, created and bound to the
-> > > corresponding ACPI handle.
-> > 
-> > I must admit I don't understand the strategy here.  Likely it's only
-> > because I haven't been paying enough attention, but I'll ask anyway in
-> > case anybody else is similarly confused.
-> > 
-> > The callchain when we enumerate these slave devices looks like this:
-> > 
-> >     acpi_i2c_register_devices(struct i2c_adapter *)
-> >       acpi_walk_namespace(adapter->dev.acpi_handle, acpi_i2c_add_device)
-> >         acpi_i2c_add_device
-> >           acpi_bus_get_device
-> >           acpi_bus_get_status
-> >           acpi_dev_get_resources(..., acpi_i2c_add_resource, ...)
-> >           <find IRQ, addr>
-> >           acpi_dev_free_resources
-> >           i2c_new_device
-> >             client = kzalloc
-> >             client->dev = ...
-> >             device_register(&client->dev)
-> > 
-> > Is the ACPI namespace in question something like the following?
-> > 
-> >     Device {                    # i2C master, i.e., the i2c_adapter
-> >       _HID PNPmmmm
-> >       Device {                  # I2C slave 1, i.e.,  a client
-> >         _HID PNPsss1
-> >         _CRS
-> >           SerialBus/I2C addr addr1, mode mode1
-> >           IRQ irq1
-> >       }
-> >       Device {                  # I2C slave 2
-> >         _HID PNPsss2
-> >         _CRS
-> >           SerialBus/I2C addr addr2, mode mode2
-> >           IRQ irq2
-> >       }
-> >     }
+On Thursday, November 15, 2012 01:03:16 PM Mika Westerberg wrote:
+> ACPI 5 introduced SPISerialBus resource that allows us to enumerate and
+> configure the SPI slave devices behind the SPI controller. This patch adds
+> support for this to the SPI core.
 > 
-> Yes.
+> In addition we bind ACPI nodes to SPI devices. This makes it possible for
+> the slave drivers to get the ACPI handle for further configuration.
 > 
-> > _CRS is a device configuration method, so I would expect that it
-> > exists within the scope of a Device() object.  The way I'm used to
-> > this working is for a driver to specify "I know about PNPsss1
-> > devices."
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> ---
+>  drivers/spi/spi.c |  201 ++++++++++++++++++++++++++++++++++++++++++++++++++++-
+>  1 file changed, 200 insertions(+), 1 deletion(-)
 > 
-> Yes.
-> 
-> > But it looks like acpi_i2c_register() walks the namespace below an i2c
-> > master device, registering a new i2c device (a slave) for every ACPI
-> > device node with a _CRS method that contains a SERIAL_BUS/TYPE_I2C
-> > descriptor.  It seems like you're basically claiming those devices
-> > nodes based on the contents of their _CRS, not based on their PNP IDs,
-> > which seems strange to me.
-> 
-> Yes, if we only matched the PNP IDs we would get bunch of PNP devices which
-> certainly doesn't help us to reuse the existing I2C drivers. So instead of
-> creating a new glue driver for ACPI or PNP device we added this enumeration
-> method that then creates the I2C devices, just like DT does.
+> diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
+> index 84c2861..e39a484 100644
+> --- a/drivers/spi/spi.c
+> +++ b/drivers/spi/spi.c
+> @@ -35,6 +35,8 @@
+>  #include <linux/sched.h>
+>  #include <linux/delay.h>
+>  #include <linux/kthread.h>
+> +#include <linux/ioport.h>
+> +#include <linux/acpi.h>
+>  
+>  static void spidev_release(struct device *dev)
+>  {
+> @@ -93,6 +95,10 @@ static int spi_match_device(struct device *dev, struct device_driver *drv)
+>  	if (of_driver_match_device(dev, drv))
+>  		return 1;
+>  
+> +	/* Then try ACPI */
+> +	if (acpi_driver_match_device(dev, drv))
+> +		return 1;
+> +
+>  	if (sdrv->id_table)
+>  		return !!spi_match_id(sdrv->id_table, spi);
+>  
+> @@ -888,6 +894,196 @@ static void of_register_spi_devices(struct spi_master *master)
+>  static void of_register_spi_devices(struct spi_master *master) { }
+>  #endif
+>  
+> +#ifdef CONFIG_ACPI
+> +static int acpi_spi_add_resource(struct acpi_resource *ares, void *data)
+> +{
+> +	struct acpi_resource_spi_serialbus *sb;
+> +	struct spi_device *spi = data;
+> +
+> +	if (ares->type != ACPI_RESOURCE_TYPE_SERIAL_BUS)
+> +		return 0;
+> +
+> +	sb = &ares->data.spi_serial_bus;
+> +	if (sb->type != ACPI_RESOURCE_SERIAL_TYPE_SPI)
+> +		return 0;
+> +
+> +	spi->chip_select = sb->device_selection;
+> +	spi->max_speed_hz = sb->connection_speed;
+> +
+> +	if (sb->clock_phase == ACPI_SPI_SECOND_PHASE)
+> +		spi->mode |= SPI_CPHA;
+> +	if (sb->clock_polarity == ACPI_SPI_START_HIGH)
+> +		spi->mode |= SPI_CPOL;
+> +	if (sb->device_polarity == ACPI_SPI_ACTIVE_HIGH)
+> +		spi->mode |= SPI_CS_HIGH;
+> +
+> +	return 1;
+> +}
+> +
+> +static acpi_status acpi_spi_add_device(acpi_handle handle, u32 level,
+> +				       void *data, void **return_value)
+> +{
+> +	struct spi_master *master = data;
+> +	struct resource_list_entry *rentry;
+> +	struct list_head resource_list;
+> +	struct acpi_device *adev;
+> +	struct spi_device *spi;
+> +	int ret;
+> +
+> +	if (acpi_bus_get_device(handle, &adev))
+> +		return AE_OK;
+> +	if (acpi_bus_get_status(adev) || !adev->status.present)
+> +		return AE_OK;
+> +
+> +	spi = spi_alloc_device(master);
+> +	if (!spi) {
+> +		dev_err(&master->dev, "failed to allocate SPI device for %s\n",
+> +			dev_name(&adev->dev));
+> +		return AE_NO_MEMORY;
+> +	}
+> +
+> +	INIT_LIST_HEAD(&resource_list);
+> +	ret = acpi_dev_get_resources(adev, &resource_list,
+> +				     acpi_spi_add_resource, spi);
+> +	if (ret < 0)
+> +		goto fail_put_dev;
+> +
+> +	list_for_each_entry(rentry, &resource_list, node) {
+> +		struct resource *r = &rentry->res;
+> +
+> +		if (resource_type(r) == IORESOURCE_IRQ) {
+> +			spi->irq = r->start;
+> +			break;
+> +		}
+> +	}
+> +
+> +	acpi_dev_free_resource_list(&resource_list);
 
-In other words, what this whole thing is trying to achieve is something
-along the lines of:
+A potential problem is lurking here, or rather two of them.
 
-	- Instead of making PNP or ACPI devices out of every device in the
-	  ACPI namespace we use the resources returned by the _CRS
-	  method for a given device as a hint of what type of device it is.
+Suppose there are multiple IRQ resources for this device.  The code
+above will cause GSIs to be registered for all of them, but we'll
+use only one eventually.  Moreover, we'll use the last one, but
+perhaps we should use the first one instead?
 
-	- If we find I2CSerialBus() we assume it is an I2C device and
-	  create i2c_device (and i2c_client) and register this to the I2C
-	  core.
+Maybe a better approach would be to make acpi_spi_add_resource()
+call acpi_dev_resource_interrupt(ares, 0, &r) directly and then skip all of
+the remaining IRQ resources if it finds one?
 
-	- If we find SPISerialBus() we assume it is a SPI device and create
-	  corresponding spidevice and register it to the SPI core.
+For example set spi->irq to -1 initially, assign it if an IRQ
+resource is found and skip all of the remaining IRQ resources if
+it is non-negative?
 
-	- Devices that don't have a bus are represented as platform devices
-	  (based on the table in drivers/acpi/scan.c). The reason for this
-	  is that most of the SoC devices have already platform driver so
-	  we can easily reuse the existing drivers.
+Rafael
 
-The implementation follows the Device Tree as much as possible so that
-adding support for DT and ACPI to a driver would be similar and thus easy
-for people who know either method.
 
-An alternative would be to create PNP or ACPI glue drivers for each device
-that then create the corresponding real device like platform or I2C which
-means that we need add much more lines of unnecessary code to the kernel
-compared to adding the ACPI/PNP IDs to the driver which takes only few
-lines of code.
-
-We still allow more complex configuration with the means of
-dev->acpi_handle. So for example if driver needs to call _DSM in order to
-retrieve some parameters for the device it can do so with the help of
-dev->acpi_handle.
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
