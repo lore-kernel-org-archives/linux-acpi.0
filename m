@@ -1,142 +1,122 @@
-From: Robert Hancock <hancockrwd@gmail.com>
-Subject: Re: ACPI errors with 3.7-rc3
-Date: Fri, 16 Nov 2012 23:40:26 -0600
-Message-ID: <50A7234A.7080309@gmail.com>
-References: <20121031014527.GA2984@kroah.com> <CAAW1UO9BtAU5jpy=MqgFCwwXn3Gb8HA3m7FMktmQkYGqYrS0Rw@mail.gmail.com> <20121106124826.GA21806@kroah.com> <41011456.LYWJPCi9Xt@vostro.rjw.lan> <20121109092851.GA9179@feng-snb> <94F2FBAB4432B54E8AACC7DFDE6C92E346BBFC97@ORSMSX101.amr.corp.intel.com> <20121109163625.GA10171@feng-snb>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH v2 3/3 UPDATED] i2c / ACPI: add ACPI enumeration support
+Date: Fri, 16 Nov 2012 23:46:40 -0700
+Message-ID: <CAErSpo6f4LtW0Sm8hs8bToyN8r8AhzrovJ_ybv62qDGP6+ABPA@mail.gmail.com>
+References: <1352977397-2280-1-git-send-email-mika.westerberg@linux.intel.com>
+ <2439178.tCj2rUMYJS@vostro.rjw.lan> <20121116140357.5e0a6d6b@endymion.delvare>
+ <1499062.QDd9DGofy9@vostro.rjw.lan> <20121116144256.55b49cae@endymion.delvare>
+ <20121116141729.GS17774@intel.com> <20121116152332.GV17774@intel.com>
+ <20121116174753.67d71043@endymion.delvare> <20121116172828.GY17774@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:37602 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751082Ab2KQFkb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 17 Nov 2012 00:40:31 -0500
-In-Reply-To: <20121109163625.GA10171@feng-snb>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20121116172828.GY17774@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Jean Delvare <khali@linux-fr.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, ben-linux@fluff.org, w.sang@pengutronix.de, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Feng Tang <feng.tang@intel.com>
-Cc: "Moore, Robert" <robert.moore@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Greg KH <gregkh@linuxfoundation.org>, Azat Khuzhin <dohardgopro@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>
 
-On 11/09/2012 10:36 AM, Feng Tang wrote:
-> On Fri, Nov 09, 2012 at 10:30:43PM +0800, Moore, Robert wrote:
->> The ACPI Global Lock is in fact intended to provide exclusion between the BIOS and the OS.
->> Bob
+On Fri, Nov 16, 2012 at 10:28 AM, Mika Westerberg
+<mika.westerberg@linux.intel.com> wrote:
+> ...
+> From: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Date: Mon, 10 Sep 2012 12:12:32 +0300
+> Subject: [PATCH] i2c / ACPI: add ACPI enumeration support
 >
-> Thanks for the info.
+> ACPI 5 introduced I2cSerialBus resource that makes it possible to enumerate
+> and configure the I2C slave devices behind the I2C controller. This patch
+> adds helper functions to support I2C slave enumeration.
 >
-> And per my check, most of ACPI FW don't implement this lock, say
-> after driver probe, the ec->global_lock will be 0.
+> An ACPI enabled I2C controller driver only needs to call acpi_i2c_register_devices()
+> in order to get its slave devices enumerated, created and bound to the
+> corresponding ACPI handle.
 
-The DSDT is supposed to define the _GLK control method on the EC if the 
-BIOS needs to perform its own access which may conflict with the OS 
-usage. If it doesn't, then it should be the case that either the BIOS 
-doesn't touch the EC itself or it uses a separate interface that doesn't 
-cause conflicts with what the OS is doing.
+I must admit I don't understand the strategy here.  Likely it's only
+because I haven't been paying enough attention, but I'll ask anyway in
+case anybody else is similarly confused.
 
->
-> - Feng
->
->>
->>
->>> -----Original Message-----
->>> From: Tang, Feng
->>> Sent: Friday, November 09, 2012 1:29 AM
->>> To: Rafael J. Wysocki
->>> Cc: Greg KH; Azat Khuzhin; linux-acpi@vger.kernel.org; Linux Kernel
->>> Mailing List; Zheng, Lv; Len Brown; Moore, Robert
->>> Subject: Re: ACPI errors with 3.7-rc3
->>>
->>> On Thu, Nov 08, 2012 at 05:49:40AM +0800, Rafael J. Wysocki wrote:
->>>> On Tuesday, November 06, 2012 01:48:26 PM Greg KH wrote:
->>>>> On Tue, Nov 06, 2012 at 04:42:24PM +0400, Azat Khuzhin wrote:
->>>>>> I'v also have such errors on my macbook pro.
->>>>>>
->>>>>> $ dmesg | tail
->>>>>> [17056.008564] ACPI Error: Method parse/execution failed
->>>>>> [\_SB_.PCI0.LPCB.EC__.SMB0.SBRW] (Node ffff88026547ea10), AE_TIME
->>>>>> (20120711/psparse-536)
->>>>>> [17056.011194] ACPI Error: Method parse/execution failed
->>>>>> [\_SB_.BAT0.UBST] (Node ffff88026547e678), AE_TIME
->>>>>> (20120711/psparse-536)
->>>>>> [17056.013793] ACPI Error: Method parse/execution failed
->>>>>> [\_SB_.BAT0._BST] (Node ffff88026547e740), AE_TIME
->>>>>> (20120711/psparse-536)
->>>>>> [17056.016383] ACPI Exception: AE_TIME, Evaluating _BST
->>>>>> (20120711/battery-464) [17056.511373] ACPI: EC: input buffer is
->>>>>> not empty, aborting transaction [17056.512672] ACPI Exception:
->>>>>> AE_TIME, Returned by Handler for [EmbeddedControl]
->>>>>> (20120711/evregion-501) [17056.515256] ACPI Error: Method
->>>>>> parse/execution failed [\_SB_.PCI0.LPCB.EC__.SMB0.SBRW] (Node
->>>>>> ffff88026547ea10), AE_TIME
->>>>>> (20120711/psparse-536)
->>>>>> [17056.517886] ACPI Error: Method parse/execution failed
->>>>>> [\_SB_.BAT0.UBST] (Node ffff88026547e678), AE_TIME
->>>>>> (20120711/psparse-536)
->>>>>> [17056.520479] ACPI Error: Method parse/execution failed
->>>>>> [\_SB_.BAT0._BST] (Node ffff88026547e740), AE_TIME
->>>>>> (20120711/psparse-536)
->>>>>> [17056.523070] ACPI Exception: AE_TIME, Evaluating _BST
->>>>>> (20120711/battery-464)
->>>>>
->>>>> I'm seeing this again right now.  I'm wondering if it's because I'm
->>>>> running on battery power at the moment:
->>>>>
->>>>> [41694.309264] ACPI Exception: AE_TIME, Returned by Handler for
->>>>> [EmbeddedControl] (20120913/evregion-501) [41694.309282] ACPI Error:
->>>>> Method parse/execution failed [\_SB_.PCI0.LPCB.EC__.SMB0.SBRW] (Node
->>>>> ffff88045cc64618), AE_TIME (20120913/psparse-536) [41694.309300]
->>>>> ACPI Error: Method parse/execution failed [\_SB_.BAT0.UBST] (Node
->>>>> ffff88045cc64988), AE_TIME (20120913/psparse-536) [41694.309310]
->>>>> ACPI Error: Method parse/execution failed [\_SB_.BAT0._BST] (Node
->>>>> ffff88045cc648c0), AE_TIME (20120913/psparse-536) [41694.309324]
->>>>> ACPI Exception: AE_TIME, Evaluating _BST (20120913/battery-464)
->>>>> [41694.809093] ACPI: EC: input buffer is not empty, aborting
->>>>> transaction
->>>>>
->>>>> ec_storm_threshold is still set to 8 in /sys/module/acpi/parameters/
->>>>> so that's not the issue here.
->>>>>
->>>>>> And also loadavg is too high ~ 10
->>>>>> While there is no process that load CPU up to 100% or like that.
->>>>>> I think that this because of processes that is done in kernel space.
->>>>>> (basically that one who write such errors)
->>>>>>
->>>>>> $ uname -a
->>>>>> Linux macbook-pro-sq 3.6.5macbook-pro-custom-v0.1 #4 SMP Sun Nov 4
->>>>>> 12:39:03 UTC 2012 x86_64 GNU/Linux
->>>>>
->>>>> Ah, ok, that means it's not something new in 3.7-rc, so maybe it's
->>>>> just never worked properly for this hardware :)
->>>>>
->>>>> So it's not a regression, just an ACPI issue, any ACPI developer
->>>>> have an idea about this?
->>>>
->>>> Can you please send the output of acpidump from the affected machine(s)?
->>>
->>> I doubt this problem is sometimes inevitable for some machines, because
->>> AFAIK most modern machines have the race problem for EC HW controller, as
->>> both OS side and the BIOS may access the EC HW at the same time
->>> without any race control.
->>>
->>> For this case, usually the battery and thermal modules (which may be
->>> controlled through EC) are always monitored by BIOS, when OS also
->>> frequently visit them too, the EC's own state machine may be broken and
->>> not responsive due to the race, then cause the timeout error.
->>> And how severe the problem will be depends on the EC HW, the quality of
->>> BIOS code and OS/driver code.
->>>
->>> Myself have seen the similar "ACPI: EC: input buffer is not empty,
->>> aborting transaction" error message on one laptop when its EC is busy
->>> visited by OS.
->>>
->>> btw, in EC driver I see a "ec->global_lock", don't know if it was designed
->>> to control the race between OS and BIOS.
->>>
->>> Thanks,
->>> Feng
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+The callchain when we enumerate these slave devices looks like this:
 
+    acpi_i2c_register_devices(struct i2c_adapter *)
+      acpi_walk_namespace(adapter->dev.acpi_handle, acpi_i2c_add_device)
+        acpi_i2c_add_device
+          acpi_bus_get_device
+          acpi_bus_get_status
+          acpi_dev_get_resources(..., acpi_i2c_add_resource, ...)
+          <find IRQ, addr>
+          acpi_dev_free_resources
+          i2c_new_device
+            client = kzalloc
+            client->dev = ...
+            device_register(&client->dev)
+
+Is the ACPI namespace in question something like the following?
+
+    Device {                    # i2C master, i.e., the i2c_adapter
+      _HID PNPmmmm
+      Device {                  # I2C slave 1, i.e.,  a client
+        _HID PNPsss1
+        _CRS
+          SerialBus/I2C addr addr1, mode mode1
+          IRQ irq1
+      }
+      Device {                  # I2C slave 2
+        _HID PNPsss2
+        _CRS
+          SerialBus/I2C addr addr2, mode mode2
+          IRQ irq2
+      }
+    }
+
+_CRS is a device configuration method, so I would expect that it
+exists within the scope of a Device() object.  The way I'm used to
+this working is for a driver to specify "I know about PNPsss1
+devices."
+
+But it looks like acpi_i2c_register() walks the namespace below an i2c
+master device, registering a new i2c device (a slave) for every ACPI
+device node with a _CRS method that contains a SERIAL_BUS/TYPE_I2C
+descriptor.  It seems like you're basically claiming those devices
+nodes based on the contents of their _CRS, not based on their PNP IDs,
+which seems strange to me.
+
+We have to be able to hook device enumeration into udev so we can
+autoload drivers.  It's obvious how to do that with _HID and _CID --
+we just emit a uevent saying "we found a new device with PNP IDs
+x,y,z".  I don't see how to do anything similar based on the _CRS
+contents.  Again, probably I'm completely missing the point here, and
+I'm sorry to be dense.
+
+I guess this isn't really "enumeration" -- the ACPI core has
+previously walked this namespace and built acpi_devices for the
+Device() nodes, and I think it emits uevents at that time.  So this is
+more of a "claim" than an "enumerate."  But the Device() node for the
+I2C slave still exists, and it has _HID/_CID, doesn't it?  Do we use
+that _HID anywhere?
+
+In any event, after acpi_i2c_register(), I think we have a set of
+i2c_client devices (with the above namespace, I assume we'd have two
+of them).  I guess acpi_i2c_find_device() is useful now -- it looks
+like it takes a "struct device *" (e.g., &client->dev from a struct
+i2c_client), and and gives you back the acpi_handle corresponding to
+it?
+
+Here's the callchain of that path:
+
+    acpi_i2c_find_device(struct device *)       # acpi_i2c_bus.find_device
+      i2c_verify_client(dev)
+      acpi_walk_namespace
+        acpi_i2c_find_child
+          acpi_bus_get_device
+          acpi_bus_get_status
+          acpi_dev_get_resources(..., acpi_i2c_find_child_address, ...)
+            acpi_i2c_find_child_address
+            found if (SERIAL_BUS && SERIAL_TYPE_I2C && slave_address == xx)
+          acpi_dev_free_resource_list
+      *handle = handle
+
+That seems like an awful lot of work to do just to map a struct device
+* back to the acpi_handle.  But I don't have any suggestion; just that
+observation.
+
+Bjorn
