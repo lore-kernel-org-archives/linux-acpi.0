@@ -1,113 +1,71 @@
-From: Jiang Liu <liuj97@gmail.com>
-Subject: Re: [RFC PATCH v2 0/3] acpi: Introduce prepare_remove device operation
-Date: Mon, 19 Nov 2012 00:16:33 +0800
-Message-ID: <50A909E1.9030708@gmail.com>
-References: <1352974970-6643-1-git-send-email-vasilis.liaskovitis@profitbricks.com>  <1446291.TgLDtXqY7q@vostro.rjw.lan>  <1353105943.12509.60.camel@misato.fc.hp.com>  <20121116230143.GA15338@kroah.com>  <1353107684.12509.65.camel@misato.fc.hp.com>  <20121116233355.GA21144@kroah.com>  <1353108906.10624.5.camel@misato.fc.hp.com>  <20121117000250.GA4425@kroah.com>  <1353110933.10939.6.camel@misato.fc.hp.com>  <20121117002232.GA22543@kroah.com> <1353111905.10939.12.camel@misato.fc.hp.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH v9 07/10] block: add a new interface to block events
+Date: Sun, 18 Nov 2012 12:41:06 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.1211181221350.4991-100000@netrider.rowland.org>
+References: <20121118150555.GL7306@mtj.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1353111905.10939.12.camel@misato.fc.hp.com>
-Sender: owner-linux-mm@kvack.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, linux-acpi@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, wency@cn.fujitsu.com, lenb@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20121118150555.GL7306@mtj.dyndns.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Tejun Heo <tj@kernel.org>
+Cc: Aaron Lu <aaron.lu@intel.com>, Jeff Garzik <jgarzik@pobox.com>, James Bottomley <James.Bottomley@hansenpartnership.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Jeff Wu <jeff.wu@amd.com>, Aaron Lu <aaron.lwe@gmail.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 11/17/2012 08:25 AM, Toshi Kani wrote:
-> On Fri, 2012-11-16 at 16:22 -0800, Greg Kroah-Hartman wrote:
->> On Fri, Nov 16, 2012 at 05:08:53PM -0700, Toshi Kani wrote:
->>>>>>>>>> So the question is, does the ACPI core have to do that and if so, then why?
->>>>>>>>>
->>>>>>>>> The problem is that acpi_memory_devcie_remove() can fail.  However,
->>>>>>>>> device_release_driver() is a void function, so it cannot report its
->>>>>>>>> error.  Here are function flows for SCI, sysfs eject and unbind.
->>>>>>>>
->>>>>>>> Then don't ever let acpi_memory_device_remove() fail.  If the user wants
->>>>>>>> it gone, it needs to go away.  Just like any other device in the system
->>>>>>>> that can go away at any point in time, you can't "fail" that.
->>>>>>>
->>>>>>> That would be ideal, but we cannot delete a memory device that contains
->>>>>>> kernel memory.  I am curious, how do you deal with a USB device that is
->>>>>>> being mounted in this case?
->>>>>>
->>>>>> As the device is physically gone now, we deal with it and clean up
->>>>>> properly.
->>>>>>
->>>>>> And that's the point here, what happens if the memory really is gone?
->>>>>> You will still have to handle it now being removed, you can't "fail" a
->>>>>> physical removal of a device.
->>>>>>
->>>>>> If you remove a memory device that has kernel memory on it, well, you
->>>>>> better be able to somehow remap it before the kernel needs it :)
->>>>>
->>>>> :)
->>>>>
->>>>> Well, we are not trying to support surprise removal here.  All three
->>>>> use-cases (SCI, eject, and unbind) are for graceful removal.  Therefore
->>>>> they should fail if the removal operation cannot complete in graceful
->>>>> way.
->>>>
->>>> Then handle that in the ACPI bus code, it isn't anything that the driver
->>>> core should care about, right?
->>>
->>> Unfortunately not.  Please take a look at the function flow for the
->>> unbind case in my first email.  This request directly goes to
->>> driver_unbind(), which is a driver core function.
->>
->> Yes, and as the user asked for the driver to be unbound from the device,
->> it can not fail.
->>
->> And that is WAY different from removing the memory from the system
->> itself.  Don't think that this is the "normal" way that memory should be
->> removed, that is what stuff like "eject" was created for the PCI slots.
->>
->> Don't confuse the two things here, unbinding a driver from a device
->> should not remove the memory from the system, it doesn't do that for any
->> other type of 'unbind' call for any other bus.  The device is still
->> present, just that specific driver isn't controlling it anymore.
->>
->> In other words, you should NEVER have a normal userspace flow that is
->> trying to do unbind.  unbind is only for radical things like
->> disconnecting a driver from a device if a userspace driver wants to
->> control it, or a hacked up way to implement revoke() for a device.
->>
->> Again, no driver core changes are needed here.
-> 
-> Okay, we might be able to make the eject case to fail if an ACPI driver
-> is not bound to a device.  This way, the unbind case may be harmless to
-> proceed.  Let us think about this further on this (but we may come up
-> again :). 
-Hi all,
-	The ACPI based system device hotplug framework project I'm working
-on has already provided a solution for this issue.
-	We have added several callbacks to struct acpi_device_ops to support
-ACPI system device hotplug. By that way, we could guarantee unbinding ACPI
-CPU/memory/PCI host bridge drivers will always success. And we have a plan
-to implement the existing "eject" interface with the new hotplug framework.
+On Sun, 18 Nov 2012, Tejun Heo wrote:
 
-	For more information, please take a look at:
-http://www.spinics.net/lists/linux-acpi/msg39487.html
-http://www.spinics.net/lists/linux-acpi/msg39490.html
+> Hello, Alan.
 
-Thanks!
-Gerry
+Hi.
 
+> On Mon, Nov 12, 2012 at 02:34:01PM -0500, Alan Stern wrote:
+> > It wouldn't do anything for the device, but it would allow the device's
+> > parent to go to low power in between polls.  That's why Aaron at one
+> > point suggested lengthening the polling interval.
 > 
-> Thanks,
-> -Toshi 
-> 
-> 
-> 
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> Ah, okay.  Entering and leaving suspend even every two seconds may
+> save noticeable power for some controllers.  Does that, tho, mean that
+> the port would get reset every two seconds?
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+I don't know how suspend works for (S)ATA ports.  For USB mass storage, 
+suspend/resume does not involve any resets unless something goes wrong.
+
+>  If so (I can't see how
+> else it would behave), it may not really work.  I mean, you would be
+> spending about ten seconds reinitiaizing everything and then enter
+> sleep and do it all over again two seconds later, most likely wasting
+> power in the process.  Sounds weird to me.  What am I missing?
+
+Does it really take 10 seconds to recover from an ATA suspend?  That 
+sounds awfully long.
+
+The two second value is merely the default interval for media polling.  
+Devices with no async notification mechanism require some sort of
+polling if anybody wants to know when media is inserted or removed,
+and the polling can't be carried out if the device's port is suspended.
+
+You asked about autopm.  "Autopm" is a rather vague and ugly term I
+made up; it means that the kernel automatically suspends the device
+after some specified idle time.  In the case of optical drives, "idle"  
+currently means the device file is not open (which implies the drive
+doesn't contain a mounted filesystem).  As far as I know, the kernel
+has no direct way to affect the power level of an optical drive that
+isn't ZP.  For these devices "suspended" is merely a logical state,
+meaning that the device isn't in use and therefore its parent can be
+put into a low-power mode.
+
+Regardless, an optical drive can't remain suspended when polling
+occurs.  So unless there's some other mechanism for getting the
+information about media changes, suspended drives (and their parents)  
+will have to be resumed periodically for polling.
+
+Hence there's a tradeoff.  How can we use the minimum amount of energy
+while still polling the drive acceptably often?  In general, the kernel
+doesn't know.  That's why these things can be controlled from
+userspace.  And the answer may be different for ATA drives vs.  
+USB-connected drives.
+
+Does this answer your questions?
+
+Alan Stern
+
