@@ -1,55 +1,123 @@
-From: Bill Pemberton <wfp5p@virginia.edu>
-Subject: [PATCH 387/493] acpi: remove use of __devexit
-Date: Mon, 19 Nov 2012 13:25:36 -0500
-Message-ID: <1353349642-3677-387-git-send-email-wfp5p@virginia.edu>
-References: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 2/2] ACPI / platform: Initialize ACPI handles of platform devices in advance
+Date: Mon, 19 Nov 2012 21:44:21 +0100
+Message-ID: <1610515.dOb8aMkzLk@vostro.rjw.lan>
+References: <1352977397-2280-1-git-send-email-mika.westerberg@linux.intel.com> <1855340.enMgVW1AIC@vostro.rjw.lan> <12675091.beenkZth4X@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from viridian.itc.Virginia.EDU ([128.143.12.139]:42013 "EHLO
-	viridian.itc.virginia.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754230Ab2KSSr7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Nov 2012 13:47:59 -0500
-In-Reply-To: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu>
+Received: from ogre.sisk.pl ([193.178.161.156]:53607 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751252Ab2KSUjz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 19 Nov 2012 15:39:55 -0500
+In-Reply-To: <12675091.beenkZth4X@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: gregkh@linuxfoundation.org
-Cc: linux-acpi@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Jean Delvare <khali@linux-fr.org>, ben-linux@fluff.org, w.sang@pengutronix.de, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
 
-CONFIG_HOTPLUG is going away as an option so __devexit is no
-longer needed.
+On Monday, November 19, 2012 06:45:22 PM Rafael J. Wysocki wrote:
+> On Monday, November 19, 2012 06:32:06 PM Rafael J. Wysocki wrote:
+> > On Monday, November 19, 2012 08:23:34 AM Greg Kroah-Hartman wrote:
+> > > On Sun, Nov 18, 2012 at 10:13:59PM +0100, Rafael J. Wysocki wrote:
+> > > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > > > 
+> > > > The current platform device creation and registration code in
+> > > > acpi_create_platform_device() is quite convoluted.  This function
+> > > > takes an ACPI device node as an argument and eventually calls
+> > > > platform_device_register_resndata() to create and register a
+> > > > platform device object on the basis of the information contained
+> > > > in that code.  However, it doesn't associate the new platform
+> > > > device with the ACPI node directly, but instead it relies on
+> > > > acpi_platform_notify(), called from within device_add(), to find
+> > > > that ACPI node again with the help of acpi_platform_find_device()
+> > > > and acpi_platform_match() and then attach the new platform device
+> > > > to it.  This causes an additional ACPI namespace walk to happen and
+> > > > is clearly suboptimal.
+> > > > 
+> > > > Use the observation that it is now possible to initialize the ACPI
+> > > > handle of a device before calling device_add() for it to make this
+> > > > code more straightforward.  Namely, add a new field to struct
+> > > > platform_device_info allowing us to pass the ACPI handle of interest
+> > > > to platform_device_register_full(), which will then use it to
+> > > > initialize the new device's ACPI handle before registering it.
+> > > > This will cause acpi_platform_notify() to use the ACPI handle from
+> > > > the device structure directly instead of using the .find_device()
+> > > > routine provided by the device's bus type.  In consequence,
+> > > > acpi_platform_bus, acpi_platform_find_device(), and
+> > > > acpi_platform_match() are not necessary any more, so remove them.
+> > > 
+> > > Why can't you use the platform_data * that is already in struct device
+> > > for this, instead of adding an acpi-specific field to the
+> > > platform_device structure?
+> > 
+> > Hmm, I kind of don't understand the question. :-)
+> > 
+> > Yes, we have acpi_handle in struct device (it actually is being added by a
+> > patch you've acked) and we use it.  The whole point here is to streamline
+> > of the initalization of that field.
+> > 
+> > > If not that, surely there is another field in struct device that you
+> > > could use that is free for this type of device?
+> > 
+> > Yes, there is one and as I said above. :-)
+> > 
+> > I'd be happy to use the struct device's field directly, but
+> > platform_device_register_full() allocates memory for the struct device in
+> > question, so that field actually doesn't exist yet when it is called.
+> > 
+> > > >  struct platform_device_info {
+> > > >  		struct device *parent;
+> > > > +		void *acpi_handle;
+> > > 
+> > > Oh, and if I do accept this, I want a "real" structure pointer here
+> > > please, not a void * "handle".  That way is a slippery slope to the
+> > > Windows kernel programming style :)
+> > 
+> > This is (void *), because the field being initialized is (void *).  That field,
+> > in turn, is (void *), because ACPICA defines it that way.  I thought about
+> > wrapping that in some more meaningless data type, but I did't find a way
+> 
+> s/meaningless/meaningful/
 
-Signed-off-by: Bill Pemberton <wfp5p@virginia.edu>
-Cc: linux-acpi@vger.kernel.org 
----
- drivers/acpi/apei/ghes.c | 2 +-
- drivers/acpi/hed.c       | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+Well, perhaps I'll describe the problem to you, maybe you can help. :-)
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 73bca11..7ae2750 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -994,7 +994,7 @@ err:
- 	return rc;
- }
- 
--static int __devexit ghes_remove(struct platform_device *ghes_dev)
-+static int ghes_remove(struct platform_device *ghes_dev)
- {
- 	struct ghes *ghes;
- 	struct acpi_hest_generic *generic;
-diff --git a/drivers/acpi/hed.c b/drivers/acpi/hed.c
-index 0ec28a3..a0cc796 100644
---- a/drivers/acpi/hed.c
-+++ b/drivers/acpi/hed.c
-@@ -70,7 +70,7 @@ static int acpi_hed_add(struct acpi_device *device)
- 	return 0;
- }
- 
--static int __devexit acpi_hed_remove(struct acpi_device *device, int type)
-+static int acpi_hed_remove(struct acpi_device *device, int type)
- {
- 	hed_handle = NULL;
- 	return 0;
+So, we want to have acpi_handle (or acpi_node) in addition to of_node in struct
+device (to be used in the analogous way plus for the execution of AML methods),
+but we don't want all users of device.h to have to include ACPI headers
+where the acpi_handle data type is defined.  For this reason, we're using
+(void *) as its data type now, which let's say I'm not really happy with.
+
+I've been thinking about that for quite a while, though, and I'm not really
+sure what to do about that.  Perhaps we could define something like
+
+struct acpi_dev_node {
+#ifdef CONFIG_ACPI
+	void *handle;
+#endif
+};
+
+in device.h and use that as "struct acpi_dev_node acpi_node;" in struct device.
+Then, we could add the following macro
+
+#ifdef CONFIG_ACPI
+#define ACPI_HANDLE(dev)	((dev)->acpi_node.handle)
+#else
+#define ACPI_HANDLE(dev)	(NULL)
+#endif
+
+and redefine DEVICE_ACPI_HANDLE(dev) as ((acpi_handle)ACPI_HANDLE(dev)).
+
+Then, the $subject patch would add "struct acpi_dev_node acpi_node;" to
+struct platform_device_info and use ACPI_HANDLE(dev) instead of accessing
+the struct device's field directly.
+
+I wonder what you think?
+
+Rafael
+
+
 -- 
-1.8.0
-
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
