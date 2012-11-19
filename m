@@ -1,87 +1,95 @@
-From: James Bottomley <James.Bottomley@HansenPartnership.com>
-Subject: Re: [PATCH v9 06/10] ata: zpodd: check zero power ready status
-Date: Mon, 19 Nov 2012 15:06:51 +0000
-Message-ID: <1353337611.2444.32.camel@dabdike.int.hansenpartnership.com>
-References: <1352443922-13734-1-git-send-email-aaron.lu@intel.com>
-	 <1352443922-13734-7-git-send-email-aaron.lu@intel.com>
-	 <20121112191303.GE5560@mtj.dyndns.org> <50A2FF6F.3080603@intel.com>
-	 <20121118150004.GJ7306@mtj.dyndns.org> <50A9A2F4.3020006@intel.com>
-	 <20121119145605.GC15971@htj.dyndns.org>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH v5 RESEND 1/5] ACPI: Add acpi_pr_<level>() interfaces
+Date: Mon, 19 Nov 2012 08:37:17 -0700
+Message-ID: <1353339437.10939.37.camel@misato.fc.hp.com>
+References: <1352214130-12055-1-git-send-email-toshi.kani@hp.com>
+	 <1352214130-12055-2-git-send-email-toshi.kani@hp.com>
+	 <5543281.izkzCt1DyB@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20121119145605.GC15971@htj.dyndns.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>
-Cc: Aaron Lu <aaron.lu@intel.com>, Jeff Garzik <jgarzik@pobox.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Jeff Wu <jeff.wu@amd.com>, Aaron Lu <aaron.lwe@gmail.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g1t0029.austin.hp.com ([15.216.28.36]:45685 "EHLO
+	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753328Ab2KSPpe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Nov 2012 10:45:34 -0500
+In-Reply-To: <5543281.izkzCt1DyB@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, linux-kernel@vger.kernel.org, joe@perches.com, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, vijaymohan.pandarathil@hp.com, imammedo@redhat.com, prarit@redhat.com
 
-On Mon, 2012-11-19 at 06:56 -0800, Tejun Heo wrote:
-> Hey, Aaron.
+On Mon, 2012-11-19 at 09:10 +0100, Rafael J. Wysocki wrote:
+> On Tuesday, November 06, 2012 08:02:06 AM Toshi Kani wrote:
+> > This patch introduces acpi_pr_<level>(), where <level> is a kernel
+> > message level such as err/warn/info, to support improved logging
+> > messages for ACPI, esp. for hotplug operations.  acpi_pr_<level>()
+> > appends "ACPI" prefix and ACPI object path to the messages.  This
+> > improves diagnosis of hotplug operations since an error message in
+> > a log file identifies an object that caused an issue.
+> > 
+> > acpi_pr_<level>() takes acpi_handle as an argument, which is passed
+> > to ACPI hotplug notify handlers from the ACPICA.  Therefore, it is
+> > always available unlike other kernel objects, such as device.
+> > 
+> > For example:
+> >   acpi_pr_err(handle, "Device don't exist, dropping EJECT\n");
+> > logs an error message like this at KERN_ERR.
+> >   ACPI: \_SB_.SCK4.CPU4: Device don't exist, dropping EJECT
+> >
+> > ACPI drivers can use acpi_pr_<level>() when they need to identify
+> > a target ACPI object path in their messages, such as error cases.
+> > The usage model is similar to dev_<level>().  acpi_pr_<level>() can
+> > be used when device is not created/valid, which may be the case in
+> > ACPI hotplug handlers.  ACPI object path is also consistent on the
+> > platform, unlike device name that changes over hotplug operations.
+> > 
+> > ACPI drivers should use dev_<level>() when device is valid and
+> > acpi_pr_<level>() is already used by the caller in its error path.
+> > Device name provides more user friendly information.
+> > 
+> > ACPI drivers also continue to use pr_<level>() when messages do not
+> > need to specify device information, such as boot-up messages.
+> > 
+> > Note: ACPI_[WARNING|INFO|ERROR]() are intended for the ACPICA and
+> > are not associated with the kernel message level.
 > 
-> On Mon, Nov 19, 2012 at 11:09:40AM +0800, Aaron Lu wrote:
-> > > What I'm confused about is what autopm does for devices w/o zpodd.
-> > > What happens then?  Is it gonna leave power on for the device and,
-> > > say, go on to suspend the controller?  But, how would that work for,
-> > > say, future devices with async notification for media events?
-> > 
-> > Maybe we shouldn't allow autopm for such devices?
+> Well, the idea is generally good, but unfortunately acpi_get_name() is
+> not a cheap operation.  Namely, it takes the global namespace mutex,
+> so your acpi_printk() may be a source of serious contention on that
+> lock if used excessively from concurrent threads.
 > 
-> Yeah, maybe.  It would be nice to be able to automatically power off
-> disks and ports which aren't being used tho.
-> 
-> > > That said, I can't say the snooping is pretty.  It's a rather nasty
-> > > thing to do.  So, libata now wants information from the event polling
-> > > in block layer, but reaching for block_device from ata_devices is
-> > > nasty too.  Hmmm... but aren't you already doing that to block polling
-> > > on a powered down device?
-> > 
-> > I was feeling brain damaged by this for some time :-)
-> > 
-> > Basically, only ATA layer is aware of the power off thing, and sr knows
-> > nothing about this(or it is not supposed to know this, at least, this is
-> > what SCSI people think) and once powered off, I do not want the poll to
-> > disturb the device, so I need to block the poll. I can't come up with
-> > another way to achieve this except this nasty way.
-> > 
-> > James suggests me to keep the poll, but emulate the command. The problem
-> > with this is, the autopm for resume will kick in on each poll, so I'll
-> > need to decide if power up the ODD for this time's resume is needed in
-> > port's runtime resume callback. This made things complex and it also put
-> > too much logic in the resume callback, which is not desired. And even if
-> > I keep the ODD in powered off state by emulating this poll command, its
-> > ancestor devices will still be resumed, and I may need to do some trick
-> > in their resume callback to avoid needless power/state transitions. This
-> > doesn't feel like an elegant way to solve this either.
-> > 
-> > So yes, I'm still using this _nasty_ way to make the ODD stay in powered
-> > off state as long as possible. But if there is other elegant ways to
-> > solve this, I would appreciate it and happily using it. Personally, I
-> > hope we can make sr aware of ZPODD, that would make the pain gone.
-> 
-> I really think we need a way for (auto)pm and event polling to talk to
-> each other so that autopm can tell event poll to sod off while pm is
-> in effect.  Trying to solve this from inside libata doesn't seem
-> right.  The problem, again, seems to be figuring out which hardware
-> device maps to which block device.  Hmmm... Any good ideas?
+> Do you think you can address this problem?
 
-I've asked the PM people several times about this, because it's a real
-problem for almost everything:  PM needs some type of top to bottom
-stack view, which the layering isolation we have within storage really
-doesn't cope with well.  No real suggestion has been forthcoming.
+Hi Rafael,
 
-The reason I think it should be emulated (in the acpi layer, not libata,
-but as long as it's not in SCSI, I'm not so fussed where it ends up) is
-because ZPODD is the software equivalent of ZPREADY, which will be done
-in hardware and will be effectively invisible to autopm in the same way
-that SCSI (and ATA) power management is mostly invisible.  If we
-currently do ZPREADY emulation in the low layer (i.e. ZPODD has exact
-ZPREADY emulation), we won't care (except for flipping the sofware bit)
-whether the device support ZPODD or ZPREADY and it will all just
-work(tm).  The industry expectation is that ZPODD is just a transition
-state between current power management and ZPREADY.
+I agree with you that the interface name may sound too generic as if it
+can be used for any way.  How about changing the interface name to
+acpi_hp_<level>() to clarify that it is intended for hot-plug operations
+only?  The key goal is to be able to identify a failed device in
+hot-plug error messages, so that we can diagnose an issue.  When used in
+hot-plug operations, especially in error paths, the lock contention is
+not an issue.  In regular code path (i.e. non-hot-plug operations),
+dev_<level>() should be used since device object is available.
 
-James
+Here is a measurement result for the interface.  When there is no
+locking contention, acpi_get_name() is reasonably fast as it does not
+execute AML.
+
+Avg. acpi_get_name()             587 ns
+Avg. printk()                   3420 ns
+Avg. kfree()                     238 ns
+Avg. acpi_get_time()+kfree()     825 ns
+
+
+> Moreover, this also means that acpi_printk() cannot be used from interrupt
+> context, so it is not a printk() replacement, which at least should be
+> documented.
+
+Right.  I will document it in the comment and change log.
+
+
+Thanks,
+-Toshi
 
 
