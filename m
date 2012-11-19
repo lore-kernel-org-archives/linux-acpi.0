@@ -1,42 +1,26 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH v9 05/10] libata: separate ATAPI code
-Date: Mon, 19 Nov 2012 10:21:15 +0800
-Message-ID: <50A9979B.1040309@intel.com>
-References: <1352443922-13734-1-git-send-email-aaron.lu@intel.com> <1352443922-13734-6-git-send-email-aaron.lu@intel.com> <20121112185710.GD5560@mtj.dyndns.org> <20121113124923.GA11672@aaronlu.sh.intel.com> <20121118150117.GK7306@mtj.dyndns.org>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH] ACPI / PM: Add check preventing transitioning to non-D0
+ state from D3.
+Date: Mon, 19 Nov 2012 02:31:28 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88BCD7A0@SHSMSX101.ccr.corp.intel.com>
+References: <e4ec829902580af84cddbba6e98ef54b33052b85.1352953283.git.lv.zheng@intel.com>
+ <2072306.j28QTtV7ui@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <20121118150117.GK7306@mtj.dyndns.org>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>
-Cc: Jeff Garzik <jgarzik@pobox.com>, James Bottomley <James.Bottomley@hansenpartnership.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>, Jeff Wu <jeff.wu@amd.com>, Aaron Lu <aaron.lwe@gmail.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:43565 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751749Ab2KSCcZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 18 Nov 2012 21:32:25 -0500
+In-Reply-To: <2072306.j28QTtV7ui@vostro.rjw.lan>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "Brown, Len" <len.brown@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On 11/18/2012 11:01 PM, Tejun Heo wrote:
-> On Tue, Nov 13, 2012 at 08:49:24PM +0800, Aaron Lu wrote:
->> On Mon, Nov 12, 2012 at 10:57:10AM -0800, Tejun Heo wrote:
->>> On Fri, Nov 09, 2012 at 02:51:57PM +0800, Aaron Lu wrote:
->>>> The atapi_eh_tur and atapi_eh_request_sense can be reused by ZPODD
->>>> code, so separate them out to a file named libata-atapi.c, and the
->>>> Makefile is modified accordingly. No functional changes should result
->>>> from this commit.
->>>
->>> Why is this change necessary?  This doesn't seem to help anything to
->>> me.
->>
->> Function zpready introduced in patch 6 used these 2 functions to see if
->> an ODD is in a zero power ready state.
-> 
-> And why zpready can't use the functions if they're in a different file?
-
-Oh, sure, they can be used.
-
-My thought is that, the 2 functions are for ATAPI and can be used by
-libata-eh, libata-zpodd and maybe others in the future, so it deserves
-a separate place. But if this is regarded as unnecessary, I will drop
-this patch.
-
-Thanks,
-Aaron
-
+PiBQbGVhc2UgY2hlY2sgdGhlIGxpbnV4LW5leHQgYnJhbmNoIG9mIGxpbnV4LXBtLmdpdCBhbmQg
+c2VlIGlmIHRoYXQncyB3aGF0IHlvdQ0KPiB3YW50ZWQuIDotKQ0KDQpMb3RzIG9mIGJ1Z3MgaW4g
+bXkgcGF0Y2guLi4NClRoYW5rcyBmb3IgZml4aW5nIHRoZW0uICBJIGZvdW5kIGl0IGluIHRoZSBs
+aW51eC1uZXh0IGJyYW5jaC4NCg0KQmVzdCByZWdhcmRzL0x2IFpoZW5nDQo=
