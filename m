@@ -1,256 +1,43 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [Update][PATCH 1/2] ACPI: Allow ACPI handles of devices to be initialized in advance
-Date: Mon, 19 Nov 2012 13:33:43 +0100
-Message-ID: <17373837.jND7WvLyAo@vostro.rjw.lan>
-References: <1352977397-2280-1-git-send-email-mika.westerberg@linux.intel.com> <5604758.tWMNMRG2En@vostro.rjw.lan> <20121119094234.GH17774@intel.com>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH v9 07/10] block: add a new interface to block events
+Date: Mon, 19 Nov 2012 06:50:09 -0800
+Message-ID: <20121119145009.GA15971@htj.dyndns.org>
+References: <20121118233531.GC25790@mtj.dyndns.org>
+ <Pine.LNX.4.44L0.1211182058450.10879-100000@netrider.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:52900 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752246Ab2KSM3Q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 19 Nov 2012 07:29:16 -0500
-In-Reply-To: <20121119094234.GH17774@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-scsi-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44L0.1211182058450.10879-100000@netrider.rowland.org>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Aaron Lu <aaron.lu@intel.com>, Jeff Garzik <jgarzik@pobox.com>, James Bottomley <James.Bottomley@hansenpartnership.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Jeff Wu <jeff.wu@amd.com>, Aaron Lu <aaron.lwe@gmail.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Jean Delvare <khali@linux-fr.org>, ben-linux@fluff.org, w.sang@pengutronix.de, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-On Monday, November 19, 2012 11:42:34 AM Mika Westerberg wrote:
-> On Sun, Nov 18, 2012 at 10:12:52PM +0100, Rafael J. Wysocki wrote:
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Sun, Nov 18, 2012 at 09:07:22PM -0500, Alan Stern wrote:
+> Hey...
+
+Hey, again. :P
+
+> > So, at least for SATA, I think what autopm can do is...
 > > 
-> > Currently, the ACPI handles of devices are initialized from within
-> > device_add(), by acpi_bind_one() called from acpi_platform_notify()
-> > which first uses the .find_device() routine provided by the device's
-> > bus type to find the matching device node in the ACPI namespace.
-> > This is a source of some computational overhead and, moreover, the
-> > correctness of the result depends on the implementation of
-> > .find_device() which is known to fail occasionally for some bus types
-> > (e.g. PCI).  In some cases, however, the corresponding ACPI device
-> > node is known already before calling device_add() for the given
-> > struct device object and the whole .find_device() dance in
-> > acpi_platform_notify() is then simply unnecessary.
+> > * Trigger zpodd if possible.
 > > 
-> > For this reason, make it possible to initialize the ACPI handles of
-> > devices before calling device_add() for them.  Modify
-> > acpi_platform_notify() to call acpi_bind_one() in advance to check
-> > the device's existing ACPI handle and skip the .find_device()
-> > search if that is successful.  Change acpi_bind_one() accordingly.
-> > 
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > ---
-> >  drivers/acpi/glue.c |   42 +++++++++++++++++++++++++++++++++---------
-> >  1 file changed, 33 insertions(+), 9 deletions(-)
-> > 
-> > Index: linux/drivers/acpi/glue.c
-> > ===================================================================
-> > --- linux.orig/drivers/acpi/glue.c
-> > +++ linux/drivers/acpi/glue.c
-> > @@ -135,41 +135,54 @@ static int acpi_bind_one(struct device *
-> >  	int retval = -EINVAL;
-> >  
-> >  	if (dev->acpi_handle) {
-> > -		dev_warn(dev, "Drivers changed 'acpi_handle'\n");
-> > -		return -EINVAL;
-> > +		if (handle) {
-> > +			dev_warn(dev, "ACPI handle is already set\n");
-> > +			return -EINVAL;
-> > +		} else {
-> > +			handle = dev->acpi_handle;
-> > +		}
-> >  	}
-> > +	if (!handle)
-> > +		return -EINVAL;
-> >  
-> >  	get_device(dev);
-> >  	status = acpi_bus_get_device(handle, &acpi_dev);
-> >  	if (ACPI_FAILURE(status))
-> >  		goto err;
-> >  
-> > -	physical_node = kzalloc(sizeof(struct acpi_device_physical_node),
-> > -		GFP_KERNEL);
-> > +	physical_node = kzalloc(sizeof(*physical_node), GFP_KERNEL);
+> > * Trigger suspend iff polling isn't happening on the device.
 > 
-> Here we allocate memory for the physical node...
-> 
-> >  	if (!physical_node) {
-> >  		retval = -ENOMEM;
-> >  		goto err;
-> >  	}
-> >  
-> >  	mutex_lock(&acpi_dev->physical_node_lock);
-> > +
-> > +	/* Sanity check. */
-> > +	list_for_each_entry(physical_node, &acpi_dev->physical_node_list, node)
-> 
-> .. and overwrite it here ;-)
+> That sums it up nicely.  Of course, the PM core is unaware of details
+> such as media polling.  What we can do is have the SATA runtime-idle
+> method return -EBUSY if the device isn't a ZPODD and if polling is
+> enabled.  Unfortunately I don't think there's any way currently to
+> trigger autopm when the user turns off polling.  Maybe something could
+> be added to the appropriate sysfs handler.
 
-Ah, good catch!
+Given that genhd event polling and PM are likely to interact with each
+other, I think it would be a good idea to implement a proper way for
+the two to communicate.  Dunno what it should be tho.  The tricky part
+would be mapping the block device to the underlying hardware one.
 
-> Maybe using a different variable for the sanity check?
-
-Yeah, I wanted to be overly smart. :-)
-
-> I've changed the SPI/I2C patches to use this as well and they got a lot
-> smaller as we don't have to do the .find_device() magic.
-> 
-> Once you have fixed the above, you can add my
-> 
-> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> 
-> to these two patches, if you like.
-
-I will.
-
-In the meantime, updated patch is appended.
-
-Thanks,
-Rafael
-
-
----
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Subject: ACPI: Allow ACPI handles of devices to be initialized in advance
-
-Currently, the ACPI handles of devices are initialized from within
-device_add(), by acpi_bind_one() called from acpi_platform_notify()
-which first uses the .find_device() routine provided by the device's
-bus type to find the matching device node in the ACPI namespace.
-This is a source of some computational overhead and, moreover, the
-correctness of the result depends on the implementation of
-.find_device() which is known to fail occasionally for some bus types
-(e.g. PCI).  In some cases, however, the corresponding ACPI device
-node is known already before calling device_add() for the given
-struct device object and the whole .find_device() dance in
-acpi_platform_notify() is then simply unnecessary.
-
-For this reason, make it possible to initialize the ACPI handles of
-devices before calling device_add() for them.  Modify
-acpi_platform_notify() to call acpi_bind_one() in advance to check
-the device's existing ACPI handle and skip the .find_device()
-search if that is successful.  Change acpi_bind_one() accordingly.
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/glue.c |   44 ++++++++++++++++++++++++++++++++++----------
- 1 file changed, 34 insertions(+), 10 deletions(-)
-
-Index: linux/drivers/acpi/glue.c
-===================================================================
---- linux.orig/drivers/acpi/glue.c
-+++ linux/drivers/acpi/glue.c
-@@ -130,46 +130,59 @@ static int acpi_bind_one(struct device *
- {
- 	struct acpi_device *acpi_dev;
- 	acpi_status status;
--	struct acpi_device_physical_node *physical_node;
-+	struct acpi_device_physical_node *physical_node, *pn;
- 	char physical_node_name[sizeof(PHYSICAL_NODE_STRING) + 2];
- 	int retval = -EINVAL;
- 
- 	if (dev->acpi_handle) {
--		dev_warn(dev, "Drivers changed 'acpi_handle'\n");
--		return -EINVAL;
-+		if (handle) {
-+			dev_warn(dev, "ACPI handle is already set\n");
-+			return -EINVAL;
-+		} else {
-+			handle = dev->acpi_handle;
-+		}
- 	}
-+	if (!handle)
-+		return -EINVAL;
- 
- 	get_device(dev);
- 	status = acpi_bus_get_device(handle, &acpi_dev);
- 	if (ACPI_FAILURE(status))
- 		goto err;
- 
--	physical_node = kzalloc(sizeof(struct acpi_device_physical_node),
--		GFP_KERNEL);
-+	physical_node = kzalloc(sizeof(*physical_node), GFP_KERNEL);
- 	if (!physical_node) {
- 		retval = -ENOMEM;
- 		goto err;
- 	}
- 
- 	mutex_lock(&acpi_dev->physical_node_lock);
-+
-+	/* Sanity check. */
-+	list_for_each_entry(pn, &acpi_dev->physical_node_list, node)
-+		if (pn->dev == dev) {
-+			dev_warn(dev, "Already associated with ACPI node\n");
-+			goto err_free;
-+		}
-+
- 	/* allocate physical node id according to physical_node_id_bitmap */
- 	physical_node->node_id =
- 		find_first_zero_bit(acpi_dev->physical_node_id_bitmap,
- 		ACPI_MAX_PHYSICAL_NODE);
- 	if (physical_node->node_id >= ACPI_MAX_PHYSICAL_NODE) {
- 		retval = -ENOSPC;
--		mutex_unlock(&acpi_dev->physical_node_lock);
--		kfree(physical_node);
--		goto err;
-+		goto err_free;
- 	}
- 
- 	set_bit(physical_node->node_id, acpi_dev->physical_node_id_bitmap);
- 	physical_node->dev = dev;
- 	list_add_tail(&physical_node->node, &acpi_dev->physical_node_list);
- 	acpi_dev->physical_node_count++;
-+
- 	mutex_unlock(&acpi_dev->physical_node_lock);
- 
--	dev->acpi_handle = handle;
-+	if (!dev->acpi_handle)
-+		dev->acpi_handle = handle;
- 
- 	if (!physical_node->node_id)
- 		strcpy(physical_node_name, PHYSICAL_NODE_STRING);
-@@ -187,8 +200,14 @@ static int acpi_bind_one(struct device *
- 	return 0;
- 
-  err:
-+	dev->acpi_handle = NULL;
- 	put_device(dev);
- 	return retval;
-+
-+ err_free:
-+	mutex_unlock(&acpi_dev->physical_node_lock);
-+	kfree(physical_node);
-+	goto err;
- }
- 
- static int acpi_unbind_one(struct device *dev)
-@@ -247,6 +266,10 @@ static int acpi_platform_notify(struct d
- 	acpi_handle handle;
- 	int ret = -EINVAL;
- 
-+	ret = acpi_bind_one(dev, NULL);
-+	if (!ret)
-+		goto out;
-+
- 	if (!dev->bus || !dev->parent) {
- 		/* bridge devices genernally haven't bus or parent */
- 		ret = acpi_find_bridge_device(dev, &handle);
-@@ -260,10 +283,11 @@ static int acpi_platform_notify(struct d
- 	}
- 	if ((ret = type->find_device(dev, &handle)) != 0)
- 		DBG("Can't get handler for %s\n", dev_name(dev));
--      end:
-+ end:
- 	if (!ret)
- 		acpi_bind_one(dev, handle);
- 
-+ out:
- #if ACPI_GLUE_DEBUG
- 	if (!ret) {
- 		struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-
+Thanks.
 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+tejun
