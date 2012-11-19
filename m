@@ -1,102 +1,330 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH 1/2] ACPI: Allow ACPI handles of devices to be
- initialized in advance
-Date: Mon, 19 Nov 2012 11:42:34 +0200
-Message-ID: <20121119094234.GH17774@intel.com>
-References: <1352977397-2280-1-git-send-email-mika.westerberg@linux.intel.com>
- <20121118155539.GE17774@intel.com>
- <1758879.PKgPhTGcB7@vostro.rjw.lan>
- <5604758.tWMNMRG2En@vostro.rjw.lan>
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: Re: [PATCH v3 11/12] memory-hotplug: remove sysfs file of node
+Date: Mon, 19 Nov 2012 19:08:55 +0900
+Message-ID: <50AA0537.1000501@jp.fujitsu.com>
+References: <1351763083-7905-1-git-send-email-wency@cn.fujitsu.com> <1351763083-7905-12-git-send-email-wency@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:42738 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753318Ab2KSJjZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 19 Nov 2012 04:39:25 -0500
-Content-Disposition: inline
-In-Reply-To: <5604758.tWMNMRG2En@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-sh-owner@vger.kernel.org>
+In-Reply-To: <1351763083-7905-12-git-send-email-wency@cn.fujitsu.com>
+Sender: linux-sh-owner@vger.kernel.org
+To: Wen Congyang <wency@cn.fujitsu.com>
+Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, David Rientjes <rientjes@google.com>, Jiang Liu <liuj97@gmail.com>, Len Brown <len.brown@intel.com>, benh@kernel.crashing.org, paulus@samba.org, Christoph Lameter <cl@linux.com>, Minchan Kim <minchan.kim@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Jianguo Wu <wujianguo@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Jean Delvare <khali@linux-fr.org>, ben-linux@fluff.org, w.sang@pengutronix.de, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-On Sun, Nov 18, 2012 at 10:12:52PM +0100, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Hi Wen,
+
+This patch cannot be applied, if I apply latest acpi framework's patch-set:
+
+https://lkml.org/lkml/2012/11/15/21
+
+Because acpi_memory_disable_device() is gone by the patch-set.
+
+I updated the patch and attached it on the mail.
+
+2012/11/01 18:44, Wen Congyang wrote:
+> This patch introduces a new function try_offline_node() to
+> remove sysfs file of node when all memory sections of this
+> node are removed. If some memory sections of this node are
+> not removed, this function does nothing.
 > 
-> Currently, the ACPI handles of devices are initialized from within
-> device_add(), by acpi_bind_one() called from acpi_platform_notify()
-> which first uses the .find_device() routine provided by the device's
-> bus type to find the matching device node in the ACPI namespace.
-> This is a source of some computational overhead and, moreover, the
-> correctness of the result depends on the implementation of
-> .find_device() which is known to fail occasionally for some bus types
-> (e.g. PCI).  In some cases, however, the corresponding ACPI device
-> node is known already before calling device_add() for the given
-> struct device object and the whole .find_device() dance in
-> acpi_platform_notify() is then simply unnecessary.
-> 
-> For this reason, make it possible to initialize the ACPI handles of
-> devices before calling device_add() for them.  Modify
-> acpi_platform_notify() to call acpi_bind_one() in advance to check
-> the device's existing ACPI handle and skip the .find_device()
-> search if that is successful.  Change acpi_bind_one() accordingly.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> CC: David Rientjes <rientjes@google.com>
+> CC: Jiang Liu <liuj97@gmail.com>
+> CC: Len Brown <len.brown@intel.com>
+> CC: Christoph Lameter <cl@linux.com>
+> Cc: Minchan Kim <minchan.kim@gmail.com>
+> CC: Andrew Morton <akpm@linux-foundation.org>
+> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+> CC: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+> Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
 > ---
->  drivers/acpi/glue.c |   42 +++++++++++++++++++++++++++++++++---------
->  1 file changed, 33 insertions(+), 9 deletions(-)
+>   drivers/acpi/acpi_memhotplug.c |  8 +++++-
+>   include/linux/memory_hotplug.h |  2 +-
+>   mm/memory_hotplug.c            | 58 ++++++++++++++++++++++++++++++++++++++++--
+>   3 files changed, 64 insertions(+), 4 deletions(-)
 > 
-> Index: linux/drivers/acpi/glue.c
-> ===================================================================
-> --- linux.orig/drivers/acpi/glue.c
-> +++ linux/drivers/acpi/glue.c
-> @@ -135,41 +135,54 @@ static int acpi_bind_one(struct device *
->  	int retval = -EINVAL;
->  
->  	if (dev->acpi_handle) {
-> -		dev_warn(dev, "Drivers changed 'acpi_handle'\n");
-> -		return -EINVAL;
-> +		if (handle) {
-> +			dev_warn(dev, "ACPI handle is already set\n");
-> +			return -EINVAL;
-> +		} else {
-> +			handle = dev->acpi_handle;
-> +		}
->  	}
-> +	if (!handle)
-> +		return -EINVAL;
->  
->  	get_device(dev);
->  	status = acpi_bus_get_device(handle, &acpi_dev);
->  	if (ACPI_FAILURE(status))
->  		goto err;
->  
-> -	physical_node = kzalloc(sizeof(struct acpi_device_physical_node),
-> -		GFP_KERNEL);
-> +	physical_node = kzalloc(sizeof(*physical_node), GFP_KERNEL);
-
-Here we allocate memory for the physical node...
-
->  	if (!physical_node) {
->  		retval = -ENOMEM;
->  		goto err;
->  	}
->  
->  	mutex_lock(&acpi_dev->physical_node_lock);
+> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+> index 24c807f..0780f99 100644
+> --- a/drivers/acpi/acpi_memhotplug.c
+> +++ b/drivers/acpi/acpi_memhotplug.c
+> @@ -310,7 +310,9 @@ static int acpi_memory_disable_device(struct acpi_memory_device *mem_device)
+>   {
+>   	int result;
+>   	struct acpi_memory_info *info, *n;
+> +	int node;
+>   
+> +	node = acpi_get_node(mem_device->device->handle);
+>   
+>   	/*
+>   	 * Ask the VM to offline this memory range.
+> @@ -318,7 +320,11 @@ static int acpi_memory_disable_device(struct acpi_memory_device *mem_device)
+>   	 */
+>   	list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
+>   		if (info->enabled) {
+> -			result = remove_memory(info->start_addr, info->length);
+> +			if (node < 0)
+> +				node = memory_add_physaddr_to_nid(
+> +					info->start_addr);
+> +			result = remove_memory(node, info->start_addr,
+> +				info->length);
+>   			if (result)
+>   				return result;
+>   		}
+> diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+> index d4c4402..7b4cfe6 100644
+> --- a/include/linux/memory_hotplug.h
+> +++ b/include/linux/memory_hotplug.h
+> @@ -231,7 +231,7 @@ extern int arch_add_memory(int nid, u64 start, u64 size);
+>   extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
+>   extern int offline_memory_block(struct memory_block *mem);
+>   extern bool is_memblock_offlined(struct memory_block *mem);
+> -extern int remove_memory(u64 start, u64 size);
+> +extern int remove_memory(int node, u64 start, u64 size);
+>   extern int sparse_add_one_section(struct zone *zone, unsigned long start_pfn,
+>   								int nr_pages);
+>   extern void sparse_remove_one_section(struct zone *zone, struct mem_section *ms);
+> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+> index 7bcced0..d965da3 100644
+> --- a/mm/memory_hotplug.c
+> +++ b/mm/memory_hotplug.c
+> @@ -29,6 +29,7 @@
+>   #include <linux/suspend.h>
+>   #include <linux/mm_inline.h>
+>   #include <linux/firmware-map.h>
+> +#include <linux/stop_machine.h>
+>   
+>   #include <asm/tlbflush.h>
+>   
+> @@ -1299,7 +1300,58 @@ static int is_memblock_offlined_cb(struct memory_block *mem, void *arg)
+>   	return ret;
+>   }
+>   
+> -int __ref remove_memory(u64 start, u64 size)
+> +static int check_cpu_on_node(void *data)
+> +{
+> +	struct pglist_data *pgdat = data;
+> +	int cpu;
 > +
-> +	/* Sanity check. */
-> +	list_for_each_entry(physical_node, &acpi_dev->physical_node_list, node)
+> +	for_each_present_cpu(cpu) {
+> +		if (cpu_to_node(cpu) == pgdat->node_id)
+> +			/*
+> +			 * the cpu on this node isn't removed, and we can't
+> +			 * offline this node.
+> +			 */
+> +			return -EBUSY;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +/* offline the node if all memory sections of this node are removed */
+> +static void try_offline_node(int nid)
+> +{
+> +	unsigned long start_pfn = NODE_DATA(nid)->node_start_pfn;
+> +	unsigned long end_pfn = start_pfn + NODE_DATA(nid)->node_spanned_pages;
+> +	unsigned long pfn;
+> +
+> +	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
+> +		unsigned long section_nr = pfn_to_section_nr(pfn);
+> +
+> +		if (!present_section_nr(section_nr))
+> +			continue;
+> +
+> +		if (pfn_to_nid(pfn) != nid)
+> +			continue;
+> +
+> +		/*
+> +		 * some memory sections of this node are not removed, and we
+> +		 * can't offline node now.
+> +		 */
+> +		return;
+> +	}
+> +
+> +	if (stop_machine(check_cpu_on_node, NODE_DATA(nid), NULL))
+> +		return;
+> +
+> +	/*
+> +	 * all memory/cpu of this node are removed, we can offline this
+> +	 * node now.
+> +	 */
+> +	node_set_offline(nid);
+> +	unregister_one_node(nid);
+> +}
+> +
+> +int __ref remove_memory(int nid, u64 start, u64 size)
+>   {
+>   	unsigned long start_pfn, end_pfn;
+>   	int ret = 0;
+> @@ -1346,6 +1398,8 @@ repeat:
+>   
+>   	arch_remove_memory(start, size);
+>   
+> +	try_offline_node(nid);
+> +
+>   	unlock_memory_hotplug();
+>   
+>   	return 0;
+> @@ -1355,7 +1409,7 @@ int offline_pages(unsigned long start_pfn, unsigned long nr_pages)
+>   {
+>   	return -EINVAL;
+>   }
+> -int remove_memory(u64 start, u64 size)
+> +int remove_memory(int nid, u64 start, u64 size)
+>   {
+>   	return -EINVAL;
+>   }
+> 
 
-.. and overwrite it here ;-)
+---
+This patch introduces a new function try_offline_node() to
+remove sysfs file of node when all memory sections of this
+node are removed. If some memory sections of this node are
+not removed, this function does nothing.
 
-Maybe using a different variable for the sanity check?
+CC: David Rientjes <rientjes@google.com>
+CC: Jiang Liu <liuj97@gmail.com>
+CC: Len Brown <len.brown@intel.com>
+CC: Christoph Lameter <cl@linux.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+CC: Andrew Morton <akpm@linux-foundation.org>
+CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+CC: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+---
+ drivers/acpi/acpi_memhotplug.c |    9 +++++-
+ include/linux/memory_hotplug.h |    2 -
+ mm/memory_hotplug.c            |   58 +++++++++++++++++++++++++++++++++++++++--
+ 3 files changed, 65 insertions(+), 4 deletions(-)
 
-I've changed the SPI/I2C patches to use this as well and they got a lot
-smaller as we don't have to do the .find_device() magic.
+Index: linux-3.7-rc6/drivers/acpi/acpi_memhotplug.c
+===================================================================
+--- linux-3.7-rc6.orig/drivers/acpi/acpi_memhotplug.c	2012-11-19 16:16:55.161912688 +0900
++++ linux-3.7-rc6/drivers/acpi/acpi_memhotplug.c	2012-11-19 16:17:05.346912109 +0900
+@@ -295,6 +295,9 @@ static int acpi_memory_remove_memory(str
+ {
+ 	int result = 0;
+ 	struct acpi_memory_info *info, *n;
++	int node;
++
++	node = acpi_get_node(mem_device->device->handle);
+ 
+ 	list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
+ 		if (info->failed)
+@@ -308,7 +311,11 @@ static int acpi_memory_remove_memory(str
+ 			 */
+ 			return -EBUSY;
+ 
+-		result = remove_memory(info->start_addr, info->length);
++		if (node < 0)
++			node = memory_add_physaddr_to_nid(
++				info->start_addr);
++		result = remove_memory(node, info->start_addr,
++			info->length);
+ 		if (result)
+ 			return result;
+ 
+Index: linux-3.7-rc6/include/linux/memory_hotplug.h
+===================================================================
+--- linux-3.7-rc6.orig/include/linux/memory_hotplug.h	2012-11-19 16:16:55.167912687 +0900
++++ linux-3.7-rc6/include/linux/memory_hotplug.h	2012-11-19 16:17:05.348912109 +0900
+@@ -242,7 +242,7 @@ extern int arch_add_memory(int nid, u64 
+ extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
+ extern int offline_memory_block(struct memory_block *mem);
+ extern bool is_memblock_offlined(struct memory_block *mem);
+-extern int remove_memory(u64 start, u64 size);
++extern int remove_memory(int node, u64 start, u64 size);
+ extern int sparse_add_one_section(struct zone *zone, unsigned long start_pfn,
+ 								int nr_pages);
+ extern void sparse_remove_one_section(struct zone *zone, struct mem_section *ms);
+Index: linux-3.7-rc6/mm/memory_hotplug.c
+===================================================================
+--- linux-3.7-rc6.orig/mm/memory_hotplug.c	2012-11-19 16:16:55.164912687 +0900
++++ linux-3.7-rc6/mm/memory_hotplug.c	2012-11-19 16:17:05.356912108 +0900
+@@ -29,6 +29,7 @@
+ #include <linux/suspend.h>
+ #include <linux/mm_inline.h>
+ #include <linux/firmware-map.h>
++#include <linux/stop_machine.h>
+ 
+ #include <asm/tlbflush.h>
+ 
+@@ -1652,7 +1653,58 @@ static int is_memblock_offlined_cb(struc
+ 	return ret;
+ }
+ 
+-int __ref remove_memory(u64 start, u64 size)
++static int check_cpu_on_node(void *data)
++{
++	struct pglist_data *pgdat = data;
++	int cpu;
++
++	for_each_present_cpu(cpu) {
++		if (cpu_to_node(cpu) == pgdat->node_id)
++			/*
++			 * the cpu on this node isn't removed, and we can't
++			 * offline this node.
++			 */
++			return -EBUSY;
++	}
++
++	return 0;
++}
++
++/* offline the node if all memory sections of this node are removed */
++static void try_offline_node(int nid)
++{
++	unsigned long start_pfn = NODE_DATA(nid)->node_start_pfn;
++	unsigned long end_pfn = start_pfn + NODE_DATA(nid)->node_spanned_pages;
++	unsigned long pfn;
++
++	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
++		unsigned long section_nr = pfn_to_section_nr(pfn);
++
++		if (!present_section_nr(section_nr))
++			continue;
++
++		if (pfn_to_nid(pfn) != nid)
++			continue;
++
++		/*
++		 * some memory sections of this node are not removed, and we
++		 * can't offline node now.
++		 */
++		return;
++	}
++
++	if (stop_machine(check_cpu_on_node, NODE_DATA(nid), NULL))
++		return;
++
++	/*
++	 * all memory/cpu of this node are removed, we can offline this
++	 * node now.
++	 */
++	node_set_offline(nid);
++	unregister_one_node(nid);
++}
++
++int __ref remove_memory(int nid, u64 start, u64 size)
+ {
+ 	unsigned long start_pfn, end_pfn;
+ 	int ret = 0;
+@@ -1699,6 +1751,8 @@ repeat:
+ 
+ 	arch_remove_memory(start, size);
+ 
++	try_offline_node(nid);
++
+ 	unlock_memory_hotplug();
+ 
+ 	return 0;
+@@ -1708,7 +1762,7 @@ int offline_pages(unsigned long start_pf
+ {
+ 	return -EINVAL;
+ }
+-int remove_memory(u64 start, u64 size)
++int remove_memory(int nid, u64 start, u64 size)
+ {
+ 	return -EINVAL;
+ }
 
-Once you have fixed the above, you can add my
-
-Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-
-to these two patches, if you like.
