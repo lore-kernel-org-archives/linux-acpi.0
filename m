@@ -1,16 +1,16 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [PATCH v2 3/3 UPDATED] i2c / ACPI: add ACPI enumeration support
-Date: Tue, 20 Nov 2012 00:15:43 +0100
-Message-ID: <8597770.otb1GkNMSN@vostro.rjw.lan>
+Date: Tue, 20 Nov 2012 00:28:11 +0100
+Message-ID: <1803580.oEdftF4n8y@vostro.rjw.lan>
 References: <2439178.tCj2rUMYJS@vostro.rjw.lan> <20121117095537.GC17774@intel.com> <CAErSpo46YMLg=AJgtx=bouWJKz0eMTm5GA3s3+=8Z8-_GLu-9g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:53857 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([193.178.161.156]:53894 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752502Ab2KSXLR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 19 Nov 2012 18:11:17 -0500
+	id S1753158Ab2KSXXp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 19 Nov 2012 18:23:45 -0500
 In-Reply-To: <CAErSpo46YMLg=AJgtx=bouWJKz0eMTm5GA3s3+=8Z8-_GLu-9g@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -119,27 +119,15 @@ On Monday, November 19, 2012 03:49:25 PM Bjorn Helgaas wrote:
 > the intent of the spec, which seems clearly to be "start with the
 > _HID/_CID to identify devices," so it violates the principle of least
 > surprise.
-
-This is a chicken-and-egg problem, kind of.  Namely, we need a struct
-i2c_device (in this particular case) for a driver to bind to, before the
-driver will use its device IDs to identify it. :-)
-
+> 
 > I'm not sure it's even safe to rely on _CRS being useful until after
 > the OS runs _SRS.  Sec 6.2 of the spec (ACPI 5.0) says the OS uses
 > _PRS to determine what resources the device needs and _SRS to assign
 > them, and it *may* use _CRS to learn any current assignments (I know
-> this doesn't match current Linux behavior very well).
-
-Ideally, we'll do all those things some time in the future.  We'll then
-make sure that acpi_i2c_register_devices() doesn't run before we've
-done them.
-
-> I interpret that to mean the device may be disabled and return nothing in
-> _CRS until after the OS evaluates _SRS to enable the device.
-
-Yes, that may be the case in theory.  No, I haven't seen any evidence that it
-happens in practice.
- 
+> this doesn't match current Linux behavior very well).  I interpret
+> that to mean the device may be disabled and return nothing in _CRS
+> until after the OS evaluates _SRS to enable the device.
+> 
 > I think it will make it harder to reason about and refactor ACPI
 > because it's "unusual."  For example, the acpi_i2c_register_devices ->
 > acpi_i2c_add_device path allocates a new struct device (in struct
@@ -147,66 +135,23 @@ happens in practice.
 > acpi_device, in struct pnp_dev, *and* in struct i2c_client, and all
 > refer to the same thing.  What does that mean?  The sysfs picture
 > seems confusing to me.
-
-We don't want that in pnp_dev and we'll make this one go away going forward.
-
-Also, we don't want drivers to bind to the one in struct acpi_device,
-so that struct acpi_device only is a representation of an ACPI device node
-(analogously to PCI).  The fact that it is visible through sysfs doesn't
-seem to hurt (for PCI it even helps sometimes :-)).
-
+> 
 > I assume you mean the acpi_platform_device_ids[] table you added with
 > 91e56878058.  Having a table of IDs that are treated specially by the
 > core is a bit of a concern for me because it means we need to add
-> things to it every time a new platform device comes along.
+> things to it every time a new platform device comes along.  The patch
+> didn't include clear criteria for deciding what qualifies.
 
-That's a safety measure so that adding things handled by the new code is
-under tight control to start with.  We're going to get rid of it at one
-point, when we decide it's safe.
+The current criterion is: If we know for a fact that the given device ID
+matches a piece of hardware that we have an existing platform driver for
+(e.g. an SPI controller), we'll add it to that table.  For now, that's
+about it (although the "vision" is to extend that to other situations
+and, ideally, to get rid of that table in the future).
 
-> The patch didn't include clear criteria for deciding what qualifies.  For
-> example, I don't know whether PCI host bridges would qualify as
-> platform devices.  I guess maybe they would, because they don't have a
-> bus (though of course they have acpi_bus_type like all other ACPI
-> devices)?
-
-They would in principle, but they are kind of special.  We may want to have
-a special bus type for them.
-
-I would like to make acpi_bus_type go away in the future, if possible,
-because it's a source of major confusion (as this very thread shows clearly :-)).
-
-> > The implementation follows the Device Tree as much as possible so that
-> > adding support for DT and ACPI to a driver would be similar and thus easy
-> > for people who know either method.
-> >
-> > An alternative would be to create PNP or ACPI glue drivers for each device
-> > that then create the corresponding real device like platform or I2C which
-> > means that we need add much more lines of unnecessary code to the kernel
-> > compared to adding the ACPI/PNP IDs to the driver which takes only few
-> > lines of code.
-> >
-> > We still allow more complex configuration with the means of
-> > dev->acpi_handle. So for example if driver needs to call _DSM in order to
-> > retrieve some parameters for the device it can do so with the help of
-> > dev->acpi_handle.
-> 
-> I think the benefit here is that you can merely point
-> .acpi_match_table at an acpi_device_id[] table, then use
-> platform_get_resource() as a generic way to get resources, whether the
-> platform device came from OF, ACPI, etc.  The alternative would be to
-> add, e.g., a PNP driver with a .probe() method that uses
-> pnp_get_resource().  That's not very much code, but it is more, even
-> if the .probe() method just calls a device registration function
-> that's shared across bus types.
-> 
-> That benefit seems like a great thing, and my question then is why
-> wouldn't we just do it across the board and make platform devices for
-> *all* ACPI devices without having the I2C and SPI special cases?
-
-Simply because there are existing I2C and SPI drivers for some IP blocks
-are represented by those ACPI device nodes and we want to use them to
-handles those devices. :-)
+All of that is about avoiding the need to have two different drivers for the
+same piece of hardware, just because once it is used in a system with an
+ACPI BIOS, and some other time it is used in a system where we get device
+information from Device Trees.  And yes, that applies to PCI host bridges too. :-)
 
 Thanks,
 Rafael
