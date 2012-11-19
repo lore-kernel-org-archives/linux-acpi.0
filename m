@@ -1,34 +1,71 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH v5 RESEND 1/5] ACPI: Add acpi_pr_<level>() interfaces
-Date: Mon, 19 Nov 2012 08:06:32 -0800
-Message-ID: <1353341192.5287.9.camel@joe-AO722>
-References: <1352214130-12055-1-git-send-email-toshi.kani@hp.com>
-	 <1352214130-12055-2-git-send-email-toshi.kani@hp.com>
-	 <1353315374.3129.3.camel@joe-AO722>
-	 <1353340280.10939.42.camel@misato.fc.hp.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH 2/2] ACPI / platform: Initialize ACPI handles of platform
+ devices in advance
+Date: Mon, 19 Nov 2012 08:23:34 -0800
+Message-ID: <20121119162334.GA1653@kroah.com>
+References: <1352977397-2280-1-git-send-email-mika.westerberg@linux.intel.com>
+ <20121118155539.GE17774@intel.com>
+ <1758879.PKgPhTGcB7@vostro.rjw.lan>
+ <676649340.5Y2WB7IFNB@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from perches-mx.perches.com ([206.117.179.246]:40485 "EHLO
-	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752355Ab2KSQGc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 19 Nov 2012 11:06:32 -0500
-In-Reply-To: <1353340280.10939.42.camel@misato.fc.hp.com>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:33496 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753496Ab2KSQXj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Nov 2012 11:23:39 -0500
+Received: by mail-pb0-f46.google.com with SMTP id wy7so3571890pbc.19
+        for <linux-acpi@vger.kernel.org>; Mon, 19 Nov 2012 08:23:38 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <676649340.5Y2WB7IFNB@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: linux-acpi@vger.kernel.org, rjw@sisk.pl, lenb@kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, vijaymohan.pandarathil@hp.com, imammedo@redhat.com, prarit@redhat.com
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Jean Delvare <khali@linux-fr.org>, ben-linux@fluff.org, w.sang@pengutronix.de, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
 
-On Mon, 2012-11-19 at 08:51 -0700, Toshi Kani wrote:
-> On Mon, 2012-11-19 at 00:56 -0800, Joe Perches wrote:
-> > is acpi_bus.h really the right file for these prototypes?
-> This interface is limited for ACPI, so it should be declared in a header
-> file under include/acpi.  Among the files in this directory, acpi_bus.h
-> seems to be a good fit as it declares the interfaces provided by ACPI
-> core.
+On Sun, Nov 18, 2012 at 10:13:59PM +0100, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> The current platform device creation and registration code in
+> acpi_create_platform_device() is quite convoluted.  This function
+> takes an ACPI device node as an argument and eventually calls
+> platform_device_register_resndata() to create and register a
+> platform device object on the basis of the information contained
+> in that code.  However, it doesn't associate the new platform
+> device with the ACPI node directly, but instead it relies on
+> acpi_platform_notify(), called from within device_add(), to find
+> that ACPI node again with the help of acpi_platform_find_device()
+> and acpi_platform_match() and then attach the new platform device
+> to it.  This causes an additional ACPI namespace walk to happen and
+> is clearly suboptimal.
+> 
+> Use the observation that it is now possible to initialize the ACPI
+> handle of a device before calling device_add() for it to make this
+> code more straightforward.  Namely, add a new field to struct
+> platform_device_info allowing us to pass the ACPI handle of interest
+> to platform_device_register_full(), which will then use it to
+> initialize the new device's ACPI handle before registering it.
+> This will cause acpi_platform_notify() to use the ACPI handle from
+> the device structure directly instead of using the .find_device()
+> routine provided by the device's bus type.  In consequence,
+> acpi_platform_bus, acpi_platform_find_device(), and
+> acpi_platform_match() are not necessary any more, so remove them.
 
-I'd've put them in acpi.h or maybe created acpi_utils.h 
+Why can't you use the platform_data * that is already in struct device
+for this, instead of adding an acpi-specific field to the
+platform_device structure?
 
-cheers, Joe
+If not that, surely there is another field in struct device that you
+could use that is free for this type of device?
 
+>  struct platform_device_info {
+>  		struct device *parent;
+> +		void *acpi_handle;
+
+Oh, and if I do accept this, I want a "real" structure pointer here
+please, not a void * "handle".  That way is a slippery slope to the
+Windows kernel programming style :)
+
+thanks,
+
+greg k-h
