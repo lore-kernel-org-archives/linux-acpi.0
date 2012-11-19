@@ -1,17 +1,21 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [PATCH 2/2] ACPI / platform: Initialize ACPI handles of platform devices in advance
-Date: Mon, 19 Nov 2012 18:45:22 +0100
-Message-ID: <12675091.beenkZth4X@vostro.rjw.lan>
+Date: Mon, 19 Nov 2012 19:25:08 +0100
+Message-ID: <4256205.7vQh2av97P@vostro.rjw.lan>
 References: <1352977397-2280-1-git-send-email-mika.westerberg@linux.intel.com> <20121119162334.GA1653@kroah.com> <1855340.enMgVW1AIC@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([193.178.161.156]:53396 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752812Ab2KSSUm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 19 Nov 2012 13:20:42 -0500
 In-Reply-To: <1855340.enMgVW1AIC@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Jean Delvare <khali@linux-fr.org>, ben-linux@fluff.org, w.sang@pengutronix.de, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
 On Monday, November 19, 2012 06:32:06 PM Rafael J. Wysocki wrote:
 > On Monday, November 19, 2012 08:23:34 AM Greg Kroah-Hartman wrote:
@@ -61,22 +65,16 @@ On Monday, November 19, 2012 06:32:06 PM Rafael J. Wysocki wrote:
 > I'd be happy to use the struct device's field directly, but
 > platform_device_register_full() allocates memory for the struct device in
 > question, so that field actually doesn't exist yet when it is called.
-> 
-> > >  struct platform_device_info {
-> > >  		struct device *parent;
-> > > +		void *acpi_handle;
-> > 
-> > Oh, and if I do accept this, I want a "real" structure pointer here
-> > please, not a void * "handle".  That way is a slippery slope to the
-> > Windows kernel programming style :)
-> 
-> This is (void *), because the field being initialized is (void *).  That field,
-> in turn, is (void *), because ACPICA defines it that way.  I thought about
-> wrapping that in some more meaningless data type, but I did't find a way
 
-s/meaningless/meaningful/
+So what happens is we want to use platform_device_register_full(), because
+it initializes a struct platform_device for use and registers it for us, so we
+don't need to worry about all that.  However, platform_device_register_full()
+also creates the struct platform_device it registers and we need to let it
+know what value to put into the acpi_handle field of that struct platform_device
+object's struct device component.  That's what this all is about. :-)
 
-(/me hides)
+Thanks,
+Rafael
 
 
 -- 
