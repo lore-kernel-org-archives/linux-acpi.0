@@ -1,73 +1,159 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH v9 07/10] block: add a new interface to block events
-Date: Mon, 19 Nov 2012 11:21:53 +0800
-Message-ID: <50A9A5D1.5060900@intel.com>
-References: <Pine.LNX.4.44L0.1211182058450.10879-100000@netrider.rowland.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v5 RESEND 1/5] ACPI: Add acpi_pr_<level>() interfaces
+Date: Mon, 19 Nov 2012 09:10:58 +0100
+Message-ID: <5543281.izkzCt1DyB@vostro.rjw.lan>
+References: <1352214130-12055-1-git-send-email-toshi.kani@hp.com> <1352214130-12055-2-git-send-email-toshi.kani@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.1211182058450.10879-100000@netrider.rowland.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>, Tejun Heo <tj@kernel.org>
-Cc: Jeff Garzik <jgarzik@pobox.com>, James Bottomley <James.Bottomley@hansenpartnership.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Jeff Wu <jeff.wu@amd.com>, Aaron Lu <aaron.lwe@gmail.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1352214130-12055-2-git-send-email-toshi.kani@hp.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, linux-kernel@vger.kernel.org, joe@perches.com, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, vijaymohan.pandarathil@hp.com, imammedo@redhat.com, prarit@redhat.com
 List-Id: linux-acpi@vger.kernel.org
 
-On 11/19/2012 10:07 AM, Alan Stern wrote:
-> On Sun, 18 Nov 2012, Tejun Heo wrote:
+On Tuesday, November 06, 2012 08:02:06 AM Toshi Kani wrote:
+> This patch introduces acpi_pr_<level>(), where <level> is a kernel
+> message level such as err/warn/info, to support improved logging
+> messages for ACPI, esp. for hotplug operations.  acpi_pr_<level>()
+> appends "ACPI" prefix and ACPI object path to the messages.  This
+> improves diagnosis of hotplug operations since an error message in
+> a log file identifies an object that caused an issue.
 > 
->> Hey, Alan.
+> acpi_pr_<level>() takes acpi_handle as an argument, which is passed
+> to ACPI hotplug notify handlers from the ACPICA.  Therefore, it is
+> always available unlike other kernel objects, such as device.
 > 
-> Hey...
+> For example:
+>   acpi_pr_err(handle, "Device don't exist, dropping EJECT\n");
+> logs an error message like this at KERN_ERR.
+>   ACPI: \_SB_.SCK4.CPU4: Device don't exist, dropping EJECT
+>
+> ACPI drivers can use acpi_pr_<level>() when they need to identify
+> a target ACPI object path in their messages, such as error cases.
+> The usage model is similar to dev_<level>().  acpi_pr_<level>() can
+> be used when device is not created/valid, which may be the case in
+> ACPI hotplug handlers.  ACPI object path is also consistent on the
+> platform, unlike device name that changes over hotplug operations.
 > 
->> It's controlled by /sys/class/scsi_host/hostX/link_power_management.
->> Once enabled, the power saving is completedly handled by hardware.  If
->> link stays idle longer than certain duration, the hardware initiates
->> low power state and leaves it when something needs to happen.
->>
->>>> So, this whole autopm thing doesn't sound like a good idea to me.
->>>
->>> No doubt it's better suited to some devices than to others.
->>
->> Yeah, SATA seems to need a different approach than USB.
+> ACPI drivers should use dev_<level>() when device is valid and
+> acpi_pr_<level>() is already used by the caller in its error path.
+> Device name provides more user friendly information.
 > 
-> Based on your description, I agree.
+> ACPI drivers also continue to use pr_<level>() when messages do not
+> need to specify device information, such as boot-up messages.
 > 
->>> That may be true for SATA.  For USB optical drives, it does make sense
->>> to power-down the host controller when the drive isn't in use.  USB
->>> suspend/resume takes on the order of 50-100 ms or so.
->>
->> I see.  For SATA too, the controller / link bring up doesn't take too
->> long.  The crappy part is what the attached, especially ATAPI, devices
->> would do after such events as those events will be visible to them
->> basically as random link resets.
->>
->> So, at least for SATA, I think what autopm can do is...
->>
->> * Trigger zpodd if possible.
->>
->> * Trigger suspend iff polling isn't happening on the device.
-> 
-> That sums it up nicely.  Of course, the PM core is unaware of details
-> such as media polling.  What we can do is have the SATA runtime-idle
-> method return -EBUSY if the device isn't a ZPODD and if polling is
-> enabled.  Unfortunately I don't think there's any way currently to
-> trigger autopm when the user turns off polling.  Maybe something could
-> be added to the appropriate sysfs handler.
+> Note: ACPI_[WARNING|INFO|ERROR]() are intended for the ACPICA and
+> are not associated with the kernel message level.
 
-OK, thanks for your(both of you) suggestions.
+Well, the idea is generally good, but unfortunately acpi_get_name() is
+not a cheap operation.  Namely, it takes the global namespace mutex,
+so your acpi_printk() may be a source of serious contention on that
+lock if used excessively from concurrent threads.
 
-But probably for ZPODD devices first, as it has a clear use case and
-should already have productions. For async notification capable ODDs,
-I'll leave it for someone else or maybe at a later time if I can get
-such a device to test on.
+Do you think you can address this problem?
 
-To conclude, the ata port's runtime idle callback will return 0 when:
-1 It attached a ZPODD capable ODD;
-2 Or it attached a hard disk.
-For all other cases, it will return -EBUSY.
-Does this look correct?
+Moreover, this also means that acpi_printk() cannot be used from interrupt
+context, so it is not a printk() replacement, which at least should be
+documented.
 
 Thanks,
-Aaron
+Rafael
 
+ 
+> Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+> Tested-by: Vijay Mohan Pandarathil <vijaymohan.pandarathil@hp.com>
+> ---
+>  drivers/acpi/utils.c    | 34 ++++++++++++++++++++++++++++++++++
+>  include/acpi/acpi_bus.h | 31 +++++++++++++++++++++++++++++++
+>  2 files changed, 65 insertions(+)
+> 
+> diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+> index 462f7e3..4eade7d 100644
+> --- a/drivers/acpi/utils.c
+> +++ b/drivers/acpi/utils.c
+> @@ -457,3 +457,37 @@ acpi_evaluate_hotplug_ost(acpi_handle handle, u32 source_event,
+>  #endif
+>  }
+>  EXPORT_SYMBOL(acpi_evaluate_hotplug_ost);
+> +
+> +/**
+> + * acpi_printk: Print messages with ACPI prefix and object path
+> + *
+> + * This function is intended to be called through acpi_pr_<level> macros.
+> + */
+> +void
+> +acpi_printk(const char *level, acpi_handle handle, const char *fmt, ...)
+> +{
+> +	struct va_format vaf;
+> +	va_list args;
+> +	struct acpi_buffer buffer = {
+> +		.length = ACPI_ALLOCATE_BUFFER,
+> +		.pointer = NULL
+> +	};
+> +	const char *path;
+> +	acpi_status ret;
+> +
+> +	va_start(args, fmt);
+> +	vaf.fmt = fmt;
+> +	vaf.va = &args;
+> +
+> +	ret = acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
+> +	if (ret == AE_OK)
+> +		path = buffer.pointer;
+> +	else
+> +		path = "<n/a>";
+> +
+> +	printk("%sACPI: %s: %pV", level, path, &vaf);
+> +
+> +	va_end(args);
+> +	kfree(buffer.pointer);
+> +}
+> +EXPORT_SYMBOL(acpi_printk);
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index 2242c10..93d5852 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -56,6 +56,37 @@ acpi_evaluate_hotplug_ost(acpi_handle handle, u32 source_event,
+>  
+>  acpi_status
+>  acpi_get_physical_device_location(acpi_handle handle, struct acpi_pld_info **pld);
+> +
+> +void acpi_printk(const char *level, acpi_handle handle, const char *fmt, ...);
+> +
+> +#define acpi_pr_emerg(handle, fmt, ...)				\
+> +	acpi_printk(KERN_EMERG, handle, fmt, ##__VA_ARGS__)
+> +#define acpi_pr_alert(handle, fmt, ...)				\
+> +	acpi_printk(KERN_ALERT, handle, fmt, ##__VA_ARGS__)
+> +#define acpi_pr_crit(handle, fmt, ...)				\
+> +	acpi_printk(KERN_CRIT, handle, fmt, ##__VA_ARGS__)
+> +#define acpi_pr_err(handle, fmt, ...)				\
+> +	acpi_printk(KERN_ERR, handle, fmt, ##__VA_ARGS__)
+> +#define acpi_pr_warn(handle, fmt, ...)				\
+> +	acpi_printk(KERN_WARNING, handle, fmt, ##__VA_ARGS__)
+> +#define acpi_pr_notice(handle, fmt, ...)			\
+> +	acpi_printk(KERN_NOTICE, handle, fmt, ##__VA_ARGS__)
+> +#define acpi_pr_info(handle, fmt, ...)				\
+> +	acpi_printk(KERN_INFO, handle, fmt, ##__VA_ARGS__)
+> +
+> +/* REVISIT: Support CONFIG_DYNAMIC_DEBUG when necessary */
+> +#if defined(DEBUG) || defined(CONFIG_DYNAMIC_DEBUG)
+> +#define acpi_pr_debug(handle, fmt, ...)					\
+> +	acpi_printk(KERN_DEBUG, handle, fmt, ##__VA_ARGS__)
+> +#else
+> +#define acpi_pr_debug(handle, fmt, ...)					\
+> +({									\
+> +	if (0)								\
+> +		acpi_printk(KERN_DEBUG, handle, fmt, ##__VA_ARGS__);	\
+> +	0;								\
+> +})
+> +#endif
+> +
+>  #ifdef CONFIG_ACPI
+>  
+>  #include <linux/proc_fs.h>
+> 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
