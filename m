@@ -1,38 +1,102 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH v5 RESEND 1/5] ACPI: Add acpi_pr_<level>() interfaces
-Date: Mon, 19 Nov 2012 00:56:14 -0800
-Message-ID: <1353315374.3129.3.camel@joe-AO722>
-References: <1352214130-12055-1-git-send-email-toshi.kani@hp.com>
-	 <1352214130-12055-2-git-send-email-toshi.kani@hp.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH 1/2] ACPI: Allow ACPI handles of devices to be
+ initialized in advance
+Date: Mon, 19 Nov 2012 11:42:34 +0200
+Message-ID: <20121119094234.GH17774@intel.com>
+References: <1352977397-2280-1-git-send-email-mika.westerberg@linux.intel.com>
+ <20121118155539.GE17774@intel.com>
+ <1758879.PKgPhTGcB7@vostro.rjw.lan>
+ <5604758.tWMNMRG2En@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from perches-mx.perches.com ([206.117.179.246]:50835 "EHLO
-	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753021Ab2KSI4O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 19 Nov 2012 03:56:14 -0500
-In-Reply-To: <1352214130-12055-2-git-send-email-toshi.kani@hp.com>
+Received: from mga01.intel.com ([192.55.52.88]:42738 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753318Ab2KSJjZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 19 Nov 2012 04:39:25 -0500
+Content-Disposition: inline
+In-Reply-To: <5604758.tWMNMRG2En@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: linux-acpi@vger.kernel.org, rjw@sisk.pl, lenb@kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, vijaymohan.pandarathil@hp.com, imammedo@redhat.com, prarit@redhat.com
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Jean Delvare <khali@linux-fr.org>, ben-linux@fluff.org, w.sang@pengutronix.de, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-On Tue, 2012-11-06 at 08:02 -0700, Toshi Kani wrote:
-> This patch introduces acpi_pr_<level>(), where <level> is a kernel
-> message level such as err/warn/info, to support improved logging
-> messages for ACPI, esp. for hotplug operations.
-[]
-> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-[]
-> @@ -56,6 +56,37 @@ acpi_evaluate_hotplug_ost(acpi_handle handle, u32 source_event,
+On Sun, Nov 18, 2012 at 10:12:52PM +0100, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> Currently, the ACPI handles of devices are initialized from within
+> device_add(), by acpi_bind_one() called from acpi_platform_notify()
+> which first uses the .find_device() routine provided by the device's
+> bus type to find the matching device node in the ACPI namespace.
+> This is a source of some computational overhead and, moreover, the
+> correctness of the result depends on the implementation of
+> .find_device() which is known to fail occasionally for some bus types
+> (e.g. PCI).  In some cases, however, the corresponding ACPI device
+> node is known already before calling device_add() for the given
+> struct device object and the whole .find_device() dance in
+> acpi_platform_notify() is then simply unnecessary.
+> 
+> For this reason, make it possible to initialize the ACPI handles of
+> devices before calling device_add() for them.  Modify
+> acpi_platform_notify() to call acpi_bind_one() in advance to check
+> the device's existing ACPI handle and skip the .find_device()
+> search if that is successful.  Change acpi_bind_one() accordingly.
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/acpi/glue.c |   42 +++++++++++++++++++++++++++++++++---------
+>  1 file changed, 33 insertions(+), 9 deletions(-)
+> 
+> Index: linux/drivers/acpi/glue.c
+> ===================================================================
+> --- linux.orig/drivers/acpi/glue.c
+> +++ linux/drivers/acpi/glue.c
+> @@ -135,41 +135,54 @@ static int acpi_bind_one(struct device *
+>  	int retval = -EINVAL;
 >  
->  acpi_status
->  acpi_get_physical_device_location(acpi_handle handle, struct acpi_pld_info **pld);
+>  	if (dev->acpi_handle) {
+> -		dev_warn(dev, "Drivers changed 'acpi_handle'\n");
+> -		return -EINVAL;
+> +		if (handle) {
+> +			dev_warn(dev, "ACPI handle is already set\n");
+> +			return -EINVAL;
+> +		} else {
+> +			handle = dev->acpi_handle;
+> +		}
+>  	}
+> +	if (!handle)
+> +		return -EINVAL;
+>  
+>  	get_device(dev);
+>  	status = acpi_bus_get_device(handle, &acpi_dev);
+>  	if (ACPI_FAILURE(status))
+>  		goto err;
+>  
+> -	physical_node = kzalloc(sizeof(struct acpi_device_physical_node),
+> -		GFP_KERNEL);
+> +	physical_node = kzalloc(sizeof(*physical_node), GFP_KERNEL);
+
+Here we allocate memory for the physical node...
+
+>  	if (!physical_node) {
+>  		retval = -ENOMEM;
+>  		goto err;
+>  	}
+>  
+>  	mutex_lock(&acpi_dev->physical_node_lock);
 > +
-> +void acpi_printk(const char *level, acpi_handle handle, const char *fmt, ...);
+> +	/* Sanity check. */
+> +	list_for_each_entry(physical_node, &acpi_dev->physical_node_list, node)
 
-This should be declared with __printf(3, 4)
+.. and overwrite it here ;-)
 
-is acpi_bus.h really the right file for these prototypes?
+Maybe using a different variable for the sanity check?
 
+I've changed the SPI/I2C patches to use this as well and they got a lot
+smaller as we don't have to do the .find_device() magic.
+
+Once you have fixed the above, you can add my
+
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+
+to these two patches, if you like.
