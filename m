@@ -1,58 +1,41 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH 2/2] ACPI / platform: Initialize ACPI handles of platform
- devices in advance
-Date: Mon, 19 Nov 2012 23:05:28 +0200
-Message-ID: <20121119210528.GJ17774@intel.com>
-References: <1352977397-2280-1-git-send-email-mika.westerberg@linux.intel.com>
- <1855340.enMgVW1AIC@vostro.rjw.lan>
- <12675091.beenkZth4X@vostro.rjw.lan>
- <1610515.dOb8aMkzLk@vostro.rjw.lan>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [ACPIHP PATCH part1 0/4] introduce a framework for ACPI based
+ system device hotplug
+Date: Mon, 19 Nov 2012 14:19:19 -0700
+Message-ID: <1353359959.10939.84.camel@misato.fc.hp.com>
+References: <1351958865-24394-1-git-send-email-jiang.liu@huawei.com>
+	 <6684049.OOiNLWpfRL@vostro.rjw.lan> <50AA63CE.9080700@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:48626 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751756Ab2KSVCi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 19 Nov 2012 16:02:38 -0500
-Content-Disposition: inline
-In-Reply-To: <1610515.dOb8aMkzLk@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <50AA63CE.9080700@gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiang Liu <liuj97@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Yinghai Lu <yinghai@kernel.org>, Tony Luck <tony.luck@intel.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>, Tang Chen <tangchen@cn.fujitsu.com>, Taku Izumi <izumi.taku@jp.fujitsu.com>, Bjorn Helgaas <bhelgaas@google.com>, Jiang Liu <jiang.liu@huawei.com>, Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>, Huang Ying <ying.huang@intel.com>, Bob Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, "Srivatsa S . Bhat" <srivatsa.bhat@linux.vnet.ibm.com>, Yijing Wang <wangyijing@huawei.com>, Hanjun Guo <guohanjun@huawei.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-mm@kvack.org, "Wang, Frank" <frank.wang@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, Jean Delvare <khali@linux-fr.org>, ben-linux@fluff.org, w.sang@pengutronix.de, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
 
-On Mon, Nov 19, 2012 at 09:44:21PM +0100, Rafael J. Wysocki wrote:
-> So, we want to have acpi_handle (or acpi_node) in addition to of_node in struct
-> device (to be used in the analogous way plus for the execution of AML methods),
-> but we don't want all users of device.h to have to include ACPI headers
-> where the acpi_handle data type is defined.  For this reason, we're using
-> (void *) as its data type now, which let's say I'm not really happy with.
-> 
-> I've been thinking about that for quite a while, though, and I'm not really
-> sure what to do about that.  Perhaps we could define something like
-> 
-> struct acpi_dev_node {
-> #ifdef CONFIG_ACPI
-> 	void *handle;
-> #endif
-> };
-> 
-> in device.h and use that as "struct acpi_dev_node acpi_node;" in struct device.
-> Then, we could add the following macro
-> 
-> #ifdef CONFIG_ACPI
-> #define ACPI_HANDLE(dev)	((dev)->acpi_node.handle)
-> #else
-> #define ACPI_HANDLE(dev)	(NULL)
-> #endif
-> 
-> and redefine DEVICE_ACPI_HANDLE(dev) as ((acpi_handle)ACPI_HANDLE(dev)).
-> 
-> Then, the $subject patch would add "struct acpi_dev_node acpi_node;" to
-> struct platform_device_info and use ACPI_HANDLE(dev) instead of accessing
-> the struct device's field directly.
+> But for the ACPI part for CPU and memory hotplug enhancements recently posted to
+> the community, I think they are different solutions with the new framework. I feel
+> they are lightweight enhancements to existing code with some limitations, but the
+> new framework is a heavyweight solution with full functionalities and improved
+> usability. So we may need discussions about the different solutions here:)
 
-In addition to struct platform_device_info, we are also going to add
-similar to struct i2c_board_info. There already is of_node pointer so I was
-thinking to add acpi_handle like you did for platform_device. Type of that
-pointer of course needs to be figured out :)
+Hi Gerry,
+
+Thanks for working on the framework enhancement.  I am still new to
+Linux (and learning :), but have extensive background in hot-plug
+features on other OS for CPU, Memory, Node, RP and PCI hot-plug support.
+So, I basically agree with you that we do need framework enhancement.
+However, I think we need phased approach here.  First, we need to make
+CPU and Memory hot-plug work under the current framework.  Once we
+settle on the basic features, we can then make framework enhancements
+without breaking the features.  For CPU hotplug, I also intentionally
+minimized the code changes so that the changes could be back-ported to
+older kernels being used by distributions.
+
+I will send you more comments after I reviewed your patches (which may
+take some time :).
+
+Thanks,
+-Toshi
