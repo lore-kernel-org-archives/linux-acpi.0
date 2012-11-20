@@ -1,70 +1,157 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v7 0/5] ACPI: hotplug messages improvement
-Date: Tue, 20 Nov 2012 16:42:25 -0700
-Message-ID: <1353454950-17010-1-git-send-email-toshi.kani@hp.com>
+Subject: [PATCH v7 2/5] ACPI: Update CPU hotplug error messages
+Date: Tue, 20 Nov 2012 16:42:27 -0700
+Message-ID: <1353454950-17010-3-git-send-email-toshi.kani@hp.com>
+References: <1353454950-17010-1-git-send-email-toshi.kani@hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0007.atlanta.hp.com ([15.192.0.44]:23594 "EHLO
-	g5t0007.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752089Ab2KTXvQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Nov 2012 18:51:16 -0500
+Received: from g6t0184.atlanta.hp.com ([15.193.32.61]:23498 "EHLO
+	g6t0184.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753835Ab2KTXvY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Nov 2012 18:51:24 -0500
+In-Reply-To: <1353454950-17010-1-git-send-email-toshi.kani@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, rjw@sisk.pl, lenb@kernel.org
 Cc: linux-kernel@vger.kernel.org, joe@perches.com, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, vijaymohan.pandarathil@hp.com, Toshi Kani <toshi.kani@hp.com>
 
-This patchset improves logging messages for ACPI CPU, Memory, 
-Container and Dock hotplug notify handlers.  The patchset 
-introduces a set of new macro interfaces, acpi_handle_<level>(),
-and uses them to update the notify handlers.
+Updated CPU hotplug error messages with acpi_handle_<level>(),
+dev_<level>() and pr_<level>().  Modified some messages for
+clarity.  Added error status / id info to the messages where
+needed.
 
-acpi_handle_<level>() appends "ACPI" prefix and ACPI object path
-to the messages, which has similar usage model as dev_<level>().
-This improves diagnosis of hotplug operations since an error
-message in a log file identifies an object that caused an issue.
-
-The patchset is based on the linux-next branch of linux-pm.git
-tree.
-
-v7:
- - Changed acpi_handle_printk() not to call acpi_get_name() in
-   interrupt context.
-
-v6:
- - Changed the interface name to acpi_handle_<level>(), and
-   declared them in include/linux/acpi.h.
- - Added __printf(3,4) to acpi_handle_printk() prototype.
- - Documented the interfaces acquire the global namespace mutex
-   and may not be called from interrupt context.
-
-v5:
- - Added update for ACPI Dock hotplug error messages.
- - Added error status / ID info to the messages where needed.
-
-v4:
- - Changed to use dev_<level>() where it is appropriate.
-
-v3:
- - Changed acpi_pr_debug() to NOP when !DEBUG and !DYNAMIC_DEBUG.
-   DYNAMIC_DEBUG will be supported later when necessary.
- - Added const to a path variable in acpi_printk().
- - Added more descriptions to the change log of patch 1/4.
-
-v2:
- - Set buffer.pointer to NULL in acpi_printk().
- - Added acpi_pr_debug().
-
+Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+Tested-by: Vijay Mohan Pandarathil <vijaymohan.pandarathil@hp.com>
 ---
-Toshi Kani (5):
- ACPI: Add acpi_handle_<level>() interfaces
- ACPI: Update CPU hotplug error messages
- ACPI: Update Memory hotplug error messages
- ACPI: Update Container hotplug error messages
- ACPI: Update Dock hotplug error messages
+ drivers/acpi/processor_driver.c | 39 ++++++++++++++++++++++++---------------
+ 1 file changed, 24 insertions(+), 15 deletions(-)
 
----
- drivers/acpi/acpi_memhotplug.c  | 24 ++++++++++++-----------
- drivers/acpi/container.c        | 10 ++--------
- drivers/acpi/dock.c             | 30 ++++++++++++++--------------
- drivers/acpi/processor_driver.c | 39 +++++++++++++++++++++++--------------
- drivers/acpi/utils.c            | 37 +++++++++++++++++++++++++++++++++++
- include/linux/acpi.h            | 43 +++++++++++++++++++++++++++++++++++++++++
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index 8cc33d0..e83311b 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -44,6 +44,7 @@
+ #include <linux/moduleparam.h>
+ #include <linux/cpuidle.h>
+ #include <linux/slab.h>
++#include <linux/acpi.h>
+ 
+ #include <asm/io.h>
+ #include <asm/cpu.h>
+@@ -282,7 +283,9 @@ static int acpi_processor_get_info(struct acpi_device *device)
+ 		/* Declared with "Processor" statement; match ProcessorID */
+ 		status = acpi_evaluate_object(pr->handle, NULL, NULL, &buffer);
+ 		if (ACPI_FAILURE(status)) {
+-			printk(KERN_ERR PREFIX "Evaluating processor object\n");
++			dev_err(&device->dev,
++				"Failed to evaluate processor object (0x%x)\n",
++				status);
+ 			return -ENODEV;
+ 		}
+ 
+@@ -301,8 +304,9 @@ static int acpi_processor_get_info(struct acpi_device *device)
+ 		status = acpi_evaluate_integer(pr->handle, METHOD_NAME__UID,
+ 						NULL, &value);
+ 		if (ACPI_FAILURE(status)) {
+-			printk(KERN_ERR PREFIX
+-			    "Evaluating processor _UID [%#x]\n", status);
++			dev_err(&device->dev,
++				"Failed to evaluate processor _UID (0x%x)\n",
++				status);
+ 			return -ENODEV;
+ 		}
+ 		device_declaration = 1;
+@@ -345,7 +349,7 @@ static int acpi_processor_get_info(struct acpi_device *device)
+ 	if (!object.processor.pblk_address)
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "No PBLK (NULL address)\n"));
+ 	else if (object.processor.pblk_length != 6)
+-		printk(KERN_ERR PREFIX "Invalid PBLK length [%d]\n",
++		dev_err(&device->dev, "Invalid PBLK length [%d]\n",
+ 			    object.processor.pblk_length);
+ 	else {
+ 		pr->throttling.address = object.processor.pblk_address;
+@@ -430,8 +434,8 @@ static int acpi_cpu_soft_notify(struct notifier_block *nfb,
+ 		 * Initialize missing things
+ 		 */
+ 		if (pr->flags.need_hotplug_init) {
+-			printk(KERN_INFO "Will online and init hotplugged "
+-			       "CPU: %d\n", pr->id);
++			pr_info("Will online and init hotplugged CPU: %d\n",
++				pr->id);
+ 			WARN(acpi_processor_start(pr), "Failed to start CPU:"
+ 				" %d\n", pr->id);
+ 			pr->flags.need_hotplug_init = 0;
+@@ -492,14 +496,16 @@ static __ref int acpi_processor_start(struct acpi_processor *pr)
+ 				   &pr->cdev->device.kobj,
+ 				   "thermal_cooling");
+ 	if (result) {
+-		printk(KERN_ERR PREFIX "Create sysfs link\n");
++		dev_err(&device->dev,
++			"Failed to create sysfs link 'thermal_cooling'\n");
+ 		goto err_thermal_unregister;
+ 	}
+ 	result = sysfs_create_link(&pr->cdev->device.kobj,
+ 				   &device->dev.kobj,
+ 				   "device");
+ 	if (result) {
+-		printk(KERN_ERR PREFIX "Create sysfs link\n");
++		dev_err(&pr->cdev->device,
++			"Failed to create sysfs link 'device'\n");
+ 		goto err_remove_sysfs_thermal;
+ 	}
+ 
+@@ -561,8 +567,9 @@ static int __cpuinit acpi_processor_add(struct acpi_device *device)
+ 	 */
+ 	if (per_cpu(processor_device_array, pr->id) != NULL &&
+ 	    per_cpu(processor_device_array, pr->id) != device) {
+-		printk(KERN_WARNING "BIOS reported wrong ACPI id "
+-			"for the processor\n");
++		dev_warn(&device->dev,
++			"BIOS reported wrong ACPI id %d for the processor\n",
++			pr->id);
+ 		result = -ENODEV;
+ 		goto err_free_cpumask;
+ 	}
+@@ -716,7 +723,7 @@ static void acpi_processor_hotplug_notify(acpi_handle handle,
+ 
+ 		result = acpi_processor_device_add(handle, &device);
+ 		if (result) {
+-			printk(KERN_ERR PREFIX "Unable to add the device\n");
++			acpi_handle_err(handle, "Unable to add the device\n");
+ 			break;
+ 		}
+ 
+@@ -728,17 +735,19 @@ static void acpi_processor_hotplug_notify(acpi_handle handle,
+ 				  "received ACPI_NOTIFY_EJECT_REQUEST\n"));
+ 
+ 		if (acpi_bus_get_device(handle, &device)) {
+-			pr_err(PREFIX "Device don't exist, dropping EJECT\n");
++			acpi_handle_err(handle,
++				"Device don't exist, dropping EJECT\n");
+ 			break;
+ 		}
+ 		if (!acpi_driver_data(device)) {
+-			pr_err(PREFIX "Driver data is NULL, dropping EJECT\n");
++			acpi_handle_err(handle,
++				"Driver data is NULL, dropping EJECT\n");
+ 			break;
+ 		}
+ 
+ 		ej_event = kmalloc(sizeof(*ej_event), GFP_KERNEL);
+ 		if (!ej_event) {
+-			pr_err(PREFIX "No memory, dropping EJECT\n");
++			acpi_handle_err(handle, "No memory, dropping EJECT\n");
+ 			break;
+ 		}
+ 
+@@ -848,7 +857,7 @@ static acpi_status acpi_processor_hotadd_init(struct acpi_processor *pr)
+ 	 * and do it when the CPU gets online the first time
+ 	 * TBD: Cleanup above functions and try to do this more elegant.
+ 	 */
+-	printk(KERN_INFO "CPU %d got hotplugged\n", pr->id);
++	pr_info("CPU %d got hotplugged\n", pr->id);
+ 	pr->flags.need_hotplug_init = 1;
+ 
+ 	return AE_OK;
+-- 
+1.7.11.7
+
