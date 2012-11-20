@@ -1,79 +1,215 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [Update 2][PATCH 2/3] ACPI / driver core: Introduce struct
- acpi_dev_node and related macros
-Date: Tue, 20 Nov 2012 14:57:22 +0200
-Message-ID: <20121120125722.GT17774@intel.com>
-References: <1352977397-2280-1-git-send-email-mika.westerberg@linux.intel.com>
- <6570191.KCDMiILtRE@vostro.rjw.lan>
- <20121120091007.GN17774@intel.com>
- <2800515.q4oG7o9rEp@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v3 2/3] spi / ACPI: add ACPI enumeration support
+Date: Tue, 20 Nov 2012 14:05:26 +0100
+Message-ID: <12657869.yQS4p6Y8j3@vostro.rjw.lan>
+References: <1352977397-2280-1-git-send-email-mika.westerberg@linux.intel.com> <1353407384-26880-1-git-send-email-mika.westerberg@linux.intel.com> <1353407384-26880-3-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:38776 "EHLO mga02.intel.com"
+Received: from ogre.sisk.pl ([193.178.161.156]:55409 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751937Ab2KTMyN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 20 Nov 2012 07:54:13 -0500
-Content-Disposition: inline
-In-Reply-To: <2800515.q4oG7o9rEp@vostro.rjw.lan>
+	id S1752710Ab2KTNA7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 20 Nov 2012 08:00:59 -0500
+In-Reply-To: <1353407384-26880-3-git-send-email-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, Jean Delvare <khali@linux-fr.org>, ben-linux@fluff.org, w.sang@pengutronix.de, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: grant.likely@secretlab.ca, linus.walleij@linaro.org, w.sang@pengutronix.de, rafael.j.wysocki@intel.com, linux-kernel@vger.kernel.org, lenb@kernel.org, broonie@opensource.wolfsonmicro.com, khali@linux-fr.org, ben-linux@fluff.org, bhelgaas@google.com, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
 
-On Tue, Nov 20, 2012 at 10:34:04AM +0100, Rafael J. Wysocki wrote:
-> On Tuesday, November 20, 2012 11:10:07 AM Mika Westerberg wrote:
-> > On Tue, Nov 20, 2012 at 01:59:23AM +0100, Rafael J. Wysocki wrote:
-> > > Index: linux/include/linux/device.h
-> > > ===================================================================
-> > > --- linux.orig/include/linux/device.h
-> > > +++ linux/include/linux/device.h
-> > > @@ -578,6 +578,12 @@ struct device_dma_parameters {
-> > >  	unsigned long segment_boundary_mask;
-> > >  };
-> > >  
-> > > +struct acpi_dev_node {
-> > > +#ifdef CONFIG_ACPI
-> > > +	void	*handle;
-> > > +#endif
-> > > +};
-> > > +
-> > >  /**
-> > >   * struct device - The basic device structure
-> > >   * @parent:	The device's "parent" device, the device to which it is attached.
-> > > @@ -683,7 +689,7 @@ struct device {
-> > >  	struct dev_archdata	archdata;
-> > >  
-> > >  	struct device_node	*of_node; /* associated device tree node */
-> > > -	void			*acpi_handle; /* associated ACPI device node */
-> > > +	struct acpi_dev_node	acpi_node; /* associated ACPI device node */
-> > 
-> > Please update the kerneldoc comment as well.
+On Tuesday, November 20, 2012 12:29:43 PM Mika Westerberg wrote:
+> ACPI 5 introduced SPISerialBus resource that allows us to enumerate and
+> configure the SPI slave devices behind the SPI controller. This patch adds
+> support for this to the SPI core.
 > 
-> Right, thanks for the reminder. :-)
+> In addition we bind ACPI nodes to SPI devices. This makes it possible for
+> the slave drivers to get the ACPI handle for further configuration.
 > 
-> Updated patch is appended.
-> 
-> Thanks,
-> Rafael
-> 
-> 
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 > ---
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Subject: ACPI / driver core: Introduce struct acpi_dev_node and related macros
+>  drivers/spi/spi.c |  115 ++++++++++++++++++++++++++++++++++++++++++++++++++++-
+>  1 file changed, 114 insertions(+), 1 deletion(-)
 > 
-> To avoid adding an ACPI handle pointer to struct device on
-> architectures that don't use ACPI, or generally when CONFIG_ACPI is
-> not set, in which cases that pointer is useless, define struct
-> acpi_dev_node that will contain the handle pointer if CONFIG_ACPI is
-> set and will be empty otherwise and use it to represent the ACPI
-> device node field in struct device.
-> 
-> In addition to that define macros for reading and setting the ACPI
-> handle of a device that don't generate code when CONFIG_ACPI is
-> unset.  Modify the ACPI subsystem to use those macros instead of
-> referring to the given device's ACPI handle directly.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
+> index 84c2861..3ae5351 100644
+> --- a/drivers/spi/spi.c
+> +++ b/drivers/spi/spi.c
+> @@ -35,6 +35,8 @@
+>  #include <linux/sched.h>
+>  #include <linux/delay.h>
+>  #include <linux/kthread.h>
+> +#include <linux/ioport.h>
+> +#include <linux/acpi.h>
+>  
+>  static void spidev_release(struct device *dev)
+>  {
+> @@ -93,6 +95,10 @@ static int spi_match_device(struct device *dev, struct device_driver *drv)
+>  	if (of_driver_match_device(dev, drv))
+>  		return 1;
+>  
+> +	/* Then try ACPI */
+> +	if (acpi_driver_match_device(dev, drv))
+> +		return 1;
+> +
+>  	if (sdrv->id_table)
+>  		return !!spi_match_id(sdrv->id_table, spi);
+>  
+> @@ -888,6 +894,112 @@ static void of_register_spi_devices(struct spi_master *master)
+>  static void of_register_spi_devices(struct spi_master *master) { }
+>  #endif
+>  
+> +#ifdef CONFIG_ACPI
+> +static int acpi_spi_add_resource(struct acpi_resource *ares, void *data)
+> +{
+> +	struct acpi_resource_spi_serialbus *sb;
+> +	struct spi_device *spi = data;
+> +	struct resource r;
+> +
+> +	switch (ares->type) {
+> +	case ACPI_RESOURCE_TYPE_IRQ:
+> +	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
 
-Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+It is not necessary to check the resource type for IRQ resources here,
+because acpi_dev_resource_interrupt() will do it for you anyway. :-)
+
+So, I would first check if the resource type is ACPI_RESOURCE_TYPE_SERIAL_BUS
+(and populate the spi_device fields if so) and then do something like this:
+
+if (acpi_dev_resource_interrupt(ares, 0, &r)) {
+	if (spi->irq < 0)
+		spi->irq = r.start;
+
+	return 1;
+}
+
+We don't even need to memset(), because we're not going to use that resource
+object going forward.
+
+
+> +		/* Only use the first interrupt resource and skip the rest */
+> +		memset(&r, 0, sizeof(r));
+> +		if (spi->irq < 0 && acpi_dev_resource_interrupt(ares, 0, &r))
+> +			spi->irq = r.start;
+> +		return 1;
+> +
+> +	case ACPI_RESOURCE_TYPE_SERIAL_BUS:
+> +		sb = &ares->data.spi_serial_bus;
+> +		if (sb->type == ACPI_RESOURCE_SERIAL_TYPE_SPI) {
+> +			spi->chip_select = sb->device_selection;
+> +			spi->max_speed_hz = sb->connection_speed;
+> +
+> +			if (sb->clock_phase == ACPI_SPI_SECOND_PHASE)
+> +				spi->mode |= SPI_CPHA;
+> +			if (sb->clock_polarity == ACPI_SPI_START_HIGH)
+> +				spi->mode |= SPI_CPOL;
+> +			if (sb->device_polarity == ACPI_SPI_ACTIVE_HIGH)
+> +				spi->mode |= SPI_CS_HIGH;
+> +
+> +			return 1;
+> +		}
+> +		return 0;
+> +	}
+> +
+> +	return 0;
+
+We're not interested in any resources except for the above, so I think we
+can just always return 1 from this function, or am I missing anything?
+
+> +}
+> +
+> +static acpi_status acpi_spi_add_device(acpi_handle handle, u32 level,
+> +				       void *data, void **return_value)
+> +{
+> +	struct spi_master *master = data;
+> +	struct list_head resource_list;
+> +	struct acpi_device *adev;
+> +	struct spi_device *spi;
+> +	int ret;
+> +
+> +	if (acpi_bus_get_device(handle, &adev))
+> +		return AE_OK;
+> +	if (acpi_bus_get_status(adev) || !adev->status.present)
+> +		return AE_OK;
+> +
+> +	spi = spi_alloc_device(master);
+> +	if (!spi) {
+> +		dev_err(&master->dev, "failed to allocate SPI device for %s\n",
+> +			dev_name(&adev->dev));
+> +		return AE_NO_MEMORY;
+> +	}
+> +
+> +	ACPI_HANDLE_SET(&spi->dev, handle);
+> +	spi->irq = -1;
+> +
+> +	INIT_LIST_HEAD(&resource_list);
+> +	ret = acpi_dev_get_resources(adev, &resource_list,
+> +				     acpi_spi_add_resource, spi);
+
+acpi_dev_free_resource_list(&resource_list); can be done here (the list
+is going to be empty anyway if acpi_spi_add_resource() always returns 1)
+and then you won't need the fail_put_dev label.
+
+> +	if (ret < 0)
+> +		goto fail_put_dev;
+> +
+> +	acpi_dev_free_resource_list(&resource_list);
+> +
+> +	if (!spi->max_speed_hz)
+> +		goto fail_put_dev;
+> +
+> +	strlcpy(spi->modalias, dev_name(&adev->dev), sizeof(spi->modalias));
+> +	if (spi_add_device(spi)) {
+> +		dev_err(&master->dev, "failed to add SPI device %s from ACPI\n",
+> +			dev_name(&adev->dev));
+> +		goto fail_put_dev;
+> +	}
+> +
+> +	return AE_OK;
+> +
+> +fail_put_dev:
+> +	spi_dev_put(spi);
+> +
+> +	return AE_OK;
+> +}
+> +
+> +static void acpi_register_spi_devices(struct spi_master *master)
+> +{
+> +	acpi_status status;
+> +	acpi_handle handle;
+> +
+> +	handle = ACPI_HANDLE(&master->dev);
+> +	if (!handle)
+> +		return;
+> +
+> +	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, 1,
+> +				     acpi_spi_add_device, NULL,
+> +				     master, NULL);
+> +	if (ACPI_FAILURE(status))
+> +		dev_warn(&master->dev, "failed to enumerate SPI slaves\n");
+> +}
+> +#else
+> +static inline void acpi_register_spi_devices(struct spi_master *master) {}
+> +#endif /* CONFIG_ACPI */
+> +
+>  static void spi_master_release(struct device *dev)
+>  {
+>  	struct spi_master *master;
+> @@ -1023,8 +1135,9 @@ int spi_register_master(struct spi_master *master)
+>  		spi_match_master_to_boardinfo(master, &bi->board_info);
+>  	mutex_unlock(&board_lock);
+>  
+> -	/* Register devices from the device tree */
+> +	/* Register devices from the device tree and ACPI */
+>  	of_register_spi_devices(master);
+> +	acpi_register_spi_devices(master);
+>  done:
+>  	return status;
+>  }
+
+Thanks,
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
