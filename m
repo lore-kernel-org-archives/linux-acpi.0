@@ -1,111 +1,153 @@
-From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: Re: [PATCH v3 06/12] memory-hotplug: unregister memory section on
- SPARSEMEM_VMEMMAP
-Date: Tue, 20 Nov 2012 17:37:49 +0800
-Message-ID: <50AB4F6D.3050002@cn.fujitsu.com>
-References: <1351763083-7905-1-git-send-email-wency@cn.fujitsu.com> <1351763083-7905-7-git-send-email-wency@cn.fujitsu.com> <50AB21A4.8050709@gmail.com> <50AB2967.5010302@cn.fujitsu.com> <50AB2A1A.6040606@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH v3 1/3] gpio / ACPI: add ACPI support
+Date: Tue, 20 Nov 2012 12:29:42 +0200
+Message-ID: <1353407384-26880-2-git-send-email-mika.westerberg@linux.intel.com>
+References: <1352977397-2280-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1353407384-26880-1-git-send-email-mika.westerberg@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:59815 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1752073Ab2KTJbc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 20 Nov 2012 04:31:32 -0500
-In-Reply-To: <50AB2A1A.6040606@gmail.com>
+Received: from mga01.intel.com ([192.55.52.88]:31586 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752669Ab2KTK0f (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 20 Nov 2012 05:26:35 -0500
+In-Reply-To: <1353407384-26880-1-git-send-email-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jaegeuk Hanse <jaegeuk.hanse@gmail.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, David Rientjes <rientjes@google.com>, Jiang Liu <liuj97@gmail.com>, Len Brown <len.brown@intel.com>, benh@kernel.crashing.org, paulus@samba.org, Christoph Lameter <cl@linux.com>, Minchan Kim <minchan.kim@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Jianguo Wu <wujianguo@huawei.com>
+To: grant.likely@secretlab.ca, linus.walleij@linaro.org, w.sang@pengutronix.de, rafael.j.wysocki@intel.com
+Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, broonie@opensource.wolfsonmicro.com, khali@linux-fr.org, ben-linux@fluff.org, bhelgaas@google.com, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-At 11/20/2012 02:58 PM, Jaegeuk Hanse Wrote:
-> On 11/20/2012 02:55 PM, Wen Congyang wrote:
->> At 11/20/2012 02:22 PM, Jaegeuk Hanse Wrote:
->>> On 11/01/2012 05:44 PM, Wen Congyang wrote:
->>>> From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->>>>
->>>> Currently __remove_section for SPARSEMEM_VMEMMAP does nothing. But
->>>> even if
->>>> we use SPARSEMEM_VMEMMAP, we can unregister the memory_section.
->>>>
->>>> So the patch add unregister_memory_section() into __remove_section().
->>> Hi Yasuaki,
->>>
->>> In order to review this patch, I should dig sparse memory codes in
->>> advance. But I have some confuse of codes. Why need encode/decode mem
->>> map instead of set mem_map to ms->section_mem_map directly?
->> The memmap is aligned, and the low bits are zero. We store some
->> information
->> in these bits. So we need to encode/decode memmap here.
-> 
-> Hi Congyang,
-> 
-> Thanks for you reponse. But I mean why return (unsigned long)(mem_map -
-> (section_nr_to_pfn(pnum))); in function sparse_encode_mem_map, and then
-> return ((struct page *)coded_mem_map) + section_nr_to_pfn(pnum); in
-> funtion sparse_decode_mem_map instead of just store mem_map in
-> ms->section_mep_map directly.
+From: Mathias Nyman <mathias.nyman@linux.intel.com>
 
-I don't know why. I try to find the reason, but I don't find any
-place to use the pfn stored in the mem_map except in the decode
-function. Maybe the designer doesn't want us to access the mem_map
-directly.
+Add support for translating ACPI GPIO pin numbers to Linux GPIO API pins.
+Needs a gpio controller driver with the acpi handler hook set.
 
-Thanks
-Wen Congyang
+Drivers can use acpi_get_gpio() to translate ACPI5 GpioIO and GpioInt
+resources to Linux GPIO's.
 
-> 
-> Regards,
-> Jaegeuk
-> 
->>
->> Thanks
->> Wen Congyang
->>
->>> Regards,
->>> Jaegeuk
->>>
->>>> CC: David Rientjes <rientjes@google.com>
->>>> CC: Jiang Liu <liuj97@gmail.com>
->>>> CC: Len Brown <len.brown@intel.com>
->>>> CC: Christoph Lameter <cl@linux.com>
->>>> Cc: Minchan Kim <minchan.kim@gmail.com>
->>>> CC: Andrew Morton <akpm@linux-foundation.org>
->>>> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
->>>> CC: Wen Congyang <wency@cn.fujitsu.com>
->>>> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
->>>> ---
->>>>    mm/memory_hotplug.c | 13 ++++++++-----
->>>>    1 file changed, 8 insertions(+), 5 deletions(-)
->>>>
->>>> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
->>>> index ca07433..66a79a7 100644
->>>> --- a/mm/memory_hotplug.c
->>>> +++ b/mm/memory_hotplug.c
->>>> @@ -286,11 +286,14 @@ static int __meminit __add_section(int nid,
->>>> struct zone *zone,
->>>>    #ifdef CONFIG_SPARSEMEM_VMEMMAP
->>>>    static int __remove_section(struct zone *zone, struct mem_section
->>>> *ms)
->>>>    {
->>>> -    /*
->>>> -     * XXX: Freeing memmap with vmemmap is not implement yet.
->>>> -     *      This should be removed later.
->>>> -     */
->>>> -    return -EBUSY;
->>>> +    int ret = -EINVAL;
->>>> +
->>>> +    if (!valid_section(ms))
->>>> +        return ret;
->>>> +
->>>> +    ret = unregister_memory_section(ms);
->>>> +
->>>> +    return ret;
->>>>    }
->>>>    #else
->>>>    static int __remove_section(struct zone *zone, struct mem_section
->>>> *ms)
->>>
-> 
-> 
+Signed-off-by: Mathias Nyman <mathias.nyman@linux.intel.com>
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+---
+ drivers/gpio/Kconfig        |    4 ++++
+ drivers/gpio/Makefile       |    1 +
+ drivers/gpio/gpiolib-acpi.c |   56 +++++++++++++++++++++++++++++++++++++++++++
+ include/linux/acpi_gpio.h   |   19 +++++++++++++++
+ 4 files changed, 80 insertions(+)
+ create mode 100644 drivers/gpio/gpiolib-acpi.c
+ create mode 100644 include/linux/acpi_gpio.h
+
+diff --git a/drivers/gpio/Kconfig b/drivers/gpio/Kconfig
+index f11d8e3..5c9b384 100644
+--- a/drivers/gpio/Kconfig
++++ b/drivers/gpio/Kconfig
+@@ -49,6 +49,10 @@ config OF_GPIO
+ 	def_bool y
+ 	depends on OF
+ 
++config GPIO_ACPI
++	def_bool y
++	depends on ACPI
++
+ config DEBUG_GPIO
+ 	bool "Debug GPIO calls"
+ 	depends on DEBUG_KERNEL
+diff --git a/drivers/gpio/Makefile b/drivers/gpio/Makefile
+index 9aeed67..420dbac 100644
+--- a/drivers/gpio/Makefile
++++ b/drivers/gpio/Makefile
+@@ -4,6 +4,7 @@ ccflags-$(CONFIG_DEBUG_GPIO)	+= -DDEBUG
+ 
+ obj-$(CONFIG_GPIOLIB)		+= gpiolib.o devres.o
+ obj-$(CONFIG_OF_GPIO)		+= gpiolib-of.o
++obj-$(CONFIG_GPIO_ACPI)		+= gpiolib-acpi.o
+ 
+ # Device drivers. Generally keep list sorted alphabetically
+ obj-$(CONFIG_GPIO_GENERIC)	+= gpio-generic.o
+diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+new file mode 100644
+index 0000000..8285144
+--- /dev/null
++++ b/drivers/gpio/gpiolib-acpi.c
+@@ -0,0 +1,56 @@
++/*
++ * ACPI helpers for GPIO API
++ *
++ * Copyright (C) 2012, Intel Corporation
++ * Authors: Mathias Nyman <mathias.nyman@linux.intel.com>
++ *          Mika Westerberg <mika.westerberg@linux.intel.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/errno.h>
++#include <linux/gpio.h>
++#include <linux/export.h>
++#include <linux/acpi_gpio.h>
++#include <linux/acpi.h>
++
++static int acpi_gpiochip_find(struct gpio_chip *gc, void *data)
++{
++	acpi_handle handle = data;
++
++	if (!gc->dev)
++		return false;
++
++	return ACPI_HANDLE(gc->dev) == handle;
++}
++
++/**
++ * acpi_get_gpio() - Translate ACPI GPIO pin to GPIO number usable with GPIO API
++ * @path:	ACPI GPIO controller full path name, (e.g. "\\_SB.GPO1")
++ * @pin:	ACPI GPIO pin number (0-based, controller-relative)
++ *
++ * Returns GPIO number to use with Linux generic GPIO API, or errno error value
++ */
++
++int acpi_get_gpio(char *path, int pin)
++{
++	struct gpio_chip *chip;
++	acpi_handle handle;
++	acpi_status status;
++
++	status = acpi_get_handle(NULL, path, &handle);
++	if (ACPI_FAILURE(status))
++		return -ENODEV;
++
++	chip = gpiochip_find(handle, acpi_gpiochip_find);
++	if (!chip)
++		return -ENODEV;
++
++	if (!gpio_is_valid(chip->base + pin))
++		return -EINVAL;
++
++	return chip->base + pin;
++}
++EXPORT_SYMBOL_GPL(acpi_get_gpio);
+diff --git a/include/linux/acpi_gpio.h b/include/linux/acpi_gpio.h
+new file mode 100644
+index 0000000..91615a3
+--- /dev/null
++++ b/include/linux/acpi_gpio.h
+@@ -0,0 +1,19 @@
++#ifndef _LINUX_ACPI_GPIO_H_
++#define _LINUX_ACPI_GPIO_H_
++
++#include <linux/errno.h>
++
++#ifdef CONFIG_GPIO_ACPI
++
++int acpi_get_gpio(char *path, int pin);
++
++#else /* CONFIG_GPIO_ACPI */
++
++static inline int acpi_get_gpio(char *path, int pin)
++{
++	return -ENODEV;
++}
++
++#endif /* CONFIG_GPIO_ACPI */
++
++#endif /* _LINUX_ACPI_GPIO_H_ */
+-- 
+1.7.10.4
 
