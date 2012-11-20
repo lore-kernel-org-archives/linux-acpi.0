@@ -1,180 +1,106 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH v3 2/3] spi / ACPI: add ACPI enumeration support
-Date: Tue, 20 Nov 2012 12:29:43 +0200
-Message-ID: <1353407384-26880-3-git-send-email-mika.westerberg@linux.intel.com>
-References: <1352977397-2280-1-git-send-email-mika.westerberg@linux.intel.com>
- <1353407384-26880-1-git-send-email-mika.westerberg@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:31586 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752798Ab2KTK0g (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 20 Nov 2012 05:26:36 -0500
-In-Reply-To: <1353407384-26880-1-git-send-email-mika.westerberg@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Jaegeuk Hanse <jaegeuk.hanse@gmail.com>
+Subject: Re: [PATCH v3 06/12] memory-hotplug: unregister memory section on
+ SPARSEMEM_VMEMMAP
+Date: Tue, 20 Nov 2012 19:03:30 +0800
+Message-ID: <50AB6382.40004@gmail.com>
+References: <1351763083-7905-1-git-send-email-wency@cn.fujitsu.com> <1351763083-7905-7-git-send-email-wency@cn.fujitsu.com> <50AB21A4.8050709@gmail.com> <50AB2967.5010302@cn.fujitsu.com> <50AB2A1A.6040606@gmail.com> <50AB4F6D.3050002@cn.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-sh-owner@vger.kernel.org>
+In-Reply-To: <50AB4F6D.3050002@cn.fujitsu.com>
+Sender: linux-sh-owner@vger.kernel.org
+To: Wen Congyang <wency@cn.fujitsu.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, David Rientjes <rientjes@google.com>, Jiang Liu <liuj97@gmail.com>, Len Brown <len.brown@intel.com>, benh@kernel.crashing.org, paulus@samba.org, Christoph Lameter <cl@linux.com>, Minchan Kim <minchan.kim@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Jianguo Wu <wujianguo@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
-To: grant.likely@secretlab.ca, linus.walleij@linaro.org, w.sang@pengutronix.de, rafael.j.wysocki@intel.com
-Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, broonie@opensource.wolfsonmicro.com, khali@linux-fr.org, ben-linux@fluff.org, bhelgaas@google.com, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-ACPI 5 introduced SPISerialBus resource that allows us to enumerate and
-configure the SPI slave devices behind the SPI controller. This patch adds
-support for this to the SPI core.
+On 11/20/2012 05:37 PM, Wen Congyang wrote:
+> At 11/20/2012 02:58 PM, Jaegeuk Hanse Wrote:
+>> On 11/20/2012 02:55 PM, Wen Congyang wrote:
+>>> At 11/20/2012 02:22 PM, Jaegeuk Hanse Wrote:
+>>>> On 11/01/2012 05:44 PM, Wen Congyang wrote:
+>>>>> From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+>>>>>
+>>>>> Currently __remove_section for SPARSEMEM_VMEMMAP does nothing. But
+>>>>> even if
+>>>>> we use SPARSEMEM_VMEMMAP, we can unregister the memory_section.
+>>>>>
+>>>>> So the patch add unregister_memory_section() into __remove_section().
+>>>> Hi Yasuaki,
+>>>>
+>>>> In order to review this patch, I should dig sparse memory codes in
+>>>> advance. But I have some confuse of codes. Why need encode/decode mem
+>>>> map instead of set mem_map to ms->section_mem_map directly?
+>>> The memmap is aligned, and the low bits are zero. We store some
+>>> information
+>>> in these bits. So we need to encode/decode memmap here.
+>> Hi Congyang,
+>>
+>> Thanks for you reponse. But I mean why return (unsigned long)(mem_map -
+>> (section_nr_to_pfn(pnum))); in function sparse_encode_mem_map, and then
+>> return ((struct page *)coded_mem_map) + section_nr_to_pfn(pnum); in
+>> funtion sparse_decode_mem_map instead of just store mem_map in
+>> ms->section_mep_map directly.
+> I don't know why. I try to find the reason, but I don't find any
+> place to use the pfn stored in the mem_map except in the decode
+> function. Maybe the designer doesn't want us to access the mem_map
+> directly.
 
-In addition we bind ACPI nodes to SPI devices. This makes it possible for
-the slave drivers to get the ACPI handle for further configuration.
+It seems that mem_map is per node, but pfn is real pfn.
+you can check __page_to_pfn.
 
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
----
- drivers/spi/spi.c |  115 ++++++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 114 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
-index 84c2861..3ae5351 100644
---- a/drivers/spi/spi.c
-+++ b/drivers/spi/spi.c
-@@ -35,6 +35,8 @@
- #include <linux/sched.h>
- #include <linux/delay.h>
- #include <linux/kthread.h>
-+#include <linux/ioport.h>
-+#include <linux/acpi.h>
- 
- static void spidev_release(struct device *dev)
- {
-@@ -93,6 +95,10 @@ static int spi_match_device(struct device *dev, struct device_driver *drv)
- 	if (of_driver_match_device(dev, drv))
- 		return 1;
- 
-+	/* Then try ACPI */
-+	if (acpi_driver_match_device(dev, drv))
-+		return 1;
-+
- 	if (sdrv->id_table)
- 		return !!spi_match_id(sdrv->id_table, spi);
- 
-@@ -888,6 +894,112 @@ static void of_register_spi_devices(struct spi_master *master)
- static void of_register_spi_devices(struct spi_master *master) { }
- #endif
- 
-+#ifdef CONFIG_ACPI
-+static int acpi_spi_add_resource(struct acpi_resource *ares, void *data)
-+{
-+	struct acpi_resource_spi_serialbus *sb;
-+	struct spi_device *spi = data;
-+	struct resource r;
-+
-+	switch (ares->type) {
-+	case ACPI_RESOURCE_TYPE_IRQ:
-+	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
-+		/* Only use the first interrupt resource and skip the rest */
-+		memset(&r, 0, sizeof(r));
-+		if (spi->irq < 0 && acpi_dev_resource_interrupt(ares, 0, &r))
-+			spi->irq = r.start;
-+		return 1;
-+
-+	case ACPI_RESOURCE_TYPE_SERIAL_BUS:
-+		sb = &ares->data.spi_serial_bus;
-+		if (sb->type == ACPI_RESOURCE_SERIAL_TYPE_SPI) {
-+			spi->chip_select = sb->device_selection;
-+			spi->max_speed_hz = sb->connection_speed;
-+
-+			if (sb->clock_phase == ACPI_SPI_SECOND_PHASE)
-+				spi->mode |= SPI_CPHA;
-+			if (sb->clock_polarity == ACPI_SPI_START_HIGH)
-+				spi->mode |= SPI_CPOL;
-+			if (sb->device_polarity == ACPI_SPI_ACTIVE_HIGH)
-+				spi->mode |= SPI_CS_HIGH;
-+
-+			return 1;
-+		}
-+		return 0;
-+	}
-+
-+	return 0;
-+}
-+
-+static acpi_status acpi_spi_add_device(acpi_handle handle, u32 level,
-+				       void *data, void **return_value)
-+{
-+	struct spi_master *master = data;
-+	struct list_head resource_list;
-+	struct acpi_device *adev;
-+	struct spi_device *spi;
-+	int ret;
-+
-+	if (acpi_bus_get_device(handle, &adev))
-+		return AE_OK;
-+	if (acpi_bus_get_status(adev) || !adev->status.present)
-+		return AE_OK;
-+
-+	spi = spi_alloc_device(master);
-+	if (!spi) {
-+		dev_err(&master->dev, "failed to allocate SPI device for %s\n",
-+			dev_name(&adev->dev));
-+		return AE_NO_MEMORY;
-+	}
-+
-+	ACPI_HANDLE_SET(&spi->dev, handle);
-+	spi->irq = -1;
-+
-+	INIT_LIST_HEAD(&resource_list);
-+	ret = acpi_dev_get_resources(adev, &resource_list,
-+				     acpi_spi_add_resource, spi);
-+	if (ret < 0)
-+		goto fail_put_dev;
-+
-+	acpi_dev_free_resource_list(&resource_list);
-+
-+	if (!spi->max_speed_hz)
-+		goto fail_put_dev;
-+
-+	strlcpy(spi->modalias, dev_name(&adev->dev), sizeof(spi->modalias));
-+	if (spi_add_device(spi)) {
-+		dev_err(&master->dev, "failed to add SPI device %s from ACPI\n",
-+			dev_name(&adev->dev));
-+		goto fail_put_dev;
-+	}
-+
-+	return AE_OK;
-+
-+fail_put_dev:
-+	spi_dev_put(spi);
-+
-+	return AE_OK;
-+}
-+
-+static void acpi_register_spi_devices(struct spi_master *master)
-+{
-+	acpi_status status;
-+	acpi_handle handle;
-+
-+	handle = ACPI_HANDLE(&master->dev);
-+	if (!handle)
-+		return;
-+
-+	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, 1,
-+				     acpi_spi_add_device, NULL,
-+				     master, NULL);
-+	if (ACPI_FAILURE(status))
-+		dev_warn(&master->dev, "failed to enumerate SPI slaves\n");
-+}
-+#else
-+static inline void acpi_register_spi_devices(struct spi_master *master) {}
-+#endif /* CONFIG_ACPI */
-+
- static void spi_master_release(struct device *dev)
- {
- 	struct spi_master *master;
-@@ -1023,8 +1135,9 @@ int spi_register_master(struct spi_master *master)
- 		spi_match_master_to_boardinfo(master, &bi->board_info);
- 	mutex_unlock(&board_lock);
- 
--	/* Register devices from the device tree */
-+	/* Register devices from the device tree and ACPI */
- 	of_register_spi_devices(master);
-+	acpi_register_spi_devices(master);
- done:
- 	return status;
- }
--- 
-1.7.10.4
+>
+> Thanks
+> Wen Congyang
+>
+>> Regards,
+>> Jaegeuk
+>>
+>>> Thanks
+>>> Wen Congyang
+>>>
+>>>> Regards,
+>>>> Jaegeuk
+>>>>
+>>>>> CC: David Rientjes <rientjes@google.com>
+>>>>> CC: Jiang Liu <liuj97@gmail.com>
+>>>>> CC: Len Brown <len.brown@intel.com>
+>>>>> CC: Christoph Lameter <cl@linux.com>
+>>>>> Cc: Minchan Kim <minchan.kim@gmail.com>
+>>>>> CC: Andrew Morton <akpm@linux-foundation.org>
+>>>>> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+>>>>> CC: Wen Congyang <wency@cn.fujitsu.com>
+>>>>> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+>>>>> ---
+>>>>>     mm/memory_hotplug.c | 13 ++++++++-----
+>>>>>     1 file changed, 8 insertions(+), 5 deletions(-)
+>>>>>
+>>>>> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+>>>>> index ca07433..66a79a7 100644
+>>>>> --- a/mm/memory_hotplug.c
+>>>>> +++ b/mm/memory_hotplug.c
+>>>>> @@ -286,11 +286,14 @@ static int __meminit __add_section(int nid,
+>>>>> struct zone *zone,
+>>>>>     #ifdef CONFIG_SPARSEMEM_VMEMMAP
+>>>>>     static int __remove_section(struct zone *zone, struct mem_section
+>>>>> *ms)
+>>>>>     {
+>>>>> -    /*
+>>>>> -     * XXX: Freeing memmap with vmemmap is not implement yet.
+>>>>> -     *      This should be removed later.
+>>>>> -     */
+>>>>> -    return -EBUSY;
+>>>>> +    int ret = -EINVAL;
+>>>>> +
+>>>>> +    if (!valid_section(ms))
+>>>>> +        return ret;
+>>>>> +
+>>>>> +    ret = unregister_memory_section(ms);
+>>>>> +
+>>>>> +    return ret;
+>>>>>     }
+>>>>>     #else
+>>>>>     static int __remove_section(struct zone *zone, struct mem_section
+>>>>> *ms)
+>>
 
