@@ -1,7 +1,7 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v6 2/5] ACPI: Update CPU hotplug error messages
-Date: Tue, 20 Nov 2012 13:44:51 -0700
-Message-ID: <1353444294-25575-3-git-send-email-toshi.kani@hp.com>
+Subject: [PATCH v6 3/5] ACPI: Update Memory hotplug error messages
+Date: Tue, 20 Nov 2012 13:44:52 -0700
+Message-ID: <1353444294-25575-4-git-send-email-toshi.kani@hp.com>
 References: <1353444294-25575-1-git-send-email-toshi.kani@hp.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1353444294-25575-1-git-send-email-toshi.kani@hp.com>
@@ -10,143 +10,119 @@ To: linux-acpi@vger.kernel.org, rjw@sisk.pl, lenb@kernel.org
 Cc: linux-kernel@vger.kernel.org, joe@perches.com, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, vijaymohan.pandarathil@hp.com, Toshi Kani <toshi.kani@hp.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Updated CPU hotplug error messages with acpi_handle_<level>(),
-dev_<level>() and pr_<level>().  Modified some messages for
-clarity.  Added error status / id info to the messages where
-needed.
+Updated Memory hotplug error messages with acpi_handle_<level>(),
+dev_<level>() and pr_<level>().  Added missing "\n".
 
 Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-Tested-by: Vijay Mohan Pandarathil <vijaymohan.pandarathil@hp.com>
 ---
- drivers/acpi/processor_driver.c | 39 ++++++++++++++++++++++++---------------
- 1 file changed, 24 insertions(+), 15 deletions(-)
+ drivers/acpi/acpi_memhotplug.c | 24 +++++++++++++-----------
+ 1 file changed, 13 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-index 8cc33d0..e83311b 100644
---- a/drivers/acpi/processor_driver.c
-+++ b/drivers/acpi/processor_driver.c
-@@ -44,6 +44,7 @@
- #include <linux/moduleparam.h>
- #include <linux/cpuidle.h>
+diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+index e0f7425..eb30e5a 100644
+--- a/drivers/acpi/acpi_memhotplug.c
++++ b/drivers/acpi/acpi_memhotplug.c
+@@ -31,6 +31,7 @@
+ #include <linux/types.h>
+ #include <linux/memory_hotplug.h>
  #include <linux/slab.h>
 +#include <linux/acpi.h>
+ #include <acpi/acpi_drivers.h>
  
- #include <asm/io.h>
- #include <asm/cpu.h>
-@@ -282,7 +283,9 @@ static int acpi_processor_get_info(struct acpi_device *device)
- 		/* Declared with "Processor" statement; match ProcessorID */
- 		status = acpi_evaluate_object(pr->handle, NULL, NULL, &buffer);
- 		if (ACPI_FAILURE(status)) {
--			printk(KERN_ERR PREFIX "Evaluating processor object\n");
-+			dev_err(&device->dev,
-+				"Failed to evaluate processor object (0x%x)\n",
-+				status);
- 			return -ENODEV;
- 		}
- 
-@@ -301,8 +304,9 @@ static int acpi_processor_get_info(struct acpi_device *device)
- 		status = acpi_evaluate_integer(pr->handle, METHOD_NAME__UID,
- 						NULL, &value);
- 		if (ACPI_FAILURE(status)) {
--			printk(KERN_ERR PREFIX
--			    "Evaluating processor _UID [%#x]\n", status);
-+			dev_err(&device->dev,
-+				"Failed to evaluate processor _UID (0x%x)\n",
-+				status);
- 			return -ENODEV;
- 		}
- 		device_declaration = 1;
-@@ -345,7 +349,7 @@ static int acpi_processor_get_info(struct acpi_device *device)
- 	if (!object.processor.pblk_address)
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "No PBLK (NULL address)\n"));
- 	else if (object.processor.pblk_length != 6)
--		printk(KERN_ERR PREFIX "Invalid PBLK length [%d]\n",
-+		dev_err(&device->dev, "Invalid PBLK length [%d]\n",
- 			    object.processor.pblk_length);
- 	else {
- 		pr->throttling.address = object.processor.pblk_address;
-@@ -430,8 +434,8 @@ static int acpi_cpu_soft_notify(struct notifier_block *nfb,
- 		 * Initialize missing things
- 		 */
- 		if (pr->flags.need_hotplug_init) {
--			printk(KERN_INFO "Will online and init hotplugged "
--			       "CPU: %d\n", pr->id);
-+			pr_info("Will online and init hotplugged CPU: %d\n",
-+				pr->id);
- 			WARN(acpi_processor_start(pr), "Failed to start CPU:"
- 				" %d\n", pr->id);
- 			pr->flags.need_hotplug_init = 0;
-@@ -492,14 +496,16 @@ static __ref int acpi_processor_start(struct acpi_processor *pr)
- 				   &pr->cdev->device.kobj,
- 				   "thermal_cooling");
+ #define ACPI_MEMORY_DEVICE_CLASS		"memory"
+@@ -175,7 +176,7 @@ acpi_memory_get_device(acpi_handle handle,
+ 	/* Get the parent device */
+ 	result = acpi_bus_get_device(phandle, &pdevice);
  	if (result) {
--		printk(KERN_ERR PREFIX "Create sysfs link\n");
-+		dev_err(&device->dev,
-+			"Failed to create sysfs link 'thermal_cooling'\n");
- 		goto err_thermal_unregister;
- 	}
- 	result = sysfs_create_link(&pr->cdev->device.kobj,
- 				   &device->dev.kobj,
- 				   "device");
- 	if (result) {
--		printk(KERN_ERR PREFIX "Create sysfs link\n");
-+		dev_err(&pr->cdev->device,
-+			"Failed to create sysfs link 'device'\n");
- 		goto err_remove_sysfs_thermal;
+-		printk(KERN_WARNING PREFIX "Cannot get acpi bus device");
++		acpi_handle_warn(phandle, "Cannot get acpi bus device\n");
+ 		return -EINVAL;
  	}
  
-@@ -561,8 +567,9 @@ static int __cpuinit acpi_processor_add(struct acpi_device *device)
+@@ -185,14 +186,14 @@ acpi_memory_get_device(acpi_handle handle,
  	 */
- 	if (per_cpu(processor_device_array, pr->id) != NULL &&
- 	    per_cpu(processor_device_array, pr->id) != device) {
--		printk(KERN_WARNING "BIOS reported wrong ACPI id "
--			"for the processor\n");
-+		dev_warn(&device->dev,
-+			"BIOS reported wrong ACPI id %d for the processor\n",
-+			pr->id);
- 		result = -ENODEV;
- 		goto err_free_cpumask;
+ 	result = acpi_bus_add(&device, pdevice, handle, ACPI_BUS_TYPE_DEVICE);
+ 	if (result) {
+-		printk(KERN_WARNING PREFIX "Cannot add acpi bus");
++		acpi_handle_warn(handle, "Cannot add acpi bus\n");
+ 		return -EINVAL;
  	}
-@@ -716,7 +723,7 @@ static void acpi_processor_hotplug_notify(acpi_handle handle,
  
- 		result = acpi_processor_device_add(handle, &device);
- 		if (result) {
--			printk(KERN_ERR PREFIX "Unable to add the device\n");
-+			acpi_handle_err(handle, "Unable to add the device\n");
+       end:
+ 	*mem_device = acpi_driver_data(device);
+ 	if (!(*mem_device)) {
+-		printk(KERN_ERR "\n driver data not found");
++		dev_err(&device->dev, "driver data not found\n");
+ 		return -ENODEV;
+ 	}
+ 
+@@ -229,7 +230,8 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
+ 	/* Get the range from the _CRS */
+ 	result = acpi_memory_get_device_resources(mem_device);
+ 	if (result) {
+-		printk(KERN_ERR PREFIX "get_device_resources failed\n");
++		dev_err(&mem_device->device->dev,
++			"get_device_resources failed\n");
+ 		mem_device->state = MEMORY_INVALID_STATE;
+ 		return result;
+ 	}
+@@ -276,7 +278,7 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
+ 		num_enabled++;
+ 	}
+ 	if (!num_enabled) {
+-		printk(KERN_ERR PREFIX "add_memory failed\n");
++		dev_err(&mem_device->device->dev, "add_memory failed\n");
+ 		mem_device->state = MEMORY_INVALID_STATE;
+ 		return -EINVAL;
+ 	}
+@@ -336,7 +338,7 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
+ 			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 					  "\nReceived DEVICE CHECK notification for device\n"));
+ 		if (acpi_memory_get_device(handle, &mem_device)) {
+-			printk(KERN_ERR PREFIX "Cannot find driver data\n");
++			acpi_handle_err(handle, "Cannot find driver data\n");
  			break;
  		}
  
-@@ -728,17 +735,19 @@ static void acpi_processor_hotplug_notify(acpi_handle handle,
- 				  "received ACPI_NOTIFY_EJECT_REQUEST\n"));
+@@ -344,7 +346,7 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
+ 			break;
+ 
+ 		if (acpi_memory_enable_device(mem_device)) {
+-			printk(KERN_ERR PREFIX "Cannot enable memory device\n");
++			acpi_handle_err(handle,"Cannot enable memory device\n");
+ 			break;
+ 		}
+ 
+@@ -356,12 +358,12 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
+ 				  "\nReceived EJECT REQUEST notification for device\n"));
  
  		if (acpi_bus_get_device(handle, &device)) {
--			pr_err(PREFIX "Device don't exist, dropping EJECT\n");
-+			acpi_handle_err(handle,
-+				"Device don't exist, dropping EJECT\n");
+-			printk(KERN_ERR PREFIX "Device doesn't exist\n");
++			acpi_handle_err(handle, "Device doesn't exist\n");
  			break;
  		}
- 		if (!acpi_driver_data(device)) {
--			pr_err(PREFIX "Driver data is NULL, dropping EJECT\n");
-+			acpi_handle_err(handle,
-+				"Driver data is NULL, dropping EJECT\n");
- 			break;
- 		}
- 
- 		ej_event = kmalloc(sizeof(*ej_event), GFP_KERNEL);
- 		if (!ej_event) {
--			pr_err(PREFIX "No memory, dropping EJECT\n");
-+			acpi_handle_err(handle, "No memory, dropping EJECT\n");
+ 		mem_device = acpi_driver_data(device);
+ 		if (!mem_device) {
+-			printk(KERN_ERR PREFIX "Driver Data is NULL\n");
++			acpi_handle_err(handle, "Driver Data is NULL\n");
  			break;
  		}
  
-@@ -848,7 +857,7 @@ static acpi_status acpi_processor_hotadd_init(struct acpi_processor *pr)
- 	 * and do it when the CPU gets online the first time
- 	 * TBD: Cleanup above functions and try to do this more elegant.
- 	 */
--	printk(KERN_INFO "CPU %d got hotplugged\n", pr->id);
-+	pr_info("CPU %d got hotplugged\n", pr->id);
- 	pr->flags.need_hotplug_init = 1;
+@@ -429,13 +431,13 @@ static int acpi_memory_device_add(struct acpi_device *device)
+ 	/* Set the device state */
+ 	mem_device->state = MEMORY_POWER_ON_STATE;
  
- 	return AE_OK;
+-	printk(KERN_DEBUG "%s \n", acpi_device_name(device));
++	pr_debug("%s\n", acpi_device_name(device));
+ 
+ 	if (!acpi_memory_check_device(mem_device)) {
+ 		/* call add_memory func */
+ 		result = acpi_memory_enable_device(mem_device);
+ 		if (result) {
+-			printk(KERN_ERR PREFIX
++			dev_err(&device->dev,
+ 				"Error in acpi_memory_enable_device\n");
+ 			acpi_memory_device_free(mem_device);
+ 		}
 -- 
 1.7.11.7
