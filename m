@@ -1,163 +1,67 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH v4 2/3] spi / ACPI: add ACPI enumeration support
-Date: Tue, 20 Nov 2012 20:13:31 +0200
-Message-ID: <1353435212-15325-3-git-send-email-mika.westerberg@linux.intel.com>
-References: <1353407384-26880-1-git-send-email-mika.westerberg@linux.intel.com>
- <1353435212-15325-1-git-send-email-mika.westerberg@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1353435212-15325-1-git-send-email-mika.westerberg@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: grant.likely@secretlab.ca, linus.walleij@linaro.org, w.sang@pengutronix.de, rafael.j.wysocki@intel.com
-Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, broonie@opensource.wolfsonmicro.com, khali@linux-fr.org, ben-linux@fluff.org, bhelgaas@google.com, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: [PATCH v6 0/5] ACPI: hotplug messages improvement
+Date: Tue, 20 Nov 2012 13:44:49 -0700
+Message-ID: <1353444294-25575-1-git-send-email-toshi.kani@hp.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g6t0186.atlanta.hp.com ([15.193.32.63]:27820 "EHLO
+	g6t0186.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752737Ab2KTUxW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Nov 2012 15:53:22 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, rjw@sisk.pl, lenb@kernel.org
+Cc: linux-kernel@vger.kernel.org, joe@perches.com, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, vijaymohan.pandarathil@hp.com, Toshi Kani <toshi.kani@hp.com>
 
-ACPI 5 introduced SPISerialBus resource that allows us to enumerate and
-configure the SPI slave devices behind the SPI controller. This patch adds
-support for this to the SPI core.
+This patchset improves logging messages for ACPI CPU, Memory, 
+Container and Dock hotplug notify handlers.  The patchset 
+introduces a set of new macro interfaces, acpi_handle_<level>(),
+and uses them to update the notify handlers.
 
-In addition we bind ACPI nodes to SPI devices. This makes it possible for
-the slave drivers to get the ACPI handle for further configuration.
+acpi_handle_<level>() appends "ACPI" prefix and ACPI object path
+to the messages, which has similar usage model as dev_<level>().
+This improves diagnosis of hotplug operations since an error
+message in a log file identifies an object that caused an issue.
 
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+The patchset is based on the linux-next branch of linux-pm.git
+tree.
+
+v6:
+ - Changed the interface name to acpi_handle_<level>(), and
+   declared them in include/linux/acpi.h.
+ - Added __printf(3,4) to acpi_handle_printk() prototype.
+ - Documented the interfaces acquire the global namespace mutex
+   and may not be called from interrupt context.
+
+v5:
+ - Added update for ACPI Dock hotplug error messages.
+ - Added error status / ID info to the messages where needed.
+
+v4:
+ - Changed to use dev_<level>() where it is appropriate.
+
+v3:
+ - Changed acpi_pr_debug() to NOP when !DEBUG and !DYNAMIC_DEBUG.
+   DYNAMIC_DEBUG will be supported later when necessary.
+ - Added const to a path variable in acpi_printk().
+ - Added more descriptions to the change log of patch 1/4.
+
+v2:
+ - Set buffer.pointer to NULL in acpi_printk().
+ - Added acpi_pr_debug().
+
 ---
- drivers/spi/spi.c |  103 ++++++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 102 insertions(+), 1 deletion(-)
+Toshi Kani (5):
+ ACPI: Add acpi_handle_<level>() interfaces
+ ACPI: Update CPU hotplug error messages
+ ACPI: Update Memory hotplug error messages
+ ACPI: Update Container hotplug error messages
+ ACPI: Update Dock hotplug error messages
 
-diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
-index 84c2861..1ab0523 100644
---- a/drivers/spi/spi.c
-+++ b/drivers/spi/spi.c
-@@ -35,6 +35,8 @@
- #include <linux/sched.h>
- #include <linux/delay.h>
- #include <linux/kthread.h>
-+#include <linux/ioport.h>
-+#include <linux/acpi.h>
- 
- static void spidev_release(struct device *dev)
- {
-@@ -93,6 +95,10 @@ static int spi_match_device(struct device *dev, struct device_driver *drv)
- 	if (of_driver_match_device(dev, drv))
- 		return 1;
- 
-+	/* Then try ACPI */
-+	if (acpi_driver_match_device(dev, drv))
-+		return 1;
-+
- 	if (sdrv->id_table)
- 		return !!spi_match_id(sdrv->id_table, spi);
- 
-@@ -888,6 +894,100 @@ static void of_register_spi_devices(struct spi_master *master)
- static void of_register_spi_devices(struct spi_master *master) { }
- #endif
- 
-+#ifdef CONFIG_ACPI
-+static int acpi_spi_add_resource(struct acpi_resource *ares, void *data)
-+{
-+	struct spi_device *spi = data;
-+
-+	if (ares->type == ACPI_RESOURCE_TYPE_SERIAL_BUS) {
-+		struct acpi_resource_spi_serialbus *sb;
-+
-+		sb = &ares->data.spi_serial_bus;
-+		if (sb->type == ACPI_RESOURCE_SERIAL_TYPE_SPI) {
-+			spi->chip_select = sb->device_selection;
-+			spi->max_speed_hz = sb->connection_speed;
-+
-+			if (sb->clock_phase == ACPI_SPI_SECOND_PHASE)
-+				spi->mode |= SPI_CPHA;
-+			if (sb->clock_polarity == ACPI_SPI_START_HIGH)
-+				spi->mode |= SPI_CPOL;
-+			if (sb->device_polarity == ACPI_SPI_ACTIVE_HIGH)
-+				spi->mode |= SPI_CS_HIGH;
-+		}
-+	} else if (spi->irq < 0) {
-+		struct resource r;
-+
-+		if (acpi_dev_resource_interrupt(ares, 0, &r))
-+			spi->irq = r.start;
-+	}
-+
-+	/* Always tell the ACPI core to skip this resource */
-+	return 1;
-+}
-+
-+static acpi_status acpi_spi_add_device(acpi_handle handle, u32 level,
-+				       void *data, void **return_value)
-+{
-+	struct spi_master *master = data;
-+	struct list_head resource_list;
-+	struct acpi_device *adev;
-+	struct spi_device *spi;
-+	int ret;
-+
-+	if (acpi_bus_get_device(handle, &adev))
-+		return AE_OK;
-+	if (acpi_bus_get_status(adev) || !adev->status.present)
-+		return AE_OK;
-+
-+	spi = spi_alloc_device(master);
-+	if (!spi) {
-+		dev_err(&master->dev, "failed to allocate SPI device for %s\n",
-+			dev_name(&adev->dev));
-+		return AE_NO_MEMORY;
-+	}
-+
-+	ACPI_HANDLE_SET(&spi->dev, handle);
-+	spi->irq = -1;
-+
-+	INIT_LIST_HEAD(&resource_list);
-+	ret = acpi_dev_get_resources(adev, &resource_list,
-+				     acpi_spi_add_resource, spi);
-+	acpi_dev_free_resource_list(&resource_list);
-+
-+	if (ret < 0 || !spi->max_speed_hz) {
-+		spi_dev_put(spi);
-+		return AE_OK;
-+	}
-+
-+	strlcpy(spi->modalias, dev_name(&adev->dev), sizeof(spi->modalias));
-+	if (spi_add_device(spi)) {
-+		dev_err(&master->dev, "failed to add SPI device %s from ACPI\n",
-+			dev_name(&adev->dev));
-+		spi_dev_put(spi);
-+	}
-+
-+	return AE_OK;
-+}
-+
-+static void acpi_register_spi_devices(struct spi_master *master)
-+{
-+	acpi_status status;
-+	acpi_handle handle;
-+
-+	handle = ACPI_HANDLE(&master->dev);
-+	if (!handle)
-+		return;
-+
-+	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, 1,
-+				     acpi_spi_add_device, NULL,
-+				     master, NULL);
-+	if (ACPI_FAILURE(status))
-+		dev_warn(&master->dev, "failed to enumerate SPI slaves\n");
-+}
-+#else
-+static inline void acpi_register_spi_devices(struct spi_master *master) {}
-+#endif /* CONFIG_ACPI */
-+
- static void spi_master_release(struct device *dev)
- {
- 	struct spi_master *master;
-@@ -1023,8 +1123,9 @@ int spi_register_master(struct spi_master *master)
- 		spi_match_master_to_boardinfo(master, &bi->board_info);
- 	mutex_unlock(&board_lock);
- 
--	/* Register devices from the device tree */
-+	/* Register devices from the device tree and ACPI */
- 	of_register_spi_devices(master);
-+	acpi_register_spi_devices(master);
- done:
- 	return status;
- }
--- 
-1.7.10.4
+---
+ drivers/acpi/acpi_memhotplug.c  | 24 ++++++++++++-----------
+ drivers/acpi/container.c        | 10 ++--------
+ drivers/acpi/dock.c             | 30 ++++++++++++++--------------
+ drivers/acpi/processor_driver.c | 39 +++++++++++++++++++++++--------------
+ drivers/acpi/utils.c            | 37 +++++++++++++++++++++++++++++++++++
+ include/linux/acpi.h            | 43 +++++++++++++++++++++++++++++++++++++++++
+ 6 files changed, 133 insertions(+), 50 deletions(-)
