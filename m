@@ -1,219 +1,111 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [Update 2][PATCH 2/3] ACPI / driver core: Introduce struct acpi_dev_node and related macros
-Date: Tue, 20 Nov 2012 10:34:04 +0100
-Message-ID: <2800515.q4oG7o9rEp@vostro.rjw.lan>
-References: <1352977397-2280-1-git-send-email-mika.westerberg@linux.intel.com> <6570191.KCDMiILtRE@vostro.rjw.lan> <20121120091007.GN17774@intel.com>
+From: Wen Congyang <wency@cn.fujitsu.com>
+Subject: Re: [PATCH v3 06/12] memory-hotplug: unregister memory section on
+ SPARSEMEM_VMEMMAP
+Date: Tue, 20 Nov 2012 17:37:49 +0800
+Message-ID: <50AB4F6D.3050002@cn.fujitsu.com>
+References: <1351763083-7905-1-git-send-email-wency@cn.fujitsu.com> <1351763083-7905-7-git-send-email-wency@cn.fujitsu.com> <50AB21A4.8050709@gmail.com> <50AB2967.5010302@cn.fujitsu.com> <50AB2A1A.6040606@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:54995 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751855Ab2KTJ3h (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 20 Nov 2012 04:29:37 -0500
-In-Reply-To: <20121120091007.GN17774@intel.com>
+Received: from cn.fujitsu.com ([222.73.24.84]:59815 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1752073Ab2KTJbc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 20 Nov 2012 04:31:32 -0500
+In-Reply-To: <50AB2A1A.6040606@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, Jean Delvare <khali@linux-fr.org>, ben-linux@fluff.org, w.sang@pengutronix.de, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
+To: Jaegeuk Hanse <jaegeuk.hanse@gmail.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, David Rientjes <rientjes@google.com>, Jiang Liu <liuj97@gmail.com>, Len Brown <len.brown@intel.com>, benh@kernel.crashing.org, paulus@samba.org, Christoph Lameter <cl@linux.com>, Minchan Kim <minchan.kim@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Jianguo Wu <wujianguo@huawei.com>
 
-On Tuesday, November 20, 2012 11:10:07 AM Mika Westerberg wrote:
-> On Tue, Nov 20, 2012 at 01:59:23AM +0100, Rafael J. Wysocki wrote:
-> > Index: linux/include/linux/device.h
-> > ===================================================================
-> > --- linux.orig/include/linux/device.h
-> > +++ linux/include/linux/device.h
-> > @@ -578,6 +578,12 @@ struct device_dma_parameters {
-> >  	unsigned long segment_boundary_mask;
-> >  };
-> >  
-> > +struct acpi_dev_node {
-> > +#ifdef CONFIG_ACPI
-> > +	void	*handle;
-> > +#endif
-> > +};
-> > +
-> >  /**
-> >   * struct device - The basic device structure
-> >   * @parent:	The device's "parent" device, the device to which it is attached.
-> > @@ -683,7 +689,7 @@ struct device {
-> >  	struct dev_archdata	archdata;
-> >  
-> >  	struct device_node	*of_node; /* associated device tree node */
-> > -	void			*acpi_handle; /* associated ACPI device node */
-> > +	struct acpi_dev_node	acpi_node; /* associated ACPI device node */
+At 11/20/2012 02:58 PM, Jaegeuk Hanse Wrote:
+> On 11/20/2012 02:55 PM, Wen Congyang wrote:
+>> At 11/20/2012 02:22 PM, Jaegeuk Hanse Wrote:
+>>> On 11/01/2012 05:44 PM, Wen Congyang wrote:
+>>>> From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+>>>>
+>>>> Currently __remove_section for SPARSEMEM_VMEMMAP does nothing. But
+>>>> even if
+>>>> we use SPARSEMEM_VMEMMAP, we can unregister the memory_section.
+>>>>
+>>>> So the patch add unregister_memory_section() into __remove_section().
+>>> Hi Yasuaki,
+>>>
+>>> In order to review this patch, I should dig sparse memory codes in
+>>> advance. But I have some confuse of codes. Why need encode/decode mem
+>>> map instead of set mem_map to ms->section_mem_map directly?
+>> The memmap is aligned, and the low bits are zero. We store some
+>> information
+>> in these bits. So we need to encode/decode memmap here.
 > 
-> Please update the kerneldoc comment as well.
+> Hi Congyang,
+> 
+> Thanks for you reponse. But I mean why return (unsigned long)(mem_map -
+> (section_nr_to_pfn(pnum))); in function sparse_encode_mem_map, and then
+> return ((struct page *)coded_mem_map) + section_nr_to_pfn(pnum); in
+> funtion sparse_decode_mem_map instead of just store mem_map in
+> ms->section_mep_map directly.
 
-Right, thanks for the reminder. :-)
+I don't know why. I try to find the reason, but I don't find any
+place to use the pfn stored in the mem_map except in the decode
+function. Maybe the designer doesn't want us to access the mem_map
+directly.
 
-Updated patch is appended.
+Thanks
+Wen Congyang
 
-Thanks,
-Rafael
-
-
----
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Subject: ACPI / driver core: Introduce struct acpi_dev_node and related macros
-
-To avoid adding an ACPI handle pointer to struct device on
-architectures that don't use ACPI, or generally when CONFIG_ACPI is
-not set, in which cases that pointer is useless, define struct
-acpi_dev_node that will contain the handle pointer if CONFIG_ACPI is
-set and will be empty otherwise and use it to represent the ACPI
-device node field in struct device.
-
-In addition to that define macros for reading and setting the ACPI
-handle of a device that don't generate code when CONFIG_ACPI is
-unset.  Modify the ACPI subsystem to use those macros instead of
-referring to the given device's ACPI handle directly.
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/glue.c     |   16 ++++++++--------
- drivers/acpi/scan.c     |    4 ++--
- include/acpi/acpi_bus.h |    2 +-
- include/linux/device.h  |   18 ++++++++++++++++--
- 4 files changed, 27 insertions(+), 13 deletions(-)
-
-Index: linux/include/linux/device.h
-===================================================================
---- linux.orig/include/linux/device.h
-+++ linux/include/linux/device.h
-@@ -578,6 +578,12 @@ struct device_dma_parameters {
- 	unsigned long segment_boundary_mask;
- };
- 
-+struct acpi_dev_node {
-+#ifdef CONFIG_ACPI
-+	void	*handle;
-+#endif
-+};
-+
- /**
-  * struct device - The basic device structure
-  * @parent:	The device's "parent" device, the device to which it is attached.
-@@ -618,7 +624,7 @@ struct device_dma_parameters {
-  * @dma_mem:	Internal for coherent mem override.
-  * @archdata:	For arch-specific additions.
-  * @of_node:	Associated device tree node.
-- * @acpi_handle: Associated ACPI device node's namespace handle.
-+ * @acpi_node:	Associated ACPI device node.
-  * @devt:	For creating the sysfs "dev".
-  * @id:		device instance
-  * @devres_lock: Spinlock to protect the resource of the device.
-@@ -683,7 +689,7 @@ struct device {
- 	struct dev_archdata	archdata;
- 
- 	struct device_node	*of_node; /* associated device tree node */
--	void			*acpi_handle; /* associated ACPI device node */
-+	struct acpi_dev_node	acpi_node; /* associated ACPI device node */
- 
- 	dev_t			devt;	/* dev_t, creates the sysfs "dev" */
- 	u32			id;	/* device instance */
-@@ -704,6 +710,14 @@ static inline struct device *kobj_to_dev
- 	return container_of(kobj, struct device, kobj);
- }
- 
-+#ifdef CONFIG_ACPI
-+#define ACPI_HANDLE(dev)	((dev)->acpi_node.handle)
-+#define ACPI_HANDLE_SET(dev, _handle_)	(dev)->acpi_node.handle = (_handle_)
-+#else
-+#define ACPI_HANDLE(dev)	(NULL)
-+#define ACPI_HANDLE_SET(dev, _handle_)	do { } while (0)
-+#endif
-+
- /* Get the wakeup routines, which depend on struct device */
- #include <linux/pm_wakeup.h>
- 
-Index: linux/include/acpi/acpi_bus.h
-===================================================================
---- linux.orig/include/acpi/acpi_bus.h
-+++ linux/include/acpi/acpi_bus.h
-@@ -411,7 +411,7 @@ acpi_handle acpi_get_child(acpi_handle,
- int acpi_is_root_bridge(acpi_handle);
- acpi_handle acpi_get_pci_rootbridge_handle(unsigned int, unsigned int);
- struct acpi_pci_root *acpi_pci_find_root(acpi_handle handle);
--#define DEVICE_ACPI_HANDLE(dev) ((acpi_handle)((dev)->acpi_handle))
-+#define DEVICE_ACPI_HANDLE(dev) ((acpi_handle)ACPI_HANDLE(dev))
- 
- int acpi_enable_wakeup_device_power(struct acpi_device *dev, int state);
- int acpi_disable_wakeup_device_power(struct acpi_device *dev);
-Index: linux/drivers/acpi/glue.c
-===================================================================
---- linux.orig/drivers/acpi/glue.c
-+++ linux/drivers/acpi/glue.c
-@@ -134,12 +134,12 @@ static int acpi_bind_one(struct device *
- 	char physical_node_name[sizeof(PHYSICAL_NODE_STRING) + 2];
- 	int retval = -EINVAL;
- 
--	if (dev->acpi_handle) {
-+	if (ACPI_HANDLE(dev)) {
- 		if (handle) {
- 			dev_warn(dev, "ACPI handle is already set\n");
- 			return -EINVAL;
- 		} else {
--			handle = dev->acpi_handle;
-+			handle = ACPI_HANDLE(dev);
- 		}
- 	}
- 	if (!handle)
-@@ -181,8 +181,8 @@ static int acpi_bind_one(struct device *
- 
- 	mutex_unlock(&acpi_dev->physical_node_lock);
- 
--	if (!dev->acpi_handle)
--		dev->acpi_handle = handle;
-+	if (!ACPI_HANDLE(dev))
-+		ACPI_HANDLE_SET(dev, acpi_dev->handle);
- 
- 	if (!physical_node->node_id)
- 		strcpy(physical_node_name, PHYSICAL_NODE_STRING);
-@@ -200,7 +200,7 @@ static int acpi_bind_one(struct device *
- 	return 0;
- 
-  err:
--	dev->acpi_handle = NULL;
-+	ACPI_HANDLE_SET(dev, NULL);
- 	put_device(dev);
- 	return retval;
- 
-@@ -217,10 +217,10 @@ static int acpi_unbind_one(struct device
- 	acpi_status status;
- 	struct list_head *node, *next;
- 
--	if (!dev->acpi_handle)
-+	if (!ACPI_HANDLE(dev))
- 		return 0;
- 
--	status = acpi_bus_get_device(dev->acpi_handle, &acpi_dev);
-+	status = acpi_bus_get_device(ACPI_HANDLE(dev), &acpi_dev);
- 	if (ACPI_FAILURE(status))
- 		goto err;
- 
-@@ -246,7 +246,7 @@ static int acpi_unbind_one(struct device
- 
- 		sysfs_remove_link(&acpi_dev->dev.kobj, physical_node_name);
- 		sysfs_remove_link(&dev->kobj, "firmware_node");
--		dev->acpi_handle = NULL;
-+		ACPI_HANDLE_SET(dev, NULL);
- 		/* acpi_bind_one increase refcnt by one */
- 		put_device(dev);
- 		kfree(entry);
-Index: linux/drivers/acpi/scan.c
-===================================================================
---- linux.orig/drivers/acpi/scan.c
-+++ linux/drivers/acpi/scan.c
-@@ -443,8 +443,8 @@ const struct acpi_device_id *acpi_match_
- {
- 	struct acpi_device *adev;
- 
--	if (!ids || !dev->acpi_handle
--	    || ACPI_FAILURE(acpi_bus_get_device(dev->acpi_handle, &adev)))
-+	if (!ids || !ACPI_HANDLE(dev)
-+	    || ACPI_FAILURE(acpi_bus_get_device(ACPI_HANDLE(dev), &adev)))
- 		return NULL;
- 
- 	return __acpi_match_device(adev, ids);
+> 
+> Regards,
+> Jaegeuk
+> 
+>>
+>> Thanks
+>> Wen Congyang
+>>
+>>> Regards,
+>>> Jaegeuk
+>>>
+>>>> CC: David Rientjes <rientjes@google.com>
+>>>> CC: Jiang Liu <liuj97@gmail.com>
+>>>> CC: Len Brown <len.brown@intel.com>
+>>>> CC: Christoph Lameter <cl@linux.com>
+>>>> Cc: Minchan Kim <minchan.kim@gmail.com>
+>>>> CC: Andrew Morton <akpm@linux-foundation.org>
+>>>> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+>>>> CC: Wen Congyang <wency@cn.fujitsu.com>
+>>>> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+>>>> ---
+>>>>    mm/memory_hotplug.c | 13 ++++++++-----
+>>>>    1 file changed, 8 insertions(+), 5 deletions(-)
+>>>>
+>>>> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+>>>> index ca07433..66a79a7 100644
+>>>> --- a/mm/memory_hotplug.c
+>>>> +++ b/mm/memory_hotplug.c
+>>>> @@ -286,11 +286,14 @@ static int __meminit __add_section(int nid,
+>>>> struct zone *zone,
+>>>>    #ifdef CONFIG_SPARSEMEM_VMEMMAP
+>>>>    static int __remove_section(struct zone *zone, struct mem_section
+>>>> *ms)
+>>>>    {
+>>>> -    /*
+>>>> -     * XXX: Freeing memmap with vmemmap is not implement yet.
+>>>> -     *      This should be removed later.
+>>>> -     */
+>>>> -    return -EBUSY;
+>>>> +    int ret = -EINVAL;
+>>>> +
+>>>> +    if (!valid_section(ms))
+>>>> +        return ret;
+>>>> +
+>>>> +    ret = unregister_memory_section(ms);
+>>>> +
+>>>> +    return ret;
+>>>>    }
+>>>>    #else
+>>>>    static int __remove_section(struct zone *zone, struct mem_section
+>>>> *ms)
+>>>
+> 
+> 
 
