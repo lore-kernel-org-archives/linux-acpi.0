@@ -1,46 +1,77 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [PATCH v5 RESEND 1/5] ACPI: Add acpi_pr_<level>() interfaces
-Date: Tue, 20 Nov 2012 02:04:02 +0100
-Message-ID: <1914456.6xpKcjJgfG@vostro.rjw.lan>
-References: <1352214130-12055-1-git-send-email-toshi.kani@hp.com> <1458606.kpqnW2s3Q0@vostro.rjw.lan> <1353346003.10939.54.camel@misato.fc.hp.com>
+Date: Tue, 20 Nov 2012 02:17:27 +0100
+Message-ID: <1773951.gVY7rPR0ka@vostro.rjw.lan>
+References: <1352214130-12055-1-git-send-email-toshi.kani@hp.com> <1352214130-12055-2-git-send-email-toshi.kani@hp.com> <5543281.izkzCt1DyB@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:54135 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([193.178.161.156]:54175 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753418Ab2KTA7f (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 19 Nov 2012 19:59:35 -0500
-In-Reply-To: <1353346003.10939.54.camel@misato.fc.hp.com>
+	id S1751786Ab2KTBNC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 19 Nov 2012 20:13:02 -0500
+In-Reply-To: <5543281.izkzCt1DyB@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Toshi Kani <toshi.kani@hp.com>
-Cc: Joe Perches <joe@perches.com>, linux-acpi@vger.kernel.org, lenb@kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, vijaymohan.pandarathil@hp.com, imammedo@redhat.com, prarit@redhat.com
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, linux-kernel@vger.kernel.org, joe@perches.com, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, vijaymohan.pandarathil@hp.com, imammedo@redhat.com, prarit@redhat.com
 
-On Monday, November 19, 2012 10:26:43 AM Toshi Kani wrote:
-> On Mon, 2012-11-19 at 18:35 +0100, Rafael J. Wysocki wrote:
-> > On Monday, November 19, 2012 09:16:52 AM Toshi Kani wrote:
-> > > On Mon, 2012-11-19 at 08:06 -0800, Joe Perches wrote:
-> > > > On Mon, 2012-11-19 at 08:51 -0700, Toshi Kani wrote:
-> > > > > On Mon, 2012-11-19 at 00:56 -0800, Joe Perches wrote:
-> > > > > > is acpi_bus.h really the right file for these prototypes?
-> > > > > This interface is limited for ACPI, so it should be declared in a header
-> > > > > file under include/acpi.  Among the files in this directory, acpi_bus.h
-> > > > > seems to be a good fit as it declares the interfaces provided by ACPI
-> > > > > core.
-> > > > 
-> > > > I'd've put them in acpi.h or maybe created acpi_utils.h 
-> > > 
-> > > Hi Joe,
-> > > 
-> > > We cannot use acpi.h since it is an ACPICA header.
+On Monday, November 19, 2012 09:10:58 AM Rafael J. Wysocki wrote:
+> On Tuesday, November 06, 2012 08:02:06 AM Toshi Kani wrote:
+> > This patch introduces acpi_pr_<level>(), where <level> is a kernel
+> > message level such as err/warn/info, to support improved logging
+> > messages for ACPI, esp. for hotplug operations.  acpi_pr_<level>()
+> > appends "ACPI" prefix and ACPI object path to the messages.  This
+> > improves diagnosis of hotplug operations since an error message in
+> > a log file identifies an object that caused an issue.
 > > 
-> > Which acpi.h are you referring to?
+> > acpi_pr_<level>() takes acpi_handle as an argument, which is passed
+> > to ACPI hotplug notify handlers from the ACPICA.  Therefore, it is
+> > always available unlike other kernel objects, such as device.
+> > 
+> > For example:
+> >   acpi_pr_err(handle, "Device don't exist, dropping EJECT\n");
+> > logs an error message like this at KERN_ERR.
+> >   ACPI: \_SB_.SCK4.CPU4: Device don't exist, dropping EJECT
+> >
+> > ACPI drivers can use acpi_pr_<level>() when they need to identify
+> > a target ACPI object path in their messages, such as error cases.
+> > The usage model is similar to dev_<level>().  acpi_pr_<level>() can
+> > be used when device is not created/valid, which may be the case in
+> > ACPI hotplug handlers.  ACPI object path is also consistent on the
+> > platform, unlike device name that changes over hotplug operations.
+> > 
+> > ACPI drivers should use dev_<level>() when device is valid and
+> > acpi_pr_<level>() is already used by the caller in its error path.
+> > Device name provides more user friendly information.
+> > 
+> > ACPI drivers also continue to use pr_<level>() when messages do not
+> > need to specify device information, such as boot-up messages.
+> > 
+> > Note: ACPI_[WARNING|INFO|ERROR]() are intended for the ACPICA and
+> > are not associated with the kernel message level.
 > 
+> Well, the idea is generally good, but unfortunately acpi_get_name() is
+> not a cheap operation.  Namely, it takes the global namespace mutex,
+> so your acpi_printk() may be a source of serious contention on that
+> lock if used excessively from concurrent threads.
 > 
-> I was referring "include/acpi/acpi.h".
+> Do you think you can address this problem?
+> 
+> Moreover, this also means that acpi_printk() cannot be used from interrupt
+> context, so it is not a printk() replacement, which at least should be
+> documented.
 
-There is another acpi.h in include/linux that can be used for this purpose.
+Unfortunately, I lost your reply to my previous message in this thread
+due to my e-mail client malfunction.  Sorry about that.
+
+What about calling them acpi_handle_printk() and acpi_handle_<level>,
+respectively?  Then, if it is clearly documented that those things
+acquire the global namespace mutex and are not suitable for interrupt
+context, it should be OK.
+
+And please take Joe's feedback into account. :-)
 
 Thanks,
 Rafael
