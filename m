@@ -1,7 +1,7 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [Update][PATCH 2/3] ACPI / driver core: Introduce struct acpi_dev_node and related macros
-Date: Tue, 20 Nov 2012 01:59:23 +0100
-Message-ID: <6570191.KCDMiILtRE@vostro.rjw.lan>
+Subject: [Update][PATCH 1/3] ACPI: Allow ACPI handles of devices to be initialized in advance
+Date: Tue, 20 Nov 2012 01:57:13 +0100
+Message-ID: <3954977.fT8lC34ML2@vostro.rjw.lan>
 References: <1352977397-2280-1-git-send-email-mika.westerberg@linux.intel.com> <1758879.PKgPhTGcB7@vostro.rjw.lan> <4036218.zBRlg5OZsZ@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -9,159 +9,145 @@ Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <4036218.zBRlg5OZsZ@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Jean Delvare <khali@linux-fr.org>, ben-linux@fluff.org, w.sang@pengutronix.de, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Jean Delvare <khali@linux-fr.org>, ben-linux@fluff.org, w.sang@pengutronix.de, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-To avoid adding an ACPI handle pointer to struct device on
-architectures that don't use ACPI, or generally when CONFIG_ACPI is
-not set, in which cases that pointer is useless, define struct
-acpi_dev_node that will contain the handle pointer if CONFIG_ACPI is
-set and will be empty otherwise and use it to represent the ACPI
-device node field in struct device.
+Currently, the ACPI handles of devices are initialized from within
+device_add(), by acpi_bind_one() called from acpi_platform_notify()
+which first uses the .find_device() routine provided by the device's
+bus type to find the matching device node in the ACPI namespace.
+This is a source of some computational overhead and, moreover, the
+correctness of the result depends on the implementation of
+.find_device() which is known to fail occasionally for some bus types
+(e.g. PCI).  In some cases, however, the corresponding ACPI device
+node is known already before calling device_add() for the given
+struct device object and the whole .find_device() dance in
+acpi_platform_notify() is then simply unnecessary.
 
-In addition to that define macros for reading and setting the ACPI
-handle of a device that don't generate code when CONFIG_ACPI is
-unset.  Modify the ACPI subsystem to use those macros instead of
-referring to the given device's ACPI handle directly.
+For this reason, make it possible to initialize the ACPI handles of
+devices before calling device_add() for them.  Modify
+acpi_platform_notify() to call acpi_bind_one() in advance to check
+the device's existing ACPI handle and skip the .find_device()
+search if that is successful.  Change acpi_bind_one() accordingly.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 ---
- drivers/acpi/glue.c     |   16 ++++++++--------
- drivers/acpi/scan.c     |    4 ++--
- include/acpi/acpi_bus.h |    2 +-
- include/linux/device.h  |   16 +++++++++++++++-
- 4 files changed, 26 insertions(+), 12 deletions(-)
+ drivers/acpi/glue.c |   44 ++++++++++++++++++++++++++++++++++----------
+ 1 file changed, 34 insertions(+), 10 deletions(-)
 
-Index: linux/include/linux/device.h
-===================================================================
---- linux.orig/include/linux/device.h
-+++ linux/include/linux/device.h
-@@ -578,6 +578,12 @@ struct device_dma_parameters {
- 	unsigned long segment_boundary_mask;
- };
- 
-+struct acpi_dev_node {
-+#ifdef CONFIG_ACPI
-+	void	*handle;
-+#endif
-+};
-+
- /**
-  * struct device - The basic device structure
-  * @parent:	The device's "parent" device, the device to which it is attached.
-@@ -683,7 +689,7 @@ struct device {
- 	struct dev_archdata	archdata;
- 
- 	struct device_node	*of_node; /* associated device tree node */
--	void			*acpi_handle; /* associated ACPI device node */
-+	struct acpi_dev_node	acpi_node; /* associated ACPI device node */
- 
- 	dev_t			devt;	/* dev_t, creates the sysfs "dev" */
- 	u32			id;	/* device instance */
-@@ -704,6 +710,14 @@ static inline struct device *kobj_to_dev
- 	return container_of(kobj, struct device, kobj);
- }
- 
-+#ifdef CONFIG_ACPI
-+#define ACPI_HANDLE(dev)	((dev)->acpi_node.handle)
-+#define ACPI_HANDLE_SET(dev, _handle_)	(dev)->acpi_node.handle = (_handle_)
-+#else
-+#define ACPI_HANDLE(dev)	(NULL)
-+#define ACPI_HANDLE_SET(dev, _handle_)	do { } while(0)
-+#endif
-+
- /* Get the wakeup routines, which depend on struct device */
- #include <linux/pm_wakeup.h>
- 
-Index: linux/include/acpi/acpi_bus.h
-===================================================================
---- linux.orig/include/acpi/acpi_bus.h
-+++ linux/include/acpi/acpi_bus.h
-@@ -411,7 +411,7 @@ acpi_handle acpi_get_child(acpi_handle,
- int acpi_is_root_bridge(acpi_handle);
- acpi_handle acpi_get_pci_rootbridge_handle(unsigned int, unsigned int);
- struct acpi_pci_root *acpi_pci_find_root(acpi_handle handle);
--#define DEVICE_ACPI_HANDLE(dev) ((acpi_handle)((dev)->acpi_handle))
-+#define DEVICE_ACPI_HANDLE(dev) ((acpi_handle)ACPI_HANDLE(dev))
- 
- int acpi_enable_wakeup_device_power(struct acpi_device *dev, int state);
- int acpi_disable_wakeup_device_power(struct acpi_device *dev);
 Index: linux/drivers/acpi/glue.c
 ===================================================================
 --- linux.orig/drivers/acpi/glue.c
 +++ linux/drivers/acpi/glue.c
-@@ -134,12 +134,12 @@ static int acpi_bind_one(struct device *
+@@ -130,46 +130,59 @@ static int acpi_bind_one(struct device *
+ {
+ 	struct acpi_device *acpi_dev;
+ 	acpi_status status;
+-	struct acpi_device_physical_node *physical_node;
++	struct acpi_device_physical_node *physical_node, *pn;
  	char physical_node_name[sizeof(PHYSICAL_NODE_STRING) + 2];
  	int retval = -EINVAL;
  
--	if (dev->acpi_handle) {
-+	if (ACPI_HANDLE(dev)) {
- 		if (handle) {
- 			dev_warn(dev, "ACPI handle is already set\n");
- 			return -EINVAL;
- 		} else {
--			handle = dev->acpi_handle;
-+			handle = ACPI_HANDLE(dev);
- 		}
+ 	if (dev->acpi_handle) {
+-		dev_warn(dev, "Drivers changed 'acpi_handle'\n");
+-		return -EINVAL;
++		if (handle) {
++			dev_warn(dev, "ACPI handle is already set\n");
++			return -EINVAL;
++		} else {
++			handle = dev->acpi_handle;
++		}
  	}
- 	if (!handle)
-@@ -181,8 +181,8 @@ static int acpi_bind_one(struct device *
++	if (!handle)
++		return -EINVAL;
  
- 	mutex_unlock(&acpi_dev->physical_node_lock);
- 
--	if (!dev->acpi_handle)
--		dev->acpi_handle = handle;
-+	if (!ACPI_HANDLE(dev))
-+		ACPI_HANDLE_SET(dev, acpi_dev->handle);
- 
- 	if (!physical_node->node_id)
- 		strcpy(physical_node_name, PHYSICAL_NODE_STRING);
-@@ -200,7 +200,7 @@ static int acpi_bind_one(struct device *
- 	return 0;
- 
-  err:
--	dev->acpi_handle = NULL;
-+	ACPI_HANDLE_SET(dev, NULL);
- 	put_device(dev);
- 	return retval;
- 
-@@ -217,10 +217,10 @@ static int acpi_unbind_one(struct device
- 	acpi_status status;
- 	struct list_head *node, *next;
- 
--	if (!dev->acpi_handle)
-+	if (!ACPI_HANDLE(dev))
- 		return 0;
- 
--	status = acpi_bus_get_device(dev->acpi_handle, &acpi_dev);
-+	status = acpi_bus_get_device(ACPI_HANDLE(dev), &acpi_dev);
+ 	get_device(dev);
+ 	status = acpi_bus_get_device(handle, &acpi_dev);
  	if (ACPI_FAILURE(status))
  		goto err;
  
-@@ -246,7 +246,7 @@ static int acpi_unbind_one(struct device
+-	physical_node = kzalloc(sizeof(struct acpi_device_physical_node),
+-		GFP_KERNEL);
++	physical_node = kzalloc(sizeof(*physical_node), GFP_KERNEL);
+ 	if (!physical_node) {
+ 		retval = -ENOMEM;
+ 		goto err;
+ 	}
  
- 		sysfs_remove_link(&acpi_dev->dev.kobj, physical_node_name);
- 		sysfs_remove_link(&dev->kobj, "firmware_node");
--		dev->acpi_handle = NULL;
-+		ACPI_HANDLE_SET(dev, NULL);
- 		/* acpi_bind_one increase refcnt by one */
- 		put_device(dev);
- 		kfree(entry);
-Index: linux/drivers/acpi/scan.c
-===================================================================
---- linux.orig/drivers/acpi/scan.c
-+++ linux/drivers/acpi/scan.c
-@@ -443,8 +443,8 @@ const struct acpi_device_id *acpi_match_
- {
- 	struct acpi_device *adev;
+ 	mutex_lock(&acpi_dev->physical_node_lock);
++
++	/* Sanity check. */
++	list_for_each_entry(pn, &acpi_dev->physical_node_list, node)
++		if (pn->dev == dev) {
++			dev_warn(dev, "Already associated with ACPI node\n");
++			goto err_free;
++		}
++
+ 	/* allocate physical node id according to physical_node_id_bitmap */
+ 	physical_node->node_id =
+ 		find_first_zero_bit(acpi_dev->physical_node_id_bitmap,
+ 		ACPI_MAX_PHYSICAL_NODE);
+ 	if (physical_node->node_id >= ACPI_MAX_PHYSICAL_NODE) {
+ 		retval = -ENOSPC;
+-		mutex_unlock(&acpi_dev->physical_node_lock);
+-		kfree(physical_node);
+-		goto err;
++		goto err_free;
+ 	}
  
--	if (!ids || !dev->acpi_handle
--	    || ACPI_FAILURE(acpi_bus_get_device(dev->acpi_handle, &adev)))
-+	if (!ids || !ACPI_HANDLE(dev)
-+	    || ACPI_FAILURE(acpi_bus_get_device(ACPI_HANDLE(dev), &adev)))
- 		return NULL;
+ 	set_bit(physical_node->node_id, acpi_dev->physical_node_id_bitmap);
+ 	physical_node->dev = dev;
+ 	list_add_tail(&physical_node->node, &acpi_dev->physical_node_list);
+ 	acpi_dev->physical_node_count++;
++
+ 	mutex_unlock(&acpi_dev->physical_node_lock);
  
- 	return __acpi_match_device(adev, ids);
+-	dev->acpi_handle = handle;
++	if (!dev->acpi_handle)
++		dev->acpi_handle = handle;
+ 
+ 	if (!physical_node->node_id)
+ 		strcpy(physical_node_name, PHYSICAL_NODE_STRING);
+@@ -187,8 +200,14 @@ static int acpi_bind_one(struct device *
+ 	return 0;
+ 
+  err:
++	dev->acpi_handle = NULL;
+ 	put_device(dev);
+ 	return retval;
++
++ err_free:
++	mutex_unlock(&acpi_dev->physical_node_lock);
++	kfree(physical_node);
++	goto err;
+ }
+ 
+ static int acpi_unbind_one(struct device *dev)
+@@ -247,6 +266,10 @@ static int acpi_platform_notify(struct d
+ 	acpi_handle handle;
+ 	int ret = -EINVAL;
+ 
++	ret = acpi_bind_one(dev, NULL);
++	if (!ret)
++		goto out;
++
+ 	if (!dev->bus || !dev->parent) {
+ 		/* bridge devices genernally haven't bus or parent */
+ 		ret = acpi_find_bridge_device(dev, &handle);
+@@ -260,10 +283,11 @@ static int acpi_platform_notify(struct d
+ 	}
+ 	if ((ret = type->find_device(dev, &handle)) != 0)
+ 		DBG("Can't get handler for %s\n", dev_name(dev));
+-      end:
++ end:
+ 	if (!ret)
+ 		acpi_bind_one(dev, handle);
+ 
++ out:
+ #if ACPI_GLUE_DEBUG
+ 	if (!ret) {
+ 		struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
