@@ -1,69 +1,70 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Update][PATCH 0/3] ACPI: Simplify "glueing" to physical nodes
-Date: Tue, 20 Nov 2012 22:40:23 +0100
-Message-ID: <6745342.DnJuWJEcJZ@vostro.rjw.lan>
-References: <1352977397-2280-1-git-send-email-mika.westerberg@linux.intel.com> <4036218.zBRlg5OZsZ@vostro.rjw.lan> <20121120180905.GC12328@kroah.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: [PATCH v7 0/5] ACPI: hotplug messages improvement
+Date: Tue, 20 Nov 2012 16:42:25 -0700
+Message-ID: <1353454950-17010-1-git-send-email-toshi.kani@hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:56466 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753129Ab2KTVf5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 20 Nov 2012 16:35:57 -0500
-In-Reply-To: <20121120180905.GC12328@kroah.com>
+Received: from g5t0007.atlanta.hp.com ([15.192.0.44]:23594 "EHLO
+	g5t0007.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752089Ab2KTXvQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Nov 2012 18:51:16 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Jean Delvare <khali@linux-fr.org>, ben-linux@fluff.org, w.sang@pengutronix.de, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, rjw@sisk.pl, lenb@kernel.org
+Cc: linux-kernel@vger.kernel.org, joe@perches.com, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, vijaymohan.pandarathil@hp.com, Toshi Kani <toshi.kani@hp.com>
 
-On Tuesday, November 20, 2012 10:09:05 AM Greg Kroah-Hartman wrote:
-> On Tue, Nov 20, 2012 at 01:55:46AM +0100, Rafael J. Wysocki wrote:
-> > On Sunday, November 18, 2012 10:10:33 PM Rafael J. Wysocki wrote:
-> > > On Sunday, November 18, 2012 05:55:39 PM Mika Westerberg wrote:
-> > > > On Sat, Nov 17, 2012 at 12:24:45PM +0100, Rafael J. Wysocki wrote:
-> > > > > Well, maybe there is one.  Perhaps we can make acpi_platform_notify() 
-> > > > > call acpi_bind_one() upfront and only if that fails, do the whole
-> > > > > type->find_device() dance?  Of course, acpi_bind_one() would need to
-> > > > > be modified slightly too, like in the patch below.
-> > > > > 
-> > > > > If we did that, acpi_i2c_add_device() would only need to assign acpi_handle
-> > > > > as appropriate before calling i2c_new_device() (and analogously for SPI).
-> > > > > 
-> > > > > What do you think? 
-> > > > 
-> > > > This is certainly better than the thing we use currently. It makes adding
-> > > > I2C and SPI support much shorter and simpler. If others don't object I
-> > > > would suggest that we switch to use this method.
-> > > 
-> > > OK, thanks.
-> > > 
-> > > The first of the following two patches is a slightly modified version of the
-> > > one that you commented.  Patch [2/2] implements the idea for platform devices
-> > > and since it modifies struct platform_device_info, I'm adding a CC to Greg.
-> > > 
-> > > The patches are on top of current linux-pm.git/linux-next.
-> > > 
-> > > It looks like we may be able to use this approach for PCI too, in which case
-> > > the whole .find_device() stuff won't be necessary any more.
-> > 
-> > Following is the series with the Greg's feedback taken into account.
-> > Patch [1/3] is the same as before with the bug found by Mika fixed, [2/3] is
-> > an additional patch adding struct acpi_dev_node to compile out unused stuff if
-> > CONFIG_ACPI is not set and [3/3] is the previous [2/2] rebased on top of it.
-> 
-> Looks great, thanks for the changes.
+This patchset improves logging messages for ACPI CPU, Memory, 
+Container and Dock hotplug notify handlers.  The patchset 
+introduces a set of new macro interfaces, acpi_handle_<level>(),
+and uses them to update the notify handlers.
 
-Thanks and no problem.
+acpi_handle_<level>() appends "ACPI" prefix and ACPI object path
+to the messages, which has similar usage model as dev_<level>().
+This improves diagnosis of hotplug operations since an error
+message in a log file identifies an object that caused an issue.
 
-> I'm assuming this will go through your tree, right?
+The patchset is based on the linux-next branch of linux-pm.git
+tree.
 
-Yes, it depends some previous changes already there.
+v7:
+ - Changed acpi_handle_printk() not to call acpi_get_name() in
+   interrupt context.
 
-Thanks,
-Rafael
+v6:
+ - Changed the interface name to acpi_handle_<level>(), and
+   declared them in include/linux/acpi.h.
+ - Added __printf(3,4) to acpi_handle_printk() prototype.
+ - Documented the interfaces acquire the global namespace mutex
+   and may not be called from interrupt context.
 
+v5:
+ - Added update for ACPI Dock hotplug error messages.
+ - Added error status / ID info to the messages where needed.
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+v4:
+ - Changed to use dev_<level>() where it is appropriate.
+
+v3:
+ - Changed acpi_pr_debug() to NOP when !DEBUG and !DYNAMIC_DEBUG.
+   DYNAMIC_DEBUG will be supported later when necessary.
+ - Added const to a path variable in acpi_printk().
+ - Added more descriptions to the change log of patch 1/4.
+
+v2:
+ - Set buffer.pointer to NULL in acpi_printk().
+ - Added acpi_pr_debug().
+
+---
+Toshi Kani (5):
+ ACPI: Add acpi_handle_<level>() interfaces
+ ACPI: Update CPU hotplug error messages
+ ACPI: Update Memory hotplug error messages
+ ACPI: Update Container hotplug error messages
+ ACPI: Update Dock hotplug error messages
+
+---
+ drivers/acpi/acpi_memhotplug.c  | 24 ++++++++++++-----------
+ drivers/acpi/container.c        | 10 ++--------
+ drivers/acpi/dock.c             | 30 ++++++++++++++--------------
+ drivers/acpi/processor_driver.c | 39 +++++++++++++++++++++++--------------
+ drivers/acpi/utils.c            | 37 +++++++++++++++++++++++++++++++++++
+ include/linux/acpi.h            | 43 +++++++++++++++++++++++++++++++++++++++++
