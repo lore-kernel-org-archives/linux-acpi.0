@@ -1,62 +1,146 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [Update][PATCH 0/3] ACPI: Simplify "glueing" to physical nodes
-Date: Tue, 20 Nov 2012 10:09:05 -0800
-Message-ID: <20121120180905.GC12328@kroah.com>
-References: <1352977397-2280-1-git-send-email-mika.westerberg@linux.intel.com>
- <20121118155539.GE17774@intel.com>
- <1758879.PKgPhTGcB7@vostro.rjw.lan>
- <4036218.zBRlg5OZsZ@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:53326 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752055Ab2KTSJJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Nov 2012 13:09:09 -0500
-Received: by mail-pa0-f46.google.com with SMTP id bh2so1432186pad.19
-        for <linux-acpi@vger.kernel.org>; Tue, 20 Nov 2012 10:09:08 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <4036218.zBRlg5OZsZ@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH v4 1/3] gpio / ACPI: add ACPI support
+Date: Tue, 20 Nov 2012 20:13:30 +0200
+Message-ID: <1353435212-15325-2-git-send-email-mika.westerberg@linux.intel.com>
+References: <1353407384-26880-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1353435212-15325-1-git-send-email-mika.westerberg@linux.intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1353435212-15325-1-git-send-email-mika.westerberg@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: grant.likely@secretlab.ca, linus.walleij@linaro.org, w.sang@pengutronix.de, rafael.j.wysocki@intel.com
+Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, broonie@opensource.wolfsonmicro.com, khali@linux-fr.org, ben-linux@fluff.org, bhelgaas@google.com, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Jean Delvare <khali@linux-fr.org>, ben-linux@fluff.org, w.sang@pengutronix.de, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
 
-On Tue, Nov 20, 2012 at 01:55:46AM +0100, Rafael J. Wysocki wrote:
-> On Sunday, November 18, 2012 10:10:33 PM Rafael J. Wysocki wrote:
-> > On Sunday, November 18, 2012 05:55:39 PM Mika Westerberg wrote:
-> > > On Sat, Nov 17, 2012 at 12:24:45PM +0100, Rafael J. Wysocki wrote:
-> > > > Well, maybe there is one.  Perhaps we can make acpi_platform_notify() 
-> > > > call acpi_bind_one() upfront and only if that fails, do the whole
-> > > > type->find_device() dance?  Of course, acpi_bind_one() would need to
-> > > > be modified slightly too, like in the patch below.
-> > > > 
-> > > > If we did that, acpi_i2c_add_device() would only need to assign acpi_handle
-> > > > as appropriate before calling i2c_new_device() (and analogously for SPI).
-> > > > 
-> > > > What do you think? 
-> > > 
-> > > This is certainly better than the thing we use currently. It makes adding
-> > > I2C and SPI support much shorter and simpler. If others don't object I
-> > > would suggest that we switch to use this method.
-> > 
-> > OK, thanks.
-> > 
-> > The first of the following two patches is a slightly modified version of the
-> > one that you commented.  Patch [2/2] implements the idea for platform devices
-> > and since it modifies struct platform_device_info, I'm adding a CC to Greg.
-> > 
-> > The patches are on top of current linux-pm.git/linux-next.
-> > 
-> > It looks like we may be able to use this approach for PCI too, in which case
-> > the whole .find_device() stuff won't be necessary any more.
-> 
-> Following is the series with the Greg's feedback taken into account.
-> Patch [1/3] is the same as before with the bug found by Mika fixed, [2/3] is
-> an additional patch adding struct acpi_dev_node to compile out unused stuff if
-> CONFIG_ACPI is not set and [3/3] is the previous [2/2] rebased on top of it.
+From: Mathias Nyman <mathias.nyman@linux.intel.com>
 
-Looks great, thanks for the changes.  I'm assuming this will go through
-your tree, right?
+Add support for translating ACPI GPIO pin numbers to Linux GPIO API pins.
+Needs a gpio controller driver with the acpi handler hook set.
 
-greg k-h
+Drivers can use acpi_get_gpio() to translate ACPI5 GpioIO and GpioInt
+resources to Linux GPIO's.
+
+Signed-off-by: Mathias Nyman <mathias.nyman@linux.intel.com>
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+---
+ drivers/gpio/Kconfig        |    4 ++++
+ drivers/gpio/Makefile       |    1 +
+ drivers/gpio/gpiolib-acpi.c |   54 +++++++++++++++++++++++++++++++++++++++++++
+ include/linux/acpi_gpio.h   |   19 +++++++++++++++
+ 4 files changed, 78 insertions(+)
+ create mode 100644 drivers/gpio/gpiolib-acpi.c
+ create mode 100644 include/linux/acpi_gpio.h
+
+diff --git a/drivers/gpio/Kconfig b/drivers/gpio/Kconfig
+index f11d8e3..5c9b384 100644
+--- a/drivers/gpio/Kconfig
++++ b/drivers/gpio/Kconfig
+@@ -49,6 +49,10 @@ config OF_GPIO
+ 	def_bool y
+ 	depends on OF
+ 
++config GPIO_ACPI
++	def_bool y
++	depends on ACPI
++
+ config DEBUG_GPIO
+ 	bool "Debug GPIO calls"
+ 	depends on DEBUG_KERNEL
+diff --git a/drivers/gpio/Makefile b/drivers/gpio/Makefile
+index 9aeed67..420dbac 100644
+--- a/drivers/gpio/Makefile
++++ b/drivers/gpio/Makefile
+@@ -4,6 +4,7 @@ ccflags-$(CONFIG_DEBUG_GPIO)	+= -DDEBUG
+ 
+ obj-$(CONFIG_GPIOLIB)		+= gpiolib.o devres.o
+ obj-$(CONFIG_OF_GPIO)		+= gpiolib-of.o
++obj-$(CONFIG_GPIO_ACPI)		+= gpiolib-acpi.o
+ 
+ # Device drivers. Generally keep list sorted alphabetically
+ obj-$(CONFIG_GPIO_GENERIC)	+= gpio-generic.o
+diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+new file mode 100644
+index 0000000..cbad6e9
+--- /dev/null
++++ b/drivers/gpio/gpiolib-acpi.c
+@@ -0,0 +1,54 @@
++/*
++ * ACPI helpers for GPIO API
++ *
++ * Copyright (C) 2012, Intel Corporation
++ * Authors: Mathias Nyman <mathias.nyman@linux.intel.com>
++ *          Mika Westerberg <mika.westerberg@linux.intel.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/errno.h>
++#include <linux/gpio.h>
++#include <linux/export.h>
++#include <linux/acpi_gpio.h>
++#include <linux/acpi.h>
++
++static int acpi_gpiochip_find(struct gpio_chip *gc, void *data)
++{
++	if (!gc->dev)
++		return false;
++
++	return ACPI_HANDLE(gc->dev) == data;
++}
++
++/**
++ * acpi_get_gpio() - Translate ACPI GPIO pin to GPIO number usable with GPIO API
++ * @path:	ACPI GPIO controller full path name, (e.g. "\\_SB.GPO1")
++ * @pin:	ACPI GPIO pin number (0-based, controller-relative)
++ *
++ * Returns GPIO number to use with Linux generic GPIO API, or errno error value
++ */
++
++int acpi_get_gpio(char *path, int pin)
++{
++	struct gpio_chip *chip;
++	acpi_handle handle;
++	acpi_status status;
++
++	status = acpi_get_handle(NULL, path, &handle);
++	if (ACPI_FAILURE(status))
++		return -ENODEV;
++
++	chip = gpiochip_find(handle, acpi_gpiochip_find);
++	if (!chip)
++		return -ENODEV;
++
++	if (!gpio_is_valid(chip->base + pin))
++		return -EINVAL;
++
++	return chip->base + pin;
++}
++EXPORT_SYMBOL_GPL(acpi_get_gpio);
+diff --git a/include/linux/acpi_gpio.h b/include/linux/acpi_gpio.h
+new file mode 100644
+index 0000000..91615a3
+--- /dev/null
++++ b/include/linux/acpi_gpio.h
+@@ -0,0 +1,19 @@
++#ifndef _LINUX_ACPI_GPIO_H_
++#define _LINUX_ACPI_GPIO_H_
++
++#include <linux/errno.h>
++
++#ifdef CONFIG_GPIO_ACPI
++
++int acpi_get_gpio(char *path, int pin);
++
++#else /* CONFIG_GPIO_ACPI */
++
++static inline int acpi_get_gpio(char *path, int pin)
++{
++	return -ENODEV;
++}
++
++#endif /* CONFIG_GPIO_ACPI */
++
++#endif /* _LINUX_ACPI_GPIO_H_ */
+-- 
+1.7.10.4
