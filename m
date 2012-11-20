@@ -1,52 +1,45 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH v9 06/10] ata: zpodd: check zero power ready status
-Date: Tue, 20 Nov 2012 16:59:57 +0800
-Message-ID: <50AB468D.1060902@intel.com>
-References: <1352443922-13734-1-git-send-email-aaron.lu@intel.com> <1352443922-13734-7-git-send-email-aaron.lu@intel.com> <20121112191303.GE5560@mtj.dyndns.org> <50A2FF6F.3080603@intel.com> <20121118150004.GJ7306@mtj.dyndns.org> <50A9A2F4.3020006@intel.com> <20121119145605.GC15971@htj.dyndns.org> <50AB1C78.9060905@intel.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [Update][PATCH 2/3] ACPI / driver core: Introduce struct
+ acpi_dev_node and related macros
+Date: Tue, 20 Nov 2012 11:10:07 +0200
+Message-ID: <20121120091007.GN17774@intel.com>
+References: <1352977397-2280-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1758879.PKgPhTGcB7@vostro.rjw.lan>
+ <4036218.zBRlg5OZsZ@vostro.rjw.lan>
+ <6570191.KCDMiILtRE@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <50AB1C78.9060905@intel.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Alan Stern <stern@rowland.harvard.edu>
-Cc: Jeff Garzik <jgarzik@pobox.com>, James Bottomley <James.Bottomley@hansenpartnership.com>, Jeff Wu <jeff.wu@amd.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <6570191.KCDMiILtRE@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, Jean Delvare <khali@linux-fr.org>, ben-linux@fluff.org, w.sang@pengutronix.de, linux-kernel@vger.kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, linus.walleij@linaro.org, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 11/20/2012 02:00 PM, Aaron Lu wrote:
-> On 11/19/2012 10:56 PM, Tejun Heo wrote:
->> I really think we need a way for (auto)pm and event polling to talk to
->> each other so that autopm can tell event poll to sod off while pm is
->> in effect.  Trying to solve this from inside libata doesn't seem
->> right.  The problem, again, seems to be figuring out which hardware
->> device maps to which block device.  Hmmm... Any good ideas?
-> 
-> A possible way of doing this is using pm qos.
-> 
-> We currently have 2 pm qos flags, NO_POWER_OFF and REMOTE_WAKEUP, and we
-> can add another one: NO_POLL, use it like the following:
-> 1 Set the NO_POLL pm qos flag when the underlying driver thinks it is no
->   longer necessary. In the ZPODD's case, it should be set when the
->   device is to be powered off;
-> 2 Clear it when poll is necessary again. In the ZPODD's case, when power
->   is re-gained, this flag will be cleared.
+On Tue, Nov 20, 2012 at 01:59:23AM +0100, Rafael J. Wysocki wrote:
+> Index: linux/include/linux/device.h
+> ===================================================================
+> --- linux.orig/include/linux/device.h
+> +++ linux/include/linux/device.h
+> @@ -578,6 +578,12 @@ struct device_dma_parameters {
+>  	unsigned long segment_boundary_mask;
+>  };
+>  
+> +struct acpi_dev_node {
+> +#ifdef CONFIG_ACPI
+> +	void	*handle;
+> +#endif
+> +};
+> +
+>  /**
+>   * struct device - The basic device structure
+>   * @parent:	The device's "parent" device, the device to which it is attached.
+> @@ -683,7 +689,7 @@ struct device {
+>  	struct dev_archdata	archdata;
+>  
+>  	struct device_node	*of_node; /* associated device tree node */
+> -	void			*acpi_handle; /* associated ACPI device node */
+> +	struct acpi_dev_node	acpi_node; /* associated ACPI device node */
 
-
-> 3 In the disk_events_workfn, check if this flag is set, if so, simply
->   return.
-
-It should be, skip calling disk->fops->check_events, but still queue the
-work for next time's poll.
-
--Aaron
-
-> 
-> The disk->driverfs_dev can be used to host the pm qos flag, ATA layer
-> can access it through ata_device->sdev->sdev_gendev.
-> 
-> Is this OK?
-> 
-> Thanks,
-> Aaron
-> 
-
+Please update the kerneldoc comment as well.
