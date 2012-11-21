@@ -1,73 +1,92 @@
-From: =?ISO-8859-1?Q?Fran=E7ois?= Boisson
-	<user.anti-spam@maison.homelinux.net>
-Subject: Re: shutdown with toshiba portege
-Date: Wed, 21 Nov 2012 17:52:05 +0100
-Message-ID: <20121121175205.e26259e8bd566ab01da344c4@maison.homelinux.net>
-References: <20120920204234.0fb035a89f88a2e1f468aa54@maison.homelinux.net>
-	<20120921165753.7a5701fc6a0e1445daa92500@maison.homelinux.net>
-	<20120928132354.GG28937@mwanda>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH RESEND] acpi: Fix logging when no pci_irq is allocated
+Date: Wed, 21 Nov 2012 21:50:05 +0100
+Message-ID: <1483298.SPL34HcZVJ@vostro.rjw.lan>
+References: <1353487401-10279-1-git-send-email-daniel@numascale-asia.com> <1353505564.24807.12.camel@joe-AO722>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fbsmtp.dnsalias.org ([82.66.248.156]:34747 "EHLO
-	fbsmtp.dnsalias.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755334Ab2KUQwP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Nov 2012 11:52:15 -0500
-In-Reply-To: <20120928132354.GG28937@mwanda>
+Received: from ogre.sisk.pl ([193.178.161.156]:58843 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S964771Ab2KUUph (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 21 Nov 2012 15:45:37 -0500
+In-Reply-To: <1353505564.24807.12.camel@joe-AO722>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
+To: Joe Perches <joe@perches.com>
+Cc: Daniel J Blueman <daniel@numascale-asia.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-> Le Fri, 28 Sep 2012 16:23:55 +0300
-> Dan Carpenter <dan.carpenter@oracle.com> a =E9crit:
->=20
-> >=20
-> > So your Toshiba is going into suspend instead of power off...
-> >=20
-> > There are several ways that computers shutdown but modern systems
-> > use ACPI.  It could be that the 2.6.37-486-PAE was using a
-> > different method.  I've CC'd the ACPI list.
-> >=20
->=20
-> Thinks, first I have open a bug=20
-> https://bugzilla.kernel.org/show_bug.cgi?id=3D47811
-> the I have compiled a 3.5.4 with some printk around the halt/poweroff=
-=2E (FIles
-> arch/x86/kernel/reboot.c
-> arch/x86/kernel/apm32.c ) trying to trace call BIOS but nothing print=
-k,
-> either I do not understand the power off mechanism, or the computer i=
-s in a
-> state where printk do not appear on screen.
-> In fact I don't know what I can do to find an issue to this bug.
->=20
-> Thanks for your answer
+On Wednesday, November 21, 2012 05:46:04 AM Joe Perches wrote:
+> On Wed, 2012-11-21 at 16:43 +0800, Daniel J Blueman wrote:
+> > Previously a new line is implicitly added in the no GSI case:
+> > 
+> > [    7.185182] pci 0001:00:12.0: can't derive routing for PCI INT A
+> > [    7.191352] pci 0001:00:12.0: PCI INT A: no GSI
+> > [    7.195956]  - using ISA IRQ 10
+> > 
+> > The code thus prints a blank line where no legacy IRQ is available:
+> > 
+> > [    1.650124] pci 0000:00:14.0: can't derive routing for PCI INT A
+> > [    1.650126] pci 0000:00:14.0: PCI INT A: no GSI
+> > [    1.650126] 
+> > [    1.650180] pci 0000:00:14.0: can't derive routing for PCI INT A
+> > 
+> > Fix this by making the newline explicit and removing the superfluous
+> > one.
+> 
+> This breaks the logging code below it when there is an ISA irq.
+> 
+> The below works, but is a workaround for a defect in the printk
+> subsystem introduced by a logging change that will be fixed in
+> a near future release.
 
-Just to say that the cause of battery to drain is making
+What exactly do you mean by "near future"?
 
-hwclock --systohc=20
+Rafael
 
-just before halt computer. Add=20
-HWCLOCKACCESS=3Dno
-or remove calls to hwclock --systohc
-in /etc/init.d/=ABscripts=BB in =ABstop=BB part removes the bug.
 
-So I think it's not a bug of ACPI but a bug of the RTC standard in the =
-kernel
-(file arch/x86/kernel/rtc.c). I tried to add a =ABsleep 1=BB just after=
- the
-hwclock call but no change.
-
-This is a workaround but not the real solution of this problem.
-Thanks for reading.
-=46ran=E7ois Boisson
-(Please Cc to me, I'm not on linux-acpi list)
-
-=46ran=E7ois Boisson
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Signed-off-by: Joe Perches <joe@perches.com>
+> ---
+>  drivers/acpi/pci_irq.c |   10 +++++-----
+>  1 files changed, 5 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+> index f288e00..68a921d 100644
+> --- a/drivers/acpi/pci_irq.c
+> +++ b/drivers/acpi/pci_irq.c
+> @@ -458,19 +458,19 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
+>  	 */
+>  	if (gsi < 0) {
+>  		u32 dev_gsi;
+> -		dev_warn(&dev->dev, "PCI INT %c: no GSI", pin_name(pin));
+>  		/* Interrupt Line values above 0xF are forbidden */
+>  		if (dev->irq > 0 && (dev->irq <= 0xF) &&
+>  		    (acpi_isa_irq_to_gsi(dev->irq, &dev_gsi) == 0)) {
+> -			printk(" - using ISA IRQ %d\n", dev->irq);
+> +			dev_warn(&dev->dev, "PCI INT %c: no GSI - using ISA IRQ %d\n",
+> +				 pin_name(pin), dev->irq);
+>  			acpi_register_gsi(&dev->dev, dev_gsi,
+>  					  ACPI_LEVEL_SENSITIVE,
+>  					  ACPI_ACTIVE_LOW);
+> -			return 0;
+>  		} else {
+> -			printk("\n");
+> -			return 0;
+> +			dev_warn(&dev->dev, "PCI INT %c: no GSI\n",
+> +				 pin_name(pin));
+>  		}
+> +		return 0;
+>  	}
+>  
+>  	rc = acpi_register_gsi(&dev->dev, gsi, triggering, polarity);
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
