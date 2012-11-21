@@ -1,825 +1,894 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 01/15] ACPICA: Fixes unmerged (dis)assember divergences.
-Date: Wed, 21 Nov 2012 18:06:59 +0800
-Message-ID: <d78f5a439b768067790ec4f07af70185484deccd.1353491652.git.lv.zheng@intel.com>
+Subject: [PATCH 02/15] ACPICA: Fixes comments caused divergences.
+Date: Wed, 21 Nov 2012 18:07:08 +0800
+Message-ID: <c319ad8c72da810bdb81d4092dbc547cc946d0b7.1353491652.git.lv.zheng@intel.com>
 References: <cover.1353491652.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:59735 "EHLO mga03.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:30210 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753127Ab2KUKHF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 21 Nov 2012 05:07:05 -0500
+	id S1753127Ab2KUKHN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 21 Nov 2012 05:07:13 -0500
 In-Reply-To: <cover.1353491652.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <len.brown@intel.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>
 Cc: linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>
 
-Assembler and Disassembler updates in the ACPICA were ignored in the past by
-the ACPICA Linux release. This will introduce divergences between the Linux
-and the ACPICA.
-This patch ports the required updates of such utilities to Linux to reduce
-the divergences.
+This patch fixes divergences caused by the differences in the comments.
+Some ACPICA utilities' feature definitions are also fixed in this patch.
 
 This patch will not affect the generated vmlinux binary.
-This will decrease 82 lines of 20121018 divergence.diff.
+This will decrease 663 lines of 20121018 divergence.diff.
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/acdisasm.h |  641 ++++++++++++++++++++++++++++++++++++++++
- drivers/acpi/acpica/acglobal.h |    2 +
- drivers/acpi/acpica/aclocal.h  |   25 ++
- drivers/acpi/acpica/dsmethod.c |    4 +-
- drivers/acpi/acpica/dswload.c  |    5 +-
- drivers/acpi/acpica/nssearch.c |    5 +
- drivers/acpi/acpica/utglobal.c |    4 +
- include/acpi/platform/acenv.h  |    3 +-
- 8 files changed, 683 insertions(+), 6 deletions(-)
- create mode 100644 drivers/acpi/acpica/acdisasm.h
+ drivers/acpi/acpica/aclocal.h   |   13 +++---
+ drivers/acpi/acpica/acobject.h  |    2 +-
+ drivers/acpi/acpica/acpredef.h  |   14 +++---
+ drivers/acpi/acpica/dsopcode.c  |   14 +++---
+ drivers/acpi/acpica/evgpe.c     |    4 +-
+ drivers/acpi/acpica/evxface.c   |   23 +++++-----
+ drivers/acpi/acpica/evxfevnt.c  |    4 +-
+ drivers/acpi/acpica/evxfgpe.c   |    9 ++--
+ drivers/acpi/acpica/exconfig.c  |    9 ++--
+ drivers/acpi/acpica/exmutex.c   |    3 +-
+ drivers/acpi/acpica/exregion.c  |   15 ++++---
+ drivers/acpi/acpica/hwesleep.c  |    1 -
+ drivers/acpi/acpica/hwregs.c    |    2 +-
+ drivers/acpi/acpica/hwxface.c   |    2 +-
+ drivers/acpi/acpica/hwxfsleep.c |    7 +--
+ drivers/acpi/acpica/nsdump.c    |    4 +-
+ drivers/acpi/acpica/nsnames.c   |    3 +-
+ drivers/acpi/acpica/nspredef.c  |    1 -
+ drivers/acpi/acpica/tbfadt.c    |    5 ++-
+ drivers/acpi/acpica/utglobal.c  |    2 +
+ drivers/acpi/acpica/utobject.c  |    2 +-
+ drivers/acpi/acpica/utxferror.c |    4 +-
+ include/acpi/acconfig.h         |    2 +-
+ include/acpi/acpixf.h           |   19 +++++---
+ include/acpi/actbl1.h           |    6 +--
+ include/acpi/actypes.h          |    4 +-
+ include/acpi/platform/acenv.h   |   94 ++++++++++++++++++++++++++-------------
+ 27 files changed, 161 insertions(+), 107 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acdisasm.h b/drivers/acpi/acpica/acdisasm.h
-new file mode 100644
-index 0000000..4294f58
---- /dev/null
-+++ b/drivers/acpi/acpica/acdisasm.h
-@@ -0,0 +1,641 @@
-+/******************************************************************************
-+ *
-+ * Name: acdisasm.h - AML disassembler
-+ *
-+ *****************************************************************************/
-+
-+/*
-+ * Copyright (C) 2000 - 2012, Intel Corp.
-+ * All rights reserved.
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ * 1. Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions, and the following disclaimer,
-+ *    without modification.
-+ * 2. Redistributions in binary form must reproduce at minimum a disclaimer
-+ *    substantially similar to the "NO WARRANTY" disclaimer below
-+ *    ("Disclaimer") and any redistribution must be conditioned upon
-+ *    including a substantially similar Disclaimer requirement for further
-+ *    binary redistribution.
-+ * 3. Neither the names of the above-listed copyright holders nor the names
-+ *    of any contributors may be used to endorse or promote products derived
-+ *    from this software without specific prior written permission.
-+ *
-+ * Alternatively, this software may be distributed under the terms of the
-+ * GNU General Public License ("GPL") version 2 as published by the Free
-+ * Software Foundation.
-+ *
-+ * NO WARRANTY
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR
-+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-+ * HOLDERS OR CONTRIBUTORS BE LIABLE FOR SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-+ * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-+ * POSSIBILITY OF SUCH DAMAGES.
-+ */
-+
-+#ifndef __ACDISASM_H__
-+#define __ACDISASM_H__
-+
-+#ifdef ACPI_DISASSEMBLER
-+
-+#include "amlresrc.h"
-+
-+#define BLOCK_NONE              0
-+#define BLOCK_PAREN             1
-+#define BLOCK_BRACE             2
-+#define BLOCK_COMMA_LIST        4
-+#define ACPI_DEFAULT_RESNAME    *(u32 *) "__RD"
-+
-+/*
-+ * Raw table data header. Used by disassembler and data table compiler.
-+ * Do not change.
-+ */
-+#define ACPI_RAW_TABLE_DATA_HEADER      "Raw Table Data"
-+
-+typedef const struct acpi_dmtable_info {
-+	u8 opcode;
-+	u16 offset;
-+	char *name;
-+	u8 flags;
-+
-+} acpi_dmtable_info;
-+
-+#define DT_LENGTH                       0x01	/* Field is a subtable length */
-+#define DT_FLAG                         0x02	/* Field is a flag value */
-+#define DT_NON_ZERO                     0x04	/* Field must be non-zero */
-+
-+/* TBD: Not used at this time */
-+
-+#define DT_OPTIONAL                     0x08
-+#define DT_COUNT                        0x10
-+
-+/*
-+ * Values for Opcode above.
-+ * Note: 0-7 must not change, they are used as a flag shift value. Other
-+ * than those, new values can be added wherever appropriate.
-+ */
-+typedef enum {
-+	/* Simple Data Types */
-+
-+	ACPI_DMT_FLAG0 = 0,
-+	ACPI_DMT_FLAG1 = 1,
-+	ACPI_DMT_FLAG2 = 2,
-+	ACPI_DMT_FLAG3 = 3,
-+	ACPI_DMT_FLAG4 = 4,
-+	ACPI_DMT_FLAG5 = 5,
-+	ACPI_DMT_FLAG6 = 6,
-+	ACPI_DMT_FLAG7 = 7,
-+	ACPI_DMT_FLAGS0,
-+	ACPI_DMT_FLAGS1,
-+	ACPI_DMT_FLAGS2,
-+	ACPI_DMT_FLAGS4,
-+	ACPI_DMT_UINT8,
-+	ACPI_DMT_UINT16,
-+	ACPI_DMT_UINT24,
-+	ACPI_DMT_UINT32,
-+	ACPI_DMT_UINT40,
-+	ACPI_DMT_UINT48,
-+	ACPI_DMT_UINT56,
-+	ACPI_DMT_UINT64,
-+	ACPI_DMT_BUF7,
-+	ACPI_DMT_BUF16,
-+	ACPI_DMT_BUF128,
-+	ACPI_DMT_SIG,
-+	ACPI_DMT_STRING,
-+	ACPI_DMT_NAME4,
-+	ACPI_DMT_NAME6,
-+	ACPI_DMT_NAME8,
-+
-+	/* Types that are decoded to strings and miscellaneous */
-+
-+	ACPI_DMT_ACCWIDTH,
-+	ACPI_DMT_CHKSUM,
-+	ACPI_DMT_GAS,
-+	ACPI_DMT_SPACEID,
-+	ACPI_DMT_UNICODE,
-+	ACPI_DMT_UUID,
-+
-+	/* Types used only for the Data Table Compiler */
-+
-+	ACPI_DMT_BUFFER,
-+	ACPI_DMT_DEVICE_PATH,
-+	ACPI_DMT_LABEL,
-+	ACPI_DMT_PCI_PATH,
-+
-+	/* Types that are specific to particular ACPI tables */
-+
-+	ACPI_DMT_ASF,
-+	ACPI_DMT_DMAR,
-+	ACPI_DMT_EINJACT,
-+	ACPI_DMT_EINJINST,
-+	ACPI_DMT_ERSTACT,
-+	ACPI_DMT_ERSTINST,
-+	ACPI_DMT_FADTPM,
-+	ACPI_DMT_HEST,
-+	ACPI_DMT_HESTNTFY,
-+	ACPI_DMT_HESTNTYP,
-+	ACPI_DMT_IVRS,
-+	ACPI_DMT_MADT,
-+	ACPI_DMT_PMTT,
-+	ACPI_DMT_SLIC,
-+	ACPI_DMT_SRAT,
-+
-+	/* Special opcodes */
-+
-+	ACPI_DMT_EXTRA_TEXT,
-+	ACPI_DMT_EXIT
-+} ACPI_ENTRY_TYPES;
-+
-+typedef
-+void (*acpi_dmtable_handler) (struct acpi_table_header * table);
-+
-+typedef acpi_status(*acpi_cmtable_handler) (void **pfield_list);
-+
-+struct acpi_dmtable_data {
-+	char *signature;
-+	struct acpi_dmtable_info *table_info;
-+	acpi_dmtable_handler table_handler;
-+	acpi_cmtable_handler cm_table_handler;
-+	const unsigned char *template;
-+	char *name;
-+};
-+
-+struct acpi_op_walk_info {
-+	u32 level;
-+	u32 last_level;
-+	u32 count;
-+	u32 bit_offset;
-+	u32 flags;
-+	struct acpi_walk_state *walk_state;
-+};
-+
-+/*
-+ * TBD - another copy of this is in asltypes.h, fix
-+ */
-+#ifndef ASL_WALK_CALLBACK_DEFINED
-+typedef
-+acpi_status(*asl_walk_callback) (union acpi_parse_object * op,
-+				 u32 level, void *context);
-+#define ASL_WALK_CALLBACK_DEFINED
-+#endif
-+
-+typedef
-+void (*acpi_resource_handler) (union aml_resource * resource,
-+			       u32 length, u32 level);
-+
-+struct acpi_resource_tag {
-+	u32 bit_index;
-+	char *tag;
-+};
-+
-+/* Strings used for decoding flags to ASL keywords */
-+
-+extern const char *acpi_gbl_word_decode[];
-+extern const char *acpi_gbl_irq_decode[];
-+extern const char *acpi_gbl_lock_rule[];
-+extern const char *acpi_gbl_access_types[];
-+extern const char *acpi_gbl_update_rules[];
-+extern const char *acpi_gbl_match_ops[];
-+
-+extern struct acpi_dmtable_info acpi_dm_table_info_asf0[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_asf1[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_asf1a[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_asf2[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_asf2a[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_asf3[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_asf4[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_asf_hdr[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_boot[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_bert[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_bgrt[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_cpep[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_cpep0[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_csrt0[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_csrt1[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_dbg2[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_dbg2_device[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_dbg2_addr[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_dbg2_size[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_dbg2_name[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_dbgp[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_dmar[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_dmar_hdr[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_dmar_scope[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_dmar0[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_dmar1[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_dmar2[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_dmar3[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_drtm[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_ecdt[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_einj[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_einj0[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_erst[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_erst0[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_facs[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_fadt1[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_fadt2[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_fadt3[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_fadt5[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_fpdt[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_fpdt_hdr[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_fpdt0[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_fpdt1[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_gas[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_gtdt[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_header[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_hest[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_hest0[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_hest1[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_hest2[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_hest6[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_hest7[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_hest8[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_hest9[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_hest_notify[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_hest_bank[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_hpet[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_ivrs[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_ivrs0[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_ivrs1[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_ivrs4[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_ivrs8a[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_ivrs8b[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_ivrs8c[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_ivrs_hdr[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_madt[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_madt0[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_madt1[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_madt2[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_madt3[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_madt4[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_madt5[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_madt6[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_madt7[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_madt8[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_madt9[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_madt10[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_madt11[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_madt12[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_madt_hdr[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_mcfg[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_mcfg0[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_mchi[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_mpst[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_mpst0[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_mpst0_a[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_mpst0_b[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_mpst1[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_mpst2[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_msct[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_msct0[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_pmtt[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_pmtt0[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_pmtt1[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_pmtt1a[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_pmtt2[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_pmtt_hdr[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_pcct[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_pcct0[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_rsdp1[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_rsdp2[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_s3pt[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_s3pt_hdr[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_s3pt0[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_s3pt1[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_sbst[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_slic_hdr[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_slic0[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_slic1[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_slit[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_spcr[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_spmi[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_srat[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_srat_hdr[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_srat0[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_srat1[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_srat2[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_tcpa[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_uefi[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_waet[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_wdat[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_wdat0[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_wddt[];
-+extern struct acpi_dmtable_info acpi_dm_table_info_wdrt[];
-+
-+extern struct acpi_dmtable_info acpi_dm_table_info_generic[][2];
-+
-+/*
-+ * dmtable
-+ */
-+extern struct acpi_dmtable_data acpi_dm_table_data[];
-+
-+u8 acpi_dm_generate_checksum(void *table, u32 length, u8 original_checksum);
-+
-+struct acpi_dmtable_data *acpi_dm_get_table_data(char *signature);
-+
-+void acpi_dm_dump_data_table(struct acpi_table_header *table);
-+
-+acpi_status
-+acpi_dm_dump_table(u32 table_length,
-+		   u32 table_offset,
-+		   void *table,
-+		   u32 sub_table_length, struct acpi_dmtable_info *info);
-+
-+void acpi_dm_line_header(u32 offset, u32 byte_length, char *name);
-+
-+void acpi_dm_line_header2(u32 offset, u32 byte_length, char *name, u32 value);
-+
-+/*
-+ * dmtbdump
-+ */
-+void acpi_dm_dump_asf(struct acpi_table_header *table);
-+
-+void acpi_dm_dump_cpep(struct acpi_table_header *table);
-+
-+void acpi_dm_dump_csrt(struct acpi_table_header *table);
-+
-+void acpi_dm_dump_dbg2(struct acpi_table_header *table);
-+
-+void acpi_dm_dump_dmar(struct acpi_table_header *table);
-+
-+void acpi_dm_dump_einj(struct acpi_table_header *table);
-+
-+void acpi_dm_dump_erst(struct acpi_table_header *table);
-+
-+void acpi_dm_dump_fadt(struct acpi_table_header *table);
-+
-+void acpi_dm_dump_fpdt(struct acpi_table_header *table);
-+
-+void acpi_dm_dump_hest(struct acpi_table_header *table);
-+
-+void acpi_dm_dump_ivrs(struct acpi_table_header *table);
-+
-+void acpi_dm_dump_madt(struct acpi_table_header *table);
-+
-+void acpi_dm_dump_mcfg(struct acpi_table_header *table);
-+
-+void acpi_dm_dump_mpst(struct acpi_table_header *table);
-+
-+void acpi_dm_dump_msct(struct acpi_table_header *table);
-+
-+void acpi_dm_dump_pcct(struct acpi_table_header *table);
-+
-+void acpi_dm_dump_pmtt(struct acpi_table_header *table);
-+
-+u32 acpi_dm_dump_rsdp(struct acpi_table_header *table);
-+
-+void acpi_dm_dump_rsdt(struct acpi_table_header *table);
-+
-+u32 acpi_dm_dump_s3pt(struct acpi_table_header *table);
-+
-+void acpi_dm_dump_slic(struct acpi_table_header *table);
-+
-+void acpi_dm_dump_slit(struct acpi_table_header *table);
-+
-+void acpi_dm_dump_srat(struct acpi_table_header *table);
-+
-+void acpi_dm_dump_wdat(struct acpi_table_header *table);
-+
-+void acpi_dm_dump_xsdt(struct acpi_table_header *table);
-+
-+/*
-+ * dmwalk
-+ */
-+void
-+acpi_dm_disassemble(struct acpi_walk_state *walk_state,
-+		    union acpi_parse_object *origin, u32 num_opcodes);
-+
-+void
-+acpi_dm_walk_parse_tree(union acpi_parse_object *op,
-+			asl_walk_callback descending_callback,
-+			asl_walk_callback ascending_callback, void *context);
-+
-+/*
-+ * dmopcode
-+ */
-+void
-+acpi_dm_disassemble_one_op(struct acpi_walk_state *walk_state,
-+			   struct acpi_op_walk_info *info,
-+			   union acpi_parse_object *op);
-+
-+void acpi_dm_decode_internal_object(union acpi_operand_object *obj_desc);
-+
-+u32 acpi_dm_list_type(union acpi_parse_object *op);
-+
-+void acpi_dm_method_flags(union acpi_parse_object *op);
-+
-+void acpi_dm_predefined_description(union acpi_parse_object *op);
-+
-+void acpi_dm_field_predefined_description(union acpi_parse_object *op);
-+
-+void acpi_dm_field_flags(union acpi_parse_object *op);
-+
-+void acpi_dm_address_space(u8 space_id);
-+
-+void acpi_dm_region_flags(union acpi_parse_object *op);
-+
-+void acpi_dm_match_op(union acpi_parse_object *op);
-+
-+/*
-+ * dmnames
-+ */
-+u32 acpi_dm_dump_name(u32 name);
-+
-+acpi_status
-+acpi_ps_display_object_pathname(struct acpi_walk_state *walk_state,
-+				union acpi_parse_object *op);
-+
-+void acpi_dm_namestring(char *name);
-+
-+/*
-+ * dmobject
-+ */
-+void
-+acpi_dm_display_internal_object(union acpi_operand_object *obj_desc,
-+				struct acpi_walk_state *walk_state);
-+
-+void acpi_dm_display_arguments(struct acpi_walk_state *walk_state);
-+
-+void acpi_dm_display_locals(struct acpi_walk_state *walk_state);
-+
-+void
-+acpi_dm_dump_method_info(acpi_status status,
-+			 struct acpi_walk_state *walk_state,
-+			 union acpi_parse_object *op);
-+
-+/*
-+ * dmbuffer
-+ */
-+void acpi_dm_disasm_byte_list(u32 level, u8 *byte_data, u32 byte_count);
-+
-+void
-+acpi_dm_byte_list(struct acpi_op_walk_info *info, union acpi_parse_object *op);
-+
-+void acpi_dm_is_eisa_id(union acpi_parse_object *op);
-+
-+void acpi_dm_eisa_id(u32 encoded_id);
-+
-+u8 acpi_dm_is_unicode_buffer(union acpi_parse_object *op);
-+
-+u8 acpi_dm_is_string_buffer(union acpi_parse_object *op);
-+
-+u8 acpi_dm_is_pld_buffer(union acpi_parse_object *op);
-+
-+/*
-+ * dmextern
-+ */
-+
-+acpi_status acpi_dm_add_to_external_file_list(char *path_list);
-+
-+void acpi_dm_clear_external_file_list(void);
-+
-+void
-+acpi_dm_add_to_external_list(union acpi_parse_object *op,
-+			     char *path, u8 type, u32 value);
-+
-+void acpi_dm_add_externals_to_namespace(void);
-+
-+u32 acpi_dm_get_external_method_count(void);
-+
-+void acpi_dm_clear_external_list(void);
-+
-+void acpi_dm_emit_externals(void);
-+
-+/*
-+ * dmresrc
-+ */
-+void acpi_dm_dump_integer8(u8 value, char *name);
-+
-+void acpi_dm_dump_integer16(u16 value, char *name);
-+
-+void acpi_dm_dump_integer32(u32 value, char *name);
-+
-+void acpi_dm_dump_integer64(u64 value, char *name);
-+
-+void
-+acpi_dm_resource_template(struct acpi_op_walk_info *info,
-+			  union acpi_parse_object *op,
-+			  u8 *byte_data, u32 byte_count);
-+
-+acpi_status acpi_dm_is_resource_template(union acpi_parse_object *op);
-+
-+void acpi_dm_bit_list(u16 mask);
-+
-+void acpi_dm_descriptor_name(void);
-+
-+/*
-+ * dmresrcl
-+ */
-+void
-+acpi_dm_word_descriptor(union aml_resource *resource, u32 length, u32 level);
-+
-+void
-+acpi_dm_dword_descriptor(union aml_resource *resource, u32 length, u32 level);
-+
-+void
-+acpi_dm_extended_descriptor(union aml_resource *resource,
-+			    u32 length, u32 level);
-+
-+void
-+acpi_dm_qword_descriptor(union aml_resource *resource, u32 length, u32 level);
-+
-+void
-+acpi_dm_memory24_descriptor(union aml_resource *resource,
-+			    u32 length, u32 level);
-+
-+void
-+acpi_dm_memory32_descriptor(union aml_resource *resource,
-+			    u32 length, u32 level);
-+
-+void
-+acpi_dm_fixed_memory32_descriptor(union aml_resource *resource,
-+				  u32 length, u32 level);
-+
-+void
-+acpi_dm_generic_register_descriptor(union aml_resource *resource,
-+				    u32 length, u32 level);
-+
-+void
-+acpi_dm_interrupt_descriptor(union aml_resource *resource,
-+			     u32 length, u32 level);
-+
-+void
-+acpi_dm_vendor_large_descriptor(union aml_resource *resource,
-+				u32 length, u32 level);
-+
-+void
-+acpi_dm_gpio_descriptor(union aml_resource *resource, u32 length, u32 level);
-+
-+void
-+acpi_dm_serial_bus_descriptor(union aml_resource *resource,
-+			      u32 length, u32 level);
-+
-+void acpi_dm_vendor_common(char *name, u8 *byte_data, u32 length, u32 level);
-+
-+/*
-+ * dmresrcs
-+ */
-+void
-+acpi_dm_irq_descriptor(union aml_resource *resource, u32 length, u32 level);
-+
-+void
-+acpi_dm_dma_descriptor(union aml_resource *resource, u32 length, u32 level);
-+
-+void
-+acpi_dm_fixed_dma_descriptor(union aml_resource *resource,
-+			     u32 length, u32 level);
-+
-+void acpi_dm_io_descriptor(union aml_resource *resource, u32 length, u32 level);
-+
-+void
-+acpi_dm_fixed_io_descriptor(union aml_resource *resource,
-+			    u32 length, u32 level);
-+
-+void
-+acpi_dm_start_dependent_descriptor(union aml_resource *resource,
-+				   u32 length, u32 level);
-+
-+void
-+acpi_dm_end_dependent_descriptor(union aml_resource *resource,
-+				 u32 length, u32 level);
-+
-+void
-+acpi_dm_vendor_small_descriptor(union aml_resource *resource,
-+				u32 length, u32 level);
-+
-+/*
-+ * dmutils
-+ */
-+void acpi_dm_decode_attribute(u8 attribute);
-+
-+void acpi_dm_indent(u32 level);
-+
-+u8 acpi_dm_comma_if_list_member(union acpi_parse_object *op);
-+
-+void acpi_dm_comma_if_field_member(union acpi_parse_object *op);
-+
-+/*
-+ * dmrestag
-+ */
-+void acpi_dm_find_resources(union acpi_parse_object *root);
-+
-+void
-+acpi_dm_check_resource_reference(union acpi_parse_object *op,
-+				 struct acpi_walk_state *walk_state);
-+
-+/*
-+ * acdisasm
-+ */
-+void ad_disassembler_header(char *filename);
-+
-+#endif
-+
-+#endif				/* __ACDISASM_H__ */
-diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
-index 64472e4..1ef7ca4 100644
---- a/drivers/acpi/acpica/acglobal.h
-+++ b/drivers/acpi/acpica/acglobal.h
-@@ -415,6 +415,8 @@ ACPI_EXTERN u8 acpi_gbl_db_output_flags;
- 
- ACPI_EXTERN u8 acpi_gbl_db_opt_disasm;
- ACPI_EXTERN u8 acpi_gbl_db_opt_verbose;
-+ACPI_EXTERN struct acpi_external_list *acpi_gbl_external_list;
-+ACPI_EXTERN struct acpi_external_file *acpi_gbl_external_file_list;
- #endif
- 
- #ifdef ACPI_DEBUGGER
 diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
-index ff8bd00..b1988bb 100644
+index b1988bb..99d6b9b 100644
 --- a/drivers/acpi/acpica/aclocal.h
 +++ b/drivers/acpi/acpica/aclocal.h
-@@ -1025,6 +1025,31 @@ struct acpi_port_info {
+@@ -189,11 +189,10 @@ struct acpi_namespace_node {
+ #define ANOBJ_EVALUATED                 0x20	/* Set on first evaluation of node */
+ #define ANOBJ_ALLOCATED_BUFFER          0x40	/* Method AML buffer is dynamic (install_method) */
  
- /*****************************************************************************
+-#define ANOBJ_IS_EXTERNAL               0x08	/* i_aSL only: This object created via External() */
+-#define ANOBJ_METHOD_NO_RETVAL          0x10	/* i_aSL only: Method has no return value */
+-#define ANOBJ_METHOD_SOME_NO_RETVAL     0x20	/* i_aSL only: Method has at least one return value */
+-#define ANOBJ_IS_BIT_OFFSET             0x40	/* i_aSL only: Reference is a bit offset */
+-#define ANOBJ_IS_REFERENCED             0x80	/* i_aSL only: Object was referenced */
++#define ANOBJ_IS_EXTERNAL               0x08	/* iASL only: This object created via External() */
++#define ANOBJ_METHOD_NO_RETVAL          0x10	/* iASL only: Method has no return value */
++#define ANOBJ_METHOD_SOME_NO_RETVAL     0x20	/* iASL only: Method has at least one return value */
++#define ANOBJ_IS_REFERENCED             0x80	/* iASL only: Object was referenced */
+ 
+ /* Internal ACPI table management - master table list */
+ 
+@@ -416,6 +415,10 @@ struct acpi_gpe_notify_object {
+ 	struct acpi_gpe_notify_object *next;
+ };
+ 
++/*
++ * GPE dispatch info. At any time, the GPE can have at most one type
++ * of dispatch - Method, Handler, or Implicit Notify.
++ */
+ union acpi_gpe_dispatch_info {
+ 	struct acpi_namespace_node *method_node;	/* Method node for this GPE level */
+ 	struct acpi_gpe_handler_info *handler;  /* Installed GPE handler */
+diff --git a/drivers/acpi/acpica/acobject.h b/drivers/acpi/acpica/acobject.h
+index 24eb9ea..921262e 100644
+--- a/drivers/acpi/acpica/acobject.h
++++ b/drivers/acpi/acpica/acobject.h
+@@ -307,7 +307,7 @@ struct acpi_object_addr_handler {
+ 	struct acpi_namespace_node *node;	/* Parent device */
+ 	void *context;
+ 	acpi_adr_space_setup setup;
+-	union acpi_operand_object *region_list;	/* regions using this handler */
++	union acpi_operand_object *region_list;	/* Regions using this handler */
+ 	union acpi_operand_object *next;
+ };
+ 
+diff --git a/drivers/acpi/acpica/acpredef.h b/drivers/acpi/acpica/acpredef.h
+index 9dfa1c8..55fff56 100644
+--- a/drivers/acpi/acpica/acpredef.h
++++ b/drivers/acpi/acpica/acpredef.h
+@@ -1,7 +1,6 @@
+ /******************************************************************************
   *
-+ * Disassembler
-+ *
-+ ****************************************************************************/
-+
-+struct acpi_external_list {
-+	char *path;
-+	char *internal_path;
-+	struct acpi_external_list *next;
-+	u32 value;
-+	u16 length;
-+	u8 type;
-+	u8 flags;
-+};
-+
-+/* Values for Flags field above */
-+
-+#define ACPI_IPATH_ALLOCATED    0x01
-+
-+struct acpi_external_file {
-+	char *path;
-+	struct acpi_external_file *next;
-+};
-+
-+/*****************************************************************************
-+ *
-  * Debugger
+  * Name: acpredef - Information table for ACPI predefined methods and objects
+- *              $Revision: 1.1 $
   *
-  ****************************************************************************/
-diff --git a/drivers/acpi/acpica/dsmethod.c b/drivers/acpi/acpica/dsmethod.c
-index 52eb4e0..f7a7cf3 100644
---- a/drivers/acpi/acpica/dsmethod.c
-+++ b/drivers/acpi/acpica/dsmethod.c
-@@ -46,9 +46,7 @@
- #include "acdispat.h"
- #include "acinterp.h"
- #include "acnamesp.h"
--#ifdef	ACPI_DISASSEMBLER
--#include <acpi/acdisasm.h>
--#endif
-+#include "acdisasm.h"
+  *****************************************************************************/
  
- #define _COMPONENT          ACPI_DISPATCHER
- ACPI_MODULE_NAME("dsmethod")
-diff --git a/drivers/acpi/acpica/dswload.c b/drivers/acpi/acpica/dswload.c
-index 5575100..d290740 100644
---- a/drivers/acpi/acpica/dswload.c
-+++ b/drivers/acpi/acpica/dswload.c
-@@ -50,7 +50,7 @@
- #include "acnamesp.h"
+@@ -51,13 +50,13 @@
+  *
+  * 1) PTYPE1 packages do not contain sub-packages.
+  *
+- * ACPI_PTYPE1_FIXED: Fixed length, 1 or 2 object types:
++ * ACPI_PTYPE1_FIXED: Fixed-length length, 1 or 2 object types:
+  *      object type
+  *      count
+  *      object type
+  *      count
+  *
+- * ACPI_PTYPE1_VAR: Variable length:
++ * ACPI_PTYPE1_VAR: Variable-length length:
+  *      object type (Int/Buf/Ref)
+  *
+  * ACPI_PTYPE1_OPTION: Package has some required and some optional elements
+@@ -85,10 +84,10 @@
+  *      count
+  *      (Used for _CST)
+  *
+- * ACPI_PTYPE2_FIXED: Each subpackage is of fixed length
++ * ACPI_PTYPE2_FIXED: Each subpackage is of Fixed-length
+  *      (Used for _PRT)
+  *
+- * ACPI_PTYPE2_MIN: Each subpackage has a variable but minimum length
++ * ACPI_PTYPE2_MIN: Each subpackage has a Variable-length but minimum length
+  *      (Used for _HPX)
+  *
+  * ACPI_PTYPE2_REV_FIXED: Revision at start, each subpackage is Fixed-length
+@@ -124,7 +123,8 @@ enum acpi_return_package_types {
+  * These are the names that can actually be evaluated via acpi_evaluate_object.
+  * Not present in this table are the following:
+  *
+- *      1) Predefined/Reserved names that are never evaluated via acpi_evaluate_object:
++ *      1) Predefined/Reserved names that are never evaluated via
++ *         acpi_evaluate_object:
+  *          _Lxx and _Exx GPE methods
+  *          _Qxx EC methods
+  *          _T_x compiler temporary variables
+@@ -149,6 +149,8 @@ enum acpi_return_package_types {
+  * information about the expected structure of the package. This information
+  * is saved here (rather than in a separate table) in order to minimize the
+  * overall size of the stored data.
++ *
++ * Note: The additional braces are intended to promote portability.
+  */
+ static const union acpi_predefined_info predefined_names[] = {
+ 	{{"_AC0", 0, ACPI_RTYPE_INTEGER}},
+diff --git a/drivers/acpi/acpica/dsopcode.c b/drivers/acpi/acpica/dsopcode.c
+index 0df024e..8e9bdce 100644
+--- a/drivers/acpi/acpica/dsopcode.c
++++ b/drivers/acpi/acpica/dsopcode.c
+@@ -486,18 +486,18 @@ acpi_ds_eval_table_region_operands(struct acpi_walk_state *walk_state,
+ 	ACPI_FUNCTION_TRACE_PTR(ds_eval_table_region_operands, op);
  
- #ifdef ACPI_ASL_COMPILER
--#include <acpi/acdisasm.h>
-+#include "acdisasm.h"
- #endif
+ 	/*
+-	 * This is where we evaluate the signature_string and oem_iDString
+-	 * and oem_table_iDString of the data_table_region declaration
++	 * This is where we evaluate the Signature string, oem_id string,
++	 * and oem_table_id string of the Data Table Region declaration
+ 	 */
+ 	node = op->common.node;
  
- #define _COMPONENT          ACPI_DISPATCHER
-@@ -178,7 +178,8 @@ acpi_ds_load1_begin_op(struct acpi_walk_state * walk_state,
- 			 * Target of Scope() not found. Generate an External for it, and
- 			 * insert the name into the namespace.
+-	/* next_op points to signature_string op */
++	/* next_op points to Signature string op */
+ 
+ 	next_op = op->common.value.arg;
+ 
+ 	/*
+-	 * Evaluate/create the signature_string and oem_iDString
+-	 * and oem_table_iDString operands
++	 * Evaluate/create the Signature string, oem_id string,
++	 * and oem_table_id string operands
+ 	 */
+ 	status = acpi_ds_create_operands(walk_state, next_op);
+ 	if (ACPI_FAILURE(status)) {
+@@ -505,8 +505,8 @@ acpi_ds_eval_table_region_operands(struct acpi_walk_state *walk_state,
+ 	}
+ 
+ 	/*
+-	 * Resolve the signature_string and oem_iDString
+-	 * and oem_table_iDString operands
++	 * Resolve the Signature string, oem_id string,
++	 * and oem_table_id string operands
+ 	 */
+ 	status = acpi_ex_resolve_operands(op->common.aml_opcode,
+ 					  ACPI_WALK_OPERANDS, walk_state);
+diff --git a/drivers/acpi/acpica/evgpe.c b/drivers/acpi/acpica/evgpe.c
+index 36d1205..a137ce81 100644
+--- a/drivers/acpi/acpica/evgpe.c
++++ b/drivers/acpi/acpica/evgpe.c
+@@ -561,8 +561,8 @@ static void ACPI_SYSTEM_XFACE acpi_ev_asynch_execute_gpe_method(void *context)
+ 			status = AE_NO_MEMORY;
+ 		} else {
+ 			/*
+-			 * Invoke the GPE Method (_Lxx, _Exx) i.e., evaluate the _Lxx/_Exx
+-			 * control method that corresponds to this GPE
++			 * Invoke the GPE Method (_Lxx, _Exx) i.e., evaluate the
++			 * _Lxx/_Exx control method that corresponds to this GPE
  			 */
--			acpi_dm_add_to_external_list(path, ACPI_TYPE_DEVICE, 0);
-+			acpi_dm_add_to_external_list(op, path, ACPI_TYPE_DEVICE,
-+						     0);
- 			status =
- 			    acpi_ns_lookup(walk_state->scope_info, path,
- 					   object_type, ACPI_IMODE_LOAD_PASS1,
-diff --git a/drivers/acpi/acpica/nssearch.c b/drivers/acpi/acpica/nssearch.c
-index 1d2d8ff..b7f4264 100644
---- a/drivers/acpi/acpica/nssearch.c
-+++ b/drivers/acpi/acpica/nssearch.c
-@@ -328,6 +328,11 @@ acpi_ns_search_and_enter(u32 target_name,
- 		if ((status == AE_OK) && (flags & ACPI_NS_ERROR_IF_FOUND)) {
- 			status = AE_ALREADY_EXISTS;
+ 			info->prefix_node =
+ 			    local_gpe_event_info->dispatch.method_node;
+diff --git a/drivers/acpi/acpica/evxface.c b/drivers/acpi/acpica/evxface.c
+index ae668f3..74fe0f1 100644
+--- a/drivers/acpi/acpica/evxface.c
++++ b/drivers/acpi/acpica/evxface.c
+@@ -56,13 +56,13 @@ ACPI_MODULE_NAME("evxface")
+  *
+  * FUNCTION:    acpi_install_notify_handler
+  *
+- * PARAMETERS:  Device          - The device for which notifies will be handled
++ * PARAMETERS:  device          - The device for which notifies will be handled
+  *              handler_type    - The type of handler:
+  *                                  ACPI_SYSTEM_NOTIFY: System Handler (00-7F)
+  *                                  ACPI_DEVICE_NOTIFY: Device Handler (80-FF)
+  *                                  ACPI_ALL_NOTIFY:    Both System and Device
+- *              Handler         - Address of the handler
+- *              Context         - Value passed to the handler on each GPE
++ *              handler         - Address of the handler
++ *              context         - Value passed to the handler on each GPE
+  *
+  * RETURN:      Status
+  *
+@@ -217,12 +217,12 @@ ACPI_EXPORT_SYMBOL(acpi_install_notify_handler)
+  *
+  * FUNCTION:    acpi_remove_notify_handler
+  *
+- * PARAMETERS:  Device          - The device for which the handler is installed
++ * PARAMETERS:  device          - The device for which the handler is installed
+  *              handler_type    - The type of handler:
+  *                                  ACPI_SYSTEM_NOTIFY: System Handler (00-7F)
+  *                                  ACPI_DEVICE_NOTIFY: Device Handler (80-FF)
+  *                                  ACPI_ALL_NOTIFY:    Both System and Device
+- *              Handler         - Address of the handler
++ *              handler         - Address of the handler
+  *
+  * RETURN:      Status
+  *
+@@ -249,7 +249,8 @@ acpi_remove_notify_handler(acpi_handle device,
+ 	    (handler_type > ACPI_MAX_NOTIFY_HANDLER_TYPE)) {
+ 		return_ACPI_STATUS(AE_BAD_PARAMETER);
+ 	}
+-	/* Make sure all deferred tasks are completed */
++
++	/* Make sure all deferred notify tasks are completed */
+ 
+ 	acpi_os_wait_events_complete();
+ 
+@@ -596,7 +597,7 @@ acpi_install_gpe_handler(acpi_handle gpe_device,
+ 		return_ACPI_STATUS(status);
+ 	}
+ 
+-	/* Allocate memory for the handler object */
++	/* Allocate and init handler object (before lock) */
+ 
+ 	handler = ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_gpe_handler_info));
+ 	if (!handler) {
+@@ -622,8 +623,6 @@ acpi_install_gpe_handler(acpi_handle gpe_device,
+ 		goto free_and_exit;
+ 	}
+ 
+-	/* Allocate and init handler object */
+-
+ 	handler->address = address;
+ 	handler->context = context;
+ 	handler->method_node = gpe_event_info->dispatch.method_node;
+@@ -631,7 +630,7 @@ acpi_install_gpe_handler(acpi_handle gpe_device,
+ 			(ACPI_GPE_XRUPT_TYPE_MASK | ACPI_GPE_DISPATCH_MASK);
+ 
+ 	/*
+-	 * If the GPE is associated with a method, it might have been enabled
++	 * If the GPE is associated with a method, it may have been enabled
+ 	 * automatically during initialization, in which case it has to be
+ 	 * disabled now to avoid spurious execution of the handler.
+ 	 */
+@@ -646,7 +645,7 @@ acpi_install_gpe_handler(acpi_handle gpe_device,
+ 
+ 	gpe_event_info->dispatch.handler = handler;
+ 
+-	/* Setup up dispatch flags to indicate handler (vs. method) */
++	/* Setup up dispatch flags to indicate handler (vs. method/notify) */
+ 
+ 	gpe_event_info->flags &=
+ 	    ~(ACPI_GPE_XRUPT_TYPE_MASK | ACPI_GPE_DISPATCH_MASK);
+@@ -697,7 +696,7 @@ acpi_remove_gpe_handler(acpi_handle gpe_device,
+ 		return_ACPI_STATUS(AE_BAD_PARAMETER);
+ 	}
+ 
+-	/* Make sure all deferred tasks are completed */
++	/* Make sure all deferred GPE tasks are completed */
+ 
+ 	acpi_os_wait_events_complete();
+ 
+diff --git a/drivers/acpi/acpica/evxfevnt.c b/drivers/acpi/acpica/evxfevnt.c
+index 35520c6..ee6e96c 100644
+--- a/drivers/acpi/acpica/evxfevnt.c
++++ b/drivers/acpi/acpica/evxfevnt.c
+@@ -210,8 +210,8 @@ ACPI_EXPORT_SYMBOL(acpi_enable_event)
+  *
+  * FUNCTION:    acpi_disable_event
+  *
+- * PARAMETERS:  Event           - The fixed eventto be enabled
+- *              Flags           - Reserved
++ * PARAMETERS:  event           - The fixed event to be disabled
++ *              flags           - Reserved
+  *
+  * RETURN:      Status
+  *
+diff --git a/drivers/acpi/acpica/evxfgpe.c b/drivers/acpi/acpica/evxfgpe.c
+index 3f30e75..36f8ad8 100644
+--- a/drivers/acpi/acpica/evxfgpe.c
++++ b/drivers/acpi/acpica/evxfgpe.c
+@@ -51,7 +51,7 @@
+ ACPI_MODULE_NAME("evxfgpe")
+ 
+ #if (!ACPI_REDUCED_HARDWARE)	/* Entire module */
+-/******************************************************************************
++/*******************************************************************************
+  *
+  * FUNCTION:    acpi_update_all_gpes
+  *
+@@ -172,6 +172,7 @@ acpi_status acpi_disable_gpe(acpi_handle gpe_device, u32 gpe_number)
+ 	acpi_os_release_lock(acpi_gbl_gpe_lock, flags);
+ 	return_ACPI_STATUS(status);
+ }
++
+ ACPI_EXPORT_SYMBOL(acpi_disable_gpe)
+ 
+ 
+@@ -225,7 +226,7 @@ acpi_setup_gpe_for_wake(acpi_handle wake_device,
+ 		    ACPI_CAST_PTR(struct acpi_namespace_node, wake_device);
+ 	}
+ 
+-	/* Validate WakeDevice is of type Device */
++	/* Validate wake_device is of type Device */
+ 
+ 	if (device_node->type != ACPI_TYPE_DEVICE) {
+ 		return_ACPI_STATUS (AE_BAD_PARAMETER);
+@@ -432,8 +433,8 @@ ACPI_EXPORT_SYMBOL(acpi_clear_gpe)
+  *
+  * PARAMETERS:  gpe_device      - Parent GPE Device. NULL for GPE0/GPE1
+  *              gpe_number      - GPE level within the GPE block
+- *              event_status    - Where the current status of the event will
+- *                                be returned
++ *              event_status        - Where the current status of the event
++ *                                    will be returned
+  *
+  * RETURN:      Status
+  *
+diff --git a/drivers/acpi/acpica/exconfig.c b/drivers/acpi/acpica/exconfig.c
+index 16219bd..b4f42f5 100644
+--- a/drivers/acpi/acpica/exconfig.c
++++ b/drivers/acpi/acpica/exconfig.c
+@@ -120,8 +120,11 @@ acpi_ex_add_table(u32 table_index,
+ 	acpi_ns_exec_module_code_list();
+ 	acpi_ex_enter_interpreter();
+ 
+-	/* Update GPEs for any new _Lxx/_Exx methods. Ignore errors */
+-
++	/*
++	 * Update GPEs for any new _Lxx/_Exx methods. Ignore errors. The host is
++	 * responsible for discovering any new wake GPEs by running _PRW methods
++	 * that may have been loaded by this table.
++	 */
+ 	status = acpi_tb_get_owner_id(table_index, &owner_id);
+ 	if (ACPI_SUCCESS(status)) {
+ 		acpi_ev_update_gpes(owner_id);
+@@ -158,7 +161,7 @@ acpi_ex_load_table_op(struct acpi_walk_state *walk_state,
+ 
+ 	ACPI_FUNCTION_TRACE(ex_load_table_op);
+ 
+-	/* Validate lengths for the signature_string, OEMIDString, OEMtable_iD */
++	/* Validate lengths for the Signature, oem_id, and oem_table_id strings */
+ 
+ 	if ((operand[0]->string.length > ACPI_NAME_SIZE) ||
+ 	    (operand[1]->string.length > ACPI_OEM_ID_SIZE) ||
+diff --git a/drivers/acpi/acpica/exmutex.c b/drivers/acpi/acpica/exmutex.c
+index d1f449d..02157ef 100644
+--- a/drivers/acpi/acpica/exmutex.c
++++ b/drivers/acpi/acpica/exmutex.c
+@@ -377,7 +377,8 @@ acpi_ex_release_mutex(union acpi_operand_object *obj_desc,
+ 		return_ACPI_STATUS(AE_AML_MUTEX_NOT_ACQUIRED);
+ 	}
+ 
+-	/* Must have a valid thread. */
++	/* Must have a valid thread ID */
++
+ 	if (!walk_state->thread) {
+ 		ACPI_ERROR((AE_INFO,
+ 			    "Cannot release Mutex [%4.4s], null thread info",
+diff --git a/drivers/acpi/acpica/exregion.c b/drivers/acpi/acpica/exregion.c
+index 1db2c0b..48c660a 100644
+--- a/drivers/acpi/acpica/exregion.c
++++ b/drivers/acpi/acpica/exregion.c
+@@ -142,9 +142,9 @@ acpi_ex_system_memory_space_handler(u32 function,
  		}
-+#ifdef ACPI_ASL_COMPILER
-+		if (*return_node && (*return_node)->type == ACPI_TYPE_ANY) {
-+			(*return_node)->flags |= ANOBJ_IS_EXTERNAL;
-+		}
+ 
+ 		/*
+-		 * Attempt to map from the requested address to the end of the region.
+-		 * However, we will never map more than one page, nor will we cross
+-		 * a page boundary.
++		 * October 2009: Attempt to map from the requested address to the
++		 * end of the region. However, we will never map more than one
++		 * page, nor will we cross a page boundary.
+ 		 */
+ 		map_length = (acpi_size)
+ 		    ((mem_info->address + mem_info->length) - address);
+@@ -154,12 +154,15 @@ acpi_ex_system_memory_space_handler(u32 function,
+ 		 * a page boundary, just map up to the page boundary, do not cross.
+ 		 * On some systems, crossing a page boundary while mapping regions
+ 		 * can cause warnings if the pages have different attributes
+-		 * due to resource management
++		 * due to resource management.
++		 *
++		 * This has the added benefit of constraining a single mapping to
++		 * one page, which is similar to the original code that used a 4k
++		 * maximum window.
+ 		 */
+ 		page_boundary_map_length =
+ 		    ACPI_ROUND_UP(address, ACPI_DEFAULT_PAGE_SIZE) - address;
+-
+-		if (!page_boundary_map_length) {
++		if (page_boundary_map_length == 0) {
+ 			page_boundary_map_length = ACPI_DEFAULT_PAGE_SIZE;
+ 		}
+ 
+diff --git a/drivers/acpi/acpica/hwesleep.c b/drivers/acpi/acpica/hwesleep.c
+index 94996f9..6c0b1a9 100644
+--- a/drivers/acpi/acpica/hwesleep.c
++++ b/drivers/acpi/acpica/hwesleep.c
+@@ -200,7 +200,6 @@ acpi_status acpi_hw_extended_wake_prep(u8 sleep_state)
+  * FUNCTION:    acpi_hw_extended_wake
+  *
+  * PARAMETERS:  sleep_state         - Which sleep state we just exited
+- *              flags               - Reserved, set to zero
+  *
+  * RETURN:      Status
+  *
+diff --git a/drivers/acpi/acpica/hwregs.c b/drivers/acpi/acpica/hwregs.c
+index f4e5750..165395f 100644
+--- a/drivers/acpi/acpica/hwregs.c
++++ b/drivers/acpi/acpica/hwregs.c
+@@ -485,7 +485,7 @@ acpi_status acpi_hw_register_write(u32 register_id, u32 value)
+ 						&acpi_gbl_xpm1b_status);
+ 		break;
+ 
+-	case ACPI_REGISTER_PM1_ENABLE:	/* PM1 A/B: 16-bit access */
++	case ACPI_REGISTER_PM1_ENABLE:	/* PM1 A/B: 16-bit access each */
+ 
+ 		status = acpi_hw_write_multiple(value,
+ 						&acpi_gbl_xpm1a_enable,
+diff --git a/drivers/acpi/acpica/hwxface.c b/drivers/acpi/acpica/hwxface.c
+index 05a154c..cac44b9 100644
+--- a/drivers/acpi/acpica/hwxface.c
++++ b/drivers/acpi/acpica/hwxface.c
+@@ -333,7 +333,7 @@ ACPI_EXPORT_SYMBOL(acpi_read_bit_register)
+  * FUNCTION:    acpi_write_bit_register
+  *
+  * PARAMETERS:  register_id     - ID of ACPI Bit Register to access
+- *              Value           - Value to write to the register, in bit
++ *              value           - Value to write to the register, in bit
+  *                                position zero. The bit is automatically
+  *                                shifted to the correct position.
+  *
+diff --git a/drivers/acpi/acpica/hwxfsleep.c b/drivers/acpi/acpica/hwxfsleep.c
+index ae443fe2..2898011 100644
+--- a/drivers/acpi/acpica/hwxfsleep.c
++++ b/drivers/acpi/acpica/hwxfsleep.c
+@@ -350,7 +350,7 @@ ACPI_EXPORT_SYMBOL(acpi_enter_sleep_state_prep)
+  *
+  * RETURN:      Status
+  *
+- * DESCRIPTION: Enter a system sleep state (see ACPI 2.0 spec p 231)
++ * DESCRIPTION: Enter a system sleep state
+  *              THIS FUNCTION MUST BE CALLED WITH INTERRUPTS DISABLED
+  *
+  ******************************************************************************/
+@@ -382,8 +382,9 @@ ACPI_EXPORT_SYMBOL(acpi_enter_sleep_state)
+  * RETURN:      Status
+  *
+  * DESCRIPTION: Perform the first state of OS-independent ACPI cleanup after a
+- *              sleep.
+- *              Called with interrupts DISABLED.
++ *              sleep. Called with interrupts DISABLED.
++ *              We break wake/resume into 2 stages so that OSPM can handle
++ *              various OS-specific tasks between the two steps.
+  *
+  ******************************************************************************/
+ acpi_status acpi_leave_sleep_state_prep(u8 sleep_state)
+diff --git a/drivers/acpi/acpica/nsdump.c b/drivers/acpi/acpica/nsdump.c
+index 924b3c7..8e6f0037 100644
+--- a/drivers/acpi/acpica/nsdump.c
++++ b/drivers/acpi/acpica/nsdump.c
+@@ -729,5 +729,5 @@ void acpi_ns_dump_tables(acpi_handle search_base, u32 max_depth)
+ 			     ACPI_OWNER_ID_MAX, search_handle);
+ 	return_VOID;
+ }
+-#endif				/* _ACPI_ASL_COMPILER */
+-#endif				/* defined(ACPI_DEBUG_OUTPUT) || defined(ACPI_DEBUGGER) */
 +#endif
++#endif
+diff --git a/drivers/acpi/acpica/nsnames.c b/drivers/acpi/acpica/nsnames.c
+index 55a175e..7d34641 100644
+--- a/drivers/acpi/acpica/nsnames.c
++++ b/drivers/acpi/acpica/nsnames.c
+@@ -126,7 +126,8 @@ acpi_ns_build_external_path(struct acpi_namespace_node *node,
+  *              the node, In external format (name segments separated by path
+  *              separators.)
+  *
+- * DESCRIPTION: Used for debug printing in acpi_ns_search_table().
++ * DESCRIPTION: Used to obtain the full pathname to a namespace node, usually
++ *              for error and debug statements.
+  *
+  ******************************************************************************/
  
- 		/* Either found it or there was an error: finished either way */
+diff --git a/drivers/acpi/acpica/nspredef.c b/drivers/acpi/acpica/nspredef.c
+index 2419f41..352be3b 100644
+--- a/drivers/acpi/acpica/nspredef.c
++++ b/drivers/acpi/acpica/nspredef.c
+@@ -1,7 +1,6 @@
+ /******************************************************************************
+  *
+  * Module Name: nspredef - Validation of ACPI predefined methods and objects
+- *              $Revision: 1.1 $
+  *
+  *****************************************************************************/
  
+diff --git a/drivers/acpi/acpica/tbfadt.c b/drivers/acpi/acpica/tbfadt.c
+index 3906518..882285b 100644
+--- a/drivers/acpi/acpica/tbfadt.c
++++ b/drivers/acpi/acpica/tbfadt.c
+@@ -172,6 +172,7 @@ static struct acpi_fadt_pm_info fadt_pm_info_table[] = {
+  * FUNCTION:    acpi_tb_init_generic_address
+  *
+  * PARAMETERS:  generic_address     - GAS struct to be initialized
++ *              space_id            - ACPI Space ID for this register
+  *              byte_width          - Width of this register
+  *              address             - Address of the register
+  *
+@@ -407,8 +408,8 @@ static void acpi_tb_convert_fadt(void)
+ 	 * should be zero are indeed zero. This will workaround BIOSs that
+ 	 * inadvertently place values in these fields.
+ 	 *
+-	 * The ACPI 1.0 reserved fields that will be zeroed are the bytes located at
+-	 * offset 45, 55, 95, and the word located at offset 109, 110.
++	 * The ACPI 1.0 reserved fields that will be zeroed are the bytes located
++	 * at offset 45, 55, 95, and the word located at offset 109, 110.
+ 	 *
+ 	 * Note: The FADT revision value is unreliable. Only the length can be
+ 	 * trusted.
 diff --git a/drivers/acpi/acpica/utglobal.c b/drivers/acpi/acpica/utglobal.c
-index ed18931..711fd22 100644
+index 711fd22..c083611 100644
 --- a/drivers/acpi/acpica/utglobal.c
 +++ b/drivers/acpi/acpica/utglobal.c
-@@ -357,6 +357,10 @@ acpi_status acpi_ut_init_globals(void)
- 	acpi_gbl_root_node_struct.peer = NULL;
- 	acpi_gbl_root_node_struct.object = NULL;
+@@ -372,6 +372,8 @@ acpi_status acpi_ut_init_globals(void)
+ 	return_ACPI_STATUS(AE_OK);
+ }
  
-+#ifdef ACPI_DISASSEMBLER
-+	acpi_gbl_external_list = NULL;
-+#endif
++/* Public globals */
 +
- #ifdef ACPI_DEBUG_OUTPUT
- 	acpi_gbl_lowest_stack_pointer = ACPI_CAST_PTR(acpi_size, ACPI_SIZE_MAX);
+ ACPI_EXPORT_SYMBOL(acpi_gbl_FADT)
+ ACPI_EXPORT_SYMBOL(acpi_dbg_level)
+ ACPI_EXPORT_SYMBOL(acpi_dbg_layer)
+diff --git a/drivers/acpi/acpica/utobject.c b/drivers/acpi/acpica/utobject.c
+index 5c52ca7..822600b 100644
+--- a/drivers/acpi/acpica/utobject.c
++++ b/drivers/acpi/acpica/utobject.c
+@@ -419,7 +419,7 @@ void acpi_ut_delete_object_desc(union acpi_operand_object *object)
+ {
+ 	ACPI_FUNCTION_TRACE_PTR(ut_delete_object_desc, object);
+ 
+-	/* Object must be a union acpi_operand_object */
++	/* Object must be of type union acpi_operand_object */
+ 
+ 	if (ACPI_GET_DESCRIPTOR_TYPE(object) != ACPI_DESC_TYPE_OPERAND) {
+ 		ACPI_ERROR((AE_INFO,
+diff --git a/drivers/acpi/acpica/utxferror.c b/drivers/acpi/acpica/utxferror.c
+index d4d3826..a247a22 100644
+--- a/drivers/acpi/acpica/utxferror.c
++++ b/drivers/acpi/acpica/utxferror.c
+@@ -297,9 +297,9 @@ ACPI_EXPORT_SYMBOL(acpi_bios_warning)
+  *
+  * PARAMETERS:  module_name     - Caller's module name (for error output)
+  *              line_number     - Caller's line number (for error output)
+- *              Pathname        - Full pathname to the node
++ *              pathname        - Full pathname to the node
+  *              node_flags      - From Namespace node for the method/object
+- *              Format          - Printf format string + additional args
++ *              format          - Printf format string + additional args
+  *
+  * RETURN:      None
+  *
+diff --git a/include/acpi/acconfig.h b/include/acpi/acconfig.h
+index 0943457..358258a 100644
+--- a/include/acpi/acconfig.h
++++ b/include/acpi/acconfig.h
+@@ -138,7 +138,7 @@
+ 
+ /* Maximum sleep allowed via Sleep() operator */
+ 
+-#define ACPI_MAX_SLEEP                  2000	/* Two seconds */
++#define ACPI_MAX_SLEEP                  2000	/* 2000 millisec == two seconds */
+ 
+ /* Address Range lists are per-space_id (Memory and I/O only) */
+ 
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index 3d88395..d8ec35b 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -56,11 +56,16 @@
+ extern u8 acpi_gbl_permanent_mmap;
+ 
+ /*
+- * Globals that are publicly available, allowing for
+- * run time configuration
++ * Globals that are publically available
+  */
++
++/* Runtime configuration of debug print levels */
++
+ extern u32 acpi_dbg_level;
+ extern u32 acpi_dbg_layer;
++
++/* ACPICA runtime options */
++
+ extern u8 acpi_gbl_enable_interpreter_slack;
+ extern u8 acpi_gbl_all_methods_serialized;
+ extern u8 acpi_gbl_create_osi_method;
+@@ -106,7 +111,7 @@ extern u8 acpi_gbl_reduced_hardware;	/* ACPI 5.0 */
+ 
+ extern u32 acpi_rsdt_forced;
+ /*
+- * Global interfaces
++ * Initialization
+  */
+ acpi_status
+ acpi_initialize_tables(struct acpi_table_desc *initial_storage,
+@@ -120,13 +125,15 @@ acpi_status acpi_initialize_objects(u32 flags);
+ 
+ acpi_status acpi_terminate(void);
+ 
++/*
++ * Miscellaneous global interfaces
++ */
++ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status acpi_enable(void))
++ ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status acpi_disable(void))
+ #ifdef ACPI_FUTURE_USAGE
+ acpi_status acpi_subsystem_status(void);
  #endif
+ 
+-ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status acpi_enable(void))
+-ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status acpi_disable(void))
+-
+ #ifdef ACPI_FUTURE_USAGE
+ acpi_status acpi_get_system_info(struct acpi_buffer *ret_buffer);
+ #endif
+diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
+index 280fc45..61f04c0 100644
+--- a/include/acpi/actbl1.h
++++ b/include/acpi/actbl1.h
+@@ -768,7 +768,7 @@ struct acpi_madt_interrupt_source {
+ 
+ struct acpi_madt_local_x2apic {
+ 	struct acpi_subtable_header header;
+-	u16 reserved;		/* Reserved - must be zero */
++	u16 reserved;		/* reserved - must be zero */
+ 	u32 local_apic_id;	/* Processor x2APIC ID  */
+ 	u32 lapic_flags;
+ 	u32 uid;		/* ACPI processor UID */
+@@ -781,14 +781,14 @@ struct acpi_madt_local_x2apic_nmi {
+ 	u16 inti_flags;
+ 	u32 uid;		/* ACPI processor UID */
+ 	u8 lint;		/* LINTn to which NMI is connected */
+-	u8 reserved[3];
++	u8 reserved[3];		/* reserved - must be zero */
+ };
+ 
+ /* 11: Generic Interrupt (ACPI 5.0) */
+ 
+ struct acpi_madt_generic_interrupt {
+ 	struct acpi_subtable_header header;
+-	u16 reserved;		/* Reserved - must be zero */
++	u16 reserved;		/* reserved - must be zero */
+ 	u32 gic_id;
+ 	u32 uid;
+ 	u32 flags;
+diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+index 4f43f1f..35d4dea0 100644
+--- a/include/acpi/actypes.h
++++ b/include/acpi/actypes.h
+@@ -595,7 +595,7 @@ typedef u32 acpi_object_type;
+ 
+ /*
+  * These are special object types that never appear in
+- * a Namespace node, only in a union acpi_operand_object
++ * a Namespace node, only in an object of union acpi_operand_object
+  */
+ #define ACPI_TYPE_LOCAL_EXTRA           0x1C
+ #define ACPI_TYPE_LOCAL_DATA            0x1D
+@@ -662,7 +662,7 @@ typedef u32 acpi_event_status;
+ #define ACPI_GPE_MAX                    0xFF
+ #define ACPI_NUM_GPE                    256
+ 
+-/* Actions for acpi_set_gpe_wake_mask, acpi_hw_low_set_gpe */
++/* Actions for acpi_set_gpe, acpi_gpe_wakeup, acpi_hw_low_set_gpe */
+ 
+ #define ACPI_GPE_ENABLE                 0
+ #define ACPI_GPE_DISABLE                1
 diff --git a/include/acpi/platform/acenv.h b/include/acpi/platform/acenv.h
-index 89cee88..c743ca4 100644
+index c743ca4..89fcc3e 100644
 --- a/include/acpi/platform/acenv.h
 +++ b/include/acpi/platform/acenv.h
-@@ -69,12 +69,13 @@
- #endif
+@@ -1,6 +1,6 @@
+ /******************************************************************************
+  *
+- * Name: acenv.h - Generation environment specific items
++ * Name: acenv.h - Host and compiler configuration
+  *
+  *****************************************************************************/
+ 
+@@ -44,6 +44,12 @@
+ #ifndef __ACENV_H__
+ #define __ACENV_H__
+ 
++/*
++ * Environment configuration. The purpose of this file is to interface ACPICA
++ * to the local environment. This includes compiler-specific, OS-specific,
++ * and machine-specific configuration.
++ */
++
+ /* Types for ACPI_MUTEX_TYPE */
+ 
+ #define ACPI_BINARY_SEMAPHORE       0
+@@ -60,13 +66,7 @@
+  *
+  *****************************************************************************/
+ 
+-#ifdef ACPI_LIBRARY
+-/*
+- * Note: The non-debug version of the acpi_library does not contain any
+- * debug support, for minimal size. The debug version uses ACPI_FULL_DEBUG
+- */
+-#define ACPI_USE_LOCAL_CACHE
+-#endif
++/* iASL configuration */
  
  #ifdef ACPI_ASL_COMPILER
--#define ACPI_DEBUG_OUTPUT
  #define ACPI_APPLICATION
- #define ACPI_DISASSEMBLER
-+#define ACPI_DEBUG_OUTPUT
- #define ACPI_CONSTANT_EVAL_ONLY
- #define ACPI_LARGE_NAMESPACE_NODE
- #define ACPI_DATA_TABLE_DISASSEMBLY
-+#define ACPI_SINGLE_THREADED
+@@ -78,21 +78,55 @@
+ #define ACPI_SINGLE_THREADED
  #endif
  
++/* acpi_exec configuration. Multithreaded with full AML debugger */
++
  #ifdef ACPI_EXEC_APP
+-#undef DEBUGGER_THREADING
+-#define DEBUGGER_THREADING      DEBUGGER_SINGLE_THREADED
+-#define ACPI_FULL_DEBUG
+ #define ACPI_APPLICATION
+-#define ACPI_DEBUGGER
++#define ACPI_FULL_DEBUG
+ #define ACPI_MUTEX_DEBUG
+ #define ACPI_DBG_TRACK_ALLOCATIONS
+ #endif
+ 
++/* acpi_names configuration. Single threaded with debugger output enabled. */
++
++#ifdef ACPI_NAMES_APP
++#define ACPI_DEBUGGER
++#define ACPI_APPLICATION
++#define ACPI_SINGLE_THREADED
++#endif
++
++/*
++ * acpi_bin/acpi_help/acpi_src configuration. All single threaded, with
++ * no debug output.
++ */
++#if (defined ACPI_BIN_APP)   || \
++	(defined ACPI_SRC_APP)   || \
++	(defined ACPI_XTRACT_APP)
++#define ACPI_APPLICATION
++#define ACPI_SINGLE_THREADED
++#endif
++
++#ifdef ACPI_HELP_APP
++#define ACPI_APPLICATION
++#define ACPI_SINGLE_THREADED
++#define ACPI_NO_ERROR_MESSAGES
++#endif
++
++/* Linkable ACPICA library */
++
++#ifdef ACPI_LIBRARY
++#define ACPI_USE_LOCAL_CACHE
++#endif
++
++/* Common for all ACPICA applications */
++
+ #ifdef ACPI_APPLICATION
+ #define ACPI_USE_SYSTEM_CLIBRARY
+ #define ACPI_USE_LOCAL_CACHE
+ #endif
+ 
++/* Common debug support */
++
+ #ifdef ACPI_FULL_DEBUG
+ #define ACPI_DEBUGGER
+ #define ACPI_DEBUG_OUTPUT
+@@ -231,9 +265,9 @@
+  * We want to keep these to a minimum.
+  */
+ #ifdef ACPI_USE_STANDARD_HEADERS
+-/*
+- * Use the standard headers from the standard locations
+- */
++
++/* Use the standard headers from the standard locations */
++
+ #include <stdarg.h>
+ #include <stdlib.h>
+ #include <string.h>
+@@ -241,9 +275,8 @@
+ 
+ #endif				/* ACPI_USE_STANDARD_HEADERS */
+ 
+-/*
+- * We will be linking to the standard Clib functions
+- */
++/* We will be linking to the standard Clib functions */
++
+ #define ACPI_STRSTR(s1,s2)      strstr((s1), (s2))
+ #define ACPI_STRCHR(s1,c)       strchr((s1), (c))
+ #define ACPI_STRLEN(s)          (acpi_size) strlen((s))
+@@ -275,13 +308,12 @@
+  *
+  *****************************************************************************/
+ 
+- /*
+-  * Use local definitions of C library macros and functions
+-  * NOTE: The function implementations may not be as efficient
+-  * as an inline or assembly code implementation provided by a
+-  * native C library.
+-  */
+-
++/*
++ * Use local definitions of C library macros and functions. These function
++ * implementations may not be as efficient as an inline or assembly code
++ * implementation provided by a native C library, but they are functionally
++ * equivalent.
++ */
+ #ifndef va_arg
+ 
+ #ifndef _VALIST
+@@ -289,15 +321,13 @@
+ typedef char *va_list;
+ #endif				/* _VALIST */
+ 
+-/*
+- * Storage alignment properties
+- */
++/* Storage alignment properties */
++
+ #define  _AUPBND                (sizeof (acpi_native_int) - 1)
+ #define  _ADNBND                (sizeof (acpi_native_int) - 1)
+ 
+-/*
+- * Variable argument list macro definitions
+- */
++/* Variable argument list macro definitions */
++
+ #define _bnd(X, bnd)            (((sizeof (X)) + (bnd)) & (~(bnd)))
+ #define va_arg(ap, T)           (*(T *)(((ap) += (_bnd (T, _AUPBND))) - (_bnd (T,_ADNBND))))
+ #define va_end(ap)              (void) 0
+@@ -305,6 +335,8 @@ typedef char *va_list;
+ 
+ #endif				/* va_arg */
+ 
++/* Use the local (ACPICA) definitions of the clib functions */
++
+ #define ACPI_STRSTR(s1,s2)      acpi_ut_strstr ((s1), (s2))
+ #define ACPI_STRCHR(s1,c)       acpi_ut_strchr ((s1), (c))
+ #define ACPI_STRLEN(s)          (acpi_size) acpi_ut_strlen ((s))
 -- 
 1.7.10
 
