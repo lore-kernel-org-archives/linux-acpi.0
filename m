@@ -1,52 +1,66 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] acpi_system_write_wakeup_device(): fix error check for unsigned variable.
-Date: Wed, 21 Nov 2012 01:44:59 +0100
-Message-ID: <1732852.VDXGV3Ao2T@vostro.rjw.lan>
-References: <1353117263-6957-1-git-send-email-tipecaml@gmail.com>
+Subject: Re: [PATCH 387/493] acpi: remove use of __devexit
+Date: Wed, 21 Nov 2012 01:46:25 +0100
+Message-ID: <1897683.O1u4QRqlH7@vostro.rjw.lan>
+References: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu> <1353349642-3677-387-git-send-email-wfp5p@virginia.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:56762 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([193.178.161.156]:56771 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751466Ab2KUAkc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 20 Nov 2012 19:40:32 -0500
-In-Reply-To: <1353117263-6957-1-git-send-email-tipecaml@gmail.com>
+	id S1752254Ab2KUAl6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 20 Nov 2012 19:41:58 -0500
+In-Reply-To: <1353349642-3677-387-git-send-email-wfp5p@virginia.edu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Cyril Roelandt <tipecaml@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org, kernel-janitors@vger.kernel.org
+To: Bill Pemberton <wfp5p@virginia.edu>
+Cc: gregkh@linuxfoundation.org, linux-acpi@vger.kernel.org
 
-On Saturday, November 17, 2012 02:54:23 AM Cyril Roelandt wrote:
-> The LEN variable is unsigned, therefore checking whether it is less than 0 is
-> useless.
-> 
-> Signed-off-by: Cyril Roelandt <tipecaml@gmail.com>
-> ---
->  drivers/acpi/proc.c |    2 --
->  1 file changed, 2 deletions(-)
-> 
-> diff --git a/drivers/acpi/proc.c b/drivers/acpi/proc.c
-> index 27adb09..37871a7 100644
-> --- a/drivers/acpi/proc.c
-> +++ b/drivers/acpi/proc.c
-> @@ -366,8 +366,6 @@ acpi_system_write_wakeup_device(struct file *file,
->  
->  	if (len > 4)
->  		len = 4;
-> -	if (len < 0)
-> -		return -EFAULT;
+On Monday, November 19, 2012 01:25:36 PM Bill Pemberton wrote:
+> CONFIG_HOTPLUG is going away as an option so __devexit is no
+> longer needed.
 
-I would prefer to check if count < 0 instead.
-
->  
->  	if (copy_from_user(strbuf, buffer, len))
->  		return -EFAULT;
+Applied to the linux-next branch of the linux-pm.git tree as v3.8 material.
 
 Thanks,
 Rafael
 
 
+> Signed-off-by: Bill Pemberton <wfp5p@virginia.edu>
+> Cc: linux-acpi@vger.kernel.org 
+> ---
+>  drivers/acpi/apei/ghes.c | 2 +-
+>  drivers/acpi/hed.c       | 2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index 73bca11..7ae2750 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -994,7 +994,7 @@ err:
+>  	return rc;
+>  }
+>  
+> -static int __devexit ghes_remove(struct platform_device *ghes_dev)
+> +static int ghes_remove(struct platform_device *ghes_dev)
+>  {
+>  	struct ghes *ghes;
+>  	struct acpi_hest_generic *generic;
+> diff --git a/drivers/acpi/hed.c b/drivers/acpi/hed.c
+> index 0ec28a3..a0cc796 100644
+> --- a/drivers/acpi/hed.c
+> +++ b/drivers/acpi/hed.c
+> @@ -70,7 +70,7 @@ static int acpi_hed_add(struct acpi_device *device)
+>  	return 0;
+>  }
+>  
+> -static int __devexit acpi_hed_remove(struct acpi_device *device, int type)
+> +static int acpi_hed_remove(struct acpi_device *device, int type)
+>  {
+>  	hed_handle = NULL;
+>  	return 0;
+> 
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
