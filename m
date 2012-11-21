@@ -1,99 +1,78 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: [PATCH v2] acpi: introduce os_accessible flag for power_state
-Date: Wed, 21 Nov 2012 20:24:20 +0800
-Message-ID: <50ACC7F4.7060401@intel.com>
-References: <1352426096-15116-1-git-send-email-aaron.lu@intel.com> <1352426096-15116-2-git-send-email-aaron.lu@intel.com> <1488423.HT0sLzAmeT@vostro.rjw.lan>
+From: Joe Perches <joe@perches.com>
+Subject: Re: [PATCH RESEND] acpi: Fix logging when no pci_irq is allocated
+Date: Wed, 21 Nov 2012 05:46:04 -0800
+Message-ID: <1353505564.24807.12.camel@joe-AO722>
+References: <1353487401-10279-1-git-send-email-daniel@numascale-asia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:45880 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751511Ab2KUMYF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 21 Nov 2012 07:24:05 -0500
-In-Reply-To: <1488423.HT0sLzAmeT@vostro.rjw.lan>
+Received: from perches-mx.perches.com ([206.117.179.246]:59164 "EHLO
+	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752260Ab2KUNqE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 21 Nov 2012 08:46:04 -0500
+In-Reply-To: <1353487401-10279-1-git-send-email-daniel@numascale-asia.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>
+To: Daniel J Blueman <daniel@numascale-asia.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Currently we have valid flag to represent if this ACPI device power
-state is valid. A device power state is valid does not necessarily
-mean we, as OSPM, has a mean to put the device into that power state,
-e.g. D3 cold is always a valid power state for any ACPI device, but if
-there is no _PS3 or _PRx for this device, we can't really put that
-device into D3 cold power state. The same is true for D0 power state.
+On Wed, 2012-11-21 at 16:43 +0800, Daniel J Blueman wrote:
+> Previously a new line is implicitly added in the no GSI case:
+> 
+> [    7.185182] pci 0001:00:12.0: can't derive routing for PCI INT A
+> [    7.191352] pci 0001:00:12.0: PCI INT A: no GSI
+> [    7.195956]  - using ISA IRQ 10
+> 
+> The code thus prints a blank line where no legacy IRQ is available:
+> 
+> [    1.650124] pci 0000:00:14.0: can't derive routing for PCI INT A
+> [    1.650126] pci 0000:00:14.0: PCI INT A: no GSI
+> [    1.650126] 
+> [    1.650180] pci 0000:00:14.0: can't derive routing for PCI INT A
+> 
+> Fix this by making the newline explicit and removing the superfluous
+> one.
 
-So here comes the os_accessible flag, which is only set if the device
-has provided us the required means to put it into that power state,
-e.g. if we have _PS3 or _PRx, we can put the device into D3 cold state
-and thus, D3 cold power state's os_accessible flag will be set in this
-case.
+This breaks the logging code below it when there is an ISA irq.
 
-And a new wrapper inline function is added to be used to check if
-firmware has provided us a way to power off the device during runtime.
+The below works, but is a workaround for a defect in the printk
+subsystem introduced by a logging change that will be fixed in
+a near future release.
 
-Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+Signed-off-by: Joe Perches <joe@perches.com>
 ---
-v2:
-Rename swset to os_accessible as suggested by Rafael Wysocki.
-Fold patch 2 into patch 1 as suggested by Rafael Wysocki.
+ drivers/acpi/pci_irq.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
- drivers/acpi/scan.c     | 9 ++++++++-
- include/acpi/acpi_bus.h | 6 ++++++
- 2 files changed, 14 insertions(+), 1 deletion(-)
+diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+index f288e00..68a921d 100644
+--- a/drivers/acpi/pci_irq.c
++++ b/drivers/acpi/pci_irq.c
+@@ -458,19 +458,19 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
+ 	 */
+ 	if (gsi < 0) {
+ 		u32 dev_gsi;
+-		dev_warn(&dev->dev, "PCI INT %c: no GSI", pin_name(pin));
+ 		/* Interrupt Line values above 0xF are forbidden */
+ 		if (dev->irq > 0 && (dev->irq <= 0xF) &&
+ 		    (acpi_isa_irq_to_gsi(dev->irq, &dev_gsi) == 0)) {
+-			printk(" - using ISA IRQ %d\n", dev->irq);
++			dev_warn(&dev->dev, "PCI INT %c: no GSI - using ISA IRQ %d\n",
++				 pin_name(pin), dev->irq);
+ 			acpi_register_gsi(&dev->dev, dev_gsi,
+ 					  ACPI_LEVEL_SENSITIVE,
+ 					  ACPI_ACTIVE_LOW);
+-			return 0;
+ 		} else {
+-			printk("\n");
+-			return 0;
++			dev_warn(&dev->dev, "PCI INT %c: no GSI\n",
++				 pin_name(pin));
+ 		}
++		return 0;
+ 	}
+ 
+ 	rc = acpi_register_gsi(&dev->dev, gsi, triggering, polarity);
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 3c646e6..f250c5b 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1062,8 +1062,10 @@ static int acpi_bus_get_power_flags(struct acpi_device *device)
- 		 * D3hot is only valid if _PR3 present.
- 		 */
- 		if (ps->resources.count ||
--		    (ps->flags.explicit_set && i < ACPI_STATE_D3_HOT))
-+		    (ps->flags.explicit_set && i < ACPI_STATE_D3_HOT)) {
- 			ps->flags.valid = 1;
-+			ps->flags.os_accessible = 1;
-+		}
- 
- 		ps->power = -1;	/* Unknown - driver assigned */
- 		ps->latency = -1;	/* Unknown - driver assigned */
-@@ -1079,6 +1081,11 @@ static int acpi_bus_get_power_flags(struct acpi_device *device)
- 	if (device->power.states[ACPI_STATE_D3_HOT].flags.explicit_set)
- 		device->power.states[ACPI_STATE_D3_COLD].flags.explicit_set = 1;
- 
-+	/* Presence of _PS3 or _PRx means we can put the device into D3 cold */
-+	if (device->power.states[ACPI_STATE_D3_HOT].flags.explicit_set ||
-+			device->power.flags.power_resources)
-+		device->power.states[ACPI_STATE_D3_COLD].flags.os_accessible = 1;
-+
- 	acpi_bus_init_power(device);
- 
- 	return 0;
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index ce77cd7..644d941 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -201,6 +201,7 @@ struct acpi_device_power_flags {
- struct acpi_device_power_state {
- 	struct {
- 		u8 valid:1;
-+		u8 os_accessible:1;
- 		u8 explicit_set:1;	/* _PSx present? */
- 		u8 reserved:6;
- 	} flags;
-@@ -500,6 +501,11 @@ static inline bool acpi_device_can_wakeup(struct acpi_device *adev)
- 	return adev->wakeup.flags.valid;
- }
- 
-+static inline bool acpi_device_can_poweroff(struct acpi_device *adev)
-+{
-+	return adev->power.states[ACPI_STATE_D3_COLD].flags.os_accessible;
-+}
-+
- #else	/* CONFIG_ACPI */
- 
- static inline int register_acpi_bus_type(void *bus) { return 0; }
--- 
-1.7.12.4
+
