@@ -1,67 +1,91 @@
-From: Daniel J Blueman <daniel@numascale-asia.com>
-Subject: [PATCH RESEND] Fix printing when no interrupt is allocated
-Date: Wed, 21 Nov 2012 16:43:21 +0800
-Message-ID: <1353487401-10279-1-git-send-email-daniel@numascale-asia.com>
+From: "Zhang, Rui" <rui.zhang@intel.com>
+Subject: RE: [PATCH 1/1] thermal: cpu cooling: allow module builds
+Date: Wed, 21 Nov 2012 09:01:59 +0000
+Message-ID: <744357E9AAD1214791ACBA4B0B909263264C1B@SHSMSX101.ccr.corp.intel.com>
+References: <1352906610-549-1-git-send-email-eduardo.valentin@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-da0-f46.google.com ([209.85.210.46]:41352 "EHLO
-	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754047Ab2KUIne (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Nov 2012 03:43:34 -0500
-Received: by mail-da0-f46.google.com with SMTP id p5so1631063dak.19
-        for <linux-acpi@vger.kernel.org>; Wed, 21 Nov 2012 00:43:34 -0800 (PST)
+Received: from mga14.intel.com ([143.182.124.37]:17383 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751876Ab2KUJC1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Nov 2012 04:02:27 -0500
+In-Reply-To: <1352906610-549-1-git-send-email-eduardo.valentin@ti.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Daniel J Blueman <daniel@numascale-asia.com>
+To: Eduardo Valentin <eduardo.valentin@ti.com>, "amit.kachhap@linaro.org" <amit.kachhap@linaro.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "eballetbo@gmail.com" <eballetbo@gmail.com>
 
-Previously a new line is implicitly added in the no GSI case:
+Applied.
 
-[    7.185182] pci 0001:00:12.0: can't derive routing for PCI INT A
-[    7.191352] pci 0001:00:12.0: PCI INT A: no GSI
-[    7.195956]  - using ISA IRQ 10
+Thanks,
+rui
 
-The code thus prints a blank line where no legacy IRQ is available:
-
-[    1.650124] pci 0000:00:14.0: can't derive routing for PCI INT A
-[    1.650126] pci 0000:00:14.0: PCI INT A: no GSI
-[    1.650126] 
-[    1.650180] pci 0000:00:14.0: can't derive routing for PCI INT A
-
-Fix this by making the newline explicit and removing the superfluous
-one.
-
-Signed-off-by: Daniel J Blueman <daniel@numascale-asia.com>
----
- drivers/acpi/pci_irq.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-index 0eefa12..2c37996 100644
---- a/drivers/acpi/pci_irq.c
-+++ b/drivers/acpi/pci_irq.c
-@@ -459,7 +459,7 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
- 	 */
- 	if (gsi < 0) {
- 		u32 dev_gsi;
--		dev_warn(&dev->dev, "PCI INT %c: no GSI", pin_name(pin));
-+		dev_warn(&dev->dev, "PCI INT %c: no GSI\n", pin_name(pin));
- 		/* Interrupt Line values above 0xF are forbidden */
- 		if (dev->irq > 0 && (dev->irq <= 0xF) &&
- 		    (acpi_isa_irq_to_gsi(dev->irq, &dev_gsi) == 0)) {
-@@ -467,11 +467,9 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
- 			acpi_register_gsi(&dev->dev, dev_gsi,
- 					  ACPI_LEVEL_SENSITIVE,
- 					  ACPI_ACTIVE_LOW);
--			return 0;
--		} else {
--			printk("\n");
--			return 0;
- 		}
-+
-+		return 0;
- 	}
- 
- 	rc = acpi_register_gsi(&dev->dev, gsi, triggering, polarity);
--- 
-1.7.9.5
+> -----Original Message-----
+> From: Eduardo Valentin [mailto:eduardo.valentin@ti.com]
+> Sent: Wednesday, November 14, 2012 11:24 PM
+> To: amit.kachhap@linaro.org
+> Cc: Zhang, Rui; linux-acpi@vger.kernel.org; linux-pm@lists.linux-
+> foundation.org; eballetbo@gmail.com; Eduardo Valentin
+> Subject: [PATCH 1/1] thermal: cpu cooling: allow module builds
+> Importance: High
+> 
+> As thermal drivers can be built as modules and also the thermal
+> framework itself, building cpu cooling only as built-in can cause
+> linking errors. For instance:
+> * Generic Thermal sysfs driver
+> *
+> Generic Thermal sysfs driver (THERMAL) [M/n/y/?] m
+>   generic cpu cooling support (CPU_THERMAL) [N/y/?] (NEW) y
+> 
+> with the following drive:
+> CONFIG_OMAP_BANDGAP=m
+> 
+> generates:
+> ERROR: "cpufreq_cooling_unregister" [drivers/staging/omap-thermal/omap-
+> thermal.ko] undefined!
+> ERROR: "cpufreq_cooling_register" [drivers/staging/omap-thermal/omap-
+> thermal.ko] undefined!
+> 
+> This patch changes cpu cooling driver to allow it to be built as module.
+> 
+> Reported-by: Enric Balletbo i Serra <eballetbo@gmail.com>
+> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+> ---
+>  drivers/thermal/Kconfig     |    2 +-
+>  include/linux/cpu_cooling.h |    2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig index
+> e1cb6bd..3b03c8b 100644
+> --- a/drivers/thermal/Kconfig
+> +++ b/drivers/thermal/Kconfig
+> @@ -20,7 +20,7 @@ config THERMAL_HWMON
+>  	default y
+> 
+>  config CPU_THERMAL
+> -	bool "generic cpu cooling support"
+> +	tristate "generic cpu cooling support"
+>  	depends on THERMAL && CPU_FREQ
+>  	select CPU_FREQ_TABLE
+>  	help
+> diff --git a/include/linux/cpu_cooling.h b/include/linux/cpu_cooling.h
+> index b30cc79c..40b4ef5 100644
+> --- a/include/linux/cpu_cooling.h
+> +++ b/include/linux/cpu_cooling.h
+> @@ -29,7 +29,7 @@
+>  #define CPUFREQ_COOLING_START		0
+>  #define CPUFREQ_COOLING_STOP		1
+> 
+> -#ifdef CONFIG_CPU_THERMAL
+> +#if defined(CONFIG_CPU_THERMAL) || defined(CONFIG_CPU_THERMAL_MODULE)
+>  /**
+>   * cpufreq_cooling_register - function to create cpufreq cooling
+> device.
+>   * @clip_cpus: cpumask of cpus where the frequency constraints will
+> happen
+> --
+> 1.7.7.1.488.ge8e1c
 
