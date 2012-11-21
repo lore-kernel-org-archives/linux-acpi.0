@@ -1,91 +1,73 @@
 From: "Zhang, Rui" <rui.zhang@intel.com>
-Subject: RE: [PATCH 1/1] thermal: cpu cooling: allow module builds
-Date: Wed, 21 Nov 2012 09:01:59 +0000
-Message-ID: <744357E9AAD1214791ACBA4B0B909263264C1B@SHSMSX101.ccr.corp.intel.com>
-References: <1352906610-549-1-git-send-email-eduardo.valentin@ti.com>
+Subject: RE: [PATCH 0/4] thermal: Add support for interrupt based
+ notification to thermal layer
+Date: Wed, 21 Nov 2012 09:04:06 +0000
+Message-ID: <744357E9AAD1214791ACBA4B0B909263264C2D@SHSMSX101.ccr.corp.intel.com>
+References: <1352348786-24255-1-git-send-email-amit.kachhap@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:17383 "EHLO mga14.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:31135 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751876Ab2KUJC1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Nov 2012 04:02:27 -0500
-In-Reply-To: <1352906610-549-1-git-send-email-eduardo.valentin@ti.com>
+	id S1751876Ab2KUJEV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Nov 2012 04:04:21 -0500
+In-Reply-To: <1352348786-24255-1-git-send-email-amit.kachhap@linaro.org>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Eduardo Valentin <eduardo.valentin@ti.com>, "amit.kachhap@linaro.org" <amit.kachhap@linaro.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "eballetbo@gmail.com" <eballetbo@gmail.com>
+To: Amit Daniel Kachhap <amit.kachhap@linaro.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>
+Cc: "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "R, Durgadoss" <durgadoss.r@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "jonghwa3.lee@samsung.com" <jonghwa3.lee@samsung.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
 
-Applied.
+Hi, Amit,
+
+As THERMAL_TREND_RAISE_FULL/THERMAL_TREND_DROP_FULL
+has been introduced to thermal next tree,
+I'd like to get your plan about this patch set?
 
 Thanks,
-rui
+Rui
 
 > -----Original Message-----
-> From: Eduardo Valentin [mailto:eduardo.valentin@ti.com]
-> Sent: Wednesday, November 14, 2012 11:24 PM
-> To: amit.kachhap@linaro.org
-> Cc: Zhang, Rui; linux-acpi@vger.kernel.org; linux-pm@lists.linux-
-> foundation.org; eballetbo@gmail.com; Eduardo Valentin
-> Subject: [PATCH 1/1] thermal: cpu cooling: allow module builds
+> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+> owner@vger.kernel.org] On Behalf Of Amit Daniel Kachhap
+> Sent: Thursday, November 08, 2012 12:26 PM
+> To: linux-pm@lists.linux-foundation.org
+> Cc: linux-samsung-soc@vger.kernel.org; linux-kernel@vger.kernel.org; R,
+> Durgadoss; lenb@kernel.org; Zhang, Rui; linux-acpi@vger.kernel.org;
+> amit.kachhap@linaro.org; jonghwa3.lee@samsung.com
+> Subject: [PATCH 0/4] thermal: Add support for interrupt based
+> notification to thermal layer
 > Importance: High
 > 
-> As thermal drivers can be built as modules and also the thermal
-> framework itself, building cpu cooling only as built-in can cause
-> linking errors. For instance:
-> * Generic Thermal sysfs driver
-> *
-> Generic Thermal sysfs driver (THERMAL) [M/n/y/?] m
->   generic cpu cooling support (CPU_THERMAL) [N/y/?] (NEW) y
+> The patch submitted by Jonghwa Lee
+> (https://patchwork.kernel.org/patch/1683441/)
+> adds support for interrupt based notification to thermal layer. This is
+> a good feature but the current thermal framework needs polling/regular
+> notification for invoking suitable cooling action. So adding 2 new
+> thermal trend type to implement this feature.
 > 
-> with the following drive:
-> CONFIG_OMAP_BANDGAP=m
+> All these patches are based on thermal maintainer next tree.
+> git://git.kernel.org/pub/scm/linux/kernel/git/rzhang/linux.git next
 > 
-> generates:
-> ERROR: "cpufreq_cooling_unregister" [drivers/staging/omap-thermal/omap-
-> thermal.ko] undefined!
-> ERROR: "cpufreq_cooling_register" [drivers/staging/omap-thermal/omap-
-> thermal.ko] undefined!
+> Amit Daniel Kachhap (3):
+>   thermal: Add new thermal trend type to support quick cooling
+>   thermal: exynos: Miscellaneous fixes to support falling threshold
+>     interrupt
+>   thermal: exynos: Use the new thermal trend type for quick cooling
+>     action.
 > 
-> This patch changes cpu cooling driver to allow it to be built as module.
+> Jonghwa Lee (1):
+>   Thermal: exynos: Add support for temperature falling interrupt.
 > 
-> Reported-by: Enric Balletbo i Serra <eballetbo@gmail.com>
-> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
-> ---
->  drivers/thermal/Kconfig     |    2 +-
->  include/linux/cpu_cooling.h |    2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
+>  drivers/thermal/exynos_thermal.c             |  105 +++++++++++++++---
+> --------
+>  drivers/thermal/step_wise.c                  |   19 ++++-
+>  include/linux/platform_data/exynos_thermal.h |    3 +
+>  include/linux/thermal.h                      |    2 +
+>  4 files changed, 80 insertions(+), 49 deletions(-)
 > 
-> diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig index
-> e1cb6bd..3b03c8b 100644
-> --- a/drivers/thermal/Kconfig
-> +++ b/drivers/thermal/Kconfig
-> @@ -20,7 +20,7 @@ config THERMAL_HWMON
->  	default y
-> 
->  config CPU_THERMAL
-> -	bool "generic cpu cooling support"
-> +	tristate "generic cpu cooling support"
->  	depends on THERMAL && CPU_FREQ
->  	select CPU_FREQ_TABLE
->  	help
-> diff --git a/include/linux/cpu_cooling.h b/include/linux/cpu_cooling.h
-> index b30cc79c..40b4ef5 100644
-> --- a/include/linux/cpu_cooling.h
-> +++ b/include/linux/cpu_cooling.h
-> @@ -29,7 +29,7 @@
->  #define CPUFREQ_COOLING_START		0
->  #define CPUFREQ_COOLING_STOP		1
-> 
-> -#ifdef CONFIG_CPU_THERMAL
-> +#if defined(CONFIG_CPU_THERMAL) || defined(CONFIG_CPU_THERMAL_MODULE)
->  /**
->   * cpufreq_cooling_register - function to create cpufreq cooling
-> device.
->   * @clip_cpus: cpumask of cpus where the frequency constraints will
-> happen
 > --
-> 1.7.7.1.488.ge8e1c
-
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi"
+> in the body of a message to majordomo@vger.kernel.org More majordomo
+> info at  http://vger.kernel.org/majordomo-info.html
