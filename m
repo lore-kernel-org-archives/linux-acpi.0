@@ -1,84 +1,171 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH v7 1/5] ACPI: Add acpi_handle_<level>() interfaces
-Date: Tue, 20 Nov 2012 18:17:28 -0700
-Message-ID: <1353460648.10939.133.camel@misato.fc.hp.com>
-References: <1353454950-17010-1-git-send-email-toshi.kani@hp.com>
-	 <1353454950-17010-2-git-send-email-toshi.kani@hp.com>
-	 <1353456074.17819.43.camel@joe-AO722>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH v7-1 1/5] ACPI: Add acpi_handle_<level>() interfaces
+Date: Tue, 20 Nov 2012 18:36:28 -0700
+Message-ID: <1353461788-808-1-git-send-email-toshi.kani@hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g6t0187.atlanta.hp.com ([15.193.32.64]:5438 "EHLO
-	g6t0187.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753729Ab2KUBZp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Nov 2012 20:25:45 -0500
-In-Reply-To: <1353456074.17819.43.camel@joe-AO722>
+Received: from g4t0017.houston.hp.com ([15.201.24.20]:2670 "EHLO
+	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752312Ab2KUBpA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Nov 2012 20:45:00 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Joe Perches <joe@perches.com>, rjw@sisk.pl
-Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, rjw@sisk.pl, lenb@kernel.org
+Cc: linux-kernel@vger.kernel.org, joe@perches.com, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, vijaymohan.pandarathil@hp.com, Toshi Kani <toshi.kani@hp.com>
 
-On Tue, 2012-11-20 at 16:01 -0800, Joe Perches wrote:
-> On Tue, 2012-11-20 at 16:42 -0700, Toshi Kani wrote:
-> > This patch introduces acpi_handle_<level>(), where <level> is
-> > a kernel message level such as err/warn/info, to support improved
-> > logging messages for ACPI, esp. hot-plug operations.
-> > acpi_handle_<level>() appends "ACPI" prefix and ACPI object path
-> > to the messages.  This improves diagnosis of hotplug operations
-> > since an error message in a log file identifies an object that
-> > caused an issue.  This interface acquires the global namespace
-> > mutex and is not suitable for interrupt context.
-> 
-> Old commit log? Maybe edit out the unsuitable for interrupt
-> to "shows n/a in interrupt"?
+This patch introduces acpi_handle_<level>(), where <level> is
+a kernel message level such as err/warn/info, to support improved
+logging messages for ACPI, esp. hot-plug operations.
+acpi_handle_<level>() appends "ACPI" prefix and ACPI object path
+to the messages.  This improves diagnosis of hotplug operations
+since an error message in a log file identifies an object that
+caused an issue.  This interface acquires the global namespace
+mutex to obtain an object path.  In interrupt context, it shows
+the object path as <n/a>.
 
-Hi Joe,
+acpi_handle_<level>() takes acpi_handle as an argument, which is
+passed to ACPI hotplug notify handlers from the ACPICA.  Therefore,
+it is always available unlike other kernel objects, such as device.
 
-I changed the descriptions from "may not be called from interrupt
-context" to "is not suitable for interrupt context".  But, I agree with
-you that it is clear to state how the interface behaves in interrupt
-context.  So, I will update the description to the following:
+For example:
+  acpi_handle_err(handle, "Device don't exist, dropping EJECT\n");
+logs an error message like this at KERN_ERR.
+  ACPI: \_SB_.SCK4.CPU4: Device don't exist, dropping EJECT
 
-"This interface acquires the global namespace mutex to obtain an object
-path.  In interrupt context, it shows the object path as <n/a>."
+ACPI hot-plug drivers can use acpi_handle_<level>() when they need
+to identify a target ACPI object path in their messages, such as
+error cases.  The usage model is similar to dev_<level>().
+acpi_handle_<level>() can be used when a device is not created or
+is invalid during hot-plug operations.  ACPI object path is also
+consistent on the platform, unlike device name that gets incremented
+over hotplug operations.
 
+ACPI drivers should use dev_<level>() when a device object is valid.
+Device name provides more user friendly information, and avoids
+acquiring the global ACPI namespace mutex.  ACPI drivers also
+continue to use pr_<level>() when they do not need to specify device
+information, such as boot-up messages.
+
+Note: ACPI_[WARNING|INFO|ERROR]() are intended for the ACPICA and
+are not associated with the kernel message level.
+
+Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+Tested-by: Vijay Mohan Pandarathil <vijaymohan.pandarathil@hp.com>
+---
 
 Hi Rafael,
+This patch replaces the [PATCH v7 1/5] below in the v7 series.
+https://lkml.org/lkml/2012/11/20/719
 
-Instead of sending the whole series again, I will only send an updated
-patch 1/5 since it only updates its descriptions.  The updated patch
-will be labeled as "[PATCH v7-1 1/5]".
+---
+ drivers/acpi/utils.c | 38 ++++++++++++++++++++++++++++++++++++++
+ include/linux/acpi.h | 43 +++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 81 insertions(+)
 
-
-Thanks,
--Toshi
-
-
-
-> diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-[]
-> +
-> +/**
-> + * acpi_handle_printk: Print message with ACPI prefix and object path
-> + *
-> + * This function is called through acpi_handle_<level> macros and
-prints
-> + * a message with ACPI prefix and object path.  This function
-acquires
-> + * the global namespace mutex and is not suitable for interrupt
-context.
-
-Old text here too?
-
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-[]
-> +/*
-> + * acpi_handle_<level>: Print message with ACPI prefix and object
-path
-> + * 
-> + * These interfaces acquire the global namespace mutex and are not
-> + * suitable for interrupt context.
-
-Here three?
+diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+index 462f7e3..74437130 100644
+--- a/drivers/acpi/utils.c
++++ b/drivers/acpi/utils.c
+@@ -28,6 +28,8 @@
+ #include <linux/slab.h>
+ #include <linux/init.h>
+ #include <linux/types.h>
++#include <linux/hardirq.h>
++#include <linux/acpi.h>
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+ 
+@@ -457,3 +459,39 @@ acpi_evaluate_hotplug_ost(acpi_handle handle, u32 source_event,
+ #endif
+ }
+ EXPORT_SYMBOL(acpi_evaluate_hotplug_ost);
++
++/**
++ * acpi_handle_printk: Print message with ACPI prefix and object path
++ *
++ * This function is called through acpi_handle_<level> macros and prints
++ * a message with ACPI prefix and object path.  This function acquires
++ * the global namespace mutex to obtain an object path.  In interrupt
++ * context, it shows the object path as <n/a>.
++ */
++void
++acpi_handle_printk(const char *level, acpi_handle handle, const char *fmt, ...)
++{
++	struct va_format vaf;
++	va_list args;
++	struct acpi_buffer buffer = {
++		.length = ACPI_ALLOCATE_BUFFER,
++		.pointer = NULL
++	};
++	const char *path;
++
++	va_start(args, fmt);
++	vaf.fmt = fmt;
++	vaf.va = &args;
++
++	if (in_interrupt() ||
++	    acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer) != AE_OK)
++		path = "<n/a>";
++	else
++		path = buffer.pointer;
++
++	printk("%sACPI: %s: %pV", level, path, &vaf);
++
++	va_end(args);
++	kfree(buffer.pointer);
++}
++EXPORT_SYMBOL(acpi_handle_printk);
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 0bb2070..417c96c 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -517,4 +517,47 @@ static inline int acpi_dev_pm_attach(struct device *dev) { return -ENODEV; }
+ static inline void acpi_dev_pm_detach(struct device *dev) {}
+ #endif
+ 
++#ifdef CONFIG_ACPI
++__printf(3, 4)
++void acpi_handle_printk(const char *level, acpi_handle handle,
++			const char *fmt, ...);
++#else	/* !CONFIG_ACPI */
++static inline __printf(3, 4) void
++acpi_handle_printk(const char *level, void *handle, const char *fmt, ...) {}
++#endif	/* !CONFIG_ACPI */
++
++/*
++ * acpi_handle_<level>: Print message with ACPI prefix and object path
++ * 
++ * These interfaces acquire the global namespace mutex to obtain an object
++ * path.  In interrupt context, it shows the object path as <n/a>.
++ */
++#define acpi_handle_emerg(handle, fmt, ...)				\
++	acpi_handle_printk(KERN_EMERG, handle, fmt, ##__VA_ARGS__)
++#define acpi_handle_alert(handle, fmt, ...)				\
++	acpi_handle_printk(KERN_ALERT, handle, fmt, ##__VA_ARGS__)
++#define acpi_handle_crit(handle, fmt, ...)				\
++	acpi_handle_printk(KERN_CRIT, handle, fmt, ##__VA_ARGS__)
++#define acpi_handle_err(handle, fmt, ...)				\
++	acpi_handle_printk(KERN_ERR, handle, fmt, ##__VA_ARGS__)
++#define acpi_handle_warn(handle, fmt, ...)				\
++	acpi_handle_printk(KERN_WARNING, handle, fmt, ##__VA_ARGS__)
++#define acpi_handle_notice(handle, fmt, ...)				\
++	acpi_handle_printk(KERN_NOTICE, handle, fmt, ##__VA_ARGS__)
++#define acpi_handle_info(handle, fmt, ...)				\
++	acpi_handle_printk(KERN_INFO, handle, fmt, ##__VA_ARGS__)
++
++/* REVISIT: Support CONFIG_DYNAMIC_DEBUG when necessary */
++#if defined(DEBUG) || defined(CONFIG_DYNAMIC_DEBUG)
++#define acpi_handle_debug(handle, fmt, ...)				\
++	acpi_handle_printk(KERN_DEBUG, handle, fmt, ##__VA_ARGS__)
++#else
++#define acpi_handle_debug(handle, fmt, ...)				\
++({									\
++	if (0)								\
++		acpi_handle_printk(KERN_DEBUG, handle, fmt, ##__VA_ARGS__); \
++	0;								\
++})
++#endif
++
+ #endif	/*_LINUX_ACPI_H*/
+-- 
+1.7.11.7
 
