@@ -1,80 +1,68 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 217/493] acpi: remove use of __devinit
-Date: Wed, 21 Nov 2012 01:46:36 +0100
-Message-ID: <3003032.3Hm8RaEcML@vostro.rjw.lan>
-References: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu> <1353349642-3677-217-git-send-email-wfp5p@virginia.edu>
+Subject: Re: [FIX PATCH] ACPI / PM: Add Sony Vaio VPCEB1S1E to nonvs blacklist.
+Date: Wed, 21 Nov 2012 01:47:05 +0100
+Message-ID: <2373207.0huVJLJSvf@vostro.rjw.lan>
+References: <1352338425-4830-1-git-send-email-tianyu.lan@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:56778 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([193.178.161.156]:56786 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752254Ab2KUAmJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 20 Nov 2012 19:42:09 -0500
-In-Reply-To: <1353349642-3677-217-git-send-email-wfp5p@virginia.edu>
+	id S1752254Ab2KUAmi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Nov 2012 19:42:38 -0500
+In-Reply-To: <1352338425-4830-1-git-send-email-tianyu.lan@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bill Pemberton <wfp5p@virginia.edu>
-Cc: gregkh@linuxfoundation.org, linux-acpi@vger.kernel.org
+To: Lan Tianyu <tianyu.lan@intel.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, swilmet@gnome.org, stable@vger.kernel.org
 
-On Monday, November 19, 2012 01:22:46 PM Bill Pemberton wrote:
-> CONFIG_HOTPLUG is going away as an option so __devinit is no longer
-> needed.
+On Thursday, November 08, 2012 09:33:45 AM Lan Tianyu wrote:
+> Sony Vaio VPCEB1S1E does not resume correctly without
+> acpi_sleep=3Dnonvs, so add it to the ACPI sleep blacklist.
+>=20
+> https://bugzilla.kernel.org/show_bug.cgi?id=3D48781
 
-Applied to the linux-next branch of the linux-pm.git tree as v3.8 material.
+Applied to the linux-next branch of the linux-pm.git tree as v3.8 mater=
+ial.
 
 Thanks,
 Rafael
 
 
-> Signed-off-by: Bill Pemberton <wfp5p@virginia.edu>
-> Cc: linux-acpi@vger.kernel.org 
+> Reported-by: S=C3=A9bastien Wilmet <swilmet@gnome.org>
+> Cc: <stable@vger.kernel.org>
+> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
 > ---
->  drivers/acpi/apei/ghes.c | 2 +-
->  drivers/acpi/hed.c       | 2 +-
->  drivers/acpi/pci_root.c  | 2 +-
->  3 files changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> index 1599566..73bca11 100644
-> --- a/drivers/acpi/apei/ghes.c
-> +++ b/drivers/acpi/apei/ghes.c
-> @@ -901,7 +901,7 @@ static unsigned long ghes_esource_prealloc_size(
->  	return prealloc_size;
->  }
->  
-> -static int __devinit ghes_probe(struct platform_device *ghes_dev)
-> +static int ghes_probe(struct platform_device *ghes_dev)
->  {
->  	struct acpi_hest_generic *generic;
->  	struct ghes *ghes = NULL;
-> diff --git a/drivers/acpi/hed.c b/drivers/acpi/hed.c
-> index 20a0f2c..0ec28a3 100644
-> --- a/drivers/acpi/hed.c
-> +++ b/drivers/acpi/hed.c
-> @@ -61,7 +61,7 @@ static void acpi_hed_notify(struct acpi_device *device, u32 event)
->  	blocking_notifier_call_chain(&acpi_hed_notify_list, 0, NULL);
->  }
->  
-> -static int __devinit acpi_hed_add(struct acpi_device *device)
-> +static int acpi_hed_add(struct acpi_device *device)
->  {
->  	/* Only one hardware error device */
->  	if (hed_handle)
-> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> index ab781f0..7928d4d 100644
-> --- a/drivers/acpi/pci_root.c
-> +++ b/drivers/acpi/pci_root.c
-> @@ -445,7 +445,7 @@ out:
->  }
->  EXPORT_SYMBOL(acpi_pci_osc_control_set);
->  
-> -static int __devinit acpi_pci_root_add(struct acpi_device *device)
-> +static int acpi_pci_root_add(struct acpi_device *device)
->  {
->  	unsigned long long segment, bus;
->  	acpi_status status;
-> 
--- 
+>  drivers/acpi/sleep.c |    8 ++++++++
+>  1 file changed, 8 insertions(+)
+>=20
+> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+> index fdcdbb6..847ed55 100644
+> --- a/drivers/acpi/sleep.c
+> +++ b/drivers/acpi/sleep.c
+> @@ -519,6 +519,14 @@ static struct dmi_system_id __initdata acpisleep=
+_dmi_table[] =3D {
+>  	},
+>  	{
+>  	.callback =3D init_nvs_nosave,
+> +	.ident =3D "Sony Vaio VPCEB1S1E",
+> +	.matches =3D {
+> +		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+> +		DMI_MATCH(DMI_PRODUCT_NAME, "VPCEB1S1E"),
+> +		},
+> +	},
+> +	{
+> +	.callback =3D init_nvs_nosave,
+>  	.ident =3D "Sony Vaio VGN-FW520F",
+>  	.matches =3D {
+>  		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+>=20
+--=20
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
