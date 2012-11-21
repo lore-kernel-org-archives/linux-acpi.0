@@ -1,397 +1,404 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 03/15] ACPICA: Fixes indent caused divergences.
-Date: Wed, 21 Nov 2012 18:07:17 +0800
-Message-ID: <19e3ed9ca74357210290b80d5e39c56110fdab2e.1353491652.git.lv.zheng@intel.com>
+Subject: [PATCH 04/15] ACPICA: Fixes code maintenance divergences.
+Date: Wed, 21 Nov 2012 18:07:25 +0800
+Message-ID: <b09f6d938fbc8f6b3b6904d770c17e8f797913b4.1353491653.git.lv.zheng@intel.com>
 References: <cover.1353491652.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:24522 "EHLO mga11.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:59486 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753127Ab2KUKHU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 21 Nov 2012 05:07:20 -0500
+	id S1752729Ab2KUKHa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 21 Nov 2012 05:07:30 -0500
 In-Reply-To: <cover.1353491652.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <len.brown@intel.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>
 Cc: linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>
 
-This patch fixes divergences caused by "indent" program.
-The version of "indent" used for this patch is "GNU indent 2.2.11".
+This patch fixes divergences caused by the simple code maintenance work:
+1. Deletion of the unused include files.
+2. Changing of the codes positions.
+3. Replacing the values with the well defined macros.
 
+Given the fact that Linux will not enable the following compilation macros:
+1. ACPI_DEBUGGER
+2. ACPI_REDUCED_HARDWARE
 This patch will not affect the generated vmlinux binary.
-This will decrease 198 lines of 20121018 divergence.diff.
+
+This will decrease 270 lines of 20121018 divergence.diff.
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/evxface.c   |   11 ++++++-----
- drivers/acpi/acpica/exoparg1.c  |    8 +-------
- drivers/acpi/acpica/exregion.c  |    8 ++++----
- drivers/acpi/acpica/hwacpi.c    |    3 +--
- drivers/acpi/acpica/hwregs.c    |    3 +--
- drivers/acpi/acpica/nsrepair2.c |    3 ++-
- drivers/acpi/acpica/nsutils.c   |    6 +++---
- drivers/acpi/acpica/psutils.c   |    2 +-
- drivers/acpi/acpica/rscreate.c  |    3 +--
- drivers/acpi/acpica/rsdump.c    |    3 ++-
- drivers/acpi/acpica/rsirq.c     |    6 ++----
- drivers/acpi/acpica/rsmemory.c  |    6 ++----
- drivers/acpi/acpica/rsmisc.c    |   11 ++++++-----
- drivers/acpi/acpica/rsutils.c   |    6 ++++--
- drivers/acpi/acpica/utresrc.c   |    7 +++----
- include/acpi/acpiosxf.h         |    4 +---
- 16 files changed, 40 insertions(+), 50 deletions(-)
+ drivers/acpi/acpica/accommon.h |    1 +
+ drivers/acpi/acpica/acglobal.h |   33 +++++++++++++++++----------------
+ drivers/acpi/acpica/amlresrc.h |    6 ++++++
+ drivers/acpi/acpica/dsobject.c |    2 +-
+ drivers/acpi/acpica/evgpe.c    |    2 +-
+ drivers/acpi/acpica/hwregs.c   |    1 -
+ drivers/acpi/acpica/hwsleep.c  |    3 ++-
+ drivers/acpi/acpica/nsdumpdv.c |    1 -
+ drivers/acpi/acpica/nsutils.c  |    1 -
+ drivers/acpi/acpica/tbutils.c  |    4 ----
+ drivers/acpi/acpica/utglobal.c |    3 ++-
+ drivers/acpi/acpica/utmisc.c   |    8 ++++----
+ drivers/acpi/acpica/utxface.c  |    4 ----
+ include/acpi/acpiosxf.h        |    5 +++--
+ include/acpi/acpixf.h          |   36 +++++++++++++++++-------------------
+ 15 files changed, 54 insertions(+), 56 deletions(-)
 
-diff --git a/drivers/acpi/acpica/evxface.c b/drivers/acpi/acpica/evxface.c
-index 74fe0f1..db82060 100644
---- a/drivers/acpi/acpica/evxface.c
-+++ b/drivers/acpi/acpica/evxface.c
-@@ -626,8 +626,9 @@ acpi_install_gpe_handler(acpi_handle gpe_device,
- 	handler->address = address;
- 	handler->context = context;
- 	handler->method_node = gpe_event_info->dispatch.method_node;
--	handler->original_flags = gpe_event_info->flags &
--			(ACPI_GPE_XRUPT_TYPE_MASK | ACPI_GPE_DISPATCH_MASK);
-+	handler->original_flags = (u8)(gpe_event_info->flags &
-+				       (ACPI_GPE_XRUPT_TYPE_MASK |
-+				        ACPI_GPE_DISPATCH_MASK));
- 
- 	/*
- 	 * If the GPE is associated with a method, it may have been enabled
-@@ -746,10 +747,10 @@ acpi_remove_gpe_handler(acpi_handle gpe_device,
- 	 * enabled, it should be enabled at this point to restore the
- 	 * post-initialization configuration.
- 	 */
--
--	if ((handler->original_flags & ACPI_GPE_DISPATCH_METHOD)
--	    && handler->originally_enabled)
-+	if ((handler->original_flags & ACPI_GPE_DISPATCH_METHOD) &&
-+	    handler->originally_enabled) {
- 		(void)acpi_ev_add_gpe_reference(gpe_event_info);
-+	}
- 
- 	/* Now we can free the handler object */
- 
-diff --git a/drivers/acpi/acpica/exoparg1.c b/drivers/acpi/acpica/exoparg1.c
-index bbf01e9..cf50c6c 100644
---- a/drivers/acpi/acpica/exoparg1.c
-+++ b/drivers/acpi/acpica/exoparg1.c
-@@ -948,13 +948,7 @@ acpi_status acpi_ex_opcode_1A_0T_1R(struct acpi_walk_state *walk_state)
- 					 */
- 					return_desc =
- 					    acpi_ut_create_integer_object((u64)
--									  temp_desc->
--									  buffer.
--									  pointer
--									  [operand
--									   [0]->
--									   reference.
--									   value]);
-+									  temp_desc->buffer.pointer[operand[0]->reference.value]);
- 					if (!return_desc) {
- 						status = AE_NO_MEMORY;
- 						goto cleanup;
-diff --git a/drivers/acpi/acpica/exregion.c b/drivers/acpi/acpica/exregion.c
-index 48c660a..06a4924 100644
---- a/drivers/acpi/acpica/exregion.c
-+++ b/drivers/acpi/acpica/exregion.c
-@@ -239,19 +239,19 @@ acpi_ex_system_memory_space_handler(u32 function,
- 
- 		switch (bit_width) {
- 		case 8:
--			ACPI_SET8(logical_addr_ptr) = (u8) * value;
-+			ACPI_SET8(logical_addr_ptr) = (u8)*value;
- 			break;
- 
- 		case 16:
--			ACPI_SET16(logical_addr_ptr) = (u16) * value;
-+			ACPI_SET16(logical_addr_ptr) = (u16)*value;
- 			break;
- 
- 		case 32:
--			ACPI_SET32(logical_addr_ptr) = (u32) * value;
-+			ACPI_SET32(logical_addr_ptr) = (u32)*value;
- 			break;
- 
- 		case 64:
--			ACPI_SET64(logical_addr_ptr) = (u64) * value;
-+			ACPI_SET64(logical_addr_ptr) = (u64)*value;
- 			break;
- 
- 		default:
-diff --git a/drivers/acpi/acpica/hwacpi.c b/drivers/acpi/acpica/hwacpi.c
-index 90a9aea..effa2b0 100644
---- a/drivers/acpi/acpica/hwacpi.c
-+++ b/drivers/acpi/acpica/hwacpi.c
-@@ -108,8 +108,7 @@ acpi_status acpi_hw_set_mode(u32 mode)
- 		 * enable bits to default
- 		 */
- 		status = acpi_hw_write_port(acpi_gbl_FADT.smi_command,
--					    (u32) acpi_gbl_FADT.acpi_disable,
--					    8);
-+					    (u32)acpi_gbl_FADT.acpi_disable, 8);
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 				  "Attempting to enable Legacy (non-ACPI) mode\n"));
- 		break;
-diff --git a/drivers/acpi/acpica/hwregs.c b/drivers/acpi/acpica/hwregs.c
-index 165395f..83f73cf 100644
---- a/drivers/acpi/acpica/hwregs.c
-+++ b/drivers/acpi/acpica/hwregs.c
-@@ -364,8 +364,7 @@ acpi_status acpi_hw_write_pm1_control(u32 pm1a_control, u32 pm1b_control)
-  * DESCRIPTION: Read from the specified ACPI register
+diff --git a/drivers/acpi/acpica/accommon.h b/drivers/acpi/acpica/accommon.h
+index 8a7d51b..8632d71 100644
+--- a/drivers/acpi/acpica/accommon.h
++++ b/drivers/acpi/acpica/accommon.h
+@@ -51,6 +51,7 @@
   *
-  ******************************************************************************/
--acpi_status
--acpi_hw_register_read(u32 register_id, u32 * return_value)
-+acpi_status acpi_hw_register_read(u32 register_id, u32 *return_value)
- {
- 	u32 value = 0;
- 	acpi_status status;
-diff --git a/drivers/acpi/acpica/nsrepair2.c b/drivers/acpi/acpica/nsrepair2.c
-index 9018925..fdb818d 100644
---- a/drivers/acpi/acpica/nsrepair2.c
-+++ b/drivers/acpi/acpica/nsrepair2.c
-@@ -55,7 +55,8 @@ ACPI_MODULE_NAME("nsrepair2")
+  * Note: The order of these include files is important.
   */
- typedef
- acpi_status(*acpi_repair_function) (struct acpi_predefined_data *data,
--				    union acpi_operand_object **return_object_ptr);
-+				    union acpi_operand_object
-+				    **return_object_ptr);
++#include <acpi/acconfig.h>	/* Global configuration constants */
+ #include "acmacros.h"		/* C macros */
+ #include "aclocal.h"		/* Internal data types */
+ #include "acobject.h"		/* ACPI internal object */
+diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
+index 1ef7ca4..864806e 100644
+--- a/drivers/acpi/acpica/acglobal.h
++++ b/drivers/acpi/acpica/acglobal.h
+@@ -192,14 +192,6 @@ ACPI_EXTERN u8 acpi_gbl_integer_bit_width;
+ ACPI_EXTERN u8 acpi_gbl_integer_byte_width;
+ ACPI_EXTERN u8 acpi_gbl_integer_nybble_width;
  
- typedef struct acpi_repair_info {
- 	char name[ACPI_NAME_SIZE];
-diff --git a/drivers/acpi/acpica/nsutils.c b/drivers/acpi/acpica/nsutils.c
-index b5b4cb7..7bfaa6f 100644
---- a/drivers/acpi/acpica/nsutils.c
-+++ b/drivers/acpi/acpica/nsutils.c
-@@ -112,7 +112,7 @@ acpi_ns_print_node_pathname(struct acpi_namespace_node *node,
- u8 acpi_ns_valid_root_prefix(char prefix)
- {
- 
--	return ((u8) (prefix == '\\'));
-+	return ((u8)(prefix == '\\'));
- }
- 
- /*******************************************************************************
-@@ -130,7 +130,7 @@ u8 acpi_ns_valid_root_prefix(char prefix)
- static u8 acpi_ns_valid_path_separator(char sep)
- {
- 
--	return ((u8) (sep == '.'));
-+	return ((u8)(sep == '.'));
- }
- 
- /*******************************************************************************
-@@ -674,7 +674,7 @@ u32 acpi_ns_opens_scope(acpi_object_type type)
- 		return_UINT32(ACPI_NS_NORMAL);
- 	}
- 
--	return_UINT32(((u32) acpi_gbl_ns_properties[type]) & ACPI_NS_NEWSCOPE);
-+	return_UINT32(((u32)acpi_gbl_ns_properties[type]) & ACPI_NS_NEWSCOPE);
- }
- 
- /*******************************************************************************
-diff --git a/drivers/acpi/acpica/psutils.c b/drivers/acpi/acpica/psutils.c
-index 4137dcb..afefb3a1 100644
---- a/drivers/acpi/acpica/psutils.c
-+++ b/drivers/acpi/acpica/psutils.c
-@@ -206,7 +206,7 @@ u8 acpi_ps_is_leading_char(u32 c)
-  */
- u8 acpi_ps_is_prefix_char(u32 c)
- {
--	return ((u8) (c == '\\' || c == '^'));
-+	return ((u8)(c == '\\' || c == '^'));
- }
- 
- /*
-diff --git a/drivers/acpi/acpica/rscreate.c b/drivers/acpi/acpica/rscreate.c
-index 311cbc4..8133326 100644
---- a/drivers/acpi/acpica/rscreate.c
-+++ b/drivers/acpi/acpica/rscreate.c
-@@ -480,8 +480,7 @@ acpi_rs_create_aml_resources(struct acpi_resource *linked_list_buffer,
- 	status = acpi_rs_get_aml_length(linked_list_buffer, &aml_size_needed);
- 
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "AmlSizeNeeded=%X, %s\n",
--			  (u32) aml_size_needed,
--			  acpi_format_exception(status)));
-+			  (u32)aml_size_needed, acpi_format_exception(status)));
- 	if (ACPI_FAILURE(status)) {
- 		return_ACPI_STATUS(status);
- 	}
-diff --git a/drivers/acpi/acpica/rsdump.c b/drivers/acpi/acpica/rsdump.c
-index 4d11b072..276e52f 100644
---- a/drivers/acpi/acpica/rsdump.c
-+++ b/drivers/acpi/acpica/rsdump.c
-@@ -654,7 +654,8 @@ acpi_rs_dump_descriptor(void *resource, struct acpi_rsdump_info *table)
- 			/*
- 			 * Optional resource_source for Address resources
- 			 */
--			acpi_rs_dump_resource_source(ACPI_CAST_PTR(struct
-+			acpi_rs_dump_resource_source(ACPI_CAST_PTR
-+						     (struct
- 								   acpi_resource_source,
- 								   target));
- 			break;
-diff --git a/drivers/acpi/acpica/rsirq.c b/drivers/acpi/acpica/rsirq.c
-index e23a9ec..a718eca 100644
---- a/drivers/acpi/acpica/rsirq.c
-+++ b/drivers/acpi/acpica/rsirq.c
-@@ -212,15 +212,13 @@ struct acpi_rsconvert_info acpi_rs_convert_ext_irq[9] = {
- 
- 	{ACPI_RSC_COUNT, ACPI_RS_OFFSET(data.extended_irq.interrupt_count),
- 	 AML_OFFSET(extended_irq.interrupt_count),
--	 sizeof(u32)}
--	,
-+	 sizeof(u32)},
- 
- 	/* Copy every IRQ in the table, each is 32 bits */
- 
- 	{ACPI_RSC_MOVE32, ACPI_RS_OFFSET(data.extended_irq.interrupts[0]),
- 	 AML_OFFSET(extended_irq.interrupts[0]),
--	 0}
--	,
-+	 0},
- 
- 	/* Optional resource_source (Index and String) */
- 
-diff --git a/drivers/acpi/acpica/rsmemory.c b/drivers/acpi/acpica/rsmemory.c
-index 4fd611a..d446103 100644
---- a/drivers/acpi/acpica/rsmemory.c
-+++ b/drivers/acpi/acpica/rsmemory.c
-@@ -156,8 +156,7 @@ struct acpi_rsconvert_info acpi_rs_get_vendor_small[3] = {
- 
- 	{ACPI_RSC_COUNT16, ACPI_RS_OFFSET(data.vendor.byte_length),
- 	 0,
--	 sizeof(u8)}
--	,
-+	 sizeof(u8)},
- 
- 	/* Vendor data */
- 
-@@ -181,8 +180,7 @@ struct acpi_rsconvert_info acpi_rs_get_vendor_large[3] = {
- 
- 	{ACPI_RSC_COUNT16, ACPI_RS_OFFSET(data.vendor.byte_length),
- 	 0,
--	 sizeof(u8)}
--	,
-+	 sizeof(u8)},
- 
- 	/* Vendor data */
- 
-diff --git a/drivers/acpi/acpica/rsmisc.c b/drivers/acpi/acpica/rsmisc.c
-index c6f291c..3d0e15c 100644
---- a/drivers/acpi/acpica/rsmisc.c
-+++ b/drivers/acpi/acpica/rsmisc.c
-@@ -159,7 +159,7 @@ acpi_rs_convert_aml_to_resource(struct acpi_resource *resource,
- 		case ACPI_RSC_COUNT:
- 
- 			item_count = ACPI_GET8(source);
--			ACPI_SET8(destination) = (u8) item_count;
-+			ACPI_SET8(destination) = (u8)item_count;
- 
- 			resource->length = resource->length +
- 			    (info->value * (item_count - 1));
-@@ -385,7 +385,7 @@ acpi_rs_convert_aml_to_resource(struct acpi_resource *resource,
- 			}
- 
- 			target = ACPI_ADD_PTR(char, resource, info->value);
--			ACPI_SET8(target) = (u8) item_count;
-+			ACPI_SET8(target) = (u8)item_count;
- 			break;
- 
- 		case ACPI_RSC_BITMASK16:
-@@ -401,7 +401,7 @@ acpi_rs_convert_aml_to_resource(struct acpi_resource *resource,
- 			}
- 
- 			target = ACPI_ADD_PTR(char, resource, info->value);
--			ACPI_SET8(target) = (u8) item_count;
-+			ACPI_SET8(target) = (u8)item_count;
- 			break;
- 
- 		case ACPI_RSC_EXIT_NE:
-@@ -544,7 +544,7 @@ acpi_rs_convert_resource_to_aml(struct acpi_resource *resource,
- 		case ACPI_RSC_COUNT:
- 
- 			item_count = ACPI_GET8(source);
--			ACPI_SET8(destination) = (u8) item_count;
-+			ACPI_SET8(destination) = (u8)item_count;
- 
- 			aml_length =
- 			    (u16) (aml_length +
-@@ -686,7 +686,8 @@ acpi_rs_convert_resource_to_aml(struct acpi_resource *resource,
- 			 * Optional resource_source (Index and String)
- 			 */
- 			aml_length =
--			    acpi_rs_set_resource_source(aml, (acpi_rs_length)
-+			    acpi_rs_set_resource_source(aml,
-+							(acpi_rs_length)
- 							aml_length, source);
- 			acpi_rs_set_resource_length(aml_length, aml);
- 			break;
-diff --git a/drivers/acpi/acpica/rsutils.c b/drivers/acpi/acpica/rsutils.c
-index 37d5241..441447f 100644
---- a/drivers/acpi/acpica/rsutils.c
-+++ b/drivers/acpi/acpica/rsutils.c
-@@ -358,8 +358,10 @@ acpi_rs_get_resource_source(acpi_rs_length resource_length,
- 		 *
- 		 * Zero the entire area of the buffer.
- 		 */
--		total_length = (u32)
--		ACPI_STRLEN(ACPI_CAST_PTR(char, &aml_resource_source[1])) + 1;
-+		total_length =
-+		    (u32)
-+		    ACPI_STRLEN(ACPI_CAST_PTR(char, &aml_resource_source[1])) +
-+		    1;
- 		total_length = (u32) ACPI_ROUND_UP_TO_NATIVE_WORD(total_length);
- 
- 		ACPI_MEMSET(resource_source->string_ptr, 0, total_length);
-diff --git a/drivers/acpi/acpica/utresrc.c b/drivers/acpi/acpica/utresrc.c
-index e38bef4..7d0a1b5 100644
---- a/drivers/acpi/acpica/utresrc.c
-+++ b/drivers/acpi/acpica/utresrc.c
-@@ -412,7 +412,7 @@ static const u8 acpi_gbl_resource_types[] = {
-  ******************************************************************************/
- 
- acpi_status
--acpi_ut_walk_aml_resources(u8 * aml,
-+acpi_ut_walk_aml_resources(u8 *aml,
- 			   acpi_size aml_length,
- 			   acpi_walk_aml_callback user_function, void **context)
- {
-@@ -525,7 +525,7 @@ acpi_ut_walk_aml_resources(u8 * aml,
-  *
-  ******************************************************************************/
- 
--acpi_status acpi_ut_validate_resource(void *aml, u8 * return_index)
-+acpi_status acpi_ut_validate_resource(void *aml, u8 *return_index)
- {
- 	union aml_resource *aml_resource;
- 	u8 resource_type;
-@@ -800,8 +800,7 @@ u32 acpi_ut_get_descriptor_length(void *aml)
-  ******************************************************************************/
- 
- acpi_status
--acpi_ut_get_resource_end_tag(union acpi_operand_object * obj_desc,
--			     u8 ** end_tag)
-+acpi_ut_get_resource_end_tag(union acpi_operand_object *obj_desc, u8 **end_tag)
- {
- 	acpi_status status;
- 
-diff --git a/include/acpi/acpiosxf.h b/include/acpi/acpiosxf.h
-index 4315274..7d0895b 100644
---- a/include/acpi/acpiosxf.h
-+++ b/include/acpi/acpiosxf.h
-@@ -102,10 +102,8 @@ acpi_os_physical_table_override(struct acpi_table_header *existing_table,
- /*
-  * Spinlock primitives
-  */
+-/* Mutex for _OSI support */
 -
- #ifndef acpi_os_create_lock
--acpi_status
--acpi_os_create_lock(acpi_spinlock *out_handle);
-+acpi_status acpi_os_create_lock(acpi_spinlock * out_handle);
+-ACPI_EXTERN acpi_mutex acpi_gbl_osi_mutex;
+-
+-/* Reader/Writer lock is used for namespace walk and dynamic table unload */
+-
+-ACPI_EXTERN struct acpi_rw_lock acpi_gbl_namespace_rw_lock;
+-
+ /*****************************************************************************
+  *
+  * Mutual exclusion within ACPICA subsystem
+@@ -233,6 +225,14 @@ ACPI_EXTERN u8 acpi_gbl_global_lock_pending;
+ ACPI_EXTERN acpi_spinlock acpi_gbl_gpe_lock;	/* For GPE data structs and registers */
+ ACPI_EXTERN acpi_spinlock acpi_gbl_hardware_lock;	/* For ACPI H/W except GPE registers */
+ 
++/* Mutex for _OSI support */
++
++ACPI_EXTERN acpi_mutex acpi_gbl_osi_mutex;
++
++/* Reader/Writer lock is used for namespace walk and dynamic table unload */
++
++ACPI_EXTERN struct acpi_rw_lock acpi_gbl_namespace_rw_lock;
++
+ /*****************************************************************************
+  *
+  * Miscellaneous globals
+@@ -304,6 +304,7 @@ extern const char *acpi_gbl_region_types[ACPI_NUM_PREDEFINED_REGIONS];
+ ACPI_EXTERN struct acpi_memory_list *acpi_gbl_global_list;
+ ACPI_EXTERN struct acpi_memory_list *acpi_gbl_ns_node_list;
+ ACPI_EXTERN u8 acpi_gbl_display_final_mem_stats;
++ACPI_EXTERN u8 acpi_gbl_disable_mem_tracking;
  #endif
  
- void acpi_os_delete_lock(acpi_spinlock handle);
+ /*****************************************************************************
+@@ -365,19 +366,18 @@ ACPI_EXTERN u8 acpi_gbl_sleep_type_b;
+  *
+  ****************************************************************************/
+ 
+-extern struct acpi_fixed_event_info
+-    acpi_gbl_fixed_event_info[ACPI_NUM_FIXED_EVENTS];
+-ACPI_EXTERN struct acpi_fixed_event_handler
+-    acpi_gbl_fixed_event_handlers[ACPI_NUM_FIXED_EVENTS];
+-ACPI_EXTERN struct acpi_gpe_xrupt_info *acpi_gbl_gpe_xrupt_list_head;
+-ACPI_EXTERN struct acpi_gpe_block_info
+-*acpi_gbl_gpe_fadt_blocks[ACPI_MAX_GPE_BLOCKS];
+-
+ #if (!ACPI_REDUCED_HARDWARE)
+ 
+ ACPI_EXTERN u8 acpi_gbl_all_gpes_initialized;
++ACPI_EXTERN struct acpi_gpe_xrupt_info *acpi_gbl_gpe_xrupt_list_head;
++ACPI_EXTERN struct acpi_gpe_block_info
++    *acpi_gbl_gpe_fadt_blocks[ACPI_MAX_GPE_BLOCKS];
+ ACPI_EXTERN acpi_gbl_event_handler acpi_gbl_global_event_handler;
+ ACPI_EXTERN void *acpi_gbl_global_event_handler_context;
++ACPI_EXTERN struct acpi_fixed_event_handler
++    acpi_gbl_fixed_event_handlers[ACPI_NUM_FIXED_EVENTS];
++extern struct acpi_fixed_event_info
++    acpi_gbl_fixed_event_info[ACPI_NUM_FIXED_EVENTS];
+ 
+ #endif				/* !ACPI_REDUCED_HARDWARE */
+ 
+@@ -428,6 +428,7 @@ extern u8 acpi_gbl_db_terminate_threads;
+ ACPI_EXTERN u8 acpi_gbl_db_opt_tables;
+ ACPI_EXTERN u8 acpi_gbl_db_opt_stats;
+ ACPI_EXTERN u8 acpi_gbl_db_opt_ini_methods;
++ACPI_EXTERN u8 acpi_gbl_db_opt_no_region_support;
+ 
+ ACPI_EXTERN char *acpi_gbl_db_args[ACPI_DEBUGGER_MAX_ARGS];
+ ACPI_EXTERN acpi_object_type acpi_gbl_db_arg_types[ACPI_DEBUGGER_MAX_ARGS];
+diff --git a/drivers/acpi/acpica/amlresrc.h b/drivers/acpi/acpica/amlresrc.h
+index 9684496..bdbb7d0 100644
+--- a/drivers/acpi/acpica/amlresrc.h
++++ b/drivers/acpi/acpica/amlresrc.h
+@@ -199,6 +199,12 @@ struct aml_resource_fixed_dma {
+ struct aml_resource_large_header {
+ AML_RESOURCE_LARGE_HEADER_COMMON};
+ 
++/* General Flags for address space resource descriptors */
++
++#define ACPI_RESOURCE_FLAG_DEC      2
++#define ACPI_RESOURCE_FLAG_MIF      4
++#define ACPI_RESOURCE_FLAG_MAF      8
++
+ struct aml_resource_memory24 {
+ 	AML_RESOURCE_LARGE_HEADER_COMMON u8 flags;
+ 	u16 minimum;
+diff --git a/drivers/acpi/acpica/dsobject.c b/drivers/acpi/acpica/dsobject.c
+index c9f15d3..13844a1 100644
+--- a/drivers/acpi/acpica/dsobject.c
++++ b/drivers/acpi/acpica/dsobject.c
+@@ -388,7 +388,7 @@ acpi_ds_build_internal_package_obj(struct acpi_walk_state *walk_state,
+ 	union acpi_parse_object *parent;
+ 	union acpi_operand_object *obj_desc = NULL;
+ 	acpi_status status = AE_OK;
+-	unsigned i;
++	u32 i;
+ 	u16 index;
+ 	u16 reference_count;
+ 
+diff --git a/drivers/acpi/acpica/evgpe.c b/drivers/acpi/acpica/evgpe.c
+index a137ce81..4cbb600 100644
+--- a/drivers/acpi/acpica/evgpe.c
++++ b/drivers/acpi/acpica/evgpe.c
+@@ -765,7 +765,7 @@ acpi_ev_gpe_dispatch(struct acpi_namespace_node *gpe_device,
+ 					 gpe_event_info);
+ 		if (ACPI_FAILURE(status)) {
+ 			ACPI_EXCEPTION((AE_INFO, status,
+-					"Unable to queue handler for GPE%2X - event disabled",
++					"Unable to queue handler for GPE%02X - event disabled",
+ 					gpe_number));
+ 		}
+ 		break;
+diff --git a/drivers/acpi/acpica/hwregs.c b/drivers/acpi/acpica/hwregs.c
+index 83f73cf..fd4e2dc 100644
+--- a/drivers/acpi/acpica/hwregs.c
++++ b/drivers/acpi/acpica/hwregs.c
+@@ -44,7 +44,6 @@
+ 
+ #include <acpi/acpi.h>
+ #include "accommon.h"
+-#include "acnamesp.h"
+ #include "acevents.h"
+ 
+ #define _COMPONENT          ACPI_HARDWARE
+diff --git a/drivers/acpi/acpica/hwsleep.c b/drivers/acpi/acpica/hwsleep.c
+index 3fddde0..11a2951 100644
+--- a/drivers/acpi/acpica/hwsleep.c
++++ b/drivers/acpi/acpica/hwsleep.c
+@@ -323,7 +323,8 @@ acpi_status acpi_hw_legacy_wake(u8 sleep_state)
+ 	 * and use it to determine whether the system is rebooting or
+ 	 * resuming. Clear WAK_STS for compatibility.
+ 	 */
+-	acpi_write_bit_register(ACPI_BITREG_WAKE_STATUS, 1);
++	(void)acpi_write_bit_register(ACPI_BITREG_WAKE_STATUS,
++				      ACPI_CLEAR_STATUS);
+ 	acpi_gbl_system_awake_and_running = TRUE;
+ 
+ 	/* Enable power button */
+diff --git a/drivers/acpi/acpica/nsdumpdv.c b/drivers/acpi/acpica/nsdumpdv.c
+index 944d4c8..4ae9360 100644
+--- a/drivers/acpi/acpica/nsdumpdv.c
++++ b/drivers/acpi/acpica/nsdumpdv.c
+@@ -42,7 +42,6 @@
+  */
+ 
+ #include <acpi/acpi.h>
+-#include "accommon.h"
+ 
+ /* TBD: This entire module is apparently obsolete and should be removed */
+ 
+diff --git a/drivers/acpi/acpica/nsutils.c b/drivers/acpi/acpica/nsutils.c
+index 7bfaa6f..7e8bd2a 100644
+--- a/drivers/acpi/acpica/nsutils.c
++++ b/drivers/acpi/acpica/nsutils.c
+@@ -46,7 +46,6 @@
+ #include "accommon.h"
+ #include "acnamesp.h"
+ #include "amlcode.h"
+-#include "actables.h"
+ 
+ #define _COMPONENT          ACPI_NAMESPACE
+ ACPI_MODULE_NAME("nsutils")
+diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
+index 285e24b..b4469a6 100644
+--- a/drivers/acpi/acpica/tbutils.c
++++ b/drivers/acpi/acpica/tbutils.c
+@@ -384,10 +384,6 @@ void acpi_tb_check_dsdt_header(void)
+ 		acpi_tb_print_table_header(0, &acpi_gbl_original_dsdt_header);
+ 		acpi_tb_print_table_header(0, acpi_gbl_DSDT);
+ 
+-		ACPI_ERROR((AE_INFO,
+-			    "Please send DMI info to linux-acpi@vger.kernel.org\n"
+-			    "If system does not work as expected, please boot with acpi=copy_dsdt"));
+-
+ 		/* Disable further error messages */
+ 
+ 		acpi_gbl_original_dsdt_header.length = acpi_gbl_DSDT->length;
+diff --git a/drivers/acpi/acpica/utglobal.c b/drivers/acpi/acpica/utglobal.c
+index c083611..7b4dd21 100644
+--- a/drivers/acpi/acpica/utglobal.c
++++ b/drivers/acpi/acpica/utglobal.c
+@@ -293,11 +293,11 @@ acpi_status acpi_ut_init_globals(void)
+ 
+ 	/* GPE support */
+ 
++	acpi_gbl_all_gpes_initialized = FALSE;
+ 	acpi_gbl_gpe_xrupt_list_head = NULL;
+ 	acpi_gbl_gpe_fadt_blocks[0] = NULL;
+ 	acpi_gbl_gpe_fadt_blocks[1] = NULL;
+ 	acpi_current_gpe_count = 0;
+-	acpi_gbl_all_gpes_initialized = FALSE;
+ 
+ 	acpi_gbl_global_event_handler = NULL;
+ 
+@@ -367,6 +367,7 @@ acpi_status acpi_ut_init_globals(void)
+ 
+ #ifdef ACPI_DBG_TRACK_ALLOCATIONS
+ 	acpi_gbl_display_final_mem_stats = FALSE;
++	acpi_gbl_disable_mem_tracking = FALSE;
+ #endif
+ 
+ 	return_ACPI_STATUS(AE_OK);
+diff --git a/drivers/acpi/acpica/utmisc.c b/drivers/acpi/acpica/utmisc.c
+index 9286a69..2881992 100644
+--- a/drivers/acpi/acpica/utmisc.c
++++ b/drivers/acpi/acpica/utmisc.c
+@@ -748,12 +748,12 @@ void acpi_ut_repair_name(char *name)
+ 
+ 		if (!acpi_gbl_enable_interpreter_slack) {
+ 			ACPI_WARNING((AE_INFO,
+-				      "Found bad character(s) in name, repaired: [%4.4s]\n",
+-				      name));
++				      "Invalid character(s) in name (0x%.8X), repaired: [%4.4s]",
++					  original_name, name));
+ 		} else {
+ 			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-					  "Found bad character(s) in name, repaired: [%4.4s]\n",
+-					  name));
++					  "Invalid character(s) in name (0x%.8X), repaired: [%4.4s]",
++					  original_name, name));
+ 		}
+ 	}
+ }
+diff --git a/drivers/acpi/acpica/utxface.c b/drivers/acpi/acpica/utxface.c
+index 390db0c..cb85a7b 100644
+--- a/drivers/acpi/acpica/utxface.c
++++ b/drivers/acpi/acpica/utxface.c
+@@ -44,11 +44,7 @@
+ #include <linux/export.h>
+ #include <acpi/acpi.h>
+ #include "accommon.h"
+-#include "acevents.h"
+-#include "acnamesp.h"
+ #include "acdebug.h"
+-#include "actables.h"
+-#include "acinterp.h"
+ 
+ #define _COMPONENT          ACPI_UTILITIES
+ ACPI_MODULE_NAME("utxface")
+diff --git a/include/acpi/acpiosxf.h b/include/acpi/acpiosxf.h
+index 7d0895b..6a44a38 100644
+--- a/include/acpi/acpiosxf.h
++++ b/include/acpi/acpiosxf.h
+@@ -178,12 +178,13 @@ acpi_status acpi_os_release_object(acpi_cache_t * cache, void *object);
+  * Interrupt handlers
+  */
+ acpi_status
+-acpi_os_install_interrupt_handler(u32 gsi,
++acpi_os_install_interrupt_handler(u32 interrupt_number,
+ 				  acpi_osd_handler service_routine,
+ 				  void *context);
+ 
+ acpi_status
+-acpi_os_remove_interrupt_handler(u32 gsi, acpi_osd_handler service_routine);
++acpi_os_remove_interrupt_handler(u32 interrupt_number,
++				 acpi_osd_handler service_routine);
+ 
+ void acpi_os_gpe_count(u32 gpe_number);
+ void acpi_os_fixed_event_count(u32 fixed_event_number);
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index d8ec35b..e0c7303 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -58,6 +58,10 @@ extern u8 acpi_gbl_permanent_mmap;
+ /*
+  * Globals that are publically available
+  */
++extern u32 acpi_current_gpe_count;
++extern struct acpi_table_fadt acpi_gbl_FADT;
++extern u8 acpi_gbl_system_awake_and_running;
++extern u8 acpi_gbl_reduced_hardware;	/* ACPI 5.0 */
+ 
+ /* Runtime configuration of debug print levels */
+ 
+@@ -104,11 +108,6 @@ extern u8 acpi_gbl_disable_auto_repair;
+ 
+ #endif				/* !ACPI_REDUCED_HARDWARE */
+ 
+-extern u32 acpi_current_gpe_count;
+-extern struct acpi_table_fadt acpi_gbl_FADT;
+-extern u8 acpi_gbl_system_awake_and_running;
+-extern u8 acpi_gbl_reduced_hardware;	/* ACPI 5.0 */
+-
+ extern u32 acpi_rsdt_forced;
+ /*
+  * Initialization
+@@ -469,6 +468,10 @@ acpi_buffer_to_resource(u8 *aml_buffer,
+  */
+ acpi_status acpi_reset(void);
+ 
++acpi_status acpi_read(u64 *value, struct acpi_generic_address *reg);
++
++acpi_status acpi_write(u64 value, struct acpi_generic_address *reg);
++
+ ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
+ 				acpi_read_bit_register(u32 register_id,
+ 						       u32 *return_value))
+@@ -477,20 +480,6 @@ ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
+ 				acpi_write_bit_register(u32 register_id,
+ 							u32 value))
+ 
+-ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
+-				acpi_set_firmware_waking_vector(u32
+-								physical_address))
+-
+-#if ACPI_MACHINE_WIDTH == 64
+-ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
+-				acpi_set_firmware_waking_vector64(u64
+-								  physical_address))
+-#endif
+-
+-acpi_status acpi_read(u64 *value, struct acpi_generic_address *reg);
+-
+-acpi_status acpi_write(u64 value, struct acpi_generic_address *reg);
+-
+ /*
+  * Sleep/Wake interfaces
+  */
+@@ -507,6 +496,15 @@ acpi_status acpi_leave_sleep_state_prep(u8 sleep_state);
+ 
+ acpi_status acpi_leave_sleep_state(u8 sleep_state);
+ 
++ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
++				acpi_set_firmware_waking_vector(u32
++								physical_address))
++
++#if ACPI_MACHINE_WIDTH == 64
++ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
++				acpi_set_firmware_waking_vector64(u64
++								  physical_address))
++#endif
+ /*
+  * ACPI Timer interfaces
+  */
 -- 
 1.7.10
 
