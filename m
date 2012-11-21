@@ -1,171 +1,84 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v7-1 1/5] ACPI: Add acpi_handle_<level>() interfaces
-Date: Tue, 20 Nov 2012 18:36:28 -0700
-Message-ID: <1353461788-808-1-git-send-email-toshi.kani@hp.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH 1/1] thermal: cpu cooling: use const parameter while
+ registering
+Date: Wed, 21 Nov 2012 10:51:13 +0800
+Message-ID: <1353466273.2153.8.camel@rzhang1-mobl4>
+References: <1352735930-8025-1-git-send-email-eduardo.valentin@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0017.houston.hp.com ([15.201.24.20]:2670 "EHLO
-	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752312Ab2KUBpA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Nov 2012 20:45:00 -0500
+Received: from mga11.intel.com ([192.55.52.93]:7943 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752776Ab2KUCve (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 20 Nov 2012 21:51:34 -0500
+In-Reply-To: <1352735930-8025-1-git-send-email-eduardo.valentin@ti.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, rjw@sisk.pl, lenb@kernel.org
-Cc: linux-kernel@vger.kernel.org, joe@perches.com, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, vijaymohan.pandarathil@hp.com, Toshi Kani <toshi.kani@hp.com>
+To: Eduardo Valentin <eduardo.valentin@ti.com>
+Cc: amit.kachhap@linaro.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, Linux PM list <linux-pm@vger.kernel.org>
 
-This patch introduces acpi_handle_<level>(), where <level> is
-a kernel message level such as err/warn/info, to support improved
-logging messages for ACPI, esp. hot-plug operations.
-acpi_handle_<level>() appends "ACPI" prefix and ACPI object path
-to the messages.  This improves diagnosis of hotplug operations
-since an error message in a log file identifies an object that
-caused an issue.  This interface acquires the global namespace
-mutex to obtain an object path.  In interrupt context, it shows
-the object path as <n/a>.
+On Mon, 2012-11-12 at 11:58 -0400, Eduardo Valentin wrote:
+> There are predefined cpu_masks that are const data structures.
+> This patch changes the cpu cooling register function so that
+> those const cpu_masks can be used, without compilation warnings.
+> 
+> include/linux/cpumask.h
+> 
+>  * The following particular system cpumasks and operations manage
+>  * possible, present, active and online cpus.
+>  *
+>  *     cpu_possible_mask- has bit 'cpu' set iff cpu is populatable
+>  *     cpu_present_mask - has bit 'cpu' set iff cpu is populated
+>  *     cpu_online_mask  - has bit 'cpu' set iff cpu available to scheduler
+>  *     cpu_active_mask  - has bit 'cpu' set iff cpu available to migration
+>  *
+> 
+> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
 
-acpi_handle_<level>() takes acpi_handle as an argument, which is
-passed to ACPI hotplug notify handlers from the ACPICA.  Therefore,
-it is always available unlike other kernel objects, such as device.
+applied.
 
-For example:
-  acpi_handle_err(handle, "Device don't exist, dropping EJECT\n");
-logs an error message like this at KERN_ERR.
-  ACPI: \_SB_.SCK4.CPU4: Device don't exist, dropping EJECT
+thanks,
+rui
+> ---
+>  drivers/thermal/cpu_cooling.c |    2 +-
+>  include/linux/cpu_cooling.h   |    4 ++--
+>  2 files changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/thermal/cpu_cooling.c b/drivers/thermal/cpu_cooling.c
+> index cc1c930..e5e7153 100644
+> --- a/drivers/thermal/cpu_cooling.c
+> +++ b/drivers/thermal/cpu_cooling.c
+> @@ -345,7 +345,7 @@ static struct notifier_block thermal_cpufreq_notifier_block = {
+>   * @clip_cpus: cpumask of cpus where the frequency constraints will happen.
+>   */
+>  struct thermal_cooling_device *cpufreq_cooling_register(
+> -	struct cpumask *clip_cpus)
+> +	const struct cpumask *clip_cpus)
+>  {
+>  	struct thermal_cooling_device *cool_dev;
+>  	struct cpufreq_cooling_device *cpufreq_dev = NULL;
+> diff --git a/include/linux/cpu_cooling.h b/include/linux/cpu_cooling.h
+> index 8515301..b30cc79c 100644
+> --- a/include/linux/cpu_cooling.h
+> +++ b/include/linux/cpu_cooling.h
+> @@ -35,7 +35,7 @@
+>   * @clip_cpus: cpumask of cpus where the frequency constraints will happen
+>   */
+>  struct thermal_cooling_device *cpufreq_cooling_register(
+> -		struct cpumask *clip_cpus);
+> +		const struct cpumask *clip_cpus);
+>  
+>  /**
+>   * cpufreq_cooling_unregister - function to remove cpufreq cooling device.
+> @@ -44,7 +44,7 @@ struct thermal_cooling_device *cpufreq_cooling_register(
+>  void cpufreq_cooling_unregister(struct thermal_cooling_device *cdev);
+>  #else /* !CONFIG_CPU_THERMAL */
+>  static inline struct thermal_cooling_device *cpufreq_cooling_register(
+> -	struct cpumask *clip_cpus)
+> +	const struct cpumask *clip_cpus)
+>  {
+>  	return NULL;
+>  }
 
-ACPI hot-plug drivers can use acpi_handle_<level>() when they need
-to identify a target ACPI object path in their messages, such as
-error cases.  The usage model is similar to dev_<level>().
-acpi_handle_<level>() can be used when a device is not created or
-is invalid during hot-plug operations.  ACPI object path is also
-consistent on the platform, unlike device name that gets incremented
-over hotplug operations.
-
-ACPI drivers should use dev_<level>() when a device object is valid.
-Device name provides more user friendly information, and avoids
-acquiring the global ACPI namespace mutex.  ACPI drivers also
-continue to use pr_<level>() when they do not need to specify device
-information, such as boot-up messages.
-
-Note: ACPI_[WARNING|INFO|ERROR]() are intended for the ACPICA and
-are not associated with the kernel message level.
-
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-Tested-by: Vijay Mohan Pandarathil <vijaymohan.pandarathil@hp.com>
----
-
-Hi Rafael,
-This patch replaces the [PATCH v7 1/5] below in the v7 series.
-https://lkml.org/lkml/2012/11/20/719
-
----
- drivers/acpi/utils.c | 38 ++++++++++++++++++++++++++++++++++++++
- include/linux/acpi.h | 43 +++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 81 insertions(+)
-
-diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-index 462f7e3..74437130 100644
---- a/drivers/acpi/utils.c
-+++ b/drivers/acpi/utils.c
-@@ -28,6 +28,8 @@
- #include <linux/slab.h>
- #include <linux/init.h>
- #include <linux/types.h>
-+#include <linux/hardirq.h>
-+#include <linux/acpi.h>
- #include <acpi/acpi_bus.h>
- #include <acpi/acpi_drivers.h>
- 
-@@ -457,3 +459,39 @@ acpi_evaluate_hotplug_ost(acpi_handle handle, u32 source_event,
- #endif
- }
- EXPORT_SYMBOL(acpi_evaluate_hotplug_ost);
-+
-+/**
-+ * acpi_handle_printk: Print message with ACPI prefix and object path
-+ *
-+ * This function is called through acpi_handle_<level> macros and prints
-+ * a message with ACPI prefix and object path.  This function acquires
-+ * the global namespace mutex to obtain an object path.  In interrupt
-+ * context, it shows the object path as <n/a>.
-+ */
-+void
-+acpi_handle_printk(const char *level, acpi_handle handle, const char *fmt, ...)
-+{
-+	struct va_format vaf;
-+	va_list args;
-+	struct acpi_buffer buffer = {
-+		.length = ACPI_ALLOCATE_BUFFER,
-+		.pointer = NULL
-+	};
-+	const char *path;
-+
-+	va_start(args, fmt);
-+	vaf.fmt = fmt;
-+	vaf.va = &args;
-+
-+	if (in_interrupt() ||
-+	    acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer) != AE_OK)
-+		path = "<n/a>";
-+	else
-+		path = buffer.pointer;
-+
-+	printk("%sACPI: %s: %pV", level, path, &vaf);
-+
-+	va_end(args);
-+	kfree(buffer.pointer);
-+}
-+EXPORT_SYMBOL(acpi_handle_printk);
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 0bb2070..417c96c 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -517,4 +517,47 @@ static inline int acpi_dev_pm_attach(struct device *dev) { return -ENODEV; }
- static inline void acpi_dev_pm_detach(struct device *dev) {}
- #endif
- 
-+#ifdef CONFIG_ACPI
-+__printf(3, 4)
-+void acpi_handle_printk(const char *level, acpi_handle handle,
-+			const char *fmt, ...);
-+#else	/* !CONFIG_ACPI */
-+static inline __printf(3, 4) void
-+acpi_handle_printk(const char *level, void *handle, const char *fmt, ...) {}
-+#endif	/* !CONFIG_ACPI */
-+
-+/*
-+ * acpi_handle_<level>: Print message with ACPI prefix and object path
-+ * 
-+ * These interfaces acquire the global namespace mutex to obtain an object
-+ * path.  In interrupt context, it shows the object path as <n/a>.
-+ */
-+#define acpi_handle_emerg(handle, fmt, ...)				\
-+	acpi_handle_printk(KERN_EMERG, handle, fmt, ##__VA_ARGS__)
-+#define acpi_handle_alert(handle, fmt, ...)				\
-+	acpi_handle_printk(KERN_ALERT, handle, fmt, ##__VA_ARGS__)
-+#define acpi_handle_crit(handle, fmt, ...)				\
-+	acpi_handle_printk(KERN_CRIT, handle, fmt, ##__VA_ARGS__)
-+#define acpi_handle_err(handle, fmt, ...)				\
-+	acpi_handle_printk(KERN_ERR, handle, fmt, ##__VA_ARGS__)
-+#define acpi_handle_warn(handle, fmt, ...)				\
-+	acpi_handle_printk(KERN_WARNING, handle, fmt, ##__VA_ARGS__)
-+#define acpi_handle_notice(handle, fmt, ...)				\
-+	acpi_handle_printk(KERN_NOTICE, handle, fmt, ##__VA_ARGS__)
-+#define acpi_handle_info(handle, fmt, ...)				\
-+	acpi_handle_printk(KERN_INFO, handle, fmt, ##__VA_ARGS__)
-+
-+/* REVISIT: Support CONFIG_DYNAMIC_DEBUG when necessary */
-+#if defined(DEBUG) || defined(CONFIG_DYNAMIC_DEBUG)
-+#define acpi_handle_debug(handle, fmt, ...)				\
-+	acpi_handle_printk(KERN_DEBUG, handle, fmt, ##__VA_ARGS__)
-+#else
-+#define acpi_handle_debug(handle, fmt, ...)				\
-+({									\
-+	if (0)								\
-+		acpi_handle_printk(KERN_DEBUG, handle, fmt, ##__VA_ARGS__); \
-+	0;								\
-+})
-+#endif
-+
- #endif	/*_LINUX_ACPI_H*/
--- 
-1.7.11.7
 
