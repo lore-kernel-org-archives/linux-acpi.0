@@ -1,84 +1,102 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH 1/1] thermal: cpu cooling: use const parameter while
- registering
-Date: Wed, 21 Nov 2012 10:51:13 +0800
-Message-ID: <1353466273.2153.8.camel@rzhang1-mobl4>
-References: <1352735930-8025-1-git-send-email-eduardo.valentin@ti.com>
+From: Wen Congyang <wency@cn.fujitsu.com>
+Subject: Re: [PATCH v3 06/12] memory-hotplug: unregister memory section on
+ SPARSEMEM_VMEMMAP
+Date: Wed, 21 Nov 2012 11:05:41 +0800
+Message-ID: <50AC4505.1000007@cn.fujitsu.com>
+References: <1351763083-7905-1-git-send-email-wency@cn.fujitsu.com> <1351763083-7905-7-git-send-email-wency@cn.fujitsu.com> <50AB669D.3060007@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:7943 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752776Ab2KUCve (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 20 Nov 2012 21:51:34 -0500
-In-Reply-To: <1352735930-8025-1-git-send-email-eduardo.valentin@ti.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <50AB669D.3060007@gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Jaegeuk Hanse <jaegeuk.hanse@gmail.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, David Rientjes <rientjes@google.com>, Jiang Liu <liuj97@gmail.com>, Len Brown <len.brown@intel.com>, benh@kernel.crashing.org, paulus@samba.org, Christoph Lameter <cl@linux.com>, Minchan Kim <minchan.kim@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Jianguo Wu <wujianguo@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Eduardo Valentin <eduardo.valentin@ti.com>
-Cc: amit.kachhap@linaro.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, Linux PM list <linux-pm@vger.kernel.org>
 
-On Mon, 2012-11-12 at 11:58 -0400, Eduardo Valentin wrote:
-> There are predefined cpu_masks that are const data structures.
-> This patch changes the cpu cooling register function so that
-> those const cpu_masks can be used, without compilation warnings.
+At 11/20/2012 07:16 PM, Jaegeuk Hanse Wrote:
+> On 11/01/2012 05:44 PM, Wen Congyang wrote:
+>> From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+>>
+>> Currently __remove_section for SPARSEMEM_VMEMMAP does nothing. But
+>> even if
+>> we use SPARSEMEM_VMEMMAP, we can unregister the memory_section.
+>>
+>> So the patch add unregister_memory_section() into __remove_section().
 > 
-> include/linux/cpumask.h
+> Hi Yasuaki,
 > 
->  * The following particular system cpumasks and operations manage
->  * possible, present, active and online cpus.
->  *
->  *     cpu_possible_mask- has bit 'cpu' set iff cpu is populatable
->  *     cpu_present_mask - has bit 'cpu' set iff cpu is populated
->  *     cpu_online_mask  - has bit 'cpu' set iff cpu available to scheduler
->  *     cpu_active_mask  - has bit 'cpu' set iff cpu available to migration
->  *
+> I have a question about these sparse vmemmap memory related patches. Hot
+> add memory need allocated vmemmap pages, but this time is allocated by
+> buddy system. How can gurantee virtual address is continuous to the
+> address allocated before? If not continuous, page_to_pfn and pfn_to_page
+> can't work correctly.
+
+vmemmap has its virtual address range:
+ffffea0000000000 - ffffeaffffffffff (=40 bits) virtual memory map (1TB)
+
+We allocate memory from buddy system to store struct page, and its virtual
+address isn't in this range. So we should update the page table:
+
+kmalloc_section_memmap()
+    sparse_mem_map_populate()
+        pfn_to_page() // get the virtual address in the vmemmap range
+        vmemmap_populate() // we update page table here
+
+When we use vmemmap, page_to_pfn() always returns address in the vmemmap
+range, not the address that kmalloc() returns. So the virtual address
+is continuous.
+
+Thanks
+Wen Congyang
 > 
-> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
-
-applied.
-
-thanks,
-rui
-> ---
->  drivers/thermal/cpu_cooling.c |    2 +-
->  include/linux/cpu_cooling.h   |    4 ++--
->  2 files changed, 3 insertions(+), 3 deletions(-)
+> Regards,
+> Jaegeuk
 > 
-> diff --git a/drivers/thermal/cpu_cooling.c b/drivers/thermal/cpu_cooling.c
-> index cc1c930..e5e7153 100644
-> --- a/drivers/thermal/cpu_cooling.c
-> +++ b/drivers/thermal/cpu_cooling.c
-> @@ -345,7 +345,7 @@ static struct notifier_block thermal_cpufreq_notifier_block = {
->   * @clip_cpus: cpumask of cpus where the frequency constraints will happen.
->   */
->  struct thermal_cooling_device *cpufreq_cooling_register(
-> -	struct cpumask *clip_cpus)
-> +	const struct cpumask *clip_cpus)
->  {
->  	struct thermal_cooling_device *cool_dev;
->  	struct cpufreq_cooling_device *cpufreq_dev = NULL;
-> diff --git a/include/linux/cpu_cooling.h b/include/linux/cpu_cooling.h
-> index 8515301..b30cc79c 100644
-> --- a/include/linux/cpu_cooling.h
-> +++ b/include/linux/cpu_cooling.h
-> @@ -35,7 +35,7 @@
->   * @clip_cpus: cpumask of cpus where the frequency constraints will happen
->   */
->  struct thermal_cooling_device *cpufreq_cooling_register(
-> -		struct cpumask *clip_cpus);
-> +		const struct cpumask *clip_cpus);
->  
->  /**
->   * cpufreq_cooling_unregister - function to remove cpufreq cooling device.
-> @@ -44,7 +44,7 @@ struct thermal_cooling_device *cpufreq_cooling_register(
->  void cpufreq_cooling_unregister(struct thermal_cooling_device *cdev);
->  #else /* !CONFIG_CPU_THERMAL */
->  static inline struct thermal_cooling_device *cpufreq_cooling_register(
-> -	struct cpumask *clip_cpus)
-> +	const struct cpumask *clip_cpus)
->  {
->  	return NULL;
->  }
+>>
+>> CC: David Rientjes <rientjes@google.com>
+>> CC: Jiang Liu <liuj97@gmail.com>
+>> CC: Len Brown <len.brown@intel.com>
+>> CC: Christoph Lameter <cl@linux.com>
+>> Cc: Minchan Kim <minchan.kim@gmail.com>
+>> CC: Andrew Morton <akpm@linux-foundation.org>
+>> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+>> CC: Wen Congyang <wency@cn.fujitsu.com>
+>> Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+>> ---
+>>   mm/memory_hotplug.c | 13 ++++++++-----
+>>   1 file changed, 8 insertions(+), 5 deletions(-)
+>>
+>> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+>> index ca07433..66a79a7 100644
+>> --- a/mm/memory_hotplug.c
+>> +++ b/mm/memory_hotplug.c
+>> @@ -286,11 +286,14 @@ static int __meminit __add_section(int nid,
+>> struct zone *zone,
+>>   #ifdef CONFIG_SPARSEMEM_VMEMMAP
+>>   static int __remove_section(struct zone *zone, struct mem_section *ms)
+>>   {
+>> -    /*
+>> -     * XXX: Freeing memmap with vmemmap is not implement yet.
+>> -     *      This should be removed later.
+>> -     */
+>> -    return -EBUSY;
+>> +    int ret = -EINVAL;
+>> +
+>> +    if (!valid_section(ms))
+>> +        return ret;
+>> +
+>> +    ret = unregister_memory_section(ms);
+>> +
+>> +    return ret;
+>>   }
+>>   #else
+>>   static int __remove_section(struct zone *zone, struct mem_section *ms)
+> 
+> 
 
-
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
