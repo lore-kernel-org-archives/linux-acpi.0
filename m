@@ -1,68 +1,84 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [FIX PATCH] ACPI / PM: Add Sony Vaio VPCEB1S1E to nonvs blacklist.
-Date: Wed, 21 Nov 2012 01:47:05 +0100
-Message-ID: <2373207.0huVJLJSvf@vostro.rjw.lan>
-References: <1352338425-4830-1-git-send-email-tianyu.lan@intel.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH v7 1/5] ACPI: Add acpi_handle_<level>() interfaces
+Date: Tue, 20 Nov 2012 18:17:28 -0700
+Message-ID: <1353460648.10939.133.camel@misato.fc.hp.com>
+References: <1353454950-17010-1-git-send-email-toshi.kani@hp.com>
+	 <1353454950-17010-2-git-send-email-toshi.kani@hp.com>
+	 <1353456074.17819.43.camel@joe-AO722>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:56786 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752254Ab2KUAmi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Nov 2012 19:42:38 -0500
-In-Reply-To: <1352338425-4830-1-git-send-email-tianyu.lan@intel.com>
+Received: from g6t0187.atlanta.hp.com ([15.193.32.64]:5438 "EHLO
+	g6t0187.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753729Ab2KUBZp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 20 Nov 2012 20:25:45 -0500
+In-Reply-To: <1353456074.17819.43.camel@joe-AO722>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lan Tianyu <tianyu.lan@intel.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, swilmet@gnome.org, stable@vger.kernel.org
+To: Joe Perches <joe@perches.com>, rjw@sisk.pl
+Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org
 
-On Thursday, November 08, 2012 09:33:45 AM Lan Tianyu wrote:
-> Sony Vaio VPCEB1S1E does not resume correctly without
-> acpi_sleep=3Dnonvs, so add it to the ACPI sleep blacklist.
->=20
-> https://bugzilla.kernel.org/show_bug.cgi?id=3D48781
+On Tue, 2012-11-20 at 16:01 -0800, Joe Perches wrote:
+> On Tue, 2012-11-20 at 16:42 -0700, Toshi Kani wrote:
+> > This patch introduces acpi_handle_<level>(), where <level> is
+> > a kernel message level such as err/warn/info, to support improved
+> > logging messages for ACPI, esp. hot-plug operations.
+> > acpi_handle_<level>() appends "ACPI" prefix and ACPI object path
+> > to the messages.  This improves diagnosis of hotplug operations
+> > since an error message in a log file identifies an object that
+> > caused an issue.  This interface acquires the global namespace
+> > mutex and is not suitable for interrupt context.
+> 
+> Old commit log? Maybe edit out the unsuitable for interrupt
+> to "shows n/a in interrupt"?
 
-Applied to the linux-next branch of the linux-pm.git tree as v3.8 mater=
-ial.
+Hi Joe,
+
+I changed the descriptions from "may not be called from interrupt
+context" to "is not suitable for interrupt context".  But, I agree with
+you that it is clear to state how the interface behaves in interrupt
+context.  So, I will update the description to the following:
+
+"This interface acquires the global namespace mutex to obtain an object
+path.  In interrupt context, it shows the object path as <n/a>."
+
+
+Hi Rafael,
+
+Instead of sending the whole series again, I will only send an updated
+patch 1/5 since it only updates its descriptions.  The updated patch
+will be labeled as "[PATCH v7-1 1/5]".
+
 
 Thanks,
-Rafael
+-Toshi
 
 
-> Reported-by: S=C3=A9bastien Wilmet <swilmet@gnome.org>
-> Cc: <stable@vger.kernel.org>
-> Signed-off-by: Lan Tianyu <tianyu.lan@intel.com>
-> ---
->  drivers/acpi/sleep.c |    8 ++++++++
->  1 file changed, 8 insertions(+)
->=20
-> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-> index fdcdbb6..847ed55 100644
-> --- a/drivers/acpi/sleep.c
-> +++ b/drivers/acpi/sleep.c
-> @@ -519,6 +519,14 @@ static struct dmi_system_id __initdata acpisleep=
-_dmi_table[] =3D {
->  	},
->  	{
->  	.callback =3D init_nvs_nosave,
-> +	.ident =3D "Sony Vaio VPCEB1S1E",
-> +	.matches =3D {
-> +		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-> +		DMI_MATCH(DMI_PRODUCT_NAME, "VPCEB1S1E"),
-> +		},
-> +	},
-> +	{
-> +	.callback =3D init_nvs_nosave,
->  	.ident =3D "Sony Vaio VGN-FW520F",
->  	.matches =3D {
->  		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
->=20
---=20
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+> diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+[]
+> +
+> +/**
+> + * acpi_handle_printk: Print message with ACPI prefix and object path
+> + *
+> + * This function is called through acpi_handle_<level> macros and
+prints
+> + * a message with ACPI prefix and object path.  This function
+acquires
+> + * the global namespace mutex and is not suitable for interrupt
+context.
+
+Old text here too?
+
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+[]
+> +/*
+> + * acpi_handle_<level>: Print message with ACPI prefix and object
+path
+> + * 
+> + * These interfaces acquire the global namespace mutex and are not
+> + * suitable for interrupt context.
+
+Here three?
+
