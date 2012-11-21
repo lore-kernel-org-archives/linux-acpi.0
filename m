@@ -1,128 +1,97 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v7 3/5] ACPI: Update Memory hotplug error messages
-Date: Tue, 20 Nov 2012 16:42:28 -0700
-Message-ID: <1353454950-17010-4-git-send-email-toshi.kani@hp.com>
-References: <1353454950-17010-1-git-send-email-toshi.kani@hp.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1353454950-17010-1-git-send-email-toshi.kani@hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, rjw@sisk.pl, lenb@kernel.org
-Cc: linux-kernel@vger.kernel.org, joe@perches.com, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, vijaymohan.pandarathil@hp.com, Toshi Kani <toshi.kani@hp.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 1/2] acpi: introduce swset flag for power_state
+Date: Wed, 21 Nov 2012 01:11:39 +0100
+Message-ID: <1488423.HT0sLzAmeT@vostro.rjw.lan>
+References: <1352426096-15116-1-git-send-email-aaron.lu@intel.com> <1352426096-15116-2-git-send-email-aaron.lu@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([193.178.161.156]:56689 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753264Ab2KUAHL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 20 Nov 2012 19:07:11 -0500
+In-Reply-To: <1352426096-15116-2-git-send-email-aaron.lu@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Aaron Lu <aaron.lwe@gmail.com>
 
-Updated Memory hotplug error messages with acpi_handle_<level>(),
-dev_<level>() and pr_<level>().  Added missing "\n".
+On Friday, November 09, 2012 09:54:55 AM Aaron Lu wrote:
+> Currently we have valid flag to represent if this ACPI device power
+> state is valid. A device power state is valid does not necessarily mean
+> we, as OSPM, has a mean to put the device into that power state, e.g. D3
+> cold is always a valid power state for any ACPI device, but if there is
+> no _PS3 or _PRx for this device, we can't really put that device into
+> D3 cold power state. The same is true for D0 power state.
+> 
+> So here comes the swset flag, which is only set if the device has
+> provided us the required means to put it into that power state, e.g. if
+> we have _PS3 or _PRx, we can put the device into D3 cold state and thus,
+> D3 cold power state's swset flag will be set in this case.
+> 
+> This flag is mainly used to check if firmware has provided us a way to
+> put the device into D3 cold state, as the valid flag for D3 cold is
+> always true.
 
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
----
- drivers/acpi/acpi_memhotplug.c | 24 +++++++++++++-----------
- 1 file changed, 13 insertions(+), 11 deletions(-)
+I would prefer the new flag to be called os_accessible.  The meaning of it
+would be more clear this way in my opinion.
 
-diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-index e0f7425..eb30e5a 100644
---- a/drivers/acpi/acpi_memhotplug.c
-+++ b/drivers/acpi/acpi_memhotplug.c
-@@ -31,6 +31,7 @@
- #include <linux/types.h>
- #include <linux/memory_hotplug.h>
- #include <linux/slab.h>
-+#include <linux/acpi.h>
- #include <acpi/acpi_drivers.h>
- 
- #define ACPI_MEMORY_DEVICE_CLASS		"memory"
-@@ -175,7 +176,7 @@ acpi_memory_get_device(acpi_handle handle,
- 	/* Get the parent device */
- 	result = acpi_bus_get_device(phandle, &pdevice);
- 	if (result) {
--		printk(KERN_WARNING PREFIX "Cannot get acpi bus device");
-+		acpi_handle_warn(phandle, "Cannot get acpi bus device\n");
- 		return -EINVAL;
- 	}
- 
-@@ -185,14 +186,14 @@ acpi_memory_get_device(acpi_handle handle,
- 	 */
- 	result = acpi_bus_add(&device, pdevice, handle, ACPI_BUS_TYPE_DEVICE);
- 	if (result) {
--		printk(KERN_WARNING PREFIX "Cannot add acpi bus");
-+		acpi_handle_warn(handle, "Cannot add acpi bus\n");
- 		return -EINVAL;
- 	}
- 
-       end:
- 	*mem_device = acpi_driver_data(device);
- 	if (!(*mem_device)) {
--		printk(KERN_ERR "\n driver data not found");
-+		dev_err(&device->dev, "driver data not found\n");
- 		return -ENODEV;
- 	}
- 
-@@ -229,7 +230,8 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
- 	/* Get the range from the _CRS */
- 	result = acpi_memory_get_device_resources(mem_device);
- 	if (result) {
--		printk(KERN_ERR PREFIX "get_device_resources failed\n");
-+		dev_err(&mem_device->device->dev,
-+			"get_device_resources failed\n");
- 		mem_device->state = MEMORY_INVALID_STATE;
- 		return result;
- 	}
-@@ -276,7 +278,7 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
- 		num_enabled++;
- 	}
- 	if (!num_enabled) {
--		printk(KERN_ERR PREFIX "add_memory failed\n");
-+		dev_err(&mem_device->device->dev, "add_memory failed\n");
- 		mem_device->state = MEMORY_INVALID_STATE;
- 		return -EINVAL;
- 	}
-@@ -336,7 +338,7 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
- 			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 					  "\nReceived DEVICE CHECK notification for device\n"));
- 		if (acpi_memory_get_device(handle, &mem_device)) {
--			printk(KERN_ERR PREFIX "Cannot find driver data\n");
-+			acpi_handle_err(handle, "Cannot find driver data\n");
- 			break;
- 		}
- 
-@@ -344,7 +346,7 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
- 			break;
- 
- 		if (acpi_memory_enable_device(mem_device)) {
--			printk(KERN_ERR PREFIX "Cannot enable memory device\n");
-+			acpi_handle_err(handle,"Cannot enable memory device\n");
- 			break;
- 		}
- 
-@@ -356,12 +358,12 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
- 				  "\nReceived EJECT REQUEST notification for device\n"));
- 
- 		if (acpi_bus_get_device(handle, &device)) {
--			printk(KERN_ERR PREFIX "Device doesn't exist\n");
-+			acpi_handle_err(handle, "Device doesn't exist\n");
- 			break;
- 		}
- 		mem_device = acpi_driver_data(device);
- 		if (!mem_device) {
--			printk(KERN_ERR PREFIX "Driver Data is NULL\n");
-+			acpi_handle_err(handle, "Driver Data is NULL\n");
- 			break;
- 		}
- 
-@@ -429,13 +431,13 @@ static int acpi_memory_device_add(struct acpi_device *device)
- 	/* Set the device state */
- 	mem_device->state = MEMORY_POWER_ON_STATE;
- 
--	printk(KERN_DEBUG "%s \n", acpi_device_name(device));
-+	pr_debug("%s\n", acpi_device_name(device));
- 
- 	if (!acpi_memory_check_device(mem_device)) {
- 		/* call add_memory func */
- 		result = acpi_memory_enable_device(mem_device);
- 		if (result) {
--			printk(KERN_ERR PREFIX
-+			dev_err(&device->dev,
- 				"Error in acpi_memory_enable_device\n");
- 			acpi_memory_device_free(mem_device);
- 		}
+Please also fold patch [2/2] into [1/2].
+
+Apart from this it looks OK.
+
+Thanks,
+Rafael
+
+
+> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+> ---
+>  drivers/acpi/scan.c     | 9 ++++++++-
+>  include/acpi/acpi_bus.h | 1 +
+>  2 files changed, 9 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 95ff1e8..60d271a 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -1038,8 +1038,10 @@ static int acpi_bus_get_power_flags(struct acpi_device *device)
+>  		 * D3hot is only valid if _PR3 present.
+>  		 */
+>  		if (ps->resources.count ||
+> -		    (ps->flags.explicit_set && i < ACPI_STATE_D3_HOT))
+> +		    (ps->flags.explicit_set && i < ACPI_STATE_D3_HOT)) {
+>  			ps->flags.valid = 1;
+> +			ps->flags.swset = 1;
+> +		}
+>  
+>  		ps->power = -1;	/* Unknown - driver assigned */
+>  		ps->latency = -1;	/* Unknown - driver assigned */
+> @@ -1055,6 +1057,11 @@ static int acpi_bus_get_power_flags(struct acpi_device *device)
+>  	if (device->power.states[ACPI_STATE_D3_HOT].flags.explicit_set)
+>  		device->power.states[ACPI_STATE_D3_COLD].flags.explicit_set = 1;
+>  
+> +	/* Presence of _PS3 or _PRx means we can put the device into D3 cold */
+> +	if (device->power.states[ACPI_STATE_D3_HOT].flags.explicit_set ||
+> +			device->power.flags.power_resources)
+> +		device->power.states[ACPI_STATE_D3_COLD].flags.swset = 1;
+> +
+>  	acpi_bus_init_power(device);
+>  
+>  	return 0;
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index 2242c10..7d20617 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -200,6 +200,7 @@ struct acpi_device_power_flags {
+>  struct acpi_device_power_state {
+>  	struct {
+>  		u8 valid:1;
+> +		u8 swset:1;
+>  		u8 explicit_set:1;	/* _PSx present? */
+>  		u8 reserved:6;
+>  	} flags;
+> 
 -- 
-1.7.11.7
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
