@@ -1,58 +1,48 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 00/15] ACPICA 20121114 Release
-Date: Thu, 22 Nov 2012 01:15:18 +0100
-Message-ID: <5187076.AaPnTPlBdI@vostro.rjw.lan>
-References: <cover.1353491652.git.lv.zheng@intel.com>
+Subject: Re: [PATCH RESEND] acpi: Fix logging when no pci_irq is allocated
+Date: Thu, 22 Nov 2012 01:14:07 +0100
+Message-ID: <1965627.n0VXnptTiB@vostro.rjw.lan>
+References: <1353487401-10279-1-git-send-email-daniel@numascale-asia.com> <5752160.0Aavql38JJ@vostro.rjw.lan> <1353533099.24807.45.camel@joe-AO722>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:60339 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([193.178.161.156]:60340 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755939Ab2KVS4u (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 22 Nov 2012 13:56:50 -0500
-In-Reply-To: <cover.1353491652.git.lv.zheng@intel.com>
+	id S1756082Ab2KVS4u convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Nov 2012 13:56:50 -0500
+In-Reply-To: <1353533099.24807.45.camel@joe-AO722>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: Len Brown <len.brown@intel.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org
+To: Joe Perches <joe@perches.com>
+Cc: Jan =?ISO-8859-1?Q?H=2E_Sch=F6nherr?= <schnhrr@cs.tu-berlin.de>, Daniel J Blueman <daniel@numascale-asia.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wednesday, November 21, 2012 06:06:45 PM Lv Zheng wrote:
-> The 20121114 ACPICA linuxized patches are based on the pm/linux-next branch.
-> Please review though the patches have passed the basic build & boot tests.
-> 
-> Bob Moore (6):
->   ACPICA: Performance: Remove function tracing from critical allocation
->     functions.
->   ACPICA: Debugger: Major update for the Disassemble<method> command.
->   ACPICA: Disassembler: Add new ACPI 5 interrupt sharing flags.
->   ACPICA: Add macros to extract flag bits from resource descriptors.
->   ACPICA: AcpiGetObjectInfo: optimize exit for mutex failure.
->   ACPICA: Update version to 20121114.
-> 
-> Chao Guan (1):
->   ACPICA: Performance enhancement for ACPI package objects.
-> 
-> Jesper Juhl (1):
->   ACPICA: Fix possible memory leak.
-> 
-> Lv Zheng (7):
->   ACPICA: Fixes unmerged (dis)assember divergences.
->   ACPICA: Fixes comments caused divergences.
->   ACPICA: Fixes indent caused divergences.
->   ACPICA: Fixes code maintenance divergences.
->   ACPICA: Fixes call depth check caused divergences.
->   ACPICA: Enhance the ACPI_GETx and ACPI_SETx macros.
->   ACPICA: Resource Manager: update template walking with
->     ACPI_NEXT_RESOURCE.
+On Wednesday, November 21, 2012 01:24:59 PM Joe Perches wrote:
+> On Wed, 2012-11-21 at 22:25 +0100, Rafael J. Wysocki wrote:
+> > On Wednesday, November 21, 2012 12:53:55 PM Joe Perches wrote:
+> > > I mean Jan Sch=C3=B6nherr's patches that should fix this are
+> > > likely to be picked up one day.
+> > >=20
+> > > https://lkml.org/lkml/2012/11/13/678
+> >=20
+> > Till then, we need the patch you sent, right?  And it won't hurt to=
+ apply it
+> > anyway?
+>=20
+> If it's a real problem for someone, I guess so.
+> It shouldn't hurt anything.
 
-Whole series applied to linux-pm.git/linux-next as v3.8 material.
+So I've applied it.
 
-Thanks Lv!
-
+Thanks,
 Rafael
 
 
--- 
+--=20
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
