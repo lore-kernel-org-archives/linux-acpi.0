@@ -1,40 +1,48 @@
-From: Adrian Hunter <adrian.hunter@intel.com>
-Subject: Re: [PATCH 0/3] Add SDHCI ACPI driver
-Date: Thu, 22 Nov 2012 16:46:10 +0200
-Message-ID: <50AE3AB2.2070307@intel.com>
-References: <1353573830-13006-1-git-send-email-adrian.hunter@intel.com> <87k3tdagim.fsf@octavius.laptop.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Cyril Roelandt <tipecaml@gmail.com>
+Subject: [PATCH v2] acpi_system_write_wakeup_device(): fix error check for unsigned variable.
+Date: Thu, 22 Nov 2012 01:34:55 +0100
+Message-ID: <1353544495-25277-1-git-send-email-tipecaml@gmail.com>
+References: <1645783.2WuR77RKxS@vostro.rjw.lan>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <87k3tdagim.fsf@octavius.laptop.org>
+In-Reply-To: <1645783.2WuR77RKxS@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Chris Ball <cjb@laptop.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-mmc@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, rjw@sisk.pl, lenb@kernel.org, kernel-janitors@vger.kernel.org, Cyril Roelandt <tipecaml@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 22/11/12 15:55, Chris Ball wrote:
-> Hi,
-> 
-> On Thu, Nov 22 2012, Adrian Hunter wrote:
->> Here is SDHCI ACPI driver.  It is dependent on new ACPI Platform support
->> so I suggest Rafael takes the patches with Chris' Ack.
->>
->> Please note that I would prefer this to be queued for 3.8
-> 
-> Looks fine:
-> 
-> Acked-by: Chris Ball <cjb@laptop.org>
+The LEN variable is unsigned, therefore checking whether it is less than 0 is
+useless. Also drop the LEN variable, since the COUNT parameter can be used
+instead.
 
-Thank you!
+Signed-off-by: Cyril Roelandt <tipecaml@gmail.com>
+---
+ drivers/acpi/proc.c |   11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-> 
-> I have some dumb questions, though -- what kind of platforms ship with
-> these devices?  Do they ever have the controller on PCI too, and what
-> happens with sdhci-pci vs. sdhci-acpi in that case?
-
-Since the arrival of ACPI5, platform devices can be configured using ACPI
-tables.  PCI can also be used, but the firmware ensures that the same
-device is not enumerated via both ACPI and PCI.
-
-Rafael can you take these patches?
+diff --git a/drivers/acpi/proc.c b/drivers/acpi/proc.c
+index 27adb09..ef98796 100644
+--- a/drivers/acpi/proc.c
++++ b/drivers/acpi/proc.c
+@@ -362,16 +362,13 @@ acpi_system_write_wakeup_device(struct file *file,
+ 	struct list_head *node, *next;
+ 	char strbuf[5];
+ 	char str[5] = "";
+-	unsigned int len = count;
+ 
+-	if (len > 4)
+-		len = 4;
+-	if (len < 0)
+-		return -EFAULT;
++	if (count > 4)
++		count = 4;
+ 
+-	if (copy_from_user(strbuf, buffer, len))
++	if (copy_from_user(strbuf, buffer, count))
+ 		return -EFAULT;
+-	strbuf[len] = '\0';
++	strbuf[count] = '\0';
+ 	sscanf(strbuf, "%s", str);
+ 
+ 	mutex_lock(&acpi_device_lock);
+-- 
+1.7.10.4
