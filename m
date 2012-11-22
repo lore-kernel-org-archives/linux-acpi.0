@@ -1,58 +1,84 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH v4 0/3] ACPI 5 support for GPIO, SPI and I2C
-Date: Thu, 22 Nov 2012 10:36:29 +0900
-Message-ID: <20121122013627.GG4371@opensource.wolfsonmicro.com>
-References: <1353407384-26880-1-git-send-email-mika.westerberg@linux.intel.com>
- <1353435212-15325-1-git-send-email-mika.westerberg@linux.intel.com>
- <79636467.nuLQX2FqW5@vostro.rjw.lan>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH 1/4] thermal: Add new thermal trend type to support
+ quick cooling
+Date: Thu, 22 Nov 2012 09:22:04 +0800
+Message-ID: <1353547324.2172.1.camel@rzhang1-mobl4>
+References: <1352348786-24255-1-git-send-email-amit.kachhap@linaro.org>
+	 <1352348786-24255-2-git-send-email-amit.kachhap@linaro.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="tvOENZuN7d6HfOWU"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <79636467.nuLQX2FqW5@vostro.rjw.lan>
+In-Reply-To: <1352348786-24255-2-git-send-email-amit.kachhap@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: grant.likely@secretlab.ca, linus.walleij@linaro.org, w.sang@pengutronix.de, Mika Westerberg <mika.westerberg@linux.intel.com>, rafael.j.wysocki@intel.com, linux-kernel@vger.kernel.org, lenb@kernel.org, khali@linux-fr.org, ben-linux@fluff.org, bhelgaas@google.com, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
+To: Amit Daniel Kachhap <amit.kachhap@linaro.org>
+Cc: linux-pm@lists.linux-foundation.org, linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org, durgadoss.r@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, jonghwa3.lee@samsung.com
 List-Id: linux-acpi@vger.kernel.org
 
+On Thu, 2012-11-08 at 09:56 +0530, Amit Daniel Kachhap wrote:
+> This modification adds 2 new thermal trend type THERMAL_TREND_RAISE_FULL
+> and THERMAL_TREND_DROP_FULL. This thermal trend can be used to quickly
+> jump to the upper or lower cooling level instead of incremental increase
+> or decrease. This is needed for temperature sensors which support rising/falling
+> threshold interrupts and polling can be totally avoided.
+> 
+> Signed-off-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
+> Signed-off-by: Amit Daniel Kachhap <amit.kachhap@linaro.org>
+> ---
+>  drivers/thermal/step_wise.c |   19 +++++++++++++++----
+>  include/linux/thermal.h     |    2 ++
+>  2 files changed, 17 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/thermal/step_wise.c b/drivers/thermal/step_wise.c
+> index 1242cff..0d2d8d6 100644
+> --- a/drivers/thermal/step_wise.c
+> +++ b/drivers/thermal/step_wise.c
+> @@ -35,6 +35,10 @@
+>   *       state for this trip point
+>   *    b. if the trend is THERMAL_TREND_DROPPING, use lower cooling
+>   *       state for this trip point
+> + *    c. if the trend is THERMAL_TREND_RAISE_FULL, use highest cooling
+> + *       state for this trip point
+> + *    d. if the trend is THERMAL_TREND_DROP_FULL, use lowest cooling
+> + *       state for this trip point
+>   */
+>  static unsigned long get_target_state(struct thermal_instance *instance,
+>  					enum thermal_trend trend)
+> @@ -50,7 +54,10 @@ static unsigned long get_target_state(struct thermal_instance *instance,
+>  	} else if (trend == THERMAL_TREND_DROPPING) {
+>  		cur_state = cur_state > instance->lower ?
+>  			    (cur_state - 1) : instance->lower;
+> -	}
+> +	} else if (trend == THERMAL_TREND_RAISE_FULL)
+> +		cur_state = instance->upper;
+> +	else if (trend == THERMAL_TREND_DROP_FULL)
+> +		cur_state = instance->lower;
+>  
+>  	return cur_state;
+>  }
+> @@ -87,7 +94,8 @@ static void update_instance_for_throttle(struct thermal_zone_device *tz,
+>  }
+>  
+>  static void update_instance_for_dethrottle(struct thermal_zone_device *tz,
+> -				int trip, enum thermal_trip_type trip_type)
+> +				int trip, enum thermal_trip_type trip_type,
+> +				enum thermal_trend trend)
+>  {
+>  	struct thermal_instance *instance;
+>  	struct thermal_cooling_device *cdev;
+> @@ -101,7 +109,10 @@ static void update_instance_for_dethrottle(struct thermal_zone_device *tz,
+>  		cdev = instance->cdev;
+>  		cdev->ops->get_cur_state(cdev, &cur_state);
+>  
+> -		instance->target = cur_state > instance->lower ?
+> +		if (trend == THERMAL_TREND_DROP_FULL)
+> +			instance->target = instance->lower;
+> +		else
+> +			instance->target = cur_state > instance->lower ?
+>  			    (cur_state - 1) : THERMAL_NO_TARGET;
+>  
+what do you expect to happen if the trend is THERMAL_TREND_RAISE_FULL at
+this time?
 
---tvOENZuN7d6HfOWU
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Wed, Nov 21, 2012 at 10:31:15PM +0100, Rafael J. Wysocki wrote:
-
-> I wonder if the GPIO / SPI / I2C maintainers have any objections against it or
-> would like the patches to be modified somehow?
-
-> If not, then I'd like to take it for v3.8 into the linux-pm.git tree, because
-> the patches depend on some changes already in that tree.  Hopefully, that's OK.
-
-Honestly I stopped reading these patches as there were so many patch
-revisions and incremental versions mixed in to one big thread that it's
-very hard to follow.  Will go back and check...
-
---tvOENZuN7d6HfOWU
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQrYEQAAoJELSic+t+oim9SUAP/jGwP5YJ+TaQge37p4m6WuFh
-wBtsmh7FoSsDlD/GuXz8xJtF4JXoUXRZZ5uYRe3fzCXOtZZoCJF+qOLJ7tIME5rz
-cXnmGiZ+nT1jJuzHGEWxI0xNPwqBd0LSh04w9xE5rusbraNIj55rIECbXg5MBqEW
-3YZumTwTL9WlrojsMGZa1CCyESElsubJ3E9xsH1Sgwpqr/tCik4fTSbxbWLBOvDg
-op7Ss2SMbagGevALyerfeJGE0ThmDP96knarSm7b0OHG0p31PJOFCyZesJDZ3XPC
-/JM3oXXAIFIH09f9a187jqB/efgWokw6J8X0ZqcTv3wxsoT3YwQwtwP6bC5SYlr1
-DJ96lTr0jJE0Gi5icjMGtDL1kQxvlVYYcfdTYD8mpTTUyINOfk/PrSD0LebLyKJ3
-tgxA/gbC2iPWXA5afsD44fbZ+ISDPWJd5dd1PHKdh4ycsea4FVVR/V5G7fnbuO66
-71KhwVDBlZY+rK2FR/LJI0lKfYZjIEB6M9rIDq3sQJkj1NTqwEsfJl/X5h4khT4A
-0/zQ9VEwgNgpjX4DKBBmz9BeSVIXVvYukeDzP7wul9pTFLAfx/Bmpn0VlEexT455
-J0f1/Btg112CP+Ff6m5yTiDg/vthk7BrIHQiBSb/9/CkC2uMpUZJUlc1vNCakgZS
-tElGJPFzTj6EJxppGY2n
-=ET8i
------END PGP SIGNATURE-----
-
---tvOENZuN7d6HfOWU--
+thanks,
+rui
