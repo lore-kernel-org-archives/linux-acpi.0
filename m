@@ -1,154 +1,99 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [PATCH v3 00/12] memory-hotplug: hot-remove physical memory
-Date: Thu, 22 Nov 2012 10:33:32 +0900
-Message-ID: <50AD80EC.8050101@jp.fujitsu.com>
-References: <1351763083-7905-1-git-send-email-wency@cn.fujitsu.com>
+From: Amit Kachhap <amit.kachhap@linaro.org>
+Subject: Re: [PATCH 1/4] thermal: Add new thermal trend type to support quick cooling
+Date: Thu, 22 Nov 2012 10:11:28 +0530
+Message-ID: <CAK44p21mnUpWpHWui6yFqaE5mrjTHhx48j3Mgm0K-KL3EskaGA@mail.gmail.com>
+References: <1352348786-24255-1-git-send-email-amit.kachhap@linaro.org>
+	<1352348786-24255-2-git-send-email-amit.kachhap@linaro.org>
+	<1353547324.2172.1.camel@rzhang1-mobl4>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1351763083-7905-1-git-send-email-wency@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Wen Congyang <wency@cn.fujitsu.com>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, David Rientjes <rientjes@google.com>, Jiang Liu <liuj97@gmail.com>, Len Brown <len.brown@intel.com>, benh@kernel.crashing.org, paulus@samba.org, Christoph Lameter <cl@linux.com>, Minchan Kim <minchan.kim@gmail.com>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Jianguo Wu <wujianguo@huawei.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <1353547324.2172.1.camel@rzhang1-mobl4>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-pm@lists.linux-foundation.org, linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org, durgadoss.r@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, jonghwa3.lee@samsung.com
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Andrew,
+On 22 November 2012 06:52, Zhang Rui <rui.zhang@intel.com> wrote:
+> On Thu, 2012-11-08 at 09:56 +0530, Amit Daniel Kachhap wrote:
+>> This modification adds 2 new thermal trend type THERMAL_TREND_RAISE_FULL
+>> and THERMAL_TREND_DROP_FULL. This thermal trend can be used to quickly
+>> jump to the upper or lower cooling level instead of incremental increase
+>> or decrease. This is needed for temperature sensors which support rising/falling
+>> threshold interrupts and polling can be totally avoided.
+>>
+>> Signed-off-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
+>> Signed-off-by: Amit Daniel Kachhap <amit.kachhap@linaro.org>
+>> ---
+>>  drivers/thermal/step_wise.c |   19 +++++++++++++++----
+>>  include/linux/thermal.h     |    2 ++
+>>  2 files changed, 17 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/drivers/thermal/step_wise.c b/drivers/thermal/step_wise.c
+>> index 1242cff..0d2d8d6 100644
+>> --- a/drivers/thermal/step_wise.c
+>> +++ b/drivers/thermal/step_wise.c
+>> @@ -35,6 +35,10 @@
+>>   *       state for this trip point
+>>   *    b. if the trend is THERMAL_TREND_DROPPING, use lower cooling
+>>   *       state for this trip point
+>> + *    c. if the trend is THERMAL_TREND_RAISE_FULL, use highest cooling
+>> + *       state for this trip point
+>> + *    d. if the trend is THERMAL_TREND_DROP_FULL, use lowest cooling
+>> + *       state for this trip point
+>>   */
+>>  static unsigned long get_target_state(struct thermal_instance *instance,
+>>                                       enum thermal_trend trend)
+>> @@ -50,7 +54,10 @@ static unsigned long get_target_state(struct thermal_instance *instance,
+>>       } else if (trend == THERMAL_TREND_DROPPING) {
+>>               cur_state = cur_state > instance->lower ?
+>>                           (cur_state - 1) : instance->lower;
+>> -     }
+>> +     } else if (trend == THERMAL_TREND_RAISE_FULL)
+>> +             cur_state = instance->upper;
+>> +     else if (trend == THERMAL_TREND_DROP_FULL)
+>> +             cur_state = instance->lower;
+>>
+>>       return cur_state;
+>>  }
+>> @@ -87,7 +94,8 @@ static void update_instance_for_throttle(struct thermal_zone_device *tz,
+>>  }
+>>
+>>  static void update_instance_for_dethrottle(struct thermal_zone_device *tz,
+>> -                             int trip, enum thermal_trip_type trip_type)
+>> +                             int trip, enum thermal_trip_type trip_type,
+>> +                             enum thermal_trend trend)
+>>  {
+>>       struct thermal_instance *instance;
+>>       struct thermal_cooling_device *cdev;
+>> @@ -101,7 +109,10 @@ static void update_instance_for_dethrottle(struct thermal_zone_device *tz,
+>>               cdev = instance->cdev;
+>>               cdev->ops->get_cur_state(cdev, &cur_state);
+>>
+>> -             instance->target = cur_state > instance->lower ?
+>> +             if (trend == THERMAL_TREND_DROP_FULL)
+>> +                     instance->target = instance->lower;
+>> +             else
+>> +                     instance->target = cur_state > instance->lower ?
+>>                           (cur_state - 1) : THERMAL_NO_TARGET;
+>>
+> what do you expect to happen if the trend is THERMAL_TREND_RAISE_FULL at
+> this time?
+>
+Hi Rui,
 
-The patch-set aims to linux-3.8. So we would like you to merge
-the patch-set into your tree.
-
-The patch-set applied many comments. Currently there is no
-comment to the patch-set.
-
-Additionally, we have spent a lot of time on the verification
-of the patch-set. And we found many bugs, and fixed them.
-
-So we believe that Linux on x86_64 can support memory hot remove
-by the patch-set. 
+I suppose this is dethrotle routine and hence this will be called when
+only drop in temperature happens. Also I did not used get_target_state
+here because I thought it might cause regression in the other existing
+thermal drivers(I am not sure) But I guess calling get_target_state is
+the good way to know next target state and is fine if you agree.
+Also one suggestion, 2 functions for throttle/dethrottle can be merged
+as both look same and just get_target_state can be used in that
+function
 
 Thanks,
-Yasuaki Ishimatsu
+Amit Daniel
 
-2012/11/01 18:44, Wen Congyang wrote:
-> The patch-set was divided from following thread's patch-set.
->      https://lkml.org/lkml/2012/9/5/201
-> 
-> The last version of this patchset:
->      https://lkml.org/lkml/2012/10/23/213
-> 
-> If you want to know the reason, please read following thread.
-> 
-> https://lkml.org/lkml/2012/10/2/83
-> 
-> The patch-set has only the function of kernel core side for physical
-> memory hot remove. So if you use the patch, please apply following
-> patches.
-> 
-> - bug fix for memory hot remove
->    https://lkml.org/lkml/2012/10/31/269
->    
-> - acpi framework
->    https://lkml.org/lkml/2012/10/26/175
-> 
-> The patches can free/remove the following things:
-> 
->    - /sys/firmware/memmap/X/{end, start, type} : [PATCH 2/10]
->    - mem_section and related sysfs files       : [PATCH 3-4/10]
->    - memmap of sparse-vmemmap                  : [PATCH 5-7/10]
->    - page table of removed memory              : [RFC PATCH 8/10]
->    - node and related sysfs files              : [RFC PATCH 9-10/10]
-> 
-> * [PATCH 2/10] checks whether the memory can be removed or not.
-> 
-> If you find lack of function for physical memory hot-remove, please let me
-> know.
-> 
-> How to test this patchset?
-> 1. apply this patchset and build the kernel. MEMORY_HOTPLUG, MEMORY_HOTREMOVE,
->     ACPI_HOTPLUG_MEMORY must be selected.
-> 2. load the module acpi_memhotplug
-> 3. hotplug the memory device(it depends on your hardware)
->     You will see the memory device under the directory /sys/bus/acpi/devices/.
->     Its name is PNP0C80:XX.
-> 4. online/offline pages provided by this memory device
->     You can write online/offline to /sys/devices/system/memory/memoryX/state to
->     online/offline pages provided by this memory device
-> 5. hotremove the memory device
->     You can hotremove the memory device by the hardware, or writing 1 to
->     /sys/bus/acpi/devices/PNP0C80:XX/eject.
-> 
-> Note: if the memory provided by the memory device is used by the kernel, it
-> can't be offlined. It is not a bug.
-> 
-> Known problems:
-> 1. hotremoving memory device may cause kernel panicked
->     This bug will be fixed by Liu Jiang's patch:
->     https://lkml.org/lkml/2012/7/3/1
-> 
-> 
-> Changelogs from v2 to v3:
->   Patch9: call sync_global_pgds() if pgd is changed
->   Patch10: fix a problem int the patch
-> 
-> Changelogs from v1 to v2:
->   Patch1: new patch, offline memory twice. 1st iterate: offline every non primary
->           memory block. 2nd iterate: offline primary (i.e. first added) memory
->           block.
-> 
->   Patch3: new patch, no logical change, just remove reduntant codes.
-> 
->   Patch9: merge the patch from wujianguo into this patch. flush tlb on all cpu
->           after the pagetable is changed.
-> 
->   Patch12: new patch, free node_data when a node is offlined
-> 
-> Wen Congyang (6):
->    memory-hotplug: try to offline the memory twice to avoid dependence
->    memory-hotplug: remove redundant codes
->    memory-hotplug: introduce new function arch_remove_memory() for
->      removing page table depends on architecture
->    memory-hotplug: remove page table of x86_64 architecture
->    memory-hotplug: remove sysfs file of node
->    memory-hotplug: free node_data when a node is offlined
-> 
-> Yasuaki Ishimatsu (6):
->    memory-hotplug: check whether all memory blocks are offlined or not
->      when removing memory
->    memory-hotplug: remove /sys/firmware/memmap/X sysfs
->    memory-hotplug: unregister memory section on SPARSEMEM_VMEMMAP
->    memory-hotplug: implement register_page_bootmem_info_section of
->      sparse-vmemmap
->    memory-hotplug: remove memmap of sparse-vmemmap
->    memory-hotplug: memory_hotplug: clear zone when removing the memory
-> 
->   arch/ia64/mm/discontig.c             |  14 ++
->   arch/ia64/mm/init.c                  |  18 ++
->   arch/powerpc/mm/init_64.c            |  14 ++
->   arch/powerpc/mm/mem.c                |  12 +
->   arch/s390/mm/init.c                  |  12 +
->   arch/s390/mm/vmem.c                  |  14 ++
->   arch/sh/mm/init.c                    |  17 ++
->   arch/sparc/mm/init_64.c              |  14 ++
->   arch/tile/mm/init.c                  |   8 +
->   arch/x86/include/asm/pgtable_types.h |   1 +
->   arch/x86/mm/init_32.c                |  12 +
->   arch/x86/mm/init_64.c                | 417 +++++++++++++++++++++++++++++++++++
->   arch/x86/mm/pageattr.c               |  47 ++--
->   drivers/acpi/acpi_memhotplug.c       |   8 +-
->   drivers/base/memory.c                |   6 +
->   drivers/firmware/memmap.c            |  98 +++++++-
->   include/linux/firmware-map.h         |   6 +
->   include/linux/memory_hotplug.h       |  15 +-
->   include/linux/mm.h                   |   5 +-
->   mm/memory_hotplug.c                  | 409 ++++++++++++++++++++++++++++++++--
->   mm/sparse.c                          |   5 +-
->   21 files changed, 1095 insertions(+), 57 deletions(-)
-> 
-
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+> thanks,
+> rui
+>
