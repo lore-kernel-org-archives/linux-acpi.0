@@ -1,47 +1,58 @@
-From: Cyril Roelandt <tipecaml@gmail.com>
-Subject: Re: [PATCH] acpi_system_write_wakeup_device(): fix error check for
- unsigned variable.
-Date: Thu, 22 Nov 2012 01:05:30 +0100
-Message-ID: <50AD6C4A.4030809@gmail.com>
-References: <1353117263-6957-1-git-send-email-tipecaml@gmail.com> <1732852.VDXGV3Ao2T@vostro.rjw.lan>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH v4 0/3] ACPI 5 support for GPIO, SPI and I2C
+Date: Thu, 22 Nov 2012 10:36:29 +0900
+Message-ID: <20121122013627.GG4371@opensource.wolfsonmicro.com>
+References: <1353407384-26880-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1353435212-15325-1-git-send-email-mika.westerberg@linux.intel.com>
+ <79636467.nuLQX2FqW5@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="tvOENZuN7d6HfOWU"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1732852.VDXGV3Ao2T@vostro.rjw.lan>
+Content-Disposition: inline
+In-Reply-To: <79636467.nuLQX2FqW5@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org, kernel-janitors@vger.kernel.org
+Cc: grant.likely@secretlab.ca, linus.walleij@linaro.org, w.sang@pengutronix.de, Mika Westerberg <mika.westerberg@linux.intel.com>, rafael.j.wysocki@intel.com, linux-kernel@vger.kernel.org, lenb@kernel.org, khali@linux-fr.org, ben-linux@fluff.org, bhelgaas@google.com, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 11/21/2012 01:44 AM, Rafael J. Wysocki wrote:
-> On Saturday, November 17, 2012 02:54:23 AM Cyril Roelandt wrote:
->> The LEN variable is unsigned, therefore checking whether it is less than 0 is
->> useless.
->>
->> Signed-off-by: Cyril Roelandt<tipecaml@gmail.com>
->> ---
->>   drivers/acpi/proc.c |    2 --
->>   1 file changed, 2 deletions(-)
->>
->> diff --git a/drivers/acpi/proc.c b/drivers/acpi/proc.c
->> index 27adb09..37871a7 100644
->> --- a/drivers/acpi/proc.c
->> +++ b/drivers/acpi/proc.c
->> @@ -366,8 +366,6 @@ acpi_system_write_wakeup_device(struct file *file,
->>
->>   	if (len>  4)
->>   		len = 4;
->> -	if (len<  0)
->> -		return -EFAULT;
->
-> I would prefer to check if count<  0 instead.
->
 
+--tvOENZuN7d6HfOWU
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-count has type size_t, so it is also an unsigned variable. I think that 
-acpi_system_write_wakeup_device really cannot be called with a "count" 
-parameter that is less than 0.
+On Wed, Nov 21, 2012 at 10:31:15PM +0100, Rafael J. Wysocki wrote:
 
-WBR,
-Cyril Roelandt.
+> I wonder if the GPIO / SPI / I2C maintainers have any objections against it or
+> would like the patches to be modified somehow?
+
+> If not, then I'd like to take it for v3.8 into the linux-pm.git tree, because
+> the patches depend on some changes already in that tree.  Hopefully, that's OK.
+
+Honestly I stopped reading these patches as there were so many patch
+revisions and incremental versions mixed in to one big thread that it's
+very hard to follow.  Will go back and check...
+
+--tvOENZuN7d6HfOWU
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQrYEQAAoJELSic+t+oim9SUAP/jGwP5YJ+TaQge37p4m6WuFh
+wBtsmh7FoSsDlD/GuXz8xJtF4JXoUXRZZ5uYRe3fzCXOtZZoCJF+qOLJ7tIME5rz
+cXnmGiZ+nT1jJuzHGEWxI0xNPwqBd0LSh04w9xE5rusbraNIj55rIECbXg5MBqEW
+3YZumTwTL9WlrojsMGZa1CCyESElsubJ3E9xsH1Sgwpqr/tCik4fTSbxbWLBOvDg
+op7Ss2SMbagGevALyerfeJGE0ThmDP96knarSm7b0OHG0p31PJOFCyZesJDZ3XPC
+/JM3oXXAIFIH09f9a187jqB/efgWokw6J8X0ZqcTv3wxsoT3YwQwtwP6bC5SYlr1
+DJ96lTr0jJE0Gi5icjMGtDL1kQxvlVYYcfdTYD8mpTTUyINOfk/PrSD0LebLyKJ3
+tgxA/gbC2iPWXA5afsD44fbZ+ISDPWJd5dd1PHKdh4ycsea4FVVR/V5G7fnbuO66
+71KhwVDBlZY+rK2FR/LJI0lKfYZjIEB6M9rIDq3sQJkj1NTqwEsfJl/X5h4khT4A
+0/zQ9VEwgNgpjX4DKBBmz9BeSVIXVvYukeDzP7wul9pTFLAfx/Bmpn0VlEexT455
+J0f1/Btg112CP+Ff6m5yTiDg/vthk7BrIHQiBSb/9/CkC2uMpUZJUlc1vNCakgZS
+tElGJPFzTj6EJxppGY2n
+=ET8i
+-----END PGP SIGNATURE-----
+
+--tvOENZuN7d6HfOWU--
