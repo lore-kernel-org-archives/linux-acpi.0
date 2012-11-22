@@ -1,84 +1,34 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH 1/4] thermal: Add new thermal trend type to support
- quick cooling
-Date: Thu, 22 Nov 2012 09:22:04 +0800
-Message-ID: <1353547324.2172.1.camel@rzhang1-mobl4>
-References: <1352348786-24255-1-git-send-email-amit.kachhap@linaro.org>
-	 <1352348786-24255-2-git-send-email-amit.kachhap@linaro.org>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH v7-1 1/5] ACPI: Add acpi_handle_<level>() interfaces
+Date: Thu, 22 Nov 2012 09:52:58 -0700
+Message-ID: <1353603178.26301.6.camel@misato.fc.hp.com>
+References: <1353461788-808-1-git-send-email-toshi.kani@hp.com>
+	 <15759755.f5L9LAVF83@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1352348786-24255-2-git-send-email-amit.kachhap@linaro.org>
+In-Reply-To: <15759755.f5L9LAVF83@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Amit Daniel Kachhap <amit.kachhap@linaro.org>
-Cc: linux-pm@lists.linux-foundation.org, linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org, durgadoss.r@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, jonghwa3.lee@samsung.com
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, linux-kernel@vger.kernel.org, joe@perches.com, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, vijaymohan.pandarathil@hp.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2012-11-08 at 09:56 +0530, Amit Daniel Kachhap wrote:
-> This modification adds 2 new thermal trend type THERMAL_TREND_RAISE_FULL
-> and THERMAL_TREND_DROP_FULL. This thermal trend can be used to quickly
-> jump to the upper or lower cooling level instead of incremental increase
-> or decrease. This is needed for temperature sensors which support rising/falling
-> threshold interrupts and polling can be totally avoided.
+> > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+> > Tested-by: Vijay Mohan Pandarathil <vijaymohan.pandarathil@hp.com>
+> > ---
+> > 
+> > Hi Rafael,
+> > This patch replaces the [PATCH v7 1/5] below in the v7 series.
+> > https://lkml.org/lkml/2012/11/20/719
 > 
-> Signed-off-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
-> Signed-off-by: Amit Daniel Kachhap <amit.kachhap@linaro.org>
-> ---
->  drivers/thermal/step_wise.c |   19 +++++++++++++++----
->  include/linux/thermal.h     |    2 ++
->  2 files changed, 17 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/thermal/step_wise.c b/drivers/thermal/step_wise.c
-> index 1242cff..0d2d8d6 100644
-> --- a/drivers/thermal/step_wise.c
-> +++ b/drivers/thermal/step_wise.c
-> @@ -35,6 +35,10 @@
->   *       state for this trip point
->   *    b. if the trend is THERMAL_TREND_DROPPING, use lower cooling
->   *       state for this trip point
-> + *    c. if the trend is THERMAL_TREND_RAISE_FULL, use highest cooling
-> + *       state for this trip point
-> + *    d. if the trend is THERMAL_TREND_DROP_FULL, use lowest cooling
-> + *       state for this trip point
->   */
->  static unsigned long get_target_state(struct thermal_instance *instance,
->  					enum thermal_trend trend)
-> @@ -50,7 +54,10 @@ static unsigned long get_target_state(struct thermal_instance *instance,
->  	} else if (trend == THERMAL_TREND_DROPPING) {
->  		cur_state = cur_state > instance->lower ?
->  			    (cur_state - 1) : instance->lower;
-> -	}
-> +	} else if (trend == THERMAL_TREND_RAISE_FULL)
-> +		cur_state = instance->upper;
-> +	else if (trend == THERMAL_TREND_DROP_FULL)
-> +		cur_state = instance->lower;
->  
->  	return cur_state;
->  }
-> @@ -87,7 +94,8 @@ static void update_instance_for_throttle(struct thermal_zone_device *tz,
->  }
->  
->  static void update_instance_for_dethrottle(struct thermal_zone_device *tz,
-> -				int trip, enum thermal_trip_type trip_type)
-> +				int trip, enum thermal_trip_type trip_type,
-> +				enum thermal_trend trend)
->  {
->  	struct thermal_instance *instance;
->  	struct thermal_cooling_device *cdev;
-> @@ -101,7 +109,10 @@ static void update_instance_for_dethrottle(struct thermal_zone_device *tz,
->  		cdev = instance->cdev;
->  		cdev->ops->get_cur_state(cdev, &cur_state);
->  
-> -		instance->target = cur_state > instance->lower ?
-> +		if (trend == THERMAL_TREND_DROP_FULL)
-> +			instance->target = instance->lower;
-> +		else
-> +			instance->target = cur_state > instance->lower ?
->  			    (cur_state - 1) : THERMAL_NO_TARGET;
->  
-what do you expect to happen if the trend is THERMAL_TREND_RAISE_FULL at
-this time?
+> I've applied the entire v7 series to linux-pm.git/linux-next as v3.8 material.
 
-thanks,
-rui
+Great!
+
+> As far as the .sys_notify series is concerned, I don't really like it.
+> I'll send you my comments in the next few days.
+
+Thanks for reviewing!  Yes, let me know your comments.
+
+-Toshi
