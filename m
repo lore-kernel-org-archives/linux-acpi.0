@@ -1,53 +1,40 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v4 0/3] ACPI 5 support for GPIO, SPI and I2C
-Date: Fri, 23 Nov 2012 12:39:40 +0100
-Message-ID: <1717408.oqDbQt79dV@vostro.rjw.lan>
-References: <1353407384-26880-1-git-send-email-mika.westerberg@linux.intel.com> <79636467.nuLQX2FqW5@vostro.rjw.lan> <20121121225450.026dcaf6@endymion.delvare>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v2 2/3] ACPI: add SDHCI to ACPI platform devices
+Date: Fri, 23 Nov 2012 15:25:18 +0200
+Message-ID: <20121123132518.GZ3867@intel.com>
+References: <1353670561-22515-1-git-send-email-adrian.hunter@intel.com>
+ <1353670561-22515-3-git-send-email-adrian.hunter@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:34790 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753515Ab2KWLfJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 23 Nov 2012 06:35:09 -0500
-In-Reply-To: <20121121225450.026dcaf6@endymion.delvare>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1353670561-22515-3-git-send-email-adrian.hunter@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Adrian Hunter <adrian.hunter@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jean Delvare <khali@linux-fr.org>
-Cc: grant.likely@secretlab.ca, linus.walleij@linaro.org, w.sang@pengutronix.de, Mika Westerberg <mika.westerberg@linux.intel.com>, rafael.j.wysocki@intel.com, linux-kernel@vger.kernel.org, lenb@kernel.org, broonie@opensource.wolfsonmicro.com, ben-linux@fluff.org, bhelgaas@google.com, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
 
-On Wednesday, November 21, 2012 10:54:50 PM Jean Delvare wrote:
-> On Wed, 21 Nov 2012 22:31:15 +0100, Rafael J. Wysocki wrote:
-> > > Mathias Nyman (1):
-> > >   gpio / ACPI: add ACPI support
-> > > 
-> > > Mika Westerberg (2):
-> > >   spi / ACPI: add ACPI enumeration support
-> > >   i2c / ACPI: add ACPI enumeration support
-> > 
-> > This patchset has been around for quite a while and went through a few
-> > iterations, so I think it's as good as it gets at this point.
-> > 
-> > I wonder if the GPIO / SPI / I2C maintainers have any objections against it or
-> > would like the patches to be modified somehow?
+On Fri, Nov 23, 2012 at 01:36:00PM +0200, Adrian Hunter wrote:
+> Signed-off-by: Adrian Hunter <adrian.hunter@intel.com>
+
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+
+> ---
+>  drivers/acpi/scan.c | 2 ++
+>  1 file changed, 2 insertions(+)
 > 
-> I'd say go ahead, any issue that shows up can be fixed afterward.
-> 
-> > If not, then I'd like to take it for v3.8 into the linux-pm.git tree, because
-> > the patches depend on some changes already in that tree.  Hopefully, that's OK.
-> 
-> Yes.
-
-Cool, thanks! :-)
-
-I took the i2c patch for linux-next (targeting v3.8) and I'm waiting with
-the GPIO and SPI patches for a word from Grant.
-
-Thanks,
-Rafael
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 8c4ac6d..67a7fa6 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -35,6 +35,8 @@ static const char *dummy_hid = "device";
+>   */
+>  static const struct acpi_device_id acpi_platform_device_ids[] = {
+>  
+> +	{ "PNP0D40" },
+> +
+>  	{ }
+>  };
+>  
+> -- 
+> 1.7.11.7
