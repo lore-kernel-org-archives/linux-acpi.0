@@ -1,28 +1,51 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v2 3/3] mmc: sdhci-acpi: add SDHCI ACPI driver
-Date: Fri, 23 Nov 2012 15:27:49 +0200
-Message-ID: <20121123132749.GA3867@intel.com>
-References: <1353670561-22515-1-git-send-email-adrian.hunter@intel.com>
- <1353670561-22515-4-git-send-email-adrian.hunter@intel.com>
+From: Justin Chudgar <justin@justinzane.com>
+Subject: acer_wmi
+Date: Fri, 23 Nov 2012 08:45:59 -0800
+Message-ID: <50AFA847.4060107@justinzane.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+ boundary="------------010308000705050008000402"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:36927 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751457Ab2KWNYb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 23 Nov 2012 08:24:31 -0500
-Content-Disposition: inline
-In-Reply-To: <1353670561-22515-4-git-send-email-adrian.hunter@intel.com>
+Received: from tiny.justinzane.com ([216.7.117.181]:60250 "EHLO
+	happy.justinzane.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755931Ab2KWQwd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Nov 2012 11:52:33 -0500
+Received: from happy.justinzane.com (media01.local [192.168.0.50])
+	by happy.justinzane.com (Postfix) with ESMTP id 2BCE1180195D1
+	for <linux-acpi@vger.kernel.org>; Fri, 23 Nov 2012 08:46:02 -0800 (PST)
+Received: from [192.168.0.180] (unknown [192.168.0.180])
+	by happy.justinzane.com (Postfix) with ESMTPSA id C80D7180195D1
+	for <linux-acpi@vger.kernel.org>; Fri, 23 Nov 2012 08:46:00 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On Fri, Nov 23, 2012 at 01:36:01PM +0200, Adrian Hunter wrote:
-> Signed-off-by: Adrian Hunter <adrian.hunter@intel.com>
-> Acked-by: Chris Ball <cjb@laptop.org>
+This is a multi-part message in MIME format.
+--------------010308000705050008000402
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-Looks like you left that redundant check in place but it doesn't hurt
-anyway.
+Is this the appropriate list to ask about the acer_wmi module?
 
-Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+-- 
+Justin Chudgar  |  Weed, CA 96094  |  530 921 0738 | http://www.justinzane.com/
+
+
+--------------010308000705050008000402
+Content-Type: text/x-vcard; charset=utf-8;
+ name="justin.vcf"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="justin.vcf"
+
+begin:vcard
+fn:Justin Chudgar
+n:Chudgar;Justin
+email;internet:justin@justinzane.com
+tel;cell:530-921-0738
+x-mozilla-html:FALSE
+version:2.1
+end:vcard
+
+
+--------------010308000705050008000402--
