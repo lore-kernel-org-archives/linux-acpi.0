@@ -1,54 +1,74 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v2 0/3] Add SDHCI ACPI driver
-Date: Fri, 23 Nov 2012 21:35:22 +0100
-Message-ID: <3416042.oXdXWT2CDk@vostro.rjw.lan>
-References: <1353670561-22515-1-git-send-email-adrian.hunter@intel.com>
+Subject: [PATCH] PM / QoS: Handle device PM QoS flags while removing constraints
+Date: Sat, 24 Nov 2012 00:41:25 +0100
+Message-ID: <12198078.HQz2VYRPzC@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:35328 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([193.178.161.156]:35456 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756188Ab2KWUau (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 23 Nov 2012 15:30:50 -0500
-In-Reply-To: <1353670561-22515-1-git-send-email-adrian.hunter@intel.com>
+	id S932231Ab2KWXgx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 23 Nov 2012 18:36:53 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Chris Ball <cjb@laptop.org>, mika.westerberg@linux.intel.com, linux-mmc@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Linux PM list <linux-pm@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Friday, November 23, 2012 01:35:58 PM Adrian Hunter wrote:
-> Hi
-> 
-> Here is SDHCI ACPI driver.
-> 
-> Changes for v2:
-> 
-> 	Dropped "PNPACPI: exclude SDHCI devices"
-> 	Added "PNPACPI: exclude devices already bound"
-> 	Changed dev->acpi_handle to ACPI_HANDLE(dev)
-> 	Added Chris' Ack for sdhci-acpi
-> 
-> 
-> Adrian Hunter (2):
->       ACPI: add SDHCI to ACPI platform devices
->       mmc: sdhci-acpi: add SDHCI ACPI driver
-> 
-> Mika Westerberg (1):
->       PNPACPI: exclude devices already bound
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Applied to linux-pm.git/linux-next as v3.8 material.
+PM QoS flags have to be handled by dev_pm_qos_constraints_destroy()
+in the same way as PM QoS resume latency constraits.  That is, if
+they have been exposed to user space, they have to be hidden from it
+and the list of flags requests has to be flushed before destroying
+the device's PM QoS object.  Make that happen.
 
-Next time, however, I'll really prefer it if your changelogs (1) exist and (2)
-are more descriptive than the (existing) ones in this series.
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/base/power/qos.c |   13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
-I added the changelogs for you (please check in the tree above if they make
-sense), but that's not something I should be doing in general I think.
+Index: linux/drivers/base/power/qos.c
+===================================================================
+--- linux.orig/drivers/base/power/qos.c
++++ linux/drivers/base/power/qos.c
+@@ -223,12 +223,14 @@ void dev_pm_qos_constraints_destroy(stru
+ 	struct dev_pm_qos *qos;
+ 	struct dev_pm_qos_request *req, *tmp;
+ 	struct pm_qos_constraints *c;
++	struct pm_qos_flags *f;
+ 
+ 	/*
+-	 * If the device's PM QoS resume latency limit has been exposed to user
+-	 * space, it has to be hidden at this point.
++	 * If the device's PM QoS resume latency limit or PM QoS flags have been
++	 * exposed to user space, they have to be hidden at this point.
+ 	 */
+ 	dev_pm_qos_hide_latency_limit(dev);
++	dev_pm_qos_hide_flags(dev);
+ 
+ 	mutex_lock(&dev_pm_qos_mtx);
+ 
+@@ -237,8 +239,8 @@ void dev_pm_qos_constraints_destroy(stru
+ 	if (!qos)
+ 		goto out;
+ 
++	/* Flush the constraints lists for the device. */
+ 	c = &qos->latency;
+-	/* Flush the constraints list for the device */
+ 	plist_for_each_entry_safe(req, tmp, &c->list, data.pnode) {
+ 		/*
+ 		 * Update constraints list and call the notification
+@@ -247,6 +249,11 @@ void dev_pm_qos_constraints_destroy(stru
+ 		apply_constraint(req, PM_QOS_REMOVE_REQ, PM_QOS_DEFAULT_VALUE);
+ 		memset(req, 0, sizeof(*req));
+ 	}
++	f = &qos->flags;
++	list_for_each_entry_safe(req, tmp, &f->list, data.flr.node) {
++		apply_constraint(req, PM_QOS_REMOVE_REQ, PM_QOS_DEFAULT_VALUE);
++		memset(req, 0, sizeof(*req));
++	}
+ 
+ 	spin_lock_irq(&dev->power.lock);
+ 	dev->power.qos = NULL;
 
-Thanks,
-Rafael
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
