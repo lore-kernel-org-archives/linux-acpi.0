@@ -1,105 +1,74 @@
-From: KINGDOM NELSON <kingdomnelson1@gmail.com>
-Subject: KINGDOM NELSON
-Date: Thu, 22 Nov 2012 22:48:38 -0800 (PST)
-Message-ID: <1353653318.69807.YahooMailClassic__14082.3908652694$1353653667$gmane$org@web5706.biz.mail.ne1.yahoo.com>
-Reply-To: nelson.kingdom@yahoo.com
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH 0/3] Add SDHCI ACPI driver
+Date: Fri, 23 Nov 2012 11:34:16 +0200
+Message-ID: <20121123093416.GR3867@intel.com>
+References: <1353573830-13006-1-git-send-email-adrian.hunter@intel.com>
+ <87k3tdagim.fsf@octavius.laptop.org>
+ <50AE3AB2.2070307@intel.com>
+ <3578053.jWYihc5IJI@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="805399167-1410322043-1353653318=:69807"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nm34-vm6.bullet.mail.bf1.yahoo.com ([72.30.239.78]:30912 "EHLO
-	nm34-vm6.bullet.mail.bf1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932594Ab2KWGyM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 23 Nov 2012 01:54:12 -0500
+Received: from mga09.intel.com ([134.134.136.24]:30563 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758097Ab2KWJa6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 23 Nov 2012 04:30:58 -0500
+Content-Disposition: inline
+In-Reply-To: <3578053.jWYihc5IJI@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Adrian Hunter <adrian.hunter@intel.com>, Chris Ball <cjb@laptop.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-mmc@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
---805399167-1410322043-1353653318=:69807
-Content-Type: text/plain; charset=us-ascii
+On Thu, Nov 22, 2012 at 10:24:33PM +0100, Rafael J. Wysocki wrote:
+> On Thursday, November 22, 2012 04:46:10 PM Adrian Hunter wrote:
+> > On 22/11/12 15:55, Chris Ball wrote:
+> > > Hi,
+> > > 
+> > > On Thu, Nov 22 2012, Adrian Hunter wrote:
+> > >> Here is SDHCI ACPI driver.  It is dependent on new ACPI Platform support
+> > >> so I suggest Rafael takes the patches with Chris' Ack.
+> > >>
+> > >> Please note that I would prefer this to be queued for 3.8
+> > > 
+> > > Looks fine:
+> > > 
+> > > Acked-by: Chris Ball <cjb@laptop.org>
+> > 
+> > Thank you!
+> > 
+> > > 
+> > > I have some dumb questions, though -- what kind of platforms ship with
+> > > these devices?  Do they ever have the controller on PCI too, and what
+> > > happens with sdhci-pci vs. sdhci-acpi in that case?
+> > 
+> > Since the arrival of ACPI5, platform devices can be configured using ACPI
+> > tables.  PCI can also be used, but the firmware ensures that the same
+> > device is not enumerated via both ACPI and PCI.
+> > 
+> > Rafael can you take these patches?
+> 
+> Well, I'd prefer pnpacpi/core.c to actually use acpi_platform_device_ids[]
+> directly in addition to excluded_id_list[], so that duplicate entries don't
+> have to be added to the both of them.
 
+How about having pnpacpi to check if the ACPI device is already bound to a
+physical device and skip the device creation? Then we don't need to expose
+the acpi_platform_device_ids[] list, and this is what the ->find_device()
+code already does so why create the device in the first place?
 
---805399167-1410322043-1353653318=:69807
-Content-Type: application/msword; name=KINGDOM
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="KINGDOM NELSON.rtf"
-
-e1xydGYxXGFuc2lcYW5zaWNwZzEyNTJcZGVmZjBcZGVmbGFuZzEwMzN7XGZv
-bnR0Ymx7XGYwXGZzd2lzc1xmY2hhcnNldDAgQXJpYWw7fX0NCntcKlxnZW5l
-cmF0b3IgTXNmdGVkaXQgNS40MS4xNS4xNTA3O31cdmlld2tpbmQ0XHVjMVxw
-YXJkXGYwXGZzMjAgIEZST00gS0lOR0RPTSBORUxTT05ccGFyDQpHTEVORE9W
-RU4gRkFSTVMsIFpJTUJBQldFIERlYXIgUGFydG5lcixOYXR1cmFsbHksdGhp
-cyBsZXR0ZXIgd2lsbCBjb21lIHRvIHlvdSBhcyBhIHN1cnByaXNlIHNpbmNl
-IHdlIGhhdmUgbm90IG1ldCxwZXJtaXQgbWUgaG93ZXZlciB0byBpbnRyb2R1
-Y2UgbXlzZWxmLEkgYW0gS2luZ2RvbSBOZWxzb24sYSBibGFjayBaaW1iYWJ3
-ZWFuIGZhcm1lcixjdXJyZW50bHkgaW4gc291dGggYWZyaWNhIGFzIHJlZmZ1
-Z2UuIEkgdXNlZCB0byB3b3JrIGluIHRocmVlIHRvYmFjY28gZmFybXMgaW4g
-Q2hpcGluZ2UsYW5kIEkgd2FzIGFsc28gcGFydCBvd25lciBvZiB0aGVzZSBm
-YXJtcyB3aGljaCB3ZXJlIG93bmVkIGJ5IG15IGxhdGUgZmF0aGVyLiBJIGFt
-IGNvbnRhY3RpbmcgeW91IGFzIHRoZSBuZWVkIGZvciBtZSB0byBoYXZlIGEg
-Zm9yZWlnbiBwYXJ0bmVyIGluIHlvdXIgY291bnRyeSBoYXMgYmVjb21lIG5l
-Y2Vzc2FyeSBkdWUgdG8gbXkgcGxhbnMgdG8gcmVsb2NhdGUgdG8gdGhhdCBj
-b3VudHJ5IHNvIHRoYXQgSSBjYW4gcHVyY2hhc2Ugc29tZSBsYW5kIGFuZCBz
-dGFydCBmYXJtaW5nIGFsbCBvdmVyIGFnYWluLGFzIHRoZSBwcmVzZW50IHBv
-bGl0aWNhbCBpbnN0YWJpbGl0eSBpbiBaaW1iYWJ3ZSxkb2VzIG5vdCBlbmNv
-dXJhZ2UgZmluYW5jaWFsIGludmVzdG1lbnQgYXMgdGhlIGVudmlyb25tZW50
-IGlzIG5vIGxvbmdlciBjb25kdWNpdmUgZm9yIGZhcm1pbmcgaW52ZXN0bWVu
-dCBhbmQgbW9zdCBvZiBhbGwsc2VjdXJpdHkgaXMgbm90IGd1YXJhbnRlZWQs
-anVzdCBhcyByZXBvcnRlZCBieSBpbnRlcm5hdGlvbmFsIG1lZGlhLlRoaXMg
-cHJvYmxlbSBzdGFydGVkIHdoZW4gdGhlIFppbWJhYndlYW4gZ292ZXJubWVu
-dCB1bmRlciB0aGUgbGVhZGVyc2hpcCBvZiBQcmVzaWRlbnQgUm9iZXJ0IE11
-Z2FiZSBhbm5vdW5jZWQgYSBkZWNyZWUgb24gTWF5IDMxc3QgMjAwMCB0byBz
-ZWl6ZSBtb3JlIHRoYW44NDlccGFyDQp3aGl0ZS1vd25lZCBmYXJtcy5EdXJp
-bmcgdGhpcyBwZXJpb2QsYXMgcmVwb3J0ZWQgYnkgaW50ZXJuYXRpb25hbCBt
-ZWRpYSBhbmQgaGUgQ05OLG1vcmUgdGhhbiA2MDAgZmFybWVycyhpbmNsdWRp
-bmcgbXkgZmF0aGVyKSB3ZXJlIGtpbGxlZDsgdGhlIGdvdmVybm1lbnQgaXMg
-bm90IHN0b3BwaW5nIGF0IHRoaXMsIGFzIHRoZSBnb3Zlcm5tZW50IGhhcyBh
-bHJlYWR5IGFza2VkIGFsbCBmYXJtZXJzIHRvIGdpdmUgdXAgdGhlaXIgZmFy
-bXMgdG8gZ292ZXJubWVudCBvciByaXNrIGdvaW5nIHRvIHByaXNvbi5TbyBm
-YXIsbW9yZSB0aGFuIDEsNDAwIG93bmVkIGZhcm1zIGhhdmUgYmVlbiBpbnZh
-ZGVkIGFuZCBjb25maXNjYXRlZCxhcyB3ZWxsIGFzIGNsYWltaW5nIHRoZSBw
-cm9wZXJ0aWVzIG9mIHRoZSBmYXJtZXJzLiBBbHNvLGFib3V0IDEzMzMgZmFy
-bWVycyBhcnJlc3RlZCBmb3IgZGVmeWluZyB0aGUgb3JkZXJzIHRvIGxlYXZl
-IHRoZWlyIGZhcm1zIHVuZGVyIHRoZSBjb250cm92ZXJzaWFsIGxhbmQgcmVm
-b3JtIHByb2dyYW0gb2YgdGhlIGdvdmVybm1lbnQuIEhhdmluZyBsaXZlZCBp
-biB0aGlzIGNvdW50cnkgc291dGggYWZyaWNhIGZvciB5ZWFycyxBbSByZWZm
-dWdlIHNvbWUgeWVhcnMgdGhlcmVmb3JlLEkgZGVjaWRlZCB0byBjb250YWN0
-IHlvdSxmb3IgeW91ciBhc3Npc3RhbmNlLHNvIHRoYXQgSSBjYW4gZGl2ZXJ0
-IG15IGludGVyZXN0IGluIHNvdXRoIGFmcmljYSB0byBhIG1vcmUgc3RhYmxl
-IGNvdW50cnkgYXMgeW91cnMuIEFsc28sSSBtdXN0IHJlLWl0ZXJhdGUgdGhl
-IGltcG9ydGFuY2Ugb2YgaGF2aW5nIGEgY2l0aXplbiBvZiB5b3VyIGNvdW50
-cnkgdG8gZnJvbnQgb3IgbWUsc2luY2UgaSBpbnRlbmQgdG8gcHVyY2hhc2Ug
-c29tZSBsYW5kIGZvciBmYXJtaW5nLEkgZG8gbm90IGtub3cgbXVjaCBhYm91
-dCB5b3VyIGxhbmQtb3duZXJzaGlwIGxhd3MsSSB0aG91Z2h0IGl0IHdpc2Ug
-dG9ccGFyDQpzZWVrIHRoZSBoZWxwIG9mIGEgZm9yZWlnbmVyIHRvIGFjdCBh
-cyBwcm94eSBmb3IgbWUuRm9yIHRoaXMgcHVycG9zZSxJIGhhdmUgcHV0IGlu
-IGEgc2VjdXJpdHkgZGVwb3NpdCBhbGwgbW9uaWVzIGZyb20gdGhlIHNhbGUg
-b2YgbXkgZmFybWluZyBlcXVpcG1lbnQoaW5jbHVkaW5nIHRyYWN0b3JzIGV0
-YykgYW5kIGFsc28gYWxsIGZpbmFuY2lhbCBwcm9maXRzLkFsbCB0aGVzZSBh
-cmUgYSB0b3RhbCBvZiBVUyQxOC41bWlsbGlvbi5JIHdpbGwgdXBvbiByZWNl
-aXZpbmcgeW91ciBjb25zZW50IHByZXBhcmUgZXZlcnkgZG9jdW1lbnQgdG8g
-ZW5hYmxlIHlvdSByZWNlaXZlIHRoaXMgbW9uZXkgb24gbXkgYmVoYWxmLHBl
-bmRpbmcgbXkgYXJyaXZhbCB0byBtZWV0IHdpdGggeW91IGluIHlvdXIgY291
-bnRyeSBzbyB0aGF0IHdlIGNhbiBib3RoIG1ha2UgZnVydGhlciBhcnJhbmdl
-bWVudHMgd2l0aCByZWdhcmRzIHRvIHRoZSBwdXJjaGFzZSBvZiBsYW5kLkZv
-ciB5b3VyIGFzc2lzdGFuY2UgdG8gbWUseW91IHdpbGwgYmUgZW50aXRsZWQg
-dG8gYSBjb21taXNzaW9uIG9mIDE1JSBvZiB0aGUgdG90YWwgc3VtIHRoYXQg
-eW91IHdpbGwgYmUgcmVjZWl2aW5nIG9uIG15IGJlaGFsZiBmb3IgdGhlIGFi
-b3ZlIHB1cnBvc2UuSWYgeW91IGFyZSBpbnRlcmVzdGVkIGFuZCB3aWxsaW5n
-IHRvIGFzc2lzdCBtZSx5b3Ugc2hvdWxkIHBsZWFzZSBmb3J3YXJkIHRvIG1l
-IHRoZSBmb2xsb3dpbmcgaW5mb3JtYXRpb24gc28gdGhhdCBJIGNhbiByZWFj
-aCB5b3Ugb3IgY2FsbCBtZSBpbiB0aGlzIG51bWJlciArMjctNzg0MDIzMjA2
-IEkgd2lsbCB0ZWxsIHlvdSBtb3JlIGRldGFpbHMuIDEuIFlPVVIgQ09OVEFD
-VCBBRERSRVNTIDIuIFlPVVIgVEVMRVBIT05FIEFORCBGQVggTlVNQkVSLCAz
-LiBWQUxJRCBJRCBPRiBZT1VSU0VMRiwgSSBhbSB3YWl0aW5nIHVyZ2VudGx5
-IGZvciB5b3VyIHJlc3BvbnNlLHdoaWxlIGFsc29ccGFyDQpyZXF1ZXN0aW5n
-IHRoYXQgeW91IHRyZWF0IHRoaXMgbWF0dGVyIGluIHN0cmljdCBwcml2YWN5
-LkNoZWVycyBhbmQgR29kIGJsZXNzLiBJIHdpbGwgZ2l2ZSB5b3UgbW9yZSBk
-ZXRhaWxzIHdoZW4gaSBoZWFyIGZyb20geW91LllvdSBjYW4gY2xpY2sgb24g
-dGhlIGxpbmsgYmVsb3cgdG8gZ2V0IGEgYmV0dGVyIHVuZGVyc3RhbmRpbmcg
-bXkgc2l0dWF0aW9uIGFuZCB3aHkgaSBuZWVkIHRvIG1vdmUgb3V0IG15IG1v
-bmV5OiBodHRwOi8vbmV3cy5iYmMuY28udWsvMS9oaS93b3JsZC9hZnJpY2Ev
-MTA2ODUyOC5zdG0gQmVzdCBSZWdhcmRzXHBhcg0KXHBhcg0KS2luZ2RvbSBO
-ZWxzb25ccGFyDQpccGFyDQpccGFyDQpccGFyDQpccGFyDQpccGFyDQp9DQoA
-
-
---805399167-1410322043-1353653318=:69807--
+diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
+index 5b17cc8..4dc2e64 100644
+--- a/drivers/pnp/pnpacpi/core.c
++++ b/drivers/pnp/pnpacpi/core.c
+@@ -243,6 +243,10 @@ static int __init pnpacpi_add_device(struct acpi_device *device)
+ 	char *pnpid;
+ 	struct acpi_hardware_id *id;
+ 
++	/* Skip devices that are already bound */
++	if (device->physical_node_count)
++		return 0;
++
+ 	/*
+ 	 * If a PnPacpi device is not present , the device
+ 	 * driver should not be loaded.
