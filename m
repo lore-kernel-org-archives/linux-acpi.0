@@ -1,98 +1,54 @@
-From: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
-Subject: [RFC PATCH v3 2/3] acpi_memhotplug: Add prepare_remove operation
-Date: Fri, 23 Nov 2012 18:50:36 +0100
-Message-ID: <1353693037-21704-3-git-send-email-vasilis.liaskovitis@profitbricks.com>
-References: <1353693037-21704-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1353693037-21704-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
-Sender: owner-linux-mm@kvack.org
-To: linux-acpi@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, wency@cn.fujitsu.com
-Cc: rjw@sisk.pl, lenb@kernel.org, toshi.kani@hp.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v2 0/3] Add SDHCI ACPI driver
+Date: Fri, 23 Nov 2012 21:35:22 +0100
+Message-ID: <3416042.oXdXWT2CDk@vostro.rjw.lan>
+References: <1353670561-22515-1-git-send-email-adrian.hunter@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([193.178.161.156]:35328 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756188Ab2KWUau (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 23 Nov 2012 15:30:50 -0500
+In-Reply-To: <1353670561-22515-1-git-send-email-adrian.hunter@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Adrian Hunter <adrian.hunter@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Chris Ball <cjb@laptop.org>, mika.westerberg@linux.intel.com, linux-mmc@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Offlining and removal of memory is now done in the prepare_remove callback,
-not in the remove callback.
+On Friday, November 23, 2012 01:35:58 PM Adrian Hunter wrote:
+> Hi
+> 
+> Here is SDHCI ACPI driver.
+> 
+> Changes for v2:
+> 
+> 	Dropped "PNPACPI: exclude SDHCI devices"
+> 	Added "PNPACPI: exclude devices already bound"
+> 	Changed dev->acpi_handle to ACPI_HANDLE(dev)
+> 	Added Chris' Ack for sdhci-acpi
+> 
+> 
+> Adrian Hunter (2):
+>       ACPI: add SDHCI to ACPI platform devices
+>       mmc: sdhci-acpi: add SDHCI ACPI driver
+> 
+> Mika Westerberg (1):
+>       PNPACPI: exclude devices already bound
 
-The prepare_remove callback will be called when trying to remove a memory device
-with the following ways:
+Applied to linux-pm.git/linux-next as v3.8 material.
 
-1. send eject request by SCI
-2. echo 1 >/sys/bus/pci/devices/PNP0C80:XX/eject
+Next time, however, I'll really prefer it if your changelogs (1) exist and (2)
+are more descriptive than the (existing) ones in this series.
 
-Note that unbinding the acpi driver from a memory device with:
-echo "PNP0C80:XX" > /sys/bus/acpi/drivers/acpi_memhotplug/unbind
+I added the changelogs for you (please check in the tree above if they make
+sense), but that's not something I should be doing in general I think.
 
-will no longer try to remove the memory. This is in compliance with normal
-unbind driver core semantics, see the discussion in v2 of this patchset:
-https://lkml.org/lkml/2012/11/16/649
+Thanks,
+Rafael
 
-After a successful unbind of the driver:
-- OSPM ejects of the memory device cannot proceed, as acpi_eject_store will
-return -ENODEV on missing driver.
-- SCI ejects of the memory device also cannot proceed, as they will also get
-a "driver data is NULL" error.
-So the memory can continue to be used safely after unbind.
 
-Signed-off-by: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
----
- drivers/acpi/acpi_memhotplug.c |   18 ++++++++++++++++--
- 1 files changed, 16 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-index eb30e5a..d0cfbd9 100644
---- a/drivers/acpi/acpi_memhotplug.c
-+++ b/drivers/acpi/acpi_memhotplug.c
-@@ -55,6 +55,7 @@ MODULE_LICENSE("GPL");
- 
- static int acpi_memory_device_add(struct acpi_device *device);
- static int acpi_memory_device_remove(struct acpi_device *device, int type);
-+static int acpi_memory_device_prepare_remove(struct acpi_device *device);
- 
- static const struct acpi_device_id memory_device_ids[] = {
- 	{ACPI_MEMORY_DEVICE_HID, 0},
-@@ -69,6 +70,7 @@ static struct acpi_driver acpi_memory_device_driver = {
- 	.ops = {
- 		.add = acpi_memory_device_add,
- 		.remove = acpi_memory_device_remove,
-+		.prepare_remove = acpi_memory_device_prepare_remove,
- 		},
- };
- 
-@@ -448,6 +450,20 @@ static int acpi_memory_device_add(struct acpi_device *device)
- static int acpi_memory_device_remove(struct acpi_device *device, int type)
- {
- 	struct acpi_memory_device *mem_device = NULL;
-+
-+	if (!device || !acpi_driver_data(device))
-+		return -EINVAL;
-+
-+	mem_device = acpi_driver_data(device);
-+
-+	acpi_memory_device_free(mem_device);
-+
-+	return 0;
-+}
-+
-+static int acpi_memory_device_prepare_remove(struct acpi_device *device)
-+{
-+	struct acpi_memory_device *mem_device = NULL;
- 	int result;
- 
- 	if (!device || !acpi_driver_data(device))
-@@ -459,8 +475,6 @@ static int acpi_memory_device_remove(struct acpi_device *device, int type)
- 	if (result)
- 		return result;
- 
--	acpi_memory_device_free(mem_device);
--
- 	return 0;
- }
- 
 -- 
-1.7.9
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
