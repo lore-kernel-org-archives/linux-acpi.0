@@ -1,53 +1,99 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] PM / QoS: Rename local variable in dev_pm_qos_add_ancestor_request()
-Date: Sat, 24 Nov 2012 10:30 +0100
-Message-ID: <1379506.4xjF1qmrAD@vostro.rjw.lan>
+From: Wen Congyang <wencongyang@gmail.com>
+Subject: Re: [RFC PATCH v3 3/3] acpi_memhotplug: Allow eject to proceed on
+ rebind scenario
+Date: Sun, 25 Nov 2012 00:20:47 +0800
+Message-ID: <50B0F3DF.4000802@gmail.com>
+References: <1353693037-21704-1-git-send-email-vasilis.liaskovitis@profitbricks.com> <1353693037-21704-4-git-send-email-vasilis.liaskovitis@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Linux PM list <linux-pm@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=GB2312
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1353693037-21704-4-git-send-email-vasilis.liaskovitis@profitbricks.com>
+Sender: owner-linux-mm@kvack.org
+To: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
+Cc: linux-acpi@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, wency@cn.fujitsu.com, rjw@sisk.pl, lenb@kernel.org, toshi.kani@hp.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+At 2012/11/24 1:50, Vasilis Liaskovitis Wrote:
+> Consider the following sequence of operations for a hotplugged memory device:
+> 
+> 1. echo "PNP0C80:XX">  /sys/bus/acpi/drivers/acpi_memhotplug/unbind
+> 2. echo "PNP0C80:XX">  /sys/bus/acpi/drivers/acpi_memhotplug/bind
+> 3. echo 1>/sys/bus/pci/devices/PNP0C80:XX/eject
+> 
+> The driver is successfully re-bound to the device in step 2. However step 3 will
+> not attempt to remove the memory. This is because the acpi_memory_info enabled
+> bit for the newly bound driver has not been set to 1. This bit needs to be set
+> in the case where the memory is already used by the kernel (add_memory returns
+> -EEXIST)
 
-Local variable 'error' in dev_pm_qos_add_ancestor_request() need
-not contain error codes only, so rename it to 'ret'.
+Hmm, I think the reason is that we don't offline/remove memory when
+unbinding it
+from the driver. I have sent a patch to fix this problem, and this patch
+is in
+pm tree now. With this patch, we will offline/remove memory when
+unbinding it from
+the drriver.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/base/power/qos.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+Consider the following sequence of operations for a hotplugged memory
+device:
 
-Index: linux/drivers/base/power/qos.c
-===================================================================
---- linux.orig/drivers/base/power/qos.c
-+++ linux/drivers/base/power/qos.c
-@@ -542,19 +542,19 @@ int dev_pm_qos_add_ancestor_request(stru
- 				    struct dev_pm_qos_request *req, s32 value)
- {
- 	struct device *ancestor = dev->parent;
--	int error = -ENODEV;
-+	int ret = -ENODEV;
- 
- 	while (ancestor && !ancestor->power.ignore_children)
- 		ancestor = ancestor->parent;
- 
- 	if (ancestor)
--		error = dev_pm_qos_add_request(ancestor, req,
--					       DEV_PM_QOS_LATENCY, value);
-+		ret = dev_pm_qos_add_request(ancestor, req,
-+					     DEV_PM_QOS_LATENCY, value);
- 
--	if (error < 0)
-+	if (ret < 0)
- 		req->dev = NULL;
- 
--	return error;
-+	return ret;
- }
- EXPORT_SYMBOL_GPL(dev_pm_qos_add_ancestor_request);
- 
+1. echo "PNP0C80:XX" > /sys/bus/acpi/drivers/acpi_memhotplug/unbind
+2. echo 1 >/sys/bus/pci/devices/PNP0C80:XX/eject
 
+If we don't offline/remove the memory, we have no chance to do it in
+step 2. After
+step2, the memory is used by the kernel, but we have powered off it. It
+is very
+dangerous.
+
+So this patch is unnecessary now.
+
+Thanks
+Wen Congyang
+
+> 
+> Setting the enabled bit in this case (in acpi_memory_enable_device) makes the
+> driver function properly after a rebind of the driver i.e. eject operation
+> attempts to remove memory after a successful rebind.
+> 
+> I am not sure if this breaks some other usage of the enabled bit (see commit
+> 65479472). When is it possible for the memory to be in use by the kernel but
+> not managed by the acpi driver, apart from a driver unbind scenario?
+> 
+> Perhaps the patch is not needed, depending on expected semantics of re-binding.
+> Is the newly bound driver supposed to manage the device, if it was earlier
+> managed by the same driver?
+> 
+> This patch is only specific to this scenario, and can be dropped from the patch
+> series if needed.
+> 
+> Signed-off-by: Vasilis Liaskovitis<vasilis.liaskovitis@profitbricks.com>
+> ---
+>   drivers/acpi/acpi_memhotplug.c |    3 +--
+>   1 files changed, 1 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+> index d0cfbd9..0562cb4 100644
+> --- a/drivers/acpi/acpi_memhotplug.c
+> +++ b/drivers/acpi/acpi_memhotplug.c
+> @@ -271,12 +271,11 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
+>   			continue;
+>   		}
+> 
+> -		if (!result)
+> -			info->enabled = 1;
+>   		/*
+>   		 * Add num_enable even if add_memory() returns -EEXIST, so the
+>   		 * device is bound to this driver.
+>   		 */
+> +		info->enabled = 1;
+>   		num_enabled++;
+>   	}
+>   	if (!num_enabled) {
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
