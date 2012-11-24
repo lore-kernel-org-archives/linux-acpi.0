@@ -1,16 +1,16 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [PATCH v3 1/4] ACPI: Support system notify handler via .sys_notify
-Date: Sat, 24 Nov 2012 23:07:31 +0100
-Message-ID: <1903623.OrgcmFxHZC@vostro.rjw.lan>
+Date: Sat, 24 Nov 2012 23:37:59 +0100
+Message-ID: <9351429.9B119055GG@vostro.rjw.lan>
 References: <1352406227-32629-1-git-send-email-toshi.kani@hp.com> <1352406227-32629-2-git-send-email-toshi.kani@hp.com> <1534747.XBnkTFzSlv@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:36110 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([193.178.161.156]:36131 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752276Ab2KXWDA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 24 Nov 2012 17:03:00 -0500
+	id S1752387Ab2KXWd1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 24 Nov 2012 17:33:27 -0500
 In-Reply-To: <1534747.XBnkTFzSlv@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -53,57 +53,20 @@ On Saturday, November 24, 2012 11:01:56 PM Rafael J. Wysocki wrote:
 > a struct acpi_driver so that one can register for receiving system
 > notifications from ACPI.  It would be really nice if non-ACPI drivers, such
 > as PCI or platform, could do that too.
-> 
+
+Which they do by using acpi_install_notify_handler() directly.
+
 > Besides, acpi_os_execute_deferred() is always run on CPU0, because of some
 > SMI-related peculiarity, which is not very efficient as far as the events
 > handling is concerned, but we can improve the situation a bit by queing the
 > execution of the registered handlers in a different workqueue.  Maybe it's
 > worth considering if we're going to change this code anyway?
-> 
-> > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-> > ---
-> >  drivers/acpi/bus.c      | 64 ++++++++++++++++++++++++++++----------
-> >  drivers/acpi/scan.c     | 83 +++++++++++++++++++++++++++++++++++++++++++++++++
-> >  include/acpi/acpi_bus.h |  6 ++++
-> >  3 files changed, 137 insertions(+), 16 deletions(-)
-> > 
-> > diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-> > index 07a20ee..b256bcf2 100644
-> > --- a/drivers/acpi/bus.c
-> > +++ b/drivers/acpi/bus.c
-> > @@ -779,21 +779,16 @@ void unregister_acpi_bus_notifier(struct notifier_block *nb)
-> >  EXPORT_SYMBOL_GPL(unregister_acpi_bus_notifier);
-> >  
-> >  /**
-> > - * acpi_bus_notify
-> > - * ---------------
-> > - * Callback for all 'system-level' device notifications (values 0x00-0x7F).
-> > + * acpi_bus_sys_notify: Common system notify handler
-> > + *
-> > + * ACPI drivers may specify this common handler to its sys_notify entry.
-> > + * TBD: This handler is not implemented yet.
-> >   */
-> > -static void acpi_bus_notify(acpi_handle handle, u32 type, void *data)
-> > +void acpi_bus_sys_notify(acpi_handle handle, u32 type, void *data)
-> 
-> This isn't used anywhere.  Are drivers supposed to use it?  If so, what about
-> the BUS_CHECK and DEVICE_CHECK notifications?
-> 
-> >  {
-> > -	struct acpi_device *device = NULL;
-> > -	struct acpi_driver *driver;
-> > -
-> >  	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Notification %#02x to handle %p\n",
-> >  			  type, handle));
-> >  
-> > -	blocking_notifier_call_chain(&acpi_bus_notify_list,
-> > -		type, (void *)handle);
 
-By the way, there is exacly one user of this chain, which is dock.c.
+Well, perhaps we really don't need to change it after all?  Maybe we can just
+switch everyone to using acpi_install_notify_handler() and then we can just
+drop that code entirely?
 
-What about convering that to something different and dropping the chain to
-start with?
-
+Thanks,
 Rafael
 
 
