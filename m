@@ -1,74 +1,55 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] PM / QoS: Handle device PM QoS flags while removing constraints
-Date: Sat, 24 Nov 2012 00:41:25 +0100
-Message-ID: <12198078.HQz2VYRPzC@vostro.rjw.lan>
+From: joeyli <jlee@suse.com>
+Subject: Re: acer_wmi
+Date: Sat, 24 Nov 2012 12:27:43 +0800
+Message-ID: <1353731263.21227.742.camel@linux-s257.site>
+References: <50AFA847.4060107@justinzane.com>
+	 <50AFABA0.5080505@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:35456 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932231Ab2KWXgx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 23 Nov 2012 18:36:53 -0500
+Received: from smtp.nue.novell.com ([195.135.221.5]:55745 "EHLO
+	smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932682Ab2KXE2r (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Nov 2012 23:28:47 -0500
+In-Reply-To: <50AFABA0.5080505@profitbricks.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linux PM list <linux-pm@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Sebastian Riemer <sebastian.riemer@profitbricks.com>
+Cc: Justin Chudgar <justin@justinzane.com>, linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+=E6=96=BC =E4=BA=94=EF=BC=8C2012-11-23 =E6=96=BC 18:00 +0100=EF=BC=8CSe=
+bastian Riemer =E6=8F=90=E5=88=B0=EF=BC=9A
+> On 23.11.2012 17:45, Justin Chudgar wrote:
+> > Is this the appropriate list to ask about the acer_wmi module?
+>=20
+> Nope. platform-driver-x86@vger.kernel.org is the correct list. Joey L=
+ee
+> is the maintainer of the module.
+>=20
+> $ scripts/get_maintainer.pl -f drivers/platform/x86/acer-wmi.c
+> Joey Lee <jlee@novell.com> (maintainer:ACER WMI LAPTOP E...)
+> Matthew Garrett <mjg@redhat.com> (maintainer:X86 PLATFORM DRIVERS)
+> platform-driver-x86@vger.kernel.org (open list:ACER WMI LAPTOP E...)
+> linux-kernel@vger.kernel.org (open list)
+>=20
+> Cheers,
+> Sebastian
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>=20
 
-PM QoS flags have to be handled by dev_pm_qos_constraints_destroy()
-in the same way as PM QoS resume latency constraits.  That is, if
-they have been exposed to user space, they have to be hidden from it
-and the list of flags requests has to be flushed before destroying
-the device's PM QoS object.  Make that happen.
+Yes, I am here! What can I help for you?
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/base/power/qos.c |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
 
-Index: linux/drivers/base/power/qos.c
-===================================================================
---- linux.orig/drivers/base/power/qos.c
-+++ linux/drivers/base/power/qos.c
-@@ -223,12 +223,14 @@ void dev_pm_qos_constraints_destroy(stru
- 	struct dev_pm_qos *qos;
- 	struct dev_pm_qos_request *req, *tmp;
- 	struct pm_qos_constraints *c;
-+	struct pm_qos_flags *f;
- 
- 	/*
--	 * If the device's PM QoS resume latency limit has been exposed to user
--	 * space, it has to be hidden at this point.
-+	 * If the device's PM QoS resume latency limit or PM QoS flags have been
-+	 * exposed to user space, they have to be hidden at this point.
- 	 */
- 	dev_pm_qos_hide_latency_limit(dev);
-+	dev_pm_qos_hide_flags(dev);
- 
- 	mutex_lock(&dev_pm_qos_mtx);
- 
-@@ -237,8 +239,8 @@ void dev_pm_qos_constraints_destroy(stru
- 	if (!qos)
- 		goto out;
- 
-+	/* Flush the constraints lists for the device. */
- 	c = &qos->latency;
--	/* Flush the constraints list for the device */
- 	plist_for_each_entry_safe(req, tmp, &c->list, data.pnode) {
- 		/*
- 		 * Update constraints list and call the notification
-@@ -247,6 +249,11 @@ void dev_pm_qos_constraints_destroy(stru
- 		apply_constraint(req, PM_QOS_REMOVE_REQ, PM_QOS_DEFAULT_VALUE);
- 		memset(req, 0, sizeof(*req));
- 	}
-+	f = &qos->flags;
-+	list_for_each_entry_safe(req, tmp, &f->list, data.flr.node) {
-+		apply_constraint(req, PM_QOS_REMOVE_REQ, PM_QOS_DEFAULT_VALUE);
-+		memset(req, 0, sizeof(*req));
-+	}
- 
- 	spin_lock_irq(&dev->power.lock);
- 	dev->power.qos = NULL;
+Thanks
+Joey Lee
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
