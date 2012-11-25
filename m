@@ -1,75 +1,89 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v3 1/4] ACPI: Support system notify handler via .sys_notify
-Date: Sat, 24 Nov 2012 23:37:59 +0100
-Message-ID: <9351429.9B119055GG@vostro.rjw.lan>
-References: <1352406227-32629-1-git-send-email-toshi.kani@hp.com> <1352406227-32629-2-git-send-email-toshi.kani@hp.com> <1534747.XBnkTFzSlv@vostro.rjw.lan>
+Subject: [PATCH 2/2] platform / ACPI: Attach/detach ACPI PM during probe/remove/shutdown
+Date: Sun, 25 Nov 2012 15:58:14 +0100
+Message-ID: <6227446.8xPtqi6yHi@vostro.rjw.lan>
+References: <1672179.qgDUs0YdYu@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:36131 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([193.178.161.156]:36418 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752387Ab2KXWd1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 24 Nov 2012 17:33:27 -0500
-In-Reply-To: <1534747.XBnkTFzSlv@vostro.rjw.lan>
+	id S1753065Ab2KYOyX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 25 Nov 2012 09:54:23 -0500
+In-Reply-To: <1672179.qgDUs0YdYu@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, liuj97@gmail.com
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, "Svahn, Kai" <kai.svahn@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Huang Ying <ying.huang@intel.com>, "Lan, Tianyu" <tianyu.lan@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, Aaron Lu <aaron.lu@intel.com>, Grant Likely <grant.likely@secretlab.ca>
 
-On Saturday, November 24, 2012 11:01:56 PM Rafael J. Wysocki wrote:
-> On Thursday, November 08, 2012 01:23:44 PM Toshi Kani wrote:
-> > Added a new .sys_notify interface, which allows ACPI drivers to
-> > register their system-level (ex. hotplug) notify handlers through
-> > their acpi_driver table.  This removes redundant ACPI namespace
-> > walks from ACPI drivers for faster booting.
-> > 
-> > The global notify handler acpi_bus_notify() is called for all
-> > system-level ACPI notifications, which then calls an appropriate
-> > driver's handler if any.  ACPI drivers no longer need to register
-> > or unregister driver's handler to each ACPI device object.  It also
-> > supports dynamic ACPI namespace with LoadTable & Unload opcode
-> > without any modification in ACPI drivers.
-> > 
-> > Added a common system notify handler acpi_bus_sys_notify(), which
-> > allows ACPI drivers to set it to .sys_notify when this function is
-> > fully implemented.
-> 
-> I don't really understand this.
-> 
-> > It removes functional conflict between driver's
-> > notify handler and the global notify handler acpi_bus_notify().
-> > 
-> > Note that the changes maintain backward compatibility for ACPI
-> > drivers.  Any drivers registered their hotplug handler through the
-> > existing interfaces, such as acpi_install_notify_handler() and
-> > register_acpi_bus_notifier(), will continue to work as before.
-> 
-> I really wouldn't like to add new callbacks to struct acpi_device_ops, because
-> I'd like that whole thing to go away entirely eventually, along with struct
-> acpi_driver.
-> 
-> Moreover, in this particular case, it really is not useful to have to define
-> a struct acpi_driver so that one can register for receiving system
-> notifications from ACPI.  It would be really nice if non-ACPI drivers, such
-> as PCI or platform, could do that too.
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Which they do by using acpi_install_notify_handler() directly.
+Drivers usually expect that the devices they are supposed to handle
+will be operational when their .probe() routines are called, but that
+need not be the case on some ACPI-based systems with ACPI-based
+device enumeration where the BIOSes don't put devices into D0 by
+default.  To work around this problem it is sufficient to change
+bus type .probe() routines to ensure that devices will be powered
+on before the drivers' .probe() routines run (and their .remove()
+and .shutdown() routines accordingly).
 
-> Besides, acpi_os_execute_deferred() is always run on CPU0, because of some
-> SMI-related peculiarity, which is not very efficient as far as the events
-> handling is concerned, but we can improve the situation a bit by queing the
-> execution of the registered handlers in a different workqueue.  Maybe it's
-> worth considering if we're going to change this code anyway?
+Modify platform_drv_probe() to run acpi_dev_pm_attach() for devices
+whose ACPI handles are present, so that ACPI power management is used
+to change their power states and change their power states to D0
+before driver probing.  Analogously, modify platform_drv_remove() and
+platform_drv_shutdown() to call acpi_dev_pm_detach() for those
+devices, so that they are not subject to ACPI PM any more.
 
-Well, perhaps we really don't need to change it after all?  Maybe we can just
-switch everyone to using acpi_install_notify_handler() and then we can just
-drop that code entirely?
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/base/platform.c |   19 +++++++++++++++++--
+ 1 file changed, 17 insertions(+), 2 deletions(-)
 
-Thanks,
-Rafael
+Index: linux/drivers/base/platform.c
+===================================================================
+--- linux.orig/drivers/base/platform.c
++++ linux/drivers/base/platform.c
+@@ -484,8 +484,16 @@ static int platform_drv_probe(struct dev
+ {
+ 	struct platform_driver *drv = to_platform_driver(_dev->driver);
+ 	struct platform_device *dev = to_platform_device(_dev);
++	int ret;
+ 
+-	return drv->probe(dev);
++	if (ACPI_HANDLE(_dev))
++		acpi_dev_pm_attach(_dev, true);
++
++	ret = drv->probe(dev);
++	if (ret && ACPI_HANDLE(_dev))
++		acpi_dev_pm_detach(_dev, true);
++
++	return ret;
+ }
+ 
+ static int platform_drv_probe_fail(struct device *_dev)
+@@ -497,8 +505,13 @@ static int platform_drv_remove(struct de
+ {
+ 	struct platform_driver *drv = to_platform_driver(_dev->driver);
+ 	struct platform_device *dev = to_platform_device(_dev);
++	int ret;
++
++	ret = drv->remove(dev);
++	if (ACPI_HANDLE(_dev))
++		acpi_dev_pm_detach(_dev, true);
+ 
+-	return drv->remove(dev);
++	return ret;
+ }
+ 
+ static void platform_drv_shutdown(struct device *_dev)
+@@ -507,6 +520,8 @@ static void platform_drv_shutdown(struct
+ 	struct platform_device *dev = to_platform_device(_dev);
+ 
+ 	drv->shutdown(dev);
++	if (ACPI_HANDLE(_dev))
++		acpi_dev_pm_detach(_dev, true);
+ }
+ 
+ /**
 
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
