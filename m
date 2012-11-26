@@ -1,37 +1,43 @@
-From: James Bottomley <James.Bottomley@HansenPartnership.com>
-Subject: Re: [PATCH v9 06/10] ata: zpodd: check zero power ready status
-Date: Mon, 26 Nov 2012 23:15:54 +0400
-Message-ID: <1353957354.2681.6.camel@dabdike>
-References: <Pine.LNX.4.44L0.1211261120190.2168-100000@iolanthe.rowland.org>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH v3 1/4] ACPI: Support system notify handler via
+ .sys_notify
+Date: Mon, 26 Nov 2012 12:25:02 -0700
+Message-ID: <1353957902.26955.133.camel@misato.fc.hp.com>
+References: <1352406227-32629-1-git-send-email-toshi.kani@hp.com>
+	 <1352406227-32629-2-git-send-email-toshi.kani@hp.com>
+	 <1534747.XBnkTFzSlv@vostro.rjw.lan> <1903623.OrgcmFxHZC@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.1211261120190.2168-100000@iolanthe.rowland.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Aaron Lu <aaron.lu@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tejun Heo <tj@kernel.org>, Jeff Garzik <jgarzik@pobox.com>, Jeff Wu <jeff.wu@amd.com>, Aaron Lu <aaron.lwe@gmail.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:29709 "EHLO
+	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755532Ab2KZTdZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Nov 2012 14:33:25 -0500
+In-Reply-To: <1903623.OrgcmFxHZC@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, liuj97@gmail.com
 
-On Mon, 2012-11-26 at 11:21 -0500, Alan Stern wrote:
-> On Mon, 26 Nov 2012, James Bottomley wrote:
+> > >  {
+> > > -	struct acpi_device *device = NULL;
+> > > -	struct acpi_driver *driver;
+> > > -
+> > >  	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Notification %#02x to handle %p\n",
+> > >  			  type, handle));
+> > >  
+> > > -	blocking_notifier_call_chain(&acpi_bus_notify_list,
+> > > -		type, (void *)handle);
 > 
-> > I'm also curious about driving sleep from autopm, since mode page timers
-> > don't control the sleep transition.
+> By the way, there is exacly one user of this chain, which is dock.c.
 > 
-> Is it feasible to do this the other way around?  That is, to drive 
-> runtime suspend by noticing when the device decides to put itself into 
-> a low-power state?
+> What about convering that to something different and dropping the chain to
+> start with?
 
-Well, yes and no.  The spec is annoyingly (and deliberately) vague about
-what the states actually mean.  The two states that the devices go into
-because of timers is idle and standby.  The supposedly deeper low power
-state of sleep can only be reached by sending a command to the device.
-The design is that software (or HBA drivers) don't really need to notice
-idle and standby; the device automatically manages transitions between
-them depending on command activity.  For sleep, we do have to care (if
-it actually makes some meaningful difference).
+I agree.  I will look further to see what interface we can use to
+replace it.
 
-James
-
+Thanks,
+-Toshi
 
