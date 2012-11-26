@@ -1,132 +1,72 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: Re: [PATCH 1/2] ACPI / PM: Allow attach/detach routines to change
- device power states
-Date: Mon, 26 Nov 2012 09:25:56 +0800
-Message-ID: <1353893156.28789.86.camel@yhuang-dev>
-References: <1672179.qgDUs0YdYu@vostro.rjw.lan>
-	 <4238031.sDhWdlxYNQ@vostro.rjw.lan> <1353892047.28789.82.camel@yhuang-dev>
-	 <4855631.a4dcc0Gn36@vostro.rjw.lan>
+From: James Bottomley <James.Bottomley@HansenPartnership.com>
+Subject: Re: [PATCH v9 06/10] ata: zpodd: check zero power ready status
+Date: Mon, 26 Nov 2012 09:03:11 +0400
+Message-ID: <1353906191.2523.25.camel@dabdike>
+References: <1352443922-13734-1-git-send-email-aaron.lu@intel.com>
+	 <20121119145605.GC15971@htj.dyndns.org>
+	 <1353337611.2444.32.camel@dabdike.int.hansenpartnership.com>
+	 <35648985.61QNrr0Knq@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <4855631.a4dcc0Gn36@vostro.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <35648985.61QNrr0Knq@vostro.rjw.lan>
+Sender: linux-scsi-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: LKML <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, "Svahn, Kai" <kai.svahn@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Lan, Tianyu" <tianyu.lan@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, Aaron Lu <aaron.lu@intel.com>, Grant Likely <grant.likely@secretlab.ca>
+Cc: Tejun Heo <tj@kernel.org>, Aaron Lu <aaron.lu@intel.com>, Jeff Garzik <jgarzik@pobox.com>, Alan Stern <stern@rowland.harvard.edu>, Jeff Wu <jeff.wu@amd.com>, Aaron Lu <aaron.lwe@gmail.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2012-11-26 at 02:16 +0100, Rafael J. Wysocki wrote:
-> On Monday, November 26, 2012 09:07:27 AM Huang Ying wrote:
-> > On Mon, 2012-11-26 at 02:00 +0100, Rafael J. Wysocki wrote:
-> > > On Monday, November 26, 2012 08:43:10 AM Huang Ying wrote:
-> > > > On Sun, 2012-11-25 at 15:55 +0100, Rafael J. Wysocki wrote:
-> > > > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > > > 
-> > > > > Make it possible to ask the routines used for adding/removing devices
-> > > > > to/from the general ACPI PM domain, acpi_dev_pm_attach() and
-> > > > > acpi_dev_pm_detach(), respectively, to change the power states of
-> > > > > devices so that they are put into the full-power state automatically
-> > > > > by acpi_dev_pm_attach() and into the lowest-power state available
-> > > > > automatically by acpi_dev_pm_detach().
-> > > > > 
-> > > > > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > > > ---
-> > > > >  drivers/acpi/device_pm.c |   28 ++++++++++++++++++++++++----
-> > > > >  include/linux/acpi.h     |   11 +++++++----
-> > > > >  2 files changed, 31 insertions(+), 8 deletions(-)
-> > > > > 
-> > > > > Index: linux/drivers/acpi/device_pm.c
-> > > > > ===================================================================
-> > > > > --- linux.orig/drivers/acpi/device_pm.c
-> > > > > +++ linux/drivers/acpi/device_pm.c
-> > > > > @@ -599,10 +599,12 @@ static struct dev_pm_domain acpi_general
-> > > > >  /**
-> > > > >   * acpi_dev_pm_attach - Prepare device for ACPI power management.
-> > > > >   * @dev: Device to prepare.
-> > > > > + * @power_on: Whether or not to power on the device.
-> > > > >   *
-> > > > >   * If @dev has a valid ACPI handle that has a valid struct acpi_device object
-> > > > >   * attached to it, install a wakeup notification handler for the device and
-> > > > > - * add it to the general ACPI PM domain.
-> > > > > + * add it to the general ACPI PM domain.  If @power_on is set, the device will
-> > > > > + * be put into the ACPI D0 state before the function returns.
-> > > > >   *
-> > > > >   * This assumes that the @dev's bus type uses generic power management callbacks
-> > > > >   * (or doesn't use any power management callbacks at all).
-> > > > > @@ -610,7 +612,7 @@ static struct dev_pm_domain acpi_general
-> > > > >   * Callers must ensure proper synchronization of this function with power
-> > > > >   * management callbacks.
-> > > > >   */
-> > > > > -int acpi_dev_pm_attach(struct device *dev)
-> > > > > +int acpi_dev_pm_attach(struct device *dev, bool power_on)
-> > > > >  {
-> > > > >  	struct acpi_device *adev = acpi_dev_pm_get_node(dev);
-> > > > >  
-> > > > > @@ -622,6 +624,10 @@ int acpi_dev_pm_attach(struct device *de
-> > > > >  
-> > > > >  	acpi_add_pm_notifier(adev, acpi_wakeup_device, dev);
-> > > > >  	dev->pm_domain = &acpi_general_pm_domain;
-> > > > > +	if (power_on) {
-> > > > > +		acpi_dev_pm_full_power(adev);
-> > > > > +		__acpi_device_run_wake(adev, false);
-> > > > > +	}
-> > > > >  	return 0;
-> > > > >  }
-> > > > >  EXPORT_SYMBOL_GPL(acpi_dev_pm_attach);
-> > > > > @@ -629,20 +635,34 @@ EXPORT_SYMBOL_GPL(acpi_dev_pm_attach);
-> > > > >  /**
-> > > > >   * acpi_dev_pm_detach - Remove ACPI power management from the device.
-> > > > >   * @dev: Device to take care of.
-> > > > > + * @power_off: Whether or not to try to remove power from the device.
-> > > > >   *
-> > > > >   * Remove the device from the general ACPI PM domain and remove its wakeup
-> > > > > - * notifier.
-> > > > > + * notifier.  If @power_off is set, additionally remove power from the device if
-> > > > > + * possible.
-> > > > >   *
-> > > > >   * Callers must ensure proper synchronization of this function with power
-> > > > >   * management callbacks.
-> > > > >   */
-> > > > > -void acpi_dev_pm_detach(struct device *dev)
-> > > > > +void acpi_dev_pm_detach(struct device *dev, bool power_off)
-> > > > >  {
-> > > > >  	struct acpi_device *adev = acpi_dev_pm_get_node(dev);
-> > > > >  
-> > > > >  	if (adev && dev->pm_domain == &acpi_general_pm_domain) {
-> > > > >  		dev->pm_domain = NULL;
-> > > > >  		acpi_remove_pm_notifier(adev, acpi_wakeup_device);
-> > > > > +		if (power_off) {
-> > > > > +			/*
-> > > > > +			 * If the device's PM QoS resume latency limit or flags
-> > > > > +			 * have been exposed to user space, they have to be
-> > > > > +			 * hidden at this point, so that they don't affect the
-> > > > > +			 * choice of the low-power state to put the device into.
-> > > > > +			 */
-> > > > > +			dev_pm_qos_hide_latency_limit(dev);
-> > > > > +			dev_pm_qos_hide_flags(dev);
-> > > > 
-> > > > NO_POWER_OFF flag is ignored here.  Is it possible for some device (or
-> > > > corresponding ACPI method) has broken D3cold implementation, so that the
-> > > > user need a way to disable it?
-> > > 
-> > > We are removing the driver here and we haven't exposed the flags, have we?
+On Mon, 2012-11-26 at 01:33 +0100, Rafael J. Wysocki wrote:
+> On Monday, November 19, 2012 03:06:51 PM James Bottomley wrote:
+> > > I really think we need a way for (auto)pm and event polling to talk to
+> > > each other so that autopm can tell event poll to sod off while pm is
+> > > in effect.  Trying to solve this from inside libata doesn't seem
+> > > right.  The problem, again, seems to be figuring out which hardware
+> > > device maps to which block device.  Hmmm... Any good ideas?
 > > 
-> > IMHO, the flag may be exposed by the bus instead of device driver.
-> > Because some bus can determine whether D3cold is supported by the
-> > device.  If the sysfs file for the flag is exposed by the bus, user set
-> > it and we silently ignore it, will it cause confusing for the user?
+> > I've asked the PM people several times about this, because it's a real
+> > problem for almost everything:  PM needs some type of top to bottom
+> > stack view, which the layering isolation we have within storage really
+> > doesn't cope with well.  No real suggestion has been forthcoming.
 > 
-> OK, put it in a different way: If the entity that calls acpi_dev_pm_attach()
-> exposes the flags _before_ calling it, then acpi_dev_pm_detach() should not
-> hide the flags.  Otherwise, it should hide them.  Currently, the only user
-> of acpi_dev_pm_attach() (that will be the platform bus type) will not expose
-> the flags before calling that routine, so it is OK for acpi_dev_pm_detach()
-> to remove them.
+> Actually, I think that the particular case in question is really special
+> and the fact that there's the pollig loop that user space is involved in
+> doesn't make things more stratightforward.
+> 
+> And PM really doesn't need to see things top to bottom, but the polling
+> needs to know what happens in the PM land.  We need to be able to tell it
+> "from now on tell user space that there are no events here".  The question
+> is where to put that information so that it's accessible to all parts of the
+> stack involved.
 
-Yes.  You are right.  Thanks for clarification.
+Right, open to suggestions ...
 
-Best Regards,
-Huang Ying
+> > The reason I think it should be emulated (in the acpi layer, not libata,
+> > but as long as it's not in SCSI, I'm not so fussed where it ends up) is
+> > because ZPODD is the software equivalent of ZPREADY, which will be done
+> > in hardware and will be effectively invisible to autopm in the same way
+> > that SCSI (and ATA) power management is mostly invisible.  If we
+> > currently do ZPREADY emulation in the low layer (i.e. ZPODD has exact
+> > ZPREADY emulation), we won't care (except for flipping the sofware bit)
+> > whether the device support ZPODD or ZPREADY and it will all just
+> > work(tm).  The industry expectation is that ZPODD is just a transition
+> > state between current power management and ZPREADY.
+> 
+> Well, if you poll a ZPREADY-capable drive, it will go off and on in cycles
+> transparently, but still it won't save as much energy as it can.  We'll need
+> to do something about the polling in that case too, it seems.
+
+No: with ZPREADY, the device effectively lies to the poll.  The Spec
+says that when it powers off the mechanical pieces, it must reply from
+firmware to a certain preset emulations of SCSI commands and not wake
+from power off.  These commands include TEST UNIT READY and a few
+others, so the device will happily reply to polls while being off (it
+replies with the original state before power was lost).  When you issue
+actual medium access commands, or manually insert or remove media it
+will wake up.
+
+That's why I think ZPODD should emulate this behaviour.
+
+James
 
 
