@@ -1,94 +1,34 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH v3 0/3] ACPI: container hot remove support.
-Date: Mon, 26 Nov 2012 14:06:24 +0800
-Message-ID: <50B306E0.3050207@cn.fujitsu.com>
-References: <1351668471-31436-1-git-send-email-tangchen@cn.fujitsu.com> <509106E2.70008@jp.fujitsu.com> <50B3014E.3040107@huawei.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH 0/2] ACPI / platform: Put devices enumerated via ACPI
+ into D0 before probing drivers
+Date: Mon, 26 Nov 2012 08:31:18 +0200
+Message-ID: <20121126063118.GF3867@intel.com>
+References: <1672179.qgDUs0YdYu@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:38734 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1752282Ab2KZGH3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 26 Nov 2012 01:07:29 -0500
-In-Reply-To: <50B3014E.3040107@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1672179.qgDUs0YdYu@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: LKML <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, "Svahn, Kai" <kai.svahn@intel.com>, Huang Ying <ying.huang@intel.com>, "Lan, Tianyu" <tianyu.lan@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, Aaron Lu <aaron.lu@intel.com>, Grant Likely <grant.likely@secretlab.ca>
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, yinghai@kernel.org, bhelgaas@google.com, lenb@kernel.org, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Wen Congyang <wency@cn.fujitsu.com>, Toshi Kani <toshi.kani@hp.com>
 
-On 11/26/2012 01:42 PM, Hanjun Guo wrote:
->
-> Hi all,
-> I think Yasuaki mentioned the key point for the container device remove,
-> that is dependency.
->
-> Currently, container, processor, and memory hotpulg are managed by different ACPI
-> hotplug drivers, the driver works when handle device hotplug individually, but they
-> have no idea for each other.
->
-> This may introduce some issues, such as Yasuaki mentioned above, that is to say, we
-> should remove its child before remove the device itself, and hot add its parent before
-> the device itself.
->
-> According to the ACPI namespace, we can resolve most of dependency issues. On a typical
-> two processor sockets system, the namespace is like this:
->
-> /_SB                   ---container device, with HID ACPI0004
->      |_SCK0             ---container device, with HID ACPI0004
-> 	  |_CPU0       ---processor device, with HID ACPI0009 or LNXCPU
->            |_...
->            |_CPUx
->            |_MEM0       ---Memory device, with HID PNP0C80
->      |_SCK1
-> 	  |_CPU0
->            |_...
->            |_CPUx
->            |_MEM1
->      |_PCI0            ---Host bridge, with HID PNP0A03 or PNP0A08
->
-> If hot remove the container device, such as SCK0, we can easily know the dependency list
-> is CPU0~CPUx and MEM0, but I think the ACPI hotplug driver haven't resolve this now.
->
-> And there is another corner case for hotplug devices in the namespace above, that is:
-> 1) Remove SCK0. yes, we can remove it with no dependency to the host bridge PCI0;
->
-> 2) Remove SCK1 after SCK0. we should remove the host bridge PCI0 first,
->     or the system will crash down. yes, dynamic dependency analysis is needed here.
->     and the ACPI hotplug driver totally have no idea of this.
->
-> so, should we do something to settle this down ?
+On Sun, Nov 25, 2012 at 03:54:14PM +0100, Rafael J. Wysocki wrote:
+> The following two patches are meant to work around a problem where some
+> devices may be in the ACPI D3cold power state (power off) before their
+> drivers' .probe() routines are called, but those routines assume devices
+> to be operational.  They also allow ACPI PM to be used going forward with
+> the devices in question.
 
-Hi Guo,
+We have such machines here. I've tested the series on one of them and it
+solves the problem - drivers can now access device registers right from the
+start.
 
-I am trying to do this too. :)
+> [1/2] - Allow ACPI PM attach/detach routines to change device power states.
+> [2/2] - Call the ACPI PM attach/detach routines in the platform probe and
+>         remove/shutdown callbacks (and change power states of devices as
+>         necessary).
 
-But so far as I know, Vasilis Liaskovitis has provided an approach.
-Please refer to the following url.
-https://lkml.org/lkml/2012/11/15/159
-
-I think we can review his patches first. :)
-
-And by the way, I think the ACPI based hotplug framework provided by
-Liu Jiang may also settle this problem. But I'm not quit sure yet. :)
-
-Thanks. :)
-
->
-> Thanks
-> Hanjun Guo
->
->
->> The example is as follows:
->>
->>   https://lkml.org/lkml/2012/9/26/318
->>
->> Thanks,
->> Yasuaki Ishimatsu
->>
->>>
->
->
->
->
-
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
