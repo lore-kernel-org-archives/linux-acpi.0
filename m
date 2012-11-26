@@ -1,101 +1,80 @@
-From: Hanjun Guo <guohanjun@huawei.com>
-Subject: Re: [PATCH v3 0/3] ACPI: container hot remove support.
-Date: Mon, 26 Nov 2012 13:42:38 +0800
-Message-ID: <50B3014E.3040107@huawei.com>
-References: <1351668471-31436-1-git-send-email-tangchen@cn.fujitsu.com> <509106E2.70008@jp.fujitsu.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: [PATCH] libata: restore acpi disable functionality
+Date: Mon, 26 Nov 2012 13:55:25 +0800
+Message-ID: <50B3044D.4020209@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([119.145.14.64]:64826 "EHLO
-	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753722Ab2KZFnI (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Nov 2012 00:43:08 -0500
-In-Reply-To: <509106E2.70008@jp.fujitsu.com>
+Received: from mga14.intel.com ([143.182.124.37]:47936 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751641Ab2KZFzL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 26 Nov 2012 00:55:11 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>, yinghai@kernel.org, bhelgaas@google.com, lenb@kernel.org, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Wen Congyang <wency@cn.fujitsu.com>, Toshi Kani <toshi.kani@hp.com>
-
-On 2012/10/31 19:09, Yasuaki Ishimatsu wrote:
-> Hi Tang,
-> 
-> 2012/10/31 16:27, Tang Chen wrote:
->> Hi,
->>
->> The container hotplug handler container_notify_cb() didn't implement
->> the hot-remove functionality. So, these 3 patches implement it like
->> the following way:
->>
->> patch 1. Do not use kacpid_wq/kacpid_notify_wq to handle container hotplug event,
->>           use kacpi_hotplug_wq instead to avoid deadlock.
->>           Doing this is to reuse acpi_bus_hot_remove_device() in container
->>           hot-remove handling.
->>
->> patch 2. Introduce a new function container_device_remove() to handle
->>           ACPI_NOTIFY_EJECT_REQUEST event for container.
-> 
-> If container device contains memory device, the function is 
-> very danger. As you know, we are developing a memory hotplug.
-> If memory has kernel memory, memory hot remove operations fails.
-> But container_device_remove() cannot realize it. So even if
-> the memory hot remove operation fails, container_device_remove()
-> keeps hot remove operation. Finally, the function sends _EJ0
-> to firmware. In this case, if the memory is accessed, kernel
-> panic occurs.
-
-Hi all,
-I think Yasuaki mentioned the key point for the container device remove,
-that is dependency.
-
-Currently, container, processor, and memory hotpulg are managed by different ACPI
-hotplug drivers, the driver works when handle device hotplug individually, but they
-have no idea for each other.
-
-This may introduce some issues, such as Yasuaki mentioned above, that is to say, we
-should remove its child before remove the device itself, and hot add its parent before
-the device itself.
-
-According to the ACPI namespace, we can resolve most of dependency issues. On a typical
-two processor sockets system, the namespace is like this:
-
-/_SB                   ---container device, with HID ACPI0004
-    |_SCK0             ---container device, with HID ACPI0004
-	  |_CPU0       ---processor device, with HID ACPI0009 or LNXCPU
-          |_...
-          |_CPUx
-          |_MEM0       ---Memory device, with HID PNP0C80
-    |_SCK1
-	  |_CPU0
-          |_...
-          |_CPUx
-          |_MEM1
-    |_PCI0            ---Host bridge, with HID PNP0A03 or PNP0A08
-
-If hot remove the container device, such as SCK0, we can easily know the dependency list
-is CPU0~CPUx and MEM0, but I think the ACPI hotplug driver haven't resolve this now.
-
-And there is another corner case for hotplug devices in the namespace above, that is:
-1) Remove SCK0. yes, we can remove it with no dependency to the host bridge PCI0;
-
-2) Remove SCK1 after SCK0. we should remove the host bridge PCI0 first,
-   or the system will crash down. yes, dynamic dependency analysis is needed here.
-   and the ACPI hotplug driver totally have no idea of this.
-
-so, should we do something to settle this down ?
-
-Thanks
-Hanjun Guo
+To: Jeff Garzik <jgarzik@pobox.com>, Dimitris Damigos <damigos@freemail.gr>
+Cc: Tejun Heo <tj@kernel.org>, Matthew Garrett <mjg@redhat.com>, Holger Macht <holger@homac.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, linux-ide@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lwe@gmail.com>
 
 
-> The example is as follows:
-> 
->  https://lkml.org/lkml/2012/9/26/318
-> 
-> Thanks,
-> Yasuaki Ishimatsu
-> 
->>
+Commit 66fa7f215 "libata-acpi: improve ACPI disabling" introdcued the
+behaviour of disabling ATA ACPI if ata_acpi_on_devcfg failed the 2nd
+time, but commit 30dcf76ac dropped this behaviour and this caused
+problem for Dimitris Damigos, where his laptop can not resume correctly.
 
+The bugzilla page for it is:
+https://bugzilla.kernel.org/show_bug.cgi?id=49331
 
+The problem is, ata_dev_push_id will fail the 2nd time it is invoked,
+and due to disabling ACPI code is dropped, ata_acpi_on_devcfg which
+calls ata_dev_push_id will keep failing and eventually made the device
+disabled.
+
+This patch restores the original behaviour, if acpi failed the 2nd time,
+disable acpi functionality for the device(and we do not event need to
+add a debug message for this as it is still there ;-).
+
+Reported-by: Dimitris Damigos <damigos@freemail.gr>
+Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+Cc: <stable@vger.kernel.org>
+---
+ drivers/ata/libata-acpi.c | 4 ++++
+ include/linux/libata.h    | 1 +
+ 2 files changed, 5 insertions(+)
+
+diff --git a/drivers/ata/libata-acpi.c b/drivers/ata/libata-acpi.c
+index 5b0ba3f..ef01ac0 100644
+--- a/drivers/ata/libata-acpi.c
++++ b/drivers/ata/libata-acpi.c
+@@ -76,6 +76,9 @@ acpi_handle ata_dev_acpi_handle(struct ata_device *dev)
+ 	acpi_integer adr;
+ 	struct ata_port *ap = dev->link->ap;
+ 
++	if (dev->flags & ATA_DFLAG_ACPI_DISABLED)
++		return NULL;
++
+ 	if (ap->flags & ATA_FLAG_ACPI_SATA) {
+ 		if (!sata_pmp_attached(ap))
+ 			adr = SATA_ADR(ap->port_no, NO_PORT_MULT);
+@@ -945,6 +948,7 @@ int ata_acpi_on_devcfg(struct ata_device *dev)
+ 		return rc;
+ 	}
+ 
++	dev->flags |= ATA_DFLAG_ACPI_DISABLED;
+ 	ata_dev_warn(dev, "ACPI: failed the second time, disabled\n");
+ 
+ 	/* We can safely continue if no _GTF command has been executed
+diff --git a/include/linux/libata.h b/include/linux/libata.h
+index 77eeeda..e931c9a 100644
+--- a/include/linux/libata.h
++++ b/include/linux/libata.h
+@@ -163,6 +163,7 @@ enum {
+ 
+ 	ATA_DFLAG_DA		= (1 << 26), /* device supports Device Attention */
+ 	ATA_DFLAG_DEVSLP	= (1 << 27), /* device supports Device Sleep */
++	ATA_DFLAG_ACPI_DISABLED = (1 << 28), /* ACPI for the device is disabled */
+ 
+ 	ATA_DEV_UNKNOWN		= 0,	/* unknown device */
+ 	ATA_DEV_ATA		= 1,	/* ATA device */
+-- 
+1.7.12.4
 
