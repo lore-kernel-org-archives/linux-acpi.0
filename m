@@ -1,59 +1,60 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI: include missed header into acpi_platform.c
-Date: Mon, 26 Nov 2012 11:08:19 +0100
-Message-ID: <1700274.8ucQRy9VHB@vostro.rjw.lan>
-References: <1353922086-19917-1-git-send-email-andriy.shevchenko@linux.intel.com> <20121126094044.GG3867@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:33571 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753959Ab2KZKDg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 26 Nov 2012 05:03:36 -0500
-In-Reply-To: <20121126094044.GG3867@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Wen Congyang <wency@cn.fujitsu.com>
+Subject: [PATCH 3/5] cpu-hotplug, memory-hotplug: try offline the node when hotremoving a cpu
+Date: Mon, 26 Nov 2012 18:20:25 +0800
+Message-ID: <1353925227-1877-4-git-send-email-wency@cn.fujitsu.com>
+References: <1353925227-1877-1-git-send-email-wency@cn.fujitsu.com>
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1353925227-1877-1-git-send-email-wency@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, David Rientjes <rientjes@google.com>, Jiang Liu <liuj97@gmail.com>, Minchan Kim <minchan.kim@gmail.com>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Andrew Morton <akpm@linux-foundation.org>, Mel Gorman <mel@csn.ul.ie>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Peter Zijlstra <peterz@infradead.org>, Tang Chen <tangchen@cn.fujitsu.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, Wen Congyang <wency@cn.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>
 
-On Monday, November 26, 2012 11:40:44 AM Mika Westerberg wrote:
-> On Mon, Nov 26, 2012 at 11:28:05AM +0200, Andy Shevchenko wrote:
-> > The internal.h declares the acpi_create_platform_device(). Without that include
-> > we get a following warning:
-> > drivers/acpi/acpi_platform.c:133:24: warning: symbol 'acpi_create_platform_device' was not declared. Should it be static?
-> > 
-> > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> 
-> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+The node will be offlined when all memory/cpu on the node is hotremoved.
+So we should try offline the node when hotremoving a cpu on the node.
 
-Applied.
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Jiang Liu <liuj97@gmail.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+---
+ drivers/acpi/processor_driver.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Thanks,
-Rafael
-
-
-> > ---
-> >  drivers/acpi/acpi_platform.c |    2 ++
-> >  1 file changed, 2 insertions(+)
-> > 
-> > diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
-> > index dbb31d6..2eee101 100644
-> > --- a/drivers/acpi/acpi_platform.c
-> > +++ b/drivers/acpi/acpi_platform.c
-> > @@ -17,6 +17,8 @@
-> >  #include <linux/module.h>
-> >  #include <linux/platform_device.h>
-> >  
-> > +#include "internal.h"
-> > +
-> >  ACPI_MODULE_NAME("platform");
-> >  
-> >  struct resource_info {
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index a4352b8..7fc728c7 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -44,6 +44,7 @@
+ #include <linux/moduleparam.h>
+ #include <linux/cpuidle.h>
+ #include <linux/slab.h>
++#include <linux/memory_hotplug.h>
+ 
+ #include <asm/io.h>
+ #include <asm/cpu.h>
+@@ -634,6 +635,7 @@ static int acpi_processor_remove(struct acpi_device *device, int type)
+ 
+ 	per_cpu(processors, pr->id) = NULL;
+ 	per_cpu(processor_device_array, pr->id) = NULL;
++	try_offline_node(cpu_to_node(pr->id));
+ 
+ free:
+ 	free_cpumask_var(pr->throttling.shared_cpu_map);
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+1.8.0
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
