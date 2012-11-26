@@ -1,81 +1,101 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH v9 06/10] ata: zpodd: check zero power ready status
-Date: Mon, 26 Nov 2012 13:09:01 +0800
-Message-ID: <50B2F96D.9080405@intel.com>
-References: <1352443922-13734-1-git-send-email-aaron.lu@intel.com>  <20121119145605.GC15971@htj.dyndns.org>  <1353337611.2444.32.camel@dabdike.int.hansenpartnership.com>  <35648985.61QNrr0Knq@vostro.rjw.lan> <1353906191.2523.25.camel@dabdike>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [PATCH v3 0/3] ACPI: container hot remove support.
+Date: Mon, 26 Nov 2012 13:42:38 +0800
+Message-ID: <50B3014E.3040107@huawei.com>
+References: <1351668471-31436-1-git-send-email-tangchen@cn.fujitsu.com> <509106E2.70008@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1353906191.2523.25.camel@dabdike>
-Sender: linux-pm-owner@vger.kernel.org
-To: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Tejun Heo <tj@kernel.org>, Jeff Garzik <jgarzik@pobox.com>, Alan Stern <stern@rowland.harvard.edu>, Jeff Wu <jeff.wu@amd.com>, Aaron Lu <aaron.lwe@gmail.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga01-in.huawei.com ([119.145.14.64]:64826 "EHLO
+	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753722Ab2KZFnI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Nov 2012 00:43:08 -0500
+In-Reply-To: <509106E2.70008@jp.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>, yinghai@kernel.org, bhelgaas@google.com, lenb@kernel.org, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Wen Congyang <wency@cn.fujitsu.com>, Toshi Kani <toshi.kani@hp.com>
 
-On 11/26/2012 01:03 PM, James Bottomley wrote:
-> On Mon, 2012-11-26 at 01:33 +0100, Rafael J. Wysocki wrote:
->> On Monday, November 19, 2012 03:06:51 PM James Bottomley wrote:
->>>> I really think we need a way for (auto)pm and event polling to talk to
->>>> each other so that autopm can tell event poll to sod off while pm is
->>>> in effect.  Trying to solve this from inside libata doesn't seem
->>>> right.  The problem, again, seems to be figuring out which hardware
->>>> device maps to which block device.  Hmmm... Any good ideas?
->>>
->>> I've asked the PM people several times about this, because it's a real
->>> problem for almost everything:  PM needs some type of top to bottom
->>> stack view, which the layering isolation we have within storage really
->>> doesn't cope with well.  No real suggestion has been forthcoming.
+On 2012/10/31 19:09, Yasuaki Ishimatsu wrote:
+> Hi Tang,
+> 
+> 2012/10/31 16:27, Tang Chen wrote:
+>> Hi,
 >>
->> Actually, I think that the particular case in question is really special
->> and the fact that there's the pollig loop that user space is involved in
->> doesn't make things more stratightforward.
+>> The container hotplug handler container_notify_cb() didn't implement
+>> the hot-remove functionality. So, these 3 patches implement it like
+>> the following way:
 >>
->> And PM really doesn't need to see things top to bottom, but the polling
->> needs to know what happens in the PM land.  We need to be able to tell it
->> "from now on tell user space that there are no events here".  The question
->> is where to put that information so that it's accessible to all parts of the
->> stack involved.
-> 
-> Right, open to suggestions ...
-> 
->>> The reason I think it should be emulated (in the acpi layer, not libata,
->>> but as long as it's not in SCSI, I'm not so fussed where it ends up) is
->>> because ZPODD is the software equivalent of ZPREADY, which will be done
->>> in hardware and will be effectively invisible to autopm in the same way
->>> that SCSI (and ATA) power management is mostly invisible.  If we
->>> currently do ZPREADY emulation in the low layer (i.e. ZPODD has exact
->>> ZPREADY emulation), we won't care (except for flipping the sofware bit)
->>> whether the device support ZPODD or ZPREADY and it will all just
->>> work(tm).  The industry expectation is that ZPODD is just a transition
->>> state between current power management and ZPREADY.
+>> patch 1. Do not use kacpid_wq/kacpid_notify_wq to handle container hotplug event,
+>>           use kacpi_hotplug_wq instead to avoid deadlock.
+>>           Doing this is to reuse acpi_bus_hot_remove_device() in container
+>>           hot-remove handling.
 >>
->> Well, if you poll a ZPREADY-capable drive, it will go off and on in cycles
->> transparently, but still it won't save as much energy as it can.  We'll need
->> to do something about the polling in that case too, it seems.
+>> patch 2. Introduce a new function container_device_remove() to handle
+>>           ACPI_NOTIFY_EJECT_REQUEST event for container.
 > 
-> No: with ZPREADY, the device effectively lies to the poll.  The Spec
-> says that when it powers off the mechanical pieces, it must reply from
-> firmware to a certain preset emulations of SCSI commands and not wake
-> from power off.  These commands include TEST UNIT READY and a few
-> others, so the device will happily reply to polls while being off (it
-> replies with the original state before power was lost).  When you issue
-> actual medium access commands, or manually insert or remove media it
-> will wake up.
-> 
-> That's why I think ZPODD should emulate this behaviour.
+> If container device contains memory device, the function is 
+> very danger. As you know, we are developing a memory hotplug.
+> If memory has kernel memory, memory hot remove operations fails.
+> But container_device_remove() cannot realize it. So even if
+> the memory hot remove operation fails, container_device_remove()
+> keeps hot remove operation. Finally, the function sends _EJ0
+> to firmware. In this case, if the memory is accessed, kernel
+> panic occurs.
 
-I suppose you are refering to section 15.3.5?
+Hi all,
+I think Yasuaki mentioned the key point for the container device remove,
+that is dependency.
 
-I don't think the SPEC says what the host software _must_ do, it's
-informative. And I agree that when possible, we should emulate the
-command without powering up the ODD, but if we can eliminate the noise,
-wouldn't that be better?
+Currently, container, processor, and memory hotpulg are managed by different ACPI
+hotplug drivers, the driver works when handle device hotplug individually, but they
+have no idea for each other.
 
--Aaron
+This may introduce some issues, such as Yasuaki mentioned above, that is to say, we
+should remove its child before remove the device itself, and hot add its parent before
+the device itself.
 
+According to the ACPI namespace, we can resolve most of dependency issues. On a typical
+two processor sockets system, the namespace is like this:
+
+/_SB                   ---container device, with HID ACPI0004
+    |_SCK0             ---container device, with HID ACPI0004
+	  |_CPU0       ---processor device, with HID ACPI0009 or LNXCPU
+          |_...
+          |_CPUx
+          |_MEM0       ---Memory device, with HID PNP0C80
+    |_SCK1
+	  |_CPU0
+          |_...
+          |_CPUx
+          |_MEM1
+    |_PCI0            ---Host bridge, with HID PNP0A03 or PNP0A08
+
+If hot remove the container device, such as SCK0, we can easily know the dependency list
+is CPU0~CPUx and MEM0, but I think the ACPI hotplug driver haven't resolve this now.
+
+And there is another corner case for hotplug devices in the namespace above, that is:
+1) Remove SCK0. yes, we can remove it with no dependency to the host bridge PCI0;
+
+2) Remove SCK1 after SCK0. we should remove the host bridge PCI0 first,
+   or the system will crash down. yes, dynamic dependency analysis is needed here.
+   and the ACPI hotplug driver totally have no idea of this.
+
+so, should we do something to settle this down ?
+
+Thanks
+Hanjun Guo
+
+
+> The example is as follows:
 > 
-> James
+>  https://lkml.org/lkml/2012/9/26/318
 > 
+> Thanks,
+> Yasuaki Ishimatsu
 > 
+>>
+
+
 
