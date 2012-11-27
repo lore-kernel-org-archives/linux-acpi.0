@@ -1,86 +1,79 @@
-From: Hanjun Guo <guohanjun@huawei.com>
-Subject: Re: [PATCH v3 0/3] ACPI: container hot remove support.
-Date: Tue, 27 Nov 2012 09:08:15 +0800
-Message-ID: <50B4127F.3080400@huawei.com>
-References: <1351668471-31436-1-git-send-email-tangchen@cn.fujitsu.com> <509106E2.70008@jp.fujitsu.com> <50B3014E.3040107@huawei.com> <50B306E0.3050207@cn.fujitsu.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v9 06/10] ata: zpodd: check zero power ready status
+Date: Tue, 27 Nov 2012 09:41:40 +0800
+Message-ID: <50B41A54.8020905@intel.com>
+References: <1352443922-13734-1-git-send-email-aaron.lu@intel.com>    <20121119145605.GC15971@htj.dyndns.org>    <1353337611.2444.32.camel@dabdike.int.hansenpartnership.com>    <35648985.61QNrr0Knq@vostro.rjw.lan> <1353906191.2523.25.camel@dabdike>   <50B2F96D.9080405@intel.com> <1353915142.2523.36.camel@dabdike>  <50B327FB.3020701@intel.com> <1353935850.2523.52.camel@dabdike>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga02-in.huawei.com ([119.145.14.65]:4593 "EHLO
-	szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756345Ab2K0BJn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Nov 2012 20:09:43 -0500
-In-Reply-To: <50B306E0.3050207@cn.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <1353935850.2523.52.camel@dabdike>
+Sender: linux-scsi-owner@vger.kernel.org
+To: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Tejun Heo <tj@kernel.org>, Jeff Garzik <jgarzik@pobox.com>, Alan Stern <stern@rowland.harvard.edu>, Jeff Wu <jeff.wu@amd.com>, Aaron Lu <aaron.lwe@gmail.com>, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, yinghai@kernel.org, bhelgaas@google.com, lenb@kernel.org, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Wen Congyang <wency@cn.fujitsu.com>, Toshi Kani <toshi.kani@hp.com>
 
-On 2012/11/26 14:06, Tang Chen wrote:
-> On 11/26/2012 01:42 PM, Hanjun Guo wrote:
+On 11/26/2012 09:17 PM, James Bottomley wrote:
+> On Mon, 2012-11-26 at 16:27 +0800, Aaron Lu wrote:
+>> Well, ZPREADY is not a power state that we can program the ODD to
+>> enter(figure 234 and table 323 of the SPEC), it servers more like an
+>> information provided by ODD to host so that host does not need to do TUR
+>> and then examine the sense code to decide if zero power ready status is
+>> satisfied but simply query ODD if its current power state is ZPREADY.
+>> So it's not that we program the device to go into ZPREADY power state
+>> and the ODD's power will be omitted.
 >>
->> Hi all,
->> I think Yasuaki mentioned the key point for the container device rem=
-ove,
->> that is dependency.
+>> The benefit of a ZPREADY capable ODD is that, when we need to decide if
+>> the ODD is in a zero power ready status, we can simply query the ODD by
+>> issuing a GET_EVENT_STATUS_NOTIFICATION and check the returned power
+>> class events, if it is in ZPREADY power state, then we can omit the
+>> power. To support ZPREADY, we just need some change to the zpready
+>> funtion, which currently uses sense code to check ZP ready status.
 >>
->> Currently, container, processor, and memory hotpulg are managed by d=
-ifferent ACPI
->> hotplug drivers, the driver works when handle device hotplug individ=
-ually, but they
->> have no idea for each other.
->>
->> This may introduce some issues, such as Yasuaki mentioned above, tha=
-t is to say, we
->> should remove its child before remove the device itself, and hot add=
- its parent before
->> the device itself.
->>
->> According to the ACPI namespace, we can resolve most of dependency i=
-ssues. On a typical
->> two processor sockets system, the namespace is like this:
->>
->> /_SB                   ---container device, with HID ACPI0004
->>      |_SCK0             ---container device, with HID ACPI0004
->>       |_CPU0       ---processor device, with HID ACPI0009 or LNXCPU
->>            |_...
->>            |_CPUx
->>            |_MEM0       ---Memory device, with HID PNP0C80
->>      |_SCK1
->>       |_CPU0
->>            |_...
->>            |_CPUx
->>            |_MEM1
->>      |_PCI0            ---Host bridge, with HID PNP0A03 or PNP0A08
->>
->> If hot remove the container device, such as SCK0, we can easily know=
- the dependency list
->> is CPU0~CPUx and MEM0, but I think the ACPI hotplug driver haven't r=
-esolve this now.
->>
->> And there is another corner case for hotplug devices in the namespac=
-e above, that is:
->> 1) Remove SCK0. yes, we can remove it with no dependency to the host=
- bridge PCI0;
->>
->> 2) Remove SCK1 after SCK0. we should remove the host bridge PCI0 fir=
-st,
->>     or the system will crash down. yes, dynamic dependency analysis =
-is needed here.
->>     and the ACPI hotplug driver totally have no idea of this.
->>
->> so, should we do something to settle this down ?
->=20
-> Hi Guo,
->=20
-> I am trying to do this too. :)
+>> So this is my understanding of ZPREADY, and I don't see it as a total
+>> different thing with ZPODD, it just changes the way how host senses the
+>> zero power ready status. But if I was wrong, please kindly let me know,
+>> thanks.
+> 
+> My understanding is that a ZPREADY device may be capable of internal
+> power down, meaning it doesn't necessarily need the host to omit the
+> power.  It depends what the difference is between Sleep and Off is
+> (they're deliberately left as implementation defined in the standard, Ch
+> 16, but the conditions of sleep are pretty onerous, so it sounds like
+> most of the mechanics are powered down).
 
-Great=EF=BC=8C what's your idea of this?
+I Agree that when the ODD is put to Sleep state, it may power down most
+of the mechanics, good for power saving. The problem is, we have the 2
+seconds poll, and since Sleep state can not process any command, we will
+need to bring the ODD out of Sleep state every 2 seconds, is this
+feasible? Please note that leaving Sleep state needs full initialization
+of the ODD.
 
+ZPODD system(ODD+platform) solves this problem with ACPI, when the ODD
+is powered off and any event that may induce a media change event will
+generate an ACPI interrupt, so we can stop the poll(though in whatever
+way is still in discussion).
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So I suppose we need to find a proper way to implement Sleep.
+
+> 
+> However, if you want to work it similarly to ZPODD, then the timeouts
+> automatically transitions to ZPREADY, the device issues an event, we
+> trap the event at the low level and omit power.
+
+Yeah, I can do this. Except that I don't quite understand how the device
+issues the event to host, by interrupt? My understanding is that, it
+will issue this event to itself...and host still needs to use command
+GET_EVENT_STATUS_NOTIFICATION to fetch the event, much the same way like
+the media related events it emits.
+
+> 
+> I'm also curious about driving sleep from autopm, since mode page timers
+> don't control the sleep transition.
+
+I see. But we will need to work out a sensible way to put the ODD into
+that power state, if at all possible.
+
+Thanks,
+Aaron
+
