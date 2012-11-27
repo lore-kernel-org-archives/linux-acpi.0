@@ -1,96 +1,185 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH] ACPI thermal: _TMP and _CRT/_HOT/_PSV/_ACx dependency fix
-Date: Tue, 27 Nov 2012 10:01:30 +0800
-Message-ID: <1353981690.2157.5.camel@rzhang1-mobl4>
+From: Wen Congyang <wency@cn.fujitsu.com>
+Subject: Re: [PATCH v3 11/12] memory-hotplug: remove sysfs file of node
+Date: Tue, 27 Nov 2012 10:24:49 +0800
+Message-ID: <50B42471.6060403@cn.fujitsu.com>
+References: <1351763083-7905-1-git-send-email-wency@cn.fujitsu.com> <1351763083-7905-12-git-send-email-wency@cn.fujitsu.com> <50B37C52.2060301@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:3498 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932366Ab2K0CBe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 26 Nov 2012 21:01:34 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <50B37C52.2060301@gmail.com>
+Sender: linux-ia64-owner@vger.kernel.org
+To: Jianguo Wu <wujianguo106@gmail.com>
+Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, David Rientjes <rientjes@google.com>, Jiang Liu <liuj97@gmail.com>, Len Brown <len.brown@intel.com>, benh@kernel.crashing.org, paulus@samba.org, Christoph Lameter <cl@linux.com>, Minchan Kim <minchan.kim@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Jianguo Wu <wujianguo@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Matthew Garrett (mjg@redhat.com)" <mjg@redhat.com>, katabami@lavabit.com, "Zhang, Rui" <rui.zhang@intel.com>
 
->From 391908867c2a500a9068aa9f2a8e74663fff75ac Mon Sep 17 00:00:00 2001
-From: Zhang Rui <rui.zhang@intel.com>
-Date: Fri, 23 Nov 2012 09:25:10 +0800
-Subject: [PATCH] ACPI thermal: _TMP and _CRT/_HOT/_PSV/_ACx dependency fix
+At 11/26/2012 10:27 PM, Jianguo Wu Wrote:
+> On 2012/11/1 17:44, Wen Congyang wrote:
+>> This patch introduces a new function try_offline_node() to
+>> remove sysfs file of node when all memory sections of this
+>> node are removed. If some memory sections of this node are
+>> not removed, this function does nothing.
+>>
+>> CC: David Rientjes <rientjes@google.com>
+>> CC: Jiang Liu <liuj97@gmail.com>
+>> CC: Len Brown <len.brown@intel.com>
+>> CC: Christoph Lameter <cl@linux.com>
+>> Cc: Minchan Kim <minchan.kim@gmail.com>
+>> CC: Andrew Morton <akpm@linux-foundation.org>
+>> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+>> CC: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+>> Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+>> ---
+>>  drivers/acpi/acpi_memhotplug.c |  8 +++++-
+>>  include/linux/memory_hotplug.h |  2 +-
+>>  mm/memory_hotplug.c            | 58 ++++++++++++++++++++++++++++++++++++++++--
+>>  3 files changed, 64 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+>> index 24c807f..0780f99 100644
+>> --- a/drivers/acpi/acpi_memhotplug.c
+>> +++ b/drivers/acpi/acpi_memhotplug.c
+>> @@ -310,7 +310,9 @@ static int acpi_memory_disable_device(struct acpi_memory_device *mem_device)
+>>  {
+>>  	int result;
+>>  	struct acpi_memory_info *info, *n;
+>> +	int node;
+>>  
+>> +	node = acpi_get_node(mem_device->device->handle);
+>>  
+>>  	/*
+>>  	 * Ask the VM to offline this memory range.
+>> @@ -318,7 +320,11 @@ static int acpi_memory_disable_device(struct acpi_memory_device *mem_device)
+>>  	 */
+>>  	list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
+>>  		if (info->enabled) {
+>> -			result = remove_memory(info->start_addr, info->length);
+>> +			if (node < 0)
+>> +				node = memory_add_physaddr_to_nid(
+>> +					info->start_addr);
+>> +			result = remove_memory(node, info->start_addr,
+>> +				info->length);
+>>  			if (result)
+>>  				return result;
+>>  		}
+>> diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+>> index d4c4402..7b4cfe6 100644
+>> --- a/include/linux/memory_hotplug.h
+>> +++ b/include/linux/memory_hotplug.h
+>> @@ -231,7 +231,7 @@ extern int arch_add_memory(int nid, u64 start, u64 size);
+>>  extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
+>>  extern int offline_memory_block(struct memory_block *mem);
+>>  extern bool is_memblock_offlined(struct memory_block *mem);
+>> -extern int remove_memory(u64 start, u64 size);
+>> +extern int remove_memory(int node, u64 start, u64 size);
+>>  extern int sparse_add_one_section(struct zone *zone, unsigned long start_pfn,
+>>  								int nr_pages);
+>>  extern void sparse_remove_one_section(struct zone *zone, struct mem_section *ms);
+>> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+>> index 7bcced0..d965da3 100644
+>> --- a/mm/memory_hotplug.c
+>> +++ b/mm/memory_hotplug.c
+>> @@ -29,6 +29,7 @@
+>>  #include <linux/suspend.h>
+>>  #include <linux/mm_inline.h>
+>>  #include <linux/firmware-map.h>
+>> +#include <linux/stop_machine.h>
+>>  
+>>  #include <asm/tlbflush.h>
+>>  
+>> @@ -1299,7 +1300,58 @@ static int is_memblock_offlined_cb(struct memory_block *mem, void *arg)
+>>  	return ret;
+>>  }
+>>  
+>> -int __ref remove_memory(u64 start, u64 size)
+>> +static int check_cpu_on_node(void *data)
+>> +{
+>> +	struct pglist_data *pgdat = data;
+>> +	int cpu;
+>> +
+>> +	for_each_present_cpu(cpu) {
+>> +		if (cpu_to_node(cpu) == pgdat->node_id)
+>> +			/*
+>> +			 * the cpu on this node isn't removed, and we can't
+>> +			 * offline this node.
+>> +			 */
+>> +			return -EBUSY;
+>> +	}
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +/* offline the node if all memory sections of this node are removed */
+>> +static void try_offline_node(int nid)
+>> +{
+>> +	unsigned long start_pfn = NODE_DATA(nid)->node_start_pfn;
+>> +	unsigned long end_pfn = start_pfn + NODE_DATA(nid)->node_spanned_pages;
+>> +	unsigned long pfn;
+>> +
+>> +	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
+>> +		unsigned long section_nr = pfn_to_section_nr(pfn);
+>> +
+>> +		if (!present_section_nr(section_nr))
+>> +			continue;
+>> +
+>> +		if (pfn_to_nid(pfn) != nid)
+>> +			continue;
+>> +
+>> +		/*
+>> +		 * some memory sections of this node are not removed, and we
+>> +		 * can't offline node now.
+>> +		 */
+>> +		return;
+>> +	}
+>> +
+>> +	if (stop_machine(check_cpu_on_node, NODE_DATA(nid), NULL))
+>> +		return;
+> 
+> how about:
+> 	if (nr_cpus_node(nid))
 
-On some platforms, _TMP and _CRT/_HOT/_PSV/_ACx have dependency.
-And there is no way for OS to detect this dependency.
+If all cpus on the node is offlined, but not removed, nr_cpus_node(nid) will
+return 0. In this case, we still can't offline the node.
 
-commit 9bcb8118965ab4631a65ee0726e6518f75cda6c5 shows us a problem
-that _TMP must be evaluate after _CRT/_HOT/_PSV/_ACx, or esle
-firmware will shutdown the system.
+Another purpose to use stop_machine() is to prevent cpu hotplug. We can't lock
+cpuhotplug here.
 
-But the machins in https://bugzilla.kernel.org/show_bug.cgi?id=43284
-shows us that _PSV would return valid value only if _TMP has been
-evaluated once.
+Thanks
+Wen Congyang
 
-With this patch, all of the control methods will be evaluated once,
-in the order of  _CRT/_HOT/_PSV/_CRT, _TMP, before they are actually used.
-
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-Tested-by: katabami <katabami@lavabit.com>
----
- drivers/acpi/thermal.c |   31 +++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
-
-diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-index 804204d..1cb08db 100644
---- a/drivers/acpi/thermal.c
-+++ b/drivers/acpi/thermal.c
-@@ -984,6 +984,35 @@ static void acpi_thermal_notify(struct acpi_device *device, u32 event)
- 	}
- }
- 
-+/* On some platforms, the AML code has dependency about
-+ * the evaluating order of _TMP and _CRT/_HOT/_PSV/_ACx.
-+ * 1. On HP Pavilion G4-1016tx, _TMP must be invoked after
-+ *    /_CRT/_HOT/_PSV/_ACx, or else system will be power off.
-+ * 2. On HP Compaq 6715b/6715s, the return value of _PSV is 0
-+ *    if _TMP has never been evaluated.
-+ *
-+ * As this dependency is totally transparent to OS, evaluate
-+ * all of them once, in the order of _CRT/_HOT/_PSV/_ACx,
-+ * _TMP, before they are actually used.
-+ */
-+static void acpi_thermal_aml_dependency_fix(struct acpi_thermal *tz)
-+{
-+	unsigned long long value;
-+	acpi_status status = AE_OK;
-+	int i;
-+
-+	acpi_evaluate_integer(tz->device->handle, "_CRT", NULL, &value);
-+	acpi_evaluate_integer(tz->device->handle, "_HOT", NULL, &value);
-+	acpi_evaluate_integer(tz->device->handle, "_PSV", NULL, &value);
-+	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE && status != AE_NOT_FOUND; i++ ) {
-+		char name[5] = { '_', 'A', 'C', ('0' + i), '\0' };
-+
-+		status = acpi_evaluate_integer(tz->device->handle,
-+						name, NULL, &value);
-+	}
-+	acpi_evaluate_integer(tz->device->handle, "_TMP", NULL, &value);
-+}
-+
- static int acpi_thermal_get_info(struct acpi_thermal *tz)
- {
- 	int result = 0;
-@@ -992,6 +1021,8 @@ static int acpi_thermal_get_info(struct acpi_thermal *tz)
- 	if (!tz)
- 		return -EINVAL;
- 
-+	acpi_thermal_aml_dependency_fix(tz);
-+
- 	/* Get trip points [_CRT, _PSV, etc.] (required) */
- 	result = acpi_thermal_get_trip_points(tz);
- 	if (result)
--- 
-1.7.9.5
-
-
+> 		return;
+>> +
+>> +	/*
+>> +	 * all memory/cpu of this node are removed, we can offline this
+>> +	 * node now.
+>> +	 */
+>> +	node_set_offline(nid);
+>> +	unregister_one_node(nid);
+>> +}
+>> +
+>> +int __ref remove_memory(int nid, u64 start, u64 size)
+>>  {
+>>  	unsigned long start_pfn, end_pfn;
+>>  	int ret = 0;
+>> @@ -1346,6 +1398,8 @@ repeat:
+>>  
+>>  	arch_remove_memory(start, size);
+>>  
+>> +	try_offline_node(nid);
+>> +
+>>  	unlock_memory_hotplug();
+>>  
+>>  	return 0;
+>> @@ -1355,7 +1409,7 @@ int offline_pages(unsigned long start_pfn, unsigned long nr_pages)
+>>  {
+>>  	return -EINVAL;
+>>  }
+>> -int remove_memory(u64 start, u64 size)
+>> +int remove_memory(int nid, u64 start, u64 size)
+>>  {
+>>  	return -EINVAL;
+>>  }
+>>
+> 
+> 
 
