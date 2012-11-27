@@ -1,68 +1,81 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 04/15] ACPICA: Fixes code maintenance divergences.
-Date: Tue, 27 Nov 2012 12:46:46 +0100
-Message-ID: <1413291.sYrZCFJfs2@vostro.rjw.lan>
-References: <cover.1353491652.git.lv.zheng@intel.com> <1A7043D5F58CCB44A599DFD55ED4C94828D4CEA0@FMSMSX108.amr.corp.intel.com> <1AE640813FDE7649BE1B193DEA596E88BD37DB@SHSMSX101.ccr.corp.intel.com>
+From: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
+Subject: Re: [RFC PATCH v3 3/3] acpi_memhotplug: Allow eject to proceed on
+ rebind scenario
+Date: Tue, 27 Nov 2012 19:32:45 +0100
+Message-ID: <20121127183245.GA4674@dhcp-192-168-178-175.profitbricks.localdomain>
+References: <1353693037-21704-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
+ <1353693037-21704-4-git-send-email-vasilis.liaskovitis@profitbricks.com>
+ <50B0F3DF.4000802@gmail.com>
+ <20121126083634.GA4574@dhcp-192-168-178-175.profitbricks.localdomain>
+ <50B3323E.7020907@cn.fujitsu.com>
+ <1353975541.26955.182.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:34195 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753533Ab2K0LmD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 27 Nov 2012 06:42:03 -0500
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88BD37DB@SHSMSX101.ccr.corp.intel.com>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:57560 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751086Ab2K0Scu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Nov 2012 13:32:50 -0500
+Received: by mail-bk0-f46.google.com with SMTP id q16so5319163bkw.19
+        for <linux-acpi@vger.kernel.org>; Tue, 27 Nov 2012 10:32:49 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <1353975541.26955.182.camel@misato.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: "Zheng, Lv" <lv.zheng@intel.com>, "Brown, Len" <len.brown@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: Wen Congyang <wency@cn.fujitsu.com>, Wen Congyang <wencongyang@gmail.com>, linux-acpi@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, rjw@sisk.pl, lenb@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 
-On Tuesday, November 27, 2012 05:33:55 AM Zheng, Lv wrote:
-> > > This patch will not affect the generated vmlinux binary.
+On Mon, Nov 26, 2012 at 05:19:01PM -0700, Toshi Kani wrote:
+> > >> Consider the following sequence of operations for a hotplugged memory
+> > >> device:
+> > >>
+> > >> 1. echo "PNP0C80:XX" > /sys/bus/acpi/drivers/acpi_memhotplug/unbind
+> > >> 2. echo 1 >/sys/bus/pci/devices/PNP0C80:XX/eject
+> > >>
+> > >> If we don't offline/remove the memory, we have no chance to do it in
+> > >> step 2. After
+> > >> step2, the memory is used by the kernel, but we have powered off it. It
+> > >> is very
+> > >> dangerous.
+> > > 
+> > > How does power-off happen after unbind? acpi_eject_store checks for existing
+> > > driver before taking any action:
+> > > 
+> > > #ifndef FORCE_EJECT
+> > > 	if (acpi_device->driver == NULL) {
+> > > 		ret = -ENODEV;
+> > > 		goto err;
+> > > 	}
+> > > #endif
+> > > 
+> > > FORCE_EJECT is not defined afaict, so the function returns without scheduling
+> > > acpi_bus_hot_remove_device. Is there another code path that calls power-off?
 > > 
-> > If this is the goal, then please VERIFY that the goal was met by building both
-> > ways and comparing the kernel.
-> 
-> It's not the goal of this patch, it should be better stated as no function changes.
-> 
-> > due to the hunk below, we know that this patch DOES change the kernel, and
-> > not in a correct way:
+> > Consider the following case:
 > > 
-> > > diff --git a/drivers/acpi/acpica/tbutils.c
-> > > b/drivers/acpi/acpica/tbutils.c index 285e24b..b4469a6
-> > > 100644
-> > > --- a/drivers/acpi/acpica/tbutils.c
-> > > +++ b/drivers/acpi/acpica/tbutils.c
-> > > @@ -384,10 +384,6 @@ void acpi_tb_check_dsdt_header(void)
-> > >  		acpi_tb_print_table_header(0, &acpi_gbl_original_dsdt_header);
-> > >  		acpi_tb_print_table_header(0, acpi_gbl_DSDT);
-> > >
-> > > -		ACPI_ERROR((AE_INFO,
-> > > -			    "Please send DMI info to linux-acpi@vger.kernel.org\n"
-> > > -			    "If system does not work as expected, please boot with
-> > acpi=copy_dsdt"));
-> > > -
-> > >  		/* Disable further error messages */
+> > We hotremove the memory device by SCI and unbind it from the driver at the same time:
 > > 
-> > Please retain this difference between Linux and ACPICA -- it is there for a
-> > reason.
+> > CPUa                                                  CPUb
+> > acpi_memory_device_notify()
+> >                                        unbind it from the driver
+> >     acpi_bus_hot_remove_device()
 > 
-> Agreed.
-> I shouldn't make this vanished.
-> I will add this back to Linux during the next release if this is needed.
+> Can we make acpi_bus_remove() to fail if a given acpi_device is not
+> bound with a driver?  If so, can we make the unbind operation to perform
+> unbind only?
 
-No, the next release would be too late.
+acpi_bus_remove_device could check if the driver is present, and return -ENODEV
+if it's not present (dev->driver == NULL).
 
-Please do it now.  Please address all of the Len's comments in all of the
-patches and resend the whole series.  And _please_ be more careful, I asked
-you for that last time already.
+But there can still be a race between an eject and an unbind operation happening
+simultaneously. This seems like a general problem to me i.e. not specific to an
+acpi memory device. How do we ensure an eject does not race with a driver unbind
+for other acpi devices?
 
-I'll drop it from linux-next for now and will wait for the new submissoion.
+Is there a per-device lock in acpi-core or device-core that can prevent this from
+happening? Driver core does a device_lock(dev) on all operations, but this is
+probably not grabbed on SCI-initiated acpi ejects.
 
-Thanks,
-Rafael
+thanks,
 
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+- Vasilis
