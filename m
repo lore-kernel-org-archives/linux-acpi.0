@@ -1,21 +1,17 @@
 From: Wen Congyang <wency@cn.fujitsu.com>
 Subject: Re: [PATCH v3 08/12] memory-hotplug: remove memmap of sparse-vmemmap
-Date: Tue, 27 Nov 2012 14:39:55 +0800
-Message-ID: <50B4603B.1040600@cn.fujitsu.com>
+Date: Tue, 27 Nov 2012 14:49:03 +0800
+Message-ID: <50B4625F.1050307@cn.fujitsu.com>
 References: <1351763083-7905-1-git-send-email-wency@cn.fujitsu.com> <1351763083-7905-9-git-send-email-wency@cn.fujitsu.com> <50B45400.20800@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:29103 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1757842Ab2K0HAr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 27 Nov 2012 02:00:47 -0500
+Return-path: <owner-linux-mm@kvack.org>
 In-Reply-To: <50B45400.20800@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: owner-linux-mm@kvack.org
 To: Jianguo Wu <wujianguo@huawei.com>
 Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, David Rientjes <rientjes@google.com>, Jiang Liu <liuj97@gmail.com>, Len Brown <len.brown@intel.com>, benh@kernel.crashing.org, paulus@samba.org, Christoph Lameter <cl@linux.com>, Minchan Kim <minchan.kim@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+List-Id: linux-acpi@vger.kernel.org
 
 At 11/27/2012 01:47 PM, Jianguo Wu Wrote:
 > On 2012/11/1 17:44, Wen Congyang wrote:
@@ -335,14 +331,6 @@ At 11/27/2012 01:47 PM, Jianguo Wu Wrote:
 > Hi Congyang,
 > 	For vmemmap, nr_pages should be PAGES_PER_SECTION for free_map_bootmem(),
 > which is passed by free_section_usemap(), right? 
-
-Yes, you are right. I will merge it into my patchset.
-
-I will sent the new patchset later today.
-
-Thanks
-Wen Congyang
-
 > But now, nr_pages = PAGE_ALIGN(PAGES_PER_SECTION * sizeof(struct page)) >> PAGE_SHIFT.
 > 
 > Signed-off-by: Jianguo Wu <wujianguo@huawei.com>
@@ -364,7 +352,19 @@ Wen Congyang
 >  		nr_pages = PAGE_ALIGN(PAGES_PER_SECTION * sizeof(struct page))
 >  			>> PAGE_SHIFT;
 > +#endif
+
+Hmm, to avoid using ifdef, I think we can pass PAGE_PER_SECTION to free_map_bootmem(),
+and calculate how many pages is used to store struct page.
+
+Thanks
+Wen Congyang
+
 >  
 >  		free_map_bootmem(memmap_page, nr_pages);
 >  	}
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
