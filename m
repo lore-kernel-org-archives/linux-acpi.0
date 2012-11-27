@@ -1,129 +1,87 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI thermal: _TMP and _CRT/_HOT/_PSV/_ACx dependency fix
-Date: Tue, 27 Nov 2012 20:55:22 +0100
-Message-ID: <13424597.Clh1ApcFoE@vostro.rjw.lan>
-References: <1353981690.2157.5.camel@rzhang1-mobl4>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [RFC PATCH v3 3/3] acpi_memhotplug: Allow eject to proceed on
+ rebind scenario
+Date: Tue, 27 Nov 2012 15:03:47 -0700
+Message-ID: <1354053827.26955.196.camel@misato.fc.hp.com>
+References: <1353693037-21704-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
+	 <1353693037-21704-4-git-send-email-vasilis.liaskovitis@profitbricks.com>
+	 <50B0F3DF.4000802@gmail.com>
+	 <20121126083634.GA4574@dhcp-192-168-178-175.profitbricks.localdomain>
+	 <50B3323E.7020907@cn.fujitsu.com>
+	 <1353975541.26955.182.camel@misato.fc.hp.com>
+	 <20121127183245.GA4674@dhcp-192-168-178-175.profitbricks.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:34535 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755503Ab2K0Tuj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 27 Nov 2012 14:50:39 -0500
-In-Reply-To: <1353981690.2157.5.camel@rzhang1-mobl4>
+Received: from g1t0027.austin.hp.com ([15.216.28.34]:5109 "EHLO
+	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753284Ab2K0WMO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Nov 2012 17:12:14 -0500
+In-Reply-To: <20121127183245.GA4674@dhcp-192-168-178-175.profitbricks.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Zhang Rui <rui.zhang@intel.com>, "Matthew Garrett (mjg@redhat.com)" <mjg@redhat.com>, katabami@lavabit.com
+To: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
+Cc: Wen Congyang <wency@cn.fujitsu.com>, Wen Congyang <wencongyang@gmail.com>, linux-acpi@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, rjw@sisk.pl, lenb@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 
-On Tuesday, November 27, 2012 10:01:30 AM Zhang Rui wrote:
-> From 391908867c2a500a9068aa9f2a8e74663fff75ac Mon Sep 17 00:00:00 2001
-> From: Zhang Rui <rui.zhang@intel.com>
-> Date: Fri, 23 Nov 2012 09:25:10 +0800
-> Subject: [PATCH] ACPI thermal: _TMP and _CRT/_HOT/_PSV/_ACx dependency fix
+On Tue, 2012-11-27 at 19:32 +0100, Vasilis Liaskovitis wrote:
+> On Mon, Nov 26, 2012 at 05:19:01PM -0700, Toshi Kani wrote:
+> > > >> Consider the following sequence of operations for a hotplugged memory
+> > > >> device:
+> > > >>
+> > > >> 1. echo "PNP0C80:XX" > /sys/bus/acpi/drivers/acpi_memhotplug/unbind
+> > > >> 2. echo 1 >/sys/bus/pci/devices/PNP0C80:XX/eject
+> > > >>
+> > > >> If we don't offline/remove the memory, we have no chance to do it in
+> > > >> step 2. After
+> > > >> step2, the memory is used by the kernel, but we have powered off it. It
+> > > >> is very
+> > > >> dangerous.
+> > > > 
+> > > > How does power-off happen after unbind? acpi_eject_store checks for existing
+> > > > driver before taking any action:
+> > > > 
+> > > > #ifndef FORCE_EJECT
+> > > > 	if (acpi_device->driver == NULL) {
+> > > > 		ret = -ENODEV;
+> > > > 		goto err;
+> > > > 	}
+> > > > #endif
+> > > > 
+> > > > FORCE_EJECT is not defined afaict, so the function returns without scheduling
+> > > > acpi_bus_hot_remove_device. Is there another code path that calls power-off?
+> > > 
+> > > Consider the following case:
+> > > 
+> > > We hotremove the memory device by SCI and unbind it from the driver at the same time:
+> > > 
+> > > CPUa                                                  CPUb
+> > > acpi_memory_device_notify()
+> > >                                        unbind it from the driver
+> > >     acpi_bus_hot_remove_device()
+> > 
+> > Can we make acpi_bus_remove() to fail if a given acpi_device is not
+> > bound with a driver?  If so, can we make the unbind operation to perform
+> > unbind only?
 > 
-> On some platforms, _TMP and _CRT/_HOT/_PSV/_ACx have dependency.
-> And there is no way for OS to detect this dependency.
+> acpi_bus_remove_device could check if the driver is present, and return -ENODEV
+> if it's not present (dev->driver == NULL).
 > 
-> commit 9bcb8118965ab4631a65ee0726e6518f75cda6c5 shows us a problem
-> that _TMP must be evaluate after _CRT/_HOT/_PSV/_ACx, or esle
-> firmware will shutdown the system.
+> But there can still be a race between an eject and an unbind operation happening
+> simultaneously. This seems like a general problem to me i.e. not specific to an
+> acpi memory device. How do we ensure an eject does not race with a driver unbind
+> for other acpi devices?
 > 
-> But the machins in https://bugzilla.kernel.org/show_bug.cgi?id=43284
-> shows us that _PSV would return valid value only if _TMP has been
-> evaluated once.
-> 
-> With this patch, all of the control methods will be evaluated once,
-> in the order of  _CRT/_HOT/_PSV/_CRT, _TMP, before they are actually used.
+> Is there a per-device lock in acpi-core or device-core that can prevent this from
+> happening? Driver core does a device_lock(dev) on all operations, but this is
+> probably not grabbed on SCI-initiated acpi ejects.
 
-I'm going to apply it, but with a few cleanups.  The result is appended, please
-double check if it is still correct.
+Since driver_unbind() calls device_lock(dev->parent) before calling
+device_release_driver(), I am wondering if we can call
+device_lock(dev->dev->parent) at the beginning of acpi_bus_remove()
+(i.e. before calling pre_remove) and fails if dev->driver is NULL.  The
+parent lock is otherwise released after device_release_driver() is done.
 
 Thanks,
-Rafael
+-Toshi
 
----
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: ACPI / thermal: _TMP and _CRT/_HOT/_PSV/_ACx dependency fix
-
-On some platforms, _TMP and _CRT/_HOT/_PSV/_ACx have dependency.
-And there is no way for OS to detect this dependency.
-
-commit 9bcb8118965ab4631a65ee0726e6518f75cda6c5 shows us a problem
-that _TMP must be evaluate after _CRT/_HOT/_PSV/_ACx, or else
-firmware will shutdown the system.
-
-But the machine in https://bugzilla.kernel.org/show_bug.cgi?id=43284
-shows us that _PSV would return valid value only if _TMP has been
-evaluated once.
-
-With this patch, all of the control methods will be evaluated once,
-in the _CRT/_HOT/_PSV/_CRT/_TMP order, before they are actually used.
-
-[rjw: Added a local variable for the handle and modified the loop
- slightly.]
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-Tested-by: katabami <katabami@lavabit.com>
----
-drivers/acpi/thermal.c |   31 +++++++++++++++++++++++++++++++
- drivers/acpi/thermal.c |   34 ++++++++++++++++++++++++++++++++++
- 1 file changed, 34 insertions(+)
-
-Index: linux/drivers/acpi/thermal.c
-===================================================================
---- linux.orig/drivers/acpi/thermal.c
-+++ linux/drivers/acpi/thermal.c
-@@ -984,6 +984,38 @@ static void acpi_thermal_notify(struct a
- 	}
- }
- 
-+/*
-+ * On some platforms, the AML code has dependency about
-+ * the evaluating order of _TMP and _CRT/_HOT/_PSV/_ACx.
-+ * 1. On HP Pavilion G4-1016tx, _TMP must be invoked after
-+ *    /_CRT/_HOT/_PSV/_ACx, or else system will be power off.
-+ * 2. On HP Compaq 6715b/6715s, the return value of _PSV is 0
-+ *    if _TMP has never been evaluated.
-+ *
-+ * As this dependency is totally transparent to OS, evaluate
-+ * all of them once, in the order of _CRT/_HOT/_PSV/_ACx,
-+ * _TMP, before they are actually used.
-+ */
-+static void acpi_thermal_aml_dependency_fix(struct acpi_thermal *tz)
-+{
-+	acpi_handle handle = tz->device->handle;
-+	unsigned long long value;
-+	int i;
-+
-+	acpi_evaluate_integer(handle, "_CRT", NULL, &value);
-+	acpi_evaluate_integer(handle, "_HOT", NULL, &value);
-+	acpi_evaluate_integer(handle, "_PSV", NULL, &value);
-+	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE; i++) {
-+		char name[5] = { '_', 'A', 'C', ('0' + i), '\0' };
-+		acpi_status status;
-+
-+		status = acpi_evaluate_integer(handle, name, NULL, &value);
-+		if (status == AE_NOT_FOUND)
-+			break;
-+	}
-+	acpi_evaluate_integer(handle, "_TMP", NULL, &value);
-+}
-+
- static int acpi_thermal_get_info(struct acpi_thermal *tz)
- {
- 	int result = 0;
-@@ -992,6 +1024,8 @@ static int acpi_thermal_get_info(struct
- 	if (!tz)
- 		return -EINVAL;
- 
-+	acpi_thermal_aml_dependency_fix(tz);
-+
- 	/* Get trip points [_CRT, _PSV, etc.] (required) */
- 	result = acpi_thermal_get_trip_points(tz);
- 	if (result)
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
