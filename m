@@ -1,28 +1,73 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: [PATCH 12/15] ACPICA: Enhance the ACPI_GETx and ACPI_SETx
- macros.
-Date: Tue, 27 Nov 2012 04:04:33 +0000
-Message-ID: <1A7043D5F58CCB44A599DFD55ED4C94828D4CED7@FMSMSX108.amr.corp.intel.com>
-References: <cover.1353491652.git.lv.zheng@intel.com>
- <8173a1db72935a38cdfe1d27587166766d86f027.1353491653.git.lv.zheng@intel.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 2/2] platform / ACPI: Attach/detach ACPI PM during
+ probe/remove/shutdown
+Date: Tue, 27 Nov 2012 05:24:46 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88BD379D@SHSMSX101.ccr.corp.intel.com>
+References: <1672179.qgDUs0YdYu@vostro.rjw.lan>
+ <6227446.8xPtqi6yHi@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:41688 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933156Ab2K0EEf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Nov 2012 23:04:35 -0500
-In-Reply-To: <8173a1db72935a38cdfe1d27587166766d86f027.1353491653.git.lv.zheng@intel.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <6227446.8xPtqi6yHi@vostro.rjw.lan>
 Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, LKML <linux-kernel@vger.kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, "Svahn, Kai" <kai.svahn@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Huang, Ying" <ying.huang@intel.com>, "Lan, Tianyu" <tianyu.lan@intel.com>, "Lu, Aaron" <aaron.lu@intel.com>, Grant Likely <grant.likely@secretlab.ca>
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-Thank you for verifying that this syntax change did not have any effect
-on the resulting binary!  That would be a great thing to note in patch
-check-in comments in the future:-)
-
-thanks,
--Len
+SXQgbG9va3MgY2xlYW5lc3QgdW5sZXNzIG1vcmUgYWJzdHJhY3Rpb25zIGFyZSBpbnRyb2R1Y2Vk
+IGZvciBvdGhlciBwb3dlciBtYW5hZ2VtZW50IHByb3ZpZGVycy4NCg0KQmVzdCByZWdhcmRzL0x2
+IFpoZW5nDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUmFmYWVsIEou
+IFd5c29ja2kgW21haWx0bzpyandAc2lzay5wbF0NCj4gU2VudDogU3VuZGF5LCBOb3ZlbWJlciAy
+NSwgMjAxMiAxMDo1OCBQTQ0KPiBUbzogTEtNTA0KPiBDYzogR3JlZyBLcm9haC1IYXJ0bWFuOyBM
+aW51eCBQTSBsaXN0OyBBQ1BJIERldmVsIE1hbGluZyBMaXN0OyBaaGFuZywgUnVpOw0KPiBTdmFo
+biwgS2FpOyBNaWthIFdlc3RlcmJlcmc7IEh1YW5nLCBZaW5nOyBMYW4sIFRpYW55dTsgWmhlbmcs
+IEx2OyBMdSwgQWFyb247DQo+IEdyYW50IExpa2VseQ0KPiBTdWJqZWN0OiBbUEFUQ0ggMi8yXSBw
+bGF0Zm9ybSAvIEFDUEk6IEF0dGFjaC9kZXRhY2ggQUNQSSBQTSBkdXJpbmcNCj4gcHJvYmUvcmVt
+b3ZlL3NodXRkb3duDQo+IA0KPiBGcm9tOiBSYWZhZWwgSi4gV3lzb2NraSA8cmFmYWVsLmoud3lz
+b2NraUBpbnRlbC5jb20+DQo+IA0KPiBEcml2ZXJzIHVzdWFsbHkgZXhwZWN0IHRoYXQgdGhlIGRl
+dmljZXMgdGhleSBhcmUgc3VwcG9zZWQgdG8gaGFuZGxlIHdpbGwgYmUNCj4gb3BlcmF0aW9uYWwg
+d2hlbiB0aGVpciAucHJvYmUoKSByb3V0aW5lcyBhcmUgY2FsbGVkLCBidXQgdGhhdCBuZWVkIG5v
+dCBiZSB0aGUNCj4gY2FzZSBvbiBzb21lIEFDUEktYmFzZWQgc3lzdGVtcyB3aXRoIEFDUEktYmFz
+ZWQgZGV2aWNlIGVudW1lcmF0aW9uIHdoZXJlDQo+IHRoZSBCSU9TZXMgZG9uJ3QgcHV0IGRldmlj
+ZXMgaW50byBEMCBieSBkZWZhdWx0LiAgVG8gd29yayBhcm91bmQgdGhpcyBwcm9ibGVtDQo+IGl0
+IGlzIHN1ZmZpY2llbnQgdG8gY2hhbmdlIGJ1cyB0eXBlIC5wcm9iZSgpIHJvdXRpbmVzIHRvIGVu
+c3VyZSB0aGF0IGRldmljZXMgd2lsbA0KPiBiZSBwb3dlcmVkIG9uIGJlZm9yZSB0aGUgZHJpdmVy
+cycgLnByb2JlKCkgcm91dGluZXMgcnVuIChhbmQgdGhlaXIgLnJlbW92ZSgpDQo+IGFuZCAuc2h1
+dGRvd24oKSByb3V0aW5lcyBhY2NvcmRpbmdseSkuDQo+IA0KPiBNb2RpZnkgcGxhdGZvcm1fZHJ2
+X3Byb2JlKCkgdG8gcnVuIGFjcGlfZGV2X3BtX2F0dGFjaCgpIGZvciBkZXZpY2VzIHdob3NlDQo+
+IEFDUEkgaGFuZGxlcyBhcmUgcHJlc2VudCwgc28gdGhhdCBBQ1BJIHBvd2VyIG1hbmFnZW1lbnQg
+aXMgdXNlZCB0byBjaGFuZ2UNCj4gdGhlaXIgcG93ZXIgc3RhdGVzIGFuZCBjaGFuZ2UgdGhlaXIg
+cG93ZXIgc3RhdGVzIHRvIEQwIGJlZm9yZSBkcml2ZXIgcHJvYmluZy4NCj4gQW5hbG9nb3VzbHks
+IG1vZGlmeSBwbGF0Zm9ybV9kcnZfcmVtb3ZlKCkgYW5kDQo+IHBsYXRmb3JtX2Rydl9zaHV0ZG93
+bigpIHRvIGNhbGwgYWNwaV9kZXZfcG1fZGV0YWNoKCkgZm9yIHRob3NlIGRldmljZXMsIHNvDQo+
+IHRoYXQgdGhleSBhcmUgbm90IHN1YmplY3QgdG8gQUNQSSBQTSBhbnkgbW9yZS4NCj4gDQo+IFNp
+Z25lZC1vZmYtYnk6IFJhZmFlbCBKLiBXeXNvY2tpIDxyYWZhZWwuai53eXNvY2tpQGludGVsLmNv
+bT4NCj4gLS0tDQo+ICBkcml2ZXJzL2Jhc2UvcGxhdGZvcm0uYyB8ICAgMTkgKysrKysrKysrKysr
+KysrKystLQ0KPiAgMSBmaWxlIGNoYW5nZWQsIDE3IGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25z
+KC0pDQo+IA0KPiBJbmRleDogbGludXgvZHJpdmVycy9iYXNlL3BsYXRmb3JtLmMNCj4gPT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PQ0KPiA9PT0NCj4gLS0tIGxpbnV4Lm9yaWcvZHJpdmVycy9iYXNlL3BsYXRmb3JtLmMNCj4gKysr
+IGxpbnV4L2RyaXZlcnMvYmFzZS9wbGF0Zm9ybS5jDQo+IEBAIC00ODQsOCArNDg0LDE2IEBAIHN0
+YXRpYyBpbnQgcGxhdGZvcm1fZHJ2X3Byb2JlKHN0cnVjdCBkZXYgIHsNCj4gIAlzdHJ1Y3QgcGxh
+dGZvcm1fZHJpdmVyICpkcnYgPSB0b19wbGF0Zm9ybV9kcml2ZXIoX2Rldi0+ZHJpdmVyKTsNCj4g
+IAlzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpkZXYgPSB0b19wbGF0Zm9ybV9kZXZpY2UoX2Rldik7
+DQo+ICsJaW50IHJldDsNCj4gDQo+IC0JcmV0dXJuIGRydi0+cHJvYmUoZGV2KTsNCj4gKwlpZiAo
+QUNQSV9IQU5ETEUoX2RldikpDQo+ICsJCWFjcGlfZGV2X3BtX2F0dGFjaChfZGV2LCB0cnVlKTsN
+Cj4gKw0KPiArCXJldCA9IGRydi0+cHJvYmUoZGV2KTsNCj4gKwlpZiAocmV0ICYmIEFDUElfSEFO
+RExFKF9kZXYpKQ0KPiArCQlhY3BpX2Rldl9wbV9kZXRhY2goX2RldiwgdHJ1ZSk7DQo+ICsNCj4g
+KwlyZXR1cm4gcmV0Ow0KPiAgfQ0KPiANCj4gIHN0YXRpYyBpbnQgcGxhdGZvcm1fZHJ2X3Byb2Jl
+X2ZhaWwoc3RydWN0IGRldmljZSAqX2RldikgQEAgLTQ5Nyw4ICs1MDUsMTMNCj4gQEAgc3RhdGlj
+IGludCBwbGF0Zm9ybV9kcnZfcmVtb3ZlKHN0cnVjdCBkZSAgew0KPiAgCXN0cnVjdCBwbGF0Zm9y
+bV9kcml2ZXIgKmRydiA9IHRvX3BsYXRmb3JtX2RyaXZlcihfZGV2LT5kcml2ZXIpOw0KPiAgCXN0
+cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKmRldiA9IHRvX3BsYXRmb3JtX2RldmljZShfZGV2KTsNCj4g
+KwlpbnQgcmV0Ow0KPiArDQo+ICsJcmV0ID0gZHJ2LT5yZW1vdmUoZGV2KTsNCj4gKwlpZiAoQUNQ
+SV9IQU5ETEUoX2RldikpDQo+ICsJCWFjcGlfZGV2X3BtX2RldGFjaChfZGV2LCB0cnVlKTsNCj4g
+DQo+IC0JcmV0dXJuIGRydi0+cmVtb3ZlKGRldik7DQo+ICsJcmV0dXJuIHJldDsNCj4gIH0NCj4g
+DQo+ICBzdGF0aWMgdm9pZCBwbGF0Zm9ybV9kcnZfc2h1dGRvd24oc3RydWN0IGRldmljZSAqX2Rl
+dikgQEAgLTUwNyw2ICs1MjAsOA0KPiBAQCBzdGF0aWMgdm9pZCBwbGF0Zm9ybV9kcnZfc2h1dGRv
+d24oc3RydWN0DQo+ICAJc3RydWN0IHBsYXRmb3JtX2RldmljZSAqZGV2ID0gdG9fcGxhdGZvcm1f
+ZGV2aWNlKF9kZXYpOw0KPiANCj4gIAlkcnYtPnNodXRkb3duKGRldik7DQo+ICsJaWYgKEFDUElf
+SEFORExFKF9kZXYpKQ0KPiArCQlhY3BpX2Rldl9wbV9kZXRhY2goX2RldiwgdHJ1ZSk7DQo+ICB9
+DQo+IA0KPiAgLyoqDQoNCg==
