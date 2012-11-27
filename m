@@ -1,147 +1,115 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v3 1/4] ACPI: Support system notify handler via .sys_notify
-Date: Tue, 27 Nov 2012 00:17:33 +0100
-Message-ID: <2359699.T5ZHKVSSKD@vostro.rjw.lan>
-References: <1352406227-32629-1-git-send-email-toshi.kani@hp.com> <9351429.9B119055GG@vostro.rjw.lan> <1353956799.26955.130.camel@misato.fc.hp.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [RFC PATCH v3 1/3] acpi: Introduce prepare_remove operation in
+ acpi_device_ops
+Date: Mon, 26 Nov 2012 17:10:21 -0700
+Message-ID: <1353975021.26955.178.camel@misato.fc.hp.com>
+References: <1353693037-21704-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
+	 <1353693037-21704-2-git-send-email-vasilis.liaskovitis@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:36995 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757337Ab2KZXgK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 26 Nov 2012 18:36:10 -0500
-In-Reply-To: <1353956799.26955.130.camel@misato.fc.hp.com>
+Received: from g6t0185.atlanta.hp.com ([15.193.32.62]:36114 "EHLO
+	g6t0185.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754323Ab2K0ASp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Nov 2012 19:18:45 -0500
+In-Reply-To: <1353693037-21704-2-git-send-email-vasilis.liaskovitis@profitbricks.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Toshi Kani <toshi.kani@hp.com>, lenb@kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, liuj97@gmail.com
+To: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
+Cc: linux-acpi@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, wency@cn.fujitsu.com, rjw@sisk.pl, lenb@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 
-On Monday, November 26, 2012 12:06:39 PM Toshi Kani wrote:
-> On Sat, 2012-11-24 at 23:37 +0100, Rafael J. Wysocki wrote:
-> > On Saturday, November 24, 2012 11:01:56 PM Rafael J. Wysocki wrote:
-> > > On Thursday, November 08, 2012 01:23:44 PM Toshi Kani wrote:
-> > > > Added a new .sys_notify interface, which allows ACPI drivers to
-> > > > register their system-level (ex. hotplug) notify handlers through
-> > > > their acpi_driver table.  This removes redundant ACPI namespace
-> > > > walks from ACPI drivers for faster booting.
-> > > > 
-> > > > The global notify handler acpi_bus_notify() is called for all
-> > > > system-level ACPI notifications, which then calls an appropriate
-> > > > driver's handler if any.  ACPI drivers no longer need to register
-> > > > or unregister driver's handler to each ACPI device object.  It also
-> > > > supports dynamic ACPI namespace with LoadTable & Unload opcode
-> > > > without any modification in ACPI drivers.
-> > > > 
-> > > > Added a common system notify handler acpi_bus_sys_notify(), which
-> > > > allows ACPI drivers to set it to .sys_notify when this function is
-> > > > fully implemented.
-> > > 
-> > > I don't really understand this.
-> > > 
-> > > > It removes functional conflict between driver's
-> > > > notify handler and the global notify handler acpi_bus_notify().
-> > > > 
-> > > > Note that the changes maintain backward compatibility for ACPI
-> > > > drivers.  Any drivers registered their hotplug handler through the
-> > > > existing interfaces, such as acpi_install_notify_handler() and
-> > > > register_acpi_bus_notifier(), will continue to work as before.
-> > > 
-> > > I really wouldn't like to add new callbacks to struct acpi_device_ops, because
-> > > I'd like that whole thing to go away entirely eventually, along with struct
-> > > acpi_driver.
-> > > 
-> > > Moreover, in this particular case, it really is not useful to have to define
-> > > a struct acpi_driver so that one can register for receiving system
-> > > notifications from ACPI.  It would be really nice if non-ACPI drivers, such
-> > > as PCI or platform, could do that too.
-> > 
-> > Which they do by using acpi_install_notify_handler() directly.
+On Fri, 2012-11-23 at 18:50 +0100, Vasilis Liaskovitis wrote:
+> This function should be registered for devices that need to execute some
+> non-acpi related action in order to be safely removed. If this function
+> returns zero, the acpi core can continue with removing the device.
 > 
-> By using acpi_install_notify_handler(), each driver needs to walk
-> through the entire ACPI namespace to find its associated ACPI devices
-> and call it to register one by one.  I think this is more work for
-> non-ACPI drivers than defining acpi_driver.
-
-I'm not really sure what you mean.  The drivers in question already know
-what the relevant ACPI device nodes are (because they need them anyway
-for other purposes), so they don't need to look for them specifically and
-acpi_install_notify_handler() doesn't do any namespace walking.  So what
-you said above simply doesn't make sense from this viewpoint.
-
-> Furthermore, this approach
-> will impose some major issues below.  (NOTE: Hot-plug implementation
-> varies in platforms/virtual machines.  These are examples from our IA64
-> platforms supported by other OS, but I hope Linux would support similar
-> capability in future.) 
->
-> a) Node Hot-plug
-> When a new node is added, the FW may extend the ACPI namespace by
-> loading SSDT for the new node.  Therefore, if we rely on drivers to call
-> acpi_install_notify_handler(), we need to make the drivers to walk the
-> namespace again to call it for new devices.  Similarly, the drivers need
-> to call acpi_remove_notify_handler() when a node is removed. 
-
-I'm not sure how adding .sys_notify() is going to address this issue.
-In order to use .sys_notify() your driver has to bind to a struct
-acpi_device in the first place, so you need to know that object to use it
-anyway.  This isn't any different from having a struct device whose
-ACPI_HANDLE() has been populated by the core and using
-acpi_install_notify_handler() directly on that.
-
-> b) Memory hot-plug
-> The FW may slice up the memory range with multiple memory device objects
-> so that logical hot-add/removal can be performed in finer granularity
-> for better resource balancing.  For example, a system with 4TB memory
-> sliced up with 1GB memory device objects will have (4 * 1024) memory
-> device objects in ACPI namespace.  If each driver walks ACPI namespace,
-> it can lead noticeable delay in such environment.  The number of objects
-> can easily go up when supporting more finer granularity or more amount
-> of memory.
-
-Again, I don't see why drivers would have to walk the namespace.
-
-It would be great if you could give a specific example of that.
-
-> > > Besides, acpi_os_execute_deferred() is always run on CPU0, because of some
-> > > SMI-related peculiarity, which is not very efficient as far as the events
-> > > handling is concerned, but we can improve the situation a bit by queing the
-> > > execution of the registered handlers in a different workqueue.  Maybe it's
-> > > worth considering if we're going to change this code anyway?
+> Make acpi_bus_remove call the device-specific prepare_remove callback before
+> removing the device. If prepare_remove fails, the removal is aborted.
 > 
-> In my experience, serializing hot-plug operations within an OS instance
-> is not typically an issue, and makes it much easier for testing and
-> diagnosing an issue.
+> Signed-off-by: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
+> ---
+>  drivers/acpi/scan.c     |    9 ++++++++-
+>  include/acpi/acpi_bus.h |    2 ++
+>  2 files changed, 10 insertions(+), 1 deletions(-)
 > 
-> 
-> > Well, perhaps we really don't need to change it after all?  Maybe we can just
-> > switch everyone to using acpi_install_notify_handler() and then we can just
-> > drop that code entirely?
-> 
-> I am concerned with the approach of each driver calling
-> acpi_install_notify_handler() directly, as described above.
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 8c4ac6d..e1c1d5d 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -1380,10 +1380,16 @@ static int acpi_device_set_context(struct acpi_device *device)
+>  
+>  static int acpi_bus_remove(struct acpi_device *dev, int rmdevice)
+>  {
+> +	int ret = 0;
+>  	if (!dev)
+>  		return -EINVAL;
+>  
+>  	dev->removal_type = ACPI_BUS_REMOVAL_EJECT;
+> +
+> +	if (dev->driver && dev->driver->ops.prepare_remove)
+> +		ret = dev->driver->ops.prepare_remove(dev);
+> +	if (ret)
+> +		return ret;
 
-Depending on how it is implemented, it shouldn't be much more computationally
-expensive than using .sys_notify() as proposed and the benefit would be
-everyone using the same well tested interface that's being used already by
-almost everyone anyway.
+Hi Vasilis,
 
-To make things clear, I'm actually going to drop that whole useless system
-notification code from bus.c shortly.  We can add something in its place later,
-but this one is not worth fixing in my opinion.  Let alone extending it.
+The above code should be like below. Then you do not need to initialize
+ret, either.  Please also add some comments explaining about
+prepare_remove can fail, but remove cannot.
 
-And as far as acpi_drivers are concerned, please consider them as an obsolete
-thing and try to avoid using them and extending their interfaces.  If you have
-problems with that, please let me know.
+	if (dev->driver && dev->driver->ops.prepare_remove) {
+		ret = dev->driver->ops.prepare_remove(dev);
+		if (ret)
+			return ret;
+	}
+
+>  	device_release_driver(&dev->dev);
+>  
+>  	if (!rmdevice)
+> @@ -1702,7 +1708,8 @@ int acpi_bus_trim(struct acpi_device *start, int rmdevice)
+>  				err = acpi_bus_remove(child, rmdevice);
+>  			else
+>  				err = acpi_bus_remove(child, 1);
+> -
+> +			if (err)
+> +				return err;
+>  			continue;
+>  		}
+>  
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index 7ced5dc..9d94a55 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -94,6 +94,7 @@ typedef int (*acpi_op_start) (struct acpi_device * device);
+>  typedef int (*acpi_op_bind) (struct acpi_device * device);
+>  typedef int (*acpi_op_unbind) (struct acpi_device * device);
+>  typedef void (*acpi_op_notify) (struct acpi_device * device, u32 event);
+> +typedef int (*acpi_op_prepare_remove) (struct acpi_device *device);
+>  
+>  struct acpi_bus_ops {
+>  	u32 acpi_op_add:1;
+> @@ -107,6 +108,7 @@ struct acpi_device_ops {
+>  	acpi_op_bind bind;
+>  	acpi_op_unbind unbind;
+>  	acpi_op_notify notify;
+> +	acpi_op_prepare_remove prepare_remove;
+
+I'd prefer pre_remove, which indicates this interface is called before
+remove.  prepare_remove sounds as if it only performs preparation, which
+may be misleading.
+
+BTW, Rafael mentioned we should avoid extending ACPI driver's
+interface...  But I do not have other idea, either.
+
 
 Thanks,
-Rafael
+-Toshi
 
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+>  };
+>  
+>  #define ACPI_DRIVER_ALL_NOTIFY_EVENTS	0x1	/* system AND device events */
+
+
