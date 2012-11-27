@@ -1,78 +1,38 @@
-From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: [Patch v4 12/12] memory-hotplug: free node_data when a node is offlined
-Date: Tue, 27 Nov 2012 18:00:22 +0800
-Message-ID: <1354010422-19648-13-git-send-email-wency@cn.fujitsu.com>
-References: <1354010422-19648-1-git-send-email-wency@cn.fujitsu.com>
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1354010422-19648-1-git-send-email-wency@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
-Cc: David Rientjes <rientjes@google.com>, Jiang Liu <liuj97@gmail.com>, Len Brown <len.brown@intel.com>, benh@kernel.crashing.org, paulus@samba.org, Christoph Lameter <cl@linux.com>, Minchan Kim <minchan.kim@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Jianguo Wu <wujianguo@huawei.com>, Wen Congyang <wency@cn.fujitsu.com>
+From: "Westerberg, Mika" <mika.westerberg@intel.com>
+Subject: Re: [PATCH] ACPI: remove unnecessary INIT_LIST_HEAD
+Date: Tue, 27 Nov 2012 12:05:55 +0200
+Message-ID: <20121127100555.GP3867@intel.com>
+References: <1354007025-8334-1-git-send-email-andriy.shevchenko@linux.intel.com>
+ <20121127092458.GO3867@intel.com>
+ <1354009761.20110.61.camel@smile>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([143.182.124.37]:36441 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933410Ab2K0KCi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 27 Nov 2012 05:02:38 -0500
+Content-Disposition: inline
+In-Reply-To: <1354009761.20110.61.camel@smile>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org
 
-We call hotadd_new_pgdat() to allocate memory to store node_data. So we
-should free it when removing a node.
+On Tue, Nov 27, 2012 at 11:49:21AM +0200, Andy Shevchenko wrote:
+> On Tue, 2012-11-27 at 11:24 +0200, Westerberg, Mika wrote: 
+> > On Tue, Nov 27, 2012 at 11:03:45AM +0200, Andy Shevchenko wrote:
+> > > There is no need to initialize the node before appending it to the list.
+> > 
+> > I might be missing something but why do we then have macros like:
+> > list_del_init() etc?
+> 
+> list_del_init(&list->node) allows to reuse &list->node as a new list.
+> I guess the often use case of that when you extract the leaf node from
+> the list of lists and create a new list based on it.
+> 
+> In our case we just add a node to the existed list.
 
-CC: David Rientjes <rientjes@google.com>
-CC: Jiang Liu <liuj97@gmail.com>
-CC: Len Brown <len.brown@intel.com>
-CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-CC: Paul Mackerras <paulus@samba.org>
-CC: Christoph Lameter <cl@linux.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-CC: Andrew Morton <akpm@linux-foundation.org>
-CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-CC: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
----
- mm/memory_hotplug.c | 20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
+OK. Thanks for the explanation.
 
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index 449663e..d1451ab 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -1309,9 +1309,12 @@ static int check_cpu_on_node(void *data)
- /* offline the node if all memory sections of this node are removed */
- static void try_offline_node(int nid)
- {
-+	pg_data_t *pgdat = NODE_DATA(nid);
- 	unsigned long start_pfn = NODE_DATA(nid)->node_start_pfn;
--	unsigned long end_pfn = start_pfn + NODE_DATA(nid)->node_spanned_pages;
-+	unsigned long end_pfn = start_pfn + pgdat->node_spanned_pages;
- 	unsigned long pfn;
-+	struct page *pgdat_page = virt_to_page(pgdat);
-+	int i;
- 
- 	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
- 		unsigned long section_nr = pfn_to_section_nr(pfn);
-@@ -1338,6 +1341,21 @@ static void try_offline_node(int nid)
- 	 */
- 	node_set_offline(nid);
- 	unregister_one_node(nid);
-+
-+	if (!PageSlab(pgdat_page) && !PageCompound(pgdat_page))
-+		/* node data is allocated from boot memory */
-+		return;
-+
-+	/* free waittable in each zone */
-+	for (i = 0; i < MAX_NR_ZONES; i++) {
-+		struct zone *zone = pgdat->node_zones + i;
-+
-+		if (zone->wait_table)
-+			vfree(zone->wait_table);
-+	}
-+
-+	arch_refresh_nodedata(nid, NULL);
-+	arch_free_nodedata(pgdat);
- }
- 
- int __ref remove_memory(int nid, u64 start, u64 size)
--- 
-1.8.0
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
