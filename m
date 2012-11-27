@@ -1,51 +1,92 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: [PATCH 04/15] ACPICA: Fixes code maintenance divergences.
-Date: Tue, 27 Nov 2012 03:46:30 +0000
-Message-ID: <1A7043D5F58CCB44A599DFD55ED4C94828D4CEA0@FMSMSX108.amr.corp.intel.com>
-References: <cover.1353491652.git.lv.zheng@intel.com>
- <b09f6d938fbc8f6b3b6904d770c17e8f797913b4.1353491653.git.lv.zheng@intel.com>
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: Re: [PATCH v3 0/3] ACPI: container hot remove support.
+Date: Tue, 27 Nov 2012 10:38:16 +0800
+Message-ID: <50B42798.4030402@cn.fujitsu.com>
+References: <1351668471-31436-1-git-send-email-tangchen@cn.fujitsu.com> <509106E2.70008@jp.fujitsu.com> <50B3014E.3040107@huawei.com> <50B306E0.3050207@cn.fujitsu.com> <50B4127F.3080400@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:16724 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933179Ab2K0Dqc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Nov 2012 22:46:32 -0500
-In-Reply-To: <b09f6d938fbc8f6b3b6904d770c17e8f797913b4.1353491653.git.lv.zheng@intel.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <50B4127F.3080400@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hanjun Guo <guohanjun@huawei.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, yinghai@kernel.org, bhelgaas@google.com, lenb@kernel.org, jiang.liu@huawei.com, izumi.taku@jp.fujitsu.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Wen Congyang <wency@cn.fujitsu.com>, Toshi Kani <toshi.kani@hp.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-> This patch will not affect the generated vmlinux binary.
+On 11/27/2012 09:08 AM, Hanjun Guo wrote:
+> On 2012/11/26 14:06, Tang Chen wrote:
+>> On 11/26/2012 01:42 PM, Hanjun Guo wrote:
+>>>
+>>> Hi all,
+>>> I think Yasuaki mentioned the key point for the container device re=
+move,
+>>> that is dependency.
+>>>
+>>> Currently, container, processor, and memory hotpulg are managed by =
+different ACPI
+>>> hotplug drivers, the driver works when handle device hotplug indivi=
+dually, but they
+>>> have no idea for each other.
+>>>
+>>> This may introduce some issues, such as Yasuaki mentioned above, th=
+at is to say, we
+>>> should remove its child before remove the device itself, and hot ad=
+d its parent before
+>>> the device itself.
+>>>
+>>> According to the ACPI namespace, we can resolve most of dependency =
+issues. On a typical
+>>> two processor sockets system, the namespace is like this:
+>>>
+>>> /_SB                   ---container device, with HID ACPI0004
+>>>       |_SCK0             ---container device, with HID ACPI0004
+>>>        |_CPU0       ---processor device, with HID ACPI0009 or LNXCP=
+U
+>>>             |_...
+>>>             |_CPUx
+>>>             |_MEM0       ---Memory device, with HID PNP0C80
+>>>       |_SCK1
+>>>        |_CPU0
+>>>             |_...
+>>>             |_CPUx
+>>>             |_MEM1
+>>>       |_PCI0            ---Host bridge, with HID PNP0A03 or PNP0A08
+>>>
+>>> If hot remove the container device, such as SCK0, we can easily kno=
+w the dependency list
+>>> is CPU0~CPUx and MEM0, but I think the ACPI hotplug driver haven't =
+resolve this now.
+>>>
+>>> And there is another corner case for hotplug devices in the namespa=
+ce above, that is:
+>>> 1) Remove SCK0. yes, we can remove it with no dependency to the hos=
+t bridge PCI0;
+>>>
+>>> 2) Remove SCK1 after SCK0. we should remove the host bridge PCI0 fi=
+rst,
+>>>      or the system will crash down. yes, dynamic dependency analysi=
+s is needed here.
+>>>      and the ACPI hotplug driver totally have no idea of this.
+>>>
+>>> so, should we do something to settle this down ?
+>>
+>> Hi Guo,
+>>
+>> I am trying to do this too. :)
+>
+> Great=EF=BC=8C what's your idea of this?
+>
+Hi Guo,
 
-If this is the goal, then please VERIFY that the goal was met
-by building both ways and comparing the kernel.
+I noticed they had a lot of discussion on this topic.
+https://lkml.org/lkml/2012/11/15/159
 
-due to the hunk below, we know that this patch DOES change
-the kernel, and not in a correct way:
+And Vasilis's latest patches are here:
+https://lkml.org/lkml/2012/11/23/335
 
-> diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c index 285e24b..b4469a6
-> 100644
-> --- a/drivers/acpi/acpica/tbutils.c
-> +++ b/drivers/acpi/acpica/tbutils.c
-> @@ -384,10 +384,6 @@ void acpi_tb_check_dsdt_header(void)
->  		acpi_tb_print_table_header(0, &acpi_gbl_original_dsdt_header);
->  		acpi_tb_print_table_header(0, acpi_gbl_DSDT);
-> 
-> -		ACPI_ERROR((AE_INFO,
-> -			    "Please send DMI info to linux-acpi@vger.kernel.org\n"
-> -			    "If system does not work as expected, please boot with acpi=copy_dsdt"));
-> -
->  		/* Disable further error messages */
+I think we can have a review of this patchset first. :)
 
-Please retain this difference between Linux and ACPICA --
-it is there for a reason.
-
-thanks,
--Len
-
-
-
+And also, as you said, the new ACPI hotplug framework from Liu Jiang
+will settle this problem more properly.
+So I think any solution now could be temporary. :)
