@@ -1,52 +1,59 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 217/493] acpi: remove use of __devinit
-Date: Wed, 28 Nov 2012 21:08:56 +0100
-Message-ID: <2392824.ONCP6PcqvX@vostro.rjw.lan>
-References: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu> <2276213.AWNh3gyvGP@vostro.rjw.lan> <20121128193824.GA21682@kroah.com>
+Subject: Re: Acpi deadlocks with 3.7.0-rc4
+Date: Wed, 28 Nov 2012 21:31:38 +0100
+Message-ID: <6072715.FoXSX1UJhO@vostro.rjw.lan>
+References: <50A513A8.9010404@redhat.com> <CA+55aFy7hxayPzr3MiV1xc0bvLcd+-7b52iA3CYhbPZuWXr9yA@mail.gmail.com> <50B64996.1010709@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:35420 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:35435 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754985Ab2K1UEL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 28 Nov 2012 15:04:11 -0500
-In-Reply-To: <20121128193824.GA21682@kroah.com>
+	id S1752896Ab2K1U0x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 28 Nov 2012 15:26:53 -0500
+In-Reply-To: <50B64996.1010709@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: Bill Pemberton <wfp5p@virginia.edu>, linux-acpi@vger.kernel.org
+To: Zdenek Kabelac <zkabelac@redhat.com>
+Cc: linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Wednesday, November 28, 2012 11:38:24 AM Greg KH wrote:
-> On Wed, Nov 28, 2012 at 08:34:43PM +0100, Rafael J. Wysocki wrote:
-> > On Wednesday, November 28, 2012 11:00:02 AM Greg KH wrote:
-> > > On Thu, Nov 22, 2012 at 01:18:09AM +0100, Rafael J. Wysocki wrote:
-> > > > On Wednesday, November 21, 2012 01:46:36 AM Rafael J. Wysocki wrote:
-> > > > > On Monday, November 19, 2012 01:22:46 PM Bill Pemberton wrote:
-> > > > > > CONFIG_HOTPLUG is going away as an option so __devinit is no longer
-> > > > > > needed.
-> > > > > 
-> > > > > Applied to the linux-next branch of the linux-pm.git tree as v3.8 material.
-> > > > 
-> > > > And dropped, because it causes build problems to happen in
-> > > > acpi_pci_root_add() in my tree.
-> > > 
-> > > What kind of problems?  If CONFIG_HOTPLUG is enabled __devinit defines
-> > > away to nothing, so this shouldn't have broken anything.
-> > 
-> > It did, because there's a dependency on PCI, so I would need to merge
-> > the PCI patch along with the ACPI one, but I couldn't find the PCI
-> > one, so I dropped the ACPI one too.
-> 
-> Ah, ok, that makes sense.  I will be including the PCI ones in my tree
-> soon, once I get Bjorn's ack.
+On Wednesday, November 28, 2012 06:27:50 PM Zdenek Kabelac wrote:
+> Dne 28.11.2012 18:02, Linus Torvalds napsal(a):
+> > On Wed, Nov 28, 2012 at 8:21 AM, Zdenek Kabelac <zkabelac@redhat.com> wrote:
+> >>
+> >> I've opened  https://bugzilla.kernel.org/show_bug.cgi?id=51071
+> >> and attached picture there which is all I have.
 
-So perhaps you can take this one too? :-)
+I wonder if you can try to apply the patch below and see if that makes any
+difference?
 
-Please regard it as acked.
-
-Thanks,
 Rafael
+
+
+---
+ drivers/pnp/pnpacpi/rsparser.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+Index: linux/drivers/pnp/pnpacpi/rsparser.c
+===================================================================
+--- linux.orig/drivers/pnp/pnpacpi/rsparser.c
++++ linux/drivers/pnp/pnpacpi/rsparser.c
+@@ -610,6 +610,14 @@ int pnpacpi_build_resource_template(stru
+ 	struct acpi_resource *resource;
+ 	int res_cnt = 0;
+ 	acpi_status status;
++	int ret;
++
++	/* Sanity check. */
++	ret = acpi_bus_get_device(handle, &acpi_dev);
++	if (ret) {
++		dev_err(&dev->dev, "ACPI node is invalid in %s\n", __func__);
++		return ret;
++	}
+ 
+ 	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
+ 				     pnpacpi_count_resources, &res_cnt);
+
 
 
 -- 
