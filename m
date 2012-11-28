@@ -1,396 +1,98 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH] ACPI: do acpisleep dmi check when CONFIG_ACPI_SLEEP is set
-Date: Wed, 28 Nov 2012 22:56:34 +0800
-Message-ID: <1354114594.2153.6.camel@rzhang1-mobl4>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: Acpi deadlocks with 3.7.0-rc4
+Date: Wed, 28 Nov 2012 08:01:03 -0800
+Message-ID: <CA+55aFyLMmKuEvY6T2=vSHp_R4=ndqFEFNJsc3Axze2vYknKhg@mail.gmail.com>
+References: <50A513A8.9010404@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:34652 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755392Ab2K1O4k (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 28 Nov 2012 09:56:40 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <50A513A8.9010404@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Zdenek Kabelac <zkabelac@redhat.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "Zhang, Rui" <rui.zhang@intel.com>
 
->From f730858816ceada75afeb7a0e780f2c08e5ae50a Mon Sep 17 00:00:00 2001
-From: Zhang Rui <rui.zhang@intel.com>
-Date: Wed, 28 Nov 2012 22:26:51 +0800
-Subject: [PATCH] ACPI: do acpisleep dmi check when CONFIG_ACPI_SLEEP is set
+Adding more people (and the acpi list) to this report.
 
-The current acpisleep dmi checks only run when CONFIG_SUSPEND is set.
-And this may break hibernation on some platforms when CONFIG_SUSPEND
-is cleared.
-https://bugzilla.kernel.org/show_bug.cgi?id=45921
+I'm seeing *very* few changes to the core suspend/resume path in 3.7,
+and while there are some acpia updates, they seem to be pretty mild
+too.
 
-Move acpisleep dmi check into #ifdef CONFIG_ACPI_SLEEP instead.
+I think the acpi_os_wait_semaphore thing is a red herring - that's
+just stale on the stack.
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- drivers/acpi/sleep.c |  327 +++++++++++++++++++++++++-------------------------
- 1 file changed, 164 insertions(+), 163 deletions(-)
+Do you have the register state from the oops? Or at least the "Code:"
+line? It would be nice to see exactly where the oops happens, and I
+cannot line up your "acpi_ns_lookup  + 0xa1/0x5b9" with any code due
+to different compilers (and configurations etc).
 
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index fdcdbb6..91a3c0f 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -109,6 +109,167 @@ void __init acpi_old_suspend_ordering(void)
- 	old_suspend_ordering = true;
- }
- 
-+static int __init init_old_suspend_ordering(const struct dmi_system_id *d)
-+{
-+	acpi_old_suspend_ordering();
-+	return 0;
-+}
-+
-+static int __init init_nvs_nosave(const struct dmi_system_id *d)
-+{
-+	acpi_nvs_nosave();
-+	return 0;
-+}
-+
-+static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
-+	{
-+	.callback = init_old_suspend_ordering,
-+	.ident = "Abit KN9 (nForce4 variant)",
-+	.matches = {
-+		DMI_MATCH(DMI_BOARD_VENDOR, "http://www.abit.com.tw/"),
-+		DMI_MATCH(DMI_BOARD_NAME, "KN9 Series(NF-CK804)"),
-+		},
-+	},
-+	{
-+	.callback = init_old_suspend_ordering,
-+	.ident = "HP xw4600 Workstation",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "HP xw4600 Workstation"),
-+		},
-+	},
-+	{
-+	.callback = init_old_suspend_ordering,
-+	.ident = "Asus Pundit P1-AH2 (M2N8L motherboard)",
-+	.matches = {
-+		DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTek Computer INC."),
-+		DMI_MATCH(DMI_BOARD_NAME, "M2N8L"),
-+		},
-+	},
-+	{
-+	.callback = init_old_suspend_ordering,
-+	.ident = "Panasonic CF51-2L",
-+	.matches = {
-+		DMI_MATCH(DMI_BOARD_VENDOR,
-+				"Matsushita Electric Industrial Co.,Ltd."),
-+		DMI_MATCH(DMI_BOARD_NAME, "CF51-2L"),
-+		},
-+	},
-+	{
-+	.callback = init_nvs_nosave,
-+	.ident = "Sony Vaio VGN-FW21E",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-FW21E"),
-+		},
-+	},
-+	{
-+	.callback = init_nvs_nosave,
-+	.ident = "Sony Vaio VPCEB17FX",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "VPCEB17FX"),
-+		},
-+	},
-+	{
-+	.callback = init_nvs_nosave,
-+	.ident = "Sony Vaio VGN-SR11M",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-SR11M"),
-+		},
-+	},
-+	{
-+	.callback = init_nvs_nosave,
-+	.ident = "Everex StepNote Series",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Everex Systems, Inc."),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "Everex StepNote Series"),
-+		},
-+	},
-+	{
-+	.callback = init_nvs_nosave,
-+	.ident = "Sony Vaio VPCEB1Z1E",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "VPCEB1Z1E"),
-+		},
-+	},
-+	{
-+	.callback = init_nvs_nosave,
-+	.ident = "Sony Vaio VGN-NW130D",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-NW130D"),
-+		},
-+	},
-+	{
-+	.callback = init_nvs_nosave,
-+	.ident = "Sony Vaio VPCCW29FX",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "VPCCW29FX"),
-+		},
-+	},
-+	{
-+	.callback = init_nvs_nosave,
-+	.ident = "Averatec AV1020-ED2",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "AVERATEC"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "1000 Series"),
-+		},
-+	},
-+	{
-+	.callback = init_old_suspend_ordering,
-+	.ident = "Asus A8N-SLI DELUXE",
-+	.matches = {
-+		DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC."),
-+		DMI_MATCH(DMI_BOARD_NAME, "A8N-SLI DELUXE"),
-+		},
-+	},
-+	{
-+	.callback = init_old_suspend_ordering,
-+	.ident = "Asus A8N-SLI Premium",
-+	.matches = {
-+		DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC."),
-+		DMI_MATCH(DMI_BOARD_NAME, "A8N-SLI Premium"),
-+		},
-+	},
-+	{
-+	.callback = init_nvs_nosave,
-+	.ident = "Sony Vaio VGN-SR26GN_P",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-SR26GN_P"),
-+		},
-+	},
-+	{
-+	.callback = init_nvs_nosave,
-+	.ident = "Sony Vaio VGN-FW520F",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-FW520F"),
-+		},
-+	},
-+	{
-+	.callback = init_nvs_nosave,
-+	.ident = "Asus K54C",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer Inc."),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "K54C"),
-+		},
-+	},
-+	{
-+	.callback = init_nvs_nosave,
-+	.ident = "Asus K54HR",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer Inc."),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "K54HR"),
-+		},
-+	},
-+	{},
-+};
-+
- /**
-  * acpi_pm_freeze - Disable the GPEs and suspend EC transactions.
-  */
-@@ -382,167 +543,6 @@ static const struct platform_suspend_ops acpi_suspend_ops_old = {
- 	.end = acpi_pm_end,
- 	.recover = acpi_pm_finish,
- };
--
--static int __init init_old_suspend_ordering(const struct dmi_system_id *d)
--{
--	old_suspend_ordering = true;
--	return 0;
--}
--
--static int __init init_nvs_nosave(const struct dmi_system_id *d)
--{
--	acpi_nvs_nosave();
--	return 0;
--}
--
--static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
--	{
--	.callback = init_old_suspend_ordering,
--	.ident = "Abit KN9 (nForce4 variant)",
--	.matches = {
--		DMI_MATCH(DMI_BOARD_VENDOR, "http://www.abit.com.tw/"),
--		DMI_MATCH(DMI_BOARD_NAME, "KN9 Series(NF-CK804)"),
--		},
--	},
--	{
--	.callback = init_old_suspend_ordering,
--	.ident = "HP xw4600 Workstation",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
--		DMI_MATCH(DMI_PRODUCT_NAME, "HP xw4600 Workstation"),
--		},
--	},
--	{
--	.callback = init_old_suspend_ordering,
--	.ident = "Asus Pundit P1-AH2 (M2N8L motherboard)",
--	.matches = {
--		DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTek Computer INC."),
--		DMI_MATCH(DMI_BOARD_NAME, "M2N8L"),
--		},
--	},
--	{
--	.callback = init_old_suspend_ordering,
--	.ident = "Panasonic CF51-2L",
--	.matches = {
--		DMI_MATCH(DMI_BOARD_VENDOR,
--				"Matsushita Electric Industrial Co.,Ltd."),
--		DMI_MATCH(DMI_BOARD_NAME, "CF51-2L"),
--		},
--	},
--	{
--	.callback = init_nvs_nosave,
--	.ident = "Sony Vaio VGN-FW21E",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
--		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-FW21E"),
--		},
--	},
--	{
--	.callback = init_nvs_nosave,
--	.ident = "Sony Vaio VPCEB17FX",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
--		DMI_MATCH(DMI_PRODUCT_NAME, "VPCEB17FX"),
--		},
--	},
--	{
--	.callback = init_nvs_nosave,
--	.ident = "Sony Vaio VGN-SR11M",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
--		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-SR11M"),
--		},
--	},
--	{
--	.callback = init_nvs_nosave,
--	.ident = "Everex StepNote Series",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "Everex Systems, Inc."),
--		DMI_MATCH(DMI_PRODUCT_NAME, "Everex StepNote Series"),
--		},
--	},
--	{
--	.callback = init_nvs_nosave,
--	.ident = "Sony Vaio VPCEB1Z1E",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
--		DMI_MATCH(DMI_PRODUCT_NAME, "VPCEB1Z1E"),
--		},
--	},
--	{
--	.callback = init_nvs_nosave,
--	.ident = "Sony Vaio VGN-NW130D",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
--		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-NW130D"),
--		},
--	},
--	{
--	.callback = init_nvs_nosave,
--	.ident = "Sony Vaio VPCCW29FX",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
--		DMI_MATCH(DMI_PRODUCT_NAME, "VPCCW29FX"),
--		},
--	},
--	{
--	.callback = init_nvs_nosave,
--	.ident = "Averatec AV1020-ED2",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "AVERATEC"),
--		DMI_MATCH(DMI_PRODUCT_NAME, "1000 Series"),
--		},
--	},
--	{
--	.callback = init_old_suspend_ordering,
--	.ident = "Asus A8N-SLI DELUXE",
--	.matches = {
--		DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC."),
--		DMI_MATCH(DMI_BOARD_NAME, "A8N-SLI DELUXE"),
--		},
--	},
--	{
--	.callback = init_old_suspend_ordering,
--	.ident = "Asus A8N-SLI Premium",
--	.matches = {
--		DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC."),
--		DMI_MATCH(DMI_BOARD_NAME, "A8N-SLI Premium"),
--		},
--	},
--	{
--	.callback = init_nvs_nosave,
--	.ident = "Sony Vaio VGN-SR26GN_P",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
--		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-SR26GN_P"),
--		},
--	},
--	{
--	.callback = init_nvs_nosave,
--	.ident = "Sony Vaio VGN-FW520F",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
--		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-FW520F"),
--		},
--	},
--	{
--	.callback = init_nvs_nosave,
--	.ident = "Asus K54C",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer Inc."),
--		DMI_MATCH(DMI_PRODUCT_NAME, "K54C"),
--		},
--	},
--	{
--	.callback = init_nvs_nosave,
--	.ident = "Asus K54HR",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer Inc."),
--		DMI_MATCH(DMI_PRODUCT_NAME, "K54HR"),
--		},
--	},
--	{},
--};
- #endif /* CONFIG_SUSPEND */
- 
- #ifdef CONFIG_HIBERNATION
-@@ -873,13 +873,14 @@ int __init acpi_sleep_init(void)
- 	u8 type_a, type_b;
- #ifdef CONFIG_SUSPEND
- 	int i = 0;
--
--	dmi_check_system(acpisleep_dmi_table);
- #endif
- 
- 	if (acpi_disabled)
- 		return 0;
- 
-+#ifdef CONFIG_ACPI_SLEEP
-+	dmi_check_system(acpisleep_dmi_table);
-+#endif
- 	sleep_states[ACPI_STATE_S0] = 1;
- 	printk(KERN_INFO PREFIX "(supports S0");
- 
--- 
-1.7.9.5
+               Linus
 
 
-
+On Thu, Nov 15, 2012 at 8:09 AM, Zdenek Kabelac <zkabelac@redhat.com> wrote:
+> Hello
+>
+>
+> I've already seen twice this oops after resuming my Lenovo T61 in docking
+> station.
+>
+> Since for some reason currently the serial line doesn't work correctly after
+> resume
+> (while I'm pretty sure it used to work in past) here is at least
+> hand-written oops
+> message from mobile camera picture.
+>
+> From the trace it seem os_wait semaphore is accessed twice.
+> Unsure which device is behind it - but it seem docking station is need to
+> hit this issue.
+>
+>
+> kernel 3.7.0-rc4
+>
+> Pid:  pm-suspend
+>
+> RIP:   acpi_ns_lookup  + 0xa1/0x5b9
+>
+> Call Trace:
+>
+> ? acpi_os_wait_semaphore + 0x136/0x149
+> acpi_ns_get_mode + 0x96/0x102
+> ? __lock_is_held +0x5f/0x90
+> acpi_ns_evaluate +0x47/0x2de
+> ? _raw_spin_lock_irqsave
+> ? acpi_ut_evaluate_object
+> ? sub_preempt_count
+> ? pnpacpi_can_wakeup
+> acpi_rs_get_method_data
+> ? acpi_os_signal_semaphore
+> acpi_walk_resources
+> ? acpi_ut_release_mutex
+> pnpacpi_build_resource_template
+> ? acpi_bus_get_device
+> pnpacpi_set_resources
+> ? pnp_device_shutdown
+> pnp_start_dev
+> pnp_bus_resume
+> dpm_run_callback
+> device_resume
+> dpm_resume
+> dpm_resume_end
+> ? acpi_suspend_begin_old
+> suspend_devices_and_enter
+> pm_suspend
+> state_store
+> kobj_attr_store
+> sysfs_write_file
+> vgs_write
+> sys_write
+> system_call_fastpath
+>
+> Zdenek
+>
+>
+> PS: jpg on request
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
