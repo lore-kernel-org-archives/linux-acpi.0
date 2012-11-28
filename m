@@ -1,49 +1,396 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v4 0/3] ACPI 5 support for GPIO, SPI and I2C
-Date: Wed, 28 Nov 2012 14:36:01 +0200
-Message-ID: <20121128123601.GU3867@intel.com>
-References: <1353407384-26880-1-git-send-email-mika.westerberg@linux.intel.com>
- <79636467.nuLQX2FqW5@vostro.rjw.lan>
- <CACRpkdZ_GT_k13wfihRp2=nSdf8bkJGt6SSQETBG7AouBzYXgg@mail.gmail.com>
- <12328820.crXDTeuliY@vostro.rjw.lan>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [PATCH] ACPI: do acpisleep dmi check when CONFIG_ACPI_SLEEP is set
+Date: Wed, 28 Nov 2012 22:56:34 +0800
+Message-ID: <1354114594.2153.6.camel@rzhang1-mobl4>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:31384 "EHLO mga09.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:34652 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754100Ab2K1Mcs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 28 Nov 2012 07:32:48 -0500
-Content-Disposition: inline
-In-Reply-To: <12328820.crXDTeuliY@vostro.rjw.lan>
+	id S1755392Ab2K1O4k (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 28 Nov 2012 09:56:40 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linus Walleij <linus.walleij@linaro.org>, w.sang@pengutronix.de, rafael.j.wysocki@intel.com, linux-kernel@vger.kernel.org, lenb@kernel.org, broonie@opensource.wolfsonmicro.com, khali@linux-fr.org, ben-linux@fluff.org, bhelgaas@google.com, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "Zhang, Rui" <rui.zhang@intel.com>
 
-On Thu, Nov 22, 2012 at 11:03:26AM +0100, Rafael J. Wysocki wrote:
-> On Thursday, November 22, 2012 10:43:28 AM Linus Walleij wrote:
-> > On Wed, Nov 21, 2012 at 10:31 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > 
-> > > This patchset has been around for quite a while and went through a few
-> > > iterations, so I think it's as good as it gets at this point.
-> > >
-> > > I wonder if the GPIO / SPI / I2C maintainers have any objections against it or
-> > > would like the patches to be modified somehow?
-> > >
-> > > If not, then I'd like to take it for v3.8 into the linux-pm.git tree, because
-> > > the patches depend on some changes already in that tree.  Hopefully, that's OK.
-> > 
-> > For GPIO I want Grant to ACK this.
-> > 
-> > He has experience with both Device Tree and GPIO, knows what ACPI and
-> > UEFI is and is way better suited than me to give feedback on this kind of
-> > stuff.
-> > 
-> > So from my stance it's "neutral, whatever Grant says goes".
-> 
-> OK, we're waiting for a word from Grant, then. :-)
+>From f730858816ceada75afeb7a0e780f2c08e5ae50a Mon Sep 17 00:00:00 2001
+From: Zhang Rui <rui.zhang@intel.com>
+Date: Wed, 28 Nov 2012 22:26:51 +0800
+Subject: [PATCH] ACPI: do acpisleep dmi check when CONFIG_ACPI_SLEEP is set
 
-Grant, do you have any input on this? Do you want us to change something in
-order to get these merged?
+The current acpisleep dmi checks only run when CONFIG_SUSPEND is set.
+And this may break hibernation on some platforms when CONFIG_SUSPEND
+is cleared.
+https://bugzilla.kernel.org/show_bug.cgi?id=45921
 
-Thanks.
+Move acpisleep dmi check into #ifdef CONFIG_ACPI_SLEEP instead.
+
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ drivers/acpi/sleep.c |  327 +++++++++++++++++++++++++-------------------------
+ 1 file changed, 164 insertions(+), 163 deletions(-)
+
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index fdcdbb6..91a3c0f 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -109,6 +109,167 @@ void __init acpi_old_suspend_ordering(void)
+ 	old_suspend_ordering = true;
+ }
+ 
++static int __init init_old_suspend_ordering(const struct dmi_system_id *d)
++{
++	acpi_old_suspend_ordering();
++	return 0;
++}
++
++static int __init init_nvs_nosave(const struct dmi_system_id *d)
++{
++	acpi_nvs_nosave();
++	return 0;
++}
++
++static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
++	{
++	.callback = init_old_suspend_ordering,
++	.ident = "Abit KN9 (nForce4 variant)",
++	.matches = {
++		DMI_MATCH(DMI_BOARD_VENDOR, "http://www.abit.com.tw/"),
++		DMI_MATCH(DMI_BOARD_NAME, "KN9 Series(NF-CK804)"),
++		},
++	},
++	{
++	.callback = init_old_suspend_ordering,
++	.ident = "HP xw4600 Workstation",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "HP xw4600 Workstation"),
++		},
++	},
++	{
++	.callback = init_old_suspend_ordering,
++	.ident = "Asus Pundit P1-AH2 (M2N8L motherboard)",
++	.matches = {
++		DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTek Computer INC."),
++		DMI_MATCH(DMI_BOARD_NAME, "M2N8L"),
++		},
++	},
++	{
++	.callback = init_old_suspend_ordering,
++	.ident = "Panasonic CF51-2L",
++	.matches = {
++		DMI_MATCH(DMI_BOARD_VENDOR,
++				"Matsushita Electric Industrial Co.,Ltd."),
++		DMI_MATCH(DMI_BOARD_NAME, "CF51-2L"),
++		},
++	},
++	{
++	.callback = init_nvs_nosave,
++	.ident = "Sony Vaio VGN-FW21E",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-FW21E"),
++		},
++	},
++	{
++	.callback = init_nvs_nosave,
++	.ident = "Sony Vaio VPCEB17FX",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "VPCEB17FX"),
++		},
++	},
++	{
++	.callback = init_nvs_nosave,
++	.ident = "Sony Vaio VGN-SR11M",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-SR11M"),
++		},
++	},
++	{
++	.callback = init_nvs_nosave,
++	.ident = "Everex StepNote Series",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Everex Systems, Inc."),
++		DMI_MATCH(DMI_PRODUCT_NAME, "Everex StepNote Series"),
++		},
++	},
++	{
++	.callback = init_nvs_nosave,
++	.ident = "Sony Vaio VPCEB1Z1E",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "VPCEB1Z1E"),
++		},
++	},
++	{
++	.callback = init_nvs_nosave,
++	.ident = "Sony Vaio VGN-NW130D",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-NW130D"),
++		},
++	},
++	{
++	.callback = init_nvs_nosave,
++	.ident = "Sony Vaio VPCCW29FX",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "VPCCW29FX"),
++		},
++	},
++	{
++	.callback = init_nvs_nosave,
++	.ident = "Averatec AV1020-ED2",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "AVERATEC"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "1000 Series"),
++		},
++	},
++	{
++	.callback = init_old_suspend_ordering,
++	.ident = "Asus A8N-SLI DELUXE",
++	.matches = {
++		DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC."),
++		DMI_MATCH(DMI_BOARD_NAME, "A8N-SLI DELUXE"),
++		},
++	},
++	{
++	.callback = init_old_suspend_ordering,
++	.ident = "Asus A8N-SLI Premium",
++	.matches = {
++		DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC."),
++		DMI_MATCH(DMI_BOARD_NAME, "A8N-SLI Premium"),
++		},
++	},
++	{
++	.callback = init_nvs_nosave,
++	.ident = "Sony Vaio VGN-SR26GN_P",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-SR26GN_P"),
++		},
++	},
++	{
++	.callback = init_nvs_nosave,
++	.ident = "Sony Vaio VGN-FW520F",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-FW520F"),
++		},
++	},
++	{
++	.callback = init_nvs_nosave,
++	.ident = "Asus K54C",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer Inc."),
++		DMI_MATCH(DMI_PRODUCT_NAME, "K54C"),
++		},
++	},
++	{
++	.callback = init_nvs_nosave,
++	.ident = "Asus K54HR",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer Inc."),
++		DMI_MATCH(DMI_PRODUCT_NAME, "K54HR"),
++		},
++	},
++	{},
++};
++
+ /**
+  * acpi_pm_freeze - Disable the GPEs and suspend EC transactions.
+  */
+@@ -382,167 +543,6 @@ static const struct platform_suspend_ops acpi_suspend_ops_old = {
+ 	.end = acpi_pm_end,
+ 	.recover = acpi_pm_finish,
+ };
+-
+-static int __init init_old_suspend_ordering(const struct dmi_system_id *d)
+-{
+-	old_suspend_ordering = true;
+-	return 0;
+-}
+-
+-static int __init init_nvs_nosave(const struct dmi_system_id *d)
+-{
+-	acpi_nvs_nosave();
+-	return 0;
+-}
+-
+-static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
+-	{
+-	.callback = init_old_suspend_ordering,
+-	.ident = "Abit KN9 (nForce4 variant)",
+-	.matches = {
+-		DMI_MATCH(DMI_BOARD_VENDOR, "http://www.abit.com.tw/"),
+-		DMI_MATCH(DMI_BOARD_NAME, "KN9 Series(NF-CK804)"),
+-		},
+-	},
+-	{
+-	.callback = init_old_suspend_ordering,
+-	.ident = "HP xw4600 Workstation",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "HP xw4600 Workstation"),
+-		},
+-	},
+-	{
+-	.callback = init_old_suspend_ordering,
+-	.ident = "Asus Pundit P1-AH2 (M2N8L motherboard)",
+-	.matches = {
+-		DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTek Computer INC."),
+-		DMI_MATCH(DMI_BOARD_NAME, "M2N8L"),
+-		},
+-	},
+-	{
+-	.callback = init_old_suspend_ordering,
+-	.ident = "Panasonic CF51-2L",
+-	.matches = {
+-		DMI_MATCH(DMI_BOARD_VENDOR,
+-				"Matsushita Electric Industrial Co.,Ltd."),
+-		DMI_MATCH(DMI_BOARD_NAME, "CF51-2L"),
+-		},
+-	},
+-	{
+-	.callback = init_nvs_nosave,
+-	.ident = "Sony Vaio VGN-FW21E",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-FW21E"),
+-		},
+-	},
+-	{
+-	.callback = init_nvs_nosave,
+-	.ident = "Sony Vaio VPCEB17FX",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "VPCEB17FX"),
+-		},
+-	},
+-	{
+-	.callback = init_nvs_nosave,
+-	.ident = "Sony Vaio VGN-SR11M",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-SR11M"),
+-		},
+-	},
+-	{
+-	.callback = init_nvs_nosave,
+-	.ident = "Everex StepNote Series",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Everex Systems, Inc."),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "Everex StepNote Series"),
+-		},
+-	},
+-	{
+-	.callback = init_nvs_nosave,
+-	.ident = "Sony Vaio VPCEB1Z1E",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "VPCEB1Z1E"),
+-		},
+-	},
+-	{
+-	.callback = init_nvs_nosave,
+-	.ident = "Sony Vaio VGN-NW130D",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-NW130D"),
+-		},
+-	},
+-	{
+-	.callback = init_nvs_nosave,
+-	.ident = "Sony Vaio VPCCW29FX",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "VPCCW29FX"),
+-		},
+-	},
+-	{
+-	.callback = init_nvs_nosave,
+-	.ident = "Averatec AV1020-ED2",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "AVERATEC"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "1000 Series"),
+-		},
+-	},
+-	{
+-	.callback = init_old_suspend_ordering,
+-	.ident = "Asus A8N-SLI DELUXE",
+-	.matches = {
+-		DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC."),
+-		DMI_MATCH(DMI_BOARD_NAME, "A8N-SLI DELUXE"),
+-		},
+-	},
+-	{
+-	.callback = init_old_suspend_ordering,
+-	.ident = "Asus A8N-SLI Premium",
+-	.matches = {
+-		DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC."),
+-		DMI_MATCH(DMI_BOARD_NAME, "A8N-SLI Premium"),
+-		},
+-	},
+-	{
+-	.callback = init_nvs_nosave,
+-	.ident = "Sony Vaio VGN-SR26GN_P",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-SR26GN_P"),
+-		},
+-	},
+-	{
+-	.callback = init_nvs_nosave,
+-	.ident = "Sony Vaio VGN-FW520F",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-FW520F"),
+-		},
+-	},
+-	{
+-	.callback = init_nvs_nosave,
+-	.ident = "Asus K54C",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer Inc."),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "K54C"),
+-		},
+-	},
+-	{
+-	.callback = init_nvs_nosave,
+-	.ident = "Asus K54HR",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer Inc."),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "K54HR"),
+-		},
+-	},
+-	{},
+-};
+ #endif /* CONFIG_SUSPEND */
+ 
+ #ifdef CONFIG_HIBERNATION
+@@ -873,13 +873,14 @@ int __init acpi_sleep_init(void)
+ 	u8 type_a, type_b;
+ #ifdef CONFIG_SUSPEND
+ 	int i = 0;
+-
+-	dmi_check_system(acpisleep_dmi_table);
+ #endif
+ 
+ 	if (acpi_disabled)
+ 		return 0;
+ 
++#ifdef CONFIG_ACPI_SLEEP
++	dmi_check_system(acpisleep_dmi_table);
++#endif
+ 	sleep_states[ACPI_STATE_S0] = 1;
+ 	printk(KERN_INFO PREFIX "(supports S0");
+ 
+-- 
+1.7.9.5
+
+
+
