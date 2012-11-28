@@ -1,100 +1,88 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [RFC PATCH v3 3/3] acpi_memhotplug: Allow eject to proceed on rebind scenario
-Date: Thu, 29 Nov 2012 00:31:02 +0100
-Message-ID: <2363618.GHMYUtrpGK@vostro.rjw.lan>
-References: <1353693037-21704-1-git-send-email-vasilis.liaskovitis@profitbricks.com> <4960597.PcG7YIEMVH@vostro.rjw.lan> <20121128231046.GA15416@kroah.com>
+Date: Thu, 29 Nov 2012 00:49:47 +0100
+Message-ID: <4042591.gpFk7OYmph@vostro.rjw.lan>
+References: <1353693037-21704-1-git-send-email-vasilis.liaskovitis@profitbricks.com> <9212118.3s2xH6uJDI@vostro.rjw.lan> <1354136568.26955.312.camel@misato.fc.hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20121128231046.GA15416@kroah.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: Toshi Kani <toshi.kani@hp.com>, linux-acpi@vger.kernel.org, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, Wen Congyang <wency@cn.fujitsu.com>, Wen Congyang <wencongyang@gmail.com>, isimatu.yasuaki@jp.fujitsu.com, lenb@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:35616 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754468Ab2K1XpD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 28 Nov 2012 18:45:03 -0500
+In-Reply-To: <1354136568.26955.312.camel@misato.fc.hp.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Toshi Kani <toshi.kani@hp.com>, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, Wen Congyang <wency@cn.fujitsu.com>, Wen Congyang <wencongyang@gmail.com>, isimatu.yasuaki@jp.fujitsu.com, lenb@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 
-On Wednesday, November 28, 2012 03:10:46 PM Greg KH wrote:
-> On Thu, Nov 29, 2012 at 12:05:20AM +0100, Rafael J. Wysocki wrote:
-> > On Wednesday, November 28, 2012 02:46:33 PM Greg KH wrote:
-> > > > So, it looks like the driver core wants us to handle driver unbinding no
-> > > > matter what.
+On Wednesday, November 28, 2012 02:02:48 PM Toshi Kani wrote:
+> > > > > > > > Consider the following case:
+> > > > > > > > 
+> > > > > > > > We hotremove the memory device by SCI and unbind it from the driver at the same time:
+> > > > > > > > 
+> > > > > > > > CPUa                                                  CPUb
+> > > > > > > > acpi_memory_device_notify()
+> > > > > > > >                                        unbind it from the driver
+> > > > > > > >     acpi_bus_hot_remove_device()
+> > > > > > > 
+> > > > > > > Can we make acpi_bus_remove() to fail if a given acpi_device is not
+> > > > > > > bound with a driver?  If so, can we make the unbind operation to perform
+> > > > > > > unbind only?
+> > > > > > 
+> > > > > > acpi_bus_remove_device could check if the driver is present, and return -ENODEV
+> > > > > > if it's not present (dev->driver == NULL).
+> > > > > > 
+> > > > > > But there can still be a race between an eject and an unbind operation happening
+> > > > > > simultaneously. This seems like a general problem to me i.e. not specific to an
+> > > > > > acpi memory device. How do we ensure an eject does not race with a driver unbind
+> > > > > > for other acpi devices?
+> > > > > > 
+> > > > > > Is there a per-device lock in acpi-core or device-core that can prevent this from
+> > > > > > happening? Driver core does a device_lock(dev) on all operations, but this is
+> > > > > > probably not grabbed on SCI-initiated acpi ejects.
+> > > > > 
+> > > > > Since driver_unbind() calls device_lock(dev->parent) before calling
+> > > > > device_release_driver(), I am wondering if we can call
+> > > > > device_lock(dev->dev->parent) at the beginning of acpi_bus_remove()
+> > > > > (i.e. before calling pre_remove) and fails if dev->driver is NULL.  The
+> > > > > parent lock is otherwise released after device_release_driver() is done.
+> > > > 
+> > > > I would be careful.  You may introduce some subtle locking-related issues
+> > > > this way.
 > > > 
-> > > Yes.  Well, the driver core does the unbinding no matter what, if it was
-> > > told, by a user, to do so.  Why is that a problem?  The user then is
-> > > responsible for any bad things (i.e. not able to control the device any
-> > > more), if they do so.
+> > > Right.  This requires careful inspection and testing.  As far as the
+> > > locking is concerned, I am not keen on using fine grained locking for
+> > > hot-plug.  It is much simpler and solid if we serialize such operations.
+> > > 
+> > > > Besides, there may be an alternative approach to all this.  For example,
+> > > > what if we don't remove struct device objects on eject?  The ACPI handles
+> > > > associated with them don't go away in that case after all, do they?
+> > > 
+> > > Umm...  Sorry, I am not getting your point.  The issue is that we need
+> > > to be able to fail a request when memory range cannot be off-lined.
+> > > Otherwise, we end up ejecting online memory range.
 > > 
-> > I don't really agree with that, because the user may simply not know what
-> > the consequences of that will be.  In my not so humble opinion any interface
-> > allowing user space to crash the kernel is a bad one.  And this is an example
-> > of that.
+> > Yes, this is the major one.  The minor issue, however, is a race condition
+> > between unbinding a driver from a device and removing the device if I
+> > understand it correctly.  Which will go away automatically if the device is
+> > not removed in the first place.  Or so I would think. :-)
 > 
-> This has been in place since 2005, over 7 years now, and I have never
-> heard any problems with it being used to crash the kernel, despite the
-> easy ability for people to unbind all of their devices from drivers and
-> instantly cause a system hang.  So really doubt this is a problem in
-> real life :)
-> 
-> > > > This pretty much means that it is a bad idea to have a driver that is
-> > > > exposed as a "device driver" in sysfs for memory hotplugging.
-> > > 
-> > > Again, why?  All this means is that the driver is now not connected to
-> > > the device (memory in this case.)  The memory is still there, still
-> > > operates as before, only difference is, the driver can't touch it
-> > > anymore.
-> > > 
-> > > This is the same for any ACPI driver, and has been for years.
-> > 
-> > Except that if this driver has been unbound and the removal is triggered by
-> > an SCI, the core will just go on and remove the memory, although it may
-> > be killing the kernel this way.
-> 
-> Why would memory go away if a driver is unbound from a device?  The
-> device didn't go away.  It's the same if the driver was a module and it
-> was unloaded, you should not turn memory off in that situation, right?
+> I see.  I do not think whether or not the device is removed on eject
+> makes any difference here.  The issue is that after driver_unbind() is
+> done, acpi_bus_hot_remove_device() no longer calls the ACPI memory
+> driver (hence, it cannot fail in prepare_remove), and goes ahead to call
+> _EJ0.
 
-Right.  It looks like there's some confusion about the role of .remove()
-in the ACPI subsystem, but I need to investigate it a bit more.
+I see two reasons for calling acpi_bus_hot_remove_device() for memory (correct
+me if I'm wrong): (1) from the memhotplug driver's notify handler and (2) from
+acpi_eject_store() which is exposed through sysfs.  If we disabled exposing
+acpi_eject_store() for memory devices, then the only way would be from the
+notify handler.  So I wonder if driver_unbind() shouldn't just uninstall the
+notify handler for memory (so that memory eject events are simply dropped on
+the floor after unbinding the driver)?
 
-> Are you also going to prevent module unloading of this driver?
-
-I'm not sure what I'm going to do with that driver at the moment to be honest. :-)
-
-> > Arguably, this may be considered as the core's fault, but the only way to
-> > fix that would be to move the code from that driver into the core and not to
-> > register it as a "driver" any more.  Which was my point. :-)
-> 
-> No, I think people are totally overreacting to the unbind/bind files,
-> which are there to aid in development, and in adding new device ids to
-> drivers, as well as sometimes doing a hacky revoke() call.
-> 
-> > > Please don't confuse unbind with any "normal" system operation, it is
-> > > not to be used for memory hotplug, or anything else like this.
-> > > 
-> > > Also, if you really do not want to do this, turn off the ability to
-> > > unbind/bind for these devices, that is under your control in your bus
-> > > logic.
-> > 
-> > OK, but how?  I'm looking at driver_unbind() and not seeing any way to do
-> > that actually.
-> 
-> See the suppress_bind_attrs field in struct device_driver.  It's even
-> documented in device.h, but sadly, no one reads documentation :)
-
-That's good to know, thanks. :-)
-
-And if I knew I could find that information in device.h, I'd look in there.
-
-> I recommend you set this field if you don't want the bind/unbind files
-> to show up for your memory driver, although I would argue that the
-> driver needs to be fixed up to not do foolish things like removing
-> memory from a system unless it really does go away...
-
-Quite frankly, I need to look at that driver and how things are supposed to
-work more thoroughly, because I don't seem to see a reason to do various
-things the way they are done.  Well, maybe it's just me.
-
-Thanks,
 Rafael
 
 
