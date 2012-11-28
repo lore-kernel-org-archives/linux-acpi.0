@@ -1,71 +1,47 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: Acpi deadlocks with 3.7.0-rc4
-Date: Wed, 28 Nov 2012 11:07:32 -0800
-Message-ID: <CA+55aFz2p2_WUkhThjSDWAFVda6nujxX2YE_Qkqv1OVDChUEJQ@mail.gmail.com>
-References: <50A513A8.9010404@redhat.com> <CA+55aFyLMmKuEvY6T2=vSHp_R4=ndqFEFNJsc3Axze2vYknKhg@mail.gmail.com>
- <50B63A04.9010901@redhat.com> <CA+55aFy7hxayPzr3MiV1xc0bvLcd+-7b52iA3CYhbPZuWXr9yA@mail.gmail.com>
- <50B64996.1010709@redhat.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 217/493] acpi: remove use of __devinit
+Date: Wed, 28 Nov 2012 20:34:43 +0100
+Message-ID: <2276213.AWNh3gyvGP@vostro.rjw.lan>
+References: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu> <11689359.E4tRqmmlBk@vostro.rjw.lan> <20121128190002.GA30743@kroah.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=e89a8f2355c71eeb9e04cf92e20b
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:40533 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754006Ab2K1THy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Nov 2012 14:07:54 -0500
-In-Reply-To: <50B64996.1010709@redhat.com>
+Received: from hydra.sisk.pl ([212.160.235.94]:35388 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752508Ab2K1T37 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 28 Nov 2012 14:29:59 -0500
+In-Reply-To: <20121128190002.GA30743@kroah.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zdenek Kabelac <zkabelac@redhat.com>
-Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux ACPI <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Bill Pemberton <wfp5p@virginia.edu>, linux-acpi@vger.kernel.org
 
---e89a8f2355c71eeb9e04cf92e20b
-Content-Type: text/plain; charset=ISO-8859-1
+On Wednesday, November 28, 2012 11:00:02 AM Greg KH wrote:
+> On Thu, Nov 22, 2012 at 01:18:09AM +0100, Rafael J. Wysocki wrote:
+> > On Wednesday, November 21, 2012 01:46:36 AM Rafael J. Wysocki wrote:
+> > > On Monday, November 19, 2012 01:22:46 PM Bill Pemberton wrote:
+> > > > CONFIG_HOTPLUG is going away as an option so __devinit is no longer
+> > > > needed.
+> > > 
+> > > Applied to the linux-next branch of the linux-pm.git tree as v3.8 material.
+> > 
+> > And dropped, because it causes build problems to happen in
+> > acpi_pci_root_add() in my tree.
+> 
+> What kind of problems?  If CONFIG_HOTPLUG is enabled __devinit defines
+> away to nothing, so this shouldn't have broken anything.
 
-On Wed, Nov 28, 2012 at 9:27 AM, Zdenek Kabelac <zkabelac@redhat.com> wrote:
->
-> I've attached bigger disasfun script output to BZ 51071.
-> https://bugzilla.kernel.org/show_bug.cgi?id=51071#c1
->
->
->         if (ACPI_GET_DESCRIPTOR_TYPE(prefix_node) !=
-> 00000000000000a1 <acpi_ns_lookup+0xa1> cmpb   $0xf,0x8(%rbx)
-> 00000000000000a5 <acpi_ns_lookup+0xa5> je   0da  <acpi_ns_lookup+0xda>
->
-> seems to be going out of bounds.
+It did, because there's a dependency on PCI, so I would need to merge
+the PCI patch along with the ACPI one, but I couldn't find the PCI
+one, so I dropped the ACPI one too.
 
-The whole "prefix_node" pointer is bogus. It seems to have the value 0x1000.
+And the fact that the author doesn't seem to care is not encouraging.
 
-I wonder how that happened. It's loaded from 'scope_info->scope.node',
-and it *should* be a valid pointer.
+Thanks,
+Rafael
 
-Can you add a print-out of
 
-  scope_info->common.descriptor_type
-
-and check that it is ACPI_DESC_TYPE_STATE_WSCOPE (== 8). If it is not,
-return early.
-
-Or just something like the attatched, which just uses the root node
-(and warns once) if it's not a valid WSCOPE thing.
-
-                       Linus
-
---e89a8f2355c71eeb9e04cf92e20b
-Content-Type: application/octet-stream; name="patch.diff"
-Content-Disposition: attachment; filename="patch.diff"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_ha2tt2ni0
-
-IGRyaXZlcnMvYWNwaS9hY3BpY2EvbnNhY2Nlc3MuYyB8IDIgKysKIDEgZmlsZSBjaGFuZ2VkLCAy
-IGluc2VydGlvbnMoKykKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvYWNwaWNhL25zYWNjZXNz
-LmMgYi9kcml2ZXJzL2FjcGkvYWNwaWNhL25zYWNjZXNzLmMKaW5kZXggMjNkYjUzY2UyMjkzLi4z
-MjM4Y2FiYmE2MWEgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvYWNwaS9hY3BpY2EvbnNhY2Nlc3MuYwor
-KysgYi9kcml2ZXJzL2FjcGkvYWNwaWNhL25zYWNjZXNzLmMKQEAgLTMyMCw2ICszMjAsOCBAQCBh
-Y3BpX25zX2xvb2t1cCh1bmlvbiBhY3BpX2dlbmVyaWNfc3RhdGUgKnNjb3BlX2luZm8sCiAJCQkJ
-ICBhY3BpX2dibF9yb290X25vZGUpKTsKIAogCQlwcmVmaXhfbm9kZSA9IGFjcGlfZ2JsX3Jvb3Rf
-bm9kZTsKKwl9IGVsc2UgaWYgKFdBUk5fT05fT05DRShzY29wZV9pbmZvLT5jb21tb24uZGVzY3Jp
-cHRvcl90eXBlICE9IEFDUElfREVTQ19UWVBFX1NUQVRFX1dTQ09QRSkpIHsKKwkJcHJlZml4X25v
-ZGUgPSBhY3BpX2dibF9yb290X25vZGU7CiAJfSBlbHNlIHsKIAkJcHJlZml4X25vZGUgPSBzY29w
-ZV9pbmZvLT5zY29wZS5ub2RlOwogCQlpZiAoQUNQSV9HRVRfREVTQ1JJUFRPUl9UWVBFKHByZWZp
-eF9ub2RlKSAhPQo=
---e89a8f2355c71eeb9e04cf92e20b--
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
