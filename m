@@ -1,93 +1,65 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH v9 06/10] ata: zpodd: check zero power ready status
-Date: Wed, 28 Nov 2012 10:24:04 +0800
-Message-ID: <50B575C4.2040204@intel.com>
-References: <1352443922-13734-1-git-send-email-aaron.lu@intel.com> <35648985.61QNrr0Knq@vostro.rjw.lan> <1353906191.2523.25.camel@dabdike> <21511277.LLinyDpbAK@vostro.rjw.lan> <20121128013928.GB15971@htj.dyndns.org>
+From: katabami <katabami@lavabit.com>
+Subject: Re: [PATCH] ACPI thermal: _TMP and _CRT/_HOT/_PSV/_ACx dependency
+ fix
+Date: Wed, 28 Nov 2012 13:25:34 +0900 (JST)
+Message-ID: <20121128.132534.1145529873803098747.katabami@lavabit.com>
+References: <1353981690.2157.5.camel@rzhang1-mobl4>
+	<13424597.Clh1ApcFoE@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <20121128013928.GB15971@htj.dyndns.org>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, James Bottomley <James.Bottomley@hansenpartnership.com>, linux-pm@vger.kernel.org, Jeff Garzik <jgarzik@pobox.com>, Alan Stern <stern@rowland.harvard.edu>, Jeff Wu <jeff.wu@amd.com>, Aaron Lu <aaron.lwe@gmail.com>, linux-ide@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: Text/Plain; charset=iso-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from karen.lavabit.com ([72.249.41.33]:35028 "EHLO karen.lavabit.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751937Ab2K1Glk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Nov 2012 01:41:40 -0500
+In-Reply-To: <13424597.Clh1ApcFoE@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rjw@sisk.pl
+Cc: linux-acpi@vger.kernel.org, rui.zhang@intel.com, mjg@redhat.com
 
-On 11/28/2012 09:39 AM, Tejun Heo wrote:
-> Hey, Rafael.
-> 
-> On Wed, Nov 28, 2012 at 01:51:00AM +0100, Rafael J. Wysocki wrote:
->> Having considered that a bit more I'm now thinking that in fact the power state
->> the device is in at the moment doesn't really matter, so the polling code need
->> not really know what PM is doing.  What it needs to know is that the device
->> will generate a hardware event when something interesting happens, so it is not
->> necessary to poll it.
->>
->> In this particular case it is related to power management (apparently, hardware
->> events will only be generated after the device has been put into ACPI D3cold,
->> or so Aaron seems to be claiming), but it need not be in general, at least in
->> principle.
->>
->> It looks like we need an "event driven" flag that the can be set in the lower
->> layers and read by the upper layers.  I suppose this means it would need to be
->> in struct device, but not necessarily in the PM-specific part of it.
-> 
-> We already have that.  That's what gendisk->async_events is for (as
-> opposed to gendisk->events).  If all events are async_events, block
-> won't poll for events, but I'm not sure that's the golden bullet.
+On Tue, 27 Nov 2012 20:55:22 +0100, "Rafael J. Wysocki" wrote:
+> I'm going to apply it, but with a few cleanups.  The result is append=
+ed, please
 
-Right. For ZPODD, the problem is, during power up time, it needs
-gendisk->events to be set to get poll; and after powered off, it will
-need to clear the gendisk->events field so that the poll work will stop.
-I'm not sure if the gendisk->async_events should be set here, as the
-interrupt only says that user pressed the eject button for the tray type
-ODD but he may not insert any disc. The whole point of the interrupt is
-to re-power the ODD, it is not designed to give notification of media
-change. This is my understanding of ZPODD.
+I patched it against linux-3.4.9 on HP compaq 6715s, and it works. Dzi=EA=
+kuj=EA, (Thank you), Rafael.
 
-> 
-> * None implements async_events yet and an API is missing -
+On Tue, 27 Nov 2012 20:55:22 +0100, "Rafael J. Wysocki" wrote:
+> On Tuesday, November 27, 2012 10:01:30 AM Zhang Rui wrote:
+>> From 391908867c2a500a9068aa9f2a8e74663fff75ac Mon Sep 17 00:00:00 20=
+01
+>> From: Zhang Rui <rui.zhang@intel.com>
+>> Date: Fri, 23 Nov 2012 09:25:10 +0800
+>> Subject: [PATCH] ACPI thermal: _TMP and _CRT/_HOT/_PSV/_ACx dependen=
+cy fix
+>>=20
+>> On some platforms, _TMP and _CRT/_HOT/_PSV/_ACx have dependency.
+>> And there is no way for OS to detect this dependency.
+>>=20
+>> commit 9bcb8118965ab4631a65ee0726e6518f75cda6c5 shows us a problem
+>> that _TMP must be evaluate after _CRT/_HOT/_PSV/_ACx, or esle
+>> firmware will shutdown the system.
+>>=20
+>> But the machins in https://bugzilla.kernel.org/show_bug.cgi?id=3D432=
+84
+>> shows us that _PSV would return valid value only if _TMP has been
+>> evaluated once.
+>>=20
+>> With this patch, all of the control methods will be evaluated once,
+>> in the order of  _CRT/_HOT/_PSV/_CRT, _TMP, before they are actually=
+ used.
+>=20
+> I'm going to apply it, but with a few cleanups.  The result is append=
+ed, please
+> double check if it is still correct.
+>=20
+> Thanks,
+> Rafael
 
-That's what I'm confused when reading the sata async support code, the
-SCSI sr driver will unconditionally set gendisk->events, so how the sata
-async can benefit? But this is another story.
-
->   disk_check_events() - which is trivial to add, but it's the same
->   story.  We'll need a mechanism to shoot up notification from libata
->   to block layer.  It's admittedly easier to justify routing through
->   SCSI tho.  So, we're mostly shifting the problem.  Given that async
->   events is nice to have, so it isn't a bad idea.
-> 
-> * Still dunno much about zpodd but IIUC the notification from
->   zero-power is via ACPI.  To advertise that the device doesn't need
-
-Yes, when powered off, if users press the eject button of a tray type
-ODD or inserts a disc of the slot type ODD, the SATA ODD will generate a
-DEVICE ATTENTION signal, which will cause ACPI to emit an interrupt.
-
-On my test system, when I insert a disc into the slot type ODD to wake
-it up, it will continue to generate DEVICE ATTENTION signal, and thus,
-ACPI interrupts are coming all the time if I do not disable the ACPI GPE
-that controls the interrupt. I guess the behaviour is device by device,
-and the SPEC only states what ODD needs to do when in powered off state.
-And I don't think a tray type ODD will generate DEVICE ATTENTION signal
-when its eject button is pressed after powered up, but Jeff Wu from AMD
-may be able to test this behaviour as he has some tray type ODDs if this
-is meaningful to know.
-
->   polling, it should also be able to do async notification while
->   powered up, which isn't covered by zpodd but ATA async notification.
-
-Agree. For powered up media change notification, that's SATA async
-notification's job.
-
->   So, ummm... that's another obstacle.  If zpodd requires the device
->   to support ATA async notification, it might not be too bad tho.
-
-This doesn't seem to be the case, since ZPODD is for how ODD to get
-notified when it is powered off, so there is no words stating if the ODD
-should also support sata async notification.
-
-Thanks,
-Aaron
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
