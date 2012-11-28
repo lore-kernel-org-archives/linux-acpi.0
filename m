@@ -1,75 +1,63 @@
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: Re: [Patch v4 00/12] memory-hotplug: hot-remove physical memory
-Date: Wed, 28 Nov 2012 09:43:20 +0900
-Message-ID: <50B55E28.1030608@jp.fujitsu.com>
-References: <1354010422-19648-1-git-send-email-wency@cn.fujitsu.com> <20121127112741.b616c2f6.akpm@linux-foundation.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v9 06/10] ata: zpodd: check zero power ready status
+Date: Wed, 28 Nov 2012 01:51 +0100
+Message-ID: <21511277.LLinyDpbAK@vostro.rjw.lan>
+References: <1352443922-13734-1-git-send-email-aaron.lu@intel.com> <35648985.61QNrr0Knq@vostro.rjw.lan> <1353906191.2523.25.camel@dabdike>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:41898 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753692Ab2K1AoQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Nov 2012 19:44:16 -0500
-In-Reply-To: <20121127112741.b616c2f6.akpm@linux-foundation.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <1353906191.2523.25.camel@dabdike>
+Sender: linux-ide-owner@vger.kernel.org
+To: James Bottomley <James.Bottomley@hansenpartnership.com>
+Cc: linux-pm@vger.kernel.org, Tejun Heo <tj@kernel.org>, Aaron Lu <aaron.lu@intel.com>, Jeff Garzik <jgarzik@pobox.com>, Alan Stern <stern@rowland.harvard.edu>, Jeff Wu <jeff.wu@amd.com>, Aaron Lu <aaron.lwe@gmail.com>, linux-ide@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Wen Congyang <wency@cn.fujitsu.com>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, David Rientjes <rientjes@google.com>, Jiang Liu <liuj97@gmail.com>, Len Brown <len.brown@intel.com>, benh@kernel.crashing.org, paulus@samba.org, Christoph Lameter <cl@linux.com>, Minchan Kim <minchan.kim@gmail.com>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Jianguo Wu <wujianguo@huawei.com>
 
-Hi Andrew,
+On Monday, November 26, 2012 09:03:11 AM James Bottomley wrote:
+> On Mon, 2012-11-26 at 01:33 +0100, Rafael J. Wysocki wrote:
+> > On Monday, November 19, 2012 03:06:51 PM James Bottomley wrote:
+> > > > I really think we need a way for (auto)pm and event polling to talk to
+> > > > each other so that autopm can tell event poll to sod off while pm is
+> > > > in effect.  Trying to solve this from inside libata doesn't seem
+> > > > right.  The problem, again, seems to be figuring out which hardware
+> > > > device maps to which block device.  Hmmm... Any good ideas?
+> > > 
+> > > I've asked the PM people several times about this, because it's a real
+> > > problem for almost everything:  PM needs some type of top to bottom
+> > > stack view, which the layering isolation we have within storage really
+> > > doesn't cope with well.  No real suggestion has been forthcoming.
+> > 
+> > Actually, I think that the particular case in question is really special
+> > and the fact that there's the pollig loop that user space is involved in
+> > doesn't make things more stratightforward.
+> > 
+> > And PM really doesn't need to see things top to bottom, but the polling
+> > needs to know what happens in the PM land.  We need to be able to tell it
+> > "from now on tell user space that there are no events here".  The question
+> > is where to put that information so that it's accessible to all parts of the
+> > stack involved.
+> 
+> Right, open to suggestions ...
 
-2012/11/28 4:27, Andrew Morton wrote:
-> On Tue, 27 Nov 2012 18:00:10 +0800
-> Wen Congyang <wency@cn.fujitsu.com> wrote:
->
->> The patch-set was divided from following thread's patch-set.
->>      https://lkml.org/lkml/2012/9/5/201
->>
->> The last version of this patchset:
->>      https://lkml.org/lkml/2012/11/1/93
->
-> As we're now at -rc7 I'd prefer to take a look at all of this after the
-> 3.7 release - please resend everything shortly after 3.8-rc1.
+Having considered that a bit more I'm now thinking that in fact the power state
+the device is in at the moment doesn't really matter, so the polling code need
+not really know what PM is doing.  What it needs to know is that the device
+will generate a hardware event when something interesting happens, so it is not
+necessary to poll it.
 
-Almost patches about memory hotplug has been merged into your and Rafael's
-tree. And these patches are waiting to open the v3.8 merge window.
-Remaining patches are only this patch-set. So we hope that this patch-set
-is merged into v3.8.
+In this particular case it is related to power management (apparently, hardware
+events will only be generated after the device has been put into ACPI D3cold,
+or so Aaron seems to be claiming), but it need not be in general, at least in
+principle.
 
-In merging this patch-set into v3.8, Linux on x86_64 makes a memory hot plug
-possible.
+It looks like we need an "event driven" flag that the can be set in the lower
+layers and read by the upper layers.  I suppose this means it would need to be
+in struct device, but not necessarily in the PM-specific part of it.
 
 Thanks,
-Yasuaki Ishimatsu
-
->
->> If you want to know the reason, please read following thread.
->>
->> https://lkml.org/lkml/2012/10/2/83
->
-> Please include the rationale within each version of the patchset rather
-> than by linking to an old email.  Because
->
-> a) this way, more people are likely to read it
->
-> b) it permits the text to be maimtained as the code evolves
->
-> c) it permits the text to be included in the mainlnie commit, where
->     people can find it.
->
->> The patch-set has only the function of kernel core side for physical
->> memory hot remove. So if you use the patch, please apply following
->> patches.
->>
->> - bug fix for memory hot remove
->>    https://lkml.org/lkml/2012/10/31/269
->>
->> - acpi framework
->>    https://lkml.org/lkml/2012/10/26/175
->
-> What's happening with the acpi framework?  has it received any feedback
-> from the ACPI developers?
->
+Rafael
 
 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
