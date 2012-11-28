@@ -1,61 +1,68 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Acpi deadlocks with 3.7.0-rc4
-Date: Wed, 28 Nov 2012 21:31:38 +0100
-Message-ID: <6072715.FoXSX1UJhO@vostro.rjw.lan>
-References: <50A513A8.9010404@redhat.com> <CA+55aFy7hxayPzr3MiV1xc0bvLcd+-7b52iA3CYhbPZuWXr9yA@mail.gmail.com> <50B64996.1010709@redhat.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH v3 1/4] ACPI: Support system notify handler via
+ .sys_notify
+Date: Wed, 28 Nov 2012 13:31:39 -0700
+Message-ID: <1354134699.26955.290.camel@misato.fc.hp.com>
+References: <1352406227-32629-1-git-send-email-toshi.kani@hp.com>
+	 <6997894.YrZx7D73oL@vostro.rjw.lan>
+	 <1354121683.26955.243.camel@misato.fc.hp.com>
+	 <4411201.YLQBH7zWSI@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:35435 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752896Ab2K1U0x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 28 Nov 2012 15:26:53 -0500
-In-Reply-To: <50B64996.1010709@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4411201.YLQBH7zWSI@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, liuj97@gmail.com
 List-Id: linux-acpi@vger.kernel.org
-To: Zdenek Kabelac <zkabelac@redhat.com>
-Cc: linux-acpi@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Wednesday, November 28, 2012 06:27:50 PM Zdenek Kabelac wrote:
-> Dne 28.11.2012 18:02, Linus Torvalds napsal(a):
-> > On Wed, Nov 28, 2012 at 8:21 AM, Zdenek Kabelac <zkabelac@redhat.com> wrote:
-> >>
-> >> I've opened  https://bugzilla.kernel.org/show_bug.cgi?id=51071
-> >> and attached picture there which is all I have.
+On Wed, 2012-11-28 at 19:28 +0100, Rafael J. Wysocki wrote:
+> On Wednesday, November 28, 2012 09:54:43 AM Toshi Kani wrote:
+> > > > > > > By using acpi_install_notify_handler(), each driver needs to walk
+> > > > > > > through the entire ACPI namespace to find its associated ACPI devices
+> > > > > > > and call it to register one by one.  I think this is more work for
+> > > > > > > non-ACPI drivers than defining acpi_driver.
+> > > > > > 
+> > > > > > I'm not really sure what you mean.  The drivers in question already know
+> > > > > > what the relevant ACPI device nodes are (because they need them anyway
+> > > > > > for other purposes), so they don't need to look for them specifically and
+> > > > > > acpi_install_notify_handler() doesn't do any namespace walking.  So what
+> > > > > > you said above simply doesn't make sense from this viewpoint.
+> > > > > 
+> > > > > Yes, if drivers already know the relevant ACPI devices, then walking the
+> > > > > ACPI namespace is not necessary.  I was referring the case like
+> > > > > processor_driver.c, acpi_memhotplug.c, and container.c in my statement. 
+> > > > 
+> > > > BTW, when an ACPI device is marked as non-present, which is the case
+> > > > before hot-add, we do not create an acpi_device object and therefore do
+> > > > not bind it with a driver.  This is why these drivers walk the ACPI
+> > > > namespace and install their notify handlers regardless of device status.
+> > > 
+> > > So maybe we should create struct acpi_device objects in that case too?
+> > 
+> > I think it has some challenge as well.  We bind an ACPI driver with
+> > device_register(), which calls device_add()-> kobject_add().  So, all
+> > non-present ACPI device objects will show up in sysfs, unless we can
+> > change the core.  This will change user interface.  There can be quite
+> > many non-present devices in ACPI namespace depending on FW
+> > implementation.
+> 
+> If additional devices appear in sysfs, that's not a problem.  If there
+> were fewer of them, that would be a real one. :-)
 
-I wonder if you can try to apply the patch below and see if that makes any
-difference?
+I see.  I guess this means that once we expose all non-present devices
+in sysfs, we cannot go back to the current way.  So, we need to be very
+careful.  Anyway, this model requires separate handling for static ACPI
+[1] and dynamic ACPI [2], which may make the state model complicated.
 
-Rafael
-
-
----
- drivers/pnp/pnpacpi/rsparser.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
-
-Index: linux/drivers/pnp/pnpacpi/rsparser.c
-===================================================================
---- linux.orig/drivers/pnp/pnpacpi/rsparser.c
-+++ linux/drivers/pnp/pnpacpi/rsparser.c
-@@ -610,6 +610,14 @@ int pnpacpi_build_resource_template(stru
- 	struct acpi_resource *resource;
- 	int res_cnt = 0;
- 	acpi_status status;
-+	int ret;
-+
-+	/* Sanity check. */
-+	ret = acpi_bus_get_device(handle, &acpi_dev);
-+	if (ret) {
-+		dev_err(&dev->dev, "ACPI node is invalid in %s\n", __func__);
-+		return ret;
-+	}
- 
- 	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
- 				     pnpacpi_count_resources, &res_cnt);
+1. Static ACPI - No creation / deletion of acpi_device at hot-plug.
+2. Dynamic ACPI - Create acpi_device at hot-add, delete at hot-remove.
 
 
+Thanks,
+-Toshi
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+[1] ACPI namespace is static and contains the maximum possible config. 
+[2] ACPI namespace is dynamic. SSDT is loaded at hot-add, and unloaded
+at hot-remove.
