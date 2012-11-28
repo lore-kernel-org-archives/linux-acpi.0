@@ -1,63 +1,135 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v9 06/10] ata: zpodd: check zero power ready status
-Date: Wed, 28 Nov 2012 01:51 +0100
-Message-ID: <21511277.LLinyDpbAK@vostro.rjw.lan>
-References: <1352443922-13734-1-git-send-email-aaron.lu@intel.com> <35648985.61QNrr0Knq@vostro.rjw.lan> <1353906191.2523.25.camel@dabdike>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH] ACPI thermal: _TMP and _CRT/_HOT/_PSV/_ACx dependency
+ fix
+Date: Wed, 28 Nov 2012 09:15:51 +0800
+Message-ID: <1354065351.2153.5.camel@rzhang1-mobl4>
+References: <1353981690.2157.5.camel@rzhang1-mobl4>
+	 <13424597.Clh1ApcFoE@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <1353906191.2523.25.camel@dabdike>
-Sender: linux-ide-owner@vger.kernel.org
-To: James Bottomley <James.Bottomley@hansenpartnership.com>
-Cc: linux-pm@vger.kernel.org, Tejun Heo <tj@kernel.org>, Aaron Lu <aaron.lu@intel.com>, Jeff Garzik <jgarzik@pobox.com>, Alan Stern <stern@rowland.harvard.edu>, Jeff Wu <jeff.wu@amd.com>, Aaron Lu <aaron.lwe@gmail.com>, linux-ide@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:52959 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753213Ab2K1BPz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 27 Nov 2012 20:15:55 -0500
+In-Reply-To: <13424597.Clh1ApcFoE@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org, "Matthew Garrett (mjg@redhat.com)" <mjg@redhat.com>, katabami@lavabit.com
 
-On Monday, November 26, 2012 09:03:11 AM James Bottomley wrote:
-> On Mon, 2012-11-26 at 01:33 +0100, Rafael J. Wysocki wrote:
-> > On Monday, November 19, 2012 03:06:51 PM James Bottomley wrote:
-> > > > I really think we need a way for (auto)pm and event polling to talk to
-> > > > each other so that autopm can tell event poll to sod off while pm is
-> > > > in effect.  Trying to solve this from inside libata doesn't seem
-> > > > right.  The problem, again, seems to be figuring out which hardware
-> > > > device maps to which block device.  Hmmm... Any good ideas?
-> > > 
-> > > I've asked the PM people several times about this, because it's a real
-> > > problem for almost everything:  PM needs some type of top to bottom
-> > > stack view, which the layering isolation we have within storage really
-> > > doesn't cope with well.  No real suggestion has been forthcoming.
+On Tue, 2012-11-27 at 20:55 +0100, Rafael J. Wysocki wrote:
+> On Tuesday, November 27, 2012 10:01:30 AM Zhang Rui wrote:
+> > From 391908867c2a500a9068aa9f2a8e74663fff75ac Mon Sep 17 00:00:00 2001
+> > From: Zhang Rui <rui.zhang@intel.com>
+> > Date: Fri, 23 Nov 2012 09:25:10 +0800
+> > Subject: [PATCH] ACPI thermal: _TMP and _CRT/_HOT/_PSV/_ACx dependency fix
 > > 
-> > Actually, I think that the particular case in question is really special
-> > and the fact that there's the pollig loop that user space is involved in
-> > doesn't make things more stratightforward.
+> > On some platforms, _TMP and _CRT/_HOT/_PSV/_ACx have dependency.
+> > And there is no way for OS to detect this dependency.
 > > 
-> > And PM really doesn't need to see things top to bottom, but the polling
-> > needs to know what happens in the PM land.  We need to be able to tell it
-> > "from now on tell user space that there are no events here".  The question
-> > is where to put that information so that it's accessible to all parts of the
-> > stack involved.
+> > commit 9bcb8118965ab4631a65ee0726e6518f75cda6c5 shows us a problem
+> > that _TMP must be evaluate after _CRT/_HOT/_PSV/_ACx, or esle
+> > firmware will shutdown the system.
+> > 
+> > But the machins in https://bugzilla.kernel.org/show_bug.cgi?id=43284
+> > shows us that _PSV would return valid value only if _TMP has been
+> > evaluated once.
+> > 
+> > With this patch, all of the control methods will be evaluated once,
+> > in the order of  _CRT/_HOT/_PSV/_CRT, _TMP, before they are actually used.
 > 
-> Right, open to suggestions ...
+> I'm going to apply it, but with a few cleanups.  The result is appended, please
+> double check if it is still correct.
+> 
+yes, the refreshed patch looks okay to me.
 
-Having considered that a bit more I'm now thinking that in fact the power state
-the device is in at the moment doesn't really matter, so the polling code need
-not really know what PM is doing.  What it needs to know is that the device
-will generate a hardware event when something interesting happens, so it is not
-necessary to poll it.
+thanks,
+rui
+> Thanks,
+> Rafael
+> 
+> ---
+> From: Zhang Rui <rui.zhang@intel.com>
+> Subject: ACPI / thermal: _TMP and _CRT/_HOT/_PSV/_ACx dependency fix
+> 
+> On some platforms, _TMP and _CRT/_HOT/_PSV/_ACx have dependency.
+> And there is no way for OS to detect this dependency.
+> 
+> commit 9bcb8118965ab4631a65ee0726e6518f75cda6c5 shows us a problem
+> that _TMP must be evaluate after _CRT/_HOT/_PSV/_ACx, or else
+> firmware will shutdown the system.
+> 
+> But the machine in https://bugzilla.kernel.org/show_bug.cgi?id=43284
+> shows us that _PSV would return valid value only if _TMP has been
+> evaluated once.
+> 
+> With this patch, all of the control methods will be evaluated once,
+> in the _CRT/_HOT/_PSV/_CRT/_TMP order, before they are actually used.
+> 
+> [rjw: Added a local variable for the handle and modified the loop
+>  slightly.]
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> Tested-by: katabami <katabami@lavabit.com>
+> ---
+> drivers/acpi/thermal.c |   31 +++++++++++++++++++++++++++++++
+>  drivers/acpi/thermal.c |   34 ++++++++++++++++++++++++++++++++++
+>  1 file changed, 34 insertions(+)
+> 
+> Index: linux/drivers/acpi/thermal.c
+> ===================================================================
+> --- linux.orig/drivers/acpi/thermal.c
+> +++ linux/drivers/acpi/thermal.c
+> @@ -984,6 +984,38 @@ static void acpi_thermal_notify(struct a
+>  	}
+>  }
+>  
+> +/*
+> + * On some platforms, the AML code has dependency about
+> + * the evaluating order of _TMP and _CRT/_HOT/_PSV/_ACx.
+> + * 1. On HP Pavilion G4-1016tx, _TMP must be invoked after
+> + *    /_CRT/_HOT/_PSV/_ACx, or else system will be power off.
+> + * 2. On HP Compaq 6715b/6715s, the return value of _PSV is 0
+> + *    if _TMP has never been evaluated.
+> + *
+> + * As this dependency is totally transparent to OS, evaluate
+> + * all of them once, in the order of _CRT/_HOT/_PSV/_ACx,
+> + * _TMP, before they are actually used.
+> + */
+> +static void acpi_thermal_aml_dependency_fix(struct acpi_thermal *tz)
+> +{
+> +	acpi_handle handle = tz->device->handle;
+> +	unsigned long long value;
+> +	int i;
+> +
+> +	acpi_evaluate_integer(handle, "_CRT", NULL, &value);
+> +	acpi_evaluate_integer(handle, "_HOT", NULL, &value);
+> +	acpi_evaluate_integer(handle, "_PSV", NULL, &value);
+> +	for (i = 0; i < ACPI_THERMAL_MAX_ACTIVE; i++) {
+> +		char name[5] = { '_', 'A', 'C', ('0' + i), '\0' };
+> +		acpi_status status;
+> +
+> +		status = acpi_evaluate_integer(handle, name, NULL, &value);
+> +		if (status == AE_NOT_FOUND)
+> +			break;
+> +	}
+> +	acpi_evaluate_integer(handle, "_TMP", NULL, &value);
+> +}
+> +
+>  static int acpi_thermal_get_info(struct acpi_thermal *tz)
+>  {
+>  	int result = 0;
+> @@ -992,6 +1024,8 @@ static int acpi_thermal_get_info(struct
+>  	if (!tz)
+>  		return -EINVAL;
+>  
+> +	acpi_thermal_aml_dependency_fix(tz);
+> +
+>  	/* Get trip points [_CRT, _PSV, etc.] (required) */
+>  	result = acpi_thermal_get_trip_points(tz);
+>  	if (result)
+> 
+> 
 
-In this particular case it is related to power management (apparently, hardware
-events will only be generated after the device has been put into ACPI D3cold,
-or so Aaron seems to be claiming), but it need not be in general, at least in
-principle.
 
-It looks like we need an "event driven" flag that the can be set in the lower
-layers and read by the upper layers.  I suppose this means it would need to be
-in struct device, but not necessarily in the PM-specific part of it.
-
-Thanks,
-Rafael
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
