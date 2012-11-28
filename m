@@ -1,98 +1,101 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: Acpi deadlocks with 3.7.0-rc4
-Date: Wed, 28 Nov 2012 08:01:03 -0800
-Message-ID: <CA+55aFyLMmKuEvY6T2=vSHp_R4=ndqFEFNJsc3Axze2vYknKhg@mail.gmail.com>
-References: <50A513A8.9010404@redhat.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [RFC PATCH v3 3/3] acpi_memhotplug: Allow eject to proceed on
+ rebind scenario
+Date: Wed, 28 Nov 2012 09:01:13 -0700
+Message-ID: <1354118473.26955.208.camel@misato.fc.hp.com>
+References: <1353693037-21704-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
+	 <20121127183245.GA4674@dhcp-192-168-178-175.profitbricks.localdomain>
+	 <1354053827.26955.196.camel@misato.fc.hp.com>
+	 <2804331.4p7pU4ARvy@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <50A513A8.9010404@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Zdenek Kabelac <zkabelac@redhat.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t0016.houston.hp.com ([15.201.24.19]:13084 "EHLO
+	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751187Ab2K1QJk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Nov 2012 11:09:40 -0500
+In-Reply-To: <2804331.4p7pU4ARvy@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, Wen Congyang <wency@cn.fujitsu.com>, Wen Congyang <wencongyang@gmail.com>, isimatu.yasuaki@jp.fujitsu.com, lenb@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 
-Adding more people (and the acpi list) to this report.
+On Wed, 2012-11-28 at 00:41 +0100, Rafael J. Wysocki wrote:
+> On Tuesday, November 27, 2012 03:03:47 PM Toshi Kani wrote:
+> > On Tue, 2012-11-27 at 19:32 +0100, Vasilis Liaskovitis wrote:
+> > > On Mon, Nov 26, 2012 at 05:19:01PM -0700, Toshi Kani wrote:
+> > > > > >> Consider the following sequence of operations for a hotplugged memory
+> > > > > >> device:
+> > > > > >>
+> > > > > >> 1. echo "PNP0C80:XX" > /sys/bus/acpi/drivers/acpi_memhotplug/unbind
+> > > > > >> 2. echo 1 >/sys/bus/pci/devices/PNP0C80:XX/eject
+> > > > > >>
+> > > > > >> If we don't offline/remove the memory, we have no chance to do it in
+> > > > > >> step 2. After
+> > > > > >> step2, the memory is used by the kernel, but we have powered off it. It
+> > > > > >> is very
+> > > > > >> dangerous.
+> > > > > > 
+> > > > > > How does power-off happen after unbind? acpi_eject_store checks for existing
+> > > > > > driver before taking any action:
+> > > > > > 
+> > > > > > #ifndef FORCE_EJECT
+> > > > > > 	if (acpi_device->driver == NULL) {
+> > > > > > 		ret = -ENODEV;
+> > > > > > 		goto err;
+> > > > > > 	}
+> > > > > > #endif
+> > > > > > 
+> > > > > > FORCE_EJECT is not defined afaict, so the function returns without scheduling
+> > > > > > acpi_bus_hot_remove_device. Is there another code path that calls power-off?
+> > > > > 
+> > > > > Consider the following case:
+> > > > > 
+> > > > > We hotremove the memory device by SCI and unbind it from the driver at the same time:
+> > > > > 
+> > > > > CPUa                                                  CPUb
+> > > > > acpi_memory_device_notify()
+> > > > >                                        unbind it from the driver
+> > > > >     acpi_bus_hot_remove_device()
+> > > > 
+> > > > Can we make acpi_bus_remove() to fail if a given acpi_device is not
+> > > > bound with a driver?  If so, can we make the unbind operation to perform
+> > > > unbind only?
+> > > 
+> > > acpi_bus_remove_device could check if the driver is present, and return -ENODEV
+> > > if it's not present (dev->driver == NULL).
+> > > 
+> > > But there can still be a race between an eject and an unbind operation happening
+> > > simultaneously. This seems like a general problem to me i.e. not specific to an
+> > > acpi memory device. How do we ensure an eject does not race with a driver unbind
+> > > for other acpi devices?
+> > > 
+> > > Is there a per-device lock in acpi-core or device-core that can prevent this from
+> > > happening? Driver core does a device_lock(dev) on all operations, but this is
+> > > probably not grabbed on SCI-initiated acpi ejects.
+> > 
+> > Since driver_unbind() calls device_lock(dev->parent) before calling
+> > device_release_driver(), I am wondering if we can call
+> > device_lock(dev->dev->parent) at the beginning of acpi_bus_remove()
+> > (i.e. before calling pre_remove) and fails if dev->driver is NULL.  The
+> > parent lock is otherwise released after device_release_driver() is done.
+> 
+> I would be careful.  You may introduce some subtle locking-related issues
+> this way.
 
-I'm seeing *very* few changes to the core suspend/resume path in 3.7,
-and while there are some acpia updates, they seem to be pretty mild
-too.
+Right.  This requires careful inspection and testing.  As far as the
+locking is concerned, I am not keen on using fine grained locking for
+hot-plug.  It is much simpler and solid if we serialize such operations.
 
-I think the acpi_os_wait_semaphore thing is a red herring - that's
-just stale on the stack.
+> Besides, there may be an alternative approach to all this.  For example,
+> what if we don't remove struct device objects on eject?  The ACPI handles
+> associated with them don't go away in that case after all, do they?
 
-Do you have the register state from the oops? Or at least the "Code:"
-line? It would be nice to see exactly where the oops happens, and I
-cannot line up your "acpi_ns_lookup  + 0xa1/0x5b9" with any code due
-to different compilers (and configurations etc).
+Umm...  Sorry, I am not getting your point.  The issue is that we need
+to be able to fail a request when memory range cannot be off-lined.
+Otherwise, we end up ejecting online memory range.
 
-               Linus
+Thanks,
+-Toshi
 
-
-On Thu, Nov 15, 2012 at 8:09 AM, Zdenek Kabelac <zkabelac@redhat.com> wrote:
-> Hello
->
->
-> I've already seen twice this oops after resuming my Lenovo T61 in docking
-> station.
->
-> Since for some reason currently the serial line doesn't work correctly after
-> resume
-> (while I'm pretty sure it used to work in past) here is at least
-> hand-written oops
-> message from mobile camera picture.
->
-> From the trace it seem os_wait semaphore is accessed twice.
-> Unsure which device is behind it - but it seem docking station is need to
-> hit this issue.
->
->
-> kernel 3.7.0-rc4
->
-> Pid:  pm-suspend
->
-> RIP:   acpi_ns_lookup  + 0xa1/0x5b9
->
-> Call Trace:
->
-> ? acpi_os_wait_semaphore + 0x136/0x149
-> acpi_ns_get_mode + 0x96/0x102
-> ? __lock_is_held +0x5f/0x90
-> acpi_ns_evaluate +0x47/0x2de
-> ? _raw_spin_lock_irqsave
-> ? acpi_ut_evaluate_object
-> ? sub_preempt_count
-> ? pnpacpi_can_wakeup
-> acpi_rs_get_method_data
-> ? acpi_os_signal_semaphore
-> acpi_walk_resources
-> ? acpi_ut_release_mutex
-> pnpacpi_build_resource_template
-> ? acpi_bus_get_device
-> pnpacpi_set_resources
-> ? pnp_device_shutdown
-> pnp_start_dev
-> pnp_bus_resume
-> dpm_run_callback
-> device_resume
-> dpm_resume
-> dpm_resume_end
-> ? acpi_suspend_begin_old
-> suspend_devices_and_enter
-> pm_suspend
-> state_store
-> kobj_attr_store
-> sysfs_write_file
-> vgs_write
-> sys_write
-> system_call_fastpath
->
-> Zdenek
->
->
-> PS: jpg on request
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
