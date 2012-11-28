@@ -1,101 +1,59 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [RFC PATCH v3 3/3] acpi_memhotplug: Allow eject to proceed on
- rebind scenario
-Date: Wed, 28 Nov 2012 09:01:13 -0700
-Message-ID: <1354118473.26955.208.camel@misato.fc.hp.com>
-References: <1353693037-21704-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
-	 <20121127183245.GA4674@dhcp-192-168-178-175.profitbricks.localdomain>
-	 <1354053827.26955.196.camel@misato.fc.hp.com>
-	 <2804331.4p7pU4ARvy@vostro.rjw.lan>
+From: "Jeff.Wu" <chping@gmail.com>
+Subject: Re: ZPODD ACPI _PRW method support
+Date: Thu, 29 Nov 2012 00:11:47 +0800
+Message-ID: <CANh5a1xKFp57VQfufUzs3maxt8wHZCVv6gTpyvQr8FzNCJG=0A@mail.gmail.com>
+References: <CANh5a1wN-vsYSAtWXWR2P5C=4kVeVj94UZPPbMGGXxHMJyzDew@mail.gmail.com>
+	<1804754.cgLN50ubYg@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0016.houston.hp.com ([15.201.24.19]:13084 "EHLO
-	g4t0016.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751187Ab2K1QJk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Nov 2012 11:09:40 -0500
-In-Reply-To: <2804331.4p7pU4ARvy@vostro.rjw.lan>
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:48876 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751546Ab2K1QLt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Nov 2012 11:11:49 -0500
+Received: by mail-vc0-f174.google.com with SMTP id m18so10319514vcm.19
+        for <linux-acpi@vger.kernel.org>; Wed, 28 Nov 2012 08:11:48 -0800 (PST)
+In-Reply-To: <1804754.cgLN50ubYg@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, Wen Congyang <wency@cn.fujitsu.com>, Wen Congyang <wencongyang@gmail.com>, isimatu.yasuaki@jp.fujitsu.com, lenb@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Lin Ming <minggr@gmail.com>, Aaron Lu <aaron.lwe@gmail.com>
 
-On Wed, 2012-11-28 at 00:41 +0100, Rafael J. Wysocki wrote:
-> On Tuesday, November 27, 2012 03:03:47 PM Toshi Kani wrote:
-> > On Tue, 2012-11-27 at 19:32 +0100, Vasilis Liaskovitis wrote:
-> > > On Mon, Nov 26, 2012 at 05:19:01PM -0700, Toshi Kani wrote:
-> > > > > >> Consider the following sequence of operations for a hotplugged memory
-> > > > > >> device:
-> > > > > >>
-> > > > > >> 1. echo "PNP0C80:XX" > /sys/bus/acpi/drivers/acpi_memhotplug/unbind
-> > > > > >> 2. echo 1 >/sys/bus/pci/devices/PNP0C80:XX/eject
-> > > > > >>
-> > > > > >> If we don't offline/remove the memory, we have no chance to do it in
-> > > > > >> step 2. After
-> > > > > >> step2, the memory is used by the kernel, but we have powered off it. It
-> > > > > >> is very
-> > > > > >> dangerous.
-> > > > > > 
-> > > > > > How does power-off happen after unbind? acpi_eject_store checks for existing
-> > > > > > driver before taking any action:
-> > > > > > 
-> > > > > > #ifndef FORCE_EJECT
-> > > > > > 	if (acpi_device->driver == NULL) {
-> > > > > > 		ret = -ENODEV;
-> > > > > > 		goto err;
-> > > > > > 	}
-> > > > > > #endif
-> > > > > > 
-> > > > > > FORCE_EJECT is not defined afaict, so the function returns without scheduling
-> > > > > > acpi_bus_hot_remove_device. Is there another code path that calls power-off?
-> > > > > 
-> > > > > Consider the following case:
-> > > > > 
-> > > > > We hotremove the memory device by SCI and unbind it from the driver at the same time:
-> > > > > 
-> > > > > CPUa                                                  CPUb
-> > > > > acpi_memory_device_notify()
-> > > > >                                        unbind it from the driver
-> > > > >     acpi_bus_hot_remove_device()
-> > > > 
-> > > > Can we make acpi_bus_remove() to fail if a given acpi_device is not
-> > > > bound with a driver?  If so, can we make the unbind operation to perform
-> > > > unbind only?
-> > > 
-> > > acpi_bus_remove_device could check if the driver is present, and return -ENODEV
-> > > if it's not present (dev->driver == NULL).
-> > > 
-> > > But there can still be a race between an eject and an unbind operation happening
-> > > simultaneously. This seems like a general problem to me i.e. not specific to an
-> > > acpi memory device. How do we ensure an eject does not race with a driver unbind
-> > > for other acpi devices?
-> > > 
-> > > Is there a per-device lock in acpi-core or device-core that can prevent this from
-> > > happening? Driver core does a device_lock(dev) on all operations, but this is
-> > > probably not grabbed on SCI-initiated acpi ejects.
-> > 
-> > Since driver_unbind() calls device_lock(dev->parent) before calling
-> > device_release_driver(), I am wondering if we can call
-> > device_lock(dev->dev->parent) at the beginning of acpi_bus_remove()
-> > (i.e. before calling pre_remove) and fails if dev->driver is NULL.  The
-> > parent lock is otherwise released after device_release_driver() is done.
-> 
-> I would be careful.  You may introduce some subtle locking-related issues
-> this way.
-
-Right.  This requires careful inspection and testing.  As far as the
-locking is concerned, I am not keen on using fine grained locking for
-hot-plug.  It is much simpler and solid if we serialize such operations.
-
-> Besides, there may be an alternative approach to all this.  For example,
-> what if we don't remove struct device objects on eject?  The ACPI handles
-> associated with them don't go away in that case after all, do they?
-
-Umm...  Sorry, I am not getting your point.  The issue is that we need
-to be able to fail a request when memory range cannot be off-lined.
-Otherwise, we end up ejecting online memory range.
+Hi Rafael
 
 Thanks,
--Toshi
 
+I  am testing ZPODD function ,for Linux ZPODD kernel,
+if _PRW method is removed at  BIOS ACPI DSDT codes, ZPODD work normally.
+but, if _PRW method is added at BIOS ACPI DSDT codes,ZPODD can't be
+wakeup when ZPODD state is suspend.
+I'am not sure that Linux ZPODD whether is using _PRW to send wakeup events.
+
+Jeff
+
+2012/11/28 Rafael J. Wysocki <rjw@sisk.pl>:
+> On Wednesday, November 28, 2012 04:52:17 PM Jeff.Wu wrote:
+>> Hi aaron,ming,linux-acpi
+>>
+>>  Is it  whether need support ACPI _PRW method for ZPODD device ?
+>
+> Yes, it is.
+>
+>>  If BIOS had implemented _PRW method for ZPODD ,
+>> but Linux kernel doesn't support  ZPODD _PRW method,ZPODD will can't
+>> run into suspend state.
+>
+> I'm not sure what you mean.
+>
+> If we don't use _PRW, the device won't be able to signal wakeup events.
+>
+>> Is there any stories for ZPODD Linux _PRW method ?
+>
+> All threads related to ZPODD are about that indirectly.
+>
+> Thanks,
+> Rafael
+>
+>
+> --
+> I speak only for myself.
+> Rafael J. Wysocki, Intel Open Source Technology Center.
