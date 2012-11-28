@@ -1,59 +1,56 @@
-From: "Jeff.Wu" <chping@gmail.com>
-Subject: Re: ZPODD ACPI _PRW method support
-Date: Thu, 29 Nov 2012 00:11:47 +0800
-Message-ID: <CANh5a1xKFp57VQfufUzs3maxt8wHZCVv6gTpyvQr8FzNCJG=0A@mail.gmail.com>
-References: <CANh5a1wN-vsYSAtWXWR2P5C=4kVeVj94UZPPbMGGXxHMJyzDew@mail.gmail.com>
-	<1804754.cgLN50ubYg@vostro.rjw.lan>
+From: Zdenek Kabelac <zkabelac@redhat.com>
+Subject: Re: Acpi deadlocks with 3.7.0-rc4
+Date: Wed, 28 Nov 2012 17:21:24 +0100
+Message-ID: <50B63A04.9010901@redhat.com>
+References: <50A513A8.9010404@redhat.com> <CA+55aFyLMmKuEvY6T2=vSHp_R4=ndqFEFNJsc3Axze2vYknKhg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:48876 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751546Ab2K1QLt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Nov 2012 11:11:49 -0500
-Received: by mail-vc0-f174.google.com with SMTP id m18so10319514vcm.19
-        for <linux-acpi@vger.kernel.org>; Wed, 28 Nov 2012 08:11:48 -0800 (PST)
-In-Reply-To: <1804754.cgLN50ubYg@vostro.rjw.lan>
+Received: from mx1.redhat.com ([209.132.183.28]:28860 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751634Ab2K1QVg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 28 Nov 2012 11:21:36 -0500
+In-Reply-To: <CA+55aFyLMmKuEvY6T2=vSHp_R4=ndqFEFNJsc3Axze2vYknKhg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Lin Ming <minggr@gmail.com>, Aaron Lu <aaron.lwe@gmail.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Linux ACPI <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-Hi Rafael
+Dne 28.11.2012 17:01, Linus Torvalds napsal(a):
+> Adding more people (and the acpi list) to this report.
+>
+> I'm seeing *very* few changes to the core suspend/resume path in 3.7,
+> and while there are some acpia updates, they seem to be pretty mild
+> too.
+>
+> I think the acpi_os_wait_semaphore thing is a red herring - that's
+> just stale on the stack.
+>
+> Do you have the register state from the oops? Or at least the "Code:"
+> line? It would be nice to see exactly where the oops happens, and I
+> cannot line up your "acpi_ns_lookup  + 0xa1/0x5b9" with any code due
+> to different compilers (and configurations etc).
+>
+>                 Linus
+>
 
-Thanks,
 
-I  am testing ZPODD function ,for Linux ZPODD kernel,
-if _PRW method is removed at  BIOS ACPI DSDT codes, ZPODD work normally.
-but, if _PRW method is added at BIOS ACPI DSDT codes,ZPODD can't be
-wakeup when ZPODD state is suspend.
-I'am not sure that Linux ZPODD whether is using _PRW to send wakeup events.
+I've opened  https://bugzilla.kernel.org/show_bug.cgi?id=51071
+and attached picture there which is all I have.
 
-Jeff
+I'll try to decode exact code line.
 
-2012/11/28 Rafael J. Wysocki <rjw@sisk.pl>:
-> On Wednesday, November 28, 2012 04:52:17 PM Jeff.Wu wrote:
->> Hi aaron,ming,linux-acpi
->>
->>  Is it  whether need support ACPI _PRW method for ZPODD device ?
->
-> Yes, it is.
->
->>  If BIOS had implemented _PRW method for ZPODD ,
->> but Linux kernel doesn't support  ZPODD _PRW method,ZPODD will can't
->> run into suspend state.
->
-> I'm not sure what you mean.
->
-> If we don't use _PRW, the device won't be able to signal wakeup events.
->
->> Is there any stories for ZPODD Linux _PRW method ?
->
-> All threads related to ZPODD are about that indirectly.
->
-> Thanks,
-> Rafael
->
->
-> --
-> I speak only for myself.
-> Rafael J. Wysocki, Intel Open Source Technology Center.
+
+In all cases - I've played even with 3.4 kernel - which also does not survive 
+multiple resumes in docking station - though it just leaves black screen - so 
+this oops is rather 'progress' and it also could be false path.
+
+It's probably not a regression from 3.6 - since this problem was there for 
+much longer - but now it has just become much more visible.
+
+As I usually do not have reason to make multiple suspend/resumes in dock I've 
+not noticed it until now when I've tried to capture this ACPI trace.
+
+Zdenek
+
