@@ -1,87 +1,110 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v3 1/4] ACPI: Support system notify handler via .sys_notify
-Date: Wed, 28 Nov 2012 22:55:18 +0100
-Message-ID: <12655874.tBYV6dRMny@vostro.rjw.lan>
-References: <1352406227-32629-1-git-send-email-toshi.kani@hp.com> <5550104.xSe1fX9Ich@vostro.rjw.lan> <1354137803.26955.325.camel@misato.fc.hp.com>
+Subject: Re: [RFC PATCH v3 3/3] acpi_memhotplug: Allow eject to proceed on rebind scenario
+Date: Wed, 28 Nov 2012 23:01:11 +0100
+Message-ID: <7694340.3kLrC1FvE4@vostro.rjw.lan>
+References: <1353693037-21704-1-git-send-email-vasilis.liaskovitis@profitbricks.com> <2080453.Ry9A79n0aE@vostro.rjw.lan> <1354138809.26955.330.camel@misato.fc.hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1354137803.26955.325.camel@misato.fc.hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1354138809.26955.330.camel@misato.fc.hp.com>
+Sender: owner-linux-mm@kvack.org
 To: Toshi Kani <toshi.kani@hp.com>
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, liuj97@gmail.com
+Cc: linux-acpi@vger.kernel.org, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, Wen Congyang <wency@cn.fujitsu.com>, Wen Congyang <wencongyang@gmail.com>, isimatu.yasuaki@jp.fujitsu.com, lenb@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, November 28, 2012 02:23:23 PM Toshi Kani wrote:
-> On Wed, 2012-11-28 at 22:09 +0100, Rafael J. Wysocki wrote:
-> > On Wednesday, November 28, 2012 01:31:39 PM Toshi Kani wrote:
-> > > On Wed, 2012-11-28 at 19:28 +0100, Rafael J. Wysocki wrote:
-> > > > On Wednesday, November 28, 2012 09:54:43 AM Toshi Kani wrote:
-> > > > > > > > > > By using acpi_install_notify_handler(), each driver needs to walk
-> > > > > > > > > > through the entire ACPI namespace to find its associated ACPI devices
-> > > > > > > > > > and call it to register one by one.  I think this is more work for
-> > > > > > > > > > non-ACPI drivers than defining acpi_driver.
+On Wednesday, November 28, 2012 02:40:09 PM Toshi Kani wrote:
+> On Wed, 2012-11-28 at 22:40 +0100, Rafael J. Wysocki wrote:
+> > On Wednesday, November 28, 2012 02:02:48 PM Toshi Kani wrote:
+> > > > > > > > > > Consider the following case:
+> > > > > > > > > > 
+> > > > > > > > > > We hotremove the memory device by SCI and unbind it from the driver at the same time:
+> > > > > > > > > > 
+> > > > > > > > > > CPUa                                                  CPUb
+> > > > > > > > > > acpi_memory_device_notify()
+> > > > > > > > > >                                        unbind it from the driver
+> > > > > > > > > >     acpi_bus_hot_remove_device()
 > > > > > > > > > 
-> > > > > > > > > I'm not really sure what you mean.  The drivers in question already know
-> > > > > > > > > what the relevant ACPI device nodes are (because they need them anyway
-> > > > > > > > > for other purposes), so they don't need to look for them specifically and
-> > > > > > > > > acpi_install_notify_handler() doesn't do any namespace walking.  So what
-> > > > > > > > > you said above simply doesn't make sense from this viewpoint.
+> > > > > > > > > Can we make acpi_bus_remove() to fail if a given acpi_device is not
+> > > > > > > > > bound with a driver?  If so, can we make the unbind operation to perform
+> > > > > > > > > unbind only?
 > > > > > > > > 
-> > > > > > > > Yes, if drivers already know the relevant ACPI devices, then walking the
-> > > > > > > > ACPI namespace is not necessary.  I was referring the case like
-> > > > > > > > processor_driver.c, acpi_memhotplug.c, and container.c in my statement. 
+> > > > > > > > acpi_bus_remove_device could check if the driver is present, and return -ENODEV
+> > > > > > > > if it's not present (dev->driver == NULL).
+> > > > > > > > 
+> > > > > > > > But there can still be a race between an eject and an unbind operation happening
+> > > > > > > > simultaneously. This seems like a general problem to me i.e. not specific to an
+> > > > > > > > acpi memory device. How do we ensure an eject does not race with a driver unbind
+> > > > > > > > for other acpi devices?
+> > > > > > > > 
+> > > > > > > > Is there a per-device lock in acpi-core or device-core that can prevent this from
+> > > > > > > > happening? Driver core does a device_lock(dev) on all operations, but this is
+> > > > > > > > probably not grabbed on SCI-initiated acpi ejects.
 > > > > > > > 
-> > > > > > > BTW, when an ACPI device is marked as non-present, which is the case
-> > > > > > > before hot-add, we do not create an acpi_device object and therefore do
-> > > > > > > not bind it with a driver.  This is why these drivers walk the ACPI
-> > > > > > > namespace and install their notify handlers regardless of device status.
+> > > > > > > Since driver_unbind() calls device_lock(dev->parent) before calling
+> > > > > > > device_release_driver(), I am wondering if we can call
+> > > > > > > device_lock(dev->dev->parent) at the beginning of acpi_bus_remove()
+> > > > > > > (i.e. before calling pre_remove) and fails if dev->driver is NULL.  The
+> > > > > > > parent lock is otherwise released after device_release_driver() is done.
 > > > > > > 
-> > > > > > So maybe we should create struct acpi_device objects in that case too?
+> > > > > > I would be careful.  You may introduce some subtle locking-related issues
+> > > > > > this way.
 > > > > > 
-> > > > > I think it has some challenge as well.  We bind an ACPI driver with
-> > > > > device_register(), which calls device_add()-> kobject_add().  So, all
-> > > > > non-present ACPI device objects will show up in sysfs, unless we can
-> > > > > change the core.  This will change user interface.  There can be quite
-> > > > > many non-present devices in ACPI namespace depending on FW
-> > > > > implementation.
+> > > > > Right.  This requires careful inspection and testing.  As far as the
+> > > > > locking is concerned, I am not keen on using fine grained locking for
+> > > > > hot-plug.  It is much simpler and solid if we serialize such operations.
+> > > > > 
+> > > > > > Besides, there may be an alternative approach to all this.  For example,
+> > > > > > what if we don't remove struct device objects on eject?  The ACPI handles
+> > > > > > associated with them don't go away in that case after all, do they?
+> > > > > 
+> > > > > Umm...  Sorry, I am not getting your point.  The issue is that we need
+> > > > > to be able to fail a request when memory range cannot be off-lined.
+> > > > > Otherwise, we end up ejecting online memory range.
 > > > > 
-> > > > If additional devices appear in sysfs, that's not a problem.  If there
-> > > > were fewer of them, that would be a real one. :-)
+> > > > Yes, this is the major one.  The minor issue, however, is a race condition
+> > > > between unbinding a driver from a device and removing the device if I
+> > > > understand it correctly.  Which will go away automatically if the device is
+> > > > not removed in the first place.  Or so I would think. :-)
 > > > 
-> > > I see.  I guess this means that once we expose all non-present devices
-> > > in sysfs, we cannot go back to the current way.  So, we need to be very
-> > > careful.  Anyway, this model requires separate handling for static ACPI
-> > > [1] and dynamic ACPI [2], which may make the state model complicated.
-> > > 
-> > > 1. Static ACPI - No creation / deletion of acpi_device at hot-plug.
-> > > 2. Dynamic ACPI - Create acpi_device at hot-add, delete at hot-remove.
+> > > I see.  I do not think whether or not the device is removed on eject
+> > > makes any difference here.  The issue is that after driver_unbind() is
+> > > done, acpi_bus_hot_remove_device() no longer calls the ACPI memory
+> > > driver (hence, it cannot fail in prepare_remove), and goes ahead to call
+> > > _EJ0.  If driver_unbind() did off-line the memory, this is OK.  However,
+> > > it cannot off-line kernel memory ranges.  So, we basically need to
+> > > either 1) serialize acpi_bus_hot_remove_device() and driver_unbind(), or
+> > > 2) make acpi_bus_hot_remove_device() to fail if driver_unbind() is run
+> > > during the operation.
 > > 
-> > Sure.  The complication here is that we'll need to handle the removal of
-> > a bunch of struct acpi_device objects when a whole table goes away.
+> > OK, I see the problem now.
 > > 
-> > However, first, we don't seem to handle table unloading now.  At least
-> > acpi_unload_parent_table() is not called from anywhere as far as I can
-> > say.  Second, we'll need to handle the removal of struct acpi_device objects
-> > _anyway_ on table unload, this way or another.
+> > What exactly is triggering the driver_unbind() in this scenario?
 > 
-> AML is the one that requests loading/unloading of SSDT for dynamic ACPI.
-> In hot-add, _Lxx method executes AML_LOAD_OP or AML_LOAD_TABLE_OP to
-> load SSDT and then sends a notification to the OS.  In hot-remove, _EJ0
-> method executes AML_UNLOAD_OP to unload SSDT.  Of course, ACPICA does
-> the actual work on behalf of AML.  But this is not visible to ACPI core
-> or drivers, unless it checks ACPI namespace to see if any device objects
-> disappeared after _EJ0.
+> User can request driver_unbind() from sysfs as follows.  I do not see
+> much reason why user has to do for memory, though.
+> 
+> echo "PNP0C80:XX" > /sys/bus/acpi/drivers/acpi_memhotplug/unbind
 
-Oh, we have a handler for that event, but we don't really use it. :-)
+This is wrong.  Even if we want to permit user space to forcibly unbind
+drivers from anything like this, we should at least check for some
+situations in which it is plain dangerous.  Like in this case.  So I think
+the above should fail unless we know that the driver won't be necessary
+to handle hot-removal of memory.
 
-And I wonder what happens to the struct acpi_device objects associated with
-the ACPI handles in the table being unloaded?
+Alternatively, this may actually try to carry out the hot-removal and only
+call driver_unbind() if that succeeds.  Whichever is preferable, I'd say.
 
+Thanks,
 Rafael
 
 
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
