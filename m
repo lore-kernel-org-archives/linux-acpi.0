@@ -1,32 +1,421 @@
-From: Matt White <mattw922@gmail.com>
-Subject: Lenovo T530 Brightness Control Issue
-Date: Wed, 28 Nov 2012 18:14:35 -0800
-Message-ID: <CA+BUVh0QnRqtZqqNoA3hW-XGStGgEdCsQ_TrT_TD-o26D5gUYQ@mail.gmail.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [PATCH RESEND] ACPI: do acpisleep dmi check when CONFIG_ACPI_SLEEP
+ is set
+Date: Thu, 29 Nov 2012 12:47:34 +0800
+Message-ID: <1354164454.2153.16.camel@rzhang1-mobl4>
+References: <1354114594.2153.6.camel@rzhang1-mobl4>
+	 <1865570.jm3liGnKxt@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:50154 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751775Ab2K2CO4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Nov 2012 21:14:56 -0500
-Received: by mail-qc0-f174.google.com with SMTP id o22so10364925qcr.19
-        for <linux-acpi@vger.kernel.org>; Wed, 28 Nov 2012 18:14:55 -0800 (PST)
+Received: from mga14.intel.com ([143.182.124.37]:32207 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750713Ab2K2Erh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 28 Nov 2012 23:47:37 -0500
+In-Reply-To: <1865570.jm3liGnKxt@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-I installed Ubuntu 12.10 with kernel version 3.5.0-18 on a Lenovo Thinkpad
-T530 and everything seems to work well except the brightness control.
-When using integrated graphics, it works fine, but if I switch to the
-Nvidia
-graphics, I only get the brightness notification like it's working, but the
-brightness doesn't actually change. I filed a bug here:
+> > +#ifdef CONFIG_ACPI_SLEEP
+> > +	dmi_check_system(acpisleep_dmi_table);
+> > +#endif
+> 
+> Can you please define dmi_check_system() as an empty static inline if
+> CONFIG_ACPI_SLEEP is not set and get rid of this ugly #ifdef?
+> 
+> >  	sleep_states[ACPI_STATE_S0] = 1;
+> >  	printk(KERN_INFO PREFIX "(supports S0");
+> 
+> Apart from the above, looks OK.
 
-https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1083984
+>From 5c320f6263a0dbf0dc33df63befff9a06a35c562 Mon Sep 17 00:00:00 2001
+From: Zhang Rui <rui.zhang@intel.com>
+Date: Wed, 28 Nov 2012 22:26:51 +0800
+Subject: [PATCH] ACPI: do acpisleep dmi check when CONFIG_ACPI_SLEEP is set
 
-I tried various different config tweaks as noted on Launchpad, and I also
-tried other newer kernel versions with no success. I was told to email this
-list to see if there were any suggestions.
+The current acpisleep dmi checks only run when CONFIG_SUSPEND is set.
+And this may break hibernation on some platforms when CONFIG_SUSPEND
+is cleared.
+https://bugzilla.kernel.org/show_bug.cgi?id=45921
 
-Thanks,
-Matt W.
+Move acpisleep dmi check into #ifdef CONFIG_ACPI_SLEEP instead.
+
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ drivers/acpi/sleep.c |  329 +++++++++++++++++++++++++-------------------------
+ 1 file changed, 166 insertions(+), 163 deletions(-)
+
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index fdcdbb6..eb6dd2c 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -109,6 +109,167 @@ void __init acpi_old_suspend_ordering(void)
+ 	old_suspend_ordering = true;
+ }
+ 
++static int __init init_old_suspend_ordering(const struct dmi_system_id *d)
++{
++	acpi_old_suspend_ordering();
++	return 0;
++}
++
++static int __init init_nvs_nosave(const struct dmi_system_id *d)
++{
++	acpi_nvs_nosave();
++	return 0;
++}
++
++static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
++	{
++	.callback = init_old_suspend_ordering,
++	.ident = "Abit KN9 (nForce4 variant)",
++	.matches = {
++		DMI_MATCH(DMI_BOARD_VENDOR, "http://www.abit.com.tw/"),
++		DMI_MATCH(DMI_BOARD_NAME, "KN9 Series(NF-CK804)"),
++		},
++	},
++	{
++	.callback = init_old_suspend_ordering,
++	.ident = "HP xw4600 Workstation",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "HP xw4600 Workstation"),
++		},
++	},
++	{
++	.callback = init_old_suspend_ordering,
++	.ident = "Asus Pundit P1-AH2 (M2N8L motherboard)",
++	.matches = {
++		DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTek Computer INC."),
++		DMI_MATCH(DMI_BOARD_NAME, "M2N8L"),
++		},
++	},
++	{
++	.callback = init_old_suspend_ordering,
++	.ident = "Panasonic CF51-2L",
++	.matches = {
++		DMI_MATCH(DMI_BOARD_VENDOR,
++				"Matsushita Electric Industrial Co.,Ltd."),
++		DMI_MATCH(DMI_BOARD_NAME, "CF51-2L"),
++		},
++	},
++	{
++	.callback = init_nvs_nosave,
++	.ident = "Sony Vaio VGN-FW21E",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-FW21E"),
++		},
++	},
++	{
++	.callback = init_nvs_nosave,
++	.ident = "Sony Vaio VPCEB17FX",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "VPCEB17FX"),
++		},
++	},
++	{
++	.callback = init_nvs_nosave,
++	.ident = "Sony Vaio VGN-SR11M",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-SR11M"),
++		},
++	},
++	{
++	.callback = init_nvs_nosave,
++	.ident = "Everex StepNote Series",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Everex Systems, Inc."),
++		DMI_MATCH(DMI_PRODUCT_NAME, "Everex StepNote Series"),
++		},
++	},
++	{
++	.callback = init_nvs_nosave,
++	.ident = "Sony Vaio VPCEB1Z1E",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "VPCEB1Z1E"),
++		},
++	},
++	{
++	.callback = init_nvs_nosave,
++	.ident = "Sony Vaio VGN-NW130D",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-NW130D"),
++		},
++	},
++	{
++	.callback = init_nvs_nosave,
++	.ident = "Sony Vaio VPCCW29FX",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "VPCCW29FX"),
++		},
++	},
++	{
++	.callback = init_nvs_nosave,
++	.ident = "Averatec AV1020-ED2",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "AVERATEC"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "1000 Series"),
++		},
++	},
++	{
++	.callback = init_old_suspend_ordering,
++	.ident = "Asus A8N-SLI DELUXE",
++	.matches = {
++		DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC."),
++		DMI_MATCH(DMI_BOARD_NAME, "A8N-SLI DELUXE"),
++		},
++	},
++	{
++	.callback = init_old_suspend_ordering,
++	.ident = "Asus A8N-SLI Premium",
++	.matches = {
++		DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC."),
++		DMI_MATCH(DMI_BOARD_NAME, "A8N-SLI Premium"),
++		},
++	},
++	{
++	.callback = init_nvs_nosave,
++	.ident = "Sony Vaio VGN-SR26GN_P",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-SR26GN_P"),
++		},
++	},
++	{
++	.callback = init_nvs_nosave,
++	.ident = "Sony Vaio VGN-FW520F",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-FW520F"),
++		},
++	},
++	{
++	.callback = init_nvs_nosave,
++	.ident = "Asus K54C",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer Inc."),
++		DMI_MATCH(DMI_PRODUCT_NAME, "K54C"),
++		},
++	},
++	{
++	.callback = init_nvs_nosave,
++	.ident = "Asus K54HR",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer Inc."),
++		DMI_MATCH(DMI_PRODUCT_NAME, "K54HR"),
++		},
++	},
++	{},
++};
++
+ /**
+  * acpi_pm_freeze - Disable the GPEs and suspend EC transactions.
+  */
+@@ -224,6 +385,9 @@ static void acpi_pm_end(void)
+ }
+ #else /* !CONFIG_ACPI_SLEEP */
+ #define acpi_target_sleep_state	ACPI_STATE_S0
++static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
++	{},
++};
+ #endif /* CONFIG_ACPI_SLEEP */
+ 
+ #ifdef CONFIG_SUSPEND
+@@ -382,167 +546,6 @@ static const struct platform_suspend_ops acpi_suspend_ops_old = {
+ 	.end = acpi_pm_end,
+ 	.recover = acpi_pm_finish,
+ };
+-
+-static int __init init_old_suspend_ordering(const struct dmi_system_id *d)
+-{
+-	old_suspend_ordering = true;
+-	return 0;
+-}
+-
+-static int __init init_nvs_nosave(const struct dmi_system_id *d)
+-{
+-	acpi_nvs_nosave();
+-	return 0;
+-}
+-
+-static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
+-	{
+-	.callback = init_old_suspend_ordering,
+-	.ident = "Abit KN9 (nForce4 variant)",
+-	.matches = {
+-		DMI_MATCH(DMI_BOARD_VENDOR, "http://www.abit.com.tw/"),
+-		DMI_MATCH(DMI_BOARD_NAME, "KN9 Series(NF-CK804)"),
+-		},
+-	},
+-	{
+-	.callback = init_old_suspend_ordering,
+-	.ident = "HP xw4600 Workstation",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "HP xw4600 Workstation"),
+-		},
+-	},
+-	{
+-	.callback = init_old_suspend_ordering,
+-	.ident = "Asus Pundit P1-AH2 (M2N8L motherboard)",
+-	.matches = {
+-		DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTek Computer INC."),
+-		DMI_MATCH(DMI_BOARD_NAME, "M2N8L"),
+-		},
+-	},
+-	{
+-	.callback = init_old_suspend_ordering,
+-	.ident = "Panasonic CF51-2L",
+-	.matches = {
+-		DMI_MATCH(DMI_BOARD_VENDOR,
+-				"Matsushita Electric Industrial Co.,Ltd."),
+-		DMI_MATCH(DMI_BOARD_NAME, "CF51-2L"),
+-		},
+-	},
+-	{
+-	.callback = init_nvs_nosave,
+-	.ident = "Sony Vaio VGN-FW21E",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-FW21E"),
+-		},
+-	},
+-	{
+-	.callback = init_nvs_nosave,
+-	.ident = "Sony Vaio VPCEB17FX",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "VPCEB17FX"),
+-		},
+-	},
+-	{
+-	.callback = init_nvs_nosave,
+-	.ident = "Sony Vaio VGN-SR11M",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-SR11M"),
+-		},
+-	},
+-	{
+-	.callback = init_nvs_nosave,
+-	.ident = "Everex StepNote Series",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Everex Systems, Inc."),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "Everex StepNote Series"),
+-		},
+-	},
+-	{
+-	.callback = init_nvs_nosave,
+-	.ident = "Sony Vaio VPCEB1Z1E",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "VPCEB1Z1E"),
+-		},
+-	},
+-	{
+-	.callback = init_nvs_nosave,
+-	.ident = "Sony Vaio VGN-NW130D",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-NW130D"),
+-		},
+-	},
+-	{
+-	.callback = init_nvs_nosave,
+-	.ident = "Sony Vaio VPCCW29FX",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "VPCCW29FX"),
+-		},
+-	},
+-	{
+-	.callback = init_nvs_nosave,
+-	.ident = "Averatec AV1020-ED2",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "AVERATEC"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "1000 Series"),
+-		},
+-	},
+-	{
+-	.callback = init_old_suspend_ordering,
+-	.ident = "Asus A8N-SLI DELUXE",
+-	.matches = {
+-		DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC."),
+-		DMI_MATCH(DMI_BOARD_NAME, "A8N-SLI DELUXE"),
+-		},
+-	},
+-	{
+-	.callback = init_old_suspend_ordering,
+-	.ident = "Asus A8N-SLI Premium",
+-	.matches = {
+-		DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC."),
+-		DMI_MATCH(DMI_BOARD_NAME, "A8N-SLI Premium"),
+-		},
+-	},
+-	{
+-	.callback = init_nvs_nosave,
+-	.ident = "Sony Vaio VGN-SR26GN_P",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-SR26GN_P"),
+-		},
+-	},
+-	{
+-	.callback = init_nvs_nosave,
+-	.ident = "Sony Vaio VGN-FW520F",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-FW520F"),
+-		},
+-	},
+-	{
+-	.callback = init_nvs_nosave,
+-	.ident = "Asus K54C",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer Inc."),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "K54C"),
+-		},
+-	},
+-	{
+-	.callback = init_nvs_nosave,
+-	.ident = "Asus K54HR",
+-	.matches = {
+-		DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer Inc."),
+-		DMI_MATCH(DMI_PRODUCT_NAME, "K54HR"),
+-		},
+-	},
+-	{},
+-};
+ #endif /* CONFIG_SUSPEND */
+ 
+ #ifdef CONFIG_HIBERNATION
+@@ -873,13 +876,13 @@ int __init acpi_sleep_init(void)
+ 	u8 type_a, type_b;
+ #ifdef CONFIG_SUSPEND
+ 	int i = 0;
+-
+-	dmi_check_system(acpisleep_dmi_table);
+ #endif
+ 
+ 	if (acpi_disabled)
+ 		return 0;
+ 
++	dmi_check_system(acpisleep_dmi_table);
++
+ 	sleep_states[ACPI_STATE_S0] = 1;
+ 	printk(KERN_INFO PREFIX "(supports S0");
+ 
+-- 
+1.7.9.5
+
+
+
