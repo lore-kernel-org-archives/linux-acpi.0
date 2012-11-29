@@ -1,118 +1,100 @@
 From: Lance Ortiz <lance.ortiz@hp.com>
-Subject: [PATCH 1/3] aerdrv: Trace Event for AER
-Date: Thu, 29 Nov 2012 14:54:43 -0700
-Message-ID: <20121129215443.5483.43364.stgit@grignak.americas.hpqcorp.net>
+Subject: [PATCH 2/3] aerdrv: Enhanced AER logging
+Date: Thu, 29 Nov 2012 14:54:50 -0700
+Message-ID: <20121129215450.5483.26562.stgit@grignak.americas.hpqcorp.net>
+References: <20121129215443.5483.43364.stgit@grignak.americas.hpqcorp.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20121129215443.5483.43364.stgit@grignak.americas.hpqcorp.net>
+Sender: linux-kernel-owner@vger.kernel.org
 To: bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, bp@alien8.de, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-This header file will define a new trace event that will be triggered when
-a AER event occurs.  The following data will be provided to the trace 
-event.
+This patch will provide a more reliable and easy way for user-space
+applications to have access to AER logs rather than reading them from the
+message buffer. It also provides a way to notify user-space when an AER
+event occurs.
 
-char * name -	String containing the device path
-
-u32 status - 	Either the correctable or uncorrectable register 
-		indicating what error or errors have been see.
-
-u8 severity - 	error severity 0:NONFATAL 1:FATAL 2:CORRECTED
-
-The trace event will also provide a trace string that may look like:
-
-"0000:05:00.0 PCIe Bus Error:severity=Uncorrected (Non-Fatal), Poisoned
-TLP"
+The aer driver is updated to generate a trace event of function 'aer_event'
+when an AER occurs.  The trace event was added to both the interrupt
+based aer path and the firmware first path
 
 Signed-off-by: Lance Ortiz <lance.ortiz@hp.com>
 ---
 
- include/ras/aer_event.h |   77 +++++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 77 insertions(+), 0 deletions(-)
- create mode 100644 include/ras/aer_event.h
+ drivers/acpi/apei/cper.c               |   11 +++++++++--
+ drivers/pci/pcie/aer/aerdrv_errprint.c |   11 ++++++++++-
+ 2 files changed, 19 insertions(+), 3 deletions(-)
 
-diff --git a/include/ras/aer_event.h b/include/ras/aer_event.h
-new file mode 100644
-index 0000000..735c973
---- /dev/null
-+++ b/include/ras/aer_event.h
-@@ -0,0 +1,77 @@
-+#undef TRACE_SYSTEM
-+#define TRACE_SYSTEM aer
-+#define TRACE_INCLUDE_FILE aer_event
+diff --git a/drivers/acpi/apei/cper.c b/drivers/acpi/apei/cper.c
+index e6defd8..ef1e1c0 100644
+--- a/drivers/acpi/apei/cper.c
++++ b/drivers/acpi/apei/cper.c
+@@ -281,9 +281,16 @@ static void cper_print_pcie(const char *pfx, const struct cper_sec_pcie *pcie,
+ 	"%s""bridge: secondary_status: 0x%04x, control: 0x%04x\n",
+ 	pfx, pcie->bridge.secondary_status, pcie->bridge.control);
+ #ifdef CONFIG_ACPI_APEI_PCIEAER
+-	if (pcie->validation_bits & CPER_PCIE_VALID_AER_INFO) {
++	dev = pci_get_domain_bus_and_slot(pcie->device_id.segment,
++			pcie->device_id.bus, pcie->device_id.function);
++	if (!dev)
++		pr_info(KERN_INFO, "PCI AER Cannot get PCI device %04x:%02x:%02x.%d\n",
++			domain, bus, slot, func);
 +
-+#if !defined(_TRACE_AER_H) || defined(TRACE_HEADER_MULTI_READ)
-+#define _TRACE_AER_H
++	if (pcie->validation_bits & CPER_PCIE_VALID_AER_INFO && dev) {
+ 		struct aer_capability_regs *aer_regs = (void *)pcie->aer_info;
+-		cper_print_aer(pfx, gdata->error_severity, aer_regs);
++		cper_print_aer(dev, gdata->error_severity, aer_regs);
++		pci_dev_put(dev);
+ 	}
+ #endif
+ }
+diff --git a/drivers/pci/pcie/aer/aerdrv_errprint.c b/drivers/pci/pcie/aer/aerdrv_errprint.c
+index 3ea5173..6354e50 100644
+--- a/drivers/pci/pcie/aer/aerdrv_errprint.c
++++ b/drivers/pci/pcie/aer/aerdrv_errprint.c
+@@ -23,6 +23,10 @@
+ 
+ #include "aerdrv.h"
+ 
++#define CREATE_TRACE_POINTS
++#define TRACE_INCLUDE_PATH ../../../../include/ras
++#include <ras/aer_event.h>
 +
-+#include <linux/tracepoint.h>
-+#include <linux/edac.h>
-+
-+
-+/*
-+ * Anhance Error Reporting (AER) PCIE Report Error
-+ *
-+ * These events are generated when hardware detects a corrected or
-+ * uncorrected event on a pci express device and reports
-+ * errors.  The event reports the following data.
-+ *
-+ * char * dev_name -	String containing the device identification
-+ * u32 status -		Either the correctable or uncorrectable register
-+ *			indicating what error or errors have been seen
-+ * u8 severity -	error severity 0:NONFATAL 1:FATAL 2:CORRECTED
-+ */
-+
-+#define correctable_error_string			\
-+	{BIT(0),	"Receiver Error"},		\
-+	{BIT(6),	"Bad TLP"},			\
-+	{BIT(7),	"Bad DLLP"},			\
-+	{BIT(8),	"RELAY_NUM Rollover"},		\
-+	{BIT(12),	"Replay Timer Timeout"},	\
-+	{BIT(13),	"Advisory Non-Fatal"}
-+
-+#define uncorrectable_error_string			\
-+	{BIT(4),	"Data Link Protocol"},		\
-+	{BIT(12),	"Poisoned TLP"},		\
-+	{BIT(13),	"Flow Control Protocol"},	\
-+	{BIT(14),	"Completion Timeout"},		\
-+	{BIT(15),	"Completer Abort"},		\
-+	{BIT(16),	"Unexpected Completion"},	\
-+	{BIT(17),	"Receiver Overflow"},		\
-+	{BIT(18),	"Malformed TLP"},		\
-+	{BIT(19),	"ECRC"},			\
-+	{BIT(20),	"Unsupported Request"}
-+
-+TRACE_EVENT(aer_event,
-+	TP_PROTO(const char *dev_name,
-+		 const u32 status,
-+		 const u8 severity),
-+
-+	TP_ARGS(dev_name, status, severity),
-+
-+	TP_STRUCT__entry(
-+		__string(	dev_name,	dev_name	)
-+		__field(	u32,		status		)
-+		__field(	u8,		severity	)
-+	),
-+
-+	TP_fast_assign(
-+		__assign_str(dev_name, dev_name);
-+		__entry->status		= status;
-+		__entry->severity	= severity;
-+	),
-+
-+	TP_printk("%s PCIe Bus Error: severity=%s, %s\n",
-+		__get_str(dev_name),
-+		(__entry->severity == HW_EVENT_ERR_CORRECTED) ? "Corrected" :
-+			((__entry->severity == HW_EVENT_ERR_FATAL) ?
-+			"Fatal" : "Uncorrected"),
-+		__entry->severity == HW_EVENT_ERR_CORRECTED ?
-+		__print_flags(__entry->status, "|", correctable_error_string) :
-+		__print_flags(__entry->status, "|", uncorrectable_error_string))
-+);
-+
-+#endif /* _TRACE_AER_H */
-+
-+/* This part must be outside protection */
-+#include <trace/define_trace.h>
+ #define AER_AGENT_RECEIVER		0
+ #define AER_AGENT_REQUESTER		1
+ #define AER_AGENT_COMPLETER		2
+@@ -194,6 +198,8 @@ void aer_print_error(struct pci_dev *dev, struct aer_err_info *info)
+ 	if (info->id && info->error_dev_num > 1 && info->id == id)
+ 		printk("%s""  Error of this Agent(%04x) is reported first\n",
+ 			prefix, id);
++	trace_aer_event(dev_name(&dev->dev), (info->status & ~info->mask),
++			info->severity);
+ }
+ 
+ void aer_print_port_info(struct pci_dev *dev, struct aer_err_info *info)
+@@ -217,12 +223,13 @@ int cper_severity_to_aer(int cper_severity)
+ }
+ EXPORT_SYMBOL_GPL(cper_severity_to_aer);
+ 
+-void cper_print_aer(const char *prefix, int cper_severity,
++void cper_print_aer(struct pci_dev *dev, int cper_severity,
+ 		    struct aer_capability_regs *aer)
+ {
+ 	int aer_severity, layer, agent, status_strs_size, tlp_header_valid = 0;
+ 	u32 status, mask;
+ 	const char **status_strs;
++	char *prefix = NULL;
+ 
+ 	aer_severity = cper_severity_to_aer(cper_severity);
+ 	if (aer_severity == AER_CORRECTABLE) {
+@@ -259,5 +266,7 @@ void cper_print_aer(const char *prefix, int cper_severity,
+ 			*(tlp + 8), *(tlp + 15), *(tlp + 14),
+ 			*(tlp + 13), *(tlp + 12));
+ 	}
++	trace_aer_event(dev_name(&dev->dev), (status & ~mask),
++			aer_severity);
+ }
+ #endif
