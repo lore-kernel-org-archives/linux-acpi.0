@@ -1,78 +1,92 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: Acpi deadlocks with 3.7.0-rc4
-Date: Thu, 29 Nov 2012 11:59:33 +0100
-Message-ID: <2444442.WEaJk5cR6y@vostro.rjw.lan>
-References: <50A513A8.9010404@redhat.com> <CA+55aFz2p2_WUkhThjSDWAFVda6nujxX2YE_Qkqv1OVDChUEJQ@mail.gmail.com> <50B73536.9060408@redhat.com>
+From: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
+Subject: Re: [RFC PATCH v3 3/3] acpi_memhotplug: Allow eject to proceed on
+ rebind scenario
+Date: Thu, 29 Nov 2012 12:04:51 +0100
+Message-ID: <20121129110451.GA639@dhcp-192-168-178-175.profitbricks.localdomain>
+References: <1353693037-21704-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
+ <9212118.3s2xH6uJDI@vostro.rjw.lan>
+ <1354136568.26955.312.camel@misato.fc.hp.com>
+ <4042591.gpFk7OYmph@vostro.rjw.lan>
+ <1354150952.26955.377.camel@misato.fc.hp.com>
+ <1354151742.26955.385.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:36001 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752029Ab2K2Kys (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 29 Nov 2012 05:54:48 -0500
-In-Reply-To: <50B73536.9060408@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1354151742.26955.385.camel@misato.fc.hp.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, Wen Congyang <wency@cn.fujitsu.com>, Wen Congyang <wencongyang@gmail.com>, isimatu.yasuaki@jp.fujitsu.com, lenb@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zdenek Kabelac <zkabelac@redhat.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Len Brown <lenb@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Thursday, November 29, 2012 11:13:10 AM Zdenek Kabelac wrote:
-> Dne 28.11.2012 20:07, Linus Torvalds napsal(a):
-> > whole "prefix_node" pointer is bogus. It seems to have the value 0x1000.
+Hi,
+
+On Wed, Nov 28, 2012 at 06:15:42PM -0700, Toshi Kani wrote:
+> On Wed, 2012-11-28 at 18:02 -0700, Toshi Kani wrote:
+> > On Thu, 2012-11-29 at 00:49 +0100, Rafael J. Wysocki wrote:
+> > > On Wednesday, November 28, 2012 02:02:48 PM Toshi Kani wrote:
+> > > > > > > > > > > Consider the following case:
+> > > > > > > > > > > 
+> > > > > > > > > > > We hotremove the memory device by SCI and unbind it from the driver at the same time:
+> > > > > > > > > > > 
+> > > > > > > > > > > CPUa                                                  CPUb
+> > > > > > > > > > > acpi_memory_device_notify()
+> > > > > > > > > > >                                        unbind it from the driver
+> > > > > > > > > > >     acpi_bus_hot_remove_device()
+> > > I see two reasons for calling acpi_bus_hot_remove_device() for memory (correct
+> > > me if I'm wrong): (1) from the memhotplug driver's notify handler and (2) from
+> > > acpi_eject_store() which is exposed through sysfs.  
+> > 
+> > Yes, that is correct.
+> > 
+> > > If we disabled exposing
+> > > acpi_eject_store() for memory devices, then the only way would be from the
+> > > notify handler.  So I wonder if driver_unbind() shouldn't just uninstall the
+> > > notify handler for memory (so that memory eject events are simply dropped on
+> > > the floor after unbinding the driver)?
+> > 
+> > If driver_unbind() happens before an eject request, we do not have a
+> > problem.  acpi_eject_store() fails if a driver is not bound to the
+> > device.  acpi_memory_device_notify() fails as well.
+> > 
+> > The race condition Wen pointed out (see the top of this email) is that
+> > driver_unbind() may come in while eject operation is in-progress.  This
+> > is why I mentioned the following in previous email.
+> > 
+> > > So, we basically need to either 1) serialize
+> > > acpi_bus_hot_remove_device() and driver_unbind(), or 2) make
+> > > acpi_bus_hot_remove_device() to fail if driver_unbind() is run
+> > > during the operation.
 > 
-> Tested also this patch with this result:
-> 
-> https://bugzilla.kernel.org/show_bug.cgi?id=51071#c8
-> 
-> So while it's made it pass suspend/resume, it's not really usable
-> as docking then.
+> Forgot to mention.  The 3rd option is what Greg said -- use the
+> suppress_bind_attrs field.  I think this is a good option to address
+> this race condition for now.  For a long term solution, we should have a
+> better infrastructure in place to address such issue in general.
 
-This just makes acpi_ns_lookup() always return acpi_gbl_root_node
-for things looked up by acpi_ns_get_node() as far as I can say.
+I like the suppress_bind_attrs idea, I 'll take a look.
 
-Hmm.
+As I said for option 2), acpi_bus_remove could check for driver presence.
+But It's more a quick hack to abort the eject (the race with unbind can still
+happen, but acpi_bus_remove can now detect it later in the eject path).
+Something like:
 
-If my theory correct, the patch below should catch the bug.  Can you please
-test it?
-
-Rafael
-
-
----
- drivers/acpi/scan.c            |    1 +
- drivers/pnp/pnpacpi/rsparser.c |    3 +++
- 2 files changed, 4 insertions(+)
-
-Index: linux/drivers/acpi/scan.c
-===================================================================
---- linux.orig/drivers/acpi/scan.c
-+++ linux/drivers/acpi/scan.c
-@@ -704,6 +704,7 @@ static void acpi_device_unregister(struc
- 	mutex_unlock(&acpi_device_lock);
+ static int acpi_bus_remove(struct acpi_device *dev, int rmdevice)
+ {
++	int ret;
+ 	if (!dev)
+ 		return -EINVAL;
  
- 	acpi_detach_data(device->handle, acpi_bus_data_handler);
-+	device->handle = ERR_PTR(-ENODEV);
- 
- 	acpi_device_remove_files(device);
- 	device_unregister(&device->dev);
-Index: linux/drivers/pnp/pnpacpi/rsparser.c
-===================================================================
---- linux.orig/drivers/pnp/pnpacpi/rsparser.c
-+++ linux/drivers/pnp/pnpacpi/rsparser.c
-@@ -611,6 +611,9 @@ int pnpacpi_build_resource_template(stru
- 	int res_cnt = 0;
- 	acpi_status status;
- 
-+	if (WARN_ON_ONCE(IS_ERR(handle)))
-+		return PTR_ERR(handle);
+ 	dev->removal_type = ACPI_BUS_REMOVAL_EJECT;
 +
- 	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
- 				     pnpacpi_count_resources, &res_cnt);
- 	if (ACPI_FAILURE(status)) {
++	if (dev->driver && dev->driver->ops.prepare_remove) {
++		ret = dev->driver->ops.prepare_remove(dev);
++		if (ret)
++			return ret;
++	}
++	else if (!dev->driver)
++		return -ENODEV;
+ 	device_release_driver(&dev->dev);
 
+thanks,
 
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+- Vasilis
