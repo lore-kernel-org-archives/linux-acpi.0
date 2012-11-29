@@ -1,97 +1,36 @@
-From: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
-Subject: Re: [RFC PATCH v3 0/3] acpi: Introduce prepare_remove device
- operation
-Date: Thu, 29 Nov 2012 12:36:35 +0100
-Message-ID: <20121129113635.GC639@dhcp-192-168-178-175.profitbricks.localdomain>
-References: <1353693037-21704-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
- <50B5EFE9.3040206@huawei.com>
- <1354128096.26955.276.camel@misato.fc.hp.com>
- <75241306.UQIr1RW8Qh@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Colin King <colin.king@canonical.com>
+Subject: [PATCH 0/5] remove some unnecessary newline from error messages
+Date: Thu, 29 Nov 2012 11:53:11 +0000
+Message-ID: <1354189996-14431-1-git-send-email-colin.king@canonical.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:57623 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753080Ab2K2Lgm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Nov 2012 06:36:42 -0500
-Received: by mail-bk0-f46.google.com with SMTP id q16so6193926bkw.19
-        for <linux-acpi@vger.kernel.org>; Thu, 29 Nov 2012 03:36:40 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <75241306.UQIr1RW8Qh@vostro.rjw.lan>
+Received: from youngberry.canonical.com ([91.189.89.112]:35015 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753019Ab2K2LxV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Nov 2012 06:53:21 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-acpi@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>, Hanjun Guo <guohanjun@huawei.com>, isimatu.yasuaki@jp.fujitsu.com, wency@cn.fujitsu.com, lenb@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Tang Chen <tangchen@cn.fujitsu.com>
+To: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 
-On Thu, Nov 29, 2012 at 11:15:31AM +0100, Rafael J. Wysocki wrote:
-> On Wednesday, November 28, 2012 11:41:36 AM Toshi Kani wrote:
-> > On Wed, 2012-11-28 at 19:05 +0800, Hanjun Guo wrote:
-> > > We met the same problem when we doing computer node hotplug, It is a good idea
-> > > to introduce prepare_remove before actual device removal.
-> > > 
-> > > I think we could do more in prepare_remove, such as rollback. In most cases, we can
-> > > offline most of memory sections except kernel used pages now, should we rollback
-> > > and online the memory sections when prepare_remove failed ?
-> > 
-> > I think hot-plug operation should have all-or-nothing semantics.  That
-> > is, an operation should either complete successfully, or rollback to the
-> > original state.
-> 
-> That's correct.
-> 
-> > > As you may know, the ACPI based hotplug framework we are working on already addressed
-> > > this problem, and the way we slove this problem is a bit like yours.
-> > > 
-> > > We introduce hp_ops in struct acpi_device_ops:
-> > > struct acpi_device_ops {
-> > > 	acpi_op_add add;
-> > > 	acpi_op_remove remove;
-> > > 	acpi_op_start start;
-> > > 	acpi_op_bind bind;
-> > > 	acpi_op_unbind unbind;
-> > > 	acpi_op_notify notify;
-> > > #ifdef	CONFIG_ACPI_HOTPLUG
-> > > 	struct acpihp_dev_ops *hp_ops;
-> > > #endif	/* CONFIG_ACPI_HOTPLUG */
-> > > };
-> > > 
-> > > in hp_ops, we divide the prepare_remove into six small steps, that is:
-> > > 1) pre_release(): optional step to mark device going to be removed/busy
-> > > 2) release(): reclaim device from running system
-> > > 3) post_release(): rollback if cancelled by user or error happened
-> > > 4) pre_unconfigure(): optional step to solve possible dependency issue
-> > > 5) unconfigure(): remove devices from running system
-> > > 6) post_unconfigure(): free resources used by devices
-> > > 
-> > > In this way, we can easily rollback if error happens.
-> > > How do you think of this solution, any suggestion ? I think we can achieve
-> > > a better way for sharing ideas. :)
-> > 
-> > Yes, sharing idea is good. :)  I do not know if we need all 6 steps (I
-> > have not looked at all your changes yet..), but in my mind, a hot-plug
-> > operation should be composed with the following 3 phases.
-> > 
-> > 1. Validate phase - Verify if the request is a supported operation.  All
-> > known restrictions are verified at this phase.  For instance, if a
-> > hot-remove request involves kernel memory, it is failed in this phase.
-> > Since this phase makes no change, no rollback is necessary to fail.  
-> 
-> Actually, we can't do it this way, because the conditions may change between
-> the check and the execution.  So the first phase needs to involve execution
-> to some extent, although only as far as it remains reversible.
-> 
-> > 2. Execute phase - Perform hot-add / hot-remove operation that can be
-> > rolled-back in case of error or cancel.
-> 
-> I would just merge 1 and 2.
+From: Colin Ian King <colin.king@canonical.com>
 
-I agree steps 1 and 2 can be merged, at least for the current ACPI framework.
-E.g. for memory hotplug, the mm function we call for memory removal
-(remove_memory) handles both these steps.
+The ACPI_EXCEPTION and ACPI_ERROR macros already emit a newline after
+the message, so remove the unnecessary newlines from a bunch of messages.
 
-The new ACPI framework could perhaps expand the operations as Hanjun described,
-if it makes sense.
+Colin Ian King (5):
+  ACPI dock: remove unnecessary newline from exception message
+  ACPI video: remove unnecessary newline from error messages
+  ACPI sysfs: remove unnecessary newline from exception
+  ACPICA: GPE support: remove unnecessary newline from error messages
+  ACPI thermal: remove unnecessary newline from exception message
 
-thanks,
+ drivers/acpi/acpica/hwgpe.c | 2 +-
+ drivers/acpi/dock.c         | 2 +-
+ drivers/acpi/sysfs.c        | 2 +-
+ drivers/acpi/thermal.c      | 2 +-
+ drivers/acpi/video.c        | 4 ++--
+ 5 files changed, 6 insertions(+), 6 deletions(-)
 
-- Vasilis
+-- 
+1.8.0
+
