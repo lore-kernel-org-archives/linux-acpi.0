@@ -1,136 +1,118 @@
-From: =?GB2312?B?YW5keXd1MTA2vai5+g==?= <wujianguo106@gmail.com>
-Subject: Re: [Patch v5 5/7] acpi_memhotplug.c: don't allow to eject the memory
- device if it is being used
-Date: Thu, 29 Nov 2012 21:15:44 +0800
-Message-ID: <CA+quRcbBCau+2h0fxncR3ck-PZeB2NzFJZxQVea3y0VHAHp2uQ@mail.gmail.com>
-References: <1352962777-24407-1-git-send-email-wency@cn.fujitsu.com>
-	<1352962777-24407-6-git-send-email-wency@cn.fujitsu.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [RFC PATCH v3 3/3] acpi_memhotplug: Allow eject to proceed on
+ rebind scenario
+Date: Thu, 29 Nov 2012 09:43:17 -0700
+Message-ID: <1354207397.26955.417.camel@misato.fc.hp.com>
+References: <1353693037-21704-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
+	 <1354150952.26955.377.camel@misato.fc.hp.com>
+	 <1354151742.26955.385.camel@misato.fc.hp.com>
+	 <2315811.arm7RJr4ey@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ia0-f174.google.com ([209.85.210.174]:49336 "EHLO
-	mail-ia0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754375Ab2K2NPp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Nov 2012 08:15:45 -0500
-In-Reply-To: <1352962777-24407-6-git-send-email-wency@cn.fujitsu.com>
+Received: from g1t0027.austin.hp.com ([15.216.28.34]:4776 "EHLO
+	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751069Ab2K2Qvp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Nov 2012 11:51:45 -0500
+In-Reply-To: <2315811.arm7RJr4ey@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Wen Congyang <wency@cn.fujitsu.com>
-Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org, Len Brown <len.brown@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Andrew Morton <akpm@linux-foundation.org>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Lai Jiangshan <laijs@cn.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Minchan Kim <minchan.kim@gmail.com>, Mel Gorman <mgorman@suse.de>, David Rientjes <rientjes@google.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Toshi Kani <toshi.kani@hp.com>, Jiang Liu <liuj97@gmail.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Christoph Lameter <cl@linux.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, Wen Congyang <wency@cn.fujitsu.com>, Wen Congyang <wencongyang@gmail.com>, isimatu.yasuaki@jp.fujitsu.com, lenb@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 
-2012/11/15 Wen Congyang <wency@cn.fujitsu.com>
->
-> We eject the memory device even if it is in use.  It is very dangerous,
-> and it will cause the kernel to be panicked.
->
-> CC: David Rientjes <rientjes@google.com>
-> CC: Jiang Liu <liuj97@gmail.com>
-> CC: Len Brown <len.brown@intel.com>
-> CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-> CC: Paul Mackerras <paulus@samba.org>
-> CC: Christoph Lameter <cl@linux.com>
-> Cc: Minchan Kim <minchan.kim@gmail.com>
-> CC: Andrew Morton <akpm@linux-foundation.org>
-> CC: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-> CC: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-> CC: Rafael J. Wysocki <rjw@sisk.pl>
-> CC: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-> Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
-> ---
->  drivers/acpi/acpi_memhotplug.c | 42 +++++++++++++++++++++++++++++++++---------
->  1 file changed, 33 insertions(+), 9 deletions(-)
->
-> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-> index e52ad5d..f7e3007 100644
-> --- a/drivers/acpi/acpi_memhotplug.c
-> +++ b/drivers/acpi/acpi_memhotplug.c
-> @@ -78,6 +78,7 @@ struct acpi_memory_info {
->         unsigned short caching; /* memory cache attribute */
->         unsigned short write_protect;   /* memory read/write attribute */
->         unsigned int enabled:1;
-> +       unsigned int failed:1;
->  };
->
->  struct acpi_memory_device {
-> @@ -257,9 +258,23 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
->                         node = memory_add_physaddr_to_nid(info->start_addr);
->
->                 result = add_memory(node, info->start_addr, info->length);
-> -               if (result)
-> +
-> +               /*
-> +                * If the memory block has been used by the kernel, add_memory()
-> +                * returns -EEXIST. If add_memory() returns the other error, it
-> +                * means that this memory block is not used by the kernel.
-> +                */
-> +               if (result && result != -EEXIST) {
-> +                       info->failed = 1;
->                         continue;
-> -               info->enabled = 1;
-> +               }
-> +
-> +               if (!result)
-> +                       info->enabled = 1;
+On Thu, 2012-11-29 at 11:03 +0100, Rafael J. Wysocki wrote:
+> On Wednesday, November 28, 2012 06:15:42 PM Toshi Kani wrote:
+> > On Wed, 2012-11-28 at 18:02 -0700, Toshi Kani wrote:
+> > > On Thu, 2012-11-29 at 00:49 +0100, Rafael J. Wysocki wrote:
+> > > > On Wednesday, November 28, 2012 02:02:48 PM Toshi Kani wrote:
+> > > > If we disabled exposing
+> > > > acpi_eject_store() for memory devices, then the only way would be from the
+> > > > notify handler.  So I wonder if driver_unbind() shouldn't just uninstall the
+> > > > notify handler for memory (so that memory eject events are simply dropped on
+> > > > the floor after unbinding the driver)?
+> > > 
+> > > If driver_unbind() happens before an eject request, we do not have a
+> > > problem.  acpi_eject_store() fails if a driver is not bound to the
+> > > device.  acpi_memory_device_notify() fails as well.
+> > > 
+> > > The race condition Wen pointed out (see the top of this email) is that
+> > > driver_unbind() may come in while eject operation is in-progress.  This
+> > > is why I mentioned the following in previous email.
+> > > 
+> > > > So, we basically need to either 1) serialize
+> > > > acpi_bus_hot_remove_device() and driver_unbind(), or 2) make
+> > > > acpi_bus_hot_remove_device() to fail if driver_unbind() is run
+> > > > during the operation.
+> > 
+> > Forgot to mention.  The 3rd option is what Greg said -- use the
+> > suppress_bind_attrs field.  I think this is a good option to address
+> > this race condition for now.  For a long term solution, we should have a
+> > better infrastructure in place to address such issue in general.
+> 
+> Well, in the meantime I've had a look at acpi_bus_hot_remove_device() and
+> friends and I think there's a way to address all of these problems
+> without big redesign (for now).
+> 
+> First, why don't we introduce an ACPI device flag (in the flags field of
+> struct acpi_device) called eject_forbidden or something like this such that:
+> 
+> (1) It will be clear by default.
+> (2) It may only be set by a driver's .add() routine if necessary.
+> (3) Once set, it may only be cleared by the driver's .remove() routine if
+>     it's safe to physically remove the device after the .remove().
+> 
+> Then, after the .remove() (which must be successful) has returned, and the
+> flag is set, it will tell acpi_bus_remove() to return a specific error code
+> (such as -EBUSY or -EAGAIN).  It doesn't matter if .remove() was called
+> earlier, because if it left the flag set, there's no way to clear it afterward
+> and acpi_bus_remove() will see it set anyway.  I think the struct acpi_device
+> should be unregistered anyway if that error code is to be returned.
 
-Hi Congyang,
+I like the idea!  It's a good intermediate solution if we need to keep
+the bind/unbind interface.  That said, I still prefer to go with option
+3) for now.  I do not see much reason to keep the bind/unbind interface
+for ACPI hotplug drivers, and it seems that the semantics of .remove()
+is .remove_driver(), not .remove_device() for driver_unbind().  So, I
+think we should disable the bind/unbind interface until we settle this
+issue.
 
-If a memory device booting with the system, the info->enable will equal to 0,
-and can not be hot-removed in  acpi_memory_remove_memory(), right?
+> [By the way, do you know where we free the memory allocated for struct
+>  acpi_device objects?]
+
+device_release() -> acpi_device_release().
+
+> Now if acpi_bus_trim() gets that error code from acpi_bus_remove(), it should
+> store it, but continue the trimming normally and finally it should return that
+> error code to acpi_bus_hot_remove_device().
+> 
+> Now, if acpi_bus_hot_remove_device() gets that error code, it should just
+> reverse the whole trimming (i.e. trigger acpi_bus_scan() from the device
+> we attempted to eject) and notify the firmware about the failure.
+> 
+> If we have that, then the memory hotplug driver would only need to set
+> flags.eject_forbidden in its .add() routine and make its .remove() routine
+> only clear that flag if it is safe to actually remove the memory.
+> 
+> Does this make sense to you?
+
+In high-level, yes.  Rollback strategy, such as we should continue the
+trimming after an error, is something we need to think about along with
+the framework design.  I think we need a good framework before
+implementing rollback.
+
+> [BTW, using _PS3 in acpi_bus_hot_remove_device() directly to power off the
+>  device is a nonsense, because this method is not guaranteed to turn the power
+>  off in the first place (it may just put the device into D3hot).  If anything,
+>  acpi_device_set_power() should be used for that, but even that is not
+>  guaranteed to actually remove the power (power resources may be shared with
+>  other devices, so in fact that operation should be done by acpi_bus_trim()
+>  for each of the trimmed devices.]
+
+I agree.  I cannot tell for other vendor's implementation, but I expect
+that _EJ0 takes care of the power state after it is ejected.
 
 Thanks,
-Jianguo Wu
+-Toshi
 
->
-> +               /*
-> +                * Add num_enable even if add_memory() returns -EEXIST, so the
-> +                * device is bound to this driver.
-> +                */
->                 num_enabled++;
->         }
->         if (!num_enabled) {
-> @@ -280,21 +295,30 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
->
->  static int acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
->  {
-> -       int result;
-> +       int result = 0;
->         struct acpi_memory_info *info, *n;
->
->         list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
-> -               if (info->enabled) {
-> -                       result = remove_memory(info->start_addr, info->length);
-> -                       if (result)
-> -                               return result;
-> -               }
-> +               if (info->failed)
-> +                       /* The kernel does not use this memory block */
-> +                       continue;
-> +
-> +               if (!info->enabled)
-> +                       /*
-> +                        * The kernel uses this memory block, but it may be not
-> +                        * managed by us.
-> +                        */
-> +                       return -EBUSY;
-> +
-> +               result = remove_memory(info->start_addr, info->length);
-> +               if (result)
-> +                       return result;
->
->                 list_del(&info->list);
->                 kfree(info);
->         }
->
-> -       return 0;
-> +       return result;
->  }
->
->  static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
-> --
-> 1.8.0
->
-> --
-> To unsubscribe, send a message with 'unsubscribe linux-mm' in
-> the body to majordomo@kvack.org.  For more info on Linux MM,
-> see: http://www.linux-mm.org/ .
-> Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+
