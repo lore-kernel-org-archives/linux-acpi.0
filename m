@@ -1,61 +1,109 @@
-From: Lance Ortiz <lance.ortiz@hp.com>
-Subject: [PATCH 3/3] aerdrv: Cleanup log output for CPER based AER
-Date: Thu, 29 Nov 2012 14:54:56 -0700
-Message-ID: <20121129215456.5483.27026.stgit@grignak.americas.hpqcorp.net>
-References: <20121129215443.5483.43364.stgit@grignak.americas.hpqcorp.net>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC PATCH v3 3/3] acpi_memhotplug: Allow eject to proceed on rebind scenario
+Date: Thu, 29 Nov 2012 23:11:55 +0100
+Message-ID: <3341852.kzFLTzlKxq@vostro.rjw.lan>
+References: <1353693037-21704-1-git-send-email-vasilis.liaskovitis@profitbricks.com> <5067588.Jc88xNrCFc@vostro.rjw.lan> <1354225604.7776.37.camel@misato.fc.hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20121129215443.5483.43364.stgit@grignak.americas.hpqcorp.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, bp@alien8.de, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Transfer-Encoding: 7Bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1354225604.7776.37.camel@misato.fc.hp.com>
+Sender: owner-linux-mm@kvack.org
+To: linux-acpi@vger.kernel.org
+Cc: Toshi Kani <toshi.kani@hp.com>, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, Wen Congyang <wency@cn.fujitsu.com>, Wen Congyang <wencongyang@gmail.com>, isimatu.yasuaki@jp.fujitsu.com, lenb@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 List-Id: linux-acpi@vger.kernel.org
 
-These changes make cper_print_aer more consistent with aer_print_error
-which is called in the AER interrupt case. The string in the variable
-'prefix' is printed at the beginning of each print statement in
-cper_print_aer(). The prefix is a string containing the driver name
-and the device's path.  Looking up the call path, the value of prefix
-is never assigned and is NULL, so when cper_print_aer prints data the
-initial string does not get printed.  This string is important because
-it identifies the device that the error is on. This patch adds code to
-create the prefix and print it in the cper_print_aer function. This
-patch also calculates the device's agent id so it can be printed.
+On Thursday, November 29, 2012 02:46:44 PM Toshi Kani wrote:
+> On Thu, 2012-11-29 at 22:23 +0100, Rafael J. Wysocki wrote:
+> > On Thursday, November 29, 2012 01:38:39 PM Toshi Kani wrote:
+> > > On Thu, 2012-11-29 at 21:25 +0100, Rafael J. Wysocki wrote:
+> > > > On Thursday, November 29, 2012 10:56:30 AM Toshi Kani wrote:
+> > > > > On Thu, 2012-11-29 at 12:30 +0100, Vasilis Liaskovitis wrote:
+> > > > > > Side-note: In the pre_remove patches, acpi_bus_trim actually returns on the
+> > > > > > first error from acpi_bus_remove (e.g. when memory offlining in pre_remove
+> > > > > > fails). Trimming is not continued. 
+> > > > > > 
+> > > > > > Normally, acpi_bus_trim keeps trimming as you say, and always returns the last
+> > > > > > error. Is this the desired behaviour that we want to keep for bus_trim? (This is
+> > > > > > more a general question, not specific to the eject_forbidden suggestion)
+> > > > > 
+> > > > > Your change makes sense to me.  At least until we have rollback code in
+> > > > > place, we need to fail as soon as we hit an error.
+> > > > 
+> > > > Are you sure this makes sense?  What happens to the devices that we have
+> > > > trimmed already and then there's an error?  Looks like they are just unusable
+> > > > going forward, aren't they?
+> > > 
+> > > Yes, the devices trimmed already are released from the kernel, and their
+> > > memory ranges become unusable.  This is bad.  But I do not think we
+> > > should trim further to make more devices unusable after an error. 
+> > > 
+> > > 
+> > > > > > > Now, if acpi_bus_hot_remove_device() gets that error code, it should just
+> > > > > > > reverse the whole trimming (i.e. trigger acpi_bus_scan() from the device
+> > > > > > > we attempted to eject) and notify the firmware about the failure.
+> > > > > > 
+> > > > > > sounds like this rollback needs to be implemented in any solution we choose
+> > > > > > to implement, correct?
+> > > > > 
+> > > > > Yes, rollback is necessary.  But I do not think we need to include it
+> > > > > into your patch, though.
+> > > > 
+> > > > As the first step, we should just trim everything and then return an error
+> > > > code in my opinion.
+> > > 
+> > > But we cannot trim devices with kernel memory.
+> > 
+> > Well, let's put it this way: If we started a trim, we should just do it
+> > completely, in which case we know we can go for the eject, or we should
+> > roll it back completely.  Now, if you just break the trim on first error,
+> > the complete rollback is kind of problematic.  It should be doable, but
+> > it won't be easy.  On the other hand, if you go for the full trim,
+> > doing a rollback is trivial, it's as though you have reinserted the whole
+> > stuff.
+> 
+> acpi_bus_check_add() skips initialization when an ACPI device already
+> has its associated acpi_device.  So, I think it works either way.
 
-Signed-off-by: Lance Ortiz <lance.ortiz@hp.com>
----
+OK
 
- drivers/pci/pcie/aer/aerdrv_errprint.c |   12 +++++++++---
- 1 files changed, 9 insertions(+), 3 deletions(-)
+> > Now, that need not harm functionality, and that's why I proposed the
+> > eject_forbidden flag, so that .remove() can say "I'm not done, please
+> > rollback", in which case the device can happily function going forward,
+> > even if we don't rebind the driver to it.
+> 
+> A partially trimmed acpi_device is hard to rollback.  acpi_device should
+> be either trimmed completely or intact.
 
-diff --git a/drivers/pci/pcie/aer/aerdrv_errprint.c b/drivers/pci/pcie/aer/aerdrv_errprint.c
-index 6354e50..bc0a091 100644
---- a/drivers/pci/pcie/aer/aerdrv_errprint.c
-+++ b/drivers/pci/pcie/aer/aerdrv_errprint.c
-@@ -229,7 +229,13 @@ void cper_print_aer(struct pci_dev *dev, int cper_severity,
- 	int aer_severity, layer, agent, status_strs_size, tlp_header_valid = 0;
- 	u32 status, mask;
- 	const char **status_strs;
--	char *prefix = NULL;
-+	int id = ((dev->bus->number << 8) | dev->devfn);
-+	char prefix[44];
-+
-+	snprintf(prefix, sizeof(prefix), "%s%s %s: ",
-+		(info->severity == AER_CORRECTABLE) ?
-+		KERN_WARNING : KERN_ERR,
-+		dev_driver_string(&dev->dev), dev_name(&dev->dev));
- 
- 	aer_severity = cper_severity_to_aer(cper_severity);
- 	if (aer_severity == AER_CORRECTABLE) {
-@@ -249,8 +255,8 @@ void cper_print_aer(struct pci_dev *dev, int cper_severity,
- 	printk("%s""aer_status: 0x%08x, aer_mask: 0x%08x\n",
- 	       prefix, status, mask);
- 	cper_print_bits(prefix, status, status_strs, status_strs_size);
--	printk("%s""aer_layer=%s, aer_agent=%s\n", prefix,
--	       aer_error_layer[layer], aer_agent_string[agent]);
-+	printk("%s""aer_layer=%s, %d=%04x(%s)\n", prefix,
-+	       aer_error_layer[layer], id, aer_agent_string[agent]);
- 	if (aer_severity != AER_CORRECTABLE)
- 		printk("%s""aer_uncor_severity: 0x%08x\n",
- 		       prefix, aer->uncor_severity);
+I may or may not agree, depending on what you mean by "trimmed". :-)
+
+> When a function failed to trim
+> an acpi_device, it needs to rollback its operation for the device before
+> returning an error.
+
+Unless it is .remove(), because .remove() is supposed to always succeed
+(ie. unbind the driver from the device).  However, it may signal the caller
+that something's fishy, by setting a flag in the device object, for example.
+
+> This is because only the failed function has enough
+> context to rollback when an error occurred in the middle of its
+> procedure.
+
+Not really.  If it actually removes the struct acpi_device then the caller
+may run acpi_bus_scan() on that device if necessary.  There may be a problem
+if the device has an associated physical node (or more of them), but that
+requires special care anyway.
+
+Thanks,
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
