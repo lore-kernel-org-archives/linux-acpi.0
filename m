@@ -1,421 +1,144 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH RESEND] ACPI: do acpisleep dmi check when CONFIG_ACPI_SLEEP
- is set
-Date: Thu, 29 Nov 2012 12:47:34 +0800
-Message-ID: <1354164454.2153.16.camel@rzhang1-mobl4>
-References: <1354114594.2153.6.camel@rzhang1-mobl4>
-	 <1865570.jm3liGnKxt@vostro.rjw.lan>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [RFC PATCH v3 0/3] acpi: Introduce prepare_remove device operation
+Date: Thu, 29 Nov 2012 12:48:54 +0800
+Message-ID: <50B6E936.2080308@huawei.com>
+References: <1353693037-21704-1-git-send-email-vasilis.liaskovitis@profitbricks.com>  <50B5EFE9.3040206@huawei.com> <1354128096.26955.276.camel@misato.fc.hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:32207 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750713Ab2K2Erh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 28 Nov 2012 23:47:37 -0500
-In-Reply-To: <1865570.jm3liGnKxt@vostro.rjw.lan>
+Received: from szxga01-in.huawei.com ([119.145.14.64]:6196 "EHLO
+	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750713Ab2K2Etj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Nov 2012 23:49:39 -0500
+In-Reply-To: <1354128096.26955.276.camel@misato.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, linux-acpi@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, wency@cn.fujitsu.com, rjw@sisk.pl, lenb@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Tang Chen <tangchen@cn.fujitsu.com>, Liujiang <jiang.liu@huawei.com>, Huxinwei <huxinwei@huawei.com>
 
-> > +#ifdef CONFIG_ACPI_SLEEP
-> > +	dmi_check_system(acpisleep_dmi_table);
-> > +#endif
+On 2012/11/29 2:41, Toshi Kani wrote:
+> On Wed, 2012-11-28 at 19:05 +0800, Hanjun Guo wrote:
+>> On 2012/11/24 1:50, Vasilis Liaskovitis wrote:
+>>> As discussed in https://patchwork.kernel.org/patch/1581581/
+>>> the driver core remove function needs to always succeed. This means we need
+>>> to know that the device can be successfully removed before acpi_bus_trim / 
+>>> acpi_bus_hot_remove_device are called. This can cause panics when OSPM-initiated
+>>> or SCI-initiated eject of memory devices fail e.g with:
+>>> echo 1 >/sys/bus/pci/devices/PNP0C80:XX/eject
+>>>
+>>> since the ACPI core goes ahead and ejects the device regardless of whether the
+>>> the memory is still in use or not.
+>>>
+>>> For this reason a new acpi_device operation called prepare_remove is introduced.
+>>> This operation should be registered for acpi devices whose removal (from kernel
+>>> perspective) can fail.  Memory devices fall in this category.
+>>>
+>>> acpi_bus_remove() is changed to handle removal in 2 steps:
+>>> - preparation for removal i.e. perform part of removal that can fail. Should
+>>>   succeed for device and all its children.
+>>> - if above step was successfull, proceed to actual device removal
+>>
+>> Hi Vasilis,
+>> We met the same problem when we doing computer node hotplug, It is a good idea
+>> to introduce prepare_remove before actual device removal.
+>>
+>> I think we could do more in prepare_remove, such as rollback. In most cases, we can
+>> offline most of memory sections except kernel used pages now, should we rollback
+>> and online the memory sections when prepare_remove failed ?
 > 
-> Can you please define dmi_check_system() as an empty static inline if
-> CONFIG_ACPI_SLEEP is not set and get rid of this ugly #ifdef?
+> I think hot-plug operation should have all-or-nothing semantics.  That
+> is, an operation should either complete successfully, or rollback to the
+> original state.
+
+Yes, we have the same point of view with you. We handle this problem in the ACPI
+based hot-plug framework as following:
+1) hot add / hot remove complete successfully if no error happens;
+2) automatic rollback to the original state if meets some error ;
+3) rollback to the original if hot-plug operation cancelled by user ;
+
 > 
-> >  	sleep_states[ACPI_STATE_S0] = 1;
-> >  	printk(KERN_INFO PREFIX "(supports S0");
+>> As you may know, the ACPI based hotplug framework we are working on already addressed
+>> this problem, and the way we slove this problem is a bit like yours.
+>>
+>> We introduce hp_ops in struct acpi_device_ops:
+>> struct acpi_device_ops {
+>> 	acpi_op_add add;
+>> 	acpi_op_remove remove;
+>> 	acpi_op_start start;
+>> 	acpi_op_bind bind;
+>> 	acpi_op_unbind unbind;
+>> 	acpi_op_notify notify;
+>> #ifdef	CONFIG_ACPI_HOTPLUG
+>> 	struct acpihp_dev_ops *hp_ops;
+>> #endif	/* CONFIG_ACPI_HOTPLUG */
+>> };
+>>
+>> in hp_ops, we divide the prepare_remove into six small steps, that is:
+>> 1) pre_release(): optional step to mark device going to be removed/busy
+>> 2) release(): reclaim device from running system
+>> 3) post_release(): rollback if cancelled by user or error happened
+>> 4) pre_unconfigure(): optional step to solve possible dependency issue
+>> 5) unconfigure(): remove devices from running system
+>> 6) post_unconfigure(): free resources used by devices
+>>
+>> In this way, we can easily rollback if error happens.
+>> How do you think of this solution, any suggestion ? I think we can achieve
+>> a better way for sharing ideas. :)
 > 
-> Apart from the above, looks OK.
+> Yes, sharing idea is good. :)  I do not know if we need all 6 steps (I
+> have not looked at all your changes yet..), but in my mind, a hot-plug
+> operation should be composed with the following 3 phases.
 
->From 5c320f6263a0dbf0dc33df63befff9a06a35c562 Mon Sep 17 00:00:00 2001
-From: Zhang Rui <rui.zhang@intel.com>
-Date: Wed, 28 Nov 2012 22:26:51 +0800
-Subject: [PATCH] ACPI: do acpisleep dmi check when CONFIG_ACPI_SLEEP is set
+Good idea ! we also implement a hot-plug operation in 3 phases:
+1) acpihp_drv_pre_execute
+2) acpihp_drv_execute
+3) acpihp_drv_post_execute
+you may refer to :
+https://lkml.org/lkml/2012/11/4/79
 
-The current acpisleep dmi checks only run when CONFIG_SUSPEND is set.
-And this may break hibernation on some platforms when CONFIG_SUSPEND
-is cleared.
-https://bugzilla.kernel.org/show_bug.cgi?id=45921
+> 
+> 1. Validate phase - Verify if the request is a supported operation.  All
+> known restrictions are verified at this phase.  For instance, if a
+> hot-remove request involves kernel memory, it is failed in this phase.
+> Since this phase makes no change, no rollback is necessary to fail. 
 
-Move acpisleep dmi check into #ifdef CONFIG_ACPI_SLEEP instead.
+Yes, we have done this in acpihp_drv_pre_execute, and check following things:
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- drivers/acpi/sleep.c |  329 +++++++++++++++++++++++++-------------------------
- 1 file changed, 166 insertions(+), 163 deletions(-)
+1) Hot-plugble or not. the instance kernel memory you mentioned is also checked
+   when memory device remove;
 
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index fdcdbb6..eb6dd2c 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -109,6 +109,167 @@ void __init acpi_old_suspend_ordering(void)
- 	old_suspend_ordering = true;
- }
- 
-+static int __init init_old_suspend_ordering(const struct dmi_system_id *d)
-+{
-+	acpi_old_suspend_ordering();
-+	return 0;
-+}
-+
-+static int __init init_nvs_nosave(const struct dmi_system_id *d)
-+{
-+	acpi_nvs_nosave();
-+	return 0;
-+}
-+
-+static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
-+	{
-+	.callback = init_old_suspend_ordering,
-+	.ident = "Abit KN9 (nForce4 variant)",
-+	.matches = {
-+		DMI_MATCH(DMI_BOARD_VENDOR, "http://www.abit.com.tw/"),
-+		DMI_MATCH(DMI_BOARD_NAME, "KN9 Series(NF-CK804)"),
-+		},
-+	},
-+	{
-+	.callback = init_old_suspend_ordering,
-+	.ident = "HP xw4600 Workstation",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "HP xw4600 Workstation"),
-+		},
-+	},
-+	{
-+	.callback = init_old_suspend_ordering,
-+	.ident = "Asus Pundit P1-AH2 (M2N8L motherboard)",
-+	.matches = {
-+		DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTek Computer INC."),
-+		DMI_MATCH(DMI_BOARD_NAME, "M2N8L"),
-+		},
-+	},
-+	{
-+	.callback = init_old_suspend_ordering,
-+	.ident = "Panasonic CF51-2L",
-+	.matches = {
-+		DMI_MATCH(DMI_BOARD_VENDOR,
-+				"Matsushita Electric Industrial Co.,Ltd."),
-+		DMI_MATCH(DMI_BOARD_NAME, "CF51-2L"),
-+		},
-+	},
-+	{
-+	.callback = init_nvs_nosave,
-+	.ident = "Sony Vaio VGN-FW21E",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-FW21E"),
-+		},
-+	},
-+	{
-+	.callback = init_nvs_nosave,
-+	.ident = "Sony Vaio VPCEB17FX",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "VPCEB17FX"),
-+		},
-+	},
-+	{
-+	.callback = init_nvs_nosave,
-+	.ident = "Sony Vaio VGN-SR11M",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-SR11M"),
-+		},
-+	},
-+	{
-+	.callback = init_nvs_nosave,
-+	.ident = "Everex StepNote Series",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Everex Systems, Inc."),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "Everex StepNote Series"),
-+		},
-+	},
-+	{
-+	.callback = init_nvs_nosave,
-+	.ident = "Sony Vaio VPCEB1Z1E",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "VPCEB1Z1E"),
-+		},
-+	},
-+	{
-+	.callback = init_nvs_nosave,
-+	.ident = "Sony Vaio VGN-NW130D",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-NW130D"),
-+		},
-+	},
-+	{
-+	.callback = init_nvs_nosave,
-+	.ident = "Sony Vaio VPCCW29FX",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "VPCCW29FX"),
-+		},
-+	},
-+	{
-+	.callback = init_nvs_nosave,
-+	.ident = "Averatec AV1020-ED2",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "AVERATEC"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "1000 Series"),
-+		},
-+	},
-+	{
-+	.callback = init_old_suspend_ordering,
-+	.ident = "Asus A8N-SLI DELUXE",
-+	.matches = {
-+		DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC."),
-+		DMI_MATCH(DMI_BOARD_NAME, "A8N-SLI DELUXE"),
-+		},
-+	},
-+	{
-+	.callback = init_old_suspend_ordering,
-+	.ident = "Asus A8N-SLI Premium",
-+	.matches = {
-+		DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC."),
-+		DMI_MATCH(DMI_BOARD_NAME, "A8N-SLI Premium"),
-+		},
-+	},
-+	{
-+	.callback = init_nvs_nosave,
-+	.ident = "Sony Vaio VGN-SR26GN_P",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-SR26GN_P"),
-+		},
-+	},
-+	{
-+	.callback = init_nvs_nosave,
-+	.ident = "Sony Vaio VGN-FW520F",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-FW520F"),
-+		},
-+	},
-+	{
-+	.callback = init_nvs_nosave,
-+	.ident = "Asus K54C",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer Inc."),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "K54C"),
-+		},
-+	},
-+	{
-+	.callback = init_nvs_nosave,
-+	.ident = "Asus K54HR",
-+	.matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer Inc."),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "K54HR"),
-+		},
-+	},
-+	{},
-+};
-+
- /**
-  * acpi_pm_freeze - Disable the GPEs and suspend EC transactions.
-  */
-@@ -224,6 +385,9 @@ static void acpi_pm_end(void)
- }
- #else /* !CONFIG_ACPI_SLEEP */
- #define acpi_target_sleep_state	ACPI_STATE_S0
-+static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
-+	{},
-+};
- #endif /* CONFIG_ACPI_SLEEP */
- 
- #ifdef CONFIG_SUSPEND
-@@ -382,167 +546,6 @@ static const struct platform_suspend_ops acpi_suspend_ops_old = {
- 	.end = acpi_pm_end,
- 	.recover = acpi_pm_finish,
- };
--
--static int __init init_old_suspend_ordering(const struct dmi_system_id *d)
--{
--	old_suspend_ordering = true;
--	return 0;
--}
--
--static int __init init_nvs_nosave(const struct dmi_system_id *d)
--{
--	acpi_nvs_nosave();
--	return 0;
--}
--
--static struct dmi_system_id __initdata acpisleep_dmi_table[] = {
--	{
--	.callback = init_old_suspend_ordering,
--	.ident = "Abit KN9 (nForce4 variant)",
--	.matches = {
--		DMI_MATCH(DMI_BOARD_VENDOR, "http://www.abit.com.tw/"),
--		DMI_MATCH(DMI_BOARD_NAME, "KN9 Series(NF-CK804)"),
--		},
--	},
--	{
--	.callback = init_old_suspend_ordering,
--	.ident = "HP xw4600 Workstation",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "Hewlett-Packard"),
--		DMI_MATCH(DMI_PRODUCT_NAME, "HP xw4600 Workstation"),
--		},
--	},
--	{
--	.callback = init_old_suspend_ordering,
--	.ident = "Asus Pundit P1-AH2 (M2N8L motherboard)",
--	.matches = {
--		DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTek Computer INC."),
--		DMI_MATCH(DMI_BOARD_NAME, "M2N8L"),
--		},
--	},
--	{
--	.callback = init_old_suspend_ordering,
--	.ident = "Panasonic CF51-2L",
--	.matches = {
--		DMI_MATCH(DMI_BOARD_VENDOR,
--				"Matsushita Electric Industrial Co.,Ltd."),
--		DMI_MATCH(DMI_BOARD_NAME, "CF51-2L"),
--		},
--	},
--	{
--	.callback = init_nvs_nosave,
--	.ident = "Sony Vaio VGN-FW21E",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
--		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-FW21E"),
--		},
--	},
--	{
--	.callback = init_nvs_nosave,
--	.ident = "Sony Vaio VPCEB17FX",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
--		DMI_MATCH(DMI_PRODUCT_NAME, "VPCEB17FX"),
--		},
--	},
--	{
--	.callback = init_nvs_nosave,
--	.ident = "Sony Vaio VGN-SR11M",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
--		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-SR11M"),
--		},
--	},
--	{
--	.callback = init_nvs_nosave,
--	.ident = "Everex StepNote Series",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "Everex Systems, Inc."),
--		DMI_MATCH(DMI_PRODUCT_NAME, "Everex StepNote Series"),
--		},
--	},
--	{
--	.callback = init_nvs_nosave,
--	.ident = "Sony Vaio VPCEB1Z1E",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
--		DMI_MATCH(DMI_PRODUCT_NAME, "VPCEB1Z1E"),
--		},
--	},
--	{
--	.callback = init_nvs_nosave,
--	.ident = "Sony Vaio VGN-NW130D",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
--		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-NW130D"),
--		},
--	},
--	{
--	.callback = init_nvs_nosave,
--	.ident = "Sony Vaio VPCCW29FX",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
--		DMI_MATCH(DMI_PRODUCT_NAME, "VPCCW29FX"),
--		},
--	},
--	{
--	.callback = init_nvs_nosave,
--	.ident = "Averatec AV1020-ED2",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "AVERATEC"),
--		DMI_MATCH(DMI_PRODUCT_NAME, "1000 Series"),
--		},
--	},
--	{
--	.callback = init_old_suspend_ordering,
--	.ident = "Asus A8N-SLI DELUXE",
--	.matches = {
--		DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC."),
--		DMI_MATCH(DMI_BOARD_NAME, "A8N-SLI DELUXE"),
--		},
--	},
--	{
--	.callback = init_old_suspend_ordering,
--	.ident = "Asus A8N-SLI Premium",
--	.matches = {
--		DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC."),
--		DMI_MATCH(DMI_BOARD_NAME, "A8N-SLI Premium"),
--		},
--	},
--	{
--	.callback = init_nvs_nosave,
--	.ident = "Sony Vaio VGN-SR26GN_P",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
--		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-SR26GN_P"),
--		},
--	},
--	{
--	.callback = init_nvs_nosave,
--	.ident = "Sony Vaio VGN-FW520F",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "Sony Corporation"),
--		DMI_MATCH(DMI_PRODUCT_NAME, "VGN-FW520F"),
--		},
--	},
--	{
--	.callback = init_nvs_nosave,
--	.ident = "Asus K54C",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer Inc."),
--		DMI_MATCH(DMI_PRODUCT_NAME, "K54C"),
--		},
--	},
--	{
--	.callback = init_nvs_nosave,
--	.ident = "Asus K54HR",
--	.matches = {
--		DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer Inc."),
--		DMI_MATCH(DMI_PRODUCT_NAME, "K54HR"),
--		},
--	},
--	{},
--};
- #endif /* CONFIG_SUSPEND */
- 
- #ifdef CONFIG_HIBERNATION
-@@ -873,13 +876,13 @@ int __init acpi_sleep_init(void)
- 	u8 type_a, type_b;
- #ifdef CONFIG_SUSPEND
- 	int i = 0;
--
--	dmi_check_system(acpisleep_dmi_table);
- #endif
- 
- 	if (acpi_disabled)
- 		return 0;
- 
-+	dmi_check_system(acpisleep_dmi_table);
-+
- 	sleep_states[ACPI_STATE_S0] = 1;
- 	printk(KERN_INFO PREFIX "(supports S0");
- 
--- 
-1.7.9.5
+2) Dependency check involved. For instance, if hot-add a memory device,
+   processor should be added first, otherwise it's not valid to this operation.
+
+3) Race condition check. if the device and its dependent device is in hot-plug
+   process, another request will be denied.
+
+No rollback is needed for the above checks.
+
+> 
+> 2. Execute phase - Perform hot-add / hot-remove operation that can be
+> rolled-back in case of error or cancel.
+
+In this phase, we introduce a state machine for the hot-plugble device,
+please refer to:
+https://lkml.org/lkml/2012/11/4/79
+
+I think we have the same idea for the major framework, but the ACPI based
+hot-plug framework implement it differently in detail, right ?
+
+Thanks
+Hanjun
+
+> 
+> 3. Commit phase - Perform the final hot-add / hot-remove operation that
+> cannot be rolled-back.  No error / cancel is allowed in this phase.  For
+> instance, eject operation is performed at this phase.  
+> 
+> 
+> Thanks,
+> -Toshi
+> 
 
 
 
