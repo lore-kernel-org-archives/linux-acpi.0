@@ -1,61 +1,97 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH 1/5] ACPI dock: remove unnecessary newline from
- exception message
-Date: Thu, 29 Nov 2012 11:25:19 -0700
-Message-ID: <1354213519.26955.447.camel@misato.fc.hp.com>
-References: <1354189996-14431-1-git-send-email-colin.king@canonical.com>
-	 <1354189996-14431-2-git-send-email-colin.king@canonical.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC PATCH v3 3/3] acpi_memhotplug: Allow eject to proceed on rebind scenario
+Date: Thu, 29 Nov 2012 21:25:48 +0100
+Message-ID: <1666001.sopVksfMvY@vostro.rjw.lan>
+References: <1353693037-21704-1-git-send-email-vasilis.liaskovitis@profitbricks.com> <20121129113030.GB639@dhcp-192-168-178-175.profitbricks.localdomain> <1354211790.26955.443.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t0017.houston.hp.com ([15.201.24.20]:24984 "EHLO
-	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752523Ab2K2Sdo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Nov 2012 13:33:44 -0500
-In-Reply-To: <1354189996-14431-2-git-send-email-colin.king@canonical.com>
+Received: from hydra.sisk.pl ([212.160.235.94]:36379 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751303Ab2K2UVF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 29 Nov 2012 15:21:05 -0500
+In-Reply-To: <1354211790.26955.443.camel@misato.fc.hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Colin King <colin.king@canonical.com>
-Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, linux-acpi@vger.kernel.org, Wen Congyang <wency@cn.fujitsu.com>, Wen Congyang <wencongyang@gmail.com>, isimatu.yasuaki@jp.fujitsu.com, lenb@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 
-On Thu, 2012-11-29 at 11:53 +0000, Colin King wrote:
-> From: Colin Ian King <colin.king@canonical.com>
+On Thursday, November 29, 2012 10:56:30 AM Toshi Kani wrote:
+> On Thu, 2012-11-29 at 12:30 +0100, Vasilis Liaskovitis wrote:
+> > On Thu, Nov 29, 2012 at 11:03:05AM +0100, Rafael J. Wysocki wrote:
+> > > On Wednesday, November 28, 2012 06:15:42 PM Toshi Kani wrote:
+> > > > On Wed, 2012-11-28 at 18:02 -0700, Toshi Kani wrote:
+> > > > > On Thu, 2012-11-29 at 00:49 +0100, Rafael J. Wysocki wrote:
+> > > > > > On Wednesday, November 28, 2012 02:02:48 PM Toshi Kani wrote:
+> > > > > > > > > > > > > > Consider the following case:
+> > > > > > > > > > > > > > 
+> > > > > > > > > > > > > > We hotremove the memory device by SCI and unbind it from the driver at the same time:
+> > > > > > > > > > > > > > 
+> > > > > > > > > > > > > > CPUa                                                  CPUb
+> > > > > > > > > > > > > > acpi_memory_device_notify()
+> > > > > > > > > > > > > >                                        unbind it from the driver
+> > > > > > > > > > > > > >     acpi_bus_hot_remove_device()
+> > > > > > > > > > > > > 
+> > [...]
+> > > Well, in the meantime I've had a look at acpi_bus_hot_remove_device() and
+> > > friends and I think there's a way to address all of these problems
+> > > without big redesign (for now).
+> > > 
+> > > First, why don't we introduce an ACPI device flag (in the flags field of
+> > > struct acpi_device) called eject_forbidden or something like this such that:
+> > > 
+> > > (1) It will be clear by default.
+> > > (2) It may only be set by a driver's .add() routine if necessary.
+> > > (3) Once set, it may only be cleared by the driver's .remove() routine if
+> > >     it's safe to physically remove the device after the .remove().
+> > > 
+> > > Then, after the .remove() (which must be successful) has returned, and the
+> > > flag is set, it will tell acpi_bus_remove() to return a specific error code
+> > > (such as -EBUSY or -EAGAIN).  It doesn't matter if .remove() was called
+> > > earlier, because if it left the flag set, there's no way to clear it afterward
+> > > and acpi_bus_remove() will see it set anyway.  I think the struct acpi_device
+> > > should be unregistered anyway if that error code is to be returned.
+> > > 
+> > > [By the way, do you know where we free the memory allocated for struct
+> > >  acpi_device objects?]
+> > > 
+> > > Now if acpi_bus_trim() gets that error code from acpi_bus_remove(), it should
+> > > store it, but continue the trimming normally and finally it should return that
+> > > error code to acpi_bus_hot_remove_device().
+> > 
+> > Side-note: In the pre_remove patches, acpi_bus_trim actually returns on the
+> > first error from acpi_bus_remove (e.g. when memory offlining in pre_remove
+> > fails). Trimming is not continued. 
+> > 
+> > Normally, acpi_bus_trim keeps trimming as you say, and always returns the last
+> > error. Is this the desired behaviour that we want to keep for bus_trim? (This is
+> > more a general question, not specific to the eject_forbidden suggestion)
 > 
-> ACPI_EXCEPTION() already appends a newline, so there is no
-> need for the failed _DCK messaged to include one too.
+> Your change makes sense to me.  At least until we have rollback code in
+> place, we need to fail as soon as we hit an error.
+
+Are you sure this makes sense?  What happens to the devices that we have
+trimmed already and then there's an error?  Looks like they are just unusable
+going forward, aren't they?
+
+> > > Now, if acpi_bus_hot_remove_device() gets that error code, it should just
+> > > reverse the whole trimming (i.e. trigger acpi_bus_scan() from the device
+> > > we attempted to eject) and notify the firmware about the failure.
+> > 
+> > sounds like this rollback needs to be implemented in any solution we choose
+> > to implement, correct?
 > 
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
-> ---
->  drivers/acpi/dock.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/dock.c b/drivers/acpi/dock.c
-> index 88eb143..a873c6b 100644
-> --- a/drivers/acpi/dock.c
-> +++ b/drivers/acpi/dock.c
-> @@ -475,7 +475,7 @@ static void handle_dock(struct dock_station *ds, int dock)
->  	status = acpi_evaluate_object(ds->handle, "_DCK", &arg_list, &buffer);
->  	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND)
->  		ACPI_EXCEPTION((AE_INFO, status, "%s - failed to execute"
-> -			" _DCK\n", (char *)name_buffer.pointer));
-> +			" _DCK", (char *)name_buffer.pointer));
+> Yes, rollback is necessary.  But I do not think we need to include it
+> into your patch, though.
 
-Hi Colin,
-
-In Rafael's linux-pm tree, this message has been changed to the
-following.  So, this patch is not necessary.
-
- if (ACPI_FAILURE(status) && status != AE_NOT_FOUND)
-         acpi_handle_err(ds->handle, "Failed to execute _DCK (0x%x)\n",
-                         status);
+As the first step, we should just trim everything and then return an error
+code in my opinion.
 
 Thanks,
--Toshi
+Rafael
 
 
->  
->  	kfree(buffer.pointer);
->  	kfree(name_buffer.pointer);
-
-
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
