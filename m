@@ -1,137 +1,67 @@
-From: Lance Ortiz <lance.ortiz@hp.com>
-Subject: [PATCH v3 2/3] aerdrv: Enhanced AER logging
-Date: Fri, 30 Nov 2012 14:33:37 -0700
-Message-ID: <20121130213337.7649.6709.stgit@grignak.americas.hpqcorp.net>
-References: <20121130213330.7649.51101.stgit@grignak.americas.hpqcorp.net>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: Runtime PM/PCI D3 issue
+Date: Fri, 30 Nov 2012 16:57:09 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.1211301650470.1362-100000@iolanthe.rowland.org>
+References: <20121130213600.GA5056@xanatos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20121130213330.7649.51101.stgit@grignak.americas.hpqcorp.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, bp@alien8.de, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from iolanthe.rowland.org ([192.131.102.54]:43839 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755764Ab2K3V5K (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Nov 2012 16:57:10 -0500
+In-Reply-To: <20121130213600.GA5056@xanatos>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Cc: linux-usb@vger.kernel.org, linux-pm@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-This patch will provide a more reliable and easy way for user-space
-applications to have access to AER logs rather than reading them from the
-message buffer. It also provides a way to notify user-space when an AER
-event occurs.
+On Fri, 30 Nov 2012, Sarah Sharp wrote:
 
-The aer driver is updated to generate a trace event of function 'aer_event'
-when an AER occurs.  The trace event was added to both the interrupt
-based aer path and the firmware first path
+> I've been trying to test D3 on the xHCI host controller for my Lenovo
+> x230 laptop.  However, the host controller (and other PCI devices) never
+> seem to go into D3.  This happens on a modified version of 3.7-rc6
+> (Greg KH's usb-next branch plus a couple patches) and on 3.6.6.
 
-v1-v2 fix compile errors in ifdefs.
-v2-v3 Update to new location of trace header. Update print to remove
-warning.
+Including Tianyu's stuff?
 
-Signed-off-by: Lance Ortiz <lance.ortiz@hp.com>
----
+> I enable runtime PM for the PCI device:
+> 
+> root@xanatos:/sys/bus/pci/devices# echo auto > 0000:00:14.0/power/control
+> root@xanatos:/sys/bus/pci/devices# cat 0000:00:14.0/power/control
+> auto
+> 
+> Both the USB 2.0 and USB 3.0 bus children under the xHCI host controller
+> are also set to auto runtime PM:
+> 
+> root@xanatos:/sys/bus/pci/devices# lsusb -t
+> 3-1.6:1.0: No such file or directory
+> 3-1.6:1.1: No such file or directory
+> /:  Bus 04.Port 1: Dev 1, Class=root_hub, Driver=ehci-pci/3p, 480M
+>     |__ Port 1: Dev 2, If 0, Class=hub, Driver=hub/8p, 480M
+> /:  Bus 03.Port 1: Dev 1, Class=root_hub, Driver=ehci-pci/3p, 480M
+> /:  Bus 02.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/4p, 5000M
+> /:  Bus 01.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/4p, 480M
+> root@xanatos:/sys/bus/pci/devices# cat /sys/bus/usb/devices/usb1/power/control
+> auto
+> root@xanatos:/sys/bus/pci/devices# cat /sys/bus/usb/devices/usb2/power/control
+> auto
+> 
+> But dmesg never shows the bus or host being suspended.  The
+> runtime_status remains active, and the runtime_suspended_time remains at
+> zero.  There are no USB devices under the xHCI host, so I'm not sure why
+> the host isn't being suspended.  Is there some new runtime PM sysfs file
+> that I'm missing?
 
- drivers/acpi/apei/cper.c               |   17 +++++++++++++++--
- drivers/pci/pcie/aer/aerdrv_errprint.c |   10 +++++++++-
- include/linux/aer.h                    |    2 +-
- 3 files changed, 25 insertions(+), 4 deletions(-)
+No.
 
-diff --git a/drivers/acpi/apei/cper.c b/drivers/acpi/apei/cper.c
-index e6defd8..e9d6062 100644
---- a/drivers/acpi/apei/cper.c
-+++ b/drivers/acpi/apei/cper.c
-@@ -29,6 +29,7 @@
- #include <linux/time.h>
- #include <linux/cper.h>
- #include <linux/acpi.h>
-+#include <linux/pci.h>
- #include <linux/aer.h>
- 
- /*
-@@ -249,6 +250,10 @@ static const char *cper_pcie_port_type_strs[] = {
- static void cper_print_pcie(const char *pfx, const struct cper_sec_pcie *pcie,
- 			    const struct acpi_hest_generic_data *gdata)
- {
-+#ifdef CONFIG_ACPI_APEI_PCIEAER
-+	struct pci_dev *dev;
-+#endif
-+
- 	if (pcie->validation_bits & CPER_PCIE_VALID_PORT_TYPE)
- 		printk("%s""port_type: %d, %s\n", pfx, pcie->port_type,
- 		       pcie->port_type < ARRAY_SIZE(cper_pcie_port_type_strs) ?
-@@ -281,9 +286,17 @@ static void cper_print_pcie(const char *pfx, const struct cper_sec_pcie *pcie,
- 	"%s""bridge: secondary_status: 0x%04x, control: 0x%04x\n",
- 	pfx, pcie->bridge.secondary_status, pcie->bridge.control);
- #ifdef CONFIG_ACPI_APEI_PCIEAER
--	if (pcie->validation_bits & CPER_PCIE_VALID_AER_INFO) {
-+	dev = pci_get_domain_bus_and_slot(pcie->device_id.segment,
-+			pcie->device_id.bus, pcie->device_id.function);
-+	if (!dev)
-+		pr_info("PCI AER Cannot get PCI device %04x:%02x:%02x.%d\n",
-+			pcie->device_id.segment, pcie->device_id.bus,
-+			pcie->device_id.slot, pcie->device_id.function);
-+
-+	if (pcie->validation_bits & CPER_PCIE_VALID_AER_INFO && dev) {
- 		struct aer_capability_regs *aer_regs = (void *)pcie->aer_info;
--		cper_print_aer(pfx, gdata->error_severity, aer_regs);
-+		cper_print_aer(dev, gdata->error_severity, aer_regs);
-+		pci_dev_put(dev);
- 	}
- #endif
- }
-diff --git a/drivers/pci/pcie/aer/aerdrv_errprint.c b/drivers/pci/pcie/aer/aerdrv_errprint.c
-index 3ea5173..34d96e4 100644
---- a/drivers/pci/pcie/aer/aerdrv_errprint.c
-+++ b/drivers/pci/pcie/aer/aerdrv_errprint.c
-@@ -23,6 +23,9 @@
- 
- #include "aerdrv.h"
- 
-+#define CREATE_TRACE_POINTS
-+#include <trace/events/ras.h>
-+
- #define AER_AGENT_RECEIVER		0
- #define AER_AGENT_REQUESTER		1
- #define AER_AGENT_COMPLETER		2
-@@ -194,6 +197,8 @@ void aer_print_error(struct pci_dev *dev, struct aer_err_info *info)
- 	if (info->id && info->error_dev_num > 1 && info->id == id)
- 		printk("%s""  Error of this Agent(%04x) is reported first\n",
- 			prefix, id);
-+	trace_aer_event(dev_name(&dev->dev), (info->status & ~info->mask),
-+			info->severity);
- }
- 
- void aer_print_port_info(struct pci_dev *dev, struct aer_err_info *info)
-@@ -217,12 +222,13 @@ int cper_severity_to_aer(int cper_severity)
- }
- EXPORT_SYMBOL_GPL(cper_severity_to_aer);
- 
--void cper_print_aer(const char *prefix, int cper_severity,
-+void cper_print_aer(struct pci_dev *dev, int cper_severity,
- 		    struct aer_capability_regs *aer)
- {
- 	int aer_severity, layer, agent, status_strs_size, tlp_header_valid = 0;
- 	u32 status, mask;
- 	const char **status_strs;
-+	char *prefix = NULL;
- 
- 	aer_severity = cper_severity_to_aer(cper_severity);
- 	if (aer_severity == AER_CORRECTABLE) {
-@@ -259,5 +265,7 @@ void cper_print_aer(const char *prefix, int cper_severity,
- 			*(tlp + 8), *(tlp + 15), *(tlp + 14),
- 			*(tlp + 13), *(tlp + 12));
- 	}
-+	trace_aer_event(dev_name(&dev->dev), (status & ~mask),
-+			aer_severity);
- }
- #endif
-diff --git a/include/linux/aer.h b/include/linux/aer.h
-index 544abdb..7b86dc6 100644
---- a/include/linux/aer.h
-+++ b/include/linux/aer.h
-@@ -49,7 +49,7 @@ static inline int pci_cleanup_aer_uncorrect_error_status(struct pci_dev *dev)
- }
- #endif
- 
--extern void cper_print_aer(const char *prefix, int cper_severity,
-+extern void cper_print_aer(struct pci_dev *dev, int cper_severity,
- 			   struct aer_capability_regs *aer);
- extern int cper_severity_to_aer(int cper_severity);
- extern void aer_recover_queue(int domain, unsigned int bus, unsigned int devfn,
+The controller can't suspend until the root hub is suspended.  Did you 
+check the various runtime status values for the root hub, its 
+interface, and Tianyu's new port devices?
+
+In Greg's usb-next branch, the port devices are disabled for runtime
+PM.  But if you are testing Tianyu's new patches then they aren't.  
+They could be preventing your root hubs from suspending.
+
+Alan Stern
+
