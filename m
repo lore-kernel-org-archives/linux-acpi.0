@@ -1,64 +1,49 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v9 06/10] ata: zpodd: check zero power ready status
-Date: Fri, 30 Nov 2012 12:15:20 +0100
-Message-ID: <2098128.OOSiMIlA4d@vostro.rjw.lan>
-References: <1352443922-13734-1-git-send-email-aaron.lu@intel.com> <20121128013928.GB15971@htj.dyndns.org> <50B8749C.3050105@intel.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH 1/3] aerdrv: Trace Event for AER
+Date: Fri, 30 Nov 2012 11:53:11 +0100
+Message-ID: <20121130105311.GA6869@liondog.tnic>
+References: <20121129215443.5483.43364.stgit@grignak.americas.hpqcorp.net>
+ <1354240279.6276.131.camel@gandalf.local.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <50B8749C.3050105@intel.com>
-Sender: linux-ide-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Aaron Lu <aaron.lu@intel.com>, Tejun Heo <tj@kernel.org>, James Bottomley <James.Bottomley@hansenpartnership.com>, linux-pm@vger.kernel.org, Jeff Garzik <jgarzik@pobox.com>, Alan Stern <stern@rowland.harvard.edu>, Jeff Wu <jeff.wu@amd.com>, Aaron Lu <aaron.lwe@gmail.com>, linux-ide@vger.kernel.org, linux-scsi@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.skyhub.de ([78.46.96.112]:59150 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755198Ab2K3KxP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 30 Nov 2012 05:53:15 -0500
+Content-Disposition: inline
+In-Reply-To: <1354240279.6276.131.camel@gandalf.local.home>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Steven Rostedt <rostedt@goodmis.org>
+Cc: Lance Ortiz <lance.ortiz@hp.com>, bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Friday, November 30, 2012 04:55:56 PM Aaron Lu wrote:
-> On 11/28/2012 09:39 AM, Tejun Heo wrote:
-> > Hey, Rafael.
-> > 
-> > On Wed, Nov 28, 2012 at 01:51:00AM +0100, Rafael J. Wysocki wrote:
-> >> Having considered that a bit more I'm now thinking that in fact the power state
-> >> the device is in at the moment doesn't really matter, so the polling code need
-> >> not really know what PM is doing.  What it needs to know is that the device
-> >> will generate a hardware event when something interesting happens, so it is not
-> >> necessary to poll it.
-> >>
-> >> In this particular case it is related to power management (apparently, hardware
-> >> events will only be generated after the device has been put into ACPI D3cold,
-> >> or so Aaron seems to be claiming), but it need not be in general, at least in
-> >> principle.
-> >>
-> >> It looks like we need an "event driven" flag that the can be set in the lower
-> >> layers and read by the upper layers.  I suppose this means it would need to be
-> >> in struct device, but not necessarily in the PM-specific part of it.
-> > 
-> > We already have that.  That's what gendisk->async_events is for (as
-> > opposed to gendisk->events).  If all events are async_events, block
-> > won't poll for events, but I'm not sure that's the golden bullet.
-> > 
-> > * None implements async_events yet and an API is missing -
-> >   disk_check_events() - which is trivial to add, but it's the same
-> >   story.  We'll need a mechanism to shoot up notification from libata
-> >   to block layer.  It's admittedly easier to justify routing through
+On Thu, Nov 29, 2012 at 08:51:19PM -0500, Steven Rostedt wrote:
+> >  include/ras/aer_event.h |   77 +++++++++++++++++++++++++++++++++++++++++++++++
 > 
-> I don't see a way to do this, since libata has no chance of accessing
-> the gendisk pointer. Or we can add a new field to struct device,
-> something like no_poll, but I don't think it is the right thing to do,
-> as not all devices are block ones.
+> Is there a reason this header is here? Egad, I never noticed the
+> ras_event.h that is there. This include/ras directory was created for
+> the sole purpose of trace events! This is not the way to do this.
+
+Well, the idea for the ras event was to be able to use it in multiple
+places. It is currently used only by EDAC but it could be that memory
+errors could be reported by other agents which would reuse that TP.
+
+> Please look at the sample in samples/trace_events/
 > 
-> Any other suggestions/ideas please?
+> The proper way is to keep the header by the driver. Then you can simply
+> include the header with "aer_event.h".
+> 
+> But to have the macro magic work, you need to modify the Makefile to
+> have something like:
+> 
+> CFLAGS_aerdrv_errprint.o = -I$(src)
 
-I think you can follow the James' suggestion:
+So I'm guessing that every .c file including the TP should also -I
+include the TP definition header wherever it is. Is that agreeable?
 
-http://www.spinics.net/lists/linux-acpi/msg40257.html
-
-and see how that goes.
-
-Thanks,
-Rafael
-
+Thanks.
 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Regards/Gruss,
+    Boris.
