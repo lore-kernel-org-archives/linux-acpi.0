@@ -1,201 +1,159 @@
-From: Ondrej Zary <linux@rainbow-software.org>
-Subject: [PATCH v3] [resend] Enable A20 using KBC for some MSI laptops to fix S3 resume
-Date: Fri, 30 Nov 2012 09:11:44 +0100
-Message-ID: <201211300911.45102.linux@rainbow-software.org>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH v4 1/3] gpio / ACPI: add ACPI support
+Date: Fri, 30 Nov 2012 11:20:57 +0000
+Message-ID: <20121130112057.D34CA3E14C4@localhost>
+References: <1353407384-26880-1-git-send-email-mika.westerberg@linux.intel.com> <1353435212-15325-1-git-send-email-mika.westerberg@linux.intel.com> <1353435212-15325-2-git-send-email-mika.westerberg@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <1353435212-15325-2-git-send-email-mika.westerberg@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: hpa@zytor.com
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linus.walleij@linaro.org, w.sang@pengutronix.de, rafael.j.wysocki@intel.com
+Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, broonie@opensource.wolfsonmicro.com, khali@linux-fr.org, ben-linux@fluff.org, bhelgaas@google.com, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Some MSI laptop BIOSes are broken - INT 15h code uses port 92h to enable A20
-line but resume code assumes that KBC was used.
-The laptop will not resume from S3 otherwise but powers off after a while
-and then powers on again stuck with a blank screen.
+On Tue, 20 Nov 2012 20:13:30 +0200, Mika Westerberg <mika.westerberg@linux.intel.com> wrote:
+> From: Mathias Nyman <mathias.nyman@linux.intel.com>
+> 
+> Add support for translating ACPI GPIO pin numbers to Linux GPIO API pins.
+> Needs a gpio controller driver with the acpi handler hook set.
+> 
+> Drivers can use acpi_get_gpio() to translate ACPI5 GpioIO and GpioInt
+> resources to Linux GPIO's.
+> 
+> Signed-off-by: Mathias Nyman <mathias.nyman@linux.intel.com>
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Fix it by enabling A20 using KBC. Affected laptop list and DMI data are from
-bug reports at Ubuntu Launchpad.
+Acked-by: Grant Likely <grant.likely@secretlab.ca>
 
-Also add kernel parameter to easily activate this quirk on any system.
+This series goes together, so feel free to take it in whatever tree the
+rest are merged through.
 
-Only compile tested. The original patch was tested with EX600 and PR200.
+g.
 
-Fixes https://bugzilla.kernel.org/show_bug.cgi?id=12878
+> ---
+>  drivers/gpio/Kconfig        |    4 ++++
+>  drivers/gpio/Makefile       |    1 +
+>  drivers/gpio/gpiolib-acpi.c |   54 +++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/acpi_gpio.h   |   19 +++++++++++++++
+>  4 files changed, 78 insertions(+)
+>  create mode 100644 drivers/gpio/gpiolib-acpi.c
+>  create mode 100644 include/linux/acpi_gpio.h
+> 
+> diff --git a/drivers/gpio/Kconfig b/drivers/gpio/Kconfig
+> index f11d8e3..5c9b384 100644
+> --- a/drivers/gpio/Kconfig
+> +++ b/drivers/gpio/Kconfig
+> @@ -49,6 +49,10 @@ config OF_GPIO
+>  	def_bool y
+>  	depends on OF
+>  
+> +config GPIO_ACPI
+> +	def_bool y
+> +	depends on ACPI
+> +
+>  config DEBUG_GPIO
+>  	bool "Debug GPIO calls"
+>  	depends on DEBUG_KERNEL
+> diff --git a/drivers/gpio/Makefile b/drivers/gpio/Makefile
+> index 9aeed67..420dbac 100644
+> --- a/drivers/gpio/Makefile
+> +++ b/drivers/gpio/Makefile
+> @@ -4,6 +4,7 @@ ccflags-$(CONFIG_DEBUG_GPIO)	+= -DDEBUG
+>  
+>  obj-$(CONFIG_GPIOLIB)		+= gpiolib.o devres.o
+>  obj-$(CONFIG_OF_GPIO)		+= gpiolib-of.o
+> +obj-$(CONFIG_GPIO_ACPI)		+= gpiolib-acpi.o
+>  
+>  # Device drivers. Generally keep list sorted alphabetically
+>  obj-$(CONFIG_GPIO_GENERIC)	+= gpio-generic.o
+> diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+> new file mode 100644
+> index 0000000..cbad6e9
+> --- /dev/null
+> +++ b/drivers/gpio/gpiolib-acpi.c
+> @@ -0,0 +1,54 @@
+> +/*
+> + * ACPI helpers for GPIO API
+> + *
+> + * Copyright (C) 2012, Intel Corporation
+> + * Authors: Mathias Nyman <mathias.nyman@linux.intel.com>
+> + *          Mika Westerberg <mika.westerberg@linux.intel.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/errno.h>
+> +#include <linux/gpio.h>
+> +#include <linux/export.h>
+> +#include <linux/acpi_gpio.h>
+> +#include <linux/acpi.h>
+> +
+> +static int acpi_gpiochip_find(struct gpio_chip *gc, void *data)
+> +{
+> +	if (!gc->dev)
+> +		return false;
+> +
+> +	return ACPI_HANDLE(gc->dev) == data;
+> +}
+> +
+> +/**
+> + * acpi_get_gpio() - Translate ACPI GPIO pin to GPIO number usable with GPIO API
+> + * @path:	ACPI GPIO controller full path name, (e.g. "\\_SB.GPO1")
+> + * @pin:	ACPI GPIO pin number (0-based, controller-relative)
+> + *
+> + * Returns GPIO number to use with Linux generic GPIO API, or errno error value
+> + */
+> +
+> +int acpi_get_gpio(char *path, int pin)
+> +{
+> +	struct gpio_chip *chip;
+> +	acpi_handle handle;
+> +	acpi_status status;
+> +
+> +	status = acpi_get_handle(NULL, path, &handle);
+> +	if (ACPI_FAILURE(status))
+> +		return -ENODEV;
+> +
+> +	chip = gpiochip_find(handle, acpi_gpiochip_find);
+> +	if (!chip)
+> +		return -ENODEV;
+> +
+> +	if (!gpio_is_valid(chip->base + pin))
+> +		return -EINVAL;
+> +
+> +	return chip->base + pin;
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_get_gpio);
+> diff --git a/include/linux/acpi_gpio.h b/include/linux/acpi_gpio.h
+> new file mode 100644
+> index 0000000..91615a3
+> --- /dev/null
+> +++ b/include/linux/acpi_gpio.h
+> @@ -0,0 +1,19 @@
+> +#ifndef _LINUX_ACPI_GPIO_H_
+> +#define _LINUX_ACPI_GPIO_H_
+> +
+> +#include <linux/errno.h>
+> +
+> +#ifdef CONFIG_GPIO_ACPI
+> +
+> +int acpi_get_gpio(char *path, int pin);
+> +
+> +#else /* CONFIG_GPIO_ACPI */
+> +
+> +static inline int acpi_get_gpio(char *path, int pin)
+> +{
+> +	return -ENODEV;
+> +}
+> +
+> +#endif /* CONFIG_GPIO_ACPI */
+> +
+> +#endif /* _LINUX_ACPI_GPIO_H_ */
+> -- 
+> 1.7.10.4
+> 
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
----
- Documentation/kernel-parameters.txt |    6 ++
- arch/x86/kernel/acpi/boot.c         |  122 +++++++++++++++++++++++++++++++++++
- 2 files changed, 128 insertions(+), 0 deletions(-)
-
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-index 9776f06..eb3d6a4 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -153,6 +153,12 @@ multipliers 'Kilo', 'Mega', and 'Giga', equalling 2^10, 2^20, and 2^30
- bytes respectively. Such letter suffixes can also be entirely omitted.
- 
- 
-+	a20_enable_kbc	[ACPI,X86]
-+			Enable A20 line using KBC even if it's already
-+			enabled using other method.
-+			This is needed for some MSI laptops to resume from
-+			S3.
-+
- 	acpi=		[HW,ACPI,X86]
- 			Advanced Configuration and Power Interface
- 			Format: { force | off | strict | noirq | rsdt }
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index e651f7a..64169ca 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -1349,6 +1349,67 @@ static int __init dmi_ignore_irq0_timer_override(const struct dmi_system_id *d)
- }
- 
- /*
-+ * Copied from arch/x86/boot/a20.c. Direct port writes (and no locking) are safe
-+ * here because this is executed very early, before any drivers (like i8042).
-+ */
-+#define MAX_8042_LOOPS	100000
-+#define MAX_8042_FF	32
-+
-+static int empty_8042(void)
-+{
-+	u8 status;
-+	int loops = MAX_8042_LOOPS;
-+	int ffs   = MAX_8042_FF;
-+
-+	while (loops--) {
-+		outb(0, 0x80); /* delay */
-+
-+		status = inb(0x64);
-+		if (status == 0xff) {
-+			/* FF is a plausible, but very unlikely status */
-+			if (!--ffs)
-+				return -1; /* Assume no KBC present */
-+		}
-+		if (status & 1) {
-+			/* Read and discard input data */
-+			outb(0, 0x80); /* delay */
-+			(void)inb(0x60);
-+		} else if (!(status & 2)) {
-+			/* Buffers empty, finished! */
-+			return 0;
-+		}
-+	}
-+
-+	return -1;
-+}
-+
-+static void enable_a20_kbc(void)
-+{
-+	empty_8042();
-+
-+	outb(0xd1, 0x64);	/* Command write */
-+	empty_8042();
-+
-+	outb(0xdf, 0x60);	/* A20 on */
-+	empty_8042();
-+
-+	outb(0xff, 0x64);	/* Null command, but UHCI wants it */
-+	empty_8042();
-+}
-+
-+/*
-+ * Enable A20 line using KBC even if it's already enabled using other method.
-+ * This is needed for some MSI laptops to resume from S3.
-+ */
-+static int __init a20_enable_kbc(const struct dmi_system_id *d)
-+{
-+	printk(KERN_NOTICE "%s detected: enabling A20 using KBC\n", d->ident);
-+	enable_a20_kbc();
-+
-+	return 0;
-+}
-+
-+/*
-  * If your system is blacklisted here, but you find that acpi=force
-  * works for you, please contact linux-acpi@vger.kernel.org
-  */
-@@ -1423,6 +1484,60 @@ static struct dmi_system_id __initdata acpi_dmi_table[] = {
- 		     DMI_MATCH(DMI_PRODUCT_NAME, "TravelMate 360"),
- 		     },
- 	 },
-+	/*
-+	 * Some MSI laptop BIOSes are broken - INT 15h code uses port 92h to
-+	 * enable A20 line but resume code assumes that KBC was used.
-+	 * The laptop will not resume from S3 otherwise but powers off
-+	 * after a while and then powers on again stuck with a blank screen.
-+	 */
-+	{
-+	 .callback = a20_enable_kbc,
-+	 .ident = "MSI EX600 Laptop",
-+	 .matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star International"),
-+		     DMI_MATCH(DMI_PRODUCT_NAME, "MSI Notebook EX600"),
-+		     },
-+	 },
-+	{
-+	 .callback = a20_enable_kbc,
-+	 .ident = "MSI EX700 Laptop",
-+	 .matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star International"),
-+		     DMI_MATCH(DMI_PRODUCT_NAME, "EX700"),
-+		     },
-+	 },
-+	{
-+	 .callback = a20_enable_kbc,
-+	 .ident = "MSI GX700 Laptop",
-+	 .matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star International"),
-+		     DMI_MATCH(DMI_PRODUCT_NAME, "GX700"),
-+		     },
-+	 },
-+	{
-+	 .callback = a20_enable_kbc,
-+	 .ident = "MSI VR201 Laptop",
-+	 .matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star International"),
-+		     DMI_MATCH(DMI_PRODUCT_NAME, "MSI Notebook VR201"),
-+		     },
-+	 },
-+	{
-+	 .callback = a20_enable_kbc,
-+	 .ident = "MSI VR601 Laptop",
-+	 .matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star International"),
-+		     DMI_MATCH(DMI_PRODUCT_NAME, "MSI Notebook VR601"),
-+		     },
-+	 },
-+	{
-+	 .callback = a20_enable_kbc,
-+	 .ident = "MSI PR200 Laptop",
-+	 .matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "Micro-Star International"),
-+		     DMI_MATCH(DMI_PRODUCT_NAME, "MSI Notebook PR200"),
-+		     },
-+	 },
- 	{}
- };
- 
-@@ -1679,6 +1794,13 @@ static int __init setup_acpi_sci(char *s)
- }
- early_param("acpi_sci", setup_acpi_sci);
- 
-+static int __init parse_a20_enable_kbc(char *arg)
-+{
-+	enable_a20_kbc();
-+	return 0;
-+}
-+early_param("a20_enable_kbc", parse_a20_enable_kbc);
-+
- int __acpi_acquire_global_lock(unsigned int *lock)
- {
- 	unsigned int old, new, val;
 -- 
-Ondrej Zary
+Grant Likely, B.Sc, P.Eng.
+Secret Lab Technologies, Ltd.
