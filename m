@@ -1,49 +1,68 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH 1/3] aerdrv: Trace Event for AER
-Date: Fri, 30 Nov 2012 11:53:11 +0100
-Message-ID: <20121130105311.GA6869@liondog.tnic>
-References: <20121129215443.5483.43364.stgit@grignak.americas.hpqcorp.net>
- <1354240279.6276.131.camel@gandalf.local.home>
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: Re: [Patch v4 00/12] memory-hotplug: hot-remove physical memory
+Date: Fri, 30 Nov 2012 14:37:41 +0800
+Message-ID: <50B85435.8020907@cn.fujitsu.com>
+References: <1354010422-19648-1-git-send-email-wency@cn.fujitsu.com> <20121127112741.b616c2f6.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:59150 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755198Ab2K3KxP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 30 Nov 2012 05:53:15 -0500
-Content-Disposition: inline
-In-Reply-To: <1354240279.6276.131.camel@gandalf.local.home>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20121127112741.b616c2f6.akpm@linux-foundation.org>
+Sender: owner-linux-mm@kvack.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Wen Congyang <wency@cn.fujitsu.com>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, David Rientjes <rientjes@google.com>, Jiang Liu <liuj97@gmail.com>, Len Brown <len.brown@intel.com>, benh@kernel.crashing.org, paulus@samba.org, Christoph Lameter <cl@linux.com>, Minchan Kim <minchan.kim@gmail.com>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Jianguo Wu <wujianguo@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: Lance Ortiz <lance.ortiz@hp.com>, bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, Nov 29, 2012 at 08:51:19PM -0500, Steven Rostedt wrote:
-> >  include/ras/aer_event.h |   77 +++++++++++++++++++++++++++++++++++++++++++++++
-> 
-> Is there a reason this header is here? Egad, I never noticed the
-> ras_event.h that is there. This include/ras directory was created for
-> the sole purpose of trace events! This is not the way to do this.
+Hi Andrew,
 
-Well, the idea for the ras event was to be able to use it in multiple
-places. It is currently used only by EDAC but it could be that memory
-errors could be reported by other agents which would reuse that TP.
+On 11/28/2012 03:27 AM, Andrew Morton wrote:
+>>
+>> - acpi framework
+>>    https://lkml.org/lkml/2012/10/26/175
+>
+> What's happening with the acpi framework?  has it received any feedback
+> from the ACPI developers?
 
-> Please look at the sample in samples/trace_events/
-> 
-> The proper way is to keep the header by the driver. Then you can simply
-> include the header with "aer_event.h".
-> 
-> But to have the macro magic work, you need to modify the Makefile to
-> have something like:
-> 
-> CFLAGS_aerdrv_errprint.o = -I$(src)
+About ACPI framework, we are trying to do the following.
 
-So I'm guessing that every .c file including the TP should also -I
-include the TP definition header wherever it is. Is that agreeable?
+     The memory device can be removed by 2 ways:
+     1. send eject request by SCI
+     2. echo 1 >/sys/bus/pci/devices/PNP0C80:XX/eject
 
-Thanks.
+     In the 1st case, acpi_memory_disable_device() will be called.
+     In the 2nd case, acpi_memory_device_remove() will be called.
+     acpi_memory_device_remove() will also be called when we unbind the
+     memory device from the driver acpi_memhotplug or a driver
+     initialization fails.
 
--- 
-Regards/Gruss,
-    Boris.
+     acpi_memory_disable_device() has already implemented a code which
+     offlines memory and releases acpi_memory_info struct . But
+     acpi_memory_device_remove() has not implemented it yet.
+
+     So the patch prepares the framework for hot removing memory and
+     adds the framework into acpi_memory_device_remove().
+
+All the ACPI related patches have been put into the linux-next branch
+of the linux-pm.git tree as v3.8 material.Please refer to the following
+url.
+https://lkml.org/lkml/2012/11/2/160
+
+So for now, with this patch set, we can do memory hot-remove on x86_64
+linux.
+
+I do hope you would merge them before 3.8-rc1, so that we can use this
+functionality in 3.8.
+
+As we are still testing all memory hotplug related functionalities, I
+hope we can do the bug fix during 3.8 rc.
+
+Thanks. :)
+
+
+
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
