@@ -1,25 +1,118 @@
-From: "Ortiz, Lance E" <lance.oritz@hp.com>
-Subject: RE: [PATCH 1/3] aerdrv: Trace Event for AER
-Date: Fri, 30 Nov 2012 18:18:27 +0000
-Message-ID: <A961433CDFF2F640A2866803152E61F9516EAFDF@G4W3219.americas.hpqcorp.net>
-References: <20121129215443.5483.43364.stgit@grignak.americas.hpqcorp.net>
- <1354240279.6276.131.camel@gandalf.local.home>
- <20121130105311.GA6869@liondog.tnic>
- <1354275551.6276.140.camel@gandalf.local.home>
- <20121130134232.GD6869@liondog.tnic>
- <1354283631.6276.143.camel@gandalf.local.home>
- <20121130173635.GD23034@liondog.tnic>
+From: Lance Ortiz <lance.ortiz@hp.com>
+Subject: [PATCH v2 1/3] aerdrv: Trace Event for AER
+Date: Fri, 30 Nov 2012 13:39:08 -0700
+Message-ID: <20121130203908.31886.47475.stgit@grignak.americas.hpqcorp.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20121130173635.GD23034@liondog.tnic>
-Content-Language: en-US
-Sender: linux-pci-owner@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>, Steven Rostedt <rostedt@goodmis.org>
-Cc: "bhelgaas@google.com" <bhelgaas@google.com>, "lance_ortiz@hotmail.com" <lance_ortiz@hotmail.com>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>, "tony.luck@intel.com" <tony.luck@intel.com>, "mchehab@redhat.com" <mchehab@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, bp@alien8.de, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-IA0KPiBPaywgY29vbC4NCj4gDQo+IExhbmNlLCBjYXJlIHRvIG1vdmUgdGhlIFRQIHRvIGEgbmV3
-IGhlYWRlciBjYWxsZWQNCj4gaW5jbHVkZS90cmFjZS9ldmVudHMvcmFzLmggaW4geW91ciBuZXh0
-IGl0ZXJhdGlvbiBvZiB0aGUgcGF0Y2hlcz8NCg0KV2lsbCBkby4NCg0KTGFuY2UNCg0KDQo=
+This header file will define a new trace event that will be triggered when
+a AER event occurs.  The following data will be provided to the trace
+event.
+
+char * name -	String containing the device path
+
+u32 status - 	Either the correctable or uncorrectable register
+		indicating what error or errors have been see.
+
+u8 severity - 	error severity 0:NONFATAL 1:FATAL 2:CORRECTED
+
+The trace event will also provide a trace string that may look like:
+
+"0000:05:00.0 PCIe Bus Error:severity=Uncorrected (Non-Fatal), Poisoned
+TLP"
+
+Signed-off-by: Lance Ortiz <lance.ortiz@hp.com>
+---
+
+ include/trace/events/ras.h |   77 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 77 insertions(+), 0 deletions(-)
+ create mode 100644 include/trace/events/ras.h
+
+diff --git a/include/trace/events/ras.h b/include/trace/events/ras.h
+new file mode 100644
+index 0000000..f77d009
+--- /dev/null
++++ b/include/trace/events/ras.h
+@@ -0,0 +1,77 @@
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM aer_event
++#define TRACE_INCLUDE_FILE ras 
++
++#if !defined(_TRACE_AER_H) || defined(TRACE_HEADER_MULTI_READ)
++#define _TRACE_AER_H
++
++#include <linux/tracepoint.h>
++#include <linux/edac.h>
++
++
++/*
++ * Anhance Error Reporting (AER) PCIE Report Error
++ *
++ * These events are generated when hardware detects a corrected or
++ * uncorrected event on a pci express device and reports
++ * errors.  The event reports the following data.
++ *
++ * char * dev_name -	String containing the device identification
++ * u32 status -		Either the correctable or uncorrectable register
++ *			indicating what error or errors have been seen
++ * u8 severity -	error severity 0:NONFATAL 1:FATAL 2:CORRECTED
++ */
++
++#define correctable_error_string			\
++	{BIT(0),	"Receiver Error"},		\
++	{BIT(6),	"Bad TLP"},			\
++	{BIT(7),	"Bad DLLP"},			\
++	{BIT(8),	"RELAY_NUM Rollover"},		\
++	{BIT(12),	"Replay Timer Timeout"},	\
++	{BIT(13),	"Advisory Non-Fatal"}
++
++#define uncorrectable_error_string			\
++	{BIT(4),	"Data Link Protocol"},		\
++	{BIT(12),	"Poisoned TLP"},		\
++	{BIT(13),	"Flow Control Protocol"},	\
++	{BIT(14),	"Completion Timeout"},		\
++	{BIT(15),	"Completer Abort"},		\
++	{BIT(16),	"Unexpected Completion"},	\
++	{BIT(17),	"Receiver Overflow"},		\
++	{BIT(18),	"Malformed TLP"},		\
++	{BIT(19),	"ECRC"},			\
++	{BIT(20),	"Unsupported Request"}
++
++TRACE_EVENT(aer_event,
++	TP_PROTO(const char *dev_name,
++		 const u32 status,
++		 const u8 severity),
++
++	TP_ARGS(dev_name, status, severity),
++
++	TP_STRUCT__entry(
++		__string(	dev_name,	dev_name	)
++		__field(	u32,		status		)
++		__field(	u8,		severity	)
++	),
++
++	TP_fast_assign(
++		__assign_str(dev_name, dev_name);
++		__entry->status		= status;
++		__entry->severity	= severity;
++	),
++
++	TP_printk("%s PCIe Bus Error: severity=%s, %s\n",
++		__get_str(dev_name),
++		(__entry->severity == HW_EVENT_ERR_CORRECTED) ? "Corrected" :
++			((__entry->severity == HW_EVENT_ERR_FATAL) ?
++			"Fatal" : "Uncorrected"),
++		__entry->severity == HW_EVENT_ERR_CORRECTED ?
++		__print_flags(__entry->status, "|", correctable_error_string) :
++		__print_flags(__entry->status, "|", uncorrectable_error_string))
++);
++
++#endif /* _TRACE_AER_H */
++
++/* This part must be outside protection */
++#include <trace/define_trace.h>
