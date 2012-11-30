@@ -1,60 +1,109 @@
-From: Shuah Khan <shuahkhan@gmail.com>
-Subject: Re: [PATCH] ACPI / PNP: Do not crash due to stale pointer use during
- system resume
-Date: Thu, 29 Nov 2012 16:50:20 -0700
-Message-ID: <CAKocOONs0M9R7tpF8k3J6AOptXwmrmWn9KwN9sgdxMKoB2pY8A@mail.gmail.com>
-References: <1829835.4TBEQGhjkq@vostro.rjw.lan>
-	<CAKocOOOsOZ=g45cdFSZZoCVMBxf9aWNSa4RdGNCuAEKrxXkr1Q@mail.gmail.com>
-	<28227702.6DTxM78Dej@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC PATCH v3 3/3] acpi_memhotplug: Allow eject to proceed on rebind scenario
+Date: Fri, 30 Nov 2012 01:13:04 +0100
+Message-ID: <1525935.BNLeevluWK@vostro.rjw.lan>
+References: <1353693037-21704-1-git-send-email-vasilis.liaskovitis@profitbricks.com> <3341852.kzFLTzlKxq@vostro.rjw.lan> <1354231039.7776.80.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:37672 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754205Ab2K2XuV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Nov 2012 18:50:21 -0500
-In-Reply-To: <28227702.6DTxM78Dej@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1354231039.7776.80.camel@misato.fc.hp.com>
+Sender: owner-linux-mm@kvack.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: linux-acpi@vger.kernel.org, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, Wen Congyang <wency@cn.fujitsu.com>, Wen Congyang <wencongyang@gmail.com>, isimatu.yasuaki@jp.fujitsu.com, lenb@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Zdenek Kabelac <zdenek.kabelac@gmail.com>
 
-On Thu, Nov 29, 2012 at 4:51 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Thursday, November 29, 2012 04:25:20 PM Shuah Khan wrote:
->> On Thu, Nov 29, 2012 at 4:10 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
->> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->> >
->> > During resume from system suspend the 'data' field of
->> > struct pnp_dev in pnpacpi_set_resources() may be a stale pointer,
->> > due to removal of the associated ACPI device node object in the
->> > previous suspend-resume cycle.  This happens, for example, if a
->> > dockable machine is booted in the docking station and then suspended
->> > and resumed and suspended again.  If that happens,
->> > pnpacpi_build_resource_template() called from pnpacpi_set_resources()
->> > attempts to use that pointer and crashes.
->> >
->> > However, pnpacpi_set_resources() actually checks the device's ACPI
->> > handle, attempts to find the ACPI device node object attached to it
->> > and returns an error code if that fails, so in fact it knows what the
->> > correct value of dev->data should be.  Use this observation to update
->> > dev->data with the correct value if necessary and dump a call trace
->> > if that's the case (once).
->> >
->> > We still need to fix the root cause of this issue, but preventing
->> > systems from crashing because of it is an improvement too.
->> >
->> > Reported-and-tested-by: Zdenek Kabelac <zdenek.kabelac@gmail.com>
->> > References: https://bugzilla.kernel.org/show_bug.cgi?id=51071
->> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>
->> Any reason why this shouldn't go into stable releases?
->
-> Yes, it can go to -stable.  This is just a patch, not a git commit.  I can
-> still add the "stable" tag to it when it goes to git. :-)
->
+On Thursday, November 29, 2012 04:17:19 PM Toshi Kani wrote:
+> On Thu, 2012-11-29 at 23:11 +0100, Rafael J. Wysocki wrote:
+> > On Thursday, November 29, 2012 02:46:44 PM Toshi Kani wrote:
+> > > On Thu, 2012-11-29 at 22:23 +0100, Rafael J. Wysocki wrote:
+> > > > On Thursday, November 29, 2012 01:38:39 PM Toshi Kani wrote:
+> > > > 
+> > > > Well, let's put it this way: If we started a trim, we should just do it
+> > > > completely, in which case we know we can go for the eject, or we should
+> > > > roll it back completely.  Now, if you just break the trim on first error,
+> > > > the complete rollback is kind of problematic.  It should be doable, but
+> > > > it won't be easy.  On the other hand, if you go for the full trim,
+> > > > doing a rollback is trivial, it's as though you have reinserted the whole
+> > > > stuff.
+> > > 
+> > > acpi_bus_check_add() skips initialization when an ACPI device already
+> > > has its associated acpi_device.  So, I think it works either way.
+> > 
+> > OK
+> > 
+> > > > Now, that need not harm functionality, and that's why I proposed the
+> > > > eject_forbidden flag, so that .remove() can say "I'm not done, please
+> > > > rollback", in which case the device can happily function going forward,
+> > > > even if we don't rebind the driver to it.
+> > > 
+> > > A partially trimmed acpi_device is hard to rollback.  acpi_device should
+> > > be either trimmed completely or intact.
+> > 
+> > I may or may not agree, depending on what you mean by "trimmed". :-)
+> > 
+> > > When a function failed to trim
+> > > an acpi_device, it needs to rollback its operation for the device before
+> > > returning an error.
+> > 
+> > Unless it is .remove(), because .remove() is supposed to always succeed
+> > (ie. unbind the driver from the device).  However, it may signal the caller
+> > that something's fishy, by setting a flag in the device object, for example.
+> 
+> Right, .remove() cannot fail.  We still need to check if we should
+> continue to use .remove(), though.
+> 
+> As for the flag, are you thinking that we call acpi_bus_trim() with
+> rmdevice false first, so that it won't remove acpi_device?
 
-Good. This patch applies just fine to 3.0.x, 3.4.x and 3.6.x for what
-its worth. That's how far I have gotten so far and getting ready to do
-compile tests on these.
+I'm not sure if that's going to help.
 
--- Shuah
+Definitely, .remove() should just unbind the driver from the device.
+That's what it's supposed to do.  Still, it may leave some information for
+the caller in the device structure itself.  For example, "I have unbound
+from the device, but it is not safe to remove it physically".
+
+I'm now thinking that we may need to rework the trimming so that
+.remove() is called for all drivers first and the struct acpi_device
+objects are not removed at this stage.  Then, if .remove() from one
+driver signals the situation like above, the routine will have to
+rebind the drivers that have been unbound and we're done.
+
+After that stage, when all drivers have been unbound, we should be
+able to go for full eject.  First, we can drop all struct acpi_device
+objects in the relevant subtree and then we can run _EJ0.
+
+> > > This is because only the failed function has enough
+> > > context to rollback when an error occurred in the middle of its
+> > > procedure.
+> > 
+> > Not really.  If it actually removes the struct acpi_device then the caller
+> > may run acpi_bus_scan() on that device if necessary.  There may be a problem
+> > if the device has an associated physical node (or more of them), but that
+> > requires special care anyway.
+> 
+> Well, hot-remove to a device fails when there is a reason to fail.  IOW,
+> such reason prevented the device to be removed safely.  So, I think we
+> need to put it back to the original state in this case.  Removing it by
+> ignoring the cause of failure sounds unsafe to me.  Some status/data may
+> be left un-deleted as a result.
+
+Again, I may or may not agree with that, depending on whether you're talking
+about physical devices or about struct acpi_device objects.
+
+Anyway, I agree that removing struct acpi_device objects may not be worth the
+effort if we're going to re-create them in a while, because that may be costly.
+
+Thanks,
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
