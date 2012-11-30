@@ -1,177 +1,66 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH v4 2/3] spi / ACPI: add ACPI enumeration support
-Date: Fri, 30 Nov 2012 11:24:13 +0000
-Message-ID: <20121130112413.8059C3E14C4@localhost>
-References: <1353407384-26880-1-git-send-email-mika.westerberg@linux.intel.com> <1353435212-15325-1-git-send-email-mika.westerberg@linux.intel.com> <1353435212-15325-3-git-send-email-mika.westerberg@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:59853 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756188Ab2K3LYS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Nov 2012 06:24:18 -0500
-Received: by mail-wi0-f174.google.com with SMTP id hm9so7045880wib.1
-        for <linux-acpi@vger.kernel.org>; Fri, 30 Nov 2012 03:24:17 -0800 (PST)
-In-Reply-To: <1353435212-15325-3-git-send-email-mika.westerberg@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v9 06/10] ata: zpodd: check zero power ready status
+Date: Fri, 30 Nov 2012 16:55:56 +0800
+Message-ID: <50B8749C.3050105@intel.com>
+References: <1352443922-13734-1-git-send-email-aaron.lu@intel.com> <35648985.61QNrr0Knq@vostro.rjw.lan> <1353906191.2523.25.camel@dabdike> <21511277.LLinyDpbAK@vostro.rjw.lan> <20121128013928.GB15971@htj.dyndns.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <20121128013928.GB15971@htj.dyndns.org>
+Sender: linux-ide-owner@vger.kernel.org
+To: Tejun Heo <tj@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, James Bottomley <James.Bottomley@hansenpartnership.com>, linux-pm@vger.kernel.org, Jeff Garzik <jgarzik@pobox.com>, Alan Stern <stern@rowland.harvard.edu>, Jeff Wu <jeff.wu@amd.com>, Aaron Lu <aaron.lwe@gmail.com>, linux-ide@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linus.walleij@linaro.org, w.sang@pengutronix.de, rafael.j.wysocki@intel.com
-Cc: linux-kernel@vger.kernel.org, lenb@kernel.org, broonie@opensource.wolfsonmicro.com, khali@linux-fr.org, ben-linux@fluff.org, bhelgaas@google.com, mathias.nyman@linux.intel.com, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On Tue, 20 Nov 2012 20:13:31 +0200, Mika Westerberg <mika.westerberg@linux.intel.com> wrote:
-> ACPI 5 introduced SPISerialBus resource that allows us to enumerate and
-> configure the SPI slave devices behind the SPI controller. This patch adds
-> support for this to the SPI core.
+On 11/28/2012 09:39 AM, Tejun Heo wrote:
+> Hey, Rafael.
 > 
-> In addition we bind ACPI nodes to SPI devices. This makes it possible for
-> the slave drivers to get the ACPI handle for further configuration.
+> On Wed, Nov 28, 2012 at 01:51:00AM +0100, Rafael J. Wysocki wrote:
+>> Having considered that a bit more I'm now thinking that in fact the power state
+>> the device is in at the moment doesn't really matter, so the polling code need
+>> not really know what PM is doing.  What it needs to know is that the device
+>> will generate a hardware event when something interesting happens, so it is not
+>> necessary to poll it.
+>>
+>> In this particular case it is related to power management (apparently, hardware
+>> events will only be generated after the device has been put into ACPI D3cold,
+>> or so Aaron seems to be claiming), but it need not be in general, at least in
+>> principle.
+>>
+>> It looks like we need an "event driven" flag that the can be set in the lower
+>> layers and read by the upper layers.  I suppose this means it would need to be
+>> in struct device, but not necessarily in the PM-specific part of it.
 > 
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> We already have that.  That's what gendisk->async_events is for (as
+> opposed to gendisk->events).  If all events are async_events, block
+> won't poll for events, but I'm not sure that's the golden bullet.
+> 
+> * None implements async_events yet and an API is missing -
+>   disk_check_events() - which is trivial to add, but it's the same
+>   story.  We'll need a mechanism to shoot up notification from libata
+>   to block layer.  It's admittedly easier to justify routing through
 
-Acked-by: Grant Likely <grant.likely@secretlab.ca>
+I don't see a way to do this, since libata has no chance of accessing
+the gendisk pointer. Or we can add a new field to struct device,
+something like no_poll, but I don't think it is the right thing to do,
+as not all devices are block ones.
 
-> ---
->  drivers/spi/spi.c |  103 ++++++++++++++++++++++++++++++++++++++++++++++++++++-
->  1 file changed, 102 insertions(+), 1 deletion(-)
+Any other suggestions/ideas please?
+
+Thanks,
+Aaron
+
+>   SCSI tho.  So, we're mostly shifting the problem.  Given that async
+>   events is nice to have, so it isn't a bad idea.
 > 
-> diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
-> index 84c2861..1ab0523 100644
-> --- a/drivers/spi/spi.c
-> +++ b/drivers/spi/spi.c
-> @@ -35,6 +35,8 @@
->  #include <linux/sched.h>
->  #include <linux/delay.h>
->  #include <linux/kthread.h>
-> +#include <linux/ioport.h>
-> +#include <linux/acpi.h>
->  
->  static void spidev_release(struct device *dev)
->  {
-> @@ -93,6 +95,10 @@ static int spi_match_device(struct device *dev, struct device_driver *drv)
->  	if (of_driver_match_device(dev, drv))
->  		return 1;
->  
-> +	/* Then try ACPI */
-> +	if (acpi_driver_match_device(dev, drv))
-> +		return 1;
-> +
->  	if (sdrv->id_table)
->  		return !!spi_match_id(sdrv->id_table, spi);
->  
-> @@ -888,6 +894,100 @@ static void of_register_spi_devices(struct spi_master *master)
->  static void of_register_spi_devices(struct spi_master *master) { }
->  #endif
->  
-> +#ifdef CONFIG_ACPI
-> +static int acpi_spi_add_resource(struct acpi_resource *ares, void *data)
-> +{
-> +	struct spi_device *spi = data;
-> +
-> +	if (ares->type == ACPI_RESOURCE_TYPE_SERIAL_BUS) {
-> +		struct acpi_resource_spi_serialbus *sb;
-> +
-> +		sb = &ares->data.spi_serial_bus;
-> +		if (sb->type == ACPI_RESOURCE_SERIAL_TYPE_SPI) {
-> +			spi->chip_select = sb->device_selection;
-> +			spi->max_speed_hz = sb->connection_speed;
-> +
-> +			if (sb->clock_phase == ACPI_SPI_SECOND_PHASE)
-> +				spi->mode |= SPI_CPHA;
-> +			if (sb->clock_polarity == ACPI_SPI_START_HIGH)
-> +				spi->mode |= SPI_CPOL;
-> +			if (sb->device_polarity == ACPI_SPI_ACTIVE_HIGH)
-> +				spi->mode |= SPI_CS_HIGH;
-> +		}
-> +	} else if (spi->irq < 0) {
-> +		struct resource r;
-> +
-> +		if (acpi_dev_resource_interrupt(ares, 0, &r))
-> +			spi->irq = r.start;
-> +	}
-> +
-> +	/* Always tell the ACPI core to skip this resource */
-> +	return 1;
-> +}
-> +
-> +static acpi_status acpi_spi_add_device(acpi_handle handle, u32 level,
-> +				       void *data, void **return_value)
-> +{
-> +	struct spi_master *master = data;
-> +	struct list_head resource_list;
-> +	struct acpi_device *adev;
-> +	struct spi_device *spi;
-> +	int ret;
-> +
-> +	if (acpi_bus_get_device(handle, &adev))
-> +		return AE_OK;
-> +	if (acpi_bus_get_status(adev) || !adev->status.present)
-> +		return AE_OK;
-> +
-> +	spi = spi_alloc_device(master);
-> +	if (!spi) {
-> +		dev_err(&master->dev, "failed to allocate SPI device for %s\n",
-> +			dev_name(&adev->dev));
-> +		return AE_NO_MEMORY;
-> +	}
-> +
-> +	ACPI_HANDLE_SET(&spi->dev, handle);
-> +	spi->irq = -1;
-> +
-> +	INIT_LIST_HEAD(&resource_list);
-> +	ret = acpi_dev_get_resources(adev, &resource_list,
-> +				     acpi_spi_add_resource, spi);
-> +	acpi_dev_free_resource_list(&resource_list);
-> +
-> +	if (ret < 0 || !spi->max_speed_hz) {
-> +		spi_dev_put(spi);
-> +		return AE_OK;
-> +	}
-> +
-> +	strlcpy(spi->modalias, dev_name(&adev->dev), sizeof(spi->modalias));
-> +	if (spi_add_device(spi)) {
-> +		dev_err(&master->dev, "failed to add SPI device %s from ACPI\n",
-> +			dev_name(&adev->dev));
-> +		spi_dev_put(spi);
-> +	}
-> +
-> +	return AE_OK;
-> +}
-> +
-> +static void acpi_register_spi_devices(struct spi_master *master)
-> +{
-> +	acpi_status status;
-> +	acpi_handle handle;
-> +
-> +	handle = ACPI_HANDLE(&master->dev);
-> +	if (!handle)
-> +		return;
-> +
-> +	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, 1,
-> +				     acpi_spi_add_device, NULL,
-> +				     master, NULL);
-> +	if (ACPI_FAILURE(status))
-> +		dev_warn(&master->dev, "failed to enumerate SPI slaves\n");
-> +}
-> +#else
-> +static inline void acpi_register_spi_devices(struct spi_master *master) {}
-> +#endif /* CONFIG_ACPI */
-> +
->  static void spi_master_release(struct device *dev)
->  {
->  	struct spi_master *master;
-> @@ -1023,8 +1123,9 @@ int spi_register_master(struct spi_master *master)
->  		spi_match_master_to_boardinfo(master, &bi->board_info);
->  	mutex_unlock(&board_lock);
->  
-> -	/* Register devices from the device tree */
-> +	/* Register devices from the device tree and ACPI */
->  	of_register_spi_devices(master);
-> +	acpi_register_spi_devices(master);
->  done:
->  	return status;
->  }
-> -- 
-> 1.7.10.4
+> * Still dunno much about zpodd but IIUC the notification from
+>   zero-power is via ACPI.  To advertise that the device doesn't need
+>   polling, it should also be able to do async notification while
+>   powered up, which isn't covered by zpodd but ATA async notification.
+>   So, ummm... that's another obstacle.  If zpodd requires the device
+>   to support ATA async notification, it might not be too bad tho.
+> 
+> Thanks.
 > 
 
--- 
-Grant Likely, B.Sc, P.Eng.
-Secret Lab Technologies, Ltd.
