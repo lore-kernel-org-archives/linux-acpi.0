@@ -1,63 +1,103 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH v2 2/3] aerdrv: Enhanced AER logging
-Date: Thu, 29 Nov 2012 17:12:38 -0800
-Message-ID: <1354237958.4275.4.camel@joe-AO722>
-References: <20121129225800.8405.83305.stgit@grignak.americas.hpqcorp.net>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [RFC PATCH v3 3/3] acpi_memhotplug: Allow eject to proceed on
+ rebind scenario
+Date: Thu, 29 Nov 2012 18:09:38 -0700
+Message-ID: <1354237778.7776.98.camel@misato.fc.hp.com>
+References: <1353693037-21704-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
+	 <3341852.kzFLTzlKxq@vostro.rjw.lan>
+	 <1354231039.7776.80.camel@misato.fc.hp.com>
+	 <1525935.BNLeevluWK@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20121129225800.8405.83305.stgit@grignak.americas.hpqcorp.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lance Ortiz <lance.ortiz@hp.com>
-Cc: bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, bp@alien8.de, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1525935.BNLeevluWK@vostro.rjw.lan>
+Sender: owner-linux-mm@kvack.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, Wen Congyang <wency@cn.fujitsu.com>, Wen Congyang <wencongyang@gmail.com>, isimatu.yasuaki@jp.fujitsu.com, lenb@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2012-11-29 at 15:58 -0700, Lance Ortiz wrote:
-> This patch will provide a more reliable and easy way for user-space
-> applications to have access to AER logs rather than reading them from the
-> message buffer. It also provides a way to notify user-space when an AER
-> event occurs.
-[]
->  0 files changed, 0 insertions(+), 0 deletions(-)
+On Fri, 2012-11-30 at 01:13 +0100, Rafael J. Wysocki wrote:
+> On Thursday, November 29, 2012 04:17:19 PM Toshi Kani wrote:
+> > On Thu, 2012-11-29 at 23:11 +0100, Rafael J. Wysocki wrote:
+> > > On Thursday, November 29, 2012 02:46:44 PM Toshi Kani wrote:
+> > > > On Thu, 2012-11-29 at 22:23 +0100, Rafael J. Wysocki wrote:
+> > > > > On Thursday, November 29, 2012 01:38:39 PM Toshi Kani wrote:
+> > > > > Now, that need not harm functionality, and that's why I proposed the
+> > > > > eject_forbidden flag, so that .remove() can say "I'm not done, please
+> > > > > rollback", in which case the device can happily function going forward,
+> > > > > even if we don't rebind the driver to it.
+> > > > 
+> > > > A partially trimmed acpi_device is hard to rollback.  acpi_device should
+> > > > be either trimmed completely or intact.
+> > > 
+> > > I may or may not agree, depending on what you mean by "trimmed". :-)
+> > > 
+> > > > When a function failed to trim
+> > > > an acpi_device, it needs to rollback its operation for the device before
+> > > > returning an error.
+> > > 
+> > > Unless it is .remove(), because .remove() is supposed to always succeed
+> > > (ie. unbind the driver from the device).  However, it may signal the caller
+> > > that something's fishy, by setting a flag in the device object, for example.
+> > 
+> > Right, .remove() cannot fail.  We still need to check if we should
+> > continue to use .remove(), though.
+> > 
+> > As for the flag, are you thinking that we call acpi_bus_trim() with
+> > rmdevice false first, so that it won't remove acpi_device?
+> 
+> I'm not sure if that's going to help.
+> 
+> Definitely, .remove() should just unbind the driver from the device.
+> That's what it's supposed to do.  Still, it may leave some information for
+> the caller in the device structure itself.  For example, "I have unbound
+> from the device, but it is not safe to remove it physically".
 
-Those are odd patch statistics
+Right.
 
-> diff --git a/drivers/acpi/apei/cper.c b/drivers/acpi/apei/cper.c
-[]
-> @@ -249,6 +250,10 @@ static const char *cper_pcie_port_type_strs[] = {
->  static void cper_print_pcie(const char *pfx, const struct cper_sec_pcie *pcie,
->  			    const struct acpi_hest_generic_data *gdata)
->  {
-> +#ifdef CONFIG_ACPI_APEI_PCIEAER
-> +	struct pci_dev *dev;
-> +#endif
-> +
->  	if (pcie->validation_bits & CPER_PCIE_VALID_PORT_TYPE)
->  		printk("%s""port_type: %d, %s\n", pfx, pcie->port_type,
->  		       pcie->port_type < ARRAY_SIZE(cper_pcie_port_type_strs) ?
-> @@ -281,9 +286,17 @@ static void cper_print_pcie(const char *pfx, const struct cper_sec_pcie *pcie,
->  	"%s""bridge: secondary_status: 0x%04x, control: 0x%04x\n",
->  	pfx, pcie->bridge.secondary_status, pcie->bridge.control);
->  #ifdef CONFIG_ACPI_APEI_PCIEAER
-> -	if (pcie->validation_bits & CPER_PCIE_VALID_AER_INFO) {
-> +	dev = pci_get_domain_bus_and_slot(pcie->device_id.segment,
-> +			pcie->device_id.bus, pcie->device_id.function);
-> +	if (!dev)
-> +		printk("PCI AER Cannot get PCI device %04x:%02x:%02x.%d\n",
-> +			pcie->device_id.segment, pcie->device_id.bus,
-> +			pcie->device_id.slot, pcie->device_id.function);
-> +
-> +	if (pcie->validation_bits & CPER_PCIE_VALID_AER_INFO && dev) {
->  		struct aer_capability_regs *aer_regs = (void *)pcie->aer_info;
-> -		cper_print_aer(pfx, gdata->error_severity, aer_regs);
-> +		cper_print_aer(dev, gdata->error_severity, aer_regs);
-> +		pci_dev_put(dev);
->  	}
+> I'm now thinking that we may need to rework the trimming so that
+> .remove() is called for all drivers first and the struct acpi_device
+> objects are not removed at this stage.  Then, if .remove() from one
+> driver signals the situation like above, the routine will have to
+> rebind the drivers that have been unbound and we're done.
+> 
+> After that stage, when all drivers have been unbound, we should be
+> able to go for full eject.  First, we can drop all struct acpi_device
+> objects in the relevant subtree and then we can run _EJ0.
 
-This could be written something like:
-	dev = etc..
-	if (!dev) {
-		pr_err(etc...)
-	} else if {pcie->validation_bits & ...) {
-		etc...
+I agree that such approach is worth pursuing.
+
+> > > > This is because only the failed function has enough
+> > > > context to rollback when an error occurred in the middle of its
+> > > > procedure.
+> > > 
+> > > Not really.  If it actually removes the struct acpi_device then the caller
+> > > may run acpi_bus_scan() on that device if necessary.  There may be a problem
+> > > if the device has an associated physical node (or more of them), but that
+> > > requires special care anyway.
+> > 
+> > Well, hot-remove to a device fails when there is a reason to fail.  IOW,
+> > such reason prevented the device to be removed safely.  So, I think we
+> > need to put it back to the original state in this case.  Removing it by
+> > ignoring the cause of failure sounds unsafe to me.  Some status/data may
+> > be left un-deleted as a result.
+> 
+> Again, I may or may not agree with that, depending on whether you're talking
+> about physical devices or about struct acpi_device objects.
+
+Sorry, by "hot-remove a device", I was referring removing struct
+acpi_device and off-lining its resource.  By "left un-delted", I was
+referring its resource left un-deleted, such as memory ranges.
+
+> Anyway, I agree that removing struct acpi_device objects may not be worth the
+> effort if we're going to re-create them in a while, because that may be costly.
+
+Thanks,
+-Toshi
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
