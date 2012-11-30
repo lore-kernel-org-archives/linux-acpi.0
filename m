@@ -1,59 +1,164 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: Re: [PATCH 1/3] aerdrv: Trace Event for AER
-Date: Fri, 30 Nov 2012 06:39:11 -0500
-Message-ID: <1354275551.6276.140.camel@gandalf.local.home>
-References: <20121129215443.5483.43364.stgit@grignak.americas.hpqcorp.net>
-	 <1354240279.6276.131.camel@gandalf.local.home>
-	 <20121130105311.GA6869@liondog.tnic>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v4 1/3] gpio / ACPI: add ACPI support
+Date: Fri, 30 Nov 2012 12:27:36 +0100
+Message-ID: <12006996.3m5RgzuPQb@vostro.rjw.lan>
+References: <1353407384-26880-1-git-send-email-mika.westerberg@linux.intel.com> <1353435212-15325-2-git-send-email-mika.westerberg@linux.intel.com> <20121130112057.D34CA3E14C4@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-15"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hrndva-omtalb.mail.rr.com ([71.74.56.122]:26232 "EHLO
-	hrndva-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750897Ab2K3LjO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Nov 2012 06:39:14 -0500
-In-Reply-To: <20121130105311.GA6869@liondog.tnic>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20121130112057.D34CA3E14C4@localhost>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Grant Likely <grant.likely@secretlab.ca>, Mika Westerberg <mika.westerberg@linux.intel.com>, linus.walleij@linaro.org, w.sang@pengutronix.de, rafael.j.wysocki@intel.com, linux-kernel@vger.kernel.org, lenb@kernel.org, broonie@opensource.wolfsonmicro.com, khali@linux-fr.org, ben-linux@fluff.org, bhelgaas@google.com, mathias.nyman@linux.intel.com
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: Lance Ortiz <lance.ortiz@hp.com>, bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, 2012-11-30 at 11:53 +0100, Borislav Petkov wrote:
-> On Thu, Nov 29, 2012 at 08:51:19PM -0500, Steven Rostedt wrote:
-> > >  include/ras/aer_event.h |   77 +++++++++++++++++++++++++++++++++++++++++++++++
+On Friday, November 30, 2012 11:20:57 AM Grant Likely wrote:
+> On Tue, 20 Nov 2012 20:13:30 +0200, Mika Westerberg <mika.westerberg@linux.intel.com> wrote:
+> > From: Mathias Nyman <mathias.nyman@linux.intel.com>
 > > 
-> > Is there a reason this header is here? Egad, I never noticed the
-> > ras_event.h that is there. This include/ras directory was created for
-> > the sole purpose of trace events! This is not the way to do this.
+> > Add support for translating ACPI GPIO pin numbers to Linux GPIO API pins.
+> > Needs a gpio controller driver with the acpi handler hook set.
+> > 
+> > Drivers can use acpi_get_gpio() to translate ACPI5 GpioIO and GpioInt
+> > resources to Linux GPIO's.
+> > 
+> > Signed-off-by: Mathias Nyman <mathias.nyman@linux.intel.com>
+> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 > 
-> Well, the idea for the ras event was to be able to use it in multiple
-> places. It is currently used only by EDAC but it could be that memory
-> errors could be reported by other agents which would reuse that TP.
+> Acked-by: Grant Likely <grant.likely@secretlab.ca>
 > 
+> This series goes together, so feel free to take it in whatever tree the
+> rest are merged through.
 
-If it's generic, then place it into the include/trace/events directory,
-the you don't need to have the TRACE_INCLUDE_PATH as that is the default
-path the macros will use.
+I will, thanks a lot!
 
-> > Please look at the sample in samples/trace_events/
+Rafael
+
+
+> > ---
+> >  drivers/gpio/Kconfig        |    4 ++++
+> >  drivers/gpio/Makefile       |    1 +
+> >  drivers/gpio/gpiolib-acpi.c |   54 +++++++++++++++++++++++++++++++++++++++++++
+> >  include/linux/acpi_gpio.h   |   19 +++++++++++++++
+> >  4 files changed, 78 insertions(+)
+> >  create mode 100644 drivers/gpio/gpiolib-acpi.c
+> >  create mode 100644 include/linux/acpi_gpio.h
 > > 
-> > The proper way is to keep the header by the driver. Then you can simply
-> > include the header with "aer_event.h".
-> > 
-> > But to have the macro magic work, you need to modify the Makefile to
-> > have something like:
-> > 
-> > CFLAGS_aerdrv_errprint.o = -I$(src)
+> > diff --git a/drivers/gpio/Kconfig b/drivers/gpio/Kconfig
+> > index f11d8e3..5c9b384 100644
+> > --- a/drivers/gpio/Kconfig
+> > +++ b/drivers/gpio/Kconfig
+> > @@ -49,6 +49,10 @@ config OF_GPIO
+> >  	def_bool y
+> >  	depends on OF
+> >  
+> > +config GPIO_ACPI
+> > +	def_bool y
+> > +	depends on ACPI
+> > +
+> >  config DEBUG_GPIO
+> >  	bool "Debug GPIO calls"
+> >  	depends on DEBUG_KERNEL
+> > diff --git a/drivers/gpio/Makefile b/drivers/gpio/Makefile
+> > index 9aeed67..420dbac 100644
+> > --- a/drivers/gpio/Makefile
+> > +++ b/drivers/gpio/Makefile
+> > @@ -4,6 +4,7 @@ ccflags-$(CONFIG_DEBUG_GPIO)	+= -DDEBUG
+> >  
+> >  obj-$(CONFIG_GPIOLIB)		+= gpiolib.o devres.o
+> >  obj-$(CONFIG_OF_GPIO)		+= gpiolib-of.o
+> > +obj-$(CONFIG_GPIO_ACPI)		+= gpiolib-acpi.o
+> >  
+> >  # Device drivers. Generally keep list sorted alphabetically
+> >  obj-$(CONFIG_GPIO_GENERIC)	+= gpio-generic.o
+> > diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+> > new file mode 100644
+> > index 0000000..cbad6e9
+> > --- /dev/null
+> > +++ b/drivers/gpio/gpiolib-acpi.c
+> > @@ -0,0 +1,54 @@
+> > +/*
+> > + * ACPI helpers for GPIO API
+> > + *
+> > + * Copyright (C) 2012, Intel Corporation
+> > + * Authors: Mathias Nyman <mathias.nyman@linux.intel.com>
+> > + *          Mika Westerberg <mika.westerberg@linux.intel.com>
+> > + *
+> > + * This program is free software; you can redistribute it and/or modify
+> > + * it under the terms of the GNU General Public License version 2 as
+> > + * published by the Free Software Foundation.
+> > + */
+> > +
+> > +#include <linux/errno.h>
+> > +#include <linux/gpio.h>
+> > +#include <linux/export.h>
+> > +#include <linux/acpi_gpio.h>
+> > +#include <linux/acpi.h>
+> > +
+> > +static int acpi_gpiochip_find(struct gpio_chip *gc, void *data)
+> > +{
+> > +	if (!gc->dev)
+> > +		return false;
+> > +
+> > +	return ACPI_HANDLE(gc->dev) == data;
+> > +}
+> > +
+> > +/**
+> > + * acpi_get_gpio() - Translate ACPI GPIO pin to GPIO number usable with GPIO API
+> > + * @path:	ACPI GPIO controller full path name, (e.g. "\\_SB.GPO1")
+> > + * @pin:	ACPI GPIO pin number (0-based, controller-relative)
+> > + *
+> > + * Returns GPIO number to use with Linux generic GPIO API, or errno error value
+> > + */
+> > +
+> > +int acpi_get_gpio(char *path, int pin)
+> > +{
+> > +	struct gpio_chip *chip;
+> > +	acpi_handle handle;
+> > +	acpi_status status;
+> > +
+> > +	status = acpi_get_handle(NULL, path, &handle);
+> > +	if (ACPI_FAILURE(status))
+> > +		return -ENODEV;
+> > +
+> > +	chip = gpiochip_find(handle, acpi_gpiochip_find);
+> > +	if (!chip)
+> > +		return -ENODEV;
+> > +
+> > +	if (!gpio_is_valid(chip->base + pin))
+> > +		return -EINVAL;
+> > +
+> > +	return chip->base + pin;
+> > +}
+> > +EXPORT_SYMBOL_GPL(acpi_get_gpio);
+> > diff --git a/include/linux/acpi_gpio.h b/include/linux/acpi_gpio.h
+> > new file mode 100644
+> > index 0000000..91615a3
+> > --- /dev/null
+> > +++ b/include/linux/acpi_gpio.h
+> > @@ -0,0 +1,19 @@
+> > +#ifndef _LINUX_ACPI_GPIO_H_
+> > +#define _LINUX_ACPI_GPIO_H_
+> > +
+> > +#include <linux/errno.h>
+> > +
+> > +#ifdef CONFIG_GPIO_ACPI
+> > +
+> > +int acpi_get_gpio(char *path, int pin);
+> > +
+> > +#else /* CONFIG_GPIO_ACPI */
+> > +
+> > +static inline int acpi_get_gpio(char *path, int pin)
+> > +{
+> > +	return -ENODEV;
+> > +}
+> > +
+> > +#endif /* CONFIG_GPIO_ACPI */
+> > +
+> > +#endif /* _LINUX_ACPI_GPIO_H_ */
 > 
-> So I'm guessing that every .c file including the TP should also -I
-> include the TP definition header wherever it is. Is that agreeable?
-
-You only need the -I$(src) for the .c file that uses the
-CREATE_TRACE_POINTS macro, as the trace point macro magic headers
-require it to find the TP header. Other files just need "foo.h", or
-<trace/events/foo.h> if it's in the generic location.
-
--- Steve
-
-
+> 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
