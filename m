@@ -1,67 +1,164 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: Runtime PM/PCI D3 issue
-Date: Fri, 30 Nov 2012 16:57:09 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.1211301650470.1362-100000@iolanthe.rowland.org>
-References: <20121130213600.GA5056@xanatos>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v3 1/3] aerdrv: Trace Event for AER
+Date: Sat, 1 Dec 2012 11:55:10 +0100
+Message-ID: <20121201105510.GB7835@liondog.tnic>
+References: <20121130213330.7649.51101.stgit@grignak.americas.hpqcorp.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:43839 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755764Ab2K3V5K (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Nov 2012 16:57:10 -0500
-In-Reply-To: <20121130213600.GA5056@xanatos>
+Received: from mail.skyhub.de ([78.46.96.112]:57735 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750709Ab2LAKzO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 1 Dec 2012 05:55:14 -0500
+Content-Disposition: inline
+In-Reply-To: <20121130213330.7649.51101.stgit@grignak.americas.hpqcorp.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sarah Sharp <sarah.a.sharp@linux.intel.com>
-Cc: linux-usb@vger.kernel.org, linux-pm@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: Lance Ortiz <lance.ortiz@hp.com>
+Cc: bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, 30 Nov 2012, Sarah Sharp wrote:
-
-> I've been trying to test D3 on the xHCI host controller for my Lenovo
-> x230 laptop.  However, the host controller (and other PCI devices) never
-> seem to go into D3.  This happens on a modified version of 3.7-rc6
-> (Greg KH's usb-next branch plus a couple patches) and on 3.6.6.
-
-Including Tianyu's stuff?
-
-> I enable runtime PM for the PCI device:
+On Fri, Nov 30, 2012 at 02:33:30PM -0700, Lance Ortiz wrote:
+> This header file will define a new trace event that will be triggered when
+> a AER event occurs.  The following data will be provided to the trace
+> event.
 > 
-> root@xanatos:/sys/bus/pci/devices# echo auto > 0000:00:14.0/power/control
-> root@xanatos:/sys/bus/pci/devices# cat 0000:00:14.0/power/control
-> auto
+> char * name -	String containing the device path
+
+Can we explain that device path more, even with an example? Something like
+"position of the device in the PCI hierarchy, i.e. 0000:05:00.0"
+
+> u32 status - 	Either the correctable or uncorrectable register
+> 		indicating what error or errors have been see.
+
+							  seen
+
+> u8 severity - 	error severity 0:NONFATAL 1:FATAL 2:CORRECTED
 > 
-> Both the USB 2.0 and USB 3.0 bus children under the xHCI host controller
-> are also set to auto runtime PM:
+> The trace event will also provide a trace string that may look like:
 > 
-> root@xanatos:/sys/bus/pci/devices# lsusb -t
-> 3-1.6:1.0: No such file or directory
-> 3-1.6:1.1: No such file or directory
-> /:  Bus 04.Port 1: Dev 1, Class=root_hub, Driver=ehci-pci/3p, 480M
->     |__ Port 1: Dev 2, If 0, Class=hub, Driver=hub/8p, 480M
-> /:  Bus 03.Port 1: Dev 1, Class=root_hub, Driver=ehci-pci/3p, 480M
-> /:  Bus 02.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/4p, 5000M
-> /:  Bus 01.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/4p, 480M
-> root@xanatos:/sys/bus/pci/devices# cat /sys/bus/usb/devices/usb1/power/control
-> auto
-> root@xanatos:/sys/bus/pci/devices# cat /sys/bus/usb/devices/usb2/power/control
-> auto
+> "0000:05:00.0 PCIe Bus Error:severity=Uncorrected (Non-Fatal), Poisoned
+> TLP"
 > 
-> But dmesg never shows the bus or host being suspended.  The
-> runtime_status remains active, and the runtime_suspended_time remains at
-> zero.  There are no USB devices under the xHCI host, so I'm not sure why
-> the host isn't being suspended.  Is there some new runtime PM sysfs file
-> that I'm missing?
+> v1-v2 Move header from include/ras/aer_event.h to
+> include/trace/events/ras.h
+> 
+> Signed-off-by: Lance Ortiz <lance.ortiz@hp.com>
+> ---
+> 
+>  include/trace/events/ras.h |   77 ++++++++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 77 insertions(+), 0 deletions(-)
+>  create mode 100644 include/trace/events/ras.h
+> 
+> diff --git a/include/trace/events/ras.h b/include/trace/events/ras.h
+> new file mode 100644
+> index 0000000..f77d009
+> --- /dev/null
+> +++ b/include/trace/events/ras.h
+> @@ -0,0 +1,77 @@
+> +#undef TRACE_SYSTEM
+> +#define TRACE_SYSTEM aer_event
+> +#define TRACE_INCLUDE_FILE ras 
 
-No.
+Applying: aerdrv: Trace Event for AER
+/home/boris/kernel/linux-2.6/.git/rebase-apply/patch:15: trailing whitespace.
+#define TRACE_INCLUDE_FILE ras 
+warning: 1 line adds whitespace errors.
 
-The controller can't suspend until the root hub is suspended.  Did you 
-check the various runtime status values for the root hub, its 
-interface, and Tianyu's new port devices?
+> +
+> +#if !defined(_TRACE_AER_H) || defined(TRACE_HEADER_MULTI_READ)
+> +#define _TRACE_AER_H
+> +
+> +#include <linux/tracepoint.h>
+> +#include <linux/edac.h>
+> +
+> +
+> +/*
+> + * Anhance Error Reporting (AER) PCIE Report Error
 
-In Greg's usb-next branch, the port devices are disabled for runtime
-PM.  But if you are testing Tianyu's new patches then they aren't.  
-They could be preventing your root hubs from suspending.
+      PCIE Advanced Error Reporting (AER) tracepoint
 
-Alan Stern
 
+> + *
+> + * These events are generated when hardware detects a corrected or
+> + * uncorrected event on a pci express device and reports
+
+			     PCIE device. (no need for "and reports errors")
+
+> + * errors.  The event reports the following data.
+
+	       The event record has the following structure:
+
+> + *
+> + * char * dev_name -	String containing the device identification
+> + * u32 status -		Either the correctable or uncorrectable register
+> + *			indicating what error or errors have been seen
+> + * u8 severity -	error severity 0:NONFATAL 1:FATAL 2:CORRECTED
+> + */
+> +
+> +#define correctable_error_string			\
+> +	{BIT(0),	"Receiver Error"},		\
+> +	{BIT(6),	"Bad TLP"},			\
+> +	{BIT(7),	"Bad DLLP"},			\
+> +	{BIT(8),	"RELAY_NUM Rollover"},		\
+> +	{BIT(12),	"Replay Timer Timeout"},	\
+> +	{BIT(13),	"Advisory Non-Fatal"}
+> +
+> +#define uncorrectable_error_string			\
+> +	{BIT(4),	"Data Link Protocol"},		\
+> +	{BIT(12),	"Poisoned TLP"},		\
+> +	{BIT(13),	"Flow Control Protocol"},	\
+> +	{BIT(14),	"Completion Timeout"},		\
+> +	{BIT(15),	"Completer Abort"},		\
+> +	{BIT(16),	"Unexpected Completion"},	\
+> +	{BIT(17),	"Receiver Overflow"},		\
+> +	{BIT(18),	"Malformed TLP"},		\
+> +	{BIT(19),	"ECRC"},			\
+> +	{BIT(20),	"Unsupported Request"}
+
+I'm wondering whether something else PCIe could use those error types
+but I guess they'll pick them up from here if needed.
+
+> +
+> +TRACE_EVENT(aer_event,
+> +	TP_PROTO(const char *dev_name,
+> +		 const u32 status,
+> +		 const u8 severity),
+> +
+> +	TP_ARGS(dev_name, status, severity),
+> +
+> +	TP_STRUCT__entry(
+> +		__string(	dev_name,	dev_name	)
+> +		__field(	u32,		status		)
+> +		__field(	u8,		severity	)
+> +	),
+> +
+> +	TP_fast_assign(
+> +		__assign_str(dev_name, dev_name);
+> +		__entry->status		= status;
+> +		__entry->severity	= severity;
+> +	),
+> +
+> +	TP_printk("%s PCIe Bus Error: severity=%s, %s\n",
+> +		__get_str(dev_name),
+> +		(__entry->severity == HW_EVENT_ERR_CORRECTED) ? "Corrected" :
+> +			((__entry->severity == HW_EVENT_ERR_FATAL) ?
+> +			"Fatal" : "Uncorrected"),
+> +		__entry->severity == HW_EVENT_ERR_CORRECTED ?
+> +		__print_flags(__entry->status, "|", correctable_error_string) :
+> +		__print_flags(__entry->status, "|", uncorrectable_error_string))
+> +);
+> +
+> +#endif /* _TRACE_AER_H */
+> +
+> +/* This part must be outside protection */
+> +#include <trace/define_trace.h>
+
+Apart from the minor issues above:
+
+Acked-by: Borislav Petkov <bp@alien8.de>
+
+Thanks.
+
+-- 
+Regards/Gruss,
+    Boris.
