@@ -1,38 +1,105 @@
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH v3 1/3] aerdrv: Trace Event for AER
-Date: Sat, 1 Dec 2012 11:28:25 -0200 (BRST)
-Message-ID: <alpine.LFD.2.02.1212011127560.3172@localhost.localdomain>
-References: <20121130213330.7649.51101.stgit@grignak.americas.hpqcorp.net> <20121201093614.720aa96a@redhat.com> <20121201114310.GA7853@liondog.tnic>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v3 2/3] aerdrv: Enhanced AER logging
+Date: Sat, 1 Dec 2012 16:51:30 +0100
+Message-ID: <20121201155130.GA12274@liondog.tnic>
+References: <20121130213330.7649.51101.stgit@grignak.americas.hpqcorp.net>
+ <20121130213337.7649.6709.stgit@grignak.americas.hpqcorp.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20121201114310.GA7853@liondog.tnic>
+Content-Disposition: inline
+In-Reply-To: <20121130213337.7649.6709.stgit@grignak.americas.hpqcorp.net>
 Sender: linux-pci-owner@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>, Lance Ortiz <lance.ortiz@hp.com>, bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, rostedt@goodmis.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Lance Ortiz <lance.ortiz@hp.com>
+Cc: bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Fri, Nov 30, 2012 at 02:33:37PM -0700, Lance Ortiz wrote:
+> This patch will provide a more reliable and easy way for user-space
+> applications to have access to AER logs rather than reading them from the
+> message buffer. It also provides a way to notify user-space when an AER
+> event occurs.
+> 
+> The aer driver is updated to generate a trace event of function 'aer_event'
+> when an AER occurs.
 
+... when a PCIe error is reported over the AER interface.
 
+> The trace event was added to both the interrupt
+> based aer path and the firmware first path
+> 
+> v1-v2 fix compile errors in ifdefs.
+> v2-v3 Update to new location of trace header. Update print to remove
+> warning.
+> 
+> Signed-off-by: Lance Ortiz <lance.ortiz@hp.com>
+> ---
+> 
+>  drivers/acpi/apei/cper.c               |   17 +++++++++++++++--
+>  drivers/pci/pcie/aer/aerdrv_errprint.c |   10 +++++++++-
+>  include/linux/aer.h                    |    2 +-
+>  3 files changed, 25 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/acpi/apei/cper.c b/drivers/acpi/apei/cper.c
+> index e6defd8..e9d6062 100644
+> --- a/drivers/acpi/apei/cper.c
+> +++ b/drivers/acpi/apei/cper.c
+> @@ -29,6 +29,7 @@
+>  #include <linux/time.h>
+>  #include <linux/cper.h>
+>  #include <linux/acpi.h>
+> +#include <linux/pci.h>
+>  #include <linux/aer.h>
+>  
+>  /*
+> @@ -249,6 +250,10 @@ static const char *cper_pcie_port_type_strs[] = {
+>  static void cper_print_pcie(const char *pfx, const struct cper_sec_pcie *pcie,
+>  			    const struct acpi_hest_generic_data *gdata)
+>  {
+> +#ifdef CONFIG_ACPI_APEI_PCIEAER
+> +	struct pci_dev *dev;
+> +#endif
+> +
+>  	if (pcie->validation_bits & CPER_PCIE_VALID_PORT_TYPE)
+>  		printk("%s""port_type: %d, %s\n", pfx, pcie->port_type,
+>  		       pcie->port_type < ARRAY_SIZE(cper_pcie_port_type_strs) ?
+> @@ -281,9 +286,17 @@ static void cper_print_pcie(const char *pfx, const struct cper_sec_pcie *pcie,
+>  	"%s""bridge: secondary_status: 0x%04x, control: 0x%04x\n",
+>  	pfx, pcie->bridge.secondary_status, pcie->bridge.control);
+>  #ifdef CONFIG_ACPI_APEI_PCIEAER
+> -	if (pcie->validation_bits & CPER_PCIE_VALID_AER_INFO) {
+> +	dev = pci_get_domain_bus_and_slot(pcie->device_id.segment,
+> +			pcie->device_id.bus, pcie->device_id.function);
+> +	if (!dev)
+> +		pr_info("PCI AER Cannot get PCI device %04x:%02x:%02x.%d\n",
+> +			pcie->device_id.segment, pcie->device_id.bus,
+> +			pcie->device_id.slot, pcie->device_id.function);
+> +
+> +	if (pcie->validation_bits & CPER_PCIE_VALID_AER_INFO && dev) {
 
-Cheers,
-Mauro
+You don't need to test dev here because you've tested for !dev in the
+line above...
 
-On Sat, 1 Dec 2012, Borislav Petkov wrote:
+>  		struct aer_capability_regs *aer_regs = (void *)pcie->aer_info;
+> -		cper_print_aer(pfx, gdata->error_severity, aer_regs);
+> +		cper_print_aer(dev, gdata->error_severity, aer_regs);
+> +		pci_dev_put(dev);
 
-> On Sat, Dec 01, 2012 at 09:36:14AM -0200, Mauro Carvalho Chehab wrote:
->> Please don't call it as "ras.h". Call it, instead, ras_aer.h
->> (or something similar) as, if we're moving the tracing back to
->> include/trace/events/, the same should happen for the memory error
->> events.
->
-> As you can see yourself, include/trace/events/ contains one header per
-> topic so having ras_event.h and ras_aer.h or whatever, doesn't fit the
-> scheme. IOW, we want all RAS-specific tracepoints to be collected in a
-> header called ras.h like the rest of the subsystems do it. See rcu.h
-> there for a good example.
+... and thus this pci_dev_put() has to be unconditional, i.e. after the
+if test.
 
-Works for me.
+which means that you can simplify the last 4 lines like this:
 
-Regards,
-Mauro
+	if (pcie->validation_bits & CPER_PCIE_VALID_AER_INFO)
+		cper_print_aer(dev, gdata->error_severity,
+			       (struct aer_capability_regs *)pcie->aer_info);
+
+	pci_dev_put(dev);
+
+...
+
+Thanks.
+
+-- 
+Regards/Gruss,
+    Boris.
