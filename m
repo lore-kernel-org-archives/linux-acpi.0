@@ -1,37 +1,33 @@
-From: Borislav Petkov <bp@alien8.de>
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 Subject: Re: [PATCH v3 1/3] aerdrv: Trace Event for AER
-Date: Sat, 1 Dec 2012 11:55:10 +0100
-Message-ID: <20121201105510.GB7835@liondog.tnic>
+Date: Sat, 1 Dec 2012 09:36:14 -0200
+Message-ID: <20121201093614.720aa96a@redhat.com>
 References: <20121130213330.7649.51101.stgit@grignak.americas.hpqcorp.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:57735 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750709Ab2LAKzO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 1 Dec 2012 05:55:14 -0500
-Content-Disposition: inline
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20121130213330.7649.51101.stgit@grignak.americas.hpqcorp.net>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Lance Ortiz <lance.ortiz@hp.com>
-Cc: bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, bp@alien8.de, rostedt@goodmis.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Nov 30, 2012 at 02:33:30PM -0700, Lance Ortiz wrote:
+Em Fri, 30 Nov 2012 14:33:30 -0700
+Lance Ortiz <lance.ortiz@hp.com> escreveu:
+
 > This header file will define a new trace event that will be triggered when
 > a AER event occurs.  The following data will be provided to the trace
 > event.
 > 
 > char * name -	String containing the device path
 
-Can we explain that device path more, even with an example? Something like
-"position of the device in the PCI hierarchy, i.e. 0000:05:00.0"
+You renamed it to dev_name. Please fix it at the commit comments.
 
+> 
 > u32 status - 	Either the correctable or uncorrectable register
 > 		indicating what error or errors have been see.
-
-							  seen
-
+> 
 > u8 severity - 	error severity 0:NONFATAL 1:FATAL 2:CORRECTED
 > 
 > The trace event will also provide a trace string that may look like:
@@ -41,6 +37,11 @@ Can we explain that device path more, even with an example? Something like
 > 
 > v1-v2 Move header from include/ras/aer_event.h to
 > include/trace/events/ras.h
+
+Please don't call it as "ras.h". Call it, instead, ras_aer.h (or something
+similar) as, if we're moving the tracing back to include/trace/events/,
+the same should happen for the memory error events.
+
 > 
 > Signed-off-by: Lance Ortiz <lance.ortiz@hp.com>
 > ---
@@ -58,12 +59,6 @@ Can we explain that device path more, even with an example? Something like
 > +#undef TRACE_SYSTEM
 > +#define TRACE_SYSTEM aer_event
 > +#define TRACE_INCLUDE_FILE ras 
-
-Applying: aerdrv: Trace Event for AER
-/home/boris/kernel/linux-2.6/.git/rebase-apply/patch:15: trailing whitespace.
-#define TRACE_INCLUDE_FILE ras 
-warning: 1 line adds whitespace errors.
-
 > +
 > +#if !defined(_TRACE_AER_H) || defined(TRACE_HEADER_MULTI_READ)
 > +#define _TRACE_AER_H
@@ -74,20 +69,10 @@ warning: 1 line adds whitespace errors.
 > +
 > +/*
 > + * Anhance Error Reporting (AER) PCIE Report Error
-
-      PCIE Advanced Error Reporting (AER) tracepoint
-
-
 > + *
 > + * These events are generated when hardware detects a corrected or
 > + * uncorrected event on a pci express device and reports
-
-			     PCIE device. (no need for "and reports errors")
-
 > + * errors.  The event reports the following data.
-
-	       The event record has the following structure:
-
 > + *
 > + * char * dev_name -	String containing the device identification
 > + * u32 status -		Either the correctable or uncorrectable register
@@ -102,7 +87,13 @@ warning: 1 line adds whitespace errors.
 > +	{BIT(8),	"RELAY_NUM Rollover"},		\
 > +	{BIT(12),	"Replay Timer Timeout"},	\
 > +	{BIT(13),	"Advisory Non-Fatal"}
-> +
+
+Hmm... isn't something missing here? I'm seeing more bits defined at the
+PCIe V3.0 spec for Offset 10h:
+
+bit 14 - Corrected Internal Error 
+bit 15 - Header Log Overflow 
+
 > +#define uncorrectable_error_string			\
 > +	{BIT(4),	"Data Link Protocol"},		\
 > +	{BIT(12),	"Poisoned TLP"},		\
@@ -115,8 +106,15 @@ warning: 1 line adds whitespace errors.
 > +	{BIT(19),	"ECRC"},			\
 > +	{BIT(20),	"Unsupported Request"}
 
-I'm wondering whether something else PCIe could use those error types
-but I guess they'll pick them up from here if needed.
+Hmm... isn't something missing here? I'm seeing more bits defined at the
+PCIe V3.0 spec for Offset 04h:
+
+bit 5 - Surprise Down Error 
+bit 21 - ACS Violation 
+bit 22 - Uncorrectable Internal Error 
+bit 23 - MC Blocked TLP 
+bit 24 - AtomicOp Egress Blocked 
+bit 25 - TLP Prefix Blocked Error 
 
 > +
 > +TRACE_EVENT(aer_event,
@@ -152,13 +150,9 @@ but I guess they'll pick them up from here if needed.
 > +
 > +/* This part must be outside protection */
 > +#include <trace/define_trace.h>
+> 
 
-Apart from the minor issues above:
-
-Acked-by: Borislav Petkov <bp@alien8.de>
-
-Thanks.
 
 -- 
-Regards/Gruss,
-    Boris.
+Regards,
+Mauro
