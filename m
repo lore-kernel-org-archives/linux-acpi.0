@@ -1,70 +1,50 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH] ACPI video: ignore BIOS initial backlight value for HP
- Folio 13-2000
-Date: Sun, 02 Dec 2012 20:49:13 +0800
-Message-ID: <1354452553.2401.3.camel@rzhang1-mobl4>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH] libata: restore acpi disable functionality
+Date: Sun, 2 Dec 2012 06:18:08 -0800
+Message-ID: <20121202141808.GR15930@mtj.dyndns.org>
+References: <50B3044D.4020209@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:54281 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751467Ab2LBMtU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 2 Dec 2012 07:49:20 -0500
+Received: from mail-da0-f46.google.com ([209.85.210.46]:33342 "EHLO
+	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751275Ab2LBOSN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Dec 2012 09:18:13 -0500
+Content-Disposition: inline
+In-Reply-To: <50B3044D.4020209@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, public@stefan-nagy.at, "Zhang, Rui" <rui.zhang@intel.com>
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Jeff Garzik <jgarzik@pobox.com>, Dimitris Damigos <damigos@freemail.gr>, Matthew Garrett <mjg@redhat.com>, Holger Macht <holger@homac.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, linux-ide@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lwe@gmail.com>
 
->From 117af51d695c78bfdf618a183664f0e9f3769b9a Mon Sep 17 00:00:00 2001
-From: Zhang Rui <rui.zhang@intel.com>
-Date: Sun, 2 Dec 2012 10:00:41 +0800
-Subject: [PATCH] ACPI video: ignore BIOS initial backlight value for HP Folio 13-2000
+On Mon, Nov 26, 2012 at 01:55:25PM +0800, Aaron Lu wrote:
+> 
+> Commit 66fa7f215 "libata-acpi: improve ACPI disabling" introdcued the
+> behaviour of disabling ATA ACPI if ata_acpi_on_devcfg failed the 2nd
+> time, but commit 30dcf76ac dropped this behaviour and this caused
+> problem for Dimitris Damigos, where his laptop can not resume correctly.
+> 
+> The bugzilla page for it is:
+> https://bugzilla.kernel.org/show_bug.cgi?id=49331
+> 
+> The problem is, ata_dev_push_id will fail the 2nd time it is invoked,
+> and due to disabling ACPI code is dropped, ata_acpi_on_devcfg which
+> calls ata_dev_push_id will keep failing and eventually made the device
+> disabled.
+> 
+> This patch restores the original behaviour, if acpi failed the 2nd time,
+> disable acpi functionality for the device(and we do not event need to
+> add a debug message for this as it is still there ;-).
+> 
+> Reported-by: Dimitris Damigos <damigos@freemail.gr>
+> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+> Cc: <stable@vger.kernel.org>
 
-Or else the laptop will boot with a dimmed screen.
+Acked-by: Tejun Heo <tj@kernel.org>
 
-https://bugzilla.kernel.org/show_bug.cgi?id=51141
+Jeff?
 
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-Tested-by: Stefan Nagy <public@stefan-nagy.at>
----
- drivers/acpi/video.c |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+Thanks.
 
-diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-index 1e0a9e1..58bddd3 100644
---- a/drivers/acpi/video.c
-+++ b/drivers/acpi/video.c
-@@ -389,6 +389,12 @@ static int __init video_set_bqc_offset(const struct dmi_system_id *d)
- 	return 0;
- }
- 
-+static int video_ignore_initial_backlight(const struct dmi_system_id *d)
-+{
-+	use_bios_initial_backlight = 0;
-+	return 0;
-+}
-+
- static struct dmi_system_id video_dmi_table[] __initdata = {
- 	/*
- 	 * Broken _BQC workaround http://bugzilla.kernel.org/show_bug.cgi?id=13121
-@@ -433,6 +439,14 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
- 		DMI_MATCH(DMI_PRODUCT_NAME, "Aspire 7720"),
- 		},
- 	},
-+	{
-+	 .callback = video_ignore_initial_backlight,
-+	 .ident = "HP Folio 13-2000",
-+	 .matches = {
-+		DMI_MATCH(DMI_BOARD_VENDOR, "Hewlett-Packard"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "HP Folio 13 - 2000 Notebook PC"),
-+		},
-+	},
- 	{}
- };
- 
 -- 
-1.7.9.5
-
-
-
+tejun
