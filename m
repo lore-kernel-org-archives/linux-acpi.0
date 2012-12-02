@@ -1,157 +1,66 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] ACPI / PM: Consolidate suspend-specific and hibernate-specific code
-Date: Sun, 02 Dec 2012 15:26:44 +0100
-Message-ID: <13547150.c09qBD62tA@vostro.rjw.lan>
+From: Tom St Denis <tstdenis@elliptictech.com>
+Subject: Re: Brightness control fails between 3.6.8 and 3.7.0-rc7 (Intel
+ 915/Dell Vostro 3560)
+Date: Sun, 2 Dec 2012 10:33:27 -0500 (EST)
+Message-ID: <1035525993.121797.1354462407778.JavaMail.root@elliptictech.com>
+References: <CAKMK7uG3CvfvmMdusSUQf9+rOv_W1AWmoEqH4EAGgCiTyRfNeg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:37783 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751448Ab2LBOVy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 2 Dec 2012 09:21:54 -0500
+Received: from mx.scalarmail.ca ([98.158.95.75]:25078 "EHLO
+	ironport-01.sms.scalar.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751448Ab2LBPd3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Dec 2012 10:33:29 -0500
+In-Reply-To: <CAKMK7uG3CvfvmMdusSUQf9+rOv_W1AWmoEqH4EAGgCiTyRfNeg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>
+To: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: linux-kernel@vger.kernel.org, intel-gfx <intel-gfx@lists.freedesktop.org>, dri-devel <dri-devel@lists.freedesktop.org>, linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Thanks Daniel so I'm taking back my bug report on the i915 and claiming this as a bug against the acpi_video stack.
 
-Move some suspend-specific and hibernate-specific code from
-acpi_sleep_init() into separate functions to get rid of explicit
-#ifdefs in acpi_sleep_init().  Use pr_info() to start and pr_cont()
-to continue printing the supported ACPI sleep states line.
+What sort of information would the ACPI folk like from me to help diagnose this?
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/sleep.c |   87 +++++++++++++++++++++++++++++----------------------
- 1 file changed, 51 insertions(+), 36 deletions(-)
+Here's a dmesg dump of all ACPI messages.
 
-Index: linux/drivers/acpi/sleep.c
-===================================================================
---- linux.orig/drivers/acpi/sleep.c
-+++ linux/drivers/acpi/sleep.c
-@@ -577,7 +577,28 @@ static const struct platform_suspend_ops
- 	.end = acpi_pm_end,
- 	.recover = acpi_pm_finish,
- };
--#endif /* CONFIG_SUSPEND */
-+
-+static void acpi_sleep_suspend_setup(void)
-+{
-+	int i;
-+
-+	for (i = ACPI_STATE_S1; i < ACPI_STATE_S4; i++) {
-+		acpi_status status;
-+		u8 type_a, type_b;
-+
-+		status = acpi_get_sleep_type_data(i, &type_a, &type_b);
-+		if (ACPI_SUCCESS(status)) {
-+			sleep_states[i] = 1;
-+			pr_cont(" S%d", i);
-+		}
-+	}
-+
-+	suspend_set_ops(old_suspend_ordering ?
-+		&acpi_suspend_ops_old : &acpi_suspend_ops);
-+}
-+#else /* !CONFIG_SUSPEND */
-+static inline void acpi_sleep_suspend_setup(void) {}
-+#endif /* !CONFIG_SUSPEND */
- 
- #ifdef CONFIG_HIBERNATION
- static unsigned long s4_hardware_signature;
-@@ -698,7 +719,30 @@ static const struct platform_hibernation
- 	.restore_cleanup = acpi_pm_thaw,
- 	.recover = acpi_pm_finish,
- };
--#endif /* CONFIG_HIBERNATION */
-+
-+static void acpi_sleep_hibernate_setup(void)
-+{
-+	acpi_status status;
-+	u8 type_a, type_b;
-+
-+	status = acpi_get_sleep_type_data(ACPI_STATE_S4, &type_a, &type_b);
-+	if (ACPI_FAILURE(status))
-+		return;
-+
-+	hibernation_set_ops(old_suspend_ordering ?
-+			&acpi_hibernation_ops_old : &acpi_hibernation_ops);
-+	sleep_states[ACPI_STATE_S4] = 1;
-+	pr_cont(KERN_CONT " S4");
-+	if (nosigcheck)
-+		return;
-+
-+	acpi_get_table(ACPI_SIG_FACS, 1, (struct acpi_table_header **)&facs);
-+	if (facs)
-+		s4_hardware_signature = facs->hardware_signature;
-+}
-+#else /* !CONFIG_HIBERNATION */
-+static inline void acpi_sleep_hibernate_setup(void) {}
-+#endif /* !CONFIG_HIBERNATION */
- 
- int acpi_suspend(u32 acpi_state)
- {
-@@ -734,9 +778,6 @@ int __init acpi_sleep_init(void)
- {
- 	acpi_status status;
- 	u8 type_a, type_b;
--#ifdef CONFIG_SUSPEND
--	int i = 0;
--#endif
- 
- 	if (acpi_disabled)
- 		return 0;
-@@ -744,45 +785,19 @@ int __init acpi_sleep_init(void)
- 	acpi_sleep_dmi_check();
- 
- 	sleep_states[ACPI_STATE_S0] = 1;
--	printk(KERN_INFO PREFIX "(supports S0");
--
--#ifdef CONFIG_SUSPEND
--	for (i = ACPI_STATE_S1; i < ACPI_STATE_S4; i++) {
--		status = acpi_get_sleep_type_data(i, &type_a, &type_b);
--		if (ACPI_SUCCESS(status)) {
--			sleep_states[i] = 1;
--			printk(KERN_CONT " S%d", i);
--		}
--	}
-+	pr_info(PREFIX "(supports S0");
- 
--	suspend_set_ops(old_suspend_ordering ?
--		&acpi_suspend_ops_old : &acpi_suspend_ops);
--#endif
-+	acpi_sleep_suspend_setup();
-+	acpi_sleep_hibernate_setup();
- 
--#ifdef CONFIG_HIBERNATION
--	status = acpi_get_sleep_type_data(ACPI_STATE_S4, &type_a, &type_b);
--	if (ACPI_SUCCESS(status)) {
--		hibernation_set_ops(old_suspend_ordering ?
--			&acpi_hibernation_ops_old : &acpi_hibernation_ops);
--		sleep_states[ACPI_STATE_S4] = 1;
--		printk(KERN_CONT " S4");
--		if (!nosigcheck) {
--			acpi_get_table(ACPI_SIG_FACS, 1,
--				(struct acpi_table_header **)&facs);
--			if (facs)
--				s4_hardware_signature =
--					facs->hardware_signature;
--		}
--	}
--#endif
- 	status = acpi_get_sleep_type_data(ACPI_STATE_S5, &type_a, &type_b);
- 	if (ACPI_SUCCESS(status)) {
- 		sleep_states[ACPI_STATE_S5] = 1;
--		printk(KERN_CONT " S5");
-+		pr_cont(" S5");
- 		pm_power_off_prepare = acpi_power_off_prepare;
- 		pm_power_off = acpi_power_off;
- 	}
--	printk(KERN_CONT ")\n");
-+	pr_cont(")\n");
- 	/*
- 	 * Register the tts_notifier to reboot notifier list so that the _TTS
- 	 * object can also be evaluated when the system enters S5.
+http://pastebin.com/b4XKe5Fk
 
+Tom
+
+----- Original Message -----
+> From: "Daniel Vetter" <daniel.vetter@ffwll.ch>
+> To: "Tom St Denis" <tstdenis@elliptictech.com>
+> Cc: linux-kernel@vger.kernel.org, "intel-gfx" <intel-gfx@lists.freedesktop.org>, "dri-devel"
+> <dri-devel@lists.freedesktop.org>
+> Sent: Sunday, 2 December, 2012 9:42:39 AM
+> Subject: Re: Brightness control fails between 3.6.8 and 3.7.0-rc7 (Intel 915/Dell Vostro 3560)
+> 
+> On Sun, Dec 2, 2012 at 2:49 PM, Tom St Denis
+> <tstdenis@elliptictech.com> wrote:
+> > Ok so on v3.7-rc1 [and I suspect up] I can manually control the
+> > brightness by echoing to
+> >
+> > /sys/class/backlight/intel_backlight/brightness
+> >
+> > But I still can't use the buttons to control it (it only goes one
+> > tick down from max and stops there).  I'm using GNOME3 from a
+> > x86_64 unstable debian install [up to date with latest].
+> >
+> > I just noticed that under v3.7 I have a new directory
+> > /sys/class/backlight/acpi_video1 which is what GNOME is actually
+> > controlling.  I can't disable ACPI video control so is there a
+> > workaround?
+> 
+> Hah, acpi registered a broken backlight driver, which overwrites the
+> intel backlight - for once it's not i915.ko's fault ;-) For a
+> workaround either disable the acpi backlight with
+> acpi_backlight=vendor (iirc) kernel option or teach the X driver that
+> you want a different backlight driver in the xorg.conf (Option
+> "Backlight" "intel_backlight" should do the trick).
+> -Daniel
+> --
+> Daniel Vetter
+> Software Engineer, Intel Corporation
+> +41 (0) 79 365 57 48 - http://blog.ffwll.ch
+> 
