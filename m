@@ -1,18 +1,18 @@
 From: "Ortiz, Lance E" <lance.oritz@hp.com>
-Subject: RE: [PATCH v3 1/3] aerdrv: Trace Event for AER
-Date: Mon, 3 Dec 2012 20:01:46 +0000
-Message-ID: <A961433CDFF2F640A2866803152E61F9516EE717@G4W3218.americas.hpqcorp.net>
-References: <20121130213330.7649.51101.stgit@grignak.americas.hpqcorp.net>
- <20121201093614.720aa96a@redhat.com>
+Subject: RE: [PATCH v4 1/3] aerdrv: Trace Event for AER
+Date: Mon, 3 Dec 2012 20:20:22 +0000
+Message-ID: <A961433CDFF2F640A2866803152E61F9516EE733@G4W3218.americas.hpqcorp.net>
+References: <20121203183305.26636.22979.stgit@grignak.americas.hpqcorp.net>
+ <1354564292.3524.7.camel@joe-AO722>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20121201093614.720aa96a@redhat.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1354564292.3524.7.camel@joe-AO722>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: "bhelgaas@google.com" <bhelgaas@google.com>, "lance_ortiz@hotmail.com" <lance_ortiz@hotmail.com>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>, "tony.luck@intel.com" <tony.luck@intel.com>, "bp@alien8.de" <bp@alien8.de>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Joe Perches <joe@perches.com>
+Cc: "bhelgaas@google.com" <bhelgaas@google.com>, "lance_ortiz@hotmail.com" <lance_ortiz@hotmail.com>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>, "tony.luck@intel.com" <tony.luck@intel.com>, "bp@alien8.de" <bp@alien8.de>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "mchehab@redhat.com" <mchehab@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
 > > +#define correctable_error_string			\
@@ -22,14 +22,7 @@ List-Id: linux-acpi@vger.kernel.org
 > > +	{BIT(8),	"RELAY_NUM Rollover"},		\
 > > +	{BIT(12),	"Replay Timer Timeout"},	\
 > > +	{BIT(13),	"Advisory Non-Fatal"}
-> 
-> Hmm... isn't something missing here? I'm seeing more bits defined at
-> the
-> PCIe V3.0 spec for Offset 10h:
-> 
-> bit 14 - Corrected Internal Error
-> bit 15 - Header Log Overflow
-> 
+> > +
 > > +#define uncorrectable_error_string			\
 > > +	{BIT(4),	"Data Link Protocol"},		\
 > > +	{BIT(12),	"Poisoned TLP"},		\
@@ -42,20 +35,28 @@ List-Id: linux-acpi@vger.kernel.org
 > > +	{BIT(19),	"ECRC"},			\
 > > +	{BIT(20),	"Unsupported Request"}
 > 
-> Hmm... isn't something missing here? I'm seeing more bits defined at
-> the
-> PCIe V3.0 spec for Offset 04h:
-> 
-> bit 5 - Surprise Down Error
-> bit 21 - ACS Violation
-> bit 22 - Uncorrectable Internal Error
-> bit 23 - MC Blocked TLP
-> bit 24 - AtomicOp Egress Blocked
-> bit 25 - TLP Prefix Blocked Error
-> 
+> probably better to prefix these with aer_
 
-I used the same errors defined in the string arrays at the top of aerdrv_errprint.c.  I am not sure why they were left out in that file.  I will investigate and probably add them as a later patch and then include them in aerdrv_errprint.c also.
+If I add aer_ it will conflict with string array in aerdrv_errprint.c
 
-Sound good?
+> 
+> > +	TP_printk("%s PCIe Bus Error: severity=%s, %s\n",
+> > +		__get_str(dev_name),
+> > +		(__entry->severity == HW_EVENT_ERR_CORRECTED) ? "Corrected"
+> :
+> > +			((__entry->severity == HW_EVENT_ERR_FATAL) ?
+> > +			"Fatal" : "Uncorrected"),
+> 
+> unnecessary parentheses
+> 
+> 		__entry->severity == HW_EVENT_ERR_CORRECTED ? "Corrected" :
+> 		__entry->severity == HW_EVENT_ERR_FATAL ? "Fatal" :
+> 		"Uncorrected"),
+> 
+> might be more kernel style conventional
+
+Ok I removed them. 
+
+Thanks
 
 Lance
