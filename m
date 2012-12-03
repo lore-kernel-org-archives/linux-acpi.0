@@ -1,50 +1,31 @@
-From: Jeff Garzik <jgarzik@pobox.com>
-Subject: Re: [PATCH] libata: restore acpi disable functionality
-Date: Mon, 03 Dec 2012 04:58:40 -0500
-Message-ID: <50BC77D0.8040306@pobox.com>
-References: <50B3044D.4020209@intel.com>
+From: Alan Cox <alan@linux.intel.com>
+Subject: Re: [RFC PATCH 1/3] UART: Add UART subsystem as a bus.
+Date: Mon, 3 Dec 2012 11:46:04 +0000
+Message-ID: <20121203114604.079a2721@bob.linux.org.uk>
+References: <cover.1354505471.git.lv.zheng@intel.com>
+	<6d5fc2e0799c12554aa8acdb2d7782ba8643902b.1354505472.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qa0-f46.google.com ([209.85.216.46]:34171 "EHLO
-	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754563Ab2LCJ6o (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Dec 2012 04:58:44 -0500
-In-Reply-To: <50B3044D.4020209@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <6d5fc2e0799c12554aa8acdb2d7782ba8643902b.1354505472.git.lv.zheng@intel.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: Len Brown <len.brown@intel.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-acpi@vger.kernel.org, linux-serial@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: Dimitris Damigos <damigos@freemail.gr>, Tejun Heo <tj@kernel.org>, Matthew Garrett <mjg@redhat.com>, Holger Macht <holger@homac.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, linux-ide@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Aaron Lu <aaron.lwe@gmail.com>
 
-On 11/26/2012 12:55 AM, Aaron Lu wrote:
->
-> Commit 66fa7f215 "libata-acpi: improve ACPI disabling" introdcued the
-> behaviour of disabling ATA ACPI if ata_acpi_on_devcfg failed the 2nd
-> time, but commit 30dcf76ac dropped this behaviour and this caused
-> problem for Dimitris Damigos, where his laptop can not resume correctly.
->
-> The bugzilla page for it is:
-> https://bugzilla.kernel.org/show_bug.cgi?id=49331
->
-> The problem is, ata_dev_push_id will fail the 2nd time it is invoked,
-> and due to disabling ACPI code is dropped, ata_acpi_on_devcfg which
-> calls ata_dev_push_id will keep failing and eventually made the device
-> disabled.
->
-> This patch restores the original behaviour, if acpi failed the 2nd time,
-> disable acpi functionality for the device(and we do not event need to
-> add a debug message for this as it is still there ;-).
->
-> Reported-by: Dimitris Damigos <damigos@freemail.gr>
-> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
-> Cc: <stable@vger.kernel.org>
-> ---
->   drivers/ata/libata-acpi.c | 4 ++++
->   include/linux/libata.h    | 1 +
->   2 files changed, 5 insertions(+)
+> + * uart_tty_find - find the associated TTY device for the UART target
+> + *		   device
+> + * @drv: the low level UART driver
+> + * @dev: the parent physical device for the TTY devices
+> + * @line: the line number of the UART target device
+> + *
 
-applied
+Our top level abstraction is struct tty and struct tty_port. There is
+nothing requiring a serial tty is using the uart helper layer, nor
+should there be, so your code needs to support devices not using the
+uart layer. Otherwise it looks quite reasonable.
 
+our 3.7 tty layer has sysfs nodes on the tty which may also help
 
-
+Alan
