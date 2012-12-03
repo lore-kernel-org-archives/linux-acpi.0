@@ -1,178 +1,108 @@
-From: Hanjun Guo <guohanjun@huawei.com>
-Subject: Re: [RFC PATCH v3 0/3] acpi: Introduce prepare_remove device operation
-Date: Mon, 3 Dec 2012 12:25:42 +0800
-Message-ID: <50BC29C6.6050706@huawei.com>
-References: <1353693037-21704-1-git-send-email-vasilis.liaskovitis@profitbricks.com>   <50B5EFE9.3040206@huawei.com>  <1354128096.26955.276.camel@misato.fc.hp.com> <50B6E936.2080308@huawei.com> <1354228028.7776.56.camel@misato.fc.hp.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v9 06/10] ata: zpodd: check zero power ready status
+Date: Mon, 3 Dec 2012 16:13:21 +0800
+Message-ID: <20121203081321.GA9990@mint-spring.sh.intel.com>
+References: <1352443922-13734-1-git-send-email-aaron.lu@intel.com>
+ <35648985.61QNrr0Knq@vostro.rjw.lan>
+ <1353906191.2523.25.camel@dabdike>
+ <21511277.LLinyDpbAK@vostro.rjw.lan>
+ <20121128013928.GB15971@htj.dyndns.org>
+ <1354092969.2276.49.camel@dabdike>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1354228028.7776.56.camel@misato.fc.hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, linux-acpi@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, wency@cn.fujitsu.com, rjw@sisk.pl, lenb@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Tang Chen <tangchen@cn.fujitsu.com>, Liujiang <jiang.liu@huawei.com>, Huxinwei <huxinwei@huawei.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-scsi-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1354092969.2276.49.camel@dabdike>
+Sender: linux-scsi-owner@vger.kernel.org
+To: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Tejun Heo <tj@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@vger.kernel.org, Jeff Garzik <jgarzik@pobox.com>, Alan Stern <stern@rowland.harvard.edu>, Jeff Wu <jeff.wu@amd.com>, Aaron Lu <aaron.lwe@gmail.com>, linux-ide@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 2012/11/30 6:27, Toshi Kani wrote:
-> On Thu, 2012-11-29 at 12:48 +0800, Hanjun Guo wrote:
->> On 2012/11/29 2:41, Toshi Kani wrote:
->>> On Wed, 2012-11-28 at 19:05 +0800, Hanjun Guo wrote:
->>>> On 2012/11/24 1:50, Vasilis Liaskovitis wrote:
->>>>> As discussed in https://patchwork.kernel.org/patch/1581581/
->>>>> the driver core remove function needs to always succeed. This means we need
->>>>> to know that the device can be successfully removed before acpi_bus_trim / 
->>>>> acpi_bus_hot_remove_device are called. This can cause panics when OSPM-initiated
->>>>> or SCI-initiated eject of memory devices fail e.g with:
->>>>> echo 1 >/sys/bus/pci/devices/PNP0C80:XX/eject
->>>>>
->>>>> since the ACPI core goes ahead and ejects the device regardless of whether the
->>>>> the memory is still in use or not.
->>>>>
->>>>> For this reason a new acpi_device operation called prepare_remove is introduced.
->>>>> This operation should be registered for acpi devices whose removal (from kernel
->>>>> perspective) can fail.  Memory devices fall in this category.
->>>>>
->>>>> acpi_bus_remove() is changed to handle removal in 2 steps:
->>>>> - preparation for removal i.e. perform part of removal that can fail. Should
->>>>>   succeed for device and all its children.
->>>>> - if above step was successfull, proceed to actual device removal
->>>>
->>>> Hi Vasilis,
->>>> We met the same problem when we doing computer node hotplug, It is a good idea
->>>> to introduce prepare_remove before actual device removal.
->>>>
->>>> I think we could do more in prepare_remove, such as rollback. In most cases, we can
->>>> offline most of memory sections except kernel used pages now, should we rollback
->>>> and online the memory sections when prepare_remove failed ?
->>>
->>> I think hot-plug operation should have all-or-nothing semantics.  That
->>> is, an operation should either complete successfully, or rollback to the
->>> original state.
->>
->> Yes, we have the same point of view with you. We handle this problem in the ACPI
->> based hot-plug framework as following:
->> 1) hot add / hot remove complete successfully if no error happens;
->> 2) automatic rollback to the original state if meets some error ;
->> 3) rollback to the original if hot-plug operation cancelled by user ;
+On Wed, Nov 28, 2012 at 08:56:09AM +0000, James Bottomley wrote:
+> On Tue, 2012-11-27 at 17:39 -0800, Tejun Heo wrote:
+> > Hey, Rafael.
+> > 
+> > On Wed, Nov 28, 2012 at 01:51:00AM +0100, Rafael J. Wysocki wrote:
+> > > Having considered that a bit more I'm now thinking that in fact the power state
+> > > the device is in at the moment doesn't really matter, so the polling code need
+> > > not really know what PM is doing.  What it needs to know is that the device
+> > > will generate a hardware event when something interesting happens, so it is not
+> > > necessary to poll it.
+> > > 
+> > > In this particular case it is related to power management (apparently, hardware
+> > > events will only be generated after the device has been put into ACPI D3cold,
+> > > or so Aaron seems to be claiming), but it need not be in general, at least in
+> > > principle.
+> > > 
+> > > It looks like we need an "event driven" flag that the can be set in the lower
+> > > layers and read by the upper layers.  I suppose this means it would need to be
+> > > in struct device, but not necessarily in the PM-specific part of it.
+> > 
+> > We already have that.  That's what gendisk->async_events is for (as
+> > opposed to gendisk->events).  If all events are async_events, block
+> > won't poll for events, but I'm not sure that's the golden bullet.
+> > 
+> > * None implements async_events yet and an API is missing -
+> >   disk_check_events() - which is trivial to add, but it's the same
+> >   story.  We'll need a mechanism to shoot up notification from libata
+> >   to block layer.  It's admittedly easier to justify routing through
+> >   SCSI tho.  So, we're mostly shifting the problem.  Given that async
+> >   events is nice to have, so it isn't a bad idea.
 > 
-> Cool!
->  
->>>> As you may know, the ACPI based hotplug framework we are working on already addressed
->>>> this problem, and the way we slove this problem is a bit like yours.
->>>>
->>>> We introduce hp_ops in struct acpi_device_ops:
->>>> struct acpi_device_ops {
->>>> 	acpi_op_add add;
->>>> 	acpi_op_remove remove;
->>>> 	acpi_op_start start;
->>>> 	acpi_op_bind bind;
->>>> 	acpi_op_unbind unbind;
->>>> 	acpi_op_notify notify;
->>>> #ifdef	CONFIG_ACPI_HOTPLUG
->>>> 	struct acpihp_dev_ops *hp_ops;
->>>> #endif	/* CONFIG_ACPI_HOTPLUG */
->>>> };
->>>>
->>>> in hp_ops, we divide the prepare_remove into six small steps, that is:
->>>> 1) pre_release(): optional step to mark device going to be removed/busy
->>>> 2) release(): reclaim device from running system
->>>> 3) post_release(): rollback if cancelled by user or error happened
->>>> 4) pre_unconfigure(): optional step to solve possible dependency issue
->>>> 5) unconfigure(): remove devices from running system
->>>> 6) post_unconfigure(): free resources used by devices
->>>>
->>>> In this way, we can easily rollback if error happens.
->>>> How do you think of this solution, any suggestion ? I think we can achieve
->>>> a better way for sharing ideas. :)
->>>
->>> Yes, sharing idea is good. :)  I do not know if we need all 6 steps (I
->>> have not looked at all your changes yet..), but in my mind, a hot-plug
->>> operation should be composed with the following 3 phases.
->>
->> Good idea ! we also implement a hot-plug operation in 3 phases:
->> 1) acpihp_drv_pre_execute
->> 2) acpihp_drv_execute
->> 3) acpihp_drv_post_execute
->> you may refer to :
->> https://lkml.org/lkml/2012/11/4/79
-> 
-> Great.  Yes, I will take a look.
+> Could we drive it in the polling code?  As in, if we set a flag to say
+> we're event driven and please don't bother us, we could just respond to
+> the poll with the last known state (this would probably have to be in
+> SCSI somewhere since most polls are Test Unit Readys).  That way ZPODD
+> sets this flag when the device powers down and unsets it when it powers
+> up.
 
-Thanks, any comments are welcomed :)
+Does it mean I can do something like this:
 
->  
->>> 1. Validate phase - Verify if the request is a supported operation.  All
->>> known restrictions are verified at this phase.  For instance, if a
->>> hot-remove request involves kernel memory, it is failed in this phase.
->>> Since this phase makes no change, no rollback is necessary to fail. 
->>
->> Yes, we have done this in acpihp_drv_pre_execute, and check following things:
->>
->> 1) Hot-plugble or not. the instance kernel memory you mentioned is also checked
->>    when memory device remove;
-> 
-> Agreed.
-> 
->> 2) Dependency check involved. For instance, if hot-add a memory device,
->>    processor should be added first, otherwise it's not valid to this operation.
-> 
-> I think FW should be the one that assures such dependency.  That is,
-> when a memory device object is marked as present/enabled/functioning, it
-> should be ready for the OS to use.
+diff --git a/drivers/scsi/sr.c b/drivers/scsi/sr.c
+index 5fc97d2..219820c 100644
+--- a/drivers/scsi/sr.c
++++ b/drivers/scsi/sr.c
+@@ -578,7 +578,10 @@ static unsigned int sr_block_check_events(struct gendisk *disk,
+ 					  unsigned int clearing)
+ {
+ 	struct scsi_cd *cd = scsi_cd(disk);
+-	return cdrom_check_events(&cd->cdi, clearing);
++	if (!cd->device->event_driven)
++		return cdrom_check_events(&cd->cdi, clearing);
++	else
++		return 0;
+ }
+ 
+ static int sr_block_revalidate_disk(struct gendisk *disk)
+diff --git a/include/scsi/scsi_device.h b/include/scsi/scsi_device.h
+index e65c62e..1756151 100644
+--- a/include/scsi/scsi_device.h
++++ b/include/scsi/scsi_device.h
+@@ -160,6 +160,7 @@ struct scsi_device {
+ 	unsigned can_power_off:1; /* Device supports runtime power off */
+ 	unsigned wce_default_on:1;	/* Cache is ON by default */
+ 	unsigned no_dif:1;	/* T10 PI (DIF) should be disabled */
++	unsigned event_driven:1; /* No need to poll the device */
+ 
+ 	DECLARE_BITMAP(supported_events, SDEV_EVT_MAXBITS); /* supported events */
+ 	struct list_head event_list;	/* asserted events */
 
-Yes, BIOS should do something for the dependency, because BIOS knows the
-actual hardware topology. The ACPI specification provides _EDL method to
-tell OS the eject device list, but still has no method to tell OS the add device
-list now.
 
-For some cases, OS should analyze the dependency in the validate phase. For example,
-when hot remove a node (container device), OS should analyze the dependency to get
-the remove order as following:
-1) Host bridge;
-2) Memory devices;
-3) Processor devices;
-4) Container device itself;
+Then when ZPODD is powered off, it will set this flag; and unset it when
+it is powered up.
 
-In this way, we can check that all the devices are hot-plugble or not under the
-container device before execute phase, and further more, we can remove devices
-in order to avoid some crash problems.
+Thanks,
+Aaron
 
 > 
->> 3) Race condition check. if the device and its dependent device is in hot-plug
->>    process, another request will be denied.
+> James
 > 
-> I agree that hot-plug operation should be serialized.  I think another
-> request should be either queued or denied based on the caller's intent
-> (i.e. wait-ok or no-wait). 
-> 
->> No rollback is needed for the above checks.
-> 
-> Great.
-> 
->>> 2. Execute phase - Perform hot-add / hot-remove operation that can be
->>> rolled-back in case of error or cancel.
->>
->> In this phase, we introduce a state machine for the hot-plugble device,
->> please refer to:
->> https://lkml.org/lkml/2012/11/4/79
->>
->> I think we have the same idea for the major framework, but the ACPI based
->> hot-plug framework implement it differently in detail, right ?
-> 
-> Yes, I am surprised with the similarity.  What I described is something
-> we had implemented for other OS.  I am still studying how best we can
-> improve the Linux hotplug code. :)
-
-Great! your experience is very appreciable for me. I think we can share ideas
-to achieve a better solution for Linux hotplug code. :)
-
-Thanks
- Hanjun
-
-> 
-> Thanks,
-> -Toshi
+> > * Still dunno much about zpodd but IIUC the notification from
+> >   zero-power is via ACPI.  To advertise that the device doesn't need
+> >   polling, it should also be able to do async notification while
+> >   powered up, which isn't covered by zpodd but ATA async notification.
+> >   So, ummm... that's another obstacle.  If zpodd requires the device
+> >   to support ATA async notification, it might not be too bad tho.
 > 
 > 
-> .
 > 
