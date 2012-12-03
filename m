@@ -1,175 +1,106 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: [PATCH] Execute "orphan" _REG method for specified EC device
-Date: Mon, 03 Dec 2012 16:22:45 +0800
-Message-ID: <1354522965.3063.16.camel@rzhang1-mobl4>
+From: James Bottomley <James.Bottomley@HansenPartnership.com>
+Subject: Re: [PATCH v9 06/10] ata: zpodd: check zero power ready status
+Date: Mon, 03 Dec 2012 08:25:43 +0000
+Message-ID: <1354523143.2307.2.camel@dabdike.int.hansenpartnership.com>
+References: <1352443922-13734-1-git-send-email-aaron.lu@intel.com>
+	 <35648985.61QNrr0Knq@vostro.rjw.lan> <1353906191.2523.25.camel@dabdike>
+	 <21511277.LLinyDpbAK@vostro.rjw.lan>
+	 <20121128013928.GB15971@htj.dyndns.org> <1354092969.2276.49.camel@dabdike>
+	 <20121203081321.GA9990@mint-spring.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:34496 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751700Ab2LCIWv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 3 Dec 2012 03:22:51 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20121203081321.GA9990@mint-spring.sh.intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: Tejun Heo <tj@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@vger.kernel.org, Jeff Garzik <jgarzik@pobox.com>, Alan Stern <stern@rowland.harvard.edu>, Jeff Wu <jeff.wu@amd.com>, Aaron Lu <aaron.lwe@gmail.com>, linux-ide@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-Bob,
+On Mon, 2012-12-03 at 16:13 +0800, Aaron Lu wrote:
+> On Wed, Nov 28, 2012 at 08:56:09AM +0000, James Bottomley wrote:
+> > On Tue, 2012-11-27 at 17:39 -0800, Tejun Heo wrote:
+> > > Hey, Rafael.
+> > > 
+> > > On Wed, Nov 28, 2012 at 01:51:00AM +0100, Rafael J. Wysocki wrote:
+> > > > Having considered that a bit more I'm now thinking that in fact the power state
+> > > > the device is in at the moment doesn't really matter, so the polling code need
+> > > > not really know what PM is doing.  What it needs to know is that the device
+> > > > will generate a hardware event when something interesting happens, so it is not
+> > > > necessary to poll it.
+> > > > 
+> > > > In this particular case it is related to power management (apparently, hardware
+> > > > events will only be generated after the device has been put into ACPI D3cold,
+> > > > or so Aaron seems to be claiming), but it need not be in general, at least in
+> > > > principle.
+> > > > 
+> > > > It looks like we need an "event driven" flag that the can be set in the lower
+> > > > layers and read by the upper layers.  I suppose this means it would need to be
+> > > > in struct device, but not necessarily in the PM-specific part of it.
+> > > 
+> > > We already have that.  That's what gendisk->async_events is for (as
+> > > opposed to gendisk->events).  If all events are async_events, block
+> > > won't poll for events, but I'm not sure that's the golden bullet.
+> > > 
+> > > * None implements async_events yet and an API is missing -
+> > >   disk_check_events() - which is trivial to add, but it's the same
+> > >   story.  We'll need a mechanism to shoot up notification from libata
+> > >   to block layer.  It's admittedly easier to justify routing through
+> > >   SCSI tho.  So, we're mostly shifting the problem.  Given that async
+> > >   events is nice to have, so it isn't a bad idea.
+> > 
+> > Could we drive it in the polling code?  As in, if we set a flag to say
+> > we're event driven and please don't bother us, we could just respond to
+> > the poll with the last known state (this would probably have to be in
+> > SCSI somewhere since most polls are Test Unit Readys).  That way ZPODD
+> > sets this flag when the device powers down and unsets it when it powers
+> > up.
+> 
+> Does it mean I can do something like this:
+> 
+> diff --git a/drivers/scsi/sr.c b/drivers/scsi/sr.c
+> index 5fc97d2..219820c 100644
+> --- a/drivers/scsi/sr.c
+> +++ b/drivers/scsi/sr.c
+> @@ -578,7 +578,10 @@ static unsigned int sr_block_check_events(struct gendisk *disk,
+>  					  unsigned int clearing)
+>  {
+>  	struct scsi_cd *cd = scsi_cd(disk);
+> -	return cdrom_check_events(&cd->cdi, clearing);
+> +	if (!cd->device->event_driven)
+> +		return cdrom_check_events(&cd->cdi, clearing);
+> +	else
+> +		return 0;
+>  }
+>  
+>  static int sr_block_revalidate_disk(struct gendisk *disk)
+> diff --git a/include/scsi/scsi_device.h b/include/scsi/scsi_device.h
+> index e65c62e..1756151 100644
+> --- a/include/scsi/scsi_device.h
+> +++ b/include/scsi/scsi_device.h
+> @@ -160,6 +160,7 @@ struct scsi_device {
+>  	unsigned can_power_off:1; /* Device supports runtime power off */
+>  	unsigned wce_default_on:1;	/* Cache is ON by default */
+>  	unsigned no_dif:1;	/* T10 PI (DIF) should be disabled */
+> +	unsigned event_driven:1; /* No need to poll the device */
+>  
+>  	DECLARE_BITMAP(supported_events, SDEV_EVT_MAXBITS); /* supported events */
+>  	struct list_head event_list;	/* asserted events */
 
-what do you think of this patch?
-Should we have an ACPICA style patch first and fix the problem in next ACPICA release?
-or should I submit the patch to Linux/ACPI first?
+Yes, but if we can get away with doing that, it should be in genhd
+because it's completely generic.
 
->From c1fc8a40c521065ed35e14b44261760bf5cdcd4e Mon Sep 17 00:00:00 2001
-From: Zhang Rui <rui.zhang@intel.com>
-Date: Fri, 30 Nov 2012 10:25:50 +0800
-Subject: [PATCH] Execute "orphan" _REG method for specified EC device
+I was imagining we'd have to fake the reply to the test unit ready or
+some other commands, which is why it would need to be in sr.c
 
-Some platforms do not have EC address space Operation Region.
-But the AML code depends on EC._REG being invoked to work properly.
+The check events code is Tejun's baby, if he's OK with it then just do
+it in genhd.c
 
-The AML code is broken on such platforms because _REG is only evaluated when
-there is at least one EC Operation Region.
- 
-commit e2066ca1b211ff08325c98be9fb8ad95affbaba8
-Author: Bob Moore <robert.moore@intel.com>
-Date:   Wed Apr 13 13:22:04 2011 +0800
+> Then when ZPODD is powered off, it will set this flag; and unset it when
+> it is powered up.
 
-    ACPICA: Execute an orphan _REG method under the EC device
-    
-    This change will force the execution of a _REG method underneath
-    the EC device even if there is no corresponding operation region
-    of type EmbeddedControl. Fixes a problem seen on some machines
-    and apparently is compatible with Windows behavior.
-    
-    http://www.acpica.org/bugzilla/show_bug.cgi?id=875
-    
-    Signed-off-by: Bob Moore <robert.moore@intel.com>
-    Signed-off-by: Lin Ming <ming.m.lin@intel.com>
-    Signed-off-by: Len Brown <len.brown@intel.com>
+Right.
 
-Robert Moore has a patch to fix the issue, but the problem is that
-this patch only fixes the problem on platforms with ECDT.
-
-Thus the AML code is still broken in bug report:
-https://bugzilla.kernel.org/show_bug.cgi?id=15707
-
-This patch makes some enhancement, and it should work for all the platforms,
-even if there is no ECDT.
-
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- drivers/acpi/acpica/evregion.c |   42 ++++++++++------------------------------
- 1 file changed, 10 insertions(+), 32 deletions(-)
-
-diff --git a/drivers/acpi/acpica/evregion.c b/drivers/acpi/acpica/evregion.c
-index 0cc6a16..76af11e 100644
---- a/drivers/acpi/acpica/evregion.c
-+++ b/drivers/acpi/acpica/evregion.c
-@@ -55,7 +55,7 @@ static u8
- acpi_ev_has_default_handler(struct acpi_namespace_node *node,
- 			    acpi_adr_space_type space_id);
- 
--static void acpi_ev_orphan_ec_reg_method(void);
-+static void acpi_ev_orphan_ec_reg_method(struct acpi_namespace_node *node);
- 
- static acpi_status
- acpi_ev_reg_run(acpi_handle obj_handle,
-@@ -1092,7 +1092,7 @@ acpi_ev_execute_reg_methods(struct acpi_namespace_node *node,
- 	/* Special case for EC: handle "orphan" _REG methods with no region */
- 
- 	if (space_id == ACPI_ADR_SPACE_EC) {
--		acpi_ev_orphan_ec_reg_method();
-+		acpi_ev_orphan_ec_reg_method(node);
- 	}
- 
- 	return_ACPI_STATUS(status);
-@@ -1161,7 +1161,7 @@ acpi_ev_reg_run(acpi_handle obj_handle,
-  *
-  * FUNCTION:    acpi_ev_orphan_ec_reg_method
-  *
-- * PARAMETERS:  None
-+ * PARAMETERS:  node            - Namespace node for the device
-  *
-  * RETURN:      None
-  *
-@@ -1180,51 +1180,29 @@ acpi_ev_reg_run(acpi_handle obj_handle,
-  *
-  ******************************************************************************/
- 
--static void acpi_ev_orphan_ec_reg_method(void)
-+static void acpi_ev_orphan_ec_reg_method(struct acpi_namespace_node *node)
- {
- 	struct acpi_table_ecdt *table;
- 	acpi_status status;
- 	struct acpi_object_list args;
- 	union acpi_object objects[2];
--	struct acpi_namespace_node *ec_device_node;
- 	struct acpi_namespace_node *reg_method;
- 	struct acpi_namespace_node *next_node;
- 
- 	ACPI_FUNCTION_TRACE(ev_orphan_ec_reg_method);
- 
--	/* Get the ECDT (if present in system) */
--
--	status = acpi_get_table(ACPI_SIG_ECDT, 0,
--				ACPI_CAST_INDIRECT_PTR(struct acpi_table_header,
--						       &table));
--	if (ACPI_FAILURE(status)) {
--		return_VOID;
--	}
--
--	/* We need a valid EC_ID string */
--
--	if (!(*table->id)) {
-+	/* Get the EC node */
-+	if (!node)
- 		return_VOID;
--	}
- 
- 	/* Namespace is currently locked, must release */
- 
- 	(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
- 
--	/* Get a handle to the EC device referenced in the ECDT */
--
--	status = acpi_get_handle(NULL,
--				 ACPI_CAST_PTR(char, table->id),
--				 ACPI_CAST_PTR(acpi_handle, &ec_device_node));
--	if (ACPI_FAILURE(status)) {
--		goto exit;
--	}
--
- 	/* Get a handle to a _REG method immediately under the EC device */
- 
--	status = acpi_get_handle(ec_device_node,
--				 METHOD_NAME__REG, ACPI_CAST_PTR(acpi_handle,
--								 &reg_method));
-+	status = acpi_get_handle(node, METHOD_NAME__REG,
-+			ACPI_CAST_PTR(acpi_handle, &reg_method));
- 	if (ACPI_FAILURE(status)) {
- 		goto exit;
- 	}
-@@ -1236,14 +1214,14 @@ static void acpi_ev_orphan_ec_reg_method(void)
- 	 * with other space IDs to be present; but the code below will then
- 	 * execute the _REG method with the EC space ID argument.
- 	 */
--	next_node = acpi_ns_get_next_node(ec_device_node, NULL);
-+	next_node = acpi_ns_get_next_node(node, NULL);
- 	while (next_node) {
- 		if ((next_node->type == ACPI_TYPE_REGION) &&
- 		    (next_node->object) &&
- 		    (next_node->object->region.space_id == ACPI_ADR_SPACE_EC)) {
- 			goto exit;	/* Do not execute _REG */
- 		}
--		next_node = acpi_ns_get_next_node(ec_device_node, next_node);
-+		next_node = acpi_ns_get_next_node(node, next_node);
- 	}
- 
- 	/* Evaluate the _REG(EC,Connect) method */
--- 
-1.7.9.5
-
+James
 
 
