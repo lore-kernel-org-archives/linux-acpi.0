@@ -1,31 +1,59 @@
-From: Alan Cox <alan@linux.intel.com>
-Subject: Re: [RFC PATCH 1/3] UART: Add UART subsystem as a bus.
-Date: Mon, 3 Dec 2012 11:46:04 +0000
-Message-ID: <20121203114604.079a2721@bob.linux.org.uk>
-References: <cover.1354505471.git.lv.zheng@intel.com>
-	<6d5fc2e0799c12554aa8acdb2d7782ba8643902b.1354505472.git.lv.zheng@intel.com>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH v9 06/10] ata: zpodd: check zero power ready status
+Date: Mon, 3 Dec 2012 08:23:23 -0800
+Message-ID: <20121203162323.GB19802@htj.dyndns.org>
+References: <1352443922-13734-1-git-send-email-aaron.lu@intel.com>
+ <35648985.61QNrr0Knq@vostro.rjw.lan>
+ <1353906191.2523.25.camel@dabdike>
+ <21511277.LLinyDpbAK@vostro.rjw.lan>
+ <20121128013928.GB15971@htj.dyndns.org>
+ <1354092969.2276.49.camel@dabdike>
+ <20121203081321.GA9990@mint-spring.sh.intel.com>
+ <1354523143.2307.2.camel@dabdike.int.hansenpartnership.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <6d5fc2e0799c12554aa8acdb2d7782ba8643902b.1354505472.git.lv.zheng@intel.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: Len Brown <len.brown@intel.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-acpi@vger.kernel.org, linux-serial@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:57447 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754310Ab2LCQX3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Dec 2012 11:23:29 -0500
+Content-Disposition: inline
+In-Reply-To: <1354523143.2307.2.camel@dabdike.int.hansenpartnership.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Aaron Lu <aaron.lu@intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@vger.kernel.org, Jeff Garzik <jgarzik@pobox.com>, Alan Stern <stern@rowland.harvard.edu>, Jeff Wu <jeff.wu@amd.com>, Aaron Lu <aaron.lwe@gmail.com>, linux-ide@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
 
-> + * uart_tty_find - find the associated TTY device for the UART target
-> + *		   device
-> + * @drv: the low level UART driver
-> + * @dev: the parent physical device for the TTY devices
-> + * @line: the line number of the UART target device
-> + *
+Hello, James.
 
-Our top level abstraction is struct tty and struct tty_port. There is
-nothing requiring a serial tty is using the uart helper layer, nor
-should there be, so your code needs to support devices not using the
-uart layer. Otherwise it looks quite reasonable.
+On Mon, Dec 03, 2012 at 08:25:43AM +0000, James Bottomley wrote:
+> > diff --git a/include/scsi/scsi_device.h b/include/scsi/scsi_device.h
+> > index e65c62e..1756151 100644
+> > --- a/include/scsi/scsi_device.h
+> > +++ b/include/scsi/scsi_device.h
+> > @@ -160,6 +160,7 @@ struct scsi_device {
+> >  	unsigned can_power_off:1; /* Device supports runtime power off */
+> >  	unsigned wce_default_on:1;	/* Cache is ON by default */
+> >  	unsigned no_dif:1;	/* T10 PI (DIF) should be disabled */
+> > +	unsigned event_driven:1; /* No need to poll the device */
+> >  
+> >  	DECLARE_BITMAP(supported_events, SDEV_EVT_MAXBITS); /* supported events */
+> >  	struct list_head event_list;	/* asserted events */
+> 
+> Yes, but if we can get away with doing that, it should be in genhd
+> because it's completely generic.
+> 
+> I was imagining we'd have to fake the reply to the test unit ready or
+> some other commands, which is why it would need to be in sr.c
+> 
+> The check events code is Tejun's baby, if he's OK with it then just do
+> it in genhd.c
 
-our 3.7 tty layer has sysfs nodes on the tty which may also help
+The problem here is there's no easy to reach genhd from libata (or the
+other way around) without going through sr.  I think we're gonna have
+to have something in sr one way or the other.
 
-Alan
+Thanks.
+
+-- 
+tejun
