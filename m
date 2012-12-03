@@ -1,353 +1,178 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [RFC PATCH 3/3] UART: Add dummy devices to test the enumeration.
-Date: Mon,  3 Dec 2012 11:40:15 +0800
-Message-ID: <5a1174c1b6d140fc7f828361fd3080336656de6c.1354505472.git.lv.zheng@intel.com>
-References: <cover.1354505471.git.lv.zheng@intel.com>
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <cover.1354505471.git.lv.zheng@intel.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Len Brown <len.brown@intel.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alan Cox <alan@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-serial@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [RFC PATCH v3 0/3] acpi: Introduce prepare_remove device operation
+Date: Mon, 3 Dec 2012 12:25:42 +0800
+Message-ID: <50BC29C6.6050706@huawei.com>
+References: <1353693037-21704-1-git-send-email-vasilis.liaskovitis@profitbricks.com>   <50B5EFE9.3040206@huawei.com>  <1354128096.26955.276.camel@misato.fc.hp.com> <50B6E936.2080308@huawei.com> <1354228028.7776.56.camel@misato.fc.hp.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1354228028.7776.56.camel@misato.fc.hp.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, linux-acpi@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, wency@cn.fujitsu.com, rjw@sisk.pl, lenb@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Tang Chen <tangchen@cn.fujitsu.com>, Liujiang <jiang.liu@huawei.com>, Huxinwei <huxinwei@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
 
-This is a hidden test patch that would not be sent to the public.
-There might be some udev add-ons for matching the UART target devices from
-the user space.
+On 2012/11/30 6:27, Toshi Kani wrote:
+> On Thu, 2012-11-29 at 12:48 +0800, Hanjun Guo wrote:
+>> On 2012/11/29 2:41, Toshi Kani wrote:
+>>> On Wed, 2012-11-28 at 19:05 +0800, Hanjun Guo wrote:
+>>>> On 2012/11/24 1:50, Vasilis Liaskovitis wrote:
+>>>>> As discussed in https://patchwork.kernel.org/patch/1581581/
+>>>>> the driver core remove function needs to always succeed. This means we need
+>>>>> to know that the device can be successfully removed before acpi_bus_trim / 
+>>>>> acpi_bus_hot_remove_device are called. This can cause panics when OSPM-initiated
+>>>>> or SCI-initiated eject of memory devices fail e.g with:
+>>>>> echo 1 >/sys/bus/pci/devices/PNP0C80:XX/eject
+>>>>>
+>>>>> since the ACPI core goes ahead and ejects the device regardless of whether the
+>>>>> the memory is still in use or not.
+>>>>>
+>>>>> For this reason a new acpi_device operation called prepare_remove is introduced.
+>>>>> This operation should be registered for acpi devices whose removal (from kernel
+>>>>> perspective) can fail.  Memory devices fall in this category.
+>>>>>
+>>>>> acpi_bus_remove() is changed to handle removal in 2 steps:
+>>>>> - preparation for removal i.e. perform part of removal that can fail. Should
+>>>>>   succeed for device and all its children.
+>>>>> - if above step was successfull, proceed to actual device removal
+>>>>
+>>>> Hi Vasilis,
+>>>> We met the same problem when we doing computer node hotplug, It is a good idea
+>>>> to introduce prepare_remove before actual device removal.
+>>>>
+>>>> I think we could do more in prepare_remove, such as rollback. In most cases, we can
+>>>> offline most of memory sections except kernel used pages now, should we rollback
+>>>> and online the memory sections when prepare_remove failed ?
+>>>
+>>> I think hot-plug operation should have all-or-nothing semantics.  That
+>>> is, an operation should either complete successfully, or rollback to the
+>>> original state.
+>>
+>> Yes, we have the same point of view with you. We handle this problem in the ACPI
+>> based hot-plug framework as following:
+>> 1) hot add / hot remove complete successfully if no error happens;
+>> 2) automatic rollback to the original state if meets some error ;
+>> 3) rollback to the original if hot-plug operation cancelled by user ;
+> 
+> Cool!
+>  
+>>>> As you may know, the ACPI based hotplug framework we are working on already addressed
+>>>> this problem, and the way we slove this problem is a bit like yours.
+>>>>
+>>>> We introduce hp_ops in struct acpi_device_ops:
+>>>> struct acpi_device_ops {
+>>>> 	acpi_op_add add;
+>>>> 	acpi_op_remove remove;
+>>>> 	acpi_op_start start;
+>>>> 	acpi_op_bind bind;
+>>>> 	acpi_op_unbind unbind;
+>>>> 	acpi_op_notify notify;
+>>>> #ifdef	CONFIG_ACPI_HOTPLUG
+>>>> 	struct acpihp_dev_ops *hp_ops;
+>>>> #endif	/* CONFIG_ACPI_HOTPLUG */
+>>>> };
+>>>>
+>>>> in hp_ops, we divide the prepare_remove into six small steps, that is:
+>>>> 1) pre_release(): optional step to mark device going to be removed/busy
+>>>> 2) release(): reclaim device from running system
+>>>> 3) post_release(): rollback if cancelled by user or error happened
+>>>> 4) pre_unconfigure(): optional step to solve possible dependency issue
+>>>> 5) unconfigure(): remove devices from running system
+>>>> 6) post_unconfigure(): free resources used by devices
+>>>>
+>>>> In this way, we can easily rollback if error happens.
+>>>> How do you think of this solution, any suggestion ? I think we can achieve
+>>>> a better way for sharing ideas. :)
+>>>
+>>> Yes, sharing idea is good. :)  I do not know if we need all 6 steps (I
+>>> have not looked at all your changes yet..), but in my mind, a hot-plug
+>>> operation should be composed with the following 3 phases.
+>>
+>> Good idea ! we also implement a hot-plug operation in 3 phases:
+>> 1) acpihp_drv_pre_execute
+>> 2) acpihp_drv_execute
+>> 3) acpihp_drv_post_execute
+>> you may refer to :
+>> https://lkml.org/lkml/2012/11/4/79
+> 
+> Great.  Yes, I will take a look.
 
-1. The result of the UART dummy target device is as follows:
+Thanks, any comments are welcomed :)
 
-# udevadm monitor --kernel --environment > ~/uart.uevents
-# echo add > /sys/bus/uart/uevent
-# echo add > /sys/bus/uart/devices/DUMMY/uevent
-# cat ~/uart.uevents
-monitor will print the received events for:
-KERNEL - the kernel uevent
+>  
+>>> 1. Validate phase - Verify if the request is a supported operation.  All
+>>> known restrictions are verified at this phase.  For instance, if a
+>>> hot-remove request involves kernel memory, it is failed in this phase.
+>>> Since this phase makes no change, no rollback is necessary to fail. 
+>>
+>> Yes, we have done this in acpihp_drv_pre_execute, and check following things:
+>>
+>> 1) Hot-plugble or not. the instance kernel memory you mentioned is also checked
+>>    when memory device remove;
+> 
+> Agreed.
+> 
+>> 2) Dependency check involved. For instance, if hot-add a memory device,
+>>    processor should be added first, otherwise it's not valid to this operation.
+> 
+> I think FW should be the one that assures such dependency.  That is,
+> when a memory device object is marked as present/enabled/functioning, it
+> should be ready for the OS to use.
 
-KERNEL[252.443458] add      /bus/uart (bus)
-ACTION=add
-DEVPATH=/bus/uart
-SEQNUM=1142
-SUBSYSTEM=bus
+Yes, BIOS should do something for the dependency, because BIOS knows the
+actual hardware topology. The ACPI specification provides _EDL method to
+tell OS the eject device list, but still has no method to tell OS the add device
+list now.
 
-KERNEL[268.491709] add      /devices/platform/serial8250/DUMMY (uart)
-ACTION=add
-DEVPATH=/devices/platform/serial8250/DUMMY
-DEVTYPE=uart_device
-MODALIAS=uart:DUMMY
-SEQNUM=1144
-SUBSYSTEM=uart
+For some cases, OS should analyze the dependency in the validate phase. For example,
+when hot remove a node (container device), OS should analyze the dependency to get
+the remove order as following:
+1) Host bridge;
+2) Memory devices;
+3) Processor devices;
+4) Container device itself;
 
-# cat /sys/bus/uart/devices/DUMMY/modalias
-uart:DUMMY
-# cat /sys/bus/uart/devices/DUMMY/tty_dev
-ttyS0
-# cat /sys/bus/uart/devices/DUMMY/tty_attrs
-115200 8N1 HW SW
-# cat /sys/bus/uart/devices/DUMMY/modem_lines
-LE:RTS,
+In this way, we can check that all the devices are hot-plugble or not under the
+container device before execute phase, and further more, we can remove devices
+in order to avoid some crash problems.
 
-2. The result of the UART customized DSDT target device is as follows:
+> 
+>> 3) Race condition check. if the device and its dependent device is in hot-plug
+>>    process, another request will be denied.
+> 
+> I agree that hot-plug operation should be serialized.  I think another
+> request should be either queued or denied based on the caller's intent
+> (i.e. wait-ok or no-wait). 
+> 
+>> No rollback is needed for the above checks.
+> 
+> Great.
+> 
+>>> 2. Execute phase - Perform hot-add / hot-remove operation that can be
+>>> rolled-back in case of error or cancel.
+>>
+>> In this phase, we introduce a state machine for the hot-plugble device,
+>> please refer to:
+>> https://lkml.org/lkml/2012/11/4/79
+>>
+>> I think we have the same idea for the major framework, but the ACPI based
+>> hot-plug framework implement it differently in detail, right ?
+> 
+> Yes, I am surprised with the similarity.  What I described is something
+> we had implemented for other OS.  I am still studying how best we can
+> improve the Linux hotplug code. :)
 
-The test result is attached as part of the first patch in this series.
+Great! your experience is very appreciable for me. I think we can share ideas
+to achieve a better solution for Linux hotplug code. :)
 
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/scan.c                  |    1 +
- drivers/tty/serial/8250/8250.c       |   10 ++-
- drivers/tty/serial/8250/8250_dummy.c |  128 ++++++++++++++++++++++++++++++++++
- drivers/tty/serial/8250/Kconfig      |   10 +++
- drivers/tty/serial/8250/Makefile     |    1 +
- drivers/tty/serial/serial_bus.c      |   17 +++++
- include/linux/serial_8250.h          |    2 +
- include/linux/serial_core.h          |    3 +
- 8 files changed, 170 insertions(+), 2 deletions(-)
- create mode 100644 drivers/tty/serial/8250/8250_dummy.c
+Thanks
+ Hanjun
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 67a7fa6..4892015 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -36,6 +36,7 @@ static const char *dummy_hid = "device";
- static const struct acpi_device_id acpi_platform_device_ids[] = {
- 
- 	{ "PNP0D40" },
-+	{ "INTF000" },
- 
- 	{ }
- };
-diff --git a/drivers/tty/serial/8250/8250.c b/drivers/tty/serial/8250/8250.c
-index 3ba4234..6f503f4 100644
---- a/drivers/tty/serial/8250/8250.c
-+++ b/drivers/tty/serial/8250/8250.c
-@@ -56,7 +56,7 @@ static unsigned int share_irqs = SERIAL8250_SHARE_IRQS;
- 
- static unsigned int nr_uarts = CONFIG_SERIAL_8250_RUNTIME_UARTS;
- 
--static struct uart_driver serial8250_reg;
-+struct uart_driver serial8250_reg;
- 
- static int serial_index(struct uart_port *port)
- {
-@@ -2902,7 +2902,7 @@ int serial8250_find_port(struct uart_port *p)
- #define SERIAL8250_CONSOLE	NULL
- #endif
- 
--static struct uart_driver serial8250_reg = {
-+struct uart_driver serial8250_reg = {
- 	.owner			= THIS_MODULE,
- 	.driver_name		= "serial",
- 	.dev_name		= "ttyS",
-@@ -2910,6 +2910,7 @@ static struct uart_driver serial8250_reg = {
- 	.minor			= 64,
- 	.cons			= SERIAL8250_CONSOLE,
- };
-+EXPORT_SYMBOL_GPL(serial8250_reg);
- 
- /*
-  * early_serial_setup - early registration for 8250 ports
-@@ -2987,6 +2988,8 @@ void serial8250_resume_port(int line)
- 	uart_resume_port(&serial8250_reg, port);
- }
- 
-+struct uart_device *uart_dummy;
-+
- /*
-  * Register a set of serial devices attached to a platform device.  The
-  * list is terminated with a zero flags entry, which means we expect
-@@ -3032,6 +3035,8 @@ static int __devinit serial8250_probe(struct platform_device *dev)
- 				p->irq, ret);
- 		}
- 	}
-+	uart_dummy = uart_register_dummy(&serial8250_reg, &dev->dev, 0);
-+
- 	return 0;
- }
- 
-@@ -3042,6 +3047,7 @@ static int __devexit serial8250_remove(struct platform_device *dev)
- {
- 	int i;
- 
-+	uart_unregister_device(uart_dummy);
- 	for (i = 0; i < nr_uarts; i++) {
- 		struct uart_8250_port *up = &serial8250_ports[i];
- 
-diff --git a/drivers/tty/serial/8250/8250_dummy.c b/drivers/tty/serial/8250/8250_dummy.c
-new file mode 100644
-index 0000000..5720fbb
---- /dev/null
-+++ b/drivers/tty/serial/8250/8250_dummy.c
-@@ -0,0 +1,128 @@
-+/*
-+ * 8250_dummy.c: Dummy 8250 UART target device enumerator
-+ *
-+ * Copyright (c) 2012, Intel Corporation
-+ * Author: Lv Zheng <lv.zheng@intel.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; version 2
-+ * of the License.
-+ */
-+#include <linux/device.h>
-+#include <linux/init.h>
-+#include <linux/io.h>
-+#include <linux/module.h>
-+#include <linux/serial_8250.h>
-+#include <linux/serial_core.h>
-+#include <linux/serial_reg.h>
-+#include <linux/acpi.h>
-+#include <linux/acpi_uart.h>
-+#include <linux/platform_device.h>
-+#include <linux/slab.h>
-+
-+struct dummy8250_data {
-+	int	last_lcr;
-+	int	line;
-+};
-+
-+static void dummy8250_serial_out(struct uart_port *p, int offset, int value)
-+{
-+}
-+
-+static unsigned int dummy8250_serial_in(struct uart_port *p, int offset)
-+{
-+	return 0;
-+}
-+
-+struct klist *dummy8250_mgr;
-+int dummy8250_num;
-+
-+static int __devinit dummy8250_probe(struct platform_device *pdev)
-+{
-+	struct uart_8250_port uart = {};
-+	struct resource *regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	struct dummy8250_data *data;
-+#ifdef CONFIG_ACPI_UART
-+	struct klist *mgr;
-+#endif
-+
-+	dev_info(&pdev->dev, "1\n");
-+	if (!regs) {
-+		dev_err(&pdev->dev, "no registers defined\n");
-+		return -EINVAL;
-+	}
-+
-+	dev_info(&pdev->dev, "2\n");
-+	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
-+	if (!data)
-+		return -ENOMEM;
-+	uart.port.private_data = data;
-+
-+	spin_lock_init(&uart.port.lock);
-+	uart.port.mapbase = regs->start;
-+	uart.port.type = PORT_8250;
-+	uart.port.flags = UPF_SHARE_IRQ | UPF_BOOT_AUTOCONF | UPF_IOREMAP |
-+		UPF_FIXED_PORT | UPF_FIXED_TYPE;
-+	uart.port.dev = &pdev->dev;
-+
-+	uart.port.iotype = UPIO_MEM;
-+	uart.port.serial_in = dummy8250_serial_in;
-+	uart.port.serial_out = dummy8250_serial_out;
-+	uart.port.uartclk = 40000000;
-+
-+	dev_info(&pdev->dev, "3\n");
-+	data->line = serial8250_register_8250_port(&uart);
-+	if (data->line < 0)
-+		return data->line;
-+
-+#ifdef CONFIG_ACPI_UART
-+	dev_info(&pdev->dev, "4\n");
-+	mgr = acpi_uart_register_devices(&serial8250_reg, dummy8250_mgr,
-+					 &pdev->dev, data->line);
-+	if (mgr) {
-+		dummy8250_mgr = mgr;
-+		dummy8250_num++;
-+	}
-+#endif
-+	dev_info(&pdev->dev, "5\n");
-+	platform_set_drvdata(pdev, data);
-+
-+	return 0;
-+}
-+
-+static int __devexit dummy8250_remove(struct platform_device *pdev)
-+{
-+	struct dummy8250_data *data = platform_get_drvdata(pdev);
-+
-+#ifdef CONFIG_ACPI_UART
-+	dummy8250_num--;
-+	if (!dummy8250_num)
-+		acpi_uart_unregister_devices(dummy8250_mgr);
-+#endif
-+	serial8250_unregister_port(data->line);
-+
-+	return 0;
-+}
-+
-+static const struct acpi_device_id dummy8250_match[] = {
-+	{ .id = "INTF000" },
-+	{ /* Sentinel */ }
-+};
-+MODULE_DEVICE_TABLE(acpi, dummy8250_match);
-+
-+static struct platform_driver dummy8250_platform_driver = {
-+	.driver = {
-+		.name			= "dummy-uart",
-+		.owner			= THIS_MODULE,
-+		.acpi_match_table	= dummy8250_match,
-+	},
-+	.probe				= dummy8250_probe,
-+	.remove				= __devexit_p(dummy8250_remove),
-+};
-+
-+module_platform_driver(dummy8250_platform_driver);
-+
-+MODULE_AUTHOR("Lv Zheng");
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("Dummy 8250 serial port driver");
-diff --git a/drivers/tty/serial/8250/Kconfig b/drivers/tty/serial/8250/Kconfig
-index f3d283f..3ba480a 100644
---- a/drivers/tty/serial/8250/Kconfig
-+++ b/drivers/tty/serial/8250/Kconfig
-@@ -270,6 +270,16 @@ config SERIAL_8250_DW
- 	  Selecting this option will enable handling of the extra features
- 	  present in the Synopsys DesignWare APB UART.
- 
-+config SERIAL_8250_DUMMY
-+	tristate "Support for dummy ACPI 8250"
-+	depends on SERIAL_8250 && ACPI
-+	help
-+	  Selecting this option will enable a test UART target device DUMMY
-+	  under the ISA serial8250 and a test UART host adapter INTF000
-+	  as an platform device for the purpose of testing the ACPI UART
-+	  enumeration support.
-+	  If unsure, say "N" here.
-+
- config SERIAL_8250_EM
- 	tristate "Support for Emma Mobile intergrated serial port"
- 	depends on SERIAL_8250 && ARM && HAVE_CLK
-diff --git a/drivers/tty/serial/8250/Makefile b/drivers/tty/serial/8250/Makefile
-index 108fe7f..fb82aa9 100644
---- a/drivers/tty/serial/8250/Makefile
-+++ b/drivers/tty/serial/8250/Makefile
-@@ -19,3 +19,4 @@ obj-$(CONFIG_SERIAL_8250_HUB6)		+= 8250_hub6.o
- obj-$(CONFIG_SERIAL_8250_FSL)		+= 8250_fsl.o
- obj-$(CONFIG_SERIAL_8250_DW)		+= 8250_dw.o
- obj-$(CONFIG_SERIAL_8250_EM)		+= 8250_em.o
-+obj-$(CONFIG_SERIAL_8250_DUMMY)		+= 8250_dummy.o
-diff --git a/drivers/tty/serial/serial_bus.c b/drivers/tty/serial/serial_bus.c
-index a6674da..e3d0509 100644
---- a/drivers/tty/serial/serial_bus.c
-+++ b/drivers/tty/serial/serial_bus.c
-@@ -384,6 +384,23 @@ void uart_del_adapter(struct klist *adap)
- }
- EXPORT_SYMBOL_GPL(uart_del_adapter);
- 
-+static struct uart_board_info dummy_target = {
-+	.type = "DUMMY",
-+	.baud = 115200,
-+	.cflag = CS8 | CSTOPB | CRTSCTS,
-+	.iflag = (IXON | IXOFF),
-+	.mctrl = TIOCM_LE | TIOCM_RTS,
-+};
-+
-+struct uart_device *uart_register_dummy(struct uart_driver *drv,
-+					struct device *dev,
-+					unsigned int line)
-+{
-+	dummy_target.line = line;
-+	return uart_register_device(drv, NULL, dev, &dummy_target);
-+}
-+EXPORT_SYMBOL_GPL(uart_register_dummy);
-+
- struct bus_type uart_bus_type = {
- 	.name		= "uart",
- };
-diff --git a/include/linux/serial_8250.h b/include/linux/serial_8250.h
-index c174c90..3b6c260 100644
---- a/include/linux/serial_8250.h
-+++ b/include/linux/serial_8250.h
-@@ -120,4 +120,6 @@ extern void serial8250_set_isa_configurator(void (*v)
- 					(int port, struct uart_port *up,
- 						unsigned short *capabilities));
- 
-+extern struct uart_driver serial8250_reg;
-+
- #endif
-diff --git a/include/linux/serial_core.h b/include/linux/serial_core.h
-index 422f8cc4..a3d1d5d 100644
---- a/include/linux/serial_core.h
-+++ b/include/linux/serial_core.h
-@@ -418,6 +418,9 @@ struct uart_device *uart_register_device(struct uart_driver *drv,
- 					 struct device *dev,
- 					 struct uart_board_info const *info);
- void uart_unregister_device(struct uart_device *udev);
-+struct uart_device *uart_register_dummy(struct uart_driver *drv,
-+					struct device *dev,
-+					unsigned int line);
- 
- struct device *uart_tty_find(struct uart_driver *drv,
- 			     struct device *dev, unsigned int line);
--- 
-1.7.10
-
+> 
+> Thanks,
+> -Toshi
+> 
+> 
+> .
+> 
