@@ -1,21 +1,25 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH v4 1/3] aerdrv: Trace Event for AER
-Date: Mon, 03 Dec 2012 12:26:33 -0800
-Message-ID: <1354566393.3524.9.camel@joe-AO722>
-References: <20121203183305.26636.22979.stgit@grignak.americas.hpqcorp.net>
-	 <1354564292.3524.7.camel@joe-AO722>
-	 <A961433CDFF2F640A2866803152E61F9516EE733@G4W3218.americas.hpqcorp.net>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v3 1/3] aerdrv: Trace Event for AER
+Date: Mon, 3 Dec 2012 21:27:56 +0100
+Message-ID: <20121203202756.GB14798@liondog.tnic>
+References: <20121130213330.7649.51101.stgit@grignak.americas.hpqcorp.net>
+ <20121201093614.720aa96a@redhat.com>
+ <A961433CDFF2F640A2866803152E61F9516EE717@G4W3218.americas.hpqcorp.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <A961433CDFF2F640A2866803152E61F9516EE733@G4W3218.americas.hpqcorp.net>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Ortiz, Lance E" <lance.oritz@hp.com>
-Cc: "bhelgaas@google.com" <bhelgaas@google.com>, "lance_ortiz@hotmail.com" <lance_ortiz@hotmail.com>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>, "tony.luck@intel.com" <tony.luck@intel.com>, "bp@alien8.de" <bp@alien8.de>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "mchehab@redhat.com" <mchehab@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.skyhub.de ([78.46.96.112]:51111 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751511Ab2LCU2A (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 3 Dec 2012 15:28:00 -0500
+Content-Disposition: inline
+In-Reply-To: <A961433CDFF2F640A2866803152E61F9516EE717@G4W3218.americas.hpqcorp.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Ortiz, Lance E" <lance.oritz@hp.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "lance_ortiz@hotmail.com" <lance_ortiz@hotmail.com>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>, "tony.luck@intel.com" <tony.luck@intel.com>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Zhang Yanmin <yanmin.zhang@intel.com>
 
-On Mon, 2012-12-03 at 20:20 +0000, Ortiz, Lance E wrote:
+On Mon, Dec 03, 2012 at 08:01:46PM +0000, Ortiz, Lance E wrote:
 > > > +#define correctable_error_string			\
 > > > +	{BIT(0),	"Receiver Error"},		\
 > > > +	{BIT(6),	"Bad TLP"},			\
@@ -23,7 +27,14 @@ On Mon, 2012-12-03 at 20:20 +0000, Ortiz, Lance E wrote:
 > > > +	{BIT(8),	"RELAY_NUM Rollover"},		\
 > > > +	{BIT(12),	"Replay Timer Timeout"},	\
 > > > +	{BIT(13),	"Advisory Non-Fatal"}
-> > > +
+> > 
+> > Hmm... isn't something missing here? I'm seeing more bits defined at
+> > the
+> > PCIe V3.0 spec for Offset 10h:
+> > 
+> > bit 14 - Corrected Internal Error
+> > bit 15 - Header Log Overflow
+> > 
 > > > +#define uncorrectable_error_string			\
 > > > +	{BIT(4),	"Data Link Protocol"},		\
 > > > +	{BIT(12),	"Poisoned TLP"},		\
@@ -36,11 +47,51 @@ On Mon, 2012-12-03 at 20:20 +0000, Ortiz, Lance E wrote:
 > > > +	{BIT(19),	"ECRC"},			\
 > > > +	{BIT(20),	"Unsupported Request"}
 > > 
-> > probably better to prefix these with aer_
-> 
-> If I add aer_ it will conflict with string array in aerdrv_errprint.c
+> > Hmm... isn't something missing here? I'm seeing more bits defined at
+> > the
+> > PCIe V3.0 spec for Offset 04h:
+> > 
+> > bit 5 - Surprise Down Error
+> > bit 21 - ACS Violation
+> > bit 22 - Uncorrectable Internal Error
+> > bit 23 - MC Blocked TLP
+> > bit 24 - AtomicOp Egress Blocked
+> > bit 25 - TLP Prefix Blocked Error
+> > 
+> I used the same errors defined in the string arrays at the top of
+> aerdrv_errprint.c. I am not sure why they were left out in that file.
+> I will investigate and probably add them as a later patch and then
+> include them in aerdrv_errprint.c also.
 
-Maybe just not something quite so generic.
-maybe aer_trace_correctable and aer_trace_uncorrectable
+Maybe we should ask Yanmin who added those strings in
+6c2b374d74857e892080ee726184ec1d15e7d4e4; CCed.
 
-cheers, Joe
+Also, it would make a lot of sense to have those string definitions
+at one place and then reuse them instead of define them again in the
+tracepoint header and they get out of sync and have needless duplication
+in the kernel, etc, etc.
+
+So, instead, you could define some macros which can generate your
+strings above like this:
+
+#define aer_uncor_err_str(bitnum)	\
+	{ BIT(bitnum), aer_uncorrectable_error_string(bitnum) }
+
+and use that macro for the __print_flags flag_array argument.
+
+Or something to that effect.
+
+Even better would it be if the error strings in
+<drivers/pci/pcie/aer/aerdrv_errprint.c> could be shared with the
+tracepoint ones. That would require a bit more changes though but
+something like using an array of trace_print_flags instead an array of
+strings could be doable.
+
+Then, when you need the string, you do uncor_err_array[i].name and so
+on.
+
+Thanks.
+
+-- 
+Regards/Gruss,
+    Boris.
