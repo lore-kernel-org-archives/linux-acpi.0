@@ -1,53 +1,213 @@
-From: Lance Ortiz <lance.ortiz@hp.com>
-Subject: [PATCH v7 3/3] aerdrv: Cleanup log output for CPER based AER
-Date: Tue, 04 Dec 2012 14:03:18 -0700
-Message-ID: <20121204210318.4515.10180.stgit@grignak.americas.hpqcorp.net>
-References: <20121204210305.4515.91100.stgit@grignak.americas.hpqcorp.net>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [RFC PATCH v3 0/3] acpi: Introduce prepare_remove device
+ operation
+Date: Tue, 04 Dec 2012 16:23:31 -0700
+Message-ID: <1354663411.21585.135.camel@misato.fc.hp.com>
+References: <1353693037-21704-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
+	    <50B5EFE9.3040206@huawei.com>
+	   <1354128096.26955.276.camel@misato.fc.hp.com>
+	  <50B6E936.2080308@huawei.com> <1354228028.7776.56.camel@misato.fc.hp.com>
+	  <50BC29C6.6050706@huawei.com> <1354579848.21585.54.camel@misato.fc.hp.com>
+	 <50BDBF5A.8040407@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20121204210305.4515.91100.stgit@grignak.americas.hpqcorp.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, bp@alien8.de, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g5t0007.atlanta.hp.com ([15.192.0.44]:11783 "EHLO
+	g5t0007.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751865Ab2LDXcF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Dec 2012 18:32:05 -0500
+In-Reply-To: <50BDBF5A.8040407@huawei.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <guohanjun@huawei.com>
+Cc: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, linux-acpi@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, wency@cn.fujitsu.com, rjw@sisk.pl, lenb@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Tang Chen <tangchen@cn.fujitsu.com>, Liujiang <jiang.liu@huawei.com>, Huxinwei <huxinwei@huawei.com>
 
-These changes make cper_print_aer more consistent with aer_print_error
-which is called in the AER interrupt case. The string in the variable
-'prefix' is printed at the beginning of each print statement in
-cper_print_aer(). The prefix is a string containing the driver name
-and the device's slot location.  From the callers the value of prefix
-is never assigned and is NULL, so when cper_print_aer prints data the
-initial string does not get printed.  This string is important because
-it identifies the device that the error is on.
+On Tue, 2012-12-04 at 17:16 +0800, Hanjun Guo wrote:
+> On 2012/12/4 8:10, Toshi Kani wrote:
+> > On Mon, 2012-12-03 at 12:25 +0800, Hanjun Guo wrote:
+> >> On 2012/11/30 6:27, Toshi Kani wrote:
+> >>> On Thu, 2012-11-29 at 12:48 +0800, Hanjun Guo wrote:
+> >>>> On 2012/11/29 2:41, Toshi Kani wrote:
+> >>>>> On Wed, 2012-11-28 at 19:05 +0800, Hanjun Guo wrote:
+> >>>>>> On 2012/11/24 1:50, Vasilis Liaskovitis wrote:
+> >>>>>> As you may know, the ACPI based hotplug framework we are working on already addressed
+> >>>>>> this problem, and the way we slove this problem is a bit like yours.
+> >>>>>>
+> >>>>>> We introduce hp_ops in struct acpi_device_ops:
+> >>>>>> struct acpi_device_ops {
+> >>>>>> 	acpi_op_add add;
+> >>>>>> 	acpi_op_remove remove;
+> >>>>>> 	acpi_op_start start;
+> >>>>>> 	acpi_op_bind bind;
+> >>>>>> 	acpi_op_unbind unbind;
+> >>>>>> 	acpi_op_notify notify;
+> >>>>>> #ifdef	CONFIG_ACPI_HOTPLUG
+> >>>>>> 	struct acpihp_dev_ops *hp_ops;
+> >>>>>> #endif	/* CONFIG_ACPI_HOTPLUG */
+> >>>>>> };
+> >>>>>>
+> >>>>>> in hp_ops, we divide the prepare_remove into six small steps, that is:
+> >>>>>> 1) pre_release(): optional step to mark device going to be removed/busy
+> >>>>>> 2) release(): reclaim device from running system
+> >>>>>> 3) post_release(): rollback if cancelled by user or error happened
+> >>>>>> 4) pre_unconfigure(): optional step to solve possible dependency issue
+> >>>>>> 5) unconfigure(): remove devices from running system
+> >>>>>> 6) post_unconfigure(): free resources used by devices
+> >>>>>>
+> >>>>>> In this way, we can easily rollback if error happens.
+> >>>>>> How do you think of this solution, any suggestion ? I think we can achieve
+> >>>>>> a better way for sharing ideas. :)
+> >>>>>
+> >>>>> Yes, sharing idea is good. :)  I do not know if we need all 6 steps (I
+> >>>>> have not looked at all your changes yet..), but in my mind, a hot-plug
+> >>>>> operation should be composed with the following 3 phases.
+> >>>>
+> >>>> Good idea ! we also implement a hot-plug operation in 3 phases:
+> >>>> 1) acpihp_drv_pre_execute
+> >>>> 2) acpihp_drv_execute
+> >>>> 3) acpihp_drv_post_execute
+> >>>> you may refer to :
+> >>>> https://lkml.org/lkml/2012/11/4/79
+> >>>
+> >>> Great.  Yes, I will take a look.
+> >>
+> >> Thanks, any comments are welcomed :)
+> > 
+> > If I read the code right, the framework calls ACPI drivers differently
+> > at boot-time and hot-add as follows.  That is, the new entry points are
+> > called at hot-add only, but .add() is called at both cases.  This
+> > requires .add() to work differently.
+> 
+> Hi Toshi,
+> Thanks for your comments!
+> 
+> > 
+> > Boot    : .add()
+> 
+> Actually, at boot time: .add(), .start()
 
-v1-v2 fix some compile errors withinn the #ifdef
-v3-v4 remove agent id stuff and kept print the same to avoid
-compatibility issues
+Right.
 
-Signed-off-by: Lance Ortiz <lance.ortiz@hp.com>
----
+> > Hot-Add : .add(), .pre_configure(), configure(), etc.
+> 
+> Yes, we did it as you said in the framework. We use .pre_configure(), configure(),
+> and post_configure() to instead of .start() for better error handling and recovery.
 
- drivers/pci/pcie/aer/aerdrv_errprint.c |    7 ++++++-
- 1 files changed, 6 insertions(+), 1 deletions(-)
+I think we should have hot-plug interfaces at the module level, not at
+the ACPI-internal level.  In this way, the interfaces can be
+platform-neutral and allow any modules to register, which makes it more
+consistent with the boot-up sequence.  It can also allow ordering of the
+sequence among the registered modules.  Right now, we initiate all
+procedures from ACPI during hot-plug, which I think is inflexible and
+steps into other module's role.
 
-diff --git a/drivers/pci/pcie/aer/aerdrv_errprint.c b/drivers/pci/pcie/aer/aerdrv_errprint.c
-index 34d96e4..58ff4c0 100644
---- a/drivers/pci/pcie/aer/aerdrv_errprint.c
-+++ b/drivers/pci/pcie/aer/aerdrv_errprint.c
-@@ -228,9 +228,14 @@ void cper_print_aer(struct pci_dev *dev, int cper_severity,
- 	int aer_severity, layer, agent, status_strs_size, tlp_header_valid = 0;
- 	u32 status, mask;
- 	const char **status_strs;
--	char *prefix = NULL;
-+	char prefix[44];
+I am also concerned about the slot handling, which is the core piece of
+the infrastructure and only allows hot-plug operations on ACPI objects
+where slot objects are previously created by checking _EJ0.  The
+infrastructure should allow hot-plug operations on any objects, and it
+should not be dependent on the slot design.
+
+I have some rough idea, and it may be easier to review / explain if I
+make some code changes.  So, let me prototype it, and send it you all if
+that works out.  Hopefully, it won't take too long.
+
+> > I think the boot-time and hot-add initialization should be done
+> > consistently.  While there is difficulty with the current boot sequence,
+> > the framework should be designed to allow them consistent, not make them
+> > diverged.
+> > 
+> >>>>> 1. Validate phase - Verify if the request is a supported operation.  All
+> >>>>> known restrictions are verified at this phase.  For instance, if a
+> >>>>> hot-remove request involves kernel memory, it is failed in this phase.
+> >>>>> Since this phase makes no change, no rollback is necessary to fail. 
+> >>>>
+> >>>> Yes, we have done this in acpihp_drv_pre_execute, and check following things:
+> >>>>
+> >>>> 1) Hot-plugble or not. the instance kernel memory you mentioned is also checked
+> >>>>    when memory device remove;
+> >>>
+> >>> Agreed.
+> >>>
+> >>>> 2) Dependency check involved. For instance, if hot-add a memory device,
+> >>>>    processor should be added first, otherwise it's not valid to this operation.
+> >>>
+> >>> I think FW should be the one that assures such dependency.  That is,
+> >>> when a memory device object is marked as present/enabled/functioning, it
+> >>> should be ready for the OS to use.
+> >>
+> >> Yes, BIOS should do something for the dependency, because BIOS knows the
+> >> actual hardware topology. 
+> > 
+> > Right.
+> > 
+> >> The ACPI specification provides _EDL method to
+> >> tell OS the eject device list, but still has no method to tell OS the add device
+> >> list now.
+> > 
+> > Yes, but I do not think the OS needs special handling for add...
+> 
+> Hmm, how about trigger a hot add operation by OS ? we have eject interface for OS, but
+> have no add interface now, do you think this feature is useful? If it is, I think OS
+> should analyze the dependency first and tell the user.
+
+The OS can eject an ACPI device because a target device is owned by the
+OS (i.e. enabled).  For hot-add, a target ACPI device is not owned by
+the OS (i.e. disabled).  Therefore, the OS is not supposed to change its
+state.  So, I do not think we should support a hot-add operation by the
+OS.
  
- 	aer_severity = cper_severity_to_aer(cper_severity);
-+	snprintf(prefix, sizeof(prefix), "%s%s %s: ",
-+		(aer_severity == AER_CORRECTABLE) ?
-+		KERN_WARNING : KERN_ERR,
-+		dev_driver_string(&dev->dev), dev_name(&dev->dev));
-+
- 	if (aer_severity == AER_CORRECTABLE) {
- 		status = aer->cor_status;
- 		mask = aer->cor_mask;
+> >> For some cases, OS should analyze the dependency in the validate phase. For example,
+> >> when hot remove a node (container device), OS should analyze the dependency to get
+> >> the remove order as following:
+> >> 1) Host bridge;
+> >> 2) Memory devices;
+> >> 3) Processor devices;
+> >> 4) Container device itself;
+> > 
+> > This may be off-topic, but how do you plan to delete I/O devices under a
+> > node?  Are you planning to delete all I/O devices along with the node?
+> 
+> Yes, we delete all I/O devices under the node. we delete I/O devices as
+> following steps:
+> 1) Offline PCI devices;
+> 2) Offline IOAPIC and IOMMU;
+> and offline I/O devices no matter in use or not.
+
+Oh, off-lining no matter what would be problematic for enterprise
+customers... 
+ 
+> > On other OS, we made a separate step called I/O chassis delete, which
+> > off-lines all I/O devices under the node, and is required before a node
+> > hot-remove.  It basically triggers PCIe hot-remove to detach drivers
+> > from all devices.  It does not eject the devices so that they do not
+> > have to be on hot-plug slots.  This step runs user-space scripts to
+> > verify if the devices can be off-lined without disrupting user's
+> > applications, and provides comprehensive reports if any of them are in
+> 
+> Great! we also have a plan to implement this feature.
+
+That's great!
+
+> > use.  Not sure if Linux's PCI hot-remove has such check, but I thought
+> > I'd mention it. :)
+> 
+> Have no such check, I'm sure :)
+> 
+> > 
+> >> In this way, we can check that all the devices are hot-plugble or not under the
+> >> container device before execute phase, and further more, we can remove devices
+> >> in order to avoid some crash problems.
+> > 
+> > Yes, we should check if all the resources under the node can be
+> > off-lined at validate phase.  (note, all the devices do not have to have
+> > _EJ0 if that's what you meant by hot-pluggable.)
+> 
+> Yes, agreed. For node hotplug, no need for all the devices have _EJ0 method.
+
+Right.
+
+Thanks,
+-Toshi
+
+
