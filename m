@@ -1,178 +1,124 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [RFC PATCH v3 0/3] acpi: Introduce prepare_remove device
- operation
-Date: Mon, 03 Dec 2012 17:10:48 -0700
-Message-ID: <1354579848.21585.54.camel@misato.fc.hp.com>
-References: <1353693037-21704-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
-	   <50B5EFE9.3040206@huawei.com>
-	  <1354128096.26955.276.camel@misato.fc.hp.com>
-	 <50B6E936.2080308@huawei.com> <1354228028.7776.56.camel@misato.fc.hp.com>
-	 <50BC29C6.6050706@huawei.com>
+From: "Liu, Jinsong" <jinsong.liu@intel.com>
+Subject: [PATCH] X86/acpi: remove redundant logic of acpi memory hotadd
+Date: Tue, 4 Dec 2012 01:39:54 +0000
+Message-ID: <DE8DF0795D48FD4CA783C40EC829233539DED4@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:29405 "EHLO
-	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751201Ab2LDATU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Dec 2012 19:19:20 -0500
-In-Reply-To: <50BC29C6.6050706@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/mixed;
+	boundary="_002_DE8DF0795D48FD4CA783C40EC829233539DED4SHSMSX101ccrcorpi_"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, "Liu, Jinsong" <jinsong.liu@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>
-Cc: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, linux-acpi@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, wency@cn.fujitsu.com, rjw@sisk.pl, lenb@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Tang Chen <tangchen@cn.fujitsu.com>, Liujiang <jiang.liu@huawei.com>, Huxinwei <huxinwei@huawei.com>
 
-On Mon, 2012-12-03 at 12:25 +0800, Hanjun Guo wrote:
-> On 2012/11/30 6:27, Toshi Kani wrote:
-> > On Thu, 2012-11-29 at 12:48 +0800, Hanjun Guo wrote:
-> >> On 2012/11/29 2:41, Toshi Kani wrote:
-> >>> On Wed, 2012-11-28 at 19:05 +0800, Hanjun Guo wrote:
-> >>>> On 2012/11/24 1:50, Vasilis Liaskovitis wrote:
-> >>>> As you may know, the ACPI based hotplug framework we are working on already addressed
-> >>>> this problem, and the way we slove this problem is a bit like yours.
-> >>>>
-> >>>> We introduce hp_ops in struct acpi_device_ops:
-> >>>> struct acpi_device_ops {
-> >>>> 	acpi_op_add add;
-> >>>> 	acpi_op_remove remove;
-> >>>> 	acpi_op_start start;
-> >>>> 	acpi_op_bind bind;
-> >>>> 	acpi_op_unbind unbind;
-> >>>> 	acpi_op_notify notify;
-> >>>> #ifdef	CONFIG_ACPI_HOTPLUG
-> >>>> 	struct acpihp_dev_ops *hp_ops;
-> >>>> #endif	/* CONFIG_ACPI_HOTPLUG */
-> >>>> };
-> >>>>
-> >>>> in hp_ops, we divide the prepare_remove into six small steps, that is:
-> >>>> 1) pre_release(): optional step to mark device going to be removed/busy
-> >>>> 2) release(): reclaim device from running system
-> >>>> 3) post_release(): rollback if cancelled by user or error happened
-> >>>> 4) pre_unconfigure(): optional step to solve possible dependency issue
-> >>>> 5) unconfigure(): remove devices from running system
-> >>>> 6) post_unconfigure(): free resources used by devices
-> >>>>
-> >>>> In this way, we can easily rollback if error happens.
-> >>>> How do you think of this solution, any suggestion ? I think we can achieve
-> >>>> a better way for sharing ideas. :)
-> >>>
-> >>> Yes, sharing idea is good. :)  I do not know if we need all 6 steps (I
-> >>> have not looked at all your changes yet..), but in my mind, a hot-plug
-> >>> operation should be composed with the following 3 phases.
-> >>
-> >> Good idea ! we also implement a hot-plug operation in 3 phases:
-> >> 1) acpihp_drv_pre_execute
-> >> 2) acpihp_drv_execute
-> >> 3) acpihp_drv_post_execute
-> >> you may refer to :
-> >> https://lkml.org/lkml/2012/11/4/79
-> > 
-> > Great.  Yes, I will take a look.
-> 
-> Thanks, any comments are welcomed :)
+--_002_DE8DF0795D48FD4CA783C40EC829233539DED4SHSMSX101ccrcorpi_
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-If I read the code right, the framework calls ACPI drivers differently
-at boot-time and hot-add as follows.  That is, the new entry points are
-called at hot-add only, but .add() is called at both cases.  This
-requires .add() to work differently.
-
-Boot    : .add()
-Hot-Add : .add(), .pre_configure(), configure(), etc.
-
-I think the boot-time and hot-add initialization should be done
-consistently.  While there is difficulty with the current boot sequence,
-the framework should be designed to allow them consistent, not make them
-diverged.
-
-> >>> 1. Validate phase - Verify if the request is a supported operation.  All
-> >>> known restrictions are verified at this phase.  For instance, if a
-> >>> hot-remove request involves kernel memory, it is failed in this phase.
-> >>> Since this phase makes no change, no rollback is necessary to fail. 
-> >>
-> >> Yes, we have done this in acpihp_drv_pre_execute, and check following things:
-> >>
-> >> 1) Hot-plugble or not. the instance kernel memory you mentioned is also checked
-> >>    when memory device remove;
-> > 
-> > Agreed.
-> > 
-> >> 2) Dependency check involved. For instance, if hot-add a memory device,
-> >>    processor should be added first, otherwise it's not valid to this operation.
-> > 
-> > I think FW should be the one that assures such dependency.  That is,
-> > when a memory device object is marked as present/enabled/functioning, it
-> > should be ready for the OS to use.
-> 
-> Yes, BIOS should do something for the dependency, because BIOS knows the
-> actual hardware topology. 
-
-Right.
-
-> The ACPI specification provides _EDL method to
-> tell OS the eject device list, but still has no method to tell OS the add device
-> list now.
-
-Yes, but I do not think the OS needs special handling for add...
-
-> For some cases, OS should analyze the dependency in the validate phase. For example,
-> when hot remove a node (container device), OS should analyze the dependency to get
-> the remove order as following:
-> 1) Host bridge;
-> 2) Memory devices;
-> 3) Processor devices;
-> 4) Container device itself;
-
-This may be off-topic, but how do you plan to delete I/O devices under a
-node?  Are you planning to delete all I/O devices along with the node?
-
-On other OS, we made a separate step called I/O chassis delete, which
-off-lines all I/O devices under the node, and is required before a node
-hot-remove.  It basically triggers PCIe hot-remove to detach drivers
-from all devices.  It does not eject the devices so that they do not
-have to be on hot-plug slots.  This step runs user-space scripts to
-verify if the devices can be off-lined without disrupting user's
-applications, and provides comprehensive reports if any of them are in
-use.  Not sure if Linux's PCI hot-remove has such check, but I thought
-I'd mention it. :)
-
-> In this way, we can check that all the devices are hot-plugble or not under the
-> container device before execute phase, and further more, we can remove devices
-> in order to avoid some crash problems.
-
-Yes, we should check if all the resources under the node can be
-off-lined at validate phase.  (note, all the devices do not have to have
-_EJ0 if that's what you meant by hot-pluggable.)
- 
-> >> 3) Race condition check. if the device and its dependent device is in hot-plug
-> >>    process, another request will be denied.
-> > 
-> > I agree that hot-plug operation should be serialized.  I think another
-> > request should be either queued or denied based on the caller's intent
-> > (i.e. wait-ok or no-wait). 
-> > 
-> >> No rollback is needed for the above checks.
-> > 
-> > Great.
-> > 
-> >>> 2. Execute phase - Perform hot-add / hot-remove operation that can be
-> >>> rolled-back in case of error or cancel.
-> >>
-> >> In this phase, we introduce a state machine for the hot-plugble device,
-> >> please refer to:
-> >> https://lkml.org/lkml/2012/11/4/79
-> >>
-> >> I think we have the same idea for the major framework, but the ACPI based
-> >> hot-plug framework implement it differently in detail, right ?
-> > 
-> > Yes, I am surprised with the similarity.  What I described is something
-> > we had implemented for other OS.  I am still studying how best we can
-> > improve the Linux hotplug code. :)
-> 
-> Great! your experience is very appreciable for me. I think we can share ideas
-> to achieve a better solution for Linux hotplug code. :)
-
-Sounds great.
+Resend it, add Rafael and linux-acpi@vger.kernel.org
 
 Thanks,
--Toshi
+Jinsong
 
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>From 1d39279e45c54ce531691da5ffe261e7689dd92c Mon Sep 17 00:00:00 2001
+From: Liu Jinsong <jinsong.liu@intel.com>
+Date: Wed, 14 Nov 2012 18:52:06 +0800
+Subject: [PATCH] X86/acpi: remove redundant logic of acpi memory hotadd
+
+When memory hotadd, acpi_memory_enable_device has already been done
+at drv->ops.add (acpi_memory_device_add), no need to do it again
+at notify callback.
+
+At acpi_memory_enable_device, acpi_memory_get_device_resources
+is also a redundant action, since it has been done at drv->ops.add.
+
+Signed-off-by: Liu Jinsong <jinsong.liu@intel.com>
+---
+ drivers/acpi/acpi_memhotplug.c |   17 -----------------
+ 1 files changed, 0 insertions(+), 17 deletions(-)
+
+diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.=
+c
+index 24c807f..a6489fd 100644
+--- a/drivers/acpi/acpi_memhotplug.c
++++ b/drivers/acpi/acpi_memhotplug.c
+@@ -220,15 +220,6 @@ static int acpi_memory_enable_device(struct acpi_memor=
+y_device *mem_device)
+ 	struct acpi_memory_info *info;
+ 	int node;
+=20
+-
+-	/* Get the range from the _CRS */
+-	result =3D acpi_memory_get_device_resources(mem_device);
+-	if (result) {
+-		printk(KERN_ERR PREFIX "get_device_resources failed\n");
+-		mem_device->state =3D MEMORY_INVALID_STATE;
+-		return result;
+-	}
+-
+ 	node =3D acpi_get_node(mem_device->device->handle);
+ 	/*
+ 	 * Tell the VM there is more memory here...
+@@ -357,14 +348,6 @@ static void acpi_memory_device_notify(acpi_handle hand=
+le, u32 event, void *data)
+ 			break;
+ 		}
+=20
+-		if (acpi_memory_check_device(mem_device))
+-			break;
+-
+-		if (acpi_memory_enable_device(mem_device)) {
+-			printk(KERN_ERR PREFIX "Cannot enable memory device\n");
+-			break;
+-		}
+-
+ 		ost_code =3D ACPI_OST_SC_SUCCESS;
+ 		break;
+=20
+--=20
+1.7.1
+
+--_002_DE8DF0795D48FD4CA783C40EC829233539DED4SHSMSX101ccrcorpi_
+Content-Type: application/octet-stream;
+	name="0001-X86-acpi-remove-redundant-logic-of-acpi-memory-hotad.patch"
+Content-Description: 0001-X86-acpi-remove-redundant-logic-of-acpi-memory-hotad.patch
+Content-Disposition: attachment;
+	filename="0001-X86-acpi-remove-redundant-logic-of-acpi-memory-hotad.patch";
+	size=1705; creation-date="Wed, 14 Nov 2012 11:37:22 GMT";
+	modification-date="Wed, 14 Nov 2012 10:53:00 GMT"
+Content-Transfer-Encoding: base64
+
+RnJvbSAxZDM5Mjc5ZTQ1YzU0Y2U1MzE2OTFkYTVmZmUyNjFlNzY4OWRkOTJjIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBMaXUgSmluc29uZyA8amluc29uZy5saXVAaW50ZWwuY29tPgpE
+YXRlOiBXZWQsIDE0IE5vdiAyMDEyIDE4OjUyOjA2ICswODAwClN1YmplY3Q6IFtQQVRDSF0gWDg2
+L2FjcGk6IHJlbW92ZSByZWR1bmRhbnQgbG9naWMgb2YgYWNwaSBtZW1vcnkgaG90YWRkCgpXaGVu
+IG1lbW9yeSBob3RhZGQsIGFjcGlfbWVtb3J5X2VuYWJsZV9kZXZpY2UgaGFzIGFscmVhZHkgYmVl
+biBkb25lCmF0IGRydi0+b3BzLmFkZCAoYWNwaV9tZW1vcnlfZGV2aWNlX2FkZCksIG5vIG5lZWQg
+dG8gZG8gaXQgYWdhaW4KYXQgbm90aWZ5IGNhbGxiYWNrLgoKQXQgYWNwaV9tZW1vcnlfZW5hYmxl
+X2RldmljZSwgYWNwaV9tZW1vcnlfZ2V0X2RldmljZV9yZXNvdXJjZXMKaXMgYWxzbyBhIHJlZHVu
+ZGFudCBhY3Rpb24sIHNpbmNlIGl0IGhhcyBiZWVuIGRvbmUgYXQgZHJ2LT5vcHMuYWRkLgoKU2ln
+bmVkLW9mZi1ieTogTGl1IEppbnNvbmcgPGppbnNvbmcubGl1QGludGVsLmNvbT4KLS0tCiBkcml2
+ZXJzL2FjcGkvYWNwaV9tZW1ob3RwbHVnLmMgfCAgIDE3IC0tLS0tLS0tLS0tLS0tLS0tCiAxIGZp
+bGVzIGNoYW5nZWQsIDAgaW5zZXJ0aW9ucygrKSwgMTcgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0
+IGEvZHJpdmVycy9hY3BpL2FjcGlfbWVtaG90cGx1Zy5jIGIvZHJpdmVycy9hY3BpL2FjcGlfbWVt
+aG90cGx1Zy5jCmluZGV4IDI0YzgwN2YuLmE2NDg5ZmQgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvYWNw
+aS9hY3BpX21lbWhvdHBsdWcuYworKysgYi9kcml2ZXJzL2FjcGkvYWNwaV9tZW1ob3RwbHVnLmMK
+QEAgLTIyMCwxNSArMjIwLDYgQEAgc3RhdGljIGludCBhY3BpX21lbW9yeV9lbmFibGVfZGV2aWNl
+KHN0cnVjdCBhY3BpX21lbW9yeV9kZXZpY2UgKm1lbV9kZXZpY2UpCiAJc3RydWN0IGFjcGlfbWVt
+b3J5X2luZm8gKmluZm87CiAJaW50IG5vZGU7CiAKLQotCS8qIEdldCB0aGUgcmFuZ2UgZnJvbSB0
+aGUgX0NSUyAqLwotCXJlc3VsdCA9IGFjcGlfbWVtb3J5X2dldF9kZXZpY2VfcmVzb3VyY2VzKG1l
+bV9kZXZpY2UpOwotCWlmIChyZXN1bHQpIHsKLQkJcHJpbnRrKEtFUk5fRVJSIFBSRUZJWCAiZ2V0
+X2RldmljZV9yZXNvdXJjZXMgZmFpbGVkXG4iKTsKLQkJbWVtX2RldmljZS0+c3RhdGUgPSBNRU1P
+UllfSU5WQUxJRF9TVEFURTsKLQkJcmV0dXJuIHJlc3VsdDsKLQl9Ci0KIAlub2RlID0gYWNwaV9n
+ZXRfbm9kZShtZW1fZGV2aWNlLT5kZXZpY2UtPmhhbmRsZSk7CiAJLyoKIAkgKiBUZWxsIHRoZSBW
+TSB0aGVyZSBpcyBtb3JlIG1lbW9yeSBoZXJlLi4uCkBAIC0zNTcsMTQgKzM0OCw2IEBAIHN0YXRp
+YyB2b2lkIGFjcGlfbWVtb3J5X2RldmljZV9ub3RpZnkoYWNwaV9oYW5kbGUgaGFuZGxlLCB1MzIg
+ZXZlbnQsIHZvaWQgKmRhdGEpCiAJCQlicmVhazsKIAkJfQogCi0JCWlmIChhY3BpX21lbW9yeV9j
+aGVja19kZXZpY2UobWVtX2RldmljZSkpCi0JCQlicmVhazsKLQotCQlpZiAoYWNwaV9tZW1vcnlf
+ZW5hYmxlX2RldmljZShtZW1fZGV2aWNlKSkgewotCQkJcHJpbnRrKEtFUk5fRVJSIFBSRUZJWCAi
+Q2Fubm90IGVuYWJsZSBtZW1vcnkgZGV2aWNlXG4iKTsKLQkJCWJyZWFrOwotCQl9Ci0KIAkJb3N0
+X2NvZGUgPSBBQ1BJX09TVF9TQ19TVUNDRVNTOwogCQlicmVhazsKIAotLSAKMS43LjEKCg==
+
+--_002_DE8DF0795D48FD4CA783C40EC829233539DED4SHSMSX101ccrcorpi_--
