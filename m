@@ -1,124 +1,64 @@
-From: "Liu, Jinsong" <jinsong.liu@intel.com>
-Subject: [PATCH] X86/acpi: remove redundant logic of acpi memory hotadd
-Date: Tue, 4 Dec 2012 01:39:54 +0000
-Message-ID: <DE8DF0795D48FD4CA783C40EC829233539DED4@SHSMSX101.ccr.corp.intel.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v9 06/10] ata: zpodd: check zero power ready status
+Date: Tue, 04 Dec 2012 13:04:42 +0800
+Message-ID: <50BD846A.6050601@intel.com>
+References: <1352443922-13734-1-git-send-email-aaron.lu@intel.com> <35648985.61QNrr0Knq@vostro.rjw.lan> <1353906191.2523.25.camel@dabdike> <21511277.LLinyDpbAK@vostro.rjw.lan> <20121128013928.GB15971@htj.dyndns.org> <1354092969.2276.49.camel@dabdike> <20121203081321.GA9990@mint-spring.sh.intel.com> <1354523143.2307.2.camel@dabdike.int.hansenpartnership.com> <20121203162323.GB19802@htj.dyndns.org> <50BCF5F8.2030802@pobox.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="_002_DE8DF0795D48FD4CA783C40EC829233539DED4SHSMSX101ccrcorpi_"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, "Liu, Jinsong" <jinsong.liu@intel.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <50BCF5F8.2030802@pobox.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: Jeff Garzik <jgarzik@pobox.com>, Tejun Heo <tj@kernel.org>, James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, Jeff Wu <jeff.wu@amd.com>, Aaron Lu <aaron.lwe@gmail.com>, linux-ide@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
---_002_DE8DF0795D48FD4CA783C40EC829233539DED4SHSMSX101ccrcorpi_
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+On 12/04/2012 02:56 AM, Jeff Garzik wrote:
+> On 12/03/2012 11:23 AM, Tejun Heo wrote:
+>> Hello, James.
+>>
+>> On Mon, Dec 03, 2012 at 08:25:43AM +0000, James Bottomley wrote:
+>>>> diff --git a/include/scsi/scsi_device.h b/include/scsi/scsi_device.h
+>>>> index e65c62e..1756151 100644
+>>>> --- a/include/scsi/scsi_device.h
+>>>> +++ b/include/scsi/scsi_device.h
+>>>> @@ -160,6 +160,7 @@ struct scsi_device {
+>>>>   	unsigned can_power_off:1; /* Device supports runtime power off */
+>>>>   	unsigned wce_default_on:1;	/* Cache is ON by default */
+>>>>   	unsigned no_dif:1;	/* T10 PI (DIF) should be disabled */
+>>>> +	unsigned event_driven:1; /* No need to poll the device */
+>>>>
+>>>>   	DECLARE_BITMAP(supported_events, SDEV_EVT_MAXBITS); /* supported events */
+>>>>   	struct list_head event_list;	/* asserted events */
+>>>
+>>> Yes, but if we can get away with doing that, it should be in genhd
+>>> because it's completely generic.
+>>>
+>>> I was imagining we'd have to fake the reply to the test unit ready or
+>>> some other commands, which is why it would need to be in sr.c
+>>>
+>>> The check events code is Tejun's baby, if he's OK with it then just do
+>>> it in genhd.c
+>>
+>> The problem here is there's no easy to reach genhd from libata (or the
+>> other way around) without going through sr.  I think we're gonna have
+>> to have something in sr one way or the other.
+> 
+>   ...which is precisely as I said when v1 of this ZPODD patchset appeared.
+> 
+> sr modifications cannot be avoided.
 
-Resend it, add Rafael and linux-acpi@vger.kernel.org
+So I'm gonna use the above code to silence the poll when ODD is powered
+off. I suppose everybody is OK with this, right? James, please let me
+know if you disagree.
 
 Thanks,
-Jinsong
+Aaron
 
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->From 1d39279e45c54ce531691da5ffe261e7689dd92c Mon Sep 17 00:00:00 2001
-From: Liu Jinsong <jinsong.liu@intel.com>
-Date: Wed, 14 Nov 2012 18:52:06 +0800
-Subject: [PATCH] X86/acpi: remove redundant logic of acpi memory hotadd
+> 
+> 	Jeff
+> 
+> 
+> 
+> 
 
-When memory hotadd, acpi_memory_enable_device has already been done
-at drv->ops.add (acpi_memory_device_add), no need to do it again
-at notify callback.
-
-At acpi_memory_enable_device, acpi_memory_get_device_resources
-is also a redundant action, since it has been done at drv->ops.add.
-
-Signed-off-by: Liu Jinsong <jinsong.liu@intel.com>
----
- drivers/acpi/acpi_memhotplug.c |   17 -----------------
- 1 files changed, 0 insertions(+), 17 deletions(-)
-
-diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.=
-c
-index 24c807f..a6489fd 100644
---- a/drivers/acpi/acpi_memhotplug.c
-+++ b/drivers/acpi/acpi_memhotplug.c
-@@ -220,15 +220,6 @@ static int acpi_memory_enable_device(struct acpi_memor=
-y_device *mem_device)
- 	struct acpi_memory_info *info;
- 	int node;
-=20
--
--	/* Get the range from the _CRS */
--	result =3D acpi_memory_get_device_resources(mem_device);
--	if (result) {
--		printk(KERN_ERR PREFIX "get_device_resources failed\n");
--		mem_device->state =3D MEMORY_INVALID_STATE;
--		return result;
--	}
--
- 	node =3D acpi_get_node(mem_device->device->handle);
- 	/*
- 	 * Tell the VM there is more memory here...
-@@ -357,14 +348,6 @@ static void acpi_memory_device_notify(acpi_handle hand=
-le, u32 event, void *data)
- 			break;
- 		}
-=20
--		if (acpi_memory_check_device(mem_device))
--			break;
--
--		if (acpi_memory_enable_device(mem_device)) {
--			printk(KERN_ERR PREFIX "Cannot enable memory device\n");
--			break;
--		}
--
- 		ost_code =3D ACPI_OST_SC_SUCCESS;
- 		break;
-=20
---=20
-1.7.1
-
---_002_DE8DF0795D48FD4CA783C40EC829233539DED4SHSMSX101ccrcorpi_
-Content-Type: application/octet-stream;
-	name="0001-X86-acpi-remove-redundant-logic-of-acpi-memory-hotad.patch"
-Content-Description: 0001-X86-acpi-remove-redundant-logic-of-acpi-memory-hotad.patch
-Content-Disposition: attachment;
-	filename="0001-X86-acpi-remove-redundant-logic-of-acpi-memory-hotad.patch";
-	size=1705; creation-date="Wed, 14 Nov 2012 11:37:22 GMT";
-	modification-date="Wed, 14 Nov 2012 10:53:00 GMT"
-Content-Transfer-Encoding: base64
-
-RnJvbSAxZDM5Mjc5ZTQ1YzU0Y2U1MzE2OTFkYTVmZmUyNjFlNzY4OWRkOTJjIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBMaXUgSmluc29uZyA8amluc29uZy5saXVAaW50ZWwuY29tPgpE
-YXRlOiBXZWQsIDE0IE5vdiAyMDEyIDE4OjUyOjA2ICswODAwClN1YmplY3Q6IFtQQVRDSF0gWDg2
-L2FjcGk6IHJlbW92ZSByZWR1bmRhbnQgbG9naWMgb2YgYWNwaSBtZW1vcnkgaG90YWRkCgpXaGVu
-IG1lbW9yeSBob3RhZGQsIGFjcGlfbWVtb3J5X2VuYWJsZV9kZXZpY2UgaGFzIGFscmVhZHkgYmVl
-biBkb25lCmF0IGRydi0+b3BzLmFkZCAoYWNwaV9tZW1vcnlfZGV2aWNlX2FkZCksIG5vIG5lZWQg
-dG8gZG8gaXQgYWdhaW4KYXQgbm90aWZ5IGNhbGxiYWNrLgoKQXQgYWNwaV9tZW1vcnlfZW5hYmxl
-X2RldmljZSwgYWNwaV9tZW1vcnlfZ2V0X2RldmljZV9yZXNvdXJjZXMKaXMgYWxzbyBhIHJlZHVu
-ZGFudCBhY3Rpb24sIHNpbmNlIGl0IGhhcyBiZWVuIGRvbmUgYXQgZHJ2LT5vcHMuYWRkLgoKU2ln
-bmVkLW9mZi1ieTogTGl1IEppbnNvbmcgPGppbnNvbmcubGl1QGludGVsLmNvbT4KLS0tCiBkcml2
-ZXJzL2FjcGkvYWNwaV9tZW1ob3RwbHVnLmMgfCAgIDE3IC0tLS0tLS0tLS0tLS0tLS0tCiAxIGZp
-bGVzIGNoYW5nZWQsIDAgaW5zZXJ0aW9ucygrKSwgMTcgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0
-IGEvZHJpdmVycy9hY3BpL2FjcGlfbWVtaG90cGx1Zy5jIGIvZHJpdmVycy9hY3BpL2FjcGlfbWVt
-aG90cGx1Zy5jCmluZGV4IDI0YzgwN2YuLmE2NDg5ZmQgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvYWNw
-aS9hY3BpX21lbWhvdHBsdWcuYworKysgYi9kcml2ZXJzL2FjcGkvYWNwaV9tZW1ob3RwbHVnLmMK
-QEAgLTIyMCwxNSArMjIwLDYgQEAgc3RhdGljIGludCBhY3BpX21lbW9yeV9lbmFibGVfZGV2aWNl
-KHN0cnVjdCBhY3BpX21lbW9yeV9kZXZpY2UgKm1lbV9kZXZpY2UpCiAJc3RydWN0IGFjcGlfbWVt
-b3J5X2luZm8gKmluZm87CiAJaW50IG5vZGU7CiAKLQotCS8qIEdldCB0aGUgcmFuZ2UgZnJvbSB0
-aGUgX0NSUyAqLwotCXJlc3VsdCA9IGFjcGlfbWVtb3J5X2dldF9kZXZpY2VfcmVzb3VyY2VzKG1l
-bV9kZXZpY2UpOwotCWlmIChyZXN1bHQpIHsKLQkJcHJpbnRrKEtFUk5fRVJSIFBSRUZJWCAiZ2V0
-X2RldmljZV9yZXNvdXJjZXMgZmFpbGVkXG4iKTsKLQkJbWVtX2RldmljZS0+c3RhdGUgPSBNRU1P
-UllfSU5WQUxJRF9TVEFURTsKLQkJcmV0dXJuIHJlc3VsdDsKLQl9Ci0KIAlub2RlID0gYWNwaV9n
-ZXRfbm9kZShtZW1fZGV2aWNlLT5kZXZpY2UtPmhhbmRsZSk7CiAJLyoKIAkgKiBUZWxsIHRoZSBW
-TSB0aGVyZSBpcyBtb3JlIG1lbW9yeSBoZXJlLi4uCkBAIC0zNTcsMTQgKzM0OCw2IEBAIHN0YXRp
-YyB2b2lkIGFjcGlfbWVtb3J5X2RldmljZV9ub3RpZnkoYWNwaV9oYW5kbGUgaGFuZGxlLCB1MzIg
-ZXZlbnQsIHZvaWQgKmRhdGEpCiAJCQlicmVhazsKIAkJfQogCi0JCWlmIChhY3BpX21lbW9yeV9j
-aGVja19kZXZpY2UobWVtX2RldmljZSkpCi0JCQlicmVhazsKLQotCQlpZiAoYWNwaV9tZW1vcnlf
-ZW5hYmxlX2RldmljZShtZW1fZGV2aWNlKSkgewotCQkJcHJpbnRrKEtFUk5fRVJSIFBSRUZJWCAi
-Q2Fubm90IGVuYWJsZSBtZW1vcnkgZGV2aWNlXG4iKTsKLQkJCWJyZWFrOwotCQl9Ci0KIAkJb3N0
-X2NvZGUgPSBBQ1BJX09TVF9TQ19TVUNDRVNTOwogCQlicmVhazsKIAotLSAKMS43LjEKCg==
-
---_002_DE8DF0795D48FD4CA783C40EC829233539DED4SHSMSX101ccrcorpi_--
