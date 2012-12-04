@@ -1,115 +1,252 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v5 2/3] aerdrv: Enhanced AER logging
-Date: Tue, 4 Dec 2012 10:30:07 +0100
-Message-ID: <20121204093007.GG4369@liondog.tnic>
-References: <20121203212047.24373.8646.stgit@grignak.americas.hpqcorp.net>
- <20121203212053.24373.10914.stgit@grignak.americas.hpqcorp.net>
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: Re: [Patch v4 05/12] memory-hotplug: introduce new function arch_remove_memory()
+ for removing page table depends on architecture
+Date: Tue, 04 Dec 2012 17:30:51 +0800
+Message-ID: <50BDC2CB.2030802@cn.fujitsu.com>
+References: <1354010422-19648-1-git-send-email-wency@cn.fujitsu.com> <1354010422-19648-6-git-send-email-wency@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:40946 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751963Ab2LDJaJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 4 Dec 2012 04:30:09 -0500
-Content-Disposition: inline
-In-Reply-To: <20121203212053.24373.10914.stgit@grignak.americas.hpqcorp.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1354010422-19648-6-git-send-email-wency@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Wen Congyang <wency@cn.fujitsu.com>
+Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, David Rientjes <rientjes@google.com>, Jiang Liu <liuj97@gmail.com>, Len Brown <len.brown@intel.com>, benh@kernel.crashing.org, paulus@samba.org, Christoph Lameter <cl@linux.com>, Minchan Kim <minchan.kim@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Jianguo Wu <wujianguo@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: Lance Ortiz <lance.ortiz@hp.com>, bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, Dec 03, 2012 at 02:20:54PM -0700, Lance Ortiz wrote:
-> This patch will provide a more reliable and easy way for user-space
-> applications to have access to AER logs rather than reading them from the
-> message buffer. It also provides a way to notify user-space when an AER
-> event occurs.
-> 
-> The aer driver is updated to generate a trace event of function 'aer_event'
-> when a PCIe error is reported over the AER interface.  The trace event was
-> added to both the interrupt based aer path and the firmware first path.
-> 
-> v1-v2 fix compile errors in ifdefs.
-> v2-v3 Update to new location of trace header. Update print to remove
-> warning.
-> v3-v4 Reworked logic when getting ready to call cper_print_aer
-> Signed-off-by: Lance Ortiz <lance.ortiz@hp.com>
+On 11/27/2012 06:00 PM, Wen Congyang wrote:
+> For removing memory, we need to remove page table. But it depends
+> on architecture. So the patch introduce arch_remove_memory() for
+> removing page table. Now it only calls __remove_pages().
+>
+> Note: __remove_pages() for some archtecuture is not implemented
+>        (I don't know how to implement it for s390).
+>
+> CC: David Rientjes<rientjes@google.com>
+> CC: Jiang Liu<liuj97@gmail.com>
+> CC: Len Brown<len.brown@intel.com>
+> CC: Benjamin Herrenschmidt<benh@kernel.crashing.org>
+> CC: Paul Mackerras<paulus@samba.org>
+> CC: Christoph Lameter<cl@linux.com>
+> Cc: Minchan Kim<minchan.kim@gmail.com>
+> CC: Andrew Morton<akpm@linux-foundation.org>
+> CC: KOSAKI Motohiro<kosaki.motohiro@jp.fujitsu.com>
+> CC: Yasuaki Ishimatsu<isimatu.yasuaki@jp.fujitsu.com>
+> Signed-off-by: Wen Congyang<wency@cn.fujitsu.com>
 > ---
-> 
->  drivers/acpi/apei/cper.c               |   19 ++++++++++++++++---
->  drivers/pci/pcie/aer/aerdrv_errprint.c |   10 +++++++++-
->  include/linux/aer.h                    |    2 +-
->  3 files changed, 26 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/acpi/apei/cper.c b/drivers/acpi/apei/cper.c
-> index e6defd8..4a3e945 100644
-> --- a/drivers/acpi/apei/cper.c
-> +++ b/drivers/acpi/apei/cper.c
-> @@ -29,6 +29,7 @@
->  #include <linux/time.h>
->  #include <linux/cper.h>
->  #include <linux/acpi.h>
-> +#include <linux/pci.h>
->  #include <linux/aer.h>
->  
->  /*
-> @@ -249,6 +250,10 @@ static const char *cper_pcie_port_type_strs[] = {
->  static void cper_print_pcie(const char *pfx, const struct cper_sec_pcie *pcie,
->  			    const struct acpi_hest_generic_data *gdata)
->  {
-> +#ifdef CONFIG_ACPI_APEI_PCIEAER
-> +	struct pci_dev *dev;
-> +#endif
+>   arch/ia64/mm/init.c            | 18 ++++++++++++++++++
+>   arch/powerpc/mm/mem.c          | 12 ++++++++++++
+>   arch/s390/mm/init.c            | 12 ++++++++++++
+>   arch/sh/mm/init.c              | 17 +++++++++++++++++
+>   arch/tile/mm/init.c            |  8 ++++++++
+>   arch/x86/mm/init_32.c          | 12 ++++++++++++
+>   arch/x86/mm/init_64.c          | 15 +++++++++++++++
+>   include/linux/memory_hotplug.h |  1 +
+>   mm/memory_hotplug.c            |  2 ++
+>   9 files changed, 97 insertions(+)
+>
+> diff --git a/arch/ia64/mm/init.c b/arch/ia64/mm/init.c
+> index 082e383..e333822 100644
+> --- a/arch/ia64/mm/init.c
+> +++ b/arch/ia64/mm/init.c
+> @@ -689,6 +689,24 @@ int arch_add_memory(int nid, u64 start, u64 size)
+>
+>   	return ret;
+>   }
 > +
->  	if (pcie->validation_bits & CPER_PCIE_VALID_PORT_TYPE)
->  		printk("%s""port_type: %d, %s\n", pfx, pcie->port_type,
->  		       pcie->port_type < ARRAY_SIZE(cper_pcie_port_type_strs) ?
-> @@ -281,10 +286,18 @@ static void cper_print_pcie(const char *pfx, const struct cper_sec_pcie *pcie,
->  	"%s""bridge: secondary_status: 0x%04x, control: 0x%04x\n",
->  	pfx, pcie->bridge.secondary_status, pcie->bridge.control);
->  #ifdef CONFIG_ACPI_APEI_PCIEAER
-> -	if (pcie->validation_bits & CPER_PCIE_VALID_AER_INFO) {
-> -		struct aer_capability_regs *aer_regs = (void *)pcie->aer_info;
-> -		cper_print_aer(pfx, gdata->error_severity, aer_regs);
-> +	dev = pci_get_domain_bus_and_slot(pcie->device_id.segment,
-> +			pcie->device_id.bus, pcie->device_id.function);
-> +	if (!dev) {
-> +		pr_info("PCI AER Cannot get PCI device %04x:%02x:%02x.%d\n",
-> +			pcie->device_id.segment, pcie->device_id.bus,
-> +			pcie->device_id.slot, pcie->device_id.function);
-> +		return;
->  	}
-> +	if (pcie->validation_bits & CPER_PCIE_VALID_AER_INFO)
-> +		cper_print_aer(dev, gdata->error_severity,
-> +				(struct aer_capability_regs *) pcie->aer_info);
-> +	pci_dev_put(dev);
->  #endif
->  }
->  
-> diff --git a/drivers/pci/pcie/aer/aerdrv_errprint.c b/drivers/pci/pcie/aer/aerdrv_errprint.c
-> index 3ea5173..34d96e4 100644
-> --- a/drivers/pci/pcie/aer/aerdrv_errprint.c
-> +++ b/drivers/pci/pcie/aer/aerdrv_errprint.c
-> @@ -23,6 +23,9 @@
->  
->  #include "aerdrv.h"
->  
-> +#define CREATE_TRACE_POINTS
-> +#include <trace/events/ras.h>
+> +#ifdef CONFIG_MEMORY_HOTREMOVE
+> +int arch_remove_memory(u64 start, u64 size)
+> +{
+> +	unsigned long start_pfn = start>>  PAGE_SHIFT;
+> +	unsigned long nr_pages = size>>  PAGE_SHIFT;
+> +	struct zone *zone;
+> +	int ret;
+> +
+> +	zone = page_zone(pfn_to_page(start_pfn));
+> +	ret = __remove_pages(zone, start_pfn, nr_pages);
+> +	if (ret)
+> +		pr_warn("%s: Problem encountered in __remove_pages() as"
+> +			" ret=%d\n", __func__,  ret);
+> +
+> +	return ret;
 
-Steve,
+Just a little question, why do we have different handlers for ret on
+different platforms ?  Sometimes we print a msg, sometimes we just
+return, and sometimes we give a WARN_ON(). But no big deal. :)
 
-AFAIU, this will create all tracepoint code from the ras.h header
-in this compilation unit, i.e. aerdrv_errprint.c. It has only one
-tracepoint now but with time, as more RAS TPs are being added, it would
-make sense to have that CREATE_TRACE_POINTS code at a more central place
-in the kernel, right?
+Reviewed-by: Tang Chen <tangchen@cn.fujitsu.com>
 
-And, on configs with PCIEAER disabled, we won't have the TPs available
-so the CREATE_TRACE_POINTS thing should be in a compilation unit which
-gets included unconditionally, correct?
+> +}
+> +#endif
+>   #endif
+>
+>   /*
+> diff --git a/arch/powerpc/mm/mem.c b/arch/powerpc/mm/mem.c
+> index 0dba506..09c6451 100644
+> --- a/arch/powerpc/mm/mem.c
+> +++ b/arch/powerpc/mm/mem.c
+> @@ -133,6 +133,18 @@ int arch_add_memory(int nid, u64 start, u64 size)
+>
+>   	return __add_pages(nid, zone, start_pfn, nr_pages);
+>   }
+> +
+> +#ifdef CONFIG_MEMORY_HOTREMOVE
+> +int arch_remove_memory(u64 start, u64 size)
+> +{
+> +	unsigned long start_pfn = start>>  PAGE_SHIFT;
+> +	unsigned long nr_pages = size>>  PAGE_SHIFT;
+> +	struct zone *zone;
+> +
+> +	zone = page_zone(pfn_to_page(start_pfn));
+> +	return __remove_pages(zone, start_pfn, nr_pages);
+> +}
+> +#endif
+>   #endif /* CONFIG_MEMORY_HOTPLUG */
+>
+>   /*
+> diff --git a/arch/s390/mm/init.c b/arch/s390/mm/init.c
+> index 81e596c..b565190 100644
+> --- a/arch/s390/mm/init.c
+> +++ b/arch/s390/mm/init.c
+> @@ -257,4 +257,16 @@ int arch_add_memory(int nid, u64 start, u64 size)
+>   		vmem_remove_mapping(start, size);
+>   	return rc;
+>   }
+> +
+> +#ifdef CONFIG_MEMORY_HOTREMOVE
+> +int arch_remove_memory(u64 start, u64 size)
+> +{
+> +	/*
+> +	 * There is no hardware or firmware interface which could trigger a
+> +	 * hot memory remove on s390. So there is nothing that needs to be
+> +	 * implemented.
+> +	 */
+> +	return -EBUSY;
+> +}
+> +#endif
+>   #endif /* CONFIG_MEMORY_HOTPLUG */
+> diff --git a/arch/sh/mm/init.c b/arch/sh/mm/init.c
+> index 82cc576..1057940 100644
+> --- a/arch/sh/mm/init.c
+> +++ b/arch/sh/mm/init.c
+> @@ -558,4 +558,21 @@ int memory_add_physaddr_to_nid(u64 addr)
+>   EXPORT_SYMBOL_GPL(memory_add_physaddr_to_nid);
+>   #endif
+>
+> +#ifdef CONFIG_MEMORY_HOTREMOVE
+> +int arch_remove_memory(u64 start, u64 size)
+> +{
+> +	unsigned long start_pfn = start>>  PAGE_SHIFT;
+> +	unsigned long nr_pages = size>>  PAGE_SHIFT;
+> +	struct zone *zone;
+> +	int ret;
+> +
+> +	zone = page_zone(pfn_to_page(start_pfn));
+> +	ret = __remove_pages(zone, start_pfn, nr_pages);
+> +	if (unlikely(ret))
+> +		pr_warn("%s: Failed, __remove_pages() == %d\n", __func__,
+> +			ret);
+> +
+> +	return ret;
+> +}
+> +#endif
+>   #endif /* CONFIG_MEMORY_HOTPLUG */
+> diff --git a/arch/tile/mm/init.c b/arch/tile/mm/init.c
+> index ef29d6c..2749515 100644
+> --- a/arch/tile/mm/init.c
+> +++ b/arch/tile/mm/init.c
+> @@ -935,6 +935,14 @@ int remove_memory(u64 start, u64 size)
+>   {
+>   	return -EINVAL;
+>   }
+> +
+> +#ifdef CONFIG_MEMORY_HOTREMOVE
+> +int arch_remove_memory(u64 start, u64 size)
+> +{
+> +	/* TODO */
+> +	return -EBUSY;
+> +}
+> +#endif
+>   #endif
+>
+>   struct kmem_cache *pgd_cache;
+> diff --git a/arch/x86/mm/init_32.c b/arch/x86/mm/init_32.c
+> index 11a5800..b19eba4 100644
+> --- a/arch/x86/mm/init_32.c
+> +++ b/arch/x86/mm/init_32.c
+> @@ -839,6 +839,18 @@ int arch_add_memory(int nid, u64 start, u64 size)
+>
+>   	return __add_pages(nid, zone, start_pfn, nr_pages);
+>   }
+> +
+> +#ifdef CONFIG_MEMORY_HOTREMOVE
+> +int arch_remove_memory(u64 start, u64 size)
+> +{
+> +	unsigned long start_pfn = start>>  PAGE_SHIFT;
+> +	unsigned long nr_pages = size>>  PAGE_SHIFT;
+> +	struct zone *zone;
+> +
+> +	zone = page_zone(pfn_to_page(start_pfn));
+> +	return __remove_pages(zone, start_pfn, nr_pages);
+> +}
+> +#endif
+>   #endif
+>
+>   /*
+> diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
+> index 3baff25..5675335 100644
+> --- a/arch/x86/mm/init_64.c
+> +++ b/arch/x86/mm/init_64.c
+> @@ -680,6 +680,21 @@ int arch_add_memory(int nid, u64 start, u64 size)
+>   }
+>   EXPORT_SYMBOL_GPL(arch_add_memory);
+>
+> +#ifdef CONFIG_MEMORY_HOTREMOVE
+> +int __ref arch_remove_memory(u64 start, u64 size)
+> +{
+> +	unsigned long start_pfn = start>>  PAGE_SHIFT;
+> +	unsigned long nr_pages = size>>  PAGE_SHIFT;
+> +	struct zone *zone;
+> +	int ret;
+> +
+> +	zone = page_zone(pfn_to_page(start_pfn));
+> +	ret = __remove_pages(zone, start_pfn, nr_pages);
+> +	WARN_ON_ONCE(ret);
+> +
+> +	return ret;
+> +}
+> +#endif
+>   #endif /* CONFIG_MEMORY_HOTPLUG */
+>
+>   static struct kcore_list kcore_vsyscall;
+> diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+> index 38675e9..191b2d9 100644
+> --- a/include/linux/memory_hotplug.h
+> +++ b/include/linux/memory_hotplug.h
+> @@ -85,6 +85,7 @@ extern void __online_page_free(struct page *page);
+>
+>   #ifdef CONFIG_MEMORY_HOTREMOVE
+>   extern bool is_pageblock_removable_nolock(struct page *page);
+> +extern int arch_remove_memory(u64 start, u64 size);
+>   #endif /* CONFIG_MEMORY_HOTREMOVE */
+>
+>   /* reasonably generic interface to expand the physical pages in a zone  */
+> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+> index 63d5388..e741732 100644
+> --- a/mm/memory_hotplug.c
+> +++ b/mm/memory_hotplug.c
+> @@ -1111,6 +1111,8 @@ repeat:
+>   	/* remove memmap entry */
+>   	firmware_map_remove(start, start + size, "System RAM");
+>
+> +	arch_remove_memory(start, size);
+> +
+>   	unlock_memory_hotplug();
+>
+>   	return 0;
 
-Thanks.
-
--- 
-Regards/Gruss,
-    Boris.
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
