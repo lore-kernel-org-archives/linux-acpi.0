@@ -1,139 +1,82 @@
-From: Lance Ortiz <lance.ortiz@hp.com>
-Subject: [PATCH v5 2/3] aerdrv: Enhanced AER logging
-Date: Mon, 03 Dec 2012 14:20:54 -0700
-Message-ID: <20121203212053.24373.10914.stgit@grignak.americas.hpqcorp.net>
-References: <20121203212047.24373.8646.stgit@grignak.americas.hpqcorp.net>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] ACPI : do not use Lid and Sleep button for S5 wakeup
+Date: Tue, 04 Dec 2012 01:02:34 +0100
+Message-ID: <1888689.pzvVcdRPlX@vostro.rjw.lan>
+References: <1354522506.3063.9.camel@rzhang1-mobl4>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20121203212047.24373.8646.stgit@grignak.americas.hpqcorp.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, bp@alien8.de, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:38627 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751211Ab2LCX5n (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 3 Dec 2012 18:57:43 -0500
+In-Reply-To: <1354522506.3063.9.camel@rzhang1-mobl4>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: linux-acpi@vger.kernel.org, anisse@astier.eu
 
-This patch will provide a more reliable and easy way for user-space
-applications to have access to AER logs rather than reading them from the
-message buffer. It also provides a way to notify user-space when an AER
-event occurs.
+On Monday, December 03, 2012 04:15:06 PM Zhang Rui wrote:
+> From 3e7b4da3783d200f35568f72b3b25f16df546ffe Mon Sep 17 00:00:00 2001
+> From: Zhang Rui <rui.zhang@intel.com>
+> Date: Fri, 30 Nov 2012 14:35:43 +0800
+> Subject: [PATCH] ACPI : do not use Lid and Sleep button for S5 wakeup
+> 
+> When system enters power off, the _PSW of Lid device is enabled.  
+> But this may cause the system to reboot instead of power off.
+> 
+> https://bugzilla.kernel.org/show_bug.cgi?id=35262
+> 
+> A proper way to fix this is to always disable lid wakeup capability
+> for S5.
 
-The aer driver is updated to generate a trace event of function 'aer_event'
-when a PCIe error is reported over the AER interface.  The trace event was
-added to both the interrupt based aer path and the firmware first path.
+While I understand the motivation, quite frankly I don't understand the patch. :-)
 
-v1-v2 fix compile errors in ifdefs.
-v2-v3 Update to new location of trace header. Update print to remove
-warning.
-v3-v4 Reworked logic when getting ready to call cper_print_aer
-Signed-off-by: Lance Ortiz <lance.ortiz@hp.com>
----
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> ---
+>  drivers/acpi/scan.c |    7 ++++++-
+>  1 file changed, 6 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index d1ecca2..f20020a 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -807,8 +807,8 @@ acpi_bus_extract_wakeup_device_power_package(acpi_handle handle,
+>  static void acpi_bus_set_run_wake_flags(struct acpi_device *device)
+>  {
+>  	struct acpi_device_id button_device_ids[] = {
+> -		{"PNP0C0D", 0},
+>  		{"PNP0C0C", 0},
+> +		{"PNP0C0D", 0},
+>  		{"PNP0C0E", 0},
+>  		{"", 0},
+>  	};
+> @@ -820,6 +820,11 @@ static void acpi_bus_set_run_wake_flags(struct acpi_device *device)
+>  	/* Power button, Lid switch always enable wakeup */
+>  	if (!acpi_match_device_ids(device, button_device_ids)) {
+>  		device->wakeup.flags.run_wake = 1;
+> +		if (!acpi_match_device_ids(device, &button_device_ids[1])) {
+> +			/* Do not use Lid/sleep button for S5 wakeup */
+> +			if (device->wakeup.gpe_number == 5)
+> +				device->wakeup.gpe_number = 4;
 
- drivers/acpi/apei/cper.c               |   19 ++++++++++++++++---
- drivers/pci/pcie/aer/aerdrv_errprint.c |   10 +++++++++-
- include/linux/aer.h                    |    2 +-
- 3 files changed, 26 insertions(+), 5 deletions(-)
+Why do you want to change the wakeup GPE number for those devices?  It appears
+to be based on some extra knowledge that should be documented.
 
-diff --git a/drivers/acpi/apei/cper.c b/drivers/acpi/apei/cper.c
-index e6defd8..4a3e945 100644
---- a/drivers/acpi/apei/cper.c
-+++ b/drivers/acpi/apei/cper.c
-@@ -29,6 +29,7 @@
- #include <linux/time.h>
- #include <linux/cper.h>
- #include <linux/acpi.h>
-+#include <linux/pci.h>
- #include <linux/aer.h>
- 
- /*
-@@ -249,6 +250,10 @@ static const char *cper_pcie_port_type_strs[] = {
- static void cper_print_pcie(const char *pfx, const struct cper_sec_pcie *pcie,
- 			    const struct acpi_hest_generic_data *gdata)
- {
-+#ifdef CONFIG_ACPI_APEI_PCIEAER
-+	struct pci_dev *dev;
-+#endif
-+
- 	if (pcie->validation_bits & CPER_PCIE_VALID_PORT_TYPE)
- 		printk("%s""port_type: %d, %s\n", pfx, pcie->port_type,
- 		       pcie->port_type < ARRAY_SIZE(cper_pcie_port_type_strs) ?
-@@ -281,10 +286,18 @@ static void cper_print_pcie(const char *pfx, const struct cper_sec_pcie *pcie,
- 	"%s""bridge: secondary_status: 0x%04x, control: 0x%04x\n",
- 	pfx, pcie->bridge.secondary_status, pcie->bridge.control);
- #ifdef CONFIG_ACPI_APEI_PCIEAER
--	if (pcie->validation_bits & CPER_PCIE_VALID_AER_INFO) {
--		struct aer_capability_regs *aer_regs = (void *)pcie->aer_info;
--		cper_print_aer(pfx, gdata->error_severity, aer_regs);
-+	dev = pci_get_domain_bus_and_slot(pcie->device_id.segment,
-+			pcie->device_id.bus, pcie->device_id.function);
-+	if (!dev) {
-+		pr_info("PCI AER Cannot get PCI device %04x:%02x:%02x.%d\n",
-+			pcie->device_id.segment, pcie->device_id.bus,
-+			pcie->device_id.slot, pcie->device_id.function);
-+		return;
- 	}
-+	if (pcie->validation_bits & CPER_PCIE_VALID_AER_INFO)
-+		cper_print_aer(dev, gdata->error_severity,
-+				(struct aer_capability_regs *) pcie->aer_info);
-+	pci_dev_put(dev);
- #endif
- }
- 
-diff --git a/drivers/pci/pcie/aer/aerdrv_errprint.c b/drivers/pci/pcie/aer/aerdrv_errprint.c
-index 3ea5173..34d96e4 100644
---- a/drivers/pci/pcie/aer/aerdrv_errprint.c
-+++ b/drivers/pci/pcie/aer/aerdrv_errprint.c
-@@ -23,6 +23,9 @@
- 
- #include "aerdrv.h"
- 
-+#define CREATE_TRACE_POINTS
-+#include <trace/events/ras.h>
-+
- #define AER_AGENT_RECEIVER		0
- #define AER_AGENT_REQUESTER		1
- #define AER_AGENT_COMPLETER		2
-@@ -194,6 +197,8 @@ void aer_print_error(struct pci_dev *dev, struct aer_err_info *info)
- 	if (info->id && info->error_dev_num > 1 && info->id == id)
- 		printk("%s""  Error of this Agent(%04x) is reported first\n",
- 			prefix, id);
-+	trace_aer_event(dev_name(&dev->dev), (info->status & ~info->mask),
-+			info->severity);
- }
- 
- void aer_print_port_info(struct pci_dev *dev, struct aer_err_info *info)
-@@ -217,12 +222,13 @@ int cper_severity_to_aer(int cper_severity)
- }
- EXPORT_SYMBOL_GPL(cper_severity_to_aer);
- 
--void cper_print_aer(const char *prefix, int cper_severity,
-+void cper_print_aer(struct pci_dev *dev, int cper_severity,
- 		    struct aer_capability_regs *aer)
- {
- 	int aer_severity, layer, agent, status_strs_size, tlp_header_valid = 0;
- 	u32 status, mask;
- 	const char **status_strs;
-+	char *prefix = NULL;
- 
- 	aer_severity = cper_severity_to_aer(cper_severity);
- 	if (aer_severity == AER_CORRECTABLE) {
-@@ -259,5 +265,7 @@ void cper_print_aer(const char *prefix, int cper_severity,
- 			*(tlp + 8), *(tlp + 15), *(tlp + 14),
- 			*(tlp + 13), *(tlp + 12));
- 	}
-+	trace_aer_event(dev_name(&dev->dev), (status & ~mask),
-+			aer_severity);
- }
- #endif
-diff --git a/include/linux/aer.h b/include/linux/aer.h
-index 544abdb..7b86dc6 100644
---- a/include/linux/aer.h
-+++ b/include/linux/aer.h
-@@ -49,7 +49,7 @@ static inline int pci_cleanup_aer_uncorrect_error_status(struct pci_dev *dev)
- }
- #endif
- 
--extern void cper_print_aer(const char *prefix, int cper_severity,
-+extern void cper_print_aer(struct pci_dev *dev, int cper_severity,
- 			   struct aer_capability_regs *aer);
- extern int cper_severity_to_aer(int cper_severity);
- extern void aer_recover_queue(int domain, unsigned int bus, unsigned int devfn,
+Moreover, this doesn't look like the right thing to do anyway.  Shouldn't we
+just change device->wakeup.sleep_state to ACPI_STATE_S4 (if it was S5) instead?
+
+> +		}
+>  		device_set_wakeup_capable(&device->dev, true);
+>  		return;
+>  	}
+> 
+
+Thanks,
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
