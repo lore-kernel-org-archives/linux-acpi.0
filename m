@@ -1,69 +1,143 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v5 1/3] aerdrv: Trace Event for AER
-Date: Tue, 4 Dec 2012 10:22:04 +0100
-Message-ID: <20121204092204.GF4369@liondog.tnic>
-References: <20121203212047.24373.8646.stgit@grignak.americas.hpqcorp.net>
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: Re: [Patch v4 02/12] memory-hotplug: check whether all memory blocks
+ are offlined or not when removing memory
+Date: Tue, 04 Dec 2012 17:22:01 +0800
+Message-ID: <50BDC0B9.50007@cn.fujitsu.com>
+References: <1354010422-19648-1-git-send-email-wency@cn.fujitsu.com> <1354010422-19648-3-git-send-email-wency@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:59613 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751418Ab2LDJWI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 4 Dec 2012 04:22:08 -0500
-Content-Disposition: inline
-In-Reply-To: <20121203212047.24373.8646.stgit@grignak.americas.hpqcorp.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1354010422-19648-3-git-send-email-wency@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Wen Congyang <wency@cn.fujitsu.com>
+Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, David Rientjes <rientjes@google.com>, Jiang Liu <liuj97@gmail.com>, Len Brown <len.brown@intel.com>, benh@kernel.crashing.org, paulus@samba.org, Christoph Lameter <cl@linux.com>, Minchan Kim <minchan.kim@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Jianguo Wu <wujianguo@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Lance Ortiz <lance.ortiz@hp.com>
-Cc: bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, Dec 03, 2012 at 02:20:48PM -0700, Lance Ortiz wrote:
-> This header file will define a new trace event that will be triggered when
-> a AER event occurs.  The following data will be provided to the trace
-> event.
-> 
-> char * dev_name - The name of the slot where the device resides
->                   ([domain:]bus:device.function).
-> 
-> u32 status - Either the correctable or uncorrectable register
->              indicating what error or errors have been see.
-> 
-> u8 severity - error severity 0:NONFATAL 1:FATAL 2:CORRECTED
-> 
-> The trace event will also provide a trace string that may look like:
-> 
-> "0000:05:00.0 PCIe Bus Error:severity=Uncorrected (Non-Fatal), Poisoned
-> TLP"
-> 
-> v1-v2 Move header from include/ras/aer_event.h to
-> include/trace/events/ras.h
-> v3-v4 Cleaned up comments and commit header
-> v4-v5 More cleanup remove () from if statement in print.
->       Renamed string define to be more specific.
-> Signed-off-by: Lance Ortiz <lance.ortiz@hp.com>
+On 11/27/2012 06:00 PM, Wen Congyang wrote:
+> From: Yasuaki Ishimatsu<isimatu.yasuaki@jp.fujitsu.com>
+>
+> We remove the memory like this:
+> 1. lock memory hotplug
+> 2. offline a memory block
+> 3. unlock memory hotplug
+> 4. repeat 1-3 to offline all memory blocks
+> 5. lock memory hotplug
+> 6. remove memory(TODO)
+> 7. unlock memory hotplug
+>
+> All memory blocks must be offlined before removing memory. But we don't hold
+> the lock in the whole operation. So we should check whether all memory blocks
+> are offlined before step6. Otherwise, kernel maybe panicked.
+>
+> CC: David Rientjes<rientjes@google.com>
+> CC: Jiang Liu<liuj97@gmail.com>
+> CC: Len Brown<len.brown@intel.com>
+> CC: Christoph Lameter<cl@linux.com>
+> Cc: Minchan Kim<minchan.kim@gmail.com>
+> CC: Andrew Morton<akpm@linux-foundation.org>
+> CC: KOSAKI Motohiro<kosaki.motohiro@jp.fujitsu.com>
+> Signed-off-by: Wen Congyang<wency@cn.fujitsu.com>
+> Signed-off-by: Yasuaki Ishimatsu<isimatu.yasuaki@jp.fujitsu.com>
+
+Reviewed-by: Tang Chen <tangchen@cn.fujitsu.com>
+
 > ---
-> 
->  include/trace/events/ras.h |   78 ++++++++++++++++++++++++++++++++++++++++++++
->  1 files changed, 78 insertions(+), 0 deletions(-)
->  create mode 100644 include/trace/events/ras.h
-> 
-> diff --git a/include/trace/events/ras.h b/include/trace/events/ras.h
-> new file mode 100644
-> index 0000000..e6f123e
-> --- /dev/null
-> +++ b/include/trace/events/ras.h
-> @@ -0,0 +1,78 @@
-> +#undef TRACE_SYSTEM
-> +#define TRACE_SYSTEM aer_event
-> +#define TRACE_INCLUDE_FILE ras
+>   drivers/base/memory.c          |  6 ++++++
+>   include/linux/memory_hotplug.h |  1 +
+>   mm/memory_hotplug.c            | 47 ++++++++++++++++++++++++++++++++++++++++++
+>   3 files changed, 54 insertions(+)
+>
+> diff --git a/drivers/base/memory.c b/drivers/base/memory.c
+> index 86c8821..badb025 100644
+> --- a/drivers/base/memory.c
+> +++ b/drivers/base/memory.c
+> @@ -675,6 +675,12 @@ int offline_memory_block(struct memory_block *mem)
+>   	return ret;
+>   }
+>
+> +/* return true if the memory block is offlined, otherwise, return false */
+> +bool is_memblock_offlined(struct memory_block *mem)
+> +{
+> +	return mem->state == MEM_OFFLINE;
+> +}
+> +
+>   /*
+>    * Initialize the sysfs support for memory devices...
+>    */
+> diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+> index 95573ec..38675e9 100644
+> --- a/include/linux/memory_hotplug.h
+> +++ b/include/linux/memory_hotplug.h
+> @@ -236,6 +236,7 @@ extern int add_memory(int nid, u64 start, u64 size);
+>   extern int arch_add_memory(int nid, u64 start, u64 size);
+>   extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
+>   extern int offline_memory_block(struct memory_block *mem);
+> +extern bool is_memblock_offlined(struct memory_block *mem);
+>   extern int remove_memory(u64 start, u64 size);
+>   extern int sparse_add_one_section(struct zone *zone, unsigned long start_pfn,
+>   								int nr_pages);
+> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+> index b825dbc..b6d1101 100644
+> --- a/mm/memory_hotplug.c
+> +++ b/mm/memory_hotplug.c
+> @@ -1054,6 +1054,53 @@ repeat:
+>   		goto repeat;
+>   	}
+>
+> +	lock_memory_hotplug();
+> +
+> +	/*
+> +	 * we have offlined all memory blocks like this:
+> +	 *   1. lock memory hotplug
+> +	 *   2. offline a memory block
+> +	 *   3. unlock memory hotplug
+> +	 *
+> +	 * repeat step1-3 to offline the memory block. All memory blocks
+> +	 * must be offlined before removing memory. But we don't hold the
+> +	 * lock in the whole operation. So we should check whether all
+> +	 * memory blocks are offlined.
+> +	 */
+> +
+> +	for (pfn = start_pfn; pfn<  end_pfn; pfn += PAGES_PER_SECTION) {
+> +		section_nr = pfn_to_section_nr(pfn);
+> +		if (!present_section_nr(section_nr))
+> +			continue;
+> +
+> +		section = __nr_to_section(section_nr);
+> +		/* same memblock? */
+> +		if (mem)
+> +			if ((section_nr>= mem->start_section_nr)&&
+> +			    (section_nr<= mem->end_section_nr))
+> +				continue;
+> +
+> +		mem = find_memory_block_hinted(section, mem);
+> +		if (!mem)
+> +			continue;
+> +
+> +		ret = is_memblock_offlined(mem);
+> +		if (!ret) {
+> +			pr_warn("removing memory fails, because memory "
+> +				"[%#010llx-%#010llx] is onlined\n",
+> +				PFN_PHYS(section_nr_to_pfn(mem->start_section_nr)),
+> +				PFN_PHYS(section_nr_to_pfn(mem->end_section_nr + 1)) - 1);
+> +
+> +			kobject_put(&mem->dev.kobj);
+> +			unlock_memory_hotplug();
+> +			return ret;
+> +		}
+> +	}
+> +
+> +	if (mem)
+> +		kobject_put(&mem->dev.kobj);
+> +	unlock_memory_hotplug();
+> +
+>   	return 0;
+>   }
+>   #else
 
-Whoops, I somehow missed that the last time:
-
-TRACE_SYSTEM should be "ras" and then you don't need to define
-TRACE_INCLUDE_FILE at all.
-
-Thanks.
-
--- 
-Regards/Gruss,
-    Boris.
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
