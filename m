@@ -1,158 +1,83 @@
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH v6 2/3] aerdrv: Enhanced AER logging
-Date: Tue, 4 Dec 2012 16:41:51 -0200
-Message-ID: <20121204164151.66b9bb37@redhat.com>
-References: <20121204170429.31397.50068.stgit@grignak.americas.hpqcorp.net>
-	<20121204170436.31397.40857.stgit@grignak.americas.hpqcorp.net>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [RFC PATCH 1/3] UART: Add UART subsystem as a bus.
+Date: Tue, 4 Dec 2012 20:54:04 +0200
+Message-ID: <20121204185404.GQ3117@intel.com>
+References: <cover.1354505471.git.lv.zheng@intel.com>
+ <6d5fc2e0799c12554aa8acdb2d7782ba8643902b.1354505472.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20121204170436.31397.40857.stgit@grignak.americas.hpqcorp.net>
-Sender: linux-pci-owner@vger.kernel.org
-To: Lance Ortiz <lance.ortiz@hp.com>
-Cc: bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, bp@alien8.de, rostedt@goodmis.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:41821 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751370Ab2LDSus (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 4 Dec 2012 13:50:48 -0500
+Content-Disposition: inline
+In-Reply-To: <6d5fc2e0799c12554aa8acdb2d7782ba8643902b.1354505472.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: Len Brown <len.brown@intel.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alan Cox <alan@linux.intel.com>, linux-acpi@vger.kernel.org, linux-serial@vger.kernel.org
 
-Em Tue, 04 Dec 2012 10:04:36 -0700
-Lance Ortiz <lance.ortiz@hp.com> escreveu:
+On Mon, Dec 03, 2012 at 11:39:59AM +0800, Lv Zheng wrote:
+> kobject attribute files:
+> # cat /sys/bus/uart/devices/INTF001:00/modalias
+> uart:INTF001:00
+> # cat /sys/bus/uart/devices/INTF001:00/tty_dev
+> ttyS0
+> # cat /sys/bus/uart/devices/INTF001:00/tty_attrs
+> 115200 8N0 HW
+> # cat /sys/bus/uart/devices/INTF001:00/modem_lines
+> LE:RTS,CTS,
 
-> This patch will provide a more reliable and easy way for user-space
-> applications to have access to AER logs rather than reading them from the
-> message buffer. It also provides a way to notify user-space when an AER
-> event occurs.
-> 
-> The aer driver is updated to generate a trace event of function 'aer_event'
-> when a PCIe error is reported over the AER interface.  The trace event was
-> added to both the interrupt based aer path and the firmware first path.
-> 
-> v1-v2 fix compile errors in ifdefs.
-> v2-v3 Update to new location of trace header. Update print to remove
-> warning.
-> v3-v4 Reworked logic when getting ready to call cper_print_aer
-> Signed-off-by: Lance Ortiz <lance.ortiz@hp.com>
-> ---
-> 
->  0 files changed, 0 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/acpi/apei/cper.c b/drivers/acpi/apei/cper.c
-> index e6defd8..4a3e945 100644
-> --- a/drivers/acpi/apei/cper.c
-> +++ b/drivers/acpi/apei/cper.c
-> @@ -29,6 +29,7 @@
->  #include <linux/time.h>
->  #include <linux/cper.h>
->  #include <linux/acpi.h>
-> +#include <linux/pci.h>
->  #include <linux/aer.h>
->  
->  /*
-> @@ -249,6 +250,10 @@ static const char *cper_pcie_port_type_strs[] = {
->  static void cper_print_pcie(const char *pfx, const struct cper_sec_pcie *pcie,
->  			    const struct acpi_hest_generic_data *gdata)
->  {
-> +#ifdef CONFIG_ACPI_APEI_PCIEAER
-> +	struct pci_dev *dev;
-> +#endif
-> +
->  	if (pcie->validation_bits & CPER_PCIE_VALID_PORT_TYPE)
->  		printk("%s""port_type: %d, %s\n", pfx, pcie->port_type,
->  		       pcie->port_type < ARRAY_SIZE(cper_pcie_port_type_strs) ?
-> @@ -281,10 +286,18 @@ static void cper_print_pcie(const char *pfx, const struct cper_sec_pcie *pcie,
->  	"%s""bridge: secondary_status: 0x%04x, control: 0x%04x\n",
->  	pfx, pcie->bridge.secondary_status, pcie->bridge.control);
->  #ifdef CONFIG_ACPI_APEI_PCIEAER
-> -	if (pcie->validation_bits & CPER_PCIE_VALID_AER_INFO) {
-> -		struct aer_capability_regs *aer_regs = (void *)pcie->aer_info;
-> -		cper_print_aer(pfx, gdata->error_severity, aer_regs);
-> +	dev = pci_get_domain_bus_and_slot(pcie->device_id.segment,
-> +			pcie->device_id.bus, pcie->device_id.function);
-> +	if (!dev) {
-> +		pr_info("PCI AER Cannot get PCI device %04x:%02x:%02x.%d\n",
-> +			pcie->device_id.segment, pcie->device_id.bus,
-> +			pcie->device_id.slot, pcie->device_id.function);
+What if instead of exporting these to userspace we just set the defaults
+based on the UartSerialBus() value? This way the user only needs to find the
+right tty to pass to hciattach.
 
-Hmm... please correct if I'm wrong, but an error happened at PCI, and also a 
-kernel bug that prevented it to get the proper PCI device... 
+> kobject sysfs links:
+> # ls -l /sys/bus/uart/devices
+> INTF001:00 -> ../../../devices/platform/INTF000:00/INTF001:00
+> # ls -l /sys/devices/platform/INTF000:00/INTF001:00
+> subsystem -> ../../../../bus/uart
+> host_node -> ../tty/ttyS0
+> # ls -l /sys/devices/platform/INTF000:00/tty/ttyS0
+> target_node -> ../../INTF001:00
 
-IMHO, the message here should be stronger, and likely printed via pr_err().
+And if we have enumerated the UART controller from ACPI (it is probably
+attached to the platform bus) we can find the tty device it exports like:
 
-> +		return;
->  	}
-> +	if (pcie->validation_bits & CPER_PCIE_VALID_AER_INFO)
-> +		cper_print_aer(dev, gdata->error_severity,
-> +				(struct aer_capability_regs *) pcie->aer_info);
-> +	pci_dev_put(dev);
->  #endif
->  }
->  
-> diff --git a/drivers/pci/pcie/aer/aerdrv_errprint.c b/drivers/pci/pcie/aer/aerdrv_errprint.c
-> index 3ea5173..34d96e4 100644
-> --- a/drivers/pci/pcie/aer/aerdrv_errprint.c
-> +++ b/drivers/pci/pcie/aer/aerdrv_errprint.c
-> @@ -23,6 +23,9 @@
->  
->  #include "aerdrv.h"
->  
-> +#define CREATE_TRACE_POINTS
-> +#include <trace/events/ras.h>
-> +
->  #define AER_AGENT_RECEIVER		0
->  #define AER_AGENT_REQUESTER		1
->  #define AER_AGENT_COMPLETER		2
-> @@ -194,6 +197,8 @@ void aer_print_error(struct pci_dev *dev, struct aer_err_info *info)
->  	if (info->id && info->error_dev_num > 1 && info->id == id)
->  		printk("%s""  Error of this Agent(%04x) is reported first\n",
->  			prefix, id);
-> +	trace_aer_event(dev_name(&dev->dev), (info->status & ~info->mask),
-> +			info->severity);
->  }
->  
->  void aer_print_port_info(struct pci_dev *dev, struct aer_err_info *info)
-> @@ -217,12 +222,13 @@ int cper_severity_to_aer(int cper_severity)
->  }
->  EXPORT_SYMBOL_GPL(cper_severity_to_aer);
->  
-> -void cper_print_aer(const char *prefix, int cper_severity,
-> +void cper_print_aer(struct pci_dev *dev, int cper_severity,
->  		    struct aer_capability_regs *aer)
->  {
->  	int aer_severity, layer, agent, status_strs_size, tlp_header_valid = 0;
->  	u32 status, mask;
->  	const char **status_strs;
-> +	char *prefix = NULL;
->  
->  	aer_severity = cper_severity_to_aer(cper_severity);
->  	if (aer_severity == AER_CORRECTABLE) {
-> @@ -259,5 +265,7 @@ void cper_print_aer(const char *prefix, int cper_severity,
->  			*(tlp + 8), *(tlp + 15), *(tlp + 14),
->  			*(tlp + 13), *(tlp + 12));
->  	}
-> +	trace_aer_event(dev_name(&dev->dev), (status & ~mask),
-> +			aer_severity);
->  }
->  #endif
-> diff --git a/include/linux/aer.h b/include/linux/aer.h
-> index 544abdb..7b86dc6 100644
-> --- a/include/linux/aer.h
-> +++ b/include/linux/aer.h
-> @@ -49,7 +49,7 @@ static inline int pci_cleanup_aer_uncorrect_error_status(struct pci_dev *dev)
->  }
->  #endif
->  
-> -extern void cper_print_aer(const char *prefix, int cper_severity,
-> +extern void cper_print_aer(struct pci_dev *dev, int cper_severity,
->  			   struct aer_capability_regs *aer);
->  extern int cper_severity_to_aer(int cper_severity);
->  extern void aer_recover_queue(int domain, unsigned int bus, unsigned int devfn,
-> 
+/sys/bus/platform/devices/INTF000:00/tty/ttyS1/dev
 
-After addressing the above:
+Only thing that is missing then is the type of the connected device. That
+can be extracted by following the firmware_node symlink:
 
-Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+# ls /sys/bus/platform/devices/INTF000\:00/firmware_node/
+INTF001:00
+...
 
+# cat  /sys/bus/platform/devices/INTF000\:00/firmware_node/INTF001:00/hid
+INTF001
 
--- 
+This ACPI ID then can be used to find out what device it is.
 
-Cheers,
-Mauro
+Well, this is probably not the simplest solution :-) I'm just trying to
+understand why we need to add a new bus type if only thing it adds is the
+sysfs files.
+
+> +/**
+> + * uart_unregister_device - unregister a UART device
+> + * @device: value returned from uart_register_device()
+> + *
+> + * Reverse effect of uart_register_device().
+> + */
+> +void uart_unregister_device(struct uart_device *udev)
+> +{
+> +	if (udev->adap)
+> +		klist_del(&udev->klist_parent);
+> +	sysfs_remove_link(&udev->dev.kobj, "host_node");
+> +	if (udev->tty)
+> +		sysfs_remove_link(&udev->tty->kobj, "target_node");
+> +	device_unregister(&udev->dev);
+> +}
+> +EXPORT_SYMBOL_GPL(uart_unreigster_device);
+
+Typo in the function name.
