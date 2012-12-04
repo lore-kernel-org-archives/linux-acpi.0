@@ -1,35 +1,71 @@
-From: Alan Cox <alan@linux.intel.com>
-Subject: Re: [RFC PATCH 1/3] UART: Add UART subsystem as a bus.
-Date: Tue, 4 Dec 2012 19:50:30 +0000
-Message-ID: <20121204195030.238d1b71@bob.linux.org.uk>
-References: <cover.1354505471.git.lv.zheng@intel.com>
-	<6d5fc2e0799c12554aa8acdb2d7782ba8643902b.1354505472.git.lv.zheng@intel.com>
-	<20121204185404.GQ3117@intel.com>
+From: "Ortiz, Lance E" <lance.oritz@hp.com>
+Subject: RE: [PATCH v6 3/3] aerdrv: Cleanup log output for CPER based AER
+Date: Tue, 4 Dec 2012 20:06:48 +0000
+Message-ID: <A961433CDFF2F640A2866803152E61F9516EEAB4@G4W3218.americas.hpqcorp.net>
+References: <20121204170429.31397.50068.stgit@grignak.americas.hpqcorp.net>
+	 <20121204170442.31397.21190.stgit@grignak.americas.hpqcorp.net>
+ <1354642763.6973.15.camel@joe-AO722>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <20121204185404.GQ3117@intel.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Len Brown <len.brown@intel.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-acpi@vger.kernel.org, linux-serial@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t0014.houston.hp.com ([15.201.24.17]:17389 "EHLO
+	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751144Ab2LDUHn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Dec 2012 15:07:43 -0500
+In-Reply-To: <1354642763.6973.15.camel@joe-AO722>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Joe Perches <joe@perches.com>
+Cc: "bhelgaas@google.com" <bhelgaas@google.com>, "lance_ortiz@hotmail.com" <lance_ortiz@hotmail.com>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>, "tony.luck@intel.com" <tony.luck@intel.com>, "bp@alien8.de" <bp@alien8.de>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "mchehab@redhat.com" <mchehab@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-> What if instead of exporting these to userspace we just set the
-> defaults based on the UartSerialBus() value? This way the user only
-> needs to find the right tty to pass to hciattach.
+> Hi again Lance.
+> 
+> > diff --git a/drivers/pci/pcie/aer/aerdrv_errprint.c
+> b/drivers/pci/pcie/aer/aerdrv_errprint.c
+> []
+> > @@ -228,9 +228,14 @@ void cper_print_aer(struct pci_dev *dev, int
+> cper_severity,
+> >  	int aer_severity, layer, agent, status_strs_size,
+> tlp_header_valid = 0;
+> >  	u32 status, mask;
+> >  	const char **status_strs;
+> > -	char *prefix = NULL;
+> > +	char prefix[44];
+> >
+> >  	aer_severity = cper_severity_to_aer(cper_severity);
+> > +	snprintf(prefix, sizeof(prefix), "%s%s %s: ",
+> > +		(aer_severity == AER_CORRECTABLE) ?
+> > +		KERN_WARNING : KERN_ERR,
+> > +		dev_driver_string(&dev->dev), dev_name(&dev->dev));
+> > +
+> >  	if (aer_severity == AER_CORRECTABLE) {
+> >  		status = aer->cor_status;
+> >  		mask = aer->cor_mask;
+> 
+> Perhaps this would be better just using dev_printk
+> instead of snprintf into a prefix with printk to
+> emulate dev_printk.
+> 
+> Also, perhaps KERN_NOTICE is preferable to KERN_WARNING
+> in the CORRECTABLE case.
+> 
+> Maybe something like:
+> 
+> 	const char *level = KERN_ERR;
+> 	if (aer_severity == AER_CORRECTABLE)
+> 		level = KERN_NOTICE;
+> 
+> 	...
+> 
+> 	dev_printk(level, &dev->dev, etc...);
+> 
+> Maybe do this after this series of patches is accepted.
+> Enough with the revisions for awhile...
 
-We should also make sure the types are generic because there are lots
-of platforms that can use DT to describe devices usefully this way, and
-there are types not in the ACPI spec (eg Loconet) that some apps could
-do with finding.
+Hi Joe,
 
-> And if we have enumerated the UART controller from ACPI (it is
-> probably attached to the platform bus) we can find the tty device it
-> exports like:
+The reason I did it this way was I was trying to be consistent with what was done for the AER interrupt case.  The function aer_print_error()in the same file uses sprintf this way.  I'm not sure why they chose that instead of dev_printk.  I think if we did make the change we should do it in both places to keep them the same.  
 
-The property should not be in any ACPI specific form or space - just
-attach it directly to the tty from ACPI, DT, driver internal knowledge,
-PCI id, whatever
-
-Alan
+Lance
