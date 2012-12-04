@@ -1,97 +1,69 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [Patch v4 01/12] memory-hotplug: try to offline the memory twice
- to avoid dependence
-Date: Tue, 04 Dec 2012 17:17:30 +0800
-Message-ID: <50BDBFAA.7040008@cn.fujitsu.com>
-References: <1354010422-19648-1-git-send-email-wency@cn.fujitsu.com> <1354010422-19648-2-git-send-email-wency@cn.fujitsu.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v5 1/3] aerdrv: Trace Event for AER
+Date: Tue, 4 Dec 2012 10:22:04 +0100
+Message-ID: <20121204092204.GF4369@liondog.tnic>
+References: <20121203212047.24373.8646.stgit@grignak.americas.hpqcorp.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <1354010422-19648-2-git-send-email-wency@cn.fujitsu.com>
-Sender: linux-sh-owner@vger.kernel.org
-To: Wen Congyang <wency@cn.fujitsu.com>
-Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, David Rientjes <rientjes@google.com>, Jiang Liu <liuj97@gmail.com>, Len Brown <len.brown@intel.com>, benh@kernel.crashing.org, paulus@samba.org, Christoph Lameter <cl@linux.com>, Minchan Kim <minchan.kim@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Jianguo Wu <wujianguo@huawei.com>
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.skyhub.de ([78.46.96.112]:59613 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751418Ab2LDJWI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 4 Dec 2012 04:22:08 -0500
+Content-Disposition: inline
+In-Reply-To: <20121203212047.24373.8646.stgit@grignak.americas.hpqcorp.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lance Ortiz <lance.ortiz@hp.com>
+Cc: bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 11/27/2012 06:00 PM, Wen Congyang wrote:
-> memory can't be offlined when CONFIG_MEMCG is selected.
-> For example: there is a memory device on node 1. The address range
-> is [1G, 1.5G). You will find 4 new directories memory8, memory9, memory10,
-> and memory11 under the directory /sys/devices/system/memory/.
->
-> If CONFIG_MEMCG is selected, we will allocate memory to store page cgroup
-> when we online pages. When we online memory8, the memory stored page cgroup
-> is not provided by this memory device. But when we online memory9, the memory
-> stored page cgroup may be provided by memory8. So we can't offline memory8
-> now. We should offline the memory in the reversed order.
->
-> When the memory device is hotremoved, we will auto offline memory provided
-> by this memory device. But we don't know which memory is onlined first, so
-> offlining memory may fail. In such case, iterate twice to offline the memory.
-> 1st iterate: offline every non primary memory block.
-> 2nd iterate: offline primary (i.e. first added) memory block.
->
-> This idea is suggested by KOSAKI Motohiro.
->
-> CC: David Rientjes<rientjes@google.com>
-> CC: Jiang Liu<liuj97@gmail.com>
-> CC: Len Brown<len.brown@intel.com>
-> CC: Christoph Lameter<cl@linux.com>
-> Cc: Minchan Kim<minchan.kim@gmail.com>
-> CC: Andrew Morton<akpm@linux-foundation.org>
-> CC: KOSAKI Motohiro<kosaki.motohiro@jp.fujitsu.com>
-> CC: Yasuaki Ishimatsu<isimatu.yasuaki@jp.fujitsu.com>
-> Signed-off-by: Wen Congyang<wency@cn.fujitsu.com>
-
-Reviewed-by: Tang Chen <tangchen@cn.fujitsu.com>
-
+On Mon, Dec 03, 2012 at 02:20:48PM -0700, Lance Ortiz wrote:
+> This header file will define a new trace event that will be triggered when
+> a AER event occurs.  The following data will be provided to the trace
+> event.
+> 
+> char * dev_name - The name of the slot where the device resides
+>                   ([domain:]bus:device.function).
+> 
+> u32 status - Either the correctable or uncorrectable register
+>              indicating what error or errors have been see.
+> 
+> u8 severity - error severity 0:NONFATAL 1:FATAL 2:CORRECTED
+> 
+> The trace event will also provide a trace string that may look like:
+> 
+> "0000:05:00.0 PCIe Bus Error:severity=Uncorrected (Non-Fatal), Poisoned
+> TLP"
+> 
+> v1-v2 Move header from include/ras/aer_event.h to
+> include/trace/events/ras.h
+> v3-v4 Cleaned up comments and commit header
+> v4-v5 More cleanup remove () from if statement in print.
+>       Renamed string define to be more specific.
+> Signed-off-by: Lance Ortiz <lance.ortiz@hp.com>
 > ---
->   mm/memory_hotplug.c | 16 ++++++++++++++--
->   1 file changed, 14 insertions(+), 2 deletions(-)
->
-> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-> index e4eeaca..b825dbc 100644
-> --- a/mm/memory_hotplug.c
-> +++ b/mm/memory_hotplug.c
-> @@ -1012,10 +1012,13 @@ int remove_memory(u64 start, u64 size)
->   	unsigned long start_pfn, end_pfn;
->   	unsigned long pfn, section_nr;
->   	int ret;
-> +	int return_on_error = 0;
-> +	int retry = 0;
->
->   	start_pfn = PFN_DOWN(start);
->   	end_pfn = start_pfn + PFN_DOWN(size);
->
-> +repeat:
->   	for (pfn = start_pfn; pfn<  end_pfn; pfn += PAGES_PER_SECTION) {
->   		section_nr = pfn_to_section_nr(pfn);
->   		if (!present_section_nr(section_nr))
-> @@ -1034,14 +1037,23 @@ int remove_memory(u64 start, u64 size)
->
->   		ret = offline_memory_block(mem);
->   		if (ret) {
-> -			kobject_put(&mem->dev.kobj);
-> -			return ret;
-> +			if (return_on_error) {
-> +				kobject_put(&mem->dev.kobj);
-> +				return ret;
-> +			} else {
-> +				retry = 1;
-> +			}
->   		}
->   	}
->
->   	if (mem)
->   		kobject_put(&mem->dev.kobj);
->
-> +	if (retry) {
-> +		return_on_error = 1;
-> +		goto repeat;
-> +	}
-> +
->   	return 0;
->   }
->   #else
+> 
+>  include/trace/events/ras.h |   78 ++++++++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 78 insertions(+), 0 deletions(-)
+>  create mode 100644 include/trace/events/ras.h
+> 
+> diff --git a/include/trace/events/ras.h b/include/trace/events/ras.h
+> new file mode 100644
+> index 0000000..e6f123e
+> --- /dev/null
+> +++ b/include/trace/events/ras.h
+> @@ -0,0 +1,78 @@
+> +#undef TRACE_SYSTEM
+> +#define TRACE_SYSTEM aer_event
+> +#define TRACE_INCLUDE_FILE ras
 
+Whoops, I somehow missed that the last time:
+
+TRACE_SYSTEM should be "ras" and then you don't need to define
+TRACE_INCLUDE_FILE at all.
+
+Thanks.
+
+-- 
+Regards/Gruss,
+    Boris.
