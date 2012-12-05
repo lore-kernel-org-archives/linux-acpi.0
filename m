@@ -1,93 +1,50 @@
-From: Jianguo Wu <wujianguo@huawei.com>
-Subject: Re: [Patch v4 08/12] memory-hotplug: remove memmap of sparse-vmemmap
-Date: Wed, 5 Dec 2012 11:23:33 +0800
-Message-ID: <50BEBE35.4040807@huawei.com>
-References: <1354010422-19648-1-git-send-email-wency@cn.fujitsu.com> <1354010422-19648-9-git-send-email-wency@cn.fujitsu.com> <50B5DC00.20103@huawei.com> <50B80FB1.6040906@cn.fujitsu.com> <50BC0D2D.8040008@huawei.com> <50BDBEB7.3070807@cn.fujitsu.com> <50BDEA82.4050809@huawei.com> <50BEAC66.8020500@cn.fujitsu.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [RFC PATCH 1/3] UART: Add UART subsystem as a bus.
+Date: Wed, 5 Dec 2012 03:37:45 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88BD66B0@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1354505471.git.lv.zheng@intel.com>
+	<6d5fc2e0799c12554aa8acdb2d7782ba8643902b.1354505472.git.lv.zheng@intel.com>
+ <20121203114604.079a2721@bob.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga02-in.huawei.com ([119.145.14.65]:9430 "EHLO
-	szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752808Ab2LEDX6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Dec 2012 22:23:58 -0500
-In-Reply-To: <50BEAC66.8020500@cn.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <20121203114604.079a2721@bob.linux.org.uk>
+Content-Language: en-US
+Sender: linux-serial-owner@vger.kernel.org
+To: Alan Cox <alan@linux.intel.com>
+Cc: "Brown, Len" <len.brown@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, David Rientjes <rientjes@google.com>, Jiang Liu <liuj97@gmail.com>, Len Brown <len.brown@intel.com>, benh@kernel.crashing.org, paulus@samba.org, Christoph Lameter <cl@linux.com>, Minchan Kim <minchan.kim@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 
-Hi Tang,
+OK, all uart_driver and serial_core.h stuff will be removed from the next revision.
 
-On 2012/12/5 10:07, Tang Chen wrote:
+Best regards/Lv Zheng
 
-> Hi Wu,
+> -----Original Message-----
+> From: linux-serial-owner@vger.kernel.org
+> [mailto:linux-serial-owner@vger.kernel.org] On Behalf Of Alan Cox
+> Sent: Monday, December 03, 2012 7:46 PM
+> To: Zheng, Lv
+> Cc: Brown, Len; Wysocki, Rafael J; Greg Kroah-Hartman;
+> linux-acpi@vger.kernel.org; linux-serial@vger.kernel.org
+> Subject: Re: [RFC PATCH 1/3] UART: Add UART subsystem as a bus.
 > 
-> On 12/04/2012 08:20 PM, Jianguo Wu wrote:
-> (snip)
->>>
->>> Seems that we have different ways to handle pages allocated by bootmem
->>> or by regular allocator. Is the checking way in [PATCH 09/12] available
->>> here ?
->>>
->>> +    /* bootmem page has reserved flag */
->>> +    if (PageReserved(page)) {
->>> ......
->>> +    }
->>>
->>> If so, I think we can just merge these two functions.
->>
->> Hmm, direct mapping table isn't allocated by bootmem allocator such as memblock, can't be free by put_page_bootmem().
->> But I will try to merge these two functions.
->>
+> > + * uart_tty_find - find the associated TTY device for the UART target
+> > + *		   device
+> > + * @drv: the low level UART driver
+> > + * @dev: the parent physical device for the TTY devices
+> > + * @line: the line number of the UART target device
+> > + *
 > 
-> Oh, I didn't notice this, thanks. :)
+> Our top level abstraction is struct tty and struct tty_port. There is nothing
+> requiring a serial tty is using the uart helper layer, nor should there be, so your
+> code needs to support devices not using the uart layer. Otherwise it looks quite
+> reasonable.
 > 
-> (snip)
+> our 3.7 tty layer has sysfs nodes on the tty which may also help
 > 
->>>> +
->>>> +    __split_large_page(kpte, address, pbase);
->>>
->>> Is this patch going to replace [PATCH 08/12] ?
->>>
->>
->> I wish to replace [PATCH 08/12], but need Congyang and Yasuaki to confirm first:)
->>
->>> If so, __split_large_page() was added and exported in [PATCH 09/12],
->>> then we should move it here, right ?
->>
->> yes.
->>
->> and what do you think about moving vmemmap_pud[pmd/pte]_remove() to arch/x86/mm/init_64.c,
->> to be consistent with vmemmap_populate() ?
-> 
-> It is a good idea since pud/pmd/pte related code could be platform
-> dependent. And I'm also trying to move vmemmap_free() to
-> arch/x86/mm/init_64.c too. I want to have a common interface just
-> like vmemmap_populate(). :)
-> 
-
-Great.
-
->>
->> I will rework [PATCH 08/12] and [PATCH 09/12] soon.
-> 
-> I am rebasing the whole patch set now. And I think I chould finish part
-> of your work too. A new patch-set is coming soon, and your rework is
-> also welcome. :)
->
-
-Since you are rebasing now, I will wait for your new patche-set :).
-
-Thanks.
-Jianguo Wu
-
-> Thanks. :)
-> 
-> 
-> 
-> .
-> 
-
-
-
+> Alan
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-serial" in the body
+> of a message to majordomo@vger.kernel.org More majordomo info at
+> http://vger.kernel.org/majordomo-info.html
