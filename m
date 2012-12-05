@@ -1,58 +1,31 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: Look Ma, da kernel is b0rken
-Date: Wed, 5 Dec 2012 16:59:00 +0100
-Message-ID: <20121205155900.GB28556@liondog.tnic>
-References: <20121205070901.GA12123@rhlx01.hs-esslingen.de>
- <20121205142935.GA12119@liondog.tnic>
- <20121205152756.5afec12c@pyramind.ukuu.org.uk>
- <20121205153121.GA28556@liondog.tnic>
- <20121205154749.2af4ef36@pyramind.ukuu.org.uk>
+From: "Ortiz, Lance E" <lance.oritz@hp.com>
+Subject: RE: [PATCH v7 2/3] aerdrv: Enhanced AER logging
+Date: Wed, 5 Dec 2012 16:14:14 +0000
+Message-ID: <A961433CDFF2F640A2866803152E61F9516F279F@G4W3219.americas.hpqcorp.net>
+References: <20121204210305.4515.91100.stgit@grignak.americas.hpqcorp.net>
+ <20121204210312.4515.13415.stgit@grignak.americas.hpqcorp.net>
+ <20121205143202.GD2364@liondog.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:58447 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751997Ab2LEP7C (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 5 Dec 2012 10:59:02 -0500
-Content-Disposition: inline
-In-Reply-To: <20121205154749.2af4ef36@pyramind.ukuu.org.uk>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20121205143202.GD2364@liondog.tnic>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: "bhelgaas@google.com" <bhelgaas@google.com>, "lance_ortiz@hotmail.com" <lance_ortiz@hotmail.com>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>, "tony.luck@intel.com" <tony.luck@intel.com>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "mchehab@redhat.com" <mchehab@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Andreas Mohr <andi@lisas.de>, linux-kernel@vger.kernel.org, Li Shaohua <shaohua.li@intel.com>, linux-acpi@vger.kernel.org
 
-On Wed, Dec 05, 2012 at 03:47:49PM +0000, Alan Cox wrote:
-> > Hillarious!
-> > 
-> > Andrew, would you please pick up Alan's patch? It clearly fixes an
-> > ancient bug in the pnpacpi code.
-> 
-> And yes btw we should turn this option on in -next, and get these sort of
-> things out of the tree for good. More importantly it'll mean anyone
-> adding another one gets a whine on the spot.
-
-Right,
-
-when we added W=, we thought that one use case would be for devs to
-use it when build-testing patches and check whether they're adding new
-warnings.
-
-However, (1) we need additional functionality in some script to be able
-to test when the build log adds new warnings
-
-and
-
-(2) need someone to enforce it.
-
-I think Geert is doing something like that but I'm not sure he's even
-using W=.
-
-Actually, it would be cool if something checked for new warnings, mapped
-it back to the patch in linux-next adding that warning and then nags the
-patch author endlessly until it is fixed.
-
-Thanks.
-
--- 
-Regards/Gruss,
-    Boris.
+PiA+ICsJY2hhciAqcHJlZml4ID0gTlVMTDsNCj4gDQo+IFdoYXQgYXJlIHlvdSBkb2luZyBoZXJl
+PyBZb3UgZHJvcHBlZCB0aGUgJ3ByZWZpeCcgYXJndW1lbnQgYmVpbmcgcGFzc2VkDQo+IGRvd24g
+aW4gdGhpcyBmdW5jdGlvbiBhbmQgYXJlIGRlZmluaW5nIGEgbG9jYWwgdmFyaWFibGUgb2YgdGhl
+IHNhbWUNCj4gbmFtZQ0KPiB3aGljaCBpcyB1c2VkIGluIHRoZSBmdW5jdGlvbiBsYXRlcjoNCj4g
+DQo+ICAgICAgICAgcHJpbnRrKCIlcyIiYWVyX3N0YXR1czogMHglMDh4LCBhZXJfbWFzazogMHgl
+MDh4XG4iLA0KPiAgICAgICAgICAgICAgICBwcmVmaXgsIHN0YXR1cywgbWFzayk7DQo+IA0KDQpC
+b3JpcywNCg0KSSByZW1vdmVkIHRoZSBwcmVmaXggYXJndW1lbnQgYmVjYXVzZSBpdCB3YXMgbmV2
+ZXIgdXNlZCBieSBpdHMgY2FsbGVyIGFuZCBuZXZlciBzZXQuICBUaGUgcmVhc29uIEkgYWRkZWQg
+dGhlIHByZWZpeCB2YXJpYWJsZSBhbmQgc2V0IGl0IHRvIE5VTEwgd2FzIHRvIGhlbHAgaW4gYnJl
+YWtpbmcgdXAgdGhlIHBhdGNoIGFuZCBhZGRpbmcgaXQgd291bGQgaGVscCB0aGUgaW50ZXJtaXR0
+ZW50IHBhdGNoIGJ1aWxkIHdpdGhvdXQgY2hhbmdpbmcgdG9vIG11Y2ggY29kZS4gICBJIGtuZXcg
+SSB3YXMgYWN0dWFsbHkgZ29pbmcgdG8gdXNlIHRoZSB2YXJpYWJsZSBpbiBwYXRjaCAzLiANCg0K
+TGFuY2UNCg0K
