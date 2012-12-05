@@ -1,42 +1,105 @@
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+From: Andrew Morton <akpm@linux-foundation.org>
 Subject: Re: Look Ma, da kernel is b0rken
-Date: Wed, 5 Dec 2012 21:41:14 +0000
-Message-ID: <20121205214114.0bb545f1@pyramind.ukuu.org.uk>
+Date: Wed, 5 Dec 2012 13:38:53 -0800
+Message-ID: <20121205133853.770451ca.akpm@linux-foundation.org>
 References: <20121205070901.GA12123@rhlx01.hs-esslingen.de>
 	<20121205142935.GA12119@liondog.tnic>
 	<20121205152756.5afec12c@pyramind.ukuu.org.uk>
 	<20121205153121.GA28556@liondog.tnic>
-	<20121205154749.2af4ef36@pyramind.ukuu.org.uk>
-	<20121206075721.18c0c05aa767b330f47d77eb@canb.auug.org.au>
-	<20121205211244.GA6239@liondog.tnic>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20121205211244.GA6239@liondog.tnic>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Andrew Morton <akpm@linux-foundation.org>, Andreas Mohr <andi@lisas.de>, linux-kernel@vger.kernel.org, Li Shaohua <shaohua.li@intel.com>, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47956 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751980Ab2LEVi4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Dec 2012 16:38:56 -0500
+In-Reply-To: <20121205153121.GA28556@liondog.tnic>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Andreas Mohr <andi@lisas.de>, linux-kernel@vger.kernel.org, Li Shaohua <shaohua.li@intel.com>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>
 
-On Wed, 5 Dec 2012 22:12:45 +0100
+On Wed, 5 Dec 2012 16:31:21 +0100
 Borislav Petkov <bp@alien8.de> wrote:
 
-> On Thu, Dec 06, 2012 at 07:57:21AM +1100, Stephen Rothwell wrote:
-> > On Wed, 5 Dec 2012 15:47:49 +0000 Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
-> > > And yes btw we should turn this option on in -next, and get these sort of
-> > > things out of the tree for good. More importantly it'll mean anyone
-> > > adding another one gets a whine on the spot.
+> On Wed, Dec 05, 2012 at 03:27:56PM +0000, Alan Cox wrote:
+> > On Wed, 5 Dec 2012 15:29:35 +0100
+> > Borislav Petkov <bp@alien8.de> wrote:
 > > 
-> > While I appreciate your confidence, I don't notice quite a few new
-> > warnings (because there are so many of them already :-().  Is there some
-> > reason to not turn this on in our "normal" builds?  Does it produce many
-> > false positives?
+> > > On Wed, Dec 05, 2012 at 08:09:01AM +0100, Andreas Mohr wrote:
+> > > > Hi,
+> > > > 
+> > > > drivers/pnp/pnpacpi/core.c: In function 'ispnpidacpi':
+> > > > drivers/pnp/pnpacpi/core.c:65:2: warning: logical 'or' of collectively
+> > > > exhaustive tests is always true [-Wlogical-op]
+> > > > drivers/pnp/pnpacpi/core.c:66:2: warning: logical 'or' of collectively
+> > > > exhaustive tests is always true [-Wlogical-op]
+> > > > drivers/pnp/pnpacpi/core.c:67:2: warning: logical 'or' of collectively
+> > > > exhaustive tests is always true [-Wlogical-op]
+> > > > 
+> > > > 
+> > > > That's already the second less enticing -Wlogical-op issue
+> > > > which was discovered by accident during less than two days
+> > 
+> > No it's not. It's been reported in bugzilla. I sent patches ages ago.
+> > They were ignored. Coverity has had it tagged for years (and a ton more
+> > of them you've not noticed yet)
+> > 
+> > http://article.gmane.org/gmane.linux.acpi.devel/56753/match=test_alpha
+> > 
+> > This isn't discovered, this is in the "If you stick your fingers in your
+> > ears and hum you can't hear the screaming" category.
 > 
-> Yes, it produces a huge number of warnings which need weeding out (some
-> of them are false positives and some of them are simply unfixable due to
-> design decisions in the kernel, etc, etc):
+> Hillarious!
 > 
-> $ make W=123 drivers/pnp/pnpacpi/core.o 2> w.log
+> Andrew, would you please pick up Alan's patch? It clearly fixes an
+> ancient bug in the pnpacpi code.
+> 
 
-I was just talking about the always true/always false stuff !
+Bjorn had a review comment which appears to remain unaddressed:
+
+: The original is definitely broken.
+: 
+: I think the corrected test allows PNP IDs containing '@', which
+: doesn't appear legal per sec 6.1.5 of the ACPI 5.0 spec.  Should this
+: be
+: 
+: +       if (!('A' <= (c) && (c) <= 'Z')) \
+: 
+: instead?
+
+Also, the original patch is missing a signed-off-by.  Here's what I
+have queued:
+
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: pnpacpi: fix incorrect TEST_ALPHA() test
+
+TEST_ALPHA() is broken and always returns 0.
+
+[akpm@linux-foundation.org: return false for '@' as well, per Bjorn]
+Signed-off-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Andreas Mohr <andi@lisas.de>
+Cc: Li Shaohua <shaohua.li@intel.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ drivers/pnp/pnpacpi/core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff -puN drivers/pnp/pnpacpi/core.c~pnpacpi-fix-incorrect-test_alpha-test drivers/pnp/pnpacpi/core.c
+--- a/drivers/pnp/pnpacpi/core.c~pnpacpi-fix-incorrect-test_alpha-test
++++ a/drivers/pnp/pnpacpi/core.c
+@@ -58,7 +58,7 @@ static inline int __init is_exclusive_de
+ 	if (!(('0' <= (c) && (c) <= '9') || ('A' <= (c) && (c) <= 'F'))) \
+ 		return 0
+ #define TEST_ALPHA(c) \
+-	if (!('@' <= (c) || (c) <= 'Z')) \
++	if (!('A' <= (c) && (c) <= 'Z')) \
+ 		return 0
+ static int __init ispnpidacpi(const char *id)
+ {
+_
+
