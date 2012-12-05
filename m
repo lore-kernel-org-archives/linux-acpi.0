@@ -1,34 +1,75 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 0/3] ACPI / PM: Export ACPI power states of devices via sysfs
-Date: Wed, 05 Dec 2012 01:39:26 +0100
-Message-ID: <1464990.iyrX0DeZyT@vostro.rjw.lan>
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: Re: [Patch v4 08/12] memory-hotplug: remove memmap of sparse-vmemmap
+Date: Wed, 05 Dec 2012 10:07:34 +0800
+Message-ID: <50BEAC66.8020500@cn.fujitsu.com>
+References: <1354010422-19648-1-git-send-email-wency@cn.fujitsu.com> <1354010422-19648-9-git-send-email-wency@cn.fujitsu.com> <50B5DC00.20103@huawei.com> <50B80FB1.6040906@cn.fujitsu.com> <50BC0D2D.8040008@huawei.com> <50BDBEB7.3070807@cn.fujitsu.com> <50BDEA82.4050809@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:39785 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752731Ab2LEAhu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 4 Dec 2012 19:37:50 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <50BDEA82.4050809@huawei.com>
+Sender: owner-linux-mm@kvack.org
+To: Jianguo Wu <wujianguo@huawei.com>
+Cc: Wen Congyang <wency@cn.fujitsu.com>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, David Rientjes <rientjes@google.com>, Jiang Liu <liuj97@gmail.com>, Len Brown <len.brown@intel.com>, benh@kernel.crashing.org, paulus@samba.org, Christoph Lameter <cl@linux.com>, Minchan Kim <minchan.kim@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Len Brown <lenb@kernel.org>
 
-Hi All,
+Hi Wu,
 
-In some situations it is very useful to know the current ACPI power states of
-devices.  For this reason, the following series of patches makes it possible
-to retrieve that information via sysfs.
+On 12/04/2012 08:20 PM, Jianguo Wu wrote:
+(snip)
+>>
+>> Seems that we have different ways to handle pages allocated by bootmem
+>> or by regular allocator. Is the checking way in [PATCH 09/12] available
+>> here ?
+>>
+>> +    /* bootmem page has reserved flag */
+>> +    if (PageReserved(page)) {
+>> ......
+>> +    }
+>>
+>> If so, I think we can just merge these two functions.
+>
+> Hmm, direct mapping table isn't allocated by bootmem allocator such as memblock, can't be free by put_page_bootmem().
+> But I will try to merge these two functions.
+>
 
-Patches [1-2/3] are trivial function renames, patch [3/3] is the real thing.
+Oh, I didn't notice this, thanks. :)
 
-The series is on top of the master branch of linux-pm.git.
+(snip)
 
-Thanks,
-Rafael
+>>> +
+>>> +    __split_large_page(kpte, address, pbase);
+>>
+>> Is this patch going to replace [PATCH 08/12] ?
+>>
+>
+> I wish to replace [PATCH 08/12], but need Congyang and Yasuaki to confirm first:)
+>
+>> If so, __split_large_page() was added and exported in [PATCH 09/12],
+>> then we should move it here, right ?
+>
+> yes.
+>
+> and what do you think about moving vmemmap_pud[pmd/pte]_remove() to arch/x86/mm/init_64.c,
+> to be consistent with vmemmap_populate() ?
+
+It is a good idea since pud/pmd/pte related code could be platform
+dependent. And I'm also trying to move vmemmap_free() to
+arch/x86/mm/init_64.c too. I want to have a common interface just
+like vmemmap_populate(). :)
+
+>
+> I will rework [PATCH 08/12] and [PATCH 09/12] soon.
+
+I am rebasing the whole patch set now. And I think I chould finish part
+of your work too. A new patch-set is coming soon, and your rework is
+also welcome. :)
+
+Thanks. :)
 
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
