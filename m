@@ -1,34 +1,80 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: Look Ma, da kernel is b0rken
-Date: Wed, 5 Dec 2012 22:50:28 +0100
-Message-ID: <20121205215028.GB6222@liondog.tnic>
-References: <20121205070901.GA12123@rhlx01.hs-esslingen.de>
- <20121205142935.GA12119@liondog.tnic>
- <20121205152756.5afec12c@pyramind.ukuu.org.uk>
- <20121205153121.GA28556@liondog.tnic>
- <20121205133853.770451ca.akpm@linux-foundation.org>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [RFC PATCH v3 0/3] acpi: Introduce prepare_remove device
+ operation
+Date: Wed, 05 Dec 2012 15:31:08 -0700
+Message-ID: <1354746668.21585.147.camel@misato.fc.hp.com>
+References: <1353693037-21704-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
+	     <50B5EFE9.3040206@huawei.com>
+	    <1354128096.26955.276.camel@misato.fc.hp.com>
+	   <50B6E936.2080308@huawei.com> <1354228028.7776.56.camel@misato.fc.hp.com>
+	   <50BC29C6.6050706@huawei.com>
+	 <1354579848.21585.54.camel@misato.fc.hp.com>  <50BDBF5A.8040407@huawei.com>
+	 <1354663411.21585.135.camel@misato.fc.hp.com> <50BF399B.7010404@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:58975 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754149Ab2LEVua (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 5 Dec 2012 16:50:30 -0500
-Content-Disposition: inline
-In-Reply-To: <20121205133853.770451ca.akpm@linux-foundation.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <50BF399B.7010404@huawei.com>
+Sender: owner-linux-mm@kvack.org
+To: Hanjun Guo <guohanjun@huawei.com>
+Cc: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, linux-acpi@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, wency@cn.fujitsu.com, rjw@sisk.pl, lenb@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Tang Chen <tangchen@cn.fujitsu.com>, Liujiang <jiang.liu@huawei.com>, Huxinwei <huxinwei@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Andreas Mohr <andi@lisas.de>, linux-kernel@vger.kernel.org, Li Shaohua <shaohua.li@intel.com>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>
 
-On Wed, Dec 05, 2012 at 01:38:53PM -0800, Andrew Morton wrote:
-> Also, the original patch is missing a signed-off-by. Here's what I
-> have queued:
+On Wed, 2012-12-05 at 20:10 +0800, Hanjun Guo wrote:
+> On 2012/12/5 7:23, Toshi Kani wrote:
+> > On Tue, 2012-12-04 at 17:16 +0800, Hanjun Guo wrote:
+> >> On 2012/12/4 8:10, Toshi Kani wrote:
+> >>> On Mon, 2012-12-03 at 12:25 +0800, Hanjun Guo wrote:
+> >>>> On 2012/11/30 6:27, Toshi Kani wrote:
+> >>>
+> >>> If I read the code right, the framework calls ACPI drivers differently
+> >>> at boot-time and hot-add as follows.  That is, the new entry points are
+> >>> called at hot-add only, but .add() is called at both cases.  This
+> >>> requires .add() to work differently.
+> >>
+> >> Hi Toshi,
+> >> Thanks for your comments!
+> >>
+> >>>
+> >>> Boot    : .add()
+> >>
+> >> Actually, at boot time: .add(), .start()
+> > 
+> > Right.
+> > 
+> >>> Hot-Add : .add(), .pre_configure(), configure(), etc.
+> >>
+> >> Yes, we did it as you said in the framework. We use .pre_configure(), configure(),
+> >> and post_configure() to instead of .start() for better error handling and recovery.
+> > 
+> > I think we should have hot-plug interfaces at the module level, not at
+> > the ACPI-internal level.  In this way, the interfaces can be
+> > platform-neutral and allow any modules to register, which makes it more
+> > consistent with the boot-up sequence.  It can also allow ordering of the
+> > sequence among the registered modules.  Right now, we initiate all
+> > procedures from ACPI during hot-plug, which I think is inflexible and
+> > steps into other module's role.
+> > 
+> > I am also concerned about the slot handling, which is the core piece of
+> > the infrastructure and only allows hot-plug operations on ACPI objects
+> > where slot objects are previously created by checking _EJ0.  The
+> > infrastructure should allow hot-plug operations on any objects, and it
+> > should not be dependent on the slot design.
+> > 
+> > I have some rough idea, and it may be easier to review / explain if I
+> > make some code changes.  So, let me prototype it, and send it you all if
+> > that works out.  Hopefully, it won't take too long.
+> 
+> Great! If any thing I can do, please let me know it.
 
-Thanks, looks good.
+Cool.  Yes, if the prototype turns out to be a good one, we can work
+together to improve it. :)
+ 
+Thanks,
+-Toshi
 
-<snip the good-looking patch>
-
--- 
-Regards/Gruss,
-    Boris.
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
