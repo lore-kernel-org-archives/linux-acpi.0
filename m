@@ -1,145 +1,93 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v7 2/3] aerdrv: Enhanced AER logging
-Date: Wed, 5 Dec 2012 15:32:02 +0100
-Message-ID: <20121205143202.GD2364@liondog.tnic>
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH v7 3/3] aerdrv: Cleanup log output for CPER based AER
+Date: Wed, 5 Dec 2012 12:41:35 -0200
+Message-ID: <20121205124135.45018984@redhat.com>
 References: <20121204210305.4515.91100.stgit@grignak.americas.hpqcorp.net>
- <20121204210312.4515.13415.stgit@grignak.americas.hpqcorp.net>
+	<20121204210318.4515.10180.stgit@grignak.americas.hpqcorp.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:42889 "EHLO mail.skyhub.de"
+Received: from mx1.redhat.com ([209.132.183.28]:26965 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752519Ab2LEOcF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 5 Dec 2012 09:32:05 -0500
-Content-Disposition: inline
-In-Reply-To: <20121204210312.4515.13415.stgit@grignak.americas.hpqcorp.net>
+	id S1753858Ab2LEOmP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 5 Dec 2012 09:42:15 -0500
+In-Reply-To: <20121204210318.4515.10180.stgit@grignak.americas.hpqcorp.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Lance Ortiz <lance.ortiz@hp.com>
-Cc: bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, bp@alien8.de, rostedt@goodmis.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, Dec 04, 2012 at 02:03:12PM -0700, Lance Ortiz wrote:
-> This patch will provide a more reliable and easy way for user-space
-> applications to have access to AER logs rather than reading them from the
-> message buffer. It also provides a way to notify user-space when an AER
-> event occurs.
+Em Tue, 04 Dec 2012 14:03:18 -0700
+Lance Ortiz <lance.ortiz@hp.com> escreveu:
+
+Hmm... I did a reply to v6 of this patch, but i pressed the wrong button
+and it went only to Joe. Excuse-me for that. Let me resend the
+comments to everybody:
+
+On Tue, 2012-12-04 at 16:33 -0200, Mauro Carvalho Chehab wrote:
+> Em Tue, 04 Dec 2012 09:39:23 -0800
+> Joe Perches <joe@perches.com> escreveu:
+>   
+> > On Tue, 2012-12-04 at 10:04 -0700, Lance Ortiz wrote:  
+> > > These changes make cper_print_aer more consistent with aer_print_error
+> > > which is called in the AER interrupt case. The string in the variable
+> > > 'prefix' is printed at the beginning of each print statement in
+> > > cper_print_aer(). The prefix is a string containing the driver name
+> > > and the device's slot location.  From the callers the value of prefix
+> > > is never assigned and is NULL, so when cper_print_aer prints data the
+> > > initial string does not get printed.  This string is important because
+> > > it identifies the device that the error is on.  
+> > 
+> > Hi again Lance.
+> >   
+> > > diff --git a/drivers/pci/pcie/aer/aerdrv_errprint.c b/drivers/pci/pcie/aer/aerdrv_errprint.c  
+> > []  
+> > > @@ -228,9 +228,14 @@ void cper_print_aer(struct pci_dev *dev, int cper_severity,
+> > >  	int aer_severity, layer, agent, status_strs_size, tlp_header_valid = 0;
+> > >  	u32 status, mask;
+> > >  	const char **status_strs;
+> > > -	char *prefix = NULL;
+> > > +	char prefix[44];
+> > >  
+> > >  	aer_severity = cper_severity_to_aer(cper_severity);
+> > > +	snprintf(prefix, sizeof(prefix), "%s%s %s: ",
+> > > +		(aer_severity == AER_CORRECTABLE) ?
+> > > +		KERN_WARNING : KERN_ERR,
+> > > +		dev_driver_string(&dev->dev), dev_name(&dev->dev));
+> > > +
+> > >  	if (aer_severity == AER_CORRECTABLE) {
+> > >  		status = aer->cor_status;
+> > >  		mask = aer->cor_mask;  
+> > 
+> > Perhaps this would be better just using dev_printk
+> > instead of snprintf into a prefix with printk to
+> > emulate dev_printk.
+> > 
+> > Also, perhaps KERN_NOTICE is preferable to KERN_WARNING
+> > in the CORRECTABLE case.  
 > 
-> The aer driver is updated to generate a trace event of function 'aer_event'
-> when a PCIe error is reported over the AER interface.  The trace event was
-> added to both the interrupt based aer path and the firmware first path.
+> Hmm... IMHO, it should be KERN_ERR, even for a correctable one ;) 
 > 
-> v1-v2 fix compile errors in ifdefs.
-> v2-v3 Update to new location of trace header. Update print to remove
-> warning.
-> v3-v4 Reworked logic when getting ready to call cper_print_aer
-> v6-v7 Change print from pr_info to pr_err if !dev
-> Signed-off-by: Lance Ortiz <lance.ortiz@hp.com>
-> ---
+> This is an error and probably means some hardware problem or a bad 
+> contact. In any case, a preventive action is likely required.
+>   
+> > 
+> > Maybe something like:
+> > 
+> > 	const char *level = KERN_ERR;
+> > 	if (aer_severity == AER_CORRECTABLE)
+> > 		level = KERN_NOTICE;
+> > 
+> > 	...
+> > 
+> > 	dev_printk(level, &dev->dev, etc...);
+> > 
+> > Maybe do this after this series of patches is accepted.
+> > Enough with the revisions for awhile...
+> >   
 > 
->  drivers/acpi/apei/cper.c               |   19 ++++++++++++++++---
->  drivers/pci/pcie/aer/aerdrv_errprint.c |   10 +++++++++-
->  include/linux/aer.h                    |    2 +-
->  3 files changed, 26 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/acpi/apei/cper.c b/drivers/acpi/apei/cper.c
-> index e6defd8..b2f695b 100644
-> --- a/drivers/acpi/apei/cper.c
-> +++ b/drivers/acpi/apei/cper.c
-> @@ -29,6 +29,7 @@
->  #include <linux/time.h>
->  #include <linux/cper.h>
->  #include <linux/acpi.h>
-> +#include <linux/pci.h>
->  #include <linux/aer.h>
->  
->  /*
-> @@ -249,6 +250,10 @@ static const char *cper_pcie_port_type_strs[] = {
->  static void cper_print_pcie(const char *pfx, const struct cper_sec_pcie *pcie,
->  			    const struct acpi_hest_generic_data *gdata)
->  {
-> +#ifdef CONFIG_ACPI_APEI_PCIEAER
-> +	struct pci_dev *dev;
-> +#endif
-> +
->  	if (pcie->validation_bits & CPER_PCIE_VALID_PORT_TYPE)
->  		printk("%s""port_type: %d, %s\n", pfx, pcie->port_type,
->  		       pcie->port_type < ARRAY_SIZE(cper_pcie_port_type_strs) ?
-> @@ -281,10 +286,18 @@ static void cper_print_pcie(const char *pfx, const struct cper_sec_pcie *pcie,
->  	"%s""bridge: secondary_status: 0x%04x, control: 0x%04x\n",
->  	pfx, pcie->bridge.secondary_status, pcie->bridge.control);
->  #ifdef CONFIG_ACPI_APEI_PCIEAER
-> -	if (pcie->validation_bits & CPER_PCIE_VALID_AER_INFO) {
-> -		struct aer_capability_regs *aer_regs = (void *)pcie->aer_info;
-> -		cper_print_aer(pfx, gdata->error_severity, aer_regs);
-> +	dev = pci_get_domain_bus_and_slot(pcie->device_id.segment,
-> +			pcie->device_id.bus, pcie->device_id.function);
-> +	if (!dev) {
-> +		pr_err("PCI AER Cannot get PCI device %04x:%02x:%02x.%d\n",
-> +			pcie->device_id.segment, pcie->device_id.bus,
-> +			pcie->device_id.slot, pcie->device_id.function);
-> +		return;
->  	}
-> +	if (pcie->validation_bits & CPER_PCIE_VALID_AER_INFO)
-> +		cper_print_aer(dev, gdata->error_severity,
-> +				(struct aer_capability_regs *) pcie->aer_info);
-> +	pci_dev_put(dev);
->  #endif
->  }
->  
-> diff --git a/drivers/pci/pcie/aer/aerdrv_errprint.c b/drivers/pci/pcie/aer/aerdrv_errprint.c
-> index 3ea5173..34d96e4 100644
-> --- a/drivers/pci/pcie/aer/aerdrv_errprint.c
-> +++ b/drivers/pci/pcie/aer/aerdrv_errprint.c
-> @@ -23,6 +23,9 @@
->  
->  #include "aerdrv.h"
->  
-> +#define CREATE_TRACE_POINTS
-> +#include <trace/events/ras.h>
-> +
->  #define AER_AGENT_RECEIVER		0
->  #define AER_AGENT_REQUESTER		1
->  #define AER_AGENT_COMPLETER		2
-> @@ -194,6 +197,8 @@ void aer_print_error(struct pci_dev *dev, struct aer_err_info *info)
->  	if (info->id && info->error_dev_num > 1 && info->id == id)
->  		printk("%s""  Error of this Agent(%04x) is reported first\n",
->  			prefix, id);
-> +	trace_aer_event(dev_name(&dev->dev), (info->status & ~info->mask),
-> +			info->severity);
->  }
->  
->  void aer_print_port_info(struct pci_dev *dev, struct aer_err_info *info)
-> @@ -217,12 +222,13 @@ int cper_severity_to_aer(int cper_severity)
->  }
->  EXPORT_SYMBOL_GPL(cper_severity_to_aer);
->  
-> -void cper_print_aer(const char *prefix, int cper_severity,
-> +void cper_print_aer(struct pci_dev *dev, int cper_severity,
->  		    struct aer_capability_regs *aer)
->  {
->  	int aer_severity, layer, agent, status_strs_size, tlp_header_valid = 0;
->  	u32 status, mask;
->  	const char **status_strs;
-> +	char *prefix = NULL;
+>   
 
-What are you doing here? You dropped the 'prefix' argument being passed
-down in this function and are defining a local variable of the same name
-which is used in the function later:
-
-        printk("%s""aer_status: 0x%08x, aer_mask: 0x%08x\n",
-               prefix, status, mask);
-
-WTF?
-
-Also, this function cper_print_aer() is too crammed and could use a
-little spacing out between lines belonging logically together.
-
-Finally, please wait a couple of days before resending the patchset
-so that you can collect *all* feedback and can save yourself needless
-iterations.
-
-Thanks.
-
--- 
-Regards/Gruss,
-    Boris.
+Regards,
+Mauro
