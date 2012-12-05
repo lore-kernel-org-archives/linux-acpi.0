@@ -1,31 +1,36 @@
 From: "Ortiz, Lance E" <lance.oritz@hp.com>
-Subject: RE: [PATCH v7 2/3] aerdrv: Enhanced AER logging
-Date: Wed, 5 Dec 2012 16:14:14 +0000
-Message-ID: <A961433CDFF2F640A2866803152E61F9516F279F@G4W3219.americas.hpqcorp.net>
+Subject: RE: [PATCH v7 3/3] aerdrv: Cleanup log output for CPER based AER
+Date: Wed, 5 Dec 2012 16:16:31 +0000
+Message-ID: <A961433CDFF2F640A2866803152E61F9516F37AA@G4W3219.americas.hpqcorp.net>
 References: <20121204210305.4515.91100.stgit@grignak.americas.hpqcorp.net>
- <20121204210312.4515.13415.stgit@grignak.americas.hpqcorp.net>
- <20121205143202.GD2364@liondog.tnic>
+ <20121204210318.4515.10180.stgit@grignak.americas.hpqcorp.net>
+ <20121205145035.GE2364@liondog.tnic>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20121205143202.GD2364@liondog.tnic>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:17730 "EHLO
+	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752641Ab2LEQRb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Dec 2012 11:17:31 -0500
+In-Reply-To: <20121205145035.GE2364@liondog.tnic>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Borislav Petkov <bp@alien8.de>
 Cc: "bhelgaas@google.com" <bhelgaas@google.com>, "lance_ortiz@hotmail.com" <lance_ortiz@hotmail.com>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>, "tony.luck@intel.com" <tony.luck@intel.com>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "mchehab@redhat.com" <mchehab@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-List-Id: linux-acpi@vger.kernel.org
 
-PiA+ICsJY2hhciAqcHJlZml4ID0gTlVMTDsNCj4gDQo+IFdoYXQgYXJlIHlvdSBkb2luZyBoZXJl
-PyBZb3UgZHJvcHBlZCB0aGUgJ3ByZWZpeCcgYXJndW1lbnQgYmVpbmcgcGFzc2VkDQo+IGRvd24g
-aW4gdGhpcyBmdW5jdGlvbiBhbmQgYXJlIGRlZmluaW5nIGEgbG9jYWwgdmFyaWFibGUgb2YgdGhl
-IHNhbWUNCj4gbmFtZQ0KPiB3aGljaCBpcyB1c2VkIGluIHRoZSBmdW5jdGlvbiBsYXRlcjoNCj4g
-DQo+ICAgICAgICAgcHJpbnRrKCIlcyIiYWVyX3N0YXR1czogMHglMDh4LCBhZXJfbWFzazogMHgl
-MDh4XG4iLA0KPiAgICAgICAgICAgICAgICBwcmVmaXgsIHN0YXR1cywgbWFzayk7DQo+IA0KDQpC
-b3JpcywNCg0KSSByZW1vdmVkIHRoZSBwcmVmaXggYXJndW1lbnQgYmVjYXVzZSBpdCB3YXMgbmV2
-ZXIgdXNlZCBieSBpdHMgY2FsbGVyIGFuZCBuZXZlciBzZXQuICBUaGUgcmVhc29uIEkgYWRkZWQg
-dGhlIHByZWZpeCB2YXJpYWJsZSBhbmQgc2V0IGl0IHRvIE5VTEwgd2FzIHRvIGhlbHAgaW4gYnJl
-YWtpbmcgdXAgdGhlIHBhdGNoIGFuZCBhZGRpbmcgaXQgd291bGQgaGVscCB0aGUgaW50ZXJtaXR0
-ZW50IHBhdGNoIGJ1aWxkIHdpdGhvdXQgY2hhbmdpbmcgdG9vIG11Y2ggY29kZS4gICBJIGtuZXcg
-SSB3YXMgYWN0dWFsbHkgZ29pbmcgdG8gdXNlIHRoZSB2YXJpYWJsZSBpbiBwYXRjaCAzLiANCg0K
-TGFuY2UNCg0K
+PiANCj4gSGVyZSBpdCBpcywgeW91J3JlIGluaXRpYWxpemluZyAncHJlZml4JyBoZXJlIGFsdGhv
+dWdoIGl0IGlzIGJlaW5nDQo+IHVzZWQgaW4gdGhlIHByZXZpb3VzIHBhdGNoLiBZb3Ugc2hvdWxk
+IGNvbmNlbnRyYXRlIHRoZSB3aG9sZSBwcmVmaXgNCj4gaW5pdGlhbGl6YXRpb24gYW5kIHBhc3Np
+bmcgaW4gb25lIHBhdGNoIHNvIHRoYXQgdGhlcmUgYXJlIG5vIGJyZWFrYWdlcy4NCg0KWWVzIEkg
+cHJvYmFibHkgY291bGQgaGF2ZSBicm9rZW4gdXAgdGhlIHBhdGNoZXMgaW4gYSBjbGVhbmVyIHdh
+eS4gIFRoYW5rcy4NCg0KPiANCj4gQWxzbywgd2h5IGlzIGl0IGV4YWN0bHkgNDQgY2hhcnMgbG9u
+ZywgaXMgdGhhdCBzb21lIG1hZ2ljIG51bWJlcg0KPiB0aGF0IGFsd2F5cyB3b3Jrcz8gQXQgbGVh
+c3QgdGhpcyBpcyB3aGF0IGFlcl9wcmludF9lcnJvciBkb2VzDQo+IHRvby4gSSdtIGd1ZXNzaW5n
+IHNvbWVvbmUgY2hvc2UgaXQgYmVjYXVzZSBpdCBpcyBsYXJnZSBlbm91Z2ggZm9yDQo+IGRldl9k
+cml2ZXJfc3RyaW5nKCkgYW5kIGRldl9uYW1lKCkgYW5kIGEgY291cGxlIG1vcmUgZm9ybWF0dGlu
+Zw0KPiBjaGFyYWN0ZXJzLiBPaCB3ZWxsLg0KPiANCg0KWWVzLCBJIHdhcyB1c2luZyB0aGUgc2Ft
+ZSBjb2RlIGFzIGluIGFlcl9wcmludF9lcnJvci4gIFRoaXMgd2FzIGJyb3VnaHQgdXAgaW4gYSBw
+cmV2aW91cyBtYWlsIHdpdGggSm9lIGFuZCB3ZSBkaXNjdXNzZWQgY2xlYW5pbmcgYWxsIG9mIHRo
+aXMgdXAgaW4gYSBsYXRlciBwYXRjaC4NCg0KTGFuY2UNCg0K
