@@ -1,80 +1,54 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [RFC PATCH v3 0/3] acpi: Introduce prepare_remove device
- operation
-Date: Wed, 05 Dec 2012 15:31:08 -0700
-Message-ID: <1354746668.21585.147.camel@misato.fc.hp.com>
-References: <1353693037-21704-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
-	     <50B5EFE9.3040206@huawei.com>
-	    <1354128096.26955.276.camel@misato.fc.hp.com>
-	   <50B6E936.2080308@huawei.com> <1354228028.7776.56.camel@misato.fc.hp.com>
-	   <50BC29C6.6050706@huawei.com>
-	 <1354579848.21585.54.camel@misato.fc.hp.com>  <50BDBF5A.8040407@huawei.com>
-	 <1354663411.21585.135.camel@misato.fc.hp.com> <50BF399B.7010404@huawei.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: Look Ma, da kernel is b0rken
+Date: Thu, 06 Dec 2012 00:38:34 +0100
+Message-ID: <1430313.WKsQn6gbID@vostro.rjw.lan>
+References: <20121205070901.GA12123@rhlx01.hs-esslingen.de> <20121205142935.GA12119@liondog.tnic> <20121205152756.5afec12c@pyramind.ukuu.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <50BF399B.7010404@huawei.com>
-Sender: owner-linux-mm@kvack.org
-To: Hanjun Guo <guohanjun@huawei.com>
-Cc: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, linux-acpi@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, wency@cn.fujitsu.com, rjw@sisk.pl, lenb@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Tang Chen <tangchen@cn.fujitsu.com>, Liujiang <jiang.liu@huawei.com>, Huxinwei <huxinwei@huawei.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:40835 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751728Ab2LEXdl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 5 Dec 2012 18:33:41 -0500
+In-Reply-To: <20121205152756.5afec12c@pyramind.ukuu.org.uk>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Borislav Petkov <bp@alien8.de>, Andreas Mohr <andi@lisas.de>, linux-kernel@vger.kernel.org, Li Shaohua <shaohua.li@intel.com>, Bjorn Helgaas <bhelgaas@google.com>
 
-On Wed, 2012-12-05 at 20:10 +0800, Hanjun Guo wrote:
-> On 2012/12/5 7:23, Toshi Kani wrote:
-> > On Tue, 2012-12-04 at 17:16 +0800, Hanjun Guo wrote:
-> >> On 2012/12/4 8:10, Toshi Kani wrote:
-> >>> On Mon, 2012-12-03 at 12:25 +0800, Hanjun Guo wrote:
-> >>>> On 2012/11/30 6:27, Toshi Kani wrote:
-> >>>
-> >>> If I read the code right, the framework calls ACPI drivers differently
-> >>> at boot-time and hot-add as follows.  That is, the new entry points are
-> >>> called at hot-add only, but .add() is called at both cases.  This
-> >>> requires .add() to work differently.
-> >>
-> >> Hi Toshi,
-> >> Thanks for your comments!
-> >>
-> >>>
-> >>> Boot    : .add()
-> >>
-> >> Actually, at boot time: .add(), .start()
-> > 
-> > Right.
-> > 
-> >>> Hot-Add : .add(), .pre_configure(), configure(), etc.
-> >>
-> >> Yes, we did it as you said in the framework. We use .pre_configure(), configure(),
-> >> and post_configure() to instead of .start() for better error handling and recovery.
-> > 
-> > I think we should have hot-plug interfaces at the module level, not at
-> > the ACPI-internal level.  In this way, the interfaces can be
-> > platform-neutral and allow any modules to register, which makes it more
-> > consistent with the boot-up sequence.  It can also allow ordering of the
-> > sequence among the registered modules.  Right now, we initiate all
-> > procedures from ACPI during hot-plug, which I think is inflexible and
-> > steps into other module's role.
-> > 
-> > I am also concerned about the slot handling, which is the core piece of
-> > the infrastructure and only allows hot-plug operations on ACPI objects
-> > where slot objects are previously created by checking _EJ0.  The
-> > infrastructure should allow hot-plug operations on any objects, and it
-> > should not be dependent on the slot design.
-> > 
-> > I have some rough idea, and it may be easier to review / explain if I
-> > make some code changes.  So, let me prototype it, and send it you all if
-> > that works out.  Hopefully, it won't take too long.
+On Wednesday, December 05, 2012 03:27:56 PM Alan Cox wrote:
+> On Wed, 5 Dec 2012 15:29:35 +0100
+> Borislav Petkov <bp@alien8.de> wrote:
 > 
-> Great! If any thing I can do, please let me know it.
+> > On Wed, Dec 05, 2012 at 08:09:01AM +0100, Andreas Mohr wrote:
+> > > Hi,
+> > > 
+> > > drivers/pnp/pnpacpi/core.c: In function 'ispnpidacpi':
+> > > drivers/pnp/pnpacpi/core.c:65:2: warning: logical 'or' of collectively
+> > > exhaustive tests is always true [-Wlogical-op]
+> > > drivers/pnp/pnpacpi/core.c:66:2: warning: logical 'or' of collectively
+> > > exhaustive tests is always true [-Wlogical-op]
+> > > drivers/pnp/pnpacpi/core.c:67:2: warning: logical 'or' of collectively
+> > > exhaustive tests is always true [-Wlogical-op]
+> > > 
+> > > 
+> > > That's already the second less enticing -Wlogical-op issue
+> > > which was discovered by accident during less than two days
+> 
+> No it's not. It's been reported in bugzilla. I sent patches ages ago.
+> They were ignored.
 
-Cool.  Yes, if the prototype turns out to be a good one, we can work
-together to improve it. :)
- 
+The last patch you sent wasn't ignored.  You got this comment from Bjorn:
+
+http://thread.gmane.org/gmane.linux.acpi.devel/56753
+
+that you didn't respond to, so I'm still unsure what to do with that patch.
+
 Thanks,
--Toshi
+Rafael
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
