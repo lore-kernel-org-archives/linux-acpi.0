@@ -1,72 +1,48 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v7 3/3] aerdrv: Cleanup log output for CPER based AER
-Date: Wed, 5 Dec 2012 15:50:35 +0100
-Message-ID: <20121205145035.GE2364@liondog.tnic>
-References: <20121204210305.4515.91100.stgit@grignak.americas.hpqcorp.net>
- <20121204210318.4515.10180.stgit@grignak.americas.hpqcorp.net>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: Look Ma, da kernel is b0rken
+Date: Wed, 5 Dec 2012 15:27:56 +0000
+Message-ID: <20121205152756.5afec12c@pyramind.ukuu.org.uk>
+References: <20121205070901.GA12123@rhlx01.hs-esslingen.de>
+	<20121205142935.GA12119@liondog.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:56879 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751997Ab2LEOui (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 5 Dec 2012 09:50:38 -0500
-Content-Disposition: inline
-In-Reply-To: <20121204210318.4515.10180.stgit@grignak.americas.hpqcorp.net>
+Received: from lxorguk.ukuu.org.uk ([81.2.110.251]:53495 "EHLO
+	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751599Ab2LEPWy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Dec 2012 10:22:54 -0500
+In-Reply-To: <20121205142935.GA12119@liondog.tnic>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lance Ortiz <lance.ortiz@hp.com>
-Cc: bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: Andreas Mohr <andi@lisas.de>, linux-kernel@vger.kernel.org, Li Shaohua <shaohua.li@intel.com>, linux-acpi@vger.kernel.org
 
-On Tue, Dec 04, 2012 at 02:03:18PM -0700, Lance Ortiz wrote:
-> These changes make cper_print_aer more consistent with aer_print_error
-> which is called in the AER interrupt case. The string in the variable
-> 'prefix' is printed at the beginning of each print statement in
-> cper_print_aer(). The prefix is a string containing the driver name
-> and the device's slot location.  From the callers the value of prefix
-> is never assigned and is NULL, so when cper_print_aer prints data the
-> initial string does not get printed.  This string is important because
-> it identifies the device that the error is on.
-> 
-> v1-v2 fix some compile errors withinn the #ifdef
-> v3-v4 remove agent id stuff and kept print the same to avoid
-> compatibility issues
-> 
-> Signed-off-by: Lance Ortiz <lance.ortiz@hp.com>
-> ---
-> 
->  drivers/pci/pcie/aer/aerdrv_errprint.c |    7 ++++++-
->  1 files changed, 6 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/pci/pcie/aer/aerdrv_errprint.c b/drivers/pci/pcie/aer/aerdrv_errprint.c
-> index 34d96e4..58ff4c0 100644
-> --- a/drivers/pci/pcie/aer/aerdrv_errprint.c
-> +++ b/drivers/pci/pcie/aer/aerdrv_errprint.c
-> @@ -228,9 +228,14 @@ void cper_print_aer(struct pci_dev *dev, int cper_severity,
->  	int aer_severity, layer, agent, status_strs_size, tlp_header_valid = 0;
->  	u32 status, mask;
->  	const char **status_strs;
-> -	char *prefix = NULL;
-> +	char prefix[44];
->  
->  	aer_severity = cper_severity_to_aer(cper_severity);
-> +	snprintf(prefix, sizeof(prefix), "%s%s %s: ",
-> +		(aer_severity == AER_CORRECTABLE) ?
-> +		KERN_WARNING : KERN_ERR,
-> +		dev_driver_string(&dev->dev), dev_name(&dev->dev));
+On Wed, 5 Dec 2012 15:29:35 +0100
+Borislav Petkov <bp@alien8.de> wrote:
 
-Here it is, you're initializing 'prefix' here although it is being
-used in the previous patch. You should concentrate the whole prefix
-initialization and passing in one patch so that there are no breakages.
+> On Wed, Dec 05, 2012 at 08:09:01AM +0100, Andreas Mohr wrote:
+> > Hi,
+> > 
+> > drivers/pnp/pnpacpi/core.c: In function 'ispnpidacpi':
+> > drivers/pnp/pnpacpi/core.c:65:2: warning: logical 'or' of collectively
+> > exhaustive tests is always true [-Wlogical-op]
+> > drivers/pnp/pnpacpi/core.c:66:2: warning: logical 'or' of collectively
+> > exhaustive tests is always true [-Wlogical-op]
+> > drivers/pnp/pnpacpi/core.c:67:2: warning: logical 'or' of collectively
+> > exhaustive tests is always true [-Wlogical-op]
+> > 
+> > 
+> > That's already the second less enticing -Wlogical-op issue
+> > which was discovered by accident during less than two days
 
-Also, why is it exactly 44 chars long, is that some magic number
-that always works? At least this is what aer_print_error does
-too. I'm guessing someone chose it because it is large enough for
-dev_driver_string() and dev_name() and a couple more formatting
-characters. Oh well.
+No it's not. It's been reported in bugzilla. I sent patches ages ago.
+They were ignored. Coverity has had it tagged for years (and a ton more
+of them you've not noticed yet)
 
-Thanks.
+http://article.gmane.org/gmane.linux.acpi.devel/56753/match=test_alpha
 
--- 
-Regards/Gruss,
-    Boris.
+This isn't discovered, this is in the "If you stick your fingers in your
+ears and hum you can't hear the screaming" category.
+
+Alan
