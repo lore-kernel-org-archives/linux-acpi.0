@@ -1,213 +1,121 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [RFC PATCH v3 0/3] acpi: Introduce prepare_remove device
- operation
-Date: Tue, 04 Dec 2012 16:23:31 -0700
-Message-ID: <1354663411.21585.135.camel@misato.fc.hp.com>
-References: <1353693037-21704-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
-	    <50B5EFE9.3040206@huawei.com>
-	   <1354128096.26955.276.camel@misato.fc.hp.com>
-	  <50B6E936.2080308@huawei.com> <1354228028.7776.56.camel@misato.fc.hp.com>
-	  <50BC29C6.6050706@huawei.com> <1354579848.21585.54.camel@misato.fc.hp.com>
-	 <50BDBF5A.8040407@huawei.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH 3/3] ACPI / PM: Export power states of ACPI devices via sysfs
+Date: Wed, 05 Dec 2012 01:42:35 +0100
+Message-ID: <1711926.9E8yF37X23@vostro.rjw.lan>
+References: <1464990.iyrX0DeZyT@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g5t0007.atlanta.hp.com ([15.192.0.44]:11783 "EHLO
-	g5t0007.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751865Ab2LDXcF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Dec 2012 18:32:05 -0500
-In-Reply-To: <50BDBF5A.8040407@huawei.com>
+Received: from hydra.sisk.pl ([212.160.235.94]:39776 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752151Ab2LEAht (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 4 Dec 2012 19:37:49 -0500
+In-Reply-To: <1464990.iyrX0DeZyT@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>
-Cc: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, linux-acpi@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, wency@cn.fujitsu.com, rjw@sisk.pl, lenb@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Tang Chen <tangchen@cn.fujitsu.com>, Liujiang <jiang.liu@huawei.com>, Huxinwei <huxinwei@huawei.com>
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Len Brown <lenb@kernel.org>
 
-On Tue, 2012-12-04 at 17:16 +0800, Hanjun Guo wrote:
-> On 2012/12/4 8:10, Toshi Kani wrote:
-> > On Mon, 2012-12-03 at 12:25 +0800, Hanjun Guo wrote:
-> >> On 2012/11/30 6:27, Toshi Kani wrote:
-> >>> On Thu, 2012-11-29 at 12:48 +0800, Hanjun Guo wrote:
-> >>>> On 2012/11/29 2:41, Toshi Kani wrote:
-> >>>>> On Wed, 2012-11-28 at 19:05 +0800, Hanjun Guo wrote:
-> >>>>>> On 2012/11/24 1:50, Vasilis Liaskovitis wrote:
-> >>>>>> As you may know, the ACPI based hotplug framework we are working on already addressed
-> >>>>>> this problem, and the way we slove this problem is a bit like yours.
-> >>>>>>
-> >>>>>> We introduce hp_ops in struct acpi_device_ops:
-> >>>>>> struct acpi_device_ops {
-> >>>>>> 	acpi_op_add add;
-> >>>>>> 	acpi_op_remove remove;
-> >>>>>> 	acpi_op_start start;
-> >>>>>> 	acpi_op_bind bind;
-> >>>>>> 	acpi_op_unbind unbind;
-> >>>>>> 	acpi_op_notify notify;
-> >>>>>> #ifdef	CONFIG_ACPI_HOTPLUG
-> >>>>>> 	struct acpihp_dev_ops *hp_ops;
-> >>>>>> #endif	/* CONFIG_ACPI_HOTPLUG */
-> >>>>>> };
-> >>>>>>
-> >>>>>> in hp_ops, we divide the prepare_remove into six small steps, that is:
-> >>>>>> 1) pre_release(): optional step to mark device going to be removed/busy
-> >>>>>> 2) release(): reclaim device from running system
-> >>>>>> 3) post_release(): rollback if cancelled by user or error happened
-> >>>>>> 4) pre_unconfigure(): optional step to solve possible dependency issue
-> >>>>>> 5) unconfigure(): remove devices from running system
-> >>>>>> 6) post_unconfigure(): free resources used by devices
-> >>>>>>
-> >>>>>> In this way, we can easily rollback if error happens.
-> >>>>>> How do you think of this solution, any suggestion ? I think we can achieve
-> >>>>>> a better way for sharing ideas. :)
-> >>>>>
-> >>>>> Yes, sharing idea is good. :)  I do not know if we need all 6 steps (I
-> >>>>> have not looked at all your changes yet..), but in my mind, a hot-plug
-> >>>>> operation should be composed with the following 3 phases.
-> >>>>
-> >>>> Good idea ! we also implement a hot-plug operation in 3 phases:
-> >>>> 1) acpihp_drv_pre_execute
-> >>>> 2) acpihp_drv_execute
-> >>>> 3) acpihp_drv_post_execute
-> >>>> you may refer to :
-> >>>> https://lkml.org/lkml/2012/11/4/79
-> >>>
-> >>> Great.  Yes, I will take a look.
-> >>
-> >> Thanks, any comments are welcomed :)
-> > 
-> > If I read the code right, the framework calls ACPI drivers differently
-> > at boot-time and hot-add as follows.  That is, the new entry points are
-> > called at hot-add only, but .add() is called at both cases.  This
-> > requires .add() to work differently.
-> 
-> Hi Toshi,
-> Thanks for your comments!
-> 
-> > 
-> > Boot    : .add()
-> 
-> Actually, at boot time: .add(), .start()
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Right.
+Make it possible to retrieve the current power state of an ACPI
+device from user space via sysfs by adding a new attribute
+power_state to the power subdirectory of the sysfs directory
+associated with the struct acpi_device representing the device's
+ACPI node.
 
-> > Hot-Add : .add(), .pre_configure(), configure(), etc.
-> 
-> Yes, we did it as you said in the framework. We use .pre_configure(), configure(),
-> and post_configure() to instead of .start() for better error handling and recovery.
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ Documentation/ABI/testing/sysfs-devices-power |   13 ++++++++
+ drivers/acpi/scan.c                           |   41 ++++++++++++++++++++++++++
+ 2 files changed, 54 insertions(+)
 
-I think we should have hot-plug interfaces at the module level, not at
-the ACPI-internal level.  In this way, the interfaces can be
-platform-neutral and allow any modules to register, which makes it more
-consistent with the boot-up sequence.  It can also allow ordering of the
-sequence among the registered modules.  Right now, we initiate all
-procedures from ACPI during hot-plug, which I think is inflexible and
-steps into other module's role.
-
-I am also concerned about the slot handling, which is the core piece of
-the infrastructure and only allows hot-plug operations on ACPI objects
-where slot objects are previously created by checking _EJ0.  The
-infrastructure should allow hot-plug operations on any objects, and it
-should not be dependent on the slot design.
-
-I have some rough idea, and it may be easier to review / explain if I
-make some code changes.  So, let me prototype it, and send it you all if
-that works out.  Hopefully, it won't take too long.
-
-> > I think the boot-time and hot-add initialization should be done
-> > consistently.  While there is difficulty with the current boot sequence,
-> > the framework should be designed to allow them consistent, not make them
-> > diverged.
-> > 
-> >>>>> 1. Validate phase - Verify if the request is a supported operation.  All
-> >>>>> known restrictions are verified at this phase.  For instance, if a
-> >>>>> hot-remove request involves kernel memory, it is failed in this phase.
-> >>>>> Since this phase makes no change, no rollback is necessary to fail. 
-> >>>>
-> >>>> Yes, we have done this in acpihp_drv_pre_execute, and check following things:
-> >>>>
-> >>>> 1) Hot-plugble or not. the instance kernel memory you mentioned is also checked
-> >>>>    when memory device remove;
-> >>>
-> >>> Agreed.
-> >>>
-> >>>> 2) Dependency check involved. For instance, if hot-add a memory device,
-> >>>>    processor should be added first, otherwise it's not valid to this operation.
-> >>>
-> >>> I think FW should be the one that assures such dependency.  That is,
-> >>> when a memory device object is marked as present/enabled/functioning, it
-> >>> should be ready for the OS to use.
-> >>
-> >> Yes, BIOS should do something for the dependency, because BIOS knows the
-> >> actual hardware topology. 
-> > 
-> > Right.
-> > 
-> >> The ACPI specification provides _EDL method to
-> >> tell OS the eject device list, but still has no method to tell OS the add device
-> >> list now.
-> > 
-> > Yes, but I do not think the OS needs special handling for add...
-> 
-> Hmm, how about trigger a hot add operation by OS ? we have eject interface for OS, but
-> have no add interface now, do you think this feature is useful? If it is, I think OS
-> should analyze the dependency first and tell the user.
-
-The OS can eject an ACPI device because a target device is owned by the
-OS (i.e. enabled).  For hot-add, a target ACPI device is not owned by
-the OS (i.e. disabled).  Therefore, the OS is not supposed to change its
-state.  So, I do not think we should support a hot-add operation by the
-OS.
+Index: linux/drivers/acpi/scan.c
+===================================================================
+--- linux.orig/drivers/acpi/scan.c
++++ linux/drivers/acpi/scan.c
+@@ -174,6 +174,43 @@ err_out:
+ }
+ EXPORT_SYMBOL(acpi_bus_hot_remove_device);
  
-> >> For some cases, OS should analyze the dependency in the validate phase. For example,
-> >> when hot remove a node (container device), OS should analyze the dependency to get
-> >> the remove order as following:
-> >> 1) Host bridge;
-> >> 2) Memory devices;
-> >> 3) Processor devices;
-> >> 4) Container device itself;
-> > 
-> > This may be off-topic, but how do you plan to delete I/O devices under a
-> > node?  Are you planning to delete all I/O devices along with the node?
-> 
-> Yes, we delete all I/O devices under the node. we delete I/O devices as
-> following steps:
-> 1) Offline PCI devices;
-> 2) Offline IOAPIC and IOMMU;
-> and offline I/O devices no matter in use or not.
-
-Oh, off-lining no matter what would be problematic for enterprise
-customers... 
++#ifdef CONFIG_PM
++static ssize_t power_state_show(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	struct acpi_device *adev = to_acpi_device(dev);
++	int state;
++	int ret;
++
++	ret = acpi_device_get_power(adev, &state);
++	return ret ? ret : sprintf(buf, "%s\n", acpi_power_state_string(state));
++}
++
++static DEVICE_ATTR(power_state, 0444, power_state_show, NULL);
++
++static struct attribute *acpi_dev_pm_attrs[] = {
++	&dev_attr_power_state.attr,
++	NULL,
++};
++static struct attribute_group acpi_dev_pm_attr_group = {
++	.name	= power_group_name,
++	.attrs	= acpi_dev_pm_attrs,
++};
++
++static void acpi_dev_pm_sysfs_add(struct device *dev)
++{
++	sysfs_merge_group(&dev->kobj, &acpi_dev_pm_attr_group);
++}
++
++static void acpi_dev_pm_sysfs_remove(struct device *dev)
++{
++	sysfs_unmerge_group(&dev->kobj, &acpi_dev_pm_attr_group);
++}
++#else /* !CONFIG_PM */
++static inline void acpi_dev_pm_sysfs_add(struct device *dev) {}
++static inline void acpi_dev_pm_sysfs_remove(struct device *dev) {}
++#endif /* !CONFIG_PM */
++
+ static ssize_t
+ acpi_eject_store(struct device *d, struct device_attribute *attr,
+ 		const char *buf, size_t count)
+@@ -367,6 +404,9 @@ static int acpi_device_setup_files(struc
+ 	status = acpi_get_handle(dev->handle, "_EJ0", &temp);
+ 	if (ACPI_SUCCESS(status))
+ 		result = device_create_file(&dev->dev, &dev_attr_eject);
++
++	acpi_dev_pm_sysfs_add(&dev->dev);
++
+ end:
+ 	return result;
+ }
+@@ -376,6 +416,7 @@ static void acpi_device_remove_files(str
+ 	acpi_status status;
+ 	acpi_handle temp;
  
-> > On other OS, we made a separate step called I/O chassis delete, which
-> > off-lines all I/O devices under the node, and is required before a node
-> > hot-remove.  It basically triggers PCIe hot-remove to detach drivers
-> > from all devices.  It does not eject the devices so that they do not
-> > have to be on hot-plug slots.  This step runs user-space scripts to
-> > verify if the devices can be off-lined without disrupting user's
-> > applications, and provides comprehensive reports if any of them are in
-> 
-> Great! we also have a plan to implement this feature.
-
-That's great!
-
-> > use.  Not sure if Linux's PCI hot-remove has such check, but I thought
-> > I'd mention it. :)
-> 
-> Have no such check, I'm sure :)
-> 
-> > 
-> >> In this way, we can check that all the devices are hot-plugble or not under the
-> >> container device before execute phase, and further more, we can remove devices
-> >> in order to avoid some crash problems.
-> > 
-> > Yes, we should check if all the resources under the node can be
-> > off-lined at validate phase.  (note, all the devices do not have to have
-> > _EJ0 if that's what you meant by hot-pluggable.)
-> 
-> Yes, agreed. For node hotplug, no need for all the devices have _EJ0 method.
-
-Right.
-
-Thanks,
--Toshi
-
++	acpi_dev_pm_sysfs_remove(&dev->dev);
+ 	/*
+ 	 * If device has _STR, remove 'description' file
+ 	 */
+Index: linux/Documentation/ABI/testing/sysfs-devices-power
+===================================================================
+--- linux.orig/Documentation/ABI/testing/sysfs-devices-power
++++ linux/Documentation/ABI/testing/sysfs-devices-power
+@@ -235,3 +235,16 @@ Description:
+ 
+ 		This attribute has no effect on system-wide suspend/resume and
+ 		hibernation.
++
++What:		/sys/devices/.../power/power_state
++Date:		December 2012
++Contact:	Rafael J. Wysocki <rafael.j.wysocki@intel.com>
++Description:
++		The /sys/devices/.../power/power_state attribute is only present
++		for ACPI device nodes (i.e. objects of type struct acpi_device).
++
++		If present, it contains the string representation of the current
++		ACPI power state of the device represented by the given ACPI
++		device node.
++
++		This attribute is read-only.
 
