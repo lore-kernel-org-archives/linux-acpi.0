@@ -1,78 +1,71 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH 3.7-rc8] ACPICA: Fix ACPI mutex object allocation memory
- leak on error
-Date: Wed, 5 Dec 2012 17:58:21 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E346BE12BD@ORSMSX101.amr.corp.intel.com>
-References: <1354729137-67135-1-git-send-email-tim.gardner@canonical.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: Look Ma, da kernel is b0rken
+Date: Thu, 6 Dec 2012 07:57:21 +1100
+Message-ID: <20121206075721.18c0c05aa767b330f47d77eb@canb.auug.org.au>
+References: <20121205070901.GA12123@rhlx01.hs-esslingen.de>
+	<20121205142935.GA12119@liondog.tnic>
+	<20121205152756.5afec12c@pyramind.ukuu.org.uk>
+	<20121205153121.GA28556@liondog.tnic>
+	<20121205154749.2af4ef36@pyramind.ukuu.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA256";
+ boundary="Signature=_Thu__6_Dec_2012_07_57_21_+1100_tu00Vcn7E_X5rhhb"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:20277 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752501Ab2LER6X convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Dec 2012 12:58:23 -0500
-In-Reply-To: <1354729137-67135-1-git-send-email-tim.gardner@canonical.com>
-Content-Language: en-US
+Received: from haggis.pcug.org.au ([203.10.76.10]:58326 "EHLO
+	members.tip.net.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754260Ab2LEU5e (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Dec 2012 15:57:34 -0500
+In-Reply-To: <20121205154749.2af4ef36@pyramind.ukuu.org.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tim Gardner <tim.gardner@canonical.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Lin Ming <ming.m.lin@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Borislav Petkov <bp@alien8.de>, Andrew Morton <akpm@linux-foundation.org>, Andreas Mohr <andi@lisas.de>, linux-kernel@vger.kernel.org, Li Shaohua <shaohua.li@intel.com>, linux-acpi@vger.kernel.org
 
-Tim,
+--Signature=_Thu__6_Dec_2012_07_57_21_+1100_tu00Vcn7E_X5rhhb
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks. We will need to backport this change to the ACPICA source code.
-Bob
+Hi Alan,
 
+On Wed, 5 Dec 2012 15:47:49 +0000 Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
+>
+> And yes btw we should turn this option on in -next, and get these sort of
+> things out of the tree for good. More importantly it'll mean anyone
+> adding another one gets a whine on the spot.
 
-> -----Original Message-----
-> From: Tim Gardner [mailto:tim.gardner@canonical.com]
-> Sent: Wednesday, December 05, 2012 9:39 AM
-> To: linux-kernel@vger.kernel.org
-> Cc: Tim Gardner; Len Brown; Rafael J. Wysocki; Lin Ming; Moore, Robert;
-> linux-acpi@vger.kernel.org
-> Subject: [PATCH 3.7-rc8] ACPICA: Fix ACPI mutex object allocation memory
-> leak on error
-> 
-> An unattached mutex object is not released on error, thereby orphaning
-> memory.
-> 
-> I stumbled on this when looking at the output of smatch:
-> 
-> drivers/acpi/acpica/dsmethod.c:225 acpi_ds_begin_method_execution() error:
-> we previously assumed 'obj_desc->method.mutex' could be null (see line
-> 209)
-> 
-> which led me to have a look at acpi_ds_create_method_mutex().
-> 
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-> Cc: Lin Ming <ming.m.lin@intel.com>
-> Cc: Bob Moore <robert.moore@intel.com>
-> Cc: linux-acpi@vger.kernel.org
-> Cc: stable@vger.kernel.org #2.6.29+
-> Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
-> ---
-> 
-> This applied to the original version of dsmethod.c which was introduced in
-> 95b482a8d31116f3f5c2a5089569393234d06385 (2.6.29).
-> 
->  drivers/acpi/acpica/dsmethod.c |    1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/acpi/acpica/dsmethod.c
-> b/drivers/acpi/acpica/dsmethod.c index aa9a5d4..fe89ea9 100644
-> --- a/drivers/acpi/acpica/dsmethod.c
-> +++ b/drivers/acpi/acpica/dsmethod.c
-> @@ -151,6 +151,7 @@ acpi_ds_create_method_mutex(union acpi_operand_object
-> *method_desc)
-> 
->  	status = acpi_os_create_mutex(&mutex_desc->mutex.os_mutex);
->  	if (ACPI_FAILURE(status)) {
-> +		acpi_ut_delete_object_desc(mutex_desc);
->  		return_ACPI_STATUS(status);
->  	}
-> 
-> --
-> 1.7.9.5
+While I appreciate your confidence, I don't notice quite a few new
+warnings (because there are so many of them already :-().  Is there some
+reason to not turn this on in our "normal" builds?  Does it produce many
+false positives?  What compiler version is required?
 
+I also currently don't carry patches that only ever appear in linux-next
+(well, not intentionally anyway).  I assume it would require a patch to
+the Makefile(s) to turn this on.
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+
+--Signature=_Thu__6_Dec_2012_07_57_21_+1100_tu00Vcn7E_X5rhhb
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBCAAGBQJQv7UxAAoJEECxmPOUX5FEn3EP/jUAaiB0LFqa7ZuDRj1IvpGG
+9qshPdPuYbJrwsYMJlZqDMrE5v+DhJrrqIga2jWMM2YqWxlczjMZXjMsKSCKIJ0g
+RNohUww1oCuZRqNHLFx6kWFUASQUYrNJp5+AORTbzu5B48QGYnl+VeqbR2h+vD5G
+pABE4ypkAqFtvO7ZWPj05E4aBJMpFOqfd54dLptSGfnJhPKfH59WFSHqOottMX2b
++RiWdBDefWQmldvFGNpC+jfBWPhCeDXx5GXPXvXLNv7kRvsMiEOWIZCQbqFEhx+/
+rYBvX89gV5dNbQWCEVm/j2mcRzqYMJq/+yLQxmRo2CyZdw8NpZlmiEcVQPFn4eF7
+JAr7CNTxbUZYFKELbQReOKpC8gCbUauwyFriWjnBsZ+Lv75nn3JrdppFaB+6fbuE
+xZnpF3HmmAQhpA2RP6uwG/c3Olkahx4mrnfVONIcNRbmNE2cBg75dYjuzD5P1EYt
+Jxz4RrKNKyre+uViJU/qGKoBA2WDA9wTKdw9Y3TeOxw8GjGz5OmXkzVsMeGCeoqF
+dmBx+ZUQdLw9ZUfn5Ohk4mTxP57wz5xekJCW/XOLiHfU2RJnyQcIRMPFaEMfPPJx
+YStbIW+XFhtk3maPU14J5TO+d9x/bnSyH7HuYnjsbAnZzzMbDdrQqDCUOB/fW1TH
+9uVJjikt2Mj/MzMRfHnV
+=/YOx
+-----END PGP SIGNATURE-----
+
+--Signature=_Thu__6_Dec_2012_07_57_21_+1100_tu00Vcn7E_X5rhhb--
