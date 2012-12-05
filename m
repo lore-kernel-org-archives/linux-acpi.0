@@ -1,53 +1,65 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [RFC PATCH 1/3] UART: Add UART subsystem as a bus.
-Date: Wed, 5 Dec 2012 07:07:52 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E88BD6A54@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1354505471.git.lv.zheng@intel.com>
- <6d5fc2e0799c12554aa8acdb2d7782ba8643902b.1354505472.git.lv.zheng@intel.com>
- <20121204185404.GQ3117@intel.com> <20121204195030.238d1b71@bob.linux.org.uk>
- <20121205062015.GR3117@intel.com>
+From: Andreas Mohr <andi@lisas.de>
+Subject: Look Ma, da kernel is b0rken
+Date: Wed, 5 Dec 2012 08:09:01 +0100
+Message-ID: <20121205070901.GA12123@rhlx01.hs-esslingen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <20121205062015.GR3117@intel.com>
-Content-Language: en-US
-Sender: linux-serial-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, Alan Cox <alan@linux.intel.com>
-Cc: "Brown, Len" <len.brown@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Li Shaohua <shaohua.li@intel.com>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-> On Tue, Dec 04, 2012 at 07:50:30PM +0000, Alan Cox wrote:
-> > > And if we have enumerated the UART controller from ACPI (it is
-> > > probably attached to the platform bus) we can find the tty device it
-> > > exports like:
-> >
-> > The property should not be in any ACPI specific form or space - just
-> > attach it directly to the tty from ACPI, DT, driver internal
-> > knowledge, PCI id, whatever
-> 
-> The only property that comes into mind is _HID/_CID (referring to the ACPI
-> ID) that can be used by userspace to find out type of the device behind the
-> UART port. I don't know what name would be generic enough for the property,
-> though.
-> 
-> There are other resources as well in addition to the UartSerialBus(). For
-> example we might have two GPIO lines connected to the bluetooth chip and
-> these are represented as GpioIo ACPI resources.
-> 
-> Since the bluetooth is mostly handled by the N_HCI line discipline, should the
-> GPIO handling be done there as well? It can distinguish between DT and ACPI
-> enumerated devices by comparing dev->of_node and ACPI_HANDLE(dev) so it
-> can get the resources from both DT and ACPI but I'm not sure if it really
-> belongs there. Or should this be in a separate driver?
+Hi,
 
-IMO, 
-For ACPI enumerated target devices, ACPI can provide GPIO enumeration API by feeding ACPI_HANDLE(tty->target) to obtain the GPIO resources while OF can offer its own implementation.
-Then there are 2 possible solutions can be found by calling such APIs:
-1. implement GPIO enabling in the kernel side N_HCI proto driver.
-2. implement GPIO enabling in the kernel side UART driver on TIOCSETD.
+drivers/pnp/pnpacpi/core.c: In function 'ispnpidacpi':
+drivers/pnp/pnpacpi/core.c:65:2: warning: logical 'or' of collectively
+exhaustive tests is always true [-Wlogical-op]
+drivers/pnp/pnpacpi/core.c:66:2: warning: logical 'or' of collectively
+exhaustive tests is always true [-Wlogical-op]
+drivers/pnp/pnpacpi/core.c:67:2: warning: logical 'or' of collectively
+exhaustive tests is always true [-Wlogical-op]
 
-Same issues can be found for the ACPI enumerated SPI/I2C target devices.
-Thus the GpioIrq and GpioIo is not handled in this patch set.
 
-Best regards/Lv Zheng
+That's already the second less enticing -Wlogical-op issue
+which was discovered by accident during less than two days
+of my happy(?) activity of kernel suspend breakage bisection.
+
+
+Why oh why, as a rather *very* critical piece of software,
+can't the kernel use sufficiently aggressive warning levels *by default*??
+IMHO it's simply NOT ACCEPTABLE to have such sloppiness creep into
+the daily bandwagon of kernel development life
+(or should I say: being mandated to creep in?).
+
+Result: whichever default warning level you set
+*will* end up as The New Normal,
+and all those warnings which then remain able to rear their ugly heads
+according to the chosen default level
+will be fixed by the community eventually,
+and *most others won't* (or at least not in time).
+
+The amount of warnings spewn by make W=3 (or even W=2) is simply
+shocking IMNSHO.
+And there can always be an argument that most of such warnings
+are fixable. If not directly (e.g. because analysis of that warning type
+is partially unreliable), then by actively reworking code
+into something slightly different.
+
+So, unless there are very hard and *justified* reasons
+for keeping builds at such lame-*ss defaults
+(such as automated compliance test runs which may not fail -
+but in such cases one could argue that *those* uses
+should then be required to manually lessen *their* warning level settings),
+I would strongly vote for having a hard discussion about the status
+quo.
+
+
+As a somewhat aggravating comment, please note that this warning
+actually seems to date back to 1da177e (initial repository build)
+according to blame on that file.
+
+Andreas Mohr
+
+P.S.: sorry for the subject line ;)
