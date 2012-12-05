@@ -1,51 +1,53 @@
-From: Andreas Mohr <andi@lisas.de>
+From: Borislav Petkov <bp@alien8.de>
 Subject: Re: Look Ma, da kernel is b0rken
-Date: Wed, 5 Dec 2012 18:09:00 +0100
-Message-ID: <20121205170900.GA17276@rhlx01.hs-esslingen.de>
+Date: Wed, 5 Dec 2012 18:34:59 +0100
+Message-ID: <20121205173459.GE28556@liondog.tnic>
 References: <20121205070901.GA12123@rhlx01.hs-esslingen.de>
  <20121205142935.GA12119@liondog.tnic>
  <20121205152756.5afec12c@pyramind.ukuu.org.uk>
  <20121205163905.GA18522@rhlx01.hs-esslingen.de>
  <20121205164410.GD28556@liondog.tnic>
+ <20121205170900.GA17276@rhlx01.hs-esslingen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from rhlx01.hs-esslingen.de ([129.143.116.10]:35582 "EHLO
-	rhlx01.hs-esslingen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751718Ab2LERJB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Dec 2012 12:09:01 -0500
+Received: from mail.skyhub.de ([78.46.96.112]:46567 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752380Ab2LERfD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 5 Dec 2012 12:35:03 -0500
 Content-Disposition: inline
-In-Reply-To: <20121205164410.GD28556@liondog.tnic>
+In-Reply-To: <20121205170900.GA17276@rhlx01.hs-esslingen.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>, Andreas Mohr <andi@lisas.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Andreas Mohr <andi@lisas.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wed, Dec 05, 2012 at 05:44:10PM +0100, Borislav Petkov wrote:
-> On Wed, Dec 05, 2012 at 05:39:05PM +0100, Andreas Mohr wrote:
-> > Thanks to Borislav Petkov for his reply, too -
-> > however I'd like to state that given this lack of tooling/attention
-> > writing a mail in this more special manner was fully justified IMPHO.
-> 
-> Ok, you've stated more than clearly that you're pissed with the current
-> situation - I think we all got that.
+On Wed, Dec 05, 2012 at 06:09:00PM +0100, Andreas Mohr wrote:
+> IMHO that's some common "misconception" - namely that innocent
+> observing by-standers are fully expected to get involved in the
+> process. Not necessarily, however (that's what domain experts are
+> there for - since people are well-advised to concentrate on the
+> activities that they are commonly involved with/do best).
 
-Hohumm.
+Well, you don't have to be an expert to fix bugs. There are all kinds
+of bugs for all kinds of technical levels - you only need to be willing
+to fix them and send out patches. If you're not willing to help, then
+you should better keep your rant to yourself because simply passively
+ranting is not making anything better and not helping to anyone.
 
-> Now, how do you suggest we change it constructively and how are you
-> willing to help?
+> I would be willing to handle corrections in the areas of drivers
+> I was working on (some corrections were already queued locally).
 
-IMHO that's some common "misconception" - namely that innocent observing
-by-standers are fully expected to get involved in the process.
-Not necessarily, however (that's what domain experts are there for -
-since people are well-advised to concentrate on the activities
-that they are commonly involved with/do best).
+See now, that's the spirit. :)
 
-I would be willing to handle corrections in the areas of drivers
-I was working on (some corrections were already queued locally).
+> For scripted mechanisms (e.g. usefully nagging people as stated in
+> another posting), someone else would have to work on it I'm afraid.
 
-For scripted mechanisms (e.g. usefully nagging people as stated
-in another posting), someone else would have to work on it I'm afraid.
+Yep, that won't be that easy to get up and running so we'd need someone
+to spend some quality time on such a framework.
 
-Thanks,
+Thanks.
 
-Andreas Mohr
+-- 
+Regards/Gruss,
+    Boris.
