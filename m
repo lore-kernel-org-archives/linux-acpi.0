@@ -1,38 +1,74 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v5 2/3] aerdrv: Enhanced AER logging
-Date: Thu, 6 Dec 2012 11:24:37 +0100
-Message-ID: <20121206102437.GB30885@liondog.tnic>
-References: <20121203212047.24373.8646.stgit@grignak.americas.hpqcorp.net>
- <20121203212053.24373.10914.stgit@grignak.americas.hpqcorp.net>
- <20121204093007.GG4369@liondog.tnic>
- <1354758031.17101.7.camel@gandalf.local.home>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [RFC PATCH v3 3/3] acpi_memhotplug: Allow eject to proceed on rebind scenario
+Date: Thu, 06 Dec 2012 13:50:47 +0100
+Message-ID: <14429189.LmXxfguqbu@vostro.rjw.lan>
+References: <1353693037-21704-1-git-send-email-vasilis.liaskovitis@profitbricks.com> <1354211051.26955.435.camel@misato.fc.hp.com> <20121206093019.GA4584@dhcp-192-168-178-175.profitbricks.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1354758031.17101.7.camel@gandalf.local.home>
-Sender: linux-pci-owner@vger.kernel.org
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: Lance Ortiz <lance.ortiz@hp.com>, bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20121206093019.GA4584@dhcp-192-168-178-175.profitbricks.localdomain>
+Sender: owner-linux-mm@kvack.org
+To: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
+Cc: Toshi Kani <toshi.kani@hp.com>, linux-acpi@vger.kernel.org, Wen Congyang <wency@cn.fujitsu.com>, Wen Congyang <wencongyang@gmail.com>, isimatu.yasuaki@jp.fujitsu.com, lenb@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Dec 05, 2012 at 08:40:31PM -0500, Steven Rostedt wrote:
-> You can have a config that enables these trace points, and when you
-> enable one of the systems that uses them, have that config select the
-> config that enables tracepoints. Have that config compile the file for
-> tracepoints. For example, in a Makefile:
+On Thursday, December 06, 2012 10:30:19 AM Vasilis Liaskovitis wrote:
+> Hi,
+> On Thu, Nov 29, 2012 at 10:44:11AM -0700, Toshi Kani wrote:
+> > On Thu, 2012-11-29 at 12:04 +0100, Vasilis Liaskovitis wrote:
+> > 
+> > Yes, that's what I had in mind along with device_lock().  I think the
+> > lock is necessary to close the window.
+> > http://www.spinics.net/lists/linux-mm/msg46973.html
+> > 
+> > But as I mentioned in other email, I prefer option 3 with
+> > suppress_bind_attrs.  So, yes, please take a look to see how it works
+> > out.
 > 
-> obj-$(CONFIG_RAS_TRACE_POINTS) += ras-trace.o
+> I tested the suppress_bind_attrs and it works by simply setting it to true
+> before driver registration e.g. 
 > 
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -783,7 +783,8 @@ int acpi_bus_register_driver(struct acpi_driver *driver)
+>  	driver->drv.name = driver->name;
+>  	driver->drv.bus = &acpi_bus_type;
+>  	driver->drv.owner = driver->owner;
+> -
+> +    if (!strcmp(driver->class, "memory"))
+> +        driver->drv.suppress_bind_attrs = true;
+>  	ret = driver_register(&driver->drv);
+>  	return ret;
+>  }
 > 
-> Use #ifdef CONFIG_FOO_BAR around tracepoints that are required for
-> specific systems if the tracepoints in the header file are for different
-> subsystems that can be enabled or disabled separately by configs.
+> No bind/unbind sysfs files are created when using this, as expected.
+> I assume we only want to suppress for acpi_memhotplug
+> (class=ACPI_MEMORY_DEVICE_CLASS i.e. "memory") devices.
+> 
+> Is there agreement on what acpi_bus_trim behaviour and rollback (if any) we
+> want to have for the current ACPI framework (partial trim or full trim on
+> failure)?
 
-Cool, this sounds exactly like what we should do, I'll hack it up soon.
+Last time I suggested to split the trimming so that first we only unbind
+drivers (and roll back that part, ie. rebind the drivers on errors) and
+next we remove the struct acpi_device objects, just before doing the actual
+eject.  So there would be two walks of the hierarchy below the device we want
+to eject, one for driver unbinding (that can be rolled back) and one for the
+actual removal.
 
-Thanks a lot.
+Toshi Kani seemed to agree with that and there were no follow-ups.
+
+Thanks,
+Rafael
+
 
 -- 
-Regards/Gruss,
-    Boris.
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
