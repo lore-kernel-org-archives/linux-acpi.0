@@ -1,63 +1,54 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [RFC PATCH 1/3] UART: Add UART subsystem as a bus.
-Date: Thu, 6 Dec 2012 01:26:39 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E88BD6C94@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1354505471.git.lv.zheng@intel.com>
-	<6d5fc2e0799c12554aa8acdb2d7782ba8643902b.1354505472.git.lv.zheng@intel.com>
-	<20121204185404.GQ3117@intel.com>	<20121204195030.238d1b71@bob.linux.org.uk>
-	<20121205062015.GR3117@intel.com>
- <20121205094343.09d653c5@pyramind.ukuu.org.uk>
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: Re: [PATCH v5 2/3] aerdrv: Enhanced AER logging
+Date: Wed, 05 Dec 2012 20:40:31 -0500
+Message-ID: <1354758031.17101.7.camel@gandalf.local.home>
+References: <20121203212047.24373.8646.stgit@grignak.americas.hpqcorp.net>
+	 <20121203212053.24373.10914.stgit@grignak.americas.hpqcorp.net>
+	 <20121204093007.GG4369@liondog.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <20121205094343.09d653c5@pyramind.ukuu.org.uk>
-Content-Language: en-US
-Sender: linux-serial-owner@vger.kernel.org
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>, Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Alan Cox <alan@linux.intel.com>, "Brown, Len" <len.brown@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, "Huang, Ying" <ying.huang@intel.com>
+Content-Type: text/plain; charset="ISO-8859-15"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hrndva-omtalb.mail.rr.com ([71.74.56.122]:8074 "EHLO
+	hrndva-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753298Ab2LFBke (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Dec 2012 20:40:34 -0500
+In-Reply-To: <20121204093007.GG4369@liondog.tnic>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: Lance Ortiz <lance.ortiz@hp.com>, bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 
-> > > The property should not be in any ACPI specific form or space - just
-> > > attach it directly to the tty from ACPI, DT, driver internal
-> > > knowledge, PCI id, whatever
-> >
-> > The only property that comes into mind is _HID/_CID (referring to the
-> > ACPI
-> > ID) that can be used by userspace to find out type of the device
-> > behind the UART port. I don't know what name would be generic enough
-> > for the property, though.
+On Tue, 2012-12-04 at 10:30 +0100, Borislav Petkov wrote:
+
+> Steve,
 > 
-> We just need a set of type names for the sysfs node I think "bluetooth", "ups",
-> "loconet", "serial", "modem", "cir" etc...
+> AFAIU, this will create all tracepoint code from the ras.h header
+> in this compilation unit, i.e. aerdrv_errprint.c. It has only one
+> tracepoint now but with time, as more RAS TPs are being added, it would
+> make sense to have that CREATE_TRACE_POINTS code at a more central place
+> in the kernel, right?
 
-Is it a good idea to introduce uart_device driver in the kernel to fill a new 'ldisc' member in the uart_device or to load ldisc by default for the corresponding tty_port?
+Yes.
 
-One more important thing I should mention is about a design decision for this patch set.
-My current implementation is for the uart tty devices.
-Shall we change the uart_bus to the tty_bus, then introduce tty_host / tty_target for the bus?
-In the Linux world, tty is the only language that the "tty physical devices" will use to talk to each other, thus it make sense to have a tty_bus and enable PM ops for the physical devices on the bus.
-If we do so, the tty_host or tty_port can be the functional devices on top of the host side physical tty devices (ex. platform device / pcmcia device), and the tty_target can be used instead of the uart_device.
-We could leave tty_host unimplemented in the first step as there is already a tty_port abstraction.
-
-> > There are other resources as well in addition to the UartSerialBus().
-> > For example we might have two GPIO lines connected to the bluetooth
-> > chip and these are represented as GpioIo ACPI resources.
 > 
-> There was some planning on this some time ago. I think we know how to deal
-> with GPIOs
-> 
-> > Since the bluetooth is mostly handled by the N_HCI line discipline,
-> > should the GPIO handling be done there as well? It can distinguish
-> > between DT and ACPI enumerated devices by comparing dev->of_node and
-> > ACPI_HANDLE(dev) so it can get the resources from both DT and ACPI but
-> > I'm not sure if it really belongs there. Or should this be in a separate driver?
-> 
-> The plan was that the tty device would know its gpio lines and also support a
-> gpio structure giving mappings for extra control lines. It seems we want that
-> both visible to kernel (N_HCI etc) and visible to user space (userspace custom
-> handling using the gpio userspace interfaces).
+> And, on configs with PCIEAER disabled, we won't have the TPs available
+> so the CREATE_TRACE_POINTS thing should be in a compilation unit which
+> gets included unconditionally, correct?
 
-When this is ready, someone knowing ACPI GPIO better than me (Heikki or Mathias included) can add additional features on top of this.
+You can have a config that enables these trace points, and when you
+enable one of the systems that uses them, have that config select the
+config that enables tracepoints. Have that config compile the file for
+tracepoints. For example, in a Makefile:
 
-Best regards/Lv Zheng
+obj-$(CONFIG_RAS_TRACE_POINTS) += ras-trace.o
+
+
+Use #ifdef CONFIG_FOO_BAR around tracepoints that are required for
+specific systems if the tracepoints in the header file are for different
+subsystems that can be enabled or disabled separately by configs.
+
+-- Steve
+
+
+
