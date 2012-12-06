@@ -1,90 +1,87 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [RFC PATCH v3 3/3] acpi_memhotplug: Allow eject to proceed on
- rebind scenario
-Date: Thu, 06 Dec 2012 08:41:29 -0700
-Message-ID: <1354808489.20543.31.camel@misato.fc.hp.com>
-References: <1353693037-21704-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
-	 <1354211051.26955.435.camel@misato.fc.hp.com>
-	 <20121206093019.GA4584@dhcp-192-168-178-175.profitbricks.localdomain>
-	 <14429189.LmXxfguqbu@vostro.rjw.lan>
+From: "Liu, Jinsong" <jinsong.liu@intel.com>
+Subject: RE: [PATCH] X86/acpi: remove redundant logic of acpi memory hotadd
+Date: Thu, 6 Dec 2012 15:58:02 +0000
+Message-ID: <DE8DF0795D48FD4CA783C40EC82923353A30A4@SHSMSX101.ccr.corp.intel.com>
+References: <DE8DF0795D48FD4CA783C40EC829233539DED4@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <14429189.LmXxfguqbu@vostro.rjw.lan>
-Sender: owner-linux-mm@kvack.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, linux-acpi@vger.kernel.org, Wen Congyang <wency@cn.fujitsu.com>, Wen Congyang <wencongyang@gmail.com>, isimatu.yasuaki@jp.fujitsu.com, lenb@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:14952 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932199Ab2LFP6G convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Dec 2012 10:58:06 -0500
+In-Reply-To: <DE8DF0795D48FD4CA783C40EC829233539DED4@SHSMSX101.ccr.corp.intel.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 
-On Thu, 2012-12-06 at 13:50 +0100, Rafael J. Wysocki wrote:
-> On Thursday, December 06, 2012 10:30:19 AM Vasilis Liaskovitis wrote:
-> > Hi,
-> > On Thu, Nov 29, 2012 at 10:44:11AM -0700, Toshi Kani wrote:
-> > > On Thu, 2012-11-29 at 12:04 +0100, Vasilis Liaskovitis wrote:
-> > > 
-> > > Yes, that's what I had in mind along with device_lock().  I think the
-> > > lock is necessary to close the window.
-> > > http://www.spinics.net/lists/linux-mm/msg46973.html
-> > > 
-> > > But as I mentioned in other email, I prefer option 3 with
-> > > suppress_bind_attrs.  So, yes, please take a look to see how it works
-> > > out.
-> > 
-> > I tested the suppress_bind_attrs and it works by simply setting it to true
-> > before driver registration e.g. 
-> > 
-> > --- a/drivers/acpi/scan.c
-> > +++ b/drivers/acpi/scan.c
-> > @@ -783,7 +783,8 @@ int acpi_bus_register_driver(struct acpi_driver *driver)
-> >  	driver->drv.name = driver->name;
-> >  	driver->drv.bus = &acpi_bus_type;
-> >  	driver->drv.owner = driver->owner;
-> > -
-> > +    if (!strcmp(driver->class, "memory"))
-> > +        driver->drv.suppress_bind_attrs = true;
-> >  	ret = driver_register(&driver->drv);
-> >  	return ret;
-> >  }
-> > 
-> > No bind/unbind sysfs files are created when using this, as expected.
-> > I assume we only want to suppress for acpi_memhotplug
-> > (class=ACPI_MEMORY_DEVICE_CLASS i.e. "memory") devices.
-> > 
-> > Is there agreement on what acpi_bus_trim behaviour and rollback (if any) we
-> > want to have for the current ACPI framework (partial trim or full trim on
-> > failure)?
-> 
-> Last time I suggested to split the trimming so that first we only unbind
-> drivers (and roll back that part, ie. rebind the drivers on errors) and
-> next we remove the struct acpi_device objects, just before doing the actual
-> eject.  So there would be two walks of the hierarchy below the device we want
-> to eject, one for driver unbinding (that can be rolled back) and one for the
-> actual removal.
-> 
-> Toshi Kani seemed to agree with that and there were no follow-ups.
-
-I was hoping to have a short term solution to fix the panic on
-attempting to delete a kernel memory range, assuming that the memory
-hot-plug feature is going to make into 3.8.  It's a blocker issue for
-testing the feature.  Now that the VM patchset does not seem to make
-into 3.8, I think we can step back and focus on a long term solution
-toward 3.9.
-
-I agree that we should separate resource online/offlining step and
-acpi_device creation/deletion step.  It can address the panic and make
-rollback easier to handle.  For 3.9, we should have a better framework
-in place to handle it in general.  So, I am currently working on a
-framework proposal, and hopefully able to send it out in a week or so.
-
-Lastly, thanks Vasilis for testing the suppress_bind_attrs change.  I
-think we may still need it for 3.9.
+Ping?
 
 Thanks,
--Toshi
+Jinsong
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+
+Liu, Jinsong wrote:
+> Resend it, add Rafael and linux-acpi@vger.kernel.org
+> 
+> Thanks,
+> Jinsong
+> 
+> ===============
+> From 1d39279e45c54ce531691da5ffe261e7689dd92c Mon Sep 17 00:00:00 2001
+> From: Liu Jinsong <jinsong.liu@intel.com>
+> Date: Wed, 14 Nov 2012 18:52:06 +0800
+> Subject: [PATCH] X86/acpi: remove redundant logic of acpi memory
+> hotadd 
+> 
+> When memory hotadd, acpi_memory_enable_device has already been done
+> at drv->ops.add (acpi_memory_device_add), no need to do it again
+> at notify callback.
+> 
+> At acpi_memory_enable_device, acpi_memory_get_device_resources
+> is also a redundant action, since it has been done at drv->ops.add.
+> 
+> Signed-off-by: Liu Jinsong <jinsong.liu@intel.com>
+> ---
+>  drivers/acpi/acpi_memhotplug.c |   17 -----------------
+>  1 files changed, 0 insertions(+), 17 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpi_memhotplug.c
+> b/drivers/acpi/acpi_memhotplug.c 
+> index 24c807f..a6489fd 100644
+> --- a/drivers/acpi/acpi_memhotplug.c
+> +++ b/drivers/acpi/acpi_memhotplug.c
+> @@ -220,15 +220,6 @@ static int acpi_memory_enable_device(struct
+>  	acpi_memory_device *mem_device) struct acpi_memory_info *info;
+>  	int node;
+> 
+> -
+> -	/* Get the range from the _CRS */
+> -	result = acpi_memory_get_device_resources(mem_device);
+> -	if (result) {
+> -		printk(KERN_ERR PREFIX "get_device_resources failed\n");
+> -		mem_device->state = MEMORY_INVALID_STATE;
+> -		return result;
+> -	}
+> -
+>  	node = acpi_get_node(mem_device->device->handle);
+>  	/*
+>  	 * Tell the VM there is more memory here...
+> @@ -357,14 +348,6 @@ static void
+>  			acpi_memory_device_notify(acpi_handle handle, u32 event, void
+>  		*data) break; }
+> 
+> -		if (acpi_memory_check_device(mem_device))
+> -			break;
+> -
+> -		if (acpi_memory_enable_device(mem_device)) {
+> -			printk(KERN_ERR PREFIX "Cannot enable memory device\n");
+> -			break;
+> -		}
+> -
+>  		ost_code = ACPI_OST_SC_SUCCESS;
+>  		break;
+
