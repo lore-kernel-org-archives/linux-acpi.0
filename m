@@ -1,74 +1,35 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [RFC PATCH v3 3/3] acpi_memhotplug: Allow eject to proceed on rebind scenario
-Date: Thu, 06 Dec 2012 13:50:47 +0100
-Message-ID: <14429189.LmXxfguqbu@vostro.rjw.lan>
-References: <1353693037-21704-1-git-send-email-vasilis.liaskovitis@profitbricks.com> <1354211051.26955.435.camel@misato.fc.hp.com> <20121206093019.GA4584@dhcp-192-168-178-175.profitbricks.localdomain>
+From: Alan Cox <alan@linux.intel.com>
+Subject: Re: [RFC PATCH v3 1/4] UART: Add UART subsystem as a bus.
+Date: Thu, 6 Dec 2012 13:40:20 +0000
+Message-ID: <20121206134020.0747af0f@bob.linux.org.uk>
+References: <cover.1354505471.git.lv.zheng@intel.com>
+	<cover.1354785372.git.lv.zheng@intel.com>
+	<c561ccd12ef845a7f30f26dfb706bb569e7244a7.1354785372.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20121206093019.GA4584@dhcp-192-168-178-175.profitbricks.localdomain>
-Sender: owner-linux-mm@kvack.org
-To: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
-Cc: Toshi Kani <toshi.kani@hp.com>, linux-acpi@vger.kernel.org, Wen Congyang <wency@cn.fujitsu.com>, Wen Congyang <wencongyang@gmail.com>, isimatu.yasuaki@jp.fujitsu.com, lenb@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:20550 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755022Ab2LFNh4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 6 Dec 2012 08:37:56 -0500
+In-Reply-To: <c561ccd12ef845a7f30f26dfb706bb569e7244a7.1354785372.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: Len Brown <len.brown@intel.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, linux-serial@vger.kernel.org
 
-On Thursday, December 06, 2012 10:30:19 AM Vasilis Liaskovitis wrote:
-> Hi,
-> On Thu, Nov 29, 2012 at 10:44:11AM -0700, Toshi Kani wrote:
-> > On Thu, 2012-11-29 at 12:04 +0100, Vasilis Liaskovitis wrote:
-> > 
-> > Yes, that's what I had in mind along with device_lock().  I think the
-> > lock is necessary to close the window.
-> > http://www.spinics.net/lists/linux-mm/msg46973.html
-> > 
-> > But as I mentioned in other email, I prefer option 3 with
-> > suppress_bind_attrs.  So, yes, please take a look to see how it works
-> > out.
-> 
-> I tested the suppress_bind_attrs and it works by simply setting it to true
-> before driver registration e.g. 
-> 
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -783,7 +783,8 @@ int acpi_bus_register_driver(struct acpi_driver *driver)
->  	driver->drv.name = driver->name;
->  	driver->drv.bus = &acpi_bus_type;
->  	driver->drv.owner = driver->owner;
-> -
-> +    if (!strcmp(driver->class, "memory"))
-> +        driver->drv.suppress_bind_attrs = true;
->  	ret = driver_register(&driver->drv);
->  	return ret;
->  }
-> 
-> No bind/unbind sysfs files are created when using this, as expected.
-> I assume we only want to suppress for acpi_memhotplug
-> (class=ACPI_MEMORY_DEVICE_CLASS i.e. "memory") devices.
-> 
-> Is there agreement on what acpi_bus_trim behaviour and rollback (if any) we
-> want to have for the current ACPI framework (partial trim or full trim on
-> failure)?
+> enumerated and userspace can obtain the hotplug event of the UART
+> target devices. Linux kernel is lack of an overall enumeration
+> mechanism for UART target devices.
 
-Last time I suggested to split the trimming so that first we only unbind
-drivers (and roll back that part, ie. rebind the drivers on errors) and
-next we remove the struct acpi_device objects, just before doing the actual
-eject.  So there would be two walks of the hierarchy below the device we want
-to eject, one for driver unbinding (that can be rolled back) and one for the
-actual removal.
+ls /sys/class/tty/
 
-Toshi Kani seemed to agree with that and there were no follow-ups.
+> In order to send uevent, a device need to be a class device or a bus
+> device. This patch introduces a bus_type subsystem to manage the new
 
-Thanks,
-Rafael
+I still don't see why the existing tty class interfaces cannot be used,
+the hints from ACPI (or anywhere else) cannot be attached as properties
+to the tty driver and device sysfs
 
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Alan
