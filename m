@@ -1,54 +1,44 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: Re: [PATCH v5 2/3] aerdrv: Enhanced AER logging
-Date: Wed, 05 Dec 2012 20:40:31 -0500
-Message-ID: <1354758031.17101.7.camel@gandalf.local.home>
-References: <20121203212047.24373.8646.stgit@grignak.americas.hpqcorp.net>
-	 <20121203212053.24373.10914.stgit@grignak.americas.hpqcorp.net>
-	 <20121204093007.GG4369@liondog.tnic>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [RFC PATCH 1/3] UART: Add UART subsystem as a bus.
+Date: Thu, 6 Dec 2012 01:55:43 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88BD6D48@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1354505471.git.lv.zheng@intel.com>
+	<6d5fc2e0799c12554aa8acdb2d7782ba8643902b.1354505472.git.lv.zheng@intel.com>
+	<20121204185404.GQ3117@intel.com>	<20121204195030.238d1b71@bob.linux.org.uk>
+	<20121205062015.GR3117@intel.com>
+ <20121205094343.09d653c5@pyramind.ukuu.org.uk>
+ <1AE640813FDE7649BE1B193DEA596E88BD6C94@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-15"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hrndva-omtalb.mail.rr.com ([71.74.56.122]:8074 "EHLO
-	hrndva-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753298Ab2LFBke (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Dec 2012 20:40:34 -0500
-In-Reply-To: <20121204093007.GG4369@liondog.tnic>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88BD6C94@SHSMSX101.ccr.corp.intel.com>
+Content-Language: en-US
+Sender: linux-serial-owner@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Alan Cox <alan@linux.intel.com>, "Brown, Len" <len.brown@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Mathias Nyman <mathias.nyman@linux.intel.com>, "Huang, Ying" <ying.huang@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: Lance Ortiz <lance.ortiz@hp.com>, bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, 2012-12-04 at 10:30 +0100, Borislav Petkov wrote:
-
-> Steve,
+> > > > The property should not be in any ACPI specific form or space -
+> > > > just attach it directly to the tty from ACPI, DT, driver internal
+> > > > knowledge, PCI id, whatever
+> > >
+> > > The only property that comes into mind is _HID/_CID (referring to
+> > > the ACPI
+> > > ID) that can be used by userspace to find out type of the device
+> > > behind the UART port. I don't know what name would be generic enough
+> > > for the property, though.
+> >
+> > We just need a set of type names for the sysfs node I think
+> > "bluetooth", "ups", "loconet", "serial", "modem", "cir" etc...
 > 
-> AFAIU, this will create all tracepoint code from the ras.h header
-> in this compilation unit, i.e. aerdrv_errprint.c. It has only one
-> tracepoint now but with time, as more RAS TPs are being added, it would
-> make sense to have that CREATE_TRACE_POINTS code at a more central place
-> in the kernel, right?
+> Is it a good idea to introduce uart_device driver in the kernel to fill a new 'ldisc'
+> member in the uart_device or to load ldisc by default for the corresponding
+> tty_port?
 
-Yes.
+In the ACPI spec, there is no such attribute for the UART devices, OF might easily introduce this.
+It's hard to add type name or ldisc name directly to the uart_board_info.
 
-> 
-> And, on configs with PCIEAER disabled, we won't have the TPs available
-> so the CREATE_TRACE_POINTS thing should be in a compilation unit which
-> gets included unconditionally, correct?
+We can either add driver support for the uart_device to fill this as I mentioned in the first reply or to add a HID -> type name (or ldisc name) matching table in the acpi_uart.c to extract this information for the ACPI enumerated uart_board_info.
 
-You can have a config that enables these trace points, and when you
-enable one of the systems that uses them, have that config select the
-config that enables tracepoints. Have that config compile the file for
-tracepoints. For example, in a Makefile:
-
-obj-$(CONFIG_RAS_TRACE_POINTS) += ras-trace.o
-
-
-Use #ifdef CONFIG_FOO_BAR around tracepoints that are required for
-specific systems if the tracepoints in the header file are for different
-subsystems that can be enabled or disabled separately by configs.
-
--- Steve
-
-
-
+Best regards/Lv Zheng
