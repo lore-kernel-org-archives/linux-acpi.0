@@ -1,98 +1,168 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [RFC PATCH v3 0/3] acpi: Introduce prepare_remove device
- operation
-Date: Thu, 06 Dec 2012 10:28:46 -0700
-Message-ID: <1354814926.21116.17.camel@misato.fc.hp.com>
-References: <1353693037-21704-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
-	     <50B5EFE9.3040206@huawei.com>
-	    <1354128096.26955.276.camel@misato.fc.hp.com>
-	  <50C0C13A.1040905@gmail.com>  <1354809803.21116.4.camel@misato.fc.hp.com>
-	  <50C0C6E1.4000102@gmail.com> <1354811493.21116.10.camel@misato.fc.hp.com>
-	  <50C0CD4A.90101@gmail.com> <1354813754.21116.16.camel@misato.fc.hp.com>
-	 <50C0D63B.10504@gmail.com>
+From: Linus Walleij <linus.walleij@stericsson.com>
+Subject: [PATCH 2/2] tty: serial core: use the ACPI PM state defines
+Date: Thu, 6 Dec 2012 19:46:52 +0100
+Message-ID: <1354819612-2401-1-git-send-email-linus.walleij@stericsson.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <50C0D63B.10504@gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: Jiang Liu <liuj97@gmail.com>
-Cc: Hanjun Guo <guohanjun@huawei.com>, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, linux-acpi@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, wency@cn.fujitsu.com, rjw@sisk.pl, lenb@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Tang Chen <tangchen@cn.fujitsu.com>
+Content-Type: text/plain
+Return-path: <linux-serial-owner@vger.kernel.org>
+Sender: linux-serial-owner@vger.kernel.org
+To: linux-serial@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Len Brown <lenb@kernel.org>, "Rafael J.  Wysocki" <rjw@sisk.pl>
+Cc: Alan Cox <alan@linux.intel.com>, Rickard Andersson <rickard.andersson@stericsson.com>, linux-acpi@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2012-12-07 at 01:30 +0800, Jiang Liu wrote:
-> On 12/07/2012 01:09 AM, Toshi Kani wrote:
-> > On Fri, 2012-12-07 at 00:52 +0800, Jiang Liu wrote:
-> >> On 12/07/2012 12:31 AM, Toshi Kani wrote:
-> >>> On Fri, 2012-12-07 at 00:25 +0800, Jiang Liu wrote:
-> >>>> On 12/07/2012 12:03 AM, Toshi Kani wrote:
-> >>>>> On Fri, 2012-12-07 at 00:00 +0800, Jiang Liu wrote:
-> >>>>>> On 11/29/2012 02:41 AM, Toshi Kani wrote:
-> >>>>>>> On Wed, 2012-11-28 at 19:05 +0800, Hanjun Guo wrote:
-> >>>  : 
-> >>>>>>> Yes, sharing idea is good. :)  I do not know if we need all 6 steps (I
-> >>>>>>> have not looked at all your changes yet..), but in my mind, a hot-plug
-> >>>>>>> operation should be composed with the following 3 phases.
-> >>>>>>>
-> >>>>>>> 1. Validate phase - Verify if the request is a supported operation.  All
-> >>>>>>> known restrictions are verified at this phase.  For instance, if a
-> >>>>>>> hot-remove request involves kernel memory, it is failed in this phase.
-> >>>>>>> Since this phase makes no change, no rollback is necessary to fail.  
-> >>>>>>>
-> >>>>>>> 2. Execute phase - Perform hot-add / hot-remove operation that can be
-> >>>>>>> rolled-back in case of error or cancel.
-> >>>>>>>
-> >>>>>>> 3. Commit phase - Perform the final hot-add / hot-remove operation that
-> >>>>>>> cannot be rolled-back.  No error / cancel is allowed in this phase.  For
-> >>>>>>> instance, eject operation is performed at this phase.  
-> >>>>>> Hi Toshi,
-> >>>>>> 	There are one more step needed. Linux provides sysfs interfaces to
-> >>>>>> online/offline CPU/memory sections, so we need to protect from concurrent
-> >>>>>> operations from those interfaces when doing physical hotplug. Think about
-> >>>>>> following sequence:
-> >>>>>> Thread 1
-> >>>>>> 1. validate conditions for hot-removal
-> >>>>>> 2. offline memory section A
-> >>>>>> 3.						online memory section A			
-> >>>>>> 4. offline memory section B
-> >>>>>> 5 hot-remove memory device hosting A and B.
-> >>>>>
-> >>>>> Hi Gerry,
-> >>>>>
-> >>>>> I agree.  And I am working on a proposal that tries to address this
-> >>>>> issue by integrating both sysfs and hotplug operations into a framework.
-> >>>> Hi Toshi,
-> >>>> 	But the sysfs for CPU and memory online/offline are platform independent
-> >>>> interfaces, and the ACPI based hotplug is platform dependent interfaces. I'm not
-> >>>> sure whether it's feasible to merge them. For example we still need offline interface
-> >>>> to stop using faulty CPUs on platform without physical hotplug capabilities.
-> >>>> 	We have solved this by adding a "busy" flag to the device, so the sysfs
-> >>>> will just return -EBUSY if the busy flag is set.
-> >>>
-> >>> I am making the framework code platform-independent so that it can
-> >>> handle both cases.  Well, I am still prototyping, so hopefully it will
-> >>> work. :)
-> >> Do you mean implementing a framework to manage hotplug of any type of devices?
-> >> That sounds like a huge plan:)
-> >>
-> >> Otherwise there may be a gap. CPU online/offline interface deals with logical
-> >> CPU, and hotplug driver deals with physical devices(processor). They may be different
-> >> by related objects.
-> > 
-> > Actually it is not a huge plan.  The framework I am thinking of is to
-> > enable a hotplug sequencer something analogous to do_initcalls() at the
-> > boot sequence.  I am not doing any huge re-work.  That said, I am
-> > currently testing my theory, so I won't promise anything, either. :)
-> Please do give us an update when you get any progress:)
+From: Linus Walleij <linus.walleij@linaro.org>
 
-Yes, will do.
+The Documentation/serial/driver file defines that:
 
-Thanks,
--Toshi
+  State indicates the new state (defined by ACPI D0-D3),
+  oldstate indicates the previous state.  Essentially, D0
+  means fully on, D3 means powered down.
 
+So let's change the code to actually using the defined ACPI
+states instead of using magic numbers. Further it is clear
+from the ACPI definitions that the state is a u8 so use this
+data type.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
+---
+ drivers/tty/serial/serial_core.c | 26 ++++++++++++++------------
+ include/linux/serial_core.h      |  2 +-
+ 2 files changed, 15 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/tty/serial/serial_core.c b/drivers/tty/serial/serial_core.c
+index 2c7230a..f327115 100644
+--- a/drivers/tty/serial/serial_core.c
++++ b/drivers/tty/serial/serial_core.c
+@@ -34,6 +34,8 @@
+ #include <linux/delay.h>
+ #include <linux/mutex.h>
+ 
++#include <acpi/acstates.h> /* for power states */
++
+ #include <asm/irq.h>
+ #include <asm/uaccess.h>
+ 
+@@ -59,7 +61,7 @@ static struct lock_class_key port_lock_key;
+ static void uart_change_speed(struct tty_struct *tty, struct uart_state *state,
+ 					struct ktermios *old_termios);
+ static void uart_wait_until_sent(struct tty_struct *tty, int timeout);
+-static void uart_change_pm(struct uart_state *state, int pm_state);
++static void uart_change_pm(struct uart_state *state, u8 pm_state);
+ 
+ static void uart_port_shutdown(struct tty_port *port);
+ 
+@@ -1365,7 +1367,7 @@ static void uart_close(struct tty_struct *tty, struct file *filp)
+ 		spin_lock_irqsave(&port->lock, flags);
+ 	} else if (!uart_console(uport)) {
+ 		spin_unlock_irqrestore(&port->lock, flags);
+-		uart_change_pm(state, 3);
++		uart_change_pm(state, ACPI_STATE_D3_HOT);
+ 		spin_lock_irqsave(&port->lock, flags);
+ 	}
+ 
+@@ -1579,7 +1581,7 @@ static int uart_open(struct tty_struct *tty, struct file *filp)
+ 	 * Make sure the device is in D0 state.
+ 	 */
+ 	if (port->count == 1)
+-		uart_change_pm(state, 0);
++		uart_change_pm(state, ACPI_STATE_D0);
+ 
+ 	/*
+ 	 * Start up the serial port.
+@@ -1620,7 +1622,7 @@ static void uart_line_info(struct seq_file *m, struct uart_driver *drv, int i)
+ {
+ 	struct uart_state *state = drv->state + i;
+ 	struct tty_port *port = &state->port;
+-	int pm_state;
++	u8 pm_state;
+ 	struct uart_port *uport = state->uart_port;
+ 	char stat_buf[32];
+ 	unsigned int status;
+@@ -1646,7 +1648,7 @@ static void uart_line_info(struct seq_file *m, struct uart_driver *drv, int i)
+ 		mutex_lock(&port->mutex);
+ 		pm_state = state->pm_state;
+ 		if (pm_state)
+-			uart_change_pm(state, 0);
++			uart_change_pm(state, ACPI_STATE_D0);
+ 		spin_lock_irq(&uport->lock);
+ 		status = uport->ops->get_mctrl(uport);
+ 		spin_unlock_irq(&uport->lock);
+@@ -1897,7 +1899,7 @@ EXPORT_SYMBOL_GPL(uart_set_options);
+  *
+  * Locking: port->mutex has to be held
+  */
+-static void uart_change_pm(struct uart_state *state, int pm_state)
++static void uart_change_pm(struct uart_state *state, u8 pm_state)
+ {
+ 	struct uart_port *port = state->uart_port;
+ 
+@@ -1982,7 +1984,7 @@ int uart_suspend_port(struct uart_driver *drv, struct uart_port *uport)
+ 		console_stop(uport->cons);
+ 
+ 	if (console_suspend_enabled || !uart_console(uport))
+-		uart_change_pm(state, 3);
++		uart_change_pm(state, ACPI_STATE_D3_HOT);
+ 
+ 	mutex_unlock(&port->mutex);
+ 
+@@ -2027,7 +2029,7 @@ int uart_resume_port(struct uart_driver *drv, struct uart_port *uport)
+ 			termios = port->tty->termios;
+ 
+ 		if (console_suspend_enabled)
+-			uart_change_pm(state, 0);
++			uart_change_pm(state, ACPI_STATE_D0);
+ 		uport->ops->set_termios(uport, &termios, NULL);
+ 		if (console_suspend_enabled)
+ 			console_start(uport->cons);
+@@ -2037,7 +2039,7 @@ int uart_resume_port(struct uart_driver *drv, struct uart_port *uport)
+ 		const struct uart_ops *ops = uport->ops;
+ 		int ret;
+ 
+-		uart_change_pm(state, 0);
++		uart_change_pm(state, ACPI_STATE_D0);
+ 		spin_lock_irq(&uport->lock);
+ 		ops->set_mctrl(uport, 0);
+ 		spin_unlock_irq(&uport->lock);
+@@ -2137,7 +2139,7 @@ uart_configure_port(struct uart_driver *drv, struct uart_state *state,
+ 		uart_report_port(drv, port);
+ 
+ 		/* Power up port for set_mctrl() */
+-		uart_change_pm(state, 0);
++		uart_change_pm(state, ACPI_STATE_D0);
+ 
+ 		/*
+ 		 * Ensure that the modem control lines are de-activated.
+@@ -2161,7 +2163,7 @@ uart_configure_port(struct uart_driver *drv, struct uart_state *state,
+ 		 * console if we have one.
+ 		 */
+ 		if (!uart_console(port))
+-			uart_change_pm(state, 3);
++			uart_change_pm(state, ACPI_STATE_D3_HOT);
+ 	}
+ }
+ 
+@@ -2588,7 +2590,7 @@ int uart_add_one_port(struct uart_driver *drv, struct uart_port *uport)
+ 	}
+ 
+ 	state->uart_port = uport;
+-	state->pm_state = -1;
++	state->pm_state = ACPI_STATE_UNKNOWN;
+ 
+ 	uport->cons = drv->cons;
+ 	uport->state = state;
+diff --git a/include/linux/serial_core.h b/include/linux/serial_core.h
+index c6690a2..43e8d87 100644
+--- a/include/linux/serial_core.h
++++ b/include/linux/serial_core.h
+@@ -214,7 +214,7 @@ static inline void serial_port_out(struct uart_port *up, int offset, int value)
+ struct uart_state {
+ 	struct tty_port		port;
+ 
+-	int			pm_state;
++	u8			pm_state;
+ 	struct circ_buf		xmit;
+ 
+ 	struct uart_port	*uart_port;
+-- 
+1.7.11.3
+
