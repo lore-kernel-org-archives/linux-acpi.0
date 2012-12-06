@@ -1,87 +1,124 @@
-From: "Liu, Jinsong" <jinsong.liu@intel.com>
-Subject: RE: [PATCH] X86/acpi: remove redundant logic of acpi memory hotadd
-Date: Thu, 6 Dec 2012 15:58:02 +0000
-Message-ID: <DE8DF0795D48FD4CA783C40EC82923353A30A4@SHSMSX101.ccr.corp.intel.com>
-References: <DE8DF0795D48FD4CA783C40EC829233539DED4@SHSMSX101.ccr.corp.intel.com>
+From: Jiang Liu <liuj97@gmail.com>
+Subject: Re: [RFC PATCH v3 0/3] acpi: Introduce prepare_remove device operation
+Date: Fri, 07 Dec 2012 00:00:58 +0800
+Message-ID: <50C0C13A.1040905@gmail.com>
+References: <1353693037-21704-1-git-send-email-vasilis.liaskovitis@profitbricks.com>  <50B5EFE9.3040206@huawei.com> <1354128096.26955.276.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:14952 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932199Ab2LFP6G convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Dec 2012 10:58:06 -0500
-In-Reply-To: <DE8DF0795D48FD4CA783C40EC829233539DED4@SHSMSX101.ccr.corp.intel.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1354128096.26955.276.camel@misato.fc.hp.com>
+Sender: owner-linux-mm@kvack.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: Hanjun Guo <guohanjun@huawei.com>, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, linux-acpi@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, wency@cn.fujitsu.com, rjw@sisk.pl, lenb@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Tang Chen <tangchen@cn.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 
-Ping?
-
-Thanks,
-Jinsong
-
-
-Liu, Jinsong wrote:
-> Resend it, add Rafael and linux-acpi@vger.kernel.org
+On 11/29/2012 02:41 AM, Toshi Kani wrote:
+> On Wed, 2012-11-28 at 19:05 +0800, Hanjun Guo wrote:
+>> On 2012/11/24 1:50, Vasilis Liaskovitis wrote:
+>>> As discussed in https://patchwork.kernel.org/patch/1581581/
+>>> the driver core remove function needs to always succeed. This means we need
+>>> to know that the device can be successfully removed before acpi_bus_trim / 
+>>> acpi_bus_hot_remove_device are called. This can cause panics when OSPM-initiated
+>>> or SCI-initiated eject of memory devices fail e.g with:
+>>> echo 1 >/sys/bus/pci/devices/PNP0C80:XX/eject
+>>>
+>>> since the ACPI core goes ahead and ejects the device regardless of whether the
+>>> the memory is still in use or not.
+>>>
+>>> For this reason a new acpi_device operation called prepare_remove is introduced.
+>>> This operation should be registered for acpi devices whose removal (from kernel
+>>> perspective) can fail.  Memory devices fall in this category.
+>>>
+>>> acpi_bus_remove() is changed to handle removal in 2 steps:
+>>> - preparation for removal i.e. perform part of removal that can fail. Should
+>>>   succeed for device and all its children.
+>>> - if above step was successfull, proceed to actual device removal
+>>
+>> Hi Vasilis,
+>> We met the same problem when we doing computer node hotplug, It is a good idea
+>> to introduce prepare_remove before actual device removal.
+>>
+>> I think we could do more in prepare_remove, such as rollback. In most cases, we can
+>> offline most of memory sections except kernel used pages now, should we rollback
+>> and online the memory sections when prepare_remove failed ?
+> 
+> I think hot-plug operation should have all-or-nothing semantics.  That
+> is, an operation should either complete successfully, or rollback to the
+> original state.
+> 
+>> As you may know, the ACPI based hotplug framework we are working on already addressed
+>> this problem, and the way we slove this problem is a bit like yours.
+>>
+>> We introduce hp_ops in struct acpi_device_ops:
+>> struct acpi_device_ops {
+>> 	acpi_op_add add;
+>> 	acpi_op_remove remove;
+>> 	acpi_op_start start;
+>> 	acpi_op_bind bind;
+>> 	acpi_op_unbind unbind;
+>> 	acpi_op_notify notify;
+>> #ifdef	CONFIG_ACPI_HOTPLUG
+>> 	struct acpihp_dev_ops *hp_ops;
+>> #endif	/* CONFIG_ACPI_HOTPLUG */
+>> };
+>>
+>> in hp_ops, we divide the prepare_remove into six small steps, that is:
+>> 1) pre_release(): optional step to mark device going to be removed/busy
+>> 2) release(): reclaim device from running system
+>> 3) post_release(): rollback if cancelled by user or error happened
+>> 4) pre_unconfigure(): optional step to solve possible dependency issue
+>> 5) unconfigure(): remove devices from running system
+>> 6) post_unconfigure(): free resources used by devices
+>>
+>> In this way, we can easily rollback if error happens.
+>> How do you think of this solution, any suggestion ? I think we can achieve
+>> a better way for sharing ideas. :)
+> 
+> Yes, sharing idea is good. :)  I do not know if we need all 6 steps (I
+> have not looked at all your changes yet..), but in my mind, a hot-plug
+> operation should be composed with the following 3 phases.
+> 
+> 1. Validate phase - Verify if the request is a supported operation.  All
+> known restrictions are verified at this phase.  For instance, if a
+> hot-remove request involves kernel memory, it is failed in this phase.
+> Since this phase makes no change, no rollback is necessary to fail.  
+> 
+> 2. Execute phase - Perform hot-add / hot-remove operation that can be
+> rolled-back in case of error or cancel.
+> 
+> 3. Commit phase - Perform the final hot-add / hot-remove operation that
+> cannot be rolled-back.  No error / cancel is allowed in this phase.  For
+> instance, eject operation is performed at this phase.  
+Hi Toshi,
+	There are one more step needed. Linux provides sysfs interfaces to
+online/offline CPU/memory sections, so we need to protect from concurrent
+operations from those interfaces when doing physical hotplug. Think about
+following sequence:
+Thread 1
+1. validate conditions for hot-removal
+2. offline memory section A
+3.						online memory section A			
+4. offline memory section B
+5 hot-remove memory device hosting A and B.
+Regards!
+Gerry
+> 
 > 
 > Thanks,
-> Jinsong
+> -Toshi
 > 
-> ===============
-> From 1d39279e45c54ce531691da5ffe261e7689dd92c Mon Sep 17 00:00:00 2001
-> From: Liu Jinsong <jinsong.liu@intel.com>
-> Date: Wed, 14 Nov 2012 18:52:06 +0800
-> Subject: [PATCH] X86/acpi: remove redundant logic of acpi memory
-> hotadd 
 > 
-> When memory hotadd, acpi_memory_enable_device has already been done
-> at drv->ops.add (acpi_memory_device_add), no need to do it again
-> at notify callback.
 > 
-> At acpi_memory_enable_device, acpi_memory_get_device_resources
-> is also a redundant action, since it has been done at drv->ops.add.
 > 
-> Signed-off-by: Liu Jinsong <jinsong.liu@intel.com>
-> ---
->  drivers/acpi/acpi_memhotplug.c |   17 -----------------
->  1 files changed, 0 insertions(+), 17 deletions(-)
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
-> diff --git a/drivers/acpi/acpi_memhotplug.c
-> b/drivers/acpi/acpi_memhotplug.c 
-> index 24c807f..a6489fd 100644
-> --- a/drivers/acpi/acpi_memhotplug.c
-> +++ b/drivers/acpi/acpi_memhotplug.c
-> @@ -220,15 +220,6 @@ static int acpi_memory_enable_device(struct
->  	acpi_memory_device *mem_device) struct acpi_memory_info *info;
->  	int node;
-> 
-> -
-> -	/* Get the range from the _CRS */
-> -	result = acpi_memory_get_device_resources(mem_device);
-> -	if (result) {
-> -		printk(KERN_ERR PREFIX "get_device_resources failed\n");
-> -		mem_device->state = MEMORY_INVALID_STATE;
-> -		return result;
-> -	}
-> -
->  	node = acpi_get_node(mem_device->device->handle);
->  	/*
->  	 * Tell the VM there is more memory here...
-> @@ -357,14 +348,6 @@ static void
->  			acpi_memory_device_notify(acpi_handle handle, u32 event, void
->  		*data) break; }
-> 
-> -		if (acpi_memory_check_device(mem_device))
-> -			break;
-> -
-> -		if (acpi_memory_enable_device(mem_device)) {
-> -			printk(KERN_ERR PREFIX "Cannot enable memory device\n");
-> -			break;
-> -		}
-> -
->  		ost_code = ACPI_OST_SC_SUCCESS;
->  		break;
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
