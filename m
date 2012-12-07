@@ -1,85 +1,261 @@
-From: Huang Ying <ying.huang@intel.com>
-Subject: Re: [RFC PATCH 1/3] UART: Add UART subsystem as a bus.
-Date: Fri, 07 Dec 2012 15:24:25 +0800
-Message-ID: <1354865065.7216.52.camel@yhuang-dev>
-References: <cover.1354505471.git.lv.zheng@intel.com>
-	 <6d5fc2e0799c12554aa8acdb2d7782ba8643902b.1354505472.git.lv.zheng@intel.com>
-	 <20121204185404.GQ3117@intel.com>
-		<20121204195030.238d1b71@bob.linux.org.uk>
-	 <20121205062015.GR3117@intel.com>
-	 <20121205094343.09d653c5@pyramind.ukuu.org.uk>
-	 <1AE640813FDE7649BE1B193DEA596E88BD6C94@SHSMSX101.ccr.corp.intel.com>
-	 <20121206135341.148b325e@pyramind.ukuu.org.uk>
-	 <1AE640813FDE7649BE1B193DEA596E88BD756A@SHSMSX101.ccr.corp.intel.com>
-	 <1AE640813FDE7649BE1B193DEA596E88BD75D2@SHSMSX101.ccr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH] ACPI: add documentation about ACPI 5 enumeration
+Date: Fri,  7 Dec 2012 12:00:44 +0200
+Message-ID: <1354874444-30788-1-git-send-email-mika.westerberg@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:13271 "EHLO mga14.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:31879 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753971Ab2LGHY2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 7 Dec 2012 02:24:28 -0500
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88BD75D2@SHSMSX101.ccr.corp.intel.com>
+	id S932316Ab2LGJ5d (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 7 Dec 2012 04:57:33 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Alan Cox <alan@linux.intel.com>, "Brown, Len" <len.brown@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 
-Hi, Alan and Lv,
+Add a document that describes how to take advantage of ACPI enumeration for
+buses like platform, I2C and SPI. In addition to that we document how to
+translate ACPI GpioIo and GpioInt resources to be useful in Linux device
+drivers.
 
-On Thu, 2012-12-06 at 22:41 -0700, Zheng, Lv wrote:
-[snip]
-> > > > Shall we change the uart_bus to the tty_bus, then introduce tty_host
-> > > > /
-> > > tty_target for the bus?
-> > >
-> > > We have a tty class - is that not sufficient ?
-> > 
-> > As I mentioned in the previous mail, I'll keep the current naming rule until I see
-> > some objections strong enough.
-> 
-> This statement is confusing in English, let me clarify this.
-> If the reasons for the uart_bus in the previous email are not correct, I'll change everything named as uart_xxx to tty_xxx, then the tty_bus is probably not needed, and I can use tty class after the decision.
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+---
+ Documentation/acpi/enumeration.txt |  227 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 227 insertions(+)
+ create mode 100644 Documentation/acpi/enumeration.txt
 
-If my understanding were correct, the point is not about name it as
-uart_bus or tty_bus, but why do we need a bus instead of just use tty
-class for that.
-
-If we use tty class to export tty target device information, it can be
-something as follow:
-
-$ cd /sys/devices/platform/serial8250/tty/ttyS0
-$ ls
-slave_type
-slave_id
-slave_compat_ids
-slave_attr
-modem_lines
-
-If we use uart or tty bus to export tty target device information, it
-can be something as follow:
-
-$ cd /sys/devices/platform/serial8250/bluetooth:00
-$ ls
-type
-id
-compt_ids
-attr
-modem_lines
-...
-$ cd /sys/bus/(uart|tty)/devices
-$ ls
-bluetooth:00
-
-Both works.  But IMHO, the second one appears more natural and
-consistent, just like other hardware devices in system.  And create
-struct device for each target devices make it easier to do power
-management etc, for example, user can enable/disable runtime power
-management via bluetooth:00/power/control, just like other hardware
-devices.
-
-Best Regards,
-Huang Ying
-
+diff --git a/Documentation/acpi/enumeration.txt b/Documentation/acpi/enumeration.txt
+new file mode 100644
+index 0000000..4f27785
+--- /dev/null
++++ b/Documentation/acpi/enumeration.txt
+@@ -0,0 +1,227 @@
++ACPI based device enumeration
++~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ACPI 5 introduced a set of new resources (UartTSerialBus, I2cSerialBus,
++SpiSerialBus, GpioIo and GpioInt) which can be used in enumerating slave
++devices behind serial bus controllers.
++
++In addition we are starting to see peripherals integrated in the
++SoC/Chipset to appear only in ACPI namespace. These are typically devices
++that are accessed through memory-mapped registers.
++
++In order to support this and re-use the existing drivers as much as
++possible we decided to do following:
++
++	o Devices that have no bus connector resource are represented as
++	  platform devices.
++
++	o Devices behind real busses where there is a connector resource
++	  are represented as struct spi_device or struct i2c_device
++	  (standard UARTs are not busses so there is no struct uart_device).
++
++As both ACPI and Device Tree represent a tree of devices (and their
++resources) this implementation follows the Device Tree way as much as
++possible.
++
++The ACPI implementation enumerates devices behind busses (platform, SPI and
++I2C), creates the physical devices and binds them to their ACPI handle in
++the ACPI namespace.
++
++This means that when ACPI_HANDLE(dev) returns non-NULL the device was
++enumerated from ACPI namespace. This handle can be used to extract other
++device-specific configuration. There is an example of this below.
++
++Platform bus support
++~~~~~~~~~~~~~~~~~~~~
++Since we are using platform devices to represent devices that are not
++connected to any physical bus we only need to implement a platform driver
++for the device and add supported ACPI IDs. If this same IP-block is used on
++some other non-ACPI platform, the driver might work out of the box or needs
++some minor changes.
++
++Adding ACPI support for an existing driver should be pretty
++straightforward. Here is the simplest example:
++
++	#ifdef CONFIG_ACPI
++	static struct acpi_device_id mydrv_acpi_match[] = {
++		/* ACPI IDs here */
++		{ }
++	};
++	MODULE_DEVICE_TABLE(acpi, mydrv_acpi_match);
++	#endif
++
++	static struct platform_driver my_driver = {
++		...
++		.driver = {
++			.acpi_match_table = ACPI_PTR(mydrv_acpi_match),
++		},
++	};
++
++If the driver needs to perform more complex initialization like getting and
++configuring GPIOs it can get its ACPI handle and extract this information
++from ACPI tables.
++
++Currently the kernel is not able to automatically determine from which ACPI
++device it should make the corresponding platform device so we need to add
++the ACPI device explicitly to acpi_platform_device_ids list defined in
++drivers/acpi/scan.c. This limitation is only for the platform devices, SPI
++and I2C devices are created automatically as described below.
++
++SPI serial bus support
++~~~~~~~~~~~~~~~~~~~~~~
++Slave devices behind SPI bus have SpiSerialBus resource attached to them.
++This is extracted automatically by the SPI core and the slave devices are
++enumerated once spi_register_master() is called by the bus driver.
++
++Here is what the ACPI namespace for a SPI slave might look like:
++
++	Device (EEP0)
++	{
++		Name (_ADR, 1)
++		Name (_CID, Package() {
++			"ATML0025",
++			"AT25",
++		})
++		...
++		Method (_CRS, 0, NotSerialized)
++		{
++			SPISerialBus(1, PolarityLow, FourWireMode, 8,
++				ControllerInitiated, 1000000, ClockPolarityLow,
++				ClockPhaseFirst, "\\_SB.PCI0.SPI1",)
++		}
++		...
++
++The SPI device drivers only need to add ACPI IDs in a similar way than with
++the platform device drivers. Below is an example where we add ACPI support
++to at25 SPI eeprom driver (this is meant for the above ACPI snippet):
++
++	#ifdef CONFIG_ACPI
++	static struct acpi_device_id at25_acpi_match[] = {
++		{ "AT25", 0 },
++		{ },
++	};
++	MODULE_DEVICE_TABLE(acpi, at25_acpi_match);
++	#endif
++
++	static struct spi_driver at25_driver = {
++		.driver = {
++			...
++			.acpi_match_table = ACPI_PTR(at25_acpi_match),
++		},
++	};
++
++Note that this driver actually needs more information like page size of the
++eeprom etc. but at the time writing this there is no standard way of
++passing those. One idea is to return this in _DSM method like:
++
++	Device (EEP0)
++	{
++		...
++		Method (_DSM, 4, NotSerialized)
++		{
++			Store (Package (6)
++			{
++				"byte-len", 1024,
++				"addr-mode", 2,
++				"page-size, 32
++			}, Local0)
++
++			// Check UUIDs etc.
++
++			Return (Local0)
++		}
++
++Then the at25 SPI driver can get this configation by calling _DSM on its
++ACPI handle like:
++
++	struct acpi_buffer output = { ACPI_ALLOCATE_BUFFER, NULL };
++	struct acpi_object_list input;
++	acpi_status status;
++
++	/* Fill in the input buffer */
++
++	status = acpi_evaluate_object(ACPI_HANDLE(&spi->dev), "_DSM",
++				      &input, &output);
++	if (ACPI_FAILURE(status))
++		/* Handle the error */
++
++	/* Extract the data here */
++
++	kfree(output.pointer);
++
++I2C serial bus support
++~~~~~~~~~~~~~~~~~~~~~~
++The slaves behind I2C bus controller only need to add the ACPI IDs like
++with the platform and SPI drivers. However the I2C bus controller driver
++needs to call acpi_i2c_register_devices() after it has added the adapter.
++
++An I2C bus (controller) driver does:
++
++	...
++	ret = i2c_add_numbered_adapter(adapter);
++	if (ret)
++		/* handle error */
++
++	of_i2c_register_devices(adapter);
++	/* Enumerate the slave devices behind this bus via ACPI */
++	acpi_i2c_register_devices(adapter);
++
++Below is an example of how to add ACPI support to the existing mpu3050
++input driver:
++
++	#ifdef CONFIG_ACPI
++	static struct acpi_device_id mpu3050_acpi_match[] = {
++		{ "MPU3050", 0 },
++		{ },
++	};
++	MODULE_DEVICE_TABLE(acpi, mpu3050_acpi_match);
++	#endif
++
++	static struct i2c_driver mpu3050_i2c_driver = {
++		.driver	= {
++			.name	= "mpu3050",
++			.owner	= THIS_MODULE,
++			.pm	= &mpu3050_pm,
++			.of_match_table = mpu3050_of_match,
++			.acpi_match_table  ACPI_PTR(mpu3050_acpi_match),
++		},
++		.probe		= mpu3050_probe,
++		.remove		= __devexit_p(mpu3050_remove),
++		.id_table	= mpu3050_ids,
++	};
++
++GPIO support
++~~~~~~~~~~~~
++ACPI 5 introduced two new resources to describe GPIO connections: GpioIo
++and GpioInt. These resources are used be used to pass GPIO numbers used by
++the device to the driver. For example:
++
++	Method (_CRS, 0, NotSerialized)
++	{
++		Name (SBUF, ResourceTemplate()
++		{
++			GpioIo (Exclusive, PullDefault, 0x0000, 0x0000,
++				IoRestrictionOutputOnly, "\\_SB.PCI0.GPI0",
++				0x00, ResourceConsumer,,)
++			{
++				// Pin List
++				0x0055
++			}
++			...
++
++			Return (SBUF)
++		}
++	}
++
++These GPIO numbers are controller relative and path "\\_SB.PCI0.GPI0"
++specifies the path to the controller. In order to use these GPIOs in Linux
++we need to translate them to the Linux GPIO numbers.
++
++The driver can do this by including <linux/acpi_gpio.h> and then calling
++acpi_get_gpio(path, gpio). This will return the Linux GPIO number or
++negative errno if there was no translation found.
++
++Other GpioIo parameters must be converted first by the driver to be
++suitable to the gpiolib before passing them.
++
++In case of GpioInt resource an additional call to gpio_to_irq() must be
++done before calling request_irq().
+-- 
+1.7.10.4
 
