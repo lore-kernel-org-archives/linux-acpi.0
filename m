@@ -1,8 +1,8 @@
 From: Myron Stowe <myron.stowe@redhat.com>
-Subject: [PATCH 08/15] PCI/acpiphp: Collapse the initialization call chain of
-	"acpiphp" further
-Date: Thu, 06 Dec 2012 23:25:42 -0700
-Message-ID: <20121207062542.11051.80189.stgit@amt.stowe>
+Subject: [PATCH 04/15] PCI/acpiphp: Change acpiphp_glue_init() to return void
+	instead of 0
+Date: Thu, 06 Dec 2012 23:25:19 -0700
+Message-ID: <20121207062519.11051.61163.stgit@amt.stowe>
 References: <20121207062454.11051.12739.stgit@amt.stowe>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,83 +14,61 @@ To: bhelgaas@google.com
 Cc: linux-pci@vger.kernel.org, yinghai@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-This patch collapses the initialization call chain of "acpiphp" by calling
-acpi_pci_[un]register_driver() directly within acpiphp_{init,exit}(),
-removing the intervening acpiphp_glue_{init,exit}() call.
+acpiphp_glue_init() always returns 0.  This patch changes the return
+type from an 'int' to 'void'.
 
 No functional change.
 
 Signed-off-by: Myron Stowe <myron.stowe@redhat.com>
 ---
 
- drivers/pci/hotplug/acpiphp.h      |    2 --
- drivers/pci/hotplug/acpiphp_core.c |    4 ++--
- drivers/pci/hotplug/acpiphp_glue.c |   20 --------------------
- 3 files changed, 2 insertions(+), 24 deletions(-)
+ drivers/pci/hotplug/acpiphp.h      |    2 +-
+ drivers/pci/hotplug/acpiphp_core.c |    4 +++-
+ drivers/pci/hotplug/acpiphp_glue.c |    4 +---
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/pci/hotplug/acpiphp.h b/drivers/pci/hotplug/acpiphp.h
-index 37f968e..bf62ac8 100644
+index 4b798e9..ecd772c 100644
 --- a/drivers/pci/hotplug/acpiphp.h
 +++ b/drivers/pci/hotplug/acpiphp.h
-@@ -194,8 +194,6 @@ extern void acpiphp_unregister_hotplug_slot(struct acpiphp_slot *slot);
- extern struct acpi_pci_driver acpi_pci_hp_driver;
- extern int acpiphp_add_bridge(struct acpi_pci_root *root);
- extern void acpiphp_remove_bridge(struct acpi_pci_root *root);
--extern void acpiphp_glue_init(void);
--extern void acpiphp_glue_exit(void);
+@@ -191,7 +191,7 @@ extern int acpiphp_register_hotplug_slot(struct acpiphp_slot *slot);
+ extern void acpiphp_unregister_hotplug_slot(struct acpiphp_slot *slot);
+ 
+ /* acpiphp_glue.c */
+-extern int acpiphp_glue_init(void);
++extern void acpiphp_glue_init(void);
+ extern void acpiphp_glue_exit(void);
  typedef int (*acpiphp_callback)(struct acpiphp_slot *slot, void *data);
  
- extern int acpiphp_enable_slot(struct acpiphp_slot *slot);
 diff --git a/drivers/pci/hotplug/acpiphp_core.c b/drivers/pci/hotplug/acpiphp_core.c
-index 1f4e228..5536b42 100644
+index 3350b09..011a538 100644
 --- a/drivers/pci/hotplug/acpiphp_core.c
 +++ b/drivers/pci/hotplug/acpiphp_core.c
-@@ -357,7 +357,7 @@ static int __init acpiphp_init(void)
- 
- 	if (!acpi_pci_disabled)
- 		/* initialize internal data structure etc. */
--		acpiphp_glue_init();
-+		acpi_pci_register_driver(&acpi_pci_hp_driver);
- 
- 	return 0;
- }
-@@ -367,7 +367,7 @@ static void __exit acpiphp_exit(void)
+@@ -274,7 +274,9 @@ static int get_adapter_status(struct hotplug_slot *hotplug_slot, u8 *value)
+ static int __init init_acpi(void)
  {
- 	if (!acpi_pci_disabled)
- 		/* deallocate internal data structures etc. */
--		acpiphp_glue_exit();
-+		acpi_pci_unregister_driver(&acpi_pci_hp_driver);
+ 	/* initialize internal data structure etc. */
+-	return acpiphp_glue_init();
++	acpiphp_glue_init();
++
++	return 0;
  }
- 
- module_init(acpiphp_init);
-diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
-index f96b13c..3d5d7da 100644
---- a/drivers/pci/hotplug/acpiphp_glue.c
-+++ b/drivers/pci/hotplug/acpiphp_glue.c
-@@ -1413,26 +1413,6 @@ struct acpi_pci_driver acpi_pci_hp_driver = {
- };
  
  /**
-- * acpiphp_glue_init - initializes all PCI hotplug - ACPI glue data structures
-- */
--void __init acpiphp_glue_init(void)
--{
--	acpi_pci_register_driver(&acpi_pci_hp_driver);
--}
--
--
--/**
-- * acpiphp_glue_exit - terminates all PCI hotplug - ACPI glue data structures
-- *
-- * This function frees all data allocated in acpiphp_glue_init().
-- */
--void  acpiphp_glue_exit(void)
--{
--	acpi_pci_unregister_driver(&acpi_pci_hp_driver);
--}
--
--
--/**
-  * acpiphp_enable_slot - power on slot
-  * @slot: ACPI PHP slot
+diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+index a378a48..50b58cb 100644
+--- a/drivers/pci/hotplug/acpiphp_glue.c
++++ b/drivers/pci/hotplug/acpiphp_glue.c
+@@ -1415,11 +1415,9 @@ static struct acpi_pci_driver acpi_pci_hp_driver = {
+ /**
+  * acpiphp_glue_init - initializes all PCI hotplug - ACPI glue data structures
   */
+-int __init acpiphp_glue_init(void)
++void __init acpiphp_glue_init(void)
+ {
+ 	acpi_pci_register_driver(&acpi_pci_hp_driver);
+-
+-	return 0;
+ }
+ 
+ 
