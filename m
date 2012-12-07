@@ -1,32 +1,99 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH] ACPI: add Haswell LPSS devices to
- acpi_platform_device_ids list
-Date: Fri, 7 Dec 2012 13:14:15 +0200
-Message-ID: <20121207111415.GH23611@intel.com>
-References: <1354874882-1162-1-git-send-email-mika.westerberg@linux.intel.com>
- <20121207110126.53cd97e7@pyramind.ukuu.org.uk>
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [PATCH v2] tty: serial core: decouple pm states from ACPI
+Date: Fri, 07 Dec 2012 12:19:30 +0100
+Message-ID: <50C1D0C2.4030002@linaro.org>
+References: <1354876568-10617-1-git-send-email-linus.walleij@stericsson.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20121207110126.53cd97e7@pyramind.ukuu.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <1354876568-10617-1-git-send-email-linus.walleij@stericsson.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@stericsson.com>
+Cc: linux-serial@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alan Cox <alan@linux.intel.com>, Rickard Andersson <rickard.andersson@stericsson.com>, linux-acpi@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Dec 07, 2012 at 11:01:26AM +0000, Alan Cox wrote:
-> On Fri,  7 Dec 2012 12:08:02 +0200
-> Mika Westerberg <mika.westerberg@linux.intel.com> wrote:
-> 
-> > All devices behind Haswell LPSS (Low Power Subsystem) should be represented
-> > as platform devices 
-> 
-> What about the bus heirarchy ? What about making sure they appear in the
-> PCI resource heirarchy so we don't mash them up if we reassign or
-> allocate other resources on the bus ?
+On 12/07/2012 11:36 AM, Linus Walleij wrote:
+> From: Linus Walleij <linus.walleij@linaro.org>
+>=20
+> The serial core is using power states lifted from ACPI for no
+> good reason. Remove this reference from the documentation and
+> alter all users to use an enum specific to the serial core
+> instead, and define it in <linux/serial_core.h>.
+>=20
+> Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
+> ---
+> ChangeLog v1->v2:
+> - rename states from _DEFAULT and _SLEEP to simply _ON
+>   and _OFF as Rafael suggests.
+> ---
 
-I'm not sure if I understand what you mean here.
+Reviewed-by: Daniel Lezcano <daniel.lezcano@linaro.org>
 
-We put them in hierarchy if the parent ACPI node has also a physical device
-bound to it (like PCIe root port).
+One suggestion below.
+
+
+[ ... ]
+
+> @@ -1620,7 +1621,7 @@ static void uart_line_info(struct seq_file *m, =
+struct uart_driver *drv, int i)
+>  {
+>  	struct uart_state *state =3D drv->state + i;
+>  	struct tty_port *port =3D &state->port;
+> -	int pm_state;
+> +	enum uart_pm_state pm_state;
+>  	struct uart_port *uport =3D state->uart_port;
+>  	char stat_buf[32];
+>  	unsigned int status;
+> @@ -1645,12 +1646,12 @@ static void uart_line_info(struct seq_file *m=
+, struct uart_driver *drv, int i)
+>  	if (capable(CAP_SYS_ADMIN)) {
+>  		mutex_lock(&port->mutex);
+>  		pm_state =3D state->pm_state;
+> -		if (pm_state)
+> -			uart_change_pm(state, 0);
+> +		if (pm_state !=3D UART_PM_STATE_ON)
+> +			uart_change_pm(state, UART_PM_STATE_ON);
+
+The check is already done in the uart_change_pm function, no ?
+
+>  		spin_lock_irq(&uport->lock);
+>  		status =3D uport->ops->get_mctrl(uport);
+>  		spin_unlock_irq(&uport->lock);
+> -		if (pm_state)
+> +		if (pm_state !=3D UART_PM_STATE_ON)
+>  			uart_change_pm(state, pm_state);
+
+Maybe it could be worth to change uart_change_pm to return the old stat=
+e
+value.
+
+So the code will be simpler:
+
+pm_state =3D uart_change_pm(state, UART_PM_STATE_ON);
+
+=2E..
+
+uart_change_pm(state, pm_state);
+
+
+The uart_change_pm already takes care of changing the value if the
+current one is different.
+
+Well, maybe that could come on a different patch.
+
+[ ... ]
+
+--=20
+ <http://www.linaro.org/> Linaro.org =E2=94=82 Open source software for=
+ ARM SoCs
+
+=46ollow Linaro:  <http://www.facebook.com/pages/Linaro> Facebook |
+<http://twitter.com/#!/linaroorg> Twitter |
+<http://www.linaro.org/linaro-blog/> Blog
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-serial"=
+ in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
