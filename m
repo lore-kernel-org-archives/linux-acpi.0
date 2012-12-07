@@ -1,37 +1,85 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH 01/15] PCI, acpiphp: Separate out hot-add support of pci
- host bridge
-Date: Fri, 7 Dec 2012 13:42:43 -0800
-Message-ID: <CAE9FiQW4FY1=SVCoVVE7bcxR7EaAuabMuyNE=t=kECxYb2=Ajg@mail.gmail.com>
-References: <20121207062454.11051.12739.stgit@amt.stowe>
-	<20121207062500.11051.44198.stgit@amt.stowe>
-	<CAErSpo6MEtx6hsYhY=h0+eXqQcnZuG2vq=z_8Oz8tnksKZd7DA@mail.gmail.com>
-	<CAE9FiQV6L2ZUEVHM2CCdqZfB9Yij7OGYZ-xsEpzCdXU2hSHnsQ@mail.gmail.com>
-	<CAErSpo7ck=D0U88-gTU61VLu3Fmomgxxe2vJunWJJC0RXGGoSw@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] X86/acpi: remove redundant logic of acpi memory hotadd
+Date: Fri, 07 Dec 2012 23:19:29 +0100
+Message-ID: <4326596.xCAz7vOgOp@vostro.rjw.lan>
+References: <DE8DF0795D48FD4CA783C40EC829233539DED4@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:42360 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754633Ab2LGVmp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Dec 2012 16:42:45 -0500
-In-Reply-To: <CAErSpo7ck=D0U88-gTU61VLu3Fmomgxxe2vJunWJJC0RXGGoSw@mail.gmail.com>
+Received: from hydra.sisk.pl ([212.160.235.94]:44614 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1424688Ab2LGWOf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 7 Dec 2012 17:14:35 -0500
+In-Reply-To: <DE8DF0795D48FD4CA783C40EC829233539DED4@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Myron Stowe <myron.stowe@redhat.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Liu, Jinsong" <jinsong.liu@intel.com>, Toshi Kani <toshi.kani@hp.com>, Wen Congyang <wency@cn.fujitsu.com>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Jiang Liu <jiang.liu@huawei.com>
 
-On Fri, Dec 7, 2012 at 1:36 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
-> On Fri, Dec 7, 2012 at 2:30 PM, Yinghai Lu <yinghai@kernel.org> wrote:
->
-> Sorry I missed that; I had only looked at a few patches adjacent to
-> the one that split out this code.
->
-> I still would like the code to be all in pci_root.c.
+On Tuesday, December 04, 2012 01:39:54 AM Liu, Jinsong wrote:
+> Resend it, add Rafael and linux-acpi@vger.kernel.org
 
-ok, I will rebase that to put them in pci_root.c
-and send them out after you take
+I wonder what memory hotplug people think about that.
 
-[PATCH 0/8] PCI, ACPI, x86: Reserve fw allocated resource for hot-add root bus
+Thanks,
+Rafael
 
-Yinghai
+
+> ===============
+> From 1d39279e45c54ce531691da5ffe261e7689dd92c Mon Sep 17 00:00:00 2001
+> From: Liu Jinsong <jinsong.liu@intel.com>
+> Date: Wed, 14 Nov 2012 18:52:06 +0800
+> Subject: [PATCH] X86/acpi: remove redundant logic of acpi memory hotadd
+> 
+> When memory hotadd, acpi_memory_enable_device has already been done
+> at drv->ops.add (acpi_memory_device_add), no need to do it again
+> at notify callback.
+> 
+> At acpi_memory_enable_device, acpi_memory_get_device_resources
+> is also a redundant action, since it has been done at drv->ops.add.
+> 
+> Signed-off-by: Liu Jinsong <jinsong.liu@intel.com>
+> ---
+>  drivers/acpi/acpi_memhotplug.c |   17 -----------------
+>  1 files changed, 0 insertions(+), 17 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+> index 24c807f..a6489fd 100644
+> --- a/drivers/acpi/acpi_memhotplug.c
+> +++ b/drivers/acpi/acpi_memhotplug.c
+> @@ -220,15 +220,6 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
+>  	struct acpi_memory_info *info;
+>  	int node;
+>  
+> -
+> -	/* Get the range from the _CRS */
+> -	result = acpi_memory_get_device_resources(mem_device);
+> -	if (result) {
+> -		printk(KERN_ERR PREFIX "get_device_resources failed\n");
+> -		mem_device->state = MEMORY_INVALID_STATE;
+> -		return result;
+> -	}
+> -
+>  	node = acpi_get_node(mem_device->device->handle);
+>  	/*
+>  	 * Tell the VM there is more memory here...
+> @@ -357,14 +348,6 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
+>  			break;
+>  		}
+>  
+> -		if (acpi_memory_check_device(mem_device))
+> -			break;
+> -
+> -		if (acpi_memory_enable_device(mem_device)) {
+> -			printk(KERN_ERR PREFIX "Cannot enable memory device\n");
+> -			break;
+> -		}
+> -
+>  		ost_code = ACPI_OST_SC_SUCCESS;
+>  		break;
+>  
+> 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
