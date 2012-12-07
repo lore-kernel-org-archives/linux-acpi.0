@@ -1,29 +1,25 @@
-From: Alan Cox <alan@linux.intel.com>
-Subject: Re: [PATCH v2] tty: serial core: decouple pm states from ACPI
-Date: Fri, 7 Dec 2012 11:47:46 +0000
-Message-ID: <20121207114746.07240a22@bob.linux.org.uk>
-References: <1354876568-10617-1-git-send-email-linus.walleij@stericsson.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <1354876568-10617-1-git-send-email-linus.walleij@stericsson.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@stericsson.com>
-Cc: linux-serial@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rickard Andersson <rickard.andersson@stericsson.com>, linux-acpi@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>
+From: Mathias Nyman <mathias.nyman@linux.intel.com>
+Subject: [PATCH 0/1] gpio: add Lynxpoint chipset gpio driver
+Date: Fri,  7 Dec 2012 16:01:38 +0200
+Message-ID: <1354888899-21907-1-git-send-email-mathias.nyman@linux.intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linus.walleij@linaro.org
+Cc: grant.likely@secretlab.ca, mika.westerberg@linux.intel.com, rafael.j.wysocki@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Mathias Nyman <mathias.nyman@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 7 Dec 2012 11:36:08 +0100
-Linus Walleij <linus.walleij@stericsson.com> wrote:
+This gpio controller driver for the Intel Lynxpoint LP PCH chipset is
+designed to work with the new ACPI 5 enumeration model and ACPI 5 GpioIo/GpioInt 
+resource translation recently added to linux-acpi.
 
-> From: Linus Walleij <linus.walleij@linaro.org>
-> 
-> The serial core is using power states lifted from ACPI for no
-> good reason. Remove this reference from the documentation and
-> alter all users to use an enum specific to the serial core
-> instead, and define it in <linux/serial_core.h>.
+Mathias Nyman (1):
+  gpio: add Lynxpoint chipset gpio driver.
 
-Ok fair enough.. if its confusing people. Seems daft to me but there we
-are 8)
+ drivers/gpio/Kconfig          |    7 +
+ drivers/gpio/Makefile         |    1 +
+ drivers/gpio/gpio-lynxpoint.c |  406 +++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 414 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/gpio/gpio-lynxpoint.c
 
-Acked-by: Alan Cox <alan@linux.intel.com>
+-- 
+1.7.4.1
