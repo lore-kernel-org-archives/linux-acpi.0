@@ -1,42 +1,47 @@
-From: Yinghai Lu <yinghai@kernel.org>
+From: Bjorn Helgaas <bhelgaas@google.com>
 Subject: Re: [PATCH 01/15] PCI, acpiphp: Separate out hot-add support of pci
  host bridge
-Date: Fri, 7 Dec 2012 13:30:18 -0800
-Message-ID: <CAE9FiQV6L2ZUEVHM2CCdqZfB9Yij7OGYZ-xsEpzCdXU2hSHnsQ@mail.gmail.com>
-References: <20121207062454.11051.12739.stgit@amt.stowe>
-	<20121207062500.11051.44198.stgit@amt.stowe>
-	<CAErSpo6MEtx6hsYhY=h0+eXqQcnZuG2vq=z_8Oz8tnksKZd7DA@mail.gmail.com>
+Date: Fri, 7 Dec 2012 14:36:10 -0700
+Message-ID: <CAErSpo7ck=D0U88-gTU61VLu3Fmomgxxe2vJunWJJC0RXGGoSw@mail.gmail.com>
+References: <20121207062454.11051.12739.stgit@amt.stowe> <20121207062500.11051.44198.stgit@amt.stowe>
+ <CAErSpo6MEtx6hsYhY=h0+eXqQcnZuG2vq=z_8Oz8tnksKZd7DA@mail.gmail.com> <CAE9FiQV6L2ZUEVHM2CCdqZfB9Yij7OGYZ-xsEpzCdXU2hSHnsQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAErSpo6MEtx6hsYhY=h0+eXqQcnZuG2vq=z_8Oz8tnksKZd7DA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAE9FiQV6L2ZUEVHM2CCdqZfB9Yij7OGYZ-xsEpzCdXU2hSHnsQ@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
 Cc: Myron Stowe <myron.stowe@redhat.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Dec 7, 2012 at 11:32 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
-> On Thu, Dec 6, 2012 at 11:25 PM, Myron Stowe <myron.stowe@redhat.com> wrote:
->> From: Yinghai Lu <yinghai@kernel.org>
->>
->>
-> For example, as soon as you put this code in pci_root.c instead of
-> pci_root_hp.c, it becomes obvious that we're keeping a list of host
-> bridges in both places, and we probably don't need two lists.  And it
-> seems dubious that acpi_pci_root_hp_init() is an initcall that walks
-> the namespace looking for host bridges, when acpi_pci_root_add()
-> already exists and is called for every host bridge.
+On Fri, Dec 7, 2012 at 2:30 PM, Yinghai Lu <yinghai@kernel.org> wrote:
+> On Fri, Dec 7, 2012 at 11:32 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+>> On Thu, Dec 6, 2012 at 11:25 PM, Myron Stowe <myron.stowe@redhat.com> wrote:
+>>> From: Yinghai Lu <yinghai@kernel.org>
+>>>
+>>>
+>> For example, as soon as you put this code in pci_root.c instead of
+>> pci_root_hp.c, it becomes obvious that we're keeping a list of host
+>> bridges in both places, and we probably don't need two lists.  And it
+>> seems dubious that acpi_pci_root_hp_init() is an initcall that walks
+>> the namespace looking for host bridges, when acpi_pci_root_add()
+>> already exists and is called for every host bridge.
+>
+> removed the duplicated interface in following patch.
+>
+> http://git.kernel.org/?p=linux/kernel/git/yinghai/linux-yinghai.git;a=shortlog;h=refs/heads/for-pci-split-pci-root-hp-2
+>
+> http://git.kernel.org/?p=linux/kernel/git/yinghai/linux-yinghai.git;a=commitdiff;h=a1d1ef3f5e4932bc672d96dedd11c5d58f7f20f5
+>
+> | [PATCH] PCI, ACPI: remove acpi_root_bridge in pci_root_hp
+> |
+> | Tang noticed that hotplug through container will not update acpi_root_bridge
+> | list.
+> |
+> | After closely checking, we don't need that for struct for tracking and
+> | could use acpi_pci_root directly.
 
-removed the duplicated interface in following patch.
+Sorry I missed that; I had only looked at a few patches adjacent to
+the one that split out this code.
 
-http://git.kernel.org/?p=linux/kernel/git/yinghai/linux-yinghai.git;a=shortlog;h=refs/heads/for-pci-split-pci-root-hp-2
-
-http://git.kernel.org/?p=linux/kernel/git/yinghai/linux-yinghai.git;a=commitdiff;h=a1d1ef3f5e4932bc672d96dedd11c5d58f7f20f5
-
-| [PATCH] PCI, ACPI: remove acpi_root_bridge in pci_root_hp
-|
-| Tang noticed that hotplug through container will not update acpi_root_bridge
-| list.
-|
-| After closely checking, we don't need that for struct for tracking and
-| could use acpi_pci_root directly.
+I still would like the code to be all in pci_root.c.
