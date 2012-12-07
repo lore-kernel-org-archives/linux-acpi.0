@@ -1,8 +1,8 @@
 From: Myron Stowe <myron.stowe@redhat.com>
-Subject: [PATCH 05/15] PCI/acpiphp: Collapse initialization call chain of
-	"acpiphp" sub-driver
-Date: Thu, 06 Dec 2012 23:25:25 -0700
-Message-ID: <20121207062524.11051.46916.stgit@amt.stowe>
+Subject: [PATCH 07/15] PCI/acpiphp: Declare acpi_{add,
+	remove}_bridge() as external functions
+Date: Thu, 06 Dec 2012 23:25:36 -0700
+Message-ID: <20121207062536.11051.78679.stgit@amt.stowe>
 References: <20121207062454.11051.12739.stgit@amt.stowe>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,63 +14,65 @@ To: bhelgaas@google.com
 Cc: linux-pci@vger.kernel.org, yinghai@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-This patch collapses the initialization call chain of "acpiphp" by calling
-acpiphp_glue_init() directly within acphphp_init(), removing the
-intervening init_acpi() call.
+This patch renames, and changes to external function types, add_bridge()
+and remove_bridge() so that they can used directly as the add and remove
+interfaces of "acpiphp".
 
 No functional change.
 
 Signed-off-by: Myron Stowe <myron.stowe@redhat.com>
 ---
 
- drivers/pci/hotplug/acpiphp_core.c |   24 +++++++-----------------
- 1 files changed, 7 insertions(+), 17 deletions(-)
+ drivers/pci/hotplug/acpiphp.h      |    3 +++
+ drivers/pci/hotplug/acpiphp_glue.c |   10 +++++-----
+ 2 files changed, 8 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/pci/hotplug/acpiphp_core.c b/drivers/pci/hotplug/acpiphp_core.c
-index 011a538..1f4e228 100644
---- a/drivers/pci/hotplug/acpiphp_core.c
-+++ b/drivers/pci/hotplug/acpiphp_core.c
-@@ -271,14 +271,6 @@ static int get_adapter_status(struct hotplug_slot *hotplug_slot, u8 *value)
- 	return 0;
+diff --git a/drivers/pci/hotplug/acpiphp.h b/drivers/pci/hotplug/acpiphp.h
+index ecd772c..37f968e 100644
+--- a/drivers/pci/hotplug/acpiphp.h
++++ b/drivers/pci/hotplug/acpiphp.h
+@@ -191,6 +191,9 @@ extern int acpiphp_register_hotplug_slot(struct acpiphp_slot *slot);
+ extern void acpiphp_unregister_hotplug_slot(struct acpiphp_slot *slot);
+ 
+ /* acpiphp_glue.c */
++extern struct acpi_pci_driver acpi_pci_hp_driver;
++extern int acpiphp_add_bridge(struct acpi_pci_root *root);
++extern void acpiphp_remove_bridge(struct acpi_pci_root *root);
+ extern void acpiphp_glue_init(void);
+ extern void acpiphp_glue_exit(void);
+ typedef int (*acpiphp_callback)(struct acpiphp_slot *slot, void *data);
+diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+index 50b58cb..f96b13c 100644
+--- a/drivers/pci/hotplug/acpiphp_glue.c
++++ b/drivers/pci/hotplug/acpiphp_glue.c
+@@ -489,7 +489,7 @@ find_p2p_bridge(acpi_handle handle, u32 lvl, void *context, void **rv)
+ 
+ 
+ /* find hot-pluggable slots, and then find P2P bridge */
+-static int add_bridge(struct acpi_pci_root *root)
++int acpiphp_add_bridge(struct acpi_pci_root *root)
+ {
+ 	acpi_status status;
+ 	unsigned long long tmp;
+@@ -613,7 +613,7 @@ cleanup_p2p_bridge(acpi_handle handle, u32 lvl, void *context, void **rv)
+ 	return AE_OK;
  }
  
--static int __init init_acpi(void)
--{
--	/* initialize internal data structure etc. */
--	acpiphp_glue_init();
--
--	return 0;
--}
--
+-static void remove_bridge(struct acpi_pci_root *root)
++void acpiphp_remove_bridge(struct acpi_pci_root *root)
+ {
+ 	struct acpiphp_bridge *bridge;
+ 	acpi_handle handle = root->device->handle;
+@@ -1407,9 +1407,9 @@ static void handle_hotplug_event_func(acpi_handle handle, u32 type,
+ 			      _handle_hotplug_event_func);
+ }
+ 
+-static struct acpi_pci_driver acpi_pci_hp_driver = {
+-	.add =		add_bridge,
+-	.remove =	remove_bridge,
++struct acpi_pci_driver acpi_pci_hp_driver = {
++	.add =		acpiphp_add_bridge,
++	.remove =	acpiphp_remove_bridge,
+ };
+ 
  /**
-  * release_slot - free up the memory used by a slot
-  * @hotplug_slot: slot to free
-@@ -363,21 +355,19 @@ static int __init acpiphp_init(void)
- {
- 	info(DRIVER_DESC " version: " DRIVER_VERSION "\n");
- 
--	if (acpi_pci_disabled)
--		return 0;
-+	if (!acpi_pci_disabled)
-+		/* initialize internal data structure etc. */
-+		acpiphp_glue_init();
- 
--	/* read all the ACPI info from the system */
--	return init_acpi();
-+	return 0;
- }
- 
- 
- static void __exit acpiphp_exit(void)
- {
--	if (acpi_pci_disabled)
--		return;
--
--	/* deallocate internal data structures etc. */
--	acpiphp_glue_exit();
-+	if (!acpi_pci_disabled)
-+		/* deallocate internal data structures etc. */
-+		acpiphp_glue_exit();
- }
- 
- module_init(acpiphp_init);
