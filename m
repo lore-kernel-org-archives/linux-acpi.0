@@ -1,251 +1,68 @@
-From: Jianguo Wu <wujianguo@huawei.com>
-Subject: Re: [Patch v4 08/12] memory-hotplug: remove memmap of sparse-vmemmap
-Date: Fri, 7 Dec 2012 10:20:16 +0800
-Message-ID: <50C15260.3050608@huawei.com>
-References: <1354010422-19648-1-git-send-email-wency@cn.fujitsu.com> <1354010422-19648-9-git-send-email-wency@cn.fujitsu.com> <50B5DC00.20103@huawei.com> <50B80FB1.6040906@cn.fujitsu.com> <50BC0D2D.8040008@huawei.com> <50C14976.2050606@cn.fujitsu.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [RFC PATCH v3 0/3] acpi: Introduce prepare_remove device
+ operation
+Date: Thu, 06 Dec 2012 19:25:18 -0700
+Message-ID: <1354847118.21116.33.camel@misato.fc.hp.com>
+References: <1353693037-21704-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
+	     <50B5EFE9.3040206@huawei.com>
+	    <1354128096.26955.276.camel@misato.fc.hp.com>
+	   <50B6E936.2080308@huawei.com> <1354228028.7776.56.camel@misato.fc.hp.com>
+	   <50BC29C6.6050706@huawei.com>
+	 <1354579848.21585.54.camel@misato.fc.hp.com>  <50BDBF5A.8040407@huawei.com>
+	 <1354663411.21585.135.camel@misato.fc.hp.com> <50C0CC2A.1010603@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <50C14976.2050606@cn.fujitsu.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, David Rientjes <rientjes@google.com>, Jiang Liu <liuj97@gmail.com>, Len Brown <len.brown@intel.com>, benh@kernel.crashing.org, paulus@samba.org, Christoph Lameter <cl@linux.com>, Minchan Kim <minchan.kim@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <50C0CC2A.1010603@gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Jiang Liu <liuj97@gmail.com>
+Cc: Hanjun Guo <guohanjun@huawei.com>, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, linux-acpi@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, wency@cn.fujitsu.com, rjw@sisk.pl, lenb@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Tang Chen <tangchen@cn.fujitsu.com>, Liujiang <jiang.liu@huawei.com>, Huxinwei <huxinwei@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Tang,
+On Fri, 2012-12-07 at 00:47 +0800, Jiang Liu wrote:
+> On 12/05/2012 07:23 AM, Toshi Kani wrote:
+> > On Tue, 2012-12-04 at 17:16 +0800, Hanjun Guo wrote:
+> >> On 2012/12/4 8:10, Toshi Kani wrote:
+> >>> On Mon, 2012-12-03 at 12:25 +0800, Hanjun Guo wrote:
+> >>>> On 2012/11/30 6:27, Toshi Kani wrote:
+> >>>>> On Thu, 2012-11-29 at 12:48 +0800, Hanjun Guo wrote:
+> >>>>>> On 2012/11/29 2:41, Toshi Kani wrote:
+:
+> >>>> The ACPI specification provides _EDL method to
+> >>>> tell OS the eject device list, but still has no method to tell OS the add device
+> >>>> list now.
+> >>>
+> >>> Yes, but I do not think the OS needs special handling for add...
+> >>
+> >> Hmm, how about trigger a hot add operation by OS ? we have eject interface for OS, but
+> >> have no add interface now, do you think this feature is useful? If it is, I think OS
+> >> should analyze the dependency first and tell the user.
+> > 
+> > The OS can eject an ACPI device because a target device is owned by the
+> > OS (i.e. enabled).  For hot-add, a target ACPI device is not owned by
+> > the OS (i.e. disabled).  Therefore, the OS is not supposed to change its
+> > state.  So, I do not think we should support a hot-add operation by the
+> > OS.
+> We depends on the firmware to provide an interface to actually hot-add the device.
+> The sequence is:
+> 1) user trigger hot-add request by sysfs interfaces.
+> 2) hotplug framework validates conditions for hot-adding (dependency)
+> 3) hotplug framework invokes firmware interfaces to request a hot-adding operation.
+> 4) firmware sends an ACPI notificaitons after powering on/initializing the device
+> 5) OS adds the devices into running system.
 
-On 2012/12/7 9:42, Tang Chen wrote:
+Interesting...  In this sequence, I think FW must validate and check the
+dependency before sending a SCI.  FW owns unassigned resources and is
+responsible for the procedure necessary to enable resources on the
+platform.  Such steps are basically platform-specific.  So, I do not
+think the common OS code should step into such business.
 
-> Hi Wu,
->=20
-> I met some problems when I was digging into the code. It's very
-> kind of you if you could help me with that. :)
->=20
-> If I misunderstood your code, please tell me.
-> Please see below. :)
->=20
-> On 12/03/2012 10:23 AM, Jianguo Wu wrote:
->> Signed-off-by: Jianguo Wu<wujianguo@huawei.com>
->> Signed-off-by: Jiang Liu<jiang.liu@huawei.com>
->> ---
->>   include/linux/mm.h  |    1 +
->>   mm/sparse-vmemmap.c |  231 +++++++++++++++++++++++++++++++++++++++=
-++++++++++++
->>   mm/sparse.c         |    3 +-
->>   3 files changed, 234 insertions(+), 1 deletions(-)
->>
->> diff --git a/include/linux/mm.h b/include/linux/mm.h
->> index 5657670..1f26af5 100644
->> --- a/include/linux/mm.h
->> +++ b/include/linux/mm.h
->> @@ -1642,6 +1642,7 @@ int vmemmap_populate(struct page *start_page, =
-unsigned long pages, int node);
->>   void vmemmap_populate_print_last(void);
->>   void register_page_bootmem_memmap(unsigned long section_nr, struct=
- page *map,
->>                     unsigned long size);
->> +void vmemmap_free(struct page *memmap, unsigned long nr_pages);
->>
->>   enum mf_flags {
->>       MF_COUNT_INCREASED =3D 1<<  0,
->> diff --git a/mm/sparse-vmemmap.c b/mm/sparse-vmemmap.c
->> index 1b7e22a..748732d 100644
->> --- a/mm/sparse-vmemmap.c
->> +++ b/mm/sparse-vmemmap.c
->> @@ -29,6 +29,10 @@
->>   #include<asm/pgalloc.h>
->>   #include<asm/pgtable.h>
->>
->> +#ifdef CONFIG_MEMORY_HOTREMOVE
->> +#include<asm/tlbflush.h>
->> +#endif
->> +
->>   /*
->>    * Allocate a block of memory to be used to back the virtual memor=
-y map
->>    * or to back the page tables that are used to create the mapping.
->> @@ -224,3 +228,230 @@ void __init sparse_mem_maps_populate_node(stru=
-ct page **map_map,
->>           vmemmap_buf_end =3D NULL;
->>       }
->>   }
->> +
->> +#ifdef CONFIG_MEMORY_HOTREMOVE
->> +
->> +#define PAGE_INUSE 0xFD
->> +
->> +static void vmemmap_free_pages(struct page *page, int order)
->> +{
->> +    struct zone *zone;
->> +    unsigned long magic;
->> +
->> +    magic =3D (unsigned long) page->lru.next;
->> +    if (magic =3D=3D SECTION_INFO || magic =3D=3D MIX_SECTION_INFO)=
- {
->> +        put_page_bootmem(page);
->> +
->> +        zone =3D page_zone(page);
->> +        zone_span_writelock(zone);
->> +        zone->present_pages++;
->> +        zone_span_writeunlock(zone);
->> +        totalram_pages++;
->> +    } else
->> +        free_pages((unsigned long)page_address(page), order);
->=20
-> Here, I think SECTION_INFO and MIX_SECTION_INFO pages are all allocat=
-ed
-> by bootmem, so I put this function this way.
->=20
-> I'm not sure if parameter order is necessary here. It will always be =
-0
-> in your code. Is this OK to you ?
->=20
-
-parameter order is necessary in cpu_has_pse case:
-	vmemmap_pmd_remove
-		free_pagetable(pmd_page(*pmd), get_order(PMD_SIZE))
-
-> static void free_pagetable(struct page *page)
-> {
->         struct zone *zone;
->         bool bootmem =3D false;
->         unsigned long magic;
->=20
->         /* bootmem page has reserved flag */
->         if (PageReserved(page)) {
->                 __ClearPageReserved(page);
->                 bootmem =3D true;
->         }
->=20
->         magic =3D (unsigned long) page->lru.next;
->         if (magic =3D=3D SECTION_INFO || magic =3D=3D MIX_SECTION_INF=
-O)
->                 put_page_bootmem(page);
->         else
->                 __free_page(page);
->=20
->         /*
->          * SECTION_INFO pages and MIX_SECTION_INFO pages
->          * are all allocated by bootmem.
->          */
->         if (bootmem) {
->                 zone =3D page_zone(page);
->                 zone_span_writelock(zone);
->                 zone->present_pages++;
->                 zone_span_writeunlock(zone);
->                 totalram_pages++;
->         }
-> }
->=20
-> (snip)
->=20
->> +
->> +static void vmemmap_pte_remove(pmd_t *pmd, unsigned long addr, unsi=
-gned long end)
->> +{
->> +    pte_t *pte;
->> +    unsigned long next;
->> +    void *page_addr;
->> +
->> +    pte =3D pte_offset_kernel(pmd, addr);
->> +    for (; addr<  end; pte++, addr +=3D PAGE_SIZE) {
->> +        next =3D (addr + PAGE_SIZE)&  PAGE_MASK;
->> +        if (next>  end)
->> +            next =3D end;
->> +
->> +        if (pte_none(*pte))
->=20
-> Here, you checked xxx_none() in your vmemmap_xxx_remove(), but you us=
-ed
-> !xxx_present() in your x86_64 patches. Is it OK if I only check
-> !xxx_present() ?
-
-It is Ok.
-
->=20
->> +            continue;
->> +        if (IS_ALIGNED(addr, PAGE_SIZE)&&
->> +            IS_ALIGNED(next, PAGE_SIZE)) {
->> +            vmemmap_free_pages(pte_page(*pte), 0);
->> +            spin_lock(&init_mm.page_table_lock);
->> +            pte_clear(&init_mm, addr, pte);
->> +            spin_unlock(&init_mm.page_table_lock);
->> +        } else {
->> +            /*
->> +             * Removed page structs are filled with 0xFD.
->> +             */
->> +            memset((void *)addr, PAGE_INUSE, next - addr);
->> +            page_addr =3D page_address(pte_page(*pte));
->> +
->> +            if (!memchr_inv(page_addr, PAGE_INUSE, PAGE_SIZE)) {
->> +                spin_lock(&init_mm.page_table_lock);
->> +                pte_clear(&init_mm, addr, pte);
->> +                spin_unlock(&init_mm.page_table_lock);
->=20
-> Here, since we clear pte, we should also free the page, right ?
->=20
-
-Right, I forgot here, sorry.
-
->> +            }
->> +        }
->> +    }
->> +
->> +    free_pte_table(pmd);
->> +    __flush_tlb_all();
->> +}
->> +
->> +static void vmemmap_pmd_remove(pud_t *pud, unsigned long addr, unsi=
-gned long end)
->> +{
->> +    unsigned long next;
->> +    pmd_t *pmd;
->> +
->> +    pmd =3D pmd_offset(pud, addr);
->> +    for (; addr<  end; addr =3D next, pmd++) {
->> +        next =3D (addr, end);
->=20
-> And by the way, there isn't pte_addr_end() in kernel, why ?
-> I saw you calculated it like this:
->=20
->                 next =3D (addr + PAGE_SIZE) & PAGE_MASK;
->                 if (next > end)
->                         next =3D end;
->=20
-> This logic is very similar to {pmd|pud|pgd}_addr_end(). Shall we add =
-a
-> pte_addr_end() or something ? :)
-
-Maybe just keep this for now if no other place need pte_addr_end()?
-
-> Since there is no such code in kernel for a long time, I think there
-> must be some reasons.
-
-Maybe in current kernel, doesn't deal not PTE_SIZE alignment address=EF=
-=BC=9F
-=20
-
->=20
-> I merged free_xxx_table() and remove_xxx_table() as common interfaces=
-=2E
-
-Greate!
-
-Thanks for your work:).
-
->=20
-> And again, thanks for your patient and nice explanation. :)
->=20
-> (snip)
->=20
-> .
->=20
-
-
+Thanks,
+-Toshi
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-ia64" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
