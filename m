@@ -1,52 +1,101 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: Look Ma, da kernel is b0rken
-Date: Fri, 7 Dec 2012 18:44:05 +0100
-Message-ID: <20121207174405.GF27523@liondog.tnic>
-References: <20121205070901.GA12123@rhlx01.hs-esslingen.de>
- <20121205142935.GA12119@liondog.tnic>
- <20121205152756.5afec12c@pyramind.ukuu.org.uk>
- <20121205153121.GA28556@liondog.tnic>
- <20121205133853.770451ca.akpm@linux-foundation.org>
- <20121207165218.GA13421@rhlx01.hs-esslingen.de>
+From: Myron Stowe <mstowe@redhat.com>
+Subject: Re: [PATCH 06/15] PCI/acpiphp: Convert "acpiphp" sub-driver's
+ functionality to built-in only
+Date: Fri, 07 Dec 2012 12:11:04 -0700
+Message-ID: <1354907464.2419.34.camel@zim.stowe>
+References: <20121207062454.11051.12739.stgit@amt.stowe>
+	 <20121207062530.11051.47869.stgit@amt.stowe>
+	 <CAE9FiQUh_jcoemFpeiAKHr4FyxSA4itHycNwJk+Dhf45Ap5prA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:40031 "EHLO mail.skyhub.de"
+Received: from mx1.redhat.com ([209.132.183.28]:21186 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423351Ab2LGRoJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 7 Dec 2012 12:44:09 -0500
-Content-Disposition: inline
-In-Reply-To: <20121207165218.GA13421@rhlx01.hs-esslingen.de>
+	id S1756699Ab2LGTLI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 7 Dec 2012 14:11:08 -0500
+In-Reply-To: <CAE9FiQUh_jcoemFpeiAKHr4FyxSA4itHycNwJk+Dhf45Ap5prA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andreas Mohr <andi@lisas.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, linux-kernel@vger.kernel.org, Li Shaohua <shaohua.li@intel.com>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Myron Stowe <myron.stowe@redhat.com>, bhelgaas@google.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, Dec 07, 2012 at 05:52:18PM +0100, Andreas Mohr wrote:
-> I hate having to rain on the parade again ;) I just developed
-> some doubts, by accident again, by getting dangerously near
-> sound/isa/als100.c snd_als100_pnpids: there are many IDs with '@'
-> embedded (at least in this ISA-based PnP code), thus I guess that
-> code may have had its justification (unless ACPI 5.0 is clearly fully
-> authoritative for this space and thus '@' does not have any business
-> there any more).
->
-> Dito e.g. isa/cmi8330.c.
->
-> Hmm, anyone deeply familiar with ISA PnP ID magic? :)
+On Thu, 2012-12-06 at 22:48 -0800, Yinghai Lu wrote:
+> On Thu, Dec 6, 2012 at 10:25 PM, Myron Stowe <myron.stowe@redhat.com> wrote:
+> > The "ACPI Hot Plug PCI Controller ("acpiphp")" sub-driver may be compiled
+> > as a module.  Kernel modules are instantiated somewhat randomly - the
+> > order in which they are linked as the kernel as built - thus if there are
+> > any dependencies on the ordering of attaching sub-drivers, they can not be
+> > effectively dealt with.
+> >
+> > This patch series resolves any potential sequencing inter-dependencies by
+> > converting "acpiphp" sub-driver's functionality to being only supported as
+> > statically built-in to the kernel.  Inter-dependencies can then be
+> > effectively handled by explicitly sequencing the addition of such
+> > functionality.
+> 
+> some slots may support both acpiphp and pciehp.
+> 
+> if make acpiphp to be built-in, user do not have choice anymore.
 
-Even if this is violating the ACPI spec, any fix for this needs to be
-tested on the hardware (and I can very well imagine that the hardware
-might be violating the spec too, nothing new here).
+What area are you worried about and how do we exercise that choice
+today?
 
-So even if you had a fix, you need to run it on the hardware to verify
-that it actually works.
+Here is my current understanding to set a little context -
 
-So the actual practical question turns into: do you have such hardware
-to verify your or anyone else's fix on?
+I see the following call chains with respect to pciehp and acpiphp:
 
-Thanks.
+  pcied_init			# pciehp module_init
+    pciehp_firmware_init
+      pciehp_acpi_slot_detection_init
+        parse_detect_mode	#pcie, acpi, auto (default)
+    pcie_port_service_register
 
--- 
-Regards/Gruss,
-    Boris.
+
+  acpiphp_init					# module_init
+    init_acpi
+      acpiphp_glue_init
+        acpi_pci_register_driver(&acpi_pci_hp_driver)
+          list_for_each_entry(root, &acpi_pci_roots, node)
+            driver->add				# for \_SB_.PCI0
+              add_bridge
+                add_host_bridge
+                  bridge = kzalloc(struct acpiphp_bridge)
+                  bridge->handle = handle	# \_SB_.PCI0
+                  bridge->pci_bus = root_bus	#pci_bus 0000:00
+                  init_bridge_misc
+                    acpi_walk_namespace(..., register_slot, ...)
+                      register_slot
+                        if (device_is_managed_by_native_pciehp(pdev))
+                          return AE_OK
+
+Does pciehp influence device_is_managed_by_native_pciehp()?  If not, it
+seems that the acpiphp driver will never attach.
+
+Looking at ./drivers/pci/hotplug/Makefile, CONFIG_HOTPLUG_PCI_PCIE comes
+before CONFIG_HOTPLUG_PCI_ACPI so if pciehp and acpiphp are both
+configured as modules then the load order would seem to be:
+  acpiphp, pciehp: acpiphp ignores, pciehp claims
+  pciehp, acpiphp: pciehp claims, acpiphp ignores
+
+To complete the matrix taking built-in vs. module into account -
+  pciehp=y, acpiphp=y
+    pciehp, acpiphp: pciehp claims, acpiphp ignores
+
+  pciehp=y, acpiphp=m
+    pciehp, acpiphp: pciehp claims, acpiphp ignores
+
+  pciehp=m, acpiphp=y
+    acpiphp, pciehp: acpiphp ignores, pciehp claims
+
+The above combinations all seem to end up with pciehp claiming the slot
+which raises the question: How do we get acpiphp to claim a slot today?
+
+Thanks,
+ Myron 
+> 
+> Thanks
+> 
+> Yinghai
+
+
