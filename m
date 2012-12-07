@@ -1,8 +1,8 @@
 From: Myron Stowe <myron.stowe@redhat.com>
-Subject: [PATCH 11/15] PCI/ACPI: Fix latent refcount issue in
-	acpi_pci_root_start()
-Date: Thu, 06 Dec 2012 23:25:59 -0700
-Message-ID: <20121207062559.11051.18764.stgit@amt.stowe>
+Subject: [PATCH 02/15] PCI/acpiphp: Fix coding style of external declarations
+	in acpiphp.h
+Date: Thu, 06 Dec 2012 23:25:06 -0700
+Message-ID: <20121207062505.11051.63536.stgit@amt.stowe>
 References: <20121207062454.11051.12739.stgit@amt.stowe>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,70 +14,53 @@ To: bhelgaas@google.com
 Cc: linux-pci@vger.kernel.org, yinghai@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-During early boot, the kernel performs ACPI enumeration in which host
-bridges are discovered (subsys_initcall(acpi_pci_root_init)).  Later
-drivers, both built-in and modules such as the "ACPI PCI Slot Detection
-Driver ("pci_slot")", are loaded (module_init(acpi_pci_slot_init)) thus we
-end up with the following call chain:
-  acpi_pci_root_start
-    list_for_each_entry(..., acpi_pci_drivers, ...)
-      driver->add(root)		# always no-op; list empty
-    pci_bus_add_devices
-  acpi_pci_slot_init		# module_init
-    acpi_pci_register_driver(acpi_pci_slot_driver)
-      list_for_each_entry(..., &acpi_pci_roots, ...)
-        driver->add(root)	# acpi_pci_slot_add()
+The external declarations trigger warnings from ./scripts/checkpatch.pl
+such as:
+  WARNING: space prohibited between function name and open parenthesis '('
+  #32: FILE: drivers/pci/hotplug/acpiphp.h:194:
+  +extern void acpiphp_glue_init (void);
 
-Note that for host bridges present at boot time the 'acpi_pci_drivers'
-list is always empty when acpi_pci_root_start() runs.
+This patch removes the extraneous spaces between the function names and
+open parenthesis '('.
 
-However, during a Host Bridge hot-add event, the "pci_slot" sub-driver is
-already on the 'acpi_pci_drivers' list and we end up calling
-acpi_pci_slot_add() before pci_bus_add_devices() and encounter the
-following refcount WARNING:
-  calling acpi_pci_slot_add():
-  pci_bus 0000:03: dev 00, created physical slot 1
-  ------------[ cut here ]------------
-  WARNING: at include/linux/kref.h:42 kobject_get+0x32/0x40()
-  Call Trace:
-   [<ffffffff812541d2>] kobject_get+0x32/0x40
-   [<ffffffff8133f0f9>] get_device+0x19/0x20
-   [<ffffffff812d9f11>] register_slot+0x216/0x26d
-   [<ffffffff812ce92f>] acpi_walk_namespace+0x8a/0xc4
-   [<ffffffff812d9cb9>] walk_p2p_bridge+0xf1/0x133
-   [<ffffffff812ce92f>] acpi_walk_namespace+0x8a/0xc4
-   [<ffffffff812d9b71>] acpi_pci_slot_add+0xe0/0x137
-   [<ffffffff812b8705>] acpi_pci_root_start+0x3e/0x59
-
-This patch fixes this latent issue by moving up pci_bus_add_devices() so
-that the refcount will be initialized before subsequent references, via
-driver additions from the 'acpi_pci_drivers' list, occur.
+No functional change.
 
 Signed-off-by: Myron Stowe <myron.stowe@redhat.com>
 ---
 
- drivers/acpi/pci_root.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/pci/hotplug/acpiphp.h |   20 ++++++++++----------
+ 1 files changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index d890322..f9be8fb 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -644,6 +644,8 @@ static int acpi_pci_root_start(struct acpi_device *device)
- 	struct acpi_pci_root *root = acpi_driver_data(device);
- 	struct acpi_pci_driver *driver;
+diff --git a/drivers/pci/hotplug/acpiphp.h b/drivers/pci/hotplug/acpiphp.h
+index a1afb5b..014ae78 100644
+--- a/drivers/pci/hotplug/acpiphp.h
++++ b/drivers/pci/hotplug/acpiphp.h
+@@ -191,18 +191,18 @@ extern int acpiphp_register_hotplug_slot(struct acpiphp_slot *slot);
+ extern void acpiphp_unregister_hotplug_slot(struct acpiphp_slot *slot);
  
-+	pci_bus_add_devices(root->bus);
-+
- 	mutex_lock(&acpi_pci_root_lock);
- 	list_for_each_entry(driver, &acpi_pci_drivers, node)
- 		if (driver->add)
-@@ -651,8 +653,6 @@ static int acpi_pci_root_start(struct acpi_device *device)
- 	acpiphp_add_bridge(root);
- 	mutex_unlock(&acpi_pci_root_lock);
+ /* acpiphp_glue.c */
+-extern int acpiphp_glue_init (void);
+-extern void acpiphp_glue_exit (void);
+-extern int acpiphp_get_num_slots (void);
++extern int acpiphp_glue_init(void);
++extern void acpiphp_glue_exit(void);
++extern int acpiphp_get_num_slots(void);
+ typedef int (*acpiphp_callback)(struct acpiphp_slot *slot, void *data);
  
--	pci_bus_add_devices(root->bus);
--
- 	return 0;
- }
+-extern int acpiphp_enable_slot (struct acpiphp_slot *slot);
+-extern int acpiphp_disable_slot (struct acpiphp_slot *slot);
+-extern int acpiphp_eject_slot (struct acpiphp_slot *slot);
+-extern u8 acpiphp_get_power_status (struct acpiphp_slot *slot);
+-extern u8 acpiphp_get_attention_status (struct acpiphp_slot *slot);
+-extern u8 acpiphp_get_latch_status (struct acpiphp_slot *slot);
+-extern u8 acpiphp_get_adapter_status (struct acpiphp_slot *slot);
++extern int acpiphp_enable_slot(struct acpiphp_slot *slot);
++extern int acpiphp_disable_slot(struct acpiphp_slot *slot);
++extern int acpiphp_eject_slot(struct acpiphp_slot *slot);
++extern u8 acpiphp_get_power_status(struct acpiphp_slot *slot);
++extern u8 acpiphp_get_attention_status(struct acpiphp_slot *slot);
++extern u8 acpiphp_get_latch_status(struct acpiphp_slot *slot);
++extern u8 acpiphp_get_adapter_status(struct acpiphp_slot *slot);
  
+ /* variables */
+ extern bool acpiphp_debug;
