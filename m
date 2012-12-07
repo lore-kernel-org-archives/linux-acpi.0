@@ -1,79 +1,55 @@
 From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [RFC PATCH v3 1/4] UART: Add UART subsystem as a bus.
-Date: Fri, 7 Dec 2012 03:52:03 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E88BD7485@SHSMSX101.ccr.corp.intel.com>
+Subject: RE: [RFC PATCH 1/3] UART: Add UART subsystem as a bus.
+Date: Fri, 7 Dec 2012 04:54:40 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88BD756A@SHSMSX101.ccr.corp.intel.com>
 References: <cover.1354505471.git.lv.zheng@intel.com>
-	<cover.1354785372.git.lv.zheng@intel.com>
-	<c561ccd12ef845a7f30f26dfb706bb569e7244a7.1354785372.git.lv.zheng@intel.com>
- <20121206134020.0747af0f@bob.linux.org.uk>
+	<6d5fc2e0799c12554aa8acdb2d7782ba8643902b.1354505472.git.lv.zheng@intel.com>
+	<20121204185404.GQ3117@intel.com>	<20121204195030.238d1b71@bob.linux.org.uk>
+	<20121205062015.GR3117@intel.com>
+	<20121205094343.09d653c5@pyramind.ukuu.org.uk>
+	<1AE640813FDE7649BE1B193DEA596E88BD6C94@SHSMSX101.ccr.corp.intel.com>
+ <20121206135341.148b325e@pyramind.ukuu.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:17266 "EHLO mga09.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:39664 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755729Ab2LGDwJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Dec 2012 22:52:09 -0500
-In-Reply-To: <20121206134020.0747af0f@bob.linux.org.uk>
+	id S932751Ab2LGEyp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Dec 2012 23:54:45 -0500
+In-Reply-To: <20121206135341.148b325e@pyramind.ukuu.org.uk>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Cox <alan@linux.intel.com>
-Cc: "Brown, Len" <len.brown@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "H. Peter Anvin (hpa@linux.intel.com)" <hpa@linux.intel.com>
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Alan Cox <alan@linux.intel.com>, "Brown, Len" <len.brown@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "Huang, Ying" <ying.huang@intel.com>
 
-> > enumerated and userspace can obtain the hotplug event of the UART
-> > target devices. Linux kernel is lack of an overall enumeration
-> > mechanism for UART target devices.
+> > > We just need a set of type names for the sysfs node I think
+> > > "bluetooth", "ups", "loconet", "serial", "modem", "cir" etc...
+> >
+> > Is it a good idea to introduce uart_device driver in the kernel to fill a new
+> 'ldisc' member in the uart_device or to load ldisc by default for the
+> corresponding tty_port?
 > 
-> ls /sys/class/tty/
-
-I'm searching for a target "physical" device while the "tty device" looks more like a "functional" device.
-
-IMO, an ideal driver model is:
-Creating a strict IO topology for all of the physical buses w/ physical devices created within this hierarchy, then make the abstract things "class devices", including the "functional devices" and the "filter devices".
-The examples of the "physical devices": platform device, uart_device, i2c_client, spi_device
-The examples of the "functional devices": tty device, i2c_adapter, spi_master
-The examples of the "filter devices": ppp device
-
-If this rule is strictly obeyed by all of the subsystems, then:
-1. the hardware PM can be added to the physical devices
-2. the functional devices will inc/dec the PM reference count for the physical devices <- this can help to add request based runtime PM
-3. the other filter devices/drivers can call the APIs provided by the functional devices, some of them may affect the PM ref count.
-Implementing OS guided power management might be simpler:
-1. if a bus offered PM support, it should appear in the bus_type
-2. if a platform offered PM support, it should appear as PM_domain
-Currently, Linux allows enabling of PM support for device_type, if things are cleaned up, the use of device_type PM can be reduced.
-
-If a device was handling hardware stuff including the PM, it should be a "physical device".
-If a device was offering communication means, it should be a "functional device".
-If a device was using the communication means, it should be a "filter device".
-So how could a tty device be a physical device? If we enable PM for it, dpm_list order will be crushed, issues might occur on system suspending/resuming.
-
-> > In order to send uevent, a device need to be a class device or a bus
-> > device. This patch introduces a bus_type subsystem to manage the new
+> No but it can provide information to help user space. In many cases the
+> decision isn't about a line discipline but about automatically setting permissions
+> or linking ports to the right driver.
 > 
-> I still don't see why the existing tty class interfaces cannot be used, the hints
-> from ACPI (or anywhere else) cannot be attached as properties to the tty driver
-> and device sysfs
+> The hints need to be generic - they can come from open firmware, from pci
+> identifiers, from ACPI and so on.
 
-I checked the PM call chain, then found the followings:
+Userspace need to know more than a simple type name to match the driver.
+For example,
+Atheros BT will send wrapped HCI packets from their HSU BT adapters, so they need to see "ath3000" rather than "bluetooth" to load a kernel hci protocol module for the device.
+As we can see, in the i2c/spi world, there is only "type" field filling w/ chip name, not 2 fields - "type" filled w/ generic type and "id" filled w/ chip name.
+Userspace can figure the generic "type" from the un-generic chip name like "type".
+I just wonder will there be issues caused by following this design?
 
-On system suspending:
-  adapter.suspend -> for_each_port(uart_suspend_port) -> uart_change_pm(3) -> uart_ops->pm -> uart_port->pm
-On system resuming:
-  adapter.resume -> for_each_port(uart_resume_port) -> uart_change_pm(0) -> uart_ops->pm -> uart_port->pm
-Where the adapter could be platform devices.
+> > Shall we change the uart_bus to the tty_bus, then introduce tty_host /
+> tty_target for the bus?
+> 
+> We have a tty class - is that not sufficient ?
 
-On tty file opening:
- uart_open -> uart_change_pm(0) -> uart_ops->pm -> uart_port->pm
-On tty file closing:
- uart_close -> uart_change_pm(3) -> uart_ops->pm -> uart_port->pm
+As I mentioned in the previous mail, I'll keep the current naming rule until I see some objections strong enough.
 
-And I checked the PM implementation, most of the drivers will enable/disable the "HOST" side port clock there and only few of them will lower the required terminal lines to tell the target devices to enter a low power state.
-So I was just thinking if the tty device was used as physical device in the community, it might be used as "host" side physical device, and my patch was trying to enable a "target" side physical device.
-
-Adding driver support for such "target physical uart device" sounds a good idea. But I need an explicit approval for adding the kernel resident driver.
-
-Best regards
 -Lv
-
