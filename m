@@ -1,81 +1,93 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH v9 06/10] ata: zpodd: check zero power ready status
-Date: Fri, 07 Dec 2012 14:13:46 +0800
-Message-ID: <50C1891A.7040900@intel.com>
-References: <1352443922-13734-1-git-send-email-aaron.lu@intel.com>  <35648985.61QNrr0Knq@vostro.rjw.lan> <1353906191.2523.25.camel@dabdike>  <21511277.LLinyDpbAK@vostro.rjw.lan>  <20121128013928.GB15971@htj.dyndns.org> <1354092969.2276.49.camel@dabdike>  <20121203081321.GA9990@mint-spring.sh.intel.com>  <1354523143.2307.2.camel@dabdike.int.hansenpartnership.com>  <20121203162323.GB19802@htj.dyndns.org> <1354623100.3206.34.camel@dabdike.int.hansenpartnership.com>
+From: Myron Stowe <myron.stowe@redhat.com>
+Subject: [PATCH 00/15] PCI/ACPI: Remove "pci_root" sub-driver support
+Date: Thu, 06 Dec 2012 23:24:54 -0700
+Message-ID: <20121207062454.11051.12739.stgit@amt.stowe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <1354623100.3206.34.camel@dabdike.int.hansenpartnership.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: James Bottomley <James.Bottomley@HansenPartnership.com>, Tejun Heo <tj@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@vger.kernel.org, Jeff Garzik <jgarzik@pobox.com>, Alan Stern <stern@rowland.harvard.edu>, Jeff Wu <jeff.wu@amd.com>, Aaron Lu <aaron.lwe@gmail.com>, linux-ide@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:11008 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752889Ab2LGGY5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 7 Dec 2012 01:24:57 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: bhelgaas@google.com
+Cc: linux-pci@vger.kernel.org, yinghai@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 12/04/2012 08:11 PM, James Bottomley wrote:
-> On Mon, 2012-12-03 at 08:23 -0800, Tejun Heo wrote:
->> Hello, James.
->>
->> On Mon, Dec 03, 2012 at 08:25:43AM +0000, James Bottomley wrote:
->>>> diff --git a/include/scsi/scsi_device.h b/include/scsi/scsi_device.h
->>>> index e65c62e..1756151 100644
->>>> --- a/include/scsi/scsi_device.h
->>>> +++ b/include/scsi/scsi_device.h
->>>> @@ -160,6 +160,7 @@ struct scsi_device {
->>>>  	unsigned can_power_off:1; /* Device supports runtime power off */
->>>>  	unsigned wce_default_on:1;	/* Cache is ON by default */
->>>>  	unsigned no_dif:1;	/* T10 PI (DIF) should be disabled */
->>>> +	unsigned event_driven:1; /* No need to poll the device */
->>>>  
->>>>  	DECLARE_BITMAP(supported_events, SDEV_EVT_MAXBITS); /* supported events */
->>>>  	struct list_head event_list;	/* asserted events */
->>>
->>> Yes, but if we can get away with doing that, it should be in genhd
->>> because it's completely generic.
->>>
->>> I was imagining we'd have to fake the reply to the test unit ready or
->>> some other commands, which is why it would need to be in sr.c
->>>
->>> The check events code is Tejun's baby, if he's OK with it then just do
->>> it in genhd.c
->>
->> The problem here is there's no easy to reach genhd from libata (or the
->> other way around) without going through sr.  I think we're gonna have
->> to have something in sr one way or the other.
-> 
-> Can't we do that via an event? It's a bit clunky because we need the
-> callback in the layer that sees the sdev, which is libata-scsi, we just
-> need an analogue of ata_scsi_media_change_notify, but ignoring and
-> allowing polling is essentially event driven as well, so it should all
-> work.  We'll need a listener in genhd, which might be trickier.
+The "PCI Root Bridge ("pci_root")" driver includes support for attaching
+sub-drivers.  acpi_pci_register_driver() and acpi_pci_unregister_driver()
+are the interfaces that sub-drivers use to attach themselves.
 
-Hi Tejun,
+Currently there are only two callers of acpi_pci_register_driver(): the
+"ACPI Hot Plug PCI Controller Driver ("acpiphp")" and "ACPI PCI Slot
+Detection Driver ("pci_slot")" sub-drivers.
 
-Do you have any comments on James' suggestion? I want to know your
-opinion, thanks.
+Sub-drivers may be compiled as modules.  Kernel modules are instantiated
+somewhat randomly - the order in which they are linked as the kernel as
+built - thus if there are any dependencies on the ordering of attaching
+sub-drivers, they can not be effectively dealt with.
 
-Hi James,
+This patch series resolves any potential sequencing inter-dependencies by
+converting sub-driver functionality to being only supported as statically
+built-in to the kernel as part of the "pci_root" driver itself (i.e. no
+longer supported as a module).  Inter-dependencies can then be effectively
+handled by explicitly sequencing the addition of such functionality.
 
-Do you mean we start a thread in genhd that listen to events, so that
-some driver can send an event to genhd about if the device should be
-polled? I'm thinking where to store such information. If store it in
-struct disk_events, then we will need to know which gendisk is for
-the device, but how? Maybe by loop scan all gendisk's driverfs_dev?
-If store it in struct device, then we do not need to send the event but
-just set a flag in sturct device in libata, and let genhd check this
-flag when poll. So I don't quite understand this, can you please
-elaborate? Thanks.
 
-Thanks,
-Aaron
+The series begins with a patch from Yinghai Lu's "PCI, ACPI, x86: pci root
+bus hotplug support" series that separates host bridge specific hot-plug
+functionality from PCI device hot-plug functionality.  This patch
+significantly simplifies a fairly confusing implementation due to the
+co-mingling that currently exists.
+  Reference: https://lkml.org/lkml/2012/9/19/413
 
-> 
-> This may also work as the more generic route for stuff where we can't
-> connect the bottom to the top of the stack (which looks like a problem
-> we'll begin wrestling with a lot now).
-> 
-> James
-> 
-> 
+The rest of the patches in this series implement the conversion of the
+"PCI Root Bridge" sub-drivers.  This also simplifies the implementation as
+is revealed by a 'diffstat' of the respective, conversion related,
+patches: 9 files changed, 86 insertions(+), 237 deletions(-)
 
+
+This series is targeting the 3.9 merge window.  I expect that after
+3.8-rc1 is released, a -v2 of this series will be required due to Bill
+Pemberton's "[PATCH 000/493] remove CONFIG_HOTPLUG as an option" series.
+That said, I wanted to go ahead and get this out now in order to solicit
+feedback.
+  Reference: https://lkml.org/lkml/2012/11/16/660
+---
+
+Myron Stowe (14):
+      PCI/ACPI: Remove the "pci_root" driver's sub-driver infrastructure
+      PCI/ACPI: Add "pci_slot" functionality statically within "pci_root"
+      PCI/ACPI: Convert "pci_slot" sub-driver's functionality to built-in only
+      PCI/ACPI: Move where dmi_check_system() is called from
+      PCI/ACPI: Fix latent refcount issue in acpi_pci_root_start()
+      PCI/acpiphp: Change acpiphp_add_bridge() to return void instead of 0
+      PCI/acpiphp: Add "acpiphp" functionality statically within "pci_root"
+      PCI/acpiphp: Collapse the initialization call chain of "acpiphp" further
+      PCI/acpiphp: Declare acpi_{add,remove}_bridge() as external functions
+      PCI/acpiphp: Convert "acpiphp" sub-driver's functionality to built-in only
+      PCI/acpiphp: Collapse initialization call chain of "acpiphp" sub-driver
+      PCI/acpiphp: Change acpiphp_glue_init() to return void instead of 0
+      PCI/acpiphp: Leave the "acpiphp" sub-driver registered and in place
+      PCI/acpiphp: Fix coding style of external declarations in acpiphp.h
+
+Yinghai Lu (1):
+      PCI, acpiphp: Separate out hot-add support of pci host bridge
+
+
+ drivers/acpi/Kconfig               |    5 -
+ drivers/acpi/Makefile              |    1 
+ drivers/acpi/pci_root.c            |   50 +-------
+ drivers/acpi/pci_root_hp.c         |  228 ++++++++++++++++++++++++++++++++++++
+ drivers/acpi/pci_slot.c            |   84 +++++--------
+ drivers/pci/hotplug/Kconfig        |    5 -
+ drivers/pci/hotplug/acpiphp.h      |   17 +--
+ drivers/pci/hotplug/acpiphp_core.c |   45 -------
+ drivers/pci/hotplug/acpiphp_glue.c |  115 +++---------------
+ include/linux/acpi.h               |    9 -
+ include/linux/pci-acpi.h           |   16 +++
+ 11 files changed, 312 insertions(+), 263 deletions(-)
+ create mode 100644 drivers/acpi/pci_root_hp.c
+
+-- 
