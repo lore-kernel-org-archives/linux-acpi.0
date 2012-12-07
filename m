@@ -1,8 +1,8 @@
 From: Myron Stowe <myron.stowe@redhat.com>
-Subject: [PATCH 15/15] PCI/ACPI: Remove the "pci_root" driver's sub-driver
-	infrastructure
-Date: Thu, 06 Dec 2012 23:26:23 -0700
-Message-ID: <20121207062622.11051.48770.stgit@amt.stowe>
+Subject: [PATCH 11/15] PCI/ACPI: Fix latent refcount issue in
+	acpi_pci_root_start()
+Date: Thu, 06 Dec 2012 23:25:59 -0700
+Message-ID: <20121207062559.11051.18764.stgit@amt.stowe>
 References: <20121207062454.11051.12739.stgit@amt.stowe>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,115 +14,70 @@ To: bhelgaas@google.com
 Cc: linux-pci@vger.kernel.org, yinghai@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Both sub-drivers of the "PCI Root Bridge ("pci_bridge")" driver, "acpiphp"
-and "pci_slot", have been converted to statically built-in functionality
-added directly from within "pci_bridge".
+During early boot, the kernel performs ACPI enumeration in which host
+bridges are discovered (subsys_initcall(acpi_pci_root_init)).  Later
+drivers, both built-in and modules such as the "ACPI PCI Slot Detection
+Driver ("pci_slot")", are loaded (module_init(acpi_pci_slot_init)) thus we
+end up with the following call chain:
+  acpi_pci_root_start
+    list_for_each_entry(..., acpi_pci_drivers, ...)
+      driver->add(root)		# always no-op; list empty
+    pci_bus_add_devices
+  acpi_pci_slot_init		# module_init
+    acpi_pci_register_driver(acpi_pci_slot_driver)
+      list_for_each_entry(..., &acpi_pci_roots, ...)
+        driver->add(root)	# acpi_pci_slot_add()
 
-With the conversions there are no remaining usages of the 'struct
-acpi_pci_driver' list based infrastructure.  This patch removes it.
+Note that for host bridges present at boot time the 'acpi_pci_drivers'
+list is always empty when acpi_pci_root_start() runs.
+
+However, during a Host Bridge hot-add event, the "pci_slot" sub-driver is
+already on the 'acpi_pci_drivers' list and we end up calling
+acpi_pci_slot_add() before pci_bus_add_devices() and encounter the
+following refcount WARNING:
+  calling acpi_pci_slot_add():
+  pci_bus 0000:03: dev 00, created physical slot 1
+  ------------[ cut here ]------------
+  WARNING: at include/linux/kref.h:42 kobject_get+0x32/0x40()
+  Call Trace:
+   [<ffffffff812541d2>] kobject_get+0x32/0x40
+   [<ffffffff8133f0f9>] get_device+0x19/0x20
+   [<ffffffff812d9f11>] register_slot+0x216/0x26d
+   [<ffffffff812ce92f>] acpi_walk_namespace+0x8a/0xc4
+   [<ffffffff812d9cb9>] walk_p2p_bridge+0xf1/0x133
+   [<ffffffff812ce92f>] acpi_walk_namespace+0x8a/0xc4
+   [<ffffffff812d9b71>] acpi_pci_slot_add+0xe0/0x137
+   [<ffffffff812b8705>] acpi_pci_root_start+0x3e/0x59
+
+This patch fixes this latent issue by moving up pci_bus_add_devices() so
+that the refcount will be initialized before subsequent references, via
+driver additions from the 'acpi_pci_drivers' list, occur.
 
 Signed-off-by: Myron Stowe <myron.stowe@redhat.com>
 ---
 
- drivers/acpi/pci_root.c |   42 +-----------------------------------------
- include/linux/acpi.h    |    9 ---------
- 2 files changed, 1 insertions(+), 50 deletions(-)
+ drivers/acpi/pci_root.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index 42566e2..7cde9dc 100644
+index d890322..f9be8fb 100644
 --- a/drivers/acpi/pci_root.c
 +++ b/drivers/acpi/pci_root.c
-@@ -71,44 +71,12 @@ static struct acpi_driver acpi_pci_root_driver = {
- 		},
- };
- 
--/* Lock to protect both acpi_pci_roots and acpi_pci_drivers lists */
-+/* Lock to protect acpi_pci_roots list */
- static DEFINE_MUTEX(acpi_pci_root_lock);
- static LIST_HEAD(acpi_pci_roots);
--static LIST_HEAD(acpi_pci_drivers);
- 
- static DEFINE_MUTEX(osc_lock);
- 
--int acpi_pci_register_driver(struct acpi_pci_driver *driver)
--{
--	int n = 0;
--	struct acpi_pci_root *root;
--
--	mutex_lock(&acpi_pci_root_lock);
--	list_add_tail(&driver->node, &acpi_pci_drivers);
--	if (driver->add)
--		list_for_each_entry(root, &acpi_pci_roots, node) {
--			driver->add(root);
--			n++;
--		}
--	mutex_unlock(&acpi_pci_root_lock);
--
--	return n;
--}
--EXPORT_SYMBOL(acpi_pci_register_driver);
--
--void acpi_pci_unregister_driver(struct acpi_pci_driver *driver)
--{
--	struct acpi_pci_root *root;
--
--	mutex_lock(&acpi_pci_root_lock);
--	list_del(&driver->node);
--	if (driver->remove)
--		list_for_each_entry(root, &acpi_pci_roots, node)
--			driver->remove(root);
--	mutex_unlock(&acpi_pci_root_lock);
--}
--EXPORT_SYMBOL(acpi_pci_unregister_driver);
--
- acpi_handle acpi_get_pci_rootbridge_handle(unsigned int seg, unsigned int bus)
- {
- 	struct acpi_pci_root *root;
-@@ -642,14 +610,10 @@ end:
- static int acpi_pci_root_start(struct acpi_device *device)
- {
+@@ -644,6 +644,8 @@ static int acpi_pci_root_start(struct acpi_device *device)
  	struct acpi_pci_root *root = acpi_driver_data(device);
--	struct acpi_pci_driver *driver;
+ 	struct acpi_pci_driver *driver;
  
- 	pci_bus_add_devices(root->bus);
- 
++	pci_bus_add_devices(root->bus);
++
  	mutex_lock(&acpi_pci_root_lock);
--	list_for_each_entry(driver, &acpi_pci_drivers, node)
--		if (driver->add)
--			driver->add(root);
+ 	list_for_each_entry(driver, &acpi_pci_drivers, node)
+ 		if (driver->add)
+@@ -651,8 +653,6 @@ static int acpi_pci_root_start(struct acpi_device *device)
  	acpiphp_add_bridge(root);
- 	acpi_pci_slot_add(root);
  	mutex_unlock(&acpi_pci_root_lock);
-@@ -660,12 +624,8 @@ static int acpi_pci_root_start(struct acpi_device *device)
- static int acpi_pci_root_remove(struct acpi_device *device, int type)
- {
- 	struct acpi_pci_root *root = acpi_driver_data(device);
--	struct acpi_pci_driver *driver;
  
- 	mutex_lock(&acpi_pci_root_lock);
--	list_for_each_entry(driver, &acpi_pci_drivers, node)
--		if (driver->remove)
--			driver->remove(root);
- 	acpi_pci_slot_remove(root);
- 	acpiphp_remove_bridge(root);
- 
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 90be989..8e2b65f 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -137,15 +137,6 @@ void acpi_penalize_isa_irq(int irq, int active);
- 
- void acpi_pci_irq_disable (struct pci_dev *dev);
- 
--struct acpi_pci_driver {
--	struct list_head node;
--	int (*add)(struct acpi_pci_root *root);
--	void (*remove)(struct acpi_pci_root *root);
--};
+-	pci_bus_add_devices(root->bus);
 -
--int acpi_pci_register_driver(struct acpi_pci_driver *driver);
--void acpi_pci_unregister_driver(struct acpi_pci_driver *driver);
--
- extern int ec_read(u8 addr, u8 *val);
- extern int ec_write(u8 addr, u8 val);
- extern int ec_transaction(u8 command,
+ 	return 0;
+ }
+ 
