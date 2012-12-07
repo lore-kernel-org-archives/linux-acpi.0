@@ -1,83 +1,58 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] X86/acpi: remove redundant logic of acpi memory hotadd
-Date: Fri, 07 Dec 2012 23:19:29 +0100
-Message-ID: <4326596.xCAz7vOgOp@vostro.rjw.lan>
-References: <DE8DF0795D48FD4CA783C40EC829233539DED4@SHSMSX101.ccr.corp.intel.com>
+Subject: Re: [PATCH] ACPI: add Haswell LPSS devices to acpi_platform_device_ids list
+Date: Fri, 07 Dec 2012 23:28:32 +0100
+Message-ID: <2687190.2D3RhPKGYB@vostro.rjw.lan>
+References: <1354874882-1162-1-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:44614 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:44638 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1424688Ab2LGWOf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 7 Dec 2012 17:14:35 -0500
-In-Reply-To: <DE8DF0795D48FD4CA783C40EC829233539DED4@SHSMSX101.ccr.corp.intel.com>
+	id S1753971Ab2LGWXg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 7 Dec 2012 17:23:36 -0500
+In-Reply-To: <1354874882-1162-1-git-send-email-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Liu, Jinsong" <jinsong.liu@intel.com>, Toshi Kani <toshi.kani@hp.com>, Wen Congyang <wency@cn.fujitsu.com>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Jiang Liu <jiang.liu@huawei.com>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 
-On Tuesday, December 04, 2012 01:39:54 AM Liu, Jinsong wrote:
-> Resend it, add Rafael and linux-acpi@vger.kernel.org
+On Friday, December 07, 2012 12:08:02 PM Mika Westerberg wrote:
+> All devices behind Haswell LPSS (Low Power Subsystem) should be represented
+> as platform devices so add them to the acpi_platform_device_ids list.
+> 
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-I wonder what memory hotplug people think about that.
+Applied.
 
 Thanks,
 Rafael
 
 
-> ===============
-> From 1d39279e45c54ce531691da5ffe261e7689dd92c Mon Sep 17 00:00:00 2001
-> From: Liu Jinsong <jinsong.liu@intel.com>
-> Date: Wed, 14 Nov 2012 18:52:06 +0800
-> Subject: [PATCH] X86/acpi: remove redundant logic of acpi memory hotadd
-> 
-> When memory hotadd, acpi_memory_enable_device has already been done
-> at drv->ops.add (acpi_memory_device_add), no need to do it again
-> at notify callback.
-> 
-> At acpi_memory_enable_device, acpi_memory_get_device_resources
-> is also a redundant action, since it has been done at drv->ops.add.
-> 
-> Signed-off-by: Liu Jinsong <jinsong.liu@intel.com>
 > ---
->  drivers/acpi/acpi_memhotplug.c |   17 -----------------
->  1 files changed, 0 insertions(+), 17 deletions(-)
+>  drivers/acpi/scan.c |   10 ++++++++++
+>  1 file changed, 10 insertions(+)
 > 
-> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-> index 24c807f..a6489fd 100644
-> --- a/drivers/acpi/acpi_memhotplug.c
-> +++ b/drivers/acpi/acpi_memhotplug.c
-> @@ -220,15 +220,6 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
->  	struct acpi_memory_info *info;
->  	int node;
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 67a7fa6..8ee379e 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -37,6 +37,16 @@ static const struct acpi_device_id acpi_platform_device_ids[] = {
 >  
-> -
-> -	/* Get the range from the _CRS */
-> -	result = acpi_memory_get_device_resources(mem_device);
-> -	if (result) {
-> -		printk(KERN_ERR PREFIX "get_device_resources failed\n");
-> -		mem_device->state = MEMORY_INVALID_STATE;
-> -		return result;
-> -	}
-> -
->  	node = acpi_get_node(mem_device->device->handle);
->  	/*
->  	 * Tell the VM there is more memory here...
-> @@ -357,14 +348,6 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
->  			break;
->  		}
+>  	{ "PNP0D40" },
 >  
-> -		if (acpi_memory_check_device(mem_device))
-> -			break;
-> -
-> -		if (acpi_memory_enable_device(mem_device)) {
-> -			printk(KERN_ERR PREFIX "Cannot enable memory device\n");
-> -			break;
-> -		}
-> -
->  		ost_code = ACPI_OST_SC_SUCCESS;
->  		break;
+> +	/* Haswell LPSS devices */
+> +	{ "INT33C0", 0 },
+> +	{ "INT33C1", 0 },
+> +	{ "INT33C2", 0 },
+> +	{ "INT33C3", 0 },
+> +	{ "INT33C4", 0 },
+> +	{ "INT33C5", 0 },
+> +	{ "INT33C6", 0 },
+> +	{ "INT33C7", 0 },
+> +
+>  	{ }
+>  };
 >  
 > 
 -- 
