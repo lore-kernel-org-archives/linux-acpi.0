@@ -1,68 +1,222 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [RFC PATCH 1/3] UART: Add UART subsystem as a bus.
-Date: Fri, 7 Dec 2012 05:41:20 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E88BD75D2@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1354505471.git.lv.zheng@intel.com>
-	<6d5fc2e0799c12554aa8acdb2d7782ba8643902b.1354505472.git.lv.zheng@intel.com>
-	<20121204185404.GQ3117@intel.com>	<20121204195030.238d1b71@bob.linux.org.uk>
-	<20121205062015.GR3117@intel.com>
-	<20121205094343.09d653c5@pyramind.ukuu.org.uk>
-	<1AE640813FDE7649BE1B193DEA596E88BD6C94@SHSMSX101.ccr.corp.intel.com>
- <20121206135341.148b325e@pyramind.ukuu.org.uk>
- <1AE640813FDE7649BE1B193DEA596E88BD756A@SHSMSX101.ccr.corp.intel.com>
+From: Jiang Liu <jiang.liu@huawei.com>
+Subject: Re: [RFC PATCH v3 0/3] acpi: Introduce prepare_remove device operation
+Date: Fri, 7 Dec 2012 13:57:01 +0800
+Message-ID: <50C1852D.3000104@huawei.com>
+References: <1353693037-21704-1-git-send-email-vasilis.liaskovitis@profitbricks.com>     <50B5EFE9.3040206@huawei.com>    <1354128096.26955.276.camel@misato.fc.hp.com>   <50B6E936.2080308@huawei.com> <1354228028.7776.56.camel@misato.fc.hp.com>   <50BC29C6.6050706@huawei.com> <1354579848.21585.54.camel@misato.fc.hp.com>  <50C0CA90.7010608@gmail.com> <1354849065.21116.61.camel@misato.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88BD756A@SHSMSX101.ccr.corp.intel.com>
-Content-Language: en-US
-Sender: linux-serial-owner@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Alan Cox <alan@linux.intel.com>, "Brown, Len" <len.brown@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "Huang, Ying" <ying.huang@intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga01-in.huawei.com ([119.145.14.64]:34365 "EHLO
+	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751265Ab2LGF5u (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Dec 2012 00:57:50 -0500
+In-Reply-To: <1354849065.21116.61.camel@misato.fc.hp.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: Jiang Liu <liuj97@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Hanjun Guo <guohanjun@huawei.com>, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, linux-acpi@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, wency@cn.fujitsu.com, lenb@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Tang Chen <tangchen@cn.fujitsu.com>, Huxinwei <huxinwei@huawei.com>
 
-> > > > We just need a set of type names for the sysfs node I think
-> > > > "bluetooth", "ups", "loconet", "serial", "modem", "cir" etc...
-> > >
-> > > Is it a good idea to introduce uart_device driver in the kernel to
-> > > fill a new
-> > 'ldisc' member in the uart_device or to load ldisc by default for the
-> > corresponding tty_port?
-> >
-> > No but it can provide information to help user space. In many cases
-> > the decision isn't about a line discipline but about automatically
-> > setting permissions or linking ports to the right driver.
-> >
-> > The hints need to be generic - they can come from open firmware, from
-> > pci identifiers, from ACPI and so on.
+On 2012-12-7 10:57, Toshi Kani wrote:
+> On Fri, 2012-12-07 at 00:40 +0800, Jiang Liu wrote:
+>> On 12/04/2012 08:10 AM, Toshi Kani wrote:
+>>> On Mon, 2012-12-03 at 12:25 +0800, Hanjun Guo wrote:
+>>>> On 2012/11/30 6:27, Toshi Kani wrote:
+>>>>> On Thu, 2012-11-29 at 12:48 +0800, Hanjun Guo wrote:
+>>>>>> On 2012/11/29 2:41, Toshi Kani wrote:
+>>>>>>> On Wed, 2012-11-28 at 19:05 +0800, Hanjun Guo wrote:
+>>>>>>>> On 2012/11/24 1:50, Vasilis Liaskovitis wrote:
+>>>>>>>> As you may know, the ACPI based hotplug framework we are working on already addressed
+>>>>>>>> this problem, and the way we slove this problem is a bit like yours.
+>>>>>>>>
+>>>>>>>> We introduce hp_ops in struct acpi_device_ops:
+>>>>>>>> struct acpi_device_ops {
+>>>>>>>> 	acpi_op_add add;
+>>>>>>>> 	acpi_op_remove remove;
+>>>>>>>> 	acpi_op_start start;
+>>>>>>>> 	acpi_op_bind bind;
+>>>>>>>> 	acpi_op_unbind unbind;
+>>>>>>>> 	acpi_op_notify notify;
+>>>>>>>> #ifdef	CONFIG_ACPI_HOTPLUG
+>>>>>>>> 	struct acpihp_dev_ops *hp_ops;
+>>>>>>>> #endif	/* CONFIG_ACPI_HOTPLUG */
+>>>>>>>> };
+>>>>>>>>
+>>>>>>>> in hp_ops, we divide the prepare_remove into six small steps, that is:
+>>>>>>>> 1) pre_release(): optional step to mark device going to be removed/busy
+>>>>>>>> 2) release(): reclaim device from running system
+>>>>>>>> 3) post_release(): rollback if cancelled by user or error happened
+>>>>>>>> 4) pre_unconfigure(): optional step to solve possible dependency issue
+>>>>>>>> 5) unconfigure(): remove devices from running system
+>>>>>>>> 6) post_unconfigure(): free resources used by devices
+>>>>>>>>
+>>>>>>>> In this way, we can easily rollback if error happens.
+>>>>>>>> How do you think of this solution, any suggestion ? I think we can achieve
+>>>>>>>> a better way for sharing ideas. :)
+>>>>>>>
+>>>>>>> Yes, sharing idea is good. :)  I do not know if we need all 6 steps (I
+>>>>>>> have not looked at all your changes yet..), but in my mind, a hot-plug
+>>>>>>> operation should be composed with the following 3 phases.
+>>>>>>
+>>>>>> Good idea ! we also implement a hot-plug operation in 3 phases:
+>>>>>> 1) acpihp_drv_pre_execute
+>>>>>> 2) acpihp_drv_execute
+>>>>>> 3) acpihp_drv_post_execute
+>>>>>> you may refer to :
+>>>>>> https://lkml.org/lkml/2012/11/4/79
+>>>>>
+>>>>> Great.  Yes, I will take a look.
+>>>>
+>>>> Thanks, any comments are welcomed :)
+>>>
+>>> If I read the code right, the framework calls ACPI drivers differently
+>>> at boot-time and hot-add as follows.  That is, the new entry points are
+>>> called at hot-add only, but .add() is called at both cases.  This
+>>> requires .add() to work differently.
+>>>
+>>> Boot    : .add()
+>>> Hot-Add : .add(), .pre_configure(), configure(), etc.
+>>>
+>>> I think the boot-time and hot-add initialization should be done
+>>> consistently.  While there is difficulty with the current boot sequence,
+>>> the framework should be designed to allow them consistent, not make them
+>>> diverged.
+>> Hi Toshi,
+>> 	We have separated hotplug operations from driver binding/unbinding interface
+>> due to following considerations.
+>> 1) Physical CPU and memory devices are initialized/used before the ACPI subsystem
+>>    is initialized. So under normal case, .add() of processor and acpi_memhotplug only
+>>    figures out information about device already in working state instead of starting
+>>    the device.
 > 
-> Userspace need to know more than a simple type name to match the driver.
-> For example,
-> Atheros BT will send wrapped HCI packets from their HSU BT adapters, so they
-> need to see "ath3000" rather than "bluetooth" to load a kernel hci protocol
-> module for the device.
-> As we can see, in the i2c/spi world, there is only "type" field filling w/ chip name,
-> not 2 fields - "type" filled w/ generic type and "id" filled w/ chip name.
-> Userspace can figure the generic "type" from the un-generic chip name like
-> "type".
-> I just wonder will there be issues caused by following this design?
-
-Ying has suggested me to include all of the HID/CIDs as a list into board_info.
-If OF need this feature, I'll split type into a type and an "ID" list.
-The module_alias file can export all of the IDs and the device name can be the "type:index".
-I can make the modifications on this if you think this is better.
-
-> > > Shall we change the uart_bus to the tty_bus, then introduce tty_host
-> > > /
-> > tty_target for the bus?
-> >
-> > We have a tty class - is that not sufficient ?
+> I agree that the current boot sequence is not very hot-plug friendly...
 > 
-> As I mentioned in the previous mail, I'll keep the current naming rule until I see
-> some objections strong enough.
+>> 2) It's impossible to rmmod the processor and acpi_memhotplug driver at runtime 
+>>    if .remove() of CPU and memory drivers do really remove the CPU/memory device
+>>    from the system. And the ACPI processor driver also implements CPU PM funcitonality
+>>    other than hotplug.
+> 
+> Agreed.
+> 
+>> And recently Rafael has mentioned that he has a long term view to get rid of the
+>> concept of "ACPI device". If that happens, we could easily move the hotplug
+>> logic from ACPI device drivers into the hotplug framework if the hotplug logic
+>> is separated from the .add()/.remove() callbacks. Actually we could even move all
+>> hotplug only logic into the hotplug framework and don't rely on any ACPI device
+>> driver any more. So we could get rid of all these messy things. We could achieve
+>> that by:
+>> 1) moving code shared by ACPI device drivers and the hotplug framework into the core.
+>> 2) moving hotplug only code to the framework.
+> 
+> Yes, the framework should allow such future work.  I also think that the
+> framework itself should be independent from such ACPI issue.  Ideally,
+> it should be able to support non-ACPI platforms.
+The same point here. The ACPI based hotplug framework is designed as:
+1) an ACPI based hotplug slot driver to handle platform specific logic.
+   Platform may provide platform specific slot drivers to discover, manage
+   hotplug slots. We have provided a default implementation of slot driver
+   according to the ACPI spec.
+2) an ACPI based hotplug manager driver, which is a platform independent
+   driver and manages all hotplug slot created by the slot driver.
 
-This statement is confusing in English, let me clarify this.
-If the reasons for the uart_bus in the previous email are not correct, I'll change everything named as uart_xxx to tty_xxx, then the tty_bus is probably not needed, and I can use tty class after the decision.
+We haven't gone further enough to provide an ACPI independent hotplug framework
+because we only have experience with x86 and Itanium, both are ACPI based.
+We may try to implement an ACPI independent hotplug framework by pushing all
+ACPI specific logic into the slot driver, I think it's doable. But we need
+suggestions from experts of other architectures, such as SPARC and Power.
+But seems Power already have some sorts of hotplug framework, right?
 
-Best regards
--Lv
+> 
+>> Hi Rafael, what's your thoughts here?
+>>
+>>>
+>>>>>>> 1. Validate phase - Verify if the request is a supported operation.  All
+>>>>>>> known restrictions are verified at this phase.  For instance, if a
+>>>>>>> hot-remove request involves kernel memory, it is failed in this phase.
+>>>>>>> Since this phase makes no change, no rollback is necessary to fail. 
+>>>>>>
+>>>>>> Yes, we have done this in acpihp_drv_pre_execute, and check following things:
+>>>>>>
+>>>>>> 1) Hot-plugble or not. the instance kernel memory you mentioned is also checked
+>>>>>>    when memory device remove;
+>>>>>
+>>>>> Agreed.
+>>>>>
+>>>>>> 2) Dependency check involved. For instance, if hot-add a memory device,
+>>>>>>    processor should be added first, otherwise it's not valid to this operation.
+>>>>>
+>>>>> I think FW should be the one that assures such dependency.  That is,
+>>>>> when a memory device object is marked as present/enabled/functioning, it
+>>>>> should be ready for the OS to use.
+>>>>
+>>>> Yes, BIOS should do something for the dependency, because BIOS knows the
+>>>> actual hardware topology. 
+>>>
+>>> Right.
+>>>
+>>>> The ACPI specification provides _EDL method to
+>>>> tell OS the eject device list, but still has no method to tell OS the add device
+>>>> list now.
+>>>
+>>> Yes, but I do not think the OS needs special handling for add...
+>> We have a plan to support triggering hot-adding events from OS provided interfaces,
+>> so we also need to solve dependency issues when handling requests from those interfaces.
+>> For need to power on the physical processor before powering on a memory device if
+>> the memory device is attached to a physical processor.
+> 
+> I am afraid that this issue is platform-specific, and I am not sure if
+> there is a common way to handle such things in general.  I'd recommend
+> to work with FW folks to implement such platform-specific validation
+> code in FW.
+You are right, we may rely on firmware to validate the dependency.
+
+> 
+>>>> For some cases, OS should analyze the dependency in the validate phase. For example,
+>>>> when hot remove a node (container device), OS should analyze the dependency to get
+>>>> the remove order as following:
+>>>> 1) Host bridge;
+>>>> 2) Memory devices;
+>>>> 3) Processor devices;
+>>>> 4) Container device itself;
+>>>
+>>> This may be off-topic, but how do you plan to delete I/O devices under a
+>>> node?  Are you planning to delete all I/O devices along with the node?
+>>>
+>>> On other OS, we made a separate step called I/O chassis delete, which
+>>> off-lines all I/O devices under the node, and is required before a node
+>>> hot-remove.  It basically triggers PCIe hot-remove to detach drivers
+>>> from all devices.  It does not eject the devices so that they do not
+>>> have to be on hot-plug slots.  This step runs user-space scripts to
+>>> verify if the devices can be off-lined without disrupting user's
+>>> applications, and provides comprehensive reports if any of them are in
+>>> use.  Not sure if Linux's PCI hot-remove has such check, but I thought
+>>> I'd mention it. :)
+>> Yinghai is working on PCI host bridge hotplug, which just stops all PCI devices
+>> under the host bridge. That's really a little dangerous and we do need help
+>> from userspace to check whether the hot-removal operaitons is fatal, 
+>> e.g. removing PCI device hosting the rootfs.
+> 
+> Agreed.
+> 
+>> So in our framework, we have an option to relay hotplug event from firmware
+>> to userspace, so the userspace has a chance to reject the hotplug operations
+>> if it may cause unacceptable disturbance to userspace services.
+> 
+> I think validation from user-space is necessary for deleting I/O
+> devices.  For CPU and memory, the kernel check works fine.
+Agreed. But we may need help from userspace to handle cgroup/cpuset/cpuisol
+etc for cpu and memory hot-removal. Especially for telecom applications, they
+have strong dependency on cgroup/cpuisol to guarantee latency.
+
+Regards!
+Gerry
+
+> 
+> Thanks,
+> -Toshi
+> 
+> 
+> .
+> 
+
+
