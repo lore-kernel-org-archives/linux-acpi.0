@@ -1,112 +1,85 @@
-From: Myron Stowe <myron.stowe@redhat.com>
-Subject: [PATCH 03/15] PCI/acpiphp: Leave the "acpiphp" sub-driver registered
-	and in place
-Date: Thu, 06 Dec 2012 23:25:13 -0700
-Message-ID: <20121207062513.11051.99972.stgit@amt.stowe>
-References: <20121207062454.11051.12739.stgit@amt.stowe>
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: Re: [Patch v4 09/12] memory-hotplug: remove page table of x86_64
+ architecture
+Date: Fri, 07 Dec 2012 14:43:46 +0800
+Message-ID: <50C19022.9000501@cn.fujitsu.com>
+References: <1354010422-19648-1-git-send-email-wency@cn.fujitsu.com> <1354010422-19648-10-git-send-email-wency@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20121207062454.11051.12739.stgit@amt.stowe>
-Sender: linux-kernel-owner@vger.kernel.org
-To: bhelgaas@google.com
-Cc: linux-pci@vger.kernel.org, yinghai@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1354010422-19648-10-git-send-email-wency@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Wen Congyang <wency@cn.fujitsu.com>
+Cc: x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, David Rientjes <rientjes@google.com>, Jiang Liu <liuj97@gmail.com>, Len Brown <len.brown@intel.com>, benh@kernel.crashing.org, paulus@samba.org, Christoph Lameter <cl@linux.com>, Minchan Kim <minchan.kim@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Jianguo Wu <wujianguo@huawei.com>, Jiang Liu <jiang.liu@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
 
-The "ACPI Hot Plug PCI Controller Driver ("acpiphp")" can be either
-statically built-in or a kernel module.  If statically built-in, the
-sub-driver needs to remain registered and in place in order to accommodate
-any future hot-plug insertion events of devices it supports.
+On 11/27/2012 06:00 PM, Wen Congyang wrote:
+> For hot removing memory, we sholud remove page table about the memory.
+> So the patch searches a page table about the removed memory, and clear
+> page table.
 
-As currently implemented, the sub-driver may unregister itself during its
-initialization.  This patch changes that behavior so that the sub-driver
-remains registered and in place.
+(snip)
 
-Signed-off-by: Myron Stowe <myron.stowe@redhat.com>
----
+> +void __meminit
+> +kernel_physical_mapping_remove(unsigned long start, unsigned long end)
+> +{
+> +	unsigned long next;
+> +	bool pgd_changed = false;
+> +
+> +	start = (unsigned long)__va(start);
+> +	end = (unsigned long)__va(end);
 
- drivers/pci/hotplug/acpiphp.h      |    1 -
- drivers/pci/hotplug/acpiphp_core.c |   16 +---------------
- drivers/pci/hotplug/acpiphp_glue.c |   21 ---------------------
- 3 files changed, 1 insertions(+), 37 deletions(-)
+Hi Wu,
 
-diff --git a/drivers/pci/hotplug/acpiphp.h b/drivers/pci/hotplug/acpiphp.h
-index 014ae78..4b798e9 100644
---- a/drivers/pci/hotplug/acpiphp.h
-+++ b/drivers/pci/hotplug/acpiphp.h
-@@ -193,7 +193,6 @@ extern void acpiphp_unregister_hotplug_slot(struct acpiphp_slot *slot);
- /* acpiphp_glue.c */
- extern int acpiphp_glue_init(void);
- extern void acpiphp_glue_exit(void);
--extern int acpiphp_get_num_slots(void);
- typedef int (*acpiphp_callback)(struct acpiphp_slot *slot, void *data);
- 
- extern int acpiphp_enable_slot(struct acpiphp_slot *slot);
-diff --git a/drivers/pci/hotplug/acpiphp_core.c b/drivers/pci/hotplug/acpiphp_core.c
-index 96316b7..3350b09 100644
---- a/drivers/pci/hotplug/acpiphp_core.c
-+++ b/drivers/pci/hotplug/acpiphp_core.c
-@@ -50,7 +50,6 @@
- bool acpiphp_debug;
- 
- /* local variables */
--static int num_slots;
- static struct acpiphp_attention_info *attention_info;
- 
- #define DRIVER_VERSION	"0.5"
-@@ -274,21 +273,8 @@ static int get_adapter_status(struct hotplug_slot *hotplug_slot, u8 *value)
- 
- static int __init init_acpi(void)
- {
--	int retval;
--
- 	/* initialize internal data structure etc. */
--	retval = acpiphp_glue_init();
--
--	/* read initial number of slots */
--	if (!retval) {
--		num_slots = acpiphp_get_num_slots();
--		if (num_slots == 0) {
--			acpiphp_glue_exit();
--			retval = -ENODEV;
--		}
--	}
--
--	return retval;
-+	return acpiphp_glue_init();
- }
- 
- /**
-diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
-index d0369dc..a378a48 100644
---- a/drivers/pci/hotplug/acpiphp_glue.c
-+++ b/drivers/pci/hotplug/acpiphp_glue.c
-@@ -1435,27 +1435,6 @@ void  acpiphp_glue_exit(void)
- 
- 
- /**
-- * acpiphp_get_num_slots - count number of slots in a system
-- */
--int __init acpiphp_get_num_slots(void)
--{
--	struct acpiphp_bridge *bridge;
--	int num_slots = 0;
--
--	list_for_each_entry(bridge, &bridge_list, list) {
--		dbg("Bus %04x:%02x has %d slot%s\n",
--				pci_domain_nr(bridge->pci_bus),
--				bridge->pci_bus->number, bridge->nr_slots,
--				bridge->nr_slots == 1 ? "" : "s");
--		num_slots += bridge->nr_slots;
--	}
--
--	dbg("Total %d slots\n", num_slots);
--	return num_slots;
--}
--
--
--/**
-  * acpiphp_enable_slot - power on slot
-  * @slot: ACPI PHP slot
-  */
+Here, you expect start and end are physical addresses. But in
+phys_xxx_remove() function, I think using virtual addresses is just
+fine. Functions like pmd_addr_end() and pud_index() only calculate
+an offset.
+
+So, would you please tell me if we have to use physical addresses here ?
+
+Thanks. :)
+
+> +
+> +	for (; start<  end; start = next) {
+> +		pgd_t *pgd = pgd_offset_k(start);
+> +		pud_t *pud;
+> +
+> +		next = pgd_addr_end(start, end);
+> +
+> +		if (!pgd_present(*pgd))
+> +			continue;
+> +
+> +		pud = map_low_page((pud_t *)pgd_page_vaddr(*pgd));
+> +		phys_pud_remove(pud, __pa(start), __pa(next));
+> +		if (free_pud_table(pud, pgd))
+> +			pgd_changed = true;
+> +		unmap_low_page(pud);
+> +	}
+> +
+> +	if (pgd_changed)
+> +		sync_global_pgds(start, end - 1);
+> +
+> +	flush_tlb_all();
+> +}
+> +
+>   #ifdef CONFIG_MEMORY_HOTREMOVE
+>   int __ref arch_remove_memory(u64 start, u64 size)
+>   {
+> @@ -692,6 +921,8 @@ int __ref arch_remove_memory(u64 start, u64 size)
+>   	ret = __remove_pages(zone, start_pfn, nr_pages);
+>   	WARN_ON_ONCE(ret);
+>
+> +	kernel_physical_mapping_remove(start, start + size);
+> +
+>   	return ret;
+>   }
+>   #endif
+
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
