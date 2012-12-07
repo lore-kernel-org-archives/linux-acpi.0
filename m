@@ -1,62 +1,81 @@
 From: Myron Stowe <myron.stowe@redhat.com>
-Subject: [PATCH 13/15] PCI/ACPI: Convert "pci_slot" sub-driver's functionality
-	to built-in only
-Date: Thu, 06 Dec 2012 23:26:11 -0700
-Message-ID: <20121207062611.11051.39999.stgit@amt.stowe>
+Subject: [PATCH 10/15] PCI/acpiphp: Change acpiphp_add_bridge() to return void
+	instead of 0
+Date: Thu, 06 Dec 2012 23:25:54 -0700
+Message-ID: <20121207062554.11051.74801.stgit@amt.stowe>
 References: <20121207062454.11051.12739.stgit@amt.stowe>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:52334 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946003Ab2LGG0O (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 7 Dec 2012 01:26:14 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20121207062454.11051.12739.stgit@amt.stowe>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: bhelgaas@google.com
 Cc: linux-pci@vger.kernel.org, yinghai@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-The "ACPI PCI Slot Detection ("pci_slot")" sub-driver may be compiled as a
-module.  Kernel modules are instantiated somewhat randomly - the order in
-which they are linked as the kernel as built - thus if there are any
-dependencies on the ordering of attaching sub-drivers, they can not be
-effectively dealt with.
+acpiphp_add_bridge() always returns 0.  This patch changes the return
+type from an 'int' to 'void'.
 
-This patch series resolves any potential sequencing inter-dependencies by
-converting "pci_slot" sub-driver's functionality to being only supported
-as statically built-in to the kernel.  Inter-dependencies can then be
-effectively handled by explicitly sequencing the addition of such
-functionality.
+No functional change.
 
 Signed-off-by: Myron Stowe <myron.stowe@redhat.com>
 ---
 
- drivers/acpi/Kconfig |    5 +----
- 1 files changed, 1 insertions(+), 4 deletions(-)
+ drivers/pci/hotplug/acpiphp_glue.c |    8 +++-----
+ include/linux/pci-acpi.h           |    4 ++--
+ 2 files changed, 5 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 119d58d..988bb13 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -293,7 +293,7 @@ config ACPI_DEBUG_FUNC_TRACE
- 	  is about half of the penalty and is rarely useful.
+diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+index a4218cb..fe2aac6 100644
+--- a/drivers/pci/hotplug/acpiphp_glue.c
++++ b/drivers/pci/hotplug/acpiphp_glue.c
+@@ -489,7 +489,7 @@ find_p2p_bridge(acpi_handle handle, u32 lvl, void *context, void **rv)
  
- config ACPI_PCI_SLOT
--	tristate "PCI slot detection driver"
-+	bool "PCI slot detection driver"
- 	depends on SYSFS
- 	default n
- 	help
-@@ -302,9 +302,6 @@ config ACPI_PCI_SLOT
- 	  i.e., segment/bus/device/function tuples, with physical slots in
- 	  the system.  If you are unsure, say N.
  
--	  To compile this driver as a module, choose M here:
--	  the module will be called pci_slot.
+ /* find hot-pluggable slots, and then find P2P bridge */
+-int acpiphp_add_bridge(struct acpi_pci_root *root)
++void acpiphp_add_bridge(struct acpi_pci_root *root)
+ {
+ 	acpi_status status;
+ 	unsigned long long tmp;
+@@ -502,11 +502,11 @@ int acpiphp_add_bridge(struct acpi_pci_root *root)
+ 		status = acpi_evaluate_integer(handle, "_STA", NULL, &tmp);
+ 		if (ACPI_FAILURE(status)) {
+ 			dbg("%s: _STA evaluation failure\n", __func__);
+-			return 0;
++			return;
+ 		}
+ 		if ((tmp & ACPI_STA_FUNCTIONING) == 0)
+ 			/* don't register this object */
+-			return 0;
++			return;
+ 	}
+ 
+ 	/* check if this bridge has ejectable slots */
+@@ -521,8 +521,6 @@ int acpiphp_add_bridge(struct acpi_pci_root *root)
+ 
+ 	if (ACPI_FAILURE(status))
+ 		warn("find_p2p_bridge failed (error code = 0x%x)\n", status);
 -
- config X86_PM_TIMER
- 	bool "Power Management Timer Support" if EXPERT
- 	depends on X86
-
+-	return 0;
+ }
+ 
+ static struct acpiphp_bridge *acpiphp_handle_to_bridge(acpi_handle handle)
+diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
+index 3197070..bc5b763 100644
+--- a/include/linux/pci-acpi.h
++++ b/include/linux/pci-acpi.h
+@@ -50,10 +50,10 @@ static inline bool aer_acpi_firmware_first(void) { return false; }
+ #endif
+ 
+ #ifdef CONFIG_HOTPLUG_PCI_ACPI
+-extern int acpiphp_add_bridge(struct acpi_pci_root *root);
++extern void acpiphp_add_bridge(struct acpi_pci_root *root);
+ extern void acpiphp_remove_bridge(struct acpi_pci_root *root);
+ #else /* !CONFIG_HOTPLUG_PCI_ACPI */
+-static inline int acpiphp_add_bridge(struct acpi_pci_root *) { return 0; }
++static inline void acpiphp_add_bridge(struct acpi_pci_root *) { }
+ static inline void acpiphp_remove_bridge(struct acpi_pci_root *) { }
+ #endif /* !CONFIG_HOTPLUG_PCI_ACPI */
+ 
