@@ -1,46 +1,72 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH] ACPI: add Haswell LPSS devices to acpi_platform_device_ids list
-Date: Fri,  7 Dec 2012 12:08:02 +0200
-Message-ID: <1354874882-1162-1-git-send-email-mika.westerberg@linux.intel.com>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: [RFC PATCH v3 1/4] UART: Add UART subsystem as a bus.
+Date: Fri, 7 Dec 2012 10:22:13 +0000
+Message-ID: <20121207102213.07d93e1a@pyramind.ukuu.org.uk>
+References: <cover.1354505471.git.lv.zheng@intel.com>
+	<cover.1354785372.git.lv.zheng@intel.com>
+	<c561ccd12ef845a7f30f26dfb706bb569e7244a7.1354785372.git.lv.zheng@intel.com>
+	<20121206134020.0747af0f@bob.linux.org.uk>
+	<1AE640813FDE7649BE1B193DEA596E88BD7485@SHSMSX101.ccr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:5819 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932320Ab2LGKEq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 7 Dec 2012 05:04:46 -0500
+Received: from lxorguk.ukuu.org.uk ([81.2.110.251]:56170 "EHLO
+	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754960Ab2LGKQ6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Dec 2012 05:16:58 -0500
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88BD7485@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: Alan Cox <alan@linux.intel.com>, "Brown, Len" <len.brown@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "H. Peter Anvin (hpa@linux.intel.com)" <hpa@linux.intel.com>
 
-All devices behind Haswell LPSS (Low Power Subsystem) should be represented
-as platform devices so add them to the acpi_platform_device_ids list.
+> > ls /sys/class/tty/
+> 
+> I'm searching for a target "physical" device while the "tty device" looks more like a "functional" device.
 
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
----
- drivers/acpi/scan.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+We don't currently properly link that up - but we should. It does however
+provide the place to attach information like modem lines and intended use.
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 67a7fa6..8ee379e 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -37,6 +37,16 @@ static const struct acpi_device_id acpi_platform_device_ids[] = {
- 
- 	{ "PNP0D40" },
- 
-+	/* Haswell LPSS devices */
-+	{ "INT33C0", 0 },
-+	{ "INT33C1", 0 },
-+	{ "INT33C2", 0 },
-+	{ "INT33C3", 0 },
-+	{ "INT33C4", 0 },
-+	{ "INT33C5", 0 },
-+	{ "INT33C6", 0 },
-+	{ "INT33C7", 0 },
-+
- 	{ }
- };
- 
--- 
-1.7.10.4
+> If this rule is strictly obeyed by all of the subsystems, then:
+> 1. the hardware PM can be added to the physical devices
+
+To get the heirarchy you need to the tty to be in the PCI bus or other
+bus where it actually sits ? Consider an ACPI enumerated port whose
+address space is behind a PCI bridge.
+
+> 1. if a bus offered PM support, it should appear in the bus_type
+
+Which would usually be the PCI bus (and an ACPI enumerated device behind
+a PCI bus needs to go via PCI to keep all the PCI counts correct)
+
+> If a device was handling hardware stuff including the PM, it should be a "physical device".
+> If a device was offering communication means, it should be a "functional device".
+> If a device was using the communication means, it should be a "filter device".
+
+A tty is all three. We have the physical device (wires and pins), the
+functional object (an open tty) and filters (line disciplines I guess).
+
+> And I checked the PM implementation, most of the drivers will enable/disable the "HOST" side port clock there and only few of them will lower the required terminal lines to tell the target devices to enter a low power state.
+
+Because generally that breaks stuff. For example if you lower the carrier
+to some UPS devices they conclude the PC has been turned off. This leads
+to highly undesirable behaviour. As a result it's generally been user
+space that handles such details.
+
+> So I was just thinking if the tty device was used as physical device in the community, it might be used as "host" side physical device, and my patch was trying to enable a "target" side physical device.
+> 
+> Adding driver support for such "target physical uart device" sounds a good idea. But I need an explicit approval for
+adding the kernel resident driver.
+
+Not entirely sure what you mean by kernel resident driver here.
+
+As of 3.7 we have a 'tty_port' for every tty. Not every port corresponds
+to an actual physical device (eg pty doesn't, nor do mux channels). We
+could certainly keep a bus driver reference in the tty_port if it helps.
+If NULL means "none/not set" we can also gradually make drivers set it
+correctly.
+
+At that point you would be able to find the underlying device from any
+tty port, and you can find any tty_port from the tty as of 3.7.
 
