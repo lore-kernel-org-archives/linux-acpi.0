@@ -1,40 +1,96 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH 06/15] PCI/acpiphp: Convert "acpiphp" sub-driver's
- functionality to built-in only
-Date: Thu, 6 Dec 2012 22:48:42 -0800
-Message-ID: <CAE9FiQUh_jcoemFpeiAKHr4FyxSA4itHycNwJk+Dhf45Ap5prA@mail.gmail.com>
-References: <20121207062454.11051.12739.stgit@amt.stowe>
-	<20121207062530.11051.47869.stgit@amt.stowe>
+From: Jianguo Wu <wujianguo@huawei.com>
+Subject: Re: [Patch v4 09/12] memory-hotplug: remove page table of x86_64
+ architecture
+Date: Fri, 7 Dec 2012 15:06:16 +0800
+Message-ID: <50C19568.7080500@huawei.com>
+References: <1354010422-19648-1-git-send-email-wency@cn.fujitsu.com> <1354010422-19648-10-git-send-email-wency@cn.fujitsu.com> <50C19022.9000501@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:43131 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752543Ab2LGGso (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Dec 2012 01:48:44 -0500
-In-Reply-To: <20121207062530.11051.47869.stgit@amt.stowe>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <50C19022.9000501@cn.fujitsu.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Wen Congyang <wency@cn.fujitsu.com>, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org, David Rientjes <rientjes@google.com>, Jiang Liu <liuj97@gmail.com>, Len Brown <len.brown@intel.com>, benh@kernel.crashing.org, paulus@samba.org, Christoph Lameter <cl@linux.com>, Minchan Kim <minchan.kim@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>, Jiang Liu <jiang.liu@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Myron Stowe <myron.stowe@redhat.com>
-Cc: bhelgaas@google.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, Dec 6, 2012 at 10:25 PM, Myron Stowe <myron.stowe@redhat.com> wrote:
-> The "ACPI Hot Plug PCI Controller ("acpiphp")" sub-driver may be compiled
-> as a module.  Kernel modules are instantiated somewhat randomly - the
-> order in which they are linked as the kernel as built - thus if there are
-> any dependencies on the ordering of attaching sub-drivers, they can not be
-> effectively dealt with.
+On 2012/12/7 14:43, Tang Chen wrote:
+
+> On 11/27/2012 06:00 PM, Wen Congyang wrote:
+>> For hot removing memory, we sholud remove page table about the memory.
+>> So the patch searches a page table about the removed memory, and clear
+>> page table.
+> 
+> (snip)
+> 
+>> +void __meminit
+>> +kernel_physical_mapping_remove(unsigned long start, unsigned long end)
+>> +{
+>> +    unsigned long next;
+>> +    bool pgd_changed = false;
+>> +
+>> +    start = (unsigned long)__va(start);
+>> +    end = (unsigned long)__va(end);
+> 
+> Hi Wu,
+> 
+> Here, you expect start and end are physical addresses. But in
+> phys_xxx_remove() function, I think using virtual addresses is just
+> fine. Functions like pmd_addr_end() and pud_index() only calculate
+> an offset.
 >
-> This patch series resolves any potential sequencing inter-dependencies by
-> converting "acpiphp" sub-driver's functionality to being only supported as
-> statically built-in to the kernel.  Inter-dependencies can then be
-> effectively handled by explicitly sequencing the addition of such
-> functionality.
 
-some slots may support both acpiphp and pciehp.
+Hi Tang,
 
-if make acpiphp to be built-in, user do not have choice anymore.
+ 
 
-Thanks
+Virtual addresses will work fine, I used physical addresses in order to
+keep consistent with phys_pud[pmd/pte]_init(), So I think we should keep this.
 
-Yinghai
+Thanks,
+Jianguo Wu
+
+> So, would you please tell me if we have to use physical addresses here ?
+> 
+> Thanks. :)
+> 
+>> +
+>> +    for (; start<  end; start = next) {
+>> +        pgd_t *pgd = pgd_offset_k(start);
+>> +        pud_t *pud;
+>> +
+>> +        next = pgd_addr_end(start, end);
+>> +
+>> +        if (!pgd_present(*pgd))
+>> +            continue;
+>> +
+>> +        pud = map_low_page((pud_t *)pgd_page_vaddr(*pgd));
+>> +        phys_pud_remove(pud, __pa(start), __pa(next));
+>> +        if (free_pud_table(pud, pgd))
+>> +            pgd_changed = true;
+>> +        unmap_low_page(pud);
+>> +    }
+>> +
+>> +    if (pgd_changed)
+>> +        sync_global_pgds(start, end - 1);
+>> +
+>> +    flush_tlb_all();
+>> +}
+>> +
+>>   #ifdef CONFIG_MEMORY_HOTREMOVE
+>>   int __ref arch_remove_memory(u64 start, u64 size)
+>>   {
+>> @@ -692,6 +921,8 @@ int __ref arch_remove_memory(u64 start, u64 size)
+>>       ret = __remove_pages(zone, start_pfn, nr_pages);
+>>       WARN_ON_ONCE(ret);
+>>
+>> +    kernel_physical_mapping_remove(start, start + size);
+>> +
+>>       return ret;
+>>   }
+>>   #endif
+> 
+> 
+> 
+> .
+> 
