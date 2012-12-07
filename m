@@ -1,70 +1,25 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 01/15] PCI, acpiphp: Separate out hot-add support of pci host bridge
-Date: Fri, 07 Dec 2012 22:04:35 +0100
-Message-ID: <1601199.4gTPfZEF7o@vostro.rjw.lan>
-References: <20121207062454.11051.12739.stgit@amt.stowe> <20121207062500.11051.44198.stgit@amt.stowe> <CAErSpo6MEtx6hsYhY=h0+eXqQcnZuG2vq=z_8Oz8tnksKZd7DA@mail.gmail.com>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: Re: [PATCH 01/15] PCI, acpiphp: Separate out hot-add support of pci
+ host bridge
+Date: Fri, 7 Dec 2012 13:30:18 -0800
+Message-ID: <CAE9FiQV6L2ZUEVHM2CCdqZfB9Yij7OGYZ-xsEpzCdXU2hSHnsQ@mail.gmail.com>
+References: <20121207062454.11051.12739.stgit@amt.stowe>
+	<20121207062500.11051.44198.stgit@amt.stowe>
+	<CAErSpo6MEtx6hsYhY=h0+eXqQcnZuG2vq=z_8Oz8tnksKZd7DA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <CAErSpo6MEtx6hsYhY=h0+eXqQcnZuG2vq=z_8Oz8tnksKZd7DA@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Myron Stowe <myron.stowe@redhat.com>, linux-pci@vger.kernel.org, yinghai@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Myron Stowe <myron.stowe@redhat.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday, December 07, 2012 12:32:46 PM Bjorn Helgaas wrote:
+On Fri, Dec 7, 2012 at 11:32 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
 > On Thu, Dec 6, 2012 at 11:25 PM, Myron Stowe <myron.stowe@redhat.com> wrote:
-> > From: Yinghai Lu <yinghai@kernel.org>
-> >
-> > It causes confusion.
-> 
-> I completely agree that acpiphp causes confusion  :)
-> 
-> > We may only need acpi hp for pci host bridge.
-> >
-> > Split host bridge hot-add support to pci_root_hp, and keep acpiphp simple.
-> >
-> > -v2: put back pci_root_hp change in one patch
-> > -v3: add pcibios_resource_survey_bus() calling
-> > -v4: remove not needed code with remove_bridge
-> > -v5: put back support for acpiphp support for slots just on root bus.
-> > -v6: change some functions to *_p2p_* to make it more clean.
-> > -v7: split hot_added change out.
-> >
-> > Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-> > Signed-off-by: Myron Stowe <myron.stowe@redhat.com>
-> > ---
-> >
-> >  drivers/acpi/Makefile              |    1
-> >  drivers/acpi/pci_root_hp.c         |  228 ++++++++++++++++++++++++++++++++++++
-> >  drivers/pci/hotplug/acpiphp_glue.c |   59 ++-------
-> >  3 files changed, 244 insertions(+), 44 deletions(-)
-> >  create mode 100644 drivers/acpi/pci_root_hp.c
-> >
-> > diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> > index 82422fe..4edfe41 100644
-> > --- a/drivers/acpi/Makefile
-> > +++ b/drivers/acpi/Makefile
-> > @@ -36,6 +36,7 @@ acpi-y                                += processor_core.o
-> >  acpi-y                         += ec.o
-> >  acpi-$(CONFIG_ACPI_DOCK)       += dock.o
-> >  acpi-y                         += pci_root.o pci_link.o pci_irq.o pci_bind.o
-> > +acpi-$(CONFIG_HOTPLUG)         += pci_root_hp.o
-> 
-> I absolutely, 110% agree with splitting out the host bridge hotplug
-> code from the PCI device hotplug code.
-> 
-> But I don't want to put this in a separate file; I think it should go
-> directly in pci_root.c.  Putting it in a separate file gives the
-> illusion that hotplug is something we only do in unusual
-> circumstances.  But that's wrong -- even at boot-time we should be
-> using the same hot-plug flow as we do later.
-> 
-> Plus, I want people to be forced to look at the ugliness of this code
-> every time they look at pci_root.c.  Maybe that will help get it
-> cleaned up eventually.
-> 
+>> From: Yinghai Lu <yinghai@kernel.org>
+>>
+>>
 > For example, as soon as you put this code in pci_root.c instead of
 > pci_root_hp.c, it becomes obvious that we're keeping a list of host
 > bridges in both places, and we probably don't need two lists.  And it
@@ -72,12 +27,16 @@ On Friday, December 07, 2012 12:32:46 PM Bjorn Helgaas wrote:
 > the namespace looking for host bridges, when acpi_pci_root_add()
 > already exists and is called for every host bridge.
 
-Agreed.
+removed the duplicated interface in following patch.
 
-Thanks,
-Rafael
+http://git.kernel.org/?p=linux/kernel/git/yinghai/linux-yinghai.git;a=shortlog;h=refs/heads/for-pci-split-pci-root-hp-2
 
+http://git.kernel.org/?p=linux/kernel/git/yinghai/linux-yinghai.git;a=commitdiff;h=a1d1ef3f5e4932bc672d96dedd11c5d58f7f20f5
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+| [PATCH] PCI, ACPI: remove acpi_root_bridge in pci_root_hp
+|
+| Tang noticed that hotplug through container will not update acpi_root_bridge
+| list.
+|
+| After closely checking, we don't need that for struct for tracking and
+| could use acpi_pci_root directly.
