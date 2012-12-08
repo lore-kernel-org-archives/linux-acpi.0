@@ -1,95 +1,58 @@
-From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: Re: [PATCH] X86/acpi: remove redundant logic of acpi memory hotadd
-Date: Sat, 08 Dec 2012 10:34:58 +0800
-Message-ID: <50C2A752.8010709@cn.fujitsu.com>
-References: <DE8DF0795D48FD4CA783C40EC829233539DED4@SHSMSX101.ccr.corp.intel.com> <4326596.xCAz7vOgOp@vostro.rjw.lan>
+From: Andreas Mohr <andi@lisas.de>
+Subject: Re: Look Ma, da kernel is b0rken
+Date: Sat, 8 Dec 2012 08:36:34 +0100
+Message-ID: <20121208073634.GA30690@rhlx01.hs-esslingen.de>
+References: <20121205070901.GA12123@rhlx01.hs-esslingen.de>
+ <20121205142935.GA12119@liondog.tnic>
+ <20121205152756.5afec12c@pyramind.ukuu.org.uk>
+ <20121205153121.GA28556@liondog.tnic>
+ <20121205133853.770451ca.akpm@linux-foundation.org>
+ <20121207165218.GA13421@rhlx01.hs-esslingen.de>
+ <20121207174405.GF27523@liondog.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:50732 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1754495Ab2LHC2P (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 7 Dec 2012 21:28:15 -0500
-In-Reply-To: <4326596.xCAz7vOgOp@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20121207174405.GF27523@liondog.tnic>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>, Andreas Mohr <andi@lisas.de>, Andrew Morton <akpm@linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, linux-kernel@vger.kernel.org, Li Shaohua <shaohua.li@intel.com>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "Liu, Jinsong" <jinsong.liu@intel.com>, Toshi Kani <toshi.kani@hp.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Jiang Liu <jiang.liu@huawei.com>
 
-At 12/08/2012 06:19 AM, Rafael J. Wysocki Wrote:
-> On Tuesday, December 04, 2012 01:39:54 AM Liu, Jinsong wrote:
->> Resend it, add Rafael and linux-acpi@vger.kernel.org
+Hi,
+
+On Fri, Dec 07, 2012 at 06:44:05PM +0100, Borislav Petkov wrote:
+> On Fri, Dec 07, 2012 at 05:52:18PM +0100, Andreas Mohr wrote:
+> > Hmm, anyone deeply familiar with ISA PnP ID magic? :)
 > 
-> I wonder what memory hotplug people think about that.
+> Even if this is violating the ACPI spec, any fix for this needs to be
+> tested on the hardware (and I can very well imagine that the hardware
+> might be violating the spec too, nothing new here).
 > 
-> Thanks,
-> Rafael
-> 
-> 
->> ===============
->> From 1d39279e45c54ce531691da5ffe261e7689dd92c Mon Sep 17 00:00:00 2001
->> From: Liu Jinsong <jinsong.liu@intel.com>
->> Date: Wed, 14 Nov 2012 18:52:06 +0800
->> Subject: [PATCH] X86/acpi: remove redundant logic of acpi memory hotadd
->>
->> When memory hotadd, acpi_memory_enable_device has already been done
->> at drv->ops.add (acpi_memory_device_add), no need to do it again
->> at notify callback.
->>
->> At acpi_memory_enable_device, acpi_memory_get_device_resources
->> is also a redundant action, since it has been done at drv->ops.add.
->>
->> Signed-off-by: Liu Jinsong <jinsong.liu@intel.com>
->> ---
->>  drivers/acpi/acpi_memhotplug.c |   17 -----------------
->>  1 files changed, 0 insertions(+), 17 deletions(-)
->>
->> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
->> index 24c807f..a6489fd 100644
->> --- a/drivers/acpi/acpi_memhotplug.c
->> +++ b/drivers/acpi/acpi_memhotplug.c
->> @@ -220,15 +220,6 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
->>  	struct acpi_memory_info *info;
->>  	int node;
->>  
->> -
->> -	/* Get the range from the _CRS */
->> -	result = acpi_memory_get_device_resources(mem_device);
->> -	if (result) {
->> -		printk(KERN_ERR PREFIX "get_device_resources failed\n");
->> -		mem_device->state = MEMORY_INVALID_STATE;
->> -		return result;
->> -	}
->> -
->>  	node = acpi_get_node(mem_device->device->handle);
->>  	/*
->>  	 * Tell the VM there is more memory here...
->> @@ -357,14 +348,6 @@ static void acpi_memory_device_notify(acpi_handle handle, u32 event, void *data)
->>  			break;
->>  		}
->>  
->> -		if (acpi_memory_check_device(mem_device))
->> -			break;
+> So even if you had a fix, you need to run it on the hardware to verify
+> that it actually works.
 
-Hmm, if acpi_memory_check_device() fails, it means the memory device disappears
-I don't know if a real hardware uses this way to remove memory device.
+And that demand actually applies to both the '@' change (questionable)
+and the much less disputed (obviously correct) wrong conditional fixup,
+since both introduce a notable change (either large, or possibly
+improper) in behaviour.
 
->> -
->> -		if (acpi_memory_enable_device(mem_device)) {
->> -			printk(KERN_ERR PREFIX "Cannot enable memory device\n");
->> -			break;
->> -		}
+> So the actual practical question turns into: do you have such hardware
+> to verify your or anyone else's fix on?
 
-If acpi_memory_get_device() doesn't fail, it means that the device has been managed
-by this driver, so I think we can do this cleanup.
+Not the ALS100 (only ALS4000 here).
+I possibly have some other ISA hardware, but probably none which contains
+'@' data in their PnP id struct.
+The driver for the well-known case of ISDN PnP cards
+does not seem to contain it.
+However ISTR that CMI8330 was quite widespread (did I have one? Do I??).
+For identification, see http://www.yjfy.com/C/C-Media/soundchipset/CMI8330A.htm
 
-Thanks
-Wen Congyang
+I'm afraid I should get an old system back up and running,
+exactly for such validation work cases (and perhaps so should a select few
+other developers, too).
 
->> -
->>  		ost_code = ACPI_OST_SC_SUCCESS;
->>  		break;
->>  
->>
+BTW, "my" fix? I thought that everybody had come to the conclusion by now
+that I merely pointed out (in no uncertain terms to boot)
+that something was broken :)
 
+Andreas Mohr
