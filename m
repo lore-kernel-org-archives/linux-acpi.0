@@ -1,48 +1,86 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 0/6] ACPI: Change the ACPI namespace scanning code ordering
-Date: Sun, 09 Dec 2012 23:58:42 +0100
-Message-ID: <8498184.VilrUmatxI@vostro.rjw.lan>
+Subject: [PATCH 2/6] ACPI: Change the ordering of PCI root bridge driver registrarion
+Date: Mon, 10 Dec 2012 00:00:47 +0100
+Message-ID: <1772854.QSySvgjB3i@vostro.rjw.lan>
+References: <8498184.VilrUmatxI@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <8498184.VilrUmatxI@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>
 Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-The following patches change the ordering of the ACPI namespace scanning code
-so that all struct acpi_device objects in the given scope are registered before
-ACPI drivers are probed against them.  They also do some simplifications and
-clarifications of the code made possible by this main change.
+Devices created by acpi_create_platform_device() sometimes may need
+to be added to the device hierarchy as children of PCI bridges.  For
+this purpose, however, the struct pci_dev objects representing those
+bridges need to exist before the platform devices in question are
+added, but this is only possible if the PCI root bridge driver is
+registered before the initial scanning of the ACPI namespace
+(that driver's .add() routine creates the required struct pci_dev
+objects).
 
-This is done for three basic reasons.  First, we need the boot ACPI namespace
-scanning code to be as similar as reasonably possible to the hot-plug ACPI
-namespace scanning code.  Second, the ordering of PCI devices enumeration
-versus ACPI-backed platform devices registration needs to be such that the PCI
-devices in the given scope are all registered first.  Finally, when we start to
-actually manage ACPI device resources as appropriate (e.g. resolve resource
-conflicts properly) we'll need all struct acpi_device nodes to be registered
-before any "companion" physical nodes or ACPI drivers are bound to them.
+For this reason, call acpi_pci_root_init() from acpi_scan_init()
+before scanning the ACPI namespace for the first time instead of
+running it from a separate subsys initcall.  Since the previous patch
+has changed the ACPI namespace scanning algorithm, this change does
+not affect the PCI root bridge driver's functionality during boot.
+It also makes the situation during boot more similar to the situation
+during hot-plug (in which the PCI root bridge driver is always
+present) and so it helps to reduce arbitary differences between
+the hot-plug and boot PCI root bridge code.
 
-The patches have been tested on Toshiba Portege R500 without breaking stuff
-(I used some additional debug code to verify that the ordering of device
-discovery had not been modified by them), but if you see any problems with
-them regarding hot-plug, please let me know.
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/internal.h |    1 +
+ drivers/acpi/pci_root.c |    4 +---
+ drivers/acpi/scan.c     |    1 +
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-[1/6] - Separate adding ACPI device objects from probing ACPI drivers.
-[2/6] - Change the ordering of PCI root bridge driver registration.
-[3/6] - Make acpi_bus_add() and acpi_bus_start() visibly different.
-[4/6] - Reduce the usage of struct acpi_bus_ops
-[5/6] - Replace struct acpi_bus_ops with an enum type
-[6/6] - Change the ordering of acpi_bus_check_add() to avoid unnecessary checks.
-
-Thanks,
-Rafael
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Index: linux/drivers/acpi/internal.h
+===================================================================
+--- linux.orig/drivers/acpi/internal.h
++++ linux/drivers/acpi/internal.h
+@@ -67,6 +67,7 @@ struct acpi_ec {
+ 
+ extern struct acpi_ec *first_ec;
+ 
++int acpi_pci_root_init(void);
+ int acpi_ec_init(void);
+ int acpi_ec_ecdt_probe(void);
+ int acpi_boot_ec_enable(void);
+Index: linux/drivers/acpi/pci_root.c
+===================================================================
+--- linux.orig/drivers/acpi/pci_root.c
++++ linux/drivers/acpi/pci_root.c
+@@ -674,7 +674,7 @@ static int acpi_pci_root_remove(struct a
+ 	return 0;
+ }
+ 
+-static int __init acpi_pci_root_init(void)
++int __init acpi_pci_root_init(void)
+ {
+ 	acpi_hest_init();
+ 
+@@ -687,5 +687,3 @@ static int __init acpi_pci_root_init(voi
+ 
+ 	return 0;
+ }
+-
+-subsys_initcall(acpi_pci_root_init);
+Index: linux/drivers/acpi/scan.c
+===================================================================
+--- linux.orig/drivers/acpi/scan.c
++++ linux/drivers/acpi/scan.c
+@@ -1828,6 +1828,7 @@ int __init acpi_scan_init(void)
+ 	}
+ 
+ 	acpi_power_init();
++	acpi_pci_root_init();
+ 
+ 	/*
+ 	 * Enumerate devices in the ACPI namespace.
