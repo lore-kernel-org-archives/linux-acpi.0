@@ -1,227 +1,155 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 1/1] gpio: add Lynxpoint chipset gpio driver.
-Date: Mon, 10 Dec 2012 10:48:39 +0100
-Message-ID: <CACRpkdYG641KYR05jtu3OS7BDGcFpJ-pzu+gTM+RHJnMqytfEQ@mail.gmail.com>
-References: <1354888899-21907-1-git-send-email-mathias.nyman@linux.intel.com>
-	<1354888899-21907-2-git-send-email-mathias.nyman@linux.intel.com>
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Subject: Re: [PATCH 01/15] ACPICA: Fixes unmerged (dis)assember divergences.
+Date: Mon, 10 Dec 2012 14:04:44 +0100
+Message-ID: <50C5DDEC.4070601@intel.com>
+References: <cover.1353491652.git.lv.zheng@intel.com> <d78f5a439b768067790ec4f07af70185484deccd.1353491652.git.lv.zheng@intel.com> <1A7043D5F58CCB44A599DFD55ED4C94828D4CE6B@FMSMSX108.amr.corp.intel.com> <1AE640813FDE7649BE1B193DEA596E88BD7D56@SHSMSX101.ccr.corp.intel.com> <1AE640813FDE7649BE1B193DEA596E88BD7D8D@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII;
+	format=flowed
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:56475 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752060Ab2LJJsk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Dec 2012 04:48:40 -0500
-Received: by mail-ee0-f46.google.com with SMTP id e53so1412174eek.19
-        for <linux-acpi@vger.kernel.org>; Mon, 10 Dec 2012 01:48:39 -0800 (PST)
-In-Reply-To: <1354888899-21907-2-git-send-email-mathias.nyman@linux.intel.com>
+Received: from mga14.intel.com ([143.182.124.37]:20898 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750739Ab2LJNEt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Dec 2012 08:04:49 -0500
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88BD7D8D@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mathias Nyman <mathias.nyman@linux.intel.com>
-Cc: grant.likely@secretlab.ca, mika.westerberg@linux.intel.com, rafael.j.wysocki@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "Brown, Len" <len.brown@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-On Fri, Dec 7, 2012 at 3:01 PM, Mathias Nyman
-<mathias.nyman@linux.intel.com> wrote:
+Hi,
 
-> Add gpio support for Intel Lynxpoint chipset.
-> Lynxpoint supports 94 gpio pins which can generate interrupts.
-> Driver will fail requests for pins that are marked as owned by ACPI, or
-> set in an alternate mode (non-gpio).
+On 12/10/2012 9:54 AM, Zheng, Lv wrote:
+> Hi, I can offer detailed proof hereafter:
 >
-> Signed-off-by: Mathias Nyman <mathias.nyman@linux.intel.com>
+> After I reverted the acdisasm.h inclusion and refreshed all of the release patches, I could found the following differences between the final patches and the linuxize.sh generated ones:
+>
+> PATCH 06 - 15 are marked as 20121114-01 -> 10 in my quilt stack.
+>
+> release patches
+> patch name (acpica)	state	patch diff lines
+> 20121114-01.patch(01)	100%	0
+> 20121114-02.patch(02)	100%	0
+> 20121114-03.patch(07)	100%	1 (indent)
+> 20121114-04.patch(10)	100%	10 (acdisasm) + 7 (context)
+> 20121114-05.patch(13)	100%	0
+> 20121114-06.patch(15)	100%	0
+> 20121114-07.patch(17)	100%	1 (indent)
+> 20121114-08.patch(18)	100%	0
+> 20121114-09.patch(19)	100%	0
+> 20121114-10.patch(30)	100%	2 (include)
+>
+> 20121114-03.patch:
+>> -acpi_ut_evaluate_object(struct acpi_namespace_node *prefix_node,
+>> +acpi_ut_evaluate_object(struct acpi_namespace_node * prefix_node,
+> This is there due to the indentation divergences fixes which are not what I'm worrying about.
+>
+> 20121114-04.patch:
+>> - * dmextern
+>> + * dmdeferred
+>> +acpi_status acpi_dm_parse_deferred_ops(union acpi_parse_object *root);
+>> +/*
+>> + * dmextern
+>> + */
+>> -acpi_status acpi_dm_is_resource_template(union acpi_parse_object *op);
+>> +acpi_status
+>> +acpi_dm_is_resource_template(struct acpi_walk_state *walk_state,
+>> +			     union acpi_parse_object *op);
+> <  			   acpi_walk_aml_callback user_function,
+> <  			   void **context);
+>>   			   acpi_walk_aml_callback user_function, void *context);
+> <  			   acpi_walk_aml_callback user_function, void **context)
+>>   			   acpi_walk_aml_callback user_function, void *context)
+> <  					    (void **)end_tag);
+>>   					    end_tag);
+> 10 lines are caused by lacking of acdisasm.h and 7 lines are caused by (void **) fixes. The latter will be seen in the next acpica release which is not what I'm worrying about.
+> I just care about the acdisasm.h, if it is included, my life can be easier and it will not be a trouble for the developers currently using ACPICA in the community.
 
-Nice shape on this patch, makes it easy to focus the review on the
-important stuff, thanks Magnus!
+But Len has told you very clearly not to include it.  This is not a 
+Len's whim, there's a reason for that.
 
-> +config GPIO_LYNXPOINT
-> +       bool "Intel Lynxpoint GPIO support"
+Is the reason not known to you or don't you agree with it?
 
-So you don't want to be able to build it as module?
-(OK just odd on Intel systems.)
+> 20121114-07.patch:
+> <  			    (u16) (aml_length +
+>>   			    (u16)(aml_length +
+> This is there due to the indentation divergences fixes which are not what I'm worrying about.
+>
+> 20121114-10.patch:
+> <  #include <acpi/acconfig.h>
+> <  #include <acpi/actypes.h>
+>>   #include "acconfig.h"
+>>   #include "actypes.h"
+> This is there due to the header inclusion changes which are not what I'm worrying about.
 
-> +       select IRQ_DOMAIN
-> +       help
-> +         driver for GPIO functionality on Intel Lynxpoint PCH chipset
-> +         Requires platform or ACPI code to set up a platform device.
+OK, thanks.
 
-(...)
-> +++ b/drivers/gpio/gpio-lynxpoint.c
-(...)
-> +/* LynxPoint chipset has support for 94 gpio pins */
-> +
-> +#define LP_NUM_GPIO    94
-> +
-> +/* Register offsets */
-> +#define LP_ACPI_OWNED  0x00 /* Bitmap, set by bios, 0: pin reserved for ACPI */
-> +#define LP_GC          0x7C /* set APIC IRQ to IRQ14 or IRQ15 for all pins */
-> +#define LP_INT_STAT    0x80
-> +#define LP_INT_ENABLE  0x90
-> +
-> +/* Each pin has two 32 bit config registers, starting at 0x100 */
-> +#define LP_CONFIG1     0x100
-> +#define LP_CONFIG2     0x104
-> +
-> +/* LP_CONFIG1 reg bits */
-> +#define OUT_LVL_BIT    BIT(31)
-> +#define IN_LVL_BIT     BIT(30)
-> +#define TRIG_SEL_BIT   BIT(4) /* 0: Edge, 1: Level */
-> +#define INT_INV_BIT    BIT(3) /* Invert interrupt triggering */
-> +#define DIR_BIT                BIT(2) /* 0: Output, 1: Input */
-> +#define USE_SEL_BIT    BIT(0) /* 0: Native, 1: GPIO */
-> +
-> +/* LP_CONFIG2 reg bits */
-> +#define GPINDIS_BIT    BIT(2) /* disable input sensing */
-> +#define GPIWP_BIT      (BIT(0) | BIT(1)) /* weak pull options */
+Rafael
 
-Kudos for using BIT() macros, very readable, thanks!
 
-> +struct lp_gpio {
-> +       struct gpio_chip        chip;
-> +       struct irq_domain       *domain;
-> +       struct platform_device  *pdev;
-> +       spinlock_t              lock;
-> +       unsigned                hwirq;
+>
+>> -----Original Message-----
+>> From: linux-acpi-owner@vger.kernel.org
+>> [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Zheng, Lv
+>> Sent: Monday, December 10, 2012 4:24 PM
+>> To: Brown, Len; Wysocki, Rafael J
+>> Cc: linux-acpi@vger.kernel.org
+>> Subject: RE: [PATCH 01/15] ACPICA: Fixes unmerged (dis)assember
+>> divergences.
+>>
+>> Hi, Len and Rafael
+>>
+>> Please also look at the [PATCH 09/15] ACPICA: Debugger: Major update for the
+>> Disassemble<method> command.
+>>
+>> There is acdisasm.h updates in the patch 09.
+>> If we can introduce acdisasm.h into linux but surround it with #ifdef/#endif to
+>> make it compiled out, then no manual fixes are needed for the [PATCH 09/15]
+>> thus less bugs in release process, Or fixes are needed to be included as a
+>> special case in the acpica release scripts.
+>>
+>> Please think about the benefit of adding this file.
+>> I'm waiting for the decision on this.
+>>
+>> Best regards
+>> -Lv
+>>
+>>> -----Original Message-----
+>>> From: Brown, Len
+>>> Sent: Tuesday, November 27, 2012 10:59 AM
+>>> To: Zheng, Lv; Wysocki, Rafael J
+>>> Cc: linux-acpi@vger.kernel.org
+>>> Subject: RE: [PATCH 01/15] ACPICA: Fixes unmerged (dis)assember
+>>> divergences.
+>>>
+>>>>   drivers/acpi/acpica/acdisasm.h |  641
+>>> ++++++++++++++++++++++++++++++++++++++++
+>>>
+>>> please do not include this file in the linux kenrel.
+>>>
+>>> thanks,
+>>> -Len
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in the body
+>> of a message to majordomo@vger.kernel.org More majordomo info at
+>> http://vger.kernel.org/majordomo-info.html
 
-This struct member is only used in probe() so make it a local variable there
-and cut it from the struct.
+---------------------------------------------------------------------
+Intel Technology Poland sp. z o.o.
+z siedziba w Gdansku
+ul. Slowackiego 173
+80-298 Gdansk
 
-> +       unsigned long           reg_base;
-> +       unsigned long           reg_len;
+Sad Rejonowy Gdansk Polnoc w Gdansku, 
+VII Wydzial Gospodarczy Krajowego Rejestru Sadowego, 
+numer KRS 101882
 
-Same comment for reg_len.
+NIP 957-07-52-316
+Kapital zakladowy 200.000 zl
 
-> +};
-> +
-> +static unsigned long gpio_reg(struct gpio_chip *chip, unsigned gpio, int reg)
+This e-mail and any attachments may contain confidential material for
+the sole use of the intended recipient(s). Any review or distribution
+by others is strictly prohibited. If you are not the intended
+recipient, please contact the sender and delete all copies.
 
-Rename lp_gpio_reg() so as to match the family.
-
-Rename the argument "gpio" to "offset" since it's a local number,
-not in the global GPIO numberspace. (Please change this everywhere
-a local index is used.)
-
-> +{
-> +       struct lp_gpio *lg = container_of(chip, struct lp_gpio, chip);
-> +       int offset;
-> +
-> +       if (reg == LP_CONFIG1 || reg == LP_CONFIG2)
-> +               offset = gpio * 8;
-> +       else
-> +               offset = (gpio / 32) * 4;
-
-Put in some comment above this explaining the layout of the offsets
-for these two cases so we understand what's happening here.
-
-> +       return lg->reg_base + reg + offset;
-> +}
-> +
-> +static int lp_gpio_request(struct gpio_chip *chip, unsigned gpio)
-> +{
-> +       struct lp_gpio *lg = container_of(chip, struct lp_gpio, chip);
-> +       unsigned long reg = gpio_reg(chip, gpio, LP_CONFIG1);
-> +       unsigned long conf2 = gpio_reg(chip, gpio, LP_CONFIG2);
-> +       unsigned long acpi_use = gpio_reg(chip, gpio, LP_ACPI_OWNED);
-> +
-> +       /* Fail if BIOS reserved pin for ACPI use */
-> +       if (!(inl(acpi_use) & BIT(gpio % 32))) {
-> +               dev_err(&lg->pdev->dev, "gpio %d reserved for ACPI\n", gpio);
-> +               return -EBUSY;
-> +       }
-
-This %32 magic only seems to consider the latter part of the if()
-statement in the gpio_reg() function. It's like you assume only the
-(gpio / 32) * 4 path to be taken. It seems that for the two models
-handled there this should be %8 or something. Or I'm getting it
-wrong, which is an indication that something is pretty unclear here...
-
-> +       /* Fail if pin is in alternate function mode (not GPIO mode) */
-> +       if (!(inl(reg) & USE_SEL_BIT))
-> +               return -ENODEV;
-> +
-> +       /* enable input sensing */
-> +       outl(inl(conf2) & ~GPINDIS_BIT, conf2);
-> +
-> +       return 0;
-> +}
-
-(...)
-> +static void lp_irq_enable(struct irq_data *d)
-> +{
-> +       struct lp_gpio *lg = irq_data_get_irq_chip_data(d);
-> +       u32 gpio = irqd_to_hwirq(d);
-
-That variable is confusingly named. It's not a global gpio number,
-it's a local offset, so please rename it "offset".
-
-> +       unsigned long reg = gpio_reg(&lg->chip, gpio, LP_INT_ENABLE);
-> +       unsigned long flags;
-> +
-> +       spin_lock_irqsave(&lg->lock, flags);
-> +       outl(inl(reg) | BIT(gpio % 32), reg);
-> +       spin_unlock_irqrestore(&lg->lock, flags);
-> +}
-> +
-> +static void lp_irq_disable(struct irq_data *d)
-> +{
-> +       struct lp_gpio *lg = irq_data_get_irq_chip_data(d);
-> +       u32 gpio = irqd_to_hwirq(d);
-
-Dito.
-
-> +       unsigned long reg = gpio_reg(&lg->chip, gpio, LP_INT_ENABLE);
-> +       unsigned long flags;
-> +
-> +       spin_lock_irqsave(&lg->lock, flags);
-> +       outl(inl(reg) & ~BIT(gpio % 32), reg);
-> +       spin_unlock_irqrestore(&lg->lock, flags);
-> +}
-(...)
-> +#ifdef CONFIG_ACPI
-> +static const struct acpi_device_id lynxpoint_gpio_acpi_match[] = {
-> +       { "INT33C7", 0 },
-> +       { }
-> +};
-> +MODULE_DEVICE_TABLE(acpi, lynxpoint_gpio_acpi_match);
-> +#endif
-
-Aha so how many users are there of this driver which are not
-using ACPI?
-
-If zero, why not just depend on ACPI in Kconfig?
-
-> +static int __devexit lp_gpio_remove(struct platform_device *pdev)
-
-All __devinit/__devexit macros are going away in v3.8 so delete them
-everywhere.
-
-> +{
-> +       struct lp_gpio *lg = platform_get_drvdata(pdev);
-> +       int err;
-> +       err = gpiochip_remove(&lg->chip);
-> +       if (err)
-> +               dev_warn(&pdev->dev, "failed to remove gpio_chip.\n");
-> +       platform_set_drvdata(pdev, NULL);
-> +       return 0;
-> +}
-> +
-> +static struct platform_driver lp_gpio_driver = {
-> +       .probe          = lp_gpio_probe,
-> +       .remove         = __devexit_p(lp_gpio_remove),
-
-Delete that __devexit_p() too I suppose.
-
-> +       .driver         = {
-> +               .name   = "lp_gpio",
-> +               .owner  = THIS_MODULE,
-> +               .acpi_match_table = ACPI_PTR(lynxpoint_gpio_acpi_match),
-> +       },
-> +};
-> +
-> +static int __init lp_gpio_init(void)
-> +{
-> +       return platform_driver_register(&lp_gpio_driver);
-> +}
-> +
-> +subsys_initcall(lp_gpio_init);
-
-Yours,
-Linus Walleij
