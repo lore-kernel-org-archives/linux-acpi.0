@@ -1,141 +1,95 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 4/6] ACPI: Reduce the usage of struct acpi_bus_ops
-Date: Mon, 10 Dec 2012 00:02:41 +0100
-Message-ID: <1661490.lfKgYmIiUQ@vostro.rjw.lan>
-References: <8498184.VilrUmatxI@vostro.rjw.lan>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v9 06/10] ata: zpodd: check zero power ready status
+Date: Mon, 10 Dec 2012 11:26:07 +0800
+Message-ID: <50C5564F.8030000@intel.com>
+References: <1352443922-13734-1-git-send-email-aaron.lu@intel.com>  <35648985.61QNrr0Knq@vostro.rjw.lan> <1353906191.2523.25.camel@dabdike>  <21511277.LLinyDpbAK@vostro.rjw.lan>  <20121128013928.GB15971@htj.dyndns.org> <1354092969.2276.49.camel@dabdike>  <20121203081321.GA9990@mint-spring.sh.intel.com>  <1354523143.2307.2.camel@dabdike.int.hansenpartnership.com>  <20121203162323.GB19802@htj.dyndns.org> <1354623100.3206.34.camel@dabdike.int.hansenpartnership.com> <50C1891A.7040900@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <8498184.VilrUmatxI@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <50C1891A.7040900@intel.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: Tejun Heo <tj@kernel.org>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@vger.kernel.org, Jeff Garzik <jgarzik@pobox.com>, Alan Stern <stern@rowland.harvard.edu>, Jeff Wu <jeff.wu@amd.com>, linux-ide@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On 12/07/2012 02:13 PM, Aaron Lu wrote:
+> On 12/04/2012 08:11 PM, James Bottomley wrote:
+>> On Mon, 2012-12-03 at 08:23 -0800, Tejun Heo wrote:
+>>> Hello, James.
+>>>
+>>> On Mon, Dec 03, 2012 at 08:25:43AM +0000, James Bottomley wrote:
+>>>>> diff --git a/include/scsi/scsi_device.h b/include/scsi/scsi_device.h
+>>>>> index e65c62e..1756151 100644
+>>>>> --- a/include/scsi/scsi_device.h
+>>>>> +++ b/include/scsi/scsi_device.h
+>>>>> @@ -160,6 +160,7 @@ struct scsi_device {
+>>>>>  	unsigned can_power_off:1; /* Device supports runtime power off */
+>>>>>  	unsigned wce_default_on:1;	/* Cache is ON by default */
+>>>>>  	unsigned no_dif:1;	/* T10 PI (DIF) should be disabled */
+>>>>> +	unsigned event_driven:1; /* No need to poll the device */
+>>>>>  
+>>>>>  	DECLARE_BITMAP(supported_events, SDEV_EVT_MAXBITS); /* supported events */
+>>>>>  	struct list_head event_list;	/* asserted events */
+>>>>
+>>>> Yes, but if we can get away with doing that, it should be in genhd
+>>>> because it's completely generic.
+>>>>
+>>>> I was imagining we'd have to fake the reply to the test unit ready or
+>>>> some other commands, which is why it would need to be in sr.c
+>>>>
+>>>> The check events code is Tejun's baby, if he's OK with it then just do
+>>>> it in genhd.c
+>>>
+>>> The problem here is there's no easy to reach genhd from libata (or the
+>>> other way around) without going through sr.  I think we're gonna have
+>>> to have something in sr one way or the other.
+>>
+>> Can't we do that via an event? It's a bit clunky because we need the
+>> callback in the layer that sees the sdev, which is libata-scsi, we just
+>> need an analogue of ata_scsi_media_change_notify, but ignoring and
+>> allowing polling is essentially event driven as well, so it should all
+>> work.  We'll need a listener in genhd, which might be trickier.
+> 
+> Hi Tejun,
+> 
+> Do you have any comments on James' suggestion? I want to know your
+> opinion, thanks.
 
-Objects of type struct acpi_bus_ops are currently used to pass
-information between different parts of the ACPI namespace scanning
-code, sometimes in quite convoluted ways.  It turns out that that
-is not necessary in some cases, so simplify the code by reducing
-the utilization of struct acpi_bus_ops objects where clearly
-possible.
+Hi Tejun,
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/scan.c |   39 +++++++++++++++------------------------
- 1 file changed, 15 insertions(+), 24 deletions(-)
+A colleague of mine reminded me that it's impolite to write something
+like this, and here is my apology. I didn't mean to be rude, I'm sorry
+for this if it made you feel uncomfortable.
 
-Index: linux/drivers/acpi/scan.c
-===================================================================
---- linux.orig/drivers/acpi/scan.c
-+++ linux/drivers/acpi/scan.c
-@@ -1527,7 +1527,6 @@ end:
- static void acpi_bus_add_power_resource(acpi_handle handle)
- {
- 	struct acpi_bus_ops ops = {
--		.acpi_op_add = 1,
- 		.acpi_op_start = 1,
- 		.acpi_op_match = 1,
- 	};
-@@ -1581,7 +1580,6 @@ static int acpi_bus_type_and_status(acpi
- static acpi_status acpi_bus_check_add(acpi_handle handle, u32 lvl,
- 				      void *context, void **return_value)
- {
--	struct acpi_bus_ops *ops = context;
- 	struct acpi_device *device = NULL;
- 	int type;
- 	unsigned long long sta;
-@@ -1609,11 +1607,13 @@ static acpi_status acpi_bus_check_add(ac
- 	 * so, we needn't add it again, but we may still have to start it.
- 	 */
- 	acpi_bus_get_device(handle, &device);
--	if (ops->acpi_op_add && !device) {
--		struct acpi_bus_ops add_ops = *ops;
-+	if (!device) {
-+		struct acpi_bus_ops ops = {
-+			.acpi_op_start = !!context,
-+			.acpi_op_match = 0,
-+		};
- 
--		add_ops.acpi_op_match = 0;
--		acpi_add_single_object(&device, handle, type, sta, &add_ops);
-+		acpi_add_single_object(&device, handle, type, sta, &ops);
- 		if (!device)
- 			return AE_CTRL_DEPTH;
- 
-@@ -1647,21 +1647,21 @@ static acpi_status acpi_bus_match_device
- 	return status;
- }
- 
--static int acpi_bus_scan(acpi_handle handle, struct acpi_bus_ops *ops,
-+static int acpi_bus_scan(acpi_handle handle, bool start,
- 			 struct acpi_device **child)
- {
- 	void *device = NULL;
- 	acpi_status status;
- 	int ret = 0;
- 
--	status = acpi_bus_check_add(handle, 0, ops, &device);
-+	status = acpi_bus_check_add(handle, 0, (void *)start, &device);
- 	if (ACPI_FAILURE(status)) {
- 		ret = -ENODEV;
- 		goto out;
- 	}
- 
- 	acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
--			    acpi_bus_check_add, NULL, ops, &device);
-+			    acpi_bus_check_add, NULL, (void *)start, &device);
- 	if (device)
- 		acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
- 				    acpi_bus_match_device, NULL, NULL, NULL);
-@@ -1691,9 +1691,7 @@ int
- acpi_bus_add(struct acpi_device **child,
- 	     struct acpi_device *parent, acpi_handle handle, int type)
- {
--	struct acpi_bus_ops ops = { .acpi_op_add = 1, };
--
--	return acpi_bus_scan(handle, &ops, child);
-+	return acpi_bus_scan(handle, false, child);
- }
- EXPORT_SYMBOL(acpi_bus_add);
- 
-@@ -1781,12 +1779,10 @@ static int acpi_bus_scan_fixed(void)
- {
- 	int result = 0;
- 	struct acpi_device *device = NULL;
--	struct acpi_bus_ops ops;
--
--	memset(&ops, 0, sizeof(ops));
--	ops.acpi_op_add = 1;
--	ops.acpi_op_start = 1;
--	ops.acpi_op_match = 1;
-+	struct acpi_bus_ops ops = {
-+		.acpi_op_start = 1,
-+		.acpi_op_match = 1,
-+	};
- 
- 	/*
- 	 * Enumerate all fixed-feature devices.
-@@ -1812,11 +1808,6 @@ static int acpi_bus_scan_fixed(void)
- int __init acpi_scan_init(void)
- {
- 	int result;
--	struct acpi_bus_ops ops;
--
--	memset(&ops, 0, sizeof(ops));
--	ops.acpi_op_add = 1;
--	ops.acpi_op_start = 1;
- 
- 	result = bus_register(&acpi_bus_type);
- 	if (result) {
-@@ -1830,7 +1821,7 @@ int __init acpi_scan_init(void)
- 	/*
- 	 * Enumerate devices in the ACPI namespace.
- 	 */
--	result = acpi_bus_scan(ACPI_ROOT_OBJECT, &ops, &acpi_root);
-+	result = acpi_bus_scan(ACPI_ROOT_OBJECT, true, &acpi_root);
- 
- 	if (!result)
- 		result = acpi_bus_scan_fixed();
+If possible, can you please shed some light on this problem and James'
+suggestion? I need your opinions to make progress, thanks.
+
+-Aaron
+
+> 
+> Hi James,
+> 
+> Do you mean we start a thread in genhd that listen to events, so that
+> some driver can send an event to genhd about if the device should be
+> polled? I'm thinking where to store such information. If store it in
+> struct disk_events, then we will need to know which gendisk is for
+> the device, but how? Maybe by loop scan all gendisk's driverfs_dev?
+> If store it in struct device, then we do not need to send the event but
+> just set a flag in sturct device in libata, and let genhd check this
+> flag when poll. So I don't quite understand this, can you please
+> elaborate? Thanks.
+> 
+> Thanks,
+> Aaron
+> 
+>>
+>> This may also work as the more generic route for stuff where we can't
+>> connect the bottom to the top of the stack (which looks like a problem
+>> we'll begin wrestling with a lot now).
+>>
+>> James
+>>
+>>
+> 
+
