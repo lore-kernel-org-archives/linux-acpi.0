@@ -1,145 +1,173 @@
-From: Anisse Astier <anisse@astier.eu>
-Subject: Re: [PATCH] ACPI : do not use Lid and Sleep button for S5 wakeup
-Date: Mon, 10 Dec 2012 14:51:23 +0100
-Message-ID: <20121210145123.0a9b76fe@destiny.ordissimo>
-References: <1354522506.3063.9.camel@rzhang1-mobl4>
-	<1888689.pzvVcdRPlX@vostro.rjw.lan>
-	<1354637206.2411.5.camel@rzhang1-mobl4>
+From: Mathias Nyman <mathias.nyman@linux.intel.com>
+Subject: Re: [PATCH 1/1] gpio: add Lynxpoint chipset gpio driver.
+Date: Mon, 10 Dec 2012 16:06:05 +0200
+Message-ID: <50C5EC4D.4070102@linux.intel.com>
+References: <1354888899-21907-1-git-send-email-mathias.nyman@linux.intel.com> <1354888899-21907-2-git-send-email-mathias.nyman@linux.intel.com> <CACRpkdYG641KYR05jtu3OS7BDGcFpJ-pzu+gTM+RHJnMqytfEQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f194.google.com ([209.85.217.194]:48359 "EHLO
-	mail-lb0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751906Ab2LJNvm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Dec 2012 08:51:42 -0500
-Received: by mail-lb0-f194.google.com with SMTP id gf7so522749lbb.1
-        for <linux-acpi@vger.kernel.org>; Mon, 10 Dec 2012 05:51:40 -0800 (PST)
-In-Reply-To: <1354637206.2411.5.camel@rzhang1-mobl4>
+Received: from mga14.intel.com ([143.182.124.37]:60876 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751377Ab2LJODq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 10 Dec 2012 09:03:46 -0500
+In-Reply-To: <CACRpkdYG641KYR05jtu3OS7BDGcFpJ-pzu+gTM+RHJnMqytfEQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: grant.likely@secretlab.ca, mika.westerberg@linux.intel.com, rafael.j.wysocki@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wed, 05 Dec 2012 00:06:46 +0800, Zhang Rui <rui.zhang@intel.com> wrote :
+On 12/10/2012 11:48 AM, Linus Walleij wrote:
+> On Fri, Dec 7, 2012 at 3:01 PM, Mathias Nyman
+> <mathias.nyman@linux.intel.com>  wrote:
+>
+>> Add gpio support for Intel Lynxpoint chipset.
+>> Lynxpoint supports 94 gpio pins which can generate interrupts.
+>> Driver will fail requests for pins that are marked as owned by ACPI, or
+>> set in an alternate mode (non-gpio).
+>>
+>> Signed-off-by: Mathias Nyman<mathias.nyman@linux.intel.com>
+>
+> Nice shape on this patch, makes it easy to focus the review on the
+> important stuff, thanks Magnus!
+>
+>> +config GPIO_LYNXPOINT
+>> +       bool "Intel Lynxpoint GPIO support"
+>
+> So you don't want to be able to build it as module?
+> (OK just odd on Intel systems.)
 
-> On Tue, 2012-12-04 at 01:02 +0100, Rafael J. Wysocki wrote:
-> > On Monday, December 03, 2012 04:15:06 PM Zhang Rui wrote:
-> > > From 3e7b4da3783d200f35568f72b3b25f16df546ffe Mon Sep 17 00:00:00 2001
-> > > From: Zhang Rui <rui.zhang@intel.com>
-> > > Date: Fri, 30 Nov 2012 14:35:43 +0800
-> > > Subject: [PATCH] ACPI : do not use Lid and Sleep button for S5 wakeup
-> > > 
-> > > When system enters power off, the _PSW of Lid device is enabled.  
-> > > But this may cause the system to reboot instead of power off.
-> > > 
-> > > https://bugzilla.kernel.org/show_bug.cgi?id=35262
-> > > 
-> > > A proper way to fix this is to always disable lid wakeup capability
-> > > for S5.
-> > 
-> > While I understand the motivation, quite frankly I don't understand the patch. :-)
-> > 
-> > > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> > > ---
-> > >  drivers/acpi/scan.c |    7 ++++++-
-> > >  1 file changed, 6 insertions(+), 1 deletion(-)
-> > > 
-> > > diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> > > index d1ecca2..f20020a 100644
-> > > --- a/drivers/acpi/scan.c
-> > > +++ b/drivers/acpi/scan.c
-> > > @@ -807,8 +807,8 @@ acpi_bus_extract_wakeup_device_power_package(acpi_handle handle,
-> > >  static void acpi_bus_set_run_wake_flags(struct acpi_device *device)
-> > >  {
-> > >  	struct acpi_device_id button_device_ids[] = {
-> > > -		{"PNP0C0D", 0},
-> > >  		{"PNP0C0C", 0},
-> > > +		{"PNP0C0D", 0},
-> > >  		{"PNP0C0E", 0},
-> > >  		{"", 0},
-> > >  	};
-> > > @@ -820,6 +820,11 @@ static void acpi_bus_set_run_wake_flags(struct acpi_device *device)
-> > >  	/* Power button, Lid switch always enable wakeup */
-> > >  	if (!acpi_match_device_ids(device, button_device_ids)) {
-> > >  		device->wakeup.flags.run_wake = 1;
-> > > +		if (!acpi_match_device_ids(device, &button_device_ids[1])) {
-> > > +			/* Do not use Lid/sleep button for S5 wakeup */
-> > > +			if (device->wakeup.gpe_number == 5)
-> > > +				device->wakeup.gpe_number = 4;
-> > 
-> > Why do you want to change the wakeup GPE number for those devices?  It appears
-> > to be based on some extra knowledge that should be documented.
-> > 
-> > Moreover, this doesn't look like the right thing to do anyway.  Shouldn't we
-> > just change device->wakeup.sleep_state to ACPI_STATE_S4 (if it was S5) instead?
-> 
-> oops, this is really embarrassing.
-> I made a stupid mistake in this patch, and you are right that I was
-> trying to override the device->wakeup.sleep_state to ACPI_STATE_S4.
-> 
-> refreshed patch attached.
-> Patch has been test by faking a lid device in custom DSDT table.
-> But I still prefer to get the test result in the bug report,
-> before pushing it upstream.
-> 
-> From 64e16e442b7d33801b5c1a41cf5c87d4d8ff1e10 Mon Sep 17 00:00:00 2001
-> From: Zhang Rui <rui.zhang@intel.com>
-> Date: Fri, 30 Nov 2012 14:35:43 +0800
-> Subject: [PATCH 1/2] ACPI : do not use Lid and Sleep button for S5 wakeup
-> 
-> When system enters power off, the _PSW of Lid device is enabled.  
-> But this may cause the system to reboot instead of power off.
-> 
-> A proper way to fix this is to always disable lid wakeup capability for S5.
-> https://bugzilla.kernel.org/show_bug.cgi?id=35262
-> 
-> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+Reason for having it as bool was the subsys_initcall() got degraded
+to something like module_init() if built as module. This was not good 
+because the IO port ranges used for gpios were specified in ACPI tables 
+both in the gpio device, and as a part of a motherboard device. Pnpacpi 
+code would then reserve all the IO port ranges in the motherboard device 
+before this gpio driver had a chance to take reserve them.
 
-It works ! (On a Toshiba C870-12N, which exhibits the problem).
+I have to re-check if this is still the case.
 
-Tested-by: Anisse Astier <anisse@astier.eu>
+>> +struct lp_gpio {
+>> +       struct gpio_chip        chip;
+>> +       struct irq_domain       *domain;
+>> +       struct platform_device  *pdev;
+>> +       spinlock_t              lock;
+>> +       unsigned                hwirq;
+>
+> This struct member is only used in probe() so make it a local variable there
+> and cut it from the struct.
+>
+>> +       unsigned long           reg_base;
+>> +       unsigned long           reg_len;
+>
+> Same comment for reg_len.
 
+Will fix
 
-> ---
->  drivers/acpi/scan.c |    7 ++++++-
->  1 file changed, 6 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index d1ecca2..35674c2 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -807,8 +807,8 @@ acpi_bus_extract_wakeup_device_power_package(acpi_handle handle,
->  static void acpi_bus_set_run_wake_flags(struct acpi_device *device)
->  {
->  	struct acpi_device_id button_device_ids[] = {
-> -		{"PNP0C0D", 0},
->  		{"PNP0C0C", 0},
-> +		{"PNP0C0D", 0},
->  		{"PNP0C0E", 0},
->  		{"", 0},
->  	};
+>
+>> +};
+>> +
+>> +static unsigned long gpio_reg(struct gpio_chip *chip, unsigned gpio, int reg)
+>
+> Rename lp_gpio_reg() so as to match the family.
+>
+> Rename the argument "gpio" to "offset" since it's a local number,
+> not in the global GPIO numberspace. (Please change this everywhere
+> a local index is used.)
 
-Why do you need to change the device order ? Is just cosmetic ?
-(alphabetical)
+Sure.
 
-> @@ -820,6 +820,11 @@ static void acpi_bus_set_run_wake_flags(struct acpi_device *device)
->  	/* Power button, Lid switch always enable wakeup */
->  	if (!acpi_match_device_ids(device, button_device_ids)) {
->  		device->wakeup.flags.run_wake = 1;
-> +		if (!acpi_match_device_ids(device, &button_device_ids[1])) {
-> +			/* Do not use Lid/sleep button for S5 wakeup */
-> +			if (device->wakeup.sleep_state == ACPI_STATE_S5)
-> +				device->wakeup.sleep_state = ACPI_STATE_S4;
-> +		}
->  		device_set_wakeup_capable(&device->dev, true);
->  		return;
->  	}
+>
+>> +{
+>> +       struct lp_gpio *lg = container_of(chip, struct lp_gpio, chip);
+>> +       int offset;
+>> +
+>> +       if (reg == LP_CONFIG1 || reg == LP_CONFIG2)
+>> +               offset = gpio * 8;
+>> +       else
+>> +               offset = (gpio / 32) * 4;
+>
+> Put in some comment above this explaining the layout of the offsets
+> for these two cases so we understand what's happening here.
+>
+>> +       return lg->reg_base + reg + offset;
+>> +}
+>> +
+>> +static int lp_gpio_request(struct gpio_chip *chip, unsigned gpio)
+>> +{
+>> +       struct lp_gpio *lg = container_of(chip, struct lp_gpio, chip);
+>> +       unsigned long reg = gpio_reg(chip, gpio, LP_CONFIG1);
+>> +       unsigned long conf2 = gpio_reg(chip, gpio, LP_CONFIG2);
+>> +       unsigned long acpi_use = gpio_reg(chip, gpio, LP_ACPI_OWNED);
+>> +
+>> +       /* Fail if BIOS reserved pin for ACPI use */
+>> +       if (!(inl(acpi_use)&  BIT(gpio % 32))) {
+>> +               dev_err(&lg->pdev->dev, "gpio %d reserved for ACPI\n", gpio);
+>> +               return -EBUSY;
+>> +       }
+>
+> This %32 magic only seems to consider the latter part of the if()
+> statement in the gpio_reg() function. It's like you assume only the
+> (gpio / 32) * 4 path to be taken. It seems that for the two models
+> handled there this should be %8 or something. Or I'm getting it
+> wrong, which is an indication that something is pretty unclear here...
+>
 
-What if someone wants to use power-on with LID ? Is it an accepted use
-case ?
+I should document the register layout better. It's a bit messy because 
+in some cases a register represents a functionality where each bit 
+stands for a gpio (bitmapped) (each register is 32 bit, so to cover all 
+94 gpios three 32bit registers are needed).
 
+In other cases a register represent a gpio, and each bit a 
+functionality. This is the case with LP_CONFIGx registers. So we got
+94 LP_CONFIG1 registers and 94 LP_CONFIG2 registers.
 
-Regards,
+In the case of acpi_use & BIT(gpio % 32) I know that acpi_used is 
+pointing to one of the three LP_ACPI_OWNED bitmapped registers, and the 
+(gpio / 32 * 4) path is taken, and % 32 will work.
 
-Anisse
+I'll add better description of the register layout as a comment
+
+>> +static void lp_irq_enable(struct irq_data *d)
+>> +{
+>> +       struct lp_gpio *lg = irq_data_get_irq_chip_data(d);
+>> +       u32 gpio = irqd_to_hwirq(d);
+>
+> That variable is confusingly named. It's not a global gpio number,
+> it's a local offset, so please rename it "offset".
+
+sure, (is "pin" ok?  "offset" is already used in may places)
+
+>> +#ifdef CONFIG_ACPI
+>> +static const struct acpi_device_id lynxpoint_gpio_acpi_match[] = {
+>> +       { "INT33C7", 0 },
+>> +       { }
+>> +};
+>> +MODULE_DEVICE_TABLE(acpi, lynxpoint_gpio_acpi_match);
+>> +#endif
+>
+> Aha so how many users are there of this driver which are not
+> using ACPI?
+>
+> If zero, why not just depend on ACPI in Kconfig?
+>
+
+Only ACPI support for now.
+Will remove ifdefs and add dependency.
+
+>> +static int __devexit lp_gpio_remove(struct platform_device *pdev)
+>
+> All __devinit/__devexit macros are going away in v3.8 so delete them
+> everywhere.
+
+Ah, Ok.
+
+>
+> Yours,
+> Linus Walleij
+
+Thanks for taking the time to review this, I'll make the suggested changes.
+
+I also got some offline comments about adding runtime pm/system suspend 
+code to this driver.
+
+-Mathias
