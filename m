@@ -1,120 +1,42 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [PATCH v3] Enable A20 using KBC for some MSI laptops to fix S3
- resume
-Date: Mon, 10 Dec 2012 13:26:18 -0800
-Message-ID: <50C6537A.9090303@zytor.com>
-References: <201210261056.44225.zary@gsystems.sk> <201211052135.20009.linux@rainbow-software.org>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 1/1] gpio: add Lynxpoint chipset gpio driver.
+Date: Mon, 10 Dec 2012 22:48:03 +0100
+Message-ID: <CACRpkdaMuBrWwd5Z_KUNbt8KCFGiNxVvX58T2y9nX-EZS3_fjg@mail.gmail.com>
+References: <1354888899-21907-1-git-send-email-mathias.nyman@linux.intel.com>
+	<1354888899-21907-2-git-send-email-mathias.nyman@linux.intel.com>
+	<CACRpkdYG641KYR05jtu3OS7BDGcFpJ-pzu+gTM+RHJnMqytfEQ@mail.gmail.com>
+	<50C5EC4D.4070102@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------050400020700090403080108"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201211052135.20009.linux@rainbow-software.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ondrej Zary <linux@rainbow-software.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:63850 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752167Ab2LJVsF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Dec 2012 16:48:05 -0500
+Received: by mail-ee0-f46.google.com with SMTP id e53so1845980eek.19
+        for <linux-acpi@vger.kernel.org>; Mon, 10 Dec 2012 13:48:04 -0800 (PST)
+In-Reply-To: <50C5EC4D.4070102@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mathias Nyman <mathias.nyman@linux.intel.com>
+Cc: grant.likely@secretlab.ca, mika.westerberg@linux.intel.com, rafael.j.wysocki@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------050400020700090403080108
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+On Mon, Dec 10, 2012 at 3:06 PM, Mathias Nyman
+<mathias.nyman@linux.intel.com> wrote:
 
-On 11/05/2012 12:35 PM, Ondrej Zary wrote:
-> On Friday 26 October 2012 10:56:44 Ondrej Zary wrote:
->> Some MSI laptop BIOSes are broken - INT 15h code uses port 92h to enable
->> A20 line but resume code assumes that KBC was used.
->> The laptop will not resume from S3 otherwise but powers off after a while
->> and then powers on again stuck with a blank screen.
+>>> +static void lp_irq_enable(struct irq_data *d)
+>>> +{
+>>> +       struct lp_gpio *lg = irq_data_get_irq_chip_data(d);
+>>> +       u32 gpio = irqd_to_hwirq(d);
 >>
->> Fix it by enabling A20 using KBC. Affected laptop list and DMI data are
->> from bug reports at Ubuntu Launchpad.
 >>
->> Also add kernel parameter to easily activate this quirk on any system.
->>
->> Only compile tested. The original patch was tested with EX600 and PR200.
->>
->> Fixes https://bugzilla.kernel.org/show_bug.cgi?id=12878
-> 
-> The bug was marked as RESOLVED CODE_FIX but I wonder what happened to this 
-> patch. Was it applied? Or is someone working on a better way to fix this 
-> problem?
-> 
+>> That variable is confusingly named. It's not a global gpio number,
+>> it's a local offset, so please rename it "offset".
+>
+> sure, (is "pin" ok?  "offset" is already used in may places)
 
-Sorry, I managed to forget about this.
+pin will confuse things to the pinctrl subsystem ... offset is really nice.
+But no super-big deal.
 
-Is there any way you could test this patch by any chance?
-
-I would be a lot happier if this works as a general solution rather than
-relying on a quirk...
-
-	-hpa
-
-
---------------050400020700090403080108
-Content-Type: text/x-patch;
- name="0001-x86-suspend-Run-A20-test-on-resume.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="0001-x86-suspend-Run-A20-test-on-resume.patch"
-
->From 5513340abd845eaa28fe2394f7e0296599f2d9e7 Mon Sep 17 00:00:00 2001
-From: "H. Peter Anvin" <hpa@linux.intel.com>
-Date: Mon, 10 Dec 2012 13:17:48 -0800
-Subject: [PATCH] x86, suspend: Run A20 test on resume
-
-If A20 is disabled on resume, we may have to explicitly enable it.
-Rather than creating a bunch of ad hoc code, use the same code we
-would on system startup.
-
-Note: the startup code implicitly assumes BIOS, specifically that int
-$0x15 is enabled.  However, for non-BIOS platforms to have A20 closed
-on resume seems extremely unlikely, since pretty much all non-BIOS
-firmware run in 32- or 64-bit mode.
-
-Reported-by: Ondrej Zary <linux@rainbow-software.org>
-Link: http://lkml.kernel.org/r/201210240847.52417.linux@rainbow-software.org
-Signed-off-by: H. Peter Anvin <hpa@linux.intel.com>
----
- arch/x86/realmode/rm/Makefile   | 2 +-
- arch/x86/realmode/rm/a20.c      | 1 +
- arch/x86/realmode/rm/wakemain.c | 3 +++
- 3 files changed, 5 insertions(+), 1 deletion(-)
- create mode 100644 arch/x86/realmode/rm/a20.c
-
-diff --git a/arch/x86/realmode/rm/Makefile b/arch/x86/realmode/rm/Makefile
-index 8869287..7e2ff68 100644
---- a/arch/x86/realmode/rm/Makefile
-+++ b/arch/x86/realmode/rm/Makefile
-@@ -10,7 +10,7 @@
- always := realmode.bin realmode.relocs
- 
- wakeup-objs	:= wakeup_asm.o wakemain.o video-mode.o
--wakeup-objs	+= copy.o bioscall.o regs.o
-+wakeup-objs	+= copy.o bioscall.o regs.o a20.o
- # The link order of the video-*.o modules can matter.  In particular,
- # video-vga.o *must* be listed first, followed by video-vesa.o.
- # Hardware-specific drivers should follow in the order they should be
-diff --git a/arch/x86/realmode/rm/a20.c b/arch/x86/realmode/rm/a20.c
-new file mode 100644
-index 0000000..e71d518
---- /dev/null
-+++ b/arch/x86/realmode/rm/a20.c
-@@ -0,0 +1 @@
-+#include "../../boot/a20.c"
-diff --git a/arch/x86/realmode/rm/wakemain.c b/arch/x86/realmode/rm/wakemain.c
-index 91405d5..6e0d548 100644
---- a/arch/x86/realmode/rm/wakemain.c
-+++ b/arch/x86/realmode/rm/wakemain.c
-@@ -79,4 +79,7 @@ void main(void)
- 		probe_cards(0);
- 		set_mode(wakeup_header.video_mode);
- 	}
-+
-+	/* If A20 is closed, fix now */
-+	enable_a20();
- }
--- 
-1.7.11.7
-
-
---------------050400020700090403080108--
+Yours,
+Linus Walleij
