@@ -1,104 +1,42 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] ACPI : do not use Lid and Sleep button for S5 wakeup
-Date: Mon, 10 Dec 2012 15:44:17 +0100
-Message-ID: <11815633.2CKGZS0MxY@vostro.rjw.lan>
-References: <1354522506.3063.9.camel@rzhang1-mobl4> <1354637206.2411.5.camel@rzhang1-mobl4> <20121210145123.0a9b76fe@destiny.ordissimo>
+Subject: Re: [PATCH 5/6] ACPI: Replace struct acpi_bus_ops with enum type
+Date: Mon, 10 Dec 2012 15:46:55 +0100
+Message-ID: <2637774.lmuX5P2qQX@vostro.rjw.lan>
+References: <8498184.VilrUmatxI@vostro.rjw.lan> <2097693.II1PNyeFLY@vostro.rjw.lan> <CAE9FiQWxoWubagm4gj81YgMeqyEZgpT47ROAfjmXSmoaTn-Yig@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:52256 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753869Ab2LJOjR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 10 Dec 2012 09:39:17 -0500
-In-Reply-To: <20121210145123.0a9b76fe@destiny.ordissimo>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAE9FiQWxoWubagm4gj81YgMeqyEZgpT47ROAfjmXSmoaTn-Yig@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Anisse Astier <anisse@astier.eu>
-Cc: Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org
 
-On Monday, December 10, 2012 02:51:23 PM Anisse Astier wrote:
-> On Wed, 05 Dec 2012 00:06:46 +0800, Zhang Rui <rui.zhang@intel.com> wrote :
+On Sunday, December 09, 2012 09:34:42 PM Yinghai Lu wrote:
+> On Sun, Dec 9, 2012 at 3:03 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >
+> > Notice that one member of struct acpi_bus_ops, acpi_op_add, is not
+> > used anywhere any more and the relationship between its remaining
+> > members, acpi_op_match and acpi_op_start, is such that it doesn't
+> > make sense to set the latter without setting the former at the same
+> > time.  Therefore, replace struct acpi_bus_ops with new a enum type,
+> > enum acpi_bus_add_type, with three values, ACPI_BUS_ADD_BASIC,
+> > ACPI_BUS_ADD_MATCH, ACPI_BUS_ADD_START, corresponding to
+> > both acpi_op_match and acpi_op_start unset, acpi_op_match set and
+> > acpi_op_start unset, and both acpi_op_match and acpi_op_start set,
+> > respectively.
+> >
 > 
-> > On Tue, 2012-12-04 at 01:02 +0100, Rafael J. Wysocki wrote:
-> > > On Monday, December 03, 2012 04:15:06 PM Zhang Rui wrote:
-> > > > From 3e7b4da3783d200f35568f72b3b25f16df546ffe Mon Sep 17 00:00:00 2001
-> > > > From: Zhang Rui <rui.zhang@intel.com>
-> > > > Date: Fri, 30 Nov 2012 14:35:43 +0800
-> > > > Subject: [PATCH] ACPI : do not use Lid and Sleep button for S5 wakeup
-> > > > 
-> > > > When system enters power off, the _PSW of Lid device is enabled.  
-> > > > But this may cause the system to reboot instead of power off.
-> > > > 
-> > > > https://bugzilla.kernel.org/show_bug.cgi?id=35262
-> > > > 
-> > > > A proper way to fix this is to always disable lid wakeup capability
-> > > > for S5.
-> > > 
-> > > While I understand the motivation, quite frankly I don't understand the patch. :-)
-> > > 
-> > > > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-> > > > ---
-> > > >  drivers/acpi/scan.c |    7 ++++++-
-> > > >  1 file changed, 6 insertions(+), 1 deletion(-)
-> > > > 
-> > > > diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> > > > index d1ecca2..f20020a 100644
-> > > > --- a/drivers/acpi/scan.c
-> > > > +++ b/drivers/acpi/scan.c
-> > > > @@ -807,8 +807,8 @@ acpi_bus_extract_wakeup_device_power_package(acpi_handle handle,
-> > > >  static void acpi_bus_set_run_wake_flags(struct acpi_device *device)
-> > > >  {
-> > > >  	struct acpi_device_id button_device_ids[] = {
-> > > > -		{"PNP0C0D", 0},
-> > > >  		{"PNP0C0C", 0},
-> > > > +		{"PNP0C0D", 0},
-> > > >  		{"PNP0C0E", 0},
-> > > >  		{"", 0},
-> > > >  	};
-> > > > @@ -820,6 +820,11 @@ static void acpi_bus_set_run_wake_flags(struct acpi_device *device)
-> > > >  	/* Power button, Lid switch always enable wakeup */
-> > > >  	if (!acpi_match_device_ids(device, button_device_ids)) {
-> > > >  		device->wakeup.flags.run_wake = 1;
-> > > > +		if (!acpi_match_device_ids(device, &button_device_ids[1])) {
-> > > > +			/* Do not use Lid/sleep button for S5 wakeup */
-> > > > +			if (device->wakeup.gpe_number == 5)
-> > > > +				device->wakeup.gpe_number = 4;
-> > > 
-> > > Why do you want to change the wakeup GPE number for those devices?  It appears
-> > > to be based on some extra knowledge that should be documented.
-> > > 
-> > > Moreover, this doesn't look like the right thing to do anyway.  Shouldn't we
-> > > just change device->wakeup.sleep_state to ACPI_STATE_S4 (if it was S5) instead?
-> > 
-> > oops, this is really embarrassing.
-> > I made a stupid mistake in this patch, and you are right that I was
-> > trying to override the device->wakeup.sleep_state to ACPI_STATE_S4.
-> > 
-> > refreshed patch attached.
-> > Patch has been test by faking a lid device in custom DSDT table.
-> > But I still prefer to get the test result in the bug report,
-> > before pushing it upstream.
-> > 
-> > From 64e16e442b7d33801b5c1a41cf5c87d4d8ff1e10 Mon Sep 17 00:00:00 2001
-> > From: Zhang Rui <rui.zhang@intel.com>
-> > Date: Fri, 30 Nov 2012 14:35:43 +0800
-> > Subject: [PATCH 1/2] ACPI : do not use Lid and Sleep button for S5 wakeup
-> > 
-> > When system enters power off, the _PSW of Lid device is enabled.  
-> > But this may cause the system to reboot instead of power off.
-> > 
-> > A proper way to fix this is to always disable lid wakeup capability for S5.
-> > https://bugzilla.kernel.org/show_bug.cgi?id=35262
-> > 
-> > Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+> Can we expand the BUS_ADD_* concept to other devices instead of just
+> acpi_device?
 > 
-> It works ! (On a Toshiba C870-12N, which exhibits the problem).
-> 
-> Tested-by: Anisse Astier <anisse@astier.eu>
-> 
+> aka we should let struct device has this add_type field.
 
-The patch has been queued up for v3.8 and -stable.
+Having done that in ACPI to cover our use case here, we can try to move it
+into struct device if there are use cases beyond ACPI that can't be covered
+by using deferred driver probing.
 
 Thanks,
 Rafael
