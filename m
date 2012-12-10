@@ -1,55 +1,50 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 5/6] ACPI: Replace struct acpi_bus_ops with enum type
-Date: Mon, 10 Dec 2012 23:47:27 +0100
-Message-ID: <3585743.RAy43NB8MZ@vostro.rjw.lan>
-References: <8498184.VilrUmatxI@vostro.rjw.lan> <2637774.lmuX5P2qQX@vostro.rjw.lan> <CAE9FiQXsBC-CY4KqKkaAXx3sYLVWJOaaKGkg_kChb7ry_7Sq8Q@mail.gmail.com>
+From: Ondrej Zary <linux@rainbow-software.org>
+Subject: Re: [PATCH v3] Enable A20 using KBC for some MSI laptops to fix S3 resume
+Date: Mon, 10 Dec 2012 23:51:40 +0100
+Message-ID: <201212102351.41144.linux@rainbow-software.org>
+References: <201210261056.44225.zary@gsystems.sk> <201211052135.20009.linux@rainbow-software.org> <50C6537A.9090303@zytor.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAE9FiQXsBC-CY4KqKkaAXx3sYLVWJOaaKGkg_kChb7ry_7Sq8Q@mail.gmail.com>
+In-Reply-To: <50C6537A.9090303@zytor.com>
+Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday, December 10, 2012 09:07:06 AM Yinghai Lu wrote:
-> On Mon, Dec 10, 2012 at 6:46 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > On Sunday, December 09, 2012 09:34:42 PM Yinghai Lu wrote:
+On Monday 10 December 2012 22:26:18 H. Peter Anvin wrote:
+> On 11/05/2012 12:35 PM, Ondrej Zary wrote:
+> > On Friday 26 October 2012 10:56:44 Ondrej Zary wrote:
+> >> Some MSI laptop BIOSes are broken - INT 15h code uses port 92h to enable
+> >> A20 line but resume code assumes that KBC was used.
+> >> The laptop will not resume from S3 otherwise but powers off after a
+> >> while and then powers on again stuck with a blank screen.
 > >>
-> >> Can we expand the BUS_ADD_* concept to other devices instead of just
-> >> acpi_device?
+> >> Fix it by enabling A20 using KBC. Affected laptop list and DMI data are
+> >> from bug reports at Ubuntu Launchpad.
 > >>
-> >> aka we should let struct device has this add_type field.
+> >> Also add kernel parameter to easily activate this quirk on any system.
+> >>
+> >> Only compile tested. The original patch was tested with EX600 and PR200.
+> >>
+> >> Fixes https://bugzilla.kernel.org/show_bug.cgi?id=12878
 > >
-> > Having done that in ACPI to cover our use case here, we can try to move it
-> > into struct device if there are use cases beyond ACPI that can't be covered
-> > by using deferred driver probing.
-> 
-> pci device for hotplug have same problem. need to delay driver attach
-> for them too.
+> > The bug was marked as RESOLVED CODE_FIX but I wonder what happened to
+> > this patch. Was it applied? Or is someone working on a better way to fix
+> > this problem?
+>
+> Sorry, I managed to forget about this.
+>
+> Is there any way you could test this patch by any chance?
+>
+> I would be a lot happier if this works as a general solution rather than
+> relying on a quirk...
 
-OK, I'll take a look.  Any pointers to speed that up?
-
-> also BUS_ADD_MATCH and BUS_ADD_START are duplicated.
-
-Not at the moment, they do different things as code goes.
-
-> old add are separated to adding all devices to tree and then matching
-> work to load the drivers.
-> 
-> so _START is not needed anymore, only user.start in pci_root driver
-> should be removed.
-> code in .start could be moved .add without problem.
-
-Yes, I'm going to do that as the next step.  I didn't want this particular
-patchset to grow too big.  I'll post another one on top of it if people
-don't have problems with this one.
-
-Thanks,
-Rafael
+I have a PR200 laptop for a while now so I'll try to test this patch.
 
 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Ondrej Zary
