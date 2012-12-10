@@ -1,42 +1,55 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 1/1] gpio: add Lynxpoint chipset gpio driver.
-Date: Mon, 10 Dec 2012 22:48:03 +0100
-Message-ID: <CACRpkdaMuBrWwd5Z_KUNbt8KCFGiNxVvX58T2y9nX-EZS3_fjg@mail.gmail.com>
-References: <1354888899-21907-1-git-send-email-mathias.nyman@linux.intel.com>
-	<1354888899-21907-2-git-send-email-mathias.nyman@linux.intel.com>
-	<CACRpkdYG641KYR05jtu3OS7BDGcFpJ-pzu+gTM+RHJnMqytfEQ@mail.gmail.com>
-	<50C5EC4D.4070102@linux.intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 5/6] ACPI: Replace struct acpi_bus_ops with enum type
+Date: Mon, 10 Dec 2012 23:47:27 +0100
+Message-ID: <3585743.RAy43NB8MZ@vostro.rjw.lan>
+References: <8498184.VilrUmatxI@vostro.rjw.lan> <2637774.lmuX5P2qQX@vostro.rjw.lan> <CAE9FiQXsBC-CY4KqKkaAXx3sYLVWJOaaKGkg_kChb7ry_7Sq8Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:63850 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752167Ab2LJVsF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Dec 2012 16:48:05 -0500
-Received: by mail-ee0-f46.google.com with SMTP id e53so1845980eek.19
-        for <linux-acpi@vger.kernel.org>; Mon, 10 Dec 2012 13:48:04 -0800 (PST)
-In-Reply-To: <50C5EC4D.4070102@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAE9FiQXsBC-CY4KqKkaAXx3sYLVWJOaaKGkg_kChb7ry_7Sq8Q@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Mathias Nyman <mathias.nyman@linux.intel.com>
-Cc: grant.likely@secretlab.ca, mika.westerberg@linux.intel.com, rafael.j.wysocki@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Mon, Dec 10, 2012 at 3:06 PM, Mathias Nyman
-<mathias.nyman@linux.intel.com> wrote:
+On Monday, December 10, 2012 09:07:06 AM Yinghai Lu wrote:
+> On Mon, Dec 10, 2012 at 6:46 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > On Sunday, December 09, 2012 09:34:42 PM Yinghai Lu wrote:
+> >>
+> >> Can we expand the BUS_ADD_* concept to other devices instead of just
+> >> acpi_device?
+> >>
+> >> aka we should let struct device has this add_type field.
+> >
+> > Having done that in ACPI to cover our use case here, we can try to move it
+> > into struct device if there are use cases beyond ACPI that can't be covered
+> > by using deferred driver probing.
+> 
+> pci device for hotplug have same problem. need to delay driver attach
+> for them too.
 
->>> +static void lp_irq_enable(struct irq_data *d)
->>> +{
->>> +       struct lp_gpio *lg = irq_data_get_irq_chip_data(d);
->>> +       u32 gpio = irqd_to_hwirq(d);
->>
->>
->> That variable is confusingly named. It's not a global gpio number,
->> it's a local offset, so please rename it "offset".
->
-> sure, (is "pin" ok?  "offset" is already used in may places)
+OK, I'll take a look.  Any pointers to speed that up?
 
-pin will confuse things to the pinctrl subsystem ... offset is really nice.
-But no super-big deal.
+> also BUS_ADD_MATCH and BUS_ADD_START are duplicated.
 
-Yours,
-Linus Walleij
+Not at the moment, they do different things as code goes.
+
+> old add are separated to adding all devices to tree and then matching
+> work to load the drivers.
+> 
+> so _START is not needed anymore, only user.start in pci_root driver
+> should be removed.
+> code in .start could be moved .add without problem.
+
+Yes, I'm going to do that as the next step.  I didn't want this particular
+patchset to grow too big.  I'll post another one on top of it if people
+don't have problems with this one.
+
+Thanks,
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
