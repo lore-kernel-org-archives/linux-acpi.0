@@ -1,58 +1,22 @@
-From: Jiang Liu <liuj97@gmail.com>
-Subject: Re: [PATCH 5/6] ACPI: Replace struct acpi_bus_ops with enum type
-Date: Tue, 11 Dec 2012 23:09:06 +0800
-Message-ID: <50C74C92.1040405@gmail.com>
-References: <8498184.VilrUmatxI@vostro.rjw.lan> <CAE9FiQWZ8WaAJm8ayU+woVRqNLdSRtPS4=gpsrJovmzrUG6FNw@mail.gmail.com> <38722368.Fl8pJoLSRi@vostro.rjw.lan> <8119513.v7VrlzcaZC@vostro.rjw.lan> <CAE9FiQXYPPcRZZBFGrqcV--0-UixMH1f+q4WdovErthsLhxn7A@mail.gmail.com>
+From: Witold Szczeponik <Witold.Szczeponik@gmx.net>
+Subject: Re: [GIT PULL] ACPI and power management updates for v3.8-rc1
+Date: Tue, 11 Dec 2012 17:25:09 +0100
+Message-ID: <50C75E65.70802@gmx.net>
+References: <4460434.rhV1bpKLo5@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAE9FiQXYPPcRZZBFGrqcV--0-UixMH1f+q4WdovErthsLhxn7A@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Jiang Liu <jiang.liu@huawei.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4460434.rhV1bpKLo5@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Len Brown <lenb@kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Rafael,
-	I have worked out a patch set to clean up ACPI/PCI related notifications,
-please refer to
-http://www.spinics.net/lists/linux-pci/msg17822.html
-	The patchset doesn't apply cleanly to Bjorn's latest pci-next tree. I will
-help to rebase it if needed.
-Regards!
-Gerry
+Hi Rafael, 
 
-On 12/11/2012 10:26 AM, Yinghai Lu wrote:
-> On Mon, Dec 10, 2012 at 5:28 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
->>>
->>> OK, thanks for the pointers.  I actually see more differences between our
->>> patchsets.  For one example, you seem to have left the parent->ops.bind()
->>> stuff in acpi_add_single_object() which calls it even drivers_autoprobe is
->>> set.
->>
->> Sorry, that should have been "which calls it even when drivers_autoprobe is
->> not set".  I need to be more careful.
->>
-> 
-> oh,  Jiang Liu had one patch to remove that workaround.
-> 
-> http://git.kernel.org/?p=linux/kernel/git/yinghai/linux-yinghai.git;a=commitdiff;h=b40dba80c2b8395570d8357e6b3f417c27c84504
-> 
-> ACPI/pci-bind: remove bind/unbind callbacks from acpi_device_ops
-> 
-> Maybe you can review that patches in my for-pci-next2...
-> those are ACPI related anyway.
-> 
-> those patches have been there for a while, and Bjorn did not have time
-> to digest them.
-> 
-> or you prefer I resend updated version as huge whole patchset?
-> 
-> Thanks
-> 
-> Yinghai
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+please consider the inclusion of the two patches from https://lkml.org/lkml/2012/7/29/87 and https://lkml.org/lkml/2012/7/29/86, as discussed in our e-mail conversation on Oct 19 and 20.  The patches apply without modification against 3.7 as well.  (Since there is no change since 3.5, I did not resend them.) 
+
+Thanks in advance!  If a separate re-send of the patches is needed, please let me know. 
+
+--- Witold
