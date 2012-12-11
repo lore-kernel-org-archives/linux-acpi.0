@@ -1,49 +1,52 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH 5/6] ACPI: Replace struct acpi_bus_ops with enum type
-Date: Mon, 10 Dec 2012 18:26:08 -0800
-Message-ID: <CAE9FiQXYPPcRZZBFGrqcV--0-UixMH1f+q4WdovErthsLhxn7A@mail.gmail.com>
-References: <8498184.VilrUmatxI@vostro.rjw.lan>
-	<CAE9FiQWZ8WaAJm8ayU+woVRqNLdSRtPS4=gpsrJovmzrUG6FNw@mail.gmail.com>
-	<38722368.Fl8pJoLSRi@vostro.rjw.lan>
-	<8119513.v7VrlzcaZC@vostro.rjw.lan>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH v9 06/10] ata: zpodd: check zero power ready status
+Date: Mon, 10 Dec 2012 21:10:27 -0800
+Message-ID: <20121211051027.GB1932@mtj.dyndns.org>
+References: <1353906191.2523.25.camel@dabdike>
+ <21511277.LLinyDpbAK@vostro.rjw.lan>
+ <20121128013928.GB15971@htj.dyndns.org>
+ <1354092969.2276.49.camel@dabdike>
+ <20121203081321.GA9990@mint-spring.sh.intel.com>
+ <1354523143.2307.2.camel@dabdike.int.hansenpartnership.com>
+ <20121203162323.GB19802@htj.dyndns.org>
+ <1354623100.3206.34.camel@dabdike.int.hansenpartnership.com>
+ <50C1891A.7040900@intel.com>
+ <50C5564F.8030000@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:44665 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751930Ab2LKC0K (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Dec 2012 21:26:10 -0500
-In-Reply-To: <8119513.v7VrlzcaZC@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-scsi-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <50C5564F.8030000@intel.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@vger.kernel.org, Jeff Garzik <jgarzik@pobox.com>, Alan Stern <stern@rowland.harvard.edu>, Jeff Wu <jeff.wu@amd.com>, linux-ide@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, Jiang Liu <jiang.liu@huawei.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
 
-On Mon, Dec 10, 2012 at 5:28 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
->>
->> OK, thanks for the pointers.  I actually see more differences between our
->> patchsets.  For one example, you seem to have left the parent->ops.bind()
->> stuff in acpi_add_single_object() which calls it even drivers_autoprobe is
->> set.
->
-> Sorry, that should have been "which calls it even when drivers_autoprobe is
-> not set".  I need to be more careful.
->
+Hello, guys.
 
-oh,  Jiang Liu had one patch to remove that workaround.
+On Mon, Dec 10, 2012 at 11:26:07AM +0800, Aaron Lu wrote:
+> >>> The problem here is there's no easy to reach genhd from libata (or the
+> >>> other way around) without going through sr.  I think we're gonna have
+> >>> to have something in sr one way or the other.
+> >>
+> >> Can't we do that via an event? It's a bit clunky because we need the
+> >> callback in the layer that sees the sdev, which is libata-scsi, we just
+> >> need an analogue of ata_scsi_media_change_notify, but ignoring and
+> >> allowing polling is essentially event driven as well, so it should all
+> >> work.  We'll need a listener in genhd, which might be trickier.
 
-http://git.kernel.org/?p=linux/kernel/git/yinghai/linux-yinghai.git;a=commitdiff;h=b40dba80c2b8395570d8357e6b3f417c27c84504
+I'm not really following what you mean.  Can you please elaborate?
+One way or the other, doesn't the notification have to bubble up
+through SCSI?
 
-ACPI/pci-bind: remove bind/unbind callbacks from acpi_device_ops
+> A colleague of mine reminded me that it's impolite to write something
+> like this, and here is my apology. I didn't mean to be rude, I'm sorry
+> for this if it made you feel uncomfortable.
 
-Maybe you can review that patches in my for-pci-next2...
-those are ACPI related anyway.
+Oh, no, it's not rude at all.  I was just being distracted w/ other
+stuff and lazy.  Sorry about that.
 
-those patches have been there for a while, and Bjorn did not have time
-to digest them.
+Thanks.
 
-or you prefer I resend updated version as huge whole patchset?
-
-Thanks
-
-Yinghai
+-- 
+tejun
