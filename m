@@ -1,58 +1,56 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 5/6] ACPI: Replace struct acpi_bus_ops with enum type
-Date: Tue, 11 Dec 2012 19:30:57 +0100
-Message-ID: <2093499.q2b9fD3smR@vostro.rjw.lan>
-References: <8498184.VilrUmatxI@vostro.rjw.lan> <CAE9FiQXYPPcRZZBFGrqcV--0-UixMH1f+q4WdovErthsLhxn7A@mail.gmail.com> <50C74C92.1040405@gmail.com>
+From: Ondrej Zary <linux@rainbow-software.org>
+Subject: Re: [PATCH v3] Enable A20 using KBC for some MSI laptops to fix S3 resume
+Date: Tue, 11 Dec 2012 19:59:15 +0100
+Message-ID: <201212111959.15808.linux@rainbow-software.org>
+References: <201210261056.44225.zary@gsystems.sk> <201211052135.20009.linux@rainbow-software.org> <50C6537A.9090303@zytor.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:55792 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753185Ab2LKSZ4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 11 Dec 2012 13:25:56 -0500
-In-Reply-To: <50C74C92.1040405@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <50C6537A.9090303@zytor.com>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <liuj97@gmail.com>
-Cc: Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
 
-Hi Gerry,
+On Monday 10 December 2012 22:26:18 H. Peter Anvin wrote:
+> On 11/05/2012 12:35 PM, Ondrej Zary wrote:
+> > On Friday 26 October 2012 10:56:44 Ondrej Zary wrote:
+> >> Some MSI laptop BIOSes are broken - INT 15h code uses port 92h to enable
+> >> A20 line but resume code assumes that KBC was used.
+> >> The laptop will not resume from S3 otherwise but powers off after a
+> >> while and then powers on again stuck with a blank screen.
+> >>
+> >> Fix it by enabling A20 using KBC. Affected laptop list and DMI data are
+> >> from bug reports at Ubuntu Launchpad.
+> >>
+> >> Also add kernel parameter to easily activate this quirk on any system.
+> >>
+> >> Only compile tested. The original patch was tested with EX600 and PR200.
+> >>
+> >> Fixes https://bugzilla.kernel.org/show_bug.cgi?id=12878
+> >
+> > The bug was marked as RESOLVED CODE_FIX but I wonder what happened to
+> > this patch. Was it applied? Or is someone working on a better way to fix
+> > this problem?
+>
+> Sorry, I managed to forget about this.
+>
+> Is there any way you could test this patch by any chance?
 
-On Tuesday, December 11, 2012 11:09:06 PM Jiang Liu wrote:
-> Hi Rafael,
-> 	I have worked out a patch set to clean up ACPI/PCI related notifications,
-> please refer to
-> http://www.spinics.net/lists/linux-pci/msg17822.html
-> 	The patchset doesn't apply cleanly to Bjorn's latest pci-next tree. I will
-> help to rebase it if needed.
+I've just tested the patch and it does not work (no change in behavior).
 
-I have reviewed the patches and I think they make sense overall.  However,
-the statement that acpi_pci_bind()/acpi_pci_unbind() are used to maintain
-PCI-ACPI binding relationships is quite inaccurate, because all what these
-functions do is to (1) add/remove ACPI PM notifiers to/from PCI devices and
-(2) retrieve the _PRT information for bridges from ACPI tables.  In fact,
-the *binding* itself is managed by the code in drivers/acpi/glue.c.
+> I would be a lot happier if this works as a general solution rather than
+> relying on a quirk...
 
-Also, please have a look at my suggestion in the last reply to Yinghai:
+As I said before, the BIOS probably breaks on resume before any Linux code is 
+executed. So any fix must be done before suspending.
 
-http://marc.info/?l=linux-pci&m=135522965707752&w=2
-
-In fact, I think we can go even further than that.  Namely, if we populate the
-ACPI handle of the device in pci_scan_device(), then we can just move the PM
-notifier and wakeup setup to platform_pci_wakeup_init(), where it should be
-(we'll also need to add a corresponding _exit() function, then, but that'll be
-much cleaner anyway).
-
-Then, the remaining thing would be to ensure that _PRT entries are parsed
-as appropriate somewhere around pci_init_capabilities().
-
-Also, I wonder if you can help test the $subject patchset on a system with
-hardware PCI hotplug (preferably on top of the linux-pm.git/master branch)?
-
-Rafael
+I hate quirks too. A general solution would be to always enable A20 using KBC 
+(if KBC is present) but that's probably not acceptable.
 
 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Ondrej Zary
