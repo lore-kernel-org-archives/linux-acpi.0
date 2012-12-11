@@ -1,64 +1,42 @@
-From: Ondrej Zary <linux@rainbow-software.org>
-Subject: Re: [PATCH v3] Enable A20 using KBC for some MSI laptops to fix S3 resume
-Date: Tue, 11 Dec 2012 21:50:38 +0100
-Message-ID: <201212112150.38410.linux@rainbow-software.org>
-References: <201210261056.44225.zary@gsystems.sk> <201212112129.13248.linux@rainbow-software.org> <50C7995E.7060301@zytor.com>
+From: "H. Peter Anvin" <hpa@zytor.com>
+Subject: Re: [PATCH v3] Enable A20 using KBC for some MSI laptops to fix S3
+ resume
+Date: Tue, 11 Dec 2012 12:56:20 -0800
+Message-ID: <50C79DF4.3020300@zytor.com>
+References: <201210261056.44225.zary@gsystems.sk> <201212112129.13248.linux@rainbow-software.org> <50C7995E.7060301@zytor.com> <201212112150.38410.linux@rainbow-software.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-1-out2.atlantis.sk ([80.94.52.71]:48840 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753868Ab2LKUvR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Dec 2012 15:51:17 -0500
-In-Reply-To: <50C7995E.7060301@zytor.com>
-Content-Disposition: inline
+Received: from terminus.zytor.com ([198.137.202.10]:35361 "EHLO mail.zytor.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753907Ab2LKU4d (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 11 Dec 2012 15:56:33 -0500
+In-Reply-To: <201212112150.38410.linux@rainbow-software.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>
+To: Ondrej Zary <linux@rainbow-software.org>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tuesday 11 December 2012 21:36:46 H. Peter Anvin wrote:
-> On 12/11/2012 12:29 PM, Ondrej Zary wrote:
-> > Something like this? (It works.)
+On 12/11/2012 12:50 PM, Ondrej Zary wrote:
+> On Tuesday 11 December 2012 21:36:46 H. Peter Anvin wrote:
+>> On 12/11/2012 12:29 PM, Ondrej Zary wrote:
+>>> Something like this? (It works.)
+>>
+>> Something like that.  We need to make sure we send the proper sequence,
+>> though, or it might break some SMM firmware...
 >
-> Something like that.  We need to make sure we send the proper sequence,
-> though, or it might break some SMM firmware...
+> Could you please create proper patch? You're the x86 expert (and I'm not).
+>
+> I've read that 0xd1 command with 0xdf data is often used to enable A20. But I
+> don't know when this must be done or what else needs to be done for the SMM
+> to not break.
+>
 
-Could you please create proper patch? You're the x86 expert (and I'm not).
-
-I've read that 0xd1 command with 0xdf data is often used to enable A20. But I 
-don't know when this must be done or what else needs to be done for the SMM 
-to not break.
-
-> > diff --git a/drivers/input/serio/i8042-x86ia64io.h
-> > b/drivers/input/serio/i8042-x86ia64io.h index d6cc77a..0807ac7 100644
-> > --- a/drivers/input/serio/i8042-x86ia64io.h
-> > +++ b/drivers/input/serio/i8042-x86ia64io.h
-> > @@ -921,6 +921,7 @@ static int __init i8042_platform_init(void)
-> >  	int retval;
-> >
-> >  #ifdef CONFIG_X86
-> > +	u8 a20_on = 0xdf;
-> >  	/* Just return if pre-detection shows no i8042 controller exist */
-> >  	if (!x86_platform.i8042_detect())
-> >  		return -ENODEV;
-> > @@ -960,6 +961,13 @@ static int __init i8042_platform_init(void)
-> >
-> >  	if (dmi_check_system(i8042_dmi_dritek_table))
-> >  		i8042_dritek = true;
-> > +
-> > +	/*
-> > +	 * A20 was already enabled during early kernel init. But some buggy
-> > +	 * BIOSes (in MSI Laptops) require A20 to be enabled using 8042 to
-> > +	 * resume from S3. So we do it here and hope that nothing breaks.
-> > +	 */
-> > +	i8042_command(&a20_on, 0x10d1);
-> >  #endif /* CONFIG_X86 */
-> >
-> >  	return retval;
+You need to send an FF dummy command afterwards, that's all.
 
 
 -- 
-Ondrej Zary
+H. Peter Anvin, Intel Open Source Technology Center
+I work for Intel.  I don't speak on their behalf.
+
