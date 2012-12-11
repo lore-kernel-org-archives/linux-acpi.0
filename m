@@ -1,41 +1,65 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [PATCH v3] Enable A20 using KBC for some MSI laptops to fix S3
- resume
-Date: Tue, 11 Dec 2012 11:07:50 -0800
-Message-ID: <50C78486.9070700@zytor.com>
-References: <201210261056.44225.zary@gsystems.sk> <201211052135.20009.linux@rainbow-software.org> <50C6537A.9090303@zytor.com> <201212111959.15808.linux@rainbow-software.org>
+From: Ondrej Zary <linux@rainbow-software.org>
+Subject: Re: [PATCH v3] Enable A20 using KBC for some MSI laptops to fix S3 resume
+Date: Tue, 11 Dec 2012 21:29:12 +0100
+Message-ID: <201212112129.13248.linux@rainbow-software.org>
+References: <201210261056.44225.zary@gsystems.sk> <201212111959.15808.linux@rainbow-software.org> <50C78486.9070700@zytor.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from terminus.zytor.com ([198.137.202.10]:32941 "EHLO mail.zytor.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753769Ab2LKTIK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 11 Dec 2012 14:08:10 -0500
-In-Reply-To: <201212111959.15808.linux@rainbow-software.org>
+Received: from mail-1-out2.atlantis.sk ([80.94.52.71]:42242 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753442Ab2LKU37 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Dec 2012 15:29:59 -0500
+In-Reply-To: <50C78486.9070700@zytor.com>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ondrej Zary <linux@rainbow-software.org>
+To: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 12/11/2012 10:59 AM, Ondrej Zary wrote:
+On Tuesday 11 December 2012 20:07:50 H. Peter Anvin wrote:
+> On 12/11/2012 10:59 AM, Ondrej Zary wrote:
+> > As I said before, the BIOS probably breaks on resume before any Linux
+> > code is executed. So any fix must be done before suspending.
 >
-> As I said before, the BIOS probably breaks on resume before any Linux code is
-> executed. So any fix must be done before suspending.
+> Well, that code should be independent of A20, being in low memory, but
+> if the BIOS itself crashes, then that's... yeah.
 >
+> > I hate quirks too. A general solution would be to always enable A20 using
+> > KBC (if KBC is present) but that's probably not acceptable.
+>
+> I don't see why not.  If so we could just do it as part of the
+> initialization of the i8042 driver.
 
-Well, that code should be independent of A20, being in low memory, but 
-if the BIOS itself crashes, then that's... yeah.
+Something like this? (It works.)
 
-> I hate quirks too. A general solution would be to always enable A20 using KBC
-> (if KBC is present) but that's probably not acceptable.
-
-I don't see why not.  If so we could just do it as part of the 
-initialization of the i8042 driver.
-
-	-hpa
-
+diff --git a/drivers/input/serio/i8042-x86ia64io.h b/drivers/input/serio/i8042-x86ia64io.h
+index d6cc77a..0807ac7 100644
+--- a/drivers/input/serio/i8042-x86ia64io.h
++++ b/drivers/input/serio/i8042-x86ia64io.h
+@@ -921,6 +921,7 @@ static int __init i8042_platform_init(void)
+ 	int retval;
+ 
+ #ifdef CONFIG_X86
++	u8 a20_on = 0xdf;
+ 	/* Just return if pre-detection shows no i8042 controller exist */
+ 	if (!x86_platform.i8042_detect())
+ 		return -ENODEV;
+@@ -960,6 +961,13 @@ static int __init i8042_platform_init(void)
+ 
+ 	if (dmi_check_system(i8042_dmi_dritek_table))
+ 		i8042_dritek = true;
++
++	/*
++	 * A20 was already enabled during early kernel init. But some buggy
++	 * BIOSes (in MSI Laptops) require A20 to be enabled using 8042 to
++	 * resume from S3. So we do it here and hope that nothing breaks.
++	 */
++	i8042_command(&a20_on, 0x10d1);
+ #endif /* CONFIG_X86 */
+ 
+ 	return retval;
 -- 
-H. Peter Anvin, Intel Open Source Technology Center
-I work for Intel.  I don't speak on their behalf.
-
+Ondrej Zary
