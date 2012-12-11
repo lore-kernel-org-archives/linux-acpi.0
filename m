@@ -1,73 +1,66 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH 5/6] ACPI: Replace struct acpi_bus_ops with enum type
-Date: Mon, 10 Dec 2012 15:22:48 -0800
-Message-ID: <CAE9FiQVgJUzDYRWzW5gCK9WwwAzQthXs++JnfOuxVzo-0KSqxQ@mail.gmail.com>
-References: <8498184.VilrUmatxI@vostro.rjw.lan>
-	<2637774.lmuX5P2qQX@vostro.rjw.lan>
-	<CAE9FiQXsBC-CY4KqKkaAXx3sYLVWJOaaKGkg_kChb7ry_7Sq8Q@mail.gmail.com>
-	<3585743.RAy43NB8MZ@vostro.rjw.lan>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 01/15] ACPICA: Fixes unmerged (dis)assember divergences.
+Date: Tue, 11 Dec 2012 00:15:45 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E88BD7E83@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1353491652.git.lv.zheng@intel.com>
+ <d78f5a439b768067790ec4f07af70185484deccd.1353491652.git.lv.zheng@intel.com>
+ <1A7043D5F58CCB44A599DFD55ED4C94828D4CE6B@FMSMSX108.amr.corp.intel.com>
+ <1AE640813FDE7649BE1B193DEA596E88BD7D56@SHSMSX101.ccr.corp.intel.com>
+ <1AE640813FDE7649BE1B193DEA596E88BD7D8D@SHSMSX101.ccr.corp.intel.com>
+ <50C5DDEC.4070601@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <3585743.RAy43NB8MZ@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([143.182.124.37]:4645 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751474Ab2LKAPu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Dec 2012 19:15:50 -0500
+In-Reply-To: <50C5DDEC.4070601@intel.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
+Cc: "Brown, Len" <len.brown@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-On Mon, Dec 10, 2012 at 2:47 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Monday, December 10, 2012 09:07:06 AM Yinghai Lu wrote:
->> On Mon, Dec 10, 2012 at 6:46 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
->> > On Sunday, December 09, 2012 09:34:42 PM Yinghai Lu wrote:
->> >>
->> >> Can we expand the BUS_ADD_* concept to other devices instead of just
->> >> acpi_device?
->> >>
->> >> aka we should let struct device has this add_type field.
->> >
->> > Having done that in ACPI to cover our use case here, we can try to move it
->> > into struct device if there are use cases beyond ACPI that can't be covered
->> > by using deferred driver probing.
->>
->> pci device for hotplug have same problem. need to delay driver attach
->> for them too.
->
-> OK, I'll take a look.  Any pointers to speed that up?
->
->> also BUS_ADD_MATCH and BUS_ADD_START are duplicated.
->
-> Not at the moment, they do different things as code goes.
+> > 20121114-04.patch:
+> >> - * dmextern
+> >> + * dmdeferred
+> >> +acpi_status acpi_dm_parse_deferred_ops(union acpi_parse_object
+> >> +*root);
+> >> +/*
+> >> + * dmextern
+> >> + */
+> >> -acpi_status acpi_dm_is_resource_template(union acpi_parse_object
+> >> *op);
+> >> +acpi_status
+> >> +acpi_dm_is_resource_template(struct acpi_walk_state *walk_state,
+> >> +			     union acpi_parse_object *op);
+> > <  			   acpi_walk_aml_callback user_function,
+> > <  			   void **context);
+> >>   			   acpi_walk_aml_callback user_function, void *context);
+> > <  			   acpi_walk_aml_callback user_function, void **context)
+> >>   			   acpi_walk_aml_callback user_function, void *context)
+> > <  					    (void **)end_tag);
+> >>   					    end_tag);
+> > 10 lines are caused by lacking of acdisasm.h and 7 lines are caused by (void **)
+> fixes. The latter will be seen in the next acpica release which is not what I'm
+> worrying about.
+> > I just care about the acdisasm.h, if it is included, my life can be easier and it
+> will not be a trouble for the developers currently using ACPICA in the
+> community.
+> 
+> But Len has told you very clearly not to include it.  This is not a Len's whim,
+> there's a reason for that.
+> 
+> Is the reason not known to you or don't you agree with it?
 
-I do think that is same problem which is in the driver/base core.
+I agreed w/ what we've been discussing about and reworked then found this.
+I just wonder whether we could think about it from a different perspective.
+Now we have the directory-by-directory "exceptions" maintained in the release scripts:
+ common/compiler/debugger/disassembler/interpreter/os_specific/tools.
+I just wonder do we need to maintain the file-by-file "exceptions" for the release process.
+It will be convenient if there's no such exceptions, then ACPICA can freely manage the files under the "white listed" directories.
 
-it should support delay loading driver for the hotplug case at the first point.
-that is reason that .start is introduced for acpi driver..to workround
-the problem
-in driver core.
-
->
->> old add are separated to adding all devices to tree and then matching
->> work to load the drivers.
->>
->> so _START is not needed anymore, only user.start in pci_root driver
->> should be removed.
->> code in .start could be moved .add without problem.
->
-> Yes, I'm going to do that as the next step.  I didn't want this particular
-
-after you remove that .start, that will the same as my two patches.
-except that you patches toggle that per-device add_type for every device.
-
-and my patches is only toggle that per device drivers_autoprobe for
-hot-add devices.
-
-> patchset to grow too big.  I'll post another one on top of it if people
-> don't have problems with this one.
-
-yesterday, I replace my two acpi driver delay loading patches with your patches.
-
-during pci root bus hot remove/add test, got the panic...
-
-did not have time to look at it yet.
-
-Yinghai
+Best regards
+-Lv
