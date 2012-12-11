@@ -1,52 +1,61 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH v9 06/10] ata: zpodd: check zero power ready status
-Date: Mon, 10 Dec 2012 21:10:27 -0800
-Message-ID: <20121211051027.GB1932@mtj.dyndns.org>
-References: <1353906191.2523.25.camel@dabdike>
- <21511277.LLinyDpbAK@vostro.rjw.lan>
- <20121128013928.GB15971@htj.dyndns.org>
- <1354092969.2276.49.camel@dabdike>
- <20121203081321.GA9990@mint-spring.sh.intel.com>
- <1354523143.2307.2.camel@dabdike.int.hansenpartnership.com>
- <20121203162323.GB19802@htj.dyndns.org>
- <1354623100.3206.34.camel@dabdike.int.hansenpartnership.com>
- <50C1891A.7040900@intel.com>
- <50C5564F.8030000@intel.com>
+From: Mathias Nyman <mathias.nyman@linux.intel.com>
+Subject: Re: [PATCH 1/1] gpio: add Lynxpoint chipset gpio driver.
+Date: Tue, 11 Dec 2012 13:40:51 +0200
+Message-ID: <50C71BC3.2090006@linux.intel.com>
+References: <1354888899-21907-1-git-send-email-mathias.nyman@linux.intel.com> <1354888899-21907-2-git-send-email-mathias.nyman@linux.intel.com> <20121210230749.7820F3E081F@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-scsi-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <50C5564F.8030000@intel.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@vger.kernel.org, Jeff Garzik <jgarzik@pobox.com>, Alan Stern <stern@rowland.harvard.edu>, Jeff Wu <jeff.wu@amd.com>, linux-ide@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([143.182.124.37]:34685 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752559Ab2LKLia (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 11 Dec 2012 06:38:30 -0500
+In-Reply-To: <20121210230749.7820F3E081F@localhost>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: linus.walleij@linaro.org, mika.westerberg@linux.intel.com, rafael.j.wysocki@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hello, guys.
+On 12/11/2012 01:07 AM, Grant Likely wrote:
+> On Fri,  7 Dec 2012 16:01:39 +0200, Mathias Nyman<mathias.nyman@linux.intel.com>  wrote:
+>> Add gpio support for Intel Lynxpoint chipset.
+>> Lynxpoint supports 94 gpio pins which can generate interrupts.
+>> Driver will fail requests for pins that are marked as owned by ACPI, or
+>> set in an alternate mode (non-gpio).
+>>
+>> Signed-off-by: Mathias Nyman<mathias.nyman@linux.intel.com>
+>> ---
+>> +static void lp_gpio_set(struct gpio_chip *chip, unsigned gpio, int value)
+>> +{
+>> +	struct lp_gpio *lg = container_of(chip, struct lp_gpio, chip);
+>> +	unsigned long reg = gpio_reg(chip, gpio, LP_CONFIG1);
+>> +	unsigned long flags;
+>> +
+>> +	spin_lock_irqsave(&lg->lock, flags);
+>> +
+>> +	if (value)
+>> +		outl(inl(reg) | OUT_LVL_BIT, reg);
+>> +	else
+>> +		outl(inl(reg)&  ~OUT_LVL_BIT, reg);
+>> +
+>> +	spin_unlock_irqrestore(&lg->lock, flags);
+>> +}
+>
+> A *lot* of drivers implement their own GPIO ops like this, and they all
+> end up looking the same. Please take a look at
+> drivers/gpio/gpio-generic.c and see if you can use the stock operations
+> provided there.
+>
+> g.
+>
 
-On Mon, Dec 10, 2012 at 11:26:07AM +0800, Aaron Lu wrote:
-> >>> The problem here is there's no easy to reach genhd from libata (or the
-> >>> other way around) without going through sr.  I think we're gonna have
-> >>> to have something in sr one way or the other.
-> >>
-> >> Can't we do that via an event? It's a bit clunky because we need the
-> >> callback in the layer that sees the sdev, which is libata-scsi, we just
-> >> need an analogue of ata_scsi_media_change_notify, but ignoring and
-> >> allowing polling is essentially event driven as well, so it should all
-> >> work.  We'll need a listener in genhd, which might be trickier.
+Look quite similar but turns out the only potential generic ones which 
+could be used are the bgpio_set() and bgpio_get() funtions. Using them 
+would require custom pin2mask, write_reg, read_reg, etc functions.
+bgpio_set_direction
 
-I'm not really following what you mean.  Can you please elaborate?
-One way or the other, doesn't the notification have to bubble up
-through SCSI?
+I guess using gpio-generic code fits memory mapped devices better. 
+Trying to use it for io port devices would require a lot of code mangling.
 
-> A colleague of mine reminded me that it's impolite to write something
-> like this, and here is my apology. I didn't mean to be rude, I'm sorry
-> for this if it made you feel uncomfortable.
-
-Oh, no, it's not rude at all.  I was just being distracted w/ other
-stuff and lazy.  Sorry about that.
-
-Thanks.
-
--- 
-tejun
+-Mathias
