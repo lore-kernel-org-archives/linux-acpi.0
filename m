@@ -1,34 +1,55 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [GIT PULL] ACPI and power management updates for v3.8-rc1
-Date: Tue, 11 Dec 2012 18:26:09 +0100
-Message-ID: <7930705.OcvDjiPjJD@vostro.rjw.lan>
-References: <4460434.rhV1bpKLo5@vostro.rjw.lan> <50C75E65.70802@gmx.net>
+Subject: Re: [PATCH 5/6] ACPI: Replace struct acpi_bus_ops with enum type
+Date: Tue, 11 Dec 2012 19:30:57 +0100
+Message-ID: <2093499.q2b9fD3smR@vostro.rjw.lan>
+References: <8498184.VilrUmatxI@vostro.rjw.lan> <CAE9FiQXYPPcRZZBFGrqcV--0-UixMH1f+q4WdovErthsLhxn7A@mail.gmail.com> <50C74C92.1040405@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:55645 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:55792 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753782Ab2LKRVI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 11 Dec 2012 12:21:08 -0500
-In-Reply-To: <50C75E65.70802@gmx.net>
+	id S1753185Ab2LKSZ4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 11 Dec 2012 13:25:56 -0500
+In-Reply-To: <50C74C92.1040405@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Witold Szczeponik <Witold.Szczeponik@gmx.net>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Len Brown <lenb@kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: Jiang Liu <liuj97@gmail.com>
+Cc: Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
 
-Hi,
+Hi Gerry,
 
-On Tuesday, December 11, 2012 05:25:09 PM Witold Szczeponik wrote:
-> Hi Rafael, 
-> 
-> please consider the inclusion of the two patches from https://lkml.org/lkml/2012/7/29/87 and https://lkml.org/lkml/2012/7/29/86, as discussed in our e-mail conversation on Oct 19 and 20.  The patches apply without modification against 3.7 as well.  (Since there is no change since 3.5, I did not resend them.) 
-> 
-> Thanks in advance!  If a separate re-send of the patches is needed, please let me know. 
+On Tuesday, December 11, 2012 11:09:06 PM Jiang Liu wrote:
+> Hi Rafael,
+> 	I have worked out a patch set to clean up ACPI/PCI related notifications,
+> please refer to
+> http://www.spinics.net/lists/linux-pci/msg17822.html
+> 	The patchset doesn't apply cleanly to Bjorn's latest pci-next tree. I will
+> help to rebase it if needed.
 
-Please resent and please rebase on top of linux-pm.git/master.
+I have reviewed the patches and I think they make sense overall.  However,
+the statement that acpi_pci_bind()/acpi_pci_unbind() are used to maintain
+PCI-ACPI binding relationships is quite inaccurate, because all what these
+functions do is to (1) add/remove ACPI PM notifiers to/from PCI devices and
+(2) retrieve the _PRT information for bridges from ACPI tables.  In fact,
+the *binding* itself is managed by the code in drivers/acpi/glue.c.
 
-Thanks,
+Also, please have a look at my suggestion in the last reply to Yinghai:
+
+http://marc.info/?l=linux-pci&m=135522965707752&w=2
+
+In fact, I think we can go even further than that.  Namely, if we populate the
+ACPI handle of the device in pci_scan_device(), then we can just move the PM
+notifier and wakeup setup to platform_pci_wakeup_init(), where it should be
+(we'll also need to add a corresponding _exit() function, then, but that'll be
+much cleaner anyway).
+
+Then, the remaining thing would be to ensure that _PRT entries are parsed
+as appropriate somewhere around pci_init_capabilities().
+
+Also, I wonder if you can help test the $subject patchset on a system with
+hardware PCI hotplug (preferably on top of the linux-pm.git/master branch)?
+
 Rafael
 
 
