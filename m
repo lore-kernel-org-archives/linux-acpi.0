@@ -1,106 +1,40 @@
-From: Witold Szczeponik <Witold.Szczeponik@gmx.net>
-Subject: [PATCH] PNP: Handle IORESOURCE_BITS in resource allocation
-Date: Wed, 12 Dec 2012 16:34:31 +0100
-Message-ID: <50C8A407.7070906@gmx.net>
-References: <4460434.rhV1bpKLo5@vostro.rjw.lan> <50C75E65.70802@gmx.net> <7930705.OcvDjiPjJD@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+From: Mathias Nyman <mathias.nyman@linux.intel.com>
+Subject: [PATCH v2 0/1] gpio: add Lynxpoint chipset gpio driver
+Date: Wed, 12 Dec 2012 17:42:37 +0200
+Message-ID: <1355326958-18914-1-git-send-email-mathias.nyman@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:43922 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752825Ab2LLPee (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Dec 2012 10:34:34 -0500
-In-Reply-To: <7930705.OcvDjiPjJD@vostro.rjw.lan>
+Received: from mga09.intel.com ([134.134.136.24]:1498 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752766Ab2LLPkX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Dec 2012 10:40:23 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Len Brown <lenb@kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: linus.walleij@linaro.org
+Cc: grant.likely@secretlab.ca, mika.westerberg@linux.intel.com, rafael.j.wysocki@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Mathias Nyman <mathias.nyman@linux.intel.com>
 
-The patch copies the flags masked by IORESOURCE_BITS from a resource's 
-template.  This is necessary because the resource settings require proper
-IORESOURCE_BITS which are not known during the definition of these resources 
-using the "/sys/bus/pnp/*/*/resources" interface.  (In fact, they should not 
-be set by the user as the resource templates define the proper settings.)
+This gpio controller driver for the Intel Lynxpoint LP PCH chipset is
+designed to work with the new ACPI 5 enumeration model and ACPI 5 GpioIo/GpioInt 
+resource translation recently added to linux-acpi.
 
-If the patch is not applied, the resource flags are not initialized properly 
-and obscure messages in the kernel log have been seen ("invalid flags").  
+v2 changes:
+- removed variables from lp_gpio struct that are used only locally
+- renamed gpio_reg() to lp_gpio_reg()
+- renamed gpio variable to offset or hwirq where needed.
+- added comments about register layout
+- removed __devexit/__devinit macros
+- removed #ifdefs and added ACPI dependancy instead
+- added simple runtime pm support
+- added lp_gpio_free()
 
-The patch is applied against Linux 3.7 as well as linux-pm.git/master 
-as of 2012-12-12.
+Mathias Nyman (1):
+  gpio: add Lynxpoint chipset gpio driver.
 
+ drivers/gpio/Kconfig          |    8 +
+ drivers/gpio/Makefile         |    1 +
+ drivers/gpio/gpio-lynxpoint.c |  469 +++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 478 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/gpio/gpio-lynxpoint.c
 
-Signed-off-by: Witold Szczeponik <Witold.Szczeponik@gmx.net>
-Reviewed-by: Bjorn Helgaas <bhelgaas@google.com>
-
-
-Index: linux/drivers/pnp/manager.c
-===================================================================
---- linux.orig/drivers/pnp/manager.c
-+++ linux/drivers/pnp/manager.c
-@@ -18,11 +18,27 @@
- 
- DEFINE_MUTEX(pnp_res_mutex);
- 
-+static struct resource *pnp_find_resource(struct pnp_dev *dev,
-+					  unsigned char rule,
-+					  unsigned long type,
-+					  unsigned int bar)
-+{
-+	struct resource *res = pnp_get_resource(dev, type, bar);
-+
-+	/* when the resource already exists, set its resource bits from rule */
-+	if (res) {
-+		res->flags &= ~IORESOURCE_BITS;
-+		res->flags |= rule & IORESOURCE_BITS;
-+	}
-+
-+	return res;
-+}
-+
- static int pnp_assign_port(struct pnp_dev *dev, struct pnp_port *rule, int idx)
- {
- 	struct resource *res, local_res;
- 
--	res = pnp_get_resource(dev, IORESOURCE_IO, idx);
-+	res = pnp_find_resource(dev, rule->flags, IORESOURCE_IO, idx);
- 	if (res) {
- 		pnp_dbg(&dev->dev, "  io %d already set to %#llx-%#llx "
- 			"flags %#lx\n", idx, (unsigned long long) res->start,
-@@ -65,7 +81,7 @@ static int pnp_assign_mem(struct pnp_dev
- {
- 	struct resource *res, local_res;
- 
--	res = pnp_get_resource(dev, IORESOURCE_MEM, idx);
-+	res = pnp_find_resource(dev, rule->flags, IORESOURCE_MEM, idx);
- 	if (res) {
- 		pnp_dbg(&dev->dev, "  mem %d already set to %#llx-%#llx "
- 			"flags %#lx\n", idx, (unsigned long long) res->start,
-@@ -78,6 +94,7 @@ static int pnp_assign_mem(struct pnp_dev
- 	res->start = 0;
- 	res->end = 0;
- 
-+	/* ??? rule->flags restricted to 8 bits, all tests bogus ??? */
- 	if (!(rule->flags & IORESOURCE_MEM_WRITEABLE))
- 		res->flags |= IORESOURCE_READONLY;
- 	if (rule->flags & IORESOURCE_MEM_CACHEABLE)
-@@ -123,7 +140,7 @@ static int pnp_assign_irq(struct pnp_dev
- 		5, 10, 11, 12, 9, 14, 15, 7, 3, 4, 13, 0, 1, 6, 8, 2
- 	};
- 
--	res = pnp_get_resource(dev, IORESOURCE_IRQ, idx);
-+	res = pnp_find_resource(dev, rule->flags, IORESOURCE_IRQ, idx);
- 	if (res) {
- 		pnp_dbg(&dev->dev, "  irq %d already set to %d flags %#lx\n",
- 			idx, (int) res->start, res->flags);
-@@ -182,7 +199,7 @@ static int pnp_assign_dma(struct pnp_dev
- 		1, 3, 5, 6, 7, 0, 2, 4
- 	};
- 
--	res = pnp_get_resource(dev, IORESOURCE_DMA, idx);
-+	res = pnp_find_resource(dev, rule->flags, IORESOURCE_DMA, idx);
- 	if (res) {
- 		pnp_dbg(&dev->dev, "  dma %d already set to %d flags %#lx\n",
- 			idx, (int) res->start, res->flags);
-
+-- 
+1.7.4.1
 
