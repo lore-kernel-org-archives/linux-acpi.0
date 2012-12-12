@@ -1,92 +1,171 @@
-From: Jiang Liu <liuj97@gmail.com>
-Subject: Re: [PATCH 5/6] ACPI: Replace struct acpi_bus_ops with enum type
-Date: Wed, 12 Dec 2012 23:05:15 +0800
-Message-ID: <50C89D2B.4060206@gmail.com>
-References: <8498184.VilrUmatxI@vostro.rjw.lan> <CAE9FiQXYPPcRZZBFGrqcV--0-UixMH1f+q4WdovErthsLhxn7A@mail.gmail.com> <50C74C92.1040405@gmail.com> <2093499.q2b9fD3smR@vostro.rjw.lan> <50C89608.7050908@gmail.com>
+From: Witold Szczeponik <Witold.Szczeponik@gmx.net>
+Subject: [PATCH] PNP: Simplify setting of resources
+Date: Wed, 12 Dec 2012 16:32:33 +0100
+Message-ID: <50C8A391.3010900@gmx.net>
+References: <4460434.rhV1bpKLo5@vostro.rjw.lan> <50C75E65.70802@gmx.net> <7930705.OcvDjiPjJD@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:43047 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754729Ab2LLPFb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Dec 2012 10:05:31 -0500
-In-Reply-To: <50C89608.7050908@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <7930705.OcvDjiPjJD@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Len Brown <lenb@kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Yijing Wang <wangyijing0307@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
 
-On 12/12/2012 10:34 PM, Yijing Wang wrote:
-> =E4=BA=8E 2012-12-12 2:30, Rafael J. Wysocki =E5=86=99=E9=81=93:
->> Hi Gerry,
->>
->> On Tuesday, December 11, 2012 11:09:06 PM Jiang Liu wrote:
->>> Hi Rafael,
->>> 	I have worked out a patch set to clean up ACPI/PCI related notific=
-ations,
->>> please refer to
->>> http://www.spinics.net/lists/linux-pci/msg17822.html
->>> 	The patchset doesn't apply cleanly to Bjorn's latest pci-next tree=
-=2E I will
->>> help to rebase it if needed.
->>
->> I have reviewed the patches and I think they make sense overall.  Ho=
-wever,
->> the statement that acpi_pci_bind()/acpi_pci_unbind() are used to mai=
-ntain
->> PCI-ACPI binding relationships is quite inaccurate, because all what=
- these
->> functions do is to (1) add/remove ACPI PM notifiers to/from PCI devi=
-ces and
->> (2) retrieve the _PRT information for bridges from ACPI tables.  In =
-fact,
->> the *binding* itself is managed by the code in drivers/acpi/glue.c.
->>
->> Also, please have a look at my suggestion in the last reply to Yingh=
-ai:
->>
->> http://marc.info/?l=3Dlinux-pci&m=3D135522965707752&w=3D2
->>
->> In fact, I think we can go even further than that.  Namely, if we po=
-pulate the
->> ACPI handle of the device in pci_scan_device(), then we can just mov=
-e the PM
->> notifier and wakeup setup to platform_pci_wakeup_init(), where it sh=
-ould be
->> (we'll also need to add a corresponding _exit() function, then, but =
-that'll be
->> much cleaner anyway).
->>
->> Then, the remaining thing would be to ensure that _PRT entries are p=
-arsed
->> as appropriate somewhere around pci_init_capabilities().
->>
->> Also, I wonder if you can help test the $subject patchset on a syste=
-m with
->> hardware PCI hotplug (preferably on top of the linux-pm.git/master b=
-ranch)?
->>
-> Hi Rafael,
->    We are doing test for this series patches, I will send out the tes=
-t result as soon.
-Hi Rafael,
-	We have tried to merge your patchset with IOH hotplug patchsets from Y=
-inghai,
-and obviously it's not a ease task and we have run into panics. We will=
- try to find
-some ways to test your patchset only next step.
-	Thanks!
+This patch factors out the setting of PNP resources into one function which is 
+then reused for all PNP resource types.  This makes the code more concise and 
+avoids duplication.  The parameters "type" and "flags" are not used at the
+moment but may be used by follow-up patches.  Placeholders for these patches 
+can be found in the comment lines that contain the "TBD" marker. 
 
->=20
-> Thanks!
-> Yijing
->=20
->=20
->=20
+As the code does not make any changes to the ABI, no regressions are expected.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+NB: While at it, support for bus type resources is added. 
+
+The patch is applied against Linux 3.7 as well as linux-pm.git/master 
+as of 2012-12-12.
+
+
+Signed-off-by: Witold Szczeponik <Witold.Szczeponik@gmx.net>
+Reviewed-by: Bjorn Helgaas <bhelgaas@google.com>
+
+
+Index: linux/drivers/pnp/interface.c
+===================================================================
+--- linux.orig/drivers/pnp/interface.c
++++ linux/drivers/pnp/interface.c
+@@ -298,6 +298,39 @@ static ssize_t pnp_show_current_resource
+ 	return ret;
+ }
+ 
++static char *pnp_get_resource_value(char *buf,
++				    unsigned long type,
++				    resource_size_t *start,
++				    resource_size_t *end,
++				    unsigned long *flags)
++{
++	if (start)
++		*start = 0;
++	if (end)
++		*end = 0;
++	if (flags)
++		*flags = 0;
++
++	/* TBD: allow for disabled resources */
++
++	buf = skip_spaces(buf);
++	if (start) {
++		*start = simple_strtoull(buf, &buf, 0);
++		if (end) {
++			buf = skip_spaces(buf);
++			if (*buf == '-') {
++				buf = skip_spaces(buf + 1);
++				*end = simple_strtoull(buf, &buf, 0);
++			} else
++				*end = *start;
++		}
++	}
++
++	/* TBD: allow for additional flags, e.g., IORESOURCE_WINDOW */
++
++	return buf;
++}
++
+ static ssize_t pnp_set_current_resources(struct device *dmdev,
+ 					 struct device_attribute *attr,
+ 					 const char *ubuf, size_t count)
+@@ -305,7 +338,6 @@ static ssize_t pnp_set_current_resources
+ 	struct pnp_dev *dev = to_pnp_dev(dmdev);
+ 	char *buf = (void *)ubuf;
+ 	int retval = 0;
+-	resource_size_t start, end;
+ 
+ 	if (dev->status & PNP_ATTACHED) {
+ 		retval = -EBUSY;
+@@ -349,6 +381,10 @@ static ssize_t pnp_set_current_resources
+ 		goto done;
+ 	}
+ 	if (!strnicmp(buf, "set", 3)) {
++		resource_size_t start;
++		resource_size_t end;
++		unsigned long flags;
++
+ 		if (dev->active)
+ 			goto done;
+ 		buf += 3;
+@@ -357,42 +393,37 @@ static ssize_t pnp_set_current_resources
+ 		while (1) {
+ 			buf = skip_spaces(buf);
+ 			if (!strnicmp(buf, "io", 2)) {
+-				buf = skip_spaces(buf + 2);
+-				start = simple_strtoul(buf, &buf, 0);
+-				buf = skip_spaces(buf);
+-				if (*buf == '-') {
+-					buf = skip_spaces(buf + 1);
+-					end = simple_strtoul(buf, &buf, 0);
+-				} else
+-					end = start;
+-				pnp_add_io_resource(dev, start, end, 0);
+-				continue;
+-			}
+-			if (!strnicmp(buf, "mem", 3)) {
+-				buf = skip_spaces(buf + 3);
+-				start = simple_strtoul(buf, &buf, 0);
+-				buf = skip_spaces(buf);
+-				if (*buf == '-') {
+-					buf = skip_spaces(buf + 1);
+-					end = simple_strtoul(buf, &buf, 0);
+-				} else
+-					end = start;
+-				pnp_add_mem_resource(dev, start, end, 0);
+-				continue;
+-			}
+-			if (!strnicmp(buf, "irq", 3)) {
+-				buf = skip_spaces(buf + 3);
+-				start = simple_strtoul(buf, &buf, 0);
+-				pnp_add_irq_resource(dev, start, 0);
+-				continue;
+-			}
+-			if (!strnicmp(buf, "dma", 3)) {
+-				buf = skip_spaces(buf + 3);
+-				start = simple_strtoul(buf, &buf, 0);
+-				pnp_add_dma_resource(dev, start, 0);
+-				continue;
+-			}
+-			break;
++				buf = pnp_get_resource_value(buf + 2,
++							     IORESOURCE_IO,
++							     &start, &end,
++							     &flags);
++				pnp_add_io_resource(dev, start, end, flags);
++			} else if (!strnicmp(buf, "mem", 3)) {
++				buf = pnp_get_resource_value(buf + 3,
++							     IORESOURCE_MEM,
++							     &start, &end,
++							     &flags);
++				pnp_add_mem_resource(dev, start, end, flags);
++			} else if (!strnicmp(buf, "irq", 3)) {
++				buf = pnp_get_resource_value(buf + 3,
++							     IORESOURCE_IRQ,
++							     &start, NULL,
++							     &flags);
++				pnp_add_irq_resource(dev, start, flags);
++			} else if (!strnicmp(buf, "dma", 3)) {
++				buf = pnp_get_resource_value(buf + 3,
++							     IORESOURCE_DMA,
++							     &start, NULL,
++							     &flags);
++				pnp_add_dma_resource(dev, start, flags);
++			} else if (!strnicmp(buf, "bus", 3)) {
++				buf = pnp_get_resource_value(buf + 3,
++							     IORESOURCE_BUS,
++							     &start, &end,
++							     NULL);
++				pnp_add_bus_resource(dev, start, end);
++			} else
++				break;
+ 		}
+ 		mutex_unlock(&pnp_res_mutex);
+ 		goto done;
+
