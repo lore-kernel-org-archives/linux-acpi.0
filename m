@@ -1,99 +1,92 @@
-From: "Liu, Jinsong" <jinsong.liu@intel.com>
-Subject: RE: [PATCH] X86/acpi: remove redundant logic of acpi memory hotadd
-Date: Wed, 12 Dec 2012 14:37:09 +0000
-Message-ID: <DE8DF0795D48FD4CA783C40EC82923353A779A@SHSMSX101.ccr.corp.intel.com>
-References: <DE8DF0795D48FD4CA783C40EC829233539DED4@SHSMSX101.ccr.corp.intel.com>
- <4326596.xCAz7vOgOp@vostro.rjw.lan> <50C2A752.8010709@cn.fujitsu.com>
+From: Jiang Liu <liuj97@gmail.com>
+Subject: Re: [PATCH 5/6] ACPI: Replace struct acpi_bus_ops with enum type
+Date: Wed, 12 Dec 2012 23:05:15 +0800
+Message-ID: <50C89D2B.4060206@gmail.com>
+References: <8498184.VilrUmatxI@vostro.rjw.lan> <CAE9FiQXYPPcRZZBFGrqcV--0-UixMH1f+q4WdovErthsLhxn7A@mail.gmail.com> <50C74C92.1040405@gmail.com> <2093499.q2b9fD3smR@vostro.rjw.lan> <50C89608.7050908@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:6982 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754106Ab2LLOhe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Dec 2012 09:37:34 -0500
-In-Reply-To: <50C2A752.8010709@cn.fujitsu.com>
-Content-Language: en-US
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:43047 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754729Ab2LLPFb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Dec 2012 10:05:31 -0500
+In-Reply-To: <50C89608.7050908@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Wen Congyang <wency@cn.fujitsu.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Toshi Kani <toshi.kani@hp.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Jiang Liu <jiang.liu@huawei.com>
+To: Yijing Wang <wangyijing0307@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
 
-Wen Congyang wrote:
-> At 12/08/2012 06:19 AM, Rafael J. Wysocki Wrote:
->> On Tuesday, December 04, 2012 01:39:54 AM Liu, Jinsong wrote:
->>> Resend it, add Rafael and linux-acpi@vger.kernel.org
->> 
->> I wonder what memory hotplug people think about that.
->> 
->> Thanks,
->> Rafael
->> 
->> 
->>> ===============
->>> From 1d39279e45c54ce531691da5ffe261e7689dd92c Mon Sep 17 00:00:00
->>> 2001 
->>> From: Liu Jinsong <jinsong.liu@intel.com>
->>> Date: Wed, 14 Nov 2012 18:52:06 +0800
->>> Subject: [PATCH] X86/acpi: remove redundant logic of acpi memory
->>> hotadd 
->>> 
->>> When memory hotadd, acpi_memory_enable_device has already been done
->>> at drv->ops.add (acpi_memory_device_add), no need to do it again
->>> at notify callback.
->>> 
->>> At acpi_memory_enable_device, acpi_memory_get_device_resources
->>> is also a redundant action, since it has been done at drv->ops.add.
->>> 
->>> Signed-off-by: Liu Jinsong <jinsong.liu@intel.com>
->>> ---
->>>  drivers/acpi/acpi_memhotplug.c |   17 -----------------
->>>  1 files changed, 0 insertions(+), 17 deletions(-)
->>> 
->>> diff --git a/drivers/acpi/acpi_memhotplug.c
->>> b/drivers/acpi/acpi_memhotplug.c 
->>> index 24c807f..a6489fd 100644
->>> --- a/drivers/acpi/acpi_memhotplug.c
->>> +++ b/drivers/acpi/acpi_memhotplug.c
->>> @@ -220,15 +220,6 @@ static int acpi_memory_enable_device(struct
->>>  	acpi_memory_device *mem_device) struct acpi_memory_info *info;
->>>  	int node;
->>> 
->>> -
->>> -	/* Get the range from the _CRS */
->>> -	result = acpi_memory_get_device_resources(mem_device);
->>> -	if (result) {
->>> -		printk(KERN_ERR PREFIX "get_device_resources failed\n");
->>> -		mem_device->state = MEMORY_INVALID_STATE;
->>> -		return result;
->>> -	}
->>> -
->>>  	node = acpi_get_node(mem_device->device->handle);  	/*
->>>  	 * Tell the VM there is more memory here...
->>> @@ -357,14 +348,6 @@ static void
->>>  		acpi_memory_device_notify(acpi_handle handle, u32 event, void
->>> *data)  			break; } 
->>> 
->>> -		if (acpi_memory_check_device(mem_device))
->>> -			break;
-> 
-> Hmm, if acpi_memory_check_device() fails, it means the memory device
-> disappears 
-> I don't know if a real hardware uses this way to remove memory device.
-> 
->>> -
->>> -		if (acpi_memory_enable_device(mem_device)) {
->>> -			printk(KERN_ERR PREFIX "Cannot enable memory device\n");
->>> -			break;
->>> -		}
-> 
-> If acpi_memory_get_device() doesn't fail, it means that the device
-> has been managed by this driver, so I think we can do this cleanup.
-> 
-> Thanks
-> Wen Congyang
-> 
+On 12/12/2012 10:34 PM, Yijing Wang wrote:
+> =E4=BA=8E 2012-12-12 2:30, Rafael J. Wysocki =E5=86=99=E9=81=93:
+>> Hi Gerry,
+>>
+>> On Tuesday, December 11, 2012 11:09:06 PM Jiang Liu wrote:
+>>> Hi Rafael,
+>>> 	I have worked out a patch set to clean up ACPI/PCI related notific=
+ations,
+>>> please refer to
+>>> http://www.spinics.net/lists/linux-pci/msg17822.html
+>>> 	The patchset doesn't apply cleanly to Bjorn's latest pci-next tree=
+=2E I will
+>>> help to rebase it if needed.
+>>
+>> I have reviewed the patches and I think they make sense overall.  Ho=
+wever,
+>> the statement that acpi_pci_bind()/acpi_pci_unbind() are used to mai=
+ntain
+>> PCI-ACPI binding relationships is quite inaccurate, because all what=
+ these
+>> functions do is to (1) add/remove ACPI PM notifiers to/from PCI devi=
+ces and
+>> (2) retrieve the _PRT information for bridges from ACPI tables.  In =
+fact,
+>> the *binding* itself is managed by the code in drivers/acpi/glue.c.
+>>
+>> Also, please have a look at my suggestion in the last reply to Yingh=
+ai:
+>>
+>> http://marc.info/?l=3Dlinux-pci&m=3D135522965707752&w=3D2
+>>
+>> In fact, I think we can go even further than that.  Namely, if we po=
+pulate the
+>> ACPI handle of the device in pci_scan_device(), then we can just mov=
+e the PM
+>> notifier and wakeup setup to platform_pci_wakeup_init(), where it sh=
+ould be
+>> (we'll also need to add a corresponding _exit() function, then, but =
+that'll be
+>> much cleaner anyway).
+>>
+>> Then, the remaining thing would be to ensure that _PRT entries are p=
+arsed
+>> as appropriate somewhere around pci_init_capabilities().
+>>
+>> Also, I wonder if you can help test the $subject patchset on a syste=
+m with
+>> hardware PCI hotplug (preferably on top of the linux-pm.git/master b=
+ranch)?
+>>
+> Hi Rafael,
+>    We are doing test for this series patches, I will send out the tes=
+t result as soon.
+Hi Rafael,
+	We have tried to merge your patchset with IOH hotplug patchsets from Y=
+inghai,
+and obviously it's not a ease task and we have run into panics. We will=
+ try to find
+some ways to test your patchset only next step.
+	Thanks!
 
-Thanks! any comments from Huawei side, Jiang?
+>=20
+> Thanks!
+> Yijing
+>=20
+>=20
+>=20
 
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
