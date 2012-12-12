@@ -1,39 +1,75 @@
-From: "Allen and Violet Large" <antonioferrandez@escolapios.es>
-Subject: Goodluck
-Date: Tue, 11 Dec 2012 20:12:30 +0100
-Message-ID: <c37773c6700b9bd7cf039229e97e3577.squirrel@webmail.escolapios.es>
-Reply-To: allen_violetlarge03@yahoo.co.jp
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v4] 8042: Enable A20 using KBC to fix S3 resume on some MSI laptops
+Date: Wed, 12 Dec 2012 14:35:50 +0100
+Message-ID: <13840360.ePOOB1yfB2@vostro.rjw.lan>
+References: <201212112218.06551.linux@rainbow-software.org> <50C7D3AB.6060508@zytor.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.escolapios.es ([194.143.194.169]:51439 "EHLO
-	v01.escolapios.es" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753056Ab2LLBBN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Dec 2012 20:01:13 -0500
+Received: from hydra.sisk.pl ([212.160.235.94]:58029 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752744Ab2LLNar (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Dec 2012 08:30:47 -0500
+In-Reply-To: <50C7D3AB.6060508@zytor.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ondrej Zary <linux@rainbow-software.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>
+
+On Tuesday, December 11, 2012 04:45:31 PM H. Peter Anvin wrote:
+> Looks good to me.  Alan/Rafael/Dmitry, OK for me to commit this?
+
+No objections from me.
+
+Thanks,
+Rafael
 
 
-
-
-This is a personal email directed to you. My wife and I won a Jackpot
-Lottery of $11.3 million in July and have voluntarily decided to donate
-the sum of $500,000.00 USD to you as part of our own charity project to
-improve the lot of 10 lucky individuals all over the world. If you have
-received this email then you are one of the lucky recipients and all you
-have to do is get back with us so that we can send your details to the
-payout bank.
-Please note that you have to contact my private email for more
-informations (allen_violetlarge03@yahoo.co.jp)
-You can verify this by visiting the web pages below.
-
-http://www.dailymail.co.uk/news/article-1326473/Canadian-couple-Allen-Violet-Large-away-entire-11-2m-lottery-win.html
-
-http://www.cbc.ca/news/canada/nova-scotia/story/2010/11/04/ns-allen-violet-large-lottery-winning.html
-
-
-Goodluck,
-Allen and Violet Large
-Email: allen_violetlarge03@yahoo.co.jp
-
+> On 12/11/2012 01:18 PM, Ondrej Zary wrote:
+> > Some MSI laptop BIOSes are broken - INT 15h code uses port 92h to enable A20
+> > line but resume code assumes that KBC was used.
+> > The laptop will not resume from S3 otherwise but powers off after a while
+> > and then powers on again stuck with a blank screen.
+> > 
+> > Fix it by enabling A20 using KBC in i8042_platform_init for x86.
+> > 
+> > Fixes https://bugzilla.kernel.org/show_bug.cgi?id=12878
+> > 
+> > Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+> > ---
+> >  drivers/input/serio/i8042-x86ia64io.h |    9 +++++++++
+> >  1 files changed, 9 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/drivers/input/serio/i8042-x86ia64io.h b/drivers/input/serio/i8042-x86ia64io.h
+> > index d6cc77a..5f306f7 100644
+> > --- a/drivers/input/serio/i8042-x86ia64io.h
+> > +++ b/drivers/input/serio/i8042-x86ia64io.h
+> > @@ -921,6 +921,7 @@ static int __init i8042_platform_init(void)
+> >  	int retval;
+> >  
+> >  #ifdef CONFIG_X86
+> > +	u8 a20_on = 0xdf;
+> >  	/* Just return if pre-detection shows no i8042 controller exist */
+> >  	if (!x86_platform.i8042_detect())
+> >  		return -ENODEV;
+> > @@ -960,6 +961,14 @@ static int __init i8042_platform_init(void)
+> >  
+> >  	if (dmi_check_system(i8042_dmi_dritek_table))
+> >  		i8042_dritek = true;
+> > +
+> > +	/*
+> > +	 * A20 was already enabled during early kernel init. But some buggy
+> > +	 * BIOSes (in MSI Laptops) require A20 to be enabled using 8042 to
+> > +	 * resume from S3. So we do it here and hope that nothing breaks.
+> > +	 */
+> > +	i8042_command(&a20_on, 0x10d1);
+> > +	i8042_command(NULL, 0x00ff);	/* Null command for SMM firmware */
+> >  #endif /* CONFIG_X86 */
+> >  
+> >  	return retval;
+> > 
+> 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
