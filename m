@@ -1,75 +1,70 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v4] 8042: Enable A20 using KBC to fix S3 resume on some MSI laptops
-Date: Wed, 12 Dec 2012 14:35:50 +0100
-Message-ID: <13840360.ePOOB1yfB2@vostro.rjw.lan>
-References: <201212112218.06551.linux@rainbow-software.org> <50C7D3AB.6060508@zytor.com>
+From: Yijing Wang <wangyijing0307@gmail.com>
+Subject: Re: [PATCH 5/6] ACPI: Replace struct acpi_bus_ops with enum type
+Date: Wed, 12 Dec 2012 22:34:48 +0800
+Message-ID: <50C89608.7050908@gmail.com>
+References: <8498184.VilrUmatxI@vostro.rjw.lan> <CAE9FiQXYPPcRZZBFGrqcV--0-UixMH1f+q4WdovErthsLhxn7A@mail.gmail.com> <50C74C92.1040405@gmail.com> <2093499.q2b9fD3smR@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:58029 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752744Ab2LLNar (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Dec 2012 08:30:47 -0500
-In-Reply-To: <50C7D3AB.6060508@zytor.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <2093499.q2b9fD3smR@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Jiang Liu <liuj97@gmail.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ondrej Zary <linux@rainbow-software.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>
 
-On Tuesday, December 11, 2012 04:45:31 PM H. Peter Anvin wrote:
-> Looks good to me.  Alan/Rafael/Dmitry, OK for me to commit this?
+=E4=BA=8E 2012-12-12 2:30, Rafael J. Wysocki =E5=86=99=E9=81=93:
+> Hi Gerry,
+>=20
+> On Tuesday, December 11, 2012 11:09:06 PM Jiang Liu wrote:
+>> Hi Rafael,
+>> 	I have worked out a patch set to clean up ACPI/PCI related notifica=
+tions,
+>> please refer to
+>> http://www.spinics.net/lists/linux-pci/msg17822.html
+>> 	The patchset doesn't apply cleanly to Bjorn's latest pci-next tree.=
+ I will
+>> help to rebase it if needed.
+>=20
+> I have reviewed the patches and I think they make sense overall.  How=
+ever,
+> the statement that acpi_pci_bind()/acpi_pci_unbind() are used to main=
+tain
+> PCI-ACPI binding relationships is quite inaccurate, because all what =
+these
+> functions do is to (1) add/remove ACPI PM notifiers to/from PCI devic=
+es and
+> (2) retrieve the _PRT information for bridges from ACPI tables.  In f=
+act,
+> the *binding* itself is managed by the code in drivers/acpi/glue.c.
+>=20
+> Also, please have a look at my suggestion in the last reply to Yingha=
+i:
+>=20
+> http://marc.info/?l=3Dlinux-pci&m=3D135522965707752&w=3D2
+>=20
+> In fact, I think we can go even further than that.  Namely, if we pop=
+ulate the
+> ACPI handle of the device in pci_scan_device(), then we can just move=
+ the PM
+> notifier and wakeup setup to platform_pci_wakeup_init(), where it sho=
+uld be
+> (we'll also need to add a corresponding _exit() function, then, but t=
+hat'll be
+> much cleaner anyway).
+>=20
+> Then, the remaining thing would be to ensure that _PRT entries are pa=
+rsed
+> as appropriate somewhere around pci_init_capabilities().
+>=20
+> Also, I wonder if you can help test the $subject patchset on a system=
+ with
+> hardware PCI hotplug (preferably on top of the linux-pm.git/master br=
+anch)?
+>=20
+Hi Rafael,
+   We are doing test for this series patches, I will send out the test =
+result as soon.
 
-No objections from me.
-
-Thanks,
-Rafael
-
-
-> On 12/11/2012 01:18 PM, Ondrej Zary wrote:
-> > Some MSI laptop BIOSes are broken - INT 15h code uses port 92h to enable A20
-> > line but resume code assumes that KBC was used.
-> > The laptop will not resume from S3 otherwise but powers off after a while
-> > and then powers on again stuck with a blank screen.
-> > 
-> > Fix it by enabling A20 using KBC in i8042_platform_init for x86.
-> > 
-> > Fixes https://bugzilla.kernel.org/show_bug.cgi?id=12878
-> > 
-> > Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
-> > ---
-> >  drivers/input/serio/i8042-x86ia64io.h |    9 +++++++++
-> >  1 files changed, 9 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/drivers/input/serio/i8042-x86ia64io.h b/drivers/input/serio/i8042-x86ia64io.h
-> > index d6cc77a..5f306f7 100644
-> > --- a/drivers/input/serio/i8042-x86ia64io.h
-> > +++ b/drivers/input/serio/i8042-x86ia64io.h
-> > @@ -921,6 +921,7 @@ static int __init i8042_platform_init(void)
-> >  	int retval;
-> >  
-> >  #ifdef CONFIG_X86
-> > +	u8 a20_on = 0xdf;
-> >  	/* Just return if pre-detection shows no i8042 controller exist */
-> >  	if (!x86_platform.i8042_detect())
-> >  		return -ENODEV;
-> > @@ -960,6 +961,14 @@ static int __init i8042_platform_init(void)
-> >  
-> >  	if (dmi_check_system(i8042_dmi_dritek_table))
-> >  		i8042_dritek = true;
-> > +
-> > +	/*
-> > +	 * A20 was already enabled during early kernel init. But some buggy
-> > +	 * BIOSes (in MSI Laptops) require A20 to be enabled using 8042 to
-> > +	 * resume from S3. So we do it here and hope that nothing breaks.
-> > +	 */
-> > +	i8042_command(&a20_on, 0x10d1);
-> > +	i8042_command(NULL, 0x00ff);	/* Null command for SMM firmware */
-> >  #endif /* CONFIG_X86 */
-> >  
-> >  	return retval;
-> > 
-> 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Thanks!
+Yijing
