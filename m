@@ -1,88 +1,85 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 1/6] ACPI: Separate adding ACPI device objects from probing ACPI drivers
-Date: Wed, 12 Dec 2012 23:34:51 +0100
-Message-ID: <10126255.CrXWio0rAn@vostro.rjw.lan>
-References: <8498184.VilrUmatxI@vostro.rjw.lan> <4002729.BbipMAJtM0@vostro.rjw.lan> <50C8A7AE.3030500@gmail.com>
+Subject: Re: [PATCH 5/6] ACPI: Replace struct acpi_bus_ops with enum type
+Date: Wed, 12 Dec 2012 23:39:12 +0100
+Message-ID: <20863259.Bu9Is6dGkB@vostro.rjw.lan>
+References: <8498184.VilrUmatxI@vostro.rjw.lan> <50C89608.7050908@gmail.com> <50C89D2B.4060206@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <50C8A7AE.3030500@gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <50C89D2B.4060206@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Jiang Liu <liuj97@gmail.com>
-Cc: Yinghai Lu <yinghai@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
+Cc: Yijing Wang <wangyijing0307@gmail.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@huawei.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, December 12, 2012 11:50:06 PM Jiang Liu wrote:
-> On 12/10/2012 07:00 AM, Rafael J. Wysocki wrote:
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > 
-> > Currently, as soon as an ACPI device node object (struct acpi_device)
-> > is created, the driver core attempts to probe ACPI drivers against
-> > it.  That leads to some unpleasant side effects, like the fact that
-> > the boot code path for ACPI namespace scanning is different from the
-> > analogous hot-plug code path (during boot ACPI drivers are not
-> > present when ACPI device node objects are registered, so they are
-> > guaranteed not to be probed, which is not the case during hot-plug).
-> > That, in turn, leads to unnecessary complications in the PCI
-> > enumeration algorithm.
-> > 
-> > Reduce the differences between the boot and hot-plug cases by
-> > splitting the ACPI namespace scanning for devices into two passes,
-> > such that struct acpi_device objects are registerd in the first
-> > patch without probing ACPI drivers and the drivers are probed
-> > against them directly in the second pass.  This way ACPI drivers
-> > can assume that all of the ACPI device node objects in the given
-> > scope will be registered when their .add() routines run and the
-> > hot-plug case becomes the same as the boot case from their
-> > perspective.
-> > 
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > ---
-> >  drivers/acpi/scan.c     |   96 +++++++++++++++++++++++++++++++++---------------
-> >  include/acpi/acpi_bus.h |    1 
-> >  2 files changed, 68 insertions(+), 29 deletions(-)
-> > 
-> > Index: linux/include/acpi/acpi_bus.h
-> > ===================================================================
-> > --- linux.orig/include/acpi/acpi_bus.h
-> > +++ linux/include/acpi/acpi_bus.h
-> > @@ -98,6 +98,7 @@ typedef void (*acpi_op_notify) (struct a
-> >  struct acpi_bus_ops {
-> >  	u32 acpi_op_add:1;
-> >  	u32 acpi_op_start:1;
-> > +	u32 acpi_op_match:1;
-> >  };
-> >  
-> >  struct acpi_device_ops {
-> > Index: linux/drivers/acpi/scan.c
-> > ===================================================================
-> > --- linux.orig/drivers/acpi/scan.c
-> > +++ linux/drivers/acpi/scan.c
-> > @@ -494,7 +494,8 @@ static int acpi_bus_match(struct device
-> >  	struct acpi_device *acpi_dev = to_acpi_device(dev);
-> >  	struct acpi_driver *acpi_drv = to_acpi_driver(drv);
-> >  
-> > -	return !acpi_match_device_ids(acpi_dev, acpi_drv->ids);
-> > +	return acpi_dev->bus_ops.acpi_op_match
-> > +		&& !acpi_match_device_ids(acpi_dev, acpi_drv->ids);
-> >  }
+On Wednesday, December 12, 2012 11:05:15 PM Jiang Liu wrote:
+> On 12/12/2012 10:34 PM, Yijing Wang wrote:
+> > =E4=BA=8E 2012-12-12 2:30, Rafael J. Wysocki =E5=86=99=E9=81=93:
+> >> Hi Gerry,
+> >>
+> >> On Tuesday, December 11, 2012 11:09:06 PM Jiang Liu wrote:
+> >>> Hi Rafael,
+> >>> 	I have worked out a patch set to clean up ACPI/PCI related notif=
+ications,
+> >>> please refer to
+> >>> http://www.spinics.net/lists/linux-pci/msg17822.html
+> >>> 	The patchset doesn't apply cleanly to Bjorn's latest pci-next tr=
+ee. I will
+> >>> help to rebase it if needed.
+> >>
+> >> I have reviewed the patches and I think they make sense overall.  =
+However,
+> >> the statement that acpi_pci_bind()/acpi_pci_unbind() are used to m=
+aintain
+> >> PCI-ACPI binding relationships is quite inaccurate, because all wh=
+at these
+> >> functions do is to (1) add/remove ACPI PM notifiers to/from PCI de=
+vices and
+> >> (2) retrieve the _PRT information for bridges from ACPI tables.  I=
+n fact,
+> >> the *binding* itself is managed by the code in drivers/acpi/glue.c=
+=2E
+> >>
+> >> Also, please have a look at my suggestion in the last reply to Yin=
+ghai:
+> >>
+> >> http://marc.info/?l=3Dlinux-pci&m=3D135522965707752&w=3D2
+> >>
+> >> In fact, I think we can go even further than that.  Namely, if we =
+populate the
+> >> ACPI handle of the device in pci_scan_device(), then we can just m=
+ove the PM
+> >> notifier and wakeup setup to platform_pci_wakeup_init(), where it =
+should be
+> >> (we'll also need to add a corresponding _exit() function, then, bu=
+t that'll be
+> >> much cleaner anyway).
+> >>
+> >> Then, the remaining thing would be to ensure that _PRT entries are=
+ parsed
+> >> as appropriate somewhere around pci_init_capabilities().
+> >>
+> >> Also, I wonder if you can help test the $subject patchset on a sys=
+tem with
+> >> hardware PCI hotplug (preferably on top of the linux-pm.git/master=
+ branch)?
+> >>
+> > Hi Rafael,
+> >    We are doing test for this series patches, I will send out the t=
+est result as soon.
 > Hi Rafael,
-> 	PCI host bridge hotplug has the same requirement to separate device
-> enumeration from device driver binding. And VFIO has a similar requirement too.
-> Yinghai and I have implemented two different solutions for PCI host bridge
-> hotplug but all rejected by Greg. So it would be great if we could promote
-> a common mechanism to the device core to temporarily disable binding drivers
-> to devices, which could used to support ACPI hotplug, PCI hotplug and VFIO.
+> 	We have tried to merge your patchset with IOH hotplug patchsets from=
+ Yinghai,
+> and obviously it's not a ease task and we have run into panics. We wi=
+ll try to find
+> some ways to test your patchset only next step.
 
-OK, but let's first have a good common use case, I think.  I mean, let's
-implement it in each of these subsystems separately and then show that it
-leads to simpler code if we move it up to the driver core.
+Thanks a lot for doing this, really appreciated!
 
-Thanks,
 Rafael
 
 
--- 
+--=20
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
