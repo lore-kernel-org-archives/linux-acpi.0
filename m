@@ -1,143 +1,79 @@
-From: Jiang Liu <liuj97@gmail.com>
-Subject: Re: [PATCH 1/6] ACPI: Separate adding ACPI device objects from probing
- ACPI drivers
-Date: Thu, 13 Dec 2012 00:38:01 +0800
-Message-ID: <50C8B2E9.5050700@gmail.com>
-References: <8498184.VilrUmatxI@vostro.rjw.lan> <4002729.BbipMAJtM0@vostro.rjw.lan>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH v4] 8042: Enable A20 using KBC to fix S3 resume on some
+ MSI laptops
+Date: Wed, 12 Dec 2012 10:48:31 -0800
+Message-ID: <20121212184831.GA10521@core.coreip.homeip.net>
+References: <201212112218.06551.linux@rainbow-software.org>
+ <50C7D3AB.6060508@zytor.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:56092 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754472Ab2LLQiQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Dec 2012 11:38:16 -0500
-In-Reply-To: <4002729.BbipMAJtM0@vostro.rjw.lan>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:48511 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754461Ab2LLSsh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Dec 2012 13:48:37 -0500
+Content-Disposition: inline
+In-Reply-To: <50C7D3AB.6060508@zytor.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ondrej Zary <linux@rainbow-software.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 12/10/2012 07:00 AM, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> Currently, as soon as an ACPI device node object (struct acpi_device)
-snip
-  
-> @@ -1600,48 +1608,77 @@ static acpi_status acpi_bus_check_add(ac
->  	 * We may already have an acpi_device from a previous enumeration.  If
->  	 * so, we needn't add it again, but we may still have to start it.
->  	 */
-> -	device = NULL;
->  	acpi_bus_get_device(handle, &device);
->  	if (ops->acpi_op_add && !device) {
-> -		acpi_add_single_object(&device, handle, type, sta, ops);
-> -		/* Is the device a known good platform device? */
-> -		if (device
-> -		    && !acpi_match_device_ids(device, acpi_platform_device_ids))
-> -			acpi_create_platform_device(device);
-> -	}
-> +		struct acpi_bus_ops add_ops = *ops;
->  
-> -	if (!device)
-> -		return AE_CTRL_DEPTH;
-> -
-> -	if (ops->acpi_op_start && !(ops->acpi_op_add)) {
-> -		status = acpi_start_single_object(device);
-> -		if (ACPI_FAILURE(status))
-> +		add_ops.acpi_op_match = 0;
-> +		acpi_add_single_object(&device, handle, type, sta, &add_ops);
-> +		if (!device)
->  			return AE_CTRL_DEPTH;
-> +
-> +		device->bus_ops.acpi_op_match = 1;
->  	}
->  
->  	if (!*return_value)
->  		*return_value = device;
-> +
->  	return AE_OK;
->  }
->  
-> +static acpi_status acpi_bus_probe_start(acpi_handle handle, u32 lvl,
-> +					void *context, void **not_used)
-> +{
-> +	struct acpi_bus_ops *ops = context;
-> +	struct acpi_device *device;
-> +	acpi_status status = AE_OK;
-> +
-> +	if (acpi_bus_get_device(handle, &device))
-> +		return AE_CTRL_DEPTH;
-> +
-> +	if (ops->acpi_op_add) {
-> +		if (!acpi_match_device_ids(device, acpi_platform_device_ids)) {
-> +			/* This is a known good platform device. */
-> +			acpi_create_platform_device(device);
-> +		} else {
-> +			int ret = device_attach(&device->dev);
-> +			acpi_hot_add_bind(device);
-> +			if (ret)
-> +				status = AE_CTRL_DEPTH;
-> +		}
-> +	} else if (ops->acpi_op_start) {
-> +		if (ACPI_FAILURE(acpi_start_single_object(device)))
-> +			status = AE_CTRL_DEPTH;
-> +	}
-> +	return status;
-> +}
-> +
->  static int acpi_bus_scan(acpi_handle handle, struct acpi_bus_ops *ops,
->  			 struct acpi_device **child)
->  {
-> -	acpi_status status;
->  	void *device = NULL;
-> +	acpi_status status;
-> +	int ret = 0;
->  
->  	status = acpi_bus_check_add(handle, 0, ops, &device);
-> -	if (ACPI_SUCCESS(status))
-> +	if (ACPI_FAILURE(status)) {
-> +		ret = -ENODEV;
-> +		goto out;
-> +	}
-> +
-> +	acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
-> +			    acpi_bus_check_add, NULL, ops, &device);
-> +	if (device)
->  		acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
-> -				    acpi_bus_check_add, NULL, ops, &device);
-> +				    acpi_bus_probe_start, NULL, ops, NULL);
-Hi Rafael,
-	Should we call acpi_bus_probe_start for the top device corresponding to 
-"handle" too here?
+On Tue, Dec 11, 2012 at 04:45:31PM -0800, H. Peter Anvin wrote:
+> Looks good to me.  Alan/Rafael/Dmitry, OK for me to commit this?
 
-> +	else
-> +		ret = -ENODEV;
->  
-> + out:
->  	if (child)
->  		*child = device;
->  
-> -	if (device)
-> -		return 0;
-> -	else
-> -		return -ENODEV;
-> +	return ret;
->  }
->  
->  /*
-> @@ -1752,6 +1789,7 @@ static int acpi_bus_scan_fixed(void)
->  	memset(&ops, 0, sizeof(ops));
->  	ops.acpi_op_add = 1;
->  	ops.acpi_op_start = 1;
-> +	ops.acpi_op_match = 1;
->  
->  	/*
->  	 * Enumerate all fixed-feature devices.
+Sure. I hope it won't affect other boxes, otherwise more DMI tables
+will be needed.
+
+Thanks.
+
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 	-hpa
+> 
+> On 12/11/2012 01:18 PM, Ondrej Zary wrote:
+> > Some MSI laptop BIOSes are broken - INT 15h code uses port 92h to enable A20
+> > line but resume code assumes that KBC was used.
+> > The laptop will not resume from S3 otherwise but powers off after a while
+> > and then powers on again stuck with a blank screen.
+> > 
+> > Fix it by enabling A20 using KBC in i8042_platform_init for x86.
+> > 
+> > Fixes https://bugzilla.kernel.org/show_bug.cgi?id=12878
+> > 
+> > Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+> > ---
+> >  drivers/input/serio/i8042-x86ia64io.h |    9 +++++++++
+> >  1 files changed, 9 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/drivers/input/serio/i8042-x86ia64io.h b/drivers/input/serio/i8042-x86ia64io.h
+> > index d6cc77a..5f306f7 100644
+> > --- a/drivers/input/serio/i8042-x86ia64io.h
+> > +++ b/drivers/input/serio/i8042-x86ia64io.h
+> > @@ -921,6 +921,7 @@ static int __init i8042_platform_init(void)
+> >  	int retval;
+> >  
+> >  #ifdef CONFIG_X86
+> > +	u8 a20_on = 0xdf;
+> >  	/* Just return if pre-detection shows no i8042 controller exist */
+> >  	if (!x86_platform.i8042_detect())
+> >  		return -ENODEV;
+> > @@ -960,6 +961,14 @@ static int __init i8042_platform_init(void)
+> >  
+> >  	if (dmi_check_system(i8042_dmi_dritek_table))
+> >  		i8042_dritek = true;
+> > +
+> > +	/*
+> > +	 * A20 was already enabled during early kernel init. But some buggy
+> > +	 * BIOSes (in MSI Laptops) require A20 to be enabled using 8042 to
+> > +	 * resume from S3. So we do it here and hope that nothing breaks.
+> > +	 */
+> > +	i8042_command(&a20_on, 0x10d1);
+> > +	i8042_command(NULL, 0x00ff);	/* Null command for SMM firmware */
+> >  #endif /* CONFIG_X86 */
+> >  
+> >  	return retval;
+> > 
 > 
 
+-- 
+Dmitry
