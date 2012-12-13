@@ -1,119 +1,132 @@
-From: Jiang Liu <liuj97@gmail.com>
-Subject: Re: [RFC PATCH v3 0/3] acpi: Introduce prepare_remove device operation
-Date: Thu, 13 Dec 2012 23:15:01 +0800
-Message-ID: <50C9F0F5.40307@gmail.com>
-References: <1353693037-21704-1-git-send-email-vasilis.liaskovitis@profitbricks.com>       <50B5EFE9.3040206@huawei.com>      <1354128096.26955.276.camel@misato.fc.hp.com>     <50B6E936.2080308@huawei.com>  <1354228028.7776.56.camel@misato.fc.hp.com>     <50BC29C6.6050706@huawei.com>   <1354579848.21585.54.camel@misato.fc.hp.com>  <50C0CA90.7010608@gmail.com>   <1354849065.21116.61.camel@misato.fc.hp.com> <50C1852D.3000104@huawei.com>  <1354928933.28379.37.camel@misato.fc.hp.com> <50C74481.7010107@gmail.com> <1355409749.18964.107.camel@misato.fc.hp.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [RFC PATCH 00/11] Hot-plug and Online/Offline framework
+Date: Thu, 13 Dec 2012 09:03:54 -0700
+Message-ID: <1355414634.18964.158.camel@misato.fc.hp.com>
+References: <1355354243-18657-1-git-send-email-toshi.kani@hp.com>
+	 <20121212235657.GD22764@kroah.com>
+	 <1355359176.18964.41.camel@misato.fc.hp.com>
+	 <20121213005510.GA9220@kroah.com>
+	 <1355369864.18964.68.camel@misato.fc.hp.com>
+	 <20121213041627.GA14083@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:50459 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753409Ab2LMPPY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Dec 2012 10:15:24 -0500
-In-Reply-To: <1355409749.18964.107.camel@misato.fc.hp.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20121213041627.GA14083@kroah.com>
+Sender: owner-linux-mm@kvack.org
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: "rjw@sisk.pl" <rjw@sisk.pl>, "lenb@kernel.org" <lenb@kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "bhelgaas@google.com" <bhelgaas@google.com>, "isimatu.yasuaki@jp.fujitsu.com" <isimatu.yasuaki@jp.fujitsu.com>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>, "wency@cn.fujitsu.com" <wency@cn.fujitsu.com>, "guohanjun@huawei.com" <guohanjun@huawei.com>, "yinghai@kernel.org" <yinghai@kernel.org>, "srivatsa.bhat@linux.vnet.ibm.com" <srivatsa.bhat@linux.vnet.ibm.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: Jiang Liu <jiang.liu@huawei.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Hanjun Guo <guohanjun@huawei.com>, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, linux-acpi@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, wency@cn.fujitsu.com, lenb@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Tang Chen <tangchen@cn.fujitsu.com>, Huxinwei <huxinwei@huawei.com>
 
-On 12/13/2012 10:42 PM, Toshi Kani wrote:
-> On Tue, 2012-12-11 at 22:34 +0800, Jiang Liu wrote:
->> On 12/08/2012 09:08 AM, Toshi Kani wrote:
->>> On Fri, 2012-12-07 at 13:57 +0800, Jiang Liu wrote:
->>>> On 2012-12-7 10:57, Toshi Kani wrote:
->>>>> On Fri, 2012-12-07 at 00:40 +0800, Jiang Liu wrote:
->>>>>> On 12/04/2012 08:10 AM, Toshi Kani wrote:
->>>>>>> On Mon, 2012-12-03 at 12:25 +0800, Hanjun Guo wrote:
->>>>>>>> On 2012/11/30 6:27, Toshi Kani wrote:
->>>>>>>>> On Thu, 2012-11-29 at 12:48 +0800, Hanjun Guo wrote:
->  :
->>>>> Yes, the framework should allow such future work.  I also think that the
->>>>> framework itself should be independent from such ACPI issue.  Ideally,
->>>>> it should be able to support non-ACPI platforms.
->>>> The same point here. The ACPI based hotplug framework is designed as:
->>>> 1) an ACPI based hotplug slot driver to handle platform specific logic.
->>>>    Platform may provide platform specific slot drivers to discover, manage
->>>>    hotplug slots. We have provided a default implementation of slot driver
->>>>    according to the ACPI spec.
->>>
->>> The ACPI spec does not define that _EJ0 is required to receive a hot-add
->>> request, i.e. bus/device check.  This is a major issue.  Since Windows
->>> only supports hot-add, I think there are platforms that only support
->>> hot-add today.
->>>
->>>> 2) an ACPI based hotplug manager driver, which is a platform independent
->>>>    driver and manages all hotplug slot created by the slot driver.
->>>
->>> It is surely impressive work, but I think is is a bit overdoing.  I
->>> expect hot-pluggable servers come with management console and/or GUI
->>> where a user can manage hardware units and initiate hot-plug operations.
->>> I do not think the kernel needs to step into such area since it tends to
->>> be platform-specific. 
->> One of the major usages of this feature is for testing. 
->> It will be hard for OSVs and OEMs to verify hotplug functionalities if it could
->> only be tested by physical hotplug or through management console. So to pave the
->> way for hotplug, we need to provide a mechanism for OEMs and OSVs to execute 
->> auto stress tests for hotplug functionalities.
+On Thu, 2012-12-13 at 04:16 +0000, Greg KH wrote:
+> On Wed, Dec 12, 2012 at 08:37:44PM -0700, Toshi Kani wrote:
+> > On Wed, 2012-12-12 at 16:55 -0800, Greg KH wrote:
+> > > On Wed, Dec 12, 2012 at 05:39:36PM -0700, Toshi Kani wrote:
+> > > > On Wed, 2012-12-12 at 15:56 -0800, Greg KH wrote:
+> > > > > On Wed, Dec 12, 2012 at 04:17:12PM -0700, Toshi Kani wrote:
+> > > > > > This patchset is an initial prototype of proposed hot-plug framework
+> > > > > > for design review.  The hot-plug framework is designed to provide 
+> > > > > > the common framework for hot-plugging and online/offline operations
+> > > > > > of system devices, such as CPU, Memory and Node.  While this patchset
+> > > > > > only supports ACPI-based hot-plug operations, the framework itself is
+> > > > > > designed to be platform-neural and can support other FW architectures
+> > > > > > as necessary.
+> > > > > > 
+> > > > > > The patchset has not been fully tested yet, esp. for memory hot-plug.
+> > > > > > Any help for testing will be very appreciated since my test setup
+> > > > > > is limited.
+> > > > > > 
+> > > > > > The patchset is based on the linux-next branch of linux-pm.git tree.
+> > > > > > 
+> > > > > > Overview of the Framework
+> > > > > > =========================
+> > > > > 
+> > > > > <snip>
+> > > > > 
+> > > > > Why all the new framework, doesn't the existing bus infrastructure
+> > > > > provide everything you need here?  Shouldn't you just be putting your
+> > > > > cpus and memory sticks on a bus and handle stuff that way?  What makes
+> > > > > these types of devices so unique from all other devices that Linux has
+> > > > > been handling in a dynamic manner (i.e. hotplugging them) for many many
+> > > > > years?
+> > > > > 
+> > > > > Why are you reinventing the wheel?
+> > > > 
+> > > > Good question.  Yes, USB and PCI hotplug operate based on their bus
+> > > > structures.  USB and PCI cards only work under USB and PCI bus
+> > > > controllers.  So, their framework can be composed within the bus
+> > > > structures as you pointed out.
+> > > > 
+> > > > However, system devices such CPU and memory do not have their standard
+> > > > bus.  ACPI allows these system devices to be enumerated, but it does not
+> > > > make ACPI as the HW bus hierarchy for CPU and memory, unlike PCI and
+> > > > USB.  Therefore, CPU and memory modules manage CPU and memory outside of
+> > > > ACPI.  This makes sense because CPU and memory can be used without ACPI.
+> > > > 
+> > > > This leads us an issue when we try to manage system device hotplug
+> > > > within ACPI, because ACPI does not control everything.  This patchset
+> > > > provides a common hotplug framework for system devices, which both ACPI
+> > > > and non-ACPI modules (i.e. CPU and memory modules) can participate and
+> > > > are coordinated for their hotplug operations.  This is analogous to the
+> > > > boot-up sequence, which ACPI and non-ACPI modules can participate to
+> > > > enable CPU and memory.
+> > > 
+> > > Then create a "virtual" bus and put the devices you wish to control on
+> > > that.  That is what the "system bus" devices were supposed to be, it's
+> > > about time someone took that code and got it all working properly in
+> > > this way, that is why it was created oh so long ago.
+> > 
+> > It may be the ideal, but it will take us great effort to make such
+> > things to happen based on where we are now.  It is going to be a long
+> > way.  I believe the first step is to make the boot-up flow and hot-plug
+> > flow consistent for system devices.  This is what this patchset is
+> > trying to do.
 > 
-> Yes, but such OS->FW interface is platform-specific.  Some platforms use
-> IPMI for the OS to communicate with the management console.  In this
-> case, an OEM-specific command can be used to request a hotplug through
-> IPMI.  Some platforms may also support test programs to run on the
-> management console for validations.
-> 
-> For early development testing, Yinghai's SCI emulation patch can be used
-> to emulate hotplug events from the OS.  It would be part of the kernel
-> debugging features once this patch is accepted. 
-Hi Toshi,
-	ACPI 5.0 has provided some mechanism to normalize the way to issue
-RAS related requests to firmware. I hope ACPI 5.x will define some standardized
-ways based on the PCC defined in 5.0. If needed, we may provide platform
-specific methods for them too.
-Regards!
-Gerry
+> If you use the system "bus" for this, the "flow" will be identical, that
+> is what the driver core provides for you.  I don't see why you need to
+> implement something that sits next to it and not just use what we
+> already have here.
 
-> 
->  
->>>> We haven't gone further enough to provide an ACPI independent hotplug framework
->>>> because we only have experience with x86 and Itanium, both are ACPI based.
->>>> We may try to implement an ACPI independent hotplug framework by pushing all
->>>> ACPI specific logic into the slot driver, I think it's doable. But we need
->>>> suggestions from experts of other architectures, such as SPARC and Power.
->>>> But seems Power already have some sorts of hotplug framework, right?
->>>
->>> I do not know about the Linux hot-plug support on other architectures.
->>> PA-RISC SuperDome also supports Node hot-plug, but it is not supported
->>> by Linux.  Since ARM is getting used by servers, I would not surprise if
->>> there will be an ARM based server with hot-plug support in future.
->> Seems ARM is on the way to adopt ACPI, so may be we could support ARM servers
->> in the future.
-> 
-> That's good to know.
-> 
->  :
->>>>>> So in our framework, we have an option to relay hotplug event from firmware
->>>>>> to userspace, so the userspace has a chance to reject the hotplug operations
->>>>>> if it may cause unacceptable disturbance to userspace services.
->>>>>
->>>>> I think validation from user-space is necessary for deleting I/O
->>>>> devices.  For CPU and memory, the kernel check works fine.
->>>> Agreed. But we may need help from userspace to handle cgroup/cpuset/cpuisol
->>>> etc for cpu and memory hot-removal. Especially for telecom applications, they
->>>> have strong dependency on cgroup/cpuisol to guarantee latency.
->>>
->>> I have not looked at the code, but isn't these cpu attributes managed in
->>> the kernel?
->> Some Telecom applications want to run in an deterministic environment, so they
->> depend on cpuisol/cpuset to provide such an environment. If hotplug event happens,
->> these Telecom application should be notified so they have a chance to redistribute
->> the workload.
-> 
-> I agree that we need to generate an event that can be subscribed by
-> those applications, so that they can react quickly on the change.
-> 
-> Thanks,
-> -Toshi
-> 
-> 
+Here is very brief boot-up flow.  
 
+start_kernel()
+  boot_cpu_init()         // init cpu0
+  setup_arch()
+    x86_init.paging.pagetable_init() // init mem pagetable
+  :
+kernel_init()
+  kernel_init_freeable()
+    smp_init()            // init other CPUs
+      :
+    do_basic_setup()
+      driver_init()
+        cpu_dev_init()    // build system/cpu tree
+        memory_dev_init() // build system/memory tree
+      do_initcalls()
+        acpi_init()       // build ACPI device tree
+
+CPU and memory are initialized at early boot.  The system device tree is
+built at the last step of the boot sequence and is only used for
+providing sysfs interfaces.  That is, the system bus structure has
+nothing to do with the actual CPU and memory initialization at boot.
+Similarly, ACPI drivers do not initialize actual CPU and memory at boot
+as they are also called at the last step.  Further, the ACPI device tree
+and system bus tree are separate entities.  Hotplug events are sent to
+ACPI.
+
+In order to keep the boot flow and hotplug flow consistent, I believe
+the first step is to keep the role of modules consistent between boot
+and hotplug.  For instance, acpi_init() only builds ACPI tree at boot,
+so ACPI should only build ACPI tree at hot-add as well.  This keeps ACPI
+drivers to do the same for both boot and hot-add.  The framework is
+designed to provide the consistency along with other high-availability
+features such as rollback.
+
+Thanks,
+-Toshi
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
