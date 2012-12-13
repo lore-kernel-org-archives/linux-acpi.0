@@ -1,89 +1,142 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH rev.2 2/6] ACPI: Change the ordering of PCI root bridge driver registrarion
-Date: Thu, 13 Dec 2012 23:18:58 +0100
-Message-ID: <9432446.AtiBizH0Mr@vostro.rjw.lan>
+Subject: [PATCH rev.2 3/6] ACPI: Make acpi_bus_add() and acpi_bus_start() visibly different
+Date: Thu, 13 Dec 2012 23:21:09 +0100
+Message-ID: <6125262.Gkj20UX9S9@vostro.rjw.lan>
 References: <8498184.VilrUmatxI@vostro.rjw.lan> <1499423.ez5cZl2uAf@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1499423.ez5cZl2uAf@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 Cc: Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>, Yijing Wang <wangyijing0307@gmail.com>, Jiang Liu <liuj97@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Instead of running acpi_pci_root_init() from a separate subsys
-initcall, call it directly from acpi_scan_init() before scanning the
-ACPI namespace for the first time, so that the PCI root bridge
-driver's .add() routine, acpi_pci_root_start(), is always run
-before binding ACPI drivers or attaching "companion" device objects
-to struct acpi_device objects below the root bridge's device node in
-the ACPI namespace.
-
-The first, simpler reason for doing this is that it makes the
-situation during boot more similar to the situation during hotplug,
-in which the ACPI PCI root bridge driver is always present.
-
-The second reason is that acpi_pci_root_init() causes struct pci_dev
-objects to be created for all PCI devices below the bridge and
-these objects may be necessary for whatever is done with the other
-ACPI device nodes in that namespace scope.  For example, devices
-created by acpi_create_platform_device() sometimes may need to be
-added to the device hierarchy as children of PCI bridges.  For this
-purpose, however, the struct pci_dev objects representing those
-bridges need to exist before the platform devices in question are
-registered.
+The current ACPI namespace scanning code suggests that acpi_bus_add()
+and acpi_bus_start() share some code.  In fact, however, they are
+completely different code paths (except for the initial checks), so
+refactor the code to make that distinction visibly clear.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/internal.h |    1 +
- drivers/acpi/pci_root.c |    4 +---
- drivers/acpi/scan.c     |    1 +
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/acpi/scan.c |   68 +++++++++++++++++++++++++++++-----------------------
+ 1 file changed, 38 insertions(+), 30 deletions(-)
 
-Index: linux/drivers/acpi/internal.h
-===================================================================
---- linux.orig/drivers/acpi/internal.h
-+++ linux/drivers/acpi/internal.h
-@@ -67,6 +67,7 @@ struct acpi_ec {
- 
- extern struct acpi_ec *first_ec;
- 
-+int acpi_pci_root_init(void);
- int acpi_ec_init(void);
- int acpi_ec_ecdt_probe(void);
- int acpi_boot_ec_enable(void);
-Index: linux/drivers/acpi/pci_root.c
-===================================================================
---- linux.orig/drivers/acpi/pci_root.c
-+++ linux/drivers/acpi/pci_root.c
-@@ -674,7 +674,7 @@ static int acpi_pci_root_remove(struct a
- 	return 0;
- }
- 
--static int __init acpi_pci_root_init(void)
-+int __init acpi_pci_root_init(void)
- {
- 	acpi_hest_init();
- 
-@@ -687,5 +687,3 @@ static int __init acpi_pci_root_init(voi
- 
- 	return 0;
- }
--
--subsys_initcall(acpi_pci_root_init);
 Index: linux/drivers/acpi/scan.c
 ===================================================================
 --- linux.orig/drivers/acpi/scan.c
 +++ linux/drivers/acpi/scan.c
-@@ -1833,6 +1833,7 @@ int __init acpi_scan_init(void)
+@@ -1622,10 +1622,9 @@ static acpi_status acpi_bus_check_add(ac
+ 	return AE_OK;
+ }
+ 
+-static acpi_status acpi_bus_probe_start(acpi_handle handle, u32 lvl,
+-					void *context, void **not_used)
++static acpi_status acpi_bus_device_attach(acpi_handle handle, u32 lvl_not_used,
++					  void *not_used, void **ret_not_used)
+ {
+-	struct acpi_bus_ops *ops = context;
+ 	acpi_status status = AE_OK;
+ 	struct acpi_device *device;
+ 	unsigned long long sta_not_used;
+@@ -1641,18 +1640,13 @@ static acpi_status acpi_bus_probe_start(
+ 	if (acpi_bus_get_device(handle, &device))
+ 		return AE_CTRL_DEPTH;
+ 
+-	if (ops->acpi_op_add) {
+-		if (!acpi_match_device_ids(device, acpi_platform_device_ids)) {
+-			/* This is a known good platform device. */
+-			acpi_create_platform_device(device);
+-		} else {
+-			int ret = device_attach(&device->dev);
+-			acpi_hot_add_bind(device);
+-			if (ret)
+-				status = AE_CTRL_DEPTH;
+-		}
+-	} else if (ops->acpi_op_start) {
+-		if (ACPI_FAILURE(acpi_start_single_object(device)))
++	if (!acpi_match_device_ids(device, acpi_platform_device_ids)) {
++		/* This is a known good platform device. */
++		acpi_create_platform_device(device);
++	} else {
++		int ret = device_attach(&device->dev);
++		acpi_hot_add_bind(device);
++		if (ret)
+ 			status = AE_CTRL_DEPTH;
  	}
+ 	return status;
+@@ -1674,10 +1668,10 @@ static int acpi_bus_scan(acpi_handle han
+ 		goto out;
  
- 	acpi_power_init();
-+	acpi_pci_root_init();
+ 	ret = 0;
+-	status = acpi_bus_probe_start(handle, 0, ops, NULL);
++	status = acpi_bus_device_attach(handle, 0, NULL, NULL);
+ 	if (ACPI_SUCCESS(status))
+ 		acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
+-				    acpi_bus_probe_start, NULL, ops, NULL);
++				    acpi_bus_device_attach, NULL, NULL, NULL);
  
- 	/*
- 	 * Enumerate devices in the ACPI namespace.
+  out:
+ 	if (child)
+@@ -1702,31 +1696,45 @@ int
+ acpi_bus_add(struct acpi_device **child,
+ 	     struct acpi_device *parent, acpi_handle handle, int type)
+ {
+-	struct acpi_bus_ops ops;
+-
+-	memset(&ops, 0, sizeof(ops));
+-	ops.acpi_op_add = 1;
++	struct acpi_bus_ops ops = { .acpi_op_add = 1, };
+ 
+ 	return acpi_bus_scan(handle, &ops, child);
+ }
+ EXPORT_SYMBOL(acpi_bus_add);
+ 
+-int acpi_bus_start(struct acpi_device *device)
++static acpi_status acpi_bus_start_device(acpi_handle handle, u32 lvl,
++					 void *not_used, void **ret_not_used)
+ {
+-	struct acpi_bus_ops ops;
+-	int result;
++	struct acpi_device *device;
++	unsigned long long sta_not_used;
++	int type_not_used;
++	acpi_status status;
++
++	/*
++	 * Ignore errors ignored by acpi_bus_check_add() to avoid terminating
++	 * namespace walks prematurely.
++	 */
++	if (acpi_bus_type_and_status(handle, &type_not_used, &sta_not_used))
++		return AE_OK;
++
++	if (acpi_bus_get_device(handle, &device))
++		return AE_CTRL_DEPTH;
+ 
++	return acpi_start_single_object(device);
++}
++
++int acpi_bus_start(struct acpi_device *device)
++{
+ 	if (!device)
+ 		return -EINVAL;
+ 
+-	memset(&ops, 0, sizeof(ops));
+-	ops.acpi_op_start = 1;
+-
+-	result = acpi_bus_scan(device->handle, &ops, NULL);
++	if (ACPI_SUCCESS(acpi_start_single_object(device)))
++		acpi_walk_namespace(ACPI_TYPE_ANY, device->handle,
++				    ACPI_UINT32_MAX, acpi_bus_start_device,
++				    NULL, NULL, NULL);
+ 
+ 	acpi_update_all_gpes();
+-
+-	return result;
++	return 0;
+ }
+ EXPORT_SYMBOL(acpi_bus_start);
+ 
