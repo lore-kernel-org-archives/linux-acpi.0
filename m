@@ -1,53 +1,147 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [RFC PATCH 00/11] Hot-plug and Online/Offline framework
-Date: Wed, 12 Dec 2012 15:56:57 -0800
-Message-ID: <20121212235657.GD22764@kroah.com>
-References: <1355354243-18657-1-git-send-email-toshi.kani@hp.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [Update][PATCH 3/6] ACPI: Make acpi_bus_add() and acpi_bus_start() visibly different
+Date: Thu, 13 Dec 2012 01:11:58 +0100
+Message-ID: <2379293.XqS6hlitES@vostro.rjw.lan>
+References: <8498184.VilrUmatxI@vostro.rjw.lan> <1693581.lT8eSoGRfL@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <1355354243-18657-1-git-send-email-toshi.kani@hp.com>
-Sender: owner-linux-mm@kvack.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: rjw@sisk.pl, lenb@kernel.org, akpm@linux-foundation.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, wency@cn.fujitsu.com, guohanjun@huawei.com, yinghai@kernel.org, srivatsa.bhat@linux.vnet.ibm.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1693581.lT8eSoGRfL@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Dec 12, 2012 at 04:17:12PM -0700, Toshi Kani wrote:
-> This patchset is an initial prototype of proposed hot-plug framework
-> for design review.  The hot-plug framework is designed to provide 
-> the common framework for hot-plugging and online/offline operations
-> of system devices, such as CPU, Memory and Node.  While this patchset
-> only supports ACPI-based hot-plug operations, the framework itself is
-> designed to be platform-neural and can support other FW architectures
-> as necessary.
-> 
-> The patchset has not been fully tested yet, esp. for memory hot-plug.
-> Any help for testing will be very appreciated since my test setup
-> is limited.
-> 
-> The patchset is based on the linux-next branch of linux-pm.git tree.
-> 
-> Overview of the Framework
-> =========================
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Subject: ACPI: Make acpi_bus_add() and acpi_bus_start() visibly different
 
-<snip>
+The current ACPI namespace scanning code suggests that acpi_bus_add()
+and acpi_bus_start() share some code.  In fact, however, they are
+completely different code paths (except for the initial checks), so
+refactor the code to make that distinction visibly clear.
 
-Why all the new framework, doesn't the existing bus infrastructure
-provide everything you need here?  Shouldn't you just be putting your
-cpus and memory sticks on a bus and handle stuff that way?  What makes
-these types of devices so unique from all other devices that Linux has
-been handling in a dynamic manner (i.e. hotplugging them) for many many
-years?
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
 
-Why are you reinventing the wheel?
+Update is needed, because of a potential bug found in [1/6], as described here:
 
-confused,
+https://lkml.org/lkml/2012/12/12/460
 
-greg k-h
+Thanks,
+Rafael
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+---
+ drivers/acpi/scan.c |   66 ++++++++++++++++++++++++++++------------------------
+ 1 file changed, 36 insertions(+), 30 deletions(-)
+
+Index: linux/drivers/acpi/scan.c
+===================================================================
+--- linux.orig/drivers/acpi/scan.c
++++ linux/drivers/acpi/scan.c
+@@ -1626,10 +1626,9 @@ static acpi_status acpi_bus_check_add(ac
+ 	return AE_OK;
+ }
+ 
+-static acpi_status acpi_bus_probe_start(acpi_handle handle, u32 lvl,
+-					void *context, void **not_used)
++static acpi_status acpi_bus_match_device(acpi_handle handle, u32 lvl,
++					 void *not_used, void **ret_not_used)
+ {
+-	struct acpi_bus_ops *ops = context;
+ 	acpi_status status = AE_OK;
+ 	struct acpi_device *device;
+ 	unsigned long long sta_not_used;
+@@ -1645,18 +1644,13 @@ static acpi_status acpi_bus_probe_start(
+ 	if (acpi_bus_get_device(handle, &device))
+ 		return AE_CTRL_DEPTH;
+ 
+-	if (ops->acpi_op_add) {
+-		if (!acpi_match_device_ids(device, acpi_platform_device_ids)) {
+-			/* This is a known good platform device. */
+-			acpi_create_platform_device(device);
+-		} else {
+-			int ret = device_attach(&device->dev);
+-			acpi_hot_add_bind(device);
+-			if (ret)
+-				status = AE_CTRL_DEPTH;
+-		}
+-	} else if (ops->acpi_op_start) {
+-		if (ACPI_FAILURE(acpi_start_single_object(device)))
++	if (!acpi_match_device_ids(device, acpi_platform_device_ids)) {
++		/* This is a known good platform device. */
++		acpi_create_platform_device(device);
++	} else {
++		int ret = device_attach(&device->dev);
++		acpi_hot_add_bind(device);
++		if (ret)
+ 			status = AE_CTRL_DEPTH;
+ 	}
+ 	return status;
+@@ -1679,7 +1673,7 @@ static int acpi_bus_scan(acpi_handle han
+ 			    acpi_bus_check_add, NULL, ops, &device);
+ 	if (device)
+ 		acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
+-				    acpi_bus_probe_start, NULL, ops, NULL);
++				    acpi_bus_match_device, NULL, NULL, NULL);
+ 	else
+ 		ret = -ENODEV;
+ 
+@@ -1706,31 +1700,43 @@ int
+ acpi_bus_add(struct acpi_device **child,
+ 	     struct acpi_device *parent, acpi_handle handle, int type)
+ {
+-	struct acpi_bus_ops ops;
+-
+-	memset(&ops, 0, sizeof(ops));
+-	ops.acpi_op_add = 1;
++	struct acpi_bus_ops ops = { .acpi_op_add = 1, };
+ 
+ 	return acpi_bus_scan(handle, &ops, child);
+ }
+ EXPORT_SYMBOL(acpi_bus_add);
+ 
+-int acpi_bus_start(struct acpi_device *device)
++static acpi_status acpi_bus_start_device(acpi_handle handle, u32 lvl,
++					 void *not_used, void **ret_not_used)
+ {
+-	struct acpi_bus_ops ops;
+-	int result;
++	struct acpi_device *device;
++	unsigned long long sta_not_used;
++	int type_not_used;
++	acpi_status status;
+ 
+-	if (!device)
+-		return -EINVAL;
++	/*
++	 * Ignore errors ignored by acpi_bus_check_add() to avoid terminating
++	 * namespace walks prematurely.
++	 */
++	if (acpi_bus_type_and_status(handle, &type_not_used, &sta_not_used))
++		return AE_OK;
+ 
+-	memset(&ops, 0, sizeof(ops));
+-	ops.acpi_op_start = 1;
++	if (acpi_bus_get_device(handle, &device))
++		return AE_CTRL_DEPTH;
+ 
+-	result = acpi_bus_scan(device->handle, &ops, NULL);
++	status = acpi_start_single_object(device);
++	return ACPI_SUCCESS(status) ? status : AE_CTRL_DEPTH;
++}
+ 
+-	acpi_update_all_gpes();
++int acpi_bus_start(struct acpi_device *device)
++{
++	if (!device)
++		return -EINVAL;
+ 
+-	return result;
++	acpi_walk_namespace(ACPI_TYPE_ANY, device->handle, ACPI_UINT32_MAX,
++			    acpi_bus_start_device, NULL, NULL, NULL);
++	acpi_update_all_gpes();
++	return 0;
+ }
+ EXPORT_SYMBOL(acpi_bus_start);
+ 
