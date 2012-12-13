@@ -1,79 +1,119 @@
-From: "Liu, Jinsong" <jinsong.liu@intel.com>
-Subject: RE: [PATCH] X86/acpi: remove redundant logic of acpi memory hotadd
-Date: Thu, 13 Dec 2012 13:22:13 +0000
-Message-ID: <DE8DF0795D48FD4CA783C40EC82923353A8C10@SHSMSX101.ccr.corp.intel.com>
-References: <DE8DF0795D48FD4CA783C40EC829233539DED4@SHSMSX101.ccr.corp.intel.com>
- <DE8DF0795D48FD4CA783C40EC82923353A779A@SHSMSX101.ccr.corp.intel.com>
- <50C93F36.4030402@huawei.com> <1747018.CRodbRKbDV@vostro.rjw.lan>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [RFC PATCH v3 0/3] acpi: Introduce prepare_remove device
+ operation
+Date: Thu, 13 Dec 2012 07:42:29 -0700
+Message-ID: <1355409749.18964.107.camel@misato.fc.hp.com>
+References: <1353693037-21704-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
+	      <50B5EFE9.3040206@huawei.com>
+	     <1354128096.26955.276.camel@misato.fc.hp.com>
+	    <50B6E936.2080308@huawei.com>
+	 <1354228028.7776.56.camel@misato.fc.hp.com>
+	    <50BC29C6.6050706@huawei.com>
+	  <1354579848.21585.54.camel@misato.fc.hp.com>  <50C0CA90.7010608@gmail.com>
+	  <1354849065.21116.61.camel@misato.fc.hp.com> <50C1852D.3000104@huawei.com>
+	 <1354928933.28379.37.camel@misato.fc.hp.com> <50C74481.7010107@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="gb2312"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1747018.CRodbRKbDV@vostro.rjw.lan>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, Jiang Liu <jiang.liu@huawei.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>, Toshi Kani <toshi.kani@hp.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <50C74481.7010107@gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Jiang Liu <liuj97@gmail.com>
+Cc: Jiang Liu <jiang.liu@huawei.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Hanjun Guo <guohanjun@huawei.com>, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, linux-acpi@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, wency@cn.fujitsu.com, lenb@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Tang Chen <tangchen@cn.fujitsu.com>, Huxinwei <huxinwei@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
 
-UmFmYWVsIEouIFd5c29ja2kgd3JvdGU6DQo+IE9uIFRodXJzZGF5LCBEZWNlbWJlciAxMywgMjAx
-MiAxMDozNjozOCBBTSBKaWFuZyBMaXUgd3JvdGU6DQo+PiBPbiAyMDEyLTEyLTEyIDIyOjM3LCBM
-aXUsIEppbnNvbmcgd3JvdGU6DQo+Pj4gV2VuIENvbmd5YW5nIHdyb3RlOg0KPj4+PiBBdCAxMi8w
-OC8yMDEyIDA2OjE5IEFNLCBSYWZhZWwgSi4gV3lzb2NraSBXcm90ZToNCj4+Pj4+IE9uIFR1ZXNk
-YXksIERlY2VtYmVyIDA0LCAyMDEyIDAxOjM5OjU0IEFNIExpdSwgSmluc29uZyB3cm90ZToNCj4+
-Pj4+PiBSZXNlbmQgaXQsIGFkZCBSYWZhZWwgYW5kIGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3Jn
-DQo+Pj4+PiANCj4+Pj4+IEkgd29uZGVyIHdoYXQgbWVtb3J5IGhvdHBsdWcgcGVvcGxlIHRoaW5r
-IGFib3V0IHRoYXQuDQo+Pj4+PiANCj4+Pj4+IFRoYW5rcywNCj4+Pj4+IFJhZmFlbA0KPj4+Pj4g
-DQo+Pj4+PiANCj4+Pj4+PiA9PT09PT09PT09PT09PT0NCj4+Pj4+PiBGcm9tIDFkMzkyNzllNDVj
-NTRjZTUzMTY5MWRhNWZmZTI2MWU3Njg5ZGQ5MmMgTW9uIFNlcCAxNw0KPj4+Pj4+IDAwOjAwOjAw
-IDIwMDEgRnJvbTogTGl1IEppbnNvbmcgPGppbnNvbmcubGl1QGludGVsLmNvbT4NCj4+Pj4+PiBE
-YXRlOiBXZWQsIDE0IE5vdiAyMDEyIDE4OjUyOjA2ICswODAwDQo+Pj4+Pj4gU3ViamVjdDogW1BB
-VENIXSBYODYvYWNwaTogcmVtb3ZlIHJlZHVuZGFudCBsb2dpYyBvZiBhY3BpIG1lbW9yeQ0KPj4+
-Pj4+IGhvdGFkZCANCj4+Pj4+PiANCj4+Pj4+PiBXaGVuIG1lbW9yeSBob3RhZGQsIGFjcGlfbWVt
-b3J5X2VuYWJsZV9kZXZpY2UgaGFzIGFscmVhZHkgYmVlbg0KPj4+Pj4+IGRvbmUgYXQgZHJ2LT5v
-cHMuYWRkIChhY3BpX21lbW9yeV9kZXZpY2VfYWRkKSwgbm8gbmVlZCB0byBkbyBpdA0KPj4+Pj4+
-IGFnYWluIGF0IG5vdGlmeSBjYWxsYmFjay4gDQo+Pj4+Pj4gDQo+Pj4+Pj4gQXQgYWNwaV9tZW1v
-cnlfZW5hYmxlX2RldmljZSwgYWNwaV9tZW1vcnlfZ2V0X2RldmljZV9yZXNvdXJjZXMNCj4+Pj4+
-PiBpcyBhbHNvIGEgcmVkdW5kYW50IGFjdGlvbiwgc2luY2UgaXQgaGFzIGJlZW4gZG9uZSBhdA0K
-Pj4+Pj4+IGRydi0+b3BzLmFkZC4gDQo+Pj4+Pj4gDQo+Pj4+Pj4gU2lnbmVkLW9mZi1ieTogTGl1
-IEppbnNvbmcgPGppbnNvbmcubGl1QGludGVsLmNvbT4NCj4+Pj4+PiAtLS0NCj4+Pj4+PiAgZHJp
-dmVycy9hY3BpL2FjcGlfbWVtaG90cGx1Zy5jIHwgICAxNyAtLS0tLS0tLS0tLS0tLS0tLQ0KPj4+
-Pj4+ICAxIGZpbGVzIGNoYW5nZWQsIDAgaW5zZXJ0aW9ucygrKSwgMTcgZGVsZXRpb25zKC0pDQo+
-Pj4+Pj4gDQo+Pj4+Pj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9hY3BpX21lbWhvdHBsdWcu
-Yw0KPj4+Pj4+IGIvZHJpdmVycy9hY3BpL2FjcGlfbWVtaG90cGx1Zy5jDQo+Pj4+Pj4gaW5kZXgg
-MjRjODA3Zi4uYTY0ODlmZCAxMDA2NDQNCj4+Pj4+PiAtLS0gYS9kcml2ZXJzL2FjcGkvYWNwaV9t
-ZW1ob3RwbHVnLmMNCj4+Pj4+PiArKysgYi9kcml2ZXJzL2FjcGkvYWNwaV9tZW1ob3RwbHVnLmMN
-Cj4+Pj4+PiBAQCAtMjIwLDE1ICsyMjAsNiBAQCBzdGF0aWMgaW50IGFjcGlfbWVtb3J5X2VuYWJs
-ZV9kZXZpY2Uoc3RydWN0DQo+Pj4+Pj4gIAlhY3BpX21lbW9yeV9kZXZpY2UgKm1lbV9kZXZpY2Up
-IHN0cnVjdCBhY3BpX21lbW9yeV9pbmZvICppbmZvOw0KPj4+Pj4+IGludCBub2RlOyANCj4+Pj4+
-PiANCj4+Pj4+PiAtDQo+Pj4+Pj4gLQkvKiBHZXQgdGhlIHJhbmdlIGZyb20gdGhlIF9DUlMgKi8N
-Cj4+Pj4+PiAtCXJlc3VsdCA9IGFjcGlfbWVtb3J5X2dldF9kZXZpY2VfcmVzb3VyY2VzKG1lbV9k
-ZXZpY2UpOw0KPj4+Pj4+IC0JaWYgKHJlc3VsdCkgew0KPj4+Pj4+IC0JCXByaW50ayhLRVJOX0VS
-UiBQUkVGSVggImdldF9kZXZpY2VfcmVzb3VyY2VzIGZhaWxlZFxuIik7DQo+Pj4+Pj4gLQkJbWVt
-X2RldmljZS0+c3RhdGUgPSBNRU1PUllfSU5WQUxJRF9TVEFURTsNCj4+Pj4+PiAtCQlyZXR1cm4g
-cmVzdWx0Ow0KPj4+Pj4+IC0JfQ0KPj4+Pj4+IC0NCj4+Pj4+PiAgCW5vZGUgPSBhY3BpX2dldF9u
-b2RlKG1lbV9kZXZpY2UtPmRldmljZS0+aGFuZGxlKTsgIAkvKg0KPj4+Pj4+ICAJICogVGVsbCB0
-aGUgVk0gdGhlcmUgaXMgbW9yZSBtZW1vcnkgaGVyZS4uLg0KPj4+Pj4+IEBAIC0zNTcsMTQgKzM0
-OCw2IEBAIHN0YXRpYyB2b2lkDQo+Pj4+Pj4gIAkJYWNwaV9tZW1vcnlfZGV2aWNlX25vdGlmeShh
-Y3BpX2hhbmRsZSBoYW5kbGUsIHUzMiBldmVudCwgdm9pZA0KPj4+Pj4+ICpkYXRhKSAgCQkJYnJl
-YWs7IH0gDQo+Pj4+Pj4gDQo+Pj4+Pj4gLQkJaWYgKGFjcGlfbWVtb3J5X2NoZWNrX2RldmljZSht
-ZW1fZGV2aWNlKSkNCj4+Pj4+PiAtCQkJYnJlYWs7DQo+Pj4+IA0KPj4+PiBIbW0sIGlmIGFjcGlf
-bWVtb3J5X2NoZWNrX2RldmljZSgpIGZhaWxzLCBpdCBtZWFucyB0aGUgbWVtb3J5DQo+Pj4+IGRl
-dmljZSBkaXNhcHBlYXJzIEkgZG9uJ3Qga25vdyBpZiBhIHJlYWwgaGFyZHdhcmUgdXNlcyB0aGlz
-IHdheSB0bw0KPj4+PiByZW1vdmUgbWVtb3J5IGRldmljZS4gDQo+Pj4+IA0KPj4+Pj4+IC0NCj4+
-Pj4+PiAtCQlpZiAoYWNwaV9tZW1vcnlfZW5hYmxlX2RldmljZShtZW1fZGV2aWNlKSkgew0KPj4+
-Pj4+IC0JCQlwcmludGsoS0VSTl9FUlIgUFJFRklYICJDYW5ub3QgZW5hYmxlIG1lbW9yeSBkZXZp
-Y2VcbiIpOw0KPj4+Pj4+IC0JCQlicmVhazsNCj4+Pj4+PiAtCQl9DQo+Pj4+IA0KPj4+PiBJZiBh
-Y3BpX21lbW9yeV9nZXRfZGV2aWNlKCkgZG9lc24ndCBmYWlsLCBpdCBtZWFucyB0aGF0IHRoZSBk
-ZXZpY2UNCj4+Pj4gaGFzIGJlZW4gbWFuYWdlZCBieSB0aGlzIGRyaXZlciwgc28gSSB0aGluayB3
-ZSBjYW4gZG8gdGhpcyBjbGVhbnVwLg0KPj4+PiANCj4+Pj4gVGhhbmtzDQo+Pj4+IFdlbiBDb25n
-eWFuZw0KPj4+PiANCj4+PiANCj4+PiBUaGFua3MhIGFueSBjb21tZW50cyBmcm9tIEh1YXdlaSBz
-aWRlLCBKaWFuZz8gSGkgSmluc29uZywNCj4+IA0KPj4gV2UgdGhpbmsgaXQncyBvay4NCj4+IA0K
-Pj4gYWNwaV9tZW1vcnlfZGV2aWNlX25vdGlmeQ0KPj4gCWFjcGlfbWVtb3J5X2dldF9kZXZpY2UN
-Cj4+IAkJYWNwaV9tZW1vcnlfZGV2aWNlX2FkZA0KPj4gCQkJYWNwaV9tZW1vcnlfZ2V0X2Rldmlj
-ZV9yZXNvdXJjZXMNCj4+IAkJCWFjcGlfbWVtb3J5X2VuYWJsZV9kZXZpY2UNCj4+IAkJCQlhY3Bp
-X21lbW9yeV9nZXRfZGV2aWNlX3Jlc291cmNlc6OocmVkdW5kYW50o6kNCj4+IAlhY3BpX21lbW9y
-eV9jaGVja19kZXZpY2WjqHJlZHVuZGFudKOpDQo+PiAJYWNwaV9tZW1vcnlfZW5hYmxlX2Rldmlj
-ZaOocmVkdW5kYW50o6kNCj4gDQo+IE9LLCB0aGFua3MuDQo+IA0KPiBJJ2xsIHF1ZXVlIGl0IHVw
-IGZvciBzdWJtaXNzaW9uIGFzIGEgZml4IGxhdGVyIGluIHRoZSBjeWNsZS4NCj4gDQo+IFRoYW5r
-cywNCj4gUmFmYWVsDQoNClRoYW5rIHlvdSBhbGwhDQoNCkppbnNvbmc=
+On Tue, 2012-12-11 at 22:34 +0800, Jiang Liu wrote:
+> On 12/08/2012 09:08 AM, Toshi Kani wrote:
+> > On Fri, 2012-12-07 at 13:57 +0800, Jiang Liu wrote:
+> >> On 2012-12-7 10:57, Toshi Kani wrote:
+> >>> On Fri, 2012-12-07 at 00:40 +0800, Jiang Liu wrote:
+> >>>> On 12/04/2012 08:10 AM, Toshi Kani wrote:
+> >>>>> On Mon, 2012-12-03 at 12:25 +0800, Hanjun Guo wrote:
+> >>>>>> On 2012/11/30 6:27, Toshi Kani wrote:
+> >>>>>>> On Thu, 2012-11-29 at 12:48 +0800, Hanjun Guo wrote:
+ :
+> >>> Yes, the framework should allow such future work.  I also think that the
+> >>> framework itself should be independent from such ACPI issue.  Ideally,
+> >>> it should be able to support non-ACPI platforms.
+> >> The same point here. The ACPI based hotplug framework is designed as:
+> >> 1) an ACPI based hotplug slot driver to handle platform specific logic.
+> >>    Platform may provide platform specific slot drivers to discover, manage
+> >>    hotplug slots. We have provided a default implementation of slot driver
+> >>    according to the ACPI spec.
+> > 
+> > The ACPI spec does not define that _EJ0 is required to receive a hot-add
+> > request, i.e. bus/device check.  This is a major issue.  Since Windows
+> > only supports hot-add, I think there are platforms that only support
+> > hot-add today.
+> > 
+> >> 2) an ACPI based hotplug manager driver, which is a platform independent
+> >>    driver and manages all hotplug slot created by the slot driver.
+> > 
+> > It is surely impressive work, but I think is is a bit overdoing.  I
+> > expect hot-pluggable servers come with management console and/or GUI
+> > where a user can manage hardware units and initiate hot-plug operations.
+> > I do not think the kernel needs to step into such area since it tends to
+> > be platform-specific. 
+> One of the major usages of this feature is for testing. 
+> It will be hard for OSVs and OEMs to verify hotplug functionalities if it could
+> only be tested by physical hotplug or through management console. So to pave the
+> way for hotplug, we need to provide a mechanism for OEMs and OSVs to execute 
+> auto stress tests for hotplug functionalities.
+
+Yes, but such OS->FW interface is platform-specific.  Some platforms use
+IPMI for the OS to communicate with the management console.  In this
+case, an OEM-specific command can be used to request a hotplug through
+IPMI.  Some platforms may also support test programs to run on the
+management console for validations.
+
+For early development testing, Yinghai's SCI emulation patch can be used
+to emulate hotplug events from the OS.  It would be part of the kernel
+debugging features once this patch is accepted. 
+
+ 
+> >> We haven't gone further enough to provide an ACPI independent hotplug framework
+> >> because we only have experience with x86 and Itanium, both are ACPI based.
+> >> We may try to implement an ACPI independent hotplug framework by pushing all
+> >> ACPI specific logic into the slot driver, I think it's doable. But we need
+> >> suggestions from experts of other architectures, such as SPARC and Power.
+> >> But seems Power already have some sorts of hotplug framework, right?
+> > 
+> > I do not know about the Linux hot-plug support on other architectures.
+> > PA-RISC SuperDome also supports Node hot-plug, but it is not supported
+> > by Linux.  Since ARM is getting used by servers, I would not surprise if
+> > there will be an ARM based server with hot-plug support in future.
+> Seems ARM is on the way to adopt ACPI, so may be we could support ARM servers
+> in the future.
+
+That's good to know.
+
+ :
+> >>>> So in our framework, we have an option to relay hotplug event from firmware
+> >>>> to userspace, so the userspace has a chance to reject the hotplug operations
+> >>>> if it may cause unacceptable disturbance to userspace services.
+> >>>
+> >>> I think validation from user-space is necessary for deleting I/O
+> >>> devices.  For CPU and memory, the kernel check works fine.
+> >> Agreed. But we may need help from userspace to handle cgroup/cpuset/cpuisol
+> >> etc for cpu and memory hot-removal. Especially for telecom applications, they
+> >> have strong dependency on cgroup/cpuisol to guarantee latency.
+> > 
+> > I have not looked at the code, but isn't these cpu attributes managed in
+> > the kernel?
+> Some Telecom applications want to run in an deterministic environment, so they
+> depend on cpuisol/cpuset to provide such an environment. If hotplug event happens,
+> these Telecom application should be notified so they have a chance to redistribute
+> the workload.
+
+I agree that we need to generate an event that can be subscribed by
+those applications, so that they can react quickly on the change.
+
+Thanks,
+-Toshi
+
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
