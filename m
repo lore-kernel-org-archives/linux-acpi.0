@@ -1,178 +1,157 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [RFC PATCH 00/11] Hot-plug and Online/Offline framework
-Date: Thu, 13 Dec 2012 10:30:21 -0800
-Message-ID: <20121213183021.GC9606@kroah.com>
-References: <1355354243-18657-1-git-send-email-toshi.kani@hp.com>
- <20121212235657.GD22764@kroah.com>
- <1355359176.18964.41.camel@misato.fc.hp.com>
- <20121213005510.GA9220@kroah.com>
- <1355369864.18964.68.camel@misato.fc.hp.com>
- <20121213041627.GA14083@kroah.com>
- <1355414634.18964.158.camel@misato.fc.hp.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 1/6] ACPI: Separate adding ACPI device objects from probing ACPI drivers
+Date: Thu, 13 Dec 2012 20:40:33 +0100
+Message-ID: <3742073.hTjabQ5pdD@vostro.rjw.lan>
+References: <8498184.VilrUmatxI@vostro.rjw.lan> <2789050.ITilpEgQsC@vostro.rjw.lan> <50C9D29F.9040508@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-da0-f46.google.com ([209.85.210.46]:34002 "EHLO
-	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755661Ab2LMSa0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Dec 2012 13:30:26 -0500
-Received: by mail-da0-f46.google.com with SMTP id p5so988202dak.19
-        for <linux-acpi@vger.kernel.org>; Thu, 13 Dec 2012 10:30:26 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <1355414634.18964.158.camel@misato.fc.hp.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <50C9D29F.9040508@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jiang Liu <liuj97@gmail.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: "rjw@sisk.pl" <rjw@sisk.pl>, "lenb@kernel.org" <lenb@kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "bhelgaas@google.com" <bhelgaas@google.com>, "isimatu.yasuaki@jp.fujitsu.com" <isimatu.yasuaki@jp.fujitsu.com>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>, "wency@cn.fujitsu.com" <wency@cn.fujitsu.com>, "guohanjun@huawei.com" <guohanjun@huawei.com>, "yinghai@kernel.org" <yinghai@kernel.org>, "srivatsa.bhat@linux.vnet.ibm.com" <srivatsa.bhat@linux.vnet.ibm.com>
 
-On Thu, Dec 13, 2012 at 09:03:54AM -0700, Toshi Kani wrote:
-> On Thu, 2012-12-13 at 04:16 +0000, Greg KH wrote:
-> > On Wed, Dec 12, 2012 at 08:37:44PM -0700, Toshi Kani wrote:
-> > > On Wed, 2012-12-12 at 16:55 -0800, Greg KH wrote:
-> > > > On Wed, Dec 12, 2012 at 05:39:36PM -0700, Toshi Kani wrote:
-> > > > > On Wed, 2012-12-12 at 15:56 -0800, Greg KH wrote:
-> > > > > > On Wed, Dec 12, 2012 at 04:17:12PM -0700, Toshi Kani wrote:
-> > > > > > > This patchset is an initial prototype of proposed hot-plug framework
-> > > > > > > for design review.  The hot-plug framework is designed to provide 
-> > > > > > > the common framework for hot-plugging and online/offline operations
-> > > > > > > of system devices, such as CPU, Memory and Node.  While this patchset
-> > > > > > > only supports ACPI-based hot-plug operations, the framework itself is
-> > > > > > > designed to be platform-neural and can support other FW architectures
-> > > > > > > as necessary.
-> > > > > > > 
-> > > > > > > The patchset has not been fully tested yet, esp. for memory hot-plug.
-> > > > > > > Any help for testing will be very appreciated since my test setup
-> > > > > > > is limited.
-> > > > > > > 
-> > > > > > > The patchset is based on the linux-next branch of linux-pm.git tree.
-> > > > > > > 
-> > > > > > > Overview of the Framework
-> > > > > > > =========================
-> > > > > > 
-> > > > > > <snip>
-> > > > > > 
-> > > > > > Why all the new framework, doesn't the existing bus infrastructure
-> > > > > > provide everything you need here?  Shouldn't you just be putting your
-> > > > > > cpus and memory sticks on a bus and handle stuff that way?  What makes
-> > > > > > these types of devices so unique from all other devices that Linux has
-> > > > > > been handling in a dynamic manner (i.e. hotplugging them) for many many
-> > > > > > years?
-> > > > > > 
-> > > > > > Why are you reinventing the wheel?
-> > > > > 
-> > > > > Good question.  Yes, USB and PCI hotplug operate based on their bus
-> > > > > structures.  USB and PCI cards only work under USB and PCI bus
-> > > > > controllers.  So, their framework can be composed within the bus
-> > > > > structures as you pointed out.
-> > > > > 
-> > > > > However, system devices such CPU and memory do not have their standard
-> > > > > bus.  ACPI allows these system devices to be enumerated, but it does not
-> > > > > make ACPI as the HW bus hierarchy for CPU and memory, unlike PCI and
-> > > > > USB.  Therefore, CPU and memory modules manage CPU and memory outside of
-> > > > > ACPI.  This makes sense because CPU and memory can be used without ACPI.
-> > > > > 
-> > > > > This leads us an issue when we try to manage system device hotplug
-> > > > > within ACPI, because ACPI does not control everything.  This patchset
-> > > > > provides a common hotplug framework for system devices, which both ACPI
-> > > > > and non-ACPI modules (i.e. CPU and memory modules) can participate and
-> > > > > are coordinated for their hotplug operations.  This is analogous to the
-> > > > > boot-up sequence, which ACPI and non-ACPI modules can participate to
-> > > > > enable CPU and memory.
-> > > > 
-> > > > Then create a "virtual" bus and put the devices you wish to control on
-> > > > that.  That is what the "system bus" devices were supposed to be, it's
-> > > > about time someone took that code and got it all working properly in
-> > > > this way, that is why it was created oh so long ago.
-> > > 
-> > > It may be the ideal, but it will take us great effort to make such
-> > > things to happen based on where we are now.  It is going to be a long
-> > > way.  I believe the first step is to make the boot-up flow and hot-plug
-> > > flow consistent for system devices.  This is what this patchset is
-> > > trying to do.
+On Thursday, December 13, 2012 09:05:35 PM Jiang Liu wrote:
+> On 12/13/2012 06:32 AM, Rafael J. Wysocki wrote:
+> > On Thursday, December 13, 2012 12:38:01 AM Jiang Liu wrote:
+> >> On 12/10/2012 07:00 AM, Rafael J. Wysocki wrote:
+> >>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >>>
+> >>> Currently, as soon as an ACPI device node object (struct acpi_device)
+> >> snip
+> >>   
+> >>> @@ -1600,48 +1608,77 @@ static acpi_status acpi_bus_check_add(ac
+> >>>  	 * We may already have an acpi_device from a previous enumeration.  If
+> >>>  	 * so, we needn't add it again, but we may still have to start it.
+> >>>  	 */
+> >>> -	device = NULL;
+> >>>  	acpi_bus_get_device(handle, &device);
+> >>>  	if (ops->acpi_op_add && !device) {
+> >>> -		acpi_add_single_object(&device, handle, type, sta, ops);
+> >>> -		/* Is the device a known good platform device? */
+> >>> -		if (device
+> >>> -		    && !acpi_match_device_ids(device, acpi_platform_device_ids))
+> >>> -			acpi_create_platform_device(device);
+> >>> -	}
+> >>> +		struct acpi_bus_ops add_ops = *ops;
+> >>>  
+> >>> -	if (!device)
+> >>> -		return AE_CTRL_DEPTH;
+> >>> -
+> >>> -	if (ops->acpi_op_start && !(ops->acpi_op_add)) {
+> >>> -		status = acpi_start_single_object(device);
+> >>> -		if (ACPI_FAILURE(status))
+> >>> +		add_ops.acpi_op_match = 0;
+> >>> +		acpi_add_single_object(&device, handle, type, sta, &add_ops);
+> >>> +		if (!device)
+> >>>  			return AE_CTRL_DEPTH;
+> >>> +
+> >>> +		device->bus_ops.acpi_op_match = 1;
+> >>>  	}
+> >>>  
+> >>>  	if (!*return_value)
+> >>>  		*return_value = device;
+> >>> +
+> >>>  	return AE_OK;
+> >>>  }
+> >>>  
+> >>> +static acpi_status acpi_bus_probe_start(acpi_handle handle, u32 lvl,
+> >>> +					void *context, void **not_used)
+> >>> +{
+> >>> +	struct acpi_bus_ops *ops = context;
+> >>> +	struct acpi_device *device;
+> >>> +	acpi_status status = AE_OK;
+> >>> +
+> >>> +	if (acpi_bus_get_device(handle, &device))
+> >>> +		return AE_CTRL_DEPTH;
+> >>> +
+> >>> +	if (ops->acpi_op_add) {
+> >>> +		if (!acpi_match_device_ids(device, acpi_platform_device_ids)) {
+> >>> +			/* This is a known good platform device. */
+> >>> +			acpi_create_platform_device(device);
+> >>> +		} else {
+> >>> +			int ret = device_attach(&device->dev);
+> >>> +			acpi_hot_add_bind(device);
+> >>> +			if (ret)
+> >>> +				status = AE_CTRL_DEPTH;
+> >>> +		}
+> >>> +	} else if (ops->acpi_op_start) {
+> >>> +		if (ACPI_FAILURE(acpi_start_single_object(device)))
+> >>> +			status = AE_CTRL_DEPTH;
+> >>> +	}
+> >>> +	return status;
+> >>> +}
+> >>> +
+> >>>  static int acpi_bus_scan(acpi_handle handle, struct acpi_bus_ops *ops,
+> >>>  			 struct acpi_device **child)
+> >>>  {
+> >>> -	acpi_status status;
+> >>>  	void *device = NULL;
+> >>> +	acpi_status status;
+> >>> +	int ret = 0;
+> >>>  
+> >>>  	status = acpi_bus_check_add(handle, 0, ops, &device);
+> >>> -	if (ACPI_SUCCESS(status))
+> >>> +	if (ACPI_FAILURE(status)) {
+> >>> +		ret = -ENODEV;
+> >>> +		goto out;
+> >>> +	}
+> >>> +
+> >>> +	acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
+> >>> +			    acpi_bus_check_add, NULL, ops, &device);
+> >>> +	if (device)
+> >>>  		acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
+> >>> -				    acpi_bus_check_add, NULL, ops, &device);
+> >>> +				    acpi_bus_probe_start, NULL, ops, NULL);
+> >> Hi Rafael,
+> >> 	Should we call acpi_bus_probe_start for the top device corresponding to 
+> >> "handle" too here?
 > > 
-> > If you use the system "bus" for this, the "flow" will be identical, that
-> > is what the driver core provides for you.  I don't see why you need to
-> > implement something that sits next to it and not just use what we
-> > already have here.
+> > Do you mean separately?  I don't think so.  It will be covered by the namespace
+> > walking, won't it?
+> Hi Rafael,
+> 	According to test results from Yijing, we do need to call acpi_bus_probe_start
+> for the top device corresponding to "handle".
+> 	Comments for acpi_walk_namespace says:
+> /*******************************************************************************
+>  *
+>  * FUNCTION:    acpi_walk_namespace
+>  *
+>  * DESCRIPTION: Performs a modified depth-first walk of the namespace tree,
+>  *              starting (and ending) at the object specified by start_handle.
+>                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+>  *              The callback function is called whenever an object that matches
+>  *              the type parameter is found. If the callback function returns
+>  *              a non-zero value, the search is terminated immediately and this
+>  *              value is returned to the caller.
+>  *
+>  *              The point of this procedure is to provide a generic namespace
+>  *              a non-zero value, the search is terminated immediately and this
+>  *              value is returned to the caller.
+>  *
+>  *              The point of this procedure is to provide a generic namespace
+>  *              walk routine that can be called from multiple places to
+>  *              provide multiple services; the callback function(s) can be
+>  *              tailored to each task, whether it is a print function,
+>  *              a compare function, etc.
+>  *
+>  ******************************************************************************/
 > 
-> Here is very brief boot-up flow.  
-> 
-> start_kernel()
->   boot_cpu_init()         // init cpu0
->   setup_arch()
->     x86_init.paging.pagetable_init() // init mem pagetable
->   :
-> kernel_init()
->   kernel_init_freeable()
->     smp_init()            // init other CPUs
->       :
->     do_basic_setup()
->       driver_init()
->         cpu_dev_init()    // build system/cpu tree
->         memory_dev_init() // build system/memory tree
->       do_initcalls()
->         acpi_init()       // build ACPI device tree
-> 
-> CPU and memory are initialized at early boot.  The system device tree is
-> built at the last step of the boot sequence and is only used for
-> providing sysfs interfaces.
+> But acpi_ns_walk_namespace() doesn't really call the pre_order_visit and post_order_visit
+> for the start_handle. That means acpi_walk_namespace won't call the callback for the top
+> handle.
 
-Then fix that and create the system device tree earlier.
+You are right.
 
-> That is, the system bus structure has nothing to do with the actual
-> CPU and memory initialization at boot.
+I'll fix that and send updated series.  It looks like Bjorn wants me to rework
+the changelogs anyway. :-)
 
-Then that should be fixed, right?
+Thanks,
+Rafael
 
-> Similarly, ACPI drivers do not initialize actual CPU and memory at boot
-> as they are also called at the last step.
 
-That should also probably be fixed, right?
-
-> Further, the ACPI device tree and system bus tree are separate
-> entities.
-
-That's because ACPI seems to be getting crazy these days, and creating
-lots of different devices and tieing it back into the existing device
-trees.  Which is fine, see how it's being done with USB for one example
-of how this can be done correctly, _if_ you want to keep them separate
-(doing so is your own choice, nothing that I'm saying is necessary.)
-
-> Hotplug events are sent to ACPI.
-
-Your hotplug events are being sent there, that's your decision to do so,
-it doesn't happen that way with other subsystems that get hotplug events
-from ACPI (i.e. PCI hotplug, right?)
-
-> In order to keep the boot flow and hotplug flow consistent, I believe
-> the first step is to keep the role of modules consistent between boot
-> and hotplug.
-
-I agree, see above for how to resolve that :)
-
-> For instance, acpi_init() only builds ACPI tree at boot, so ACPI
-> should only build ACPI tree at hot-add as well.  This keeps ACPI
-> drivers to do the same for both boot and hot-add.
-
-Agreed.
-
-> The framework is designed to provide the consistency along with other
-> high-availability features such as rollback.
-
-I want my tiny, USB-powered device to have "high-availability", don't
-think of that type of functionality as somehow being special, it's what
-we have been doing with other subsystems for _years_ now.
-
-Again, I think if you properly tie the system bus code into the CPU work
-at the correct location, you can achieve everything you need.  I base
-this on the fact that this is what other subsystems and architectures
-have been doing for years.  Just because this is ACPI is no reason to
-think that it needs to be done differently.
-
-Odds are, s390 has been doing this for 10+ years and none of us realize
-this, they are usually that far ahead of the curve if history is any
-lesson.
-
-thanks,
-
-greg k-h
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
