@@ -1,78 +1,117 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH 6/6] ACPI: Change the ordering of acpi_bus_check_add()
-Date: Wed, 12 Dec 2012 18:00:28 -0700
-Message-ID: <CAErSpo6jnjfJUadZKutpn4CXz0YMKccwSuG7idionFPjF-5VCw@mail.gmail.com>
-References: <8498184.VilrUmatxI@vostro.rjw.lan> <2268672.Pe9OEEVsRc@vostro.rjw.lan>
+From: Jiang Liu <jiang.liu@huawei.com>
+Subject: Re: [PATCH] X86/acpi: remove redundant logic of acpi memory hotadd
+Date: Thu, 13 Dec 2012 10:36:38 +0800
+Message-ID: <50C93F36.4030402@huawei.com>
+References: <DE8DF0795D48FD4CA783C40EC829233539DED4@SHSMSX101.ccr.corp.intel.com> <4326596.xCAz7vOgOp@vostro.rjw.lan> <50C2A752.8010709@cn.fujitsu.com> <DE8DF0795D48FD4CA783C40EC82923353A779A@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:40540 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755275Ab2LMBAt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Dec 2012 20:00:49 -0500
-Received: by mail-vc0-f174.google.com with SMTP id d16so1514773vcd.19
-        for <linux-acpi@vger.kernel.org>; Wed, 12 Dec 2012 17:00:48 -0800 (PST)
-In-Reply-To: <2268672.Pe9OEEVsRc@vostro.rjw.lan>
+Received: from szxga02-in.huawei.com ([119.145.14.65]:59341 "EHLO
+	szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756429Ab2LMCg7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Dec 2012 21:36:59 -0500
+In-Reply-To: <DE8DF0795D48FD4CA783C40EC82923353A779A@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: LKML <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-pci@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>
+To: "Liu, Jinsong" <jinsong.liu@intel.com>
+Cc: Wen Congyang <wency@cn.fujitsu.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Toshi Kani <toshi.kani@hp.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 
-On Sun, Dec 9, 2012 at 4:04 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->
-> If acpi_bus_check_add() is called for a handle already having an
-> existing struct acpi_device object attached, it is not necessary to
-> check the type and status of the device correspondig to it, so
-> change the ordering of acpi_bus_check_add() to avoid that.
->
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  drivers/acpi/scan.c |   18 +++++++++---------
->  1 file changed, 9 insertions(+), 9 deletions(-)
->
-> Index: linux/drivers/acpi/scan.c
-> ===================================================================
-> --- linux.orig/drivers/acpi/scan.c
-> +++ linux/drivers/acpi/scan.c
-> @@ -1582,6 +1582,10 @@ static acpi_status acpi_bus_check_add(ac
->         acpi_status status;
->         int result;
->
-> +       acpi_bus_get_device(handle, &device);
-> +       if (device)
-> +               goto out;
-> +
->         result = acpi_bus_type_and_status(handle, &type, &sta);
->         if (result)
->                 return AE_OK;
-> @@ -1602,17 +1606,13 @@ static acpi_status acpi_bus_check_add(ac
->          * We may already have an acpi_device from a previous enumeration.  If
->          * so, we needn't add it again, but we may still have to start it.
+On 2012-12-12 22:37, Liu, Jinsong wrote:
+> Wen Congyang wrote:
+>> At 12/08/2012 06:19 AM, Rafael J. Wysocki Wrote:
+>>> On Tuesday, December 04, 2012 01:39:54 AM Liu, Jinsong wrote:
+>>>> Resend it, add Rafael and linux-acpi@vger.kernel.org
+>>>
+>>> I wonder what memory hotplug people think about that.
+>>>
+>>> Thanks,
+>>> Rafael
+>>>
+>>>
+>>>> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>>>> From 1d39279e45c54ce531691da5ffe261e7689dd92c Mon Sep 17 00:00:00
+>>>> 2001=20
+>>>> From: Liu Jinsong <jinsong.liu@intel.com>
+>>>> Date: Wed, 14 Nov 2012 18:52:06 +0800
+>>>> Subject: [PATCH] X86/acpi: remove redundant logic of acpi memory
+>>>> hotadd=20
+>>>>
+>>>> When memory hotadd, acpi_memory_enable_device has already been don=
+e
+>>>> at drv->ops.add (acpi_memory_device_add), no need to do it again
+>>>> at notify callback.
+>>>>
+>>>> At acpi_memory_enable_device, acpi_memory_get_device_resources
+>>>> is also a redundant action, since it has been done at drv->ops.add=
+=2E
+>>>>
+>>>> Signed-off-by: Liu Jinsong <jinsong.liu@intel.com>
+>>>> ---
+>>>>  drivers/acpi/acpi_memhotplug.c |   17 -----------------
+>>>>  1 files changed, 0 insertions(+), 17 deletions(-)
+>>>>
+>>>> diff --git a/drivers/acpi/acpi_memhotplug.c
+>>>> b/drivers/acpi/acpi_memhotplug.c=20
+>>>> index 24c807f..a6489fd 100644
+>>>> --- a/drivers/acpi/acpi_memhotplug.c
+>>>> +++ b/drivers/acpi/acpi_memhotplug.c
+>>>> @@ -220,15 +220,6 @@ static int acpi_memory_enable_device(struct
+>>>>  	acpi_memory_device *mem_device) struct acpi_memory_info *info;
+>>>>  	int node;
+>>>>
+>>>> -
+>>>> -	/* Get the range from the _CRS */
+>>>> -	result =3D acpi_memory_get_device_resources(mem_device);
+>>>> -	if (result) {
+>>>> -		printk(KERN_ERR PREFIX "get_device_resources failed\n");
+>>>> -		mem_device->state =3D MEMORY_INVALID_STATE;
+>>>> -		return result;
+>>>> -	}
+>>>> -
+>>>>  	node =3D acpi_get_node(mem_device->device->handle);  	/*
+>>>>  	 * Tell the VM there is more memory here...
+>>>> @@ -357,14 +348,6 @@ static void
+>>>>  		acpi_memory_device_notify(acpi_handle handle, u32 event, void
+>>>> *data)  			break; }=20
+>>>>
+>>>> -		if (acpi_memory_check_device(mem_device))
+>>>> -			break;
+>>
+>> Hmm, if acpi_memory_check_device() fails, it means the memory device
+>> disappears=20
+>> I don't know if a real hardware uses this way to remove memory devic=
+e.
+>>
+>>>> -
+>>>> -		if (acpi_memory_enable_device(mem_device)) {
+>>>> -			printk(KERN_ERR PREFIX "Cannot enable memory device\n");
+>>>> -			break;
+>>>> -		}
+>>
+>> If acpi_memory_get_device() doesn't fail, it means that the device
+>> has been managed by this driver, so I think we can do this cleanup.
+>>
+>> Thanks
+>> Wen Congyang
+>>
+>=20
+> Thanks! any comments from Huawei side, Jiang?
+Hi Jinsong,
 
-It looks like this comment might need updating, since we no longer
-even get here if we already have an acpi_device.  Presumably you take
-care of the "start" it mentions elsewhere now.
+We think it's ok.
 
->          */
-> -       acpi_bus_get_device(handle, &device);
-> -       if (!device) {
-> -               acpi_add_single_object(&device, handle, type, sta,
-> -                                      ACPI_BUS_ADD_BASIC);
-> -               if (!device)
-> -                       return AE_CTRL_DEPTH;
-> +       acpi_add_single_object(&device, handle, type, sta, ACPI_BUS_ADD_BASIC);
-> +       if (!device)
-> +               return AE_CTRL_DEPTH;
->
-> -               device->add_type = context ?
-> -                                       ACPI_BUS_ADD_START : ACPI_BUS_ADD_MATCH;
-> -       }
-> +       device->add_type = context ? ACPI_BUS_ADD_START : ACPI_BUS_ADD_MATCH;
->
-> + out:
->         if (!*return_value)
->                 *return_value = device;
+acpi_memory_device_notify
+	acpi_memory_get_device
+		acpi_memory_device_add
+			acpi_memory_get_device_resources
+			acpi_memory_enable_device
+				acpi_memory_get_device_resources=EF=BC=88redundant=EF=BC=89
+	acpi_memory_check_device=EF=BC=88redundant=EF=BC=89
+	acpi_memory_enable_device=EF=BC=88redundant=EF=BC=89
 
-I think all (both) callers of acpi_bus_check_add() supply a
-return_value pointer, so you could just remove the test.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
