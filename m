@@ -1,117 +1,88 @@
-From: Jiang Liu <jiang.liu@huawei.com>
-Subject: Re: [PATCH] X86/acpi: remove redundant logic of acpi memory hotadd
-Date: Thu, 13 Dec 2012 10:36:38 +0800
-Message-ID: <50C93F36.4030402@huawei.com>
-References: <DE8DF0795D48FD4CA783C40EC829233539DED4@SHSMSX101.ccr.corp.intel.com> <4326596.xCAz7vOgOp@vostro.rjw.lan> <50C2A752.8010709@cn.fujitsu.com> <DE8DF0795D48FD4CA783C40EC82923353A779A@SHSMSX101.ccr.corp.intel.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [RFC PATCH 00/11] Hot-plug and Online/Offline framework
+Date: Wed, 12 Dec 2012 20:37:44 -0700
+Message-ID: <1355369864.18964.68.camel@misato.fc.hp.com>
+References: <1355354243-18657-1-git-send-email-toshi.kani@hp.com>
+	 <20121212235657.GD22764@kroah.com>
+	 <1355359176.18964.41.camel@misato.fc.hp.com>
+	 <20121213005510.GA9220@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga02-in.huawei.com ([119.145.14.65]:59341 "EHLO
-	szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756429Ab2LMCg7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Dec 2012 21:36:59 -0500
-In-Reply-To: <DE8DF0795D48FD4CA783C40EC82923353A779A@SHSMSX101.ccr.corp.intel.com>
+Received: from g1t0027.austin.hp.com ([15.216.28.34]:14773 "EHLO
+	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750819Ab2LMDqr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 12 Dec 2012 22:46:47 -0500
+In-Reply-To: <20121213005510.GA9220@kroah.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Liu, Jinsong" <jinsong.liu@intel.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Toshi Kani <toshi.kani@hp.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: rjw@sisk.pl, lenb@kernel.org, akpm@linux-foundation.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, bhelgaas@google.com, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, wency@cn.fujitsu.com, guohanjun@huawei.com, yinghai@kernel.org, srivatsa.bhat@linux.vnet.ibm.com
 
-On 2012-12-12 22:37, Liu, Jinsong wrote:
-> Wen Congyang wrote:
->> At 12/08/2012 06:19 AM, Rafael J. Wysocki Wrote:
->>> On Tuesday, December 04, 2012 01:39:54 AM Liu, Jinsong wrote:
->>>> Resend it, add Rafael and linux-acpi@vger.kernel.org
->>>
->>> I wonder what memory hotplug people think about that.
->>>
->>> Thanks,
->>> Rafael
->>>
->>>
->>>> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->>>> From 1d39279e45c54ce531691da5ffe261e7689dd92c Mon Sep 17 00:00:00
->>>> 2001=20
->>>> From: Liu Jinsong <jinsong.liu@intel.com>
->>>> Date: Wed, 14 Nov 2012 18:52:06 +0800
->>>> Subject: [PATCH] X86/acpi: remove redundant logic of acpi memory
->>>> hotadd=20
->>>>
->>>> When memory hotadd, acpi_memory_enable_device has already been don=
-e
->>>> at drv->ops.add (acpi_memory_device_add), no need to do it again
->>>> at notify callback.
->>>>
->>>> At acpi_memory_enable_device, acpi_memory_get_device_resources
->>>> is also a redundant action, since it has been done at drv->ops.add=
-=2E
->>>>
->>>> Signed-off-by: Liu Jinsong <jinsong.liu@intel.com>
->>>> ---
->>>>  drivers/acpi/acpi_memhotplug.c |   17 -----------------
->>>>  1 files changed, 0 insertions(+), 17 deletions(-)
->>>>
->>>> diff --git a/drivers/acpi/acpi_memhotplug.c
->>>> b/drivers/acpi/acpi_memhotplug.c=20
->>>> index 24c807f..a6489fd 100644
->>>> --- a/drivers/acpi/acpi_memhotplug.c
->>>> +++ b/drivers/acpi/acpi_memhotplug.c
->>>> @@ -220,15 +220,6 @@ static int acpi_memory_enable_device(struct
->>>>  	acpi_memory_device *mem_device) struct acpi_memory_info *info;
->>>>  	int node;
->>>>
->>>> -
->>>> -	/* Get the range from the _CRS */
->>>> -	result =3D acpi_memory_get_device_resources(mem_device);
->>>> -	if (result) {
->>>> -		printk(KERN_ERR PREFIX "get_device_resources failed\n");
->>>> -		mem_device->state =3D MEMORY_INVALID_STATE;
->>>> -		return result;
->>>> -	}
->>>> -
->>>>  	node =3D acpi_get_node(mem_device->device->handle);  	/*
->>>>  	 * Tell the VM there is more memory here...
->>>> @@ -357,14 +348,6 @@ static void
->>>>  		acpi_memory_device_notify(acpi_handle handle, u32 event, void
->>>> *data)  			break; }=20
->>>>
->>>> -		if (acpi_memory_check_device(mem_device))
->>>> -			break;
->>
->> Hmm, if acpi_memory_check_device() fails, it means the memory device
->> disappears=20
->> I don't know if a real hardware uses this way to remove memory devic=
-e.
->>
->>>> -
->>>> -		if (acpi_memory_enable_device(mem_device)) {
->>>> -			printk(KERN_ERR PREFIX "Cannot enable memory device\n");
->>>> -			break;
->>>> -		}
->>
->> If acpi_memory_get_device() doesn't fail, it means that the device
->> has been managed by this driver, so I think we can do this cleanup.
->>
->> Thanks
->> Wen Congyang
->>
->=20
-> Thanks! any comments from Huawei side, Jiang?
-Hi Jinsong,
+On Wed, 2012-12-12 at 16:55 -0800, Greg KH wrote:
+> On Wed, Dec 12, 2012 at 05:39:36PM -0700, Toshi Kani wrote:
+> > On Wed, 2012-12-12 at 15:56 -0800, Greg KH wrote:
+> > > On Wed, Dec 12, 2012 at 04:17:12PM -0700, Toshi Kani wrote:
+> > > > This patchset is an initial prototype of proposed hot-plug framework
+> > > > for design review.  The hot-plug framework is designed to provide 
+> > > > the common framework for hot-plugging and online/offline operations
+> > > > of system devices, such as CPU, Memory and Node.  While this patchset
+> > > > only supports ACPI-based hot-plug operations, the framework itself is
+> > > > designed to be platform-neural and can support other FW architectures
+> > > > as necessary.
+> > > > 
+> > > > The patchset has not been fully tested yet, esp. for memory hot-plug.
+> > > > Any help for testing will be very appreciated since my test setup
+> > > > is limited.
+> > > > 
+> > > > The patchset is based on the linux-next branch of linux-pm.git tree.
+> > > > 
+> > > > Overview of the Framework
+> > > > =========================
+> > > 
+> > > <snip>
+> > > 
+> > > Why all the new framework, doesn't the existing bus infrastructure
+> > > provide everything you need here?  Shouldn't you just be putting your
+> > > cpus and memory sticks on a bus and handle stuff that way?  What makes
+> > > these types of devices so unique from all other devices that Linux has
+> > > been handling in a dynamic manner (i.e. hotplugging them) for many many
+> > > years?
+> > > 
+> > > Why are you reinventing the wheel?
+> > 
+> > Good question.  Yes, USB and PCI hotplug operate based on their bus
+> > structures.  USB and PCI cards only work under USB and PCI bus
+> > controllers.  So, their framework can be composed within the bus
+> > structures as you pointed out.
+> > 
+> > However, system devices such CPU and memory do not have their standard
+> > bus.  ACPI allows these system devices to be enumerated, but it does not
+> > make ACPI as the HW bus hierarchy for CPU and memory, unlike PCI and
+> > USB.  Therefore, CPU and memory modules manage CPU and memory outside of
+> > ACPI.  This makes sense because CPU and memory can be used without ACPI.
+> > 
+> > This leads us an issue when we try to manage system device hotplug
+> > within ACPI, because ACPI does not control everything.  This patchset
+> > provides a common hotplug framework for system devices, which both ACPI
+> > and non-ACPI modules (i.e. CPU and memory modules) can participate and
+> > are coordinated for their hotplug operations.  This is analogous to the
+> > boot-up sequence, which ACPI and non-ACPI modules can participate to
+> > enable CPU and memory.
+> 
+> Then create a "virtual" bus and put the devices you wish to control on
+> that.  That is what the "system bus" devices were supposed to be, it's
+> about time someone took that code and got it all working properly in
+> this way, that is why it was created oh so long ago.
 
-We think it's ok.
+It may be the ideal, but it will take us great effort to make such
+things to happen based on where we are now.  It is going to be a long
+way.  I believe the first step is to make the boot-up flow and hot-plug
+flow consistent for system devices.  This is what this patchset is
+trying to do.
 
-acpi_memory_device_notify
-	acpi_memory_get_device
-		acpi_memory_device_add
-			acpi_memory_get_device_resources
-			acpi_memory_enable_device
-				acpi_memory_get_device_resources=EF=BC=88redundant=EF=BC=89
-	acpi_memory_check_device=EF=BC=88redundant=EF=BC=89
-	acpi_memory_enable_device=EF=BC=88redundant=EF=BC=89
+Thanks,
+-Toshi
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
