@@ -1,129 +1,49 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [RFC PATCH 00/11] Hot-plug and Online/Offline framework
-Date: Thu, 13 Dec 2012 09:03:54 -0700
-Message-ID: <1355414634.18964.158.camel@misato.fc.hp.com>
+Subject: Re: [RFC PATCH 02/11] drivers/base: Add hotplug framework code
+Date: Thu, 13 Dec 2012 09:30:51 -0700
+Message-ID: <1355416251.18964.170.camel@misato.fc.hp.com>
 References: <1355354243-18657-1-git-send-email-toshi.kani@hp.com>
-	 <20121212235657.GD22764@kroah.com>
-	 <1355359176.18964.41.camel@misato.fc.hp.com>
-	 <20121213005510.GA9220@kroah.com>
-	 <1355369864.18964.68.camel@misato.fc.hp.com>
-	 <20121213041627.GA14083@kroah.com>
+	 <1355354243-18657-3-git-send-email-toshi.kani@hp.com>
+	 <20121212235418.GB22764@kroah.com>
+	 <1355371365.18964.89.camel@misato.fc.hp.com>
+	 <20121213042437.GA14240@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20121213041627.GA14083@kroah.com>
+In-Reply-To: <20121213042437.GA14240@kroah.com>
 Sender: owner-linux-mm@kvack.org
 To: Greg KH <gregkh@linuxfoundation.org>
 Cc: "rjw@sisk.pl" <rjw@sisk.pl>, "lenb@kernel.org" <lenb@kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "bhelgaas@google.com" <bhelgaas@google.com>, "isimatu.yasuaki@jp.fujitsu.com" <isimatu.yasuaki@jp.fujitsu.com>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>, "wency@cn.fujitsu.com" <wency@cn.fujitsu.com>, "guohanjun@huawei.com" <guohanjun@huawei.com>, "yinghai@kernel.org" <yinghai@kernel.org>, "srivatsa.bhat@linux.vnet.ibm.com" <srivatsa.bhat@linux.vnet.ibm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2012-12-13 at 04:16 +0000, Greg KH wrote:
-> On Wed, Dec 12, 2012 at 08:37:44PM -0700, Toshi Kani wrote:
-> > On Wed, 2012-12-12 at 16:55 -0800, Greg KH wrote:
-> > > On Wed, Dec 12, 2012 at 05:39:36PM -0700, Toshi Kani wrote:
-> > > > On Wed, 2012-12-12 at 15:56 -0800, Greg KH wrote:
-> > > > > On Wed, Dec 12, 2012 at 04:17:12PM -0700, Toshi Kani wrote:
-> > > > > > This patchset is an initial prototype of proposed hot-plug framework
-> > > > > > for design review.  The hot-plug framework is designed to provide 
-> > > > > > the common framework for hot-plugging and online/offline operations
-> > > > > > of system devices, such as CPU, Memory and Node.  While this patchset
-> > > > > > only supports ACPI-based hot-plug operations, the framework itself is
-> > > > > > designed to be platform-neural and can support other FW architectures
-> > > > > > as necessary.
-> > > > > > 
-> > > > > > The patchset has not been fully tested yet, esp. for memory hot-plug.
-> > > > > > Any help for testing will be very appreciated since my test setup
-> > > > > > is limited.
-> > > > > > 
-> > > > > > The patchset is based on the linux-next branch of linux-pm.git tree.
-> > > > > > 
-> > > > > > Overview of the Framework
-> > > > > > =========================
-> > > > > 
-> > > > > <snip>
-> > > > > 
-> > > > > Why all the new framework, doesn't the existing bus infrastructure
-> > > > > provide everything you need here?  Shouldn't you just be putting your
-> > > > > cpus and memory sticks on a bus and handle stuff that way?  What makes
-> > > > > these types of devices so unique from all other devices that Linux has
-> > > > > been handling in a dynamic manner (i.e. hotplugging them) for many many
-> > > > > years?
-> > > > > 
-> > > > > Why are you reinventing the wheel?
-> > > > 
-> > > > Good question.  Yes, USB and PCI hotplug operate based on their bus
-> > > > structures.  USB and PCI cards only work under USB and PCI bus
-> > > > controllers.  So, their framework can be composed within the bus
-> > > > structures as you pointed out.
-> > > > 
-> > > > However, system devices such CPU and memory do not have their standard
-> > > > bus.  ACPI allows these system devices to be enumerated, but it does not
-> > > > make ACPI as the HW bus hierarchy for CPU and memory, unlike PCI and
-> > > > USB.  Therefore, CPU and memory modules manage CPU and memory outside of
-> > > > ACPI.  This makes sense because CPU and memory can be used without ACPI.
-> > > > 
-> > > > This leads us an issue when we try to manage system device hotplug
-> > > > within ACPI, because ACPI does not control everything.  This patchset
-> > > > provides a common hotplug framework for system devices, which both ACPI
-> > > > and non-ACPI modules (i.e. CPU and memory modules) can participate and
-> > > > are coordinated for their hotplug operations.  This is analogous to the
-> > > > boot-up sequence, which ACPI and non-ACPI modules can participate to
-> > > > enable CPU and memory.
+On Thu, 2012-12-13 at 04:24 +0000, Greg KH wrote:
+> On Wed, Dec 12, 2012 at 09:02:45PM -0700, Toshi Kani wrote:
+> > On Wed, 2012-12-12 at 15:54 -0800, Greg KH wrote:
+> > > On Wed, Dec 12, 2012 at 04:17:14PM -0700, Toshi Kani wrote:
+> > > > Added hotplug.c, which is the hotplug framework code.
 > > > 
-> > > Then create a "virtual" bus and put the devices you wish to control on
-> > > that.  That is what the "system bus" devices were supposed to be, it's
-> > > about time someone took that code and got it all working properly in
-> > > this way, that is why it was created oh so long ago.
+> > > Again, better naming please.
 > > 
-> > It may be the ideal, but it will take us great effort to make such
-> > things to happen based on where we are now.  It is going to be a long
-> > way.  I believe the first step is to make the boot-up flow and hot-plug
-> > flow consistent for system devices.  This is what this patchset is
-> > trying to do.
+> > Yes, I will change it to be more specific, something like
+> > "sys_hotplug.c".
 > 
-> If you use the system "bus" for this, the "flow" will be identical, that
-> is what the driver core provides for you.  I don't see why you need to
-> implement something that sits next to it and not just use what we
-> already have here.
+> Ugh, what's wrong with just a simple "system_bus.c" or something like
+> that, and then put all of the needed system bus logic in there and tie
+> the cpus and other sysdev code into that?
 
-Here is very brief boot-up flow.  
-
-start_kernel()
-  boot_cpu_init()         // init cpu0
-  setup_arch()
-    x86_init.paging.pagetable_init() // init mem pagetable
-  :
-kernel_init()
-  kernel_init_freeable()
-    smp_init()            // init other CPUs
-      :
-    do_basic_setup()
-      driver_init()
-        cpu_dev_init()    // build system/cpu tree
-        memory_dev_init() // build system/memory tree
-      do_initcalls()
-        acpi_init()       // build ACPI device tree
-
-CPU and memory are initialized at early boot.  The system device tree is
-built at the last step of the boot sequence and is only used for
-providing sysfs interfaces.  That is, the system bus structure has
-nothing to do with the actual CPU and memory initialization at boot.
-Similarly, ACPI drivers do not initialize actual CPU and memory at boot
-as they are also called at the last step.  Further, the ACPI device tree
-and system bus tree are separate entities.  Hotplug events are sent to
-ACPI.
-
-In order to keep the boot flow and hotplug flow consistent, I believe
-the first step is to keep the role of modules consistent between boot
-and hotplug.  For instance, acpi_init() only builds ACPI tree at boot,
-so ACPI should only build ACPI tree at hot-add as well.  This keeps ACPI
-drivers to do the same for both boot and hot-add.  The framework is
-designed to provide the consistency along with other high-availability
-features such as rollback.
+The issue is that the framework does not provide the system bus
+structure.  This is because the system bus structure is not used for CPU
+and memory initialization at boot (as I explained in my other email).
+The framework manages the calling sequence of hotplug operations, which
+is similar to the boot sequence managed by start_kernel(),
+kernel_init(), do_initcalls(), etc.  In such sense, this file might not
+be a good fit for drivers/base, but I could not find a better place for
+it.
 
 Thanks,
 -Toshi
+
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
