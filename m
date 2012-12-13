@@ -1,7 +1,7 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH rev.2 1/6] ACPI: Separate adding ACPI device objects from probing ACPI drivers
-Date: Thu, 13 Dec 2012 23:17:33 +0100
-Message-ID: <1525730.exQ7msTINR@vostro.rjw.lan>
+Subject: [PATCH rev.2 2/6] ACPI: Change the ordering of PCI root bridge driver registrarion
+Date: Thu, 13 Dec 2012 23:18:58 +0100
+Message-ID: <9432446.AtiBizH0Mr@vostro.rjw.lan>
 References: <8498184.VilrUmatxI@vostro.rjw.lan> <1499423.ez5cZl2uAf@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,243 +15,75 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Split the ACPI namespace scanning for devices into two passes, such
-that struct acpi_device objects are registerd in the first pass
-without probing ACPI drivers and the drivers are probed against them
-directly in the second pass.
+Instead of running acpi_pci_root_init() from a separate subsys
+initcall, call it directly from acpi_scan_init() before scanning the
+ACPI namespace for the first time, so that the PCI root bridge
+driver's .add() routine, acpi_pci_root_start(), is always run
+before binding ACPI drivers or attaching "companion" device objects
+to struct acpi_device objects below the root bridge's device node in
+the ACPI namespace.
 
-There are two main reasons for doing that.
+The first, simpler reason for doing this is that it makes the
+situation during boot more similar to the situation during hotplug,
+in which the ACPI PCI root bridge driver is always present.
 
-First, the ACPI PCI root bridge driver's .add() routine,
-acpi_pci_root_add(), causes struct pci_dev objects to be created for
-all PCI devices under the given root bridge.  Usually, there are
-corresponding ACPI device nodes in the ACPI namespace for some of
-those devices and therefore there should be "companion" struct
-acpi_device objects to attach those struct pci_dev objects to.  These
-struct acpi_device objects should exist when the corresponding
-struct pci_dev objects are created, but that is only guaranteed
-during boot and not during hotplug.  This leads to a number of
-functional differences between the boot and the hotplug cases which
-are not strictly necessary and make the code more complicated.
-
-For example, this forces the ACPI PCI root bridge driver to defer the
-registration of the just created struct pci_dev objects and to use a
-special .start() callback routine, acpi_pci_root_start(), to make
-sure that all of the "companion" struct acpi_device objects will be
-present at PCI devices registration time during hotplug.
-
-If those differences can be eliminated, we will be able to
-consolidate the boot and hotplug code paths for the enumeration and
-registration of PCI devices and to reduce the complexity of that
-code quite a bit.
-
-The second reason is that, in general, it should be possible to
-resolve conflicts of resources assigned by the BIOS to different
-devices represented by ACPI namespace nodes before any drivers bind
-to them and before they are attached to "companion" objects
-representing physical devices (such as struct pci_dev).  However, for
-this purpose we first need to enumerate all ACPI device nodes in the
-given namespace scope.
+The second reason is that acpi_pci_root_init() causes struct pci_dev
+objects to be created for all PCI devices below the bridge and
+these objects may be necessary for whatever is done with the other
+ACPI device nodes in that namespace scope.  For example, devices
+created by acpi_create_platform_device() sometimes may need to be
+added to the device hierarchy as children of PCI bridges.  For this
+purpose, however, the struct pci_dev objects representing those
+bridges need to exist before the platform devices in question are
+registered.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/scan.c     |  105 +++++++++++++++++++++++++++++++++---------------
- include/acpi/acpi_bus.h |    1 
- 2 files changed, 75 insertions(+), 31 deletions(-)
+ drivers/acpi/internal.h |    1 +
+ drivers/acpi/pci_root.c |    4 +---
+ drivers/acpi/scan.c     |    1 +
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-Index: linux/include/acpi/acpi_bus.h
+Index: linux/drivers/acpi/internal.h
 ===================================================================
---- linux.orig/include/acpi/acpi_bus.h
-+++ linux/include/acpi/acpi_bus.h
-@@ -98,6 +98,7 @@ typedef void (*acpi_op_notify) (struct a
- struct acpi_bus_ops {
- 	u32 acpi_op_add:1;
- 	u32 acpi_op_start:1;
-+	u32 acpi_op_match:1;
- };
+--- linux.orig/drivers/acpi/internal.h
++++ linux/drivers/acpi/internal.h
+@@ -67,6 +67,7 @@ struct acpi_ec {
  
- struct acpi_device_ops {
+ extern struct acpi_ec *first_ec;
+ 
++int acpi_pci_root_init(void);
+ int acpi_ec_init(void);
+ int acpi_ec_ecdt_probe(void);
+ int acpi_boot_ec_enable(void);
+Index: linux/drivers/acpi/pci_root.c
+===================================================================
+--- linux.orig/drivers/acpi/pci_root.c
++++ linux/drivers/acpi/pci_root.c
+@@ -674,7 +674,7 @@ static int acpi_pci_root_remove(struct a
+ 	return 0;
+ }
+ 
+-static int __init acpi_pci_root_init(void)
++int __init acpi_pci_root_init(void)
+ {
+ 	acpi_hest_init();
+ 
+@@ -687,5 +687,3 @@ static int __init acpi_pci_root_init(voi
+ 
+ 	return 0;
+ }
+-
+-subsys_initcall(acpi_pci_root_init);
 Index: linux/drivers/acpi/scan.c
 ===================================================================
 --- linux.orig/drivers/acpi/scan.c
 +++ linux/drivers/acpi/scan.c
-@@ -494,7 +494,8 @@ static int acpi_bus_match(struct device
- 	struct acpi_device *acpi_dev = to_acpi_device(dev);
- 	struct acpi_driver *acpi_drv = to_acpi_driver(drv);
- 
--	return !acpi_match_device_ids(acpi_dev, acpi_drv->ids);
-+	return acpi_dev->bus_ops.acpi_op_match
-+		&& !acpi_match_device_ids(acpi_dev, acpi_drv->ids);
- }
- 
- static int acpi_device_uevent(struct device *dev, struct kobj_uevent_env *env)
-@@ -1418,6 +1419,17 @@ static int acpi_bus_remove(struct acpi_d
- 	return 0;
- }
- 
-+/*
-+ * acpi_hot_add_bind - Bind _ADR-based devices on hot-add.
-+ * @device: ACPI device node to bind.
-+ */
-+static void acpi_hot_add_bind(struct acpi_device *device)
-+{
-+	if (device->flags.bus_address
-+	    && device->parent && device->parent->ops.bind)
-+		device->parent->ops.bind(device);
-+}
-+
- static int acpi_add_single_object(struct acpi_device **child,
- 				  acpi_handle handle, int type,
- 				  unsigned long long sta,
-@@ -1490,13 +1502,8 @@ static int acpi_add_single_object(struct
- 
- 	result = acpi_device_register(device);
- 
--	/*
--	 * Bind _ADR-Based Devices when hot add
--	 */
--	if (device->flags.bus_address) {
--		if (device->parent && device->parent->ops.bind)
--			device->parent->ops.bind(device);
--	}
-+	if (device->bus_ops.acpi_op_match)
-+		acpi_hot_add_bind(device);
- 
- end:
- 	if (!result) {
-@@ -1522,6 +1529,7 @@ static void acpi_bus_add_power_resource(
- 	struct acpi_bus_ops ops = {
- 		.acpi_op_add = 1,
- 		.acpi_op_start = 1,
-+		.acpi_op_match = 1,
- 	};
- 	struct acpi_device *device = NULL;
- 
-@@ -1574,9 +1582,9 @@ static acpi_status acpi_bus_check_add(ac
- 				      void *context, void **return_value)
- {
- 	struct acpi_bus_ops *ops = context;
-+	struct acpi_device *device = NULL;
- 	int type;
- 	unsigned long long sta;
--	struct acpi_device *device;
- 	acpi_status status;
- 	int result;
- 
-@@ -1596,52 +1604,86 @@ static acpi_status acpi_bus_check_add(ac
- 		return AE_CTRL_DEPTH;
+@@ -1833,6 +1833,7 @@ int __init acpi_scan_init(void)
  	}
  
--	/*
--	 * We may already have an acpi_device from a previous enumeration.  If
--	 * so, we needn't add it again, but we may still have to start it.
--	 */
--	device = NULL;
- 	acpi_bus_get_device(handle, &device);
- 	if (ops->acpi_op_add && !device) {
--		acpi_add_single_object(&device, handle, type, sta, ops);
--		/* Is the device a known good platform device? */
--		if (device
--		    && !acpi_match_device_ids(device, acpi_platform_device_ids))
--			acpi_create_platform_device(device);
--	}
--
--	if (!device)
--		return AE_CTRL_DEPTH;
-+		struct acpi_bus_ops add_ops = *ops;
- 
--	if (ops->acpi_op_start && !(ops->acpi_op_add)) {
--		status = acpi_start_single_object(device);
--		if (ACPI_FAILURE(status))
-+		add_ops.acpi_op_match = 0;
-+		acpi_add_single_object(&device, handle, type, sta, &add_ops);
-+		if (!device)
- 			return AE_CTRL_DEPTH;
-+
-+		device->bus_ops.acpi_op_match = 1;
- 	}
- 
- 	if (!*return_value)
- 		*return_value = device;
-+
- 	return AE_OK;
- }
- 
-+static acpi_status acpi_bus_probe_start(acpi_handle handle, u32 lvl,
-+					void *context, void **not_used)
-+{
-+	struct acpi_bus_ops *ops = context;
-+	acpi_status status = AE_OK;
-+	struct acpi_device *device;
-+	unsigned long long sta_not_used;
-+	int type_not_used;
-+
-+	/*
-+	 * Ignore errors ignored by acpi_bus_check_add() to avoid terminating
-+	 * namespace walks prematurely.
-+	 */
-+	if (acpi_bus_type_and_status(handle, &type_not_used, &sta_not_used))
-+		return AE_OK;
-+
-+	if (acpi_bus_get_device(handle, &device))
-+		return AE_CTRL_DEPTH;
-+
-+	if (ops->acpi_op_add) {
-+		if (!acpi_match_device_ids(device, acpi_platform_device_ids)) {
-+			/* This is a known good platform device. */
-+			acpi_create_platform_device(device);
-+		} else {
-+			int ret = device_attach(&device->dev);
-+			acpi_hot_add_bind(device);
-+			if (ret)
-+				status = AE_CTRL_DEPTH;
-+		}
-+	} else if (ops->acpi_op_start) {
-+		if (ACPI_FAILURE(acpi_start_single_object(device)))
-+			status = AE_CTRL_DEPTH;
-+	}
-+	return status;
-+}
-+
- static int acpi_bus_scan(acpi_handle handle, struct acpi_bus_ops *ops,
- 			 struct acpi_device **child)
- {
--	acpi_status status;
- 	void *device = NULL;
-+	acpi_status status;
-+	int ret = -ENODEV;
- 
- 	status = acpi_bus_check_add(handle, 0, ops, &device);
- 	if (ACPI_SUCCESS(status))
- 		acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
- 				    acpi_bus_check_add, NULL, ops, &device);
- 
-+	if (!device)
-+		goto out;
-+
-+	ret = 0;
-+	status = acpi_bus_probe_start(handle, 0, ops, NULL);
-+	if (ACPI_SUCCESS(status))
-+		acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
-+				    acpi_bus_probe_start, NULL, ops, NULL);
-+
-+ out:
- 	if (child)
- 		*child = device;
- 
--	if (device)
--		return 0;
--	else
--		return -ENODEV;
-+	return ret;
- }
- 
- /*
-@@ -1752,6 +1794,7 @@ static int acpi_bus_scan_fixed(void)
- 	memset(&ops, 0, sizeof(ops));
- 	ops.acpi_op_add = 1;
- 	ops.acpi_op_start = 1;
-+	ops.acpi_op_match = 1;
+ 	acpi_power_init();
++	acpi_pci_root_init();
  
  	/*
- 	 * Enumerate all fixed-feature devices.
+ 	 * Enumerate devices in the ACPI namespace.
