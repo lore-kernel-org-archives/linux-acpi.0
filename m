@@ -1,82 +1,112 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Subject: Re: [PATCH rev.2 0/6] ACPI: Change the ACPI namespace scanning code
- ordering
-Date: Fri, 14 Dec 2012 17:56:46 +0800
-Message-ID: <50CAF7DE.8000203@huawei.com>
-References: <8498184.VilrUmatxI@vostro.rjw.lan> <1499423.ez5cZl2uAf@vostro.rjw.lan>
+From: Peter Hurley <peter@hurleysoftware.com>
+Subject: Re: [PATCH 4/5] x86: acpi: Print warning for malformed host bridge
+ resources
+Date: Fri, 14 Dec 2012 07:51:44 -0500
+Message-ID: <1355489504.2588.0.camel@thor>
+References: <1352343356-4006-1-git-send-email-peter@hurleysoftware.com>
+	 <1352343356-4006-5-git-send-email-peter@hurleysoftware.com>
+	 <CAErSpo6DV+HKHX=5mSUzGmbJVbZdDpco7Ct-FeJJcVjCO992bg@mail.gmail.com>
+	 <1352645365.2320.41.camel@thor>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([119.145.14.64]:42265 "EHLO
-	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754367Ab2LNJ45 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Dec 2012 04:56:57 -0500
-In-Reply-To: <1499423.ez5cZl2uAf@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1352645365.2320.41.camel@thor>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Toshi Kani <toshi.kani@hp.com>, Myron Stowe <myron.stowe@redhat.com>, Yijing Wang <wangyijing0307@gmail.com>, Jiang Liu <liuj97@gmail.com>
 
-On 2012/12/14 6:15, Rafael J. Wysocki wrote:
-> Hi All,
-> 
-> On Sunday, December 09, 2012 11:58:42 PM Rafael J. Wysocki wrote:
->> Hi,
->>
->> The following patches change the ordering of the ACPI namespace scanning code
->> so that all struct acpi_device objects in the given scope are registered before
->> ACPI drivers are probed against them.  They also do some simplifications and
->> clarifications of the code made possible by this main change.
->>
->> This is done for three basic reasons.  First, we need the boot ACPI namespace
->> scanning code to be as similar as reasonably possible to the hot-plug ACPI
->> namespace scanning code.  Second, the ordering of PCI devices enumeration
->> versus ACPI-backed platform devices registration needs to be such that the PCI
->> devices in the given scope are all registered first.  Finally, when we start to
->> actually manage ACPI device resources as appropriate (e.g. resolve resource
->> conflicts properly) we'll need all struct acpi_device nodes to be registered
->> before any "companion" physical nodes or ACPI drivers are bound to them.
->>
->> The patches have been tested on Toshiba Portege R500 without breaking stuff
->> (I used some additional debug code to verify that the ordering of device
->> discovery had not been modified by them), but if you see any problems with
->> them regarding hot-plug, please let me know.
->>
->> [1/6] - Separate adding ACPI device objects from probing ACPI drivers.
->> [2/6] - Change the ordering of PCI root bridge driver registration.
->> [3/6] - Make acpi_bus_add() and acpi_bus_start() visibly different.
->> [4/6] - Reduce the usage of struct acpi_bus_ops
->> [5/6] - Replace struct acpi_bus_ops with an enum type
->> [6/6] - Change the ordering of acpi_bus_check_add() to avoid unnecessary checks.
-> 
-> The second revision is necessary to address problems found by Yijing Wang
-> during testing and explained by Jiang Liu (thanks guys!).
-> 
-> The problem is that acpi_walk_namespace() doesn't execute the pre_order_visit
-> callback for the starting handle, so the callback routine has the be executed
-> for it directly, if necessary.
-> 
-> I also modified a couple of changelogs to better explain the motivation of the
-> patches.
-> 
-> Boot sequence tested on Toshiba Portege R500, but testing on systems with
-> hotplug will be appreciated.
+Ping?
 
-Hi rafael,
-   I tested this version patchset in my ia64 hotplug machine, and the result looks ok.
-
-Thanks!
-Yijing
-
+On Sun, 2012-11-11 at 09:49 -0500, Peter Hurley wrote:
+> On Sat, 2012-11-10 at 14:52 -0700, Bjorn Helgaas wrote:
+> > On Wed, Nov 7, 2012 at 7:55 PM, Peter Hurley <peter@hurleysoftware.com> wrote:
+> > > An incorrectly specified host bridge window may prevent
+> > > other devices from claiming assigned resources. For example,
+> > > this flawed _CRS resource descriptor from a Dell T5400:
+> > >      DWordMemory (ResourceProducer, PosDecode, MinFixed, MaxFixed, NonCacheable, ReadWrite,
+> > >          0x00000000,         // Granularity
+> > >          0xF0000000,         // Range Minimum
+> > >          0xFE000000,         // Range Maximum
+> > >          0x00000000,         // Translation Offset
+> > >          0x0E000000,         // Length
+> > >          ,, , AddressRangeMemory, TypeStatic)
+> > 
+> > I think the problem here is that the Range Maximum should be
+> > 0xFDFFFFFF, not 0xFE000000, right?
 > 
-> Thanks,
-> Rafael
+> I presume so.
+> 
+> > > diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+> > > index 192397c..3468d16 100644
+> > > --- a/arch/x86/pci/acpi.c
+> > > +++ b/arch/x86/pci/acpi.c
+> > > @@ -298,6 +298,10 @@ setup_resource(struct acpi_resource *acpi_res, void *data)
+> > >                         "host bridge window [%#llx-%#llx] "
+> > >                         "([%#llx-%#llx] ignored, not CPU addressable)\n",
+> > >                         start, orig_end, end + 1, orig_end);
+> > > +       } else if (flags & IORESOURCE_MEM && (start & 0x0f || ~end & 0x0f)) {
+> > > +               dev_warn(&info->bridge->dev,
+> > > +                        "invalid host bridge window [%#llx-%#llx]\n",
+> > > +                        start, end);
+> > 
+> > We didn't actually *fix* anything here, so I guess we're just pointing
+> > out the reason for a subsequent failure to claim the adjacent
+> > resource.
+> 
+> Correct. There is no fix; only a diagnostic warning.
+> 
+> The warning is also a 'red flag' that, on this machine, it might be
+> better to boot the kernel with the "pci=nocrs" option.
+> 
+> > As far as I know, the spec doesn't actually require resources of ACPI
+> > devices to be non-overlapping.  Windows accepts overlapping resources,
+> > and I think Linux probably should, too, but right now we trip over
+> > this.
+> 
+> (note: I included a link below to the defect report which has
+> the /proc/iomem, dmesg & dmidecode)
+> 
+> The situation is this:
+> 
+> The adjacent resources (northbridge & southbridge) are not defined by
+> ACPI, but rather reserved with an e820 address descriptor from
+> [0xfe000000-0xfeffffff], so strictly speaking there is no overlapping
+> ACPI resource.
+> 
+> The e820 descriptor is bumped out to [0xf0000000-0xfeffffff] and the
+> malformed host bridge window is reparented to it.
+> 
+> At this point in the boot, there is no resource conflict.
+> 
+> Later in the boot, the i5k_amb driver tries to map
+> [0xfe000000-0xfe01ffff] which is the FB-DIMM AMB register window on the
+> Intel 5400 MCH and is rejected. The request is rejected because the
+> requested range does not map completely to a single parent and this is
+> not allowed. (The i5k_amb driver exposes the FB-DIMM temperature sensors
+> through sysfs).
+> 
+> There is no problem in Windows because no driver attempts to allocate
+> [0xfe000000-0xfe01ffff]. However, I doubt the PNP Manager would allow
+> another bus pdo to claim an overlapping resource with PCI bus 0. I
+> suspect the offending device would yellow bang. (That would be an
+> interesting experiment...)
+> 
+> > In the meantime (until we figure out how to handle overlapping
+> > resources better), can we do something to actually fix this?  Maybe we
+> > should truncate the end of the range to 0xFDFFFFFF like we do for
+> > non-addressable parts of the range?
+> 
+> Auto-fixing this seems problematic because it's essentially impossible
+> to determine if the resource length or the resource end or both is
+> wrong.
+> 
+> > Is there a bugzilla or a complete dmesg log to look at?
+> 
+> https://bugzilla.kernel.org/show_bug.cgi?id=50161
+> 
+> Regards,
+> Peter Hurley
 > 
 > 
-
-
--- 
-Thanks!
-Yijing
-
