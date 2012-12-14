@@ -1,72 +1,165 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [RFC PATCH 02/11] drivers/base: Add hotplug framework code
-Date: Thu, 13 Dec 2012 18:59:16 -0700
-Message-ID: <1355450356.18964.297.camel@misato.fc.hp.com>
-References: <1355354243-18657-1-git-send-email-toshi.kani@hp.com>
-	 <1355354243-18657-3-git-send-email-toshi.kani@hp.com>
-	 <20121212235418.GB22764@kroah.com>
-	 <1355371365.18964.89.camel@misato.fc.hp.com>
-	 <20121213042437.GA14240@kroah.com>
-	 <1355416251.18964.170.camel@misato.fc.hp.com>
-	 <20121213182422.GB9606@kroah.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t0029.austin.hp.com ([15.216.28.36]:45576 "EHLO
-	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755435Ab2LNCIW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 13 Dec 2012 21:08:22 -0500
-In-Reply-To: <20121213182422.GB9606@kroah.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
+Subject: [RESEND][PATCH] gpu: remove gma500 stub driver
+Date: Fri, 14 Dec 2012 15:14:37 +0800
+Message-ID: <1355469277-5519-1-git-send-email-jlee@suse.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: dri-devel@lists.freedesktop.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, randy.dunlap@oracle.com, trenn@suse.de, Valdis.Kletnieks@vt.edu, Dennis.Jansen@web.de, airlied@redhat.com, eric@anholt.net, alexdeucher@gmail.com, bskeggs@redhat.com, chris@chris-wilson.co.uk, Alan Cox <alan@lxorguk.ukuu.org.uk>
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: "rjw@sisk.pl" <rjw@sisk.pl>, "lenb@kernel.org" <lenb@kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "bhelgaas@google.com" <bhelgaas@google.com>, "isimatu.yasuaki@jp.fujitsu.com" <isimatu.yasuaki@jp.fujitsu.com>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>, "wency@cn.fujitsu.com" <wency@cn.fujitsu.com>, "guohanjun@huawei.com" <guohanjun@huawei.com>, "yinghai@kernel.org" <yinghai@kernel.org>, "srivatsa.bhat@linux.vnet.ibm.com" <srivatsa.bhat@linux.vnet.ibm.com>
 
-On Thu, 2012-12-13 at 10:24 -0800, Greg KH wrote:
-> On Thu, Dec 13, 2012 at 09:30:51AM -0700, Toshi Kani wrote:
-> > On Thu, 2012-12-13 at 04:24 +0000, Greg KH wrote:
-> > > On Wed, Dec 12, 2012 at 09:02:45PM -0700, Toshi Kani wrote:
-> > > > On Wed, 2012-12-12 at 15:54 -0800, Greg KH wrote:
-> > > > > On Wed, Dec 12, 2012 at 04:17:14PM -0700, Toshi Kani wrote:
-> > > > > > Added hotplug.c, which is the hotplug framework code.
-> > > > > 
-> > > > > Again, better naming please.
-> > > > 
-> > > > Yes, I will change it to be more specific, something like
-> > > > "sys_hotplug.c".
-> > > 
-> > > Ugh, what's wrong with just a simple "system_bus.c" or something like
-> > > that, and then put all of the needed system bus logic in there and tie
-> > > the cpus and other sysdev code into that?
-> > 
-> > The issue is that the framework does not provide the system bus
-> > structure.  This is because the system bus structure is not used for CPU
-> > and memory initialization at boot (as I explained in my other email).
-> 
-> I understand, please fix that and then you will not have these issues :)
-> 
-> > The framework manages the calling sequence of hotplug operations, which
-> > is similar to the boot sequence managed by start_kernel(),
-> > kernel_init(), do_initcalls(), etc.  In such sense, this file might not
-> > be a good fit for drivers/base, but I could not find a better place for
-> > it.
-> 
-> Having "similar but slightly different" isn't a good way to do things,
-> and I think you are trying to solve that problem here, so converting
-> everything to use the driver model properly will solve these issues for
-> you, right?
-> 
-> I _really_ don't want to see yet-another-way-to-do-things be created at
-> all, unless it really really really is special and different for some
-> reason.  So far, I have yet to be convinced, especially given that your
-> reasoning for doing this seems to be "to do it correctly would be too
-> much work so I created another interface".  That isn't going to fly,
-> sorry.
+In v3.3, the gma500 drm driver moved from staging to drm group by
+Alan Cox's 3abcf41fb patch. the gma500 drm driver should control
+brightness well and don't need gma500 stub driver anymore.
 
-Let's continue to discuss on other thread since I copied s390 and ppc
-folks on that one.
+Reference:
+http://lists.freedesktop.org/archives/dri-devel/2012-May/023426.html
+http://lists.freedesktop.org/archives/dri-devel/2012-May/023467.html
 
-Thanks,
--Toshi
+Cc: randy.dunlap@oracle.com
+Cc: trenn@suse.de
+Cc: Valdis.Kletnieks@vt.edu
+Cc: Dennis.Jansen@web.de
+Cc: airlied@redhat.com
+Cc: eric@anholt.net
+Cc: alexdeucher@gmail.com
+Cc: bskeggs@redhat.com
+Cc: chris@chris-wilson.co.uk
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Acked-by: Matthew Garrett <mjg59@srcf.ucam.org>
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
+---
+ drivers/gpu/Makefile       |    2 +-
+ drivers/gpu/stub/Kconfig   |   18 ------------
+ drivers/gpu/stub/Makefile  |    1 -
+ drivers/gpu/stub/poulsbo.c |   64 --------------------------------------------
+ drivers/video/Kconfig      |    2 -
+ 5 files changed, 1 insertions(+), 86 deletions(-)
+ delete mode 100644 drivers/gpu/stub/Kconfig
+ delete mode 100644 drivers/gpu/stub/Makefile
+ delete mode 100644 drivers/gpu/stub/poulsbo.c
 
+diff --git a/drivers/gpu/Makefile b/drivers/gpu/Makefile
+index cc92778..30879df 100644
+--- a/drivers/gpu/Makefile
++++ b/drivers/gpu/Makefile
+@@ -1 +1 @@
+-obj-y			+= drm/ vga/ stub/
++obj-y			+= drm/ vga/
+diff --git a/drivers/gpu/stub/Kconfig b/drivers/gpu/stub/Kconfig
+deleted file mode 100644
+index 4199179..0000000
+--- a/drivers/gpu/stub/Kconfig
++++ /dev/null
+@@ -1,18 +0,0 @@
+-config STUB_POULSBO
+-	tristate "Intel GMA500 Stub Driver"
+-	depends on PCI
+-	depends on NET # for THERMAL
+-	# Poulsbo stub depends on ACPI_VIDEO when ACPI is enabled
+-	# but for select to work, need to select ACPI_VIDEO's dependencies, ick
+-	select BACKLIGHT_CLASS_DEVICE if ACPI
+-	select VIDEO_OUTPUT_CONTROL if ACPI
+-	select INPUT if ACPI
+-	select ACPI_VIDEO if ACPI
+-	select THERMAL if ACPI
+-	help
+-	  Choose this option if you have a system that has Intel GMA500
+-	  (Poulsbo) integrated graphics. If M is selected, the module will
+-	  be called Poulsbo. This driver is a stub driver for Poulsbo that
+-	  will call poulsbo.ko to enable the acpi backlight control sysfs
+-	  entry file because there have no poulsbo native driver can support
+-	  intel opregion.
+diff --git a/drivers/gpu/stub/Makefile b/drivers/gpu/stub/Makefile
+deleted file mode 100644
+index cd940cc..0000000
+--- a/drivers/gpu/stub/Makefile
++++ /dev/null
+@@ -1 +0,0 @@
+-obj-$(CONFIG_STUB_POULSBO) += poulsbo.o
+diff --git a/drivers/gpu/stub/poulsbo.c b/drivers/gpu/stub/poulsbo.c
+deleted file mode 100644
+index 7edfd27..0000000
+--- a/drivers/gpu/stub/poulsbo.c
++++ /dev/null
+@@ -1,64 +0,0 @@
+-/*
+- * Intel Poulsbo Stub driver
+- *
+- * Copyright (C) 2010 Novell <jlee@novell.com>
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License version 2 as published by
+- * the Free Software Foundation.
+- *
+- */
+-
+-#include <linux/module.h>
+-#include <linux/pci.h>
+-#include <linux/acpi.h>
+-#include <acpi/video.h>
+-
+-#define DRIVER_NAME "poulsbo"
+-
+-enum {
+-	CHIP_PSB_8108 = 0,
+-	CHIP_PSB_8109 = 1,
+-};
+-
+-static DEFINE_PCI_DEVICE_TABLE(pciidlist) = {
+-	{0x8086, 0x8108, PCI_ANY_ID, PCI_ANY_ID, 0, 0, CHIP_PSB_8108}, \
+-	{0x8086, 0x8109, PCI_ANY_ID, PCI_ANY_ID, 0, 0, CHIP_PSB_8109}, \
+-	{0, 0, 0}
+-};
+-
+-static int poulsbo_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+-{
+-	return acpi_video_register();
+-}
+-
+-static void poulsbo_remove(struct pci_dev *pdev)
+-{
+-	acpi_video_unregister();
+-}
+-
+-static struct pci_driver poulsbo_driver = {
+-	.name = DRIVER_NAME,
+-	.id_table = pciidlist,
+-	.probe = poulsbo_probe,
+-	.remove = poulsbo_remove,
+-};
+-
+-static int __init poulsbo_init(void)
+-{
+-	return pci_register_driver(&poulsbo_driver);
+-}
+-
+-static void __exit poulsbo_exit(void)
+-{
+-	pci_unregister_driver(&poulsbo_driver);
+-}
+-
+-module_init(poulsbo_init);
+-module_exit(poulsbo_exit);
+-
+-MODULE_AUTHOR("Lee, Chun-Yi <jlee@novell.com>");
+-MODULE_DESCRIPTION("Poulsbo Stub Driver");
+-MODULE_LICENSE("GPL");
+-
+-MODULE_DEVICE_TABLE(pci, pciidlist);
+diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
+index d08d799..cc99f41 100644
+--- a/drivers/video/Kconfig
++++ b/drivers/video/Kconfig
+@@ -21,8 +21,6 @@ source "drivers/gpu/vga/Kconfig"
+ 
+ source "drivers/gpu/drm/Kconfig"
+ 
+-source "drivers/gpu/stub/Kconfig"
+-
+ config VGASTATE
+        tristate
+        default n
+-- 
+1.6.0.2
