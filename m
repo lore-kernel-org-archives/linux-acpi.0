@@ -1,165 +1,51 @@
-From: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
-Subject: [RESEND][PATCH] gpu: remove gma500 stub driver
-Date: Fri, 14 Dec 2012 15:14:37 +0800
-Message-ID: <1355469277-5519-1-git-send-email-jlee@suse.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: dri-devel@lists.freedesktop.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, randy.dunlap@oracle.com, trenn@suse.de, Valdis.Kletnieks@vt.edu, Dennis.Jansen@web.de, airlied@redhat.com, eric@anholt.net, alexdeucher@gmail.com, bskeggs@redhat.com, chris@chris-wilson.co.uk, Alan Cox <alan@lxorguk.ukuu.org.uk>
+From: Adrian Huang <adrian.huang@hp.com>
+Subject: [PATCH 1/1] ACPI/APEI: Fix the returned value in erst_dbg_read
+Date: Fri, 14 Dec 2012 16:08:34 +0800
+Message-ID: <1355472514-8172-1-git-send-email-adrian.huang@hp.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t0017.houston.hp.com ([15.201.24.20]:30101 "EHLO
+	g4t0017.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750986Ab2LNIIz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Dec 2012 03:08:55 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Adrian Huang <adrian.huang@hp.com>
 
-In v3.3, the gma500 drm driver moved from staging to drm group by
-Alan Cox's 3abcf41fb patch. the gma500 drm driver should control
-brightness well and don't need gma500 stub driver anymore.
+If the persistent store is empty initially, the function 'erst_dbg_read'
+returns a nonzero value. The better way is to return a zero indicating the
+read operation reaches EOF.
 
-Reference:
-http://lists.freedesktop.org/archives/dri-devel/2012-May/023426.html
-http://lists.freedesktop.org/archives/dri-devel/2012-May/023467.html
+Tested on two different servers.
 
-Cc: randy.dunlap@oracle.com
-Cc: trenn@suse.de
-Cc: Valdis.Kletnieks@vt.edu
-Cc: Dennis.Jansen@web.de
-Cc: airlied@redhat.com
-Cc: eric@anholt.net
-Cc: alexdeucher@gmail.com
-Cc: bskeggs@redhat.com
-Cc: chris@chris-wilson.co.uk
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Acked-by: Matthew Garrett <mjg59@srcf.ucam.org>
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
+Signed-off-by: Adrian Huang <adrian.huang@hp.com>
 ---
- drivers/gpu/Makefile       |    2 +-
- drivers/gpu/stub/Kconfig   |   18 ------------
- drivers/gpu/stub/Makefile  |    1 -
- drivers/gpu/stub/poulsbo.c |   64 --------------------------------------------
- drivers/video/Kconfig      |    2 -
- 5 files changed, 1 insertions(+), 86 deletions(-)
- delete mode 100644 drivers/gpu/stub/Kconfig
- delete mode 100644 drivers/gpu/stub/Makefile
- delete mode 100644 drivers/gpu/stub/poulsbo.c
+ drivers/acpi/apei/erst-dbg.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/gpu/Makefile b/drivers/gpu/Makefile
-index cc92778..30879df 100644
---- a/drivers/gpu/Makefile
-+++ b/drivers/gpu/Makefile
-@@ -1 +1 @@
--obj-y			+= drm/ vga/ stub/
-+obj-y			+= drm/ vga/
-diff --git a/drivers/gpu/stub/Kconfig b/drivers/gpu/stub/Kconfig
-deleted file mode 100644
-index 4199179..0000000
---- a/drivers/gpu/stub/Kconfig
-+++ /dev/null
-@@ -1,18 +0,0 @@
--config STUB_POULSBO
--	tristate "Intel GMA500 Stub Driver"
--	depends on PCI
--	depends on NET # for THERMAL
--	# Poulsbo stub depends on ACPI_VIDEO when ACPI is enabled
--	# but for select to work, need to select ACPI_VIDEO's dependencies, ick
--	select BACKLIGHT_CLASS_DEVICE if ACPI
--	select VIDEO_OUTPUT_CONTROL if ACPI
--	select INPUT if ACPI
--	select ACPI_VIDEO if ACPI
--	select THERMAL if ACPI
--	help
--	  Choose this option if you have a system that has Intel GMA500
--	  (Poulsbo) integrated graphics. If M is selected, the module will
--	  be called Poulsbo. This driver is a stub driver for Poulsbo that
--	  will call poulsbo.ko to enable the acpi backlight control sysfs
--	  entry file because there have no poulsbo native driver can support
--	  intel opregion.
-diff --git a/drivers/gpu/stub/Makefile b/drivers/gpu/stub/Makefile
-deleted file mode 100644
-index cd940cc..0000000
---- a/drivers/gpu/stub/Makefile
-+++ /dev/null
-@@ -1 +0,0 @@
--obj-$(CONFIG_STUB_POULSBO) += poulsbo.o
-diff --git a/drivers/gpu/stub/poulsbo.c b/drivers/gpu/stub/poulsbo.c
-deleted file mode 100644
-index 7edfd27..0000000
---- a/drivers/gpu/stub/poulsbo.c
-+++ /dev/null
-@@ -1,64 +0,0 @@
--/*
-- * Intel Poulsbo Stub driver
-- *
-- * Copyright (C) 2010 Novell <jlee@novell.com>
-- *
-- * This program is free software; you can redistribute it and/or modify it
-- * under the terms of the GNU General Public License version 2 as published by
-- * the Free Software Foundation.
-- *
-- */
--
--#include <linux/module.h>
--#include <linux/pci.h>
--#include <linux/acpi.h>
--#include <acpi/video.h>
--
--#define DRIVER_NAME "poulsbo"
--
--enum {
--	CHIP_PSB_8108 = 0,
--	CHIP_PSB_8109 = 1,
--};
--
--static DEFINE_PCI_DEVICE_TABLE(pciidlist) = {
--	{0x8086, 0x8108, PCI_ANY_ID, PCI_ANY_ID, 0, 0, CHIP_PSB_8108}, \
--	{0x8086, 0x8109, PCI_ANY_ID, PCI_ANY_ID, 0, 0, CHIP_PSB_8109}, \
--	{0, 0, 0}
--};
--
--static int poulsbo_probe(struct pci_dev *pdev, const struct pci_device_id *id)
--{
--	return acpi_video_register();
--}
--
--static void poulsbo_remove(struct pci_dev *pdev)
--{
--	acpi_video_unregister();
--}
--
--static struct pci_driver poulsbo_driver = {
--	.name = DRIVER_NAME,
--	.id_table = pciidlist,
--	.probe = poulsbo_probe,
--	.remove = poulsbo_remove,
--};
--
--static int __init poulsbo_init(void)
--{
--	return pci_register_driver(&poulsbo_driver);
--}
--
--static void __exit poulsbo_exit(void)
--{
--	pci_unregister_driver(&poulsbo_driver);
--}
--
--module_init(poulsbo_init);
--module_exit(poulsbo_exit);
--
--MODULE_AUTHOR("Lee, Chun-Yi <jlee@novell.com>");
--MODULE_DESCRIPTION("Poulsbo Stub Driver");
--MODULE_LICENSE("GPL");
--
--MODULE_DEVICE_TABLE(pci, pciidlist);
-diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
-index d08d799..cc99f41 100644
---- a/drivers/video/Kconfig
-+++ b/drivers/video/Kconfig
-@@ -21,8 +21,6 @@ source "drivers/gpu/vga/Kconfig"
- 
- source "drivers/gpu/drm/Kconfig"
- 
--source "drivers/gpu/stub/Kconfig"
--
- config VGASTATE
-        tristate
-        default n
+diff --git a/drivers/acpi/apei/erst-dbg.c b/drivers/acpi/apei/erst-dbg.c
+index 903549d..04ab5c9 100644
+--- a/drivers/acpi/apei/erst-dbg.c
++++ b/drivers/acpi/apei/erst-dbg.c
+@@ -111,8 +111,17 @@ retry_next:
+ 	if (rc)
+ 		goto out;
+ 	/* no more record */
+-	if (id == APEI_ERST_INVALID_RECORD_ID)
++	if (id == APEI_ERST_INVALID_RECORD_ID) {
++		/*
++		 * If the persistent store is empty initially, the function
++		 * 'erst_read' below will return "-ENOENT" value. This causes
++		 * 'retry_next' label is entered again. The returned value
++		 * should be zero indicating the read operation is EOF.
++		 */
++		len = 0;
++
+ 		goto out;
++	}
+ retry:
+ 	rc = len = erst_read(id, erst_dbg_buf, erst_dbg_buf_len);
+ 	/* The record may be cleared by others, try read next record */
 -- 
-1.6.0.2
+1.7.10.4
+
