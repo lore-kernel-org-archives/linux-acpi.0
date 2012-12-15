@@ -1,76 +1,325 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [RFC PATCH v3 0/3] acpi: Introduce prepare_remove device
- operation
-Date: Fri, 14 Dec 2012 18:19:57 -0700
-Message-ID: <1355534397.18964.304.camel@misato.fc.hp.com>
-References: <1353693037-21704-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
-	       <50B5EFE9.3040206@huawei.com>
-	      <1354128096.26955.276.camel@misato.fc.hp.com>
-	     <50B6E936.2080308@huawei.com>
-	  <1354228028.7776.56.camel@misato.fc.hp.com>
-	     <50BC29C6.6050706@huawei.com>
-	   <1354579848.21585.54.camel@misato.fc.hp.com>
-	  <50C0CA90.7010608@gmail.com>
-	   <1354849065.21116.61.camel@misato.fc.hp.com>
-	 <50C1852D.3000104@huawei.com>  <1354928933.28379.37.camel@misato.fc.hp.com>
-	 <50C74481.7010107@gmail.com> <1355409749.18964.107.camel@misato.fc.hp.com>
-	 <50C9F0F5.40307@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Thomas Renninger <trenn@suse.de>
+Subject: [PATCH] tools/power/acpi: Introduce acpi_validate with manpage for easy validation of ACPI BIOS tables
+Date: Sat, 15 Dec 2012 10:57:48 +0100
+Message-ID: <1355565468-26024-1-git-send-email-trenn@suse.de>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g6t0184.atlanta.hp.com ([15.193.32.61]:30564 "EHLO
-	g6t0184.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932151Ab2LOB3D (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Dec 2012 20:29:03 -0500
-In-Reply-To: <50C9F0F5.40307@gmail.com>
+Received: from cantor2.suse.de ([195.135.220.15]:44360 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750795Ab2LOJ6L (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 15 Dec 2012 04:58:11 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <liuj97@gmail.com>
-Cc: Jiang Liu <jiang.liu@huawei.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Hanjun Guo <guohanjun@huawei.com>, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, linux-acpi@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, wency@cn.fujitsu.com, lenb@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Tang Chen <tangchen@cn.fujitsu.com>, Huxinwei <huxinwei@huawei.com>
+To: linux-acpi@vger.kernel.org, devel@acpica.org
+Cc: rjw@sisk.pl, lenb@kernel.org, Thomas Renninger <trenn@suse.de>
 
-On Thu, 2012-12-13 at 23:15 +0800, Jiang Liu wrote:
-> On 12/13/2012 10:42 PM, Toshi Kani wrote:
-> > On Tue, 2012-12-11 at 22:34 +0800, Jiang Liu wrote:
-> >> On 12/08/2012 09:08 AM, Toshi Kani wrote:
-> >>> On Fri, 2012-12-07 at 13:57 +0800, Jiang Liu wrote:
-> >>>> On 2012-12-7 10:57, Toshi Kani wrote:
-> >>>>> On Fri, 2012-12-07 at 00:40 +0800, Jiang Liu wrote:
- :
-> >>>
-> >>>> 2) an ACPI based hotplug manager driver, which is a platform independent
-> >>>>    driver and manages all hotplug slot created by the slot driver.
-> >>>
-> >>> It is surely impressive work, but I think is is a bit overdoing.  I
-> >>> expect hot-pluggable servers come with management console and/or GUI
-> >>> where a user can manage hardware units and initiate hot-plug operations.
-> >>> I do not think the kernel needs to step into such area since it tends to
-> >>> be platform-specific. 
-> >> One of the major usages of this feature is for testing. 
-> >> It will be hard for OSVs and OEMs to verify hotplug functionalities if it could
-> >> only be tested by physical hotplug or through management console. So to pave the
-> >> way for hotplug, we need to provide a mechanism for OEMs and OSVs to execute 
-> >> auto stress tests for hotplug functionalities.
-> > 
-> > Yes, but such OS->FW interface is platform-specific.  Some platforms use
-> > IPMI for the OS to communicate with the management console.  In this
-> > case, an OEM-specific command can be used to request a hotplug through
-> > IPMI.  Some platforms may also support test programs to run on the
-> > management console for validations.
-> > 
-> > For early development testing, Yinghai's SCI emulation patch can be used
-> > to emulate hotplug events from the OS.  It would be part of the kernel
-> > debugging features once this patch is accepted. 
-> Hi Toshi,
-> 	ACPI 5.0 has provided some mechanism to normalize the way to issue
-> RAS related requests to firmware. I hope ACPI 5.x will define some standardized
-> ways based on the PCC defined in 5.0. If needed, we may provide platform
-> specific methods for them too.
+The used iasl compiler shares the same code base as the kernel.
+Warnings or errors mostly point to bad BIOSes.
+These errors should get reported to the BIOS vendors and may indicated that
+acpica (kernel ACPI parts) need compatibility adjustings.
 
-Thanks for the pointer!  Yeah, the spec purposely does not define the
-command.  When we support PCC, we will need to provide a way for user
-app or oem module to supply a payload. 
 
-Thanks,
--Toshi
+Why is an extra tool needed for this?
+
+The dynamic ACPI Source Language (ASL) parts are located in DSDT and often
+multiple SSDT tables. Those often have dependencies to each other and the iasl
+compiler often cannot resolve external symbols correctly if they are not
+passed as external tables (iasl -e option) when tables get disassembled.
+This quickly leads to false positive errors.
+This tool makes sure disassembling and recompilation is done correctly.
+
+This tool is also made for ACPI BIOS table verification for BIOS vendors and
+hardware certification tools for distributions.
+Hardware which supports Linux must/should not show any warnings or errors.
+Remarks and optimization hints in the logs can be used to further enhance
+the ACPI BIOS code.
+Warnings and errors mostly describe the issues in a way, so that they can
+get passed to and used by BIOS developers to fix the problems easily.
+
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+---
+ tools/power/acpi/acpi_validate   |  193 ++++++++++++++++++++++++++++++++++++++
+ tools/power/acpi/acpi_validate.8 |   72 ++++++++++++++
+ 2 files changed, 265 insertions(+), 0 deletions(-)
+ create mode 100755 tools/power/acpi/acpi_validate
+ create mode 100644 tools/power/acpi/acpi_validate.8
+
+diff --git a/tools/power/acpi/acpi_validate b/tools/power/acpi/acpi_validate
+new file mode 100755
+index 0000000..12d105b
+--- /dev/null
++++ b/tools/power/acpi/acpi_validate
+@@ -0,0 +1,193 @@
++#!/bin/bash
++#
++# Copyright (c) 2012 SUSE Linux Products GmbH
++# Thomas Renninger <trenn@suse.de>
++#
++# This program is free software; you can redistribute it and/or modify it
++# under the terms and conditions of the GNU General Public License,
++# version 2, as published by the Free Software Foundation.
++#
++# This program is distributed in the hope it will be useful, but WITHOUT
++# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++# more details.
++#
++# You should have received a copy of the GNU General Public License along with
++# this program; if not, write to the Free Software Foundation, Inc.,
++# 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
++#
++
++OUTPUT_DIR="$PWD"
++VERBOSE=0
++# Disable remarks and resource checks. The latter often/mostly generates
++# false positive warnings. Can be overridden via -c option
++COMPILE_OPTIONS="-sa -cr -vr"
++DISASSEMBLE_OPTIONS=""
++OUTPUT="/dev/null"
++ACPIDUMP=""
++
++function usage()
++{
++    echo "acpi_validate [ -o output_dir ] [ -v ] [ -a acpidump ]"
++    echo "              [ -c compile_options ] [ -d disassemble_options ]"
++    echo
++    echo "This tool extracts, disassembles and recompiles ACPI BIOS tables."
++    echo "The disassembled files will be copied into the local or specified"
++    echo "output directory (-o option)."
++    echo
++    echo "The underlying iasl compiler verifies and may complain about"
++    echo "correctness of some of the BIOS tables."
++    echo "These can give a pointer to possible malfunction of the system."
++    echo
++    echo "If you think you found a bug in the iasl compiler or related tools,"
++    echo "you can ask here for help: devel@acpica.org"
++    echo "You may also want to ask there if you are not sure whether it really"
++    echo "is a BIOS bug."
++    echo
++    echo "If you are sure you found a BIOS issue, complain to your hardware vendor."
++    echo "The iasl compiler typically provides a description of the warning/error in a way,"
++    echo "so that BIOS authors can easily fix it."
++    echo
++    echo "Options"
++    echo "   -o output_dir: Copy tables to this directory instead of local one"
++    echo "   -v:          : be more verbose"
++    echo "   -a acpidump  : Use this acpidump file"
++    echo "                  instead of the tables from the local machine"
++    echo "   -d options   : Pass iasl disassemble options"
++    echo "   -c options   : Pass iasl compile options"
++    echo "                  will override -sa -cr -vr (default options)"
++    echo "   -h           : Show help"
++    exit 1
++}
++
++if [ "$(id -u)" != "0" ]; then
++   echo "This script must be run as root"
++   exit 1
++fi
++
++while getopts hva:o:c:d: name ; do
++    case $name in
++        o)
++	    OUTPUT_DIR="$OPTARG"
++	    if [ ! -d "$OUTPUT_DIR" ];then
++		mkdir "$OUTPUT_DIR"
++		if [[ $? != 0 ]];then
++		    echo "Cannot create directory $OUTPUT_DIR"
++		    exit 1
++		fi
++	    elif [ ! -w "$OUTPUT_DIR" ];then
++		echo "Cannot write into directory $OUTPUT_DIR"
++		exit 1
++	    fi
++
++	    [[ $VERBOSE == 1 ]] && echo "Installing for architecture: $OUTPUT_DIR"
++	    ;;
++        a)
++	    ACPIDUMP="$OPTARG"
++	    if [ ! -r "$ACPIDUMP" ];then
++		echo "$ACPIDUMP does not exist"
++		exit 1
++	    fi
++	    [[ $VERBOSE == 1 ]] && echo "acpidump file: $ACPIDUMP"
++	    ;;
++        c)
++	    COMPILE_OPTIONS="$OPTARG"
++	    [[ $VERBOSE == 1 ]] && echo "Compile options: $COMPILE_OPTIONS"
++	    ;;
++        c)
++	    DISASSEMBLE_OPTIONS="$OPTARG"
++	    [[ $VERBOSE == 1 ]] && echo "Disassemble options: $DISASSEMBLE_OPTIONS"
++	    ;;
++        v)
++            VERBOSE=1
++	    OUTPUT="1"
++            ;;
++        ?)
++	    usage
++	    ;;
++    esac
++done
++shift $(($OPTIND -1))
++
++shopt -s nocasematch
++TEMP_DIR=$(mktemp -d)
++[[ $VERBOSE == 1 ]] && echo "Using temporary directory: $TEMP_DIR"
++
++if [ -r "$ACPIDUMP" ];then
++    cp "$ACPIDUMP" "$TEMP_DIR"/acpidump
++fi
++
++pushd "$TEMP_DIR" >/dev/null
++
++mkdir log
++mkdir err
++if [ ! -r acpidump ];then
++    acpidump >acpidump
++fi
++acpixtract -a acpidump >&$OUTPUT 2>&1
++
++
++# ACPICA changed from uppercase to lowercase, try to find both:
++SDTs=$(ls [SD]DST*.dat 2>/dev/null)
++SDTs="${SDTs}$(ls [sd]sdt*.dat 2>/dev/null)"
++
++for file in *.dat;do
++    table=${file/.dat/}
++    # Enable case insensitive pattern matching
++
++    case $file in
++	[DS]SDT*.dat | [sd]sdt*.dat)
++		# Use other [sd]sdt*.dat tables to reference possible
++		# external symbols. Pass the table itself for disassembling
++		# comma separted.
++		# For example you we have:
++		# dsdt.dat ssdt1 ssdt2.dat
++		# and the current table to disassemble is ssdt1.dat the
++		# command has to be:
++		# iasl -e dsdt.dat,ssdt2.dat -d ssdt1.dat
++
++		# Get rid of the table which gets disassembled
++		# could have leading or trailing whitespace depending whether
++		# it is at the end or the beginning of the list
++		REF_TABLE_LIST=${SDTs/[[:space:]]$file/}
++		REF_TABLE_LIST=${SDTs/$file[[:space:]]/}
++		# Convert the whitespace list into a comma separated one:
++		REF_TABLE_LIST=${REF_TABLE_LIST//[[:space:]]/,}
++		echo "stdout and stderr of $file disassembling:" >log/${table}.log
++		iasl $DISASSEMBLE_OPTIONS -e ${REF_TABLE_LIST} -d $file 1>>log/${table}.log 2>&1
++		[[ $VERBOSE == 1 ]] && echo "iasl $DISASSEMBLE_OPTIONS -e ${REF_TABLE_LIST} -d $file 1>>log/${table}.log 2>&1"
++		iasl $COMPILE_OPTIONS ${table}.dsl 1>>log/${table}.log 2>>err/${table}.err
++		[[ $VERBOSE == 1 ]] && echo "iasl $COMPILE_OPTIONS ${table}.dsl 1>>log/${table}.log 2>>err/${table}.err"
++		;;
++	*.dat)
++		iasl -d $file 1>log/${table}.log 2>&1
++		iasl -sa ${table}.dsl 1>log/${table}.log 2>err/${table}.err
++		;;
++    esac
++done
++
++# remove empty error files
++rm $(find err -size 0)
++ERR_TABLES=$(ls err)
++ERR_TABLES=${ERR_TABLES//.err/}
++
++popd >/dev/null
++cp -r "$TEMP_DIR"/* "$OUTPUT_DIR"
++
++if [[ $VERBOSE == 1 ]];then
++    echo "Temporary directory (undeleted): $TEMP_DIR"
++else
++    rm -rf "$TEMP_DIR"
++fi
++
++if [ "$ERR_TABLES" = "" ];then
++    echo "No errors or warnings detected"
++    exit 0
++else
++    echo "These tables have warnings or errors (details in "$OUTPUT_DIR"/err directory):"
++    for err in $ERR_TABLES;do
++	echo -n $err $'\t'
++	sed -n -e 's/Compilation complete. \(.* Errors, .* Warnings\).*/\1/p' "$OUTPUT_DIR"/log/$err.log
++    done
++    exit 1
++fi
+diff --git a/tools/power/acpi/acpi_validate.8 b/tools/power/acpi/acpi_validate.8
+new file mode 100644
+index 0000000..cd10694
+--- /dev/null
++++ b/tools/power/acpi/acpi_validate.8
+@@ -0,0 +1,72 @@
++.TH ACPI_VALIDATE 8
++.SH NAME
++acpi_validate \- Extracts, disassembles and recompiles ACPI BIOS tables.
++.SH SYNOPSIS
++.ft B
++.B acpica_validate [ \-o output_dir ] [ \-a acpidump ] [ \-v ] [ \-c compile_options ] [ \-d disassemble_options ]
++.SH DESCRIPTION
++\fBacpi_validate \fP extracts, disassembles and recompiles ACPI BIOS
++tables. The disassembled files will be copied into the local or specified
++output directory (-o option).
++
++The underlying iasl compiler verifies and may complain about correctness of
++some of the BIOS tables. Warnings or errors can give a pointer to possible
++malfunction of the system. The Linux kernel uses the same code base as the
++iasl interpreter which is used to validate tables.
++
++The ASL (ACPI Source Language) files (*.dsl) can get recompiled manually via
++\fBiasl -sa\fP and the resulting compilation (*.aml) can get passed to the
++kernel via the "Overriding ACPI tables via initrd" mechanism. Only use this
++feature if you know what you are doing. Read
++Documentation/acpi/initrd_table_override.txt (part of the kernel sources) for
++further information.
++
++If you think you found a bug in the iasl compiler or related
++tools, you can ask here for help: \fBdevel@acpica.org\fP
++
++You may also want to ask there if you are not sure whether it really
++is a BIOS bug.
++
++If you are sure you found a BIOS issue, complain to your hardware vendor. The
++iasl compiler typically provides a description of the warning/error in a way,
++so that BIOS authors can easily fix it.
++
++.SH OPTIONS
++\fB-o output_dir\fP
++
++The output directory where extracted, disassembled and
++recompiled tables are copied to. Compiler output is located in a log
++subdirectory, warnings and errors found by the compiler are located in the err
++directory.
++.PP
++\fB-a acpidump\fP
++
++Take this acpidump file instead of dumping and extracting
++ACPI tables from the local machine
++.PP
++\fB-v\fP
++
++Be more verbose
++.PP
++\fB-c options\fP
++
++Override default iasl compile options (default -sa -cr -vr)
++.PP
++\fB-d options\fP
++
++Override default iasl disassemble options
++
++.SH NOTES
++
++.B "acpi_validate"
++must be run as root.
++
++.SH REFERENCES
++ACPICA: https://acpica.org/
++
++.SH "SEE ALSO"
++.BR acpidump (8)
++
++.SH AUTHOR
++.nf
++Written by Thomas Renninger <trenn@suse.de>
+-- 
+1.7.6.1
 
