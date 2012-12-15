@@ -1,63 +1,183 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 1/1] ACPI/APEI: Fix the returned value in erst_dbg_read
-Date: Sat, 15 Dec 2012 00:41:31 +0100
-Message-ID: <112983460.3t8kBnb7gs@vostro.rjw.lan>
-References: <1355472514-8172-1-git-send-email-adrian.huang@hp.com>
+Subject: Re: [PATCH] PNP: Simplify setting of resources
+Date: Sat, 15 Dec 2012 01:17:41 +0100
+Message-ID: <3252517.LSIXc8EikE@vostro.rjw.lan>
+References: <4460434.rhV1bpKLo5@vostro.rjw.lan> <7930705.OcvDjiPjJD@vostro.rjw.lan> <50C8A391.3010900@gmx.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:34209 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:34256 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932123Ab2LNXgY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 14 Dec 2012 18:36:24 -0500
-In-Reply-To: <1355472514-8172-1-git-send-email-adrian.huang@hp.com>
+	id S1756713Ab2LOAMf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 14 Dec 2012 19:12:35 -0500
+In-Reply-To: <50C8A391.3010900@gmx.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Huang <adrian.huang@hp.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Witold Szczeponik <Witold.Szczeponik@gmx.net>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Len Brown <lenb@kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Friday, December 14, 2012 04:08:34 PM Adrian Huang wrote:
-> If the persistent store is empty initially, the function 'erst_dbg_read'
-> returns a nonzero value. The better way is to return a zero indicating the
-> read operation reaches EOF.
+On Wednesday, December 12, 2012 04:32:33 PM Witold Szczeponik wrote:
+> This patch factors out the setting of PNP resources into one function which is 
+> then reused for all PNP resource types.  This makes the code more concise and 
+> avoids duplication.  The parameters "type" and "flags" are not used at the
+> moment but may be used by follow-up patches.  Placeholders for these patches 
+> can be found in the comment lines that contain the "TBD" marker. 
 > 
-> Tested on two different servers.
+> As the code does not make any changes to the ABI, no regressions are expected.
+> 
+> NB: While at it, support for bus type resources is added. 
+> 
+> The patch is applied against Linux 3.7 as well as linux-pm.git/master 
+> as of 2012-12-12.
 
-I'm queuing this up for submission as v3.8 material.
+Both patches queued up for submission as v3.8 material later in the cycle.
 
 Thanks,
 Rafael
 
 
-> Signed-off-by: Adrian Huang <adrian.huang@hp.com>
-> ---
->  drivers/acpi/apei/erst-dbg.c |   11 ++++++++++-
->  1 file changed, 10 insertions(+), 1 deletion(-)
+> Signed-off-by: Witold Szczeponik <Witold.Szczeponik@gmx.net>
+> Reviewed-by: Bjorn Helgaas <bhelgaas@google.com>
 > 
-> diff --git a/drivers/acpi/apei/erst-dbg.c b/drivers/acpi/apei/erst-dbg.c
-> index 903549d..04ab5c9 100644
-> --- a/drivers/acpi/apei/erst-dbg.c
-> +++ b/drivers/acpi/apei/erst-dbg.c
-> @@ -111,8 +111,17 @@ retry_next:
->  	if (rc)
->  		goto out;
->  	/* no more record */
-> -	if (id == APEI_ERST_INVALID_RECORD_ID)
-> +	if (id == APEI_ERST_INVALID_RECORD_ID) {
-> +		/*
-> +		 * If the persistent store is empty initially, the function
-> +		 * 'erst_read' below will return "-ENOENT" value. This causes
-> +		 * 'retry_next' label is entered again. The returned value
-> +		 * should be zero indicating the read operation is EOF.
-> +		 */
-> +		len = 0;
+> 
+> Index: linux/drivers/pnp/interface.c
+> ===================================================================
+> --- linux.orig/drivers/pnp/interface.c
+> +++ linux/drivers/pnp/interface.c
+> @@ -298,6 +298,39 @@ static ssize_t pnp_show_current_resource
+>  	return ret;
+>  }
+>  
+> +static char *pnp_get_resource_value(char *buf,
+> +				    unsigned long type,
+> +				    resource_size_t *start,
+> +				    resource_size_t *end,
+> +				    unsigned long *flags)
+> +{
+> +	if (start)
+> +		*start = 0;
+> +	if (end)
+> +		*end = 0;
+> +	if (flags)
+> +		*flags = 0;
 > +
->  		goto out;
+> +	/* TBD: allow for disabled resources */
+> +
+> +	buf = skip_spaces(buf);
+> +	if (start) {
+> +		*start = simple_strtoull(buf, &buf, 0);
+> +		if (end) {
+> +			buf = skip_spaces(buf);
+> +			if (*buf == '-') {
+> +				buf = skip_spaces(buf + 1);
+> +				*end = simple_strtoull(buf, &buf, 0);
+> +			} else
+> +				*end = *start;
+> +		}
 > +	}
->  retry:
->  	rc = len = erst_read(id, erst_dbg_buf, erst_dbg_buf_len);
->  	/* The record may be cleared by others, try read next record */
+> +
+> +	/* TBD: allow for additional flags, e.g., IORESOURCE_WINDOW */
+> +
+> +	return buf;
+> +}
+> +
+>  static ssize_t pnp_set_current_resources(struct device *dmdev,
+>  					 struct device_attribute *attr,
+>  					 const char *ubuf, size_t count)
+> @@ -305,7 +338,6 @@ static ssize_t pnp_set_current_resources
+>  	struct pnp_dev *dev = to_pnp_dev(dmdev);
+>  	char *buf = (void *)ubuf;
+>  	int retval = 0;
+> -	resource_size_t start, end;
+>  
+>  	if (dev->status & PNP_ATTACHED) {
+>  		retval = -EBUSY;
+> @@ -349,6 +381,10 @@ static ssize_t pnp_set_current_resources
+>  		goto done;
+>  	}
+>  	if (!strnicmp(buf, "set", 3)) {
+> +		resource_size_t start;
+> +		resource_size_t end;
+> +		unsigned long flags;
+> +
+>  		if (dev->active)
+>  			goto done;
+>  		buf += 3;
+> @@ -357,42 +393,37 @@ static ssize_t pnp_set_current_resources
+>  		while (1) {
+>  			buf = skip_spaces(buf);
+>  			if (!strnicmp(buf, "io", 2)) {
+> -				buf = skip_spaces(buf + 2);
+> -				start = simple_strtoul(buf, &buf, 0);
+> -				buf = skip_spaces(buf);
+> -				if (*buf == '-') {
+> -					buf = skip_spaces(buf + 1);
+> -					end = simple_strtoul(buf, &buf, 0);
+> -				} else
+> -					end = start;
+> -				pnp_add_io_resource(dev, start, end, 0);
+> -				continue;
+> -			}
+> -			if (!strnicmp(buf, "mem", 3)) {
+> -				buf = skip_spaces(buf + 3);
+> -				start = simple_strtoul(buf, &buf, 0);
+> -				buf = skip_spaces(buf);
+> -				if (*buf == '-') {
+> -					buf = skip_spaces(buf + 1);
+> -					end = simple_strtoul(buf, &buf, 0);
+> -				} else
+> -					end = start;
+> -				pnp_add_mem_resource(dev, start, end, 0);
+> -				continue;
+> -			}
+> -			if (!strnicmp(buf, "irq", 3)) {
+> -				buf = skip_spaces(buf + 3);
+> -				start = simple_strtoul(buf, &buf, 0);
+> -				pnp_add_irq_resource(dev, start, 0);
+> -				continue;
+> -			}
+> -			if (!strnicmp(buf, "dma", 3)) {
+> -				buf = skip_spaces(buf + 3);
+> -				start = simple_strtoul(buf, &buf, 0);
+> -				pnp_add_dma_resource(dev, start, 0);
+> -				continue;
+> -			}
+> -			break;
+> +				buf = pnp_get_resource_value(buf + 2,
+> +							     IORESOURCE_IO,
+> +							     &start, &end,
+> +							     &flags);
+> +				pnp_add_io_resource(dev, start, end, flags);
+> +			} else if (!strnicmp(buf, "mem", 3)) {
+> +				buf = pnp_get_resource_value(buf + 3,
+> +							     IORESOURCE_MEM,
+> +							     &start, &end,
+> +							     &flags);
+> +				pnp_add_mem_resource(dev, start, end, flags);
+> +			} else if (!strnicmp(buf, "irq", 3)) {
+> +				buf = pnp_get_resource_value(buf + 3,
+> +							     IORESOURCE_IRQ,
+> +							     &start, NULL,
+> +							     &flags);
+> +				pnp_add_irq_resource(dev, start, flags);
+> +			} else if (!strnicmp(buf, "dma", 3)) {
+> +				buf = pnp_get_resource_value(buf + 3,
+> +							     IORESOURCE_DMA,
+> +							     &start, NULL,
+> +							     &flags);
+> +				pnp_add_dma_resource(dev, start, flags);
+> +			} else if (!strnicmp(buf, "bus", 3)) {
+> +				buf = pnp_get_resource_value(buf + 3,
+> +							     IORESOURCE_BUS,
+> +							     &start, &end,
+> +							     NULL);
+> +				pnp_add_bus_resource(dev, start, end);
+> +			} else
+> +				break;
+>  		}
+>  		mutex_unlock(&pnp_res_mutex);
+>  		goto done;
 > 
 -- 
 I speak only for myself.
