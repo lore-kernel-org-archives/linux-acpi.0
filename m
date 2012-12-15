@@ -1,184 +1,76 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] PNP: Simplify setting of resources
-Date: Sat, 15 Dec 2012 01:17:41 +0100
-Message-ID: <3252517.LSIXc8EikE@vostro.rjw.lan>
-References: <4460434.rhV1bpKLo5@vostro.rjw.lan> <7930705.OcvDjiPjJD@vostro.rjw.lan> <50C8A391.3010900@gmx.net>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [RFC PATCH v3 0/3] acpi: Introduce prepare_remove device
+ operation
+Date: Fri, 14 Dec 2012 18:19:57 -0700
+Message-ID: <1355534397.18964.304.camel@misato.fc.hp.com>
+References: <1353693037-21704-1-git-send-email-vasilis.liaskovitis@profitbricks.com>
+	       <50B5EFE9.3040206@huawei.com>
+	      <1354128096.26955.276.camel@misato.fc.hp.com>
+	     <50B6E936.2080308@huawei.com>
+	  <1354228028.7776.56.camel@misato.fc.hp.com>
+	     <50BC29C6.6050706@huawei.com>
+	   <1354579848.21585.54.camel@misato.fc.hp.com>
+	  <50C0CA90.7010608@gmail.com>
+	   <1354849065.21116.61.camel@misato.fc.hp.com>
+	 <50C1852D.3000104@huawei.com>  <1354928933.28379.37.camel@misato.fc.hp.com>
+	 <50C74481.7010107@gmail.com> <1355409749.18964.107.camel@misato.fc.hp.com>
+	 <50C9F0F5.40307@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:34256 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756713Ab2LOAMf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 14 Dec 2012 19:12:35 -0500
-In-Reply-To: <50C8A391.3010900@gmx.net>
+Received: from g6t0184.atlanta.hp.com ([15.193.32.61]:30564 "EHLO
+	g6t0184.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932151Ab2LOB3D (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Dec 2012 20:29:03 -0500
+In-Reply-To: <50C9F0F5.40307@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Witold Szczeponik <Witold.Szczeponik@gmx.net>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Len Brown <lenb@kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: Jiang Liu <liuj97@gmail.com>
+Cc: Jiang Liu <jiang.liu@huawei.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Hanjun Guo <guohanjun@huawei.com>, Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>, linux-acpi@vger.kernel.org, isimatu.yasuaki@jp.fujitsu.com, wency@cn.fujitsu.com, lenb@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Tang Chen <tangchen@cn.fujitsu.com>, Huxinwei <huxinwei@huawei.com>
 
-On Wednesday, December 12, 2012 04:32:33 PM Witold Szczeponik wrote:
-> This patch factors out the setting of PNP resources into one function which is 
-> then reused for all PNP resource types.  This makes the code more concise and 
-> avoids duplication.  The parameters "type" and "flags" are not used at the
-> moment but may be used by follow-up patches.  Placeholders for these patches 
-> can be found in the comment lines that contain the "TBD" marker. 
-> 
-> As the code does not make any changes to the ABI, no regressions are expected.
-> 
-> NB: While at it, support for bus type resources is added. 
-> 
-> The patch is applied against Linux 3.7 as well as linux-pm.git/master 
-> as of 2012-12-12.
+On Thu, 2012-12-13 at 23:15 +0800, Jiang Liu wrote:
+> On 12/13/2012 10:42 PM, Toshi Kani wrote:
+> > On Tue, 2012-12-11 at 22:34 +0800, Jiang Liu wrote:
+> >> On 12/08/2012 09:08 AM, Toshi Kani wrote:
+> >>> On Fri, 2012-12-07 at 13:57 +0800, Jiang Liu wrote:
+> >>>> On 2012-12-7 10:57, Toshi Kani wrote:
+> >>>>> On Fri, 2012-12-07 at 00:40 +0800, Jiang Liu wrote:
+ :
+> >>>
+> >>>> 2) an ACPI based hotplug manager driver, which is a platform independent
+> >>>>    driver and manages all hotplug slot created by the slot driver.
+> >>>
+> >>> It is surely impressive work, but I think is is a bit overdoing.  I
+> >>> expect hot-pluggable servers come with management console and/or GUI
+> >>> where a user can manage hardware units and initiate hot-plug operations.
+> >>> I do not think the kernel needs to step into such area since it tends to
+> >>> be platform-specific. 
+> >> One of the major usages of this feature is for testing. 
+> >> It will be hard for OSVs and OEMs to verify hotplug functionalities if it could
+> >> only be tested by physical hotplug or through management console. So to pave the
+> >> way for hotplug, we need to provide a mechanism for OEMs and OSVs to execute 
+> >> auto stress tests for hotplug functionalities.
+> > 
+> > Yes, but such OS->FW interface is platform-specific.  Some platforms use
+> > IPMI for the OS to communicate with the management console.  In this
+> > case, an OEM-specific command can be used to request a hotplug through
+> > IPMI.  Some platforms may also support test programs to run on the
+> > management console for validations.
+> > 
+> > For early development testing, Yinghai's SCI emulation patch can be used
+> > to emulate hotplug events from the OS.  It would be part of the kernel
+> > debugging features once this patch is accepted. 
+> Hi Toshi,
+> 	ACPI 5.0 has provided some mechanism to normalize the way to issue
+> RAS related requests to firmware. I hope ACPI 5.x will define some standardized
+> ways based on the PCC defined in 5.0. If needed, we may provide platform
+> specific methods for them too.
 
-Both patches queued up for submission as v3.8 material later in the cycle.
+Thanks for the pointer!  Yeah, the spec purposely does not define the
+command.  When we support PCC, we will need to provide a way for user
+app or oem module to supply a payload. 
 
 Thanks,
-Rafael
+-Toshi
 
-
-> Signed-off-by: Witold Szczeponik <Witold.Szczeponik@gmx.net>
-> Reviewed-by: Bjorn Helgaas <bhelgaas@google.com>
-> 
-> 
-> Index: linux/drivers/pnp/interface.c
-> ===================================================================
-> --- linux.orig/drivers/pnp/interface.c
-> +++ linux/drivers/pnp/interface.c
-> @@ -298,6 +298,39 @@ static ssize_t pnp_show_current_resource
->  	return ret;
->  }
->  
-> +static char *pnp_get_resource_value(char *buf,
-> +				    unsigned long type,
-> +				    resource_size_t *start,
-> +				    resource_size_t *end,
-> +				    unsigned long *flags)
-> +{
-> +	if (start)
-> +		*start = 0;
-> +	if (end)
-> +		*end = 0;
-> +	if (flags)
-> +		*flags = 0;
-> +
-> +	/* TBD: allow for disabled resources */
-> +
-> +	buf = skip_spaces(buf);
-> +	if (start) {
-> +		*start = simple_strtoull(buf, &buf, 0);
-> +		if (end) {
-> +			buf = skip_spaces(buf);
-> +			if (*buf == '-') {
-> +				buf = skip_spaces(buf + 1);
-> +				*end = simple_strtoull(buf, &buf, 0);
-> +			} else
-> +				*end = *start;
-> +		}
-> +	}
-> +
-> +	/* TBD: allow for additional flags, e.g., IORESOURCE_WINDOW */
-> +
-> +	return buf;
-> +}
-> +
->  static ssize_t pnp_set_current_resources(struct device *dmdev,
->  					 struct device_attribute *attr,
->  					 const char *ubuf, size_t count)
-> @@ -305,7 +338,6 @@ static ssize_t pnp_set_current_resources
->  	struct pnp_dev *dev = to_pnp_dev(dmdev);
->  	char *buf = (void *)ubuf;
->  	int retval = 0;
-> -	resource_size_t start, end;
->  
->  	if (dev->status & PNP_ATTACHED) {
->  		retval = -EBUSY;
-> @@ -349,6 +381,10 @@ static ssize_t pnp_set_current_resources
->  		goto done;
->  	}
->  	if (!strnicmp(buf, "set", 3)) {
-> +		resource_size_t start;
-> +		resource_size_t end;
-> +		unsigned long flags;
-> +
->  		if (dev->active)
->  			goto done;
->  		buf += 3;
-> @@ -357,42 +393,37 @@ static ssize_t pnp_set_current_resources
->  		while (1) {
->  			buf = skip_spaces(buf);
->  			if (!strnicmp(buf, "io", 2)) {
-> -				buf = skip_spaces(buf + 2);
-> -				start = simple_strtoul(buf, &buf, 0);
-> -				buf = skip_spaces(buf);
-> -				if (*buf == '-') {
-> -					buf = skip_spaces(buf + 1);
-> -					end = simple_strtoul(buf, &buf, 0);
-> -				} else
-> -					end = start;
-> -				pnp_add_io_resource(dev, start, end, 0);
-> -				continue;
-> -			}
-> -			if (!strnicmp(buf, "mem", 3)) {
-> -				buf = skip_spaces(buf + 3);
-> -				start = simple_strtoul(buf, &buf, 0);
-> -				buf = skip_spaces(buf);
-> -				if (*buf == '-') {
-> -					buf = skip_spaces(buf + 1);
-> -					end = simple_strtoul(buf, &buf, 0);
-> -				} else
-> -					end = start;
-> -				pnp_add_mem_resource(dev, start, end, 0);
-> -				continue;
-> -			}
-> -			if (!strnicmp(buf, "irq", 3)) {
-> -				buf = skip_spaces(buf + 3);
-> -				start = simple_strtoul(buf, &buf, 0);
-> -				pnp_add_irq_resource(dev, start, 0);
-> -				continue;
-> -			}
-> -			if (!strnicmp(buf, "dma", 3)) {
-> -				buf = skip_spaces(buf + 3);
-> -				start = simple_strtoul(buf, &buf, 0);
-> -				pnp_add_dma_resource(dev, start, 0);
-> -				continue;
-> -			}
-> -			break;
-> +				buf = pnp_get_resource_value(buf + 2,
-> +							     IORESOURCE_IO,
-> +							     &start, &end,
-> +							     &flags);
-> +				pnp_add_io_resource(dev, start, end, flags);
-> +			} else if (!strnicmp(buf, "mem", 3)) {
-> +				buf = pnp_get_resource_value(buf + 3,
-> +							     IORESOURCE_MEM,
-> +							     &start, &end,
-> +							     &flags);
-> +				pnp_add_mem_resource(dev, start, end, flags);
-> +			} else if (!strnicmp(buf, "irq", 3)) {
-> +				buf = pnp_get_resource_value(buf + 3,
-> +							     IORESOURCE_IRQ,
-> +							     &start, NULL,
-> +							     &flags);
-> +				pnp_add_irq_resource(dev, start, flags);
-> +			} else if (!strnicmp(buf, "dma", 3)) {
-> +				buf = pnp_get_resource_value(buf + 3,
-> +							     IORESOURCE_DMA,
-> +							     &start, NULL,
-> +							     &flags);
-> +				pnp_add_dma_resource(dev, start, flags);
-> +			} else if (!strnicmp(buf, "bus", 3)) {
-> +				buf = pnp_get_resource_value(buf + 3,
-> +							     IORESOURCE_BUS,
-> +							     &start, &end,
-> +							     NULL);
-> +				pnp_add_bus_resource(dev, start, end);
-> +			} else
-> +				break;
->  		}
->  		mutex_unlock(&pnp_res_mutex);
->  		goto done;
-> 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
