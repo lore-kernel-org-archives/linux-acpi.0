@@ -1,46 +1,79 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH 0/6] ACPI: Simplify namespace scanning for devices
-Date: Sun, 16 Dec 2012 09:36:49 -0800
-Message-ID: <CAE9FiQUgEv0Ub8jAuuHzzOGqinbm0Nm5iiBs1ugRg5OT09h4+A@mail.gmail.com>
-References: <4532917.9APhB4xTvi@vostro.rjw.lan>
+From: Sebastian <ML-kernel.org@mueller.mn>
+Subject: Some Questions about C-States
+Date: Sun, 16 Dec 2012 18:35:29 +0100
+Message-ID: <50CE0661.6070601@mueller.mn>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:42168 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751469Ab2LPRgv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 16 Dec 2012 12:36:51 -0500
-In-Reply-To: <4532917.9APhB4xTvi@vostro.rjw.lan>
+Received: from mail.mueller.mn ([85.93.18.63]:42200 "EHLO mail.mueller.mn"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751595Ab2LPRmv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 16 Dec 2012 12:42:51 -0500
+Received: from [10.20.0.117] (HSI-KBW-149-172-93-50.hsi13.kabel-badenwuerttemberg.de [149.172.93.50])
+	by mail.mueller.mn (Postfix) with ESMTPSA id 8DD8123305CA
+	for <linux-acpi@vger.kernel.org>; Sun, 16 Dec 2012 18:35:29 +0100 (CET)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Toshi Kani <toshi.kani@hp.com>, Yijing Wang <wangyijing0307@gmail.com>, Jiang Liu <liuj97@gmail.com>, Wen Congyang <wency@cn.fujitsu.com>
+To: linux-acpi@vger.kernel.org
 
-On Sun, Dec 16, 2012 at 5:47 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> Hi All,
->
-> This series is on top of the one I sent on Thursday:
->
-> https://lkml.org/lkml/2012/12/13/632
->
-> It goes one step farther and makes some simplifications that become possible
-> after applying that patchset.
->
-> [1/6] Fold acpi_pci_root_start() into acpi_pci_root_add()
-> [2/6] Remove acpi_start_single_object() and acpi_bus_start()
-> [3/6] Remove the arguments of acpi_bus_add() that are not used
-> [4/6] Drop the second argument of acpi_bus_scan()
-> [5/6] Replace ACPI device add_type field with a match_driver flag
-> [6/6] Make acpi_bus_scan() and acpi_bus_add() take only one argument
->
-> It survives booting on Toshiba Portege R500 without any visible issues.
+Hi,
 
-Do you have git branch that i could test?
+I am a little confused about several things around ACPI and C-States. 
+Maybe I misunderstood a few things and due to that I did not hit the 
+right keywords in search engines and now I hope you can help me.
 
-I'd like to rebase for-pci-root-bus-hotplug patches, so what should be base?
+First of all. I am running a old ASRock 760GM-GS3 with a AMD Athlon II 
+X2 240 C3-Stepping (AM3) as a small homeserver, doing some 
+virtualisation and vdr stuff on it. Most of the time the cpu is idle, so 
+I started little time ago to reduce the power consumption. Today, it is 
+using 42W idling. And I am just courious if I might get it lower.
 
-It would be hard for me to base on your acpi tree and Bjorn's pci tree.
+In the BIOS I've got a setting to enable C1E. Doing so, results in
 
-Thanks
+* [    0.161189] process: System has AMD C1E enabled
+* [    0.161202] process: Switch to broadcast mode on CPU1
+* [    0.161660] process: Switch to broadcast mode on CPU0
 
-Yinghai
+shown in dmesg. Followed by
+
+* [    0.676465] ACPI: processor limited to max C-state 1
+
+some lines below.
+When I disable C1E in the BIOS, none of the lines is shown up.
+Since C1 is not the same as C1E, it seems there is some limit.
+
+So, I tried to figure out if C1E is used, and which C-States are used 
+overall.
+I read through many sites, some of them were stating that /proc/acpi is 
+the place to take a look, others are telling /sys/power or 
+/sys/devices/system/cpu/ is the right place to find information about 
+C-States. Again others are telling me acpitool -c will show me C-States. 
+For me, it shows only
+
+* # acpitool -c
+*   CPU type               : AMD Athlon(tm) II X2 240 Processor
+*   Min/Max frequency      : 800/2800 MHz
+*   Current frequency      : 800 MHz
+*   Frequency governor     : ondemand
+*   Freq. scaling driver   : acpi-cpufreq
+*   Cache size             : 800.000 KB
+*   Bogomips               : 5613.25
+*   Bogomips               : 5613.25
+*   Function Show_CPU_Info : could not read directory /proc/\
+acpi/processor/
+*   Make sure your kernel has ACPI processor support enabled.
+
+
+Tested with kernel version 3.7.0 and 3.2.12 and
+* [Deprecated] /proc/acpi/*
+switch in kernel config enabled.
+
+The modules are loaded, too. But the only file in /proc/acpi is called 
+'wakeup'.
+
+Can someone help me getting back on the track? What can I do to show up 
+the used c-states?
+
+Cheers,
+Sebastian
