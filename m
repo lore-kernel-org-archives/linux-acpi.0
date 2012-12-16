@@ -1,37 +1,39 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH 2/2] tools acpidump: acpidump must be run as root - install it into /usr/sbin
-Date: Sat, 15 Dec 2012 18:11:59 +0100
-Message-ID: <1355591519-44664-3-git-send-email-trenn@suse.de>
-References: <1355591519-44664-1-git-send-email-trenn@suse.de>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:52937 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751608Ab2LORML (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 15 Dec 2012 12:12:11 -0500
-In-Reply-To: <1355591519-44664-1-git-send-email-trenn@suse.de>
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH] ACPI / PM: Do not apply ACPI_SUCCESS() to acpi_bus_get_device() result
+Date: Sun, 16 Dec 2012 14:32:06 +0100
+Message-ID: <1432424.eSUdEQ1VBT@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: rjw@sisk.pl, lenb@kernel.org, Thomas Renninger <trenn@suse.de>
 
-Signed-off-by: Thomas Renninger <trenn@suse.de>
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+Since the return value of acpi_bus_get_device() is not of type
+acpi_status, ACPI_SUCCESS() should not be used for checking its
+return value.  Fix that.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- tools/power/acpi/Makefile |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/acpi/device_pm.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/tools/power/acpi/Makefile b/tools/power/acpi/Makefile
-index 8650fd8..c5cbe30 100644
---- a/tools/power/acpi/Makefile
-+++ b/tools/power/acpi/Makefile
-@@ -21,7 +21,7 @@ clean:
- 	done
+Index: linux/drivers/acpi/device_pm.c
+===================================================================
+--- linux.orig/drivers/acpi/device_pm.c
++++ linux/drivers/acpi/device_pm.c
+@@ -358,8 +358,7 @@ static struct acpi_device *acpi_dev_pm_g
+ 	acpi_handle handle = DEVICE_ACPI_HANDLE(dev);
+ 	struct acpi_device *adev;
  
- install:
--	install acpidump /usr/bin/acpidump
-+	install acpidump /usr/sbin/acpidump
- 	install acpidump.8 /usr/share/man/man8
- 	for dir in $(SUBDIRS); do \
- 		$(MAKE) -C $$dir install; \
--- 
-1.7.6.1
+-	return handle && ACPI_SUCCESS(acpi_bus_get_device(handle, &adev)) ?
+-		adev : NULL;
++	return handle && !acpi_bus_get_device(handle, &adev) ? adev : NULL;
+ }
+ 
+ /**
 
