@@ -1,300 +1,149 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 6/6] ACPI: Make acpi_bus_scan() and acpi_bus_add() take only one argument
-Date: Sun, 16 Dec 2012 14:55:38 +0100
-Message-ID: <2511950.YPXfTvHFgk@vostro.rjw.lan>
+Subject: [PATCH 5/6] ACPI: Replace ACPI device add_type field with a match_driver flag
+Date: Sun, 16 Dec 2012 14:53:51 +0100
+Message-ID: <2266117.uoEfbIxIHW@vostro.rjw.lan>
 References: <4532917.9APhB4xTvi@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:35394 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752834Ab2LPNwK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 16 Dec 2012 08:52:10 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <4532917.9APhB4xTvi@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Toshi Kani <toshi.kani@hp.com>, Yijing Wang <wangyijing0307@gmail.com>, Jiang Liu <liuj97@gmail.com>, Wen Congyang <wency@cn.fujitsu.com>
+List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-The callers of acpi_bus_add() usually assume that if it has
-succeeded, then a struct acpi_device object has been attached to
-the handle passed as the first argument.  Unfortunately, however,
-this assumption is wrong, because acpi_bus_scan(), and acpi_bus_add()
-too as a result, may return a pointer to a different struct
-acpi_device object on success (it may be an object corresponding to
-one of the descendant ACPI nodes in the namespace scope below that
-handle).
-
-For this reason, the callers of acpi_bus_add() who care about
-whether or not a struct acpi_device object has been created for
-its first argument need to check that using acpi_bus_get_device()
-anyway, so the second argument of acpi_bus_add() is not really
-useful for them.  The same observation applies to acpi_bus_scan()
-executed directly from acpi_scan_init().
-
-Therefore modify the relevant callers of acpi_bus_add() to check the
-existence of the struct acpi_device in question with the help of
-acpi_bus_get_device() and drop the no longer necessary second
-argument of acpi_bus_add().  Accordingly, modify acpi_scan_init() to
-use acpi_bus_get_device() to get acpi_root and drop the no longer
-needed second argument of acpi_bus_scan().
+After the removal of the second argument of acpi_bus_scan() there is
+no difference between the ACPI_BUS_ADD_MATCH and ACPI_BUS_ADD_START
+add types, so the add_type field in struct acpi_device may be
+replaced with a single flag.  Do that calling the flag match_driver.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/acpi_memhotplug.c     |    7 +++++-
- drivers/acpi/container.c           |    7 +++++-
- drivers/acpi/dock.c                |    4 ++-
- drivers/acpi/processor_driver.c    |    8 +++++--
- drivers/acpi/scan.c                |   38 ++++++++++---------------------------
- drivers/pci/hotplug/acpiphp_glue.c |   19 ++++++++++--------
- drivers/pci/hotplug/sgi_hotplug.c  |    3 --
- include/acpi/acpi_bus.h            |    2 -
- 8 files changed, 45 insertions(+), 43 deletions(-)
+ drivers/acpi/scan.c     |   21 +++++++++------------
+ include/acpi/acpi_bus.h |   11 ++---------
+ 2 files changed, 11 insertions(+), 21 deletions(-)
 
 Index: linux/drivers/acpi/scan.c
 ===================================================================
 --- linux.orig/drivers/acpi/scan.c
 +++ linux/drivers/acpi/scan.c
-@@ -1663,37 +1663,27 @@ static acpi_status acpi_bus_device_attac
- 	return status;
+@@ -535,7 +535,7 @@ static int acpi_bus_match(struct device
+ 	struct acpi_device *acpi_dev = to_acpi_device(dev);
+ 	struct acpi_driver *acpi_drv = to_acpi_driver(drv);
+ 
+-	return acpi_dev->add_type >= ACPI_BUS_ADD_MATCH
++	return acpi_dev->flags.match_driver
+ 		&& !acpi_match_device_ids(acpi_dev, acpi_drv->ids);
  }
  
--static int acpi_bus_scan(acpi_handle handle, struct acpi_device **child)
-+static int acpi_bus_scan(acpi_handle handle)
+@@ -1451,8 +1451,7 @@ static void acpi_hot_add_bind(struct acp
+ 
+ static int acpi_add_single_object(struct acpi_device **child,
+ 				  acpi_handle handle, int type,
+-				  unsigned long long sta,
+-				  enum acpi_bus_add_type add_type)
++				  unsigned long long sta, bool match_driver)
  {
- 	void *device = NULL;
--	acpi_status status;
--	int ret = -ENODEV;
+ 	int result;
+ 	struct acpi_device *device;
+@@ -1468,7 +1467,6 @@ static int acpi_add_single_object(struct
+ 	device->device_type = type;
+ 	device->handle = handle;
+ 	device->parent = acpi_bus_get_parent(handle);
+-	device->add_type = add_type;
+ 	STRUCT_TO_INT(device->status) = sta;
  
--	status = acpi_bus_check_add(handle, 0, NULL, &device);
--	if (ACPI_SUCCESS(status))
-+	if (ACPI_SUCCESS(acpi_bus_check_add(handle, 0, NULL, &device)))
- 		acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
- 				    acpi_bus_check_add, NULL, NULL, &device);
+ 	acpi_device_get_busid(device);
+@@ -1519,9 +1517,10 @@ static int acpi_add_single_object(struct
+ 	if ((result = acpi_device_set_context(device)))
+ 		goto end;
  
++	device->flags.match_driver = match_driver;
+ 	result = acpi_device_register(device);
+ 
+-	if (device->add_type >= ACPI_BUS_ADD_MATCH)
++	if (device->flags.match_driver)
+ 		acpi_hot_add_bind(device);
+ 
+ end:
+@@ -1550,7 +1549,7 @@ static void acpi_bus_add_power_resource(
+ 	acpi_bus_get_device(handle, &device);
  	if (!device)
--		goto out;
-+		return -ENODEV;
- 
--	ret = 0;
--	status = acpi_bus_device_attach(handle, 0, NULL, NULL);
--	if (ACPI_SUCCESS(status))
-+	if (ACPI_SUCCESS(acpi_bus_device_attach(handle, 0, NULL, NULL)))
- 		acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
- 				    acpi_bus_device_attach, NULL, NULL, NULL);
- 
-- out:
--	if (child)
--		*child = device;
--
--	return ret;
-+	return 0;
+ 		acpi_add_single_object(&device, handle, ACPI_BUS_TYPE_POWER,
+-					ACPI_STA_DEFAULT, ACPI_BUS_ADD_START);
++					ACPI_STA_DEFAULT, true);
  }
  
- /**
-  * acpi_bus_add - Add ACPI device node objects in a given namespace scope.
-  * @handle: Root of the namespace scope to scan.
-- * @ret: Location to store a return struct acpi_device pointer.
-  *
-  * Scan a given ACPI tree (probably recently hot-plugged) and create and add
-  * found devices.
-@@ -1702,21 +1692,12 @@ static int acpi_bus_scan(acpi_handle han
-  * there has been a real error.  There just have been no suitable ACPI objects
-  * in the table trunk from which the kernel could create a device and add an
-  * appropriate driver.
-- *
-- * If 0 is returned, the memory location pointed to by @ret will be populated
-- * with a pointer to a struct acpi_device created while scanning the namespace.
-- * If @handle corresponds to a device node, that will be a pointer to the struct
-- * acpi_device object corresponding to @handle.  Otherwise, it will be a pointer
-- * to a struct acpi_device corresponding to one of its descendants.
-- *
-- * If an error code is returned, NULL will be stored in the memory location
-- * pointed to by @ret.
-  */
--int acpi_bus_add(acpi_handle handle, struct acpi_device **ret)
-+int acpi_bus_add(acpi_handle handle)
- {
- 	int err;
+ static int acpi_bus_type_and_status(acpi_handle handle, int *type,
+@@ -1621,11 +1620,11 @@ static acpi_status acpi_bus_check_add(ac
+ 		return AE_CTRL_DEPTH;
+ 	}
  
--	err = acpi_bus_scan(handle, ret);
-+	err = acpi_bus_scan(handle);
- 	if (err)
- 		return err;
+-	acpi_add_single_object(&device, handle, type, sta, ACPI_BUS_ADD_BASIC);
++	acpi_add_single_object(&device, handle, type, sta, false);
+ 	if (!device)
+ 		return AE_CTRL_DEPTH;
  
-@@ -1820,8 +1801,11 @@ int __init acpi_scan_init(void)
- 	/*
- 	 * Enumerate devices in the ACPI namespace.
- 	 */
--	result = acpi_bus_scan(ACPI_ROOT_OBJECT, &acpi_root);
-+	result = acpi_bus_scan(ACPI_ROOT_OBJECT);
-+	if (result)
-+		return result;
+-	device->add_type = ACPI_BUS_ADD_START;
++	device->flags.match_driver = true;
  
-+	result = acpi_bus_get_device(ACPI_ROOT_OBJECT, &acpi_root);
- 	if (!result)
- 		result = acpi_bus_scan_fixed();
+  out:
+ 	if (!*return_value)
+@@ -1792,16 +1791,14 @@ static int acpi_bus_scan_fixed(void)
+ 	if ((acpi_gbl_FADT.flags & ACPI_FADT_POWER_BUTTON) == 0) {
+ 		result = acpi_add_single_object(&device, NULL,
+ 						ACPI_BUS_TYPE_POWER_BUTTON,
+-						ACPI_STA_DEFAULT,
+-						ACPI_BUS_ADD_START);
++						ACPI_STA_DEFAULT, true);
+ 		device_init_wakeup(&device->dev, true);
+ 	}
  
+ 	if ((acpi_gbl_FADT.flags & ACPI_FADT_SLEEP_BUTTON) == 0) {
+ 		result = acpi_add_single_object(&device, NULL,
+ 						ACPI_BUS_TYPE_SLEEP_BUTTON,
+-						ACPI_STA_DEFAULT,
+-						ACPI_BUS_ADD_START);
++						ACPI_STA_DEFAULT, true);
+ 	}
+ 
+ 	return result;
 Index: linux/include/acpi/acpi_bus.h
 ===================================================================
 --- linux.orig/include/acpi/acpi_bus.h
 +++ linux/include/acpi/acpi_bus.h
-@@ -391,7 +391,7 @@ static inline int acpi_bus_generate_proc
- #endif
- int acpi_bus_register_driver(struct acpi_driver *driver);
- void acpi_bus_unregister_driver(struct acpi_driver *driver);
--int acpi_bus_add(acpi_handle handle, struct acpi_device **ret);
-+int acpi_bus_add(acpi_handle handle);
- void acpi_bus_hot_remove_device(void *context);
- int acpi_bus_trim(struct acpi_device *start, int rmdevice);
- acpi_status acpi_bus_get_ejd(acpi_handle handle, acpi_handle * ejd);
-Index: linux/drivers/pci/hotplug/sgi_hotplug.c
-===================================================================
---- linux.orig/drivers/pci/hotplug/sgi_hotplug.c
-+++ linux/drivers/pci/hotplug/sgi_hotplug.c
-@@ -412,7 +412,6 @@ static int enable_slot(struct hotplug_sl
- 	if (SN_ACPI_BASE_SUPPORT() && ssdt) {
- 		unsigned long long adr;
- 		struct acpi_device *pdevice;
--		struct acpi_device *device;
- 		acpi_handle phandle;
- 		acpi_handle chandle = NULL;
- 		acpi_handle rethandle;
-@@ -448,7 +447,7 @@ static int enable_slot(struct hotplug_sl
- 			if (ACPI_SUCCESS(ret) &&
- 			    (adr>>16) == (slot->device_num + 1)) {
+@@ -63,13 +63,6 @@ acpi_get_physical_device_location(acpi_h
+ #define ACPI_BUS_FILE_ROOT	"acpi"
+ extern struct proc_dir_entry *acpi_root_dir;
  
--				ret = acpi_bus_add(chandle, &device);
-+				ret = acpi_bus_add(chandle);
- 				if (ACPI_FAILURE(ret)) {
- 					printk(KERN_ERR "%s: acpi_bus_add "
- 					       "failed (0x%x) for slot %d "
-Index: linux/drivers/pci/hotplug/acpiphp_glue.c
-===================================================================
---- linux.orig/drivers/pci/hotplug/acpiphp_glue.c
-+++ linux/drivers/pci/hotplug/acpiphp_glue.c
-@@ -746,14 +746,13 @@ static int acpiphp_bus_add(struct acpiph
- 		dbg("acpi_bus_trim return %x\n", ret_val);
- 	}
- 
--	ret_val = acpi_bus_add(func->handle, &device);
--	if (ret_val) {
--		dbg("error adding bus, %x\n",
--			-ret_val);
--		goto acpiphp_bus_add_out;
--	}
-+	ret_val = acpi_bus_add(func->handle);
-+	if (!ret_val)
-+		ret_val = acpi_bus_get_device(func->handle, &device);
-+
-+	if (ret_val)
-+		dbg("error adding bus, %x\n", -ret_val);
- 
--acpiphp_bus_add_out:
- 	return ret_val;
- }
- 
-@@ -1130,10 +1129,14 @@ static void handle_bridge_insertion(acpi
- 		return;
- 	}
- 
--	if (acpi_bus_add(handle, &device)) {
-+	if (acpi_bus_add(handle)) {
- 		err("cannot add bridge to acpi list\n");
- 		return;
- 	}
-+	if (acpi_bus_get_device(handle, &device)) {
-+		err("ACPI device object missing\n");
-+		return;
-+	}
- 	if (!acpiphp_configure_bridge(handle))
- 		add_bridge(handle);
- 	else
-Index: linux/drivers/acpi/processor_driver.c
-===================================================================
---- linux.orig/drivers/acpi/processor_driver.c
-+++ linux/drivers/acpi/processor_driver.c
-@@ -699,12 +699,16 @@ static void acpi_processor_hotplug_notif
- 		if (!acpi_bus_get_device(handle, &device))
- 			break;
- 
--		result = acpi_bus_add(handle, &device);
-+		result = acpi_bus_add(handle);
- 		if (result) {
- 			acpi_handle_err(handle, "Unable to add the device\n");
- 			break;
- 		}
+-enum acpi_bus_add_type {
+-	ACPI_BUS_ADD_BASIC = 0,
+-	ACPI_BUS_ADD_MATCH,
+-	ACPI_BUS_ADD_START,
+-	ACPI_BUS_ADD_TYPE_COUNT
+-};
 -
-+		result = acpi_bus_get_device(handle, &device);
-+		if (result) {
-+			acpi_handle_err(handle, "Missing device object\n");
-+			break;
-+		}
- 		ost_code = ACPI_OST_SC_SUCCESS;
- 		break;
+ enum acpi_bus_removal_type {
+ 	ACPI_BUS_REMOVAL_NORMAL = 0,
+ 	ACPI_BUS_REMOVAL_EJECT,
+@@ -150,7 +143,8 @@ struct acpi_device_flags {
+ 	u32 power_manageable:1;
+ 	u32 performance_manageable:1;
+ 	u32 eject_pending:1;
+-	u32 reserved:24;
++	u32 match_driver:1;
++	u32 reserved:23;
+ };
  
-Index: linux/drivers/acpi/dock.c
-===================================================================
---- linux.orig/drivers/acpi/dock.c
-+++ linux/drivers/acpi/dock.c
-@@ -317,9 +317,11 @@ static struct acpi_device * dock_create_
- 		 * no device created for this object,
- 		 * so we should create one.
- 		 */
--		ret = acpi_bus_add(handle, &device);
-+		ret = acpi_bus_add(handle);
- 		if (ret)
- 			pr_debug("error adding bus, %x\n", -ret);
-+
-+		acpi_bus_get_device(handle, &device);
- 	}
- 	return device;
- }
-Index: linux/drivers/acpi/container.c
-===================================================================
---- linux.orig/drivers/acpi/container.c
-+++ linux/drivers/acpi/container.c
-@@ -166,11 +166,16 @@ static void container_notify_cb(acpi_han
- 		if (!ACPI_FAILURE(status) || device)
- 			break;
- 
--		result = acpi_bus_add(handle, &device);
-+		result = acpi_bus_add(handle);
- 		if (result) {
- 			acpi_handle_warn(handle, "Failed to add container\n");
- 			break;
- 		}
-+		result = acpi_bus_get_device(handle, &device);
-+		if (result) {
-+			acpi_handle_warn(handle, "Missing device object\n");
-+			break;
-+		}
- 
- 		kobject_uevent(&device->dev.kobj, KOBJ_ONLINE);
- 		ost_code = ACPI_OST_SC_SUCCESS;
-Index: linux/drivers/acpi/acpi_memhotplug.c
-===================================================================
---- linux.orig/drivers/acpi/acpi_memhotplug.c
-+++ linux/drivers/acpi/acpi_memhotplug.c
-@@ -168,11 +168,16 @@ acpi_memory_get_device(acpi_handle handl
- 	 * Now add the notified device.  This creates the acpi_device
- 	 * and invokes .add function
- 	 */
--	result = acpi_bus_add(handle, &device);
-+	result = acpi_bus_add(handle);
- 	if (result) {
- 		acpi_handle_warn(handle, "Cannot add acpi bus\n");
- 		return -EINVAL;
- 	}
-+	result = acpi_bus_get_device(handle, &device);
-+	if (result) {
-+		acpi_handle_warn(handle, "Missing device object\n");
-+		return -EINVAL;
-+	}
- 
-       end:
- 	*mem_device = acpi_driver_data(device);
-
+ /* File System */
+@@ -285,7 +279,6 @@ struct acpi_device {
+ 	struct acpi_driver *driver;
+ 	void *driver_data;
+ 	struct device dev;
+-	enum acpi_bus_add_type add_type;	/* how to handle adding */
+ 	enum acpi_bus_removal_type removal_type;	/* indicate for different removal type */
+ 	u8 physical_node_count;
+ 	struct list_head physical_node_list;
