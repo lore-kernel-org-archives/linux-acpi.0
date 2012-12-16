@@ -1,33 +1,55 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [PATCH 0/6] ACPI: Simplify namespace scanning for devices
-Date: Sun, 16 Dec 2012 23:29:22 +0100
-Message-ID: <2838930.01Rbj0pevt@vostro.rjw.lan>
-References: <4532917.9APhB4xTvi@vostro.rjw.lan> <50CDEFFE.7030509@gmail.com>
+Date: Sun, 16 Dec 2012 23:31:19 +0100
+Message-ID: <1904613.1YuyTUQtm1@vostro.rjw.lan>
+References: <4532917.9APhB4xTvi@vostro.rjw.lan> <CAE9FiQUgEv0Ub8jAuuHzzOGqinbm0Nm5iiBs1ugRg5OT09h4+A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:35701 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:35706 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750798Ab2LPWYN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 16 Dec 2012 17:24:13 -0500
-In-Reply-To: <50CDEFFE.7030509@gmail.com>
+	id S1751490Ab2LPW0K (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 16 Dec 2012 17:26:10 -0500
+In-Reply-To: <CAE9FiQUgEv0Ub8jAuuHzzOGqinbm0Nm5iiBs1ugRg5OT09h4+A@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <liuj97@gmail.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Yinghai Lu <yinghai@kernel.org>, Toshi Kani <toshi.kani@hp.com>, Yijing Wang <wangyijing0307@gmail.com>, Wen Congyang <wency@cn.fujitsu.com>
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Toshi Kani <toshi.kani@hp.com>, Yijing Wang <wangyijing0307@gmail.com>, Jiang Liu <liuj97@gmail.com>, Wen Congyang <wency@cn.fujitsu.com>
 
-Hi,
+On Sunday, December 16, 2012 09:36:49 AM Yinghai Lu wrote:
+> On Sun, Dec 16, 2012 at 5:47 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > Hi All,
+> >
+> > This series is on top of the one I sent on Thursday:
+> >
+> > https://lkml.org/lkml/2012/12/13/632
+> >
+> > It goes one step farther and makes some simplifications that become possible
+> > after applying that patchset.
+> >
+> > [1/6] Fold acpi_pci_root_start() into acpi_pci_root_add()
+> > [2/6] Remove acpi_start_single_object() and acpi_bus_start()
+> > [3/6] Remove the arguments of acpi_bus_add() that are not used
+> > [4/6] Drop the second argument of acpi_bus_scan()
+> > [5/6] Replace ACPI device add_type field with a match_driver flag
+> > [6/6] Make acpi_bus_scan() and acpi_bus_add() take only one argument
+> >
+> > It survives booting on Toshiba Portege R500 without any visible issues.
+> 
+> Do you have git branch that i could test?
 
-On Sunday, December 16, 2012 11:59:58 PM Jiang Liu wrote:
-> Hi Rafael,
-> 	Great idea to get rid of the .start() staff, it could also
-> simplify our hotplug framework too.
+There you go:
 
-Well, this has been a Yinghai's idea, but thanks anyway. :-)
+git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-scan-temp
 
-I see some more room for improvements like this, for example in the
-acpi_pci_bind()/acpi_pci_unbind() area.
+> I'd like to rebase for-pci-root-bus-hotplug patches, so what should be base?
+
+I'll need to talk about that with Bjorn.  Hopefully he'll be reachable tomorrow.
+
+> It would be hard for me to base on your acpi tree and Bjorn's pci tree.
+
+We'll work out something.
 
 Thanks,
 Rafael
