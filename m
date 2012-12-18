@@ -1,59 +1,64 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH rev.2 1/6] ACPI: Separate adding ACPI device objects from
- probing ACPI drivers
-Date: Tue, 18 Dec 2012 13:11:45 -0800
-Message-ID: <CAE9FiQV=ByGT7gsTcW1L1wh-+jd6vOe1c5wAnH4kJ9ZaFtOuMg@mail.gmail.com>
-References: <8498184.VilrUmatxI@vostro.rjw.lan>
-	<1525730.exQ7msTINR@vostro.rjw.lan>
-	<1355789297.18964.334.camel@misato.fc.hp.com>
-	<4082842.31rfDviYHK@vostro.rjw.lan>
-	<1355847041.18964.369.camel@misato.fc.hp.com>
-	<CAE9FiQV-GDRd1iapMwy4j4mBChRpEm-9ANHg6BTdyiTd-5Bf8A@mail.gmail.com>
-	<1355863696.18964.378.camel@misato.fc.hp.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] acpi: glue: Update DBG macro to include KERN_DEBUG
+Date: Tue, 18 Dec 2012 22:45:43 +0100
+Message-ID: <2435631.Jtr8kfC3zi@vostro.rjw.lan>
+References: <1355851562-28407-1-git-send-email-youquan.song@intel.com> <95d86788536a6f095f261c051249ebd4f0e30a87.1355812070.git.joe@perches.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:56378 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751348Ab2LRVLr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Dec 2012 16:11:47 -0500
-In-Reply-To: <1355863696.18964.378.camel@misato.fc.hp.com>
+Received: from hydra.sisk.pl ([212.160.235.94]:36979 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754769Ab2LRVkg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Dec 2012 16:40:36 -0500
+In-Reply-To: <95d86788536a6f095f261c051249ebd4f0e30a87.1355812070.git.joe@perches.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, Myron Stowe <myron.stowe@redhat.com>, Yijing Wang <wangyijing0307@gmail.com>, Jiang Liu <liuj97@gmail.com>
+To: Joe Perches <joe@perches.com>
+Cc: Youquan Song <youquan.song@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, Dec 18, 2012 at 12:48 PM, Toshi Kani <toshi.kani@hp.com> wrote:
-> On Tue, 2012-12-18 at 10:59 -0800, Yinghai Lu wrote:
->> On Tue, Dec 18, 2012 at 8:10 AM, Toshi Kani <toshi.kani@hp.com> wrote:
->> > On Tue, 2012-12-18 at 02:48 +0100, Rafael J. Wysocki wrote:
->> >
->> > So, I would propose the following changes.
->> >
->> >  - Move the acpi_hot_add_bind() call back to the original place after
->> > the device_attach() call.
->> >  - Rename the name of acpi_hot_add_bind() to something like
->> > acpi_bind_adr_device() since it is no longer hot-add only (and is
->> > specific to _ADR devices).
->> >  - Create its pair function, acpi_unbind_adr_device(), which is called
->> > from acpi_bus_remove().  When a constructor interface is introduced, its
->> > destructor should be introduced as well.
->> >  - Remove the binding procedure from acpi_pci_root_add().  This should
->> > be done in patch [2/6].
->>
->> i think we should put jiang four patches before Rafael's patches.
->>
->> http://git.kernel.org/?p=linux/kernel/git/yinghai/linux-yinghai.git;a=shortlog;h=refs/heads/for-pci-jiang-hotplug
->
-> Thanks for the pointer!  Oh, I did not know that pci_dev gets removed
-> before acpi_bus_trim() is called...
+On Monday, December 17, 2012 10:31:30 PM Joe Perches wrote:
+> Currently these DBG statements are emitted at KERN_DEFAULT.
+> Change the macro to emit at KERN_DEBUG.
+> 
+> This can help avoid unexpected message interleaving.
 
-yes. that is
-http://git.kernel.org/?p=linux/kernel/git/yinghai/linux-yinghai.git;a=commitdiff;h=8b4b836d8c56c290bc80ffa0b08b91fb3fe38867
+Applied to linux-pm.git/linux-next as v3.8 material.
 
-> I looked at Jiang's last two
-> patches for the bind update, and they look good to me.
->
-> Thanks,
-> -Toshi
->
+Thanks,
+Rafael
+
+
+> Signed-off-by: Joe Perches <joe@perches.com>
+> ---
+> 
+> Another way to fix this message interleaving...
+> 
+>  drivers/acpi/glue.c |    9 +++++++--
+>  1 files changed, 7 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
+> index 0155184..95af6f6 100644
+> --- a/drivers/acpi/glue.c
+> +++ b/drivers/acpi/glue.c
+> @@ -18,9 +18,14 @@
+>  
+>  #define ACPI_GLUE_DEBUG	0
+>  #if ACPI_GLUE_DEBUG
+> -#define DBG(x...) printk(PREFIX x)
+> +#define DBG(fmt, ...)						\
+> +	printk(KERN_DEBUG PREFIX fmt, ##__VA_ARGS__)
+>  #else
+> -#define DBG(x...) do { } while(0)
+> +#define DBG(fmt, ...)						\
+> +do {								\
+> +	if (0)							\
+> +		printk(KERN_DEBUG PREFIX fmt, ##__VA_ARGS__);	\
+> +} while (0)
+>  #endif
+>  static LIST_HEAD(bus_type_list);
+>  static DECLARE_RWSEM(bus_type_sem);
+> 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
