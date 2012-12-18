@@ -1,35 +1,53 @@
-From: Youquan Song <youquan.song@intel.com>
-Subject: [PATCH] x86,idle: pr_debug information need separated
-Date: Tue, 18 Dec 2012 12:26:02 -0500
-Message-ID: <1355851562-28407-1-git-send-email-youquan.song@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Youquan Song <youquan.song@linux.intel.com>, Youquan Song <youquan.song@intel.com>
+From: Joe Perches <joe@perches.com>
+Subject: [PATCH] acpi: glue: Update DBG macro to include KERN_DEBUG
+Date: Mon, 17 Dec 2012 22:31:30 -0800
+Message-ID: <95d86788536a6f095f261c051249ebd4f0e30a87.1355812070.git.joe@perches.com>
+References: <1355851562-28407-1-git-send-email-youquan.song@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from perches-mx.perches.com ([206.117.179.246]:41607 "EHLO
+	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750854Ab2LRGbd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 18 Dec 2012 01:31:33 -0500
+In-Reply-To: <1355851562-28407-1-git-send-email-youquan.song@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Youquan Song <youquan.song@intel.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-When debug kernel, the the below information is found:
-intel_idle: unaware of model 0x1a MWAIT 4 please contact lenb@kernel.orgACPI: Device input0 -> No ACPI support
+Currently these DBG statements are emitted at KERN_DEFAULT.
+Change the macro to emit at KERN_DEBUG.
 
-so this patch separates it.
+This can help avoid unexpected message interleaving.
 
-Signed-off-by: Youquan Song <youquan.song@intel.com>
+Signed-off-by: Joe Perches <joe@perches.com>
 ---
- drivers/idle/intel_idle.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/idle/intel_idle.c b/drivers/idle/intel_idle.c
-index b0f6b4c..eae6e3b 100644
---- a/drivers/idle/intel_idle.c
-+++ b/drivers/idle/intel_idle.c
-@@ -518,7 +518,7 @@ static int intel_idle_cpuidle_driver_init(void)
- 			if (*cpuidle_state_table[cstate].name == '\0')
- 				pr_debug(PREFIX "unaware of model 0x%x"
- 					" MWAIT %d please"
--					" contact lenb@kernel.org",
-+					" contact lenb@kernel.org\n",
- 				boot_cpu_data.x86_model, cstate);
- 			continue;
- 		}
+Another way to fix this message interleaving...
+
+ drivers/acpi/glue.c |    9 +++++++--
+ 1 files changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
+index 0155184..95af6f6 100644
+--- a/drivers/acpi/glue.c
++++ b/drivers/acpi/glue.c
+@@ -18,9 +18,14 @@
+ 
+ #define ACPI_GLUE_DEBUG	0
+ #if ACPI_GLUE_DEBUG
+-#define DBG(x...) printk(PREFIX x)
++#define DBG(fmt, ...)						\
++	printk(KERN_DEBUG PREFIX fmt, ##__VA_ARGS__)
+ #else
+-#define DBG(x...) do { } while(0)
++#define DBG(fmt, ...)						\
++do {								\
++	if (0)							\
++		printk(KERN_DEBUG PREFIX fmt, ##__VA_ARGS__);	\
++} while (0)
+ #endif
+ static LIST_HEAD(bus_type_list);
+ static DECLARE_RWSEM(bus_type_sem);
 -- 
-1.6.4.2
+1.7.8.112.g3fd21
+
