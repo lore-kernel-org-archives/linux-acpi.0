@@ -1,13 +1,13 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 13/19] ACPICA: Debugger: Major update for the Disassemble<method> command.
-Date: Wed, 19 Dec 2012 13:38:07 +0800
-Message-ID: <e188a50e1a7a08598141299877d98aa5ac552a00.1355810294.git.lv.zheng@intel.com>
+Subject: [PATCH v2 12/19] ACPICA: Performance: Remove function tracing from critical allocation functions.
+Date: Wed, 19 Dec 2012 13:37:59 +0800
+Message-ID: <b2b00c5991b97de0328b3e8eaeca88838ae8e8d3.1355810294.git.lv.zheng@intel.com>
 References: <cover.1353491652.git.lv.zheng@intel.com> <cover.1355810292.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:33931 "EHLO mga01.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:30623 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751036Ab2LSFiU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 19 Dec 2012 00:38:20 -0500
+	id S1750810Ab2LSFid (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Dec 2012 00:38:33 -0500
 In-Reply-To: <cover.1355810292.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,248 +16,367 @@ Cc: linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>, Lv Zheng <lv
 
 From: Bob Moore <robert.moore@intel.com>
 
-This command was downreved and did not properly disassemble control
-methods with any reasonable complexity. This fix brings the command
-up to the same level as the rest of the disassembler.  Adds one
-new file, dmdeferred.c, which is existing code that is now common
-with the main disassembler and the debugger disassembl command.
+Tracing is no longer needed for many of the low-level function.
+Removing the trace mechanism from these functions improves
+performance a small amount, also simplifies the debug trace output.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/acutils.h  |    7 ++--
- drivers/acpi/acpica/rscalc.c   |    4 ++-
- drivers/acpi/acpica/rscreate.c |    4 +--
- drivers/acpi/acpica/rslist.c   |    7 ++--
- drivers/acpi/acpica/utresrc.c  |   74 +++++++++++++++++++++-------------------
- 5 files changed, 52 insertions(+), 44 deletions(-)
+ drivers/acpi/acpica/nsutils.c  |    8 ++++----
+ drivers/acpi/acpica/utdelete.c |   26 +++++++++++++-------------
+ drivers/acpi/acpica/utstate.c  |   40 ++++++++++++++++++----------------------
+ drivers/acpi/acpica/uttrack.c  |   16 ++++++++--------
+ 4 files changed, 43 insertions(+), 47 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acutils.h b/drivers/acpi/acpica/acutils.h
-index b0f5f92..6e51d193 100644
---- a/drivers/acpi/acpica/acutils.h
-+++ b/drivers/acpi/acpica/acutils.h
-@@ -535,12 +535,15 @@ acpi_ut_display_init_pathname(u8 type,
-  * utresrc
-  */
- acpi_status
--acpi_ut_walk_aml_resources(u8 *aml,
-+acpi_ut_walk_aml_resources(struct acpi_walk_state *walk_state,
-+			   u8 *aml,
- 			   acpi_size aml_length,
- 			   acpi_walk_aml_callback user_function,
- 			   void **context);
+diff --git a/drivers/acpi/acpica/nsutils.c b/drivers/acpi/acpica/nsutils.c
+index 7e8bd2a..4479654 100644
+--- a/drivers/acpi/acpica/nsutils.c
++++ b/drivers/acpi/acpica/nsutils.c
+@@ -663,17 +663,17 @@ void acpi_ns_terminate(void)
  
--acpi_status acpi_ut_validate_resource(void *aml, u8 *return_index);
-+acpi_status
-+acpi_ut_validate_resource(struct acpi_walk_state *walk_state,
-+			  void *aml, u8 *return_index);
- 
- u32 acpi_ut_get_descriptor_length(void *aml);
- 
-diff --git a/drivers/acpi/acpica/rscalc.c b/drivers/acpi/acpica/rscalc.c
-index 4f39bd6..da178b4 100644
---- a/drivers/acpi/acpica/rscalc.c
-+++ b/drivers/acpi/acpica/rscalc.c
-@@ -407,7 +407,9 @@ acpi_rs_get_list_length(u8 * aml_buffer,
- 
- 		/* Validate the Resource Type and Resource Length */
- 
--		status = acpi_ut_validate_resource(aml_buffer, &resource_index);
-+		status =
-+		    acpi_ut_validate_resource(NULL, aml_buffer,
-+					      &resource_index);
- 		if (ACPI_FAILURE(status)) {
- 			/*
- 			 * Exit on failure. Cannot continue because the descriptor length
-diff --git a/drivers/acpi/acpica/rscreate.c b/drivers/acpi/acpica/rscreate.c
-index 8133326..55e0908 100644
---- a/drivers/acpi/acpica/rscreate.c
-+++ b/drivers/acpi/acpica/rscreate.c
-@@ -98,7 +98,7 @@ acpi_buffer_to_resource(u8 *aml_buffer,
- 
- 	/* Perform the AML-to-Resource conversion */
- 
--	status = acpi_ut_walk_aml_resources(aml_buffer, aml_buffer_length,
-+	status = acpi_ut_walk_aml_resources(NULL, aml_buffer, aml_buffer_length,
- 					    acpi_rs_convert_aml_to_resources,
- 					    &current_resource_ptr);
- 	if (status == AE_AML_NO_RESOURCE_END_TAG) {
-@@ -174,7 +174,7 @@ acpi_rs_create_resource_list(union acpi_operand_object *aml_buffer,
- 	/* Do the conversion */
- 
- 	resource = output_buffer->pointer;
--	status = acpi_ut_walk_aml_resources(aml_start, aml_buffer_length,
-+	status = acpi_ut_walk_aml_resources(NULL, aml_start, aml_buffer_length,
- 					    acpi_rs_convert_aml_to_resources,
- 					    &resource);
- 	if (ACPI_FAILURE(status)) {
-diff --git a/drivers/acpi/acpica/rslist.c b/drivers/acpi/acpica/rslist.c
-index 8b64db9..83e6158 100644
---- a/drivers/acpi/acpica/rslist.c
-+++ b/drivers/acpi/acpica/rslist.c
-@@ -217,9 +217,10 @@ acpi_rs_convert_resources_to_aml(struct acpi_resource *resource,
- 
- 		/* Perform final sanity check on the new AML resource descriptor */
- 
--		status =
--		    acpi_ut_validate_resource(ACPI_CAST_PTR
--					      (union aml_resource, aml), NULL);
-+		status = acpi_ut_validate_resource(NULL,
-+						   ACPI_CAST_PTR(union
-+								 aml_resource,
-+								 aml), NULL);
- 		if (ACPI_FAILURE(status)) {
- 			return_ACPI_STATUS(status);
- 		}
-diff --git a/drivers/acpi/acpica/utresrc.c b/drivers/acpi/acpica/utresrc.c
-index 7d0a1b5..546ea73 100644
---- a/drivers/acpi/acpica/utresrc.c
-+++ b/drivers/acpi/acpica/utresrc.c
-@@ -383,26 +383,16 @@ static const u8 acpi_gbl_resource_types[] = {
- 	ACPI_VARIABLE_LENGTH	/* 0E *serial_bus */
- };
- 
--/*
-- * For the iASL compiler/disassembler, we don't want any error messages
-- * because the disassembler uses the resource validation code to determine
-- * if Buffer objects are actually Resource Templates.
-- */
--#ifdef ACPI_ASL_COMPILER
--#define ACPI_RESOURCE_ERROR(plist)
--#else
--#define ACPI_RESOURCE_ERROR(plist)  ACPI_ERROR(plist)
--#endif
--
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_ut_walk_aml_resources
-  *
-- * PARAMETERS:  aml             - Pointer to the raw AML resource template
-- *              aml_length      - Length of the entire template
-- *              user_function   - Called once for each descriptor found. If
-- *                                NULL, a pointer to the end_tag is returned
-- *              context         - Passed to user_function
-+ * PARAMETERS:  walk_state          - Current walk info
-+ * PARAMETERS:  aml                 - Pointer to the raw AML resource template
-+ *              aml_length          - Length of the entire template
-+ *              user_function       - Called once for each descriptor found. If
-+ *                                    NULL, a pointer to the end_tag is returned
-+ *              context             - Passed to user_function
-  *
-  * RETURN:      Status
-  *
-@@ -412,7 +402,8 @@ static const u8 acpi_gbl_resource_types[] = {
-  ******************************************************************************/
- 
- acpi_status
--acpi_ut_walk_aml_resources(u8 *aml,
-+acpi_ut_walk_aml_resources(struct acpi_walk_state *walk_state,
-+			   u8 *aml,
- 			   acpi_size aml_length,
- 			   acpi_walk_aml_callback user_function, void **context)
+ u32 acpi_ns_opens_scope(acpi_object_type type)
  {
-@@ -441,7 +432,8 @@ acpi_ut_walk_aml_resources(u8 *aml,
+-	ACPI_FUNCTION_TRACE_STR(ns_opens_scope, acpi_ut_get_type_name(type));
++	ACPI_FUNCTION_ENTRY();
  
- 		/* Validate the Resource Type and Resource Length */
+-	if (!acpi_ut_valid_object_type(type)) {
++	if (type > ACPI_TYPE_LOCAL_MAX) {
  
--		status = acpi_ut_validate_resource(aml, &resource_index);
-+		status =
-+		    acpi_ut_validate_resource(walk_state, aml, &resource_index);
- 		if (ACPI_FAILURE(status)) {
- 			/*
- 			 * Exit on failure. Cannot continue because the descriptor length
-@@ -498,7 +490,8 @@ acpi_ut_walk_aml_resources(u8 *aml,
+ 		/* type code out of range  */
  
- 		/* Insert an end_tag anyway. acpi_rs_get_list_length always leaves room */
- 
--		(void)acpi_ut_validate_resource(end_tag, &resource_index);
-+		(void)acpi_ut_validate_resource(walk_state, end_tag,
-+						&resource_index);
- 		status =
- 		    user_function(end_tag, 2, offset, resource_index, context);
- 		if (ACPI_FAILURE(status)) {
-@@ -513,9 +506,10 @@ acpi_ut_walk_aml_resources(u8 *aml,
-  *
-  * FUNCTION:    acpi_ut_validate_resource
-  *
-- * PARAMETERS:  aml             - Pointer to the raw AML resource descriptor
-- *              return_index    - Where the resource index is returned. NULL
-- *                                if the index is not required.
-+ * PARAMETERS:  walk_state          - Current walk info
-+ *              aml                 - Pointer to the raw AML resource descriptor
-+ *              return_index        - Where the resource index is returned. NULL
-+ *                                    if the index is not required.
-  *
-  * RETURN:      Status, and optionally the Index into the global resource tables
-  *
-@@ -525,7 +519,9 @@ acpi_ut_walk_aml_resources(u8 *aml,
-  *
-  ******************************************************************************/
- 
--acpi_status acpi_ut_validate_resource(void *aml, u8 *return_index)
-+acpi_status
-+acpi_ut_validate_resource(struct acpi_walk_state *walk_state,
-+			  void *aml, u8 *return_index)
- {
- 	union aml_resource *aml_resource;
- 	u8 resource_type;
-@@ -627,10 +623,12 @@ acpi_status acpi_ut_validate_resource(void *aml, u8 *return_index)
- 		if ((aml_resource->common_serial_bus.type == 0) ||
- 		    (aml_resource->common_serial_bus.type >
- 		     AML_RESOURCE_MAX_SERIALBUSTYPE)) {
--			ACPI_RESOURCE_ERROR((AE_INFO,
--					     "Invalid/unsupported SerialBus resource descriptor: BusType 0x%2.2X",
--					     aml_resource->common_serial_bus.
--					     type));
-+			if (walk_state) {
-+				ACPI_ERROR((AE_INFO,
-+					    "Invalid/unsupported SerialBus resource descriptor: BusType 0x%2.2X",
-+					    aml_resource->common_serial_bus.
-+					    type));
-+			}
- 			return (AE_AML_INVALID_RESOURCE_TYPE);
- 		}
+ 		ACPI_WARNING((AE_INFO, "Invalid Object Type 0x%X", type));
+-		return_UINT32(ACPI_NS_NORMAL);
++		return (ACPI_NS_NORMAL);
  	}
-@@ -645,18 +643,22 @@ acpi_status acpi_ut_validate_resource(void *aml, u8 *return_index)
  
-       invalid_resource:
- 
--	ACPI_RESOURCE_ERROR((AE_INFO,
--			     "Invalid/unsupported resource descriptor: Type 0x%2.2X",
--			     resource_type));
-+	if (walk_state) {
-+		ACPI_ERROR((AE_INFO,
-+			    "Invalid/unsupported resource descriptor: Type 0x%2.2X",
-+			    resource_type));
-+	}
- 	return (AE_AML_INVALID_RESOURCE_TYPE);
- 
-       bad_resource_length:
- 
--	ACPI_RESOURCE_ERROR((AE_INFO,
--			     "Invalid resource descriptor length: Type "
--			     "0x%2.2X, Length 0x%4.4X, MinLength 0x%4.4X",
--			     resource_type, resource_length,
--			     minimum_resource_length));
-+	if (walk_state) {
-+		ACPI_ERROR((AE_INFO,
-+			    "Invalid resource descriptor length: Type "
-+			    "0x%2.2X, Length 0x%4.4X, MinLength 0x%4.4X",
-+			    resource_type, resource_length,
-+			    minimum_resource_length));
-+	}
- 	return (AE_AML_BAD_RESOURCE_LENGTH);
+-	return_UINT32(((u32)acpi_gbl_ns_properties[type]) & ACPI_NS_NEWSCOPE);
++	return (((u32)acpi_gbl_ns_properties[type]) & ACPI_NS_NEWSCOPE);
  }
  
-@@ -815,7 +817,7 @@ acpi_ut_get_resource_end_tag(union acpi_operand_object *obj_desc, u8 **end_tag)
+ /*******************************************************************************
+diff --git a/drivers/acpi/acpica/utdelete.c b/drivers/acpi/acpica/utdelete.c
+index e806fb0..53e6af8 100644
+--- a/drivers/acpi/acpica/utdelete.c
++++ b/drivers/acpi/acpica/utdelete.c
+@@ -340,7 +340,7 @@ void acpi_ut_delete_internal_object_list(union acpi_operand_object **obj_list)
+ {
+ 	union acpi_operand_object **internal_obj;
  
- 	/* Validate the template and get a pointer to the end_tag */
+-	ACPI_FUNCTION_TRACE(ut_delete_internal_object_list);
++	ACPI_FUNCTION_NAME(ut_delete_internal_object_list);
  
--	status = acpi_ut_walk_aml_resources(obj_desc->buffer.pointer,
-+	status = acpi_ut_walk_aml_resources(NULL, obj_desc->buffer.pointer,
- 					    obj_desc->buffer.length, NULL,
- 					    (void **)end_tag);
+ 	/* Walk the null-terminated internal list */
  
+@@ -351,7 +351,7 @@ void acpi_ut_delete_internal_object_list(union acpi_operand_object **obj_list)
+ 	/* Free the combined parameter pointer list and object array */
+ 
+ 	ACPI_FREE(obj_list);
+-	return_VOID;
++	return;
+ }
+ 
+ /*******************************************************************************
+@@ -484,7 +484,7 @@ acpi_ut_update_object_reference(union acpi_operand_object *object, u16 action)
+ 	union acpi_generic_state *state;
+ 	u32 i;
+ 
+-	ACPI_FUNCTION_TRACE_PTR(ut_update_object_reference, object);
++	ACPI_FUNCTION_NAME(ut_update_object_reference);
+ 
+ 	while (object) {
+ 
+@@ -493,7 +493,7 @@ acpi_ut_update_object_reference(union acpi_operand_object *object, u16 action)
+ 		if (ACPI_GET_DESCRIPTOR_TYPE(object) == ACPI_DESC_TYPE_NAMED) {
+ 			ACPI_DEBUG_PRINT((ACPI_DB_ALLOCATIONS,
+ 					  "Object %p is NS handle\n", object));
+-			return_ACPI_STATUS(AE_OK);
++			return (AE_OK);
+ 		}
+ 
+ 		/*
+@@ -643,7 +643,7 @@ acpi_ut_update_object_reference(union acpi_operand_object *object, u16 action)
+ 		}
+ 	}
+ 
+-	return_ACPI_STATUS(AE_OK);
++	return (AE_OK);
+ 
+       error_exit:
+ 
+@@ -657,7 +657,7 @@ acpi_ut_update_object_reference(union acpi_operand_object *object, u16 action)
+ 		acpi_ut_delete_generic_state(state);
+ 	}
+ 
+-	return_ACPI_STATUS(status);
++	return (status);
+ }
+ 
+ /*******************************************************************************
+@@ -676,12 +676,12 @@ acpi_ut_update_object_reference(union acpi_operand_object *object, u16 action)
+ void acpi_ut_add_reference(union acpi_operand_object *object)
+ {
+ 
+-	ACPI_FUNCTION_TRACE_PTR(ut_add_reference, object);
++	ACPI_FUNCTION_NAME(ut_add_reference);
+ 
+ 	/* Ensure that we have a valid object */
+ 
+ 	if (!acpi_ut_valid_internal_object(object)) {
+-		return_VOID;
++		return;
+ 	}
+ 
+ 	ACPI_DEBUG_PRINT((ACPI_DB_ALLOCATIONS,
+@@ -691,7 +691,7 @@ void acpi_ut_add_reference(union acpi_operand_object *object)
+ 	/* Increment the reference count */
+ 
+ 	(void)acpi_ut_update_object_reference(object, REF_INCREMENT);
+-	return_VOID;
++	return;
+ }
+ 
+ /*******************************************************************************
+@@ -709,7 +709,7 @@ void acpi_ut_add_reference(union acpi_operand_object *object)
+ void acpi_ut_remove_reference(union acpi_operand_object *object)
+ {
+ 
+-	ACPI_FUNCTION_TRACE_PTR(ut_remove_reference, object);
++	ACPI_FUNCTION_NAME(ut_remove_reference);
+ 
+ 	/*
+ 	 * Allow a NULL pointer to be passed in, just ignore it. This saves
+@@ -718,13 +718,13 @@ void acpi_ut_remove_reference(union acpi_operand_object *object)
+ 	 */
+ 	if (!object ||
+ 	    (ACPI_GET_DESCRIPTOR_TYPE(object) == ACPI_DESC_TYPE_NAMED)) {
+-		return_VOID;
++		return;
+ 	}
+ 
+ 	/* Ensure that we have a valid object */
+ 
+ 	if (!acpi_ut_valid_internal_object(object)) {
+-		return_VOID;
++		return;
+ 	}
+ 
+ 	ACPI_DEBUG_PRINT((ACPI_DB_ALLOCATIONS,
+@@ -737,5 +737,5 @@ void acpi_ut_remove_reference(union acpi_operand_object *object)
+ 	 * of all subobjects!)
+ 	 */
+ 	(void)acpi_ut_update_object_reference(object, REF_DECREMENT);
+-	return_VOID;
++	return;
+ }
+diff --git a/drivers/acpi/acpica/utstate.c b/drivers/acpi/acpica/utstate.c
+index cee0473..26a0c23 100644
+--- a/drivers/acpi/acpica/utstate.c
++++ b/drivers/acpi/acpica/utstate.c
+@@ -97,14 +97,13 @@ void
+ acpi_ut_push_generic_state(union acpi_generic_state **list_head,
+ 			   union acpi_generic_state *state)
+ {
+-	ACPI_FUNCTION_TRACE(ut_push_generic_state);
++	ACPI_FUNCTION_ENTRY();
+ 
+ 	/* Push the state object onto the front of the list (stack) */
+ 
+ 	state->common.next = *list_head;
+ 	*list_head = state;
+-
+-	return_VOID;
++	return;
+ }
+ 
+ /*******************************************************************************
+@@ -124,7 +123,7 @@ union acpi_generic_state *acpi_ut_pop_generic_state(union acpi_generic_state
+ {
+ 	union acpi_generic_state *state;
+ 
+-	ACPI_FUNCTION_TRACE(ut_pop_generic_state);
++	ACPI_FUNCTION_ENTRY();
+ 
+ 	/* Remove the state object at the head of the list (stack) */
+ 
+@@ -136,7 +135,7 @@ union acpi_generic_state *acpi_ut_pop_generic_state(union acpi_generic_state
+ 		*list_head = state->common.next;
+ 	}
+ 
+-	return_PTR(state);
++	return (state);
+ }
+ 
+ /*******************************************************************************
+@@ -186,13 +185,13 @@ struct acpi_thread_state *acpi_ut_create_thread_state(void)
+ {
+ 	union acpi_generic_state *state;
+ 
+-	ACPI_FUNCTION_TRACE(ut_create_thread_state);
++	ACPI_FUNCTION_ENTRY();
+ 
+ 	/* Create the generic state object */
+ 
+ 	state = acpi_ut_create_generic_state();
+ 	if (!state) {
+-		return_PTR(NULL);
++		return (NULL);
+ 	}
+ 
+ 	/* Init fields specific to the update struct */
+@@ -207,7 +206,7 @@ struct acpi_thread_state *acpi_ut_create_thread_state(void)
+ 		state->thread.thread_id = (acpi_thread_id) 1;
+ 	}
+ 
+-	return_PTR((struct acpi_thread_state *)state);
++	return ((struct acpi_thread_state *)state);
+ }
+ 
+ /*******************************************************************************
+@@ -230,13 +229,13 @@ union acpi_generic_state *acpi_ut_create_update_state(union acpi_operand_object
+ {
+ 	union acpi_generic_state *state;
+ 
+-	ACPI_FUNCTION_TRACE_PTR(ut_create_update_state, object);
++	ACPI_FUNCTION_ENTRY();
+ 
+ 	/* Create the generic state object */
+ 
+ 	state = acpi_ut_create_generic_state();
+ 	if (!state) {
+-		return_PTR(NULL);
++		return (NULL);
+ 	}
+ 
+ 	/* Init fields specific to the update struct */
+@@ -244,8 +243,7 @@ union acpi_generic_state *acpi_ut_create_update_state(union acpi_operand_object
+ 	state->common.descriptor_type = ACPI_DESC_TYPE_STATE_UPDATE;
+ 	state->update.object = object;
+ 	state->update.value = action;
+-
+-	return_PTR(state);
++	return (state);
+ }
+ 
+ /*******************************************************************************
+@@ -267,13 +265,13 @@ union acpi_generic_state *acpi_ut_create_pkg_state(void *internal_object,
+ {
+ 	union acpi_generic_state *state;
+ 
+-	ACPI_FUNCTION_TRACE_PTR(ut_create_pkg_state, internal_object);
++	ACPI_FUNCTION_ENTRY();
+ 
+ 	/* Create the generic state object */
+ 
+ 	state = acpi_ut_create_generic_state();
+ 	if (!state) {
+-		return_PTR(NULL);
++		return (NULL);
+ 	}
+ 
+ 	/* Init fields specific to the update struct */
+@@ -283,8 +281,7 @@ union acpi_generic_state *acpi_ut_create_pkg_state(void *internal_object,
+ 	state->pkg.dest_object = external_object;
+ 	state->pkg.index = index;
+ 	state->pkg.num_packages = 1;
+-
+-	return_PTR(state);
++	return (state);
+ }
+ 
+ /*******************************************************************************
+@@ -304,21 +301,20 @@ union acpi_generic_state *acpi_ut_create_control_state(void)
+ {
+ 	union acpi_generic_state *state;
+ 
+-	ACPI_FUNCTION_TRACE(ut_create_control_state);
++	ACPI_FUNCTION_ENTRY();
+ 
+ 	/* Create the generic state object */
+ 
+ 	state = acpi_ut_create_generic_state();
+ 	if (!state) {
+-		return_PTR(NULL);
++		return (NULL);
+ 	}
+ 
+ 	/* Init fields specific to the control struct */
+ 
+ 	state->common.descriptor_type = ACPI_DESC_TYPE_STATE_CONTROL;
+ 	state->common.state = ACPI_CONTROL_CONDITIONAL_EXECUTING;
+-
+-	return_PTR(state);
++	return (state);
+ }
+ 
+ /*******************************************************************************
+@@ -336,12 +332,12 @@ union acpi_generic_state *acpi_ut_create_control_state(void)
+ 
+ void acpi_ut_delete_generic_state(union acpi_generic_state *state)
+ {
+-	ACPI_FUNCTION_TRACE(ut_delete_generic_state);
++	ACPI_FUNCTION_ENTRY();
+ 
+ 	/* Ignore null state */
+ 
+ 	if (state) {
+ 		(void)acpi_os_release_object(acpi_gbl_state_cache, state);
+ 	}
+-	return_VOID;
++	return;
+ }
+diff --git a/drivers/acpi/acpica/uttrack.c b/drivers/acpi/acpica/uttrack.c
+index a424a9e..866f96e 100644
+--- a/drivers/acpi/acpica/uttrack.c
++++ b/drivers/acpi/acpica/uttrack.c
+@@ -436,10 +436,10 @@ acpi_ut_remove_allocation(struct acpi_debug_mem_block *allocation,
+ 	struct acpi_memory_list *mem_list;
+ 	acpi_status status;
+ 
+-	ACPI_FUNCTION_TRACE(ut_remove_allocation);
++	ACPI_FUNCTION_NAME(ut_remove_allocation);
+ 
+ 	if (acpi_gbl_disable_mem_tracking) {
+-		return_ACPI_STATUS(AE_OK);
++		return (AE_OK);
+ 	}
+ 
+ 	mem_list = acpi_gbl_global_list;
+@@ -450,12 +450,12 @@ acpi_ut_remove_allocation(struct acpi_debug_mem_block *allocation,
+ 		ACPI_ERROR((module, line,
+ 			    "Empty allocation list, nothing to free!"));
+ 
+-		return_ACPI_STATUS(AE_OK);
++		return (AE_OK);
+ 	}
+ 
+ 	status = acpi_ut_acquire_mutex(ACPI_MTX_MEMORY);
+ 	if (ACPI_FAILURE(status)) {
+-		return_ACPI_STATUS(status);
++		return (status);
+ 	}
+ 
+ 	/* Unlink */
+@@ -470,15 +470,15 @@ acpi_ut_remove_allocation(struct acpi_debug_mem_block *allocation,
+ 		(allocation->next)->previous = allocation->previous;
+ 	}
+ 
++	ACPI_DEBUG_PRINT((ACPI_DB_ALLOCATIONS, "Freeing %p, size 0%X\n",
++			  &allocation->user_space, allocation->size));
++
+ 	/* Mark the segment as deleted */
+ 
+ 	ACPI_MEMSET(&allocation->user_space, 0xEA, allocation->size);
+ 
+-	ACPI_DEBUG_PRINT((ACPI_DB_ALLOCATIONS, "Freeing size 0%X\n",
+-			  allocation->size));
+-
+ 	status = acpi_ut_release_mutex(ACPI_MTX_MEMORY);
+-	return_ACPI_STATUS(status);
++	return (status);
+ }
+ 
+ /*******************************************************************************
 -- 
 1.7.10
 
