@@ -1,455 +1,128 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Update 2][PATCH] ACPI / PCI: Set root bridge ACPI handle in advance
-Date: Wed, 19 Dec 2012 11:50:55 +0100
-Message-ID: <1424099.UpCnjqpMj1@vostro.rjw.lan>
-References: <1558789.gX8cmBgyDV@vostro.rjw.lan> <3596215.suSiEFiGH8@vostro.rjw.lan> <1AE640813FDE7649BE1B193DEA596E88BDA94D@SHSMSX101.ccr.corp.intel.com>
+Subject: Re: [PATCH rev.2 1/6] ACPI: Separate adding ACPI device objects from probing ACPI drivers
+Date: Wed, 19 Dec 2012 12:13:45 +0100
+Message-ID: <9914743.4VRVUiabDD@vostro.rjw.lan>
+References: <8498184.VilrUmatxI@vostro.rjw.lan> <4447450.z46Q2xYLQX@vostro.rjw.lan> <CAErSpo63cQJskAJKBwai6ipToVHEEwCWXeRfBOzF29Ds29MTbA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:37572 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:37583 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750976Ab2LSKpm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 19 Dec 2012 05:45:42 -0500
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E88BDA94D@SHSMSX101.ccr.corp.intel.com>
+	id S1751296Ab2LSLIc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Dec 2012 06:08:32 -0500
+In-Reply-To: <CAErSpo63cQJskAJKBwai6ipToVHEEwCWXeRfBOzF29Ds29MTbA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Toshi Kani <toshi.kani@hp.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Myron Stowe <myron.stowe@redhat.com>, Yijing Wang <wangyijing0307@gmail.com>, Jiang Liu <liuj97@gmail.com>
 
-On Wednesday, December 19, 2012 06:00:18 AM Zheng, Lv wrote:
-> Will future implementation move _REG evaluations from ACPICA core to a place before
-> driver->probe as all of the physical devices will know their "acpi_handle" soon after
-> it is created.
+On Tuesday, December 18, 2012 04:19:55 PM Bjorn Helgaas wrote:
+> On Tue, Dec 18, 2012 at 4:00 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > On Tuesday, December 18, 2012 03:15:12 PM Toshi Kani wrote:
+> >> On Tue, 2012-12-18 at 22:57 +0100, Rafael J. Wysocki wrote:
+> >> > On Tuesday, December 18, 2012 09:10:41 AM Toshi Kani wrote:
+> >> > > On Tue, 2012-12-18 at 02:48 +0100, Rafael J. Wysocki wrote:
+> >>  :
+> >> > > We need to decide which module is responsible for calling .bind().  I
+> >> > > think it should be the ACPI scan module, not the ACPI PCI root bridge
+> >> > > driver, because:
+> >> > >  - bind() needs to be called when _ADR device is added.  The ACPI scan
+> >> > > module can scan any devices, while the PCI root driver can only scan
+> >> > > when it is added.
+> >> > >  - acpi_bus_remove() calls unbind() at hot-remove.  The same module
+> >> > > should be responsible for both bind() and unbind() handling.
+> >> > >  - It is cleaner to keep struct acpi_device_ops interface to be called
+> >> > > by the ACPI core.
+> >> >
+> >> > I agree with that. :-)
+> >> >
+> >> > Moreover, I don't think we need acpi_pci_bind() and acpi_pci_unbind() at all.
+> >> >
+> >> > > So, I would propose the following changes.
+> >> > >
+> >> > >  - Move the acpi_hot_add_bind() call back to the original place after
+> >> > > the device_attach() call.
+> >> > >  - Rename the name of acpi_hot_add_bind() to something like
+> >> > > acpi_bind_adr_device() since it is no longer hot-add only (and is
+> >> > > specific to _ADR devices).
+> >> > >  - Create its pair function, acpi_unbind_adr_device(), which is called
+> >> > > from acpi_bus_remove().  When a constructor interface is introduced, its
+> >> > > destructor should be introduced as well.
+> >> > >  - Remove the binding procedure from acpi_pci_root_add().  This should
+> >> > > be done in patch [2/6].
+> >> >
+> >> > Well, what about moving the code from acpi_pci_bind()/acpi_pci_unbind()
+> >> > somewhere else and removing those things altogether?
+> >>
+> >> Sounds nice.  It will be bonus point if you can do that. :-)
+> >
+> > I think I can, but I need a few more patches on top of what I've already posted
+> > to do that.
+> >
+> > I think that https://patchwork.kernel.org/patch/1889821/ and
+> > https://patchwork.kernel.org/patch/1884701/ can stay as they are, since there's
+> > some material on top of them already and I'll cut the new patches on top of all
+> > that.  I'll repost the whole series some time later this week, stay tuned. :-)
+> 
+> I haven't follow this closely enough to give useful feedback, but I
+> trust that what you're doing is going in the right direction.
 
-We may do that, although quite frankly I haven't been considering that.
+Cool. :-)
 
-> This seems to be a solution to solve problems can be found like:
-> Orphan _REG / _DEP support...
-> I'm not sure though this sounds better to make ones operational regions ready
-> only if a driver is going to be "attached" to the physical device.
+> The only question I have right now is what I mentioned earlier on IRC,
+> namely, the idea of "binding" an ACPI handle or device to a pci_dev,
+> and whether there's a way to guarantee that the binding doesn't become
+> stale.  For example, if we bind pci_dev A to acpi_device B, I think we
+> essentially capture the pointer to B and store that pointer in A.
+> Obviously we want to know that the captured pointer in A remains valid
+> as long as A exists, but I don't know what assures us of that.
 
-Well, they may be accessed by unrelated AML in theory.
+This really is a bit more complicated.
+
+First, what we store in A is not a pointer to B, but rather the corresponding
+ACPICA handle, which is guaranteed to live longer that B itself.
+
+Second, we not only store the B's handle in A, but also a pointer to A in B
+(in the physical_node_list list).  Moreover, we create the "firmware_node"
+sysfs file under A and a "physical_node" sysfs file under B.
+
+All of that becomes invalid when either A or B is removed without notice.
+
+For the removal of A we have acpi_platform_notify() that calls
+acpi_unbind_one() which kills all of that stuff, so as long as A is removed
+earlier than B, we have no problems.
+
+For the removal of B, however, we seem to assume that if the device is
+ejectable, there will be an ACPI driver bound to B (ie. the struct acpi_device)
+that will take care of the removal of the physical nodes associated with it
+before B itself is removed.  At least that's my understanding of the current
+code.  Moreover, I'm not sure if this assumption is universally satisfied.
+
+> I don't think this is a new question; I have the same question about
+> the current code before your changes.  But it seems like you're
+> simplifying this area in a way that might make it easier to answer the
+> question.
+
+Well, my patches are not likely to make things worse in this area. :-)
+
+Anyway, I think we should make acpi_bus_scan(), or even acpi_bus_add() after
+my changes, mutually exclusive with acpi_bus_trim(), because that will ensure
+that we won't be removing ACPI device objects while setting them up (or the
+other way around).  That would require us to redesign some ACPI drivers first,
+though, because they call acpi_bus_trim() in their initialization code paths
+(I don't really think they should be doing that).
+
+Moreover, I think we should make the ACPI core trigger the removal of all
+physical nodes (As) associated with the given ACPI node (B) after calling
+device_release_driver() in acpi_bus_remove().  That will ensure that all
+physical nodes are gone along with all the binding-related stuff (thanks to
+acpi_platform_notify()) before the ACPI node is removed.
 
 Thanks,
 Rafael
 
 
-> > -----Original Message-----
-> > From: linux-acpi-owner@vger.kernel.org
-> > [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Rafael J. Wysocki
-> > Sent: Tuesday, December 18, 2012 7:30 AM
-> > To: ACPI Devel Maling List
-> > Cc: Greg Kroah-Hartman; LKML; Bjorn Helgaas; Benjamin Herrenschmidt;
-> > David Miller; Luck, Tony; H. Peter Anvin; Yinghai Lu; Jiang Liu; Martin
-> > Schwidefsky; Jan Glauber
-> > Subject: [Update 2][PATCH] ACPI / PCI: Set root bridge ACPI handle in advance
-> > 
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > 
-> > The ACPI handles of PCI root bridges need to be known to
-> > acpi_bind_one(), so that it can create the appropriate
-> > "firmware_node" and "physical_node" files for them, but currently
-> > the way it gets to know those handles is not exactly straightforward
-> > (to put it lightly).
-> > 
-> > This is how it works, roughly:
-> > 
-> >   1. acpi_bus_scan() finds the handle of a PCI root bridge,
-> >      creates a struct acpi_device object for it and passes that
-> >      object to acpi_pci_root_add().
-> > 
-> >   2. acpi_pci_root_add() creates a struct acpi_pci_root object,
-> >      populates its "device" field with its argument's address
-> >      (device->handle is the ACPI handle found in step 1).
-> > 
-> >   3. The struct acpi_pci_root object created in step 2 is passed
-> >      to pci_acpi_scan_root() and used to get resources that are
-> >      passed to pci_create_root_bus().
-> > 
-> >   4. pci_create_root_bus() creates a struct pci_host_bridge object
-> >      and passes its "dev" member to device_register().
-> > 
-> >   5. platform_notify(), which for systems with ACPI is set to
-> >      acpi_platform_notify(), is called.
-> > 
-> > So far, so good.  Now it starts to be "interesting".
-> > 
-> >   6. acpi_find_bridge_device() is used to find the ACPI handle of
-> >      the given device (which is the PCI root bridge) and executes
-> >      acpi_pci_find_root_bridge(), among other things, for the
-> >      given device object.
-> > 
-> >   7. acpi_pci_find_root_bridge() uses the name (sic!) of the given
-> >      device object to extract the segment and bus numbers of the PCI
-> >      root bridge and passes them to acpi_get_pci_rootbridge_handle().
-> > 
-> >   8. acpi_get_pci_rootbridge_handle() browses the list of ACPI PCI
-> >      root bridges and finds the one that matches the given segment
-> >      and bus numbers.  Its handle is then used to initialize the
-> >      ACPI handle of the PCI root bridge's device object by
-> >      acpi_bind_one().  However, this is *exactly* the ACPI handle we
-> >      started with in step 1.
-> > 
-> > Needless to say, this is quite embarassing, but it may be avoided
-> > thanks to commit f3fd0c8 (ACPI: Allow ACPI handles of devices to be
-> > initialized in advance), which makes it possible to initialize the
-> > ACPI handle of a device before passing it to device_register().
-> > 
-> > Accordingly, make pci_acpi_scan_root() pass the root bridge's ACPI
-> > handle to pci_create_root_bus() and make the latter set the ACPI
-> > handle in its struct pci_host_bridge object's "dev" member before
-> > passing it to device_register(), so that steps 6-8 above aren't
-> > necessary any more.
-> > 
-> > To implement that, I decided to repurpose the 4th argument of
-> > pci_create_root_bus(), because that allowed me to avoid defining
-> > additional callbacks or similar things and didn't seem to impact
-> > architectures without ACPI substantially.
-> > 
-> > All architectures using pci_create_root_bus() directly are updated
-> > as needed, but only x86 and ia64 are affected as far as the behavior
-> > is concerned (no one else uses ACPI).  There should be no changes in
-> > behavior resulting from this on the other architectures.
-> > 
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > Acked-by: Yinghai Lu <yinghai@kernel.org>
-> > Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> > Acked-by: H. Peter Anvin <hpa@zytor.com>
-> > ---
-> > 
-> > Peter Anvin pointed out to me that it's better to make it clear in the
-> > changelog what the patch actually does versus what might be left as future
-> > work, so here's another update with a slightly modified (and hopefully better)
-> > changelog.  The patch itself hasn't been changed.
-> > 
-> > Thanks,
-> > Rafael
-> > 
-> > ---
-> >  arch/ia64/pci/pci.c              |    5 ++++-
-> >  arch/powerpc/kernel/pci-common.c |    3 ++-
-> >  arch/s390/pci/pci.c              |    3 ++-
-> >  arch/sparc/kernel/pci.c          |    3 ++-
-> >  arch/x86/pci/acpi.c              |    5 ++++-
-> >  drivers/acpi/pci_root.c          |   18 ------------------
-> >  drivers/pci/pci-acpi.c           |   19 -------------------
-> >  drivers/pci/probe.c              |   17 ++++++++++++-----
-> >  include/acpi/acpi_bus.h          |    1 -
-> >  include/linux/pci.h              |    9 ++++++++-
-> >  10 files changed, 34 insertions(+), 49 deletions(-)
-> > 
-> > Index: linux-pm/arch/x86/pci/acpi.c
-> > ================================================================
-> > ===
-> > --- linux-pm.orig/arch/x86/pci/acpi.c
-> > +++ linux-pm/arch/x86/pci/acpi.c
-> > @@ -483,6 +483,7 @@ struct pci_bus * __devinit pci_acpi_scan
-> >  	LIST_HEAD(resources);
-> >  	struct pci_bus *bus = NULL;
-> >  	struct pci_sysdata *sd;
-> > +	struct pci_root_sys_info si;
-> >  	int node;
-> >  #ifdef CONFIG_ACPI_NUMA
-> >  	int pxm;
-> > @@ -522,6 +523,8 @@ struct pci_bus * __devinit pci_acpi_scan
-> >  	sd = &info->sd;
-> >  	sd->domain = domain;
-> >  	sd->node = node;
-> > +	si.acpi_node.handle = device->handle;
-> > +	si.sysdata = sd;
-> >  	/*
-> >  	 * Maybe the desired pci bus has been already scanned. In such case
-> >  	 * it is unnecessary to scan the pci bus with the given domain,busnum.
-> > @@ -553,7 +556,7 @@ struct pci_bus * __devinit pci_acpi_scan
-> >  		if (!setup_mcfg_map(info, domain, (u8)root->secondary.start,
-> >  				    (u8)root->secondary.end, root->mcfg_addr))
-> >  			bus = pci_create_root_bus(NULL, busnum, &pci_root_ops,
-> > -						  sd, &resources);
-> > +						  &si, &resources);
-> > 
-> >  		if (bus) {
-> >  			pci_scan_child_bus(bus);
-> > Index: linux-pm/drivers/pci/probe.c
-> > ================================================================
-> > ===
-> > --- linux-pm.orig/drivers/pci/probe.c
-> > +++ linux-pm/drivers/pci/probe.c
-> > @@ -1634,7 +1634,9 @@ unsigned int pci_scan_child_bus(struct p
-> >  }
-> > 
-> >  struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
-> > -		struct pci_ops *ops, void *sysdata, struct list_head *resources)
-> > +				    struct pci_ops *ops,
-> > +				    struct pci_root_sys_info *sys_info,
-> > +				    struct list_head *resources)
-> >  {
-> >  	int error;
-> >  	struct pci_host_bridge *bridge;
-> > @@ -1650,7 +1652,7 @@ struct pci_bus *pci_create_root_bus(stru
-> >  	if (!b)
-> >  		return NULL;
-> > 
-> > -	b->sysdata = sysdata;
-> > +	b->sysdata = sys_info ? sys_info->sysdata : NULL;
-> >  	b->ops = ops;
-> >  	b2 = pci_find_bus(pci_domain_nr(b), bus);
-> >  	if (b2) {
-> > @@ -1666,6 +1668,8 @@ struct pci_bus *pci_create_root_bus(stru
-> >  	bridge->dev.parent = parent;
-> >  	bridge->dev.release = pci_release_bus_bridge_dev;
-> >  	dev_set_name(&bridge->dev, "pci%04x:%02x", pci_domain_nr(b), bus);
-> > +	ACPI_HANDLE_SET(&bridge->dev,
-> > +			sys_info ? sys_info->acpi_node.handle : NULL);
-> >  	error = device_register(&bridge->dev);
-> >  	if (error)
-> >  		goto bridge_dev_reg_err;
-> > @@ -1798,6 +1802,7 @@ struct pci_bus *pci_scan_root_bus(struct
-> >  		struct pci_ops *ops, void *sysdata, struct list_head *resources)
-> >  {
-> >  	struct pci_host_bridge_window *window;
-> > +	struct pci_root_sys_info si = { .sysdata = sysdata, };
-> >  	bool found = false;
-> >  	struct pci_bus *b;
-> >  	int max;
-> > @@ -1808,7 +1813,7 @@ struct pci_bus *pci_scan_root_bus(struct
-> >  			break;
-> >  		}
-> > 
-> > -	b = pci_create_root_bus(parent, bus, ops, sysdata, resources);
-> > +	b = pci_create_root_bus(parent, bus, ops, &si, resources);
-> >  	if (!b)
-> >  		return NULL;
-> > 
-> > @@ -1833,13 +1838,14 @@ EXPORT_SYMBOL(pci_scan_root_bus);
-> >  struct pci_bus *pci_scan_bus_parented(struct device *parent,
-> >  		int bus, struct pci_ops *ops, void *sysdata)
-> >  {
-> > +	struct pci_root_sys_info si = { .sysdata = sysdata, };
-> >  	LIST_HEAD(resources);
-> >  	struct pci_bus *b;
-> > 
-> >  	pci_add_resource(&resources, &ioport_resource);
-> >  	pci_add_resource(&resources, &iomem_resource);
-> >  	pci_add_resource(&resources, &busn_resource);
-> > -	b = pci_create_root_bus(parent, bus, ops, sysdata, &resources);
-> > +	b = pci_create_root_bus(parent, bus, ops, &si, &resources);
-> >  	if (b)
-> >  		pci_scan_child_bus(b);
-> >  	else
-> > @@ -1851,13 +1857,14 @@ EXPORT_SYMBOL(pci_scan_bus_parented);
-> >  struct pci_bus *pci_scan_bus(int bus, struct pci_ops *ops,
-> >  					void *sysdata)
-> >  {
-> > +	struct pci_root_sys_info si = { .sysdata = sysdata, };
-> >  	LIST_HEAD(resources);
-> >  	struct pci_bus *b;
-> > 
-> >  	pci_add_resource(&resources, &ioport_resource);
-> >  	pci_add_resource(&resources, &iomem_resource);
-> >  	pci_add_resource(&resources, &busn_resource);
-> > -	b = pci_create_root_bus(NULL, bus, ops, sysdata, &resources);
-> > +	b = pci_create_root_bus(NULL, bus, ops, &si, &resources);
-> >  	if (b) {
-> >  		pci_scan_child_bus(b);
-> >  		pci_bus_add_devices(b);
-> > Index: linux-pm/include/linux/pci.h
-> > ================================================================
-> > ===
-> > --- linux-pm.orig/include/linux/pci.h
-> > +++ linux-pm/include/linux/pci.h
-> > @@ -700,8 +700,15 @@ void pci_bus_add_devices(const struct pc
-> >  struct pci_bus *pci_scan_bus_parented(struct device *parent, int bus,
-> >  				      struct pci_ops *ops, void *sysdata);
-> >  struct pci_bus *pci_scan_bus(int bus, struct pci_ops *ops, void *sysdata);
-> > +
-> > +struct pci_root_sys_info {
-> > +	void *sysdata;
-> > +	struct acpi_dev_node acpi_node;
-> > +};
-> > +
-> >  struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
-> > -				    struct pci_ops *ops, void *sysdata,
-> > +				    struct pci_ops *ops,
-> > +				    struct pci_root_sys_info *sys_info,
-> >  				    struct list_head *resources);
-> >  int pci_bus_insert_busn_res(struct pci_bus *b, int bus, int busmax);
-> >  int pci_bus_update_busn_res_end(struct pci_bus *b, int busmax);
-> > Index: linux-pm/arch/ia64/pci/pci.c
-> > ================================================================
-> > ===
-> > --- linux-pm.orig/arch/ia64/pci/pci.c
-> > +++ linux-pm/arch/ia64/pci/pci.c
-> > @@ -333,6 +333,7 @@ pci_acpi_scan_root(struct acpi_pci_root
-> >  	struct pci_controller *controller;
-> >  	unsigned int windows = 0;
-> >  	struct pci_root_info info;
-> > +	struct pci_root_sys_info si;
-> >  	struct pci_bus *pbus;
-> >  	char *name;
-> >  	int pxm;
-> > @@ -378,7 +379,9 @@ pci_acpi_scan_root(struct acpi_pci_root
-> >  	 * should handle the case here, but it appears that IA64 hasn't
-> >  	 * such quirk. So we just ignore the case now.
-> >  	 */
-> > -	pbus = pci_create_root_bus(NULL, bus, &pci_root_ops, controller,
-> > +	si.sysdata = controller;
-> > +	si.acpi_node.handle = controller->acpi_handle;
-> > +	pbus = pci_create_root_bus(NULL, bus, &pci_root_ops, &si,
-> >  				   &info.resources);
-> >  	if (!pbus) {
-> >  		pci_free_resource_list(&info.resources);
-> > Index: linux-pm/arch/powerpc/kernel/pci-common.c
-> > ================================================================
-> > ===
-> > --- linux-pm.orig/arch/powerpc/kernel/pci-common.c
-> > +++ linux-pm/arch/powerpc/kernel/pci-common.c
-> > @@ -1644,6 +1644,7 @@ void __devinit pcibios_scan_phb(struct p
-> >  	LIST_HEAD(resources);
-> >  	struct pci_bus *bus;
-> >  	struct device_node *node = hose->dn;
-> > +	struct pci_root_sys_info si = { .sysdata = hose, };
-> >  	int mode;
-> > 
-> >  	pr_debug("PCI: Scanning PHB %s\n", of_node_full_name(node));
-> > @@ -1661,7 +1662,7 @@ void __devinit pcibios_scan_phb(struct p
-> > 
-> >  	/* Create an empty bus for the toplevel */
-> >  	bus = pci_create_root_bus(hose->parent, hose->first_busno,
-> > -				  hose->ops, hose, &resources);
-> > +				  hose->ops, &si, &resources);
-> >  	if (bus == NULL) {
-> >  		pr_err("Failed to create bus for PCI domain %04x\n",
-> >  			hose->global_number);
-> > Index: linux-pm/arch/sparc/kernel/pci.c
-> > ================================================================
-> > ===
-> > --- linux-pm.orig/arch/sparc/kernel/pci.c
-> > +++ linux-pm/arch/sparc/kernel/pci.c
-> > @@ -590,6 +590,7 @@ struct pci_bus * __devinit pci_scan_one_
-> >  {
-> >  	LIST_HEAD(resources);
-> >  	struct device_node *node = pbm->op->dev.of_node;
-> > +	struct pci_root_sys_info si = { .sysdata = pbm, };
-> >  	struct pci_bus *bus;
-> > 
-> >  	printk("PCI: Scanning PBM %s\n", node->full_name);
-> > @@ -603,7 +604,7 @@ struct pci_bus * __devinit pci_scan_one_
-> >  	pbm->busn.flags	= IORESOURCE_BUS;
-> >  	pci_add_resource(&resources, &pbm->busn);
-> >  	bus = pci_create_root_bus(parent, pbm->pci_first_busno, pbm->pci_ops,
-> > -				  pbm, &resources);
-> > +				  &si, &resources);
-> >  	if (!bus) {
-> >  		printk(KERN_ERR "Failed to create bus for %s\n",
-> >  		       node->full_name);
-> > Index: linux-pm/drivers/pci/pci-acpi.c
-> > ================================================================
-> > ===
-> > --- linux-pm.orig/drivers/pci/pci-acpi.c
-> > +++ linux-pm/drivers/pci/pci-acpi.c
-> > @@ -303,28 +303,9 @@ static int acpi_pci_find_device(struct d
-> >  	return 0;
-> >  }
-> > 
-> > -static int acpi_pci_find_root_bridge(struct device *dev, acpi_handle *handle)
-> > -{
-> > -	int num;
-> > -	unsigned int seg, bus;
-> > -
-> > -	/*
-> > -	 * The string should be the same as root bridge's name
-> > -	 * Please look at 'pci_scan_bus_parented'
-> > -	 */
-> > -	num = sscanf(dev_name(dev), "pci%04x:%02x", &seg, &bus);
-> > -	if (num != 2)
-> > -		return -ENODEV;
-> > -	*handle = acpi_get_pci_rootbridge_handle(seg, bus);
-> > -	if (!*handle)
-> > -		return -ENODEV;
-> > -	return 0;
-> > -}
-> > -
-> >  static struct acpi_bus_type acpi_pci_bus = {
-> >  	.bus = &pci_bus_type,
-> >  	.find_device = acpi_pci_find_device,
-> > -	.find_bridge = acpi_pci_find_root_bridge,
-> >  };
-> > 
-> >  static int __init acpi_pci_init(void)
-> > Index: linux-pm/drivers/acpi/pci_root.c
-> > ================================================================
-> > ===
-> > --- linux-pm.orig/drivers/acpi/pci_root.c
-> > +++ linux-pm/drivers/acpi/pci_root.c
-> > @@ -107,24 +107,6 @@ void acpi_pci_unregister_driver(struct a
-> >  }
-> >  EXPORT_SYMBOL(acpi_pci_unregister_driver);
-> > 
-> > -acpi_handle acpi_get_pci_rootbridge_handle(unsigned int seg, unsigned int
-> > bus)
-> > -{
-> > -	struct acpi_pci_root *root;
-> > -	acpi_handle handle = NULL;
-> > -
-> > -	mutex_lock(&acpi_pci_root_lock);
-> > -	list_for_each_entry(root, &acpi_pci_roots, node)
-> > -		if ((root->segment == (u16) seg) &&
-> > -		    (root->secondary.start == (u16) bus)) {
-> > -			handle = root->device->handle;
-> > -			break;
-> > -		}
-> > -	mutex_unlock(&acpi_pci_root_lock);
-> > -	return handle;
-> > -}
-> > -
-> > -EXPORT_SYMBOL_GPL(acpi_get_pci_rootbridge_handle);
-> > -
-> >  /**
-> >   * acpi_is_root_bridge - determine whether an ACPI CA node is a PCI root
-> > bridge
-> >   * @handle - the ACPI CA node in question.
-> > Index: linux-pm/include/acpi/acpi_bus.h
-> > ================================================================
-> > ===
-> > --- linux-pm.orig/include/acpi/acpi_bus.h
-> > +++ linux-pm/include/acpi/acpi_bus.h
-> > @@ -443,7 +443,6 @@ struct acpi_pci_root {
-> >  /* helper */
-> >  acpi_handle acpi_get_child(acpi_handle, u64);
-> >  int acpi_is_root_bridge(acpi_handle);
-> > -acpi_handle acpi_get_pci_rootbridge_handle(unsigned int, unsigned int);
-> >  struct acpi_pci_root *acpi_pci_find_root(acpi_handle handle);
-> >  #define DEVICE_ACPI_HANDLE(dev) ((acpi_handle)ACPI_HANDLE(dev))
-> > 
-> > Index: linux-pm/arch/s390/pci/pci.c
-> > ================================================================
-> > ===
-> > --- linux-pm.orig/arch/s390/pci/pci.c
-> > +++ linux-pm/arch/s390/pci/pci.c
-> > @@ -852,6 +852,7 @@ static void zpci_free_iomap(struct zpci_
-> > 
-> >  static int zpci_create_device_bus(struct zpci_dev *zdev)
-> >  {
-> > +	struct pci_root_sys_info si = { .sysdata = zdev, };
-> >  	struct resource *res;
-> >  	LIST_HEAD(resources);
-> >  	int i;
-> > @@ -888,7 +889,7 @@ static int zpci_create_device_bus(struct
-> >  	}
-> > 
-> >  	zdev->bus = pci_create_root_bus(NULL, ZPCI_BUS_NR, &pci_root_ops,
-> > -					zdev, &resources);
-> > +					&si, &resources);
-> >  	if (!zdev->bus)
-> >  		return -EIO;
-> > 
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
 -- 
 I speak only for myself.
 Rafael J. Wysocki, Intel Open Source Technology Center.
