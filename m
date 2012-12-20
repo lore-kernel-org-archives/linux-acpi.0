@@ -1,147 +1,59 @@
-From: Laszlo Ersek <lersek@redhat.com>
-Subject: [PATCH 1/1] acpi_get_sleep_type_data(): accept package with one element
-Date: Thu, 20 Dec 2012 18:31:23 +0100
-Message-ID: <1356024683-28542-2-git-send-email-lersek@redhat.com>
-References: <1356024683-28542-1-git-send-email-lersek@redhat.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH] ACPI: Remove unused struct acpi_pci_root.id member
+Date: Thu, 20 Dec 2012 11:37:24 -0700
+Message-ID: <CAErSpo5oFEa5RD1_EYLtwvwF0dZFpkUp9XqO_kJZ+c5bL-1TTw@mail.gmail.com>
+References: <20121219173044.12424.11336.stgit@bhelgaas.mtv.corp.google.com> <6539457.htZABURDoR@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40612 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751570Ab2LTR3q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Dec 2012 12:29:46 -0500
-In-Reply-To: <1356024683-28542-1-git-send-email-lersek@redhat.com>
+Received: from mail-vb0-f49.google.com ([209.85.212.49]:45132 "EHLO
+	mail-vb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751753Ab2LTShq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Dec 2012 13:37:46 -0500
+Received: by mail-vb0-f49.google.com with SMTP id r6so4107554vbi.8
+        for <linux-acpi@vger.kernel.org>; Thu, 20 Dec 2012 10:37:45 -0800 (PST)
+In-Reply-To: <6539457.htZABURDoR@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, lersek@redhat.com
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
 
-Citation from "ACPIspec50.pdf":
+On Wed, Dec 19, 2012 at 6:22 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> On Wednesday, December 19, 2012 10:30:44 AM Bjorn Helgaas wrote:
+>> This member is never initialized and never referenced, so remove it.
+>
+> Sure. :-)
+>
+> Do you want me to take this?
 
-  7.3.4 System \_Sx states
+I assume you're going to push your namespace scan rework through your
+tree, since most of the changes are in drivers/acpi.  That series also
+touches acpi_bus.h, so probably makes the most sense for you to take
+this as well.  I don't plan any future changes to the file.
 
-    [...]
+There are more PCI-centric pci_root.c changes in the pipe, but we'll
+have to sort those out later, I think.
 
-    Return Value:
+Let me know if you think otherwise.
 
-    A Package containing an Integer containing register values for
-    sleeping
-
-Hence accept one-element packages as well when parsing sleep states, in
-addition to the currently accepted multi-element packages.
-
-See the ACPICA upstream posting under [1].
-
-This change is prompted by OVMF svn rev 14003 [2] that creates the \_S3
-and \_S4 packages with a single DWORD in each:
-
-  Name (\_S3, Package (0x01)
-  {
-      0x00000001
-  })
-  Name (\_S4, Package (0x01)
-  {
-      0x00000002
-  })
-
-Tested with a RHEL-6 kernel (patch applies verbatim) in virtual machines.
-Without the patch,
-- on OVMF, errors like
-
-  ACPI Error: Sleep State return package does not have at least two
-              elements (20120711/hwxface-511)
-  ACPI Exception: AE_AML_NO_OPERAND, While evaluating SleepState [\_S3_],
-                  bad Sleep object ffff880119a33cf0 type Package
-                  (20120711/hwxface-543)
-
-  are logged and suspend doesn't work,
-
-- on SeaBIOS, which provides multi-element packages, suspend works.
-
-With the patch, the messages are gone on OVMF, and the VM can be suspended
-with both boot firmwares.
-
-[1] http://lists.acpica.org/pipermail/devel/2012-December/000405.html
-[2] http://tianocore.git.sourceforge.net/git/gitweb.cgi?p=tianocore/edk2;a=commitdiff;h=14430c55c8d0e9a8487c2c74155e63299632ef5e
-
-Signed-off-by: Laszlo Ersek <lersek@redhat.com>
----
- drivers/acpi/acpica/hwxface.c |   60 ++++++++++++++++++++++-------------------
- 1 files changed, 32 insertions(+), 28 deletions(-)
-
-diff --git a/drivers/acpi/acpica/hwxface.c b/drivers/acpi/acpica/hwxface.c
-index 05a154c..6cd5bb0 100644
---- a/drivers/acpi/acpica/hwxface.c
-+++ b/drivers/acpi/acpica/hwxface.c
-@@ -499,39 +499,43 @@ acpi_get_sleep_type_data(u8 sleep_state, u8 *sleep_type_a, u8 *sleep_type_b)
- 	}
- 
- 	/*
--	 * The package must have at least two elements. NOTE (March 2005): This
--	 * goes against the current ACPI spec which defines this object as a
--	 * package with one encoded DWORD element. However, existing practice
--	 * by BIOS vendors seems to be to have 2 or more elements, at least
--	 * one per sleep type (A/B).
-+	 * The current ACPI spec (v 5.0) defines this object as a package with
-+	 * one encoded DWORD element.
-+	 *
-+	 * Existing practice by BIOS vendors seems to be to have 2 or more
-+	 * elements, at least one per sleep type (A/B).
- 	 */
--	else if (info->return_object->package.count < 2) {
-+	else if (info->return_object->package.count == 0) {
- 		ACPI_ERROR((AE_INFO,
--			    "Sleep State return package does not have at least two elements"));
-+			    "Sleep State return package does not have elements"));
- 		status = AE_AML_NO_OPERAND;
--	}
--
--	/* The first two elements must both be of type Integer */
--
--	else if (((info->return_object->package.elements[0])->common.type
--		  != ACPI_TYPE_INTEGER) ||
--		 ((info->return_object->package.elements[1])->common.type
--		  != ACPI_TYPE_INTEGER)) {
--		ACPI_ERROR((AE_INFO,
--			    "Sleep State return package elements are not both Integers "
--			    "(%s, %s)",
--			    acpi_ut_get_object_type_name(info->return_object->
--							 package.elements[0]),
--			    acpi_ut_get_object_type_name(info->return_object->
--							 package.elements[1])));
--		status = AE_AML_OPERAND_TYPE;
- 	} else {
--		/* Valid _Sx_ package size, type, and value */
-+		union acpi_operand_object **elements;
- 
--		*sleep_type_a = (u8)
--		    (info->return_object->package.elements[0])->integer.value;
--		*sleep_type_b = (u8)
--		    (info->return_object->package.elements[1])->integer.value;
-+		elements = info->return_object->package.elements;
-+
-+		if (elements[0]->common.type != ACPI_TYPE_INTEGER) {
-+			ACPI_ERROR((AE_INFO,
-+				    "1st element in Sleep State return package is not Integer "
-+				    "(%s)",
-+				    acpi_ut_get_object_type_name(elements[0])));
-+			status = AE_AML_OPERAND_TYPE;
-+		}
-+		else if (info->return_object->package.count == 1) {
-+			*sleep_type_a = (u8) elements[0]->integer.value;
-+			*sleep_type_b = (u8)(elements[0]->integer.value >> 8);
-+		}
-+		else if (elements[1]->common.type != ACPI_TYPE_INTEGER) {
-+			ACPI_ERROR((AE_INFO,
-+				    "2nd element in Sleep State return package is not Integer "
-+				    "(%s)",
-+				    acpi_ut_get_object_type_name(elements[1])));
-+			status = AE_AML_OPERAND_TYPE;
-+		}
-+		else {
-+			*sleep_type_a = (u8)elements[0]->integer.value;
-+			*sleep_type_b = (u8)elements[1]->integer.value;
-+		}
- 	}
- 
- 	if (ACPI_FAILURE(status)) {
--- 
-1.7.1
-
+>> Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+>> ---
+>>  include/acpi/acpi_bus.h |    1 -
+>>  1 files changed, 0 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+>> index 7ced5dc..4f42c0e 100644
+>> --- a/include/acpi/acpi_bus.h
+>> +++ b/include/acpi/acpi_bus.h
+>> @@ -397,7 +397,6 @@ int unregister_acpi_bus_type(struct acpi_bus_type *);
+>>  struct acpi_pci_root {
+>>       struct list_head node;
+>>       struct acpi_device * device;
+>> -     struct acpi_pci_id id;
+>>       struct pci_bus *bus;
+>>       u16 segment;
+>>       struct resource secondary;      /* downstream bus range */
+>>
+> --
+> I speak only for myself.
+> Rafael J. Wysocki, Intel Open Source Technology Center.
