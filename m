@@ -1,94 +1,162 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH 0/16] ACPI: Rework ACPI namespace scanning for devices
-Date: Thu, 20 Dec 2012 14:07:27 -0700
-Message-ID: <1356037647.18964.384.camel@misato.fc.hp.com>
-References: <8498184.VilrUmatxI@vostro.rjw.lan>
-	 <1355789297.18964.334.camel@misato.fc.hp.com>
-	 <4082842.31rfDviYHK@vostro.rjw.lan> <1855256.SyhOJGYMIh@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 1/1] acpi_get_sleep_type_data(): accept package with one element
+Date: Thu, 20 Dec 2012 22:22:43 +0100
+Message-ID: <1385066.qAIMAB6X4i@vostro.rjw.lan>
+References: <1356024683-28542-1-git-send-email-lersek@redhat.com> <1356024683-28542-2-git-send-email-lersek@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g6t0187.atlanta.hp.com ([15.193.32.64]:38223 "EHLO
-	g6t0187.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751113Ab2LTVQh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Dec 2012 16:16:37 -0500
-In-Reply-To: <1855256.SyhOJGYMIh@vostro.rjw.lan>
+Received: from hydra.sisk.pl ([212.160.235.94]:39174 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751113Ab2LTVR2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 20 Dec 2012 16:17:28 -0500
+In-Reply-To: <1356024683-28542-2-git-send-email-lersek@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Myron Stowe <myron.stowe@redhat.com>, Yijing Wang <wangyijing0307@gmail.com>, Jiang Liu <liuj97@gmail.com>
+To: Laszlo Ersek <lersek@redhat.com>
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-Hi Rafael,
+On Thursday, December 20, 2012 06:31:23 PM Laszlo Ersek wrote:
+> Citation from "ACPIspec50.pdf":
+> 
+>   7.3.4 System \_Sx states
+> 
+>     [...]
+> 
+>     Return Value:
+> 
+>     A Package containing an Integer containing register values for
+>     sleeping
+> 
+> Hence accept one-element packages as well when parsing sleep states, in
+> addition to the currently accepted multi-element packages.
+> 
+> See the ACPICA upstream posting under [1].
+> 
+> This change is prompted by OVMF svn rev 14003 [2] that creates the \_S3
+> and \_S4 packages with a single DWORD in each:
+> 
+>   Name (\_S3, Package (0x01)
+>   {
+>       0x00000001
+>   })
+>   Name (\_S4, Package (0x01)
+>   {
+>       0x00000002
+>   })
+> 
+> Tested with a RHEL-6 kernel (patch applies verbatim) in virtual machines.
+> Without the patch,
+> - on OVMF, errors like
+> 
+>   ACPI Error: Sleep State return package does not have at least two
+>               elements (20120711/hwxface-511)
+>   ACPI Exception: AE_AML_NO_OPERAND, While evaluating SleepState [\_S3_],
+>                   bad Sleep object ffff880119a33cf0 type Package
+>                   (20120711/hwxface-543)
+> 
+>   are logged and suspend doesn't work,
+> 
+> - on SeaBIOS, which provides multi-element packages, suspend works.
+> 
+> With the patch, the messages are gone on OVMF, and the VM can be suspended
+> with both boot firmwares.
+> 
+> [1] http://lists.acpica.org/pipermail/devel/2012-December/000405.html
+> [2] http://tianocore.git.sourceforge.net/git/gitweb.cgi?p=tianocore/edk2;a=commitdiff;h=14430c55c8d0e9a8487c2c74155e63299632ef5e
 
-The changes look very good.  It's much cleaner and consistent. :-)  For
-the series:
+Well, the patch modifies ACPICA, so it would need to go through the ACPICA
+upstream for us to take it to the kernel.
 
-Acked-by: Toshi Kani <toshi.kani@hp.com>
+Adding a CC to Bob Moore, who's the upstream ACPICA maintainer.
 
 Thanks,
--Toshi
+Rafael
 
 
-On Thu, 2012-12-20 at 02:45 +0100, Rafael J. Wysocki wrote:
-> Hi all,
+> Signed-off-by: Laszlo Ersek <lersek@redhat.com>
+> ---
+>  drivers/acpi/acpica/hwxface.c |   60 ++++++++++++++++++++++-------------------
+>  1 files changed, 32 insertions(+), 28 deletions(-)
 > 
-> I've finally cut the patches removing acpi_pci_bind() and acpi_pci_unbind(),
-> so I'm kind of ready to post the entire series reworking the ACPI namespace
-> scanning code.
+> diff --git a/drivers/acpi/acpica/hwxface.c b/drivers/acpi/acpica/hwxface.c
+> index 05a154c..6cd5bb0 100644
+> --- a/drivers/acpi/acpica/hwxface.c
+> +++ b/drivers/acpi/acpica/hwxface.c
+> @@ -499,39 +499,43 @@ acpi_get_sleep_type_data(u8 sleep_state, u8 *sleep_type_a, u8 *sleep_type_b)
+>  	}
+>  
+>  	/*
+> -	 * The package must have at least two elements. NOTE (March 2005): This
+> -	 * goes against the current ACPI spec which defines this object as a
+> -	 * package with one encoded DWORD element. However, existing practice
+> -	 * by BIOS vendors seems to be to have 2 or more elements, at least
+> -	 * one per sleep type (A/B).
+> +	 * The current ACPI spec (v 5.0) defines this object as a package with
+> +	 * one encoded DWORD element.
+> +	 *
+> +	 * Existing practice by BIOS vendors seems to be to have 2 or more
+> +	 * elements, at least one per sleep type (A/B).
+>  	 */
+> -	else if (info->return_object->package.count < 2) {
+> +	else if (info->return_object->package.count == 0) {
+>  		ACPI_ERROR((AE_INFO,
+> -			    "Sleep State return package does not have at least two elements"));
+> +			    "Sleep State return package does not have elements"));
+>  		status = AE_AML_NO_OPERAND;
+> -	}
+> -
+> -	/* The first two elements must both be of type Integer */
+> -
+> -	else if (((info->return_object->package.elements[0])->common.type
+> -		  != ACPI_TYPE_INTEGER) ||
+> -		 ((info->return_object->package.elements[1])->common.type
+> -		  != ACPI_TYPE_INTEGER)) {
+> -		ACPI_ERROR((AE_INFO,
+> -			    "Sleep State return package elements are not both Integers "
+> -			    "(%s, %s)",
+> -			    acpi_ut_get_object_type_name(info->return_object->
+> -							 package.elements[0]),
+> -			    acpi_ut_get_object_type_name(info->return_object->
+> -							 package.elements[1])));
+> -		status = AE_AML_OPERAND_TYPE;
+>  	} else {
+> -		/* Valid _Sx_ package size, type, and value */
+> +		union acpi_operand_object **elements;
+>  
+> -		*sleep_type_a = (u8)
+> -		    (info->return_object->package.elements[0])->integer.value;
+> -		*sleep_type_b = (u8)
+> -		    (info->return_object->package.elements[1])->integer.value;
+> +		elements = info->return_object->package.elements;
+> +
+> +		if (elements[0]->common.type != ACPI_TYPE_INTEGER) {
+> +			ACPI_ERROR((AE_INFO,
+> +				    "1st element in Sleep State return package is not Integer "
+> +				    "(%s)",
+> +				    acpi_ut_get_object_type_name(elements[0])));
+> +			status = AE_AML_OPERAND_TYPE;
+> +		}
+> +		else if (info->return_object->package.count == 1) {
+> +			*sleep_type_a = (u8) elements[0]->integer.value;
+> +			*sleep_type_b = (u8)(elements[0]->integer.value >> 8);
+> +		}
+> +		else if (elements[1]->common.type != ACPI_TYPE_INTEGER) {
+> +			ACPI_ERROR((AE_INFO,
+> +				    "2nd element in Sleep State return package is not Integer "
+> +				    "(%s)",
+> +				    acpi_ut_get_object_type_name(elements[1])));
+> +			status = AE_AML_OPERAND_TYPE;
+> +		}
+> +		else {
+> +			*sleep_type_a = (u8)elements[0]->integer.value;
+> +			*sleep_type_b = (u8)elements[1]->integer.value;
+> +		}
+>  	}
+>  
+>  	if (ACPI_FAILURE(status)) {
 > 
-> Patches [1-6/16] are essentially these ones:
-> 
-> https://patchwork.kernel.org/patch/1889821/
-> https://patchwork.kernel.org/patch/1876481/
-> https://patchwork.kernel.org/patch/1876531/
-> https://patchwork.kernel.org/patch/1876571/
-> https://patchwork.kernel.org/patch/1876511/
-> https://patchwork.kernel.org/patch/1876401/
-> 
-> but [2-6/16] have been rebased on top of the first one.
-> 
-> Patches [7-12/16] are essentially these:
-> 
-> https://patchwork.kernel.org/patch/1884721/
-> https://patchwork.kernel.org/patch/1884701/
-> https://patchwork.kernel.org/patch/1884761/
-> https://patchwork.kernel.org/patch/1884731/
-> https://patchwork.kernel.org/patch/1884751/
-> https://patchwork.kernel.org/patch/1884661/
-> 
-> but they have been rebased on top of https://patchwork.kernel.org/patch/1889821/.
-> I added Yinghai's ACKs to them tentatively, although they are a bit different
-> from the previous versions.  The difference is not too important, however,
-> because the following patches finally remove the acpi_pci_bind()/acpi_pci_unbind()
-> stuff:
-> 
-> [13/16] Add .setup() and .cleanup() callbacks to struct acpi_bus_type.
-> [14/16] Rework the setup and cleanup of ACPI/PCI device wakeup.
-> [15/16] Move the _PRT setup and cleanup code to pci-acpi.c.
-> [16/16] Drop ACPI device .bind() and .unbind() callbacks.
-> 
-> This is done a bit differently than I thought it would be, mostly because the
-> _PRT-related operations require the "subordinate" pointers of bridges to be
-> populated.  I think it may be possible to simplify this further if that
-> requirement can be removed (I haven't looked into that).
-> 
-> In fact, patches [13-15/16] do not essentially depend on [1-12/16], only the
-> last one does.
-> 
-> The patches are on top of my master branch and I'm going to rebase them when
-> v3.8-rc1 is out.
-> 
-> There is a git tree you can pull them from at:
-> 
-> http://git.kernel.org/?p=linux/kernel/git/rafael/linux-pm.git;a=summary acpi-scan-temp-new
-> 
-> It's v3.7 with my master branch merged and the new patches on top.
-> 
-> 
-> Thanks,
-> Rafael
-> 
-> 
-
-
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
