@@ -1,42 +1,46 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [RESEND PATCH v2 19/19] ACPICA: Update version to 20121114.
-Date: Thu, 20 Dec 2012 09:09:55 +0800
-Message-ID: <ef4987b788955e585ceb03323ca78b37e94800e8.1355810294.git.lv.zheng@intel.com>
-References: <cover.1353491652.git.lv.zheng@intel.com> <cover.1355810292.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:9628 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751581Ab2LTBKO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 19 Dec 2012 20:10:14 -0500
-In-Reply-To: <cover.1355810292.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] ACPI: Remove unused struct acpi_pci_root.id member
+Date: Thu, 20 Dec 2012 02:22:34 +0100
+Message-ID: <6539457.htZABURDoR@vostro.rjw.lan>
+References: <20121219173044.12424.11336.stgit@bhelgaas.mtv.corp.google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20121219173044.12424.11336.stgit@bhelgaas.mtv.corp.google.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <len.brown@intel.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>
-Cc: linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>
 
-From: Bob Moore <robert.moore@intel.com>
+On Wednesday, December 19, 2012 10:30:44 AM Bjorn Helgaas wrote:
+> This member is never initialized and never referenced, so remove it.
 
-Version 20121114.
+Sure. :-)
 
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- include/acpi/acpixf.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Do you want me to take this?
 
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index b77ee00..3c9c783 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -46,7 +46,7 @@
- 
- /* Current ACPICA subsystem version in YYYYMMDD format */
- 
--#define ACPI_CA_VERSION                 0x20121018
-+#define ACPI_CA_VERSION                 0x20121114
- 
- #include <acpi/acconfig.h>
- #include <acpi/actypes.h>
+Rafael
+
+
+> Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+> ---
+>  include/acpi/acpi_bus.h |    1 -
+>  1 files changed, 0 insertions(+), 1 deletions(-)
+> 
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index 7ced5dc..4f42c0e 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -397,7 +397,6 @@ int unregister_acpi_bus_type(struct acpi_bus_type *);
+>  struct acpi_pci_root {
+>  	struct list_head node;
+>  	struct acpi_device * device;
+> -	struct acpi_pci_id id;
+>  	struct pci_bus *bus;
+>  	u16 segment;
+>  	struct resource secondary;	/* downstream bus range */
+> 
 -- 
-1.7.10
-
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
