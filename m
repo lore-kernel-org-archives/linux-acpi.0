@@ -1,69 +1,42 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [RESEND PATCH v2 08/19] ACPICA: Enhance error messages.
-Date: Thu, 20 Dec 2012 09:09:02 +0800
-Message-ID: <881d3ba770bdf23430fb084f255505e623787bba.1355810294.git.lv.zheng@intel.com>
+Subject: [RESEND PATCH v2 19/19] ACPICA: Update version to 20121114.
+Date: Thu, 20 Dec 2012 09:09:55 +0800
+Message-ID: <ef4987b788955e585ceb03323ca78b37e94800e8.1355810294.git.lv.zheng@intel.com>
 References: <cover.1353491652.git.lv.zheng@intel.com> <cover.1355810292.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:51996 "EHLO mga11.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:9628 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752016Ab2LTBJK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 19 Dec 2012 20:09:10 -0500
+	id S1751581Ab2LTBKO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Dec 2012 20:10:14 -0500
 In-Reply-To: <cover.1355810292.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <len.brown@intel.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>
-Cc: linux-acpi@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>
+Cc: linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>
 
-This patch decreases 29 lines of 20121018 divergence.diff.
+From: Bob Moore <robert.moore@intel.com>
 
-This patch updates error messages that already have been enhanced in
-ACPICA. This patch can also help to reduce the source code differences
-between Linux and ACPICA.
+Version 20121114.
 
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
-Divergences fixing result:
-  Before applying: 2011 Lines, 71.6 Kbytes
-  After applying: 1982 Lines, 70.5 Kbytes
----
- drivers/acpi/acpica/evgpe.c  |    2 +-
- drivers/acpi/acpica/utmisc.c |    8 ++++----
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ include/acpi/acpixf.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpica/evgpe.c b/drivers/acpi/acpica/evgpe.c
-index a137ce81..4cbb600 100644
---- a/drivers/acpi/acpica/evgpe.c
-+++ b/drivers/acpi/acpica/evgpe.c
-@@ -765,7 +765,7 @@ acpi_ev_gpe_dispatch(struct acpi_namespace_node *gpe_device,
- 					 gpe_event_info);
- 		if (ACPI_FAILURE(status)) {
- 			ACPI_EXCEPTION((AE_INFO, status,
--					"Unable to queue handler for GPE%2X - event disabled",
-+					"Unable to queue handler for GPE%02X - event disabled",
- 					gpe_number));
- 		}
- 		break;
-diff --git a/drivers/acpi/acpica/utmisc.c b/drivers/acpi/acpica/utmisc.c
-index 9286a69..2881992 100644
---- a/drivers/acpi/acpica/utmisc.c
-+++ b/drivers/acpi/acpica/utmisc.c
-@@ -748,12 +748,12 @@ void acpi_ut_repair_name(char *name)
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index b77ee00..3c9c783 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -46,7 +46,7 @@
  
- 		if (!acpi_gbl_enable_interpreter_slack) {
- 			ACPI_WARNING((AE_INFO,
--				      "Found bad character(s) in name, repaired: [%4.4s]\n",
--				      name));
-+				      "Invalid character(s) in name (0x%.8X), repaired: [%4.4s]",
-+					  original_name, name));
- 		} else {
- 			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--					  "Found bad character(s) in name, repaired: [%4.4s]\n",
--					  name));
-+					  "Invalid character(s) in name (0x%.8X), repaired: [%4.4s]",
-+					  original_name, name));
- 		}
- 	}
- }
+ /* Current ACPICA subsystem version in YYYYMMDD format */
+ 
+-#define ACPI_CA_VERSION                 0x20121018
++#define ACPI_CA_VERSION                 0x20121114
+ 
+ #include <acpi/acconfig.h>
+ #include <acpi/actypes.h>
 -- 
 1.7.10
 
