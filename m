@@ -1,69 +1,95 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 6/16] ACPI: Change the ordering of acpi_bus_check_add()
-Date: Thu, 20 Dec 2012 02:51:39 +0100
-Message-ID: <2653336.2sGpJboDsC@vostro.rjw.lan>
+Subject: [PATCH 2/16] ACPI: Change the ordering of PCI root bridge driver registrarion
+Date: Thu, 20 Dec 2012 02:48:35 +0100
+Message-ID: <1355988503.fTzxlRPKzq@vostro.rjw.lan>
 References: <8498184.VilrUmatxI@vostro.rjw.lan> <4082842.31rfDviYHK@vostro.rjw.lan> <1855256.SyhOJGYMIh@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:38320 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752413Ab2LTBzx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Dec 2012 20:55:53 -0500
 In-Reply-To: <1855256.SyhOJGYMIh@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 Cc: Toshi Kani <toshi.kani@hp.com>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Myron Stowe <myron.stowe@redhat.com>, Yijing Wang <wangyijing0307@gmail.com>, Jiang Liu <liuj97@gmail.com>
-List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
+Instead of running acpi_pci_root_init() from a separate subsys
+initcall, call it directly from acpi_scan_init() before scanning the
+ACPI namespace for the first time, so that the PCI root bridge
+driver's .add() routine, acpi_pci_root_start(), is always run
+before binding ACPI drivers or attaching "companion" device objects
+to struct acpi_device objects below the root bridge's device node in
+the ACPI namespace.
 
-If acpi_bus_check_add() is called for a handle already having an
-existing struct acpi_device object attached, it is not necessary to
-check the type and status of the device correspondig to it, so
-change the ordering of acpi_bus_check_add() to avoid that.
+The first, simpler reason for doing this is that it makes the
+situation during boot more similar to the situation during hotplug,
+in which the ACPI PCI root bridge driver is always present.
+
+The second reason is that acpi_pci_root_init() causes struct pci_dev
+objects to be created for all PCI devices below the bridge and
+these objects may be necessary for whatever is done with the other
+ACPI device nodes in that namespace scope.  For example, devices
+created by acpi_create_platform_device() sometimes may need to be
+added to the device hierarchy as children of PCI bridges.  For this
+purpose, however, the struct pci_dev objects representing those
+bridges need to exist before the platform devices in question are
+registered.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Acked-by: Yinghai Lu <yinghai@kernel.org>
 ---
- drivers/acpi/scan.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ drivers/acpi/internal.h |    1 +
+ drivers/acpi/pci_root.c |    4 +---
+ drivers/acpi/scan.c     |    1 +
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
+Index: linux/drivers/acpi/internal.h
+===================================================================
+--- linux.orig/drivers/acpi/internal.h
++++ linux/drivers/acpi/internal.h
+@@ -67,6 +67,7 @@ struct acpi_ec {
+ 
+ extern struct acpi_ec *first_ec;
+ 
++int acpi_pci_root_init(void);
+ int acpi_ec_init(void);
+ int acpi_ec_ecdt_probe(void);
+ int acpi_boot_ec_enable(void);
+Index: linux/drivers/acpi/pci_root.c
+===================================================================
+--- linux.orig/drivers/acpi/pci_root.c
++++ linux/drivers/acpi/pci_root.c
+@@ -674,7 +674,7 @@ static int acpi_pci_root_remove(struct a
+ 	return 0;
+ }
+ 
+-static int __init acpi_pci_root_init(void)
++int __init acpi_pci_root_init(void)
+ {
+ 	acpi_hest_init();
+ 
+@@ -687,5 +687,3 @@ static int __init acpi_pci_root_init(voi
+ 
+ 	return 0;
+ }
+-
+-subsys_initcall(acpi_pci_root_init);
 Index: linux/drivers/acpi/scan.c
 ===================================================================
 --- linux.orig/drivers/acpi/scan.c
 +++ linux/drivers/acpi/scan.c
-@@ -1582,6 +1582,10 @@ static acpi_status acpi_bus_check_add(ac
- 	acpi_status status;
- 	int result;
- 
-+	acpi_bus_get_device(handle, &device);
-+	if (device)
-+		goto out;
-+
- 	result = acpi_bus_type_and_status(handle, &type, &sta);
- 	if (result)
- 		return AE_OK;
-@@ -1598,18 +1602,14 @@ static acpi_status acpi_bus_check_add(ac
- 		return AE_CTRL_DEPTH;
+@@ -1831,6 +1831,7 @@ int __init acpi_scan_init(void)
  	}
  
--	acpi_bus_get_device(handle, &device);
--	if (!device) {
--		acpi_add_single_object(&device, handle, type, sta,
--				       ACPI_BUS_ADD_BASIC);
--		if (!device)
--			return AE_CTRL_DEPTH;
-+	acpi_add_single_object(&device, handle, type, sta, ACPI_BUS_ADD_BASIC);
-+	if (!device)
-+		return AE_CTRL_DEPTH;
+ 	acpi_power_init();
++	acpi_pci_root_init();
  
--		device->add_type = context ?
--					ACPI_BUS_ADD_START : ACPI_BUS_ADD_MATCH;
--		acpi_hot_add_bind(device);
--	}
-+	device->add_type = context ? ACPI_BUS_ADD_START : ACPI_BUS_ADD_MATCH;
-+	acpi_hot_add_bind(device);
- 
-+ out:
- 	if (!*return_value)
- 		*return_value = device;
- 
+ 	/*
+ 	 * Enumerate devices in the ACPI namespace.
+
