@@ -1,105 +1,69 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 7/16] ACPI / PCI: Fold acpi_pci_root_start() into acpi_pci_root_add()
-Date: Thu, 20 Dec 2012 02:52:31 +0100
-Message-ID: <5379946.RTtFfZ2sBu@vostro.rjw.lan>
+Subject: [PATCH 6/16] ACPI: Change the ordering of acpi_bus_check_add()
+Date: Thu, 20 Dec 2012 02:51:39 +0100
+Message-ID: <2653336.2sGpJboDsC@vostro.rjw.lan>
 References: <8498184.VilrUmatxI@vostro.rjw.lan> <4082842.31rfDviYHK@vostro.rjw.lan> <1855256.SyhOJGYMIh@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:38318 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752353Ab2LTBzu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 19 Dec 2012 20:55:50 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1855256.SyhOJGYMIh@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 Cc: Toshi Kani <toshi.kani@hp.com>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Myron Stowe <myron.stowe@redhat.com>, Yijing Wang <wangyijing0307@gmail.com>, Jiang Liu <liuj97@gmail.com>
+List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Move the code from the ACPI PCI root bridge's .start() callback
-routine, acpi_pci_root_start(), directly into acpi_pci_root_add()
-and drop acpi_pci_root_start().
 
-It is safe to do that, because it is now always guaranteed that
-when struct pci_dev objects are created, their companion struct
-acpi_device objects are already present, so it is not necessary to
-wait for them to be created before calling pci_bus_add_devices().
-
-This change was previously proposed in a different form by
-Yinghai Lu.
+If acpi_bus_check_add() is called for a handle already having an
+existing struct acpi_device object attached, it is not necessary to
+check the type and status of the device correspondig to it, so
+change the ordering of acpi_bus_check_add() to avoid that.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Acked-by: Yinghai Lu <yinghai@kernel.org>
 ---
- drivers/acpi/pci_root.c |   26 ++++++++------------------
- 1 file changed, 8 insertions(+), 18 deletions(-)
+ drivers/acpi/scan.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-Index: linux/drivers/acpi/pci_root.c
+Index: linux/drivers/acpi/scan.c
 ===================================================================
---- linux.orig/drivers/acpi/pci_root.c
-+++ linux/drivers/acpi/pci_root.c
-@@ -47,7 +47,6 @@ ACPI_MODULE_NAME("pci_root");
- #define ACPI_PCI_ROOT_DEVICE_NAME	"PCI Root Bridge"
- static int acpi_pci_root_add(struct acpi_device *device);
- static int acpi_pci_root_remove(struct acpi_device *device, int type);
--static int acpi_pci_root_start(struct acpi_device *device);
+--- linux.orig/drivers/acpi/scan.c
++++ linux/drivers/acpi/scan.c
+@@ -1582,6 +1582,10 @@ static acpi_status acpi_bus_check_add(ac
+ 	acpi_status status;
+ 	int result;
  
- #define ACPI_PCIE_REQ_SUPPORT (OSC_EXT_PCI_CONFIG_SUPPORT \
- 				| OSC_ACTIVE_STATE_PWR_SUPPORT \
-@@ -67,7 +66,6 @@ static struct acpi_driver acpi_pci_root_
- 	.ops = {
- 		.add = acpi_pci_root_add,
- 		.remove = acpi_pci_root_remove,
--		.start = acpi_pci_root_start,
- 		},
- };
- 
-@@ -453,6 +451,7 @@ static int __devinit acpi_pci_root_add(s
- 	struct acpi_pci_root *root;
- 	acpi_handle handle;
- 	struct acpi_device *child;
-+	struct acpi_pci_driver *driver;
- 	u32 flags, base_flags;
- 
- 	root = kzalloc(sizeof(struct acpi_pci_root), GFP_KERNEL);
-@@ -628,6 +627,13 @@ static int __devinit acpi_pci_root_add(s
- 	if (device->wakeup.flags.run_wake)
- 		device_set_run_wake(root->bus->bridge, true);
- 
-+	mutex_lock(&acpi_pci_root_lock);
-+	list_for_each_entry(driver, &acpi_pci_drivers, node)
-+		if (driver->add)
-+			driver->add(root);
-+	mutex_unlock(&acpi_pci_root_lock);
++	acpi_bus_get_device(handle, &device);
++	if (device)
++		goto out;
 +
-+	pci_bus_add_devices(root->bus);
- 	return 0;
+ 	result = acpi_bus_type_and_status(handle, &type, &sta);
+ 	if (result)
+ 		return AE_OK;
+@@ -1598,18 +1602,14 @@ static acpi_status acpi_bus_check_add(ac
+ 		return AE_CTRL_DEPTH;
+ 	}
  
- out_del_root:
-@@ -639,22 +645,6 @@ end:
- 	return result;
- }
+-	acpi_bus_get_device(handle, &device);
+-	if (!device) {
+-		acpi_add_single_object(&device, handle, type, sta,
+-				       ACPI_BUS_ADD_BASIC);
+-		if (!device)
+-			return AE_CTRL_DEPTH;
++	acpi_add_single_object(&device, handle, type, sta, ACPI_BUS_ADD_BASIC);
++	if (!device)
++		return AE_CTRL_DEPTH;
  
--static int acpi_pci_root_start(struct acpi_device *device)
--{
--	struct acpi_pci_root *root = acpi_driver_data(device);
--	struct acpi_pci_driver *driver;
--
--	mutex_lock(&acpi_pci_root_lock);
--	list_for_each_entry(driver, &acpi_pci_drivers, node)
--		if (driver->add)
--			driver->add(root);
--	mutex_unlock(&acpi_pci_root_lock);
--
--	pci_bus_add_devices(root->bus);
--
--	return 0;
--}
--
- static int acpi_pci_root_remove(struct acpi_device *device, int type)
- {
- 	struct acpi_pci_root *root = acpi_driver_data(device);
-
+-		device->add_type = context ?
+-					ACPI_BUS_ADD_START : ACPI_BUS_ADD_MATCH;
+-		acpi_hot_add_bind(device);
+-	}
++	device->add_type = context ? ACPI_BUS_ADD_START : ACPI_BUS_ADD_MATCH;
++	acpi_hot_add_bind(device);
+ 
++ out:
+ 	if (!*return_value)
+ 		*return_value = device;
+ 
