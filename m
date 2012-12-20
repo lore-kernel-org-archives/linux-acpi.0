@@ -1,7 +1,7 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 13/16] ACPI: Add .setup() and .cleanup() callbacks to struct acpi_bus_type
-Date: Thu, 20 Dec 2012 02:57:35 +0100
-Message-ID: <2494783.CtaoJvSv38@vostro.rjw.lan>
+Subject: [PATCH 3/16] ACPI: Make acpi_bus_add() and acpi_bus_start() visibly different
+Date: Thu, 20 Dec 2012 02:49:23 +0100
+Message-ID: <2142403.Kbj784bOTj@vostro.rjw.lan>
 References: <8498184.VilrUmatxI@vostro.rjw.lan> <4082842.31rfDviYHK@vostro.rjw.lan> <1855256.SyhOJGYMIh@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -9,8 +9,8 @@ Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from hydra.sisk.pl ([212.160.235.94]:38313 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752185Ab2LTBzr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 19 Dec 2012 20:55:47 -0500
+	id S1752400Ab2LTBzw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Dec 2012 20:55:52 -0500
 In-Reply-To: <1855256.SyhOJGYMIh@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -19,124 +19,125 @@ Cc: Toshi Kani <toshi.kani@hp.com>, Bjorn Helgaas <bhelgaas@google.com>, LKML <l
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Add two new callbacks,.setup() and .cleanup(), struct acpi_bus_type
-and modify acpi_platform_notify() to call .setup() after executing
-acpi_bind_one() successfully and acpi_platform_notify_remove() to
-call .cleanup() before running acpi_unbind_one().  This will allow
-the users of struct acpi_bus_type, PCI in particular, to specify
-operations to be executed right after the given device has been
-associated with a companion struct acpi_device and right before
-it's going to be detached from that companion, respectively.
-
-The main motivation is to be able to get rid of acpi_pci_bind()
-and acpi_pci_unbind(), which are horrible horrible stuff.  [In short,
-there are three problems with them: The way they populate the .bind()
-and .unbind() callbacks of ACPI devices is rather less than
-straightforward, they require special hotplug-specific paths to be
-present in the ACPI namespace scanning code and by the time
-acpi_pci_unbind() is called the PCI device object in question may
-not exist any more.]
+The current ACPI namespace scanning code suggests that acpi_bus_add()
+and acpi_bus_start() share some code.  In fact, however, they are
+completely different code paths (except for the initial checks), so
+refactor the code to make that distinction visibly clear.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Acked-by: Yinghai Lu <yinghai@kernel.org>
 ---
- drivers/acpi/glue.c     |   52 +++++++++++++++++++++++++++++++++---------------
- include/acpi/acpi_bus.h |    2 +
- 2 files changed, 38 insertions(+), 16 deletions(-)
+ drivers/acpi/scan.c |   63 ++++++++++++++++++++++++++++------------------------
+ 1 file changed, 35 insertions(+), 28 deletions(-)
 
-Index: linux/include/acpi/acpi_bus.h
+Index: linux/drivers/acpi/scan.c
 ===================================================================
---- linux.orig/include/acpi/acpi_bus.h
-+++ linux/include/acpi/acpi_bus.h
-@@ -423,6 +423,8 @@ struct acpi_bus_type {
- 	int (*find_device) (struct device *, acpi_handle *);
- 	/* For bridges, such as PCI root bridge, IDE controller */
- 	int (*find_bridge) (struct device *, acpi_handle *);
-+	void (*setup)(struct device *);
-+	void (*cleanup)(struct device *);
- };
- int register_acpi_bus_type(struct acpi_bus_type *);
- int unregister_acpi_bus_type(struct acpi_bus_type *);
-Index: linux/drivers/acpi/glue.c
-===================================================================
---- linux.orig/drivers/acpi/glue.c
-+++ linux/drivers/acpi/glue.c
-@@ -63,6 +63,9 @@ static struct acpi_bus_type *acpi_get_bu
- {
- 	struct acpi_bus_type *tmp, *ret = NULL;
+--- linux.orig/drivers/acpi/scan.c
++++ linux/drivers/acpi/scan.c
+@@ -1623,10 +1623,9 @@ static acpi_status acpi_bus_check_add(ac
+ 	return AE_OK;
+ }
  
-+	if (!type)
-+		return NULL;
-+
- 	down_read(&bus_type_sem);
- 	list_for_each_entry(tmp, &bus_type_list, list) {
- 		if (tmp->bus == type) {
-@@ -264,28 +267,39 @@ static int acpi_platform_notify(struct d
+-static acpi_status acpi_bus_probe_start(acpi_handle handle, u32 lvl,
+-					void *context, void **not_used)
++static acpi_status acpi_bus_device_attach(acpi_handle handle, u32 lvl_not_used,
++					  void *not_used, void **ret_not_used)
  {
- 	struct acpi_bus_type *type;
- 	acpi_handle handle;
--	int ret = -EINVAL;
-+	int ret;
+-	struct acpi_bus_ops *ops = context;
+ 	acpi_status status = AE_OK;
+ 	struct acpi_device *device;
+ 	unsigned long long sta_not_used;
+@@ -1642,16 +1641,11 @@ static acpi_status acpi_bus_probe_start(
+ 	if (acpi_bus_get_device(handle, &device))
+ 		return AE_CTRL_DEPTH;
  
- 	ret = acpi_bind_one(dev, NULL);
--	if (!ret)
--		goto out;
--
--	if (!dev->bus || !dev->parent) {
-+	if (ret && (!dev->bus || !dev->parent)) {
- 		/* bridge devices genernally haven't bus or parent */
- 		ret = acpi_find_bridge_device(dev, &handle);
--		goto end;
-+		if (!ret) {
-+			ret = acpi_bind_one(dev, handle);
-+			if (ret)
-+				goto out;
-+		}
+-	if (ops->acpi_op_add) {
+-		if (!acpi_match_device_ids(device, acpi_platform_device_ids)) {
+-			/* This is a known good platform device. */
+-			acpi_create_platform_device(device);
+-		} else if (device_attach(&device->dev)) {
+-			status = AE_CTRL_DEPTH;
+-		}
+-	} else if (ops->acpi_op_start) {
+-		if (ACPI_FAILURE(acpi_start_single_object(device)))
+-			status = AE_CTRL_DEPTH;
++	if (!acpi_match_device_ids(device, acpi_platform_device_ids)) {
++		/* This is a known good platform device. */
++		acpi_create_platform_device(device);
++	} else if (device_attach(&device->dev)) {
++		status = AE_CTRL_DEPTH;
  	}
-+
- 	type = acpi_get_bus_type(dev->bus);
--	if (!type) {
--		DBG("No ACPI bus support for %s\n", dev_name(dev));
--		ret = -EINVAL;
--		goto end;
--	}
--	if ((ret = type->find_device(dev, &handle)) != 0)
--		DBG("Can't get handler for %s\n", dev_name(dev));
-- end:
--	if (!ret)
--		acpi_bind_one(dev, handle);
-+	if (ret) {
-+		if (!type || !type->find_device) {
-+			DBG("No ACPI bus support for %s\n", dev_name(dev));
-+			ret = -EINVAL;
-+			goto out;
-+		}
-+
-+		ret = type->find_device(dev, &handle);
-+		if (ret) {
-+			DBG("Unable to get handle for %s\n", dev_name(dev));
-+			goto out;
-+		}
-+		ret = acpi_bind_one(dev, handle);
-+		if (ret)
-+			goto out;
-+	}
-+
-+	if (type && type->setup)
-+		type->setup(dev);
+ 	return status;
+ }
+@@ -1672,10 +1666,10 @@ static int acpi_bus_scan(acpi_handle han
+ 		goto out;
+ 
+ 	ret = 0;
+-	status = acpi_bus_probe_start(handle, 0, ops, NULL);
++	status = acpi_bus_device_attach(handle, 0, NULL, NULL);
+ 	if (ACPI_SUCCESS(status))
+ 		acpi_walk_namespace(ACPI_TYPE_ANY, handle, ACPI_UINT32_MAX,
+-				    acpi_bus_probe_start, NULL, ops, NULL);
++				    acpi_bus_device_attach, NULL, NULL, NULL);
  
   out:
- #if ACPI_GLUE_DEBUG
-@@ -304,6 +318,12 @@ static int acpi_platform_notify(struct d
- 
- static int acpi_platform_notify_remove(struct device *dev)
+ 	if (child)
+@@ -1700,31 +1694,44 @@ int
+ acpi_bus_add(struct acpi_device **child,
+ 	     struct acpi_device *parent, acpi_handle handle, int type)
  {
-+	struct acpi_bus_type *type;
-+
-+	type = acpi_get_bus_type(dev->bus);
-+	if (type && type->cleanup)
-+		type->cleanup(dev);
-+
- 	acpi_unbind_one(dev);
- 	return 0;
+-	struct acpi_bus_ops ops;
+-
+-	memset(&ops, 0, sizeof(ops));
+-	ops.acpi_op_add = 1;
++	struct acpi_bus_ops ops = { .acpi_op_add = 1, };
+ 
+ 	return acpi_bus_scan(handle, &ops, child);
  }
+ EXPORT_SYMBOL(acpi_bus_add);
+ 
+-int acpi_bus_start(struct acpi_device *device)
++static acpi_status acpi_bus_start_device(acpi_handle handle, u32 lvl,
++					 void *not_used, void **ret_not_used)
+ {
+-	struct acpi_bus_ops ops;
+-	int result;
++	struct acpi_device *device;
++	unsigned long long sta_not_used;
++	int type_not_used;
+ 
++	/*
++	 * Ignore errors ignored by acpi_bus_check_add() to avoid terminating
++	 * namespace walks prematurely.
++	 */
++	if (acpi_bus_type_and_status(handle, &type_not_used, &sta_not_used))
++		return AE_OK;
++
++	if (acpi_bus_get_device(handle, &device))
++		return AE_CTRL_DEPTH;
++
++	return acpi_start_single_object(device);
++}
++
++int acpi_bus_start(struct acpi_device *device)
++{
+ 	if (!device)
+ 		return -EINVAL;
+ 
+-	memset(&ops, 0, sizeof(ops));
+-	ops.acpi_op_start = 1;
+-
+-	result = acpi_bus_scan(device->handle, &ops, NULL);
++	if (ACPI_SUCCESS(acpi_start_single_object(device)))
++		acpi_walk_namespace(ACPI_TYPE_ANY, device->handle,
++				    ACPI_UINT32_MAX, acpi_bus_start_device,
++				    NULL, NULL, NULL);
+ 
+ 	acpi_update_all_gpes();
+-
+-	return result;
++	return 0;
+ }
+ EXPORT_SYMBOL(acpi_bus_start);
+ 
 
