@@ -1,129 +1,134 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH 1/1] acpi_get_sleep_type_data(): accept package with one
- element
-Date: Thu, 20 Dec 2012 21:39:25 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E346BF3F32@ORSMSX101.amr.corp.intel.com>
-References: <1356024683-28542-1-git-send-email-lersek@redhat.com>
- <1356024683-28542-2-git-send-email-lersek@redhat.com>
- <1385066.qAIMAB6X4i@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [Update 2][PATCH] ACPI / PCI: Set root bridge ACPI handle in advance
+Date: Thu, 20 Dec 2012 23:56:07 +0100
+Message-ID: <150695156.KNRhubloU5@vostro.rjw.lan>
+References: <1558789.gX8cmBgyDV@vostro.rjw.lan> <3596215.suSiEFiGH8@vostro.rjw.lan> <CAErSpo7NWHmSEJMuytUTziRTwUmnPHCVcD0zX7pKVmhQyv26sQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:25146 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750983Ab2LTVjr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Dec 2012 16:39:47 -0500
-In-Reply-To: <1385066.qAIMAB6X4i@vostro.rjw.lan>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAErSpo7NWHmSEJMuytUTziRTwUmnPHCVcD0zX7pKVmhQyv26sQ@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, David Miller <davem@davemloft.net>, Tony Luck <tony.luck@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Jan Glauber <jang@linux.vnet.ibm.com>, linux-pci@vger.kernel.org, Myron Stowe <myron.stowe@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, Laszlo Ersek <lersek@redhat.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-QW5kIHdoaWxlIHdlIGFyZSBhdCBpdCwgd2UgY2FuIG1ha2Ugc3VyZSB0aGF0IGEgbG9uZSBpbnRl
-Z2VyICh3aXRob3V0IGEgc3Vycm91bmRpbmcgcGFja2FnZSkgZ2V0cyB3cmFwcGVkIHdpdGggYSBw
-YWNrYWdlIGJlZm9yZSBoYW5kaW5nIGl0IG9mZiB0byBhIGRyaXZlci4NCg0KPiAtLS0tLU9yaWdp
-bmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBSYWZhZWwgSi4gV3lzb2NraSBbbWFpbHRvOnJqd0Bz
-aXNrLnBsXQ0KPiBTZW50OiBUaHVyc2RheSwgRGVjZW1iZXIgMjAsIDIwMTIgMToyMyBQTQ0KPiBU
-bzogTGFzemxvIEVyc2VrDQo+IENjOiBsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZzsgTGVuIEJy
-b3duOyBNb29yZSwgUm9iZXJ0DQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggMS8xXSBhY3BpX2dldF9z
-bGVlcF90eXBlX2RhdGEoKTogYWNjZXB0IHBhY2thZ2Ugd2l0aA0KPiBvbmUgZWxlbWVudA0KPiAN
-Cj4gT24gVGh1cnNkYXksIERlY2VtYmVyIDIwLCAyMDEyIDA2OjMxOjIzIFBNIExhc3psbyBFcnNl
-ayB3cm90ZToNCj4gPiBDaXRhdGlvbiBmcm9tICJBQ1BJc3BlYzUwLnBkZiI6DQo+ID4NCj4gPiAg
-IDcuMy40IFN5c3RlbSBcX1N4IHN0YXRlcw0KPiA+DQo+ID4gICAgIFsuLi5dDQo+ID4NCj4gPiAg
-ICAgUmV0dXJuIFZhbHVlOg0KPiA+DQo+ID4gICAgIEEgUGFja2FnZSBjb250YWluaW5nIGFuIElu
-dGVnZXIgY29udGFpbmluZyByZWdpc3RlciB2YWx1ZXMgZm9yDQo+ID4gICAgIHNsZWVwaW5nDQo+
-ID4NCj4gPiBIZW5jZSBhY2NlcHQgb25lLWVsZW1lbnQgcGFja2FnZXMgYXMgd2VsbCB3aGVuIHBh
-cnNpbmcgc2xlZXAgc3RhdGVzLA0KPiA+IGluIGFkZGl0aW9uIHRvIHRoZSBjdXJyZW50bHkgYWNj
-ZXB0ZWQgbXVsdGktZWxlbWVudCBwYWNrYWdlcy4NCj4gPg0KPiA+IFNlZSB0aGUgQUNQSUNBIHVw
-c3RyZWFtIHBvc3RpbmcgdW5kZXIgWzFdLg0KPiA+DQo+ID4gVGhpcyBjaGFuZ2UgaXMgcHJvbXB0
-ZWQgYnkgT1ZNRiBzdm4gcmV2IDE0MDAzIFsyXSB0aGF0IGNyZWF0ZXMgdGhlDQo+ID4gXF9TMyBh
-bmQgXF9TNCBwYWNrYWdlcyB3aXRoIGEgc2luZ2xlIERXT1JEIGluIGVhY2g6DQo+ID4NCj4gPiAg
-IE5hbWUgKFxfUzMsIFBhY2thZ2UgKDB4MDEpDQo+ID4gICB7DQo+ID4gICAgICAgMHgwMDAwMDAw
-MQ0KPiA+ICAgfSkNCj4gPiAgIE5hbWUgKFxfUzQsIFBhY2thZ2UgKDB4MDEpDQo+ID4gICB7DQo+
-ID4gICAgICAgMHgwMDAwMDAwMg0KPiA+ICAgfSkNCj4gPg0KPiA+IFRlc3RlZCB3aXRoIGEgUkhF
-TC02IGtlcm5lbCAocGF0Y2ggYXBwbGllcyB2ZXJiYXRpbSkgaW4gdmlydHVhbA0KPiBtYWNoaW5l
-cy4NCj4gPiBXaXRob3V0IHRoZSBwYXRjaCwNCj4gPiAtIG9uIE9WTUYsIGVycm9ycyBsaWtlDQo+
-ID4NCj4gPiAgIEFDUEkgRXJyb3I6IFNsZWVwIFN0YXRlIHJldHVybiBwYWNrYWdlIGRvZXMgbm90
-IGhhdmUgYXQgbGVhc3QgdHdvDQo+ID4gICAgICAgICAgICAgICBlbGVtZW50cyAoMjAxMjA3MTEv
-aHd4ZmFjZS01MTEpDQo+ID4gICBBQ1BJIEV4Y2VwdGlvbjogQUVfQU1MX05PX09QRVJBTkQsIFdo
-aWxlIGV2YWx1YXRpbmcgU2xlZXBTdGF0ZQ0KPiBbXF9TM19dLA0KPiA+ICAgICAgICAgICAgICAg
-ICAgIGJhZCBTbGVlcCBvYmplY3QgZmZmZjg4MDExOWEzM2NmMCB0eXBlIFBhY2thZ2UNCj4gPiAg
-ICAgICAgICAgICAgICAgICAoMjAxMjA3MTEvaHd4ZmFjZS01NDMpDQo+ID4NCj4gPiAgIGFyZSBs
-b2dnZWQgYW5kIHN1c3BlbmQgZG9lc24ndCB3b3JrLA0KPiA+DQo+ID4gLSBvbiBTZWFCSU9TLCB3
-aGljaCBwcm92aWRlcyBtdWx0aS1lbGVtZW50IHBhY2thZ2VzLCBzdXNwZW5kIHdvcmtzLg0KPiA+
-DQo+ID4gV2l0aCB0aGUgcGF0Y2gsIHRoZSBtZXNzYWdlcyBhcmUgZ29uZSBvbiBPVk1GLCBhbmQg
-dGhlIFZNIGNhbiBiZQ0KPiA+IHN1c3BlbmRlZCB3aXRoIGJvdGggYm9vdCBmaXJtd2FyZXMuDQo+
-ID4NCj4gPiBbMV0gaHR0cDovL2xpc3RzLmFjcGljYS5vcmcvcGlwZXJtYWlsL2RldmVsLzIwMTIt
-RGVjZW1iZXIvMDAwNDA1Lmh0bWwNCj4gPiBbMl0NCj4gPiBodHRwOi8vdGlhbm9jb3JlLmdpdC5z
-b3VyY2Vmb3JnZS5uZXQvZ2l0L2dpdHdlYi5jZ2k/cD10aWFub2NvcmUvZWRrMjthDQo+ID4gPWNv
-bW1pdGRpZmY7aD0xNDQzMGM1NWM4ZDBlOWE4NDg3YzJjNzQxNTVlNjMyOTk2MzJlZjVlDQo+IA0K
-PiBXZWxsLCB0aGUgcGF0Y2ggbW9kaWZpZXMgQUNQSUNBLCBzbyBpdCB3b3VsZCBuZWVkIHRvIGdv
-IHRocm91Z2ggdGhlIEFDUElDQQ0KPiB1cHN0cmVhbSBmb3IgdXMgdG8gdGFrZSBpdCB0byB0aGUg
-a2VybmVsLg0KPiANCj4gQWRkaW5nIGEgQ0MgdG8gQm9iIE1vb3JlLCB3aG8ncyB0aGUgdXBzdHJl
-YW0gQUNQSUNBIG1haW50YWluZXIuDQo+IA0KPiBUaGFua3MsDQo+IFJhZmFlbA0KPiANCj4gDQo+
-ID4gU2lnbmVkLW9mZi1ieTogTGFzemxvIEVyc2VrIDxsZXJzZWtAcmVkaGF0LmNvbT4NCj4gPiAt
-LS0NCj4gPiAgZHJpdmVycy9hY3BpL2FjcGljYS9od3hmYWNlLmMgfCAgIDYwICsrKysrKysrKysr
-KysrKysrKysrKystLS0tLS0tLS0tLS0NCj4gLS0tLS0tLQ0KPiA+ICAxIGZpbGVzIGNoYW5nZWQs
-IDMyIGluc2VydGlvbnMoKyksIDI4IGRlbGV0aW9ucygtKQ0KPiA+DQo+ID4gZGlmZiAtLWdpdCBh
-L2RyaXZlcnMvYWNwaS9hY3BpY2EvaHd4ZmFjZS5jDQo+ID4gYi9kcml2ZXJzL2FjcGkvYWNwaWNh
-L2h3eGZhY2UuYyBpbmRleCAwNWExNTRjLi42Y2Q1YmIwIDEwMDY0NA0KPiA+IC0tLSBhL2RyaXZl
-cnMvYWNwaS9hY3BpY2EvaHd4ZmFjZS5jDQo+ID4gKysrIGIvZHJpdmVycy9hY3BpL2FjcGljYS9o
-d3hmYWNlLmMNCj4gPiBAQCAtNDk5LDM5ICs0OTksNDMgQEAgYWNwaV9nZXRfc2xlZXBfdHlwZV9k
-YXRhKHU4IHNsZWVwX3N0YXRlLCB1OA0KPiAqc2xlZXBfdHlwZV9hLCB1OCAqc2xlZXBfdHlwZV9i
-KQ0KPiA+ICAJfQ0KPiA+DQo+ID4gIAkvKg0KPiA+IC0JICogVGhlIHBhY2thZ2UgbXVzdCBoYXZl
-IGF0IGxlYXN0IHR3byBlbGVtZW50cy4gTk9URSAoTWFyY2ggMjAwNSk6DQo+IFRoaXMNCj4gPiAt
-CSAqIGdvZXMgYWdhaW5zdCB0aGUgY3VycmVudCBBQ1BJIHNwZWMgd2hpY2ggZGVmaW5lcyB0aGlz
-IG9iamVjdCBhcyBhDQo+ID4gLQkgKiBwYWNrYWdlIHdpdGggb25lIGVuY29kZWQgRFdPUkQgZWxl
-bWVudC4gSG93ZXZlciwgZXhpc3RpbmcNCj4gcHJhY3RpY2UNCj4gPiAtCSAqIGJ5IEJJT1MgdmVu
-ZG9ycyBzZWVtcyB0byBiZSB0byBoYXZlIDIgb3IgbW9yZSBlbGVtZW50cywgYXQgbGVhc3QNCj4g
-PiAtCSAqIG9uZSBwZXIgc2xlZXAgdHlwZSAoQS9CKS4NCj4gPiArCSAqIFRoZSBjdXJyZW50IEFD
-UEkgc3BlYyAodiA1LjApIGRlZmluZXMgdGhpcyBvYmplY3QgYXMgYSBwYWNrYWdlDQo+IHdpdGgN
-Cj4gPiArCSAqIG9uZSBlbmNvZGVkIERXT1JEIGVsZW1lbnQuDQo+ID4gKwkgKg0KPiA+ICsJICog
-RXhpc3RpbmcgcHJhY3RpY2UgYnkgQklPUyB2ZW5kb3JzIHNlZW1zIHRvIGJlIHRvIGhhdmUgMiBv
-ciBtb3JlDQo+ID4gKwkgKiBlbGVtZW50cywgYXQgbGVhc3Qgb25lIHBlciBzbGVlcCB0eXBlIChB
-L0IpLg0KPiA+ICAJICovDQo+ID4gLQllbHNlIGlmIChpbmZvLT5yZXR1cm5fb2JqZWN0LT5wYWNr
-YWdlLmNvdW50IDwgMikgew0KPiA+ICsJZWxzZSBpZiAoaW5mby0+cmV0dXJuX29iamVjdC0+cGFj
-a2FnZS5jb3VudCA9PSAwKSB7DQo+ID4gIAkJQUNQSV9FUlJPUigoQUVfSU5GTywNCj4gPiAtCQkJ
-ICAgICJTbGVlcCBTdGF0ZSByZXR1cm4gcGFja2FnZSBkb2VzIG5vdCBoYXZlIGF0IGxlYXN0DQo+
-IHR3byBlbGVtZW50cyIpKTsNCj4gPiArCQkJICAgICJTbGVlcCBTdGF0ZSByZXR1cm4gcGFja2Fn
-ZSBkb2VzIG5vdCBoYXZlDQo+IGVsZW1lbnRzIikpOw0KPiA+ICAJCXN0YXR1cyA9IEFFX0FNTF9O
-T19PUEVSQU5EOw0KPiA+IC0JfQ0KPiA+IC0NCj4gPiAtCS8qIFRoZSBmaXJzdCB0d28gZWxlbWVu
-dHMgbXVzdCBib3RoIGJlIG9mIHR5cGUgSW50ZWdlciAqLw0KPiA+IC0NCj4gPiAtCWVsc2UgaWYg
-KCgoaW5mby0+cmV0dXJuX29iamVjdC0+cGFja2FnZS5lbGVtZW50c1swXSktPmNvbW1vbi50eXBl
-DQo+ID4gLQkJICAhPSBBQ1BJX1RZUEVfSU5URUdFUikgfHwNCj4gPiAtCQkgKChpbmZvLT5yZXR1
-cm5fb2JqZWN0LT5wYWNrYWdlLmVsZW1lbnRzWzFdKS0+Y29tbW9uLnR5cGUNCj4gPiAtCQkgICE9
-IEFDUElfVFlQRV9JTlRFR0VSKSkgew0KPiA+IC0JCUFDUElfRVJST1IoKEFFX0lORk8sDQo+ID4g
-LQkJCSAgICAiU2xlZXAgU3RhdGUgcmV0dXJuIHBhY2thZ2UgZWxlbWVudHMgYXJlIG5vdCBib3Ro
-DQo+IEludGVnZXJzICINCj4gPiAtCQkJICAgICIoJXMsICVzKSIsDQo+ID4gLQkJCSAgICBhY3Bp
-X3V0X2dldF9vYmplY3RfdHlwZV9uYW1lKGluZm8tPnJldHVybl9vYmplY3QtPg0KPiA+IC0JCQkJ
-CQkJIHBhY2thZ2UuZWxlbWVudHNbMF0pLA0KPiA+IC0JCQkgICAgYWNwaV91dF9nZXRfb2JqZWN0
-X3R5cGVfbmFtZShpbmZvLT5yZXR1cm5fb2JqZWN0LT4NCj4gPiAtCQkJCQkJCSBwYWNrYWdlLmVs
-ZW1lbnRzWzFdKSkpOw0KPiA+IC0JCXN0YXR1cyA9IEFFX0FNTF9PUEVSQU5EX1RZUEU7DQo+ID4g
-IAl9IGVsc2Ugew0KPiA+IC0JCS8qIFZhbGlkIF9TeF8gcGFja2FnZSBzaXplLCB0eXBlLCBhbmQg
-dmFsdWUgKi8NCj4gPiArCQl1bmlvbiBhY3BpX29wZXJhbmRfb2JqZWN0ICoqZWxlbWVudHM7DQo+
-ID4NCj4gPiAtCQkqc2xlZXBfdHlwZV9hID0gKHU4KQ0KPiA+IC0JCSAgICAoaW5mby0+cmV0dXJu
-X29iamVjdC0+cGFja2FnZS5lbGVtZW50c1swXSktPmludGVnZXIudmFsdWU7DQo+ID4gLQkJKnNs
-ZWVwX3R5cGVfYiA9ICh1OCkNCj4gPiAtCQkgICAgKGluZm8tPnJldHVybl9vYmplY3QtPnBhY2th
-Z2UuZWxlbWVudHNbMV0pLT5pbnRlZ2VyLnZhbHVlOw0KPiA+ICsJCWVsZW1lbnRzID0gaW5mby0+
-cmV0dXJuX29iamVjdC0+cGFja2FnZS5lbGVtZW50czsNCj4gPiArDQo+ID4gKwkJaWYgKGVsZW1l
-bnRzWzBdLT5jb21tb24udHlwZSAhPSBBQ1BJX1RZUEVfSU5URUdFUikgew0KPiA+ICsJCQlBQ1BJ
-X0VSUk9SKChBRV9JTkZPLA0KPiA+ICsJCQkJICAgICIxc3QgZWxlbWVudCBpbiBTbGVlcCBTdGF0
-ZSByZXR1cm4gcGFja2FnZSBpcw0KPiBub3QgSW50ZWdlciAiDQo+ID4gKwkJCQkgICAgIiglcyki
-LA0KPiA+ICsJCQkJICAgIGFjcGlfdXRfZ2V0X29iamVjdF90eXBlX25hbWUoZWxlbWVudHNbMF0p
-KSk7DQo+ID4gKwkJCXN0YXR1cyA9IEFFX0FNTF9PUEVSQU5EX1RZUEU7DQo+ID4gKwkJfQ0KPiA+
-ICsJCWVsc2UgaWYgKGluZm8tPnJldHVybl9vYmplY3QtPnBhY2thZ2UuY291bnQgPT0gMSkgew0K
-PiA+ICsJCQkqc2xlZXBfdHlwZV9hID0gKHU4KSBlbGVtZW50c1swXS0+aW50ZWdlci52YWx1ZTsN
-Cj4gPiArCQkJKnNsZWVwX3R5cGVfYiA9ICh1OCkoZWxlbWVudHNbMF0tPmludGVnZXIudmFsdWUg
-Pj4gOCk7DQo+ID4gKwkJfQ0KPiA+ICsJCWVsc2UgaWYgKGVsZW1lbnRzWzFdLT5jb21tb24udHlw
-ZSAhPSBBQ1BJX1RZUEVfSU5URUdFUikgew0KPiA+ICsJCQlBQ1BJX0VSUk9SKChBRV9JTkZPLA0K
-PiA+ICsJCQkJICAgICIybmQgZWxlbWVudCBpbiBTbGVlcCBTdGF0ZSByZXR1cm4gcGFja2FnZSBp
-cw0KPiBub3QgSW50ZWdlciAiDQo+ID4gKwkJCQkgICAgIiglcykiLA0KPiA+ICsJCQkJICAgIGFj
-cGlfdXRfZ2V0X29iamVjdF90eXBlX25hbWUoZWxlbWVudHNbMV0pKSk7DQo+ID4gKwkJCXN0YXR1
-cyA9IEFFX0FNTF9PUEVSQU5EX1RZUEU7DQo+ID4gKwkJfQ0KPiA+ICsJCWVsc2Ugew0KPiA+ICsJ
-CQkqc2xlZXBfdHlwZV9hID0gKHU4KWVsZW1lbnRzWzBdLT5pbnRlZ2VyLnZhbHVlOw0KPiA+ICsJ
-CQkqc2xlZXBfdHlwZV9iID0gKHU4KWVsZW1lbnRzWzFdLT5pbnRlZ2VyLnZhbHVlOw0KPiA+ICsJ
-CX0NCj4gPiAgCX0NCj4gPg0KPiA+ICAJaWYgKEFDUElfRkFJTFVSRShzdGF0dXMpKSB7DQo+ID4N
-Cj4gLS0NCj4gSSBzcGVhayBvbmx5IGZvciBteXNlbGYuDQo+IFJhZmFlbCBKLiBXeXNvY2tpLCBJ
-bnRlbCBPcGVuIFNvdXJjZSBUZWNobm9sb2d5IENlbnRlci4NCg==
+On Thursday, December 20, 2012 02:13:15 PM Bjorn Helgaas wrote:
+> [+cc linux-pci, Myron]
+> 
+> On Mon, Dec 17, 2012 at 4:30 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >
+> > The ACPI handles of PCI root bridges need to be known to
+> > acpi_bind_one(), so that it can create the appropriate
+> > "firmware_node" and "physical_node" files for them, but currently
+> > the way it gets to know those handles is not exactly straightforward
+> > (to put it lightly).
+> >
+> > This is how it works, roughly:
+> >
+> >   1. acpi_bus_scan() finds the handle of a PCI root bridge,
+> >      creates a struct acpi_device object for it and passes that
+> >      object to acpi_pci_root_add().
+> >
+> >   2. acpi_pci_root_add() creates a struct acpi_pci_root object,
+> >      populates its "device" field with its argument's address
+> >      (device->handle is the ACPI handle found in step 1).
+> >
+> >   3. The struct acpi_pci_root object created in step 2 is passed
+> >      to pci_acpi_scan_root() and used to get resources that are
+> >      passed to pci_create_root_bus().
+> >
+> >   4. pci_create_root_bus() creates a struct pci_host_bridge object
+> >      and passes its "dev" member to device_register().
+> >
+> >   5. platform_notify(), which for systems with ACPI is set to
+> >      acpi_platform_notify(), is called.
+> >
+> > So far, so good.  Now it starts to be "interesting".
+> >
+> >   6. acpi_find_bridge_device() is used to find the ACPI handle of
+> >      the given device (which is the PCI root bridge) and executes
+> >      acpi_pci_find_root_bridge(), among other things, for the
+> >      given device object.
+> >
+> >   7. acpi_pci_find_root_bridge() uses the name (sic!) of the given
+> >      device object to extract the segment and bus numbers of the PCI
+> >      root bridge and passes them to acpi_get_pci_rootbridge_handle().
+> >
+> >   8. acpi_get_pci_rootbridge_handle() browses the list of ACPI PCI
+> >      root bridges and finds the one that matches the given segment
+> >      and bus numbers.  Its handle is then used to initialize the
+> >      ACPI handle of the PCI root bridge's device object by
+> >      acpi_bind_one().  However, this is *exactly* the ACPI handle we
+> >      started with in step 1.
+> >
+> > Needless to say, this is quite embarassing, but it may be avoided
+> > thanks to commit f3fd0c8 (ACPI: Allow ACPI handles of devices to be
+> > initialized in advance), which makes it possible to initialize the
+> > ACPI handle of a device before passing it to device_register().
+> 
+> This was a mess.  Thanks for cleaning it up.
+> 
+> > Accordingly, make pci_acpi_scan_root() pass the root bridge's ACPI
+> > handle to pci_create_root_bus() and make the latter set the ACPI
+> > handle in its struct pci_host_bridge object's "dev" member before
+> > passing it to device_register(), so that steps 6-8 above aren't
+> > necessary any more.
+> >
+> > To implement that, I decided to repurpose the 4th argument of
+> > pci_create_root_bus(), because that allowed me to avoid defining
+> > additional callbacks or similar things and didn't seem to impact
+> > architectures without ACPI substantially.
+> >
+> > All architectures using pci_create_root_bus() directly are updated
+> > as needed, but only x86 and ia64 are affected as far as the behavior
+> > is concerned (no one else uses ACPI).  There should be no changes in
+> > behavior resulting from this on the other architectures.
+> 
+> I'd like to converge all architectures on a single higher-level
+> interface, pci_scan_root_bus(), then deprecate and remove
+> pci_create_root_bus(), pci_scan_bus_parented(), and pci_scan_bus().
+> You're changing the underlying pci_create_root_bus(), but not the
+> higher-level interfaces that use it, which will make converging a bit
+> harder.
+
+Do you mean that pci_scan_root_bus() and friends should take a
+struct pci_root_sys_info pointer rather than (void *) as an argument?
+That's not too difficult to do on top of my patch.  I can do that if you
+want me to, no problem.
+
+> Here's an alternate implementation strategy; see what you think:
+> 
+> - Add "struct acpi_dev_node acpi_node" to struct pci_sysdata (x86) and
+> struct pci_controller (ia64).  These are the only two arches that use
+> ACPI.
+> 
+> - Add an empty generic (weak) pcibios_create_root_ bus().
+
+Well, in my opinion things like that make following the code more difficult.
+If you were new to the code in question and wanted to understand what it was
+doing, you'd need to inspect all architectures to see (1) if they defined
+pcibios_create_root_bus() and (2) what was in there if so.
+
+> - Add pcibios_create_root_bus() for x86 and ia64 that does the
+> ACPI_HANDLE_SET().
+> 
+> It does add a pcibios callback, which you were trying to avoid, but it
+> does have the advantages that all the higher-level interfaces that use
+> pci_create_root_bus() will keep working and only the ACPI arches have
+> the acpi_dev_node member and associated code.
+
+All of the things that use pci_create_root_bus() are still working with my
+patch applied, hopefully. :-)
+
+You seem to would like the headers of all the involved functions, including
+pci_create_root_bus(), not to change.
+
+Thanks,
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
