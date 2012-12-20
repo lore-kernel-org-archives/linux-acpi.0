@@ -1,7 +1,7 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 14/16] ACPI / PCI: Rework the setup and cleanup of device wakeup
-Date: Thu, 20 Dec 2012 02:58:17 +0100
-Message-ID: <3181154.NDRBl366gp@vostro.rjw.lan>
+Subject: [PATCH 15/16] ACPI / PCI: Move the _PRT setup and cleanup code to pci-acpi.c
+Date: Thu, 20 Dec 2012 02:59:17 +0100
+Message-ID: <1444724.1lVhhTmGMg@vostro.rjw.lan>
 References: <8498184.VilrUmatxI@vostro.rjw.lan> <4082842.31rfDviYHK@vostro.rjw.lan> <1855256.SyhOJGYMIh@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,227 +15,281 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Currently, the ACPI wakeup capability of PCI devices is set up
-in two different places, partially in acpi_pci_bind() where
-runtime wakeup is initialized and partially in
-platform_pci_wakeup_init(), where system wakeup is initialized.
-The cleanup is only done in acpi_pci_unbind() and it only covers
-runtime wakeup.
-
-Use the new .setup() and .cleanup() callbacks in struct acpi_bus_type
-to consolidate that code and do the setup and the cleanup each in one
-place.
+Move the code related to _PRT setup and removal from acpi_pci_bind()
+and acpi_pci_unbind() to the .setup() and .cleanup() callbacks in
+acpi_pci_bus and remove acpi_pci_bind() and acpi_pci_unbind() that
+have no purpose any more.  Accordingly, remove the code related to
+device .bind() and .unbind() operations from the ACPI PCI root bridge
+driver.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/device_pm.c |    2 +-
- drivers/acpi/pci_bind.c  |    7 -------
- drivers/pci/pci-acpi.c   |   30 +++++++++++++++++++++++++++++-
- drivers/pci/pci.c        |   26 +-------------------------
- drivers/pci/pci.h        |    5 -----
- drivers/pci/probe.c      |    1 -
- include/linux/acpi.h     |    5 +++++
- 7 files changed, 36 insertions(+), 40 deletions(-)
+ drivers/acpi/Makefile   |    2 
+ drivers/acpi/pci_bind.c |  113 ------------------------------------------------
+ drivers/acpi/pci_root.c |   31 -------------
+ drivers/pci/pci-acpi.c  |   34 +++++++++++---
+ 4 files changed, 29 insertions(+), 151 deletions(-)
 
 Index: linux/drivers/acpi/pci_bind.c
 ===================================================================
 --- linux.orig/drivers/acpi/pci_bind.c
-+++ linux/drivers/acpi/pci_bind.c
-@@ -43,9 +43,6 @@ static int acpi_pci_unbind(struct acpi_d
- 	if (!dev)
- 		goto out;
- 
--	device_set_run_wake(&dev->dev, false);
--	pci_acpi_remove_pm_notifier(device);
--
- 	if (!dev->subordinate)
- 		goto out;
- 
-@@ -70,10 +67,6 @@ static int acpi_pci_bind(struct acpi_dev
- 	if (!dev)
- 		return 0;
- 
--	pci_acpi_add_pm_notifier(device, dev);
--	if (device->wakeup.flags.run_wake)
--		device_set_run_wake(&dev->dev, true);
--
- 	/*
- 	 * Install the 'bind' function to facilitate callbacks for
- 	 * children of the P2P bridge.
-Index: linux/drivers/pci/pci.h
-===================================================================
---- linux.orig/drivers/pci/pci.h
-+++ linux/drivers/pci/pci.h
-@@ -44,9 +44,6 @@ int pci_probe_reset_function(struct pci_
-  *                platform; to be used during system-wide transitions from a
-  *                sleeping state to the working state and vice versa
-  *
-- * @can_wakeup: returns 'true' if given device is capable of waking up the
-- *              system from a sleeping state
++++ /dev/null
+@@ -1,113 +0,0 @@
+-/*
+- *  pci_bind.c - ACPI PCI Device Binding ($Revision: 2 $)
 - *
-  * @sleep_wake: enables/disables the system wake up capability of given device
-  *
-  * @run_wake: enables/disables the platform to generate run-time wake-up events
-@@ -60,7 +57,6 @@ struct pci_platform_pm_ops {
- 	bool (*is_manageable)(struct pci_dev *dev);
- 	int (*set_state)(struct pci_dev *dev, pci_power_t state);
- 	pci_power_t (*choose_state)(struct pci_dev *dev);
--	bool (*can_wakeup)(struct pci_dev *dev);
- 	int (*sleep_wake)(struct pci_dev *dev, bool enable);
- 	int (*run_wake)(struct pci_dev *dev, bool enable);
- };
-@@ -75,7 +71,6 @@ extern void pci_wakeup_bus(struct pci_bu
- extern void pci_config_pm_runtime_get(struct pci_dev *dev);
- extern void pci_config_pm_runtime_put(struct pci_dev *dev);
- extern void pci_pm_init(struct pci_dev *dev);
--extern void platform_pci_wakeup_init(struct pci_dev *dev);
- extern void pci_allocate_cap_save_buffers(struct pci_dev *dev);
- void pci_free_cap_save_buffers(struct pci_dev *dev);
- 
-Index: linux/drivers/pci/probe.c
-===================================================================
---- linux.orig/drivers/pci/probe.c
-+++ linux/drivers/pci/probe.c
-@@ -1276,7 +1276,6 @@ static void pci_init_capabilities(struct
- 
- 	/* Power Management */
- 	pci_pm_init(dev);
--	platform_pci_wakeup_init(dev);
- 
- 	/* Vital Product Data */
- 	pci_vpd_pci22_init(dev);
-Index: linux/drivers/pci/pci.c
-===================================================================
---- linux.orig/drivers/pci/pci.c
-+++ linux/drivers/pci/pci.c
-@@ -450,7 +450,7 @@ static struct pci_platform_pm_ops *pci_p
- int pci_set_platform_pm(struct pci_platform_pm_ops *ops)
- {
- 	if (!ops->is_manageable || !ops->set_state || !ops->choose_state
--	    || !ops->sleep_wake || !ops->can_wakeup)
-+	    || !ops->sleep_wake)
- 		return -EINVAL;
- 	pci_platform_pm = ops;
- 	return 0;
-@@ -473,11 +473,6 @@ static inline pci_power_t platform_pci_c
- 			pci_platform_pm->choose_state(dev) : PCI_POWER_ERROR;
- }
- 
--static inline bool platform_pci_can_wakeup(struct pci_dev *dev)
--{
--	return pci_platform_pm ? pci_platform_pm->can_wakeup(dev) : false;
--}
--
- static inline int platform_pci_sleep_wake(struct pci_dev *dev, bool enable)
- {
- 	return pci_platform_pm ?
-@@ -1960,25 +1955,6 @@ void pci_pm_init(struct pci_dev *dev)
- 	}
- }
- 
--/**
-- * platform_pci_wakeup_init - init platform wakeup if present
-- * @dev: PCI device
+- *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
+- *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
 - *
-- * Some devices don't have PCI PM caps but can still generate wakeup
-- * events through platform methods (like ACPI events).  If @dev supports
-- * platform wakeup events, set the device flag to indicate as much.  This
-- * may be redundant if the device also supports PCI PM caps, but double
-- * initialization should be safe in that case.
+- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- *
+- *  This program is free software; you can redistribute it and/or modify
+- *  it under the terms of the GNU General Public License as published by
+- *  the Free Software Foundation; either version 2 of the License, or (at
+- *  your option) any later version.
+- *
+- *  This program is distributed in the hope that it will be useful, but
+- *  WITHOUT ANY WARRANTY; without even the implied warranty of
+- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- *  General Public License for more details.
+- *
+- *  You should have received a copy of the GNU General Public License along
+- *  with this program; if not, write to the Free Software Foundation, Inc.,
+- *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+- *
+- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - */
--void platform_pci_wakeup_init(struct pci_dev *dev)
--{
--	if (!platform_pci_can_wakeup(dev))
--		return;
 -
--	device_set_wakeup_capable(&dev->dev, true);
--	platform_pci_sleep_wake(dev, false);
+-#include <linux/kernel.h>
+-#include <linux/types.h>
+-#include <linux/pci.h>
+-#include <linux/pci-acpi.h>
+-#include <linux/acpi.h>
+-#include <linux/pm_runtime.h>
+-#include <acpi/acpi_bus.h>
+-#include <acpi/acpi_drivers.h>
+-
+-#define _COMPONENT		ACPI_PCI_COMPONENT
+-ACPI_MODULE_NAME("pci_bind");
+-
+-static int acpi_pci_unbind(struct acpi_device *device)
+-{
+-	struct pci_dev *dev;
+-
+-	dev = acpi_get_pci_dev(device->handle);
+-	if (!dev)
+-		goto out;
+-
+-	if (!dev->subordinate)
+-		goto out;
+-
+-	acpi_pci_irq_del_prt(dev->subordinate);
+-
+-	device->ops.bind = NULL;
+-	device->ops.unbind = NULL;
+-
+-out:
+-	pci_dev_put(dev);
+-	return 0;
 -}
 -
- static void pci_add_saved_cap(struct pci_dev *pci_dev,
- 	struct pci_cap_saved_state *new_cap)
- {
-Index: linux/include/linux/acpi.h
-===================================================================
---- linux.orig/include/linux/acpi.h
-+++ linux/include/linux/acpi.h
-@@ -510,9 +510,14 @@ static inline int acpi_subsys_resume_ear
- #endif
- 
- #if defined(CONFIG_ACPI) && defined(CONFIG_PM)
-+struct acpi_device *acpi_dev_pm_get_node(struct device *dev);
- int acpi_dev_pm_attach(struct device *dev, bool power_on);
- void acpi_dev_pm_detach(struct device *dev, bool power_off);
- #else
-+static struct acpi_device *acpi_dev_pm_get_node(struct device *dev)
-+{
-+	return NULL;
-+}
- static inline int acpi_dev_pm_attach(struct device *dev, bool power_on)
- {
- 	return -ENODEV;
-Index: linux/drivers/acpi/device_pm.c
-===================================================================
---- linux.orig/drivers/acpi/device_pm.c
-+++ linux/drivers/acpi/device_pm.c
-@@ -634,7 +634,7 @@ int acpi_pm_device_sleep_wake(struct dev
-  * acpi_dev_pm_get_node - Get ACPI device node for the given physical device.
-  * @dev: Device to get the ACPI node for.
-  */
--static struct acpi_device *acpi_dev_pm_get_node(struct device *dev)
-+struct acpi_device *acpi_dev_pm_get_node(struct device *dev)
- {
- 	acpi_handle handle = DEVICE_ACPI_HANDLE(dev);
- 	struct acpi_device *adev;
+-static int acpi_pci_bind(struct acpi_device *device)
+-{
+-	acpi_status status;
+-	acpi_handle handle;
+-	struct pci_bus *bus;
+-	struct pci_dev *dev;
+-
+-	dev = acpi_get_pci_dev(device->handle);
+-	if (!dev)
+-		return 0;
+-
+-	/*
+-	 * Install the 'bind' function to facilitate callbacks for
+-	 * children of the P2P bridge.
+-	 */
+-	if (dev->subordinate) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-				  "Device %04x:%02x:%02x.%d is a PCI bridge\n",
+-				  pci_domain_nr(dev->bus), dev->bus->number,
+-				  PCI_SLOT(dev->devfn), PCI_FUNC(dev->devfn)));
+-		device->ops.bind = acpi_pci_bind;
+-		device->ops.unbind = acpi_pci_unbind;
+-	}
+-
+-	/*
+-	 * Evaluate and parse _PRT, if exists.  This code allows parsing of
+-	 * _PRT objects within the scope of non-bridge devices.  Note that
+-	 * _PRTs within the scope of a PCI bridge assume the bridge's
+-	 * subordinate bus number.
+-	 *
+-	 * TBD: Can _PRTs exist within the scope of non-bridge PCI devices?
+-	 */
+-	status = acpi_get_handle(device->handle, METHOD_NAME__PRT, &handle);
+-	if (ACPI_FAILURE(status))
+-		goto out;
+-
+-	if (dev->subordinate)
+-		bus = dev->subordinate;
+-	else
+-		bus = dev->bus;
+-
+-	acpi_pci_irq_add_prt(device->handle, bus);
+-
+-out:
+-	pci_dev_put(dev);
+-	return 0;
+-}
+-
+-int acpi_pci_bind_root(struct acpi_device *device)
+-{
+-	device->ops.bind = acpi_pci_bind;
+-	device->ops.unbind = acpi_pci_unbind;
+-
+-	return 0;
+-}
 Index: linux/drivers/pci/pci-acpi.c
 ===================================================================
 --- linux.orig/drivers/pci/pci-acpi.c
 +++ linux/drivers/pci/pci-acpi.c
-@@ -283,7 +283,6 @@ static struct pci_platform_pm_ops acpi_p
- 	.is_manageable = acpi_pci_power_manageable,
- 	.set_state = acpi_pci_set_power_state,
- 	.choose_state = acpi_pci_choose_state,
--	.can_wakeup = acpi_pci_can_wakeup,
- 	.sleep_wake = acpi_pci_sleep_wake,
- 	.run_wake = acpi_pci_run_wake,
- };
-@@ -321,10 +320,39 @@ static int acpi_pci_find_root_bridge(str
+@@ -320,12 +320,30 @@ static int acpi_pci_find_root_bridge(str
  	return 0;
  }
  
-+static void acpi_pci_wakeup_setup(struct device *dev)
-+{
-+	struct acpi_device *adev = acpi_dev_pm_get_node(dev);
-+	struct pci_dev *pci_dev = to_pci_dev(dev);
+-static void acpi_pci_wakeup_setup(struct device *dev)
++static void pci_acpi_setup(struct device *dev)
+ {
+-	struct acpi_device *adev = acpi_dev_pm_get_node(dev);
+ 	struct pci_dev *pci_dev = to_pci_dev(dev);
++	acpi_handle handle = ACPI_HANDLE(dev);
++	struct acpi_device *adev;
++	acpi_status status;
++	acpi_handle dummy;
 +
-+	if (!adev || !adev->wakeup.flags.valid)
-+		return;
++	/*
++	 * Evaluate and parse _PRT, if exists.  This code allows parsing of
++	 * _PRT objects within the scope of non-bridge devices.  Note that
++	 * _PRTs within the scope of a PCI bridge assume the bridge's
++	 * subordinate bus number.
++	 *
++	 * TBD: Can _PRTs exist within the scope of non-bridge PCI devices?
++	 */
++	status = acpi_get_handle(handle, METHOD_NAME__PRT, &dummy);
++	if (ACPI_SUCCESS(status)) {
++		struct pci_bus *bus = pci_dev->subordinate;
 +
-+	device_set_wakeup_capable(dev, true);
-+	acpi_pci_sleep_wake(pci_dev, false);
-+
-+	pci_acpi_add_pm_notifier(adev, pci_dev);
-+	if (adev->wakeup.flags.run_wake)
-+		device_set_run_wake(dev, true);
-+}
-+
-+static void acpi_pci_wakeup_cleanup(struct device *dev)
-+{
-+	struct acpi_device *adev = acpi_dev_pm_get_node(dev);
-+
-+	if (adev && adev->wakeup.flags.valid) {
-+		device_set_wakeup_capable(dev, false);
-+		device_set_run_wake(dev, false);
-+		pci_acpi_remove_pm_notifier(adev);
++		acpi_pci_irq_add_prt(handle, bus ? bus : pci_dev->bus);
 +	}
-+}
+ 
+-	if (!adev || !adev->wakeup.flags.valid)
++	if (acpi_bus_get_device(handle, &adev) || !adev->wakeup.flags.valid)
+ 		return;
+ 
+ 	device_set_wakeup_capable(dev, true);
+@@ -336,23 +354,27 @@ static void acpi_pci_wakeup_setup(struct
+ 		device_set_run_wake(dev, true);
+ }
+ 
+-static void acpi_pci_wakeup_cleanup(struct device *dev)
++static void pci_acpi_cleanup(struct device *dev)
+ {
+ 	struct acpi_device *adev = acpi_dev_pm_get_node(dev);
++	struct pci_dev *pci_dev = to_pci_dev(dev);
+ 
+ 	if (adev && adev->wakeup.flags.valid) {
+ 		device_set_wakeup_capable(dev, false);
+ 		device_set_run_wake(dev, false);
+ 		pci_acpi_remove_pm_notifier(adev);
+ 	}
 +
++	if (pci_dev->subordinate)
++		acpi_pci_irq_del_prt(pci_dev->subordinate);
+ }
+ 
  static struct acpi_bus_type acpi_pci_bus = {
  	.bus = &pci_bus_type,
  	.find_device = acpi_pci_find_device,
  	.find_bridge = acpi_pci_find_root_bridge,
-+	.setup = acpi_pci_wakeup_setup,
-+	.cleanup = acpi_pci_wakeup_cleanup,
+-	.setup = acpi_pci_wakeup_setup,
+-	.cleanup = acpi_pci_wakeup_cleanup,
++	.setup = pci_acpi_setup,
++	.cleanup = pci_acpi_cleanup,
  };
  
  static int __init acpi_pci_init(void)
+Index: linux/drivers/acpi/Makefile
+===================================================================
+--- linux.orig/drivers/acpi/Makefile
++++ linux/drivers/acpi/Makefile
+@@ -37,7 +37,7 @@ acpi-y				+= resource.o
+ acpi-y				+= processor_core.o
+ acpi-y				+= ec.o
+ acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
+-acpi-y				+= pci_root.o pci_link.o pci_irq.o pci_bind.o
++acpi-y				+= pci_root.o pci_link.o pci_irq.o
+ acpi-y				+= acpi_platform.o
+ acpi-y				+= power.o
+ acpi-y				+= event.o
+Index: linux/drivers/acpi/pci_root.c
+===================================================================
+--- linux.orig/drivers/acpi/pci_root.c
++++ linux/drivers/acpi/pci_root.c
+@@ -186,21 +186,6 @@ static acpi_status try_get_root_bridge_b
+ 	return AE_OK;
+ }
+ 
+-static void acpi_pci_bridge_scan(struct acpi_device *device)
+-{
+-	int status;
+-	struct acpi_device *child = NULL;
+-
+-	if (device->flags.bus_address)
+-		if (device->parent && device->parent->ops.bind) {
+-			status = device->parent->ops.bind(device);
+-			if (!status) {
+-				list_for_each_entry(child, &device->children, node)
+-					acpi_pci_bridge_scan(child);
+-			}
+-		}
+-}
+-
+ static u8 pci_osc_uuid_str[] = "33DB4D5B-1FF7-401C-9657-7441C03DD766";
+ 
+ static acpi_status acpi_pci_run_osc(acpi_handle handle,
+@@ -450,7 +435,6 @@ static int __devinit acpi_pci_root_add(s
+ 	int result;
+ 	struct acpi_pci_root *root;
+ 	acpi_handle handle;
+-	struct acpi_device *child;
+ 	struct acpi_pci_driver *driver;
+ 	u32 flags, base_flags;
+ 
+@@ -538,15 +522,6 @@ static int __devinit acpi_pci_root_add(s
+ 	}
+ 
+ 	/*
+-	 * Attach ACPI-PCI Context
+-	 * -----------------------
+-	 * Thus binding the ACPI and PCI devices.
+-	 */
+-	result = acpi_pci_bind_root(device);
+-	if (result)
+-		goto out_del_root;
+-
+-	/*
+ 	 * PCI Routing Table
+ 	 * -----------------
+ 	 * Evaluate and parse _PRT, if exists.
+@@ -555,12 +530,6 @@ static int __devinit acpi_pci_root_add(s
+ 	if (ACPI_SUCCESS(status))
+ 		result = acpi_pci_irq_add_prt(device->handle, root->bus);
+ 
+-	/*
+-	 * Scan and bind all _ADR-Based Devices
+-	 */
+-	list_for_each_entry(child, &device->children, node)
+-		acpi_pci_bridge_scan(child);
+-
+ 	/* Indicate support for various _OSC capabilities. */
+ 	if (pci_ext_cfg_avail(root->bus->self))
+ 		flags |= OSC_EXT_PCI_CONFIG_SUPPORT;
