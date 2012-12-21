@@ -1,31 +1,51 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [PATCH 0/16] ACPI: Rework ACPI namespace scanning for devices
-Date: Fri, 21 Dec 2012 00:20:08 +0100
-Message-ID: <12131132.10dj1atNiS@vostro.rjw.lan>
-References: <8498184.VilrUmatxI@vostro.rjw.lan> <1855256.SyhOJGYMIh@vostro.rjw.lan> <1356037647.18964.384.camel@misato.fc.hp.com>
+Date: Fri, 21 Dec 2012 01:09:24 +0100
+Message-ID: <12351296.YKgNhoGAuR@vostro.rjw.lan>
+References: <8498184.VilrUmatxI@vostro.rjw.lan> <1855256.SyhOJGYMIh@vostro.rjw.lan> <CAE9FiQXn9C4_eYUdSew-5H0fpHE7C0wCqsXORfrPvGFf2sK98A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:39262 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751133Ab2LTXOy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Dec 2012 18:14:54 -0500
-In-Reply-To: <1356037647.18964.384.camel@misato.fc.hp.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAE9FiQXn9C4_eYUdSew-5H0fpHE7C0wCqsXORfrPvGFf2sK98A@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, Myron Stowe <myron.stowe@redhat.com>, Yijing Wang <wangyijing0307@gmail.com>, Jiang Liu <liuj97@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, Myron Stowe <myron.stowe@redhat.com>, Yijing Wang <wangyijing0307@gmail.com>, Jiang Liu <liuj97@gmail.com>
 
-On Thursday, December 20, 2012 02:07:27 PM Toshi Kani wrote:
-> Hi Rafael,
+On Wednesday, December 19, 2012 06:06:57 PM Yinghai Lu wrote:
+> On Wed, Dec 19, 2012 at 5:45 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
 > 
-> The changes look very good.  It's much cleaner and consistent. :-)  For
-> the series:
+> great!, the .bind and .unbind go away.
 > 
-> Acked-by: Toshi Kani <toshi.kani@hp.com>
+> >
+> > The patches are on top of my master branch and I'm going to rebase them when
+> > v3.8-rc1 is out.
+> 
+> >
+> > There is a git tree you can pull them from at:
+> >
+> > http://git.kernel.org/?p=linux/kernel/git/rafael/linux-pm.git;a=summary acpi-scan-temp-new
+> >
+> > It's v3.7 with my master branch merged and the new patches on top.
+> 
+> 
+> can you make it base to today's Linus tree ?
 
-Thanks!
+Sure.  Rebased and pushed out:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-scan-next
+
+Untested, though, so caveat emptor. :-)
+
+> otherwise I have to do some manual merge...
+> 
+> Bjorn change the _PRT for v.3.8...
+
+Well, not only that has changed.
+
+Thanks,
+Rafael
 
 
 -- 
