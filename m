@@ -1,75 +1,67 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 0/16] ACPI: Rework ACPI namespace scanning for devices
-Date: Fri, 21 Dec 2012 23:23:31 +0100
-Message-ID: <3550843.LLuPaOBdqu@vostro.rjw.lan>
-References: <8498184.VilrUmatxI@vostro.rjw.lan> <12351296.YKgNhoGAuR@vostro.rjw.lan> <CAE9FiQUO16M+_HG7=adYN1B8GpMgL3_rEzCtp5MjGcw2enMw_Q@mail.gmail.com>
+Subject: [PATCH] ACPI / power: Remove useless message from device registering routine
+Date: Mon, 24 Dec 2012 00:43:17 +0100
+Message-ID: <4321825.8YdzIkN7hj@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:40282 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:42719 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751832Ab2LUWSP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 21 Dec 2012 17:18:15 -0500
-In-Reply-To: <CAE9FiQUO16M+_HG7=adYN1B8GpMgL3_rEzCtp5MjGcw2enMw_Q@mail.gmail.com>
+	id S1751285Ab2LWXh6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 23 Dec 2012 18:37:58 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Toshi Kani <toshi.kani@hp.com>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, Myron Stowe <myron.stowe@redhat.com>, Yijing Wang <wangyijing0307@gmail.com>, Jiang Liu <liuj97@gmail.com>
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Huang Ying <ying.huang@intel.com>, Bjorn Helgaas <bhelgaas@google.com>
 
-On Thursday, December 20, 2012 07:59:15 PM Yinghai Lu wrote:
-> On Thu, Dec 20, 2012 at 4:09 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> > On Wednesday, December 19, 2012 06:06:57 PM Yinghai Lu wrote:
-> >> On Wed, Dec 19, 2012 at 5:45 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> >>
-> >> great!, the .bind and .unbind go away.
-> >>
-> >> >
-> >> > The patches are on top of my master branch and I'm going to rebase them when
-> >> > v3.8-rc1 is out.
-> >>
-> >> >
-> >> > There is a git tree you can pull them from at:
-> >> >
-> >> > http://git.kernel.org/?p=linux/kernel/git/rafael/linux-pm.git;a=summary acpi-scan-temp-new
-> >> >
-> >> > It's v3.7 with my master branch merged and the new patches on top.
-> >>
-> >>
-> >> can you make it base to today's Linus tree ?
-> >
-> > Sure.  Rebased and pushed out:
-> >
-> > git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-scan-next
-> >
-> 
-> Thanks.
-> 
-> I rebased pci-root-bus-hotplug patchset on top it, and it works well.
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Great, thanks for testing!
+After commit 71fbad6 (PCI/ACPI: Notify PCI devices when their power
+resource is turned on) made acpi_pci_bind() call
+acpi_power_resource_register_device(), the debug message at the end
+of the latter appears in the kernel log for every PCI device that
+doesn't happen to have power resources assigned (which is the vast
+majority of them).  However, this message is totally useless, because
+it doesn't even say which device it is about.  Moreover, it is
+misleading, because it only means that the given device has no power
+resources, which isn't exceptional at all.
 
-> So
-> Acked-by: Yinghai Lu <yinghai@kernel.org>
-> for the four new ones in your acpi_scan_next branch.
+Remove that useless message altogether and simplify
+acpi_power_resource_register_device() slightly.
 
-Thanks!
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/power.c |   11 ++---------
+ 1 file changed, 2 insertions(+), 9 deletions(-)
 
-I'll rebase the whole series on top of v3.8-rc1 when it's out.
+Index: linux/drivers/acpi/power.c
+===================================================================
+--- linux.orig/drivers/acpi/power.c
++++ linux/drivers/acpi/power.c
+@@ -445,11 +445,8 @@ int acpi_power_resource_register_device(
+ 		return -ENODEV;
+ 
+ 	ret = acpi_bus_get_device(handle, &acpi_dev);
+-	if (ret)
+-		goto no_power_resource;
+-
+-	if (!acpi_dev->power.flags.power_resources)
+-		goto no_power_resource;
++	if (ret || !acpi_dev->power.flags.power_resources)
++		return -ENODEV;
+ 
+ 	powered_device = kzalloc(sizeof(*powered_device), GFP_KERNEL);
+ 	if (!powered_device)
+@@ -471,10 +468,6 @@ int acpi_power_resource_register_device(
+ 	}
+ 
+ 	return ret;
+-
+-no_power_resource:
+-	printk(KERN_DEBUG PREFIX "Invalid Power Resource to register!\n");
+-	return -ENODEV;
+ }
+ EXPORT_SYMBOL_GPL(acpi_power_resource_register_device);
+ 
 
-> i put the updated patches in
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/yinghai/linux-yinghai.git
-> for-pci-root-bus-3.9
-
-OK, thanks.
-
-I'll have a look at that series next week.
-
-Thanks,
-Rafael
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
