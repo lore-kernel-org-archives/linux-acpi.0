@@ -1,54 +1,77 @@
-From: Glauber Costa <glommer@parallels.com>
-Subject: Re: [PATCH v5 01/14] memory-hotplug: try to offline the memory twice
- to avoid dependence
-Date: Tue, 25 Dec 2012 12:35:15 +0400
-Message-ID: <50D96543.6010903@parallels.com>
-References: <1356350964-13437-1-git-send-email-tangchen@cn.fujitsu.com> <1356350964-13437-2-git-send-email-tangchen@cn.fujitsu.com>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH v9 06/10] ata: zpodd: check zero power ready status
+Date: Tue, 25 Dec 2012 12:17:23 -0500
+Message-ID: <20121225171723.GI10220@mtj.dyndns.org>
+References: <1352443922-13734-1-git-send-email-aaron.lu@intel.com>
+ <35648985.61QNrr0Knq@vostro.rjw.lan>
+ <1353906191.2523.25.camel@dabdike>
+ <21511277.LLinyDpbAK@vostro.rjw.lan>
+ <20121128013928.GB15971@htj.dyndns.org>
+ <1354092969.2276.49.camel@dabdike>
+ <20121203081321.GA9990@mint-spring.sh.intel.com>
+ <1354523143.2307.2.camel@dabdike.int.hansenpartnership.com>
+ <20121203162323.GB19802@htj.dyndns.org>
+ <50D2AB1D.9050602@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <1356350964-13437-2-git-send-email-tangchen@cn.fujitsu.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: akpm@linux-foundation.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, wujianguo@huawei.com, wency@cn.fujitsu.com, hpa@zytor.com, linfeng@cn.fujitsu.com, laijs@cn.fujitsu.com, mgorman@suse.de, yinghai@kernel.org, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:38882 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754017Ab2LYRR3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Dec 2012 12:17:29 -0500
+Content-Disposition: inline
+In-Reply-To: <50D2AB1D.9050602@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@vger.kernel.org, Jeff Garzik <jgarzik@pobox.com>, Alan Stern <stern@rowland.harvard.edu>, Jeff Wu <jeff.wu@amd.com>, Aaron Lu <aaron.lwe@gmail.com>, linux-ide@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On 12/24/2012 04:09 PM, Tang Chen wrote:
-> From: Wen Congyang <wency@cn.fujitsu.com>
-> 
-> memory can't be offlined when CONFIG_MEMCG is selected.
-> For example: there is a memory device on node 1. The address range
-> is [1G, 1.5G). You will find 4 new directories memory8, memory9, memory10,
-> and memory11 under the directory /sys/devices/system/memory/.
-> 
-> If CONFIG_MEMCG is selected, we will allocate memory to store page cgroup
-> when we online pages. When we online memory8, the memory stored page cgroup
-> is not provided by this memory device. But when we online memory9, the memory
-> stored page cgroup may be provided by memory8. So we can't offline memory8
-> now. We should offline the memory in the reversed order.
-> 
-> When the memory device is hotremoved, we will auto offline memory provided
-> by this memory device. But we don't know which memory is onlined first, so
-> offlining memory may fail. In such case, iterate twice to offline the memory.
-> 1st iterate: offline every non primary memory block.
-> 2nd iterate: offline primary (i.e. first added) memory block.
-> 
-> This idea is suggested by KOSAKI Motohiro.
-> 
-> Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+Hello, Aaron.
 
-Maybe there is something here that I am missing - I admit that I came
-late to this one, but this really sounds like a very ugly hack, that
-really has no place in here.
+On Thu, Dec 20, 2012 at 02:07:25PM +0800, Aaron Lu wrote:
+> +static int is_gendisk_part0(struct device *dev, void *data)
+> +{
+> +	struct device **child = data;
+> +
+> +	if (dev->class == &block_class && dev->type == &disk_type) {
+> +		*child = dev;
+> +		return 1;
+> +	} else
+> +		return 0;
+> +}
+> +
+> +/**
+> + * disk_from_device - Get the gendisk pointer for this device.
+> + * @dev: the device this gendisk is created for, i.e. gendisk->driverfs_dev
+> + *
+> + * LLD sometimes need to play with the gendisk without HLD's aware,
+> + * this routine gives LLD the required access to gendisk.
+> + *
+> + * CONTEXT:
+> + * Don't care.
+> + */
+> +struct gendisk *disk_from_device(struct device *dev)
+> +{
+> +	struct device *child;
+> +
+> +	if (device_for_each_child(dev, &child, is_gendisk_part0))
+> +		return dev_to_disk(child);
+> +	else
+> +		return NULL;
+> +}
+> +EXPORT_SYMBOL(disk_from_device);
 
-Retrying, of course, may make sense, if we have reasonable belief that
-we may now succeed. If this is the case, you need to document - in the
-code - while is that.
+This is really a round-about way to find out the matching device and
+it wouldn't work if the disk device nests deeper.  Doesn't really look
+like a good idea to me.
 
-The memcg argument, however, doesn't really cut it. Why can't we make
-all page_cgroup allocations local to the node they are describing? If
-memcg is the culprit here, we should fix it, and not retry. If there is
-still any benefit in retrying, then we retry being very specific about why.
+> Then together with disk_try_block_events and disk_unblock_events, we can
+> avoid touching SCSI layer to let ODD stay in zero power state.
 
+Also, I'd much prefer something along the line of
+block_events_nowait() instead of try_block.
 
+Thanks.
+
+-- 
+tejun
