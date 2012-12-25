@@ -1,83 +1,65 @@
-From: Ben Jencks <ben@bjencks.net>
-Subject: Re: "Windows 2012" OSI causes backlight problems on current ThinkPad
- firmware
-Date: Mon, 24 Dec 2012 21:10:03 -0500
-Message-ID: <50D90AFB.8060802@bjencks.net>
-References: <50D8C9D1.2060801@bjencks.net> <1356390303.6113.47.camel@linux-s257.site>
+From: Chris <temp2012@brindabella.org>
+Subject: ACPI issue?
+Date: Tue, 25 Dec 2012 13:36:18 +1100
+Message-ID: <50D91122.3070200@brindabella.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f173.google.com ([209.85.214.173]:33419 "EHLO
-	mail-ob0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753385Ab2LYCRc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Dec 2012 21:17:32 -0500
-Received: by mail-ob0-f173.google.com with SMTP id xn12so7071581obc.18
-        for <linux-acpi@vger.kernel.org>; Mon, 24 Dec 2012 18:17:31 -0800 (PST)
-In-Reply-To: <1356390303.6113.47.camel@linux-s257.site>
+Received: from out4-smtp.messagingengine.com ([66.111.4.28]:55704 "EHLO
+	out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753385Ab2LYChZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 24 Dec 2012 21:37:25 -0500
+Received: from compute3.internal (compute3.nyi.mail.srv.osa [10.202.2.43])
+	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id D567B20967
+	for <linux-acpi@vger.kernel.org>; Mon, 24 Dec 2012 21:37:24 -0500 (EST)
+Received: from [192.168.1.10] (unknown [124.171.110.225])
+	by mail.messagingengine.com (Postfix) with ESMTPA id 0C7DB482669
+	for <linux-acpi@vger.kernel.org>; Mon, 24 Dec 2012 21:37:23 -0500 (EST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: joeyli <jlee@suse.com>
-Cc: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
 
-On 12/24/2012 06:05 PM, joeyli wrote:
-> =E6=96=BC =E4=B8=80=EF=BC=8C2012-12-24 =E6=96=BC 16:32 -0500=EF=BC=8C=
-Ben Jencks =E6=8F=90=E5=88=B0=EF=BC=9A
->> The addition of "Windows 2012" to the OSI strings in the 3.7 cycle h=
-as
->> caused backlight brightness adjustment to break on my ThinkPad T530.
->>
->> Without "Windows 2012" _BCL returns the actual 16 brightness levels:
->>
->> 5, 10, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 80, 90, 100
->>
->> When "Windows 2012" is present, it returns 101 levels 0-100, but _BC=
-M
->> rounds any value up to one of the real values above.
->>
->> This interacts badly with gnome-settings-daemon, which attempts to
->> change brightness in increments of 5 (1/20 of 100). If brightness is
->> currently 100, it attempts to decrement it to 95, but it gets rounde=
-d
->> back up to 100, so it's impossible to decrease the brightness.
->>
->> Booting with acpi_osi=3D"!Windows 2012" fixes the problem, though I'=
-m
->> not
->> sure if it introduces others; I see several other things depend on
->> WIN8
->> in DSDT.
->>
->> Perhaps this should be fixed in gnome-settings-daemon, but since it
->> appears on the surface to be a kernel regression (3.6 works, 3.7
->> broken)
->> I thought I'd report it here first.=20
->=20
-> Yes, this is g-s-d's problem, g-s-d should adapt to more levels of
-> brightness:
->=20
-> plugins/power/gsd-power-manager.c
->=20
-> /* on ACPI machines we have 4-16 levels, on others it's ~150 */
-> #define BRIGHTNESS_STEP_AMOUNT(max) ((max) < 20 ? 1 : (max) / 20)
+Sorry, just a user here, not a dev.  I'm not even sure if this is the 
+appropriate list...
 
-Actually, thinking about this some more, I'm not sure what g-s-d could
-do about this. It could behave better if brightness changes don't
-"stick", but as long as the hardware/kernel is lying to userspace about
-how many brightness levels are available the experience can't be
-completely right.
+Do the lines pasted below from /var/log/messages suggest an ACPI 
+issue/bug that I ought to report?
 
-If the exact brightness levels aren't exposed, pressing the brightness
-up/down keys will skip a real level or not change the real level at all
-in some cases.
+Symptoms: my screen goes blank after a period of inactivity, when I 
+start using the PC again the mouse cursor is super laggy and rebooting 
+seems to be the only way to recover.  System hangs if I try and exit X 
+windows.  System is Debian stable.
 
-Would it be possible to add a quirk in to exclude "Windows 2012" on thi=
-s
-hardware/bios?
+01:32 PM: uname -a
+Linux last 2.6.32-5-686 #1 SMP Sun Sep 23 09:49:36 UTC 2012 i686 GNU/Linux
 
--Ben
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Chris
+
+Dec 25 11:48:29 last kernel: [ 8214.356654] Pid: 0, comm: swapper Not 
+tainted 2.6.32-5-686 #1
+Dec 25 11:48:29 last kernel: [ 8214.356658] Call Trace:
+Dec 25 11:48:29 last kernel: [ 8214.356667]  [<c106d91d>] ? 
+__report_bad_irq+0x24/0x69
+Dec 25 11:48:29 last kernel: [ 8214.356673]  [<c106d924>] ? 
+__report_bad_irq+0x2b/0x69
+Dec 25 11:48:29 last kernel: [ 8214.356678]  [<c106da49>] ? 
+note_interrupt+0xe7/0x13e
+Dec 25 11:48:29 last kernel: [ 8214.356683]  [<c106df77>] ? 
+handle_fasteoi_irq+0x7a/0x97
+Dec 25 11:48:29 last kernel: [ 8214.356689]  [<c1004dd7>] ? 
+handle_irq+0x17/0x1b
+Dec 25 11:48:29 last kernel: [ 8214.356694]  [<c1004659>] ? 
+do_IRQ+0x38/0x89
+Dec 25 11:48:29 last kernel: [ 8214.356699]  [<c10037f0>] ? 
+common_interrupt+0x30/0x38
+Dec 25 11:48:29 last kernel: [ 8214.356704]  [<c10300e0>] ? 
+copy_process+0xeef/0xf2d
+Dec 25 11:48:29 last kernel: [ 8214.356715]  [<f80bbe7c>] ? 
+acpi_idle_enter_c1+0x7b/0x97 [processor]
+Dec 25 11:48:29 last kernel: [ 8214.356721]  [<c11c75a1>] ? 
+cpuidle_idle_call+0x68/0xbb
+Dec 25 11:48:29 last kernel: [ 8214.356724]  [<c1002377>] ? 
+cpu_idle+0x89/0xa2
