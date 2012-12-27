@@ -1,71 +1,42 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [Alternative][PATCH] ACPI / PCI: Set root bridge ACPI handle in advance
-Date: Wed, 26 Dec 2012 16:10:32 -0800
-Message-ID: <CAE9FiQWpAvgam3t7isFcZOz+OEe4D4QJxBbqcbiqMJVwJz=-8A@mail.gmail.com>
-References: <1558789.gX8cmBgyDV@vostro.rjw.lan>
-	<CAE9FiQWr6-=kvrCXKEWFvUHHv6xbHKt-oAdt+VPUMphVUW4U4A@mail.gmail.com>
-	<CAE9FiQVOvqqEFXcRbZt5=8e4fQgmzw03WCS=env46eYADFpXLw@mail.gmail.com>
-	<6257154.ucqGyPHqkg@vostro.rjw.lan>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH v7 2/3] aerdrv: Enhanced AER logging
+Date: Wed, 26 Dec 2012 18:33:04 -0700
+Message-ID: <CAErSpo4j5k6uQJHV1sMdOqosVNVygehfXB+y7bB7uH14B6vG8w@mail.gmail.com>
+References: <20121204210305.4515.91100.stgit@grignak.americas.hpqcorp.net>
+ <20121204210312.4515.13415.stgit@grignak.americas.hpqcorp.net>
+ <20121205143202.GD2364@liondog.tnic> <A961433CDFF2F640A2866803152E61F9516F279F@G4W3219.americas.hpqcorp.net>
+ <20121205163019.GC28556@liondog.tnic>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <6257154.ucqGyPHqkg@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Tony Luck <tony.luck@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Jiang Liu <liuj97@gmail.com>, Myron Stowe <myron.stowe@redhat.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20121205163019.GC28556@liondog.tnic>
+Sender: linux-pci-owner@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>, "Ortiz, Lance E" <lance.oritz@hp.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "lance_ortiz@hotmail.com" <lance_ortiz@hotmail.com>, "jiang.liu@huawei.com" <jiang.liu@huawei.com>, "tony.luck@intel.com" <tony.luck@intel.com>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "mchehab@redhat.com" <mchehab@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Dec 26, 2012 at 2:36 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Wednesday, December 26, 2012 12:41:05 PM Yinghai Lu wrote:
->> On Wed, Dec 26, 2012 at 12:16 PM, Yinghai Lu <yinghai@kernel.org> wrote:
->> > On Wed, Dec 26, 2012 at 12:10 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
->> >> Do you have a reference for this?  I think this might have been true
->> >> in the past, but I don't think it's true for any version of gcc we
->> >> support for building Linux.
->> >
->> > http://lkml.indiana.edu/hypermail/linux/kernel/0804.3/3600.html
->>
->> the problem is already addressed by:
->>
->> | commit f9d14250071eda9972e4c9cea745a11185952114
->> | Author: Linus Torvalds <torvalds@linux-foundation.org>
->> | Date:   Fri Jan 2 09:29:43 2009 -0800
->> |
->> |    Disallow gcc versions 4.1.{0,1}
->> |
->> |    These compiler versions are known to miscompile __weak functions and
->> |    thus generate kernels that don't necessarily work correctly.  If a weak
->> |    function is int he same compilation unit as a caller, gcc may end up
->> |    inlining it, and thus binding the weak function too early.
->> |
->> |    See
->> |
->> |        http://gcc.gnu.org/bugzilla/show_bug.cgi?id=27781
->> |
->> |    for details.
->>
->> so it is ok to put the __weak in the same file now.
+On Wed, Dec 5, 2012 at 9:30 AM, Borislav Petkov <bp@alien8.de> wrote:
+> On Wed, Dec 05, 2012 at 04:14:14PM +0000, Ortiz, Lance E wrote:
+>> I removed the prefix argument because it was never used by its caller
+>> and never set. The reason I added the prefix variable and set it to
+>> NULL was to help in breaking up the patch and adding it would help the
+>> intermittent patch build without changing too much code. I knew I was
+>> actually going to use the variable in patch 3.
 >
-> Cool, thanks for checking and for the ACK!
+> No, the correct way to do that is to keep all changes that belong
+> logically together in a single patch for ease of reviewing and avoid
+> breakages. And in your case this should be pretty easy: simply move all
+> the 'prefix' touching code to patch #3 and you're done, AFAICT.
 
-wait, we have some problem on systems that root bus is not exported via DSDT ...
+Lance, you didn't add all the "prefix" stuff in AER, but since you're
+touching it, I think things will make more sense if you clean it up at
+the same time.  There are a lot of printk() calls there that should be
+converted to dev_printk().
 
-one of my nehalem system that have uncore cpu devices are not exported via ACPI.
+I think I see why it was done that way -- it sticks either
+KERN_WARNING or KERN_ERR at the beginning of the prefix, then uses
+plain printk() later.  I guess that means you only have to pass around
+the prefix argument, rather than both a "level" and a "struct pci_dev
+*".  But I think it will be simpler overall to pass both and take
+advantage of dev_printk() and stop emulating it.
 
-also there will be problem that system is booting with acpi=off.
-
-
-+int pcibios_root_bridge_prepare(struct pci_host_bridge *bridge)
-+{
-+       struct pci_sysdata *sd = bridge->bus->sysdata;
-+       struct pci_root_info *info = container_of(sd, struct pci_root_info, sd);
-+
-+       ACPI_HANDLE_SET(&bridge->dev, info->bridge->handle);
-+       return 0;
-+}
-
-will get wrong info...via sd... as their sd is standalone
-
-Thanks
-
-Yinghai
+Bjorn
