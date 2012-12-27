@@ -1,92 +1,88 @@
-From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: Re: [PATCH v5 14/14] memory-hotplug: free node_data when a node is
- offlined
-Date: Thu, 27 Dec 2012 20:16:38 +0800
-Message-ID: <50DC3C26.6060308@cn.fujitsu.com>
-References: <1356350964-13437-1-git-send-email-tangchen@cn.fujitsu.com> <1356350964-13437-15-git-send-email-tangchen@cn.fujitsu.com> <50DA7533.6060407@jp.fujitsu.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [Alternative][PATCH] ACPI / PCI: Set root bridge ACPI handle in advance
+Date: Thu, 27 Dec 2012 13:47:22 +0100
+Message-ID: <1723076.byQgAGE2K7@vostro.rjw.lan>
+References: <1558789.gX8cmBgyDV@vostro.rjw.lan> <6257154.ucqGyPHqkg@vostro.rjw.lan> <CAE9FiQWpAvgam3t7isFcZOz+OEe4D4QJxBbqcbiqMJVwJz=-8A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <50DA7533.6060407@jp.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>, akpm@linux-foundation.org, rientjes@google.com, liuj97@gmail.com, len.brown@intel.com, benh@kernel.crashing.org, paulus@samba.org, cl@linux.com, minchan.kim@gmail.com, kosaki.motohiro@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, wujianguo@huawei.com, hpa@zytor.com, linfeng@cn.fujitsu.com, laijs@cn.fujitsu.com, mgorman@suse.de, yinghai@kernel.org, x86@kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, cmetcalf@tilera.com, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAE9FiQWpAvgam3t7isFcZOz+OEe4D4QJxBbqcbiqMJVwJz=-8A@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Tony Luck <tony.luck@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Jiang Liu <liuj97@gmail.com>, Myron Stowe <myron.stowe@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-At 12/26/2012 11:55 AM, Kamezawa Hiroyuki Wrote:
-> (2012/12/24 21:09), Tang Chen wrote:
->> From: Wen Congyang <wency@cn.fujitsu.com>
->>
->> We call hotadd_new_pgdat() to allocate memory to store node_data. So we
->> should free it when removing a node.
->>
->> Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+On Wednesday, December 26, 2012 04:10:32 PM Yinghai Lu wrote:
+> On Wed, Dec 26, 2012 at 2:36 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > On Wednesday, December 26, 2012 12:41:05 PM Yinghai Lu wrote:
+> >> On Wed, Dec 26, 2012 at 12:16 PM, Yinghai Lu <yinghai@kernel.org> wrote:
+> >> > On Wed, Dec 26, 2012 at 12:10 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
+> >> >> Do you have a reference for this?  I think this might have been true
+> >> >> in the past, but I don't think it's true for any version of gcc we
+> >> >> support for building Linux.
+> >> >
+> >> > http://lkml.indiana.edu/hypermail/linux/kernel/0804.3/3600.html
+> >>
+> >> the problem is already addressed by:
+> >>
+> >> | commit f9d14250071eda9972e4c9cea745a11185952114
+> >> | Author: Linus Torvalds <torvalds@linux-foundation.org>
+> >> | Date:   Fri Jan 2 09:29:43 2009 -0800
+> >> |
+> >> |    Disallow gcc versions 4.1.{0,1}
+> >> |
+> >> |    These compiler versions are known to miscompile __weak functions and
+> >> |    thus generate kernels that don't necessarily work correctly.  If a weak
+> >> |    function is int he same compilation unit as a caller, gcc may end up
+> >> |    inlining it, and thus binding the weak function too early.
+> >> |
+> >> |    See
+> >> |
+> >> |        http://gcc.gnu.org/bugzilla/show_bug.cgi?id=27781
+> >> |
+> >> |    for details.
+> >>
+> >> so it is ok to put the __weak in the same file now.
+> >
+> > Cool, thanks for checking and for the ACK!
 > 
-> I'm sorry but is it safe to remove pgdat ? All zone cache and zonelists are
-> properly cleared/rebuilded in synchronous way ? and No threads are visinting
-> zone in vmscan.c ?
+> wait, we have some problem on systems that root bus is not exported via DSDT ...
+> 
+> one of my nehalem system that have uncore cpu devices are not exported via ACPI.
+> 
+> also there will be problem that system is booting with acpi=off.
+> 
+> 
+> +int pcibios_root_bridge_prepare(struct pci_host_bridge *bridge)
+> +{
+> +       struct pci_sysdata *sd = bridge->bus->sysdata;
+> +       struct pci_root_info *info = container_of(sd, struct pci_root_info, sd);
+> +
+> +       ACPI_HANDLE_SET(&bridge->dev, info->bridge->handle);
+> +       return 0;
+> +}
+> 
+> will get wrong info...via sd... as their sd is standalone
 
-We have rebuilt zonelists when a zone has no memory after offlining some pages.
+Yes, it will be called in all code paths leading to acpi_create_root_bus(),
+not only the ones started by pci_acpi_scan_root().  Well, too bad.
 
-Thanks
-Wen Congyang
+By the way, that illustrates nicely why I generally have concerns about __weak
+stuff and similar tricks.
 
-> 
-> Thanks,
-> -Kame
-> 
->> ---
->>   mm/memory_hotplug.c |   20 +++++++++++++++++++-
->>   1 files changed, 19 insertions(+), 1 deletions(-)
->>
->> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
->> index f8a1d2f..447fa24 100644
->> --- a/mm/memory_hotplug.c
->> +++ b/mm/memory_hotplug.c
->> @@ -1680,9 +1680,12 @@ static int check_cpu_on_node(void *data)
->>   /* offline the node if all memory sections of this node are removed */
->>   static void try_offline_node(int nid)
->>   {
->> +	pg_data_t *pgdat = NODE_DATA(nid);
->>   	unsigned long start_pfn = NODE_DATA(nid)->node_start_pfn;
->> -	unsigned long end_pfn = start_pfn + NODE_DATA(nid)->node_spanned_pages;
->> +	unsigned long end_pfn = start_pfn + pgdat->node_spanned_pages;
->>   	unsigned long pfn;
->> +	struct page *pgdat_page = virt_to_page(pgdat);
->> +	int i;
->>   
->>   	for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
->>   		unsigned long section_nr = pfn_to_section_nr(pfn);
->> @@ -1709,6 +1712,21 @@ static void try_offline_node(int nid)
->>   	 */
->>   	node_set_offline(nid);
->>   	unregister_one_node(nid);
->> +
->> +	if (!PageSlab(pgdat_page) && !PageCompound(pgdat_page))
->> +		/* node data is allocated from boot memory */
->> +		return;
->> +
->> +	/* free waittable in each zone */
->> +	for (i = 0; i < MAX_NR_ZONES; i++) {
->> +		struct zone *zone = pgdat->node_zones + i;
->> +
->> +		if (zone->wait_table)
->> +			vfree(zone->wait_table);
->> +	}
->> +
->> +	arch_refresh_nodedata(nid, NULL);
->> +	arch_free_nodedata(pgdat);
->>   }
->>   
->>   int __ref remove_memory(int nid, u64 start, u64 size)
->>
-> 
-> 
-> 
+Bjorn, I had tried to use the approach you suggested, but it didn't work.
+I thought about fixing that, but everything I could come up with turned out to
+be too complicated, so I'm inclined to use the previous version after all:
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+https://patchwork.kernel.org/patch/1889221/
+
+that has been acked by Yinghai, Greg and Peter already.
+
+Thanks,
+Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
