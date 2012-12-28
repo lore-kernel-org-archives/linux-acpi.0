@@ -1,48 +1,207 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH v9 06/10] ata: zpodd: check zero power ready status
-Date: Fri, 28 Dec 2012 16:16:35 -0500
-Message-ID: <20121228211635.GB3062@mtj.dyndns.org>
-References: <1353906191.2523.25.camel@dabdike>
- <21511277.LLinyDpbAK@vostro.rjw.lan>
- <20121128013928.GB15971@htj.dyndns.org>
- <1354092969.2276.49.camel@dabdike>
- <20121203081321.GA9990@mint-spring.sh.intel.com>
- <1354523143.2307.2.camel@dabdike.int.hansenpartnership.com>
- <20121203162323.GB19802@htj.dyndns.org>
- <50D2AB1D.9050602@intel.com>
- <20121225171723.GI10220@mtj.dyndns.org>
- <50DA55F6.8080706@intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH] PCI / ACPI: Rework ACPI device nodes lookup for the PCI bus type
+Date: Fri, 28 Dec 2012 22:29:07 +0100
+Message-ID: <16168955.038G1kVfN2@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <50DA55F6.8080706@intel.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@vger.kernel.org, Jeff Garzik <jgarzik@pobox.com>, Alan Stern <stern@rowland.harvard.edu>, Jeff Wu <jeff.wu@amd.com>, Aaron Lu <aaron.lwe@gmail.com>, linux-ide@vger.kernel.org, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from hydra.sisk.pl ([212.160.235.94]:48402 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754398Ab2L1VXl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 28 Dec 2012 16:23:41 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Peter Wu <lekensteyn@gmail.com>
 
-Hello,
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-On Wed, Dec 26, 2012 at 09:42:14AM +0800, Aaron Lu wrote:
-> > This is really a round-about way to find out the matching device and
-> > it wouldn't work if the disk device nests deeper.  Doesn't really look
-> > like a good idea to me.
-> 
-> I don't quite understand the 'disk device nests deeper' case, can you
-> please elaborate? My understanding is, as long as the disk's part0
-> device has a parent, this function should work. For LLDs want to take
+As the kernel Bugzilla report #42696 indicates, it generally is not
+sufficient to use _ADR to get an ACPI device node corresponding to
+the given PCI device, because there may be multiple objects with
+matching _ADR in the ACPI namespace (this probably is against the
+spec, but it evidently happens in practice).
 
-Hmmm, maybe I misread but it looked like it wouldn't work if there are
-intermediate nodes between the parent device and part0.  It might not
-happen for sata but I don't think it's a good idea to assume that the
-part0 and hardware device are connected directly.
+One possible way to improve the situation is to use the presence of
+another ACPI method to distinguish between the matching namespace
+nodes.  For example, if the presence of _INI is checked in addition
+to the return value of _ADR, bug #42696 goes away on the affected
+machines.  Of course, this is somewhat arbitrary, but it may be
+argued that executing _INI for an ACPI device node kind of means that
+we are going to use that device node going forward, so we should
+generally prefer the nodes where we have executed _INI to "competing"
+nodes without _INI.
 
-In general, it's a quite roundabout way to do it.  Let's just push it
-through SCSI.  That's how everything else is routed after all.  It's
-confusing to do this one differently.
+In that case, though, we shouldn't take the nodes where we haven't
+executed _INI into account, but that's quite straightforwad to
+achieve.  Namely, we only need to check nodes that we created struct
+acpi_device objects for.  This also makes sense for a different
+reason, which is that the result of acpi_pci_find_device() is used
+to get a struct acpi_device object (not just an ACPI handle)
+corresponding to the given PCI device.
 
-Thanks.
+Accordingly, introduce acpi_get_child_device() that finds a struct
+acpi_device corresponding to the given address by walking the
+children of the ACPI device node whose handle is its first argument.
+The lookup is carried out by evaluating _ADR for every child and
+comparing the result with the given address.  If there's a match and
+that child has _INI defined, it is returned as a result.  If _INI is
+not present, the search continues until (a) there are no more matches
+or (b) there is another matching child whose _INI is present (in
+which case that child is returned instead of the first matching one).
 
--- 
-tejun
+The walk of the list of children is done in the reverse direction for
+two reasons.  The first reason is for compatibility with
+acpi_get_child() that returns the handle of the last matching child
+of the given parent.  The second one is to get the last device whose
+_INI was executed first (that _INI might have overriden whatever _INI
+for the other matching device nodes had done).
+
+To fix bug #42696, modify acpi_pci_find_device() to use
+acpi_get_child_device() instead of acpi_get_child() for ACPI device
+node lookup.
+
+References: https://bugzilla.kernel.org/show_bug.cgi?id=42696
+Reported-by: Peter Wu <lekensteyn@gmail.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/glue.c     |   45 +++++++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/internal.h |    4 ++++
+ drivers/acpi/proc.c     |    1 +
+ drivers/acpi/sleep.h    |    1 -
+ drivers/pci/pci-acpi.c  |    7 +++++--
+ include/acpi/acpi_bus.h |    1 +
+ 6 files changed, 56 insertions(+), 3 deletions(-)
+
+Index: linux/drivers/acpi/glue.c
+===================================================================
+--- linux.orig/drivers/acpi/glue.c
++++ linux/drivers/acpi/glue.c
+@@ -93,6 +93,51 @@ static int acpi_find_bridge_device(struc
+ 	return ret;
+ }
+ 
++/**
++ * acpi_get_child_device - Find specific child of an ACPI device.
++ * @phandle: ACPI handle of the parent device to find a child of.
++ * @address: Address of the child to find (as returned by _ADR).
++ *
++ * Find the child of the ACPI device node represented by @phandle whose _ADR
++ * method's return value is equal to @address.  If there are more children with
++ * matching _ADR return values, take the (last) one having _INI defined.
++ */
++struct acpi_device *acpi_get_child_device(acpi_handle phandle, u64 address)
++{
++	struct acpi_device *parent, *adev, *ret = NULL;
++
++	if (acpi_bus_get_device(phandle, &parent))
++		return NULL;
++
++	mutex_lock(&acpi_device_lock);
++	/* Use reverse direction for compatibility with acpi_get_child(). */
++	list_for_each_entry_reverse(adev, &parent->children, node) {
++		unsigned long long addr;
++		acpi_status status;
++		acpi_handle out;
++
++		status = acpi_evaluate_integer(adev->handle, METHOD_NAME__ADR,
++					       NULL, &addr);
++		if (ACPI_FAILURE(status) || addr != address)
++			continue;
++
++		if (ret)
++			acpi_handle_warn(adev->handle,
++					 "_ADR conflict with device %s\n",
++					 dev_name(&ret->dev));
++
++		status = acpi_get_handle(adev->handle, "_INI", &out);
++		if (ACPI_SUCCESS(status)) {
++			ret = adev;
++			break;
++		} else if (!ret) {
++			ret = adev;
++		}
++	}
++	mutex_unlock(&acpi_device_lock);
++	return ret;
++}
++
+ /* Get device's handler per its address under its parent */
+ struct acpi_find_child {
+ 	acpi_handle handle;
+Index: linux/drivers/acpi/internal.h
+===================================================================
+--- linux.orig/drivers/acpi/internal.h
++++ linux/drivers/acpi/internal.h
+@@ -21,8 +21,12 @@
+ #ifndef _ACPI_INTERNAL_H_
+ #define _ACPI_INTERNAL_H_
+ 
++#include <linux/mutex.h>
++
+ #define PREFIX "ACPI: "
+ 
++extern struct mutex acpi_device_lock;
++
+ int init_acpi_device_notify(void);
+ int acpi_scan_init(void);
+ int acpi_sysfs_init(void);
+Index: linux/drivers/acpi/sleep.h
+===================================================================
+--- linux.orig/drivers/acpi/sleep.h
++++ linux/drivers/acpi/sleep.h
+@@ -5,4 +5,3 @@ extern void acpi_enable_wakeup_devices(u
+ extern void acpi_disable_wakeup_devices(u8 sleep_state);
+ 
+ extern struct list_head acpi_wakeup_device_list;
+-extern struct mutex acpi_device_lock;
+Index: linux/drivers/acpi/proc.c
+===================================================================
+--- linux.orig/drivers/acpi/proc.c
++++ linux/drivers/acpi/proc.c
+@@ -12,6 +12,7 @@
+ #include <linux/mc146818rtc.h>
+ #endif
+ 
++#include "internal.h"
+ #include "sleep.h"
+ 
+ #define _COMPONENT		ACPI_SYSTEM_COMPONENT
+Index: linux/include/acpi/acpi_bus.h
+===================================================================
+--- linux.orig/include/acpi/acpi_bus.h
++++ linux/include/acpi/acpi_bus.h
+@@ -400,6 +400,7 @@ struct acpi_pci_root {
+ };
+ 
+ /* helper */
++struct acpi_device *acpi_get_child_device(acpi_handle phandle, u64 address);
+ acpi_handle acpi_get_child(acpi_handle, u64);
+ int acpi_is_root_bridge(acpi_handle);
+ struct acpi_pci_root *acpi_pci_find_root(acpi_handle handle);
+Index: linux/drivers/pci/pci-acpi.c
+===================================================================
+--- linux.orig/drivers/pci/pci-acpi.c
++++ linux/drivers/pci/pci-acpi.c
+@@ -291,14 +291,17 @@ static struct pci_platform_pm_ops acpi_p
+ static int acpi_pci_find_device(struct device *dev, acpi_handle *handle)
+ {
+ 	struct pci_dev * pci_dev;
++	struct acpi_device *adev;
+ 	u64	addr;
+ 
+ 	pci_dev = to_pci_dev(dev);
+ 	/* Please ref to ACPI spec for the syntax of _ADR */
+ 	addr = (PCI_SLOT(pci_dev->devfn) << 16) | PCI_FUNC(pci_dev->devfn);
+-	*handle = acpi_get_child(DEVICE_ACPI_HANDLE(dev->parent), addr);
+-	if (!*handle)
++	adev = acpi_get_child_device(ACPI_HANDLE(dev->parent), addr);
++	if (!adev)
+ 		return -ENODEV;
++
++	*handle = adev->handle;
+ 	return 0;
+ }
+ 
+
