@@ -1,15 +1,17 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] ACPI / PM: Rework the handling of devices depending on power resources
-Date: Sat, 29 Dec 2012 23:05:27 +0100
-Message-ID: <5426632.fEiO7uHb6l@vostro.rjw.lan>
+Subject: [Update][PATCH] ACPI / PM: Rework the handling of devices depending on power resources
+Date: Sun, 30 Dec 2012 00:21:56 +0100
+Message-ID: <2027798.rmHWafy1WQ@vostro.rjw.lan>
+References: <5426632.fEiO7uHb6l@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:49902 "EHLO hydra.sisk.pl"
+Received: from hydra.sisk.pl ([212.160.235.94]:49977 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753294Ab2L2V77 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 29 Dec 2012 16:59:59 -0500
+	id S1753405Ab2L2XQ2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 29 Dec 2012 18:16:28 -0500
+In-Reply-To: <5426632.fEiO7uHb6l@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
@@ -36,13 +38,24 @@ from kernel subsystems using ACPI.
 
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
+
+The update is necessary to prevent device nodes from being added multiple times
+to the list of dependent devices of a given power resource.  To be precise,
+acpi_power_add_dependent() needs to check if there is an entry in
+resource->dependent for the given device and only add a new one if that's not
+the case.
+
+Thanks,
+Rafael
+
+---
  drivers/acpi/internal.h   |    2 
- drivers/acpi/power.c      |  207 +++++++++++++++-------------------------------
+ drivers/acpi/power.c      |  210 ++++++++++++++++------------------------------
  drivers/acpi/scan.c       |   26 ++++-
  drivers/ata/libata-acpi.c |    4 
  drivers/pci/pci-acpi.c    |    2 
  include/acpi/acpi_bus.h   |    2 
- 6 files changed, 93 insertions(+), 150 deletions(-)
+ 6 files changed, 98 insertions(+), 148 deletions(-)
 
 Index: linux/drivers/acpi/scan.c
 ===================================================================
@@ -194,16 +207,16 @@ Index: linux/drivers/acpi/power.c
 -		else
 -			resume_device = true;
 -	}
--
++		} else {
++			struct acpi_power_dependent_device *dep;
+ 
 -	mutex_unlock(&resource->resource_lock);
 -
 -	if (!resume_device)
 -		return result;
 -
 -	mutex_lock(&resource->devices_lock);
-+		} else {
-+			struct acpi_power_dependent_device *dep;
- 
+-
 -	device_list = resource->devices;
 -	while (device_list) {
 -		acpi_power_on_device(device_list->device);
@@ -218,7 +231,7 @@ Index: linux/drivers/acpi/power.c
  
  	return result;
  }
-@@ -357,119 +341,71 @@ static int acpi_power_on_list(struct acp
+@@ -357,119 +341,78 @@ static int acpi_power_on_list(struct acp
  	return result;
  }
  
@@ -228,10 +241,13 @@ Index: linux/drivers/acpi/power.c
  {
 -	struct acpi_power_resource *resource = NULL;
 -	struct acpi_power_resource_device *prev, *curr;
--
++	struct acpi_power_dependent_device *dep;
++	struct acpi_power_resource *resource;
+ 
 -	if (acpi_power_get_context(res_handle, &resource))
--		return;
--
++	if (!rhandle || !adev || acpi_power_get_context(rhandle, &resource))
+ 		return;
+ 
 -	mutex_lock(&resource->devices_lock);
 -	prev = NULL;
 -	curr = resource->devices;
@@ -258,27 +274,29 @@ Index: linux/drivers/acpi/power.c
 -	struct acpi_device *acpi_dev;
 -	struct acpi_handle_list *list;
 -	int i;
-+	struct acpi_power_dependent_device *dep;
-+	struct acpi_power_resource *resource;
++	mutex_lock(&resource->resource_lock);
  
 -	if (!dev || !handle)
-+	if (!rhandle || !adev || acpi_power_get_context(rhandle, &resource))
- 		return;
+-		return;
++	list_for_each_entry(dep, &resource->dependent, node)
++		if (dep->adev == adev)
++			goto out;
  
 -	if (acpi_bus_get_device(handle, &acpi_dev))
+-		return;
 +	dep = kzalloc(sizeof(*dep), GFP_KERNEL);
 +	if (!dep)
- 		return;
++		goto out;
  
 -	list = &acpi_dev->power.states[ACPI_STATE_D0].resources;
--
++	dep->adev = adev;
++	INIT_WORK(&dep->work, acpi_power_resume_dependent);
++	list_add_tail(&dep->node, &resource->dependent);
+ 
 -	for (i = 0; i < list->count; i++)
 -		__acpi_power_resource_unregister_device(dev,
 -			list->handles[i]);
-+	dep->adev = adev;
-+	INIT_WORK(&dep->work, acpi_power_resume_dependent);
-+	mutex_lock(&resource->resource_lock);
-+	list_add_tail(&dep->node, &resource->dependent);
++ out:
 +	mutex_unlock(&resource->resource_lock);
  }
 -EXPORT_SYMBOL_GPL(acpi_power_resource_unregister_device);
@@ -380,7 +398,7 @@ Index: linux/drivers/acpi/power.c
  
  /**
   * acpi_device_sleep_wake - execute _DSW (Device Sleep Wake) or (deprecated in
-@@ -623,10 +559,6 @@ int acpi_disable_wakeup_device_power(str
+@@ -623,10 +566,6 @@ int acpi_disable_wakeup_device_power(str
  	return err;
  }
  
@@ -391,7 +409,7 @@ Index: linux/drivers/acpi/power.c
  int acpi_power_get_inferred_state(struct acpi_device *device, int *state)
  {
  	int result = 0;
-@@ -725,7 +657,6 @@ static int acpi_power_add(struct acpi_de
+@@ -725,7 +664,6 @@ static int acpi_power_add(struct acpi_de
  
  	resource->device = device;
  	mutex_init(&resource->resource_lock);
