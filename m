@@ -1,118 +1,79 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 0/3] ACPICA: Reduce source code differences between Linux and ACPICA.
-Date: Mon, 31 Dec 2012 08:23:40 +0800
-Message-ID: <cover.1356871667.git.lv.zheng@intel.com>
+Subject: [PATCH 1/3] ACPICA: Cleanup PM_TIMER_FREQUENCY definition.
+Date: Mon, 31 Dec 2012 08:25:42 +0800
+Message-ID: <086d3d8b003a7c43cdacfd4efdd08253c0c3aa4d.1356871667.git.lv.zheng@intel.com>
+References: <cover.1356871667.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:30773 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:4384 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755239Ab2LaAXu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 30 Dec 2012 19:23:50 -0500
+	id S1755239Ab2LaA0D (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 30 Dec 2012 19:26:03 -0500
+In-Reply-To: <cover.1356871667.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <len.brown@intel.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>
 Cc: linux-acpi@vger.kernel.org, devel@acpica.org, Lv Zheng <lv.zheng@intel.com>
 
-This patch set is based on the ACPICA 20121220 release.
+This is a cosmetic patch only. Comparison of the resulting binary showed
+only line number differences.
 
-This patch set has passed basic build and boot tests.
+This patch does not affect the generation of the Linux binary.
+This patch decreases 13 lines of 20121114 divergence.diff.
 
-The source code differences between Linux and ACPICA can be summarized as
-follows:
-1. 1976 Lines (70.5 Kbytes) before applying the patch set;
-2. 1796 Lines (64.8 Kbytes) after applying the patch set.
+There is updates in ACPICA for PM_TIMER_FREQUENCY macro, this patch cleans
+up the usage of this macro in Linux. This patch can also reduce the source
+code diff between Linux and ACPICA.
 
-Please review.
-
-Lv Zheng (3):
-  ACPICA: Cleanup PM_TIMER_FREQUENCY definition.
-  ACPICA: Cleanup table handler naming conflicts.
-  ACPICA: Add new statistics interface.
-
- drivers/acpi/acpica/acglobal.h |    4 +++-
- drivers/acpi/acpica/dsmethod.c |    1 +
- drivers/acpi/acpica/evsci.c    |    1 +
- drivers/acpi/acpica/tbxface.c  |    4 ++--
- drivers/acpi/acpica/utglobal.c |   11 +++++++++++
- drivers/acpi/acpica/utxface.c  |   38 ++++++++++++++++++++++++++++++++++++++
- drivers/acpi/numa.c            |    2 +-
- drivers/acpi/processor_idle.c  |    5 +++--
- drivers/acpi/tables.c          |    6 +++---
- include/acpi/acpixf.h          |    6 ++++--
- include/acpi/actypes.h         |   16 +++++++++++-----
- include/linux/acpi.h           |   15 ++++++++++-----
- 12 files changed, 88 insertions(+), 21 deletions(-)
-
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
+Binary comparision result:
+  Changes can be found are caused by the line folding:
+  -c153f6f9:	68 e6 04 00 00       	push   $0x4e6
+  +c153f6f9:	68 e7 04 00 00       	push   $0x4e7
+  drivers/acpi/processor_idle.c(1255-1): acpi_processor_power_init
+  ACPI_EXCEPTION -> AE_INFO -> __LINE__
+---
+Divergences fixing result:
+  Before applying: 1976 Lines, 70.5 Kbytes
+  After applying: 1963 Lines, 70.0 Kbytes
+---
+ drivers/acpi/processor_idle.c |    5 +++--
+ include/acpi/actypes.h        |    4 ----
+ 2 files changed, 3 insertions(+), 6 deletions(-)
 
-         Background of "ACPICA <-> Linux Divergences Fixes"
-
-The divergences fixes are meant to make the ACPICA release engineering work
-easier. More jobs can be done by the scripts running on the machines without
-the human intervention if the divergences can be controlled down to an
-acceptable level.
-
-The fixes will use the following two steps to reduce the divergences:
-1. Fix the "cosmetic" stuff:
-   The ACPICA release engineers will focus on the divergences that relate
-   to the "commentary", "indentation", "coding styles", "debug messages",
-   "code block offsetting", etc. in this step.
-   Such divergences are fixed so that the "useful" stuff can rise to the
-   surface. Most of the fixes do not affect the generation of the Linux
-   binary, some of them do not affect the functionality of the generated
-   Linux binary. Since introducing such fixes to Linux is low risk and some
-   release patches depend on the divergences fixes, the work might be done
-   by the ACPICA release engineers using a reduced community process. Such
-   fixes will be attached on top of the release patch set directly during
-   the release work.
-   Such "cosmetic" fixes are expected to be done in 2-4 merge cycles.
-2. Fix the "useful" stuff:
-   Either by porting the Linux bug fixes to the ACPICA.
-   Or by merging the lost ACPICA features to the Linux.
-   These patches will be sent to community one by one, awaiting comments,
-   then get merged. They will not appear in the release patch set.
-
-Every "cosmetic" divergences fix patch lists the line number of the
-divergences reduced by the patch.
-The divergences result is generated by the following steps:
----------------------------------------------------------------------------
-1. pop the patch from the kernel
-2. divergence.sh -s <kernel source tree>
-3. push the patch to the kernel
-4. divergence.sh -s <kernel source tree>
----------------------------------------------------------------------------
-Where the divergence.sh can be found in the generate/linux folder of the
-acpica project source tree.
-
-If a "cosmetic" divergences fix patch does not affect the generation of the
-Linux binary, you can find a binary comparision result in the patch
-description.
-The comparision result is generated by the following steps:
----------------------------------------------------------------------------
-1. pop the patch and build the kernel
-2. objcopy -R .notes binary1 > binary2
-3. objdump -d binary2 > before.dump
-4. push the patch and build the kernel
-5. objcopy -R .notes binary1 > binary2
-6. objdump -d binary2 > after.dump
-7. diff -u before.dump after.dump
----------------------------------------------------------------------------
-Where:
-1. Basically, binary1 will be "drivers/acpi/acpica/acpi.o". The same
-   process will be executed on "vmlinux" for confirmation if there are
-   header file changes that will seriously affect the generation of the
-   vmlinux.
-2. The build step is done by an i386 toolchain so we need to delete .note
-   section which belongs to the .text section to avoid confusions.
-
-If you have concerns about such fixes, please do not send your blame to the
-code authors or the subsystem maintainers as they have done the right
-things to help improve the Linux or the ACPICA. Please send your blame to
-the following mail address whose owner is the culprit doing the bad things
-(ex. introducing the mistakes) during the release engineering work.
----------------------------------------------------------------------------
-Lv "ZETALOG" Zheng <lv.zheng@intel.com>
----------------------------------------------------------------------------
-
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index e8086c7..2b4ce29 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -64,10 +64,11 @@
+ #define ACPI_PROCESSOR_CLASS            "processor"
+ #define _COMPONENT              ACPI_PROCESSOR_COMPONENT
+ ACPI_MODULE_NAME("processor_idle");
+-#define PM_TIMER_TICK_NS		(1000000000ULL/PM_TIMER_FREQUENCY)
++#define PM_TIMER_TICK_NS		(1000000000ULL/ACPI_PM_TIMER_FREQUENCY)
+ #define C2_OVERHEAD			1	/* 1us */
+ #define C3_OVERHEAD			1	/* 1us */
+-#define PM_TIMER_TICKS_TO_US(p)		(((p) * 1000)/(PM_TIMER_FREQUENCY/1000))
++#define PM_TIMER_TICKS_TO_US(p)		\
++	(((p) * 1000)/(ACPI_PM_TIMER_FREQUENCY/1000))
+ 
+ static unsigned int max_cstate __read_mostly = ACPI_PROCESSOR_MAX_POWER;
+ module_param(max_cstate, uint, 0000);
+diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+index 796a63e..cd89810 100644
+--- a/include/acpi/actypes.h
++++ b/include/acpi/actypes.h
+@@ -405,10 +405,6 @@ typedef u8 acpi_owner_id;
+ #define ACPI_MAX16_DECIMAL_DIGITS        5
+ #define ACPI_MAX8_DECIMAL_DIGITS         3
+ 
+-/* PM Timer ticks per second (HZ) */
+-
+-#define PM_TIMER_FREQUENCY  3579545
+-
+ /*
+  * Constants with special meanings
+  */
 -- 
 1.7.10
 
