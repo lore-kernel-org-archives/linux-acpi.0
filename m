@@ -1,75 +1,70 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 17/27] ACPICA: Update for non-configured ACPI_IS_DEBUG_ENABLED macro.
-Date: Mon, 31 Dec 2012 08:06:50 +0800
-Message-ID: <63df9ffff24b4a1cf7efd425b03037bec9fc3642.1356668534.git.lv.zheng@intel.com>
+Subject: [PATCH 19/27] ACPICA: Resource manager: Add support for ACPI 5 wake bit in IRQ descriptor.
+Date: Mon, 31 Dec 2012 08:07:01 +0800
+Message-ID: <5879bf4855d00954329d735ffdf5f04061bf419b.1356668534.git.lv.zheng@intel.com>
 References: <cover.1356668530.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:11071 "EHLO mga01.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:44713 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755268Ab2LaAHG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 30 Dec 2012 19:07:06 -0500
+	id S1755268Ab2LaAHL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 30 Dec 2012 19:07:11 -0500
 In-Reply-To: <cover.1356668530.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <len.brown@intel.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>
-Cc: linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>
+Cc: linux-acpi@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>, Bob Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>
 
-From: Bob Moore <robert.moore@intel.com>
+From: Aaron Lu <aaron.lu@intel.com>
 
-Also add acoutput.h to the nsdump.c file.
+Add support to both get and set the extended share flags for the
+IRQ() resource descriptor. Reported by Aaron Lu.
 
+Signed-off-by: Aaron Lu <aaron.lu@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/nsdump.c |    1 +
- include/acpi/acoutput.h      |    9 ++++++---
- 2 files changed, 7 insertions(+), 3 deletions(-)
+ drivers/acpi/acpica/rsirq.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/acpica/nsdump.c b/drivers/acpi/acpica/nsdump.c
-index 3e04879..37b0e68 100644
---- a/drivers/acpi/acpica/nsdump.c
-+++ b/drivers/acpi/acpica/nsdump.c
-@@ -44,6 +44,7 @@
- #include <acpi/acpi.h>
- #include "accommon.h"
- #include "acnamesp.h"
-+#include <acpi/acoutput.h>
+diff --git a/drivers/acpi/acpica/rsirq.c b/drivers/acpi/acpica/rsirq.c
+index a718eca..14cb76e 100644
+--- a/drivers/acpi/acpica/rsirq.c
++++ b/drivers/acpi/acpica/rsirq.c
+@@ -80,7 +80,7 @@ struct acpi_rsconvert_info acpi_rs_get_irq[8] = {
  
- #define _COMPONENT          ACPI_NAMESPACE
- ACPI_MODULE_NAME("nsdump")
-diff --git a/include/acpi/acoutput.h b/include/acpi/acoutput.h
-index c13b351..23db272 100644
---- a/include/acpi/acoutput.h
-+++ b/include/acpi/acoutput.h
-@@ -266,6 +266,11 @@
- #define ACPI_DEBUG_PARAMETERS \
- 	__LINE__, ACPI_GET_FUNCTION_NAME, _acpi_module_name, _COMPONENT
+ 	{ACPI_RSC_EXIT_NE, ACPI_RSC_COMPARE_AML_LENGTH, 0, 3},
  
-+/* Check if debug output is currently dynamically enabled */
-+
-+#define ACPI_IS_DEBUG_ENABLED(level, component) \
-+	((level & acpi_dbg_level) && (component & acpi_dbg_layer))
-+
- /*
-  * Master debug print macros
-  * Print message if and only if:
-@@ -285,9 +290,6 @@
+-	/* Get flags: Triggering[0], Polarity[3], Sharing[4] */
++	/* Get flags: Triggering[0], Polarity[3], sharing_and_wake[4:5] */
  
- /* Helper macros for DEBUG_PRINT */
+ 	{ACPI_RSC_1BITFLAG, ACPI_RS_OFFSET(data.irq.triggering),
+ 	 AML_OFFSET(irq.flags),
+@@ -90,7 +90,7 @@ struct acpi_rsconvert_info acpi_rs_get_irq[8] = {
+ 	 AML_OFFSET(irq.flags),
+ 	 3},
  
--#define ACPI_IS_DEBUG_ENABLED(level, component) \
--	((level & acpi_dbg_level) && (component & acpi_dbg_layer))
--
- #define ACPI_DEBUG(function, level, line, filename, modulename, component, ...) \
- 	if (ACPI_IS_DEBUG_ENABLED (level, component)) \
- 	{ \
-@@ -416,6 +418,7 @@
- #define ACPI_DUMP_BUFFER(a, b)
- #define ACPI_DEBUG_PRINT(pl)
- #define ACPI_DEBUG_PRINT_RAW(pl)
-+#define ACPI_IS_DEBUG_ENABLED(level, component) 0
+-	{ACPI_RSC_1BITFLAG, ACPI_RS_OFFSET(data.irq.sharable),
++	{ACPI_RSC_2BITFLAG, ACPI_RS_OFFSET(data.irq.sharable),
+ 	 AML_OFFSET(irq.flags),
+ 	 4}
+ };
+@@ -114,7 +114,7 @@ struct acpi_rsconvert_info acpi_rs_set_irq[13] = {
+ 	 AML_OFFSET(irq.irq_mask),
+ 	 ACPI_RS_OFFSET(data.irq.interrupt_count)},
  
- /* Return macros must have a return statement at the minimum */
+-	/* Set the flags byte */
++	/* Set flags: Triggering[0], Polarity[3], sharing_and_wake[4:5] */
+ 
+ 	{ACPI_RSC_1BITFLAG, ACPI_RS_OFFSET(data.irq.triggering),
+ 	 AML_OFFSET(irq.flags),
+@@ -124,7 +124,7 @@ struct acpi_rsconvert_info acpi_rs_set_irq[13] = {
+ 	 AML_OFFSET(irq.flags),
+ 	 3},
+ 
+-	{ACPI_RSC_1BITFLAG, ACPI_RS_OFFSET(data.irq.sharable),
++	{ACPI_RSC_2BITFLAG, ACPI_RS_OFFSET(data.irq.sharable),
+ 	 AML_OFFSET(irq.flags),
+ 	 4},
  
 -- 
 1.7.10
