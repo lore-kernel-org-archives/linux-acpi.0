@@ -1,182 +1,71 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 22/27] ACPICA: Interpreter: Add warning if 64-bit constant appears in 32-bit table.
-Date: Mon, 31 Dec 2012 08:07:18 +0800
-Message-ID: <dfe2dfff8ba5815d58bde6e8bf2dfbe89e11129f.1356668534.git.lv.zheng@intel.com>
+Subject: [PATCH 23/27] ACPICA: Resources: Support for ACPI 5 wake bit in ExtendedInterrupt descriptor.
+Date: Mon, 31 Dec 2012 08:07:24 +0800
+Message-ID: <df14053d170c2916d867a7fd9bb659bd8731e3b0.1356668534.git.lv.zheng@intel.com>
 References: <cover.1356668530.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:59386 "EHLO mga01.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:11711 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755268Ab2LaAH3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 30 Dec 2012 19:07:29 -0500
+	id S1755268Ab2LaAHe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 30 Dec 2012 19:07:34 -0500
 In-Reply-To: <cover.1356668530.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Len Brown <len.brown@intel.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>
-Cc: linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>
+Cc: linux-acpi@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>, Bob Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>
 
-From: Bob Moore <robert.moore@intel.com>
+From: Aaron Lu <aaron.lu@intel.com>
 
-Some ASL compilers allow 64-bit constants within a 32-bit table
-(DSDT version == 1). When encountered, emit a warning that the
-constant will be truncated to 32 bits. This is potentially a
-serious problem in the ACPI table(s).
+Add support to both get and set the extended share flags for the
+Interrupt() resource descriptor. Reported by Aaron Lu.
 
+Signed-off-by: Aaron Lu <aaron.lu@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/acinterp.h |    2 +-
- drivers/acpi/acpica/dsobject.c |   14 ++++++++++++--
- drivers/acpi/acpica/dswexec.c  |    4 ++--
- drivers/acpi/acpica/exconvrt.c |    2 +-
- drivers/acpi/acpica/exstoren.c |    2 +-
- drivers/acpi/acpica/exutils.c  |   18 +++++++++++-------
- 6 files changed, 28 insertions(+), 14 deletions(-)
+ drivers/acpi/acpica/rsirq.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acinterp.h b/drivers/acpi/acpica/acinterp.h
-index eb30863..16469b0 100644
---- a/drivers/acpi/acpica/acinterp.h
-+++ b/drivers/acpi/acpica/acinterp.h
-@@ -458,7 +458,7 @@ void acpi_ex_reacquire_interpreter(void);
+diff --git a/drivers/acpi/acpica/rsirq.c b/drivers/acpi/acpica/rsirq.c
+index 14cb76e..f3733ee 100644
+--- a/drivers/acpi/acpica/rsirq.c
++++ b/drivers/acpi/acpica/rsirq.c
+@@ -190,8 +190,10 @@ struct acpi_rsconvert_info acpi_rs_convert_ext_irq[9] = {
+ 	 sizeof(struct aml_resource_extended_irq),
+ 	 0},
  
- void acpi_ex_relinquish_interpreter(void);
+-	/* Flag bits */
+-
++	/*
++	 * Flags: Producer/Consumer[0], Triggering[1], Polarity[2],
++	 *        sharing_and_wake[3:4]
++	 */
+ 	{ACPI_RSC_1BITFLAG, ACPI_RS_OFFSET(data.extended_irq.producer_consumer),
+ 	 AML_OFFSET(extended_irq.flags),
+ 	 0},
+@@ -204,7 +206,7 @@ struct acpi_rsconvert_info acpi_rs_convert_ext_irq[9] = {
+ 	 AML_OFFSET(extended_irq.flags),
+ 	 2},
  
--void acpi_ex_truncate_for32bit_table(union acpi_operand_object *obj_desc);
-+u8 acpi_ex_truncate_for32bit_table(union acpi_operand_object *obj_desc);
+-	{ACPI_RSC_1BITFLAG, ACPI_RS_OFFSET(data.extended_irq.sharable),
++	{ACPI_RSC_2BITFLAG, ACPI_RS_OFFSET(data.extended_irq.sharable),
+ 	 AML_OFFSET(extended_irq.flags),
+ 	 3},
  
- void acpi_ex_acquire_global_lock(u32 rule);
- 
-diff --git a/drivers/acpi/acpica/dsobject.c b/drivers/acpi/acpica/dsobject.c
-index 13844a1..82050bc 100644
---- a/drivers/acpi/acpica/dsobject.c
-+++ b/drivers/acpi/acpica/dsobject.c
-@@ -703,7 +703,7 @@ acpi_ds_init_object_from_op(struct acpi_walk_state *walk_state,
- 				/* Truncate value if we are executing from a 32-bit ACPI table */
- 
- #ifndef ACPI_NO_METHOD_EXECUTION
--				acpi_ex_truncate_for32bit_table(obj_desc);
-+				(void)acpi_ex_truncate_for32bit_table(obj_desc);
- #endif
- 				break;
- 
-@@ -725,8 +725,18 @@ acpi_ds_init_object_from_op(struct acpi_walk_state *walk_state,
- 		case AML_TYPE_LITERAL:
- 
- 			obj_desc->integer.value = op->common.value.integer;
-+
- #ifndef ACPI_NO_METHOD_EXECUTION
--			acpi_ex_truncate_for32bit_table(obj_desc);
-+			if (acpi_ex_truncate_for32bit_table(obj_desc)) {
-+
-+				/* Warn if we found a 64-bit constant in a 32-bit table */
-+
-+				ACPI_WARNING((AE_INFO,
-+					      "Truncated 64-bit constant found in 32-bit table: %8.8X%8.8X => %8.8X",
-+					      ACPI_FORMAT_UINT64(op->common.
-+								 value.integer),
-+					      (u32)obj_desc->integer.value));
-+			}
- #endif
- 			break;
- 
-diff --git a/drivers/acpi/acpica/dswexec.c b/drivers/acpi/acpica/dswexec.c
-index 5859393..9e0d210 100644
---- a/drivers/acpi/acpica/dswexec.c
-+++ b/drivers/acpi/acpica/dswexec.c
-@@ -149,7 +149,7 @@ acpi_ds_get_predicate_value(struct acpi_walk_state *walk_state,
- 
- 	/* Truncate the predicate to 32-bits if necessary */
- 
--	acpi_ex_truncate_for32bit_table(local_obj_desc);
-+	(void)acpi_ex_truncate_for32bit_table(local_obj_desc);
- 
- 	/*
- 	 * Save the result of the predicate evaluation on
-@@ -706,7 +706,7 @@ acpi_status acpi_ds_exec_end_op(struct acpi_walk_state *walk_state)
- 	 * ACPI 2.0 support for 64-bit integers: Truncate numeric
- 	 * result value if we are executing from a 32-bit ACPI table
+@@ -283,7 +285,6 @@ struct acpi_rsconvert_info acpi_rs_convert_fixed_dma[4] = {
+ 	 * request_lines
+ 	 * Channels
  	 */
--	acpi_ex_truncate_for32bit_table(walk_state->result_obj);
-+	(void)acpi_ex_truncate_for32bit_table(walk_state->result_obj);
- 
- 	/*
- 	 * Check if we just completed the evaluation of a
-diff --git a/drivers/acpi/acpica/exconvrt.c b/drivers/acpi/acpica/exconvrt.c
-index 4492a4e..d6a7b6f 100644
---- a/drivers/acpi/acpica/exconvrt.c
-+++ b/drivers/acpi/acpica/exconvrt.c
-@@ -176,7 +176,7 @@ acpi_ex_convert_to_integer(union acpi_operand_object *obj_desc,
- 
- 	/* Save the Result */
- 
--	acpi_ex_truncate_for32bit_table(return_desc);
-+	(void)acpi_ex_truncate_for32bit_table(return_desc);
- 	*result_desc = return_desc;
- 	return_ACPI_STATUS(AE_OK);
- }
-diff --git a/drivers/acpi/acpica/exstoren.c b/drivers/acpi/acpica/exstoren.c
-index 87153bb..85a74b7 100644
---- a/drivers/acpi/acpica/exstoren.c
-+++ b/drivers/acpi/acpica/exstoren.c
-@@ -253,7 +253,7 @@ acpi_ex_store_object_to_object(union acpi_operand_object *source_desc,
- 
- 		/* Truncate value if we are executing from a 32-bit ACPI table */
- 
--		acpi_ex_truncate_for32bit_table(dest_desc);
-+		(void)acpi_ex_truncate_for32bit_table(dest_desc);
- 		break;
- 
- 	case ACPI_TYPE_STRING:
-diff --git a/drivers/acpi/acpica/exutils.c b/drivers/acpi/acpica/exutils.c
-index 02ddc4c..e624958 100644
---- a/drivers/acpi/acpica/exutils.c
-+++ b/drivers/acpi/acpica/exutils.c
-@@ -202,35 +202,39 @@ void acpi_ex_relinquish_interpreter(void)
-  *
-  * PARAMETERS:  obj_desc        - Object to be truncated
-  *
-- * RETURN:      none
-+ * RETURN:      TRUE if a truncation was performed, FALSE otherwise.
-  *
-  * DESCRIPTION: Truncate an ACPI Integer to 32 bits if the execution mode is
-  *              32-bit, as determined by the revision of the DSDT.
-  *
-  ******************************************************************************/
- 
--void acpi_ex_truncate_for32bit_table(union acpi_operand_object *obj_desc)
-+u8 acpi_ex_truncate_for32bit_table(union acpi_operand_object *obj_desc)
- {
- 
- 	ACPI_FUNCTION_ENTRY();
- 
- 	/*
- 	 * Object must be a valid number and we must be executing
--	 * a control method. NS node could be there for AML_INT_NAMEPATH_OP.
-+	 * a control method. Object could be NS node for AML_INT_NAMEPATH_OP.
- 	 */
- 	if ((!obj_desc) ||
- 	    (ACPI_GET_DESCRIPTOR_TYPE(obj_desc) != ACPI_DESC_TYPE_OPERAND) ||
- 	    (obj_desc->common.type != ACPI_TYPE_INTEGER)) {
--		return;
-+		return (FALSE);
- 	}
- 
--	if (acpi_gbl_integer_byte_width == 4) {
-+	if ((acpi_gbl_integer_byte_width == 4) &&
-+	    (obj_desc->integer.value > (u64)ACPI_UINT32_MAX)) {
- 		/*
--		 * We are running a method that exists in a 32-bit ACPI table.
-+		 * We are executing in a 32-bit ACPI table.
- 		 * Truncate the value to 32 bits by zeroing out the upper 32-bit field
- 		 */
--		obj_desc->integer.value &= (u64) ACPI_UINT32_MAX;
-+		obj_desc->integer.value &= (u64)ACPI_UINT32_MAX;
-+		return (TRUE);
- 	}
-+
-+	return (FALSE);
- }
- 
- /*******************************************************************************
+-
+ 	{ACPI_RSC_MOVE16, ACPI_RS_OFFSET(data.fixed_dma.request_lines),
+ 	 AML_OFFSET(fixed_dma.request_lines),
+ 	 2},
+@@ -291,5 +292,4 @@ struct acpi_rsconvert_info acpi_rs_convert_fixed_dma[4] = {
+ 	{ACPI_RSC_MOVE8, ACPI_RS_OFFSET(data.fixed_dma.width),
+ 	 AML_OFFSET(fixed_dma.width),
+ 	 1},
+-
+ };
 -- 
 1.7.10
 
