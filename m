@@ -1,13 +1,13 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 09/27] ACPICA: DEBUG_PRINT macros: Update to improve performance.
-Date: Mon, 31 Dec 2012 08:06:04 +0800
-Message-ID: <7c20e79639fb5c23498b97035b9ece835c3bed9b.1356668533.git.lv.zheng@intel.com>
+Subject: [PATCH 10/27] ACPICA: FUNCTION_TRACE macros: Check if debug is enabled up-front.
+Date: Mon, 31 Dec 2012 08:06:10 +0800
+Message-ID: <1e8de0b0176865126039df6a21b169bb95a9c73f.1356668533.git.lv.zheng@intel.com>
 References: <cover.1356668530.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:63151 "EHLO mga14.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:37420 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755200Ab2LaAGP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 30 Dec 2012 19:06:15 -0500
+	id S1755200Ab2LaAGV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 30 Dec 2012 19:06:21 -0500
 In-Reply-To: <cover.1356668530.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,225 +16,208 @@ Cc: linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>, Lv Zheng <lv
 
 From: Bob Moore <robert.moore@intel.com>
 
-Move check for "debug enable" to before the actual call to the
-debug print routine. Improves time of ASLTS by about 15%.  Also,
-remove "safe" exit macros since no complex expressions are ever
-used in the return statements.
+In the functions that implement the macros, check if debug
+is enabled up-front before the call to the lower debug print
+function. This provides a small performance improvement.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/acmacros.h |  132 ++++++++++++++++++++--------------------
- include/acpi/acoutput.h        |   32 +++++++++-
- 2 files changed, 96 insertions(+), 68 deletions(-)
+ drivers/acpi/acpica/utdebug.c |  118 +++++++++++++++++++++++++++--------------
+ 1 file changed, 78 insertions(+), 40 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acmacros.h b/drivers/acpi/acpica/acmacros.h
-index edfcbc8..cd96135 100644
---- a/drivers/acpi/acpica/acmacros.h
-+++ b/drivers/acpi/acpica/acmacros.h
-@@ -392,29 +392,51 @@
-  * Debug macros that are conditionally compiled
-  */
- #ifdef ACPI_DEBUG_OUTPUT
-+
- /*
-  * Function entry tracing
-+ *
-+ * The name of the function is emitted as a local variable that is
-+ * intended to be used by both the entry trace and the exit trace.
-  */
--#define ACPI_FUNCTION_TRACE(a)          ACPI_FUNCTION_NAME(a) \
--			  acpi_ut_trace(ACPI_DEBUG_PARAMETERS)
--#define ACPI_FUNCTION_TRACE_PTR(a, b)   ACPI_FUNCTION_NAME(a) \
--					   acpi_ut_trace_ptr(ACPI_DEBUG_PARAMETERS, (void *)b)
--#define ACPI_FUNCTION_TRACE_U32(a, b)   ACPI_FUNCTION_NAME(a) \
--							 acpi_ut_trace_u32(ACPI_DEBUG_PARAMETERS, (u32)b)
--#define ACPI_FUNCTION_TRACE_STR(a, b)   ACPI_FUNCTION_NAME(a) \
--									  acpi_ut_trace_str(ACPI_DEBUG_PARAMETERS, (char *)b)
+diff --git a/drivers/acpi/acpica/utdebug.c b/drivers/acpi/acpica/utdebug.c
+index 5d95166..47857c4 100644
+--- a/drivers/acpi/acpica/utdebug.c
++++ b/drivers/acpi/acpica/utdebug.c
+@@ -166,11 +166,9 @@ acpi_debug_print(u32 requested_debug_level,
+ 	acpi_thread_id thread_id;
+ 	va_list args;
  
--#define ACPI_FUNCTION_ENTRY()           acpi_ut_track_stack_ptr()
-+/* Helper macro */
+-	/*
+-	 * Stay silent if the debug level or component ID is disabled
+-	 */
+-	if (!(requested_debug_level & acpi_dbg_level) ||
+-	    !(component_id & acpi_dbg_layer)) {
++	/* Check if debug output enabled */
 +
-+#define ACPI_TRACE_ENTRY(name, function, cast, param) \
-+	ACPI_FUNCTION_NAME (name) \
-+	function (ACPI_DEBUG_PARAMETERS, cast (param))
-+
-+/* The actual entry trace macros */
-+
-+#define ACPI_FUNCTION_TRACE(name) \
-+	ACPI_FUNCTION_NAME(name) \
-+	acpi_ut_trace (ACPI_DEBUG_PARAMETERS)
-+
-+#define ACPI_FUNCTION_TRACE_PTR(name, pointer) \
-+	ACPI_TRACE_ENTRY (name, acpi_ut_trace_ptr, (void *), pointer)
-+
-+#define ACPI_FUNCTION_TRACE_U32(name, value) \
-+	ACPI_TRACE_ENTRY (name, acpi_ut_trace_u32, (u32), value)
-+
-+#define ACPI_FUNCTION_TRACE_STR(name, string) \
-+	ACPI_TRACE_ENTRY (name, acpi_ut_trace_str, (char *), string)
-+
-+#define ACPI_FUNCTION_ENTRY() \
-+	acpi_ut_track_stack_ptr()
++	if (!ACPI_IS_DEBUG_ENABLED(requested_debug_level, component_id)) {
+ 		return;
+ 	}
  
- /*
-- * Function exit tracing.
-- * WARNING: These macros include a return statement. This is usually considered
-- * bad form, but having a separate exit macro is very ugly and difficult to maintain.
-- * One of the FUNCTION_TRACE macros above must be used in conjunction with these macros
-- * so that "_AcpiFunctionName" is defined.
-+ * Function exit tracing
-+ *
-+ * These macros include a return statement. This is usually considered
-+ * bad form, but having a separate exit macro before the actual return
-+ * is very ugly and difficult to maintain.
-+ *
-+ * One of the FUNCTION_TRACE macros above must be used in conjunction
-+ * with these macros so that "_AcpiFunctionName" is defined.
-  *
-- * Note: the DO_WHILE0 macro is used to prevent some compilers from complaining
-- * about these constructs.
-+ * Note: the DO_WHILE0 macro is used to prevent some compilers from
-+ * complaining about these constructs. On other compilers the do...while
-+ * adds some extra code, so this feature is optional.
-  */
- #ifdef ACPI_USE_DO_WHILE_0
- #define ACPI_DO_WHILE0(a)               do a while(0)
-@@ -422,55 +444,35 @@
- #define ACPI_DO_WHILE0(a)               a
- #endif
+@@ -236,8 +234,9 @@ acpi_debug_print_raw(u32 requested_debug_level,
+ {
+ 	va_list args;
  
--#define return_VOID                     ACPI_DO_WHILE0 ({ \
--											acpi_ut_exit (ACPI_DEBUG_PARAMETERS); \
--											return;})
--/*
-- * There are two versions of most of the return macros. The default version is
-- * safer, since it avoids side-effects by guaranteeing that the argument will
-- * not be evaluated twice.
-- *
-- * A less-safe version of the macros is provided for optional use if the
-- * compiler uses excessive CPU stack (for example, this may happen in the
-- * debug case if code optimzation is disabled.)
-- */
--#ifndef ACPI_SIMPLE_RETURN_MACROS
--
--#define return_ACPI_STATUS(s)           ACPI_DO_WHILE0 ({ \
--											register acpi_status _s = (s); \
--											acpi_ut_status_exit (ACPI_DEBUG_PARAMETERS, _s); \
--											return (_s); })
--#define return_PTR(s)                   ACPI_DO_WHILE0 ({ \
--											register void *_s = (void *) (s); \
--											acpi_ut_ptr_exit (ACPI_DEBUG_PARAMETERS, (u8 *) _s); \
--											return (_s); })
--#define return_VALUE(s)                 ACPI_DO_WHILE0 ({ \
--											register u64 _s = (s); \
--											acpi_ut_value_exit (ACPI_DEBUG_PARAMETERS, _s); \
--											return (_s); })
--#define return_UINT8(s)                 ACPI_DO_WHILE0 ({ \
--											register u8 _s = (u8) (s); \
--											acpi_ut_value_exit (ACPI_DEBUG_PARAMETERS, (u64) _s); \
--											return (_s); })
--#define return_UINT32(s)                ACPI_DO_WHILE0 ({ \
--											register u32 _s = (u32) (s); \
--											acpi_ut_value_exit (ACPI_DEBUG_PARAMETERS, (u64) _s); \
--											return (_s); })
--#else				/* Use original less-safe macros */
--
--#define return_ACPI_STATUS(s)           ACPI_DO_WHILE0 ({ \
--											acpi_ut_status_exit (ACPI_DEBUG_PARAMETERS, (s)); \
--											return((s)); })
--#define return_PTR(s)                   ACPI_DO_WHILE0 ({ \
--											acpi_ut_ptr_exit (ACPI_DEBUG_PARAMETERS, (u8 *) (s)); \
--											return((s)); })
--#define return_VALUE(s)                 ACPI_DO_WHILE0 ({ \
--											acpi_ut_value_exit (ACPI_DEBUG_PARAMETERS, (u64) (s)); \
--											return((s)); })
--#define return_UINT8(s)                 return_VALUE(s)
--#define return_UINT32(s)                return_VALUE(s)
--
--#endif				/* ACPI_SIMPLE_RETURN_MACROS */
-+/* Exit trace helper macro */
+-	if (!(requested_debug_level & acpi_dbg_level) ||
+-	    !(component_id & acpi_dbg_layer)) {
++	/* Check if debug output enabled */
 +
-+#define ACPI_TRACE_EXIT(function, cast, param) \
-+	ACPI_DO_WHILE0 ({ \
-+		function (ACPI_DEBUG_PARAMETERS, cast (param)); \
-+		return ((param)); \
-+	})
-+
-+/* The actual exit macros */
-+
-+#define return_VOID \
-+	ACPI_DO_WHILE0 ({ \
-+		acpi_ut_exit (ACPI_DEBUG_PARAMETERS); \
-+		return; \
-+	})
-+
-+#define return_ACPI_STATUS(status) \
-+	ACPI_TRACE_EXIT (acpi_ut_status_exit, (acpi_status), status)
-+
-+#define return_PTR(pointer) \
-+	ACPI_TRACE_EXIT (acpi_ut_ptr_exit, (u8 *), pointer)
-+
-+#define return_VALUE(value) \
-+	ACPI_TRACE_EXIT (acpi_ut_value_exit, (u64), value)
-+
-+/* These exit macros are superfluous and should be removed entirely */
-+
-+#define return_UINT8        return_VALUE
-+#define return_UINT32       return_VALUE
++	if (!ACPI_IS_DEBUG_ENABLED(requested_debug_level, component_id)) {
+ 		return;
+ 	}
  
- /* Conditional execution */
+@@ -272,9 +271,13 @@ acpi_ut_trace(u32 line_number,
+ 	acpi_gbl_nesting_level++;
+ 	acpi_ut_track_stack_ptr();
  
-diff --git a/include/acpi/acoutput.h b/include/acpi/acoutput.h
-index 38e1be0..be014bf 100644
---- a/include/acpi/acoutput.h
-+++ b/include/acpi/acoutput.h
-@@ -263,16 +263,42 @@
-  * Common parameters used for debug output functions:
-  * line number, function name, module(file) name, component ID
-  */
--#define ACPI_DEBUG_PARAMETERS           __LINE__, ACPI_GET_FUNCTION_NAME, _acpi_module_name, _COMPONENT
-+#define ACPI_DEBUG_PARAMETERS \
-+	__LINE__, ACPI_GET_FUNCTION_NAME, _acpi_module_name, _COMPONENT
- 
- /*
-  * Master debug print macros
-  * Print message if and only if:
-  *    1) Debug print for the current component is enabled
-  *    2) Debug error level or trace level for the print statement is enabled
-+ *
-+ * November 2012: Moved the runtime check for whether to actually emit the
-+ * debug message outside of the print function itself. This improves overall
-+ * performance at a relatively small code cost. Implementation involves the
-+ * use of variadic macros supported by C99.
-  */
--#define ACPI_DEBUG_PRINT(plist)         acpi_debug_print plist
--#define ACPI_DEBUG_PRINT_RAW(plist)     acpi_debug_print_raw plist
+-	acpi_debug_print(ACPI_LV_FUNCTIONS,
+-			 line_number, function_name, module_name, component_id,
+-			 "%s\n", acpi_gbl_fn_entry_str);
++	/* Check if enabled up-front for performance */
 +
-+/* DEBUG_PRINT functions */
-+
-+#define ACPI_DEBUG_PRINT(plist)         ACPI_ACTUAL_DEBUG plist
-+#define ACPI_DEBUG_PRINT_RAW(plist)     ACPI_ACTUAL_DEBUG_RAW plist
-+
-+/* Helper macros for DEBUG_PRINT */
-+
-+#define ACPI_IS_DEBUG_ENABLED(level, component) \
-+	(level & acpi_dbg_level) && (component & acpi_dbg_layer)
-+
-+#define ACPI_DEBUG(function, level, line, filename, modulename, component, ...) \
-+	if (ACPI_IS_DEBUG_ENABLED (level, component)) \
-+	{ \
-+		function (level, line, filename, modulename, component, __VA_ARGS__); \
++	if (ACPI_IS_DEBUG_ENABLED(ACPI_LV_FUNCTIONS, component_id)) {
++		acpi_debug_print(ACPI_LV_FUNCTIONS,
++				 line_number, function_name, module_name,
++				 component_id, "%s\n", acpi_gbl_fn_entry_str);
 +	}
-+
-+#define ACPI_ACTUAL_DEBUG(level, line, filename, modulename, component, ...) \
-+	ACPI_DEBUG (acpi_debug_print, level, line, filename, modulename, component, __VA_ARGS__)
-+
-+#define ACPI_ACTUAL_DEBUG_RAW(level, line, filename, modulename, component, ...) \
-+	ACPI_DEBUG (acpi_debug_print_raw, level, line, filename, modulename, component, __VA_ARGS__)
+ }
  
- #else
- /*
+ ACPI_EXPORT_SYMBOL(acpi_ut_trace)
+@@ -304,9 +307,14 @@ acpi_ut_trace_ptr(u32 line_number,
+ 	acpi_gbl_nesting_level++;
+ 	acpi_ut_track_stack_ptr();
+ 
+-	acpi_debug_print(ACPI_LV_FUNCTIONS,
+-			 line_number, function_name, module_name, component_id,
+-			 "%s %p\n", acpi_gbl_fn_entry_str, pointer);
++	/* Check if enabled up-front for performance */
++
++	if (ACPI_IS_DEBUG_ENABLED(ACPI_LV_FUNCTIONS, component_id)) {
++		acpi_debug_print(ACPI_LV_FUNCTIONS,
++				 line_number, function_name, module_name,
++				 component_id, "%s %p\n", acpi_gbl_fn_entry_str,
++				 pointer);
++	}
+ }
+ 
+ /*******************************************************************************
+@@ -335,9 +343,14 @@ acpi_ut_trace_str(u32 line_number,
+ 	acpi_gbl_nesting_level++;
+ 	acpi_ut_track_stack_ptr();
+ 
+-	acpi_debug_print(ACPI_LV_FUNCTIONS,
+-			 line_number, function_name, module_name, component_id,
+-			 "%s %s\n", acpi_gbl_fn_entry_str, string);
++	/* Check if enabled up-front for performance */
++
++	if (ACPI_IS_DEBUG_ENABLED(ACPI_LV_FUNCTIONS, component_id)) {
++		acpi_debug_print(ACPI_LV_FUNCTIONS,
++				 line_number, function_name, module_name,
++				 component_id, "%s %s\n", acpi_gbl_fn_entry_str,
++				 string);
++	}
+ }
+ 
+ /*******************************************************************************
+@@ -366,9 +379,14 @@ acpi_ut_trace_u32(u32 line_number,
+ 	acpi_gbl_nesting_level++;
+ 	acpi_ut_track_stack_ptr();
+ 
+-	acpi_debug_print(ACPI_LV_FUNCTIONS,
+-			 line_number, function_name, module_name, component_id,
+-			 "%s %08X\n", acpi_gbl_fn_entry_str, integer);
++	/* Check if enabled up-front for performance */
++
++	if (ACPI_IS_DEBUG_ENABLED(ACPI_LV_FUNCTIONS, component_id)) {
++		acpi_debug_print(ACPI_LV_FUNCTIONS,
++				 line_number, function_name, module_name,
++				 component_id, "%s %08X\n",
++				 acpi_gbl_fn_entry_str, integer);
++	}
+ }
+ 
+ /*******************************************************************************
+@@ -393,9 +411,13 @@ acpi_ut_exit(u32 line_number,
+ 	     const char *module_name, u32 component_id)
+ {
+ 
+-	acpi_debug_print(ACPI_LV_FUNCTIONS,
+-			 line_number, function_name, module_name, component_id,
+-			 "%s\n", acpi_gbl_fn_exit_str);
++	/* Check if enabled up-front for performance */
++
++	if (ACPI_IS_DEBUG_ENABLED(ACPI_LV_FUNCTIONS, component_id)) {
++		acpi_debug_print(ACPI_LV_FUNCTIONS,
++				 line_number, function_name, module_name,
++				 component_id, "%s\n", acpi_gbl_fn_exit_str);
++	}
+ 
+ 	acpi_gbl_nesting_level--;
+ }
+@@ -425,17 +447,23 @@ acpi_ut_status_exit(u32 line_number,
+ 		    u32 component_id, acpi_status status)
+ {
+ 
+-	if (ACPI_SUCCESS(status)) {
+-		acpi_debug_print(ACPI_LV_FUNCTIONS,
+-				 line_number, function_name, module_name,
+-				 component_id, "%s %s\n", acpi_gbl_fn_exit_str,
+-				 acpi_format_exception(status));
+-	} else {
+-		acpi_debug_print(ACPI_LV_FUNCTIONS,
+-				 line_number, function_name, module_name,
+-				 component_id, "%s ****Exception****: %s\n",
+-				 acpi_gbl_fn_exit_str,
+-				 acpi_format_exception(status));
++	/* Check if enabled up-front for performance */
++
++	if (ACPI_IS_DEBUG_ENABLED(ACPI_LV_FUNCTIONS, component_id)) {
++		if (ACPI_SUCCESS(status)) {
++			acpi_debug_print(ACPI_LV_FUNCTIONS,
++					 line_number, function_name,
++					 module_name, component_id, "%s %s\n",
++					 acpi_gbl_fn_exit_str,
++					 acpi_format_exception(status));
++		} else {
++			acpi_debug_print(ACPI_LV_FUNCTIONS,
++					 line_number, function_name,
++					 module_name, component_id,
++					 "%s ****Exception****: %s\n",
++					 acpi_gbl_fn_exit_str,
++					 acpi_format_exception(status));
++		}
+ 	}
+ 
+ 	acpi_gbl_nesting_level--;
+@@ -465,10 +493,15 @@ acpi_ut_value_exit(u32 line_number,
+ 		   const char *module_name, u32 component_id, u64 value)
+ {
+ 
+-	acpi_debug_print(ACPI_LV_FUNCTIONS,
+-			 line_number, function_name, module_name, component_id,
+-			 "%s %8.8X%8.8X\n", acpi_gbl_fn_exit_str,
+-			 ACPI_FORMAT_UINT64(value));
++	/* Check if enabled up-front for performance */
++
++	if (ACPI_IS_DEBUG_ENABLED(ACPI_LV_FUNCTIONS, component_id)) {
++		acpi_debug_print(ACPI_LV_FUNCTIONS,
++				 line_number, function_name, module_name,
++				 component_id, "%s %8.8X%8.8X\n",
++				 acpi_gbl_fn_exit_str,
++				 ACPI_FORMAT_UINT64(value));
++	}
+ 
+ 	acpi_gbl_nesting_level--;
+ }
+@@ -497,9 +530,14 @@ acpi_ut_ptr_exit(u32 line_number,
+ 		 const char *module_name, u32 component_id, u8 *ptr)
+ {
+ 
+-	acpi_debug_print(ACPI_LV_FUNCTIONS,
+-			 line_number, function_name, module_name, component_id,
+-			 "%s %p\n", acpi_gbl_fn_exit_str, ptr);
++	/* Check if enabled up-front for performance */
++
++	if (ACPI_IS_DEBUG_ENABLED(ACPI_LV_FUNCTIONS, component_id)) {
++		acpi_debug_print(ACPI_LV_FUNCTIONS,
++				 line_number, function_name, module_name,
++				 component_id, "%s %p\n", acpi_gbl_fn_exit_str,
++				 ptr);
++	}
+ 
+ 	acpi_gbl_nesting_level--;
+ }
 -- 
 1.7.10
 
