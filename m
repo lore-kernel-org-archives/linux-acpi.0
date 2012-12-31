@@ -1,76 +1,118 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 25/27] ACPICA: Interpreter: Fix Store() when implicit conversion is not possible.
-Date: Mon, 31 Dec 2012 08:11:45 +0800
-Message-ID: <b0c2403adf73c22b760d8673afa5ffff24cab263.1356668535.git.lv.zheng@intel.com>
-References: <cover.1356668530.git.lv.zheng@intel.com>
+Subject: [PATCH 0/3] ACPICA: Reduce source code differences between Linux and ACPICA.
+Date: Mon, 31 Dec 2012 08:23:40 +0800
+Message-ID: <cover.1356871667.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:5223 "EHLO mga14.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:30773 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755277Ab2LaAMQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 30 Dec 2012 19:12:16 -0500
-In-Reply-To: <cover.1356668530.git.lv.zheng@intel.com>
+	id S1755239Ab2LaAXu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 30 Dec 2012 19:23:50 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <len.brown@intel.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>
-Cc: linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>
+To: Len Brown <len.brown@intel.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>
+Cc: linux-acpi@vger.kernel.org, devel@acpica.org, Lv Zheng <lv.zheng@intel.com>
 
-From: Bob Moore <robert.moore@intel.com>
+This patch set is based on the ACPICA 20121220 release.
 
-For the cases such as a store of a string to an existing package
-object, implement the store as a CopyObject().
-This is a small departure from the ACPI specification which states
-that the control method should be aborted in this case. However,
-ASLTS suite depends on this behavior.
+This patch set has passed basic build and boot tests.
 
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+The source code differences between Linux and ACPICA can be summarized as
+follows:
+1. 1976 Lines (70.5 Kbytes) before applying the patch set;
+2. 1796 Lines (64.8 Kbytes) after applying the patch set.
+
+Please review.
+
+Lv Zheng (3):
+  ACPICA: Cleanup PM_TIMER_FREQUENCY definition.
+  ACPICA: Cleanup table handler naming conflicts.
+  ACPICA: Add new statistics interface.
+
+ drivers/acpi/acpica/acglobal.h |    4 +++-
+ drivers/acpi/acpica/dsmethod.c |    1 +
+ drivers/acpi/acpica/evsci.c    |    1 +
+ drivers/acpi/acpica/tbxface.c  |    4 ++--
+ drivers/acpi/acpica/utglobal.c |   11 +++++++++++
+ drivers/acpi/acpica/utxface.c  |   38 ++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/numa.c            |    2 +-
+ drivers/acpi/processor_idle.c  |    5 +++--
+ drivers/acpi/tables.c          |    6 +++---
+ include/acpi/acpixf.h          |    6 ++++--
+ include/acpi/actypes.h         |   16 +++++++++++-----
+ include/linux/acpi.h           |   15 ++++++++++-----
+ 12 files changed, 88 insertions(+), 21 deletions(-)
+
 ---
- drivers/acpi/acpica/exstore.c |   29 ++++++++++++++++++++++++-----
- 1 file changed, 24 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/acpica/exstore.c b/drivers/acpi/acpica/exstore.c
-index 90431f1..4ff37e8 100644
---- a/drivers/acpi/acpica/exstore.c
-+++ b/drivers/acpi/acpica/exstore.c
-@@ -487,14 +487,33 @@ acpi_ex_store_object_to_node(union acpi_operand_object *source_desc,
- 	default:
- 
- 		ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
--				  "Storing %s (%p) directly into node (%p) with no implicit conversion\n",
-+				  "Storing [%s] (%p) directly into node [%s] (%p)"
-+				  " with no implicit conversion\n",
- 				  acpi_ut_get_object_type_name(source_desc),
--				  source_desc, node));
-+				  source_desc,
-+				  acpi_ut_get_object_type_name(target_desc),
-+				  node));
- 
--		/* No conversions for all other types. Just attach the source object */
-+		/*
-+		 * No conversions for all other types. Directly store a copy of
-+		 * the source object. NOTE: This is a departure from the ACPI
-+		 * spec, which states "If conversion is impossible, abort the
-+		 * running control method".
-+		 *
-+		 * This code implements "If conversion is impossible, treat the
-+		 * Store operation as a CopyObject".
-+		 */
-+		status =
-+		    acpi_ut_copy_iobject_to_iobject(source_desc, &new_desc,
-+						    walk_state);
-+		if (ACPI_FAILURE(status)) {
-+			return_ACPI_STATUS(status);
-+		}
- 
--		status = acpi_ns_attach_object(node, source_desc,
--					       source_desc->common.type);
-+		status =
-+		    acpi_ns_attach_object(node, new_desc,
-+					  new_desc->common.type);
-+		acpi_ut_remove_reference(new_desc);
- 		break;
- 	}
- 
+         Background of "ACPICA <-> Linux Divergences Fixes"
+
+The divergences fixes are meant to make the ACPICA release engineering work
+easier. More jobs can be done by the scripts running on the machines without
+the human intervention if the divergences can be controlled down to an
+acceptable level.
+
+The fixes will use the following two steps to reduce the divergences:
+1. Fix the "cosmetic" stuff:
+   The ACPICA release engineers will focus on the divergences that relate
+   to the "commentary", "indentation", "coding styles", "debug messages",
+   "code block offsetting", etc. in this step.
+   Such divergences are fixed so that the "useful" stuff can rise to the
+   surface. Most of the fixes do not affect the generation of the Linux
+   binary, some of them do not affect the functionality of the generated
+   Linux binary. Since introducing such fixes to Linux is low risk and some
+   release patches depend on the divergences fixes, the work might be done
+   by the ACPICA release engineers using a reduced community process. Such
+   fixes will be attached on top of the release patch set directly during
+   the release work.
+   Such "cosmetic" fixes are expected to be done in 2-4 merge cycles.
+2. Fix the "useful" stuff:
+   Either by porting the Linux bug fixes to the ACPICA.
+   Or by merging the lost ACPICA features to the Linux.
+   These patches will be sent to community one by one, awaiting comments,
+   then get merged. They will not appear in the release patch set.
+
+Every "cosmetic" divergences fix patch lists the line number of the
+divergences reduced by the patch.
+The divergences result is generated by the following steps:
+---------------------------------------------------------------------------
+1. pop the patch from the kernel
+2. divergence.sh -s <kernel source tree>
+3. push the patch to the kernel
+4. divergence.sh -s <kernel source tree>
+---------------------------------------------------------------------------
+Where the divergence.sh can be found in the generate/linux folder of the
+acpica project source tree.
+
+If a "cosmetic" divergences fix patch does not affect the generation of the
+Linux binary, you can find a binary comparision result in the patch
+description.
+The comparision result is generated by the following steps:
+---------------------------------------------------------------------------
+1. pop the patch and build the kernel
+2. objcopy -R .notes binary1 > binary2
+3. objdump -d binary2 > before.dump
+4. push the patch and build the kernel
+5. objcopy -R .notes binary1 > binary2
+6. objdump -d binary2 > after.dump
+7. diff -u before.dump after.dump
+---------------------------------------------------------------------------
+Where:
+1. Basically, binary1 will be "drivers/acpi/acpica/acpi.o". The same
+   process will be executed on "vmlinux" for confirmation if there are
+   header file changes that will seriously affect the generation of the
+   vmlinux.
+2. The build step is done by an i386 toolchain so we need to delete .note
+   section which belongs to the .text section to avoid confusions.
+
+If you have concerns about such fixes, please do not send your blame to the
+code authors or the subsystem maintainers as they have done the right
+things to help improve the Linux or the ACPICA. Please send your blame to
+the following mail address whose owner is the culprit doing the bad things
+(ex. introducing the mistakes) during the release engineering work.
+---------------------------------------------------------------------------
+Lv "ZETALOG" Zheng <lv.zheng@intel.com>
+---------------------------------------------------------------------------
+
 -- 
 1.7.10
 
