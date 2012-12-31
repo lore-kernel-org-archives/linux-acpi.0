@@ -1,13 +1,13 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 04/27] ACPICA: Add root node optimization to internal get namespace node function.
-Date: Mon, 31 Dec 2012 08:05:33 +0800
-Message-ID: <d0f65ab011ac0307c61c5c8121b54a526fb35020.1356668533.git.lv.zheng@intel.com>
+Subject: [PATCH 05/27] ACPICA: Lint changes, no functional change.
+Date: Mon, 31 Dec 2012 08:05:39 +0800
+Message-ID: <d112e5266ea48e852334af76abc495275b835cec.1356668533.git.lv.zheng@intel.com>
 References: <cover.1356668530.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:7279 "EHLO mga11.intel.com"
+Received: from mga03.intel.com ([143.182.124.21]:41113 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755200Ab2LaAFn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 30 Dec 2012 19:05:43 -0500
+	id S1755200Ab2LaAFt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 30 Dec 2012 19:05:49 -0500
 In-Reply-To: <cover.1356668530.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,42 +16,55 @@ Cc: linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>, Lv Zheng <lv
 
 From: Bob Moore <robert.moore@intel.com>
 
-Detect a request for the root node (a lone backslash) up front
-before invoking a full namespace lookup.
+Some changes from lint.
 
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/nsutils.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ drivers/acpi/acpica/psloop.c   |    9 +++++----
+ drivers/acpi/acpica/utdelete.c |    2 +-
+ 2 files changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/acpica/nsutils.c b/drivers/acpi/acpica/nsutils.c
-index d2dfe61..596d4cc 100644
---- a/drivers/acpi/acpica/nsutils.c
-+++ b/drivers/acpi/acpica/nsutils.c
-@@ -671,6 +671,8 @@ acpi_ns_get_node(struct acpi_namespace_node *prefix_node,
+diff --git a/drivers/acpi/acpica/psloop.c b/drivers/acpi/acpica/psloop.c
+index 5607805..a6f8592 100644
+--- a/drivers/acpi/acpica/psloop.c
++++ b/drivers/acpi/acpica/psloop.c
+@@ -142,7 +142,8 @@ static acpi_status acpi_ps_get_aml_opcode(struct acpi_walk_state *walk_state)
+ 				    (u32)(walk_state->aml_offset +
+ 					  sizeof(struct acpi_table_header))));
  
- 	ACPI_FUNCTION_TRACE_PTR(ns_get_node, ACPI_CAST_PTR(char, pathname));
+-			ACPI_DUMP_BUFFER(walk_state->parser_state.aml - 16, 48);
++			ACPI_DUMP_BUFFER((walk_state->parser_state.aml - 16),
++					 48);
  
-+	/* Simplest case is a null pathname */
-+
- 	if (!pathname) {
- 		*return_node = prefix_node;
- 		if (!prefix_node) {
-@@ -679,6 +681,13 @@ acpi_ns_get_node(struct acpi_namespace_node *prefix_node,
- 		return_ACPI_STATUS(AE_OK);
- 	}
+ #ifdef ACPI_ASL_COMPILER
+ 			/*
+@@ -159,9 +160,9 @@ static acpi_status acpi_ps_get_aml_opcode(struct acpi_walk_state *walk_state)
  
-+	/* Quick check for a reference to the root */
-+
-+	if (ACPI_IS_ROOT_PREFIX(pathname[0]) && (!pathname[1])) {
-+		*return_node = acpi_gbl_root_node;
-+		return_ACPI_STATUS(AE_OK);
-+	}
-+
- 	/* Convert path to internal representation */
+ 			acpi_ut_dump_buffer(((u8 *)walk_state->parser_state.
+ 					     aml - 16), 48, DB_BYTE_DISPLAY,
+-					    walk_state->aml_offset +
+-					    sizeof(struct acpi_table_header) -
+-					    16);
++					    (walk_state->aml_offset +
++					     sizeof(struct acpi_table_header) -
++					     16));
+ 			acpi_os_printf(" */\n");
+ #endif
+ 		}
+diff --git a/drivers/acpi/acpica/utdelete.c b/drivers/acpi/acpica/utdelete.c
+index 53e6af8..c8bf44f 100644
+--- a/drivers/acpi/acpica/utdelete.c
++++ b/drivers/acpi/acpica/utdelete.c
+@@ -340,7 +340,7 @@ void acpi_ut_delete_internal_object_list(union acpi_operand_object **obj_list)
+ {
+ 	union acpi_operand_object **internal_obj;
  
- 	status = acpi_ns_internalize_name(pathname, &internal_path);
+-	ACPI_FUNCTION_NAME(ut_delete_internal_object_list);
++	ACPI_FUNCTION_ENTRY();
+ 
+ 	/* Walk the null-terminated internal list */
+ 
 -- 
 1.7.10
 
