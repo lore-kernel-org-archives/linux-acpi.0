@@ -1,88 +1,37 @@
-From: Joe Perches <joe@perches.com>
+From: Tony Luck <tony.luck@intel.com>
 Subject: Re: [PATCH v8 3/3] aerdrv: Cleanup log output for AER
-Date: Wed, 02 Jan 2013 15:27:39 -0800
-Message-ID: <1357169259.25181.9.camel@joe-AO722>
+Date: Wed, 2 Jan 2013 15:41:19 -0800
+Message-ID: <CA+8MBbK3Ah81TCDRTqM-XV9vEtKCC1m7YCAr75NiUwPRM4OfsQ@mail.gmail.com>
 References: <20130102232730.5706.82243.stgit@grignak.americas.hpqcorp.net>
-	 <20130102232743.5706.63153.stgit@grignak.americas.hpqcorp.net>
+	<20130102232743.5706.63153.stgit@grignak.americas.hpqcorp.net>
+	<1357169259.25181.9.camel@joe-AO722>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from perches-mx.perches.com ([206.117.179.246]:35123 "EHLO
-	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752711Ab3ABX1k (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 2 Jan 2013 18:27:40 -0500
-In-Reply-To: <20130102232743.5706.63153.stgit@grignak.americas.hpqcorp.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1357169259.25181.9.camel@joe-AO722>
+Sender: linux-pci-owner@vger.kernel.org
+To: Joe Perches <joe@perches.com>
+Cc: Lance Ortiz <lance.ortiz@hp.com>, bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, bp@alien8.de, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lance Ortiz <lance.ortiz@hp.com>
-Cc: bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, bp@alien8.de, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, 2013-01-02 at 16:27 -0700, Lance Ortiz wrote:
-> These changes make cper_print_aer more consistent with aer_print_error
-> and clean things up by elimiating the use of the prefix variable and
-> replacing it with dev_printk.
-[]
-> v7-v8 Updated to use dev_printk instated of prefix. Changed
-> log levels to KERN_ERR as per Mauro's suggestion
+On Wed, Jan 2, 2013 at 3:27 PM, Joe Perches <joe@perches.com> wrote:
+> Just use dev_err( instead of dev_printk(KERN_ERR,
+> It's a function and it makes the object code smaller.
 
-Just use dev_err( instead of dev_printk(KERN_ERR,
-It's a function and it makes the object code smaller.
+Looks like we are almost converged on a solution (Lance: thanks for
+your patience and diligence in making changes).
 
-> diff --git a/drivers/pci/pcie/aer/aerdrv_errprint.c b/drivers/pci/pcie/aer/aerdrv_errprint.c
-[]
-> @@ -144,26 +143,24 @@ static void __aer_print_error(const char *prefix,
->  				aer_uncorrectable_error_string[i] : NULL;
->  
->  		if (errmsg)
-> -			printk("%s""   [%2d] %-22s%s\n", prefix, i, errmsg,
-> +			dev_printk(KERN_ERR, &dev->dev,
-> +				"   [%2d] %-22s%s\n", i, errmsg,
->  				info->first_error == i ? " (First)" : "");
->  		else
-> -			printk("%s""   [%2d] Unknown Error Bit%s\n", prefix, i,
-> -				info->first_error == i ? " (First)" : "");
-> +			dev_printk(KERN_ERR, &dev->dev,
-> +				"   [%2d] Unknown Error Bit%s\n",
-> +				i, info->first_error == i ? " (First)" : "");
->  	}
-[]
->  	if (info->status == 0) {
-> -		printk("%s""PCIe Bus Error: severity=%s, type=Unaccessible, "
-> -			"id=%04x(Unregistered Agent ID)\n", prefix,
-> +		dev_printk(KERN_ERR, &dev->dev,
-> +			"PCIe Bus Error: severity=%s, type=Unaccessible, "
-> +			"id=%04x(Unregistered Agent ID)\n",
-[]
-> @@ -171,22 +168,24 @@ void aer_print_error(struct pci_dev *dev, struct aer_err_info *info)
-[]
-> +		dev_printk(KERN_ERR, &dev->dev,
-> +			"PCIe Bus Error: severity=%s, type=%s, id=%04x(%s)\n",
-> +			aer_error_severity_string[info->severity],
-[]
-> +		dev_printk(KERN_ERR, &dev->dev,
-> +			"  device [%04x:%04x] error status/mask=%08x/%08x\n",
-> +			dev->vendor, dev->device,
->  			info->status, info->mask);
-[]
-> +			dev_printk(KERN_ERR, &dev->dev, "  TLP Header:"
->  				" %02x%02x%02x%02x %02x%02x%02x%02x"
->  				" %02x%02x%02x%02x %02x%02x%02x%02x\n",
-[]
-> @@ -195,8 +194,9 @@ void aer_print_error(struct pci_dev *dev, struct aer_err_info *info)
-[]
-> +		dev_printk(KERN_ERR, &dev->dev,
-> +			   "  Error of this Agent(%04x) is reported first\n",
-> +			id);
-[]
-> @@ -244,21 +244,21 @@ void cper_print_aer(const char *prefix, struct pci_dev *dev, int cper_severity,
-[]
-> +	dev_printk(KERN_ERR, &dev->dev, "aer_status: 0x%08x, aer_mask: 0x%08x\n",
-> +	       status, mask);
-[]
-> +	dev_printk(KERN_ERR, &dev->dev, "aer_layer=%s, aer_agent=%s\n",
->  	       aer_error_layer[layer], aer_agent_string[agent]);
-[]
-> +		dev_printk(KERN_ERR, &dev->dev, "aer_tlp_header:"
+Anyone on the "To:" list want to claim this for their tree to commit?
+The series touches pci, acpi, RAS, and tracing ... so there are
+several possible owners.
 
+If someone else wants it, then add an:
+Acked-by: Tony Luck <tony.luck@intel.com>
+to all three parts.
 
+If there isn't a strong claim, I'll add v9[*] to the RAS tree
+and see if the TIP tree folks will pull it from me.
+
+-Tony
+
+[*] When Lance makes the change suggested by Joe.
