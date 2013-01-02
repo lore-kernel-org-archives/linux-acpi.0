@@ -1,179 +1,88 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [Alternative 2][PATCH] ACPI / PCI: Set root bridge ACPI handle
- in advance
-Date: Wed, 2 Jan 2013 16:07:32 -0700
-Message-ID: <20130102230732.GB31813@google.com>
-References: <1558789.gX8cmBgyDV@vostro.rjw.lan>
- <CAErSpo5ZpUaHzYQEpR9Jh0MbcmjHfhKUQ-EpRJH1PNCHR_qnVg@mail.gmail.com>
- <5457615.T2WjKPXXC4@vostro.rjw.lan>
- <2816571.07LqOj3EJg@vostro.rjw.lan>
+From: Joe Perches <joe@perches.com>
+Subject: Re: [PATCH v8 3/3] aerdrv: Cleanup log output for AER
+Date: Wed, 02 Jan 2013 15:27:39 -0800
+Message-ID: <1357169259.25181.9.camel@joe-AO722>
+References: <20130102232730.5706.82243.stgit@grignak.americas.hpqcorp.net>
+	 <20130102232743.5706.63153.stgit@grignak.americas.hpqcorp.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:55912 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752206Ab3ABXHd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Jan 2013 18:07:33 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z10so1246531ghb.3
-        for <linux-acpi@vger.kernel.org>; Wed, 02 Jan 2013 15:07:32 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <2816571.07LqOj3EJg@vostro.rjw.lan>
+Received: from perches-mx.perches.com ([206.117.179.246]:35123 "EHLO
+	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752711Ab3ABX1k (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 2 Jan 2013 18:27:40 -0500
+In-Reply-To: <20130102232743.5706.63153.stgit@grignak.americas.hpqcorp.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Tony Luck <tony.luck@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, Myron Stowe <myron.stowe@redhat.com>
+To: Lance Ortiz <lance.ortiz@hp.com>
+Cc: bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, bp@alien8.de, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, Dec 27, 2012 at 10:32:13PM +0100, Rafael J. Wysocki wrote:
-> To that end, split pci_create_root_bus() into two functions,
-> pci_alloc_root() and pci_add_root(), that will allocate memory for
-> the new PCI bus and bridge representations and register them with
-> the driver core, respectively, and that may be called directly by
-> the architectures that need to set the root bridge's ACPI handle
-> before registering it.
+On Wed, 2013-01-02 at 16:27 -0700, Lance Ortiz wrote:
+> These changes make cper_print_aer more consistent with aer_print_error
+> and clean things up by elimiating the use of the prefix variable and
+> replacing it with dev_printk.
+[]
+> v7-v8 Updated to use dev_printk instated of prefix. Changed
+> log levels to KERN_ERR as per Mauro's suggestion
 
-I'm trying to *reduce* the interfaces for creating and scanning PCI
-host bridges, and this is a step in the opposite direction.
+Just use dev_err( instead of dev_printk(KERN_ERR,
+It's a function and it makes the object code smaller.
 
-> Next, Make both x86 and ia64 (the only architectures using ACPI at
-> the moment) call pci_alloc_root(), set the root bridge's ACPI handle
-> and then call pci_add_root() in their pci_acpi_scan_root() routines
-> instead of calling pci_create_root_bus().  For the other code paths
-> adding PCI root bridges define a new pci_create_root_bus() as a
-> simple combination of pci_alloc_root() and pci_add_root().
+> diff --git a/drivers/pci/pcie/aer/aerdrv_errprint.c b/drivers/pci/pcie/aer/aerdrv_errprint.c
+[]
+> @@ -144,26 +143,24 @@ static void __aer_print_error(const char *prefix,
+>  				aer_uncorrectable_error_string[i] : NULL;
+>  
+>  		if (errmsg)
+> -			printk("%s""   [%2d] %-22s%s\n", prefix, i, errmsg,
+> +			dev_printk(KERN_ERR, &dev->dev,
+> +				"   [%2d] %-22s%s\n", i, errmsg,
+>  				info->first_error == i ? " (First)" : "");
+>  		else
+> -			printk("%s""   [%2d] Unknown Error Bit%s\n", prefix, i,
+> -				info->first_error == i ? " (First)" : "");
+> +			dev_printk(KERN_ERR, &dev->dev,
+> +				"   [%2d] Unknown Error Bit%s\n",
+> +				i, info->first_error == i ? " (First)" : "");
+>  	}
+[]
+>  	if (info->status == 0) {
+> -		printk("%s""PCIe Bus Error: severity=%s, type=Unaccessible, "
+> -			"id=%04x(Unregistered Agent ID)\n", prefix,
+> +		dev_printk(KERN_ERR, &dev->dev,
+> +			"PCIe Bus Error: severity=%s, type=Unaccessible, "
+> +			"id=%04x(Unregistered Agent ID)\n",
+[]
+> @@ -171,22 +168,24 @@ void aer_print_error(struct pci_dev *dev, struct aer_err_info *info)
+[]
+> +		dev_printk(KERN_ERR, &dev->dev,
+> +			"PCIe Bus Error: severity=%s, type=%s, id=%04x(%s)\n",
+> +			aer_error_severity_string[info->severity],
+[]
+> +		dev_printk(KERN_ERR, &dev->dev,
+> +			"  device [%04x:%04x] error status/mask=%08x/%08x\n",
+> +			dev->vendor, dev->device,
+>  			info->status, info->mask);
+[]
+> +			dev_printk(KERN_ERR, &dev->dev, "  TLP Header:"
+>  				" %02x%02x%02x%02x %02x%02x%02x%02x"
+>  				" %02x%02x%02x%02x %02x%02x%02x%02x\n",
+[]
+> @@ -195,8 +194,9 @@ void aer_print_error(struct pci_dev *dev, struct aer_err_info *info)
+[]
+> +		dev_printk(KERN_ERR, &dev->dev,
+> +			   "  Error of this Agent(%04x) is reported first\n",
+> +			id);
+[]
+> @@ -244,21 +244,21 @@ void cper_print_aer(const char *prefix, struct pci_dev *dev, int cper_severity,
+[]
+> +	dev_printk(KERN_ERR, &dev->dev, "aer_status: 0x%08x, aer_mask: 0x%08x\n",
+> +	       status, mask);
+[]
+> +	dev_printk(KERN_ERR, &dev->dev, "aer_layer=%s, aer_agent=%s\n",
+>  	       aer_error_layer[layer], aer_agent_string[agent]);
+[]
+> +		dev_printk(KERN_ERR, &dev->dev, "aer_tlp_header:"
 
-pci_create_root_bus() takes a "struct device *parent" argument.  That
-seems like a logical place to tell the PCI core about the host bridge
-device, but x86 and ia64 currently pass NULL there.
 
-The patch below shows what I'm thinking.  It does have the side-effect
-of changing the sysfs topology from this:
-
-    /sys/devices/pci0000:00
-    /sys/devices/pci0000:00/0000:00:00.0
-
-to this:
-
-    /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/pci0000:00
-    /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/pci0000:00/0000:00:00.0
-
-because it puts the PCI root bus (pci0000:00) under the PNP0A08 device
-rather than at the top level.  That seems like an improvement to me,
-but it *is* different.
-
-Bjorn
-
-commit 5dee5f2f4fefbe4888939871c2252299067123bf
-Author: Bjorn Helgaas <bhelgaas@google.com>
-Date:   Wed Jan 2 13:47:02 2013 -0700
-
-diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-index 0c01261..1cfde12 100644
---- a/arch/x86/pci/acpi.c
-+++ b/arch/x86/pci/acpi.c
-@@ -552,8 +552,9 @@ struct pci_bus * __devinit pci_acpi_scan_root(struct acpi_pci_root *root)
- 
- 		if (!setup_mcfg_map(info, domain, (u8)root->secondary.start,
- 				    (u8)root->secondary.end, root->mcfg_addr))
--			bus = pci_create_root_bus(NULL, busnum, &pci_root_ops,
--						  sd, &resources);
-+			bus = pci_create_root_bus(&device->dev, busnum,
-+						  &pci_root_ops, sd,
-+						  &resources);
- 
- 		if (bus) {
- 			pci_scan_child_bus(bus);
-@@ -593,6 +594,15 @@ struct pci_bus * __devinit pci_acpi_scan_root(struct acpi_pci_root *root)
- 	return bus;
- }
- 
-+int pcibios_root_bridge_prepare(struct pci_host_bridge *bridge)
-+{
-+	struct device *parent = bridge->dev.parent;
-+
-+	if (parent)
-+		ACPI_HANDLE_SET(&bridge->dev, to_acpi_device(parent)->handle);
-+	return 0;
-+}
-+
- int __init pci_acpi_init(void)
- {
- 	struct pci_dev *dev = NULL;
-diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-index 1af4008..d4516c4 100644
---- a/drivers/pci/pci-acpi.c
-+++ b/drivers/pci/pci-acpi.c
-@@ -303,28 +303,9 @@ static int acpi_pci_find_device(struct device *dev, acpi_handle *handle)
- 	return 0;
- }
- 
--static int acpi_pci_find_root_bridge(struct device *dev, acpi_handle *handle)
--{
--	int num;
--	unsigned int seg, bus;
--
--	/*
--	 * The string should be the same as root bridge's name
--	 * Please look at 'pci_scan_bus_parented'
--	 */
--	num = sscanf(dev_name(dev), "pci%04x:%02x", &seg, &bus);
--	if (num != 2)
--		return -ENODEV;
--	*handle = acpi_get_pci_rootbridge_handle(seg, bus);
--	if (!*handle)
--		return -ENODEV;
--	return 0;
--}
--
- static struct acpi_bus_type acpi_pci_bus = {
- 	.bus = &pci_bus_type,
- 	.find_device = acpi_pci_find_device,
--	.find_bridge = acpi_pci_find_root_bridge,
- };
- 
- static int __init acpi_pci_init(void)
-diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index 6186f03..3575b2b 100644
---- a/drivers/pci/probe.c
-+++ b/drivers/pci/probe.c
-@@ -1633,6 +1633,11 @@ unsigned int pci_scan_child_bus(struct pci_bus *bus)
- 	return max;
- }
- 
-+int __weak pcibios_root_bridge_prepare(struct pci_host_bridge *bridge)
-+{
-+	return 0;
-+}
-+
- struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
- 		struct pci_ops *ops, void *sysdata, struct list_head *resources)
- {
-@@ -1645,7 +1650,6 @@ struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
- 	char bus_addr[64];
- 	char *fmt;
- 
--
- 	b = pci_alloc_bus();
- 	if (!b)
- 		return NULL;
-@@ -1666,6 +1670,9 @@ struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
- 	bridge->dev.parent = parent;
- 	bridge->dev.release = pci_release_bus_bridge_dev;
- 	dev_set_name(&bridge->dev, "pci%04x:%02x", pci_domain_nr(b), bus);
-+	error = pcibios_root_bridge_prepare(bridge);
-+	if (error)
-+		goto bridge_dev_reg_err;
- 	error = device_register(&bridge->dev);
- 	if (error)
- 		goto bridge_dev_reg_err;
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index 15472d6..238438c 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -674,6 +674,7 @@ extern struct list_head pci_root_buses;	/* list of all known PCI buses */
- /* Some device drivers need know if pci is initiated */
- extern int no_pci_devices(void);
- 
-+int pcibios_root_bridge_prepare(struct pci_host_bridge *bridge);
- void pcibios_fixup_bus(struct pci_bus *);
- int __must_check pcibios_enable_device(struct pci_dev *, int mask);
- /* Architecture specific versions may override this (weak) */
