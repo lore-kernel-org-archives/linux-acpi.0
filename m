@@ -1,53 +1,55 @@
-From: Joe Perches <joe@perches.com>
-Subject: [PATCH] checkpatch: prefer dev_<level>( to dev_printk(KERN_<LEVEL>
-Date: Wed, 02 Jan 2013 16:06:34 -0800
-Message-ID: <1357171594.25181.19.camel@joe-AO722>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH] checkpatch: prefer dev_<level>( to dev_printk(KERN_<LEVEL>
+Date: Wed, 2 Jan 2013 18:34:41 -0600
+Message-ID: <CAErSpo51SUYBOj89RM7SSBPEEGW6dddjWUX53u0srZS_eqkbSA@mail.gmail.com>
 References: <20130102232730.5706.82243.stgit@grignak.americas.hpqcorp.net>
-	 <20130102232743.5706.63153.stgit@grignak.americas.hpqcorp.net>
+ <20130102232743.5706.63153.stgit@grignak.americas.hpqcorp.net> <1357171594.25181.19.camel@joe-AO722>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from perches-mx.perches.com ([206.117.179.246]:39474 "EHLO
-	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752785Ab3ACAGf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 2 Jan 2013 19:06:35 -0500
-In-Reply-To: <20130102232743.5706.63153.stgit@grignak.americas.hpqcorp.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1357171594.25181.19.camel@joe-AO722>
+Sender: linux-pci-owner@vger.kernel.org
+To: Joe Perches <joe@perches.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Andy Whitcroft <apw@canonical.com>, Lance Ortiz <lance.ortiz@hp.com>, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, bp@alien8.de, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>, Andy Whitcroft <apw@canonical.com>
-Cc: Lance Ortiz <lance.ortiz@hp.com>, bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, bp@alien8.de, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Add YA check to printk style.
+On Wed, Jan 2, 2013 at 6:06 PM, Joe Perches <joe@perches.com> wrote:
+> Add YA check to printk style.
+>
+> dev_<level> uses are functions and generate smaller
+> object code than dev_printk(KERN_<LEVEL>.
+>
+> Signed-off-by: Joe Perches <joe@perches.com>
+> ---
+>  scripts/checkpatch.pl | 10 ++++++++++
+>  1 file changed, 10 insertions(+)
+>
+> diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
+> index 4d2c7df..f50b32d 100755
+> --- a/scripts/checkpatch.pl
+> +++ b/scripts/checkpatch.pl
+> @@ -2430,6 +2430,16 @@ sub process {
+>                              "Prefer pr_warn(... to pr_warning(...\n" . $herecurr);
+>                 }
+>
+> +               if ($line =~ /\bdev_printk\s*\(\s*KERN_([A-Z]+)/) {
+> +                       my $orig = $1;
+> +                       my $level = lc($orig);
+> +                       $level = "warn" if ($level eq "warning");
+> +                       my $level2 = $level;
+> +                       $level2 = "dbg" if ($level eq "debug");
+> +                       WARN("PREFER_DEV_LEVEL",
+> +                            "Prefer dev_$level2(... to dev_printk(KERN_$orig, ...\n" . $herecurr);
 
-dev_<level> uses are functions and generate smaller
-object code than dev_printk(KERN_<LEVEL>.
+This suggests dev_dbg() instead of dev_printk(KERN_DEBUG), doesn't it?
+ Those aren't equivalent (dev_printk() always does the printk, but in
+many cases dev_dbg() does not, depending on CONFIG_DEBUG,
+CONFIG_DYNAMIC_DEBUG, etc.)
 
-Signed-off-by: Joe Perches <joe@perches.com>
----
- scripts/checkpatch.pl | 10 ++++++++++
- 1 file changed, 10 insertions(+)
-
-diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
-index 4d2c7df..f50b32d 100755
---- a/scripts/checkpatch.pl
-+++ b/scripts/checkpatch.pl
-@@ -2430,6 +2430,16 @@ sub process {
- 			     "Prefer pr_warn(... to pr_warning(...\n" . $herecurr);
- 		}
- 
-+		if ($line =~ /\bdev_printk\s*\(\s*KERN_([A-Z]+)/) {
-+			my $orig = $1;
-+			my $level = lc($orig);
-+			$level = "warn" if ($level eq "warning");
-+			my $level2 = $level;
-+			$level2 = "dbg" if ($level eq "debug");
-+			WARN("PREFER_DEV_LEVEL",
-+			     "Prefer dev_$level2(... to dev_printk(KERN_$orig, ...\n" . $herecurr);
-+		}
-+
- # function brace can't be on same line, except for #defines of do while,
- # or if closed on same line
- 		if (($line=~/$Type\s*$Ident\(.*\).*\s{/) and
-
-
+> +               }
+> +
+>  # function brace can't be on same line, except for #defines of do while,
+>  # or if closed on same line
+>                 if (($line=~/$Type\s*$Ident\(.*\).*\s{/) and
+>
+>
