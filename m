@@ -1,43 +1,43 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v8 3/3] aerdrv: Cleanup log output for AER
-Date: Thu, 3 Jan 2013 16:51:04 +0100
-Message-ID: <20130103155103.GE10243@x1.alien8.de>
+From: Joe Perches <joe@perches.com>
+Subject: Re: [PATCH] checkpatch: prefer dev_<level>( to
+ dev_printk(KERN_<LEVEL>
+Date: Thu, 03 Jan 2013 08:28:14 -0800
+Message-ID: <1357230494.25181.55.camel@joe-AO722>
 References: <20130102232730.5706.82243.stgit@grignak.americas.hpqcorp.net>
- <20130102232743.5706.63153.stgit@grignak.americas.hpqcorp.net>
- <1357169259.25181.9.camel@joe-AO722>
- <CA+8MBbK3Ah81TCDRTqM-XV9vEtKCC1m7YCAr75NiUwPRM4OfsQ@mail.gmail.com>
+	 <20130102232743.5706.63153.stgit@grignak.americas.hpqcorp.net>
+	 <1357171594.25181.19.camel@joe-AO722> <20130103100808.GG2649@dm>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CA+8MBbK3Ah81TCDRTqM-XV9vEtKCC1m7YCAr75NiUwPRM4OfsQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Luck <tony.luck@intel.com>
-Cc: Joe Perches <joe@perches.com>, Lance Ortiz <lance.ortiz@hp.com>, bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20130103100808.GG2649@dm>
+Sender: linux-pci-owner@vger.kernel.org
+To: Andy Whitcroft <apw@canonical.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Lance Ortiz <lance.ortiz@hp.com>, bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, bp@alien8.de, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jan 02, 2013 at 03:41:19PM -0800, Tony Luck wrote:
-> On Wed, Jan 2, 2013 at 3:27 PM, Joe Perches <joe@perches.com> wrote:
-> > Just use dev_err( instead of dev_printk(KERN_ERR,
-> > It's a function and it makes the object code smaller.
+On Thu, 2013-01-03 at 10:08 +0000, Andy Whitcroft wrote:
+> On Wed, Jan 02, 2013 at 04:06:34PM -0800, Joe Perches wrote:
+> > Add YA check to printk style.
+> > 
+> > dev_<level> uses are functions and generate smaller
+> > object code than dev_printk(KERN_<LEVEL>.
+[]
+> > diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
+[]
+> > +		if ($line =~ /\bdev_printk\s*\(\s*KERN_([A-Z]+)/) {
+> > +			my $orig = $1;
+> > +			my $level = lc($orig);
+> > +			$level = "warn" if ($level eq "warning");
+> > +			my $level2 = $level;
+> > +			$level2 = "dbg" if ($level eq "debug");
 > 
-> Looks like we are almost converged on a solution (Lance: thanks for
-> your patience and diligence in making changes).
-> 
-> Anyone on the "To:" list want to claim this for their tree to commit?
-> The series touches pci, acpi, RAS, and tracing ... so there are
-> several possible owners.
-> 
-> If someone else wants it, then add an:
-> Acked-by: Tony Luck <tony.luck@intel.com>
-> to all three parts.
+> Is there some sublty I am not seeing here such that level2 is necessary?
 
-Ditto.
+No, your vision is 20/20, it's not necessary.
 
-Acked-by: Borislav Petkov <bp@alien8.de>
+It was a copy/paste from the pr_<level> conversion above it
+where 2 styles to convert to (dev_dbg and pr_debug) are used.
 
-Thanks.
-
--- 
-Regards/Gruss,
-Boris.
+Here there is just one form and your review is appreciated.
+I'll submit a V2 later.
