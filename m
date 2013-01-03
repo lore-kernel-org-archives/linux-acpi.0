@@ -1,37 +1,53 @@
-From: Tony Luck <tony.luck@intel.com>
-Subject: Re: [PATCH v8 3/3] aerdrv: Cleanup log output for AER
-Date: Wed, 2 Jan 2013 15:41:19 -0800
-Message-ID: <CA+8MBbK3Ah81TCDRTqM-XV9vEtKCC1m7YCAr75NiUwPRM4OfsQ@mail.gmail.com>
+From: Joe Perches <joe@perches.com>
+Subject: [PATCH] checkpatch: prefer dev_<level>( to dev_printk(KERN_<LEVEL>
+Date: Wed, 02 Jan 2013 16:06:34 -0800
+Message-ID: <1357171594.25181.19.camel@joe-AO722>
 References: <20130102232730.5706.82243.stgit@grignak.americas.hpqcorp.net>
-	<20130102232743.5706.63153.stgit@grignak.americas.hpqcorp.net>
-	<1357169259.25181.9.camel@joe-AO722>
+	 <20130102232743.5706.63153.stgit@grignak.americas.hpqcorp.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1357169259.25181.9.camel@joe-AO722>
-Sender: linux-pci-owner@vger.kernel.org
-To: Joe Perches <joe@perches.com>
-Cc: Lance Ortiz <lance.ortiz@hp.com>, bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, bp@alien8.de, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from perches-mx.perches.com ([206.117.179.246]:39474 "EHLO
+	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752785Ab3ACAGf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 2 Jan 2013 19:06:35 -0500
+In-Reply-To: <20130102232743.5706.63153.stgit@grignak.americas.hpqcorp.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>, Andy Whitcroft <apw@canonical.com>
+Cc: Lance Ortiz <lance.ortiz@hp.com>, bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, bp@alien8.de, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, Jan 2, 2013 at 3:27 PM, Joe Perches <joe@perches.com> wrote:
-> Just use dev_err( instead of dev_printk(KERN_ERR,
-> It's a function and it makes the object code smaller.
+Add YA check to printk style.
 
-Looks like we are almost converged on a solution (Lance: thanks for
-your patience and diligence in making changes).
+dev_<level> uses are functions and generate smaller
+object code than dev_printk(KERN_<LEVEL>.
 
-Anyone on the "To:" list want to claim this for their tree to commit?
-The series touches pci, acpi, RAS, and tracing ... so there are
-several possible owners.
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ scripts/checkpatch.pl | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-If someone else wants it, then add an:
-Acked-by: Tony Luck <tony.luck@intel.com>
-to all three parts.
+diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
+index 4d2c7df..f50b32d 100755
+--- a/scripts/checkpatch.pl
++++ b/scripts/checkpatch.pl
+@@ -2430,6 +2430,16 @@ sub process {
+ 			     "Prefer pr_warn(... to pr_warning(...\n" . $herecurr);
+ 		}
+ 
++		if ($line =~ /\bdev_printk\s*\(\s*KERN_([A-Z]+)/) {
++			my $orig = $1;
++			my $level = lc($orig);
++			$level = "warn" if ($level eq "warning");
++			my $level2 = $level;
++			$level2 = "dbg" if ($level eq "debug");
++			WARN("PREFER_DEV_LEVEL",
++			     "Prefer dev_$level2(... to dev_printk(KERN_$orig, ...\n" . $herecurr);
++		}
++
+ # function brace can't be on same line, except for #defines of do while,
+ # or if closed on same line
+ 		if (($line=~/$Type\s*$Ident\(.*\).*\s{/) and
 
-If there isn't a strong claim, I'll add v9[*] to the RAS tree
-and see if the TIP tree folks will pull it from me.
 
--Tony
-
-[*] When Lance makes the change suggested by Joe.
