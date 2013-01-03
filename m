@@ -1,140 +1,125 @@
-From: Lance Ortiz <lance.ortiz@hp.com>
-Subject: [PATCH v9 2/3] aerdrv: Enhanced AER logging
-Date: Thu, 03 Jan 2013 15:34:08 -0700
-Message-ID: <20130103223408.10751.17677.stgit@grignak.americas.hpqcorp.net>
-References: <20130103223401.10751.1838.stgit@grignak.americas.hpqcorp.net>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH] PCI / ACPI: Rework ACPI device nodes lookup for the PCI
+ bus type
+Date: Thu, 3 Jan 2013 14:44:32 -0700
+Message-ID: <CAErSpo4dvy_fK+C+TdyjP_ct15ZGM0qPmkFpdxjk=LUvL2_5hw@mail.gmail.com>
+References: <16168955.038G1kVfN2@vostro.rjw.lan> <CAErSpo7tiCn5jBKorO7UjNQbceObAg_uGqtzpBfALBcCUMe1Yw@mail.gmail.com>
+ <4246925.1ZrcBKvkL7@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20130103223401.10751.1838.stgit@grignak.americas.hpqcorp.net>
+In-Reply-To: <4246925.1ZrcBKvkL7@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, bp@alien8.de, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Peter Wu <lekensteyn@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-This patch will provide a more reliable and easy way for user-space
-applications to have access to AER logs rather than reading them from the
-message buffer. It also provides a way to notify user-space when an AER
-event occurs.
+On Thu, Jan 3, 2013 at 1:17 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> On Thursday, January 03, 2013 08:16:26 AM Bjorn Helgaas wrote:
+>> On Fri, Dec 28, 2012 at 2:29 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+>> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>> >
+>> > As the kernel Bugzilla report #42696 indicates, it generally is not
+>> > sufficient to use _ADR to get an ACPI device node corresponding to
+>> > the given PCI device, because there may be multiple objects with
+>> > matching _ADR in the ACPI namespace (this probably is against the
+>> > spec, but it evidently happens in practice).
+>>
+>> I don't see anything in sec 6.1.1 (_ADR) that precludes having
+>> multiple objects that contain the same _ADR. Do you have any other
+>> pointers?
+>
+> Section 6.1 implicitly means that.  It says that for PCI devices _ADR
+> must be present to identify which device is represented by the given
+> ACPI node.  Next, Section 6.1.1 says that the parent bus should be inferred
+> from the location of the _ADR object's device package in the ACPI namespace,
+> so clearly, if that's under the PCI root bridge ACPI node, the _ADR
+> corresponds to a PCI device's bus address.
 
-The aer driver is updated to generate a trace event of function 'aer_event'
-when a PCIe error is reported over the AER interface.  The trace event was
-added to both the interrupt based aer path and the firmware first path.
+I agree that for namespace Devices below a PCI host bridge, the _ADR
+value and its position in the hierarchy is required to be sufficient
+to identify a PCI device and function (or the set of all functions on
+a device #).
 
-v1-v2 fix compile errors in ifdefs.
-v2-v3 Update to new location of trace header. Update print to remove
-warning.
-v3-v4 Reworked logic when getting ready to call cper_print_aer
-v6-v7 Change print from pr_info to pr_err if !dev
-v7-v8 Add pfx argument back into call to cper_print_aer()
+> Then, Table 6-139 specifies the format of _ADR for PCI devices as being
+> euqivalent to devfn, which means that if two nodes with the same _ADR are
+> present in one scope (under one parent), then it is impossible to distinguish
+> between them and that's against Section 6.1.
 
-Signed-off-by: Lance Ortiz <lance.ortiz@hp.com>
-Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-Acked-by: Tony Luck <tony.luck@intel.com>
----
+This is the bit I don't understand.  Where's the requirement that we
+be able to distinguish between two namespace nodes with the same _ADR?
 
- drivers/acpi/apei/cper.c               |   19 ++++++++++++++++---
- drivers/pci/pcie/aer/aerdrv_errprint.c |    9 ++++++++-
- include/linux/aer.h                    |    4 ++--
- 3 files changed, 26 insertions(+), 6 deletions(-)
+Linux assumes we can start from a PCI device and identify a single
+related ACPI namespace node, e.g., in acpi_pci_find_device().  But all
+I see in the spec is a requirement that we can start from an ACPI
+namespace node and find a PCI device.  So I'm not sure
+acpi_pci_find_device() is based on a valid assumption.
 
-diff --git a/drivers/acpi/apei/cper.c b/drivers/acpi/apei/cper.c
-index e6defd8..1e5d8a4 100644
---- a/drivers/acpi/apei/cper.c
-+++ b/drivers/acpi/apei/cper.c
-@@ -29,6 +29,7 @@
- #include <linux/time.h>
- #include <linux/cper.h>
- #include <linux/acpi.h>
-+#include <linux/pci.h>
- #include <linux/aer.h>
- 
- /*
-@@ -249,6 +250,10 @@ static const char *cper_pcie_port_type_strs[] = {
- static void cper_print_pcie(const char *pfx, const struct cper_sec_pcie *pcie,
- 			    const struct acpi_hest_generic_data *gdata)
- {
-+#ifdef CONFIG_ACPI_APEI_PCIEAER
-+	struct pci_dev *dev;
-+#endif
-+
- 	if (pcie->validation_bits & CPER_PCIE_VALID_PORT_TYPE)
- 		printk("%s""port_type: %d, %s\n", pfx, pcie->port_type,
- 		       pcie->port_type < ARRAY_SIZE(cper_pcie_port_type_strs) ?
-@@ -281,10 +286,18 @@ static void cper_print_pcie(const char *pfx, const struct cper_sec_pcie *pcie,
- 	"%s""bridge: secondary_status: 0x%04x, control: 0x%04x\n",
- 	pfx, pcie->bridge.secondary_status, pcie->bridge.control);
- #ifdef CONFIG_ACPI_APEI_PCIEAER
--	if (pcie->validation_bits & CPER_PCIE_VALID_AER_INFO) {
--		struct aer_capability_regs *aer_regs = (void *)pcie->aer_info;
--		cper_print_aer(pfx, gdata->error_severity, aer_regs);
-+	dev = pci_get_domain_bus_and_slot(pcie->device_id.segment,
-+			pcie->device_id.bus, pcie->device_id.function);
-+	if (!dev) {
-+		pr_err("PCI AER Cannot get PCI device %04x:%02x:%02x.%d\n",
-+			pcie->device_id.segment, pcie->device_id.bus,
-+			pcie->device_id.slot, pcie->device_id.function);
-+		return;
- 	}
-+	if (pcie->validation_bits & CPER_PCIE_VALID_AER_INFO)
-+		cper_print_aer(pfx, dev, gdata->error_severity,
-+				(struct aer_capability_regs *) pcie->aer_info);
-+	pci_dev_put(dev);
- #endif
- }
- 
-diff --git a/drivers/pci/pcie/aer/aerdrv_errprint.c b/drivers/pci/pcie/aer/aerdrv_errprint.c
-index 3ea5173..d3e5fc5 100644
---- a/drivers/pci/pcie/aer/aerdrv_errprint.c
-+++ b/drivers/pci/pcie/aer/aerdrv_errprint.c
-@@ -23,6 +23,9 @@
- 
- #include "aerdrv.h"
- 
-+#define CREATE_TRACE_POINTS
-+#include <trace/events/ras.h>
-+
- #define AER_AGENT_RECEIVER		0
- #define AER_AGENT_REQUESTER		1
- #define AER_AGENT_COMPLETER		2
-@@ -194,6 +197,8 @@ void aer_print_error(struct pci_dev *dev, struct aer_err_info *info)
- 	if (info->id && info->error_dev_num > 1 && info->id == id)
- 		printk("%s""  Error of this Agent(%04x) is reported first\n",
- 			prefix, id);
-+	trace_aer_event(dev_name(&dev->dev), (info->status & ~info->mask),
-+			info->severity);
- }
- 
- void aer_print_port_info(struct pci_dev *dev, struct aer_err_info *info)
-@@ -217,7 +222,7 @@ int cper_severity_to_aer(int cper_severity)
- }
- EXPORT_SYMBOL_GPL(cper_severity_to_aer);
- 
--void cper_print_aer(const char *prefix, int cper_severity,
-+void cper_print_aer(const char *prefix, struct pci_dev *dev, int cper_severity,
- 		    struct aer_capability_regs *aer)
- {
- 	int aer_severity, layer, agent, status_strs_size, tlp_header_valid = 0;
-@@ -259,5 +264,7 @@ void cper_print_aer(const char *prefix, int cper_severity,
- 			*(tlp + 8), *(tlp + 15), *(tlp + 14),
- 			*(tlp + 13), *(tlp + 12));
- 	}
-+	trace_aer_event(dev_name(&dev->dev), (status & ~mask),
-+			aer_severity);
- }
- #endif
-diff --git a/include/linux/aer.h b/include/linux/aer.h
-index 544abdb..ec10e1b 100644
---- a/include/linux/aer.h
-+++ b/include/linux/aer.h
-@@ -49,8 +49,8 @@ static inline int pci_cleanup_aer_uncorrect_error_status(struct pci_dev *dev)
- }
- #endif
- 
--extern void cper_print_aer(const char *prefix, int cper_severity,
--			   struct aer_capability_regs *aer);
-+extern void cper_print_aer(const char *prefix, struct pci_dev *dev,
-+			   int cper_severity, struct aer_capability_regs *aer);
- extern int cper_severity_to_aer(int cper_severity);
- extern void aer_recover_queue(int domain, unsigned int bus, unsigned int devfn,
- 			      int severity);
+Let's say we want to provide _SUN and _UID.  _SUN is a slot number
+that may apply to several PCI functions, while _UID probably refers to
+a single PCI function.  Is it legal to provide two namespace objects,
+one with _ADR 0x0003ffff and _SUN, and another with _ADR 0x00030000
+and _UID?  If so, which node should acpi_pci_find_device() return?
+
+> So I really think it *is* against the spec - not because _ADR is generally
+> required to be unique, but because _ADR *is* required to be sufficient for
+> matching ACPI nodes under a PCI root bridge's node with PCI devices.
+
+>> > One possible way to improve the situation is to use the presence of
+>> > another ACPI method to distinguish between the matching namespace
+>> > nodes.  For example, if the presence of _INI is checked in addition
+>> > to the return value of _ADR, bug #42696 goes away on the affected
+>> > machines.  Of course, this is somewhat arbitrary, but it may be
+>> > argued that executing _INI for an ACPI device node kind of means that
+>> > we are going to use that device node going forward, so we should
+>> > generally prefer the nodes where we have executed _INI to "competing"
+>> > nodes without _INI.
+>>
+>> I consider this a purely ACPI issue, and hence something that you own
+>> completely.
+>
+> OK
+>
+>> That said, my opinion is that this heuristic doesn't sound reliable to
+>> me.  It feels like an ad hoc solution that works for the case at hand,
+>> but I don't have any reason to think BIOS writers will unconsciously
+>> make the same assumptions or that other OSes will contain the same
+>> algorithm.
+>
+> It's supposed to be a heuristic that is less likely to break things. :-)
+>
+> I have a reason to believe that other OSes simply happen to work with
+> the broken machines in question, because they match _ADR in direct order,
+> while we match them in reverse order.  The original proposal was to
+> change our code to match _ADR in direct order, but Len was afraid that it
+> could break systems that we happen to handle correctly (but then they would
+> not be handled correctly by other OSes, so perhaps it's what we should do
+> after all).
+>
+>> The existence of acpi_get_child_device() means we're assuming there
+>> can only be a single child with matching _ADR.  Since that assumption
+>> turned out to be false,
+>
+> For PCI devices this is required by the spec, AFAICS.
+>
+>> maybe we need a way to deal with several children.
+>>
+>> Maybe we need a list of matching children, or maybe we
+>> search matching children for a method at the time we need it instead
+>> of trying to pick one child up front.
+>
+> It may not be entirely clear from the changelog, but for PCI devices we use
+> acpi_get_child_device(), or acpi_get_child(), to find the ACPI "companion" node
+> for a given PCI device, so we have to pick one.  Now, the spec is pretty clear
+> in that _ADR is the only thing we can use to do that.
+>
+> If _ADR doesn't work, we have to do strange things to work around breakage,
+> unless we want to use blacklists.
+>
+> Thanks,
+> Rafael
+>
+>
+> --
+> I speak only for myself.
+> Rafael J. Wysocki, Intel Open Source Technology Center.
