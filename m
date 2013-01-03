@@ -1,55 +1,39 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH] checkpatch: prefer dev_<level>( to
- dev_printk(KERN_<LEVEL>
-Date: Wed, 02 Jan 2013 16:39:54 -0800
-Message-ID: <1357173594.25181.27.camel@joe-AO722>
-References: <20130102232730.5706.82243.stgit@grignak.americas.hpqcorp.net>
-	 <20130102232743.5706.63153.stgit@grignak.americas.hpqcorp.net>
-	 <1357171594.25181.19.camel@joe-AO722>
-	 <CAErSpo51SUYBOj89RM7SSBPEEGW6dddjWUX53u0srZS_eqkbSA@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH] ACPI / scan: Do not use dummy HID for system bus ACPI nodes
+Date: Thu, 03 Jan 2013 02:52:33 +0100
+Message-ID: <3202600.6sHYvcf502@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from perches-mx.perches.com ([206.117.179.246]:39485 "EHLO
-	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753058Ab3ACAjy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 2 Jan 2013 19:39:54 -0500
-In-Reply-To: <CAErSpo51SUYBOj89RM7SSBPEEGW6dddjWUX53u0srZS_eqkbSA@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Andy Whitcroft <apw@canonical.com>, Lance Ortiz <lance.ortiz@hp.com>, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, bp@alien8.de, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, 2013-01-02 at 18:34 -0600, Bjorn Helgaas wrote:
-> On Wed, Jan 2, 2013 at 6:06 PM, Joe Perches <joe@perches.com> wrote:
-> > Add YA check to printk style.
-> >
-> > dev_<level> uses are functions and generate smaller
-> > object code than dev_printk(KERN_<LEVEL>.
-[]
-> > diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
-[]
-> > @@ -2430,6 +2430,16 @@ sub process {
-> >                              "Prefer pr_warn(... to pr_warning(...\n" . $herecurr);
-> >                 }
-> >
-> > +               if ($line =~ /\bdev_printk\s*\(\s*KERN_([A-Z]+)/) {
-> > +                       my $orig = $1;
-> > +                       my $level = lc($orig);
-> > +                       $level = "warn" if ($level eq "warning");
-> > +                       my $level2 = $level;
-> > +                       $level2 = "dbg" if ($level eq "debug");
-> > +                       WARN("PREFER_DEV_LEVEL",
-> > +                            "Prefer dev_$level2(... to dev_printk(KERN_$orig, ...\n" . $herecurr);
-> 
-> This suggests dev_dbg() instead of dev_printk(KERN_DEBUG), doesn't it?
->  Those aren't equivalent (dev_printk() always does the printk, but in
-> many cases dev_dbg() does not, depending on CONFIG_DEBUG,
-> CONFIG_DYNAMIC_DEBUG, etc.)
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-True, I think the suggested change is appropriate though.
+At one point acpi_device_set_id() checks if acpi_device_hid(device)
+returns NULL, but that never happens, so system bus devices with an
+empty list of PNP IDs are given the dummy HID ("device") instead of
+the "system bus HID" ("LNXSYBUS").  Fix the code to use the right
+check.
 
-If people really want debug output in a specific file,
-then they should #define DEBUG and/or enable dynamic debug.
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/scan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+Index: linux/drivers/acpi/scan.c
+===================================================================
+--- linux.orig/drivers/acpi/scan.c
++++ linux/drivers/acpi/scan.c
+@@ -1398,7 +1398,7 @@ static void acpi_device_set_id(struct ac
+ 			acpi_add_id(device, ACPI_DOCK_HID);
+ 		else if (!acpi_ibm_smbus_match(device))
+ 			acpi_add_id(device, ACPI_SMBUS_IBM_HID);
+-		else if (!acpi_device_hid(device) &&
++		else if (list_empty(&device->pnp.ids) &&
+ 			 ACPI_IS_ROOT_DEVICE(device->parent)) {
+ 			acpi_add_id(device, ACPI_BUS_HID); /* \_SB, LNXSYBUS */
+ 			strcpy(device->pnp.device_name, ACPI_BUS_DEVICE_NAME);
