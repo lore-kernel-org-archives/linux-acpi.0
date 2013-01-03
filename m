@@ -1,125 +1,122 @@
 From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH] PCI / ACPI: Rework ACPI device nodes lookup for the PCI
- bus type
-Date: Thu, 3 Jan 2013 14:44:32 -0700
-Message-ID: <CAErSpo4dvy_fK+C+TdyjP_ct15ZGM0qPmkFpdxjk=LUvL2_5hw@mail.gmail.com>
-References: <16168955.038G1kVfN2@vostro.rjw.lan> <CAErSpo7tiCn5jBKorO7UjNQbceObAg_uGqtzpBfALBcCUMe1Yw@mail.gmail.com>
- <4246925.1ZrcBKvkL7@vostro.rjw.lan>
+Subject: Re: [Alternative 2][PATCH] ACPI / PCI: Set root bridge ACPI handle in advance
+Date: Thu, 3 Jan 2013 15:13:31 -0700
+Message-ID: <CAErSpo7QFKm=teLDBqCUueZwVHZKbA+pfNhrVc-_hK8PmwK2JQ@mail.gmail.com>
+References: <1558789.gX8cmBgyDV@vostro.rjw.lan> <1626213.gpPY5etSgn@vostro.rjw.lan>
+ <2695660.jbNleTYArh@vostro.rjw.lan> <1635295.TkbrarASZn@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4246925.1ZrcBKvkL7@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Peter Wu <lekensteyn@gmail.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-la0-f47.google.com ([209.85.215.47]:57727 "EHLO
+	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754490Ab3ACWVR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Jan 2013 17:21:17 -0500
+Received: by mail-la0-f47.google.com with SMTP id fh20so8793132lab.34
+        for <linux-acpi@vger.kernel.org>; Thu, 03 Jan 2013 14:21:16 -0800 (PST)
+In-Reply-To: <1635295.TkbrarASZn@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Tony Luck <tony.luck@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, Myron Stowe <myron.stowe@redhat.com>
 
-On Thu, Jan 3, 2013 at 1:17 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> On Thursday, January 03, 2013 08:16:26 AM Bjorn Helgaas wrote:
->> On Fri, Dec 28, 2012 at 2:29 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
->> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Thu, Jan 3, 2013 at 2:23 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> On Thursday, January 03, 2013 01:11:30 PM Rafael J. Wysocki wrote:
+>> On Thursday, January 03, 2013 01:40:52 AM Rafael J. Wysocki wrote:
+>> > On Wednesday, January 02, 2013 04:07:32 PM Bjorn Helgaas wrote:
+>> > > On Thu, Dec 27, 2012 at 10:32:13PM +0100, Rafael J. Wysocki wrote:
+>> > > > To that end, split pci_create_root_bus() into two functions,
+>> > > > pci_alloc_root() and pci_add_root(), that will allocate memory for
+>> > > > the new PCI bus and bridge representations and register them with
+>> > > > the driver core, respectively, and that may be called directly by
+>> > > > the architectures that need to set the root bridge's ACPI handle
+>> > > > before registering it.
+>> > >
+>> > > I'm trying to *reduce* the interfaces for creating and scanning PCI
+>> > > host bridges, and this is a step in the opposite direction.
 >> >
->> > As the kernel Bugzilla report #42696 indicates, it generally is not
->> > sufficient to use _ADR to get an ACPI device node corresponding to
->> > the given PCI device, because there may be multiple objects with
->> > matching _ADR in the ACPI namespace (this probably is against the
->> > spec, but it evidently happens in practice).
+>> > Yes it is.
+>> >
+>> > The alternative is to make the root bridge initialization code more complex.
 >>
->> I don't see anything in sec 6.1.1 (_ADR) that precludes having
->> multiple objects that contain the same _ADR. Do you have any other
->> pointers?
->
-> Section 6.1 implicitly means that.  It says that for PCI devices _ADR
-> must be present to identify which device is represented by the given
-> ACPI node.  Next, Section 6.1.1 says that the parent bus should be inferred
-> from the location of the _ADR object's device package in the ACPI namespace,
-> so clearly, if that's under the PCI root bridge ACPI node, the _ADR
-> corresponds to a PCI device's bus address.
-
-I agree that for namespace Devices below a PCI host bridge, the _ADR
-value and its position in the hierarchy is required to be sufficient
-to identify a PCI device and function (or the set of all functions on
-a device #).
-
-> Then, Table 6-139 specifies the format of _ADR for PCI devices as being
-> euqivalent to devfn, which means that if two nodes with the same _ADR are
-> present in one scope (under one parent), then it is impossible to distinguish
-> between them and that's against Section 6.1.
-
-This is the bit I don't understand.  Where's the requirement that we
-be able to distinguish between two namespace nodes with the same _ADR?
-
-Linux assumes we can start from a PCI device and identify a single
-related ACPI namespace node, e.g., in acpi_pci_find_device().  But all
-I see in the spec is a requirement that we can start from an ACPI
-namespace node and find a PCI device.  So I'm not sure
-acpi_pci_find_device() is based on a valid assumption.
-
-Let's say we want to provide _SUN and _UID.  _SUN is a slot number
-that may apply to several PCI functions, while _UID probably refers to
-a single PCI function.  Is it legal to provide two namespace objects,
-one with _ADR 0x0003ffff and _SUN, and another with _ADR 0x00030000
-and _UID?  If so, which node should acpi_pci_find_device() return?
-
-> So I really think it *is* against the spec - not because _ADR is generally
-> required to be unique, but because _ADR *is* required to be sufficient for
-> matching ACPI nodes under a PCI root bridge's node with PCI devices.
-
->> > One possible way to improve the situation is to use the presence of
->> > another ACPI method to distinguish between the matching namespace
->> > nodes.  For example, if the presence of _INI is checked in addition
->> > to the return value of _ADR, bug #42696 goes away on the affected
->> > machines.  Of course, this is somewhat arbitrary, but it may be
->> > argued that executing _INI for an ACPI device node kind of means that
->> > we are going to use that device node going forward, so we should
->> > generally prefer the nodes where we have executed _INI to "competing"
->> > nodes without _INI.
+>> Well, maybe not so much.
 >>
->> I consider this a purely ACPI issue, and hence something that you own
->> completely.
->
-> OK
->
->> That said, my opinion is that this heuristic doesn't sound reliable to
->> me.  It feels like an ad hoc solution that works for the case at hand,
->> but I don't have any reason to think BIOS writers will unconsciously
->> make the same assumptions or that other OSes will contain the same
->> algorithm.
->
-> It's supposed to be a heuristic that is less likely to break things. :-)
->
-> I have a reason to believe that other OSes simply happen to work with
-> the broken machines in question, because they match _ADR in direct order,
-> while we match them in reverse order.  The original proposal was to
-> change our code to match _ADR in direct order, but Len was afraid that it
-> could break systems that we happen to handle correctly (but then they would
-> not be handled correctly by other OSes, so perhaps it's what we should do
-> after all).
->
->> The existence of acpi_get_child_device() means we're assuming there
->> can only be a single child with matching _ADR.  Since that assumption
->> turned out to be false,
->
-> For PCI devices this is required by the spec, AFAICS.
->
->> maybe we need a way to deal with several children.
+>> What about adding an extra arg to pci_create_root_bus(), ie. the patch below
+>> (changelog skipped for now)?
 >>
->> Maybe we need a list of matching children, or maybe we
->> search matching children for a method at the time we need it instead
->> of trying to pick one child up front.
+>> I admit that having two void * args there is a little awkward, but at least
+>> it's totally generic.
+>>
+>> > > > Next, Make both x86 and ia64 (the only architectures using ACPI at
+>> > > > the moment) call pci_alloc_root(), set the root bridge's ACPI handle
+>> > > > and then call pci_add_root() in their pci_acpi_scan_root() routines
+>> > > > instead of calling pci_create_root_bus().  For the other code paths
+>> > > > adding PCI root bridges define a new pci_create_root_bus() as a
+>> > > > simple combination of pci_alloc_root() and pci_add_root().
+>> > >
+>> > > pci_create_root_bus() takes a "struct device *parent" argument.  That
+>> > > seems like a logical place to tell the PCI core about the host bridge
+>> > > device, but x86 and ia64 currently pass NULL there.
+>> >
+>> > And there's a reason for that.  Namely, on these architectures PCI host
+>> > bridges have no physical parents (well, at least in current practice).
+>> >
+>> > > The patch below shows what I'm thinking.  It does have the side-effect
+>> > > of changing the sysfs topology from this:
+>> > >
+>> > >     /sys/devices/pci0000:00
+>> > >     /sys/devices/pci0000:00/0000:00:00.0
+>> > >
+>> > > to this:
+>> > >
+>> > >     /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/pci0000:00
+>> > >     /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/pci0000:00/0000:00:00.0
+>> > >
+>> > > because it puts the PCI root bus (pci0000:00) under the PNP0A08 device
+>> > > rather than at the top level.
+>> >
+>> > Which is wrong.
+>> >
+>> > PNP0A08 is not a parent of the host bridge, but its ACPI "companion" (ie. ACPI
+>> > namespace node representing the host bridge itself).
+>> >
+>> > > That seems like an improvement to me, but it *is* different.
+>> >
+>> > Well, then we should make every ACPI device node corresponding to a PCI device
+>> > be a parent of that device's struct pci_dev and so on for other bus types.  It
+>> > doesn't sound like an attractive idea. :-)  Moreover, it is impossible, because
+>> > those things generally already have parents (struct pci_dev objects have them
+>> > at least).
+>> >
+>> > That said the idea to pass something meaningful in the parent argument
+>> > of pci_create_root_bus() can be implemented if we create a "physical" device
+>> > object corresponding to "device:00" (which is an ACPI namespace node) in your
+>> > example.
+>> >
+>> > From what I can tell, "device:00" always corresponds to the ACPI _SB scope
+>> > (which is mandatory), so in principle we can create an abstract "physical"
+>> > device object for it and call it something like "system_root".  Then, if we
+>> > use it as the parent of pci0000:00 (the host bridge), then we'll have
+>> >
+>> >      /sys/devices/system_root/pci0000:00
+>> >      /sys/devices/system_root/pci0000:00/0000:00:00.0
+>>
+>> Having considered that a little more I don't really think it's a good idea.
+>> It still would be going a little backwards, because we'd need to use the parent
+>> to get an ACPI handle known already beforehand.
 >
-> It may not be entirely clear from the changelog, but for PCI devices we use
-> acpi_get_child_device(), or acpi_get_child(), to find the ACPI "companion" node
-> for a given PCI device, so we have to pick one.  Now, the spec is pretty clear
-> in that _ADR is the only thing we can use to do that.
+> One more thing.
 >
-> If _ADR doesn't work, we have to do strange things to work around breakage,
-> unless we want to use blacklists.
->
-> Thanks,
-> Rafael
->
->
-> --
-> I speak only for myself.
-> Rafael J. Wysocki, Intel Open Source Technology Center.
+> The sysfs locations of PCI devices shouldn't change if acpi=off is passed to
+> the kernel, so the above is not a good idea at all, I'm afraid.
+
+I don't think there's a requirement that sysfs with acpi=off be the
+same as with it on.  acpi=off is only a debugging tool.  With acpi=off
+we ignore all the topology information we get from ACPI, and the
+location of PCI host bridges is part of that topology.  We shouldn't
+cripple sysfs when we're using ACPI just so it matches the acpi=off
+case.
+
+Of course, we might not want to change this in sysfs anyway; I just
+don't think acpi=off is a valid reason to avoid a change.
+
+Bjorn
