@@ -1,39 +1,52 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH] ACPI / scan: Do not use dummy HID for system bus ACPI nodes
-Date: Thu, 03 Jan 2013 02:52:33 +0100
-Message-ID: <3202600.6sHYvcf502@vostro.rjw.lan>
+From: Andy Whitcroft <apw@canonical.com>
+Subject: Re: [PATCH] checkpatch: prefer dev_<level>( to
+ dev_printk(KERN_<LEVEL>
+Date: Thu, 3 Jan 2013 10:08:08 +0000
+Message-ID: <20130103100808.GG2649@dm>
+References: <20130102232730.5706.82243.stgit@grignak.americas.hpqcorp.net>
+ <20130102232743.5706.63153.stgit@grignak.americas.hpqcorp.net>
+ <1357171594.25181.19.camel@joe-AO722>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1357171594.25181.19.camel@joe-AO722>
+Sender: linux-pci-owner@vger.kernel.org
+To: Joe Perches <joe@perches.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Lance Ortiz <lance.ortiz@hp.com>, bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, bp@alien8.de, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Wed, Jan 02, 2013 at 04:06:34PM -0800, Joe Perches wrote:
+> Add YA check to printk style.
+> 
+> dev_<level> uses are functions and generate smaller
+> object code than dev_printk(KERN_<LEVEL>.
+> 
+> Signed-off-by: Joe Perches <joe@perches.com>
+> ---
+>  scripts/checkpatch.pl | 10 ++++++++++
+>  1 file changed, 10 insertions(+)
+> 
+> diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
+> index 4d2c7df..f50b32d 100755
+> --- a/scripts/checkpatch.pl
+> +++ b/scripts/checkpatch.pl
+> @@ -2430,6 +2430,16 @@ sub process {
+>  			     "Prefer pr_warn(... to pr_warning(...\n" . $herecurr);
+>  		}
+>  
+> +		if ($line =~ /\bdev_printk\s*\(\s*KERN_([A-Z]+)/) {
+> +			my $orig = $1;
+> +			my $level = lc($orig);
+> +			$level = "warn" if ($level eq "warning");
+> +			my $level2 = $level;
+> +			$level2 = "dbg" if ($level eq "debug");
 
-At one point acpi_device_set_id() checks if acpi_device_hid(device)
-returns NULL, but that never happens, so system bus devices with an
-empty list of PNP IDs are given the dummy HID ("device") instead of
-the "system bus HID" ("LNXSYBUS").  Fix the code to use the right
-check.
+Is there some sublty I am not seeing here such that level2 is necessary?
+As far as I can see the two above could be the below to the same effect?
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/scan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+			$level2= "dbg" if ($level eq "debug");
 
-Index: linux/drivers/acpi/scan.c
-===================================================================
---- linux.orig/drivers/acpi/scan.c
-+++ linux/drivers/acpi/scan.c
-@@ -1398,7 +1398,7 @@ static void acpi_device_set_id(struct ac
- 			acpi_add_id(device, ACPI_DOCK_HID);
- 		else if (!acpi_ibm_smbus_match(device))
- 			acpi_add_id(device, ACPI_SMBUS_IBM_HID);
--		else if (!acpi_device_hid(device) &&
-+		else if (list_empty(&device->pnp.ids) &&
- 			 ACPI_IS_ROOT_DEVICE(device->parent)) {
- 			acpi_add_id(device, ACPI_BUS_HID); /* \_SB, LNXSYBUS */
- 			strcpy(device->pnp.device_name, ACPI_BUS_DEVICE_NAME);
+(With the obvious change to the print of course)
+
+-apw
