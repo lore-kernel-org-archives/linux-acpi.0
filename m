@@ -1,92 +1,55 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Alternative 2][PATCH] ACPI / PCI: Set root bridge ACPI handle in advance
-Date: Thu, 03 Jan 2013 01:40:52 +0100
-Message-ID: <1626213.gpPY5etSgn@vostro.rjw.lan>
-References: <1558789.gX8cmBgyDV@vostro.rjw.lan> <2816571.07LqOj3EJg@vostro.rjw.lan> <20130102230732.GB31813@google.com>
+From: Joe Perches <joe@perches.com>
+Subject: Re: [PATCH] checkpatch: prefer dev_<level>( to
+ dev_printk(KERN_<LEVEL>
+Date: Wed, 02 Jan 2013 16:39:54 -0800
+Message-ID: <1357173594.25181.27.camel@joe-AO722>
+References: <20130102232730.5706.82243.stgit@grignak.americas.hpqcorp.net>
+	 <20130102232743.5706.63153.stgit@grignak.americas.hpqcorp.net>
+	 <1357171594.25181.19.camel@joe-AO722>
+	 <CAErSpo51SUYBOj89RM7SSBPEEGW6dddjWUX53u0srZS_eqkbSA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20130102230732.GB31813@google.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Tony Luck <tony.luck@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, Myron Stowe <myron.stowe@redhat.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from perches-mx.perches.com ([206.117.179.246]:39485 "EHLO
+	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753058Ab3ACAjy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 2 Jan 2013 19:39:54 -0500
+In-Reply-To: <CAErSpo51SUYBOj89RM7SSBPEEGW6dddjWUX53u0srZS_eqkbSA@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Andy Whitcroft <apw@canonical.com>, Lance Ortiz <lance.ortiz@hp.com>, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, bp@alien8.de, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wednesday, January 02, 2013 04:07:32 PM Bjorn Helgaas wrote:
-> On Thu, Dec 27, 2012 at 10:32:13PM +0100, Rafael J. Wysocki wrote:
-> > To that end, split pci_create_root_bus() into two functions,
-> > pci_alloc_root() and pci_add_root(), that will allocate memory for
-> > the new PCI bus and bridge representations and register them with
-> > the driver core, respectively, and that may be called directly by
-> > the architectures that need to set the root bridge's ACPI handle
-> > before registering it.
+On Wed, 2013-01-02 at 18:34 -0600, Bjorn Helgaas wrote:
+> On Wed, Jan 2, 2013 at 6:06 PM, Joe Perches <joe@perches.com> wrote:
+> > Add YA check to printk style.
+> >
+> > dev_<level> uses are functions and generate smaller
+> > object code than dev_printk(KERN_<LEVEL>.
+[]
+> > diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
+[]
+> > @@ -2430,6 +2430,16 @@ sub process {
+> >                              "Prefer pr_warn(... to pr_warning(...\n" . $herecurr);
+> >                 }
+> >
+> > +               if ($line =~ /\bdev_printk\s*\(\s*KERN_([A-Z]+)/) {
+> > +                       my $orig = $1;
+> > +                       my $level = lc($orig);
+> > +                       $level = "warn" if ($level eq "warning");
+> > +                       my $level2 = $level;
+> > +                       $level2 = "dbg" if ($level eq "debug");
+> > +                       WARN("PREFER_DEV_LEVEL",
+> > +                            "Prefer dev_$level2(... to dev_printk(KERN_$orig, ...\n" . $herecurr);
 > 
-> I'm trying to *reduce* the interfaces for creating and scanning PCI
-> host bridges, and this is a step in the opposite direction.
+> This suggests dev_dbg() instead of dev_printk(KERN_DEBUG), doesn't it?
+>  Those aren't equivalent (dev_printk() always does the printk, but in
+> many cases dev_dbg() does not, depending on CONFIG_DEBUG,
+> CONFIG_DYNAMIC_DEBUG, etc.)
 
-Yes it is.
+True, I think the suggested change is appropriate though.
 
-The alternative is to make the root bridge initialization code more complex.
+If people really want debug output in a specific file,
+then they should #define DEBUG and/or enable dynamic debug.
 
-> > Next, Make both x86 and ia64 (the only architectures using ACPI at
-> > the moment) call pci_alloc_root(), set the root bridge's ACPI handle
-> > and then call pci_add_root() in their pci_acpi_scan_root() routines
-> > instead of calling pci_create_root_bus().  For the other code paths
-> > adding PCI root bridges define a new pci_create_root_bus() as a
-> > simple combination of pci_alloc_root() and pci_add_root().
-> 
-> pci_create_root_bus() takes a "struct device *parent" argument.  That
-> seems like a logical place to tell the PCI core about the host bridge
-> device, but x86 and ia64 currently pass NULL there.
-
-And there's a reason for that.  Namely, on these architectures PCI host
-bridges have no physical parents (well, at least in current practice).
-
-> The patch below shows what I'm thinking.  It does have the side-effect
-> of changing the sysfs topology from this:
-> 
->     /sys/devices/pci0000:00
->     /sys/devices/pci0000:00/0000:00:00.0
-> 
-> to this:
-> 
->     /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/pci0000:00
->     /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/pci0000:00/0000:00:00.0
-> 
-> because it puts the PCI root bus (pci0000:00) under the PNP0A08 device
-> rather than at the top level.
-
-Which is wrong.
-
-PNP0A08 is not a parent of the host bridge, but its ACPI "companion" (ie. ACPI
-namespace node representing the host bridge itself).
-
-> That seems like an improvement to me, but it *is* different.
-
-Well, then we should make every ACPI device node corresponding to a PCI device
-be a parent of that device's struct pci_dev and so on for other bus types.  It
-doesn't sound like an attractive idea. :-)  Moreover, it is impossible, because
-those things generally already have parents (struct pci_dev objects have them
-at least).
-
-That said the idea to pass something meaningful in the parent argument
-of pci_create_root_bus() can be implemented if we create a "physical" device
-object corresponding to "device:00" (which is an ACPI namespace node) in your
-example.
-
->From what I can tell, "device:00" always corresponds to the ACPI _SB scope
-(which is mandatory), so in principle we can create an abstract "physical"
-device object for it and call it something like "system_root".  Then, if we
-use it as the parent of pci0000:00 (the host bridge), then we'll have
-
-     /sys/devices/system_root/pci0000:00
-     /sys/devices/system_root/pci0000:00/0000:00:00.0
-
-Thanks,
-Rafael
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
