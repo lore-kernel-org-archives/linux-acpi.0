@@ -1,115 +1,127 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Alternative 2][PATCH] ACPI / PCI: Set root bridge ACPI handle in advance
-Date: Thu, 03 Jan 2013 22:23:05 +0100
-Message-ID: <1635295.TkbrarASZn@vostro.rjw.lan>
-References: <1558789.gX8cmBgyDV@vostro.rjw.lan> <1626213.gpPY5etSgn@vostro.rjw.lan> <2695660.jbNleTYArh@vostro.rjw.lan>
+From: Lance Ortiz <lance.ortiz@hp.com>
+Subject: [PATCH v9 1/3] aerdrv: Trace Event for AER
+Date: Thu, 03 Jan 2013 15:34:01 -0700
+Message-ID: <20130103223401.10751.1838.stgit@grignak.americas.hpqcorp.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:58940 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753197Ab3ACVRa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 3 Jan 2013 16:17:30 -0500
-In-Reply-To: <2695660.jbNleTYArh@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, bp@alien8.de, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Tony Luck <tony.luck@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, Myron Stowe <myron.stowe@redhat.com>
 
-On Thursday, January 03, 2013 01:11:30 PM Rafael J. Wysocki wrote:
-> On Thursday, January 03, 2013 01:40:52 AM Rafael J. Wysocki wrote:
-> > On Wednesday, January 02, 2013 04:07:32 PM Bjorn Helgaas wrote:
-> > > On Thu, Dec 27, 2012 at 10:32:13PM +0100, Rafael J. Wysocki wrote:
-> > > > To that end, split pci_create_root_bus() into two functions,
-> > > > pci_alloc_root() and pci_add_root(), that will allocate memory for
-> > > > the new PCI bus and bridge representations and register them with
-> > > > the driver core, respectively, and that may be called directly by
-> > > > the architectures that need to set the root bridge's ACPI handle
-> > > > before registering it.
-> > > 
-> > > I'm trying to *reduce* the interfaces for creating and scanning PCI
-> > > host bridges, and this is a step in the opposite direction.
-> > 
-> > Yes it is.
-> > 
-> > The alternative is to make the root bridge initialization code more complex.
-> 
-> Well, maybe not so much.
-> 
-> What about adding an extra arg to pci_create_root_bus(), ie. the patch below
-> (changelog skipped for now)?
-> 
-> I admit that having two void * args there is a little awkward, but at least
-> it's totally generic.
-> 
-> > > > Next, Make both x86 and ia64 (the only architectures using ACPI at
-> > > > the moment) call pci_alloc_root(), set the root bridge's ACPI handle
-> > > > and then call pci_add_root() in their pci_acpi_scan_root() routines
-> > > > instead of calling pci_create_root_bus().  For the other code paths
-> > > > adding PCI root bridges define a new pci_create_root_bus() as a
-> > > > simple combination of pci_alloc_root() and pci_add_root().
-> > > 
-> > > pci_create_root_bus() takes a "struct device *parent" argument.  That
-> > > seems like a logical place to tell the PCI core about the host bridge
-> > > device, but x86 and ia64 currently pass NULL there.
-> > 
-> > And there's a reason for that.  Namely, on these architectures PCI host
-> > bridges have no physical parents (well, at least in current practice).
-> > 
-> > > The patch below shows what I'm thinking.  It does have the side-effect
-> > > of changing the sysfs topology from this:
-> > > 
-> > >     /sys/devices/pci0000:00
-> > >     /sys/devices/pci0000:00/0000:00:00.0
-> > > 
-> > > to this:
-> > > 
-> > >     /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/pci0000:00
-> > >     /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/pci0000:00/0000:00:00.0
-> > > 
-> > > because it puts the PCI root bus (pci0000:00) under the PNP0A08 device
-> > > rather than at the top level.
-> > 
-> > Which is wrong.
-> > 
-> > PNP0A08 is not a parent of the host bridge, but its ACPI "companion" (ie. ACPI
-> > namespace node representing the host bridge itself).
-> > 
-> > > That seems like an improvement to me, but it *is* different.
-> > 
-> > Well, then we should make every ACPI device node corresponding to a PCI device
-> > be a parent of that device's struct pci_dev and so on for other bus types.  It
-> > doesn't sound like an attractive idea. :-)  Moreover, it is impossible, because
-> > those things generally already have parents (struct pci_dev objects have them
-> > at least).
-> > 
-> > That said the idea to pass something meaningful in the parent argument
-> > of pci_create_root_bus() can be implemented if we create a "physical" device
-> > object corresponding to "device:00" (which is an ACPI namespace node) in your
-> > example.
-> > 
-> > From what I can tell, "device:00" always corresponds to the ACPI _SB scope
-> > (which is mandatory), so in principle we can create an abstract "physical"
-> > device object for it and call it something like "system_root".  Then, if we
-> > use it as the parent of pci0000:00 (the host bridge), then we'll have
-> > 
-> >      /sys/devices/system_root/pci0000:00
-> >      /sys/devices/system_root/pci0000:00/0000:00:00.0
-> 
-> Having considered that a little more I don't really think it's a good idea.
-> It still would be going a little backwards, because we'd need to use the parent
-> to get an ACPI handle known already beforehand.
+This header file will define a new trace event that will be triggered when
+a AER event occurs.  The following data will be provided to the trace
+event.
 
-One more thing.
+char * dev_name - The name of the slot where the device resides
+                  ([domain:]bus:device.function).
 
-The sysfs locations of PCI devices shouldn't change if acpi=off is passed to
-the kernel, so the above is not a good idea at all, I'm afraid.
+u32 status - Either the correctable or uncorrectable register
+             indicating what error or errors have been see.
 
-Thanks,
-Rafael
+u8 severity - error severity 0:NONFATAL 1:FATAL 2:CORRECTED
 
+The trace event will also provide a trace string that may look like:
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+"0000:05:00.0 PCIe Bus Error:severity=Uncorrected (Non-Fatal), Poisoned
+TLP"
+
+v1-v2 Move header from include/ras/aer_event.h to
+include/trace/events/ras.h
+v3-v4 Cleaned up comments and commit header
+v4-v5 More cleanup remove () from if statement in print.
+      Renamed string define to be more specific.
+v5-v6 change TRACE_SYSTEM define to be ras and not aer.
+Signed-off-by: Lance Ortiz <lance.ortiz@hp.com>
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Acked-by: Tony Luck <tony.luck@intel.com>
+---
+
+ include/trace/events/ras.h |   77 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 77 insertions(+), 0 deletions(-)
+ create mode 100644 include/trace/events/ras.h
+
+diff --git a/include/trace/events/ras.h b/include/trace/events/ras.h
+new file mode 100644
+index 0000000..88b8783
+--- /dev/null
++++ b/include/trace/events/ras.h
+@@ -0,0 +1,77 @@
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM ras
++
++#if !defined(_TRACE_AER_H) || defined(TRACE_HEADER_MULTI_READ)
++#define _TRACE_AER_H
++
++#include <linux/tracepoint.h>
++#include <linux/edac.h>
++
++
++/*
++ * PCIe AER Trace event
++ *
++ * These events are generated when hardware detects a corrected or
++ * uncorrected event on a PCIe device. The event report has
++ * the following structure:
++ *
++ * char * dev_name -	The name of the slot where the device resides
++ *			([domain:]bus:device.function).
++ * u32 status -		Either the correctable or uncorrectable register
++ *			indicating what error or errors have been seen
++ * u8 severity -	error severity 0:NONFATAL 1:FATAL 2:CORRECTED
++ */
++
++#define aer_correctable_errors		\
++	{BIT(0),	"Receiver Error"},		\
++	{BIT(6),	"Bad TLP"},			\
++	{BIT(7),	"Bad DLLP"},			\
++	{BIT(8),	"RELAY_NUM Rollover"},		\
++	{BIT(12),	"Replay Timer Timeout"},	\
++	{BIT(13),	"Advisory Non-Fatal"}
++
++#define aer_uncorrectable_errors		\
++	{BIT(4),	"Data Link Protocol"},		\
++	{BIT(12),	"Poisoned TLP"},		\
++	{BIT(13),	"Flow Control Protocol"},	\
++	{BIT(14),	"Completion Timeout"},		\
++	{BIT(15),	"Completer Abort"},		\
++	{BIT(16),	"Unexpected Completion"},	\
++	{BIT(17),	"Receiver Overflow"},		\
++	{BIT(18),	"Malformed TLP"},		\
++	{BIT(19),	"ECRC"},			\
++	{BIT(20),	"Unsupported Request"}
++
++TRACE_EVENT(aer_event,
++	TP_PROTO(const char *dev_name,
++		 const u32 status,
++		 const u8 severity),
++
++	TP_ARGS(dev_name, status, severity),
++
++	TP_STRUCT__entry(
++		__string(	dev_name,	dev_name	)
++		__field(	u32,		status		)
++		__field(	u8,		severity	)
++	),
++
++	TP_fast_assign(
++		__assign_str(dev_name, dev_name);
++		__entry->status		= status;
++		__entry->severity	= severity;
++	),
++
++	TP_printk("%s PCIe Bus Error: severity=%s, %s\n",
++		__get_str(dev_name),
++		__entry->severity == HW_EVENT_ERR_CORRECTED ? "Corrected" :
++			__entry->severity == HW_EVENT_ERR_FATAL ?
++			"Fatal" : "Uncorrected",
++		__entry->severity == HW_EVENT_ERR_CORRECTED ?
++		__print_flags(__entry->status, "|", aer_correctable_errors) :
++		__print_flags(__entry->status, "|", aer_uncorrectable_errors))
++);
++
++#endif /* _TRACE_AER_H */
++
++/* This part must be outside protection */
++#include <trace/define_trace.h>
