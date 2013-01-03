@@ -1,384 +1,232 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [Alternative 2][PATCH] ACPI / PCI: Set root bridge ACPI handle in advance
-Date: Thu, 03 Jan 2013 13:11:30 +0100
-Message-ID: <2695660.jbNleTYArh@vostro.rjw.lan>
-References: <1558789.gX8cmBgyDV@vostro.rjw.lan> <20130102230732.GB31813@google.com> <1626213.gpPY5etSgn@vostro.rjw.lan>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [PATCH] PCI / ACPI: Rework ACPI device nodes lookup for the PCI
+ bus type
+Date: Thu, 3 Jan 2013 08:16:26 -0700
+Message-ID: <CAErSpo7tiCn5jBKorO7UjNQbceObAg_uGqtzpBfALBcCUMe1Yw@mail.gmail.com>
+References: <16168955.038G1kVfN2@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:58358 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753209Ab3ACMF5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 3 Jan 2013 07:05:57 -0500
-In-Reply-To: <1626213.gpPY5etSgn@vostro.rjw.lan>
+Received: from mail-la0-f50.google.com ([209.85.215.50]:58138 "EHLO
+	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753133Ab3ACPQv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Jan 2013 10:16:51 -0500
+Received: by mail-la0-f50.google.com with SMTP id fs13so8088024lab.37
+        for <linux-acpi@vger.kernel.org>; Thu, 03 Jan 2013 07:16:49 -0800 (PST)
+In-Reply-To: <16168955.038G1kVfN2@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Tony Luck <tony.luck@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <liuj97@gmail.com>, Myron Stowe <myron.stowe@redhat.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Peter Wu <lekensteyn@gmail.com>
 
-On Thursday, January 03, 2013 01:40:52 AM Rafael J. Wysocki wrote:
-> On Wednesday, January 02, 2013 04:07:32 PM Bjorn Helgaas wrote:
-> > On Thu, Dec 27, 2012 at 10:32:13PM +0100, Rafael J. Wysocki wrote:
-> > > To that end, split pci_create_root_bus() into two functions,
-> > > pci_alloc_root() and pci_add_root(), that will allocate memory for
-> > > the new PCI bus and bridge representations and register them with
-> > > the driver core, respectively, and that may be called directly by
-> > > the architectures that need to set the root bridge's ACPI handle
-> > > before registering it.
-> > 
-> > I'm trying to *reduce* the interfaces for creating and scanning PCI
-> > host bridges, and this is a step in the opposite direction.
-> 
-> Yes it is.
-> 
-> The alternative is to make the root bridge initialization code more complex.
+On Fri, Dec 28, 2012 at 2:29 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>
+> As the kernel Bugzilla report #42696 indicates, it generally is not
+> sufficient to use _ADR to get an ACPI device node corresponding to
+> the given PCI device, because there may be multiple objects with
+> matching _ADR in the ACPI namespace (this probably is against the
+> spec, but it evidently happens in practice).
 
-Well, maybe not so much.
+I don't see anything in sec 6.1.1 (_ADR) that precludes having
+multiple objects that contain the same _ADR.  Do you have any other
+pointers?
 
-What about adding an extra arg to pci_create_root_bus(), ie. the patch below
-(changelog skipped for now)?
+> One possible way to improve the situation is to use the presence of
+> another ACPI method to distinguish between the matching namespace
+> nodes.  For example, if the presence of _INI is checked in addition
+> to the return value of _ADR, bug #42696 goes away on the affected
+> machines.  Of course, this is somewhat arbitrary, but it may be
+> argued that executing _INI for an ACPI device node kind of means that
+> we are going to use that device node going forward, so we should
+> generally prefer the nodes where we have executed _INI to "competing"
+> nodes without _INI.
 
-I admit that having two void * args there is a little awkward, but at least
-it's totally generic.
+I consider this a purely ACPI issue, and hence something that you own
+completely.
 
-> > > Next, Make both x86 and ia64 (the only architectures using ACPI at
-> > > the moment) call pci_alloc_root(), set the root bridge's ACPI handle
-> > > and then call pci_add_root() in their pci_acpi_scan_root() routines
-> > > instead of calling pci_create_root_bus().  For the other code paths
-> > > adding PCI root bridges define a new pci_create_root_bus() as a
-> > > simple combination of pci_alloc_root() and pci_add_root().
-> > 
-> > pci_create_root_bus() takes a "struct device *parent" argument.  That
-> > seems like a logical place to tell the PCI core about the host bridge
-> > device, but x86 and ia64 currently pass NULL there.
-> 
-> And there's a reason for that.  Namely, on these architectures PCI host
-> bridges have no physical parents (well, at least in current practice).
-> 
-> > The patch below shows what I'm thinking.  It does have the side-effect
-> > of changing the sysfs topology from this:
-> > 
-> >     /sys/devices/pci0000:00
-> >     /sys/devices/pci0000:00/0000:00:00.0
-> > 
-> > to this:
-> > 
-> >     /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/pci0000:00
-> >     /sys/devices/LNXSYSTM:00/device:00/PNP0A08:00/pci0000:00/0000:00:00.0
-> > 
-> > because it puts the PCI root bus (pci0000:00) under the PNP0A08 device
-> > rather than at the top level.
-> 
-> Which is wrong.
-> 
-> PNP0A08 is not a parent of the host bridge, but its ACPI "companion" (ie. ACPI
-> namespace node representing the host bridge itself).
-> 
-> > That seems like an improvement to me, but it *is* different.
-> 
-> Well, then we should make every ACPI device node corresponding to a PCI device
-> be a parent of that device's struct pci_dev and so on for other bus types.  It
-> doesn't sound like an attractive idea. :-)  Moreover, it is impossible, because
-> those things generally already have parents (struct pci_dev objects have them
-> at least).
-> 
-> That said the idea to pass something meaningful in the parent argument
-> of pci_create_root_bus() can be implemented if we create a "physical" device
-> object corresponding to "device:00" (which is an ACPI namespace node) in your
-> example.
-> 
-> From what I can tell, "device:00" always corresponds to the ACPI _SB scope
-> (which is mandatory), so in principle we can create an abstract "physical"
-> device object for it and call it something like "system_root".  Then, if we
-> use it as the parent of pci0000:00 (the host bridge), then we'll have
-> 
->      /sys/devices/system_root/pci0000:00
->      /sys/devices/system_root/pci0000:00/0000:00:00.0
+That said, my opinion is that this heuristic doesn't sound reliable to
+me.  It feels like an ad hoc solution that works for the case at hand,
+but I don't have any reason to think BIOS writers will unconsciously
+make the same assumptions or that other OSes will contain the same
+algorithm.
 
-Having considered that a little more I don't really think it's a good idea.
-It still would be going a little backwards, because we'd need to use the parent
-to get an ACPI handle known already beforehand.
+The existence of acpi_get_child_device() means we're assuming there
+can only be a single child with matching _ADR.  Since that assumption
+turned out to be false, maybe we need a way to deal with several
+children.  Maybe we need a list of matching children, or maybe we
+search matching children for a method at the time we need it instead
+of trying to pick one child up front.
 
-Please tell me what you think of the one below.
-
-Thanks,
-Rafael
-
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- arch/ia64/pci/pci.c              |    8 +++++++-
- arch/powerpc/kernel/pci-common.c |    2 +-
- arch/s390/pci/pci.c              |    2 +-
- arch/sparc/kernel/pci.c          |    2 +-
- arch/x86/pci/acpi.c              |    9 ++++++++-
- drivers/acpi/pci_root.c          |   18 ------------------
- drivers/pci/pci-acpi.c           |   19 -------------------
- drivers/pci/probe.c              |   23 +++++++++++++++++++----
- include/acpi/acpi_bus.h          |    1 -
- include/linux/pci.h              |    6 ++++--
- 10 files changed, 41 insertions(+), 49 deletions(-)
-
-Index: linux/drivers/pci/probe.c
-===================================================================
---- linux.orig/drivers/pci/probe.c
-+++ linux/drivers/pci/probe.c
-@@ -1632,8 +1632,22 @@ unsigned int pci_scan_child_bus(struct p
- 	return max;
- }
- 
-+/**
-+ * pcibios_root_bridge_setup - Platform-specific host bridge setup.
-+ * @bridge: Host bridge to set up.
-+ * @rootdata: Additional data to use for the host bridge setup.
-+ *
-+ * Default empty implementation.  Replace with an architecture-specific setup
-+ * routine, if necessary.
-+ */
-+void __weak pcibios_root_bridge_setup(struct pci_host_bridge *bridge,
-+				      void *rootdata)
-+{
-+}
-+
- struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
--		struct pci_ops *ops, void *sysdata, struct list_head *resources)
-+				    struct pci_ops *ops, void *sysdata,
-+				    struct list_head *resources, void *rootdata)
- {
- 	int error;
- 	struct pci_host_bridge *bridge;
-@@ -1665,6 +1679,7 @@ struct pci_bus *pci_create_root_bus(stru
- 	bridge->dev.parent = parent;
- 	bridge->dev.release = pci_release_bus_bridge_dev;
- 	dev_set_name(&bridge->dev, "pci%04x:%02x", pci_domain_nr(b), bus);
-+	pcibios_root_bridge_setup(bridge, rootdata);
- 	error = device_register(&bridge->dev);
- 	if (error)
- 		goto bridge_dev_reg_err;
-@@ -1807,7 +1822,7 @@ struct pci_bus *pci_scan_root_bus(struct
- 			break;
- 		}
- 
--	b = pci_create_root_bus(parent, bus, ops, sysdata, resources);
-+	b = pci_create_root_bus(parent, bus, ops, sysdata, resources, NULL);
- 	if (!b)
- 		return NULL;
- 
-@@ -1838,7 +1853,7 @@ struct pci_bus *pci_scan_bus_parented(st
- 	pci_add_resource(&resources, &ioport_resource);
- 	pci_add_resource(&resources, &iomem_resource);
- 	pci_add_resource(&resources, &busn_resource);
--	b = pci_create_root_bus(parent, bus, ops, sysdata, &resources);
-+	b = pci_create_root_bus(parent, bus, ops, sysdata, &resources, NULL);
- 	if (b)
- 		pci_scan_child_bus(b);
- 	else
-@@ -1856,7 +1871,7 @@ struct pci_bus *pci_scan_bus(int bus, st
- 	pci_add_resource(&resources, &ioport_resource);
- 	pci_add_resource(&resources, &iomem_resource);
- 	pci_add_resource(&resources, &busn_resource);
--	b = pci_create_root_bus(NULL, bus, ops, sysdata, &resources);
-+	b = pci_create_root_bus(NULL, bus, ops, sysdata, &resources, NULL);
- 	if (b) {
- 		pci_scan_child_bus(b);
- 		pci_bus_add_devices(b);
-Index: linux/include/linux/pci.h
-===================================================================
---- linux.orig/include/linux/pci.h
-+++ linux/include/linux/pci.h
-@@ -378,6 +378,8 @@ void pci_set_host_bridge_release(struct
- 		     void (*release_fn)(struct pci_host_bridge *),
- 		     void *release_data);
- 
-+void pcibios_root_bridge_setup(struct pci_host_bridge *bridge, void *rootdata);
-+
- /*
-  * The first PCI_BRIDGE_RESOURCE_NUM PCI bus resources (those that correspond
-  * to P2P or CardBus bridge windows) go in a table.  Additional ones (for
-@@ -701,8 +703,8 @@ struct pci_bus *pci_scan_bus_parented(st
- 				      struct pci_ops *ops, void *sysdata);
- struct pci_bus *pci_scan_bus(int bus, struct pci_ops *ops, void *sysdata);
- struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
--				    struct pci_ops *ops, void *sysdata,
--				    struct list_head *resources);
-+				struct pci_ops *ops, void *sysdata,
-+				struct list_head *resources, void *rootdata);
- int pci_bus_insert_busn_res(struct pci_bus *b, int bus, int busmax);
- int pci_bus_update_busn_res_end(struct pci_bus *b, int busmax);
- void pci_bus_release_busn_res(struct pci_bus *b);
-Index: linux/arch/x86/pci/acpi.c
-===================================================================
---- linux.orig/arch/x86/pci/acpi.c
-+++ linux/arch/x86/pci/acpi.c
-@@ -553,7 +553,8 @@ struct pci_bus * __devinit pci_acpi_scan
- 		if (!setup_mcfg_map(info, domain, (u8)root->secondary.start,
- 				    (u8)root->secondary.end, root->mcfg_addr))
- 			bus = pci_create_root_bus(NULL, busnum, &pci_root_ops,
--						  sd, &resources);
-+						  sd, &resources,
-+						  device->handle);
- 
- 		if (bus) {
- 			pci_scan_child_bus(bus);
-@@ -593,6 +594,12 @@ struct pci_bus * __devinit pci_acpi_scan
- 	return bus;
- }
- 
-+void pcibios_root_bridge_setup(struct pci_host_bridge *bridge, void *rootdata)
-+{
-+	if (rootdata)
-+		ACPI_HANDLE_SET(&bridge->dev, (acpi_handle)rootdata);
-+}
-+
- int __init pci_acpi_init(void)
- {
- 	struct pci_dev *dev = NULL;
-Index: linux/arch/ia64/pci/pci.c
-===================================================================
---- linux.orig/arch/ia64/pci/pci.c
-+++ linux/arch/ia64/pci/pci.c
-@@ -379,7 +379,7 @@ pci_acpi_scan_root(struct acpi_pci_root
- 	 * such quirk. So we just ignore the case now.
- 	 */
- 	pbus = pci_create_root_bus(NULL, bus, &pci_root_ops, controller,
--				   &info.resources);
-+				   &info.resources, controller->acpi_handle);
- 	if (!pbus) {
- 		pci_free_resource_list(&info.resources);
- 		return NULL;
-@@ -396,6 +396,12 @@ out1:
- 	return NULL;
- }
- 
-+void pcibios_root_bridge_setup(struct pci_host_bridge *bridge, void *rootdata)
-+{
-+	if (rootdata)
-+		ACPI_HANDLE_SET(&bridge->dev, (acpi_handle)rootdata);
-+}
-+
- static int __devinit is_valid_resource(struct pci_dev *dev, int idx)
- {
- 	unsigned int i, type_mask = IORESOURCE_IO | IORESOURCE_MEM;
-Index: linux/drivers/pci/pci-acpi.c
-===================================================================
---- linux.orig/drivers/pci/pci-acpi.c
-+++ linux/drivers/pci/pci-acpi.c
-@@ -302,24 +302,6 @@ static int acpi_pci_find_device(struct d
- 	return 0;
- }
- 
--static int acpi_pci_find_root_bridge(struct device *dev, acpi_handle *handle)
--{
--	int num;
--	unsigned int seg, bus;
--
--	/*
--	 * The string should be the same as root bridge's name
--	 * Please look at 'pci_scan_bus_parented'
--	 */
--	num = sscanf(dev_name(dev), "pci%04x:%02x", &seg, &bus);
--	if (num != 2)
--		return -ENODEV;
--	*handle = acpi_get_pci_rootbridge_handle(seg, bus);
--	if (!*handle)
--		return -ENODEV;
--	return 0;
--}
--
- static void pci_acpi_setup(struct device *dev)
- {
- 	struct pci_dev *pci_dev = to_pci_dev(dev);
-@@ -378,7 +360,6 @@ static void pci_acpi_cleanup(struct devi
- static struct acpi_bus_type acpi_pci_bus = {
- 	.bus = &pci_bus_type,
- 	.find_device = acpi_pci_find_device,
--	.find_bridge = acpi_pci_find_root_bridge,
- 	.setup = pci_acpi_setup,
- 	.cleanup = pci_acpi_cleanup,
- };
-Index: linux/drivers/acpi/pci_root.c
-===================================================================
---- linux.orig/drivers/acpi/pci_root.c
-+++ linux/drivers/acpi/pci_root.c
-@@ -107,24 +107,6 @@ void acpi_pci_unregister_driver(struct a
- }
- EXPORT_SYMBOL(acpi_pci_unregister_driver);
- 
--acpi_handle acpi_get_pci_rootbridge_handle(unsigned int seg, unsigned int bus)
--{
--	struct acpi_pci_root *root;
--	acpi_handle handle = NULL;
--	
--	mutex_lock(&acpi_pci_root_lock);
--	list_for_each_entry(root, &acpi_pci_roots, node)
--		if ((root->segment == (u16) seg) &&
--		    (root->secondary.start == (u16) bus)) {
--			handle = root->device->handle;
--			break;
--		}
--	mutex_unlock(&acpi_pci_root_lock);
--	return handle;
--}
--
--EXPORT_SYMBOL_GPL(acpi_get_pci_rootbridge_handle);
--
- /**
-  * acpi_is_root_bridge - determine whether an ACPI CA node is a PCI root bridge
-  * @handle - the ACPI CA node in question.
-Index: linux/include/acpi/acpi_bus.h
-===================================================================
---- linux.orig/include/acpi/acpi_bus.h
-+++ linux/include/acpi/acpi_bus.h
-@@ -402,7 +402,6 @@ struct acpi_pci_root {
- /* helper */
- acpi_handle acpi_get_child(acpi_handle, u64);
- int acpi_is_root_bridge(acpi_handle);
--acpi_handle acpi_get_pci_rootbridge_handle(unsigned int, unsigned int);
- struct acpi_pci_root *acpi_pci_find_root(acpi_handle handle);
- #define DEVICE_ACPI_HANDLE(dev) ((acpi_handle)ACPI_HANDLE(dev))
- 
-Index: linux/arch/powerpc/kernel/pci-common.c
-===================================================================
---- linux.orig/arch/powerpc/kernel/pci-common.c
-+++ linux/arch/powerpc/kernel/pci-common.c
-@@ -1661,7 +1661,7 @@ void __devinit pcibios_scan_phb(struct p
- 
- 	/* Create an empty bus for the toplevel */
- 	bus = pci_create_root_bus(hose->parent, hose->first_busno,
--				  hose->ops, hose, &resources);
-+				  hose->ops, hose, &resources, NULL);
- 	if (bus == NULL) {
- 		pr_err("Failed to create bus for PCI domain %04x\n",
- 			hose->global_number);
-Index: linux/arch/s390/pci/pci.c
-===================================================================
---- linux.orig/arch/s390/pci/pci.c
-+++ linux/arch/s390/pci/pci.c
-@@ -940,7 +940,7 @@ static int zpci_create_device_bus(struct
- 	}
- 
- 	zdev->bus = pci_create_root_bus(NULL, ZPCI_BUS_NR, &pci_root_ops,
--					zdev, &resources);
-+					zdev, &resources, NULL);
- 	if (!zdev->bus)
- 		return -EIO;
- 
-Index: linux/arch/sparc/kernel/pci.c
-===================================================================
---- linux.orig/arch/sparc/kernel/pci.c
-+++ linux/arch/sparc/kernel/pci.c
-@@ -603,7 +603,7 @@ struct pci_bus * __devinit pci_scan_one_
- 	pbm->busn.flags	= IORESOURCE_BUS;
- 	pci_add_resource(&resources, &pbm->busn);
- 	bus = pci_create_root_bus(parent, pbm->pci_first_busno, pbm->pci_ops,
--				  pbm, &resources);
-+				  pbm, &resources, NULL);
- 	if (!bus) {
- 		printk(KERN_ERR "Failed to create bus for %s\n",
- 		       node->full_name);
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+> In that case, though, we shouldn't take the nodes where we haven't
+> executed _INI into account, but that's quite straightforwad to
+> achieve.  Namely, we only need to check nodes that we created struct
+> acpi_device objects for.  This also makes sense for a different
+> reason, which is that the result of acpi_pci_find_device() is used
+> to get a struct acpi_device object (not just an ACPI handle)
+> corresponding to the given PCI device.
+>
+> Accordingly, introduce acpi_get_child_device() that finds a struct
+> acpi_device corresponding to the given address by walking the
+> children of the ACPI device node whose handle is its first argument.
+> The lookup is carried out by evaluating _ADR for every child and
+> comparing the result with the given address.  If there's a match and
+> that child has _INI defined, it is returned as a result.  If _INI is
+> not present, the search continues until (a) there are no more matches
+> or (b) there is another matching child whose _INI is present (in
+> which case that child is returned instead of the first matching one).
+>
+> The walk of the list of children is done in the reverse direction for
+> two reasons.  The first reason is for compatibility with
+> acpi_get_child() that returns the handle of the last matching child
+> of the given parent.  The second one is to get the last device whose
+> _INI was executed first (that _INI might have overriden whatever _INI
+> for the other matching device nodes had done).
+>
+> To fix bug #42696, modify acpi_pci_find_device() to use
+> acpi_get_child_device() instead of acpi_get_child() for ACPI device
+> node lookup.
+>
+> References: https://bugzilla.kernel.org/show_bug.cgi?id=42696
+> Reported-by: Peter Wu <lekensteyn@gmail.com>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/acpi/glue.c     |   45 +++++++++++++++++++++++++++++++++++++++++++++
+>  drivers/acpi/internal.h |    4 ++++
+>  drivers/acpi/proc.c     |    1 +
+>  drivers/acpi/sleep.h    |    1 -
+>  drivers/pci/pci-acpi.c  |    7 +++++--
+>  include/acpi/acpi_bus.h |    1 +
+>  6 files changed, 56 insertions(+), 3 deletions(-)
+>
+> Index: linux/drivers/acpi/glue.c
+> ===================================================================
+> --- linux.orig/drivers/acpi/glue.c
+> +++ linux/drivers/acpi/glue.c
+> @@ -93,6 +93,51 @@ static int acpi_find_bridge_device(struc
+>         return ret;
+>  }
+>
+> +/**
+> + * acpi_get_child_device - Find specific child of an ACPI device.
+> + * @phandle: ACPI handle of the parent device to find a child of.
+> + * @address: Address of the child to find (as returned by _ADR).
+> + *
+> + * Find the child of the ACPI device node represented by @phandle whose _ADR
+> + * method's return value is equal to @address.  If there are more children with
+> + * matching _ADR return values, take the (last) one having _INI defined.
+> + */
+> +struct acpi_device *acpi_get_child_device(acpi_handle phandle, u64 address)
+> +{
+> +       struct acpi_device *parent, *adev, *ret = NULL;
+> +
+> +       if (acpi_bus_get_device(phandle, &parent))
+> +               return NULL;
+> +
+> +       mutex_lock(&acpi_device_lock);
+> +       /* Use reverse direction for compatibility with acpi_get_child(). */
+> +       list_for_each_entry_reverse(adev, &parent->children, node) {
+> +               unsigned long long addr;
+> +               acpi_status status;
+> +               acpi_handle out;
+> +
+> +               status = acpi_evaluate_integer(adev->handle, METHOD_NAME__ADR,
+> +                                              NULL, &addr);
+> +               if (ACPI_FAILURE(status) || addr != address)
+> +                       continue;
+> +
+> +               if (ret)
+> +                       acpi_handle_warn(adev->handle,
+> +                                        "_ADR conflict with device %s\n",
+> +                                        dev_name(&ret->dev));
+> +
+> +               status = acpi_get_handle(adev->handle, "_INI", &out);
+> +               if (ACPI_SUCCESS(status)) {
+> +                       ret = adev;
+> +                       break;
+> +               } else if (!ret) {
+> +                       ret = adev;
+> +               }
+> +       }
+> +       mutex_unlock(&acpi_device_lock);
+> +       return ret;
+> +}
+> +
+>  /* Get device's handler per its address under its parent */
+>  struct acpi_find_child {
+>         acpi_handle handle;
+> Index: linux/drivers/acpi/internal.h
+> ===================================================================
+> --- linux.orig/drivers/acpi/internal.h
+> +++ linux/drivers/acpi/internal.h
+> @@ -21,8 +21,12 @@
+>  #ifndef _ACPI_INTERNAL_H_
+>  #define _ACPI_INTERNAL_H_
+>
+> +#include <linux/mutex.h>
+> +
+>  #define PREFIX "ACPI: "
+>
+> +extern struct mutex acpi_device_lock;
+> +
+>  int init_acpi_device_notify(void);
+>  int acpi_scan_init(void);
+>  int acpi_sysfs_init(void);
+> Index: linux/drivers/acpi/sleep.h
+> ===================================================================
+> --- linux.orig/drivers/acpi/sleep.h
+> +++ linux/drivers/acpi/sleep.h
+> @@ -5,4 +5,3 @@ extern void acpi_enable_wakeup_devices(u
+>  extern void acpi_disable_wakeup_devices(u8 sleep_state);
+>
+>  extern struct list_head acpi_wakeup_device_list;
+> -extern struct mutex acpi_device_lock;
+> Index: linux/drivers/acpi/proc.c
+> ===================================================================
+> --- linux.orig/drivers/acpi/proc.c
+> +++ linux/drivers/acpi/proc.c
+> @@ -12,6 +12,7 @@
+>  #include <linux/mc146818rtc.h>
+>  #endif
+>
+> +#include "internal.h"
+>  #include "sleep.h"
+>
+>  #define _COMPONENT             ACPI_SYSTEM_COMPONENT
+> Index: linux/include/acpi/acpi_bus.h
+> ===================================================================
+> --- linux.orig/include/acpi/acpi_bus.h
+> +++ linux/include/acpi/acpi_bus.h
+> @@ -400,6 +400,7 @@ struct acpi_pci_root {
+>  };
+>
+>  /* helper */
+> +struct acpi_device *acpi_get_child_device(acpi_handle phandle, u64 address);
+>  acpi_handle acpi_get_child(acpi_handle, u64);
+>  int acpi_is_root_bridge(acpi_handle);
+>  struct acpi_pci_root *acpi_pci_find_root(acpi_handle handle);
+> Index: linux/drivers/pci/pci-acpi.c
+> ===================================================================
+> --- linux.orig/drivers/pci/pci-acpi.c
+> +++ linux/drivers/pci/pci-acpi.c
+> @@ -291,14 +291,17 @@ static struct pci_platform_pm_ops acpi_p
+>  static int acpi_pci_find_device(struct device *dev, acpi_handle *handle)
+>  {
+>         struct pci_dev * pci_dev;
+> +       struct acpi_device *adev;
+>         u64     addr;
+>
+>         pci_dev = to_pci_dev(dev);
+>         /* Please ref to ACPI spec for the syntax of _ADR */
+>         addr = (PCI_SLOT(pci_dev->devfn) << 16) | PCI_FUNC(pci_dev->devfn);
+> -       *handle = acpi_get_child(DEVICE_ACPI_HANDLE(dev->parent), addr);
+> -       if (!*handle)
+> +       adev = acpi_get_child_device(ACPI_HANDLE(dev->parent), addr);
+> +       if (!adev)
+>                 return -ENODEV;
+> +
+> +       *handle = adev->handle;
+>         return 0;
+>  }
+>
+>
