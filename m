@@ -1,127 +1,156 @@
 From: Lance Ortiz <lance.ortiz@hp.com>
-Subject: [PATCH v9 1/3] aerdrv: Trace Event for AER
-Date: Thu, 03 Jan 2013 15:34:01 -0700
-Message-ID: <20130103223401.10751.1838.stgit@grignak.americas.hpqcorp.net>
+Subject: [PATCH v9 3/3] aerdrv: Cleanup log output for AER
+Date: Thu, 03 Jan 2013 15:34:15 -0700
+Message-ID: <20130103223415.10751.17744.stgit@grignak.americas.hpqcorp.net>
+References: <20130103223401.10751.1838.stgit@grignak.americas.hpqcorp.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20130103223401.10751.1838.stgit@grignak.americas.hpqcorp.net>
+Sender: linux-pci-owner@vger.kernel.org
 To: bhelgaas@google.com, lance_ortiz@hotmail.com, jiang.liu@huawei.com, tony.luck@intel.com, bp@alien8.de, rostedt@goodmis.org, mchehab@redhat.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-This header file will define a new trace event that will be triggered when
-a AER event occurs.  The following data will be provided to the trace
-event.
+These changes make cper_print_aer more consistent with aer_print_error
+and clean things up by elimiating the use of the prefix variable and
+replacing it with dev_printk.
 
-char * dev_name - The name of the slot where the device resides
-                  ([domain:]bus:device.function).
+v1-v2 fix some compile errors withinn the #ifdef
+v3-v4 remove agent id stuff and kept print the same to avoid
+compatibility issues
+v7-v8 Updated to use dev_printk instated of prefix. Changed
+log levels to KERN_ERR as per Mauro's suggestion.
+v8-v9 Changed dev_printk to dev_err since all log levels are KERN_ERR.
 
-u32 status - Either the correctable or uncorrectable register
-             indicating what error or errors have been see.
-
-u8 severity - error severity 0:NONFATAL 1:FATAL 2:CORRECTED
-
-The trace event will also provide a trace string that may look like:
-
-"0000:05:00.0 PCIe Bus Error:severity=Uncorrected (Non-Fatal), Poisoned
-TLP"
-
-v1-v2 Move header from include/ras/aer_event.h to
-include/trace/events/ras.h
-v3-v4 Cleaned up comments and commit header
-v4-v5 More cleanup remove () from if statement in print.
-      Renamed string define to be more specific.
-v5-v6 change TRACE_SYSTEM define to be ras and not aer.
 Signed-off-by: Lance Ortiz <lance.ortiz@hp.com>
-Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 Acked-by: Tony Luck <tony.luck@intel.com>
 ---
 
- include/trace/events/ras.h |   77 ++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 77 insertions(+), 0 deletions(-)
- create mode 100644 include/trace/events/ras.h
+ drivers/pci/pcie/aer/aerdrv_errprint.c |   54 +++++++++++++++-----------------
+ 1 files changed, 26 insertions(+), 28 deletions(-)
 
-diff --git a/include/trace/events/ras.h b/include/trace/events/ras.h
-new file mode 100644
-index 0000000..88b8783
---- /dev/null
-+++ b/include/trace/events/ras.h
-@@ -0,0 +1,77 @@
-+#undef TRACE_SYSTEM
-+#define TRACE_SYSTEM ras
-+
-+#if !defined(_TRACE_AER_H) || defined(TRACE_HEADER_MULTI_READ)
-+#define _TRACE_AER_H
-+
-+#include <linux/tracepoint.h>
-+#include <linux/edac.h>
-+
-+
-+/*
-+ * PCIe AER Trace event
-+ *
-+ * These events are generated when hardware detects a corrected or
-+ * uncorrected event on a PCIe device. The event report has
-+ * the following structure:
-+ *
-+ * char * dev_name -	The name of the slot where the device resides
-+ *			([domain:]bus:device.function).
-+ * u32 status -		Either the correctable or uncorrectable register
-+ *			indicating what error or errors have been seen
-+ * u8 severity -	error severity 0:NONFATAL 1:FATAL 2:CORRECTED
-+ */
-+
-+#define aer_correctable_errors		\
-+	{BIT(0),	"Receiver Error"},		\
-+	{BIT(6),	"Bad TLP"},			\
-+	{BIT(7),	"Bad DLLP"},			\
-+	{BIT(8),	"RELAY_NUM Rollover"},		\
-+	{BIT(12),	"Replay Timer Timeout"},	\
-+	{BIT(13),	"Advisory Non-Fatal"}
-+
-+#define aer_uncorrectable_errors		\
-+	{BIT(4),	"Data Link Protocol"},		\
-+	{BIT(12),	"Poisoned TLP"},		\
-+	{BIT(13),	"Flow Control Protocol"},	\
-+	{BIT(14),	"Completion Timeout"},		\
-+	{BIT(15),	"Completer Abort"},		\
-+	{BIT(16),	"Unexpected Completion"},	\
-+	{BIT(17),	"Receiver Overflow"},		\
-+	{BIT(18),	"Malformed TLP"},		\
-+	{BIT(19),	"ECRC"},			\
-+	{BIT(20),	"Unsupported Request"}
-+
-+TRACE_EVENT(aer_event,
-+	TP_PROTO(const char *dev_name,
-+		 const u32 status,
-+		 const u8 severity),
-+
-+	TP_ARGS(dev_name, status, severity),
-+
-+	TP_STRUCT__entry(
-+		__string(	dev_name,	dev_name	)
-+		__field(	u32,		status		)
-+		__field(	u8,		severity	)
-+	),
-+
-+	TP_fast_assign(
-+		__assign_str(dev_name, dev_name);
-+		__entry->status		= status;
-+		__entry->severity	= severity;
-+	),
-+
-+	TP_printk("%s PCIe Bus Error: severity=%s, %s\n",
-+		__get_str(dev_name),
-+		__entry->severity == HW_EVENT_ERR_CORRECTED ? "Corrected" :
-+			__entry->severity == HW_EVENT_ERR_FATAL ?
-+			"Fatal" : "Uncorrected",
-+		__entry->severity == HW_EVENT_ERR_CORRECTED ?
-+		__print_flags(__entry->status, "|", aer_correctable_errors) :
-+		__print_flags(__entry->status, "|", aer_uncorrectable_errors))
-+);
-+
-+#endif /* _TRACE_AER_H */
-+
-+/* This part must be outside protection */
-+#include <trace/define_trace.h>
+diff --git a/drivers/pci/pcie/aer/aerdrv_errprint.c b/drivers/pci/pcie/aer/aerdrv_errprint.c
+index d3e5fc5..5ab1425 100644
+--- a/drivers/pci/pcie/aer/aerdrv_errprint.c
++++ b/drivers/pci/pcie/aer/aerdrv_errprint.c
+@@ -124,12 +124,11 @@ static const char *aer_agent_string[] = {
+ 	"Transmitter ID"
+ };
+ 
+-static void __aer_print_error(const char *prefix,
++static void __aer_print_error(struct pci_dev *dev,
+ 			      struct aer_err_info *info)
+ {
+ 	int i, status;
+ 	const char *errmsg = NULL;
+-
+ 	status = (info->status & ~info->mask);
+ 
+ 	for (i = 0; i < 32; i++) {
+@@ -144,26 +143,22 @@ static void __aer_print_error(const char *prefix,
+ 				aer_uncorrectable_error_string[i] : NULL;
+ 
+ 		if (errmsg)
+-			printk("%s""   [%2d] %-22s%s\n", prefix, i, errmsg,
++			dev_err(&dev->dev, "   [%2d] %-22s%s\n", i, errmsg,
+ 				info->first_error == i ? " (First)" : "");
+ 		else
+-			printk("%s""   [%2d] Unknown Error Bit%s\n", prefix, i,
+-				info->first_error == i ? " (First)" : "");
++			dev_err(&dev->dev, "   [%2d] Unknown Error Bit%s\n",
++				i, info->first_error == i ? " (First)" : "");
+ 	}
+ }
+ 
+ void aer_print_error(struct pci_dev *dev, struct aer_err_info *info)
+ {
+ 	int id = ((dev->bus->number << 8) | dev->devfn);
+-	char prefix[44];
+-
+-	snprintf(prefix, sizeof(prefix), "%s%s %s: ",
+-		 (info->severity == AER_CORRECTABLE) ? KERN_WARNING : KERN_ERR,
+-		 dev_driver_string(&dev->dev), dev_name(&dev->dev));
+ 
+ 	if (info->status == 0) {
+-		printk("%s""PCIe Bus Error: severity=%s, type=Unaccessible, "
+-			"id=%04x(Unregistered Agent ID)\n", prefix,
++		dev_err(&dev->dev,
++			"PCIe Bus Error: severity=%s, type=Unaccessible, "
++			"id=%04x(Unregistered Agent ID)\n",
+ 			aer_error_severity_string[info->severity], id);
+ 	} else {
+ 		int layer, agent;
+@@ -171,22 +166,24 @@ void aer_print_error(struct pci_dev *dev, struct aer_err_info *info)
+ 		layer = AER_GET_LAYER_ERROR(info->severity, info->status);
+ 		agent = AER_GET_AGENT(info->severity, info->status);
+ 
+-		printk("%s""PCIe Bus Error: severity=%s, type=%s, id=%04x(%s)\n",
+-			prefix, aer_error_severity_string[info->severity],
++		dev_err(&dev->dev,
++			"PCIe Bus Error: severity=%s, type=%s, id=%04x(%s)\n",
++			aer_error_severity_string[info->severity],
+ 			aer_error_layer[layer], id, aer_agent_string[agent]);
+ 
+-		printk("%s""  device [%04x:%04x] error status/mask=%08x/%08x\n",
+-			prefix, dev->vendor, dev->device,
++		dev_err(&dev->dev,
++			"  device [%04x:%04x] error status/mask=%08x/%08x\n",
++			dev->vendor, dev->device,
+ 			info->status, info->mask);
+ 
+-		__aer_print_error(prefix, info);
++		__aer_print_error(dev, info);
+ 
+ 		if (info->tlp_header_valid) {
+ 			unsigned char *tlp = (unsigned char *) &info->tlp;
+-			printk("%s""  TLP Header:"
++			dev_err(&dev->dev, "  TLP Header:"
+ 				" %02x%02x%02x%02x %02x%02x%02x%02x"
+ 				" %02x%02x%02x%02x %02x%02x%02x%02x\n",
+-				prefix, *(tlp + 3), *(tlp + 2), *(tlp + 1), *tlp,
++				*(tlp + 3), *(tlp + 2), *(tlp + 1), *tlp,
+ 				*(tlp + 7), *(tlp + 6), *(tlp + 5), *(tlp + 4),
+ 				*(tlp + 11), *(tlp + 10), *(tlp + 9),
+ 				*(tlp + 8), *(tlp + 15), *(tlp + 14),
+@@ -195,8 +192,9 @@ void aer_print_error(struct pci_dev *dev, struct aer_err_info *info)
+ 	}
+ 
+ 	if (info->id && info->error_dev_num > 1 && info->id == id)
+-		printk("%s""  Error of this Agent(%04x) is reported first\n",
+-			prefix, id);
++		dev_err(&dev->dev,
++			   "  Error of this Agent(%04x) is reported first\n",
++			id);
+ 	trace_aer_event(dev_name(&dev->dev), (info->status & ~info->mask),
+ 			info->severity);
+ }
+@@ -244,21 +242,21 @@ void cper_print_aer(const char *prefix, struct pci_dev *dev, int cper_severity,
+ 	}
+ 	layer = AER_GET_LAYER_ERROR(aer_severity, status);
+ 	agent = AER_GET_AGENT(aer_severity, status);
+-	printk("%s""aer_status: 0x%08x, aer_mask: 0x%08x\n",
+-	       prefix, status, mask);
++	dev_err(&dev->dev, "aer_status: 0x%08x, aer_mask: 0x%08x\n",
++	       status, mask);
+ 	cper_print_bits(prefix, status, status_strs, status_strs_size);
+-	printk("%s""aer_layer=%s, aer_agent=%s\n", prefix,
++	dev_err(&dev->dev, "aer_layer=%s, aer_agent=%s\n",
+ 	       aer_error_layer[layer], aer_agent_string[agent]);
+ 	if (aer_severity != AER_CORRECTABLE)
+-		printk("%s""aer_uncor_severity: 0x%08x\n",
+-		       prefix, aer->uncor_severity);
++		dev_err(&dev->dev, "aer_uncor_severity: 0x%08x\n",
++		       aer->uncor_severity);
+ 	if (tlp_header_valid) {
+ 		const unsigned char *tlp;
+ 		tlp = (const unsigned char *)&aer->header_log;
+-		printk("%s""aer_tlp_header:"
++		dev_err(&dev->dev, "aer_tlp_header:"
+ 			" %02x%02x%02x%02x %02x%02x%02x%02x"
+ 			" %02x%02x%02x%02x %02x%02x%02x%02x\n",
+-			prefix, *(tlp + 3), *(tlp + 2), *(tlp + 1), *tlp,
++			*(tlp + 3), *(tlp + 2), *(tlp + 1), *tlp,
+ 			*(tlp + 7), *(tlp + 6), *(tlp + 5), *(tlp + 4),
+ 			*(tlp + 11), *(tlp + 10), *(tlp + 9),
+ 			*(tlp + 8), *(tlp + 15), *(tlp + 14),
