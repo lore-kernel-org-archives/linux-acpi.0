@@ -1,63 +1,189 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 0/12] ACPI: Rework the handling of power resources
-Date: Fri, 04 Jan 2013 00:16:48 +0100
-Message-ID: <1418767.4KIZOTK1lk@vostro.rjw.lan>
+Subject: [PATCH 7/12] ACPI / PM: Take order attribute of wakeup power resources into account
+Date: Fri, 04 Jan 2013 01:06:18 +0100
+Message-ID: <2549581.i2np0zGKZs@vostro.rjw.lan>
+References: <1418767.4KIZOTK1lk@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1418767.4KIZOTK1lk@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
 To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi All,
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-There are some problems with our handling of ACPI power resources that have
-accumulated over time or have never been addressed.
+ACPI power resources have an order attribute that should be taken
+into account when turning them on and off, but it is not used now.
 
-First of all, the interface represented by
-acpi_power_resource_[un]register_device() doesn't really work as it should,
-so it needs to be redesigned (details in the changelog of patch [1/12]).
+Modify the power resources management code to preserve the
+spec-compliant ordering of wakeup power resources.
 
-Second, power resources really have to be treated in a special way by the
-ACPI namespace scanning code, because they may need to be ready to use as
-soon as they are discovered.  Moreover, the are represented by struct
-acpi_device objects, so that they appear in sysfs along with "regular" ACPI
-device nodes, they really don't represent devices, so they need special
-configuration treatment in some cases.  This special casing is obnoxiously
-present in scan.c, but if we accept the fact that power resources really are
-a special case, things can be simplified quite a bit (patch [3/12] with some
-preparations in [2/12]).
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/power.c    |   44 ++++++++++++++++----------------------------
+ drivers/acpi/scan.c     |   24 ++++++++++++++----------
+ include/acpi/acpi_bus.h |    2 +-
+ 3 files changed, 31 insertions(+), 39 deletions(-)
 
-If the above changes are made, then it turns out that the entire
-acpi_power_driver structure is not necessary any more and we don't need the
-device power states of power resources for anything (patches [4-5/12]).
-
-Moreover, ACPI power resources are supposed to be ordered.  Namely, they have
-an attribute defining the order in which they are supposed to turned on and
-off.  Currently, though, we don't take that attribute into accound, although
-we obviously should do that.  After the previous changes that may be
-implemented at a relatively low cost (patch [6-7/12]).
-
-Patches [8-9/12] move code around and clean it up in preparation for patch
-[10/12], which consolidates the way in which power resources lists are
-extracted from the output of _PRW and _PR[0-3].
-
-Patch [11/12] improves the handling of power resource initialization errors
-and patch [12/12] causes the system level attribute of wakeup power resources
-to be taken into account during device setup.
-
-All patches are on top of the git branch at:
-
-git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
-
-Tested on HP nx6325 (and other boxes where ACPI power resources aren't used).
-
-Thanks,
-Rafael
-
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Index: linux/include/acpi/acpi_bus.h
+===================================================================
+--- linux.orig/include/acpi/acpi_bus.h
++++ linux/include/acpi/acpi_bus.h
+@@ -244,7 +244,7 @@ struct acpi_device_wakeup {
+ 	acpi_handle gpe_device;
+ 	u64 gpe_number;
+ 	u64 sleep_state;
+-	struct acpi_handle_list resources;
++	struct list_head resources;
+ 	struct acpi_device_wakeup_flags flags;
+ 	int prepare_count;
+ };
+Index: linux/drivers/acpi/scan.c
+===================================================================
+--- linux.orig/drivers/acpi/scan.c
++++ linux/drivers/acpi/scan.c
+@@ -485,6 +485,7 @@ static void acpi_free_power_resources_li
+ {
+ 	int i;
+ 
++	acpi_power_resources_list_free(&device->wakeup.resources);
+ 	if (!device->flags.power_manageable)
+ 		return;
+ 
+@@ -908,6 +909,8 @@ acpi_bus_extract_wakeup_device_power_pac
+ 	if (!wakeup)
+ 		return AE_BAD_PARAMETER;
+ 
++	INIT_LIST_HEAD(&wakeup->resources);
++
+ 	/* _PRW */
+ 	status = acpi_evaluate_object(handle, "_PRW", NULL, &buffer);
+ 	if (ACPI_FAILURE(status)) {
+@@ -954,19 +957,17 @@ acpi_bus_extract_wakeup_device_power_pac
+ 	}
+ 	wakeup->sleep_state = element->integer.value;
+ 
+-	if ((package->package.count - 2) > ACPI_MAX_HANDLES) {
+-		status = AE_NO_MEMORY;
+-		goto out;
+-	}
+-	wakeup->resources.count = package->package.count - 2;
+-	for (i = 0; i < wakeup->resources.count; i++) {
+-		element = &(package->package.elements[i + 2]);
++	for (i = 2; i < package->package.count; i++) {
++		acpi_handle rhandle;
++
++		element = &(package->package.elements[i]);
+ 		if (element->type != ACPI_TYPE_LOCAL_REFERENCE) {
+ 			status = AE_BAD_DATA;
+ 			goto out;
+ 		}
+-
+-		wakeup->resources.handles[i] = element->reference.handle;
++		rhandle = element->reference.handle;
++		acpi_add_power_resource(rhandle);
++		acpi_power_resources_list_add(rhandle, &wakeup->resources);
+ 	}
+ 
+ 	acpi_setup_gpe_for_wake(handle, wakeup->gpe_device, wakeup->gpe_number);
+@@ -1024,6 +1025,7 @@ static void acpi_bus_get_wakeup_device_f
+ 	status = acpi_bus_extract_wakeup_device_power_package(device->handle,
+ 							      &device->wakeup);
+ 	if (ACPI_FAILURE(status)) {
++		acpi_power_resources_list_free(&device->wakeup.resources);
+ 		ACPI_EXCEPTION((AE_INFO, status, "Extracting _PRW package"));
+ 		return;
+ 	}
+@@ -1513,9 +1515,11 @@ static acpi_status acpi_bus_check_add(ac
+ 		acpi_handle temp;
+ 
+ 		status = acpi_get_handle(handle, "_PRW", &temp);
+-		if (ACPI_SUCCESS(status))
++		if (ACPI_SUCCESS(status)) {
+ 			acpi_bus_extract_wakeup_device_power_package(handle,
+ 								     &wakeup);
++			acpi_power_resources_list_free(&wakeup.resources);
++		}
+ 		return AE_CTRL_DEPTH;
+ 	}
+ 
+Index: linux/drivers/acpi/power.c
+===================================================================
+--- linux.orig/drivers/acpi/power.c
++++ linux/drivers/acpi/power.c
+@@ -469,7 +469,7 @@ int acpi_device_sleep_wake(struct acpi_d
+  */
+ int acpi_enable_wakeup_device_power(struct acpi_device *dev, int sleep_state)
+ {
+-	int i, err = 0;
++	int err = 0;
+ 
+ 	if (!dev || !dev->wakeup.flags.valid)
+ 		return -EINVAL;
+@@ -479,24 +479,17 @@ int acpi_enable_wakeup_device_power(stru
+ 	if (dev->wakeup.prepare_count++)
+ 		goto out;
+ 
+-	/* Open power resource */
+-	for (i = 0; i < dev->wakeup.resources.count; i++) {
+-		int ret = acpi_power_on(dev->wakeup.resources.handles[i]);
+-		if (ret) {
+-			printk(KERN_ERR PREFIX "Transition power state\n");
+-			dev->wakeup.flags.valid = 0;
+-			err = -ENODEV;
+-			goto err_out;
+-		}
++	err = acpi_power_on_list(&dev->wakeup.resources);
++	if (err) {
++		dev_err(&dev->dev, "Cannot turn wakeup power resources on\n");
++		dev->wakeup.flags.valid = 0;
++	} else {
++		/*
++		 * Passing 3 as the third argument below means the device may be
++		 * put into arbitrary power state afterward.
++		 */
++		err = acpi_device_sleep_wake(dev, 1, sleep_state, 3);
+ 	}
+-
+-	/*
+-	 * Passing 3 as the third argument below means the device may be placed
+-	 * in arbitrary power state afterwards.
+-	 */
+-	err = acpi_device_sleep_wake(dev, 1, sleep_state, 3);
+-
+- err_out:
+ 	if (err)
+ 		dev->wakeup.prepare_count = 0;
+ 
+@@ -513,7 +506,7 @@ int acpi_enable_wakeup_device_power(stru
+  */
+ int acpi_disable_wakeup_device_power(struct acpi_device *dev)
+ {
+-	int i, err = 0;
++	int err = 0;
+ 
+ 	if (!dev || !dev->wakeup.flags.valid)
+ 		return -EINVAL;
+@@ -534,15 +527,10 @@ int acpi_disable_wakeup_device_power(str
+ 	if (err)
+ 		goto out;
+ 
+-	/* Close power resource */
+-	for (i = 0; i < dev->wakeup.resources.count; i++) {
+-		int ret = acpi_power_off(dev->wakeup.resources.handles[i]);
+-		if (ret) {
+-			printk(KERN_ERR PREFIX "Transition power state\n");
+-			dev->wakeup.flags.valid = 0;
+-			err = -ENODEV;
+-			goto out;
+-		}
++	err = acpi_power_off_list(&dev->wakeup.resources);
++	if (err) {
++		dev_err(&dev->dev, "Cannot turn wakeup power resources off\n");
++		dev->wakeup.flags.valid = 0;
+ 	}
+ 
+  out:
